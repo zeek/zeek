@@ -199,9 +199,9 @@ VectorVal* TopkVal::GetTopK(int k) const // returns vector
 		return 0;
 		}
 
-	TypeList* vector_index = new TypeList({NewRef{}, type});
+	auto vector_index = make_intrusive<TypeList>(IntrusivePtr{NewRef{}, type});
 	vector_index->Append({NewRef{}, type});
-	VectorType* v = new VectorType(vector_index);
+	VectorType* v = new VectorType(std::move(vector_index));
 	VectorVal* t = new VectorVal(v);
 
 	// this does no estimation if the results is correct!

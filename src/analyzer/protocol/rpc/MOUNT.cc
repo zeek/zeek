@@ -271,7 +271,7 @@ RecordVal* MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& n,
 			auth_flavors_count = max_auth_flavors;
 			}
 
-		VectorType* enum_vector = new VectorType(base_type(TYPE_ENUM));
+		VectorType* enum_vector = new VectorType({AdoptRef{}, base_type(TYPE_ENUM)});
 		VectorVal* auth_flavors = new VectorVal(enum_vector);
 		Unref(enum_vector);
 

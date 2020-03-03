@@ -158,7 +158,7 @@ void Manager::InitPostScript()
 	opaque_of_vector_iterator = new OpaqueType("Broker::VectorIterator");
 	opaque_of_record_iterator = new OpaqueType("Broker::RecordIterator");
 	opaque_of_store_handle = new OpaqueType("Broker::Store");
-	vector_of_data_type = new VectorType(internal_type("Broker::Data")->Ref());
+	vector_of_data_type = new VectorType({NewRef{}, internal_type("Broker::Data")});
 
 	// Register as a "dont-count" source first, we may change that later.
 	iosource_mgr->Register(this, true);

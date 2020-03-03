@@ -2396,7 +2396,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 		{
 		// all entries have to have the same type...
 		BroType* type = request_type->AsVectorType()->YieldType();
-		VectorType* vt = new VectorType(type->Ref());
+		VectorType* vt = new VectorType({NewRef{}, type});
 		VectorVal* v = new VectorVal(vt);
 		for ( int j = 0; j < val->val.vector_val.size; j++ )
 			{
@@ -2589,7 +2589,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 				type = base_type(val->subtype);
 			}
 
-		VectorType* vt = new VectorType(type->Ref());
+		VectorType* vt = new VectorType({NewRef{}, type});
 		VectorVal* v = new VectorVal(vt);
 		for ( int j = 0; j < val->val.vector_val.size; j++ )
 			{

@@ -1287,23 +1287,17 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 		}
 	}
 
-VectorType::VectorType(BroType* element_type)
-    : BroType(TYPE_VECTOR), yield_type(element_type)
+VectorType::VectorType(IntrusivePtr<BroType> element_type)
+: BroType(TYPE_VECTOR), yield_type(std::move(element_type))
 	{
 	}
 
 VectorType* VectorType::ShallowClone()
 	{
-	if ( yield_type )
-		yield_type->Ref();
-
 	return new VectorType(yield_type);
 	}
 
-VectorType::~VectorType()
-	{
-	Unref(yield_type);
-	}
+VectorType::~VectorType() = default;
 
 BroType* VectorType::YieldType()
 	{
@@ -1319,7 +1313,7 @@ BroType* VectorType::YieldType()
 		return ret;
 		}
 
-	return yield_type;
+	return yield_type.get();
 	}
 
 const BroType* VectorType::YieldType() const
@@ -1336,7 +1330,7 @@ const BroType* VectorType::YieldType() const
 		return ret;
 		}
 
-	return yield_type;
+	return yield_type.get();
 	}
 
 int VectorType::MatchesIndex(ListExpr* const index) const
@@ -1924,7 +1918,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 			return 0;
 			}
 
-		return new VectorType(merge_types(t1->YieldType(), t2->YieldType()));
+		return new VectorType({AdoptRef{}, merge_types(t1->YieldType(), t2->YieldType())});
 
 	case TYPE_FILE:
 		if ( ! same_type(t1->YieldType(), t2->YieldType()) )

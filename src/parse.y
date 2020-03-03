@@ -967,7 +967,7 @@ type:
 	|	TOK_VECTOR TOK_OF type
 				{
 				set_location(@1, @3);
-				$$ = new VectorType($3);
+				$$ = new VectorType({AdoptRef{}, $3});
 				}
 
 	|	TOK_FUNCTION func_params

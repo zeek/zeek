@@ -651,7 +651,7 @@ protected:
 
 class VectorType : public BroType {
 public:
-	explicit VectorType(BroType* t);
+	explicit VectorType(IntrusivePtr<BroType> t);
 	VectorType* ShallowClone() override;
 	~VectorType() override;
 	BroType* YieldType() override;
@@ -667,9 +667,7 @@ public:
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
 protected:
-	VectorType()	{ yield_type = 0; }
-
-	BroType* yield_type;
+	IntrusivePtr<BroType> yield_type;
 };
 
 extern OpaqueType* md5_type;

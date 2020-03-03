@@ -106,7 +106,7 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 		t = init_type(init.get());
 		if ( ! t )
 			{
-			id->SetType({AdoptRef{}, error_type()});
+			id->SetType(error_type());
 			return;
 			}
 		}

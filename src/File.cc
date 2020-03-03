@@ -57,7 +57,7 @@ BroFile::BroFile(FILE* arg_f)
 	Init();
 	f = arg_f;
 	name = access = 0;
-	t = base_type(TYPE_STRING);
+	t = base_type(TYPE_STRING).release();
 	is_open = (f != 0);
 	}
 
@@ -67,7 +67,7 @@ BroFile::BroFile(FILE* arg_f, const char* arg_name, const char* arg_access)
 	f = arg_f;
 	name = copy_string(arg_name);
 	access = copy_string(arg_access);
-	t = base_type(TYPE_STRING);
+	t = base_type(TYPE_STRING).release();
 	is_open = (f != 0);
 	}
 
@@ -77,7 +77,7 @@ BroFile::BroFile(const char* arg_name, const char* arg_access, BroType* arg_t)
 	f = 0;
 	name = copy_string(arg_name);
 	access = copy_string(arg_access);
-	t = arg_t ? arg_t : base_type(TYPE_STRING);
+	t = arg_t ? arg_t : base_type(TYPE_STRING).release();
 
 	if ( streq(name, "/dev/stdin") )
 		f = stdin;

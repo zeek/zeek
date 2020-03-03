@@ -702,7 +702,7 @@ expr:
 				if ( ! id->Type() )
 					{
 					id->Error("undeclared variable");
-					id->SetType({AdoptRef{}, error_type()});
+					id->SetType(error_type());
 					$$ = new NameExpr(std::move(id));
 					}
 
@@ -844,72 +844,72 @@ enum_body_elem:
 type:
 		TOK_BOOL	{
 				set_location(@1);
-				$$ = base_type(TYPE_BOOL);
+				$$ = base_type(TYPE_BOOL).release();
 				}
 
 	|	TOK_INT		{
 				set_location(@1);
-				$$ = base_type(TYPE_INT);
+				$$ = base_type(TYPE_INT).release();
 				}
 
 	|	TOK_COUNT	{
 				set_location(@1);
-				$$ = base_type(TYPE_COUNT);
+				$$ = base_type(TYPE_COUNT).release();
 				}
 
 	|	TOK_COUNTER	{
 				set_location(@1);
-				$$ = base_type(TYPE_COUNTER);
+				$$ = base_type(TYPE_COUNTER).release();
 				}
 
 	|	TOK_DOUBLE	{
 				set_location(@1);
-				$$ = base_type(TYPE_DOUBLE);
+				$$ = base_type(TYPE_DOUBLE).release();
 				}
 
 	|	TOK_TIME	{
 				set_location(@1);
-				$$ = base_type(TYPE_TIME);
+				$$ = base_type(TYPE_TIME).release();
 				}
 
 	|	TOK_INTERVAL	{
 				set_location(@1);
-				$$ = base_type(TYPE_INTERVAL);
+				$$ = base_type(TYPE_INTERVAL).release();
 				}
 
 	|	TOK_STRING	{
 				set_location(@1);
-				$$ = base_type(TYPE_STRING);
+				$$ = base_type(TYPE_STRING).release();
 				}
 
 	|	TOK_PATTERN	{
 				set_location(@1);
-				$$ = base_type(TYPE_PATTERN);
+				$$ = base_type(TYPE_PATTERN).release();
 				}
 
 	|	TOK_TIMER	{
 				set_location(@1);
-				$$ = base_type(TYPE_TIMER);
+				$$ = base_type(TYPE_TIMER).release();
 				}
 
 	|	TOK_PORT	{
 				set_location(@1);
-				$$ = base_type(TYPE_PORT);
+				$$ = base_type(TYPE_PORT).release();
 				}
 
 	|	TOK_ADDR	{
 				set_location(@1);
-				$$ = base_type(TYPE_ADDR);
+				$$ = base_type(TYPE_ADDR).release();
 				}
 
 	|	TOK_SUBNET	{
 				set_location(@1);
-				$$ = base_type(TYPE_SUBNET);
+				$$ = base_type(TYPE_SUBNET).release();
 				}
 
 	|	TOK_ANY		{
 				set_location(@1);
-				$$ = base_type(TYPE_ANY);
+				$$ = base_type(TYPE_ANY).release();
 				}
 
 	|	TOK_TABLE '[' type_list ']' TOK_OF type
@@ -985,7 +985,7 @@ type:
 	|	TOK_HOOK '(' formal_args ')'
 				{
 				set_location(@1, @3);
-				$$ = new FuncType({AdoptRef{}, $3}, {AdoptRef{}, base_type(TYPE_BOOL)}, FUNC_FLAVOR_HOOK);
+				$$ = new FuncType({AdoptRef{}, $3}, base_type(TYPE_BOOL), FUNC_FLAVOR_HOOK);
 				}
 
 	|	TOK_FILE TOK_OF type
@@ -997,7 +997,7 @@ type:
 	|	TOK_FILE
 				{
 				set_location(@1);
-				$$ = new FileType({AdoptRef{}, base_type(TYPE_STRING)});
+				$$ = new FileType(base_type(TYPE_STRING));
 				}
 
 	|	TOK_OPAQUE TOK_OF TOK_ID
@@ -1013,7 +1013,7 @@ type:
 				NullStmt here;
 				if ( $1 )
 					$1->Error("not a Zeek type", &here);
-				$$ = error_type();
+				$$ = error_type().release();
 				}
 			else
 				{
@@ -1204,7 +1204,7 @@ func_hdr:
 	|	TOK_HOOK def_global_id func_params opt_attr
 			{
 			$3->ClearYieldType(FUNC_FLAVOR_HOOK);
-			$3->SetYieldType({AdoptRef{}, base_type(TYPE_BOOL)});
+			$3->SetYieldType(base_type(TYPE_BOOL));
 			begin_func($2, current_module.c_str(),
 				   FUNC_FLAVOR_HOOK, 0, {NewRef{}, $3}, $4);
 			$$ = $3;
@@ -1280,7 +1280,7 @@ func_params:
 		'(' formal_args ')' ':' type
 			{ $$ = new FuncType({AdoptRef{}, $2}, {AdoptRef{}, $5}, FUNC_FLAVOR_FUNCTION); }
 	|	'(' formal_args ')'
-			{ $$ = new FuncType({AdoptRef{}, $2}, {AdoptRef{}, base_type(TYPE_VOID)}, FUNC_FLAVOR_FUNCTION); }
+			{ $$ = new FuncType({AdoptRef{}, $2}, base_type(TYPE_VOID), FUNC_FLAVOR_FUNCTION); }
 	;
 
 opt_type:

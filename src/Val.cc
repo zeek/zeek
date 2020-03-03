@@ -49,7 +49,7 @@ static FileType* GetStringFileType() noexcept
 	{
 	static FileType* string_file_type = 0;
 	if ( ! string_file_type )
-		string_file_type = new FileType({AdoptRef{}, base_type(TYPE_STRING)});
+		string_file_type = new FileType(base_type(TYPE_STRING));
 	return string_file_type;
 	}
 
@@ -1125,7 +1125,7 @@ IntrusivePtr<Val> StringVal::DoClone(CloneState* state)
 	                      val.string_val->Len(), 1)));
 	}
 
-PatternVal::PatternVal(RE_Matcher* re) : Val(base_type(TYPE_PATTERN))
+PatternVal::PatternVal(RE_Matcher* re) : Val(base_type(TYPE_PATTERN).release())
 	{
 	val.re_val = re;
 	}
@@ -1185,7 +1185,7 @@ IntrusivePtr<Val> PatternVal::DoClone(CloneState* state)
 	}
 
 ListVal::ListVal(TypeTag t)
-: Val(new TypeList({NewRef{}, t == TYPE_ANY ? 0 : base_type_no_ref(t)}))
+: Val(new TypeList(t == TYPE_ANY ? nullptr : base_type(t)))
 	{
 	tag = t;
 	}
@@ -1235,7 +1235,7 @@ TableVal* ListVal::ConvertToSet() const
 		Internal("conversion of heterogeneous list to set");
 
 	auto set_index = make_intrusive<TypeList>(IntrusivePtr{NewRef{}, type->AsTypeList()->PureType()});
-	set_index->Append({AdoptRef{}, base_type(tag)});
+	set_index->Append(base_type(tag));
 	auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
 	TableVal* t = new TableVal(std::move(s));
 

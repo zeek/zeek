@@ -38,7 +38,7 @@
 
 	VectorVal* create_vector_of_count()
 		{
-		VectorType* vt = new VectorType({AdoptRef{}, base_type(TYPE_COUNT)});
+		VectorType* vt = new VectorType(base_type(TYPE_COUNT));
 		VectorVal* vv = new VectorVal(vt);
 		Unref(vt);
 		return vv;

@@ -1114,7 +1114,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 
 		BroType* t = (*loop_vars)[0]->Type();
 		if ( ! t )
-			add_local({NewRef{}, (*loop_vars)[0]}, {AdoptRef{}, base_type(TYPE_COUNT)},
+			add_local({NewRef{}, (*loop_vars)[0]}, base_type(TYPE_COUNT),
 						INIT_NONE, 0, 0, VAR_REGULAR);
 
 		else if ( ! IsIntegral(t->Tag()) )
@@ -1135,7 +1135,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 		BroType* t = (*loop_vars)[0]->Type();
 		if ( ! t )
 			add_local({NewRef{}, (*loop_vars)[0]},
-					{AdoptRef{}, base_type(TYPE_STRING)},
+					base_type(TYPE_STRING),
 					INIT_NONE, 0, 0, VAR_REGULAR);
 
 		else if ( t->Tag() != TYPE_STRING )

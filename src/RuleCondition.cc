@@ -146,7 +146,7 @@ RuleConditionEval::RuleConditionEval(const char* func)
 
 		TypeList tl;
 		tl.Append({NewRef{}, internal_type("signature_state")});
-		tl.Append({AdoptRef{}, base_type(TYPE_STRING)});
+		tl.Append(base_type(TYPE_STRING));
 
 		if ( ! f->CheckArgs(tl.Types()) )
 			rules_error("eval function parameters must be a 'signature_state' "

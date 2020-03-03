@@ -314,7 +314,7 @@ TraversalCode ID::Traverse(TraversalCallback* cb) const
 void ID::Error(const char* msg, const BroObj* o2)
 	{
 	BroObj::Error(msg, o2, 1);
-	SetType({AdoptRef{}, error_type()});
+	SetType(error_type());
 	}
 
 void ID::Describe(ODesc* d) const

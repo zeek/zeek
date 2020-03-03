@@ -2555,7 +2555,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 				index_type = {NewRef{}, enum_id->Type()->AsEnumType()};
 				}
 			else
-				index_type = {NewRef{}, base_type_no_ref(stag)};
+				index_type = base_type(stag);
 
 			set_index = make_intrusive<TypeList>(index_type);
 			set_index->Append(std::move(index_type));
@@ -2579,14 +2579,14 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 		BroType* type;
 		if ( val->val.vector_val.size == 0  && val->subtype == TYPE_VOID )
 			// don't know type - unspecified table.
-			type = base_type(TYPE_ANY);
+			type = base_type(TYPE_ANY).release();
 		else
 			{
 			// all entries have to have the same type...
 			if ( val->subtype == TYPE_VOID )
-				type = base_type(val->val.vector_val.vals[0]->type);
+				type = base_type(val->val.vector_val.vals[0]->type).release();
 			else
-				type = base_type(val->subtype);
+				type = base_type(val->subtype).release();
 			}
 
 		VectorType* vt = new VectorType({NewRef{}, type});

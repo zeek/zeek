@@ -134,7 +134,7 @@ bool Expr::IsError() const
 
 void Expr::SetError()
 	{
-	SetType({AdoptRef{}, error_type()});
+	SetType(error_type());
 	}
 
 void Expr::SetError(const char* msg)
@@ -879,9 +879,9 @@ void BinaryExpr::PromoteType(TypeTag t, bool is_vector)
 	PromoteOps(t);
 
 	if ( is_vector)
-		SetType(make_intrusive<VectorType>(IntrusivePtr{AdoptRef{}, base_type(t)}));
+		SetType(make_intrusive<VectorType>(base_type(t)));
 	else
-		SetType(IntrusivePtr{AdoptRef{}, base_type(t)});
+		SetType(base_type(t));
 	}
 
 CloneExpr::CloneExpr(IntrusivePtr<Expr> arg_op)
@@ -1015,7 +1015,7 @@ ComplementExpr::ComplementExpr(IntrusivePtr<Expr> arg_op)
 	if ( bt != TYPE_COUNT )
 		ExprError("requires \"count\" operand");
 	else
-		SetType({AdoptRef{}, base_type(TYPE_COUNT)});
+		SetType(base_type(TYPE_COUNT));
 	}
 
 IntrusivePtr<Val> ComplementExpr::Fold(Val* v) const
@@ -1035,7 +1035,7 @@ NotExpr::NotExpr(IntrusivePtr<Expr> arg_op)
 	if ( ! IsIntegral(bt) && bt != TYPE_BOOL )
 		ExprError("requires an integral or boolean operand");
 	else
-		SetType({AdoptRef{}, base_type(TYPE_BOOL)});
+		SetType(base_type(TYPE_BOOL));
 	}
 
 IntrusivePtr<Val> NotExpr::Fold(Val* v) const
@@ -1059,7 +1059,7 @@ PosExpr::PosExpr(IntrusivePtr<Expr> arg_op)
 
 	if ( IsIntegral(bt) )
 		// Promote count and counter to int.
-		base_result_type = {AdoptRef{}, base_type(TYPE_INT)};
+		base_result_type = base_type(TYPE_INT);
 	else if ( bt == TYPE_INTERVAL || bt == TYPE_DOUBLE )
 		base_result_type = {NewRef{}, t};
 	else
@@ -1097,7 +1097,7 @@ NegExpr::NegExpr(IntrusivePtr<Expr> arg_op)
 
 	if ( IsIntegral(bt) )
 		// Promote count and counter to int.
-		base_result_type = {AdoptRef{}, base_type(TYPE_INT)};
+		base_result_type = base_type(TYPE_INT);
 	else if ( bt == TYPE_INTERVAL || bt == TYPE_DOUBLE )
 		base_result_type = {NewRef{}, t};
 	else
@@ -1126,9 +1126,9 @@ SizeExpr::SizeExpr(IntrusivePtr<Expr> arg_op)
 		return;
 
 	if ( op->Type()->InternalType() == TYPE_INTERNAL_DOUBLE )
-		SetType({AdoptRef{}, base_type(TYPE_DOUBLE)});
+		SetType(base_type(TYPE_DOUBLE));
 	else
-		SetType({AdoptRef{}, base_type(TYPE_COUNT)});
+		SetType(base_type(TYPE_COUNT));
 	}
 
 IntrusivePtr<Val> SizeExpr::Eval(Frame* f) const
@@ -1165,15 +1165,15 @@ AddExpr::AddExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 	IntrusivePtr<BroType> base_result_type;
 
 	if ( bt1 == TYPE_TIME && bt2 == TYPE_INTERVAL )
-		base_result_type = {AdoptRef{}, base_type(bt1)};
+		base_result_type = base_type(bt1);
 	else if ( bt2 == TYPE_TIME && bt1 == TYPE_INTERVAL )
-		base_result_type = {AdoptRef{}, base_type(bt2)};
+		base_result_type = base_type(bt2);
 	else if ( bt1 == TYPE_INTERVAL && bt2 == TYPE_INTERVAL )
-		base_result_type = {AdoptRef{}, base_type(bt1)};
+		base_result_type = base_type(bt1);
 	else if ( BothArithmetic(bt1, bt2) )
 		PromoteType(max_type(bt1, bt2), is_vector(op1.get()) || is_vector(op2.get()));
 	else if ( BothString(bt1, bt2) )
-		base_result_type = {AdoptRef{}, base_type(bt1)};
+		base_result_type = base_type(bt1);
 	else
 		ExprError("requires arithmetic operands");
 
@@ -1209,9 +1209,9 @@ AddToExpr::AddToExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 	if ( BothArithmetic(bt1, bt2) )
 		PromoteType(max_type(bt1, bt2), is_vector(op1.get()) || is_vector(op2.get()));
 	else if ( BothString(bt1, bt2) )
-		SetType({AdoptRef{}, base_type(bt1)});
+		SetType(base_type(bt1));
 	else if ( BothInterval(bt1, bt2) )
-		SetType({AdoptRef{}, base_type(bt1)});
+		SetType(base_type(bt1));
 
 	else if ( IsVector(bt1) )
 		{
@@ -1296,13 +1296,13 @@ SubExpr::SubExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 	IntrusivePtr<BroType> base_result_type;
 
 	if ( bt1 == TYPE_TIME && bt2 == TYPE_INTERVAL )
-		base_result_type = {AdoptRef{}, base_type(bt1)};
+		base_result_type = base_type(bt1);
 
 	else if ( bt1 == TYPE_TIME && bt2 == TYPE_TIME )
-		SetType({AdoptRef{}, base_type(TYPE_INTERVAL)});
+		SetType(base_type(TYPE_INTERVAL));
 
 	else if ( bt1 == TYPE_INTERVAL && bt2 == TYPE_INTERVAL )
-		base_result_type = {AdoptRef{}, base_type(bt1)};
+		base_result_type = base_type(bt1);
 
 	else if ( t1->IsSet() && t2->IsSet() )
 		{
@@ -1340,7 +1340,7 @@ RemoveFromExpr::RemoveFromExpr(IntrusivePtr<Expr> arg_op1,
 	if ( BothArithmetic(bt1, bt2) )
 		PromoteType(max_type(bt1, bt2), is_vector(op1.get()) || is_vector(op2.get()));
 	else if ( BothInterval(bt1, bt2) )
-		SetType({AdoptRef{}, base_type(bt1)});
+		SetType(base_type(bt1));
 	else
 		ExprError("requires two arithmetic operands");
 	}
@@ -1430,9 +1430,9 @@ DivideExpr::DivideExpr(IntrusivePtr<Expr> arg_op1,
 		else if ( bt1 == TYPE_INTERVAL && bt2 == TYPE_INTERVAL )
 			{
 			if ( is_vector(op1.get()) || is_vector(op2.get()) )
-				SetType(make_intrusive<VectorType>(IntrusivePtr{AdoptRef{}, base_type(TYPE_DOUBLE)}));
+				SetType(make_intrusive<VectorType>(base_type(TYPE_DOUBLE)));
 			else
-				SetType({AdoptRef{}, base_type(TYPE_DOUBLE)});
+				SetType(base_type(TYPE_DOUBLE));
 			}
 		else
 			ExprError("division of interval requires arithmetic operand");
@@ -1443,7 +1443,7 @@ DivideExpr::DivideExpr(IntrusivePtr<Expr> arg_op1,
 
 	else if ( bt1 == TYPE_ADDR && ! is_vector(op2.get()) &&
 		  (bt2 == TYPE_COUNT || bt2 == TYPE_INT) )
-		SetType({AdoptRef{}, base_type(TYPE_SUBNET)});
+		SetType(base_type(TYPE_SUBNET));
 
 	else
 		ExprError("requires arithmetic operands");
@@ -1519,10 +1519,10 @@ BoolExpr::BoolExpr(BroExprTag arg_tag,
 			{
 			if ( ! (is_vector(op1.get()) && is_vector(op2.get())) )
 				reporter->Warning("mixing vector and scalar operands is deprecated");
-			SetType(make_intrusive<VectorType>(IntrusivePtr{AdoptRef{}, base_type(TYPE_BOOL)}));
+			SetType(make_intrusive<VectorType>(base_type(TYPE_BOOL)));
 			}
 		else
-			SetType({AdoptRef{}, base_type(TYPE_BOOL)});
+			SetType(base_type(TYPE_BOOL));
 		}
 	else
 		ExprError("requires boolean operands");
@@ -1669,9 +1669,9 @@ BitExpr::BitExpr(BroExprTag arg_tag,
 		if ( bt1 == TYPE_COUNTER && bt2 == TYPE_COUNTER )
 			ExprError("cannot apply a bitwise operator to two \"counter\" operands");
 		else if ( is_vector(op1.get()) || is_vector(op2.get()) )
-			SetType(make_intrusive<VectorType>(IntrusivePtr{AdoptRef{}, base_type(TYPE_COUNT)}));
+			SetType(make_intrusive<VectorType>(base_type(TYPE_COUNT)));
 		else
-			SetType({AdoptRef{}, base_type(TYPE_COUNT)});
+			SetType(base_type(TYPE_COUNT));
 		}
 
 	else if ( bt1 == TYPE_PATTERN )
@@ -1681,7 +1681,7 @@ BitExpr::BitExpr(BroExprTag arg_tag,
 		else if ( tag == EXPR_XOR )
 			ExprError("'^' operator does not apply to patterns");
 		else
-			SetType({AdoptRef{}, base_type(TYPE_PATTERN)});
+			SetType(base_type(TYPE_PATTERN));
 		}
 
 	else if ( t1->IsSet() && t2->IsSet() )
@@ -1717,9 +1717,9 @@ EqExpr::EqExpr(BroExprTag arg_tag,
 		bt2 = t2->AsVectorType()->YieldType()->Tag();
 
 	if ( is_vector(op1.get()) || is_vector(op2.get()) )
-		SetType(make_intrusive<VectorType>(IntrusivePtr{AdoptRef{}, base_type(TYPE_BOOL)}));
+		SetType(make_intrusive<VectorType>(base_type(TYPE_BOOL)));
 	else
-		SetType({AdoptRef{}, base_type(TYPE_BOOL)});
+		SetType(base_type(TYPE_BOOL));
 
 	if ( BothArithmetic(bt1, bt2) )
 		PromoteOps(max_type(bt1, bt2));
@@ -1819,9 +1819,9 @@ RelExpr::RelExpr(BroExprTag arg_tag,
 		bt2 = t2->AsVectorType()->YieldType()->Tag();
 
 	if ( is_vector(op1.get()) || is_vector(op2.get()) )
-		SetType(make_intrusive<VectorType>(IntrusivePtr{AdoptRef{}, base_type(TYPE_BOOL)}));
+		SetType(make_intrusive<VectorType>(base_type(TYPE_BOOL)));
 	else
-		SetType({AdoptRef{}, base_type(TYPE_BOOL)});
+		SetType(base_type(TYPE_BOOL));
 
 	if ( BothArithmetic(bt1, bt2) )
 		PromoteOps(max_type(bt1, bt2));
@@ -1899,9 +1899,9 @@ CondExpr::CondExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2,
 				op3 = make_intrusive<ArithCoerceExpr>(std::move(op3), t);
 
 			if ( is_vector(op2.get()) )
-				SetType(make_intrusive<VectorType>(IntrusivePtr{AdoptRef{}, base_type(t)}));
+				SetType(make_intrusive<VectorType>(base_type(t)));
 			else
-				SetType({AdoptRef{}, base_type(t)});
+				SetType(base_type(t));
 			}
 
 		else if ( bt2 != bt3 )
@@ -2511,13 +2511,13 @@ IndexExpr::IndexExpr(IntrusivePtr<Expr> arg_op1,
 	else if ( ! op1->Type()->YieldType() )
 		{
 		if ( IsString(op1->Type()->Tag()) && match_type == MATCHES_INDEX_SCALAR )
-			SetType({AdoptRef{}, base_type(TYPE_STRING)});
+			SetType(base_type(TYPE_STRING));
 		else
 			// It's a set - so indexing it yields void.  We don't
 			// directly generate an error message, though, since this
 			// expression might be part of an add/delete statement,
 			// rather than yielding a value.
-			SetType({AdoptRef{}, base_type(TYPE_VOID)});
+			SetType(base_type(TYPE_VOID));
 		}
 
 	else if ( match_type == MATCHES_INDEX_SCALAR )
@@ -2982,7 +2982,7 @@ HasFieldExpr::HasFieldExpr(IntrusivePtr<Expr> arg_op,
 		else if ( rt->IsFieldDeprecated(field) )
 			reporter->Warning("%s", rt->GetFieldDeprecationWarning(field, true).c_str());
 
-		SetType({AdoptRef{}, base_type(TYPE_BOOL)});
+		SetType(base_type(TYPE_BOOL));
 		}
 	}
 
@@ -3109,7 +3109,7 @@ TableConstructorExpr::TableConstructorExpr(IntrusivePtr<ListExpr> constructor_li
 	else
 		{
 		if ( op->AsListExpr()->Exprs().empty() )
-			SetType(make_intrusive<TableType>(make_intrusive<TypeList>(IntrusivePtr{AdoptRef{}, base_type(TYPE_ANY)}), nullptr));
+			SetType(make_intrusive<TableType>(make_intrusive<TypeList>(base_type(TYPE_ANY)), nullptr));
 		else
 			{
 			SetType(init_type(op.get()));
@@ -3223,7 +3223,7 @@ SetConstructorExpr::SetConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
 	else
 		{
 		if ( op->AsListExpr()->Exprs().empty() )
-			SetType(make_intrusive<::SetType>(make_intrusive<TypeList>(IntrusivePtr{AdoptRef{}, base_type(TYPE_ANY)}), nullptr));
+			SetType(make_intrusive<::SetType>(make_intrusive<TypeList>(base_type(TYPE_ANY)), nullptr));
 		else
 			SetType(init_type(op.get()));
 		}
@@ -3343,7 +3343,7 @@ VectorConstructorExpr::VectorConstructorExpr(IntrusivePtr<ListExpr> constructor_
 			// vector().
 			// By default, assign VOID type here. A vector with
 			// void type set is seen as an unspecified vector.
-			SetType(make_intrusive<::VectorType>(IntrusivePtr{AdoptRef{}, base_type(TYPE_VOID)}));
+			SetType(make_intrusive<::VectorType>(base_type(TYPE_VOID)));
 			return;
 			}
 
@@ -3479,11 +3479,11 @@ ArithCoerceExpr::ArithCoerceExpr(IntrusivePtr<Expr> arg_op, TypeTag t)
 
 	if ( IsVector(bt) )
 		{
-		SetType(make_intrusive<VectorType>(IntrusivePtr{AdoptRef{}, base_type(t)}));
+		SetType(make_intrusive<VectorType>(base_type(t)));
 		vbt = op->Type()->AsVectorType()->YieldType()->Tag();
 		}
 	else
-		SetType({AdoptRef{}, base_type(t)});
+		SetType(base_type(t));
 
 	if ( (bt == TYPE_ENUM) != (t == TYPE_ENUM) )
 		ExprError("can't convert to/from enumerated type");
@@ -3903,7 +3903,7 @@ ScheduleExpr::ScheduleExpr(IntrusivePtr<Expr> arg_when,
 	if ( bt != TYPE_TIME && bt != TYPE_INTERVAL )
 		ExprError("schedule expression requires a time or time interval");
 	else
-		SetType({AdoptRef{}, base_type(TYPE_TIMER)});
+		SetType(base_type(TYPE_TIMER));
 	}
 
 bool ScheduleExpr::IsPure() const
@@ -3990,7 +3990,7 @@ InExpr::InExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 			SetError();
 			}
 		else
-			SetType({AdoptRef{}, base_type(TYPE_BOOL)});
+			SetType(base_type(TYPE_BOOL));
 		}
 
 	else if ( op1->Type()->Tag() == TYPE_RECORD )
@@ -4013,13 +4013,13 @@ InExpr::InExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 				SetError();
 				}
 			else
-				SetType({AdoptRef{}, base_type(TYPE_BOOL)});
+				SetType(base_type(TYPE_BOOL));
 			}
 		}
 
 	else if ( op1->Type()->Tag() == TYPE_STRING &&
 		  op2->Type()->Tag() == TYPE_STRING )
-		SetType({AdoptRef{}, base_type(TYPE_BOOL)});
+		SetType(base_type(TYPE_BOOL));
 
 	else
 		{
@@ -4030,14 +4030,14 @@ InExpr::InExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 			{
 			if ( op2->Type()->Tag() == TYPE_SUBNET )
 				{
-				SetType({AdoptRef{}, base_type(TYPE_BOOL)});
+				SetType(base_type(TYPE_BOOL));
 				return;
 				}
 
 			if ( op2->Type()->Tag() == TYPE_TABLE &&
 			     op2->Type()->AsTableType()->IsSubNetIndex() )
 				{
-				SetType({AdoptRef{}, base_type(TYPE_BOOL)});
+				SetType(base_type(TYPE_BOOL));
 				return;
 				}
 			}
@@ -4050,7 +4050,7 @@ InExpr::InExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 		if ( ! op2->Type()->MatchesIndex(lop1) )
 			SetError("not an index type");
 		else
-			SetType({AdoptRef{}, base_type(TYPE_BOOL)});
+			SetType(base_type(TYPE_BOOL));
 		}
 	}
 
@@ -4935,7 +4935,7 @@ void CastExpr::ExprDescribe(ODesc* d) const
 IsExpr::IsExpr(IntrusivePtr<Expr> arg_op, IntrusivePtr<BroType> arg_t)
 	: UnaryExpr(EXPR_IS, std::move(arg_op)), t(std::move(arg_t))
 	{
-	SetType({AdoptRef{}, base_type(TYPE_BOOL)});
+	SetType(base_type(TYPE_BOOL));
 	}
 
 IntrusivePtr<Val> IsExpr::Fold(Val* v) const

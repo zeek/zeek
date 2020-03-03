@@ -100,7 +100,7 @@ int BroType::MatchesIndex(ListExpr* const index) const
 		if ( index->Exprs().length() != 1 && index->Exprs().length() != 2 )
 			return DOES_NOT_MATCH_INDEX;
 
-		if ( check_and_promote_exprs_to_type(index, ::base_type(TYPE_INT)) )
+		if ( check_and_promote_exprs_to_type(index, ::base_type(TYPE_INT).get()) )
 			return MATCHES_INDEX_SCALAR;
 		}
 
@@ -1307,10 +1307,10 @@ BroType* VectorType::YieldType()
 	// comparisions.
 	if ( IsUnspecifiedVector() )
 		{
-		BroType* ret = ::base_type(TYPE_ANY);
-		Unref(ret); // unref, because this won't be held by anyone.
+		auto ret = ::base_type(TYPE_ANY);
 		assert(ret);
-		return ret;
+		// release, because this won't be held by anyone.
+		return ret.release();
 		}
 
 	return yield_type.get();
@@ -1324,10 +1324,10 @@ const BroType* VectorType::YieldType() const
 	// comparisions.
 	if ( IsUnspecifiedVector() )
 		{
-		BroType* ret = ::base_type(TYPE_ANY);
-		Unref(ret); // unref, because this won't be held by anyone.
+		auto ret = ::base_type(TYPE_ANY);
 		assert(ret);
-		return ret;
+		// release, because this won't be held by anyone.
+		return ret.release();
 		}
 
 	return yield_type.get();
@@ -1711,7 +1711,7 @@ IntrusivePtr<BroType> merge_types(const BroType* t1, const BroType* t2)
 	TypeTag tg2 = t2->Tag();
 
 	if ( BothArithmetic(tg1, tg2) )
-		return {AdoptRef{}, base_type(max_type(tg1, tg2))};
+		return base_type(max_type(tg1, tg2));
 
 	if ( tg1 != tg2 )
 		{
@@ -1731,7 +1731,7 @@ IntrusivePtr<BroType> merge_types(const BroType* t1, const BroType* t2)
 	case TYPE_BOOL:
 	case TYPE_ANY:
 	case TYPE_ERROR:
-		return {AdoptRef{}, base_type(tg1)};
+		return base_type(tg1);
 
 	case TYPE_ENUM:
 		{

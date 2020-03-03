@@ -434,35 +434,35 @@ protected:
 
 class FuncType : public BroType {
 public:
-	FuncType(RecordType* args, BroType* yield, function_flavor f);
+	FuncType(IntrusivePtr<RecordType> args, IntrusivePtr<BroType> yield, function_flavor f);
 	FuncType* ShallowClone() override;
 
 	~FuncType() override;
 
-	RecordType* Args() const	{ return args; }
+	RecordType* Args() const	{ return args.get(); }
 	BroType* YieldType() override;
 	const BroType* YieldType() const override;
-	void SetYieldType(BroType* arg_yield)	{ yield = arg_yield; }
+	void SetYieldType(IntrusivePtr<BroType> arg_yield)	{ yield = std::move(arg_yield); }
 	function_flavor Flavor() const { return flavor; }
 	std::string FlavorString() const;
 
 	// Used to convert a function type to an event or hook type.
 	void ClearYieldType(function_flavor arg_flav)
-		{ Unref(yield); yield = 0; flavor = arg_flav; }
+		{ yield = nullptr; flavor = arg_flav; }
 
 	int MatchesIndex(ListExpr* index) const override;
 	int CheckArgs(const type_list* args, bool is_init = false) const;
 
-	TypeList* ArgTypes() const	{ return arg_types; }
+	TypeList* ArgTypes() const	{ return arg_types.get(); }
 
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
 protected:
-	FuncType() : BroType(TYPE_FUNC) { args = 0; arg_types = 0; yield = 0; flavor = FUNC_FLAVOR_FUNCTION; }
-	RecordType* args;
-	TypeList* arg_types;
-	BroType* yield;
+	FuncType() : BroType(TYPE_FUNC) { flavor = FUNC_FLAVOR_FUNCTION; }
+	IntrusivePtr<RecordType> args;
+	IntrusivePtr<TypeList> arg_types;
+	IntrusivePtr<BroType> yield;
 	function_flavor flavor;
 };
 

@@ -423,14 +423,10 @@ SetType* SetType::ShallowClone()
 
 SetType::~SetType() = default;
 
-FuncType::FuncType(RecordType* arg_args, BroType* arg_yield, function_flavor arg_flavor)
-: BroType(TYPE_FUNC)
+FuncType::FuncType(IntrusivePtr<RecordType> arg_args, IntrusivePtr<BroType> arg_yield, function_flavor arg_flavor)
+: BroType(TYPE_FUNC), args(std::move(arg_args)), arg_types(make_intrusive<TypeList>()), yield(std::move(arg_yield))
 	{
-	args = arg_args;
-	yield = arg_yield;
 	flavor = arg_flavor;
-
-	arg_types = new TypeList();
 
 	bool has_default_arg = false;
 
@@ -455,9 +451,9 @@ FuncType::FuncType(RecordType* arg_args, BroType* arg_yield, function_flavor arg
 FuncType* FuncType::ShallowClone()
 	{
 	auto f = new FuncType();
-	f->args = args->Ref()->AsRecordType();
-	f->arg_types = arg_types->Ref()->AsTypeList();
-	f->yield = yield->Ref();
+	f->args = {NewRef{}, args->AsRecordType()};
+	f->arg_types = {NewRef{}, arg_types->AsTypeList()};
+	f->yield = yield;
 	f->flavor = flavor;
 	return f;
 	}
@@ -481,26 +477,21 @@ string FuncType::FlavorString() const
 	}
 	}
 
-FuncType::~FuncType()
-	{
-	Unref(args);
-	Unref(arg_types);
-	Unref(yield);
-	}
+FuncType::~FuncType() = default;
 
 BroType* FuncType::YieldType()
 	{
-	return yield;
+	return yield.get();
 	}
 
 const BroType* FuncType::YieldType() const
 	{
-	return yield;
+	return yield.get();
 	}
 
 int FuncType::MatchesIndex(ListExpr* const index) const
 	{
-	return check_and_promote_args(index, args) ?
+	return check_and_promote_args(index, args.get()) ?
 			MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
 	}
 
@@ -1868,7 +1859,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 		BroType* yield = t1->YieldType() ?
 			merge_types(t1->YieldType(), t2->YieldType()) : 0;
 
-		return new FuncType(args->AsRecordType(), yield, ft1->Flavor());
+		return new FuncType({AdoptRef{}, args->AsRecordType()}, {AdoptRef{}, yield}, ft1->Flavor());
 		}
 
 	case TYPE_RECORD:

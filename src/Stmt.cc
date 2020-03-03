@@ -1431,7 +1431,7 @@ ReturnStmt::ReturnStmt(IntrusivePtr<Expr> arg_e)
 		{
 		if ( e )
 			{
-			ft->SetYieldType(e->Type());
+			ft->SetYieldType({NewRef{}, e->Type()});
 			s->ScopeID()->SetInferReturnType(false);
 			}
 		}

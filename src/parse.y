@@ -979,13 +979,13 @@ type:
 	|	TOK_EVENT '(' formal_args ')'
 				{
 				set_location(@1, @3);
-				$$ = new FuncType($3, 0, FUNC_FLAVOR_EVENT);
+				$$ = new FuncType({AdoptRef{}, $3}, nullptr, FUNC_FLAVOR_EVENT);
 				}
 
 	|	TOK_HOOK '(' formal_args ')'
 				{
 				set_location(@1, @3);
-				$$ = new FuncType($3, base_type(TYPE_BOOL), FUNC_FLAVOR_HOOK);
+				$$ = new FuncType({AdoptRef{}, $3}, {AdoptRef{}, base_type(TYPE_BOOL)}, FUNC_FLAVOR_HOOK);
 				}
 
 	|	TOK_FILE TOK_OF type
@@ -1204,7 +1204,7 @@ func_hdr:
 	|	TOK_HOOK def_global_id func_params opt_attr
 			{
 			$3->ClearYieldType(FUNC_FLAVOR_HOOK);
-			$3->SetYieldType(base_type(TYPE_BOOL));
+			$3->SetYieldType({AdoptRef{}, base_type(TYPE_BOOL)});
 			begin_func($2, current_module.c_str(),
 				   FUNC_FLAVOR_HOOK, 0, {NewRef{}, $3}, $4);
 			$$ = $3;
@@ -1278,9 +1278,9 @@ begin_func:
 
 func_params:
 		'(' formal_args ')' ':' type
-			{ $$ = new FuncType($2, $5, FUNC_FLAVOR_FUNCTION); }
+			{ $$ = new FuncType({AdoptRef{}, $2}, {AdoptRef{}, $5}, FUNC_FLAVOR_FUNCTION); }
 	|	'(' formal_args ')'
-			{ $$ = new FuncType($2, base_type(TYPE_VOID), FUNC_FLAVOR_FUNCTION); }
+			{ $$ = new FuncType({AdoptRef{}, $2}, {AdoptRef{}, base_type(TYPE_VOID)}, FUNC_FLAVOR_FUNCTION); }
 	;
 
 opt_type:

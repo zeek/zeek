@@ -2581,7 +2581,7 @@ void IndexExpr::Delete(Frame* f)
 	if ( ! v2 )
 		return;
 
-	Unref(v1->AsTableVal()->Delete(v2.get()));
+	v1->AsTableVal()->Delete(v2.get());
 	}
 
 IntrusivePtr<Expr> IndexExpr::MakeLvalue()

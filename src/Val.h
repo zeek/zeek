@@ -769,8 +769,8 @@ public:
 	ListVal* RecoverIndex(const HashKey* k) const;
 
 	// Returns the element if it was in the table, false otherwise.
-	Val* Delete(const Val* index);
-	Val* Delete(const HashKey* k);
+	IntrusivePtr<Val> Delete(const Val* index);
+	IntrusivePtr<Val> Delete(const HashKey* k);
 
 	// Returns a ListVal representation of the table (which must be a set).
 	ListVal* ConvertToList(TypeTag t=TYPE_ANY) const;

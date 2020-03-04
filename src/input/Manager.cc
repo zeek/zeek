@@ -1423,7 +1423,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 		if ( ev )
 			Unref(ev);
 
-		Unref(stream->tab->Delete(ih->idxkey));
+		stream->tab->Delete(ih->idxkey);
 		stream->lastDict->Remove(lastDictIdxKey); // delete in next line
 		delete lastDictIdxKey;
 		delete(ih);
@@ -1790,12 +1790,10 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 		// only if stream = true -> no streaming
 		if ( streamresult )
 			{
-			Val* retptr = stream->tab->Delete(idxval);
+			auto retptr = stream->tab->Delete(idxval);
 			success = ( retptr != 0 );
 			if ( ! success )
 				Warning(i, "Internal error while deleting values from input table");
-			else
-				Unref(retptr);
 			}
 
 		}

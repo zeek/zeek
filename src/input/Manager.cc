@@ -467,7 +467,6 @@ bool Manager::CreateEventStream(RecordVal* fval)
 	for ( unsigned int i = 0; i < fieldsV.size(); i++ )
 		logf[i] = fieldsV[i];
 
-	Unref(fields); // ref'd by lookupwithdefault
 	stream->num_fields = fieldsV.size();
 	stream->fields = fields->Ref()->AsRecordType();
 	stream->event = event_registry->Lookup(event->Name());
@@ -511,7 +510,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 	Val* val_val = fval->Lookup("val", true);
 	if ( val_val )
 		{
-		val = val_val->AsType()->AsTypeType()->Type()->AsRecordType();
+		val = val_val->AsType()->AsTypeType()->Type()->Ref()->AsRecordType();
 		Unref(val_val);
 		}
 
@@ -712,7 +711,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 	stream->num_val_fields = valfields;
 	stream->tab = dst->AsTableVal(); // ref'd by lookupwithdefault
 	stream->rtype = val ? val->AsRecordType() : 0;
-	stream->itype = idx->AsRecordType();
+	stream->itype = idx->Ref()->AsRecordType();
 	stream->event = event ? event_registry->Lookup(event->Name()) : 0;
 	stream->error_event = error_event ? event_registry->Lookup(error_event->Name()) : nullptr;
 	stream->currDict = new PDict<InputHash>;

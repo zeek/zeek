@@ -865,7 +865,7 @@ public:
 	void Assign(int field, IntrusivePtr<Val> new_val);
 	void Assign(int field, Val* new_val);
 	Val* Lookup(int field) const;	// Does not Ref() value.
-	Val* LookupWithDefault(int field) const;	// Does Ref() value.
+	IntrusivePtr<Val> LookupWithDefault(int field) const;
 
 	/**
 	 * Looks up the value of a field by field name.  If the field doesn't
@@ -873,10 +873,9 @@ public:
 	 * @param field name of field to lookup.
 	 * @param with_default whether to rely on field's &default attribute when
 	 * the field has yet to be initialized.
-	 * @return the value in field \a field.  It is Ref()'d only if
-	 * \a with_default is true.
+	 * @return the value in field \a field.
 	 */
-	Val* Lookup(const char* field, bool with_default = false) const;
+	IntrusivePtr<Val> Lookup(const char* field, bool with_default = false) const;
 
 	void Describe(ODesc* d) const override;
 

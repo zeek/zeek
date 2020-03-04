@@ -263,7 +263,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 		return false;
 		}
 
-	Val* event_val = sval->Lookup("ev");
+	auto event_val = sval->Lookup("ev");
 	Func* event = event_val ? event_val->AsFunc() : 0;
 
 	if ( event )
@@ -548,18 +548,18 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 
 	// Create a new Filter instance.
 
-	Val* name = fval->Lookup("name", true);
-	Val* pred = fval->Lookup("pred", true);
-	Val* path_func = fval->Lookup("path_func", true);
-	Val* log_local = fval->Lookup("log_local", true);
-	Val* log_remote = fval->Lookup("log_remote", true);
-	Val* interv = fval->Lookup("interv", true);
-	Val* postprocessor = fval->Lookup("postprocessor", true);
-	Val* config = fval->Lookup("config", true);
-	Val* field_name_map = fval->Lookup("field_name_map", true);
-	Val* scope_sep = fval->Lookup("scope_sep", true);
-	Val* ext_prefix = fval->Lookup("ext_prefix", true);
-	Val* ext_func = fval->Lookup("ext_func", true);
+	auto name = fval->Lookup("name", true);
+	auto pred = fval->Lookup("pred", true);
+	auto path_func = fval->Lookup("path_func", true);
+	auto log_local = fval->Lookup("log_local", true);
+	auto log_remote = fval->Lookup("log_remote", true);
+	auto interv = fval->Lookup("interv", true);
+	auto postprocessor = fval->Lookup("postprocessor", true);
+	auto config = fval->Lookup("config", true);
+	auto field_name_map = fval->Lookup("field_name_map", true);
+	auto scope_sep = fval->Lookup("scope_sep", true);
+	auto ext_prefix = fval->Lookup("ext_prefix", true);
+	auto ext_func = fval->Lookup("ext_func", true);
 
 	Filter* filter = new Filter;
 	filter->fval = fval->Ref();
@@ -578,23 +578,10 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	filter->ext_prefix = ext_prefix->AsString()->CheckString();
 	filter->ext_func = ext_func ? ext_func->AsFunc() : 0;
 
-	Unref(name);
-	Unref(pred);
-	Unref(path_func);
-	Unref(log_local);
-	Unref(log_remote);
-	Unref(interv);
-	Unref(postprocessor);
-	Unref(config);
-	Unref(field_name_map);
-	Unref(scope_sep);
-	Unref(ext_prefix);
-	Unref(ext_func);
-
 	// Build the list of fields that the filter wants included, including
 	// potentially rolling out fields.
-	Val* include = fval->Lookup("include");
-	Val* exclude = fval->Lookup("exclude");
+	auto include = fval->Lookup("include");
+	auto exclude = fval->Lookup("exclude");
 
 	filter->num_ext_fields = 0;
 	if ( filter->ext_func )
@@ -619,8 +606,8 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	filter->num_fields = 0;
 	filter->fields = 0;
 	if ( ! TraverseRecord(stream, filter, stream->columns,
-			      include ? include->AsTableVal() : 0,
-			      exclude ? exclude->AsTableVal() : 0,
+			      include ? include.release()->AsTableVal() : 0,
+			      exclude ? exclude.release()->AsTableVal() : 0,
 			      "", list<int>()) )
 		{
 		delete filter;
@@ -628,12 +615,12 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 		}
 
 	// Get the path for the filter.
-	Val* path_val = fval->Lookup("path");
+	auto path_val = fval->Lookup("path");
 
 	if ( path_val )
 		{
 		filter->path = path_val->AsString()->CheckString();
-		filter->path_val = path_val->Ref();
+		filter->path_val = path_val.release();
 		}
 
 	else

@@ -32,9 +32,9 @@ using namespace file_analysis;
 
 #define OCSP_STRING_BUF_SIZE 2048
 
-static Val* get_ocsp_type(RecordVal* args, const char* name)
+static IntrusivePtr<Val> get_ocsp_type(RecordVal* args, const char* name)
 	{
-	Val* rval = args->Lookup(name);
+	auto rval = args->Lookup(name);
 
 	if ( ! rval )
 		reporter->Error("File extraction analyzer missing arg field: %s", name);

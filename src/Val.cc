@@ -577,7 +577,7 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 
 			for ( auto i = 0; i < rt->NumFields(); ++i )
 				{
-				Val* value = rval->LookupWithDefault(i);
+				auto value = rval->LookupWithDefault(i);
 
 				if ( value && ( ! only_loggable || rt->FieldHasAttr(i, ATTR_LOG) ) )
 					{
@@ -595,10 +595,8 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 					else
 						key_str = field_name;
 
-					BuildJSON(writer, value, only_loggable, re, key_str);
+					BuildJSON(writer, value.get(), only_loggable, re, key_str);
 					}
-
-				Unref(value);
 				}
 
 			writer.EndObject();
@@ -2611,14 +2609,14 @@ Val* RecordVal::Lookup(int field) const
 	return (*AsRecord())[field];
 	}
 
-Val* RecordVal::LookupWithDefault(int field) const
+IntrusivePtr<Val> RecordVal::LookupWithDefault(int field) const
 	{
 	Val* val = (*AsRecord())[field];
 
 	if ( val )
-		return val->Ref();
+		return {NewRef{}, val};
 
-	return Type()->AsRecordType()->FieldDefault(field).release();
+	return Type()->AsRecordType()->FieldDefault(field);
 	}
 
 void RecordVal::ResizeParseTimeRecords()
@@ -2644,14 +2642,14 @@ void RecordVal::ResizeParseTimeRecords()
 	parse_time_records.clear();
 	}
 
-Val* RecordVal::Lookup(const char* field, bool with_default) const
+IntrusivePtr<Val> RecordVal::Lookup(const char* field, bool with_default) const
 	{
 	int idx = Type()->AsRecordType()->FieldOffset(field);
 
 	if ( idx < 0 )
 		reporter->InternalError("missing record field: %s", field);
 
-	return with_default ? LookupWithDefault(idx) : Lookup(idx);
+	return with_default ? LookupWithDefault(idx) : IntrusivePtr{NewRef{}, Lookup(idx)};
 	}
 
 IntrusivePtr<RecordVal> RecordVal::CoerceTo(const RecordType* t, Val* aggr, bool allow_orphaning) const

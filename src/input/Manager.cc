@@ -239,9 +239,7 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 		return false;
 		}
 
-	Val* name_val = description->Lookup("name", true);
-	string name = name_val->AsString()->CheckString();
-	Unref(name_val);
+	string name = description->Lookup("name", true)->AsString()->CheckString();
 
 	Stream *i = FindStream(name);
 	if ( i != 0 )
@@ -251,20 +249,17 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 		return false;
 		}
 
-	EnumVal* reader = description->Lookup("reader", true)->AsEnumVal();
+	EnumVal* reader = description->Lookup("reader", true).release()->AsEnumVal();
 
 	// get the source ...
-	Val* sourceval = description->Lookup("source", true);
-	assert ( sourceval != 0 );
-	const BroString* bsource = sourceval->AsString();
+	const BroString* bsource = description->Lookup("source", true)->AsString();
 	string source((const char*) bsource->Bytes(), bsource->Len());
-	Unref(sourceval);
 
 	ReaderBackend::ReaderInfo rinfo;
 	rinfo.source = copy_string(source.c_str());
 	rinfo.name = copy_string(name.c_str());
 
-	EnumVal* mode = description->Lookup("mode", true)->AsEnumVal();
+	auto mode = description->Lookup("mode", true)->AsEnumVal();
 	switch ( mode->InternalInt() )
 		{
 		case 0:
@@ -281,14 +276,11 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 
 		default:
 			reporter->InternalWarning("unknown input reader mode");
-			Unref(mode);
 			return false;
 		}
 
-	Unref(mode);
-
-	Val* config = description->Lookup("config", true);
-	info->config = config->AsTableVal(); // ref'd by LookupWithDefault
+	auto config = description->Lookup("config", true);
+	info->config = config.release()->AsTableVal();
 
 		{
 		// create config mapping in ReaderInfo. Has to be done before the construction of reader_obj.
@@ -335,19 +327,13 @@ bool Manager::CreateEventStream(RecordVal* fval)
 		return false;
 		}
 
-	Val* name_val = fval->Lookup("name", true);
-	string stream_name = name_val->AsString()->CheckString();
-	Unref(name_val);
+	string stream_name = fval->Lookup("name", true)->AsString()->CheckString();
 
-	Val* fields_val = fval->Lookup("fields", true);
-	RecordType *fields = fields_val->AsType()->AsTypeType()->Type()->AsRecordType();
-	Unref(fields_val);
+	RecordType *fields = fval->Lookup("fields", true)->AsType()->AsTypeType()->Type()->AsRecordType();
 
-	Val *want_record = fval->Lookup("want_record", true);
+	auto want_record = fval->Lookup("want_record", true);
 
-	Val* event_val = fval->Lookup("ev", true);
-	Func* event = event_val->AsFunc();
-	Unref(event_val);
+	Func* event = fval->Lookup("ev", true)->AsFunc();
 
 	FuncType* etype = event->FType()->AsFuncType();
 
@@ -435,9 +421,8 @@ bool Manager::CreateEventStream(RecordVal* fval)
 	else
 		assert(false);
 
-	Val* error_event_val = fval->Lookup("error_ev", true);
+	auto error_event_val = fval->Lookup("error_ev", true);
 	Func* error_event = error_event_val ? error_event_val->AsFunc() : nullptr;
-	Unref(error_event_val);
 
 	if ( ! CheckErrorEventTypes(stream_name, error_event, false) )
 		return false;
@@ -472,7 +457,6 @@ bool Manager::CreateEventStream(RecordVal* fval)
 	stream->event = event_registry->Lookup(event->Name());
 	stream->error_event = error_event ? event_registry->Lookup(error_event->Name()) : nullptr;
 	stream->want_record = ( want_record->InternalInt() == 1 );
-	Unref(want_record); // ref'd by lookupwithdefault
 
 	assert(stream->reader);
 
@@ -495,26 +479,19 @@ bool Manager::CreateTableStream(RecordVal* fval)
 		return false;
 		}
 
-	Val* name_val = fval->Lookup("name", true);
-	string stream_name = name_val->AsString()->CheckString();
-	Unref(name_val);
+	string stream_name = fval->Lookup("name", true)->AsString()->CheckString();
 
-	Val* pred = fval->Lookup("pred", true);
+	auto pred = fval->Lookup("pred", true);
 
-	Val* idx_val = fval->Lookup("idx", true);
-	RecordType *idx = idx_val->AsType()->AsTypeType()->Type()->AsRecordType();
-	Unref(idx_val);
+	RecordType *idx = fval->Lookup("idx", true)->AsType()->AsTypeType()->Type()->AsRecordType();
 
 	RecordType *val = 0;
 
-	Val* val_val = fval->Lookup("val", true);
+	auto val_val = fval->Lookup("val", true);
 	if ( val_val )
-		{
 		val = val_val->AsType()->AsTypeType()->Type()->Ref()->AsRecordType();
-		Unref(val_val);
-		}
 
-	TableVal *dst = fval->Lookup("destination", true)->AsTableVal();
+	TableVal *dst = fval->Lookup("destination", true).release()->AsTableVal();
 
 	// check if index fields match table description
 	int num = idx->NumFields();
@@ -549,7 +526,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 		return false;
 		}
 
-	Val *want_record = fval->Lookup("want_record", true);
+	auto want_record = fval->Lookup("want_record", true);
 
 	if ( val )
 		{
@@ -582,9 +559,8 @@ bool Manager::CreateTableStream(RecordVal* fval)
 			}
 		}
 
-	Val* event_val = fval->Lookup("ev", true);
+	auto event_val = fval->Lookup("ev", true);
 	Func* event = event_val ? event_val->AsFunc() : 0;
-	Unref(event_val);
 
 	if ( event )
 		{
@@ -656,9 +632,8 @@ bool Manager::CreateTableStream(RecordVal* fval)
 		assert(want_record->InternalInt() == 1 || want_record->InternalInt() == 0);
 		}
 
-	Val* error_event_val = fval->Lookup("error_ev", true);
+	auto error_event_val = fval->Lookup("error_ev", true);
 	Func* error_event = error_event_val ? error_event_val->AsFunc() : nullptr;
-	Unref(error_event_val);
 
 	if ( ! CheckErrorEventTypes(stream_name, error_event, true) )
 		return false;
@@ -719,9 +694,6 @@ bool Manager::CreateTableStream(RecordVal* fval)
 	stream->lastDict = new PDict<InputHash>;
 	stream->lastDict->SetDeleteFunc(input_hash_delete_func);
 	stream->want_record = ( want_record->InternalInt() == 1 );
-
-	Unref(want_record); // ref'd by lookupwithdefault
-	Unref(pred);
 
 	assert(stream->reader);
 	stream->reader->Init(fieldsV.size(), fields );
@@ -1034,7 +1006,7 @@ bool Manager::ForceUpdate(const string &name)
 
 Val* Manager::RecordValToIndexVal(RecordVal *r) const
 	{
-	Val* idxval;
+	IntrusivePtr<Val> idxval;
 
 	RecordType *type = r->Type()->AsRecordType();
 
@@ -1045,15 +1017,15 @@ Val* Manager::RecordValToIndexVal(RecordVal *r) const
 
 	else
 		{
-		ListVal *l = new ListVal(TYPE_ANY);
+		auto l = make_intrusive<ListVal>(TYPE_ANY);
 		for ( int j = 0 ; j < num_fields; j++ )
-			l->Append(r->LookupWithDefault(j));
+			l->Append(r->LookupWithDefault(j).release());
 
-		idxval = l;
+		idxval = std::move(l);
 		}
 
 
-	return idxval;
+	return idxval.release();
 	}
 
 

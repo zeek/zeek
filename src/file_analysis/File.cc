@@ -163,18 +163,14 @@ void File::RaiseFileOverNewConnection(Connection* conn, bool is_orig)
 
 uint64_t File::LookupFieldDefaultCount(int idx) const
 	{
-	Val* v = val->LookupWithDefault(idx);
-	uint64_t rval = v->AsCount();
-	Unref(v);
-	return rval;
+	auto v = val->LookupWithDefault(idx);
+	return v->AsCount();
 	}
 
 double File::LookupFieldDefaultInterval(int idx) const
 	{
-	Val* v = val->LookupWithDefault(idx);
-	double rval = v->AsInterval();
-	Unref(v);
-	return rval;
+	auto v = val->LookupWithDefault(idx);
+	return v->AsInterval();
 	}
 
 int File::Idx(const string& field, const RecordType* type)

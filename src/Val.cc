@@ -2618,7 +2618,7 @@ Val* RecordVal::LookupWithDefault(int field) const
 	if ( val )
 		return val->Ref();
 
-	return Type()->AsRecordType()->FieldDefault(field);
+	return Type()->AsRecordType()->FieldDefault(field).release();
 	}
 
 void RecordVal::ResizeParseTimeRecords()

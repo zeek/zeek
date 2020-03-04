@@ -138,7 +138,7 @@ void EventHandler::NewEvent(val_list* vl)
 		{
 		const char* fname = args->FieldName(i);
 		BroType* ftype = args->FieldType(i);
-		Val* fdefault = args->FieldDefault(i);
+		auto fdefault = args->FieldDefault(i);
 
 		auto rec = make_intrusive<RecordVal>(call_argument);
 		rec->Assign(0, make_intrusive<StringVal>(fname));
@@ -149,10 +149,7 @@ void EventHandler::NewEvent(val_list* vl)
 		rec->Assign(1, make_intrusive<StringVal>(d.Description()));
 
 		if ( fdefault )
-			{
-			Ref(fdefault);
-			rec->Assign(2, fdefault);
-			}
+			rec->Assign(2, std::move(fdefault));
 
 		if ( i < vl->length() && (*vl)[i] )
 			{

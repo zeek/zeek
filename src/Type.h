@@ -505,7 +505,7 @@ public:
 	int HasField(const char* field) const override;
 	BroType* FieldType(const char* field) const override;
 	BroType* FieldType(int field) const;
-	Val* FieldDefault(int field) const; // Ref's the returned value; 0 if none.
+	IntrusivePtr<Val> FieldDefault(int field) const;
 
 	// A field's offset is its position in the type_decl_list,
 	// starting at 0.  Returns negative if the field doesn't exist.

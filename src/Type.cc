@@ -653,7 +653,7 @@ BroType* RecordType::FieldType(int field) const
 	return (*types)[field]->type.get();
 	}
 
-Val* RecordType::FieldDefault(int field) const
+IntrusivePtr<Val> RecordType::FieldDefault(int field) const
 	{
 	const TypeDecl* td = FieldDecl(field);
 
@@ -662,7 +662,7 @@ Val* RecordType::FieldDefault(int field) const
 
 	const Attr* def_attr = td->attrs->FindAttr(ATTR_DEFAULT);
 
-	return def_attr ? def_attr->AttrExpr()->Eval(nullptr).release() : nullptr;
+	return def_attr ? def_attr->AttrExpr()->Eval(nullptr) : nullptr;
 	}
 
 int RecordType::FieldOffset(const char* field) const

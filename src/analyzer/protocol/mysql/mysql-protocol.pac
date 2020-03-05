@@ -151,6 +151,11 @@ enum Expected {
 	EXPECT_AUTH_SWITCH,
 };
 
+enum Client_Capabilities {
+	# Expects an OK (instead of EOF) after the resultset rows of a Text Resultset. 
+	CLIENT_DEPRECATE_EOF = 0x01000000,
+};
+
 type NUL_String = RE/[^\0]*\0/;
 
 # MySQL PDU
@@ -230,6 +235,8 @@ type Handshake_Response_Packet_v10 = record {
 	pad         : padding[23];
 	username    : NUL_String;
 	password    : bytestring &restofdata;
+} &let {
+	deprecate_eof: bool = $context.connection.set_deprecate_eof(cap_flags & CLIENT_DEPRECATE_EOF);
 };
 
 type Handshake_Response_Packet_v9 = record {
@@ -315,8 +322,9 @@ type ColumnDefinitionOrEOF(pkt_len: uint32) = record {
 };
 
 
-type EOF1 = record {
-	eof: EOF_Packet;
+type EOF1 = case $context.connection.get_deprecate_eof() of {
+	false -> eof: EOF_Packet;
+	true  -> ok:  OK_Packet;
 } &let {
 	update_result_seen: bool = $context.connection.set_results_seen(0);
 	update_expectation: bool = $context.connection.set_next_expected(EXPECT_RESULTSET);
@@ -403,6 +411,7 @@ refine connection MySQL_Conn += {
 		uint32 col_count_;
 		uint32 remaining_cols_;
 		uint32 results_seen_;
+		bool deprecate_eof_;
 	%}
 
 	%init{
@@ -412,6 +421,7 @@ refine connection MySQL_Conn += {
 		col_count_ = 0;
 		remaining_cols_ = 0;
 		results_seen_ = 0;
+		deprecate_eof_ = false;
 	%}
 
 	function get_version(): uint8
@@ -433,6 +443,17 @@ refine connection MySQL_Conn += {
 	function update_state(s: state): bool
 		%{
 		state_ = s;
+		return true;
+		%}
+
+	function get_deprecate_eof(): bool
+		%{
+		return deprecate_eof_;
+		%}
+
+	function set_deprecate_eof(d: bool): bool
+		%{
+		deprecate_eof_ = d;
 		return true;
 		%}
 

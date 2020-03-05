@@ -16,9 +16,9 @@ static scope_list scopes;
 static Scope* top_scope;
 
 
-Scope::Scope(ID* id, attr_list* al)
+Scope::Scope(IntrusivePtr<ID> id, attr_list* al)
+	:scope_id(std::move(id))
 	{
-	scope_id = id;
 	attrs = al;
 	return_type = 0;
 
@@ -26,19 +26,15 @@ Scope::Scope(ID* id, attr_list* al)
 
 	if ( id )
 		{
-		BroType* id_type = id->Type();
+		BroType* id_type = scope_id->Type();
 
 		if ( id_type->Tag() == TYPE_ERROR )
 			return;
 		else if ( id_type->Tag() != TYPE_FUNC )
 			reporter->InternalError("bad scope id");
 
-		Ref(id);
-
 		FuncType* ft = id->Type()->AsFuncType();
-		return_type = ft->YieldType();
-		if ( return_type )
-			Ref(return_type);
+		return_type = {NewRef{}, ft->YieldType()};
 		}
 	}
 
@@ -54,9 +50,6 @@ Scope::~Scope()
 
 		delete attrs;
 		}
-
-	Unref(scope_id);
-	Unref(return_type);
 
 	if ( inits )
 		{
@@ -198,9 +191,9 @@ void push_existing_scope(Scope* scope)
 	scopes.push_back(scope);
 	}
 
-void push_scope(ID* id, attr_list* attrs)
+void push_scope(IntrusivePtr<ID> id, attr_list* attrs)
 	{
-	top_scope = new Scope(id, attrs);
+	top_scope = new Scope(std::move(id), attrs);
 	scopes.push_back(top_scope);
 	}
 

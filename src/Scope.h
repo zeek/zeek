@@ -8,6 +8,7 @@
 
 #include "Obj.h"
 #include "BroList.h"
+#include "IntrusivePtr.h"
 #include "TraverseTypes.h"
 
 template <class T> class IntrusivePtr;
@@ -17,7 +18,7 @@ class ListVal;
 
 class Scope : public BroObj {
 public:
-	explicit Scope(ID* id, attr_list* al);
+	explicit Scope(IntrusivePtr<ID> id, attr_list* al);
 	~Scope() override;
 
 	template<typename N>
@@ -58,9 +59,9 @@ public:
 		return nullptr;
 		}
 
-	ID* ScopeID() const		{ return scope_id; }
+	ID* ScopeID() const		{ return scope_id.get(); }
 	attr_list* Attrs() const	{ return attrs; }
-	BroType* ReturnType() const	{ return return_type; }
+	BroType* ReturnType() const	{ return return_type.get(); }
 
 	size_t Length() const		{ return local.size(); }
 	const std::map<std::string, ID*>& Vars()	{ return local; }
@@ -79,9 +80,9 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const;
 
 protected:
-	ID* scope_id;
+	IntrusivePtr<ID> scope_id;
 	attr_list* attrs;
-	BroType* return_type;
+	IntrusivePtr<BroType> return_type;
 	std::map<std::string, ID*> local;
 	id_list* inits;
 };
@@ -98,7 +99,7 @@ extern IntrusivePtr<ID> lookup_ID(const char* name, const char* module,
 extern IntrusivePtr<ID> install_ID(const char* name, const char* module_name,
                                    bool is_global, bool is_export);
 
-extern void push_scope(ID* id, attr_list* attrs);
+extern void push_scope(IntrusivePtr<ID> id, attr_list* attrs);
 extern void push_existing_scope(Scope* scope);
 
 // Returns the one popped off.

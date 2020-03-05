@@ -394,7 +394,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 	else
 		id->SetType(t);
 
-	push_scope(id, attrs);
+	push_scope({NewRef{}, id}, attrs);
 
 	RecordType* args = t->Args();
 	int num_args = args->NumFields();

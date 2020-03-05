@@ -1,4 +1,11 @@
 
+3.1.2-dev.3 | 2020-04-09 13:04:10 -0700
+
+  * Fix use-after-free in Zeek lambda functions with uninitialized locals
+    (Max Kellermann)
+
+  * Update pointer to external test repo (Jon Siwek, Corelight)
+
 3.1.1 | 2020-03-10 11:27:38 -0700
 
   * Release 3.1.1

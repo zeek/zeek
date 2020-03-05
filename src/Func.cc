@@ -337,7 +337,7 @@ IntrusivePtr<Val> BroFunc::Call(val_list* args, Frame* parent) const
 	// Hand down any trigger.
 	if ( parent )
 		{
-		f->SetTrigger(parent->GetTrigger());
+		f->SetTrigger({NewRef{}, parent->GetTrigger()});
 		f->SetCall(parent->GetCall());
 		}
 
@@ -525,7 +525,7 @@ bool BroFunc::UpdateClosure(const broker::vector& data)
 	if ( ! result.first )
 		return false;
 
-	Frame* new_closure = result.second;
+	auto &new_closure = result.second;
 	if ( new_closure )
 		new_closure->SetFunction(this);
 
@@ -533,7 +533,7 @@ bool BroFunc::UpdateClosure(const broker::vector& data)
 		Unref(closure);
 
 	weak_closure_ref = false;
-	closure = new_closure;
+	closure = new_closure.release();
 
 	return true;
 	}

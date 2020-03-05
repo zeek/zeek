@@ -114,7 +114,7 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 	id->SetType(t);
 
 	if ( attr )
-		id->AddAttrs(make_intrusive<Attributes>(attr, t.get(), false, id->IsGlobal()));
+		id->AddAttrs(make_intrusive<Attributes>(attr, t, false, id->IsGlobal()));
 
 	if ( init )
 		{
@@ -294,7 +294,7 @@ void add_type(ID* id, IntrusivePtr<BroType> t, attr_list* attr)
 	id->MakeType();
 
 	if ( attr )
-		id->SetAttrs(make_intrusive<Attributes>(attr, tnew.get(), false, false));
+		id->SetAttrs(make_intrusive<Attributes>(attr, tnew, false, false));
 	}
 
 static void transfer_arg_defaults(RecordType* args, RecordType* recv)
@@ -312,11 +312,11 @@ static void transfer_arg_defaults(RecordType* args, RecordType* recv)
 		if ( ! recv_i->attrs )
 			{
 			attr_list* a = new attr_list{def};
-			recv_i->attrs = make_intrusive<Attributes>(a, recv_i->type.get(), true, false);
+			recv_i->attrs = make_intrusive<Attributes>(a, recv_i->type, true, false);
 			}
 
 		else if ( ! recv_i->attrs->FindAttr(ATTR_DEFAULT) )
-			recv_i->attrs->AddAttr(def);
+			recv_i->attrs->AddAttr({NewRef{}, def});
 		}
 	}
 
@@ -412,7 +412,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 		}
 
 	if ( Attr* depr_attr = find_attr(attrs, ATTR_DEPRECATED) )
-		id->MakeDeprecated(depr_attr->AttrExpr());
+		id->MakeDeprecated({NewRef{}, depr_attr->AttrExpr()});
 	}
 
 class OuterIDBindingFinder : public TraversalCallback {

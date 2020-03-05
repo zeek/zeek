@@ -571,7 +571,7 @@ void FuncType::DescribeReST(ODesc* d, bool roles_only) const
 
 TypeDecl::TypeDecl(IntrusivePtr<BroType> t, const char* i, attr_list* arg_attrs, bool in_record)
 	:type(std::move(t)),
-	 attrs(arg_attrs ? make_intrusive<Attributes>(arg_attrs, type.get(), in_record, false) : nullptr),
+	 attrs(arg_attrs ? make_intrusive<Attributes>(arg_attrs, type, in_record, false) : nullptr),
 	 id(i)
 	{
 	}
@@ -821,9 +821,9 @@ const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)
 		if ( log )
 			{
 			if ( ! td->attrs )
-				td->attrs = make_intrusive<Attributes>(new attr_list, td->type.get(), true, false);
+				td->attrs = make_intrusive<Attributes>(new attr_list, td->type, true, false);
 
-			td->attrs->AddAttr(new Attr(ATTR_LOG));
+			td->attrs->AddAttr(make_intrusive<Attr>(ATTR_LOG));
 			}
 
 		types->push_back(td);
@@ -1122,7 +1122,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		id->SetEnumConst();
 
 		if ( deprecation )
-			id->MakeDeprecated(deprecation);
+			id->MakeDeprecated({NewRef{}, deprecation});
 
 		zeekygen_mgr->Identifier(std::move(id));
 		}

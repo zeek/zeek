@@ -3123,7 +3123,7 @@ TableConstructorExpr::TableConstructorExpr(IntrusivePtr<ListExpr> constructor_li
 			}
 		}
 
-	attrs = arg_attrs ? new Attributes(arg_attrs, type.get(), false, false) : 0;
+	attrs = arg_attrs ? new Attributes(arg_attrs, type, false, false) : 0;
 
 	type_list* indices = type->AsTableType()->Indices()->Types();
 	const expr_list& cle = op->AsListExpr()->Exprs();
@@ -3238,7 +3238,7 @@ SetConstructorExpr::SetConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
 	else if ( type->Tag() != TYPE_TABLE || ! type->AsTableType()->IsSet() )
 		SetError("values in set(...) constructor do not specify a set");
 
-	attrs = arg_attrs ? new Attributes(arg_attrs, type.get(), false, false) : 0;
+	attrs = arg_attrs ? new Attributes(arg_attrs, type, false, false) : 0;
 
 	type_list* indices = type->AsTableType()->Indices()->Types();
 	expr_list& cle = op->AsListExpr()->Exprs();

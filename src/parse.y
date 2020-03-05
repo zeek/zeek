@@ -1351,31 +1351,31 @@ attr_list:
 
 attr:
 		TOK_ATTR_DEFAULT '=' expr
-		        { $$ = new Attr(ATTR_DEFAULT, $3); }
+		        { $$ = new Attr(ATTR_DEFAULT, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_OPTIONAL
 			{ $$ = new Attr(ATTR_OPTIONAL); }
 	|	TOK_ATTR_REDEF
 			{ $$ = new Attr(ATTR_REDEF); }
 	|	TOK_ATTR_ADD_FUNC '=' expr
-			{ $$ = new Attr(ATTR_ADD_FUNC, $3); }
+			{ $$ = new Attr(ATTR_ADD_FUNC, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_DEL_FUNC '=' expr
-			{ $$ = new Attr(ATTR_DEL_FUNC, $3); }
+			{ $$ = new Attr(ATTR_DEL_FUNC, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_ON_CHANGE '=' expr
-			{ $$ = new Attr(ATTR_ON_CHANGE, $3); }
+			{ $$ = new Attr(ATTR_ON_CHANGE, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_EXPIRE_FUNC '=' expr
-			{ $$ = new Attr(ATTR_EXPIRE_FUNC, $3); }
+			{ $$ = new Attr(ATTR_EXPIRE_FUNC, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_EXPIRE_CREATE '=' expr
-			{ $$ = new Attr(ATTR_EXPIRE_CREATE, $3); }
+			{ $$ = new Attr(ATTR_EXPIRE_CREATE, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_EXPIRE_READ '=' expr
-			{ $$ = new Attr(ATTR_EXPIRE_READ, $3); }
+			{ $$ = new Attr(ATTR_EXPIRE_READ, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_EXPIRE_WRITE '=' expr
-			{ $$ = new Attr(ATTR_EXPIRE_WRITE, $3); }
+			{ $$ = new Attr(ATTR_EXPIRE_WRITE, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_RAW_OUTPUT
 			{ $$ = new Attr(ATTR_RAW_OUTPUT); }
 	|	TOK_ATTR_PRIORITY '=' expr
-			{ $$ = new Attr(ATTR_PRIORITY, $3); }
+			{ $$ = new Attr(ATTR_PRIORITY, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_TYPE_COLUMN '=' expr
-			{ $$ = new Attr(ATTR_TYPE_COLUMN, $3); }
+			{ $$ = new Attr(ATTR_TYPE_COLUMN, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_LOG
 			{ $$ = new Attr(ATTR_LOG); }
 	|	TOK_ATTR_ERROR_HANDLER
@@ -1385,7 +1385,7 @@ attr:
 	|	TOK_ATTR_DEPRECATED '=' TOK_CONSTANT
 			{
 			if ( IsString($3->Type()->Tag()) )
-				$$ = new Attr(ATTR_DEPRECATED, new ConstExpr({AdoptRef{}, $3}));
+				$$ = new Attr(ATTR_DEPRECATED, make_intrusive<ConstExpr>(IntrusivePtr{AdoptRef{}, $3}));
 			else
 				{
 				ODesc d;

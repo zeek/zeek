@@ -311,7 +311,7 @@ type ColumnDefinitionOrEOF(pkt_len: uint32) = record {
 		false -> def: ColumnDefinition41(marker);
 	} &requires(is_eof);
 } &let {
-	is_eof: bool = (marker == 0xfe && pkt_len <= 9);
+	is_eof: bool = (marker == 0xfe && pkt_len <= 13);
 };
 
 
@@ -329,7 +329,7 @@ type Resultset(pkt_len: uint32) = record {
 		false -> row: ResultsetRow(marker);
 	} &requires(is_eof);
 } &let {
-	is_eof: bool = (marker == 0xfe && pkt_len <= 9);
+	is_eof: bool = (marker == 0xfe && pkt_len <= 13);
 	update_result_seen	: bool = $context.connection.inc_results_seen();
 	update_expectation	: bool = $context.connection.set_next_expected(is_eof ? NO_EXPECTATION : EXPECT_RESULTSET);
 };

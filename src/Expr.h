@@ -8,6 +8,7 @@
 #include "Type.h"
 #include "EventHandler.h"
 #include "TraverseTypes.h"
+#include "Val.h"
 
 #include <memory>
 #include <string>

@@ -1,4 +1,8 @@
 
+3.2.0-dev.198 | 2020-03-05 14:18:10 -0800
+
+  * Fix a btest to order zeek_init() events via &priority (Jon Siwek, Corelight)
+
 3.2.0-dev.192 | 2020-02-28 11:36:12 -0800
 
   * threading::Queue::WakeUp(): lock mutex before notifying condition_variable (Max Kellermann)

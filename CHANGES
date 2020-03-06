@@ -1,4 +1,11 @@
 
+3.1.1-dev.4 | 2020-03-05 20:08:46 -0800
+
+  * Install full rapidjson include tree (Jon Siwek, Corelight)
+
+    Otherwise external plugins may fail to compile if they include
+    threading/formatters/JSON.h (or something else that includes it).
+
 3.1.1-dev.3 | 2020-03-05 16:49:17 -0800
 
   * Update documentation submodule (Jon Siwek, Corelight)

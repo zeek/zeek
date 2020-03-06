@@ -1,4 +1,8 @@
 
+3.1.1-dev.3 | 2020-03-05 16:49:17 -0800
+
+  * Update documentation submodule (Jon Siwek, Corelight)
+
 3.1.1-dev.2 | 2020-02-28 17:41:35 -0800
 
   * Pop global frame stack on exception. (Johanna Amann, Corelight)

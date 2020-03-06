@@ -40,9 +40,6 @@ Scope::Scope(IntrusivePtr<ID> id, attr_list* al)
 
 Scope::~Scope()
 	{
-	for ( const auto& entry : local )
-		Unref(entry.second);
-
 	if ( attrs )
 		{
 		for ( const auto& attr : *attrs )
@@ -101,7 +98,7 @@ void Scope::Describe(ODesc* d) const
 
 	for ( const auto& entry : local )
 		{
-		ID* id = entry.second;
+		ID* id = entry.second.get();
 		id->Describe(d);
 		d->NL();
 		}
@@ -111,7 +108,7 @@ TraversalCode Scope::Traverse(TraversalCallback* cb) const
 	{
 	for ( const auto& entry : local )
 		{
-		ID* id = entry.second;
+		ID* id = entry.second.get();
 		TraversalCode tc = id->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
 		}
@@ -176,11 +173,11 @@ IntrusivePtr<ID> install_ID(const char* name, const char* module_name,
 	auto id = make_intrusive<ID>(full_name.data(), scope, is_export);
 
 	if ( SCOPE_FUNCTION != scope )
-		global_scope()->Insert(std::move(full_name), IntrusivePtr{id}.release());
+		global_scope()->Insert(std::move(full_name), id);
 	else
 		{
 		id->SetOffset(top_scope->Length());
-		top_scope->Insert(std::move(full_name), IntrusivePtr{id}.release());
+		top_scope->Insert(std::move(full_name), id);
 		}
 
 	return id;

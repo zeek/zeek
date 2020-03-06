@@ -1924,7 +1924,7 @@ function global_sizes%(%): var_sizes
 
 	for ( const auto& global : globals )
 		{
-		ID* id = global.second;
+		ID* id = global.second.get();
 		if ( id->HasVal() )
 			{
 			Val* id_name = new StringVal(id->Name());
@@ -1952,7 +1952,7 @@ function global_ids%(%): id_table
 
 	for ( const auto& global : globals )
 		{
-		ID* id = global.second;
+		ID* id = global.second.get();
 		auto rec = make_intrusive<RecordVal>(script_id);
 		rec->Assign(0, make_intrusive<StringVal>(type_name(id->Type()->Tag())));
 		rec->Assign(1, val_mgr->GetBool(id->IsExport()));

@@ -27,31 +27,22 @@ public:
 		const auto& entry = local.find(std::forward<N>(name));
 
 		if ( entry != local.end() )
-			return entry->second;
+			return entry->second.get();
 
 		return nullptr;
 		}
 
-	template<typename N>
-	void Insert(N&& name, ID* id)
-		{
-		auto [it, inserted] = local.emplace(std::forward<N>(name), id);
-
-		if ( ! inserted )
-			{
-			Unref(it->second);
-			it->second = id;
-			}
-		}
+	template<typename N, typename I>
+	void Insert(N&& name, I&& id) { local[std::forward<N>(name)] = std::forward<I>(id); }
 
 	template<typename N>
-	ID* Remove(N&& name)
+	IntrusivePtr<ID> Remove(N&& name)
 		{
 		const auto& entry = local.find(std::forward<N>(name));
 
 		if ( entry != local.end() )
 			{
-			ID* id = entry->second;
+			auto id = std::move(entry->second);
 			local.erase(entry);
 			return id;
 			}
@@ -64,7 +55,7 @@ public:
 	BroType* ReturnType() const	{ return return_type.get(); }
 
 	size_t Length() const		{ return local.size(); }
-	const std::map<std::string, ID*>& Vars()	{ return local; }
+	const auto& Vars()	{ return local; }
 
 	ID* GenerateTemporary(const char* name);
 
@@ -83,7 +74,7 @@ protected:
 	IntrusivePtr<ID> scope_id;
 	attr_list* attrs;
 	IntrusivePtr<BroType> return_type;
-	std::map<std::string, ID*> local;
+	std::map<std::string, IntrusivePtr<ID>> local;
 	id_list* inits;
 };
 

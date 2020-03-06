@@ -31,7 +31,7 @@ Config::Config(ReaderFrontend *frontend) : ReaderBackend(frontend)
 
 	for ( const auto& entry : globals )
 		{
-		ID* id = entry.second;
+		ID* id = entry.second.get();
 		if ( ! id->IsOption() )
 			continue;
 

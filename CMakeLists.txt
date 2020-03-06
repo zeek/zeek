@@ -263,6 +263,7 @@ endif ()
 set(zeekdeps ${zeekdeps} ${CAF_LIBRARIES})
 include_directories(BEFORE ${broker_includes} ${CAF_INCLUDE_DIRS})
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/paraglob/include)
+include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/rapidjson/include)
 include_directories(BEFORE
                     ${PCAP_INCLUDE_DIR}
                     ${BIND_INCLUDE_DIR}
@@ -270,6 +271,9 @@ include_directories(BEFORE
                     ${ZLIB_INCLUDE_DIR}
                     ${JEMALLOC_INCLUDE_DIR}
 )
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/aux/rapidjson/include/rapidjson
+        DESTINATION include/zeek/3rdparty/rapidjson/include)
 
 # Optional Dependencies
 

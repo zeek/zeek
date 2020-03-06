@@ -3,7 +3,7 @@
 #include "zeek-config.h"
 
 #include "JSON.h"
-#include "3rdparty/rapidjson/include/rapidjson/internal/ieee754.h"
+#include "rapidjson/internal/ieee754.h"
 #include "Desc.h"
 #include "threading/MsgThread.h"
 

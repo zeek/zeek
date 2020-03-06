@@ -3,8 +3,8 @@
 #pragma once
 
 #define RAPIDJSON_HAS_STDSTRING 1
-#include "3rdparty/rapidjson/include/rapidjson/document.h"
-#include "3rdparty/rapidjson/include/rapidjson/writer.h"
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
 
 #include "../Formatter.h"
 

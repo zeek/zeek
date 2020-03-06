@@ -31,3 +31,6 @@
 [submodule "aux/paraglob"]
 	path = aux/paraglob
 	url = https://github.com/zeek/paraglob
+[submodule "aux/rapidjson"]
+	path = aux/rapidjson
+	url = https://github.com/zeek/rapidjson

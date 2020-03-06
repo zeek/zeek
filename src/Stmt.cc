@@ -1450,9 +1450,9 @@ ReturnStmt::ReturnStmt(IntrusivePtr<Expr> arg_e)
 
 	else
 		{
-		Expr* e_ = e.release();
-		(void) check_and_promote_expr(e_, yt);
-		e = {AdoptRef{}, e_};
+		auto promoted_e = check_and_promote_expr(e.get(), yt);
+		if ( promoted_e )
+			e = std::move(promoted_e);
 		}
 	}
 

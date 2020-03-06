@@ -315,10 +315,10 @@ void Attributes::CheckAttr(Attr* a)
 				// Ok.
 				break;
 
-			Expr* e = a->AttrExpr();
-			if ( check_and_promote_expr(e, type) )
+			auto e = check_and_promote_expr(a->AttrExpr(), type);
+			if ( e )
 				{
-				a->SetAttrExpr(e);
+				a->SetAttrExpr(e.release());
 				// Ok.
 				break;
 				}
@@ -354,10 +354,10 @@ void Attributes::CheckAttr(Attr* a)
 					// Ok.
 					break;
 
-				Expr* e = a->AttrExpr();
-				if ( check_and_promote_expr(e, ytype) )
+				auto e = check_and_promote_expr(a->AttrExpr(), ytype);
+				if ( e )
 					{
-					a->SetAttrExpr(e);
+					a->SetAttrExpr(e.release());
 					// Ok.
 					break;
 					}
@@ -379,11 +379,10 @@ void Attributes::CheckAttr(Attr* a)
 
 			if ( (atype->Tag() == TYPE_TABLE && atype->AsTableType()->IsUnspecifiedTable()) )
 				{
-				Expr* e = a->AttrExpr();
-
-				if ( check_and_promote_expr(e, type) )
+				auto e = check_and_promote_expr(a->AttrExpr(), type);
+				if ( e )
 					{
-					a->SetAttrExpr(e);
+					a->SetAttrExpr(e.release());
 					break;
 					}
 				}

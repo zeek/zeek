@@ -3148,10 +3148,14 @@ TableConstructorExpr::TableConstructorExpr(IntrusivePtr<ListExpr> constructor_li
 			{
 			Expr* idx = idx_exprs[j];
 
-			if ( check_and_promote_expr(idx, (*indices)[j]) )
+			auto promoted_idx = check_and_promote_expr(idx, (*indices)[j]);
+			if ( promoted_idx )
 				{
-				if ( idx != idx_exprs[j] )
-					idx_exprs.replace(j, idx);
+				if ( promoted_idx.get() != idx )
+					{
+					Unref(idx);
+					idx_exprs.replace(j, promoted_idx.release());
+					}
 				continue;
 				}
 
@@ -4671,7 +4675,10 @@ IntrusivePtr<Val> ListExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) co
 		loop_over_list(exprs, i)
 			{
 			Expr* e = exprs[i];
-			check_and_promote_expr(e, vec->Type()->AsVectorType()->YieldType());
+			auto promoted_e = check_and_promote_expr(e, vec->Type()->AsVectorType()->YieldType());
+			if (promoted_e)
+				e = promoted_e.get();
+
 			auto v = e->Eval(nullptr);
 
 			if ( ! vec->Assign(i, std::move(v)) )
@@ -4970,35 +4977,34 @@ IntrusivePtr<Expr> get_assign_expr(IntrusivePtr<Expr> op1,
 		                                  is_init);
 	}
 
-int check_and_promote_expr(Expr*& e, BroType* t)
+IntrusivePtr<Expr> check_and_promote_expr(Expr* const e, BroType* t)
 	{
 	BroType* et = e->Type();
 	TypeTag e_tag = et->Tag();
 	TypeTag t_tag = t->Tag();
 
 	if ( t->Tag() == TYPE_ANY )
-		return 1;
+		return {NewRef{}, e};
 
 	if ( EitherArithmetic(t_tag, e_tag) )
 		{
 		if ( e_tag == t_tag )
-			return 1;
+			return {NewRef{}, e};
 
 		if ( ! BothArithmetic(t_tag, e_tag) )
 			{
 			t->Error("arithmetic mixed with non-arithmetic", e);
-			return 0;
+			return nullptr;
 			}
 
 		TypeTag mt = max_type(t_tag, e_tag);
 		if ( mt != t_tag )
 			{
 			t->Error("over-promotion of arithmetic value", e);
-			return 0;
+			return nullptr;
 			}
 
-		e = new ArithCoerceExpr({AdoptRef{}, e}, t_tag);
-		return 1;
+		return make_intrusive<ArithCoerceExpr>(IntrusivePtr{NewRef{}, e}, t_tag);
 		}
 
 	if ( t->Tag() == TYPE_RECORD && et->Tag() == TYPE_RECORD )
@@ -5016,15 +5022,12 @@ int check_and_promote_expr(Expr*& e, BroType* t)
 
 				if ( same_attrs(td1->attrs.get(), td2->attrs.get()) )
 					// Everything matches perfectly.
-					return 1;
+					return {NewRef{}, e};
 				}
 			}
 
 		if ( record_promotion_compatible(t_r, et_r) )
-			{
-			e = new RecordCoerceExpr({AdoptRef{}, e}, {NewRef{}, t_r});
-			return 1;
-			}
+			return make_intrusive<RecordCoerceExpr>(IntrusivePtr{NewRef{}, e}, IntrusivePtr{NewRef{}, t_r});
 
 		t->Error("incompatible record types", e);
 		return 0;
@@ -5035,23 +5038,17 @@ int check_and_promote_expr(Expr*& e, BroType* t)
 		{
 		if ( t->Tag() == TYPE_TABLE && et->Tag() == TYPE_TABLE &&
 			  et->AsTableType()->IsUnspecifiedTable() )
-			{
-			e = new TableCoerceExpr({AdoptRef{}, e}, {NewRef{}, t->AsTableType()});
-			return 1;
-			}
+			return make_intrusive<TableCoerceExpr>(IntrusivePtr{NewRef{}, e}, IntrusivePtr{NewRef{}, t->AsTableType()});
 
 		if ( t->Tag() == TYPE_VECTOR && et->Tag() == TYPE_VECTOR &&
 		     et->AsVectorType()->IsUnspecifiedVector() )
-			{
-			e = new VectorCoerceExpr({AdoptRef{}, e}, {NewRef{}, t->AsVectorType()});
-			return 1;
-			}
+			return make_intrusive<VectorCoerceExpr>(IntrusivePtr{NewRef{}, e}, IntrusivePtr{NewRef{}, t->AsVectorType()});
 
 		t->Error("type clash", e);
-		return 0;
+		return nullptr;
 		}
 
-	return 1;
+	return {NewRef{}, e};
 	}
 
 int check_and_promote_exprs(ListExpr* const elements, TypeList* types)
@@ -5071,14 +5068,18 @@ int check_and_promote_exprs(ListExpr* const elements, TypeList* types)
 	loop_over_list(el, i)
 		{
 		Expr* e = el[i];
-		if ( ! check_and_promote_expr(e, (*tl)[i]) )
+		auto promoted_e = check_and_promote_expr(e, (*tl)[i]);
+		if ( ! promoted_e )
 			{
 			e->Error("type mismatch", (*tl)[i]);
 			return 0;
 			}
 
-		if ( e != el[i] )
-			el.replace(i, e);
+		if ( promoted_e.get() != e )
+			{
+			Unref(e);
+			el.replace(i, promoted_e.release());
+			}
 		}
 
 	return 1;
@@ -5138,14 +5139,18 @@ int check_and_promote_exprs_to_type(ListExpr* const elements, BroType* type)
 	loop_over_list(el, i)
 		{
 		Expr* e = el[i];
-		if ( ! check_and_promote_expr(e, type) )
+		auto promoted_e = check_and_promote_expr(e, type);
+		if ( ! promoted_e )
 			{
 			e->Error("type mismatch", type);
 			return 0;
 			}
 
-		if ( e != el[i] )
-			el.replace(i, e);
+		if ( promoted_e.get() != e )
+			{
+			Unref(e);
+			el.replace(i, promoted_e.release());
+			}
 		}
 
 	return 1;

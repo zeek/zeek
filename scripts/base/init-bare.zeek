@@ -11,6 +11,13 @@
 ##    directly and then remove this alias.
 type string_array: table[count] of string;
 
+## A string-table of any.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type string_any_table: table[string] of any;
+
 ## A set of strings.
 ##
 ## .. todo:: We need this type definition only for declaring builtin functions

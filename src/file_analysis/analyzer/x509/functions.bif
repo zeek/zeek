@@ -881,3 +881,10 @@ function x509_spki_hash%(cert: opaque of x509, hash_alg: count%): string
 
 	return x509_entity_hash(cert_handle, hash_alg, 2);
 	%}
+
+function x509_set_certificate_cache%(tbl: string_any_table%) : bool
+	%{
+	file_analysis::X509::SetCertificateCache({NewRef{}, tbl->AsTableVal()});
+
+	return val_mgr->GetBool(1);
+	%}

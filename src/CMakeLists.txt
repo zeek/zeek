@@ -429,12 +429,6 @@ install(FILES
         DESTINATION include/zeek/3rdparty
 )
 
-install(FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/rapidjson/include/rapidjson/document.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/rapidjson/include/rapidjson/writer.h
-        DESTINATION include/zeek/3rdparty/rapidjson/include/rapidjson
-)
-
 ########################################################################
 ## Clang-tidy target now that we have all of the sources
 

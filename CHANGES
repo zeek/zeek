@@ -1,4 +1,16 @@
 
+3.2.0-dev.205 | 2020-03-06 07:59:08 -0800
+
+  * Move libkqueue submodule to the aux directory (Jon Siwek, Corelight)
+
+  * Move rapidjson submodule to aux directory
+
+    This also now installs the full rapidjson include/ tree in order to
+    allow external plugins to properly build if they include
+    threading/formatters/JSON.h (Jon Siwek, Corelight)
+
+  * GH-831: Fix the "bro" symlink for binary packaging mode. (Jon Siwek, Corelight)
+
 3.2.0-dev.198 | 2020-03-05 14:18:10 -0800
 
   * Fix a btest to order zeek_init() events via &priority (Jon Siwek, Corelight)

@@ -29,7 +29,7 @@
 #include "zeek-affinity.h"
 
 #define RAPIDJSON_HAS_STDSTRING 1
-#include "3rdparty/rapidjson/include/rapidjson/document.h"
+#include "rapidjson/document.h"
 
 extern "C" {
 #include "setsignal.h"

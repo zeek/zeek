@@ -251,7 +251,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	if ( packet_filter && packet_filter->Match(ip_hdr, len, caplen) )
 		 return;
 
-	if ( ! ignore_checksums && ip4 &&
+	if ( ! pkt->l2_checksummed && ! ignore_checksums && ip4 &&
 	     ones_complement_checksum((void*) ip4, ip_hdr_len, 0) != 0xffff )
 		{
 		Weird("bad_IP_checksum", pkt, encapsulation);

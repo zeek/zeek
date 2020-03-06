@@ -52,6 +52,9 @@ void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
 
 	l2_valid = false;
 
+	l2_checksummed = false;
+	l3_checksummed = false;
+
 	if ( data && cap_len < hdr_size )
 		{
 		Weird("truncated_link_header");
@@ -677,4 +680,3 @@ void Packet::Describe(ODesc* d) const
 	d->Add("->");
 	d->Add(ip.DstAddr());
 	}
-

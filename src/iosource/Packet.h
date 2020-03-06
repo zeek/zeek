@@ -199,6 +199,18 @@ public:
 	 */
 	uint32_t inner_vlan;
 
+	/**
+	 * Indicates whether the layer 2 checksum was validated by the
+	 * hardware/kernel before being received by zeek.
+	 */
+	bool l2_checksummed;
+
+	/**
+	 * Indicates whether the layer 3 checksum was validated by the
+	 * hardware/kernel before being received by zeek.
+	 */
+	bool l3_checksummed;
+
 private:
 	// Calculate layer 2 attributes. Sets
 	void ProcessLayer2();

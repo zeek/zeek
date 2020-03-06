@@ -73,7 +73,7 @@ public:
 	id_list* GetInits();
 
 	// Adds a variable to the list.
-	void AddInit(ID* id)		{ inits->push_back(id); }
+	void AddInit(IntrusivePtr<ID> &&id)		{ inits->push_back(id.release()); }
 
 	void Describe(ODesc* d) const override;
 

@@ -254,7 +254,7 @@ IntrusivePtr<Stmt> add_local(IntrusivePtr<ID> id, IntrusivePtr<BroType> t,
 
 	else
 		{
-		current_scope()->AddInit(id.release());
+		current_scope()->AddInit(std::move(id));
 		return make_intrusive<NullStmt>();
 		}
 	}

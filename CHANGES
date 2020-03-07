@@ -1,4 +1,8 @@
 
+3.2.0-dev.209 | 2020-03-06 16:27:29 -0800
+
+  * Add urgent flag to tcp_flags documentation (Tim Wojtulewicz, Corelight)
+
 3.2.0-dev.205 | 2020-03-06 07:59:08 -0800
 
   * Move libkqueue submodule to the aux directory (Jon Siwek, Corelight)

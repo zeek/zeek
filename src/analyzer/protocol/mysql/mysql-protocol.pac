@@ -177,9 +177,12 @@ type Header = record {
 	len   : uint32 = to_int()(le_len) + 4;
 } &length=4;
 
-type Server_Message(seq_id: uint8, pkt_len: uint32) = case seq_id of {
-	0       -> initial_handshake: Initial_Handshake_Packet;
-	default -> command_response : Command_Response(pkt_len);
+type Server_Message(seq_id: uint8, pkt_len: uint32) = case is_initial of {
+	true  -> initial_handshake: Initial_Handshake_Packet;
+	false -> command_response : Command_Response(pkt_len);
+} &let {
+	is_initial : bool = (seq_id == 0) && ($context.connection.get_previous_seq_id() != 255);
+	update_seq_id : bool = $context.connection.set_previous_seq_id(seq_id);
 };
 
 type Client_Message(state: int) = case state of {
@@ -270,7 +273,7 @@ type Command_Response(pkt_len: uint32) = case $context.connection.get_expectatio
 	EXPECT_REST_OF_PACKET           -> rest          : bytestring &restofdata;
 	EXPECT_STATUS                   -> status        : Command_Response_Status;
 	EXPECT_AUTH_SWITCH              -> auth_switch   : AuthSwitchRequest;
-	EXPECT_EOF                      -> eof           : EOF1;
+	EXPECT_EOF                      -> eof           : EOFIfLegacy;
 	default                         -> unknown       : empty;
 };
 
@@ -311,20 +314,25 @@ type ColumnDefinition = record {
 	update_expectation: bool = $context.connection.set_next_expected($context.connection.get_remaining_cols() > 0 ? EXPECT_COLUMN_DEFINITION : EXPECT_EOF);
 };
 
+type EOFOrOK = case $context.connection.get_deprecate_eof() of {
+	false -> eof: EOF_Packet;
+	true  -> ok: OK_Packet;
+};
+
 type ColumnDefinitionOrEOF(pkt_len: uint32) = record {
 	marker    : uint8;
 	def_or_eof: case is_eof of {
-		true  -> eof: EOF_Packet;
+		true  -> eof: EOFOrOK;
 		false -> def: ColumnDefinition41(marker);
 	} &requires(is_eof);
 } &let {
-	is_eof: bool = (marker == 0xfe && pkt_len <= 13);
+	is_eof: bool = (marker == 0xfe && pkt_len < 13);
 };
 
 
-type EOF1 = case $context.connection.get_deprecate_eof() of {
+type EOFIfLegacy = case $context.connection.get_deprecate_eof() of {
 	false -> eof: EOF_Packet;
-	true  -> ok:  OK_Packet;
+	true  -> none: empty;
 } &let {
 	update_result_seen: bool = $context.connection.set_results_seen(0);
 	update_expectation: bool = $context.connection.set_next_expected(EXPECT_RESULTSET);
@@ -333,11 +341,11 @@ type EOF1 = case $context.connection.get_deprecate_eof() of {
 type Resultset(pkt_len: uint32) = record {
 	marker    : uint8;
 	row_or_eof: case is_eof of {
-		true  -> eof: EOF_Packet;
+		true  -> eof: EOFOrOK;
 		false -> row: ResultsetRow(marker);
 	} &requires(is_eof);
 } &let {
-	is_eof            : bool = (marker == 0xfe && pkt_len <= 13);
+	is_eof            : bool = (marker == 0xfe && pkt_len < 13);
 	update_result_seen: bool = $context.connection.inc_results_seen();
 	update_expectation: bool = $context.connection.set_next_expected(is_eof ? NO_EXPECTATION : EXPECT_RESULTSET);
 };
@@ -406,6 +414,7 @@ type EOF_Packet = record {
 refine connection MySQL_Conn += {
 	%member{
 		uint8 version_;
+		uint8 previous_seq_id_;
 		int state_;
 		Expected expected_;
 		uint32 col_count_;
@@ -416,6 +425,7 @@ refine connection MySQL_Conn += {
 
 	%init{
 		version_ = 0;
+		previous_seq_id_ = 0;
 		state_ = CONNECTION_PHASE;
 		expected_ = EXPECT_STATUS;
 		col_count_ = 0;
@@ -432,6 +442,17 @@ refine connection MySQL_Conn += {
 	function set_version(v: uint8): bool
 		%{
 		version_ = v;
+		return true;
+		%}
+
+	function get_previous_seq_id(): uint8
+		%{
+		return previous_seq_id_;
+		%}
+
+	function set_previous_seq_id(s: uint8): bool
+		%{
+		previous_seq_id_ = s;
 		return true;
 		%}
 

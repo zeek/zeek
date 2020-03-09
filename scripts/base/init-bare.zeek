@@ -512,6 +512,13 @@ type fa_file: record {
 	bof_buffer: string &optional;
 } &redef;
 
+## A function taking a fa_file and a string. Used by x509 analyzer as callback.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type string_file_function: function(f: fa_file, str: string);
+
 ## Metadata that's been inferred about a particular file.
 type fa_metadata: record {
 	## The strongest matching MIME type if one was discovered.

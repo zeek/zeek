@@ -7,6 +7,7 @@
 
 #include "OpaqueVal.h"
 #include "X509Common.h"
+#include "Func.h"
 
 #if ( OPENSSL_VERSION_NUMBER < 0x10002000L ) || defined(LIBRESSL_VERSION_NUMBER)
 
@@ -118,6 +119,12 @@ public:
 	static void SetCertificateCache(IntrusivePtr<TableVal> cache)
 		{ certificate_cache = cache; }
 
+	/**
+	 * Sets the callback when a certificate cache hit is encountered
+	 */
+	static void SetCertificateCacheHitCallback(IntrusivePtr<Func> func)
+		{ cache_hit_callback = func; }
+
 protected:
 	X509(RecordVal* args, File* file);
 
@@ -134,6 +141,7 @@ private:
 	/** X509 stores associated with global script-layer values */
 	inline static std::map<Val*, X509_STORE*> x509_stores = std::map<Val*, X509_STORE*>();
 	inline static IntrusivePtr<TableVal> certificate_cache = nullptr;
+	inline static IntrusivePtr<Func> cache_hit_callback = nullptr;
 };
 
 /**

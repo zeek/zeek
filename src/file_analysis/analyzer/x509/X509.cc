@@ -55,9 +55,16 @@ bool file_analysis::X509::EndOfFile()
 		auto index = make_intrusive<StringVal>(cert_sha256);
 		if ( certificate_cache->Lookup(index.get(), false) )
 			// in this case, the certificate is in the cache and we do not
-			// do any further processing here
+			// do any further processing here. However, if there is a callback, we execute it.
 			{
-			std::cerr << "Skipping " << cert_sha256 << std::endl;
+			if ( ! cache_hit_callback )
+				return false;
+			// yup, let's call the callback.
+
+			val_list vl(1);
+			vl.push_back(GetFile()->GetVal()->Ref());
+			vl.push_back(new StringVal(cert_sha256));
+			cache_hit_callback->Call(&vl);
 			return false;
 			}
 		}

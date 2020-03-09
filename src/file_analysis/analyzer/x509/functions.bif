@@ -888,3 +888,10 @@ function x509_set_certificate_cache%(tbl: string_any_table%) : bool
 
 	return val_mgr->GetBool(1);
 	%}
+
+function x509_set_certificate_cache_hit_callback%(f: string_file_function%) : bool
+	%{
+	file_analysis::X509::SetCertificateCacheHitCallback({NewRef{}, f->AsFunc()});
+
+	return val_mgr->GetBool(1);
+	%}

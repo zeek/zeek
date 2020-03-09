@@ -1,0 +1,83 @@
+name: Coverity Scan Cron Job
+
+on:
+  schedule:
+    - cron: '0 0 * * 1,3,5'
+
+jobs:
+  scan:
+    if: github.repository == 'zeek/zeek'
+    runs-on: ubuntu-18.04
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Update Submodules
+        shell: bash
+        run: |
+          auth_header="$(git config --local --get http.https://github.com/.extraheader)"
+          git submodule sync --recursive
+          git -c "http.extraheader=$auth_header" -c protocol.version=2 \
+            submodule update --init --force --recursive --depth=1
+
+      - name: Fetch Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install \
+            git \
+            cmake \
+            make \
+            gcc \
+            g++ \
+            flex \
+            bison \
+            libpcap-dev \
+            libssl-dev \
+            python3 \
+            python3-dev \
+            python3-pip\
+            swig \
+            zlib1g-dev \
+            libkrb5-dev \
+            bsdmainutils \
+            sqlite3 \
+            curl \
+            wget
+          # Many distros adhere to PEP 394's recommendation for `python` =
+          # `python2` so this is a simple workaround until we drop Python 2
+          # support and explicitly use `python3` for all invocations.
+          sudo ln -sf /usr/bin/python3 /usr/local/bin/python
+
+      - name: Fetch Coverity Tools
+        env:
+          COVERITY_TOKEN: ${{ secrets.COVERITY_TOKEN }}
+        run: |
+          wget \
+            -nv https://scan.coverity.com/download/cxx/linux64 \
+            --post-data "token=${COVERITY_TOKEN}&project=Bro" \
+            -O coverity_tool.tgz
+          tar xzf coverity_tool.tgz
+          rm coverity_tool.tgz
+          mv cov-analysis* coverity-tools
+
+      - name: Configure
+        run: ./configure --build-type=debug
+
+      - name: Build
+        run: |
+          export PATH=`pwd`/coverity-tools/bin:$PATH
+          ( cd build && cov-build --dir cov-int make -j 3 )
+
+      - name: Submit
+        env:
+          COVERITY_TOKEN: ${{ secrets.COVERITY_TOKEN }}
+        run: |
+          cd build
+          tar czf myproject.tgz cov-int
+          curl \
+            --form token=${COVERITY_TOKEN} \
+            --form email=zeek-commits-internal@zeek.org \
+            --form file=@myproject.tgz \
+            --form "version=`cat ../VERSION`" \
+            --form "description=`git rev-parse HEAD`" \
+            https://scan.coverity.com/builds?project=Bro

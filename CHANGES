@@ -1,4 +1,12 @@
 
+3.2.0-dev.214 | 2020-03-09 13:35:26 -0700
+
+  * Stop running GitHub Actions in forked repos (Jon Siwek, Corelight)
+
+  * Remove Travis CI configuration (Jon Siwek, Corelight)
+
+  * Add GitHub Action for Coverity Scan (Jon Siwek, Corelight)
+
 3.2.0-dev.209 | 2020-03-06 16:27:29 -0800
 
   * Add urgent flag to tcp_flags documentation (Tim Wojtulewicz, Corelight)

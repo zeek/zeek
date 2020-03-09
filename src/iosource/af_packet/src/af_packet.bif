@@ -11,6 +11,12 @@ enum FanoutMode %{
 	FANOUT_EBPF, # PACKET_FANOUT_EBPF
 %}
 
+enum ChecksumMode %{
+	CHECKSUM_OFF,
+	CHECKSUM_ON,
+	CHECKSUM_KERNEL,
+%}
+
 const buffer_size: count;
 const enable_hw_timestamping: bool;
 const enable_fanout: bool;
@@ -18,3 +24,4 @@ const enable_defrag: bool;
 const fanout_mode: FanoutMode;
 const fanout_id: count;
 const link_type: count;
+const checksum_offloading_mode: ChecksumMode;

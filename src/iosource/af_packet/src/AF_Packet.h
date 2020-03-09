@@ -60,6 +60,7 @@ private:
 
 	int current_filter;
 	unsigned int num_discarded;
+	int checksum_mode;
 
 	int socket_fd;
 	RX_Ring *rx_ring;

@@ -1,4 +1,8 @@
 
+3.0.3 | 2020-03-10 11:27:26 -0700
+
+  * Release 3.0.3
+
 3.0.3-dev.5 | 2020-03-09 13:22:11 -0700
 
   * GH-831: Fix the "bro" symlink for binary packaging mode (Jon Siwek, Corelight)

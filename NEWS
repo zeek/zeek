@@ -6,7 +6,19 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 3.1.1
 ==========
 
-TODO
+This release fixes the following bugs:
+
+* Potential high CPU load due to race in Broker data stores
+  https://github.com/zeek/broker/pull/97
+
+* Run-time script errors do not pop global frame/call stack (exhausting memory)
+  https://github.com/zeek/zeek/commit/36557f3086c95f079aa3e69c26a34adeb493c73f
+
+* Wrong 'bro' symlink in binary packaging mode
+  https://github.com/zeek/zeek/commit/b324fecc0d247830189ef895dae77531af6bc9dd
+
+* Install full rapidjson include tree to allow some external plugins to compile
+  https://github.com/zeek/zeek/commit/0d97d3f0c44fb506942b6df72f75a8613d8164ab
 
 Zeek 3.1.0
 ==========

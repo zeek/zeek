@@ -27,7 +27,7 @@ typedef enum {
 // One endpoint of a TCP connection.
 class TCP_Endpoint {
 public:
-	TCP_Endpoint(TCP_Analyzer* analyzer, int is_orig);
+	TCP_Endpoint(TCP_Analyzer* analyzer, bool is_orig);
 	~TCP_Endpoint();
 
 	void Done();
@@ -39,7 +39,7 @@ public:
 	EndpointState State() const 	{ return state; }
 	void SetState(EndpointState new_state);
 	uint64_t Size() const;
-	int IsActive() const
+	bool IsActive() const
 		{ return state != TCP_ENDPOINT_INACTIVE && ! did_close; }
 
 	double StartTime() const	{ return start_time; }
@@ -132,7 +132,7 @@ public:
 	// True if none of this endpoint's data has been acknowledged.
 	// We allow for possibly one octet being ack'd in the case of
 	// an initial SYN exchange.
-	int NoDataAcked() const
+	bool NoDataAcked() const
 		{
 		uint64_t ack = ToFullSeqSpace(ack_seq, ack_wraps);
 		uint64_t start = static_cast<uint64_t>(StartSeqI64());
@@ -141,17 +141,17 @@ public:
 
 	Connection* Conn() const;
 
-	int HasContents() const		{ return contents_processor != 0; }
-	int HadGap() const;
+	bool HasContents() const		{ return contents_processor != 0; }
+	bool HadGap() const;
 
-	inline int IsOrig() const		{ return is_orig; }
+	inline bool IsOrig() const		{ return is_orig; }
 
-	int HasDoneSomething() const	{ return last_time != 0.0; }
+	bool HasDoneSomething() const	{ return last_time != 0.0; }
 
 	void AddReassembler(TCP_Reassembler* contents_processor);
 
-	int DataPending() const;
-	int HasUndeliveredData() const;
+	bool DataPending() const;
+	bool HasUndeliveredData() const;
 	void CheckEOF();
 
 	// Returns the volume of data buffered in the reassembler.
@@ -166,7 +166,7 @@ public:
 	// WARNING: this is an O(n) operation and potentially very slow.
 	void SizeBufferedData(uint64_t& waiting_on_hole, uint64_t& waiting_on_ack);
 
-	int ValidChecksum(const struct tcphdr* tp, int len) const;
+	bool ValidChecksum(const struct tcphdr* tp, int len) const;
 
 	// Called to inform endpoint that it has generated a checksum error.
 	void ChecksumError();
@@ -182,7 +182,7 @@ public:
 
 	// Returns true if the data was used (and hence should be recorded
 	// in the save file), false otherwise.
-	int DataSent(double t, uint64_t seq, int len, int caplen, const u_char* data,
+	bool DataSent(double t, uint64_t seq, int len, int caplen, const u_char* data,
 			const IP_Hdr* ip, const struct tcphdr* tp);
 
 	void AckReceived(uint64_t seq);
@@ -203,7 +203,7 @@ public:
 #define HIST_CORRUPT_PKT 0x80
 #define HIST_RXMIT 0x100
 #define HIST_WIN0 0x200
-	int CheckHistory(uint32_t mask, char code);
+	bool CheckHistory(uint32_t mask, char code);
 	void AddHistory(char code);
 
 	//### combine into a set of flags:
@@ -224,8 +224,8 @@ public:
 	uint64_t contents_start_seq;	// relative seq # where contents file starts
 	uint64_t FIN_seq;		// relative seq # to start_seq
 	int SYN_cnt, FIN_cnt, RST_cnt;
-	int did_close;		// whether we've reported it closing
-	int is_orig;
+	bool did_close;		// whether we've reported it closing
+	bool is_orig;
 
 	// Relative sequence numbers associated with last control packets.
 	// Used to determine whether ones seen again are interesting,
@@ -253,4 +253,4 @@ protected:
 #define ENDIAN_BIG 2
 #define ENDIAN_CONFUSED 3
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

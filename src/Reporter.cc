@@ -244,7 +244,7 @@ public:
 	: Timer(t + timeout, TIMER_NET_WEIRD_EXPIRE), weird_name(name)
 		{}
 
-	void Dispatch(double t, int is_expire) override
+	void Dispatch(double t, bool is_expire) override
 		{ reporter->ResetNetWeird(weird_name); }
 
 	std::string weird_name;
@@ -258,7 +258,7 @@ public:
 		: Timer(t + timeout, TIMER_FLOW_WEIRD_EXPIRE), endpoints(std::move(p))
 		{}
 
-	void Dispatch(double t, int is_expire) override
+	void Dispatch(double t, bool is_expire) override
 		{ reporter->ResetFlowWeird(endpoints.first, endpoints.second); }
 
 	IPPair endpoints;

@@ -19,7 +19,7 @@ extern "C" {
 }
 
 void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
-		  uint32_t arg_len, const u_char *arg_data, int arg_copy,
+		  uint32_t arg_len, const u_char *arg_data, bool arg_copy,
 		  std::string arg_tag)
 	{
 	if ( data && copy )
@@ -595,7 +595,7 @@ RecordVal* Packet::BuildPktHdrVal() const
 	RecordVal* pkt_hdr = new RecordVal(raw_pkt_hdr_type);
 	RecordVal* l2_hdr = new RecordVal(l2_hdr_type);
 
-	int is_ethernet = (link_type == DLT_EN10MB) ? 1 : 0;
+	bool is_ethernet = link_type == DLT_EN10MB;
 
 	int l3 = BifEnum::L3_UNKNOWN;
 

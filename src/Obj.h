@@ -81,9 +81,9 @@ public:
 	// included in the message, though if pinpoint_only is non-zero,
 	// then obj2 is only used to pinpoint the location.
 	void Warn(const char* msg, const BroObj* obj2 = 0,
-			int pinpoint_only = 0, const Location* expr_location = 0) const;
+			bool pinpoint_only = false, const Location* expr_location = 0) const;
 	void Error(const char* msg, const BroObj* obj2 = 0,
-			int pinpoint_only = 0, const Location* expr_location = 0) const;
+			bool pinpoint_only = false, const Location* expr_location = 0) const;
 
 	// Report internal errors.
 	void BadTag(const char* msg, const char* t1 = 0,
@@ -135,9 +135,9 @@ private:
 	friend class SuppressErrors;
 
 	void DoMsg(ODesc* d, const char s1[], const BroObj* obj2 = 0,
-			int pinpoint_only = 0, const Location* expr_location = 0) const;
+			bool pinpoint_only = false, const Location* expr_location = 0) const;
 	void PinPoint(ODesc* d, const BroObj* obj2 = 0,
-			int pinpoint_only = 0) const;
+			bool pinpoint_only = false) const;
 
 	friend inline void Ref(BroObj* o);
 	friend inline void Unref(BroObj* o);

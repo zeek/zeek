@@ -166,7 +166,7 @@ HashKey* AnalyzerSet::GetKey(const file_analysis::Tag& t, RecordVal* args) const
 	ListVal* lv = new ListVal(TYPE_ANY);
 	lv->Append(t.AsEnumVal()->Ref());
 	lv->Append(args->Ref());
-	HashKey* key = analyzer_hash->ComputeHash(lv, 1);
+	HashKey* key = analyzer_hash->ComputeHash(lv, true);
 	Unref(lv);
 	if ( ! key )
 		reporter->InternalError("AnalyzerArgs type mismatch");

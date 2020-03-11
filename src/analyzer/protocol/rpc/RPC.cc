@@ -101,10 +101,10 @@ RPC_CallInfo::~RPC_CallInfo()
 	Unref(v);
 	}
 
-int RPC_CallInfo::CompareRexmit(const u_char* buf, int n) const
+bool RPC_CallInfo::CompareRexmit(const u_char* buf, int n) const
 	{
 	if ( n != call_n )
-		return 0;
+		return false;
 
 	return memcmp((const void*) call_buf, (const void*) buf, call_n) == 0;
 	}
@@ -122,7 +122,7 @@ RPC_Interpreter::~RPC_Interpreter()
 	}
 
 int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen,
-				int is_orig, double start_time, double last_time)
+				bool is_orig, double start_time, double last_time)
 	{
 	uint32_t xid = extract_XDR_uint32(buf, n);
 	uint32_t msg_type = extract_XDR_uint32(buf, n);
@@ -451,10 +451,10 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 	bool discard_this_chunk = false;
 
 	if ( resync_state == RESYNC_INIT )
-		{ 
+		{
 		// First time CheckResync is called. If the TCP endpoint
-		// is fully established we are in sync (since it's the first chunk 
-		// of data after the SYN if its not established we need to 
+		// is fully established we are in sync (since it's the first chunk
+		// of data after the SYN if its not established we need to
 		// resync.
 		tcp::TCP_Analyzer* tcp =
 			static_cast<tcp::TCP_ApplicationAnalyzer*>(Parent())->TCP();
@@ -647,7 +647,7 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig)
 			// know yet how much we expect, so we set expected to
 			// 0.
 			msg_buf.Init(MAX_RPC_LEN, 0);
-			last_frag = 0;
+			last_frag = false;
 			state = WAIT_FOR_MARKER;
 			start_time = network_time;
 			// no break. fall through
@@ -729,7 +729,7 @@ RPC_Analyzer::RPC_Analyzer(const char* name, Connection* conn,
 	{
 	if ( Conn()->ConnTransport() == TRANSPORT_UDP )
 		ADD_ANALYZER_TIMER(&RPC_Analyzer::ExpireTimer,
-			network_time + rpc_timeout, 1, TIMER_RPC_EXPIRE);
+			network_time + rpc_timeout, true, TIMER_RPC_EXPIRE);
 	}
 
 RPC_Analyzer::~RPC_Analyzer()
@@ -745,12 +745,12 @@ void RPC_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 
 	if ( orig )
 		{
-		if ( ! interp->DeliverRPC(data, len, len, 1, network_time, network_time) )
+		if ( ! interp->DeliverRPC(data, len, len, true, network_time, network_time) )
 			Weird("bad_RPC");
 		}
 	else
 		{
-		if ( ! interp->DeliverRPC(data, len, len, 0, network_time, network_time) )
+		if ( ! interp->DeliverRPC(data, len, len, false, network_time, network_time) )
 			Weird("bad_RPC");
 		}
 	}

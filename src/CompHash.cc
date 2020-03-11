@@ -25,20 +25,20 @@ CompositeHash::CompositeHash(IntrusivePtr<TypeList> composite_type)
 		{
 		if ( (*type->Types())[0]->Tag() == TYPE_RECORD )
 			{
-			is_complex_type = 1;
-			is_singleton = 0;
+			is_complex_type = true;
+			is_singleton = false;
 			}
 		else
 			{
-			is_complex_type = 0;
-			is_singleton = 1;
+			is_complex_type = false;
+			is_singleton = true;
 			}
 		}
 
 	else
 		{
-		is_singleton = 0;
-		is_complex_type = 0;
+		is_singleton = false;
+		is_complex_type = false;
 		}
 
 	if ( is_singleton )
@@ -52,7 +52,7 @@ CompositeHash::CompositeHash(IntrusivePtr<TypeList> composite_type)
 
 	else
 		{
-		size = ComputeKeySize(0, 1, true);
+		size = ComputeKeySize(0, true, true);
 
 		if ( size > 0 )
 			// Fixed size.  Make sure what we get is fully aligned.
@@ -69,7 +69,7 @@ CompositeHash::~CompositeHash()
 	}
 
 // Computes the piece of the hash for Val*, returning the new kp.
-char* CompositeHash::SingleValHash(int type_check, char* kp0,
+char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 				   BroType* bt, Val* v, bool optional) const
 	{
 	char* kp1 = 0;
@@ -333,7 +333,7 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 	}
 
 
-HashKey* CompositeHash::ComputeHash(const Val* v, int type_check) const
+HashKey* CompositeHash::ComputeHash(const Val* v, bool type_check) const
 	{
 	if ( ! v )
 		reporter->InternalError("null value given to CompositeHash::ComputeHash");
@@ -364,7 +364,7 @@ HashKey* CompositeHash::ComputeHash(const Val* v, int type_check) const
 			return 0;
 
 		k = reinterpret_cast<char*>(new double[sz/sizeof(double) + 1]);
-		type_check = 0;	// no need to type-check again.
+		type_check = false;	// no need to type-check again.
 		}
 
 	const type_list* tl = type->Types();
@@ -387,7 +387,7 @@ HashKey* CompositeHash::ComputeHash(const Val* v, int type_check) const
 	return new HashKey((k == key), (void*) k, kp - k);
 	}
 
-HashKey* CompositeHash::ComputeSingletonHash(const Val* v, int type_check) const
+HashKey* CompositeHash::ComputeSingletonHash(const Val* v, bool type_check) const
 	{
 	if ( v->Type()->Tag() == TYPE_LIST )
 		{
@@ -449,7 +449,7 @@ HashKey* CompositeHash::ComputeSingletonHash(const Val* v, int type_check) const
 	}
 
 int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
-				     int type_check, int sz, bool optional,
+				     bool type_check, int sz, bool optional,
 				     bool calc_static_size) const
 	{
 	InternalTypeTag t = bt->InternalType();
@@ -629,7 +629,7 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 	return sz;
 	}
 
-int CompositeHash::ComputeKeySize(const Val* v, int type_check, bool calc_static_size) const
+int CompositeHash::ComputeKeySize(const Val* v, bool type_check, bool calc_static_size) const
 	{
 	const type_list* tl = type->Types();
 	const val_list* vl = 0;
@@ -1044,7 +1044,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 			kp1 = reinterpret_cast<const char*>(kp+1);
 			}
 
-		*pval = make_intrusive<StringVal>(new BroString((const byte_vec) kp1, n, 1));
+		*pval = make_intrusive<StringVal>(new BroString((const byte_vec) kp1, n, true));
 		kp1 += n;
 		}
 		break;

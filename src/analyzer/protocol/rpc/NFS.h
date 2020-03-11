@@ -12,8 +12,8 @@ public:
 	explicit NFS_Interp(analyzer::Analyzer* arg_analyzer) : RPC_Interpreter(arg_analyzer) { }
 
 protected:
-	int RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n) override;
-	int RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
+	bool RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n) override;
+	bool RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 				const u_char*& buf, int& n, double start_time,
 				double last_time, int reply_len) override;
 
@@ -89,4 +89,4 @@ public:
 };
 
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

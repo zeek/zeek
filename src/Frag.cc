@@ -18,7 +18,7 @@ FragTimer::~FragTimer()
 		f->ClearTimer();
 	}
 
-void FragTimer::Dispatch(double t, int /* is_expire */)
+void FragTimer::Dispatch(double t, bool /* is_expire */)
 	{
 	if ( f )
 		f->Expire(t);

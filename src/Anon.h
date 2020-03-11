@@ -44,11 +44,11 @@ public:
 
 	ipaddr32_t Anonymize(ipaddr32_t addr);
 
-	virtual int PreservePrefix(ipaddr32_t input, int num_bits);
+	virtual bool PreservePrefix(ipaddr32_t input, int num_bits);
 
 	virtual ipaddr32_t anonymize(ipaddr32_t addr) = 0;
-	
-	int PreserveNet(ipaddr32_t input);
+
+	bool PreserveNet(ipaddr32_t input);
 
 protected:
 	map<ipaddr32_t, ipaddr32_t> mapping;
@@ -85,7 +85,7 @@ public:
 	~AnonymizeIPAddr_A50() override;
 
 	ipaddr32_t anonymize(ipaddr32_t addr) override;
-	int PreservePrefix(ipaddr32_t input, int num_bits) override;
+	bool PreservePrefix(ipaddr32_t input, int num_bits) override;
 
 protected:
 	struct Node {

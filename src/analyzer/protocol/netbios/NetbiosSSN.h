@@ -65,28 +65,28 @@ class NetbiosSSN_Interpreter {
 public:
 	explicit NetbiosSSN_Interpreter(Analyzer* analyzer);
 
-	int ParseMessage(unsigned int type, unsigned int flags,
-			const u_char* data, int len, int is_query);
+	void ParseMessage(unsigned int type, unsigned int flags,
+			const u_char* data, int len, bool is_query);
 
 	// Version used when data points to type/flags/length.
-	int ParseMessageTCP(const u_char* data, int len, int is_query);
-	int ParseMessageUDP(const u_char* data, int len, int is_query);
+	void ParseMessageTCP(const u_char* data, int len, bool is_query);
+	void ParseMessageUDP(const u_char* data, int len, bool is_query);
 
 	void Timeout()	{ }
 
 protected:
-	int ParseSessionMsg(const u_char* data, int len, int is_query);
-	int ParseSessionReq(const u_char* data, int len, int is_query);
-	int ParseSessionPosResp(const u_char* data, int len, int is_query);
-	int ParseSessionNegResp(const u_char* data, int len, int is_query);
-	int ParseRetArgResp(const u_char* data, int len, int is_query);
-	int ParseKeepAlive(const u_char* data, int len, int is_query);
+	void ParseSessionMsg(const u_char* data, int len, bool is_query);
+	void ParseSessionReq(const u_char* data, int len, bool is_query);
+	void ParseSessionPosResp(const u_char* data, int len, bool is_query);
+	void ParseSessionNegResp(const u_char* data, int len, bool is_query);
+	void ParseRetArgResp(const u_char* data, int len, bool is_query);
+	void ParseKeepAlive(const u_char* data, int len, bool is_query);
 
 	// Datagram parsing
-	int ParseBroadcast(const u_char* data, int len, int is_query);
-	int ParseDatagram(const u_char* data, int len, int is_query);
+	void ParseBroadcast(const u_char* data, int len, bool is_query);
+	void ParseDatagram(const u_char* data, int len, bool is_query);
 
-	int ParseSambaMsg(const u_char* data, int len, int is_query);
+	void ParseSambaMsg(const u_char* data, int len, bool is_query);
 
 	void Event(EventHandlerPtr event, const u_char* data, int len,
 			int is_orig = -1);
@@ -152,7 +152,7 @@ public:
 
 protected:
 	void ConnectionClosed(tcp::TCP_Endpoint* endpoint,
-					tcp::TCP_Endpoint* peer, int gen_event) override;
+					tcp::TCP_Endpoint* peer, bool gen_event) override;
 	void EndpointEOF(bool is_orig) override;
 
 	void ExpireTimer(double t);

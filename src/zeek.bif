@@ -144,7 +144,7 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 		time_t time = time_t(v->InternalDouble());
 		struct tm t;
 
-		int is_time_fmt = *fmt == 'T';
+		bool is_time_fmt = *fmt == 'T';
 
 		if ( ! localtime_r(&time, &t) )
 			s.AddSP("<problem getting time>");

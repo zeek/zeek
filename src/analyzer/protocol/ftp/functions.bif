@@ -41,7 +41,7 @@ static Val* parse_port(const char* line)
 		{
 		r->Assign(0, make_intrusive<AddrVal>(uint32_t(0)));
 		r->Assign(1, val_mgr->GetPort(0, TRANSPORT_TCP));
-		r->Assign(2, val_mgr->GetBool(0));
+		r->Assign(2, val_mgr->GetFalse());
 		}
 
 	return r;
@@ -218,4 +218,3 @@ function fmt_ftp_port%(a: addr, p: port%): string
 		return val_mgr->GetEmptyString();
 		}
 	%}
-

@@ -20,7 +20,7 @@ public:
 
 	void ConvertCCL(CCL* ccl);
 
-	int IsRep(int sym) const		{ return rep[sym] == sym; }
+	bool IsRep(int sym) const		{ return rep[sym] == sym; }
 	int EquivRep(int sym) const		{ return rep[sym]; }
 	int SymEquivClass(int sym) const	{ return equiv_class[sym]; }
 	int* EquivClasses() const		{ return equiv_class; }

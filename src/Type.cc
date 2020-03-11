@@ -112,9 +112,9 @@ BroType* BroType::YieldType()
 	return nullptr;
 	}
 
-int BroType::HasField(const char* /* field */) const
+bool BroType::HasField(const char* /* field */) const
 	{
-	return 0;
+	return false;
 	}
 
 BroType* BroType::FieldType(const char* /* field */) const
@@ -157,12 +157,12 @@ TypeList::~TypeList()
 		Unref(type);
 	}
 
-int TypeList::AllMatch(const BroType* t, int is_init) const
+bool TypeList::AllMatch(const BroType* t, bool is_init) const
 	{
 	for ( const auto& type : types )
 		if ( ! same_type(type, t, is_init) )
-			return 0;
-	return 1;
+			return false;
+	return true;
 	}
 
 void TypeList::Append(IntrusivePtr<BroType> t)
@@ -498,7 +498,7 @@ int FuncType::MatchesIndex(ListExpr* const index) const
 			MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
 	}
 
-int FuncType::CheckArgs(const type_list* args, bool is_init) const
+bool FuncType::CheckArgs(const type_list* args, bool is_init) const
 	{
 	const type_list* my_args = arg_types->Types();
 
@@ -506,17 +506,17 @@ int FuncType::CheckArgs(const type_list* args, bool is_init) const
 		{
 		Warn(fmt("Wrong number of arguments for function. Expected %d, got %d.",
 			args->length(), my_args->length()));
-		return 0;
+		return false;
 		}
 
-	int success = 1;
+	bool success = true;
 
 	for ( int i = 0; i < my_args->length(); ++i )
 		if ( ! same_type((*args)[i], (*my_args)[i], is_init) )
 			{
 			Warn(fmt("Type mismatch in function argument #%d. Expected %s, got %s.",
 				i, type_name((*args)[i]->Tag()), type_name((*my_args)[i]->Tag())));
-			success = 0;
+			success = false;
 			}
 
 	return success;
@@ -640,7 +640,7 @@ RecordType::~RecordType()
 		}
 	}
 
-int RecordType::HasField(const char* field) const
+bool RecordType::HasField(const char* field) const
 	{
 	return FieldOffset(field) >= 0;
 	}
@@ -1410,40 +1410,40 @@ BroType* base_type_no_ref(TypeTag tag)
 // false otherwise.  Assumes that t1's tag is different from t2's.  Note
 // that the test is in only one direction - we don't check whether t2 is
 // initialization-compatible with t1.
-static int is_init_compat(const BroType* t1, const BroType* t2)
+static bool is_init_compat(const BroType* t1, const BroType* t2)
 	{
 	if ( t1->Tag() == TYPE_LIST )
 		{
 		if ( t2->Tag() == TYPE_RECORD )
-			return 1;
+			return true;
 		else
-			return t1->AsTypeList()->AllMatch(t2, 1);
+			return t1->AsTypeList()->AllMatch(t2, true);
 		}
 
 	if ( t1->IsSet() )
-		return same_type(t1->AsSetType()->Indices(), t2, 1);
+		return same_type(t1->AsSetType()->Indices(), t2, true);
 
-	return 0;
+	return false;
 	}
 
-int same_type(const BroType* t1, const BroType* t2, int is_init, bool match_record_field_names)
+bool same_type(const BroType* t1, const BroType* t2, bool is_init, bool match_record_field_names)
 	{
 	if ( t1 == t2 ||
 	     t1->Tag() == TYPE_ANY ||
 	     t2->Tag() == TYPE_ANY )
-		return 1;
+		return true;
 
 	t1 = flatten_type(t1);
 	t2 = flatten_type(t2);
 	if ( t1 == t2 )
-		return 1;
+		return true;
 
 	if ( t1->Tag() != t2->Tag() )
 		{
 		if ( is_init )
 			return is_init_compat(t1, t2) || is_init_compat(t2, t1);
 
-		return 0;
+		return false;
 		}
 
 	switch ( t1->Tag() ) {
@@ -1463,14 +1463,14 @@ int same_type(const BroType* t1, const BroType* t2, int is_init, bool match_reco
 	case TYPE_SUBNET:
 	case TYPE_ANY:
 	case TYPE_ERROR:
-		return 1;
+		return true;
 
 	case TYPE_ENUM:
 		// We should probably check to see whether all of the
 		// enumerations are present and in the same location.
 		// FIXME: Yes, but perhaps we should better return
 		// true per default?
-		return 1;
+		return true;
 
 	case TYPE_TABLE:
 		{
@@ -1483,7 +1483,7 @@ int same_type(const BroType* t1, const BroType* t2, int is_init, bool match_reco
 		if ( tl1 || tl2 )
 			{
 			if ( ! tl1 || ! tl2 || ! same_type(tl1, tl2, is_init, match_record_field_names) )
-				return 0;
+				return false;
 			}
 
 		const BroType* y1 = t1->YieldType();
@@ -1492,10 +1492,10 @@ int same_type(const BroType* t1, const BroType* t2, int is_init, bool match_reco
 		if ( y1 || y2 )
 			{
 			if ( ! y1 || ! y2 || ! same_type(y1, y2, is_init, match_record_field_names) )
-				return 0;
+				return false;
 			}
 
-		return 1;
+		return true;
 		}
 
 	case TYPE_FUNC:
@@ -1504,13 +1504,13 @@ int same_type(const BroType* t1, const BroType* t2, int is_init, bool match_reco
 		const FuncType* ft2 = (const FuncType*) t2;
 
 		if ( ft1->Flavor() != ft2->Flavor() )
-			return 0;
+			return false;
 
 		if ( t1->YieldType() || t2->YieldType() )
 			{
 			if ( ! t1->YieldType() || ! t2->YieldType() ||
 			     ! same_type(t1->YieldType(), t2->YieldType(), is_init, match_record_field_names) )
-				return 0;
+				return false;
 			}
 
 		return ft1->CheckArgs(ft2->ArgTypes()->Types(), is_init);
@@ -1522,7 +1522,7 @@ int same_type(const BroType* t1, const BroType* t2, int is_init, bool match_reco
 		const RecordType* rt2 = (const RecordType*) t2;
 
 		if ( rt1->NumFields() != rt2->NumFields() )
-			return 0;
+			return false;
 
 		for ( int i = 0; i < rt1->NumFields(); ++i )
 			{
@@ -1531,10 +1531,10 @@ int same_type(const BroType* t1, const BroType* t2, int is_init, bool match_reco
 
 			if ( (match_record_field_names && ! streq(td1->id, td2->id)) ||
 			     ! same_type(td1->type.get(), td2->type.get(), is_init, match_record_field_names) )
-				return 0;
+				return false;
 			}
 
-		return 1;
+		return true;
 		}
 
 	case TYPE_LIST:
@@ -1543,13 +1543,13 @@ int same_type(const BroType* t1, const BroType* t2, int is_init, bool match_reco
 		const type_list* tl2 = t2->AsTypeList()->Types();
 
 		if ( tl1->length() != tl2->length() )
-			return 0;
+			return false;
 
 		loop_over_list(*tl1, i)
 			if ( ! same_type((*tl1)[i], (*tl2)[i], is_init, match_record_field_names) )
-				return 0;
+				return false;
 
-		return 1;
+		return true;
 		}
 
 	case TYPE_VECTOR:
@@ -1560,7 +1560,7 @@ int same_type(const BroType* t1, const BroType* t2, int is_init, bool match_reco
 		{
 		const OpaqueType* ot1 = (const OpaqueType*) t1;
 		const OpaqueType* ot2 = (const OpaqueType*) t2;
-		return ot1->Name() == ot2->Name() ? 1 : 0;
+		return ot1->Name() == ot2->Name();
 		}
 
 	case TYPE_TYPE:
@@ -1569,10 +1569,10 @@ int same_type(const BroType* t1, const BroType* t2, int is_init, bool match_reco
 	case TYPE_UNION:
 		reporter->Error("union type in same_type()");
 	}
-	return 0;
+	return false;
 	}
 
-int same_attrs(const Attributes* a1, const Attributes* a2)
+bool same_attrs(const Attributes* a1, const Attributes* a2)
 	{
 	if ( ! a1 )
 		return (a2 == 0);
@@ -1583,7 +1583,7 @@ int same_attrs(const Attributes* a1, const Attributes* a2)
 	return (*a1 == *a2);
 	}
 
-int record_promotion_compatible(const RecordType* super_rec,
+bool record_promotion_compatible(const RecordType* super_rec,
 				const RecordType* sub_rec)
 	{
 	for ( int i = 0; i < sub_rec->NumFields(); ++i )
@@ -1601,17 +1601,17 @@ int record_promotion_compatible(const RecordType* super_rec,
 			continue;
 
 		if ( sub_field_type->Tag() != TYPE_RECORD )
-			return 0;
+			return false;
 
 		if ( super_field_type->Tag() != TYPE_RECORD )
-			return 0;
+			return false;
 
 		if ( ! record_promotion_compatible(super_field_type->AsRecordType(),
 		                                   sub_field_type->AsRecordType()) )
-			return 0;
+			return false;
 		}
 
-	return 1;
+	return true;
 	}
 
 const BroType* flatten_type(const BroType* t)
@@ -1630,7 +1630,7 @@ const BroType* flatten_type(const BroType* t)
 		reporter->InternalError("empty type list in flatten_type");
 
 	const BroType* ft = (*types)[0];
-	if ( types->length() == 1 || tl->AllMatch(ft, 0) )
+	if ( types->length() == 1 || tl->AllMatch(ft, false) )
 		return ft;
 
 	return t;
@@ -1641,7 +1641,7 @@ BroType* flatten_type(BroType* t)
 	return (BroType*) flatten_type((const BroType*) t);
 	}
 
-int is_assignable(BroType* t)
+bool is_assignable(BroType* t)
 	{
 	switch ( t->Tag() ) {
 	case TYPE_BOOL:
@@ -1663,23 +1663,23 @@ int is_assignable(BroType* t)
 	case TYPE_ANY:
 	case TYPE_ERROR:
 	case TYPE_LIST:
-		return 1;
+		return true;
 
 	case TYPE_VECTOR:
 	case TYPE_FILE:
 	case TYPE_OPAQUE:
 	case TYPE_TABLE:
 	case TYPE_TYPE:
-		return 1;
+		return true;
 
 	case TYPE_VOID:
-		return 0;
+		return false;
 
 	case TYPE_UNION:
 		reporter->Error("union type in is_assignable()");
 	}
 
-	return 0;
+	return false;
 	}
 
 #define CHECK_TYPE(t) \

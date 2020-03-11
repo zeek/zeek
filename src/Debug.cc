@@ -237,7 +237,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 		body = bodies[0].stmts.get();
 	else
 		{
-		while ( 1 )
+		while ( true )
 			{
 			debug_msg("There are multiple definitions of that event handler.\n"
 				 "Please choose one of the following options:\n");
@@ -600,7 +600,7 @@ int dbg_execute_command(const char* cmd)
 		{
 		/* The prototype for add_history(), at least under MacOS,
 		 * has it taking a char* rather than a const char*.
-		 * But documentation at 
+		 * But documentation at
 		 * http://tiswww.case.edu/php/chet/readline/history.html
 		 * suggests that it's safe to assume it's really const char*.
 		 */

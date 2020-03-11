@@ -44,7 +44,7 @@ bool DataEvent::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 
 	mgr.Enqueue(chunk_event,
 		IntrusivePtr{NewRef{}, GetFile()->GetVal()},
-		make_intrusive<StringVal>(new BroString(data, len, 0)),
+		make_intrusive<StringVal>(new BroString(data, len, false)),
 		IntrusivePtr{AdoptRef{}, val_mgr->GetCount(offset)}
 	);
 
@@ -57,7 +57,7 @@ bool DataEvent::DeliverStream(const u_char* data, uint64_t len)
 
 	mgr.Enqueue(stream_event,
 		IntrusivePtr{NewRef{}, GetFile()->GetVal()},
-		make_intrusive<StringVal>(new BroString(data, len, 0))
+		make_intrusive<StringVal>(new BroString(data, len, false))
 	);
 
 	return true;

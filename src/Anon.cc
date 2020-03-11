@@ -69,13 +69,13 @@ ipaddr32_t AnonymizeIPAddr::Anonymize(ipaddr32_t addr)
 	}
 
 // Keep the specified prefix unchanged.
-int AnonymizeIPAddr::PreservePrefix(ipaddr32_t /* input */, int /* num_bits */)
+bool AnonymizeIPAddr::PreservePrefix(ipaddr32_t /* input */, int /* num_bits */)
 	{
 	reporter->InternalError("prefix preserving is not supported for the anonymizer");
-	return 0;
+	return false;
 	}
 
-int AnonymizeIPAddr::PreserveNet(ipaddr32_t input)
+bool AnonymizeIPAddr::PreserveNet(ipaddr32_t input)
 	{
 	switch ( addr_to_class(ntohl(input)) ) {
 	case 'A':
@@ -85,7 +85,7 @@ int AnonymizeIPAddr::PreserveNet(ipaddr32_t input)
 	case 'C':
 		return PreservePrefix(input, 24);
 	default:
-		return 0;
+		return false;
 	}
 	}
 
@@ -160,7 +160,7 @@ void AnonymizeIPAddr_A50::init()
 	new_mapping = 0;
 	}
 
-int AnonymizeIPAddr_A50::PreservePrefix(ipaddr32_t input, int num_bits)
+bool AnonymizeIPAddr_A50::PreservePrefix(ipaddr32_t input, int num_bits)
 	{
 	DEBUG_MSG("%s/%d\n",
 			IPAddr(IPv4, &input, IPAddr::Network).AsString().c_str(),
@@ -169,7 +169,7 @@ int AnonymizeIPAddr_A50::PreservePrefix(ipaddr32_t input, int num_bits)
 	if ( ! before_anonymization )
 		{
 		reporter->Error("prefix perservation specified after anonymization begun");
-		return 0;
+		return false;
 		}
 
 	input = ntohl(input);
@@ -191,7 +191,7 @@ int AnonymizeIPAddr_A50::PreservePrefix(ipaddr32_t input, int num_bits)
 		n->output = (input & prefix_mask) | (rand32() & suffix_mask);
 		}
 
-	return 1;
+	return true;
 	}
 
 ipaddr32_t AnonymizeIPAddr_A50::anonymize(ipaddr32_t a)

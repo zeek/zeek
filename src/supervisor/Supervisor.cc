@@ -145,7 +145,7 @@ ParentProcessCheckTimer::ParentProcessCheckTimer(double t, double arg_interval)
 	{
 	}
 
-void ParentProcessCheckTimer::Dispatch(double t, int is_expire)
+void ParentProcessCheckTimer::Dispatch(double t, bool is_expire)
 	{
 	// Note: only simple + portable way of detecting loss of parent
 	// process seems to be polling for change in PPID.  There's platform

@@ -124,7 +124,7 @@ IntrusivePtr<Val> Expr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) const
 	if ( IsError() )
 		return nullptr;
 
-	return check_and_promote(Eval(nullptr), t, 1);
+	return check_and_promote(Eval(nullptr), t, true);
 	}
 
 bool Expr::IsError() const
@@ -439,8 +439,8 @@ IntrusivePtr<Val> BinaryExpr::Eval(Frame* f) const
 	if ( ! v2 )
 		return nullptr;
 
-	int is_vec1 = is_vector(v1.get());
-	int is_vec2 = is_vector(v2.get());
+	bool is_vec1 = is_vector(v1.get());
+	bool is_vec2 = is_vector(v2.get());
 
 	if ( is_vec1 && is_vec2 )
 		{ // fold pairs of elements
@@ -2013,7 +2013,7 @@ void RefExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 	}
 
 AssignExpr::AssignExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2,
-                       int arg_is_init, IntrusivePtr<Val> arg_val,
+                       bool arg_is_init, IntrusivePtr<Val> arg_val,
                        attr_list* arg_attrs)
 	: BinaryExpr(EXPR_ASSIGN, arg_is_init ?
 	             std::move(arg_op1) : arg_op1->MakeLvalue(),
@@ -2328,7 +2328,7 @@ void AssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const
 	TableVal* tv = aggr->AsTableVal();
 
 	auto index = op1->Eval(f);
-	auto v = check_and_promote(op2->Eval(f), t->YieldType(), 1);
+	auto v = check_and_promote(op2->Eval(f), t->YieldType(), true);
 
 	if ( ! index || ! v )
 		return;
@@ -2439,7 +2439,7 @@ bool AssignExpr::IsPure() const
 	}
 
 IndexSliceAssignExpr::IndexSliceAssignExpr(IntrusivePtr<Expr> op1,
-                                           IntrusivePtr<Expr> op2, int is_init)
+                                           IntrusivePtr<Expr> op2, bool is_init)
 	: AssignExpr(std::move(op1), std::move(op2), is_init)
 	{
 	}
@@ -3285,7 +3285,7 @@ IntrusivePtr<Val> SetConstructorExpr::InitVal(const BroType* t, IntrusivePtr<Val
 
 	for ( const auto& e : exprs )
 		{
-		auto element = check_and_promote(e->Eval(nullptr), index_type, 1);
+		auto element = check_and_promote(e->Eval(nullptr), index_type, true);
 
 		if ( ! element || ! tval->Assign(element.get(), 0) )
 			{
@@ -3383,7 +3383,7 @@ IntrusivePtr<Val> VectorConstructorExpr::InitVal(const BroType* t, IntrusivePtr<
 	loop_over_list(exprs, i)
 		{
 		Expr* e = exprs[i];
-		auto v = check_and_promote(e->Eval(nullptr), t->YieldType(), 1);
+		auto v = check_and_promote(e->Eval(nullptr), t->YieldType(), true);
 
 		if ( ! v || ! vec->Assign(i, std::move(v)) )
 			{
@@ -3855,7 +3855,7 @@ ScheduleTimer::~ScheduleTimer()
 	{
 	}
 
-void ScheduleTimer::Dispatch(double /* t */, int /* is_expire */)
+void ScheduleTimer::Dispatch(double /* t */, bool /* is_expire */)
 	{
 	if ( event )
 		mgr.Enqueue(event, std::move(args));
@@ -4138,15 +4138,15 @@ CallExpr::CallExpr(IntrusivePtr<Expr> arg_func,
 bool CallExpr::IsPure() const
 	{
 	if ( IsError() )
-		return 1;
+		return true;
 
 	if ( ! func->IsPure() )
-		return 0;
+		return false;
 
 	auto func_val = func->Eval(nullptr);
 
 	if ( ! func_val )
-		return 0;
+		return false;
 
 	::Func* f = func_val->AsFunc();
 
@@ -4154,7 +4154,7 @@ bool CallExpr::IsPure() const
 	// functions can lead to infinite recursion if the function being
 	// called here happens to be recursive (either directly
 	// or indirectly).
-	int pure = 0;
+	bool pure = false;
 
 	if ( f->GetKind() == Func::BUILTIN_FUNC )
 		pure = f->IsPure() && args->IsPure();
@@ -4523,7 +4523,7 @@ IntrusivePtr<BroType> ListExpr::InitType() const
 					ti->AsTypeList();
 
 				if ( ! til->IsPure() ||
-				     ! til->AllMatch(til->PureType(), 1) )
+				     ! til->AllMatch(til->PureType(), true) )
 					tl->Append({NewRef{}, til});
 				else
 					tl->Append({NewRef{}, til->PureType()});
@@ -4547,7 +4547,7 @@ IntrusivePtr<Val> ListExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) co
 
 	// Check whether each element of this list itself matches t,
 	// in which case we should expand as a ListVal.
-	if ( ! aggr && type->AsTypeList()->AllMatch(t, 1) )
+	if ( ! aggr && type->AsTypeList()->AllMatch(t, true) )
 		{
 		auto v = make_intrusive<ListVal>(TYPE_ANY);
 		const type_list* tl = type->AsTypeList()->Types();
@@ -4671,7 +4671,7 @@ IntrusivePtr<Val> ListExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) co
 				return nullptr;
 				}
 
-			if ( ! v->AsTableVal()->AddTo(aggr->AsTableVal(), 1) )
+			if ( ! v->AsTableVal()->AddTo(aggr->AsTableVal(), true) )
 				return nullptr;
 			}
 		}
@@ -4711,16 +4711,16 @@ IntrusivePtr<Val> ListExpr::AddSetInit(const BroType* t, IntrusivePtr<Val> aggr)
 				return nullptr;
 				}
 
-			if ( ! element->AsTableVal()->AddTo(tv, 1) )
+			if ( ! element->AsTableVal()->AddTo(tv, true) )
 				return nullptr;
 
 			continue;
 			}
 
 		if ( expr->Type()->Tag() == TYPE_LIST )
-			element = check_and_promote(std::move(element), it, 1);
+			element = check_and_promote(std::move(element), it, true);
 		else
-			element = check_and_promote(std::move(element), (*it->Types())[0], 1);
+			element = check_and_promote(std::move(element), (*it->Types())[0], true);
 
 		if ( ! element )
 			return nullptr;
@@ -4781,7 +4781,7 @@ TraversalCode ListExpr::Traverse(TraversalCallback* cb) const
 	}
 
 RecordAssignExpr::RecordAssignExpr(const IntrusivePtr<Expr>& record,
-                                   const IntrusivePtr<Expr>& init_list, int is_init)
+                                   const IntrusivePtr<Expr>& init_list, bool is_init)
 	{
 	const expr_list& inits = init_list->AsListExpr()->Exprs();
 
@@ -4912,7 +4912,7 @@ void IsExpr::ExprDescribe(ODesc* d) const
 	}
 
 IntrusivePtr<Expr> get_assign_expr(IntrusivePtr<Expr> op1,
-                                   IntrusivePtr<Expr> op2, int is_init)
+                                   IntrusivePtr<Expr> op2, bool is_init)
 	{
 	if ( op1->Type()->Tag() == TYPE_RECORD &&
 	     op2->Type()->Tag() == TYPE_LIST )
@@ -5005,18 +5005,18 @@ IntrusivePtr<Expr> check_and_promote_expr(Expr* const e, BroType* t)
 	return {NewRef{}, e};
 	}
 
-int check_and_promote_exprs(ListExpr* const elements, TypeList* types)
+bool check_and_promote_exprs(ListExpr* const elements, TypeList* types)
 	{
 	expr_list& el = elements->Exprs();
 	const type_list* tl = types->Types();
 
 	if ( tl->length() == 1 && (*tl)[0]->Tag() == TYPE_ANY )
-		return 1;
+		return true;
 
 	if ( el.length() != tl->length() )
 		{
 		types->Error("indexing mismatch", elements);
-		return 0;
+		return false;
 		}
 
 	loop_over_list(el, i)
@@ -5027,7 +5027,7 @@ int check_and_promote_exprs(ListExpr* const elements, TypeList* types)
 		if ( ! promoted_e )
 			{
 			e->Error("type mismatch", (*tl)[i]);
-			return 0;
+			return false;
 			}
 
 		if ( promoted_e.get() != e )
@@ -5037,17 +5037,17 @@ int check_and_promote_exprs(ListExpr* const elements, TypeList* types)
 			}
 		}
 
-	return 1;
+	return true;
 	}
 
-int check_and_promote_args(ListExpr* const args, RecordType* types)
+bool check_and_promote_args(ListExpr* const args, RecordType* types)
 	{
 	expr_list& el = args->Exprs();
 	int ntypes = types->NumFields();
 
 	// give variadic BIFs automatic pass
 	if ( ntypes == 1 && types->FieldDecl(0)->type->Tag() == TYPE_ANY )
-		return 1;
+		return true;
 
 	if ( el.length() < ntypes )
 		{
@@ -5063,7 +5063,7 @@ int check_and_promote_args(ListExpr* const args, RecordType* types)
 			if ( ! def_attr )
 				{
 				types->Error("parameter mismatch", args);
-				return 0;
+				return false;
 				}
 
 			def_elements.push_front(def_attr->AttrExpr());
@@ -5084,12 +5084,12 @@ int check_and_promote_args(ListExpr* const args, RecordType* types)
 	return rval;
 	}
 
-int check_and_promote_exprs_to_type(ListExpr* const elements, BroType* type)
+bool check_and_promote_exprs_to_type(ListExpr* const elements, BroType* type)
 	{
 	expr_list& el = elements->Exprs();
 
 	if ( type->Tag() == TYPE_ANY )
-		return 1;
+		return true;
 
 	loop_over_list(el, i)
 		{
@@ -5099,7 +5099,7 @@ int check_and_promote_exprs_to_type(ListExpr* const elements, BroType* type)
 		if ( ! promoted_e )
 			{
 			e->Error("type mismatch", type);
-			return 0;
+			return false;
 			}
 
 		if ( promoted_e.get() != e )
@@ -5109,7 +5109,7 @@ int check_and_promote_exprs_to_type(ListExpr* const elements, BroType* type)
 			}
 		}
 
-	return 1;
+	return true;
 	}
 
 std::optional<std::vector<IntrusivePtr<Val>>> eval_list(Frame* f, const ListExpr* l)

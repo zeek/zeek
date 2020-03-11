@@ -623,7 +623,7 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 	if ( precert && issuer_key_hash->Len() != 32)
 		{
 		reporter->Error("Invalid issuer_key_hash length");
-		return val_mgr->GetBool(0);
+		return val_mgr->GetFalse();
 		}
 
 	std::string data;
@@ -647,7 +647,7 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 		if ( pos < 0 )
 			{
 			reporter->Error("NID_ct_precert_scts not found");
-			return val_mgr->GetBool(0);
+			return val_mgr->GetFalse();
 			}
 #else
 		int num_ext = X509_get_ext_count(x);
@@ -751,7 +751,7 @@ sct_verify_err:
 		EVP_PKEY_free(key);
 
 	reporter->Error("%s", errstr.c_str());
-	return val_mgr->GetBool(0);
+	return val_mgr->GetFalse();
 	%}
 
 

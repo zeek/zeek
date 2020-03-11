@@ -15,7 +15,7 @@ public:
 
 	// Compute the hash corresponding to the given index val,
 	// or 0 if it fails to typecheck.
-	HashKey* ComputeHash(const Val* v, int type_check) const;
+	HashKey* ComputeHash(const Val* v, bool type_check) const;
 
 	// Given a hash key, recover the values used to create it.
 	IntrusivePtr<ListVal> RecoverVals(const HashKey* k) const;
@@ -23,11 +23,11 @@ public:
 	unsigned int MemoryAllocation() const { return padded_sizeof(*this) + pad_size(size); }
 
 protected:
-	HashKey* ComputeSingletonHash(const Val* v, int type_check) const;
+	HashKey* ComputeSingletonHash(const Val* v, bool type_check) const;
 
 	// Computes the piece of the hash for Val*, returning the new kp.
 	// Used as a helper for ComputeHash in the non-singleton case.
-	char* SingleValHash(int type_check, char* kp, BroType* bt, Val* v,
+	char* SingleValHash(bool type_check, char* kp, BroType* bt, Val* v,
 			    bool optional) const;
 
 	// Recovers just one Val of possibly many; called from RecoverVals.
@@ -72,20 +72,20 @@ protected:
 	// the value is computed for the particular list of values.
 	// Returns 0 if the key has an indeterminant size (if v not given),
 	// or if v doesn't match the index type (if given).
-	int ComputeKeySize(const Val* v, int type_check,
+	int ComputeKeySize(const Val* v, bool type_check,
 			   bool calc_static_size) const;
 
 	int SingleTypeKeySize(BroType*, const Val*,
-			      int type_check, int sz, bool optional,
+			      bool type_check, int sz, bool optional,
 			      bool calc_static_size) const;
 
 	IntrusivePtr<TypeList> type;
 	char* key;	// space for composite key
 	int size;
-	int is_singleton;	// if just one type in index
+	bool is_singleton;	// if just one type in index
 
 	// If one type, but not normal "singleton", e.g. record.
-	int is_complex_type;
+	bool is_complex_type;
 
 	InternalTypeTag singleton_tag;
 };

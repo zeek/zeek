@@ -27,13 +27,13 @@ public:
 		: Timer(arg_t, TIMER_BREAKPOINT)
 			{ bp = arg_bp; }
 
-	void Dispatch(double t, int is_expire);
+	void Dispatch(double t, bool is_expire) override;
 
 protected:
 	DbgBreakpoint* bp;
 };
 
-void BreakpointTimer::Dispatch(double t, int is_expire)
+void BreakpointTimer::Dispatch(double t, bool is_expire)
 	{
 	if ( is_expire )
 		return;

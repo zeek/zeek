@@ -78,7 +78,7 @@ void HTTP_Entity::EndOfData()
 	MIME_Entity::EndOfData();
 	}
 
-void HTTP_Entity::Deliver(int len, const char* data, int trailing_CRLF)
+void HTTP_Entity::Deliver(int len, const char* data, bool trailing_CRLF)
 	{
 	if ( DEBUG_http )
 		{
@@ -142,7 +142,7 @@ void HTTP_Entity::Deliver(int len, const char* data, int trailing_CRLF)
 				SetPlainDelivery(0);
 				chunked_transfer_state = EXPECT_CHUNK_DATA_CRLF;
 				}
-			DeliverBody(len, data, 0);
+			DeliverBody(len, data, false);
 			break;
 
 		case EXPECT_CHUNK_DATA_CRLF:
@@ -159,7 +159,7 @@ void HTTP_Entity::Deliver(int len, const char* data, int trailing_CRLF)
 		ASSERT(! trailing_CRLF);
 		ASSERT(len <= expect_data_length);
 
-		DeliverBody(len, data, 0);
+		DeliverBody(len, data, false);
 
 		expect_data_length -= len;
 		if ( expect_data_length <= 0 )
@@ -184,7 +184,7 @@ private:
 	HTTP_Entity* entity;
 };
 
-void HTTP_Entity::DeliverBody(int len, const char* data, int trailing_CRLF)
+void HTTP_Entity::DeliverBody(int len, const char* data, bool trailing_CRLF)
 	{
 	if ( encoding == GZIP || encoding == DEFLATE )
 		{
@@ -207,7 +207,7 @@ void HTTP_Entity::DeliverBody(int len, const char* data, int trailing_CRLF)
 		DeliverBodyClear(len, data, trailing_CRLF);
 	}
 
-void HTTP_Entity::DeliverBodyClear(int len, const char* data, int trailing_CRLF)
+void HTTP_Entity::DeliverBodyClear(int len, const char* data, bool trailing_CRLF)
 	{
 	bool new_data = (body_length == 0);
 
@@ -233,7 +233,7 @@ void HTTP_Entity::DeliverBodyClear(int len, const char* data, int trailing_CRLF)
 
 // Returns 1 if the undelivered bytes are completely within the body,
 // otherwise returns 0.
-int HTTP_Entity::Undelivered(int64_t len)
+bool HTTP_Entity::Undelivered(int64_t len)
 	{
 	if ( DEBUG_http )
 		{
@@ -244,7 +244,7 @@ int HTTP_Entity::Undelivered(int64_t len)
 	// Don't propogate an entity (file) gap if we're still in the headers,
 	// or the body length was declared to be zero.
 	if ( (end_of_data && in_header) || body_length == 0 )
-		return 0;
+		return false;
 
 	if ( is_partial_content )
 		{
@@ -273,10 +273,10 @@ int HTTP_Entity::Undelivered(int64_t len)
 			if ( expect_data_length == 0 )
 				chunked_transfer_state = EXPECT_CHUNK_DATA_CRLF;
 
-			return 1;
+			return true;
 			}
 		else
-			return 0;
+			return false;
 		}
 
 	else if ( content_length >= 0 )
@@ -291,14 +291,14 @@ int HTTP_Entity::Undelivered(int64_t len)
 			if ( expect_data_length <= 0 )
 				EndOfData();
 
-			return 1;
+			return true;
 			}
 
 		else
-			return 0;
+			return false;
 		}
 
-	return 0;
+	return false;
 	}
 
 void HTTP_Entity::SubmitData(int len, const char* buf)
@@ -613,7 +613,7 @@ HTTP_Message::~HTTP_Message()
 	delete [] entity_data_buffer;
 	}
 
-Val* HTTP_Message::BuildMessageStat(const int interrupted, const char* msg)
+Val* HTTP_Message::BuildMessageStat(bool interrupted, const char* msg)
 	{
 	RecordVal* stat = new RecordVal(http_message_stat);
 	int field = 0;
@@ -626,7 +626,7 @@ Val* HTTP_Message::BuildMessageStat(const int interrupted, const char* msg)
 	return stat;
 	}
 
-void HTTP_Message::Done(const int interrupted, const char* detail)
+void HTTP_Message::Done(bool interrupted, const char* detail)
 	{
 	if ( finished )
 		return;
@@ -658,7 +658,7 @@ void HTTP_Message::Done(const int interrupted, const char* detail)
 	MyHTTP_Analyzer()->HTTP_MessageDone(is_orig, this);
 	}
 
-int HTTP_Message::Undelivered(int64_t len)
+bool HTTP_Message::Undelivered(int64_t len)
 	{
 	HTTP_Entity* e = current_entity ? current_entity
 	                                : static_cast<HTTP_Entity*>(top_level);
@@ -666,10 +666,10 @@ int HTTP_Message::Undelivered(int64_t len)
 	if ( e && e->Undelivered(len) )
 		{
 		content_gap_length += len;
-		return 1;
+		return true;
 		}
 
-	return 0;
+	return false;
 	}
 
 void HTTP_Message::BeginEntity(mime::MIME_Entity* entity)
@@ -766,17 +766,17 @@ void HTTP_Message::SubmitData(int len, const char* buf)
 	{
 	if ( http_entity_data )
 		MyHTTP_Analyzer()->HTTP_EntityData(is_orig,
-		        new BroString(reinterpret_cast<const u_char*>(buf), len, 0));
+		        new BroString(reinterpret_cast<const u_char*>(buf), len, false));
 	}
 
-int HTTP_Message::RequestBuffer(int* plen, char** pbuf)
+bool HTTP_Message::RequestBuffer(int* plen, char** pbuf)
 	{
 	if ( ! entity_data_buffer )
 		entity_data_buffer = new char[http_entity_data_delivery_size];
 
 	*plen = http_entity_data_delivery_size;
 	*pbuf = entity_data_buffer;
-	return 1;
+	return true;
 	}
 
 void HTTP_Message::SubmitAllData()
@@ -878,8 +878,8 @@ void HTTP_Analyzer::Done()
 
 	tcp::TCP_ApplicationAnalyzer::Done();
 
-	RequestMade(1, "message interrupted when connection done");
-	ReplyMade(1, "message interrupted when connection done");
+	RequestMade(true, "message interrupted when connection done");
+	ReplyMade(true, "message interrupted when connection done");
 
 	delete request_message;
 	request_message = 0;
@@ -933,14 +933,14 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 		if ( is_orig )
 			{
 			if ( request_message )
-				request_message->Deliver(len, line, 0);
+				request_message->Deliver(len, line, false);
 			else
 				Weird("unexpected_client_HTTP_data");
 			}
 		else
 			{
 			if ( reply_message )
-				reply_message->Deliver(len, line, 0);
+				reply_message->Deliver(len, line, false);
 			else
 				Weird("unexpected_server_HTTP_data");
 			}
@@ -1004,7 +1004,7 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 			break;
 
 		case EXPECT_REQUEST_MESSAGE:
-			request_message->Deliver(len, line, 1);
+			request_message->Deliver(len, line, true);
 			break;
 
 		case EXPECT_REQUEST_TRAILER:
@@ -1051,7 +1051,7 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 			break;
 
 		case EXPECT_REPLY_MESSAGE:
-			reply_message->Deliver(len, line, 1);
+			reply_message->Deliver(len, line, true);
 
 			if ( connect_request && len == 0 )
 				{
@@ -1118,16 +1118,15 @@ void HTTP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
 		// reply contains a body may depend on knowing the
 		// request method
 
-		RequestMade(1, "message interrupted by a content gap");
-		ReplyMade(1, "message interrupted by a content gap");
+		RequestMade(true, "message interrupted by a content gap");
+		ReplyMade(true, "message interrupted by a content gap");
 
-		content_line->SetSkipDeliveries(1);
-		content_line->SetSkipDeliveries(1);
+		content_line->SetSkipDeliveries(true);
 		}
 	else
 		{
-		ReplyMade(1, "message interrupted by a content gap");
-		content_line->SetSkipDeliveries(1);
+		ReplyMade(true, "message interrupted by a content gap");
+		content_line->SetSkipDeliveries(true);
 		}
 	}
 
@@ -1138,34 +1137,34 @@ void HTTP_Analyzer::EndpointEOF(bool is_orig)
 	// DEBUG_MSG("%.6f eof\n", network_time);
 
 	if ( is_orig )
-		RequestMade(0, "message ends as connection contents are completely delivered");
+		RequestMade(false, "message ends as connection contents are completely delivered");
 	else
-		ReplyMade(0, "message ends as connection contents are completely delivered");
+		ReplyMade(false, "message ends as connection contents are completely delivered");
 	}
 
-void HTTP_Analyzer::ConnectionFinished(int half_finished)
+void HTTP_Analyzer::ConnectionFinished(bool half_finished)
 	{
 	tcp::TCP_ApplicationAnalyzer::ConnectionFinished(half_finished);
 
 	// DEBUG_MSG("%.6f connection finished\n", network_time);
-	RequestMade(1, "message ends as connection is finished");
-	ReplyMade(1, "message ends as connection is finished");
+	RequestMade(true, "message ends as connection is finished");
+	ReplyMade(true, "message ends as connection is finished");
 	}
 
 void HTTP_Analyzer::ConnectionReset()
 	{
 	tcp::TCP_ApplicationAnalyzer::ConnectionReset();
 
-	RequestMade(1, "message interrupted by RST");
-	ReplyMade(1, "message interrupted by RST");
+	RequestMade(true, "message interrupted by RST");
+	ReplyMade(true, "message interrupted by RST");
 	}
 
 void HTTP_Analyzer::PacketWithRST()
 	{
 	tcp::TCP_ApplicationAnalyzer::PacketWithRST();
 
-	RequestMade(1, "message interrupted by RST");
-	ReplyMade(1, "message interrupted by RST");
+	RequestMade(true, "message interrupted by RST");
+	ReplyMade(true, "message interrupted by RST");
 	}
 
 void HTTP_Analyzer::GenStats()
@@ -1278,7 +1277,7 @@ error:
 	return 0;
 	}
 
-int HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line)
+bool HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line)
 	{
 	const char* end_of_uri;
 	const char* version_start;
@@ -1335,7 +1334,7 @@ int HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line)
 	unescaped_URI = new StringVal(unescape_URI((const u_char*) line,
 					(const u_char*) end_of_uri, this));
 
-	return 1;
+	return true;
 	}
 
 // Only recognize [0-9][.][0-9].
@@ -1396,7 +1395,7 @@ StringVal* HTTP_Analyzer::TruncateURI(StringVal* uri)
 		u_char* s = new u_char[truncate_http_URI + 4];
 		memcpy(s, str->Bytes(), truncate_http_URI);
 		memcpy(s + truncate_http_URI, "...", 4);
-		return new StringVal(new BroString(1, s, truncate_http_URI+3));
+		return new StringVal(new BroString(true, s, truncate_http_URI+3));
 		}
 	else
 		{
@@ -1444,7 +1443,7 @@ void HTTP_Analyzer::HTTP_Reply()
 		}
 	}
 
-void HTTP_Analyzer::RequestMade(const int interrupted, const char* msg)
+void HTTP_Analyzer::RequestMade(bool interrupted, const char* msg)
 	{
 	if ( ! request_ongoing )
 		return;
@@ -1470,7 +1469,7 @@ void HTTP_Analyzer::RequestMade(const int interrupted, const char* msg)
 		request_state = EXPECT_REQUEST_LINE;
 	}
 
-void HTTP_Analyzer::ReplyMade(const int interrupted, const char* msg)
+void HTTP_Analyzer::ReplyMade(bool interrupted, const char* msg)
 	{
 	if ( ! reply_ongoing )
 		return;
@@ -1527,7 +1526,7 @@ void HTTP_Analyzer::RequestClash(Val* /* clash_val */)
 	Weird("multiple_HTTP_request_elements");
 
 	// Flush out old values.
-	RequestMade(1, "request clash");
+	RequestMade(true, "request clash");
 	}
 
 const BroString* HTTP_Analyzer::UnansweredRequestMethod()
@@ -1626,7 +1625,7 @@ int HTTP_Analyzer::ExpectReplyMessageBody()
 	return HTTP_BODY_EXPECTED;
 	}
 
-void HTTP_Analyzer::HTTP_Header(int is_orig, mime::MIME_Header* h)
+void HTTP_Analyzer::HTTP_Header(bool is_orig, mime::MIME_Header* h)
 	{
 	// To be "liberal", we only look at "keep-alive" on the client
 	// side, and if seen assume the connection to be persistent.
@@ -1679,7 +1678,7 @@ void HTTP_Analyzer::HTTP_Header(int is_orig, mime::MIME_Header* h)
 		}
 	}
 
-void HTTP_Analyzer::HTTP_EntityData(int is_orig, BroString* entity_data)
+void HTTP_Analyzer::HTTP_EntityData(bool is_orig, BroString* entity_data)
 	{
 	if ( http_entity_data )
 		EnqueueConnEvent(http_entity_data,
@@ -1693,12 +1692,12 @@ void HTTP_Analyzer::HTTP_EntityData(int is_orig, BroString* entity_data)
 	}
 
 // Calls request/reply done
-void HTTP_Analyzer::HTTP_MessageDone(int is_orig, HTTP_Message* /* message */)
+void HTTP_Analyzer::HTTP_MessageDone(bool is_orig, HTTP_Message* /* message */)
 	{
 	if ( is_orig )
-		RequestMade(0, "message ends normally");
+		RequestMade(false, "message ends normally");
 	else
-		ReplyMade(0, "message ends normally");
+		ReplyMade(false, "message ends normally");
 	}
 
 void HTTP_Analyzer::InitHTTPMessage(tcp::ContentLine_Analyzer* cl, HTTP_Message*& message,
@@ -1717,7 +1716,7 @@ void HTTP_Analyzer::InitHTTPMessage(tcp::ContentLine_Analyzer* cl, HTTP_Message*
 					init_header_length);
 	}
 
-void HTTP_Analyzer::SkipEntityData(int is_orig)
+void HTTP_Analyzer::SkipEntityData(bool is_orig)
 	{
 	HTTP_Message* msg = is_orig ? request_message : reply_message;
 
@@ -1725,14 +1724,14 @@ void HTTP_Analyzer::SkipEntityData(int is_orig)
 		msg->SkipEntityData();
 	}
 
-int analyzer::http::is_reserved_URI_char(unsigned char ch)
+bool analyzer::http::is_reserved_URI_char(unsigned char ch)
 	{ // see RFC 3986 (definition of URI)
 	return strchr(":/?#[]@!$&'()*+,;=", ch) != 0;
 	}
 
-int analyzer::http::is_unreserved_URI_char(unsigned char ch)
+bool analyzer::http::is_unreserved_URI_char(unsigned char ch)
 	{ // see RFC 3986 (definition of URI)
-	return isalnum(ch) || strchr("-_.!~*\'()", ch) != 0;
+	return isalnum(ch) != 0 || strchr("-_.!~*\'()", ch) != 0;
 	}
 
 void analyzer::http::escape_URI_char(unsigned char ch, unsigned char*& p)
@@ -1838,5 +1837,5 @@ BroString* analyzer::http::unescape_URI(const u_char* line, const u_char* line_e
 
 	URI_p[0] = 0;
 
-	return new BroString(1, decoded_URI, URI_p - decoded_URI);
+	return new BroString(true, decoded_URI, URI_p - decoded_URI);
 	}

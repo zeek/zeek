@@ -527,13 +527,13 @@ refine typeattr ClientHello += &let {
 
 refine typeattr ServerHello += &let {
 	proc : bool = $context.connection.proc_server_hello(server_version,
-			0, random_bytes, session_id, cipher_suite, 0,
+			false, random_bytes, session_id, cipher_suite, 0,
 			compression_method);
 };
 
 refine typeattr ServerHello13 += &let {
 	proc : bool = $context.connection.proc_server_hello(server_version,
-			0, random, 0, cipher_suite, 0,
+			false, random, 0, cipher_suite, 0,
 			0);
 };
 

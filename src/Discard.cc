@@ -28,14 +28,14 @@ Discarder::~Discarder()
 	{
 	}
 
-int Discarder::IsActive()
+bool Discarder::IsActive()
 	{
 	return check_ip || check_tcp || check_udp || check_icmp;
 	}
 
-int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
+bool Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 	{
-	int discard_packet = 0;
+	bool discard_packet = false;
 
 	if ( check_ip )
 		{
@@ -59,26 +59,26 @@ int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 	if ( proto != IPPROTO_TCP && proto != IPPROTO_UDP &&
 	     proto != IPPROTO_ICMP )
 		// This is not a protocol we understand.
-		return 0;
+		return false;
 
 	// XXX shall we only check the first packet???
 	if ( ip->IsFragment() )
 		// Never check any fragment.
-		return 0;
+		return false;
 
 	int ip_hdr_len = ip->HdrLen();
 	len -= ip_hdr_len;	// remove IP header
 	caplen -= ip_hdr_len;
 
-	int is_tcp = (proto == IPPROTO_TCP);
-	int is_udp = (proto == IPPROTO_UDP);
+	bool is_tcp = (proto == IPPROTO_TCP);
+	bool is_udp = (proto == IPPROTO_UDP);
 	int min_hdr_len = is_tcp ?
 		sizeof(struct tcphdr) :
 		(is_udp ? sizeof(struct udphdr) : sizeof(struct icmp));
 
 	if ( len < min_hdr_len || caplen < min_hdr_len )
 		// we don't have a complete protocol header
-		return 0;
+		return false;
 
 	// Where the data starts - if this is a protocol we know about,
 	// this gets advanced past the transport header.
@@ -163,5 +163,5 @@ Val* Discarder::BuildData(const u_char* data, int hdrlen, int len, int caplen)
 
 	len = max(min(min(len, caplen), discarder_maxlen), 0);
 
-	return new StringVal(new BroString(data, len, 1));
+	return new StringVal(new BroString(data, len, true));
 	}

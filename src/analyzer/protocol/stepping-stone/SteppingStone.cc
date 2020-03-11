@@ -60,7 +60,7 @@ void SteppingStoneEndpoint::Done()
 	Event(stp_remove_endp, stp_id);
 	}
 
-int SteppingStoneEndpoint::DataSent(double t, uint64_t seq, int len, int caplen,
+bool SteppingStoneEndpoint::DataSent(double t, uint64_t seq, int len, int caplen,
 		const u_char* data, const IP_Hdr* /* ip */,
 		const struct tcphdr* tp)
 	{
@@ -68,7 +68,7 @@ int SteppingStoneEndpoint::DataSent(double t, uint64_t seq, int len, int caplen,
 		len = caplen;
 
 	if ( len <= 0 )
-		return 0;
+		return false;
 
 	double tmin = t - stp_delta;
 
@@ -91,14 +91,14 @@ int SteppingStoneEndpoint::DataSent(double t, uint64_t seq, int len, int caplen,
 
 	if ( top_seq <= ack || top_seq <= stp_max_top_seq )
 		// There is no new data in this packet
-		return 0;
+		return false;
 
 	stp_max_top_seq = top_seq;
 
 	if ( stp_last_time && t <= stp_last_time + stp_idle_min )
 		{
 		stp_last_time = t;
-		return 1;
+		return true;
 		}
 
 	// Either just starts, or resumes from an idle period.
@@ -126,7 +126,7 @@ int SteppingStoneEndpoint::DataSent(double t, uint64_t seq, int len, int caplen,
 	stp_manager->OrderedEndpoints().push_back(this);
 	Ref(this);
 
-	return 1;
+	return true;
 	}
 
 void SteppingStoneEndpoint::Event(EventHandlerPtr f, int id1, int id2)
@@ -141,7 +141,7 @@ void SteppingStoneEndpoint::Event(EventHandlerPtr f, int id1, int id2)
 		endp->TCP()->EnqueueConnEvent(f, IntrusivePtr{AdoptRef{}, val_mgr->GetInt(id1)});
 	}
 
-void SteppingStoneEndpoint::CreateEndpEvent(int is_orig)
+void SteppingStoneEndpoint::CreateEndpEvent(bool is_orig)
 	{
 	if ( ! stp_create_endp )
 		return;

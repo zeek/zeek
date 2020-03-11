@@ -32,7 +32,7 @@ extern IntrusivePtr<Expr> add_and_assign_local(IntrusivePtr<ID> id,
 extern void add_type(ID* id, IntrusivePtr<BroType> t, attr_list* attr);
 
 extern void begin_func(ID* id, const char* module_name, function_flavor flavor,
-                       int is_redef, IntrusivePtr<FuncType> t,
+                       bool is_redef, IntrusivePtr<FuncType> t,
                        attr_list* attrs = nullptr);
 
 extern void end_func(IntrusivePtr<Stmt> body);

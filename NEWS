@@ -39,6 +39,12 @@ Changed Functionality
   detected and used at configuration-time.  Use the ``--enable-rocksdb`` and
   ``--with-rocksdb=`` flags to opt-in.
 
+- A large number of functions had return values and/or arguments changed
+  to use ``bool`` types instead of ``int``. This includes some virtual
+  methods, which may cause build failures in plugins that were overriding
+  those methods. Those plugins will need to be updated to match these API
+  changes.
+
 Removed Functionality
 ---------------------
 

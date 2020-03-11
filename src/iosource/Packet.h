@@ -57,7 +57,7 @@ public:
 	 * differentiating the input streams.
 	 */
 	Packet(int link_type, pkt_timeval *ts, uint32_t caplen,
-	       uint32_t len, const u_char *data, int copy = false,
+	       uint32_t len, const u_char *data, bool copy = false,
 	       std::string tag = std::string(""))
 	           : data(0), l2_src(0), l2_dst(0)
 	       {
@@ -105,7 +105,7 @@ public:
 	 * differentiating the input streams.
 	 */
 	void Init(int link_type, pkt_timeval *ts, uint32_t caplen,
-		uint32_t len, const u_char *data, int copy = false,
+		uint32_t len, const u_char *data, bool copy = false,
 		std::string tag = std::string(""));
 
 	/**

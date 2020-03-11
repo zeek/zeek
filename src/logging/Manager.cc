@@ -230,7 +230,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 	{
 	RecordType* rtype = sval->Type()->AsRecordType();
 
-	if ( ! same_type(rtype, BifType::Record::Log::Stream, 0) )
+	if ( ! same_type(rtype, BifType::Record::Log::Stream, false) )
 		{
 		reporter->Error("sval argument not of right type");
 		return false;
@@ -288,7 +288,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 		if ( ! same_type((*args)[0], columns) )
 			{
 			reporter->Error("stream event's argument type does not match column record type");
-			return val_mgr->GetBool(0);
+			return val_mgr->GetFalse();
 			}
 		}
 
@@ -533,7 +533,7 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	{
 	RecordType* rtype = fval->Type()->AsRecordType();
 
-	if ( ! same_type(rtype, BifType::Record::Log::Filter, 0) )
+	if ( ! same_type(rtype, BifType::Record::Log::Filter, false) )
 		{
 		reporter->Error("filter argument not of right type");
 		return false;
@@ -1401,7 +1401,7 @@ public:
 
 	~RotationTimer();
 
-	void Dispatch(double t, int is_expire);
+	void Dispatch(double t, bool is_expire) override;
 
 protected:
 	Manager::WriterInfo* winfo;
@@ -1414,7 +1414,7 @@ RotationTimer::~RotationTimer()
 		winfo->rotation_timer = 0;
 	}
 
-void RotationTimer::Dispatch(double t, int is_expire)
+void RotationTimer::Dispatch(double t, bool is_expire)
 	{
 	winfo->rotation_timer = 0;
 

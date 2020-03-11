@@ -32,7 +32,7 @@ public:
 	void Encode(int len, const unsigned char* data, int* blen, char** buf);
 
 	int Done(int* pblen, char** pbuf);
-	int HasData() const { return base64_group_next != 0; }
+	bool HasData() const { return base64_group_next != 0; }
 
 	// True if an error has occurred.
 	int Errored() const	{ return errored; }

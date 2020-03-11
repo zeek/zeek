@@ -13,7 +13,7 @@ FileTimer::FileTimer(double t, const string& id, double interval)
 	        interval, file_id.c_str());
 	}
 
-void FileTimer::Dispatch(double t, int is_expire)
+void FileTimer::Dispatch(double t, bool is_expire)
 	{
 	File* file = file_mgr->LookupFile(file_id);
 

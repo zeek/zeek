@@ -60,7 +60,7 @@ public:
 			{ f = arg_f; }
 	~FragTimer() override;
 
-	void Dispatch(double t, int is_expire) override;
+	void Dispatch(double t, bool is_expire) override;
 
 	// Break the association between this timer and its creator.
 	void ClearReassembler()	{ f = 0; }

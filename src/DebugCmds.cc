@@ -77,7 +77,7 @@ void choose_global_symbols_regex(const string& regex, vector<ID*>& choices,
 	if ( choices.size() <= 1 )
 		return;
 
-	while ( 1 )
+	while ( true )
 		{
 		debug_msg("There were multiple matches, please choose:\n");
 

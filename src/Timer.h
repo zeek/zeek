@@ -57,7 +57,7 @@ public:
 	// t gives the dispatch time.  is_expire is true if the
 	// timer is being dispatched because we're expiring all
 	// pending timers.
-	virtual void Dispatch(double t, int is_expire) = 0;
+	virtual void Dispatch(double t, bool is_expire) = 0;
 
 	void Describe(ODesc* d) const;
 

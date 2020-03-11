@@ -40,7 +40,7 @@ Login_Analyzer::Login_Analyzer(const char* name, Connection* conn)
 	user_text_last = MAX_USER_TEXT - 1;
 	num_user_text = 0;
 	client_name = username = 0;
-	saw_ploy = is_VMS = 0;
+	saw_ploy = is_VMS = false;
 
 	if ( ! re_skip_authentication )
 		{
@@ -136,7 +136,7 @@ void Login_Analyzer::NewLine(bool orig, char* line)
 
 	else if ( ! saw_ploy && IsSuccessMsg(line) )
 		{
-		LoginEvent(login_success, line, 1);
+		LoginEvent(login_success, line, true);
 		state = LOGIN_STATE_LOGGED_IN;
 		}
 	}
@@ -192,7 +192,7 @@ void Login_Analyzer::AuthenticationDialog(bool orig, char* line)
 		Confused("no_login_prompt", line);
 
 	const char* prompt = IsLoginPrompt(line);
-	int is_timeout = IsTimeout(line);
+	bool is_timeout = IsTimeout(line);
 	if ( prompt && ! IsSuccessMsg(line) && ! is_timeout )
 		{
 		is_VMS = strstr(line, "Username:") != 0;
@@ -255,9 +255,9 @@ void Login_Analyzer::AuthenticationDialog(bool orig, char* line)
 
 		if ( IsDirectLoginPrompt(line) )
 			{
-			LoginEvent(login_success, line, 1);
+			LoginEvent(login_success, line, true);
 			state = LOGIN_STATE_LOGGED_IN;
-			SetSkip(1);
+			SetSkip(true);
 			return;
 			}
 		}
@@ -293,7 +293,7 @@ void Login_Analyzer::AuthenticationDialog(bool orig, char* line)
 			EnqueueConnEvent(authentication_skipped, IntrusivePtr{AdoptRef{}, BuildConnVal()});
 
 		state = LOGIN_STATE_SKIP;
-		SetSkip(1);
+		SetSkip(true);
 		}
 
 	else if ( IsSuccessMsg(line) ||
@@ -359,13 +359,13 @@ void Login_Analyzer::EndpointEOF(bool orig)
 
 	if ( state == LOGIN_STATE_AUTHENTICATE && HaveTypeahead() )
 		{
-		LoginEvent(login_success, "<EOF>", 1);
+		LoginEvent(login_success, "<EOF>", true);
 		state = LOGIN_STATE_LOGGED_IN;
 		}
 	}
 
 void Login_Analyzer::LoginEvent(EventHandlerPtr f, const char* line,
-				int no_user_okay)
+	bool no_user_okay)
 	{
 	if ( ! f )
 		return;
@@ -484,20 +484,20 @@ void Login_Analyzer::ConfusionText(const char* line)
 		);
 	}
 
-int Login_Analyzer::IsPloy(const char* line)
+bool Login_Analyzer::IsPloy(const char* line)
 	{
 	if ( IsLoginPrompt(line) || IsFailureMsg(line) || IsSuccessMsg(line) ||
 	     IsSkipAuthentication(line) )
 		{
-		saw_ploy = 1;
+		saw_ploy = true;
 		Confused("possible_login_ploy", line);
-		return 1;
+		return true;
 		}
 	else
-		return 0;
+		return false;
 	}
 
-int Login_Analyzer::IsSkipAuthentication(const char* line) const
+bool Login_Analyzer::IsSkipAuthentication(const char* line) const
 	{
 	return re_skip_authentication->MatchAnywhere(line);
 	}
@@ -512,28 +512,28 @@ const char* Login_Analyzer::IsLoginPrompt(const char* line) const
 	return &line[prompt_match];
 	}
 
-int Login_Analyzer::IsDirectLoginPrompt(const char* line) const
+bool Login_Analyzer::IsDirectLoginPrompt(const char* line) const
 	{
 	return re_direct_login_prompts->MatchAnywhere(line);
 	}
 
-int Login_Analyzer::IsFailureMsg(const char* line) const
+bool Login_Analyzer::IsFailureMsg(const char* line) const
 	{
 	return re_login_failure_msgs->MatchAnywhere(line) &&
 		! re_login_non_failure_msgs->MatchAnywhere(line);
 	}
 
-int Login_Analyzer::IsSuccessMsg(const char* line) const
+bool Login_Analyzer::IsSuccessMsg(const char* line) const
 	{
 	return re_login_success_msgs->MatchAnywhere(line);
 	}
 
-int Login_Analyzer::IsTimeout(const char* line) const
+bool Login_Analyzer::IsTimeout(const char* line) const
 	{
 	return re_login_timeouts->MatchAnywhere(line);
 	}
 
-int Login_Analyzer::IsEmpty(const char* line) const
+bool Login_Analyzer::IsEmpty(const char* line) const
 	{
 	if ( ! line )
 		return true;
@@ -591,12 +591,12 @@ Val* Login_Analyzer::PopUserTextVal()
 	char* s = PopUserText();
 
 	if ( s )
-		return new StringVal(new BroString(1, byte_vec(s), strlen(s)));
+		return new StringVal(new BroString(true, byte_vec(s), strlen(s)));
 	else
 		return val_mgr->GetEmptyString();
 	}
 
-int Login_Analyzer::MatchesTypeahead(const char* line) const
+bool Login_Analyzer::MatchesTypeahead(const char* line) const
 	{
 	for ( int i = user_text_first, n = 0; n < num_user_text; ++i, ++n )
 		{
@@ -604,10 +604,10 @@ int Login_Analyzer::MatchesTypeahead(const char* line) const
 			i = 0;
 
 		if ( streq(user_text[i], line) )
-			return 1;
+			return true;
 		}
 
-	return 0;
+	return false;
 	}
 
 void Login_Analyzer::FlushEmptyTypeahead()

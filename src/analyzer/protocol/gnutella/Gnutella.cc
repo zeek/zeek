@@ -85,13 +85,13 @@ void Gnutella_Analyzer::Done()
 	}
 
 
-int Gnutella_Analyzer::NextLine(const u_char* data, int len)
+bool Gnutella_Analyzer::NextLine(const u_char* data, int len)
 	{
 	if ( ! ms )
-		return 0;
+		return false;
 
 	if ( Established() || ms->current_offset >= len )
-		return 0;
+		return false;
 
 	for ( ; ms->current_offset < len; ++ms->current_offset )
 		{
@@ -102,20 +102,20 @@ int Gnutella_Analyzer::NextLine(const u_char* data, int len)
 			{
 			ms->got_CR = 0;
 			++ms->current_offset;
-			return 1;
+			return true;
 			}
 		else
 			ms->buffer += data[ms->current_offset];
 		}
 
-	return 0;
+	return false;
 	}
 
 
-int Gnutella_Analyzer::IsHTTP(string header)
+bool Gnutella_Analyzer::IsHTTP(string header)
 	{
 	if ( header.find(" HTTP/1.") == string::npos )
-		return 0;
+		return false;
 
 	if ( gnutella_http_notify )
 		EnqueueConnEvent(gnutella_http_notify, IntrusivePtr{AdoptRef{}, BuildConnVal()});
@@ -135,20 +135,20 @@ int Gnutella_Analyzer::IsHTTP(string header)
 		Parent()->RemoveChildAnalyzer(this);
 		}
 
-	return 1;
+	return true;
 	}
 
 
-int Gnutella_Analyzer::GnutellaOK(string header)
+bool Gnutella_Analyzer::GnutellaOK(string header)
 	{
 	if ( strncmp("GNUTELLA", header.data(), 8) )
-		return 0;
+		return false;
 
 	int codepos = header.find(' ') + 1;
 	if ( ! strncmp("200", header.data() + codepos, 3) )
-		return 1;
+		return true;
 
-	return 0;
+	return false;
 	}
 
 
@@ -320,4 +320,3 @@ void Gnutella_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	else if ( gnutella_binary_msg )
 		DeliverMessages(len, data, orig);
 	}
-

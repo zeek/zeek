@@ -156,7 +156,7 @@ public:
 	InternalTypeTag InternalType() const	{ return internal_tag; }
 
 	// Whether it's stored in network order.
-	int IsNetworkOrder() const	{ return is_network_order; }
+	bool IsNetworkOrder() const	{ return is_network_order; }
 
 	// Type-checks the given expression list, returning
 	// MATCHES_INDEX_SCALAR = 1 if it matches this type's index
@@ -176,7 +176,7 @@ public:
 
 	// Returns true if this type is a record and contains the
 	// given field, false otherwise.
-	virtual int HasField(const char* field) const;
+	virtual bool HasField(const char* field) const;
 
 	// Returns the type of the given field, or nil if no such field.
 	virtual BroType* FieldType(const char* field) const;
@@ -357,7 +357,7 @@ public:
 	const type_list* Types() const	{ return &types; }
 	type_list* Types()		{ return &types; }
 
-	int IsPure() const		{ return pure_type != 0; }
+	bool IsPure() const		{ return pure_type != 0; }
 
 	// Returns the underlying pure type, or nil if the list
 	// is not pure or is empty.
@@ -367,7 +367,7 @@ public:
 	// True if all of the types match t, false otherwise.  If
 	// is_init is true, then the matching is done in the context
 	// of an initialization.
-	int AllMatch(const BroType* t, int is_init) const;
+	bool AllMatch(const BroType* t, bool is_init) const;
 
 	void Append(IntrusivePtr<BroType> t);
 	void AppendEvenIfNotPure(IntrusivePtr<BroType> t);
@@ -457,7 +457,7 @@ public:
 		{ yield = nullptr; flavor = arg_flav; }
 
 	int MatchesIndex(ListExpr* index) const override;
-	int CheckArgs(const type_list* args, bool is_init = false) const;
+	bool CheckArgs(const type_list* args, bool is_init = false) const;
 
 	TypeList* ArgTypes() const	{ return arg_types.get(); }
 
@@ -508,7 +508,7 @@ public:
 
 	~RecordType() override;
 
-	int HasField(const char* field) const override;
+	bool HasField(const char* field) const override;
 	BroType* FieldType(const char* field) const override;
 	BroType* FieldType(int field) const;
 	IntrusivePtr<Val> FieldDefault(int field) const;
@@ -702,14 +702,14 @@ inline IntrusivePtr<BroType> error_type()	{ return base_type(TYPE_ERROR); }
 // True if the two types are equivalent.  If is_init is true then the test is
 // done in the context of an initialization. If match_record_field_names is
 // true then for record types the field names have to match, too.
-extern int same_type(const BroType* t1, const BroType* t2, int is_init=0, bool match_record_field_names=true);
+extern bool same_type(const BroType* t1, const BroType* t2, bool is_init=false, bool match_record_field_names=true);
 
 // True if the two attribute lists are equivalent.
-extern int same_attrs(const Attributes* a1, const Attributes* a2);
+extern bool same_attrs(const Attributes* a1, const Attributes* a2);
 
 // Returns true if the record sub_rec can be promoted to the record
 // super_rec.
-extern int record_promotion_compatible(const RecordType* super_rec,
+extern bool record_promotion_compatible(const RecordType* super_rec,
 					const RecordType* sub_rec);
 
 // If the given BroType is a TypeList with just one element, returns
@@ -737,7 +737,7 @@ IntrusivePtr<BroType> init_type(Expr* init);
 bool is_atomic_type(const BroType* t);
 
 // True if the given type tag corresponds to type that can be assigned to.
-extern int is_assignable(BroType* t);
+extern bool is_assignable(BroType* t);
 
 // True if the given type tag corresponds to an integral type.
 inline bool IsIntegral(TypeTag t) { return (t == TYPE_INT || t == TYPE_COUNT || t == TYPE_COUNTER); }

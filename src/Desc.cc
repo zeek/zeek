@@ -35,10 +35,10 @@ ODesc::ODesc(desc_type t, BroFile* arg_f)
 		}
 
 	indent_level = 0;
-	is_short = 0;
-	want_quotes = 0;
-	do_flush = 1;
-	include_stats = 0;
+	is_short = false;
+	want_quotes = false;
+	do_flush = true;
+	include_stats = false;
 	indent_with_spaces = 0;
 	escape = false;
 	utf8 = false;

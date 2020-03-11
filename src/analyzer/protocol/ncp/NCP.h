@@ -31,9 +31,8 @@ namespace analyzer { namespace ncp {
 class NCP_Session {
 public:
 	explicit NCP_Session(analyzer::Analyzer* analyzer);
-	virtual ~NCP_Session() {}
 
-	virtual void Deliver(int is_orig, int len, const u_char* data);
+	void Deliver(bool is_orig, int len, const u_char* data);
 
 	static bool any_ncp_event()
 		{
@@ -115,4 +114,4 @@ protected:
 	Contents_NCP_Analyzer * r_ncp;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

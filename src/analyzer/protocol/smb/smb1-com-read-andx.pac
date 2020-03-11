@@ -64,7 +64,7 @@ type SMB1_read_andx_request(header: SMB_Header, offset: uint16) = record {
 
 	extra_byte_parameters : bytestring &transient &length=((andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters))));
 
-	andx_command   : SMB_andx_command(header, 1, offset+offsetof(andx_command), andx.command);
+	andx_command   : SMB_andx_command(header, true, offset+offsetof(andx_command), andx.command);
 } &let {
   offset_high_64 : uint64 = offset_high;
 	offset_high : uint32 = (word_count == 0x0C && offset_high_tmp != 0xffffffff) ? offset_high_tmp : 0;
@@ -91,7 +91,7 @@ type SMB1_read_andx_response(header: SMB_Header, offset: uint16) = record {
 
 	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
 
-	andx_command      : SMB_andx_command(header, 0, offset+offsetof(andx_command), andx.command);
+	andx_command      : SMB_andx_command(header, false, offset+offsetof(andx_command), andx.command);
 } &let {
 	pipe_proc   : bool   = $context.connection.forward_dce_rpc(data, 0, false) &if(header.is_pipe);
 

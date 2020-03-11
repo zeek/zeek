@@ -66,7 +66,7 @@ static VectorVal* BuildOptionsVal(const u_char* data, int len)
 			uint16_t off = 2 * sizeof(uint8_t);
 			rv->Assign(1, val_mgr->GetCount(opt->ip6o_len));
 			rv->Assign(2, make_intrusive<StringVal>(
-			        new BroString(data + off, opt->ip6o_len, 1)));
+			        new BroString(data + off, opt->ip6o_len, true)));
 			data += opt->ip6o_len + off;
 			len -= opt->ip6o_len + off;
 			}
@@ -132,7 +132,7 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 		rv->Assign(2, val_mgr->GetCount(rt->ip6r_type));
 		rv->Assign(3, val_mgr->GetCount(rt->ip6r_segleft));
 		uint16_t off = 4 * sizeof(uint8_t);
-		rv->Assign(4, make_intrusive<StringVal>(new BroString(data + off, Length() - off, 1)));
+		rv->Assign(4, make_intrusive<StringVal>(new BroString(data + off, Length() - off, true)));
 		}
 		break;
 
@@ -163,7 +163,7 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 			// Payload Len was non-zero for this header.
 			rv->Assign(4, val_mgr->GetCount(ntohl(((uint32_t*)data)[2])));
 			uint16_t off = 3 * sizeof(uint32_t);
-			rv->Assign(5, make_intrusive<StringVal>(new BroString(data + off, Length() - off, 1)));
+			rv->Assign(5, make_intrusive<StringVal>(new BroString(data + off, Length() - off, true)));
 			}
 		}
 		break;

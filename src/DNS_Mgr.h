@@ -57,7 +57,7 @@ public:
 
 	void Verify();
 	void Resolve();
-	int Save();
+	bool Save();
 
 	const char* LookupAddrInCache(const IPAddr& addr);
 	IntrusivePtr<TableVal> LookupNameInCache(const string& name);
@@ -147,7 +147,7 @@ protected:
 	char* cache_name;
 	char* dir;	// directory in which cache_name resides
 
-	int did_init;
+	bool did_init;
 
 	// DNS-related events.
 	EventHandlerPtr dns_mapping_valid;
@@ -171,7 +171,7 @@ protected:
 
 		AsyncRequest() : time(0.0), is_txt(false), processed(false) { }
 
-		bool IsAddrReq() const	{ return name.length() == 0; }
+		bool IsAddrReq() const	{ return name.empty(); }
 
 		void Resolved(const char* name)
 			{

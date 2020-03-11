@@ -30,7 +30,7 @@ NCP_Session::NCP_Session(analyzer::Analyzer* a)
 	req_func = 0;
 	}
 
-void NCP_Session::Deliver(int is_orig, int len, const u_char* data)
+void NCP_Session::Deliver(bool is_orig, int len, const u_char* data)
 	{
 	try
 		{
@@ -258,4 +258,3 @@ NCP_Analyzer::~NCP_Analyzer()
 	{
 	delete session;
 	}
-

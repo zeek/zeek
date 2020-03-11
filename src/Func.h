@@ -39,7 +39,7 @@ public:
 
 	~Func() override;
 
-	virtual int IsPure() const = 0;
+	virtual bool IsPure() const = 0;
 	function_flavor Flavor() const	{ return FType()->Flavor(); }
 
 	struct Body {
@@ -123,7 +123,7 @@ public:
 	BroFunc(ID* id, IntrusivePtr<Stmt> body, id_list* inits, size_t frame_size, int priority);
 	~BroFunc() override;
 
-	int IsPure() const override;
+	bool IsPure() const override;
 	IntrusivePtr<Val> Call(const zeek::Args& args, Frame* parent) const override;
 
 	/**
@@ -195,10 +195,10 @@ using built_in_func = Val* (*)(Frame* frame, const zeek::Args* args);
 
 class BuiltinFunc : public Func {
 public:
-	BuiltinFunc(built_in_func func, const char* name, int is_pure);
+	BuiltinFunc(built_in_func func, const char* name, bool is_pure);
 	~BuiltinFunc() override;
 
-	int IsPure() const override;
+	bool IsPure() const override;
 	IntrusivePtr<Val> Call(const zeek::Args& args, Frame* parent) const override;
 	built_in_func TheFunc() const	{ return func; }
 
@@ -208,7 +208,7 @@ protected:
 	BuiltinFunc()	{ func = 0; is_pure = 0; }
 
 	built_in_func func;
-	int is_pure;
+	bool is_pure;
 };
 
 

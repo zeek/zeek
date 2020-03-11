@@ -56,7 +56,7 @@ public:
 	Val* RequestVal() const		{ return v; }
 	Val* TakeRequestVal()		{ Val* rv = v; v = 0; return rv; }
 
-	int CompareRexmit(const u_char* buf, int n) const;
+	bool CompareRexmit(const u_char* buf, int n) const;
 
 	uint32_t Program() const		{ return prog; }
 	uint32_t Version() const		{ return vers; }
@@ -106,13 +106,13 @@ public:
 	// Delivers the given RPC.  Returns true if "len" bytes were
 	// enough, false otherwise.  "is_orig" is true if the data is
 	// from the originator of the connection.
-	int DeliverRPC(const u_char* data, int len, int caplen, int is_orig, double start_time, double last_time);
+	int DeliverRPC(const u_char* data, int len, int caplen, bool is_orig, double start_time, double last_time);
 
 	void Timeout();
 
 protected:
-	virtual int RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n) = 0;
-	virtual int RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status success,
+	virtual bool RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n) = 0;
+	virtual bool RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status success,
 				   const u_char*& buf, int& n, double start_time, double last_time,
 				   int reply_len) = 0;
 
@@ -250,4 +250,4 @@ protected:
 	Contents_RPC* resp_rpc;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

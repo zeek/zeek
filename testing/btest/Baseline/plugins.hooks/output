@@ -173,6 +173,9 @@
 0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_SHA1, application/pkix-cert)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_SHA1, application/x-x509-ca-cert)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_SHA1, application/x-x509-user-cert)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_SHA256, application/pkix-cert)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_SHA256, application/x-x509-ca-cert)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_SHA256, application/x-x509-user-cert)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_X509, application/pkix-cert)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_X509, application/x-x509-ca-cert)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_X509, application/x-x509-user-cert)) -> <no result>
@@ -276,7 +279,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1580932537.132762, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1583958424.225702, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Broker::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Config::LOG)) -> <no result>
@@ -457,7 +460,7 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1580932537.132762, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1583958424.225702, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::check_plugins, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::init, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Notice::want_pp, <frame>, ()) -> <no result>
@@ -535,6 +538,10 @@
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Weird::sampling_whitelist, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Weird::sampling_whitelist, Config::weird_option_change_sampling_whitelist{ if (Weird::sampling_whitelist == Config::ID) { Reporter::set_weird_sampling_whitelist(Config::new_value)}return (Config::new_value)}, 5)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Weird::weird_do_not_ignore_repeats, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (X509::caching_required_encounters, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (X509::caching_required_encounters_interval, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (X509::certificate_cache_max_entries, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (X509::certificate_cache_minimum_eviction_interval, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (default_file_bof_buffer_size, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (default_file_timeout_interval, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketFilter::build, <frame>, ()) -> <no result>
@@ -567,6 +574,8 @@
 0.000000   MetaHookPost  CallFunction(set_to_regex, <frame>, ({}, (^\.?|\.)(~~)$)) -> <no result>
 0.000000   MetaHookPost  CallFunction(string_to_pattern, <frame>, ((^\.?|\.)()$, F)) -> <no result>
 0.000000   MetaHookPost  CallFunction(sub, <frame>, ((^\.?|\.)(~~)$, <...>/, )) -> <no result>
+0.000000   MetaHookPost  CallFunction(x509_set_certificate_cache, <frame>, ({})) -> <no result>
+0.000000   MetaHookPost  CallFunction(x509_set_certificate_cache_hit_callback, <frame>, (X509::x509_certificate_cache_replay{ <init> X509::i{ if (X509::f$info?$x509) return X509::e = X509::certificate_cache[X509::sha256]event x509_certificate(X509::f, X509::e$handle, X509::e$certificate)for ([X509::i] in X509::e$extensions_cache) { X509::ext = X509::e$extensions_cache[X509::i]if (X509::ext is X509::Extension) event x509_extension(X509::f, (X509::ext as X509::Extension))elseif (X509::ext is X509::BasicConstraints) event x509_ext_basic_constraints(X509::f, (X509::ext as X509::BasicConstraints))elseif (X509::ext is X509::SubjectAlternativeName) event x509_ext_subject_alternative_name(X509::f, (X509::ext as X509::SubjectAlternativeName))elseif (X509::ext is X509::SctInfo) { X509::s = (X509::ext as X509::SctInfo)event x509_ocsp_ext_signed_certificate_timestamp(X509::f, X509::s$version, X509::s$logid, X509::s$timestamp, X509::s$hash_alg, X509::s$sig_alg, X509::s$signature)}elseReporter::error(fmt(Encountered unknown extension while replaying certificate with fuid %s, X509::f$id))}}})) -> <no result>
 0.000000   MetaHookPost  CallFunction(zeek_init, <null>, ()) -> <no result>
 0.000000   MetaHookPost  DrainEvents() -> <void>
 0.000000   MetaHookPost  LoadFile(0, ..<...>/main.zeek) -> -1
@@ -1077,6 +1086,9 @@
 0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_SHA1, application/pkix-cert))
 0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_SHA1, application/x-x509-ca-cert))
 0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_SHA1, application/x-x509-user-cert))
+0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_SHA256, application/pkix-cert))
+0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_SHA256, application/x-x509-ca-cert))
+0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_SHA256, application/x-x509-user-cert))
 0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_X509, application/pkix-cert))
 0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_X509, application/x-x509-ca-cert))
 0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_X509, application/x-x509-user-cert))
@@ -1180,7 +1192,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1580932537.132762, node=zeek, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=1583958424.225702, node=zeek, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Broker::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Config::LOG))
@@ -1361,7 +1373,7 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql]))
-0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1580932537.132762, node=zeek, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=1583958424.225702, node=zeek, filter=ip or not ip, init=T, success=T]))
 0.000000   MetaHookPre   CallFunction(NetControl::check_plugins, <frame>, ())
 0.000000   MetaHookPre   CallFunction(NetControl::init, <null>, ())
 0.000000   MetaHookPre   CallFunction(Notice::want_pp, <frame>, ())
@@ -1439,6 +1451,10 @@
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Weird::sampling_whitelist, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Weird::sampling_whitelist, Config::weird_option_change_sampling_whitelist{ if (Weird::sampling_whitelist == Config::ID) { Reporter::set_weird_sampling_whitelist(Config::new_value)}return (Config::new_value)}, 5))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Weird::weird_do_not_ignore_repeats, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (X509::caching_required_encounters, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (X509::caching_required_encounters_interval, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (X509::certificate_cache_max_entries, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (X509::certificate_cache_minimum_eviction_interval, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (default_file_bof_buffer_size, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (default_file_timeout_interval, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(PacketFilter::build, <frame>, ())
@@ -1471,6 +1487,8 @@
 0.000000   MetaHookPre   CallFunction(set_to_regex, <frame>, ({}, (^\.?|\.)(~~)$))
 0.000000   MetaHookPre   CallFunction(string_to_pattern, <frame>, ((^\.?|\.)()$, F))
 0.000000   MetaHookPre   CallFunction(sub, <frame>, ((^\.?|\.)(~~)$, <...>/, ))
+0.000000   MetaHookPre   CallFunction(x509_set_certificate_cache, <frame>, ({}))
+0.000000   MetaHookPre   CallFunction(x509_set_certificate_cache_hit_callback, <frame>, (X509::x509_certificate_cache_replay{ <init> X509::i{ if (X509::f$info?$x509) return X509::e = X509::certificate_cache[X509::sha256]event x509_certificate(X509::f, X509::e$handle, X509::e$certificate)for ([X509::i] in X509::e$extensions_cache) { X509::ext = X509::e$extensions_cache[X509::i]if (X509::ext is X509::Extension) event x509_extension(X509::f, (X509::ext as X509::Extension))elseif (X509::ext is X509::BasicConstraints) event x509_ext_basic_constraints(X509::f, (X509::ext as X509::BasicConstraints))elseif (X509::ext is X509::SubjectAlternativeName) event x509_ext_subject_alternative_name(X509::f, (X509::ext as X509::SubjectAlternativeName))elseif (X509::ext is X509::SctInfo) { X509::s = (X509::ext as X509::SctInfo)event x509_ocsp_ext_signed_certificate_timestamp(X509::f, X509::s$version, X509::s$logid, X509::s$timestamp, X509::s$hash_alg, X509::s$sig_alg, X509::s$signature)}elseReporter::error(fmt(Encountered unknown extension while replaying certificate with fuid %s, X509::f$id))}}}))
 0.000000   MetaHookPre   CallFunction(zeek_init, <null>, ())
 0.000000   MetaHookPre   DrainEvents()
 0.000000   MetaHookPre   LoadFile(0, ..<...>/main.zeek)
@@ -1980,6 +1998,9 @@
 0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_SHA1, application/pkix-cert)
 0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_SHA1, application/x-x509-ca-cert)
 0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_SHA1, application/x-x509-user-cert)
+0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_SHA256, application/pkix-cert)
+0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_SHA256, application/x-x509-ca-cert)
+0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_SHA256, application/x-x509-user-cert)
 0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_X509, application/pkix-cert)
 0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_X509, application/x-x509-ca-cert)
 0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_X509, application/x-x509-user-cert)
@@ -2083,7 +2104,7 @@
 0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::__create_stream(X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::__create_stream(mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1580932537.132762, node=zeek, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=1583958424.225702, node=zeek, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction Log::add_default_filter(Broker::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Cluster::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Config::LOG)
@@ -2264,7 +2285,7 @@
 0.000000 | HookCallFunction Log::create_stream(Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird])
 0.000000 | HookCallFunction Log::create_stream(X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509])
 0.000000 | HookCallFunction Log::create_stream(mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql])
-0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1580932537.132762, node=zeek, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=1583958424.225702, node=zeek, filter=ip or not ip, init=T, success=T])
 0.000000 | HookCallFunction NetControl::check_plugins()
 0.000000 | HookCallFunction NetControl::init()
 0.000000 | HookCallFunction Notice::want_pp()
@@ -2342,6 +2363,10 @@
 0.000000 | HookCallFunction Option::set_change_handler(Weird::sampling_whitelist, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(Weird::sampling_whitelist, Config::weird_option_change_sampling_whitelist{ if (Weird::sampling_whitelist == Config::ID) { Reporter::set_weird_sampling_whitelist(Config::new_value)}return (Config::new_value)}, 5)
 0.000000 | HookCallFunction Option::set_change_handler(Weird::weird_do_not_ignore_repeats, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)
+0.000000 | HookCallFunction Option::set_change_handler(X509::caching_required_encounters, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)
+0.000000 | HookCallFunction Option::set_change_handler(X509::caching_required_encounters_interval, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)
+0.000000 | HookCallFunction Option::set_change_handler(X509::certificate_cache_max_entries, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)
+0.000000 | HookCallFunction Option::set_change_handler(X509::certificate_cache_minimum_eviction_interval, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(default_file_bof_buffer_size, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(default_file_timeout_interval, Config::config_option_changed{ Config::log = (coerce [$ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value)] to Config::Info)if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, Config::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction PacketFilter::build()
@@ -2374,6 +2399,8 @@
 0.000000 | HookCallFunction set_to_regex({}, (^\.?|\.)(~~)$)
 0.000000 | HookCallFunction string_to_pattern((^\.?|\.)()$, F)
 0.000000 | HookCallFunction sub((^\.?|\.)(~~)$, <...>/, )
+0.000000 | HookCallFunction x509_set_certificate_cache({})
+0.000000 | HookCallFunction x509_set_certificate_cache_hit_callback(X509::x509_certificate_cache_replay{ <init> X509::i{ if (X509::f$info?$x509) return X509::e = X509::certificate_cache[X509::sha256]event x509_certificate(X509::f, X509::e$handle, X509::e$certificate)for ([X509::i] in X509::e$extensions_cache) { X509::ext = X509::e$extensions_cache[X509::i]if (X509::ext is X509::Extension) event x509_extension(X509::f, (X509::ext as X509::Extension))elseif (X509::ext is X509::BasicConstraints) event x509_ext_basic_constraints(X509::f, (X509::ext as X509::BasicConstraints))elseif (X509::ext is X509::SubjectAlternativeName) event x509_ext_subject_alternative_name(X509::f, (X509::ext as X509::SubjectAlternativeName))elseif (X509::ext is X509::SctInfo) { X509::s = (X509::ext as X509::SctInfo)event x509_ocsp_ext_signed_certificate_timestamp(X509::f, X509::s$version, X509::s$logid, X509::s$timestamp, X509::s$hash_alg, X509::s$sig_alg, X509::s$signature)}elseReporter::error(fmt(Encountered unknown extension while replaying certificate with fuid %s, X509::f$id))}}})
 0.000000 | HookCallFunction zeek_init()
 0.000000 | HookDrainEvents
 0.000000 | HookLoadFile  ..<...>/main.zeek
@@ -2705,7 +2732,7 @@
 0.000000 | HookLoadFile  base<...>/xmpp
 0.000000 | HookLoadFile  base<...>/zeek.bif.zeek
 0.000000 | HookLogInit   packet_filter 1/1 {ts (time), node (string), filter (string), init (bool), success (bool)}
-0.000000 | HookLogWrite  packet_filter [ts=1580932537.132762, node=zeek, filter=ip or not ip, init=T, success=T]
+0.000000 | HookLogWrite  packet_filter [ts=1583958424.225702, node=zeek, filter=ip or not ip, init=T, success=T]
 0.000000 | HookQueueEvent NetControl::init()
 0.000000 | HookQueueEvent filter_change_tracking()
 0.000000 | HookQueueEvent zeek_init()

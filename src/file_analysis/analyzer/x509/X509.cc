@@ -61,10 +61,11 @@ bool file_analysis::X509::EndOfFile()
 				return false;
 			// yup, let's call the callback.
 
-			val_list vl(1);
+			val_list vl(2);
 			vl.push_back(GetFile()->GetVal()->Ref());
 			vl.push_back(new StringVal(cert_sha256));
-			cache_hit_callback->Call(&vl);
+			Val* v = cache_hit_callback->Call(&vl);
+			Unref(v);
 			return false;
 			}
 		}

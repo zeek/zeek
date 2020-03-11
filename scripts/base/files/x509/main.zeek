@@ -8,7 +8,7 @@ export {
 
 	## How often do you have to encounter a certificate before
 	## caching it. Set to 0 to disable caching of certificates.
-	option caching_required_encounters : count = 1;
+	option caching_required_encounters : count = 10;
 
 	## The timespan over which caching_required_encounters has to be reached
 	option caching_required_encounters_interval : interval = 1 mins;
@@ -63,6 +63,13 @@ export {
 		signature: string;
 	};
 
+	## This hook performs event-replays in case a certificate that already
+	## is in the cache is encountered.
+	##
+	## It is possible to change this behavior/skip sending the events by
+	## installing a higher priority hook instead.
+	global x509_certificate_cache_replay: hook(f: fa_file, sha256: string);
+
 	## Event for accessing logged records.
 	global log_x509: event(rec: Info);
 }
@@ -81,38 +88,6 @@ redef record Files::Info += {
 	## certificate information until all events have been received.
 	x509: X509::Info &optional;
 };
-
-function x509_certificate_cache_replay(f: fa_file, sha256: string)
-	{
-	# we encountered a cached cert. The X509 analyzer will skip it. Let's raise all the events that it typically
-	# raises by ourselfes.
-
-	# first - let's checked if it already has an x509 record. That would mean that someone raised the file_hash event
-	# several times for the certificate - in which case we bail out.
-	if ( f$info?$x509 )
-		return;
-
-	local e = certificate_cache[sha256];
-	event x509_certificate(f, e$handle, e$certificate);
-	for ( i in e$extensions_cache )
-		{
-		local ext = e$extensions_cache[i];
-
-		if ( ext is X509::Extension )
-			event x509_extension(f, (ext as X509::Extension));
-		else if ( ext is X509::BasicConstraints )
-			event x509_ext_basic_constraints(f, (ext as X509::BasicConstraints));
-		else if ( ext is X509::SubjectAlternativeName )
-			event x509_ext_subject_alternative_name(f, (ext as X509::SubjectAlternativeName));
-		else if ( ext is X509::SctInfo )
-			{
-			local s = ( ext as X509::SctInfo);
-			event x509_ocsp_ext_signed_certificate_timestamp(f, s$version, s$logid, s$timestamp, s$hash_alg, s$sig_alg, s$signature);
-			}
-		else
-			Reporter::error(fmt("Encountered unknown extension while replaying certificate with fuid %s", f$id)); 
-		}
-	}
 
 event zeek_init() &priority=5
 	{
@@ -143,6 +118,38 @@ event zeek_init() &priority=5
 
 	x509_set_certificate_cache(certificate_cache);
 	x509_set_certificate_cache_hit_callback(x509_certificate_cache_replay);
+	}
+
+hook x509_certificate_cache_replay(f: fa_file, sha256: string)
+	{
+	# we encountered a cached cert. The X509 analyzer will skip it. Let's raise all the events that it typically
+	# raises by ourselfes.
+
+	# first - let's checked if it already has an x509 record. That would mean that someone raised the file_hash event
+	# several times for the certificate - in which case we bail out.
+	if ( f$info?$x509 )
+		return;
+
+	local e = certificate_cache[sha256];
+	event x509_certificate(f, e$handle, e$certificate);
+	for ( i in e$extensions_cache )
+		{
+		local ext = e$extensions_cache[i];
+
+		if ( ext is X509::Extension )
+			event x509_extension(f, (ext as X509::Extension));
+		else if ( ext is X509::BasicConstraints )
+			event x509_ext_basic_constraints(f, (ext as X509::BasicConstraints));
+		else if ( ext is X509::SubjectAlternativeName )
+			event x509_ext_subject_alternative_name(f, (ext as X509::SubjectAlternativeName));
+		else if ( ext is X509::SctInfo )
+			{
+			local s = ( ext as X509::SctInfo);
+			event x509_ocsp_ext_signed_certificate_timestamp(f, s$version, s$logid, s$timestamp, s$hash_alg, s$sig_alg, s$signature);
+			}
+		else
+			Reporter::error(fmt("Encountered unknown extension while replaying certificate with fuid %s", f$id)); 
+		}
 	}
 
 event x509_certificate(f: fa_file, cert_ref: opaque of x509, cert: X509::Certificate) &priority=5

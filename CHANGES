@@ -1,4 +1,42 @@
 
+3.2.0-dev.221 | 2020-03-11 11:21:20 -0700
+
+  * Made additional MySQL fixes. (Vlad Grigorescu)
+
+    1) There are a couple more places where the new protocol uses and OK
+    packet instead of the deprecated EOF.
+
+    2) With > 255 results, we could end up in an situation where the uint8
+    sequence number would wrap, and we'd naively think it'd be a new
+    handshake.
+
+    Now, we track the previous sequence number, and assume overflow if it
+    was 255 previously and 0 now.
+
+    We also reset the previous sequence number to 0 in various packets
+    that we'd expect at the end of other commands.
+
+  * Add support to MySQL for deprecation of EOF packets. (Vlad Grigorescu)
+
+    From the docs: "As of MySQL 5.7.5, OK packes are also used to indicate
+    EOF, and EOF packets are deprecated."
+
+    The client sets a capability flag (CLIENT_DEPRECATE_EOF) to indicate
+    that it expects an OK instead of an EOF after the resultset rows.
+
+  * MySQL analyzer whitespace cleanup (Vlad Grigorescu)
+
+  * Fix EOF detection in the MySQL protocol analyzer. (Vlad Grigorescu)
+
+    The MySQL documentation
+    (https://dev.mysql.com/doc/dev/mysql-server/latest/page_protocol_basic_eof_packet.html)
+    warns us that "You must check whether the packet length is less than 9 to
+    make sure that it is a EOF_Packet packet."
+
+    While we were doing this in two places, we were comparing the total
+    packet length, which includes the 4-byte header. Changed to compare to
+    13 instead.
+
 3.2.0-dev.214 | 2020-03-09 13:35:26 -0700
 
   * Stop running GitHub Actions in forked repos (Jon Siwek, Corelight)

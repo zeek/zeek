@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	mysql
-#open	2018-05-17-04-01-33
+#open	2020-03-07-04-49-02
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	cmd	arg	success	rows	response
 #types	time	string	addr	port	addr	port	string	string	bool	count	string
 1216281025.136728	CHhAvVGS1DHFjwGM9	192.168.0.254	56162	192.168.0.254	3306	login	tfoerste	T	0	-
@@ -12,7 +12,7 @@
 1216281030.835395	CHhAvVGS1DHFjwGM9	192.168.0.254	56162	192.168.0.254	3306	init_db	test	T	0	-
 1216281030.835742	CHhAvVGS1DHFjwGM9	192.168.0.254	56162	192.168.0.254	3306	query	show databases	T	0	-
 1216281030.836349	CHhAvVGS1DHFjwGM9	192.168.0.254	56162	192.168.0.254	3306	query	show tables	T	0	-
-1216281030.836757	CHhAvVGS1DHFjwGM9	192.168.0.254	56162	192.168.0.254	3306	field_list	agent	-	-	-
+1216281030.836757	CHhAvVGS1DHFjwGM9	192.168.0.254	56162	192.168.0.254	3306	field_list	agent	T	0	-
 1216281048.287657	CHhAvVGS1DHFjwGM9	192.168.0.254	56162	192.168.0.254	3306	query	create table foo (id BIGINT( 10 ) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, animal VARCHAR(64) NOT NULL, name VARCHAR(64) NULL DEFAULT NULL) ENGINE = MYISAM	T	0	-
 1216281057.746222	CHhAvVGS1DHFjwGM9	192.168.0.254	56162	192.168.0.254	3306	query	insert into foo (animal, name) values ("dog", "Goofy")	T	1	-
 1216281061.713980	CHhAvVGS1DHFjwGM9	192.168.0.254	56162	192.168.0.254	3306	query	insert into foo (animal, name) values ("cat", "Garfield")	T	1	-
@@ -24,4 +24,4 @@
 1216281116.209268	CHhAvVGS1DHFjwGM9	192.168.0.254	56162	192.168.0.254	3306	query	delete from foo	T	1	-
 1216281122.880561	CHhAvVGS1DHFjwGM9	192.168.0.254	56162	192.168.0.254	3306	query	drop table foo	T	0	-
 1216281124.418765	CHhAvVGS1DHFjwGM9	192.168.0.254	56162	192.168.0.254	3306	quit	(empty)	-	-	-
-#close	2018-05-17-04-01-33
+#close	2020-03-07-04-49-02

@@ -916,7 +916,7 @@ function x509_set_certificate_cache%(tbl: string_any_table%) : bool
 ##           callback function if you are sure you will not conflict with the base scripts.
 ##
 ## .. zeek:see:: x509_set_certificate_cache
-function x509_set_certificate_cache_hit_callback%(f: string_file_hook%) : bool
+function x509_set_certificate_cache_hit_callback%(f: string_any_file_hook%) : bool
 	%{
 	file_analysis::X509::SetCertificateCacheHitCallback({NewRef{}, f->AsFunc()});
 

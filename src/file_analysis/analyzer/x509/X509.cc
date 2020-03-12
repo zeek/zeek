@@ -51,7 +51,8 @@ bool file_analysis::X509::EndOfFile()
 		hash_final(ctx, buf);
 		std::string cert_sha256 = sha256_digest_print(buf);
 		auto index = make_intrusive<StringVal>(cert_sha256);
-		if ( certificate_cache->Lookup(index.get(), false) )
+		auto* entry = certificate_cache->Lookup(index.get(), false);
+		if ( entry )
 			// in this case, the certificate is in the cache and we do not
 			// do any further processing here. However, if there is a callback, we execute it.
 			{
@@ -59,8 +60,9 @@ bool file_analysis::X509::EndOfFile()
 				return false;
 			// yup, let's call the callback.
 
-			val_list vl(2);
+			val_list vl(3);
 			vl.push_back(GetFile()->GetVal()->Ref());
+			vl.push_back(entry->Ref());
 			vl.push_back(new StringVal(cert_sha256));
 			IntrusivePtr<Val> v{AdoptRef{}, cache_hit_callback->Call(&vl)};
 			return false;

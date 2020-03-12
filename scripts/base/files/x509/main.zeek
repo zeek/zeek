@@ -68,7 +68,7 @@ export {
 	##
 	## It is possible to change this behavior/skip sending the events by
 	## installing a higher priority hook instead.
-	global x509_certificate_cache_replay: hook(f: fa_file, sha256: string);
+	global x509_certificate_cache_replay: hook(f: fa_file, e: X509::Info, sha256: string);
 
 	## Event for accessing logged records.
 	global log_x509: event(rec: Info);
@@ -120,7 +120,7 @@ event zeek_init() &priority=5
 	x509_set_certificate_cache_hit_callback(x509_certificate_cache_replay);
 	}
 
-hook x509_certificate_cache_replay(f: fa_file, sha256: string)
+hook x509_certificate_cache_replay(f: fa_file, e: X509::Info, sha256: string)
 	{
 	# we encountered a cached cert. The X509 analyzer will skip it. Let's raise all the events that it typically
 	# raises by ourselfes.
@@ -130,7 +130,6 @@ hook x509_certificate_cache_replay(f: fa_file, sha256: string)
 	if ( f$info?$x509 )
 		return;
 
-	local e = certificate_cache[sha256];
 	event x509_certificate(f, e$handle, e$certificate);
 	for ( i in e$extensions_cache )
 		{

@@ -512,12 +512,12 @@ type fa_file: record {
 	bof_buffer: string &optional;
 } &redef;
 
-## A hook taking a fa_file and a string. Used by the X509 analyzer as callback.
+## A hook taking a fa_file, an any, and a string. Used by the X509 analyzer as callback.
 ##
 ## .. todo:: We need this type definition only for declaring builtin functions
 ##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
 ##    directly and then remove this alias.
-type string_file_hook: hook(f: fa_file, str: string);
+type string_any_file_hook: hook(f: fa_file, e: any, str: string);
 
 ## Metadata that's been inferred about a particular file.
 type fa_metadata: record {

@@ -6,7 +6,7 @@
 
 redef X509::caching_required_encounters = 1;
 
-hook X509::x509_certificate_cache_replay(f: fa_file, sha256: string) &priority=1
+hook X509::x509_certificate_cache_replay(f: fa_file, e: any, sha256: string) &priority=1
 	{
 	print "Encountered cached certificate not further handled by core", sha256;
 	}

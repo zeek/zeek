@@ -19,10 +19,6 @@
 #include <openssl/opensslconf.h>
 #include <openssl/err.h>
 
-namespace file_analysis {
-std::map<Val*, X509_STORE*> X509::x509_stores;
-}
-
 using namespace file_analysis;
 
 file_analysis::X509::X509(RecordVal* args, file_analysis::File* file)
@@ -45,10 +41,36 @@ bool file_analysis::X509::Undelivered(uint64_t offset, uint64_t len)
 
 bool file_analysis::X509::EndOfFile()
 	{
+	const unsigned char* cert_char = reinterpret_cast<const unsigned char*>(cert_data.data());
+	if ( certificate_cache )
+		{
+		// first step - let's see if the certificate has been cached.
+		unsigned char buf[SHA256_DIGEST_LENGTH];
+		auto ctx = hash_init(Hash_SHA256);
+		hash_update(ctx, cert_char, cert_data.size());
+		hash_final(ctx, buf);
+		std::string cert_sha256 = sha256_digest_print(buf);
+		auto index = make_intrusive<StringVal>(cert_sha256);
+		auto* entry = certificate_cache->Lookup(index.get(), false);
+		if ( entry )
+			// in this case, the certificate is in the cache and we do not
+			// do any further processing here. However, if there is a callback, we execute it.
+			{
+			if ( ! cache_hit_callback )
+				return false;
+			// yup, let's call the callback.
+
+			val_list vl(3);
+			vl.push_back(GetFile()->GetVal()->Ref());
+			vl.push_back(entry->Ref());
+			vl.push_back(new StringVal(cert_sha256));
+			IntrusivePtr<Val> v{AdoptRef{}, cache_hit_callback->Call(&vl)};
+			return false;
+			}
+		}
+
 	// ok, now we can try to parse the certificate with openssl. Should
 	// be rather straightforward...
-	const unsigned char* cert_char = reinterpret_cast<const unsigned char*>(cert_data.data());
-
 	::X509* ssl_cert = d2i_X509(NULL, &cert_char, cert_data.size());
 	if ( ! ssl_cert )
 		{

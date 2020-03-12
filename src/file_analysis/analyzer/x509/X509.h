@@ -7,6 +7,7 @@
 
 #include "OpaqueVal.h"
 #include "X509Common.h"
+#include "Func.h"
 
 #if ( OPENSSL_VERSION_NUMBER < 0x10002000L ) || defined(LIBRESSL_VERSION_NUMBER)
 
@@ -112,6 +113,18 @@ public:
 	 */
 	static void FreeRootStore();
 
+	/**
+	 * Sets the table[string] that used as the certificate cache inside of Zeek.
+	 */
+	static void SetCertificateCache(IntrusivePtr<TableVal> cache)
+		{ certificate_cache = std::move(cache); }
+
+	/**
+	 * Sets the callback when a certificate cache hit is encountered
+	 */
+	static void SetCertificateCacheHitCallback(IntrusivePtr<Func> func)
+		{ cache_hit_callback = std::move(func); }
+
 protected:
 	X509(RecordVal* args, File* file);
 
@@ -126,7 +139,9 @@ private:
 	static StringVal* KeyCurve(EVP_PKEY *key);
 	static unsigned int KeyLength(EVP_PKEY *key);
 	/** X509 stores associated with global script-layer values */
-	static std::map<Val*, X509_STORE*> x509_stores;
+	inline static std::map<Val*, X509_STORE*> x509_stores = std::map<Val*, X509_STORE*>();
+	inline static IntrusivePtr<TableVal> certificate_cache = nullptr;
+	inline static IntrusivePtr<Func> cache_hit_callback = nullptr;
 };
 
 /**

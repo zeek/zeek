@@ -11,6 +11,13 @@
 ##    directly and then remove this alias.
 type string_array: table[count] of string;
 
+## A string-table of any.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type string_any_table: table[string] of any;
+
 ## A set of strings.
 ##
 ## .. todo:: We need this type definition only for declaring builtin functions
@@ -504,6 +511,13 @@ type fa_file: record {
 	## This is also the buffer that's used for file/mime type detection.
 	bof_buffer: string &optional;
 } &redef;
+
+## A hook taking a fa_file, an any, and a string. Used by the X509 analyzer as callback.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type string_any_file_hook: hook(f: fa_file, e: any, str: string);
 
 ## Metadata that's been inferred about a particular file.
 type fa_metadata: record {

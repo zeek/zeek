@@ -1,4 +1,23 @@
 
+3.2.0-dev.230 | 2020-03-12 13:33:09 -0700
+
+  * Introduce X509 certificate caching.
+
+    This change introduces caching of X509 certificates. If a certificate is
+    encountered more than 10 times in a minute, it will be cached for the future
+    (until it is not seen for more than a minute). The caching means that the
+    base scripts cache the certificate information and use cached information
+    to raise events.
+
+    This means certificates do not have to be repeatedly parsed; furthermore
+    the events are passed "recycled" Vals (so data is not repeatedly copied around).
+
+    This new feature is highly configureable - see the x509 main.zeek for full
+    information. You can both change the timeouts, disable the feature, or
+    even stop X509 events from being raised (by hooking X509::x509_certificate_cache_replay).
+
+    (Johanna Amann, Corelight)
+
 3.2.0-dev.223 | 2020-03-12 12:03:48 -0700
 
   * Update pointer to external test repo (Jon Siwek, Corelight)

@@ -1,4 +1,8 @@
 
+3.2.0-dev.223 | 2020-03-12 12:03:48 -0700
+
+  * Update pointer to external test repo (Jon Siwek, Corelight)
+
 3.2.0-dev.222 | 2020-03-11 16:39:53 -0700
 
   * Fix whitespace in connection record comments (Jon Siwek, Corelight)

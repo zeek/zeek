@@ -874,6 +874,7 @@ const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)
 	delete others;
 
 	num_fields = types->length();
+	RecordVal::ResizeParseTimeRecords(this);
 	return 0;
 	}
 

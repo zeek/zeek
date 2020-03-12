@@ -924,14 +924,17 @@ public:
 	// Extend the underlying arrays of record instances created during
 	// parsing to match the number of fields in the record type (they may
 	// mismatch as a result of parse-time record type redefinitions.
-	static void ResizeParseTimeRecords();
+	static void ResizeParseTimeRecords(RecordType* rt);
+
+	static void DoneParsing();
 
 protected:
 	Val* DoClone(CloneState* state) override;
 
 	BroObj* origin;
 
-	static vector<RecordVal*> parse_time_records;
+	using RecordTypeValMap = std::unordered_map<RecordType*, std::vector<IntrusivePtr<RecordVal>>>;
+	static RecordTypeValMap parse_time_records;
 };
 
 class EnumVal : public Val {

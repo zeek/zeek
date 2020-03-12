@@ -649,7 +649,7 @@ int main(int argc, char** argv)
 	yyparse();
 	is_parsing = false;
 
-	RecordVal::ResizeParseTimeRecords();
+	RecordVal::DoneParsing();
 
 	init_general_global_var();
 	init_net_var();

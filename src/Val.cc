@@ -2548,7 +2548,7 @@ HashKey* TableVal::ComputeHash(const Val* index) const
 	return table_hash->ComputeHash(index, 1);
 	}
 
-vector<RecordVal*> RecordVal::parse_time_records;
+RecordVal::RecordTypeValMap RecordVal::parse_time_records;
 
 RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(t)
 	{
@@ -2557,10 +2557,7 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(t)
 	val_list* vl = val.val_list_val = new val_list(n);
 
 	if ( is_parsing )
-		{
-		parse_time_records.emplace_back(this);
-		Ref();
-		}
+		parse_time_records[t].emplace_back(NewRef{}, this);
 
 	if ( ! init_fields )
 		return;
@@ -2630,12 +2627,18 @@ Val* RecordVal::LookupWithDefault(int field) const
 	return Type()->AsRecordType()->FieldDefault(field);
 	}
 
-void RecordVal::ResizeParseTimeRecords()
+void RecordVal::ResizeParseTimeRecords(RecordType* rt)
 	{
-	for ( auto& rv : parse_time_records )
+	auto it = parse_time_records.find(rt);
+
+	if ( it == parse_time_records.end() )
+		return;
+
+	auto& rvs = it->second;
+
+	for ( auto& rv : rvs )
 		{
 		auto vs = rv->val.val_list_val;
-		auto rt = rv->Type()->AsRecordType();
 		auto current_length = vs->length();
 		auto required_length = rt->NumFields();
 
@@ -2646,10 +2649,11 @@ void RecordVal::ResizeParseTimeRecords()
 			for ( auto i = current_length; i < required_length; ++i )
 				vs->replace(i, nullptr);
 			}
-
-		Unref(rv);
 		}
+	}
 
+void RecordVal::DoneParsing()
+	{
 	parse_time_records.clear();
 	}
 

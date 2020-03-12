@@ -117,13 +117,13 @@ public:
 	 * Sets the table[string] that used as the certificate cache inside of Zeek.
 	 */
 	static void SetCertificateCache(IntrusivePtr<TableVal> cache)
-		{ certificate_cache = cache; }
+		{ certificate_cache = std::move(cache); }
 
 	/**
 	 * Sets the callback when a certificate cache hit is encountered
 	 */
 	static void SetCertificateCacheHitCallback(IntrusivePtr<Func> func)
-		{ cache_hit_callback = func; }
+		{ cache_hit_callback = std::move(func); }
 
 protected:
 	X509(RecordVal* args, File* file);

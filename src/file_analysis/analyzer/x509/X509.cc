@@ -19,8 +19,6 @@
 #include <openssl/opensslconf.h>
 #include <openssl/err.h>
 
-#include <iostream>
-
 using namespace file_analysis;
 
 file_analysis::X509::X509(RecordVal* args, file_analysis::File* file)
@@ -64,8 +62,7 @@ bool file_analysis::X509::EndOfFile()
 			val_list vl(2);
 			vl.push_back(GetFile()->GetVal()->Ref());
 			vl.push_back(new StringVal(cert_sha256));
-			Val* v = cache_hit_callback->Call(&vl);
-			Unref(v);
+			IntrusivePtr<Val> v{AdoptRef{}, cache_hit_callback->Call(&vl)};
 			return false;
 			}
 		}

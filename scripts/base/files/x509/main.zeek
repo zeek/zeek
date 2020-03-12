@@ -214,14 +214,11 @@ event file_hash(f: fa_file, kind: string, hash: string)
 	if ( ! f?$info || "X509" !in f$info$analyzers || kind != "sha256" )
 		return;
 
-	if ( caching_required_encounters == 0 )
+	if ( caching_required_encounters == 0 || hash in certificate_cache )
 		return;
 
 	if ( hash !in certificates_encountered )
-		certificates_encountered[hash] = 0;
-
-	certificates_encountered[hash] += 1;
-
-	if ( certificates_encountered[hash] < caching_required_encounters )
-		return;
+		certificates_encountered[hash] = 1;
+	else
+		certificates_encountered[hash] += 1;
 	}

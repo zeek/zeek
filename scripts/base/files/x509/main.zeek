@@ -11,11 +11,11 @@ export {
 	option caching_required_encounters : count = 10;
 
 	## The timespan over which caching_required_encounters has to be reached
-	option caching_required_encounters_interval : interval = 1 mins;
+	option caching_required_encounters_interval : interval = 62 secs;
 
 	## After a certificate has not been encountered for this time, it
 	## may be evicted from the certificate cache.
-	option certificate_cache_minimum_eviction_interval : interval = 1 mins;
+	option certificate_cache_minimum_eviction_interval : interval = 62 secs;
 
 	## Maximum size of the certificate cache
 	option certificate_cache_max_entries : count = 10000;

@@ -1,4 +1,8 @@
 
+3.2.0-dev.231 | 2020-03-13 13:41:23 -0700
+
+  * Add branch whitelist for CI notifications (Jon Siwek, Corelight)
+
 3.2.0-dev.230 | 2020-03-12 13:33:09 -0700
 
   * Introduce X509 certificate caching.

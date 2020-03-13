@@ -823,7 +823,29 @@ public:
 
 	notifier::Modifiable* Modifiable() override	{ return this; }
 
+	// Retrieves and saves all table state (key-value pairs) for
+	// tables whose index type depends on the given RecordType.
+	static void SaveParseTimeTableState(RecordType* rt);
+
+	// Rebuilds all TableVals whose state was previously saved by
+	// SaveParseTimeTableState().  This is used to re-recreate the tables
+	// in the event that a record type gets redefined while parsing.
+	static void RebuildParseTimeTables();
+
+	// Clears all state that was used to track TableVals that depending
+	// on RecordTypes.
+	static void DoneParsing();
+
 protected:
+
+	using TableRecordDependencies = std::unordered_map<RecordType*, std::vector<IntrusivePtr<TableVal>>>;
+
+	using ParseTimeTableState = std::vector<std::pair<IntrusivePtr<Val>, IntrusivePtr<Val>>>;
+	using ParseTimeTableStates = std::unordered_map<TableVal*, ParseTimeTableState>;
+
+	ParseTimeTableState DumpTableState();
+	void RebuildTable(ParseTimeTableState ptts);
+
 	void Init(TableType* t);
 
 	void CheckExpireAttr(attr_tag at);
@@ -865,6 +887,9 @@ protected:
 	Expr* change_func = nullptr;
 	// prevent recursion of change functions
 	bool in_change_func = false;
+
+	static TableRecordDependencies parse_time_table_record_dependencies;
+	static ParseTimeTableStates parse_time_table_states;
 };
 
 class RecordVal : public Val, public notifier::Modifiable {

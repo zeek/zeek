@@ -650,6 +650,7 @@ int main(int argc, char** argv)
 	is_parsing = false;
 
 	RecordVal::DoneParsing();
+	TableVal::DoneParsing();
 
 	init_general_global_var();
 	init_net_var();

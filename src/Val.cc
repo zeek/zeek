@@ -14,6 +14,7 @@
 #include <stdlib.h>
 
 #include <cmath>
+#include <set>
 
 #include "Attr.h"
 #include "BroString.h"
@@ -1310,10 +1311,62 @@ static void table_entry_val_delete_func(void* val)
 	delete tv;
 	}
 
+static void find_nested_record_types(BroType* t, std::set<RecordType*>* found)
+	{
+	if ( ! t )
+		return;
+
+	switch ( t->Tag() ) {
+	case TYPE_RECORD:
+		{
+		auto rt = t->AsRecordType();
+		found->emplace(rt);
+
+		for ( auto i = 0; i < rt->NumFields(); ++i )
+			find_nested_record_types(rt->FieldDecl(i)->type, found);
+		}
+		return;
+	case TYPE_TABLE:
+		find_nested_record_types(t->AsTableType()->Indices(), found);
+		find_nested_record_types(t->AsTableType()->YieldType(), found);
+		return;
+	case TYPE_LIST:
+		{
+		for ( auto& t : *t->AsTypeList()->Types() )
+			find_nested_record_types(t, found);
+		}
+		return;
+	case TYPE_FUNC:
+		find_nested_record_types(t->AsFuncType()->Args(), found);
+		find_nested_record_types(t->AsFuncType()->YieldType(), found);
+		return;
+	case TYPE_VECTOR:
+		find_nested_record_types(t->AsVectorType()->YieldType(), found);
+		return;
+	case TYPE_TYPE:
+		find_nested_record_types(t->AsTypeType()->Type(), found);
+		return;
+	default:
+		return;
+	}
+	}
+
 TableVal::TableVal(TableType* t, Attributes* a) : Val(t)
 	{
 	Init(t);
 	SetAttrs(a);
+
+	if ( ! is_parsing )
+		return;
+
+	for ( const auto& t : *t->IndexTypes() )
+		{
+		std::set<RecordType*> found;
+		find_nested_record_types(t, &found);
+
+		for ( auto rt : found )
+			parse_time_table_record_dependencies[rt].emplace_back(NewRef{}, this);
+		}
 	}
 
 void TableVal::Init(TableType* t)
@@ -2547,6 +2600,68 @@ HashKey* TableVal::ComputeHash(const Val* index) const
 	{
 	return table_hash->ComputeHash(index, 1);
 	}
+
+void TableVal::SaveParseTimeTableState(RecordType* rt)
+	{
+	auto it = parse_time_table_record_dependencies.find(rt);
+
+	if ( it == parse_time_table_record_dependencies.end() )
+		return;
+
+	auto& table_vals = it->second;
+
+	for ( auto& tv : table_vals )
+		parse_time_table_states[tv.get()] = tv->DumpTableState();
+	}
+
+void TableVal::RebuildParseTimeTables()
+	{
+	for ( auto& [tv, ptts] : parse_time_table_states )
+		tv->RebuildTable(std::move(ptts));
+
+	parse_time_table_states.clear();
+	}
+
+void TableVal::DoneParsing()
+	{
+	parse_time_table_record_dependencies.clear();
+	}
+
+TableVal::ParseTimeTableState TableVal::DumpTableState()
+	{
+	const PDict<TableEntryVal>* tbl = AsTable();
+	IterCookie* cookie = tbl->InitForIteration();
+
+	HashKey* key;
+	TableEntryVal* val;
+
+	ParseTimeTableState rval;
+
+	while ( (val = tbl->NextEntry(key, cookie)) )
+		{
+		rval.emplace_back(IntrusivePtr<Val>{AdoptRef{}, RecoverIndex(key)},
+		                  IntrusivePtr<Val>{NewRef{}, val->Value()});
+
+		delete key;
+		}
+
+	RemoveAll();
+	return rval;
+	}
+
+void TableVal::RebuildTable(ParseTimeTableState ptts)
+	{
+	delete table_hash;
+	table_hash = new CompositeHash(IntrusivePtr<TypeList>(NewRef{},
+	                               table_type->Indices()));
+
+	for ( auto& [key, val] : ptts )
+		Assign(key.get(), val.release());
+	}
+
+TableVal::ParseTimeTableStates TableVal::parse_time_table_states;
+
+TableVal::TableRecordDependencies TableVal::parse_time_table_record_dependencies;
 
 RecordVal::RecordTypeValMap RecordVal::parse_time_records;
 

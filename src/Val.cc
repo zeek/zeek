@@ -2762,7 +2762,7 @@ void RecordVal::ResizeParseTimeRecords(RecordType* rt)
 			vs->resize(required_length);
 
 			for ( auto i = current_length; i < required_length; ++i )
-				vs->replace(i, nullptr);
+				vs->replace(i, rt->FieldDefault(i));
 			}
 		}
 	}

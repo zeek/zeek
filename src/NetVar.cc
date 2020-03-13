@@ -75,6 +75,7 @@ TableVal* udp_content_delivery_ports_orig;
 TableVal* udp_content_delivery_ports_resp;
 bool udp_content_deliver_all_orig;
 bool udp_content_deliver_all_resp;
+bool tcp_defer_unseen_segments;
 
 double dns_session_timeout;
 double rpc_timeout;

@@ -4,6 +4,7 @@
 #define ANALYZER_PROTOCOL_TCP_TCP_ENDPOINT_H
 
 #include "IPAddr.h"
+#include <queue>
 
 class Connection;
 class IP_Hdr;
@@ -23,6 +24,29 @@ typedef enum {
 	TCP_ENDPOINT_CLOSED,	// FIN seen
 	TCP_ENDPOINT_RESET	// RST seen
 } EndpointState;
+
+class TCP_Packet {
+public:
+	TCP_Packet() = delete;
+
+	// User must check ip and data fields to ensure packet is valid.
+	explicit TCP_Packet(int, const u_char*, bool, uint64, const IP_Hdr*, int, uint32);
+
+	~TCP_Packet();
+
+	// non-copyable.
+	TCP_Packet(const TCP_Packet&) = delete;
+	TCP_Packet& operator=(const TCP_Packet&) = delete;
+
+	int len;
+	int caplen;
+	bool is_orig;
+	uint32 ack_seq;
+	uint64 seq;
+	const u_char* data;
+	const IP_Hdr* ip;
+
+};
 
 // One endpoint of a TCP connection.
 class TCP_Endpoint {
@@ -185,6 +209,20 @@ public:
 
 	void AckReceived(uint64 seq);
 
+	bool PacketsInDeferedQueue() { return !tcp_pq.empty(); }
+
+	// enqueue misorder packets.
+	void EnqueuePacket(int len, const u_char* data, bool is_orig,
+			   uint64 seq, const IP_Hdr* ip, int caplen, uint32 ack_seq);
+
+	TCP_Packet* DequeuePacket(uint64 seq);
+
+	// frees tcp-packet allocated in EnqueuePacket
+	void FreePacket(TCP_Packet* pkt);
+
+	// drains all pkts from tcp-packet queue.
+	void DrainPacketQueue();
+
 	void SetContentsFile(BroFile* f);
 	BroFile* GetContentsFile() const	{ return contents_file; }
 
@@ -244,6 +282,7 @@ protected:
 	uint32 rxmt_cnt, rxmt_thresh;
 	uint32 win0_cnt, win0_thresh;
 	uint32 gap_cnt, gap_thresh;
+	std::queue<TCP_Packet*> tcp_pq;	// defered tcp-packet queue.
 };
 
 #define ENDIAN_UNKNOWN 0

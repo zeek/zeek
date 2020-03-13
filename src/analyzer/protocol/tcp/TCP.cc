@@ -1057,6 +1057,33 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	int seg_len = get_segment_len(len, flags);
 	uint32 seq_one_past_segment = base_seq + seg_len;
 
+#if 0
+	DEBUG_MSG("%.6f : len=%d, orig=%s, pkt: seq=%u, ack=%u, ep: seq=%u, ack=%u, " \
+		  "peer: seq=%u, ack=%u\n", network_time, len,	    \
+		  (is_orig ? "true" : "false"), base_seq, ack_seq,  \
+		  endpoint->LastSeq(), endpoint->AckSeq(),	    \
+		  peer->LastSeq(), peer->AckSeq());
+#endif
+	if ( tcp_defer_unseen_segments && flags.ACK() )
+		{
+		if (endpoint->state == TCP_ENDPOINT_ESTABLISHED &&
+		    peer->state == TCP_ENDPOINT_ESTABLISHED)
+			{
+			if (ack_seq > peer->LastSeq())
+				{
+				// mis-ordered pkt. Enqueue and process it later.
+				// Before we enqueue, get original params because
+				// ExtractTCP_Header modifies them.
+				len += tcp_hdr_len;
+				caplen += tcp_hdr_len;
+				data -= tcp_hdr_len;
+				endpoint->EnqueuePacket(len, data, is_orig,
+							seq, ip, caplen, ack_seq);
+				return;
+				}
+			}
+		}
+
 	init_endpoint(endpoint, flags, base_seq, seq_one_past_segment,
 	              current_timestamp);
 
@@ -1221,6 +1248,24 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 	if ( ! reassembling )
 		ForwardPacket(len, data, is_orig, rel_data_seq, ip, caplen);
+
+	// we processed a pkt. Check if deferred queue is enabled
+	if (tcp_defer_unseen_segments)
+		{
+		// if peer has packets in defer queue, process them.
+		while (peer->PacketsInDeferedQueue())
+			{
+			// drain all pkts allowed by the current packet.
+			auto tcp_p = peer->DequeuePacket(endpoint->LastSeq());
+			if (tcp_p)
+				{
+				DeliverPacket(tcp_p->len, tcp_p->data, tcp_p->is_orig,
+					      tcp_p->seq, tcp_p->ip, tcp_p->caplen);
+
+				peer->FreePacket(tcp_p);
+				}
+			}
+		}
 	}
 
 void TCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)

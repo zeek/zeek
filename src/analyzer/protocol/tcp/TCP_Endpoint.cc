@@ -13,6 +13,25 @@
 
 using namespace analyzer::tcp;
 
+TCP_Packet::TCP_Packet(int in_len, const u_char* in_data, bool in_is_orig,
+		       uint64 in_seq, const IP_Hdr* in_ip, int in_caplen, uint32 in_ack_seq)
+: len(in_len), caplen(in_caplen), is_orig(in_is_orig), ack_seq(in_ack_seq), seq(in_seq)
+	{
+	ip = in_ip->Copy();
+	data = new u_char[len];
+
+	if (data)
+		memcpy((void*) data, (const void*) in_data, len);
+	}
+
+TCP_Packet::~TCP_Packet()
+	{
+	if (ip)
+		delete ip;
+	if (data)
+		delete data;
+	}
+
 TCP_Endpoint::TCP_Endpoint(TCP_Analyzer* arg_analyzer, int arg_is_orig)
 	{
 	contents_processor = 0;
@@ -51,6 +70,7 @@ TCP_Endpoint::TCP_Endpoint(TCP_Analyzer* arg_analyzer, int arg_is_orig)
 
 TCP_Endpoint::~TCP_Endpoint()
 	{
+	DrainPacketQueue();
 	delete contents_processor;
 	Unref(contents_file);
 	}
@@ -247,6 +267,48 @@ int TCP_Endpoint::DataSent(double t, uint64 seq, int len, int caplen,
 		}
 
 	return status;
+	}
+
+void TCP_Endpoint::EnqueuePacket(int len, const u_char* data, bool is_orig,
+				 uint64 seq, const IP_Hdr* ip, int caplen, uint32 ack_seq)
+	{
+	auto tcp_p = new TCP_Packet(len, data, is_orig, seq, ip, caplen, ack_seq);
+
+	// ensure tcp-packet was created properly.
+	if (tcp_p and (tcp_p->ip and tcp_p->data))
+		tcp_pq.emplace(tcp_p);	  // enque pkt for deferred replay.
+	}
+
+TCP_Packet* TCP_Endpoint::DequeuePacket(uint64 seq)
+	{
+	auto tcp_p = tcp_pq.front();
+
+	// return pkt if the packet ack-seq is less than peer's seq.
+	if (tcp_p && (tcp_p->ack_seq <= seq))
+		{
+		tcp_pq.pop();	// remove pkt from queue.
+		return tcp_p;
+		}
+
+	// either the queue is empty or peer hasn't advanced.
+	return nullptr;
+	}
+
+void TCP_Endpoint::FreePacket(TCP_Packet* pkt)
+	{
+	if (pkt)
+		delete pkt;
+	}
+
+// called from endpoint destructor. Drain queue and release objects.
+void TCP_Endpoint::DrainPacketQueue()
+	{
+	while (!tcp_pq.empty())
+		{
+		auto tcp_p = tcp_pq.front();
+		tcp_pq.pop();
+		delete tcp_p;
+		}
 	}
 
 void TCP_Endpoint::AckReceived(uint64 seq)

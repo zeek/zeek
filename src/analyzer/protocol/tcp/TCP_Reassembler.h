@@ -119,6 +119,6 @@ private:
 	Type type;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*
 
 #endif

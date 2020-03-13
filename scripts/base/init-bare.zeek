@@ -1044,6 +1044,22 @@ const tcp_content_deliver_all_orig = F &redef;
 ##    udp_content_deliver_all_resp tcp_contents
 const tcp_content_deliver_all_resp = F &redef;
 
+## Defer TCP ack for segments not seen from peer.
+##
+## In some environments, it's possible for packets to get reordered and we
+## may see client sending acks for segments the server hasn't sent.
+## In such cases, Bro advances peer ack-seq and raise an Undelivered event.
+## This flag changes the default behavior. The misordered packets are
+## enqueueued and replayed in the when the corresponding peer packet
+## is received.
+## NOTE: Couple of caveats when using this flag.
+##  - This flag only addresses re-order issues between client and server
+##    packets i.e. if client pkt is received before server pkt or vice-versa.
+##  - The flag only addresses re-order issues after client and server move
+##    to established state. This flag does not address re-order issues for
+##    non-established connections.
+const tcp_defer_unseen_segments = F &redef;
+
 ## Defines UDP destination ports for which the contents of the originator stream
 ## should be delivered via :zeek:see:`udp_contents`.
 ##

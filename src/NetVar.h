@@ -73,6 +73,7 @@ extern TableVal* tcp_content_delivery_ports_orig;
 extern TableVal* tcp_content_delivery_ports_resp;
 extern bool tcp_content_deliver_all_orig;
 extern bool tcp_content_deliver_all_resp;
+extern bool tcp_defer_unseen_segments;
 
 extern TableVal* udp_content_delivery_ports_orig;
 extern TableVal* udp_content_delivery_ports_resp;

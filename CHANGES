@@ -1,4 +1,8 @@
 
+3.2.0-dev.234 | 2020-03-16 12:37:17 -0700
+
+  * Remove an unused smb2_negotiate_response event handler. (M.Shirk)
+
 3.2.0-dev.231 | 2020-03-13 13:41:23 -0700
 
   * Add branch whitelist for CI notifications (Jon Siwek, Corelight)

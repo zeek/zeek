@@ -98,11 +98,6 @@ event smb2_negotiate_response(c: connection, hdr: SMB2::Header, response: SMB2::
 		}
 	}
 
-event smb2_negotiate_response(c: connection, hdr: SMB2::Header, response: SMB2::NegotiateResponse) &priority=5
-	{
-	# No behavior yet.
-	}
-
 event smb2_tree_connect_request(c: connection, hdr: SMB2::Header, path: string) &priority=5
 	{
 	c$smb_state$current_tree$path = path;

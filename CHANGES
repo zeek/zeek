@@ -1,4 +1,14 @@
 
+3.2.0-dev.237 | 2020-03-17 16:54:35 -0700
+
+  * Cleanup in iosource/Packet (Tim Wojtulewicz, Corelight)
+
+  * Add ability for packet sources to flag a packet's l2 or l3 checksum as valid.
+
+    This lets packet source plugins implement handling of hardware checksum
+    offloading, if available. Setting the flags will skip the internal checksumming
+    for either layer 2 and/or layer 3. (Tim Wojtulewicz, Corelight)
+
 3.2.0-dev.234 | 2020-03-16 12:37:17 -0700
 
   * Remove an unused smb2_negotiate_response event handler. (M.Shirk)

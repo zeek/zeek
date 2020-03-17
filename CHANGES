@@ -1,4 +1,15 @@
 
+3.1.2-dev.4 | 2020-04-09 14:00:55 -0700
+
+  * GH-865: fix parsing of SMB NegotiateContextList (Jon Siwek, Corelight)
+
+    * The compression capability was incorrectly set to 0x0004 instead of 0x0003
+
+    * The padding was 4-byte instead of 8-byte aligned and also the spec.
+      does not strictly require the padding for the last item in the list.
+
+    * Add a default case to handle parsing of unknown context types.
+
 3.1.2-dev.3 | 2020-04-09 13:04:10 -0700
 
   * Fix use-after-free in Zeek lambda functions with uninitialized locals

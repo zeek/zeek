@@ -11,7 +11,7 @@ enum smb3_capabilities {
 enum smb3_context_type {
 	SMB2_PREAUTH_INTEGRITY_CAPABILITIES   = 0x0001,
 	SMB2_ENCRYPTION_CAPABILITIES          = 0x0002,
-	SMB2_COMPRESSION_CAPABILITIES         = 0x0004,
+	SMB2_COMPRESSION_CAPABILITIES         = 0x0003,
 	SMB2_NETNAME_NEGOTIATE_CONTEXT_ID     = 0x0005,
 };
 
@@ -50,9 +50,13 @@ refine connection SMB_Conn += {
 
 			VectorVal* cv = new VectorVal(BifType::Vector::SMB2::NegotiateContextValues);
 
-			if ( ${val.dialect_revision} == 0x0311 )
-				for ( auto i = 0u; i < ${val.smb3_ncl.vals}->size(); ++i )
-					cv->Assign(i, BuildSMB2ContextVal(${val.smb3_ncl.vals[i]}));
+			if ( ${val.dialect_revision} == 0x0311 && ${val.negotiate_context_count} > 0 )
+				{
+				for ( auto i = 0u; i < ${val.smb3_ncl.list.vals}->size(); ++i )
+					cv->Assign(i, BuildSMB2ContextVal(${val.smb3_ncl.list.vals[i].ncv}));
+
+				cv->Assign(${val.smb3_ncl.list.vals}->size(), BuildSMB2ContextVal(${val.smb3_ncl.list.last_val}));
+				}
 
 			nr->Assign(6, cv);
 
@@ -97,8 +101,13 @@ type SMB3_negotiate_context_value = record {
 		SMB2_ENCRYPTION_CAPABILITIES          -> encryption_capabilities        : SMB3_encryption_capabilities;
 		SMB2_COMPRESSION_CAPABILITIES         -> compression_capabilities       : SMB3_compression_capabilities;
 		SMB2_NETNAME_NEGOTIATE_CONTEXT_ID     -> netname_negotiate_context_id   : SMB3_netname_negotiate_context_id(data_length);
+		default                               -> unknown_context_data           : bytestring &length=data_length;
 	};
-	pad			: padding align 4;
+};
+
+type Padded_SMB3_negotiate_context_value = record {
+	ncv: SMB3_negotiate_context_value;
+	pad: padding align 8;
 };
 
 type SMB2_negotiate_request(header: SMB2_Header) = record {
@@ -115,8 +124,16 @@ type SMB2_negotiate_request(header: SMB2_Header) = record {
 };
 
 type NegotiateContextList(len: uint16) = record {
-	vals : SMB3_negotiate_context_value[len];
-}
+	vals: Padded_SMB3_negotiate_context_value[len - 1];
+	last_val: SMB3_negotiate_context_value;
+};
+
+type OptNegotiateContextList(len: uint16) = record {
+	opt: case len of {
+		0 -> nil: empty;
+		default -> list: NegotiateContextList(len);
+	};
+};
 
 type SMB2_negotiate_response(header: SMB2_Header) = record {
 	structure_size            : uint16;
@@ -136,7 +153,7 @@ type SMB2_negotiate_response(header: SMB2_Header) = record {
 	security_blob             : bytestring &length=security_length;
 	pad1                      : padding to (dialect_revision == 0x0311 ? negotiate_context_offset - header.head_length : 0);
 	negotiate_context_list    : case dialect_revision of {
-		0x0311    -> smb3_ncl : NegotiateContextList(negotiate_context_count);
+		0x0311    -> smb3_ncl : OptNegotiateContextList(negotiate_context_count);
 		default   -> unknown  : empty;
 	};
 } &byteorder=littleendian, &let {

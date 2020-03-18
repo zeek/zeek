@@ -43,14 +43,17 @@ void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
 
 	time = ts.tv_sec + double(ts.tv_usec) / 1e6;
 	hdr_size = GetLinkHeaderSize(arg_link_type);
-	l3_proto = L3_UNKNOWN;
 	eth_type = 0;
 	vlan = 0;
 	inner_vlan = 0;
-	l2_src = 0;
-	l2_dst = 0;
 
+	l2_src = nullptr;
+	l2_dst = nullptr;
 	l2_valid = false;
+	l2_checksummed = false;
+
+	l3_proto = L3_UNKNOWN;
+	l3_checksummed = false;
 
 	if ( data && cap_len < hdr_size )
 		{
@@ -677,4 +680,3 @@ void Packet::Describe(ODesc* d) const
 	d->Add("->");
 	d->Add(ip.DstAddr());
 	}
-

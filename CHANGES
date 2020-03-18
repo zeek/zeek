@@ -1,4 +1,89 @@
 
+3.2.0-dev.271 | 2020-03-17 22:52:40 -0700
+
+  * Scope: store IntrusivePtr in `local` (Max Kellermann)
+
+  * Scope: pass IntrusivePtr to AddInit() (Max Kellermann)
+
+  * DNS_Mgr: use class IntrusivePtr (Max Kellermann)
+
+  * Scope: use class IntrusivePtr (Max Kellermann)
+
+  * Attr: use class IntrusivePtr (Max Kellermann)
+
+  * Expr: check_and_promote_expr() returns IntrusivePtr (Max Kellermann)
+
+    Instead of returning a pseudo-boolean integer, it now returns a
+    referenced object or nullptr on error.  The old API was very error
+    prone because of its obscure reference counting semantics.
+
+  * Frame: use class IntrusivePtr (Max Kellermann)
+
+  * Val: RecordVal::LookupWithDefault() returns IntrusivePtr (Max Kellermann)
+
+  * Type: RecordType::FieldDefault() returns IntrusivePtr (Max Kellermann)
+
+    Fixes memory leak in EventHandler::NewEvent().
+
+  * Val: TableVal::Delete() returns IntrusivePtr (Max Kellermann)
+
+  * Type: base_type() returns IntrusivePtr (Max Kellermann)
+
+  * Type: init_type() returns IntrusivePtr (Max Kellermann)
+
+  * Type: merge_types() returns IntrusivePtr (Max Kellermann)
+
+  * Type: use class IntrusivePtr in VectorType (Max Kellermann)
+
+  * Type: use class IntrusivePtr in EnumType (Max Kellermann)
+
+  * Type: use class IntrusivePtr in FileType (Max Kellermann)
+
+  * Type: use class IntrusivePtr in TypeDecl (Max Kellermann)
+
+  * Type: make TypeDecl `final` and the dtor non-`virtual` (Max Kellermann)
+
+  * Type: use class IntrusivePtr in TypeType (Max Kellermann)
+
+  * Type: use class IntrusivePtr in FuncType (Max Kellermann)
+
+  * Type: use class IntrusivePtr in TypeList (Max Kellermann)
+
+  * Type: use class IntrusivePtr in IndexType (Max Kellermann)
+
+  * Val: use class IntrusivePtr in class TableVal (Max Kellermann)
+
+  * Val: use class IntrusivePtr in class TableEntryVal (Max Kellermann)
+
+  * CompHash: return IntrusivePtr (Max Kellermann)
+
+  * Type: return IntrusivePtr (Max Kellermann)
+
+  * Val: add TableVal::Assign() overload with IntrusivePtr (Max Kellermann)
+
+  * zeekygen/IdentifierInfo: use class IntrusivePtr more (Max Kellermann)
+
+  * Func: use class IntrusivePtr (Max Kellermann)
+
+  * GH-845: reference `id_list` before passing to new `BroFunc` (Max Kellermann)
+
+    Passing the `id_list` pointer to `BroFunc` transfers ownership of the
+    contained `ID` instances, because `~BroFunc()` unreferences them.
+    Therefore, we need to increase the reference counters for each
+    `BroFunc` instance to fix the use-after-free bug.
+
+  * input/Manager: fix three use-after-free bugs (Max Kellermann)
+
+3.2.0-dev.237 | 2020-03-17 16:54:35 -0700
+
+  * Cleanup in iosource/Packet (Tim Wojtulewicz, Corelight)
+
+  * Add ability for packet sources to flag a packet's l2 or l3 checksum as valid.
+
+    This lets packet source plugins implement handling of hardware checksum
+    offloading, if available. Setting the flags will skip the internal checksumming
+    for either layer 2 and/or layer 3. (Tim Wojtulewicz, Corelight)
+
 3.2.0-dev.234 | 2020-03-16 12:37:17 -0700
 
   * Remove an unused smb2_negotiate_response event handler. (M.Shirk)

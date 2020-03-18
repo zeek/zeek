@@ -23,7 +23,6 @@ class Dictionary {
 public:
 	explicit Dictionary(dict_order ordering = UNORDERED,
 			int initial_size = 0);
-	~Dictionary();
 
 	// Member functions for looking up a key, inserting/changing its
 	// contents, and deleting it.  These come in two flavors: one
@@ -118,6 +117,9 @@ public:
 	void Clear();
 
 	unsigned int MemoryAllocation() const;
+
+protected:
+	~Dictionary();
 
 private:
 	void Init(int size);

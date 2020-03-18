@@ -84,25 +84,25 @@ VectorVal* BroSubstring::VecToPolicy(Vec* vec)
 			{
 			BroSubstring* bst = (*vec)[i];
 
-			RecordVal* st_val = new RecordVal(sw_substring_type);
-			st_val->Assign(0, new StringVal(new BroString(*bst)));
+			auto st_val = make_intrusive<RecordVal>(sw_substring_type);
+			st_val->Assign(0, make_intrusive<StringVal>(new BroString(*bst)));
 
-			VectorVal* aligns = new VectorVal(sw_align_vec_type);
+			auto aligns = make_intrusive<VectorVal>(sw_align_vec_type);
 
 			for ( unsigned int j = 0; j < bst->GetNumAlignments(); ++j )
 				{
 				const BSSAlign& align = (bst->GetAlignments())[j];
 
-				RecordVal* align_val = new RecordVal(sw_align_type);
-				align_val->Assign(0, new StringVal(new BroString(*align.string)));
+				auto align_val = make_intrusive<RecordVal>(sw_align_type);
+				align_val->Assign(0, make_intrusive<StringVal>(new BroString(*align.string)));
 				align_val->Assign(1, val_mgr->GetCount(align.index));
 
-				aligns->Assign(j+1, align_val);
+				aligns->Assign(j + 1, std::move(align_val));
 				}
 
-			st_val->Assign(1, aligns);
+			st_val->Assign(1, std::move(aligns));
 			st_val->Assign(2, val_mgr->GetBool(bst->IsNewAlignment()));
-			result->Assign(i+1, st_val);
+			result->Assign(i + 1, std::move(st_val));
 			}
 		}
 

@@ -7,10 +7,10 @@ module Option;
 #include "NetVar.h"
 #include "broker/Data.h"
 
-static bool call_option_handlers_and_set_value(StringVal* name, ID* i, Val* val,
+static bool call_option_handlers_and_set_value(StringVal* name, ID* i,
+                                               IntrusivePtr<Val> val,
                                                StringVal* location)
 	{
-	val->Ref();
 	if ( i->HasOptionHandlers() )
 		{
 		for ( auto handler_function : i->GetOptionHandlers() )
@@ -18,12 +18,13 @@ static bool call_option_handlers_and_set_value(StringVal* name, ID* i, Val* val,
 			bool add_loc = handler_function->FType()->AsFuncType()->ArgTypes()->Types()->length() == 3;
 			val_list vl(2 + add_loc);
 			vl.push_back(name->Ref());
-			vl.push_back(val);
+			vl.push_back(val->Ref());
 
 			if ( add_loc )
 				vl.push_back(location->Ref());
 
 			val = handler_function->Call(&vl); // consumed by next call.
+
 			if ( ! val )
 				{
 				// Someone messed up, don't change value and just return
@@ -33,8 +34,7 @@ static bool call_option_handlers_and_set_value(StringVal* name, ID* i, Val* val,
 		}
 
 	// clone to prevent changes
-	i->SetVal({AdoptRef{}, val->Clone()});
-	Unref(val); // Either ref'd once or function call result.
+	i->SetVal(val->Clone());
 	return true;
 	}
 %%}
@@ -90,7 +90,7 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 			return val_mgr->GetBool(0);
 			}
 
-		auto rval = call_option_handlers_and_set_value(ID, i, val_from_data.get(), location);
+		auto rval = call_option_handlers_and_set_value(ID, i, std::move(val_from_data), location);
 		return val_mgr->GetBool(rval);
 		}
 
@@ -101,10 +101,10 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 		     val->Type()->AsTableType()->IsUnspecifiedTable() )
 			{
 			// Just coerce an empty/unspecified table to the right type.
-			auto tv = new TableVal(i->Type()->AsTableType(),
-			                       i->ID_Val()->AsTableVal()->Attrs());
-			auto rval = call_option_handlers_and_set_value(ID, i, tv, location);
-			Unref(tv);
+			auto tv = make_intrusive<TableVal>(
+			        IntrusivePtr{NewRef{}, i->Type()->AsTableType()},
+			        IntrusivePtr{NewRef{}, i->ID_Val()->AsTableVal()->Attrs()});
+			auto rval = call_option_handlers_and_set_value(ID, i, std::move(tv), location);
 			return val_mgr->GetBool(rval);
 			}
 
@@ -113,7 +113,7 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 		return val_mgr->GetBool(0);
 		}
 
-	auto rval = call_option_handlers_and_set_value(ID, i, val, location);
+	auto rval = call_option_handlers_and_set_value(ID, i, {NewRef{}, val}, location);
 	return val_mgr->GetBool(rval);
 	%}
 

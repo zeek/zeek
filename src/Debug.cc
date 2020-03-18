@@ -234,7 +234,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 	Stmt* body = 0;	// the particular body we care about; 0 = all
 
 	if ( bodies.size() == 1 )
-		body = bodies[0].stmts;
+		body = bodies[0].stmts.get();
 	else
 		{
 		while ( 1 )
@@ -245,8 +245,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 				{
 				Stmt* first;
 				Location stmt_loc;
-				get_first_statement(bodies[i].stmts, first,
-							stmt_loc);
+				get_first_statement(bodies[i].stmts.get(), first, stmt_loc);
 				debug_msg("[%d] %s:%d\n", i+1, stmt_loc.filename, stmt_loc.first_line);
 				}
 
@@ -278,7 +277,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 			int option = atoi(input.c_str());
 			if ( option > 0 && option <= (int) bodies.size() )
 				{
-				body = bodies[option - 1].stmts;
+				body = bodies[option - 1].stmts.get();
 				break;
 				}
 			}
@@ -308,7 +307,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 
 		for ( unsigned int i = 0; i < bodies.size(); ++i )
 			{
-			get_first_statement(bodies[i].stmts, first, stmt_loc);
+			get_first_statement(bodies[i].stmts.get(), first, stmt_loc);
 			if ( ! first )
 				continue;
 

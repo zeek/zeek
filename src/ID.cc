@@ -163,7 +163,7 @@ void ID::UpdateValAttrs()
 		return;
 
 	if ( val && val->Type()->Tag() == TYPE_TABLE )
-		val->AsTableVal()->SetAttrs(attrs.get());
+		val->AsTableVal()->SetAttrs(attrs);
 
 	if ( val && val->Type()->Tag() == TYPE_FILE )
 		val->AsFile()->SetAttrs(attrs.get());
@@ -188,9 +188,9 @@ void ID::UpdateValAttrs()
 				TypeDecl* fd = rt->FieldDecl(i);
 
 				if ( ! fd->attrs )
-					fd->attrs = new Attributes(new attr_list, rt->FieldType(i), true, IsGlobal());
+					fd->attrs = make_intrusive<Attributes>(new attr_list, IntrusivePtr{NewRef{}, rt->FieldType(i)}, true, IsGlobal());
 
-				fd->attrs->AddAttr(new Attr(ATTR_LOG));
+				fd->attrs->AddAttr(make_intrusive<Attr>(ATTR_LOG));
 				}
 			}
 		}
@@ -206,13 +206,13 @@ bool ID::IsDeprecated() const
 	return FindAttr(ATTR_DEPRECATED) != 0;
 	}
 
-void ID::MakeDeprecated(Expr* deprecation)
+void ID::MakeDeprecated(IntrusivePtr<Expr> deprecation)
 	{
 	if ( IsDeprecated() )
 		return;
 
-	attr_list* attr = new attr_list{new Attr(ATTR_DEPRECATED, deprecation)};
-	AddAttrs(make_intrusive<Attributes>(attr, Type(), false, IsGlobal()));
+	attr_list* attr = new attr_list{new Attr(ATTR_DEPRECATED, std::move(deprecation))};
+	AddAttrs(make_intrusive<Attributes>(attr, IntrusivePtr{NewRef{}, Type()}, false, IsGlobal()));
 	}
 
 string ID::GetDeprecationWarning() const
@@ -262,7 +262,7 @@ void ID::SetOption()
 	if ( ! IsRedefinable() )
 		{
 		attr_list* attr = new attr_list{new Attr(ATTR_REDEF)};
-		AddAttrs(make_intrusive<Attributes>(attr, Type(), false, IsGlobal()));
+		AddAttrs(make_intrusive<Attributes>(attr, IntrusivePtr{NewRef{}, Type()}, false, IsGlobal()));
 		}
 	}
 
@@ -314,7 +314,7 @@ TraversalCode ID::Traverse(TraversalCallback* cb) const
 void ID::Error(const char* msg, const BroObj* o2)
 	{
 	BroObj::Error(msg, o2, 1);
-	SetType({AdoptRef{}, error_type()});
+	SetType(error_type());
 	}
 
 void ID::Describe(ODesc* d) const

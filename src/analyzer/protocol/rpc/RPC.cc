@@ -344,7 +344,7 @@ void RPC_Interpreter::Event_RPC_Dialogue(RPC_CallInfo* c, BifEnum::rpc_status st
 			val_mgr->GetCount(c->Program()),
 			val_mgr->GetCount(c->Version()),
 			val_mgr->GetCount(c->Proc()),
-			BifType::Enum::rpc_status->GetVal(status),
+			BifType::Enum::rpc_status->GetVal(status).release(),
 			new Val(c->StartTime(), TYPE_TIME),
 			val_mgr->GetCount(c->CallLen()),
 			val_mgr->GetCount(reply_len),
@@ -374,7 +374,7 @@ void RPC_Interpreter::Event_RPC_Reply(uint32_t xid, BifEnum::rpc_status status, 
 		analyzer->ConnectionEventFast(rpc_reply, {
 			analyzer->BuildConnVal(),
 			val_mgr->GetCount(xid),
-			BifType::Enum::rpc_status->GetVal(status),
+			BifType::Enum::rpc_status->GetVal(status).release(),
 			val_mgr->GetCount(reply_len),
 		});
 		}

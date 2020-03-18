@@ -61,7 +61,7 @@ RecordVal* proc_host_address(const BroAnalyzer a, const KRB_Host_Address* addr)
 				}
 
 			auto bytes = reinterpret_cast<const uint32_t*>(addr_bytes.data());
-			rv->Assign(0, new AddrVal(IPAddr(IPv4, bytes, IPAddr::Network)));
+			rv->Assign(0, make_intrusive<AddrVal>(IPAddr(IPv4, bytes, IPAddr::Network)));
 			return rv;
 			}
 		case 24:
@@ -73,7 +73,7 @@ RecordVal* proc_host_address(const BroAnalyzer a, const KRB_Host_Address* addr)
 				}
 
 			auto bytes = reinterpret_cast<const uint32_t*>(addr_bytes.data());
-			rv->Assign(0, new AddrVal(IPAddr(IPv6, bytes, IPAddr::Network)));
+			rv->Assign(0, make_intrusive<AddrVal>(IPAddr(IPv6, bytes, IPAddr::Network)));
 			return rv;
 			}
 		case 20:

@@ -32,11 +32,13 @@
 #include <algorithm>
 
 #include "BroString.h"
+#include "Expr.h"
 #include "Event.h"
 #include "Net.h"
 #include "Val.h"
 #include "Var.h"
 #include "Reporter.h"
+#include "IntrusivePtr.h"
 #include "iosource/Manager.h"
 #include "digest.h"
 
@@ -118,9 +120,9 @@ public:
 		return req_host ? req_host : req_addr.AsString();
 		}
 
-	ListVal* Addrs();
-	TableVal* AddrsSet();	// addresses returned as a set
-	StringVal* Host();
+	IntrusivePtr<ListVal> Addrs();
+	IntrusivePtr<TableVal> AddrsSet();	// addresses returned as a set
+	IntrusivePtr<StringVal> Host();
 
 	double CreationTime() const	{ return creation_time; }
 
@@ -154,11 +156,11 @@ protected:
 
 	int num_names;
 	char** names;
-	StringVal* host_val;
+	IntrusivePtr<StringVal> host_val;
 
 	int num_addrs;
 	IPAddr* addrs;
-	ListVal* addrs_val;
+	IntrusivePtr<ListVal> addrs_val;
 
 	int failed;
 	double creation_time;
@@ -170,13 +172,13 @@ void DNS_Mgr_mapping_delete_func(void* v)
 	delete (DNS_Mapping*) v;
 	}
 
-static TableVal* empty_addr_set()
+static IntrusivePtr<TableVal> empty_addr_set()
 	{
-	BroType* addr_t = base_type(TYPE_ADDR);
-	TypeList* set_index = new TypeList(addr_t);
-	set_index->Append(addr_t);
-	SetType* s = new SetType(set_index, 0);
-	return new TableVal(s);
+	auto addr_t = base_type(TYPE_ADDR);
+	auto set_index = make_intrusive<TypeList>(addr_t);
+	set_index->Append(std::move(addr_t));
+	auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
+	return make_intrusive<TableVal>(std::move(s));
 	}
 
 DNS_Mapping::DNS_Mapping(const char* host, struct hostent* h, uint32_t ttl)
@@ -268,48 +270,41 @@ DNS_Mapping::~DNS_Mapping()
 		}
 
 	delete [] addrs;
-
-	Unref(host_val);
-	Unref(addrs_val);
 	}
 
-ListVal* DNS_Mapping::Addrs()
+IntrusivePtr<ListVal> DNS_Mapping::Addrs()
 	{
 	if ( failed )
-		return 0;
+		return nullptr;
 
 	if ( ! addrs_val )
 		{
-		ListVal* hv = new ListVal(TYPE_ADDR);
+		auto addrs_val = make_intrusive<ListVal>(TYPE_ADDR);
+
 		for ( int i = 0; i < num_addrs; ++i )
-			hv->Append(new AddrVal(addrs[i]));
-		addrs_val = hv;
+			addrs_val->Append(new AddrVal(addrs[i]));
 		}
 
-	Ref(addrs_val);
 	return addrs_val;
 	}
 
-TableVal* DNS_Mapping::AddrsSet() {
-	ListVal* l = Addrs();
+IntrusivePtr<TableVal> DNS_Mapping::AddrsSet() {
+	auto l = Addrs();
 
 	if ( ! l )
 		return empty_addr_set();
 
-	auto rval = l->ConvertToSet();
-	Unref(l);
-	return rval;
+	return {AdoptRef{}, l->ConvertToSet()};
 	}
 
-StringVal* DNS_Mapping::Host()
+IntrusivePtr<StringVal> DNS_Mapping::Host()
 	{
 	if ( failed || num_names == 0 || ! names[0] )
 		return 0;
 
 	if ( ! host_val )
-		host_val = new StringVal(names[0]);
+		host_val = make_intrusive<StringVal>(names[0]);
 
-	Ref(host_val);
 	return host_val;
 	}
 
@@ -475,16 +470,14 @@ void DNS_Mgr::InitPostScript()
 	LoadCache(fopen(cache_name, "r"));
 	}
 
-static TableVal* fake_name_lookup_result(const char* name)
+static IntrusivePtr<TableVal> fake_name_lookup_result(const char* name)
 	{
 	uint32_t hash[4];
 	internal_md5(reinterpret_cast<const u_char*>(name), strlen(name),
 	    reinterpret_cast<u_char*>(hash));
-	ListVal* hv = new ListVal(TYPE_ADDR);
+	auto hv = make_intrusive<ListVal>(TYPE_ADDR);
 	hv->Append(new AddrVal(hash));
-	TableVal* tv = hv->ConvertToSet();
-	Unref(hv);
-	return tv;
+	return {AdoptRef{}, hv->ConvertToSet()};
 	}
 
 static const char* fake_text_lookup_result(const char* name)
@@ -502,7 +495,7 @@ static const char* fake_addr_lookup_result(const IPAddr& addr)
 	return tmp;
 	}
 
-TableVal* DNS_Mgr::LookupHost(const char* name)
+IntrusivePtr<TableVal> DNS_Mgr::LookupHost(const char* name)
 	{
 	if ( mode == DNS_FAKE )
 		return fake_name_lookup_result(name);
@@ -528,10 +521,9 @@ TableVal* DNS_Mgr::LookupHost(const char* name)
 				}
 			else if ( d4 && d6 )
 				{
-				TableVal* tv4 = d4->AddrsSet();
-				TableVal* tv6 = d6->AddrsSet();
-				tv4->AddTo(tv6, false);
-				Unref(tv4);
+				auto tv4 = d4->AddrsSet();
+				auto tv6 = d6->AddrsSet();
+				tv4->AddTo(tv6.get(), false);
 				return tv6;
 				}
 			}
@@ -560,7 +552,7 @@ TableVal* DNS_Mgr::LookupHost(const char* name)
 	}
 	}
 
-Val* DNS_Mgr::LookupAddr(const IPAddr& addr)
+IntrusivePtr<Val> DNS_Mgr::LookupAddr(const IPAddr& addr)
 	{
 	InitSource();
 
@@ -577,7 +569,7 @@ Val* DNS_Mgr::LookupAddr(const IPAddr& addr)
 				{
 				string s(addr);
 				reporter->Warning("can't resolve IP address: %s", s.c_str());
-				return new StringVal(s.c_str());
+				return make_intrusive<StringVal>(s.c_str());
 				}
 			}
 		}
@@ -586,7 +578,7 @@ Val* DNS_Mgr::LookupAddr(const IPAddr& addr)
 	switch ( mode ) {
 	case DNS_PRIME:
 		requests.push_back(new DNS_Mgr_Request(addr));
-		return new StringVal("<none>");
+		return make_intrusive<StringVal>("<none>");
 
 	case DNS_FORCE:
 		reporter->FatalError("can't find DNS entry for %s in cache",
@@ -712,19 +704,17 @@ void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* dm)
 	if ( ! e )
 		return;
 
-	mgr.QueueEventFast(e, {BuildMappingVal(dm)});
+	mgr.QueueEventFast(e, {BuildMappingVal(dm).release()});
 	}
 
-void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* dm, ListVal* l1, ListVal* l2)
+void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* dm,
+					IntrusivePtr<ListVal> l1, IntrusivePtr<ListVal> l2)
 	{
 	if ( ! e )
 		return;
 
-	Unref(l1);
-	Unref(l2);
-
 	mgr.QueueEventFast(e, {
-		BuildMappingVal(dm),
+		BuildMappingVal(dm).release(),
 		l1->ConvertToSet(),
 		l2->ConvertToSet(),
 	});
@@ -736,22 +726,22 @@ void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* old_dm, DNS_Mapping* new_dm)
 		return;
 
 	mgr.QueueEventFast(e, {
-		BuildMappingVal(old_dm),
-		BuildMappingVal(new_dm),
+		BuildMappingVal(old_dm).release(),
+		BuildMappingVal(new_dm).release(),
 	});
 	}
 
-Val* DNS_Mgr::BuildMappingVal(DNS_Mapping* dm)
+IntrusivePtr<Val> DNS_Mgr::BuildMappingVal(DNS_Mapping* dm)
 	{
-	RecordVal* r = new RecordVal(dm_rec);
+	auto r = make_intrusive<RecordVal>(dm_rec);
 
-	r->Assign(0, new Val(dm->CreationTime(), TYPE_TIME));
-	r->Assign(1, new StringVal(dm->ReqHost() ? dm->ReqHost() : ""));
-	r->Assign(2, new AddrVal(dm->ReqAddr()));
+	r->Assign(0, make_intrusive<Val>(dm->CreationTime(), TYPE_TIME));
+	r->Assign(1, make_intrusive<StringVal>(dm->ReqHost() ? dm->ReqHost() : ""));
+	r->Assign(2, make_intrusive<AddrVal>(dm->ReqAddr()));
 	r->Assign(3, val_mgr->GetBool(dm->Valid()));
 
-	Val* h = dm->Host();
-	r->Assign(4, h ? h : new StringVal("<none>"));
+	auto h = dm->Host();
+	r->Assign(4, h ? h.release() : new StringVal("<none>"));
 	r->Assign(5, dm->AddrsSet());
 
 	return r;
@@ -868,8 +858,8 @@ void DNS_Mgr::CompareMappings(DNS_Mapping* prev_dm, DNS_Mapping* new_dm)
 		return;
 		}
 
-	StringVal* prev_s = prev_dm->Host();
-	StringVal* new_s = new_dm->Host();
+	auto prev_s = prev_dm->Host();
+	auto new_s = new_dm->Host();
 
 	if ( prev_s || new_s )
 		{
@@ -879,13 +869,10 @@ void DNS_Mgr::CompareMappings(DNS_Mapping* prev_dm, DNS_Mapping* new_dm)
 			Event(dns_mapping_lost_name, prev_dm);
 		else if ( ! Bstr_eq(new_s->AsString(), prev_s->AsString()) )
 			Event(dns_mapping_name_changed, prev_dm, new_dm);
-
-		Unref(prev_s);
-		Unref(new_s);
 		}
 
-	ListVal* prev_a = prev_dm->Addrs();
-	ListVal* new_a = new_dm->Addrs();
+	auto prev_a = prev_dm->Addrs();
+	auto new_a = new_dm->Addrs();
 
 	if ( ! prev_a || ! new_a )
 		{
@@ -893,21 +880,16 @@ void DNS_Mgr::CompareMappings(DNS_Mapping* prev_dm, DNS_Mapping* new_dm)
 		return;
 		}
 
-	ListVal* prev_delta = AddrListDelta(prev_a, new_a);
-	ListVal* new_delta = AddrListDelta(new_a, prev_a);
+	auto prev_delta = AddrListDelta(prev_a.get(), new_a.get());
+	auto new_delta = AddrListDelta(new_a.get(), prev_a.get());
 
 	if ( prev_delta->Length() > 0 || new_delta->Length() > 0 )
-		Event(dns_mapping_altered, new_dm, prev_delta, new_delta);
-	else
-		{
-		Unref(prev_delta);
-		Unref(new_delta);
-		}
+		Event(dns_mapping_altered, new_dm, std::move(prev_delta), std::move(new_delta));
 	}
 
-ListVal* DNS_Mgr::AddrListDelta(ListVal* al1, ListVal* al2)
+IntrusivePtr<ListVal> DNS_Mgr::AddrListDelta(ListVal* al1, ListVal* al2)
 	{
-	ListVal* delta = new ListVal(TYPE_ADDR);
+	auto delta = make_intrusive<ListVal>(TYPE_ADDR);
 
 	for ( int i = 0; i < al1->Length(); ++i )
 		{
@@ -1015,7 +997,7 @@ const char* DNS_Mgr::LookupAddrInCache(const IPAddr& addr)
 	return d->names ? d->names[0] : "<\?\?\?>";
 	}
 
-TableVal* DNS_Mgr::LookupNameInCache(const string& name)
+IntrusivePtr<TableVal> DNS_Mgr::LookupNameInCache(const string& name)
 	{
 	HostMap::iterator it = host_mappings.find(name);
 	if ( it == host_mappings.end() )
@@ -1038,10 +1020,9 @@ TableVal* DNS_Mgr::LookupNameInCache(const string& name)
 		return 0;
 		}
 
-	TableVal* tv4 = d4->AddrsSet();
-	TableVal* tv6 = d6->AddrsSet();
-	tv4->AddTo(tv6, false);
-	Unref(tv4);
+	auto tv4 = d4->AddrsSet();
+	auto tv6 = d6->AddrsSet();
+	tv4->AddTo(tv6.get(), false);
 	return tv6;
 	}
 
@@ -1066,10 +1047,9 @@ const char* DNS_Mgr::LookupTextInCache(const string& name)
 	}
 
 static void resolve_lookup_cb(DNS_Mgr::LookupCallback* callback,
-                              TableVal* result)
+                              IntrusivePtr<TableVal> result)
 	{
-	callback->Resolved(result);
-	Unref(result);
+	callback->Resolved(result.get());
 	delete callback;
 	}
 
@@ -1129,10 +1109,10 @@ void DNS_Mgr::AsyncLookupName(const string& name, LookupCallback* callback)
 		}
 
 	// Do we already know the answer?
-	TableVal* addrs = LookupNameInCache(name);
+	auto addrs = LookupNameInCache(name);
 	if ( addrs )
 		{
-		resolve_lookup_cb(callback, addrs);
+		resolve_lookup_cb(callback, std::move(addrs));
 		return;
 		}
 
@@ -1321,13 +1301,12 @@ void DNS_Mgr::CheckAsyncHostRequest(const char* host, bool timeout)
 
 	if ( i != asyncs_names.end() )
 		{
-		TableVal* addrs = LookupNameInCache(host);
+		auto addrs = LookupNameInCache(host);
 
 		if ( addrs )
 			{
 			++successful;
-			i->second->Resolved(addrs);
-			Unref(addrs);
+			i->second->Resolved(addrs.get());
 			}
 
 		else if ( timeout )

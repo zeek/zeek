@@ -97,15 +97,15 @@ Val* BuildEndUserAddr(const InformationElement* ie)
 
 		switch ( ie->end_user_addr()->pdp_type_num() ) {
 		case 0x21:
-			ev->Assign(2, new AddrVal(
+			ev->Assign(2, make_intrusive<AddrVal>(
 			  IPAddr(IPv4, (const uint32*) d, IPAddr::Network)));
 			break;
 		case 0x57:
-			ev->Assign(2, new AddrVal(
+			ev->Assign(2, make_intrusive<AddrVal>(
 			  IPAddr(IPv6, (const uint32*) d, IPAddr::Network)));
 			break;
 		default:
-			ev->Assign(3, new StringVal(
+			ev->Assign(3, make_intrusive<StringVal>(
 			  new BroString((const u_char*) d, len, 0)));
 			break;
 		}
@@ -136,13 +136,13 @@ Val* BuildGSN_Addr(const InformationElement* ie)
 	const uint8* d = ie->gsn_addr()->value().data();
 
 	if ( len == 4 )
-		ev->Assign(0, new AddrVal(
+		ev->Assign(0, make_intrusive<AddrVal>(
 		  IPAddr(IPv4, (const uint32*) d, IPAddr::Network)));
 	else if ( len == 16 )
-		ev->Assign(0, new AddrVal(
+		ev->Assign(0, make_intrusive<AddrVal>(
 		  IPAddr(IPv6, (const uint32*) d, IPAddr::Network)));
 	else
-		ev->Assign(1, new StringVal(new BroString((const u_char*) d, len, 0)));
+		ev->Assign(1, make_intrusive<StringVal>(new BroString((const u_char*) d, len, 0)));
 
 	return ev;
 	}
@@ -162,7 +162,7 @@ Val* BuildQoS_Profile(const InformationElement* ie)
 	int len = ie->qos_profile()->data().length();
 
 	ev->Assign(0, val_mgr->GetCount(ie->qos_profile()->alloc_retention_priority()));
-	ev->Assign(1, new StringVal(new BroString(d, len, 0)));
+	ev->Assign(1, make_intrusive<StringVal>(new BroString(d, len, 0)));
 
 	return ev;
 	}
@@ -196,7 +196,7 @@ Val* BuildPrivateExt(const InformationElement* ie)
 	int len = ie->private_ext()->value().length();
 
 	ev->Assign(0, val_mgr->GetCount(ie->private_ext()->id()));
-	ev->Assign(1, new StringVal(new BroString((const u_char*) d, len, 0)));
+	ev->Assign(1, make_intrusive<StringVal>(new BroString((const u_char*) d, len, 0)));
 
 	return ev;
 	}

@@ -42,10 +42,9 @@ function Files::__set_reassembly_buffer%(file_id: string, max: count%): bool
 function Files::__add_analyzer%(file_id: string, tag: Files::Tag, args: any%): bool
 	%{
 	using BifType::Record::Files::AnalyzerArgs;
-	RecordVal* rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
+	auto rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
 	bool result = file_mgr->AddAnalyzer(file_id->CheckString(),
-	                                    file_mgr->GetComponentTag(tag), rv);
-	Unref(rv);
+	                                    file_mgr->GetComponentTag(tag), rv.get());
 	return val_mgr->GetBool(result);
 	%}
 
@@ -53,10 +52,9 @@ function Files::__add_analyzer%(file_id: string, tag: Files::Tag, args: any%): b
 function Files::__remove_analyzer%(file_id: string, tag: Files::Tag, args: any%): bool
 	%{
 	using BifType::Record::Files::AnalyzerArgs;
-	RecordVal* rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
+	auto rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
 	bool result = file_mgr->RemoveAnalyzer(file_id->CheckString(),
-	                                       file_mgr->GetComponentTag(tag) , rv);
-	Unref(rv);
+	                                       file_mgr->GetComponentTag(tag) , rv.get());
 	return val_mgr->GetBool(result);
 	%}
 

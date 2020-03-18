@@ -145,7 +145,7 @@ RuleConditionEval::RuleConditionEval(const char* func)
 			rules_error("eval function type must yield a 'bool'", func);
 
 		TypeList tl;
-		tl.Append(internal_type("signature_state")->Ref());
+		tl.Append({NewRef{}, internal_type("signature_state")});
 		tl.Append(base_type(TYPE_STRING));
 
 		if ( ! f->CheckArgs(tl.Types()) )
@@ -175,24 +175,16 @@ bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state,
 	else
 		args.push_back(val_mgr->GetEmptyString());
 
-	bool result = 0;
+	bool result = false;
 
 	try
 		{
-		Val* val = id->ID_Val()->AsFunc()->Call(&args);
-
-		if ( val )
-			{
-			result = val->AsBool();
-			Unref(val);
-			}
-		else
-			result = false;
+		auto val = id->ID_Val()->AsFunc()->Call(&args);
+		result = val && val->AsBool();
 		}
 
 	catch ( InterpreterException& e )
 		{
-		result = false;
 		}
 
 	return result;

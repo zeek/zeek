@@ -152,11 +152,11 @@ function get_proc_stats%(%): ProcStats
 	r->Assign(n++, val_mgr->GetCount(0));
 #endif
 
-	r->Assign(n++, new Val(bro_start_time, TYPE_TIME));
+	r->Assign(n++, make_intrusive<Val>(bro_start_time, TYPE_TIME));
 
-	r->Assign(n++, new IntervalVal(elapsed_time, Seconds));
-	r->Assign(n++, new IntervalVal(user_time, Seconds));
-	r->Assign(n++, new IntervalVal(system_time, Seconds));
+	r->Assign(n++, make_intrusive<IntervalVal>(elapsed_time, Seconds));
+	r->Assign(n++, make_intrusive<IntervalVal>(user_time, Seconds));
+	r->Assign(n++, make_intrusive<IntervalVal>(system_time, Seconds));
 
 	uint64_t total_mem;
 	get_memory_usage(&total_mem, NULL);
@@ -470,7 +470,7 @@ function get_reporter_stats%(%): ReporterStats
 	RecordVal* r = new RecordVal(ReporterStats);
 	int n = 0;
 
-	TableVal* weirds_by_type = new TableVal(internal_type("table_string_of_count")->AsTableType());
+	TableVal* weirds_by_type = new TableVal({NewRef{}, internal_type("table_string_of_count")->AsTableType()});
 
 	for ( auto& kv : reporter->GetWeirdsByType() )
 		{

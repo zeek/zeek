@@ -202,9 +202,8 @@ static IntrusivePtr<EnumVal> lookup_enum_val(const char* module_name, const char
 
 	int index = et->Lookup(module_name, name);
 	assert(index >= 0);
-	IntrusivePtr<EnumVal> rval{AdoptRef{}, et->GetVal(index)};
 
-	return rval;
+	return et->GetVal(index);
 	}
 
 static void print_log(val_list* vals)
@@ -217,11 +216,11 @@ static void print_log(val_list* vals)
 		{
 		ODesc d(DESC_READABLE);
 		val->Describe(&d);
-		vec->Assign(vec->Size(), new StringVal(d.Description()));
+		vec->Assign(vec->Size(), make_intrusive<StringVal>(d.Description()));
 		}
 
-	record->Assign(0, new Val(current_time(), TYPE_TIME));
-	record->Assign(1, vec.release());
+	record->Assign(0, make_intrusive<Val>(current_time(), TYPE_TIME));
+	record->Assign(1, std::move(vec));
 	log_mgr->Write(plval.get(), record.get());
 	}
 
@@ -588,7 +587,7 @@ static void int_del_func(void* v)
 void SwitchStmt::Init()
 	{
 	auto t = make_intrusive<TypeList>();
-	t->Append(e->Type()->Ref());
+	t->Append({NewRef{}, e->Type()});
 	comp_hash = new CompositeHash(std::move(t));
 
 	case_label_value_map.SetDeleteFunc(int_del_func);
@@ -1115,7 +1114,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 
 		BroType* t = (*loop_vars)[0]->Type();
 		if ( ! t )
-			add_local({NewRef{}, (*loop_vars)[0]}, {AdoptRef{}, base_type(TYPE_COUNT)},
+			add_local({NewRef{}, (*loop_vars)[0]}, base_type(TYPE_COUNT),
 						INIT_NONE, 0, 0, VAR_REGULAR);
 
 		else if ( ! IsIntegral(t->Tag()) )
@@ -1136,7 +1135,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 		BroType* t = (*loop_vars)[0]->Type();
 		if ( ! t )
 			add_local({NewRef{}, (*loop_vars)[0]},
-					{AdoptRef{}, base_type(TYPE_STRING)},
+					base_type(TYPE_STRING),
 					INIT_NONE, 0, 0, VAR_REGULAR);
 
 		else if ( t->Tag() != TYPE_STRING )
@@ -1432,7 +1431,7 @@ ReturnStmt::ReturnStmt(IntrusivePtr<Expr> arg_e)
 		{
 		if ( e )
 			{
-			ft->SetYieldType(e->Type());
+			ft->SetYieldType({NewRef{}, e->Type()});
 			s->ScopeID()->SetInferReturnType(false);
 			}
 		}
@@ -1451,9 +1450,10 @@ ReturnStmt::ReturnStmt(IntrusivePtr<Expr> arg_e)
 
 	else
 		{
-		Expr* e_ = e.release();
-		(void) check_and_promote_expr(e_, yt);
-		e = {AdoptRef{}, e_};
+		auto promoted_e = check_and_promote_expr(e.get(), yt);
+
+		if ( promoted_e )
+			e = std::move(promoted_e);
 		}
 	}
 
@@ -1667,7 +1667,7 @@ IntrusivePtr<Val> InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
 			v = new VectorVal(t->AsVectorType());
 			break;
 		case TYPE_TABLE:
-			v = new TableVal(t->AsTableType(), aggr->Attrs());
+			v = new TableVal({NewRef{}, t->AsTableType()}, {NewRef{}, aggr->Attrs()});
 			break;
 		default:
 			break;

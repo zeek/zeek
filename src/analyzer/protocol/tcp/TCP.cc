@@ -1366,7 +1366,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 
 			auto data_len = olen - 2;
 			auto data = reinterpret_cast<const char*>(odata + 2);
-			rv->Assign(2, new StringVal(data_len, data));
+			rv->Assign(2, make_intrusive<StringVal>(data_len, data));
 			};
 
 		for ( const auto& o : opts )

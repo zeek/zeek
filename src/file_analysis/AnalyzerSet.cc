@@ -21,8 +21,8 @@ static void analyzer_del_func(void* v)
 AnalyzerSet::AnalyzerSet(File* arg_file) : file(arg_file)
 	{
 	auto t = make_intrusive<TypeList>();
-	t->Append(file_mgr->GetTagEnumType()->Ref());
-	t->Append(BifType::Record::Files::AnalyzerArgs->Ref());
+	t->Append({NewRef{}, file_mgr->GetTagEnumType()});
+	t->Append({NewRef{}, BifType::Record::Files::AnalyzerArgs});
 	analyzer_hash = new CompositeHash(std::move(t));
 	analyzer_map.SetDeleteFunc(analyzer_del_func);
 	}

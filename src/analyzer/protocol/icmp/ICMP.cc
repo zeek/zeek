@@ -228,8 +228,8 @@ RecordVal* ICMP_Analyzer::BuildICMPVal(const struct icmp* icmpp, int len,
 		{
 		icmp_conn_val = new RecordVal(icmp_conn);
 
-		icmp_conn_val->Assign(0, new AddrVal(Conn()->OrigAddr()));
-		icmp_conn_val->Assign(1, new AddrVal(Conn()->RespAddr()));
+		icmp_conn_val->Assign(0, make_intrusive<AddrVal>(Conn()->OrigAddr()));
+		icmp_conn_val->Assign(1, make_intrusive<AddrVal>(Conn()->RespAddr()));
 		icmp_conn_val->Assign(2, val_mgr->GetCount(icmpp->icmp_type));
 		icmp_conn_val->Assign(3, val_mgr->GetCount(icmpp->icmp_code));
 		icmp_conn_val->Assign(4, val_mgr->GetCount(len));
@@ -356,9 +356,9 @@ RecordVal* ICMP_Analyzer::ExtractICMP4Context(int len, const u_char*& data)
 	RecordVal* iprec = new RecordVal(icmp_context);
 	RecordVal* id_val = new RecordVal(conn_id);
 
-	id_val->Assign(0, new AddrVal(src_addr));
+	id_val->Assign(0, make_intrusive<AddrVal>(src_addr));
 	id_val->Assign(1, val_mgr->GetPort(src_port, proto));
-	id_val->Assign(2, new AddrVal(dst_addr));
+	id_val->Assign(2, make_intrusive<AddrVal>(dst_addr));
 	id_val->Assign(3, val_mgr->GetPort(dst_port, proto));
 
 	iprec->Assign(0, id_val);
@@ -415,9 +415,9 @@ RecordVal* ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& data)
 	RecordVal* iprec = new RecordVal(icmp_context);
 	RecordVal* id_val = new RecordVal(conn_id);
 
-	id_val->Assign(0, new AddrVal(src_addr));
+	id_val->Assign(0, make_intrusive<AddrVal>(src_addr));
 	id_val->Assign(1, val_mgr->GetPort(src_port, proto));
-	id_val->Assign(2, new AddrVal(dst_addr));
+	id_val->Assign(2, make_intrusive<AddrVal>(dst_addr));
 	id_val->Assign(3, val_mgr->GetPort(dst_port, proto));
 
 	iprec->Assign(0, id_val);
@@ -778,7 +778,7 @@ VectorVal* ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* data)
 			if ( caplen >= length )
 				{
 				BroString* link_addr = new BroString(data, length, 0);
-				rv->Assign(2, new StringVal(link_addr));
+				rv->Assign(2, make_intrusive<StringVal>(link_addr));
 				}
 			else
 				set_payload_field = true;
@@ -801,9 +801,9 @@ VectorVal* ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* data)
 				info->Assign(0, val_mgr->GetCount(prefix_len));
 				info->Assign(1, val_mgr->GetBool(L_flag));
 				info->Assign(2, val_mgr->GetBool(A_flag));
-				info->Assign(3, new IntervalVal((double)ntohl(valid_life), Seconds));
-				info->Assign(4, new IntervalVal((double)ntohl(prefer_life), Seconds));
-				info->Assign(5, new AddrVal(IPAddr(prefix)));
+				info->Assign(3, make_intrusive<IntervalVal>((double)ntohl(valid_life), Seconds));
+				info->Assign(4, make_intrusive<IntervalVal>((double)ntohl(prefer_life), Seconds));
+				info->Assign(5, make_intrusive<AddrVal>(IPAddr(prefix)));
 				rv->Assign(3, info);
 				}
 
@@ -849,7 +849,7 @@ VectorVal* ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* data)
 			{
 			BroString* payload =
 			        new BroString(data, min((int)length, caplen), 0);
-			rv->Assign(6, new StringVal(payload));
+			rv->Assign(6, make_intrusive<StringVal>(payload));
 			}
 
 		data += length;

@@ -4,6 +4,7 @@
 
 #include "Obj.h"
 #include "BroList.h"
+#include "IntrusivePtr.h"
 
 class Expr;
 
@@ -35,18 +36,15 @@ typedef enum {
 
 class Attr : public BroObj {
 public:
-	explicit Attr(attr_tag t, Expr* e = 0);
+	Attr(attr_tag t, IntrusivePtr<Expr> e);
+	explicit Attr(attr_tag t);
 	~Attr() override;
 
 	attr_tag Tag() const	{ return tag; }
-	Expr* AttrExpr() const	{ return expr; }
+	Expr* AttrExpr() const	{ return expr.get(); }
 
-	// Up to the caller to decide if previous expr can be unref'd since it may
-	// not always be safe; e.g. expressions (at time of writing) don't always
-	// keep careful track of referencing their operands, so doing something
-	// like SetAttrExpr(coerce(AttrExpr())) must not completely unref the
-	// previous expr as the new expr depends on it.
-	void SetAttrExpr(Expr* e) { expr = e; }
+	template<typename E>
+	void SetAttrExpr(E&& e) { expr = std::forward<E>(e); }
 
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool shorten = false) const;
@@ -69,16 +67,16 @@ protected:
 	void AddTag(ODesc* d) const;
 
 	attr_tag tag;
-	Expr* expr;
+	IntrusivePtr<Expr> expr;
 };
 
 // Manages a collection of attributes.
 class Attributes : public BroObj {
 public:
-	Attributes(attr_list* a, BroType* t, bool in_record, bool is_global);
+	Attributes(attr_list* a, IntrusivePtr<BroType> t, bool in_record, bool is_global);
 	~Attributes() override;
 
-	void AddAttr(Attr* a);
+	void AddAttr(IntrusivePtr<Attr> a);
 	void AddAttrs(Attributes* a);	// Unref's 'a' when done
 
 	Attr* FindAttr(attr_tag t) const;
@@ -93,10 +91,9 @@ public:
 	bool operator==(const Attributes& other) const;
 
 protected:
-	Attributes() : type(), attrs(), in_record()	{ }
 	void CheckAttr(Attr* attr);
 
-	BroType* type;
+	IntrusivePtr<BroType> type;
 	attr_list* attrs;
 	bool in_record;
 	bool global_var;

@@ -139,7 +139,7 @@ int MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status
 			// Otherwise DeliverRPC would complain about
 			// excess_RPC.
 			n = 0;
-			reply = BifType::Enum::MOUNT3::proc_t->GetVal(c->Proc());
+			reply = BifType::Enum::MOUNT3::proc_t->GetVal(c->Proc()).release();
 			event = mount_proc_not_implemented;
 			}
 		else
@@ -201,16 +201,16 @@ val_list MOUNT_Interp::event_common_vl(RPC_CallInfo *c,
 	RecordVal* info = new RecordVal(BifType::Record::MOUNT3::info_t);
 	info->Assign(0, BifType::Enum::rpc_status->GetVal(rpc_status));
 	info->Assign(1, BifType::Enum::MOUNT3::status_t->GetVal(mount_status));
-	info->Assign(2, new Val(c->StartTime(), TYPE_TIME));
-	info->Assign(3, new Val(c->LastTime() - c->StartTime(), TYPE_INTERVAL));
+	info->Assign(2, make_intrusive<Val>(c->StartTime(), TYPE_TIME));
+	info->Assign(3, make_intrusive<Val>(c->LastTime() - c->StartTime(), TYPE_INTERVAL));
 	info->Assign(4, val_mgr->GetCount(c->RPCLen()));
-	info->Assign(5, new Val(rep_start_time, TYPE_TIME));
-	info->Assign(6, new Val(rep_last_time - rep_start_time, TYPE_INTERVAL));
+	info->Assign(5, make_intrusive<Val>(rep_start_time, TYPE_TIME));
+	info->Assign(6, make_intrusive<Val>(rep_last_time - rep_start_time, TYPE_INTERVAL));
 	info->Assign(7, val_mgr->GetCount(reply_len));
 	info->Assign(8, val_mgr->GetCount(c->Uid()));
 	info->Assign(9, val_mgr->GetCount(c->Gid()));
 	info->Assign(10, val_mgr->GetCount(c->Stamp()));
-	info->Assign(11, new StringVal(c->MachineName()));
+	info->Assign(11, make_intrusive<StringVal>(c->MachineName()));
 	info->Assign(12, auxgids);
 
 	vl.push_back(info);
@@ -220,7 +220,7 @@ val_list MOUNT_Interp::event_common_vl(RPC_CallInfo *c,
 EnumVal* MOUNT_Interp::mount3_auth_flavor(const u_char*& buf, int& n)
     {
 	BifEnum::MOUNT3::auth_flavor_t t = (BifEnum::MOUNT3::auth_flavor_t)extract_XDR_uint32(buf, n);
-	return BifType::Enum::MOUNT3::auth_flavor_t->GetVal(t);
+	return BifType::Enum::MOUNT3::auth_flavor_t->GetVal(t).release();
     }
 
 StringVal* MOUNT_Interp::mount3_fh(const u_char*& buf, int& n)

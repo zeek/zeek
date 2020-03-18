@@ -265,7 +265,7 @@ bool Trigger::Eval()
 		return false;
 		}
 
-	f->SetTrigger(this);
+	f->SetTrigger({NewRef{}, this});
 
 	IntrusivePtr<Val> v;
 

@@ -25,7 +25,6 @@ Frame::Frame(int arg_size, const BroFunc* func, const val_list* fn_args)
 	break_before_next_stmt = false;
 	break_on_return = false;
 
-	trigger = nullptr;
 	call = nullptr;
 	delayed = false;
 
@@ -42,9 +41,6 @@ Frame::~Frame()
 		func->StrengthenClosureReference(this);
 		Unref(func);
 		}
-
-	// Deleting a Frame that is a view is a no-op.
-	Unref(trigger);
 
 	if ( ! weak_closure_ref )
 		Unref(closure);
@@ -183,11 +179,9 @@ Frame* Frame::Clone() const
 
 	other->call = call;
 	other->trigger = trigger;
-	if ( trigger )
-		Ref(trigger);
 
 	for (int i = 0; i < size; i++)
-		other->frame[i] = frame[i] ? frame[i]->Clone() : nullptr;
+		other->frame[i] = frame[i] ? frame[i]->Clone().release() : nullptr;
 
 	return other;
 	}
@@ -200,23 +194,22 @@ static bool val_is_func(Val* v, BroFunc* func)
 	return v->AsFunc() == func;
 	}
 
-static Val* clone_if_not_func(Val** frame, int offset, BroFunc* func,
+static void clone_if_not_func(Val** frame, int offset, BroFunc* func,
                               Frame* other)
 	{
 	auto v = frame[offset];
 
 	if ( ! v )
-		return nullptr;
+		return;
 
 	if ( val_is_func(v, func) )
 		{
 		other->SetElement(offset, v, true);
-		return v;
+		return;
 		}
 
 	auto rval = v->Clone();
-	other->SetElement(offset, rval);
-	return rval;
+	other->SetElement(offset, rval.release());
 	}
 
 Frame* Frame::SelectiveClone(const id_list& selection, BroFunc* func) const
@@ -359,14 +352,14 @@ broker::expected<broker::data> Frame::Serialize(const Frame* target, const id_li
 	return {std::move(rval)};
 	}
 
-std::pair<bool, Frame*> Frame::Unserialize(const broker::vector& data)
+std::pair<bool, IntrusivePtr<Frame>> Frame::Unserialize(const broker::vector& data)
 	{
 	if ( data.size() == 0 )
 		return std::make_pair(true, nullptr);
 
 	id_list outer_ids;
 	std::unordered_map<std::string, int> offset_map;
-	Frame* closure = nullptr;
+	IntrusivePtr<Frame> closure;
 
 	auto where = data.begin();
 
@@ -410,7 +403,7 @@ std::pair<bool, Frame*> Frame::Unserialize(const broker::vector& data)
 			return std::make_pair(false, nullptr);
 			}
 
-		closure = closure_pair.second;
+		closure = std::move(closure_pair.second);
 		}
 
 	auto has_vec = broker::get_if<broker::vector>(*where);
@@ -448,11 +441,11 @@ std::pair<bool, Frame*> Frame::Unserialize(const broker::vector& data)
 	int frame_size = body.size();
 
 	// We'll associate this frame with a function later.
-	Frame* rf = new Frame(frame_size, nullptr, nullptr);
+	auto rf = make_intrusive<Frame>(frame_size, nullptr, nullptr);
 	rf->offset_map = std::move(offset_map);
 	// Frame takes ownership of unref'ing elements in outer_ids
 	rf->outer_ids = std::move(outer_ids);
-	rf->closure = closure;
+	rf->closure = closure.release();
 	rf->weak_closure_ref = false;
 
 	for ( int i = 0; i < frame_size; ++i )
@@ -463,32 +456,23 @@ std::pair<bool, Frame*> Frame::Unserialize(const broker::vector& data)
 
 		broker::vector val_tuple = *has_vec;
 		if ( val_tuple.size() != 2 )
-			{
-			Unref(rf);
 			return std::make_pair(false, nullptr);
-			}
 
 		auto has_type = broker::get_if<broker::integer>(val_tuple[1]);
 		if ( ! has_type )
-			{
-			Unref(rf);
 			return std::make_pair(false, nullptr);
-			}
 
 		broker::integer g = *has_type;
 		BroType t( static_cast<TypeTag>(g) );
 
 		auto val = bro_broker::data_to_val(std::move(val_tuple[0]), &t);
 		if ( ! val )
-			{
-			Unref(rf);
 			return std::make_pair(false, nullptr);
-			}
 
 		rf->frame[i] = val.release();
 		}
 
-	return std::make_pair(true, rf);
+	return std::make_pair(true, std::move(rf));
 	}
 
 void Frame::AddKnownOffsets(const id_list& ids)
@@ -521,19 +505,13 @@ void Frame::CaptureClosure(Frame* c, id_list arg_outer_ids)
 	// if (c) closure = c->SelectiveClone(outer_ids);
 	}
 
-void Frame::SetTrigger(trigger::Trigger* arg_trigger)
+void Frame::SetTrigger(IntrusivePtr<trigger::Trigger> arg_trigger)
 	{
-	ClearTrigger();
-
-	if ( arg_trigger )
-		Ref(arg_trigger);
-
-	trigger = arg_trigger;
+	trigger = std::move(arg_trigger);
 	}
 
 void Frame::ClearTrigger()
 	{
-	Unref(trigger);
 	trigger = nullptr;
 	}
 

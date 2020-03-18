@@ -23,20 +23,19 @@ using namespace file_analysis;
 
 static Val* empty_connection_table()
 	{
-	TypeList* tbl_index = new TypeList(conn_id);
-	tbl_index->Append(conn_id->Ref());
-	TableType* tbl_type = new TableType(tbl_index, connection_type->Ref());
-	Val* rval = new TableVal(tbl_type);
-	Unref(tbl_type);
-	return rval;
+	auto tbl_index = make_intrusive<TypeList>(IntrusivePtr{NewRef{}, conn_id});
+	tbl_index->Append({NewRef{}, conn_id});
+	auto tbl_type = make_intrusive<TableType>(std::move(tbl_index),
+	                                          IntrusivePtr{NewRef{}, connection_type});
+	return new TableVal(std::move(tbl_type));
 	}
 
 static RecordVal* get_conn_id_val(const Connection* conn)
 	{
 	RecordVal* v = new RecordVal(conn_id);
-	v->Assign(0, new AddrVal(conn->OrigAddr()));
+	v->Assign(0, make_intrusive<AddrVal>(conn->OrigAddr()));
 	v->Assign(1, val_mgr->GetPort(ntohs(conn->OrigPort()), conn->ConnTransport()));
-	v->Assign(2, new AddrVal(conn->RespAddr()));
+	v->Assign(2, make_intrusive<AddrVal>(conn->RespAddr()));
 	v->Assign(3, val_mgr->GetPort(ntohs(conn->RespPort()), conn->ConnTransport()));
 	return v;
 	}
@@ -93,7 +92,7 @@ File::File(const string& file_id, const string& source_name, Connection* conn,
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Creating new File object", file_id.c_str());
 
 	val = new RecordVal(fa_file_type);
-	val->Assign(id_idx, new StringVal(file_id.c_str()));
+	val->Assign(id_idx, make_intrusive<StringVal>(file_id.c_str()));
 	SetSource(source_name);
 
 	if ( conn )
@@ -117,7 +116,7 @@ File::~File()
 
 void File::UpdateLastActivityTime()
 	{
-	val->Assign(last_active_idx, new Val(network_time, TYPE_TIME));
+	val->Assign(last_active_idx, make_intrusive<Val>(network_time, TYPE_TIME));
 	}
 
 double File::GetLastActivityTime() const
@@ -165,18 +164,14 @@ void File::RaiseFileOverNewConnection(Connection* conn, bool is_orig)
 
 uint64_t File::LookupFieldDefaultCount(int idx) const
 	{
-	Val* v = val->LookupWithDefault(idx);
-	uint64_t rval = v->AsCount();
-	Unref(v);
-	return rval;
+	auto v = val->LookupWithDefault(idx);
+	return v->AsCount();
 	}
 
 double File::LookupFieldDefaultInterval(int idx) const
 	{
-	Val* v = val->LookupWithDefault(idx);
-	double rval = v->AsInterval();
-	Unref(v);
-	return rval;
+	auto v = val->LookupWithDefault(idx);
+	return v->AsInterval();
 	}
 
 int File::Idx(const string& field, const RecordType* type)
@@ -199,7 +194,7 @@ string File::GetSource() const
 
 void File::SetSource(const string& source)
 	{
-	val->Assign(source_idx, new StringVal(source.c_str()));
+	val->Assign(source_idx, make_intrusive<StringVal>(source.c_str()));
 	}
 
 double File::GetTimeoutInterval() const
@@ -209,7 +204,7 @@ double File::GetTimeoutInterval() const
 
 void File::SetTimeoutInterval(double interval)
 	{
-	val->Assign(timeout_interval_idx, new Val(interval, TYPE_INTERVAL));
+	val->Assign(timeout_interval_idx, make_intrusive<Val>(interval, TYPE_INTERVAL));
 	}
 
 bool File::SetExtractionLimit(RecordVal* args, uint64_t bytes)
@@ -305,7 +300,7 @@ bool File::SetMime(const string& mime_type)
 		return false;
 
 	RecordVal* meta = new RecordVal(fa_metadata_type);
-	meta->Assign(meta_mime_type_idx, new StringVal(mime_type));
+	meta->Assign(meta_mime_type_idx, make_intrusive<StringVal>(mime_type));
 	meta->Assign(meta_inferred_idx, val_mgr->GetBool(0));
 
 	FileEvent(file_sniff, {val->Ref(), meta});
@@ -369,7 +364,7 @@ bool File::BufferBOF(const u_char* data, uint64_t len)
 	if ( bof_buffer.size > 0 )
 		{
 		BroString* bs = concatenate(bof_buffer.chunks);
-		val->Assign(bof_buffer_idx, new StringVal(bs));
+		val->Assign(bof_buffer_idx, make_intrusive<StringVal>(bs));
 		}
 
 	return false;

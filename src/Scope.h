@@ -8,6 +8,7 @@
 
 #include "Obj.h"
 #include "BroList.h"
+#include "IntrusivePtr.h"
 #include "TraverseTypes.h"
 
 template <class T> class IntrusivePtr;
@@ -17,7 +18,7 @@ class ListVal;
 
 class Scope : public BroObj {
 public:
-	explicit Scope(ID* id, attr_list* al);
+	explicit Scope(IntrusivePtr<ID> id, attr_list* al);
 	~Scope() override;
 
 	template<typename N>
@@ -26,31 +27,22 @@ public:
 		const auto& entry = local.find(std::forward<N>(name));
 
 		if ( entry != local.end() )
-			return entry->second;
+			return entry->second.get();
 
 		return nullptr;
 		}
 
-	template<typename N>
-	void Insert(N&& name, ID* id)
-		{
-		auto [it, inserted] = local.emplace(std::forward<N>(name), id);
-
-		if ( ! inserted )
-			{
-			Unref(it->second);
-			it->second = id;
-			}
-		}
+	template<typename N, typename I>
+	void Insert(N&& name, I&& id) { local[std::forward<N>(name)] = std::forward<I>(id); }
 
 	template<typename N>
-	ID* Remove(N&& name)
+	IntrusivePtr<ID> Remove(N&& name)
 		{
 		const auto& entry = local.find(std::forward<N>(name));
 
 		if ( entry != local.end() )
 			{
-			ID* id = entry->second;
+			auto id = std::move(entry->second);
 			local.erase(entry);
 			return id;
 			}
@@ -58,12 +50,12 @@ public:
 		return nullptr;
 		}
 
-	ID* ScopeID() const		{ return scope_id; }
+	ID* ScopeID() const		{ return scope_id.get(); }
 	attr_list* Attrs() const	{ return attrs; }
-	BroType* ReturnType() const	{ return return_type; }
+	BroType* ReturnType() const	{ return return_type.get(); }
 
 	size_t Length() const		{ return local.size(); }
-	const std::map<std::string, ID*>& Vars()	{ return local; }
+	const auto& Vars()	{ return local; }
 
 	ID* GenerateTemporary(const char* name);
 
@@ -72,17 +64,17 @@ public:
 	id_list* GetInits();
 
 	// Adds a variable to the list.
-	void AddInit(ID* id)		{ inits->push_back(id); }
+	void AddInit(IntrusivePtr<ID> id)		{ inits->push_back(id.release()); }
 
 	void Describe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const;
 
 protected:
-	ID* scope_id;
+	IntrusivePtr<ID> scope_id;
 	attr_list* attrs;
-	BroType* return_type;
-	std::map<std::string, ID*> local;
+	IntrusivePtr<BroType> return_type;
+	std::map<std::string, IntrusivePtr<ID>> local;
 	id_list* inits;
 };
 
@@ -98,7 +90,7 @@ extern IntrusivePtr<ID> lookup_ID(const char* name, const char* module,
 extern IntrusivePtr<ID> install_ID(const char* name, const char* module_name,
                                    bool is_global, bool is_export);
 
-extern void push_scope(ID* id, attr_list* attrs);
+extern void push_scope(IntrusivePtr<ID> id, attr_list* attrs);
 extern void push_existing_scope(Scope* scope);
 
 // Returns the one popped off.

@@ -14,6 +14,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 
+template <class T> class IntrusivePtr;
 class TypeDecl;
 
 namespace zeekygen {
@@ -138,7 +139,9 @@ public:
 	 * @param init_expr The intiialization expression that was used.
 	 */
 	void Redef(const ID* id, const std::string& path,
-			   init_class ic = INIT_NONE, Expr* init_expr = nullptr);
+	           init_class ic, IntrusivePtr<Expr> init_expr);
+	void Redef(const ID* id, const std::string& path,
+	           init_class ic = INIT_NONE);
 
 	/**
 	 * Register Zeekygen script summary content.

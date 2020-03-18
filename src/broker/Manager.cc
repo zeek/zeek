@@ -158,7 +158,7 @@ void Manager::InitPostScript()
 	opaque_of_vector_iterator = new OpaqueType("Broker::VectorIterator");
 	opaque_of_record_iterator = new OpaqueType("Broker::RecordIterator");
 	opaque_of_store_handle = new OpaqueType("Broker::Store");
-	vector_of_data_type = new VectorType(internal_type("Broker::Data")->Ref());
+	vector_of_data_type = new VectorType({NewRef{}, internal_type("Broker::Data")});
 
 	// Register as a "dont-count" source first, we may change that later.
 	iosource_mgr->Register(this, true);
@@ -550,7 +550,7 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 		new StringVal(path),
 	};
 
-	Val* v = log_topic_func->Call(&vl);
+	auto v = log_topic_func->Call(&vl);
 
 	if ( ! v )
 		{
@@ -561,7 +561,6 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 		}
 
 	std::string topic = v->AsString()->CheckString();
-	Unref(v);
 
 	auto bstream_id = broker::enum_value(move(stream_id));
 	auto bwriter_id = broker::enum_value(move(writer_id));
@@ -734,7 +733,7 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 				return rval;
 				}
 
-			rval->Assign(0, new StringVal(func->Name()));
+			rval->Assign(0, make_intrusive<StringVal>(func->Name()));
 			continue;
 			}
 
@@ -1252,24 +1251,24 @@ void Manager::ProcessStatus(broker::status stat)
 
 	if ( ctx )
 		{
-		endpoint_info->Assign(0, new StringVal(to_string(ctx->node)));
+		endpoint_info->Assign(0, make_intrusive<StringVal>(to_string(ctx->node)));
 		auto ni = internal_type("Broker::NetworkInfo")->AsRecordType();
-		auto network_info = new RecordVal(ni);
+		auto network_info = make_intrusive<RecordVal>(ni);
 
 		if ( ctx->network )
 			{
-			network_info->Assign(0, new StringVal(ctx->network->address.data()));
+			network_info->Assign(0, make_intrusive<StringVal>(ctx->network->address.data()));
 			network_info->Assign(1, val_mgr->GetPort(ctx->network->port, TRANSPORT_TCP));
 			}
 		else
 			{
 			// TODO: are there any status messages where the ctx->network
 			// is not set and actually could be?
-			network_info->Assign(0, new StringVal("<unknown>"));
+			network_info->Assign(0, make_intrusive<StringVal>("<unknown>"));
 			network_info->Assign(1, val_mgr->GetPort(0, TRANSPORT_TCP));
 			}
 
-		endpoint_info->Assign(1, network_info);
+		endpoint_info->Assign(1, std::move(network_info));
 		}
 
 	auto str = stat.message();
@@ -1353,7 +1352,7 @@ void Manager::ProcessError(broker::error err)
 		}
 
 	mgr.QueueEventFast(Broker::error, {
-		BifType::Enum::Broker::ErrorCode->GetVal(ec),
+		BifType::Enum::Broker::ErrorCode->GetVal(ec).release(),
 		new StringVal(msg),
 	});
 	}

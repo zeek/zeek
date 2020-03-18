@@ -7,6 +7,7 @@
 #include "PackageInfo.h"
 #include "ScriptInfo.h"
 #include "IdentifierInfo.h"
+#include "Expr.h"
 
 #include <utility>
 #include <cstdlib>
@@ -359,7 +360,7 @@ void Manager::RecordField(const ID* id, const TypeDecl* field,
 	}
 
 void Manager::Redef(const ID* id, const string& path,
-                    init_class ic, Expr* init_expr)
+                    init_class ic, IntrusivePtr<Expr> init_expr)
 	{
 	if ( disabled )
 		return;
@@ -387,12 +388,18 @@ void Manager::Redef(const ID* id, const string& path,
 		return;
 		}
 
-	id_info->AddRedef(from_script, ic, init_expr, comment_buffer);
+	id_info->AddRedef(from_script, ic, std::move(init_expr), comment_buffer);
 	script_info->AddRedef(id_info);
 	comment_buffer.clear();
 	last_identifier_seen = id_info;
 	DBG_LOG(DBG_ZEEKYGEN, "Added redef of %s from %s",
 	        id->Name(), from_script.c_str());
+	}
+
+void Manager::Redef(const ID* id, const std::string& path,
+                    init_class ic)
+	{
+	Redef(id, path, ic, nullptr);
 	}
 
 void Manager::SummaryComment(const string& script, const string& comment)

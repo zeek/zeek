@@ -17,7 +17,7 @@ IdentifierInfo::IdentifierInfo(IntrusivePtr<ID> arg_id, ScriptInfo* script)
 	  last_field_seen(), declaring_script(script)
 	{
 	if ( id->ID_Val() && (id->IsOption() || id->IsRedefinable()) )
-		initial_val = {AdoptRef{}, id->ID_Val()->Clone()};
+		initial_val = id->ID_Val()->Clone();
 	}
 
 IdentifierInfo::~IdentifierInfo()
@@ -32,9 +32,9 @@ IdentifierInfo::~IdentifierInfo()
 	}
 
 void IdentifierInfo::AddRedef(const string& script, init_class ic,
-                              Expr* init_expr, const vector<string>& comments)
+                              IntrusivePtr<Expr> init_expr, const vector<string>& comments)
 	{
-	Redefinition* redef = new Redefinition(script, ic, init_expr, comments);
+	Redefinition* redef = new Redefinition(script, ic, std::move(init_expr), comments);
 	redefs.push_back(redef);
 	}
 
@@ -142,49 +142,16 @@ time_t IdentifierInfo::DoGetModificationTime() const
 IdentifierInfo::Redefinition::Redefinition(
                        std::string arg_script,
                        init_class arg_ic,
-                       Expr* arg_expr,
+                       IntrusivePtr<Expr> arg_expr,
                        std::vector<std::string> arg_comments)
 			: from_script(std::move(arg_script)),
 			  ic(arg_ic),
-			  init_expr(arg_expr ? arg_expr->Ref() : nullptr),
+			  init_expr(std::move(arg_expr)),
 			  comments(std::move(arg_comments))
 	{
 	}
 
-IdentifierInfo::Redefinition::Redefinition(const IdentifierInfo::Redefinition& other)
-	{
-	from_script = other.from_script;
-	ic = other.ic;
-	init_expr = other.init_expr;
-	comments = other.comments;
-
-	if ( init_expr )
-		init_expr->Ref();
-	}
-
-IdentifierInfo::Redefinition&
-IdentifierInfo::Redefinition::operator=(const IdentifierInfo::Redefinition& other)
-	{
-	if ( &other == this )
-		return *this;
-
-	Unref(init_expr);
-
-	from_script = other.from_script;
-	ic = other.ic;
-	init_expr = other.init_expr;
-	comments = other.comments;
-
-	if ( init_expr )
-		init_expr->Ref();
-
-	return *this;
-	}
-
-IdentifierInfo::Redefinition::~Redefinition()
-	{
-	Unref(init_expr);
-	}
+IdentifierInfo::Redefinition::~Redefinition() = default;
 
 IdentifierInfo::RecordField::~RecordField()
 	{

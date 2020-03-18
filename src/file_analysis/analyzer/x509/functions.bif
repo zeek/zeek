@@ -16,7 +16,7 @@ RecordVal* x509_result_record(uint64_t num, const char* reason, Val* chainVector
 	RecordVal* rrecord = new RecordVal(BifType::Record::X509::Result);
 
 	rrecord->Assign(0, val_mgr->GetInt(num));
-	rrecord->Assign(1, new StringVal(reason));
+	rrecord->Assign(1, make_intrusive<StringVal>(reason));
 	if ( chainVector )
 		rrecord->Assign(2, chainVector);
 
@@ -564,7 +564,7 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 
 			if ( currcert )
 				// X509Val takes ownership of currcert.
-				chainVector->Assign(i, new file_analysis::X509Val(currcert));
+				chainVector->Assign(i, make_intrusive<file_analysis::X509Val>(currcert));
 			else
 				{
 				reporter->InternalWarning("OpenSSL returned null certificate");

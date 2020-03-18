@@ -51,7 +51,7 @@ bool file_analysis::X509::EndOfFile()
 		hash_final(ctx, buf);
 		std::string cert_sha256 = sha256_digest_print(buf);
 		auto index = make_intrusive<StringVal>(cert_sha256);
-		auto* entry = certificate_cache->Lookup(index.get(), false);
+		auto entry = certificate_cache->Lookup(index.get(), false);
 		if ( entry )
 			// in this case, the certificate is in the cache and we do not
 			// do any further processing here. However, if there is a callback, we execute it.
@@ -62,9 +62,9 @@ bool file_analysis::X509::EndOfFile()
 
 			val_list vl(3);
 			vl.push_back(GetFile()->GetVal()->Ref());
-			vl.push_back(entry->Ref());
+			vl.push_back(entry.release());
 			vl.push_back(new StringVal(cert_sha256));
-			IntrusivePtr<Val> v{AdoptRef{}, cache_hit_callback->Call(&vl)};
+			cache_hit_callback->Call(&vl);
 			return false;
 			}
 		}
@@ -126,12 +126,12 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val, File* f)
 	pX509Cert->Assign(0, val_mgr->GetCount((uint64_t) X509_get_version(ssl_cert) + 1));
 	i2a_ASN1_INTEGER(bio, X509_get_serialNumber(ssl_cert));
 	int len = BIO_read(bio, buf, sizeof(buf));
-	pX509Cert->Assign(1, new StringVal(len, buf));
+	pX509Cert->Assign(1, make_intrusive<StringVal>(len, buf));
 	BIO_reset(bio);
 
 	X509_NAME_print_ex(bio, X509_get_subject_name(ssl_cert), 0, XN_FLAG_RFC2253);
 	len = BIO_gets(bio, buf, sizeof(buf));
-	pX509Cert->Assign(2, new StringVal(len, buf));
+	pX509Cert->Assign(2, make_intrusive<StringVal>(len, buf));
 	BIO_reset(bio);
 
 	X509_NAME *subject_name = X509_get_subject_name(ssl_cert);
@@ -151,17 +151,17 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val, File* f)
 		// we found a common name
 		ASN1_STRING_print(bio, X509_NAME_ENTRY_get_data(X509_NAME_get_entry(subject_name, namepos)));
 		len = BIO_gets(bio, buf, sizeof(buf));
-		pX509Cert->Assign(4, new StringVal(len, buf));
+		pX509Cert->Assign(4, make_intrusive<StringVal>(len, buf));
 		BIO_reset(bio);
 		}
 
 	X509_NAME_print_ex(bio, X509_get_issuer_name(ssl_cert), 0, XN_FLAG_RFC2253);
 	len = BIO_gets(bio, buf, sizeof(buf));
-	pX509Cert->Assign(3, new StringVal(len, buf));
+	pX509Cert->Assign(3, make_intrusive<StringVal>(len, buf));
 	BIO_free(bio);
 
-	pX509Cert->Assign(5, new Val(GetTimeFromAsn1(X509_get_notBefore(ssl_cert), f, reporter), TYPE_TIME));
-	pX509Cert->Assign(6, new Val(GetTimeFromAsn1(X509_get_notAfter(ssl_cert), f, reporter), TYPE_TIME));
+	pX509Cert->Assign(5, make_intrusive<Val>(GetTimeFromAsn1(X509_get_notBefore(ssl_cert), f, reporter), TYPE_TIME));
+	pX509Cert->Assign(6, make_intrusive<Val>(GetTimeFromAsn1(X509_get_notAfter(ssl_cert), f, reporter), TYPE_TIME));
 
 	// we only read 255 bytes because byte 256 is always 0.
 	// if the string is longer than 255, that will be our null-termination,
@@ -171,7 +171,7 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val, File* f)
 	if ( ! i2t_ASN1_OBJECT(buf, 255, algorithm) )
 		buf[0] = 0;
 
-	pX509Cert->Assign(7, new StringVal(buf));
+	pX509Cert->Assign(7, make_intrusive<StringVal>(buf));
 
 	// Special case for RDP server certificates. For some reason some (all?) RDP server
 	// certificates like to specify their key algorithm as md5WithRSAEncryption, which
@@ -193,25 +193,25 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val, File* f)
 	if ( ! i2t_ASN1_OBJECT(buf, 255, OBJ_nid2obj(X509_get_signature_nid(ssl_cert))) )
 		buf[0] = 0;
 
-	pX509Cert->Assign(8, new StringVal(buf));
+	pX509Cert->Assign(8, make_intrusive<StringVal>(buf));
 
 	// Things we can do when we have the key...
 	EVP_PKEY *pkey = X509_extract_key(ssl_cert);
 	if ( pkey != NULL )
 		{
 		if ( EVP_PKEY_base_id(pkey) == EVP_PKEY_DSA )
-			pX509Cert->Assign(9, new StringVal("dsa"));
+			pX509Cert->Assign(9, make_intrusive<StringVal>("dsa"));
 
 		else if ( EVP_PKEY_base_id(pkey) == EVP_PKEY_RSA )
 			{
-			pX509Cert->Assign(9, new StringVal("rsa"));
+			pX509Cert->Assign(9, make_intrusive<StringVal>("rsa"));
 
 			const BIGNUM *e;
 			RSA_get0_key(EVP_PKEY_get0_RSA(pkey), NULL, &e, NULL);
 			char *exponent = BN_bn2dec(e);
 			if ( exponent != NULL )
 				{
-				pX509Cert->Assign(11, new StringVal(exponent));
+				pX509Cert->Assign(11, make_intrusive<StringVal>(exponent));
 				OPENSSL_free(exponent);
 				exponent = NULL;
 				}
@@ -219,7 +219,7 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val, File* f)
 #ifndef OPENSSL_NO_EC
 		else if ( EVP_PKEY_base_id(pkey) == EVP_PKEY_EC )
 			{
-			pX509Cert->Assign(9, new StringVal("ecdsa"));
+			pX509Cert->Assign(9, make_intrusive<StringVal>("ecdsa"));
 			pX509Cert->Assign(12, KeyCurve(pkey));
 			}
 #endif
@@ -401,10 +401,10 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 				uint32_t* addr = (uint32_t*) gen->d.ip->data;
 
 				if( gen->d.ip->length == 4 )
-					ips->Assign(ips->Size(), new AddrVal(*addr));
+					ips->Assign(ips->Size(), make_intrusive<AddrVal>(*addr));
 
 				else if ( gen->d.ip->length == 16 )
-					ips->Assign(ips->Size(), new AddrVal(addr));
+					ips->Assign(ips->Size(), make_intrusive<AddrVal>(addr));
 
 				else
 					{
@@ -545,9 +545,9 @@ X509Val::~X509Val()
 		X509_free(certificate);
 	}
 
-Val* X509Val::DoClone(CloneState* state)
+IntrusivePtr<Val> X509Val::DoClone(CloneState* state)
 	{
-	auto copy = new X509Val();
+	auto copy = make_intrusive<X509Val>();
 	if ( certificate )
 		copy->certificate = X509_dup(certificate);
 

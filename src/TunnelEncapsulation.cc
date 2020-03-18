@@ -20,15 +20,15 @@ RecordVal* EncapsulatingConn::GetRecordVal() const
 	{
 	RecordVal *rv = new RecordVal(BifType::Record::Tunnel::EncapsulatingConn);
 
-	RecordVal* id_val = new RecordVal(conn_id);
-	id_val->Assign(0, new AddrVal(src_addr));
+	auto id_val = make_intrusive<RecordVal>(conn_id);
+	id_val->Assign(0, make_intrusive<AddrVal>(src_addr));
 	id_val->Assign(1, val_mgr->GetPort(ntohs(src_port), proto));
-	id_val->Assign(2, new AddrVal(dst_addr));
+	id_val->Assign(2, make_intrusive<AddrVal>(dst_addr));
 	id_val->Assign(3, val_mgr->GetPort(ntohs(dst_port), proto));
-	rv->Assign(0, id_val);
+	rv->Assign(0, std::move(id_val));
 	rv->Assign(1, BifType::Enum::Tunnel::Type->GetVal(type));
 
-	rv->Assign(2, new StringVal(uid.Base62("C").c_str()));
+	rv->Assign(2, make_intrusive<StringVal>(uid.Base62("C").c_str()));
 
 	return rv;
 	}

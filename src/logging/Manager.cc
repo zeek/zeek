@@ -11,6 +11,7 @@
 #include "Type.h"
 #include "File.h"
 #include "input.h"
+#include "IntrusivePtr.h"
 
 #include "broker/Manager.h"
 #include "threading/Manager.h"
@@ -262,7 +263,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 		return false;
 		}
 
-	Val* event_val = sval->Lookup("ev");
+	auto event_val = sval->Lookup("ev");
 	Func* event = event_val ? event_val->AsFunc() : 0;
 
 	if ( event )
@@ -476,7 +477,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 		if ( include )
 			{
 			StringVal* new_path_val = new StringVal(new_path.c_str());
-			bool result = include->Lookup(new_path_val);
+			bool result = (bool)include->Lookup(new_path_val);
 
 			Unref(new_path_val);
 
@@ -488,7 +489,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 		if ( exclude )
 			{
 			StringVal* new_path_val = new StringVal(new_path.c_str());
-			bool result = exclude->Lookup(new_path_val);
+			bool result = (bool)exclude->Lookup(new_path_val);
 
 			Unref(new_path_val);
 
@@ -547,18 +548,18 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 
 	// Create a new Filter instance.
 
-	Val* name = fval->Lookup("name", true);
-	Val* pred = fval->Lookup("pred", true);
-	Val* path_func = fval->Lookup("path_func", true);
-	Val* log_local = fval->Lookup("log_local", true);
-	Val* log_remote = fval->Lookup("log_remote", true);
-	Val* interv = fval->Lookup("interv", true);
-	Val* postprocessor = fval->Lookup("postprocessor", true);
-	Val* config = fval->Lookup("config", true);
-	Val* field_name_map = fval->Lookup("field_name_map", true);
-	Val* scope_sep = fval->Lookup("scope_sep", true);
-	Val* ext_prefix = fval->Lookup("ext_prefix", true);
-	Val* ext_func = fval->Lookup("ext_func", true);
+	auto name = fval->Lookup("name", true);
+	auto pred = fval->Lookup("pred", true);
+	auto path_func = fval->Lookup("path_func", true);
+	auto log_local = fval->Lookup("log_local", true);
+	auto log_remote = fval->Lookup("log_remote", true);
+	auto interv = fval->Lookup("interv", true);
+	auto postprocessor = fval->Lookup("postprocessor", true);
+	auto config = fval->Lookup("config", true);
+	auto field_name_map = fval->Lookup("field_name_map", true);
+	auto scope_sep = fval->Lookup("scope_sep", true);
+	auto ext_prefix = fval->Lookup("ext_prefix", true);
+	auto ext_func = fval->Lookup("ext_func", true);
 
 	Filter* filter = new Filter;
 	filter->fval = fval->Ref();
@@ -577,23 +578,10 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	filter->ext_prefix = ext_prefix->AsString()->CheckString();
 	filter->ext_func = ext_func ? ext_func->AsFunc() : 0;
 
-	Unref(name);
-	Unref(pred);
-	Unref(path_func);
-	Unref(log_local);
-	Unref(log_remote);
-	Unref(interv);
-	Unref(postprocessor);
-	Unref(config);
-	Unref(field_name_map);
-	Unref(scope_sep);
-	Unref(ext_prefix);
-	Unref(ext_func);
-
 	// Build the list of fields that the filter wants included, including
 	// potentially rolling out fields.
-	Val* include = fval->Lookup("include");
-	Val* exclude = fval->Lookup("exclude");
+	auto include = fval->Lookup("include");
+	auto exclude = fval->Lookup("exclude");
 
 	filter->num_ext_fields = 0;
 	if ( filter->ext_func )
@@ -618,8 +606,8 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	filter->num_fields = 0;
 	filter->fields = 0;
 	if ( ! TraverseRecord(stream, filter, stream->columns,
-			      include ? include->AsTableVal() : 0,
-			      exclude ? exclude->AsTableVal() : 0,
+			      include ? include->AsTableVal() : nullptr,
+			      exclude ? exclude->AsTableVal() : nullptr,
 			      "", list<int>()) )
 		{
 		delete filter;
@@ -627,12 +615,12 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 		}
 
 	// Get the path for the filter.
-	Val* path_val = fval->Lookup("path");
+	auto path_val = fval->Lookup("path");
 
 	if ( path_val )
 		{
 		filter->path = path_val->AsString()->CheckString();
-		filter->path_val = path_val->Ref();
+		filter->path_val = path_val.release();
 		}
 
 	else
@@ -703,7 +691,7 @@ bool Manager::RemoveFilter(EnumVal* id, const string& name)
 	return true;
 	}
 
-bool Manager::Write(EnumVal* id, RecordVal* columns)
+bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 	{
 	Stream* stream = FindStream(id);
 	if ( ! stream )
@@ -712,7 +700,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 	if ( ! stream->enabled )
 		return true;
 
-	columns = columns->CoerceTo(stream->columns);
+	auto columns = columns_arg->CoerceTo(stream->columns);
 
 	if ( ! columns )
 		{
@@ -739,12 +727,9 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 
 			int result = 1;
 
-			Val* v = filter->pred->Call(&vl);
+			auto v = filter->pred->Call(&vl);
 			if ( v )
-				{
 				result = v->AsBool();
-				Unref(v);
-				}
 
 			if ( ! result )
 				continue;
@@ -762,20 +747,13 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 			BroType* rt = filter->path_func->FType()->Args()->FieldType("rec");
 
 			if ( rt->Tag() == TYPE_RECORD )
-				rec_arg = columns->CoerceTo(rt->AsRecordType(), true);
+				rec_arg = columns->CoerceTo(rt->AsRecordType(), true).release();
 			else
 				// Can be TYPE_ANY here.
 				rec_arg = columns->Ref();
 
-			val_list vl{
-				id->Ref(),
-				path_arg,
-				rec_arg,
-			};
-
-			Val* v = 0;
-
-			v = filter->path_func->Call(&vl);
+			val_list vl{id->Ref(), path_arg, rec_arg};
+			auto v = filter->path_func->Call(&vl);
 
 			if ( ! v )
 				return false;
@@ -783,7 +761,6 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 			if ( v->Type()->Tag() != TYPE_STRING )
 				{
 				reporter->Error("path_func did not return string");
-				Unref(v);
 				return false;
 				}
 
@@ -794,7 +771,6 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 				}
 
 			path = v->AsString()->CheckString();
-			Unref(v);
 
 #ifdef DEBUG
 			DBG_LOG(DBG_LOGGING, "Path function for filter '%s' on stream '%s' return '%s'",
@@ -872,8 +848,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 					{
 					const char* name = filter->fields[j]->name;
 					StringVal *fn = new StringVal(name);
-					Val *val = 0;
-					if ( (val = filter->field_name_map->Lookup(fn, false)) != 0 )
+					if ( auto val = filter->field_name_map->Lookup(fn, false) )
 						{
 						delete [] filter->fields[j]->name;
 						filter->fields[j]->name = copy_string(val->AsStringVal()->CheckString());
@@ -908,15 +883,12 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 					      filter->remote, false, filter->name);
 
 			if ( ! writer )
-				{
-				Unref(columns);
 				return false;
-				}
 			}
 
 		// Alright, can do the write now.
 
-		threading::Value** vals = RecordToFilterVals(stream, filter, columns);
+		threading::Value** vals = RecordToFilterVals(stream, filter, columns.get());
 
 		if ( ! PLUGIN_HOOK_WITH_RESULT(HOOK_LOG_WRITE,
 		                               HookLogWrite(filter->writer->Type()->AsEnumType()->Lookup(filter->writer->InternalInt()),
@@ -925,7 +897,6 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 		                                            filter->fields, vals),
 		                               true) )
 			{
-			Unref(columns);
 			DeleteVals(filter->num_fields, vals);
 
 #ifdef DEBUG
@@ -944,8 +915,6 @@ bool Manager::Write(EnumVal* id, RecordVal* columns)
 			filter->name.c_str(), stream->name.c_str());
 #endif
 		}
-
-	Unref(columns);
 
 	return true;
 	}
@@ -1084,15 +1053,17 @@ threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
 	}
 
 threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
-				    RecordVal* columns)
+                                               RecordVal* columns)
 	{
-	RecordVal* ext_rec = nullptr;
+	IntrusivePtr<RecordVal> ext_rec;
+
 	if ( filter->num_ext_fields > 0 )
 		{
 		val_list vl{filter->path_val->Ref()};
-		Val* res = filter->ext_func->Call(&vl);
+		auto res = filter->ext_func->Call(&vl);
+
 		if ( res )
-			ext_rec = res->AsRecordVal();
+			ext_rec = {AdoptRef{}, res.release()->AsRecordVal()};
 		}
 
 	threading::Value** vals = new threading::Value*[filter->num_fields];
@@ -1109,7 +1080,7 @@ threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
 				continue;
 				}
 
-			val = ext_rec;
+			val = ext_rec.get();
 			}
 		else
 			val = columns;
@@ -1133,9 +1104,6 @@ threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
 		if ( val )
 			vals[i] = ValToLogVal(val);
 		}
-
-	if ( ext_rec )
-		Unref(ext_rec);
 
 	return vals;
 	}
@@ -1326,12 +1294,11 @@ void Manager::SendAllWritersTo(const broker::endpoint_info& ei)
 			WriterFrontend* writer = i->second->writer;
 			auto writer_val = et->GetVal(i->first.first);
 			broker_mgr->PublishLogCreate((*s)->id,
-						     writer_val,
+						     writer_val.get(),
 						     *i->second->info,
 						     writer->NumFields(),
 						     writer->Fields(),
 						     ei);
-			Unref(writer_val);
 			}
 		}
 	}
@@ -1551,10 +1518,10 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 	// Create the RotationInfo record.
 	RecordVal* info = new RecordVal(BifType::Record::Log::RotationInfo);
 	info->Assign(0, winfo->type->Ref());
-	info->Assign(1, new StringVal(new_name));
-	info->Assign(2, new StringVal(winfo->writer->Info().path));
-	info->Assign(3, new Val(open, TYPE_TIME));
-	info->Assign(4, new Val(close, TYPE_TIME));
+	info->Assign(1, make_intrusive<StringVal>(new_name));
+	info->Assign(2, make_intrusive<StringVal>(winfo->writer->Info().path));
+	info->Assign(3, make_intrusive<Val>(open, TYPE_TIME));
+	info->Assign(4, make_intrusive<Val>(close, TYPE_TIME));
 	info->Assign(5, val_mgr->GetBool(terminating));
 
 	Func* func = winfo->postprocessor;
@@ -1572,12 +1539,9 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 
 	int result = 0;
 
-	Val* v = func->Call(&vl);
+	auto v = func->Call(&vl);
 	if ( v )
-		{
 		result = v->AsBool();
-		Unref(v);
-		}
 
 	return result;
 	}

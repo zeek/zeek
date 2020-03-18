@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "IntrusivePtr.h"
 #include "Type.h"
 #include "Timer.h"
 #include "Notifier.h"
@@ -27,9 +28,7 @@ using std::string;
 #define UDP_PORT_MASK	0x20000
 #define ICMP_PORT_MASK	0x30000
 
-template <class T> class IntrusivePtr;
 template<typename T> class PDict;
-template <class T> class IntrusivePtr;
 class IterCookie;
 
 class Val;
@@ -130,7 +129,7 @@ union BroValUnion {
 class Val : public BroObj {
 public:
 	Val(double d, TypeTag t)
-		: val(d), type(base_type(t))
+		: val(d), type(base_type(t).release())
 		{
 		}
 
@@ -142,19 +141,19 @@ public:
 
 	// Extra arg to differentiate from protected version.
 	Val(BroType* t, bool type_type)
-		: type(new TypeType(t->Ref()))
+		: type(new TypeType({NewRef{}, t}))
 		{
 		}
 
 	Val()
-		: val(bro_int_t(0)), type(base_type(TYPE_ERROR))
+		: val(bro_int_t(0)), type(base_type(TYPE_ERROR).release())
 		{
 		}
 
 	~Val() override;
 
 	Val* Ref()			{ ::Ref(this); return this; }
-	Val* Clone();
+	IntrusivePtr<Val> Clone();
 
 	int IsZero() const;
 	int IsOne() const;
@@ -169,7 +168,7 @@ public:
 
 	// Returns a new Val with the "size" of this Val.  What constitutes
 	// size depends on the Val's type.
-	virtual Val* SizeVal() const;
+	virtual IntrusivePtr<Val> SizeVal() const;
 
 	// Bytes in total value object.
 	virtual unsigned int MemoryAllocation() const;
@@ -323,9 +322,9 @@ public:
 
 	static bool WouldOverflow(const BroType* from_type, const BroType* to_type, const Val* val);
 
-	TableVal* GetRecordFields();
+	IntrusivePtr<TableVal> GetRecordFields();
 
-	StringVal* ToJSON(bool only_loggable=false, RE_Matcher* re=nullptr);
+	IntrusivePtr<StringVal> ToJSON(bool only_loggable=false, RE_Matcher* re=nullptr);
 
 protected:
 
@@ -356,7 +355,7 @@ protected:
 
 	template<typename V>
 	Val(V &&v, TypeTag t) noexcept
-		: val(std::forward<V>(v)), type(base_type(t))
+		: val(std::forward<V>(v)), type(base_type(t).release())
 		{
 		}
 
@@ -379,17 +378,13 @@ protected:
 		// Caches a cloned value for later reuse during the same
 		// cloning operation. For recursive types, call this *before*
 		// descending down.
-		Val* NewClone(Val *src, Val* dst)
-			{
-			clones.insert(std::make_pair(src, dst));
-			return dst;
-			}
+		IntrusivePtr<Val> NewClone(Val* src, IntrusivePtr<Val> dst);
 
 		std::unordered_map<Val*, Val*> clones;
 	};
 
-	Val* Clone(CloneState* state);
-	virtual Val* DoClone(CloneState* state);
+	IntrusivePtr<Val> Clone(CloneState* state);
+	virtual IntrusivePtr<Val> DoClone(CloneState* state);
 
 	BroValUnion val;
 	BroType* type;
@@ -476,7 +471,7 @@ protected:
 
 class PortVal : public Val {
 public:
-	Val* SizeVal() const override	{ return val_mgr->GetInt(val.uint_val); }
+	IntrusivePtr<Val> SizeVal() const override;
 
 	// Returns the port number in host order (not including the mask).
 	uint32_t Port() const;
@@ -507,7 +502,7 @@ protected:
 	PortVal(uint32_t p);
 
 	void ValDescribe(ODesc* d) const override;
-	Val* DoClone(CloneState* state) override;
+	IntrusivePtr<Val> DoClone(CloneState* state) override;
 };
 
 class AddrVal : public Val {
@@ -516,7 +511,7 @@ public:
 	explicit AddrVal(const std::string& text);
 	~AddrVal() override;
 
-	Val* SizeVal() const override;
+	IntrusivePtr<Val> SizeVal() const override;
 
 	// Constructor for address already in network order.
 	explicit AddrVal(uint32_t addr);          // IPv4.
@@ -526,7 +521,7 @@ public:
 	unsigned int MemoryAllocation() const override;
 
 protected:
-	Val* DoClone(CloneState* state) override;
+	IntrusivePtr<Val> DoClone(CloneState* state) override;
 };
 
 class SubNetVal : public Val {
@@ -539,7 +534,7 @@ public:
 	explicit SubNetVal(const IPPrefix& prefix);
 	~SubNetVal() override;
 
-	Val* SizeVal() const override;
+	IntrusivePtr<Val> SizeVal() const override;
 
 	const IPAddr& Prefix() const;
 	int Width() const;
@@ -551,7 +546,7 @@ public:
 
 protected:
 	void ValDescribe(ODesc* d) const override;
-	Val* DoClone(CloneState* state) override;
+	IntrusivePtr<Val> DoClone(CloneState* state) override;
 };
 
 class StringVal : public Val {
@@ -561,7 +556,7 @@ public:
 	explicit StringVal(const string& s);
 	StringVal(int length, const char* s);
 
-	Val* SizeVal() const override;
+	IntrusivePtr<Val> SizeVal() const override;
 
 	int Len();
 	const u_char* Bytes();
@@ -581,7 +576,7 @@ public:
 
 protected:
 	void ValDescribe(ODesc* d) const override;
-	Val* DoClone(CloneState* state) override;
+	IntrusivePtr<Val> DoClone(CloneState* state) override;
 };
 
 class PatternVal : public Val {
@@ -597,7 +592,7 @@ public:
 
 protected:
 	void ValDescribe(ODesc* d) const override;
-	Val* DoClone(CloneState* state) override;
+	IntrusivePtr<Val> DoClone(CloneState* state) override;
 };
 
 // ListVals are mainly used to index tables that have more than one
@@ -609,7 +604,7 @@ public:
 
 	TypeTag BaseTag() const		{ return tag; }
 
-	Val* SizeVal() const override	{ return val_mgr->GetCount(vals.length()); }
+	IntrusivePtr<Val> SizeVal() const override;
 
 	int Length() const		{ return vals.length(); }
 	Val* Index(const int n)		{ return vals[n]; }
@@ -638,7 +633,7 @@ public:
 	unsigned int MemoryAllocation() const override;
 
 protected:
-	Val* DoClone(CloneState* state) override;
+	IntrusivePtr<Val> DoClone(CloneState* state) override;
 
 	val_list vals;
 	TypeTag tag;
@@ -648,27 +643,18 @@ extern double bro_start_network_time;
 
 class TableEntryVal {
 public:
-	explicit TableEntryVal(Val* v)
+	template<typename V>
+	explicit TableEntryVal(V&& v)
+		: val(std::forward<V>(v))
 		{
-		val = v;
 		last_access_time = network_time;
 		expire_access_time =
 			int(network_time - bro_start_network_time);
 		}
 
-	TableEntryVal* Clone(Val::CloneState* state)
-		{
-		auto rval = new TableEntryVal(val ? val->Clone(state) : nullptr);
-		rval->last_access_time = last_access_time;
-		rval->expire_access_time = expire_access_time;
-		return rval;
-		}
+	TableEntryVal* Clone(Val::CloneState* state);
 
-	~TableEntryVal()	{ }
-
-	Val* Value()	{ return val; }
-	void Ref()	{ val->Ref(); }
-	void Unref()	{ ::Unref(val); }
+	Val* Value()	{ return val.get(); }
 
 	// Returns/sets time of last expiration relevant access to this value.
 	double ExpireAccessTime() const
@@ -679,7 +665,7 @@ public:
 protected:
 	friend class TableVal;
 
-	Val* val;
+	IntrusivePtr<Val> val;
 	double last_access_time;
 
 	// The next entry stores seconds since Bro's start.  We use ints here
@@ -707,7 +693,7 @@ class Frame;
 
 class TableVal : public Val, public notifier::Modifiable {
 public:
-	explicit TableVal(TableType* t, Attributes* attrs = 0);
+	explicit TableVal(IntrusivePtr<TableType> t, IntrusivePtr<Attributes> attrs = nullptr);
 	~TableVal() override;
 
 	// Returns true if the assignment typechecked, false if not. The
@@ -715,10 +701,12 @@ public:
 	// version takes a HashKey and Unref()'s it when done. If we're a
 	// set, new_val has to be nil. If we aren't a set, index may be nil
 	// in the second version.
+	int Assign(Val* index, IntrusivePtr<Val> new_val);
 	int Assign(Val* index, Val* new_val);
+	int Assign(Val* index, HashKey* k, IntrusivePtr<Val> new_val);
 	int Assign(Val* index, HashKey* k, Val* new_val);
 
-	Val* SizeVal() const override	{ return val_mgr->GetCount(Size()); }
+	IntrusivePtr<Val> SizeVal() const override;
 
 	// Add the entire contents of the table to the given value,
 	// which must also be a TableVal.
@@ -761,17 +749,17 @@ public:
 	// Returns the element's value if it exists in the table,
 	// nil otherwise.  Note, "index" is not const because we
 	// need to Ref/Unref it when calling the default function.
-	Val* Lookup(Val* index, bool use_default_val = true);
+	IntrusivePtr<Val> Lookup(Val* index, bool use_default_val = true);
 
 	// For a table[subnet]/set[subnet], return all subnets that cover
 	// the given subnet.
 	// Causes an internal error if called for any other kind of table.
-	VectorVal* LookupSubnets(const SubNetVal* s);
+	IntrusivePtr<VectorVal> LookupSubnets(const SubNetVal* s);
 
 	// For a set[subnet]/table[subnet], return a new table that only contains
 	// entries that cover the given subnet.
 	// Causes an internal error if called for any other kind of table.
-	TableVal* LookupSubnetValues(const SubNetVal* s);
+	IntrusivePtr<TableVal> LookupSubnetValues(const SubNetVal* s);
 
 	// Sets the timestamp for the given index to network time.
 	// Returns false if index does not exist.
@@ -781,16 +769,16 @@ public:
 	ListVal* RecoverIndex(const HashKey* k) const;
 
 	// Returns the element if it was in the table, false otherwise.
-	Val* Delete(const Val* index);
-	Val* Delete(const HashKey* k);
+	IntrusivePtr<Val> Delete(const Val* index);
+	IntrusivePtr<Val> Delete(const HashKey* k);
 
 	// Returns a ListVal representation of the table (which must be a set).
 	ListVal* ConvertToList(TypeTag t=TYPE_ANY) const;
 	ListVal* ConvertToPureList() const;	// must be single index type
 
-	void SetAttrs(Attributes* attrs);
+	void SetAttrs(IntrusivePtr<Attributes> attrs);
 	Attr* FindAttr(attr_tag t) const;
-	Attributes* Attrs()	{ return attrs; }
+	Attributes* Attrs()	{ return attrs.get(); }
 
 	// Returns the size of the table.
 	int Size() const;
@@ -824,14 +812,14 @@ public:
 	notifier::Modifiable* Modifiable() override	{ return this; }
 
 protected:
-	void Init(TableType* t);
+	void Init(IntrusivePtr<TableType> t);
 
 	void CheckExpireAttr(attr_tag at);
 	int ExpandCompoundAndInit(val_list* vl, int k, IntrusivePtr<Val> new_val);
 	int CheckAndAssign(Val* index, IntrusivePtr<Val> new_val);
 
 	// Calculates default value for index.  Returns 0 if none.
-	Val* Default(Val* index);
+	IntrusivePtr<Val> Default(Val* index);
 
 	// Returns true if item expiration is enabled.
 	bool ExpirationEnabled()	{ return expire_time != 0; }
@@ -851,18 +839,18 @@ protected:
 	// Calls &change_func. Does not take ownership of values. (Refs if needed).
 	void CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe);
 
-	Val* DoClone(CloneState* state) override;
+	IntrusivePtr<Val> DoClone(CloneState* state) override;
 
-	TableType* table_type;
+	IntrusivePtr<TableType> table_type;
 	CompositeHash* table_hash;
-	Attributes* attrs;
-	Expr* expire_time;
-	Expr* expire_func;
+	IntrusivePtr<Attributes> attrs;
+	IntrusivePtr<Expr> expire_time;
+	IntrusivePtr<Expr> expire_func;
 	TableValTimer* timer;
 	IterCookie* expire_cookie;
 	PrefixTable* subnets;
-	Val* def_val;
-	Expr* change_func = nullptr;
+	IntrusivePtr<Val> def_val;
+	IntrusivePtr<Expr> change_func;
 	// prevent recursion of change functions
 	bool in_change_func = false;
 };
@@ -872,12 +860,12 @@ public:
 	explicit RecordVal(RecordType* t, bool init_fields = true);
 	~RecordVal() override;
 
-	Val* SizeVal() const override
-		{ return val_mgr->GetCount(Type()->AsRecordType()->NumFields()); }
+	IntrusivePtr<Val> SizeVal() const override;
 
+	void Assign(int field, IntrusivePtr<Val> new_val);
 	void Assign(int field, Val* new_val);
 	Val* Lookup(int field) const;	// Does not Ref() value.
-	Val* LookupWithDefault(int field) const;	// Does Ref() value.
+	IntrusivePtr<Val> LookupWithDefault(int field) const;
 
 	/**
 	 * Looks up the value of a field by field name.  If the field doesn't
@@ -885,17 +873,16 @@ public:
 	 * @param field name of field to lookup.
 	 * @param with_default whether to rely on field's &default attribute when
 	 * the field has yet to be initialized.
-	 * @return the value in field \a field.  It is Ref()'d only if
-	 * \a with_default is true.
+	 * @return the value in field \a field.
 	 */
-	Val* Lookup(const char* field, bool with_default = false) const;
+	IntrusivePtr<Val> Lookup(const char* field, bool with_default = false) const;
 
 	void Describe(ODesc* d) const override;
 
 	/**
 	 * Returns a "record_field_table" value for introspection purposes.
 	 */
-	TableVal* GetRecordFieldsVal() const;
+	IntrusivePtr<TableVal> GetRecordFieldsVal() const;
 
 	// This is an experiment to associate a BroObj within the
 	// event engine to a record value in bro script.
@@ -913,8 +900,8 @@ public:
 	//
 	// The *allow_orphaning* parameter allows for a record to be demoted
 	// down to a record type that contains less fields.
-	RecordVal* CoerceTo(const RecordType* other, Val* aggr, bool allow_orphaning = false) const;
-	RecordVal* CoerceTo(RecordType* other, bool allow_orphaning = false);
+	IntrusivePtr<RecordVal> CoerceTo(const RecordType* other, Val* aggr, bool allow_orphaning = false) const;
+	IntrusivePtr<RecordVal> CoerceTo(RecordType* other, bool allow_orphaning = false);
 
 	unsigned int MemoryAllocation() const override;
 	void DescribeReST(ODesc* d) const override;
@@ -927,7 +914,7 @@ public:
 	static void ResizeParseTimeRecords();
 
 protected:
-	Val* DoClone(CloneState* state) override;
+	IntrusivePtr<Val> DoClone(CloneState* state) override;
 
 	BroObj* origin;
 
@@ -936,7 +923,7 @@ protected:
 
 class EnumVal : public Val {
 public:
-	Val* SizeVal() const override	{ return val_mgr->GetInt(val.int_val); }
+	IntrusivePtr<Val> SizeVal() const override;
 
 protected:
 	friend class Val;
@@ -947,7 +934,7 @@ protected:
 		}
 
 	void ValDescribe(ODesc* d) const override;
-	Val* DoClone(CloneState* state) override;
+	IntrusivePtr<Val> DoClone(CloneState* state) override;
 };
 
 
@@ -956,8 +943,7 @@ public:
 	explicit VectorVal(VectorType* t);
 	~VectorVal() override;
 
-	Val* SizeVal() const override
-		{ return val_mgr->GetCount(uint32_t(val.vector_val->size())); }
+	IntrusivePtr<Val> SizeVal() const override;
 
 	// Returns false if the type of the argument was wrong.
 	// The vector will automatically grow to accomodate the index.
@@ -965,11 +951,14 @@ public:
 	// Note: does NOT Ref() the element! Remember to do so unless
 	//       the element was just created and thus has refcount 1.
 	//
+	bool Assign(unsigned int index, IntrusivePtr<Val> element);
 	bool Assign(unsigned int index, Val* element);
-	bool Assign(Val* index, Val* element)
+
+	template<typename E>
+	bool Assign(Val* index, E&& element)
 		{
 		return Assign(index->AsListVal()->Index(0)->CoerceToUnsigned(),
-				element);
+		              std::forward<E>(element));
 		}
 
 	// Assigns the value to how_many locations starting at index.
@@ -1009,7 +998,7 @@ public:
 
 protected:
 	void ValDescribe(ODesc* d) const override;
-	Val* DoClone(CloneState* state) override;
+	IntrusivePtr<Val> DoClone(CloneState* state) override;
 
 	VectorType* vector_type;
 };

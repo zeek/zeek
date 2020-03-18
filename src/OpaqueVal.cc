@@ -89,9 +89,7 @@ IntrusivePtr<OpaqueVal> OpaqueVal::Unserialize(const broker::data& data)
 		return nullptr;
 
 	if ( ! val->DoUnserialize((*v)[1]) )
-		{
 		return nullptr;
-		}
 
 	return val;
 	}
@@ -143,17 +141,17 @@ BroType* OpaqueVal::UnserializeType(const broker::data& data)
 	if ( ! tag )
 		return nullptr;
 
-	return base_type(static_cast<TypeTag>(*tag));
+	return base_type(static_cast<TypeTag>(*tag)).release();
 	}
 
-Val* OpaqueVal::DoClone(CloneState* state)
+IntrusivePtr<Val> OpaqueVal::DoClone(CloneState* state)
 	{
 	auto d = OpaqueVal::Serialize();
 	if ( ! d )
 		return nullptr;
 
 	auto rval = OpaqueVal::Unserialize(std::move(*d));
-	return state->NewClone(this, rval.release());
+	return state->NewClone(this, std::move(rval));
 	}
 
 bool HashVal::IsValid() const
@@ -223,17 +221,19 @@ MD5Val::~MD5Val()
 		EVP_MD_CTX_free(ctx);
 	}
 
-Val* MD5Val::DoClone(CloneState* state)
+IntrusivePtr<Val> MD5Val::DoClone(CloneState* state)
 	{
-	auto out = new MD5Val();
+	auto out = make_intrusive<MD5Val>();
+
 	if ( IsValid() )
 		{
 		if ( ! out->Init() )
 			return nullptr;
+
 		EVP_MD_CTX_copy_ex(out->ctx, ctx);
 		}
 
-	return state->NewClone(this, out);
+	return state->NewClone(this, std::move(out));
 	}
 
 void MD5Val::digest(val_list& vlist, u_char result[MD5_DIGEST_LENGTH])
@@ -374,17 +374,19 @@ SHA1Val::~SHA1Val()
 		EVP_MD_CTX_free(ctx);
 	}
 
-Val* SHA1Val::DoClone(CloneState* state)
+IntrusivePtr<Val> SHA1Val::DoClone(CloneState* state)
 	{
-	auto out = new SHA1Val();
+	auto out = make_intrusive<SHA1Val>();
+
 	if ( IsValid() )
 		{
 		if ( ! out->Init() )
 			return nullptr;
+
 		EVP_MD_CTX_copy_ex(out->ctx, ctx);
 		}
 
-	return state->NewClone(this, out);
+	return state->NewClone(this, std::move(out));
 	}
 
 void SHA1Val::digest(val_list& vlist, u_char result[SHA_DIGEST_LENGTH])
@@ -518,17 +520,19 @@ SHA256Val::~SHA256Val()
 		EVP_MD_CTX_free(ctx);
 	}
 
-Val* SHA256Val::DoClone(CloneState* state)
+IntrusivePtr<Val> SHA256Val::DoClone(CloneState* state)
 	{
-	auto out = new SHA256Val();
+	auto out = make_intrusive<SHA256Val>();
+
 	if ( IsValid() )
 		{
 		if ( ! out->Init() )
 			return nullptr;
+
 		EVP_MD_CTX_copy_ex(out->ctx, ctx);
 		}
 
-	return state->NewClone(this, out);
+	return state->NewClone(this, std::move(out));
 	}
 
 void SHA256Val::digest(val_list& vlist, u_char result[SHA256_DIGEST_LENGTH])
@@ -773,16 +777,16 @@ BloomFilterVal::BloomFilterVal(probabilistic::BloomFilter* bf)
 	bloom_filter = bf;
 	}
 
-Val* BloomFilterVal::DoClone(CloneState* state)
+IntrusivePtr<Val> BloomFilterVal::DoClone(CloneState* state)
 	{
 	if ( bloom_filter )
 		{
-		auto bf = new BloomFilterVal(bloom_filter->Clone());
+		auto bf = make_intrusive<BloomFilterVal>(bloom_filter->Clone());
 		bf->Typify(type);
-		return state->NewClone(this, bf);
+		return state->NewClone(this, std::move(bf));
 		}
 
-	return state->NewClone(this, new BloomFilterVal());
+	return state->NewClone(this, make_intrusive<BloomFilterVal>());
 	}
 
 bool BloomFilterVal::Typify(BroType* arg_type)
@@ -793,8 +797,8 @@ bool BloomFilterVal::Typify(BroType* arg_type)
 	type = arg_type;
 	type->Ref();
 
-	auto tl = make_intrusive<TypeList>(type);
-	tl->Append(type->Ref());
+	auto tl = make_intrusive<TypeList>(IntrusivePtr{NewRef{}, type});
+	tl->Append({NewRef{}, type});
 	hash = new CompositeHash(std::move(tl));
 
 	return true;
@@ -949,10 +953,10 @@ CardinalityVal::~CardinalityVal()
 	delete hash;
 	}
 
-Val* CardinalityVal::DoClone(CloneState* state)
+IntrusivePtr<Val> CardinalityVal::DoClone(CloneState* state)
 	{
 	return state->NewClone(this,
-			       new CardinalityVal(new probabilistic::CardinalityCounter(*c)));
+			       make_intrusive<CardinalityVal>(new probabilistic::CardinalityCounter(*c)));
 	}
 
 bool CardinalityVal::Typify(BroType* arg_type)
@@ -963,8 +967,8 @@ bool CardinalityVal::Typify(BroType* arg_type)
 	type = arg_type;
 	type->Ref();
 
-	auto tl = make_intrusive<TypeList>(type);
-	tl->Append(type->Ref());
+	auto tl = make_intrusive<TypeList>(IntrusivePtr{NewRef{}, type});
+	tl->Append({NewRef{}, type});
 	hash = new CompositeHash(std::move(tl));
 
 	return true;
@@ -1043,7 +1047,7 @@ IntrusivePtr<VectorVal> ParaglobVal::Get(StringVal* &pattern)
 
 	std::vector<std::string> matches = this->internal_paraglob->get(string_pattern);
 	for (unsigned int i = 0; i < matches.size(); i++)
-		rval->Assign(i, new StringVal(matches.at(i)));
+		rval->Assign(i, make_intrusive<StringVal>(matches.at(i)));
 
 	return rval;
 	}
@@ -1097,10 +1101,10 @@ bool ParaglobVal::DoUnserialize(const broker::data& data)
 	return true;
 	}
 
-Val* ParaglobVal::DoClone(CloneState* state)
+IntrusivePtr<Val> ParaglobVal::DoClone(CloneState* state)
 	{
 	try {
-		return new ParaglobVal
+		return make_intrusive<ParaglobVal>
 			(std::make_unique<paraglob::Paraglob>(this->internal_paraglob->serialize()));
 		}
 	catch (const paraglob::underflow_error& e)

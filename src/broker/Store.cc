@@ -20,7 +20,7 @@ EnumVal* query_status(bool success)
 		failure_val = store_query_status->Lookup("Broker", "FAILURE");
 		}
 
-	return store_query_status->GetVal(success ? success_val : failure_val);
+	return store_query_status->GetVal(success ? success_val : failure_val).release();
 	}
 
 void StoreHandleVal::ValDescribe(ODesc* d) const

@@ -187,10 +187,7 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 	auto topic = topic_func->Call(&vl);
 
 	if ( ! topic->AsString()->Len() )
-		{
-		Unref(topic);
 		return val_mgr->GetFalse();
-		}
 
 	val_list* bif_args = @ARGS@;
 	val_list args(bif_args->length() - 2);
@@ -199,7 +196,6 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 		args.push_back((*bif_args)[i]);
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
-	Unref(topic);
 	return val_mgr->GetBool(rval);
 	%}
 
@@ -228,10 +224,7 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 	auto topic = topic_func->Call(&vl);
 
 	if ( ! topic->AsString()->Len() )
-		{
-		Unref(topic);
 		return val_mgr->GetFalse();
-		}
 
 	val_list* bif_args = @ARGS@;
 	val_list args(bif_args->length() - 2);
@@ -240,6 +233,5 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 		args.push_back((*bif_args)[i]);
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
-	Unref(topic);
 	return val_mgr->GetBool(rval);
 	%}

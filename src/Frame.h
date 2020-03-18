@@ -4,6 +4,7 @@
 
 #include "BroList.h" // for typedef val_list
 #include "Obj.h"
+#include "IntrusivePtr.h"
 
 #include <unordered_map>
 #include <string>
@@ -189,7 +190,7 @@ public:
 	 * and the second is the unserialized frame with reference count +1, or
 	 * null if the serialization wasn't successful.
 	 */
-	static std::pair<bool, Frame*> Unserialize(const broker::vector& data);
+	static std::pair<bool, IntrusivePtr<Frame>> Unserialize(const broker::vector& data);
 
 	/**
 	 * Sets the IDs that the frame knows offsets for. These offsets will
@@ -210,9 +211,9 @@ public:
 
 	// If the frame is run in the context of a trigger condition evaluation,
 	// the trigger needs to be registered.
-	void SetTrigger(trigger::Trigger* arg_trigger);
+	void SetTrigger(IntrusivePtr<trigger::Trigger> arg_trigger);
 	void ClearTrigger();
-	trigger::Trigger* GetTrigger() const		{ return trigger; }
+	trigger::Trigger* GetTrigger() const		{ return trigger.get(); }
 
 	void SetCall(const CallExpr* arg_call)	{ call = arg_call; }
 	void ClearCall()			{ call = 0; }
@@ -290,7 +291,7 @@ private:
 	bool break_before_next_stmt;
 	bool break_on_return;
 
-	trigger::Trigger* trigger;
+	IntrusivePtr<trigger::Trigger> trigger;
 	const CallExpr* call;
 	bool delayed;
 

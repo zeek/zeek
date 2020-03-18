@@ -86,7 +86,7 @@ public:
 
 	bool IsDeprecated() const;
 
-	void MakeDeprecated(Expr* deprecation);
+	void MakeDeprecated(IntrusivePtr<Expr> deprecation);
 
 	std::string GetDeprecationWarning() const;
 

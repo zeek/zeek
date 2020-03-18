@@ -139,7 +139,7 @@ int PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status status
 		event = success ? pm_request_dump : pm_attempt_dump;
 		if ( success )
 			{
-			TableVal* mappings = new TableVal(pm_mappings);
+			TableVal* mappings = new TableVal({NewRef{}, pm_mappings});
 			uint32_t nmap = 0;
 
 			// Each call in the loop test pulls the next "opted"
@@ -295,7 +295,7 @@ void PortmapperInterp::Event(EventHandlerPtr f, Val* request, BifEnum::rpc_statu
 		}
 	else
 		{
-		vl.push_back(BifType::Enum::rpc_status->GetVal(status));
+		vl.push_back(BifType::Enum::rpc_status->GetVal(status).release());
 		if ( request )
 			vl.push_back(request);
 		}

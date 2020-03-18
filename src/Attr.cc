@@ -23,17 +23,19 @@ const char* attr_name(attr_tag t)
 	return attr_names[int(t)];
 	}
 
-Attr::Attr(attr_tag t, Expr* e)
+Attr::Attr(attr_tag t, IntrusivePtr<Expr> e)
+	: expr(std::move(e))
 	{
 	tag = t;
-	expr = e;
 	SetLocationInfo(&start_location, &end_location);
 	}
 
-Attr::~Attr()
+Attr::Attr(attr_tag t)
+	: Attr(t, nullptr)
 	{
-	Unref(expr);
 	}
+
+Attr::~Attr() = default;
 
 void Attr::Describe(ODesc* d) const
 	{
@@ -131,10 +133,10 @@ void Attr::AddTag(ODesc* d) const
 		d->Add(attr_name(Tag()));
 	}
 
-Attributes::Attributes(attr_list* a, BroType* t, bool arg_in_record, bool is_global)
+Attributes::Attributes(attr_list* a, IntrusivePtr<BroType> t, bool arg_in_record, bool is_global)
+	: type(std::move(t))
 	{
 	attrs = new attr_list(a->length());
-	type = t->Ref();
 	in_record = arg_in_record;
 	global_var = is_global;
 
@@ -145,7 +147,7 @@ Attributes::Attributes(attr_list* a, BroType* t, bool arg_in_record, bool is_glo
 	// the necessary checking gets done.
 
 	for ( const auto& attr : *a )
-		AddAttr(attr);
+		AddAttr({NewRef{}, attr});
 
 	delete a;
 	}
@@ -156,23 +158,20 @@ Attributes::~Attributes()
 		Unref(attr);
 
 	delete attrs;
-
-	Unref(type);
 	}
 
-void Attributes::AddAttr(Attr* attr)
+void Attributes::AddAttr(IntrusivePtr<Attr> attr)
 	{
 	if ( ! attrs )
 		attrs = new attr_list(1);
 
 	// We overwrite old attributes by deleting them first.
 	RemoveAttr(attr->Tag());
-	attrs->push_back(attr);
-	Ref(attr);
+	attrs->push_back(IntrusivePtr{attr}.release());
 
 	// We only check the attribute after we've added it, to facilitate
 	// generating error messages via Attributes::Describe.
-	CheckAttr(attr);
+	CheckAttr(attr.get());
 
 	// For ADD_FUNC or DEL_FUNC, add in an implicit REDEF, since
 	// those attributes only have meaning for a redefinable value.
@@ -190,7 +189,7 @@ void Attributes::AddAttrs(Attributes* a)
 	{
 	attr_list* as = a->Attrs();
 	for ( const auto& attr : *as )
-		AddAttr(attr);
+		AddAttr({NewRef{}, attr});
 
 	Unref(a);
 	}
@@ -274,7 +273,7 @@ void Attributes::CheckAttr(Attr* a)
 			}
 
 		FuncType* aft = at->AsFuncType();
-		if ( ! same_type(aft->YieldType(), type) )
+		if ( ! same_type(aft->YieldType(), type.get()) )
 			{
 			a->AttrExpr()->Error(
 				is_add ?
@@ -299,7 +298,7 @@ void Attributes::CheckAttr(Attr* a)
 
 		if ( type->Tag() != TYPE_TABLE || (type->IsSet() && ! in_record) )
 			{
-			if ( same_type(atype, type) )
+			if ( same_type(atype, type.get()) )
 				// Ok.
 				break;
 
@@ -315,15 +314,16 @@ void Attributes::CheckAttr(Attr* a)
 				// Ok.
 				break;
 
-			Expr* e = a->AttrExpr();
-			if ( check_and_promote_expr(e, type) )
+			auto e = check_and_promote_expr(a->AttrExpr(), type.get());
+
+			if ( e )
 				{
-				a->SetAttrExpr(e);
+				a->SetAttrExpr(std::move(e));
 				// Ok.
 				break;
 				}
 
-			a->AttrExpr()->Error("&default value has inconsistent type", type);
+			a->AttrExpr()->Error("&default value has inconsistent type", type.get());
 			return;
 			}
 
@@ -354,10 +354,11 @@ void Attributes::CheckAttr(Attr* a)
 					// Ok.
 					break;
 
-				Expr* e = a->AttrExpr();
-				if ( check_and_promote_expr(e, ytype) )
+				auto e = check_and_promote_expr(a->AttrExpr(), ytype);
+
+				if ( e )
 					{
-					a->SetAttrExpr(e);
+					a->SetAttrExpr(std::move(e));
 					// Ok.
 					break;
 					}
@@ -373,17 +374,17 @@ void Attributes::CheckAttr(Attr* a)
 			{
 			// &default applies to record field.
 
-			if ( same_type(atype, type) )
+			if ( same_type(atype, type.get()) )
 				// Ok.
 				break;
 
 			if ( (atype->Tag() == TYPE_TABLE && atype->AsTableType()->IsUnspecifiedTable()) )
 				{
-				Expr* e = a->AttrExpr();
+				auto e = check_and_promote_expr(a->AttrExpr(), type.get());
 
-				if ( check_and_promote_expr(e, type) )
+				if ( e )
 					{
-					a->SetAttrExpr(e);
+					a->SetAttrExpr(std::move(e));
 					break;
 					}
 				}
@@ -574,7 +575,7 @@ void Attributes::CheckAttr(Attr* a)
 		break;
 
 	case ATTR_LOG:
-		if ( ! threading::Value::IsCompatibleType(type) )
+		if ( ! threading::Value::IsCompatibleType(type.get()) )
 			Error("&log applied to a type that cannot be logged");
 		break;
 

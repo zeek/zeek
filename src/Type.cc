@@ -100,7 +100,7 @@ int BroType::MatchesIndex(ListExpr* const index) const
 		if ( index->Exprs().length() != 1 && index->Exprs().length() != 2 )
 			return DOES_NOT_MATCH_INDEX;
 
-		if ( check_and_promote_exprs_to_type(index, ::base_type(TYPE_INT)) )
+		if ( check_and_promote_exprs_to_type(index, ::base_type(TYPE_INT).get()) )
 			return MATCHES_INDEX_SCALAR;
 		}
 
@@ -109,7 +109,7 @@ int BroType::MatchesIndex(ListExpr* const index) const
 
 BroType* BroType::YieldType()
 	{
-	return 0;
+	return nullptr;
 	}
 
 int BroType::HasField(const char* /* field */) const
@@ -119,7 +119,7 @@ int BroType::HasField(const char* /* field */) const
 
 BroType* BroType::FieldType(const char* /* field */) const
 	{
-	return 0;
+	return nullptr;
 	}
 
 void BroType::Describe(ODesc* d) const
@@ -155,8 +155,6 @@ TypeList::~TypeList()
 	{
 	for ( const auto& type : types )
 		Unref(type);
-
-	Unref(pure_type);
 	}
 
 int TypeList::AllMatch(const BroType* t, int is_init) const
@@ -167,23 +165,20 @@ int TypeList::AllMatch(const BroType* t, int is_init) const
 	return 1;
 	}
 
-void TypeList::Append(BroType* t)
+void TypeList::Append(IntrusivePtr<BroType> t)
 	{
-	if ( pure_type && ! same_type(t, pure_type) )
+	if ( pure_type && ! same_type(t.get(), pure_type.get()) )
 		reporter->InternalError("pure type-list violation");
 
-	types.push_back(t);
+	types.push_back(t.release());
 	}
 
-void TypeList::AppendEvenIfNotPure(BroType* t)
+void TypeList::AppendEvenIfNotPure(IntrusivePtr<BroType> t)
 	{
-	if ( pure_type && ! same_type(t, pure_type) )
-		{
-		Unref(pure_type);
-		pure_type = 0;
-		}
+	if ( pure_type && ! same_type(t.get(), pure_type.get()) )
+		pure_type = nullptr;
 
-	types.push_back(t);
+	types.push_back(t.release());
 	}
 
 void TypeList::Describe(ODesc* d) const
@@ -220,11 +215,7 @@ unsigned int TypeList::MemoryAllocation() const
 		+ types.MemoryAllocation() - padded_sizeof(types);
 	}
 
-IndexType::~IndexType()
-	{
-	Unref(indices);
-	Unref(yield_type);
-	}
+IndexType::~IndexType() = default;
 
 int IndexType::MatchesIndex(ListExpr* const index) const
 	{
@@ -242,12 +233,12 @@ int IndexType::MatchesIndex(ListExpr* const index) const
 
 BroType* IndexType::YieldType()
 	{
-	return yield_type;
+	return yield_type.get();
 	}
 
 const BroType* IndexType::YieldType() const
 	{
-	return yield_type;
+	return yield_type.get();
 	}
 
 void IndexType::Describe(ODesc* d) const
@@ -326,8 +317,8 @@ bool IndexType::IsSubNetIndex() const
 	return false;
 	}
 
-TableType::TableType(TypeList* ind, BroType* yield)
-: IndexType(TYPE_TABLE, ind, yield)
+TableType::TableType(IntrusivePtr<TypeList> ind, IntrusivePtr<BroType> yield)
+	: IndexType(TYPE_TABLE, std::move(ind), std::move(yield))
 	{
 	if ( ! indices )
 		return;
@@ -355,11 +346,6 @@ TableType::TableType(TypeList* ind, BroType* yield)
 
 TableType* TableType::ShallowClone()
 	{
-	if ( indices )
-		indices->Ref();
-	if ( yield_type )
-		yield_type->Ref();
-
 	return new TableType(indices, yield_type);
 	}
 
@@ -377,20 +363,20 @@ TypeList* TableType::ExpandRecordIndex(RecordType* rt) const
 	for ( int i = 0; i < n; ++i )
 		{
 		TypeDecl* td = rt->FieldDecl(i);
-		tl->Append(td->type->Ref());
+		tl->Append(td->type);
 		}
 
 	return tl;
 	}
 
-SetType::SetType(TypeList* ind, ListExpr* arg_elements) : TableType(ind, 0)
+SetType::SetType(IntrusivePtr<TypeList> ind, IntrusivePtr<ListExpr> arg_elements)
+	: TableType(std::move(ind), nullptr), elements(std::move(arg_elements))
 	{
-	elements = arg_elements;
 	if ( elements )
 		{
 		if ( indices )
 			{ // We already have a type.
-			if ( ! check_and_promote_exprs(elements, indices) )
+			if ( ! check_and_promote_exprs(elements.get(), indices.get()) )
 				SetError();
 			}
 		else
@@ -406,21 +392,17 @@ SetType::SetType(TypeList* ind, ListExpr* arg_elements) : TableType(ind, 0)
 
 			else if ( tl->length() == 1 )
 				{
-				BroType* t = flatten_type((*tl)[0]->Ref());
-				indices = new TypeList(t);
-				indices->Append(t->Ref());
+				IntrusivePtr<BroType> ft{NewRef{}, flatten_type((*tl)[0])};
+				indices = make_intrusive<TypeList>(ft);
+				indices->Append(std::move(ft));
 				}
 
 			else
 				{
-				BroType* t = merge_types((*tl)[0], (*tl)[1]);
+				auto t = merge_types((*tl)[0], (*tl)[1]);
 
 				for ( int i = 2; t && i < tl->length(); ++i )
-					{
-					BroType* t_new = merge_types(t, (*tl)[i]);
-					Unref(t);
-					t = t_new;
-					}
+					t = merge_types(t.get(), (*tl)[i]);
 
 				if ( ! t )
 					{
@@ -428,8 +410,8 @@ SetType::SetType(TypeList* ind, ListExpr* arg_elements) : TableType(ind, 0)
 					return;
 					}
 
-				indices = new TypeList(t);
-				indices->Append(t);
+				indices = make_intrusive<TypeList>(t);
+				indices->Append(std::move(t));
 				}
 			}
 		}
@@ -437,28 +419,17 @@ SetType::SetType(TypeList* ind, ListExpr* arg_elements) : TableType(ind, 0)
 
 SetType* SetType::ShallowClone()
 	{
-	if ( elements )
-		elements->Ref();
-
-	if ( indices )
-		indices->Ref();
-
 	return new SetType(indices, elements);
 	}
 
-SetType::~SetType()
-	{
-	Unref(elements);
-	}
+SetType::~SetType() = default;
 
-FuncType::FuncType(RecordType* arg_args, BroType* arg_yield, function_flavor arg_flavor)
-: BroType(TYPE_FUNC)
+FuncType::FuncType(IntrusivePtr<RecordType> arg_args,
+                   IntrusivePtr<BroType> arg_yield, function_flavor arg_flavor)
+	: BroType(TYPE_FUNC), args(std::move(arg_args)),
+	  arg_types(make_intrusive<TypeList>()), yield(std::move(arg_yield))
 	{
-	args = arg_args;
-	yield = arg_yield;
 	flavor = arg_flavor;
-
-	arg_types = new TypeList();
 
 	bool has_default_arg = false;
 
@@ -476,16 +447,16 @@ FuncType::FuncType(RecordType* arg_args, BroType* arg_yield, function_flavor arg
 			args->Error(err_str);
 			}
 
-		arg_types->Append(args->FieldType(i)->Ref());
+		arg_types->Append({NewRef{}, args->FieldType(i)});
 		}
 	}
 
 FuncType* FuncType::ShallowClone()
 	{
 	auto f = new FuncType();
-	f->args = args->Ref()->AsRecordType();
-	f->arg_types = arg_types->Ref()->AsTypeList();
-	f->yield = yield->Ref();
+	f->args = {NewRef{}, args->AsRecordType()};
+	f->arg_types = {NewRef{}, arg_types->AsTypeList()};
+	f->yield = yield;
 	f->flavor = flavor;
 	return f;
 	}
@@ -509,26 +480,21 @@ string FuncType::FlavorString() const
 	}
 	}
 
-FuncType::~FuncType()
-	{
-	Unref(args);
-	Unref(arg_types);
-	Unref(yield);
-	}
+FuncType::~FuncType() = default;
 
 BroType* FuncType::YieldType()
 	{
-	return yield;
+	return yield.get();
 	}
 
 const BroType* FuncType::YieldType() const
 	{
-	return yield;
+	return yield.get();
 	}
 
 int FuncType::MatchesIndex(ListExpr* const index) const
 	{
-	return check_and_promote_args(index, args) ?
+	return check_and_promote_args(index, args.get()) ?
 			MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
 	}
 
@@ -606,28 +572,23 @@ void FuncType::DescribeReST(ODesc* d, bool roles_only) const
 		}
 	}
 
-TypeDecl::TypeDecl(BroType* t, const char* i, attr_list* arg_attrs, bool in_record)
+TypeDecl::TypeDecl(IntrusivePtr<BroType> t, const char* i, attr_list* arg_attrs, bool in_record)
+	: type(std::move(t)),
+	  attrs(arg_attrs ? make_intrusive<Attributes>(arg_attrs, type, in_record, false) : nullptr),
+	  id(i)
 	{
-	type = t;
-	attrs = arg_attrs ? new Attributes(arg_attrs, t, in_record, false) : 0;
-	id = i;
 	}
 
 TypeDecl::TypeDecl(const TypeDecl& other)
 	{
-	type = other.type->Ref();
+	type = other.type;
 	attrs = other.attrs;
-
-	if ( attrs )
-		::Ref(attrs);
 
 	id = copy_string(other.id);
 	}
 
 TypeDecl::~TypeDecl()
 	{
-	Unref(type);
-	Unref(attrs);
 	delete [] id;
 	}
 
@@ -692,19 +653,19 @@ BroType* RecordType::FieldType(const char* field) const
 
 BroType* RecordType::FieldType(int field) const
 	{
-	return (*types)[field]->type;
+	return (*types)[field]->type.get();
 	}
 
-Val* RecordType::FieldDefault(int field) const
+IntrusivePtr<Val> RecordType::FieldDefault(int field) const
 	{
 	const TypeDecl* td = FieldDecl(field);
 
 	if ( ! td->attrs )
-		return 0;
+		return nullptr;
 
 	const Attr* def_attr = td->attrs->FindAttr(ATTR_DEFAULT);
 
-	return def_attr ? def_attr->AttrExpr()->Eval(nullptr).release() : nullptr;
+	return def_attr ? def_attr->AttrExpr()->Eval(nullptr) : nullptr;
 	}
 
 int RecordType::FieldOffset(const char* field) const
@@ -806,9 +767,9 @@ static string container_type_name(const BroType* ft)
 	return s;
 	}
 
-TableVal* RecordType::GetRecordFieldsVal(const RecordVal* rv) const
+IntrusivePtr<TableVal> RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 	{
-	auto rval = new TableVal(internal_type("record_field_table")->AsTableType());
+	auto rval = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, internal_type("record_field_table")->AsTableType()});
 
 	for ( int i = 0; i < NumFields(); ++i )
 		{
@@ -824,15 +785,15 @@ TableVal* RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 
 		bool logged = (fd->attrs && fd->FindAttr(ATTR_LOG) != 0);
 
-		RecordVal* nr = new RecordVal(internal_type("record_field")->AsRecordType());
+		auto nr = make_intrusive<RecordVal>(internal_type("record_field")->AsRecordType());
 
 		string s = container_type_name(ft);
-		nr->Assign(0, new StringVal(s));
+		nr->Assign(0, make_intrusive<StringVal>(s));
 		nr->Assign(1, val_mgr->GetBool(logged));
 		nr->Assign(2, fv);
 		nr->Assign(3, FieldDefault(i));
 		Val* field_name = new StringVal(FieldName(i));
-		rval->Assign(field_name, nr);
+		rval->Assign(field_name, std::move(nr));
 		Unref(field_name);
 		}
 
@@ -863,9 +824,9 @@ const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)
 		if ( log )
 			{
 			if ( ! td->attrs )
-				td->attrs = new Attributes(new attr_list, td->type, true, false);
+				td->attrs = make_intrusive<Attributes>(new attr_list, td->type, true, false);
 
-			td->attrs->AddAttr(new Attr(ATTR_LOG));
+			td->attrs->AddAttr(make_intrusive<Attr>(ATTR_LOG));
 			}
 
 		types->push_back(td);
@@ -874,7 +835,7 @@ const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)
 	delete others;
 
 	num_fields = types->length();
-	return 0;
+	return nullptr;
 	}
 
 void RecordType::DescribeFields(ODesc* d) const
@@ -890,7 +851,7 @@ void RecordType::DescribeFields(ODesc* d) const
 			d->Add(td->id);
 			d->Add(":");
 
-			if ( d->FindType(td->type) )
+			if ( d->FindType(td->type.get()) )
 				d->Add("<recursion>");
 			else
 				td->type->Describe(d);
@@ -936,7 +897,7 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 
 		const TypeDecl* td = FieldDecl(i);
 
-		if ( d->FindType(td->type) )
+		if ( d->FindType(td->type.get()) )
 			d->Add("<recursion>");
 		else
 			{
@@ -1046,20 +1007,16 @@ void SubNetType::Describe(ODesc* d) const
 		d->Add(int(Tag()));
 	}
 
-FileType::FileType(BroType* yield_type)
-: BroType(TYPE_FILE)
+FileType::FileType(IntrusivePtr<BroType> yield_type)
+	: BroType(TYPE_FILE), yield(std::move(yield_type))
 	{
-	yield = yield_type;
 	}
 
-FileType::~FileType()
-	{
-	Unref(yield);
-	}
+FileType::~FileType() = default;
 
 BroType* FileType::YieldType()
 	{
-	return yield;
+	return yield.get();
 	}
 
 void FileType::Describe(ODesc* d) const
@@ -1104,18 +1061,10 @@ EnumType::EnumType(const string& name)
 	}
 
 EnumType::EnumType(const EnumType* e)
-	: BroType(TYPE_ENUM)
+	: BroType(TYPE_ENUM), names(e->names), vals(e->vals)
 	{
 	counter = e->counter;
 	SetName(e->GetName());
-
-	for ( auto it = e->names.begin(); it != e->names.end(); ++it )
-		names[it->first] = it->second;
-
-	vals = e->vals;
-
-	for ( auto& kv : vals )
-		::Ref(kv.second);
 	}
 
 EnumType* EnumType::ShallowClone()
@@ -1126,11 +1075,7 @@ EnumType* EnumType::ShallowClone()
 	return new EnumType(this);
 	}
 
-EnumType::~EnumType()
-	{
-	for ( auto& kv : vals )
-		Unref(kv.second);
-	}
+EnumType::~EnumType() = default;
 
 // Note, we use reporter->Error() here (not Error()) to include the current script
 // location in the error message, rather than the one where the type was
@@ -1180,7 +1125,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		id->SetEnumConst();
 
 		if ( deprecation )
-			id->MakeDeprecated(deprecation);
+			id->MakeDeprecated({NewRef{}, deprecation});
 
 		zeekygen_mgr->Identifier(std::move(id));
 		}
@@ -1203,7 +1148,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 	AddNameInternal(module_name, name, val, is_export);
 
 	if ( vals.find(val) == vals.end() )
-		vals[val] = new EnumVal(this, val);
+		vals[val] = IntrusivePtr{AdoptRef{}, new EnumVal(this, val)};
 
 	set<BroType*> types = BroType::GetAliases(GetName());
 	set<BroType*>::const_iterator it;
@@ -1239,7 +1184,7 @@ const char* EnumType::Lookup(bro_int_t value) const
 		if ( iter->second == value )
 			return iter->first.c_str();
 
-	return 0;
+	return nullptr;
 	}
 
 EnumType::enum_name_list EnumType::Names() const
@@ -1252,20 +1197,19 @@ EnumType::enum_name_list EnumType::Names() const
 	return n;
 	}
 
-EnumVal* EnumType::GetVal(bro_int_t i)
+IntrusivePtr<EnumVal> EnumType::GetVal(bro_int_t i)
 	{
 	auto it = vals.find(i);
-	EnumVal* rval;
+	IntrusivePtr<EnumVal> rval;
 
 	if ( it == vals.end() )
 		{
-		rval = new EnumVal(this, i);
+		rval = IntrusivePtr{AdoptRef{}, new EnumVal(this, i)};
 		vals[i] = rval;
 		}
 	else
 		rval = it->second;
 
-	::Ref(rval);
 	return rval;
 	}
 
@@ -1346,23 +1290,17 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 		}
 	}
 
-VectorType::VectorType(BroType* element_type)
-    : BroType(TYPE_VECTOR), yield_type(element_type)
+VectorType::VectorType(IntrusivePtr<BroType> element_type)
+	: BroType(TYPE_VECTOR), yield_type(std::move(element_type))
 	{
 	}
 
 VectorType* VectorType::ShallowClone()
 	{
-	if ( yield_type )
-		yield_type->Ref();
-
 	return new VectorType(yield_type);
 	}
 
-VectorType::~VectorType()
-	{
-	Unref(yield_type);
-	}
+VectorType::~VectorType() = default;
 
 BroType* VectorType::YieldType()
 	{
@@ -1371,14 +1309,9 @@ BroType* VectorType::YieldType()
 	// return any as that's what other code historically expects for type
 	// comparisions.
 	if ( IsUnspecifiedVector() )
-		{
-		BroType* ret = ::base_type(TYPE_ANY);
-		Unref(ret); // unref, because this won't be held by anyone.
-		assert(ret);
-		return ret;
-		}
+		return base_type_no_ref(TYPE_ANY);
 
-	return yield_type;
+	return yield_type.get();
 	}
 
 const BroType* VectorType::YieldType() const
@@ -1389,13 +1322,13 @@ const BroType* VectorType::YieldType() const
 	// comparisions.
 	if ( IsUnspecifiedVector() )
 		{
-		BroType* ret = ::base_type(TYPE_ANY);
-		Unref(ret); // unref, because this won't be held by anyone.
+		auto ret = ::base_type(TYPE_ANY);
 		assert(ret);
-		return ret;
+		// release, because this won't be held by anyone.
+		return ret.release();
 		}
 
-	return yield_type;
+	return yield_type.get();
 	}
 
 int VectorType::MatchesIndex(ListExpr* const index) const
@@ -1587,7 +1520,7 @@ int same_type(const BroType* t1, const BroType* t2, int is_init, bool match_reco
 			const TypeDecl* td2 = rt2->FieldDecl(i);
 
 			if ( (match_record_field_names && ! streq(td1->id, td2->id)) ||
-			     ! same_type(td1->type, td2->type, is_init, match_record_field_names) )
+			     ! same_type(td1->type.get(), td2->type.get(), is_init, match_record_field_names) )
 				return 0;
 			}
 
@@ -1767,7 +1700,7 @@ TypeTag max_type(TypeTag t1, TypeTag t2)
 		}
 	}
 
-BroType* merge_types(const BroType* t1, const BroType* t2)
+IntrusivePtr<BroType> merge_types(const BroType* t1, const BroType* t2)
 	{
 	t1 = flatten_type(t1);
 	t2 = flatten_type(t2);
@@ -1781,7 +1714,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 	if ( tg1 != tg2 )
 		{
 		t1->Error("incompatible types", t2);
-		return 0;
+		return nullptr;
 		}
 
 	switch ( tg1 ) {
@@ -1808,7 +1741,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 			                      t1->GetName().data(), t2->GetName().data());
 
 			t1->Error(msg.data(), t2);
-			return 0;
+			return nullptr;
 			}
 
 		// Doing a lookup here as a roundabout way of ref-ing t1, without
@@ -1821,14 +1754,14 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 			// than a copy since it may be redef'd later in parsing.  If we
 			// return a copy, then whoever is using this return value won't
 			// actually see those changes from the redef.
-			return id->AsType()->Ref();
+			return {NewRef{}, id->AsType()};
 
 		std::string msg = fmt("incompatible enum types: '%s' and '%s'"
 		                      " ('%s' enum type ID is invalid)",
 		                      t1->GetName().data(), t2->GetName().data(),
 		                      t1->GetName().data());
 		t1->Error(msg.data(), t2);
-		return 0;
+		return nullptr;
 		}
 
 	case TYPE_TABLE:
@@ -1838,56 +1771,49 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 
 		const type_list* tl1 = it1->IndexTypes();
 		const type_list* tl2 = it2->IndexTypes();
-		TypeList* tl3 = 0;
+		IntrusivePtr<TypeList> tl3;
 
 		if ( tl1 || tl2 )
 			{
 			if ( ! tl1 || ! tl2 || tl1->length() != tl2->length() )
 				{
 				t1->Error("incompatible types", t2);
-				return 0;
+				return nullptr;
 				}
 
-			tl3 = new TypeList();
+			tl3 = make_intrusive<TypeList>();
 
 			loop_over_list(*tl1, i)
 				{
-				BroType* tl3_i = merge_types((*tl1)[i], (*tl2)[i]);
+				auto tl3_i = merge_types((*tl1)[i], (*tl2)[i]);
 				if ( ! tl3_i )
-					{
-					Unref(tl3);
-					return 0;
-					}
+					return nullptr;
 
-				tl3->Append(tl3_i);
+				tl3->Append(std::move(tl3_i));
 				}
 			}
 
 		const BroType* y1 = t1->YieldType();
 		const BroType* y2 = t2->YieldType();
-		BroType* y3 = 0;
+		IntrusivePtr<BroType> y3;
 
 		if ( y1 || y2 )
 			{
 			if ( ! y1 || ! y2 )
 				{
 				t1->Error("incompatible types", t2);
-				Unref(tl3);
-				return 0;
+				return nullptr;
 				}
 
 			y3 = merge_types(y1, y2);
 			if ( ! y3 )
-				{
-				Unref(tl3);
-				return 0;
-				}
+				return nullptr;
 			}
 
 		if ( t1->IsSet() )
-			return new SetType(tl3, 0);
+			return make_intrusive<SetType>(std::move(tl3), nullptr);
 		else
-			return new TableType(tl3, y3);
+			return make_intrusive<TableType>(std::move(tl3), std::move(y3));
 		}
 
 	case TYPE_FUNC:
@@ -1895,16 +1821,17 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 		if ( ! same_type(t1, t2) )
 			{
 			t1->Error("incompatible types", t2);
-			return 0;
+			return nullptr;
 			}
 
 		const FuncType* ft1 = (const FuncType*) t1;
 		const FuncType* ft2 = (const FuncType*) t1;
-		BroType* args = merge_types(ft1->Args(), ft2->Args());
-		BroType* yield = t1->YieldType() ?
-			merge_types(t1->YieldType(), t2->YieldType()) : 0;
+		auto args = merge_types(ft1->Args(), ft2->Args());
+		auto yield = t1->YieldType() ?
+			merge_types(t1->YieldType(), t2->YieldType()) : nullptr;
 
-		return new FuncType(args->AsRecordType(), yield, ft1->Flavor());
+		return make_intrusive<FuncType>(IntrusivePtr{AdoptRef{}, args.release()->AsRecordType()},
+		                                std::move(yield), ft1->Flavor());
 		}
 
 	case TYPE_RECORD:
@@ -1913,7 +1840,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 		const RecordType* rt2 = (const RecordType*) t2;
 
 		if ( rt1->NumFields() != rt2->NumFields() )
-			return 0;
+			return nullptr;
 
 		type_decl_list* tdl3 = new type_decl_list(rt1->NumFields());
 
@@ -1921,20 +1848,19 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 			{
 			const TypeDecl* td1 = rt1->FieldDecl(i);
 			const TypeDecl* td2 = rt2->FieldDecl(i);
-			BroType* tdl3_i = merge_types(td1->type, td2->type);
+			auto tdl3_i = merge_types(td1->type.get(), td2->type.get());
 
 			if ( ! streq(td1->id, td2->id) || ! tdl3_i )
 				{
 				t1->Error("incompatible record fields", t2);
 				delete tdl3;
-				Unref(tdl3_i);
-				return 0;
+				return nullptr;
 				}
 
-			tdl3->push_back(new TypeDecl(tdl3_i, copy_string(td1->id)));
+			tdl3->push_back(new TypeDecl(std::move(tdl3_i), copy_string(td1->id)));
 			}
 
-		return new RecordType(tdl3);
+		return make_intrusive<RecordType>(tdl3);
 		}
 
 	case TYPE_LIST:
@@ -1945,7 +1871,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 		if ( tl1->IsPure() != tl2->IsPure() )
 			{
 			tl1->Error("incompatible lists", tl2);
-			return 0;
+			return nullptr;
 			}
 
 		const type_list* l1 = tl1->Types();
@@ -1957,7 +1883,7 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 				tl1->Error("empty list");
 			else
 				tl2->Error("empty list");
-			return 0;
+			return nullptr;
 			}
 
 		if ( tl1->IsPure() )
@@ -1974,10 +1900,10 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 		if ( l1->length() != l2->length() )
 			{
 			tl1->Error("different number of indices", tl2);
-			return 0;
+			return nullptr;
 			}
 
-		TypeList* tl3 = new TypeList();
+		auto tl3 = make_intrusive<TypeList>();
 		loop_over_list(*l1, i)
 			tl3->Append(merge_types((*l1)[i], (*l2)[i]));
 
@@ -1988,31 +1914,31 @@ BroType* merge_types(const BroType* t1, const BroType* t2)
 		if ( ! same_type(t1->YieldType(), t2->YieldType()) )
 			{
 			t1->Error("incompatible types", t2);
-			return 0;
+			return nullptr;
 			}
 
-		return new VectorType(merge_types(t1->YieldType(), t2->YieldType()));
+		return make_intrusive<VectorType>(merge_types(t1->YieldType(), t2->YieldType()));
 
 	case TYPE_FILE:
 		if ( ! same_type(t1->YieldType(), t2->YieldType()) )
 			{
 			t1->Error("incompatible types", t2);
-			return 0;
+			return nullptr;
 			}
 
-		return new FileType(merge_types(t1->YieldType(), t2->YieldType()));
+		return make_intrusive<FileType>(merge_types(t1->YieldType(), t2->YieldType()));
 
 	case TYPE_UNION:
 		reporter->InternalError("union type in merge_types()");
-		return 0;
+		return nullptr;
 
 	default:
 		reporter->InternalError("bad type in merge_types()");
-		return 0;
+		return nullptr;
 	}
 	}
 
-BroType* merge_type_list(ListExpr* elements)
+IntrusivePtr<BroType> merge_type_list(ListExpr* elements)
 	{
 	TypeList* tl_type = elements->Type()->AsTypeList();
 	type_list* tl = tl_type->Types();
@@ -2020,20 +1946,16 @@ BroType* merge_type_list(ListExpr* elements)
 	if ( tl->length() < 1 )
 		{
 		reporter->Error("no type can be inferred for empty list");
-		return 0;
+		return nullptr;
 		}
 
-	BroType* t = (*tl)[0]->Ref();
+	IntrusivePtr<BroType> t{NewRef{}, (*tl)[0]};
 
 	if ( tl->length() == 1 )
 		return t;
 
 	for ( int i = 1; t && i < tl->length(); ++i )
-		{
-		BroType* t_new = merge_types(t, (*tl)[i]);
-		Unref(t);
-		t = t_new;
-		}
+		t = merge_types(t.get(), (*tl)[i]);
 
 	if ( ! t )
 		reporter->Error("inconsistent types in list");
@@ -2060,7 +1982,7 @@ static BroType* reduce_type(BroType* t)
 		return t;
 	}
 
-BroType* init_type(Expr* init)
+IntrusivePtr<BroType> init_type(Expr* init)
 	{
 	if ( init->Tag() != EXPR_LIST )
 		{
@@ -2076,7 +1998,7 @@ BroType* init_type(Expr* init)
 			return nullptr;
 			}
 
-		return t.release();
+		return t;
 		}
 
 	ListExpr* init_list = init->AsListExpr();
@@ -2094,7 +2016,7 @@ BroType* init_type(Expr* init)
 	if ( e0->IsRecordElement(0) )
 		// ListExpr's know how to build a record from their
 		// components.
-		return init_list->InitType().release();
+		return init_list->InitType();
 
 	auto t = e0->InitType();
 
@@ -2115,7 +2037,7 @@ BroType* init_type(Expr* init)
 		if ( same_type(t.get(), ti) )
 			continue;
 
-		t = IntrusivePtr<BroType>{AdoptRef{}, merge_types(t.get(), ti)};
+		t = merge_types(t.get(), ti);
 		}
 
 	if ( ! t )
@@ -2126,18 +2048,18 @@ BroType* init_type(Expr* init)
 
 	if ( t->Tag() == TYPE_TABLE && ! t->AsTableType()->IsSet() )
 		// A list of table elements.
-		return t.release();
+		return t;
 
 	// A set.  If the index type isn't yet a type list, make
 	// it one, as that's what's required for creating a set type.
 	if ( t->Tag() != TYPE_LIST )
 		{
-		auto tl = make_intrusive<TypeList>(t.get()->Ref());
-		tl->Append(t.release());
+		auto tl = make_intrusive<TypeList>(t);
+		tl->Append(std::move(t));
 		t = std::move(tl);
 		}
 
-	return new SetType(t.release()->AsTypeList(), 0);
+	return make_intrusive<SetType>(IntrusivePtr{AdoptRef{}, t.release()->AsTypeList()}, nullptr);
 	}
 
 bool is_atomic_type(const BroType* t)

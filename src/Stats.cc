@@ -252,7 +252,7 @@ void ProfileLogger::Log()
 
 		for ( const auto& global : globals )
 			{
-			ID* id = global.second;
+			ID* id = global.second.get();
 
 			// We don't show/count internal globals as they are always
 			// contained in some other global user-visible container.
@@ -345,7 +345,7 @@ SampleLogger::SampleLogger()
 	if ( ! load_sample_info )
 		load_sample_info = internal_type("load_sample_info")->AsTableType();
 
-	load_samples = new TableVal(load_sample_info);
+	load_samples = new TableVal({NewRef{}, load_sample_info});
 	}
 
 SampleLogger::~SampleLogger()

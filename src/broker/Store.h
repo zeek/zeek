@@ -28,7 +28,7 @@ inline RecordVal* query_result()
 	{
 	auto rval = new RecordVal(BifType::Record::Broker::QueryResult);
 	rval->Assign(0, query_status(false));
-	rval->Assign(1, new RecordVal(BifType::Record::Broker::Data));
+	rval->Assign(1, make_intrusive<RecordVal>(BifType::Record::Broker::Data));
 	return rval;
 	}
 

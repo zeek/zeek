@@ -270,7 +270,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			if ( parts.size() > 0 && parts[0][0] == ':' )
 				parts[0] = parts[0].substr(1);
 
-			TableVal* set = new TableVal(string_set);
+			TableVal* set = new TableVal({NewRef{}, string_set});
 
 			for ( unsigned int i = 0; i < parts.size(); ++i )
 				{
@@ -463,7 +463,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			if ( parts.size() > 0 && parts[0][0] == ':' )
 				parts[0] = parts[0].substr(1);
 
-			TableVal* set = new TableVal(string_set);
+			TableVal* set = new TableVal({NewRef{}, string_set});
 
 			for ( unsigned int i = 0; i < parts.size(); ++i )
 				{
@@ -841,7 +841,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				nickname = prefix.substr(0, pos);
 			}
 
-		TableVal* list = new TableVal(irc_join_list);
+		TableVal* list = new TableVal({NewRef{}, irc_join_list});
 
 		vector<string> channels = SplitWords(parts[0], ',');
 		vector<string> passwords;
@@ -853,14 +853,14 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		for ( unsigned int i = 0; i < channels.size(); ++i )
 			{
 			RecordVal* info = new RecordVal(irc_join_info);
-			info->Assign(0, new StringVal(nickname.c_str()));
-			info->Assign(1, new StringVal(channels[i].c_str()));
+			info->Assign(0, make_intrusive<StringVal>(nickname.c_str()));
+			info->Assign(1, make_intrusive<StringVal>(channels[i].c_str()));
 			if ( i < passwords.size() )
-				info->Assign(2, new StringVal(passwords[i].c_str()));
+				info->Assign(2, make_intrusive<StringVal>(passwords[i].c_str()));
 			else
-				info->Assign(2, new StringVal(empty_string.c_str()));
+				info->Assign(2, make_intrusive<StringVal>(empty_string.c_str()));
 			// User mode.
-			info->Assign(3, new StringVal(empty_string.c_str()));
+			info->Assign(3, make_intrusive<StringVal>(empty_string.c_str()));
 			list->Assign(info, 0);
 			Unref(info);
 			}
@@ -886,7 +886,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			parts[1] = parts[1].substr(1);
 
 		vector<string> users = SplitWords(parts[1], ',');
-		TableVal* list = new TableVal(irc_join_list);
+		TableVal* list = new TableVal({NewRef{}, irc_join_list});
 
 		string empty_string = "";
 
@@ -916,12 +916,12 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				mode = "voice";
 				}
 
-			info->Assign(0, new StringVal(nick.c_str()));
-			info->Assign(1, new StringVal(channel.c_str()));
+			info->Assign(0, make_intrusive<StringVal>(nick.c_str()));
+			info->Assign(1, make_intrusive<StringVal>(channel.c_str()));
 			// Password:
-			info->Assign(2, new StringVal(empty_string.c_str()));
+			info->Assign(2, make_intrusive<StringVal>(empty_string.c_str()));
 			// User mode:
-			info->Assign(3, new StringVal(mode.c_str()));
+			info->Assign(3, make_intrusive<StringVal>(mode.c_str()));
 			list->Assign(info, 0);
 			Unref(info);
 			}
@@ -957,7 +957,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			nick = nick.substr(0, pos);
 
 		vector<string> channelList = SplitWords(channels, ',');
-		TableVal* set = new TableVal(string_set);
+		TableVal* set = new TableVal({NewRef{}, string_set});
 
 		for ( unsigned int i = 0; i < channelList.size(); ++i )
 			{

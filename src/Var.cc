@@ -64,7 +64,7 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 	if ( id->Type() && id->Type()->Tag() != TYPE_ERROR )
 		{
 		if ( dt != VAR_REDEF &&
-		     (! init || ! do_init || (! t && ! (t = {AdoptRef{}, init_type(init.get())}))) )
+		     (! init || ! do_init || (! t && ! (t = init_type(init.get())))) )
 			{
 			id->Error("already defined", init.get());
 			return;
@@ -103,10 +103,10 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 			return;
 			}
 
-		t = {AdoptRef{}, init_type(init.get())};
+		t = init_type(init.get());
 		if ( ! t )
 			{
-			id->SetType({AdoptRef{}, error_type()});
+			id->SetType(error_type());
 			return;
 			}
 		}
@@ -114,7 +114,7 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 	id->SetType(t);
 
 	if ( attr )
-		id->AddAttrs(make_intrusive<Attributes>(attr, t.get(), false, id->IsGlobal()));
+		id->AddAttrs(make_intrusive<Attributes>(attr, t, false, id->IsGlobal()));
 
 	if ( init )
 		{
@@ -168,7 +168,8 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 				}
 
 			else if ( t->Tag() == TYPE_TABLE )
-				aggr = make_intrusive<TableVal>(t->AsTableType(), id->Attrs());
+				aggr = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, t->AsTableType()},
+				                                IntrusivePtr{NewRef{}, id->Attrs()});
 
 			else if ( t->Tag() == TYPE_VECTOR )
 				aggr = make_intrusive<VectorVal>(t->AsVectorType());
@@ -254,7 +255,7 @@ IntrusivePtr<Stmt> add_local(IntrusivePtr<ID> id, IntrusivePtr<BroType> t,
 
 	else
 		{
-		current_scope()->AddInit(id.release());
+		current_scope()->AddInit(std::move(id));
 		return make_intrusive<NullStmt>();
 		}
 	}
@@ -294,7 +295,7 @@ void add_type(ID* id, IntrusivePtr<BroType> t, attr_list* attr)
 	id->MakeType();
 
 	if ( attr )
-		id->SetAttrs(make_intrusive<Attributes>(attr, tnew.get(), false, false));
+		id->SetAttrs(make_intrusive<Attributes>(attr, tnew, false, false));
 	}
 
 static void transfer_arg_defaults(RecordType* args, RecordType* recv)
@@ -312,11 +313,11 @@ static void transfer_arg_defaults(RecordType* args, RecordType* recv)
 		if ( ! recv_i->attrs )
 			{
 			attr_list* a = new attr_list{def};
-			recv_i->attrs = new Attributes(a, recv_i->type, true, false);
+			recv_i->attrs = make_intrusive<Attributes>(a, recv_i->type, true, false);
 			}
 
 		else if ( ! recv_i->attrs->FindAttr(ATTR_DEFAULT) )
-			recv_i->attrs->AddAttr(def);
+			recv_i->attrs->AddAttr({NewRef{}, def});
 		}
 	}
 
@@ -394,7 +395,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 	else
 		id->SetType(t);
 
-	push_scope(id, attrs);
+	push_scope({NewRef{}, id}, attrs);
 
 	RecordType* args = t->Args();
 	int num_args = args->NumFields();
@@ -408,11 +409,11 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 			arg_id->Error("argument name used twice");
 
 		arg_id = install_ID(arg_i->id, module_name, false, false);
-		arg_id->SetType({NewRef{}, arg_i->type});
+		arg_id->SetType(arg_i->type);
 		}
 
 	if ( Attr* depr_attr = find_attr(attrs, ATTR_DEPRECATED) )
-		id->MakeDeprecated(depr_attr->AttrExpr());
+		id->MakeDeprecated({NewRef{}, depr_attr->AttrExpr()});
 	}
 
 class OuterIDBindingFinder : public TraversalCallback {
@@ -473,12 +474,11 @@ TraversalCode OuterIDBindingFinder::PostExpr(const Expr* expr)
 
 void end_func(IntrusivePtr<Stmt> body)
 	{
-	auto ingredients = std::make_unique<function_ingredients>(
-	        pop_scope().release(), body.release());
+	auto ingredients = std::make_unique<function_ingredients>(pop_scope(), std::move(body));
 
 	if ( streq(ingredients->id->Name(), "anonymous-function") )
 		{
-		OuterIDBindingFinder cb(ingredients->scope);
+		OuterIDBindingFinder cb(ingredients->scope.get());
 		ingredients->body->Traverse(&cb);
 
 		for ( size_t i = 0; i < cb.outer_id_references.size(); ++i )
@@ -495,7 +495,7 @@ void end_func(IntrusivePtr<Stmt> body)
 	else
 		{
 		Func* f = new BroFunc(
-			ingredients->id,
+			ingredients->id.get(),
 			ingredients->body,
 			ingredients->inits,
 			ingredients->frame_size,

@@ -71,13 +71,13 @@ BroFile::BroFile(FILE* arg_f, const char* arg_name, const char* arg_access)
 	is_open = (f != 0);
 	}
 
-BroFile::BroFile(const char* arg_name, const char* arg_access, BroType* arg_t)
+BroFile::BroFile(const char* arg_name, const char* arg_access)
 	{
 	Init();
 	f = 0;
 	name = copy_string(arg_name);
 	access = copy_string(arg_access);
-	t = arg_t ? arg_t : base_type(TYPE_STRING);
+	t = base_type(TYPE_STRING);
 
 	if ( streq(name, "/dev/stdin") )
 		f = stdin;
@@ -154,7 +154,6 @@ bool BroFile::Open(FILE* file, const char* mode)
 BroFile::~BroFile()
 	{
 	Close();
-	Unref(t);
 	Unref(attrs);
 
 	delete [] name;
@@ -171,7 +170,6 @@ void BroFile::Init()
 	attrs = 0;
 	buffered = true;
 	raw_output = false;
-	t = 0;
 
 #ifdef USE_PERFTOOLS_DEBUG
 	heap_checker->IgnoreObject(this);
@@ -286,7 +284,7 @@ RecordVal* BroFile::Rotate()
 		return 0;
 		}
 
-	info->Assign(2, new Val(open_time, TYPE_TIME));
+	info->Assign(2, make_intrusive<Val>(open_time, TYPE_TIME));
 
 	Unlink();
 
@@ -355,6 +353,6 @@ BroFile* BroFile::GetFile(const char* name)
 			}
 		}
 
-	return new BroFile(name, "w", 0);
+	return new BroFile(name, "w");
 	}
 

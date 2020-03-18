@@ -32,9 +32,9 @@ using namespace file_analysis;
 
 #define OCSP_STRING_BUF_SIZE 2048
 
-static Val* get_ocsp_type(RecordVal* args, const char* name)
+static IntrusivePtr<Val> get_ocsp_type(RecordVal* args, const char* name)
 	{
-	Val* rval = args->Lookup(name);
+	auto rval = args->Lookup(name);
 
 	if ( ! rval )
 		reporter->Error("File extraction analyzer missing arg field: %s", name);
@@ -624,7 +624,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 
 	//i2a_ASN1_OBJECT(bio, basic_resp->signature);
 	//len = BIO_read(bio, buf, sizeof(buf));
-	//ocsp_resp_record->Assign(7, new StringVal(len, buf));
+	//ocsp_resp_record->Assign(7, make_intrusive<StringVal>(len, buf));
 	//BIO_reset(bio);
 
 	certs_vector = new VectorVal(internal_type("x509_opaque_vector")->AsVectorType());
@@ -644,7 +644,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 			::X509 *this_cert = X509_dup(helper_sk_X509_value(certs, i));
 			//::X509 *this_cert = X509_dup(sk_X509_value(certs, i));
 			if (this_cert)
-				certs_vector->Assign(i, new file_analysis::X509Val(this_cert));
+				certs_vector->Assign(i, make_intrusive<file_analysis::X509Val>(this_cert));
 			else
 				reporter->Weird("OpenSSL returned null certificate");
 			}

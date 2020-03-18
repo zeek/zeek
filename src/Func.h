@@ -4,6 +4,7 @@
 
 #include "BroList.h"
 #include "Obj.h"
+#include "IntrusivePtr.h"
 #include "Type.h" /* for function_flavor */
 #include "TraverseTypes.h"
 
@@ -40,7 +41,7 @@ public:
 	function_flavor Flavor() const	{ return FType()->Flavor(); }
 
 	struct Body {
-		Stmt* stmts;
+		IntrusivePtr<Stmt> stmts;
 		int priority;
 		bool operator<(const Body& other) const
 			{ return priority > other.priority; } // reverse sort
@@ -49,15 +50,14 @@ public:
 	const vector<Body>& GetBodies() const	{ return bodies; }
 	bool HasBodies() const	{ return bodies.size(); }
 
-	// virtual Val* Call(ListExpr* args) const = 0;
-	virtual Val* Call(val_list* args, Frame* parent = 0) const = 0;
+	virtual IntrusivePtr<Val> Call(val_list* args, Frame* parent = 0) const = 0;
 
 	// Add a new event handler to an existing function (event).
-	virtual void AddBody(Stmt* new_body, id_list* new_inits,
-			     size_t new_frame_size, int priority = 0);
+	virtual void AddBody(IntrusivePtr<Stmt> new_body, id_list* new_inits,
+	                     size_t new_frame_size, int priority = 0);
 
-	virtual void SetScope(Scope* newscope)	{ scope = newscope; }
-	virtual Scope* GetScope() const		{ return scope; }
+	virtual void SetScope(IntrusivePtr<Scope> newscope);
+	virtual Scope* GetScope() const		{ return scope.get(); }
 
 	virtual FuncType* FType() const { return type->AsFuncType(); }
 
@@ -69,7 +69,7 @@ public:
 	void Describe(ODesc* d) const override = 0;
 	virtual void DescribeDebug(ODesc* d, const val_list* args) const;
 
-	virtual Func* DoClone();
+	virtual IntrusivePtr<Func> DoClone();
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const;
 
@@ -87,9 +87,9 @@ protected:
 	std::pair<bool, Val*> HandlePluginResult(std::pair<bool, Val*> plugin_result, val_list* args, function_flavor flavor) const;
 
 	vector<Body> bodies;
-	Scope* scope;
+	IntrusivePtr<Scope> scope;
 	Kind kind;
-	BroType* type;
+	IntrusivePtr<BroType> type;
 	string name;
 	uint32_t unique_id;
 	static vector<Func*> unique_ids;
@@ -98,11 +98,11 @@ protected:
 
 class BroFunc : public Func {
 public:
-	BroFunc(ID* id, Stmt* body, id_list* inits, size_t frame_size, int priority);
+	BroFunc(ID* id, IntrusivePtr<Stmt> body, id_list* inits, size_t frame_size, int priority);
 	~BroFunc() override;
 
 	int IsPure() const override;
-	Val* Call(val_list* args, Frame* parent) const override;
+	IntrusivePtr<Val> Call(val_list* args, Frame* parent) const override;
 
 	/**
 	 * Adds adds a closure to the function. Closures are cloned and
@@ -133,7 +133,7 @@ public:
 	 */
 	broker::expected<broker::data> SerializeClosure() const;
 
-	void AddBody(Stmt* new_body, id_list* new_inits,
+	void AddBody(IntrusivePtr<Stmt> new_body, id_list* new_inits,
 		     size_t new_frame_size, int priority) override;
 
 	/** Sets this function's outer_id list. */
@@ -144,12 +144,12 @@ public:
 
 protected:
 	BroFunc() : Func(BRO_FUNC)	{}
-	Stmt* AddInits(Stmt* body, id_list* inits);
+	IntrusivePtr<Stmt> AddInits(IntrusivePtr<Stmt> body, id_list* inits);
 
 	/**
 	 * Clones this function along with its closures.
 	 */
-	Func* DoClone() override;
+	IntrusivePtr<Func> DoClone() override;
 
 	/**
 	 * Performs a selective clone of *f* using the IDs that were
@@ -177,7 +177,7 @@ public:
 	~BuiltinFunc() override;
 
 	int IsPure() const override;
-	Val* Call(val_list* args, Frame* parent) const override;
+	IntrusivePtr<Val> Call(val_list* args, Frame* parent) const override;
 	built_in_func TheFunc() const	{ return func; }
 
 	void Describe(ODesc* d) const override;
@@ -208,16 +208,16 @@ struct function_ingredients {
 
 	// Gathers all of the information from a scope and a function body needed
 	// to build a function.
-	function_ingredients(Scope* scope, Stmt* body);
+	function_ingredients(IntrusivePtr<Scope> scope, IntrusivePtr<Stmt> body);
 
 	~function_ingredients();
 
-	ID* id;
-	Stmt* body;
+	IntrusivePtr<ID> id;
+	IntrusivePtr<Stmt> body;
 	id_list* inits;
 	int frame_size;
 	int priority;
-	Scope* scope;
+	IntrusivePtr<Scope> scope;
 };
 
 extern vector<CallInfo> call_stack;

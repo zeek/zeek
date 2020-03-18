@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Obj.h"
+#include "IntrusivePtr.h"
 
 #include <list>
 #include <string>
@@ -22,7 +23,7 @@ class BroFile : public BroObj {
 public:
 	explicit BroFile(FILE* arg_f);
 	BroFile(FILE* arg_f, const char* filename, const char* access);
-	BroFile(const char* filename, const char* access, BroType* arg_t = 0);
+	BroFile(const char* filename, const char* access);
 	~BroFile() override;
 
 	const char* Name() const;
@@ -36,7 +37,7 @@ public:
 
 	void SetBuf(bool buffered);	// false=line buffered, true=fully buffered
 
-	BroType* FType() const	{ return t; }
+	BroType* FType() const	{ return t.get(); }
 
 	// Whether the file is open in a general sense; it might
 	// not be open as a Unix file due to our management of
@@ -93,7 +94,7 @@ protected:
 	void RaiseOpenEvent();
 
 	FILE* f;
-	BroType* t;
+	IntrusivePtr<BroType> t;
 	char* name;
 	char* access;
 	int is_open;	// whether the file is open in a general sense

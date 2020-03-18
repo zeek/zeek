@@ -8,6 +8,7 @@
 #include "Type.h"
 #include "EventHandler.h"
 #include "TraverseTypes.h"
+#include "Val.h"
 
 #include <memory>
 #include <string>
@@ -924,7 +925,13 @@ IntrusivePtr<Expr> get_assign_expr(IntrusivePtr<Expr> op1,
 // types or a single type.
 //
 // Note, the type is not "const" because it can be ref'd.
-extern int check_and_promote_expr(Expr*& e, BroType* t);
+
+/**
+ * Returns nullptr if the expression cannot match or a promoted
+ * expression.
+ */
+extern IntrusivePtr<Expr> check_and_promote_expr(Expr* e, BroType* t);
+
 extern int check_and_promote_exprs(ListExpr* elements, TypeList* types);
 extern int check_and_promote_args(ListExpr* args, RecordType* types);
 extern int check_and_promote_exprs_to_type(ListExpr* elements, BroType* type);

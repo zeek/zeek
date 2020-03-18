@@ -87,7 +87,7 @@ refine flow MySQL_Flow += {
 
 		auto& bstring = ${msg.row.first_field.val};
 		auto ptr = reinterpret_cast<const char*>(bstring.data());
-		vv->Assign(vv->Size(), new StringVal(bstring.length(), ptr));
+		vv->Assign(vv->Size(), make_intrusive<StringVal>(bstring.length(), ptr));
 
 		auto& fields = *${msg.row.fields};
 
@@ -95,7 +95,7 @@ refine flow MySQL_Flow += {
 			{
 			auto& bstring = f->val();
 			auto ptr = reinterpret_cast<const char*>(bstring.data());
-			vv->Assign(vv->Size(), new StringVal(bstring.length(), ptr));
+			vv->Assign(vv->Size(), make_intrusive<StringVal>(bstring.length(), ptr));
 			}
 
 		BifEvent::generate_mysql_result_row(connection()->bro_analyzer(),

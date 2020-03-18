@@ -337,13 +337,13 @@ RecordVal* Connection::BuildConnVal()
 
 		TransportProto prot_type = ConnTransport();
 
-		RecordVal* id_val = new RecordVal(conn_id);
-		id_val->Assign(0, new AddrVal(orig_addr));
+		auto id_val = make_intrusive<RecordVal>(conn_id);
+		id_val->Assign(0, make_intrusive<AddrVal>(orig_addr));
 		id_val->Assign(1, val_mgr->GetPort(ntohs(orig_port), prot_type));
-		id_val->Assign(2, new AddrVal(resp_addr));
+		id_val->Assign(2, make_intrusive<AddrVal>(resp_addr));
 		id_val->Assign(3, val_mgr->GetPort(ntohs(resp_port), prot_type));
 
-		RecordVal* orig_endp = new RecordVal(endpoint);
+		auto orig_endp = make_intrusive<RecordVal>(endpoint);
 		orig_endp->Assign(0, val_mgr->GetCount(0));
 		orig_endp->Assign(1, val_mgr->GetCount(0));
 		orig_endp->Assign(4, val_mgr->GetCount(orig_flow_label));
@@ -352,27 +352,27 @@ RecordVal* Connection::BuildConnVal()
 		char null[l2_len]{};
 
 		if ( memcmp(&orig_l2_addr, &null, l2_len) != 0 )
-			orig_endp->Assign(5, new StringVal(fmt_mac(orig_l2_addr, l2_len)));
+			orig_endp->Assign(5, make_intrusive<StringVal>(fmt_mac(orig_l2_addr, l2_len)));
 
-		RecordVal* resp_endp = new RecordVal(endpoint);
+		auto resp_endp = make_intrusive<RecordVal>(endpoint);
 		resp_endp->Assign(0, val_mgr->GetCount(0));
 		resp_endp->Assign(1, val_mgr->GetCount(0));
 		resp_endp->Assign(4, val_mgr->GetCount(resp_flow_label));
 
 		if ( memcmp(&resp_l2_addr, &null, l2_len) != 0 )
-			resp_endp->Assign(5, new StringVal(fmt_mac(resp_l2_addr, l2_len)));
+			resp_endp->Assign(5, make_intrusive<StringVal>(fmt_mac(resp_l2_addr, l2_len)));
 
-		conn_val->Assign(0, id_val);
-		conn_val->Assign(1, orig_endp);
-		conn_val->Assign(2, resp_endp);
+		conn_val->Assign(0, std::move(id_val));
+		conn_val->Assign(1, std::move(orig_endp));
+		conn_val->Assign(2, std::move(resp_endp));
 		// 3 and 4 are set below.
-		conn_val->Assign(5, new TableVal(string_set));	// service
+		conn_val->Assign(5, make_intrusive<TableVal>(IntrusivePtr{NewRef{}, string_set}));	// service
 		conn_val->Assign(6, val_mgr->GetEmptyString());	// history
 
 		if ( ! uid )
 			uid.Set(bits_per_uid);
 
-		conn_val->Assign(7, new StringVal(uid.Base62("C").c_str()));
+		conn_val->Assign(7, make_intrusive<StringVal>(uid.Base62("C").c_str()));
 
 		if ( encapsulation && encapsulation->Depth() > 0 )
 			conn_val->Assign(8, encapsulation->GetVectorVal());
@@ -388,9 +388,9 @@ RecordVal* Connection::BuildConnVal()
 	if ( root_analyzer )
 		root_analyzer->UpdateConnVal(conn_val);
 
-	conn_val->Assign(3, new Val(start_time, TYPE_TIME));	// ###
-	conn_val->Assign(4, new Val(last_time - start_time, TYPE_INTERVAL));
-	conn_val->Assign(6, new StringVal(history.c_str()));
+	conn_val->Assign(3, make_intrusive<Val>(start_time, TYPE_TIME));	// ###
+	conn_val->Assign(4, make_intrusive<Val>(last_time - start_time, TYPE_INTERVAL));
+	conn_val->Assign(6, make_intrusive<StringVal>(history.c_str()));
 	conn_val->Assign(11, val_mgr->GetBool(is_successful));
 
 	conn_val->SetOrigin(this);
@@ -422,7 +422,7 @@ void Connection::AppendAddl(const char* str)
 	const char* old = conn_val->Lookup(6)->AsString()->CheckString();
 	const char* format = *old ? "%s %s" : "%s%s";
 
-	conn_val->Assign(6, new StringVal(fmt(format, old, str)));
+	conn_val->Assign(6, make_intrusive<StringVal>(fmt(format, old, str)));
 	}
 
 // Returns true if the character at s separates a version number.

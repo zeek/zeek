@@ -1,5 +1,4 @@
-# TODO: interpreter exceptions currently may cause memory leaks, so disable leak checks
-# @TEST-EXEC: ASAN_OPTIONS="$ASAN_OPTIONS,detect_leaks=0" btest-bg-run zeek "zeek -b %INPUT >output 2>&1"
+# @TEST-EXEC: btest-bg-run zeek "zeek -b %INPUT >output 2>&1"
 # @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: TEST_DIFF_CANONIFIER="grep -v 'already queued for removal' | $SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-remove-timestamps | $SCRIPTS/diff-sort" btest-diff zeek/output
 

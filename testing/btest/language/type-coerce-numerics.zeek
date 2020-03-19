@@ -1,5 +1,4 @@
-# TODO: interpreter exceptions currently may cause memory leaks, so disable leak checks
-# @TEST-EXEC: ASAN_OPTIONS="$ASAN_OPTIONS,detect_leaks=0" zeek -b first_set.zeek >first_set.out 2>&1
+# @TEST-EXEC: zeek -b first_set.zeek >first_set.out 2>&1
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff first_set.out
 
 # @TEST-EXEC-FAIL: zeek -b double_convert_failure1.zeek >double_convert_failure1.out 2>&1

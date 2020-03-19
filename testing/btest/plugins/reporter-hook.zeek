@@ -1,8 +1,7 @@
 # @TEST-EXEC: ${DIST}/aux/zeek-aux/plugin-support/init-plugin -u . Reporter Hook
 # @TEST-EXEC: cp -r %DIR/reporter-hook-plugin/* .
 # @TEST-EXEC: ./configure --zeek-dist=${DIST} && make
-# TODO: interpreter exceptions currently may cause memory leaks, so disable leak checks
-# @TEST-EXEC: ASAN_OPTIONS="$ASAN_OPTIONS,detect_leaks=0" ZEEK_PLUGIN_ACTIVATE="Reporter::Hook" ZEEK_PLUGIN_PATH=`pwd` zeek -b %INPUT 2>&1 | $SCRIPTS/diff-remove-abspath | sort | uniq  >output
+# @TEST-EXEC: ZEEK_PLUGIN_ACTIVATE="Reporter::Hook" ZEEK_PLUGIN_PATH=`pwd` zeek -b %INPUT 2>&1 | $SCRIPTS/diff-remove-abspath | sort | uniq  >output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-remove-timestamps" btest-diff reporter.log
 

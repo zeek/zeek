@@ -103,11 +103,33 @@ struct Stem {
 
 	void ReportStatus(const SupervisorNode& node) const;
 
-	void Log(std::string_view type, const char* format, va_list args) const;
+	template <typename... Args>
+	void Log(std::string_view type, const char* format, Args&&... args) const
+		{
+		const char* raw_msg;
+		if constexpr ( sizeof...(args) > 0 )
+			raw_msg = fmt(format, std::forward<Args>(args)...);
+		else
+			raw_msg = fmt("%s", format);
 
-	void LogDebug(const char* format, ...) const __attribute__((format(printf, 2, 3)));
+		if ( getenv("ZEEK_DEBUG_STEM_STDERR") )
+			{
+			// Useful when debugging a breaking change to the IPC mechanism itself.
+			fprintf(stderr, "%s\n", raw_msg);
+			return;
+			}
 
-	void LogError(const char* format, ...) const __attribute__((format(printf, 2, 3)));
+		std::string msg{type.data(), type.size()};
+		msg += " ";
+		msg += raw_msg;
+		safe_write(pipe->OutFD(), msg.data(), msg.size() + 1);
+		}
+
+	template <typename... Args>
+	void LogDebug(const char* format, Args&&... args) const	{ Log("debug", format, args...); }
+
+	template <typename... Args>
+	void LogError(const char* format, Args&&... args) const	{ Log("error", format, args...); }
 
 	pid_t parent_pid;
 	int last_signal = -1;
@@ -928,39 +950,6 @@ void Stem::ReportStatus(const SupervisorNode& node) const
 	{
 	std::string msg = fmt("status %s %d", node.Name().data(), node.pid);
 	safe_write(pipe->OutFD(), msg.data(), msg.size() + 1);
-	}
-
-void Stem::Log(std::string_view type, const char* format, va_list args) const
-	{
-	auto raw_msg = vfmt(format, args);
-
-	if ( getenv("ZEEK_DEBUG_STEM_STDERR") )
-		{
-		// Useful when debugging a breaking change to the IPC mechanism itself.
-		fprintf(stderr, "%s\n", raw_msg);
-		return;
-		}
-
-	std::string msg{type.data(), type.size()};
-	msg += " ";
-	msg += raw_msg;
-	safe_write(pipe->OutFD(), msg.data(), msg.size() + 1);
-	}
-
-void Stem::LogDebug(const char* format, ...) const
-	{
-	va_list args;
-	va_start(args, format);
-	Log("debug", format, args);
-	va_end(args);
-	}
-
-void Stem::LogError(const char* format, ...) const
-	{
-	va_list args;
-	va_start(args, format);
-	Log("error", format, args);
-	va_end(args);
 	}
 
 SupervisedNode Stem::Run()

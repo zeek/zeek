@@ -9,6 +9,8 @@
 #include <string>
 #include <set>
 
+#include "util.h"
+
 // To add a new debugging stream, add a constant here as well as
 // an entry to DebugLogger::streams in DebugLogger.cc.
 
@@ -55,8 +57,49 @@ public:
 
 	void OpenDebugLog(const char* filename = 0);
 
-	void Log(DebugStream stream, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
-	void Log(const zeek::plugin::Plugin& plugin, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
+	template <typename... Args>
+	void Log(DebugStream stream, const char* fmt, Args&&... args)
+		{
+		Stream* g = &streams[int(stream)];
+
+		if ( ! g->enabled )
+			return;
+
+		fprintf(file, "%17.06f/%17.06f [%s] ",
+			network_time, current_time(true), g->prefix);
+
+		for ( int i = g->indent; i > 0; --i )
+			fputs("   ", file);
+
+		if constexpr ( sizeof...(args) > 0 )
+			fprintf(file, fmt, std::forward<Args>(args)...);
+		else
+			fprintf(file, "%s", fmt);
+
+		fputc('\n', file);
+		fflush(file);
+		}
+
+	template <typename... Args>
+	void Log(const zeek::plugin::Plugin& plugin, const char* fmt, Args&&... args)
+		{
+		std::string tok = std::string("plugin-") + GetPluginName(plugin);
+		tok = strreplace(tok, "::", "-");
+
+		if ( enabled_streams.find(tok) == enabled_streams.end() )
+			return;
+
+		fprintf(file, "%17.06f/%17.06f [plugin %s] ",
+		        network_time, current_time(true), GetPluginName(plugin).c_str());
+
+		if constexpr ( sizeof...(args) > 0 )
+			fprintf(file, fmt, std::forward<Args>(args)...);
+		else
+			fprintf(file, "%s", fmt);
+
+		fputc('\n', file);
+		fflush(file);
+		}
 
 	void PushIndent(DebugStream stream)
 		{ ++streams[int(stream)].indent; }
@@ -92,6 +135,8 @@ private:
 	std::set<std::string> enabled_streams;
 
 	static Stream streams[NUM_DBGS];
+
+	std::string GetPluginName(const zeek::plugin::Plugin& plugin);
 };
 
 extern DebugLogger debug_logger;

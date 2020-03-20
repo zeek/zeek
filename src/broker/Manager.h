@@ -21,6 +21,7 @@
 #include "IntrusivePtr.h"
 #include "iosource/IOSource.h"
 #include "logging/WriterBackend.h"
+#include "Func.h"
 
 ZEEK_FORWARD_DECLARE_NAMESPACED(Func, zeek);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Frame, zeek::detail);
@@ -379,8 +380,20 @@ private:
 	// when a master/clone is created.
 	void BrokerStoreToZeekTable(const std::string& name, const StoreHandleVal* handle);
 
-	void Error(const char* format, ...)
-		__attribute__((format (printf, 2, 3)));
+	template <typename... Args>
+	void Error(const char* format, Args&&... args)
+		{
+		const char* msg;
+		if constexpr ( sizeof...(args) > 0 )
+			msg = fmt(format, args...);
+		else
+			msg = fmt("%s", format);
+
+		if ( script_scope )
+			zeek::emit_builtin_error(msg);
+		else
+			reporter->Error("%s", msg);
+		}
 
 	// IOSource interface overrides:
 	void Process() override;

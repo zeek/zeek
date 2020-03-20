@@ -1846,41 +1846,33 @@ FILE* rotate_file(const char* name, zeek::RecordVal* rotate_info)
 	// Build file names.
 	const int buflen = strlen(name) + 128;
 
-	auto newname_buf = std::make_unique<char[]>(buflen);
-	auto tmpname_buf = std::make_unique<char[]>(buflen + 4);
-	auto newname = newname_buf.get();
-	auto tmpname = tmpname_buf.get();
-
-	snprintf(newname, buflen, "%s.%d.%.06f.tmp",
-			name, getpid(), network_time);
-	newname[buflen-1] = '\0';
-	strcpy(tmpname, newname);
-	strcat(tmpname, ".tmp");
+	std::string newname = fmt("%s.%d.%.06f.tmp", name, getpid(), network_time);
+	std::string tmpname = newname + ".tmp";
 
 	// First open the new file using a temporary name.
-	FILE* newf = fopen(tmpname, "w");
+	FILE* newf = fopen(tmpname.c_str(), "w");
 	if ( ! newf )
 		{
-		reporter->Error("rotate_file: can't open %s: %s", tmpname, strerror(errno));
+		reporter->Error("rotate_file: can't open %s: %s", tmpname.c_str(), strerror(errno));
 		return nullptr;
 		}
 
 	// Then move old file to "<name>.<pid>.<timestamp>" and make sure
 	// it really gets created.
 	struct stat dummy;
-	if ( link(name, newname) < 0 || stat(newname, &dummy) < 0 )
+	if ( link(name, newname.c_str()) < 0 || stat(newname.c_str(), &dummy) < 0 )
 		{
-		reporter->Error("rotate_file: can't move %s to %s: %s", name, newname, strerror(errno));
+		reporter->Error("rotate_file: can't move %s to %s: %s", name, newname.c_str(), strerror(errno));
 		fclose(newf);
-		unlink(newname);
-		unlink(tmpname);
+		unlink(newname.c_str());
+		unlink(tmpname.c_str());
 		return nullptr;
 		}
 
 	// Close current file, and move the tmp to its place.
-	if ( unlink(name) < 0 || link(tmpname, name) < 0 || unlink(tmpname) < 0 )
+	if ( unlink(name) < 0 || link(tmpname.c_str(), name) < 0 || unlink(tmpname.c_str()) < 0 )
 		{
-		reporter->Error("rotate_file: can't move %s to %s: %s", tmpname, name, strerror(errno));
+		reporter->Error("rotate_file: can't move %s to %s: %s", tmpname.c_str(), name, strerror(errno));
 		exit(1);	// hard to fix, but shouldn't happen anyway...
 		}
 

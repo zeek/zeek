@@ -3,6 +3,7 @@
 #pragma once
 
 #include <stdarg.h>
+#include <unistd.h>
 
 #include <list>
 #include <utility>
@@ -12,8 +13,9 @@
 #include <unordered_set>
 #include <unordered_map>
 
-#include "BroList.h"
-#include "net_util.h"
+#include "IPAddr.h"
+#include "Expr.h"
+#include "Desc.h"
 
 namespace analyzer { class Analyzer; }
 namespace file_analysis { class File; }
@@ -52,6 +54,12 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 
 #define FMT_ATTR __attribute__((format(printf, 2, 3))) // sic! 1st is "this" I guess.
 
+extern EventHandlerPtr reporter_info;
+extern EventHandlerPtr reporter_warning;
+extern EventHandlerPtr reporter_error;
+extern bool reading_traces;
+extern double bro_start_network_time;
+
 class Reporter {
 public:
 	using IPPair = std::pair<IPAddr, IPAddr>;
@@ -69,33 +77,88 @@ public:
 
 	// Report an informational message, nothing that needs specific
 	// attention.
-	void Info(const char* fmt, ...) FMT_ATTR;
+	template <typename... Args>
+	void Info(const char* fmt, Args&&... args)
+		{
+		FILE* out = EmitToStderr(info_to_stderr) ? stderr : nullptr;
+		DoLog("", reporter_info, out, nullptr, nullptr, true, true, nullptr, fmt, args...);
+		}
 
 	// Report a warning that may indicate a problem.
-	void Warning(const char* fmt, ...) FMT_ATTR;
+	template <typename... Args>
+	void Warning(const char* fmt, Args&&... args)
+		{
+		FILE* out = EmitToStderr(warnings_to_stderr) ? stderr : nullptr;
+		DoLog("warning", reporter_warning, out, nullptr, nullptr, true, true, nullptr, fmt, args...);
+		}
 
 	// Report a non-fatal error. Processing proceeds normally after the error
 	// has been reported.
-	void Error(const char* fmt, ...) FMT_ATTR;
+	template <typename... Args>
+	void Error(const char* fmt, Args&&... args)
+		{
+		++errors;
+		FILE* out = EmitToStderr(errors_to_stderr) ? stderr : nullptr;
+		DoLog("error", reporter_error, out, nullptr, nullptr, true, true, nullptr, fmt, args...);
+		}
 
 	// Returns the number of errors reported so far.
 	int Errors()	{ return errors; }
 
 	// Report a fatal error. Bro will terminate after the message has been
 	// reported.
-	[[noreturn]] void FatalError(const char* fmt, ...) FMT_ATTR;
+	template <typename... Args>
+	[[noreturn]] void FatalError(const char* fmt, Args&&... args)
+		{
+		// Always log to stderr.
+		DoLog("fatal error", nullptr, stderr, nullptr, nullptr, true, false, nullptr, fmt, args...);
+		set_processing_status("TERMINATED", "fatal_error");
+		fflush(stderr);
+		fflush(stdout);
+		_exit(1);
+		}
 
 	// Report a fatal error. Bro will terminate after the message has been
 	// reported and always generate a core dump.
-	[[noreturn]] void FatalErrorWithCore(const char* fmt, ...) FMT_ATTR;
+	template <typename... Args>
+	[[noreturn]] void FatalErrorWithCore(const char* fmt, Args&&... args)
+		{
+		// Always log to stderr.
+		DoLog("fatal error", nullptr, stderr, nullptr, nullptr, true, false, nullptr, fmt, args...);
+		set_processing_status("TERMINATED", "fatal_error");
+		abort();
+		}
 
 	// Report a runtime error in evaluating a Bro script expression. This
 	// function will not return but raise an InterpreterException.
-	[[noreturn]] void ExprRuntimeError(const zeek::detail::Expr* expr, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
+	template <typename... Args>
+	[[noreturn]] void ExprRuntimeError(const zeek::detail::Expr* expr, const char* fmt, Args&&... args)
+		{
+		++errors;
+
+		ODesc d;
+		expr->Describe(&d);
+
+		PushLocation(expr->GetLocationInfo());
+		FILE* out = EmitToStderr(errors_to_stderr) ? stderr : nullptr;
+		DoLog("expression error", reporter_error, out, nullptr, nullptr, true, true,
+			d.Description(), fmt, args...);
+		PopLocation();
+		throw InterpreterException();
+		}
 
 	// Report a runtime error in evaluating a Bro script expression. This
 	// function will not return but raise an InterpreterException.
-	[[noreturn]] void RuntimeError(const zeek::detail::Location* location, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
+	template <typename... Args>
+	[[noreturn]] void RuntimeError(const zeek::detail::Location* location, const char* fmt, Args&&... args)
+		{
+		++errors;
+		PushLocation(location);
+		FILE* out = EmitToStderr(errors_to_stderr) ? stderr : nullptr;
+		DoLog("runtime error", reporter_error, out, nullptr, nullptr, true, true, "", fmt, args...);
+		PopLocation();
+		throw InterpreterException();
+		}
 
 	// Report a traffic weirdness, i.e., an unexpected protocol situation
 	// that may lead to incorrectly processing a connnection.
@@ -106,21 +169,52 @@ public:
 	           const char* name, const char* addl = "");	// Raises expired_conn_weird().
 	void Weird(const IPAddr& orig, const IPAddr& resp, const char* name, const char* addl = "");	// Raises flow_weird().
 
-	// Syslog a message. This methods does nothing if we're running
+	// Syslog a message. This method does nothing if we're running
 	// offline from a trace.
-	void Syslog(const char* fmt, ...) FMT_ATTR;
+	template <typename... Args>
+	void Syslog(const char* fmt, Args&&... args)
+		{
+		if ( ! reading_traces )
+			{
+			char* buf;
+			asprintf(&buf, fmt, std::forward<Args>(args)...);
+			DoSyslog(buf);
+			free(buf);
+			}
+		}
 
 	// Report about a potential internal problem. Bro will continue
 	// normally.
-	void InternalWarning(const char* fmt, ...) FMT_ATTR;
+	template <typename... Args>
+	void InternalWarning(const char* fmt, Args&&... args)
+		{
+		FILE* out = EmitToStderr(warnings_to_stderr) ? stderr : nullptr;
+		// TODO: would be nice to also log a call stack.
+		DoLog("internal warning", reporter_warning, out, nullptr, nullptr, true, true, nullptr, fmt, args...);
+		}
 
 	// Report an internal program error. Bro will terminate with a core
 	// dump after the message has been reported.
-	[[noreturn]] void InternalError(const char* fmt, ...) FMT_ATTR;
+	template <typename... Args>
+	[[noreturn]] void InternalError(const char* fmt, Args&&... args)
+		{
+		// Always log to stderr.
+		DoLog("internal error", nullptr, stderr, nullptr, nullptr, true, false, nullptr, fmt, args...);
+		set_processing_status("TERMINATED", "internal_error");
+		abort();
+		}
 
 	// Report an analyzer error. That analyzer will be set to not process
 	// any further input, but Bro otherwise continues normally.
-	void AnalyzerError(analyzer::Analyzer* a, const char* fmt, ...) __attribute__((format(printf, 3, 4)));;
+	template <typename... Args>
+	void AnalyzerError(analyzer::Analyzer* a, const char* fmt, Args&&... args)
+		{
+		SetAnalyzerSkip(a);
+
+		// Always log to stderr.
+		// TODO: would be nice to also log a call stack.
+		DoLog("analyzer error", reporter_error, stderr, nullptr, nullptr, true, true, nullptr, fmt, args...);
+		}
 
 	// Toggle whether non-fatal messages should be reported through the
 	// scripting layer rather on standard output. Fatal errors are always
@@ -132,7 +226,7 @@ public:
 	// will be assumed to be the current one. The pointer must remain
 	// valid until the location is popped.
 	void PushLocation(const zeek::detail::Location* location)
-		{ locations.push_back(std::pair<const zeek::detail::Location*, const zeek::detail::Location*>(location, 0)); }
+		{ locations.push_back(std::pair<const zeek::detail::Location*, const zeek::detail::Location*>(location, nullptr)); }
 
 	void PushLocation(const zeek::detail::Location* loc1, const zeek::detail::Location* loc2)
 		{ locations.push_back(std::pair<const zeek::detail::Location*, const zeek::detail::Location*>(loc1, loc2)); }
@@ -263,13 +357,104 @@ public:
 		{ after_zeek_init = true; }
 
 private:
-	void DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
-		   Connection* conn, val_list* addl, bool location, bool time,
-		   const char* postfix, const char* fmt, va_list ap) __attribute__((format(printf, 10, 0)));
 
-	// WeirdHelper doesn't really have to be variadic, but it calls DoLog
-	// and that takes va_list anyway.
-	void WeirdHelper(EventHandlerPtr event, val_list vl, const char* fmt_name, ...) __attribute__((format(printf, 4, 5)));;
+	void SetAnalyzerSkip(analyzer::Analyzer* a);
+
+	void DoSyslog(const char* msg);
+
+	std::string BuildLogLocationString(bool location);
+	void DoLogEvents(const char* prefix, EventHandlerPtr event, Connection* conn,
+	                 val_list* addl, bool location, bool time, char* buffer,
+	                 const std::string& loc_str);
+
+	template <typename... Args>
+	void DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
+		Connection* conn, val_list* addl, bool location, bool time,
+		const char* postfix, const char* fmt, Args&&... args)
+		{
+		static char tmp[512];
+
+		int size = sizeof(tmp);
+		char* buffer  = tmp;
+		char* alloced = nullptr;
+
+		std::string loc_str = BuildLogLocationString(location);
+
+		while ( true )
+			{
+			int n;
+
+			if constexpr ( sizeof...(args) > 0 )
+				n = snprintf(buffer, size, fmt, std::forward<Args>(args)...);
+			else
+				n = snprintf(buffer, size, "%s", fmt);
+
+			if ( postfix )
+				n += strlen(postfix) + 10; // Add a bit of slack.
+
+			if ( n > -1 && n < size )
+				// We had enough space;
+				break;
+
+			// Enlarge buffer;
+			size *= 2;
+			buffer = alloced = (char *)realloc(alloced, size);
+
+			if ( ! buffer )
+				FatalError("out of memory in Reporter");
+			}
+
+		if ( postfix && *postfix )
+			// Note, if you change this fmt string, adjust the additional
+			// buffer size above.
+			snprintf(buffer + strlen(buffer), size - strlen(buffer), " (%s)", postfix);
+
+		DoLogEvents(prefix, event, conn, addl, location, time, buffer, loc_str);
+
+		if ( out )
+			{
+			std::string s = "";
+
+			if ( bro_start_network_time != 0.0 )
+				{
+				char tmp[32];
+				snprintf(tmp, 32, "%.6f", network_time);
+				s += std::string(tmp) + " ";
+				}
+
+			if ( prefix && *prefix )
+				{
+				if ( ! loc_str.empty() )
+					s += std::string(prefix) + " in " + loc_str + ": ";
+				else
+					s += std::string(prefix) + ": ";
+				}
+
+			else
+				{
+				if ( ! loc_str.empty() )
+					s += loc_str + ": ";
+				}
+
+			s += buffer;
+			s += "\n";
+
+			if ( out )
+				fprintf(out, "%s", s.c_str());
+			}
+
+		if ( alloced )
+			free(alloced);
+		}
+
+	// WeirdHelper doesn't really have to be variadic, but it calls DoLog and that's
+	// variadic anyway.
+	template <typename... Args>
+	void WeirdHelper(EventHandlerPtr event, val_list vl, const char* fmt_name, Args&&... args)
+		{
+		DoLog("weird", event, nullptr, nullptr, &vl, false, false, nullptr, fmt_name, args...);
+		}
+
 	void UpdateWeirdStats(const char* name);
 	inline bool WeirdOnSamplingWhiteList(const char* name)
 		{ return weird_sampling_whitelist.find(name) != weird_sampling_whitelist.end(); }

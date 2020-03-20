@@ -1,4 +1,25 @@
 
+3.2.0-dev.277 | 2020-03-20 11:29:36 -0700
+
+  * Initialize RecordVal default fields when redef'd (Jon Siwek, Corelight)
+
+    If a RecordVal had been created, but later its RecordType redef'd to
+    contain fields with &default, those fields were incorrectly left
+    uninitialized.
+
+  * GH-857: fix redefining record types used to index tables (Jon Siwek, Corelight)
+
+    This change tracks all TableVals created at parse-time whose index
+    depends on a given RecordType.  Should that RecordType be redef'd, those
+    TableVals are immediately rebuilt such that they are valid to
+    subsequently use in either parse-time initializations or eventually in
+    any arbitrary run-time expression.
+
+  * Change RecordVals to get resized at time of RecordType redef (Jon Siwek, Corelight)
+
+    Opposed to unconditionally checking all RecordVals whether they need to
+    be resized after parsing ends.
+
 3.2.0-dev.273 | 2020-03-20 10:05:21 -0700
 
   * GH-865: fix parsing of SMB NegotiateContextList

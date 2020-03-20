@@ -1,4 +1,8 @@
 
+3.0.4-dev.8 | 2020-04-09 15:04:04 -0700
+
+  * Fix binpac flowbuffer frame length parsing bug (Jon Siwek, Corelight)
+
 3.0.4-dev.7 | 2020-04-09 14:25:33 -0700
 
   * Fix connection duration thresholding (Jon Siwek, Corelight)

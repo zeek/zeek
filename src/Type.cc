@@ -843,8 +843,16 @@ const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)
 		{
 		if ( ! td->FindAttr(ATTR_DEFAULT) &&
 		     ! td->FindAttr(ATTR_OPTIONAL) )
+			{
+			delete others;
 			return "extension field must be &optional or have &default";
+			}
+		}
 
+	TableVal::SaveParseTimeTableState(this);
+
+	for ( const auto& td : *others )
+		{
 		if ( log )
 			{
 			if ( ! td->attrs )
@@ -859,7 +867,9 @@ const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)
 	delete others;
 
 	num_fields = types->length();
-	return 0;
+	RecordVal::ResizeParseTimeRecords(this);
+	TableVal::RebuildParseTimeTables();
+	return nullptr;
 	}
 
 void RecordType::DescribeFields(ODesc* d) const

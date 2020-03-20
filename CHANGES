@@ -1,4 +1,8 @@
 
+3.0.4-dev.9 | 2020-04-09 17:02:50 -0700
+
+  * Rebuild dependent table/record values after record redef (Jon Siwek, Corelight)
+
 3.0.4-dev.8 | 2020-04-09 15:04:04 -0700
 
   * Fix binpac flowbuffer frame length parsing bug (Jon Siwek, Corelight)

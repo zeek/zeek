@@ -898,11 +898,32 @@ public:
 
 	notifier::Modifiable* Modifiable() override	{ return this; }
 
+	// Retrieves and saves all table state (key-value pairs) for
+	// tables whose index type depends on the given RecordType.
+	static void SaveParseTimeTableState(RecordType* rt);
+
+	// Rebuilds all TableVals whose state was previously saved by
+	// SaveParseTimeTableState().  This is used to re-recreate the tables
+	// in the event that a record type gets redefined while parsing.
+	static void RebuildParseTimeTables();
+
+	// Clears all state that was used to track TableVals that depending
+	// on RecordTypes.
+	static void DoneParsing();
+
 protected:
 	friend class Val;
 	TableVal()	{}
 
 	void Init(TableType* t);
+
+	using TableRecordDependencies = std::unordered_map<RecordType*, std::vector<TableVal*>>;
+
+	using ParseTimeTableState = std::vector<std::pair<Val*, Val*>>;
+	using ParseTimeTableStates = std::unordered_map<TableVal*, ParseTimeTableState>;
+
+	ParseTimeTableState DumpTableState();
+	void RebuildTable(ParseTimeTableState ptts);
 
 	void CheckExpireAttr(attr_tag at);
 	int ExpandCompoundAndInit(val_list* vl, int k, Val* new_val);
@@ -934,6 +955,9 @@ protected:
 	IterCookie* expire_cookie;
 	PrefixTable* subnets;
 	Val* def_val;
+
+	static TableRecordDependencies parse_time_table_record_dependencies;
+	static ParseTimeTableStates parse_time_table_states;
 };
 
 class RecordVal : public Val, public notifier::Modifiable {
@@ -988,7 +1012,9 @@ public:
 	// Extend the underlying arrays of record instances created during
 	// parsing to match the number of fields in the record type (they may
 	// mismatch as a result of parse-time record type redefinitions.
-	static void ResizeParseTimeRecords();
+	static void ResizeParseTimeRecords(RecordType* rt);
+
+	static void DoneParsing();
 
 protected:
 	friend class Val;
@@ -998,7 +1024,8 @@ protected:
 
 	BroObj* origin;
 
-	static vector<RecordVal*> parse_time_records;
+	using RecordTypeValMap = std::unordered_map<RecordType*, std::vector<RecordVal*>>;
+	static RecordTypeValMap parse_time_records;
 };
 
 class EnumVal : public Val {

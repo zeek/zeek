@@ -431,7 +431,13 @@ void RecordDataField::GenParseCode(Output* out_cc, Env* env)
 	if ( ! record_type()->incremental_parsing() )
 		{
 		data = getFieldBegin(out_cc, env);	
-		AttemptBoundaryCheck(out_cc, env);
+
+		Expr* len_expr = record_type()->attr_length_expr();
+		int len;
+
+		if ( ! record_type()->buffer_input() ||
+		     (len_expr && len_expr->ConstFold(env, &len)) )
+			AttemptBoundaryCheck(out_cc, env);
 		}
 
 	out_cc->println("// Parse \"%s\"", id_->Name());

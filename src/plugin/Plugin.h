@@ -19,6 +19,7 @@ class ODesc;
 class Frame;
 class Func;
 class Event;
+template <class T> class IntrusivePtr;
 
 namespace threading {
 struct Field;

@@ -151,15 +151,12 @@ IntrusivePtr<Val> ExprListStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	last_access = network_time;
 	flow = FLOW_NEXT;
 
-	val_list* vals = eval_list(f, l.get());
+	auto vals = eval_list(f, l.get());
+
 	if ( vals )
-		{
-		auto result = DoExec(vals, flow);
-		delete_vals(vals);
-		return result;
-		}
-	else
-		return nullptr;
+		return DoExec(std::move(*vals), flow);
+
+	return nullptr;
 	}
 
 void ExprListStmt::Describe(ODesc* d) const
@@ -167,11 +164,6 @@ void ExprListStmt::Describe(ODesc* d) const
 	Stmt::Describe(d);
 	l->Describe(d);
 	DescribeDone(d);
-	}
-
-void ExprListStmt::PrintVals(ODesc* d, val_list* vals, int offset) const
-	{
-	describe_vals(vals, d, offset);
 	}
 
 TraversalCode ExprListStmt::Traverse(TraversalCallback* cb) const
@@ -206,13 +198,13 @@ static IntrusivePtr<EnumVal> lookup_enum_val(const char* module_name, const char
 	return et->GetVal(index);
 	}
 
-static void print_log(val_list* vals)
+static void print_log(const std::vector<IntrusivePtr<Val>>& vals)
 	{
 	auto plval = lookup_enum_val("Log", "PRINTLOG");
 	auto record = make_intrusive<RecordVal>(internal_type("Log::PrintLogInfo")->AsRecordType());
 	auto vec = make_intrusive<VectorVal>(internal_type("string_vec")->AsVectorType());
 
-	for ( const auto& val : *vals )
+	for ( const auto& val : vals )
 		{
 		ODesc d(DESC_READABLE);
 		val->Describe(&d);
@@ -224,7 +216,8 @@ static void print_log(val_list* vals)
 	log_mgr->Write(plval.get(), record.get());
 	}
 
-IntrusivePtr<Val> PrintStmt::DoExec(val_list* vals, stmt_flow_type& /* flow */) const
+IntrusivePtr<Val> PrintStmt::DoExec(std::vector<IntrusivePtr<Val>> vals,
+                                    stmt_flow_type& /* flow */) const
 	{
 	RegisterAccess();
 
@@ -234,9 +227,9 @@ IntrusivePtr<Val> PrintStmt::DoExec(val_list* vals, stmt_flow_type& /* flow */) 
 	BroFile* f = print_stdout;
 	int offset = 0;
 
-	if ( vals->length() > 0 && (*vals)[0]->Type()->Tag() == TYPE_FILE )
+	if ( vals.size() > 0 && (vals)[0]->Type()->Tag() == TYPE_FILE )
 		{
-		f = (*vals)[0]->AsFile();
+		f = (vals)[0]->AsFile();
 		if ( ! f->IsOpen() )
 			return nullptr;
 
@@ -277,7 +270,7 @@ IntrusivePtr<Val> PrintStmt::DoExec(val_list* vals, stmt_flow_type& /* flow */) 
 		d.SetFlush(0);
 		d.SetStyle(style);
 
-		PrintVals(&d, vals, offset);
+		describe_vals(vals, &d, offset);
 		f->Write(d.Description(), d.Len());
 		}
 	else
@@ -286,7 +279,7 @@ IntrusivePtr<Val> PrintStmt::DoExec(val_list* vals, stmt_flow_type& /* flow */) 
 		d.SetFlush(0);
 		d.SetStyle(style);
 
-		PrintVals(&d, vals, offset);
+		describe_vals(vals, &d, offset);
 		f->Write("\n", 1);
 		}
 
@@ -966,13 +959,10 @@ EventStmt::EventStmt(IntrusivePtr<EventExpr> arg_e)
 IntrusivePtr<Val> EventStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
-	val_list* args = eval_list(f, event_expr->Args());
+	auto args = eval_list(f, event_expr->Args());
 
 	if ( args )
-		{
-		mgr.QueueEvent(event_expr->Handler(), std::move(*args));
-		delete args;
-		}
+		mgr.QueueUncheckedEvent(event_expr->Handler(), std::move(*args));
 
 	flow = FLOW_NEXT;
 	return nullptr;

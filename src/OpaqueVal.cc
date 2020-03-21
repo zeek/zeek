@@ -221,6 +221,26 @@ MD5Val::~MD5Val()
 		EVP_MD_CTX_free(ctx);
 	}
 
+void HashVal::digest_one(EVP_MD_CTX* h, const Val* v)
+	{
+	if ( v->Type()->Tag() == TYPE_STRING )
+		{
+		const BroString* str = v->AsString();
+		hash_update(h, str->Bytes(), str->Len());
+		}
+	else
+		{
+		ODesc d(DESC_BINARY);
+		v->Describe(&d);
+		hash_update(h, (const u_char *) d.Bytes(), d.Len());
+		}
+	}
+
+void HashVal::digest_one(EVP_MD_CTX* h, const IntrusivePtr<Val>& v)
+	{
+	digest_one(h, v.get());
+	}
+
 IntrusivePtr<Val> MD5Val::DoClone(CloneState* state)
 	{
 	auto out = make_intrusive<MD5Val>();
@@ -234,39 +254,6 @@ IntrusivePtr<Val> MD5Val::DoClone(CloneState* state)
 		}
 
 	return state->NewClone(this, std::move(out));
-	}
-
-void MD5Val::digest(val_list& vlist, u_char result[MD5_DIGEST_LENGTH])
-	{
-	EVP_MD_CTX* h = hash_init(Hash_MD5);
-
-	for ( const auto& v : vlist )
-		{
-		if ( v->Type()->Tag() == TYPE_STRING )
-			{
-			const BroString* str = v->AsString();
-			hash_update(h, str->Bytes(), str->Len());
-			}
-		else
-			{
-			ODesc d(DESC_BINARY);
-			v->Describe(&d);
-			hash_update(h, (const u_char *) d.Bytes(), d.Len());
-			}
-		}
-
-	hash_final(h, result);
-	}
-
-void MD5Val::hmac(val_list& vlist,
-                  u_char key[MD5_DIGEST_LENGTH],
-                  u_char result[MD5_DIGEST_LENGTH])
-	{
-	digest(vlist, result);
-	for ( int i = 0; i < MD5_DIGEST_LENGTH; ++i )
-		result[i] ^= key[i];
-
-	internal_md5(result, MD5_DIGEST_LENGTH, result);
 	}
 
 bool MD5Val::DoInit()
@@ -387,28 +374,6 @@ IntrusivePtr<Val> SHA1Val::DoClone(CloneState* state)
 		}
 
 	return state->NewClone(this, std::move(out));
-	}
-
-void SHA1Val::digest(val_list& vlist, u_char result[SHA_DIGEST_LENGTH])
-	{
-	EVP_MD_CTX* h = hash_init(Hash_SHA1);
-
-	for ( const auto& v : vlist )
-		{
-		if ( v->Type()->Tag() == TYPE_STRING )
-			{
-			const BroString* str = v->AsString();
-			hash_update(h, str->Bytes(), str->Len());
-			}
-		else
-			{
-			ODesc d(DESC_BINARY);
-			v->Describe(&d);
-			hash_update(h, (const u_char *) d.Bytes(), d.Len());
-			}
-		}
-
-	hash_final(h, result);
 	}
 
 bool SHA1Val::DoInit()
@@ -533,28 +498,6 @@ IntrusivePtr<Val> SHA256Val::DoClone(CloneState* state)
 		}
 
 	return state->NewClone(this, std::move(out));
-	}
-
-void SHA256Val::digest(val_list& vlist, u_char result[SHA256_DIGEST_LENGTH])
-	{
-	EVP_MD_CTX* h = hash_init(Hash_SHA256);
-
-	for ( const auto& v : vlist )
-		{
-		if ( v->Type()->Tag() == TYPE_STRING )
-			{
-			const BroString* str = v->AsString();
-			hash_update(h, str->Bytes(), str->Len());
-			}
-		else
-			{
-			ODesc d(DESC_BINARY);
-			v->Describe(&d);
-			hash_update(h, (const u_char *) d.Bytes(), d.Len());
-			}
-		}
-
-	hash_final(h, result);
 	}
 
 bool SHA256Val::DoInit()

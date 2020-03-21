@@ -218,7 +218,7 @@ void done_with_network()
 		mgr.Drain();
 		// Don't propagate this event to remote clients.
 		mgr.Dispatch(new Event(net_done,
-		                       {new Val(timer_mgr->Time(), TYPE_TIME)}),
+		                       {make_intrusive<Val>(timer_mgr->Time(), TYPE_TIME)}),
 		             true);
 		}
 

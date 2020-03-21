@@ -282,6 +282,7 @@ set(MAIN_SRCS
     Val.cc
     Var.cc
     WeirdState.cc
+    ZeekArgs.cc
     bsd-getopt-long.c
     bro_inet_ntop.c
     cq.c

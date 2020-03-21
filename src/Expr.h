@@ -9,10 +9,13 @@
 #include "EventHandler.h"
 #include "TraverseTypes.h"
 #include "Val.h"
+#include "ZeekArgs.h"
 
 #include <memory>
 #include <string>
+#include <vector>
 #include <utility>
+#include <optional>
 
 using std::string;
 
@@ -737,15 +740,15 @@ protected:
 
 class ScheduleTimer : public Timer {
 public:
-	ScheduleTimer(EventHandlerPtr event, val_list* args, double t,
-			TimerMgr* tmgr);
+	ScheduleTimer(EventHandlerPtr event, zeek::Args args,
+	              double t, TimerMgr* tmgr);
 	~ScheduleTimer() override;
 
 	void Dispatch(double t, int is_expire) override;
 
 protected:
 	EventHandlerPtr event;
-	val_list args;
+	zeek::Args args;
 	TimerMgr* tmgr;
 };
 
@@ -936,9 +939,9 @@ extern int check_and_promote_exprs(ListExpr* elements, TypeList* types);
 extern int check_and_promote_args(ListExpr* args, RecordType* types);
 extern int check_and_promote_exprs_to_type(ListExpr* elements, BroType* type);
 
-// Returns a ListExpr simplified down to a list a values, or a nil
-// pointer if they couldn't all be reduced.
-val_list* eval_list(Frame* f, const ListExpr* l);
+// Returns a ListExpr simplified down to a list a values, or nil
+// if they couldn't all be reduced.
+std::optional<std::vector<IntrusivePtr<Val>>> eval_list(Frame* f, const ListExpr* l);
 
 // Returns true if e1 is "greater" than e2 - here "greater" is just
 // a heuristic, used with commutative operators to put them into

@@ -267,7 +267,7 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 	++fmt;
 	}
 
-static int next_fmt(const char*& fmt, val_list* args, ODesc* d, int& n)
+static int next_fmt(const char*& fmt, const zeek::Args* args, ODesc* d, int& n)
 	{
 	const char* fp = fmt;
 
@@ -290,10 +290,10 @@ static int next_fmt(const char*& fmt, val_list* args, ODesc* d, int& n)
 		return next_fmt(fmt, args, d, n);
 		}
 
-	if ( ++n >= args->length() )
+	if ( ++n >= static_cast<int>(args->size()) )
 		return 0;
 
-	do_fmt(fmt, (*args)[n], d);
+	do_fmt(fmt, (*args)[n].get(), d);
 
 	return *fmt != '\0';
 	}
@@ -1413,12 +1413,12 @@ function sort%(v: any, ...%) : any
 	BroType* elt_type = v->Type()->YieldType();
 	Func* comp = 0;
 
-	if ( @ARG@.length() > 2 )
+	if ( @ARG@.size() > 2 )
 		builtin_error("sort() called with extraneous argument");
 
-	if ( @ARG@.length() == 2 )
+	if ( @ARG@.size() == 2 )
 		{
-		Val* comp_val = @ARG@[1];
+		Val* comp_val = @ARG@[1].get();
 		if ( ! IsFunc(comp_val->Type()->Tag()) )
 			{
 			builtin_error("second argument to sort() needs to be comparison function");
@@ -1483,12 +1483,12 @@ function order%(v: any, ...%) : index_vec
 	BroType* elt_type = v->Type()->YieldType();
 	Func* comp = 0;
 
-	if ( @ARG@.length() > 2 )
+	if ( @ARG@.size() > 2 )
 		builtin_error("order() called with extraneous argument");
 
-	if ( @ARG@.length() == 2 )
+	if ( @ARG@.size() == 2 )
 		{
-		Val* comp_val = @ARG@[1];
+		Val* comp_val = @ARG@[1].get();
 		if ( ! IsFunc(comp_val->Type()->Tag()) )
 			{
 			builtin_error("second argument to order() needs to be comparison function");
@@ -1595,7 +1595,7 @@ function cat_sep%(sep: string, def: string, ...%): string
 
 	int pre_size = 0;
 
-	loop_over_list(@ARG@, i)
+	for ( auto i = 0u; i < @ARG@.size(); ++i )
 		{
 		// Skip named parameters.
 		if ( i < 2 )
@@ -1604,7 +1604,7 @@ function cat_sep%(sep: string, def: string, ...%): string
 		if ( i > 2 )
 			d.Add(sep->CheckString(), 0);
 
-		Val* v = @ARG@[i];
+		Val* v = @ARG@[i].get();
 		if ( v->Type()->Tag() == TYPE_STRING && ! v->AsString()->Len() )
 			v = def;
 
@@ -1660,7 +1660,7 @@ function fmt%(...%): string
 	if ( @ARGC@ == 0 )
 		return val_mgr->GetEmptyString();
 
-	Val* fmt_v = @ARG@[0];
+	Val* fmt_v = @ARG@[0].get();
 
 	// Type of fmt_v will be string here, check_built_in_call() in Func.cc
 	// checks that.
@@ -1674,13 +1674,13 @@ function fmt%(...%): string
 	while ( next_fmt(fmt, @ARGS@, &d, n) )
 		;
 
-	if ( n < @ARGC@ - 1 )
+	if ( n < static_cast<int>(@ARGC@) - 1 )
 		{
 		builtin_error("too many arguments for format", fmt_v);
 		return val_mgr->GetEmptyString();
 		}
 
-	else if ( n >= @ARGC@ )
+	else if ( n >= static_cast<int>(@ARGC@) )
 		{
 		builtin_error("too few arguments for format", fmt_v);
 		return val_mgr->GetEmptyString();
@@ -1703,7 +1703,7 @@ function print_raw%(...%): bool
 	%{
 	ODesc d(DESC_READABLE);
 	d.SetStyle(RAW_STYLE);
-	describe_vals(&@ARG@, &d, 0);
+	describe_vals(@ARG@, &d, 0);
 	printf("%.*s", d.Len(), d.Description());
 	return val_mgr->GetBool(true);
 	%}

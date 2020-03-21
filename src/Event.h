@@ -6,20 +6,15 @@
 #include "analyzer/Analyzer.h"
 #include "iosource/IOSource.h"
 #include "Flare.h"
+#include "ZeekArgs.h"
 
 class EventMgr;
 
-// We don't Unref() the individual arguments by using delete_vals()
-// in a dtor because Func::Call already does that.
 class Event : public BroObj {
 public:
-	Event(EventHandlerPtr handler, val_list args,
-		SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
-		TimerMgr* mgr = 0, BroObj* obj = 0);
-
-	Event(EventHandlerPtr handler, val_list* args,
-		SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
-		TimerMgr* mgr = 0, BroObj* obj = 0);
+	Event(EventHandlerPtr handler, zeek::Args args,
+	      SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
+	      TimerMgr* mgr = nullptr, BroObj* obj = nullptr);
 
 	void SetNext(Event* n)		{ next_event = n; }
 	Event* NextEvent() const	{ return next_event; }
@@ -28,7 +23,7 @@ public:
 	analyzer::ID Analyzer() const	{ return aid; }
 	TimerMgr* Mgr() const		{ return mgr; }
 	EventHandlerPtr Handler() const	{ return handler; }
-	const val_list* Args() const	{ return &args; }
+	const zeek::Args& Args() const	{ return args; }
 
 	void Describe(ODesc* d) const override;
 
@@ -40,7 +35,7 @@ protected:
 	void Dispatch(bool no_remote = false);
 
 	EventHandlerPtr handler;
-	val_list args;
+	zeek::Args args;
 	SourceID src;
 	analyzer::ID aid;
 	TimerMgr* mgr;
@@ -64,12 +59,11 @@ public:
 	// against the case where there's no handlers (one usually also does that
 	// because it would be a waste of effort to construct all the event
 	// arguments when there's no handlers to consume them).
+	// TODO: deprecate
+	/* [[deprecated("Remove in v4.1.  Use IntrusivePtr overload instead.")]] */
 	void QueueEventFast(const EventHandlerPtr &h, val_list vl,
 			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
-			TimerMgr* mgr = 0, BroObj* obj = 0)
-		{
-		QueueEvent(new Event(h, std::move(vl), src, aid, mgr, obj));
-		}
+			TimerMgr* mgr = 0, BroObj* obj = 0);
 
 	// Queues an event if there's an event handler (or remote consumer).  This
 	// function always takes ownership of decrementing the reference count of
@@ -77,6 +71,8 @@ public:
 	// checked for event handler existence, you may wish to call
 	// QueueEventFast() instead of this function to prevent the redundant
 	// existence check.
+	// TODO: deprecate
+	/* [[deprecated("Remove in v4.1.  Use IntrusivePtr overload instead.")]] */
 	void QueueEvent(const EventHandlerPtr &h, val_list vl,
 			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
 			TimerMgr* mgr = 0, BroObj* obj = 0);
@@ -85,13 +81,32 @@ public:
 	// pointer instead of by value.  This function takes ownership of the
 	// memory pointed to by 'vl' as well as decrementing the reference count of
 	// each of its elements.
+	// TODO: deprecate
+	/* [[deprecated("Remove in v4.1.  Use IntrusivePtr overload instead.")]] */
 	void QueueEvent(const EventHandlerPtr &h, val_list* vl,
 			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
-			TimerMgr* mgr = 0, BroObj* obj = 0)
-		{
-		QueueEvent(h, std::move(*vl), src, aid, mgr, obj);
-		delete vl;
-		}
+			TimerMgr* mgr = 0, BroObj* obj = 0);
+
+	/**
+	 * Queues an event without first checking if there's an event handler
+	 * remote consumer.  If there are actually no handlers/consumers upon
+	 * dispatching the event, nothing happens besides having wasted a bit of
+	 * time and resources.  This method is mostly useful from a performance
+	 * standpoint: usually callers have already checked that the event will
+	 * consumed so they don't waste time creating an argument list that will
+	 * only be discarded, so there's no need to do the same check again when
+	 * going to queue the event.
+	 */
+	void QueueUncheckedEvent(const EventHandlerPtr& h, zeek::Args vl,
+	                         SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
+	                         TimerMgr* mgr = nullptr, BroObj* obj = nullptr);
+
+	/**
+	 * Queues an event if it has an event handler or remote consumer.
+	 */
+	void QueueCheckedEvent(const EventHandlerPtr& h, zeek::Args vl,
+	                       SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
+	                       TimerMgr* mgr = nullptr, BroObj* obj = nullptr);
 
 	void Dispatch(Event* event, bool no_remote = false);
 

@@ -162,12 +162,26 @@ namespace probabilistic {
 
 class HashVal : public OpaqueVal {
 public:
+	template <class T>
+	static void digest_all(HashAlgorithm alg, const T& vlist, u_char* result)
+		{
+		auto h = hash_init(alg);
+
+		for ( const auto& v : vlist )
+			digest_one(h, v);
+
+		hash_final(h, result);
+		}
+
 	bool IsValid() const;
 	bool Init();
 	bool Feed(const void* data, size_t size);
 	IntrusivePtr<StringVal> Get();
 
 protected:
+	static void digest_one(EVP_MD_CTX* h, const Val* v);
+	static void digest_one(EVP_MD_CTX* h, const IntrusivePtr<Val>& v);
+
 	HashVal()	{ valid = false; }
 	explicit HashVal(OpaqueType* t);
 
@@ -182,11 +196,22 @@ private:
 
 class MD5Val : public HashVal {
 public:
-	static void digest(val_list& vlist, u_char result[MD5_DIGEST_LENGTH]);
+	template <class T>
+	static void digest(const T& vlist, u_char result[MD5_DIGEST_LENGTH])
+		{ digest_all(Hash_MD5, vlist, result); }
 
-	static void hmac(val_list& vlist,
-			 u_char key[MD5_DIGEST_LENGTH],
-			 u_char result[MD5_DIGEST_LENGTH]);
+	template <class T>
+	static void hmac(const T& vlist,
+	                 u_char key[MD5_DIGEST_LENGTH],
+	                 u_char result[MD5_DIGEST_LENGTH])
+		{
+		digest(vlist, result);
+
+		for ( int i = 0; i < MD5_DIGEST_LENGTH; ++i )
+			result[i] ^= key[i];
+
+		internal_md5(result, MD5_DIGEST_LENGTH, result);
+		}
 
 	MD5Val();
 	~MD5Val();
@@ -207,7 +232,9 @@ private:
 
 class SHA1Val : public HashVal {
 public:
-	static void digest(val_list& vlist, u_char result[SHA_DIGEST_LENGTH]);
+	template <class T>
+	static void digest(const T& vlist, u_char result[SHA_DIGEST_LENGTH])
+		{ digest_all(Hash_SHA1, vlist, result); }
 
 	SHA1Val();
 	~SHA1Val();
@@ -228,7 +255,9 @@ private:
 
 class SHA256Val : public HashVal {
 public:
-	static void digest(val_list& vlist, u_char result[SHA256_DIGEST_LENGTH]);
+	template <class T>
+	static void digest(const T& vlist, u_char result[SHA256_DIGEST_LENGTH])
+		{ digest_all(Hash_SHA256, vlist, result); }
 
 	SHA256Val();
 	~SHA256Val();

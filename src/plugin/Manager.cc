@@ -1,5 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include <optional>
 #include <sstream>
 #include <fstream>
 #include <dirent.h>
@@ -619,15 +620,21 @@ int Manager::HookLoadFile(const Plugin::LoadType type, const string& file, const
 	return rc;
 	}
 
-std::pair<bool, Val*> Manager::HookCallFunction(const Func* func, Frame* parent, val_list* vargs) const
+std::pair<bool, Val*> Manager::HookCallFunction(const Func* func, Frame* parent, const zeek::Args& vecargs) const
 	{
 	HookArgumentList args;
+	std::optional<val_list> vargs;
 
 	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
+		vargs = val_list(vecargs.size());
+
+		for ( const auto& v : vecargs )
+			vargs->push_back(v.get());
+
 		args.push_back(HookArgument(func));
 		args.push_back(HookArgument(parent));
-		args.push_back(HookArgument(vargs));
+		args.push_back(HookArgument(&vargs.value()));
 		MetaHookPre(HOOK_CALL_FUNCTION, args);
 		}
 
@@ -637,11 +644,19 @@ std::pair<bool, Val*> Manager::HookCallFunction(const Func* func, Frame* parent,
 
 	if ( l )
 		{
+		if ( ! vargs )
+			{
+			vargs = val_list(vecargs.size());
+
+			for ( const auto& v : vecargs )
+				vargs->push_back(v.get());
+			}
+
 		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
 			{
 			Plugin* p = (*i).second;
 
-			v = p->HookCallFunction(func, parent, vargs);
+			v = p->HookCallFunction(func, parent, &vargs.value());
 
 			if ( v.first )
 				break;

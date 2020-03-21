@@ -3292,6 +3292,24 @@ void describe_vals(const val_list* vals, ODesc* d, int offset)
 		}
 	}
 
+void describe_vals(const std::vector<IntrusivePtr<Val>>& vals,
+                   ODesc* d, size_t offset)
+	{
+	if ( ! d->IsReadable() )
+		{
+		d->Add(vals.size());
+		d->SP();
+		}
+
+	for ( auto i = offset; i < vals.size(); ++i )
+		{
+		if ( i > offset && d->IsReadable() && d->Style() != RAW_STYLE )
+			d->Add(", ");
+
+		vals[i]->Describe(d);
+		}
+	}
+
 void delete_vals(val_list* vals)
 	{
 	if ( vals )

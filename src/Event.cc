@@ -18,7 +18,7 @@ EventMgr mgr;
 uint64_t num_events_queued = 0;
 uint64_t num_events_dispatched = 0;
 
-Event::Event(EventHandlerPtr arg_handler, val_list arg_args,
+Event::Event(EventHandlerPtr arg_handler, zeek::Args arg_args,
 		SourceID arg_src, analyzer::ID arg_aid, TimerMgr* arg_mgr,
 		BroObj* arg_obj)
 	: handler(arg_handler),
@@ -33,14 +33,6 @@ Event::Event(EventHandlerPtr arg_handler, val_list arg_args,
 		Ref(obj);
 	}
 
-Event::Event(EventHandlerPtr arg_handler, val_list* arg_args,
-		SourceID arg_src, analyzer::ID arg_aid, TimerMgr* arg_mgr,
-		BroObj* arg_obj)
-	: Event(arg_handler, std::move(*arg_args), arg_src, arg_aid, arg_mgr, arg_obj)
-	{
-	delete arg_args;
-	}
-
 void Event::Describe(ODesc* d) const
 	{
 	if ( d->IsReadable() )
@@ -53,7 +45,7 @@ void Event::Describe(ODesc* d) const
 
 	if ( ! d->IsBinary() )
 		d->Add("(");
-	describe_vals(&args, d);
+	describe_vals(args, d);
 	if ( ! d->IsBinary() )
 		d->Add("(");
 	}
@@ -68,7 +60,7 @@ void Event::Dispatch(bool no_remote)
 
 	try
 		{
-		handler->Call(&args, no_remote);
+		handler->Call(args, no_remote);
 		}
 
 	catch ( InterpreterException& e )
@@ -106,17 +98,47 @@ EventMgr::~EventMgr()
 	Unref(src_val);
 	}
 
+void EventMgr::QueueEventFast(const EventHandlerPtr &h, val_list vl,
+                              SourceID src, analyzer::ID aid, TimerMgr* mgr,
+                              BroObj* obj)
+	{
+	QueueEvent(new Event(h, zeek::val_list_to_args(&vl), src, aid, mgr, obj));
+	}
+
 void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list vl,
-			  SourceID src, analyzer::ID aid,
-			  TimerMgr* mgr, BroObj* obj)
+                          SourceID src, analyzer::ID aid,
+                          TimerMgr* mgr, BroObj* obj)
 	{
 	if ( h )
-		QueueEvent(new Event(h, std::move(vl), src, aid, mgr, obj));
+		QueueEvent(new Event(h, zeek::val_list_to_args(&vl), src, aid, mgr, obj));
 	else
 		{
 		for ( const auto& v : vl )
 			Unref(v);
 		}
+	}
+
+void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list* vl,
+                          SourceID src, analyzer::ID aid,
+                          TimerMgr* mgr, BroObj* obj)
+	{
+	QueueEvent(h, std::move(*vl), src, aid, mgr, obj);
+	delete vl;
+	}
+
+void EventMgr::QueueCheckedEvent(const EventHandlerPtr& h, zeek::Args vl,
+                                 SourceID src, analyzer::ID aid,
+                                 TimerMgr* mgr, BroObj* obj)
+	{
+	QueueEvent(new Event(h, std::move(vl), src, aid, mgr, obj));
+	}
+
+void EventMgr::QueueUncheckedEvent(const EventHandlerPtr& h, zeek::Args vl,
+                                   SourceID src, analyzer::ID aid,
+                                   TimerMgr* mgr, BroObj* obj)
+	{
+	if ( h )
+		QueueEvent(new Event(h, std::move(vl), src, aid, mgr, obj));
 	}
 
 void EventMgr::QueueEvent(Event* event)

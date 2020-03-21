@@ -7,6 +7,7 @@
 #include "IntrusivePtr.h"
 #include "Type.h" /* for function_flavor */
 #include "TraverseTypes.h"
+#include "ZeekArgs.h"
 
 #include <utility>
 #include <memory>
@@ -30,7 +31,6 @@ class Scope;
 
 class Func : public BroObj {
 public:
-
 	enum Kind { BRO_FUNC, BUILTIN_FUNC };
 
 	explicit Func(Kind arg_kind);
@@ -50,7 +50,9 @@ public:
 	const vector<Body>& GetBodies() const	{ return bodies; }
 	bool HasBodies() const	{ return bodies.size(); }
 
-	virtual IntrusivePtr<Val> Call(val_list* args, Frame* parent = 0) const = 0;
+	// TODO: deprecate
+	virtual IntrusivePtr<Val> Call(val_list* args, Frame* parent = nullptr) const;
+	virtual IntrusivePtr<Val> Call(const zeek::Args& args, Frame* parent = nullptr) const = 0;
 
 	// Add a new event handler to an existing function (event).
 	virtual void AddBody(IntrusivePtr<Stmt> new_body, id_list* new_inits,
@@ -67,7 +69,7 @@ public:
 	void SetName(const char* arg_name)	{ name = arg_name; }
 
 	void Describe(ODesc* d) const override = 0;
-	virtual void DescribeDebug(ODesc* d, const val_list* args) const;
+	virtual void DescribeDebug(ODesc* d, const zeek::Args* args) const;
 
 	virtual IntrusivePtr<Func> DoClone();
 
@@ -84,7 +86,7 @@ protected:
 	void CopyStateInto(Func* other) const;
 
 	// Helper function for handling result of plugin hook.
-	std::pair<bool, Val*> HandlePluginResult(std::pair<bool, Val*> plugin_result, val_list* args, function_flavor flavor) const;
+	std::pair<bool, Val*> HandlePluginResult(std::pair<bool, Val*> plugin_result, function_flavor flavor) const;
 
 	vector<Body> bodies;
 	IntrusivePtr<Scope> scope;
@@ -102,7 +104,7 @@ public:
 	~BroFunc() override;
 
 	int IsPure() const override;
-	IntrusivePtr<Val> Call(val_list* args, Frame* parent) const override;
+	IntrusivePtr<Val> Call(const zeek::Args& args, Frame* parent) const override;
 
 	/**
 	 * Adds adds a closure to the function. Closures are cloned and
@@ -169,7 +171,7 @@ private:
 	bool weak_closure_ref = false;
 };
 
-typedef Val* (*built_in_func)(Frame* frame, val_list* args);
+using built_in_func = Val* (*)(Frame* frame, const zeek::Args* args);
 
 class BuiltinFunc : public Func {
 public:
@@ -177,7 +179,7 @@ public:
 	~BuiltinFunc() override;
 
 	int IsPure() const override;
-	IntrusivePtr<Val> Call(val_list* args, Frame* parent) const override;
+	IntrusivePtr<Val> Call(const zeek::Args& args, Frame* parent) const override;
 	built_in_func TheFunc() const	{ return func; }
 
 	void Describe(ODesc* d) const override;
@@ -190,7 +192,9 @@ protected:
 };
 
 
-extern void builtin_error(const char* msg, BroObj* arg = 0);
+extern void builtin_error(const char* msg);
+extern void builtin_error(const char* msg, IntrusivePtr<Val>);
+extern void builtin_error(const char* msg, BroObj* arg);
 extern void init_builtin_funcs();
 extern void init_builtin_funcs_subdirs();
 
@@ -199,7 +203,7 @@ extern bool check_built_in_call(BuiltinFunc* f, CallExpr* call);
 struct CallInfo {
 	const CallExpr* call;
 	const Func* func;
-	const val_list* args;
+	const zeek::Args& args;
 };
 
 // Struct that collects all the specifics defining a Func. Used for BroFuncs

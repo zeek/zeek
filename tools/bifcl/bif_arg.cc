@@ -61,7 +61,7 @@ void BuiltinFuncArg::PrintCDef(FILE* fp, int n)
 		builtin_func_arg_type[type].c_type);
 
 	char buf[1024];
-	snprintf(buf, sizeof(buf), "(*%s)[%d]", arg_list_name, n);
+	snprintf(buf, sizeof(buf), "(*%s)[%d].get()", arg_list_name, n);
 	// Print the accessor expression.
 	fprintf(fp, builtin_func_arg_type[type].accessor, buf);
 

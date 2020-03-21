@@ -545,11 +545,11 @@ head_1:		TOK_ID opt_ws arg_begin
 					decl.c_fullname.c_str(), decl.bro_fullname.c_str());
 
 				fprintf(fp_func_h,
-					"%sextern Val* %s(Frame* frame, val_list*);%s\n",
+					"%sextern Val* %s(Frame* frame, const zeek::Args*);%s\n",
 					decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 
 				fprintf(fp_func_def,
-					"Val* %s(Frame* frame, val_list* %s)",
+					"Val* %s(Frame* frame, const zeek::Args* %s)",
 					decl.c_fullname.c_str(), arg_list_name);
 
 				record_bif_item(decl.bro_fullname.c_str(), "FUNCTION");
@@ -654,7 +654,7 @@ body_start:	TOK_LPB c_code_begin
 
 			if ( ! var_arg )
 				{
-				fprintf(fp_func_def, "\tif ( %s->length() != %d )\n", arg_list_name, argc);
+				fprintf(fp_func_def, "\tif ( %s->size() != %d )\n", arg_list_name, argc);
 				fprintf(fp_func_def, "\t\t{\n");
 				fprintf(fp_func_def,
 					"\t\treporter->Error(\"%s() takes exactly %d argument(s)\");\n",
@@ -664,7 +664,7 @@ body_start:	TOK_LPB c_code_begin
 				}
 			else if ( argc > 0 )
 				{
-				fprintf(fp_func_def, "\tif ( %s->length() < %d )\n", arg_list_name, argc);
+				fprintf(fp_func_def, "\tif ( %s->size() < %d )\n", arg_list_name, argc);
 				fprintf(fp_func_def, "\t\t{\n");
 				fprintf(fp_func_def,
 					"\t\treporter->Error(\"%s() takes at least %d argument(s)\");\n",
@@ -703,7 +703,7 @@ c_atom:		TOK_ID
 	|	TOK_ARGS
 			{ fprintf(fp_func_def, "%s", arg_list_name); }
 	|	TOK_ARGC
-			{ fprintf(fp_func_def, "%s->length()", arg_list_name); }
+			{ fprintf(fp_func_def, "%s->size()", arg_list_name); }
 	|	TOK_CSTR
 			{ fprintf(fp_func_def, "%s", $1); }
 	|	TOK_ATOM

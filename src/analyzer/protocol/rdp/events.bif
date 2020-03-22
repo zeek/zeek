@@ -1,3 +1,9 @@
+## Generated once upon RDPEUDP connection establishment
+##
+## c: The connection record for the underlying transport-layer session/flow.
+##
+event rdpeudp_established%(c: connection%);
+
 ## Generated for each packet after RDP native encryption begins
 ##
 ## c: The connection record for the underlying transport-layer session/flow.

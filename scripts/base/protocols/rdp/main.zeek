@@ -85,13 +85,15 @@ redef record connection += {
 	rdp: Info &optional;
 };
 
-const ports = { 3389/tcp };
-redef likely_server_ports += { ports };
+const rdp_ports = { 3389/tcp };
+const rdpeudp_ports = { 3389/udp };
+redef likely_server_ports += { rdp_ports, rdpeudp_ports };
 
 event zeek_init() &priority=5
 	{
 	Log::create_stream(RDP::LOG, [$columns=RDP::Info, $ev=log_rdp, $path="rdp"]);
-	Analyzer::register_for_ports(Analyzer::ANALYZER_RDP, ports);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_RDP, rdp_ports);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_RDP, rdpeudp_ports);
 	}
 
 function write_log(c: connection)

@@ -11,7 +11,7 @@ using namespace analyzer::rdpeudp;
 RDPEUDP_Analyzer::RDPEUDP_Analyzer(Connection* c)
 : analyzer::Analyzer("RDPEUDP", c)
 	{
-	interp = new binpac::RDPEUDP::SSL_Conn(this);
+	interp = new binpac::RDPEUDP::RDPEUDP_Conn(this);
 	}
 
 RDPEUDP_Analyzer::~RDPEUDP_Analyzer()

@@ -14,7 +14,6 @@ public:
 	void Done() override;
 	void DeliverPacket(int len, const u_char* data, bool orig,
 					uint64_t seq, const IP_Hdr* ip, int caplen) override;
-	void EndOfData(bool is_orig) override;
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new RDP_Analyzer(conn); }
 

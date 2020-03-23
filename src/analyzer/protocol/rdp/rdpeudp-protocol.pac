@@ -1,3 +1,7 @@
+# SYN - https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpeudp/ddc57322-08ae-48a5-a660-bd4aa676d8c9
+# SYN+ACK - https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpeudp/0c66977c-a837-4f17-8a89-4a351866d86c
+# DATA+ACK - https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpeudp/2ce2f61d-aa42-47f6-9fc9-8351d84a95c3  
+# ACK - https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpeudp/bfa8ba8c-b23c-469b-984c-3d0288a21b50
 
 type RDPEUDP_PDU(is_orig: bool) = record {
 	data: bytestring &restofdata;
@@ -51,3 +55,19 @@ type RDPUDP_SYNDATAEX_PAYLOAD() = record {
 	uUdpVer:	uint16;
 	cookieHash:	bytestring &length=32;
 }
+
+refine connection RDPEUDP_Conn += {
+        %member{
+                bool is_established_;
+        %}
+
+        %init{
+                is_established_ = false;
+        %}
+
+        function is_established(): bool
+	%{
+                return is_established_;
+	%}
+};
+

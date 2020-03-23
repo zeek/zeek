@@ -4,8 +4,7 @@
 // It's implemented via a bitmap so the memory usage increases linearly
 // with max(set).
 
-#ifndef intset_h
-#define intset_h
+#pragma once
 
 #include <string.h>
 
@@ -68,5 +67,3 @@ inline void IntSet::Clear()
 	{
 	bzero(set, size);
 	}
-
-#endif

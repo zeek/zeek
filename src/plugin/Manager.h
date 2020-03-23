@@ -1,10 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef PLUGIN_MANAGER_H
-#define PLUGIN_MANAGER_H
+#pragma once
 
 #include <utility>
 #include <map>
+#include <string_view>
+
 
 #include "Plugin.h"
 #include "Component.h"
@@ -154,7 +155,7 @@ public:
 	 * path. The path can be the plugin directory itself, or any path
 	 * inside it.
 	 */
-	Plugin* LookupPluginByPath(std::string path);
+	Plugin* LookupPluginByPath(std::string_view path);
 
 	/**
 	 * Returns true if there's at least one plugin interested in a given
@@ -493,5 +494,3 @@ public:
  * The global plugin manager singleton.
  */
 extern plugin::Manager* plugin_mgr;
-
-#endif

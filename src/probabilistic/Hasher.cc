@@ -1,12 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "Hasher.h"
+
 #include <typeinfo>
+
 #include <openssl/evp.h>
 
-#include "Hasher.h"
 #include "NetVar.h"
 #include "digest.h"
 #include "siphash24.h"
+
+#include <broker/data.hh>
 
 using namespace probabilistic;
 
@@ -49,7 +53,7 @@ Hasher::Hasher(size_t arg_k, seed_t arg_seed)
 broker::expected<broker::data> Hasher::Serialize() const
 	{
 	return {broker::vector{
-		static_cast<uint64>(Type()), static_cast<uint64>(k),
+		static_cast<uint64_t>(Type()), static_cast<uint64_t>(k),
 		seed.h1, seed.h2 }};
 	}
 
@@ -60,10 +64,10 @@ std::unique_ptr<Hasher> Hasher::Unserialize(const broker::data& data)
 	if ( ! (v && v->size() == 4) )
 		return nullptr;
 
-	auto type = caf::get_if<uint64>(&(*v)[0]);
-	auto k = caf::get_if<uint64>(&(*v)[1]);
-	auto h1 = caf::get_if<uint64>(&(*v)[2]);
-	auto h2 = caf::get_if<uint64>(&(*v)[3]);
+	auto type = caf::get_if<uint64_t>(&(*v)[0]);
+	auto k = caf::get_if<uint64_t>(&(*v)[1]);
+	auto h1 = caf::get_if<uint64_t>(&(*v)[2]);
+	auto h2 = caf::get_if<uint64_t>(&(*v)[3]);
 
 	if ( ! (type && k && h1 && h2) )
 		return nullptr;

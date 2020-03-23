@@ -1,21 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef THREADING_FORMATTERS_JSON_H
-#define THREADING_FORMATTERS_JSON_H
+#pragma once
+
+#define RAPIDJSON_HAS_STDSTRING 1
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
 
 #include "../Formatter.h"
-#include "3rdparty/json.hpp"
-#include "3rdparty/fifo_map.hpp"
-
 
 namespace threading { namespace formatter {
-
-// Define a class for use with the json library that orders the keys in the same order that
-// they were inserted. By default, the json library orders them alphabetically and we don't
-// want it like that.
-template<class K, class V, class compare, class A>
-using json_fifo_map = nlohmann::fifo_map<K, V, nlohmann::fifo_map_compare<K>, A>;
-using ZeekJson = nlohmann::basic_json<json_fifo_map>;
 
 /**
   * A thread-safe class for converting values into a JSON representation
@@ -37,14 +30,17 @@ public:
 	                      threading::Value** vals) const override;
 	threading::Value* ParseValue(const string& s, const string& name, TypeTag type, TypeTag subtype = TYPE_ERROR) const override;
 
-private:
+	class NullDoubleWriter : public rapidjson::Writer<rapidjson::StringBuffer> {
+	public:
+		NullDoubleWriter(rapidjson::StringBuffer& stream) : rapidjson::Writer<rapidjson::StringBuffer>(stream) {}
+		bool Double(double d);
+	};
 
-	ZeekJson BuildJSON(Value* val, const string& name = "") const;
+private:
+	void BuildJSON(NullDoubleWriter& writer, Value* val, const string& name = "") const;
 
 	TimeFormat timestamps;
 	bool surrounding_braces;
 };
 
 }}
-
-#endif /* THREADING_FORMATTERS_JSON_H */

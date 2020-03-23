@@ -5,10 +5,10 @@
 # @TEST-EXEC: btest-bg-run manager-1 "cp ../cluster-layout.zeek . && CLUSTER_NODE=manager-1 zeek %INPUT"
 # @TEST-EXEC: btest-bg-run worker-1  "cp ../cluster-layout.zeek . && CLUSTER_NODE=worker-1 zeek --pseudo-realtime -C -r $TRACES/tls/ecdhe.pcap %INPUT"
 
-# @TEST-EXEC: $SCRIPTS/wait-for-pid $(cat worker-1/.pid) 10 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: $SCRIPTS/wait-for-file manager-1/lost 15 || (btest-bg-wait -k 1 && false)
 
 # @TEST-EXEC: btest-bg-run worker-2  "cp ../cluster-layout.zeek . && CLUSTER_NODE=worker-2 zeek --pseudo-realtime -C -r $TRACES/tls/ecdhe.pcap %INPUT"
-# @TEST-EXEC: btest-bg-wait 20
+# @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff worker-1/.stdout
 # @TEST-EXEC: btest-diff worker-2/.stdout
 
@@ -21,7 +21,7 @@ redef Cluster::nodes = {
 @TEST-END-FILE
 
 redef Log::default_rotation_interval = 0secs;
-#redef exit_only_after_terminate = T;
+redef exit_only_after_terminate = T;
 
 @load base/frameworks/netcontrol
 
@@ -59,6 +59,7 @@ global peers_lost = 0;
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	++peers_lost;
+	system("touch lost");
 
 	if ( peers_lost == 2 )
 		schedule 2sec { terminate_me() };
@@ -74,5 +75,9 @@ event NetControl::rule_added(r: NetControl::Rule, p: NetControl::PluginState, ms
 event NetControl::rule_destroyed(r: NetControl::Rule)
 	{
 	if ( r$entity?$ip )
+		{
 		print "Rule destroyed", r$id, r$cid, |NetControl::find_rules_subnet(r$entity$ip)|;
+		if ( Cluster::local_node_type() == Cluster::WORKER )
+			schedule 2sec { terminate_me() };
+		}
 	}

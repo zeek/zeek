@@ -78,7 +78,7 @@ void SMTP_Analyzer::Done()
 		EndData();
 	}
 
-void SMTP_Analyzer::Undelivered(uint64 seq, int len, bool is_orig)
+void SMTP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
 
@@ -180,8 +180,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 			{
 			// Don't know whether it is a command line or
 			// a data line.
-			if ( line_after_gap )
-				delete line_after_gap;
+			delete line_after_gap;
 
 			line_after_gap =
 				new BroString((const u_char *) line, length, 1);
@@ -889,7 +888,7 @@ void SMTP_Analyzer::UnexpectedCommand(const int cmd_code, const int reply_code)
 	// If this happens, please fix the SMTP state machine!
 	// ### Eventually, these should be turned into "weird" events.
 	static char buf[512];
-	int len = safe_snprintf(buf, sizeof(buf),
+	int len = snprintf(buf, sizeof(buf),
 				"%s reply = %d state = %d",
 				SMTP_CMD_WORD(cmd_code), reply_code, state);
 	if ( len > (int) sizeof(buf) )
@@ -902,7 +901,7 @@ void SMTP_Analyzer::UnexpectedReply(const int cmd_code, const int reply_code)
 	// If this happens, please fix the SMTP state machine!
 	// ### Eventually, these should be turned into "weird" events.
 	static char buf[512];
-	int len = safe_snprintf(buf, sizeof(buf),
+	int len = snprintf(buf, sizeof(buf),
 				"%d state = %d, last command = %s",
 				reply_code, state, SMTP_CMD_WORD(cmd_code));
 	Unexpected (1, "unexpected reply", len, buf);

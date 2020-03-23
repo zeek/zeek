@@ -18,8 +18,7 @@
  * maintains mappings of (1) analyzer::Tag to component, and (2)
  * human-readable analyzer name to component.
  */
-#ifndef ANALYZER_MANAGER_H
-#define ANALYZER_MANAGER_H
+#pragma once
 
 #include <queue>
 #include <vector>
@@ -91,7 +90,7 @@ public:
 	 *
 	 * @return True if successful.
 	 */
-	bool EnableAnalyzer(Tag tag);
+	bool EnableAnalyzer(const Tag& tag);
 
 	/**
 	 * Enables an analyzer type. Only enabled analyzers will be
@@ -112,7 +111,7 @@ public:
 	 *
 	 * @return True if successful.
 	 */
-	bool DisableAnalyzer(Tag tag);
+	bool DisableAnalyzer(const Tag& tag);
 
 	/**
 	 * Disables an analyzer type. Disabled analyzers will not be
@@ -143,7 +142,7 @@ public:
 	 *
 	 * @param tag The analyzer's tag.
 	 */
-	bool IsEnabled(Tag tag);
+	bool IsEnabled(const Tag& tag);
 
 	/**
 	 * Returns true if an analyzer is enabled.
@@ -180,7 +179,7 @@ public:
 	 *
 	 * @return True if successful.
 	 */
-	bool RegisterAnalyzerForPort(Tag tag, TransportProto proto, uint32 port);
+	bool RegisterAnalyzerForPort(const Tag& tag, TransportProto proto, uint32_t port);
 
 	/**
 	 * Unregisters a well-known port for an anlyzers.
@@ -208,7 +207,7 @@ public:
 	 * @param tag The analyzer's tag as an enum of script type \c
 	 * Analyzer::Tag.
 	 */
-	bool UnregisterAnalyzerForPort(Tag tag, TransportProto proto, uint32 port);
+	bool UnregisterAnalyzerForPort(const Tag& tag, TransportProto proto, uint32_t port);
 
 	/**
 	 * Instantiates a new analyzer instance for a connection.
@@ -222,7 +221,7 @@ public:
 	 * null if tag is invalid, the requested analyzer is disabled, or the
 	 * analyzer can't be instantiated.
 	 */
-	Analyzer* InstantiateAnalyzer(Tag tag, Connection* c);
+	Analyzer* InstantiateAnalyzer(const Tag& tag, Connection* c);
 
 	/**
 	 * Instantiates a new analyzer instance for a connection.
@@ -269,8 +268,8 @@ public:
 	 * @param timeout An interval after which to timeout the request to
 	 * schedule this analyzer. Must be non-zero.
 	 */
-	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, uint16 resp_p,
-				TransportProto proto, Tag analyzer, double timeout);
+	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, uint16_t resp_p,
+				TransportProto proto, const Tag& analyzer, double timeout);
 
 	/**
 	 * Schedules a particular analyzer for an upcoming connection. Once
@@ -293,7 +292,7 @@ public:
 	 * @param timeout An interval after which to timeout the request to
 	 * schedule this analyzer. Must be non-zero.
 	 */
-	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, uint16 resp_p,
+	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, uint16_t resp_p,
 				TransportProto proto, const char* analyzer,
 				double timeout);
 
@@ -339,15 +338,15 @@ public:
 	/**
 	 * @return the UDP port numbers to be associated with VXLAN traffic.
 	 */
-	const std::vector<uint16>& GetVxlanPorts() const
+	const std::vector<uint16_t>& GetVxlanPorts() const
 		{ return vxlan_ports; }
 
 private:
 	typedef set<Tag> tag_set;
-	typedef map<uint32, tag_set*> analyzer_map_by_port;
+	typedef map<uint32_t, tag_set*> analyzer_map_by_port;
 
 	tag_set* LookupPort(PortVal* val, bool add_if_not_found);
-	tag_set* LookupPort(TransportProto proto, uint32 port, bool add_if_not_found);
+	tag_set* LookupPort(TransportProto proto, uint32_t port, bool add_if_not_found);
 
 	tag_set GetScheduled(const Connection* conn);
 	void ExpireScheduledAnalyzers();
@@ -365,11 +364,11 @@ private:
 	struct ConnIndex {
 		IPAddr orig;
 		IPAddr resp;
-		uint16 resp_p;
-		uint16 proto;
+		uint16_t resp_p;
+		uint16_t proto;
 
 		ConnIndex(const IPAddr& _orig, const IPAddr& _resp,
-			     uint16 _resp_p, uint16 _proto);
+			     uint16_t _resp_p, uint16_t _proto);
 		ConnIndex();
 
 		bool operator<(const ConnIndex& other) const;
@@ -395,7 +394,7 @@ private:
 
 	conns_map conns;
 	conns_queue conns_by_timeout;
-	std::vector<uint16> vxlan_ports;
+	std::vector<uint16_t> vxlan_ports;
 };
 
 }
@@ -416,6 +415,4 @@ extern analyzer::Manager* analyzer_mgr;
 #else
 # define DBG_ANALYZER(conn, txt)
 # define DBG_ANALYZER_ARGS(conn, fmt, args...)
-#endif
-
 #endif

@@ -2,10 +2,13 @@
 
 #include "zeek-config.h"
 
-#include "ID.h"
-#include "Val.h"
 #include "Scope.h"
+#include "Desc.h"
+#include "ID.h"
+#include "IntrusivePtr.h"
+#include "Val.h"
 #include "Reporter.h"
+#include "module_util.h"
 
 typedef PList<Scope> scope_list;
 
@@ -13,38 +16,30 @@ static scope_list scopes;
 static Scope* top_scope;
 
 
-Scope::Scope(ID* id, attr_list* al)
+Scope::Scope(IntrusivePtr<ID> id, attr_list* al)
+	: scope_id(std::move(id))
 	{
-	scope_id = id;
 	attrs = al;
 	return_type = 0;
 
-	local = new PDict<ID>(ORDERED);
 	inits = new id_list;
 
 	if ( id )
 		{
-		BroType* id_type = id->Type();
+		BroType* id_type = scope_id->Type();
 
 		if ( id_type->Tag() == TYPE_ERROR )
 			return;
 		else if ( id_type->Tag() != TYPE_FUNC )
 			reporter->InternalError("bad scope id");
 
-		Ref(id);
-
 		FuncType* ft = id->Type()->AsFuncType();
-		return_type = ft->YieldType();
-		if ( return_type )
-			Ref(return_type);
+		return_type = {NewRef{}, ft->YieldType()};
 		}
 	}
 
 Scope::~Scope()
 	{
-	for ( int i = 0; i < local->Length(); ++i )
-		Unref(local->NthEntry(i));
-
 	if ( attrs )
 		{
 		for ( const auto& attr : *attrs )
@@ -53,15 +48,18 @@ Scope::~Scope()
 		delete attrs;
 		}
 
-	Unref(scope_id);
-	Unref(return_type);
-	delete local;
-	delete inits;
+	if ( inits )
+		{
+		for ( const auto& i : *inits )
+			Unref(i);
+
+		delete inits;
+		}
 	}
 
 ID* Scope::GenerateTemporary(const char* name)
 	{
-	return new ID(copy_string(name), SCOPE_FUNCTION, false);
+	return new ID(name, SCOPE_FUNCTION, false);
 	}
 
 id_list* Scope::GetInits()
@@ -82,7 +80,7 @@ void Scope::Describe(ODesc* d) const
 		d->SP();
 		d->Add(return_type != 0);
 		d->SP();
-		d->Add(local->Length());
+		d->Add(static_cast<uint64_t>(local.size()));
 		d->SP();
 		}
 
@@ -98,9 +96,9 @@ void Scope::Describe(ODesc* d) const
 		d->NL();
 		}
 
-	for ( int i = 0; i < local->Length(); ++i )
+	for ( const auto& entry : local )
 		{
-		ID* id = local->NthEntry(i);
+		ID* id = entry.second.get();
 		id->Describe(d);
 		d->NL();
 		}
@@ -108,13 +106,9 @@ void Scope::Describe(ODesc* d) const
 
 TraversalCode Scope::Traverse(TraversalCallback* cb) const
 	{
-	PDict<ID>* ids = GetIDs();
-	IterCookie* iter = ids->InitForIteration();
-
-	HashKey* key;
-	ID* id;
-	while ( (id = ids->NextEntry(key, iter)) )
+	for ( const auto& entry : local )
 		{
+		ID* id = entry.second.get();
 		TraversalCode tc = id->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
 		}
@@ -123,8 +117,9 @@ TraversalCode Scope::Traverse(TraversalCallback* cb) const
 	}
 
 
-ID* lookup_ID(const char* name, const char* curr_module, bool no_global,
-	      bool same_module_only, bool check_export)
+IntrusivePtr<ID> lookup_ID(const char* name, const char* curr_module,
+                           bool no_global, bool same_module_only,
+                           bool check_export)
 	{
 	string fullname = make_full_var_name(curr_module, name);
 
@@ -134,15 +129,14 @@ ID* lookup_ID(const char* name, const char* curr_module, bool no_global,
 
 	for ( int i = scopes.length() - 1; i >= 0; --i )
 		{
-		ID* id = scopes[i]->Lookup(fullname.c_str());
+		ID* id = scopes[i]->Lookup(fullname);
 		if ( id )
 			{
 			if ( need_export && ! id->IsExport() && ! in_debug )
 				reporter->Error("identifier is not exported: %s",
 				      fullname.c_str());
 
-			Ref(id);
-			return id;
+			return {NewRef{}, id};
 			}
 		}
 
@@ -150,21 +144,18 @@ ID* lookup_ID(const char* name, const char* curr_module, bool no_global,
 			     ! same_module_only) )
 		{
 		string globalname = make_full_var_name(GLOBAL_MODULE_NAME, name);
-		ID* id = global_scope()->Lookup(globalname.c_str());
+		ID* id = global_scope()->Lookup(globalname);
 		if ( id )
-			{
-			Ref(id);
-			return id;
-			}
+			return {NewRef{}, id};
 		}
 
 	return 0;
 	}
 
-ID* install_ID(const char* name, const char* module_name,
-		bool is_global, bool is_export)
+IntrusivePtr<ID> install_ID(const char* name, const char* module_name,
+                            bool is_global, bool is_export)
 	{
-	if ( scopes.length() == 0 && ! is_global )
+	if ( scopes.empty() && ! is_global )
 		reporter->InternalError("local identifier in global scope");
 
 	IDScope scope;
@@ -177,16 +168,16 @@ ID* install_ID(const char* name, const char* module_name,
 	else
 		scope = SCOPE_FUNCTION;
 
-	string full_name_str = make_full_var_name(module_name, name);
-	char* full_name = copy_string(full_name_str.c_str());
+	string full_name = make_full_var_name(module_name, name);
 
-	ID* id = new ID(full_name, scope, is_export);
+	auto id = make_intrusive<ID>(full_name.data(), scope, is_export);
+
 	if ( SCOPE_FUNCTION != scope )
-		global_scope()->Insert(full_name, id);
+		global_scope()->Insert(std::move(full_name), id);
 	else
 		{
 		id->SetOffset(top_scope->Length());
-		top_scope->Insert(full_name, id);
+		top_scope->Insert(std::move(full_name), id);
 		}
 
 	return id;
@@ -197,28 +188,23 @@ void push_existing_scope(Scope* scope)
 	scopes.push_back(scope);
 	}
 
-void push_scope(ID* id, attr_list* attrs)
+void push_scope(IntrusivePtr<ID> id, attr_list* attrs)
 	{
-	top_scope = new Scope(id, attrs);
+	top_scope = new Scope(std::move(id), attrs);
 	scopes.push_back(top_scope);
 	}
 
-Scope* pop_scope()
+IntrusivePtr<Scope> pop_scope()
 	{
-	int n = scopes.length() - 1;
-	if ( n < 0 )
+	if ( scopes.empty() )
 		reporter->InternalError("scope underflow");
-	scopes.remove_nth(n);
+	scopes.pop_back();
 
 	Scope* old_top = top_scope;
-	// Don't delete the scope; keep it around for later name resolution
-	// in the debugger.
-	// ### SERIOUS MEMORY LEAK!?
-	// delete top_scope;
 
-	top_scope = n == 0 ? 0 : scopes[n-1];
+	top_scope = scopes.empty() ? nullptr : scopes.back();
 
-	return old_top;
+	return {AdoptRef{}, old_top};
 	}
 
 Scope* current_scope()
@@ -228,5 +214,5 @@ Scope* current_scope()
 
 Scope* global_scope()
 	{
-	return scopes.length() == 0 ? 0 : scopes[0];
+	return scopes.empty() ? 0 : scopes.front();
 	}

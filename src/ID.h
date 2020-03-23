@@ -1,16 +1,22 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef id_h
-#define id_h
+#pragma once
 
-#include "Type.h"
+#include "IntrusivePtr.h"
+#include "Obj.h"
 #include "Attr.h"
 #include "Notifier.h"
 #include "TraverseTypes.h"
+
+#include <map>
 #include <string>
+#include <vector>
 
 class Val;
+class Expr;
 class Func;
+class BroType;
+class Attributes;
 
 typedef enum { INIT_NONE, INIT_FULL, INIT_EXTRA, INIT_REMOVE, } init_class;
 typedef enum { SCOPE_FUNCTION, SCOPE_MODULE, SCOPE_GLOBAL } IDScope;
@@ -28,11 +34,11 @@ public:
 	bool IsExport() const           { return is_export; }
 	void SetExport()                { is_export = true; }
 
-	string ModuleName() const;
+	std::string ModuleName() const;
 
-	void SetType(BroType* t)	{ Unref(type); type = t; }
-	BroType* Type()			{ return type; }
-	const BroType* Type() const	{ return type; }
+	void SetType(IntrusivePtr<BroType> t);
+	BroType* Type()			{ return type.get(); }
+	const BroType* Type() const	{ return type.get(); }
 
 	void MakeType()			{ is_type = true; }
 	BroType* AsType()		{ return is_type ? Type() : 0; }
@@ -46,10 +52,10 @@ public:
 	// reference to the Val, the Val will be destroyed (naturally,
 	// you have to take care that it will not be accessed via
 	// the ID afterwards).
-	void SetVal(Val* v, bool weak_ref = false);
+	void SetVal(IntrusivePtr<Val> v, bool weak_ref = false);
 
-	void SetVal(Val* v, init_class c);
-	void SetVal(Expr* ev, init_class c);
+	void SetVal(IntrusivePtr<Val> v, init_class c);
+	void SetVal(IntrusivePtr<Expr> ev, init_class c);
 
 	bool HasVal() const		{ return val != 0; }
 	Val* ID_Val()			{ return val; }
@@ -68,23 +74,21 @@ public:
 	void SetOffset(int arg_offset)	{ offset = arg_offset; }
 	int Offset() const		{ return offset; }
 
-	bool IsRedefinable() const	{ return FindAttr(ATTR_REDEF) != 0; }
+	bool IsRedefinable() const;
 
-	void SetAttrs(Attributes* attr);
-	void AddAttrs(Attributes* attr);
+	void SetAttrs(IntrusivePtr<Attributes> attr);
+	void AddAttrs(IntrusivePtr<Attributes> attr);
 	void RemoveAttr(attr_tag a);
 	void UpdateValAttrs();
-	Attributes* Attrs() const	{ return attrs; }
+	Attributes* Attrs() const	{ return attrs.get(); }
 
-	Attr* FindAttr(attr_tag t) const
-		{ return attrs ? attrs->FindAttr(t) : 0; }
+	Attr* FindAttr(attr_tag t) const;
 
-	bool IsDeprecated() const
-		{ return FindAttr(ATTR_DEPRECATED) != 0; }
+	bool IsDeprecated() const;
 
-	void MakeDeprecated(Expr* deprecation);
+	void MakeDeprecated(IntrusivePtr<Expr> deprecation);
 
-	string GetDeprecationWarning() const;
+	std::string GetDeprecationWarning() const;
 
 	void Error(const char* msg, const BroObj* o2 = 0);
 
@@ -105,14 +109,11 @@ public:
 	bool HasOptionHandlers() const
 		{ return !option_handlers.empty(); }
 
-	// Takes ownership of callback.
-	void AddOptionHandler(Func* callback, int priority);
-	vector<Func*> GetOptionHandlers() const;
+	void AddOptionHandler(IntrusivePtr<Func> callback, int priority);
+	std::vector<Func*> GetOptionHandlers() const;
 
 protected:
-	ID()	{ name = 0; type = 0; val = 0; attrs = 0; }
-
-	void EvalFunc(Expr* ef, Expr* ev);
+	void EvalFunc(IntrusivePtr<Expr> ef, IntrusivePtr<Expr> ev);
 
 #ifdef DEBUG
 	void UpdateValID();
@@ -121,16 +122,14 @@ protected:
 	const char* name;
 	IDScope scope;
 	bool is_export;
-	BroType* type;
+	IntrusivePtr<BroType> type;
 	bool is_const, is_enum_const, is_type, is_option;
 	int offset;
 	Val* val;
-	Attributes* attrs;
+	IntrusivePtr<Attributes> attrs;
 	// contains list of functions that are called when an option changes
-	std::multimap<int, Func*> option_handlers;
+	std::multimap<int, IntrusivePtr<Func>> option_handlers;
 
 	bool infer_return_type;
 	bool weak_ref;
 };
-
-#endif

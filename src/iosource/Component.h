@@ -1,12 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef IOSOURCE_PLUGIN_COMPONENT_H
-#define IOSOURCE_PLUGIN_COMPONENT_H
+#pragma once
+
+#include "plugin/Component.h"
 
 #include <string>
 #include <vector>
-
-#include "plugin/Component.h"
 
 namespace iosource {
 
@@ -168,5 +167,3 @@ private:
 };
 
 }
-
-#endif

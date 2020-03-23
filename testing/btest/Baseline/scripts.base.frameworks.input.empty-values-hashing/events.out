@@ -1,0 +1,52 @@
+============EVENT============
+Description
+  source, ../input.log
+  reader, Input::READER_ASCII
+  mode, Input::REREAD
+  name, ssh
+  destination[left = 1], [s=<uninitialized>, ss=TEST]
+  idx, A::Idx
+  val, A::Val
+  want_record, T
+Type, Input::EVENT_NEW
+Left, [i=1]
+Right, [s=<uninitialized>, ss=TEST]
+============EVENT============
+Description
+  source, ../input.log
+  reader, Input::READER_ASCII
+  mode, Input::REREAD
+  name, ssh
+  destination[left = 2], [s=<uninitialized>, ss=<uninitialized>]
+  idx, A::Idx
+  val, A::Val
+  want_record, T
+Type, Input::EVENT_NEW
+Left, [i=2]
+Right, [s=<uninitialized>, ss=<uninitialized>]
+============EVENT============
+Description
+  source, ../input.log
+  reader, Input::READER_ASCII
+  mode, Input::REREAD
+  name, ssh
+  destination[left = 1], [s=TEST, ss=<uninitialized>]
+  idx, A::Idx
+  val, A::Val
+  want_record, T
+Type, Input::EVENT_CHANGED
+Left, [i=1]
+Right, [s=<uninitialized>, ss=TEST]
+============EVENT============
+Description
+  source, ../input.log
+  reader, Input::READER_ASCII
+  mode, Input::REREAD
+  name, ssh
+  destination[left = 2], [s=TEST, ss=TEST]
+  idx, A::Idx
+  val, A::Val
+  want_record, T
+Type, Input::EVENT_CHANGED
+Left, [i=2]
+Right, [s=<uninitialized>, ss=<uninitialized>]

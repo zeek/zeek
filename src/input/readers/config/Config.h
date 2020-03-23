@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef INPUT_READERS_CONFIG_H
-#define INPUT_READERS_CONFIG_H
+#pragma once
 
 #include <iostream>
 #include <vector>
@@ -40,19 +39,12 @@ protected:
 private:
 	bool GetLine(string& str);
 	bool OpenFile();
-	// Call Warning or Error, depending on the is_error boolean.
-	// In case of a warning, setting suppress_future to true will suppress all future warnings
-	// (by setting suppress_warnings to true, until suppress_warnings is set back to false)
-	void FailWarn(bool is_error, const char *msg, bool suppress_future = false);
 
 	ifstream file;
 	time_t mtime;
 	ino_t ino;
 
 	bool fail_on_file_problem;
-	// this is an internal indicator in case the read is currently in a failed state
-	// it's used to suppress duplicate error messages.
-	bool suppress_warnings;
 
 	string set_separator;
 	string empty_field;
@@ -65,5 +57,3 @@ private:
 
 }
 }
-
-#endif /* INPUT_READERS_CONFIG_H */

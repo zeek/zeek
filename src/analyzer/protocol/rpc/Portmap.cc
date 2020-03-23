@@ -1,13 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek-config.h"
-
+#include "Portmap.h"
 #include "NetVar.h"
 #include "XDR.h"
-#include "Portmap.h"
 #include "Event.h"
 
 #include "events.bif.h"
+
+#include "zeek-config.h"
 
 using namespace analyzer::rpc;
 
@@ -90,7 +90,7 @@ int PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status status
 	case PMAPPROC_SET:
 		if ( success )
 			{
-			uint32 status = extract_XDR_uint32(buf, n);
+			uint32_t status = extract_XDR_uint32(buf, n);
 			if ( ! buf )
 				return 0;
 
@@ -105,7 +105,7 @@ int PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status status
 	case PMAPPROC_UNSET:
 		if ( success )
 			{
-			uint32 status = extract_XDR_uint32(buf, n);
+			uint32_t status = extract_XDR_uint32(buf, n);
 			if ( ! buf )
 				return 0;
 
@@ -120,7 +120,7 @@ int PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status status
 	case PMAPPROC_GETPORT:
 		if ( success )
 			{
-			uint32 port = extract_XDR_uint32(buf, n);
+			uint32_t port = extract_XDR_uint32(buf, n);
 			if ( ! buf )
 				return 0;
 
@@ -139,8 +139,8 @@ int PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status status
 		event = success ? pm_request_dump : pm_attempt_dump;
 		if ( success )
 			{
-			TableVal* mappings = new TableVal(pm_mappings);
-			uint32 nmap = 0;
+			TableVal* mappings = new TableVal({NewRef{}, pm_mappings});
+			uint32_t nmap = 0;
 
 			// Each call in the loop test pulls the next "opted"
 			// element to see if there are more mappings.
@@ -171,7 +171,7 @@ int PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status status
 	case PMAPPROC_CALLIT:
 		if ( success )
 			{
-			uint32 port = extract_XDR_uint32(buf, n);
+			uint32_t port = extract_XDR_uint32(buf, n);
 			int reply_n;
 			const u_char* opaque_reply =
 				extract_XDR_opaque(buf, n, reply_n);
@@ -201,7 +201,7 @@ Val* PortmapperInterp::ExtractMapping(const u_char*& buf, int& len)
 	mapping->Assign(1, val_mgr->GetCount(extract_XDR_uint32(buf, len)));
 
 	int is_tcp = extract_XDR_uint32(buf, len) == IPPROTO_TCP;
-	uint32 port = extract_XDR_uint32(buf, len);
+	uint32_t port = extract_XDR_uint32(buf, len);
 	mapping->Assign(2, val_mgr->GetPort(CheckPort(port),
 			is_tcp ? TRANSPORT_TCP : TRANSPORT_UDP));
 
@@ -255,7 +255,7 @@ Val* PortmapperInterp::ExtractCallItRequest(const u_char*& buf, int& len)
 	return c;
 	}
 
-uint32 PortmapperInterp::CheckPort(uint32 port)
+uint32_t PortmapperInterp::CheckPort(uint32_t port)
 	{
 	if ( port >= 65536 )
 		{
@@ -295,7 +295,7 @@ void PortmapperInterp::Event(EventHandlerPtr f, Val* request, BifEnum::rpc_statu
 		}
 	else
 		{
-		vl.push_back(BifType::Enum::rpc_status->GetVal(status));
+		vl.push_back(BifType::Enum::rpc_status->GetVal(status).release());
 		if ( request )
 			vl.push_back(request);
 		}

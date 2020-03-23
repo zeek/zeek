@@ -4,6 +4,7 @@
 
 #include "Hash.h"
 #include "Val.h"
+#include "IntrusivePtr.h"
 
 #include "protocol/conn-size/ConnSize.h"
 #include "protocol/icmp/ICMP.h"
@@ -19,12 +20,12 @@
 using namespace analyzer;
 
 Manager::ConnIndex::ConnIndex(const IPAddr& _orig, const IPAddr& _resp,
-				     uint16 _resp_p, uint16 _proto)
+				     uint16_t _resp_p, uint16_t _proto)
 	{
-	if ( _orig == IPAddr(string("0.0.0.0")) )
+	if ( _orig == IPAddr::v4_unspecified )
 		// don't use the IPv4 mapping, use the literal unspecified address
 		// to indicate a wildcard
-		orig = IPAddr(string("::"));
+		orig = IPAddr::v6_unspecified;
 	else
 		orig = _orig;
 
@@ -35,7 +36,7 @@ Manager::ConnIndex::ConnIndex(const IPAddr& _orig, const IPAddr& _resp,
 
 Manager::ConnIndex::ConnIndex()
 	{
-	orig = resp = IPAddr("0.0.0.0");
+	orig = resp = IPAddr::v4_unspecified;
 	resp_p = 0;
 	proto = 0;
 	}
@@ -69,9 +70,6 @@ Manager::~Manager()
 
 	for ( analyzer_map_by_port::const_iterator i = analyzers_by_port_udp.begin(); i != analyzers_by_port_udp.end(); i++ )
 		delete i->second;
-
-	analyzers_by_port_udp.clear();
-	analyzers_by_port_tcp.clear();
 
 	// Clean up expected-connection table.
 	while ( conns_by_timeout.size() )
@@ -145,7 +143,7 @@ void Manager::Done()
 	{
 	}
 
-bool Manager::EnableAnalyzer(Tag tag)
+bool Manager::EnableAnalyzer(const Tag& tag)
 	{
 	Component* p = Lookup(tag);
 
@@ -171,7 +169,7 @@ bool Manager::EnableAnalyzer(EnumVal* val)
 	return true;
 	}
 
-bool Manager::DisableAnalyzer(Tag tag)
+bool Manager::DisableAnalyzer(const Tag& tag)
 	{
 	Component* p = Lookup(tag);
 
@@ -211,7 +209,7 @@ analyzer::Tag Manager::GetAnalyzerTag(const char* name)
 	return GetComponentTag(name);
 	}
 
-bool Manager::IsEnabled(Tag tag)
+bool Manager::IsEnabled(const Tag& tag)
 	{
 	if ( ! tag )
 		return false;
@@ -255,7 +253,7 @@ bool Manager::UnregisterAnalyzerForPort(EnumVal* val, PortVal* port)
 	return UnregisterAnalyzerForPort(p->Tag(), port->PortType(), port->Port());
 	}
 
-bool Manager::RegisterAnalyzerForPort(Tag tag, TransportProto proto, uint32 port)
+bool Manager::RegisterAnalyzerForPort(const Tag& tag, TransportProto proto, uint32_t port)
 	{
 	tag_set* l = LookupPort(proto, port, true);
 
@@ -271,7 +269,7 @@ bool Manager::RegisterAnalyzerForPort(Tag tag, TransportProto proto, uint32 port
 	return true;
 	}
 
-bool Manager::UnregisterAnalyzerForPort(Tag tag, TransportProto proto, uint32 port)
+bool Manager::UnregisterAnalyzerForPort(const Tag& tag, TransportProto proto, uint32_t port)
 	{
 	tag_set* l = LookupPort(proto, port, true);
 
@@ -287,7 +285,7 @@ bool Manager::UnregisterAnalyzerForPort(Tag tag, TransportProto proto, uint32 po
 	return true;
 	}
 
-Analyzer* Manager::InstantiateAnalyzer(Tag tag, Connection* conn)
+Analyzer* Manager::InstantiateAnalyzer(const Tag& tag, Connection* conn)
 	{
 	Component* c = Lookup(tag);
 
@@ -326,7 +324,7 @@ Analyzer* Manager::InstantiateAnalyzer(const char* name, Connection* conn)
 	return tag ? InstantiateAnalyzer(tag, conn) : 0;
 	}
 
-Manager::tag_set* Manager::LookupPort(TransportProto proto, uint32 port, bool add_if_not_found)
+Manager::tag_set* Manager::LookupPort(TransportProto proto, uint32_t port, bool add_if_not_found)
 	{
 	analyzer_map_by_port* m = 0;
 
@@ -443,13 +441,12 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 		if ( tcp_contents && ! reass )
 			{
 			auto dport = val_mgr->GetPort(ntohs(conn->RespPort()), TRANSPORT_TCP);
-			Val* result;
 
 			if ( ! reass )
-				reass = tcp_content_delivery_ports_orig->Lookup(dport);
+				reass = (bool)tcp_content_delivery_ports_orig->Lookup(dport);
 
 			if ( ! reass )
-				reass = tcp_content_delivery_ports_resp->Lookup(dport);
+				reass = (bool)tcp_content_delivery_ports_resp->Lookup(dport);
 
 			Unref(dport);
 			}
@@ -464,7 +461,7 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 			// handle non-reassembled data, it doesn't really fit into
 			// our general framing ...  Better would be to turn it
 			// on *after* we discover we have interactive traffic.
-			uint16 resp_port = ntohs(conn->RespPort());
+			uint16_t resp_port = ntohs(conn->RespPort());
 			if ( resp_port == 22 || resp_port == 23 || resp_port == 513 )
 				{
 				AddrVal src(conn->OrigAddr());
@@ -541,8 +538,8 @@ void Manager::ExpireScheduledAnalyzers()
 	}
 
 void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp,
-			uint16 resp_p,
-			TransportProto proto, Tag analyzer,
+			uint16_t resp_p,
+			TransportProto proto, const Tag& analyzer,
 			double timeout)
 	{
 	if ( ! network_time )
@@ -566,7 +563,7 @@ void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp,
 	}
 
 void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp,
-			uint16 resp_p,
+			uint16_t resp_p,
 			TransportProto proto, const char* analyzer,
 			double timeout)
 	{
@@ -596,7 +593,7 @@ Manager::tag_set Manager::GetScheduled(const Connection* conn)
 		result.insert(i->second->analyzer);
 
 	// Try wildcard for originator.
-	c.orig = IPAddr(string("::"));
+	c.orig = IPAddr::v6_unspecified;
 	all = conns.equal_range(c);
 
 	for ( conns_map::iterator i = all.first; i != all.second; i++ )

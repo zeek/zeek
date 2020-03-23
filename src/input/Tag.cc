@@ -3,7 +3,7 @@
 #include "Tag.h"
 #include "Manager.h"
 
-input::Tag input::Tag::Error;
+const input::Tag input::Tag::Error;
 
 input::Tag::Tag(type_t type, subtype_t subtype)
 	: ::Tag(input_mgr->GetTagEnumType(), type, subtype)

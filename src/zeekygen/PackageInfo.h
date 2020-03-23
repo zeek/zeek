@@ -1,12 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ZEEKYGEN_PACKAGEINFO_H
-#define ZEEKYGEN_PACKAGEINFO_H
+#pragma once
 
 #include "Info.h"
 
 #include <string>
 #include <vector>
+
+#include <time.h> // for time_t
 
 namespace zeekygen {
 
@@ -46,5 +47,3 @@ private:
 };
 
 } // namespace zeekygen
-
-#endif

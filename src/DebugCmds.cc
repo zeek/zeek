@@ -2,6 +2,7 @@
 // implementation of most commands.
 
 #include "zeek-config.h"
+#include "DebugCmds.h"
 
 #include <sys/types.h>
 
@@ -9,22 +10,27 @@
 #include <string.h>
 #include <assert.h>
 
-#include "Debug.h"
-#include "DebugCmds.h"
 #include "DebugCmdInfoConstants.cc"
+#include "Debug.h"
+#include "Desc.h"
 #include "DbgBreakpoint.h"
+#include "ID.h"
+#include "IntrusivePtr.h"
+#include "Frame.h"
 #include "Func.h"
 #include "Stmt.h"
 #include "Scope.h"
+#include "Reporter.h"
 #include "PolicyFile.h"
+#include "Val.h"
 #include "util.h"
 
 //
 // Helper routines
 //
-bool string_is_regex(string s)
+bool string_is_regex(const string& s)
 	{
-	return strpbrk(s.c_str(), "?*\\+");
+	return strpbrk(s.data(), "?*\\+");
 	}
 
 void lookup_global_symbols_regex(const string& orig_regex, vector<ID*>& matches,
@@ -51,14 +57,16 @@ void lookup_global_symbols_regex(const string& orig_regex, vector<ID*>& matches,
 		}
 
 	Scope* global = global_scope();
-	PDict<ID>* syms = global->Vars();
+	const auto& syms = global->Vars();
 
 	ID* nextid;
-	IterCookie* cookie = syms->InitForIteration();
-	while ( (nextid = syms->NextEntry( cookie )) )
+	for ( const auto& sym : syms )
+		{
+		ID* nextid = sym.second.get();
 		if ( ! func_only || nextid->Type()->Tag() == TYPE_FUNC )
 			if ( ! regexec (&re, nextid->Name(), 0, 0, 0) )
 				matches.push_back(nextid);
+		}
 	}
 
 void choose_global_symbols_regex(const string& regex, vector<ID*>& choices,
@@ -557,7 +565,7 @@ int dbg_cmd_print(DebugCmd cmd, const vector<string>& args)
 			expr += " ";
 		}
 
-	Val* val = dbg_eval_expr(expr.c_str());
+	auto val = dbg_eval_expr(expr.c_str());
 
 	if ( val )
 		{

@@ -1,3 +1,5 @@
+#pragma once
+
 // Functions for displaying the contents of policy files.
 // Mostly useful for debugging code that wants to show context.
 //

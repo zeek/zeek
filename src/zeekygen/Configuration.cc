@@ -3,7 +3,6 @@
 #include "Configuration.h"
 #include "utils.h"
 
-#include "util.h"
 #include "Reporter.h"
 
 #include <fstream>

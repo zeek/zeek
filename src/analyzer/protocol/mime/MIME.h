@@ -1,5 +1,4 @@
-#ifndef ANALYZER_PROTOCOL_MIME_MIME_H
-#define ANALYZER_PROTOCOL_MIME_MIME_H
+#pragma once
 
 #include <assert.h>
 #include <openssl/evp.h>
@@ -8,9 +7,12 @@
 #include <queue>
 using namespace std;
 
-#include "Base64.h"
 #include "BroString.h"
+#include "Reporter.h"
 #include "analyzer/Analyzer.h"
+
+class StringVal;
+class Base64Converter;
 
 namespace analyzer { namespace mime {
 
@@ -172,6 +174,7 @@ protected:
 
 	MIME_Message* message;
 	bool delay_adding_implicit_CRLF;
+	bool want_all_headers;
 };
 
 // The reason I separate MIME_Message as an abstract class is to
@@ -257,7 +260,7 @@ protected:
 
 	BroString* data_buffer;
 
-	uint64 cur_entity_len;
+	uint64_t cur_entity_len;
 	string cur_entity_id;
 };
 
@@ -283,5 +286,3 @@ extern int MIME_get_field_name(int len, const char* data, data_chunk_t* name);
 extern BroString* MIME_decode_quoted_pairs(data_chunk_t buf);
 
 } } // namespace analyzer::*
-
-#endif

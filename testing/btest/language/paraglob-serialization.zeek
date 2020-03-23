@@ -88,7 +88,6 @@ event ping(msg: opaque of paraglob, n: count)
     print "is_remote should be T, and is", is_remote_event();
     if ( n > events_to_recv )
       {
-      print get_broker_stats();
       terminate();
       return;
       }

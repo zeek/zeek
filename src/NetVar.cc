@@ -2,8 +2,10 @@
 
 #include "zeek-config.h"
 
-#include "Var.h"
 #include "NetVar.h"
+#include "Var.h"
+#include "EventHandler.h"
+#include "Val.h"
 
 RecordType* conn_id;
 RecordType* endpoint;
@@ -164,6 +166,7 @@ RecordType* irc_join_info;
 int dpd_reassemble_first_packets;
 int dpd_buffer_size;
 int dpd_match_only_beginning;
+int dpd_late_match_stop;
 int dpd_ignore_ports;
 
 TableVal* likely_server_ports;
@@ -195,6 +198,7 @@ bro_uint_t bits_per_uid;
 #include "types.bif.netvar_def"
 #include "event.bif.netvar_def"
 #include "reporter.bif.netvar_def"
+#include "supervisor.bif.netvar_def"
 
 void init_event_handlers()
 	{
@@ -239,6 +243,7 @@ void init_net_var()
 #include "const.bif.netvar_init"
 #include "types.bif.netvar_init"
 #include "reporter.bif.netvar_init"
+#include "supervisor.bif.netvar_init"
 
 	conn_id = internal_type("conn_id")->AsRecordType();
 	endpoint = internal_type("endpoint")->AsRecordType();
@@ -406,6 +411,7 @@ void init_net_var()
 		opt_internal_int("dpd_reassemble_first_packets");
 	dpd_buffer_size = opt_internal_int("dpd_buffer_size");
 	dpd_match_only_beginning = opt_internal_int("dpd_match_only_beginning");
+	dpd_late_match_stop = opt_internal_int("dpd_late_match_stop");
 	dpd_ignore_ports = opt_internal_int("dpd_ignore_ports");
 
 	likely_server_ports = internal_val("likely_server_ports")->AsTableVal();

@@ -1,10 +1,7 @@
-#ifndef BRO_COMM_STORE_H
-#define BRO_COMM_STORE_H
+#pragma once
 
 #include "broker/store.bif.h"
 #include "broker/data.bif.h"
-#include "Reporter.h"
-#include "Type.h"
 #include "OpaqueVal.h"
 #include "Trigger.h"
 
@@ -21,21 +18,7 @@ extern OpaqueType* opaque_of_store_handle;
  * @param success whether the query status should be set to success or failure.
  * @return a Broker::QueryStatus value.
  */
-inline EnumVal* query_status(bool success)
-	{
-	static EnumType* store_query_status = nullptr;
-	static int success_val;
-	static int failure_val;
-
-	if ( ! store_query_status )
-		{
-		store_query_status = internal_type("Broker::QueryStatus")->AsEnumType();
-		success_val = store_query_status->Lookup("Broker", "SUCCESS");
-		failure_val = store_query_status->Lookup("Broker", "FAILURE");
-		}
-
-	return store_query_status->GetVal(success ? success_val : failure_val);
-	}
+EnumVal* query_status(bool success);
 
 /**
  * @return a Broker::QueryResult value that has a Broker::QueryStatus indicating
@@ -45,7 +28,7 @@ inline RecordVal* query_result()
 	{
 	auto rval = new RecordVal(BifType::Record::Broker::QueryResult);
 	rval->Assign(0, query_status(false));
-	rval->Assign(1, new RecordVal(BifType::Record::Broker::Data));
+	rval->Assign(1, make_intrusive<RecordVal>(BifType::Record::Broker::Data));
 	return rval;
 	}
 
@@ -67,7 +50,7 @@ inline RecordVal* query_result(RecordVal* data)
  */
 class StoreQueryCallback {
 public:
-	StoreQueryCallback(Trigger* arg_trigger, const CallExpr* arg_call,
+	StoreQueryCallback(trigger::Trigger* arg_trigger, const CallExpr* arg_call,
 			   broker::store store)
 		: trigger(arg_trigger), call(arg_call), store(move(store))
 		{
@@ -102,7 +85,7 @@ public:
 
 private:
 
-	Trigger* trigger;
+	trigger::Trigger* trigger;
 	const CallExpr* call;
 	broker::store store;
 };
@@ -135,5 +118,3 @@ broker::backend_options to_backend_options(broker::backend backend,
                                            RecordVal* options);
 
 } // namespace bro_broker
-
-#endif // BRO_COMM_STORE_H

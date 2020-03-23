@@ -1,9 +1,9 @@
 
-#ifndef BRO_PLUGIN_DEMO_FOO_H
-#define BRO_PLUGIN_DEMO_FOO_H
+#pragma once
 
 #include "logging/WriterBackend.h"
 #include "threading/formatters/Ascii.h"
+#include "Desc.h"
 
 namespace logging { namespace writer {
 
@@ -35,5 +35,3 @@ private:
 };
 
 } }
-
-#endif

@@ -1,7 +1,6 @@
 // This code contributed by Nadi Sarrar.
 
-#ifndef ANALYZER_PROTOCOL_BITTORRENT_BITTORRENT_H
-#define ANALYZER_PROTOCOL_BITTORRENT_BITTORRENT_H
+#pragma once
 
 #include "analyzer/protocol/tcp/TCP.h"
 
@@ -16,7 +15,7 @@ public:
 
 	void Done() override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
-	void Undelivered(uint64 seq, int len, bool orig) override;
+	void Undelivered(uint64_t seq, int len, bool orig) override;
 	void EndpointEOF(bool is_orig) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
@@ -27,9 +26,7 @@ protected:
 
 	binpac::BitTorrent::BitTorrent_Conn* interp;
 	bool stop_orig, stop_resp;
-	uint64 stream_len_orig, stream_len_resp;
+	uint64_t stream_len_orig, stream_len_resp;
 };
 
 } } // namespace analyzer::* 
-
-#endif

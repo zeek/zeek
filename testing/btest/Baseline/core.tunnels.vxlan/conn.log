@@ -3,12 +3,12 @@
 #empty_field	(empty)
 #unset_field	-
 #path	conn
-#open	2019-03-12-03-29-46
+#open	2019-07-31-18-53-40
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
 #types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	bool	count	string	count	count	count	count	set[string]
-1467818432.676047	C4J4Th3PJpwUYZZ6gc	192.168.56.11	48134	192.168.56.12	4789	udp	vxlan	3.004434	424	0	S0	-	-	0	D	4	536	0	0	-
-1467818432.675392	CHhAvVGS1DHFjwGM9	192.168.56.11	39924	192.168.56.12	4789	udp	-	-	-	-	S0	-	-	0	D	1	78	0	0	-
-1467818432.675732	ClEkJM2Vm5giqnMf4h	192.168.56.12	40908	192.168.56.11	4789	udp	-	-	-	-	S0	-	-	0	D	1	78	0	0	-
 1467818432.676385	CUM0KZ3MLUfNB0cl11	192.168.56.12	38071	192.168.56.11	4789	udp	vxlan	3.004278	424	0	S0	-	-	0	D	4	536	0	0	-
+1467818432.675732	ClEkJM2Vm5giqnMf4h	192.168.56.12	40908	192.168.56.11	4789	udp	-	-	-	-	S0	-	-	0	D	1	78	0	0	-
+1467818432.675392	CHhAvVGS1DHFjwGM9	192.168.56.11	39924	192.168.56.12	4789	udp	-	-	-	-	S0	-	-	0	D	1	78	0	0	-
+1467818432.676047	C4J4Th3PJpwUYZZ6gc	192.168.56.11	48134	192.168.56.12	4789	udp	vxlan	3.004434	424	0	S0	-	-	0	D	4	536	0	0	-
 1467818432.676047	CtPZjS20MLrsMUOJi2	10.0.0.1	8	10.0.0.2	0	icmp	-	3.004616	224	224	OTH	-	-	0	-	4	336	4	336	CUM0KZ3MLUfNB0cl11,C4J4Th3PJpwUYZZ6gc
-#close	2019-03-12-03-29-46
+#close	2019-07-31-18-53-40

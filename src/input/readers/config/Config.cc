@@ -24,15 +24,14 @@ Config::Config(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	{
 	mtime = 0;
 	ino = 0;
-	suppress_warnings = false;
 	fail_on_file_problem = false;
 
 	// find all option names and their types.
-	auto globals = global_scope()->Vars();
-	auto c = globals->InitForIteration();
+	const auto& globals = global_scope()->Vars();
 
-	while ( auto id = globals->NextEntry(c) )
+	for ( const auto& entry : globals )
 		{
+		ID* id = entry.second.get();
 		if ( ! id->IsOption() )
 			continue;
 
@@ -91,24 +90,8 @@ bool Config::OpenFile()
 		return ! fail_on_file_problem;
 		}
 
-	suppress_warnings = false;
+	StopWarningSuppression();
 	return true;
-	}
-
-void Config::FailWarn(bool is_error, const char *msg, bool suppress_future)
-	{
-	if ( is_error )
-		Error(msg);
-	else
-		{
-		// suppress error message when we are already in error mode.
-		// There is no reason to repeat it every second.
-		if ( ! suppress_warnings )
-			Warning(msg);
-
-		if ( suppress_future )
-			suppress_warnings = true;
-		}
 	}
 
 bool Config::GetLine(string& str)
@@ -155,7 +138,7 @@ bool Config::DoUpdate()
 			// is to suppress an extra warning that we'd otherwise get on the initial
 			// inode assignment.
 			if ( ino != 0 )
-				suppress_warnings = false;
+				StopWarningSuppression();
 
 			mtime = sb.st_mtime;
 			ino = sb.st_ino;
@@ -193,13 +176,13 @@ bool Config::DoUpdate()
 	// keep a list of options to remove because they were no longer in the input file.
 	// Start out with all element and removes while going along
 	std::unordered_set<std::string> unseen_options;
-	for ( auto i : option_values )
+	for ( const auto& i : option_values )
 		{
 		unseen_options.insert(i.first);
 		}
 
 	regex_t re;
-	if ( regcomp(&re, "^([^[:blank:]]+)[[:blank:]]+(.*)$", REG_EXTENDED) )
+	if ( regcomp(&re, "^([^[:blank:]]+)[[:blank:]]+(.*[^[:blank:]])?[[:blank:]]*$", REG_EXTENDED) )
 		{
 		Error(Fmt("Failed to compile regex."));
 		return true;
@@ -215,7 +198,9 @@ bool Config::DoUpdate()
 			}
 
 		string key = line.substr(match[1].rm_so, match[1].rm_eo - match[1].rm_so);
-		string value = line.substr(match[2].rm_so, match[2].rm_eo - match[2].rm_so);
+		string value;
+		if ( match[2].rm_so > 0 )
+			value = line.substr(match[2].rm_so, match[2].rm_eo - match[2].rm_so);
 
 		auto typeit = option_types.find(key);
 		if ( typeit == option_types.end() )
@@ -297,7 +282,7 @@ bool Config::DoUpdate()
 		EndCurrentSend();
 
 	// clean up all options we did not see
-	for ( auto i : unseen_options )
+	for ( const auto& i : unseen_options )
 		option_values.erase(i);
 
 	return true;

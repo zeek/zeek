@@ -1,7 +1,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "DebugLogger.h"
 #include "Notifier.h"
+#include "DebugLogger.h"
+
+#include <set>
 
 notifier::Registry notifier::registry;
 
@@ -63,6 +65,17 @@ void notifier::Registry::Modified(Modifiable* m)
 	auto x = registrations.equal_range(m);
 	for ( auto i = x.first; i != x.second; i++ )
 		i->second->Modified(m);
+	}
+
+void notifier::Registry::Terminate()
+	{
+	std::set<Receiver*> receivers;
+
+	for ( auto& r : registrations )
+		receivers.emplace(r.second);
+
+	for ( auto& r : receivers )
+		r->Terminate();
 	}
 
 notifier::Modifiable::~Modifiable()

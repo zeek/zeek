@@ -1,15 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "RE.h"
 
 #include <stdlib.h>
 #include <utility>
 
-#include "RE.h"
 #include "DFA.h"
 #include "CCL.h"
 #include "EquivClass.h"
 #include "Reporter.h"
+#include "BroString.h"
 
 CCL* curr_ccl = 0;
 
@@ -109,7 +110,7 @@ void Specific_RE_Matcher::MakeCaseInsensitive()
 
 	char* s = new char[n + 5 /* slop */];
 
-	safe_snprintf(s, n + 5, fmt, pattern_text);
+	snprintf(s, n + 5, fmt, pattern_text);
 
 	delete [] pattern_text;
 	pattern_text = s;
@@ -194,9 +195,13 @@ int Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx)
 	return 1;
 	}
 
-const char* Specific_RE_Matcher::LookupDef(const char* def)
+string Specific_RE_Matcher::LookupDef(const string& def)
 	{
-	return defs.Lookup(def);
+	const auto& iter = defs.find(def);
+	if ( iter != defs.end() )
+		return iter->second;
+
+	return string();
 	}
 
 int Specific_RE_Matcher::MatchAll(const char* s)
@@ -412,15 +417,26 @@ unsigned int Specific_RE_Matcher::MemoryAllocation() const
 	for ( int i = 0; i < ccl_list.length(); ++i )
 		size += ccl_list[i]->MemoryAllocation();
 
+	size += pad_size(sizeof(CCL*) * ccl_dict.size());
+	for ( const auto& entry : ccl_dict )
+		{
+		size += padded_sizeof(std::string) + pad_size(sizeof(std::string::value_type) * entry.first.size());
+		size += entry.second->MemoryAllocation();
+		}
+
+	for ( const auto& entry : defs )
+		{
+		size += padded_sizeof(std::string) + pad_size(sizeof(std::string::value_type) * entry.first.size());
+		size += padded_sizeof(std::string) + pad_size(sizeof(std::string::value_type) * entry.second.size());
+		}
+
 	return size + padded_sizeof(*this)
 		+ (pattern_text ? pad_size(strlen(pattern_text) + 1) : 0)
-		+ defs.MemoryAllocation() - padded_sizeof(defs) // FIXME: count content
-		+ ccl_dict.MemoryAllocation() - padded_sizeof(ccl_dict) // FIXME: count content
 		+ ccl_list.MemoryAllocation() - padded_sizeof(ccl_list)
 		+ equiv_class.Size() - padded_sizeof(EquivClass)
 		+ (dfa ? dfa->MemoryAllocation() : 0) // this is ref counted; consider the bytes here?
 		+ padded_sizeof(*any_ccl)
-		+ padded_sizeof(*accepted)
+		+ padded_sizeof(*accepted) // NOLINT(bugprone-sizeof-container)
 		+ accepted->size() * padded_sizeof(AcceptingSet::key_type);
 	}
 
@@ -478,7 +494,7 @@ static RE_Matcher* matcher_merge(const RE_Matcher* re1, const RE_Matcher* re2,
 	int n = strlen(text1) + strlen(text2) + strlen(merge_op) + 32 /* slop */ ;
 
 	char* merge_text = new char[n];
-	safe_snprintf(merge_text, n, "(%s)%s(%s)", text1, merge_op, text2);
+	snprintf(merge_text, n, "(%s)%s(%s)", text1, merge_op, text2);
 
 	RE_Matcher* merge = new RE_Matcher(merge_text);
 	delete [] merge_text;

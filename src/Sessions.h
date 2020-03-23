@@ -1,61 +1,46 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef sessions_h
-#define sessions_h
+#pragma once
 
-#include "Dict.h"
-#include "CompHash.h"
-#include "IP.h"
 #include "Frag.h"
 #include "PacketFilter.h"
-#include "Stats.h"
 #include "NetVar.h"
-#include "TunnelEncapsulation.h"
 #include "analyzer/protocol/tcp/Stats.h"
 
+#include <map>
 #include <utility>
 
+#include <sys/types.h> // for u_char
+
 class EncapsulationStack;
+class EncapsulatingConn;
+class Packet;
+class PacketProfiler;
 class Connection;
 class ConnCompressor;
 struct ConnID;
 
 class Discarder;
-class PacketFilter;
 
 namespace analyzer { namespace stepping_stone { class SteppingStoneManager; } }
 namespace analyzer { namespace arp { class ARP_Analyzer; } }
 
 struct SessionStats {
-	int num_TCP_conns;
-	int max_TCP_conns;
-	uint64 cumulative_TCP_conns;
+	size_t num_TCP_conns;
+	size_t max_TCP_conns;
+	uint64_t cumulative_TCP_conns;
 
-	int num_UDP_conns;
-	int max_UDP_conns;
-	uint64 cumulative_UDP_conns;
+	size_t num_UDP_conns;
+	size_t max_UDP_conns;
+	uint64_t cumulative_UDP_conns;
 
-	int num_ICMP_conns;
-	int max_ICMP_conns;
-	uint64 cumulative_ICMP_conns;
+	size_t num_ICMP_conns;
+	size_t max_ICMP_conns;
+	uint64_t cumulative_ICMP_conns;
 
-	int num_fragments;
-	int max_fragments;
-	uint64 num_packets;
-};
-
-// Drains and deletes a timer manager if it hasn't seen any advances
-// for an interval timer_mgr_inactivity_timeout.
-class TimerMgrExpireTimer : public Timer {
-public:
-	TimerMgrExpireTimer(double t, TimerMgr* arg_mgr)
-	    : Timer(t, TIMER_TIMERMGR_EXPIRE), mgr(arg_mgr)
-		{ }
-
-	void Dispatch(double t, int is_expire) override;
-
-protected:
-	TimerMgr* mgr;
+	size_t num_fragments;
+	size_t max_fragments;
+	uint64_t num_packets;
 };
 
 class NetSessions {
@@ -90,9 +75,9 @@ public:
 	void GetStats(SessionStats& s) const;
 
 	void Weird(const char* name, const Packet* pkt,
-	    const EncapsulationStack* encap = 0);
+	    const EncapsulationStack* encap = 0, const char* addl = "");
 	void Weird(const char* name, const IP_Hdr* ip,
-	    const EncapsulationStack* encap = 0);
+	    const EncapsulationStack* encap = 0, const char* addl = "");
 
 	PacketFilter* GetPacketFilter()
 		{
@@ -101,19 +86,11 @@ public:
 		return packet_filter;
 		}
 
-	// Looks up timer manager associated with tag.  If tag is unknown and
-	// "create" is true, creates new timer manager and stores it.  Returns
-	// global timer manager if tag is nil.
-	TimerMgr* LookupTimerMgr(const TimerMgr::Tag* tag, bool create = true);
-
-	void ExpireTimerMgrs();
-
 	analyzer::stepping_stone::SteppingStoneManager* GetSTPManager()	{ return stp_manager; }
 
 	unsigned int CurrentConnections()
 		{
-		return tcp_conns.Length() + udp_conns.Length() +
-			icmp_conns.Length();
+		return tcp_conns.size() + udp_conns.size() + icmp_conns.size();
 		}
 
 	void DoNextPacket(double t, const Packet *pkt, const IP_Hdr* ip_hdr,
@@ -169,19 +146,16 @@ public:
 
 protected:
 	friend class ConnCompressor;
-	friend class TimerMgrExpireTimer;
 	friend class IPTunnelTimer;
 
-	Connection* NewConn(HashKey* k, double t, const ConnID* id,
-			const u_char* data, int proto, uint32 flow_label,
+	using ConnectionMap = std::map<ConnIDKey, Connection*>;
+	using FragmentMap = std::map<FragReassemblerKey, FragReassembler*>;
+
+	Connection* NewConn(const ConnIDKey& k, double t, const ConnID* id,
+			const u_char* data, int proto, uint32_t flow_label,
 			const Packet* pkt, const EncapsulationStack* encapsulation);
 
-	// Check whether the tag of the current packet is consistent with
-	// the given connection.  Returns:
-	//    -1   if current packet is to be completely ignored.
-	//     0   if tag is not consistent and new conn should be instantiated.
-	//     1   if tag is consistent, i.e., packet is part of connection.
-	int CheckConnectionTag(Connection* conn);
+	Connection* LookupConn(const ConnectionMap& conns, const ConnIDKey& key);
 
 	// Returns true if the port corresonds to an application
 	// for which there's a Bro analyzer (even if it might not
@@ -189,7 +163,7 @@ protected:
 	// generally a likely server port, false otherwise.
 	//
 	// Note, port is in host order.
-	bool IsLikelyServerPort(uint32 port,
+	bool IsLikelyServerPort(uint32_t port,
 				TransportProto transport_proto) const;
 
 	// Upon seeing the first packet of a connection, checks whether
@@ -197,9 +171,9 @@ protected:
 	// connections), and, if yes, whether we should flip the roles of
 	// originator and responder (based on known ports or such).
 	// Use tcp_flags=0 for non-TCP.
-	bool WantConnection(uint16 src_port, uint16 dest_port,
+	bool WantConnection(uint16_t src_port, uint16_t dest_port,
 				TransportProto transport_proto,
-				uint8 tcp_flags, bool& flip_roles);
+				uint8_t tcp_flags, bool& flip_roles);
 
 	// Record the given packet (if a dumper is active).  If len=0
 	// then the whole packet is recorded, otherwise just the first
@@ -209,14 +183,22 @@ protected:
 	// For a given protocol, checks whether the header's length as derived
 	// from lower-level headers or the length actually captured is less
 	// than that protocol's minimum header size.
-	bool CheckHeaderTrunc(int proto, uint32 len, uint32 caplen,
+	bool CheckHeaderTrunc(int proto, uint32_t len, uint32_t caplen,
 			      const Packet *pkt, const EncapsulationStack* encap);
 
-	CompositeHash* ch;
-	PDict<Connection> tcp_conns;
-	PDict<Connection> udp_conns;
-	PDict<Connection> icmp_conns;
-	PDict<FragReassembler> fragments;
+	// Inserts a new connection into the sessions map. If a connection with
+	// the same key already exists in the map, it will be overwritten by
+	// the new one.  Connection count stats get updated either way (so most
+	// cases should likely check that the key is not already in the map to
+	// avoid unnecessary incrementing of connecting counts).
+	void InsertConnection(ConnectionMap* m, const ConnIDKey& key, Connection* conn);
+
+	ConnectionMap tcp_conns;
+	ConnectionMap udp_conns;
+	ConnectionMap icmp_conns;
+	FragmentMap fragments;
+
+	SessionStats stats;
 
 	typedef pair<IPAddr, IPAddr> IPPair;
 	typedef pair<EncapsulatingConn, double> TunnelActivity;
@@ -229,13 +211,8 @@ protected:
 	Discarder* discarder;
 	PacketFilter* packet_filter;
 	int dump_this_packet;	// if true, current packet should be recorded
-	uint64 num_packets_processed;
+	uint64_t num_packets_processed;
 	PacketProfiler* pkt_profiler;
-
-	// We may use independent timer managers for different sets of related
-	// activity.  The managers are identified by an unique tag.
-	typedef std::map<TimerMgr::Tag, TimerMgr*> TimerMgrMap;
-	TimerMgrMap timer_mgrs;
 };
 
 
@@ -270,5 +247,3 @@ private:
 
 // Manager for the currently active sessions.
 extern NetSessions* sessions;
-
-#endif

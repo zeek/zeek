@@ -1,11 +1,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_RPC_NFS_H
-#define ANALYZER_PROTOCOL_RPC_NFS_H
+#pragma once
 
 #include "RPC.h"
-#include "XDR.h"
-#include "Event.h"
+#include "NetVar.h"
 
 namespace analyzer { namespace rpc {
 
@@ -92,5 +90,3 @@ public:
 
 
 } } // namespace analyzer::* 
-
-#endif

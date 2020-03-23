@@ -14,13 +14,13 @@ refine flow RADIUS_Flow += {
 
 		if ( ${msg.attributes}->size() )
 			{
-			TableVal* attributes = new TableVal(BifType::Table::RADIUS::Attributes);
+			TableVal* attributes = new TableVal({NewRef{}, BifType::Table::RADIUS::Attributes});
 
 			for ( uint i = 0; i < ${msg.attributes}->size(); ++i ) {
 				Val* index = val_mgr->GetCount(${msg.attributes[i].code});
 
 				// Do we already have a vector of attributes for this type?
-                Val* current = attributes->Lookup(index);
+				auto current = attributes->Lookup(index);
 				Val* val = bytestring_to_val(${msg.attributes[i].value});
 
 				if ( current )

@@ -8,13 +8,13 @@
 #
 
 %header{
-	VectorVal* bytestring_to_coils(bytestring coils, uint quantity);
+	VectorVal* bytestring_to_coils(const bytestring& coils, uint quantity);
 	RecordVal* HeaderToBro(ModbusTCP_TransportHeader *header);
 	VectorVal* create_vector_of_count();
 	%}
 
 %code{
-	VectorVal* bytestring_to_coils(bytestring coils, uint quantity)
+	VectorVal* bytestring_to_coils(const bytestring& coils, uint quantity)
 		{
 		VectorVal* modbus_coils = new VectorVal(BifType::Vector::ModbusCoils);
 		for ( uint i = 0; i < quantity; i++ )

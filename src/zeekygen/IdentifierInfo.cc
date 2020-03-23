@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "IdentifierInfo.h"
+#include "ScriptInfo.h"
 #include "utils.h"
 
 #include "Desc.h"
@@ -10,22 +11,17 @@
 using namespace std;
 using namespace zeekygen;
 
-IdentifierInfo::IdentifierInfo(ID* arg_id, ScriptInfo* script)
+IdentifierInfo::IdentifierInfo(IntrusivePtr<ID> arg_id, ScriptInfo* script)
 	: Info(),
-	  comments(), id(arg_id), initial_val(), redefs(), fields(),
+	  comments(), id(std::move(arg_id)), initial_val(), redefs(), fields(),
 	  last_field_seen(), declaring_script(script)
 	{
-	Ref(id);
-
 	if ( id->ID_Val() && (id->IsOption() || id->IsRedefinable()) )
 		initial_val = id->ID_Val()->Clone();
 	}
 
 IdentifierInfo::~IdentifierInfo()
 	{
-	Unref(id);
-	Unref(initial_val);
-
 	for ( redef_list::const_iterator it = redefs.begin(); it != redefs.end();
 	      ++it )
 		delete *it;
@@ -36,9 +32,9 @@ IdentifierInfo::~IdentifierInfo()
 	}
 
 void IdentifierInfo::AddRedef(const string& script, init_class ic,
-                              Expr* init_expr, const vector<string>& comments)
+                              IntrusivePtr<Expr> init_expr, const vector<string>& comments)
 	{
-	Redefinition* redef = new Redefinition(script, ic, init_expr, comments);
+	Redefinition* redef = new Redefinition(script, ic, std::move(init_expr), comments);
 	redefs.push_back(redef);
 	}
 
@@ -50,7 +46,15 @@ void IdentifierInfo::AddRecordField(const TypeDecl* field,
 	rf->field = new TypeDecl(*field);
 	rf->from_script = script;
 	rf->comments = comments;
-	fields[rf->field->id] = rf;
+
+	auto [it, inserted] = fields.emplace(rf->field->id, rf);
+
+	if ( ! inserted )
+		{
+		delete it->second;
+		it->second = rf;
+		}
+
 	last_field_seen = rf;
 	}
 
@@ -138,44 +142,18 @@ time_t IdentifierInfo::DoGetModificationTime() const
 IdentifierInfo::Redefinition::Redefinition(
                        std::string arg_script,
                        init_class arg_ic,
-                       Expr* arg_expr,
+                       IntrusivePtr<Expr> arg_expr,
                        std::vector<std::string> arg_comments)
 			: from_script(std::move(arg_script)),
 			  ic(arg_ic),
-			  init_expr(arg_expr ? arg_expr->Ref() : nullptr),
+			  init_expr(std::move(arg_expr)),
 			  comments(std::move(arg_comments))
 	{
 	}
 
-IdentifierInfo::Redefinition::Redefinition(const IdentifierInfo::Redefinition& other)
+IdentifierInfo::Redefinition::~Redefinition() = default;
+
+IdentifierInfo::RecordField::~RecordField()
 	{
-	from_script = other.from_script;
-	ic = other.ic;
-	init_expr = other.init_expr;
-	comments = other.comments;
-
-	if ( init_expr )
-		init_expr->Ref();
-	}
-
-IdentifierInfo::Redefinition&
-IdentifierInfo::Redefinition::operator=(const IdentifierInfo::Redefinition& other)
-	{
-	if ( &other == this )
-		return *this;
-
-	from_script = other.from_script;
-	ic = other.ic;
-	init_expr = other.init_expr;
-	comments = other.comments;
-
-	if ( init_expr )
-		init_expr->Ref();
-
-	return *this;
-	}
-
-IdentifierInfo::Redefinition::~Redefinition()
-	{
-	Unref(init_expr);
+	delete field;
 	}

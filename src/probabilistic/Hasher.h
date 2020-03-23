@@ -1,14 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef PROBABILISTIC_HASHER_H
-#define PROBABILISTIC_HASHER_H
+#pragma once
 
-#include <broker/data.hh>
+#include "Hash.h"
+
 #include <broker/expected.hh>
 
 #include <memory>
 
-#include "Hash.h"
+namespace broker { class data; }
 
 namespace probabilistic {
 
@@ -258,5 +258,3 @@ private:
 };
 
 }
-
-#endif

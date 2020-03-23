@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef INPUT_READERBACKEND_H
-#define INPUT_READERBACKEND_H
+#pragma once
 
 #include "BroString.h"
 
@@ -139,7 +138,7 @@ public:
 	/**
 	 * One-time initialization of the reader to define the input source.
 	 *
-	 * @param @param info Meta information for the writer.
+	 * @param info Meta information for the writer.
 	 *
 	 * @param num_fields Number of fields contained in \a fields.
 	 *
@@ -185,11 +184,34 @@ public:
 	 */
 	int NumFields() const	{ return num_fields; }
 
+	/**
+	 * Convenience function that calls Warning or Error, depending on the
+	 * is_error parameter. In case of a warning, setting suppress_future to
+	 * true will suppress all future warnings until StopWarningSuppression()
+	 * is called.
+	 *
+	 * @param is_error If set to true, an error is generated. Else a warning
+	 *                 is generate.
+	 *
+	 * @param msg The error/warning message.
+	 *
+	 * @param suppress_future If set to true, future warnings are suppressed
+	 *                        until StopWarningSuppression is called.
+	 */
+	void FailWarn(bool is_error, const char *msg, bool suppress_future = false);
+
+	inline void StopWarningSuppression() { suppress_warnings = false; };
+
 	// Overridden from MsgThread.
 	bool OnHeartbeat(double network_time, double current_time) override;
 	bool OnFinish(double network_time) override;
 
 	void Info(const char* msg) override;
+
+	/**
+	 * Reports a warning in the child thread. For input readers, warning suppression
+	 * that is caused by calling FailWarn() is respected by the Warning function.
+	 */
 	void Warning(const char* msg) override;
 
 	/**
@@ -349,8 +371,9 @@ private:
 	const threading::Field* const * fields; // raw mapping
 
 	bool disabled;
+	// this is an internal indicator in case the read is currently in a failed state
+	// it's used to suppress duplicate error messages.
+	bool suppress_warnings = false;
 };
 
 }
-
-#endif /* INPUT_READERBACKEND_H */

@@ -14,6 +14,7 @@
 #include "../Func.h"
 #include "../Event.h"
 #include "../util.h"
+#include "../input.h"
 
 using namespace plugin;
 
@@ -47,7 +48,7 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 	if ( dir.empty() )
 		return;
 
-	if ( dir.find(":") != string::npos )
+	if ( dir.find(':') != string::npos )
 		{
 		// Split at ":".
 		std::stringstream s(dir);
@@ -159,18 +160,14 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 		return false;
 		}
 
-	if ( m->second == "" )
-		// Already activated.
-		return true;
-
-	std::string dir = m->second + "/";
-
-	if ( dir.empty() )
+	if ( m->second.empty() )
 		{
 		// That's our marker that we have already activated this
 		// plugin. Silently ignore the new request.
 		return true;
 		}
+
+	std::string dir = m->second + "/";
 
 	DBG_LOG(DBG_PLUGINS, "Activating plugin %s", name.c_str());
 
@@ -193,6 +190,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 		if ( is_file(init) )
 			{
 			DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
+			warn_if_legacy_script(init);
 			scripts_to_load.push_back(init);
 			break;
 			}
@@ -206,6 +204,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 		if ( is_file(init) )
 			{
 			DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
+			warn_if_legacy_script(init);
 			scripts_to_load.push_back(init);
 			break;
 			}
@@ -218,6 +217,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 		if ( is_file(init) )
 			{
 			DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
+			warn_if_legacy_script(init);
 			scripts_to_load.push_back(init);
 			break;
 			}
@@ -275,6 +275,8 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
 			DBG_LOG(DBG_PLUGINS, "  Loaded %s", path);
 			}
+
+		globfree(&gl);
 		}
 
 	else
@@ -476,9 +478,9 @@ Manager::bif_init_func_map* Manager::BifFilesInternal()
 	return bifs;
 	}
 
-Plugin* Manager::LookupPluginByPath(std::string path)
+Plugin* Manager::LookupPluginByPath(std::string_view _path)
 	{
-	path = normalize_path(path);
+	auto path = normalize_path(_path);
 
 	if ( is_file(path) )
 		path = SafeDirname(path).result;
@@ -490,7 +492,7 @@ Plugin* Manager::LookupPluginByPath(std::string path)
 		if ( i != plugins_by_path.end() )
 			return i->second;
 
-		auto j = path.rfind("/");
+		auto j = path.rfind('/');
 
 		if ( j == std::string::npos )
 			break;

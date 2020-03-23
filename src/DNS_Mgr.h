@@ -1,20 +1,18 @@
   // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef dnsmgr_h
-#define dnsmgr_h
+#pragma once
 
 #include <list>
 #include <map>
 #include <queue>
 #include <utility>
 
-#include "util.h"
 #include "List.h"
-#include "Dict.h"
 #include "EventHandler.h"
 #include "iosource/IOSource.h"
 #include "IPAddr.h"
 
+template <class T> class IntrusivePtr;
 class Val;
 class ListVal;
 class TableVal;
@@ -50,9 +48,9 @@ public:
 
 	// Looks up the address or addresses of the given host, and returns
 	// a set of addr.
-	TableVal* LookupHost(const char* host);
+	IntrusivePtr<TableVal> LookupHost(const char* host);
 
-	Val* LookupAddr(const IPAddr& addr);
+	IntrusivePtr<Val> LookupAddr(const IPAddr& addr);
 
 	// Define the directory where to store the data.
 	void SetDir(const char* arg_dir)	{ dir = copy_string(arg_dir); }
@@ -62,7 +60,7 @@ public:
 	int Save();
 
 	const char* LookupAddrInCache(const IPAddr& addr);
-	TableVal* LookupNameInCache(const string& name);
+	IntrusivePtr<TableVal> LookupNameInCache(const string& name);
 	const char* LookupTextInCache(const string& name);
 
 	// Support for async lookups.
@@ -92,19 +90,22 @@ public:
 
 	void GetStats(Stats* stats);
 
+	void Terminate();
+
 protected:
 	friend class LookupCallback;
 	friend class DNS_Mgr_Request;
 
 	void Event(EventHandlerPtr e, DNS_Mapping* dm);
-	void Event(EventHandlerPtr e, DNS_Mapping* dm, ListVal* l1, ListVal* l2);
+	void Event(EventHandlerPtr e, DNS_Mapping* dm,
+	           IntrusivePtr<ListVal> l1, IntrusivePtr<ListVal> l2);
 	void Event(EventHandlerPtr e, DNS_Mapping* old_dm, DNS_Mapping* new_dm);
 
-	Val* BuildMappingVal(DNS_Mapping* dm);
+	IntrusivePtr<Val> BuildMappingVal(DNS_Mapping* dm);
 
 	void AddResult(DNS_Mgr_Request* dr, struct nb_dns_result* r);
 	void CompareMappings(DNS_Mapping* prev_dm, DNS_Mapping* new_dm);
-	ListVal* AddrListDelta(ListVal* al1, ListVal* al2);
+	IntrusivePtr<ListVal> AddrListDelta(ListVal* al1, ListVal* al2);
 	void DumpAddrList(FILE* f, ListVal* al);
 
 	typedef map<string, pair<DNS_Mapping*, DNS_Mapping*> > HostMap;
@@ -128,20 +129,13 @@ protected:
 	void CheckAsyncHostRequest(const char* host, bool timeout);
 	void CheckAsyncTextRequest(const char* host, bool timeout);
 
-	// Process outstanding requests.
-	void DoProcess();
-
 	// IOSource interface.
-	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
-	                    iosource::FD_Set* except) override;
-	double NextTimestamp(double* network_time) override;
 	void Process() override;
-	void Init() override;
-	const char* Tag() override { return "DNS_Mgr"; }
+	void InitSource() override;
+	const char* Tag() override	{ return "DNS_Mgr"; }
+	double GetNextTimeout() override;
 
 	DNS_MgrMode mode;
-
-	PDict<ListVal> services;
 
 	HostMap host_mappings;
 	AddrMap addr_mappings;
@@ -244,9 +238,6 @@ protected:
 	unsigned long num_requests;
 	unsigned long successful;
 	unsigned long failed;
-	double next_timestamp;
 };
 
 extern DNS_Mgr* dns_mgr;
-
-#endif

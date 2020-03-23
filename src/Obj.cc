@@ -1,15 +1,15 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "Obj.h"
 
 #include <stdlib.h>
 
-#include "Obj.h"
+#include "Desc.h"
 #include "Func.h"
 #include "File.h"
 #include "plugin/Manager.h"
 
-Location no_location("<no location>", 0, 0, 0, 0);
 Location start_location("<start uninitialized>", 0, 0, 0, 0);
 Location end_location("<end uninitialized>", 0, 0, 0, 0);
 

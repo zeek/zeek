@@ -1,6 +1,5 @@
 
-#ifndef BRO_PLUGIN_DEMO_FOO_H
-#define BRO_PLUGIN_DEMO_FOO_H
+#pragma once
 
 #include "analyzer/protocol/tcp/TCP.h"
 #include "analyzer/protocol/pia/PIA.h"
@@ -28,5 +27,3 @@ protected:
 };
 
 } }
-
-#endif

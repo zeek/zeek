@@ -1,36 +1,41 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef var_h
-#define var_h
+#pragma once
 
-#include <memory> // std::unique_ptr
-
+#include "IntrusivePtr.h"
 #include "ID.h"
-#include "Expr.h"
 #include "Type.h"
-#include "Func.h" // function_ingredients
 
-class Func;
+class Expr;
+class FuncType;
+class Stmt;
+class Scope;
 class EventHandlerPtr;
+class StringVal;
+class TableVal;
+class ListVal;
 
 typedef enum { VAR_REGULAR, VAR_CONST, VAR_REDEF, VAR_OPTION, } decl_type;
 
-extern void add_global(ID* id, BroType* t, init_class c, Expr* init,
-			attr_list* attr, decl_type dt);
-extern Stmt* add_local(ID* id, BroType* t, init_class c, Expr* init,
-			attr_list* attr, decl_type dt);
-extern Expr* add_and_assign_local(ID* id, Expr* init, Val* val = 0);
+extern void add_global(ID* id, IntrusivePtr<BroType> t, init_class c,
+                       IntrusivePtr<Expr> init, attr_list* attr, decl_type dt);
 
-extern void add_type(ID* id, BroType* t, attr_list* attr);
+extern IntrusivePtr<Stmt> add_local(IntrusivePtr<ID> id,
+                                    IntrusivePtr<BroType> t, init_class c,
+                                    IntrusivePtr<Expr> init, attr_list* attr,
+                                    decl_type dt);
+
+extern IntrusivePtr<Expr> add_and_assign_local(IntrusivePtr<ID> id,
+                                               IntrusivePtr<Expr> init,
+                                               IntrusivePtr<Val> val = nullptr);
+
+extern void add_type(ID* id, IntrusivePtr<BroType> t, attr_list* attr);
 
 extern void begin_func(ID* id, const char* module_name, function_flavor flavor,
-		       int is_redef, FuncType* t, attr_list* attrs = nullptr);
-extern void end_func(Stmt* body);
+                       int is_redef, IntrusivePtr<FuncType> t,
+                       attr_list* attrs = nullptr);
 
-// Gathers all of the information from a scope and a function body needed to
-// build a function and collects it into a function_ingredients struct.
-// Gathered elements are not refeed.
-extern std::unique_ptr<function_ingredients> gather_function_ingredients(Scope* scope, Stmt* body);
+extern void end_func(IntrusivePtr<Stmt> body);
 
 // Gather all IDs referenced inside a body that aren't part of a given scope.
 extern id_list gather_outer_ids(Scope* scope, Stmt* body);
@@ -49,5 +54,3 @@ extern Func* internal_func(const char* name);
 extern EventHandlerPtr internal_handler(const char* name);
 
 extern int signal_val;	// 0 if no signal pending
-
-#endif

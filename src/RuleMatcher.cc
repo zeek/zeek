@@ -1,15 +1,25 @@
+
+#include "zeek-config.h"
+#include "RuleMatcher.h"
+
 #include <algorithm>
 #include <functional>
 
-#include "zeek-config.h"
-
+#include "RuleAction.h"
+#include "RuleCondition.h"
+#include "BroString.h"
+#include "ID.h"
+#include "IntrusivePtr.h"
+#include "IntSet.h"
+#include "IP.h"
 #include "analyzer/Analyzer.h"
-#include "RuleMatcher.h"
 #include "DFA.h"
+#include "DebugLogger.h"
 #include "NetVar.h"
 #include "Scope.h"
 #include "File.h"
 #include "Reporter.h"
+#include "module_util.h"
 
 // FIXME: Things that are not fully implemented/working yet:
 //
@@ -23,14 +33,14 @@
 //		  - tcp-state always evaluates to true
 //			(implemented but deactivated for comparison to Snort)
 
-uint32 RuleHdrTest::idcounter = 0;
+uint32_t RuleHdrTest::idcounter = 0;
 
 static bool is_member_of(const int_list& l, int_list::value_type v)
 	{
 	return std::find(l.begin(), l.end(), v) != l.end();
 	}
 
-RuleHdrTest::RuleHdrTest(Prot arg_prot, uint32 arg_offset, uint32 arg_size,
+RuleHdrTest::RuleHdrTest(Prot arg_prot, uint32_t arg_offset, uint32_t arg_size,
 				Comp arg_comp, maskedvalue_list* arg_vals)
 	{
 	prot = arg_prot;
@@ -54,7 +64,7 @@ RuleHdrTest::RuleHdrTest(Prot arg_prot, Comp arg_comp, vector<IPPrefix> arg_v)
 	size = 0;
 	comp = arg_comp;
 	vals = new maskedvalue_list;
-	prefix_vals = arg_v;
+	prefix_vals = std::move(arg_v);
 	sibling = 0;
 	child = 0;
 	pattern_rules = 0;
@@ -68,7 +78,7 @@ Val* RuleMatcher::BuildRuleStateValue(const Rule* rule,
 					const RuleEndpointState* state) const
 	{
 	RecordVal* val = new RecordVal(signature_state);
-	val->Assign(0, new StringVal(rule->ID()));
+	val->Assign(0, make_intrusive<StringVal>(rule->ID()));
 	val->Assign(1, state->GetAnalyzer()->BuildConnVal());
 	val->Assign(2, val_mgr->GetBool(state->is_orig));
 	val->Assign(3, val_mgr->GetCount(state->payload_size));
@@ -121,7 +131,10 @@ RuleHdrTest::~RuleHdrTest()
 	for ( int i = 0; i < Rule::TYPES; ++i )
 		{
 		for ( auto pset : psets[i] )
+			{
 			delete pset->re;
+			delete pset;
+			}
 		}
 
 	delete ruleset;
@@ -204,6 +217,8 @@ RuleMatcher::RuleMatcher(int arg_RE_level)
 	root = new RuleHdrTest(RuleHdrTest::NOPROT, 0, 0, RuleHdrTest::EQ,
 				new maskedvalue_list);
 	RE_level = arg_RE_level;
+	parse_error = false;
+	has_non_file_magic_rule = false;
 	}
 
 RuleMatcher::~RuleMatcher()
@@ -229,7 +244,7 @@ void RuleMatcher::Delete(RuleHdrTest* node)
 	delete node;
 	}
 
-bool RuleMatcher::ReadFiles(const name_list& files)
+bool RuleMatcher::ReadFiles(const std::vector<std::string>& files)
 	{
 #ifdef USE_PERFTOOLS_DEBUG
 	HeapLeakChecker::Disabler disabler;
@@ -237,18 +252,18 @@ bool RuleMatcher::ReadFiles(const name_list& files)
 
 	parse_error = false;
 
-	for ( int i = 0; i < files.length(); ++i )
+	for ( const auto& f : files )
 		{
-		rules_in = open_file(find_file(files[i], bro_path(), ".sig"));
+		rules_in = open_file(find_file(f, bro_path(), ".sig"));
 
 		if ( ! rules_in )
 			{
-			reporter->Error("Can't open signature file %s", files[i]);
+			reporter->Error("Can't open signature file %s", f.data());
 			return false;
 			}
 
 		rules_line_number = 0;
-		current_rule_file = files[i];
+		current_rule_file = f.data();
 		rules_parse();
 		fclose(rules_in);
 		}
@@ -267,14 +282,14 @@ bool RuleMatcher::ReadFiles(const name_list& files)
 
 void RuleMatcher::AddRule(Rule* rule)
 	{
-	if ( rules_by_id.Lookup(rule->ID()) )
+	if ( rules_by_id.find(rule->ID()) != rules_by_id.end() )
 		{
 		rules_error("rule defined twice");
 		return;
 		}
 
 	rules.push_back(rule);
-	rules_by_id.Insert(rule->ID(), rule);
+	rules_by_id[rule->ID()] = rule;
 	}
 
 void RuleMatcher::BuildRulesTree()
@@ -283,6 +298,25 @@ void RuleMatcher::BuildRulesTree()
 		{
 		if ( ! rule->Active() )
 			continue;
+
+		const auto& pats = rule->patterns;
+
+		if ( ! has_non_file_magic_rule )
+			{
+			if ( pats.length() > 0 )
+				{
+				for ( const auto& p : pats )
+					{
+					if ( p->type != Rule::FILE_MAGIC )
+						{
+						has_non_file_magic_rule = true;
+						break;
+						}
+					}
+				}
+			else
+				has_non_file_magic_rule = true;
+			}
 
 		rule->SortHdrTests();
 		InsertRuleIntoTree(rule, 0, root, 0);
@@ -295,15 +329,15 @@ void RuleMatcher::InsertRuleIntoTree(Rule* r, int testnr,
 	// Initiliaze the preconditions
 	for ( const auto& pc : r->preconds )
 		{
-		Rule* pc_rule = rules_by_id.Lookup(pc->id);
-		if ( ! pc_rule )
+		auto entry = rules_by_id.find(pc->id);
+		if ( entry == rules_by_id.end() )
 			{
 			rules_error(r, "unknown rule referenced");
 			return;
 			}
 
-		pc->rule = pc_rule;
-		pc_rule->dependents.push_back(r);
+		pc->rule = entry->second;
+		entry->second->dependents.push_back(r);
 		}
 
 	// All tests in tree already?
@@ -428,17 +462,17 @@ void RuleMatcher::BuildPatternSets(RuleHdrTest::pattern_set_list* dst,
 	}
 
 // Get a 8/16/32-bit value from the given position in the packet header
-static inline uint32 getval(const u_char* data, int size)
+static inline uint32_t getval(const u_char* data, int size)
 	{
 	switch ( size ) {
 	case 1:
-		return *(uint8*) data;
+		return *(uint8_t*) data;
 
 	case 2:
-		return ntohs(*(uint16*) data);
+		return ntohs(*(uint16_t*) data);
 
 	case 4:
-		return ntohl(*(uint32*) data);
+		return ntohl(*(uint32_t*) data);
 
 	default:
 		reporter->InternalError("illegal HdrTest size");
@@ -451,7 +485,7 @@ static inline uint32 getval(const u_char* data, int size)
 
 // Evaluate a value list (matches if at least one value matches).
 template <typename FuncT>
-static inline bool match_or(const maskedvalue_list& mvals, uint32 v, FuncT comp)
+static inline bool match_or(const maskedvalue_list& mvals, uint32_t v, FuncT comp)
 	{
 	// TODO: this could be a find_if
 	for ( const auto& val : mvals )
@@ -479,7 +513,7 @@ static inline bool match_or(const vector<IPPrefix>& prefixes, const IPAddr& a,
 
 // Evaluate a value list (doesn't match if any value matches).
 template <typename FuncT>
-static inline bool match_not_and(const maskedvalue_list& mvals, uint32 v,
+static inline bool match_not_and(const maskedvalue_list& mvals, uint32_t v,
                                  FuncT comp)
 	{
 	// TODO: this could be a find_if
@@ -506,32 +540,32 @@ static inline bool match_not_and(const vector<IPPrefix>& prefixes,
 	return true;
 	}
 
-static inline bool compare(const maskedvalue_list& mvals, uint32 v,
+static inline bool compare(const maskedvalue_list& mvals, uint32_t v,
                            RuleHdrTest::Comp comp)
 	{
 	switch ( comp ) {
 		case RuleHdrTest::EQ:
-			return match_or(mvals, v, std::equal_to<uint32>());
+			return match_or(mvals, v, std::equal_to<uint32_t>());
 			break;
 
 		case RuleHdrTest::NE:
-			return match_not_and(mvals, v, std::equal_to<uint32>());
+			return match_not_and(mvals, v, std::equal_to<uint32_t>());
 			break;
 
 		case RuleHdrTest::LT:
-			return match_or(mvals, v, std::less<uint32>());
+			return match_or(mvals, v, std::less<uint32_t>());
 			break;
 
 		case RuleHdrTest::GT:
-			return match_or(mvals, v, std::greater<uint32>());
+			return match_or(mvals, v, std::greater<uint32_t>());
 			break;
 
 		case RuleHdrTest::LE:
-			return match_or(mvals, v, std::less_equal<uint32>());
+			return match_or(mvals, v, std::less_equal<uint32_t>());
 			break;
 
 		case RuleHdrTest::GE:
-			return match_or(mvals, v, std::greater_equal<uint32>());
+			return match_or(mvals, v, std::greater_equal<uint32_t>());
 			break;
 
 		default:
@@ -617,7 +651,7 @@ bool RuleMatcher::AllRulePatternsMatched(const Rule* r, MatchPos matchpos,
 	}
 
 RuleMatcher::MIME_Matches* RuleMatcher::Match(RuleFileMagicState* state,
-                                              const u_char* data, uint64 len,
+                                              const u_char* data, uint64_t len,
                                               MIME_Matches* rval) const
 	{
 	if ( ! rval )
@@ -731,7 +765,7 @@ RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer,
 		// pattern matching to do.
 		if ( hdr_test->level <= RE_level )
 			{
-			for ( int i = 0; i < Rule::TYPES; ++i )
+			for ( int i = Rule::PAYLOAD; i < Rule::TYPES; ++i )
 				{
 				for ( const auto& set : hdr_test->psets[i] )
 					{
@@ -1235,17 +1269,14 @@ void RuleMatcher::DumpStateStats(BroFile* f, RuleHdrTest* hdr_test)
 
 static Val* get_bro_val(const char* label)
 	{
-	ID* id = lookup_ID(label, GLOBAL_MODULE_NAME, false);
+	auto id = lookup_ID(label, GLOBAL_MODULE_NAME, false);
 	if ( ! id )
 		{
 		rules_error("unknown script-level identifier", label);
 		return 0;
 		}
 
-	Val* rval = id->ID_Val();
-	Unref(id);
-
-	return rval;
+	return id->ID_Val();
 	}
 
 
@@ -1281,8 +1312,8 @@ static bool val_to_maskedval(Val* v, maskedvalue_list* append_to,
 				}
 			else
 				{
-				const uint32* n;
-				uint32 m[4];
+				const uint32_t* n;
+				uint32_t m[4];
 				v->AsSubNet().Prefix().GetBytes(&n);
 				v->AsSubNetVal()->Mask().CopyIPv6(m);
 
@@ -1370,7 +1401,7 @@ error:
 	return dummy;
 	}
 
-uint32 id_to_uint(const char* id)
+uint32_t id_to_uint(const char* id)
 	{
 	Val* v = get_bro_val(id);
 	if ( ! v )

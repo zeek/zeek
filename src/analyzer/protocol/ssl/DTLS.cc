@@ -32,7 +32,7 @@ void DTLS_Analyzer::Done()
 	handshake_interp->FlowEOF(false);
 	}
 
-void DTLS_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64 seq, const IP_Hdr* ip, int caplen)
+void DTLS_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 
@@ -51,15 +51,15 @@ void DTLS_Analyzer::EndOfData(bool is_orig)
 	}
 
 
-void DTLS_Analyzer::SendHandshake(uint16 raw_tls_version, uint8 msg_type, uint32 length, const u_char* begin, const u_char* end, bool orig)
+void DTLS_Analyzer::SendHandshake(uint16_t raw_tls_version, uint8_t msg_type, uint32_t length, const u_char* begin, const u_char* end, bool orig)
 	{
 	handshake_interp->set_record_version(raw_tls_version);
 	try
 		{
 		handshake_interp->NewData(orig, (const unsigned char*) &msg_type, (const unsigned char*) &msg_type + 1);
-		uint32 host_length = htonl(length);
-		// the parser inspects a uint24 - since it is big-endian, it should be ok to just skip
-		// the first byte of the uint32. Since we get the data from an uint24 from the dtls-parser, this should
+		uint32_t host_length = htonl(length);
+		// the parser inspects a uint24_t - since it is big-endian, it should be ok to just skip
+		// the first byte of the uint32_t. Since we get the data from an uint24_t from the dtls-parser, this should
 		// always yield the correct result.
 		handshake_interp->NewData(orig, (const unsigned char*) &host_length + 1, (const unsigned char*) &host_length + sizeof(host_length));
 		handshake_interp->NewData(orig, begin, end);

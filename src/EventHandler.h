@@ -1,13 +1,11 @@
 // Capsulates local and remote event handlers.
 
-#ifndef EVENTHANDLER
-#define EVENTHANDLER
+#pragma once
 
-#include <assert.h>
+#include "BroList.h"
+
 #include <unordered_set>
 #include <string>
-#include "List.h"
-#include "BroList.h"
 
 class Func;
 class FuncType;
@@ -90,5 +88,3 @@ public:
 private:
 	EventHandler* handler;
 };
-
-#endif

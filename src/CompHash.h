@@ -1,16 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef comphash_h
-#define comphash_h
+#pragma once
 
-#include "Hash.h"
 #include "Type.h"
+#include "IntrusivePtr.h"
 
 class ListVal;
+class HashKey;
 
 class CompositeHash {
 public:
-	explicit CompositeHash(TypeList* composite_type);
+	explicit CompositeHash(IntrusivePtr<TypeList> composite_type);
 	~CompositeHash();
 
 	// Compute the hash corresponding to the given index val,
@@ -18,7 +18,7 @@ public:
 	HashKey* ComputeHash(const Val* v, int type_check) const;
 
 	// Given a hash key, recover the values used to create it.
-	ListVal* RecoverVals(const HashKey* k) const;
+	IntrusivePtr<ListVal> RecoverVals(const HashKey* k) const;
 
 	unsigned int MemoryAllocation() const { return padded_sizeof(*this) + pad_size(size); }
 
@@ -36,7 +36,7 @@ protected:
 	// upon errors, so there is no return value for invalid input.
 	const char* RecoverOneVal(const HashKey* k,
 				  const char* kp, const char* const k_end,
-				  BroType* t, Val*& pval, bool optional) const;
+				  BroType* t, IntrusivePtr<Val>* pval, bool optional) const;
 
 	// Rounds the given pointer up to the nearest multiple of the
 	// given size, if not already a multiple.
@@ -79,7 +79,7 @@ protected:
 			      int type_check, int sz, bool optional,
 			      bool calc_static_size) const;
 
-	TypeList* type;
+	IntrusivePtr<TypeList> type;
 	char* key;	// space for composite key
 	int size;
 	int is_singleton;	// if just one type in index
@@ -89,5 +89,3 @@ protected:
 
 	InternalTypeTag singleton_tag;
 };
-
-#endif

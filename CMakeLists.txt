@@ -1,13 +1,31 @@
-project(Zeek C CXX)
-
 # When changing the minimum version here, also adapt
 # aux/zeek-aux/plugin-support/skeleton/CMakeLists.txt
-cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+
+project(Zeek C CXX)
+
+if ( NOT CMAKE_INSTALL_LIBDIR )
+    # Currently, some sub-projects may use GNUInstallDirs.cmake to choose the
+    # library install dir, while others just default to "lib".  For sake of
+    # consistency, this just overrides the former to always use "lib" in case
+    # it would have chosen something else, like "lib64", but a thing for the
+    # future may be to standardize all sub-projects to use GNUInstallDirs.
+    set(CMAKE_INSTALL_LIBDIR lib)
+endif ()
 
 include(cmake/CommonCMakeConfig.cmake)
+include(cmake/FindClangTidy.cmake)
 
 ########################################################################
 ## Project/Build Configuration
+
+
+if (ENABLE_ZEEK_UNIT_TESTS)
+    enable_testing()
+    add_definitions(-DDOCTEST_CONFIG_SUPER_FAST_ASSERTS)
+else ()
+    add_definitions(-DDOCTEST_CONFIG_DISABLE)
+endif ()
 
 if ( ENABLE_CCACHE )
     find_program(CCACHE_PROGRAM ccache)
@@ -61,11 +79,14 @@ execute_process(COMMAND grep "^#define  *BRO_PLUGIN_API_VERSION"
                 OUTPUT_STRIP_TRAILING_WHITESPACE)
 string(REGEX REPLACE "^#define.*VERSION *" "" API_VERSION "${API_VERSION}")
 
-string(REPLACE "." " " version_numbers ${VERSION})
+string(REGEX REPLACE "[.-]" " " version_numbers ${VERSION})
 separate_arguments(version_numbers)
 list(GET version_numbers 0 VERSION_MAJOR)
 list(GET version_numbers 1 VERSION_MINOR)
+list(GET version_numbers 2 VERSION_PATCH)
 set(VERSION_MAJ_MIN "${VERSION_MAJOR}.${VERSION_MINOR}")
+math(EXPR ZEEK_VERSION_NUMBER
+     "${VERSION_MAJOR} * 10000 + ${VERSION_MINOR} * 100 + ${VERSION_PATCH}")
 
 set(VERSION_C_IDENT "${VERSION}_plugin_${API_VERSION}")
 string(REGEX REPLACE "-[0-9]*$" "_git" VERSION_C_IDENT "${VERSION_C_IDENT}")
@@ -103,10 +124,38 @@ if ( NOT BINARY_PACKAGING_MODE )
     _make_install_dir_symlink("${CMAKE_INSTALL_PREFIX}/lib/bro" "${CMAKE_INSTALL_PREFIX}/lib/zeek")
 endif ()
 
-if ( SANITIZERS )
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=${SANITIZERS} -fno-omit-frame-pointer")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=${SANITIZERS} -fno-omit-frame-pointer")
-    set(CMAKE_LD_FLAGS "${CMAKE_LD_FLAGS} -fsanitize=${SANITIZERS} -fno-omit-frame-pointer")
+if ( ZEEK_SANITIZERS )
+    # Check the thread library info early as setting compiler flags seems to
+    # interfere with the detection and cause CMAKE_THREAD_LIBS_INIT to not
+    # include -lpthread when it should.
+    find_package(Threads)
+    set(_sanitizer_flags "-fsanitize=${ZEEK_SANITIZERS}")
+    set(_sanitizer_flags "${_sanitizer_flags} -fno-omit-frame-pointer")
+    set(_sanitizer_flags "${_sanitizer_flags} -fno-optimize-sibling-calls")
+
+    if ( NOT DEFINED ZEEK_SANITIZER_OPTIMIZATIONS )
+        if ( DEFINED ENV{NO_OPTIMIZATIONS} )
+            # Using -O1 is generally the suggestion to get more reasonable
+            # performance.  The one downside is it that the compiler may
+            # optimize out code that otherwise generates an error/leak in a -O0
+            # build, but that should be rare and users mostly will not be
+            # running unoptimized builds in production anyway.
+            set(ZEEK_SANITIZER_OPTIMIZATIONS false CACHE INTERNAL "" FORCE)
+        else ()
+            set(ZEEK_SANITIZER_OPTIMIZATIONS true CACHE INTERNAL "" FORCE)
+        endif ()
+    endif ()
+
+    if ( ZEEK_SANITIZER_OPTIMIZATIONS )
+        set(_sanitizer_flags "${_sanitizer_flags} -O1")
+    endif ()
+
+    # Technically, the we also need to use the compiler to drive linking and
+    # give the sanitizer flags there, too.  However, CMake, by default, uses
+    # the compiler for linking and so the automatically flags get used.  See
+    # https://cmake.org/pipermail/cmake/2014-August/058268.html
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${_sanitizer_flags}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_sanitizer_flags}")
 endif()
 
 ########################################################################
@@ -132,8 +181,7 @@ FindRequiredPackage(OpenSSL)
 FindRequiredPackage(BIND)
 FindRequiredPackage(ZLIB)
 
-if (NOT BINPAC_EXE_PATH AND
-    EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/binpac/CMakeLists.txt)
+if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/binpac/CMakeLists.txt)
 
     set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
 
@@ -171,6 +219,51 @@ if (MISSING_PREREQS)
     message(FATAL_ERROR "Configuration aborted due to missing prerequisites")
 endif ()
 
+if ( CAF_ROOT_DIR )
+  find_package(CAF COMPONENTS core io openssl REQUIRED)
+endif ()
+
+add_subdirectory(aux/paraglob)
+set(zeekdeps ${zeekdeps} paraglob)
+
+if ( BROKER_ROOT_DIR )
+  # Avoid calling find_package(CAF) twice.
+  if ( NOT CAF_ROOT_DIR )
+    find_package(CAF COMPONENTS core io openssl REQUIRED)
+  endif ()
+  find_package(Broker REQUIRED)
+  set(zeekdeps ${zeekdeps} ${BROKER_LIBRARY})
+  set(broker_includes ${BROKER_INCLUDE_DIR})
+else ()
+  if ( ZEEK_SANITIZERS )
+    set(BROKER_SANITIZERS ${ZEEK_SANITIZERS})
+  endif ()
+
+  set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
+
+  if ( BUILD_STATIC_BROKER )
+    set(ENABLE_STATIC_ONLY true)
+  endif()
+
+  add_subdirectory(aux/broker)
+  set(ENABLE_STATIC_ONLY ${ENABLE_STATIC_ONLY_SAVED})
+
+  if ( BUILD_STATIC_BROKER )
+    set(zeekdeps ${zeekdeps} broker_static)
+  else()
+    set(zeekdeps ${zeekdeps} broker)
+  endif()
+  set(broker_includes ${CMAKE_CURRENT_SOURCE_DIR}/aux/broker/include ${CMAKE_CURRENT_BINARY_DIR}/aux/broker/include)
+endif ()
+
+# CAF_LIBRARIES and CAF_INCLUDE_DIRS are defined either by calling
+# find_package(CAF) or by calling add_subdirectory(aux/broker). In either case,
+# we have to care about CAF here because Broker headers can pull in CAF
+# headers.
+set(zeekdeps ${zeekdeps} ${CAF_LIBRARIES})
+include_directories(BEFORE ${broker_includes} ${CAF_INCLUDE_DIRS})
+include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/paraglob/include)
+include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/rapidjson/include)
 include_directories(BEFORE
                     ${PCAP_INCLUDE_DIR}
                     ${BIND_INCLUDE_DIR}
@@ -178,6 +271,9 @@ include_directories(BEFORE
                     ${ZLIB_INCLUDE_DIR}
                     ${JEMALLOC_INCLUDE_DIR}
 )
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/aux/rapidjson/include/rapidjson
+        DESTINATION include/zeek/3rdparty/rapidjson/include)
 
 # Optional Dependencies
 
@@ -244,7 +340,7 @@ if ( ${CMAKE_SYSTEM_NAME} MATCHES Linux AND EXISTS /etc/os-release )
     endif ()
 endif ()
 
-set(zeekdeps
+set(zeekdeps ${zeekdeps}
     ${BinPAC_LIBRARY}
     ${PCAP_LIBRARY}
     ${OPENSSL_LIBRARIES}
@@ -271,7 +367,8 @@ include(PCAPTests)
 include(OpenSSLTests)
 include(CheckNameserCompat)
 include(GetArchitecture)
-include(RequireCXX11)
+include(RequireCXX17)
+include(FindKqueue)
 
 if ( (OPENSSL_VERSION VERSION_EQUAL "1.1.0") OR (OPENSSL_VERSION VERSION_GREATER "1.1.0") )
   set(ZEEK_HAVE_OPENSSL_1_1 true CACHE INTERNAL "" FORCE)
@@ -289,11 +386,8 @@ endif ()
 string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/bro-config.h.in
-               ${CMAKE_CURRENT_BINARY_DIR}/bro-config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h DESTINATION include/zeek)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/bro-config.h DESTINATION include/zeek)
 
 if ( CAF_ROOT_DIR )
   set(ZEEK_CONFIG_CAF_ROOT_DIR ${CAF_ROOT_DIR})
@@ -328,41 +422,6 @@ InstallSymlink("${CMAKE_INSTALL_PREFIX}/bin/zeek-wrapper" "${CMAKE_INSTALL_PREFI
 
 ########################################################################
 ## Recurse on sub-directories
-
-if ( BROKER_ROOT_DIR )
-  find_package(Broker REQUIRED)
-  find_package(CAF COMPONENTS core io openssl REQUIRED)
-
-  set(zeekdeps ${zeekdeps} ${BROKER_LIBRARY} ${CAF_LIBRARIES})
-  include_directories(BEFORE ${BROKER_INCLUDE_DIR})
-else ()
-  set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
-
-  if ( BUILD_STATIC_BROKER )
-    set(ENABLE_STATIC_ONLY true)
-  endif()
-
-  add_subdirectory(aux/broker)
-  set(ENABLE_STATIC_ONLY ${ENABLE_STATIC_ONLY_SAVED})
-
-  if ( BUILD_STATIC_BROKER )
-    set(zeekdeps ${zeekdeps} broker_static)
-  else()
-    set(zeekdeps ${zeekdeps} broker)
-  endif()
-  include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/broker
-                             ${CMAKE_CURRENT_BINARY_DIR}/aux/broker)
-endif ()
-
-# CAF headers aren't necessarily in same location as Broker headers and
-# inclusion of a Broker header may pull in CAF headers.
-include_directories(BEFORE ${CAF_INCLUDE_DIR_CORE})
-include_directories(BEFORE ${CAF_INCLUDE_DIR_IO})
-include_directories(BEFORE ${CAF_INCLUDE_DIR_OPENSSL})
-
-add_subdirectory(aux/paraglob)
-set(zeekdeps ${zeekdeps} paraglob)
-include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/paraglob)
 
 add_subdirectory(src)
 add_subdirectory(scripts)
@@ -404,6 +463,7 @@ message(
     "\nInstall prefix:    ${CMAKE_INSTALL_PREFIX}"
     "\nZeek Script Path:  ${ZEEK_SCRIPT_INSTALL_PATH}"
     "\nDebug mode:        ${ENABLE_DEBUG}"
+    "\nUnit tests:        ${ENABLE_ZEEK_UNIT_TESTS}"
     "\n"
     "\nCC:                ${CMAKE_C_COMPILER}"
     "\nCFLAGS:            ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BuildType}}"

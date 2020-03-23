@@ -2,15 +2,19 @@
 
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "Plugin.h"
+
 #include <cassert>
 
-#include "Plugin.h"
 #include "Manager.h"
 #include "Component.h"
+#include "Val.h"
 
 #include "../Desc.h"
 #include "../Event.h"
+#include "../Func.h"
 #include "../Conn.h"
+#include "../input.h"
 #include "threading/SerialTypes.h"
 
 using namespace plugin;

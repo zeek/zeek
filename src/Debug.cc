@@ -2,6 +2,8 @@
 
 #include "zeek-config.h"
 
+#include "Debug.h"
+
 #include <stdio.h>
 #include <stdarg.h>
 #include <signal.h>
@@ -11,13 +13,22 @@
 using namespace std;
 
 #include "util.h"
-#include "Debug.h"
 #include "DebugCmds.h"
 #include "DbgBreakpoint.h"
+#include "ID.h"
+#include "IntrusivePtr.h"
+#include "Expr.h"
 #include "Stmt.h"
+#include "Frame.h"
 #include "Func.h"
+#include "IntrusivePtr.h"
 #include "Scope.h"
 #include "PolicyFile.h"
+#include "Desc.h"
+#include "Reporter.h"
+#include "Val.h"
+#include "module_util.h"
+#include "input.h"
 
 #ifdef HAVE_READLINE
 #include <readline/readline.h>
@@ -27,7 +38,7 @@ using namespace std;
 bool g_policy_debug = false;
 DebuggerState g_debugger_state;
 TraceState g_trace_state;
-PDict<Filemap> g_dbgfilemaps;
+std::map<string, Filemap*> g_dbgfilemaps;
 
 // These variables are used only to decide whether or not to print the
 // current context; you don't want to do it after a step or next
@@ -186,13 +197,13 @@ void get_first_statement(Stmt* list, Stmt*& first, Location& loc)
 static void parse_function_name(vector<ParseLocationRec>& result,
 				ParseLocationRec& plr, const string& s)
 	{ // function name
-	ID* id = lookup_ID(s.c_str(), current_module.c_str());
+	auto id = lookup_ID(s.c_str(), current_module.c_str());
+
 	if ( ! id )
 		{
 		string fullname = make_full_var_name(current_module.c_str(), s.c_str());
 		debug_msg("Function %s not defined.\n", fullname.c_str());
 		plr.type = plrUnknown;
-		Unref(id);
 		return;
 		}
 
@@ -200,7 +211,6 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 		{
 		debug_msg("Function %s not declared.\n", id->Name());
 		plr.type = plrUnknown;
-		Unref(id);
 		return;
 		}
 
@@ -208,7 +218,6 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 		{
 		debug_msg("Function %s declared but not defined.\n", id->Name());
 		plr.type = plrUnknown;
-		Unref(id);
 		return;
 		}
 
@@ -219,16 +228,13 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 		{
 		debug_msg("Function %s is a built-in function\n", id->Name());
 		plr.type = plrUnknown;
-		Unref(id);
 		return;
 		}
-
-	Unref(id);
 
 	Stmt* body = 0;	// the particular body we care about; 0 = all
 
 	if ( bodies.size() == 1 )
-		body = bodies[0].stmts;
+		body = bodies[0].stmts.get();
 	else
 		{
 		while ( 1 )
@@ -239,8 +245,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 				{
 				Stmt* first;
 				Location stmt_loc;
-				get_first_statement(bodies[i].stmts, first,
-							stmt_loc);
+				get_first_statement(bodies[i].stmts.get(), first, stmt_loc);
 				debug_msg("[%d] %s:%d\n", i+1, stmt_loc.filename, stmt_loc.first_line);
 				}
 
@@ -272,7 +277,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 			int option = atoi(input.c_str());
 			if ( option > 0 && option <= (int) bodies.size() )
 				{
-				body = bodies[option - 1].stmts;
+				body = bodies[option - 1].stmts.get();
 				break;
 				}
 			}
@@ -302,7 +307,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 
 		for ( unsigned int i = 0; i < bodies.size(); ++i )
 			{
-			get_first_statement(bodies[i].stmts, first, stmt_loc);
+			get_first_statement(bodies[i].stmts.get(), first, stmt_loc);
 			if ( ! first )
 				continue;
 
@@ -320,12 +325,11 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 	vector<ParseLocationRec> result;
 	result.push_back(ParseLocationRec());
 	ParseLocationRec& plr = result[0];
-	const char* full_filename = 0;
 
 	// If plrFileAndLine, set this to the filename you want; for
 	// memory management reasons, the real filename is set when looking
 	// up the line number to find the corresponding statement.
-	const char* loc_filename = 0;
+	std::string loc_filename;
 
 	if ( sscanf(s.c_str(), "%d", &plr.line) )
 		{ // just a line number (implicitly referring to the current file)
@@ -357,28 +361,27 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 				return result;
 				}
 
-			loc_filename = copy_string(path.c_str());
+			loc_filename = path;
 			plr.type = plrFileAndLine;
 			}
 		}
 
 	if ( plr.type == plrFileAndLine )
 		{
-		Filemap* map = g_dbgfilemaps.Lookup(loc_filename);
-		if ( ! map )
+		auto iter = g_dbgfilemaps.find(loc_filename);
+		if ( iter == g_dbgfilemaps.end() )
 			reporter->InternalError("Policy file %s should have been loaded\n",
-					loc_filename);
+					loc_filename.data());
 
-		if ( plr.line > how_many_lines_in(loc_filename) )
+		if ( plr.line > how_many_lines_in(loc_filename.data()) )
 			{
-			debug_msg("No line %d in %s.\n", plr.line, loc_filename);
-			delete [] full_filename;
+			debug_msg("No line %d in %s.\n", plr.line, loc_filename.data());
 			plr.type = plrUnknown;
 			return result;
 			}
 
 		StmtLocMapping* hit = 0;
-		for ( const auto entry : *map )
+		for ( const auto entry : *(iter->second) )
 			{
 			plr.filename = entry->Loc().filename;
 
@@ -399,7 +402,6 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 			plr.stmt = 0;
 		}
 
-	delete [] full_filename;
 	return result;
 	}
 
@@ -720,7 +722,7 @@ static char* get_prompt(bool reset_counter = false)
 	if ( reset_counter )
 		counter = 0;
 
-	safe_snprintf(prompt, sizeof(prompt), "(Zeek [%d]) ", counter++);
+	snprintf(prompt, sizeof(prompt), "(Zeek [%d]) ", counter++);
 
 	return prompt;
 	}
@@ -746,7 +748,7 @@ string get_context_description(const Stmt* stmt, const Frame* frame)
 
 	size_t buf_size = strlen(d.Description()) + strlen(loc.filename) + 1024;
 	char* buf = new char[buf_size];
-	safe_snprintf(buf, buf_size, "In %s at %s:%d",
+	snprintf(buf, buf_size, "In %s at %s:%d",
 		      d.Description(), loc.filename, loc.last_line);
 
 	string retval(buf);
@@ -945,7 +947,7 @@ extern YYLTYPE yylloc;	// holds start line and column of token
 extern int line_number;
 extern const char* filename;
 
-Val* dbg_eval_expr(const char* expr)
+IntrusivePtr<Val> dbg_eval_expr(const char* expr)
 	{
 	// Push the current frame's associated scope.
 	// Note: g_debugger_state.curr_frame_idx is the user-visible number,
@@ -962,7 +964,10 @@ Val* dbg_eval_expr(const char* expr)
 
 	const BroFunc* func = frame->GetFunction();
 	if ( func )
+		{
+		Ref(func->GetScope());
 		push_existing_scope(func->GetScope());
+		}
 
 	// ### Possibly push a debugger-local scope?
 
@@ -977,7 +982,7 @@ Val* dbg_eval_expr(const char* expr)
 	yylloc.first_line = yylloc.last_line = line_number = 1;
 
 	// Parse the thing into an expr.
-	Val* result = 0;
+	IntrusivePtr<Val> result;
 	if ( yyparse() )
 		{
 		if ( g_curr_debug_error )

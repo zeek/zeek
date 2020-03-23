@@ -16,7 +16,7 @@
 
 // - adapted from tcpdump
 // Returns the ones-complement checksum of a chunk of b short-aligned bytes.
-int ones_complement_checksum(const void* p, int b, uint32 sum)
+int ones_complement_checksum(const void* p, int b, uint32_t sum)
 	{
 	const unsigned char* sp = (unsigned char*) p;
 
@@ -35,16 +35,16 @@ int ones_complement_checksum(const void* p, int b, uint32 sum)
 	return sum;
 	}
 
-int ones_complement_checksum(const IPAddr& a, uint32 sum)
+int ones_complement_checksum(const IPAddr& a, uint32_t sum)
 	{
-	const uint32* bytes;
+	const uint32_t* bytes;
 	int len = a.GetBytes(&bytes);
 	return ones_complement_checksum(bytes, len*4, sum);
 	}
 
 int icmp_checksum(const struct icmp* icmpp, int len)
 	{
-	uint32 sum;
+	uint32_t sum;
 
 	if ( len % 2 == 1 )
 		// Add in pad byte.
@@ -64,8 +64,8 @@ int mobility_header_checksum(const IP_Hdr* ip)
 
 	if ( ! mh ) return 0;
 
-	uint32 sum = 0;
-	uint8 mh_len = 8 + 8 * mh->ip6mob_len;
+	uint32_t sum = 0;
+	uint8_t mh_len = 8 + 8 * mh->ip6mob_len;
 
 	if ( mh_len % 2 == 1 )
 		reporter->Weird(ip->SrcAddr(), ip->DstAddr(), "odd_mobility_hdr_len");
@@ -87,7 +87,7 @@ int icmp6_checksum(const struct icmp* icmpp, const IP_Hdr* ip, int len)
 	{
 	// ICMP6 uses the same checksum function as ICMP4 but a different
 	// pseudo-header over which it is computed.
-	uint32 sum;
+	uint32_t sum;
 
 	if ( len % 2 == 1 )
 		// Add in pad byte.
@@ -98,10 +98,10 @@ int icmp6_checksum(const struct icmp* icmpp, const IP_Hdr* ip, int len)
 	// Pseudo-header as for UDP over IPv6 above.
 	sum = ones_complement_checksum(ip->SrcAddr(), sum);
 	sum = ones_complement_checksum(ip->DstAddr(), sum);
-	uint32 l = htonl(len);
+	uint32_t l = htonl(len);
 	sum = ones_complement_checksum((void*) &l, 4, sum);
 
-	uint32 addl_pseudo = htons(IPPROTO_ICMPV6);
+	uint32_t addl_pseudo = htons(IPPROTO_ICMPV6);
 	sum = ones_complement_checksum((void*) &addl_pseudo, 4, sum);
 
 	sum = ones_complement_checksum((void*) icmpp, len, sum);
@@ -117,7 +117,7 @@ int icmp6_checksum(const struct icmp* icmpp, const IP_Hdr* ip, int len)
 #define CLASS_E 0xf0000000
 
 #define CHECK_CLASS(addr,class) (((addr) & (class)) == (class))
-char addr_to_class(uint32 addr)
+char addr_to_class(uint32_t addr)
 	{
 	if ( CHECK_CLASS(addr, CLASS_E) )
 		return 'E';
@@ -131,20 +131,20 @@ char addr_to_class(uint32 addr)
 		return 'A';
 	}
 
-const char* fmt_conn_id(const IPAddr& src_addr, uint32 src_port,
-			const IPAddr& dst_addr, uint32 dst_port)
+const char* fmt_conn_id(const IPAddr& src_addr, uint32_t src_port,
+			const IPAddr& dst_addr, uint32_t dst_port)
 	{
 	static char buffer[512];
 
-	safe_snprintf(buffer, sizeof(buffer), "%s:%d > %s:%d",
+	snprintf(buffer, sizeof(buffer), "%s:%d > %s:%d",
 			string(src_addr).c_str(), src_port,
 			string(dst_addr).c_str(), dst_port);
 
 	return buffer;
 	}
 
-const char* fmt_conn_id(const uint32* src_addr, uint32 src_port,
-			const uint32* dst_addr, uint32 dst_port)
+const char* fmt_conn_id(const uint32_t* src_addr, uint32_t src_port,
+			const uint32_t* dst_addr, uint32_t dst_port)
 	{
 	IPAddr src(IPv6, src_addr, IPAddr::Network);
 	IPAddr dst(IPv6, dst_addr, IPAddr::Network);
@@ -171,9 +171,9 @@ std::string fmt_mac(const unsigned char* m, int len)
 	return buf;
 	}
 
-uint32 extract_uint32(const u_char* data)
+uint32_t extract_uint32(const u_char* data)
 	{
-	uint32 val;
+	uint32_t val;
 
 	val = data[0] << 24;
 	val |= data[1] << 16;

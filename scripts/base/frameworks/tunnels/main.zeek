@@ -144,7 +144,7 @@ event tunnel_changed(c: connection, e: EncapsulatingConnVector) &priority=5
 	register_all(e);
 	}
 
-event connection_state_remove(c: connection) &priority=-5
+event successful_connection_remove(c: connection) &priority=-5
 	{
 	if ( c$id in active )
 		close(active[c$id], CLOSE);

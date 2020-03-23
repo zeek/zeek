@@ -1,5 +1,4 @@
-#ifndef ANALYZER_PROTOCOL_SMB_SMB_H
-#define ANALYZER_PROTOCOL_SMB_SMB_H
+#pragma once
 
 #include "analyzer/protocol/tcp/TCP.h"
 #include "smb_pac.h"
@@ -13,7 +12,7 @@ public:
 
 	void Done() override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
-	void Undelivered(uint64 seq, int len, bool orig) override;
+	void Undelivered(uint64_t seq, int len, bool orig) override;
 	void EndpointEOF(bool is_orig) override;
 
 	bool HasSMBHeader(int len, const u_char* data);
@@ -27,11 +26,9 @@ protected:
 
 	// Count the number of chunks received by the analyzer
 	// but only used to count the first few.
-	uint8 chunks;
+	uint8_t chunks;
 
 	bool need_sync;
 };
 
 } } // namespace analyzer::*
-
-#endif

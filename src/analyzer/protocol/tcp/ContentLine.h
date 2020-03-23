@@ -1,7 +1,6 @@
 // Support-analyzer to split a reassembled stream into lines.
 
-#ifndef ANALYZER_PROTOCOL_TCP_CONTENTLINE_H
-#define ANALYZER_PROTOCOL_TCP_CONTENTLINE_H
+#pragma once
 
 #include "analyzer/protocol/tcp/TCP.h"
 
@@ -36,12 +35,12 @@ public:
 	int CRLFAsEOL()
 		{ return CR_LF_as_EOL ; }
 
-	int HasPartialLine() const;
+	bool HasPartialLine() const;
 
 	bool SkipDeliveries() const
 		{ return skip_deliveries; }
 
-	void SetSkipDeliveries(int should_skip)
+	void SetSkipDeliveries(bool should_skip)
 		{ skip_deliveries = should_skip; }
 
 	// We actually have two delivery modes: line delivery and plain
@@ -66,7 +65,7 @@ protected:
 	ContentLine_Analyzer(const char* name, Connection* conn, bool orig, int max_line_length=DEFAULT_MAX_LINE_LENGTH);
 
 	void DeliverStream(int len, const u_char* data, bool is_orig) override;
-	void Undelivered(uint64 seq, int len, bool orig) override;
+	void Undelivered(uint64_t seq, int len, bool orig) override;
 	void EndpointEOF(bool is_orig) override;
 
 	class State;
@@ -98,23 +97,21 @@ protected:
 
 	// Remaining bytes to deliver plain.
 	int64_t plain_delivery_length;
-	int is_plain;
+	bool is_plain;
 
 	// Don't deliver further data.
-	int skip_deliveries;
+	bool skip_deliveries;
 
 	bool suppress_weirds;
 
 	// If true, flag (first) line with embedded NUL.
-	unsigned int flag_NULs:1;
+	bool flag_NULs;
 
 	// Whether single CR / LF are considered as EOL.
-	unsigned int CR_LF_as_EOL:2;
+	uint8_t CR_LF_as_EOL:2;
 
 	// Whether to skip partial conns.
-	unsigned int skip_partial:1;
+	bool skip_partial;
 };
 
-} } // namespace analyzer::* 
-
-#endif
+} } // namespace analyzer::*

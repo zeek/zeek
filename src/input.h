@@ -1,11 +1,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef input_h
-#define input_h
+#pragma once
 
 #include <vector>
 #include <string>
-using namespace std;
 
 #include "BroList.h"
 
@@ -39,11 +37,9 @@ extern int bro_argc;
 extern char** bro_argv;
 extern const char* prog;
 
-extern name_list prefixes;	// -p flag
-extern char* command_line_policy;	// -e flag
-extern vector<string> params;
+extern std::vector<std::string> zeek_script_prefixes;	// -p flag
+extern const char* command_line_policy;	// -e flag
+extern std::vector<std::string> params;
 
 class Stmt;
 extern Stmt* stmts;	// global statements
-
-#endif

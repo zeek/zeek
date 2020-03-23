@@ -18,6 +18,7 @@ SSH_Analyzer::SSH_Analyzer(Connection* c)
 	had_gap = false;
 	auth_decision_made = false;
 	skipped_banner = false;
+	saw_encrypted_client_data = false;
 	service_accept_size = 0;
 	userauth_failure_size = 0;
 	}
@@ -56,15 +57,11 @@ void SSH_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 	if ( interp->get_state(orig) == binpac::SSH::ENCRYPTED )
 		{
-		if ( ssh_encrypted_packet )
-			BifEvent::generate_ssh_encrypted_packet(interp->bro_analyzer(), interp->bro_analyzer()->Conn(),
-				orig, len);
-
-		if ( ! auth_decision_made )
-			ProcessEncrypted(len, orig);
-
+		ProcessEncryptedSegment(len, orig);
 		return;
 		}
+
+	interp->clear_encrypted_byte_count_in_current_segment();
 
 	try
 		{
@@ -74,20 +71,48 @@ void SSH_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		{
 		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
 		}
+
+	auto encrypted_len = interp->get_encrypted_bytes_in_current_segment();
+
+	if ( encrypted_len > 0 )
+		// We must have transitioned into the encrypted state during this
+		// delivery, but also had some portion of the segment be comprised
+		// of encrypted data, so process the encrypted segment length.
+		ProcessEncryptedSegment(encrypted_len, orig);
 	}
 
-void SSH_Analyzer::Undelivered(uint64 seq, int len, bool orig)
+void SSH_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	had_gap = true;
 	interp->NewGap(orig, len);
 	}
 
+void SSH_Analyzer::ProcessEncryptedSegment(int len, bool orig)
+	{
+	if ( ssh_encrypted_packet )
+		BifEvent::generate_ssh_encrypted_packet(interp->bro_analyzer(),
+		                                        interp->bro_analyzer()->Conn(),
+		                                        orig, len);
+
+	if ( ! auth_decision_made )
+		ProcessEncrypted(len, orig);
+	}
+
 void SSH_Analyzer::ProcessEncrypted(int len, bool orig)
 	{
-	// We're interested in messages from the server for SSH2
-	if ( ! orig && (interp->get_version() == binpac::SSH::SSH2) )
+	if ( interp->get_version() != binpac::SSH::SSH2 )
+		return;
+
+	if ( orig )
+		saw_encrypted_client_data = true;
+	else
 		{
+		// If the client hasn't sent any encrypted data yet, but the
+		// server is, just ignore it until seeing encrypted client data.
+		if ( ! saw_encrypted_client_data )
+			return;
+
 		// The first thing we see and want to know is the length of
 		// SSH_MSG_SERVICE_REQUEST, which has a fixed (decrypted) size
 		// of 24 bytes (17 for content pad-aligned to 8-byte

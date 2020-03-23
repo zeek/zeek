@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef INPUT_READERS_ASCII_H
-#define INPUT_READERS_ASCII_H
+#pragma once
 
 #include <iostream>
 #include <vector>
@@ -57,10 +56,6 @@ private:
 	bool ReadHeader(bool useCached);
 	bool GetLine(string& str);
 	bool OpenFile();
-	// Call Warning or Error, depending on the is_error boolean.
-	// In case of a warning, setting suppress_future to true will suppress all future warnings
-	// (by setting suppress_warnings to true, until suppress_warnings is set back to false)
-	void FailWarn(bool is_error, const char *msg, bool suppress_future = false);
 
 	ifstream file;
 	time_t mtime;
@@ -86,15 +81,9 @@ private:
 	bool fail_on_file_problem;
 	string path_prefix;
 
-	// this is an internal indicator in case the read is currently in a failed state
-	// it's used to suppress duplicate error messages.
-	bool suppress_warnings;
-
 	std::unique_ptr<threading::formatter::Formatter> formatter;
 };
 
 
 }
 }
-
-#endif /* INPUT_READERS_ASCII_H */

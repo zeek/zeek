@@ -5,6 +5,8 @@
 #include "ReStructuredTextTable.h"
 #include "utils.h"
 #include "Manager.h"
+#include "Scope.h"
+#include "DebugLogger.h"
 
 #include "Reporter.h"
 #include "Desc.h"
@@ -256,12 +258,12 @@ void ScriptInfo::DoInitPostScript()
 	if ( name == "base/frameworks/input/main.zeek" )
 		{
 		auto id = global_scope()->Lookup("Input::Reader");
-		types.push_back(new IdentifierInfo(id, this));
+		types.push_back(new IdentifierInfo({NewRef{}, id}, this));
 		}
 	else if ( name == "base/frameworks/logging/main.zeek" )
 		{
 		auto id = global_scope()->Lookup("Log::Writer");
-		types.push_back(new IdentifierInfo(id, this));
+		types.push_back(new IdentifierInfo({NewRef{}, id}, this));
 		}
 	}
 

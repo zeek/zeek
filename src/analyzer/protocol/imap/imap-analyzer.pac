@@ -63,7 +63,7 @@ refine connection IMAP_Conn += {
 		for ( unsigned int i = 0; i< capabilities->size(); i++ )
 			{
 			const bytestring& capability = (*capabilities)[i]->cap();
-			capv->Assign(i, new StringVal(capability.length(), (const char*)capability.data()));
+			capv->Assign(i, make_intrusive<StringVal>(capability.length(), (const char*)capability.data()));
 			}
 
 		BifEvent::generate_imap_capabilities(bro_analyzer(), bro_analyzer()->Conn(), capv);

@@ -1,7 +1,6 @@
 // Analyzer for connections that transfer binary data.
 
-#ifndef ANALYZER_PROTOCOL_FILE_FILE_H
-#define ANALYZER_PROTOCOL_FILE_FILE_H
+#pragma once
 
 #include "analyzer/protocol/tcp/TCP.h"
 
@@ -17,7 +16,7 @@ public:
 
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 
-	void Undelivered(uint64 seq, int len, bool orig) override;
+	void Undelivered(uint64_t seq, int len, bool orig) override;
 
 //	static analyzer::Analyzer* Instantiate(Connection* conn)
 //		{ return new File_Analyzer(conn); }
@@ -53,5 +52,3 @@ public:
 };
 
 } } // namespace analyzer::* 
-
-#endif

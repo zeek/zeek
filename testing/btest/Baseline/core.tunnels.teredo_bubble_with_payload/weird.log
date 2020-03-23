@@ -3,9 +3,9 @@
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2019-06-07-01-59-35
+#open	2019-07-31-18-53-34
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
 1340127577.341510	CUM0KZ3MLUfNB0cl11	192.168.2.16	3797	83.170.1.38	32900	Teredo_bubble_with_payload	-	F	zeek
 1340127577.346849	CHhAvVGS1DHFjwGM9	192.168.2.16	3797	65.55.158.80	3544	Teredo_bubble_with_payload	-	F	zeek
-#close	2019-06-07-01-59-35
+#close	2019-07-31-18-53-34

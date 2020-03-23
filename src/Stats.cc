@@ -1,22 +1,26 @@
+#include "Stats.h"
+#include "RuleMatcher.h"
 #include "Conn.h"
 #include "File.h"
 #include "Event.h"
+#include "Net.h"
 #include "NetVar.h"
+#include "Var.h" // for internal_type()
 #include "Sessions.h"
-#include "Stats.h"
 #include "Scope.h"
 #include "cq.h"
 #include "DNS_Mgr.h"
 #include "Trigger.h"
 #include "threading/Manager.h"
 #include "broker/Manager.h"
+#include "input.h"
 
-uint64 killed_by_inactivity = 0;
+uint64_t killed_by_inactivity = 0;
 
-uint64 tot_ack_events = 0;
-uint64 tot_ack_bytes = 0;
-uint64 tot_gap_events = 0;
-uint64 tot_gap_bytes = 0;
+uint64_t tot_ack_events = 0;
+uint64_t tot_ack_bytes = 0;
+uint64_t tot_gap_events = 0;
+uint64_t tot_gap_bytes = 0;
 
 
 class ProfileTimer : public Timer {
@@ -79,7 +83,7 @@ void ProfileLogger::Log()
 	struct timeval tv_utime = r.ru_utime;
 	struct timeval tv_stime = r.ru_stime;
 
-	uint64 total, malloced;
+	uint64_t total, malloced;
 	get_memory_usage(&total, &malloced);
 
 	static unsigned int first_total = 0;
@@ -117,12 +121,11 @@ void ProfileLogger::Log()
 
 	int conn_mem_use = expensive ? sessions->ConnectionMemoryUsage() : 0;
 
-	file->Write(fmt("%.06f Conns: total=%" PRIu64 " current=%" PRIu64 "/%" PRIi32 " ext=%" PRIu64 " mem=%" PRIi32 "K avg=%.1f table=%" PRIu32 "K connvals=%" PRIu32 "K\n",
+	file->Write(fmt("%.06f Conns: total=%" PRIu64 " current=%" PRIu64 "/%" PRIi32 " mem=%" PRIi32 "K avg=%.1f table=%" PRIu32 "K connvals=%" PRIu32 "K\n",
 		network_time,
 		Connection::TotalConnections(),
 		Connection::CurrentConnections(),
 		sessions->CurrentConnections(),
-		Connection::CurrentExternalConnections(),
 		conn_mem_use,
 		expensive ? (conn_mem_use / double(sessions->CurrentConnections())) : 0,
 		expensive ? sessions->MemoryAllocation() / 1024 : 0,
@@ -132,7 +135,7 @@ void ProfileLogger::Log()
 	SessionStats s;
 	sessions->GetStats(s);
 
-	file->Write(fmt("%.06f Conns: tcp=%d/%d udp=%d/%d icmp=%d/%d\n",
+	file->Write(fmt("%.06f Conns: tcp=%zu/%zu udp=%zu/%zu icmp=%zu/%zu\n",
 		network_time,
 		s.num_TCP_conns, s.max_TCP_conns,
 		s.num_UDP_conns, s.max_UDP_conns,
@@ -175,11 +178,9 @@ void ProfileLogger::Log()
 			stats.nfa_states, stats.dfa_states, stats.computed, stats.mem / 1024));
 		}
 
-	file->Write(fmt("%.06f Timers: current=%d max=%d mem=%dK lag=%.2fs\n",
+	file->Write(fmt("%.06f Timers: current=%d max=%d lag=%.2fs\n",
 		network_time,
 		timer_mgr->Size(), timer_mgr->PeakSize(),
-		int(cq_memory_allocation() +
-		    (timer_mgr->Size() * padded_sizeof(ConnectionTimer))) / 1024,
 		network_time - timer_mgr->LastTimestamp()));
 
 	DNS_Mgr::Stats dstats;
@@ -190,8 +191,8 @@ void ProfileLogger::Log()
 					dstats.requests, dstats.successful, dstats.failed, dstats.pending,
 					dstats.cached_hosts, dstats.cached_addresses));
 
-	Trigger::Stats tstats;
-	Trigger::GetStats(&tstats);
+	trigger::Manager::Stats tstats;
+	trigger_mgr->GetStats(&tstats);
 
 	file->Write(fmt("%.06f Triggers: total=%lu pending=%lu\n", network_time, tstats.total, tstats.pending));
 
@@ -208,7 +209,7 @@ void ProfileLogger::Log()
 
 	const threading::Manager::msg_stats_list& thread_stats = thread_mgr->GetMsgThreadStats();
 	for ( threading::Manager::msg_stats_list::const_iterator i = thread_stats.begin();
-	      i != thread_stats.end(); ++i ) 
+	      i != thread_stats.end(); ++i )
 		{
 		threading::MsgThread::Stats s = i->second;
 		file->Write(fmt("%0.6f   %-25s in=%" PRIu64 " out=%" PRIu64 " pending=%" PRIu64 "/%" PRIu64
@@ -239,7 +240,7 @@ void ProfileLogger::Log()
 
 	// Script-level state.
 	unsigned int size, mem = 0;
-	PDict<ID>* globals = global_scope()->Vars();
+	const auto& globals = global_scope()->Vars();
 
 	if ( expensive )
 		{
@@ -249,10 +250,10 @@ void ProfileLogger::Log()
 		file->Write(fmt("%.06f Global_sizes > 100k: %dK\n",
 				network_time, mem / 1024));
 
-		ID* id;
-		IterCookie* c = globals->InitForIteration();
+		for ( const auto& global : globals )
+			{
+			ID* id = global.second.get();
 
-		while ( (id = globals->NextEntry(c)) )
 			// We don't show/count internal globals as they are always
 			// contained in some other global user-visible container.
 			if ( id->HasVal() )
@@ -298,6 +299,7 @@ void ProfileLogger::Log()
 						file->Write("\n");
 					}
 				}
+			}
 
 		file->Write(fmt("%.06f Global_sizes total: %dK\n",
 				network_time, mem / 1024));
@@ -343,7 +345,7 @@ SampleLogger::SampleLogger()
 	if ( ! load_sample_info )
 		load_sample_info = internal_type("load_sample_info")->AsTableType();
 
-	load_samples = new TableVal(load_sample_info);
+	load_samples = new TableVal({NewRef{}, load_sample_info});
 	}
 
 SampleLogger::~SampleLogger()
@@ -460,7 +462,7 @@ void PacketProfiler::ProfilePkt(double t, unsigned int bytes)
 		double curr_Rtime =
 			ptimestamp.tv_sec + ptimestamp.tv_usec / 1e6;
 
-		uint64 curr_mem;
+		uint64_t curr_mem;
 		get_memory_usage(&curr_mem, 0);
 
 		file->Write(fmt("%.06f %.03f %" PRIu64 " %" PRIu64 " %.03f %.03f %.03f %" PRIu64 "\n",

@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_KRB_KRB_H
-#define ANALYZER_PROTOCOL_KRB_KRB_H
+#pragma once
 
 #include "krb_pac.h"
 
@@ -21,7 +20,7 @@ public:
 
 	virtual void Done();
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-							   uint64 seq, const IP_Hdr* ip, int caplen);
+							   uint64_t seq, const IP_Hdr* ip, int caplen);
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new KRB_Analyzer(conn); }
@@ -43,5 +42,3 @@ private:
 };
 
 } } // namespace analyzer::*
-
-#endif

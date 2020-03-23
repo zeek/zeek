@@ -71,6 +71,11 @@ void Ascii::InitConfigOptions()
 			(const char*) tsfmt.Bytes(),
 			tsfmt.Len()
 			);
+
+	gzip_file_extension.assign(
+		(const char*) BifConst::LogAscii::gzip_file_extension->Bytes(),
+		BifConst::LogAscii::gzip_file_extension->Len()
+		);
 	}
 
 bool Ascii::InitFilterOptions()
@@ -160,6 +165,9 @@ bool Ascii::InitFilterOptions()
 
 		else if ( strcmp(i->first, "json_timestamps") == 0 )
 			json_timestamps.assign(i->second);
+
+		else if ( strcmp(i->first, "gzip_file_extension") == 0 )
+			gzip_file_extension.assign(i->second);
 		}
 
 	if ( ! InitFormatter() )
@@ -252,8 +260,13 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 	if ( output_to_stdout )
 		path = "/dev/stdout";
 
-	fname = IsSpecial(path) ? path : path + "." + LogExt() +
-	                          (gzip_level > 0 ? ".gz" : "");
+	fname = IsSpecial(path) ? path : path + "." + LogExt();
+
+	if ( gzip_level > 0 )
+		{
+		fname += ".";
+		fname += gzip_file_extension.empty() ? "gz" : gzip_file_extension;
+		}
 
 	fd = open(fname.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 
@@ -427,8 +440,13 @@ bool Ascii::DoRotate(const char* rotated_path, double open, double close, bool t
 
 	CloseFile(close);
 
-	string nname = string(rotated_path) + "." + LogExt() +
-	               (gzip_level > 0 ? ".gz" : "");
+	string nname = string(rotated_path) + "." + LogExt();
+
+	if ( gzip_level > 0 )
+		{
+		nname += ".";
+		nname += gzip_file_extension.empty() ? "gz" : gzip_file_extension;
+		}
 
 	if ( rename(fname.c_str(), nname.c_str()) != 0 )
 		{

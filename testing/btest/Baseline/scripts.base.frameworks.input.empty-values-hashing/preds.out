@@ -1,0 +1,16 @@
+============PREDICATE============
+Input::EVENT_NEW
+[i=1]
+[s=<uninitialized>, ss=TEST]
+============PREDICATE============
+Input::EVENT_NEW
+[i=2]
+[s=<uninitialized>, ss=<uninitialized>]
+============PREDICATE============
+Input::EVENT_CHANGED
+[i=1]
+[s=TEST, ss=<uninitialized>]
+============PREDICATE============
+Input::EVENT_CHANGED
+[i=2]
+[s=TEST, ss=TEST]

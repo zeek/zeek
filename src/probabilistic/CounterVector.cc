@@ -4,10 +4,12 @@
 
 #include <cassert>
 #include <limits>
+
+#include <broker/data.hh>
+#include <broker/error.hh>
+
 #include "BitVector.h"
 #include "util.h"
-
-#include <broker/error.hh>
 
 using namespace probabilistic;
 
@@ -167,7 +169,7 @@ broker::expected<broker::data> CounterVector::Serialize() const
 	if ( ! b )
 		return broker::ec::invalid_data; // Cannot serialize
 
-	return {broker::vector{static_cast<uint64>(width), std::move(*b)}};
+	return {broker::vector{static_cast<uint64_t>(width), std::move(*b)}};
 	}
 
 std::unique_ptr<CounterVector> CounterVector::Unserialize(const broker::data& data)
@@ -176,7 +178,7 @@ std::unique_ptr<CounterVector> CounterVector::Unserialize(const broker::data& da
 	if ( ! (v && v->size() >= 2) )
 		return nullptr;
 
-	auto width = caf::get_if<uint64>(&(*v)[0]);
+	auto width = caf::get_if<uint64_t>(&(*v)[0]);
 	auto bits = BitVector::Unserialize((*v)[1]);
 
 	if ( ! (width && bits) )

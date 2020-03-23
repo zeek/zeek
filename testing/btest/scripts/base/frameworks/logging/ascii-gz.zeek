@@ -1,5 +1,6 @@
 #
 # @TEST-EXEC: zeek -b %INPUT
+# @TEST-EXEC: mv ssh.log.gzip ssh.log.gz
 # @TEST-EXEC: gunzip ssh.log.gz
 # @TEST-EXEC: btest-diff ssh.log
 # @TEST-EXEC: btest-diff ssh-uncompressed.log
@@ -7,6 +8,7 @@
 # Testing all possible types.
 
 redef LogAscii::gzip_level = 9;
+redef LogAscii::gzip_file_extension = "gzip";
 
 module SSH;
 

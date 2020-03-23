@@ -3,9 +3,9 @@
 #empty_field	(empty)
 #unset_field	-
 #path	ssl
-#open	2017-12-21-02-27-54
+#open	2019-07-31-20-23-20
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	cert_chain_fuids	client_cert_chain_fuids	subject	issuer	client_subject	client_issuer
 #types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	vector[string]	vector[string]	string	string	string	string
 1348168976.508038	CHhAvVGS1DHFjwGM9	192.168.57.103	60108	192.168.57.101	2811	TLSv10	TLS_RSA_WITH_AES_256_CBC_SHA	-	-	F	-	-	T	FBtbj87tgpyeDSj31,F8TfgZ31c1dFu8Kt2k	FVNYOh2BeQBb7MpCPe,FwjBou1e5DbpE0eOgk,FbYQmk4x4M4Bx3PZme	CN=host/alpha,OU=simpleCA-alpha,OU=GlobusTest,O=Grid	CN=Globus Simple CA,OU=simpleCA-alpha,OU=GlobusTest,O=Grid	CN=917532944,CN=Jon Siwek,OU=local,OU=simpleCA-alpha,OU=GlobusTest,O=Grid	CN=Jon Siwek,OU=local,OU=simpleCA-alpha,OU=GlobusTest,O=Grid
 1348168976.551422	ClEkJM2Vm5giqnMf4h	192.168.57.103	35391	192.168.57.101	55968	TLSv10	TLS_RSA_WITH_NULL_SHA	-	-	F	-	-	T	F4SSqN31HDIrrH5Q8h,FJHp5Pf6VLQsRQK3,FHACqa3dX9BXRV2av,FNnDVT1NURRWeoLLN3	FFWYVj4BcvQb35WIaf,Fj16G835fnJgnVlKU6,FGONoc1Nj0Ka5zlxDa	CN=932373381,CN=917532944,CN=Jon Siwek,OU=local,OU=simpleCA-alpha,OU=GlobusTest,O=Grid	CN=917532944,CN=Jon Siwek,OU=local,OU=simpleCA-alpha,OU=GlobusTest,O=Grid	CN=917532944,CN=Jon Siwek,OU=local,OU=simpleCA-alpha,OU=GlobusTest,O=Grid	CN=Jon Siwek,OU=local,OU=simpleCA-alpha,OU=GlobusTest,O=Grid
-#close	2017-12-21-02-27-54
+#close	2019-07-31-20-23-21

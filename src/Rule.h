@@ -1,21 +1,21 @@
-#ifndef rule_h
-#define rule_h
+#pragma once
+
+#include "List.h"
+#include "Obj.h"
+
+#include <map>
+#include <string>
 
 #include <limits.h>
-
-#include "Obj.h"
-#include "List.h"
-#include "Dict.h"
-#include "util.h"
+#include <stdint.h>
 
 class RuleCondition;
 class RuleAction;
 class RuleHdrTest;
-
 class Rule;
 
 typedef PList<Rule> rule_list;
-typedef PDict<Rule> rule_dict;
+typedef std::map<std::string, Rule*> rule_dict;
 
 class Rule {
 public:
@@ -44,7 +44,7 @@ public:
 	void AddCondition(RuleCondition* cond)	{ conditions.push_back(cond); }
 	void AddHdrTest(RuleHdrTest* hdr_test)	{ hdr_tests.push_back(hdr_test);	}
 	void AddPattern(const char* str, Rule::PatternType type,
-			uint32 offset = 0, uint32 depth = INT_MAX);
+			uint32_t offset = 0, uint32_t depth = INT_MAX);
 	void AddRequires(const char* id, bool opposite_direction, bool negate);
 
 	const Location& GetLocation() const	{ return location; }
@@ -88,8 +88,8 @@ private:
 		char* pattern;	// the pattern itself
 		PatternType type;
 		int id;	// ID of pattern (for identifying it within regexps)
-		uint32 offset;
-		uint32 depth;
+		uint32_t offset;
+		uint32_t depth;
 	};
 
 	typedef PList<Pattern> pattern_list;
@@ -107,5 +107,3 @@ private:
 	// Array of rules indexed by payloadid.
 	static rule_list rule_table;
 	};
-
-#endif

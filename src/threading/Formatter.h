@@ -1,12 +1,19 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef THREADING_FORMATTER_H
-#define THREADING_FORMATTER_H
+#pragma once
 
-#include "../Desc.h"
-#include "MsgThread.h"
+#include "Type.h"
+#include "SerialTypes.h"
 
-namespace threading { namespace formatter {
+#include <string>
+
+using std::string;
+
+namespace threading {
+
+class MsgThread;
+
+namespace formatter {
 
 /**
   * A thread-safe class for converting values into some textual format. This
@@ -160,5 +167,3 @@ private:
 };
 
 }}
-
-#endif /* THREADING_FORMATTER_H */

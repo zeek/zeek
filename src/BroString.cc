@@ -1,15 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "BroString.h"
 
 #include <algorithm>
+#include <iostream>
 #include <ctype.h>
 
-#include <algorithm>
-
-#include "BroString.h"
+#include "Val.h"
 #include "Var.h"
 #include "Reporter.h"
+#include "util.h"
 
 #ifdef DEBUG
 #define DEBUG_STR(msg) DBG_LOG(DBG_STRING, msg)
@@ -25,52 +26,40 @@ const int BroString::BRO_STRING_LITERAL;
 // arg_final_NUL == 1; when str is a sequence of n bytes, make
 // arg_final_NUL == 0.
 
-BroString::BroString(int arg_final_NUL, byte_vec str, int arg_n)
+BroString::BroString(bool arg_final_NUL, byte_vec str, int arg_n)
 	{
 	b = str;
 	n = arg_n;
 	final_NUL = arg_final_NUL;
-	use_free_to_delete = 0;
+	use_free_to_delete = false;
 	}
 
-BroString::BroString(const u_char* str, int arg_n, int add_NUL)
+BroString::BroString(const u_char* str, int arg_n, bool add_NUL) : BroString()
 	{
-	b = 0;
-	n = 0;
-	use_free_to_delete = 0;
 	Set(str, arg_n, add_NUL);
 	}
 
-BroString::BroString(const char* str)
+BroString::BroString(const char* str) : BroString()
 	{
-	b = 0;
-	n = 0;
-	use_free_to_delete = 0;
 	Set(str);
 	}
 
-BroString::BroString(const string &str)
+BroString::BroString(const string &str) : BroString()
 	{
-	b = 0;
-	n = 0;
-	use_free_to_delete = 0;
 	Set(str);
 	}
 
-BroString::BroString(const BroString& bs)
+BroString::BroString(const BroString& bs) : BroString()
 	{
-	b = 0;
-	n = 0;
-	use_free_to_delete = 0;
 	*this = bs;
 	}
 
 BroString::BroString()
 	{
-	b = 0;
+	b = nullptr;
 	n = 0;
-	final_NUL = 0;
-	use_free_to_delete = 0;
+	final_NUL = false;
+	use_free_to_delete = false;
 	}
 
 void BroString::Reset()
@@ -80,10 +69,10 @@ void BroString::Reset()
 	else
 		delete [] b;
 
-	b = 0;
+	b = nullptr;
 	n = 0;
-	final_NUL = 0;
-	use_free_to_delete = 0;
+	final_NUL = false;
+	use_free_to_delete = false;
 	}
 
 const BroString& BroString::operator=(const BroString &bs)
@@ -95,8 +84,8 @@ const BroString& BroString::operator=(const BroString &bs)
 	memcpy(b, bs.b, n);
 	b[n] = '\0';
 
-	final_NUL = 1;
-	use_free_to_delete = 0;
+	final_NUL = true;
+	use_free_to_delete = false;
 	return *this;
 	}
 
@@ -122,7 +111,7 @@ void BroString::Adopt(byte_vec bytes, int len)
 	n = len - final_NUL;
 	}
 
-void BroString::Set(const u_char* str, int len, int add_NUL)
+void BroString::Set(const u_char* str, int len, bool add_NUL)
 	{
 	Reset();
 
@@ -134,7 +123,7 @@ void BroString::Set(const u_char* str, int len, int add_NUL)
 	if ( add_NUL )
 		b[n] = 0;
 
-	use_free_to_delete = 0;
+	use_free_to_delete = false;
 	}
 
 void BroString::Set(const char* str)
@@ -144,8 +133,8 @@ void BroString::Set(const char* str)
 	n = strlen(str);
 	b = new u_char[n+1];
 	memcpy(b, str, n+1);
-	final_NUL = 1;
-	use_free_to_delete = 0;
+	final_NUL = true;
+	use_free_to_delete = false;
 	}
 
 void BroString::Set(const string& str)
@@ -155,8 +144,8 @@ void BroString::Set(const string& str)
 	n = str.size();
 	b = new u_char[n+1];
 	memcpy(b, str.c_str(), n+1);
-	final_NUL = 1;
-	use_free_to_delete = 0;
+	final_NUL = true;
+	use_free_to_delete = false;
 	}
 
 void BroString::Set(const BroString& str)
@@ -286,6 +275,11 @@ void BroString::ToUpper()
 			b[i] = toupper(b[i]);
 	}
 
+unsigned int BroString::MemoryAllocation() const
+	{
+	return padded_sizeof(*this) + pad_size(n + final_NUL);
+	}
+
 BroString* BroString::GetSubstring(int start, int len) const
 	{
 	// This code used to live in zeek.bif's sub_bytes() routine.
@@ -307,7 +301,7 @@ BroString::Vec* BroString::Split(const BroString::IdxVec& indices) const
 	{
 	unsigned int i;
 
-	if ( indices.size() == 0 )
+	if ( indices.empty() )
 		return 0;
 
 	// Copy input, ensuring space for "0":
@@ -453,7 +447,7 @@ BroString* concatenate(std::vector<data_chunk_t>& v)
 
 	*b = '\0';
 
-	return new BroString(1, (byte_vec) data, len);
+	return new BroString(true, (byte_vec) data, len);
 	}
 
 BroString* concatenate(BroString::CVec& v)
@@ -474,7 +468,7 @@ BroString* concatenate(BroString::CVec& v)
 		}
 	*b = '\0';
 
-	return new BroString(1, (byte_vec) data, len);
+	return new BroString(true, (byte_vec) data, len);
 	}
 
 BroString* concatenate(BroString::Vec& v)

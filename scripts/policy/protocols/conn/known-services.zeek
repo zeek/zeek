@@ -37,13 +37,14 @@ export {
 	## See :zeek:type:`Host` for possible choices.
 	option service_tracking = LOCAL_HOSTS;
 
-	type AddrPortPair: record {
+	type AddrPortServTriplet: record {
 		host: addr;
 		p: port;
+		serv: string;
 	};
 
 	## Holds the set of all known services.  Keys in the store are
-	## :zeek:type:`Known::AddrPortPair` and their associated value is
+	## :zeek:type:`Known::AddrPortServTriplet` and their associated value is
 	## always the boolean value of "true".
 	global service_store: Cluster::StoreInfo;
 
@@ -62,11 +63,11 @@ export {
 	## of duplicates, but can also be inspected by other scripts for
 	## different purposes.
 	##
-	## In cluster operation, this set is uniformly distributed across
+	## In cluster operation, this table is uniformly distributed across
 	## proxy nodes.
 	##
-	## This set is automatically populated and shouldn't be directly modified.
-	global services: set[addr, port] &create_expire=1day;
+	## This table is automatically populated and shouldn't be directly modified.
+	global services: table[addr, port] of set[string] &create_expire=1day;
 
 	## Event that can be handled to access the :zeek:type:`Known::ServicesInfo`
 	## record as it is sent on to the logging framework.
@@ -79,6 +80,20 @@ redef record connection += {
 	known_services_done: bool &default=F;
 };
 
+# Check if the triplet (host,port_num,service) is already in Known::services
+function check(info: ServicesInfo) : bool
+	{
+	if ( [info$host, info$port_num] !in Known::services )
+		return F;
+
+	for ( s in info$service )
+		{
+		if ( s !in Known::services[info$host, info$port_num] )
+			return F;
+		}
+
+	return T;
+	}
 
 event zeek_init()
 	{
@@ -89,28 +104,34 @@ event zeek_init()
 	}
 
 event service_info_commit(info: ServicesInfo)
-                          
 	{
 	if ( ! Known::use_service_store )
 		return;
 
-	local key = AddrPortPair($host = info$host, $p = info$port_num);
+	local tempservs = info$service;
 
-	when ( local r = Broker::put_unique(Known::service_store$store, key,
-	                                    T, Known::service_store_expiry) )
+	for ( s in tempservs )
 		{
-		if ( r$status == Broker::SUCCESS )
+		local key = AddrPortServTriplet($host = info$host, $p = info$port_num, $serv = s);
+
+		when ( local r = Broker::put_unique(Known::service_store$store, key,
+		                                    T, Known::service_store_expiry) )
 			{
-			if ( r$result as bool )
-				Log::write(Known::SERVICES_LOG, info);
+			if ( r$status == Broker::SUCCESS )
+				{
+				if ( r$result as bool ) {
+					info$service = set(s);	# log one service at the time if multiservice
+					Log::write(Known::SERVICES_LOG, info);
+					}
+				}
+			else
+				Reporter::error(fmt("%s: data store put_unique failure",
+				                    Known::service_store_name));
 			}
-		else
-			Reporter::error(fmt("%s: data store put_unique failure",
-			                    Known::service_store_name));
-		}
-	timeout Known::service_store_timeout
-		{
-		Log::write(Known::SERVICES_LOG, info);
+		timeout Known::service_store_timeout
+			{
+			Log::write(Known::SERVICES_LOG, info);
+			}
 		}
 	}
 
@@ -119,14 +140,32 @@ event known_service_add(info: ServicesInfo)
 	if ( Known::use_service_store )
 		return;
 
-	if ( [info$host, info$port_num] in Known::services )
+	if ( check(info) )
 		return;
 
-	add Known::services[info$host, info$port_num];
+	if ( [info$host, info$port_num] !in Known::services )
+		Known::services[info$host, info$port_num] = set();
+
+	 # service to log can be a subset of info$service if some were already seen
+	local info_to_log: ServicesInfo;
+	info_to_log$ts = info$ts;
+	info_to_log$host = info$host;
+	info_to_log$port_num = info$port_num;
+	info_to_log$port_proto = info$port_proto;
+	info_to_log$service = set();
+
+	for ( s in info$service )
+		{
+		if ( s !in Known::services[info$host, info$port_num] )
+			{
+			add Known::services[info$host, info$port_num][s];
+			add info_to_log$service[s];
+			}
+		}
 
 	@if ( ! Cluster::is_enabled() ||
 	      Cluster::local_node_type() == Cluster::PROXY )
-		Log::write(Known::SERVICES_LOG, info);
+		Log::write(Known::SERVICES_LOG, info_to_log);
 	@endif
 	}
 
@@ -139,7 +178,7 @@ event Cluster::node_up(name: string, id: string)
 		return;
 
 	# Drop local suppression cache on workers to force HRW key repartitioning.
-	Known::services = set();
+	Known::services = table();
 	}
 
 event Cluster::node_down(name: string, id: string)
@@ -151,7 +190,7 @@ event Cluster::node_down(name: string, id: string)
 		return;
 
 	# Drop local suppression cache on workers to force HRW key repartitioning.
-	Known::services = set();
+	Known::services = table();
 	}
 
 event service_info_commit(info: ServicesInfo)
@@ -159,7 +198,7 @@ event service_info_commit(info: ServicesInfo)
 	if ( Known::use_service_store )
 		return;
 
-	if ( [info$host, info$port_num] in Known::services )
+	if ( check(info) )
 		return;
 
 	local key = cat(info$host, info$port_num);
@@ -186,10 +225,16 @@ function known_services_done(c: connection)
 			return;
 		}
 
+	# Drop services starting with "-" (confirmed-but-then-violated protocol)
+	local tempservs: set[string];
+		for (s in c$service)
+			if ( s[0] != "-" )
+				add tempservs[s];
+
 	local info = ServicesInfo($ts = network_time(), $host = id$resp_h,
 	                          $port_num = id$resp_p,
 	                          $port_proto = get_port_transport_proto(id$resp_p),
-	                          $service = c$service);
+	                          $service = tempservs);
 
 	# If no protocol was detected, wait a short time before attempting to log
 	# in case a protocol is detected on another connection.
@@ -205,7 +250,7 @@ event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &pr
 	}
 
 # Handle the connection ending in case no protocol was ever detected.
-event connection_state_remove(c: connection) &priority=-5
+event successful_connection_remove(c: connection) &priority=-5
 	{
 	if ( c$known_services_done )
 		return;

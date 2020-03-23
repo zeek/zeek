@@ -1,12 +1,20 @@
 // See the file  in the main distribution directory for copyright.
 
+#include <pcap.h>	// for the DLT_EN10MB constant definition
+
 #include "VXLAN.h"
 #include "TunnelEncapsulation.h"
 #include "Conn.h"
 #include "IP.h"
+#include "Net.h"
+#include "Sessions.h"
 #include "Reporter.h"
 
 #include "events.bif.h"
+
+extern "C" {
+#include <pcap.h>
+}
 
 using namespace analyzer::vxlan;
 
@@ -17,7 +25,7 @@ void VXLAN_Analyzer::Done()
 	}
 
 void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-                                   uint64 seq, const IP_Hdr* ip, int caplen)
+                                   uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 

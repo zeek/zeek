@@ -1,8 +1,12 @@
 
+#include "Foo.h"
+
+extern "C" {
+#include <pcap.h>
+}
+
 #include <fcntl.h>
 #include <stdio.h>
-
-#include "Foo.h"
 
 using namespace plugin::Demo_Foo;
 

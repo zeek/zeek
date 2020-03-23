@@ -1,3 +1,7 @@
+%extern{
+#include "Sessions.h"
+#include "Conn.h"
+%}
 
 connection AYIYA_Conn(bro_analyzer: BroAnalyzer)
 	{

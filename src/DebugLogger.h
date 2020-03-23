@@ -1,8 +1,7 @@
 // A logger for (selective) debugging output. Only compiled in if DEBUG is
 // defined.
 
-#ifndef debug_logger_h
-#define debug_logger_h
+#pragma once
 
 #ifdef DEBUG
 
@@ -30,6 +29,7 @@ enum DebugStream {
 	DBG_PKTIO,	// Packet sources and dumpers.
 	DBG_BROKER,	// Broker communication
 	DBG_SCRIPTS,	// Script initialization
+	DBG_SUPERVISOR,	// Process supervisor
 
 	NUM_DBGS // Has to be last
 };
@@ -102,6 +102,4 @@ extern DebugLogger debug_logger;
 #define DBG_PUSH(stream)
 #define DBG_POP(stream)
 #define PLUGIN_DBG_LOG(plugin, args...)
-#endif
-
 #endif

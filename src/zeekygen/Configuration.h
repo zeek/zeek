@@ -1,15 +1,17 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ZEEKYGEN_CONFIGURATION_H
-#define ZEEKYGEN_CONFIGURATION_H
+#pragma once
 
-#include "Info.h"
 #include "Target.h"
 
 #include <string>
 #include <vector>
 
+#include <time.h> // for time_t
+
 namespace zeekygen {
+
+class Info;
 
 /**
  * Manages the generation of reStructuredText documents corresponding to
@@ -59,5 +61,3 @@ private:
 };
 
 } // namespace zeekygen
-
-#endif

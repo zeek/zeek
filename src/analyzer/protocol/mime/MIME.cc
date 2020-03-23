@@ -1,8 +1,8 @@
 #include "zeek-config.h"
 
-#include "NetVar.h"
 #include "MIME.h"
-#include "Event.h"
+#include "NetVar.h"
+#include "Base64.h"
 #include "Reporter.h"
 #include "digest.h"
 #include "file_analysis/Manager.h"
@@ -537,6 +537,8 @@ MIME_Entity::MIME_Entity(MIME_Message* output_message, MIME_Entity* parent_entit
 	message = output_message;
 	if ( parent )
 		content_encoding = parent->ContentTransferEncoding();
+
+	want_all_headers = (bool)mime_all_headers;
 	}
 
 void MIME_Entity::init()
@@ -569,6 +571,7 @@ void MIME_Entity::init()
 
 	message = 0;
 	delay_adding_implicit_CRLF = false;
+	want_all_headers = false;
 	}
 
 MIME_Entity::~MIME_Entity()
@@ -744,7 +747,11 @@ void MIME_Entity::FinishHeader()
 		{
 		ParseMIMEHeader(h);
 		SubmitHeader(h);
-		headers.push_back(h);
+
+		if ( want_all_headers )
+			headers.push_back(h);
+		else
+			delete h;
 		}
 	else
 		delete h;
@@ -1292,7 +1299,7 @@ RecordVal* MIME_Message::BuildHeaderVal(MIME_Header* h)
 
 TableVal* MIME_Message::BuildHeaderTable(MIME_HeaderList& hlist)
 	{
-	TableVal* t = new TableVal(mime_header_list);
+	TableVal* t = new TableVal({NewRef{}, mime_header_list});
 
 	for ( unsigned int i = 0; i < hlist.size(); ++i )
 		{

@@ -1,10 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "CardinalityCounter.h"
+
 #include <math.h>
 #include <stdint.h>
-#include <iostream>
+#include <utility>
 
-#include "CardinalityCounter.h"
+#include <broker/data.hh>
+
 #include "Reporter.h"
 
 using namespace probabilistic;
@@ -73,7 +76,7 @@ CardinalityCounter::CardinalityCounter(CardinalityCounter& other)
 	p = other.p;
 	}
 
-CardinalityCounter::CardinalityCounter(CardinalityCounter&& o)
+CardinalityCounter::CardinalityCounter(CardinalityCounter&& o) noexcept
 	{
 	V = o.V;
 	alpha_m = o.alpha_m;
@@ -87,7 +90,7 @@ CardinalityCounter::CardinalityCounter(CardinalityCounter&& o)
 CardinalityCounter::CardinalityCounter(double error_margin, double confidence)
 	{
 	int b = OptimalB(error_margin, confidence);
-	Init((uint64) pow(2, b));
+	Init((uint64_t) pow(2, b));
 
 	assert(b == p);
 	}
@@ -170,7 +173,7 @@ bool CardinalityCounter::Merge(CardinalityCounter* c)
 	if ( m != c->GetM() )
 		return false;
 
-	const vector<uint8_t> temp = c->GetBuckets();
+	const vector<uint8_t>& temp = c->GetBuckets();
 
 	V = 0;
 
@@ -202,7 +205,7 @@ broker::expected<broker::data> CardinalityCounter::Serialize() const
 	v.reserve(3 + m);
 
 	for ( size_t i = 0; i < m; ++i )
-		v.emplace_back(static_cast<uint64>(buckets[i]));
+		v.emplace_back(static_cast<uint64_t>(buckets[i]));
 
 	return {std::move(v)};
 	}
@@ -213,8 +216,8 @@ std::unique_ptr<CardinalityCounter> CardinalityCounter::Unserialize(const broker
 	if ( ! (v && v->size() >= 3) )
 		return nullptr;
 
-	auto m = caf::get_if<uint64>(&(*v)[0]);
-	auto V = caf::get_if<uint64>(&(*v)[1]);
+	auto m = caf::get_if<uint64_t>(&(*v)[0]);
+	auto V = caf::get_if<uint64_t>(&(*v)[1]);
 	auto alpha_m = caf::get_if<double>(&(*v)[2]);
 
 	if ( ! (m && V && alpha_m) )
@@ -230,7 +233,7 @@ std::unique_ptr<CardinalityCounter> CardinalityCounter::Unserialize(const broker
 
 	for ( size_t i = 0; i < *m; ++i )
 		{
-		auto x = caf::get_if<uint64>(&(*v)[3 + i]);
+		auto x = caf::get_if<uint64_t>(&(*v)[3 + i]);
 		if ( ! x )
 			return nullptr;
 

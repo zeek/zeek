@@ -1,10 +1,10 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_FTP_FTP_H
-#define ANALYZER_PROTOCOL_FTP_FTP_H
+#pragma once
 
-#include "analyzer/protocol/login/NVT.h"
 #include "analyzer/protocol/tcp/TCP.h"
+
+namespace analyzer { namespace login { class NVT_Analyzer; }}
 
 namespace analyzer { namespace ftp {
 
@@ -23,7 +23,7 @@ public:
 protected:
 	login::NVT_Analyzer* nvt_orig;
 	login::NVT_Analyzer* nvt_resp;
-	uint32 pending_reply;	// code associated with multi-line reply, or 0
+	uint32_t pending_reply;	// code associated with multi-line reply, or 0
 	string auth_requested;	// AUTH method requested
 };
 
@@ -50,5 +50,3 @@ protected:
 };
 
 } } // namespace analyzer::* 
-
-#endif

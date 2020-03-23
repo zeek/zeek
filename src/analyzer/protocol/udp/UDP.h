@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_UDP_UDP_H
-#define ANALYZER_PROTOCOL_UDP_UDP_H
+#pragma once
 
 #include "analyzer/Analyzer.h"
 #include <netinet/udp.h>
@@ -27,11 +26,11 @@ public:
 protected:
 	void Done() override;
 	void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const IP_Hdr* ip, int caplen) override;
 	bool IsReuse(double t, const u_char* pkt) override;
 	unsigned int MemoryAllocation() const override;
 
-	void ChecksumEvent(bool is_orig, uint32 threshold);
+	void ChecksumEvent(bool is_orig, uint32_t threshold);
 
 	// Returns true if the checksum is valid, false if not
 	static bool ValidateChecksum(const IP_Hdr* ip, const struct udphdr* up,
@@ -48,10 +47,8 @@ private:
 #define HIST_RESP_CORRUPT_PKT 0x8
 
 	// For tracking checksum history.
-	uint32 req_chk_cnt, req_chk_thresh;
-	uint32 rep_chk_cnt, rep_chk_thresh;
+	uint32_t req_chk_cnt, req_chk_thresh;
+	uint32_t rep_chk_cnt, rep_chk_thresh;
 };
 
 } } // namespace analyzer::* 
-
-#endif

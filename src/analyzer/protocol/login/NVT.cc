@@ -1,12 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "NVT.h"
 
 #include <stdlib.h>
 
-#include "NVT.h"
+#include "BroString.h"
 #include "NetVar.h"
 #include "Event.h"
+#include "Reporter.h"
 #include "analyzer/protocol/tcp/TCP.h"
 
 #include "events.bif.h"
@@ -598,12 +600,20 @@ void NVT_Analyzer::ScanOption(int seq, int len, const u_char* data)
 			{
 			is_suboption = 1;
 			last_was_IAC = 0;
+
+			if ( offset >= buf_len )
+				InitBuffer(buf_len * 2);
+
 			buf[offset++] = code;
 			}
 
 		else if ( IS_3_BYTE_OPTION(code) )
 			{
 			is_suboption = 0;
+
+			if ( offset >= buf_len )
+				InitBuffer(buf_len * 2);
+
 			buf[offset++] = code;
 			}
 
@@ -638,6 +648,9 @@ void NVT_Analyzer::ScanOption(int seq, int len, const u_char* data)
 	// A suboption.  Spin looking for end.
 	for ( ; len > 0; --len, ++data )
 		{
+		if ( offset >= buf_len )
+			InitBuffer(buf_len * 2);
+
 		unsigned int code = data[0];
 
 		if ( last_was_IAC )

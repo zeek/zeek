@@ -2,12 +2,12 @@
 //
 // Log writer for delimiter-separated ASCII logs.
 
-#ifndef LOGGING_WRITER_ASCII_H
-#define LOGGING_WRITER_ASCII_H
+#pragma once
 
 #include "logging/WriterBackend.h"
 #include "threading/formatters/Ascii.h"
 #include "threading/formatters/JSON.h"
+#include "Desc.h"
 #include "zlib.h"
 
 namespace logging { namespace writer {
@@ -64,6 +64,7 @@ private:
 	string meta_prefix;
 
 	int gzip_level; // level > 0 enables gzip compression
+	string gzip_file_extension;
 	bool use_json;
 	bool enable_utf_8;
 	string json_timestamps;
@@ -75,5 +76,3 @@ private:
 }
 }
 
-
-#endif

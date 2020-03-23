@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_DCE_RPC_DCE_RPC_H
-#define ANALYZER_PROTOCOL_DCE_RPC_DCE_RPC_H
+#pragma once
 
 #include "NetVar.h"
 #include "analyzer/protocol/tcp/TCP.h"
@@ -19,10 +18,10 @@ public:
 
 	void Done() override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
-	void Undelivered(uint64 seq, int len, bool orig) override;
+	void Undelivered(uint64_t seq, int len, bool orig) override;
 	void EndpointEOF(bool is_orig) override;
 
-	bool SetFileID(uint64 fid_in)
+	bool SetFileID(uint64_t fid_in)
 		{ interp->set_file_id(fid_in); return true; }
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
@@ -34,5 +33,3 @@ protected:
 };
 
 } } // namespace analyzer::*
-
-#endif /* dce_rpc_h */

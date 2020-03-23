@@ -1,22 +1,21 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef FILE_ANALYSIS_OCSP_H
-#define FILE_ANALYSIS_OCSP_H
+#pragma once
 
 #include <string>
 
-#include "../File.h"
-#include "Analyzer.h"
 #include "X509Common.h"
 
 #include <openssl/ocsp.h>
 
 namespace file_analysis {
 
+class File;
+
 class OCSP : public file_analysis::X509Common {
 public:
-	bool DeliverStream(const u_char* data, uint64 len) override;
-	bool Undelivered(uint64 offset, uint64 len) override;
+	bool DeliverStream(const u_char* data, uint64_t len) override;
+	bool Undelivered(uint64_t offset, uint64_t len) override;
 	bool EndOfFile() override;
 
 	static file_analysis::Analyzer* InstantiateRequest(RecordVal* args, File* file);
@@ -35,5 +34,3 @@ private:
 };
 
 }
-
-#endif

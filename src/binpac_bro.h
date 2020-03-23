@@ -1,5 +1,4 @@
-#ifndef binpac_bro_h
-#define binpac_bro_h
+#pragma once
 
 class Connection;
 class Val;
@@ -10,10 +9,8 @@ namespace analyzer { class Analyzer; }
 #include "util.h"
 #include "Val.h"
 #include "event.bif.func_h"
-#include "TunnelEncapsulation.h"
 #include "analyzer/Analyzer.h"
 #include "file_analysis/Analyzer.h"
-#include "Conn.h"
 
 #include "binpac.h"
 
@@ -36,5 +33,3 @@ inline StringVal* bytestring_to_val(const_bytestring const &str)
 	}
 
 } // namespace binpac
-
-#endif

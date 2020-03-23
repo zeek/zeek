@@ -2,11 +2,12 @@
 
 #include "zeek-config.h"
 
-#include "util.h"
-#include "Hash.h"
 #include "Frag.h"
+#include "Hash.h"
+#include "IP.h"
 #include "NetVar.h"
 #include "Sessions.h"
+#include "Reporter.h"
 
 #define MIN_ACCEPTABLE_FRAG_SIZE 64
 #define MAX_ACCEPTABLE_FRAG_SIZE 64000
@@ -27,7 +28,7 @@ void FragTimer::Dispatch(double t, int /* is_expire */)
 
 FragReassembler::FragReassembler(NetSessions* arg_s,
 			const IP_Hdr* ip, const u_char* pkt,
-			HashKey* k, double t)
+			const FragReassemblerKey& k, double t)
 	: Reassembler(0, REASSEM_FRAG)
 	{
 	s = arg_s;
@@ -68,7 +69,6 @@ FragReassembler::~FragReassembler()
 	DeleteTimer();
 	delete [] proto_hdr;
 	delete reassembled_pkt;
-	delete key;
 	}
 
 void FragReassembler::AddFragment(double t, const IP_Hdr* ip, const u_char* pkt)
@@ -97,9 +97,9 @@ void FragReassembler::AddFragment(double t, const IP_Hdr* ip, const u_char* pkt)
 		// Linux MTU discovery for UDP can do this, for example.
 		s->Weird("fragment_with_DF", ip);
 
-	uint16 offset = ip->FragOffset();
-	uint32 len = ip->TotalLen();
-	uint16 hdr_len = ip->HdrLen();
+	uint16_t offset = ip->FragOffset();
+	uint32_t len = ip->TotalLen();
+	uint16_t hdr_len = ip->HdrLen();
 
 	if ( len < hdr_len )
 		{
@@ -107,7 +107,7 @@ void FragReassembler::AddFragment(double t, const IP_Hdr* ip, const u_char* pkt)
 		return;
 		}
 
-	uint64 upper_seq = offset + len - hdr_len;
+	uint64_t upper_seq = offset + len - hdr_len;
 
 	if ( ! offset )
 		// Make sure to use the first fragment header's next field.
@@ -178,7 +178,7 @@ void FragReassembler::Weird(const char* name) const
 		}
 	}
 
-void FragReassembler::Overlap(const u_char* b1, const u_char* b2, uint64 n)
+void FragReassembler::Overlap(const u_char* b1, const u_char* b2, uint64_t n)
 	{
 	if ( memcmp((const void*) b1, (const void*) b2, n) )
 		Weird("fragment_inconsistency");
@@ -186,22 +186,32 @@ void FragReassembler::Overlap(const u_char* b1, const u_char* b2, uint64 n)
 		Weird("fragment_overlap");
 	}
 
-void FragReassembler::BlockInserted(DataBlock* /* start_block */)
+void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 	{
-	if ( blocks->seq > 0 || ! frag_size )
+	auto it = block_list.Begin();
+
+	if ( it->second.seq > 0 || ! frag_size )
 		// For sure don't have it all yet.
 		return;
 
+	auto next = std::next(it);
+
 	// We might have it all - look for contiguous all the way.
-	DataBlock* b;
-	for ( b = blocks; b->next; b = b->next )
-		if ( b->upper != b->next->seq )
+	while ( next != block_list.End() )
+		{
+		if ( it->second.upper != next->second.seq )
 			break;
 
-	if ( b->next )
+		++it;
+		++next;
+		}
+
+	const auto& last = block_list.LastBlock();
+
+	if ( next != block_list.End() )
 		{
 		// We have a hole.
-		if ( b->upper >= frag_size )
+		if ( it->second.upper >= frag_size )
 			{
 			// We're stuck.  The point where we stopped is
 			// contiguous up through the expected end of
@@ -214,24 +224,24 @@ void FragReassembler::BlockInserted(DataBlock* /* start_block */)
 			// We decide to analyze the contiguous portion now.
 			// Extend the fragment up through the end of what
 			// we have.
-			frag_size = b->upper;
+			frag_size = it->second.upper;
 			}
 		else
 			return;
 		}
 
-	else if ( last_block->upper > frag_size )
+	else if ( last.upper > frag_size )
 		{
 		Weird("fragment_size_inconsistency");
-		frag_size = last_block->upper;
+		frag_size = last.upper;
 		}
 
-	else if ( last_block->upper < frag_size )
+	else if ( last.upper < frag_size )
 		// Missing the tail.
 		return;
 
 	// We have it all.  Compute the expected size of the fragment.
-	uint64 n = proto_hdr_len + frag_size;
+	uint64_t n = proto_hdr_len + frag_size;
 
 	// It's possible that we have blocks associated with this fragment
 	// that exceed this size, if we saw MF fragments (which don't lead
@@ -247,15 +257,22 @@ void FragReassembler::BlockInserted(DataBlock* /* start_block */)
 
 	pkt += proto_hdr_len;
 
-	for ( b = blocks; b; b = b->next )
+	for ( it = block_list.Begin(); it != block_list.End(); ++it )
 		{
-		// If we're above a hole, stop.  This can happen because
-		// the logic above regarding a hole that's above the
-		// expected fragment size.
-		if ( b->prev && b->prev->upper < b->seq )
-			break;
+		const auto& b = it->second;
 
-		if ( b->upper > n )
+		if ( it != block_list.Begin() )
+			{
+			const auto& prev = std::prev(it)->second;
+
+			// If we're above a hole, stop.  This can happen because
+			// the logic above regarding a hole that's above the
+			// expected fragment size.
+			if ( prev.upper < b.seq )
+				break;
+			}
+
+		if ( b.upper > n )
 			{
 			reporter->InternalWarning("bad fragment reassembly");
 			DeleteTimer();
@@ -264,8 +281,7 @@ void FragReassembler::BlockInserted(DataBlock* /* start_block */)
 			return;
 			}
 
-		memcpy((void*) &pkt[b->seq], (const void*) b->block,
-			b->upper - b->seq);
+		memcpy(&pkt[b.seq], b.block, b.upper - b.seq);
 		}
 
 	delete reassembled_pkt;
@@ -300,13 +316,7 @@ void FragReassembler::BlockInserted(DataBlock* /* start_block */)
 
 void FragReassembler::Expire(double t)
 	{
-	while ( blocks )
-		{
-		DataBlock* b = blocks->next;
-		delete blocks;
-		blocks = b;
-		}
-
+	block_list.Clear();
 	expire_timer->ClearReassembler();
 	expire_timer = 0;	// timer manager will delete it
 

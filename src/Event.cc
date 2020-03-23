@@ -3,15 +3,20 @@
 #include "zeek-config.h"
 
 #include "Event.h"
+#include "Desc.h"
 #include "Func.h"
 #include "NetVar.h"
 #include "Trigger.h"
+#include "Val.h"
 #include "plugin/Manager.h"
+#include "iosource/Manager.h"
+#include "iosource/PktSrc.h"
+#include "Net.h"
 
 EventMgr mgr;
 
-uint64 num_events_queued = 0;
-uint64 num_events_dispatched = 0;
+uint64_t num_events_queued = 0;
+uint64_t num_events_dispatched = 0;
 
 Event::Event(EventHandlerPtr arg_handler, val_list arg_args,
 		SourceID arg_src, analyzer::ID arg_aid, TimerMgr* arg_mgr,
@@ -101,6 +106,19 @@ EventMgr::~EventMgr()
 	Unref(src_val);
 	}
 
+void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list vl,
+			  SourceID src, analyzer::ID aid,
+			  TimerMgr* mgr, BroObj* obj)
+	{
+	if ( h )
+		QueueEvent(new Event(h, std::move(vl), src, aid, mgr, obj));
+	else
+		{
+		for ( const auto& v : vl )
+			Unref(v);
+		}
+	}
+
 void EventMgr::QueueEvent(Event* event)
 	{
 	bool done = PLUGIN_HOOK_WITH_RESULT(HOOK_QUEUE_EVENT, HookQueueEvent(event), false);
@@ -109,7 +127,10 @@ void EventMgr::QueueEvent(Event* event)
 		return;
 
 	if ( ! head )
+		{
 		head = tail = event;
+		queue_flare.Fire();
+		}
 	else
 		{
 		tail->SetNext(event);
@@ -119,12 +140,19 @@ void EventMgr::QueueEvent(Event* event)
 	++num_events_queued;
 	}
 
+void EventMgr::Dispatch(Event* event, bool no_remote)
+	{
+	current_src = event->Source();
+	event->Dispatch(no_remote);
+	Unref(event);
+	}
+
 void EventMgr::Drain()
 	{
 	if ( event_queue_flush_point )
 		QueueEventFast(event_queue_flush_point, val_list{});
 
-	SegmentProfiler(segment_logger, "draining-events");
+	SegmentProfiler prof(segment_logger, "draining-events");
 
 	PLUGIN_HOOK_VOID(HOOK_DRAIN_EVENTS, HookDrainEvents());
 
@@ -162,10 +190,9 @@ void EventMgr::Drain()
 	// do after draining events.
 	draining = false;
 
-	// We evaluate Triggers here. While this is somewhat unrelated to event
-	// processing, we ensure that it's done at a regular basis by checking
-	// them here.
-	Trigger::EvaluatePending();
+	// Make sure all of the triggers get processed every time the events
+	// drain.
+	trigger_mgr->Process();
 	}
 
 void EventMgr::Describe(ODesc* d) const
@@ -182,4 +209,31 @@ void EventMgr::Describe(ODesc* d) const
 		e->Describe(d);
 		d->NL();
 		}
+	}
+
+void EventMgr::Process()
+	{
+	// If we don't have a source, or the source is closed, or we're
+	// reading live (which includes pseudo-realtime), advance the time
+	// here to the current time since otherwise it won't move forward.
+	iosource::PktSrc* pkt_src = iosource_mgr->GetPktSrc();
+	if ( ! pkt_src || ! pkt_src->IsOpen() || reading_live )
+		net_update_time(current_time());
+
+	queue_flare.Extinguish();
+
+	// While it semes like the most logical thing to do, we dont want
+	// to call Drain() as part of this method. It will get called at
+	// the end of net_run after all of the sources have been processed
+	// and had the opportunity to spawn new events. We could use
+	// iosource_mgr->Wakeup() instead of making EventMgr an IOSource,
+	// but then we couldn't update the time above and nothing would
+	// drive it forward.
+	}
+
+void EventMgr::InitPostScript()
+	{
+	iosource_mgr->Register(this, true, false);
+	if ( ! iosource_mgr->RegisterFd(queue_flare.FD(), this) )
+		reporter->FatalError("Failed to register event manager FD with iosource_mgr");
 	}

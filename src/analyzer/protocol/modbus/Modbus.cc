@@ -31,7 +31,7 @@ void ModbusTCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	interp->NewData(orig, data, data + len);
 	}
 
-void ModbusTCP_Analyzer::Undelivered(uint64 seq, int len, bool orig)
+void ModbusTCP_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
 	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	interp->NewGap(orig, len);

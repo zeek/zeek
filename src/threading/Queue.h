@@ -1,5 +1,4 @@
-#ifndef THREADING_QUEUE_H
-#define THREADING_QUEUE_H
+#pragma once
 
 #include <mutex>
 #include <condition_variable>
@@ -256,9 +255,10 @@ template<typename T>
 inline void Queue<T>::WakeUp()
 	{
 	for ( int i = 0; i < NUM_QUEUES; i++ )
+		{
+		auto lock = acquire_lock(mutex[i]);
 		has_data[i].notify_all();
+		}
 	}
 
 }
-
-#endif

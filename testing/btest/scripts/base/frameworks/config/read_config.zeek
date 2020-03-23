@@ -19,6 +19,7 @@ testport 45
 testaddr 127.0.0.1
 testaddr 2607:f8b0:4005:801::200e
 testinterval 60
+teststring abc  
 testtime 1507321987
 test_set a,b,c,d,erdbeerschnitzel
 test_vector 1,2,3,4,5,6

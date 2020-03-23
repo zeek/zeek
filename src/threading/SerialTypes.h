@@ -1,6 +1,5 @@
 
-#ifndef THREADING_SERIALIZATIONTYPES_H
-#define THREADING_SERIALIZATIONTYPES_H
+#pragma once
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -196,5 +195,3 @@ private:
 };
 
 }
-
-#endif /* THREADING_SERIALIZATIONTYPES_H */

@@ -140,7 +140,7 @@ global count_per_orig: table[addr, string] of count
 global did_sig_log: set[string] &read_expire = 1 hr;
 
 
-event zeek_init()
+event zeek_init() &priority=5
 	{
 	Log::create_stream(Signatures::LOG, [$columns=Info, $ev=log_signature, $path="signatures"]);
 	}

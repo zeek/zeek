@@ -1,10 +1,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_RPC_RPC_H
-#define ANALYZER_PROTOCOL_RPC_RPC_H
+#pragma once
 
 #include "analyzer/protocol/tcp/TCP.h"
-#include "analyzer/protocol/udp/UDP.h"
+#include "NetVar.h"
 
 namespace analyzer { namespace rpc {
 
@@ -49,7 +48,7 @@ enum {
 
 class RPC_CallInfo {
 public:
-	RPC_CallInfo(uint32 xid, const u_char*& buf, int& n, double start_time,
+	RPC_CallInfo(uint32_t xid, const u_char*& buf, int& n, double start_time,
 		     double last_time, int rpc_len);
 	~RPC_CallInfo();
 
@@ -59,12 +58,12 @@ public:
 
 	int CompareRexmit(const u_char* buf, int n) const;
 
-	uint32 Program() const		{ return prog; }
-	uint32 Version() const		{ return vers; }
-	uint32 Proc() const		{ return proc; }
-	uint32 Uid() const { return uid; }
-	uint32 Gid() const { return gid; }
-	uint32 Stamp() const { return stamp; }
+	uint32_t Program() const		{ return prog; }
+	uint32_t Version() const		{ return vers; }
+	uint32_t Proc() const		{ return proc; }
+	uint32_t Uid() const { return uid; }
+	uint32_t Gid() const { return gid; }
+	uint32_t Stamp() const { return stamp; }
 	const std::string& MachineName() const { return machinename; }
 	const std::vector<int>& AuxGIDs() const { return auxgids; }
 
@@ -76,17 +75,17 @@ public:
 	int RPCLen() const	{ return rpc_len; }
 	int HeaderLen() const	{ return header_len; }
 
-	uint32 XID() const		{ return xid; }
+	uint32_t XID() const		{ return xid; }
 
 	void SetValidCall()		{ valid_call = true; }
 	bool IsValidCall() const	{ return valid_call; }
 
 protected:
-	uint32 xid, rpc_version, prog, vers, proc;
-	uint32 cred_flavor, stamp;
-	uint32 uid, gid;
+	uint32_t xid, rpc_version, prog, vers, proc;
+	uint32_t cred_flavor, stamp;
+	uint32_t uid, gid;
 	std::vector<int> auxgids;
-	uint32 verf_flavor;
+	uint32_t verf_flavor;
 	u_char* call_buf;	// copy of original call buffer
 	std::string machinename;
 	double start_time;
@@ -123,7 +122,7 @@ protected:
 
 	void Weird(const char* name, const char* addl = "");
 
-	PDict<RPC_CallInfo> calls;
+	std::map<uint32_t, RPC_CallInfo*> calls;
 	analyzer::Analyzer* analyzer;
 };
 
@@ -210,7 +209,7 @@ protected:
 	void Init() override;
 	virtual bool CheckResync(int& len, const u_char*& data, bool orig);
 	void DeliverStream(int len, const u_char* data, bool orig) override;
-	void Undelivered(uint64 seq, int len, bool orig) override;
+	void Undelivered(uint64_t seq, int len, bool orig) override;
 
 	virtual void NeedResync() {
 		resync_state = NEED_RESYNC;
@@ -241,7 +240,7 @@ public:
 
 protected:
 	void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
 	void ExpireTimer(double t);
 
@@ -252,5 +251,3 @@ protected:
 };
 
 } } // namespace analyzer::* 
-
-#endif

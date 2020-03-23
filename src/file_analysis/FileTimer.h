@@ -1,10 +1,12 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef FILE_ANALYSIS_FILETIMER_H
-#define FILE_ANALYSIS_FILETIMER_H
+#pragma once
+
+#include "Timer.h"
 
 #include <string>
-#include "Timer.h"
+
+using std::string;
 
 namespace file_analysis {
 
@@ -35,5 +37,3 @@ private:
 };
 
 } // namespace file_analysis
-
-#endif

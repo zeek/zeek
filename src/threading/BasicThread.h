@@ -1,10 +1,10 @@
 
-#ifndef THREADING_BASICTHREAD_H
-#define THREADING_BASICTHREAD_H
+#pragma once
 
+#include <iosfwd>
 #include <thread>
 
-#include "util.h"
+#include <stdint.h>
 
 using namespace std;
 
@@ -214,5 +214,3 @@ private:
 };
 
 }
-
-#endif

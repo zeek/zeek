@@ -67,7 +67,7 @@ event zeek_init()
 	schedule check_interval { ChecksumOffloading::check() };
 	}
 
-event net_weird(name: string)
+event net_weird(name: string, addl: string)
 	{
 	if ( name == "bad_IP_checksum" )
 		++bad_ip_checksums;

@@ -2,19 +2,15 @@
 // Robin Sommer.
 
 #include "zeek-config.h"
+#include "POP3.h"
 
-#include <stdlib.h>
-#include <iostream>
 #include <vector>
 #include <string>
 #include <ctype.h>
 
-#include "NetVar.h"
-#include "POP3.h"
-#include "Event.h"
+#include "Base64.h"
 #include "Reporter.h"
 #include "analyzer/Manager.h"
-#include "analyzer/protocol/login/NVT.h"
 
 #include "events.bif.h"
 
@@ -888,7 +884,7 @@ int POP3_Analyzer::ParseCmd(string cmd)
 	return -1;
 	}
 
-vector<string> POP3_Analyzer::TokenizeLine(const string input, const char split)
+vector<string> POP3_Analyzer::TokenizeLine(const string& input, char split)
 	{
 	vector<string> tokens;
 

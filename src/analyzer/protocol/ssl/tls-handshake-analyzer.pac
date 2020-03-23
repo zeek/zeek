@@ -183,7 +183,7 @@ refine connection Handshake_Conn += {
 		if ( protocols )
 			{
 			for ( unsigned int i = 0; i < protocols->size(); ++i )
-				plist->Assign(i, new StringVal((*protocols)[i]->name().length(), (const char*) (*protocols)[i]->name().data()));
+				plist->Assign(i, make_intrusive<StringVal>((*protocols)[i]->name().length(), (const char*) (*protocols)[i]->name().data()));
 			}
 
 		BifEvent::generate_ssl_extension_application_layer_protocol_negotiation(bro_analyzer(), bro_analyzer()->Conn(),
@@ -208,7 +208,7 @@ refine connection Handshake_Conn += {
 					}
 
 				if ( servername->host_name() )
-					servers->Assign(j++, new StringVal(servername->host_name()->host_name().length(), (const char*) servername->host_name()->host_name().data()));
+					servers->Assign(j++, make_intrusive<StringVal>(servername->host_name()->host_name().length(), (const char*) servername->host_name()->host_name().data()));
 				else
 					bro_analyzer()->Weird("Empty server_name extension in ssl connection");
 				}
@@ -303,7 +303,7 @@ refine connection Handshake_Conn += {
 		common.AddRaw("F");
 		bro_analyzer()->Conn()->IDString(&common);
 
-		if ( status_type == 1 ) // ocsp
+		if ( status_type == 1 && response.length() > 0 ) // ocsp
 			{
 			ODesc file_handle;
 			file_handle.Add(common.Description());
@@ -322,6 +322,10 @@ refine connection Handshake_Conn += {
 				        new StringVal(response.length(), (const char*) response.data()));
 
 			file_mgr->EndOfFile(file_id);
+			}
+		else if ( response.length() == 0 )
+			{
+			reporter->Weird(bro_analyzer()->Conn(), "SSL_zero_length_stapled_OCSP_message");
 			}
 
 		return true;
@@ -483,7 +487,7 @@ refine connection Handshake_Conn += {
 			for ( auto&& identity : *(identities->identities()) )
 				{
 				RecordVal* el = new RecordVal(BifType::Record::SSL::PSKIdentity);
-				el->Assign(0, new StringVal(identity->identity().length(), (const char*) identity->identity().data()));
+				el->Assign(0, make_intrusive<StringVal>(identity->identity().length(), (const char*) identity->identity().data()));
 				el->Assign(1, val_mgr->GetCount(identity->obfuscated_ticket_age()));
 				slist->Assign(slist->Size(), el);
 				}
@@ -493,7 +497,7 @@ refine connection Handshake_Conn += {
 		if ( binders && binders->binders() )
 			{
 			for ( auto&& binder : *(binders->binders()) )
-				blist->Assign(blist->Size(), new StringVal(binder->binder().length(), (const char*) binder->binder().data()));
+				blist->Assign(blist->Size(), make_intrusive<StringVal>(binder->binder().length(), (const char*) binder->binder().data()));
 			}
 
 		BifEvent::generate_ssl_extension_pre_shared_key_client_hello(bro_analyzer(), bro_analyzer()->Conn(),

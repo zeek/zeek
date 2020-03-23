@@ -1,15 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef traverse_h
-#define traverse_h
-
-#include "Obj.h"
-#include "Stmt.h"
-#include "Expr.h"
-#include "ID.h"
-#include "Scope.h"
+#pragma once
 
 #include "TraverseTypes.h"
+
+class Func;
+class Scope;
+class Stmt;
+class Expr;
+class ID;
 
 class TraversalCallback {
 public:
@@ -38,5 +37,3 @@ public:
 };
 
 TraversalCode traverse_all(TraversalCallback* cb);
-
-#endif

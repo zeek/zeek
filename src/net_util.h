@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef netutil_h
-#define netutil_h
+#pragma once
 
 #include "zeek-config.h"
 
@@ -34,15 +33,15 @@ typedef enum { IPv4, IPv6 } IPFamily;
 
 #ifndef HAVE_IP6_OPT
 struct ip6_opt {
-	uint8  ip6o_type;
-	uint8  ip6o_len;
+	uint8_t  ip6o_type;
+	uint8_t  ip6o_len;
 };
 #endif // HAVE_IP6_OPT
 
 #ifndef HAVE_IP6_EXT
 struct ip6_ext {
-	uint8 ip6e_nxt;
-	uint8 ip6e_len;
+	uint8_t ip6e_nxt;
+	uint8_t ip6e_len;
 };
 #endif // HAVE_IP6_EXT
 
@@ -51,13 +50,13 @@ struct ip6_ext {
 struct ip6_hdr {
 	union {
 		struct ip6_hdrctl {
-			uint32 ip6_un1_flow; /* 4 bits version, 8 bits TC, 20 bits
+			uint32_t ip6_un1_flow; /* 4 bits version, 8 bits TC, 20 bits
                                       flow-ID */
-			uint16 ip6_un1_plen; /* payload length */
-			uint8  ip6_un1_nxt;  /* next header */
-			uint8  ip6_un1_hlim; /* hop limit */
+			uint16_t ip6_un1_plen; /* payload length */
+			uint8_t  ip6_un1_nxt;  /* next header */
+			uint8_t  ip6_un1_hlim; /* hop limit */
 		} ip6_un1;
-		uint8 ip6_un2_vfc;     /* 4 bits version, top 4 bits tclass */
+		uint8_t ip6_un2_vfc;     /* 4 bits version, top 4 bits tclass */
 	} ip6_ctlun;
 	struct in6_addr ip6_src;   /* source address */
 	struct in6_addr ip6_dst;   /* destination address */
@@ -71,39 +70,39 @@ struct ip6_hdr {
 #define ip6_hops  ip6_ctlun.ip6_un1.ip6_un1_hlim
 
 struct ip6_opt {
-	uint8  ip6o_type;
-	uint8  ip6o_len;
+	uint8_t  ip6o_type;
+	uint8_t  ip6o_len;
 };
 
 struct ip6_ext {
-	uint8 ip6e_nxt;
-	uint8 ip6e_len;
+	uint8_t ip6e_nxt;
+	uint8_t ip6e_len;
 };
 
 struct ip6_frag {
-	uint8   ip6f_nxt;       /* next header */
-	uint8   ip6f_reserved;  /* reserved field */
-	uint16  ip6f_offlg;     /* offset, reserved, and flag */
-	uint32  ip6f_ident;     /* identification */
+	uint8_t   ip6f_nxt;       /* next header */
+	uint8_t   ip6f_reserved;  /* reserved field */
+	uint16_t  ip6f_offlg;     /* offset, reserved, and flag */
+	uint32_t  ip6f_ident;     /* identification */
 };
 
 struct ip6_hbh {
-	uint8  ip6h_nxt;        /* next header */
-	uint8  ip6h_len;        /* length in units of 8 octets */
+	uint8_t  ip6h_nxt;        /* next header */
+	uint8_t  ip6h_len;        /* length in units of 8 octets */
 	/* followed by options */
 };
 
 struct ip6_dest {
-	uint8  ip6d_nxt;        /* next header */
-	uint8  ip6d_len;        /* length in units of 8 octets */
+	uint8_t  ip6d_nxt;        /* next header */
+	uint8_t  ip6d_len;        /* length in units of 8 octets */
 	/* followed by options */
 };
 
 struct ip6_rthdr {
-	uint8  ip6r_nxt;        /* next header */
-	uint8  ip6r_len;        /* length in units of 8 octets */
-	uint8  ip6r_type;       /* routing type */
-	uint8  ip6r_segleft;    /* segments left */
+	uint8_t  ip6r_nxt;        /* next header */
+	uint8_t  ip6r_len;        /* length in units of 8 octets */
+	uint8_t  ip6r_type;       /* routing type */
+	uint8_t  ip6r_segleft;    /* segments left */
 	/* followed by routing type specific data */
 };
 #endif // HAVE_NETINET_IP6_H
@@ -119,7 +118,7 @@ struct ip6_rthdr {
 
 // True if sequence # a is between b and c (b <= a <= c).  It must be true
 // that b <= c in the sequence space.
-inline bool seq_between(uint32 a, uint32 b, uint32 c)
+inline bool seq_between(uint32_t a, uint32_t b, uint32_t c)
 	{
 	if ( b <= c )
 		return a >= b && a <= c;
@@ -128,7 +127,7 @@ inline bool seq_between(uint32 a, uint32 b, uint32 c)
 	}
 
 // Returns a - b, adjusted for sequence wraparound.
-inline int32 seq_delta(uint32 a, uint32 b)
+inline int32_t seq_delta(uint32_t a, uint32_t b)
 	{
 	return a - b;
 	}
@@ -137,9 +136,9 @@ class IPAddr;
 class IP_Hdr;
 
 // Returns the ones-complement checksum of a chunk of b short-aligned bytes.
-extern int ones_complement_checksum(const void* p, int b, uint32 sum);
+extern int ones_complement_checksum(const void* p, int b, uint32_t sum);
 
-extern int ones_complement_checksum(const IPAddr& a, uint32 sum);
+extern int ones_complement_checksum(const IPAddr& a, uint32_t sum);
 
 extern int icmp6_checksum(const struct icmp* icmpp, const IP_Hdr* ip, int len);
 extern int icmp_checksum(const struct icmp* icmpp, int len);
@@ -149,12 +148,12 @@ extern int mobility_header_checksum(const IP_Hdr* ip);
 #endif
 
 // Returns 'A', 'B', 'C' or 'D'
-extern char addr_to_class(uint32 addr);
+extern char addr_to_class(uint32_t addr);
 
-extern const char* fmt_conn_id(const IPAddr& src_addr, uint32 src_port,
-				const IPAddr& dst_addr, uint32 dst_port);
-extern const char* fmt_conn_id(const uint32* src_addr, uint32 src_port,
-				const uint32* dst_addr, uint32 dst_port);
+extern const char* fmt_conn_id(const IPAddr& src_addr, uint32_t src_port,
+				const IPAddr& dst_addr, uint32_t dst_port);
+extern const char* fmt_conn_id(const uint32_t* src_addr, uint32_t src_port,
+				const uint32_t* dst_addr, uint32_t dst_port);
 
 /**
 * Given a MAC address, formats it in hex as 00:de:ad:be:ef.
@@ -169,7 +168,7 @@ extern const char* fmt_conn_id(const uint32* src_addr, uint32 src_port,
 extern std::string fmt_mac(const unsigned char* m, int len);
 
 // Read 4 bytes from data and return in network order.
-extern uint32 extract_uint32(const u_char* data);
+extern uint32_t extract_uint32(const u_char* data);
 
 // Endian conversions for double.
 // This is certainly not a very clean solution but should work on the
@@ -182,8 +181,8 @@ inline double ntohd(double d)	{ return d; }
 inline double htond(double d)	{ return d; }
 
 #ifndef HAVE_BYTEORDER_64
-inline uint64 ntohll(uint64 i)	{ return i; }
-inline uint64 htonll(uint64 i)	{ return i; }
+inline uint64_t ntohll(uint64_t i)	{ return i; }
+inline uint64_t htonll(uint64_t i)	{ return i; }
 #endif
 
 #else
@@ -211,11 +210,11 @@ inline double ntohd(double d)
 inline double htond(double d) { return ntohd(d); }
 
 #ifndef HAVE_BYTEORDER_64
-inline uint64 ntohll(uint64 i)
+inline uint64_t ntohll(uint64_t i)
 	{
 	u_char c;
 	union {
-		uint64 i;
+		uint64_t i;
 		u_char c[8];
 	} x;
 
@@ -227,9 +226,7 @@ inline uint64 ntohll(uint64 i)
 	return x.i;
 	}
 
-inline uint64 htonll(uint64 i) { return ntohll(i); }
-#endif
-
+inline uint64_t htonll(uint64_t i) { return ntohll(i); }
 #endif
 
 #endif

@@ -1,9 +1,9 @@
 // See the file  in the main distribution directory for copyright.
 
-#include "plugin/Plugin.h"
-
 #include "Source.h"
 #include "Dumper.h"
+#include "plugin/Plugin.h"
+#include "iosource/Component.h"
 
 namespace plugin {
 namespace Zeek_Pcap {

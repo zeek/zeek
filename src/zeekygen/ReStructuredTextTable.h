@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ZEEKYGEN_RESTTABLE_H
-#define ZEEKYGEN_RESTTABLE_H
+#pragma once
 
 #include <vector>
 #include <string>
@@ -32,7 +31,7 @@ public:
 	 * @return A border sized appropriated for the table with columns of sizes
 	 * denoted by \a col_sizes.
 	 */
-	static std::string MakeBorder(const std::vector<size_t> col_sizes,
+	static std::string MakeBorder(const std::vector<size_t>& col_sizes,
 	                              char border);
 
 	/**
@@ -49,5 +48,3 @@ private:
 };
 
 } // namespace zeekygen
-
-#endif

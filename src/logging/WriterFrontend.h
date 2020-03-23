@@ -1,11 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef LOGGING_WRITERFRONTEND_H
-#define LOGGING_WRITERFRONTEND_H
+#pragma once
 
 #include "WriterBackend.h"
-
-#include "threading/MsgThread.h"
 
 namespace logging  {
 
@@ -212,5 +209,3 @@ protected:
 };
 
 }
-
-#endif

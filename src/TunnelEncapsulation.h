@@ -1,15 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef TUNNELS_H
-#define TUNNELS_H
+#pragma once
 
 #include "zeek-config.h"
 #include "NetVar.h"
 #include "IPAddr.h"
-#include "Val.h"
+#include "Var.h" // for internal_type()
 #include "UID.h"
+
 #include <vector>
 
+using std::vector;
 class Connection;
 
 /**
@@ -116,8 +117,8 @@ public:
 protected:
 	IPAddr src_addr;
 	IPAddr dst_addr;
-	uint16 src_port;
-	uint16 dst_port;
+	uint16_t src_port;
+	uint16_t dst_port;
 	TransportProto proto;
 	BifEnum::Tunnel::Type type;
 	Bro::UID uid;
@@ -216,5 +217,3 @@ public:
 protected:
 	vector<EncapsulatingConn>* conns;
 };
-
-#endif

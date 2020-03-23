@@ -2,17 +2,24 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 //
 
-#include <syslog.h>
-
 #include "zeek-config.h"
 #include "Reporter.h"
+
+#include <unistd.h>
+#include <syslog.h>
+
+#include "Desc.h"
 #include "Event.h"
+#include "Expr.h"
 #include "NetVar.h"
 #include "Net.h"
 #include "Conn.h"
 #include "Timer.h"
+#include "Var.h" // for internal_val()
+#include "EventHandler.h"
 #include "plugin/Plugin.h"
 #include "plugin/Manager.h"
+#include "input.h"
 #include "file_analysis/File.h"
 
 #ifdef SYSLOG_INT
@@ -117,7 +124,9 @@ void Reporter::FatalError(const char* fmt, ...)
 	va_end(ap);
 
 	set_processing_status("TERMINATED", "fatal_error");
-	exit(1);
+	fflush(stderr);
+	fflush(stdout);
+	_exit(1);
 	}
 
 void Reporter::FatalErrorWithCore(const char* fmt, ...)
@@ -216,31 +225,11 @@ void Reporter::Syslog(const char* fmt, ...)
 	va_end(ap);
 	}
 
-void Reporter::WeirdHelper(EventHandlerPtr event, Val* conn_val, file_analysis::File* f, const char* addl, const char* fmt_name, ...)
+void Reporter::WeirdHelper(EventHandlerPtr event, val_list vl, const char* fmt_name, ...)
 	{
-	val_list vl(2);
-
-	if ( conn_val )
-		vl.push_back(conn_val);
-	else if ( f )
-		vl.push_back(f->GetVal()->Ref());
-
-	if ( addl )
-		vl.push_back(new StringVal(addl));
-
 	va_list ap;
 	va_start(ap, fmt_name);
 	DoLog("weird", event, 0, 0, &vl, false, false, 0, fmt_name, ap);
-	va_end(ap);
-	}
-
-void Reporter::WeirdFlowHelper(const IPAddr& orig, const IPAddr& resp, const char* fmt_name, ...)
-	{
-	val_list vl{new AddrVal(orig), new AddrVal(resp)};
-
-	va_list ap;
-	va_start(ap, fmt_name);
-	DoLog("weird", flow_weird, 0, 0, &vl, false, false, 0, fmt_name, ap);
 	va_end(ap);
 	}
 
@@ -267,7 +256,7 @@ public:
 	using IPPair = std::pair<IPAddr, IPAddr>;
 
 	FlowWeirdTimer(double t, IPPair p, double timeout)
-	: Timer(t + timeout, TIMER_FLOW_WEIRD_EXPIRE), endpoints(p)
+		: Timer(t + timeout, TIMER_FLOW_WEIRD_EXPIRE), endpoints(std::move(p))
 		{}
 
 	void Dispatch(double t, int is_expire) override
@@ -328,7 +317,7 @@ bool Reporter::PermitFlowWeird(const char* name,
 		return false;
 	}
 
-void Reporter::Weird(const char* name)
+void Reporter::Weird(const char* name, const char* addl)
 	{
 	UpdateWeirdStats(name);
 
@@ -338,7 +327,7 @@ void Reporter::Weird(const char* name)
 			return;
 		}
 
-	WeirdHelper(net_weird, 0, 0, 0, "%s", name);
+	WeirdHelper(net_weird, {new StringVal(addl)}, "%s", name);
 	}
 
 void Reporter::Weird(file_analysis::File* f, const char* name, const char* addl)
@@ -352,7 +341,8 @@ void Reporter::Weird(file_analysis::File* f, const char* name, const char* addl)
 			return;
 		}
 
-	WeirdHelper(file_weird, 0, f, addl, "%s", name);
+	WeirdHelper(file_weird, {f->GetVal()->Ref(), new StringVal(addl)},
+	            "%s", name);
 	}
 
 void Reporter::Weird(Connection* conn, const char* name, const char* addl)
@@ -366,10 +356,11 @@ void Reporter::Weird(Connection* conn, const char* name, const char* addl)
 			return;
 		}
 
-	WeirdHelper(conn_weird, conn->BuildConnVal(), 0, addl, "%s", name);
+	WeirdHelper(conn_weird, {conn->BuildConnVal(), new StringVal(addl)},
+	            "%s", name);
 	}
 
-void Reporter::Weird(const IPAddr& orig, const IPAddr& resp, const char* name)
+void Reporter::Weird(const IPAddr& orig, const IPAddr& resp, const char* name, const char* addl)
 	{
 	UpdateWeirdStats(name);
 
@@ -379,7 +370,9 @@ void Reporter::Weird(const IPAddr& orig, const IPAddr& resp, const char* name)
 			 return;
 		}
 
-	WeirdFlowHelper(orig, resp, "%s", name);
+	WeirdHelper(flow_weird,
+	            {new AddrVal(orig), new AddrVal(resp), new StringVal(addl)},
+	            "%s", name);
 	}
 
 void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
@@ -443,7 +436,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		{
 		va_list aq;
 		va_copy(aq, ap);
-		int n = safe_vsnprintf(buffer, size, fmt, aq);
+		int n = vsnprintf(buffer, size, fmt, aq);
 		va_end(aq);
 
 		if ( postfix )
@@ -464,7 +457,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 	if ( postfix && *postfix )
 		// Note, if you change this fmt string, adjust the additional
 		// buffer size above.
-		safe_snprintf(buffer + strlen(buffer), size - strlen(buffer), " (%s)", postfix);
+		snprintf(buffer + strlen(buffer), size - strlen(buffer), " (%s)", postfix);
 
 	bool raise_event = true;
 

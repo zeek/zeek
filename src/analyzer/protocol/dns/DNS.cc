@@ -1,16 +1,19 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "DNS.h"
 
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include "BroString.h"
 #include "NetVar.h"
-#include "DNS.h"
 #include "Sessions.h"
 #include "Event.h"
+#include "Net.h"
 
 #include "events.bif.h"
 
@@ -475,12 +478,12 @@ int DNS_Interpreter::ExtractLabel(const u_char*& data, int& len,
 	return 1;
 	}
 
-uint16 DNS_Interpreter::ExtractShort(const u_char*& data, int& len)
+uint16_t DNS_Interpreter::ExtractShort(const u_char*& data, int& len)
 	{
 	if ( len < 2 )
 		return 0;
 
-	uint16 val;
+	uint16_t val;
 
 	val = data[0] << 8;
 
@@ -495,12 +498,12 @@ uint16 DNS_Interpreter::ExtractShort(const u_char*& data, int& len)
 	return val;
 	}
 
-uint32 DNS_Interpreter::ExtractLong(const u_char*& data, int& len)
+uint32_t DNS_Interpreter::ExtractLong(const u_char*& data, int& len)
 	{
 	if ( len < 4 )
 		return 0;
 
-	uint32 val;
+	uint32_t val;
 
 	val = data[0] << 24;
 	val |= data[1] << 16;
@@ -588,11 +591,11 @@ int DNS_Interpreter::ParseRR_SOA(DNS_MsgInfo* msg,
 	if ( len < 20 )
 		return 0;
 
-	uint32 serial = ExtractLong(data, len);
-	uint32 refresh = ExtractLong(data, len);
-	uint32 retry = ExtractLong(data, len);
-	uint32 expire = ExtractLong(data, len);
-	uint32 minimum = ExtractLong(data, len);
+	uint32_t serial = ExtractLong(data, len);
+	uint32_t refresh = ExtractLong(data, len);
+	uint32_t retry = ExtractLong(data, len);
+	uint32_t expire = ExtractLong(data, len);
+	uint32_t minimum = ExtractLong(data, len);
 
 	if ( data - data_start != rdlength )
 		analyzer->Weird("DNS_RR_length_mismatch");
@@ -600,13 +603,13 @@ int DNS_Interpreter::ParseRR_SOA(DNS_MsgInfo* msg,
 	if ( dns_SOA_reply && ! msg->skip_event )
 		{
 		RecordVal* r = new RecordVal(dns_soa);
-		r->Assign(0, new StringVal(new BroString(mname, mname_end - mname, 1)));
-		r->Assign(1, new StringVal(new BroString(rname, rname_end - rname, 1)));
+		r->Assign(0, make_intrusive<StringVal>(new BroString(mname, mname_end - mname, 1)));
+		r->Assign(1, make_intrusive<StringVal>(new BroString(rname, rname_end - rname, 1)));
 		r->Assign(2, val_mgr->GetCount(serial));
-		r->Assign(3, new IntervalVal(double(refresh), Seconds));
-		r->Assign(4, new IntervalVal(double(retry), Seconds));
-		r->Assign(5, new IntervalVal(double(expire), Seconds));
-		r->Assign(6, new IntervalVal(double(minimum), Seconds));
+		r->Assign(3, make_intrusive<IntervalVal>(double(refresh), Seconds));
+		r->Assign(4, make_intrusive<IntervalVal>(double(retry), Seconds));
+		r->Assign(5, make_intrusive<IntervalVal>(double(expire), Seconds));
+		r->Assign(6, make_intrusive<IntervalVal>(double(minimum), Seconds));
 
 		analyzer->ConnectionEventFast(dns_SOA_reply, {
 			analyzer->BuildConnVal(),
@@ -727,7 +730,7 @@ int DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 void DNS_Interpreter::ExtractOctets(const u_char*& data, int& len,
                                     BroString** p)
 	{
-	uint16 dlen = ExtractShort(data, len);
+	uint16_t dlen = ExtractShort(data, len);
 	dlen = min(len, static_cast<int>(dlen));
 
 	if ( p )
@@ -762,11 +765,11 @@ int DNS_Interpreter::ParseRR_TSIG(DNS_MsgInfo* msg,
 	if ( ! alg_name_end )
 		return 0;
 
-	uint32 sign_time_sec = ExtractLong(data, len);
+	uint32_t sign_time_sec = ExtractLong(data, len);
 	unsigned int sign_time_msec = ExtractShort(data, len);
 	unsigned int fudge = ExtractShort(data, len);
 	BroString* request_MAC;
-	ExtractOctets(data, len, &request_MAC);
+	ExtractOctets(data, len, dns_TSIG_addl ? &request_MAC : nullptr);
 	unsigned int orig_id = ExtractShort(data, len);
 	unsigned int rr_error = ExtractShort(data, len);
 	ExtractOctets(data, len, 0);  // Other Data
@@ -809,13 +812,13 @@ int DNS_Interpreter::ParseRR_RRSIG(DNS_MsgInfo* msg,
 
 	unsigned int type_covered = ExtractShort(data, len);
 	// split the two bytes for algo and labels extraction
-	uint32 algo_lab = ExtractShort(data, len);
+	uint32_t algo_lab = ExtractShort(data, len);
 	unsigned int algo = (algo_lab >> 8) & 0xff;
 	unsigned int lab = algo_lab & 0xff;
 
-	uint32 orig_ttl = ExtractLong(data, len);
-	uint32 sign_exp = ExtractLong(data, len);
-	uint32 sign_incp = ExtractLong(data, len);
+	uint32_t orig_ttl = ExtractLong(data, len);
+	uint32_t sign_exp = ExtractLong(data, len);
+	uint32_t sign_incp = ExtractLong(data, len);
 	unsigned int key_tag = ExtractShort(data, len);
 
 	//implement signer's name with the msg_start offset
@@ -1015,7 +1018,7 @@ int DNS_Interpreter::ParseRR_NSEC(DNS_MsgInfo* msg,
 
 	while ( typebitmaps_len > 0 && len > 0 )
 		{
-		uint32 block_bmlen = ExtractShort(data, len);
+		uint32_t block_bmlen = ExtractShort(data, len);
 		unsigned int win_blck = (block_bmlen >> 8) & 0xff;
 		unsigned int bmlen = block_bmlen & 0xff;
 
@@ -1026,7 +1029,7 @@ int DNS_Interpreter::ParseRR_NSEC(DNS_MsgInfo* msg,
 			}
 
 		BroString* bitmap = ExtractStream(data, len, bmlen);
-		char_strings->Assign(char_strings->Size(), new StringVal(bitmap));
+		char_strings->Assign(char_strings->Size(), make_intrusive<StringVal>(bitmap));
 		typebitmaps_len = typebitmaps_len - (2 + bmlen);
 		}
 
@@ -1059,12 +1062,12 @@ int DNS_Interpreter::ParseRR_NSEC3(DNS_MsgInfo* msg,
 		return 0;
 
 	const u_char* data_start = data;
-	uint32 halgo_flags = ExtractShort(data, len);
+	uint32_t halgo_flags = ExtractShort(data, len);
 	unsigned int hash_algo = (halgo_flags >> 8) & 0xff;
 	unsigned int nsec_flags = halgo_flags & 0xff;
 	unsigned int iter = ExtractShort(data, len);
 
-	uint8 salt_len = 0;
+	uint8_t salt_len = 0;
 
 	if ( len > 0 )
 		{
@@ -1075,7 +1078,7 @@ int DNS_Interpreter::ParseRR_NSEC3(DNS_MsgInfo* msg,
 
 	auto salt_val = ExtractStream(data, len, static_cast<int>(salt_len));
 
-	uint8 hash_len = 0;
+	uint8_t hash_len = 0;
 
 	if ( len > 0 )
 		{
@@ -1092,7 +1095,7 @@ int DNS_Interpreter::ParseRR_NSEC3(DNS_MsgInfo* msg,
 
 	while ( typebitmaps_len > 0 && len > 0 )
 		{
-		uint32 block_bmlen = ExtractShort(data, len);
+		uint32_t block_bmlen = ExtractShort(data, len);
 		unsigned int win_blck = ( block_bmlen >> 8) & 0xff;
 		unsigned int bmlen = block_bmlen & 0xff;
 
@@ -1103,7 +1106,7 @@ int DNS_Interpreter::ParseRR_NSEC3(DNS_MsgInfo* msg,
 			}
 
 		BroString* bitmap = ExtractStream(data, len, bmlen);
-		char_strings->Assign(char_strings->Size(), new StringVal(bitmap));
+		char_strings->Assign(char_strings->Size(), make_intrusive<StringVal>(bitmap));
 		typebitmaps_len = typebitmaps_len - (2 + bmlen);
 		}
 
@@ -1126,6 +1129,8 @@ int DNS_Interpreter::ParseRR_NSEC3(DNS_MsgInfo* msg,
 			msg->BuildNSEC3_Val(&nsec3),
 		});
 		}
+	else
+		Unref(char_strings);
 
 	return 1;
 	}
@@ -1146,7 +1151,7 @@ int DNS_Interpreter::ParseRR_DS(DNS_MsgInfo* msg,
 
 	unsigned int ds_key_tag = ExtractShort(data, len);
 	// split the two bytes for algorithm and digest type extraction
-	uint32 ds_algo_dtype = ExtractShort(data, len);
+	uint32_t ds_algo_dtype = ExtractShort(data, len);
 	unsigned int ds_algo = (ds_algo_dtype >> 8) & 0xff;
 	unsigned int ds_dtype = ds_algo_dtype & 0xff;
 	DNSSEC_Digest ds_digest_type = DNSSEC_Digest(ds_dtype);
@@ -1197,7 +1202,7 @@ int DNS_Interpreter::ParseRR_A(DNS_MsgInfo* msg,
 		return 0;
 		}
 
-	uint32 addr = ExtractLong(data, len);
+	uint32_t addr = ExtractLong(data, len);
 
 	if ( dns_A_reply && ! msg->skip_event )
 		{
@@ -1215,7 +1220,7 @@ int DNS_Interpreter::ParseRR_A(DNS_MsgInfo* msg,
 int DNS_Interpreter::ParseRR_AAAA(DNS_MsgInfo* msg,
 				const u_char*& data, int& len, int rdlength)
 	{
-	uint32 addr[4];
+	uint32_t addr[4];
 
 	for ( int i = 0; i < 4; ++i )
 		{
@@ -1273,7 +1278,7 @@ static StringVal* extract_char_string(analyzer::Analyzer* analyzer,
 	if ( rdlen <= 0 )
 		return 0;
 
-	uint8 str_size = data[0];
+	uint8_t str_size = data[0];
 
 	--rdlen;
 	--len;
@@ -1412,14 +1417,15 @@ void DNS_Interpreter::SendReplyOrRejectEvent(DNS_MsgInfo* msg,
 	RR_Type qtype = RR_Type(ExtractShort(data, len));
 	int qclass = ExtractShort(data, len);
 
-	if ( event )
-		analyzer->ConnectionEventFast(event, {
-			analyzer->BuildConnVal(),
-			msg->BuildHdrVal(),
-			new StringVal(question_name),
-			val_mgr->GetCount(qtype),
-			val_mgr->GetCount(qclass),
-		});
+	assert(event);
+
+	analyzer->ConnectionEventFast(event, {
+		analyzer->BuildConnVal(),
+		msg->BuildHdrVal(),
+		new StringVal(question_name),
+		val_mgr->GetCount(qtype),
+		val_mgr->GetCount(qclass),
+	});
 	}
 
 
@@ -1490,7 +1496,7 @@ Val* DNS_MsgInfo::BuildAnswerVal()
 	r->Assign(1, query_name);
 	r->Assign(2, val_mgr->GetCount(atype));
 	r->Assign(3, val_mgr->GetCount(aclass));
-	r->Assign(4, new IntervalVal(double(ttl), Seconds));
+	r->Assign(4, make_intrusive<IntervalVal>(double(ttl), Seconds));
 
 	return r;
 	}
@@ -1525,7 +1531,7 @@ Val* DNS_MsgInfo::BuildEDNS_Val()
 	r->Assign(4, val_mgr->GetCount(return_error));
 	r->Assign(5, val_mgr->GetCount(version));
 	r->Assign(6, val_mgr->GetCount(z));
-	r->Assign(7, new IntervalVal(double(ttl), Seconds));
+	r->Assign(7, make_intrusive<IntervalVal>(double(ttl), Seconds));
 	r->Assign(8, val_mgr->GetCount(is_query));
 
 	return r;
@@ -1540,10 +1546,10 @@ Val* DNS_MsgInfo::BuildTSIG_Val(struct TSIG_DATA* tsig)
 	// r->Assign(0, val_mgr->GetCount(int(answer_type)));
 	r->Assign(0, query_name);
 	r->Assign(1, val_mgr->GetCount(int(answer_type)));
-	r->Assign(2, new StringVal(tsig->alg_name));
-	r->Assign(3, new StringVal(tsig->sig));
-	r->Assign(4, new Val(rtime, TYPE_TIME));
-	r->Assign(5, new Val(double(tsig->fudge), TYPE_TIME));
+	r->Assign(2, make_intrusive<StringVal>(tsig->alg_name));
+	r->Assign(3, make_intrusive<StringVal>(tsig->sig));
+	r->Assign(4, make_intrusive<Val>(rtime, TYPE_TIME));
+	r->Assign(5, make_intrusive<Val>(double(tsig->fudge), TYPE_TIME));
 	r->Assign(6, val_mgr->GetCount(tsig->orig_id));
 	r->Assign(7, val_mgr->GetCount(tsig->rr_error));
 	r->Assign(8, val_mgr->GetCount(is_query));
@@ -1561,12 +1567,12 @@ Val* DNS_MsgInfo::BuildRRSIG_Val(RRSIG_DATA* rrsig)
 	r->Assign(2, val_mgr->GetCount(rrsig->type_covered));
 	r->Assign(3, val_mgr->GetCount(rrsig->algorithm));
 	r->Assign(4, val_mgr->GetCount(rrsig->labels));
-	r->Assign(5, new IntervalVal(double(rrsig->orig_ttl), Seconds));
-	r->Assign(6, new Val(double(rrsig->sig_exp), TYPE_TIME));
-	r->Assign(7, new Val(double(rrsig->sig_incep), TYPE_TIME));
+	r->Assign(5, make_intrusive<IntervalVal>(double(rrsig->orig_ttl), Seconds));
+	r->Assign(6, make_intrusive<Val>(double(rrsig->sig_exp), TYPE_TIME));
+	r->Assign(7, make_intrusive<Val>(double(rrsig->sig_incep), TYPE_TIME));
 	r->Assign(8, val_mgr->GetCount(rrsig->key_tag));
-	r->Assign(9, new StringVal(rrsig->signer_name));
-	r->Assign(10, new StringVal(rrsig->signature));
+	r->Assign(9, make_intrusive<StringVal>(rrsig->signer_name));
+	r->Assign(10, make_intrusive<StringVal>(rrsig->signature));
 	r->Assign(11, val_mgr->GetCount(is_query));
 
 	return r;
@@ -1582,7 +1588,7 @@ Val* DNS_MsgInfo::BuildDNSKEY_Val(DNSKEY_DATA* dnskey)
 	r->Assign(2, val_mgr->GetCount(dnskey->dflags));
 	r->Assign(3, val_mgr->GetCount(dnskey->dprotocol));
 	r->Assign(4, val_mgr->GetCount(dnskey->dalgorithm));
-	r->Assign(5, new StringVal(dnskey->public_key));
+	r->Assign(5, make_intrusive<StringVal>(dnskey->public_key));
 	r->Assign(6, val_mgr->GetCount(is_query));
 
 	return r;
@@ -1599,9 +1605,9 @@ Val* DNS_MsgInfo::BuildNSEC3_Val(NSEC3_DATA* nsec3)
 	r->Assign(3, val_mgr->GetCount(nsec3->nsec_hash_algo));
 	r->Assign(4, val_mgr->GetCount(nsec3->nsec_iter));
 	r->Assign(5, val_mgr->GetCount(nsec3->nsec_salt_len));
-	r->Assign(6, new StringVal(nsec3->nsec_salt));
+	r->Assign(6, make_intrusive<StringVal>(nsec3->nsec_salt));
 	r->Assign(7, val_mgr->GetCount(nsec3->nsec_hlen));
-	r->Assign(8, new StringVal(nsec3->nsec_hash));
+	r->Assign(8, make_intrusive<StringVal>(nsec3->nsec_hash));
 	r->Assign(9, nsec3->bitmaps);
 	r->Assign(10, val_mgr->GetCount(is_query));
 
@@ -1618,7 +1624,7 @@ Val* DNS_MsgInfo::BuildDS_Val(DS_DATA* ds)
 	r->Assign(2, val_mgr->GetCount(ds->key_tag));
 	r->Assign(3, val_mgr->GetCount(ds->algorithm));
 	r->Assign(4, val_mgr->GetCount(ds->digest_type));
-	r->Assign(5, new StringVal(ds->digest_val));
+	r->Assign(5, make_intrusive<StringVal>(ds->digest_val));
 	r->Assign(6, val_mgr->GetCount(is_query));
 
 	return r;
@@ -1755,7 +1761,7 @@ void DNS_Analyzer::Done()
 	}
 
 void DNS_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen)
+					uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 	interp->ParseMessage(data, len, orig);

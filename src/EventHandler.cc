@@ -1,8 +1,10 @@
-#include "Event.h"
 #include "EventHandler.h"
+#include "Event.h"
+#include "Desc.h"
 #include "Func.h"
 #include "Scope.h"
 #include "NetVar.h"
+#include "ID.h"
 
 #include "broker/Manager.h"
 #include "broker/Data.h"
@@ -36,8 +38,8 @@ FuncType* EventHandler::FType(bool check_export)
 	if ( type )
 		return type;
 
-	ID* id = lookup_ID(name, current_module.c_str(), false, false,
-	                   check_export);
+	auto id = lookup_ID(name, current_module.c_str(), false, false,
+	                    check_export);
 
 	if ( ! id )
 		return 0;
@@ -46,8 +48,6 @@ FuncType* EventHandler::FType(bool check_export)
 		return 0;
 
 	type = id->Type()->AsFuncType();
-	Unref(id);
-
 	return type;
 	}
 
@@ -114,7 +114,7 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 
 	if ( local )
 		// No try/catch here; we pass exceptions upstream.
-		Unref(local->Call(vl));
+		local->Call(vl);
 	else
 		{
 		for ( auto v : *vl )
@@ -138,21 +138,18 @@ void EventHandler::NewEvent(val_list* vl)
 		{
 		const char* fname = args->FieldName(i);
 		BroType* ftype = args->FieldType(i);
-		Val* fdefault = args->FieldDefault(i);
+		auto fdefault = args->FieldDefault(i);
 
-		RecordVal* rec = new RecordVal(call_argument);
-		rec->Assign(0, new StringVal(fname));
+		auto rec = make_intrusive<RecordVal>(call_argument);
+		rec->Assign(0, make_intrusive<StringVal>(fname));
 
 		ODesc d;
 		d.SetShort();
 		ftype->Describe(&d);
-		rec->Assign(1, new StringVal(d.Description()));
+		rec->Assign(1, make_intrusive<StringVal>(d.Description()));
 
 		if ( fdefault )
-			{
-			Ref(fdefault);
-			rec->Assign(2, fdefault);
-			}
+			rec->Assign(2, std::move(fdefault));
 
 		if ( i < vl->length() && (*vl)[i] )
 			{
@@ -161,7 +158,7 @@ void EventHandler::NewEvent(val_list* vl)
 			rec->Assign(3, val);
 			}
 
-		vargs->Assign(i, rec);
+		vargs->Assign(i, std::move(rec));
 		}
 
 	Event* ev = new Event(new_event, {

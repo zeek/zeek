@@ -1,30 +1,34 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef FILE_ANALYSIS_MANAGER_H
-#define FILE_ANALYSIS_MANAGER_H
+#pragma once
 
 #include <string>
-#include <queue>
+#include <set>
+#include <map>
 
-#include "Dict.h"
+#include "Component.h"
 #include "Net.h"
-#include "Conn.h"
-#include "Val.h"
-#include "Analyzer.h"
-#include "Timer.h"
-#include "EventHandler.h"
 #include "RuleMatcher.h"
 
-#include "File.h"
-#include "FileTimer.h"
-#include "Component.h"
-#include "Tag.h"
 #include "plugin/ComponentManager.h"
+
 #include "analyzer/Tag.h"
 
-#include "file_analysis/file_analysis.bif.h"
+using std::map;
+using std::set;
+
+class TableVal;
+class VectorVal;
+
+namespace analyzer {
+class Analyzer;
+class Tag;
+}
 
 namespace file_analysis {
+
+class File;
+class Tag;
 
 /**
  * Main entry point for interacting with file analysis.
@@ -105,8 +109,8 @@ public:
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associate file is not going to be analyzed further.
 	 */
-	std::string DataIn(const u_char* data, uint64 len, uint64 offset,
-	                   analyzer::Tag tag, Connection* conn, bool is_orig,
+	std::string DataIn(const u_char* data, uint64_t len, uint64_t offset,
+	                   const analyzer::Tag& tag, Connection* conn, bool is_orig,
 	                   const std::string& precomputed_file_id = "",
 	                   const std::string& mime_type = "");
 
@@ -132,7 +136,7 @@ public:
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associated file is not going to be analyzed further.
 	 */
-	std::string DataIn(const u_char* data, uint64 len, analyzer::Tag tag,
+	std::string DataIn(const u_char* data, uint64_t len, const analyzer::Tag& tag,
 	                   Connection* conn, bool is_orig,
 	                   const std::string& precomputed_file_id = "",
 	                   const std::string& mime_type = "");
@@ -146,7 +150,7 @@ public:
 	 *        in human-readable form where the file input is coming from (e.g.
 	 *        a local file path).
 	 */
-	void DataIn(const u_char* data, uint64 len, const string& file_id,
+	void DataIn(const u_char* data, uint64_t len, const string& file_id,
 	            const string& source);
 
 	/**
@@ -155,7 +159,7 @@ public:
 	 * @param tag network protocol over which the file data is transferred.
 	 * @param conn network connection over which the file data is transferred.
 	 */
-	void EndOfFile(analyzer::Tag tag, Connection* conn);
+	void EndOfFile(const analyzer::Tag& tag, Connection* conn);
 
 	/**
 	 * Signal the end of file data being transferred over a connection in
@@ -163,7 +167,7 @@ public:
 	 * @param tag network protocol over which the file data is transferred.
 	 * @param conn network connection over which the file data is transferred.
 	 */
-	void EndOfFile(analyzer::Tag tag, Connection* conn, bool is_orig);
+	void EndOfFile(const analyzer::Tag& tag, Connection* conn, bool is_orig);
 
 	/**
 	 * Signal the end of file data being transferred using the file identifier.
@@ -187,7 +191,7 @@ public:
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associate file is not going to be analyzed further.
 	 */
-	std::string Gap(uint64 offset, uint64 len, analyzer::Tag tag,
+	std::string Gap(uint64_t offset, uint64_t len, const analyzer::Tag& tag,
 	                Connection* conn, bool is_orig,
 	                const std::string& precomputed_file_id = "");
 
@@ -206,7 +210,7 @@ public:
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associate file is not going to be analyzed further.
 	 */
-	std::string SetSize(uint64 size, analyzer::Tag tag, Connection* conn,
+	std::string SetSize(uint64_t size, const analyzer::Tag& tag, Connection* conn,
 	                    bool is_orig, const std::string& precomputed_file_id = "");
 
 	/**
@@ -240,7 +244,7 @@ public:
 	/**
 	 * Set the reassembly for a file in bytes.
 	 */
-	bool SetReassemblyBuffer(const string& file_id, uint64 max);
+	bool SetReassemblyBuffer(const string& file_id, uint64_t max);
 
 	/**
 	 * Sets a limit on the maximum size allowed for extracting the file
@@ -253,7 +257,7 @@ public:
 	 *         else true.
 	 */
 	bool SetExtractionLimit(const string& file_id, RecordVal* args,
-	                        uint64 n) const;
+	                        uint64_t n) const;
 
 	/**
 	 * Try to retrieve a file that's being analyzed, using its identifier/hash.
@@ -272,7 +276,7 @@ public:
 	 * @param args a \c AnalyzerArgs value which describes a file analyzer.
 	 * @return false if the analyzer failed to be instantiated, else true.
 	 */
-	bool AddAnalyzer(const string& file_id, file_analysis::Tag tag,
+	bool AddAnalyzer(const string& file_id, const file_analysis::Tag& tag,
 	                 RecordVal* args) const;
 
 	/**
@@ -282,7 +286,7 @@ public:
 	 * @param args a \c AnalyzerArgs value which describes a file analyzer.
 	 * @return true if the analyzer is active at the time of call, else false.
 	 */
-	bool RemoveAnalyzer(const string& file_id, file_analysis::Tag tag,
+	bool RemoveAnalyzer(const string& file_id, const file_analysis::Tag& tag,
 	                    RecordVal* args) const;
 
 	/**
@@ -299,7 +303,7 @@ public:
 	 * @param f The file analzer is to be associated with.
 	 * @return The new analyzer instance or null if tag is invalid.
 	 */
-	Analyzer* InstantiateAnalyzer(Tag tag, RecordVal* args, File* f) const;
+	Analyzer* InstantiateAnalyzer(const Tag& tag, RecordVal* args, File* f) const;
 
 	/**
 	 * Returns a set of all matching MIME magic signatures for a given
@@ -312,7 +316,7 @@ public:
 	 * @return Set of all matching file magic signatures, which may be
 	 *         an object allocated by the method if \a rval is a null pointer.
 	 */
-	RuleMatcher::MIME_Matches* DetectMIME(const u_char* data, uint64 len,
+	RuleMatcher::MIME_Matches* DetectMIME(const u_char* data, uint64_t len,
 					      RuleMatcher::MIME_Matches* rval) const;
 
 	/**
@@ -322,22 +326,19 @@ public:
 	 * @returns The MIME type string of the strongest file magic signature
 	 *          match, or an empty string if nothing matched.
 	 */
-	std::string DetectMIME(const u_char* data, uint64 len) const;
+	std::string DetectMIME(const u_char* data, uint64_t len) const;
 
-	uint64 CurrentFiles()
-		{ return id_map.Length(); }
+	uint64_t CurrentFiles()
+		{ return id_map.size(); }
 
-	uint64 MaxFiles()
-		{ return id_map.MaxLength(); }
+	uint64_t MaxFiles()
+		{ return max_files; }
 
-	uint64 CumulativeFiles()
-		{ return id_map.NumCumulativeInserts(); }
+	uint64_t CumulativeFiles()
+		{ return cumulative_files; }
 
 protected:
 	friend class FileTimer;
-
-	typedef PDict<bool> IDSet;
-	typedef PDict<File> IDMap;
 
 	/**
 	 * Create a new file to be analyzed or retrieve an existing one.
@@ -358,7 +359,7 @@ protected:
 	 *         connection-related fields.
 	 */
 	File* GetFile(const string& file_id, Connection* conn = 0,
-	              analyzer::Tag tag = analyzer::Tag::Error,
+	              const analyzer::Tag& tag = analyzer::Tag::Error,
 	              bool is_orig = false, bool update_conn = true,
 	              const char* source_name = 0);
 
@@ -389,7 +390,7 @@ protected:
 	 * @return #current_file_id, which is a hash of a unique file handle string
 	 *         set by a \c get_file_handle event handler.
 	 */
-	std::string GetFileID(analyzer::Tag tag, Connection* c, bool is_orig);
+	std::string GetFileID(const analyzer::Tag& tag, Connection* c, bool is_orig);
 
 	/**
 	 * Check if analysis is available for files transferred over a given
@@ -399,7 +400,7 @@ protected:
 	 * @return whether file analysis is disabled for the analyzer given by
 	 *         \a tag.
 	 */
-	static bool IsDisabled(analyzer::Tag tag);
+	static bool IsDisabled(const analyzer::Tag& tag);
 
 private:
 	typedef set<Tag> TagSet;
@@ -407,8 +408,8 @@ private:
 
 	TagSet* LookupMIMEType(const string& mtype, bool add_if_not_found);
 
-	PDict<File> id_map;  /**< Map file ID to file_analysis::File records. */
-	PDict<bool> ignored; /**< Ignored files.  Will be finally removed on EOF. */
+	std::map<string, File*> id_map;  /**< Map file ID to file_analysis::File records. */
+	std::set<string> ignored; /**< Ignored files.  Will be finally removed on EOF. */
 	string current_file_id;	/**< Hash of what get_file_handle event sets. */
 	RuleFileMagicState* magic_state;	/**< File magic signature match state. */
 	MIMEMap mime_types;/**< Mapping of MIME types to analyzers. */
@@ -416,6 +417,9 @@ private:
 	static TableVal* disabled;	/**< Table of disabled analyzers. */
 	static TableType* tag_set_type;	/**< Type for set[tag]. */
 	static string salt; /**< A salt added to file handles before hashing. */
+
+	size_t cumulative_files;
+	size_t max_files;
 };
 
 /**
@@ -427,5 +431,3 @@ VectorVal* GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m);
 } // namespace file_analysis
 
 extern file_analysis::Manager* file_mgr;
-
-#endif

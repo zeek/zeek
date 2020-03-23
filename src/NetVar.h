@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef netvar_h
-#define netvar_h
+#pragma once
 
 #include "Val.h"
 #include "Func.h"
@@ -166,6 +165,7 @@ extern RecordType* irc_join_info;
 extern int dpd_reassemble_first_packets;
 extern int dpd_buffer_size;
 extern int dpd_match_only_beginning;
+extern int dpd_late_match_stop;
 extern int dpd_ignore_ports;
 
 extern TableVal* likely_server_ports;
@@ -203,5 +203,4 @@ extern void init_net_var();
 #include "types.bif.netvar_h"
 #include "event.bif.netvar_h"
 #include "reporter.bif.netvar_h"
-
-#endif
+#include "supervisor.bif.netvar_h"

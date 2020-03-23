@@ -1,5 +1,6 @@
 #include "PrefixTable.h"
 #include "Reporter.h"
+#include "Val.h"
 
 prefix_t* PrefixTable::MakePrefix(const IPAddr& addr, int width)
 	{

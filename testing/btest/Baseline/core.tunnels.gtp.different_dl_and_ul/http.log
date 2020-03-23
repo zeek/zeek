@@ -3,9 +3,9 @@
 #empty_field	(empty)
 #unset_field	-
 #path	http
-#open	2019-03-13-20-03-31
+#open	2019-07-31-18-53-16
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	method	host	uri	referrer	version	user_agent	origin	request_body_len	response_body_len	status_code	status_msg	info_code	info_msg	tags	username	password	proxied	orig_fuids	orig_filenames	orig_mime_types	resp_fuids	resp_filenames	resp_mime_types
 #types	time	string	addr	port	addr	port	count	string	string	string	string	string	string	string	count	count	count	string	count	string	set[enum]	string	string	set[string]	vector[string]	vector[string]	vector[string]	vector[string]	vector[string]	vector[string]
 1333458850.340368	ClEkJM2Vm5giqnMf4h	10.131.17.170	51803	173.199.115.168	80	1	GET	cdn.epicgameads.com	/ads/flash/728x90_nx8com.swf?clickTAG=http://www.epicgameads.com/ads/bannerclickPage.php?id=e3ubwU6IF&pd=1&adid=0&icpc=1&axid=0&uctt=1&channel=4&cac=1&t=728x90&cb=1333458879	http://www.epicgameads.com/ads/banneriframe.php?id=e3ubwU6IF&t=728x90&channel=4&cb=1333458905296	1.1	Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)	-	0	31461	200	OK	-	-	(empty)	-	-	-	-	-	-	FHKKd91EMHBEK0hbdg	-	application/x-shockwave-flash
 1333458850.399501	ClEkJM2Vm5giqnMf4h	10.131.17.170	51803	173.199.115.168	80	2	GET	cdn.epicgameads.com	/ads/flash/728x90_nx8com.swf?clickTAG=http://www.epicgameads.com/ads/bannerclickPage.php?id=e3ubwU6IF&pd=1&adid=0&icpc=1&axid=0&uctt=1&channel=0&cac=1&t=728x90&cb=1333458881	http://www.epicgameads.com/ads/banneriframe.php?id=e3ubwU6IF&t=728x90&cb=1333458920207	1.1	Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)	-	0	31461	200	OK	-	-	(empty)	-	-	-	-	-	-	Fu64Vqjy6nBop9nRd	-	application/x-shockwave-flash
-#close	2019-03-13-20-03-31
+#close	2019-07-31-18-53-16

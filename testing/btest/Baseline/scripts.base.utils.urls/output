@@ -6,6 +6,7 @@
 [scheme=http, netlocation=hyphen-example.com, portnum=<uninitialized>, path=/index.asp, file_name=index.asp, file_base=index, file_ext=asp, params={
 [q] = 123
 }]
+[scheme=git, netlocation=git.kernel.org, portnum=<uninitialized>, path=/pub/scm/linux/, file_name=<uninitialized>, file_base=<uninitialized>, file_ext=<uninitialized>, params=<uninitialized>]
 [scheme=<uninitialized>, netlocation=dfasjdfasdfasdf, portnum=<uninitialized>, path=/, file_name=<uninitialized>, file_base=<uninitialized>, file_ext=<uninitialized>, params={
 
 }]

@@ -1,5 +1,4 @@
-#ifndef BRO_COMM_MANAGER_H
-#define BRO_COMM_MANAGER_H
+#pragma once
 
 #include <broker/topic.hh>
 #include <broker/data.hh>
@@ -13,20 +12,21 @@
 #include <broker/backend_options.hh>
 #include <broker/detail/hash.hh>
 #include <broker/zeek.hh>
+
 #include <memory>
 #include <string>
-#include <map>
-#include <set>
 #include <unordered_map>
-#include <unordered_set>
-#include "broker/Store.h"
-#include "Reporter.h"
+
 #include "iosource/IOSource.h"
-#include "Val.h"
 #include "logging/WriterBackend.h"
+
+class Frame;
+class Func;
 
 namespace bro_broker {
 
+class StoreHandleVal;
+class StoreQueryCallback;
 class BrokerState;
 
 /**
@@ -347,20 +347,13 @@ private:
 		__attribute__((format (printf, 2, 3)));
 
 	// IOSource interface overrides:
-	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
-	            iosource::FD_Set* except) override;
-
-	double NextTimestamp(double* local_network_time) override;
-
 	void Process() override;
-
-	const char* Tag() override
-		{ return "Broker::Manager"; }
+	const char* Tag() override	{ return "Broker::Manager"; }
+	double GetNextTimeout() override	{ return -1; }
 
 	struct LogBuffer {
 		// Indexed by topic string.
 		std::unordered_map<std::string, broker::vector> msgs;
-		double last_flush;
 		size_t message_count;
 
 		size_t Flush(broker::endpoint& endpoint, size_t batch_size);
@@ -393,10 +386,8 @@ private:
 	bool reading_pcaps;
 	bool after_zeek_init;
 	int peer_count;
-	int times_processed_without_idle;
 
 	size_t log_batch_size;
-	double log_batch_interval;
 	Func* log_topic_func;
 	VectorType* vector_of_data_type;
 	EnumType* log_id_type;
@@ -408,5 +399,3 @@ private:
 } // namespace bro_broker
 
 extern bro_broker::Manager* broker_mgr;
-
-#endif // BRO_COMM_MANAGER_H

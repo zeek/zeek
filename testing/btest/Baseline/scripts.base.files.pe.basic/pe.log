@@ -3,11 +3,11 @@
 #empty_field	(empty)
 #unset_field	-
 #path	pe
-#open	2016-07-13-16-14-17
+#open	2019-07-31-20-22-07
 #fields	ts	id	machine	compile_ts	os	subsystem	is_exe	is_64bit	uses_aslr	uses_dep	uses_code_integrity	uses_seh	has_import_table	has_export_table	has_cert_table	has_debug_data	section_names
 #types	time	string	string	time	string	string	bool	bool	bool	bool	bool	bool	bool	bool	bool	bool	vector[string]
 1429466342.201366	Fz2N9x4SAxQiSnI6mk	unknown-475	0.000000	-	-	F	T	F	F	F	T	-	-	-	-	-
+1429466342.225653	Fzysjj1zfjAcgWgm22	I386	1171692517.000000	Windows XP x64 or Server 2003	WINDOWS_GUI	T	F	F	F	F	T	T	F	F	T	.text,.data,.rsrc
 1429466342.250474	FOuWFKf04xcHH4ck	I386	1210911433.000000	Windows 95 or NT 4.0	WINDOWS_CUI	T	F	F	F	F	T	T	F	T	T	.text,.rdata,.data,.rsrc
 1429466342.278998	F5fc4q3zhJHmYSvm8a	I386	1402852568.000000	Windows 95 or NT 4.0	WINDOWS_GUI	T	F	F	F	F	T	T	T	F	F	.text,.Ddata,.data,.rsrc
-1429466342.225653	Fzysjj1zfjAcgWgm22	I386	1171692517.000000	Windows XP x64 or Server 2003	WINDOWS_GUI	T	F	F	F	F	T	T	F	F	T	.text,.data,.rsrc
-#close	2016-07-13-16-14-17
+#close	2019-07-31-20-22-07

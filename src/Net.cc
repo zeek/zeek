@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "Net.h"
 
 #include <sys/types.h>
 #ifdef TIME_WITH_SYS_TIME
@@ -19,13 +20,17 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+extern "C" {
+#include "setsignal.h"
+};
+
 #include "NetVar.h"
 #include "Sessions.h"
 #include "Event.h"
 #include "Timer.h"
 #include "Var.h"
 #include "Reporter.h"
-#include "Net.h"
+#include "Scope.h"
 #include "Anon.h"
 #include "PacketDumper.h"
 #include "iosource/Manager.h"
@@ -35,18 +40,14 @@
 #include "broker/Manager.h"
 
 extern "C" {
-#include "setsignal.h"
-};
-
-extern "C" {
 extern int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);
 }
 
-iosource::PktDumper* pkt_dumper = 0;
+iosource::PktDumper* pkt_dumper = nullptr;
 
-int reading_live = 0;
-int reading_traces = 0;
-int have_pending_timers = 0;
+bool reading_live = false;
+bool reading_traces = false;
+bool have_pending_timers = false;
 double pseudo_realtime = 0.0;
 double network_time = 0.0;	// time according to last packet timestamp
 				// (or current time)
@@ -57,11 +58,11 @@ double last_watchdog_proc_time = 0.0;	// value of above during last watchdog
 bool terminating = false;	// whether we're done reading and finishing up
 bool is_parsing = false;
 
-const Packet *current_pkt = 0;
+const Packet *current_pkt = nullptr;
 int current_dispatched = 0;
 double current_timestamp = 0.0;
-iosource::PktSrc* current_pktsrc = 0;
-iosource::IOSource* current_iosrc = 0;
+iosource::PktSrc* current_pktsrc = nullptr;
+iosource::IOSource* current_iosrc = nullptr;
 
 std::list<ScannedFile> files_scanned;
 std::vector<string> sig_files;
@@ -145,52 +146,46 @@ void net_update_time(double new_network_time)
 	PLUGIN_HOOK_VOID(HOOK_UPDATE_NETWORK_TIME, HookUpdateNetworkTime(new_network_time));
 	}
 
-void net_init(name_list& interfaces, name_list& readfiles,
-	      const char* writefile, int do_watchdog)
+void net_init(const std::optional<std::string>& interface,
+              const std::optional<std::string>& pcap_input_file,
+              const std::optional<std::string>& pcap_output_file,
+              bool do_watchdog)
 	{
-	if ( readfiles.length() > 0 )
+	if ( pcap_input_file )
 		{
 		reading_live = pseudo_realtime > 0.0;
-		reading_traces = 1;
+		reading_traces = true;
 
-		for ( int i = 0; i < readfiles.length(); ++i )
-			{
-			iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(readfiles[i], false);
-			assert(ps);
+		iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(*pcap_input_file, false);
+		assert(ps);
 
-			if ( ! ps->IsOpen() )
-				reporter->FatalError("problem with trace file %s (%s)",
-						     readfiles[i],
-						     ps->ErrorMsg());
-			}
+		if ( ! ps->IsOpen() )
+			reporter->FatalError("problem with trace file %s (%s)",
+				pcap_input_file->c_str(), ps->ErrorMsg());
 		}
-
-	else if ( interfaces.length() > 0 )
+	else if ( interface )
 		{
-		reading_live = 1;
-		reading_traces = 0;
+		reading_live = true;
+		reading_traces = false;
 
-		for ( int i = 0; i < interfaces.length(); ++i )
-			{
-			iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(interfaces[i], true);
-			assert(ps);
+		iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(*interface, true);
+		assert(ps);
 
-			if ( ! ps->IsOpen() )
-				reporter->FatalError("problem with interface %s (%s)",
-						     interfaces[i],
-						     ps->ErrorMsg());
-			}
+		if ( ! ps->IsOpen() )
+			reporter->FatalError("problem with interface %s (%s)",
+				interface->c_str(), ps->ErrorMsg());
 		}
 
 	else
-		// have_pending_timers = 1, possibly.  We don't set
+		// have_pending_timers = true, possibly.  We don't set
 		// that here, though, because at this point we don't know
 		// whether the user's zeek_init() event will indeed set
 		// a timer.
-		reading_traces = reading_live = 0;
+		reading_traces = reading_live = false;
 
-	if ( writefile )
+	if ( pcap_output_file )
 		{
+		const char* writefile = pcap_output_file->data();
 		pkt_dumper = iosource_mgr->OpenPktDumper(writefile, false);
 		assert(pkt_dumper);
 
@@ -198,11 +193,10 @@ void net_init(name_list& interfaces, name_list& readfiles,
 			reporter->FatalError("problem opening dump file %s (%s)",
 					     writefile, pkt_dumper->ErrorMsg());
 
-		ID* id = global_scope()->Lookup("trace_output_file");
-		if ( ! id )
-			reporter->Error("trace_output_file not defined in bro.init");
+		if ( ID* id = global_scope()->Lookup("trace_output_file") )
+			id->SetVal(make_intrusive<StringVal>(writefile));
 		else
-			id->SetVal(new StringVal(writefile));
+			reporter->Error("trace_output_file not defined in bro.init");
 		}
 
 	init_ip_addr_anonymizers();
@@ -219,14 +213,11 @@ void net_init(name_list& interfaces, name_list& readfiles,
 
 void expire_timers(iosource::PktSrc* src_ps)
 	{
-	SegmentProfiler(segment_logger, "expiring-timers");
-	TimerMgr* tmgr =
-		src_ps ? sessions->LookupTimerMgr(src_ps->GetCurrentTag())
-			: timer_mgr;
+	SegmentProfiler prof(segment_logger, "expiring-timers");
 
 	current_dispatched +=
-		tmgr->Advance(network_time,
-				max_timer_expires - current_dispatched);
+		timer_mgr->Advance(network_time,
+			max_timer_expires - current_dispatched);
 	}
 
 void net_packet_dispatch(double t, const Packet* pkt, iosource::PktSrc* src_ps)
@@ -234,10 +225,8 @@ void net_packet_dispatch(double t, const Packet* pkt, iosource::PktSrc* src_ps)
 	if ( ! bro_start_network_time )
 		bro_start_network_time = t;
 
-	TimerMgr* tmgr = sessions->LookupTimerMgr(src_ps->GetCurrentTag());
-
 	// network_time never goes back.
-	net_update_time(tmgr->Time() < t ? t : tmgr->Time());
+	net_update_time(timer_mgr->Time() < t ? t : timer_mgr->Time());
 
 	current_pktsrc = src_ps;
 	current_iosrc = src_ps;
@@ -245,16 +234,16 @@ void net_packet_dispatch(double t, const Packet* pkt, iosource::PktSrc* src_ps)
 
 	expire_timers(src_ps);
 
-	SegmentProfiler* sp = 0;
+	SegmentProfiler* sp = nullptr;
 
 	if ( load_sample )
 		{
-		static uint32 load_freq = 0;
+		static uint32_t load_freq = 0;
 
 		if ( load_freq == 0 )
-			load_freq = uint32(0xffffffff) / uint32(load_sample_freq);
+			load_freq = uint32_t(0xffffffff) / uint32_t(load_sample_freq);
 
-		if ( uint32(bro_random() & 0xffffffff) < load_freq )
+		if ( uint32_t(bro_random() & 0xffffffff) < load_freq )
 			{
 			// Drain the queued timer events so they're not
 			// charged against this sample.
@@ -272,58 +261,53 @@ void net_packet_dispatch(double t, const Packet* pkt, iosource::PktSrc* src_ps)
 		{
 		delete sp;
 		delete sample_logger;
-		sample_logger = 0;
+		sample_logger = nullptr;
 		}
 
 	processing_start_time = 0.0;	// = "we're not processing now"
 	current_dispatched = 0;
-	current_iosrc = 0;
-	current_pktsrc = 0;
+	current_iosrc = nullptr;
+	current_pktsrc = nullptr;
 	}
 
 void net_run()
 	{
 	set_processing_status("RUNNING", "net_run");
 
+	std::vector<iosource::IOSource*> ready;
+	ready.reserve(iosource_mgr->TotalSize());
+
 	while ( iosource_mgr->Size() ||
 		(BifConst::exit_only_after_terminate && ! terminating) )
 		{
-		double ts;
-		iosource::IOSource* src = iosource_mgr->FindSoonest(&ts);
+		iosource_mgr->FindReadySources(&ready);
 
 #ifdef DEBUG
 		static int loop_counter = 0;
 
 		// If no source is ready, we log only every 100th cycle,
 		// starting with the first.
-		if ( src || loop_counter++ % 100 == 0 )
+		if ( ! ready.empty() || loop_counter++ % 100 == 0 )
 			{
-			DBG_LOG(DBG_MAINLOOP, "realtime=%.6f iosrc=%s ts=%.6f",
-					current_time(), src ? src->Tag() : "<all dry>", src ? ts : -1);
+			DBG_LOG(DBG_MAINLOOP, "realtime=%.6f ready_count=%zu",
+				current_time(), ready.size());
 
-			if ( src )
+			if ( ! ready.empty() )
 				loop_counter = 0;
 			}
 #endif
-		current_iosrc = src;
+		current_iosrc = nullptr;
 		auto communication_enabled = broker_mgr->Active();
 
-		if ( src )
-			src->Process();	// which will call net_packet_dispatch()
-
-		else if ( reading_live && ! pseudo_realtime)
-			{ // live but  no source is currently active
-			double ct = current_time();
-			if ( ! net_is_processing_suspended() )
+		if ( ! ready.empty() )
+			{
+			for ( auto src : ready )
 				{
-				// Take advantage of the lull to get up to
-				// date on timers and events.
-				net_update_time(ct);
-				expire_timers();
-				usleep(1); // Just yield.
+				DBG_LOG(DBG_MAINLOOP, "processing source %s", src->Tag());
+				current_iosrc = src;
+				src->Process();
 				}
 			}
-
 		else if ( (have_pending_timers || communication_enabled ||
 		           BifConst::exit_only_after_terminate) &&
 			  ! pseudo_realtime )
@@ -334,40 +318,19 @@ void net_run()
 			// doesn't risk blocking on other inputs.
 			net_update_time(current_time());
 			expire_timers();
-
-			// Avoid busy-waiting - pause for 100 ms.
-			// We pick a sleep value of 100 msec that buys
-			// us a lot of idle time, but doesn't delay near-term
-			// timers too much.  (Delaying them somewhat is okay,
-			// since Bro timers are not high-precision anyway.)
-			if ( ! communication_enabled )
-				usleep(100000);
-			else
-				usleep(1000);
-
-			// Flawfinder says about usleep:
-			//
-			// This C routine is considered obsolete (as opposed
-			// to the shell command by the same name).   The
-			// interaction of this function with SIGALRM and
-			// other timer functions such as sleep(), alarm(),
-			// setitimer(), and nanosleep() is unspecified.
-			// Use nanosleep(2) or setitimer(2) instead.
 			}
 
 		mgr.Drain();
 
 		processing_start_time = 0.0;	// = "we're not processing now"
 		current_dispatched = 0;
-		current_iosrc = 0;
-
-		// Should we put the signal handling into an IOSource?
-		extern void termination_signal();
+		current_iosrc = nullptr;
 
 		if ( signal_val == SIGTERM || signal_val == SIGINT )
 			// We received a signal while processing the
 			// current packet and its related events.
-			termination_signal();
+			// Should we put the signal handling into an IOSource?
+			zeek_terminate_loop("received termination signal");
 
 		if ( ! reading_traces )
 			// Check whether we have timers scheduled for
@@ -378,18 +341,13 @@ void net_run()
 			{
 			auto have_active_packet_source = false;
 
-			for ( auto& ps : iosource_mgr->GetPktSrcs() )
-				{
-				if ( ps->IsOpen() )
-					{
-					have_active_packet_source = true;
-					break;
-					}
-				}
+			iosource::PktSrc* ps = iosource_mgr->GetPktSrc();
+			if ( ps && ps->IsOpen() )
+				have_active_packet_source = true;
 
 			if (  ! have_active_packet_source )
 				// Can turn off pseudo realtime now
-				pseudo_realtime = 0;
+				pseudo_realtime = 0.0;
 			}
 		}
 
@@ -402,20 +360,14 @@ void net_run()
 
 void net_get_final_stats()
 	{
-	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
-
-	for ( iosource::Manager::PktSrcList::const_iterator i = pkt_srcs.begin();
-	      i != pkt_srcs.end(); i++ )
+	iosource::PktSrc* ps = iosource_mgr->GetPktSrc();
+	if ( ps && ps->IsLive() )
 		{
-		iosource::PktSrc* ps = *i;
-
-		if ( ps->IsLive() )
-			{
-			iosource::PktSrc::Stats s;
-			ps->Statistics(&s);
-			reporter->Info("%" PRIu64 " packets received on interface %s, %" PRIu64 " dropped",
-					s.received, ps->Path().c_str(), s.dropped);
-			}
+		iosource::PktSrc::Stats s;
+		ps->Statistics(&s);
+		double dropped_pct = s.dropped > 0.0 ? ((double)s.dropped / ((double)s.received + (double)s.dropped)) * 100.0 : 0.0;
+		reporter->Info("%" PRIu64 " packets received on interface %s, %" PRIu64 " (%.2f%%) dropped",
+			s.received, ps->Path().c_str(), s.dropped, dropped_pct);
 		}
 	}
 
@@ -456,8 +408,6 @@ void net_delete()
 
 int _processing_suspended = 0;
 
-static double suspend_start = 0;
-
 void net_suspend_processing()
 	{
 	if ( _processing_suspended == 0 )
@@ -471,12 +421,8 @@ void net_continue_processing()
 	if ( _processing_suspended == 1 )
 		{
 		reporter->Info("processing continued");
-
-		const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
-
-		for ( iosource::Manager::PktSrcList::const_iterator i = pkt_srcs.begin();
-		      i != pkt_srcs.end(); i++ )
-			(*i)->ContinueAfterSuspend();
+		if ( iosource::PktSrc* ps = iosource_mgr->GetPktSrc() )
+			ps->ContinueAfterSuspend();
 		}
 
 	--_processing_suspended;

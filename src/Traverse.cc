@@ -2,6 +2,7 @@
 
 #include "Scope.h"
 #include "Traverse.h"
+#include "Stmt.h"
 #include "input.h"
 
 TraversalCode traverse_all(TraversalCallback* cb)

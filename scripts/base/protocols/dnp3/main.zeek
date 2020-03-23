@@ -63,7 +63,7 @@ event dnp3_application_response_header(c: connection, is_orig: bool, application
 	delete c$dnp3;
 	}
 
-event connection_state_remove(c: connection) &priority=-5
+event successful_connection_remove(c: connection) &priority=-5
 	{
 	if ( ! c?$dnp3 )
 		return;

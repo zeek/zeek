@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	loaded_scripts
-#open	2019-07-29-19-05-26
+#open	2019-10-15-01-48-24
 #fields	name
 #types	string
 scripts/base/init-bare.zeek
@@ -14,6 +14,8 @@ scripts/base/init-bare.zeek
   build/scripts/base/bif/reporter.bif.zeek
   build/scripts/base/bif/strings.bif.zeek
   build/scripts/base/bif/option.bif.zeek
+  scripts/base/frameworks/supervisor/api.zeek
+  build/scripts/base/bif/supervisor.bif.zeek
   build/scripts/base/bif/plugins/Zeek_SNMP.types.bif.zeek
   build/scripts/base/bif/plugins/Zeek_KRB.types.bif.zeek
   build/scripts/base/bif/event.bif.zeek
@@ -35,6 +37,9 @@ scripts/base/init-frameworks-and-bifs.zeek
       build/scripts/base/bif/data.bif.zeek
       build/scripts/base/bif/store.bif.zeek
     scripts/base/frameworks/broker/log.zeek
+  scripts/base/frameworks/supervisor/__load__.zeek
+    scripts/base/frameworks/supervisor/control.zeek
+    scripts/base/frameworks/supervisor/main.zeek
   scripts/base/frameworks/input/__load__.zeek
     scripts/base/frameworks/input/main.zeek
       build/scripts/base/bif/input.bif.zeek
@@ -154,6 +159,7 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_SteppingStone.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_Syslog.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_TCP.events.bif.zeek
+    build/scripts/base/bif/plugins/Zeek_TCP.types.bif.zeek
     build/scripts/base/bif/plugins/Zeek_TCP.functions.bif.zeek
     build/scripts/base/bif/plugins/Zeek_Teredo.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_UDP.events.bif.zeek
@@ -181,4 +187,4 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_SQLiteWriter.sqlite.bif.zeek
 scripts/policy/misc/loaded-scripts.zeek
   scripts/base/utils/paths.zeek
-#close	2019-07-29-19-05-26
+#close	2019-10-15-01-48-24

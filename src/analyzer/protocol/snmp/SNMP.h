@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_SNMP_SNMP_H
-#define ANALYZER_PROTOCOL_SNMP_SNMP_H
+#pragma once
 
 #include "snmp_pac.h"
 
@@ -16,7 +15,7 @@ public:
 
 	virtual void Done();
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-	                           uint64 seq, const IP_Hdr* ip, int caplen);
+	                           uint64_t seq, const IP_Hdr* ip, int caplen);
 
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
 		{ return new SNMP_Analyzer(conn); }
@@ -27,5 +26,3 @@ protected:
 };
 
 } } // namespace analyzer::*
-
-#endif

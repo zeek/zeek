@@ -9,6 +9,7 @@
 @load base/utils/paths
 @load base/utils/numbers
 @load base/utils/addrs
+@load base/frameworks/cluster
 
 module FTP;
 
@@ -76,6 +77,17 @@ const directory_cmds = {
 	["XPWD", 257],
 };
 
+function ftp_relay_topic(): string
+	{
+	local rval = Cluster::rr_topic(Cluster::proxy_pool, "ftp_transfer_rr_key");
+
+	if ( rval == "" )
+		# No proxy is alive, so relay via manager instead.
+		return Cluster::manager_topic;
+
+	return rval;
+	}
+
 function parse_ftp_reply_code(code: count): ReplyCode
 	{
 	local a: ReplyCode;
@@ -137,6 +149,29 @@ function ftp_message(s: Info)
 	delete s$data_channel;
 	}
 
+event sync_add_expected_data(s: Info, chan: ExpectedDataChannel)
+	{
+@if ( Cluster::local_node_type() == Cluster::PROXY ||
+      Cluster::local_node_type() == Cluster::MANAGER )
+	Broker::publish(Cluster::worker_topic, sync_add_expected_data, s, chan);
+@else
+	ftp_data_expected[chan$resp_h, chan$resp_p] = s;
+	Analyzer::schedule_analyzer(chan$orig_h, chan$resp_h, chan$resp_p,
+	                            Analyzer::ANALYZER_FTP_DATA,
+	                            5mins);
+@endif
+	}
+
+event sync_remove_expected_data(resp_h: addr, resp_p: port)
+	{
+@if ( Cluster::local_node_type() == Cluster::PROXY ||
+      Cluster::local_node_type() == Cluster::MANAGER )
+	Broker::publish(Cluster::worker_topic, sync_remove_expected_data, resp_h, resp_p);
+@else
+	delete ftp_data_expected[resp_h, resp_p];
+@endif
+	}
+
 function add_expected_data_channel(s: Info, chan: ExpectedDataChannel)
 	{
 	s$passive = chan$passive;
@@ -145,6 +180,9 @@ function add_expected_data_channel(s: Info, chan: ExpectedDataChannel)
 	Analyzer::schedule_analyzer(chan$orig_h, chan$resp_h, chan$resp_p,
 	                            Analyzer::ANALYZER_FTP_DATA,
 	                            5mins);
+@if ( Cluster::is_enabled() )
+	Broker::publish(ftp_relay_topic(), sync_add_expected_data, s, chan);
+@endif
 	}
 
 event ftp_request(c: connection, command: string, arg: string) &priority=5
@@ -284,14 +322,20 @@ event connection_reused(c: connection) &priority=5
 		c$ftp_data_reuse = T;
 	}
 
-event connection_state_remove(c: connection) &priority=-5
+event successful_connection_remove(c: connection) &priority=-5
 	{
 	if ( c$ftp_data_reuse ) return;
-	delete ftp_data_expected[c$id$resp_h, c$id$resp_p];
+	if ( [c$id$resp_h, c$id$resp_p] in ftp_data_expected )
+		{
+		delete ftp_data_expected[c$id$resp_h, c$id$resp_p];
+@if ( Cluster::is_enabled() )
+		Broker::publish(ftp_relay_topic(), sync_remove_expected_data, c$id$resp_h, c$id$resp_p);
+@endif
+		}
 	}
 
-# Use state remove event to cover connections terminated by RST.
-event connection_state_remove(c: connection) &priority=-5
+# Use remove event to cover connections terminated by RST.
+event successful_connection_remove(c: connection) &priority=-5
 	{
 	if ( ! c?$ftp ) return;
 

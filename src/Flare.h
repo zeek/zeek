@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef BRO_FLARE_H
-#define BRO_FLARE_H
+#pragma once
 
 #include "Pipe.h"
 
@@ -27,18 +26,22 @@ public:
 
 	/**
 	 * Put the object in the "ready" state.
+	 * @param signal_safe  whether to skip error-reporting functionality that
+	 * is not async-signal-safe (errors still abort the process regardless)
 	 */
-	void Fire();
+	void Fire(bool signal_safe = false);
 
 	/**
 	 * Take the object out of the "ready" state.
+	 * @param signal_safe  whether to skip error-reporting functionality that
+	 * is not async-signal-safe (errors still abort the process regardless)
+	 * @return number of bytes read from the pipe, corresponds to the number
+	 * of times Fire() was called.
 	 */
-	void Extinguish();
+	int Extinguish(bool signal_safe = false);
 
 private:
 	Pipe pipe;
 };
 
 } // namespace bro
-
-#endif // BRO_FLARE_H

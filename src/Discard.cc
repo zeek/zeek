@@ -1,12 +1,18 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <algorithm>
-
 #include "zeek-config.h"
 
-#include "Net.h"
-#include "Var.h"
 #include "Discard.h"
+
+#include <algorithm>
+
+#include "BroString.h"
+#include "Net.h"
+#include "Func.h"
+#include "Var.h"
+#include "Val.h"
+#include "IP.h"
+#include "Reporter.h" // for InterpreterException
 
 Discarder::Discarder()
 	{

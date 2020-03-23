@@ -1,5 +1,4 @@
-#ifndef ANALYZER_PROTOCOL_TCP_TCP_REASSEMBLER_H
-#define ANALYZER_PROTOCOL_TCP_TCP_REASSEMBLER_H
+#pragma once
 
 #include "Reassem.h"
 #include "TCP_Endpoint.h"
@@ -8,7 +7,11 @@
 class BroFile;
 class Connection;
 
-namespace analyzer { namespace tcp {
+namespace analyzer {
+
+class Analyzer;
+
+namespace tcp {
 
 class TCP_Analyzer;
 
@@ -39,31 +42,27 @@ public:
 	//
 	// If we're not processing contents, then naturally each of
 	// these is empty.
-	void SizeBufferedData(uint64& waiting_on_hole, uint64& waiting_on_ack) const;
+	//
+	// WARNING: this is an O(n) operation and potentially very slow.
+	void SizeBufferedData(uint64_t& waiting_on_hole, uint64_t& waiting_on_ack) const;
 
 	// How much data is pending delivery since it's not yet reassembled.
 	// Includes the data due to holes (so this value is a bit different
 	// from waiting_on_hole above; and is computed in a different fashion).
-	uint64 NumUndeliveredBytes() const
-		{
-		if ( last_block )
-			return last_block->upper - last_reassem_seq;
-		else
-			return 0;
-		}
+	uint64_t NumUndeliveredBytes() const;
 
 	void SetContentsFile(BroFile* f);
 	BroFile* GetContentsFile() const	{ return record_contents_file; }
 
-	void MatchUndelivered(uint64 up_to_seq, bool use_last_upper);
+	void MatchUndelivered(uint64_t up_to_seq, bool use_last_upper);
 
 	// Skip up to seq, as if there's a content gap.
 	// Can be used to skip HTTP data for performance considerations.
-	void SkipToSeq(uint64 seq);
+	void SkipToSeq(uint64_t seq);
 
-	int DataSent(double t, uint64 seq, int len, const u_char* data,
+	int DataSent(double t, uint64_t seq, int len, const u_char* data,
 		     analyzer::tcp::TCP_Flags flags, bool replaying=true);
-	void AckReceived(uint64 seq);
+	void AckReceived(uint64_t seq);
 
 	// Checks if we have delivered all contents that we can possibly
 	// deliver for this endpoint.  Calls TCP_Analyzer::EndpointEOF()
@@ -73,40 +72,40 @@ public:
 	int HasUndeliveredData() const	{ return HasBlocks(); }
 	int HadGap() const	{ return had_gap; }
 	int DataPending() const;
-	uint64 DataSeq() const		{ return LastReassemSeq(); }
+	uint64_t DataSeq() const		{ return LastReassemSeq(); }
 
-	void DeliverBlock(uint64 seq, int len, const u_char* data);
-	virtual void Deliver(uint64 seq, int len, const u_char* data);
+	void DeliverBlock(uint64_t seq, int len, const u_char* data);
+	virtual void Deliver(uint64_t seq, int len, const u_char* data);
 
 	TCP_Endpoint* Endpoint()		{ return endp; }
 	const TCP_Endpoint* Endpoint() const	{ return endp; }
 
 	int IsOrig() const	{ return endp->IsOrig(); }
 
-	bool IsSkippedContents(uint64 seq, int length) const
+	bool IsSkippedContents(uint64_t seq, int length) const
 		{ return seq + length <= seq_to_skip; }
 
 private:
 	TCP_Reassembler()	{ }
 
-	void Undelivered(uint64 up_to_seq) override;
-	void Gap(uint64 seq, uint64 len);
+	void Undelivered(uint64_t up_to_seq) override;
+	void Gap(uint64_t seq, uint64_t len);
 
-	void RecordToSeq(uint64 start_seq, uint64 stop_seq, BroFile* f);
-	void RecordBlock(DataBlock* b, BroFile* f);
-	void RecordGap(uint64 start_seq, uint64 upper_seq, BroFile* f);
+	void RecordToSeq(uint64_t start_seq, uint64_t stop_seq, BroFile* f);
+	void RecordBlock(const DataBlock& b, BroFile* f);
+	void RecordGap(uint64_t start_seq, uint64_t upper_seq, BroFile* f);
 
-	void BlockInserted(DataBlock* b) override;
-	void Overlap(const u_char* b1, const u_char* b2, uint64 n) override;
+	void BlockInserted(DataBlockMap::const_iterator it) override;
+	void Overlap(const u_char* b1, const u_char* b2, uint64_t n) override;
 
 	TCP_Endpoint* endp;
 
-	unsigned int deliver_tcp_contents:1;
-	unsigned int had_gap:1;
-	unsigned int did_EOF:1;
-	unsigned int skip_deliveries:1;
+	bool deliver_tcp_contents;
+	bool had_gap;
+	bool did_EOF;
+	bool skip_deliveries;
 
-	uint64 seq_to_skip;
+	uint64_t seq_to_skip;
 
 	bool in_delivery;
 	analyzer::tcp::TCP_Flags flags;
@@ -119,6 +118,4 @@ private:
 	Type type;
 };
 
-} } // namespace analyzer::* 
-
-#endif
+} } // namespace analyzer::*

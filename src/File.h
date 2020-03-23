@@ -1,27 +1,29 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef file_h
-#define file_h
+#pragma once
 
-#include <fcntl.h>
-#include "util.h"
 #include "Obj.h"
-#include "Attr.h"
+#include "IntrusivePtr.h"
 
 #include <list>
+#include <string>
 #include <utility>
+
+#include <fcntl.h>
 
 # ifdef NEED_KRB5_H
 #  include <krb5.h>
 # endif // NEED_KRB5_H
 
+class Attributes;
 class BroType;
+class RecordVal;
 
 class BroFile : public BroObj {
 public:
 	explicit BroFile(FILE* arg_f);
 	BroFile(FILE* arg_f, const char* filename, const char* access);
-	BroFile(const char* filename, const char* access, BroType* arg_t = 0);
+	BroFile(const char* filename, const char* access);
 	~BroFile() override;
 
 	const char* Name() const;
@@ -35,7 +37,7 @@ public:
 
 	void SetBuf(bool buffered);	// false=line buffered, true=fully buffered
 
-	BroType* FType() const	{ return t; }
+	BroType* FType() const	{ return t.get(); }
 
 	// Whether the file is open in a general sense; it might
 	// not be open as a Unix file due to our management of
@@ -67,6 +69,9 @@ public:
 	bool IsRawOutput() const	{ return raw_output; }
 
 protected:
+
+	friend class PrintStmt;
+
 	BroFile()	{ Init(); }
 	void Init();
 
@@ -81,14 +86,15 @@ protected:
 
 	// Returns nil if the file is not active, was in error, etc.
 	// (Protected because we do not want anyone to write directly
-	// to the file.)
+	// to the file, but the PrintStmt friend uses this to check whether
+	// it's really stdout.)
 	FILE* File();
 
 	// Raises a file_opened event.
 	void RaiseOpenEvent();
 
 	FILE* f;
-	BroType* t;
+	IntrusivePtr<BroType> t;
 	char* name;
 	char* access;
 	int is_open;	// whether the file is open in a general sense
@@ -102,5 +108,3 @@ protected:
 private:
 	static std::list<std::pair<std::string, BroFile*>> open_files;
 };
-
-#endif

@@ -2,14 +2,14 @@
 //
 // Log writer for SQLITE logs.
 
-#ifndef LOGGING_WRITER_SQLITE_H
-#define LOGGING_WRITER_SQLITE_H
+#pragma once
 
 #include "zeek-config.h"
 
 #include "logging/WriterBackend.h"
 #include "threading/formatters/Ascii.h"
 #include "3rdparty/sqlite3.h"
+#include "Desc.h"
 
 namespace logging { namespace writer {
 
@@ -54,6 +54,3 @@ private:
 
 }
 }
-
-#endif /* LOGGING_WRITER_SQLITE_H */
-

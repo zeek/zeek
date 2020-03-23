@@ -5,7 +5,9 @@
 #include <vector>
 #include "IPAddr.h"
 #include "Reporter.h"
+#include "BroString.h"
 #include "Conn.h"
+#include "Hash.h"
 #include "bro_inet_ntop.h"
 
 #include "analyzer/Manager.h"
@@ -14,14 +16,13 @@ const uint8_t IPAddr::v4_mapped_prefix[12] = { 0, 0, 0, 0,
                                                0, 0, 0, 0,
                                                0, 0, 0xff, 0xff };
 
-HashKey* BuildConnIDHashKey(const ConnID& id)
+const IPAddr IPAddr::v4_unspecified = IPAddr(in4_addr{});
+
+const IPAddr IPAddr::v6_unspecified = IPAddr();
+
+ConnIDKey BuildConnIDKey(const ConnID& id)
 	{
-	struct {
-		in6_addr ip1;
-		in6_addr ip2;
-		uint16 port1;
-		uint16 port2;
-	} key;
+	ConnIDKey key;
 
 	// Lookup up connection based on canonical ordering, which is
 	// the smaller of <src addr, src port> and <dst addr, dst port>
@@ -43,7 +44,17 @@ HashKey* BuildConnIDHashKey(const ConnID& id)
 		key.port2 = id.src_port;
 		}
 
-	return new HashKey(&key, sizeof(key));
+	return key;
+	}
+
+IPAddr::IPAddr(const BroString& s)
+	{
+	Init(s.CheckString());
+	}
+
+HashKey* IPAddr::GetHashKey() const
+	{
+	return new HashKey((void*)in6.s6_addr, sizeof(in6.s6_addr));
 	}
 
 static inline uint32_t bit_mask32(int bottom_bits)
@@ -206,7 +217,7 @@ string IPAddr::PtrName() const
 
 		for ( unsigned int i = 0; i < 4; ++i )
 			{
-			uint32 a = ntohl(p[i]);
+			uint32_t a = ntohl(p[i]);
 			for ( unsigned int j = 1; j <=8; ++j )
 				{
 				ptr_name.insert(0, 1, '.');
@@ -289,6 +300,19 @@ string IPPrefix::AsString() const
 		modp_uitoa10(length, l);
 
 	return prefix.AsString() +"/" + l;
+	}
+
+HashKey* IPPrefix::GetHashKey() const
+	{
+	struct {
+		in6_addr ip;
+		uint32_t len;
+	} key;
+
+	key.ip = prefix.in6;
+	key.len = Length();
+
+	return new HashKey(&key, sizeof(key));
 	}
 
 bool IPPrefix::ConvertString(const char* text, IPPrefix* result)

@@ -109,16 +109,16 @@ function Broker::__peers%(%): PeerInfos
 
 		if ( n )
 			{
-			network_info->Assign(0, new AddrVal(IPAddr(n->address)));
+			network_info->Assign(0, make_intrusive<AddrVal>(IPAddr(n->address)));
 			network_info->Assign(1, val_mgr->GetPort(n->port, TRANSPORT_TCP));
 			}
 		else
 			{
-			network_info->Assign(0, new AddrVal("0.0.0.0"));
+			network_info->Assign(0, make_intrusive<AddrVal>("0.0.0.0"));
 			network_info->Assign(1, val_mgr->GetPort(0, TRANSPORT_TCP));
 			}
 
-		endpoint_info->Assign(0, new StringVal(to_string(p.peer.node)));
+		endpoint_info->Assign(0, make_intrusive<StringVal>(to_string(p.peer.node)));
 		endpoint_info->Assign(1, network_info);
 
 		auto ps = (BifEnum::Broker::PeerStatus)p.status;

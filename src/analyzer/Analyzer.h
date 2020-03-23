@@ -1,9 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_ANALYZER_H
-#define ANALYZER_ANALYZER_H
-
-#include <list>
+#pragma once
 
 #include "Tag.h"
 
@@ -11,6 +8,15 @@
 #include "../EventHandler.h"
 #include "../Timer.h"
 
+#include <list>
+#include <vector>
+
+#include <sys/types.h> // for u_char
+
+using std::list;
+using std::string;
+
+class BroFile;
 class Rule;
 class Connection;
 class IP_Hdr;
@@ -26,7 +32,7 @@ class SupportAnalyzer;
 class OutputHandler;
 
 typedef list<Analyzer*> analyzer_list;
-typedef uint32 ID;
+typedef uint32_t ID;
 typedef void (Analyzer::*analyzer_timer_func)(double t);
 
 /**
@@ -44,7 +50,7 @@ public:
 	 * Analyzer::DeliverPacket().
 	 */
 	virtual void DeliverPacket(int len, const u_char* data,
-				   bool orig, uint64 seq,
+				   bool orig, uint64_t seq,
 				   const IP_Hdr* ip, int caplen)
 		{ }
 
@@ -59,7 +65,7 @@ public:
 	 * Hook for receiving notification of stream gaps. Parameters are the
 	 * same as for Analyzer::Undelivered().
 	 */
-	virtual void Undelivered(uint64 seq, int len, bool orig)	{ }
+	virtual void Undelivered(uint64_t seq, int len, bool orig)	{ }
 };
 
 /**
@@ -143,7 +149,7 @@ public:
 	 * @param caplen The packet's capture length, if available.
 	 */
 	void NextPacket(int len, const u_char* data, bool is_orig,
-			uint64 seq = -1, const IP_Hdr* ip = 0, int caplen = 0);
+			uint64_t seq = -1, const IP_Hdr* ip = 0, int caplen = 0);
 
 	/**
 	 * Passes stream input to the analyzer for processing. The analyzer
@@ -173,7 +179,7 @@ public:
 	 *
 	 * @param is_orig True if this is about originator-side input.
 	 */
-	void NextUndelivered(uint64 seq, int len, bool is_orig);
+	void NextUndelivered(uint64_t seq, int len, bool is_orig);
 
 	/**
 	 * Reports a message boundary.  This is a generic method that can be
@@ -195,7 +201,7 @@ public:
 	 * Parameters are the same as for NextPacket().
 	 */
 	virtual void ForwardPacket(int len, const u_char* data,
-					bool orig, uint64 seq,
+					bool orig, uint64_t seq,
 					const IP_Hdr* ip, int caplen);
 
 	/**
@@ -212,7 +218,7 @@ public:
 	 *
 	 * Parameters are the same as for NextUndelivered().
 	 */
-	virtual void ForwardUndelivered(uint64 seq, int len, bool orig);
+	virtual void ForwardUndelivered(uint64_t seq, int len, bool orig);
 
 	/**
 	 * Forwards an end-of-data notification on to all child analyzers.
@@ -227,7 +233,7 @@ public:
 	 * Parameters are the same.
 	 */
 	virtual void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen);
+					uint64_t seq, const IP_Hdr* ip, int caplen);
 
 	/**
 	 * Hook for accessing stream input for parsing. This is called by
@@ -241,7 +247,7 @@ public:
 	 * NextUndelivered() and can be overridden by derived classes.
 	 * Parameters are the same.
 	 */
-	virtual void Undelivered(uint64 seq, int len, bool orig);
+	virtual void Undelivered(uint64_t seq, int len, bool orig);
 
 	/**
 	 * Hook for accessing end-of-data notifications. This is called by
@@ -319,6 +325,12 @@ public:
 	bool IsFinished() const 		{ return finished; }
 
 	/**
+	 * Returns true if the analyzer has been flagged for removal and
+	 * shouldn't be used anymore.
+	 */
+	bool Removing() const	{ return removing; }
+
+	/**
 	 * Returns the tag associated with the analyzer's type.
 	 */
 	Tag GetAnalyzerTag() const		{ assert(tag); return tag; }
@@ -349,40 +361,54 @@ public:
 
 	/**
 	 * Adds a new child analyzer to the analyzer tree. If an analyzer of
-	 * the same type already exists, the one passes in is silenty
-	 * discarded.
+	 * the same type already exists or is prevented, the one passed in is
+	 * silently discarded.
 	 *
 	 * @param analyzer The ananlyzer to add. Takes ownership.
-	 * @return false if analyzer type was already a child, else true.
+	 * @return false if analyzer type was already a child or prevented, else true.
 	 */
 	bool AddChildAnalyzer(Analyzer* analyzer)
 		{ return AddChildAnalyzer(analyzer, true); }
 
 	/**
 	 * Adds a new child analyzer to the analyzer tree. If an analyzer of
-	 * the same type already exists, the one passes in is silenty
-	 * discarded.
+	 * the same type already exists or is prevented, the one passed in is
+	 * silently discarded.
 	 *
 	 * @param tag The type of analyzer to add.
 	 * @return the new analyzer instance that was added.
 	 */
-	Analyzer* AddChildAnalyzer(Tag tag);
+	Analyzer* AddChildAnalyzer(const Tag& tag);
 
 	/**
 	 * Removes a child analyzer. It's ok for the analyzer to not to be a
 	 * child, in which case the method does nothing.
 	 *
 	 * @param analyzer The analyzer to remove.
+	 *
+	 * @return whether the child analyzer is scheduled for removal
+	 * (and was not before).
 	 */
-	void RemoveChildAnalyzer(Analyzer* analyzer);
+	bool RemoveChildAnalyzer(Analyzer* analyzer)
+		{ return RemoveChildAnalyzer(analyzer->GetID()); }
 
 	/**
 	 * Removes a child analyzer. It's ok for the analyzer to not to be a
 	 * child, in which case the method does nothing.
 	 *
-	 * @param tag The type of analyzer to remove.
+	 * @param id The type of analyzer to remove.
+	 *
+	 * @return whether the child analyzer is scheduled for removal
+	 * (and was not before).
 	 */
-	void RemoveChildAnalyzer(ID id);
+	virtual bool RemoveChildAnalyzer(ID id);
+
+	/**
+	 * Prevents an analyzer type from ever being added as a child.
+	 *
+	 * @param tag The type of analyzer to prevent.
+	 */
+	void PreventChildren(Tag tag);
 
 	/**
 	 * Returns true if analyzer has a direct child of a given type.
@@ -450,8 +476,10 @@ public:
 	/**
 	 * Remove the analyzer form its parent. The analyzer must have a
 	 * parent associated with it.
+	 *
+	 * @return whether the analyzer is being removed
 	 */
-	void Remove()	{ assert(parent); parent->RemoveChildAnalyzer(this); }
+	bool Remove();
 
 	/**
 	 * Appends a support analyzer to the current list.
@@ -571,6 +599,13 @@ protected:
 	friend class tcp::TCP_ApplicationAnalyzer;
 
 	/**
+	 * Return a string represantation of an analyzer, containing its name
+	 * and ID.
+	 */
+	static string fmt_analyzer(const Analyzer* a)
+		{ return string(a->GetAnalyzerName()) + fmt("[%d]", a->GetID()); }
+
+	/**
 	 * Associates a connection with this analyzer.  Must be called if
 	 * using the default ctor.
 	 *
@@ -612,7 +647,7 @@ protected:
 	 *
 	 * @param orig True if asking about the originator side.
 	 */
-	bool HasSupportAnalyzer(Tag tag, bool orig);
+	bool HasSupportAnalyzer(const Tag& tag, bool orig);
 
 	/**
 	 * Returns the first still active support analyzer for the given
@@ -644,10 +679,10 @@ protected:
 	void AppendNewChildren();
 
 	/**
-	 * Returns true if the analyzer has been flagged for removal and
-	 * shouldn't be used otherwise anymore.
+	 * Returns true if the child analyzer is now scheduled to be
+	 * removed (and was not before)
 	 */
-	bool Removing() const	{ return removing; }
+	bool RemoveChild(const analyzer_list& children, ID id);
 
 private:
 	// Internal method to eventually delete a child analyzer that's
@@ -670,6 +705,7 @@ private:
 	SupportAnalyzer* resp_supporters;
 
 	analyzer_list new_children;
+	std::vector<Tag> prevented;
 
 	bool protocol_confirmed;
 
@@ -768,7 +804,7 @@ public:
 	* Parameters same as for Analyzer::ForwardPacket.
 	*/
 	void ForwardPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
 	/**
 	* Passes stream input to the next sibling SupportAnalyzer if any, or
@@ -788,7 +824,7 @@ public:
 	*
 	* Parameters same as for Analyzer::ForwardPacket.
 	*/
-	void ForwardUndelivered(uint64 seq, int len, bool orig) override;
+	void ForwardUndelivered(uint64_t seq, int len, bool orig) override;
 
 protected:
 	friend class Analyzer;
@@ -887,5 +923,3 @@ private:
 };
 
 }
-
-#endif

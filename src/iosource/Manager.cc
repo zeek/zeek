@@ -1,17 +1,20 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <sys/types.h>
+#include <sys/event.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <assert.h>
 
-#include <algorithm>
-
 #include "Manager.h"
+#include "Component.h"
 #include "IOSource.h"
+#include "Net.h"
 #include "PktSrc.h"
 #include "PktDumper.h"
 #include "plugin/Manager.h"
+#include "broker/Manager.h"
+#include "NetVar.h"
 
 #include "util.h"
 
@@ -19,13 +22,49 @@
 
 using namespace iosource;
 
+Manager::WakeupHandler::WakeupHandler()
+	{
+	if ( ! iosource_mgr->RegisterFd(flare.FD(), this) )
+		reporter->FatalError("Failed to register WakeupHandler's fd with iosource_mgr");
+	}
+
+Manager::WakeupHandler::~WakeupHandler()
+	{
+	iosource_mgr->UnregisterFd(flare.FD(), this);
+	}
+
+void Manager::WakeupHandler::Process()
+	{
+	flare.Extinguish();
+	}
+
+void Manager::WakeupHandler::Ping(const std::string& where)
+	{
+	DBG_LOG(DBG_MAINLOOP, "Pinging WakeupHandler from %s", where.c_str());
+	flare.Fire();
+	}
+
+Manager::Manager()
+	{
+	event_queue = kqueue();
+	if ( event_queue == -1 )
+		reporter->FatalError("Failed to initialize kqueue: %s", strerror(errno));
+	}
+
 Manager::~Manager()
 	{
+	delete wakeup;
+	wakeup = nullptr;
+
 	for ( SourceList::iterator i = sources.begin(); i != sources.end(); ++i )
 		{
-		(*i)->src->Done();
-		delete (*i)->src;
-		delete *i;
+		auto src = *i;
+		src->src->Done();
+
+		if ( src->manage_lifetime )
+			delete src->src;
+
+		delete src;
 		}
 
 	sources.clear();
@@ -37,6 +76,14 @@ Manager::~Manager()
 		}
 
 	pkt_dumpers.clear();
+
+	if ( event_queue != -1 )
+		close(event_queue);
+	}
+
+void Manager::InitPostScript()
+	{
+	wakeup = new WakeupHandler();
 	}
 
 void Manager::RemoveAll()
@@ -45,12 +92,19 @@ void Manager::RemoveAll()
 	dont_counts = sources.size();
 	}
 
-IOSource* Manager::FindSoonest(double* ts)
+void Manager::Wakeup(const std::string& where)
 	{
+	if ( wakeup )
+		wakeup->Ping(where);
+	}
+
+void Manager::FindReadySources(std::vector<IOSource*>* ready)
+	{
+	ready->clear();
+
 	// Remove sources which have gone dry. For simplicity, we only
 	// remove at most one each time.
-	for ( SourceList::iterator i = sources.begin();
-	      i != sources.end(); ++i )
+	for ( SourceList::iterator i = sources.begin(); i != sources.end(); ++i )
 		if ( ! (*i)->src->IsOpen() )
 			{
 			(*i)->src->Done();
@@ -59,135 +113,162 @@ IOSource* Manager::FindSoonest(double* ts)
 			break;
 			}
 
-	// Ideally, we would always call select on the fds to see which
-	// are ready, and return the soonest. Unfortunately, that'd mean
-	// one select-call per packet, which we can't afford in high-volume
-	// environments.  Thus, we call select only every SELECT_FREQUENCY
-	// call (or if all sources report that they are dry).
+	// If there aren't any sources and exit_only_after_terminate is false, just
+	// return an empty set of sources. We want the main loop to end.
+	if ( Size() == 0 && ( ! BifConst::exit_only_after_terminate || terminating ) )
+		return;
 
-	++call_count;
+	double timeout = -1;
+	IOSource* timeout_src = nullptr;
+	bool time_to_poll = false;
 
-	IOSource* soonest_src = 0;
-	double soonest_ts = 1e20;
-	double soonest_local_network_time = 1e20;
-	bool all_idle = true;
-
-	// Find soonest source of those which tell us they have something to
-	// process.
-	for ( SourceList::iterator i = sources.begin(); i != sources.end(); ++i )
+	++poll_counter;
+	if ( poll_counter % poll_interval == 0 )
 		{
-		if ( ! (*i)->src->IsIdle() )
+		poll_counter = 0;
+		time_to_poll = true;
+		}
+
+	// Find the source with the next timeout value.
+	for ( auto src : sources )
+		{
+		auto iosource = src->src;
+		if ( iosource->IsOpen() )
 			{
-			all_idle = false;
-			double local_network_time = 0;
-			double ts = (*i)->src->NextTimestamp(&local_network_time);
-			if ( ts >= 0 && ts < soonest_ts )
+			double next = iosource->GetNextTimeout();
+			if ( timeout == -1 || ( next >= 0.0 && next < timeout ) )
 				{
-				soonest_ts = ts;
-				soonest_src = (*i)->src;
-				soonest_local_network_time =
-					local_network_time ?
-						local_network_time : ts;
+				timeout = next;
+				timeout_src = iosource;
+
+				// If a source has a zero timeout then it's ready. Just add it to the
+				// list already. Only do this if it's not time to poll though, since
+				// we don't want things in the vector passed into Poll() or it'll end
+				// up inserting duplicates.
+				if ( timeout == 0 && ! time_to_poll )
+					ready->push_back(timeout_src);
 				}
+
+			// Avoid calling Poll() if we can help it since on very high-traffic
+			// networks, we spend too much time in Poll() and end up dropping packets.
+			if ( ! time_to_poll && iosource == pkt_src && pkt_src->IsLive() )
+				ready->push_back(pkt_src);
 			}
 		}
 
-	// If we found one and aren't going to select this time,
-	// return it.
-	int maxx = 0;
+	DBG_LOG(DBG_MAINLOOP, "timeout: %f   ready size: %zu   time_to_poll: %d\n",
+		timeout, ready->size(), time_to_poll);
 
-	if ( soonest_src && (call_count % SELECT_FREQUENCY) != 0 )
-		goto finished;
-
-	// Select on the join of all file descriptors.
-	fd_set fd_read, fd_write, fd_except;
-
-	FD_ZERO(&fd_read);
-	FD_ZERO(&fd_write);
-	FD_ZERO(&fd_except);
-
-	for ( SourceList::iterator i = sources.begin();
-	      i != sources.end(); ++i )
-		{
-		Source* src = (*i);
-
-		if ( ! src->src->IsIdle() )
-			// No need to select on sources which we know to
-			// be ready.
-			continue;
-
-		src->Clear();
-		src->src->GetFds(&src->fd_read, &src->fd_write, &src->fd_except);
-		src->SetFds(&fd_read, &fd_write, &fd_except, &maxx);
-		}
-
-	// We can't block indefinitely even when all sources are dry:
-	// we're doing some IOSource-independent stuff in the main loop,
-	// so we need to return from time to time. (Instead of no time-out
-	// at all, we use a very small one. This lets FreeBSD trigger a
-	// BPF buffer switch on the next read when the hold buffer is empty
-	// while the store buffer isn't filled yet.
-
-	struct timeval timeout;
-
-	if ( all_idle )
-		{
-		// Interesting: when all sources are dry, simply sleeping a
-		// bit *without* watching for any fd becoming ready may
-		// decrease CPU load. I guess that's because it allows
-		// the kernel's packet buffers to fill. - Robin
-		timeout.tv_sec = 0;
-		timeout.tv_usec = 20; // SELECT_TIMEOUT;
-		select(0, 0, 0, 0, &timeout);
-		}
-
-	if ( ! maxx )
-		// No selectable fd at all.
-		goto finished;
-
-	timeout.tv_sec = 0;
-	timeout.tv_usec = 0;
-
-	if ( select(maxx + 1, &fd_read, &fd_write, &fd_except, &timeout) > 0 )
-		{ // Find soonest.
-		for ( SourceList::iterator i = sources.begin();
-		      i != sources.end(); ++i )
-			{
-			Source* src = (*i);
-
-			if ( ! src->src->IsIdle() )
-				continue;
-
-			if ( src->Ready(&fd_read, &fd_write, &fd_except) )
-				{
-				double local_network_time = 0;
-				double ts = src->src->NextTimestamp(&local_network_time);
-				if ( ts >= 0.0 && ts < soonest_ts )
-					{
-					soonest_ts = ts;
-					soonest_src = src->src;
-					soonest_local_network_time =
-						local_network_time ?
-							local_network_time : ts;
-					}
-				}
-			}
-		}
-
-finished:
-	*ts = soonest_local_network_time;
-	return soonest_src;
+	// If we didn't find any IOSources with zero timeouts or it's time to
+	// force a poll, do that and return. Otherwise return the set of ready
+	// sources that we have.
+	if ( ready->empty() || time_to_poll )
+		Poll(ready, timeout, timeout_src);
 	}
 
-void Manager::Register(IOSource* src, bool dont_count)
+void Manager::Poll(std::vector<IOSource*>* ready, double timeout, IOSource* timeout_src)
+	{
+	struct timespec kqueue_timeout;
+	ConvertTimeout(timeout, kqueue_timeout);
+
+	int ret = kevent(event_queue, NULL, 0, events.data(), events.size(), &kqueue_timeout);
+	if ( ret == -1 )
+		{
+		// Ignore interrupts since we may catch one during shutdown and we don't want the
+		// error to get printed.
+		if ( errno != EINTR )
+			reporter->InternalWarning("Error calling kevent: %s", strerror(errno));
+		}
+	else if ( ret == 0 )
+		{
+		if ( timeout_src )
+			ready->push_back(timeout_src);
+		}
+	else
+		{
+		// kevent returns the number of events that are ready, so we only need to loop
+		// over that many of them.
+		for ( int i = 0; i < ret; i++ )
+			{
+			if ( events[i].filter == EVFILT_READ )
+				{
+				std::map<int, IOSource*>::const_iterator it = fd_map.find(events[i].ident);
+				if ( it != fd_map.end() )
+					ready->push_back(it->second);
+				}
+			}
+		}
+	}
+
+void Manager::ConvertTimeout(double timeout, struct timespec& spec)
+	{
+	// If timeout ended up -1, set it to some nominal value just to keep the loop
+	// from blocking forever. This is the case of exit_only_after_terminate when
+	// there isn't anything else going on.
+	if ( timeout < 0 )
+		{
+		spec.tv_sec = 0;
+		spec.tv_nsec = 1e8;
+		}
+	else
+		{
+		spec.tv_sec = static_cast<time_t>(timeout);
+		spec.tv_nsec = static_cast<long>((timeout - spec.tv_sec) * 1e9);
+		}
+	}
+
+bool Manager::RegisterFd(int fd, IOSource* src)
+	{
+	struct kevent event;
+	EV_SET(&event, fd, EVFILT_READ, EV_ADD, 0, 0, NULL);
+	int ret = kevent(event_queue, &event, 1, NULL, 0, NULL);
+	if ( ret != -1 )
+		{
+		events.push_back({});
+		DBG_LOG(DBG_MAINLOOP, "Registered fd %d from %s", fd, src->Tag());
+		fd_map[fd] = src;
+
+		Wakeup("RegisterFd");
+		return true;
+		}
+	else
+		{
+		reporter->Error("Failed to register fd %d from %s: %s", fd, src->Tag(), strerror(errno));
+		return false;
+		}
+	}
+
+bool Manager::UnregisterFd(int fd, IOSource* src)
+	{
+	if ( fd_map.find(fd) != fd_map.end() )
+		{
+		struct kevent event;
+		EV_SET(&event, fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+		int ret = kevent(event_queue, &event, 1, NULL, 0, NULL);
+		if ( ret != -1 )
+			DBG_LOG(DBG_MAINLOOP, "Unregistered fd %d from %s", fd, src->Tag());
+
+		fd_map.erase(fd);
+
+		Wakeup("UnregisterFd");
+		return true;
+		}
+	else
+		{
+		reporter->Error("Attempted to unregister an unknown file descriptor %d from %s", fd, src->Tag());
+		return false;
+		}
+	}
+
+void Manager::Register(IOSource* src, bool dont_count, bool manage_lifetime)
 	{
 	// First see if we already have registered that source. If so, just
 	// adjust dont_count.
-	for ( SourceList::iterator i = sources.begin(); i != sources.end(); ++i )
+	for ( const auto& iosrc : sources )
 		{
-		if ( (*i)->src == src )
+		if ( iosrc->src == src )
 			{
-			if ( (*i)->dont_count != dont_count )
+			if ( iosrc->dont_count != dont_count )
 				// Adjust the global counter.
 				dont_counts += (dont_count ? 1 : -1);
 
@@ -195,10 +276,11 @@ void Manager::Register(IOSource* src, bool dont_count)
 			}
 		}
 
-	src->Init();
+	src->InitSource();
 	Source* s = new Source;
 	s->src = src;
 	s->dont_count = dont_count;
+	s->manage_lifetime = manage_lifetime;
 	if ( dont_count )
 		++dont_counts;
 
@@ -207,7 +289,17 @@ void Manager::Register(IOSource* src, bool dont_count)
 
 void Manager::Register(PktSrc* src)
 	{
-	pkt_srcs.push_back(src);
+	pkt_src = src;
+
+	// The poll interval gets defaulted to 100 which is good for cases like reading
+	// from pcap files and when there isn't a packet source, but is a little too
+	// infrequent for live sources (especially fast live sources). Set it down a
+	// little bit for those sources.
+	if ( src->IsLive() )
+		poll_interval = 10;
+	else if ( pseudo_realtime )
+		poll_interval = 1;
+
 	Register(src, false);
 	}
 
@@ -233,20 +325,16 @@ static std::pair<std::string, std::string> split_prefix(std::string path)
 PktSrc* Manager::OpenPktSrc(const std::string& path, bool is_live)
 	{
 	std::pair<std::string, std::string> t = split_prefix(path);
-	std::string prefix = t.first;
-	std::string npath = t.second;
+	const auto& prefix = t.first;
+	const auto& npath = t.second;
 
 	// Find the component providing packet sources of the requested prefix.
 
 	PktSrcComponent* component = 0;
 
 	std::list<PktSrcComponent*> all_components = plugin_mgr->Components<PktSrcComponent>();
-
-	for ( std::list<PktSrcComponent*>::const_iterator i = all_components.begin();
-	      i != all_components.end(); i++ )
+	for ( const auto& c : all_components )
 		{
-		PktSrcComponent* c = *i;
-
 		if ( c->HandlesPrefix(prefix) &&
 		     ((  is_live && c->DoesLive() ) ||
 		      (! is_live && c->DoesTrace())) )
@@ -287,13 +375,11 @@ PktDumper* Manager::OpenPktDumper(const string& path, bool append)
 	PktDumperComponent* component = 0;
 
 	std::list<PktDumperComponent*> all_components = plugin_mgr->Components<PktDumperComponent>();
-
-	for ( std::list<PktDumperComponent*>::const_iterator i = all_components.begin();
-	      i != all_components.end(); i++ )
+	for ( const auto& c : all_components )
 		{
-		if ( (*i)->HandlesPrefix(prefix) )
+		if ( c->HandlesPrefix(prefix) )
 			{
-			component = (*i);
+			component = c;
 			break;
 			}
 		}
@@ -316,12 +402,4 @@ PktDumper* Manager::OpenPktDumper(const string& path, bool append)
 	pkt_dumpers.push_back(pd);
 
 	return pd;
-	}
-
-void Manager::Source::SetFds(fd_set* read, fd_set* write, fd_set* except,
-                             int* maxx) const
-	{
-	*maxx = std::max(*maxx, fd_read.Set(read));
-	*maxx = std::max(*maxx, fd_write.Set(write));
-	*maxx = std::max(*maxx, fd_except.Set(except));
 	}

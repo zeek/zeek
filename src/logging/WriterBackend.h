@@ -2,8 +2,7 @@
 //
 // Bridge class between main process and writer threads.
 
-#ifndef LOGGING_WRITERBACKEND_H
-#define LOGGING_WRITERBACKEND_H
+#pragma once
 
 #include "threading/MsgThread.h"
 
@@ -390,6 +389,3 @@ private:
 
 
 }
-
-#endif
-

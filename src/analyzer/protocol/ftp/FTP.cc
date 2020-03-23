@@ -1,15 +1,17 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "FTP.h"
 
 #include <stdlib.h>
 
+#include "BroString.h"
 #include "NetVar.h"
-#include "FTP.h"
 #include "Event.h"
 #include "Base64.h"
 #include "analyzer/Manager.h"
 #include "analyzer/protocol/login/NVT.h"
+#include "RuleMatcher.h"
 
 #include "events.bif.h"
 
@@ -50,7 +52,7 @@ void FTP_Analyzer::Done()
 		Weird("partial_ftp_request");
 	}
 
-static uint32 get_reply_code(int len, const char* line)
+static uint32_t get_reply_code(int len, const char* line)
 	{
 	if ( len >= 3 && isdigit(line[0]) && isdigit(line[1]) && isdigit(line[2]) )
 		return (line[0] - '0') * 100 + (line[1] - '0') * 10 + (line[2] - '0');
@@ -83,7 +85,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 		StringVal* cmd_str;
 
 		line = skip_whitespace(line, end_of_line);
-		get_word(length, line, cmd_len, cmd);
+		get_word(end_of_line - line, line, cmd_len, cmd);
 		line = skip_whitespace(line + cmd_len, end_of_line);
 
 		if ( cmd_len == 0 )
@@ -113,7 +115,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 		}
 	else
 		{
-		uint32 reply_code = get_reply_code(length, line);
+		uint32_t reply_code = get_reply_code(length, line);
 
 		int cont_resp;
 
@@ -224,15 +226,23 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 				// framing is supposed to be required for the initial context
 				// token, but GSI doesn't do that and starts right in on a
 				// TLS/SSL handshake, so look for that to identify it.
-				const u_char* msg = decoded_adat->Bytes();
-				int msg_len = decoded_adat->Len();
+				const u_char* msg = nullptr;
+				int msg_len = 0;
+
+				if ( decoded_adat )
+					{
+					msg = decoded_adat->Bytes();
+					msg_len = decoded_adat->Len();
+					}
+				else
+					Weird("ftp_adat_bad_first_token_encoding");
 
 				// Just check that it looks like a viable TLS/SSL handshake
 				// record from the first byte (content type of 0x16) and
 				// that the fourth and fifth bytes indicating the length of
 				// the record match the length of the decoded data.
 				if ( msg_len < 5 || msg[0] != 0x16 ||
-				     msg_len - 5 != ntohs(*((uint16*)(msg + 3))) )
+				     msg_len - 5 != ntohs(*((uint16_t*)(msg + 3))) )
 					{
 					// Doesn't look like TLS/SSL, so done analyzing.
 					done = true;
@@ -251,7 +261,7 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 	else
 		{
-		uint32 reply_code = get_reply_code(len, line);
+		uint32_t reply_code = get_reply_code(len, line);
 
 		switch ( reply_code ) {
 		case 232:

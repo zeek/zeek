@@ -1,3 +1,3 @@
-expression error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/core.reporter-error-in-handler/reporter-error-in-handler.zeek, line 28: no such index (a[1])
-expression error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/core.reporter-error-in-handler/reporter-error-in-handler.zeek, line 22: no such index (a[2])
+expression error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/core.reporter-error-in-handler/reporter-error-in-handler.zeek, line 29: no such index (a[1])
+expression error in /Users/jsiwek/Projects/bro/bro/testing/btest/.tmp/core.reporter-error-in-handler/reporter-error-in-handler.zeek, line 23: no such index (a[2])
 1st error printed on script level

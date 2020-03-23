@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_RPC_PORTMAP_H
-#define ANALYZER_PROTOCOL_RPC_PORTMAP_H
+#pragma once
 
 #include "RPC.h"
 
@@ -16,7 +15,7 @@ protected:
 	int RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status success,
 			   const u_char*& buf, int& n, double start_time,
 			   double last_time, int reply_len) override;
-	uint32 CheckPort(uint32 port);
+	uint32_t CheckPort(uint32_t port);
 
 	void Event(EventHandlerPtr f, Val* request, BifEnum::rpc_status status, Val* reply);
 
@@ -36,5 +35,3 @@ public:
 };
 
 } } // namespace analyzer::* 
-
-#endif

@@ -1,9 +1,11 @@
-
 #include "Packet.h"
 #include "Sessions.h"
+#include "Desc.h"
+#include "IP.h"
 #include "iosource/Manager.h"
 
 extern "C" {
+#include <pcap.h>
 #ifdef HAVE_NET_ETHERNET_H
 #include <net/ethernet.h>
 #elif defined(HAVE_SYS_ETHERNET_H)
@@ -16,8 +18,8 @@ extern "C" {
 #endif
 }
 
-void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32 arg_caplen,
-		  uint32 arg_len, const u_char *arg_data, int arg_copy,
+void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
+		  uint32_t arg_len, const u_char *arg_data, int arg_copy,
 		  std::string arg_tag)
 	{
 	if ( data && copy )
@@ -27,7 +29,7 @@ void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32 arg_caplen,
 	ts = *arg_ts;
 	cap_len = arg_caplen;
 	len = arg_len;
-	tag = arg_tag;
+	tag = std::move(arg_tag);
 
 	copy = arg_copy;
 
@@ -41,14 +43,17 @@ void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32 arg_caplen,
 
 	time = ts.tv_sec + double(ts.tv_usec) / 1e6;
 	hdr_size = GetLinkHeaderSize(arg_link_type);
-	l3_proto = L3_UNKNOWN;
 	eth_type = 0;
 	vlan = 0;
 	inner_vlan = 0;
-	l2_src = 0;
-	l2_dst = 0;
 
+	l2_src = nullptr;
+	l2_dst = nullptr;
 	l2_valid = false;
+	l2_checksummed = false;
+
+	l3_proto = L3_UNKNOWN;
+	l3_checksummed = false;
 
 	if ( data && cap_len < hdr_size )
 		{
@@ -58,6 +63,11 @@ void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32 arg_caplen,
 
 	if ( data )
 		ProcessLayer2();
+	}
+
+const IP_Hdr Packet::IP() const
+	{
+	return IP_Hdr((struct ip *) (data + hdr_size), false);
 	}
 
 void Packet::Weird(const char* name)
@@ -407,7 +417,7 @@ void Packet::ProcessLayer2()
 		{
 		// See https://www.tcpdump.org/linktypes/LINKTYPE_NFLOG.html
 
-		uint8 protocol = pdata[0];
+		uint8_t protocol = pdata[0];
 
 		if ( protocol == AF_INET )
 			l3_proto = L3_IPV4;
@@ -419,7 +429,7 @@ void Packet::ProcessLayer2()
 			return;
 			}
 
-		uint8 version = pdata[1];
+		uint8_t version = pdata[1];
 
 		if ( version != 0 )
 			{
@@ -430,8 +440,8 @@ void Packet::ProcessLayer2()
 		// Skip to TLVs.
 		pdata += 4;
 
-		uint16 tlv_len;
-		uint16 tlv_type;
+		uint16_t tlv_len;
+		uint16_t tlv_type;
 
 		while ( true )
 			{
@@ -444,8 +454,8 @@ void Packet::ProcessLayer2()
 			// TLV Type and Length values are specified in host byte order
 			// (libpcap should have done any needed byteswapping already).
 
-			tlv_len = *(reinterpret_cast<const uint16*>(pdata));
-			tlv_type = *(reinterpret_cast<const uint16*>(pdata + 2));
+			tlv_len = *(reinterpret_cast<const uint16_t*>(pdata));
+			tlv_type = *(reinterpret_cast<const uint16_t*>(pdata + 2));
 
 			auto constexpr nflog_type_payload = 9;
 
@@ -670,4 +680,3 @@ void Packet::Describe(ODesc* d) const
 	d->Add("->");
 	d->Add(ip.DstAddr());
 	}
-

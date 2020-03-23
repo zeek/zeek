@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef LOGGING_COMPONENT_H
-#define LOGGING_COMPONENT_H
+#pragma once
 
 #include "Tag.h"
 #include "plugin/Component.h"
@@ -62,5 +61,3 @@ private:
 };
 
 }
-
-#endif

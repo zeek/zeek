@@ -1,11 +1,16 @@
-#ifndef BROFILER_H_
-#define BROFILER_H_
+#pragma once
 
 #include <map>
 #include <utility>
 #include <list>
-#include <Stmt.h>
+#include <string>
 
+using std::list;
+using std::map;
+using std::pair;
+using std::string;
+
+class Stmt;
 
 /**
  * A simple class for managing stats of Bro script coverage across Bro runs.
@@ -39,13 +44,13 @@ public:
 	void IncIgnoreDepth() { ignoring++; }
 	void DecIgnoreDepth() { ignoring--; }
 
-	void AddStmt(const Stmt* s) { if ( ignoring == 0 ) stmts.push_back(s); }
+	void AddStmt(Stmt* s);
 
 private:
 	/**
 	 * The current, global Brofiler instance creates this list at parse-time.
 	 */
-	list<const Stmt*> stmts;
+	list<Stmt*> stmts;
 
 	/**
 	 * Indicates whether new statments will not be considered as part of
@@ -59,7 +64,7 @@ private:
 	 * startup time and modified at shutdown time before writing back
 	 * to a file.
 	 */
-	map<pair<string, string>, uint64> usage_map;
+	map<pair<string, string>, uint64_t> usage_map;
 
 	/**
 	 * The character to use to delimit Brofiler output files.  Default is '\t'.
@@ -71,13 +76,14 @@ private:
 	 * that don't agree with the output format of Brofiler.
 	 */
 	struct canonicalize_desc {
+		char delim;
+
 		void operator() (char& c)
 			{
 			if ( c == '\n' ) c = ' ';
+			if ( c == delim ) c = ' ';
 			}
 	};
 };
 
 extern Brofiler brofiler;
-
-#endif /* BROFILER_H_ */

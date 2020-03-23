@@ -1,5 +1,12 @@
 #include "Data.h"
 #include "File.h"
+#include "Desc.h"
+#include "IntrusivePtr.h"
+#include "RE.h"
+#include "Var.h" // for internal_type()
+#include "Scope.h"
+#include "module_util.h"
+#include "3rdparty/doctest.h"
 #include "broker/data.bif.h"
 
 #include <broker/error.hh>
@@ -35,6 +42,16 @@ static broker::port::protocol to_broker_port_proto(TransportProto tp)
 	}
 	}
 
+TEST_CASE("converting Zeek to Broker protocol constants")
+	{
+	CHECK_EQ(to_broker_port_proto(TRANSPORT_TCP), broker::port::protocol::tcp);
+	CHECK_EQ(to_broker_port_proto(TRANSPORT_UDP), broker::port::protocol::udp);
+	CHECK_EQ(to_broker_port_proto(TRANSPORT_ICMP),
+	         broker::port::protocol::icmp);
+	CHECK_EQ(to_broker_port_proto(TRANSPORT_UNKNOWN),
+	         broker::port::protocol::unknown);
+	}
+
 TransportProto bro_broker::to_bro_port_proto(broker::port::protocol tp)
 	{
 	switch ( tp ) {
@@ -48,6 +65,16 @@ TransportProto bro_broker::to_bro_port_proto(broker::port::protocol tp)
 	default:
 		return TRANSPORT_UNKNOWN;
 	}
+	}
+
+TEST_CASE("converting Broker to Zeek protocol constants")
+	{
+	using bro_broker::to_bro_port_proto;
+	CHECK_EQ(to_bro_port_proto(broker::port::protocol::tcp), TRANSPORT_TCP);
+	CHECK_EQ(to_bro_port_proto(broker::port::protocol::udp), TRANSPORT_UDP);
+	CHECK_EQ(to_bro_port_proto(broker::port::protocol::icmp), TRANSPORT_ICMP);
+	CHECK_EQ(to_bro_port_proto(broker::port::protocol::unknown),
+	         TRANSPORT_UNKNOWN);
 	}
 
 struct val_converter {
@@ -169,7 +196,7 @@ struct val_converter {
 			if ( i == -1 )
 				return nullptr;
 
-			return etype->GetVal(i);
+			return etype->GetVal(i).release();
 			}
 
 		return nullptr;
@@ -181,7 +208,7 @@ struct val_converter {
 			return nullptr;
 
 		auto tt = type->AsTableType();
-		auto rval = new TableVal(tt);
+		auto rval = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, tt});
 
 		for ( auto& item : a )
 			{
@@ -213,12 +240,9 @@ struct val_converter {
 
 			if ( static_cast<size_t>(expected_index_types->length()) !=
 			     indices->size() )
-				{
-				Unref(rval);
 				return nullptr;
-				}
 
-			auto list_val = new ListVal(TYPE_ANY);
+			auto list_val = make_intrusive<ListVal>(TYPE_ANY);
 
 			for ( auto i = 0u; i < indices->size(); ++i )
 				{
@@ -226,21 +250,16 @@ struct val_converter {
 				                                         (*expected_index_types)[i]);
 
 				if ( ! index_val )
-					{
-					Unref(rval);
-					Unref(list_val);
 					return nullptr;
-					}
 
-				list_val->Append(index_val);
+				list_val->Append(index_val.release());
 				}
 
 
-			rval->Assign(list_val, nullptr);
-			Unref(list_val);
+			rval->Assign(list_val.get(), nullptr);
 			}
 
-		return rval;
+		return rval.release();
 		}
 
 	result_type operator()(broker::table& a)
@@ -249,7 +268,7 @@ struct val_converter {
 			return nullptr;
 
 		auto tt = type->AsTableType();
-		auto rval = new TableVal(tt);
+		auto rval = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, tt});
 
 		for ( auto& item : a )
 			{
@@ -281,12 +300,9 @@ struct val_converter {
 
 			if ( static_cast<size_t>(expected_index_types->length()) !=
 			     indices->size() )
-				{
-				Unref(rval);
 				return nullptr;
-				}
 
-			auto list_val = new ListVal(TYPE_ANY);
+			auto list_val = make_intrusive<ListVal>(TYPE_ANY);
 
 			for ( auto i = 0u; i < indices->size(); ++i )
 				{
@@ -294,30 +310,21 @@ struct val_converter {
 				                                         (*expected_index_types)[i]);
 
 				if ( ! index_val )
-					{
-					Unref(rval);
-					Unref(list_val);
 					return nullptr;
-					}
 
-				list_val->Append(index_val);
+				list_val->Append(index_val.release());
 				}
 
 			auto value_val = bro_broker::data_to_val(move(item.second),
 			                                         tt->YieldType());
 
 			if ( ! value_val )
-				{
-				Unref(rval);
-				Unref(list_val);
 				return nullptr;
-				}
 
-			rval->Assign(list_val, value_val);
-			Unref(list_val);
+			rval->Assign(list_val.get(), std::move(value_val));
 			}
 
-		return rval;
+		return rval.release();
 		}
 
 	result_type operator()(broker::vector& a)
@@ -325,22 +332,19 @@ struct val_converter {
 		if ( type->Tag() == TYPE_VECTOR )
 			{
 			auto vt = type->AsVectorType();
-			auto rval = new VectorVal(vt);
+			auto rval = make_intrusive<VectorVal>(vt);
 
 			for ( auto& item : a )
 				{
 				auto item_val = bro_broker::data_to_val(move(item), vt->YieldType());
 
 				if ( ! item_val )
-					{
-					Unref(rval);
 					return nullptr;
-					}
 
-				rval->Assign(rval->Size(), item_val);
+				rval->Assign(rval->Size(), std::move(item_val));
 				}
 
-			return rval;
+			return rval.release();
 			}
 		else if ( type->Tag() == TYPE_FUNC )
 			{
@@ -351,7 +355,7 @@ struct val_converter {
 			if ( ! name )
 				return nullptr;
 
-			auto id = global_scope()->Lookup(name->c_str());
+			auto id = global_scope()->Lookup(*name);
 			if ( ! id )
 				return nullptr;
 
@@ -385,16 +389,13 @@ struct val_converter {
 		else if ( type->Tag() == TYPE_RECORD )
 			{
 			auto rt = type->AsRecordType();
-			auto rval = new RecordVal(rt);
+			auto rval = make_intrusive<RecordVal>(rt);
 			auto idx = 0u;
 
 			for ( auto i = 0u; i < static_cast<size_t>(rt->NumFields()); ++i )
 				{
 				if ( idx >= a.size() )
-					{
-					Unref(rval);
 					return nullptr;
-					}
 
 				if ( caf::get_if<broker::none>(&a[idx]) != nullptr )
 					{
@@ -404,19 +405,16 @@ struct val_converter {
 					}
 
 				auto item_val = bro_broker::data_to_val(move(a[idx]),
-																								rt->FieldType(i));
+				                                        rt->FieldType(i));
 
 				if ( ! item_val )
-					{
-					Unref(rval);
 					return nullptr;
-					}
 
-				rval->Assign(i, item_val);
+				rval->Assign(i, std::move(item_val));
 				++idx;
 				}
 
-			return rval;
+			return rval.release();
 			}
 		else if ( type->Tag() == TYPE_PATTERN )
 			{
@@ -444,7 +442,7 @@ struct val_converter {
 			return rval;
 			}
 		else if ( type->Tag() == TYPE_OPAQUE )
-			return OpaqueVal::Unserialize(a);
+			return OpaqueVal::Unserialize(a).release();
 
 		return nullptr;
 		}
@@ -703,7 +701,7 @@ struct type_checker {
 			if ( ! name )
 				return false;
 
-			auto id = global_scope()->Lookup(name->c_str());
+			auto id = global_scope()->Lookup(*name);
 			if ( ! id )
 				return false;
 
@@ -774,9 +772,7 @@ struct type_checker {
 			// TODO: Could avoid doing the full unserialization here
 			// and just check if the type is a correct match.
 			auto ov = OpaqueVal::Unserialize(a);
-			auto rval = ov != nullptr;
-			Unref(ov);
-			return rval;
+			return ov != nullptr;
 			}
 
 		return false;
@@ -791,15 +787,15 @@ static bool data_type_check(const broker::data& d, BroType* t)
 	return caf::visit(type_checker{t}, d);
 	}
 
-Val* bro_broker::data_to_val(broker::data d, BroType* type)
+IntrusivePtr<Val> bro_broker::data_to_val(broker::data d, BroType* type)
 	{
 	if ( type->Tag() == TYPE_ANY )
-		return bro_broker::make_data_val(move(d));
+		return {AdoptRef{}, bro_broker::make_data_val(move(d))};
 
-	return caf::visit(val_converter{type}, std::move(d));
+	return {AdoptRef{}, caf::visit(val_converter{type}, std::move(d))};
 	}
 
-broker::expected<broker::data> bro_broker::val_to_data(Val* v)
+broker::expected<broker::data> bro_broker::val_to_data(const Val* v)
 	{
 	switch ( v->Type()->Tag() ) {
 	case TYPE_BOOL:
@@ -864,7 +860,7 @@ broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 		return {string(v->AsFile()->Name())};
 	case TYPE_FUNC:
 		{
-		Func* f = v->AsFunc();
+		const Func* f = v->AsFunc();
 		std::string name(f->Name());
 
 		broker::vector rval;
@@ -873,7 +869,7 @@ broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 		if ( name.find("lambda_<") == 0 )
 			{
 			// Only BroFuncs have closures.
-			if ( auto b = dynamic_cast<BroFunc*>(f) )
+			if ( auto b = dynamic_cast<const BroFunc*>(f) )
 				{
 				auto bc = b->SerializeClosure();
 				if ( ! bc )
@@ -1001,8 +997,7 @@ broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 				continue;
 				}
 
-			auto item = val_to_data(item_val);
-			Unref(item_val);
+			auto item = val_to_data(item_val.get());
 
 			if ( ! item )
 				return broker::ec::invalid_data;
@@ -1014,7 +1009,7 @@ broker::expected<broker::data> bro_broker::val_to_data(Val* v)
 		}
 	case TYPE_PATTERN:
 		{
-		RE_Matcher* p = v->AsPattern();
+		const RE_Matcher* p = v->AsPattern();
 		broker::vector rval = {p->PatternText(), p->AnywherePatternText()};
 		return {std::move(rval)};
 		}
@@ -1044,7 +1039,7 @@ RecordVal* bro_broker::make_data_val(Val* v)
 	auto data = val_to_data(v);
 
 	if  ( data )
-		rval->Assign(0, new DataVal(move(*data)));
+		rval->Assign(0, make_intrusive<DataVal>(move(*data)));
 	else
 		reporter->Warning("did not get a value from val_to_data");
 
@@ -1054,7 +1049,7 @@ RecordVal* bro_broker::make_data_val(Val* v)
 RecordVal* bro_broker::make_data_val(broker::data d)
 	{
 	auto rval = new RecordVal(BifType::Record::Broker::Data);
-	rval->Assign(0, new DataVal(move(d)));
+	rval->Assign(0, make_intrusive<DataVal>(move(d)));
 	return rval;
 	}
 
@@ -1063,72 +1058,72 @@ struct data_type_getter {
 
 	result_type operator()(broker::none)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::NONE);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::NONE).release();
 		}
 
 	result_type operator()(bool)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::BOOL);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::BOOL).release();
 		}
 
 	result_type operator()(uint64_t)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::COUNT);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::COUNT).release();
 		}
 
 	result_type operator()(int64_t)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::INT);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::INT).release();
 		}
 
 	result_type operator()(double)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::DOUBLE);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::DOUBLE).release();
 		}
 
 	result_type operator()(const std::string&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::STRING);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::STRING).release();
 		}
 
 	result_type operator()(const broker::address&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::ADDR);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::ADDR).release();
 		}
 
 	result_type operator()(const broker::subnet&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::SUBNET);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::SUBNET).release();
 		}
 
 	result_type operator()(const broker::port&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::PORT);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::PORT).release();
 		}
 
 	result_type operator()(const broker::timestamp&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::TIME);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::TIME).release();
 		}
 
 	result_type operator()(const broker::timespan&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::INTERVAL);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::INTERVAL).release();
 		}
 
 	result_type operator()(const broker::enum_value&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::ENUM);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::ENUM).release();
 		}
 
 	result_type operator()(const broker::set&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::SET);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::SET).release();
 		}
 
 	result_type operator()(const broker::table&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::TABLE);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::TABLE).release();
 		}
 
 	result_type operator()(const broker::vector&)
@@ -1136,7 +1131,7 @@ struct data_type_getter {
 		// Note that Broker uses vectors to store record data, so there's
 		// no actual way to tell if this data was originally associated
 		// with a Bro record.
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::VECTOR);
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::VECTOR).release();
 		}
 };
 
@@ -1153,7 +1148,16 @@ broker::data& bro_broker::opaque_field_to_data(RecordVal* v, Frame* f)
 		reporter->RuntimeError(f->GetCall()->GetLocationInfo(),
 		                       "Broker::Data's opaque field is not set");
 
+	// RuntimeError throws an exception which causes this line to never exceute.
+	// NOLINTNEXTLINE(clang-analyzer-core.uninitialized.UndefReturn)
 	return static_cast<DataVal*>(d)->data;
+	}
+
+void bro_broker::DataVal::ValDescribe(ODesc* d) const
+	{
+	d->Add("broker::data{");
+	d->Add(broker::to_string(data));
+	d->Add("}");
 	}
 
 bool bro_broker::DataVal::canCastTo(BroType* t) const
@@ -1161,9 +1165,17 @@ bool bro_broker::DataVal::canCastTo(BroType* t) const
 	return data_type_check(data, t);
 	}
 
-Val* bro_broker::DataVal::castTo(BroType* t)
+IntrusivePtr<Val> bro_broker::DataVal::castTo(BroType* t)
 	{
 	return data_to_val(data, t);
+	}
+
+BroType* bro_broker::DataVal::ScriptDataType()
+	{
+	if ( ! script_data_type )
+		script_data_type = internal_type("Broker::Data");
+
+	return script_data_type;
 	}
 
 IMPLEMENT_OPAQUE_VALUE(bro_broker::DataVal)

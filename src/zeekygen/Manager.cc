@@ -3,6 +3,11 @@
 #include "Manager.h"
 #include "plugin/Manager.h"
 #include "util.h"
+#include "Info.h"
+#include "PackageInfo.h"
+#include "ScriptInfo.h"
+#include "IdentifierInfo.h"
+#include "Expr.h"
 
 #include <utility>
 #include <cstdlib>
@@ -23,7 +28,7 @@ static void DbgAndWarn(const char* msg)
 	}
 
 static void WarnMissingScript(const char* type, const ID* id,
-                              string script)
+                              const string& script)
 	{
 	if ( script == "<command line>" )
 		return;
@@ -86,6 +91,8 @@ Manager::Manager(const string& arg_config, const string& bro_command)
 		reporter->InternalError("Zeekygen can't get mtime of zeek binary %s (try again by specifying the absolute or relative path to Zeek): %s",
 		                        path_to_bro.c_str(), strerror(errno));
 
+	// Internal error will abort above in the case that stat isn't initialized
+	// NOLINTNEXTLINE(clang-analyzer-core.uninitialized.Assign)
 	bro_mtime = s.st_mtime;
 	}
 
@@ -209,7 +216,7 @@ void Manager::ModuleUsage(const string& path, const string& module)
 	        module.c_str(), name.c_str());
 	}
 
-IdentifierInfo* Manager::CreateIdentifierInfo(ID* id, ScriptInfo* script)
+IdentifierInfo* Manager::CreateIdentifierInfo(IntrusivePtr<ID> id, ScriptInfo* script)
 	{
 	auto prev = identifiers.GetInfo(id->Name());
 	IdentifierInfo* rval = prev ? prev : new IdentifierInfo(id, script);
@@ -239,7 +246,7 @@ IdentifierInfo* Manager::CreateIdentifierInfo(ID* id, ScriptInfo* script)
 	return rval;
 	}
 
-void Manager::StartType(ID* id)
+void Manager::StartType(IntrusivePtr<ID> id)
 	{
 	if ( disabled )
 		return;
@@ -256,7 +263,7 @@ void Manager::StartType(ID* id)
 
 	if ( ! script_info )
 		{
-		WarnMissingScript("identifier", id, script);
+		WarnMissingScript("identifier", id.get(), script);
 		return;
 		}
 
@@ -270,7 +277,7 @@ static bool IsEnumType(ID* id)
 	return id->AsType() ? id->AsType()->Tag() == TYPE_ENUM : false;
 	}
 
-void Manager::Identifier(ID* id)
+void Manager::Identifier(IntrusivePtr<ID> id)
 	{
 	if ( disabled )
 		return;
@@ -320,7 +327,7 @@ void Manager::Identifier(ID* id)
 
 	if ( ! script_info )
 		{
-		WarnMissingScript("identifier", id, script);
+		WarnMissingScript("identifier", id.get(), script);
 		return;
 		}
 
@@ -353,7 +360,7 @@ void Manager::RecordField(const ID* id, const TypeDecl* field,
 	}
 
 void Manager::Redef(const ID* id, const string& path,
-                    init_class ic, Expr* init_expr)
+                    init_class ic, IntrusivePtr<Expr> init_expr)
 	{
 	if ( disabled )
 		return;
@@ -381,12 +388,18 @@ void Manager::Redef(const ID* id, const string& path,
 		return;
 		}
 
-	id_info->AddRedef(from_script, ic, init_expr, comment_buffer);
+	id_info->AddRedef(from_script, ic, std::move(init_expr), comment_buffer);
 	script_info->AddRedef(id_info);
 	comment_buffer.clear();
 	last_identifier_seen = id_info;
 	DBG_LOG(DBG_ZEEKYGEN, "Added redef of %s from %s",
 	        id->Name(), from_script.c_str());
+	}
+
+void Manager::Redef(const ID* id, const std::string& path,
+                    init_class ic)
+	{
+	Redef(id, path, ic, nullptr);
 	}
 
 void Manager::SummaryComment(const string& script, const string& comment)

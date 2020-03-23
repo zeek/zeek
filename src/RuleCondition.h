@@ -1,11 +1,9 @@
-#ifndef rulecondition_h
-#define rulecondition_h
+#pragma once
 
-#include "BroString.h"
-#include "Func.h"
-#include "List.h"
-#include "util.h"
+#include <stdint.h> // for u_char
+#include <sys/types.h> // for u_char
 
+class ID;
 class Rule;
 class RuleEndpointState;
 
@@ -87,7 +85,7 @@ class RuleConditionPayloadSize : public RuleCondition {
 public:
 	enum Comp { RULE_LE, RULE_GE, RULE_LT, RULE_GT, RULE_EQ, RULE_NE };
 
-	RuleConditionPayloadSize(uint32 arg_val, Comp arg_comp)
+	RuleConditionPayloadSize(uint32_t arg_val, Comp arg_comp)
 		{ val = arg_val; comp = arg_comp; }
 
 	~RuleConditionPayloadSize() override {}
@@ -98,7 +96,7 @@ public:
 	void PrintDebug() override;
 
 private:
-	uint32 val;
+	uint32_t val;
 	Comp comp;
 };
 
@@ -117,5 +115,3 @@ private:
 };
 
 
-
-#endif

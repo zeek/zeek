@@ -25,7 +25,7 @@ refine flow File += {
 	function characteristics_to_bro(c: uint32, len: uint8): TableVal
 		%{
 		uint64 mask = (len==16) ? 0xFFFF : 0xFFFFFFFF;
-		TableVal* char_set = new TableVal(internal_type("count_set")->AsTableType());
+		TableVal* char_set = new TableVal({NewRef{}, internal_type("count_set")->AsTableType()});
 		for ( uint16 i=0; i < len; ++i )
 			{
 			if ( ((c >> i) & 0x1) == 1 )
@@ -43,7 +43,7 @@ refine flow File += {
 		if ( pe_dos_header )
 			{
 			RecordVal* dh = new RecordVal(BifType::Record::PE::DOSHeader);
-			dh->Assign(0, new StringVal(${h.signature}.length(), (const char*) ${h.signature}.data()));
+			dh->Assign(0, make_intrusive<StringVal>(${h.signature}.length(), (const char*) ${h.signature}.data()));
 			dh->Assign(1, val_mgr->GetCount(${h.UsedBytesInTheLastPage}));
 			dh->Assign(2, val_mgr->GetCount(${h.FileSizeInPages}));
 			dh->Assign(3, val_mgr->GetCount(${h.NumberOfRelocationItems}));
@@ -97,7 +97,7 @@ refine flow File += {
 			{
 			RecordVal* fh = new RecordVal(BifType::Record::PE::FileHeader);
 			fh->Assign(0, val_mgr->GetCount(${h.Machine}));
-			fh->Assign(1, new Val(static_cast<double>(${h.TimeDateStamp}), TYPE_TIME));
+			fh->Assign(1, make_intrusive<Val>(static_cast<double>(${h.TimeDateStamp}), TYPE_TIME));
 			fh->Assign(2, val_mgr->GetCount(${h.PointerToSymbolTable}));
 			fh->Assign(3, val_mgr->GetCount(${h.NumberOfSymbols}));
 			fh->Assign(4, val_mgr->GetCount(${h.SizeOfOptionalHeader}));
@@ -176,7 +176,7 @@ refine flow File += {
 				name_len = ${h.name}.length();
 			else
 				name_len = first_null - ${h.name}.data();
-			section_header->Assign(0, new StringVal(name_len, (const char*) ${h.name}.data()));
+			section_header->Assign(0, make_intrusive<StringVal>(name_len, (const char*) ${h.name}.data()));
 
 			section_header->Assign(1, val_mgr->GetCount(${h.virtual_size}));
 			section_header->Assign(2, val_mgr->GetCount(${h.virtual_addr}));

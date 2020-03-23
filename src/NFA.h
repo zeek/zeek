@@ -1,11 +1,12 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef nfa_h
-#define nfa_h
+#pragma once
 
-#include "RE.h"
-#include "IntSet.h"
+#include "Obj.h"
+#include "List.h"
 
+class CCL;
+class Func;
 class NFA_State;
 class EquivClass;
 
@@ -133,5 +134,3 @@ extern NFA_state_list* epsilon_closure(NFA_state_list* states);
 
 // For sorting NFA states based on their ID fields (decreasing)
 extern bool NFA_state_cmp_neg(const NFA_State* v1, const NFA_State* v2);
-
-#endif

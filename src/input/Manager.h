@@ -2,16 +2,17 @@
 //
 // Class for managing input streams.
 
-#ifndef INPUT_MANAGER_H
-#define INPUT_MANAGER_H
-
-#include "BroString.h"
-#include "EventHandler.h"
-#include "Val.h"
+#pragma once
 
 #include "Component.h"
+#include "EventHandler.h"
+#include "plugin/ComponentManager.h"
+#include "threading/SerialTypes.h"
+#include "Tag.h"
 
 #include <map>
+
+class RecordVal;
 
 namespace input {
 
@@ -190,7 +191,7 @@ private:
 	// Check if the types of the error_ev event are correct. If table is
 	// true, check for tablestream type, otherwhise check for eventstream
 	// type.
-	bool CheckErrorEventTypes(std::string stream_name, const Func* error_event, bool table) const;
+	bool CheckErrorEventTypes(const std::string& stream_name, const Func* error_event, bool table) const;
 
 	// SendEntry implementation for Table stream.
 	int SendEntryTable(Stream* i, const threading::Value* const *vals);
@@ -271,5 +272,3 @@ private:
 
 extern input::Manager* input_mgr;
 
-
-#endif /* INPUT_MANAGER_H */

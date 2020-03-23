@@ -1,6 +1,8 @@
 
 %%{
 #include "File.h"
+#include "Sessions.h"
+#include "Reporter.h"
 #include "analyzer/protocol/tcp/TCP.h"
 %%}
 

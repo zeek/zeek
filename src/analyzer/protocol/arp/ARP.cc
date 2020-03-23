@@ -3,6 +3,7 @@
 #include "ARP.h"
 #include "Event.h"
 #include "Reporter.h"
+#include "Desc.h"
 
 #include "events.bif.h"
 
@@ -225,7 +226,7 @@ void ARP_Analyzer::RREvent(EventHandlerPtr e,
 AddrVal* ARP_Analyzer::ConstructAddrVal(const void* addr)
 	{
 	// ### For now, we only handle IPv4 addresses.
-	return new AddrVal(*(const uint32*) addr);
+	return new AddrVal(*(const uint32_t*) addr);
 	}
 
 StringVal* ARP_Analyzer::EthAddrToStr(const u_char* addr)

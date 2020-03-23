@@ -39,7 +39,7 @@ void DCE_RPC_Analyzer::EndpointEOF(bool is_orig)
 	interp->FlowEOF(is_orig);
 	}
 
-void DCE_RPC_Analyzer::Undelivered(uint64 seq, int len, bool orig)
+void DCE_RPC_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
 	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	had_gap = true;

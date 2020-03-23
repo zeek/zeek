@@ -3,7 +3,7 @@
 # @TEST-EXEC: btest-bg-run recv "zeek -B broker -b ../recv.zeek >recv.out"
 # @TEST-EXEC: btest-bg-run send "zeek -B broker -b ../send.zeek >send.out"
 
-# @TEST-EXEC: $SCRIPTS/wait-for-pid $(cat recv/.pid) 45 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: $SCRIPTS/wait-for-file send/lost 45 || (btest-bg-wait -k 1 && false)
 
 # @TEST-EXEC: btest-bg-run recv2 "zeek -B broker -b ../recv.zeek >recv2.out"
 # @TEST-EXEC: btest-bg-wait 45
@@ -33,6 +33,7 @@ event zeek_init()
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	print "peer lost", msg;
+	system("touch lost");
 
 	if ( peers == 2 )
 		terminate();

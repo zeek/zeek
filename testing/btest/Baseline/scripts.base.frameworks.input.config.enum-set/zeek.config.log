@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	config
+#open	2019-10-03-04-02-02
+#fields	ts	id	old_value	new_value	location
+#types	time	string	string	string	string
+1570075321.966826	DPD::ignore_violations	(empty)	Analyzer::ANALYZER_SYSLOG	-
+#close	2019-10-03-04-02-02

@@ -1,13 +1,15 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef TAG_H
-#define TAG_H
+#pragma once
 
 #include "zeek-config.h"
-#include "util.h"
-#include "Type.h"
+
+#include <string>
+
+#include <stdint.h>
 
 class EnumVal;
+class EnumType;
 
 /**
  * Class to identify an analyzer type.
@@ -32,12 +34,12 @@ public:
 	/**
 	 * Type for the analyzer's main type.
 	 */
-	typedef uint32 type_t;
+	typedef uint32_t type_t;
 
 	/**
 	 * Type for the analyzer's subtype.
 	 */
-	typedef uint32 subtype_t;
+	typedef uint32_t subtype_t;
 
 	/**
 	 * Returns the tag's main type.
@@ -80,7 +82,7 @@ protected:
 	/**
 	 * Move assignment operator.
 	 */
-	Tag& operator=(const Tag&& other);
+	Tag& operator=(const Tag&& other) noexcept;
 
 	/**
 	 * Compares two tags for equality.
@@ -139,5 +141,3 @@ private:
 	subtype_t subtype;      // Subtype.
 	mutable EnumVal* val;   // Script-layer value.
 };
-
-#endif

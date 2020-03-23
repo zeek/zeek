@@ -1,13 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef PROBABILISTIC_BITVECTOR_H
-#define PROBABILISTIC_BITVECTOR_H
+#pragma once
+
+#include <broker/expected.hh>
 
 #include <iterator>
+#include <memory>
 #include <vector>
 
-#include <broker/data.hh>
-#include <broker/expected.hh>
+namespace broker { class data; }
 
 namespace probabilistic {
 
@@ -356,5 +357,3 @@ private:
 };
 
 }
-
-#endif

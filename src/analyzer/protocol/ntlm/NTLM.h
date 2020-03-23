@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_NTLM_NTLM_H
-#define ANALYZER_PROTOCOL_NTLM_NTLM_H
+#pragma once
 
 #include "events.bif.h"
 #include "analyzer/protocol/tcp/TCP.h"
@@ -22,7 +21,7 @@ public:
 	void Done() override;
 
 	void DeliverStream(int len, const u_char* data, bool orig) override;
-	void Undelivered(uint64 seq, int len, bool orig) override;
+	void Undelivered(uint64_t seq, int len, bool orig) override;
 
 	// Overriden from tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
@@ -35,5 +34,3 @@ protected:
 };
 
 } } // namespace analyzer::*
-
-#endif

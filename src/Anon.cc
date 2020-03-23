@@ -1,3 +1,5 @@
+#include "Anon.h"
+
 #include <stdlib.h>
 #include <unistd.h>
 #include <assert.h>
@@ -5,23 +7,23 @@
 
 #include "util.h"
 #include "net_util.h"
-#include "Anon.h"
 #include "Val.h"
 #include "NetVar.h"
+#include "Reporter.h"
 
 
 AnonymizeIPAddr* ip_anonymizer[NUM_ADDR_ANONYMIZATION_METHODS] = {0};
 
-static uint32 rand32()
+static uint32_t rand32()
 	{
 	return ((bro_random() & 0xffff) << 16) | (bro_random() & 0xffff);
 	}
 
 // From tcpdpriv.
-int bi_ffs(uint32 value)
+int bi_ffs(uint32_t value)
 	{
 	int add = 0;
-	static uint8 bvals[] = {
+	static uint8_t bvals[] = {
 		0, 4, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1
 	};
 
@@ -66,6 +68,13 @@ ipaddr32_t AnonymizeIPAddr::Anonymize(ipaddr32_t addr)
 		}
 	}
 
+// Keep the specified prefix unchanged.
+int AnonymizeIPAddr::PreservePrefix(ipaddr32_t /* input */, int /* num_bits */)
+	{
+	reporter->InternalError("prefix preserving is not supported for the anonymizer");
+	return 0;
+	}
+
 int AnonymizeIPAddr::PreserveNet(ipaddr32_t input)
 	{
 	switch ( addr_to_class(ntohl(input)) ) {
@@ -88,7 +97,7 @@ ipaddr32_t AnonymizeIPAddr_Seq::anonymize(ipaddr32_t /* input */)
 
 ipaddr32_t AnonymizeIPAddr_RandomMD5::anonymize(ipaddr32_t input)
 	{
-	uint8 digest[16];
+	uint8_t digest[16];
 	ipaddr32_t output = 0;
 
 	hmac_md5(sizeof(input), (u_char*)(&input), digest);
@@ -107,7 +116,7 @@ ipaddr32_t AnonymizeIPAddr_RandomMD5::anonymize(ipaddr32_t input)
 
 ipaddr32_t AnonymizeIPAddr_PrefixMD5::anonymize(ipaddr32_t input)
 	{
-	uint8 digest[16];
+	uint8_t digest[16];
 	ipaddr32_t prefix_mask = 0xffffffff;
 	input = ntohl(input);
 	ipaddr32_t output = input;
@@ -135,8 +144,6 @@ AnonymizeIPAddr_A50::~AnonymizeIPAddr_A50()
 	{
 	for ( unsigned int i = 0; i < blocks.size(); ++i )
 		delete [] blocks[i];
-
-	blocks.clear();
 	}
 
 void AnonymizeIPAddr_A50::init()
@@ -179,8 +186,8 @@ int AnonymizeIPAddr_A50::PreservePrefix(ipaddr32_t input, int num_bits)
 	else if ( num_bits > 0 )
 		{
 		assert((0xFFFFFFFFU >> 1) == 0x7FFFFFFFU);
-		uint32 suffix_mask = (0xFFFFFFFFU >> num_bits);
-		uint32 prefix_mask = ~suffix_mask;
+		uint32_t suffix_mask = (0xFFFFFFFFU >> num_bits);
+		uint32_t prefix_mask = ~suffix_mask;
 		n->output = (input & prefix_mask) | (rand32() & suffix_mask);
 		}
 

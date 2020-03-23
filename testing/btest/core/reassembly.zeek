@@ -10,12 +10,12 @@ event zeek_init()
 	print "----------------------";
 	}
 
-event flow_weird(name: string, src: addr, dst: addr)
+event flow_weird(name: string, src: addr, dst: addr, addl: string)
 	{
 	print "flow weird", name, src, dst;
 	}
 
-event net_weird(name: string)
+event net_weird(name: string, addl: string)
 	{
 	print "net_weird", name;
 	}

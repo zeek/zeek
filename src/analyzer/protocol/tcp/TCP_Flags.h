@@ -1,5 +1,4 @@
-#ifndef ANALYZER_PROTOCOL_TCP_TCP_FLAGS_H
-#define ANALYZER_PROTOCOL_TCP_TCP_FLAGS_H
+#pragma once
 
 namespace analyzer { namespace tcp {
 
@@ -51,5 +50,3 @@ inline string TCP_Flags::AsString() const
 
 
 }
-
-#endif

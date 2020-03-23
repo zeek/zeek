@@ -2,10 +2,7 @@
 //
 // A class managing log writers and filters.
 
-#ifndef LOGGING_MANAGER_H
-#define LOGGING_MANAGER_H
-
-#include <broker/endpoint_info.hh>
+#pragma once
 
 #include "../Val.h"
 #include "../Tag.h"
@@ -15,6 +12,7 @@
 #include "Component.h"
 #include "WriterBackend.h"
 
+namespace broker { struct endpoint_info; }
 class SerializationFormat;
 class RotationTimer;
 
@@ -114,7 +112,7 @@ public:
 	 * This methods corresponds directly to the internal BiF defined in
 	 * logging.bif, which just forwards here.
 	 */
-	bool RemoveFilter(EnumVal* id, string name);
+	bool RemoveFilter(EnumVal* id, const string& name);
 
 	/**
 	 * Write a record to a log stream.
@@ -167,7 +165,7 @@ public:
 	 * @param vals An array of log values to write, of size num_fields.
 	 * The method takes ownership of the array.
 	 */
-	bool WriteFromRemote(EnumVal* stream, EnumVal* writer, string path,
+	bool WriteFromRemote(EnumVal* stream, EnumVal* writer, const string& path,
 			     int num_fields, threading::Value** vals);
 
 	/**
@@ -258,7 +256,7 @@ private:
 	struct WriterInfo;
 
 	bool TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
-			    TableVal* include, TableVal* exclude, string path, list<int> indices);
+			    TableVal* include, TableVal* exclude, const string& path, const list<int>& indices);
 
 	threading::Value** RecordToFilterVals(Stream* stream, Filter* filter,
 				    RecordVal* columns);
@@ -279,5 +277,3 @@ private:
 }
 
 extern logging::Manager* log_mgr;
-
-#endif

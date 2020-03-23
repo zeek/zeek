@@ -1,0 +1,13 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	print_statements
+#open	2019-11-19-00-27-19
+#fields	ts	vals
+#types	time	vector[string]
+1574123239.274803	file "otherfile" of string,hello world \x2c
+1574123239.275147	hello world \x2c
+1574123239.275171	file "otherfile" of string,2,T
+1574123239.275177	2,T
+#close	2019-11-19-00-27-19

@@ -42,7 +42,7 @@ void UDP_Analyzer::Done()
 	}
 
 void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
-					uint64 seq, const IP_Hdr* ip, int caplen)
+					uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	assert(ip);
 
@@ -62,7 +62,7 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 	int chksum = up->uh_sum;
 
-	auto validate_checksum = ! ignore_checksums && caplen >=len;
+	auto validate_checksum = ! current_pkt->l3_checksummed && ! ignore_checksums && caplen >=len;
 	constexpr auto vxlan_len = 8;
 	constexpr auto eth_len = 14;
 
@@ -105,14 +105,14 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 			if ( is_orig )
 				{
-				uint32 t = req_chk_thresh;
+				uint32_t t = req_chk_thresh;
 				if ( Conn()->ScaledHistoryEntry('C', req_chk_cnt,
 				                                req_chk_thresh) )
 					ChecksumEvent(is_orig, t);
 				}
 			else
 				{
-				uint32 t = rep_chk_thresh;
+				uint32_t t = rep_chk_thresh;
 				if ( Conn()->ScaledHistoryEntry('c', rep_chk_cnt,
 				                                rep_chk_thresh) )
 					ChecksumEvent(is_orig, t);
@@ -135,23 +135,20 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	if ( udp_contents )
 		{
 		auto port_val = val_mgr->GetPort(ntohs(up->uh_dport), TRANSPORT_UDP);
-		Val* result = 0;
 		bool do_udp_contents = false;
 
 		if ( is_orig )
 			{
-			result = udp_content_delivery_ports_orig->Lookup(
-								port_val);
-			if ( udp_content_deliver_all_orig ||
-			     (result && result->AsBool()) )
+			auto result = udp_content_delivery_ports_orig->Lookup(port_val);
+
+			if ( udp_content_deliver_all_orig || (result && result->AsBool()) )
 				do_udp_contents = true;
 			}
 		else
 			{
-			result = udp_content_delivery_ports_resp->Lookup(
-								port_val);
-			if ( udp_content_deliver_all_resp ||
-			     (result && result->AsBool()) )
+			auto result = udp_content_delivery_ports_resp->Lookup(port_val);
+
+			if ( udp_content_deliver_all_resp || (result && result->AsBool()) )
 				do_udp_contents = true;
 			}
 
@@ -246,7 +243,7 @@ unsigned int UDP_Analyzer::MemoryAllocation() const
 	return Analyzer::MemoryAllocation() + padded_sizeof(*this) - 24;
 	}
 
-void UDP_Analyzer::ChecksumEvent(bool is_orig, uint32 threshold)
+void UDP_Analyzer::ChecksumEvent(bool is_orig, uint32_t threshold)
 	{
 	Conn()->HistoryThresholdEvent(udp_multiple_checksum_errors,
 	                              is_orig, threshold);
@@ -254,7 +251,7 @@ void UDP_Analyzer::ChecksumEvent(bool is_orig, uint32 threshold)
 
 bool UDP_Analyzer::ValidateChecksum(const IP_Hdr* ip, const udphdr* up, int len)
 	{
-	uint32 sum;
+	uint32_t sum;
 
 	if ( len % 2 == 1 )
 		// Add in pad byte.

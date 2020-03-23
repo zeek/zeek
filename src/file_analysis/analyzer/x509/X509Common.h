@@ -3,16 +3,21 @@
 // Common base class for the X509 and OCSP analyzer, which share a fair amount of
 // code
 
-#ifndef FILE_ANALYSIS_X509_COMMON
-#define FILE_ANALYSIS_X509_COMMON
+#pragma once
 
-#include "file_analysis/File.h"
 #include "Analyzer.h"
 
 #include <openssl/x509.h>
 #include <openssl/asn1.h>
 
+class EventHandlerPtr;
+class Reporter;
+class StringVal;
+
 namespace file_analysis {
+
+class Tag;
+class File;
 
 class X509Common : public file_analysis::Analyzer {
 public:
@@ -34,13 +39,11 @@ public:
 	static double GetTimeFromAsn1(const ASN1_TIME* atime, File* f, Reporter* reporter);
 
 protected:
-	X509Common(file_analysis::Tag arg_tag, RecordVal* arg_args, File* arg_file);
+	X509Common(const file_analysis::Tag& arg_tag, RecordVal* arg_args, File* arg_file);
 
-	void ParseExtension(X509_EXTENSION* ex, EventHandlerPtr h, bool global);
+	void ParseExtension(X509_EXTENSION* ex, const EventHandlerPtr& h, bool global);
 	void ParseSignedCertificateTimestamps(X509_EXTENSION* ext);
 	virtual void ParseExtensionsSpecific(X509_EXTENSION* ex, bool, ASN1_OBJECT*, const char*) = 0;
 };
 
 }
-
-#endif /* FILE_ANALYSIS_X509_COMMON */

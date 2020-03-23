@@ -241,7 +241,7 @@ void Contents_NCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig
 		}
 	}
 
-void Contents_NCP_Analyzer::Undelivered(uint64 seq, int len, bool orig)
+void Contents_NCP_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
 	tcp::TCP_SupportAnalyzer::Undelivered(seq, len, orig);
 

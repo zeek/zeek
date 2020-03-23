@@ -8,16 +8,12 @@
 //
 //	http://ita.ee.lbl.gov/html/contrib/tcpdpriv.html
 
-#ifndef anon_h
-#define anon_h
+#pragma once
 
 #include <vector>
-#include <set>
 #include <map>
-using namespace std;
 
-#include "Reporter.h"
-#include "net_util.h"
+using std::map;
 
 // TODO: Anon.h may not be the right place to put these functions ...
 
@@ -37,23 +33,18 @@ enum ip_addr_anonymization_method_t {
 	NUM_ADDR_ANONYMIZATION_METHODS,
 };
 
-typedef uint32 ipaddr32_t;
+typedef uint32_t ipaddr32_t;
 
 // NOTE: all addresses in parameters of *public* functions are in
 // network order.
 
 class AnonymizeIPAddr {
 public:
-	virtual ~AnonymizeIPAddr()	{ mapping.clear(); }
+	virtual ~AnonymizeIPAddr() = default;
 
 	ipaddr32_t Anonymize(ipaddr32_t addr);
 
-	// Keep the specified prefix unchanged.
-	virtual int PreservePrefix(ipaddr32_t /* input */, int /* num_bits */)
-		{
-		reporter->InternalError("prefix preserving is not supported for the anonymizer");
-		return 0;
-		}
+	virtual int PreservePrefix(ipaddr32_t input, int num_bits);
 
 	virtual ipaddr32_t anonymize(ipaddr32_t addr) = 0;
 	
@@ -136,5 +127,3 @@ ipaddr32_t anonymize_ip(ipaddr32_t ip, enum ip_addr_anonymization_class_t cl);
 
 #define LOG_ANONYMIZATION_MAPPING
 void log_anonymization_mapping(ipaddr32_t input, ipaddr32_t output);
-
-#endif

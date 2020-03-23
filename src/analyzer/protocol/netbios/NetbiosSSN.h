@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_NETBIOS_SSN_NETBIOSSSN_H
-#define ANALYZER_PROTOCOL_NETBIOS_SSN_NETBIOSSSN_H
+#pragma once
 
 #include "analyzer/protocol/udp/UDP.h"
 #include "analyzer/protocol/tcp/TCP.h"
@@ -33,9 +32,9 @@ typedef enum {
 struct NetbiosSSN_RawMsgHdr {
 	NetbiosSSN_RawMsgHdr(const u_char*& data, int& len);
 
-	unsigned int type:8;
-	unsigned int flags:8;
-	unsigned int length:16;
+	uint8_t type;
+	uint8_t flags;
+	uint16_t length;
 };
 
 //  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -52,13 +51,13 @@ struct NetbiosSSN_RawMsgHdr {
 struct NetbiosDGM_RawMsgHdr {
 	NetbiosDGM_RawMsgHdr(const u_char*& data, int& len);
 
-	unsigned int type:8;
-	unsigned int flags:8;
-	unsigned int id:16;
-	unsigned int srcip:32;
-	unsigned int srcport:16;
-	unsigned int length:16;
-	unsigned int offset:16;
+	uint8_t type;
+	uint8_t flags;
+	uint16_t id;
+	uint32_t srcip;
+	uint16_t srcport;
+	uint16_t length;
+	uint16_t offset;
 };
 
 
@@ -146,7 +145,7 @@ public:
 
 	void Done() override;
 	void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new NetbiosSSN_Analyzer(conn); }
@@ -169,5 +168,3 @@ protected:
 int IsReuse(double t, const u_char* pkt);
 
 } } // namespace analyzer::*
-
-#endif

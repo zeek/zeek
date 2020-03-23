@@ -228,7 +228,7 @@ event krb_tgs_response(c: connection, msg: KDC_Response) &priority=-5
 	do_log(c);
 	}
 
-event connection_state_remove(c: connection) &priority=-5
+event successful_connection_remove(c: connection) &priority=-5
 	{
 	do_log(c);
 	}

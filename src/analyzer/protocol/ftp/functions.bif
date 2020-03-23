@@ -2,6 +2,7 @@
 type ftp_port: record;
 
 %%{
+#include "Reporter.h"
 
 static Val* parse_port(const char* line)
 	{
@@ -21,9 +22,9 @@ static Val* parse_port(const char* line)
 				break;
 				}
 
-		uint32 addr = (bytes[0] << 24) | (bytes[1] << 16) |
+		uint32_t addr = (bytes[0] << 24) | (bytes[1] << 16) |
 				(bytes[2] << 8) | bytes[3];
-		uint32 port = (bytes[4] << 8) | bytes[5];
+		uint32_t port = (bytes[4] << 8) | bytes[5];
 
 		// Since port is unsigned, no need to check for < 0.
 		if ( port > 65535 )
@@ -32,13 +33,13 @@ static Val* parse_port(const char* line)
 			good = 0;
 			}
 
-		r->Assign(0, new AddrVal(htonl(addr)));
+		r->Assign(0, make_intrusive<AddrVal>(htonl(addr)));
 		r->Assign(1, val_mgr->GetPort(port, TRANSPORT_TCP));
 		r->Assign(2, val_mgr->GetBool(good));
 		}
 	else
 		{
-		r->Assign(0, new AddrVal(uint32(0)));
+		r->Assign(0, make_intrusive<AddrVal>(uint32_t(0)));
 		r->Assign(1, val_mgr->GetPort(0, TRANSPORT_TCP));
 		r->Assign(2, val_mgr->GetBool(0));
 		}
@@ -108,7 +109,7 @@ static Val* parse_eftp(const char* line)
 
 		}
 
-	r->Assign(0, new AddrVal(addr));
+	r->Assign(0, make_intrusive<AddrVal>(addr));
 	r->Assign(1, val_mgr->GetPort(port, TRANSPORT_TCP));
 	r->Assign(2, val_mgr->GetBool(good));
 
@@ -199,12 +200,12 @@ function parse_ftp_epsv%(str: string%): ftp_port
 ## .. zeek:see:: parse_ftp_port parse_eftp_port parse_ftp_pasv parse_ftp_epsv
 function fmt_ftp_port%(a: addr, p: port%): string
 	%{
-	const uint32* addr;
+	const uint32_t* addr;
 	int len = a->AsAddr().GetBytes(&addr);
 	if ( len == 1 )
 		{
-		uint32 a = ntohl(addr[0]);
-		uint32 pn = p->Port();
+		uint32_t a = ntohl(addr[0]);
+		uint32_t pn = p->Port();
 		return new StringVal(fmt("%d,%d,%d,%d,%d,%d",
 						a >> 24, (a >> 16) & 0xff,
 						(a >> 8) & 0xff, a & 0xff,

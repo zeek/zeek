@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_ARP_ARP_H
-#define ANALYZER_PROTOCOL_ARP_ARP_H
+#pragma once
 
 #include "zeek-config.h"
 #include <sys/types.h>
@@ -53,5 +52,3 @@ protected:
 };
 
 } } // namespace analyzer::* 
-
-#endif

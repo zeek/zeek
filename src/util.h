@@ -1,16 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef util_h
-#define util_h
-
-#ifdef __GNUC__
-    #define ZEEK_DEPRECATED(msg) __attribute__ ((deprecated(msg)))
-#elif defined(_MSC_VER)
-    #define ZEEK_DEPRECATED(msg) __declspec(deprecated(msg)) func
-#else
-	#pragma message("Warning: ZEEK_DEPRECATED macro not implemented")
-	#define ZEEK_DEPRECATED(msg)
-#endif
+#pragma once
 
 // Expose C99 functionality from inttypes.h, which would otherwise not be
 // available in C++.
@@ -22,10 +12,11 @@
 #define __STDC_LIMIT_MACROS
 #endif
 
-#include <inttypes.h>
-#include <stdint.h>
+#include <cinttypes>
+#include <cstdint>
 
 #include <string>
+#include <string_view>
 #include <array>
 #include <vector>
 #include <stdio.h>
@@ -61,32 +52,49 @@ extern HeapLeakChecker* heap_checker;
 #endif
 
 #include <stdint.h>
+#include <pthread.h>
 
+#ifdef HAVE_LINUX
+#include <sys/prctl.h>
+#endif
+
+#ifdef __FreeBSD__
+#include <pthread_np.h>
+#endif
+
+[[deprecated("Remove in v4.1. Use uint64_t instead.")]]
 typedef uint64_t uint64;
+[[deprecated("Remove in v4.1. Use uint32_t instead.")]]
 typedef uint32_t uint32;
+[[deprecated("Remove in v4.1. Use uint16_t instead.")]]
 typedef uint16_t uint16;
+[[deprecated("Remove in v4.1. Use uint8_t instead.")]]
 typedef uint8_t uint8;
 
+[[deprecated("Remove in v4.1. Use int64_t instead.")]]
 typedef int64_t int64;
+[[deprecated("Remove in v4.1. Use int32_t instead.")]]
 typedef int32_t int32;
+[[deprecated("Remove in v4.1. Use int16_t instead.")]]
 typedef int16_t int16;
+[[deprecated("Remove in v4.1. Use int8_t instead.")]]
 typedef int8_t int8;
 
-typedef int64 bro_int_t;
-typedef uint64 bro_uint_t;
+typedef int64_t bro_int_t;
+typedef uint64_t bro_uint_t;
 
 // "ptr_compat_uint" and "ptr_compat_int" are (un)signed integers of
 // pointer size. They can be cast safely to a pointer, e.g. in Lists,
 // which represent their entities as void* pointers.
 //
 #if SIZEOF_VOID_P == 8
-typedef uint64 ptr_compat_uint;
-typedef int64 ptr_compat_int;
+typedef uint64_t ptr_compat_uint;
+typedef int64_t ptr_compat_int;
 #define PRI_PTR_COMPAT_INT PRId64 // Format to use with printf.
 #define PRI_PTR_COMPAT_UINT PRIu64
 #elif SIZEOF_VOID_P == 4
-typedef uint32 ptr_compat_uint;
-typedef int32 ptr_compat_int;
+typedef uint32_t ptr_compat_uint;
+typedef int32_t ptr_compat_int;
 #define PRI_PTR_COMPAT_INT PRId32
 #define PRI_PTR_COMPAT_UINT PRIu32
 #else
@@ -111,7 +119,7 @@ std::string extract_ip_and_len(const std::string& i, int* len);
 
 inline void bytetohex(unsigned char byte, char* hex_out)
 	{
-	static const char hex_chars[] = "0123456789abcdef";
+	static constexpr char hex_chars[] = "0123456789abcdef";
 	hex_out[0] = hex_chars[(byte & 0xf0) >> 4];
 	hex_out[1] = hex_chars[byte & 0x0f];
 	}
@@ -129,9 +137,11 @@ inline std::string get_escaped_string(const std::string& str, bool escape_all)
 	return get_escaped_string(str.data(), str.length(), escape_all);
 	}
 
-std::vector<std::string>* tokenize_string(std::string input,
-					  const std::string& delim,
-					  std::vector<std::string>* rval = 0);
+std::vector<std::string>* tokenize_string(std::string_view input,
+					  std::string_view delim,
+					  std::vector<std::string>* rval = 0, int limit = 0);
+
+std::vector<std::string_view> tokenize_string(std::string_view input, const char delim) noexcept;
 
 extern char* copy_string(const char* s);
 extern int streq(const char* s1, const char* s2);
@@ -157,7 +167,7 @@ extern char* strcasestr(const char* s, const char* find);
 #endif
 extern const char* strpbrk_n(size_t len, const char* s, const char* charset);
 template<class T> int atoi_n(int len, const char* s, const char** end, int base, T& result);
-extern char* uitoa_n(uint64 value, char* str, int n, int base, const char* prefix=0);
+extern char* uitoa_n(uint64_t value, char* str, int n, int base, const char* prefix=0);
 int strstr_n(const int big_len, const unsigned char* big,
 		const int little_len, const unsigned char* little);
 extern int fputs(int len, const char* s, FILE* fp);
@@ -169,7 +179,7 @@ extern std::string strtolower(const std::string& s);
 extern const char* fmt_bytes(const char* data, int len);
 
 // Note: returns a pointer into a shared buffer.
-extern const char* fmt(const char* format, va_list args);
+extern const char* vfmt(const char* format, va_list args);
 // Note: returns a pointer into a shared buffer.
 extern const char* fmt(const char* format, ...)
 	__attribute__((format (printf, 1, 2)));
@@ -191,9 +201,9 @@ extern std::string strreplace(const std::string& s, const std::string& o, const 
 extern std::string strstrip(std::string s);
 
 extern bool hmac_key_set;
-extern uint8 shared_hmac_md5_key[16];
+extern uint8_t shared_hmac_md5_key[16];
 extern bool siphash_key_set;
-extern uint8 shared_siphash_key[SIPHASH_KEYLEN];
+extern uint8_t shared_siphash_key[SIPHASH_KEYLEN];
 
 extern void hmac_md5(size_t size, const unsigned char* bytes,
 			unsigned char digest[16]);
@@ -226,7 +236,7 @@ long int bro_random();
 // in deterministic mode, else it updates the state of the deterministic PRNG.
 void bro_srandom(unsigned int seed);
 
-extern uint64 rand64bit();
+extern uint64_t rand64bit();
 
 // Each event source that may generate events gets an internally unique ID.
 // This is always LOCAL for a local Bro. For remote event sources, it gets
@@ -257,6 +267,9 @@ extern const char* bro_plugin_activate();
 extern std::string bro_prefixes();
 
 extern const std::array<std::string, 2> script_extensions;
+
+/** Prints a warning if the filename ends in .bro. */
+void warn_if_legacy_script(std::string_view filename);
 
 bool is_package_loader(const std::string& path);
 
@@ -324,14 +337,14 @@ std::string flatten_script_name(const std::string& name,
  * @param path A filesystem path.
  * @return A canonical/shortened version of \a path.
  */
-std::string normalize_path(const std::string& path);
+std::string normalize_path(std::string_view path);
 
 /**
  * Strip the ZEEKPATH component from a path.
  * @param path A file/directory path that may be within a ZEEKPATH component.
  * @return *path* minus the common ZEEKPATH component (if any) removed.
  */
-std::string without_bropath_component(const std::string& path);
+std::string without_bropath_component(std::string_view path);
 
 /**
  * Locate a file within a given search path.
@@ -395,9 +408,7 @@ void terminate_processing();
 // Sets the current status of the Bro process to the given string.
 // If the option --status-file has been set, this is written into
 // the the corresponding file.  Otherwise, the function is a no-op.
-#define set_processing_status(status, location) \
-	_set_processing_status(status " [" location "]\n");
-void _set_processing_status(const char* status);
+void set_processing_status(const char* status, const char* reason);
 
 // Current timestamp, from a networking perspective, not a wall-clock
 // perspective.  In particular, if we're reading from a savefile this
@@ -419,13 +430,13 @@ extern int time_compare(struct timeval* tv_a, struct timeval* tv_b);
 
 // Returns an integer that's very likely to be unique, even across Bro
 // instances. The integer can be drawn from different pools, which is helpful
-// when the randon number generator is seeded to be deterministic. In that
+// when the random number generator is seeded to be deterministic. In that
 // case, the same sequence of integers is generated per pool.
 #define UID_POOL_DEFAULT_INTERNAL 1
 #define UID_POOL_DEFAULT_SCRIPT   2
 #define UID_POOL_CUSTOM_SCRIPT    10 // First available custom script level pool.
-extern uint64 calculate_unique_id();
-extern uint64 calculate_unique_id(const size_t pool);
+extern uint64_t calculate_unique_id();
+extern uint64_t calculate_unique_id(const size_t pool);
 
 // For now, don't use hash_maps - they're not fully portable.
 #if 0
@@ -498,11 +509,12 @@ inline void* safe_malloc(size_t size)
 
 inline char* safe_strncpy(char* dest, const char* src, size_t n)
 	{
-	char* result = strncpy(dest, src, n);
+	char* result = strncpy(dest, src, n-1);
 	dest[n-1] = '\0';
 	return result;
 	}
 
+[[deprecated("Remove in v4.1: Use system snprintf instead")]]
 inline int safe_snprintf(char* str, size_t size, const char* format, ...)
 	{
 	va_list al;
@@ -514,6 +526,7 @@ inline int safe_snprintf(char* str, size_t size, const char* format, ...)
 	return result;
 	}
 
+[[deprecated("Remove in v4.1: Use system vsnprintf instead")]]
 inline int safe_vsnprintf(char* str, size_t size, const char* format, va_list al)
 	{
 	int result = vsnprintf(str, size, format, al);
@@ -523,7 +536,7 @@ inline int safe_vsnprintf(char* str, size_t size, const char* format, va_list al
 
 // Returns total memory allocations and (if available) amount actually
 // handed out by malloc.
-extern void get_memory_usage(uint64* total, uint64* malloced);
+extern void get_memory_usage(uint64_t* total, uint64_t* malloced);
 
 // Class to be used as a third argument for STL maps to be able to use
 // char*'s as keys. Otherwise the pointer values will be compared instead of
@@ -557,15 +570,6 @@ void bro_strerror_r(int bro_errno, char* buf, size_t buflen);
 char* zeekenv(const char* name);
 
 /**
- * Small convenience function. Does what std::make_unique does in C++14. Will not
- * work on arrays.
- */
-template <typename T, typename ... Args>
-std::unique_ptr<T> build_unique (Args&&... args) {
-	return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
-}
-
-/**
  * Escapes bytes in a string that are not valid UTF8 characters with \xYY format. Used
  * by the JSON writer and BIF methods.
  * @param val the input string to be escaped
@@ -573,4 +577,13 @@ std::unique_ptr<T> build_unique (Args&&... args) {
  */
 std::string json_escape_utf8(const std::string& val);
 
-#endif
+namespace zeek {
+/**
+ * Set the process/thread name.  May not be supported on all OSs.
+ * @param name  new name for the process/thread.  OS limitations typically
+ * truncate the name to 15 bytes maximum.
+ * @param tid  handle of thread whose name shall change
+ */
+void set_thread_name(const char* name, pthread_t tid = pthread_self());
+
+} // namespace zeek

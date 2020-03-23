@@ -1,13 +1,15 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "NetbiosSSN.h"
 
 #include <ctype.h>
 
+#include "BroString.h"
 #include "NetVar.h"
-#include "NetbiosSSN.h"
 #include "Sessions.h"
 #include "Event.h"
+#include "Net.h"
 
 #include "events.bif.h"
 
@@ -518,7 +520,7 @@ void NetbiosSSN_Analyzer::ConnectionClosed(tcp::TCP_Endpoint* endpoint,
 	}
 
 void NetbiosSSN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen)
+					uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 

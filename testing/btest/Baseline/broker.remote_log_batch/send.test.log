@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	test
+#open	2020-02-05-20-53-15
+#fields	msg	num
+#types	string	count
+ping	0
+ping	1
+#close	2020-02-05-20-53-16

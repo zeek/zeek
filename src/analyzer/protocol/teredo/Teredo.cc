@@ -4,6 +4,8 @@
 #include "Conn.h"
 #include "IP.h"
 #include "Reporter.h"
+#include "Sessions.h"
+#include "BroString.h"
 
 #include "events.bif.h"
 
@@ -24,7 +26,7 @@ bool TeredoEncapsulation::DoParse(const u_char* data, int& len,
 		return false;
 		}
 
-	uint16 tag = ntohs((*((const uint16*)data)));
+	uint16_t tag = ntohs((*((const uint16_t*)data)));
 
 	if ( tag == 0 )
 		{
@@ -59,9 +61,9 @@ bool TeredoEncapsulation::DoParse(const u_char* data, int& len,
 			return false;
 			}
 
-		uint8 id_len = data[2];
-		uint8 au_len = data[3];
-		uint16 tot_len = 4 + id_len + au_len + 8 + 1;
+		uint8_t id_len = data[2];
+		uint8_t au_len = data[3];
+		uint16_t tot_len = 4 + id_len + au_len + 8 + 1;
 
 		if ( len < tot_len )
 			{
@@ -112,13 +114,13 @@ RecordVal* TeredoEncapsulation::BuildVal(const IP_Hdr* inner) const
 	if ( auth )
 		{
 		RecordVal* teredo_auth = new RecordVal(teredo_auth_type);
-		uint8 id_len = *((uint8*)(auth + 2));
-		uint8 au_len = *((uint8*)(auth + 3));
-		uint64 nonce = ntohll(*((uint64*)(auth + 4 + id_len + au_len)));
-		uint8 conf = *((uint8*)(auth + 4 + id_len + au_len + 8));
-		teredo_auth->Assign(0, new StringVal(
+		uint8_t id_len = *((uint8_t*)(auth + 2));
+		uint8_t au_len = *((uint8_t*)(auth + 3));
+		uint64_t nonce = ntohll(*((uint64_t*)(auth + 4 + id_len + au_len)));
+		uint8_t conf = *((uint8_t*)(auth + 4 + id_len + au_len + 8));
+		teredo_auth->Assign(0, make_intrusive<StringVal>(
 		    new BroString(auth + 4, id_len, 1)));
-		teredo_auth->Assign(1, new StringVal(
+		teredo_auth->Assign(1, make_intrusive<StringVal>(
 		    new BroString(auth + 4 + id_len, au_len, 1)));
 		teredo_auth->Assign(2, val_mgr->GetCount(nonce));
 		teredo_auth->Assign(3, val_mgr->GetCount(conf));
@@ -128,10 +130,10 @@ RecordVal* TeredoEncapsulation::BuildVal(const IP_Hdr* inner) const
 	if ( origin_indication )
 		{
 		RecordVal* teredo_origin = new RecordVal(teredo_origin_type);
-		uint16 port = ntohs(*((uint16*)(origin_indication + 2))) ^ 0xFFFF;
-		uint32 addr = ntohl(*((uint32*)(origin_indication + 4))) ^ 0xFFFFFFFF;
+		uint16_t port = ntohs(*((uint16_t*)(origin_indication + 2))) ^ 0xFFFF;
+		uint32_t addr = ntohl(*((uint32_t*)(origin_indication + 4))) ^ 0xFFFFFFFF;
 		teredo_origin->Assign(0, val_mgr->GetPort(port, TRANSPORT_UDP));
-		teredo_origin->Assign(1, new AddrVal(htonl(addr)));
+		teredo_origin->Assign(1, make_intrusive<AddrVal>(htonl(addr)));
 		teredo_hdr->Assign(1, teredo_origin);
 		}
 
@@ -140,7 +142,7 @@ RecordVal* TeredoEncapsulation::BuildVal(const IP_Hdr* inner) const
 	}
 
 void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
-                                    uint64 seq, const IP_Hdr* ip, int caplen)
+                                    uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 

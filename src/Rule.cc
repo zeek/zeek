@@ -1,6 +1,8 @@
 #include "zeek-config.h"
 
 #include "Rule.h"
+#include "RuleAction.h"
+#include "RuleCondition.h"
 #include "RuleMatcher.h"
 
 // Start at one as we want search for this within a list,
@@ -68,7 +70,7 @@ void Rule::PrintDebug()
 	}
 
 void Rule::AddPattern(const char* str, Rule::PatternType type,
-			uint32 offset, uint32 depth)
+			uint32_t offset, uint32_t depth)
 	{
 	Pattern* p = new Pattern;
 	p->pattern = copy_string(str);

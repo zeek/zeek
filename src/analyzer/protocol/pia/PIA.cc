@@ -1,5 +1,10 @@
 #include "PIA.h"
 #include "RuleMatcher.h"
+#include "Event.h"
+#include "NetVar.h"
+#include "IP.h"
+#include "DebugLogger.h"
+#include "Reporter.h"
 #include "analyzer/protocol/tcp/TCP_Flags.h"
 #include "analyzer/protocol/tcp/TCP_Reassembler.h"
 
@@ -30,7 +35,7 @@ void PIA::ClearBuffer(Buffer* buffer)
 	buffer->size = 0;
 	}
 
-void PIA::AddToBuffer(Buffer* buffer, uint64 seq, int len, const u_char* data,
+void PIA::AddToBuffer(Buffer* buffer, uint64_t seq, int len, const u_char* data,
 			bool is_orig, const IP_Hdr* ip)
 	{
 	u_char* tmp = 0;
@@ -79,7 +84,7 @@ void PIA::PIA_Done()
 	FinishEndpointMatcher();
 	}
 
-void PIA::PIA_DeliverPacket(int len, const u_char* data, bool is_orig, uint64 seq,
+void PIA::PIA_DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq,
 				const IP_Hdr* ip, int caplen, bool clear_state)
 	{
 	if ( pkt_buffer.state == SKIPPING )
@@ -130,6 +135,9 @@ void PIA::DoMatch(const u_char* data, int len, bool is_orig, bool bol, bool eol,
 	if ( ! rule_matcher )
 		return;
 
+	if ( ! rule_matcher->HasNonFileMagicRule() )
+		return;
+
 	if ( ! MatcherInitialized(is_orig) )
 		InitEndpointMatcher(AsAnalyzer(), ip, len, is_orig, this);
 
@@ -144,6 +152,20 @@ void PIA_UDP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 		DBG_LOG(DBG_ANALYZER, "analyzer found but buffer already exceeded");
 		// FIXME: This is where to check whether an analyzer
 		// supports partial connections once we get such.
+
+		if ( protocol_late_match )
+			{
+			// Queue late match event
+			EnumVal *tval = tag ? tag.AsEnumVal() : GetAnalyzerTag().AsEnumVal();
+			Ref(tval);
+
+			mgr.QueueEventFast(protocol_late_match, {
+			    BuildConnVal(),
+			    tval,
+			});
+			}
+
+		pkt_buffer.state = dpd_late_match_stop ? SKIPPING : MATCHING_ONLY;
 		return;
 		}
 
@@ -261,7 +283,7 @@ void PIA_TCP::DeliverStream(int len, const u_char* data, bool is_orig)
 	stream_buffer.state = new_state;
 	}
 
-void PIA_TCP::Undelivered(uint64 seq, int len, bool is_orig)
+void PIA_TCP::Undelivered(uint64_t seq, int len, bool is_orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
 
@@ -279,13 +301,28 @@ void PIA_TCP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 		DBG_LOG(DBG_ANALYZER, "analyzer found but buffer already exceeded");
 		// FIXME: This is where to check whether an analyzer supports
 		// partial connections once we get such.
+
+		if ( protocol_late_match )
+			{
+			// Queue late match event
+			EnumVal *tval = tag ? tag.AsEnumVal() : GetAnalyzerTag().AsEnumVal();
+			Ref(tval);
+
+			mgr.QueueEventFast(protocol_late_match, {
+			    BuildConnVal(),
+			    tval
+			});
+			}
+
+		stream_buffer.state = dpd_late_match_stop ? SKIPPING : MATCHING_ONLY;
 		return;
 		}
 
-	if ( Parent()->HasChildAnalyzer(tag) )
+	analyzer::Analyzer* a = Parent()->AddChildAnalyzer(tag);
+
+	if ( ! a )
 		return;
 
-	analyzer::Analyzer* a = Parent()->AddChildAnalyzer(tag);
 	a->SetSignature(rule);
 
 	// We have two cases here:
@@ -342,8 +379,8 @@ void PIA_TCP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 		new tcp::TCP_Reassembler(this, tcp, tcp::TCP_Reassembler::Direct,
 					tcp->Resp());
 
-	uint64 orig_seq = 0;
-	uint64 resp_seq = 0;
+	uint64_t orig_seq = 0;
+	uint64_t resp_seq = 0;
 
 	for ( DataBlock* b = pkt_buffer.head; b; b = b->next )
 		{

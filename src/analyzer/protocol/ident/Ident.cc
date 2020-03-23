@@ -4,6 +4,7 @@
 
 #include <ctype.h>
 
+#include "BroString.h"
 #include "NetVar.h"
 #include "Ident.h"
 #include "Event.h"
@@ -15,7 +16,7 @@ using namespace analyzer::ident;
 Ident_Analyzer::Ident_Analyzer(Connection* conn)
 : tcp::TCP_ApplicationAnalyzer("IDENT", conn)
 	{
-	did_bad_reply = did_deliver = 0;
+	did_bad_reply = did_deliver = false;
 
 	orig_ident = new tcp::ContentLine_Analyzer(conn, true, 1000);
 	resp_ident = new tcp::ContentLine_Analyzer(conn, false, 1000);
@@ -89,7 +90,7 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 			val_mgr->GetPort(remote_port, TRANSPORT_TCP),
 		});
 
-		did_deliver = 1;
+		did_deliver = true;
 		}
 
 	else
@@ -251,6 +252,6 @@ void Ident_Analyzer::BadReply(int length, const char* line)
 		{
 		BroString s((const u_char*)line, length, true);
 		Weird("bad_ident_reply", s.CheckString());
-		did_bad_reply = 1;
+		did_bad_reply = true;
 		}
 	}

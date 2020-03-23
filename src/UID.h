@@ -1,12 +1,12 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef BRO_UID_H
-#define BRO_UID_H
+#pragma once
+
+#include "util.h" // for bro_int_t
 
 #include <string>
 
-#include "Reporter.h"
-#include "util.h"
+#include <string.h>
 
 #define BRO_UID_LEN 2
 
@@ -28,7 +28,7 @@ public:
 	 * Construct a UID of a given bit-length, optionally from given values.
 	 * @see UID::Set
 	 */
-	explicit UID(bro_uint_t bits, const uint64* v = 0, size_t n = 0)
+	explicit UID(bro_uint_t bits, const uint64_t* v = 0, size_t n = 0)
 		{ Set(bits, v, n); }
 
 	/**
@@ -37,7 +37,7 @@ public:
 	UID(const UID& other);
 
 	/**
-	 * Inititialize a UID of a given bit-length, optionally from given values.
+	 * Initialize a UID of a given bit-length, optionally from given values.
 	 * @param bits The desired length in bits of the UID, up to a max of
 	 *             BRO_UID_LEN * 64.
 	 * @param v A pointer to an array of values with which to initialize the
@@ -47,7 +47,7 @@ public:
 	 *          64, then a value is truncated to bit in desired bit-length.
 	 * @param n number of 64-bit elements in array pointed to by \a v.
 	 */
-	void Set(bro_uint_t bits, const uint64* v = 0, size_t n = 0);
+	void Set(bro_uint_t bits, const uint64_t* v = 0, size_t n = 0);
 
 	/**
 	 * Returns a base62 (characters 0-9, A-Z, a-z) representation of the UID.
@@ -81,7 +81,7 @@ public:
 		{ return ! ( u1 == u2 ); }
 
 private:
-	uint64 uid[BRO_UID_LEN];
+	uint64_t uid[BRO_UID_LEN];
 	bool initialized; // Since technically uid == 0 is a legit UID
 };
 
@@ -98,18 +98,4 @@ inline UID& UID::operator=(const UID& other)
 	return *this;
 	}
 
-inline std::string UID::Base62(std::string prefix) const
-	{
-	if ( ! initialized )
-		reporter->InternalError("use of uninitialized UID");
-
-	char tmp[sizeof(uid) * 8 + 1];  // enough for even binary representation
-	for ( size_t i = 0; i < BRO_UID_LEN; ++i )
-		prefix.append(uitoa_n(uid[i], tmp, sizeof(tmp), 62));
-
-	return prefix;
-	}
-
 } // namespace Bro
-
-#endif

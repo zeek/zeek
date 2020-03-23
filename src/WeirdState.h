@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef WEIRDSTATE_H
-#define WEIRDSTATE_H
+#pragma once
 
 #include <string>
 #include <unordered_map>
@@ -16,6 +15,3 @@ using WeirdStateMap = std::unordered_map<std::string, WeirdState>;
 
 bool PermitWeird(WeirdStateMap& wsm, const char* name, uint64_t threshold,
                  uint64_t rate, double duration);
-
-#endif // WEIRDSTATE_H
-

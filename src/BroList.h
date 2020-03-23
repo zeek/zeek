@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef brolist_h
-#define brolist_h
+#pragma once
 
 #include "List.h"
 
@@ -25,5 +24,3 @@ typedef PList<Attr> attr_list;
 
 class Timer;
 typedef PList<Timer> timer_list;
-
-#endif

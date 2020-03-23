@@ -3,14 +3,14 @@
 #empty_field	(empty)
 #unset_field	-
 #path	conn
-#open	2016-07-13-16-12-57
+#open	2019-07-31-18-52-11
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
 #types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	bool	count	string	count	count	count	count	set[string]
-1284385417.962560	CUM0KZ3MLUfNB0cl11	fe80::ce05:eff:fe88:0	546	ff02::1:2	547	udp	-	0.078000	114	0	S0	-	-	0	D	2	210	0	0	-
 1284385418.014560	CmES5u32sYpV7JYN	fe80::c801:eff:fe88:8	547	fe80::ce05:eff:fe88:0	546	udp	-	0.096000	192	0	S0	-	-	0	D	2	288	0	0	-
-1284385411.035560	CHhAvVGS1DHFjwGM9	fe80::c801:eff:fe88:8	143	ff02::16	0	icmp	-	0.835000	160	0	OTH	-	-	0	-	8	608	0	0	-
+1284385417.962560	CUM0KZ3MLUfNB0cl11	fe80::ce05:eff:fe88:0	546	ff02::1:2	547	udp	-	0.078000	114	0	S0	-	-	0	D	2	210	0	0	-
 1284385451.658560	CP5puj4I8PtEU4qzYg	fc00:0:2:100::1:1	128	fc00::1	129	icmp	-	0.156000	260	260	OTH	-	-	0	-	5	500	5	500	-
-1284385412.963560	C4J4Th3PJpwUYZZ6gc	fe80::ce05:eff:fe88:0	133	ff02::2	134	icmp	-	-	-	-	OTH	-	-	0	-	1	48	0	0	-
 1284385413.027560	CtPZjS20MLrsMUOJi2	fe80::c801:eff:fe88:8	134	fe80::ce05:eff:fe88:0	133	icmp	-	-	-	-	OTH	-	-	0	-	1	64	0	0	-
 1284385411.091560	ClEkJM2Vm5giqnMf4h	fe80::c801:eff:fe88:8	136	ff02::1	135	icmp	-	-	-	-	OTH	-	-	0	-	1	64	0	0	-
-#close	2016-07-13-16-12-57
+1284385411.035560	CHhAvVGS1DHFjwGM9	fe80::c801:eff:fe88:8	143	ff02::16	0	icmp	-	0.835000	160	0	OTH	-	-	0	-	8	608	0	0	-
+1284385412.963560	C4J4Th3PJpwUYZZ6gc	fe80::ce05:eff:fe88:0	133	ff02::2	134	icmp	-	-	-	-	OTH	-	-	0	-	1	48	0	0	-
+#close	2019-07-31-18-52-11

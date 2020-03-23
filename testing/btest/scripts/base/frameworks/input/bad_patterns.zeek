@@ -1,5 +1,6 @@
 # @TEST-EXEC: zeek -b %INPUT
-# @TEST-EXEC: btest-diff .stderr
+# @TEST-EXEC: grep -v "already queued for removal" .stderr > out
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff out
 
 @TEST-START-FILE input.log
 #separator \x09
@@ -12,8 +13,6 @@
 5	/5
 @TEST-END-FILE
 
-redef exit_only_after_terminate = T;
-
 module A;
 
 type Idx: record {
@@ -24,15 +23,9 @@ type Val: record {
 	p: pattern;
 };
 
-event kill_me()
-	{
-	terminate();
-	}
-
 global pats: table[int] of Val = table();
 
 event zeek_init()
 	{
 	Input::add_table([$source="input.log", $name="pats", $idx=Idx, $val=Val, $destination=pats]);
-	schedule 10msec { kill_me() };
 	}

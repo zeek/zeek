@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef INPUT_READERS_BINARY_H
-#define INPUT_READERS_BINARY_H
+#pragma once
 
 #include <fstream>
 #include <sys/types.h>
@@ -47,5 +46,3 @@ private:
 
 }
 }
-
-#endif /* INPUT_READERS_BINARY_H */

@@ -1,5 +1,4 @@
-#ifndef ANALYZER_PROTOCOL_MODBUS_MODBUS_H
-#define ANALYZER_PROTOCOL_MODBUS_MODBUS_H
+#pragma once
 
 #include "analyzer/protocol/tcp/TCP.h"
 #include "modbus_pac.h"
@@ -14,7 +13,7 @@ public:
 	void Done() override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 
-	void Undelivered(uint64 seq, int len, bool orig) override;
+	void Undelivered(uint64_t seq, int len, bool orig) override;
 	void EndpointEOF(bool is_orig) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
@@ -25,5 +24,3 @@ protected:
 };
 
 } } // namespace analyzer::* 
-
-#endif

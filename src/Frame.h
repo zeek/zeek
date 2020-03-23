@@ -1,19 +1,22 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef frame_h
-#define frame_h
+#pragma once
+
+#include "BroList.h" // for typedef val_list
+#include "Obj.h"
+#include "IntrusivePtr.h"
 
 #include <unordered_map>
-#include <memory>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include <broker/data.hh>
 #include <broker/expected.hh>
 
-#include "Val.h"
-
-class Trigger;
+namespace trigger { class Trigger; }
 class CallExpr;
+class BroFunc;
 
 class Frame :  public BroObj {
 public:
@@ -45,8 +48,11 @@ public:
 	 *
 	 * @param n the index to set
 	 * @param v the value to set it to
+	 * @param weak_ref whether the frame owns the value and should unref
+	 * it upon destruction.  Used to break circular references between
+	 * lambda functions and closure frames.
 	 */
-	void SetElement(int n, Val* v);
+	void SetElement(int n, Val* v, bool weak_ref = false);
 
 	/**
 	 * Associates *id* and *v* in the frame. Future lookups of
@@ -129,7 +135,7 @@ public:
 	/**
 	 * Performs a deep copy of all the values in the current frame. If
 	 * the frame has a closure the returned frame captures that closure
-	 * by reference.. As such, performing a clone operation does not copy
+	 * by reference. As such, performing a clone operation does not copy
 	 * the values in the closure.
 	 *
 	 * @return a copy of this frame.
@@ -150,7 +156,7 @@ public:
 	 * *selection* have been cloned. All other values are made to be
 	 * null.
 	 */
-	Frame* SelectiveClone(const id_list& selection) const;
+	Frame* SelectiveClone(const id_list& selection, BroFunc* func) const;
 
 	/**
 	 * Serializes the Frame into a Broker representation.
@@ -175,7 +181,7 @@ public:
 	 * @return the broker representaton, or an error if the serialization
 	 * failed.
 	 */
-	static broker::expected<broker::data> Serialize(const Frame* target, const id_list selection);
+	static broker::expected<broker::data> Serialize(const Frame* target, const id_list& selection);
 
 	/**
 	 * Instantiates a Frame from a serialized one.
@@ -184,7 +190,7 @@ public:
 	 * and the second is the unserialized frame with reference count +1, or
 	 * null if the serialization wasn't successful.
 	 */
-	static std::pair<bool, Frame*> Unserialize(const broker::vector& data);
+	static std::pair<bool, IntrusivePtr<Frame>> Unserialize(const broker::vector& data);
 
 	/**
 	 * Sets the IDs that the frame knows offsets for. These offsets will
@@ -205,9 +211,9 @@ public:
 
 	// If the frame is run in the context of a trigger condition evaluation,
 	// the trigger needs to be registered.
-	void SetTrigger(Trigger* arg_trigger);
+	void SetTrigger(IntrusivePtr<trigger::Trigger> arg_trigger);
 	void ClearTrigger();
-	Trigger* GetTrigger() const		{ return trigger; }
+	trigger::Trigger* GetTrigger() const		{ return trigger.get(); }
 
 	void SetCall(const CallExpr* arg_call)	{ call = arg_call; }
 	void ClearCall()			{ call = 0; }
@@ -216,8 +222,22 @@ public:
 	void SetDelayed()	{ delayed = true; }
 	bool HasDelayed() const	{ return delayed; }
 
+	/**
+	 * Track a new function that refers to this frame for use as a closure.
+	 * This frame's destructor will then upgrade that functions reference
+	 * from weak to strong (by making a copy).  The initial use of
+	 * weak references prevents unbreakable circular references that
+	 * otherwise cause memory leaks.
+	 */
+	void AddFunctionWithClosureRef(BroFunc* func);
 
 private:
+
+	/**
+	 * Unrefs the value at offset 'n' frame unless it's a weak reference.
+	 */
+	void UnrefElement(int n);
+
 	/** Have we captured this id? */
 	bool IsOuterID(const ID* in) const;
 
@@ -243,8 +263,13 @@ private:
 	/** Associates ID's offsets with values. */
 	Val** frame;
 
+	/** Values that are weakly referenced by the frame.  Used to
+	 * prevent circular reference memory leaks in lambda/closures */
+	bool* weak_refs = nullptr;
+
 	/** The enclosing frame of this frame. */
 	Frame* closure;
+	bool weak_closure_ref = false;
 
 	/** ID's used in this frame from the enclosing frame. */
 	id_list outer_ids;
@@ -266,9 +291,11 @@ private:
 	bool break_before_next_stmt;
 	bool break_on_return;
 
-	Trigger* trigger;
+	IntrusivePtr<trigger::Trigger> trigger;
 	const CallExpr* call;
 	bool delayed;
+
+	std::vector<BroFunc*> functions_with_closure_frame_reference;
 };
 
 /**
@@ -282,5 +309,3 @@ private:
  * https://stackoverflow.com/a/16211097
  */
 extern std::vector<Frame*> g_frame_stack;
-
-#endif

@@ -38,8 +38,8 @@ refine flow NTP_Flow += {
 		RecordVal* rv = new RecordVal(BifType::Record::NTP::StandardMessage);
 
 		rv->Assign(0, val_mgr->GetCount(${nsm.stratum}));
-		rv->Assign(1, new Val(pow(2, ${nsm.poll}), TYPE_INTERVAL));
-		rv->Assign(2, new Val(pow(2, ${nsm.precision}), TYPE_INTERVAL));
+		rv->Assign(1, make_intrusive<Val>(pow(2, ${nsm.poll}), TYPE_INTERVAL));
+		rv->Assign(2, make_intrusive<Val>(pow(2, ${nsm.precision}), TYPE_INTERVAL));
 		rv->Assign(3, proc_ntp_short(${nsm.root_delay}));
 		rv->Assign(4, proc_ntp_short(${nsm.root_dispersion}));
 
@@ -55,7 +55,7 @@ refine flow NTP_Flow += {
 		default:
 			{
 			const uint8* d = ${nsm.reference_id}.data();
-			rv->Assign(7, new AddrVal(IPAddr(IPv4, (const uint32*) d, IPAddr::Network)));
+			rv->Assign(7, make_intrusive<AddrVal>(IPAddr(IPv4, (const uint32*) d, IPAddr::Network)));
 			}
 			break;
 		}

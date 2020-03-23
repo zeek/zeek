@@ -1,5 +1,9 @@
 #include "zeek-config.h"
 #include "Base64.h"
+#include "BroString.h"
+#include "Reporter.h"
+#include "Conn.h"
+
 #include <math.h>
 
 int Base64Converter::default_base64_table[256];
@@ -153,7 +157,7 @@ int Base64Converter::Decode(int len, const char* data, int* pblen, char** pbuf)
 			if ( buf + num_octets > *pbuf + blen )
 				break;
 
-			uint32 bit32 =
+			uint32_t bit32 =
 				((base64_group[0] & 0x3f) << 18) |
 				((base64_group[1] & 0x3f) << 12) |
 				((base64_group[2] & 0x3f) << 6)  |
@@ -215,6 +219,14 @@ int Base64Converter::Done(int* pblen, char** pbuf)
 	return 0;
 	}
 
+void Base64Converter::IllegalEncoding(const char* msg)
+		{
+		// strncpy(error_msg, msg, sizeof(error_msg));
+		if ( conn )
+			conn->Weird("base64_illegal_encoding", msg);
+		else
+			reporter->Error("%s", msg);
+		}
 
 BroString* decode_base64(const BroString* s, const BroString* a, Connection* conn)
 	{
@@ -230,7 +242,9 @@ BroString* decode_base64(const BroString* s, const BroString* a, Connection* con
 	char* rbuf2, *rbuf = new char[rlen];
 
 	Base64Converter dec(conn, a ? a->CheckString() : "");
-	if ( dec.Decode(s->Len(), (const char*) s->Bytes(), &rlen, &rbuf) == -1 )
+	dec.Decode(s->Len(), (const char*) s->Bytes(), &rlen, &rbuf);
+
+	if ( dec.Errored() )
 		goto err;
 
 	rlen2 = buf_len - rlen;
@@ -264,4 +278,3 @@ BroString* encode_base64(const BroString* s, const BroString* a, Connection* con
 
 	return new BroString(1, (u_char*)outbuf, outlen);
 	}
-

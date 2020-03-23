@@ -1,14 +1,10 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef packetdumper_h
-#define packetdumper_h
-
-using namespace std;
-
-#include <queue>
-#include <set>
+#pragma once
 
 #include <pcap.h>
+
+#include <sys/types.h> // for u_char
 
 class PacketDumper {
 public:
@@ -23,20 +19,3 @@ protected:
 
 	void SortTimeStamp(struct timeval* timestamp);
 };
-
-struct IP_ID {
-	uint32 ip, id;
-};
-
-struct ltipid {
-	bool operator()(IP_ID id1, IP_ID id2) const
-		{
-		return id1.ip != id2.ip ? (id1.ip < id2.ip) :
-					  (id1.id < id2.id);
-		}
-};
-
-typedef set<IP_ID, ltipid> IP_IDSet;
-uint16 NextIP_ID(const uint32 src_addr, const uint16 id);
-
-#endif

@@ -2,6 +2,7 @@
 
 
 #include "plugin/Plugin.h"
+#include "analyzer/Component.h"
 
 #include "OpenVPN.h"
 

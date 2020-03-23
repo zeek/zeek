@@ -53,6 +53,9 @@ HTTP_Entity::HTTP_Entity(HTTP_Message *arg_message, MIME_Entity* parent_entity, 
 	offset = 0;
 	instance_length = -1; // unspecified
 	send_size = true;
+	// Always override what MIME_Entity set for want_all_headers: HTTP doesn't
+	// raise the generic MIME events, but rather it's own specific ones.
+	want_all_headers = (bool)http_all_headers;
 	}
 
 void HTTP_Entity::EndOfData()
@@ -173,7 +176,6 @@ void HTTP_Entity::Deliver(int len, const char* data, int trailing_CRLF)
 class HTTP_Entity::UncompressedOutput : public analyzer::OutputHandler {
 public:
 	UncompressedOutput(HTTP_Entity* e)	{ entity = e; }
-	virtual	~UncompressedOutput() { }
 	virtual void DeliverStream(int len, const u_char* data, bool orig)
 		{
 		entity->DeliverBodyClear(len, (char*) data, false);
@@ -399,7 +401,7 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 			return;
 			}
 
-		size_t p = byte_range.find("/");
+		size_t p = byte_range.find('/');
 		if ( p == string::npos )
 			{
 			http_message->Weird("HTTP_content_range_cannot_parse");
@@ -409,7 +411,7 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 		string byte_range_resp_spec = byte_range.substr(0, p);
 		string instance_length_str = byte_range.substr(p + 1);
 
-		p = byte_range_resp_spec.find("-");
+		p = byte_range_resp_spec.find('-');
 		if ( p == string::npos )
 			{
 			http_message->Weird("HTTP_content_range_cannot_parse");
@@ -470,14 +472,16 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 
 	else if ( mime::istrequal(h->get_name(), "transfer-encoding") )
 		{
-		double http_version = 0;
+		HTTP_Analyzer::HTTP_VersionNumber http_version;
+
 		if (http_message->analyzer->GetRequestOngoing())
-			http_version = http_message->analyzer->GetRequestVersion();
+			http_version = http_message->analyzer->GetRequestVersionNumber();
 		else // reply_ongoing
-			http_version = http_message->analyzer->GetReplyVersion();
+			http_version = http_message->analyzer->GetReplyVersionNumber();
 
 		data_chunk_t vt = h->get_value_token();
-		if ( mime::istrequal(vt, "chunked") && http_version == 1.1 )
+		if ( mime::istrequal(vt, "chunked") &&
+		     http_version == HTTP_Analyzer::HTTP_VersionNumber{1, 1} )
 			chunked_transfer_state = BEFORE_CHUNK;
 		}
 
@@ -613,9 +617,9 @@ Val* HTTP_Message::BuildMessageStat(const int interrupted, const char* msg)
 	{
 	RecordVal* stat = new RecordVal(http_message_stat);
 	int field = 0;
-	stat->Assign(field++, new Val(start_time, TYPE_TIME));
+	stat->Assign(field++, make_intrusive<Val>(start_time, TYPE_TIME));
 	stat->Assign(field++, val_mgr->GetBool(interrupted));
-	stat->Assign(field++, new StringVal(msg));
+	stat->Assign(field++, make_intrusive<StringVal>(msg));
 	stat->Assign(field++, val_mgr->GetCount(body_length));
 	stat->Assign(field++, val_mgr->GetCount(content_gap_length));
 	stat->Assign(field++, val_mgr->GetCount(header_length));
@@ -762,7 +766,10 @@ void HTTP_Message::SubmitAllHeaders(mime::MIME_HeaderList& hlist)
 
 void HTTP_Message::SubmitTrailingHeaders(mime::MIME_HeaderList& /* hlist */)
 	{
-	// Do nothing for now.
+	// Do nothing for now.  Note that if this ever changes do something
+	// which relies on the header list argument, that's currently not
+	// populated unless the http_all_headers or mime_all_headers events
+	// are being used (so you may need to change that, too).
 	}
 
 void HTTP_Message::SubmitData(int len, const char* buf)
@@ -837,7 +844,6 @@ HTTP_Analyzer::HTTP_Analyzer(Connection* conn)
 	{
 	num_requests = num_replies = 0;
 	num_request_lines = num_reply_lines = 0;
-	request_version = reply_version = 0.0;	// unknown version
 	keep_alive = 0;
 	connection_close = 0;
 
@@ -1091,7 +1097,7 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 		}
 	}
 
-void HTTP_Analyzer::Undelivered(uint64 seq, int len, bool is_orig)
+void HTTP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, is_orig);
 
@@ -1179,8 +1185,8 @@ void HTTP_Analyzer::GenStats()
 		RecordVal* r = new RecordVal(http_stats_rec);
 		r->Assign(0, val_mgr->GetCount(num_requests));
 		r->Assign(1, val_mgr->GetCount(num_replies));
-		r->Assign(2, new Val(request_version, TYPE_DOUBLE));
-		r->Assign(3, new Val(reply_version, TYPE_DOUBLE));
+		r->Assign(2, make_intrusive<Val>(request_version.ToDouble(), TYPE_DOUBLE));
+		r->Assign(3, make_intrusive<Val>(reply_version.ToDouble(), TYPE_DOUBLE));
 
 		// DEBUG_MSG("%.6f http_stats\n", network_time);
 		ConnectionEventFast(http_stats, {BuildConnVal(), r});
@@ -1259,13 +1265,13 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 	if ( rest == end_of_method )
 		goto error;
 
-	request_method = new StringVal(end_of_method - line, line);
-
 	if ( ! ParseRequest(rest, end_of_line) )
 		{
 		reporter->AnalyzerError(this, "HTTP ParseRequest failed");
 		return -1;
 		}
+
+	request_method = new StringVal(end_of_method - line, line);
 
 	Conn()->Match(Rule::HTTP_REQUEST,
 			(const u_char*) unescaped_URI->AsString()->Bytes(),
@@ -1313,14 +1319,14 @@ int HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line)
 	if ( version_start >= end_of_line )
 		{
 		// If no version is found
-		SetVersion(request_version, 0.9);
+		SetVersion(&request_version, {0, 9});
 		}
 	else
 		{
 		if ( version_start + 8 <= end_of_line )
 			{
 			version_start += 5; // "HTTP/"
-			SetVersion(request_version,
+			SetVersion(&request_version,
 					HTTP_Version(end_of_line - version_start,
 							version_start));
 
@@ -1343,31 +1349,33 @@ int HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line)
 	}
 
 // Only recognize [0-9][.][0-9].
-double HTTP_Analyzer::HTTP_Version(int len, const char* data)
+HTTP_Analyzer::HTTP_VersionNumber HTTP_Analyzer::HTTP_Version(int len, const char* data)
 	{
 	if ( len >= 3 &&
 	     data[0] >= '0' && data[0] <= '9' &&
 	     data[1] == '.' &&
 	     data[2] >= '0' && data[2] <= '9' )
 		{
-		return double(data[0] - '0') + 0.1 * double(data[2] - '0');
+		uint8_t major = data[0] - '0';
+		uint8_t minor = data[2] - '0';
+		return {major, minor};
 		}
 	else
 		{
 	        HTTP_Event("bad_HTTP_version", mime::new_string_val(len, data));
-		return 0;
+		return {};
 		}
 	}
 
-void HTTP_Analyzer::SetVersion(double& version, double new_version)
+void HTTP_Analyzer::SetVersion(HTTP_VersionNumber* version, HTTP_VersionNumber new_version)
 	{
-	if ( version == 0.0 )
-		version = new_version;
+	if ( *version == HTTP_VersionNumber{} )
+		*version = new_version;
 
-	else if ( version != new_version )
+	else if ( *version != new_version )
 		Weird("HTTP_version_mismatch");
 
-	if ( version > 1.05 )
+	if ( version->major > 1 || (version->major == 1 && version->minor > 0) )
 		keep_alive = 1;
 	}
 
@@ -1429,7 +1437,7 @@ void HTTP_Analyzer::HTTP_Request()
 			request_method,
 			TruncateURI(request_URI->AsStringVal()),
 			TruncateURI(unescaped_URI->AsStringVal()),
-			new StringVal(fmt("%.1f", request_version)),
+			new StringVal(fmt("%.1f", request_version.ToDouble())),
 		});
 		}
 	}
@@ -1440,7 +1448,7 @@ void HTTP_Analyzer::HTTP_Reply()
 		{
 		ConnectionEventFast(http_reply, {
 			BuildConnVal(),
-			new StringVal(fmt("%.1f", reply_version)),
+			new StringVal(fmt("%.1f", reply_version.ToDouble())),
 			val_mgr->GetCount(reply_code),
 			reply_reason_phrase ?
 				reply_reason_phrase->Ref() :
@@ -1560,7 +1568,7 @@ int HTTP_Analyzer::HTTP_ReplyLine(const char* line, const char* end_of_line)
 		return 0;
 		}
 
-	SetVersion(reply_version, HTTP_Version(end_of_line - rest, rest));
+	SetVersion(&reply_version, HTTP_Version(end_of_line - rest, rest));
 
 	for ( ; rest < end_of_line; ++rest )
 		if ( mime::is_lws(*rest) )

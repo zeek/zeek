@@ -1,9 +1,13 @@
 // Structures and methods for implementing breakpoints in the Bro debugger.
 
-#ifndef DbgBreakpoint_h
-#define DbgBreakpoint_h
+#pragma once
 
-#include "Debug.h"
+#include <string>
+
+using std::string;
+
+struct ParseLocationRec;
+class Stmt;
 
 enum BreakCode { bcNoHit, bcHit, bcHitAndDelete };
 class DbgBreakpoint {
@@ -17,7 +21,7 @@ public:
 	void SetID(int newID)	{ BPID = newID; }
 
 	// True if breakpoint could be set; false otherwise
-	bool SetLocation(ParseLocationRec plr, string loc_str);
+	bool SetLocation(ParseLocationRec plr, std::string_view loc_str);
 	bool SetLocation(Stmt* stmt);
 	bool SetLocation(double time);
 
@@ -77,5 +81,3 @@ protected:
 
 	string condition;	// condition to evaluate; nil for none
 };
-
-#endif

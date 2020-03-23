@@ -1,12 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ZEEKYGEN_TARGET_H
-#define ZEEKYGEN_TARGET_H
-
-#include "Info.h"
-#include "PackageInfo.h"
-#include "ScriptInfo.h"
-#include "IdentifierInfo.h"
+#pragma once
 
 #include <map>
 #include <string>
@@ -14,6 +8,11 @@
 #include <cstdio>
 
 namespace zeekygen {
+
+class Info;
+class PackageInfo;
+class ScriptInfo;
+class IdentifierInfo;
 
 /**
  * Helper class to create files in arbitrary file paths and automatically
@@ -385,5 +384,3 @@ private:
 };
 
 } // namespace zeekygen
-
-#endif

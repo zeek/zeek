@@ -2,9 +2,10 @@
 
 #include "zeek-config.h"
 
+#include "RSH.h"
 #include "NetVar.h"
 #include "Event.h"
-#include "RSH.h"
+#include "Reporter.h"
 
 #include "events.bif.h"
 

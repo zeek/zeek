@@ -2,8 +2,9 @@
 
 #include "zeek-config.h"
 
-#include "util.h"
 #include "BPF_Program.h"
+
+#include <string.h>
 
 #ifdef DONT_HAVE_LIBPCAP_PCAP_FREECODE
 extern "C" {
@@ -74,7 +75,7 @@ BPF_Program::~BPF_Program()
 	FreeCode();
 	}
 
-bool BPF_Program::Compile(pcap_t* pcap, const char* filter, uint32 netmask,
+bool BPF_Program::Compile(pcap_t* pcap, const char* filter, uint32_t netmask,
 			  char* errbuf, unsigned int errbuf_len, bool optimize)
 	{
 	if ( ! pcap )
@@ -85,7 +86,7 @@ bool BPF_Program::Compile(pcap_t* pcap, const char* filter, uint32 netmask,
 	if ( pcap_compile(pcap, &m_program, (char *) filter, optimize, netmask) < 0 )
 		{
 		if ( errbuf )
-			safe_snprintf(errbuf, errbuf_len,
+			snprintf(errbuf, errbuf_len,
 				      "pcap_compile(%s): %s", filter,
 				      pcap_geterr(pcap));
 
@@ -99,7 +100,7 @@ bool BPF_Program::Compile(pcap_t* pcap, const char* filter, uint32 netmask,
 	}
 
 bool BPF_Program::Compile(int snaplen, int linktype, const char* filter,
-			  uint32 netmask, char* errbuf, unsigned int errbuf_len,
+			  uint32_t netmask, char* errbuf, unsigned int errbuf_len,
 			  bool optimize)
 	{
 	FreeCode();

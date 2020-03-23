@@ -2,10 +2,12 @@
 
 #include "zeek-config.h"
 
-#include <algorithm>
-
 #include "NFA.h"
+#include "Desc.h"
 #include "EquivClass.h"
+#include "IntSet.h"
+
+#include <algorithm>
 
 static int nfa_state_id = 0;
 

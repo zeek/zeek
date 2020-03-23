@@ -1,16 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ZEEKYGEN_SCRIPTINFO_H
-#define ZEEKYGEN_SCRIPTINFO_H
+#pragma once
 
 #include "Info.h"
-#include "IdentifierInfo.h"
 
 #include <set>
 #include <list>
 #include <string>
 #include <vector>
 #include <map>
+
+#include <time.h> // for time_t
 
 namespace zeekygen {
 
@@ -120,5 +120,3 @@ private:
 };
 
 } // namespace zeekygen
-
-#endif

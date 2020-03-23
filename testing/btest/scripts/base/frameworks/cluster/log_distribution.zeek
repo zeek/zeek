@@ -7,7 +7,7 @@
 # @TEST-EXEC: btest-bg-run logger-2 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=logger-2 zeek %INPUT
 # @TEST-EXEC: btest-bg-run manager ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager zeek %INPUT
 # @TEST-EXEC: btest-bg-run worker-1  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek %INPUT
-# @TEST-EXEC: btest-bg-wait 30
+# @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: btest-diff logger-1/test.log
 # @TEST-EXEC: btest-diff logger-2/test.log
 

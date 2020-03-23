@@ -1,5 +1,6 @@
 #include "WeirdState.h"
 #include "Net.h"
+#include "util.h"
 
 bool PermitWeird(WeirdStateMap& wsm, const char* name, uint64_t threshold,
                  uint64_t rate, double duration)

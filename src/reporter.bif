@@ -153,10 +153,11 @@ function Reporter::file_weird%(name: string, f: fa_file, addl: string &default="
 ## Returns: Current weird sampling whitelist
 function Reporter::get_weird_sampling_whitelist%(%): string_set
 	%{
-	TableVal* set = new TableVal(string_set);
+	TableVal* set = new TableVal({NewRef{}, string_set});
 	for ( auto el : reporter->GetWeirdSamplingWhitelist() )
 		{
-		set->Assign(new StringVal(el), nullptr);
+		auto idx = make_intrusive<StringVal>(el);
+		set->Assign(idx.get(), nullptr);
 		}
 	return set;
 	%}

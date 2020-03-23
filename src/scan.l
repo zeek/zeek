@@ -15,10 +15,13 @@
 #include "input.h"
 #include "util.h"
 #include "Scope.h"
+#include "BroString.h"
 #include "DNS_Mgr.h"
 #include "Expr.h"
 #include "Func.h"
 #include "Stmt.h"
+#include "IntrusivePtr.h"
+#include "Val.h"
 #include "Var.h"
 #include "Debug.h"
 #include "PolicyFile.h"
@@ -27,11 +30,19 @@
 #include "RE.h"
 #include "Net.h"
 #include "Traverse.h"
+#include "module_util.h"
 
 #include "analyzer/Analyzer.h"
 #include "zeekygen/Manager.h"
 
 #include "plugin/Manager.h"
+
+namespace {
+struct ZeekINode {
+	dev_t dev;
+	ino_t ino;
+};
+}
 
 extern YYLTYPE yylloc;	// holds start line and column of token
 extern EnumType* cur_enum_type;
@@ -88,7 +99,7 @@ static string find_relative_script_file(const string& filename)
 		return find_script_file(filename, bro_path());
 	}
 
-static ino_t get_inode_num(FILE* f, const string& path)
+static ZeekINode get_inode(FILE* f, const string& path)
 	{
 	struct stat b;
 
@@ -96,20 +107,20 @@ static ino_t get_inode_num(FILE* f, const string& path)
 		reporter->FatalError("fstat of %s failed: %s\n", path.c_str(),
 		                     strerror(errno));
 
-	return b.st_ino;
+	return {b.st_dev, b.st_ino};
 	}
 
-static ino_t get_inode_num(const string& path)
+static ZeekINode get_inode(const string& path)
 	{
 	FILE* f = open_file(path);
 
 	if ( ! f )
 		reporter->FatalError("failed to open %s\n", path.c_str());
 
-	ino_t inum = get_inode_num(f, path);
+	auto inode = get_inode(f, path);
 	fclose(f);
 
-	return inum;
+	return inode;
 	}
 
 class FileInfo {
@@ -298,6 +309,7 @@ when	return TOK_WHEN;
 &read_expire	return TOK_ATTR_EXPIRE_READ;
 &redef		return TOK_ATTR_REDEF;
 &write_expire	return TOK_ATTR_EXPIRE_WRITE;
+&on_change	return TOK_ATTR_ON_CHANGE;
 
 @deprecated.* {
 	auto num_files = file_stack.length();
@@ -416,7 +428,8 @@ when	return TOK_WHEN;
 	else
 		{
 		// All we have to do is pretend we've already scanned it.
-		ScannedFile sf(get_inode_num(path), file_stack.length(), path, true);
+		auto i = get_inode(path);
+		ScannedFile sf(i.dev, i.ino, file_stack.length(), path, true);
 		files_scanned.push_back(sf);
 		}
 	}
@@ -434,10 +447,9 @@ when	return TOK_WHEN;
 	pref = skip_whitespace(pref + 1);	// Skip over '='.
 
 	if ( ! append )
-		while ( prefixes.length() > 1 )	// don't delete "" prefix
-			delete prefixes.remove_nth(1);
+		zeek_script_prefixes = { "" }; // don't delete the "" prefix
 
-	add_to_name_list(pref, ':', prefixes);
+	tokenize_string(pref, ":", &zeek_script_prefixes);
 	}
 
 @if	return TOK_ATIF;
@@ -469,7 +481,7 @@ F	RET_CONST(val_mgr->GetFalse())
 {FLOAT}		RET_CONST(new Val(atof(yytext), TYPE_DOUBLE))
 
 {D}"/tcp"	{
-		uint32 p = atoi(yytext);
+		uint32_t p = atoi(yytext);
 		if ( p > 65535 )
 			{
 			reporter->Error("bad port number - %s", yytext);
@@ -478,7 +490,7 @@ F	RET_CONST(val_mgr->GetFalse())
 		RET_CONST(val_mgr->GetPort(p, TRANSPORT_TCP))
 		}
 {D}"/udp"	{
-		uint32 p = atoi(yytext);
+		uint32_t p = atoi(yytext);
 		if ( p > 65535 )
 			{
 			reporter->Error("bad port number - %s", yytext);
@@ -487,7 +499,7 @@ F	RET_CONST(val_mgr->GetFalse())
 		RET_CONST(val_mgr->GetPort(p, TRANSPORT_UDP))
 		}
 {D}"/icmp"	{
-		uint32 p = atoi(yytext);
+		uint32_t p = atoi(yytext);
 		if ( p > 255 )
 			{
 			reporter->Error("bad port number - %s", yytext);
@@ -496,7 +508,7 @@ F	RET_CONST(val_mgr->GetFalse())
 		RET_CONST(val_mgr->GetPort(p, TRANSPORT_ICMP))
 		}
 {D}"/unknown"	{
-		uint32 p = atoi(yytext);
+		uint32_t p = atoi(yytext);
 		if ( p > 255 )
 			{
 			reporter->Error("bad port number - %s", yytext);
@@ -514,7 +526,7 @@ F	RET_CONST(val_mgr->GetFalse())
 
 "0x"{HEX}+	RET_CONST(val_mgr->GetCount(static_cast<bro_uint_t>(strtoull(yytext, 0, 16))))
 
-{H}("."{H})+		RET_CONST(dns_mgr->LookupHost(yytext))
+{H}("."{H})+		RET_CONST(dns_mgr->LookupHost(yytext).release())
 
 \"([^\\\n\"]|{ESCSEQ})*\"	{
 	const char* text = yytext;
@@ -584,13 +596,10 @@ YYLTYPE GetCurrentLocation()
 	return currloc;
 	}
 
-
-static bool already_scanned(ino_t i)
+static bool already_scanned(ZeekINode in)
 	{
-	list<ScannedFile>::const_iterator it;
-
-	for ( it = files_scanned.begin(); it != files_scanned.end(); ++it )
-		if ( it->inode == i )
+	for ( const auto& it : files_scanned )
+		if ( it.dev == in.dev && it.inode == in.ino )
 			return true;
 
 	return false;
@@ -598,7 +607,7 @@ static bool already_scanned(ino_t i)
 
 static bool already_scanned(const string& path)
 	{
-	return already_scanned(get_inode_num(path));
+	return already_scanned(get_inode(path));
 	}
 
 static int load_files(const char* orig_file)
@@ -653,7 +662,7 @@ static int load_files(const char* orig_file)
 			reporter->FatalError("can't open %s", file_path.c_str());
 		}
 
-	ino_t i = get_inode_num(f, file_path);
+	auto i = get_inode(f, file_path);
 
 	if ( already_scanned(i) )
 		{
@@ -663,7 +672,7 @@ static int load_files(const char* orig_file)
 		return 0;
 		}
 
-	ScannedFile sf(i, file_stack.length(), file_path);
+	ScannedFile sf(i.dev, i.ino, file_stack.length(), file_path);
 	files_scanned.push_back(sf);
 
 	if ( g_policy_debug && ! file_path.empty() )
@@ -671,7 +680,7 @@ static int load_files(const char* orig_file)
 		// Add the filename to the file mapping table (Debug.h).
 		Filemap* map = new Filemap;
 		HashKey* key = new HashKey(file_path.c_str());
-		g_dbgfilemaps.Insert(key, map);
+		g_dbgfilemaps.emplace(file_path, map);
 		LoadPolicyFileText(file_path.c_str());
 		}
 
@@ -738,10 +747,10 @@ void do_atif(Expr* expr)
 
 	LocalNameFinder cb;
 	expr->Traverse(&cb);
-	Val* val = 0;
+	IntrusivePtr<Val> val;
 
 	if ( cb.local_names.empty() )
-		val = expr->Eval(0);
+		val = expr->Eval(nullptr);
 	else
 		{
 		for ( size_t i = 0; i < cb.local_names.size(); ++i )
@@ -765,30 +774,26 @@ void do_atifdef(const char* id)
 	{
 	++current_depth;
 
-	ID* i;
+	auto i = lookup_ID(id, current_module.c_str());
 
-	if ( ! (i = lookup_ID(id, current_module.c_str())) )
+	if ( ! i )
 		{
 		if_stack.push_back(current_depth);
 		BEGIN(IGNORE);
 		}
-
-	Unref(i);
 	}
 
 void do_atifndef(const char *id)
 	{
 	++current_depth;
 
-	ID* i;
+	auto i = lookup_ID(id, current_module.c_str());
 
-	if ( (i = lookup_ID(id, current_module.c_str())) )
+	if ( i )
 		{
 		if_stack.push_back(current_depth);
 		BEGIN(IGNORE);
 		}
-
-	Unref(i);
 	}
 
 void do_atelse()
@@ -942,14 +947,14 @@ int yywrap()
 
 		it->prefixes_checked = true;
 		// Prefixes are pushed onto a stack, so iterate backwards.
-		for ( int i = prefixes.length() - 1; i >= 0; --i )
+		for ( int i = zeek_script_prefixes.size() - 1; i >= 0; --i )
 			{
 			// Don't look at empty prefixes.
-			if ( ! prefixes[i][0] )
+			if ( ! zeek_script_prefixes[i][0] )
 				continue;
 
 			string canon = without_bropath_component(it->name);
-			string flat = flatten_script_name(canon, prefixes[i]);
+			string flat = flatten_script_name(canon, zeek_script_prefixes[i]);
 			string path = find_relative_script_file(flat);
 
 			if ( ! path.empty() )

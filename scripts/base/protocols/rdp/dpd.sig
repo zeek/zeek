@@ -13,15 +13,17 @@ signature dpd_rdp_server {
 
 signature dpd_rdpeudp_syn {
 	ip-proto == udp
-        # the datagram needs to be of size 1232
-	payload /^.{4}.{2}.{1}\x01.*{1224}/
+	payload-size == 1232
+	payload /^.{4}.{2}.{1}\x01/
+	event "dpd_rdpeudp_syn"
 }
 
 signature dpd_rdpeudp_synack {
 	ip-proto == udp
-        # the datagram needs to be of size 1232
-	payload /^.{4}.{2}.{1}\x05.*{1224}/
+	payload-size == 1232
+	payload /^.{4}.{2}.{1}\x05/
 	requires-reverse-signature dpd_rdpeudp_syn
+	event "dpd_rdpeudp_synack"
 	enable "rdpeudp"
 }
 

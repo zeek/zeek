@@ -2348,7 +2348,7 @@ void TableVal::DoExpire(double t)
 			if ( expire_func )
 				{
 				idx = RecoverIndex(k);
-				double secs = CallExpireFunc(idx->Ref());
+				double secs = CallExpireFunc({NewRef{}, idx});
 
 				// It's possible that the user-provided
 				// function modified or deleted the table
@@ -2439,13 +2439,10 @@ double TableVal::GetExpireTime()
 	return -1;
 	}
 
-double TableVal::CallExpireFunc(Val* idx)
+double TableVal::CallExpireFunc(IntrusivePtr<Val> idx)
 	{
 	if ( ! expire_func )
-		{
-		Unref(idx);
 		return 0;
-		}
 
 	double secs = 0;
 
@@ -2454,16 +2451,12 @@ double TableVal::CallExpireFunc(Val* idx)
 		auto vf = expire_func->Eval(nullptr);
 
 		if ( ! vf )
-			{
 			// Will have been reported already.
-			Unref(idx);
 			return 0;
-			}
 
 		if ( vf->Type()->Tag() != TYPE_FUNC )
 			{
 			vf->Error("not a function");
-			Unref(idx);
 			return 0;
 			}
 
@@ -2481,25 +2474,19 @@ double TableVal::CallExpireFunc(Val* idx)
 				{
 				for ( const auto& v : *idx->AsListVal()->Vals() )
 					vl.append(v->Ref());
-
-				Unref(idx);
 				}
 			else
 				{
 				ListVal* idx_list = idx->AsListVal();
 				// Flatten if only one element
 				if ( idx_list->Length() == 1 )
-					{
-					Val* old = idx;
-					idx = idx_list->Index(0)->Ref();
-					Unref(old);
-					}
+					idx = {NewRef{}, idx_list->Index(0)};
 
-				vl.append(idx);
+				vl.append(idx.release());
 				}
 			}
 		else
-			vl.append(idx);
+			vl.append(idx.release());
 
 		auto result = f->Call(&vl);
 

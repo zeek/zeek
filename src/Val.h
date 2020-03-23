@@ -851,8 +851,7 @@ protected:
 	double GetExpireTime();
 
 	// Calls &expire_func and returns its return interval;
-	// takes ownership of the reference.
-	double CallExpireFunc(Val *idx);
+	double CallExpireFunc(IntrusivePtr<Val> idx);
 
 	// Enum for the different kinds of changes an &on_change handler can see
 	enum OnChangeType { ELEMENT_NEW, ELEMENT_CHANGED, ELEMENT_REMOVED, ELEMENT_EXPIRED };

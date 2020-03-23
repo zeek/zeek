@@ -15,7 +15,7 @@ public:
 
                 plugin::Configuration config;
                 config.name = "Zeek::RDP";
-                config.description = "RDP analyzers";
+                config.description = "RDP analyzer";
                 return config;
                 }
 } plugin;

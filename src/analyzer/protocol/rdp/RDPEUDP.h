@@ -1,11 +1,7 @@
 #pragma once
 
 #include "events.bif.h"
-
-
 #include "analyzer/protocol/udp/UDP.h"
-#include "analyzer/protocol/pia/PIA.h"
-
 #include "rdpeudp_pac.h"
 
 namespace analyzer { namespace rdpeudp {

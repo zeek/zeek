@@ -11,7 +11,7 @@ public:
         plugin::Configuration Configure()
                 {
                 AddComponent(new ::analyzer::Component("RDP", ::analyzer::rdp::RDP_Analyzer::InstantiateAnalyzer));
-                AddComponent(new ::analyzer::Component("RDPEUDP", ::analyzer::rdpeudp::RDPEUDP_Analyzer::InstantiateAnalyzer));
+                AddComponent(new ::analyzer::Component("RDPEUDP", ::analyzer::rdpeudp::RDP_Analyzer::InstantiateAnalyzer));
 
                 plugin::Configuration config;
                 config.name = "Zeek::RDP";

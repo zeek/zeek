@@ -6,11 +6,11 @@
 
 namespace analyzer { namespace rdpeudp {
 
-class RDPEUDP_Analyzer : public analyzer::Analyzer {
+class RDP_Analyzer : public analyzer::Analyzer {
 
 public:
-	explicit RDPEUDP_Analyzer(Connection* conn);
-	~RDPEUDP_Analyzer() override;
+	explicit RDP_Analyzer(Connection* conn);
+	~RDP_Analyzer() override;
 
 	// Overriden from Analyzer.
 	void Done() override;
@@ -18,7 +18,7 @@ public:
 					uint64_t seq, const IP_Hdr* ip, int caplen) override;
 	void EndOfData(bool is_orig) override;
 	static analyzer::Analyzer* Instantiate(Connection* conn)
-		{ return new RDPEUDP_Analyzer(conn); }
+		{ return new RDP_Analyzer(conn); }
 
 protected:
 	binpac::RDPEUDP::RDPEUDP_Conn* interp;

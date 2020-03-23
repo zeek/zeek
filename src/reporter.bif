@@ -182,7 +182,6 @@ function Reporter::set_weird_sampling_whitelist%(weird_sampling_whitelist: strin
 		auto index = wl_val->RecoverIndex(k);
 		string key = index->Index(0)->AsString()->CheckString();
 		whitelist_set.emplace(move(key));
-		Unref(index);
 		delete k;
 		}
 	reporter->SetWeirdSamplingWhitelist(whitelist_set);

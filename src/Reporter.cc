@@ -80,7 +80,6 @@ void Reporter::InitOptions()
 		auto index = wl_val->RecoverIndex(k);
 		string key = index->Index(0)->AsString()->CheckString();
 		weird_sampling_whitelist.emplace(move(key));
-		Unref(index);
 		delete k;
 		}
 	}

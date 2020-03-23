@@ -868,11 +868,10 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 			TableEntryVal* v;
 			while ( (v = filter->config->AsTable()->NextEntry(k, c)) )
 				{
-				ListVal* index = filter->config->RecoverIndex(k);
+				auto index = filter->config->RecoverIndex(k);
 				string key = index->Index(0)->AsString()->CheckString();
 				string value = v->Value()->AsString()->CheckString();
 				info->config.insert(std::make_pair(copy_string(key.c_str()), copy_string(value.c_str())));
-				Unref(index);
 				delete k;
 				}
 

@@ -283,11 +283,10 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 		TableEntryVal* v;
 		while ( (v = info->config->AsTable()->NextEntry(k, c)) )
 			{
-			ListVal* index = info->config->RecoverIndex(k);
+			auto index = info->config->RecoverIndex(k);
 			string key = index->Index(0)->AsString()->CheckString();
 			string value = v->Value()->AsString()->CheckString();
 			rinfo.config.insert(std::make_pair(copy_string(key.c_str()), copy_string(value.c_str())));
-			Unref(index);
 			delete k;
 			}
 		}
@@ -1335,7 +1334,6 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 
 	while ( ( ih = stream->lastDict->NextEntry(lastDictIdxKey, c) ) )
 		{
-		ListVal * idx = 0;
 		IntrusivePtr<Val> val;
 
 		Val* predidx = 0;
@@ -1344,12 +1342,11 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 
 		if ( stream->pred || stream->event )
 			{
-			idx = stream->tab->RecoverIndex(ih->idxkey);
-			assert(idx != 0);
-			val = stream->tab->Lookup(idx);
+			auto idx = stream->tab->RecoverIndex(ih->idxkey);
+			assert(idx != nullptr);
+			val = stream->tab->Lookup(idx.get());
 			assert(val != 0);
-			predidx = ListValToRecordVal(idx, stream->itype, &startpos);
-			Unref(idx);
+			predidx = ListValToRecordVal(idx.get(), stream->itype, &startpos);
 			ev = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED).release();
 			}
 

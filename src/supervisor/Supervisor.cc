@@ -1024,7 +1024,7 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 
 	while ( (v = cluster_table->NextEntry(k, c)) )
 		{
-		IntrusivePtr<ListVal> key{AdoptRef{}, cluster_table_val->RecoverIndex(k)};
+		auto key = cluster_table_val->RecoverIndex(k);
 		delete k;
 		auto name = key->Index(0)->AsStringVal()->ToStdString();
 		auto rv = v->Value()->AsRecordVal();

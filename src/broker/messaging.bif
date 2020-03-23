@@ -40,7 +40,6 @@ std::set<std::string> val_to_topic_set(Val* val)
 			{
 			auto index = val->AsTableVal()->RecoverIndex(k);
 			rval.emplace(index->Index(0)->AsString()->CheckString());
-			Unref(index);
 			delete k;
 			}
 		}

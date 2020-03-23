@@ -207,7 +207,7 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 
 			auto tbl = tv->AsTable();
 			auto it = tbl->InitForIteration();
-			ListVal* lv = new ListVal(TYPE_ANY);
+			auto lv = make_intrusive<ListVal>(TYPE_ANY);
 
 			struct HashKeyComparer {
 				bool operator()(const HashKey* a, const HashKey* b) const
@@ -229,7 +229,7 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 			while ( tbl->NextEntry(k, it) )
 				{
 				hashkeys[k] = idx++;
-				lv->Append(tv->RecoverIndex(k));
+				lv->Append(tv->RecoverIndex(k).release());
 				}
 
 			for ( auto& kv : hashkeys )
@@ -242,10 +242,7 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 
 				if ( ! (kp1 = SingleValHash(type_check, kp1, key->Type(), key,
 				                            false)) )
-					{
-					Unref(lv);
 					return 0;
-					}
 
 				if ( ! v->Type()->IsSet() )
 					{
@@ -253,14 +250,10 @@ char* CompositeHash::SingleValHash(int type_check, char* kp0,
 
 					if ( ! (kp1 = SingleValHash(type_check, kp1, val->Type(),
 								    val.get(), false)) )
-						{
-						Unref(lv);
 						return 0;
-						}
 					}
 				}
 
-			Unref(lv);
 			}
 			break;
 

@@ -766,7 +766,7 @@ public:
 	bool UpdateTimestamp(Val* index);
 
 	// Returns the index corresponding to the given HashKey.
-	ListVal* RecoverIndex(const HashKey* k) const;
+	IntrusivePtr<ListVal> RecoverIndex(const HashKey* k) const;
 
 	// Returns the element if it was in the table, false otherwise.
 	IntrusivePtr<Val> Delete(const Val* index);
@@ -851,7 +851,7 @@ protected:
 	double GetExpireTime();
 
 	// Calls &expire_func and returns its return interval;
-	double CallExpireFunc(IntrusivePtr<Val> idx);
+	double CallExpireFunc(IntrusivePtr<ListVal> idx);
 
 	// Enum for the different kinds of changes an &on_change handler can see
 	enum OnChangeType { ELEMENT_NEW, ELEMENT_CHANGED, ELEMENT_REMOVED, ELEMENT_EXPIRED };

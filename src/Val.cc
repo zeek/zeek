@@ -532,12 +532,7 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 				{
 				auto lv = tval->RecoverIndex(k);
 				delete k;
-
-				Val* entry_key;
-				if ( lv->Length() == 1 )
-					entry_key = lv->Index(0)->Ref();
-				else
-					entry_key = lv->Ref();
+				Val* entry_key = lv->Length() == 1 ? lv->Index(0) : lv.get();
 
 				if ( tval->Type()->IsSet() )
 					BuildJSON(writer, entry_key, only_loggable, re);
@@ -556,9 +551,6 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 
 					BuildJSON(writer, entry->Value(), only_loggable, re, key_str);
 					}
-
-				Unref(entry_key);
-				Unref(lv);
 				}
 
 			if ( tval->Type()->IsSet() )
@@ -1537,9 +1529,8 @@ int TableVal::Assign(Val* index, HashKey* k, IntrusivePtr<Val> new_val)
 		{
 		if ( ! index )
 			{
-			Val* v = RecoverIndex(&k_copy);
-			subnets->Insert(v, new_entry_val);
-			Unref(v);
+			auto v = RecoverIndex(&k_copy);
+			subnets->Insert(v.get(), new_entry_val);
 			}
 		else
 			subnets->Insert(index, new_entry_val);
@@ -1553,10 +1544,10 @@ int TableVal::Assign(Val* index, HashKey* k, IntrusivePtr<Val> new_val)
 
 	if ( change_func )
 		{
-		Val* change_index = index ? index->Ref() : RecoverIndex(&k_copy);
+		auto change_index = index ? IntrusivePtr<Val>{NewRef{}, index}
+		                          : RecoverIndex(&k_copy);
 		Val* v = old_entry_val ? old_entry_val->Value() : new_val.get();
-		CallChangeFunc(change_index, v, old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
-		Unref(change_index);
+		CallChangeFunc(change_index.get(), v, old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
 		}
 
 	delete old_entry_val;
@@ -1991,9 +1982,9 @@ bool TableVal::UpdateTimestamp(Val* index)
 	return true;
 	}
 
-ListVal* TableVal::RecoverIndex(const HashKey* k) const
+IntrusivePtr<ListVal> TableVal::RecoverIndex(const HashKey* k) const
 	{
-	return table_hash->RecoverVals(k).release();
+	return table_hash->RecoverVals(k);
 	}
 
 void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe)
@@ -2344,11 +2335,12 @@ void TableVal::DoExpire(double t)
 
 		else if ( v->ExpireAccessTime() + timeout < t )
 			{
-			Val* idx = nullptr;
+			IntrusivePtr<ListVal> idx = nullptr;
+
 			if ( expire_func )
 				{
 				idx = RecoverIndex(k);
-				double secs = CallExpireFunc({NewRef{}, idx});
+				double secs = CallExpireFunc(idx);
 
 				// It's possible that the user-provided
 				// function modified or deleted the table
@@ -2359,7 +2351,6 @@ void TableVal::DoExpire(double t)
 				if ( ! v )
 					{ // user-provided function deleted it
 					v = v_saved;
-					Unref(idx);
 					delete k;
 					continue;
 					}
@@ -2369,7 +2360,6 @@ void TableVal::DoExpire(double t)
 					// User doesn't want us to expire
 					// this now.
 					v->SetExpireAccess(network_time - timeout + secs);
-					Unref(idx);
 					delete k;
 					continue;
 					}
@@ -2380,7 +2370,7 @@ void TableVal::DoExpire(double t)
 				{
 				if ( ! idx )
 					idx = RecoverIndex(k);
-				if ( ! subnets->Remove(idx) )
+				if ( ! subnets->Remove(idx.get()) )
 					reporter->InternalWarning("index not in prefix table");
 				}
 
@@ -2389,9 +2379,9 @@ void TableVal::DoExpire(double t)
 				{
 				if ( ! idx )
 					idx = RecoverIndex(k);
-				CallChangeFunc(idx, v->Value(), ELEMENT_EXPIRED);
+				CallChangeFunc(idx.get(), v->Value(), ELEMENT_EXPIRED);
 				}
-			Unref(idx);
+
 			delete v;
 			modified = true;
 			}
@@ -2439,7 +2429,7 @@ double TableVal::GetExpireTime()
 	return -1;
 	}
 
-double TableVal::CallExpireFunc(IntrusivePtr<Val> idx)
+double TableVal::CallExpireFunc(IntrusivePtr<ListVal> idx)
 	{
 	if ( ! expire_func )
 		return 0;
@@ -2468,25 +2458,20 @@ double TableVal::CallExpireFunc(IntrusivePtr<Val> idx)
 		// backwards compatibility with idx: any idiom
 		bool any_idiom = func_args->length() == 2 && func_args->back()->Tag() == TYPE_ANY;
 
-		if ( idx->Type()->Tag() == TYPE_LIST )
+		if ( ! any_idiom )
 			{
-			if ( ! any_idiom )
-				{
-				for ( const auto& v : *idx->AsListVal()->Vals() )
-					vl.append(v->Ref());
-				}
-			else
-				{
-				ListVal* idx_list = idx->AsListVal();
-				// Flatten if only one element
-				if ( idx_list->Length() == 1 )
-					idx = {NewRef{}, idx_list->Index(0)};
-
-				vl.append(idx.release());
-				}
+			for ( const auto& v : *idx->AsListVal()->Vals() )
+				vl.append(v->Ref());
 			}
 		else
-			vl.append(idx.release());
+			{
+			ListVal* idx_list = idx->AsListVal();
+			// Flatten if only one element
+			if ( idx_list->Length() == 1 )
+				vl.append(idx_list->Index(0)->Ref());
+			else
+				vl.append(idx.release());
+			}
 
 		auto result = f->Call(&vl);
 
@@ -2518,9 +2503,8 @@ IntrusivePtr<Val> TableVal::DoClone(CloneState* state)
 
 		if ( subnets )
 			{
-			Val* idx = RecoverIndex(key);
-			tv->subnets->Insert(idx, nval);
-			Unref(idx);
+			auto idx = RecoverIndex(key);
+			tv->subnets->Insert(idx.get(), nval);
 			}
 
 		delete key;
@@ -2609,7 +2593,7 @@ TableVal::ParseTimeTableState TableVal::DumpTableState()
 
 	while ( (val = tbl->NextEntry(key, cookie)) )
 		{
-		rval.emplace_back(IntrusivePtr<Val>{AdoptRef{}, RecoverIndex(key)},
+		rval.emplace_back(RecoverIndex(key),
 		                  IntrusivePtr<Val>{NewRef{}, val->Value()});
 
 		delete key;

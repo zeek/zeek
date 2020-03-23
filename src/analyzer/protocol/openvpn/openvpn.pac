@@ -4,8 +4,6 @@
 %include bro.pac
 
 %extern{
-#include "events.bif.h"
-
 namespace analyzer { namespace openvpn { class OpenVPN_Analyzer; } }
 typedef analyzer::openvpn::OpenVPN_Analyzer* OpenVPNAnalyzer;
 

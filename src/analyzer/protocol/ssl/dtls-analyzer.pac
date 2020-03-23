@@ -97,13 +97,13 @@ refine connection SSL_Conn += {
 		// copy data from fragment to buffer
 		if ( ${rec.data}.length() != flength )
 			{
-			bro_analyzer()->ProtocolViolation(fmt("DTLS handshake record length does not match packet length"));
+			bro_analyzer()->ProtocolViolation("DTLS handshake record length does not match packet length");
 			return true;
 			}
 
 		if ( foffset + flength > length )
 			{
-			bro_analyzer()->ProtocolViolation(fmt("DTLS handshake fragment trying to write past end of buffer"));
+			bro_analyzer()->ProtocolViolation("DTLS handshake fragment trying to write past end of buffer");
 			return true;
 			}
 
@@ -124,7 +124,7 @@ refine connection SSL_Conn += {
 			uint64 total_length = i->message_last_sequence - i->message_first_sequence;
 			if ( total_length > 30 )
 				{
-				bro_analyzer()->ProtocolViolation(fmt("DTLS Message fragmented over more than 30 pieces. Cannot reassemble."));
+				bro_analyzer()->ProtocolViolation("DTLS Message fragmented over more than 30 pieces. Cannot reassemble.");
 				return true;
 				}
 

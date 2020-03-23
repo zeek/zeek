@@ -3318,7 +3318,7 @@ ValPtr SetConstructorExpr::InitVal(const zeek::Type* t, ValPtr aggr) const
 
 		if ( ! element || ! tval->Assign(std::move(element), nullptr) )
 			{
-			Error(fmt("initialization type mismatch in set"), e);
+			Error("initialization type mismatch in set", e);
 			return nullptr;
 			}
 		}

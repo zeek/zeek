@@ -1198,7 +1198,7 @@ IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 		IterCookie* c = loop_vals->InitForIteration();
 		while ( (current_tev = loop_vals->NextEntry(k, c)) )
 			{
-			ListVal* ind_lv = tv->RecoverIndex(k);
+			IntrusivePtr<ListVal> ind_lv{AdoptRef{}, tv->RecoverIndex(k)};
 			delete k;
 
 			if ( value_var )
@@ -1206,10 +1206,18 @@ IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 
 			for ( int i = 0; i < ind_lv->Length(); i++ )
 				f->SetElement((*loop_vars)[i], ind_lv->Index(i)->Ref());
-			Unref(ind_lv);
 
 			flow = FLOW_NEXT;
-			ret = body->Exec(f, flow);
+
+			try
+				{
+				ret = body->Exec(f, flow);
+				}
+			catch ( InterpreterException& )
+				{
+				loop_vals->StopIteration(c);
+				throw;
+				}
 
 			if ( flow == FLOW_BREAK || flow == FLOW_RETURN )
 				{

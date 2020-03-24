@@ -3884,7 +3884,7 @@ IntrusivePtr<Val> FlattenExpr::Fold(Val* v) const
 	return l;
 	}
 
-ScheduleTimer::ScheduleTimer(EventHandlerPtr arg_event, val_list* arg_args,
+ScheduleTimer::ScheduleTimer(const EventHandlerPtr& arg_event, val_list* arg_args,
                              double t, TimerMgr* arg_tmgr)
 	: Timer(t, TIMER_SCHEDULE),
 	  event(arg_event), args(std::move(*arg_args)), tmgr(arg_tmgr)
@@ -4844,8 +4844,8 @@ TraversalCode ListExpr::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_EXPR_POST(tc);
 	}
 
-RecordAssignExpr::RecordAssignExpr(IntrusivePtr<Expr> record,
-                                   IntrusivePtr<Expr> init_list, int is_init)
+RecordAssignExpr::RecordAssignExpr(const IntrusivePtr<Expr>& record,
+                                   const IntrusivePtr<Expr>& init_list, int is_init)
 	{
 	const expr_list& inits = init_list->AsListExpr()->Exprs();
 

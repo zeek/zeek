@@ -738,7 +738,7 @@ protected:
 
 class ScheduleTimer : public Timer {
 public:
-	ScheduleTimer(EventHandlerPtr event, val_list* args, double t,
+	ScheduleTimer(const EventHandlerPtr& event, val_list* args, double t,
 			TimerMgr* tmgr);
 	~ScheduleTimer() override;
 
@@ -881,7 +881,7 @@ protected:
 
 class RecordAssignExpr : public ListExpr {
 public:
-	RecordAssignExpr(IntrusivePtr<Expr> record, IntrusivePtr<Expr> init_list, int is_init);
+	RecordAssignExpr(const IntrusivePtr<Expr>& record, const IntrusivePtr<Expr>& init_list, int is_init);
 };
 
 class CastExpr : public UnaryExpr {

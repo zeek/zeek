@@ -1,11 +1,10 @@
-# SYN - https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpeudp/ddc57322-08ae-48a5-a660-bd4aa676d8c9
-# SYN+ACK - https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpeudp/0c66977c-a837-4f17-8a89-4a351866d86c
-# DATA+ACK - https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpeudp/2ce2f61d-aa42-47f6-9fc9-8351d84a95c3  
-# ACK - https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpeudp/bfa8ba8c-b23c-469b-984c-3d0288a21b50
-
+# This is the only thing that gets used, for now.
 type RDPEUDP_PDU(is_orig: bool) = record {
 	data: bytestring &restofdata;
 } &byteorder=bigendian;
+
+
+
 
 
 # SYN messages require fec_header.uFlags == 0x0001
@@ -43,7 +42,7 @@ type RDPEUDP2_ACK() = record {
 	packet_prefix_byte:	RDPUDP2_PacketPrefixByte;
 	header:			RDPUDP2_PACKET_HEADER;
 	ack_payload:		RDPUDP2_ACK_PAYLOAD;
-	oversize_flag:		RDPUDP2_OVERSIZE_PAYLOAD_FLAG;
+	oversize_payload:	RDPUDP2_OVERSIZE_PAYLOAD;
 	delay_ack_info_payload:	RDPUDP2_DELAYACKINFO_PAYLOAD;
 	ack_of_acks_payload:	RDPUDP2_ACKOFACKS_PAYLOAD;
 	data_header_payload:	RDPUDP2_DATAHEADER_PAYLOAD;
@@ -51,36 +50,51 @@ type RDPEUDP2_ACK() = record {
 	data_body_payload:	RDPUDP2_DATABODY_PAYLOAD;
 }
 
-# https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpeudp2/1c321fab-69c2-4ac2-9991-7306a3ec2ac5
-type RDPUDP2_DATABODY_PAYLOAD() = record {}
+type RDPUDP2_DATABODY_PAYLOAD() = record {
+	ChannelSeqNum:	uint16;
+	Data:		bytestring &restofdata;
+}
 
 # https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpeudp2/43183820-771d-4a00-89d6-58a3ecc80a78 
-type RDPUDP2_ACKVECTOR_PAYLOAD() = record {}
+type RDPUDP2_ACKVECTOR_PAYLOAD() = record {
+	BaseSeqNum:	uint16;
+	# TODO: this skips a bunch of fields
+	tail:		bytestring &restofdata;
+}
 
-# https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpeudp2/e2b9d0e8-44af-4b41-a71c-09747612f764
-type RDPUDP2_DATAHEADER_PAYLOAD() = record {}
+type RDPUDP2_DATAHEADER_PAYLOAD() = record {
+	DataSeqNum:	uint16;
+}
 
-# https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpeudp2/478e60bb-b6ae-451e-8f9c-6f86bd9afb9a
-type RDPUDP2_ACKOFACKS_PAYLOAD() = record {}
+type RDPUDP2_ACKOFACKS_PAYLOAD() = record {
+	AckOfAcksSeqNum:	uint16;
+}
 
-# https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpeudp2/eecd9c22-8d0b-4666-ae35-04b2f1ddea20
-type RDPUDP2_DELAYACKINFO_PAYLOAD() = record {}
+type RDPUDP2_DELAYACKINFO_PAYLOAD() = record {
+	MaxDelayedAcks:		uint8;
+	DelayedAckTimeoutInMs:	uint16;
+}
 
-# https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpeudp2/7a5ec2cf-c0c1-4eef-8e13-ce87fae503f9
-type RDPUDP2_OVERSIZE_PAYLOAD_FLAG() = record{}
+type RDPUDP2_OVERSIZE_PAYLOAD() = record{
+	OverheadSize:	uint8;
+}
 
 # https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpeudp2/bf47de96-832e-45c7-974f-87d99d8d0fea
-type RDPUDP2_ACK_PAYLOAD() = record {}
+type RDPUDP2_ACK_PAYLOAD() = record {
+	SeqNum:		uint16;
+	# TODO: this skips a bunch of fields
+	tail:		bytestring &restofdata;
+}
 
-# https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpeudp2/80584a33-e430-43a3-871b-2f63abef7813
 type RDPUDP2_PacketPrefixByte() = record {
 	everything:		uint8;
 } &let {
-	Reserved:		uint8 = everything & 128; # The highest  bit
-
-	# If Packet_Type_Index = 0 this is a real pkt. If Packet_Type_Index == 8, this is a dumby pkt. All other values shouold be weirds
-	Packet_Type_Index:	uint8 = everything & 120; # The middle chunk, see the spec! 
-	Short_Packet_Length:	uint8 = everything & 0x07; # The low 3 bits
+	Reserved:		uint8 = everything & 128;	# The highest  bit
+	# If Packet_Type_Index = 0 this is a real pkt. 
+        # If Packet_Type_Index == 8, this is a dumby pkt. 
+        # All other values should generate a weird
+	Packet_Type_Index:	uint8 = everything & 120;	# The middle chunk, see the spec! 
+	Short_Packet_Length:	uint8 = everything & 0x07;	# The low 3 bits
 }
 
 enum RDPUDP2_PACKET_HEADER_FLAGS {

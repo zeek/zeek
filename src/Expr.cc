@@ -383,7 +383,7 @@ bool UnaryExpr::IsPure() const
 
 TraversalCode UnaryExpr::Traverse(TraversalCallback* cb) const
 	{
-	TraversalCode tc = cb->PreExpr(this);
+	TraversalCode tc = cb->PreExpr(this, Op());
 	HANDLE_TC_EXPR_PRE(tc);
 
 	tc = op->Traverse(cb);
@@ -498,7 +498,7 @@ bool BinaryExpr::IsPure() const
 
 TraversalCode BinaryExpr::Traverse(TraversalCallback* cb) const
 	{
-	TraversalCode tc = cb->PreExpr(this);
+	TraversalCode tc = cb->PreExpr(this, Op1(), Op2());
 	HANDLE_TC_EXPR_PRE(tc);
 
 	tc = op1->Traverse(cb);
@@ -1981,7 +1981,7 @@ bool CondExpr::IsPure() const
 
 TraversalCode CondExpr::Traverse(TraversalCallback* cb) const
 	{
-	TraversalCode tc = cb->PreExpr(this);
+	TraversalCode tc = cb->PreExpr(this, Op1());
 	HANDLE_TC_EXPR_PRE(tc);
 
 	tc = op1->Traverse(cb);
@@ -2853,21 +2853,6 @@ void IndexExpr::ExprDescribe(ODesc* d) const
 	op2->Describe(d);
 	if ( d->IsReadable() )
 		d->Add("]");
-	}
-
-TraversalCode IndexExpr::Traverse(TraversalCallback* cb) const
-	{
-	TraversalCode tc = cb->PreExpr(this);
-	HANDLE_TC_EXPR_PRE(tc);
-
-	tc = op1->Traverse(cb);
-	HANDLE_TC_EXPR_PRE(tc);
-
-	tc = op2->Traverse(cb);
-	HANDLE_TC_EXPR_PRE(tc);
-
-	tc = cb->PostExpr(this);
-	HANDLE_TC_EXPR_POST(tc);
 	}
 
 FieldExpr::FieldExpr(IntrusivePtr<Expr> arg_op, const char* arg_field_name)

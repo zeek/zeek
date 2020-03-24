@@ -59,8 +59,10 @@ public:
 	// to the given trigger.  Note, automatically calls Hold().
 	void Attach(Trigger* trigger);
 
-	// Cache for return values of delayed function calls.
-	void Cache(const CallExpr* expr, Val* val);
+	// Cache for return values of delayed function calls.  Returns whether
+	// the trigger is queued for later evaluation -- it may not be queued
+	// if the Val is null or it's disabled.
+	bool Cache(const CallExpr* expr, Val* val);
 	Val* Lookup(const CallExpr*);
 
 	// Disable this trigger completely. Needed because Unref'ing the trigger

@@ -555,8 +555,6 @@ public:
 	// not necessarily return a vector.
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
-	TraversalCode Traverse(TraversalCallback* cb) const override;
-
 	bool IsSlice() const { return is_slice; }
 
 protected:

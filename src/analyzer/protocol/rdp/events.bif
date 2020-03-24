@@ -2,7 +2,10 @@
 ##
 ## c: The connection
 ##
-event rdpeudp_event%(c: connection, data: string%);
+event rdpeudp_syn%(c: connection, data: string%);
+event rdpeudp_synack%(c: connection, data: string%);
+event rdpeudp_established%(c: connection%);
+event rdpeudp_data%(c: connection, data: string%);
 
 ## Generated for each packet after RDP native encryption begins
 ##

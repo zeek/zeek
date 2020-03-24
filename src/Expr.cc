@@ -597,9 +597,9 @@ IntrusivePtr<Val> BinaryExpr::Fold(Val* v1, Val* v2) const
 	else \
 		i3 = d1 op d2;
 
-	case EXPR_ADD:		DO_FOLD(+); break;
+	case EXPR_ADD:
 	case EXPR_ADD_TO:	DO_FOLD(+); break;
-	case EXPR_SUB:		DO_FOLD(-); break;
+	case EXPR_SUB:
 	case EXPR_REMOVE_FROM:	DO_FOLD(-); break;
 	case EXPR_TIMES:	DO_FOLD(*); break;
 	case EXPR_DIVIDE:
@@ -1162,12 +1162,10 @@ AddExpr::AddExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 
 	IntrusivePtr<BroType> base_result_type;
 
-	if ( bt1 == TYPE_TIME && bt2 == TYPE_INTERVAL )
+	if ( bt2 == TYPE_INTERVAL && ( bt1 == TYPE_TIME || bt1 == TYPE_INTERVAL ) )
 		base_result_type = base_type(bt1);
 	else if ( bt2 == TYPE_TIME && bt1 == TYPE_INTERVAL )
 		base_result_type = base_type(bt2);
-	else if ( bt1 == TYPE_INTERVAL && bt2 == TYPE_INTERVAL )
-		base_result_type = base_type(bt1);
 	else if ( BothArithmetic(bt1, bt2) )
 		PromoteType(max_type(bt1, bt2), is_vector(op1.get()) || is_vector(op2.get()));
 	else if ( BothString(bt1, bt2) )
@@ -1206,9 +1204,7 @@ AddToExpr::AddToExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 
 	if ( BothArithmetic(bt1, bt2) )
 		PromoteType(max_type(bt1, bt2), is_vector(op1.get()) || is_vector(op2.get()));
-	else if ( BothString(bt1, bt2) )
-		SetType(base_type(bt1));
-	else if ( BothInterval(bt1, bt2) )
+	else if ( BothString(bt1, bt2) || BothInterval(bt1, bt2) )
 		SetType(base_type(bt1));
 
 	else if ( IsVector(bt1) )
@@ -1291,14 +1287,11 @@ SubExpr::SubExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 
 	IntrusivePtr<BroType> base_result_type;
 
-	if ( bt1 == TYPE_TIME && bt2 == TYPE_INTERVAL )
+	if ( bt2 == TYPE_INTERVAL && ( bt1 == TYPE_TIME || bt1 == TYPE_INTERVAL ) )
 		base_result_type = base_type(bt1);
 
 	else if ( bt1 == TYPE_TIME && bt2 == TYPE_TIME )
 		SetType(base_type(TYPE_INTERVAL));
-
-	else if ( bt1 == TYPE_INTERVAL && bt2 == TYPE_INTERVAL )
-		base_result_type = base_type(bt1);
 
 	else if ( t1->IsSet() && t2->IsSet() )
 		{

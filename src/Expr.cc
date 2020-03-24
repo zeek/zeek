@@ -2240,7 +2240,6 @@ bool AssignExpr::TypeCheckArithmetics(TypeTag bt1, TypeTag bt2)
 			{
 			Warn("dangerous assignment of integer to count");
 			op2 = make_intrusive<ArithCoerceExpr>(std::move(op2), bt1);
-			bt2 = op2->Type()->Tag();
 			}
 
 		// Assignment of count to counter or vice
@@ -3658,6 +3657,8 @@ IntrusivePtr<Val> RecordCoerceExpr::InitVal(const BroType* t, IntrusivePtr<Val> 
 IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 	{
 	auto val = make_intrusive<RecordVal>(Type()->AsRecordType());
+	RecordType* val_type = val->Type()->AsRecordType();
+
 	RecordVal* rv = v->AsRecordVal();
 
 	for ( int i = 0; i < map_size; ++i )
@@ -3685,7 +3686,6 @@ IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 				}
 
 			BroType* rhs_type = rhs->Type();
-			RecordType* val_type = val->Type()->AsRecordType();
 			BroType* field_type = val_type->FieldType(i);
 
 			if ( rhs_type->Tag() == TYPE_RECORD &&

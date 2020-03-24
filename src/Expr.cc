@@ -2053,7 +2053,8 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 		// the script level.
 		return true;
 
-	if ( ((bt1 == TYPE_ENUM) ^ (bt2 == TYPE_ENUM)) )
+	// This should be one of them, but not both (i.e. XOR)
+	if ( (bt1 == TYPE_ENUM) == ! (bt2 == TYPE_ENUM) )
 		{
 		ExprError("can't convert to/from enumerated type");
 		return false;

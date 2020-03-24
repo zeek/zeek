@@ -2,6 +2,7 @@
 
 #include "zeek-config.h"
 #include "Var.h"
+#include "ScriptAnaly.h"
 
 #include <memory>
 
@@ -485,6 +486,8 @@ void end_func(IntrusivePtr<Stmt> body)
 			cb.outer_id_references[i]->Error(
 						"referencing outer function IDs not supported");
 		}
+
+	analyze_function_ingredients(ingredients);
 
 	if ( ingredients->id->HasVal() )
 		ingredients->id->ID_Val()->AsFunc()->AddBody(

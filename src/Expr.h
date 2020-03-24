@@ -218,9 +218,10 @@ protected:
 	// TYPE_ERROR.
 	void ExprError(const char msg[]);
 
-	void RuntimeError(const std::string& msg) const;
-
-	void RuntimeErrorWithCallStack(const std::string& msg) const;
+	// These two functions both call Reporter::RuntimeError or Reporter::ExprRuntimeError,
+	// both of which are marked as [[noreturn]].
+	[[noreturn]] void RuntimeError(const std::string& msg) const;
+	[[noreturn]] void RuntimeErrorWithCallStack(const std::string& msg) const;
 
 	BroExprTag tag;
 	IntrusivePtr<BroType> type;

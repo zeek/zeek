@@ -939,7 +939,7 @@ IncrExpr::IncrExpr(BroExprTag arg_tag, IntrusivePtr<Expr> arg_op)
 	}
 
 IntrusivePtr<Val> IncrExpr::DoSingleEval(Frame* f, Val* v) const
-	 {
+	{
 	bro_int_t k = v->CoerceToInt();
 
 	if ( Tag() == EXPR_INCR )
@@ -953,15 +953,15 @@ IntrusivePtr<Val> IncrExpr::DoSingleEval(Frame* f, Val* v) const
 			RuntimeError("count underflow");
 		}
 
-	 BroType* ret_type = Type();
-	 if ( IsVector(ret_type->Tag()) )
-		 ret_type = Type()->YieldType();
+	BroType* ret_type = Type();
+	if ( IsVector(ret_type->Tag()) )
+		ret_type = Type()->YieldType();
 
 	if ( ret_type->Tag() == TYPE_INT )
 		return {AdoptRef{}, val_mgr->GetInt(k)};
 	else
 		return {AdoptRef{}, val_mgr->GetCount(k)};
-	 }
+	}
 
 
 IntrusivePtr<Val> IncrExpr::Eval(Frame* f) const
@@ -988,7 +988,6 @@ IntrusivePtr<Val> IncrExpr::Eval(Frame* f) const
 		op->Assign(f, std::move(v_vec));
 		return v;
 		}
-
 	else
 		{
 		auto new_v = DoSingleEval(f, v.get());
@@ -2511,7 +2510,6 @@ IndexExpr::IndexExpr(IntrusivePtr<Expr> arg_op1,
 
 	else
 		ExprError("Unknown MatchesIndex() return value");
-
 	}
 
 bool IndexExpr::CanAdd() const
@@ -4739,7 +4737,6 @@ IntrusivePtr<Val> ListExpr::AddSetInit(const BroType* t, IntrusivePtr<Val> aggr)
 
 		if ( ! tv->ExpandAndInit(std::move(element), nullptr) )
 			return nullptr;
-
 		}
 
 	return aggr;

@@ -2660,12 +2660,12 @@ IntrusivePtr<Val> IndexExpr::Fold(Val* v1, Val* v2) const
 			v = {NewRef{}, vect->Lookup(v2)};
 		else
 			{
-			int len = vect->Size();
+			size_t len = vect->Size();
 			auto result = make_intrusive<VectorVal>(vect->Type()->AsVectorType());
 
 			bro_int_t first = get_slice_index(lv->Index(0)->CoerceToInt(), len);
 			bro_int_t last = get_slice_index(lv->Index(1)->CoerceToInt(), len);
-			int sub_length = last - first;
+			bro_int_t sub_length = last - first;
 
 			if ( sub_length >= 0 )
 				{
@@ -2708,7 +2708,7 @@ IntrusivePtr<Val> IndexExpr::Fold(Val* v1, Val* v2) const
 			{
 			bro_int_t first = get_slice_index(lv->Index(0)->AsInt(), len);
 			bro_int_t last = get_slice_index(lv->Index(1)->AsInt(), len);
-			int substring_len = last - first;
+			bro_int_t substring_len = last - first;
 
 			if ( substring_len < 0 )
 				substring = 0;

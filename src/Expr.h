@@ -858,9 +858,6 @@ public:
 	// True if the entire list represents pure values.
 	bool IsPure() const override;
 
-	// True if the entire list represents constant values.
-	bool AllConst() const;
-
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 	IntrusivePtr<BroType> InitType() const override;

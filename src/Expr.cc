@@ -4512,15 +4512,6 @@ bool ListExpr::IsPure() const
 	return true;
 	}
 
-bool ListExpr::AllConst() const
-	{
-	for ( const auto& expr : exprs )
-		if ( ! expr->IsConst() )
-			return false;
-
-	return true;
-	}
-
 IntrusivePtr<Val> ListExpr::Eval(Frame* f) const
 	{
 	auto v = make_intrusive<ListVal>(TYPE_ANY);

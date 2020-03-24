@@ -3,8 +3,14 @@ type RDPEUDP_PDU(is_orig: bool) = record {
 	data: bytestring &restofdata;
 } &byteorder=bigendian;
 
-
-
+#type RDPEUDP_PDU(is_orig: bool) = record {
+#	msg_type: case () of {
+#		AS_RDPEUDP1_SYN -> 	as_rdpeudp1_syn:	RDPEUDP1_SYN(is_orig);
+#		AS_RDPEUDP1_SYNACK -> 	as_rdpeudp1_synack:	RDPEUDP1_SYNACK(is_orig);
+#		AS_RDPEUDP1_ACK ->	as_rdpeudp1_ack:	RDPEUDP1_ACK(is_orig);
+#		AS_RDPEUDP2_ACK ->	as_rdpeudp2_ack:	RDPEUDP2_ACK(is_orig);
+#	};
+#} &byteorder=bigendian;
 
 
 # SYN messages require fec_header.uFlags == 0x0001
@@ -117,7 +123,7 @@ type RDPUDP2_PACKET_HEADER() = record {
 
 # ACK messages can be pure ACK or can carry a payload.
 # Payloads can be of type DATA (or Source Packet as the specs call it) or FEC
-type RDUEUDP1_ACK() = record {
+type RDPEUDP1_ACK() = record {
 	fec_header:			RDPUDP_FEC_HEADER;
 	ack_vector_header:		RDPUDP_ACK_VECTOR_HEADER;
 	ack_of_ack_vector_header:	RDPUDP_ACK_OF_ACKVECTOR_HEADER;

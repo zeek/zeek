@@ -4198,13 +4198,13 @@ IntrusivePtr<Val> CallExpr::Eval(Frame* f) const
 
 	if ( func_val && v )
 		{
-		const ::Func* func = func_val->AsFunc();
+		const ::Func* funcv = func_val->AsFunc();
 		const CallExpr* current_call = f ? f->GetCall() : 0;
 
 		if ( f )
 			f->SetCall(this);
 
-		ret = func->Call(v, f);
+		ret = funcv->Call(v, f);
 
 		if ( f )
 			f->SetCall(current_call);

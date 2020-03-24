@@ -2,6 +2,7 @@
 
 #include "zeek-config.h"
 #include "Var.h"
+#include "ScriptAnaly.h"
 
 #include <memory>
 
@@ -468,6 +469,8 @@ TraversalCode OuterIDBindingFinder::PostExpr(const Expr* expr)
 void end_func(IntrusivePtr<Stmt> body)
 	{
 	auto ingredients = std::make_unique<function_ingredients>(pop_scope(), std::move(body));
+
+	analyze_function_ingredients(ingredients);
 
 	if ( ingredients->id->HasVal() )
 		ingredients->id->ID_Val()->AsFunc()->AddBody(

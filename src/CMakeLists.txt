@@ -267,6 +267,7 @@ set(MAIN_SRCS
     RuleMatcher.cc
     SmithWaterman.cc
     Scope.cc
+    ScriptAnaly.cc
     SerializationFormat.cc
     Sessions.cc
     Notifier.cc

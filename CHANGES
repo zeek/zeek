@@ -1,4 +1,8 @@
 
+3.2.0-dev.280 | 2020-03-24 13:49:43 -0700
+
+  * Add test case for binpac flowbuffer frame length parsing bug (Jon Siwek, Corelight)
+
 3.2.0-dev.277 | 2020-03-20 11:29:36 -0700
 
   * Initialize RecordVal default fields when redef'd (Jon Siwek, Corelight)

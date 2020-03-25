@@ -69,6 +69,7 @@ class ListExpr;
 class NameExpr;
 class IndexExpr;
 class AssignExpr;
+class FieldAssignExpr;
 class CallExpr;
 class EventExpr;
 
@@ -188,6 +189,18 @@ public:
 		{
 		CHECK_TAG(tag, EXPR_ASSIGN, "ExprVal::AsAssignExpr", expr_name)
 		return (AssignExpr*) this;
+		}
+
+	const FieldAssignExpr* AsFieldAssignExpr() const
+		{
+		CHECK_TAG(tag, EXPR_FIELD_ASSIGN, "ExprVal::AsFieldAssignExpr", expr_name)
+		return (const FieldAssignExpr*) this;
+		}
+
+	FieldAssignExpr* AsFieldAssignExpr()
+		{
+		CHECK_TAG(tag, EXPR_FIELD_ASSIGN, "ExprVal::AsFieldAssignExpr", expr_name)
+		return (FieldAssignExpr*) this;
 		}
 
 	const IndexExpr* AsIndexExpr() const

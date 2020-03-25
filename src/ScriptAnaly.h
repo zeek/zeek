@@ -3,5 +3,8 @@
 #pragma once
 
 #include "Func.h"
+#include "ID.h"
+#include "Expr.h"
 
-extern void analyze_function_ingredients(std::unique_ptr<function_ingredients>& fi);
+
+extern void analyze_func(const Func* f);

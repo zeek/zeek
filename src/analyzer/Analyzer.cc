@@ -688,13 +688,12 @@ void Analyzer::ProtocolConfirmation(Tag arg_tag)
 		return;
 
 	EnumVal* tval = arg_tag ? arg_tag.AsEnumVal() : tag.AsEnumVal();
-	Ref(tval);
 
-	mgr.QueueEventFast(protocol_confirmation, {
-		BuildConnVal(),
-		tval,
-		val_mgr->GetCount(id),
-	});
+	mgr.Enqueue(protocol_confirmation,
+		IntrusivePtr{AdoptRef{}, BuildConnVal()},
+		IntrusivePtr{NewRef{}, tval},
+		IntrusivePtr{AdoptRef{}, val_mgr->GetCount(id)}
+	);
 	}
 
 void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
@@ -716,14 +715,13 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 		r = new StringVal(reason);
 
 	EnumVal* tval = tag.AsEnumVal();
-	Ref(tval);
 
-	mgr.QueueEventFast(protocol_violation, {
-		BuildConnVal(),
-		tval,
-		val_mgr->GetCount(id),
-		r,
-	});
+	mgr.Enqueue(protocol_violation,
+		IntrusivePtr{AdoptRef{}, BuildConnVal()},
+		IntrusivePtr{NewRef{}, tval},
+		IntrusivePtr{AdoptRef{}, val_mgr->GetCount(id)},
+		IntrusivePtr{AdoptRef{}, r}
+	);
 	}
 
 void Analyzer::AddTimer(analyzer_timer_func timer, double t,

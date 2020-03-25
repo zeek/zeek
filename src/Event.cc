@@ -164,7 +164,7 @@ void EventMgr::Dispatch(Event* event, bool no_remote)
 void EventMgr::Drain()
 	{
 	if ( event_queue_flush_point )
-		QueueEventFast(event_queue_flush_point, val_list{});
+		Enqueue(event_queue_flush_point, zeek::Args{});
 
 	SegmentProfiler prof(segment_logger, "draining-events");
 

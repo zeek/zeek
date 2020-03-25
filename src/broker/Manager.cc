@@ -984,7 +984,8 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 		return;
 		}
 
-	val_list vl(args.size());
+	zeek::Args vl;
+	vl.reserve(args.size());
 
 	for ( auto i = 0u; i < args.size(); ++i )
 		{
@@ -993,7 +994,7 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 		auto val = data_to_val(std::move(args[i]), expected_type);
 
 		if ( val )
-			vl.push_back(val.release());
+			vl.emplace_back(std::move(val));
 		else
 			{
 			auto expected_name = type_name(expected_type->Tag());
@@ -1014,13 +1015,8 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 			}
 		}
 
-	if ( static_cast<size_t>(vl.length()) == args.size() )
-		mgr.QueueEventFast(handler, std::move(vl), SOURCE_BROKER);
-	else
-		{
-		for ( const auto& v : vl )
-			Unref(v);
-		}
+	if ( vl.size() == args.size() )
+		mgr.Enqueue(handler, std::move(vl), SOURCE_BROKER);
 	}
 
 bool bro_broker::Manager::ProcessLogCreate(broker::zeek::LogCreate lc)
@@ -1243,7 +1239,7 @@ void Manager::ProcessStatus(broker::status stat)
 		return;
 
 	auto ei = internal_type("Broker::EndpointInfo")->AsRecordType();
-	auto endpoint_info = new RecordVal(ei);
+	auto endpoint_info = make_intrusive<RecordVal>(ei);
 
 	if ( ctx )
 		{
@@ -1268,9 +1264,9 @@ void Manager::ProcessStatus(broker::status stat)
 		}
 
 	auto str = stat.message();
-	auto msg = new StringVal(str ? *str : "");
+	auto msg = make_intrusive<StringVal>(str ? *str : "");
 
-	mgr.QueueEventFast(event, {endpoint_info, msg});
+	mgr.Enqueue(event, std::move(endpoint_info), std::move(msg));
 	}
 
 void Manager::ProcessError(broker::error err)
@@ -1347,10 +1343,10 @@ void Manager::ProcessError(broker::error err)
 		msg = fmt("[%s] %s", caf::to_string(err.category()).c_str(), caf::to_string(err.context()).c_str());
 		}
 
-	mgr.QueueEventFast(Broker::error, {
-		BifType::Enum::Broker::ErrorCode->GetVal(ec).release(),
-		new StringVal(msg),
-	});
+	mgr.Enqueue(Broker::error,
+		BifType::Enum::Broker::ErrorCode->GetVal(ec),
+		make_intrusive<StringVal>(msg)
+	);
 	}
 
 void Manager::ProcessStoreResponse(StoreHandleVal* s, broker::store::response response)

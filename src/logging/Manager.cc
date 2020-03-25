@@ -710,7 +710,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 
 	// Raise the log event.
 	if ( stream->event )
-		mgr.QueueEventFast(stream->event, {columns->Ref()}, SOURCE_LOCAL);
+		mgr.Enqueue(stream->event, columns);
 
 	// Send to each of our filters.
 	for ( list<Filter*>::iterator i = stream->filters.begin();

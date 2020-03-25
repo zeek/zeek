@@ -42,11 +42,11 @@ bool DataEvent::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 	{
 	if ( ! chunk_event ) return true;
 
-	mgr.QueueEventFast(chunk_event, {
-		GetFile()->GetVal()->Ref(),
-		new StringVal(new BroString(data, len, 0)),
-		val_mgr->GetCount(offset),
-	});
+	mgr.Enqueue(chunk_event,
+		IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+		make_intrusive<StringVal>(new BroString(data, len, 0)),
+		IntrusivePtr{AdoptRef{}, val_mgr->GetCount(offset)}
+	);
 
 	return true;
 	}
@@ -55,10 +55,10 @@ bool DataEvent::DeliverStream(const u_char* data, uint64_t len)
 	{
 	if ( ! stream_event ) return true;
 
-	mgr.QueueEventFast(stream_event, {
-		GetFile()->GetVal()->Ref(),
-		new StringVal(new BroString(data, len, 0)),
-	});
+	mgr.Enqueue(stream_event,
+		IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+		make_intrusive<StringVal>(new BroString(data, len, 0))
+	);
 
 	return true;
 	}

@@ -480,26 +480,28 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		auto vl_size = 1 + (bool)time + (bool)location + (bool)conn +
 		               (addl ? addl->length() : 0);
 
-		val_list vl(vl_size);
+		zeek::Args vl;
+		vl.reserve(vl_size);
 
 		if ( time )
-			vl.push_back(new Val(network_time ? network_time : current_time(), TYPE_TIME));
+			vl.emplace_back(make_intrusive<Val>(network_time ? network_time : current_time(), TYPE_TIME));
 
-		vl.push_back(new StringVal(buffer));
+		vl.emplace_back(make_intrusive<StringVal>(buffer));
 
 		if ( location )
-			vl.push_back(new StringVal(loc_str.c_str()));
+			vl.emplace_back(make_intrusive<StringVal>(loc_str.c_str()));
 
 		if ( conn )
-			vl.push_back(conn->BuildConnVal());
+			vl.emplace_back(AdoptRef{}, conn->BuildConnVal());
 
 		if ( addl )
-			std::copy(addl->begin(), addl->end(), std::back_inserter(vl));
+			for ( auto v : *addl )
+				vl.emplace_back(AdoptRef{}, v);
 
 		if ( conn )
-			conn->ConnectionEventFast(event, 0, std::move(vl));
+			conn->EnqueueEvent(event, std::move(vl));
 		else
-			mgr.QueueEventFast(event, std::move(vl));
+			mgr.Enqueue(event, std::move(vl));
 		}
 	else
 		{

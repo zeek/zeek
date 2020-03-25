@@ -704,7 +704,7 @@ void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* dm)
 	if ( ! e )
 		return;
 
-	mgr.QueueEventFast(e, {BuildMappingVal(dm).release()});
+	mgr.Enqueue(e, BuildMappingVal(dm));
 	}
 
 void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* dm,
@@ -713,11 +713,11 @@ void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* dm,
 	if ( ! e )
 		return;
 
-	mgr.QueueEventFast(e, {
-		BuildMappingVal(dm).release(),
-		l1->ConvertToSet(),
-		l2->ConvertToSet(),
-	});
+	mgr.Enqueue(e,
+		BuildMappingVal(dm),
+		IntrusivePtr{AdoptRef{}, l1->ConvertToSet()},
+		IntrusivePtr{AdoptRef{}, l2->ConvertToSet()}
+	);
 	}
 
 void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* old_dm, DNS_Mapping* new_dm)
@@ -725,10 +725,7 @@ void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* old_dm, DNS_Mapping* new_dm)
 	if ( ! e )
 		return;
 
-	mgr.QueueEventFast(e, {
-		BuildMappingVal(old_dm).release(),
-		BuildMappingVal(new_dm).release(),
-	});
+	mgr.Enqueue(e, BuildMappingVal(old_dm), BuildMappingVal(new_dm));
 	}
 
 IntrusivePtr<Val> DNS_Mgr::BuildMappingVal(DNS_Mapping* dm)

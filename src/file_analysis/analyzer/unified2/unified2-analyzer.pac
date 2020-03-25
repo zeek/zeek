@@ -66,7 +66,7 @@ refine flow Flow += {
 		%{
 		if ( ::unified2_event )
 			{
-			RecordVal* ids_event = new RecordVal(BifType::Record::Unified2::IDSEvent);
+			auto ids_event = make_intrusive<RecordVal>(BifType::Record::Unified2::IDSEvent);
 			ids_event->Assign(0, val_mgr->GetCount(${ev.sensor_id}));
 			ids_event->Assign(1, val_mgr->GetCount(${ev.event_id}));
 			ids_event->Assign(2, make_intrusive<Val>(ts_to_double(${ev.ts}), TYPE_TIME));
@@ -81,11 +81,9 @@ refine flow Flow += {
 			ids_event->Assign(11, to_port(${ev.dst_p}, ${ev.protocol}));
 			ids_event->Assign(17, val_mgr->GetCount(${ev.packet_action}));
 
-			mgr.QueueEventFast(::unified2_event, {
-					connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
-					ids_event,
-					},
-				SOURCE_LOCAL);
+			mgr.Enqueue(::unified2_event,
+					IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+					std::move(ids_event));
 			}
 		return true;
 		%}
@@ -94,7 +92,7 @@ refine flow Flow += {
 		%{
 		if ( ::unified2_event )
 			{
-			RecordVal* ids_event = new RecordVal(BifType::Record::Unified2::IDSEvent);
+			auto ids_event = make_intrusive<RecordVal>(BifType::Record::Unified2::IDSEvent);
 			ids_event->Assign(0, val_mgr->GetCount(${ev.sensor_id}));
 			ids_event->Assign(1, val_mgr->GetCount(${ev.event_id}));
 			ids_event->Assign(2, make_intrusive<Val>(ts_to_double(${ev.ts}), TYPE_TIME));
@@ -113,11 +111,9 @@ refine flow Flow += {
 			ids_event->Assign(15, val_mgr->GetCount(${ev.mpls_label}));
 			ids_event->Assign(16, val_mgr->GetCount(${ev.vlan_id}));
 
-			mgr.QueueEventFast(::unified2_event, {
-					connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
-					ids_event,
-					},
-				SOURCE_LOCAL);
+			mgr.Enqueue(::unified2_event,
+					IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+					std::move(ids_event));
 			}
 
 		return true;
@@ -127,7 +123,7 @@ refine flow Flow += {
 		%{
 		if ( ::unified2_packet )
 			{
-			RecordVal* packet = new RecordVal(BifType::Record::Unified2::Packet);
+			auto packet = make_intrusive<RecordVal>(BifType::Record::Unified2::Packet);
 			packet->Assign(0, val_mgr->GetCount(${pkt.sensor_id}));
 			packet->Assign(1, val_mgr->GetCount(${pkt.event_id}));
 			packet->Assign(2, val_mgr->GetCount(${pkt.event_second}));
@@ -135,11 +131,9 @@ refine flow Flow += {
 			packet->Assign(4, val_mgr->GetCount(${pkt.link_type}));
 			packet->Assign(5, bytestring_to_val(${pkt.packet_data}));
 
-			mgr.QueueEventFast(::unified2_packet, {
-					connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
-					packet,
-					},
-				SOURCE_LOCAL);
+			mgr.Enqueue(::unified2_packet,
+					IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+					std::move(packet));
 			}
 
 		return true;

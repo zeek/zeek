@@ -62,8 +62,7 @@ public:
 	// against the case where there's no handlers (one usually also does that
 	// because it would be a waste of effort to construct all the event
 	// arguments when there's no handlers to consume them).
-	// TODO: deprecate
-	/* [[deprecated("Remove in v4.1.  Use Enqueue() instead.")]] */
+	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
 	void QueueEventFast(const EventHandlerPtr &h, val_list vl,
 			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
 			TimerMgr* mgr = 0, BroObj* obj = 0);

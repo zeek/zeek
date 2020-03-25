@@ -420,10 +420,10 @@ void file_analysis::OCSP::ParseRequest(OCSP_REQUEST* req)
 #endif
 
 	if ( ocsp_request )
-		mgr.QueueEventFast(ocsp_request, {
-			GetFile()->GetVal()->Ref(),
-			val_mgr->GetCount(version),
-		});
+		mgr.Enqueue(ocsp_request,
+			IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(version)}
+		);
 
 	BIO *bio = BIO_new(BIO_s_mem());
 
@@ -466,10 +466,10 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 	StringVal* status_val = new StringVal(strlen(status_str), status_str);
 
 	if ( ocsp_response_status )
-		mgr.QueueEventFast(ocsp_response_status, {
-			GetFile()->GetVal()->Ref(),
-			status_val->Ref(),
-		});
+		mgr.Enqueue(ocsp_response_status,
+			IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+			IntrusivePtr{NewRef{}, status_val}
+		);
 
 	//if (!resp_bytes)
 	//	{

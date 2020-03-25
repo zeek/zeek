@@ -622,18 +622,23 @@ void File::FileEvent(EventHandlerPtr h)
 	if ( ! FileEventAvailable(h) )
 		return;
 
-	FileEvent(h, {val->Ref()});
+	FileEvent(h, zeek::Args{{NewRef{}, val}});
 	}
 
 void File::FileEvent(EventHandlerPtr h, val_list* vl)
 	{
-	FileEvent(h, std::move(*vl));
+	FileEvent(h, zeek::val_list_to_args(vl));
 	delete vl;
 	}
 
 void File::FileEvent(EventHandlerPtr h, val_list vl)
 	{
-	mgr.QueueEventFast(h, std::move(vl));
+	FileEvent(h, zeek::val_list_to_args(&vl));
+	}
+
+void File::FileEvent(EventHandlerPtr h, zeek::Args args)
+	{
+	mgr.Enqueue(h, std::move(args));
 
 	if ( h == file_new || h == file_over_new_connection ||
 	     h == file_sniff ||

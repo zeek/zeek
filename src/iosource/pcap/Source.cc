@@ -48,7 +48,7 @@ void PcapSource::Close()
 	Closed();
 
 	if ( Pcap::file_done )
-		mgr.QueueEventFast(Pcap::file_done, {new StringVal(props.path)});
+		mgr.Enqueue(Pcap::file_done, make_intrusive<StringVal>(props.path));
 	}
 
 void PcapSource::OpenLive()

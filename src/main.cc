@@ -269,7 +269,7 @@ void terminate_bro()
 
 	EventHandlerPtr zeek_done = internal_handler("zeek_done");
 	if ( zeek_done )
-		mgr.QueueEventFast(zeek_done, val_list{});
+		mgr.Enqueue(zeek_done, zeek::Args{});
 
 	timer_mgr->Expire();
 	mgr.Drain();
@@ -826,7 +826,7 @@ int main(int argc, char** argv)
 
 	EventHandlerPtr zeek_init = internal_handler("zeek_init");
 	if ( zeek_init )	//### this should be a function
-		mgr.QueueEventFast(zeek_init, val_list{});
+		mgr.Enqueue(zeek_init, zeek::Args{});
 
 	EventRegistry::string_list dead_handlers =
 		event_registry->UnusedHandlers();
@@ -873,10 +873,10 @@ int main(int argc, char** argv)
 			if ( i->skipped )
 				continue;
 
-			mgr.QueueEventFast(zeek_script_loaded, {
-				new StringVal(i->name.c_str()),
-				val_mgr->GetCount(i->include_level),
-			});
+			mgr.Enqueue(zeek_script_loaded,
+				make_intrusive<StringVal>(i->name.c_str()),
+				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(i->include_level)}
+			);
 			}
 		}
 

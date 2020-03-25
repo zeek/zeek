@@ -372,11 +372,11 @@ void SampleLogger::SegmentProfile(const char* /* name */,
 					double dtime, int dmem)
 	{
 	if ( load_sample )
-		mgr.QueueEventFast(load_sample, {
-			load_samples->Ref(),
-			new IntervalVal(dtime, Seconds),
-			val_mgr->GetInt(dmem)
-		});
+		mgr.Enqueue(load_sample,
+			IntrusivePtr{NewRef{}, load_samples},
+			make_intrusive<IntervalVal>(dtime, Seconds),
+			IntrusivePtr{AdoptRef{}, val_mgr->GetInt(dmem)}
+		);
 	}
 
 void SegmentProfiler::Init()

@@ -21,13 +21,11 @@ void RuleActionEvent::DoAction(const Rule* parent, RuleEndpointState* state,
 				const u_char* data, int len)
 	{
 	if ( signature_match )
-		{
-		mgr.QueueEventFast(signature_match, {
-			rule_matcher->BuildRuleStateValue(parent, state),
-			new StringVal(msg),
-			data ? new StringVal(len, (const char*)data) : val_mgr->GetEmptyString(),
-		});
-		}
+		mgr.Enqueue(signature_match,
+			IntrusivePtr{AdoptRef{}, rule_matcher->BuildRuleStateValue(parent, state)},
+			make_intrusive<StringVal>(msg),
+			data ? make_intrusive<StringVal>(len, (const char*)data) : IntrusivePtr{AdoptRef{}, val_mgr->GetEmptyString()}
+		);
 	}
 
 void RuleActionEvent::PrintDebug()

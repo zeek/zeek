@@ -8,9 +8,7 @@
 #include "Traverse.h"
 
 
-// In the following, an AssignExpr* of nullptr means "assigned at the
-// start of the function".
-typedef std::map<const ID*, const AssignExpr*> ReachingDefs;
+typedef std::map<const ID*, const BroObj*> ReachingDefs;
 
 static ReachingDefs null_RDs;
 
@@ -57,7 +55,7 @@ protected:
 		a_i->insert(AnalyInfo::value_type(o, rd));
 		}
 
-	void AddRD(ReachingDefs& rd, const ID* id, const AssignExpr* e)
+	void AddRD(ReachingDefs& rd, const ID* id, const BroObj* e) const
 		{
 		rd.insert(ReachingDefs::value_type(id, e));
 		}
@@ -88,16 +86,13 @@ protected:
 			return null_RDs;
 		}
 
-	bool RDsDiffer(const ReachingDefs& r1, const ReachingDefs& r2)
-		{
-		return false;	// ###
-		}
+	bool RDsDiffer(const ReachingDefs& r1, const ReachingDefs& r2) const;
 
 	ReachingDefs IntersectRDs(const ReachingDefs& r1,
-					const ReachingDefs& r2)
-		{
-		return r1;	// ###
-		}
+					const ReachingDefs& r2) const;
+
+	bool RDHasPair(const ReachingDefs& r,
+			const ID* id, const BroObj* o) const;
 
 	// Mappings of reaching defs pre- and post- execution
 	// of the given object.
@@ -123,7 +118,7 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 		{
 		auto arg_i = args->FieldName(i);
 		auto arg_i_id = scope->Lookup(arg_i);
-		AddRD(rd, arg_i_id, nullptr);
+		AddRD(rd, arg_i_id, f);
 		}
 
 	AddPostRDs(f, rd);
@@ -176,7 +171,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		auto body = f->LoopBody();
 
 		for ( const auto& id : *ids )
-			AddRD(rd, id, nullptr);
+			AddRD(rd, id, s);
 
 		AddPreRDs(body, rd);
 
@@ -288,7 +283,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		post_rds = PreRDs(s);
 
 		for ( int i = 0; i < inits.length(); ++i )
-			AddRD(post_rds, inits[i], nullptr);
+			AddRD(post_rds, inits[i], s);
 
 		break;
 		}
@@ -446,6 +441,43 @@ TraversalCode RD_Decorate::PostExpr(const Expr* e)
 	}
 
 	return TC_CONTINUE;
+	}
+
+
+bool RD_Decorate::RDHasPair(const ReachingDefs& r,
+				const ID* id, const BroObj* o) const
+	{
+	// ### update for multimap
+	auto l = r.find(id);
+	return l != r.end() && l->second == o;
+	}
+
+ReachingDefs RD_Decorate::IntersectRDs(const ReachingDefs& r1,
+					const ReachingDefs& r2) const
+	{
+	ReachingDefs res;
+
+	auto i = r1.begin();
+	while ( i != r1.end() )
+		{
+		if ( RDHasPair(r2, i->first, i->second) )
+			AddRD(res, i->first, i->second);
+
+		++i;
+		}
+
+	return res;
+	}
+
+bool RD_Decorate::RDsDiffer(const ReachingDefs& r1, const ReachingDefs& r2) const
+	{
+	// This is just an optimization.
+	if ( r1.size() != r2.size() )
+		return false;
+
+	auto r3 = IntersectRDs(r1, r2);
+
+	return r3.size() == r1.size();
 	}
 
 

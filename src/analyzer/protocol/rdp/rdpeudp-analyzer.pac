@@ -1,15 +1,16 @@
 refine flow RDPEUDP_Flow += {
         %member{
-		RDPEUDP_STATE state_;
-		bool is_rdpeudp2_;
+		enum RDPEUDP_STATE {
+		        NEED_SYN	= 0x1,
+		        NEED_SYNACK	= 0x2,
+		        ESTABLISHED1	= 0x3,
+		        ESTABLISHED2	= 0x4
+		};
+		uint8 state_ = NEED_SYN;
+		bool is_rdpeudp2_ = false;
         %}
 
-        %init{
-		state_ = NEED_SYN;
-		is_rdpeudp2_ = false;
-        %}
-
-	function get_state(): RDPEUDP_STATE
+	function get_state(): uint8
 	%{
 		return state_;
 	%}

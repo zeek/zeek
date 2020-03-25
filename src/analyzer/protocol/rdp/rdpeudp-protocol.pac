@@ -1,18 +1,18 @@
 enum RDPEUDP_STATE {
-        NEED_SYN,
-        NEED_SYNACK,
-	ESTABLISHED1,
-	ESTABLISHED2
+        NEED_SYN	= 0x1,
+        NEED_SYNACK	= 0x2,
+        ESTABLISHED1	= 0x3,
+        ESTABLISHED2	= 0x4
 };
 
 type RDPEUDP_PDU(is_orig: bool) = record {
-	state: case $context.connection.get_state() of {
+	state: case $context.flow.get_state() of {
 		NEED_SYN 	->  need_syn:		RDPEUDP1_SYN(this, is_orig);
 		NEED_SYNACK 	->  need_synack:	RDPEUDP1_SYNACK(this, is_orig);
 		ESTABLISHED1	->  est1:		RDPEUDP1_ACK(this, is_orig);
-		ESTABLISHED2	->  est2:		RDPEDUP2_ACK(this, is_orig);
+		ESTABLISHED2	->  est2:		RDPEUDP2_ACK(this, is_orig);
 	};
-}&byteorder=bigendian;
+} &byteorder=bigendian;
 
 type RDPEUDP1_SYN(pdu: RDPEUDP_PDU, is_orig: bool) = record {
 	fec_header: 	RDPUDP_FEC_HEADER(pdu);

@@ -72,6 +72,7 @@ class AssignExpr;
 class FieldAssignExpr;
 class CallExpr;
 class EventExpr;
+class RefExpr;
 
 struct function_ingredients;
 
@@ -213,6 +214,12 @@ public:
 		{
 		CHECK_TAG(tag, EXPR_INDEX, "ExprVal::AsIndexExpr", expr_name)
 		return (IndexExpr*) this;
+		}
+
+	const RefExpr* AsRefExpr() const
+		{
+		CHECK_TAG(tag, EXPR_REF, "ExprVal::AsRefExpr", expr_name)
+		return (const RefExpr*) this;
 		}
 
 	void Describe(ODesc* d) const override;

@@ -7,22 +7,22 @@ type RDPEUDP_PDU(is_orig: bool) = record {
 # If the connection is not established and the PDU is from the responder, the message is parsed as a SYNACK.
 # Once we've parsed a SYN and a SYNACK, the connection is marked as established.
 #   All subsiquent messages are parsed as *_ACKs (which may carry data, such as SSL records).
-# If the SYN indicated support for RDPEUDP2, the first *_ACK message is assumed to be RDPEUDP2.
+# If the SYN indicated support for RDPEUDP2, the remaining messages (after the SYNACK) are assumed to be RDPEUDP2_ACK.
 #type RDPEUDP_PDU(is_orig: bool) = record {
 #	msg_type: case (is_established) of {
 #		false -> ne: case (is_orig) of {
 #			true ->  o: RDPEUDP1_SYN(is_orig);
 #			false -> r: RDPEUDP1_SYNACK(is_orig);
-#		}
+#		};
 #		true ->  e:  case (is_rdpeudp2) of {
 #			true ->  two: RDPEUDP2_ACK(is_orig);
 #			false -> one:  RDPEUDP1_ACK(is_orig);
-#		}
+#		};
 #	};
 #} &byteorder=bigendian;
 
 # if (fec_header.uFlags & 0xff != 0x01) {raise a protocol violation}
-type RDPEUDP1_SYN() = record {
+type RDPEUDP1_SYN(is_orig: bool) = record {
 	fec_header: 		RDPUDP_FEC_HEADER;
 	syn_data_payload:	RDPUDP_SYNDATA_PAYLOAD;
 	correlation_id_payload:	RDPUDP_CORRELATION_ID_PAYLOAD;
@@ -32,10 +32,11 @@ type RDPEUDP1_SYN() = record {
 	# TODO: figure out how to make this optional given a value of a member of fec_header
 	syn_ex_payload:		RDPUDP_SYNDATAEX_PAYLOAD;
 
+	# this entire PDU needs to be 1232 bytes or else raise a protocol violation, not sure where to do that check.
 	pad:			padding align 1232;
-#} &let {
-#	seen_syn_ = true;
-#	is_rdpeudp = true if fec_header.uFlags contains RDPUDP_FLAG_SYNEX;
+} &let {
+	seen_syn: bool = $context.connection.set_syn();
+	is_rdpeudp: bool = $context.connection.set_rdpeudp2(fec_header.uFlags);
 };
 
 # if (fec_header.uFlags & 0xff != 0x05) {raise a protocol violation}
@@ -49,9 +50,10 @@ type RDPEUDP1_SYNACK() = record {
 	# TODO: figure out how to make this optional given a value of a member of fec_header
 	syn_ex_payload:		RDPUDP_SYNDATAEX_PAYLOAD;
 
-	pad:			padding align 1232;	
-#} &let {
-#	seen_ack_ = true;
+	# this entire PDU needs to be 1232 bytes or else raise a protocol violation, not sure where to do that check.
+	pad:			padding align 1232;
+} &let {
+	seen_synack: bool = $context.connection.set_synack();
 };
 
 # The SYN and SYNACK messages will determine if the subsiquent messages will be RDPEUDP or RDPEUDP2
@@ -232,12 +234,32 @@ refine connection RDPEUDP_Conn += {
                 return is_rdpeudp2_;
 	%}
 
+        function set_rdpeudp2(uFlags: uint16): bool
+	%{
+		if (uFlags >= 0x1000) {
+			is_rdpeudp2_ = true;
+		}
+                return is_rdpeudp2_;
+	%}
+
         function seen_syn(): bool
 	%{
                 return seen_syn_;
 	%}
+
         function seen_synack(): bool
 	%{
+                return seen_synack_;
+	%}
+
+        function set_syn(): bool
+	%{
+		seen_syn_ = true;
+                return seen_syn_;
+	%}
+        function set_synack(): bool
+	%{
+		seen_synack_ = true;
                 return seen_synack_;
 	%}
 

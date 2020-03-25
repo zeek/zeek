@@ -8,6 +8,49 @@
 #include "Traverse.h"
 
 
+typedef enum {
+	STMT_DEF,
+	ASSIGNEXPR_DEF,
+	FUNC_DEF,
+} def_point_type;
+
+class DefinitionPoint {
+public:
+	DefinitionPoint(const Stmt* s)
+		{
+		stmt = s;
+		t = STMT_DEF;
+
+		assign = nullptr;
+		func = nullptr;
+		}
+
+	DefinitionPoint(const AssignExpr* a)
+		{
+		assign = a;
+		t = ASSIGNEXPR_DEF;
+
+		stmt = nullptr;
+		func = nullptr;
+		}
+
+	DefinitionPoint(const Func* f)
+		{
+		func = f;
+		t = FUNC_DEF;
+
+		stmt = nullptr;
+		assign = nullptr;
+		}
+
+protected:
+	def_point_type t;
+
+	const Stmt* stmt;
+	const AssignExpr* assign;
+	const Func* func;
+};
+
 typedef std::map<const ID*, const BroObj*> ReachingDefs;
 
 static ReachingDefs null_RDs;
@@ -85,6 +128,8 @@ protected:
 		else
 			return null_RDs;
 		}
+
+	void PrintRD(const ID*, const BroObj*) const;
 
 	bool RDsDiffer(const ReachingDefs& r1, const ReachingDefs& r2) const;
 
@@ -480,6 +525,10 @@ bool RD_Decorate::RDsDiffer(const ReachingDefs& r1, const ReachingDefs& r2) cons
 	return r3.size() == r1.size();
 	}
 
+
+void RD_Decorate::PrintRD(const ID*, const BroObj*) const
+	{
+	}
 
 class FolderFinder : public TraversalCallback {
 public:

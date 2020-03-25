@@ -1782,16 +1782,18 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 bool Manager::CallPred(Func* pred_func, const int numvals, ...) const
 	{
 	bool result = false;
-	val_list vl(numvals);
+	zeek::Args vl;
+	vl.reserve(numvals);
 
 	va_list lP;
 	va_start(lP, numvals);
 	for ( int i = 0; i < numvals; i++ )
-		vl.push_back( va_arg(lP, Val*) );
+		vl.emplace_back(AdoptRef{}, va_arg(lP, Val*));
 
 	va_end(lP);
 
-	auto v = pred_func->Call(&vl);
+	auto v = pred_func->Call(vl);
+
 	if ( v )
 		result = v->AsBool();
 

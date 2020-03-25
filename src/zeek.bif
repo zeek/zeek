@@ -1335,11 +1335,8 @@ bool sort_function(Val* a, Val* b)
 	if ( ! b )
 		return 1;
 
-	val_list sort_func_args;
-	sort_func_args.push_back(a->Ref());
-	sort_func_args.push_back(b->Ref());
-
-	auto result = sort_function_comp->Call(&sort_func_args);
+	auto result = sort_function_comp->Call(IntrusivePtr{NewRef{}, a},
+	                                       IntrusivePtr{NewRef{}, b});
 	int int_result = result->CoerceToInt();
 
 	return int_result < 0;

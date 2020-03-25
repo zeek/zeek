@@ -13,6 +13,8 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <tuple>
+#include <type_traits>
 
 #include <broker/data.hh>
 #include <broker/expected.hh>
@@ -50,9 +52,27 @@ public:
 	const vector<Body>& GetBodies() const	{ return bodies; }
 	bool HasBodies() const	{ return bodies.size(); }
 
-	// TODO: deprecate
+	[[deprecated("Remove in v4.1. Use zeek::Args overload instead.")]]
 	virtual IntrusivePtr<Val> Call(val_list* args, Frame* parent = nullptr) const;
+
+	/**
+	 * Calls a Zeek function.
+	 * @param args  the list of arguments to the function call.
+	 * @param parent  the frame from which the function is being called.
+	 * @return  the return value of the function call.
+	 */
 	virtual IntrusivePtr<Val> Call(const zeek::Args& args, Frame* parent = nullptr) const = 0;
+
+	/**
+	 * A version of Call() taking a variable number of individual arguments.
+	 */
+	template <class... Args>
+	std::enable_if_t<
+	  std::is_convertible_v<std::tuple_element_t<0, std::tuple<Args...>>,
+	                        IntrusivePtr<Val>>,
+	  IntrusivePtr<Val>>
+	Call(Args&&... args) const
+		{ return Call(zeek::Args{std::forward<Args>(args)...}); }
 
 	// Add a new event handler to an existing function (event).
 	virtual void AddBody(IntrusivePtr<Stmt> new_body, id_list* new_inits,

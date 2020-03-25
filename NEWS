@@ -47,6 +47,11 @@ Removed Functionality
 Deprecated Functionality
 ------------------------
 
+- The ``Func::Call(val_list*, ...)`` method is now deprecated.  The alternate
+  overload taking a ``zeek::Args`` (``std::vector<IntrusivePtr<Val>>``) should
+  be used instead.  There's also now a variadic template that forwards all
+  arguments.
+
 Zeek 3.1.0
 ==========
 

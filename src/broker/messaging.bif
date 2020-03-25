@@ -188,8 +188,8 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 	if ( ! topic_func )
 		topic_func = global_scope()->Lookup("Cluster::rr_topic")->ID_Val()->AsFunc();
 
-	val_list vl{pool->Ref(), key->Ref()};
-	auto topic = topic_func->Call(&vl);
+	zeek::Args vl{{NewRef{}, pool}, {NewRef{}, key}};
+	auto topic = topic_func->Call(vl);
 
 	if ( ! topic->AsString()->Len() )
 		return val_mgr->GetFalse();
@@ -225,8 +225,8 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 	if ( ! topic_func )
 		topic_func = global_scope()->Lookup("Cluster::hrw_topic")->ID_Val()->AsFunc();
 
-	val_list vl{pool->Ref(), key->Ref()};
-	auto topic = topic_func->Call(&vl);
+	zeek::Args vl{{NewRef{}, pool}, {NewRef{}, key}};
+	auto topic = topic_func->Call(vl);
 
 	if ( ! topic->AsString()->Len() )
 		return val_mgr->GetFalse();

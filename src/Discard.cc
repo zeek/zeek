@@ -39,11 +39,11 @@ int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 
 	if ( check_ip )
 		{
-		val_list args{ip->BuildPktHdrVal()};
+		zeek::Args args{{AdoptRef{}, ip->BuildPktHdrVal()}};
 
 		try
 			{
-			discard_packet = check_ip->Call(&args)->AsBool();
+			discard_packet = check_ip->Call(args)->AsBool();
 			}
 
 		catch ( InterpreterException& e )
@@ -91,14 +91,14 @@ int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 			const struct tcphdr* tp = (const struct tcphdr*) data;
 			int th_len = tp->th_off * 4;
 
-			val_list args{
-				ip->BuildPktHdrVal(),
-				BuildData(data, th_len, len, caplen),
+			zeek::Args args{
+				{AdoptRef{}, ip->BuildPktHdrVal()},
+				{AdoptRef{}, BuildData(data, th_len, len, caplen)},
 			};
 
 			try
 				{
-				discard_packet = check_tcp->Call(&args)->AsBool();
+				discard_packet = check_tcp->Call(args)->AsBool();
 				}
 
 			catch ( InterpreterException& e )
@@ -115,14 +115,14 @@ int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 			const struct udphdr* up = (const struct udphdr*) data;
 			int uh_len = sizeof (struct udphdr);
 
-			val_list args{
-				ip->BuildPktHdrVal(),
-				BuildData(data, uh_len, len, caplen),
+			zeek::Args args{
+				{AdoptRef{}, ip->BuildPktHdrVal()},
+				{AdoptRef{}, BuildData(data, uh_len, len, caplen)},
 			};
 
 			try
 				{
-				discard_packet = check_udp->Call(&args)->AsBool();
+				discard_packet = check_udp->Call(args)->AsBool();
 				}
 
 			catch ( InterpreterException& e )
@@ -138,11 +138,11 @@ int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 			{
 			const struct icmp* ih = (const struct icmp*) data;
 
-			val_list args{ip->BuildPktHdrVal()};
+			zeek::Args args{{AdoptRef{}, ip->BuildPktHdrVal()}};
 
 			try
 				{
-				discard_packet = check_icmp->Call(&args)->AsBool();
+				discard_packet = check_icmp->Call(args)->AsBool();
 				}
 
 			catch ( InterpreterException& e )

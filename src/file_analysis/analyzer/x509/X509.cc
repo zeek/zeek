@@ -60,11 +60,9 @@ bool file_analysis::X509::EndOfFile()
 				return false;
 			// yup, let's call the callback.
 
-			val_list vl(3);
-			vl.push_back(GetFile()->GetVal()->Ref());
-			vl.push_back(entry.release());
-			vl.push_back(new StringVal(cert_sha256));
-			cache_hit_callback->Call(&vl);
+			cache_hit_callback->Call(IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+			                         std::move(entry),
+			                         make_intrusive<StringVal>(cert_sha256));
 			return false;
 			}
 		}

@@ -1835,25 +1835,24 @@ IntrusivePtr<Val> TableVal::Default(Val* index)
 		}
 
 	const Func* f = def_val->AsFunc();
-	val_list vl;
+	zeek::Args vl;
 
 	if ( index->Type()->Tag() == TYPE_LIST )
 		{
 		const val_list* vl0 = index->AsListVal()->Vals();
-		vl = val_list(vl0->length());
+		vl.reserve(vl0->length());
+
 		for ( const auto& v : *vl0 )
-			vl.push_back(v->Ref());
+			vl.emplace_back(NewRef{}, v);
 		}
 	else
-		{
-		vl = val_list{index->Ref()};
-		}
+		vl.emplace_back(NewRef{}, index);
 
 	IntrusivePtr<Val> result;
 
 	try
 		{
-		result = f->Call(&vl);
+		result = f->Call(vl);
 		}
 
 	catch ( InterpreterException& e )
@@ -2011,34 +2010,35 @@ void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe
 			}
 
 		const Func* f = thefunc->AsFunc();
-		val_list vl { Ref() };
-		IntrusivePtr<EnumVal> type;
+		const auto& index_list = *index->AsListVal()->Vals();
+
+		zeek::Args vl;
+		vl.reserve(2 + index_list.length() + table_type->IsTable());
+		vl.emplace_back(NewRef{}, this);
 
 		switch ( tpe )
 			{
 			case ELEMENT_NEW:
-				type = BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_NEW);
+				vl.emplace_back(BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_NEW));
 				break;
 			case ELEMENT_CHANGED:
-				type = BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_CHANGED);
+				vl.emplace_back(BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_CHANGED));
 				break;
 			case ELEMENT_REMOVED:
-				type = BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_REMOVED);
+				vl.emplace_back(BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_REMOVED));
 				break;
 			case ELEMENT_EXPIRED:
-				type = BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_EXPIRED);
+				vl.emplace_back(BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_EXPIRED));
 			}
 
-		vl.append(type.release());
-
 		for ( const auto& v : *index->AsListVal()->Vals() )
-			vl.append(v->Ref());
+			vl.emplace_back(NewRef{}, v);
 
-		if ( ! table_type->IsSet() )
-			vl.append(old_value->Ref());
+		if ( table_type->IsTable() )
+			vl.emplace_back(NewRef{}, old_value);
 
 		in_change_func = true;
-		f->Call(&vl);
+		f->Call(vl);
 		}
 	catch ( InterpreterException& e )
 		{
@@ -2451,7 +2451,7 @@ double TableVal::CallExpireFunc(IntrusivePtr<ListVal> idx)
 			}
 
 		const Func* f = vf->AsFunc();
-		val_list vl { Ref() };
+		zeek::Args vl;
 
 		const auto func_args = f->FType()->ArgTypes()->Types();
 
@@ -2460,20 +2460,27 @@ double TableVal::CallExpireFunc(IntrusivePtr<ListVal> idx)
 
 		if ( ! any_idiom )
 			{
-			for ( const auto& v : *idx->AsListVal()->Vals() )
-				vl.append(v->Ref());
+			const auto& index_list = *idx->AsListVal()->Vals();
+			vl.reserve(1 + index_list.length());
+			vl.emplace_back(NewRef{}, this);
+
+			for ( const auto& v : index_list )
+				vl.emplace_back(NewRef{}, v);
 			}
 		else
 			{
+			vl.reserve(2);
+			vl.emplace_back(NewRef{}, this);
+
 			ListVal* idx_list = idx->AsListVal();
 			// Flatten if only one element
 			if ( idx_list->Length() == 1 )
-				vl.append(idx_list->Index(0)->Ref());
+				vl.emplace_back(NewRef{}, idx_list->Index(0));
 			else
-				vl.append(idx.release());
+				vl.emplace_back(std::move(idx));
 			}
 
-		auto result = f->Call(&vl);
+		auto result = f->Call(vl);
 
 		if ( result )
 			secs = result->AsInterval();

@@ -1,42 +1,47 @@
+enum RDPEUDP_STATE {
+        NEED_SYN,
+        NEED_SYNACK,
+	ESTABLISHED1,
+	ESTABLISHED2
+};
 
 type RDPEUDP_PDU(is_orig: bool) = record {
-	msg_type: case $context.flow.is_established() of {
-		false -> no_established: case is_orig of {
-			true ->  as_syn:	RDPEUDP1_SYN;
-			false -> as_synack:	RDPEUDP1_SYNACK;
-		};
-		true -> yes_established: case $context.flow.is_rdpeudp2() of {
-			true ->  as_ack2:	RDPEUDP2_ACK;
-			false -> as_ack1: 	RDPEUDP1_ACK;
-		};
+	state: case $context.connection.get_state() of {
+		NEED_SYN 	->  need_syn:		RDPEUDP1_SYN(this, is_orig);
+		NEED_SYNACK 	->  need_synack:	RDPEUDP1_SYNACK(this, is_orig);
+		ESTABLISHED1	->  est1:		RDPEUDP1_ACK(this, is_orig);
+		ESTABLISHED2	->  est2:		RDPEDUP2_ACK(this, is_orig);
 	};
 }&byteorder=bigendian;
 
-type RDPEUDP1_SYN = record {
-	fec_header: 	RDPUDP_FEC_HEADER;
-	stub:		bytestring &restofdata;
+type RDPEUDP1_SYN(pdu: RDPEUDP_PDU, is_orig: bool) = record {
+	fec_header: 	RDPUDP_FEC_HEADER(pdu);
+	stub:		bytestring &restofdata &transient;
 } &let {
-	seen_syn: bool = $context.flow.set_syn(fec_header.uFlags, fec_header.snSourceAck);
-	is_rdpeudp: bool = $context.flow.set_rdpeudp2(fec_header.uFlags);
+	proc_rdpeudp1_syn: bool = $context.flow.proc_rdpeudp1_syn(fec_header.uFlags, fec_header.snSourceAck);
 };
 
-type RDPEUDP1_SYNACK = record {
-	fec_header: 	RDPUDP_FEC_HEADER;
-	stub:		bytestring &restofdata;
+type RDPEUDP1_SYNACK(pdu: RDPEUDP_PDU, is_orig: bool) = record {
+	fec_header: 	RDPUDP_FEC_HEADER(pdu);
+	stub:		bytestring &restofdata &transient;
 } &let {
-	seen_synack: bool = $context.flow.set_synack(fec_header.uFlags);
+	proc_rdpeudp1_synack: bool = $context.flow.proc_rdpeudp1_synack(fec_header.uFlags);
 };
 
-type RDPEUDP2_ACK = record {
-	stub:		bytestring &restofdata;
+type RDPEUDP2_ACK(pdu: RDPEUDP_PDU, is_orig: bool) = record {
+	stub:		bytestring &restofdata &transient;
+} &let {
+	proc_rdpeudp2_ack: bool = $context.flow.proc_rdpeudp2_ack();
 };
 
-type RDPEUDP1_ACK = record {
-	fec_header:	RDPUDP_FEC_HEADER;
-	stub:		bytestring &restofdata;
+type RDPEUDP1_ACK(pdu: RDPEUDP_PDU, is_orig: bool) = record {
+	fec_header:	RDPUDP_FEC_HEADER(pdu);
+	stub:		bytestring &restofdata &transient;
+} &let {
+	proc_rdpeudp1_ack: bool = $context.flow.proc_rdpeudp1_ack();
 };
 
-type RDPUDP_FEC_HEADER = record {
+type RDPUDP_FEC_HEADER(pdu: RDPEUDP_PDU) = record {
         snSourceAck:		uint32;
         uReceiveWindowSize:	uint16;
         uFlags:			uint16;

@@ -1,68 +1,66 @@
 refine flow RDPEUDP_Flow += {
         %member{
-		bool seen_syn_;
-		bool seen_synack_;
+		RDPEUDP_STATE state_;
 		bool is_rdpeudp2_;
         %}
 
         %init{
-		seen_syn_ = false;
-		seen_synack_ = false;
+		state_ = NEED_SYN;
 		is_rdpeudp2_ = false;
         %}
 
-        function is_rdpeudp2(): bool
+	function get_state(): RDPEUDP_STATE
 	%{
-                return is_rdpeudp2_;
+		return state_;
 	%}
 
-        function set_rdpeudp2(uFlags: uint16): bool
+        function proc_rdpeudp_syn(uFlags: uint16, snSourceAck: uint32): bool
 	%{
-		if (uFlags >= 0x1000) {
-			is_rdpeudp2_ = true;
-		}
-                return is_rdpeudp2_;
-	%}
-
-        function seen_syn(): bool
-	%{
-                return seen_syn_;
-	%}
-
-        function seen_synack(): bool
-	%{
-                return seen_synack_;
-	%}
-
-        function set_syn(uFlags: uint16, snSourceAck: uint32): bool
-	%{
-                if (!uFlags & 0x01) {
+                if ((uFlags & 0x01) == 0) {
+			printf("this is not a syn pkt\n");
                         return false;
                 }
 		if (snSourceAck != 0xffffffff) {
+			printf("this is not a syn pkt\n");
 			return false;
 		}
-                BifEvent::generate_rdpeudp_syn(bro_analyzer(), bro_analyzer()->Conn());
-		seen_syn_ = true;
-                return seen_syn_;
+		if (uFlags >= 0x1000) {
+			printf("this is rdpeudp2\n");
+			is_rdpeudp2_ = true;
+		}
+		printf("this is a syn pkt\n");
+                BifEvent::generate_rdpeudp_syn(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn());
+		state_ = NEED_SYNACK;
+                return true;
 	%}
 
-        function set_synack(uFlags: uint16): bool
+        function proc_rdpeudp1_synack(uFlags: uint16): bool
 	%{
-		if (!seen_syn()) {
-			return seen_synack_;
-		}
 		if (uFlags % 5 > 0) {
-			return seen_synack_;
+			printf("this is not a synack pkt\n");
+			return false;
 		}
-                BifEvent::generate_rdpeudp_synack(bro_analyzer(), bro_analyzer()->Conn());
-                BifEvent::generate_rdpeudp_established(bro_analyzer(), bro_analyzer()->Conn());
-		seen_synack_ = true;
-                return seen_synack_;
+		printf("this is a synackc pkt\n");
+                BifEvent::generate_rdpeudp_synack(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn());
+                BifEvent::generate_rdpeudp_established(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn());
+
+		if (is_rdpeudp2_) {
+			state_ = ESTABLISHED2;
+		} else {
+			state_ = ESTABLISHED1;
+		}
+                return true;
 	%}
 
-        function is_established(): bool
+        function proc_rdpeudp2_ack(): bool
 	%{
-                return seen_syn_ && seen_synack_;
+		printf("this is a rdpeudp2_ack message\n");
+                return true;
 	%}
+        function proc_rdpeudp1_ack(): bool
+	%{
+		printf("this is a rdpeudp1_ack message\n");
+                return true;
+	%}
+
 };

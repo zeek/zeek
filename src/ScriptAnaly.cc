@@ -312,6 +312,9 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		auto f = s->AsForStmt();
 		auto body = f->LoopBody();
 
+		// ### If post differs from pre, propagate to
+		// beginning and re-traverse.
+
 		// Apply intersection since loop might not execute
 		// at all.
 		post_rds = IntersectRDs(PreRDs(s), PostRDs(body));
@@ -323,6 +326,9 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		{
 		auto w = s->AsWhileStmt();
 		auto body = w->Body();
+
+		// ### If post differs from pre, propagate to
+		// beginning and re-traverse.
 
 		// Apply intersection since loop might not execute
 		// at all.

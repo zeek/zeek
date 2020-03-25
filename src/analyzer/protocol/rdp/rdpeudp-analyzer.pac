@@ -45,11 +45,11 @@ refine flow RDPEUDP_Flow += {
 		this->message_count += 1;
 		printf("inside %s, state: %d, id: %d, count: %d\n",
 			"proc_rdpeudp1_synack", get_state(), 3, this->message_count);
-		if (is_orig) {
-			printf("inside %s, state: %d, id: %d, count: %d\n",
-				"proc_rdpeudp1_synack", get_state(), 99, this->message_count);
-			return false;
-		}
+//		if (is_orig) {
+//			printf("inside %s, state: %d, id: %d, count: %d\n",
+//				"proc_rdpeudp1_synack", get_state(), 99, this->message_count);
+//			return false;
+//		}
 		if ((uFlags & 0x05) == 0) {
 			printf("inside %s, state: %d, id: %d, count: %d\n",
 				"proc_rdpeudp1_synack", get_state(), 98, this->message_count);
@@ -72,12 +72,16 @@ refine flow RDPEUDP_Flow += {
 	%{
 		this->message_count += 1;
                 BifEvent::generate_rdpeudp_data(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), 2);
+		printf("inside %s, state: %d, id: %d, count: %d\n",
+			"proc_rdpeudp2_ack", get_state(), 55, this->message_count);
                 return true;
 	%}
         function proc_rdpeudp1_ack(is_orig: bool): bool
 	%{
 		this->message_count += 1;
                 BifEvent::generate_rdpeudp_data(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), 1);
+		printf("inside %s, state: %d, id: %d, count: %d\n",
+			"proc_rdpeudp1_ack", get_state(), 50, this->message_count);
                 return true;
 	%}
 

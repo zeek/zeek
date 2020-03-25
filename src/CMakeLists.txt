@@ -284,7 +284,6 @@ set(MAIN_SRCS
     WeirdState.cc
     bsd-getopt-long.c
     bro_inet_ntop.c
-    cq.c
     patricia.c
     setsignal.c
     PacketDumper.cc

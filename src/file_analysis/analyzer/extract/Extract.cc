@@ -92,10 +92,10 @@ bool Extract::DeliverStream(const u_char* data, uint64_t len)
 		{
 		File* f = GetFile();
 		f->FileEvent(file_extraction_limit, {
-			f->GetVal()->Ref(),
-			Args()->Ref(),
-			val_mgr->GetCount(limit),
-			val_mgr->GetCount(len),
+			IntrusivePtr{NewRef{}, f->GetVal()},
+			IntrusivePtr{NewRef{}, Args()},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(limit)},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(len)}
 		});
 
 		// Limit may have been modified by a BIF, re-check it.

@@ -176,7 +176,7 @@ public:
 	 * @param h pointer to an event handler.
 	 * @param vl list of argument values to pass to event call.
 	 */
-	// TODO: deprecate
+	[[deprecated("Remove in v4.1. Use zeek::Args overload instead.")]]
 	void FileEvent(EventHandlerPtr h, val_list* vl);
 
 	/**
@@ -184,7 +184,7 @@ public:
 	 * @param h pointer to an event handler.
 	 * @param vl list of argument values to pass to event call.
 	 */
-	// TODO: deprecate
+	[[deprecated("Remove in v4.1. Use zeek::Args overload instead.")]]
 	void FileEvent(EventHandlerPtr h, val_list vl);
 
 	/**

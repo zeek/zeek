@@ -8,6 +8,21 @@
 #include "Traverse.h"
 
 
+static char obj_desc_storage[8192];
+
+static const char* obj_desc(const BroObj* o)
+	{
+	ODesc d;
+	o->Describe(&d);
+	d.SP();
+	o->GetLocationInfo()->Describe(&d);
+
+	strcpy(obj_desc_storage, d.Description());
+
+	return obj_desc_storage;
+	}
+
+
 typedef enum {
 	NO_DEF,
 	STMT_DEF,
@@ -195,6 +210,7 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 	last_obj = f;
 
 	printf("traversing function %s\n", f->Name());
+
 	return TC_CONTINUE;
 	}
 
@@ -394,10 +410,6 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		// about table/set elements. ###
 		break;
 
-#if 0
-        STMT_INIT,
-#endif
-
 	default:
 		break;
 	}
@@ -441,7 +453,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		auto n = e->AsNameExpr();
 		auto id = n->Id();
 		if ( ! HasPreRD(e, id) )
-			printf("got one\n");
+			printf("%s has no pre at %s\n", id->Name(), obj_desc(e));
 
 		break;
 		}
@@ -487,35 +499,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 
 TraversalCode RD_Decorate::PostExpr(const Expr* e)
 	{
-	switch ( e->Tag() ) {
-        case EXPR_NAME:
-		{
-		auto n = e->AsNameExpr();
-		auto id = n->Id();
-		if ( ! HasPreRD(e, id) )
-			printf("got one\n");
-
-		break;
-		}
-
-        case EXPR_ASSIGN:
-		{
-		auto a = e->AsAssignExpr();
-		auto lhs = a->Op1();
-		}
-
-        case EXPR_INDEX:
-        case EXPR_FIELD:
-	case EXPR_HAS_FIELD:
-        case EXPR_FIELD_ASSIGN:
-        case EXPR_INDEX_SLICE_ASSIGN:
-		break;
-
-	default:
-		AddPostRDs(e, PreRDs(e));
-		break;
-	}
-
+	AddPostRDs(e, PreRDs(e));
 	return TC_CONTINUE;
 	}
 
@@ -573,18 +557,7 @@ protected:
 
 void FolderFinder::ReportFoldable(const Expr* e, const char* type)
 	{
-	ODesc d;
-
-	e->Describe(&d);
-	d.SP();
-
-	auto l = e->GetLocationInfo();
-	if ( l )
-		l->Describe(&d);
-	else
-		d.Add(" no location info");
-
-	printf("foldable %s: %s\n", type, d.Description());
+	printf("foldable %s: %s\n", type, obj_desc(e));
 	}
 
 TraversalCode FolderFinder::PreExpr(const Expr* expr, const Expr* op)
@@ -606,6 +579,9 @@ TraversalCode FolderFinder::PreExpr(const Expr* expr, const Expr* op1, const Exp
 
 void analyze_func(const Func* f)
 	{
-	RD_Decorate cb;
-	f->Traverse(&cb);
+	if ( streq(f->Name(), "test_func") )
+		{
+		RD_Decorate cb;
+		f->Traverse(&cb);
+		}
 	}

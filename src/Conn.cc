@@ -497,21 +497,29 @@ void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, val_l
 		}
 
 	// "this" is passed as a cookie for the event
-	mgr.QueueEvent(f, std::move(vl), SOURCE_LOCAL,
-			a ? a->GetID() : 0, timer_mgr, this);
+	mgr.Enqueue(f, zeek::val_list_to_args(&vl), SOURCE_LOCAL,
+	            a ? a->GetID() : 0, timer_mgr, this);
 	}
 
 void Connection::ConnectionEventFast(EventHandlerPtr f, analyzer::Analyzer* a, val_list vl)
 	{
 	// "this" is passed as a cookie for the event
-	mgr.QueueEventFast(f, std::move(vl), SOURCE_LOCAL,
-			a ? a->GetID() : 0, timer_mgr, this);
+	mgr.Enqueue(f, zeek::val_list_to_args(&vl), SOURCE_LOCAL,
+	            a ? a->GetID() : 0, timer_mgr, this);
 	}
 
 void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, val_list* vl)
 	{
 	ConnectionEvent(f, a, std::move(*vl));
 	delete vl;
+	}
+
+void Connection::EnqueueEvent(EventHandlerPtr f, zeek::Args args,
+                              analyzer::Analyzer* a)
+	{
+	// "this" is passed as a cookie for the event
+	mgr.Enqueue(f, std::move(args), SOURCE_LOCAL, a ? a->GetID() : 0,
+	            timer_mgr, this);
 	}
 
 void Connection::Weird(const char* name, const char* addl)

@@ -8,6 +8,9 @@
 #include "Flare.h"
 #include "ZeekArgs.h"
 
+#include <tuple>
+#include <type_traits>
+
 class EventMgr;
 
 class Event : public BroObj {
@@ -60,7 +63,7 @@ public:
 	// because it would be a waste of effort to construct all the event
 	// arguments when there's no handlers to consume them).
 	// TODO: deprecate
-	/* [[deprecated("Remove in v4.1.  Use IntrusivePtr overload instead.")]] */
+	/* [[deprecated("Remove in v4.1.  Use Enqueue() instead.")]] */
 	void QueueEventFast(const EventHandlerPtr &h, val_list vl,
 			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
 			TimerMgr* mgr = 0, BroObj* obj = 0);
@@ -71,8 +74,7 @@ public:
 	// checked for event handler existence, you may wish to call
 	// QueueEventFast() instead of this function to prevent the redundant
 	// existence check.
-	// TODO: deprecate
-	/* [[deprecated("Remove in v4.1.  Use IntrusivePtr overload instead.")]] */
+	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
 	void QueueEvent(const EventHandlerPtr &h, val_list vl,
 			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
 			TimerMgr* mgr = 0, BroObj* obj = 0);
@@ -81,32 +83,36 @@ public:
 	// pointer instead of by value.  This function takes ownership of the
 	// memory pointed to by 'vl' as well as decrementing the reference count of
 	// each of its elements.
-	// TODO: deprecate
-	/* [[deprecated("Remove in v4.1.  Use IntrusivePtr overload instead.")]] */
+	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
 	void QueueEvent(const EventHandlerPtr &h, val_list* vl,
 			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
 			TimerMgr* mgr = 0, BroObj* obj = 0);
 
 	/**
-	 * Queues an event without first checking if there's an event handler
-	 * remote consumer.  If there are actually no handlers/consumers upon
-	 * dispatching the event, nothing happens besides having wasted a bit of
-	 * time and resources.  This method is mostly useful from a performance
-	 * standpoint: usually callers have already checked that the event will
-	 * consumed so they don't waste time creating an argument list that will
-	 * only be discarded, so there's no need to do the same check again when
-	 * going to queue the event.
+	 * Adds an event to the queue.  If no handler is found for the event
+	 * when later going to call it, nothing happens except for having
+	 * wasted a bit of time/resources, so callers may want to first check
+	 * if any handler/consumer exists before enqueuing an event.
+	 * @param h  reference to the event handler to later call.
+	 * @param vl  the argument list to the event handler call.
+	 * @param src  indicates the origin of the event (local versus remote).
+	 * @param aid  identifies the protocol analyzer generating the event.
+	 * @param obj  an arbitrary object to use as a "cookie" or just hold a
+	 * reference to until dispatching the event.
 	 */
-	void QueueUncheckedEvent(const EventHandlerPtr& h, zeek::Args vl,
-	                         SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
-	                         TimerMgr* mgr = nullptr, BroObj* obj = nullptr);
+	void Enqueue(const EventHandlerPtr& h, zeek::Args vl,
+	             SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
+	             TimerMgr* mgr = nullptr, BroObj* obj = nullptr);
 
 	/**
-	 * Queues an event if it has an event handler or remote consumer.
+	 * A version of Enqueue() taking a variable number of arguments.
 	 */
-	void QueueCheckedEvent(const EventHandlerPtr& h, zeek::Args vl,
-	                       SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
-	                       TimerMgr* mgr = nullptr, BroObj* obj = nullptr);
+	template <class... Args>
+	std::enable_if_t<
+	  std::is_convertible_v<
+	    std::tuple_element_t<0, std::tuple<Args...>>, IntrusivePtr<Val>>>
+	Enqueue(const EventHandlerPtr& h, Args&&... args)
+		{ return Enqueue(h, zeek::Args{std::forward<Args>(args)...}); }
 
 	void Dispatch(Event* event, bool no_remote = false);
 

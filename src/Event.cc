@@ -109,36 +109,28 @@ void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list vl,
                           SourceID src, analyzer::ID aid,
                           TimerMgr* mgr, BroObj* obj)
 	{
+	auto args = zeek::val_list_to_args(&vl);
+
 	if ( h )
-		QueueEvent(new Event(h, zeek::val_list_to_args(&vl), src, aid, mgr, obj));
-	else
-		{
-		for ( const auto& v : vl )
-			Unref(v);
-		}
+		Enqueue(h, std::move(args), src, aid, mgr, obj);
 	}
 
 void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list* vl,
                           SourceID src, analyzer::ID aid,
                           TimerMgr* mgr, BroObj* obj)
 	{
-	QueueEvent(h, std::move(*vl), src, aid, mgr, obj);
+	auto args = zeek::val_list_to_args(vl);
 	delete vl;
+
+	if ( h )
+		Enqueue(h, std::move(args), src, aid, mgr, obj);
 	}
 
-void EventMgr::QueueCheckedEvent(const EventHandlerPtr& h, zeek::Args vl,
-                                 SourceID src, analyzer::ID aid,
-                                 TimerMgr* mgr, BroObj* obj)
+void EventMgr::Enqueue(const EventHandlerPtr& h, zeek::Args vl,
+                       SourceID src, analyzer::ID aid,
+                       TimerMgr* mgr, BroObj* obj)
 	{
 	QueueEvent(new Event(h, std::move(vl), src, aid, mgr, obj));
-	}
-
-void EventMgr::QueueUncheckedEvent(const EventHandlerPtr& h, zeek::Args vl,
-                                   SourceID src, analyzer::ID aid,
-                                   TimerMgr* mgr, BroObj* obj)
-	{
-	if ( h )
-		QueueEvent(new Event(h, std::move(vl), src, aid, mgr, obj));
 	}
 
 void EventMgr::QueueEvent(Event* event)

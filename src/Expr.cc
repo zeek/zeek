@@ -3897,7 +3897,8 @@ ScheduleTimer::~ScheduleTimer()
 
 void ScheduleTimer::Dispatch(double /* t */, int /* is_expire */)
 	{
-	mgr.QueueUncheckedEvent(event, std::move(args), SOURCE_LOCAL, 0, tmgr);
+	if ( event )
+		mgr.Enqueue(event, std::move(args), SOURCE_LOCAL, 0, tmgr);
 	}
 
 ScheduleExpr::ScheduleExpr(IntrusivePtr<Expr> arg_when,
@@ -4443,7 +4444,10 @@ IntrusivePtr<Val> EventExpr::Eval(Frame* f) const
 		return nullptr;
 
 	auto v = eval_list(f, args.get());
-	mgr.QueueUncheckedEvent(handler, std::move(*v));
+
+	if ( handler )
+		mgr.Enqueue(handler, std::move(*v));
+
 	return nullptr;
 	}
 

@@ -13,6 +13,7 @@
 class EventHandlerPtr;
 class Reporter;
 class StringVal;
+template <class T> class IntrusivePtr;
 
 namespace file_analysis {
 
@@ -34,7 +35,7 @@ public:
 	 *
 	 * @return The X509 extension value.
 	 */
-	static StringVal* GetExtensionFromBIO(BIO* bio, File* f = 0);
+	static IntrusivePtr<StringVal> GetExtensionFromBIO(BIO* bio, File* f = 0);
 
 	static double GetTimeFromAsn1(const ASN1_TIME* atime, File* f, Reporter* reporter);
 

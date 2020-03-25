@@ -330,7 +330,8 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 			}
 
 		if ( mobile_ipv6_message )
-			mgr.QueueEvent(mobile_ipv6_message, {ip_hdr->BuildPktHdrVal()});
+			mgr.Enqueue(mobile_ipv6_message,
+			            IntrusivePtr{AdoptRef{}, ip_hdr->BuildPktHdrVal()});
 
 		if ( ip_hdr->NextProto() != IPPROTO_NONE )
 			Weird("mobility_piggyback", pkt, encapsulation);

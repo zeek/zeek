@@ -189,12 +189,12 @@ function x509_get_certificate_string%(cert: opaque of x509, pem: bool &default=F
 	else
 		i2d_X509_bio(bio, h->GetCertificate());
 
-	StringVal* ext_val = file_analysis::X509::GetExtensionFromBIO(bio);
+	auto ext_val = file_analysis::X509::GetExtensionFromBIO(bio);
 
 	if ( ! ext_val )
-		ext_val = val_mgr->GetEmptyString();
+		ext_val = {AdoptRef{}, val_mgr->GetEmptyString()};
 
-	return ext_val;
+	return ext_val.release();
 	%}
 
 ## Verifies an OCSP reply.

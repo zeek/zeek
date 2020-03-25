@@ -12,6 +12,7 @@
 #include "IPAddr.h"
 #include "UID.h"
 #include "WeirdState.h"
+#include "ZeekArgs.h"
 #include "iosource/Packet.h"
 
 #include "analyzer/Tag.h"
@@ -187,6 +188,7 @@ public:
 	// If a handler exists for 'f', an event will be generated.  In any case,
 	// reference count for each element in the 'vl' list are decremented.  The
 	// arguments used for the event are whatevever is provided in 'vl'.
+	// TODO: deprecate
 	void ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* analyzer,
 				val_list vl);
 
@@ -194,6 +196,7 @@ public:
 	// pointer instead of by value.  This function takes ownership of the
 	// memory pointed to by 'vl' and also for decrementing the reference count
 	// of each of its elements.
+	// TODO: deprecate
 	void ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* analyzer,
 				val_list* vl);
 
@@ -205,8 +208,15 @@ public:
 	// the case where there's no handlers (one usually also does that because
 	// it would be a waste of effort to construct all the event arguments when
 	// there's no handlers to consume them).
+	// TODO: deprecate
 	void ConnectionEventFast(EventHandlerPtr f, analyzer::Analyzer* analyzer,
 				val_list vl);
+
+	/**
+	 * Enqueues an event associated with this connection and given analyzer.
+	 */
+	void EnqueueEvent(EventHandlerPtr f, zeek::Args args,
+	                  analyzer::Analyzer* analyzer = nullptr);
 
 	void Weird(const char* name, const char* addl = "");
 	bool DidWeird() const	{ return weird != 0; }

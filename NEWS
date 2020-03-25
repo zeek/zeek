@@ -52,6 +52,9 @@ Deprecated Functionality
   be used instead.  There's also now a variadic template that forwards all
   arguments.
 
+- The ``EventMgr::QueueEvent()`` and EventMgr::QueueEventFast()`` methods
+  are now deprecated, use ``EventMgr::Enqueue()`` instead.
+
 Zeek 3.1.0
 ==========
 

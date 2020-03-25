@@ -960,9 +960,10 @@ IntrusivePtr<Val> EventStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	auto args = eval_list(f, event_expr->Args());
+	auto h = event_expr->Handler();
 
-	if ( args )
-		mgr.QueueUncheckedEvent(event_expr->Handler(), std::move(*args));
+	if ( args && h )
+		mgr.Enqueue(h, std::move(*args));
 
 	flow = FLOW_NEXT;
 	return nullptr;

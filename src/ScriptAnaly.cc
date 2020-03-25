@@ -6,6 +6,7 @@
 #include "Stmt.h"
 #include "Scope.h"
 #include "Traverse.h"
+#include "module_util.h"
 
 
 static char obj_desc_storage[8192];
@@ -136,6 +137,8 @@ protected:
 
 	void AddRD(ReachingDefs& rd, const ID* id, DefinitionPoint dp) const
 		{
+		if ( id == 0 )
+			printf("ooops\n");
 		rd.insert(ReachingDefs::value_type(id, dp));
 		}
 
@@ -216,6 +219,10 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 		{
 		auto arg_i = args->FieldName(i);
 		auto arg_i_id = scope->Lookup(arg_i);
+
+		if ( ! arg_i_id )
+			arg_i_id = scope->Lookup(make_full_var_name(current_module.c_str(), arg_i).c_str());
+
 		AddRD(rd, arg_i_id, DefinitionPoint(f));
 		}
 
@@ -449,6 +456,12 @@ bool RD_Decorate::CheckLHS(ReachingDefs& rd, const Expr* lhs,
 				const AssignExpr* a)
 	{
 	switch ( lhs->Tag() ) {
+	case EXPR_REF:
+		{
+		auto r = lhs->AsRefExpr();
+		return CheckLHS(rd, r->Op(), a);
+		}
+
 	case EXPR_NAME:
 		{
 		auto n = lhs->AsNameExpr();
@@ -625,7 +638,7 @@ TraversalCode FolderFinder::PreExpr(const Expr* expr, const Expr* op1, const Exp
 
 void analyze_func(const Func* f)
 	{
-	// if ( streq(f->Name(), "test_func") )
+	if ( streq(f->Name(), "test_func") )
 		{
 		RD_Decorate cb;
 		f->Traverse(&cb);

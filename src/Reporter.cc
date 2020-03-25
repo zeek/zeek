@@ -499,7 +499,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 				vl.emplace_back(AdoptRef{}, v);
 
 		if ( conn )
-			conn->EnqueueEvent(event, std::move(vl));
+			conn->EnqueueEvent(event, nullptr, std::move(vl));
 		else
 			mgr.Enqueue(event, std::move(vl));
 		}

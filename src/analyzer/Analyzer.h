@@ -567,19 +567,28 @@ public:
 	 * Convenience function that forwards directly to
 	 * Connection::ConnectionEvent().
 	 */
+	// TODO: deprecate
 	void ConnectionEvent(EventHandlerPtr f, val_list* vl);
 
 	/**
 	 * Convenience function that forwards directly to
 	 * Connection::ConnectionEvent().
 	 */
+	// TODO: deprecate
 	void ConnectionEvent(EventHandlerPtr f, val_list vl);
 
 	/**
 	 * Convenience function that forwards directly to
 	 * Connection::ConnectionEventFast().
 	 */
+	// TODO: deprecate
 	void ConnectionEventFast(EventHandlerPtr f, val_list vl);
+
+	/**
+	 * Convenience function that forwards directly to
+	 * Connection::EnqueueEvent().
+	 */
+	void EnqueueConnEvent(EventHandlerPtr f, zeek::Args args);
 
 	/**
 	 * Convenience function that forwards directly to the corresponding

@@ -232,7 +232,7 @@ void print_event_c_body(FILE *fp)
 
 	BuiltinFuncArg* connection_arg = 0;
 
-	fprintf(fp, "\tmgr.QueueEventFast(%s, val_list{\n", decl.c_fullname.c_str());
+	fprintf(fp, "\tmgr.Enqueue(%s, zeek::Args{\n", decl.c_fullname.c_str());
 
 	for ( int i = 0; i < (int) args.size(); ++i )
 		{

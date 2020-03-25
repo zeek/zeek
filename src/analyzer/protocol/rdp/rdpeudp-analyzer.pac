@@ -46,9 +46,13 @@ refine flow RDPEUDP_Flow += {
 		printf("inside %s, state: %d, id: %d, count: %d\n",
 			"proc_rdpeudp1_synack", get_state(), 3, this->message_count);
 		if (is_orig) {
+			printf("inside %s, state: %d, id: %d, count: %d\n",
+				"proc_rdpeudp1_synack", get_state(), 99, this->message_count);
 			return false;
 		}
 		if ((uFlags & 0x05) == 0) {
+			printf("inside %s, state: %d, id: %d, count: %d\n",
+				"proc_rdpeudp1_synack", get_state(), 98, this->message_count);
 			return false;
 		}
                 BifEvent::generate_rdpeudp_synack(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn());

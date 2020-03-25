@@ -487,8 +487,6 @@ void end_func(IntrusivePtr<Stmt> body)
 						"referencing outer function IDs not supported");
 		}
 
-	analyze_function_ingredients(ingredients);
-
 	if ( ingredients->id->HasVal() )
 		ingredients->id->ID_Val()->AsFunc()->AddBody(
 			ingredients->body,
@@ -509,6 +507,9 @@ void end_func(IntrusivePtr<Stmt> body)
 		}
 
 	ingredients->id->ID_Val()->AsFunc()->SetScope(ingredients->scope);
+
+	analyze_func(ingredients->id->ID_Val()->AsFunc());
+
 	// Note: ideally, something would take ownership of this memory until the
 	// end of script execution, but that's essentially the same as the
 	// lifetime of the process at the moment, so ok to "leak" it.

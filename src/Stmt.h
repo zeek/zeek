@@ -18,6 +18,11 @@ class CompositeHash;
 class EventExpr;
 class ListExpr;
 class ForStmt;
+class WhileStmt;
+class IfStmt;
+class ExprStmt;
+class SwitchStmt;
+class InitStmt;
 class Frame;
 
 class Stmt : public BroObj {
@@ -37,23 +42,36 @@ public:
 	// True if the statement has no side effects, false otherwise.
 	virtual int IsPure() const;
 
-	StmtList* AsStmtList()
-		{
-		CHECK_TAG(tag, STMT_LIST, "Stmt::AsStmtList", stmt_name)
-		return (StmtList*) this;
-		}
+#undef ACCESSOR
+#define ACCESSOR(tag, ctype, name) \
+        ctype* name() \
+                { \
+                CHECK_TAG(Tag(), tag, "Stmt::ACCESSOR", stmt_name) \
+                return (ctype*) this; \
+                }
 
-	const StmtList* AsStmtList() const
-		{
-		CHECK_TAG(tag, STMT_LIST, "Stmt::AsStmtList", stmt_name)
-		return (const StmtList*) this;
-		}
+#undef CONST_ACCESSOR
+#define CONST_ACCESSOR(tag, ctype, name) \
+        const ctype* name() const \
+                { \
+                CHECK_TAG(Tag(), tag, "Stmt::CONST_ACCESSOR", stmt_name) \
+                return (const ctype*) this; \
+                }
 
-	ForStmt* AsForStmt()
-		{
-		CHECK_TAG(tag, STMT_FOR, "Stmt::AsForStmt", stmt_name)
-		return (ForStmt*) this;
-		}
+	ACCESSOR(STMT_LIST, StmtList, AsStmtList)
+	CONST_ACCESSOR(STMT_LIST, StmtList, AsStmtList)
+
+	ACCESSOR(STMT_FOR, ForStmt, AsForStmt)
+	CONST_ACCESSOR(STMT_FOR, ForStmt, AsForStmt)
+
+	CONST_ACCESSOR(STMT_WHILE, WhileStmt, AsWhileStmt)
+	CONST_ACCESSOR(STMT_IF, IfStmt, AsIfStmt)
+	CONST_ACCESSOR(STMT_EXPR, ExprStmt, AsExprStmt)
+	CONST_ACCESSOR(STMT_SWITCH, SwitchStmt, AsSwitchStmt)
+	CONST_ACCESSOR(STMT_INIT, InitStmt, AsInitStmt)
+
+#undef ACCESSOR
+#undef CONST_ACCESSOR
 
 	void RegisterAccess() const	{ last_access = network_time; access_count++; }
 	void AccessStats(ODesc* d) const;
@@ -261,6 +279,9 @@ public:
 	~WhileStmt() override;
 
 	int IsPure() const override;
+
+	const Expr* Condition() const	{ return loop_condition.get(); }
+	const Stmt* Body() const	{ return body.get(); }
 
 	void Describe(ODesc* d) const override;
 

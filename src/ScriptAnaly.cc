@@ -108,6 +108,16 @@ public:
 protected:
 	bool CheckLHS(ReachingDefs& rd, const Expr* lhs, const AssignExpr* a);
 
+	const ReachingDefs& PredecessorRDs() const
+		{
+		auto& rd = PostRDs(last_obj);
+		if ( rd.size() > 0 )
+			return rd;
+
+		// PostRDs haven't been set yet.
+		return PreRDs(last_obj);
+		}
+
 	const ReachingDefs& PreRDs(const BroObj* o) const
 		{ return RDs(pre_a_i, o); }
 	const ReachingDefs& PostRDs(const BroObj* o) const
@@ -169,6 +179,7 @@ protected:
 			return null_RDs;
 		}
 
+	void DumpRDs(const ReachingDefs& rd) const;
 	void PrintRD(const ID*, const DefinitionPoint& dp) const;
 
 	bool RDsDiffer(const ReachingDefs& r1, const ReachingDefs& r2) const;
@@ -186,6 +197,8 @@ protected:
 
 	// The object we most recently finished analyzing.
 	const BroObj* last_obj;
+
+	bool trace = false;
 };
 
 
@@ -209,15 +222,25 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 	AddPostRDs(f, rd);
 	last_obj = f;
 
-	printf("traversing function %s\n", f->Name());
+	if ( trace )
+		{
+		printf("traversing function %s, post RDs:\n", f->Name());
+		DumpRDs(PostRDs(f));
+		}
 
 	return TC_CONTINUE;
 	}
 
 TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 	{
-	auto rd = PostRDs(last_obj);
+	auto rd = PredecessorRDs();
 	AddPreRDs(s, rd);
+
+	if ( trace )
+		{
+		printf("pre RDs for stmt %s:\n", stmt_name(s->Tag()));
+		DumpRDs(PreRDs(s));
+		}
 
 	last_obj = s;
 
@@ -228,11 +251,13 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		// inside the conditional.  If one does, we'll
 		// detect that & complain about it in the PostStmt.
 		auto i = s->AsIfStmt();
-		auto if_branch_rd = PostRDs(i->TrueBranch());
-		auto else_branch_rd = PostRDs(i->FalseBranch());
 
-		AddPreRDs(s, if_branch_rd);
-		AddPreRDs(s, else_branch_rd);
+		// ### need to manually control traversal since
+		// don't want RDs coming out of the TrueBranch
+		// to propagate to the FalseBranch.
+		auto my_rds = PreRDs(s);
+		AddPreRDs(i->TrueBranch(), my_rds);
+		AddPreRDs(i->FalseBranch(), my_rds);
 
 		break;
 		}
@@ -442,8 +467,14 @@ bool RD_Decorate::CheckLHS(ReachingDefs& rd, const Expr* lhs,
 
 TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	{
-	auto rd = PostRDs(last_obj);
+	auto rd = PredecessorRDs();
 	AddPreRDs(e, rd);
+
+	if ( trace )
+		{
+		printf("pre RDs for expr %s:\n", expr_name(e->Tag()));
+		DumpRDs(PreRDs(e));
+		}
 
 	last_obj = e;
 
@@ -452,7 +483,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		{
 		auto n = e->AsNameExpr();
 		auto id = n->Id();
-		if ( ! HasPreRD(e, id) )
+		if ( ! id->IsGlobal() && ! HasPreRD(e, id) )
 			printf("%s has no pre at %s\n", id->Name(), obj_desc(e));
 
 		break;
@@ -541,8 +572,23 @@ bool RD_Decorate::RDsDiffer(const ReachingDefs& r1, const ReachingDefs& r2) cons
 	}
 
 
-void RD_Decorate::PrintRD(const ID*, const DefinitionPoint&) const
+void RD_Decorate::DumpRDs(const ReachingDefs& rd) const
 	{
+	if ( rd.size() == 0 )
+		{
+		printf("<none>\n");
+		return;
+		}
+
+	auto r = rd.begin();
+
+	for ( auto r = rd.begin(); r != rd.end(); ++r )
+		PrintRD(r->first, r->second);
+	}
+
+void RD_Decorate::PrintRD(const ID* id, const DefinitionPoint& dp) const
+	{
+	printf("RD for %s\n", id->Name());
 	}
 
 class FolderFinder : public TraversalCallback {
@@ -579,7 +625,7 @@ TraversalCode FolderFinder::PreExpr(const Expr* expr, const Expr* op1, const Exp
 
 void analyze_func(const Func* f)
 	{
-	if ( streq(f->Name(), "test_func") )
+	// if ( streq(f->Name(), "test_func") )
 		{
 		RD_Decorate cb;
 		f->Traverse(&cb);

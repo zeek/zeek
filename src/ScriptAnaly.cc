@@ -9,6 +9,7 @@
 
 
 typedef enum {
+	NO_DEF,
 	STMT_DEF,
 	ASSIGNEXPR_DEF,
 	FUNC_DEF,
@@ -16,42 +17,52 @@ typedef enum {
 
 class DefinitionPoint {
 public:
+	DefinitionPoint()
+		{
+		o = nullptr;
+		t = NO_DEF;
+		}
+
 	DefinitionPoint(const Stmt* s)
 		{
-		stmt = s;
+		o = s;
 		t = STMT_DEF;
-
-		assign = nullptr;
-		func = nullptr;
 		}
 
 	DefinitionPoint(const AssignExpr* a)
 		{
-		assign = a;
+		o = a;
 		t = ASSIGNEXPR_DEF;
-
-		stmt = nullptr;
-		func = nullptr;
 		}
 
 	DefinitionPoint(const Func* f)
 		{
-		func = f;
+		o = f;
 		t = FUNC_DEF;
+		}
 
-		stmt = nullptr;
-		assign = nullptr;
+	def_point_type Tag() const	{ return t; }
+
+	const BroObj* OpaqueVal() const	{ return o; }
+
+	const Stmt* StmtVal() const	{ return (const Stmt*) o; }
+	const AssignExpr* AssignVal() const	
+		{ return (const AssignExpr*) o; }
+	const Func* FuncVal() const	{ return (const Func*) o; }
+
+	bool SameAs(const DefinitionPoint& dp) const
+		{
+		return dp.Tag() == Tag() && dp.OpaqueVal() == OpaqueVal();
 		}
 
 protected:
 	def_point_type t;
-
-	const Stmt* stmt;
-	const AssignExpr* assign;
-	const Func* func;
+	const BroObj* o;
 };
 
-typedef std::map<const ID*, const BroObj*> ReachingDefs;
+static DefinitionPoint no_def;
+
+typedef std::map<const ID*, DefinitionPoint> ReachingDefs;
 
 static ReachingDefs null_RDs;
 
@@ -98,9 +109,9 @@ protected:
 		a_i->insert(AnalyInfo::value_type(o, rd));
 		}
 
-	void AddRD(ReachingDefs& rd, const ID* id, const BroObj* e) const
+	void AddRD(ReachingDefs& rd, const ID* id, DefinitionPoint dp) const
 		{
-		rd.insert(ReachingDefs::value_type(id, e));
+		rd.insert(ReachingDefs::value_type(id, dp));
 		}
 
 	bool HasPreRD(const BroObj* o, const ID* id) const
@@ -117,6 +128,20 @@ protected:
 		return RDs->second.find(id) != RDs->second.end();
 		}
 
+	const DefinitionPoint& FindRD(const AnalyInfo* a_i, const BroObj* o,
+					const ID* id) const
+		{
+		auto RDs = a_i->find(o);
+		if ( RDs == a_i->end() )
+			return no_def;
+
+		auto dp = RDs->second.find(id);
+		if ( dp == RDs->second.end() )
+			return no_def;
+
+		return dp->second;
+		}
+
 	const ReachingDefs& RDs(const AnalyInfo* a_i, const BroObj* o) const
 		{
 		if ( o == nullptr )
@@ -129,7 +154,7 @@ protected:
 			return null_RDs;
 		}
 
-	void PrintRD(const ID*, const BroObj*) const;
+	void PrintRD(const ID*, const DefinitionPoint& dp) const;
 
 	bool RDsDiffer(const ReachingDefs& r1, const ReachingDefs& r2) const;
 
@@ -137,7 +162,7 @@ protected:
 					const ReachingDefs& r2) const;
 
 	bool RDHasPair(const ReachingDefs& r,
-			const ID* id, const BroObj* o) const;
+			const ID* id, const DefinitionPoint& dp) const;
 
 	// Mappings of reaching defs pre- and post- execution
 	// of the given object.
@@ -163,7 +188,7 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 		{
 		auto arg_i = args->FieldName(i);
 		auto arg_i_id = scope->Lookup(arg_i);
-		AddRD(rd, arg_i_id, f);
+		AddRD(rd, arg_i_id, DefinitionPoint(f));
 		}
 
 	AddPostRDs(f, rd);
@@ -216,7 +241,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		auto body = f->LoopBody();
 
 		for ( const auto& id : *ids )
-			AddRD(rd, id, s);
+			AddRD(rd, id, DefinitionPoint(s));
 
 		AddPreRDs(body, rd);
 
@@ -328,7 +353,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		post_rds = PreRDs(s);
 
 		for ( int i = 0; i < inits.length(); ++i )
-			AddRD(post_rds, inits[i], s);
+			AddRD(post_rds, inits[i], DefinitionPoint(s));
 
 		break;
 		}
@@ -385,7 +410,7 @@ bool RD_Decorate::CheckLHS(ReachingDefs& rd, const Expr* lhs,
 		{
 		auto n = lhs->AsNameExpr();
 		auto id = n->Id();
-		AddRD(rd, id, a);
+		AddRD(rd, id, DefinitionPoint(a));
 		return true;
 		}
 
@@ -490,11 +515,11 @@ TraversalCode RD_Decorate::PostExpr(const Expr* e)
 
 
 bool RD_Decorate::RDHasPair(const ReachingDefs& r,
-				const ID* id, const BroObj* o) const
+				const ID* id, const DefinitionPoint& dp) const
 	{
 	// ### update for multimap
 	auto l = r.find(id);
-	return l != r.end() && l->second == o;
+	return l != r.end() && l->second.SameAs(dp);
 	}
 
 ReachingDefs RD_Decorate::IntersectRDs(const ReachingDefs& r1,
@@ -526,7 +551,7 @@ bool RD_Decorate::RDsDiffer(const ReachingDefs& r1, const ReachingDefs& r2) cons
 	}
 
 
-void RD_Decorate::PrintRD(const ID*, const BroObj*) const
+void RD_Decorate::PrintRD(const ID*, const DefinitionPoint&) const
 	{
 	}
 

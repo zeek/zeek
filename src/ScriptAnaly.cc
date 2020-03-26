@@ -28,6 +28,7 @@ typedef enum {
 	NO_DEF,
 	STMT_DEF,
 	ASSIGNEXPR_DEF,
+	ADDTOEXPR_DEF,
 	FUNC_DEF,
 } def_point_type;
 
@@ -51,6 +52,12 @@ public:
 		t = ASSIGNEXPR_DEF;
 		}
 
+	DefinitionPoint(const AddToExpr* a)
+		{
+		o = a;
+		t = ADDTOEXPR_DEF;
+		}
+
 	DefinitionPoint(const Func* f)
 		{
 		o = f;
@@ -64,6 +71,8 @@ public:
 	const Stmt* StmtVal() const	{ return (const Stmt*) o; }
 	const AssignExpr* AssignVal() const	
 		{ return (const AssignExpr*) o; }
+	const AddToExpr* AddToVal() const	
+		{ return (const AddToExpr*) o; }
 	const Func* FuncVal() const	{ return (const Func*) o; }
 
 	bool SameAs(const DefinitionPoint& dp) const
@@ -108,6 +117,9 @@ public:
 
 protected:
 	bool CheckLHS(ReachingDefs& rd, const Expr* lhs, const AssignExpr* a);
+
+	bool IsAggrTag(TypeTag tag) const;
+	bool IsAggr(const Expr* e) const;
 
 	const ReachingDefs& PredecessorRDs() const
 		{
@@ -330,9 +342,20 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 			// body.
 			body->Traverse(this);
 			return TC_ABORTSTMT;
+
+			// ### need to do PostStmt for For here
 			}
 
 		break;
+		}
+
+	case STMT_RETURN:
+		{
+		auto r = s->AsReturnStmt();
+		auto e = r->StmtExpr();
+
+		if ( e && IsAggr(e) )
+			return TC_ABORTSTMT;
 		}
 
 	default:
@@ -452,8 +475,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 
 			// Only aggregates get initialized.
 			auto tag = id_t->Tag();
-			if ( tag == TYPE_RECORD || tag == TYPE_VECTOR ||
-			     tag == TYPE_TABLE )
+			if ( IsAggrTag(tag) )
 				AddRD(post_rds, id, DefinitionPoint(s));
 			}
 
@@ -567,6 +589,23 @@ bool RD_Decorate::CheckLHS(ReachingDefs& rd, const Expr* lhs,
 	}
 	}
 
+bool RD_Decorate::IsAggrTag(TypeTag tag) const
+	{
+	return tag == TYPE_VECTOR || tag == TYPE_TABLE || tag == TYPE_RECORD;
+	}
+
+bool RD_Decorate::IsAggr(const Expr* e) const
+	{
+	if ( e->Tag() != EXPR_NAME )
+		return false;
+
+	auto n = e->AsNameExpr();
+	auto id = n->Id();
+	auto tag = id->Type()->Tag();
+
+	return IsAggrTag(tag);
+	}
+
 TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	{
 	auto rd = PredecessorRDs();
@@ -591,18 +630,51 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		break;
 		}
 
+        case EXPR_ADD_TO:
+		{
+		auto a_t = e->AsAddToExpr();
+		auto lhs = a_t->Op1();
+
+		if ( IsAggr(lhs) )
+			{
+			auto lhs_n = lhs->AsNameExpr();
+			auto lhs_id = lhs_n->Id();
+
+			// Treat this as an initalization of the set.
+			AddRD(rd, lhs_id, DefinitionPoint(a_t));
+			AddPostRDs(e, PreRDs(e));
+			AddPostRDs(e, rd);
+
+			a_t->Op2()->Traverse(this);
+			return TC_ABORTSTMT;
+			}
+
+		break;
+		}
+
         case EXPR_ASSIGN:
 		{
 		auto a = e->AsAssignExpr();
 		auto lhs = a->Op1();
 		auto rhs = a->Op2();
 
+		bool rhs_aggr = IsAggr(rhs);
+
 		if ( CheckLHS(rd, lhs, a) )
 			{
 			AddPostRDs(e, PreRDs(e));
-			AddPostRDs(a, rd);
+			AddPostRDs(e, rd);
 
-			rhs->Traverse(this);
+			if ( ! rhs_aggr )
+				rhs->Traverse(this);
+
+			return TC_ABORTSTMT;
+			}
+
+		if ( rhs_aggr )
+			{
+			// No need to analyze the RHS.
+			lhs->Traverse(this);
 			return TC_ABORTSTMT;
 			}
 

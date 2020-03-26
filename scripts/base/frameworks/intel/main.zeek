@@ -9,7 +9,6 @@ module Intel;
 
 export {
 	redef enum Log::ID += { LOG };
-	
 	## Enum type to represent various types of intelligence data.
 	type Type: enum {
 		## An IP address.
@@ -523,8 +522,8 @@ function item_exists(item: Item): bool
 			return have_full_data ? to_subnet(item$indicator) in data_store$subnet_data :
 			                        to_subnet(item$indicator) in min_data_store$subnet_data;
 		default:
-			return have_full_data ? [item$indicator, item$indicator_type] in data_store$string_data :
-			                        [item$indicator, item$indicator_type] in min_data_store$string_data;
+			return have_full_data ? [to_lower(item$indicator), item$indicator_type] in data_store$string_data :
+			                        [to_lower(item$indicator), item$indicator_type] in min_data_store$string_data;
 		}
 	}
 
@@ -550,8 +549,8 @@ function remove_meta_data(item: Item): bool
 			delete data_store$subnet_data[net][item$meta$source];
 			return (|data_store$subnet_data[net]| == 0);
 		default:
-			delete data_store$string_data[item$indicator, item$indicator_type][item$meta$source];
-			return (|data_store$string_data[item$indicator, item$indicator_type]| == 0);
+			delete data_store$string_data[to_lower(item$indicator), item$indicator_type][item$meta$source];
+			return (|data_store$string_data[to_lower(item$indicator), item$indicator_type]| == 0);
 		}
 	}
 
@@ -588,7 +587,7 @@ function remove(item: Item, purge_indicator: bool)
 				delete data_store$subnet_data[net];
 				break;
 			default:
-				delete data_store$string_data[item$indicator, item$indicator_type];
+				delete data_store$string_data[to_lower(item$indicator), item$indicator_type];
 				break;
 			}
 		# Trigger deletion in minimal data stores
@@ -610,7 +609,7 @@ event remove_indicator(item: Item)
 			delete min_data_store$subnet_data[net];
 			break;
 		default:
-			delete min_data_store$string_data[item$indicator, item$indicator_type];
+			delete min_data_store$string_data[to_lower(item$indicator), item$indicator_type];
 			break;
 		}
 	}

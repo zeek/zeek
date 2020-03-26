@@ -254,7 +254,7 @@ void print_event_c_body(FILE *fp)
 			}
 		}
 
-	fprintf(fp, "\t        },\n\t    SOURCE_LOCAL, analyzer->GetID(), timer_mgr");
+	fprintf(fp, "\t        },\n\t    SOURCE_LOCAL, analyzer->GetID()");
 
 	if ( connection_arg )
 		// Pass the connection to the EventMgr as the "cookie"

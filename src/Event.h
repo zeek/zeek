@@ -17,14 +17,13 @@ class Event : public BroObj {
 public:
 	Event(EventHandlerPtr handler, zeek::Args args,
 	      SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
-	      TimerMgr* mgr = nullptr, BroObj* obj = nullptr);
+	      BroObj* obj = nullptr);
 
 	void SetNext(Event* n)		{ next_event = n; }
 	Event* NextEvent() const	{ return next_event; }
 
 	SourceID Source() const		{ return src; }
 	analyzer::ID Analyzer() const	{ return aid; }
-	TimerMgr* Mgr() const		{ return mgr; }
 	EventHandlerPtr Handler() const	{ return handler; }
 	const zeek::Args& Args() const	{ return args; }
 
@@ -41,7 +40,6 @@ protected:
 	zeek::Args args;
 	SourceID src;
 	analyzer::ID aid;
-	TimerMgr* mgr;
 	BroObj* obj;
 	Event* next_event;
 };
@@ -101,7 +99,7 @@ public:
 	 */
 	void Enqueue(const EventHandlerPtr& h, zeek::Args vl,
 	             SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
-	             TimerMgr* mgr = nullptr, BroObj* obj = nullptr);
+	             BroObj* obj = nullptr);
 
 	/**
 	 * A version of Enqueue() taking a variable number of arguments.
@@ -127,9 +125,6 @@ public:
 	// non-analyzer event.
 	analyzer::ID CurrentAnalyzer() const	{ return current_aid; }
 
-	// Returns the timer mgr associated with the last raised event.
-	TimerMgr* CurrentTimerMgr() const	{ return current_mgr; }
-
 	int Size() const
 		{ return num_events_queued - num_events_dispatched; }
 
@@ -147,7 +142,6 @@ protected:
 	Event* tail;
 	SourceID current_src;
 	analyzer::ID current_aid;
-	TimerMgr* current_mgr;
 	RecordVal* src_val;
 	bool draining;
 	bro::Flare queue_flare;

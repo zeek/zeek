@@ -740,8 +740,7 @@ protected:
 
 class ScheduleTimer : public Timer {
 public:
-	ScheduleTimer(EventHandlerPtr event, zeek::Args args,
-	              double t, TimerMgr* tmgr);
+	ScheduleTimer(EventHandlerPtr event, zeek::Args args, double t);
 	~ScheduleTimer() override;
 
 	void Dispatch(double t, int is_expire) override;
@@ -749,7 +748,6 @@ public:
 protected:
 	EventHandlerPtr event;
 	zeek::Args args;
-	TimerMgr* tmgr;
 };
 
 class ScheduleExpr : public Expr {

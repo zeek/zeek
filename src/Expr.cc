@@ -3885,9 +3885,9 @@ IntrusivePtr<Val> FlattenExpr::Fold(Val* v) const
 	}
 
 ScheduleTimer::ScheduleTimer(EventHandlerPtr arg_event, zeek::Args arg_args,
-                             double t, TimerMgr* arg_tmgr)
+                             double t)
 	: Timer(t, TIMER_SCHEDULE),
-	  event(arg_event), args(std::move(arg_args)), tmgr(arg_tmgr)
+	  event(arg_event), args(std::move(arg_args))
 	{
 	}
 
@@ -3898,7 +3898,7 @@ ScheduleTimer::~ScheduleTimer()
 void ScheduleTimer::Dispatch(double /* t */, int /* is_expire */)
 	{
 	if ( event )
-		mgr.Enqueue(event, std::move(args), SOURCE_LOCAL, 0, tmgr);
+		mgr.Enqueue(event, std::move(args));
 	}
 
 ScheduleExpr::ScheduleExpr(IntrusivePtr<Expr> arg_when,
@@ -3940,14 +3940,7 @@ IntrusivePtr<Val> ScheduleExpr::Eval(Frame* f) const
 	auto args = eval_list(f, event->Args());
 
 	if ( args )
-		{
-		TimerMgr* tmgr = mgr.CurrentTimerMgr();
-
-		if ( ! tmgr )
-			tmgr = timer_mgr;
-
-		tmgr->Add(new ScheduleTimer(event->Handler(), std::move(*args), dt, tmgr));
-		}
+		timer_mgr->Add(new ScheduleTimer(event->Handler(), std::move(*args), dt));
 
 	return nullptr;
 	}

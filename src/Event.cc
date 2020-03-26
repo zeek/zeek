@@ -19,13 +19,11 @@ uint64_t num_events_queued = 0;
 uint64_t num_events_dispatched = 0;
 
 Event::Event(EventHandlerPtr arg_handler, zeek::Args arg_args,
-		SourceID arg_src, analyzer::ID arg_aid, TimerMgr* arg_mgr,
-		BroObj* arg_obj)
+             SourceID arg_src, analyzer::ID arg_aid, BroObj* arg_obj)
 	: handler(arg_handler),
 	  args(std::move(arg_args)),
 	  src(arg_src),
 	  aid(arg_aid),
-	  mgr(arg_mgr ? arg_mgr : timer_mgr),
 	  obj(arg_obj),
 	  next_event(nullptr)
 	{
@@ -80,7 +78,6 @@ EventMgr::EventMgr()
 	{
 	head = tail = 0;
 	current_src = SOURCE_LOCAL;
-	current_mgr = timer_mgr;
 	current_aid = 0;
 	src_val = 0;
 	draining = 0;
@@ -102,7 +99,7 @@ void EventMgr::QueueEventFast(const EventHandlerPtr &h, val_list vl,
                               SourceID src, analyzer::ID aid, TimerMgr* mgr,
                               BroObj* obj)
 	{
-	QueueEvent(new Event(h, zeek::val_list_to_args(&vl), src, aid, mgr, obj));
+	QueueEvent(new Event(h, zeek::val_list_to_args(&vl), src, aid, obj));
 	}
 
 void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list vl,
@@ -112,7 +109,7 @@ void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list vl,
 	auto args = zeek::val_list_to_args(&vl);
 
 	if ( h )
-		Enqueue(h, std::move(args), src, aid, mgr, obj);
+		Enqueue(h, std::move(args), src, aid, obj);
 	}
 
 void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list* vl,
@@ -123,14 +120,13 @@ void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list* vl,
 	delete vl;
 
 	if ( h )
-		Enqueue(h, std::move(args), src, aid, mgr, obj);
+		Enqueue(h, std::move(args), src, aid, obj);
 	}
 
 void EventMgr::Enqueue(const EventHandlerPtr& h, zeek::Args vl,
-                       SourceID src, analyzer::ID aid,
-                       TimerMgr* mgr, BroObj* obj)
+                       SourceID src, analyzer::ID aid, BroObj* obj)
 	{
-	QueueEvent(new Event(h, std::move(vl), src, aid, mgr, obj));
+	QueueEvent(new Event(h, std::move(vl), src, aid, obj));
 	}
 
 void EventMgr::QueueEvent(Event* event)
@@ -190,7 +186,6 @@ void EventMgr::Drain()
 			Event* next = current->NextEvent();
 
 			current_src = current->Source();
-			current_mgr = current->Mgr();
 			current_aid = current->Analyzer();
 			current->Dispatch();
 			Unref(current);

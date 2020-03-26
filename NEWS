@@ -31,6 +31,10 @@ Changed Functionality
   code more robust.  External plugins may need to be updated to this
   API change.
 
+- RocksDB support for Broker data stores is now opt-in instead of automatically
+  detected and used at configuration-time.  Use the ``--enable-rocksdb`` and
+  ``--with-rocksdb=`` flags to opt-in.
+
 Removed Functionality
 ---------------------
 

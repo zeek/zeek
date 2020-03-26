@@ -54,6 +54,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-static-broker build Broker statically (ignored if --with-broker is specified)
     --enable-static-binpac build binpac statically (ignored if --with-binpac is specified)
     --enable-cpp-tests     build Zeek's C++ unit tests
+    --enable-rocksdb       try to find a RocksDB installation for use in Broker
     --disable-zeekctl      don't install ZeekControl
     --disable-auxtools     don't build or install auxiliary tools
     --disable-python       don't try to build python bindings for Broker
@@ -85,7 +86,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-python-lib=PATH path to libpython
     --with-python-inc=PATH path to Python headers
     --with-swig=PATH       path to SWIG executable
-    --with-rocksdb=PATH    path to RocksDB installation
+    --with-rocksdb=PATH    path to RocksDB installation, implies --enable-rocksdb
                            (an optional Broker dependency)
 
   Packaging Options (for developers):
@@ -324,7 +325,11 @@ while [ $# -ne 0 ]; do
         --with-libkqueue=*)
             append_cache_entry LIBKQUEUE_ROOT_DIR      PATH   $optarg
             ;;
+        --enable-rocksdb)
+            append_cache_entry BROKER_ENABLE_ROCKSDB BOOL true
+            ;;
         --with-rocksdb=*)
+            append_cache_entry BROKER_ENABLE_ROCKSDB BOOL true
             append_cache_entry ROCKSDB_ROOT_DIR     PATH   $optarg
             ;;
         --binary-package)

@@ -10,8 +10,10 @@ enum TraversalCode {
 
 #define HANDLE_TC_STMT_PRE(code) \
 	{ \
-	if ( (code) == TC_ABORTALL || (code) == TC_ABORTSTMT ) \
+	if ( (code) == TC_ABORTALL ) \
 		return (code); \
+	else if ( (code) == TC_ABORTSTMT ) \
+		return TC_CONTINUE; \
 	}
 
 #define HANDLE_TC_STMT_POST(code) \
@@ -26,8 +28,10 @@ enum TraversalCode {
 
 #define HANDLE_TC_EXPR_PRE(code) \
 	{ \
-	if ( (code) != TC_CONTINUE ) \
+	if ( (code) == TC_ABORTALL ) \
 		return (code); \
+	else if ( (code) == TC_ABORTSTMT ) \
+		return TC_CONTINUE; \
 	}
 
 #define HANDLE_TC_EXPR_POST(code) \

@@ -214,6 +214,12 @@ public:
 		return (FieldAssignExpr*) this;
 		}
 
+	const CallExpr* AsCallExpr() const
+		{
+		CHECK_TAG(tag, EXPR_CALL, "ExprVal::AsCallExpr", expr_name)
+		return (const CallExpr*) this;
+		}
+
 	const IndexExpr* AsIndexExpr() const
 		{
 		CHECK_TAG(tag, EXPR_INDEX, "ExprVal::AsIndexExpr", expr_name)

@@ -27,8 +27,9 @@ static const char* obj_desc(const BroObj* o)
 typedef enum {
 	NO_DEF,
 	STMT_DEF,
-	ASSIGNEXPR_DEF,
-	ADDTOEXPR_DEF,
+	ASSIGN_EXPR_DEF,
+	ADDTO_EXPR_DEF,
+	CALL_EXPR_DEF,	// for aggregates
 	FUNC_DEF,
 } def_point_type;
 
@@ -49,13 +50,19 @@ public:
 	DefinitionPoint(const AssignExpr* a)
 		{
 		o = a;
-		t = ASSIGNEXPR_DEF;
+		t = ASSIGN_EXPR_DEF;
 		}
 
 	DefinitionPoint(const AddToExpr* a)
 		{
 		o = a;
-		t = ADDTOEXPR_DEF;
+		t = ADDTO_EXPR_DEF;
+		}
+
+	DefinitionPoint(const CallExpr* c)
+		{
+		o = c;
+		t = CALL_EXPR_DEF;
 		}
 
 	DefinitionPoint(const Func* f)
@@ -691,6 +698,36 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		// ### in the future, use this to protect subsequent field
 		// accesses.
 		break;
+
+	case EXPR_CALL:
+		{
+		auto c = e->AsCallExpr();
+		auto f = c->Func();
+		auto args_l = c->Args();
+
+		// If one of the arguments is an aggregate, then
+		// it's actually passed by reference, and we shouldn't
+		// ding it for not being initialized.
+		//
+		// We handle this by just doing the traversal ourselves.
+		f->Traverse(this);
+
+		for ( const auto& expr : args_l->Exprs() )
+			{
+			if ( IsAggr(expr) )
+				// Not only do we skip analyzing it, but
+				// we consider it initialized post-return.
+				AddRD(rd, expr->AsNameExpr()->Id(), 
+					DefinitionPoint(c));
+			else
+				expr->Traverse(this);
+			}
+
+		AddPostRDs(e, PreRDs(e));
+		AddPostRDs(e, rd);
+
+		return TC_ABORTSTMT;
+		}
 
 	default:
 		break;

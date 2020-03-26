@@ -238,6 +238,13 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 		if ( ! arg_i_id )
 			arg_i_id = scope->Lookup(make_full_var_name(current_module.c_str(), arg_i).c_str());
 
+#if 0
+		if ( ! arg_i_id )
+			printf("can't look up %s\n", args->FieldName(i));
+		else
+			printf("adding param %s (%s)\n", args->FieldName(i), arg_i_id->Name());
+#endif
+
 		AddRD(rd, arg_i_id, DefinitionPoint(f));
 		}
 
@@ -522,6 +529,10 @@ bool RD_Decorate::CheckLHS(ReachingDefs& rd, const Expr* lhs,
 
 			// Don't recurse into assessing the operand,
 			// since it's not a reference to the name itself.
+
+			// ### For now, though, mark it as initialized here.
+			auto id = r->AsNameExpr()->Id();
+			AddRD(rd, id, DefinitionPoint(a));
 			return true;
 			}
 

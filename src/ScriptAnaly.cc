@@ -481,9 +481,6 @@ bool RD_Decorate::CheckLHS(ReachingDefs& rd, const Expr* lhs,
 		return true;
 		}
 
-	// ### in the future, we should handle EXPR_FIELD here
-	// for record assignments.
-
 	default:
 		return false;
 	}
@@ -531,12 +528,22 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		break;
 		}
 
-        case EXPR_FIELD_ASSIGN:
-		// ### in the future, track specific field.
-
         case EXPR_FIELD:
-		// ### in the future, analyze access to specific fields.
+		{
+		auto f = e->AsFieldExpr();
+		auto r = f->Op();
+
+		if ( r->Tag() == EXPR_NAME )
+			{
+			// ### should track field assignment here
+
+			// Don't recurse into assessing the operand,
+			// since it's not a reference to the name itself.
+			return TC_ABORTSTMT;
+			}
+
 		break;
+		}
 
 	case EXPR_HAS_FIELD:
 		// ### in the future, use this to protect subsequent field

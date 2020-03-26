@@ -476,16 +476,6 @@ void end_func(IntrusivePtr<Stmt> body)
 	{
 	auto ingredients = std::make_unique<function_ingredients>(pop_scope(), std::move(body));
 
-	if ( streq(ingredients->id->Name(), "anonymous-function") )
-		{
-		OuterIDBindingFinder cb(ingredients->scope.get());
-		ingredients->body->Traverse(&cb);
-
-		for ( size_t i = 0; i < cb.outer_id_references.size(); ++i )
-			cb.outer_id_references[i]->Error(
-						"referencing outer function IDs not supported");
-		}
-
 	if ( ingredients->id->HasVal() )
 		ingredients->id->ID_Val()->AsFunc()->AddBody(
 			ingredients->body,

@@ -57,7 +57,7 @@
 %type <ic> init_class
 %type <expr> opt_init
 %type <val> TOK_CONSTANT
-%type <expr> expr opt_expr init anonymous_function index_slice opt_deprecated
+%type <expr> expr opt_expr init anonymous_function lambda_body index_slice opt_deprecated
 %type <event_expr> event
 %type <stmt> stmt stmt_list func_body for_head
 %type <type> type opt_type enum_body
@@ -504,7 +504,7 @@ expr:
 			$$ = new FieldAssignExpr($2, {AdoptRef{}, $4});
 			}
 
-	|       '$' TOK_ID func_params '='
+	|	'$' TOK_ID func_params '='
 			{
 			func_hdr_location = @1;
 			func_id = current_scope()->GenerateTemporary("anonymous-function");
@@ -512,11 +512,9 @@ expr:
 			begin_func(func_id, current_module.c_str(), FUNC_FLAVOR_FUNCTION,
 			           0, {AdoptRef{}, $3});
 			}
-		 func_body
+		 lambda_body
 			{
-			$$ = new FieldAssignExpr($2,
-			        make_intrusive<ConstExpr>(
-			            IntrusivePtr<Val>{NewRef{}, func_id->ID_Val()}));
+			$$ = new FieldAssignExpr($2, IntrusivePtr{AdoptRef{}, $6});
 			Unref(func_id);
 			}
 
@@ -1237,9 +1235,7 @@ func_body:
 			}
 	;
 
-anonymous_function:
-		TOK_FUNCTION begin_func
-
+lambda_body:
 		'{'
 			{
 			saved_in_init.push_back(in_init);
@@ -1254,18 +1250,23 @@ anonymous_function:
 
 		'}'
 			{
-			set_location(@1, @7);
+			set_location(@1, @5);
 
 			// Code duplication here is sad but needed. end_func actually instantiates the function
 			// and associates it with an ID. We perform that association later and need to return
 			// a lambda expression.
 
 			// Gather the ingredients for a BroFunc from the current scope
-			auto ingredients = std::make_unique<function_ingredients>(IntrusivePtr{NewRef{}, current_scope()}, IntrusivePtr{AdoptRef{}, $5});
+			auto ingredients = std::make_unique<function_ingredients>(IntrusivePtr{NewRef{}, current_scope()}, IntrusivePtr{AdoptRef{}, $3});
 			id_list outer_ids = gather_outer_ids(pop_scope().get(), ingredients->body.get());
 
 			$$ = new LambdaExpr(std::move(ingredients), std::move(outer_ids));
 			}
+	;
+
+anonymous_function:
+		TOK_FUNCTION begin_func lambda_body
+			{ $$ = $3; }
 	;
 
 begin_func:

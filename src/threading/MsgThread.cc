@@ -15,7 +15,7 @@ namespace threading  {
 ////// Messages.
 
 // Signals child thread to shutdown operation.
-class FinishMessage : public InputMessage<MsgThread>
+class FinishMessage final : public InputMessage<MsgThread>
 {
 public:
 	FinishMessage(MsgThread* thread, double network_time) : InputMessage<MsgThread>("Finish", thread),
@@ -34,7 +34,7 @@ private:
 };
 
 // Signals main thread that operations shut down.
-class FinishedMessage : public OutputMessage<MsgThread>
+class FinishedMessage final : public OutputMessage<MsgThread>
 {
 public:
 	FinishedMessage(MsgThread* thread)
@@ -48,7 +48,7 @@ public:
 };
 
 /// Sends a heartbeat to the child thread.
-class HeartbeatMessage : public InputMessage<MsgThread>
+class HeartbeatMessage final : public InputMessage<MsgThread>
 {
 public:
 	HeartbeatMessage(MsgThread* thread, double arg_network_time, double arg_current_time)
@@ -65,7 +65,7 @@ private:
 };
 
 // A message from the child to be passed on to the Reporter.
-class ReporterMessage : public OutputMessage<MsgThread>
+class ReporterMessage final : public OutputMessage<MsgThread>
 {
 public:
 	enum Type {
@@ -87,7 +87,7 @@ private:
 };
 
 // A message from the the child to the main process, requesting suicide.
-class KillMeMessage : public OutputMessage<MsgThread>
+class KillMeMessage final : public OutputMessage<MsgThread>
 {
 public:
 	KillMeMessage(MsgThread* thread)
@@ -104,7 +104,7 @@ public:
 
 #ifdef DEBUG
 // A debug message from the child to be passed on to the DebugLogger.
-class DebugMessage : public OutputMessage<MsgThread>
+class DebugMessage final : public OutputMessage<MsgThread>
 {
 public:
 	DebugMessage(DebugStream arg_stream, MsgThread* thread, const char* arg_msg)

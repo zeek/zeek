@@ -9,7 +9,7 @@ using threading::Field;
 
 namespace input {
 
-class PutMessage : public threading::OutputMessage<ReaderFrontend> {
+class PutMessage final : public threading::OutputMessage<ReaderFrontend> {
 public:
 	PutMessage(ReaderFrontend* reader, Value* *val)
 		: threading::OutputMessage<ReaderFrontend>("Put", reader),
@@ -25,7 +25,7 @@ private:
 	Value* *val;
 };
 
-class DeleteMessage : public threading::OutputMessage<ReaderFrontend> {
+class DeleteMessage final : public threading::OutputMessage<ReaderFrontend> {
 public:
 	DeleteMessage(ReaderFrontend* reader, Value* *val)
 		: threading::OutputMessage<ReaderFrontend>("Delete", reader),
@@ -40,7 +40,7 @@ private:
 	Value* *val;
 };
 
-class ClearMessage : public threading::OutputMessage<ReaderFrontend> {
+class ClearMessage final : public threading::OutputMessage<ReaderFrontend> {
 public:
 	ClearMessage(ReaderFrontend* reader)
 		: threading::OutputMessage<ReaderFrontend>("Clear", reader) {}
@@ -54,7 +54,7 @@ public:
 private:
 };
 
-class SendEventMessage : public threading::OutputMessage<ReaderFrontend> {
+class SendEventMessage final : public threading::OutputMessage<ReaderFrontend> {
 public:
 	SendEventMessage(ReaderFrontend* reader, const char* name, const int num_vals, Value* *val)
 		: threading::OutputMessage<ReaderFrontend>("SendEvent", reader),
@@ -78,7 +78,7 @@ private:
 	Value* *val;
 };
 
-class ReaderErrorMessage : public threading::OutputMessage<ReaderFrontend>
+class ReaderErrorMessage final : public threading::OutputMessage<ReaderFrontend>
 {
 public:
 	enum Type {
@@ -98,7 +98,7 @@ private:
 	Type type;
 };
 
-class SendEntryMessage : public threading::OutputMessage<ReaderFrontend> {
+class SendEntryMessage final : public threading::OutputMessage<ReaderFrontend> {
 public:
 	SendEntryMessage(ReaderFrontend* reader, Value* *val)
 		: threading::OutputMessage<ReaderFrontend>("SendEntry", reader),
@@ -114,7 +114,7 @@ private:
 	Value* *val;
 };
 
-class EndCurrentSendMessage : public threading::OutputMessage<ReaderFrontend> {
+class EndCurrentSendMessage final : public threading::OutputMessage<ReaderFrontend> {
 public:
 	EndCurrentSendMessage(ReaderFrontend* reader)
 		: threading::OutputMessage<ReaderFrontend>("EndCurrentSend", reader) {}
@@ -128,7 +128,7 @@ public:
 private:
 };
 
-class EndOfDataMessage : public threading::OutputMessage<ReaderFrontend> {
+class EndOfDataMessage final : public threading::OutputMessage<ReaderFrontend> {
 public:
 	EndOfDataMessage(ReaderFrontend* reader)
 		: threading::OutputMessage<ReaderFrontend>("EndOfData", reader) {}
@@ -142,7 +142,7 @@ public:
 private:
 };
 
-class ReaderClosedMessage : public threading::OutputMessage<ReaderFrontend> {
+class ReaderClosedMessage final : public threading::OutputMessage<ReaderFrontend> {
 public:
 	ReaderClosedMessage(ReaderFrontend* reader)
 		: threading::OutputMessage<ReaderFrontend>("ReaderClosed", reader) {}
@@ -156,7 +156,7 @@ public:
 private:
 };
 
-class DisableMessage : public threading::OutputMessage<ReaderFrontend>
+class DisableMessage final : public threading::OutputMessage<ReaderFrontend>
 {
 public:
 	DisableMessage(ReaderFrontend* writer)

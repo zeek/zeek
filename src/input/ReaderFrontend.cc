@@ -6,7 +6,7 @@
 
 namespace input {
 
-class InitMessage : public threading::InputMessage<ReaderBackend>
+class InitMessage final : public threading::InputMessage<ReaderBackend>
 {
 public:
 	InitMessage(ReaderBackend* backend,
@@ -24,7 +24,7 @@ private:
 	const threading::Field* const* fields;
 };
 
-class UpdateMessage : public threading::InputMessage<ReaderBackend>
+class UpdateMessage final : public threading::InputMessage<ReaderBackend>
 {
 public:
 	UpdateMessage(ReaderBackend* backend)

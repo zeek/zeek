@@ -14,7 +14,7 @@ namespace logging  {
 
 // Messages sent from frontend to backend (i.e., "InputMessages").
 
-class InitMessage : public threading::InputMessage<WriterBackend>
+class InitMessage final : public threading::InputMessage<WriterBackend>
 {
 public:
 	InitMessage(WriterBackend* backend, const int num_fields, const Field* const* fields)
@@ -30,7 +30,7 @@ private:
 	const Field * const* fields;
 };
 
-class RotateMessage : public threading::InputMessage<WriterBackend>
+class RotateMessage final : public threading::InputMessage<WriterBackend>
 {
 public:
 	RotateMessage(WriterBackend* backend, WriterFrontend* frontend, const char* rotated_path, const double open,
@@ -52,7 +52,7 @@ private:
 	const bool terminating;
 };
 
-class WriteMessage : public threading::InputMessage<WriterBackend>
+class WriteMessage final : public threading::InputMessage<WriterBackend>
 {
 public:
 	WriteMessage(WriterBackend* backend, int num_fields, int num_writes, Value*** vals)
@@ -67,7 +67,7 @@ private:
 	Value ***vals;
 };
 
-class SetBufMessage : public threading::InputMessage<WriterBackend>
+class SetBufMessage final : public threading::InputMessage<WriterBackend>
 {
 public:
 	SetBufMessage(WriterBackend* backend, const bool enabled)
@@ -80,7 +80,7 @@ private:
 	const bool enabled;
 };
 
-class FlushMessage : public threading::InputMessage<WriterBackend>
+class FlushMessage final : public threading::InputMessage<WriterBackend>
 {
 public:
 	FlushMessage(WriterBackend* backend, double network_time)

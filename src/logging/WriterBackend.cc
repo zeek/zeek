@@ -16,7 +16,7 @@ using threading::Field;
 
 namespace logging  {
 
-class RotationFinishedMessage : public threading::OutputMessage<WriterFrontend>
+class RotationFinishedMessage final : public threading::OutputMessage<WriterFrontend>
 {
 public:
 	RotationFinishedMessage(WriterFrontend* writer, const char* new_name, const char* old_name,
@@ -45,7 +45,7 @@ private:
         bool terminating;
 };
 
-class FlushWriteBufferMessage : public threading::OutputMessage<WriterFrontend>
+class FlushWriteBufferMessage final : public threading::OutputMessage<WriterFrontend>
 {
 public:
 	FlushWriteBufferMessage(WriterFrontend* writer)
@@ -54,7 +54,7 @@ public:
 	bool Process() override	{ Object()->FlushWriteBuffer(); return true; }
 };
 
-class DisableMessage : public threading::OutputMessage<WriterFrontend>
+class DisableMessage final : public threading::OutputMessage<WriterFrontend>
 {
 public:
 	DisableMessage(WriterFrontend* writer)

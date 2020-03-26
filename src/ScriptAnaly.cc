@@ -235,7 +235,9 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 		DumpRDs(PostRDs(f));
 		}
 
-	return TC_CONTINUE;
+	// Don't continue traversal here, as that will then loop over
+	// older bodies.  Instead, we do it manually.
+	return TC_ABORTALL;
 	}
 
 TraversalCode RD_Decorate::PreStmt(const Stmt* s)
@@ -407,7 +409,16 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		post_rds = PreRDs(s);
 
 		for ( int i = 0; i < inits.length(); ++i )
-			AddRD(post_rds, inits[i], DefinitionPoint(s));
+			{
+			auto id = inits[i];
+			auto id_t = id->Type();
+
+			// Only aggregates get initialized.
+			auto tag = id_t->Tag();
+			if ( tag == TYPE_RECORD || tag == TYPE_VECTOR ||
+			     tag == TYPE_TABLE )
+				AddRD(post_rds, id, DefinitionPoint(s));
+			}
 
 		break;
 		}
@@ -638,9 +649,12 @@ TraversalCode FolderFinder::PreExpr(const Expr* expr, const Expr* op1, const Exp
 
 void analyze_func(const Func* f)
 	{
-	if ( streq(f->Name(), "test_func") )
+	// if ( streq(f->Name(), "test_func") )
 		{
 		RD_Decorate cb;
 		f->Traverse(&cb);
+
+		// Now traverse just the last body.
+		f->GetBodies()[f->GetBodies().size() - 1].stmts->Traverse(&cb);
 		}
 	}

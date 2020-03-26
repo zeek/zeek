@@ -508,7 +508,7 @@ void end_func(IntrusivePtr<Stmt> body)
 
 	ingredients->id->ID_Val()->AsFunc()->SetScope(ingredients->scope);
 
-	analyze_func(ingredients->id->ID_Val()->AsFunc());
+	analyze_func(ingredients->id->ID_Val()->AsFunc(), ingredients->body.get());
 
 	// Note: ideally, something would take ownership of this memory until the
 	// end of script execution, but that's essentially the same as the

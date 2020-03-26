@@ -7,4 +7,4 @@
 #include "Expr.h"
 
 
-extern void analyze_func(const Func* f);
+extern void analyze_func(const Func* f, const Stmt* body);

@@ -647,14 +647,12 @@ TraversalCode FolderFinder::PreExpr(const Expr* expr, const Expr* op1, const Exp
 	}
 
 
-void analyze_func(const Func* f)
+void analyze_func(const Func* f, const Stmt* body)
 	{
 	// if ( streq(f->Name(), "test_func") )
 		{
 		RD_Decorate cb;
 		f->Traverse(&cb);
-
-		// Now traverse just the last body.
-		f->GetBodies()[f->GetBodies().size() - 1].stmts->Traverse(&cb);
+		body->Traverse(&cb);
 		}
 	}

@@ -99,14 +99,14 @@ void EventMgr::QueueEventFast(const EventHandlerPtr &h, val_list vl,
                               SourceID src, analyzer::ID aid, TimerMgr* mgr,
                               BroObj* obj)
 	{
-	QueueEvent(new Event(h, zeek::val_list_to_args(&vl), src, aid, obj));
+	QueueEvent(new Event(h, zeek::val_list_to_args(vl), src, aid, obj));
 	}
 
 void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list vl,
                           SourceID src, analyzer::ID aid,
                           TimerMgr* mgr, BroObj* obj)
 	{
-	auto args = zeek::val_list_to_args(&vl);
+	auto args = zeek::val_list_to_args(vl);
 
 	if ( h )
 		Enqueue(h, std::move(args), src, aid, obj);
@@ -116,7 +116,7 @@ void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list* vl,
                           SourceID src, analyzer::ID aid,
                           TimerMgr* mgr, BroObj* obj)
 	{
-	auto args = zeek::val_list_to_args(vl);
+	auto args = zeek::val_list_to_args(*vl);
 	delete vl;
 
 	if ( h )

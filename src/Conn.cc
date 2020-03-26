@@ -488,7 +488,7 @@ void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1,
 
 void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, val_list vl)
 	{
-	auto args = zeek::val_list_to_args(&vl);
+	auto args = zeek::val_list_to_args(vl);
 
 	if ( ! f )
 		// This may actually happen if there is no local handler
@@ -502,13 +502,13 @@ void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, val_l
 void Connection::ConnectionEventFast(EventHandlerPtr f, analyzer::Analyzer* a, val_list vl)
 	{
 	// "this" is passed as a cookie for the event
-	mgr.Enqueue(f, zeek::val_list_to_args(&vl), SOURCE_LOCAL,
+	mgr.Enqueue(f, zeek::val_list_to_args(vl), SOURCE_LOCAL,
 	            a ? a->GetID() : 0, this);
 	}
 
 void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, val_list* vl)
 	{
-	auto args = zeek::val_list_to_args(vl);
+	auto args = zeek::val_list_to_args(*vl);
 	delete vl;
 
 	if ( f )

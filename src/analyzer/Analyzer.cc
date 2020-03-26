@@ -803,7 +803,7 @@ void Analyzer::Event(EventHandlerPtr f, Val* v1, Val* v2)
 
 void Analyzer::ConnectionEvent(EventHandlerPtr f, val_list* vl)
 	{
-	auto args = zeek::val_list_to_args(vl);
+	auto args = zeek::val_list_to_args(*vl);
 
 	if ( f )
 		conn->EnqueueEvent(f, this, std::move(args));
@@ -811,7 +811,7 @@ void Analyzer::ConnectionEvent(EventHandlerPtr f, val_list* vl)
 
 void Analyzer::ConnectionEvent(EventHandlerPtr f, val_list vl)
 	{
-	auto args = zeek::val_list_to_args(&vl);
+	auto args = zeek::val_list_to_args(vl);
 
 	if ( f )
 		conn->EnqueueEvent(f, this, std::move(args));
@@ -819,7 +819,7 @@ void Analyzer::ConnectionEvent(EventHandlerPtr f, val_list vl)
 
 void Analyzer::ConnectionEventFast(EventHandlerPtr f, val_list vl)
 	{
-	auto args = zeek::val_list_to_args(&vl);
+	auto args = zeek::val_list_to_args(vl);
 	conn->EnqueueEvent(f, this, std::move(args));
 	}
 

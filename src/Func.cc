@@ -296,7 +296,7 @@ int BroFunc::IsPure() const
 
 IntrusivePtr<Val> Func::Call(val_list* args, Frame* parent) const
 	{
-	return Call(zeek::val_list_to_args(args), parent);
+	return Call(zeek::val_list_to_args(*args), parent);
 	}
 
 IntrusivePtr<Val> BroFunc::Call(const zeek::Args& args, Frame* parent) const

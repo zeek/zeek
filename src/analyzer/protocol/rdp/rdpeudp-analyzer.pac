@@ -45,11 +45,14 @@ refine flow RDPEUDP_Flow += {
 		this->message_count += 1;
 		printf("inside %s, state: %d, id: %d, count: %d\n",
 			"proc_rdpeudp1_synack", get_state(), 3, this->message_count);
+
+		// It seems binpac never sets is_orig to false if the UDP is localhost <-> localhost
 //		if (is_orig) {
 //			printf("inside %s, state: %d, id: %d, count: %d\n",
 //				"proc_rdpeudp1_synack", get_state(), 99, this->message_count);
 //			return false;
 //		}
+
 		if ((uFlags & 0x05) == 0) {
 			printf("inside %s, state: %d, id: %d, count: %d\n",
 				"proc_rdpeudp1_synack", get_state(), 98, this->message_count);
@@ -68,18 +71,28 @@ refine flow RDPEUDP_Flow += {
                 return true;
 	%}
 
-        function proc_rdpeudp2_ack(is_orig: bool): bool
+        function proc_rdpeudp2_ack(is_orig: bool, stub: bytestring): bool
 	%{
 		this->message_count += 1;
-                BifEvent::generate_rdpeudp_data(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), 2);
+                BifEvent::generate_rdpeudp_data(connection()->bro_analyzer(),
+						connection()->bro_analyzer()->Conn(),
+						is_orig,
+						2,
+						new StringVal(stub.length(), (const char*) stub.data())
+		);
 		printf("inside %s, state: %d, id: %d, count: %d\n",
 			"proc_rdpeudp2_ack", get_state(), 55, this->message_count);
                 return true;
 	%}
-        function proc_rdpeudp1_ack(is_orig: bool): bool
+        function proc_rdpeudp1_ack(is_orig: bool, stub: bytestring): bool
 	%{
 		this->message_count += 1;
-                BifEvent::generate_rdpeudp_data(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), 1);
+                BifEvent::generate_rdpeudp_data(connection()->bro_analyzer(),
+						connection()->bro_analyzer()->Conn(),
+						is_orig,
+						1,
+						new StringVal(stub.length(), (const char*) stub.data())
+		);
 		printf("inside %s, state: %d, id: %d, count: %d\n",
 			"proc_rdpeudp1_ack", get_state(), 50, this->message_count);
                 return true;

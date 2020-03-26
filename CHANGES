@@ -1,4 +1,8 @@
 
+3.0.4-dev.6 | 2020-04-09 14:19:17 -0700
+
+  * Fix bug in intel indicator normalization (Antonio Nappa, Corelight)
+
 3.0.4-dev.5 | 2020-04-09 14:10:26 -0700
 
   * Fix ERSPAN III optional sub-header parsing (Jon Siwek, Corelight)

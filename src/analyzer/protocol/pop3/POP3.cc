@@ -830,7 +830,7 @@ void POP3_Analyzer::StartTLS()
 		AddChildAnalyzer(ssl);
 
 	if ( pop3_starttls )
-		ConnectionEventFast(pop3_starttls, {BuildConnVal()});
+		EnqueueConnEvent(pop3_starttls, IntrusivePtr{AdoptRef{}, BuildConnVal()});
 	}
 
 void POP3_Analyzer::AuthSuccessfull()
@@ -920,14 +920,16 @@ void POP3_Analyzer::POP3Event(EventHandlerPtr event, bool is_orig,
 	if ( ! event )
 		return;
 
-	val_list vl(2 + (bool)arg1 + (bool)arg2);
+	zeek::Args vl;
+	vl.reserve(2 + (bool)arg1 + (bool)arg2);
 
-	vl.push_back(BuildConnVal());
-	vl.push_back(val_mgr->GetBool(is_orig));
+	vl.emplace_back(AdoptRef{}, BuildConnVal());
+	vl.emplace_back(AdoptRef{}, val_mgr->GetBool(is_orig));
+
 	if ( arg1 )
-		vl.push_back(new StringVal(arg1));
+		vl.emplace_back(make_intrusive<StringVal>(arg1));
 	if ( arg2 )
-		vl.push_back(new StringVal(arg2));
+		vl.emplace_back(make_intrusive<StringVal>(arg2));
 
-	ConnectionEventFast(event, std::move(vl));
+	EnqueueConnEvent(event, std::move(vl));
 	}

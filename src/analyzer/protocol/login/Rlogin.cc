@@ -244,10 +244,8 @@ void Rlogin_Analyzer::ServerUserName(const char* s)
 void Rlogin_Analyzer::TerminalType(const char* s)
 	{
 	if ( login_terminal )
-		{
-		ConnectionEventFast(login_terminal, {
-			BuildConnVal(),
-			new StringVal(s),
-		});
-		}
+		EnqueueConnEvent(login_terminal,
+			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			make_intrusive<StringVal>(s)
+		);
 	}

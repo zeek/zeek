@@ -1365,11 +1365,11 @@ void MIME_Mail::Done()
 		hash_final(md5_hash, digest);
 		md5_hash = nullptr;
 
-		analyzer->ConnectionEventFast(mime_content_hash, {
-			analyzer->BuildConnVal(),
-			val_mgr->GetCount(content_hash_length),
-			new StringVal(new BroString(1, digest, 16)),
-		});
+		analyzer->EnqueueConnEvent(mime_content_hash,
+			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(content_hash_length)},
+			make_intrusive<StringVal>(new BroString(1, digest, 16))
+		);
 		}
 
 	MIME_Message::Done();
@@ -1393,7 +1393,7 @@ void MIME_Mail::BeginEntity(MIME_Entity* /* entity */)
 	cur_entity_id.clear();
 
 	if ( mime_begin_entity )
-		analyzer->ConnectionEventFast(mime_begin_entity, {analyzer->BuildConnVal()});
+		analyzer->EnqueueConnEvent(mime_begin_entity, IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()});
 
 	buffer_start = data_start = 0;
 	ASSERT(entity_content.size() == 0);
@@ -1405,11 +1405,11 @@ void MIME_Mail::EndEntity(MIME_Entity* /* entity */)
 		{
 		BroString* s = concatenate(entity_content);
 
-		analyzer->ConnectionEventFast(mime_entity_data, {
-			analyzer->BuildConnVal(),
-			val_mgr->GetCount(s->Len()),
-			new StringVal(s),
-		});
+		analyzer->EnqueueConnEvent(mime_entity_data,
+			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(s->Len())},
+			make_intrusive<StringVal>(s)
+		);
 
 		if ( ! mime_all_data )
 			delete_strings(entity_content);
@@ -1418,7 +1418,7 @@ void MIME_Mail::EndEntity(MIME_Entity* /* entity */)
 		}
 
 	if ( mime_end_entity )
-		analyzer->ConnectionEventFast(mime_end_entity, {analyzer->BuildConnVal()});
+		analyzer->EnqueueConnEvent(mime_end_entity, IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()});
 
 	file_mgr->EndOfFile(analyzer->GetAnalyzerTag(), analyzer->Conn());
 	cur_entity_id.clear();
@@ -1427,23 +1427,19 @@ void MIME_Mail::EndEntity(MIME_Entity* /* entity */)
 void MIME_Mail::SubmitHeader(MIME_Header* h)
 	{
 	if ( mime_one_header )
-		{
-		analyzer->ConnectionEventFast(mime_one_header, {
-			analyzer->BuildConnVal(),
-			BuildHeaderVal(h),
-		});
-		}
+		analyzer->EnqueueConnEvent(mime_one_header,
+			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, BuildHeaderVal(h)}
+		);
 	}
 
 void MIME_Mail::SubmitAllHeaders(MIME_HeaderList& hlist)
 	{
 	if ( mime_all_headers )
-		{
-		analyzer->ConnectionEventFast(mime_all_headers, {
-			analyzer->BuildConnVal(),
-			BuildHeaderTable(hlist),
-		});
-		}
+		analyzer->EnqueueConnEvent(mime_all_headers,
+			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, BuildHeaderTable(hlist)}
+		);
 	}
 
 void MIME_Mail::SubmitData(int len, const char* buf)
@@ -1476,11 +1472,11 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 		const char* data = (char*) data_buffer->Bytes() + data_start;
 		int data_len = (buf + len) - data;
 
-		analyzer->ConnectionEventFast(mime_segment_data, {
-			analyzer->BuildConnVal(),
-			val_mgr->GetCount(data_len),
-			new StringVal(data_len, data),
-		});
+		analyzer->EnqueueConnEvent(mime_segment_data,
+			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(data_len)},
+			make_intrusive<StringVal>(data_len, data)
+		);
 		}
 
 	cur_entity_id = file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len,
@@ -1523,11 +1519,11 @@ void MIME_Mail::SubmitAllData()
 		BroString* s = concatenate(all_content);
 		delete_strings(all_content);
 
-		analyzer->ConnectionEventFast(mime_all_data, {
-			analyzer->BuildConnVal(),
-			val_mgr->GetCount(s->Len()),
-			new StringVal(s),
-		});
+		analyzer->EnqueueConnEvent(mime_all_data,
+			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(s->Len())},
+			make_intrusive<StringVal>(s)
+		);
 		}
 	}
 
@@ -1551,11 +1547,9 @@ void MIME_Mail::SubmitEvent(int event_type, const char* detail)
 	}
 
 	if ( mime_event )
-		{
-		analyzer->ConnectionEventFast(mime_event, {
-			analyzer->BuildConnVal(),
-			new StringVal(category),
-			new StringVal(detail),
-		});
-		}
+		analyzer->EnqueueConnEvent(mime_event,
+			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			make_intrusive<StringVal>(category),
+			make_intrusive<StringVal>(detail)
+		);
 	}

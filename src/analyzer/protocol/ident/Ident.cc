@@ -84,11 +84,11 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 			Weird("ident_request_addendum", s.CheckString());
 			}
 
-		ConnectionEventFast(ident_request, {
-			BuildConnVal(),
-			val_mgr->GetPort(local_port, TRANSPORT_TCP),
-			val_mgr->GetPort(remote_port, TRANSPORT_TCP),
-		});
+		EnqueueConnEvent(ident_request,
+			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetPort(local_port, TRANSPORT_TCP)},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetPort(remote_port, TRANSPORT_TCP)}
+		);
 
 		did_deliver = true;
 		}
@@ -145,12 +145,12 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 		if ( is_error )
 			{
 			if ( ident_error )
-				ConnectionEventFast(ident_error, {
-					BuildConnVal(),
-					val_mgr->GetPort(local_port, TRANSPORT_TCP),
-					val_mgr->GetPort(remote_port, TRANSPORT_TCP),
-					new StringVal(end_of_line - line, line),
-				});
+				EnqueueConnEvent(ident_error,
+					IntrusivePtr{AdoptRef{}, BuildConnVal()},
+					IntrusivePtr{AdoptRef{}, val_mgr->GetPort(local_port, TRANSPORT_TCP)},
+					IntrusivePtr{AdoptRef{}, val_mgr->GetPort(remote_port, TRANSPORT_TCP)},
+					make_intrusive<StringVal>(end_of_line - line, line)
+				);
 			}
 
 		else
@@ -178,13 +178,13 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 
 			line = skip_whitespace(colon + 1, end_of_line);
 
-			ConnectionEventFast(ident_reply, {
-				BuildConnVal(),
-				val_mgr->GetPort(local_port, TRANSPORT_TCP),
-				val_mgr->GetPort(remote_port, TRANSPORT_TCP),
-				new StringVal(end_of_line - line, line),
-				new StringVal(sys_type_s),
-			});
+			EnqueueConnEvent(ident_reply,
+				IntrusivePtr{AdoptRef{}, BuildConnVal()},
+				IntrusivePtr{AdoptRef{}, val_mgr->GetPort(local_port, TRANSPORT_TCP)},
+				IntrusivePtr{AdoptRef{}, val_mgr->GetPort(remote_port, TRANSPORT_TCP)},
+				make_intrusive<StringVal>(end_of_line - line, line),
+				make_intrusive<StringVal>(sys_type_s)
+			);
 			}
 		}
 	}

@@ -59,14 +59,12 @@ int NetbiosSSN_Interpreter::ParseMessage(unsigned int type, unsigned int flags,
 				const u_char* data, int len, int is_query)
 	{
 	if ( netbios_session_message )
-		{
-		analyzer->ConnectionEventFast(netbios_session_message, {
-			analyzer->BuildConnVal(),
-			val_mgr->GetBool(is_query),
-			val_mgr->GetCount(type),
-			val_mgr->GetCount(len),
-		});
-		}
+		analyzer->EnqueueConnEvent(netbios_session_message,
+			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_query)},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(type)},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(len)}
+		);
 
 	switch ( type ) {
 	case NETBIOS_SSN_MSG:
@@ -331,18 +329,16 @@ void NetbiosSSN_Interpreter::Event(EventHandlerPtr event, const u_char* data,
 		return;
 
 	if ( is_orig >= 0 )
-		{
-		analyzer->ConnectionEventFast(event, {
-			analyzer->BuildConnVal(),
-			val_mgr->GetBool(is_orig),
-			new StringVal(new BroString(data, len, 0)),
-		});
-		}
+		analyzer->EnqueueConnEvent(event,
+			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)},
+			make_intrusive<StringVal>(new BroString(data, len, 0))
+		);
 	else
-		analyzer->ConnectionEventFast(event, {
-			analyzer->BuildConnVal(),
-			new StringVal(new BroString(data, len, 0)),
-		});
+		analyzer->EnqueueConnEvent(event,
+			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			make_intrusive<StringVal>(new BroString(data, len, 0))
+		);
 	}
 
 

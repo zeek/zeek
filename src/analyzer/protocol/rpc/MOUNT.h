@@ -16,10 +16,10 @@ protected:
 				const u_char*& buf, int& n, double start_time,
 				double last_time, int reply_len) override;
 
-	// Returns a new val_list that already has a conn_val, rpc_status and
+	// Returns a new arg list that already has a conn_val, rpc_status and
 	// mount_status. These are the first parameters for each mount_* event
 	// ...
-	val_list event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_status,
+	zeek::Args event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_status,
 				BifEnum::MOUNT3::status_t mount_status,
 				double rep_start_time, double rep_last_time,
 				int reply_len, int extra_elements);

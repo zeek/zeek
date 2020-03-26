@@ -62,26 +62,21 @@ void NCP_Session::DeliverFrame(const binpac::NCP::ncp_frame* frame)
 	if ( f )
 		{
 		if ( frame->is_orig() )
-			{
-			analyzer->ConnectionEventFast(f, {
-				analyzer->BuildConnVal(),
-				val_mgr->GetCount(frame->frame_type()),
-				val_mgr->GetCount(frame->body_length()),
-				val_mgr->GetCount(req_func),
-			});
-			}
+			analyzer->EnqueueConnEvent(f,
+				IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(frame->frame_type())},
+				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(frame->body_length())},
+				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(req_func)}
+			);
 		else
-			{
-			analyzer->ConnectionEventFast(f, {
-				analyzer->BuildConnVal(),
-				val_mgr->GetCount(frame->frame_type()),
-				val_mgr->GetCount(frame->body_length()),
-				val_mgr->GetCount(req_frame_type),
-				val_mgr->GetCount(req_func),
-				val_mgr->GetCount(frame->reply()->completion_code()),
-			});
-			}
-
+			analyzer->EnqueueConnEvent(f,
+				IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(frame->frame_type())},
+				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(frame->body_length())},
+				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(req_frame_type)},
+				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(req_func)},
+				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(frame->reply()->completion_code())}
+			);
 		}
 	}
 

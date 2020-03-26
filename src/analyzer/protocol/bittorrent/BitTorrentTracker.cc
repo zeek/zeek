@@ -246,13 +246,11 @@ void BitTorrentTracker_Analyzer::InitBencParser(void)
 void BitTorrentTracker_Analyzer::DeliverWeird(const char* msg, bool orig)
 	{
 	if ( bt_tracker_weird )
-		{
-		ConnectionEventFast(bt_tracker_weird, {
-			BuildConnVal(),
-			val_mgr->GetBool(orig),
-			new StringVal(msg),
-		});
-		}
+		EnqueueConnEvent(bt_tracker_weird,
+			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+			make_intrusive<StringVal>(msg)
+		);
 	}
 
 bool BitTorrentTracker_Analyzer::ParseRequest(char* line)
@@ -349,11 +347,11 @@ void BitTorrentTracker_Analyzer::EmitRequest(void)
 	ProtocolConfirmation();
 
 	if ( bt_tracker_request )
-		ConnectionEventFast(bt_tracker_request, {
-			BuildConnVal(),
-			req_val_uri,
-			req_val_headers,
-		});
+		EnqueueConnEvent(bt_tracker_request,
+			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, req_val_uri},
+			IntrusivePtr{AdoptRef{}, req_val_headers}
+		);
 
 	req_val_uri = 0;
 	req_val_headers = 0;
@@ -403,11 +401,11 @@ bool BitTorrentTracker_Analyzer::ParseResponse(char* line)
 			if ( res_status != 200 )
 				{
 				if ( bt_tracker_response_not_ok )
-					ConnectionEventFast(bt_tracker_response_not_ok, {
-						BuildConnVal(),
-						val_mgr->GetCount(res_status),
-						res_val_headers,
-					});
+					EnqueueConnEvent(bt_tracker_response_not_ok,
+						IntrusivePtr{AdoptRef{}, BuildConnVal()},
+						IntrusivePtr{AdoptRef{}, val_mgr->GetCount(res_status)},
+						IntrusivePtr{AdoptRef{}, res_val_headers}
+					);
 				res_val_headers = 0;
 				res_buf_pos = res_buf + res_buf_len;
 				res_state = BTT_RES_DONE;
@@ -790,13 +788,13 @@ void BitTorrentTracker_Analyzer::EmitResponse(void)
 	ProtocolConfirmation();
 
 	if ( bt_tracker_response )
-		ConnectionEventFast(bt_tracker_response, {
-			BuildConnVal(),
-			val_mgr->GetCount(res_status),
-			res_val_headers,
-			res_val_peers,
-			res_val_benc,
-		});
+		EnqueueConnEvent(bt_tracker_response,
+			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(res_status)},
+			IntrusivePtr{AdoptRef{}, res_val_headers},
+			IntrusivePtr{AdoptRef{}, res_val_peers},
+			IntrusivePtr{AdoptRef{}, res_val_benc}
+		);
 
 	res_val_headers = 0;
 	res_val_peers = 0;

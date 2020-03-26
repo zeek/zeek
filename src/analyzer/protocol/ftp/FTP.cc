@@ -75,7 +75,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 		// Could emit "ftp empty request/reply" weird, but maybe not worth it.
 		return;
 
-	val_list vl;
+	zeek::Args vl;
 
 	EventHandlerPtr f;
 	if ( orig )
@@ -96,10 +96,10 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 		else
 			cmd_str = (new StringVal(cmd_len, cmd))->ToUpper();
 
-		vl = val_list{
-			BuildConnVal(),
-			cmd_str,
-			new StringVal(end_of_line - line, line),
+		vl = {
+			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, cmd_str},
+			make_intrusive<StringVal>(end_of_line - line, line),
 		};
 
 		f = ftp_request;
@@ -175,17 +175,17 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 				}
 			}
 
-		vl = val_list{
-			BuildConnVal(),
-			val_mgr->GetCount(reply_code),
-			new StringVal(end_of_line - line, line),
-			val_mgr->GetBool(cont_resp),
+		vl = {
+			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(reply_code)},
+			make_intrusive<StringVal>(end_of_line - line, line),
+			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(cont_resp)}
 		};
 
 		f = ftp_reply;
 		}
 
-	ConnectionEvent(f, std::move(vl));
+	EnqueueConnEvent(f, std::move(vl));
 
 	ForwardStream(length, data, orig);
 	}

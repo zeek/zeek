@@ -119,11 +119,9 @@ void BitTorrent_Analyzer::EndpointEOF(bool is_orig)
 void BitTorrent_Analyzer::DeliverWeird(const char* msg, bool orig)
 	{
 	if ( bittorrent_peer_weird )
-		{
-		ConnectionEventFast(bittorrent_peer_weird, {
-			BuildConnVal(),
-			val_mgr->GetBool(orig),
-			new StringVal(msg),
-		});
-		}
+		EnqueueConnEvent(bittorrent_peer_weird,
+			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+			make_intrusive<StringVal>(msg)
+		);
 	}

@@ -290,9 +290,7 @@ void Login_Analyzer::AuthenticationDialog(bool orig, char* line)
 	else if ( IsSkipAuthentication(line) )
 		{
 		if ( authentication_skipped )
-			{
-			ConnectionEventFast(authentication_skipped, {BuildConnVal()});
-			}
+			EnqueueConnEvent(authentication_skipped, IntrusivePtr{AdoptRef{}, BuildConnVal()});
 
 		state = LOGIN_STATE_SKIP;
 		SetSkip(1);
@@ -333,28 +331,22 @@ void Login_Analyzer::SetEnv(bool orig, char* name, char* val)
 			}
 
 		else if ( login_terminal && streq(name, "TERM") )
-			{
-			ConnectionEventFast(login_terminal, {
-				BuildConnVal(),
-				new StringVal(val),
-			});
-			}
+			EnqueueConnEvent(login_terminal,
+				IntrusivePtr{AdoptRef{}, BuildConnVal()},
+				make_intrusive<StringVal>(val)
+			);
 
 		else if ( login_display && streq(name, "DISPLAY") )
-			{
-			ConnectionEventFast(login_display, {
-				BuildConnVal(),
-				new StringVal(val),
-			});
-			}
+			EnqueueConnEvent(login_display,
+				IntrusivePtr{AdoptRef{}, BuildConnVal()},
+				make_intrusive<StringVal>(val)
+			);
 
 		else if ( login_prompt && streq(name, "TTYPROMPT") )
-			{
-			ConnectionEventFast(login_prompt, {
-				BuildConnVal(),
-				new StringVal(val),
-			});
-			}
+			EnqueueConnEvent(login_prompt,
+				IntrusivePtr{AdoptRef{}, BuildConnVal()},
+				make_intrusive<StringVal>(val)
+			);
 		}
 
 	delete [] name;
@@ -427,13 +419,14 @@ void Login_Analyzer::LoginEvent(EventHandlerPtr f, const char* line,
 	Val* password = HaveTypeahead() ?
 				PopUserTextVal() : new StringVal("<none>");
 
-	ConnectionEventFast(f, {
-		BuildConnVal(),
-		username->Ref(),
-		client_name ? client_name->Ref() : val_mgr->GetEmptyString(),
-		password,
-		new StringVal(line),
-	});
+	EnqueueConnEvent(f,
+		IntrusivePtr{AdoptRef{}, BuildConnVal()},
+		IntrusivePtr{NewRef{}, username},
+		client_name ? IntrusivePtr{NewRef{}, client_name}
+		            : IntrusivePtr{AdoptRef{}, val_mgr->GetEmptyString()},
+		IntrusivePtr{AdoptRef{}, password},
+		make_intrusive<StringVal>(line)
+	);
 	}
 
 const char* Login_Analyzer::GetUsername(const char* line) const
@@ -449,10 +442,10 @@ void Login_Analyzer::LineEvent(EventHandlerPtr f, const char* line)
 	if ( ! f )
 		return;
 
-	ConnectionEventFast(f, {
-		BuildConnVal(),
-		new StringVal(line),
-	});
+	EnqueueConnEvent(f,
+		IntrusivePtr{AdoptRef{}, BuildConnVal()},
+		make_intrusive<StringVal>(line)
+	);
 	}
 
 
@@ -461,13 +454,11 @@ void Login_Analyzer::Confused(const char* msg, const char* line)
 	state = LOGIN_STATE_CONFUSED;	// to suppress further messages
 
 	if ( login_confused )
-		{
-		ConnectionEventFast(login_confused, {
-			BuildConnVal(),
-			new StringVal(msg),
-			new StringVal(line),
-		});
-		}
+		EnqueueConnEvent(login_confused,
+			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			make_intrusive<StringVal>(msg),
+			make_intrusive<StringVal>(line)
+		);
 
 	if ( login_confused_text )
 		{
@@ -487,12 +478,10 @@ void Login_Analyzer::Confused(const char* msg, const char* line)
 void Login_Analyzer::ConfusionText(const char* line)
 	{
 	if ( login_confused_text )
-		{
-		ConnectionEventFast(login_confused_text, {
-			BuildConnVal(),
-			new StringVal(line),
-		});
-		}
+		EnqueueConnEvent(login_confused_text,
+			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			make_intrusive<StringVal>(line)
+		);
 	}
 
 int Login_Analyzer::IsPloy(const char* line)

@@ -19,6 +19,7 @@ class EventExpr;
 class ListExpr;
 class ForStmt;
 class WhileStmt;
+class ReturnStmt;
 class IfStmt;
 class ExprStmt;
 class SwitchStmt;
@@ -65,6 +66,7 @@ public:
 	CONST_ACCESSOR(STMT_FOR, ForStmt, AsForStmt)
 
 	CONST_ACCESSOR(STMT_WHILE, WhileStmt, AsWhileStmt)
+	CONST_ACCESSOR(STMT_RETURN, ReturnStmt, AsReturnStmt)
 	CONST_ACCESSOR(STMT_IF, IfStmt, AsIfStmt)
 	CONST_ACCESSOR(STMT_EXPR, ExprStmt, AsExprStmt)
 	CONST_ACCESSOR(STMT_SWITCH, SwitchStmt, AsSwitchStmt)

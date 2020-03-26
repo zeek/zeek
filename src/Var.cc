@@ -487,6 +487,8 @@ void end_func(IntrusivePtr<Stmt> body)
 						"referencing outer function IDs not supported");
 		}
 
+	bool is_addition = true;
+
 	if ( ingredients->id->HasVal() )
 		ingredients->id->ID_Val()->AsFunc()->AddBody(
 			ingredients->body,
@@ -495,6 +497,8 @@ void end_func(IntrusivePtr<Stmt> body)
 			ingredients->priority);
 	else
 		{
+		is_addition = false;
+
 		Func* f = new BroFunc(
 			ingredients->id.get(),
 			ingredients->body,
@@ -508,7 +512,8 @@ void end_func(IntrusivePtr<Stmt> body)
 
 	ingredients->id->ID_Val()->AsFunc()->SetScope(ingredients->scope);
 
-	analyze_func(ingredients->id->ID_Val()->AsFunc(), ingredients->body.get());
+	if ( ! is_addition )
+		analyze_func(ingredients->id->ID_Val()->AsFunc(), ingredients->body.get());
 
 	// Note: ideally, something would take ownership of this memory until the
 	// end of script execution, but that's essentially the same as the

@@ -144,19 +144,20 @@ void Func::DescribeDebug(ODesc* d, const zeek::Args* args) const
 	{
 	d->Add(Name());
 
-	RecordType* func_args = FType()->Args();
-
 	if ( args )
 		{
 		d->Add("(");
+		RecordType* func_args = FType()->Args();
+		auto num_fields = static_cast<size_t>(func_args->NumFields());
 
 		for ( auto i = 0u; i < args->size(); ++i )
 			{
 			// Handle varargs case (more args than formals).
-			if ( i >= static_cast<size_t>(func_args->NumFields()) )
+			if ( i >= num_fields )
 				{
 				d->Add("vararg");
-				d->Add(i - func_args->NumFields());
+				int va_num = i - num_fields;
+				d->Add(va_num);
 				}
 			else
 				d->Add(func_args->FieldName(i));

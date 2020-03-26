@@ -3304,7 +3304,7 @@ void describe_vals(const std::vector<IntrusivePtr<Val>>& vals,
 	{
 	if ( ! d->IsReadable() )
 		{
-		d->Add(vals.size());
+		d->Add(static_cast<uint64_t>(vals.size()));
 		d->SP();
 		}
 

@@ -15,6 +15,7 @@
 #include "UID.h"
 #include "WeirdState.h"
 #include "ZeekArgs.h"
+#include "IntrusivePtr.h"
 #include "iosource/Packet.h"
 
 #include "analyzer/Tag.h"

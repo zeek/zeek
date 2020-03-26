@@ -7,6 +7,7 @@
 #include "iosource/IOSource.h"
 #include "Flare.h"
 #include "ZeekArgs.h"
+#include "IntrusivePtr.h"
 
 #include <tuple>
 #include <type_traits>

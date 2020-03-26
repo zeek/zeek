@@ -7,6 +7,7 @@
 #include "../Obj.h"
 #include "../EventHandler.h"
 #include "../Timer.h"
+#include "../IntrusivePtr.h"
 
 #include <list>
 #include <vector>

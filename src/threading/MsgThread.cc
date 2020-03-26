@@ -21,7 +21,7 @@ public:
 	FinishMessage(MsgThread* thread, double network_time) : InputMessage<MsgThread>("Finish", thread),
 		network_time(network_time) { }
 
-	virtual bool Process()	{
+	bool Process() override	{
 		if ( Object()->child_finished )
 			return true;
 		bool result = Object()->OnFinish(network_time);
@@ -41,7 +41,7 @@ public:
 		: OutputMessage<MsgThread>("FinishedMessage", thread)
 		{ }
 
-	virtual bool Process() {
+	bool Process() override {
 		Object()->main_finished = true;
 		return true;
 	}
@@ -55,7 +55,7 @@ public:
 		: InputMessage<MsgThread>("Heartbeat", thread)
 		{ network_time = arg_network_time; current_time = arg_current_time; }
 
-	virtual bool Process()	{
+	bool Process() override	{
 		return Object()->OnHeartbeat(network_time, current_time);
 	}
 
@@ -77,9 +77,9 @@ public:
 		: OutputMessage<MsgThread>("ReporterMessage", thread)
 		{ type = arg_type; msg = copy_string(arg_msg); }
 
-	~ReporterMessage() 	 { delete [] msg; }
+	~ReporterMessage() override 	 { delete [] msg; }
 
-	virtual bool Process();
+	bool Process() override;
 
 private:
 	const char* msg;
@@ -93,7 +93,7 @@ public:
 	KillMeMessage(MsgThread* thread)
 		: OutputMessage<MsgThread>("ReporterMessage", thread) 	{}
 
-	virtual bool Process()
+	bool Process() override
 		{
 		Object()->SignalStop();
 		Object()->WaitForStop();
@@ -111,9 +111,9 @@ public:
 		: OutputMessage<MsgThread>("DebugMessage", thread)
 		{ stream = arg_stream; msg = copy_string(arg_msg); }
 
-	virtual ~DebugMessage()	{ delete [] msg; }
+	~DebugMessage() override	{ delete [] msg; }
 
-	virtual bool Process()
+	bool Process() override
 		{
 		debug_logger.Log(stream, "%s: %s", Object()->Name(), msg);
 		return true;

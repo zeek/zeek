@@ -23,7 +23,7 @@ public:
 			{}
 
 
-	virtual bool Process() { return Object()->Init(num_fields, fields); }
+	bool Process() override { return Object()->Init(num_fields, fields); }
 
 private:
 	const int num_fields;
@@ -42,7 +42,7 @@ public:
 
 	virtual ~RotateMessage()	{ delete [] rotated_path; }
 
-	virtual bool Process() { return Object()->Rotate(rotated_path, open, close, terminating); }
+	bool Process() override { return Object()->Rotate(rotated_path, open, close, terminating); }
 
 private:
 	WriterFrontend* frontend;
@@ -59,7 +59,7 @@ public:
 		: threading::InputMessage<WriterBackend>("Write", backend),
 		num_fields(num_fields), num_writes(num_writes), vals(vals)	{}
 
-	virtual bool Process() { return Object()->Write(num_fields, num_writes, vals); }
+	bool Process() override { return Object()->Write(num_fields, num_writes, vals); }
 
 private:
 	int num_fields;
@@ -74,7 +74,7 @@ public:
 		: threading::InputMessage<WriterBackend>("SetBuf", backend),
 		enabled(enabled) { }
 
-	virtual bool Process() { return Object()->SetBuf(enabled); }
+	bool Process() override { return Object()->SetBuf(enabled); }
 
 private:
 	const bool enabled;
@@ -87,7 +87,7 @@ public:
 		: threading::InputMessage<WriterBackend>("Flush", backend),
 		network_time(network_time) {}
 
-	virtual bool Process() { return Object()->Flush(network_time); }
+	bool Process() override { return Object()->Flush(network_time); }
 private:
 	double network_time;
 };

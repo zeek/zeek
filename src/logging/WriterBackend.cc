@@ -25,13 +25,13 @@ public:
 		new_name(copy_string(new_name)), old_name(copy_string(old_name)), open(open),
 		close(close), success(success), terminating(terminating)	{ }
 
-	virtual ~RotationFinishedMessage()
+	~RotationFinishedMessage() override
 		{
 		delete [] new_name;
 		delete [] old_name;
 		}
 
-	virtual bool Process()
+	bool Process() override
 		{
 		return log_mgr->FinishedRotation(Object(), new_name, old_name, open, close, success, terminating);
 		}
@@ -48,19 +48,19 @@ private:
 class FlushWriteBufferMessage : public threading::OutputMessage<WriterFrontend>
 {
 public:
-        FlushWriteBufferMessage(WriterFrontend* writer)
+	FlushWriteBufferMessage(WriterFrontend* writer)
 		: threading::OutputMessage<WriterFrontend>("FlushWriteBuffer", writer)	{}
 
-	virtual bool Process()	{ Object()->FlushWriteBuffer(); return true; }
+	bool Process() override	{ Object()->FlushWriteBuffer(); return true; }
 };
 
 class DisableMessage : public threading::OutputMessage<WriterFrontend>
 {
 public:
-        DisableMessage(WriterFrontend* writer)
+	DisableMessage(WriterFrontend* writer)
 		: threading::OutputMessage<WriterFrontend>("Disable", writer)	{}
 
-	virtual bool Process()	{ Object()->SetDisable(); return true; }
+	bool Process() override	{ Object()->SetDisable(); return true; }
 };
 
 }

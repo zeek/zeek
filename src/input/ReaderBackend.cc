@@ -15,7 +15,7 @@ public:
 		: threading::OutputMessage<ReaderFrontend>("Put", reader),
 		val(val) {}
 
-	virtual bool Process()
+	bool Process() override
 		{
 		input_mgr->Put(Object(), val);
 		return true;
@@ -31,7 +31,7 @@ public:
 		: threading::OutputMessage<ReaderFrontend>("Delete", reader),
 		val(val) {}
 
-	virtual bool Process()
+	bool Process() override
 		{
 		return input_mgr->Delete(Object(), val);
 		}
@@ -45,7 +45,7 @@ public:
 	ClearMessage(ReaderFrontend* reader)
 		: threading::OutputMessage<ReaderFrontend>("Clear", reader) {}
 
-	virtual bool Process()
+	bool Process() override
 		{
 		input_mgr->Clear(Object());
 		return true;
@@ -60,9 +60,9 @@ public:
 		: threading::OutputMessage<ReaderFrontend>("SendEvent", reader),
 		name(copy_string(name)), num_vals(num_vals), val(val) {}
 
-	virtual ~SendEventMessage()	{ delete [] name; }
+	~SendEventMessage() override	{ delete [] name; }
 
-	virtual bool Process()
+	bool Process() override
 		{
 		bool success = input_mgr->SendEvent(Object(), name, num_vals, val);
 
@@ -89,9 +89,9 @@ public:
 		: threading::OutputMessage<ReaderFrontend>("ReaderErrorMessage", reader)
 		{ type = arg_type; msg = copy_string(arg_msg); }
 
-	virtual ~ReaderErrorMessage() 	 { delete [] msg; }
+	~ReaderErrorMessage() override 	 { delete [] msg; }
 
-	virtual bool Process();
+	bool Process() override;
 
 private:
 	const char* msg;
@@ -104,7 +104,7 @@ public:
 		: threading::OutputMessage<ReaderFrontend>("SendEntry", reader),
 		val(val) { }
 
-	virtual bool Process()
+	bool Process() override
 		{
 		input_mgr->SendEntry(Object(), val);
 		return true;
@@ -119,7 +119,7 @@ public:
 	EndCurrentSendMessage(ReaderFrontend* reader)
 		: threading::OutputMessage<ReaderFrontend>("EndCurrentSend", reader) {}
 
-	virtual bool Process()
+	bool Process() override
 		{
 		input_mgr->EndCurrentSend(Object());
 		return true;
@@ -133,7 +133,7 @@ public:
 	EndOfDataMessage(ReaderFrontend* reader)
 		: threading::OutputMessage<ReaderFrontend>("EndOfData", reader) {}
 
-	virtual bool Process()
+	bool Process() override
 		{
 		input_mgr->SendEndOfData(Object());
 		return true;
@@ -147,7 +147,7 @@ public:
 	ReaderClosedMessage(ReaderFrontend* reader)
 		: threading::OutputMessage<ReaderFrontend>("ReaderClosed", reader) {}
 
-	virtual bool Process()
+	bool Process() override
 		{
 		Object()->SetDisable();
 		return input_mgr->RemoveStreamContinuation(Object());
@@ -159,10 +159,10 @@ private:
 class DisableMessage : public threading::OutputMessage<ReaderFrontend>
 {
 public:
-        DisableMessage(ReaderFrontend* writer)
+	DisableMessage(ReaderFrontend* writer)
 		: threading::OutputMessage<ReaderFrontend>("Disable", writer)	{}
 
-	virtual bool Process()
+	bool Process() override
 		{
 		Object()->SetDisable();
 		// And - because we do not need disabled objects any more -

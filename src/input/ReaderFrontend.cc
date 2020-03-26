@@ -14,7 +14,7 @@ public:
 		: threading::InputMessage<ReaderBackend>("Init", backend),
 		num_fields(num_fields), fields(fields) { }
 
-	virtual bool Process()
+	bool Process() override
 		{
 		return Object()->Init(num_fields, fields);
 		}
@@ -31,7 +31,7 @@ public:
 		: threading::InputMessage<ReaderBackend>("Update", backend)
 		 { }
 
-	virtual bool Process() { return Object()->Update(); }
+	bool Process() override { return Object()->Update(); }
 };
 
 ReaderFrontend::ReaderFrontend(const ReaderBackend::ReaderInfo& arg_info, EnumVal* type)
@@ -98,4 +98,3 @@ const char* ReaderFrontend::Name() const
 	}
 
 }
-

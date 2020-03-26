@@ -131,8 +131,23 @@ protected:
 
 	void AddRDs(AnalyInfo* a_i, const BroObj* o, const ReachingDefs& rd)
 		{
-		// ### think Union
-		a_i->insert(AnalyInfo::value_type(o, rd));
+		if ( HasRDs(a_i, o) )
+			MergeRDs(a_i, o, rd);
+		else
+			a_i->insert(AnalyInfo::value_type(o, rd));
+		}
+
+	void MergeRDs(AnalyInfo* a_i, const BroObj* o, const ReachingDefs& rd)
+		{
+		auto& curr_rds = a_i->find(o)->second;
+		for ( auto& one_rd : rd )
+			AddRD(curr_rds, one_rd.first, one_rd.second);
+		}
+
+	bool HasRDs(AnalyInfo* a_i, const BroObj* o) const
+		{
+		auto RDs = a_i->find(o);
+		return RDs != a_i->end();
 		}
 
 	void AddRD(ReachingDefs& rd, const ID* id, DefinitionPoint dp) const
@@ -245,10 +260,12 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 	auto rd = PredecessorRDs();
 	AddPreRDs(s, rd);
 
+	rd = PreRDs(s);
+
 	if ( trace )
 		{
 		printf("pre RDs for stmt %s:\n", stmt_name(s->Tag()));
-		DumpRDs(PreRDs(s));
+		DumpRDs(rd);
 		}
 
 	last_obj = s;
@@ -264,7 +281,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		// ### need to manually control traversal since
 		// don't want RDs coming out of the TrueBranch
 		// to propagate to the FalseBranch.
-		auto my_rds = PreRDs(s);
+		auto my_rds = rd;
 		AddPreRDs(i->TrueBranch(), my_rds);
 		AddPreRDs(i->FalseBranch(), my_rds);
 
@@ -293,7 +310,20 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		for ( const auto& id : *ids )
 			AddRD(rd, id, DefinitionPoint(s));
 
+		AddPreRDs(e, rd);
 		AddPreRDs(body, rd);
+
+		if ( e->Tag() == EXPR_NAME )
+			{
+			// Don't traverse into the loop expression,
+			// as it's okay if it's not initialized at this
+			// point - that will just result in any empty loop.
+			//
+			// But then we do need to manually traverse the
+			// body.
+			body->Traverse(this);
+			return TC_ABORTSTMT;
+			}
 
 		break;
 		}
@@ -481,6 +511,46 @@ bool RD_Decorate::CheckLHS(ReachingDefs& rd, const Expr* lhs,
 		return true;
 		}
 
+        case EXPR_FIELD:
+		{
+		auto f = lhs->AsFieldExpr();
+		auto r = f->Op();
+
+		if ( r->Tag() == EXPR_NAME )
+			{
+			// ### should track field assignment here
+
+			// Don't recurse into assessing the operand,
+			// since it's not a reference to the name itself.
+			return true;
+			}
+
+		return false;
+		}
+
+        case EXPR_INDEX:
+		{
+		auto i_e = lhs->AsIndexExpr();
+		auto aggr = i_e->Op1();
+		auto index = i_e->Op2();
+
+		if ( aggr->Tag() == EXPR_NAME )
+			{
+			// Count this as an initialization of the aggregate.
+			auto id = aggr->AsNameExpr()->Id();
+			AddRD(rd, id, DefinitionPoint(a));
+
+			// Don't recurse into assessing the aggregate,
+			// since it's okay in this context.  However,
+			// we do need to recurse into the index, which
+			// could have problems.
+			index->Traverse(this);
+			return true;
+			}
+
+		return false;
+		}
+
 	default:
 		return false;
 	}
@@ -518,30 +588,15 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 
 		if ( CheckLHS(rd, lhs, a) )
 			{
+			AddPostRDs(e, PreRDs(e));
 			AddPostRDs(a, rd);
+
 			rhs->Traverse(this);
 			return TC_ABORTSTMT;
 			}
 
 		// Too hard to figure out what's going on with the assignment.
 		// Just analyze it in terms of values it accesses.
-		break;
-		}
-
-        case EXPR_FIELD:
-		{
-		auto f = e->AsFieldExpr();
-		auto r = f->Op();
-
-		if ( r->Tag() == EXPR_NAME )
-			{
-			// ### should track field assignment here
-
-			// Don't recurse into assessing the operand,
-			// since it's not a reference to the name itself.
-			return TC_ABORTSTMT;
-			}
-
 		break;
 		}
 

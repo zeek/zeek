@@ -729,6 +729,11 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		return TC_ABORTSTMT;
 		}
 
+	case EXPR_LAMBDA:
+		// ### Too tricky to get these right.
+		AddPostRDs(e, PreRDs(e));
+		return TC_ABORTSTMT;
+
 	default:
 		break;
 	}

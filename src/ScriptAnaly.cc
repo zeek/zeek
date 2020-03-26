@@ -329,6 +329,10 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		for ( const auto& id : *ids )
 			AddRD(rd, id, DefinitionPoint(s));
 
+		auto val_var = f->ValueVar();
+		if ( val_var )
+			AddRD(rd, val_var, DefinitionPoint(s));
+
 		AddPreRDs(e, rd);
 		AddPreRDs(body, rd);
 

@@ -579,6 +579,27 @@ bool RD_Decorate::CheckLHS(ReachingDefs& rd, const Expr* lhs,
 		return true;
 		}
 
+	case EXPR_LIST:
+		{
+		auto l = lhs->AsListExpr();
+		for ( const auto& expr : l->Exprs() )
+			{
+			if ( expr->Tag() == EXPR_NAME )
+				{
+				auto n = expr->AsNameExpr();
+				auto id = n->Id();
+				AddRD(rd, id, DefinitionPoint(a));
+				}
+
+			else
+				// This will happen for table initialiers,
+				// for example.
+				return false;
+			}
+
+		return true;
+		}
+
         case EXPR_FIELD:
 		{
 		auto f = lhs->AsFieldExpr();

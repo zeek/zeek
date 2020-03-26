@@ -9,7 +9,7 @@ namespace Zeek_Finger {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("Finger", ::analyzer::finger::Finger_Analyzer::Instantiate));
 

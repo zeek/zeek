@@ -9,7 +9,7 @@ namespace Zeek_DHCP {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("DHCP", ::analyzer::dhcp::DHCP_Analyzer::Instantiate));
 

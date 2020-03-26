@@ -10,7 +10,7 @@ namespace Zeek_SIP {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("SIP", ::analyzer::SIP::SIP_Analyzer::Instantiate));
 

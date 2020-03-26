@@ -11,7 +11,7 @@ namespace Zeek_Unified2 {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::file_analysis::Component("UNIFIED2", ::file_analysis::Unified2::Instantiate));
 

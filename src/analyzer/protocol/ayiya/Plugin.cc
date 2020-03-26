@@ -9,7 +9,7 @@ namespace Zeek_AYIYA {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("AYIYA", ::analyzer::ayiya::AYIYA_Analyzer::Instantiate));
 

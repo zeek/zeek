@@ -9,7 +9,7 @@ namespace Zeek_ICMP {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("ICMP", ::analyzer::icmp::ICMP_Analyzer::Instantiate));
 

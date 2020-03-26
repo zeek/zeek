@@ -9,7 +9,7 @@ namespace Zeek_FileDataEvent {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::file_analysis::Component("DATA_EVENT", ::file_analysis::DataEvent::Instantiate));
 

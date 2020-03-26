@@ -9,7 +9,7 @@ namespace Zeek_UDP {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("UDP", ::analyzer::udp::UDP_Analyzer::Instantiate));
 

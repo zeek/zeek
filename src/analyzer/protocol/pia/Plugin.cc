@@ -9,7 +9,7 @@ namespace Zeek_PIA {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("PIA_TCP", ::analyzer::pia::PIA_TCP::Instantiate));
 		AddComponent(new ::analyzer::Component("PIA_UDP", ::analyzer::pia::PIA_UDP::Instantiate));

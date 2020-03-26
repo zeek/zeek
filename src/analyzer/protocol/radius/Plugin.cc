@@ -9,7 +9,7 @@ namespace Zeek_RADIUS {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("RADIUS", ::analyzer::RADIUS::RADIUS_Analyzer::Instantiate));
 

@@ -9,7 +9,7 @@ namespace Zeek_SMTP {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("SMTP", ::analyzer::smtp::SMTP_Analyzer::Instantiate));
 

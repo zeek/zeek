@@ -9,7 +9,7 @@ namespace Zeek_SMB {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("SMB", ::analyzer::smb::SMB_Analyzer::Instantiate));
 		AddComponent(new ::analyzer::Component("Contents_SMB", 0));

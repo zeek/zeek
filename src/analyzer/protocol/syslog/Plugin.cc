@@ -9,7 +9,7 @@ namespace Zeek_Syslog {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("Syslog", ::analyzer::syslog::Syslog_Analyzer::Instantiate));
 

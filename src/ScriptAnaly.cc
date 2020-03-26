@@ -367,6 +367,34 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 
 		if ( e && IsAggr(e) )
 			return TC_ABORTSTMT;
+
+		break;
+		}
+
+	case STMT_ADD:
+		{
+		auto a = s->AsAddStmt();
+		auto a_e = a->StmtExpr();
+
+		if ( a_e->Tag() == EXPR_INDEX )
+			{
+			auto a_e_i = a_e->AsIndexExpr();
+			auto a1 = a_e_i->Op1();
+			auto a2 = a_e_i->Op2();
+
+			if ( IsAggr(a1) )
+				{
+				a2->Traverse(this);
+
+				auto i1 = a1->AsNameExpr()->Id();
+				AddRD(rd, i1, DefinitionPoint(s));
+				AddPostRDs(s, rd);
+
+				return TC_ABORTSTMT;
+				}
+			}
+
+		break;
 		}
 
 	default:

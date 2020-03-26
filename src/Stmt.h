@@ -22,6 +22,7 @@ class WhileStmt;
 class ReturnStmt;
 class IfStmt;
 class ExprStmt;
+class AddStmt;
 class SwitchStmt;
 class InitStmt;
 class Frame;
@@ -69,6 +70,7 @@ public:
 	CONST_ACCESSOR(STMT_RETURN, ReturnStmt, AsReturnStmt)
 	CONST_ACCESSOR(STMT_IF, IfStmt, AsIfStmt)
 	CONST_ACCESSOR(STMT_EXPR, ExprStmt, AsExprStmt)
+	CONST_ACCESSOR(STMT_ADD, AddStmt, AsAddStmt)
 	CONST_ACCESSOR(STMT_SWITCH, SwitchStmt, AsSwitchStmt)
 	CONST_ACCESSOR(STMT_INIT, InitStmt, AsInitStmt)
 

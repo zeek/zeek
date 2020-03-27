@@ -1,4 +1,8 @@
 
+3.1.2-dev.5 | 2020-04-09 14:10:20 -0700
+
+  * Fix ERSPAN III optional sub-header parsing (Jon Siwek, Corelight)
+
 3.1.2-dev.4 | 2020-04-09 14:00:55 -0700
 
   * GH-865: fix parsing of SMB NegotiateContextList (Jon Siwek, Corelight)

@@ -12,7 +12,6 @@
 #include "Scope.h"
 #include "Type.h"
 #include "File.h"
-#include "Scope.h"
 #include "Traverse.h"
 #include "Val.h"
 #include "zeekygen/Manager.h"

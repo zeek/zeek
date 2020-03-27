@@ -351,6 +351,8 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	id.dst_addr = ip_hdr->DstAddr();
 	ConnectionMap* d = nullptr;
 	BifEnum::Tunnel::Type tunnel_type = BifEnum::Tunnel::IP;
+	int gre_version = -1;
+	int gre_link_type = DLT_RAW;
 
 	switch ( proto ) {
 	case IPPROTO_TCP:
@@ -415,9 +417,8 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 
 		uint16_t flags_ver = ntohs(*((uint16_t*)(data + 0)));
 		uint16_t proto_typ = ntohs(*((uint16_t*)(data + 2)));
-		int gre_version = flags_ver & 0x0007;
+		gre_version = flags_ver & 0x0007;
 
-		// If a carried packet has ethernet, this will help skip it.
 		unsigned int eth_len = 0;
 		unsigned int gre_len = gre_header_len(flags_ver);
 		unsigned int ppp_len = gre_version == 1 ? 4 : 0;
@@ -438,6 +439,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 				if ( len > gre_len + 14 )
 					{
 					eth_len = 14;
+					gre_link_type = DLT_EN10MB;
 					proto_typ = ntohs(*((uint16_t*)(data + gre_len + eth_len - 2)));
 					}
 				else
@@ -454,6 +456,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 					{
 					erspan_len = 8;
 					eth_len = 14;
+					gre_link_type = DLT_EN10MB;
 					proto_typ = ntohs(*((uint16_t*)(data + gre_len + erspan_len + eth_len - 2)));
 					}
 				else
@@ -470,6 +473,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 					{
 					erspan_len = 12;
 					eth_len = 14;
+					gre_link_type = DLT_EN10MB;
 
 					auto flags = data + gre_len + erspan_len - 1;
 					bool have_opt_header = ((*flags & 0x01) == 0x01);
@@ -493,19 +497,6 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 					return;
 					}
 				}
-
-			if ( proto_typ == 0x0800 )
-				proto = IPPROTO_IPV4;
-			else if ( proto_typ == 0x86dd )
-				proto = IPPROTO_IPV6;
-			else
-				{
-				// Not IPv4/IPv6 payload.
-				Weird("unknown_gre_protocol", ip_hdr, encapsulation,
-				      fmt("%d", proto_typ));
-				return;
-				}
-
 			}
 
 		else // gre_version == 1
@@ -554,9 +545,12 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 			proto = (ppp_proto == 0x0021) ? IPPROTO_IPV4 : IPPROTO_IPV6;
 			}
 
-		data += gre_len + ppp_len + eth_len + erspan_len;
-		len -= gre_len + ppp_len + eth_len + erspan_len;
-		caplen -= gre_len + ppp_len + eth_len + erspan_len;
+		// If we know there's an Ethernet header here, it's not skipped yet.
+		// The Packet::init() that happens later will process all layer 2
+		// data, including things like vlan tags.
+		data += gre_len + ppp_len + erspan_len;
+		len -= gre_len + ppp_len + erspan_len;
+		caplen -= gre_len + ppp_len + erspan_len;
 
 		// Treat GRE tunnel like IP tunnels, fallthrough to logic below now
 		// that GRE header is stripped and only payload packet remains.
@@ -580,20 +574,24 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 			return;
 			}
 
-		// Check for a valid inner packet first.
 		IP_Hdr* inner = 0;
-		int result = ParseIPPacket(caplen, data, proto, inner);
-		if ( result == -2 )
-			Weird("invalid_inner_IP_version", ip_hdr, encapsulation);
-		else if ( result < 0 )
-			Weird("truncated_inner_IP", ip_hdr, encapsulation);
-		else if ( result > 0 )
-			Weird("inner_IP_payload_length_mismatch", ip_hdr, encapsulation);
 
-		if ( result != 0 )
+		if ( gre_version != 0 )
 			{
-			delete inner;
-			return;
+			// Check for a valid inner packet first.
+			int result = ParseIPPacket(caplen, data, proto, inner);
+			if ( result == -2 )
+				Weird("invalid_inner_IP_version", ip_hdr, encapsulation);
+			else if ( result < 0 )
+				Weird("truncated_inner_IP", ip_hdr, encapsulation);
+			else if ( result > 0 )
+				Weird("inner_IP_payload_length_mismatch", ip_hdr, encapsulation);
+
+			if ( result != 0 )
+				{
+				delete inner;
+				return;
+				}
 			}
 
 		// Look up to see if we've already seen this IP tunnel, identified
@@ -617,8 +615,12 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		else
 			it->second.second = network_time;
 
-		DoNextInnerPacket(t, pkt, inner, encapsulation,
-		                  ip_tunnels[tunnel_idx].first);
+		if ( gre_version == 0 )
+			DoNextInnerPacket(t, pkt, caplen, len, data, gre_link_type,
+			                  encapsulation, ip_tunnels[tunnel_idx].first);
+		else
+			DoNextInnerPacket(t, pkt, inner, encapsulation,
+			                  ip_tunnels[tunnel_idx].first);
 
 		return;
 		}
@@ -727,7 +729,6 @@ void NetSessions::DoNextInnerPacket(double t, const Packet* pkt,
 
 	pkt_timeval ts;
 	int link_type;
-	Layer3Proto l3_proto;
 
 	if ( pkt )
 		ts = pkt->ts;
@@ -741,15 +742,9 @@ void NetSessions::DoNextInnerPacket(double t, const Packet* pkt,
 	const u_char* data = 0;
 
 	if ( inner->IP4_Hdr() )
-		{
 		data = (const u_char*) inner->IP4_Hdr();
-		l3_proto = L3_IPV4;
-		}
 	else
-		{
 		data = (const u_char*) inner->IP6_Hdr();
-		l3_proto = L3_IPV6;
-		}
 
 	EncapsulationStack* outer = prev ?
 			new EncapsulationStack(*prev) : new EncapsulationStack();
@@ -762,6 +757,40 @@ void NetSessions::DoNextInnerPacket(double t, const Packet* pkt,
 	DoNextPacket(t, &p, inner, outer);
 
 	delete inner;
+	delete outer;
+	}
+
+void NetSessions::DoNextInnerPacket(double t, const Packet* pkt,
+                                    uint32_t caplen, uint32_t len,
+                                    const u_char* data, int link_type,
+                                    const EncapsulationStack* prev,
+                                    const EncapsulatingConn& ec)
+	{
+	pkt_timeval ts;
+
+	if ( pkt )
+		ts = pkt->ts;
+	else
+		{
+		ts.tv_sec = (time_t) network_time;
+		ts.tv_usec = (suseconds_t)
+		    ((network_time - (double)ts.tv_sec) * 1000000);
+		}
+
+	EncapsulationStack* outer = prev ?
+			new EncapsulationStack(*prev) : new EncapsulationStack();
+	outer->Add(ec);
+
+	// Construct fake packet for DoNextPacket
+	Packet p;
+	p.Init(link_type, &ts, caplen, len, data, false, "");
+
+	if ( p.Layer2Valid() && (p.l3_proto == L3_IPV4 || p.l3_proto == L3_IPV6) )
+		{
+		auto inner = p.IP();
+		DoNextPacket(t, &p, &inner, outer);
+		}
+
 	delete outer;
 	}
 

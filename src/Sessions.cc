@@ -550,7 +550,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 					erspan_len = 12;
 					eth_len = 14;
 
-					auto flags = data + erspan_len - 1;
+					auto flags = data + gre_len + erspan_len - 1;
 					bool have_opt_header = ((*flags & 0x01) == 0x01);
 
 					if ( have_opt_header  )

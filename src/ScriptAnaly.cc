@@ -128,6 +128,9 @@ protected:
 	bool IsAggrTag(TypeTag tag) const;
 	bool IsAggr(const Expr* e) const;
 
+	bool ControlReachesEnd(const Stmt* s, bool is_definite,
+				bool ignore_break = false) const;
+
 	const ReachingDefs& PredecessorRDs() const
 		{
 		auto& rd = PostRDs(last_obj);
@@ -222,6 +225,8 @@ protected:
 	bool RDsDiffer(const ReachingDefs& r1, const ReachingDefs& r2) const;
 
 	ReachingDefs IntersectRDs(const ReachingDefs& r1,
+					const ReachingDefs& r2) const;
+	ReachingDefs UnionRDs(const ReachingDefs& r1,
 					const ReachingDefs& r2) const;
 
 	bool RDHasPair(const ReachingDefs& r,
@@ -320,7 +325,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		auto cases = sw->Cases();
 
 		for ( const auto& c : *cases )
-			AddPreRDs(c, rd);
+			AddPreRDs(c->Body(), rd);
 
 		break;
 		}
@@ -432,7 +437,20 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		auto if_branch_rd = PostRDs(i->TrueBranch());
 		auto else_branch_rd = PostRDs(i->FalseBranch());
 
-		post_rds = IntersectRDs(if_branch_rd, else_branch_rd);
+		auto true_reached = ControlReachesEnd(i->TrueBranch(), false);
+		auto false_reached = ControlReachesEnd(i->FalseBranch(), false);
+
+		if ( true_reached && false_reached )
+			post_rds = IntersectRDs(if_branch_rd, else_branch_rd);
+
+		else if ( true_reached )
+			post_rds = if_branch_rd;
+
+		else if ( false_reached )
+			post_rds = else_branch_rd;
+
+		else
+			; // leave empty
 
 		break;
 		}
@@ -443,15 +461,29 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		auto cases = sw->Cases();
 
 		bool did_first = false;
+		bool default_seen = false;
 
 		for ( const auto& c : *cases )
 			{
-			auto case_rd = PostRDs(c);
-			if ( did_first )
-				post_rds = IntersectRDs(post_rds, case_rd);
-			else
-				post_rds = case_rd;
+			if ( ControlReachesEnd(c->Body(), false) )
+				{
+				auto case_rd = PostRDs(c->Body());
+				if ( did_first )
+					post_rds = IntersectRDs(post_rds,
+								case_rd);
+				else
+					post_rds = case_rd;
+				}
+
+			if ( (! c->ExprCases() ||
+			      c->ExprCases()->Exprs().length() == 0) &&
+			     (! c->TypeCases() ||
+			      c->TypeCases()->length() == 0) )
+				default_seen = true;
 			}
+
+		if ( ! default_seen )
+			post_rds = UnionRDs(post_rds, PreRDs(s));
 
 		break;
 		}
@@ -492,10 +524,16 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		auto l = s->AsStmtList();
 		auto stmts = l->Stmts();
 
-		if ( stmts.length() == 0 )
-			post_rds = PreRDs(s);
+		if ( ControlReachesEnd(l, false ) )
+			{
+			if ( stmts.length() == 0 )
+				post_rds = PreRDs(s);
+			else
+				post_rds = PostRDs(stmts[stmts.length() - 1]);
+			}
+
 		else
-			post_rds = PostRDs(stmts[stmts.length() - 1]);
+			;  // leave empty
 
 		break;
 		}
@@ -666,6 +704,92 @@ bool RD_Decorate::IsAggr(const Expr* e) const
 	return IsAggrTag(tag);
 	}
 
+bool RD_Decorate::ControlReachesEnd(const Stmt* s, bool is_definite,
+					bool ignore_break) const
+	{
+	switch ( s->Tag() ) {
+	case STMT_NEXT:
+	case STMT_RETURN:
+		return false;
+
+	case STMT_BREAK:
+		return ignore_break;
+
+	case STMT_IF:
+		{
+		auto i = s->AsIfStmt();
+
+		auto true_reaches =
+			ControlReachesEnd(i->TrueBranch(), is_definite);
+		auto false_reaches =
+			ControlReachesEnd(i->FalseBranch(), is_definite);
+
+		if ( is_definite )
+			return true_reaches && false_reaches;
+		else
+			return true_reaches || false_reaches;
+		}
+
+	case STMT_SWITCH:
+		{
+		auto sw = s->AsSwitchStmt();
+		auto cases = sw->Cases();
+
+		bool control_reaches_end = is_definite;
+		bool default_seen = false;
+		for ( const auto& c : *cases )
+			{
+			bool body_def = ControlReachesEnd(c->Body(),
+								is_definite,
+								true);
+
+			if ( is_definite && ! body_def )
+				control_reaches_end = false;
+
+			if ( ! is_definite && body_def )
+				control_reaches_end = true;
+
+			if ( (! c->ExprCases() ||
+			      c->ExprCases()->Exprs().length() == 0) &&
+			     (! c->TypeCases() ||
+			      c->TypeCases()->length() == 0) )
+				default_seen = true;
+			}
+
+		if ( ! is_definite && ! default_seen )
+			return true;
+
+		return control_reaches_end;
+		}
+
+	case STMT_LIST:
+	case STMT_EVENT_BODY_LIST:
+		{
+		auto l = s->AsStmtList();
+
+		bool reaches_so_far = true;
+
+		for ( const auto& stmt : l->Stmts() )
+			{
+			if ( ! reaches_so_far )
+				{
+				printf("dead code: %s\n", obj_desc(stmt));
+				return false;
+				}
+
+			if ( ! ControlReachesEnd(stmt, is_definite,
+							ignore_break) )
+				reaches_so_far = false;
+			}
+
+		return reaches_so_far;
+		}
+
+	default:
+		return true;
+	}
+	}
+
 TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	{
 	auto rd = PredecessorRDs();
@@ -816,6 +940,23 @@ ReachingDefs RD_Decorate::IntersectRDs(const ReachingDefs& r1,
 	while ( i != r1.end() )
 		{
 		if ( RDHasPair(r2, i->first, i->second) )
+			AddRD(res, i->first, i->second);
+
+		++i;
+		}
+
+	return res;
+	}
+
+ReachingDefs RD_Decorate::UnionRDs(const ReachingDefs& r1,
+					const ReachingDefs& r2) const
+	{
+	ReachingDefs res = r2;
+
+	auto i = r1.begin();
+	while ( i != r1.end() )
+		{
+		if ( ! RDHasPair(r2, i->first, i->second) )
 			AddRD(res, i->first, i->second);
 
 		++i;

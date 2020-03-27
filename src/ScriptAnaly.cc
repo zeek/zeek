@@ -24,6 +24,39 @@ static const char* obj_desc(const BroObj* o)
 	}
 
 
+class DefinitionItem {
+public:
+	DefinitionItem(const ID* _id)
+		{
+		is_id = true;
+		id = _id;
+		di = nullptr;
+		field_name = nullptr;
+		}
+
+	DefinitionItem(const DefinitionItem* _di, const char* _field_name)
+		{
+		is_id = false;
+		id = nullptr;
+		di = _di;
+		field_name = _field_name;
+		}
+
+	const char* Name() const
+		{
+		if ( is_id )
+			return id->Name();
+		else
+			return field_name;
+		}
+
+protected:
+	bool is_id;
+	const ID* id;
+	const DefinitionItem* di;
+	const char* field_name;
+};
+
 typedef enum {
 	NO_DEF,
 	STMT_DEF,
@@ -92,9 +125,11 @@ protected:
 	const BroObj* o;
 };
 
+typedef std::map<const ID*, DefinitionItem*> ID_to_DI_Map;
+
 static DefinitionPoint no_def;
 
-typedef std::map<const ID*, DefinitionPoint> ReachingDefs;
+typedef std::map<const DefinitionItem*, DefinitionPoint> ReachingDefs;
 
 static ReachingDefs null_RDs;
 
@@ -112,6 +147,7 @@ public:
 
 	~RD_Decorate() override
 		{
+		// ### delete i2d_map;
 		delete pre_a_i;
 		delete post_a_i;
 		}
@@ -130,6 +166,9 @@ protected:
 
 	bool ControlReachesEnd(const Stmt* s, bool is_definite,
 				bool ignore_break = false) const;
+
+	const DefinitionItem* GetIDReachingDef(const ID* id);
+	const DefinitionItem* GetIDReachingDef(const ID* id) const;
 
 	const ReachingDefs& PredecessorRDs() const
 		{
@@ -175,8 +214,15 @@ protected:
 	void AddRD(ReachingDefs& rd, const ID* id, DefinitionPoint dp) const
 		{
 		if ( id == 0 )
-			printf("ooops\n");
-		rd.insert(ReachingDefs::value_type(id, dp));
+			printf("oops\n");
+
+		AddRD(rd, GetIDReachingDef(id), dp);
+		}
+
+	void AddRD(ReachingDefs& rd, const DefinitionItem* di,
+			DefinitionPoint dp) const
+		{
+		rd.insert(ReachingDefs::value_type(di, dp));
 		}
 
 	bool HasPreRD(const BroObj* o, const ID* id) const
@@ -186,11 +232,17 @@ protected:
 
 	bool HasRD(const AnalyInfo* a_i, const BroObj* o, const ID* id) const
 		{
+		return HasRD(a_i, o, GetIDReachingDef(id));
+		}
+
+	bool HasRD(const AnalyInfo* a_i, const BroObj* o,
+			const DefinitionItem* di) const
+		{
 		auto RDs = a_i->find(o);
 		if ( RDs == a_i->end() )
 			return false;
 
-		return RDs->second.find(id) != RDs->second.end();
+		return RDs->second.find(di) != RDs->second.end();
 		}
 
 	const DefinitionPoint& FindRD(const AnalyInfo* a_i, const BroObj* o,
@@ -200,7 +252,8 @@ protected:
 		if ( RDs == a_i->end() )
 			return no_def;
 
-		auto dp = RDs->second.find(id);
+		auto di = GetIDReachingDef(id);
+		auto dp = RDs->second.find(di);
 		if ( dp == RDs->second.end() )
 			return no_def;
 
@@ -220,7 +273,7 @@ protected:
 		}
 
 	void DumpRDs(const ReachingDefs& rd) const;
-	void PrintRD(const ID*, const DefinitionPoint& dp) const;
+	void PrintRD(const DefinitionItem*, const DefinitionPoint& dp) const;
 
 	bool RDsDiffer(const ReachingDefs& r1, const ReachingDefs& r2) const;
 
@@ -229,8 +282,8 @@ protected:
 	ReachingDefs UnionRDs(const ReachingDefs& r1,
 					const ReachingDefs& r2) const;
 
-	bool RDHasPair(const ReachingDefs& r,
-			const ID* id, const DefinitionPoint& dp) const;
+	bool RDHasPair(const ReachingDefs& r, const DefinitionItem* di,
+			const DefinitionPoint& dp) const;
 
 	// Mappings of reaching defs pre- and post- execution
 	// of the given object.
@@ -239,6 +292,8 @@ protected:
 
 	// The object we most recently finished analyzing.
 	const BroObj* last_obj;
+
+	ID_to_DI_Map i2d_map;
 
 	bool trace = false;
 };
@@ -790,6 +845,28 @@ bool RD_Decorate::ControlReachesEnd(const Stmt* s, bool is_definite,
 	}
 	}
 
+const DefinitionItem* RD_Decorate::GetIDReachingDef(const ID* id)
+	{
+	auto di = i2d_map.find(id);
+	if ( di == i2d_map.end() )
+		{
+		auto new_entry = new DefinitionItem(id);
+		i2d_map.insert(ID_to_DI_Map::value_type(id, new_entry));
+		return new_entry;
+		}
+	else
+		return di->second;
+	}
+
+const DefinitionItem* RD_Decorate::GetIDReachingDef(const ID* id) const
+	{
+	auto di = i2d_map.find(id);
+	if ( di != i2d_map.end() )
+		return di->second;
+	else
+		return nullptr;
+	}
+
 TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	{
 	auto rd = PredecessorRDs();
@@ -923,11 +1000,10 @@ TraversalCode RD_Decorate::PostExpr(const Expr* e)
 	}
 
 
-bool RD_Decorate::RDHasPair(const ReachingDefs& r,
-				const ID* id, const DefinitionPoint& dp) const
+bool RD_Decorate::RDHasPair(const ReachingDefs& r, const DefinitionItem* di,
+				const DefinitionPoint& dp) const
 	{
-	// ### update for multimap
-	auto l = r.find(id);
+	auto l = r.find(di);
 	return l != r.end() && l->second.SameAs(dp);
 	}
 
@@ -991,9 +1067,10 @@ void RD_Decorate::DumpRDs(const ReachingDefs& rd) const
 		PrintRD(r->first, r->second);
 	}
 
-void RD_Decorate::PrintRD(const ID* id, const DefinitionPoint& dp) const
+void RD_Decorate::PrintRD(const DefinitionItem* di,
+				const DefinitionPoint& dp) const
 	{
-	printf("RD for %s\n", id->Name());
+	printf("RD for %s\n", di->Name());
 	}
 
 class FolderFinder : public TraversalCallback {

@@ -9,6 +9,7 @@ module Intel;
 
 export {
 	redef enum Log::ID += { LOG };
+
 	## Enum type to represent various types of intelligence data.
 	type Type: enum {
 		## An IP address.

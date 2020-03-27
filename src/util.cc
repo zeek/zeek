@@ -1846,7 +1846,7 @@ FILE* rotate_file(const char* name, zeek::RecordVal* rotate_info)
 	// Build file names.
 	const int buflen = strlen(name) + 128;
 
-	std::string newname = fmt("%s.%d.%.06f.tmp", name, getpid(), network_time);
+	std::string newname = fmt2("{:s}.{:d}.{:.06f}.tmp", name, getpid(), network_time);
 	std::string tmpname = newname + ".tmp";
 
 	// First open the new file using a temporary name.
@@ -1891,7 +1891,7 @@ FILE* rotate_file(const char* name, zeek::RecordVal* rotate_info)
 const char* log_file_name(const char* tag)
 	{
 	const char* env = zeekenv("ZEEK_LOG_SUFFIX");
-	return fmt("%s.%s", tag, (env ? env : "log"));
+	return fmt2("{:s}.{:s}", tag, (env ? env : "log"));
 	}
 
 double parse_rotate_base_time(const char* rotate_base_time)

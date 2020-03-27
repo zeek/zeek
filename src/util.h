@@ -61,6 +61,10 @@ extern HeapLeakChecker* heap_checker;
 #include <pthread_np.h>
 #endif
 
+#define FMT_NAMESPACE_NAME fmtlib
+#define FMT_HEADER_ONLY
+#include "fmt/format.h"
+
 [[deprecated("Remove in v4.1. Use uint64_t instead.")]]
 typedef uint64_t uint64;
 [[deprecated("Remove in v4.1. Use uint32_t instead.")]]
@@ -183,6 +187,16 @@ extern const char* vfmt(const char* format, va_list args);
 extern const char* fmt(const char* format, ...)
 	__attribute__((format (printf, 1, 2)));
 extern const char* fmt_access_time(double time);
+
+template <typename... Args>
+const char* fmt2(const char* format, Args&&... args)
+	{
+	static fmtlib::memory_buffer out;
+	out.clear();
+	fmtlib::format_to(out, format, args...);
+	out.push_back('\0');
+	return out.data();
+	}
 
 extern bool ensure_intermediate_dirs(const char* dirname);
 extern bool ensure_dir(const char *dirname);

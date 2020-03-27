@@ -1,3 +1,57 @@
+3.2.0-dev.300 | 2020-03-27 11:48:46 -0700
+
+  * Func::DescribeDebug: move a NumFields() call out of loop (Jon Siwek, Corelight)
+
+  * Use const-ref parameter for zeek::val_list_to_args()
+
+    It ended up being used a bit more than initially expected and this
+    is closer to the style we're generally aiming for. (Jon Siwek, Corelight)
+
+  * Fix missing IntrusivePtr.h include and ambiguous ODesc::Add call (Jon Siwek, Corelight)
+
+  * Remove TimerMgr arg from event queuing/scheduling methods
+
+    It's not useful for anything since there's only ever a single TimerMgr. (Jon Siwek, Corelight)
+
+  * Deprecate Analyzer::ConnectionEvent()
+
+    And update usages to Analyzer::EnqueueConnEvent() (Jon Siwek, Corelight)
+
+  * Deprecate file_analysis::File::FileEvent methods using val_list args
+
+    And update usages to the overload that takes a zeek::Args instead. (Jon Siwek, Corelight)
+
+  * Deprecate Connection::ConnectionEvent methods
+
+    And update usages to Connection::EnqueueEvent (Jon Siwek, Corelight)
+
+  * Deprecate EventMgr::QueueEventFast() and update usages to Enqueue() (Jon Siwek, Corelight)
+
+  * Deprecate EventMgr::QueueEvent() and update usages to Enqueue() (Jon Siwek, Corelight)
+
+  * Deprecate Func::Call(val_list*, ...)
+
+    The version taking a vector of intrusive pointers should be used
+    instead.  A variadic version is also added that forwards all arguments. (Jon Siwek, Corelight)
+
+  * Use vector<IntrusivePtr<Val>> for Func::Call and Event queuing args
+
+    This change may break BIFs that use @ARGS@, @ARG@, or @ARGC@ since their
+    types have changed. (Jon Siwek, Corelight)
+
+  * Fix memory leak in Zeek when-statement bodies with runtime errors (Jon Siwek, Corelight)
+
+  * Change TableVal::RecoverIndex() to return IntrusivePtr (Jon Siwek, Corelight)
+
+  * Use IntrusivePtr in TableVal::CallExpireFunc (Jon Siwek, Corelight)
+
+  * Fix memory leak when runtime error occurs in a Zeek for-loop (Jon Siwek, Corelight)
+
+  * Enable leak checks for btests that produce runtime exceptions
+
+    These were previously reporting leaks due to various allocations not
+    getting cleaned up during the stack unwind, but at the current state of
+    the transition toward IntrusivePtr usage, theses tests no longer leak. (Jon Siwek, Corelight)
 
 3.2.0-dev.280 | 2020-03-24 13:49:43 -0700
 

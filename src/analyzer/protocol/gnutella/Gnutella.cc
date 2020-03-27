@@ -59,9 +59,9 @@ void Gnutella_Analyzer::Done()
 	if ( ! sent_establish && (gnutella_establish || gnutella_not_establish) )
 		{
 		if ( Established() && gnutella_establish )
-			ConnectionEventFast(gnutella_establish, {BuildConnVal()});
+			EnqueueConnEvent(gnutella_establish, IntrusivePtr{AdoptRef{}, BuildConnVal()});
 		else if ( ! Established () && gnutella_not_establish )
-			ConnectionEventFast(gnutella_not_establish, {BuildConnVal()});
+			EnqueueConnEvent(gnutella_not_establish, IntrusivePtr{AdoptRef{}, BuildConnVal()});
 		}
 
 	if ( gnutella_partial_binary_msg )
@@ -71,14 +71,12 @@ void Gnutella_Analyzer::Done()
 		for ( int i = 0; i < 2; ++i, p = resp_msg_state )
 			{
 			if ( ! p->msg_sent && p->msg_pos )
-				{
-				ConnectionEventFast(gnutella_partial_binary_msg, {
-					BuildConnVal(),
-					new StringVal(p->msg),
-					val_mgr->GetBool((i == 0)),
-					val_mgr->GetCount(p->msg_pos),
-				});
-				}
+				EnqueueConnEvent(gnutella_partial_binary_msg,
+					IntrusivePtr{AdoptRef{}, BuildConnVal()},
+					make_intrusive<StringVal>(p->msg),
+					IntrusivePtr{AdoptRef{}, val_mgr->GetBool((i == 0))},
+					IntrusivePtr{AdoptRef{}, val_mgr->GetCount(p->msg_pos)}
+				);
 
 			else if ( ! p->msg_sent && p->payload_left )
 				SendEvents(p, (i == 0));
@@ -120,9 +118,7 @@ int Gnutella_Analyzer::IsHTTP(string header)
 		return 0;
 
 	if ( gnutella_http_notify )
-		{
-		ConnectionEventFast(gnutella_http_notify, {BuildConnVal()});
-		}
+		EnqueueConnEvent(gnutella_http_notify, IntrusivePtr{AdoptRef{}, BuildConnVal()});
 
 	analyzer::Analyzer* a = analyzer_mgr->InstantiateAnalyzer("HTTP", Conn());
 
@@ -180,13 +176,11 @@ void Gnutella_Analyzer::DeliverLines(int len, const u_char* data, bool orig)
 		else
 			{
 			if ( gnutella_text_msg )
-				{
-				ConnectionEventFast(gnutella_text_msg, {
-					BuildConnVal(),
-					val_mgr->GetBool(orig),
-					new StringVal(ms->headers.data()),
-				});
-				}
+				EnqueueConnEvent(gnutella_text_msg,
+					IntrusivePtr{AdoptRef{}, BuildConnVal()},
+					IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+					make_intrusive<StringVal>(ms->headers.data())
+				);
 
 			ms->headers = "";
 			state |= new_state;
@@ -195,7 +189,7 @@ void Gnutella_Analyzer::DeliverLines(int len, const u_char* data, bool orig)
 				{
 				sent_establish = 1;
 
-				ConnectionEventFast(gnutella_establish, {BuildConnVal()});
+				EnqueueConnEvent(gnutella_establish, IntrusivePtr{AdoptRef{}, BuildConnVal()});
 				}
 			}
 		}
@@ -220,20 +214,18 @@ void Gnutella_Analyzer::SendEvents(GnutellaMsgState* p, bool is_orig)
 		return;
 
 	if ( gnutella_binary_msg )
-		{
-		ConnectionEventFast(gnutella_binary_msg, {
-			BuildConnVal(),
-			val_mgr->GetBool(is_orig),
-			val_mgr->GetCount(p->msg_type),
-			val_mgr->GetCount(p->msg_ttl),
-			val_mgr->GetCount(p->msg_hops),
-			val_mgr->GetCount(p->msg_len),
-			new StringVal(p->payload),
-			val_mgr->GetCount(p->payload_len),
-			val_mgr->GetBool((p->payload_len < min(p->msg_len, (unsigned int)GNUTELLA_MAX_PAYLOAD))),
-			val_mgr->GetBool((p->payload_left == 0)),
-		});
-		}
+		EnqueueConnEvent(gnutella_binary_msg,
+			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(p->msg_type)},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(p->msg_ttl)},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(p->msg_hops)},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(p->msg_len)},
+			make_intrusive<StringVal>(p->payload),
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(p->payload_len)},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetBool((p->payload_len < min(p->msg_len, (unsigned int)GNUTELLA_MAX_PAYLOAD)))},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetBool((p->payload_left == 0))}
+		);
 	}
 
 

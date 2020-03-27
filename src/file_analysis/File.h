@@ -10,6 +10,7 @@
 #include "AnalyzerSet.h"
 #include "BroString.h"
 #include "BroList.h" // for val_list
+#include "ZeekArgs.h"
 #include "WeirdState.h"
 
 using std::string;
@@ -175,6 +176,7 @@ public:
 	 * @param h pointer to an event handler.
 	 * @param vl list of argument values to pass to event call.
 	 */
+	[[deprecated("Remove in v4.1. Use zeek::Args overload instead.")]]
 	void FileEvent(EventHandlerPtr h, val_list* vl);
 
 	/**
@@ -182,7 +184,15 @@ public:
 	 * @param h pointer to an event handler.
 	 * @param vl list of argument values to pass to event call.
 	 */
+	[[deprecated("Remove in v4.1. Use zeek::Args overload instead.")]]
 	void FileEvent(EventHandlerPtr h, val_list vl);
+
+	/**
+	 * Raises an event related to the file's life-cycle.
+	 * @param h pointer to an event handler.
+	 * @param args list of argument values to pass to event call.
+	 */
+	void FileEvent(EventHandlerPtr h, zeek::Args args);
 
 	/**
 	 * Sets the MIME type for a file to a specific value.

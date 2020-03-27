@@ -338,46 +338,40 @@ void RPC_Interpreter::Timeout()
 void RPC_Interpreter::Event_RPC_Dialogue(RPC_CallInfo* c, BifEnum::rpc_status status, int reply_len)
 	{
 	if ( rpc_dialogue )
-		{
-		analyzer->ConnectionEventFast(rpc_dialogue, {
-			analyzer->BuildConnVal(),
-			val_mgr->GetCount(c->Program()),
-			val_mgr->GetCount(c->Version()),
-			val_mgr->GetCount(c->Proc()),
-			BifType::Enum::rpc_status->GetVal(status).release(),
-			new Val(c->StartTime(), TYPE_TIME),
-			val_mgr->GetCount(c->CallLen()),
-			val_mgr->GetCount(reply_len),
-		});
-		}
+		analyzer->EnqueueConnEvent(rpc_dialogue,
+			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(c->Program())},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(c->Version())},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(c->Proc())},
+			BifType::Enum::rpc_status->GetVal(status),
+			make_intrusive<Val>(c->StartTime(), TYPE_TIME),
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(c->CallLen())},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(reply_len)}
+		);
 	}
 
 void RPC_Interpreter::Event_RPC_Call(RPC_CallInfo* c)
 	{
 	if ( rpc_call )
-		{
-		analyzer->ConnectionEventFast(rpc_call, {
-			analyzer->BuildConnVal(),
-			val_mgr->GetCount(c->XID()),
-			val_mgr->GetCount(c->Program()),
-			val_mgr->GetCount(c->Version()),
-			val_mgr->GetCount(c->Proc()),
-			val_mgr->GetCount(c->CallLen()),
-		});
-		}
+		analyzer->EnqueueConnEvent(rpc_call,
+			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(c->XID())},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(c->Program())},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(c->Version())},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(c->Proc())},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(c->CallLen())}
+		);
 	}
 
 void RPC_Interpreter::Event_RPC_Reply(uint32_t xid, BifEnum::rpc_status status, int reply_len)
 	{
 	if ( rpc_reply )
-		{
-		analyzer->ConnectionEventFast(rpc_reply, {
-			analyzer->BuildConnVal(),
-			val_mgr->GetCount(xid),
-			BifType::Enum::rpc_status->GetVal(status).release(),
-			val_mgr->GetCount(reply_len),
-		});
-		}
+		analyzer->EnqueueConnEvent(rpc_reply,
+			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(xid)},
+			BifType::Enum::rpc_status->GetVal(status),
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(reply_len)}
+		);
 	}
 
 void RPC_Interpreter::Weird(const char* msg, const char* addl)

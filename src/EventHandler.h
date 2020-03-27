@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BroList.h"
+#include "ZeekArgs.h"
 
 #include <unordered_set>
 #include <string>
@@ -31,7 +32,7 @@ public:
 		auto_publish.erase(topic);
 		}
 
-	void Call(val_list* vl, bool no_remote = false);
+	void Call(const zeek::Args& vl, bool no_remote = false);
 
 	// Returns true if there is at least one local or remote handler.
 	explicit operator  bool() const;
@@ -52,7 +53,7 @@ public:
 	bool GenerateAlways()	{ return generate_always; }
 
 private:
-	void NewEvent(val_list* vl);	// Raise new_event() meta event.
+	void NewEvent(const zeek::Args& vl);	// Raise new_event() meta event.
 
 	const char* name;
 	Func* local;

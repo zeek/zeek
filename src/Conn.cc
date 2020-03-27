@@ -203,7 +203,7 @@ void Connection::NextPacket(double t, int is_orig,
 			is_successful = true;
 
 		if ( ! was_successful && is_successful && connection_successful )
-			ConnectionEventFast(connection_successful, nullptr, {BuildConnVal()});
+			EnqueueEvent(connection_successful, nullptr, IntrusivePtr{AdoptRef{}, BuildConnVal()});
 		}
 	else
 		last_time = t;
@@ -259,11 +259,11 @@ void Connection::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig,
 		// and at this stage it's not a *multiple* instance.
 		return;
 
-	ConnectionEventFast(e, 0, {
-		BuildConnVal(),
-		val_mgr->GetBool(is_orig),
-		val_mgr->GetCount(threshold)
-	});
+	EnqueueEvent(e, nullptr,
+		IntrusivePtr{AdoptRef{}, BuildConnVal()},
+		IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)},
+		IntrusivePtr{AdoptRef{}, val_mgr->GetCount(threshold)}
+	);
 	}
 
 void Connection::DeleteTimer(double /* t */)
@@ -323,7 +323,7 @@ void Connection::EnableStatusUpdateTimer()
 
 void Connection::StatusUpdateTimer(double t)
 	{
-	ConnectionEventFast(connection_status_update, 0, { BuildConnVal() });
+	EnqueueEvent(connection_status_update, nullptr, IntrusivePtr{AdoptRef{}, BuildConnVal()});
 	ADD_TIMER(&Connection::StatusUpdateTimer,
 			network_time + connection_status_update_interval, 0,
 			TIMER_CONN_STATUS_UPDATE);
@@ -446,15 +446,13 @@ void Connection::Match(Rule::PatternType type, const u_char* data, int len, bool
 
 void Connection::RemovalEvent()
 	{
-	auto cv = BuildConnVal();
+	auto cv = IntrusivePtr{AdoptRef{}, BuildConnVal()};
 
 	if ( connection_state_remove )
-		ConnectionEventFast(connection_state_remove, nullptr, {cv->Ref()});
+		EnqueueEvent(connection_state_remove, nullptr, cv);
 
 	if ( is_successful && successful_connection_remove )
-		ConnectionEventFast(successful_connection_remove, nullptr, {cv->Ref()});
-
-	Unref(cv);
+		EnqueueEvent(successful_connection_remove, nullptr, cv);
 	}
 
 void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const char* name)
@@ -463,10 +461,9 @@ void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const ch
 		return;
 
 	if ( name )
-		ConnectionEventFast(f, analyzer, {new StringVal(name), BuildConnVal()});
+		EnqueueEvent(f, analyzer, make_intrusive<StringVal>(name), IntrusivePtr{AdoptRef{}, BuildConnVal()});
 	else
-		ConnectionEventFast(f, analyzer, {BuildConnVal()});
-
+		EnqueueEvent(f, analyzer, IntrusivePtr{AdoptRef{}, BuildConnVal()});
 	}
 
 void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1, Val* v2)
@@ -479,39 +476,50 @@ void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1,
 		}
 
 	if ( v2 )
-		ConnectionEventFast(f, analyzer, {BuildConnVal(), v1, v2});
+		EnqueueEvent(f, analyzer,
+		             IntrusivePtr{AdoptRef{}, BuildConnVal()},
+		             IntrusivePtr{AdoptRef{}, v1},
+		             IntrusivePtr{AdoptRef{}, v2});
 	else
-		ConnectionEventFast(f, analyzer, {BuildConnVal(), v1});
+		EnqueueEvent(f, analyzer,
+		             IntrusivePtr{AdoptRef{}, BuildConnVal()},
+		             IntrusivePtr{AdoptRef{}, v1});
 	}
 
 void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, val_list vl)
 	{
+	auto args = zeek::val_list_to_args(vl);
+
 	if ( ! f )
-		{
 		// This may actually happen if there is no local handler
 		// and a previously existing remote handler went away.
-		for ( const auto& v : vl)
-			Unref(v);
-
 		return;
-		}
 
 	// "this" is passed as a cookie for the event
-	mgr.QueueEvent(f, std::move(vl), SOURCE_LOCAL,
-			a ? a->GetID() : 0, timer_mgr, this);
+	mgr.Enqueue(f, std::move(args), SOURCE_LOCAL, a ? a->GetID() : 0, this);
 	}
 
 void Connection::ConnectionEventFast(EventHandlerPtr f, analyzer::Analyzer* a, val_list vl)
 	{
 	// "this" is passed as a cookie for the event
-	mgr.QueueEventFast(f, std::move(vl), SOURCE_LOCAL,
-			a ? a->GetID() : 0, timer_mgr, this);
+	mgr.Enqueue(f, zeek::val_list_to_args(vl), SOURCE_LOCAL,
+	            a ? a->GetID() : 0, this);
 	}
 
 void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, val_list* vl)
 	{
-	ConnectionEvent(f, a, std::move(*vl));
+	auto args = zeek::val_list_to_args(*vl);
 	delete vl;
+
+	if ( f )
+		EnqueueEvent(f, a, std::move(args));
+	}
+
+void Connection::EnqueueEvent(EventHandlerPtr f, analyzer::Analyzer* a,
+                              zeek::Args args)
+	{
+	// "this" is passed as a cookie for the event
+	mgr.Enqueue(f, std::move(args), SOURCE_LOCAL, a ? a->GetID() : 0, this);
 	}
 
 void Connection::Weird(const char* name, const char* addl)
@@ -688,12 +696,12 @@ void Connection::CheckFlowLabel(bool is_orig, uint32_t flow_label)
 		if ( connection_flow_label_changed &&
 		     (is_orig ? saw_first_orig_packet : saw_first_resp_packet) )
 			{
-			ConnectionEventFast(connection_flow_label_changed, 0, {
-				BuildConnVal(),
-				val_mgr->GetBool(is_orig),
-				val_mgr->GetCount(my_flow_label),
-				val_mgr->GetCount(flow_label),
-			});
+			EnqueueEvent(connection_flow_label_changed, 0,
+				IntrusivePtr{AdoptRef{}, BuildConnVal()},
+				IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)},
+				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(my_flow_label)},
+				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(flow_label)}
+			);
 			}
 
 		my_flow_label = flow_label;

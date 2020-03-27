@@ -67,14 +67,12 @@ void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig
 			host = at + 1;
 
 		if ( finger_request )
-			{
-			ConnectionEventFast(finger_request, {
-				BuildConnVal(),
-				val_mgr->GetBool(long_cnt),
-				new StringVal(at - line, line),
-				new StringVal(end_of_line - host, host),
-			});
-			}
+			EnqueueConnEvent(finger_request,
+				IntrusivePtr{AdoptRef{}, BuildConnVal()},
+				IntrusivePtr{AdoptRef{}, val_mgr->GetBool(long_cnt)},
+				make_intrusive<StringVal>(at - line, line),
+				make_intrusive<StringVal>(end_of_line - host, host)
+			);
 
 		Conn()->Match(Rule::FINGER, (const u_char *) line,
 			  end_of_line - line, true, true, 1, true);
@@ -87,9 +85,9 @@ void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig
 		if ( ! finger_reply )
 			return;
 
-		ConnectionEventFast(finger_reply, {
-			BuildConnVal(),
-			new StringVal(end_of_line - line, line),
-		});
+		EnqueueConnEvent(finger_reply,
+			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			make_intrusive<StringVal>(end_of_line - line, line)
+		);
 		}
 	}

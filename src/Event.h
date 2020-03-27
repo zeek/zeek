@@ -6,29 +6,27 @@
 #include "analyzer/Analyzer.h"
 #include "iosource/IOSource.h"
 #include "Flare.h"
+#include "ZeekArgs.h"
+#include "IntrusivePtr.h"
+
+#include <tuple>
+#include <type_traits>
 
 class EventMgr;
 
-// We don't Unref() the individual arguments by using delete_vals()
-// in a dtor because Func::Call already does that.
 class Event : public BroObj {
 public:
-	Event(EventHandlerPtr handler, val_list args,
-		SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
-		TimerMgr* mgr = 0, BroObj* obj = 0);
-
-	Event(EventHandlerPtr handler, val_list* args,
-		SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
-		TimerMgr* mgr = 0, BroObj* obj = 0);
+	Event(EventHandlerPtr handler, zeek::Args args,
+	      SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
+	      BroObj* obj = nullptr);
 
 	void SetNext(Event* n)		{ next_event = n; }
 	Event* NextEvent() const	{ return next_event; }
 
 	SourceID Source() const		{ return src; }
 	analyzer::ID Analyzer() const	{ return aid; }
-	TimerMgr* Mgr() const		{ return mgr; }
 	EventHandlerPtr Handler() const	{ return handler; }
-	const val_list* Args() const	{ return &args; }
+	const zeek::Args& Args() const	{ return args; }
 
 	void Describe(ODesc* d) const override;
 
@@ -40,10 +38,9 @@ protected:
 	void Dispatch(bool no_remote = false);
 
 	EventHandlerPtr handler;
-	val_list args;
+	zeek::Args args;
 	SourceID src;
 	analyzer::ID aid;
-	TimerMgr* mgr;
 	BroObj* obj;
 	Event* next_event;
 };
@@ -64,12 +61,10 @@ public:
 	// against the case where there's no handlers (one usually also does that
 	// because it would be a waste of effort to construct all the event
 	// arguments when there's no handlers to consume them).
+	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
 	void QueueEventFast(const EventHandlerPtr &h, val_list vl,
 			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
-			TimerMgr* mgr = 0, BroObj* obj = 0)
-		{
-		QueueEvent(new Event(h, std::move(vl), src, aid, mgr, obj));
-		}
+			TimerMgr* mgr = 0, BroObj* obj = 0);
 
 	// Queues an event if there's an event handler (or remote consumer).  This
 	// function always takes ownership of decrementing the reference count of
@@ -77,6 +72,7 @@ public:
 	// checked for event handler existence, you may wish to call
 	// QueueEventFast() instead of this function to prevent the redundant
 	// existence check.
+	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
 	void QueueEvent(const EventHandlerPtr &h, val_list vl,
 			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
 			TimerMgr* mgr = 0, BroObj* obj = 0);
@@ -85,13 +81,36 @@ public:
 	// pointer instead of by value.  This function takes ownership of the
 	// memory pointed to by 'vl' as well as decrementing the reference count of
 	// each of its elements.
+	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
 	void QueueEvent(const EventHandlerPtr &h, val_list* vl,
 			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
-			TimerMgr* mgr = 0, BroObj* obj = 0)
-		{
-		QueueEvent(h, std::move(*vl), src, aid, mgr, obj);
-		delete vl;
-		}
+			TimerMgr* mgr = 0, BroObj* obj = 0);
+
+	/**
+	 * Adds an event to the queue.  If no handler is found for the event
+	 * when later going to call it, nothing happens except for having
+	 * wasted a bit of time/resources, so callers may want to first check
+	 * if any handler/consumer exists before enqueuing an event.
+	 * @param h  reference to the event handler to later call.
+	 * @param vl  the argument list to the event handler call.
+	 * @param src  indicates the origin of the event (local versus remote).
+	 * @param aid  identifies the protocol analyzer generating the event.
+	 * @param obj  an arbitrary object to use as a "cookie" or just hold a
+	 * reference to until dispatching the event.
+	 */
+	void Enqueue(const EventHandlerPtr& h, zeek::Args vl,
+	             SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
+	             BroObj* obj = nullptr);
+
+	/**
+	 * A version of Enqueue() taking a variable number of arguments.
+	 */
+	template <class... Args>
+	std::enable_if_t<
+	  std::is_convertible_v<
+	    std::tuple_element_t<0, std::tuple<Args...>>, IntrusivePtr<Val>>>
+	Enqueue(const EventHandlerPtr& h, Args&&... args)
+		{ return Enqueue(h, zeek::Args{std::forward<Args>(args)...}); }
 
 	void Dispatch(Event* event, bool no_remote = false);
 
@@ -106,9 +125,6 @@ public:
 	// Returns the ID of the analyzer which raised the last event, or 0 if
 	// non-analyzer event.
 	analyzer::ID CurrentAnalyzer() const	{ return current_aid; }
-
-	// Returns the timer mgr associated with the last raised event.
-	TimerMgr* CurrentTimerMgr() const	{ return current_mgr; }
 
 	int Size() const
 		{ return num_events_queued - num_events_dispatched; }
@@ -127,7 +143,6 @@ protected:
 	Event* tail;
 	SourceID current_src;
 	analyzer::ID current_aid;
-	TimerMgr* current_mgr;
 	RecordVal* src_val;
 	bool draining;
 	bro::Flare queue_flare;

@@ -532,12 +532,7 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 				{
 				auto lv = tval->RecoverIndex(k);
 				delete k;
-
-				Val* entry_key;
-				if ( lv->Length() == 1 )
-					entry_key = lv->Index(0)->Ref();
-				else
-					entry_key = lv->Ref();
+				Val* entry_key = lv->Length() == 1 ? lv->Index(0) : lv.get();
 
 				if ( tval->Type()->IsSet() )
 					BuildJSON(writer, entry_key, only_loggable, re);
@@ -556,9 +551,6 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 
 					BuildJSON(writer, entry->Value(), only_loggable, re, key_str);
 					}
-
-				Unref(entry_key);
-				Unref(lv);
 				}
 
 			if ( tval->Type()->IsSet() )
@@ -1537,9 +1529,8 @@ int TableVal::Assign(Val* index, HashKey* k, IntrusivePtr<Val> new_val)
 		{
 		if ( ! index )
 			{
-			Val* v = RecoverIndex(&k_copy);
-			subnets->Insert(v, new_entry_val);
-			Unref(v);
+			auto v = RecoverIndex(&k_copy);
+			subnets->Insert(v.get(), new_entry_val);
 			}
 		else
 			subnets->Insert(index, new_entry_val);
@@ -1553,10 +1544,10 @@ int TableVal::Assign(Val* index, HashKey* k, IntrusivePtr<Val> new_val)
 
 	if ( change_func )
 		{
-		Val* change_index = index ? index->Ref() : RecoverIndex(&k_copy);
+		auto change_index = index ? IntrusivePtr<Val>{NewRef{}, index}
+		                          : RecoverIndex(&k_copy);
 		Val* v = old_entry_val ? old_entry_val->Value() : new_val.get();
-		CallChangeFunc(change_index, v, old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
-		Unref(change_index);
+		CallChangeFunc(change_index.get(), v, old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
 		}
 
 	delete old_entry_val;
@@ -1844,25 +1835,24 @@ IntrusivePtr<Val> TableVal::Default(Val* index)
 		}
 
 	const Func* f = def_val->AsFunc();
-	val_list vl;
+	zeek::Args vl;
 
 	if ( index->Type()->Tag() == TYPE_LIST )
 		{
 		const val_list* vl0 = index->AsListVal()->Vals();
-		vl = val_list(vl0->length());
+		vl.reserve(vl0->length());
+
 		for ( const auto& v : *vl0 )
-			vl.push_back(v->Ref());
+			vl.emplace_back(NewRef{}, v);
 		}
 	else
-		{
-		vl = val_list{index->Ref()};
-		}
+		vl.emplace_back(NewRef{}, index);
 
 	IntrusivePtr<Val> result;
 
 	try
 		{
-		result = f->Call(&vl);
+		result = f->Call(vl);
 		}
 
 	catch ( InterpreterException& e )
@@ -1991,9 +1981,9 @@ bool TableVal::UpdateTimestamp(Val* index)
 	return true;
 	}
 
-ListVal* TableVal::RecoverIndex(const HashKey* k) const
+IntrusivePtr<ListVal> TableVal::RecoverIndex(const HashKey* k) const
 	{
-	return table_hash->RecoverVals(k).release();
+	return table_hash->RecoverVals(k);
 	}
 
 void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe)
@@ -2020,34 +2010,35 @@ void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe
 			}
 
 		const Func* f = thefunc->AsFunc();
-		val_list vl { Ref() };
-		IntrusivePtr<EnumVal> type;
+		const auto& index_list = *index->AsListVal()->Vals();
+
+		zeek::Args vl;
+		vl.reserve(2 + index_list.length() + table_type->IsTable());
+		vl.emplace_back(NewRef{}, this);
 
 		switch ( tpe )
 			{
 			case ELEMENT_NEW:
-				type = BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_NEW);
+				vl.emplace_back(BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_NEW));
 				break;
 			case ELEMENT_CHANGED:
-				type = BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_CHANGED);
+				vl.emplace_back(BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_CHANGED));
 				break;
 			case ELEMENT_REMOVED:
-				type = BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_REMOVED);
+				vl.emplace_back(BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_REMOVED));
 				break;
 			case ELEMENT_EXPIRED:
-				type = BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_EXPIRED);
+				vl.emplace_back(BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_EXPIRED));
 			}
 
-		vl.append(type.release());
-
 		for ( const auto& v : *index->AsListVal()->Vals() )
-			vl.append(v->Ref());
+			vl.emplace_back(NewRef{}, v);
 
-		if ( ! table_type->IsSet() )
-			vl.append(old_value->Ref());
+		if ( table_type->IsTable() )
+			vl.emplace_back(NewRef{}, old_value);
 
 		in_change_func = true;
-		f->Call(&vl);
+		f->Call(vl);
 		}
 	catch ( InterpreterException& e )
 		{
@@ -2344,11 +2335,12 @@ void TableVal::DoExpire(double t)
 
 		else if ( v->ExpireAccessTime() + timeout < t )
 			{
-			Val* idx = nullptr;
+			IntrusivePtr<ListVal> idx = nullptr;
+
 			if ( expire_func )
 				{
 				idx = RecoverIndex(k);
-				double secs = CallExpireFunc(idx->Ref());
+				double secs = CallExpireFunc(idx);
 
 				// It's possible that the user-provided
 				// function modified or deleted the table
@@ -2359,7 +2351,6 @@ void TableVal::DoExpire(double t)
 				if ( ! v )
 					{ // user-provided function deleted it
 					v = v_saved;
-					Unref(idx);
 					delete k;
 					continue;
 					}
@@ -2369,7 +2360,6 @@ void TableVal::DoExpire(double t)
 					// User doesn't want us to expire
 					// this now.
 					v->SetExpireAccess(network_time - timeout + secs);
-					Unref(idx);
 					delete k;
 					continue;
 					}
@@ -2380,7 +2370,7 @@ void TableVal::DoExpire(double t)
 				{
 				if ( ! idx )
 					idx = RecoverIndex(k);
-				if ( ! subnets->Remove(idx) )
+				if ( ! subnets->Remove(idx.get()) )
 					reporter->InternalWarning("index not in prefix table");
 				}
 
@@ -2389,9 +2379,9 @@ void TableVal::DoExpire(double t)
 				{
 				if ( ! idx )
 					idx = RecoverIndex(k);
-				CallChangeFunc(idx, v->Value(), ELEMENT_EXPIRED);
+				CallChangeFunc(idx.get(), v->Value(), ELEMENT_EXPIRED);
 				}
-			Unref(idx);
+
 			delete v;
 			modified = true;
 			}
@@ -2439,13 +2429,10 @@ double TableVal::GetExpireTime()
 	return -1;
 	}
 
-double TableVal::CallExpireFunc(Val* idx)
+double TableVal::CallExpireFunc(IntrusivePtr<ListVal> idx)
 	{
 	if ( ! expire_func )
-		{
-		Unref(idx);
 		return 0;
-		}
 
 	double secs = 0;
 
@@ -2454,54 +2441,46 @@ double TableVal::CallExpireFunc(Val* idx)
 		auto vf = expire_func->Eval(nullptr);
 
 		if ( ! vf )
-			{
 			// Will have been reported already.
-			Unref(idx);
 			return 0;
-			}
 
 		if ( vf->Type()->Tag() != TYPE_FUNC )
 			{
 			vf->Error("not a function");
-			Unref(idx);
 			return 0;
 			}
 
 		const Func* f = vf->AsFunc();
-		val_list vl { Ref() };
+		zeek::Args vl;
 
 		const auto func_args = f->FType()->ArgTypes()->Types();
 
 		// backwards compatibility with idx: any idiom
 		bool any_idiom = func_args->length() == 2 && func_args->back()->Tag() == TYPE_ANY;
 
-		if ( idx->Type()->Tag() == TYPE_LIST )
+		if ( ! any_idiom )
 			{
-			if ( ! any_idiom )
-				{
-				for ( const auto& v : *idx->AsListVal()->Vals() )
-					vl.append(v->Ref());
+			const auto& index_list = *idx->AsListVal()->Vals();
+			vl.reserve(1 + index_list.length());
+			vl.emplace_back(NewRef{}, this);
 
-				Unref(idx);
-				}
-			else
-				{
-				ListVal* idx_list = idx->AsListVal();
-				// Flatten if only one element
-				if ( idx_list->Length() == 1 )
-					{
-					Val* old = idx;
-					idx = idx_list->Index(0)->Ref();
-					Unref(old);
-					}
-
-				vl.append(idx);
-				}
+			for ( const auto& v : index_list )
+				vl.emplace_back(NewRef{}, v);
 			}
 		else
-			vl.append(idx);
+			{
+			vl.reserve(2);
+			vl.emplace_back(NewRef{}, this);
 
-		auto result = f->Call(&vl);
+			ListVal* idx_list = idx->AsListVal();
+			// Flatten if only one element
+			if ( idx_list->Length() == 1 )
+				vl.emplace_back(NewRef{}, idx_list->Index(0));
+			else
+				vl.emplace_back(std::move(idx));
+			}
+
+		auto result = f->Call(vl);
 
 		if ( result )
 			secs = result->AsInterval();
@@ -2531,9 +2510,8 @@ IntrusivePtr<Val> TableVal::DoClone(CloneState* state)
 
 		if ( subnets )
 			{
-			Val* idx = RecoverIndex(key);
-			tv->subnets->Insert(idx, nval);
-			Unref(idx);
+			auto idx = RecoverIndex(key);
+			tv->subnets->Insert(idx.get(), nval);
 			}
 
 		delete key;
@@ -2622,7 +2600,7 @@ TableVal::ParseTimeTableState TableVal::DumpTableState()
 
 	while ( (val = tbl->NextEntry(key, cookie)) )
 		{
-		rval.emplace_back(IntrusivePtr<Val>{AdoptRef{}, RecoverIndex(key)},
+		rval.emplace_back(RecoverIndex(key),
 		                  IntrusivePtr<Val>{NewRef{}, val->Value()});
 
 		delete key;
@@ -3318,6 +3296,24 @@ void describe_vals(const val_list* vals, ODesc* d, int offset)
 			d->Add(", ");
 
 		(*vals)[i]->Describe(d);
+		}
+	}
+
+void describe_vals(const std::vector<IntrusivePtr<Val>>& vals,
+                   ODesc* d, size_t offset)
+	{
+	if ( ! d->IsReadable() )
+		{
+		d->Add(static_cast<uint64_t>(vals.size()));
+		d->SP();
+		}
+
+	for ( auto i = offset; i < vals.size(); ++i )
+		{
+		if ( i > offset && d->IsReadable() && d->Style() != RAW_STYLE )
+			d->Add(", ");
+
+		vals[i]->Describe(d);
 		}
 	}
 

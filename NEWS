@@ -27,9 +27,13 @@ Changed Functionality
 ---------------------
 
 - Several C++ functions have been changed to pass smart pointers
-  (`class IntrusivePtr<>`) instead of raw pointers.  This makes the
+  (``class IntrusivePtr<>``) instead of raw pointers.  This makes the
   code more robust.  External plugins may need to be updated to this
   API change.
+
+- BIFs that use @ARG@, @ARGS@, or @ARGC@ may break since their type has
+  changed: BIF arguments are now passed as a ``std::vector<IntrusivePtr<Val>>``
+  rather than a ``val_list`` (i.e. ``List<Val*>``).
 
 Removed Functionality
 ---------------------
@@ -42,6 +46,26 @@ Removed Functionality
 
 Deprecated Functionality
 ------------------------
+
+- The ``Func::Call(val_list*, ...)`` method is now deprecated.  The alternate
+  overload taking a ``zeek::Args`` (``std::vector<IntrusivePtr<Val>>``) should
+  be used instead.  There's also now a variadic template that forwards all
+  arguments.
+
+- The ``EventMgr::QueueEvent()`` and EventMgr::QueueEventFast()`` methods
+  are now deprecated, use ``EventMgr::Enqueue()`` instead.
+
+- The ``Connection::ConnectionEvent()`` and
+  ``Connection::ConnectionEventFast()`` methods are now deprecated, use
+  ``Connection::EnqueueEvent()`` instead.
+
+- The ``file_analysis::File::FileEvent()`` methods taking ``val_list``
+  arguments are now deprecated, use the overload that takes a ``zeek::Args``
+  instead.
+
+- The ``analyzer::Analyzer::ConnectionEvent()`` and
+  ``analyzer::Analyzer::ConectionEventFast()`` methods are deprecated, use
+  ``analyzer::Analyzer::EnqueueConnEvent()`` instead.
 
 Zeek 3.1.0
 ==========

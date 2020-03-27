@@ -2,8 +2,7 @@
 # This test procudes a recursive error: the error handler is itself broken. Rather
 # than looping indefinitly, the error inside the handler should reported to stderr.
 #
-# TODO: interpreter exceptions currently may cause memory leaks, so disable leak checks
-# @TEST-EXEC: ASAN_OPTIONS="$ASAN_OPTIONS,detect_leaks=0" zeek -b %INPUT >output 2>&1
+# @TEST-EXEC: zeek -b %INPUT >output 2>&1
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
 
 global a: table[count] of count;

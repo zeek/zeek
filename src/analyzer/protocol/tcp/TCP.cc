@@ -785,17 +785,17 @@ void TCP_Analyzer::GeneratePacketEvent(
 					const u_char* data, int len, int caplen,
 					int is_orig, TCP_Flags flags)
 	{
-	ConnectionEventFast(tcp_packet, {
-		BuildConnVal(),
-		val_mgr->GetBool(is_orig),
-		new StringVal(flags.AsString()),
-		val_mgr->GetCount(rel_seq),
-		val_mgr->GetCount(flags.ACK() ? rel_ack : 0),
-		val_mgr->GetCount(len),
+	EnqueueConnEvent(tcp_packet,
+		IntrusivePtr{AdoptRef{}, BuildConnVal()},
+		IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)},
+		make_intrusive<StringVal>(flags.AsString()),
+		IntrusivePtr{AdoptRef{}, val_mgr->GetCount(rel_seq)},
+		IntrusivePtr{AdoptRef{}, val_mgr->GetCount(flags.ACK() ? rel_ack : 0)},
+		IntrusivePtr{AdoptRef{}, val_mgr->GetCount(len)},
 		// We need the min() here because Ethernet padding can lead to
 		// caplen > len.
-		new StringVal(min(caplen, len), (const char*) data),
-	});
+		make_intrusive<StringVal>(min(caplen, len), (const char*) data)
+	);
 	}
 
 int TCP_Analyzer::DeliverData(double t, const u_char* data, int len, int caplen,
@@ -1101,12 +1101,10 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		            base_seq, ack_seq);
 
 		if ( connection_SYN_packet )
-			{
-			ConnectionEventFast(connection_SYN_packet, {
-				BuildConnVal(),
-				SYN_vals->Ref(),
-			});
-			}
+			EnqueueConnEvent(connection_SYN_packet,
+				IntrusivePtr{AdoptRef{}, BuildConnVal()},
+				IntrusivePtr{NewRef{}, SYN_vals}
+			);
 
 		Unref(SYN_vals);
 		}
@@ -1347,17 +1345,17 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 			{
 			auto kind = o[0];
 			auto length = kind < 2 ? 1 : o[1];
-			ConnectionEventFast(tcp_option, {
-				BuildConnVal(),
-				val_mgr->GetBool(is_orig),
-				val_mgr->GetCount(kind),
-				val_mgr->GetCount(length),
-				});
+			EnqueueConnEvent(tcp_option,
+				IntrusivePtr{AdoptRef{}, BuildConnVal()},
+				IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)},
+				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(kind)},
+				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(length)}
+				);
 			}
 
 	if ( tcp_options )
 		{
-		auto option_list = new VectorVal(BifType::Vector::TCP::OptionList);
+		auto option_list = make_intrusive<VectorVal>(BifType::Vector::TCP::OptionList);
 
 		auto add_option_data = [](RecordVal* rv, const u_char* odata, int olen)
 			{
@@ -1460,11 +1458,11 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 			}
 			}
 
-		ConnectionEventFast(tcp_options, {
-			BuildConnVal(),
-			val_mgr->GetBool(is_orig),
-			option_list,
-			});
+		EnqueueConnEvent(tcp_options,
+			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)},
+			std::move(option_list)
+			);
 		}
 
 	if ( options < opt_end )
@@ -1782,12 +1780,10 @@ int TCP_Analyzer::DataPending(TCP_Endpoint* closing_endp)
 void TCP_Analyzer::EndpointEOF(TCP_Reassembler* endp)
 	{
 	if ( connection_EOF )
-		{
-		ConnectionEventFast(connection_EOF, {
-			BuildConnVal(),
-			val_mgr->GetBool(endp->IsOrig()),
-		});
-		}
+		EnqueueConnEvent(connection_EOF,
+			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(endp->IsOrig())}
+		);
 
 	const analyzer_list& children(GetChildren());
 	LOOP_OVER_CONST_CHILDREN(i)
@@ -2064,16 +2060,14 @@ int TCPStats_Endpoint::DataSent(double /* t */, uint64_t seq, int len, int caple
 		 	network_time, seq, len, max_top_seq, data_in_flight);
 
 		if ( tcp_rexmit )
-			{
-			endp->TCP()->ConnectionEventFast(tcp_rexmit, {
-				endp->TCP()->BuildConnVal(),
-				val_mgr->GetBool(endp->IsOrig()),
-				val_mgr->GetCount(seq),
-				val_mgr->GetCount(len),
-				val_mgr->GetCount(data_in_flight),
-				val_mgr->GetCount(endp->peer->window),
-			});
-			}
+			endp->TCP()->EnqueueConnEvent(tcp_rexmit,
+				IntrusivePtr{AdoptRef{}, endp->TCP()->BuildConnVal()},
+				IntrusivePtr{AdoptRef{}, val_mgr->GetBool(endp->IsOrig())},
+				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(seq)},
+				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(len)},
+				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(data_in_flight)},
+				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(endp->peer->window)}
+			);
 		}
 	else
 		max_top_seq = top_seq;
@@ -2121,11 +2115,11 @@ void TCPStats_Analyzer::Done()
 	TCP_ApplicationAnalyzer::Done();
 
 	if ( conn_stats )
-		ConnectionEventFast(conn_stats, {
-			BuildConnVal(),
-			orig_stats->BuildStats(),
-			resp_stats->BuildStats(),
-		});
+		EnqueueConnEvent(conn_stats,
+			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, orig_stats->BuildStats()},
+			IntrusivePtr{AdoptRef{}, resp_stats->BuildStats()}
+		);
 	}
 
 void TCPStats_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip, int caplen)

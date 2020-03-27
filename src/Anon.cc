@@ -421,12 +421,10 @@ ipaddr32_t anonymize_ip(ipaddr32_t ip, enum ip_addr_anonymization_class_t cl)
 void log_anonymization_mapping(ipaddr32_t input, ipaddr32_t output)
 	{
 	if ( anonymization_mapping )
-		{
-		mgr.QueueEventFast(anonymization_mapping, {
-			new AddrVal(input),
-			new AddrVal(output)
-		});
-		}
+		mgr.Enqueue(anonymization_mapping,
+			make_intrusive<AddrVal>(input),
+			make_intrusive<AddrVal>(output)
+		);
 	}
 
 #endif

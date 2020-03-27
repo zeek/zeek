@@ -96,7 +96,7 @@ int MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status
 		{
 		auto vl = event_common_vl(c, rpc_status, mount_status,
 					   start_time, last_time, reply_len, 0);
-		analyzer->ConnectionEventFast(mount_reply_status, std::move(vl));
+		analyzer->EnqueueConnEvent(mount_reply_status, std::move(vl));
 		}
 
 	if ( ! rpc_success )
@@ -169,19 +169,19 @@ int MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status
 					start_time, last_time, reply_len, (bool)request + (bool)reply);
 
 		if ( request )
-			vl.push_back(request);
+			vl.emplace_back(AdoptRef{}, request);
 
 		if ( reply )
-			vl.push_back(reply);
+			vl.emplace_back(AdoptRef{}, reply);
 
-		analyzer->ConnectionEventFast(event, std::move(vl));
+		analyzer->EnqueueConnEvent(event, std::move(vl));
 		}
 	else
 		Unref(reply);
 	return 1;
 	}
 
-val_list MOUNT_Interp::event_common_vl(RPC_CallInfo *c, 
+zeek::Args MOUNT_Interp::event_common_vl(RPC_CallInfo *c,
 		      BifEnum::rpc_status rpc_status,
 				      BifEnum::MOUNT3::status_t mount_status,
 				      double rep_start_time,
@@ -189,16 +189,17 @@ val_list MOUNT_Interp::event_common_vl(RPC_CallInfo *c,
 	{
 	// Returns a new val_list that already has a conn_val, and mount3_info.
 	// These are the first parameters for each mount_* event ...
-	val_list vl(2 + extra_elements);
-	vl.push_back(analyzer->BuildConnVal());
-	VectorVal* auxgids = new VectorVal(internal_type("index_vec")->AsVectorType());
+	zeek::Args vl;
+	vl.reserve(2 + extra_elements);
+	vl.emplace_back(AdoptRef{}, analyzer->BuildConnVal());
+	auto auxgids = make_intrusive<VectorVal>(internal_type("index_vec")->AsVectorType());
 
 	for (size_t i = 0; i < c->AuxGIDs().size(); ++i)
 		{
 		auxgids->Assign(i, val_mgr->GetCount(c->AuxGIDs()[i]));
 		}
 
-	RecordVal* info = new RecordVal(BifType::Record::MOUNT3::info_t);
+	auto info = make_intrusive<RecordVal>(BifType::Record::MOUNT3::info_t);
 	info->Assign(0, BifType::Enum::rpc_status->GetVal(rpc_status));
 	info->Assign(1, BifType::Enum::MOUNT3::status_t->GetVal(mount_status));
 	info->Assign(2, make_intrusive<Val>(c->StartTime(), TYPE_TIME));
@@ -211,9 +212,9 @@ val_list MOUNT_Interp::event_common_vl(RPC_CallInfo *c,
 	info->Assign(9, val_mgr->GetCount(c->Gid()));
 	info->Assign(10, val_mgr->GetCount(c->Stamp()));
 	info->Assign(11, make_intrusive<StringVal>(c->MachineName()));
-	info->Assign(12, auxgids);
+	info->Assign(12, std::move(auxgids));
 
-	vl.push_back(info);
+	vl.emplace_back(std::move(info));
 	return vl;
 	}
 

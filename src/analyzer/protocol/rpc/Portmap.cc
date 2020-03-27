@@ -261,10 +261,10 @@ uint32_t PortmapperInterp::CheckPort(uint32_t port)
 		{
 		if ( pm_bad_port )
 			{
-			analyzer->ConnectionEventFast(pm_bad_port, {
-				analyzer->BuildConnVal(),
-				val_mgr->GetCount(port),
-			});
+			analyzer->EnqueueConnEvent(pm_bad_port,
+				IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(port)}
+			);
 			}
 
 		port = 0;
@@ -282,25 +282,26 @@ void PortmapperInterp::Event(EventHandlerPtr f, Val* request, BifEnum::rpc_statu
 		return;
 		}
 
-	val_list vl;
+	zeek::Args vl;
 
-	vl.push_back(analyzer->BuildConnVal());
+	vl.emplace_back(AdoptRef{}, analyzer->BuildConnVal());
 
 	if ( status == BifEnum::RPC_SUCCESS )
 		{
 		if ( request )
-			vl.push_back(request);
+			vl.emplace_back(AdoptRef{}, request);
 		if ( reply )
-			vl.push_back(reply);
+			vl.emplace_back(AdoptRef{}, reply);
 		}
 	else
 		{
-		vl.push_back(BifType::Enum::rpc_status->GetVal(status).release());
+		vl.emplace_back(BifType::Enum::rpc_status->GetVal(status));
+
 		if ( request )
-			vl.push_back(request);
+			vl.emplace_back(AdoptRef{}, request);
 		}
 
-	analyzer->ConnectionEventFast(f, std::move(vl));
+	analyzer->EnqueueConnEvent(f, std::move(vl));
 	}
 
 Portmapper_Analyzer::Portmapper_Analyzer(Connection* conn)

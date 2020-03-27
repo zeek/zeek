@@ -6,11 +6,11 @@
 #include <map>
 #include <string_view>
 
-
 #include "Plugin.h"
 #include "Component.h"
 
 #include "../Reporter.h"
+#include "../ZeekArgs.h"
 
 namespace plugin {
 
@@ -253,7 +253,7 @@ public:
 	 * functions and events, it may be any Val and must be ignored). If no
 	 * plugin handled the call, the method returns null.
 	 */
-	std::pair<bool, Val*> HookCallFunction(const Func* func, Frame *parent, val_list* args) const;
+	std::pair<bool, Val*> HookCallFunction(const Func* func, Frame* parent, const zeek::Args& args) const;
 
 	/**
 	 * Hook that filters the queuing of an event.

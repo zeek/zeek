@@ -898,29 +898,14 @@ broker::expected<broker::data> bro_broker::val_to_data(const Val* v)
 		else
 			rval = broker::table();
 
-		struct iter_guard {
-			iter_guard(HashKey* arg_k, ListVal* arg_lv)
-			    : k(arg_k), lv(arg_lv)
-				{}
-
-			~iter_guard()
-				{
-				delete k;
-				Unref(lv);
-				}
-
-			HashKey* k;
-			ListVal* lv;
-		};
-
-		HashKey* k;
+		HashKey* hk;
 		TableEntryVal* entry;
 		auto c = table->InitForIteration();
 
-		while ( (entry = table->NextEntry(k, c)) )
+		while ( (entry = table->NextEntry(hk, c)) )
 			{
-			auto vl = table_val->RecoverIndex(k);
-			iter_guard ig(k, vl);
+			auto vl = table_val->RecoverIndex(hk);
+			delete hk;
 
 			broker::vector composite_key;
 			composite_key.reserve(vl->Length());

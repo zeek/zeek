@@ -167,19 +167,20 @@ bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state,
 		return id->ID_Val()->AsBool();
 
 	// Call function with a signature_state value as argument.
-	val_list args(2);
-	args.push_back(rule_matcher->BuildRuleStateValue(rule, state));
+	zeek::Args args;
+	args.reserve(2);
+	args.emplace_back(AdoptRef{}, rule_matcher->BuildRuleStateValue(rule, state));
 
 	if ( data )
-		args.push_back(new StringVal(len, (const char*) data));
+		args.emplace_back(make_intrusive<StringVal>(len, (const char*) data));
 	else
-		args.push_back(val_mgr->GetEmptyString());
+		args.emplace_back(AdoptRef{}, val_mgr->GetEmptyString());
 
 	bool result = false;
 
 	try
 		{
-		auto val = id->ID_Val()->AsFunc()->Call(&args);
+		auto val = id->ID_Val()->AsFunc()->Call(args);
 		result = val && val->AsBool();
 		}
 

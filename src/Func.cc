@@ -79,19 +79,16 @@ std::string render_call_stack()
 		auto name = ci.func->Name();
 		std::string arg_desc;
 
-		if ( ci.args )
+		for ( const auto& arg : ci.args )
 			{
-			for ( const auto& arg : *ci.args )
-				{
-				ODesc d;
-				d.SetShort();
-				arg->Describe(&d);
+			ODesc d;
+			d.SetShort();
+			arg->Describe(&d);
 
-				if ( ! arg_desc.empty() )
-					arg_desc += ", ";
+			if ( ! arg_desc.empty() )
+				arg_desc += ", ";
 
-				arg_desc += d.Description();
-				}
+			arg_desc += d.Description();
 			}
 
 		rval += fmt("#%d %s(%s)", lvl, name, arg_desc.data());
@@ -143,23 +140,24 @@ IntrusivePtr<Func> Func::DoClone()
 	return {NewRef{}, this};
 	}
 
-void Func::DescribeDebug(ODesc* d, const val_list* args) const
+void Func::DescribeDebug(ODesc* d, const zeek::Args* args) const
 	{
 	d->Add(Name());
-
-	RecordType* func_args = FType()->Args();
 
 	if ( args )
 		{
 		d->Add("(");
+		RecordType* func_args = FType()->Args();
+		auto num_fields = static_cast<size_t>(func_args->NumFields());
 
-		for ( int i = 0; i < args->length(); ++i )
+		for ( auto i = 0u; i < args->size(); ++i )
 			{
 			// Handle varargs case (more args than formals).
-			if ( i >= func_args->NumFields() )
+			if ( i >= num_fields )
 				{
 				d->Add("vararg");
-				d->Add(i - func_args->NumFields());
+				int va_num = i - num_fields;
+				d->Add(va_num);
 				}
 			else
 				d->Add(func_args->FieldName(i));
@@ -167,7 +165,7 @@ void Func::DescribeDebug(ODesc* d, const val_list* args) const
 			d->Add(" = '");
 			(*args)[i]->Describe(d);
 
-			if ( i < args->length() - 1 )
+			if ( i < args->size() - 1 )
 				d->Add("', ");
 			else
 				d->Add("'");
@@ -217,7 +215,7 @@ void Func::CopyStateInto(Func* other) const
 	other->unique_id = unique_id;
 	}
 
-std::pair<bool, Val*> Func::HandlePluginResult(std::pair<bool, Val*> plugin_result, val_list* args, function_flavor flavor) const
+std::pair<bool, Val*> Func::HandlePluginResult(std::pair<bool, Val*> plugin_result, function_flavor flavor) const
 	{
 	// Helper function factoring out this code from BroFunc:Call() for
 	// better readability.
@@ -265,9 +263,6 @@ std::pair<bool, Val*> Func::HandlePluginResult(std::pair<bool, Val*> plugin_resu
 		}
 	}
 
-	for ( const auto& arg : *args )
-		Unref(arg);
-
 	return plugin_result;
 	}
 
@@ -300,7 +295,12 @@ int BroFunc::IsPure() const
 		[](const Body& b) { return b.stmts->IsPure(); });
 	}
 
-IntrusivePtr<Val> BroFunc::Call(val_list* args, Frame* parent) const
+IntrusivePtr<Val> Func::Call(val_list* args, Frame* parent) const
+	{
+	return Call(zeek::val_list_to_args(*args), parent);
+	}
+
+IntrusivePtr<Val> BroFunc::Call(const zeek::Args& args, Frame* parent) const
 	{
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", Name());
@@ -312,7 +312,7 @@ IntrusivePtr<Val> BroFunc::Call(val_list* args, Frame* parent) const
 
 	std::pair<bool, Val*> plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), empty_hook_result);
 
-	plugin_result = HandlePluginResult(plugin_result, args, Flavor());
+	plugin_result = HandlePluginResult(plugin_result,  Flavor());
 
 	if( plugin_result.first )
 		return {AdoptRef{}, plugin_result.second};
@@ -321,13 +321,10 @@ IntrusivePtr<Val> BroFunc::Call(val_list* args, Frame* parent) const
 		{
 		// Can only happen for events and hooks.
 		assert(Flavor() == FUNC_FLAVOR_EVENT || Flavor() == FUNC_FLAVOR_HOOK);
-		for ( const auto& arg : *args )
-			Unref(arg);
-
 		return Flavor() == FUNC_FLAVOR_HOOK ? IntrusivePtr{AdoptRef{}, val_mgr->GetTrue()} : nullptr;
 		}
 
-	auto f = make_intrusive<Frame>(frame_size, this, args);
+	auto f = make_intrusive<Frame>(frame_size, this, &args);
 
 	if ( closure )
 		f->CaptureClosure(closure, outer_ids);
@@ -346,7 +343,7 @@ IntrusivePtr<Val> BroFunc::Call(val_list* args, Frame* parent) const
 	if ( g_trace_state.DoTrace() )
 		{
 		ODesc d;
-		DescribeDebug(&d, args);
+		DescribeDebug(&d, &args);
 
 		g_trace_state.LogTrace("%s called: %s\n",
 			FType()->FlavorString().c_str(), d.Description());
@@ -362,19 +359,16 @@ IntrusivePtr<Val> BroFunc::Call(val_list* args, Frame* parent) const
 				body.stmts->GetLocationInfo());
 
 		// Fill in the rest of the frame with the function's arguments.
-		loop_over_list(*args, j)
+		for ( auto j = 0u; j < args.size(); ++j )
 			{
-			Val* arg = (*args)[j];
+			Val* arg = args[j].get();
 
 			if ( f->NthElement(j) != arg )
-				{
 				// Either not yet set, or somebody reassigned the frame slot.
-				Ref(arg);
-				f->SetElement(j, arg);
-				}
+				f->SetElement(j, arg->Ref());
 			}
 
-		f->Reset(args->length());
+		f->Reset(args.size());
 
 		try
 			{
@@ -420,11 +414,6 @@ IntrusivePtr<Val> BroFunc::Call(val_list* args, Frame* parent) const
 		}
 
 	call_stack.pop_back();
-
-	// We have an extra Ref for each argument (so that they don't get
-	// deleted between bodies), release that.
-	for ( const auto& arg : *args )
-		Unref(arg);
 
 	if ( Flavor() == FUNC_FLAVOR_HOOK )
 		{
@@ -612,7 +601,7 @@ int BuiltinFunc::IsPure() const
 	return is_pure;
 	}
 
-IntrusivePtr<Val> BuiltinFunc::Call(val_list* args, Frame* parent) const
+IntrusivePtr<Val> BuiltinFunc::Call(const zeek::Args& args, Frame* parent) const
 	{
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", Name());
@@ -624,7 +613,7 @@ IntrusivePtr<Val> BuiltinFunc::Call(val_list* args, Frame* parent) const
 
 	std::pair<bool, Val*> plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), empty_hook_result);
 
-	plugin_result = HandlePluginResult(plugin_result, args, FUNC_FLAVOR_FUNCTION);
+	plugin_result = HandlePluginResult(plugin_result, FUNC_FLAVOR_FUNCTION);
 
 	if ( plugin_result.first )
 		return {AdoptRef{}, plugin_result.second};
@@ -632,20 +621,16 @@ IntrusivePtr<Val> BuiltinFunc::Call(val_list* args, Frame* parent) const
 	if ( g_trace_state.DoTrace() )
 		{
 		ODesc d;
-		DescribeDebug(&d, args);
+		DescribeDebug(&d, &args);
 
 		g_trace_state.LogTrace("\tBuiltin Function called: %s\n", d.Description());
 		}
 
 	const CallExpr* call_expr = parent ? parent->GetCall() : nullptr;
 	call_stack.emplace_back(CallInfo{call_expr, this, args});
-	IntrusivePtr<Val> result{AdoptRef{}, func(parent, args)};
+	IntrusivePtr<Val> result{AdoptRef{}, func(parent, &args)};
 	call_stack.pop_back();
 
-	for ( const auto& arg : *args )
-		Unref(arg);
-
-	// Don't Unref() args, that's the caller's responsibility.
 	if ( result && g_trace_state.DoTrace() )
 		{
 		ODesc d;
@@ -661,6 +646,16 @@ void BuiltinFunc::Describe(ODesc* d) const
 	{
 	d->Add(Name());
 	d->AddCount(is_pure);
+	}
+
+void builtin_error(const char* msg)
+	{
+	builtin_error(msg, IntrusivePtr<Val>{});
+	}
+
+void builtin_error(const char* msg, IntrusivePtr<Val> arg)
+	{
+	builtin_error(msg, arg.get());
 	}
 
 void builtin_error(const char* msg, BroObj* arg)

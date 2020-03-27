@@ -79,10 +79,10 @@ void File_Analyzer::Identify()
 	                               : *(matches.begin()->second.begin());
 
 	if ( file_transferred )
-		ConnectionEventFast(file_transferred, {
-			BuildConnVal(),
-			new StringVal(buffer_len, buffer),
-			new StringVal("<unknown>"),
-			new StringVal(match),
-		});
+		EnqueueConnEvent(file_transferred,
+			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			make_intrusive<StringVal>(buffer_len, buffer),
+			make_intrusive<StringVal>("<unknown>"),
+			make_intrusive<StringVal>(match)
+		);
 	}

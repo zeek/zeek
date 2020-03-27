@@ -237,13 +237,11 @@ int TCP_Endpoint::DataSent(double t, uint64_t seq, int len, int caplen,
 			reporter->Error("TCP contents write failed: %s", buf);
 
 			if ( contents_file_write_failure )
-				{
-				tcp_analyzer->ConnectionEventFast(contents_file_write_failure, {
-					Conn()->BuildConnVal(),
-					val_mgr->GetBool(IsOrig()),
-					new StringVal(buf),
-				});
-				}
+				tcp_analyzer->EnqueueConnEvent(contents_file_write_failure,
+					IntrusivePtr{AdoptRef{}, Conn()->BuildConnVal()},
+					IntrusivePtr{AdoptRef{}, val_mgr->GetBool(IsOrig())},
+					make_intrusive<StringVal>(buf)
+				);
 			}
 		}
 

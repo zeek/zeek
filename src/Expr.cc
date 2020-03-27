@@ -3884,12 +3884,11 @@ IntrusivePtr<Val> FlattenExpr::Fold(Val* v) const
 	return l;
 	}
 
-ScheduleTimer::ScheduleTimer(EventHandlerPtr arg_event, val_list* arg_args,
-                             double t, TimerMgr* arg_tmgr)
+ScheduleTimer::ScheduleTimer(EventHandlerPtr arg_event, zeek::Args arg_args,
+                             double t)
 	: Timer(t, TIMER_SCHEDULE),
-	  event(arg_event), args(std::move(*arg_args)), tmgr(arg_tmgr)
+	  event(arg_event), args(std::move(arg_args))
 	{
-	delete arg_args;
 	}
 
 ScheduleTimer::~ScheduleTimer()
@@ -3898,7 +3897,8 @@ ScheduleTimer::~ScheduleTimer()
 
 void ScheduleTimer::Dispatch(double /* t */, int /* is_expire */)
 	{
-	mgr.QueueEvent(event, std::move(args), SOURCE_LOCAL, 0, tmgr);
+	if ( event )
+		mgr.Enqueue(event, std::move(args));
 	}
 
 ScheduleExpr::ScheduleExpr(IntrusivePtr<Expr> arg_when,
@@ -3937,17 +3937,10 @@ IntrusivePtr<Val> ScheduleExpr::Eval(Frame* f) const
 	if ( when->Type()->Tag() == TYPE_INTERVAL )
 		dt += network_time;
 
-	val_list* args = eval_list(f, event->Args());
+	auto args = eval_list(f, event->Args());
 
 	if ( args )
-		{
-		TimerMgr* tmgr = mgr.CurrentTimerMgr();
-
-		if ( ! tmgr )
-			tmgr = timer_mgr;
-
-		tmgr->Add(new ScheduleTimer(event->Handler(), args, dt, tmgr));
-		}
+		timer_mgr->Add(new ScheduleTimer(event->Handler(), std::move(*args), dt));
 
 	return nullptr;
 	}
@@ -4236,7 +4229,7 @@ IntrusivePtr<Val> CallExpr::Eval(Frame* f) const
 
 	IntrusivePtr<Val> ret;
 	auto func_val = func->Eval(f);
-	val_list* v = eval_list(f, args.get());
+	auto v = eval_list(f, args.get());
 
 	if ( func_val && v )
 		{
@@ -4246,16 +4239,11 @@ IntrusivePtr<Val> CallExpr::Eval(Frame* f) const
 		if ( f )
 			f->SetCall(this);
 
-		ret = func->Call(v, f);
+		ret = func->Call(*v, f);
 
 		if ( f )
 			f->SetCall(current_call);
-
-		// Don't Unref() the arguments, as Func::Call already did that.
-		delete v;
 		}
-	else
-		delete_vals(v);
 
 	return ret;
 	}
@@ -4448,9 +4436,10 @@ IntrusivePtr<Val> EventExpr::Eval(Frame* f) const
 	if ( IsError() )
 		return nullptr;
 
-	val_list* v = eval_list(f, args.get());
-	mgr.QueueEvent(handler, std::move(*v));
-	delete v;
+	auto v = eval_list(f, args.get());
+
+	if ( handler )
+		mgr.Enqueue(handler, std::move(*v));
 
 	return nullptr;
 	}
@@ -5176,36 +5165,23 @@ int check_and_promote_exprs_to_type(ListExpr* const elements, BroType* type)
 	return 1;
 	}
 
-val_list* eval_list(Frame* f, const ListExpr* l)
+std::optional<std::vector<IntrusivePtr<Val>>> eval_list(Frame* f, const ListExpr* l)
 	{
 	const expr_list& e = l->Exprs();
-	val_list* v = new val_list(e.length());
-	bool success = true;
+	auto rval = std::make_optional<std::vector<IntrusivePtr<Val>>>();
+	rval->reserve(e.length());
 
 	for ( const auto& expr : e )
 		{
 		auto ev = expr->Eval(f);
 
 		if ( ! ev )
-			{
-			success = false;
-			break;
-			}
+			return {};
 
-		v->push_back(ev.release());
+		rval->emplace_back(std::move(ev));
 		}
 
-	if ( ! success )
-		{
-		for ( const auto& val : *v )
-			Unref(val);
-
-		delete v;
-		return nullptr;
-		}
-
-	else
-		return v;
+	return rval;
 	}
 
 bool expr_greater(const Expr* e1, const Expr* e2)

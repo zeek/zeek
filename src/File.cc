@@ -325,7 +325,7 @@ void BroFile::RaiseOpenEvent()
 		return;
 
 	Ref(this);
-	Event* event = new ::Event(::file_opened, {new Val(this)});
+	Event* event = new ::Event(::file_opened, {make_intrusive<Val>(this)});
 	mgr.Dispatch(event, true);
 	}
 

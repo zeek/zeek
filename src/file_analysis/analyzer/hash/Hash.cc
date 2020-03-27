@@ -51,9 +51,9 @@ void Hash::Finalize()
 	if ( ! file_hash )
 		return;
 
-	mgr.QueueEventFast(file_hash, {
-		GetFile()->GetVal()->Ref(),
-		new StringVal(kind),
-		hash->Get().release(),
-	});
+	mgr.Enqueue(file_hash,
+		IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+		make_intrusive<StringVal>(kind),
+		hash->Get()
+	);
 	}

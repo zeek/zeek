@@ -5,6 +5,8 @@
 #include <sys/types.h>
 
 #include <string>
+#include <tuple>
+#include <type_traits>
 
 #include "Dict.h"
 #include "Timer.h"
@@ -12,6 +14,8 @@
 #include "IPAddr.h"
 #include "UID.h"
 #include "WeirdState.h"
+#include "ZeekArgs.h"
+#include "IntrusivePtr.h"
 #include "iosource/Packet.h"
 
 #include "analyzer/Tag.h"
@@ -187,6 +191,7 @@ public:
 	// If a handler exists for 'f', an event will be generated.  In any case,
 	// reference count for each element in the 'vl' list are decremented.  The
 	// arguments used for the event are whatevever is provided in 'vl'.
+	[[deprecated("Remove in v4.1.  Use EnqueueEvent() instead.")]]
 	void ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* analyzer,
 				val_list vl);
 
@@ -194,6 +199,7 @@ public:
 	// pointer instead of by value.  This function takes ownership of the
 	// memory pointed to by 'vl' and also for decrementing the reference count
 	// of each of its elements.
+	[[deprecated("Remove in v4.1.  Use EnqueueEvent() instead.")]]
 	void ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* analyzer,
 				val_list* vl);
 
@@ -205,8 +211,25 @@ public:
 	// the case where there's no handlers (one usually also does that because
 	// it would be a waste of effort to construct all the event arguments when
 	// there's no handlers to consume them).
+	[[deprecated("Remove in v4.1.  Use EnqueueEvent() instead.")]]
 	void ConnectionEventFast(EventHandlerPtr f, analyzer::Analyzer* analyzer,
 				val_list vl);
+
+	/**
+	 * Enqueues an event associated with this connection and given analyzer.
+	 */
+	void EnqueueEvent(EventHandlerPtr f, analyzer::Analyzer* analyzer,
+	                  zeek::Args args);
+
+	/**
+	 * A version of EnqueueEvent() taking a variable number of arguments.
+	 */
+	template <class... Args>
+	std::enable_if_t<
+	  std::is_convertible_v<
+	    std::tuple_element_t<0, std::tuple<Args...>>, IntrusivePtr<Val>>>
+	EnqueueEvent(EventHandlerPtr h, analyzer::Analyzer* analyzer, Args&&... args)
+		{ return EnqueueEvent(h, analyzer, zeek::Args{std::forward<Args>(args)...}); }
 
 	void Weird(const char* name, const char* addl = "");
 	bool DidWeird() const	{ return weird != 0; }

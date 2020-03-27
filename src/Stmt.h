@@ -95,10 +95,10 @@ protected:
 	~ExprListStmt() override;
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
-	virtual IntrusivePtr<Val> DoExec(val_list* vals, stmt_flow_type& flow) const = 0;
+	virtual IntrusivePtr<Val> DoExec(std::vector<IntrusivePtr<Val>> vals,
+	                                 stmt_flow_type& flow) const = 0;
 
 	void Describe(ODesc* d) const override;
-	void PrintVals(ODesc* d, val_list* vals, int offset) const;
 
 	IntrusivePtr<ListExpr> l;
 };
@@ -109,7 +109,8 @@ public:
 	explicit PrintStmt(L&& l) : ExprListStmt(STMT_PRINT, std::forward<L>(l)) { }
 
 protected:
-	IntrusivePtr<Val> DoExec(val_list* vals, stmt_flow_type& flow) const override;
+	IntrusivePtr<Val> DoExec(std::vector<IntrusivePtr<Val>> vals,
+	                         stmt_flow_type& flow) const override;
 };
 
 class ExprStmt : public Stmt {

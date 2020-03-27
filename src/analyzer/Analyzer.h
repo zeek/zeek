@@ -7,9 +7,12 @@
 #include "../Obj.h"
 #include "../EventHandler.h"
 #include "../Timer.h"
+#include "../IntrusivePtr.h"
 
 #include <list>
 #include <vector>
+#include <tuple>
+#include <type_traits>
 
 #include <sys/types.h> // for u_char
 
@@ -567,19 +570,38 @@ public:
 	 * Convenience function that forwards directly to
 	 * Connection::ConnectionEvent().
 	 */
+	[[deprecated("Remove in v4.1.  Use EnqueueConnEvent() instead.")]]
 	void ConnectionEvent(EventHandlerPtr f, val_list* vl);
 
 	/**
 	 * Convenience function that forwards directly to
 	 * Connection::ConnectionEvent().
 	 */
+	[[deprecated("Remove in v4.1.  Use EnqueueConnEvent() instead.")]]
 	void ConnectionEvent(EventHandlerPtr f, val_list vl);
 
 	/**
 	 * Convenience function that forwards directly to
 	 * Connection::ConnectionEventFast().
 	 */
+	[[deprecated("Remove in v4.1.  Use EnqueueConnEvent() instead.")]]
 	void ConnectionEventFast(EventHandlerPtr f, val_list vl);
+
+	/**
+	 * Convenience function that forwards directly to
+	 * Connection::EnqueueEvent().
+	 */
+	void EnqueueConnEvent(EventHandlerPtr f, zeek::Args args);
+
+	/**
+	 * A version of EnqueueConnEvent() taking a variable number of arguments.
+	 */
+	template <class... Args>
+	std::enable_if_t<
+	  std::is_convertible_v<
+	    std::tuple_element_t<0, std::tuple<Args...>>, IntrusivePtr<Val>>>
+	EnqueueConnEvent(EventHandlerPtr h, Args&&... args)
+		{ return EnqueueConnEvent(h, zeek::Args{std::forward<Args>(args)...}); }
 
 	/**
 	 * Convenience function that forwards directly to the corresponding

@@ -462,12 +462,10 @@ const char* NVT_Analyzer::PeerAuthName() const
 void NVT_Analyzer::SetTerminal(const u_char* terminal, int len)
 	{
 	if ( login_terminal )
-		{
-		ConnectionEventFast(login_terminal, {
-			BuildConnVal(),
-			new StringVal(new BroString(terminal, len, 0)),
-		});
-		}
+		EnqueueConnEvent(login_terminal,
+			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			make_intrusive<StringVal>(new BroString(terminal, len, 0))
+		);
 	}
 
 void NVT_Analyzer::SetEncrypting(int mode)

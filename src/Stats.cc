@@ -314,8 +314,8 @@ void ProfileLogger::Log()
 		{
 		Ref(file);
 		mgr.Dispatch(new Event(profiling_update, {
-			new Val(file),
-			val_mgr->GetBool(expensive),
+			make_intrusive<Val>(file),
+			{AdoptRef{}, val_mgr->GetBool(expensive)},
 		}));
 		}
 	}
@@ -372,11 +372,11 @@ void SampleLogger::SegmentProfile(const char* /* name */,
 					double dtime, int dmem)
 	{
 	if ( load_sample )
-		mgr.QueueEventFast(load_sample, {
-			load_samples->Ref(),
-			new IntervalVal(dtime, Seconds),
-			val_mgr->GetInt(dmem)
-		});
+		mgr.Enqueue(load_sample,
+			IntrusivePtr{NewRef{}, load_samples},
+			make_intrusive<IntervalVal>(dtime, Seconds),
+			IntrusivePtr{AdoptRef{}, val_mgr->GetInt(dmem)}
+		);
 	}
 
 void SegmentProfiler::Init()

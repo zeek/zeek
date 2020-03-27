@@ -710,7 +710,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 
 	// Raise the log event.
 	if ( stream->event )
-		mgr.QueueEventFast(stream->event, {columns->Ref()}, SOURCE_LOCAL);
+		mgr.Enqueue(stream->event, columns);
 
 	// Send to each of our filters.
 	for ( list<Filter*>::iterator i = stream->filters.begin();
@@ -723,11 +723,9 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 			{
 			// See whether the predicates indicates that we want
 			// to log this record.
-			val_list vl{columns->Ref()};
-
 			int result = 1;
+			auto v = filter->pred->Call(columns);
 
-			auto v = filter->pred->Call(&vl);
 			if ( v )
 				result = v->AsBool();
 
@@ -737,23 +735,25 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 
 		if ( filter->path_func )
 			{
-			Val* path_arg;
-			if ( filter->path_val )
-				path_arg = filter->path_val->Ref();
-			else
-				path_arg = val_mgr->GetEmptyString();
+			IntrusivePtr<Val> path_arg;
 
-			Val* rec_arg;
+			if ( filter->path_val )
+				path_arg = {NewRef{}, filter->path_val};
+			else
+				path_arg = {AdoptRef{}, val_mgr->GetEmptyString()};
+
+			IntrusivePtr<Val> rec_arg;
 			BroType* rt = filter->path_func->FType()->Args()->FieldType("rec");
 
 			if ( rt->Tag() == TYPE_RECORD )
-				rec_arg = columns->CoerceTo(rt->AsRecordType(), true).release();
+				rec_arg = columns->CoerceTo(rt->AsRecordType(), true);
 			else
 				// Can be TYPE_ANY here.
-				rec_arg = columns->Ref();
+				rec_arg = columns;
 
-			val_list vl{id->Ref(), path_arg, rec_arg};
-			auto v = filter->path_func->Call(&vl);
+			auto v = filter->path_func->Call(IntrusivePtr{NewRef{}, id},
+			                                 std::move(path_arg),
+			                                 std::move(rec_arg));
 
 			if ( ! v )
 				return false;
@@ -868,11 +868,10 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 			TableEntryVal* v;
 			while ( (v = filter->config->AsTable()->NextEntry(k, c)) )
 				{
-				ListVal* index = filter->config->RecoverIndex(k);
+				auto index = filter->config->RecoverIndex(k);
 				string key = index->Index(0)->AsString()->CheckString();
 				string value = v->Value()->AsString()->CheckString();
 				info->config.insert(std::make_pair(copy_string(key.c_str()), copy_string(value.c_str())));
-				Unref(index);
 				delete k;
 				}
 
@@ -1059,8 +1058,7 @@ threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
 
 	if ( filter->num_ext_fields > 0 )
 		{
-		val_list vl{filter->path_val->Ref()};
-		auto res = filter->ext_func->Call(&vl);
+		auto res = filter->ext_func->Call(IntrusivePtr{NewRef{}, filter->path_val});
 
 		if ( res )
 			ext_rec = {AdoptRef{}, res.release()->AsRecordVal()};
@@ -1516,7 +1514,7 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 		return true;
 
 	// Create the RotationInfo record.
-	RecordVal* info = new RecordVal(BifType::Record::Log::RotationInfo);
+	auto info = make_intrusive<RecordVal>(BifType::Record::Log::RotationInfo);
 	info->Assign(0, winfo->type->Ref());
 	info->Assign(1, make_intrusive<StringVal>(new_name));
 	info->Assign(2, make_intrusive<StringVal>(winfo->writer->Info().path));
@@ -1535,11 +1533,9 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 	assert(func);
 
 	// Call the postprocessor function.
-	val_list vl{info};
-
 	int result = 0;
 
-	auto v = func->Call(&vl);
+	auto v = func->Call(std::move(info));
 	if ( v )
 		result = v->AsBool();
 

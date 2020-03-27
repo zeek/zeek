@@ -766,7 +766,7 @@ public:
 	bool UpdateTimestamp(Val* index);
 
 	// Returns the index corresponding to the given HashKey.
-	ListVal* RecoverIndex(const HashKey* k) const;
+	IntrusivePtr<ListVal> RecoverIndex(const HashKey* k) const;
 
 	// Returns the element if it was in the table, false otherwise.
 	IntrusivePtr<Val> Delete(const Val* index);
@@ -851,8 +851,7 @@ protected:
 	double GetExpireTime();
 
 	// Calls &expire_func and returns its return interval;
-	// takes ownership of the reference.
-	double CallExpireFunc(Val *idx);
+	double CallExpireFunc(IntrusivePtr<ListVal> idx);
 
 	// Enum for the different kinds of changes an &on_change handler can see
 	enum OnChangeType { ELEMENT_NEW, ELEMENT_CHANGED, ELEMENT_REMOVED, ELEMENT_EXPIRED };
@@ -1043,6 +1042,8 @@ extern int same_val(const Val* v1, const Val* v2);
 extern int same_atomic_val(const Val* v1, const Val* v2);
 extern bool is_atomic_val(const Val* v);
 extern void describe_vals(const val_list* vals, ODesc* d, int offset=0);
+extern void describe_vals(const std::vector<IntrusivePtr<Val>>& vals,
+                          ODesc* d, size_t offset = 0);
 extern void delete_vals(val_list* vals);
 
 // True if the given Val* has a vector type.

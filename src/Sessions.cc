@@ -123,7 +123,7 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 	SegmentProfiler prof(segment_logger, "dispatching-packet");
 
 	if ( raw_packet )
-		mgr.QueueEventFast(raw_packet, {pkt->BuildPktHdrVal()});
+		mgr.Enqueue(raw_packet, IntrusivePtr{AdoptRef{}, pkt->BuildPktHdrVal()});
 
 	if ( pkt_profiler )
 		pkt_profiler->ProfilePkt(t, pkt->cap_len);
@@ -310,7 +310,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		{
 		dump_this_packet = 1;
 		if ( esp_packet )
-			mgr.QueueEventFast(esp_packet, {ip_hdr->BuildPktHdrVal()});
+			mgr.Enqueue(esp_packet, IntrusivePtr{AdoptRef{}, ip_hdr->BuildPktHdrVal()});
 
 		// Can't do more since upper-layer payloads are going to be encrypted.
 		return;
@@ -330,7 +330,8 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 			}
 
 		if ( mobile_ipv6_message )
-			mgr.QueueEvent(mobile_ipv6_message, {ip_hdr->BuildPktHdrVal()});
+			mgr.Enqueue(mobile_ipv6_message,
+			            IntrusivePtr{AdoptRef{}, ip_hdr->BuildPktHdrVal()});
 
 		if ( ip_hdr->NextProto() != IPPROTO_NONE )
 			Weird("mobility_piggyback", pkt, encapsulation);

@@ -321,9 +321,14 @@ bool Trigger::Eval()
 		delete [] pname;
 #endif
 
-		trigger->Cache(frame->GetCall(), v.get());
+		auto queued = trigger->Cache(frame->GetCall(), v.get());
 		trigger->Release();
 		frame->ClearTrigger();
+
+		if ( ! queued && trigger->TimeoutValue() < 0 )
+			// Usually the parent-trigger would get unref'd either by
+			// its Eval() or its eventual Timeout(), but has neither
+			Unref(trigger);
 		}
 
 	Unref(f);
@@ -368,9 +373,14 @@ void Trigger::Timeout()
 			DBG_LOG(DBG_NOTIFIERS, "%s: trigger has parent %s, caching timeout result", Name(), pname);
 			delete [] pname;
 #endif
-			trigger->Cache(frame->GetCall(), v.get());
+			auto queued = trigger->Cache(frame->GetCall(), v.get());
 			trigger->Release();
 			frame->ClearTrigger();
+
+			if ( ! queued && trigger->TimeoutValue() < 0 )
+				// Usually the parent-trigger would get unref'd either by
+				// its Eval() or its eventual Timeout(), but has neither
+				Unref(trigger);
 			}
 		}
 
@@ -429,10 +439,10 @@ void Trigger::Attach(Trigger *trigger)
 	Hold();
 	}
 
-void Trigger::Cache(const CallExpr* expr, Val* v)
+bool Trigger::Cache(const CallExpr* expr, Val* v)
 	{
 	if ( disabled || ! v )
-		return;
+		return false;
 
 	ValCache::iterator i = cache.find(expr);
 
@@ -448,6 +458,7 @@ void Trigger::Cache(const CallExpr* expr, Val* v)
 	Ref(v);
 
 	trigger_mgr->Queue(this);
+	return true;
 	}
 
 

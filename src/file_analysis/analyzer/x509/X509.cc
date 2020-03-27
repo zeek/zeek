@@ -60,11 +60,9 @@ bool file_analysis::X509::EndOfFile()
 				return false;
 			// yup, let's call the callback.
 
-			val_list vl(3);
-			vl.push_back(GetFile()->GetVal()->Ref());
-			vl.push_back(entry.release());
-			vl.push_back(new StringVal(cert_sha256));
-			cache_hit_callback->Call(&vl);
+			cache_hit_callback->Call(IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+			                         std::move(entry),
+			                         make_intrusive<StringVal>(cert_sha256));
 			return false;
 			}
 		}
@@ -84,11 +82,11 @@ bool file_analysis::X509::EndOfFile()
 	RecordVal* cert_record = ParseCertificate(cert_val, GetFile());
 
 	// and send the record on to scriptland
-	mgr.QueueEvent(x509_certificate, {
-		GetFile()->GetVal()->Ref(),
-		cert_val->Ref(),
-		cert_record->Ref(), // we Ref it here, because we want to keep a copy around for now...
-	});
+	if ( x509_certificate )
+		mgr.Enqueue(x509_certificate,
+		            IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+		            IntrusivePtr{NewRef{}, cert_val},
+		            IntrusivePtr{NewRef{}, cert_record});
 
 	// after parsing the certificate - parse the extensions...
 
@@ -291,16 +289,16 @@ void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex)
 		{
 		if ( x509_ext_basic_constraints )
 			{
-			RecordVal* pBasicConstraint = new RecordVal(BifType::Record::X509::BasicConstraints);
+			auto pBasicConstraint = make_intrusive<RecordVal>(BifType::Record::X509::BasicConstraints);
 			pBasicConstraint->Assign(0, val_mgr->GetBool(constr->ca ? 1 : 0));
 
 			if ( constr->pathlen )
 				pBasicConstraint->Assign(1, val_mgr->GetCount((int32_t) ASN1_INTEGER_get(constr->pathlen)));
 
-			mgr.QueueEventFast(x509_ext_basic_constraints, {
-				GetFile()->GetVal()->Ref(),
-				pBasicConstraint,
-			});
+			mgr.Enqueue(x509_ext_basic_constraints,
+				IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+				std::move(pBasicConstraint)
+			);
 			}
 
 		BASIC_CONSTRAINTS_free(constr);
@@ -422,7 +420,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 			}
 		}
 
-		RecordVal* sanExt = new RecordVal(BifType::Record::X509::SubjectAlternativeName);
+		auto sanExt = make_intrusive<RecordVal>(BifType::Record::X509::SubjectAlternativeName);
 
 		if ( names != 0 )
 			sanExt->Assign(0, names);
@@ -438,10 +436,9 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 
 		sanExt->Assign(4, val_mgr->GetBool(otherfields));
 
-		mgr.QueueEvent(x509_ext_subject_alternative_name, {
-			GetFile()->GetVal()->Ref(),
-			sanExt,
-		});
+		mgr.Enqueue(x509_ext_subject_alternative_name,
+		            IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+		            std::move(sanExt));
 	GENERAL_NAMES_free(altname);
 	}
 

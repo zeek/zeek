@@ -257,12 +257,19 @@ void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, const EventHa
 			}
 		}
 
-	StringVal* ext_val = GetExtensionFromBIO(bio, GetFile());
+	auto ext_val = GetExtensionFromBIO(bio, GetFile());
+
+	if ( ! h )
+		{
+		// let individual analyzers parse more.
+		ParseExtensionsSpecific(ex, global, ext_asn, oid);
+		return;
+		}
 
 	if ( ! ext_val )
-		ext_val = new StringVal(0, "");
+		ext_val = make_intrusive<StringVal>(0, "");
 
-	RecordVal* pX509Ext = new RecordVal(BifType::Record::X509::Extension);
+	auto pX509Ext = make_intrusive<RecordVal>(BifType::Record::X509::Extension);
 	pX509Ext->Assign(0, make_intrusive<StringVal>(name));
 
 	if ( short_name and strlen(short_name) > 0 )
@@ -280,22 +287,18 @@ void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, const EventHa
 	// but I am not sure if there is a better way to do it...
 
 	if ( h == ocsp_extension )
-		mgr.QueueEvent(h, {
-			GetFile()->GetVal()->Ref(),
-			pX509Ext,
-			val_mgr->GetBool(global ? 1 : 0),
-		});
+		mgr.Enqueue(h, IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+					std::move(pX509Ext),
+					IntrusivePtr{AdoptRef{}, val_mgr->GetBool(global)});
 	else
-		mgr.QueueEvent(h, {
-			GetFile()->GetVal()->Ref(),
-			pX509Ext,
-		});
+		mgr.Enqueue(h, IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+		            std::move(pX509Ext));
 
 	// let individual analyzers parse more.
 	ParseExtensionsSpecific(ex, global, ext_asn, oid);
 	}
 
-StringVal* file_analysis::X509Common::GetExtensionFromBIO(BIO* bio, File* f)
+IntrusivePtr<StringVal> file_analysis::X509Common::GetExtensionFromBIO(BIO* bio, File* f)
 	{
 	BIO_flush(bio);
 	ERR_clear_error();
@@ -313,7 +316,7 @@ StringVal* file_analysis::X509Common::GetExtensionFromBIO(BIO* bio, File* f)
 	if ( length == 0 )
 		{
 		BIO_free_all(bio);
-		return val_mgr->GetEmptyString();
+		return {AdoptRef{}, val_mgr->GetEmptyString()};
 		}
 
 	char* buffer = (char*) malloc(length);
@@ -328,7 +331,7 @@ StringVal* file_analysis::X509Common::GetExtensionFromBIO(BIO* bio, File* f)
 		}
 
 	BIO_read(bio, (void*) buffer, length);
-	StringVal* ext_val = new StringVal(length, buffer);
+	auto ext_val = make_intrusive<StringVal>(length, buffer);
 
 	free(buffer);
 	BIO_free_all(bio);

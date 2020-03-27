@@ -283,11 +283,10 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 		TableEntryVal* v;
 		while ( (v = info->config->AsTable()->NextEntry(k, c)) )
 			{
-			ListVal* index = info->config->RecoverIndex(k);
+			auto index = info->config->RecoverIndex(k);
 			string key = index->Index(0)->AsString()->CheckString();
 			string value = v->Value()->AsString()->CheckString();
 			rinfo.config.insert(std::make_pair(copy_string(key.c_str()), copy_string(value.c_str())));
-			Unref(index);
 			delete k;
 			}
 		}
@@ -1335,7 +1334,6 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 
 	while ( ( ih = stream->lastDict->NextEntry(lastDictIdxKey, c) ) )
 		{
-		ListVal * idx = 0;
 		IntrusivePtr<Val> val;
 
 		Val* predidx = 0;
@@ -1344,12 +1342,11 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 
 		if ( stream->pred || stream->event )
 			{
-			idx = stream->tab->RecoverIndex(ih->idxkey);
-			assert(idx != 0);
-			val = stream->tab->Lookup(idx);
+			auto idx = stream->tab->RecoverIndex(ih->idxkey);
+			assert(idx != nullptr);
+			val = stream->tab->Lookup(idx.get());
 			assert(val != 0);
-			predidx = ListValToRecordVal(idx, stream->itype, &startpos);
-			Unref(idx);
+			predidx = ListValToRecordVal(idx.get(), stream->itype, &startpos);
 			ev = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED).release();
 			}
 
@@ -1785,16 +1782,18 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 bool Manager::CallPred(Func* pred_func, const int numvals, ...) const
 	{
 	bool result = false;
-	val_list vl(numvals);
+	zeek::Args vl;
+	vl.reserve(numvals);
 
 	va_list lP;
 	va_start(lP, numvals);
 	for ( int i = 0; i < numvals; i++ )
-		vl.push_back( va_arg(lP, Val*) );
+		vl.emplace_back(AdoptRef{}, va_arg(lP, Val*));
 
 	va_end(lP);
 
-	auto v = pred_func->Call(&vl);
+	auto v = pred_func->Call(vl);
+
 	if ( v )
 		result = v->AsBool();
 
@@ -1838,12 +1837,14 @@ bool Manager::SendEvent(ReaderFrontend* reader, const string& name, const int nu
 
 	bool convert_error = false;
 
-	val_list vl(num_vals);
+	zeek::Args vl;
+	vl.reserve(num_vals);
 
 	for ( int j = 0; j < num_vals; j++)
 		{
 		Val* v = ValueToVal(i, vals[j], convert_error);
-		vl.push_back(v);
+		vl.emplace_back(AdoptRef{}, v);
+
 		if ( v && ! convert_error && ! same_type(type->FieldType(j), v->Type()) )
 			{
 			convert_error = true;
@@ -1854,21 +1855,17 @@ bool Manager::SendEvent(ReaderFrontend* reader, const string& name, const int nu
 	delete_value_ptr_array(vals, num_vals);
 
 	if ( convert_error )
-		{
-		for ( const auto& v : vl )
-			Unref(v);
-
 		return false;
-		}
-	else
-		mgr.QueueEvent(handler, std::move(vl), SOURCE_LOCAL);
+	else if ( handler )
+		mgr.Enqueue(handler, std::move(vl), SOURCE_LOCAL);
 
 	return true;
 }
 
 void Manager::SendEvent(EventHandlerPtr ev, const int numvals, ...) const
 	{
-	val_list vl(numvals);
+	zeek::Args vl;
+	vl.reserve(numvals);
 
 #ifdef DEBUG
 	DBG_LOG(DBG_INPUT, "SendEvent with %d vals",
@@ -1878,16 +1875,18 @@ void Manager::SendEvent(EventHandlerPtr ev, const int numvals, ...) const
 	va_list lP;
 	va_start(lP, numvals);
 	for ( int i = 0; i < numvals; i++ )
-		vl.push_back( va_arg(lP, Val*) );
+		vl.emplace_back(AdoptRef{}, va_arg(lP, Val*));
 
 	va_end(lP);
 
-	mgr.QueueEvent(ev, std::move(vl), SOURCE_LOCAL);
+	if ( ev )
+		mgr.Enqueue(ev, std::move(vl), SOURCE_LOCAL);
 	}
 
 void Manager::SendEvent(EventHandlerPtr ev, list<Val*> events) const
 	{
-	val_list vl(events.size());
+	zeek::Args vl;
+	vl.reserve(events.size());
 
 #ifdef DEBUG
 	DBG_LOG(DBG_INPUT, "SendEvent with %" PRIuPTR " vals (list)",
@@ -1895,9 +1894,10 @@ void Manager::SendEvent(EventHandlerPtr ev, list<Val*> events) const
 #endif
 
 	for ( list<Val*>::iterator i = events.begin(); i != events.end(); i++ )
-		vl.push_back( *i );
+		vl.emplace_back(AdoptRef{}, *i);
 
-	mgr.QueueEvent(ev, std::move(vl), SOURCE_LOCAL);
+	if ( ev )
+		mgr.Enqueue(ev, std::move(vl), SOURCE_LOCAL);
 	}
 
 // Convert a bro list value to a bro record value.

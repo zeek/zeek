@@ -40,7 +40,6 @@ std::set<std::string> val_to_topic_set(Val* val)
 			{
 			auto index = val->AsTableVal()->RecoverIndex(k);
 			rval.emplace(index->Index(0)->AsString()->CheckString());
-			Unref(index);
 			delete k;
 			}
 		}
@@ -84,7 +83,13 @@ type Broker::Event: record;
 function Broker::make_event%(...%): Broker::Event
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
-	auto rval = broker_mgr->MakeEvent(@ARGS@, frame);
+	const auto& bif_args = @ARGS@;
+	val_list args(bif_args->size());
+
+	for ( auto i = 0u; i < bif_args->size(); ++i )
+		args.push_back((*bif_args)[i].get());
+
+	auto rval = broker_mgr->MakeEvent(&args, frame);
 	return rval;
 	%}
 
@@ -99,11 +104,11 @@ function Broker::make_event%(...%): Broker::Event
 ## Returns: true if the message is sent.
 function Broker::publish%(topic: string, ...%): bool
 	%{
-	val_list* bif_args = @ARGS@;
-	val_list args(bif_args->length() - 1);
+	const auto& bif_args = @ARGS@;
+	val_list args(bif_args->size() - 1);
 
-	for ( auto i = 1; i < bif_args->length(); ++i )
-		args.push_back((*bif_args)[i]);
+	for ( auto i = 1u; i < bif_args->size(); ++i )
+		args.push_back((*bif_args)[i].get());
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
 	return val_mgr->GetBool(rval);
@@ -183,17 +188,17 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 	if ( ! topic_func )
 		topic_func = global_scope()->Lookup("Cluster::rr_topic")->ID_Val()->AsFunc();
 
-	val_list vl{pool->Ref(), key->Ref()};
-	auto topic = topic_func->Call(&vl);
+	zeek::Args vl{{NewRef{}, pool}, {NewRef{}, key}};
+	auto topic = topic_func->Call(vl);
 
 	if ( ! topic->AsString()->Len() )
 		return val_mgr->GetFalse();
 
-	val_list* bif_args = @ARGS@;
-	val_list args(bif_args->length() - 2);
+	const auto& bif_args = @ARGS@;
+	val_list args(bif_args->size() - 2);
 
-	for ( auto i = 2; i < bif_args->length(); ++i )
-		args.push_back((*bif_args)[i]);
+	for ( auto i = 2u; i < bif_args->size(); ++i )
+		args.push_back((*bif_args)[i].get());
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
 	return val_mgr->GetBool(rval);
@@ -220,17 +225,17 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 	if ( ! topic_func )
 		topic_func = global_scope()->Lookup("Cluster::hrw_topic")->ID_Val()->AsFunc();
 
-	val_list vl{pool->Ref(), key->Ref()};
-	auto topic = topic_func->Call(&vl);
+	zeek::Args vl{{NewRef{}, pool}, {NewRef{}, key}};
+	auto topic = topic_func->Call(vl);
 
 	if ( ! topic->AsString()->Len() )
 		return val_mgr->GetFalse();
 
-	val_list* bif_args = @ARGS@;
-	val_list args(bif_args->length() - 2);
+	const auto& bif_args = @ARGS@;
+	val_list args(bif_args->size() - 2);
 
-	for ( auto i = 2; i < bif_args->length(); ++i )
-		args.push_back((*bif_args)[i]);
+	for ( auto i = 2u; i < bif_args->size(); ++i )
+		args.push_back((*bif_args)[i].get());
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
 	return val_mgr->GetBool(rval);

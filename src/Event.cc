@@ -18,27 +18,17 @@ EventMgr mgr;
 uint64_t num_events_queued = 0;
 uint64_t num_events_dispatched = 0;
 
-Event::Event(EventHandlerPtr arg_handler, val_list arg_args,
-		SourceID arg_src, analyzer::ID arg_aid, TimerMgr* arg_mgr,
-		BroObj* arg_obj)
+Event::Event(EventHandlerPtr arg_handler, zeek::Args arg_args,
+             SourceID arg_src, analyzer::ID arg_aid, BroObj* arg_obj)
 	: handler(arg_handler),
 	  args(std::move(arg_args)),
 	  src(arg_src),
 	  aid(arg_aid),
-	  mgr(arg_mgr ? arg_mgr : timer_mgr),
 	  obj(arg_obj),
 	  next_event(nullptr)
 	{
 	if ( obj )
 		Ref(obj);
-	}
-
-Event::Event(EventHandlerPtr arg_handler, val_list* arg_args,
-		SourceID arg_src, analyzer::ID arg_aid, TimerMgr* arg_mgr,
-		BroObj* arg_obj)
-	: Event(arg_handler, std::move(*arg_args), arg_src, arg_aid, arg_mgr, arg_obj)
-	{
-	delete arg_args;
 	}
 
 void Event::Describe(ODesc* d) const
@@ -53,7 +43,7 @@ void Event::Describe(ODesc* d) const
 
 	if ( ! d->IsBinary() )
 		d->Add("(");
-	describe_vals(&args, d);
+	describe_vals(args, d);
 	if ( ! d->IsBinary() )
 		d->Add("(");
 	}
@@ -68,7 +58,7 @@ void Event::Dispatch(bool no_remote)
 
 	try
 		{
-		handler->Call(&args, no_remote);
+		handler->Call(args, no_remote);
 		}
 
 	catch ( InterpreterException& e )
@@ -88,7 +78,6 @@ EventMgr::EventMgr()
 	{
 	head = tail = 0;
 	current_src = SOURCE_LOCAL;
-	current_mgr = timer_mgr;
 	current_aid = 0;
 	src_val = 0;
 	draining = 0;
@@ -106,17 +95,38 @@ EventMgr::~EventMgr()
 	Unref(src_val);
 	}
 
-void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list vl,
-			  SourceID src, analyzer::ID aid,
-			  TimerMgr* mgr, BroObj* obj)
+void EventMgr::QueueEventFast(const EventHandlerPtr &h, val_list vl,
+                              SourceID src, analyzer::ID aid, TimerMgr* mgr,
+                              BroObj* obj)
 	{
+	QueueEvent(new Event(h, zeek::val_list_to_args(vl), src, aid, obj));
+	}
+
+void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list vl,
+                          SourceID src, analyzer::ID aid,
+                          TimerMgr* mgr, BroObj* obj)
+	{
+	auto args = zeek::val_list_to_args(vl);
+
 	if ( h )
-		QueueEvent(new Event(h, std::move(vl), src, aid, mgr, obj));
-	else
-		{
-		for ( const auto& v : vl )
-			Unref(v);
-		}
+		Enqueue(h, std::move(args), src, aid, obj);
+	}
+
+void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list* vl,
+                          SourceID src, analyzer::ID aid,
+                          TimerMgr* mgr, BroObj* obj)
+	{
+	auto args = zeek::val_list_to_args(*vl);
+	delete vl;
+
+	if ( h )
+		Enqueue(h, std::move(args), src, aid, obj);
+	}
+
+void EventMgr::Enqueue(const EventHandlerPtr& h, zeek::Args vl,
+                       SourceID src, analyzer::ID aid, BroObj* obj)
+	{
+	QueueEvent(new Event(h, std::move(vl), src, aid, obj));
 	}
 
 void EventMgr::QueueEvent(Event* event)
@@ -150,7 +160,7 @@ void EventMgr::Dispatch(Event* event, bool no_remote)
 void EventMgr::Drain()
 	{
 	if ( event_queue_flush_point )
-		QueueEventFast(event_queue_flush_point, val_list{});
+		Enqueue(event_queue_flush_point, zeek::Args{});
 
 	SegmentProfiler prof(segment_logger, "draining-events");
 
@@ -176,7 +186,6 @@ void EventMgr::Drain()
 			Event* next = current->NextEvent();
 
 			current_src = current->Source();
-			current_mgr = current->Mgr();
 			current_aid = current->Analyzer();
 			current->Dispatch();
 			Unref(current);

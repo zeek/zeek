@@ -432,13 +432,12 @@ string Manager::GetFileID(const analyzer::Tag& tag, Connection* c, bool is_orig)
 		analyzer_mgr->GetComponentName(tag).c_str());
 
 	EnumVal* tagval = tag.AsEnumVal();
-	Ref(tagval);
 
-	mgr.QueueEventFast(get_file_handle, {
-		tagval,
-		c->BuildConnVal(),
-		val_mgr->GetBool(is_orig),
-	});
+	mgr.Enqueue(get_file_handle,
+		IntrusivePtr{NewRef{}, tagval},
+		IntrusivePtr{AdoptRef{}, c->BuildConnVal()},
+		IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)}
+	);
 	mgr.Drain(); // need file handle immediately so we don't have to buffer data
 	return current_file_id;
 	}

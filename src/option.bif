@@ -16,14 +16,15 @@ static bool call_option_handlers_and_set_value(StringVal* name, ID* i,
 		for ( auto handler_function : i->GetOptionHandlers() )
 			{
 			bool add_loc = handler_function->FType()->AsFuncType()->ArgTypes()->Types()->length() == 3;
-			val_list vl(2 + add_loc);
-			vl.push_back(name->Ref());
-			vl.push_back(val->Ref());
+			zeek::Args vl;
+			vl.reserve(2 + add_loc);
+			vl.emplace_back(NewRef{}, name);
+			vl.emplace_back(val);
 
 			if ( add_loc )
-				vl.push_back(location->Ref());
+				vl.emplace_back(NewRef{}, location);
 
-			val = handler_function->Call(&vl); // consumed by next call.
+			val = handler_function->Call(vl); // consumed by next call.
 
 			if ( ! val )
 				{

@@ -135,6 +135,7 @@ typedef enum {
 	ASSIGN_EXPR_DEF,
 	ADDTO_EXPR_DEF,
 	FIELD_EXPR_DEF,
+	HAS_FIELD_EXPR_DEF,
 	CALL_EXPR_DEF,	// for aggregates
 	FUNC_DEF,
 } def_point_type;
@@ -168,7 +169,13 @@ public:
 	DefinitionPoint(const FieldExpr* f)
 		{
 		o = f;
-		t = ADDTO_EXPR_DEF;
+		t = FIELD_EXPR_DEF;
+		}
+
+	DefinitionPoint(const HasFieldExpr* f)
+		{
+		o = f;
+		t = HAS_FIELD_EXPR_DEF;
 		}
 
 	DefinitionPoint(const CallExpr* c)
@@ -1117,9 +1124,36 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		}
 
 	case EXPR_HAS_FIELD:
-		// ### in the future, use this to protect subsequent field
-		// accesses.
+		{
+		auto hf = e->AsHasFieldExpr();
+		auto r = hf->Op();
+
+		// Treat this as a definition of lhs$fn, since it's
+		// assuring that that field exists.
+
+		if ( r->Tag() == EXPR_NAME )
+			{
+			auto id_e = r->AsNameExpr();
+			auto id = id_e->Id();
+			auto id_rt = id_e->Type()->AsRecordType();
+			auto id_rd = GetIDReachingDef(id);
+
+			if ( ! id_rd )
+				printf("no ID reaching def for %s\n", id->Name());
+
+			auto fn = hf->FieldName();
+			auto field_rd = id_rd->FindField(fn);
+			if ( ! field_rd )
+				{
+				auto ft = id_rt->FieldType(fn);
+				field_rd = id_rd->CreateField(fn, ft);
+				AddRD(rd, field_rd, DefinitionPoint(hf));
+				AddPostRDs(e, rd);
+				}
+			}
+
 		break;
+		}
 
 	case EXPR_CALL:
 		{

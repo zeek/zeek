@@ -66,6 +66,7 @@ class NameExpr;
 class IndexExpr;
 class AssignExpr;
 class FieldExpr;
+class HasFieldExpr;
 class FieldAssignExpr;
 class CallExpr;
 class EventExpr;
@@ -182,6 +183,7 @@ public:
 	ACCESSORS(EXPR_FIELD_ASSIGN, FieldAssignExpr, AsFieldAssignExpr);
 	ACCESSORS(EXPR_INDEX, IndexExpr, AsIndexExpr);
 
+	CONST_ACCESSOR(EXPR_HAS_FIELD, HasFieldExpr, AsHasFieldExpr);
 	CONST_ACCESSOR(EXPR_CALL, CallExpr, AsCallExpr);
 	CONST_ACCESSOR(EXPR_REF, RefExpr, AsRefExpr);
 	CONST_ACCESSOR(EXPR_ADD_TO, AddToExpr, AsAddToExpr);

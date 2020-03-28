@@ -232,6 +232,8 @@ public:
 	TraversalCode PreExpr(const Expr*) override;
 	TraversalCode PostExpr(const Expr*) override;
 
+	void TrackInits(const Func* f, const id_list* inits);
+
 protected:
 	bool CheckLHS(ReachingDefs& rd, const Expr* lhs, const AssignExpr* a);
 
@@ -766,6 +768,12 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 	AddPostRDs(s, post_rds);
 	last_obj = s;
 
+	if ( trace )
+		{
+		printf("post RDs for stmt %s:\n", stmt_name(s->Tag()));
+		DumpRDs(PostRDs(s));
+		}
+
 	return TC_CONTINUE;
 	}
 
@@ -1114,6 +1122,26 @@ TraversalCode RD_Decorate::PostExpr(const Expr* e)
 	return TC_CONTINUE;
 	}
 
+void RD_Decorate::TrackInits(const Func* f, const id_list* inits)
+	{
+	// This code is duplicated for STMT_INIT.  It's a pity that
+	// that doesn't get used for aggregates that are initialized
+	// just incidentally.
+	ReachingDefs rd;
+	for ( int i = 0; i < inits->length(); ++i )
+		{
+		auto id = (*inits)[i];
+		auto id_t = id->Type();
+
+		// Only aggregates get initialized.
+		auto tag = id_t->Tag();
+		if ( IsAggrTag(tag) )
+			AddRD(rd, id, DefinitionPoint(f));
+		}
+
+	AddPostRDs(f, rd);
+	}
+
 
 bool RD_Decorate::RDHasPair(const ReachingDefs& r, const DefinitionItem* di,
 				const DefinitionPoint& dp) const
@@ -1220,12 +1248,13 @@ TraversalCode FolderFinder::PreExpr(const Expr* expr, const Expr* op1, const Exp
 	}
 
 
-void analyze_func(const Func* f, const Stmt* body)
+void analyze_func(const Func* f, const id_list* inits, const Stmt* body)
 	{
 	// if ( streq(f->Name(), "test_func") )
 		{
 		RD_Decorate cb;
 		f->Traverse(&cb);
+		cb.TrackInits(f, inits);
 		body->Traverse(&cb);
 		}
 	}

@@ -531,7 +531,22 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		auto cases = sw->Cases();
 
 		for ( const auto& c : *cases )
+			{
+			auto type_ids = c->TypeCases();
+			if ( type_ids )
+				{
+				for ( const auto& id : *type_ids )
+					{
+					AddRD(rd, id, DefinitionPoint(s));
+
+					if ( id->Type()->Tag() == TYPE_RECORD )
+						CreateRecordRDs(rd, GetIDReachingDef(id),
+							true, DefinitionPoint(s));
+					}
+				}
+
 			AddPreRDs(c->Body(), rd);
+			}
 
 		break;
 		}

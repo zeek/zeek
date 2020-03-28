@@ -32,6 +32,7 @@ public:
 		id = _id;
 		di = nullptr;
 		field_name = nullptr;
+		name = nullptr;
 
 		t = id->Type();
 
@@ -48,6 +49,11 @@ public:
 
 		t = _t;
 
+		auto di_n = di->Name();
+		auto nl = strlen(di_n) + 1 /* $ */ + strlen(field_name) + 1;
+		name = new char[nl];
+		snprintf(name, nl, "%s$%s", di->Name(), field_name);
+
 		CheckForRecord();
 		}
 
@@ -60,16 +66,18 @@ public:
 
 			delete fields;
 			}
+
+		delete name;
 		}
 
 	bool IsRecord() const	{ return t->Tag() == TYPE_RECORD; }
 
 	const char* Name() const
 		{
-		if ( is_id )
-			return id->Name();
+		if ( name )
+			return name;
 		else
-			return field_name;
+			return id->Name();
 		}
 
 	const BroType* Type() const	{ return t; }
@@ -103,6 +111,8 @@ protected:
 	const char* field_name;
 
 	const BroType* t;
+
+	char* name;
 
 	const RecordType* rt;
 	DefinitionItem** fields;	// indexed by field offset
@@ -523,11 +533,23 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		auto body = f->LoopBody();
 
 		for ( const auto& id : *ids )
+			{
 			AddRD(rd, id, DefinitionPoint(s));
+
+			if ( id->Type()->Tag() == TYPE_RECORD )
+				CreateRecordRDs(rd, GetIDReachingDef(id),
+					true, DefinitionPoint(s));
+			}
 
 		auto val_var = f->ValueVar();
 		if ( val_var )
+			{
 			AddRD(rd, val_var, DefinitionPoint(s));
+
+			if ( val_var->Type()->Tag() == TYPE_RECORD )
+				CreateRecordRDs(rd, GetIDReachingDef(val_var),
+					true, DefinitionPoint(s));
+			}
 
 		AddPreRDs(e, rd);
 		AddPreRDs(body, rd);
@@ -736,8 +758,18 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 
 			// Only aggregates get initialized.
 			auto tag = id_t->Tag();
-			if ( IsAggrTag(tag) )
-				AddRD(post_rds, id, DefinitionPoint(s));
+			if ( ! IsAggrTag(tag) )
+				continue;
+
+			AddRD(post_rds, id, DefinitionPoint(s));
+
+			if ( tag != TYPE_RECORD )
+				continue;
+
+			// ### Ideally here we'd look into which
+			// fields are set by the initializer.
+			CreateRecordRDs(post_rds, GetIDReachingDef(id),
+					true, DefinitionPoint(s));
 			}
 
 		break;
@@ -804,6 +836,13 @@ bool RD_Decorate::CheckLHS(ReachingDefs& rd, const Expr* lhs,
 		auto n = lhs->AsNameExpr();
 		auto id = n->Id();
 		AddRD(rd, id, DefinitionPoint(a));
+
+		// ### in the future, look here for assignment
+		// to a record creator
+		if ( n->Type()->Tag() == TYPE_RECORD )
+			CreateRecordRDs(rd, GetIDReachingDef(id),
+					true, DefinitionPoint(a));
+
 		return true;
 		}
 
@@ -812,17 +851,20 @@ bool RD_Decorate::CheckLHS(ReachingDefs& rd, const Expr* lhs,
 		auto l = lhs->AsListExpr();
 		for ( const auto& expr : l->Exprs() )
 			{
-			if ( expr->Tag() == EXPR_NAME )
-				{
-				auto n = expr->AsNameExpr();
-				auto id = n->Id();
-				AddRD(rd, id, DefinitionPoint(a));
-				}
-
-			else
+			if ( expr->Tag() != EXPR_NAME )
 				// This will happen for table initialiers,
 				// for example.
 				return false;
+
+			auto n = expr->AsNameExpr();
+			auto id = n->Id();
+			AddRD(rd, id, DefinitionPoint(a));
+
+			// ### in the future, look here for assignment
+			// to a record creator
+			if ( n->Type()->Tag() == TYPE_RECORD )
+				CreateRecordRDs(rd, GetIDReachingDef(id),
+						true, DefinitionPoint(a));
 			}
 
 		return true;
@@ -1109,6 +1151,9 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			auto id = id_e->Id();
 			auto id_rd = GetIDReachingDef(id);
 
+			if ( id->IsGlobal() )
+				break;
+
 			if ( ! id_rd )
 				printf("no ID reaching def for %s\n", id->Name());
 
@@ -1338,7 +1383,7 @@ TraversalCode FolderFinder::PreExpr(const Expr* expr, const Expr* op1, const Exp
 
 void analyze_func(const Func* f, const id_list* inits, const Stmt* body)
 	{
-	if ( streq(f->Name(), "test_func") )
+	// if ( streq(f->Name(), "test_func") )
 		{
 		RD_Decorate cb;
 		f->Traverse(&cb);

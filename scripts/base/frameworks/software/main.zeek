@@ -436,8 +436,7 @@ function cmp_versions(v1: Version, v2: Version): int
 		}
 
 	# A catcher return that should never be reached...hopefully
-	### Commented out as (correctly) gets flagged as dead code.
-	# return 0;
+	return 0;
 	}
 
 function software_endpoint_name(id: conn_id, host: addr): string

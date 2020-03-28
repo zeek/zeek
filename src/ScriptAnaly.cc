@@ -142,6 +142,7 @@ DefinitionItem* DefinitionItem::CreateField(const char* field, const BroType* t)
 typedef enum {
 	NO_DEF,
 	STMT_DEF,
+	NAME_EXPR_DEF,	// implicit creation of records upon seeing use
 	ASSIGN_EXPR_DEF,
 	ADDTO_EXPR_DEF,
 	FIELD_EXPR_DEF,
@@ -162,6 +163,12 @@ public:
 		{
 		o = s;
 		t = STMT_DEF;
+		}
+
+	DefinitionPoint(const NameExpr* n)
+		{
+		o = n;
+		t = NAME_EXPR_DEF;
 		}
 
 	DefinitionPoint(const AssignExpr* a)
@@ -239,6 +246,8 @@ public:
 		pre_a_i = new AnalyInfo;
 		post_a_i = new AnalyInfo;
 		last_obj = nullptr;
+
+		trace = getenv("ZEEK_OPT_TRACE") != nullptr;
 		}
 
 	~RD_Decorate() override
@@ -269,6 +278,11 @@ protected:
 
 	DefinitionItem* GetIDReachingDef(const ID* id);
 	const DefinitionItem* GetConstIDReachingDef(const ID* id) const;
+
+	// Gets definition for either a name or a record field reference.
+	// Returns nil if "expr" lacks such a form, or if there isn't
+	// any such definition.
+	DefinitionItem* GetIDReachingDef(Expr* expr);
 
 	const DefinitionItem* GetConstIDReachingDef(const DefinitionItem* di,
 						const char* field_name) const;
@@ -395,7 +409,7 @@ protected:
 
 	ID_to_DI_Map i2d_map;
 
-	bool trace = false;
+	bool trace;
 };
 
 void RD_Decorate::AddRD(ReachingDefs& rd, const ID* id, DefinitionPoint dp)
@@ -405,10 +419,8 @@ void RD_Decorate::AddRD(ReachingDefs& rd, const ID* id, DefinitionPoint dp)
 
 	auto di = GetIDReachingDef(id);
 
-	if ( di == 0 )
-		printf("oops2\n");
-
-	AddRD(rd, di, dp);
+	if ( di )
+		AddRD(rd, di, dp);
 	}
 
 void RD_Decorate::CreateRecordRDs(ReachingDefs& rd, DefinitionItem* di,
@@ -422,7 +434,7 @@ void RD_Decorate::CreateRecordRDs(ReachingDefs& rd, DefinitionItem* di,
 		auto n_i = rt->FieldName(i);
 		auto t_i = rt->FieldType(i);
 
-		if ( ! assume_full && ! rt->FieldHasAttr(i, ATTR_OPTIONAL) )
+		if ( ! assume_full && ! rt->FieldHasAttr(i, ATTR_DEFAULT) )
 			continue;
 
 		auto di_i = di->CreateField(n_i, t_i);
@@ -875,30 +887,35 @@ bool RD_Decorate::CheckLHS(ReachingDefs& rd, const Expr* lhs,
 		auto f = lhs->AsFieldExpr();
 		auto r = f->Op();
 
-		if ( r->Tag() == EXPR_NAME )
-			{
-			// Don't recurse into assessing the operand,
-			// since it's not a reference to the name itself.
+		if ( r->Tag() != EXPR_NAME && r->Tag() != EXPR_FIELD )
+			// This is a more complicated expression that we're
+			// not able to concretely track.
+			return false;
 
-			auto id_e = r->AsNameExpr();
-			auto id = id_e->Id();
-			auto id_rd = GetIDReachingDef(id);
+		// Recurse to traverse LHS so as to install its definitions.
+		r->Traverse(this);
 
-			if ( ! id_rd )
-				printf("no ID reaching def for %s\n", id->Name());
+		auto r_def = GetIDReachingDef(r);
 
-			auto fn = f->FieldName();
-
-			auto field_rd = id_rd->FindField(fn);
-			auto ft = f->Type();
-			if ( ! field_rd )
-				field_rd = id_rd->CreateField(fn, ft);
-
-			AddRD(rd, field_rd, DefinitionPoint(a));
+		if ( ! r_def )
+			// This should have already generated a complaint.
+			// Avoid cascade.
 			return true;
-			}
 
-		return false;
+		auto fn = f->FieldName();
+
+		auto field_rd = r_def->FindField(fn);
+		auto ft = f->Type();
+		if ( ! field_rd )
+			field_rd = r_def->CreateField(fn, ft);
+
+		AddRD(rd, field_rd, DefinitionPoint(a));
+
+		if ( ft->Tag() == TYPE_RECORD )
+			CreateRecordRDs(rd, field_rd,
+					true, DefinitionPoint(a));
+
+		return true;
 		}
 
         case EXPR_INDEX:
@@ -1034,6 +1051,9 @@ bool RD_Decorate::ControlReachesEnd(const Stmt* s, bool is_definite,
 
 DefinitionItem* RD_Decorate::GetIDReachingDef(const ID* id)
 	{
+	if ( id->IsGlobal() )
+		return nullptr;
+
 	auto di = i2d_map.find(id);
 	if ( di == i2d_map.end() )
 		{
@@ -1060,6 +1080,33 @@ const DefinitionItem* RD_Decorate::GetConstIDReachingDef(const DefinitionItem* d
 	return di->FindField(field_name);
 	}
 
+DefinitionItem* RD_Decorate::GetIDReachingDef(Expr* expr)
+	{
+	if ( expr->Tag() == EXPR_NAME )
+		{
+		auto id_e = expr->AsNameExpr();
+		auto id = id_e->Id();
+		return GetIDReachingDef(id);
+		}
+
+	else if ( expr->Tag() == EXPR_FIELD )
+		{
+		auto f = expr->AsFieldExpr();
+		auto r = f->Op();
+
+		auto r_def = GetIDReachingDef(r);
+
+		if ( ! r_def )
+			return nullptr;
+
+		auto field = f->FieldName();
+		return r_def->FindField(field);
+		}
+
+	else
+		return nullptr;
+	}
+
 TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	{
 	auto rd = PredecessorRDs();
@@ -1078,8 +1125,19 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		{
 		auto n = e->AsNameExpr();
 		auto id = n->Id();
-		if ( ! id->IsGlobal() && ! HasPreRD(e, id) )
+
+		if ( id->IsGlobal() )
+			break;
+
+		if ( ! HasPreRD(e, id) )
 			printf("%s has no pre at %s\n", id->Name(), obj_desc(e));
+
+		if ( id->Type()->Tag() == TYPE_RECORD )
+			{
+			CreateRecordRDs(rd, GetIDReachingDef(id),
+					false, DefinitionPoint(n));
+			AddPostRDs(e, rd);
+			}
 
 		break;
 		}
@@ -1142,30 +1200,22 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		auto f = e->AsFieldExpr();
 		auto r = f->Op();
 
-		if ( r->Tag() == EXPR_NAME )
+		if ( r->Tag() != EXPR_NAME && r->Tag() != EXPR_FIELD )
+			break;
+
+		r->Traverse(this);
+		auto r_def = GetIDReachingDef(r);
+
+		if ( r_def )
 			{
-			// Don't recurse into assessing the operand,
-			// since it's not a reference to the name itself.
-
-			auto id_e = r->AsNameExpr();
-			auto id = id_e->Id();
-			auto id_rd = GetIDReachingDef(id);
-
-			if ( id->IsGlobal() )
-				break;
-
-			if ( ! id_rd )
-				printf("no ID reaching def for %s\n", id->Name());
-
 			auto fn = f->FieldName();
-			auto field_rd = GetConstIDReachingDef(id_rd, fn);
+			auto field_rd = GetConstIDReachingDef(r_def, fn);
 
 			if ( ! field_rd )
-				printf("no reaching def for %s$%s: %s\n",
-					id->Name(), fn, obj_desc(e));
+				printf("no reaching def for %s\n", obj_desc(e));
 			}
 
-		break;
+		return TC_ABORTSTMT;
 		}
 
 	case EXPR_HAS_FIELD:

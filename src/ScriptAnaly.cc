@@ -39,23 +39,8 @@ typedef std::map<const BroObj*, ReachingDefs> AnalyInfo;
 
 class RD_Decorate : public TraversalCallback {
 public:
-	RD_Decorate()
-		{
-		pre_a_i = new AnalyInfo;
-		post_a_i = new AnalyInfo;
-		last_obj = nullptr;
-
-		trace = getenv("ZEEK_OPT_TRACE") != nullptr;
-		}
-
-	~RD_Decorate() override
-		{
-		for ( auto& i2d : i2d_map )
-			delete i2d.second;
-
-		delete pre_a_i;
-		delete post_a_i;
-		}
+	RD_Decorate();
+	~RD_Decorate() override;
 
 	TraversalCode PreFunction(const Func*) override;
 	TraversalCode PreStmt(const Stmt*) override;
@@ -134,6 +119,12 @@ protected:
 		rd.insert(ReachingDefs::value_type(di, dp));
 		}
 
+	void AddRDWithInit(ReachingDefs& rd, const ID* id, DefinitionPoint dp,
+				bool assume_full,const Expr* init);
+	void AddRDWithInit(ReachingDefs& rd, DefinitionItem* di,
+				DefinitionPoint dp, bool assume_full,
+				const Expr* init);
+
 	void CreateRecordRDs(ReachingDefs& rd, DefinitionItem* di,
 				bool assume_full, DefinitionPoint dp);
 
@@ -210,6 +201,26 @@ protected:
 	bool trace;
 };
 
+
+RD_Decorate::RD_Decorate()
+	{
+	pre_a_i = new AnalyInfo;
+	post_a_i = new AnalyInfo;
+	last_obj = nullptr;
+
+	trace = getenv("ZEEK_OPT_TRACE") != nullptr;
+	}
+
+RD_Decorate::~RD_Decorate()
+	{
+	for ( auto& i2d : i2d_map )
+		delete i2d.second;
+
+	delete pre_a_i;
+	delete post_a_i;
+	}
+
+
 void RD_Decorate::AddRD(ReachingDefs& rd, const ID* id, DefinitionPoint dp)
 	{
 	if ( id == 0 )
@@ -219,6 +230,29 @@ void RD_Decorate::AddRD(ReachingDefs& rd, const ID* id, DefinitionPoint dp)
 
 	if ( di )
 		AddRD(rd, di, dp);
+	}
+
+void RD_Decorate::AddRDWithInit(ReachingDefs& rd, const ID* id,
+				DefinitionPoint dp, bool assume_full,
+				const Expr* init)
+	{
+	auto di = GetIDReachingDef(id);
+	if ( ! di )
+		return;
+
+	AddRDWithInit(rd, di, dp, assume_full, init);
+	}
+
+void RD_Decorate::AddRDWithInit(ReachingDefs& rd, DefinitionItem* di,
+				DefinitionPoint dp, bool assume_full,
+				const Expr* init)
+	{
+	AddRD(rd, di, dp);
+
+	if ( di->Type()->Tag() != TYPE_RECORD )
+		return;
+
+	CreateRecordRDs(rd, di, assume_full, dp);
 	}
 
 void RD_Decorate::CreateRecordRDs(ReachingDefs& rd, DefinitionItem* di,
@@ -268,12 +302,7 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 			printf("adding param %s (%s)\n", args->FieldName(i), arg_i_id->Name());
 #endif
 
-		AddRD(rd, arg_i_id, DefinitionPoint(f));
-
-		auto t = arg_i_id->Type();
-		if ( t->Tag() == TYPE_RECORD )
-			CreateRecordRDs(rd, GetIDReachingDef(arg_i_id),
-					true, DefinitionPoint(f));
+		AddRDWithInit(rd, arg_i_id, DefinitionPoint(f), true, 0);
 		}
 
 	AddPostRDs(f, rd);
@@ -334,13 +363,8 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 			if ( type_ids )
 				{
 				for ( const auto& id : *type_ids )
-					{
-					AddRD(rd, id, DefinitionPoint(s));
-
-					if ( id->Type()->Tag() == TYPE_RECORD )
-						CreateRecordRDs(rd, GetIDReachingDef(id),
-							true, DefinitionPoint(s));
-					}
+					AddRDWithInit(rd, id,
+						DefinitionPoint(s), true, 0);
 				}
 
 			AddPreRDs(c->Body(), rd);
@@ -358,23 +382,11 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		auto body = f->LoopBody();
 
 		for ( const auto& id : *ids )
-			{
-			AddRD(rd, id, DefinitionPoint(s));
-
-			if ( id->Type()->Tag() == TYPE_RECORD )
-				CreateRecordRDs(rd, GetIDReachingDef(id),
-					true, DefinitionPoint(s));
-			}
+			AddRDWithInit(rd, id, DefinitionPoint(s), true, 0);
 
 		auto val_var = f->ValueVar();
 		if ( val_var )
-			{
-			AddRD(rd, val_var, DefinitionPoint(s));
-
-			if ( val_var->Type()->Tag() == TYPE_RECORD )
-				CreateRecordRDs(rd, GetIDReachingDef(val_var),
-					true, DefinitionPoint(s));
-			}
+			AddRDWithInit(rd, val_var, DefinitionPoint(s), true, 0);
 
 		AddPreRDs(e, rd);
 		AddPreRDs(body, rd);
@@ -586,15 +598,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 			if ( ! IsAggrTag(tag) )
 				continue;
 
-			AddRD(post_rds, id, DefinitionPoint(s));
-
-			if ( tag != TYPE_RECORD )
-				continue;
-
-			// ### Ideally here we'd look into which
-			// fields are set by the initializer.
-			CreateRecordRDs(post_rds, GetIDReachingDef(id),
-					true, DefinitionPoint(s));
+			AddRDWithInit(post_rds, id, DefinitionPoint(s), true, 0);
 			}
 
 		break;
@@ -660,13 +664,8 @@ bool RD_Decorate::CheckLHS(ReachingDefs& rd, const Expr* lhs,
 		{
 		auto n = lhs->AsNameExpr();
 		auto id = n->Id();
-		AddRD(rd, id, DefinitionPoint(a));
 
-		// ### in the future, look here for assignment
-		// to a record creator
-		if ( n->Type()->Tag() == TYPE_RECORD )
-			CreateRecordRDs(rd, GetIDReachingDef(id),
-					true, DefinitionPoint(a));
+		AddRDWithInit(rd, id, DefinitionPoint(a), true, 0);
 
 		return true;
 		}
@@ -683,13 +682,8 @@ bool RD_Decorate::CheckLHS(ReachingDefs& rd, const Expr* lhs,
 
 			auto n = expr->AsNameExpr();
 			auto id = n->Id();
-			AddRD(rd, id, DefinitionPoint(a));
 
-			// ### in the future, look here for assignment
-			// to a record creator
-			if ( n->Type()->Tag() == TYPE_RECORD )
-				CreateRecordRDs(rd, GetIDReachingDef(id),
-						true, DefinitionPoint(a));
+			AddRDWithInit(rd, id, DefinitionPoint(a), true, 0);
 			}
 
 		return true;
@@ -722,11 +716,7 @@ bool RD_Decorate::CheckLHS(ReachingDefs& rd, const Expr* lhs,
 		if ( ! field_rd )
 			field_rd = r_def->CreateField(fn, ft);
 
-		AddRD(rd, field_rd, DefinitionPoint(a));
-
-		if ( ft->Tag() == TYPE_RECORD )
-			CreateRecordRDs(rd, field_rd,
-					true, DefinitionPoint(a));
+		AddRDWithInit(rd, field_rd, DefinitionPoint(a), true, 0);
 
 		return true;
 		}
@@ -1127,12 +1117,7 @@ void RD_Decorate::TrackInits(const Func* f, const id_list* inits)
 		// Only aggregates get initialized.
 		auto tag = id_t->Tag();
 		if ( IsAggrTag(tag) )
-			{
-			AddRD(rd, id, DefinitionPoint(f));
-			if ( tag == TYPE_RECORD )
-				CreateRecordRDs(rd, GetIDReachingDef(id),
-						false, DefinitionPoint(f));
-			}
+			AddRDWithInit(rd, id, DefinitionPoint(f), false, 0);
 		}
 
 	AddPostRDs(f, rd);

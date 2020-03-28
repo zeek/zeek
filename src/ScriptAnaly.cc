@@ -32,15 +32,37 @@ public:
 		id = _id;
 		di = nullptr;
 		field_name = nullptr;
+
+		t = id->Type();
+
+		CheckForRecord();
 		}
 
-	DefinitionItem(const DefinitionItem* _di, const char* _field_name)
+	DefinitionItem(const DefinitionItem* _di, const char* _field_name,
+			const BroType* _t)
 		{
 		is_id = false;
 		id = nullptr;
 		di = _di;
 		field_name = _field_name;
+
+		t = _t;
+
+		CheckForRecord();
 		}
+
+	~DefinitionItem()
+		{
+		if ( fields )
+			{
+			for ( int i = 0; i < num_fields; ++i )
+				delete fields[i];
+
+			delete fields;
+			}
+		}
+
+	bool IsRecord() const	{ return t->Tag() == TYPE_RECORD; }
 
 	const char* Name() const
 		{
@@ -50,12 +72,62 @@ public:
 			return field_name;
 		}
 
+	const BroType* Type() const	{ return t; }
+
+	// For this definition item, look for a field corresponding
+	// to the given name.
+	DefinitionItem* FindField(const char* field) const;
+	DefinitionItem* CreateField(const char* field, const BroType* t);
+
 protected:
+	void CheckForRecord()
+		{
+		if ( ! IsRecord() )
+			{
+			rt = nullptr;
+			fields = nullptr;
+			return;
+			}
+
+		rt = t->AsRecordType();
+		num_fields = rt->NumFields();
+		fields = new DefinitionItem*[num_fields];
+
+		for ( int i = 0; i < num_fields; ++i )
+			fields[i] = nullptr;
+		}
+
 	bool is_id;
 	const ID* id;
 	const DefinitionItem* di;
 	const char* field_name;
+
+	const BroType* t;
+
+	const RecordType* rt;
+	DefinitionItem** fields;	// indexed by field offset
+	int num_fields;
 };
+
+DefinitionItem* DefinitionItem::FindField(const char* field) const
+	{
+	if ( ! IsRecord() )
+		return nullptr;
+
+	auto offset = rt->FieldOffset(field);
+
+	return fields[offset];
+	}
+
+DefinitionItem* DefinitionItem::CreateField(const char* field, const BroType* t)
+	{
+	auto offset = rt->FieldOffset(field);
+
+	fields[offset] = new DefinitionItem(this, field, t);
+
+	return fields[offset];
+	}
+
 
 typedef enum {
 	NO_DEF,
@@ -147,7 +219,9 @@ public:
 
 	~RD_Decorate() override
 		{
-		// ### delete i2d_map;
+		for ( auto& i2d : i2d_map )
+			delete i2d.second;
+
 		delete pre_a_i;
 		delete post_a_i;
 		}
@@ -167,8 +241,13 @@ protected:
 	bool ControlReachesEnd(const Stmt* s, bool is_definite,
 				bool ignore_break = false) const;
 
-	const DefinitionItem* GetIDReachingDef(const ID* id);
-	const DefinitionItem* GetIDReachingDef(const ID* id) const;
+	DefinitionItem* GetIDReachingDef(const ID* id);
+	const DefinitionItem* GetConstIDReachingDef(const ID* id) const;
+
+	DefinitionItem* GetIDReachingDef(const DefinitionItem* di,
+						const char* field_name);
+	const DefinitionItem* GetConstIDReachingDef(const DefinitionItem* di,
+						const char* field_name) const;
 
 	const ReachingDefs& PredecessorRDs() const
 		{
@@ -211,19 +290,16 @@ protected:
 		return RDs != a_i->end();
 		}
 
-	void AddRD(ReachingDefs& rd, const ID* id, DefinitionPoint dp) const
-		{
-		if ( id == 0 )
-			printf("oops\n");
-
-		AddRD(rd, GetIDReachingDef(id), dp);
-		}
+	void AddRD(ReachingDefs& rd, const ID* id, DefinitionPoint dp);
 
 	void AddRD(ReachingDefs& rd, const DefinitionItem* di,
 			DefinitionPoint dp) const
 		{
 		rd.insert(ReachingDefs::value_type(di, dp));
 		}
+
+	void CreateRecordRDs(ReachingDefs& rd, DefinitionItem* di,
+				bool assume_full, DefinitionPoint dp);
 
 	bool HasPreRD(const BroObj* o, const ID* id) const
 		{
@@ -232,7 +308,7 @@ protected:
 
 	bool HasRD(const AnalyInfo* a_i, const BroObj* o, const ID* id) const
 		{
-		return HasRD(a_i, o, GetIDReachingDef(id));
+		return HasRD(a_i, o, GetConstIDReachingDef(id));
 		}
 
 	bool HasRD(const AnalyInfo* a_i, const BroObj* o,
@@ -252,7 +328,7 @@ protected:
 		if ( RDs == a_i->end() )
 			return no_def;
 
-		auto di = GetIDReachingDef(id);
+		auto di = GetConstIDReachingDef(id);
 		auto dp = RDs->second.find(di);
 		if ( dp == RDs->second.end() )
 			return no_def;
@@ -298,6 +374,40 @@ protected:
 	bool trace = false;
 };
 
+void RD_Decorate::AddRD(ReachingDefs& rd, const ID* id, DefinitionPoint dp)
+	{
+	if ( id == 0 )
+		printf("oops\n");
+
+	auto di = GetIDReachingDef(id);
+
+	if ( di == 0 )
+		printf("oops2\n");
+
+	AddRD(rd, di, dp);
+	}
+
+void RD_Decorate::CreateRecordRDs(ReachingDefs& rd, DefinitionItem* di,
+					bool assume_full, DefinitionPoint dp)
+	{
+	auto rt = di->Type()->AsRecordType();
+	auto n = rt->NumFields();
+
+	for ( auto i = 0; i < n; ++i )
+		{
+		auto n_i = rt->FieldName(i);
+		auto t_i = rt->FieldType(i);
+
+		if ( ! assume_full && ! rt->FieldHasAttr(i, ATTR_OPTIONAL) )
+			continue;
+
+		auto di_i = di->CreateField(n_i, t_i);
+		AddRD(rd, di_i, dp);
+
+		if ( t_i->Tag() == TYPE_RECORD )
+			CreateRecordRDs(rd, di_i, assume_full, dp);
+		}
+	}
 
 TraversalCode RD_Decorate::PreFunction(const Func* f)
 	{
@@ -325,6 +435,11 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 #endif
 
 		AddRD(rd, arg_i_id, DefinitionPoint(f));
+
+		auto t = arg_i_id->Type();
+		if ( t->Tag() == TYPE_RECORD )
+			CreateRecordRDs(rd, GetIDReachingDef(arg_i_id),
+					true, DefinitionPoint(f));
 		}
 
 	AddPostRDs(f, rd);
@@ -845,7 +960,7 @@ bool RD_Decorate::ControlReachesEnd(const Stmt* s, bool is_definite,
 	}
 	}
 
-const DefinitionItem* RD_Decorate::GetIDReachingDef(const ID* id)
+DefinitionItem* RD_Decorate::GetIDReachingDef(const ID* id)
 	{
 	auto di = i2d_map.find(id);
 	if ( di == i2d_map.end() )
@@ -858,7 +973,7 @@ const DefinitionItem* RD_Decorate::GetIDReachingDef(const ID* id)
 		return di->second;
 	}
 
-const DefinitionItem* RD_Decorate::GetIDReachingDef(const ID* id) const
+const DefinitionItem* RD_Decorate::GetConstIDReachingDef(const ID* id) const
 	{
 	auto di = i2d_map.find(id);
 	if ( di != i2d_map.end() )

@@ -120,10 +120,10 @@ protected:
 		}
 
 	void AddRDWithInit(ReachingDefs& rd, const ID* id, DefinitionPoint dp,
-				bool assume_full,const Expr* init);
+				bool assume_full,const AssignExpr* init);
 	void AddRDWithInit(ReachingDefs& rd, DefinitionItem* di,
 				DefinitionPoint dp, bool assume_full,
-				const Expr* init);
+				const AssignExpr* init);
 
 	void CreateRecordRDs(ReachingDefs& rd, DefinitionItem* di,
 				bool assume_full, DefinitionPoint dp);
@@ -234,7 +234,7 @@ void RD_Decorate::AddRD(ReachingDefs& rd, const ID* id, DefinitionPoint dp)
 
 void RD_Decorate::AddRDWithInit(ReachingDefs& rd, const ID* id,
 				DefinitionPoint dp, bool assume_full,
-				const Expr* init)
+				const AssignExpr* init)
 	{
 	auto di = GetIDReachingDef(id);
 	if ( ! di )
@@ -245,7 +245,7 @@ void RD_Decorate::AddRDWithInit(ReachingDefs& rd, const ID* id,
 
 void RD_Decorate::AddRDWithInit(ReachingDefs& rd, DefinitionItem* di,
 				DefinitionPoint dp, bool assume_full,
-				const Expr* init)
+				const AssignExpr* init)
 	{
 	AddRD(rd, di, dp);
 
@@ -665,7 +665,7 @@ bool RD_Decorate::CheckLHS(ReachingDefs& rd, const Expr* lhs,
 		auto n = lhs->AsNameExpr();
 		auto id = n->Id();
 
-		AddRDWithInit(rd, id, DefinitionPoint(a), true, 0);
+		AddRDWithInit(rd, id, DefinitionPoint(a), true, a);
 
 		return true;
 		}
@@ -716,7 +716,7 @@ bool RD_Decorate::CheckLHS(ReachingDefs& rd, const Expr* lhs,
 		if ( ! field_rd )
 			field_rd = r_def->CreateField(fn, ft);
 
-		AddRDWithInit(rd, field_rd, DefinitionPoint(a), true, 0);
+		AddRDWithInit(rd, field_rd, DefinitionPoint(a), true, a);
 
 		return true;
 		}

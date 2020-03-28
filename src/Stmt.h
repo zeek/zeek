@@ -60,6 +60,7 @@ public:
                 return (const ctype*) this; \
                 }
 
+#undef ACCESSORS
 #define ACCESSORS(tag, ctype, name) \
 	ACCESSOR(tag, ctype, name) \
 	CONST_ACCESSOR(tag, ctype, name)

@@ -154,95 +154,41 @@ public:
 	void MarkParen()		{ paren = true; }
 	bool IsParen() const		{ return paren; }
 
-	const ListExpr* AsListExpr() const
-		{
-		CHECK_TAG(tag, EXPR_LIST, "ExprVal::AsListExpr", expr_name)
-		return (const ListExpr*) this;
-		}
+#undef ACCESSOR
+#define ACCESSOR(tag, ctype, name) \
+        ctype* name() \
+                { \
+                CHECK_TAG(Tag(), tag, "Expr::ACCESSOR", expr_name) \
+                return (ctype*) this; \
+                }
 
-	ListExpr* AsListExpr()
-		{
-		CHECK_TAG(tag, EXPR_LIST, "ExprVal::AsListExpr", expr_name)
-		return (ListExpr*) this;
-		}
+#undef CONST_ACCESSOR
+#define CONST_ACCESSOR(tag, ctype, name) \
+        const ctype* name() const \
+                { \
+                CHECK_TAG(Tag(), tag, "Expr::CONST_ACCESSOR", expr_name) \
+                return (const ctype*) this; \
+                }
 
-	const NameExpr* AsNameExpr() const
-		{
-		CHECK_TAG(tag, EXPR_NAME, "ExprVal::AsNameExpr", expr_name)
-		return (const NameExpr*) this;
-		}
+#undef ACCESSORS
+#define ACCESSORS(tag, ctype, name) \
+	ACCESSOR(tag, ctype, name) \
+	CONST_ACCESSOR(tag, ctype, name)
 
-	NameExpr* AsNameExpr()
-		{
-		CHECK_TAG(tag, EXPR_NAME, "ExprVal::AsNameExpr", expr_name)
-		return (NameExpr*) this;
-		}
+	ACCESSORS(EXPR_LIST, ListExpr, AsListExpr);
+	ACCESSORS(EXPR_NAME, NameExpr, AsNameExpr);
+	ACCESSORS(EXPR_ASSIGN, AssignExpr, AsAssignExpr);
+	ACCESSORS(EXPR_FIELD, FieldExpr, AsFieldExpr);
+	ACCESSORS(EXPR_FIELD_ASSIGN, FieldAssignExpr, AsFieldAssignExpr);
+	ACCESSORS(EXPR_INDEX, IndexExpr, AsIndexExpr);
 
-	const AssignExpr* AsAssignExpr() const
-		{
-		CHECK_TAG(tag, EXPR_ASSIGN, "ExprVal::AsAssignExpr", expr_name)
-		return (const AssignExpr*) this;
-		}
+	CONST_ACCESSOR(EXPR_CALL, CallExpr, AsCallExpr);
+	CONST_ACCESSOR(EXPR_REF, RefExpr, AsRefExpr);
+	CONST_ACCESSOR(EXPR_ADD_TO, AddToExpr, AsAddToExpr);
 
-	AssignExpr* AsAssignExpr()
-		{
-		CHECK_TAG(tag, EXPR_ASSIGN, "ExprVal::AsAssignExpr", expr_name)
-		return (AssignExpr*) this;
-		}
-
-	const FieldExpr* AsFieldExpr() const
-		{
-		CHECK_TAG(tag, EXPR_FIELD, "ExprVal::AsFieldExpr", expr_name)
-		return (const FieldExpr*) this;
-		}
-
-	FieldExpr* AsFieldExpr()
-		{
-		CHECK_TAG(tag, EXPR_FIELD, "ExprVal::AsFieldExpr", expr_name)
-		return (FieldExpr*) this;
-		}
-
-	const FieldAssignExpr* AsFieldAssignExpr() const
-		{
-		CHECK_TAG(tag, EXPR_FIELD_ASSIGN, "ExprVal::AsFieldAssignExpr", expr_name)
-		return (const FieldAssignExpr*) this;
-		}
-
-	FieldAssignExpr* AsFieldAssignExpr()
-		{
-		CHECK_TAG(tag, EXPR_FIELD_ASSIGN, "ExprVal::AsFieldAssignExpr", expr_name)
-		return (FieldAssignExpr*) this;
-		}
-
-	const CallExpr* AsCallExpr() const
-		{
-		CHECK_TAG(tag, EXPR_CALL, "ExprVal::AsCallExpr", expr_name)
-		return (const CallExpr*) this;
-		}
-
-	const IndexExpr* AsIndexExpr() const
-		{
-		CHECK_TAG(tag, EXPR_INDEX, "ExprVal::AsIndexExpr", expr_name)
-		return (const IndexExpr*) this;
-		}
-
-	IndexExpr* AsIndexExpr()
-		{
-		CHECK_TAG(tag, EXPR_INDEX, "ExprVal::AsIndexExpr", expr_name)
-		return (IndexExpr*) this;
-		}
-
-	const RefExpr* AsRefExpr() const
-		{
-		CHECK_TAG(tag, EXPR_REF, "ExprVal::AsRefExpr", expr_name)
-		return (const RefExpr*) this;
-		}
-
-	const AddToExpr* AsAddToExpr() const
-		{
-		CHECK_TAG(tag, EXPR_ADD_TO, "ExprVal::AsAddToExpr", expr_name)
-		return (const AddToExpr*) this;
-		}
+#undef ACCESSORS
+#undef ACCESSOR
+#undef CONST_ACCESSOR
 
 	void Describe(ODesc* d) const override;
 

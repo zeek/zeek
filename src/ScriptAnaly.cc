@@ -1381,9 +1381,29 @@ TraversalCode FolderFinder::PreExpr(const Expr* expr, const Expr* op1, const Exp
 	}
 
 
+bool did_init = false;
+bool activate = false;
+const char* only_func = 0;
+
 void analyze_func(const Func* f, const id_list* inits, const Stmt* body)
 	{
-	// if ( streq(f->Name(), "test_func") )
+	if ( ! did_init )
+		{
+		if ( getenv("ZEEK_ANALY") )
+			activate = true;
+
+		only_func = getenv("ZEEK_ONLY");
+
+		if ( only_func )
+			activate = true;
+
+		did_init = true;
+		}
+
+	if ( ! activate )
+		return;
+
+	if ( ! only_func || streq(f->Name(), only_func) )
 		{
 		RD_Decorate cb;
 		f->Traverse(&cb);

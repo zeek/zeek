@@ -60,11 +60,12 @@ public:
                 return (const ctype*) this; \
                 }
 
-	ACCESSOR(STMT_LIST, StmtList, AsStmtList)
-	CONST_ACCESSOR(STMT_LIST, StmtList, AsStmtList)
+#define ACCESSORS(tag, ctype, name) \
+	ACCESSOR(tag, ctype, name) \
+	CONST_ACCESSOR(tag, ctype, name)
 
-	ACCESSOR(STMT_FOR, ForStmt, AsForStmt)
-	CONST_ACCESSOR(STMT_FOR, ForStmt, AsForStmt)
+	ACCESSORS(STMT_LIST, StmtList, AsStmtList)
+	ACCESSORS(STMT_FOR, ForStmt, AsForStmt)
 
 	CONST_ACCESSOR(STMT_WHILE, WhileStmt, AsWhileStmt)
 	CONST_ACCESSOR(STMT_RETURN, ReturnStmt, AsReturnStmt)
@@ -74,6 +75,7 @@ public:
 	CONST_ACCESSOR(STMT_SWITCH, SwitchStmt, AsSwitchStmt)
 	CONST_ACCESSOR(STMT_INIT, InitStmt, AsInitStmt)
 
+#undef ACCESSORS
 #undef ACCESSOR
 #undef CONST_ACCESSOR
 

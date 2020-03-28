@@ -134,6 +134,7 @@ typedef enum {
 	STMT_DEF,
 	ASSIGN_EXPR_DEF,
 	ADDTO_EXPR_DEF,
+	FIELD_EXPR_DEF,
 	CALL_EXPR_DEF,	// for aggregates
 	FUNC_DEF,
 } def_point_type;
@@ -161,6 +162,12 @@ public:
 	DefinitionPoint(const AddToExpr* a)
 		{
 		o = a;
+		t = ADDTO_EXPR_DEF;
+		}
+
+	DefinitionPoint(const FieldExpr* f)
+		{
+		o = f;
 		t = ADDTO_EXPR_DEF;
 		}
 
@@ -246,8 +253,6 @@ protected:
 	DefinitionItem* GetIDReachingDef(const ID* id);
 	const DefinitionItem* GetConstIDReachingDef(const ID* id) const;
 
-	DefinitionItem* GetIDReachingDef(const DefinitionItem* di,
-						const char* field_name);
 	const DefinitionItem* GetConstIDReachingDef(const DefinitionItem* di,
 						const char* field_name) const;
 
@@ -823,14 +828,24 @@ bool RD_Decorate::CheckLHS(ReachingDefs& rd, const Expr* lhs,
 
 		if ( r->Tag() == EXPR_NAME )
 			{
-			// ### should track field assignment here
-
 			// Don't recurse into assessing the operand,
 			// since it's not a reference to the name itself.
 
-			// ### For now, though, mark it as initialized here.
-			auto id = r->AsNameExpr()->Id();
-			AddRD(rd, id, DefinitionPoint(a));
+			auto id_e = r->AsNameExpr();
+			auto id = id_e->Id();
+			auto id_rd = GetIDReachingDef(id);
+
+			if ( ! id_rd )
+				printf("no ID reaching def for %s\n", id->Name());
+
+			auto fn = f->FieldName();
+
+			auto field_rd = id_rd->FindField(fn);
+			auto ft = f->Type();
+			if ( ! field_rd )
+				field_rd = id_rd->CreateField(fn, ft);
+
+			AddRD(rd, field_rd, DefinitionPoint(a));
 			return true;
 			}
 
@@ -990,6 +1005,12 @@ const DefinitionItem* RD_Decorate::GetConstIDReachingDef(const ID* id) const
 		return nullptr;
 	}
 
+const DefinitionItem* RD_Decorate::GetConstIDReachingDef(const DefinitionItem* di,
+					const char* field_name) const
+	{
+	return di->FindField(field_name);
+	}
+
 TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	{
 	auto rd = PredecessorRDs();
@@ -1067,6 +1088,34 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		break;
 		}
 
+	case EXPR_FIELD:
+		{
+		auto f = e->AsFieldExpr();
+		auto r = f->Op();
+
+		if ( r->Tag() == EXPR_NAME )
+			{
+			// Don't recurse into assessing the operand,
+			// since it's not a reference to the name itself.
+
+			auto id_e = r->AsNameExpr();
+			auto id = id_e->Id();
+			auto id_rd = GetIDReachingDef(id);
+
+			if ( ! id_rd )
+				printf("no ID reaching def for %s\n", id->Name());
+
+			auto fn = f->FieldName();
+			auto field_rd = GetConstIDReachingDef(id_rd, fn);
+
+			if ( ! field_rd )
+				printf("no reaching def for %s$%s: %s\n",
+					id->Name(), fn, obj_desc(e));
+			}
+
+		break;
+		}
+
 	case EXPR_HAS_FIELD:
 		// ### in the future, use this to protect subsequent field
 		// accesses.
@@ -1136,7 +1185,12 @@ void RD_Decorate::TrackInits(const Func* f, const id_list* inits)
 		// Only aggregates get initialized.
 		auto tag = id_t->Tag();
 		if ( IsAggrTag(tag) )
+			{
 			AddRD(rd, id, DefinitionPoint(f));
+			if ( tag == TYPE_RECORD )
+				CreateRecordRDs(rd, GetIDReachingDef(id),
+						false, DefinitionPoint(f));
+			}
 		}
 
 	AddPostRDs(f, rd);
@@ -1250,7 +1304,7 @@ TraversalCode FolderFinder::PreExpr(const Expr* expr, const Expr* op1, const Exp
 
 void analyze_func(const Func* f, const id_list* inits, const Stmt* body)
 	{
-	// if ( streq(f->Name(), "test_func") )
+	if ( streq(f->Name(), "test_func") )
 		{
 		RD_Decorate cb;
 		f->Traverse(&cb);

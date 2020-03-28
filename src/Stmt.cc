@@ -989,6 +989,8 @@ WhileStmt::WhileStmt(IntrusivePtr<Expr> arg_loop_condition,
 	if ( ! loop_condition->IsError() &&
 	     ! IsBool(loop_condition->Type()->Tag()) )
 		loop_condition->Error("while conditional must be boolean");
+
+	tag = STMT_WHILE;
 	}
 
 WhileStmt::~WhileStmt() = default;

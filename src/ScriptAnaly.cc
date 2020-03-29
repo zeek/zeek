@@ -30,126 +30,151 @@ typedef std::map<const ID*, DefinitionItem*> ID_to_DI_Map;
 
 static DefinitionPoint no_def;
 
-typedef std::map<const DefinitionItem*, DefinitionPoint> ReachingDefs;
+typedef std::map<const DefinitionItem*, DefinitionPoint> ReachingDefsMap;
+
+class ReachingDefs {
+public:
+	void AddRDs(const ReachingDefs& rd)
+		{
+		auto& rd_m = rd.RDMap();
+
+		for ( const auto& one_rd : rd_m )
+			AddRD(one_rd.first, one_rd.second);
+		}
+
+	void AddRD(const DefinitionItem* di, DefinitionPoint dp)
+		{
+		rd_map.insert(ReachingDefsMap::value_type(di, dp));
+		}
+
+	bool HasDI(const DefinitionItem* di) const
+		{
+		return rd_map.find(di) != rd_map.end();
+		}
+
+	bool HasPair(const DefinitionItem* di, DefinitionPoint dp) const
+		{
+		auto l = rd_map.find(di);
+		return l != rd_map.end() && l->second.SameAs(dp);
+		}
+
+	ReachingDefs Intersect(const ReachingDefs& r) const;
+	ReachingDefs Union(const ReachingDefs& r) const;
+
+	bool Differ(const ReachingDefs& r) const;
+
+	void Dump() const;
+
+	int Size() const	{ return rd_map.size(); }
+
+protected:
+	const ReachingDefsMap& RDMap() const	{ return rd_map; }
+
+	void PrintRD(const DefinitionItem* di, const DefinitionPoint& dp) const;
+
+	ReachingDefsMap rd_map;
+};
+
+ReachingDefs ReachingDefs::Intersect(const ReachingDefs& r) const
+	{
+	ReachingDefs res;
+
+	auto i = rd_map.begin();
+	while ( i != rd_map.end() )
+		{
+		if ( r.HasPair(i->first, i->second) )
+			res.AddRD(i->first, i->second);
+
+		++i;
+		}
+
+	return res;
+	}
+
+ReachingDefs ReachingDefs::Union(const ReachingDefs& r) const
+	{
+	ReachingDefs res = r;
+
+	auto i = rd_map.begin();
+	while ( i != rd_map.end() )
+		{
+		if ( ! r.HasPair(i->first, i->second) )
+			res.AddRD(i->first, i->second);
+
+		++i;
+		}
+
+	return res;
+	}
+
+bool ReachingDefs::Differ(const ReachingDefs& r) const
+	{
+	// This is just an optimization.
+	if ( Size() != r.Size() )
+		return false;
+
+	auto res = Intersect(r);
+
+	return res.Size() == Size();
+	}
+
+void ReachingDefs::Dump() const
+	{
+	if ( Size() == 0 )
+		{
+		printf("<none>\n");
+		return;
+		}
+
+	for ( auto r = rd_map.begin(); r != rd_map.end(); ++r )
+		PrintRD(r->first, r->second);
+	}
+
+void ReachingDefs::PrintRD(const DefinitionItem* di,
+				const DefinitionPoint& dp) const
+	{
+	printf("RD for %s\n", di->Name());
+	}
 
 static ReachingDefs null_RDs;
 
+
 typedef std::map<const BroObj*, ReachingDefs> AnalyInfo;
 
-
-class RD_Decorate : public TraversalCallback {
+// Reaching definitions associated with a collection of BroObj's.
+class ReachingDefSet {
 public:
-	RD_Decorate();
-	~RD_Decorate() override;
-
-	TraversalCode PreFunction(const Func*) override;
-	TraversalCode PreStmt(const Stmt*) override;
-	TraversalCode PostStmt(const Stmt*) override;
-	TraversalCode PreExpr(const Expr*) override;
-	TraversalCode PostExpr(const Expr*) override;
-
-	void TrackInits(const Func* f, const id_list* inits);
-
-protected:
-	bool CheckLHS(ReachingDefs& rd, const Expr* lhs, const AssignExpr* a);
-
-	bool IsAggrTag(TypeTag tag) const;
-	bool IsAggr(const Expr* e) const;
-
-	bool ControlReachesEnd(const Stmt* s, bool is_definite,
-				bool ignore_break = false) const;
-
-	DefinitionItem* GetIDReachingDef(const ID* id);
-	const DefinitionItem* GetConstIDReachingDef(const ID* id) const;
-
-	// Gets definition for either a name or a record field reference.
-	// Returns nil if "expr" lacks such a form, or if there isn't
-	// any such definition.
-	DefinitionItem* GetExprReachingDef(Expr* expr);
-
-	const DefinitionItem* GetConstIDReachingDef(const DefinitionItem* di,
-						const char* field_name) const;
-
-	const ReachingDefs& PredecessorRDs() const
+	ReachingDefSet(ID_to_DI_Map& _i2d_map) : i2d_map(_i2d_map)
 		{
-		auto& rd = PostRDs(last_obj);
-		if ( rd.size() > 0 )
-			return rd;
-
-		// PostRDs haven't been set yet.
-		return PreRDs(last_obj);
+		a_i = new AnalyInfo;
 		}
 
-	const ReachingDefs& PreRDs(const BroObj* o) const
-		{ return RDs(pre_a_i, o); }
-	const ReachingDefs& PostRDs(const BroObj* o) const
-		{ return RDs(post_a_i, o); }
-
-	void AddPreRDs(const BroObj* o, const ReachingDefs& rd)
-		{ AddRDs(pre_a_i, o, rd); }
-	void AddPostRDs(const BroObj* o, const ReachingDefs& rd)
-		{ AddRDs(post_a_i, o, rd); }
-
-	void AddRDs(AnalyInfo* a_i, const BroObj* o, const ReachingDefs& rd)
+	~ReachingDefSet()
 		{
-		if ( HasRDs(a_i, o) )
-			MergeRDs(a_i, o, rd);
-		else
-			a_i->insert(AnalyInfo::value_type(o, rd));
+		delete a_i;
 		}
 
-	void MergeRDs(AnalyInfo* a_i, const BroObj* o, const ReachingDefs& rd)
-		{
-		auto& curr_rds = a_i->find(o)->second;
-		for ( auto& one_rd : rd )
-			AddRD(curr_rds, one_rd.first, one_rd.second);
-		}
-
-	bool HasRDs(AnalyInfo* a_i, const BroObj* o) const
+	bool HasRDs(const BroObj* o) const
 		{
 		auto RDs = a_i->find(o);
 		return RDs != a_i->end();
 		}
 
-	void AddRD(ReachingDefs& rd, const ID* id, DefinitionPoint dp);
-
-	void AddRD(ReachingDefs& rd, const DefinitionItem* di,
-			DefinitionPoint dp) const
+	bool HasRD(const BroObj* o, const ID* id) const
 		{
-		rd.insert(ReachingDefs::value_type(di, dp));
+		return HasRD(o, GetConstIDReachingDef(id));
 		}
 
-	void AddRDWithInit(ReachingDefs& rd, const ID* id, DefinitionPoint dp,
-				bool assume_full,const AssignExpr* init);
-	void AddRDWithInit(ReachingDefs& rd, DefinitionItem* di,
-				DefinitionPoint dp, bool assume_full,
-				const AssignExpr* init);
-
-	void CreateRecordRDs(ReachingDefs& rd, DefinitionItem* di,
-				bool assume_full, DefinitionPoint dp,
-				const DefinitionItem* rhs_di);
-
-	bool HasPreRD(const BroObj* o, const ID* id) const
-		{
-		return HasRD(pre_a_i, o, id);
-		}
-
-	bool HasRD(const AnalyInfo* a_i, const BroObj* o, const ID* id) const
-		{
-		return HasRD(a_i, o, GetConstIDReachingDef(id));
-		}
-
-	bool HasRD(const AnalyInfo* a_i, const BroObj* o,
-			const DefinitionItem* di) const
+	bool HasRD(const BroObj* o, const DefinitionItem* di) const
 		{
 		auto RDs = a_i->find(o);
 		if ( RDs == a_i->end() )
 			return false;
 
-		return RDs->second.find(di) != RDs->second.end();
+		return RDs->second.HasDI(di);
 		}
 
-	const ReachingDefs& RDs(const AnalyInfo* a_i, const BroObj* o) const
+	const ReachingDefs& RDs(const BroObj* o) const
 		{
 		if ( o == nullptr )
 			return null_RDs;
@@ -161,53 +186,105 @@ protected:
 			return null_RDs;
 		}
 
-	void DumpRDs(const ReachingDefs& rd) const;
-	void PrintRD(const DefinitionItem*, const DefinitionPoint& dp) const;
+	void AddRDs(const BroObj* o, const ReachingDefs& rd)
+		{
+		if ( HasRDs(o) )
+			MergeRDs(o, rd);
+		else
+			a_i->insert(AnalyInfo::value_type(o, rd));
+		}
 
-	bool RDsDiffer(const ReachingDefs& r1, const ReachingDefs& r2) const;
+	void AddRD(ReachingDefs& rd, const ID* id, DefinitionPoint dp);
 
-	ReachingDefs IntersectRDs(const ReachingDefs& r1,
-					const ReachingDefs& r2) const;
-	ReachingDefs UnionRDs(const ReachingDefs& r1,
-					const ReachingDefs& r2) const;
+	void AddRDWithInit(ReachingDefs& rd, const ID* id, DefinitionPoint dp,
+				bool assume_full,const AssignExpr* init);
 
-	bool RDHasPair(const ReachingDefs& r, const DefinitionItem* di,
-			const DefinitionPoint& dp) const;
+	void AddRDWithInit(ReachingDefs& rd, DefinitionItem* di,
+				DefinitionPoint dp, bool assume_full,
+				const AssignExpr* init);
 
-	// Mappings of reaching defs pre- and post- execution
-	// of the given object.
-	AnalyInfo* pre_a_i;
-	AnalyInfo* post_a_i;
+	void CreateRecordRDs(ReachingDefs& rd, DefinitionItem* di,
+				bool assume_full, DefinitionPoint dp,
+				const DefinitionItem* rhs_di);
 
-	// The object we most recently finished analyzing.
-	const BroObj* last_obj;
+	// Gets definition for either a name or a record field reference.
+	// Returns nil if "expr" lacks such a form, or if there isn't
+	// any such definition.
+	DefinitionItem* GetExprReachingDef(Expr* expr);
 
-	ID_to_DI_Map i2d_map;
+	DefinitionItem* GetIDReachingDef(const ID* id);
+	const DefinitionItem* GetConstIDReachingDef(const ID* id) const;
 
-	bool trace;
+	const DefinitionItem* GetConstIDReachingDef(const DefinitionItem* di,
+						const char* field_name) const;
+
+protected:
+	void MergeRDs(const BroObj* o, const ReachingDefs& rd)
+		{
+		auto& curr_rds = a_i->find(o)->second;
+		curr_rds.AddRDs(rd);
+		}
+
+	AnalyInfo* a_i;
+	ID_to_DI_Map& i2d_map;
 };
 
-
-RD_Decorate::RD_Decorate()
+DefinitionItem* ReachingDefSet::GetIDReachingDef(const ID* id)
 	{
-	pre_a_i = new AnalyInfo;
-	post_a_i = new AnalyInfo;
-	last_obj = nullptr;
-
-	trace = getenv("ZEEK_OPT_TRACE") != nullptr;
+	auto di = i2d_map.find(id);
+	if ( di == i2d_map.end() )
+		{
+		auto new_entry = new DefinitionItem(id);
+		i2d_map.insert(ID_to_DI_Map::value_type(id, new_entry));
+		return new_entry;
+		}
+	else
+		return di->second;
 	}
 
-RD_Decorate::~RD_Decorate()
+const DefinitionItem* ReachingDefSet::GetConstIDReachingDef(const ID* id) const
 	{
-	for ( auto& i2d : i2d_map )
-		delete i2d.second;
-
-	delete pre_a_i;
-	delete post_a_i;
+	auto di = i2d_map.find(id);
+	if ( di != i2d_map.end() )
+		return di->second;
+	else
+		return nullptr;
 	}
 
+const DefinitionItem* ReachingDefSet::GetConstIDReachingDef(const DefinitionItem* di,
+					const char* field_name) const
+	{
+	return di->FindField(field_name);
+	}
 
-void RD_Decorate::AddRD(ReachingDefs& rd, const ID* id, DefinitionPoint dp)
+DefinitionItem* ReachingDefSet::GetExprReachingDef(Expr* expr)
+	{
+	if ( expr->Tag() == EXPR_NAME )
+		{
+		auto id_e = expr->AsNameExpr();
+		auto id = id_e->Id();
+		return GetIDReachingDef(id);
+		}
+
+	else if ( expr->Tag() == EXPR_FIELD )
+		{
+		auto f = expr->AsFieldExpr();
+		auto r = f->Op();
+
+		auto r_def = GetExprReachingDef(r);
+
+		if ( ! r_def )
+			return nullptr;
+
+		auto field = f->FieldName();
+		return r_def->FindField(field);
+		}
+
+	else
+		return nullptr;
+	}
+
+void ReachingDefSet::AddRD(ReachingDefs& rd, const ID* id, DefinitionPoint dp)
 	{
 	if ( id == 0 )
 		printf("oops\n");
@@ -215,10 +292,10 @@ void RD_Decorate::AddRD(ReachingDefs& rd, const ID* id, DefinitionPoint dp)
 	auto di = GetIDReachingDef(id);
 
 	if ( di )
-		AddRD(rd, di, dp);
+		rd.AddRD(di, dp);
 	}
 
-void RD_Decorate::AddRDWithInit(ReachingDefs& rd, const ID* id,
+void ReachingDefSet::AddRDWithInit(ReachingDefs& rd, const ID* id,
 				DefinitionPoint dp, bool assume_full,
 				const AssignExpr* init)
 	{
@@ -229,11 +306,11 @@ void RD_Decorate::AddRDWithInit(ReachingDefs& rd, const ID* id,
 	AddRDWithInit(rd, di, dp, assume_full, init);
 	}
 
-void RD_Decorate::AddRDWithInit(ReachingDefs& rd, DefinitionItem* di,
+void ReachingDefSet::AddRDWithInit(ReachingDefs& rd, DefinitionItem* di,
 				DefinitionPoint dp, bool assume_full,
 				const AssignExpr* init)
 	{
-	AddRD(rd, di, dp);
+	rd.AddRD(di, dp);
 
 	if ( di->Type()->Tag() != TYPE_RECORD )
 		return;
@@ -264,7 +341,7 @@ void RD_Decorate::AddRDWithInit(ReachingDefs& rd, DefinitionItem* di,
 	CreateRecordRDs(rd, di, assume_full, dp, rhs_di);
 	}
 
-void RD_Decorate::CreateRecordRDs(ReachingDefs& rd, DefinitionItem* di,
+void ReachingDefSet::CreateRecordRDs(ReachingDefs& rd, DefinitionItem* di,
 					bool assume_full, DefinitionPoint dp,
 					const DefinitionItem* rhs_di)
 	{
@@ -295,12 +372,93 @@ void RD_Decorate::CreateRecordRDs(ReachingDefs& rd, DefinitionItem* di,
 		auto t_i = rt->FieldType(i);
 
 		auto di_i = di->CreateField(n_i, t_i);
-		AddRD(rd, di_i, dp);
+		rd.AddRD(di_i, dp);
 
 		if ( t_i->Tag() == TYPE_RECORD )
 			CreateRecordRDs(rd, di_i, assume_full, dp, rhs_di_i);
 		}
 	}
+
+
+class RD_Decorate : public TraversalCallback {
+public:
+	RD_Decorate();
+	~RD_Decorate() override;
+
+	TraversalCode PreFunction(const Func*) override;
+	TraversalCode PreStmt(const Stmt*) override;
+	TraversalCode PostStmt(const Stmt*) override;
+	TraversalCode PreExpr(const Expr*) override;
+	TraversalCode PostExpr(const Expr*) override;
+
+	void TrackInits(const Func* f, const id_list* inits);
+
+protected:
+	bool CheckLHS(ReachingDefs& rd, const Expr* lhs, const AssignExpr* a);
+
+	bool IsAggrTag(TypeTag tag) const;
+	bool IsAggr(const Expr* e) const;
+
+	bool ControlReachesEnd(const Stmt* s, bool is_definite,
+				bool ignore_break = false) const;
+
+	const ReachingDefs& PredecessorRDs() const
+		{
+		auto& rd = PostRDs(last_obj);
+		if ( rd.Size() > 0 )
+			return rd;
+
+		// PostRDs haven't been set yet.
+		return PreRDs(last_obj);
+		}
+
+	const ReachingDefs& PreRDs(const BroObj* o) const
+		{ return pre_defs->RDs(o); }
+	const ReachingDefs& PostRDs(const BroObj* o) const
+		{ return post_defs->RDs(o); }
+
+	void AddPreRDs(const BroObj* o, const ReachingDefs& rd)
+		{ pre_defs->AddRDs(o, rd); }
+	void AddPostRDs(const BroObj* o, const ReachingDefs& rd)
+		{ post_defs->AddRDs(o, rd); }
+
+	bool HasPreRD(const BroObj* o, const ID* id) const
+		{
+		return pre_defs->HasRD(o, id);
+		}
+
+	// Mappings of reaching defs pre- and post- execution
+	// of the given object.
+	ReachingDefSet* pre_defs;
+	ReachingDefSet* post_defs;
+
+	// The object we most recently finished analyzing.
+	const BroObj* last_obj;
+
+	ID_to_DI_Map i2d_map;
+
+	bool trace;
+};
+
+
+RD_Decorate::RD_Decorate()
+	{
+	pre_defs = new ReachingDefSet(i2d_map);
+	post_defs = new ReachingDefSet(i2d_map);
+	last_obj = nullptr;
+
+	trace = getenv("ZEEK_OPT_TRACE") != nullptr;
+	}
+
+RD_Decorate::~RD_Decorate()
+	{
+	for ( auto& i2d : i2d_map )
+		delete i2d.second;
+
+	delete pre_defs;
+	delete post_defs;
+	}
+
 
 TraversalCode RD_Decorate::PreFunction(const Func* f)
 	{
@@ -320,14 +478,8 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 		if ( ! arg_i_id )
 			arg_i_id = scope->Lookup(make_full_var_name(current_module.c_str(), arg_i).c_str());
 
-#if 0
-		if ( ! arg_i_id )
-			printf("can't look up %s\n", args->FieldName(i));
-		else
-			printf("adding param %s (%s)\n", args->FieldName(i), arg_i_id->Name());
-#endif
-
-		AddRDWithInit(rd, arg_i_id, DefinitionPoint(f), true, 0);
+		post_defs->AddRDWithInit(rd, arg_i_id, DefinitionPoint(f),
+						true, 0);
 		}
 
 	AddPostRDs(f, rd);
@@ -336,7 +488,7 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 	if ( trace )
 		{
 		printf("traversing function %s, post RDs:\n", f->Name());
-		DumpRDs(PostRDs(f));
+		PostRDs(f).Dump();
 		}
 
 	// Don't continue traversal here, as that will then loop over
@@ -354,7 +506,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 	if ( trace )
 		{
 		printf("pre RDs for stmt %s:\n", stmt_name(s->Tag()));
-		DumpRDs(rd);
+		rd.Dump();
 		}
 
 	last_obj = s;
@@ -388,7 +540,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 			if ( type_ids )
 				{
 				for ( const auto& id : *type_ids )
-					AddRDWithInit(rd, id,
+					pre_defs->AddRDWithInit(rd, id,
 						DefinitionPoint(s), true, 0);
 				}
 
@@ -407,11 +559,13 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		auto body = f->LoopBody();
 
 		for ( const auto& id : *ids )
-			AddRDWithInit(rd, id, DefinitionPoint(s), true, 0);
+			pre_defs->AddRDWithInit(rd, id, DefinitionPoint(s),
+						true, 0);
 
 		auto val_var = f->ValueVar();
 		if ( val_var )
-			AddRDWithInit(rd, val_var, DefinitionPoint(s), true, 0);
+			pre_defs->AddRDWithInit(rd, val_var,
+						DefinitionPoint(s), true, 0);
 
 		AddPreRDs(e, rd);
 		AddPreRDs(body, rd);
@@ -460,7 +614,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 				a2->Traverse(this);
 
 				auto i1 = a1->AsNameExpr()->Id();
-				AddRD(rd, i1, DefinitionPoint(s));
+				post_defs->AddRD(rd, i1, DefinitionPoint(s));
 				AddPostRDs(s, rd);
 
 				return TC_ABORTSTMT;
@@ -499,7 +653,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		{
 		auto i = s->AsIfStmt();
 
-		if ( RDsDiffer(PostRDs(i), PreRDs(s)) )
+		if ( PostRDs(i).Differ(PreRDs(s)) )
 			; // Complain
 
 		auto if_branch_rd = PostRDs(i->TrueBranch());
@@ -509,7 +663,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		auto false_reached = ControlReachesEnd(i->FalseBranch(), false);
 
 		if ( true_reached && false_reached )
-			post_rds = IntersectRDs(if_branch_rd, else_branch_rd);
+			post_rds = if_branch_rd.Intersect(else_branch_rd);
 
 		else if ( true_reached )
 			post_rds = if_branch_rd;
@@ -537,8 +691,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 				{
 				auto case_rd = PostRDs(c->Body());
 				if ( did_first )
-					post_rds = IntersectRDs(post_rds,
-								case_rd);
+					post_rds = post_rds.Intersect(case_rd);
 				else
 					post_rds = case_rd;
 				}
@@ -551,7 +704,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 			}
 
 		if ( ! default_seen )
-			post_rds = UnionRDs(post_rds, PreRDs(s));
+			post_rds = post_rds.Union(PreRDs(s));
 
 		break;
 		}
@@ -566,7 +719,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 
 		// Apply intersection since loop might not execute
 		// at all.
-		post_rds = IntersectRDs(PreRDs(s), PostRDs(body));
+		post_rds = PreRDs(s).Intersect(PostRDs(body));
 
 		break;
 		}
@@ -581,7 +734,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 
 		// Apply intersection since loop might not execute
 		// at all.
-		post_rds = IntersectRDs(PreRDs(s), PostRDs(body));
+		post_rds = PreRDs(s).Intersect(PostRDs(body));
 
 		break;
 		}
@@ -623,8 +776,8 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 			if ( ! IsAggrTag(tag) )
 				continue;
 
-			AddRDWithInit(post_rds, id, DefinitionPoint(s),
-					false, 0);
+			post_defs->AddRDWithInit(post_rds, id,
+						DefinitionPoint(s), false, 0);
 			}
 
 		break;
@@ -670,7 +823,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 	if ( trace )
 		{
 		printf("post RDs for stmt %s:\n", stmt_name(s->Tag()));
-		DumpRDs(PostRDs(s));
+		PostRDs(s).Dump();
 		}
 
 	return TC_CONTINUE;
@@ -691,7 +844,7 @@ bool RD_Decorate::CheckLHS(ReachingDefs& rd, const Expr* lhs,
 		auto n = lhs->AsNameExpr();
 		auto id = n->Id();
 
-		AddRDWithInit(rd, id, DefinitionPoint(a), false, a);
+		post_defs->AddRDWithInit(rd, id, DefinitionPoint(a), false, a);
 
 		return true;
 		}
@@ -712,7 +865,8 @@ bool RD_Decorate::CheckLHS(ReachingDefs& rd, const Expr* lhs,
 			// Since the typing on the RHS may be dynamic,
 			// we don't try to do any inference of possible
 			// missing fields, hence "true" in the following.
-			AddRDWithInit(rd, id, DefinitionPoint(a), true, 0);
+			post_defs->AddRDWithInit(rd, id, DefinitionPoint(a),
+						true, 0);
 			}
 
 		return true;
@@ -731,7 +885,7 @@ bool RD_Decorate::CheckLHS(ReachingDefs& rd, const Expr* lhs,
 		// Recurse to traverse LHS so as to install its definitions.
 		r->Traverse(this);
 
-		auto r_def = GetExprReachingDef(r);
+		auto r_def = post_defs->GetExprReachingDef(r);
 
 		if ( ! r_def )
 			// This should have already generated a complaint.
@@ -745,7 +899,8 @@ bool RD_Decorate::CheckLHS(ReachingDefs& rd, const Expr* lhs,
 		if ( ! field_rd )
 			field_rd = r_def->CreateField(fn, ft);
 
-		AddRDWithInit(rd, field_rd, DefinitionPoint(a), false, a);
+		post_defs->AddRDWithInit(rd, field_rd, DefinitionPoint(a),
+						false, a);
 
 		return true;
 		}
@@ -760,7 +915,7 @@ bool RD_Decorate::CheckLHS(ReachingDefs& rd, const Expr* lhs,
 			{
 			// Count this as an initialization of the aggregate.
 			auto id = aggr->AsNameExpr()->Id();
-			AddRD(rd, id, DefinitionPoint(a));
+			pre_defs->AddRD(rd, id, DefinitionPoint(a));
 
 			// Don't recurse into assessing the aggregate,
 			// since it's okay in this context.  However,
@@ -881,61 +1036,6 @@ bool RD_Decorate::ControlReachesEnd(const Stmt* s, bool is_definite,
 	}
 	}
 
-DefinitionItem* RD_Decorate::GetIDReachingDef(const ID* id)
-	{
-	auto di = i2d_map.find(id);
-	if ( di == i2d_map.end() )
-		{
-		auto new_entry = new DefinitionItem(id);
-		i2d_map.insert(ID_to_DI_Map::value_type(id, new_entry));
-		return new_entry;
-		}
-	else
-		return di->second;
-	}
-
-const DefinitionItem* RD_Decorate::GetConstIDReachingDef(const ID* id) const
-	{
-	auto di = i2d_map.find(id);
-	if ( di != i2d_map.end() )
-		return di->second;
-	else
-		return nullptr;
-	}
-
-const DefinitionItem* RD_Decorate::GetConstIDReachingDef(const DefinitionItem* di,
-					const char* field_name) const
-	{
-	return di->FindField(field_name);
-	}
-
-DefinitionItem* RD_Decorate::GetExprReachingDef(Expr* expr)
-	{
-	if ( expr->Tag() == EXPR_NAME )
-		{
-		auto id_e = expr->AsNameExpr();
-		auto id = id_e->Id();
-		return GetIDReachingDef(id);
-		}
-
-	else if ( expr->Tag() == EXPR_FIELD )
-		{
-		auto f = expr->AsFieldExpr();
-		auto r = f->Op();
-
-		auto r_def = GetExprReachingDef(r);
-
-		if ( ! r_def )
-			return nullptr;
-
-		auto field = f->FieldName();
-		return r_def->FindField(field);
-		}
-
-	else
-		return nullptr;
-	}
-
 TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	{
 	auto rd = PredecessorRDs();
@@ -944,7 +1044,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	if ( trace )
 		{
 		printf("pre RDs for expr %s:\n", expr_name(e->Tag()));
-		DumpRDs(PreRDs(e));
+		PreRDs(e).Dump();
 		}
 
 	last_obj = e;
@@ -958,8 +1058,8 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		if ( id->IsGlobal() )
 			{
 			// Treat global as fully initialized.
-			AddRDWithInit(rd, id, DefinitionPoint(n), true,
-					nullptr);
+			pre_defs->AddRDWithInit(rd, id, DefinitionPoint(n),
+							true, nullptr);
 			AddPreRDs(e, rd);
 			}
 
@@ -968,7 +1068,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 
 		if ( id->Type()->Tag() == TYPE_RECORD )
 			{
-			CreateRecordRDs(rd, GetIDReachingDef(id),
+			post_defs->CreateRecordRDs(rd, post_defs->GetIDReachingDef(id),
 					false, DefinitionPoint(n), nullptr);
 			AddPostRDs(e, rd);
 			}
@@ -987,7 +1087,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			auto lhs_id = lhs_n->Id();
 
 			// Treat this as an initalization of the set.
-			AddRD(rd, lhs_id, DefinitionPoint(a_t));
+			post_defs->AddRD(rd, lhs_id, DefinitionPoint(a_t));
 			AddPostRDs(e, PreRDs(e));
 			AddPostRDs(e, rd);
 
@@ -1038,12 +1138,13 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			break;
 
 		r->Traverse(this);
-		auto r_def = GetExprReachingDef(r);
+		auto r_def = pre_defs->GetExprReachingDef(r);
 
 		if ( r_def )
 			{
 			auto fn = f->FieldName();
-			auto field_rd = GetConstIDReachingDef(r_def, fn);
+			auto field_rd =
+				pre_defs->GetConstIDReachingDef(r_def, fn);
 
 			if ( ! field_rd )
 				printf("no reaching def for %s\n", obj_desc(e));
@@ -1065,7 +1166,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			auto id_e = r->AsNameExpr();
 			auto id = id_e->Id();
 			auto id_rt = id_e->Type()->AsRecordType();
-			auto id_rd = GetIDReachingDef(id);
+			auto id_rd = post_defs->GetIDReachingDef(id);
 
 			if ( ! id_rd )
 				printf("no ID reaching def for %s\n", id->Name());
@@ -1076,7 +1177,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 				{
 				auto ft = id_rt->FieldType(fn);
 				field_rd = id_rd->CreateField(fn, ft);
-				AddRD(rd, field_rd, DefinitionPoint(hf));
+				rd.AddRD(field_rd, DefinitionPoint(hf));
 				AddPostRDs(e, rd);
 				}
 			}
@@ -1102,7 +1203,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			if ( IsAggr(expr) )
 				// Not only do we skip analyzing it, but
 				// we consider it initialized post-return.
-				AddRD(rd, expr->AsNameExpr()->Id(), 
+				post_defs->AddRD(rd, expr->AsNameExpr()->Id(), 
 					DefinitionPoint(c));
 			else
 				expr->Traverse(this);
@@ -1148,85 +1249,13 @@ void RD_Decorate::TrackInits(const Func* f, const id_list* inits)
 		// Only aggregates get initialized.
 		auto tag = id_t->Tag();
 		if ( IsAggrTag(tag) )
-			AddRDWithInit(rd, id, DefinitionPoint(f), false, 0);
+			post_defs->AddRDWithInit(rd, id, DefinitionPoint(f),
+							false, 0);
 		}
 
 	AddPostRDs(f, rd);
 	}
 
-
-bool RD_Decorate::RDHasPair(const ReachingDefs& r, const DefinitionItem* di,
-				const DefinitionPoint& dp) const
-	{
-	auto l = r.find(di);
-	return l != r.end() && l->second.SameAs(dp);
-	}
-
-ReachingDefs RD_Decorate::IntersectRDs(const ReachingDefs& r1,
-					const ReachingDefs& r2) const
-	{
-	ReachingDefs res;
-
-	auto i = r1.begin();
-	while ( i != r1.end() )
-		{
-		if ( RDHasPair(r2, i->first, i->second) )
-			AddRD(res, i->first, i->second);
-
-		++i;
-		}
-
-	return res;
-	}
-
-ReachingDefs RD_Decorate::UnionRDs(const ReachingDefs& r1,
-					const ReachingDefs& r2) const
-	{
-	ReachingDefs res = r2;
-
-	auto i = r1.begin();
-	while ( i != r1.end() )
-		{
-		if ( ! RDHasPair(r2, i->first, i->second) )
-			AddRD(res, i->first, i->second);
-
-		++i;
-		}
-
-	return res;
-	}
-
-bool RD_Decorate::RDsDiffer(const ReachingDefs& r1, const ReachingDefs& r2) const
-	{
-	// This is just an optimization.
-	if ( r1.size() != r2.size() )
-		return false;
-
-	auto r3 = IntersectRDs(r1, r2);
-
-	return r3.size() == r1.size();
-	}
-
-
-void RD_Decorate::DumpRDs(const ReachingDefs& rd) const
-	{
-	if ( rd.size() == 0 )
-		{
-		printf("<none>\n");
-		return;
-		}
-
-	auto r = rd.begin();
-
-	for ( auto r = rd.begin(); r != rd.end(); ++r )
-		PrintRD(r->first, r->second);
-	}
-
-void RD_Decorate::PrintRD(const DefinitionItem* di,
-				const DefinitionPoint& dp) const
-	{
-	printf("RD for %s\n", di->Name());
-	}
 
 class FolderFinder : public TraversalCallback {
 public:

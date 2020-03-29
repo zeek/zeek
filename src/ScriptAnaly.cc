@@ -28,6 +28,84 @@ static const char* obj_desc(const BroObj* o)
 
 typedef std::map<const ID*, DefinitionItem*> ID_to_DI_Map;
 
+class DefItemMap {
+public:
+	~DefItemMap()
+		{
+		for ( auto& i2d : i2d )
+			delete i2d.second;
+		}
+
+	// Gets definition for either a name or a record field reference.
+	// Returns nil if "expr" lacks such a form, or if there isn't
+	// any such definition.
+	DefinitionItem* GetExprReachingDef(Expr* expr);
+
+	DefinitionItem* GetIDReachingDef(const ID* id);
+	const DefinitionItem* GetConstIDReachingDef(const ID* id) const;
+
+	const DefinitionItem* GetConstIDReachingDef(const DefinitionItem* di,
+						const char* field_name) const;
+
+protected:
+	ID_to_DI_Map i2d;
+};
+
+DefinitionItem* DefItemMap::GetIDReachingDef(const ID* id)
+	{
+	auto di = i2d.find(id);
+	if ( di == i2d.end() )
+		{
+		auto new_entry = new DefinitionItem(id);
+		i2d.insert(ID_to_DI_Map::value_type(id, new_entry));
+		return new_entry;
+		}
+	else
+		return di->second;
+	}
+
+const DefinitionItem* DefItemMap::GetConstIDReachingDef(const ID* id) const
+	{
+	auto di = i2d.find(id);
+	if ( di != i2d.end() )
+		return di->second;
+	else
+		return nullptr;
+	}
+
+const DefinitionItem* DefItemMap::GetConstIDReachingDef(const DefinitionItem* di,
+					const char* field_name) const
+	{
+	return di->FindField(field_name);
+	}
+
+DefinitionItem* DefItemMap::GetExprReachingDef(Expr* expr)
+	{
+	if ( expr->Tag() == EXPR_NAME )
+		{
+		auto id_e = expr->AsNameExpr();
+		auto id = id_e->Id();
+		return GetIDReachingDef(id);
+		}
+
+	else if ( expr->Tag() == EXPR_FIELD )
+		{
+		auto f = expr->AsFieldExpr();
+		auto r = f->Op();
+
+		auto r_def = GetExprReachingDef(r);
+
+		if ( ! r_def )
+			return nullptr;
+
+		auto field = f->FieldName();
+		return r_def->FindField(field);
+		}
+
+	else
+		return nullptr;
+	}
+
 static DefinitionPoint no_def;
 
 typedef std::map<const DefinitionItem*, DefinitionPoint> ReachingDefsMap;
@@ -144,7 +222,7 @@ typedef std::map<const BroObj*, ReachingDefs> AnalyInfo;
 // Reaching definitions associated with a collection of BroObj's.
 class ReachingDefSet {
 public:
-	ReachingDefSet(ID_to_DI_Map& _i2d_map) : i2d_map(_i2d_map)
+	ReachingDefSet(DefItemMap& _item_map) : item_map(_item_map)
 		{
 		a_i = new AnalyInfo;
 		}
@@ -162,7 +240,7 @@ public:
 
 	bool HasRD(const BroObj* o, const ID* id) const
 		{
-		return HasRD(o, GetConstIDReachingDef(id));
+		return HasRD(o, item_map.GetConstIDReachingDef(id));
 		}
 
 	bool HasRD(const BroObj* o, const DefinitionItem* di) const
@@ -207,17 +285,6 @@ public:
 				bool assume_full, DefinitionPoint dp,
 				const DefinitionItem* rhs_di);
 
-	// Gets definition for either a name or a record field reference.
-	// Returns nil if "expr" lacks such a form, or if there isn't
-	// any such definition.
-	DefinitionItem* GetExprReachingDef(Expr* expr);
-
-	DefinitionItem* GetIDReachingDef(const ID* id);
-	const DefinitionItem* GetConstIDReachingDef(const ID* id) const;
-
-	const DefinitionItem* GetConstIDReachingDef(const DefinitionItem* di,
-						const char* field_name) const;
-
 protected:
 	void MergeRDs(const BroObj* o, const ReachingDefs& rd)
 		{
@@ -226,70 +293,15 @@ protected:
 		}
 
 	AnalyInfo* a_i;
-	ID_to_DI_Map& i2d_map;
+	DefItemMap& item_map;
 };
-
-DefinitionItem* ReachingDefSet::GetIDReachingDef(const ID* id)
-	{
-	auto di = i2d_map.find(id);
-	if ( di == i2d_map.end() )
-		{
-		auto new_entry = new DefinitionItem(id);
-		i2d_map.insert(ID_to_DI_Map::value_type(id, new_entry));
-		return new_entry;
-		}
-	else
-		return di->second;
-	}
-
-const DefinitionItem* ReachingDefSet::GetConstIDReachingDef(const ID* id) const
-	{
-	auto di = i2d_map.find(id);
-	if ( di != i2d_map.end() )
-		return di->second;
-	else
-		return nullptr;
-	}
-
-const DefinitionItem* ReachingDefSet::GetConstIDReachingDef(const DefinitionItem* di,
-					const char* field_name) const
-	{
-	return di->FindField(field_name);
-	}
-
-DefinitionItem* ReachingDefSet::GetExprReachingDef(Expr* expr)
-	{
-	if ( expr->Tag() == EXPR_NAME )
-		{
-		auto id_e = expr->AsNameExpr();
-		auto id = id_e->Id();
-		return GetIDReachingDef(id);
-		}
-
-	else if ( expr->Tag() == EXPR_FIELD )
-		{
-		auto f = expr->AsFieldExpr();
-		auto r = f->Op();
-
-		auto r_def = GetExprReachingDef(r);
-
-		if ( ! r_def )
-			return nullptr;
-
-		auto field = f->FieldName();
-		return r_def->FindField(field);
-		}
-
-	else
-		return nullptr;
-	}
 
 void ReachingDefSet::AddRD(ReachingDefs& rd, const ID* id, DefinitionPoint dp)
 	{
 	if ( id == 0 )
 		printf("oops\n");
 
-	auto di = GetIDReachingDef(id);
+	auto di = item_map.GetIDReachingDef(id);
 
 	if ( di )
 		rd.AddRD(di, dp);
@@ -299,7 +311,7 @@ void ReachingDefSet::AddRDWithInit(ReachingDefs& rd, const ID* id,
 				DefinitionPoint dp, bool assume_full,
 				const AssignExpr* init)
 	{
-	auto di = GetIDReachingDef(id);
+	auto di = item_map.GetIDReachingDef(id);
 	if ( ! di )
 		return;
 
@@ -327,7 +339,7 @@ void ReachingDefSet::AddRDWithInit(ReachingDefs& rd, DefinitionItem* di,
 
 		else
 			{
-			rhs_di = GetExprReachingDef(rhs);
+			rhs_di = item_map.GetExprReachingDef(rhs);
 
 			if ( ! rhs_di )
 				// This happens because the RHS is an
@@ -383,7 +395,6 @@ void ReachingDefSet::CreateRecordRDs(ReachingDefs& rd, DefinitionItem* di,
 class RD_Decorate : public TraversalCallback {
 public:
 	RD_Decorate();
-	~RD_Decorate() override;
 
 	TraversalCode PreFunction(const Func*) override;
 	TraversalCode PreStmt(const Stmt*) override;
@@ -435,7 +446,7 @@ protected:
 	// The object we most recently finished analyzing.
 	const BroObj* last_obj;
 
-	ID_to_DI_Map i2d_map;
+	DefItemMap item_map;
 
 	bool trace;
 };
@@ -443,20 +454,11 @@ protected:
 
 RD_Decorate::RD_Decorate()
 	{
-	pre_defs = new ReachingDefSet(i2d_map);
-	post_defs = new ReachingDefSet(i2d_map);
+	pre_defs = new ReachingDefSet(item_map);
+	post_defs = new ReachingDefSet(item_map);
 	last_obj = nullptr;
 
 	trace = getenv("ZEEK_OPT_TRACE") != nullptr;
-	}
-
-RD_Decorate::~RD_Decorate()
-	{
-	for ( auto& i2d : i2d_map )
-		delete i2d.second;
-
-	delete pre_defs;
-	delete post_defs;
 	}
 
 
@@ -885,7 +887,7 @@ bool RD_Decorate::CheckLHS(ReachingDefs& rd, const Expr* lhs,
 		// Recurse to traverse LHS so as to install its definitions.
 		r->Traverse(this);
 
-		auto r_def = post_defs->GetExprReachingDef(r);
+		auto r_def = item_map.GetExprReachingDef(r);
 
 		if ( ! r_def )
 			// This should have already generated a complaint.
@@ -1068,7 +1070,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 
 		if ( id->Type()->Tag() == TYPE_RECORD )
 			{
-			post_defs->CreateRecordRDs(rd, post_defs->GetIDReachingDef(id),
+			post_defs->CreateRecordRDs(rd, item_map.GetIDReachingDef(id),
 					false, DefinitionPoint(n), nullptr);
 			AddPostRDs(e, rd);
 			}
@@ -1138,13 +1140,13 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			break;
 
 		r->Traverse(this);
-		auto r_def = pre_defs->GetExprReachingDef(r);
+		auto r_def = item_map.GetExprReachingDef(r);
 
 		if ( r_def )
 			{
 			auto fn = f->FieldName();
 			auto field_rd =
-				pre_defs->GetConstIDReachingDef(r_def, fn);
+				item_map.GetConstIDReachingDef(r_def, fn);
 
 			if ( ! field_rd )
 				printf("no reaching def for %s\n", obj_desc(e));
@@ -1166,7 +1168,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			auto id_e = r->AsNameExpr();
 			auto id = id_e->Id();
 			auto id_rt = id_e->Type()->AsRecordType();
-			auto id_rd = post_defs->GetIDReachingDef(id);
+			auto id_rd = item_map.GetIDReachingDef(id);
 
 			if ( ! id_rd )
 				printf("no ID reaching def for %s\n", id->Name());

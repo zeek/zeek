@@ -238,7 +238,19 @@ void RD_Decorate::AddRDWithInit(ReachingDefs& rd, DefinitionItem* di,
 	if ( di->Type()->Tag() != TYPE_RECORD )
 		return;
 
-	auto rhs_di = init ? GetExprReachingDef(init->Op2()) : nullptr;
+	const DefinitionItem* rhs_di = nullptr;
+
+	if ( init )
+		{
+		rhs_di = GetExprReachingDef(init->Op2());
+
+		if ( ! rhs_di )
+			// This happens because the RHS is an expression
+			// more complicated than just a variable or
+			// a field reference.  Just assume it's fully
+			// initialized.
+			assume_full = true;
+		}
 
 	CreateRecordRDs(rd, di, assume_full, dp, rhs_di);
 	}
@@ -247,6 +259,8 @@ void RD_Decorate::CreateRecordRDs(ReachingDefs& rd, DefinitionItem* di,
 					bool assume_full, DefinitionPoint dp,
 					const DefinitionItem* rhs_di)
 	{
+	// (1) deal with LHS record creators
+	// (2) populate globals
 	auto rt = di->Type()->AsRecordType();
 	auto n = rt->NumFields();
 
@@ -860,9 +874,6 @@ bool RD_Decorate::ControlReachesEnd(const Stmt* s, bool is_definite,
 
 DefinitionItem* RD_Decorate::GetIDReachingDef(const ID* id)
 	{
-	if ( id->IsGlobal() )
-		return nullptr;
-
 	auto di = i2d_map.find(id);
 	if ( di == i2d_map.end() )
 		{
@@ -936,7 +947,12 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		auto id = n->Id();
 
 		if ( id->IsGlobal() )
-			break;
+			{
+			// Treat global as fully initialized.
+			AddRDWithInit(rd, id, DefinitionPoint(n), true,
+					nullptr);
+			AddPreRDs(e, rd);
+			}
 
 		if ( ! HasPreRD(e, id) )
 			printf("%s has no pre at %s\n", id->Name(), obj_desc(e));

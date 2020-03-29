@@ -242,14 +242,23 @@ void RD_Decorate::AddRDWithInit(ReachingDefs& rd, DefinitionItem* di,
 
 	if ( init )
 		{
-		rhs_di = GetExprReachingDef(init->Op2());
+		auto rhs = init->Op2();
 
-		if ( ! rhs_di )
-			// This happens because the RHS is an expression
-			// more complicated than just a variable or
-			// a field reference.  Just assume it's fully
-			// initialized.
+		if ( rhs->Type()->Tag() == TYPE_ANY )
+			// All bets are off.
 			assume_full = true;
+
+		else
+			{
+			rhs_di = GetExprReachingDef(rhs);
+
+			if ( ! rhs_di )
+				// This happens because the RHS is an
+				// expression more complicated than just a
+				// variable or a field reference.  Just assume
+				// it's fully initialized.
+				assume_full = true;
+			}
 		}
 
 	CreateRecordRDs(rd, di, assume_full, dp, rhs_di);

@@ -8,7 +8,6 @@
 #include "Var.h" // for internal_type()
 #include "Sessions.h"
 #include "Scope.h"
-#include "cq.h"
 #include "DNS_Mgr.h"
 #include "Trigger.h"
 #include "threading/Manager.h"

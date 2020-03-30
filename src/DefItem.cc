@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "DefItem.h"
+#include "Expr.h"
 
 
 DefinitionItem::DefinitionItem(const ID* _id)
@@ -82,3 +83,62 @@ void DefinitionItem::CheckForRecord()
 	for ( int i = 0; i < num_fields; ++i )
 		fields[i] = nullptr;
 	}
+
+
+DefinitionItem* DefItemMap::GetIDReachingDef(const ID* id)
+	{
+	auto di = i2d.find(id);
+	if ( di == i2d.end() )
+		{
+		auto new_entry = new DefinitionItem(id);
+		i2d.insert(ID_to_DI_Map::value_type(id, new_entry));
+		return new_entry;
+		}
+	else
+		return di->second;
+	}
+
+const DefinitionItem* DefItemMap::GetConstIDReachingDef(const ID* id) const
+	{
+	auto di = i2d.find(id);
+	if ( di != i2d.end() )
+		return di->second;
+	else
+		return nullptr;
+	}
+
+const DefinitionItem* DefItemMap::GetConstIDReachingDef(const DefinitionItem* di,
+					const char* field_name) const
+	{
+	return di->FindField(field_name);
+	}
+
+DefinitionItem* DefItemMap::GetExprReachingDef(Expr* expr)
+	{
+	if ( expr->Tag() == EXPR_NAME )
+		{
+		auto id_e = expr->AsNameExpr();
+		auto id = id_e->Id();
+		return GetIDReachingDef(id);
+		}
+
+	else if ( expr->Tag() == EXPR_FIELD )
+		{
+		auto f = expr->AsFieldExpr();
+		auto r = f->Op();
+
+		auto r_def = GetExprReachingDef(r);
+
+		if ( ! r_def )
+			return nullptr;
+
+		auto field = f->FieldName();
+		return r_def->FindField(field);
+		}
+
+	else
+		return nullptr;
+	}
+
+static DefinitionPoint no_def;
+

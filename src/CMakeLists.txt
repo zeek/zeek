@@ -247,6 +247,7 @@ set(MAIN_SRCS
     IntSet.cc
     IP.cc
     IPAddr.cc
+    ReachingDefs.cc
     Reporter.cc
     NFA.cc
     Net.cc

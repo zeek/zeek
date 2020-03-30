@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "DefPoint.h"
 #include "ID.h"
 #include "Type.h"
 
@@ -39,4 +40,29 @@ protected:
 	const RecordType* rt;
 	DefinitionItem** fields;	// indexed by field offset
 	int num_fields;
+};
+
+typedef std::map<const ID*, DefinitionItem*> ID_to_DI_Map;
+
+class DefItemMap {
+public:
+	~DefItemMap()
+		{
+		for ( auto& i2d : i2d )
+			delete i2d.second;
+		}
+
+	// Gets definition for either a name or a record field reference.
+	// Returns nil if "expr" lacks such a form, or if there isn't
+	// any such definition.
+	DefinitionItem* GetExprReachingDef(Expr* expr);
+
+	DefinitionItem* GetIDReachingDef(const ID* id);
+	const DefinitionItem* GetConstIDReachingDef(const ID* id) const;
+
+	const DefinitionItem* GetConstIDReachingDef(const DefinitionItem* di,
+						const char* field_name) const;
+
+protected:
+	ID_to_DI_Map i2d;
 };

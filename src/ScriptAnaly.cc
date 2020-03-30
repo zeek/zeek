@@ -26,6 +26,89 @@ static const char* obj_desc(const BroObj* o)
 	}
 
 
+typedef std::map<const ID*, DefinitionItem*> ID_to_DI_Map;
+
+class DefItemMap {
+public:
+	~DefItemMap()
+		{
+		for ( auto& i2d : i2d )
+			delete i2d.second;
+		}
+
+	// Gets definition for either a name or a record field reference.
+	// Returns nil if "expr" lacks such a form, or if there isn't
+	// any such definition.
+	DefinitionItem* GetExprReachingDef(Expr* expr);
+
+	DefinitionItem* GetIDReachingDef(const ID* id);
+	const DefinitionItem* GetConstIDReachingDef(const ID* id) const;
+
+	const DefinitionItem* GetConstIDReachingDef(const DefinitionItem* di,
+						const char* field_name) const;
+
+protected:
+	ID_to_DI_Map i2d;
+};
+
+DefinitionItem* DefItemMap::GetIDReachingDef(const ID* id)
+	{
+	auto di = i2d.find(id);
+	if ( di == i2d.end() )
+		{
+		auto new_entry = new DefinitionItem(id);
+		i2d.insert(ID_to_DI_Map::value_type(id, new_entry));
+		return new_entry;
+		}
+	else
+		return di->second;
+	}
+
+const DefinitionItem* DefItemMap::GetConstIDReachingDef(const ID* id) const
+	{
+	auto di = i2d.find(id);
+	if ( di != i2d.end() )
+		return di->second;
+	else
+		return nullptr;
+	}
+
+const DefinitionItem* DefItemMap::GetConstIDReachingDef(const DefinitionItem* di,
+					const char* field_name) const
+	{
+	return di->FindField(field_name);
+	}
+
+DefinitionItem* DefItemMap::GetExprReachingDef(Expr* expr)
+	{
+	if ( expr->Tag() == EXPR_NAME )
+		{
+		auto id_e = expr->AsNameExpr();
+		auto id = id_e->Id();
+		return GetIDReachingDef(id);
+		}
+
+	else if ( expr->Tag() == EXPR_FIELD )
+		{
+		auto f = expr->AsFieldExpr();
+		auto r = f->Op();
+
+		auto r_def = GetExprReachingDef(r);
+
+		if ( ! r_def )
+			return nullptr;
+
+		auto field = f->FieldName();
+		return r_def->FindField(field);
+		}
+
+	else
+		return nullptr;
+	}
+
+static DefinitionPoint no_def;
+
+
 typedef std::map<const DefinitionItem*, DefinitionPoint> ReachingDefsMap;
 
 class ReachingDefs {
@@ -133,89 +216,6 @@ void ReachingDefs::PrintRD(const DefinitionItem* di,
 	}
 
 static ReachingDefs null_RDs;
-
-
-typedef std::map<const ID*, DefinitionItem*> ID_to_DI_Map;
-
-class DefItemMap {
-public:
-	~DefItemMap()
-		{
-		for ( auto& i2d : i2d )
-			delete i2d.second;
-		}
-
-	// Gets definition for either a name or a record field reference.
-	// Returns nil if "expr" lacks such a form, or if there isn't
-	// any such definition.
-	DefinitionItem* GetExprReachingDef(Expr* expr);
-
-	DefinitionItem* GetIDReachingDef(const ID* id);
-	const DefinitionItem* GetConstIDReachingDef(const ID* id) const;
-
-	const DefinitionItem* GetConstIDReachingDef(const DefinitionItem* di,
-						const char* field_name) const;
-
-protected:
-	ID_to_DI_Map i2d;
-};
-
-DefinitionItem* DefItemMap::GetIDReachingDef(const ID* id)
-	{
-	auto di = i2d.find(id);
-	if ( di == i2d.end() )
-		{
-		auto new_entry = new DefinitionItem(id);
-		i2d.insert(ID_to_DI_Map::value_type(id, new_entry));
-		return new_entry;
-		}
-	else
-		return di->second;
-	}
-
-const DefinitionItem* DefItemMap::GetConstIDReachingDef(const ID* id) const
-	{
-	auto di = i2d.find(id);
-	if ( di != i2d.end() )
-		return di->second;
-	else
-		return nullptr;
-	}
-
-const DefinitionItem* DefItemMap::GetConstIDReachingDef(const DefinitionItem* di,
-					const char* field_name) const
-	{
-	return di->FindField(field_name);
-	}
-
-DefinitionItem* DefItemMap::GetExprReachingDef(Expr* expr)
-	{
-	if ( expr->Tag() == EXPR_NAME )
-		{
-		auto id_e = expr->AsNameExpr();
-		auto id = id_e->Id();
-		return GetIDReachingDef(id);
-		}
-
-	else if ( expr->Tag() == EXPR_FIELD )
-		{
-		auto f = expr->AsFieldExpr();
-		auto r = f->Op();
-
-		auto r_def = GetExprReachingDef(r);
-
-		if ( ! r_def )
-			return nullptr;
-
-		auto field = f->FieldName();
-		return r_def->FindField(field);
-		}
-
-	else
-		return nullptr;
-	}
-
-static DefinitionPoint no_def;
 
 typedef std::map<const BroObj*, ReachingDefs> AnalyInfo;
 

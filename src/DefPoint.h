@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Expr.h"
+#include "Func.h"
 #include "Stmt.h"
 
 

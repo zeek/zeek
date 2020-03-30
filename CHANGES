@@ -1,3 +1,25 @@
+
+3.2.0-dev.320 | 2020-03-30 14:09:23 -0700
+
+  * GH-887: improve GRE/ERSPAN parsing of non-IPv4/IPv6 inner payload
+
+    This changes the decapsulation logic for GRE/ERSPAN payloads to re-use
+    existing Layer 2 parsing logic that already handles things like 802.1Q
+    tags correctly before going on to process the inner IPv4/IPv6 payload. (Jon Siwek, Corelight)
+
+  * Fix ERSPAN III optional sub-header parsing (Jon Siwek, Corelight)
+
+  * Many small cleanups of Expr.cc (Tim Wojtulewicz, Corelight)
+
+  * Remove unused cq queue code (Tim Wojtulewicz, Corelight)
+
+  * Add a "reserved" field to tcp_hdr record
+
+    This record is available by handling either raw_packet or new_packet
+    events. (Jon Siwek, Corelight)
+
+  * GH-878: Make RocksDB usage opt-in and add --enable-rocksdb configure flag (Jon Siwek, Corelight)
+
 3.2.0-dev.300 | 2020-03-27 11:48:46 -0700
 
   * Func::DescribeDebug: move a NumFields() call out of loop (Jon Siwek, Corelight)

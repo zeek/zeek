@@ -100,7 +100,7 @@ public:
 	 * Wrapper that recurses on DoNextPacket for encapsulated IP packets.
 	 *
 	 * @param t Network time.
-	 * @param hdr If the outer pcap header is available, this pointer can be set
+	 * @param pkt If the outer pcap header is available, this pointer can be set
 	 *        so that the fake pcap header passed to DoNextPacket will use
 	 *        the same timeval.  The caplen and len fields of the fake pcap
 	 *        header are always set to the TotalLength() of \a inner.
@@ -113,6 +113,27 @@ public:
 	void DoNextInnerPacket(double t, const Packet *pkt,
 	                      const IP_Hdr* inner, const EncapsulationStack* prev,
 	                      const EncapsulatingConn& ec);
+
+	/**
+	 * Recurses on DoNextPacket for encapsulated Ethernet/IP packets.
+	 *
+	 * @param t  Network time.
+	 * @param pkt  If the outer pcap header is available, this pointer can be
+	 *        set so that the fake pcap header passed to DoNextPacket will use
+	 *        the same timeval.
+	 * @param caplen  number of captured bytes remaining
+	 * @param len  number of bytes remaining as claimed by outer framing
+	 * @param data  the remaining packet data
+	 * @param link_type  layer 2 link type used for initializing inner packet
+	 * @param prev  Any previous encapsulation stack of the caller, not
+	 *        including the most-recently found depth of encapsulation.
+	 * @param ec The most-recently found depth of encapsulation.
+	 */
+	void DoNextInnerPacket(double t, const Packet* pkt,
+                           uint32_t caplen, uint32_t len,
+                           const u_char* data, int link_type,
+                           const EncapsulationStack* prev,
+                           const EncapsulatingConn& ec);
 
 	/**
 	 * Returns a wrapper IP_Hdr object if \a pkt appears to be a valid IPv4

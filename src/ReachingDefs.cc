@@ -3,15 +3,15 @@
 #include "ReachingDefs.h"
 
 
-ReachingDefs ReachingDefs::Intersect(const ReachingDefs& r) const
+ReachingDefs* ReachingDefs::Intersect(const ReachingDefs* r) const
 	{
-	ReachingDefs res;
+	ReachingDefs* res = new ReachingDefs;
 
 	auto i = rd_map.begin();
 	while ( i != rd_map.end() )
 		{
-		if ( r.HasPair(i->first, i->second) )
-			res.AddRD(i->first, i->second);
+		if ( r->HasPair(i->first, i->second) )
+			res->AddRD(i->first, i->second);
 
 		++i;
 		}
@@ -19,31 +19,20 @@ ReachingDefs ReachingDefs::Intersect(const ReachingDefs& r) const
 	return res;
 	}
 
-ReachingDefs ReachingDefs::Union(const ReachingDefs& r) const
+ReachingDefs* ReachingDefs::Union(const ReachingDefs* r) const
 	{
-	ReachingDefs res = r;
+	ReachingDefs* res = new ReachingDefs;
 
 	auto i = rd_map.begin();
 	while ( i != rd_map.end() )
 		{
-		if ( ! r.HasPair(i->first, i->second) )
-			res.AddRD(i->first, i->second);
+		if ( ! r->HasPair(i->first, i->second) )
+			res->AddRD(i->first, i->second);
 
 		++i;
 		}
 
 	return res;
-	}
-
-bool ReachingDefs::Differ(const ReachingDefs& r) const
-	{
-	// This is just an optimization.
-	if ( Size() != r.Size() )
-		return false;
-
-	auto res = Intersect(r);
-
-	return res.Size() == Size();
 	}
 
 void ReachingDefs::Dump() const

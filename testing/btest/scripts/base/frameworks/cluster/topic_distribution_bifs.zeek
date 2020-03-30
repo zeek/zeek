@@ -22,12 +22,26 @@ redef Cluster::nodes = {
 };
 @TEST-END-FILE
 
+global send_stuff: function(heading: string);
+global last_event_count = 0;
 global proxy_count = 0;
 global q = 0;
 
 event go_away()
 	{
 	terminate();
+	}
+
+event got_last_event()
+	{
+	# Manager tracks this to know when to tell other nodes to terminate.
+	++last_event_count;
+
+	if ( last_event_count == 1 )
+		Broker::publish(Cluster::node_topic("proxy-1"), go_away);
+
+	if ( last_event_count == 2 )
+		Broker::publish(Cluster::node_topic("proxy-2"), go_away);
 	}
 
 event distributed_event_hrw(c: count)
@@ -38,6 +52,9 @@ event distributed_event_hrw(c: count)
 event distributed_event_rr(c: count)
 	{
 	print "got distributed event rr", c;
+
+	if ( c == 101 )
+		Broker::publish(Cluster::manager_topic, got_last_event);
 	}
 
 function send_stuff(heading: string)
@@ -66,11 +83,7 @@ event Cluster::node_up(name: string, id: string)
 		++proxy_count;
 
 	if ( proxy_count == 2 )	
-		{
 		send_stuff("1st stuff");
-		local e = Broker::make_event(go_away);
-		Broker::publish(Cluster::node_topic("proxy-1"), e);
-		}
 	}
 
 event Cluster::node_down(name: string, id: string)
@@ -79,11 +92,7 @@ event Cluster::node_down(name: string, id: string)
 		return;
 
 	if ( name == "proxy-1" )
-		{
 		send_stuff("2nd stuff");
-		local e = Broker::make_event(go_away);
-		Broker::publish(Cluster::node_topic("proxy-2"), e);
-		}
 
 	if ( name == "proxy-2" )
 		{

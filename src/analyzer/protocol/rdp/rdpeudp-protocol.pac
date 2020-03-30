@@ -53,22 +53,21 @@ type RDPUDP_FEC_HEADER(pdu: RDPEUDP_PDU) = record {
 
 
 # RDPEUDP version 2
+# https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpeudp2/98f1d4e7-b9ee-4434-97c0-72c88fdfaf27
 type RDPEUDP2_ACK(pdu: RDPEUDP_PDU, is_orig: bool) = record {
 	header:			RDPUDP2_PACKET_HEADER;
 	ack_payload:		case (header.Flags % 2) of {
 		0 -> none:	empty;
 		1 -> some:	RDPUDP2_ACK_PAYLOAD;
 	};
-
-#	oversize_payload:	RDPUDP2_OVERSIZE_PAYLOAD;
-#	delay_ack_info_payload:	RDPUDP2_DELAYACKINFO_PAYLOAD;
-#	ack_of_acks_payload:	RDPUDP2_ACKOFACKS_PAYLOAD;
-#	data_header_payload:	RDPUDP2_DATAHEADER_PAYLOAD;
-#	ack_vector_payload:	RDPUDP2_ACKVECTOR_PAYLOAD;
-#	data_body_payload:	RDPUDP2_DATABODY_PAYLOAD;
-	stub:			bytestring &restofdata;
+	oversize_payload:	RDPUDP2_OVERSIZE_PAYLOAD;
+	delay_ack_info_payload:	RDPUDP2_DELAYACKINFO_PAYLOAD;
+	ack_of_acks_payload:	RDPUDP2_ACKOFACKS_PAYLOAD;
+	data_header_payload:	RDPUDP2_DATAHEADER_PAYLOAD;
+	ack_vector_payload:	RDPUDP2_ACKVECTOR_PAYLOAD;
+	data_body_payload:	RDPUDP2_DATABODY_PAYLOAD;
 } &let {
-	proc_rdpeudp2_ack: bool = $context.connection.proc_rdpeudp2_ack(is_orig, stub);
+	proc_rdpeudp2_ack: bool = $context.connection.proc_rdpeudp2_ack(is_orig, data_body_payload.Data);
 };
 
 type RDPUDP2_PACKET_HEADER = record {
@@ -89,7 +88,6 @@ enum RDPUDP2_PACKET_HEADER_FLAGS {
 	DELAYACKINFO	= 0x100
 };
 
-# https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpeudp2/bf47de96-832e-45c7-974f-87d99d8d0fea
 type RDPUDP2_ACK_PAYLOAD = record {
 	SeqNum:			uint16;
 	tmp1:			uint32;
@@ -102,27 +100,34 @@ type RDPUDP2_ACK_PAYLOAD = record {
 	delayAckTimeScale: 	uint8 = tmp2 & 0x0f;   # bottom 4 bits
 };
 
-
-
-
-
-
-
-
-
-
+type RDPUDP2_OVERSIZE_PAYLOAD = record{
+	OverheadSize:	uint8;
+};
 
 type RDPUDP2_DATABODY_PAYLOAD = record {
 	ChannelSeqNum:	uint16;
-	# This is what needs to be passed to SSL analyzer
 	Data:		bytestring &restofdata;
 };
 
-# https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpeudp2/43183820-771d-4a00-89d6-58a3ecc80a78 
 type RDPUDP2_ACKVECTOR_PAYLOAD = record {
 	BaseSeqNum:		uint16;
-	# TODO: this skips a bunch of fields
-	tail:		bytestring &restofdata;
+	tmp1:			uint8;
+	TimeStamp_or_not:	case TimeStampPresent of {
+		0 -> none: 		empty;
+		default -> some:	RDPUDP2_ACKVECTOR_PAYLOAD_TimeStamp;
+	} &requires(TimeStampPresent);
+	codedAckVector:		uint8[codedAckVecSize];
+} &let {
+	codedAckVecSize:	uint8 = tmp1 & 0xfe;
+	TimeStampPresent:	uint8 = tmp1 & 0x01;
+};
+
+type RDPUDP2_ACKVECTOR_PAYLOAD_TimeStamp = record {
+	tmp1: uint8;
+	tmp2: uint8;
+	tmp3: uint8;
+} &let {
+	TimeStamp: uint32 = tmp3 | (tmp2 << 8) | (tmp1 << 16);
 };
 
 type RDPUDP2_DATAHEADER_PAYLOAD = record {
@@ -138,9 +143,12 @@ type RDPUDP2_DELAYACKINFO_PAYLOAD = record {
 	DelayedAckTimeoutInMs:	uint16;
 };
 
-type RDPUDP2_OVERSIZE_PAYLOAD = record{
-	OverheadSize:	uint8;
-};
+
+
+
+
+
+
 
 
 type RDPUDP2_PACKET_PREFIX_BYTE = record {

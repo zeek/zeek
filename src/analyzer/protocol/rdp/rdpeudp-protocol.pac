@@ -6,7 +6,7 @@ enum RDPEUDP_STATE {
 };
 
 type RDPEUDP_PDU(is_orig: bool) = record {
-	state: case $context.flow.get_state() of {
+	state: case $context.connection.get_state() of {
 		NEED_SYN 	->  need_syn:		RDPEUDP1_SYN(this, is_orig);
 		NEED_SYNACK 	->  need_synack:	RDPEUDP1_SYNACK(this, is_orig);
 		ESTABLISHED1	->  est1:		RDPEUDP1_ACK(this, is_orig);
@@ -19,21 +19,21 @@ type RDPEUDP1_SYN(pdu: RDPEUDP_PDU, is_orig: bool) = record {
 	fec_header: 	RDPUDP_FEC_HEADER(pdu);
 	stub:		bytestring &restofdata;
 } &let {
-	proc_rdpeudp1_syn: bool = $context.flow.proc_rdpeudp1_syn(is_orig, fec_header.uFlags, fec_header.snSourceAck);
+	proc_rdpeudp1_syn: bool = $context.connection.proc_rdpeudp1_syn(is_orig, fec_header.uFlags, fec_header.snSourceAck);
 };
 
 type RDPEUDP1_SYNACK(pdu: RDPEUDP_PDU, is_orig: bool) = record {
 	fec_header: 	RDPUDP_FEC_HEADER(pdu);
 	stub:		bytestring &restofdata;
 } &let {
-	proc_rdpeudp1_synack: bool = $context.flow.proc_rdpeudp1_synack(is_orig, fec_header.uFlags);
+	proc_rdpeudp1_synack: bool = $context.connection.proc_rdpeudp1_synack(is_orig, fec_header.uFlags);
 };
 
 type RDPEUDP1_ACK(pdu: RDPEUDP_PDU, is_orig: bool) = record {
 #	fec_header:	RDPUDP_FEC_HEADER(pdu);
 	stub:		bytestring &restofdata;
 } &let {
-	proc_rdpeudp1_ack: bool = $context.flow.proc_rdpeudp1_ack(is_orig, stub);
+	proc_rdpeudp1_ack: bool = $context.connection.proc_rdpeudp1_ack(is_orig, stub);
 };
 
 type RDPUDP_FEC_HEADER(pdu: RDPEUDP_PDU) = record {
@@ -59,7 +59,7 @@ type RDPEUDP2_ACK(pdu: RDPEUDP_PDU, is_orig: bool) = record {
 #	data_body_payload:	RDPUDP2_DATABODY_PAYLOAD;
 
 } &let {
-	proc_rdpeudp2_ack: bool = $context.flow.proc_rdpeudp2_ack(is_orig, stub);
+	proc_rdpeudp2_ack: bool = $context.connection.proc_rdpeudp2_ack(is_orig, stub);
 };
 
 type RDPUDP2_DATABODY_PAYLOAD = record {

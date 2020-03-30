@@ -1,21 +1,21 @@
 ## Generated for RDPEUDP SYN UDP Datagram
 ##
-## c: The connection
+## c: The connection record for the underlying transport-layer session/flow.
 event rdpeudp_syn%(c: connection%);
 
 ## Generated for RDPEUDP SYNACK UDP Datagram
 ##
-## c: The connection
+## c: The connection record for the underlying transport-layer session/flow.
 event rdpeudp_synack%(c: connection%);
 
 ## Generated when RDPEUDP connections are established (both sides SYN)
 ##
-## c: The connection
+## c: The connection record for the underlying transport-layer session/flow.
 event rdpeudp_established%(c: connection%);
 
 ## Generated when for data messages exchanged after a RDPEUDP connection establishes
 ##
-## c: The connection
+## c: The connection record for the underlying transport-layer session/flow.
 ##
 ## data: The payload of the packet. This is probably very non-performant.
 event rdpeudp_data%(c: connection, is_orig: bool, data: string%);

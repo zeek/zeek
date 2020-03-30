@@ -11,18 +11,14 @@ event rdpeudp_synack%(c: connection%);
 ## Generated when RDPEUDP connections are established (both sides SYN)
 ##
 ## c: The connection
-##
-## version: The version of RDPEUDP, this can be set to 1 or 2
-event rdpeudp_established%(c: connection, version: count%);
+event rdpeudp_established%(c: connection%);
 
 ## Generated when for data messages exchanged after a RDPEUDP connection establishes
 ##
 ## c: The connection
 ##
-## version: The version of RDPEUDP, this can be set to 1 or 2
-##
 ## data: The payload of the packet. This is probably very non-performant.
-event rdpeudp_data%(c: connection, is_orig: bool, version: count, data: string%);
+event rdpeudp_data%(c: connection, is_orig: bool, data: string%);
 
 ## Generated for each packet after RDP native encryption begins
 ##

@@ -3,8 +3,7 @@ refine connection RDPEUDP_Conn += {
 		enum RDPEUDP_STATE {
 		        NEED_SYN	= 0x1,
 		        NEED_SYNACK	= 0x2,
-		        ESTABLISHED1	= 0x3,
-		        ESTABLISHED2	= 0x4
+		        ESTABLISHED	= 0x3,
 		};
 		uint8 state_ = NEED_SYN;
 		bool is_rdpeudp2_ = false;
@@ -14,7 +13,7 @@ refine connection RDPEUDP_Conn += {
 		return state_;
 	%}
 
-        function proc_rdpeudp1_syn(is_orig: bool, uFlags: uint16, snSourceAck: uint32): bool
+        function proc_rdpeudp_syn(is_orig: bool, uFlags: uint16, snSourceAck: uint32): bool
 	%{
 		if (!is_orig) {
 			return false;
@@ -33,7 +32,7 @@ refine connection RDPEUDP_Conn += {
                 return true;
 	%}
 
-        function proc_rdpeudp1_synack(is_orig: bool, uFlags: uint16): bool
+        function proc_rdpeudp_synack(is_orig: bool, uFlags: uint16): bool
 	%{
 		if (is_orig) {
 			return false;
@@ -45,32 +44,21 @@ refine connection RDPEUDP_Conn += {
                 BifEvent::generate_rdpeudp_synack(bro_analyzer(), bro_analyzer()->Conn());
 
 		if (is_rdpeudp2_) {
-			state_ = ESTABLISHED2;
-	                BifEvent::generate_rdpeudp_established(bro_analyzer(), bro_analyzer()->Conn(), 2);
+			state_ = ESTABLISHED;
+	                BifEvent::generate_rdpeudp_established(bro_analyzer(), bro_analyzer()->Conn());
 		} else {
-			state_ = ESTABLISHED1;
-        	        BifEvent::generate_rdpeudp_established(bro_analyzer(), bro_analyzer()->Conn(), 1);
+			state_ = ESTABLISHED;
+        	        BifEvent::generate_rdpeudp_established(bro_analyzer(), bro_analyzer()->Conn());
 		}
                 return true;
 	%}
 
-        function proc_rdpeudp2_ack(is_orig: bool, stub: bytestring): bool
+        function proc_rdpeudp_ack(is_orig: bool, data: bytestring): bool
 	%{
                 BifEvent::generate_rdpeudp_data(bro_analyzer(),
 						bro_analyzer()->Conn(),
 						is_orig,
-						2,
-						new StringVal(stub.length(), (const char*) stub.data())
-		);
-                return true;
-	%}
-        function proc_rdpeudp1_ack(is_orig: bool, stub: bytestring): bool
-	%{
-                BifEvent::generate_rdpeudp_data(bro_analyzer(),
-						bro_analyzer()->Conn(),
-						is_orig,
-						1,
-						new StringVal(stub.length(), (const char*) stub.data())
+						new StringVal(data.length(), (const char*) data.data())
 		);
                 return true;
 	%}

@@ -400,8 +400,9 @@ RecordVal* IP_Hdr::BuildPktHdrVal(RecordVal* pkt_hdr, int sindex) const
 		tcp_hdr->Assign(3, val_mgr->GetCount(uint32_t(ntohl(tp->th_ack))));
 		tcp_hdr->Assign(4, val_mgr->GetCount(tcp_hdr_len));
 		tcp_hdr->Assign(5, val_mgr->GetCount(data_len));
-		tcp_hdr->Assign(6, val_mgr->GetCount(tp->th_flags));
-		tcp_hdr->Assign(7, val_mgr->GetCount(ntohs(tp->th_win)));
+		tcp_hdr->Assign(6, val_mgr->GetCount(tp->th_x2));
+		tcp_hdr->Assign(7, val_mgr->GetCount(tp->th_flags));
+		tcp_hdr->Assign(8, val_mgr->GetCount(ntohs(tp->th_win)));
 
 		pkt_hdr->Assign(sindex + 2, tcp_hdr);
 		break;

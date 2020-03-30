@@ -1566,7 +1566,8 @@ type tcp_hdr: record {
 	ack: count;		##< acknowledgement number
 	hl: count;		##< header length (in bytes)
 	dl: count;		##< data length (xxx: not in original tcphdr!)
-	flags: count;		##< flags
+	reserved: count;	##< The "reserved" 4 bits after the "data offset" field.
+	flags: count;		##< The 8 bits of flags after the "reserved" field.
 	win: count;		##< window
 };
 

@@ -6,8 +6,8 @@ event rdpeudp_synack(c: connection) {
   print "scriptland: rdpeudp_synack event";
 }
 
-event rdpeudp_established(c: connection) {
-  print "scriptland: rdpeudp_established event";
+event rdpeudp_established(c: connection, version: count) {
+  print fmt("scriptland: rdpeudp_established event version %d", version);
 }
 
 event rdpeudp_data(c: connection, is_orig:bool, version: count, data: string) {

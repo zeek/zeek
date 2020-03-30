@@ -35,6 +35,10 @@ Changed Functionality
   changed: BIF arguments are now passed as a ``std::vector<IntrusivePtr<Val>>``
   rather than a ``val_list`` (i.e. ``List<Val*>``).
 
+- RocksDB support for Broker data stores is now opt-in instead of automatically
+  detected and used at configuration-time.  Use the ``--enable-rocksdb`` and
+  ``--with-rocksdb=`` flags to opt-in.
+
 Removed Functionality
 ---------------------
 

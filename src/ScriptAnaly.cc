@@ -272,19 +272,6 @@ public:
 			a_i->insert(AnalyInfo::value_type(o, rd));
 		}
 
-	void AddRD(ReachingDefs& rd, const ID* id, DefinitionPoint dp);
-
-	void AddRDWithInit(ReachingDefs& rd, const ID* id, DefinitionPoint dp,
-				bool assume_full,const AssignExpr* init);
-
-	void AddRDWithInit(ReachingDefs& rd, DefinitionItem* di,
-				DefinitionPoint dp, bool assume_full,
-				const AssignExpr* init);
-
-	void CreateRecordRDs(ReachingDefs& rd, DefinitionItem* di,
-				bool assume_full, DefinitionPoint dp,
-				const DefinitionItem* rhs_di);
-
 protected:
 	void MergeRDs(const BroObj* o, const ReachingDefs& rd)
 		{
@@ -295,101 +282,6 @@ protected:
 	AnalyInfo* a_i;
 	DefItemMap& item_map;
 };
-
-void ReachingDefSet::AddRD(ReachingDefs& rd, const ID* id, DefinitionPoint dp)
-	{
-	if ( id == 0 )
-		printf("oops\n");
-
-	auto di = item_map.GetIDReachingDef(id);
-
-	if ( di )
-		rd.AddRD(di, dp);
-	}
-
-void ReachingDefSet::AddRDWithInit(ReachingDefs& rd, const ID* id,
-				DefinitionPoint dp, bool assume_full,
-				const AssignExpr* init)
-	{
-	auto di = item_map.GetIDReachingDef(id);
-	if ( ! di )
-		return;
-
-	AddRDWithInit(rd, di, dp, assume_full, init);
-	}
-
-void ReachingDefSet::AddRDWithInit(ReachingDefs& rd, DefinitionItem* di,
-				DefinitionPoint dp, bool assume_full,
-				const AssignExpr* init)
-	{
-	rd.AddRD(di, dp);
-
-	if ( di->Type()->Tag() != TYPE_RECORD )
-		return;
-
-	const DefinitionItem* rhs_di = nullptr;
-
-	if ( init )
-		{
-		auto rhs = init->Op2();
-
-		if ( rhs->Type()->Tag() == TYPE_ANY )
-			// All bets are off.
-			assume_full = true;
-
-		else
-			{
-			rhs_di = item_map.GetExprReachingDef(rhs);
-
-			if ( ! rhs_di )
-				// This happens because the RHS is an
-				// expression more complicated than just a
-				// variable or a field reference.  Just assume
-				// it's fully initialized.
-				assume_full = true;
-			}
-		}
-
-	CreateRecordRDs(rd, di, assume_full, dp, rhs_di);
-	}
-
-void ReachingDefSet::CreateRecordRDs(ReachingDefs& rd, DefinitionItem* di,
-					bool assume_full, DefinitionPoint dp,
-					const DefinitionItem* rhs_di)
-	{
-	// (1) deal with LHS record creators
-	// (2) populate globals
-	auto rt = di->Type()->AsRecordType();
-	auto n = rt->NumFields();
-
-	for ( auto i = 0; i < n; ++i )
-		{
-		auto n_i = rt->FieldName(i);
-		auto rhs_di_i = rhs_di ? rhs_di->FindField(n_i) : nullptr;
-
-		bool field_is_defined = false;
-
-		if ( assume_full )
-			field_is_defined = true;
-
-		else if ( rhs_di_i )
-			field_is_defined = true;
-
-		else if ( rt->FieldHasAttr(i, ATTR_DEFAULT) )
-			field_is_defined = true;
-
-		if ( ! field_is_defined )
-			continue;
-
-		auto t_i = rt->FieldType(i);
-
-		auto di_i = di->CreateField(n_i, t_i);
-		rd.AddRD(di_i, dp);
-
-		if ( t_i->Tag() == TYPE_RECORD )
-			CreateRecordRDs(rd, di_i, assume_full, dp, rhs_di_i);
-		}
-	}
 
 
 class RD_Decorate : public TraversalCallback {
@@ -438,6 +330,19 @@ protected:
 		return pre_defs->HasRD(o, id);
 		}
 
+	void AddRD(ReachingDefs& rd, const ID* id, DefinitionPoint dp);
+
+	void AddRDWithInit(ReachingDefs& rd, const ID* id, DefinitionPoint dp,
+				bool assume_full,const AssignExpr* init);
+
+	void AddRDWithInit(ReachingDefs& rd, DefinitionItem* di,
+				DefinitionPoint dp, bool assume_full,
+				const AssignExpr* init);
+
+	void CreateRecordRDs(ReachingDefs& rd, DefinitionItem* di,
+				bool assume_full, DefinitionPoint dp,
+				const DefinitionItem* rhs_di);
+
 	// Mappings of reaching defs pre- and post- execution
 	// of the given object.
 	ReachingDefSet* pre_defs;
@@ -480,8 +385,7 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 		if ( ! arg_i_id )
 			arg_i_id = scope->Lookup(make_full_var_name(current_module.c_str(), arg_i).c_str());
 
-		post_defs->AddRDWithInit(rd, arg_i_id, DefinitionPoint(f),
-						true, 0);
+		AddRDWithInit(rd, arg_i_id, DefinitionPoint(f), true, 0);
 		}
 
 	AddPostRDs(f, rd);
@@ -542,7 +446,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 			if ( type_ids )
 				{
 				for ( const auto& id : *type_ids )
-					pre_defs->AddRDWithInit(rd, id,
+					AddRDWithInit(rd, id,
 						DefinitionPoint(s), true, 0);
 				}
 
@@ -561,13 +465,12 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		auto body = f->LoopBody();
 
 		for ( const auto& id : *ids )
-			pre_defs->AddRDWithInit(rd, id, DefinitionPoint(s),
+			AddRDWithInit(rd, id, DefinitionPoint(s),
 						true, 0);
 
 		auto val_var = f->ValueVar();
 		if ( val_var )
-			pre_defs->AddRDWithInit(rd, val_var,
-						DefinitionPoint(s), true, 0);
+			AddRDWithInit(rd, val_var, DefinitionPoint(s), true, 0);
 
 		AddPreRDs(e, rd);
 		AddPreRDs(body, rd);
@@ -616,7 +519,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 				a2->Traverse(this);
 
 				auto i1 = a1->AsNameExpr()->Id();
-				post_defs->AddRD(rd, i1, DefinitionPoint(s));
+				AddRD(rd, i1, DefinitionPoint(s));
 				AddPostRDs(s, rd);
 
 				return TC_ABORTSTMT;
@@ -778,8 +681,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 			if ( ! IsAggrTag(tag) )
 				continue;
 
-			post_defs->AddRDWithInit(post_rds, id,
-						DefinitionPoint(s), false, 0);
+			AddRDWithInit(post_rds, id, DefinitionPoint(s), false, 0);
 			}
 
 		break;
@@ -846,7 +748,7 @@ bool RD_Decorate::CheckLHS(ReachingDefs& rd, const Expr* lhs,
 		auto n = lhs->AsNameExpr();
 		auto id = n->Id();
 
-		post_defs->AddRDWithInit(rd, id, DefinitionPoint(a), false, a);
+		AddRDWithInit(rd, id, DefinitionPoint(a), false, a);
 
 		return true;
 		}
@@ -867,8 +769,7 @@ bool RD_Decorate::CheckLHS(ReachingDefs& rd, const Expr* lhs,
 			// Since the typing on the RHS may be dynamic,
 			// we don't try to do any inference of possible
 			// missing fields, hence "true" in the following.
-			post_defs->AddRDWithInit(rd, id, DefinitionPoint(a),
-						true, 0);
+			AddRDWithInit(rd, id, DefinitionPoint(a), true, 0);
 			}
 
 		return true;
@@ -901,8 +802,7 @@ bool RD_Decorate::CheckLHS(ReachingDefs& rd, const Expr* lhs,
 		if ( ! field_rd )
 			field_rd = r_def->CreateField(fn, ft);
 
-		post_defs->AddRDWithInit(rd, field_rd, DefinitionPoint(a),
-						false, a);
+		AddRDWithInit(rd, field_rd, DefinitionPoint(a), false, a);
 
 		return true;
 		}
@@ -917,7 +817,7 @@ bool RD_Decorate::CheckLHS(ReachingDefs& rd, const Expr* lhs,
 			{
 			// Count this as an initialization of the aggregate.
 			auto id = aggr->AsNameExpr()->Id();
-			pre_defs->AddRD(rd, id, DefinitionPoint(a));
+			AddRD(rd, id, DefinitionPoint(a));
 
 			// Don't recurse into assessing the aggregate,
 			// since it's okay in this context.  However,
@@ -1060,8 +960,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		if ( id->IsGlobal() )
 			{
 			// Treat global as fully initialized.
-			pre_defs->AddRDWithInit(rd, id, DefinitionPoint(n),
-							true, nullptr);
+			AddRDWithInit(rd, id, DefinitionPoint(n), true, nullptr);
 			AddPreRDs(e, rd);
 			}
 
@@ -1070,7 +969,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 
 		if ( id->Type()->Tag() == TYPE_RECORD )
 			{
-			post_defs->CreateRecordRDs(rd, item_map.GetIDReachingDef(id),
+			CreateRecordRDs(rd, item_map.GetIDReachingDef(id),
 					false, DefinitionPoint(n), nullptr);
 			AddPostRDs(e, rd);
 			}
@@ -1089,7 +988,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			auto lhs_id = lhs_n->Id();
 
 			// Treat this as an initalization of the set.
-			post_defs->AddRD(rd, lhs_id, DefinitionPoint(a_t));
+			AddRD(rd, lhs_id, DefinitionPoint(a_t));
 			AddPostRDs(e, PreRDs(e));
 			AddPostRDs(e, rd);
 
@@ -1205,7 +1104,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			if ( IsAggr(expr) )
 				// Not only do we skip analyzing it, but
 				// we consider it initialized post-return.
-				post_defs->AddRD(rd, expr->AsNameExpr()->Id(), 
+				AddRD(rd, expr->AsNameExpr()->Id(), 
 					DefinitionPoint(c));
 			else
 				expr->Traverse(this);
@@ -1251,11 +1150,105 @@ void RD_Decorate::TrackInits(const Func* f, const id_list* inits)
 		// Only aggregates get initialized.
 		auto tag = id_t->Tag();
 		if ( IsAggrTag(tag) )
-			post_defs->AddRDWithInit(rd, id, DefinitionPoint(f),
-							false, 0);
+			AddRDWithInit(rd, id, DefinitionPoint(f), false, 0);
 		}
 
 	AddPostRDs(f, rd);
+	}
+
+void RD_Decorate::AddRD(ReachingDefs& rd, const ID* id, DefinitionPoint dp)
+	{
+	if ( id == 0 )
+		printf("oops\n");
+
+	auto di = item_map.GetIDReachingDef(id);
+
+	if ( di )
+		rd.AddRD(di, dp);
+	}
+
+void RD_Decorate::AddRDWithInit(ReachingDefs& rd, const ID* id,
+				DefinitionPoint dp, bool assume_full,
+				const AssignExpr* init)
+	{
+	auto di = item_map.GetIDReachingDef(id);
+	if ( ! di )
+		return;
+
+	AddRDWithInit(rd, di, dp, assume_full, init);
+	}
+
+void RD_Decorate::AddRDWithInit(ReachingDefs& rd, DefinitionItem* di,
+				DefinitionPoint dp, bool assume_full,
+				const AssignExpr* init)
+	{
+	rd.AddRD(di, dp);
+
+	if ( di->Type()->Tag() != TYPE_RECORD )
+		return;
+
+	const DefinitionItem* rhs_di = nullptr;
+
+	if ( init )
+		{
+		auto rhs = init->Op2();
+
+		if ( rhs->Type()->Tag() == TYPE_ANY )
+			// All bets are off.
+			assume_full = true;
+
+		else
+			{
+			rhs_di = item_map.GetExprReachingDef(rhs);
+
+			if ( ! rhs_di )
+				// This happens because the RHS is an
+				// expression more complicated than just a
+				// variable or a field reference.  Just assume
+				// it's fully initialized.
+				assume_full = true;
+			}
+		}
+
+	CreateRecordRDs(rd, di, assume_full, dp, rhs_di);
+	}
+
+void RD_Decorate::CreateRecordRDs(ReachingDefs& rd, DefinitionItem* di,
+					bool assume_full, DefinitionPoint dp,
+					const DefinitionItem* rhs_di)
+	{
+	// (1) deal with LHS record creators
+	// (2) populate globals
+	auto rt = di->Type()->AsRecordType();
+	auto n = rt->NumFields();
+
+	for ( auto i = 0; i < n; ++i )
+		{
+		auto n_i = rt->FieldName(i);
+		auto rhs_di_i = rhs_di ? rhs_di->FindField(n_i) : nullptr;
+
+		bool field_is_defined = false;
+
+		if ( assume_full )
+			field_is_defined = true;
+
+		else if ( rhs_di_i )
+			field_is_defined = true;
+
+		else if ( rt->FieldHasAttr(i, ATTR_DEFAULT) )
+			field_is_defined = true;
+
+		if ( ! field_is_defined )
+			continue;
+
+		auto t_i = rt->FieldType(i);
+
+		auto di_i = di->CreateField(n_i, t_i);
+		rd.AddRD(di_i, dp);
+
+		if ( t_i->Tag() == TYPE_RECORD )
+			CreateRecordRDs(rd, di_i, assume_full, dp, rhs_di_i);
+		}
 	}
 
 

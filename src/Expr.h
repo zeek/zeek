@@ -221,9 +221,10 @@ protected:
 	// TYPE_ERROR.
 	void ExprError(const char msg[]);
 
-	void RuntimeError(const std::string& msg) const;
-
-	void RuntimeErrorWithCallStack(const std::string& msg) const;
+	// These two functions both call Reporter::RuntimeError or Reporter::ExprRuntimeError,
+	// both of which are marked as [[noreturn]].
+	[[noreturn]] void RuntimeError(const std::string& msg) const;
+	[[noreturn]] void RuntimeErrorWithCallStack(const std::string& msg) const;
 
 	BroExprTag tag;
 	IntrusivePtr<BroType> type;
@@ -740,7 +741,7 @@ protected:
 
 class ScheduleTimer : public Timer {
 public:
-	ScheduleTimer(EventHandlerPtr event, zeek::Args args, double t);
+	ScheduleTimer(const EventHandlerPtr& event, zeek::Args args, double t);
 	~ScheduleTimer() override;
 
 	void Dispatch(double t, int is_expire) override;
@@ -858,9 +859,6 @@ public:
 	// True if the entire list represents pure values.
 	bool IsPure() const override;
 
-	// True if the entire list represents constant values.
-	bool AllConst() const;
-
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 	IntrusivePtr<BroType> InitType() const override;
@@ -881,7 +879,7 @@ protected:
 
 class RecordAssignExpr : public ListExpr {
 public:
-	RecordAssignExpr(IntrusivePtr<Expr> record, IntrusivePtr<Expr> init_list, int is_init);
+	RecordAssignExpr(const IntrusivePtr<Expr>& record, const IntrusivePtr<Expr>& init_list, int is_init);
 };
 
 class CastExpr : public UnaryExpr {

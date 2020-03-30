@@ -474,8 +474,7 @@ IntrusivePtr<Val> BinaryExpr::Eval(Frame* f) const
 
 		for ( unsigned int i = 0; i < vv->Size(); ++i )
 			{
-			Val* vv_i = vv->Lookup(i);
-			if ( vv_i )
+			if ( Val* vv_i = vv->Lookup(i) )
 				v_result->Assign(i, is_vec1 ? Fold(vv_i, v2.get())
 				                            : Fold(v1.get(), vv_i));
 			else
@@ -598,9 +597,9 @@ IntrusivePtr<Val> BinaryExpr::Fold(Val* v1, Val* v2) const
 	else \
 		i3 = d1 op d2;
 
-	case EXPR_ADD:		DO_FOLD(+); break;
+	case EXPR_ADD:
 	case EXPR_ADD_TO:	DO_FOLD(+); break;
-	case EXPR_SUB:		DO_FOLD(-); break;
+	case EXPR_SUB:
 	case EXPR_REMOVE_FROM:	DO_FOLD(-); break;
 	case EXPR_TIMES:	DO_FOLD(*); break;
 	case EXPR_DIVIDE:
@@ -901,12 +900,10 @@ IntrusivePtr<Val> CloneExpr::Eval(Frame* f) const
 	if ( IsError() )
 		return nullptr;
 
-	auto v = op->Eval(f);
+	if ( auto v = op->Eval(f) )
+		return Fold(v.get());
 
-	if ( ! v )
-		return nullptr;
-
-	return Fold(v.get());
+	return nullptr;
 	}
 
 IntrusivePtr<Val> CloneExpr::Fold(Val* v) const
@@ -942,7 +939,7 @@ IncrExpr::IncrExpr(BroExprTag arg_tag, IntrusivePtr<Expr> arg_op)
 	}
 
 IntrusivePtr<Val> IncrExpr::DoSingleEval(Frame* f, Val* v) const
-	 {
+	{
 	bro_int_t k = v->CoerceToInt();
 
 	if ( Tag() == EXPR_INCR )
@@ -956,15 +953,15 @@ IntrusivePtr<Val> IncrExpr::DoSingleEval(Frame* f, Val* v) const
 			RuntimeError("count underflow");
 		}
 
-	 BroType* ret_type = Type();
-	 if ( IsVector(ret_type->Tag()) )
-		 ret_type = Type()->YieldType();
+	BroType* ret_type = Type();
+	if ( IsVector(ret_type->Tag()) )
+		ret_type = Type()->YieldType();
 
 	if ( ret_type->Tag() == TYPE_INT )
 		return {AdoptRef{}, val_mgr->GetInt(k)};
 	else
 		return {AdoptRef{}, val_mgr->GetCount(k)};
-	 }
+	}
 
 
 IntrusivePtr<Val> IncrExpr::Eval(Frame* f) const
@@ -991,7 +988,6 @@ IntrusivePtr<Val> IncrExpr::Eval(Frame* f) const
 		op->Assign(f, std::move(v_vec));
 		return v;
 		}
-
 	else
 		{
 		auto new_v = DoSingleEval(f, v.get());
@@ -1031,8 +1027,7 @@ NotExpr::NotExpr(IntrusivePtr<Expr> arg_op)
 	if ( IsError() )
 		return;
 
-	BroType* t = op->Type();
-	TypeTag bt = t->Tag();
+	TypeTag bt = op->Type()->Tag();
 
 	if ( ! IsIntegral(bt) && bt != TYPE_BOOL )
 		ExprError("requires an integral or boolean operand");
@@ -1166,12 +1161,10 @@ AddExpr::AddExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 
 	IntrusivePtr<BroType> base_result_type;
 
-	if ( bt1 == TYPE_TIME && bt2 == TYPE_INTERVAL )
+	if ( bt2 == TYPE_INTERVAL && ( bt1 == TYPE_TIME || bt1 == TYPE_INTERVAL ) )
 		base_result_type = base_type(bt1);
 	else if ( bt2 == TYPE_TIME && bt1 == TYPE_INTERVAL )
 		base_result_type = base_type(bt2);
-	else if ( bt1 == TYPE_INTERVAL && bt2 == TYPE_INTERVAL )
-		base_result_type = base_type(bt1);
 	else if ( BothArithmetic(bt1, bt2) )
 		PromoteType(max_type(bt1, bt2), is_vector(op1.get()) || is_vector(op2.get()));
 	else if ( BothString(bt1, bt2) )
@@ -1210,9 +1203,7 @@ AddToExpr::AddToExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 
 	if ( BothArithmetic(bt1, bt2) )
 		PromoteType(max_type(bt1, bt2), is_vector(op1.get()) || is_vector(op2.get()));
-	else if ( BothString(bt1, bt2) )
-		SetType(base_type(bt1));
-	else if ( BothInterval(bt1, bt2) )
+	else if ( BothString(bt1, bt2) || BothInterval(bt1, bt2) )
 		SetType(base_type(bt1));
 
 	else if ( IsVector(bt1) )
@@ -1267,9 +1258,7 @@ IntrusivePtr<Val> AddToExpr::Eval(Frame* f) const
 		return v1;
 		}
 
-	auto result = Fold(v1.get(), v2.get());
-
-	if ( result )
+	if ( auto result = Fold(v1.get(), v2.get()) )
 		{
 		op1->Assign(f, result);
 		return result;
@@ -1297,14 +1286,11 @@ SubExpr::SubExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 
 	IntrusivePtr<BroType> base_result_type;
 
-	if ( bt1 == TYPE_TIME && bt2 == TYPE_INTERVAL )
+	if ( bt2 == TYPE_INTERVAL && ( bt1 == TYPE_TIME || bt1 == TYPE_INTERVAL ) )
 		base_result_type = base_type(bt1);
 
 	else if ( bt1 == TYPE_TIME && bt2 == TYPE_TIME )
 		SetType(base_type(TYPE_INTERVAL));
-
-	else if ( bt1 == TYPE_INTERVAL && bt2 == TYPE_INTERVAL )
-		base_result_type = base_type(bt1);
 
 	else if ( t1->IsSet() && t2->IsSet() )
 		{
@@ -1359,9 +1345,7 @@ IntrusivePtr<Val> RemoveFromExpr::Eval(Frame* f) const
 	if ( ! v2 )
 		return nullptr;
 
-	auto result = Fold(v1.get(), v2.get());
-
-	if ( result )
+	if ( auto result = Fold(v1.get(), v2.get()) )
 		{
 		op1->Assign(f, result);
 		return result;
@@ -2069,6 +2053,7 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 		// the script level.
 		return true;
 
+	// This should be one of them, but not both (i.e. XOR)
 	if ( ((bt1 == TYPE_ENUM) ^ (bt2 == TYPE_ENUM)) )
 		{
 		ExprError("can't convert to/from enumerated type");
@@ -2255,7 +2240,6 @@ bool AssignExpr::TypeCheckArithmetics(TypeTag bt1, TypeTag bt2)
 			{
 			Warn("dangerous assignment of integer to count");
 			op2 = make_intrusive<ArithCoerceExpr>(std::move(op2), bt1);
-			bt2 = op2->Type()->Tag();
 			}
 
 		// Assignment of count to counter or vice
@@ -2275,9 +2259,7 @@ IntrusivePtr<Val> AssignExpr::Eval(Frame* f) const
 		return nullptr;
 		}
 
-	auto v = op2->Eval(f);
-
-	if ( v )
+	if ( auto v = op2->Eval(f) )
 		{
 		op1->Assign(f, v);
 
@@ -2470,9 +2452,7 @@ IntrusivePtr<Val> IndexSliceAssignExpr::Eval(Frame* f) const
 		return nullptr;
 		}
 
-	auto v = op2->Eval(f);
-
-	if ( v )
+	if ( auto v = op2->Eval(f) )
 		op1->Assign(f, std::move(v));
 
 	return nullptr;
@@ -2531,7 +2511,6 @@ IndexExpr::IndexExpr(IntrusivePtr<Expr> arg_op1,
 
 	else
 		ExprError("Unknown MatchesIndex() return value");
-
 	}
 
 bool IndexExpr::CanAdd() const
@@ -2679,12 +2658,12 @@ IntrusivePtr<Val> IndexExpr::Fold(Val* v1, Val* v2) const
 			v = {NewRef{}, vect->Lookup(v2)};
 		else
 			{
-			int len = vect->Size();
+			size_t len = vect->Size();
 			auto result = make_intrusive<VectorVal>(vect->Type()->AsVectorType());
 
 			bro_int_t first = get_slice_index(lv->Index(0)->CoerceToInt(), len);
 			bro_int_t last = get_slice_index(lv->Index(1)->CoerceToInt(), len);
-			int sub_length = last - first;
+			bro_int_t sub_length = last - first;
 
 			if ( sub_length >= 0 )
 				{
@@ -2727,7 +2706,7 @@ IntrusivePtr<Val> IndexExpr::Fold(Val* v1, Val* v2) const
 			{
 			bro_int_t first = get_slice_index(lv->Index(0)->AsInt(), len);
 			bro_int_t last = get_slice_index(lv->Index(1)->AsInt(), len);
-			int substring_len = last - first;
+			bro_int_t substring_len = last - first;
 
 			if ( substring_len < 0 )
 				substring = 0;
@@ -2917,9 +2896,7 @@ void FieldExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 	if ( IsError() )
 		return;
 
-	auto op_v = op->Eval(f);
-
-	if ( op_v )
+	if ( auto op_v = op->Eval(f) )
 		{
 		RecordVal* r = op_v->AsRecordVal();
 		r->Assign(field, std::move(v));
@@ -2933,9 +2910,7 @@ void FieldExpr::Delete(Frame* f)
 
 IntrusivePtr<Val> FieldExpr::Fold(Val* v) const
 	{
-	Val* result = v->AsRecordVal()->Lookup(field);
-
-	if ( result )
+	if ( Val* result = v->AsRecordVal()->Lookup(field) )
 		return {NewRef{}, result};
 
 	// Check for &default.
@@ -3358,9 +3333,7 @@ VectorConstructorExpr::VectorConstructorExpr(IntrusivePtr<ListExpr> constructor_
 			return;
 			}
 
-		auto t = merge_type_list(op->AsListExpr());
-
-		if ( t )
+		if ( auto t = merge_type_list(op->AsListExpr()) )
 			SetType(make_intrusive<VectorType>(std::move(t)));
 		else
 			{
@@ -3442,12 +3415,11 @@ void FieldAssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f)
 	if ( IsError() )
 		return;
 
-	RecordVal* rec = aggr->AsRecordVal();
-	const RecordType* rt = t->AsRecordType();
-	auto v = op->Eval(f);
-
-	if ( v )
+	if ( auto v = op->Eval(f) )
 		{
+		RecordVal* rec = aggr->AsRecordVal();
+		const RecordType* rt = t->AsRecordType();
+
 		int idx = rt->FieldOffset(field_name.c_str());
 
 		if ( idx < 0 )
@@ -3546,8 +3518,7 @@ IntrusivePtr<Val> ArithCoerceExpr::Fold(Val* v) const
 
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		{
-		Val* elt = vv->Lookup(i);
-		if ( elt )
+		if ( Val* elt = vv->Lookup(i) )
 			result->Assign(i, FoldSingleVal(elt, t));
 		else
 			result->Assign(i, 0);
@@ -3671,14 +3642,10 @@ RecordCoerceExpr::~RecordCoerceExpr()
 
 IntrusivePtr<Val> RecordCoerceExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) const
 	{
-	auto v = Eval(nullptr);
-
-	if ( v )
+	if ( auto v = Eval(nullptr) )
 		{
 		RecordVal* rv = v->AsRecordVal();
-		auto ar = rv->CoerceTo(t->AsRecordType(), aggr.release());
-
-		if ( ar )
+		if ( auto ar = rv->CoerceTo(t->AsRecordType(), aggr.release()) )
 			return ar;
 		}
 
@@ -3689,6 +3656,8 @@ IntrusivePtr<Val> RecordCoerceExpr::InitVal(const BroType* t, IntrusivePtr<Val> 
 IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 	{
 	auto val = make_intrusive<RecordVal>(Type()->AsRecordType());
+	RecordType* val_type = val->Type()->AsRecordType();
+
 	RecordVal* rv = v->AsRecordVal();
 
 	for ( int i = 0; i < map_size; ++i )
@@ -3716,16 +3685,13 @@ IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 				}
 
 			BroType* rhs_type = rhs->Type();
-			RecordType* val_type = val->Type()->AsRecordType();
 			BroType* field_type = val_type->FieldType(i);
 
 			if ( rhs_type->Tag() == TYPE_RECORD &&
 			     field_type->Tag() == TYPE_RECORD &&
 			     ! same_type(rhs_type, field_type) )
 				{
-				auto new_val = rhs->AsRecordVal()->CoerceTo(field_type->AsRecordType());
-
-				if ( new_val )
+				if ( auto new_val = rhs->AsRecordVal()->CoerceTo(field_type->AsRecordType()) )
 					rhs = std::move(new_val);
 				}
 			else if ( BothArithmetic(rhs_type->Tag(), field_type->Tag()) &&
@@ -3741,10 +3707,7 @@ IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 			}
 		else
 			{
-			const Attr* def =
-			     Type()->AsRecordType()->FieldDecl(i)->FindAttr(ATTR_DEFAULT);
-
-			if ( def )
+			if ( const Attr* def = Type()->AsRecordType()->FieldDecl(i)->FindAttr(ATTR_DEFAULT) )
 				{
 				auto def_val = def->AttrExpr()->Eval(nullptr);
 				BroType* def_type = def_val->Type();
@@ -3864,17 +3827,14 @@ IntrusivePtr<Val> FlattenExpr::Fold(Val* v) const
 
 	for ( int i = 0; i < num_fields; ++i )
 		{
-		Val* fv = rv->Lookup(i);
-
-		if ( fv )
+		if ( Val* fv = rv->Lookup(i) )
 			{
 			l->Append(fv->Ref());
 			continue;
 			}
 
 		const RecordType* rv_t = rv->Type()->AsRecordType();
-		const Attr* fa = rv_t->FieldDecl(i)->FindAttr(ATTR_DEFAULT);
-		if ( fa )
+		if ( const Attr* fa = rv_t->FieldDecl(i)->FindAttr(ATTR_DEFAULT) )
 			l->Append(fa->AttrExpr()->Eval(nullptr).release());
 
 		else
@@ -3884,7 +3844,7 @@ IntrusivePtr<Val> FlattenExpr::Fold(Val* v) const
 	return l;
 	}
 
-ScheduleTimer::ScheduleTimer(EventHandlerPtr arg_event, zeek::Args arg_args,
+ScheduleTimer::ScheduleTimer(const EventHandlerPtr& arg_event, zeek::Args arg_args,
                              double t)
 	: Timer(t, TIMER_SCHEDULE),
 	  event(arg_event), args(std::move(arg_args))
@@ -4212,12 +4172,9 @@ IntrusivePtr<Val> CallExpr::Eval(Frame* f) const
 	// Check for that.
 	if ( f )
 		{
-		trigger::Trigger* trigger = f->GetTrigger();
-
-		if ( trigger )
+		if ( trigger::Trigger* trigger = f->GetTrigger() )
 			{
-			Val* v = trigger->Lookup(this);
-			if ( v )
+			if ( Val* v = trigger->Lookup(this) )
 				{
 				DBG_LOG(DBG_NOTIFIERS,
 					"%s: provides cached function result",
@@ -4233,13 +4190,13 @@ IntrusivePtr<Val> CallExpr::Eval(Frame* f) const
 
 	if ( func_val && v )
 		{
-		const ::Func* func = func_val->AsFunc();
+		const ::Func* funcv = func_val->AsFunc();
 		const CallExpr* current_call = f ? f->GetCall() : 0;
 
 		if ( f )
 			f->SetCall(this);
 
-		ret = func->Call(*v, f);
+		ret = funcv->Call(*v, f);
 
 		if ( f )
 			f->SetCall(current_call);
@@ -4496,15 +4453,6 @@ bool ListExpr::IsPure() const
 	{
 	for ( const auto& expr : exprs )
 		if ( ! expr->IsPure() )
-			return false;
-
-	return true;
-	}
-
-bool ListExpr::AllConst() const
-	{
-	for ( const auto& expr : exprs )
-		if ( ! expr->IsConst() )
 			return false;
 
 	return true;
@@ -4779,7 +4727,6 @@ IntrusivePtr<Val> ListExpr::AddSetInit(const BroType* t, IntrusivePtr<Val> aggr)
 
 		if ( ! tv->ExpandAndInit(std::move(element), nullptr) )
 			return nullptr;
-
 		}
 
 	return aggr;
@@ -4833,8 +4780,8 @@ TraversalCode ListExpr::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_EXPR_POST(tc);
 	}
 
-RecordAssignExpr::RecordAssignExpr(IntrusivePtr<Expr> record,
-                                   IntrusivePtr<Expr> init_list, int is_init)
+RecordAssignExpr::RecordAssignExpr(const IntrusivePtr<Expr>& record,
+                                   const IntrusivePtr<Expr>& init_list, int is_init)
 	{
 	const expr_list& inits = init_list->AsListExpr()->Exprs();
 

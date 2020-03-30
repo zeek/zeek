@@ -7,9 +7,9 @@ typedef std::map<const DefinitionItem*, DefinitionPoint> ReachingDefsMap;
 
 class ReachingDefs {
 public:
-	void AddRDs(const ReachingDefs& rd)
+	void AddRDs(const ReachingDefs* rd)
 		{
-		auto& rd_m = rd.RDMap();
+		auto& rd_m = rd->RDMap();
 
 		for ( const auto& one_rd : rd_m )
 			AddRD(one_rd.first, one_rd.second);
@@ -31,10 +31,8 @@ public:
 		return l != rd_map.end() && l->second.SameAs(dp);
 		}
 
-	ReachingDefs Intersect(const ReachingDefs& r) const;
-	ReachingDefs Union(const ReachingDefs& r) const;
-
-	bool Differ(const ReachingDefs& r) const;
+	ReachingDefs* Intersect(const ReachingDefs* r) const;
+	ReachingDefs* Union(const ReachingDefs* r) const;
 
 	void Dump() const;
 
@@ -49,8 +47,6 @@ protected:
 };
 
 typedef std::map<const BroObj*, ReachingDefs> AnalyInfo;
-
-static ReachingDefs null_RDs;
 
 // Reaching definitions associated with a collection of BroObj's.
 class ReachingDefSet {
@@ -85,28 +81,29 @@ public:
 		return RDs->second.HasDI(di);
 		}
 
-	const ReachingDefs& RDs(const BroObj* o) const
+	// Creates a new RDset if none exists.
+	ReachingDefs* RDs(const BroObj* o) const
 		{
 		if ( o == nullptr )
-			return null_RDs;
+			return new ReachingDefs;
 
 		auto rd = a_i->find(o);
 		if ( rd != a_i->end() )
-			return rd->second;
+			return &rd->second;
 		else
-			return null_RDs;
+			return new ReachingDefs;
 		}
 
-	void AddRDs(const BroObj* o, const ReachingDefs& rd)
+	void AddRDs(const BroObj* o, const ReachingDefs* rd)
 		{
 		if ( HasRDs(o) )
 			MergeRDs(o, rd);
 		else
-			a_i->insert(AnalyInfo::value_type(o, rd));
+			a_i->insert(AnalyInfo::value_type(o, *rd));
 		}
 
 protected:
-	void MergeRDs(const BroObj* o, const ReachingDefs& rd)
+	void MergeRDs(const BroObj* o, const ReachingDefs* rd)
 		{
 		auto& curr_rds = a_i->find(o)->second;
 		curr_rds.AddRDs(rd);

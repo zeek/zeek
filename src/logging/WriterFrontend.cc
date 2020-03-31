@@ -14,7 +14,7 @@ namespace logging  {
 
 // Messages sent from frontend to backend (i.e., "InputMessages").
 
-class InitMessage : public threading::InputMessage<WriterBackend>
+class InitMessage final : public threading::InputMessage<WriterBackend>
 {
 public:
 	InitMessage(WriterBackend* backend, const int num_fields, const Field* const* fields)
@@ -23,14 +23,14 @@ public:
 			{}
 
 
-	virtual bool Process() { return Object()->Init(num_fields, fields); }
+	bool Process() override { return Object()->Init(num_fields, fields); }
 
 private:
 	const int num_fields;
 	const Field * const* fields;
 };
 
-class RotateMessage : public threading::InputMessage<WriterBackend>
+class RotateMessage final : public threading::InputMessage<WriterBackend>
 {
 public:
 	RotateMessage(WriterBackend* backend, WriterFrontend* frontend, const char* rotated_path, const double open,
@@ -42,7 +42,7 @@ public:
 
 	virtual ~RotateMessage()	{ delete [] rotated_path; }
 
-	virtual bool Process() { return Object()->Rotate(rotated_path, open, close, terminating); }
+	bool Process() override { return Object()->Rotate(rotated_path, open, close, terminating); }
 
 private:
 	WriterFrontend* frontend;
@@ -52,14 +52,14 @@ private:
 	const bool terminating;
 };
 
-class WriteMessage : public threading::InputMessage<WriterBackend>
+class WriteMessage final : public threading::InputMessage<WriterBackend>
 {
 public:
 	WriteMessage(WriterBackend* backend, int num_fields, int num_writes, Value*** vals)
 		: threading::InputMessage<WriterBackend>("Write", backend),
 		num_fields(num_fields), num_writes(num_writes), vals(vals)	{}
 
-	virtual bool Process() { return Object()->Write(num_fields, num_writes, vals); }
+	bool Process() override { return Object()->Write(num_fields, num_writes, vals); }
 
 private:
 	int num_fields;
@@ -67,27 +67,27 @@ private:
 	Value ***vals;
 };
 
-class SetBufMessage : public threading::InputMessage<WriterBackend>
+class SetBufMessage final : public threading::InputMessage<WriterBackend>
 {
 public:
 	SetBufMessage(WriterBackend* backend, const bool enabled)
 		: threading::InputMessage<WriterBackend>("SetBuf", backend),
 		enabled(enabled) { }
 
-	virtual bool Process() { return Object()->SetBuf(enabled); }
+	bool Process() override { return Object()->SetBuf(enabled); }
 
 private:
 	const bool enabled;
 };
 
-class FlushMessage : public threading::InputMessage<WriterBackend>
+class FlushMessage final : public threading::InputMessage<WriterBackend>
 {
 public:
 	FlushMessage(WriterBackend* backend, double network_time)
 		: threading::InputMessage<WriterBackend>("Flush", backend),
 		network_time(network_time) {}
 
-	virtual bool Process() { return Object()->Flush(network_time); }
+	bool Process() override { return Object()->Flush(network_time); }
 private:
 	double network_time;
 };

@@ -4,16 +4,16 @@
 #include "plugin/Plugin.h"
 #include "analyzer/Component.h"
 
-namespace plugin { 
+namespace plugin {
 namespace Zeek_MQTT {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("MQTT",
 		             ::analyzer::MQTT::MQTT_Analyzer::InstantiateAnalyzer));
-		
+
 		plugin::Configuration config;
 		config.name = "Zeek::MQTT";
 		config.description = "Message Queuing Telemetry Transport v3.1.1 Protocol analyzer";

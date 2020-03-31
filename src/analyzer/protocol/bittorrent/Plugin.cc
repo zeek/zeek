@@ -10,7 +10,7 @@ namespace Zeek_BitTorrent {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("BitTorrent", ::analyzer::bittorrent::BitTorrent_Analyzer::Instantiate));
 		AddComponent(new ::analyzer::Component("BitTorrentTracker", ::analyzer::bittorrent::BitTorrentTracker_Analyzer::Instantiate));

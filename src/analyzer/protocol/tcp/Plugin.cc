@@ -9,7 +9,7 @@ namespace Zeek_TCP {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("TCP", ::analyzer::tcp::TCP_Analyzer::Instantiate));
 		AddComponent(new ::analyzer::Component("TCPStats", ::analyzer::tcp::TCPStats_Analyzer::Instantiate));

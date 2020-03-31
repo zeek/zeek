@@ -8,7 +8,7 @@ namespace Zeek_MIME {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		plugin::Configuration config;
 		config.name = "Zeek::MIME";

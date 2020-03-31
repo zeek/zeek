@@ -1399,7 +1399,7 @@ public:
 			rotate = arg_rotate;
 			}
 
-	~RotationTimer();
+	~RotationTimer() override;
 
 	void Dispatch(double t, bool is_expire) override;
 

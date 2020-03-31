@@ -10,7 +10,7 @@ namespace Zeek_SSL {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("SSL", ::analyzer::ssl::SSL_Analyzer::Instantiate));
 		AddComponent(new ::analyzer::Component("DTLS", ::analyzer::dtls::DTLS_Analyzer::Instantiate));
@@ -24,4 +24,3 @@ public:
 
 }
 }
-

@@ -9,7 +9,7 @@ namespace Zeek_NCP {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("NCP", ::analyzer::ncp::NCP_Analyzer::Instantiate));
 		AddComponent(new ::analyzer::Component("Contents_NCP", 0));

@@ -9,7 +9,7 @@ namespace Zeek_SOCKS {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("SOCKS", ::analyzer::socks::SOCKS_Analyzer::Instantiate));
 

@@ -7,7 +7,7 @@ namespace Zeek_RFB {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("RFB",
 		             ::analyzer::rfb::RFB_Analyzer::InstantiateAnalyzer));

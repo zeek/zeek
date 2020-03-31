@@ -9,7 +9,7 @@ namespace Zeek_PE {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::file_analysis::Component("PE", ::file_analysis::PE::Instantiate));
 

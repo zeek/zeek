@@ -10,7 +10,7 @@ namespace Zeek_Pcap {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::iosource::PktSrcComponent("PcapReader", "pcap", ::iosource::PktSrcComponent::BOTH, ::iosource::pcap::PcapSource::Instantiate));
 		AddComponent(new ::iosource::PktDumperComponent("PcapWriter", "pcap", ::iosource::pcap::PcapDumper::Instantiate));
@@ -24,4 +24,3 @@ public:
 
 }
 }
-

@@ -12,7 +12,7 @@ namespace Zeek_RPC {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("NFS", ::analyzer::rpc::NFS_Analyzer::Instantiate));
 		AddComponent(new ::analyzer::Component("MOUNT", ::analyzer::rpc::MOUNT_Analyzer::Instantiate));

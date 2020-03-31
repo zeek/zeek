@@ -421,8 +421,8 @@ public:
 	OuterIDBindingFinder(Scope* s)
 		: scope(s) { }
 
-	virtual TraversalCode PreExpr(const Expr*);
-	virtual TraversalCode PostExpr(const Expr*);
+	TraversalCode PreExpr(const Expr*) override;
+	TraversalCode PostExpr(const Expr*) override;
 
 	Scope* scope;
 	vector<const NameExpr*> outer_id_references;

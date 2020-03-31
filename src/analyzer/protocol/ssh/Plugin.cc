@@ -9,7 +9,7 @@ namespace plugin {
 
 		class Plugin : public plugin::Plugin {
 		public:
-			plugin::Configuration Configure()
+			plugin::Configuration Configure() override
 				{
 				AddComponent(new ::analyzer::Component("SSH", ::analyzer::SSH::SSH_Analyzer::Instantiate));
 
@@ -22,4 +22,3 @@ namespace plugin {
 
 		}
 	}
-

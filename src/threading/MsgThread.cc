@@ -15,13 +15,13 @@ namespace threading  {
 ////// Messages.
 
 // Signals child thread to shutdown operation.
-class FinishMessage : public InputMessage<MsgThread>
+class FinishMessage final : public InputMessage<MsgThread>
 {
 public:
 	FinishMessage(MsgThread* thread, double network_time) : InputMessage<MsgThread>("Finish", thread),
 		network_time(network_time) { }
 
-	virtual bool Process()	{
+	bool Process() override	{
 		if ( Object()->child_finished )
 			return true;
 		bool result = Object()->OnFinish(network_time);
@@ -34,28 +34,28 @@ private:
 };
 
 // Signals main thread that operations shut down.
-class FinishedMessage : public OutputMessage<MsgThread>
+class FinishedMessage final : public OutputMessage<MsgThread>
 {
 public:
 	FinishedMessage(MsgThread* thread)
 		: OutputMessage<MsgThread>("FinishedMessage", thread)
 		{ }
 
-	virtual bool Process() {
+	bool Process() override {
 		Object()->main_finished = true;
 		return true;
 	}
 };
 
 /// Sends a heartbeat to the child thread.
-class HeartbeatMessage : public InputMessage<MsgThread>
+class HeartbeatMessage final : public InputMessage<MsgThread>
 {
 public:
 	HeartbeatMessage(MsgThread* thread, double arg_network_time, double arg_current_time)
 		: InputMessage<MsgThread>("Heartbeat", thread)
 		{ network_time = arg_network_time; current_time = arg_current_time; }
 
-	virtual bool Process()	{
+	bool Process() override	{
 		return Object()->OnHeartbeat(network_time, current_time);
 	}
 
@@ -65,7 +65,7 @@ private:
 };
 
 // A message from the child to be passed on to the Reporter.
-class ReporterMessage : public OutputMessage<MsgThread>
+class ReporterMessage final : public OutputMessage<MsgThread>
 {
 public:
 	enum Type {
@@ -77,9 +77,9 @@ public:
 		: OutputMessage<MsgThread>("ReporterMessage", thread)
 		{ type = arg_type; msg = copy_string(arg_msg); }
 
-	~ReporterMessage() 	 { delete [] msg; }
+	~ReporterMessage() override 	 { delete [] msg; }
 
-	virtual bool Process();
+	bool Process() override;
 
 private:
 	const char* msg;
@@ -87,13 +87,13 @@ private:
 };
 
 // A message from the the child to the main process, requesting suicide.
-class KillMeMessage : public OutputMessage<MsgThread>
+class KillMeMessage final : public OutputMessage<MsgThread>
 {
 public:
 	KillMeMessage(MsgThread* thread)
 		: OutputMessage<MsgThread>("ReporterMessage", thread) 	{}
 
-	virtual bool Process()
+	bool Process() override
 		{
 		Object()->SignalStop();
 		Object()->WaitForStop();
@@ -104,16 +104,16 @@ public:
 
 #ifdef DEBUG
 // A debug message from the child to be passed on to the DebugLogger.
-class DebugMessage : public OutputMessage<MsgThread>
+class DebugMessage final : public OutputMessage<MsgThread>
 {
 public:
 	DebugMessage(DebugStream arg_stream, MsgThread* thread, const char* arg_msg)
 		: OutputMessage<MsgThread>("DebugMessage", thread)
 		{ stream = arg_stream; msg = copy_string(arg_msg); }
 
-	virtual ~DebugMessage()	{ delete [] msg; }
+	~DebugMessage() override	{ delete [] msg; }
 
-	virtual bool Process()
+	bool Process() override
 		{
 		debug_logger.Log(stream, "%s: %s", Object()->Name(), msg);
 		return true;

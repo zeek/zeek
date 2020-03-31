@@ -9,7 +9,7 @@ namespace Zeek_GTPv1 {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("GTPv1", ::analyzer::gtpv1::GTPv1_Analyzer::Instantiate));
 

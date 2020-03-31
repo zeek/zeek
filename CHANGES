@@ -1,4 +1,12 @@
 
+3.2.0-dev.329 | 2020-03-31 08:48:10 -0700
+
+  * Mark input/output message classes as final, since nothing should be inheriting from them (Tim Wojtulewicz, Corelight)
+
+  * Add missing override specifier to a number of methods, remove virtual from some as well (Tim Wojtulewicz, Corelight)
+
+  * Add override specifier to Configure() method in almost all of the internal plugins (Tim Wojtulewicz, Corelight)
+
 3.2.0-dev.325 | 2020-03-31 07:04:59 +0000
 
   * Fix bug in intel framework letting deletes of mixed-cased entries

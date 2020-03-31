@@ -113,7 +113,7 @@ public:
 	EventHandlerPtr event;
 
 	TableStream();
-	~TableStream();
+	~TableStream() override;
 };
 
 class Manager::EventStream: public Manager::Stream {
@@ -125,7 +125,7 @@ public:
 
 	bool want_record;
 	EventStream();
-	~EventStream();
+	~EventStream() override;
 };
 
 class Manager::AnalysisStream: public Manager::Stream {
@@ -133,7 +133,7 @@ public:
 	string file_id;
 
 	AnalysisStream();
-	~AnalysisStream();
+	~AnalysisStream() override;
 };
 
 Manager::TableStream::TableStream()

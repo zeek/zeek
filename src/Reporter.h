@@ -364,7 +364,7 @@ private:
 
 	std::string BuildLogLocationString(bool location);
 	void DoLogEvents(const char* prefix, EventHandlerPtr event, Connection* conn,
-	                 val_list* addl, bool location, bool time, char* buffer,
+	                 val_list* addl, bool location, bool time, const char* buffer,
 	                 const std::string& loc_str);
 
 	template <typename... Args>
@@ -372,79 +372,43 @@ private:
 		Connection* conn, val_list* addl, bool location, bool time,
 		const char* postfix, const char* format, Args&&... args)
 		{
-		static char tmp[512];
-
-		int size = sizeof(tmp);
-		char* buffer  = tmp;
-		char* alloced = nullptr;
+		static fmtlib::memory_buffer buffer;
+		buffer.clear();
 
 		std::string loc_str = BuildLogLocationString(location);
-
-		while ( true )
-			{
-			int n;
-
-			if constexpr ( sizeof...(args) > 0 )
-				n = snprintf(buffer, size, format, std::forward<Args>(args)...);
-			else
-				n = snprintf(buffer, size, "%s", format);
-
-			if ( postfix )
-				n += strlen(postfix) + 10; // Add a bit of slack.
-
-			if ( n > -1 && n < size )
-				// We had enough space;
-				break;
-
-			// Enlarge buffer;
-			size *= 2;
-			buffer = alloced = (char *)realloc(alloced, size);
-
-			if ( ! buffer )
-				FatalError("out of memory in Reporter");
-			}
+		format_to(buffer, format, args...);
 
 		if ( postfix && *postfix )
-			// Note, if you change this format string, adjust the additional
-			// buffer size above.
-			snprintf(buffer + strlen(buffer), size - strlen(buffer), " (%s)", postfix);
+			format_to(buffer, FMT_STRING(" ({:s})"), postfix);
 
-		DoLogEvents(prefix, event, conn, addl, location, time, buffer, loc_str);
+		// Ensure the buffer is null-terminated at the end of what we wrote to it
+		// before using it for anything
+		buffer.push_back('\0');
+
+		DoLogEvents(prefix, event, conn, addl, location, time, buffer.data(), loc_str);
 
 		if ( out )
 			{
-			std::string s = "";
+			fmtlib::memory_buffer outbuf;
 
 			if ( bro_start_network_time != 0.0 )
-				{
-				char tmp[32];
-				snprintf(tmp, 32, "%.6f", network_time);
-				s += std::string(tmp) + " ";
-				}
+				format_to(outbuf, FMT_STRING("{:.6f} "), network_time);
 
 			if ( prefix && *prefix )
 				{
 				if ( ! loc_str.empty() )
-					s += std::string(prefix) + " in " + loc_str + ": ";
+					format_to(outbuf, FMT_STRING("{:s} in {:s}: "), prefix, loc_str);
 				else
-					s += std::string(prefix) + ": ";
+					format_to(outbuf, FMT_STRING("{:s}: "), prefix);
 				}
 
-			else
-				{
-				if ( ! loc_str.empty() )
-					s += loc_str + ": ";
-				}
+			else if ( ! loc_str.empty() )
+				format_to(outbuf, FMT_STRING("{:s}: "), loc_str);
 
-			s += buffer;
-			s += "\n";
+			outbuf.push_back('\0');
 
-			if ( out )
-				fprintf(out, "%s", s.c_str());
+			fmtlib::print(out, FMT_STRING("{:s}{:s}\n"), outbuf.data(), buffer.data());
 			}
-
-		if ( alloced )
-			free(alloced);
 		}
 
 	// WeirdHelper doesn't really have to be variadic, but it calls DoLog and that's

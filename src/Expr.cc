@@ -4311,6 +4311,11 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 	id->SetConst();
 	}
 
+Scope* LambdaExpr::GetScope() const
+	{
+	return ingredients->scope.get();
+	}
+
 IntrusivePtr<Val> LambdaExpr::Eval(Frame* f) const
 	{
 	auto lamb = make_intrusive<BroFunc>(

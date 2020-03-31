@@ -1,4 +1,23 @@
 
+3.2.0-dev.332 | 2020-03-31 15:34:52 -0700
+
+  * GH-725: fix logic for finding a lambda's usage of outer IDs (Jon Siwek, Corelight)
+
+  * Change record field anonymous functions to use lambda expressions
+
+    There was an alternate syntax to assign anonymous functions to record
+    fields that was never migrated to use the new lambda expression
+    machinery (and so didn't allow referencing variables in outer scope):
+
+        type myrec: record {
+            foo: function(a: string);
+        };
+
+        local o = "o";
+        local mr = myrec($foo(a: string) = { print a + o; });
+
+    (Jon Siwek, Corelight)
+
 3.2.0-dev.329 | 2020-03-31 08:48:10 -0700
 
   * Mark input/output message classes as final, since nothing should be inheriting from them (Tim Wojtulewicz, Corelight)

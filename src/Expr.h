@@ -64,6 +64,7 @@ extern const char* expr_name(BroExprTag t);
 template <class T> class IntrusivePtr;
 class Stmt;
 class Frame;
+class Scope;
 class ListExpr;
 class NameExpr;
 class IndexExpr;
@@ -814,6 +815,8 @@ public:
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+	Scope* GetScope() const;
 
 protected:
 	void ExprDescribe(ODesc* d) const override;

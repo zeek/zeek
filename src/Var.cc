@@ -419,32 +419,25 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 class OuterIDBindingFinder : public TraversalCallback {
 public:
 	OuterIDBindingFinder(Scope* s)
-		: scope(s) { }
+		{
+		scopes.emplace_back(s);
+		}
 
 	TraversalCode PreExpr(const Expr*) override;
 	TraversalCode PostExpr(const Expr*) override;
 
-	Scope* scope;
+	std::vector<Scope*> scopes;
 	vector<const NameExpr*> outer_id_references;
-	int lambda_depth = 0;
-	// Note: think we really ought to toggle this to false to prevent
-	// considering locals within inner-lambdas as "outer", but other logic
-	// for "selective cloning" and locating IDs in the closure chain may
-	// depend on current behavior and also needs to be changed.
-	bool search_inner_lambdas = true;
 };
 
 TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
 	{
 	if ( expr->Tag() == EXPR_LAMBDA )
-		++lambda_depth;
-
-	if ( lambda_depth > 0 && ! search_inner_lambdas )
-		// Don't inspect the bodies of inner lambdas as they will have their
-		// own traversal to find outer IDs and we don't want to detect
-		// references to local IDs inside and accidentally treat them as
-		// "outer" since they can't be found in current scope.
+		{
+		auto le = static_cast<const LambdaExpr*>(expr);
+		scopes.emplace_back(le->GetScope());
 		return TC_CONTINUE;
+		}
 
 	if ( expr->Tag() != EXPR_NAME )
 		return TC_CONTINUE;
@@ -454,8 +447,11 @@ TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
 	if ( e->Id()->IsGlobal() )
 		return TC_CONTINUE;
 
-	if ( scope->Lookup(e->Id()->Name()) )
-		return TC_CONTINUE;
+	for ( const auto& scope : scopes )
+		if ( scope->Lookup(e->Id()->Name()) )
+			// Shadowing is not allowed, so if it's found at inner scope, it's
+			// not something we have to worry about also being at outer scope.
+			return TC_CONTINUE;
 
 	outer_id_references.push_back(e);
 	return TC_CONTINUE;
@@ -464,10 +460,7 @@ TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
 TraversalCode OuterIDBindingFinder::PostExpr(const Expr* expr)
 	{
 	if ( expr->Tag() == EXPR_LAMBDA )
-		{
-		--lambda_depth;
-		assert(lambda_depth >= 0);
-		}
+		scopes.pop_back();
 
 	return TC_CONTINUE;
 	}
@@ -475,16 +468,6 @@ TraversalCode OuterIDBindingFinder::PostExpr(const Expr* expr)
 void end_func(IntrusivePtr<Stmt> body)
 	{
 	auto ingredients = std::make_unique<function_ingredients>(pop_scope(), std::move(body));
-
-	if ( streq(ingredients->id->Name(), "anonymous-function") )
-		{
-		OuterIDBindingFinder cb(ingredients->scope.get());
-		ingredients->body->Traverse(&cb);
-
-		for ( size_t i = 0; i < cb.outer_id_references.size(); ++i )
-			cb.outer_id_references[i]->Error(
-						"referencing outer function IDs not supported");
-		}
 
 	if ( ingredients->id->HasVal() )
 		ingredients->id->ID_Val()->AsFunc()->AddBody(

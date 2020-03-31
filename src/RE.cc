@@ -116,10 +116,10 @@ void Specific_RE_Matcher::MakeCaseInsensitive()
 	pattern_text = s;
 	}
 
-int Specific_RE_Matcher::Compile(int lazy)
+bool Specific_RE_Matcher::Compile(bool lazy)
 	{
 	if ( ! pattern_text )
-		return 0;
+		return false;
 
 	rem = this;
 	RE_set_input(pattern_text);
@@ -132,7 +132,7 @@ int Specific_RE_Matcher::Compile(int lazy)
 		reporter->Error("error compiling pattern /%s/", pattern_text);
 		Unref(nfa);
 		nfa = 0;
-		return 0;
+		return false;
 		}
 
 	EC()->BuildECs();
@@ -140,15 +140,15 @@ int Specific_RE_Matcher::Compile(int lazy)
 
 	dfa = new DFA_Machine(nfa, EC());
 
-	Unref(nfa); 
+	Unref(nfa);
 	nfa = 0;
 
 	ecs = EC()->EquivClasses();
 
-	return 1;
+	return true;
 	}
 
-int Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx)
+bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx)
 	{
 	if ( (size_t)set.length() != idx.size() )
 		reporter->InternalError("compileset: lengths of sets differ");
@@ -173,7 +173,7 @@ int Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx)
 				Unref(nfa);
 
 			nfa = 0;
-			return 0;
+			return false;
 			}
 
 		nfa->FinalState()->SetAccept(idx[i]);
@@ -192,7 +192,7 @@ int Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx)
 	dfa = new DFA_Machine(nfa, EC());
 	ecs = EC()->EquivClasses();
 
-	return 1;
+	return true;
 	}
 
 string Specific_RE_Matcher::LookupDef(const string& def)
@@ -204,12 +204,12 @@ string Specific_RE_Matcher::LookupDef(const string& def)
 	return string();
 	}
 
-int Specific_RE_Matcher::MatchAll(const char* s)
+bool Specific_RE_Matcher::MatchAll(const char* s)
 	{
 	return MatchAll((const u_char*)(s), strlen(s));
 	}
 
-int Specific_RE_Matcher::MatchAll(const BroString* s)
+bool Specific_RE_Matcher::MatchAll(const BroString* s)
 	{
 	// s->Len() does not include '\0'.
 	return MatchAll(s->Bytes(), s->Len());
@@ -235,7 +235,7 @@ int Specific_RE_Matcher::LongestMatch(const BroString* s)
 	return LongestMatch(s->Bytes(), s->Len());
 	}
 
-int Specific_RE_Matcher::MatchAll(const u_char* bv, int n)
+bool Specific_RE_Matcher::MatchAll(const u_char* bv, int n)
 	{
 	if ( ! dfa )
 		// An empty pattern matches "all" iff what's being
@@ -480,7 +480,7 @@ void RE_Matcher::MakeCaseInsensitive()
 	re_exact->MakeCaseInsensitive();
 	}
 
-int RE_Matcher::Compile(int lazy)
+bool RE_Matcher::Compile(bool lazy)
 	{
 	return re_anywhere->Compile(lazy) && re_exact->Compile(lazy);
 	}

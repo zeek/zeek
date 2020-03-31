@@ -93,7 +93,7 @@ public:
 	MIME_Entity(MIME_Message* output_message, MIME_Entity* parent_entity);
 	virtual ~MIME_Entity();
 
-	virtual void Deliver(int len, const char* data, int trailing_CRLF);
+	virtual void Deliver(int len, const char* data, bool trailing_CRLF);
 	virtual void EndOfData();
 
 	MIME_Entity* Parent() const { return parent; }
@@ -112,25 +112,25 @@ protected:
 
 	void ParseMIMEHeader(MIME_Header* h);
 	int LookupMIMEHeaderName(data_chunk_t name);
-	int ParseContentTypeField(MIME_Header* h);
-	int ParseContentEncodingField(MIME_Header* h);
-	int ParseFieldParameters(int len, const char* data);
+	bool ParseContentTypeField(MIME_Header* h);
+	bool ParseContentEncodingField(MIME_Header* h);
+	bool ParseFieldParameters(int len, const char* data);
 
 	void ParseContentType(data_chunk_t type, data_chunk_t sub_type);
 	void ParseContentEncoding(data_chunk_t encoding_mechanism);
 
 	void BeginBody();
-	void NewDataLine(int len, const char* data, int trailing_CRLF);
+	void NewDataLine(int len, const char* data, bool trailing_CRLF);
 
 	int CheckBoundaryDelimiter(int len, const char* data);
-	void DecodeDataLine(int len, const char* data, int trailing_CRLF);
-	void DecodeBinary(int len, const char* data, int trailing_CRLF);
+	void DecodeDataLine(int len, const char* data, bool trailing_CRLF);
+	void DecodeBinary(int len, const char* data, bool trailing_CRLF);
 	void DecodeQuotedPrintable(int len, const char* data);
 	void DecodeBase64(int len, const char* data);
 	void StartDecodeBase64();
 	void FinishDecodeBase64();
 
-	int GetDataBuffer();
+	bool GetDataBuffer();
 	void DataOctet(char ch);
 	void DataOctets(int len, const char* data);
 	void FlushData();
@@ -189,7 +189,7 @@ public:
 		// not know its type yet (MIME_Entity / MIME_Mail /
 		// etc.).
 		top_level = 0;
-		finished = 0;
+		finished = false;
 		analyzer = arg_analyzer;
 		}
 
@@ -200,11 +200,11 @@ public:
 			  "missing MIME_Message::Done() call");
 		}
 
-	virtual void Done()	{ finished = 1; }
+	virtual void Done()	{ finished = true; }
 
-	int Finished() const	{ return finished; }
+	bool Finished() const	{ return finished; }
 
-	virtual void Deliver(int len, const char* data, int trailing_CRLF)
+	virtual void Deliver(int len, const char* data, bool trailing_CRLF)
 		{
 		top_level->Deliver(len, data, trailing_CRLF);
 		}
@@ -217,14 +217,14 @@ public:
 	virtual void SubmitHeader(MIME_Header* h) = 0;
 	virtual void SubmitAllHeaders(MIME_HeaderList& hlist) = 0;
 	virtual void SubmitData(int len, const char* buf) = 0;
-	virtual int RequestBuffer(int* plen, char** pbuf) = 0;
+	virtual bool RequestBuffer(int* plen, char** pbuf) = 0;
 	virtual void SubmitEvent(int event_type, const char* detail) = 0;
 
 protected:
 	analyzer::Analyzer* analyzer;
 
 	MIME_Entity* top_level;
-	int finished;
+	bool finished;
 
 	RecordVal* BuildHeaderVal(MIME_Header* h);
 	TableVal* BuildHeaderTable(MIME_HeaderList& hlist);
@@ -241,7 +241,7 @@ public:
 	void SubmitHeader(MIME_Header* h) override;
 	void SubmitAllHeaders(MIME_HeaderList& hlist) override;
 	void SubmitData(int len, const char* buf) override;
-	int RequestBuffer(int* plen, char** pbuf) override;
+	bool RequestBuffer(int* plen, char** pbuf) override;
 	void SubmitAllData();
 	void SubmitEvent(int event_type, const char* detail) override;
 	void Undelivered(int len);
@@ -265,14 +265,14 @@ protected:
 };
 
 
-extern int is_null_data_chunk(data_chunk_t b);
+extern bool is_null_data_chunk(data_chunk_t b);
 extern StringVal* new_string_val(int length, const char* data);
 extern StringVal* new_string_val(const char* data, const char* end_of_data);
 extern StringVal* new_string_val(const data_chunk_t buf);
 extern int fputs(data_chunk_t b, FILE* fp);
 extern bool istrequal(data_chunk_t s, const char* t);
-extern int is_lws(char ch);
-extern int MIME_is_field_name_char(char ch);
+extern bool is_lws(char ch);
+extern bool MIME_is_field_name_char(char ch);
 extern int MIME_count_leading_lws(int len, const char* data);
 extern int MIME_count_trailing_lws(int len, const char* data);
 extern int MIME_skip_comments(int len, const char* data);

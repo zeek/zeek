@@ -84,7 +84,7 @@ protected:
 	RuleMatcherState matcher_state;
 
 private:
-	void UpdateEndpointVal(RecordVal* endp, int is_orig);
+	void UpdateEndpointVal(RecordVal* endp, bool is_orig);
 };
 
 // Returns the counterpart type to the given type (e.g., the counterpart
@@ -92,4 +92,4 @@ private:
 extern int ICMP4_counterpart(int icmp_type, int icmp_code, bool& is_one_way);
 extern int ICMP6_counterpart(int icmp_type, int icmp_code, bool& is_one_way);
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

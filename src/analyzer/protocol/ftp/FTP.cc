@@ -111,7 +111,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 
 		if ( rule_matcher )
 			Conn()->Match(Rule::FTP, (const u_char *) cmd,
-				end_of_line - cmd, true, true, 1, true);
+				end_of_line - cmd, true, true, true, true);
 		}
 	else
 		{

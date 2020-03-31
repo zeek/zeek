@@ -331,7 +331,7 @@ protected:
 	virtual IntrusivePtr<Val> AddrFold(Val* v1, Val* v2) const;
 	virtual IntrusivePtr<Val> SubNetFold(Val* v1, Val* v2) const;
 
-	int BothConst() const	{ return op1->IsConst() && op2->IsConst(); }
+	bool BothConst() const	{ return op1->IsConst() && op2->IsConst(); }
 
 	// Exchange op1 and op2.
 	void SwapOps();
@@ -511,7 +511,7 @@ class AssignExpr : public BinaryExpr {
 public:
 	// If val is given, evaluating this expression will always yield the val
 	// yet still perform the assignment.  Used for triggers.
-	AssignExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2, int is_init,
+	AssignExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2, bool is_init,
 	           IntrusivePtr<Val> val = nullptr, attr_list* attrs = nullptr);
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
@@ -525,14 +525,14 @@ protected:
 	bool TypeCheck(attr_list* attrs = 0);
 	bool TypeCheckArithmetics(TypeTag bt1, TypeTag bt2);
 
-	int is_init;
+	bool is_init;
 	IntrusivePtr<Val> val;	// optional
 };
 
 class IndexSliceAssignExpr : public AssignExpr {
 public:
 	IndexSliceAssignExpr(IntrusivePtr<Expr> op1,
-	                     IntrusivePtr<Expr> op2, int is_init);
+	                     IntrusivePtr<Expr> op2, bool is_init);
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 };
 
@@ -744,7 +744,7 @@ public:
 	ScheduleTimer(const EventHandlerPtr& event, zeek::Args args, double t);
 	~ScheduleTimer() override;
 
-	void Dispatch(double t, int is_expire) override;
+	void Dispatch(double t, bool is_expire) override;
 
 protected:
 	EventHandlerPtr event;
@@ -879,7 +879,7 @@ protected:
 
 class RecordAssignExpr : public ListExpr {
 public:
-	RecordAssignExpr(const IntrusivePtr<Expr>& record, const IntrusivePtr<Expr>& init_list, int is_init);
+	RecordAssignExpr(const IntrusivePtr<Expr>& record, const IntrusivePtr<Expr>& init_list, bool is_init);
 };
 
 class CastExpr : public UnaryExpr {
@@ -912,7 +912,7 @@ inline Val* Expr::ExprVal() const
 
 // Decides whether to return an AssignExpr or a RecordAssignExpr.
 IntrusivePtr<Expr> get_assign_expr(IntrusivePtr<Expr> op1,
-                                   IntrusivePtr<Expr> op2, int is_init);
+                                   IntrusivePtr<Expr> op2, bool is_init);
 
 // Type-check the given expression(s) against the given type(s).  Complain
 // if the expression cannot match the given type, returning 0.  If it can
@@ -931,9 +931,9 @@ IntrusivePtr<Expr> get_assign_expr(IntrusivePtr<Expr> op1,
  */
 extern IntrusivePtr<Expr> check_and_promote_expr(Expr* e, BroType* t);
 
-extern int check_and_promote_exprs(ListExpr* elements, TypeList* types);
-extern int check_and_promote_args(ListExpr* args, RecordType* types);
-extern int check_and_promote_exprs_to_type(ListExpr* elements, BroType* type);
+extern bool check_and_promote_exprs(ListExpr* elements, TypeList* types);
+extern bool check_and_promote_args(ListExpr* args, RecordType* types);
+extern bool check_and_promote_exprs_to_type(ListExpr* elements, BroType* type);
 
 // Returns a ListExpr simplified down to a list a values, or nil
 // if they couldn't all be reduced.

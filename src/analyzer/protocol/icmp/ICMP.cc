@@ -209,7 +209,7 @@ void ICMP_Analyzer::ICMP_Sent(const struct icmp* icmpp, int len, int caplen,
 
 	if ( icmp_sent_payload )
 		{
-		BroString* payload = new BroString(data, min(len, caplen), 0);
+		BroString* payload = new BroString(data, min(len, caplen), false);
 
 		EnqueueConnEvent(icmp_sent_payload,
 			IntrusivePtr{AdoptRef{}, BuildConnVal()},
@@ -424,7 +424,7 @@ RecordVal* ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& data)
 	iprec->Assign(3, val_mgr->GetCount(frag_offset));
 	iprec->Assign(4, val_mgr->GetBool(bad_hdr_len));
 	// bad_checksum is always false since IPv6 layer doesn't have a checksum.
-	iprec->Assign(5, val_mgr->GetBool(0));
+	iprec->Assign(5, val_mgr->GetFalse());
 	iprec->Assign(6, val_mgr->GetBool(MF));
 	iprec->Assign(7, val_mgr->GetBool(DF));
 
@@ -433,7 +433,7 @@ RecordVal* ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& data)
 
 bool ICMP_Analyzer::IsReuse(double /* t */, const u_char* /* pkt */)
 	{
-	return 0;
+	return false;
 	}
 
 void ICMP_Analyzer::Describe(ODesc* d) const
@@ -460,14 +460,14 @@ void ICMP_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	RecordVal *orig_endp = conn_val->Lookup("orig")->AsRecordVal();
 	RecordVal *resp_endp = conn_val->Lookup("resp")->AsRecordVal();
 
-	UpdateEndpointVal(orig_endp, 1);
-	UpdateEndpointVal(resp_endp, 0);
+	UpdateEndpointVal(orig_endp, true);
+	UpdateEndpointVal(resp_endp, false);
 
 	// Call children's UpdateConnVal
 	Analyzer::UpdateConnVal(conn_val);
 	}
 
-void ICMP_Analyzer::UpdateEndpointVal(RecordVal* endp, int is_orig)
+void ICMP_Analyzer::UpdateEndpointVal(RecordVal* endp, bool is_orig)
 	{
 	Conn()->EnableStatusUpdateTimer();
 
@@ -512,7 +512,7 @@ void ICMP_Analyzer::Echo(double t, const struct icmp* icmpp, int len,
 	int iid = ntohs(icmpp->icmp_hun.ih_idseq.icd_id);
 	int iseq = ntohs(icmpp->icmp_hun.ih_idseq.icd_seq);
 
-	BroString* payload = new BroString(data, caplen, 0);
+	BroString* payload = new BroString(data, caplen, false);
 
 	EnqueueConnEvent(f,
 		IntrusivePtr{AdoptRef{}, BuildConnVal()},
@@ -771,7 +771,7 @@ VectorVal* ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* data)
 			{
 			if ( caplen >= length )
 				{
-				BroString* link_addr = new BroString(data, length, 0);
+				BroString* link_addr = new BroString(data, length, false);
 				rv->Assign(2, make_intrusive<StringVal>(link_addr));
 				}
 			else
@@ -841,8 +841,7 @@ VectorVal* ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* data)
 
 		if ( set_payload_field )
 			{
-			BroString* payload =
-			        new BroString(data, min((int)length, caplen), 0);
+			BroString* payload = new BroString(data, min((int)length, caplen), false);
 			rv->Assign(6, make_intrusive<StringVal>(payload));
 			}
 

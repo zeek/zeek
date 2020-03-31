@@ -312,7 +312,7 @@ void ContentLine_Analyzer::CheckNUL()
 			{
 			if ( ! suppress_weirds && Conn()->FlagEvent(NUL_IN_LINE) )
 				Conn()->Weird("NUL_in_line");
-			flag_NULs = 0;
+			flag_NULs = false;
 			}
 		}
 	}

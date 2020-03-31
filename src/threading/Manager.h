@@ -14,7 +14,7 @@ public:
 	HeartbeatTimer(double t) : Timer(t, TIMER_THREAD_HEARTBEAT) {}
 	virtual ~HeartbeatTimer() {}
 
-	void Dispatch(double t, int is_expire);
+	void Dispatch(double t, bool is_expire) override;
 
 protected:
 

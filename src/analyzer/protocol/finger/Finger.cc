@@ -75,7 +75,7 @@ void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig
 			);
 
 		Conn()->Match(Rule::FINGER, (const u_char *) line,
-			  end_of_line - line, true, true, 1, true);
+			  end_of_line - line, true, true, true, true);
 
 		did_deliver = 1;
 		}

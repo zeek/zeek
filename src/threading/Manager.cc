@@ -8,7 +8,7 @@
 
 using namespace threading;
 
-void HeartbeatTimer::Dispatch(double t, int is_expire)
+void HeartbeatTimer::Dispatch(double t, bool is_expire)
 	{
 	if ( is_expire )
 		return;

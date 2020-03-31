@@ -136,6 +136,7 @@ public:
 		}
 
 	bool empty() const noexcept { return num_entries == 0; }
+	size_t size() const noexcept { return num_entries; }
 
 	int length() const	{ return num_entries; }
 	int max() const		{ return max_entries; }

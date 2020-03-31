@@ -284,7 +284,7 @@ void* Dictionary::Lookup(const void* key, int key_size, hash_t hash) const
 	}
 
 void* Dictionary::Insert(void* key, int key_size, hash_t hash, void* val,
-				int copy_key)
+				bool copy_key)
 	{
 	if ( ! tbl )
 		Init(DEFAULT_DICT_SIZE);
@@ -524,7 +524,7 @@ void Dictionary::Init2(int size)
 	}
 
 // private
-void* Dictionary::Insert(DictEntry* new_entry, int copy_key)
+void* Dictionary::Insert(DictEntry* new_entry, bool copy_key)
 	{
 	if ( ! tbl )
 		Init(DEFAULT_DICT_SIZE);
@@ -623,13 +623,13 @@ int Dictionary::NextPrime(int n) const
 	return n;
 	}
 
-int Dictionary::IsPrime(int n) const
+bool Dictionary::IsPrime(int n) const
 	{
 	for ( int j = 3; j * j <= n; ++j )
 		if ( n % j == 0 )
-			return 0;
+			return false;
 
-	return 1;
+	return true;
 	}
 
 void Dictionary::StartChangeSize(int new_size)
@@ -669,7 +669,7 @@ void Dictionary::MoveChains()
 
 		for ( int j = 0; j < chain->length(); ++j )
 			{
-			Insert((*chain)[j], 0);
+			Insert((*chain)[j], false);
 			--num_entries;
 			--num;
 			}

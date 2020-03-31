@@ -39,6 +39,14 @@ Changed Functionality
   detected and used at configuration-time.  Use the ``--enable-rocksdb`` and
   ``--with-rocksdb=`` flags to opt-in.
 
+- At the C++ level, a large number of functions had their return
+  values and/or arguments changed to use ``bool`` types instead of
+  ``int``. This includes some virtual methods, which may cause build
+  failures in plugins that were overriding those methods. Those
+  plugins will need to be updated to match these API changes. To make
+  sure to catch changes you need to make to your plugin, double-check
+  that all virtual method implementations use "override".
+
 Removed Functionality
 ---------------------
 

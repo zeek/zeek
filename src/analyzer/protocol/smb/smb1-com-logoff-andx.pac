@@ -17,7 +17,7 @@ type SMB1_logoff_andx(header: SMB_Header, offset: uint16, is_orig: bool) = recor
 
 	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
 
-	andx_command : SMB_andx_command(header, 1, offset+offsetof(andx_command), andx.command);
+	andx_command : SMB_andx_command(header, true, offset+offsetof(andx_command), andx.command);
 } &let {
 	proc : bool = $context.connection.proc_smb1_logoff_andx(header, this);
 };

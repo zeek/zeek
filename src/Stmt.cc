@@ -83,9 +83,9 @@ bool Stmt::SetLocationInfo(const Location* start, const Location* end)
 	return true;
 	}
 
-int Stmt::IsPure() const
+bool Stmt::IsPure() const
 	{
-	return 0;
+	return false;
 	}
 
 void Stmt::Describe(ODesc* d) const
@@ -267,7 +267,7 @@ IntrusivePtr<Val> PrintStmt::DoExec(std::vector<IntrusivePtr<Val>> vals,
 	if ( f->IsRawOutput() )
 		{
 		ODesc d(DESC_READABLE);
-		d.SetFlush(0);
+		d.SetFlush(false);
 		d.SetStyle(style);
 
 		describe_vals(vals, &d, offset);
@@ -276,7 +276,7 @@ IntrusivePtr<Val> PrintStmt::DoExec(std::vector<IntrusivePtr<Val>> vals,
 	else
 		{
 		ODesc d(DESC_READABLE, f);
-		d.SetFlush(0);
+		d.SetFlush(false);
 		d.SetStyle(style);
 
 		describe_vals(vals, &d, offset);
@@ -320,7 +320,7 @@ IntrusivePtr<Val> ExprStmt::DoExec(Frame* /* f */, Val* /* v */, stmt_flow_type&
 	return nullptr;
 	}
 
-int ExprStmt::IsPure() const
+bool ExprStmt::IsPure() const
 	{
 	return ! e || e->IsPure();
 	}
@@ -396,7 +396,7 @@ IntrusivePtr<Val> IfStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 	return result;
 	}
 
-int IfStmt::IsPure() const
+bool IfStmt::IsPure() const
 	{
 	return e->IsPure() && s1->IsPure() && s2->IsPure();
 	}
@@ -718,7 +718,7 @@ SwitchStmt::~SwitchStmt()
 
 bool SwitchStmt::AddCaseLabelValueMapping(const Val* v, int idx)
 	{
-	HashKey* hk = comp_hash->ComputeHash(v, 1);
+	HashKey* hk = comp_hash->ComputeHash(v, true);
 
 	if ( ! hk )
 		{
@@ -762,7 +762,7 @@ std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const
 	// Find matching expression cases.
 	if ( case_label_value_map.Length() )
 		{
-		HashKey* hk = comp_hash->ComputeHash(v, 1);
+		HashKey* hk = comp_hash->ComputeHash(v, true);
 
 		if ( ! hk )
 			{
@@ -832,18 +832,18 @@ IntrusivePtr<Val> SwitchStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) con
 	return rval;
 	}
 
-int SwitchStmt::IsPure() const
+bool SwitchStmt::IsPure() const
 	{
 	if ( ! e->IsPure() )
-		return 0;
+		return false;
 
 	for ( const auto& c : *cases )
 		{
 		if ( ! c->ExprCases()->IsPure() || ! c->Body()->IsPure() )
-			return 0;
+			return false;
 		}
 
-	return 1;
+	return true;
 	}
 
 void SwitchStmt::Describe(ODesc* d) const
@@ -889,9 +889,9 @@ AddStmt::AddStmt(IntrusivePtr<Expr> arg_e) : ExprStmt(STMT_ADD, std::move(arg_e)
 		Error("illegal add statement");
 	}
 
-int AddStmt::IsPure() const
+bool AddStmt::IsPure() const
 	{
-	return 0;
+	return false;
 	}
 
 IntrusivePtr<Val> AddStmt::Exec(Frame* f, stmt_flow_type& flow) const
@@ -925,9 +925,9 @@ DelStmt::DelStmt(IntrusivePtr<Expr> arg_e) : ExprStmt(STMT_DELETE, std::move(arg
 		Error("illegal delete statement");
 	}
 
-int DelStmt::IsPure() const
+bool DelStmt::IsPure() const
 	{
-	return 0;
+	return false;
 	}
 
 IntrusivePtr<Val> DelStmt::Exec(Frame* f, stmt_flow_type& flow) const
@@ -993,7 +993,7 @@ WhileStmt::WhileStmt(IntrusivePtr<Expr> arg_loop_condition,
 
 WhileStmt::~WhileStmt() = default;
 
-int WhileStmt::IsPure() const
+bool WhileStmt::IsPure() const
 	{
 	return loop_condition->IsPure() && body->IsPure();
 	}
@@ -1269,7 +1269,7 @@ IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 	return ret;
 	}
 
-int ForStmt::IsPure() const
+bool ForStmt::IsPure() const
 	{
 	return e->IsPure() && body->IsPure();
 	}
@@ -1338,9 +1338,9 @@ IntrusivePtr<Val> NextStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
 	return nullptr;
 	}
 
-int NextStmt::IsPure() const
+bool NextStmt::IsPure() const
 	{
-	return 1;
+	return true;
 	}
 
 void NextStmt::Describe(ODesc* d) const
@@ -1365,9 +1365,9 @@ IntrusivePtr<Val> BreakStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
 	return nullptr;
 	}
 
-int BreakStmt::IsPure() const
+bool BreakStmt::IsPure() const
 	{
-	return 1;
+	return true;
 	}
 
 void BreakStmt::Describe(ODesc* d) const
@@ -1392,9 +1392,9 @@ IntrusivePtr<Val> FallthroughStmt::Exec(Frame* /* f */, stmt_flow_type& flow) co
 	return nullptr;
 	}
 
-int FallthroughStmt::IsPure() const
+bool FallthroughStmt::IsPure() const
 	{
-	return 1;
+	return false;
 	}
 
 void FallthroughStmt::Describe(ODesc* d) const
@@ -1521,12 +1521,12 @@ IntrusivePtr<Val> StmtList::Exec(Frame* f, stmt_flow_type& flow) const
 	return nullptr;
 	}
 
-int StmtList::IsPure() const
+bool StmtList::IsPure() const
 	{
 	for ( const auto& stmt : stmts )
 		if ( ! stmt->IsPure() )
-			return 0;
-	return 1;
+			return false;
+	return true;
 	}
 
 void StmtList::Describe(ODesc* d) const
@@ -1718,9 +1718,9 @@ IntrusivePtr<Val> NullStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
 	return nullptr;
 	}
 
-int NullStmt::IsPure() const
+bool NullStmt::IsPure() const
 	{
-	return 1;
+	return true;
 	}
 
 void NullStmt::Describe(ODesc* d) const
@@ -1780,7 +1780,7 @@ IntrusivePtr<Val> WhenStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	return nullptr;
 	}
 
-int WhenStmt::IsPure() const
+bool WhenStmt::IsPure() const
 	{
 	return cond->IsPure() && s1->IsPure() && (! s2 || s2->IsPure());
 	}

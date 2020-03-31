@@ -18,12 +18,12 @@ public:
 	~SteppingStoneEndpoint() override;
 	void Done();
 
-	int DataSent(double t, uint64_t seq, int len, int caplen, const u_char* data,
+	bool DataSent(double t, uint64_t seq, int len, int caplen, const u_char* data,
 		     const IP_Hdr* ip, const struct tcphdr* tp);
 
 protected:
 	void Event(EventHandlerPtr f, int id1, int id2 = -1);
-	void CreateEndpEvent(int is_orig);
+	void CreateEndpEvent(bool is_orig);
 
 	tcp::TCP_Endpoint* endp;
 	uint64_t stp_max_top_seq;
@@ -69,7 +69,6 @@ protected:
 // Manages ids for the possible stepping stone connections.
 class SteppingStoneManager {
 public:
-	SteppingStoneManager()		{ endp_cnt = 0; }
 
 	PQueue<SteppingStoneEndpoint>& OrderedEndpoints()
 		{ return ordered_endps; }
@@ -79,7 +78,7 @@ public:
 
 protected:
 	PQueue<SteppingStoneEndpoint> ordered_endps;
-	int endp_cnt;
+	int endp_cnt = 0;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

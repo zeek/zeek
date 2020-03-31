@@ -125,7 +125,7 @@ void ID::SetVal(IntrusivePtr<Val> v, init_class c)
 				return;
 				}
 			else
-				v->AddTo(val, 0);
+				v->AddTo(val, false);
 			}
 		else
 			{
@@ -313,7 +313,7 @@ TraversalCode ID::Traverse(TraversalCallback* cb) const
 
 void ID::Error(const char* msg, const BroObj* o2)
 	{
-	BroObj::Error(msg, o2, 1);
+	BroObj::Error(msg, o2, true);
 	SetType(error_type());
 	}
 

@@ -15,7 +15,7 @@
 
 using namespace analyzer::rpc;
 
-int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
+bool NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	{
 	if ( c->Program() != 100003 )
 		Weird("bad_RPC_program", fmt("%d", c->Program()));
@@ -108,7 +108,7 @@ int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 
 		// Return 1 so that replies to unprocessed calls will still
 		// be processed, and the return status extracted.
-		return 1;
+		return true;
 	}
 
 	if ( ! buf )
@@ -120,15 +120,15 @@ int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 		// Unref() the call arguments, and we are fine.
 		Unref(callarg);
 		callarg = 0;
-		return 0;
+		return false;
 		}
 
 	c->AddVal(callarg); // It's save to AddVal(0).
 
-	return 1;
+	return true;
 	}
 
-int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
+bool NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 			       const u_char*& buf, int& n, double start_time,
 			       double last_time, int reply_len)
 	{
@@ -255,7 +255,7 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 			event = nfs_proc_not_implemented;
 			}
 		else
-			return 0;
+			return false;
 	}
 
 	if ( rpc_success && ! buf )
@@ -264,7 +264,7 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 		// also comments in RPC_BuildCall.
 		Unref(reply);
 		reply = 0;
-		return 0;
+		return false;
 		}
 
 	// Note: if reply == 0, it won't be added to the val_list for the
@@ -291,7 +291,7 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 	else
 		Unref(reply);
 
-	return 1;
+	return true;
 	}
 
 StringVal* NFS_Interp::nfs3_file_data(const u_char*& buf, int& n, uint64_t offset, int size)
@@ -313,7 +313,7 @@ StringVal* NFS_Interp::nfs3_file_data(const u_char*& buf, int& n, uint64_t offse
 	data_n = min(data_n, int(BifConst::NFS3::return_data_max));
 
 	if ( data && data_n > 0 )
-		return new StringVal(new BroString(data, data_n, 0));
+		return new StringVal(new BroString(data, data_n, false));
 
 	return 0;
 	}
@@ -360,7 +360,7 @@ StringVal* NFS_Interp::nfs3_fh(const u_char*& buf, int& n)
 	if ( ! fh )
 		return 0;
 
-	return new StringVal(new BroString(fh, fh_n, 0));
+	return new StringVal(new BroString(fh, fh_n, false));
 	}
 
 
@@ -466,7 +466,7 @@ StringVal *NFS_Interp::nfs3_filename(const u_char*& buf, int& n)
 	if ( ! name )
 		return 0;
 
-	return new StringVal(new BroString(name, name_len, 0));
+	return new StringVal(new BroString(name, name_len, false));
 	}
 
 RecordVal *NFS_Interp::nfs3_diropargs(const u_char*& buf, int& n)

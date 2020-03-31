@@ -43,7 +43,7 @@ enum NetBIOS_Service {
 
 NetSessions* sessions;
 
-void IPTunnelTimer::Dispatch(double t, int is_expire)
+void IPTunnelTimer::Dispatch(double t, bool is_expire)
 	{
 	NetSessions::IPTunnelMap::const_iterator it =
 			sessions->ip_tunnels.find(tunnel_idx);
@@ -360,7 +360,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		const struct tcphdr* tp = (const struct tcphdr *) data;
 		id.src_port = tp->th_sport;
 		id.dst_port = tp->th_dport;
-		id.is_one_way = 0;
+		id.is_one_way = false;
 		d = &tcp_conns;
 		break;
 		}
@@ -370,7 +370,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		const struct udphdr* up = (const struct udphdr *) data;
 		id.src_port = up->uh_sport;
 		id.dst_port = up->uh_dport;
-		id.is_one_way = 0;
+		id.is_one_way = false;
 		d = &udp_conns;
 		break;
 		}
@@ -681,7 +681,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	int record_packet = 1;	// whether to record the packet at all
 	int record_content = 1;	// whether to record its data
 
-	int is_orig = (id.src_addr == conn->OrigAddr()) &&
+	bool is_orig = (id.src_addr == conn->OrigAddr()) &&
 			(id.src_port == conn->OrigPort());
 
 	conn->CheckFlowLabel(is_orig, ip_hdr->FlowLabel());
@@ -951,7 +951,7 @@ Connection* NetSessions::FindConnection(Val* v)
 	id.src_port = htons((unsigned short) orig_portv->Port());
 	id.dst_port = htons((unsigned short) resp_portv->Port());
 
-	id.is_one_way = 0;	// ### incorrect for ICMP connections
+	id.is_one_way = false;	// ### incorrect for ICMP connections
 
 	ConnIDKey key = BuildConnIDKey(id);
 	ConnectionMap* d;

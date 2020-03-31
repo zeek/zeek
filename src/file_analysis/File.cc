@@ -301,7 +301,7 @@ bool File::SetMime(const string& mime_type)
 
 	auto meta = make_intrusive<RecordVal>(fa_metadata_type);
 	meta->Assign(meta_mime_type_idx, make_intrusive<StringVal>(mime_type));
-	meta->Assign(meta_inferred_idx, val_mgr->GetBool(0));
+	meta->Assign(meta_inferred_idx, val_mgr->GetFalse());
 
 	FileEvent(file_sniff, {IntrusivePtr{NewRef{}, val}, std::move(meta)});
 	return true;
@@ -352,7 +352,7 @@ bool File::BufferBOF(const u_char* data, uint64_t len)
 
 	uint64_t desired_size = LookupFieldDefaultCount(bof_buffer_size_idx);
 
-	bof_buffer.chunks.push_back(new BroString(data, len, 0));
+	bof_buffer.chunks.push_back(new BroString(data, len, false));
 	bof_buffer.size += len;
 
 	if ( bof_buffer.size < desired_size )

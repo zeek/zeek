@@ -107,7 +107,7 @@ void BroString::Adopt(byte_vec bytes, int len)
 
 	// Check if the string ends with a NUL.  If so, mark it as having
 	// a final NUL and adjust the length accordingly.
-	final_NUL = (b[len-1] == '\0') ? 1 : 0;
+	final_NUL = (b[len-1] == '\0');
 	n = len - final_NUL;
 	}
 
@@ -289,7 +289,7 @@ BroString* BroString::GetSubstring(int start, int len) const
 	if ( len < 0 || len > n - start )
 		len = n - start;
 
-	return new BroString(&b[start], len, 1);
+	return new BroString(&b[start], len, true);
 	}
 
 int BroString::FindSubstring(const BroString* s) const

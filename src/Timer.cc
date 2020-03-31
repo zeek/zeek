@@ -139,7 +139,7 @@ void PQ_TimerMgr::Expire()
 		{
 		DBG_LOG(DBG_TM, "Dispatching timer %s (%p)",
 		        timer_type_to_string(timer->Type()), timer);
-		timer->Dispatch(t, 1);
+		timer->Dispatch(t, true);
 		--current_timers[timer->Type()];
 		delete timer;
 		}
@@ -161,7 +161,7 @@ int PQ_TimerMgr::DoAdvance(double new_t, int max_expire)
 
 		DBG_LOG(DBG_TM, "Dispatching timer %s (%p)",
 		        timer_type_to_string(timer->Type()), timer);
-		timer->Dispatch(new_t, 0);
+		timer->Dispatch(new_t, false);
 		delete timer;
 
 		timer = Top();

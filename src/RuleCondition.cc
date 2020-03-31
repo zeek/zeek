@@ -195,4 +195,3 @@ void RuleConditionEval::PrintDebug()
 	{
 	fprintf(stderr, "	RuleConditionEval: %s\n", id->Name());
 	}
-

@@ -33,27 +33,27 @@ public:
 
 	~ODesc();
 
-	int IsReadable() const		{ return type == DESC_READABLE; }
-	int IsPortable() const		{ return type == DESC_PORTABLE; }
-	int IsBinary() const		{ return type == DESC_BINARY; }
+	bool IsReadable() const		{ return type == DESC_READABLE; }
+	bool IsPortable() const		{ return type == DESC_PORTABLE; }
+	bool IsBinary() const		{ return type == DESC_BINARY; }
 
-	int IsShort() const		{ return is_short; }
-	void SetShort()			{ is_short = 1; }
-	void SetShort(int s)		{ is_short = s; }
+	bool IsShort() const		{ return is_short; }
+	void SetShort()			{ is_short = true; }
+	void SetShort(bool s)		{ is_short = s; }
 
 	// Whether we want to have quotes around strings.
-	int WantQuotes() const	{ return want_quotes; }
-	void SetQuotes(int q)	{ want_quotes = q; }
+	bool WantQuotes() const	{ return want_quotes; }
+	void SetQuotes(bool q)	{ want_quotes = q; }
 
 	// Whether we want to print statistics like access time and execution
 	// count where available.
-	int IncludeStats() const	{ return include_stats; }
-	void SetIncludeStats(int s)	{ include_stats = s; }
+	bool IncludeStats() const	{ return include_stats; }
+	void SetIncludeStats(bool s)	{ include_stats = s; }
 
 	desc_style Style() const	{ return style; }
 	void SetStyle(desc_style s)	{ style = s; }
 
-	void SetFlush(int arg_do_flush)	{ do_flush = arg_do_flush; }
+	void SetFlush(bool arg_do_flush)	{ do_flush = arg_do_flush; }
 
 	void EnableEscaping();
 	void EnableUTF8();
@@ -196,11 +196,11 @@ protected:
 	BroFile* f;	// or the file we're using.
 
 	int indent_level;
-	int is_short;
-	int want_quotes;
-	int do_flush;
-	int include_stats;
 	int indent_with_spaces;
+	bool is_short;
+	bool want_quotes;
+	bool do_flush;
+	bool include_stats;
 
 	std::set<const BroType*> encountered_types;
 };

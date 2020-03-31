@@ -265,7 +265,7 @@ public:
 	void ClearBlocks();
 	void ClearOldBlocks();
 
-	int HasBlocks() const
+	bool HasBlocks() const
 		{ return ! block_list.Empty(); }
 
 	uint64_t LastReassemSeq() const	{ return last_reassem_seq; }

@@ -648,7 +648,7 @@ protected:
 	 *
 	 * @param type The timer's type.
 	 */
-	void AddTimer(analyzer_timer_func timer, double t, int do_expire,
+	void AddTimer(analyzer_timer_func timer, double t, bool do_expire,
 			TimerType type);
 
 	/**

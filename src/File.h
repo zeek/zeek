@@ -29,7 +29,7 @@ public:
 	const char* Name() const;
 
 	// Returns false if an error occured.
-	int Write(const char* data, int len = 0);
+	bool Write(const char* data, int len = 0);
 
 	void Flush()	{ fflush(f); }
 
@@ -42,11 +42,11 @@ public:
 	// Whether the file is open in a general sense; it might
 	// not be open as a Unix file due to our management of
 	// a finite number of FDs.
-	int IsOpen() const	{ return is_open; }
+	bool IsOpen() const	{ return is_open; }
 
 	// Returns true if the close made sense, false if it was already
 	// closed, not active, or whatever.
-	int Close();
+	bool Close();
 
 	void Describe(ODesc* d) const override;
 
@@ -97,10 +97,10 @@ protected:
 	IntrusivePtr<BroType> t;
 	char* name;
 	char* access;
-	int is_open;	// whether the file is open in a general sense
 	Attributes* attrs;
-	bool buffered;
 	double open_time;
+	bool is_open;	// whether the file is open in a general sense
+	bool buffered;
 	bool raw_output;
 
 	static const int MIN_BUFFER_SIZE = 1024;

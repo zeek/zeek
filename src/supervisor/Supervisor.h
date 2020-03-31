@@ -406,7 +406,7 @@ public:
 
 protected:
 
-	void Dispatch(double t, int is_expire) override;
+	void Dispatch(double t, bool is_expire) override;
 
 	double interval;
 };

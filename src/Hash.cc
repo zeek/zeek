@@ -36,7 +36,6 @@ HashKey::HashKey(bro_int_t i)
 	key = (void*) &key_u;
 	size = sizeof(i);
 	hash = HashBytes(key, size);
-	is_our_dynamic = 0;
 	}
 
 HashKey::HashKey(bro_uint_t u)
@@ -45,7 +44,6 @@ HashKey::HashKey(bro_uint_t u)
 	key = (void*) &key_u;
 	size = sizeof(u);
 	hash = HashBytes(key, size);
-	is_our_dynamic = 0;
 	}
 
 HashKey::HashKey(uint32_t u)
@@ -54,7 +52,6 @@ HashKey::HashKey(uint32_t u)
 	key = (void*) &key_u;
 	size = sizeof(u);
 	hash = HashBytes(key, size);
-	is_our_dynamic = 0;
 	}
 
 HashKey::HashKey(const uint32_t u[], int n)
@@ -62,7 +59,6 @@ HashKey::HashKey(const uint32_t u[], int n)
 	size = n * sizeof(u[0]);
 	key = (void*) u;
 	hash = HashBytes(key, size);
-	is_our_dynamic = 0;
 	}
 
 HashKey::HashKey(double d)
@@ -76,7 +72,6 @@ HashKey::HashKey(double d)
 	key = (void*) &key_u;
 	size = sizeof(d);
 	hash = HashBytes(key, size);
-	is_our_dynamic = 0;
 	}
 
 HashKey::HashKey(const void* p)
@@ -85,7 +80,6 @@ HashKey::HashKey(const void* p)
 	key = (void*) &key_u;
 	size = sizeof(p);
 	hash = HashBytes(key, size);
-	is_our_dynamic = 0;
 	}
 
 HashKey::HashKey(const char* s)
@@ -93,7 +87,6 @@ HashKey::HashKey(const char* s)
 	size = strlen(s);	// note - skip final \0
 	key = (void*) s;
 	hash = HashBytes(key, size);
-	is_our_dynamic = 0;
 	}
 
 HashKey::HashKey(const BroString* s)
@@ -101,13 +94,12 @@ HashKey::HashKey(const BroString* s)
 	size = s->Len();
 	key = (void*) s->Bytes();
 	hash = HashBytes(key, size);
-	is_our_dynamic = 0;
 	}
 
 HashKey::HashKey(int copy_key, void* arg_key, int arg_size)
 	{
 	size = arg_size;
-	is_our_dynamic = 1;
+	is_our_dynamic = true;
 
 	if ( copy_key )
 		{
@@ -125,7 +117,7 @@ HashKey::HashKey(const void* arg_key, int arg_size, hash_t arg_hash)
 	size = arg_size;
 	hash = arg_hash;
 	key = CopyKey(arg_key, size);
-	is_our_dynamic = 1;
+	is_our_dynamic = true;
 	}
 
 HashKey::HashKey(const void* arg_key, int arg_size, hash_t arg_hash,
@@ -134,7 +126,6 @@ HashKey::HashKey(const void* arg_key, int arg_size, hash_t arg_hash,
 	size = arg_size;
 	hash = arg_hash;
 	key = const_cast<void*>(arg_key);
-	is_our_dynamic = 0;
 	}
 
 HashKey::HashKey(const void* bytes, int arg_size)
@@ -142,14 +133,14 @@ HashKey::HashKey(const void* bytes, int arg_size)
 	size = arg_size;
 	key = CopyKey(bytes, size);
 	hash = HashBytes(key, size);
-	is_our_dynamic = 1;
+	is_our_dynamic = true;
 	}
 
 void* HashKey::TakeKey()
 	{
 	if ( is_our_dynamic )
 		{
-		is_our_dynamic = 0;
+		is_our_dynamic = false;
 		return key;
 		}
 	else

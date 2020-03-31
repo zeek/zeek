@@ -155,8 +155,8 @@ public:
 	Val* Ref()			{ ::Ref(this); return this; }
 	IntrusivePtr<Val> Clone();
 
-	int IsZero() const;
-	int IsOne() const;
+	bool IsZero() const;
+	bool IsOne() const;
 
 	bro_int_t InternalInt() const;
 	bro_uint_t InternalUnsigned() const;
@@ -177,10 +177,10 @@ public:
 	// Returns true if succcessful.  is_first_init is true only if
 	// this is the *first* initialization of the value, not
 	// if it's a subsequent += initialization.
-	virtual int AddTo(Val* v, int is_first_init) const;
+	virtual bool AddTo(Val* v, bool is_first_init) const;
 
 	// Remove this value from the given value (if appropriate).
-	virtual int RemoveFrom(Val* v) const;
+	virtual bool RemoveFrom(Val* v) const;
 
 	BroType* Type()			{ return type; }
 	const BroType* Type() const	{ return type; }
@@ -478,9 +478,9 @@ public:
 	string Protocol() const;
 
 	// Tests for protocol types.
-	int IsTCP() const;
-	int IsUDP() const;
-	int IsICMP() const;
+	bool IsTCP() const;
+	bool IsUDP() const;
+	bool IsICMP() const;
 
 	TransportProto PortType() const
 		{
@@ -584,7 +584,7 @@ public:
 	explicit PatternVal(RE_Matcher* re);
 	~PatternVal() override;
 
-	int AddTo(Val* v, int is_first_init) const override;
+	bool AddTo(Val* v, bool is_first_init) const override;
 
 	void SetMatcher(RE_Matcher* re);
 
@@ -679,7 +679,7 @@ public:
 	TableValTimer(TableVal* val, double t);
 	~TableValTimer() override;
 
-	void Dispatch(double t, int is_expire) override;
+	void Dispatch(double t, bool is_expire) override;
 
 	TableVal* Table()	{ return table; }
 
@@ -701,10 +701,10 @@ public:
 	// version takes a HashKey and Unref()'s it when done. If we're a
 	// set, new_val has to be nil. If we aren't a set, index may be nil
 	// in the second version.
-	int Assign(Val* index, IntrusivePtr<Val> new_val);
-	int Assign(Val* index, Val* new_val);
-	int Assign(Val* index, HashKey* k, IntrusivePtr<Val> new_val);
-	int Assign(Val* index, HashKey* k, Val* new_val);
+	bool Assign(Val* index, IntrusivePtr<Val> new_val);
+	bool Assign(Val* index, Val* new_val);
+	bool Assign(Val* index, HashKey* k, IntrusivePtr<Val> new_val);
+	bool Assign(Val* index, HashKey* k, Val* new_val);
 
 	IntrusivePtr<Val> SizeVal() const override;
 
@@ -713,10 +713,10 @@ public:
 	// Returns true if the addition typechecked, false if not.
 	// If is_first_init is true, then this is the *first* initialization
 	// (and so should be strictly adding new elements).
-	int AddTo(Val* v, int is_first_init) const override;
+	bool AddTo(Val* v, bool is_first_init) const override;
 
 	// Same but allows suppression of state operations.
-	int AddTo(Val* v, int is_first_init, bool propagate_ops) const;
+	bool AddTo(Val* v, bool is_first_init, bool propagate_ops) const;
 
 	// Remove the entire contents.
 	void RemoveAll();
@@ -724,7 +724,7 @@ public:
 	// Remove the entire contents of the table from the given value.
 	// which must also be a TableVal.
 	// Returns true if the addition typechecked, false if not.
-	int RemoveFrom(Val* v) const override;
+	bool RemoveFrom(Val* v) const override;
 
 	// Returns a new table that is the intersection of this
 	// table and the given table.  Intersection is just done
@@ -744,7 +744,7 @@ public:
 
 	// Expands any lists in the index into multiple initializations.
 	// Returns true if the initializations typecheck, false if not.
-	int ExpandAndInit(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val);
+	bool ExpandAndInit(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val);
 
 	// Returns the element's value if it exists in the table,
 	// nil otherwise.  Note, "index" is not const because we
@@ -836,8 +836,8 @@ protected:
 	void RebuildTable(ParseTimeTableState ptts);
 
 	void CheckExpireAttr(attr_tag at);
-	int ExpandCompoundAndInit(val_list* vl, int k, IntrusivePtr<Val> new_val);
-	int CheckAndAssign(Val* index, IntrusivePtr<Val> new_val);
+	bool ExpandCompoundAndInit(val_list* vl, int k, IntrusivePtr<Val> new_val);
+	bool CheckAndAssign(Val* index, IntrusivePtr<Val> new_val);
 
 	// Calculates default value for index.  Returns 0 if none.
 	IntrusivePtr<Val> Default(Val* index);
@@ -993,7 +993,7 @@ public:
 
 	// Add this value to the given value (if appropriate).
 	// Returns true if succcessful.
-	int AddTo(Val* v, int is_first_init) const override;
+	bool AddTo(Val* v, bool is_first_init) const override;
 
 	// Returns nil if no element was at that value.
 	// Lookup does NOT grow the vector to this size.
@@ -1035,11 +1035,11 @@ protected:
 // and returns nil, also Unref()'ing v.  If is_init is true, then
 // the checking is done in the context of an initialization.
 extern IntrusivePtr<Val> check_and_promote(IntrusivePtr<Val> v,
-                                           const BroType* t, int is_init,
+                                           const BroType* t, bool is_init,
                                            const Location* expr_location = nullptr);
 
-extern int same_val(const Val* v1, const Val* v2);
-extern int same_atomic_val(const Val* v1, const Val* v2);
+extern bool same_val(const Val* v1, const Val* v2);
+extern bool same_atomic_val(const Val* v1, const Val* v2);
 extern bool is_atomic_val(const Val* v);
 extern void describe_vals(const val_list* vals, ODesc* d, int offset=0);
 extern void describe_vals(const std::vector<IntrusivePtr<Val>>& vals,

@@ -60,7 +60,7 @@ public:
 	// Can be used to skip HTTP data for performance considerations.
 	void SkipToSeq(uint64_t seq);
 
-	int DataSent(double t, uint64_t seq, int len, const u_char* data,
+	bool DataSent(double t, uint64_t seq, int len, const u_char* data,
 		     analyzer::tcp::TCP_Flags flags, bool replaying=true);
 	void AckReceived(uint64_t seq);
 
@@ -69,9 +69,9 @@ public:
 	// when so.
 	void CheckEOF();
 
-	int HasUndeliveredData() const	{ return HasBlocks(); }
-	int HadGap() const	{ return had_gap; }
-	int DataPending() const;
+	bool HasUndeliveredData() const	{ return HasBlocks(); }
+	bool HadGap() const	{ return had_gap; }
+	bool DataPending() const;
 	uint64_t DataSeq() const		{ return LastReassemSeq(); }
 
 	void DeliverBlock(uint64_t seq, int len, const u_char* data);
@@ -80,7 +80,7 @@ public:
 	TCP_Endpoint* Endpoint()		{ return endp; }
 	const TCP_Endpoint* Endpoint() const	{ return endp; }
 
-	int IsOrig() const	{ return endp->IsOrig(); }
+	bool IsOrig() const	{ return endp->IsOrig(); }
 
 	bool IsSkippedContents(uint64_t seq, int length) const
 		{ return seq + length <= seq_to_skip; }

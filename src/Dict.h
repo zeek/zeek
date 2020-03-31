@@ -42,7 +42,7 @@ public:
 	// that it's a heap pointer that now belongs to the Dictionary to
 	// manage as needed.
 	void* Insert(void* key, int key_size, hash_t hash, void* val,
-			int copy_key);
+			bool copy_key);
 
 	// Removes the given element.  Returns a pointer to the element in
 	// case it needs to be deleted.  Returns 0 if no such element exists.
@@ -125,13 +125,13 @@ private:
 	void DeInit();
 
 	// Internal version of Insert().
-	void* Insert(DictEntry* entry, int copy_key);
+	void* Insert(DictEntry* entry, bool copy_key);
 
 	void* DoRemove(DictEntry* entry, hash_t h,
 			PList<DictEntry>* chain, int chain_offset);
 
 	int NextPrime(int n) const;
-	int IsPrime(int n) const;
+	bool IsPrime(int n) const;
 	void StartChangeSize(int new_size);
 	void FinishChangeSize();
 	void MoveChains();

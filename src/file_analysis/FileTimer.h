@@ -30,7 +30,7 @@ public:
 	 * @param t current unix time
 	 * @param is_expire true if all pending timers are being expired.
 	 */
-	void Dispatch(double t, int is_expire) override;
+	void Dispatch(double t, bool is_expire) override;
 
 private:
 	string file_id;

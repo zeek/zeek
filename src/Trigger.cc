@@ -98,7 +98,7 @@ public:
 	~TriggerTimer()
 		{ Unref(trigger); }
 
-	void Dispatch(double t, int is_expire)
+	void Dispatch(double t, bool is_expire) override
 		{
 		// The network_time may still have been zero when the
 		// timer was instantiated.  In this case, it fires

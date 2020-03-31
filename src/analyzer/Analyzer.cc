@@ -19,7 +19,7 @@ public:
 
 	virtual ~AnalyzerTimer();
 
-	void Dispatch(double t, int is_expire);
+	void Dispatch(double t, bool is_expire) override;
 
 protected:
 	AnalyzerTimer() : analyzer(), timer(), do_expire()	{}
@@ -48,7 +48,7 @@ AnalyzerTimer::~AnalyzerTimer()
 	Unref(analyzer->Conn());
 	}
 
-void AnalyzerTimer::Dispatch(double t, int is_expire)
+void AnalyzerTimer::Dispatch(double t, bool is_expire)
 	{
 	if ( is_expire && ! do_expire )
 		return;
@@ -725,7 +725,7 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 	}
 
 void Analyzer::AddTimer(analyzer_timer_func timer, double t,
-			int do_expire, TimerType type)
+			bool do_expire, TimerType type)
 	{
 	Timer* analyzer_timer = new
 		AnalyzerTimer(this, timer, t, do_expire, type);
@@ -752,7 +752,7 @@ void Analyzer::CancelTimers()
 	for ( auto timer : tmp )
 		timer_mgr->Cancel(timer);
 
-	timers_canceled = 1;
+	timers_canceled = true;
 	timers.clear();
 	}
 
@@ -929,7 +929,7 @@ void TransportLayerAnalyzer::PacketContents(const u_char* data, int len)
 	{
 	if ( packet_contents && len > 0 )
 		{
-		BroString* cbs = new BroString(data, len, 1);
+		BroString* cbs = new BroString(data, len, true);
 		Val* contents = new StringVal(cbs);
 		Event(packet_contents, contents);
 		}

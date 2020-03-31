@@ -36,9 +36,7 @@ void Event::Describe(ODesc* d) const
 	if ( d->IsReadable() )
 		d->AddSP("event");
 
-	int s = d->IsShort();
-	d->SetShort();
-//	handler->Describe(d);
+	bool s = d->IsShort();
 	d->SetShort(s);
 
 	if ( ! d->IsBinary() )
@@ -80,7 +78,7 @@ EventMgr::EventMgr()
 	current_src = SOURCE_LOCAL;
 	current_aid = 0;
 	src_val = 0;
-	draining = 0;
+	draining = false;
 	}
 
 EventMgr::~EventMgr()

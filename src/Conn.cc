@@ -39,7 +39,7 @@ ConnectionTimer::~ConnectionTimer()
 	Unref(conn);
 	}
 
-void ConnectionTimer::Dispatch(double t, int is_expire)
+void ConnectionTimer::Dispatch(double t, bool is_expire)
 	{
 	if ( is_expire && ! do_expire )
 		return;
@@ -177,7 +177,7 @@ void Connection::Done()
 		root_analyzer->Done();
 	}
 
-void Connection::NextPacket(double t, int is_orig,
+void Connection::NextPacket(double t, bool is_orig,
 			const IP_Hdr* ip, int len, int caplen,
 			const u_char*& data,
 			int& record_packet, int& record_content,

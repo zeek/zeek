@@ -87,12 +87,12 @@ BroFile::BroFile(const char* arg_name, const char* arg_access)
 		f = stderr;
 
 	if ( f )
-		is_open = 1;
+		is_open = true;
 
 	else if ( ! Open() )
 		{
 		reporter->Error("cannot open %s: %s", name, strerror(errno));
-		is_open = 0;
+		is_open = false;
 		}
 	}
 
@@ -139,11 +139,11 @@ bool BroFile::Open(FILE* file, const char* mode)
 
 	if ( ! f )
 		{
-		is_open = 0;
+		is_open = false;
 		return false;
 		}
 
-	is_open = 1;
+	is_open = true;
 	open_files.emplace_back(std::make_pair(name, this));
 
 	RaiseOpenEvent();
@@ -166,7 +166,8 @@ BroFile::~BroFile()
 
 void BroFile::Init()
 	{
-	open_time = is_open = 0;
+	open_time = 0;
+	is_open = false;
 	attrs = 0;
 	buffered = true;
 	raw_output = false;
@@ -203,25 +204,26 @@ void BroFile::SetBuf(bool arg_buffered)
 	buffered = arg_buffered;
 	}
 
-int BroFile::Close()
+bool BroFile::Close()
 	{
 	if ( ! is_open )
-		return 1;
+		return true;
 
 	// Do not close stdin/stdout/stderr.
 	if ( f == stdin || f == stdout || f == stderr )
-		return 0;
+		return false;
 
 	if ( ! f )
-		return 0;
+		return false;
 
 	fclose(f);
 	f = nullptr;
-	open_time = is_open = 0;
+	open_time = 0;
+	is_open = false;
 
 	Unlink();
 
-	return 1;
+	return true;
 	}
 
 void BroFile::Unlink()
@@ -305,10 +307,10 @@ void BroFile::CloseOpenFiles()
 		}
 	}
 
-int BroFile::Write(const char* data, int len)
+bool BroFile::Write(const char* data, int len)
 	{
 	if ( ! is_open )
-		return 0;
+		return false;
 
 	if ( ! len )
 		len = strlen(data);
@@ -355,4 +357,3 @@ BroFile* BroFile::GetFile(const char* name)
 
 	return new BroFile(name, "w");
 	}
-

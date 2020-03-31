@@ -174,7 +174,7 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 
 			BroString* sys_type_s =
 				new BroString((const u_char*) sys_type,
-						sys_end - sys_type + 1, 1);
+						sys_end - sys_type + 1, true);
 
 			line = skip_whitespace(colon + 1, end_of_line);
 

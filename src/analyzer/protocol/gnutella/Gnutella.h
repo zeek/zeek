@@ -45,12 +45,12 @@ public:
 		{ return new Gnutella_Analyzer(conn); }
 
 private:
-	int NextLine(const u_char* data, int len);
+	bool NextLine(const u_char* data, int len);
 
-	int GnutellaOK(string header);
-	int IsHTTP(string header);
+	bool GnutellaOK(string header);
+	bool IsHTTP(string header);
 
-	int Established() const	{ return state == (ORIG_OK | RESP_OK); }
+	bool Established() const	{ return state == (ORIG_OK | RESP_OK); }
 
 	void DeliverLines(int len, const u_char* data, bool orig);
 
@@ -68,4 +68,4 @@ private:
 	GnutellaMsgState* ms;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

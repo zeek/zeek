@@ -758,8 +758,8 @@ RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer,
 		// Evaluate all rules on this node which don't contain
 		// any patterns.
 		for ( Rule* r = hdr_test->pure_rules; r; r = r->next )
-			if ( EvalRuleConditions(r, state, 0, 0, 0) )
-				ExecRuleActions(r, state, 0, 0, 0);
+			if ( EvalRuleConditions(r, state, 0, 0, false) )
+				ExecRuleActions(r, state, 0, 0, false);
 
 		// If we're on or above the RE_level, we may have some
 		// pattern matching to do.
@@ -953,17 +953,17 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 			if ( ! state->matched_by_patterns.is_member(r) )
 				{
 				state->matched_by_patterns.push_back(r);
-				BroString* s = new BroString(data, data_len, 0);
+				BroString* s = new BroString(data, data_len, false);
 				state->matched_text.push_back(s);
 				}
 
 			DBG_LOG(DBG_RULES, "And has not already fired");
 			// Eval additional conditions.
-			if ( ! EvalRuleConditions(r, state, data, data_len, 0) )
+			if ( ! EvalRuleConditions(r, state, data, data_len, false) )
 				continue;
 
 			// Found a match.
-			ExecRuleActions(r, state, data, data_len, 0);
+			ExecRuleActions(r, state, data, data_len, false);
 			}
 		}
 	}
@@ -977,11 +977,11 @@ void RuleMatcher::FinishEndpoint(RuleEndpointState* state)
 	// although they have not matched at the beginning. So, we have
 	// to test the candidates here.
 
-	ExecPureRules(state, 1);
+	ExecPureRules(state, true);
 
 	loop_over_list(state->matched_by_patterns, i)
 		ExecRulePurely(state->matched_by_patterns[i],
-				state->matched_text[i], state, 1);
+				state->matched_text[i], state, true);
 	}
 
 void RuleMatcher::ExecPureRules(RuleEndpointState* state, bool eos)
@@ -1115,7 +1115,7 @@ void RuleMatcher::ExecRule(Rule* rule, RuleEndpointState* state, bool eos)
 
 void RuleMatcher::ClearEndpointState(RuleEndpointState* state)
 	{
-	ExecPureRules(state, 1);
+	ExecPureRules(state, true);
 
 	state->payload_size = -1;
 

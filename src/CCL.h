@@ -15,7 +15,7 @@ public:
 
 	void Add(int sym);
 	void Negate();
-	int IsNegated()		{ return negated; }
+	bool IsNegated()		{ return negated != 0; }
 	int Index()		{ return index; }
 
 	void Sort();

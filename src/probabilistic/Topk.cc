@@ -34,7 +34,7 @@ void TopkVal::Typify(BroType* t)
 
 HashKey* TopkVal::GetHash(Val* v) const
 	{
-	HashKey* key = hash->ComputeHash(v, 1);
+	HashKey* key = hash->ComputeHash(v, true);
 	assert(key);
 	return key;
 	}

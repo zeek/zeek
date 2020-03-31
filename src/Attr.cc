@@ -104,7 +104,7 @@ void Attr::DescribeReST(ODesc* d, bool shorten) const
 		else if ( expr->Tag() == EXPR_CONST )
 			{
 			ODesc dd;
-			dd.SetQuotes(1);
+			dd.SetQuotes(true);
 			expr->Describe(&dd);
 			string s = dd.Description();
 			add_long_expr_string(d, s, shorten);
@@ -260,7 +260,7 @@ void Attributes::CheckAttr(Attr* a)
 	case ATTR_ADD_FUNC:
 	case ATTR_DEL_FUNC:
 		{
-		int is_add = a->Tag() == ATTR_ADD_FUNC;
+		bool is_add = a->Tag() == ATTR_ADD_FUNC;
 
 		BroType* at = a->AttrExpr()->Type();
 		if ( at->Tag() != TYPE_FUNC )
@@ -635,4 +635,3 @@ bool Attributes::operator==(const Attributes& other) const
 
 	return true;
 	}
-

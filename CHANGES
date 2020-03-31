@@ -1,4 +1,10 @@
 
+3.2.0-dev.322 | 2020-03-31 06:44:57 +0000
+
+  * A large number of functions had return values and/or arguments
+    changed to use ``bool`` types instead of ``int``. (Tim
+    Wojtulewicz, Corelight)
+
 3.2.0-dev.320 | 2020-03-30 14:09:23 -0700
 
   * GH-887: improve GRE/ERSPAN parsing of non-IPv4/IPv6 inner payload

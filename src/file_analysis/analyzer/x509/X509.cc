@@ -290,7 +290,7 @@ void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex)
 		if ( x509_ext_basic_constraints )
 			{
 			auto pBasicConstraint = make_intrusive<RecordVal>(BifType::Record::X509::BasicConstraints);
-			pBasicConstraint->Assign(0, val_mgr->GetBool(constr->ca ? 1 : 0));
+			pBasicConstraint->Assign(0, val_mgr->GetBool(constr->ca));
 
 			if ( constr->pathlen )
 				pBasicConstraint->Assign(1, val_mgr->GetCount((int32_t) ASN1_INTEGER_get(constr->pathlen)));
@@ -344,7 +344,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 	VectorVal* uris = 0;
 	VectorVal* ips = 0;
 
-	unsigned int otherfields = 0;
+	bool otherfields = false;
 
 	for ( int i = 0; i < sk_GENERAL_NAME_num(altname); i++ )
 		{
@@ -415,7 +415,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 			{
 			// reporter->Error("Subject alternative name contained unsupported fields. fuid %s", GetFile()->GetID().c_str());
 			// This happens quite often - just mark it
-			otherfields = 1;
+			otherfields = true;
 			continue;
 			}
 		}

@@ -409,12 +409,12 @@ void DNP3_TCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	try
 		{
 		if ( ! ProcessData(len, data, orig) )
-			SetSkip(1);
+			SetSkip(true);
 		}
 
 	catch ( const binpac::Exception& e )
 		{
-		SetSkip(1);
+		SetSkip(true);
 		throw;
 		}
 	}
@@ -447,13 +447,12 @@ void DNP3_UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, ui
 	try
 		{
 		if ( ! ProcessData(len, data, orig) )
-			SetSkip(1);
+			SetSkip(true);
 		}
 
 	catch ( const binpac::Exception& e )
 		{
-		SetSkip(1);
+		SetSkip(true);
 		throw;
 		}
 	}
-

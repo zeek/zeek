@@ -106,7 +106,7 @@ Val* BuildEndUserAddr(const InformationElement* ie)
 			break;
 		default:
 			ev->Assign(3, make_intrusive<StringVal>(
-			  new BroString((const u_char*) d, len, 0)));
+			  new BroString((const u_char*) d, len, false)));
 			break;
 		}
 		}
@@ -117,7 +117,7 @@ Val* BuildEndUserAddr(const InformationElement* ie)
 Val* BuildAccessPointName(const InformationElement* ie)
 	{
 	BroString* bs = new BroString((const u_char*) ie->ap_name()->value().data(),
-	                              ie->ap_name()->value().length(), 0);
+	                              ie->ap_name()->value().length(), false);
 	return new StringVal(bs);
 	}
 
@@ -125,7 +125,7 @@ Val* BuildProtoConfigOptions(const InformationElement* ie)
 	{
 	const u_char* d = (const u_char*) ie->proto_config_opts()->value().data();
 	int len = ie->proto_config_opts()->value().length();
-	return new StringVal(new BroString(d, len, 0));
+	return new StringVal(new BroString(d, len, false));
 	}
 
 Val* BuildGSN_Addr(const InformationElement* ie)
@@ -142,7 +142,7 @@ Val* BuildGSN_Addr(const InformationElement* ie)
 		ev->Assign(0, make_intrusive<AddrVal>(
 		  IPAddr(IPv6, (const uint32*) d, IPAddr::Network)));
 	else
-		ev->Assign(1, make_intrusive<StringVal>(new BroString((const u_char*) d, len, 0)));
+		ev->Assign(1, make_intrusive<StringVal>(new BroString((const u_char*) d, len, false)));
 
 	return ev;
 	}
@@ -151,7 +151,7 @@ Val* BuildMSISDN(const InformationElement* ie)
 	{
 	const u_char* d = (const u_char*) ie->msisdn()->value().data();
 	int len = ie->msisdn()->value().length();
-	return new StringVal(new BroString(d, len, 0));
+	return new StringVal(new BroString(d, len, false));
 	}
 
 Val* BuildQoS_Profile(const InformationElement* ie)
@@ -162,7 +162,7 @@ Val* BuildQoS_Profile(const InformationElement* ie)
 	int len = ie->qos_profile()->data().length();
 
 	ev->Assign(0, val_mgr->GetCount(ie->qos_profile()->alloc_retention_priority()));
-	ev->Assign(1, make_intrusive<StringVal>(new BroString(d, len, 0)));
+	ev->Assign(1, make_intrusive<StringVal>(new BroString(d, len, false)));
 
 	return ev;
 	}
@@ -171,21 +171,21 @@ Val* BuildTrafficFlowTemplate(const InformationElement* ie)
 	{
 	const uint8* d = ie->traffic_flow_template()->value().data();
 	int len = ie->traffic_flow_template()->value().length();
-	return new StringVal(new BroString((const u_char*) d, len, 0));
+	return new StringVal(new BroString((const u_char*) d, len, false));
 	}
 
 Val* BuildTriggerID(const InformationElement* ie)
 	{
 	const uint8* d = ie->trigger_id()->value().data();
 	int len = ie->trigger_id()->value().length();
-	return new StringVal(new BroString((const u_char*) d, len, 0));
+	return new StringVal(new BroString((const u_char*) d, len, false));
 	}
 
 Val* BuildOMC_ID(const InformationElement* ie)
 	{
 	const uint8* d = ie->omc_id()->value().data();
 	int len = ie->omc_id()->value().length();
-	return new StringVal(new BroString((const u_char*) d, len, 0));
+	return new StringVal(new BroString((const u_char*) d, len, false));
 	}
 
 Val* BuildPrivateExt(const InformationElement* ie)
@@ -196,7 +196,7 @@ Val* BuildPrivateExt(const InformationElement* ie)
 	int len = ie->private_ext()->value().length();
 
 	ev->Assign(0, val_mgr->GetCount(ie->private_ext()->id()));
-	ev->Assign(1, make_intrusive<StringVal>(new BroString((const u_char*) d, len, 0)));
+	ev->Assign(1, make_intrusive<StringVal>(new BroString((const u_char*) d, len, false)));
 
 	return ev;
 	}
@@ -771,4 +771,3 @@ flow GTPv1_Flow(is_orig: bool)
 	};
 
 refine typeattr GTPv1_Header += &let { proc_gtpv1 = $context.flow.process_gtpv1(this); };
-

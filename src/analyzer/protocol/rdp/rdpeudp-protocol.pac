@@ -52,6 +52,13 @@ enum RDPUDP_FLAG {
 };
 
 type RDPEUDP_ACK(pdu: RDPEUDP_PDU, is_orig: bool) = record {
+	version: case ($context.connection.get_version()) of {
+		true ->	version2:	RDPEUDP2_ACK(pdu, is_orig);
+		false -> version1:	RDPEUDP1_ACK(pdu, is_orig);
+	};
+};
+
+type RDPEUDP1_ACK(pdu: RDPEUDP_PDU, is_orig: bool) = record {
 	fec_header:		RDPUDP_FEC_HEADER;
 	ack_vec_header:		RDPUDP_ACK_VECTOR_HEADER;
 	ack_of_ackvec_header:	case fec_header.uFlags & RDPUDP_FLAG_ACK_OF_ACKS of {
@@ -65,7 +72,7 @@ type RDPEUDP_ACK(pdu: RDPEUDP_PDU, is_orig: bool) = record {
 	};
 	data:		bytestring &restofdata;
 } &let {
-	proc_rdpeudp_ack: bool = $context.connection.proc_rdpeudp_ack(is_orig, data);
+	proc_rdpeudp1_ack: bool = $context.connection.proc_rdpeudp1_ack(is_orig, data);
 };
 
 type RDPUDP_SOURCE_PAYLOAD_HEADER = record {
@@ -87,4 +94,102 @@ type RDPUDP_ACK_VECTOR_HEADER = record {
 	uAckVectorSize:		uint16;
 	AckVectorElement:	uint8[uAckVectorSize];
 	pad:			padding align 4;
+};
+
+
+
+# version 2
+type RDPEUDP2_ACK(pdu: RDPEUDP_PDU, is_orig: bool) = record {
+	header:			RDPUDP2_PACKET_HEADER;
+	ack_payload:		case (header.Flags % 2) of {
+		0 -> none:	empty;
+		1 -> some:	RDPUDP2_ACK_PAYLOAD;
+	};
+	oversize_payload:	case ((header.Flags & OVERHEADSIZE) > 0) of {
+		true -> has_oversize:		RDPUDP2_OVERSIZE_PAYLOAD;
+		false -> has_no_oversize:	empty;
+	};
+	delay_ack_info_payload:	RDPUDP2_DELAYACKINFO_PAYLOAD;
+	ack_of_acks_payload:	RDPUDP2_ACKOFACKS_PAYLOAD;
+	data_header_payload:	RDPUDP2_DATAHEADER_PAYLOAD;
+	ack_vector_payload:	case ((header.Flags & AOA) > 0) of {
+		true -> has_aoa:		RDPUDP2_ACKVECTOR_PAYLOAD;
+		false -> has_no_aoa:		empty;
+	};
+	data_body_payload:	RDPUDP2_DATABODY_PAYLOAD;
+} &let {
+	proc_rdpeudp2_ack: bool = $context.connection.proc_rdpeudp2_ack(is_orig, data_body_payload.Data);
+};
+
+type RDPUDP2_PACKET_HEADER = record {
+	# flags are 12 bits, A is 4 bits
+	everything:	uint16;	
+} &let {
+	# Flags should be some combination of RDPUDP2_PACKET_HEADER_FLAGS
+	Flags:		uint16 = everything & 0xfff0;   # The high 12
+	LogWindowSize:	uint8 = everything &  0x000f;   # The low 4
+};
+
+enum RDPUDP2_PACKET_HEADER_FLAGS {
+	ACK		= 0x001,
+	DATA		= 0x004,
+	ACKVEC		= 0x008,
+	AOA		= 0x010,
+	OVERHEADSIZE	= 0x040,
+	DELAYACKINFO	= 0x100
+};
+
+type RDPUDP2_ACK_PAYLOAD = record {
+	SeqNum:			uint16;
+	tmp1:			uint32;
+	tmp2:			uint8;
+	delayAckTimeAdditions:	uint8[numDelayedAcks];
+} &let {
+	receivedTS:		uint8 = tmp1 & 0xffffff00;
+	sendAckTimeGap:		uint8 = tmp1 & 0xff;
+	numDelayedAcks: 	uint8 = tmp2 & 0xf0;   # top 4 bits
+	delayAckTimeScale: 	uint8 = tmp2 & 0x0f;   # bottom 4 bits
+};
+
+type RDPUDP2_OVERSIZE_PAYLOAD = record{
+	OverheadSize:	uint8;
+};
+
+type RDPUDP2_DATABODY_PAYLOAD = record {
+	ChannelSeqNum:	uint16;
+	Data:		bytestring &restofdata;
+};
+
+type RDPUDP2_ACKVECTOR_PAYLOAD = record {
+	BaseSeqNum:		uint16;
+	tmp1:			uint8;
+	TimeStamp_or_not:	case TimeStampPresent of {
+		0 -> none: 		empty;
+		default -> some:	RDPUDP2_ACKVECTOR_PAYLOAD_TimeStamp;
+	} &requires(TimeStampPresent);
+	codedAckVector:		uint8[codedAckVecSize];
+} &let {
+	codedAckVecSize:	uint8 = tmp1 & 0xfe;
+	TimeStampPresent:	uint8 = tmp1 & 0x01;
+};
+
+type RDPUDP2_ACKVECTOR_PAYLOAD_TimeStamp = record {
+	tmp1: uint8;
+	tmp2: uint8;
+	tmp3: uint8;
+} &let {
+	TimeStamp: uint32 = tmp3 | (tmp2 << 8) | (tmp1 << 16);
+};
+
+type RDPUDP2_DATAHEADER_PAYLOAD = record {
+	DataSeqNum:	uint16;
+};
+
+type RDPUDP2_ACKOFACKS_PAYLOAD = record {
+	AckOfAcksSeqNum:	uint16;
+};
+
+type RDPUDP2_DELAYACKINFO_PAYLOAD = record {
+	MaxDelayedAcks:		uint8;
+	DelayedAckTimeoutInMs:	uint16;
 };

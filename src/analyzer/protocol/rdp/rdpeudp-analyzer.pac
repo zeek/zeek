@@ -15,6 +15,11 @@ refine connection RDPEUDP_Conn += {
 		return state_;
 	%}
 
+	function get_version(): bool
+	%{
+		return (client_rdpeudp2_ && server_rdpeudp2_);
+	%}
+
         function proc_rdpeudp_syn(is_orig: bool, uFlags: uint16, snSourceAck: uint32): bool
 	%{
 		if (!is_orig) {
@@ -29,7 +34,9 @@ refine connection RDPEUDP_Conn += {
 		if (uFlags >= 0x1000) {
 			client_rdpeudp2_ = true;
 		}
-                BifEvent::generate_rdpeudp_syn(bro_analyzer(), bro_analyzer()->Conn());
+		if (rdpeudp_syn) {
+	                BifEvent::generate_rdpeudp_syn(bro_analyzer(), bro_analyzer()->Conn());
+		}
 		state_ = NEED_SYNACK;
                 return true;
 	%}
@@ -43,7 +50,9 @@ refine connection RDPEUDP_Conn += {
 		if ((uFlags & 0x05) == 0) {
 			return false;
 		}
-                BifEvent::generate_rdpeudp_synack(bro_analyzer(), bro_analyzer()->Conn());
+		if (rdpeudp_synack) {
+	                BifEvent::generate_rdpeudp_synack(bro_analyzer(), bro_analyzer()->Conn());
+		}
 		bro_analyzer()->ProtocolConfirmation();
 		state_ = NEED_ACK;
 		if (uFlags >= 0x1000) {
@@ -52,16 +61,40 @@ refine connection RDPEUDP_Conn += {
                 return true;
 	%}
 
-        function proc_rdpeudp_ack(is_orig: bool, data: bytestring): bool
+        function proc_rdpeudp1_ack(is_orig: bool, data: bytestring): bool
 	%{
-        	BifEvent::generate_rdpeudp_established(bro_analyzer(), bro_analyzer()->Conn());
-		state_ = ESTABLISHED;
-		if ( rdpeudp_data )
+		if (state_ == NEED_ACK) {
+			state_ = ESTABLISHED;
+			if (rdpeudp_established) {
+		        	BifEvent::generate_rdpeudp_established(bro_analyzer(), bro_analyzer()->Conn(), 1);
+			}
+		}
+		if ( state_ == ESTABLISHED && rdpeudp_data )
 			BifEvent::generate_rdpeudp_data(bro_analyzer(),
 							bro_analyzer()->Conn(),
 							is_orig,
+							1,
 							new StringVal(data.length(), (const char*) data.data())
 			);
                 return true;
 	%}
+
+        function proc_rdpeudp2_ack(is_orig: bool, data: bytestring): bool
+	%{
+		if (state_ == NEED_ACK) {
+			if (rdpeudp_established) {
+		        	BifEvent::generate_rdpeudp_established(bro_analyzer(), bro_analyzer()->Conn(), 2);
+			}
+			state_ = ESTABLISHED;
+		}
+		if ( state_ == ESTABLISHED && rdpeudp_data )
+			BifEvent::generate_rdpeudp_data(bro_analyzer(),
+							bro_analyzer()->Conn(),
+							is_orig,
+							2,
+							new StringVal(data.length(), (const char*) data.data())
+			);
+                return true;
+	%}
+
 };

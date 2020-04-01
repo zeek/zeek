@@ -44,6 +44,9 @@ public:
 	// True if the statement has no side effects, false otherwise.
 	virtual bool IsPure() const;
 
+	// True if the statement is in reduced form.
+	virtual bool IsReduced() const;
+
 #undef ACCESSOR
 #define ACCESSOR(tag, ctype, name) \
         ctype* name() \
@@ -123,6 +126,8 @@ protected:
 	virtual IntrusivePtr<Val> DoExec(std::vector<IntrusivePtr<Val>> vals,
 	                                 stmt_flow_type& flow) const = 0;
 
+	bool IsReduced() const override;
+
 	void Describe(ODesc* d) const override;
 
 	IntrusivePtr<ListExpr> l;
@@ -157,6 +162,7 @@ protected:
 	virtual IntrusivePtr<Val> DoExec(Frame* f, Val* v, stmt_flow_type& flow) const;
 
 	bool IsPure() const override;
+	bool IsReduced() const override;
 
 	IntrusivePtr<Expr> e;
 };
@@ -176,6 +182,7 @@ public:
 protected:
 	IntrusivePtr<Val> DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
 	bool IsPure() const override;
+	bool IsReduced() const override;
 
 	IntrusivePtr<Stmt> s1;
 	IntrusivePtr<Stmt> s2;
@@ -221,6 +228,7 @@ public:
 protected:
 	IntrusivePtr<Val> DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
 	bool IsPure() const override;
+	bool IsReduced() const override;
 
 	// Initialize composite hash and case label map.
 	void Init();
@@ -287,6 +295,7 @@ public:
 	~WhileStmt() override;
 
 	bool IsPure() const override;
+	bool IsReduced() const override;
 
 	const Expr* Condition() const	{ return loop_condition.get(); }
 	const Stmt* Body() const	{ return body.get(); }
@@ -317,6 +326,7 @@ public:
 	const Stmt* LoopBody() const	{ return body.get(); }
 
 	bool IsPure() const override;
+	bool IsReduced() const override;
 
 	void Describe(ODesc* d) const override;
 
@@ -399,6 +409,7 @@ public:
 
 protected:
 	bool IsPure() const override;
+	bool IsReduced() const override;
 
 	stmt_list stmts;
 };
@@ -460,6 +471,7 @@ public:
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 	bool IsPure() const override;
+	bool IsReduced() const override;
 
 	const Expr* Cond() const	{ return cond.get(); }
 	const Stmt* Body() const	{ return s1.get(); }

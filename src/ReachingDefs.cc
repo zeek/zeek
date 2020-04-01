@@ -3,9 +3,9 @@
 #include "ReachingDefs.h"
 
 
-ReachingDefs* ReachingDefs::Intersect(const ReachingDefs* r) const
+RD_ptr ReachingDefs::Intersect(const RD_ptr r) const
 	{
-	ReachingDefs* res = new ReachingDefs;
+	RD_ptr res = make_new_RD_ptr();
 
 	auto i = rd_map.begin();
 	while ( i != rd_map.end() )
@@ -19,9 +19,9 @@ ReachingDefs* ReachingDefs::Intersect(const ReachingDefs* r) const
 	return res;
 	}
 
-ReachingDefs* ReachingDefs::Union(const ReachingDefs* r) const
+RD_ptr ReachingDefs::Union(const RD_ptr r) const
 	{
-	ReachingDefs* res = new ReachingDefs;
+	auto res = make_new_RD_ptr();
 
 	auto i = rd_map.begin();
 	while ( i != rd_map.end() )

@@ -364,8 +364,8 @@ function setenv%(var: string, val: string%): bool
 	                    val->AsString()->CheckString(), 1);
 
 	if ( result < 0 )
-		return val_mgr->GetBool(0);
-	return val_mgr->GetBool(1);
+		return val_mgr->GetFalse();
+	return val_mgr->GetTrue();
 	%}
 
 ## Shuts down the Zeek process immediately.
@@ -388,10 +388,10 @@ function exit%(code: int%): any
 function terminate%(%): bool
 	%{
 	if ( terminating )
-		return val_mgr->GetBool(0);
+		return val_mgr->GetFalse();
 
 	terminate_processing();
-	return val_mgr->GetBool(1);
+	return val_mgr->GetTrue();
 	%}
 
 %%{
@@ -520,7 +520,7 @@ function piped_exec%(program: string, to_write: string%): bool
 	if ( ! f )
 		{
 		reporter->Error("Failed to popen %s", prog);
-		return val_mgr->GetBool(0);
+		return val_mgr->GetFalse();
 		}
 
 	const u_char* input_data = to_write->Bytes();
@@ -533,10 +533,10 @@ function piped_exec%(program: string, to_write: string%): bool
 	if ( bytes_written != input_data_len )
 		{
 		reporter->Error("Failed to write all given data to %s", prog);
-		return val_mgr->GetBool(0);
+		return val_mgr->GetFalse();
 		}
 
-	return val_mgr->GetBool(1);
+	return val_mgr->GetTrue();
 	%}
 
 %%{
@@ -2047,7 +2047,7 @@ function do_profiling%(%) : any
 function is_local_interface%(ip: addr%) : bool
 	%{
 	if ( ip->AsAddr().IsLoopback() )
-		return val_mgr->GetBool(1);
+		return val_mgr->GetTrue();
 
 	list<IPAddr> addrs;
 
@@ -2079,10 +2079,10 @@ function is_local_interface%(ip: addr%) : bool
 	for ( it = addrs.begin(); it != addrs.end(); ++it )
 		{
 		if ( *it == ip->AsAddr() )
-			return val_mgr->GetBool(1);
+			return val_mgr->GetTrue();
 		}
 
-	return val_mgr->GetBool(0);
+	return val_mgr->GetFalse();
 	%}
 
 ## Write rule matcher statistics (DFA states, transitions, memory usage, cache
@@ -2098,7 +2098,7 @@ function dump_rule_stats%(f: file%): bool
 	if ( rule_matcher )
 		rule_matcher->DumpStats(f);
 
-	return val_mgr->GetBool(1);
+	return val_mgr->GetTrue();
 	%}
 
 ## Checks if Zeek is terminating.
@@ -2132,9 +2132,9 @@ function gethostname%(%) : string
 function is_v4_addr%(a: addr%): bool
 	%{
 	if ( a->AsAddr().GetFamily() == IPv4 )
-		return val_mgr->GetBool(1);
+		return val_mgr->GetTrue();
 	else
-		return val_mgr->GetBool(0);
+		return val_mgr->GetFalse();
 	%}
 
 ## Returns whether an address is IPv6 or not.
@@ -2145,9 +2145,9 @@ function is_v4_addr%(a: addr%): bool
 function is_v6_addr%(a: addr%): bool
 	%{
 	if ( a->AsAddr().GetFamily() == IPv6 )
-		return val_mgr->GetBool(1);
+		return val_mgr->GetTrue();
 	else
-		return val_mgr->GetBool(0);
+		return val_mgr->GetFalse();
 	%}
 
 ## Returns whether a subnet specification is IPv4 or not.
@@ -2158,9 +2158,9 @@ function is_v6_addr%(a: addr%): bool
 function is_v4_subnet%(s: subnet%): bool
 	%{
 	if ( s->AsSubNet().Prefix().GetFamily() == IPv4 )
-		return val_mgr->GetBool(1);
+		return val_mgr->GetTrue();
 	else
-		return val_mgr->GetBool(0);
+		return val_mgr->GetFalse();
 	%}
 
 ## Returns whether a subnet specification is IPv6 or not.
@@ -2171,9 +2171,9 @@ function is_v4_subnet%(s: subnet%): bool
 function is_v6_subnet%(s: subnet%): bool
 	%{
 	if ( s->AsSubNet().Prefix().GetFamily() == IPv6 )
-		return val_mgr->GetBool(1);
+		return val_mgr->GetTrue();
 	else
-		return val_mgr->GetBool(0);
+		return val_mgr->GetFalse();
 	%}
 
 
@@ -3279,9 +3279,9 @@ function get_port_transport_proto%(p: port%): transport_proto
 function connection_exists%(c: conn_id%): bool
 	%{
 	if ( sessions->FindConnection(c) )
-		return val_mgr->GetBool(1);
+		return val_mgr->GetTrue();
 	else
-		return val_mgr->GetBool(0);
+		return val_mgr->GetFalse();
 	%}
 
 ## Returns the :zeek:type:`connection` record for a given connection identifier.
@@ -3359,7 +3359,7 @@ function dump_current_packet%(file_name: string%) : bool
 
 	if ( ! current_pktsrc ||
 	     ! current_pktsrc->GetCurrentPacket(&pkt) )
-		return val_mgr->GetBool(0);
+		return val_mgr->GetFalse();
 
 	if ( addl_pkt_dumper && addl_pkt_dumper->Path() != file_name->CheckString())
 		{
@@ -3942,7 +3942,7 @@ function mmdb_open_location_db%(f: string%) : bool
 #ifdef USE_GEOIP
 	return val_mgr->GetBool(mmdb_open_loc(f->CheckString()));
 #else
-        return val_mgr->GetBool(0);
+        return val_mgr->GetFalse();
 #endif
 	%}
 
@@ -3959,7 +3959,7 @@ function mmdb_open_asn_db%(f: string%) : bool
 #ifdef USE_GEOIP
 	return val_mgr->GetBool(mmdb_open_asn(f->CheckString()));
 #else
-	return val_mgr->GetBool(0);
+	return val_mgr->GetFalse();
 #endif
 	%}
 
@@ -4259,7 +4259,7 @@ function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &defau
 	if ( ! c )
 		{
 		reporter->Error("cannot find connection");
-		return val_mgr->GetBool(0);
+		return val_mgr->GetFalse();
 		}
 
 	analyzer::Analyzer* a = c->FindAnalyzer(aid);
@@ -4267,7 +4267,7 @@ function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &defau
 		{
 		if ( err_if_no_conn )
 			reporter->Error("connection does not have analyzer specified to disable");
-		return val_mgr->GetBool(0);
+		return val_mgr->GetFalse();
 		}
 
 	if ( prevent )
@@ -4295,10 +4295,10 @@ function skip_further_processing%(cid: conn_id%): bool
 	%{
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
-		return val_mgr->GetBool(0);
+		return val_mgr->GetFalse();
 
 	c->SetSkip(1);
-	return val_mgr->GetBool(1);
+	return val_mgr->GetTrue();
 	%}
 
 ## Controls whether packet contents belonging to a connection should be
@@ -4325,10 +4325,10 @@ function set_record_packets%(cid: conn_id, do_record: bool%): bool
 	%{
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
-		return val_mgr->GetBool(0);
+		return val_mgr->GetFalse();
 
 	c->SetRecordPackets(do_record);
-	return val_mgr->GetBool(1);
+	return val_mgr->GetTrue();
 	%}
 
 ## Sets an individual inactivity timeout for a connection and thus
@@ -4420,7 +4420,7 @@ function close%(f: file%): bool
 function write_file%(f: file, data: string%): bool
 	%{
 	if ( ! f )
-		return val_mgr->GetBool(0);
+		return val_mgr->GetFalse();
 
 	return val_mgr->GetBool(f->Write((const char*) data->Bytes(), data->Len()));
 	%}
@@ -4476,14 +4476,14 @@ function mkdir%(f: string%): bool
 		// check if already exists and is directory.
 		if ( errno == EEXIST && stat(filename, &filestat) == 0
 		     && S_ISDIR(filestat.st_mode) )
-			return val_mgr->GetBool(1);
+			return val_mgr->GetTrue();
 
 		builtin_error(fmt("cannot create directory '%s': %s", filename,
 		                  strerror(error)));
-		return val_mgr->GetBool(0);
+		return val_mgr->GetFalse();
 		}
 	else
-		return val_mgr->GetBool(1);
+		return val_mgr->GetTrue();
 	%}
 
 
@@ -4505,10 +4505,10 @@ function rmdir%(d: string%): bool
 		{
 		builtin_error(fmt("cannot remove directory '%s': %s", dirname,
 		                  strerror(errno)));
-		return val_mgr->GetBool(0);
+		return val_mgr->GetFalse();
 		}
 	else
-		return val_mgr->GetBool(1);
+		return val_mgr->GetTrue();
 	%}
 
 ## Removes a file from a directory.
@@ -4529,10 +4529,10 @@ function unlink%(f: string%): bool
 		{
 		builtin_error(fmt("cannot unlink file '%s': %s", filename,
 		                  strerror(errno)));
-		return val_mgr->GetBool(0);
+		return val_mgr->GetFalse();
 		}
 	else
-		return val_mgr->GetBool(1);
+		return val_mgr->GetTrue();
 	%}
 
 ## Renames a file from src_f to dst_f.
@@ -4555,10 +4555,10 @@ function rename%(src_f: string, dst_f: string%): bool
 		{
 		builtin_error(fmt("cannot rename file '%s' to '%s': %s", src_filename,
 		                  dst_filename, strerror(errno)));
-		return val_mgr->GetBool(0);
+		return val_mgr->GetFalse();
 		}
 	else
-		return val_mgr->GetBool(1);
+		return val_mgr->GetTrue();
 	%}
 
 ## Checks whether a given file is open.
@@ -4743,7 +4743,7 @@ function enable_raw_output%(f: file%): any
 function install_src_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : bool
 	%{
 	sessions->GetPacketFilter()->AddSrc(ip->AsAddr(), tcp_flags, prob);
-	return val_mgr->GetBool(1);
+	return val_mgr->GetTrue();
 	%}
 
 ## Installs a filter to drop packets originating from a given subnet with
@@ -4773,7 +4773,7 @@ function install_src_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : b
 function install_src_net_filter%(snet: subnet, tcp_flags: count, prob: double%) : bool
 	%{
 	sessions->GetPacketFilter()->AddSrc(snet, tcp_flags, prob);
-	return val_mgr->GetBool(1);
+	return val_mgr->GetTrue();
 	%}
 
 ## Removes a source address filter.
@@ -4848,7 +4848,7 @@ function uninstall_src_net_filter%(snet: subnet%) : bool
 function install_dst_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : bool
 	%{
 	sessions->GetPacketFilter()->AddDst(ip->AsAddr(), tcp_flags, prob);
-	return val_mgr->GetBool(1);
+	return val_mgr->GetTrue();
 	%}
 
 ## Installs a filter to drop packets destined to a given subnet with
@@ -4878,7 +4878,7 @@ function install_dst_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : b
 function install_dst_net_filter%(snet: subnet, tcp_flags: count, prob: double%) : bool
 	%{
 	sessions->GetPacketFilter()->AddDst(snet, tcp_flags, prob);
-	return val_mgr->GetBool(1);
+	return val_mgr->GetTrue();
 	%}
 
 ## Removes a destination address filter.
@@ -4964,12 +4964,12 @@ function match_signatures%(c: connection, pattern_type: int, s: string,
 				from_orig: bool, clear: bool%) : bool
 	%{
 	if ( ! rule_matcher )
-		return val_mgr->GetBool(0);
+		return val_mgr->GetFalse();
 
 	c->Match((Rule::PatternType) pattern_type, s->Bytes(), s->Len(),
 			from_orig, bol, eol, clear);
 
-	return val_mgr->GetBool(1);
+	return val_mgr->GetTrue();
 	%}
 
 # ===========================================================================

@@ -481,7 +481,7 @@ expr:
 			{
 			set_location(@2, @4);
 			$$ = add_and_assign_local({AdoptRef{}, $2}, {AdoptRef{}, $4},
-			                          {AdoptRef{}, val_mgr->GetBool(1)}).release();
+			                          {AdoptRef{}, val_mgr->GetTrue()}).release();
 			}
 
 	|	expr '[' expr_list ']'

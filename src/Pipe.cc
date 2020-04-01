@@ -15,7 +15,7 @@ static void pipe_fail(int eno)
 	bro_strerror_r(eno, tmp, sizeof(tmp));
 
 	if ( reporter )
-		reporter->FatalError("Pipe failure: %s", tmp);
+		reporter->FatalError("Pipe failure: {:s}", tmp);
 	else
 		fprintf(stderr, "Pipe failure: %s", tmp);
 	}

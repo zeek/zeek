@@ -29,7 +29,7 @@ KRB_Analyzer::KRB_Analyzer(Connection* conn)
 static void warn_krb(const char* msg, krb5_context ctx, krb5_error_code code)
 	{
 	auto err = krb5_get_error_message(ctx, code);
-	reporter->Warning("%s (%s)", msg, err);
+	reporter->Warning("{:s} ({:s})", msg, err);
 	krb5_free_error_message(ctx, err);
 	}
 
@@ -41,7 +41,7 @@ void KRB_Analyzer::Initialize_Krb()
 	const char* keytab_filename = zeek::BifConst::KRB::keytab->CheckString();
 	if ( access(keytab_filename, R_OK) != 0 )
 		{
-		reporter->Warning("KRB: Can't access keytab (%s)", keytab_filename);
+		reporter->Warning("KRB: Can't access keytab ({:s})", keytab_filename);
 		return;
 		}
 
@@ -99,14 +99,14 @@ zeek::StringValPtr KRB_Analyzer::GetAuthenticationInfo(const zeek::String* princ
 	int pos = principal->FindSubstring(&delim);
 	if ( pos == -1 )
 		{
-		reporter->Warning("KRB: Couldn't parse principal (%s)", principal->CheckString());
+		reporter->Warning("KRB: Couldn't parse principal ({:s})", principal->CheckString());
 		return nullptr;
 		}
 	std::unique_ptr<zeek::String> service = unique_ptr<zeek::String>(principal->GetSubstring(0, pos));
 	std::unique_ptr<zeek::String> hostname = unique_ptr<zeek::String>(principal->GetSubstring(pos + 1, -1));
 	if ( !service || !hostname )
 		{
-		reporter->Warning("KRB: Couldn't parse principal (%s)", principal->CheckString());
+		reporter->Warning("KRB: Couldn't parse principal ({:s})", principal->CheckString());
 		return nullptr;
 		}
 	krb5_principal sprinc;

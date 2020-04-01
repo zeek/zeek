@@ -207,8 +207,7 @@ bool Manager::CreateStream(Stream* info, zeek::RecordVal* description)
 
 	if ( Stream *i = FindStream(name) )
 		{
-		reporter->Error("Trying create already existing input stream %s",
-				name.c_str());
+		reporter->Error("Trying create already existing input stream {:s}", name);
 		return false;
 		}
 
@@ -305,7 +304,7 @@ bool Manager::CreateEventStream(zeek::RecordVal* fval)
 
 	if ( etype->Flavor() != zeek::FUNC_FLAVOR_EVENT )
 		{
-		reporter->Error("Input stream %s: Stream event is a function, not an event", stream_name.c_str());
+		reporter->Error("Input stream {:s}: Stream event is a function, not an event", stream_name);
 		return false;
 		}
 
@@ -313,19 +312,19 @@ bool Manager::CreateEventStream(zeek::RecordVal* fval)
 
 	if ( args.size() < 2 )
 		{
-		reporter->Error("Input stream %s: Event does not take enough arguments", stream_name.c_str());
+		reporter->Error("Input stream {:s}: Event does not take enough arguments", stream_name);
 		return false;
 		}
 
 	if ( ! same_type(args[1], zeek::BifType::Enum::Input::Event, false) )
 		{
-		reporter->Error("Input stream %s: Event's second attribute must be of type Input::Event", stream_name.c_str());
+		reporter->Error("Input stream {:s}: Event's second attribute must be of type Input::Event", stream_name);
 		return false;
 		}
 
 	if ( ! same_type(args[0], zeek::BifType::Record::Input::EventDescription, false) )
 		{
-		reporter->Error("Input stream %s: Event's first attribute must be of type Input::EventDescription", stream_name.c_str());
+		reporter->Error("Input stream {:s}: Event's first attribute must be of type Input::EventDescription", stream_name);
 		return false;
 		}
 
@@ -333,7 +332,7 @@ bool Manager::CreateEventStream(zeek::RecordVal* fval)
 		{
 		if ( static_cast<int>(args.size()) != fields->NumFields() + 2 )
 			{
-			reporter->Error("Input stream %s: Event has wrong number of arguments", stream_name.c_str());
+			reporter->Error("Input stream {:s}: Event has wrong number of arguments", stream_name);
 			return false;
 			}
 
@@ -346,10 +345,10 @@ bool Manager::CreateEventStream(zeek::RecordVal* fval)
 				args[i + 2]->Describe(&desc1);
 				fields->GetFieldType(i)->Describe(&desc2);
 
-				reporter->Error("Input stream %s: Incompatible type for event in field %d. Need type '%s':%s, got '%s':%s",
-						stream_name.c_str(), i + 3,
-						zeek::type_name(fields->GetFieldType(i)->Tag()), desc2.Description(),
-						zeek::type_name(args[i + 2]->Tag()), desc1.Description());
+				reporter->Error("Input stream {:s}: Incompatible type for event in field {:d}. Need type '{:s}':{:s}, got '{:s}':{:s}",
+				                stream_name, i + 3,
+				                zeek::type_name(fields->GetFieldType(i)->Tag()), desc2.Description(),
+				                zeek::type_name(args[i + 2]->Tag()), desc1.Description());
 
 				return false;
 				}
@@ -361,7 +360,7 @@ bool Manager::CreateEventStream(zeek::RecordVal* fval)
 		{
 		if ( args.size() != 3 )
 			{
-			reporter->Error("Input stream %s: Event has wrong number of arguments", stream_name.c_str());
+			reporter->Error("Input stream {:s}: Event has wrong number of arguments", stream_name);
 			return false;
 			}
 
@@ -371,10 +370,10 @@ bool Manager::CreateEventStream(zeek::RecordVal* fval)
 			ODesc desc2;
 			args[2]->Describe(&desc1);
 			fields->Describe(&desc2);
-			reporter->Error("Input stream %s: Incompatible type '%s':%s for event, which needs type '%s':%s\n",
-					stream_name.c_str(),
-					zeek::type_name(args[2]->Tag()), desc1.Description(),
-					zeek::type_name(fields->Tag()), desc2.Description());
+			reporter->Error("Input stream {:s}: Incompatible type '{:s}':{:s} for event, which needs type '{:s}':{:s}\n",
+			                stream_name,
+			                zeek::type_name(args[2]->Tag()), desc1.Description(),
+			                zeek::type_name(fields->Tag()), desc2.Description());
 			return false;
 			}
 
@@ -397,7 +396,7 @@ bool Manager::CreateEventStream(zeek::RecordVal* fval)
 
 	if ( status )
 		{
-		reporter->Error("Input stream %s: Problem unrolling", stream_name.c_str());
+		reporter->Error("Input stream {:s}: Problem unrolling", stream_name);
 		for ( auto& f : fieldsV ) delete f;
 		return false;
 		}
@@ -466,7 +465,7 @@ bool Manager::CreateTableStream(zeek::RecordVal* fval)
 		{
 		if ( j >= num )
 			{
-			reporter->Error("Input stream %s: Table type has more indexes than index definition", stream_name.c_str());
+			reporter->Error("Input stream {:s}: Table type has more indexes than index definition", stream_name);
 			return false;
 			}
 
@@ -477,7 +476,7 @@ bool Manager::CreateTableStream(zeek::RecordVal* fval)
 			idx->GetFieldType(j)->Describe(&desc1);
 			tl[j]->Describe(&desc2);
 
-			reporter->Error("Input stream %s: Table type does not match index type. Need type '%s':%s, got '%s':%s", stream_name.c_str(),
+			reporter->Error("Input stream {:s}: Table type does not match index type. Need type '{:s}':{:s}, got '{:s}':{:s}", stream_name,
 					zeek::type_name(idx->GetFieldType(j)->Tag()), desc1.Description(),
 					zeek::type_name(tl[j]->Tag()), desc2.Description());
 
@@ -487,7 +486,7 @@ bool Manager::CreateTableStream(zeek::RecordVal* fval)
 
 	if ( num != j )
 		{
-		reporter->Error("Input stream %s: Table has less elements than index definition", stream_name.c_str());
+		reporter->Error("Input stream {:s}: Table has less elements than index definition", stream_name);
 		return false;
 		}
 
@@ -504,7 +503,7 @@ bool Manager::CreateTableStream(zeek::RecordVal* fval)
 			ODesc desc2;
 			compare_type->Describe(&desc1);
 			table_yield->Describe(&desc2);
-			reporter->Error("Input stream %s: Table type does not match value type. Need type '%s', got '%s'", stream_name.c_str(),
+			reporter->Error("Input stream {:s}: Table type does not match value type. Need type '{:s}', got '{:s}'", stream_name,
 					desc1.Description(), desc2.Description());
 			return false;
 			}
@@ -513,10 +512,10 @@ bool Manager::CreateTableStream(zeek::RecordVal* fval)
 		{
 		if ( ! dst->GetType()->IsSet() )
 			{
-			reporter->Error("Input stream %s: 'destination' field is a table,"
+			reporter->Error("Input stream {:s}: 'destination' field is a table,"
 			                " but 'val' field is not provided"
 			                " (did you mean to use a set instead of a table?)",
-			                stream_name.c_str());
+			                stream_name);
 			return false;
 			}
 		}
@@ -530,7 +529,7 @@ bool Manager::CreateTableStream(zeek::RecordVal* fval)
 
 		if ( etype->Flavor() != zeek::FUNC_FLAVOR_EVENT )
 			{
-			reporter->Error("Input stream %s: Stream event is a function, not an event", stream_name.c_str());
+			reporter->Error("Input stream {:s}: Stream event is a function, not an event", stream_name);
 			return false;
 			}
 
@@ -538,19 +537,19 @@ bool Manager::CreateTableStream(zeek::RecordVal* fval)
 
 		if ( args.size() != 4 )
 			{
-			reporter->Error("Input stream %s: Table event must take 4 arguments", stream_name.c_str());
+			reporter->Error("Input stream {:s}: Table event must take 4 arguments", stream_name);
 			return false;
 			}
 
 		if ( ! same_type(args[0], zeek::BifType::Record::Input::TableDescription, false) )
 			{
-			reporter->Error("Input stream %s: Table event's first attribute must be of type Input::TableDescription", stream_name.c_str());
+			reporter->Error("Input stream {:s}: Table event's first attribute must be of type Input::TableDescription", stream_name);
 			return false;
 			}
 
 		if ( ! same_type(args[1], zeek::BifType::Enum::Input::Event, false) )
 			{
-			reporter->Error("Input stream %s: Table event's second attribute must be of type Input::Event", stream_name.c_str());
+			reporter->Error("Input stream {:s}: Table event's second attribute must be of type Input::Event", stream_name);
 			return false;
 			}
 
@@ -560,8 +559,8 @@ bool Manager::CreateTableStream(zeek::RecordVal* fval)
 			ODesc desc2;
 			idx->Describe(&desc1);
 			args[2]->Describe(&desc2);
-			reporter->Error("Input stream %s: Table event's index attributes do not match. Need '%s', got '%s'", stream_name.c_str(),
-					desc1.Description(), desc2.Description());
+			reporter->Error("Input stream {:s}: Table event's index attributes do not match. Need '{:s}', got '{:s}'",
+			                stream_name, desc1.Description(), desc2.Description());
 			return false;
 			}
 
@@ -571,8 +570,8 @@ bool Manager::CreateTableStream(zeek::RecordVal* fval)
 			ODesc desc2;
 			val->Describe(&desc1);
 			args[3]->Describe(&desc2);
-			reporter->Error("Input stream %s: Table event's value attributes do not match. Need '%s', got '%s'", stream_name.c_str(),
-					desc1.Description(), desc2.Description());
+			reporter->Error("Input stream {:s}: Table event's value attributes do not match. Need '{:s}', got '{:s}'",
+			                stream_name, desc1.Description(), desc2.Description());
 			return false;
 			}
 		else if (  want_record->InternalInt() == 0
@@ -582,8 +581,8 @@ bool Manager::CreateTableStream(zeek::RecordVal* fval)
 			ODesc desc2;
 			val->GetFieldType(0)->Describe(&desc1);
 			args[3]->Describe(&desc2);
-			reporter->Error("Input stream %s: Table event's value attribute does not match. Need '%s', got '%s'", stream_name.c_str(),
-					desc1.Description(), desc2.Description());
+			reporter->Error("Input stream {:s}: Table event's value attribute does not match. Need '{:s}', got '{:s}'",
+			                stream_name, desc1.Description(), desc2.Description());
 			return false;
 			}
 		else if ( ! val )
@@ -613,7 +612,7 @@ bool Manager::CreateTableStream(zeek::RecordVal* fval)
 
 	if ( (valfields > 1) && (want_record->InternalInt() != 1) )
 		{
-		reporter->Error("Input stream %s: Stream does not want a record (want_record=F), but has more then one value field.", stream_name.c_str());
+		reporter->Error("Input stream {:s}: Stream does not want a record (want_record=F), but has more then one value field.", stream_name);
 		for ( auto& f : fieldsV ) delete f;
 		return false;
 		}
@@ -623,7 +622,7 @@ bool Manager::CreateTableStream(zeek::RecordVal* fval)
 
 	if ( status )
 		{
-		reporter->Error("Input stream %s: Problem unrolling", stream_name.c_str());
+		reporter->Error("Input stream {:s}: Problem unrolling", stream_name);
 		for ( auto& f : fieldsV ) delete f;
 		return false;
 		}
@@ -677,7 +676,7 @@ bool Manager::CheckErrorEventTypes(const std::string& stream_name, const zeek::F
 
 	if ( etype->Flavor() != zeek::FUNC_FLAVOR_EVENT )
 		{
-		reporter->Error("Input stream %s: Error event is a function, not an event", stream_name.c_str());
+		reporter->Error("Input stream {:s}: Error event is a function, not an event", stream_name);
 		return false;
 		}
 
@@ -685,31 +684,31 @@ bool Manager::CheckErrorEventTypes(const std::string& stream_name, const zeek::F
 
 	if ( args.size() != 3 )
 		{
-		reporter->Error("Input stream %s: Error event must take 3 arguments", stream_name.c_str());
+		reporter->Error("Input stream {:s}: Error event must take 3 arguments", stream_name);
 		return false;
 		}
 
 	if ( table && ! same_type(args[0], zeek::BifType::Record::Input::TableDescription, false) )
 		{
-		reporter->Error("Input stream %s: Error event's first attribute must be of type Input::TableDescription", stream_name.c_str());
+		reporter->Error("Input stream {:s}: Error event's first attribute must be of type Input::TableDescription", stream_name);
 		return false;
 		}
 
 	if ( ! table && ! same_type(args[0], zeek::BifType::Record::Input::EventDescription, false) )
 		{
-		reporter->Error("Input stream %s: Error event's first attribute must be of type Input::EventDescription", stream_name.c_str());
+		reporter->Error("Input stream {:s}: Error event's first attribute must be of type Input::EventDescription", stream_name);
 		return false;
 		}
 
 	if ( args[1]->Tag() != zeek::TYPE_STRING )
 		{
-		reporter->Error("Input stream %s: Error event's second attribute must be of type string", stream_name.c_str());
+		reporter->Error("Input stream {:s}: Error event's second attribute must be of type string", stream_name);
 		return false;
 		}
 
 	if ( ! same_type(args[2], zeek::BifType::Enum::Reporter::Level, false) )
 		{
-		reporter->Error("Input stream %s: Error event's third attribute must be of type Reporter::Level", stream_name.c_str());
+		reporter->Error("Input stream {:s}: Error event's third attribute must be of type Reporter::Level", stream_name);
 		return false;
 		}
 
@@ -809,7 +808,7 @@ bool Manager::RemoveStream(Stream *i)
 
 	if ( i->removed )
 		{
-		reporter->Warning("Stream %s is already queued for removal. Ignoring remove.", i->name.c_str());
+		reporter->Warning("Stream {:s} is already queued for removal. Ignoring remove.", i->name);
 		return true;
 		}
 
@@ -875,12 +874,12 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const zeek::RecordType *r
 				       rec->GetFieldType(i)->Tag() == zeek::TYPE_OPAQUE ) &&
 				       rec->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL) )
 					{
-					reporter->Info("Encountered incompatible type \"%s\" in type definition for field \"%s\" in ReaderFrontend. Ignoring optional field.", zeek::type_name(rec->GetFieldType(i)->Tag()), name.c_str());
+					reporter->Info("Encountered incompatible type \"{:s}\" in type definition for field \"{:s}\" in ReaderFrontend. Ignoring optional field.", zeek::type_name(rec->GetFieldType(i)->Tag()), name.c_str());
 					continue;
 					}
 				}
 
-			reporter->Error("Incompatible type \"%s\" in type definition for for field \"%s\" in ReaderFrontend",
+			reporter->Error("Incompatible type \"{:s}\" in type definition for for field \"{:s}\" in ReaderFrontend",
 				            zeek::type_name(rec->GetFieldType(i)->Tag()), name.c_str());
 			return false;
 			}
@@ -891,7 +890,7 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const zeek::RecordType *r
 
 			if ( rec->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL) )
 				{
-				reporter->Info("The input framework does not support optional record fields: \"%s\"", rec->FieldName(i));
+				reporter->Info("The input framework does not support optional record fields: \"{:s}\"", rec->FieldName(i));
 				return false;
 				}
 
@@ -946,13 +945,13 @@ bool Manager::ForceUpdate(const string &name)
 	Stream *i = FindStream(name);
 	if ( i == nullptr )
 		{
-		reporter->Error("Stream %s not found", name.c_str());
+		reporter->Error("Stream {:s} not found", name);
 		return false;
 		}
 
 	if ( i->removed )
 		{
-		reporter->Error("Stream %s is already queued for removal. Ignoring force update.", name.c_str());
+		reporter->Error("Stream {:s} is already queued for removal. Ignoring force update.", name);
 		return false;
 		}
 
@@ -1030,8 +1029,7 @@ void Manager::SendEntry(ReaderFrontend* reader, Value* *vals)
 	Stream *i = FindStream(reader);
 	if ( i == nullptr )
 		{
-		reporter->InternalWarning("Unknown reader %s in SendEntry",
-		                          reader->Name());
+		reporter->InternalWarning("Unknown reader {:s} in SendEntry", reader->Name());
 		return;
 		}
 
@@ -1273,7 +1271,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 
 	if ( i == nullptr )
 		{
-		reporter->InternalWarning("Unknown reader %s in EndCurrentSend",
+		reporter->InternalWarning("Unknown reader {:s} in EndCurrentSend",
 		                          reader->Name());
 		return;
 		}
@@ -1366,7 +1364,7 @@ void Manager::SendEndOfData(ReaderFrontend* reader)
 
 	if ( i == nullptr )
 		{
-		reporter->InternalWarning("Unknown reader %s in SendEndOfData",
+		reporter->InternalWarning("Unknown reader {:s} in SendEndOfData",
 		                          reader->Name());
 		return;
 		}
@@ -1393,7 +1391,7 @@ void Manager::Put(ReaderFrontend* reader, Value* *vals)
 	Stream *i = FindStream(reader);
 	if ( i == nullptr )
 		{
-		reporter->InternalWarning("Unknown reader %s in Put", reader->Name());
+		reporter->InternalWarning("Unknown reader {:s} in Put", reader->Name());
 		return;
 		}
 
@@ -1621,7 +1619,7 @@ void Manager::Clear(ReaderFrontend* reader)
 	Stream *i = FindStream(reader);
 	if ( i == nullptr )
 		{
-		reporter->InternalWarning("Unknown reader %s in Clear",
+		reporter->InternalWarning("Unknown reader {:s} in Clear",
 		                          reader->Name());
 		return;
 		}
@@ -1643,7 +1641,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 	Stream *i = FindStream(reader);
 	if ( i == nullptr )
 		{
-		reporter->InternalWarning("Unknown reader %s in Delete", reader->Name());
+		reporter->InternalWarning("Unknown reader {:s} in Delete", reader->Name());
 		return false;
 		}
 
@@ -1907,7 +1905,7 @@ int Manager::GetValueLength(const Value* val) const
 		}
 
 	default:
-		reporter->InternalError("unsupported type %d for GetValueLength", val->type);
+		reporter->InternalError("unsupported type {:d} for GetValueLength", val->type);
 	}
 
 	return length;
@@ -2039,7 +2037,7 @@ int Manager::CopyValue(char *data, const int startpos, const Value* val) const
 		}
 
 	default:
-		reporter->InternalError("unsupported type %d for CopyValue", val->type);
+		reporter->InternalError("unsupported type {:d} for CopyValue", val->type);
 		return 0;
 	}
 
@@ -2101,7 +2099,7 @@ zeek::Val* Manager::ValueToVal(const Stream* i, const Value* val, zeek::Type* re
 
 	if ( request_type->Tag() != zeek::TYPE_ANY && request_type->Tag() != val->type )
 		{
-		reporter->InternalError("Typetags don't match: %d vs %d in stream %s", request_type->Tag(), val->type, i->name.c_str());
+		reporter->InternalError("Typetags don't match: {:d} vs {:d} in stream {:s}", request_type->Tag(), val->type, i->name);
 		return nullptr;
 		}
 
@@ -2246,7 +2244,7 @@ zeek::Val* Manager::ValueToVal(const Stream* i, const Value* val, zeek::Type* re
 		}
 
 	default:
-		reporter->InternalError("Unsupported type for input_read in stream %s", i->name.c_str());
+		reporter->InternalError("Unsupported type for input_read in stream {:s}", i->name);
 	}
 
 	assert(false);
@@ -2293,7 +2291,7 @@ void Manager::Info(ReaderFrontend* reader, const char* msg) const
 	Stream *i = FindStream(reader);
 	if ( !i )
 		{
-		reporter->Error("Stream not found in Info; lost message: %s", msg);
+		reporter->Error("Stream not found in Info; lost message: {:s}", msg);
 		return;
 		}
 
@@ -2305,7 +2303,7 @@ void Manager::Warning(ReaderFrontend* reader, const char* msg) const
 	Stream *i = FindStream(reader);
 	if ( !i )
 		{
-		reporter->Error("Stream not found in Warning; lost message: %s", msg);
+		reporter->Error("Stream not found in Warning; lost message: {:s}", msg);
 		return;
 		}
 
@@ -2317,7 +2315,7 @@ void Manager::Error(ReaderFrontend* reader, const char* msg) const
 	Stream *i = FindStream(reader);
 	if ( !i )
 		{
-		reporter->Error("Stream not found in Error; lost message: %s", msg);
+		reporter->Error("Stream not found in Error; lost message: {:s}", msg);
 		return;
 		}
 
@@ -2345,7 +2343,7 @@ void Manager::DoErrorHandler(const Stream* i, ErrorType et, bool reporter_send, 
 				break;
 
 			default:
-				reporter->InternalError("Unknown error type while trying to report input error %s", buf);
+				reporter->InternalError("Unknown error type while trying to report input error {:s}", buf);
 				__builtin_unreachable();
 			}
 
@@ -2358,19 +2356,19 @@ void Manager::DoErrorHandler(const Stream* i, ErrorType et, bool reporter_send, 
 		switch (et)
 			{
 			case ErrorType::INFO:
-				reporter->Info("%s", buf);
+				reporter->Info("{:s}", buf);
 				break;
 
 			case ErrorType::WARNING:
-				reporter->Warning("%s", buf);
+				reporter->Warning("{:s}", buf);
 				break;
 
 			case ErrorType::ERROR:
-				reporter->Error("%s", buf);
+				reporter->Error("{:s}", buf);
 				break;
 
 			default:
-				reporter->InternalError("Unknown error type while trying to report input error %s", buf);
+				reporter->InternalError("Unknown error type while trying to report input error {:s}", buf);
 			}
 		}
 	}

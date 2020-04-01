@@ -244,7 +244,7 @@ void Expr::ExprError(const char msg[])
 
 void Expr::RuntimeError(const std::string& msg) const
 	{
-	reporter->ExprRuntimeError(this, "%s", msg.data());
+	reporter->ExprRuntimeError(this, "{:s}", msg.data());
 	}
 
 void Expr::RuntimeErrorWithCallStack(const std::string& msg) const
@@ -252,14 +252,14 @@ void Expr::RuntimeErrorWithCallStack(const std::string& msg) const
 	auto rcs = render_call_stack();
 
 	if ( rcs.empty() )
-		reporter->ExprRuntimeError(this, "%s", msg.data());
+		reporter->ExprRuntimeError(this, "{:s}", msg);
 	else
 		{
 		ODesc d;
 		d.SetShort();
 		Describe(&d);
-		reporter->RuntimeError(GetLocationInfo(), "%s, expression: %s, call stack: %s",
-		                       msg.data(), d.Description(), rcs.data());
+		reporter->RuntimeError(GetLocationInfo(), "{:s}, expression: {:s}, call stack: {:s}",
+		                       msg, d.Description(), rcs);
 		}
 	}
 
@@ -2898,7 +2898,7 @@ FieldExpr::FieldExpr(ExprPtr arg_op, const char* arg_field_name)
 			td = rt->FieldDecl(field);
 
 			if ( rt->IsFieldDeprecated(field) )
-				reporter->Warning("%s", rt->GetFieldDeprecationWarning(field, false).c_str());
+				reporter->Warning("{:s}", rt->GetFieldDeprecationWarning(field, false));
 			}
 		}
 	}
@@ -2984,7 +2984,7 @@ HasFieldExpr::HasFieldExpr(ExprPtr arg_op, const char* arg_field_name)
 		if ( field < 0 )
 			ExprError("no such field in record");
 		else if ( rt->IsFieldDeprecated(field) )
-			reporter->Warning("%s", rt->GetFieldDeprecationWarning(field, true).c_str());
+			reporter->Warning("{:s}", rt->GetFieldDeprecationWarning(field, true));
 
 		SetType(base_type(zeek::TYPE_BOOL));
 		}
@@ -3451,8 +3451,7 @@ void FieldAssignExpr::EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f
 		int idx = rt->FieldOffset(field_name.c_str());
 
 		if ( idx < 0 )
-			reporter->InternalError("Missing record field: %s",
-			                        field_name.c_str());
+			reporter->InternalError("Missing record field: {:s}", field_name);
 
 		rec->Assign(idx, std::move(v));
 		}
@@ -3657,7 +3656,7 @@ RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, zeek::RecordTypePtr r)
 					}
 				}
 			else if ( t_r->IsFieldDeprecated(i) )
-				reporter->Warning("%s", t_r->GetFieldDeprecationWarning(i, false).c_str());
+				reporter->Warning("{:s}", t_r->GetFieldDeprecationWarning(i, false));
 			}
 		}
 	}

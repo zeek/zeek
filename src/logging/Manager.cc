@@ -253,7 +253,7 @@ bool Manager::CreateStream(zeek::EnumVal* id, zeek::RecordVal* sval)
 
 		if ( ! threading::Value::IsCompatibleType(columns->GetFieldType(i).get()) )
 			{
-			reporter->Error("type of field '%s' is not support for logging output",
+			reporter->Error("type of field '{:s}' is not support for logging output",
 				 columns->FieldName(i));
 
 			return false;
@@ -597,7 +597,7 @@ bool Manager::AddFilter(zeek::EnumVal* id, zeek::RecordVal* fval)
 			}
 		else
 			{
-			reporter->Error("Return value of log_ext is not a record (got %s)",
+			reporter->Error("Return value of log_ext is not a record (got {:s})",
 			                zeek::type_name(filter->ext_func->GetType()->Yield()->Tag()));
 			delete filter;
 			return false;
@@ -804,10 +804,9 @@ bool Manager::Write(zeek::EnumVal* id, zeek::RecordVal* columns_arg)
 			Unref(filter->path_val);
 			filter->path_val = new zeek::StringVal(new_path.c_str());
 
-			reporter->Warning("Write using filter '%s' on path '%s' changed to"
-			  " use new path '%s' to avoid conflict with filter '%s'",
-			  filter->name.c_str(), path.c_str(), new_path.c_str(),
-			  instantiator.c_str());
+			reporter->Warning("Write using filter '{:s}' on path '{:s}' changed to"
+			  " use new path '{:s}' to avoid conflict with filter '{:s}'",
+			  filter->name, path, new_path, instantiator);
 
 			path = filter->path = filter->path_val->AsString()->CheckString();
 			}
@@ -1045,7 +1044,7 @@ threading::Value* Manager::ValToLogVal(zeek::Val* val, zeek::Type* ty)
 		}
 
 	default:
-		reporter->InternalError("unsupported type %s for log_write", zeek::type_name(lval->type));
+		reporter->InternalError("unsupported type {:s} for log_write", zeek::type_name(lval->type));
 	}
 
 	return lval;
@@ -1199,7 +1198,7 @@ WriterFrontend* Manager::CreateWriter(zeek::EnumVal* id, zeek::EnumVal* writer, 
 			if ( func )
 				winfo->postprocessor = func.get();
 			else
-				reporter->Warning("failed log postprocessor function lookup: %s\n",
+				reporter->Warning("failed log postprocessor function lookup: {:s}\n",
 				                  winfo->info->post_proc_func);
 			}
 		}
@@ -1523,8 +1522,8 @@ std::string Manager::FormatRotationPath(zeek::EnumValPtr writer,
 
 		if ( ! streq(dir, "") && ! ensure_intermediate_dirs(dir) )
 			{
-			reporter->Error("Failed to create dir '%s' returned by "
-			                "Log::rotation_format_func for path %.*s: %s",
+			reporter->Error("Failed to create dir '{:s}' returned by "
+			                "Log::rotation_format_func for path %.*s: {:s}",
 			                dir, static_cast<int>(path.size()), path.data(),
 			                strerror(errno));
 			dir = "";
@@ -1542,7 +1541,7 @@ std::string Manager::FormatRotationPath(zeek::EnumValPtr writer,
 		rval = fmt("%.*s-%s", static_cast<int>(path.size()), path.data(),
 		           rot_str.data());
 		reporter->Error("Failed to call Log::rotation_format_func for path %.*s "
-		                "continuing with rotation to: ./%s",
+		                "continuing with rotation to: ./{:s}",
 		                static_cast<int>(path.size()), path.data(), rval.data());
 		}
 

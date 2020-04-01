@@ -225,14 +225,14 @@ void Base64Converter::IllegalEncoding(const char* msg)
 		if ( conn )
 			conn->Weird("base64_illegal_encoding", msg);
 		else
-			reporter->Error("%s", msg);
+			reporter->Error("{:s}", msg);
 		}
 
 zeek::String* decode_base64(const zeek::String* s, const zeek::String* a, Connection* conn)
 	{
 	if ( a && a->Len() != 0 && a->Len() != 64 )
 		{
-		reporter->Error("base64 decoding alphabet is not 64 characters: %s",
+		reporter->Error("base64 decoding alphabet is not 64 characters: {:s}",
 		                a->CheckString());
 		return nullptr;
 		}
@@ -266,7 +266,7 @@ zeek::String* encode_base64(const zeek::String* s, const zeek::String* a, Connec
 	{
 	if ( a && a->Len() != 0 && a->Len() != 64 )
 		{
-		reporter->Error("base64 alphabet is not 64 characters: %s",
+		reporter->Error("base64 alphabet is not 64 characters: {:s}",
 		                a->CheckString());
 		return nullptr;
 		}

@@ -97,7 +97,7 @@ Analyzer::Analyzer(const char* name, Connection* conn)
 	Tag tag = analyzer_mgr->GetComponentTag(name);
 
 	if ( ! tag )
-		reporter->InternalError("unknown analyzer name %s; mismatch with tag analyzer::Component?", name);
+		reporter->InternalError("unknown analyzer name {:s}; mismatch with tag analyzer::Component?", name);
 
 	CtorInit(tag, conn);
 	}

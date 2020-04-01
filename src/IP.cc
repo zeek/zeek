@@ -720,7 +720,7 @@ zeek::VectorValPtr IPv6_Hdr_Chain::ToVal() const
 			break;
 #endif
 		default:
-			reporter->InternalWarning("IPv6_Hdr_Chain bad header %d", type);
+			reporter->InternalWarning("IPv6_Hdr_Chain bad header {:d}", type);
 			continue;
 		}
 

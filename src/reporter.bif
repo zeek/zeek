@@ -23,7 +23,7 @@ module Reporter;
 function Reporter::info%(msg: string%): bool
 	%{
 	reporter->PushLocation(frame->GetCall()->GetLocationInfo());
-	reporter->Info("%s", msg->CheckString());
+	reporter->Info("{:s}", msg->CheckString());
 	reporter->PopLocation();
 	return zeek::val_mgr->True();
 	%}
@@ -38,7 +38,7 @@ function Reporter::info%(msg: string%): bool
 function Reporter::warning%(msg: string%): bool
 	%{
 	reporter->PushLocation(frame->GetCall()->GetLocationInfo());
-	reporter->Warning("%s", msg->CheckString());
+	reporter->Warning("{:s}", msg->CheckString());
 	reporter->PopLocation();
 	return zeek::val_mgr->True();
 	%}
@@ -54,7 +54,7 @@ function Reporter::warning%(msg: string%): bool
 function Reporter::error%(msg: string%): bool
 	%{
 	reporter->PushLocation(frame->GetCall()->GetLocationInfo());
-	reporter->Error("%s", msg->CheckString());
+	reporter->Error("{:s}", msg->CheckString());
 	reporter->PopLocation();
 	return zeek::val_mgr->True();
 	%}
@@ -67,7 +67,7 @@ function Reporter::error%(msg: string%): bool
 function Reporter::fatal%(msg: string%): bool
 	%{
 	reporter->PushLocation(frame->GetCall()->GetLocationInfo());
-	reporter->FatalError("%s", msg->CheckString());
+	reporter->FatalError("{:s}", msg->CheckString());
 	reporter->PopLocation();
 	return zeek::val_mgr->True();
 	%}
@@ -81,7 +81,7 @@ function Reporter::fatal%(msg: string%): bool
 function Reporter::fatal_error_with_core%(msg: string%): bool
 	%{
 	reporter->PushLocation(frame->GetCall()->GetLocationInfo());
-	reporter->FatalErrorWithCore("%s", msg->CheckString());
+	reporter->FatalErrorWithCore("{:s}", msg->CheckString());
 	reporter->PopLocation();
 	return zeek::val_mgr->True();
 	%}

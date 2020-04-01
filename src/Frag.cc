@@ -308,7 +308,7 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 
 	else
 		{
-		reporter->InternalWarning("bad IP version in fragment reassembly: %d",
+		reporter->InternalWarning("bad IP version in fragment reassembly: {:d}",
 		                          version);
 		delete [] pkt_start;
 		}

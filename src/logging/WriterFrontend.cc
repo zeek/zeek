@@ -201,7 +201,7 @@ void WriterFrontend::Write(int arg_num_fields, Value** vals)
 
 	if ( arg_num_fields != num_fields )
 		{
-		reporter->Warning("WriterFrontend %s expected %d fields in write, got %d. Skipping line.", name, num_fields, arg_num_fields);
+		reporter->Warning("WriterFrontend {:s} expected {:d} fields in write, got {:d}. Skipping line.", name, num_fields, arg_num_fields);
 		DeleteVals(arg_num_fields, vals);
 		return;
 		}

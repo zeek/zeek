@@ -245,7 +245,7 @@ Frame* Frame::SelectiveClone(const id_list& selection, ScriptFunc* func) const
 			}
 
 		if ( ! frame[id->Offset()].val )
-			reporter->InternalError("Attempted to clone an id ('%s') with no associated value.", id->Name());
+			reporter->InternalError("Attempted to clone an id ('{:s}') with no associated value.", id->Name());
 
 		CloneNonFuncElement(id->Offset(), func, other);
 		}

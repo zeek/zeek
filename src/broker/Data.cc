@@ -426,8 +426,8 @@ struct val_converter {
 
 			if ( ! re->Compile() )
 				{
-				reporter->Error("failed compiling unserialized pattern: %s, %s",
-				                exact_text->c_str(), anywhere_text->c_str());
+				reporter->Error("failed compiling unserialized pattern: {:s}, {:s}",
+				                *exact_text, *anywhere_text);
 				delete re;
 				return nullptr;
 				}
@@ -752,8 +752,8 @@ struct type_checker {
 
 			if ( ! compiled )
 				{
-				reporter->Error("failed compiling pattern: %s, %s",
-				                exact_text->c_str(), anywhere_text->c_str());
+				reporter->Error("failed compiling pattern: {:s}, {:s}",
+				                *exact_text, *anywhere_text);
 				return false;
 				}
 
@@ -1002,7 +1002,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const zeek::Val* v)
 		return {c};
 		}
 	default:
-		reporter->Error("unsupported Broker::Data type: %s",
+		reporter->Error("unsupported Broker::Data type: {:s}",
 		                zeek::type_name(v->GetType()->Tag()));
 		break;
 	}

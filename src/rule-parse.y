@@ -426,14 +426,14 @@ pattern:
 
 void rules_error(const char* msg)
 	{
-	reporter->Error("Error in signature (%s:%d): %s\n",
+	reporter->Error("Error in signature ({:s}:{:d}): {:s}\n",
 			current_rule_file, rules_line_number+1, msg);
 	rule_matcher->SetParseError();
 	}
 
 void rules_error(const char* msg, const char* addl)
 	{
-	reporter->Error("Error in signature (%s:%d): %s (%s)\n",
+	reporter->Error("Error in signature ({:s}:{:d}): {:s} ({:s})\n",
 			current_rule_file, rules_line_number+1, msg, addl);
 	rule_matcher->SetParseError();
 	}
@@ -441,8 +441,8 @@ void rules_error(const char* msg, const char* addl)
 void rules_error(Rule* r, const char* msg)
 	{
 	const zeek::detail::Location& l = r->GetLocation();
-	reporter->Error("Error in signature %s (%s:%d): %s\n",
-			r->ID(), l.filename, l.first_line, msg);
+	reporter->Error("Error in signature {:s} ({:s}:{:d}): {:s}\n",
+	                r->ID(), l.filename, l.first_line, msg);
 	rule_matcher->SetParseError();
 	}
 

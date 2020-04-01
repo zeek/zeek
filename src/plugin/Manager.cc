@@ -79,7 +79,7 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 		std::ifstream in(magic.c_str());
 
 		if ( in.fail() )
-			reporter->FatalError("cannot open plugin magic file %s", magic.c_str());
+			reporter->FatalError("cannot open plugin magic file {:s}", magic);
 
 		std::string name;
 		std::getline(in, name);
@@ -87,7 +87,7 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 		string lower_name = strtolower(name);
 
 		if ( name.empty() )
-			reporter->FatalError("empty plugin magic file %s", magic.c_str());
+			reporter->FatalError("empty plugin magic file {:s}", magic);
 
 		if ( dynamic_plugins.find(lower_name) != dynamic_plugins.end() )
 			{
@@ -159,7 +159,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 				return true;
 			}
 
-		reporter->Error("plugin %s is not available", name.c_str());
+		reporter->Error("plugin {:s} is not available", name);
 		return false;
 		}
 
@@ -248,11 +248,11 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 			if ( ! hdl )
 				{
 				const char* err = dlerror();
-				reporter->FatalError("cannot load plugin library %s: %s", path, err ? err : "<unknown error>");
+				reporter->FatalError("cannot load plugin library {:s}: {:s}", path, err ? err : "<unknown error>");
 				}
 
 			if ( ! current_plugin )
-				reporter->FatalError("load plugin library %s did not instantiate a plugin", path);
+				reporter->FatalError("load plugin library {:s} did not instantiate a plugin", path);
 
 			current_plugin->SetDynamic(true);
 			current_plugin->DoConfigure();
@@ -269,8 +269,8 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 			// Make sure the name the plugin reports is consistent with
 			// what we expect from its magic file.
 			if ( strtolower(current_plugin->Name()) != strtolower(name) )
-				reporter->FatalError("inconsistent plugin name: %s vs %s",
-						     current_plugin->Name().c_str(), name.c_str());
+				reporter->FatalError("inconsistent plugin name: {:s} vs {:s}",
+						     current_plugin->Name(), name);
 
 			current_dir = nullptr;
 			current_sopath = nullptr;

@@ -137,7 +137,7 @@ singleton	:  singleton '*'
 
 			if ( sym < 0 || ( sym >= NUM_SYM && sym != SYM_EPSILON ) )
 				{
-				reporter->Error("bad symbol %d (compiling pattern /%s/)", sym,
+				reporter->Error("bad symbol {:d} (compiling pattern /{:s}/)", sym,
 				                RE_parse_input);
 				return 1;
 				}
@@ -252,7 +252,7 @@ int clower(int sym)
 void synerr(const char str[])
 	{
 	syntax_error = true;
-	reporter->Error("%s (compiling pattern /%s/)", str, RE_parse_input);
+	reporter->Error("{:s} (compiling pattern /{:s}/)", str, RE_parse_input);
 	}
 
 void yyerror(const char msg[])

@@ -310,7 +310,7 @@ private:
 
 		if ( n < 0 || buf == nullptr )
 			{
-			reporter->InternalError("Could not format error message %s for stream %s", fmt, i->name.c_str());
+			reporter->InternalError("Could not format error message {:s} for stream {:s}", fmt, i->name);
 			return;
 			}
 

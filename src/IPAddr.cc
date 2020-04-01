@@ -72,7 +72,7 @@ void IPAddr::Mask(int top_bits_to_keep)
 	{
 	if ( top_bits_to_keep < 0 || top_bits_to_keep > 128 )
 		{
-		reporter->Error("Bad IPAddr::Mask value %d", top_bits_to_keep);
+		reporter->Error("Bad IPAddr::Mask value {:d}", top_bits_to_keep);
 		return;
 		}
 
@@ -96,7 +96,7 @@ void IPAddr::ReverseMask(int top_bits_to_chop)
 	{
 	if ( top_bits_to_chop < 0 || top_bits_to_chop > 128 )
 		{
-		reporter->Error("Bad IPAddr::ReverseMask value %d", top_bits_to_chop);
+		reporter->Error("Bad IPAddr::ReverseMask value {:d}", top_bits_to_chop);
 		return;
 		}
 
@@ -151,7 +151,7 @@ void IPAddr::Init(const char* s)
 	{
 	if ( ! ConvertString(s, &in6) )
 		{
-		reporter->Error("Bad IP address: %s", s);
+		reporter->Error("Bad IP address: {:s}", s);
 		memset(in6.s6_addr, 0, sizeof(in6.s6_addr));
 		}
 	}
@@ -237,7 +237,7 @@ IPPrefix::IPPrefix(const in4_addr& in4, uint8_t length)
 	{
 	if ( length > 32 )
 		{
-		reporter->Error("Bad in4_addr IPPrefix length : %d", length);
+		reporter->Error("Bad in4_addr IPPrefix length : {:d}", length);
 		this->length = 0;
 		}
 
@@ -249,7 +249,7 @@ IPPrefix::IPPrefix(const in6_addr& in6, uint8_t length)
 	{
 	if ( length > 128 )
 		{
-		reporter->Error("Bad in6_addr IPPrefix length : %d", length);
+		reporter->Error("Bad in6_addr IPPrefix length : {:d}", length);
 		this->length = 0;
 		}
 
@@ -286,7 +286,7 @@ IPPrefix::IPPrefix(const IPAddr& addr, uint8_t length, bool len_is_v6_relative)
 	else
 		{
 		auto vstr = prefix.GetFamily() == IPv4 ? "v4" : "v6";
-		reporter->Error("Bad IPAddr(%s) IPPrefix length : %d", vstr, length);
+		reporter->Error("Bad IPAddr({:s}) IPPrefix length : {:d}", vstr, length);
 		this->length = 0;
 		}
 

@@ -325,7 +325,7 @@ zeek::StringValPtr file_analysis::X509Common::GetExtensionFromBIO(BIO* bio, File
 		{
 		// Just emit an error here and try to continue instead of aborting
 		// because it's unclear the length value is very reliable.
-		reporter->Error("X509::GetExtensionFromBIO malloc(%d) failed", length);
+		reporter->Error("X509::GetExtensionFromBIO malloc({:d}) failed", length);
 		BIO_free_all(bio);
 		return nullptr;
 		}

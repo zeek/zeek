@@ -92,7 +92,7 @@ BroFile::BroFile(const char* arg_name, const char* arg_access)
 
 	else if ( ! Open() )
 		{
-		reporter->Error("cannot open %s: %s", name, strerror(errno));
+		reporter->Error("cannot open {:s}: {:s}", name, strerror(errno));
 		is_open = false;
 		}
 	}
@@ -339,7 +339,7 @@ double BroFile::Size()
 	struct stat s;
 	if ( fstat(fileno(f), &s) < 0 )
 		{
-		reporter->Error("can't stat fd for %s: %s", name, strerror(errno));
+		reporter->Error("can't stat fd for {:s}: {:s}", name, strerror(errno));
 		return 0;
 		}
 

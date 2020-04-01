@@ -114,7 +114,7 @@ void BasicThread::Join()
 		}
 	catch ( const std::system_error& e )
 		{
-		reporter->FatalError("Failure joining thread %s with error %s", name, e.what());
+		reporter->FatalError("Failure joining thread {:s} with error {:s}", name, e.what());
 		}
 
 	DBG_LOG(DBG_THREADING, "Joined with thread %s", name);

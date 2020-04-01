@@ -316,7 +316,7 @@ bool Value::Read(SerializationFormat* fmt)
 		}
 
 	default:
-		reporter->InternalError("unsupported type %s in Value::Read",
+		reporter->InternalError("unsupported type {:s} in Value::Read",
 		                        zeek::type_name(type));
 	}
 
@@ -420,7 +420,7 @@ bool Value::Write(SerializationFormat* fmt) const
 		}
 
 	default:
-		reporter->InternalError("unsupported type %s in Value::Write",
+		reporter->InternalError("unsupported type {:s} in Value::Write",
 		                        zeek::type_name(type));
 	}
 
@@ -546,8 +546,8 @@ zeek::Val* Value::ValueToVal(const std::string& source, const Value* val, bool& 
 
 					if ( ! enum_id )
 						{
-						reporter->Warning("Value '%s' of source '%s' is not a valid enum.",
-						        enum_name.data(), source.c_str());
+						reporter->Warning("Value '{:s}' of source '{:s}' is not a valid enum.",
+						                  enum_name.data(), source.c_str());
 
 						have_error = true;
 						return nullptr;
@@ -611,8 +611,8 @@ zeek::Val* Value::ValueToVal(const std::string& source, const Value* val, bool& 
 
 			if ( ! id || ! id->IsEnumConst() )
 				{
-				reporter->Warning("Value '%s' for source '%s' is not a valid enum.",
-				        enum_string.c_str(), source.c_str());
+				reporter->Warning("Value '{:s}' for source '{:s}' is not a valid enum.",
+				                  enum_string.c_str(), source.c_str());
 
 				have_error = true;
 				return nullptr;
@@ -622,8 +622,8 @@ zeek::Val* Value::ValueToVal(const std::string& source, const Value* val, bool& 
 			int intval = t->Lookup(id->ModuleName(), id->Name());
 			if ( intval < 0 )
 				{
-				reporter->Warning("Enum value '%s' for source '%s' not found.",
-				        enum_string.c_str(), source.c_str());
+				reporter->Warning("Enum value '{:s}' for source '{:s}' not found.",
+				                  enum_string.c_str(), source.c_str());
 
 				have_error = true;
 				return nullptr;
@@ -634,7 +634,7 @@ zeek::Val* Value::ValueToVal(const std::string& source, const Value* val, bool& 
 			}
 
 		default:
-			reporter->InternalError("Unsupported type in SerialTypes::ValueToVal from source %s", source.c_str());
+			reporter->InternalError("Unsupported type in SerialTypes::ValueToVal from source {:s}", source.c_str());
 		}
 
 	assert(false);

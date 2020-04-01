@@ -118,7 +118,7 @@ void* PrefixTable::Lookup(const zeek::Val* value, bool exact) const
 		break;
 
 	default:
-		reporter->InternalWarning("Wrong index type %d for PrefixTable",
+		reporter->InternalWarning("Wrong index type {:d} for PrefixTable",
 		                          value->GetType()->Tag());
 		return nullptr;
 	}

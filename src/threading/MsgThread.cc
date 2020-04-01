@@ -163,35 +163,35 @@ bool ReporterMessage::Process()
 	switch ( type ) {
 
 	case INFO:
-		reporter->Info("%s: %s", Object()->Name(), msg);
+		reporter->Info("{:s}: {:s}", Object()->Name(), msg);
 		break;
 
 	case WARNING:
-		reporter->Warning("%s: %s", Object()->Name(), msg);
+		reporter->Warning("{:s}: {:s}", Object()->Name(), msg);
 		break;
 
 	case ERROR:
-		reporter->Error("%s: %s", Object()->Name(), msg);
+		reporter->Error("{:s}: {:s}", Object()->Name(), msg);
 		break;
 
 	case FATAL_ERROR:
-		reporter->FatalError("%s: %s", Object()->Name(), msg);
+		reporter->FatalError("{:s}: {:s}", Object()->Name(), msg);
 		break;
 
 	case FATAL_ERROR_WITH_CORE:
-		reporter->FatalErrorWithCore("%s: %s", Object()->Name(), msg);
+		reporter->FatalErrorWithCore("{:s}: {:s}", Object()->Name(), msg);
 		break;
 
 	case INTERNAL_WARNING:
-		reporter->InternalWarning("%s: %s", Object()->Name(), msg);
+		reporter->InternalWarning("{:s}: {:s}", Object()->Name(), msg);
 		break;
 
 	case INTERNAL_ERROR :
-		reporter->InternalError("%s: %s", Object()->Name(), msg);
+		reporter->InternalError("{:s}: {:s}", Object()->Name(), msg);
 		break;
 
 	default:
-		reporter->InternalError("unknown ReporterMessage type %d", type);
+		reporter->InternalError("unknown ReporterMessage type {:d}", type);
 	}
 
 	return true;
@@ -276,7 +276,7 @@ void MsgThread::OnWaitForStop()
 			assert ( msg );
 
 			if ( ! msg->Process() )
-				reporter->Error("%s failed during thread termination", msg->Name());
+				reporter->Error("{:s} failed during thread termination", msg->Name());
 
 			delete msg;
 			}
@@ -476,7 +476,7 @@ void MsgThread::Process()
 
 		if ( ! msg->Process() )
 			{
-			reporter->Error("%s failed, terminating thread", msg->Name());
+			reporter->Error("{:s} failed, terminating thread", msg->Name());
 			SignalStop();
 			}
 

@@ -1062,8 +1062,8 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const
 
 		if ( ! doc )
 			{
-			reporter->InternalWarning("Failed to lookup record doc: %s",
-			                          GetName().c_str());
+			reporter->InternalWarning("Failed to lookup record doc: {:s}",
+			                          GetName());
 			continue;
 			}
 
@@ -1378,8 +1378,8 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 
 		if ( ! doc )
 			{
-			reporter->InternalWarning("Enum %s documentation lookup failure",
-			                          it->second.c_str());
+			reporter->InternalWarning("Enum {:s} documentation lookup failure",
+			                          it->second);
 			continue;
 			}
 

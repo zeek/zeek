@@ -85,7 +85,7 @@ bool LoadPolicyFileText(const char* policy_filename)
 		{
 		char buf[256];
 		bro_strerror_r(errno, buf, sizeof(buf));
-		reporter->Error("fstat failed on %s: %s", policy_filename, buf);
+		reporter->Error("fstat failed on {:s}: {:s}", policy_filename, buf);
 		fclose(f);
 		return false;
 		}

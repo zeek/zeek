@@ -148,7 +148,7 @@ void PktSrc::Error(const std::string& msg)
 
 void PktSrc::Info(const std::string& msg)
 	{
-	reporter->Info("%s", msg.c_str());
+	reporter->Info("{:s}", msg);
 	}
 
 void PktSrc::Weird(const std::string& msg, const Packet* p)
@@ -158,7 +158,7 @@ void PktSrc::Weird(const std::string& msg, const Packet* p)
 
 void PktSrc::InternalError(const std::string& msg)
 	{
-	reporter->InternalError("%s", msg.c_str());
+	reporter->InternalError("{:s}", msg);
 	}
 
 void PktSrc::ContinueAfterSuspend()

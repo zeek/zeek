@@ -33,7 +33,7 @@ static inline zeek::Val* get_option(const char* option)
 	const auto& id = zeek::detail::global_scope()->Find(option);
 
 	if ( ! (id && id->GetVal()) )
-		reporter->FatalError("Unknown Broker option %s", option);
+		reporter->FatalError("Unknown Broker option {:s}", option);
 
 	return id->GetVal().get();
 	}
@@ -179,7 +179,7 @@ void Manager::InitPostScript()
 	else if ( streq(scheduler_policy, "stealing") )
 		config.set("scheduler.policy", caf::atom("stealing"));
 	else
-		reporter->FatalError("Invalid Broker::scheduler_policy: %s", scheduler_policy);
+		reporter->FatalError("Invalid Broker::scheduler_policy: {:s}", scheduler_policy);
 
 	auto max_threads_env = zeekenv("ZEEK_BROKER_MAX_THREADS");
 
@@ -507,7 +507,7 @@ bool Manager::PublishLogCreate(zeek::EnumVal* stream, zeek::EnumVal* writer,
 
 	if ( ! stream_id )
 		{
-		reporter->Error("Failed to remotely log: stream %d doesn't have name",
+		reporter->Error("Failed to remotely log: stream {:d} doesn't have name",
 		                stream->AsEnum());
 		return false;
 		}
@@ -516,7 +516,7 @@ bool Manager::PublishLogCreate(zeek::EnumVal* stream, zeek::EnumVal* writer,
 
 	if ( ! writer_id )
 		{
-		reporter->Error("Failed to remotely log: writer %d doesn't have name",
+		reporter->Error("Failed to remotely log: writer {:d} doesn't have name",
 		                writer->AsEnum());
 		return false;
 		}
@@ -563,7 +563,7 @@ bool Manager::PublishLogWrite(zeek::EnumVal* stream, zeek::EnumVal* writer, stri
 
 	if ( ! stream_id )
 		{
-		reporter->Error("Failed to remotely log: stream %d doesn't have name",
+		reporter->Error("Failed to remotely log: stream {:d} doesn't have name",
 		                stream->AsEnum());
 		return false;
 		}
@@ -572,7 +572,7 @@ bool Manager::PublishLogWrite(zeek::EnumVal* stream, zeek::EnumVal* writer, stri
 
 	if ( ! writer_id )
 		{
-		reporter->Error("Failed to remotely log: writer %d doesn't have name",
+		reporter->Error("Failed to remotely log: writer {:d} doesn't have name",
 		                writer->AsEnum());
 		return false;
 		}
@@ -587,7 +587,7 @@ bool Manager::PublishLogWrite(zeek::EnumVal* stream, zeek::EnumVal* writer, stri
 
 	if ( ! success )
 		{
-		reporter->Error("Failed to remotely log stream %s: num_fields serialization failed", stream_id);
+		reporter->Error("Failed to remotely log stream {:s}: num_fields serialization failed", stream_id);
 		return false;
 		}
 
@@ -595,7 +595,7 @@ bool Manager::PublishLogWrite(zeek::EnumVal* stream, zeek::EnumVal* writer, stri
 		{
 		if ( ! vals[i]->Write(&fmt) )
 			{
-			reporter->Error("Failed to remotely log stream %s: field %d serialization failed", stream_id, i);
+			reporter->Error("Failed to remotely log stream {:s}: field {:d} serialization failed", stream_id, i);
 			return false;
 			}
 		}
@@ -610,8 +610,7 @@ bool Manager::PublishLogWrite(zeek::EnumVal* stream, zeek::EnumVal* writer, stri
 	if ( ! v )
 		{
 		reporter->Error("Failed to remotely log: log_topic func did not return"
-		                " a value for stream %s at path %s", stream_id,
-		                path.data());
+		                " a value for stream {:s} at path {:s}", stream_id, path);
 		return false;
 		}
 
@@ -859,8 +858,8 @@ void Manager::DispatchMessage(const broker::topic& topic, broker::data msg)
 	{
 	switch ( broker::zeek::Message::type(msg) ) {
 	case broker::zeek::Message::Type::Invalid:
-		reporter->Warning("received invalid broker message: %s",
-						  broker::to_string(msg).data());
+		reporter->Warning("received invalid broker message: {:s}",
+						  broker::to_string(msg));
 		break;
 
 	case broker::zeek::Message::Type::Event:
@@ -885,8 +884,8 @@ void Manager::DispatchMessage(const broker::topic& topic, broker::data msg)
 
 		if ( ! batch.valid() )
 			{
-			reporter->Warning("received invalid broker Batch: %s",
-			                  broker::to_string(batch).data());
+			reporter->Warning("received invalid broker Batch: {:s}",
+			                  broker::to_string(batch));
 			return;
 			}
 
@@ -899,8 +898,8 @@ void Manager::DispatchMessage(const broker::topic& topic, broker::data msg)
 	default:
 		// We ignore unknown types so that we could add more in the
 		// future if we had too.
-		reporter->Warning("received unknown broker message: %s",
-						  broker::to_string(msg).data());
+		reporter->Warning("received unknown broker message: {:s}",
+						  broker::to_string(msg));
 		break;
 	}
 	}
@@ -956,7 +955,7 @@ void Manager::Process()
 			}
 		catch ( std::runtime_error& e )
 			{
-			reporter->Warning("ignoring invalid Broker message: %s", + e.what());
+			reporter->Warning("ignoring invalid Broker message: {:s}", + e.what());
 			continue;
 			}
 		}
@@ -1119,8 +1118,8 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 	{
 	if ( ! ev.valid() )
 		{
-		reporter->Warning("received invalid broker Event: %s",
-		                  broker::to_string(ev.as_data()).data());
+		reporter->Warning("received invalid broker Event: {:s}",
+		                  broker::to_string(ev.as_data()));
 		return;
 		}
 
@@ -1156,8 +1155,8 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 
 	if ( arg_types.size() != args.size() )
 		{
-		reporter->Warning("got event message '%s' with invalid # of args,"
-		                  " got %zd, expected %zu", name.data(), args.size(),
+		reporter->Warning("got event message '{:s}' with invalid # of args,"
+		                  " got {:d}, expected {:d}", name.data(), args.size(),
 		                  arg_types.size());
 		return;
 		}
@@ -1177,9 +1176,8 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 			{
 			auto expected_name = zeek::type_name(expected_type->Tag());
 
-			reporter->Warning("failed to convert remote event '%s' arg #%d,"
-					  " got %s, expected %s",
-					  name.data(), i, got_type,
+			reporter->Warning("failed to convert remote event '{:s}' arg #{:d},"
+					  " got {:s}, expected {:s}", name.data(), i, got_type,
 					  expected_name);
 
 			// If we got a vector and expected a function this is
@@ -1202,8 +1200,8 @@ bool bro_broker::Manager::ProcessLogCreate(broker::zeek::LogCreate lc)
 	DBG_LOG(DBG_BROKER, "Received log-create: %s", RenderMessage(lc.as_data()).c_str());
 	if ( ! lc.valid() )
 		{
-		reporter->Warning("received invalid broker LogCreate: %s",
-		                  broker::to_string(lc).data());
+		reporter->Warning("received invalid broker LogCreate: {:s}",
+		                  broker::to_string(lc));
 		return false;
 		}
 
@@ -1246,7 +1244,7 @@ bool bro_broker::Manager::ProcessLogCreate(broker::zeek::LogCreate lc)
 			fields[i] = field;
 		else
 			{
-			reporter->Warning("failed to convert remote log field # %d", i);
+			reporter->Warning("failed to convert remote log field # {:d}", i);
 			delete [] fields;
 			return false;
 			}
@@ -1256,7 +1254,7 @@ bool bro_broker::Manager::ProcessLogCreate(broker::zeek::LogCreate lc)
 		{
 		ODesc d;
 		stream_id->Describe(&d);
-		reporter->Warning("failed to create remote log stream for %s locally", d.Description());
+		reporter->Warning("failed to create remote log stream for {:s} locally", d.Description());
 		}
 
 	writer_info.release(); // log_mgr took ownership.
@@ -1269,8 +1267,7 @@ bool bro_broker::Manager::ProcessLogWrite(broker::zeek::LogWrite lw)
 
 	if ( ! lw.valid() )
 		{
-		reporter->Warning("received invalid broker LogWrite: %s",
-		                  broker::to_string(lw).data());
+		reporter->Warning("received invalid broker LogWrite: {:s}", broker::to_string(lw));
 		return false;
 		}
 
@@ -1282,8 +1279,7 @@ bool bro_broker::Manager::ProcessLogWrite(broker::zeek::LogWrite lw)
 
 	if ( ! stream_id )
 		{
-		reporter->Warning("failed to unpack remote log stream id: %s",
-		                  stream_id_name.data());
+		reporter->Warning("failed to unpack remote log stream id: {:s}", stream_id_name);
 		return false;
 		}
 
@@ -1291,7 +1287,7 @@ bool bro_broker::Manager::ProcessLogWrite(broker::zeek::LogWrite lw)
 	auto writer_id = data_to_val(std::move(lw.writer_id()), writer_id_type);
 	if ( ! writer_id )
 		{
-		reporter->Warning("failed to unpack remote log writer id for stream: %s", stream_id_name.data());
+		reporter->Warning("failed to unpack remote log writer id for stream: {:s}", stream_id_name);
 		return false;
 		}
 
@@ -1299,7 +1295,7 @@ bool bro_broker::Manager::ProcessLogWrite(broker::zeek::LogWrite lw)
 
 	if ( ! path )
 		{
-		reporter->Warning("failed to unpack remote log values (bad path variant) for stream: %s", stream_id_name.data());
+		reporter->Warning("failed to unpack remote log values (bad path variant) for stream: {:s}", stream_id_name);
 		return false;
 		}
 
@@ -1307,7 +1303,7 @@ bool bro_broker::Manager::ProcessLogWrite(broker::zeek::LogWrite lw)
 
 	if ( ! serial_data )
 		{
-		reporter->Warning("failed to unpack remote log values (bad serial_data variant) for stream: %s", stream_id_name.data());
+		reporter->Warning("failed to unpack remote log values (bad serial_data variant) for stream: {:s}", stream_id_name);
 		return false;
 		}
 
@@ -1319,7 +1315,7 @@ bool bro_broker::Manager::ProcessLogWrite(broker::zeek::LogWrite lw)
 
 	if ( ! success )
 		{
-		reporter->Warning("failed to unserialize remote log num fields for stream: %s", stream_id_name.data());
+		reporter->Warning("failed to unserialize remote log num fields for stream: {:s}", stream_id_name);
 		return false;
 		}
 
@@ -1335,7 +1331,7 @@ bool bro_broker::Manager::ProcessLogWrite(broker::zeek::LogWrite lw)
 				delete vals[j];
 
 			delete [] vals;
-			reporter->Warning("failed to unserialize remote log field %d for stream: %s", i, stream_id_name.data());
+			reporter->Warning("failed to unserialize remote log field {:d} for stream: {:s}", i, stream_id_name);
 
 			return false;
 			}
@@ -1353,8 +1349,7 @@ bool Manager::ProcessIdentifierUpdate(broker::zeek::IdentifierUpdate iu)
 
 	if ( ! iu.valid() )
 		{
-		reporter->Warning("received invalid broker IdentifierUpdate: %s",
-		                  broker::to_string(iu).data());
+		reporter->Warning("received invalid broker IdentifierUpdate: {:s}", broker::to_string(iu));
 		return false;
 		}
 
@@ -1365,8 +1360,7 @@ bool Manager::ProcessIdentifierUpdate(broker::zeek::IdentifierUpdate iu)
 
 	if ( ! id )
 		{
-		reporter->Warning("Received id-update request for unkown id: %s",
-		                 id_name.c_str());
+		reporter->Warning("Received id-update request for unkown id: {:s}", id_name);
 		return false;
 		}
 
@@ -1374,7 +1368,7 @@ bool Manager::ProcessIdentifierUpdate(broker::zeek::IdentifierUpdate iu)
 
 	if ( ! val )
 		{
-		reporter->Error("Failed to receive ID with unsupported type: %s (%s)",
+		reporter->Error("Failed to receive ID with unsupported type: {:s} ({:s})",
 		                id_name.c_str(), zeek::type_name(id->GetType()->Tag()));
 		return false;
 		}
@@ -1495,8 +1489,8 @@ void Manager::ProcessStoreResponse(StoreHandleVal* s, broker::store::response re
 
 	if ( request == pending_queries.end() )
 		{
-		reporter->Warning("unmatched response to query %" PRIu64 " on store %s",
-				  response.id, s->store.name().c_str());
+		reporter->Warning("unmatched response to query {:d} on store {:s}",
+				  response.id, s->store.name());
 		return;
 		}
 
@@ -1525,8 +1519,8 @@ void Manager::ProcessStoreResponse(StoreHandleVal* s, broker::store::response re
 	else if ( response.answer.error() == broker::ec::no_such_key )
 		request->second->Result(query_result());
 	else
-		reporter->InternalWarning("unknown store response status: %s",
-					  to_string(response.answer.error()).c_str());
+		reporter->InternalWarning("unknown store response status: {:s}",
+					  to_string(response.answer.error()));
 
 	delete request->second;
 	pending_queries.erase(request);

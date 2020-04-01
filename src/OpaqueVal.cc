@@ -54,7 +54,7 @@ const std::string& OpaqueMgr::TypeID(const OpaqueVal* v) const
 	auto x = _types.find(v->OpaqueName());
 
 	if ( x == _types.end() )
-		reporter->InternalError("OpaqueMgr::TypeID: opaque type %s not registered",
+		reporter->InternalError("OpaqueMgr::TypeID: opaque type {:s} not registered",
 					v->OpaqueName());
 
 	return x->first;
@@ -1008,12 +1008,12 @@ bool ParaglobVal::DoUnserialize(const broker::data& data)
 		}
 	catch (const paraglob::underflow_error& e)
 		{
-		reporter->Error("Paraglob underflow error -> %s", e.what());
+		reporter->Error("Paraglob underflow error -> {:s}", e.what());
 		return false;
 		}
 	catch (const paraglob::overflow_error& e)
 		{
-		reporter->Error("Paraglob overflow error -> %s", e.what());
+		reporter->Error("Paraglob overflow error -> {:s}", e.what());
 		return false;
 		}
 
@@ -1028,12 +1028,12 @@ ValPtr ParaglobVal::DoClone(CloneState* state)
 		}
 	catch (const paraglob::underflow_error& e)
 		{
-		reporter->Error("Paraglob underflow error while cloning -> %s", e.what());
+		reporter->Error("Paraglob underflow error while cloning -> {:s}", e.what());
 		return nullptr;
 		}
 	catch (const paraglob::overflow_error& e)
 		{
-		reporter->Error("Paraglob overflow error while cloning -> %s", e.what());
+		reporter->Error("Paraglob overflow error while cloning -> {:s}", e.what());
 		return nullptr;
 		}
 	}

@@ -23,8 +23,8 @@ PackageInfo::PackageInfo(const string& arg_name)
 	ifstream f(readme_file.c_str());
 
 	if ( ! f.is_open() )
-		reporter->InternalWarning("Zeekygen failed to open '%s': %s",
-		                          readme_file.c_str(), strerror(errno));
+		reporter->InternalWarning("Zeekygen failed to open '{:s}': {:s}",
+		                          readme_file, strerror(errno));
 
 	string line;
 
@@ -32,8 +32,8 @@ PackageInfo::PackageInfo(const string& arg_name)
 		readme.push_back(line);
 
 	if ( f.bad() )
-		reporter->InternalWarning("Zeekygen error reading '%s': %s",
-		                          readme_file.c_str(), strerror(errno));
+		reporter->InternalWarning("Zeekygen error reading '{:s}': {:s}",
+		                          readme_file, strerror(errno));
 	}
 
 string PackageInfo::DoReStructuredText(bool roles_only) const

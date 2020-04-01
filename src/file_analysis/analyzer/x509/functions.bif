@@ -751,7 +751,7 @@ sct_verify_err:
 	if (key)
 		EVP_PKEY_free(key);
 
-	reporter->Error("%s", errstr.c_str());
+	reporter->Error("{:s}", errstr);
 	return zeek::val_mgr->False();
 	%}
 

@@ -342,8 +342,8 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 		{
 		auto iter = g_dbgfilemaps.find(loc_filename);
 		if ( iter == g_dbgfilemaps.end() )
-			reporter->InternalError("Policy file %s should have been loaded\n",
-					loc_filename.data());
+			reporter->InternalError("Policy file {:s} should have been loaded\n",
+					loc_filename);
 
 		if ( plr.line > how_many_lines_in(loc_filename.data()) )
 			{

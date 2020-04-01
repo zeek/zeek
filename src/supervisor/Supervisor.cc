@@ -288,7 +288,7 @@ Supervisor::~Supervisor()
 		{
 		char tmp[256];
 		bro_strerror_r(errno, tmp, sizeof(tmp));
-		reporter->Error("Failed to send SIGTERM to stem process: %s", tmp);
+		reporter->Error("Failed to send SIGTERM to stem process: {:s}", tmp);
 		}
 	else
 		{
@@ -299,7 +299,7 @@ Supervisor::~Supervisor()
 			{
 			char tmp[256];
 			bro_strerror_r(errno, tmp, sizeof(tmp));
-			reporter->Error("Failed to wait for stem process to exit: %s", tmp);
+			reporter->Error("Failed to wait for stem process to exit: {:s}", tmp);
 			}
 		}
 
@@ -332,7 +332,7 @@ void Supervisor::ReapStem()
 		char tmp[256];
 		bro_strerror_r(errno, tmp, sizeof(tmp));
 		reporter->Error("Supervisor failed to get exit status"
-			            " of stem process: %s", tmp);
+			            " of stem process: {:s}", tmp);
 		return;
 		}
 
@@ -433,7 +433,7 @@ void Supervisor::HandleChildSignal()
 		stem_pid = 0;
 		char tmp[256];
 		bro_strerror_r(errno, tmp, sizeof(tmp));
-		reporter->Error("failed to fork Zeek supervisor stem process: %s\n", tmp);
+		reporter->Error("failed to fork Zeek supervisor stem process: {:s}\n", tmp);
 		signal_flare.Fire();
 		// Sleep to avoid spinning too fast in a revival-fail loop.
 		sleep(1);
@@ -634,10 +634,10 @@ size_t Supervisor::ProcessMessages()
 			{
 			msg_tokens.erase(msg_tokens.begin());
 			auto err_msg = implode_string_vector(msg_tokens, " ");
-			reporter->Error("%s", err_msg.data());
+			reporter->Error("{:s}", err_msg.data());
 			}
 		else
-			reporter->Error("Supervisor got unknown msg: %s", msg.data());
+			reporter->Error("Supervisor got unknown msg: {:s}", msg);
 		}
 
 	return msgs.size();

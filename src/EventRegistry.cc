@@ -117,7 +117,5 @@ void EventRegistry::SetErrorHandler(std::string_view name)
 		return;
 		}
 
-	reporter->InternalWarning("unknown event handler '%s' in SetErrorHandler()",
-	                          std::string(name).c_str());
+	reporter->InternalWarning("unknown event handler '{:s}' in SetErrorHandler()", name);
 	}
-

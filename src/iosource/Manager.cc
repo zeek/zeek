@@ -48,7 +48,7 @@ Manager::Manager()
 	{
 	event_queue = kqueue();
 	if ( event_queue == -1 )
-		reporter->FatalError("Failed to initialize kqueue: %s", strerror(errno));
+		reporter->FatalError("Failed to initialize kqueue: {:s}", strerror(errno));
 	}
 
 Manager::~Manager()
@@ -195,7 +195,7 @@ void Manager::Poll(std::vector<IOSource*>* ready, double timeout, IOSource* time
 		// Ignore interrupts since we may catch one during shutdown and we don't want the
 		// error to get printed.
 		if ( errno != EINTR )
-			reporter->InternalWarning("Error calling kevent: %s", strerror(errno));
+			reporter->InternalWarning("Error calling kevent: {:s}", strerror(errno));
 		}
 	else if ( ret == 0 )
 		{
@@ -251,7 +251,7 @@ bool Manager::RegisterFd(int fd, IOSource* src)
 		}
 	else
 		{
-		reporter->Error("Failed to register fd %d from %s: %s", fd, src->Tag(), strerror(errno));
+		reporter->Error("Failed to register fd {:d} from {:s}: {:s}", fd, src->Tag(), strerror(errno));
 		return false;
 		}
 	}
@@ -273,7 +273,7 @@ bool Manager::UnregisterFd(int fd, IOSource* src)
 		}
 	else
 		{
-		reporter->Error("Attempted to unregister an unknown file descriptor %d from %s", fd, src->Tag());
+		reporter->Error("Attempted to unregister an unknown file descriptor {:d} from {:s}", fd, src->Tag());
 		return false;
 		}
 	}
@@ -364,7 +364,7 @@ PktSrc* Manager::OpenPktSrc(const std::string& path, bool is_live)
 
 
 	if ( ! component )
-		reporter->FatalError("type of packet source '%s' not recognized, or mode not supported", prefix.c_str());
+		reporter->FatalError("type of packet source '{:s}' not recognized, or mode not supported", prefix);
 
 	// Instantiate packet source.
 
@@ -399,7 +399,7 @@ PktDumper* Manager::OpenPktDumper(const std::string& path, bool append)
 		}
 
 	if ( ! component )
-		reporter->FatalError("type of packet dumper '%s' not recognized", prefix.c_str());
+		reporter->FatalError("type of packet dumper '{:s}' not recognized", prefix);
 
 	// Instantiate packet dumper.
 

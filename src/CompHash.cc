@@ -725,7 +725,7 @@ zeek::ListValPtr CompositeHash::RecoverVals(const HashKey& k) const
 		}
 
 	if ( kp != k_end )
-		reporter->InternalError("under-ran key in CompositeHash::DescribeKey %zd", k_end - kp);
+		reporter->InternalError("under-ran key in CompositeHash::DescribeKey {:d}", k_end - kp);
 
 	return l;
 	}
@@ -852,7 +852,7 @@ const char* CompositeHash::RecoverOneVal(
 			const auto& f = zeek::Func::GetFuncPtrByID(*kp);
 
 			if ( ! f )
-				reporter->InternalError("failed to look up unique function id %" PRIu32 " in CompositeHash::RecoverOneVal()", *kp);
+				reporter->InternalError("failed to look up unique function id {:d} in CompositeHash::RecoverOneVal()", *kp);
 
 			*pval = zeek::make_intrusive<zeek::Val>(f);
 			const auto& pvt = (*pval)->GetType();

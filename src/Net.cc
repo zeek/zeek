@@ -128,7 +128,7 @@ RETSIGTYPE watchdog(int /* signo */)
 			net_finish(0);
 
 			reporter->FatalErrorWithCore(
-			          "**watchdog timer expired, t = %d.%06d, start = %d.%06d, dispatched = %d",
+			          "**watchdog timer expired, t = {:d}.{:06d}, start = {:d}.{:06d}, dispatched = {:d}",
 				      int_ct, frac_ct, int_pst, frac_pst,
 					  current_dispatched);
 			}
@@ -160,7 +160,7 @@ void net_init(const std::optional<std::string>& interface,
 		assert(ps);
 
 		if ( ! ps->IsOpen() )
-			reporter->FatalError("problem with trace file %s (%s)",
+			reporter->FatalError("problem with trace file {:s} ({:s})",
 				pcap_input_file->c_str(), ps->ErrorMsg());
 		}
 	else if ( interface )
@@ -172,7 +172,7 @@ void net_init(const std::optional<std::string>& interface,
 		assert(ps);
 
 		if ( ! ps->IsOpen() )
-			reporter->FatalError("problem with interface %s (%s)",
+			reporter->FatalError("problem with interface {:s} ({:s})",
 				interface->c_str(), ps->ErrorMsg());
 		}
 
@@ -190,7 +190,7 @@ void net_init(const std::optional<std::string>& interface,
 		assert(pkt_dumper);
 
 		if ( ! pkt_dumper->IsOpen() )
-			reporter->FatalError("problem opening dump file %s (%s)",
+			reporter->FatalError("problem opening dump file {:s} ({:s})",
 					     writefile, pkt_dumper->ErrorMsg());
 
 		if ( const auto& id = zeek::detail::global_scope()->Find("trace_output_file") )
@@ -373,7 +373,7 @@ void net_get_final_stats()
 		iosource::PktSrc::Stats s;
 		ps->Statistics(&s);
 		double dropped_pct = s.dropped > 0.0 ? ((double)s.dropped / ((double)s.received + (double)s.dropped)) * 100.0 : 0.0;
-		reporter->Info("%" PRIu64 " packets received on interface %s, %" PRIu64 " (%.2f%%) dropped",
+		reporter->Info("{:d} packets received on interface {:s}, {:d} ({:.2f}%) dropped",
 			s.received, ps->Path().c_str(), s.dropped, dropped_pct);
 		}
 	}

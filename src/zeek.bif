@@ -520,7 +520,7 @@ function piped_exec%(program: string, to_write: string%): bool
 	FILE* f = popen(prog, "w");
 	if ( ! f )
 		{
-		reporter->Error("Failed to popen %s", prog);
+		reporter->Error("Failed to popen {:s}", prog);
 		return zeek::val_mgr->False();
 		}
 
@@ -533,7 +533,7 @@ function piped_exec%(program: string, to_write: string%): bool
 
 	if ( bytes_written != input_data_len )
 		{
-		reporter->Error("Failed to write all given data to %s", prog);
+		reporter->Error("Failed to write all given data to {:s}", prog);
 		return zeek::val_mgr->False();
 		}
 
@@ -827,7 +827,7 @@ function paraglob_init%(v: any%) : opaque of paraglob
 	// Thrown if paraglob fails to add a pattern.
 	catch (const paraglob::add_error& e)
 		{
-		reporter->Error("Paraglob failed to add pattern: %s", e.what());
+		reporter->Error("Paraglob failed to add pattern: {:s}", e.what());
 		return nullptr;
 		}
 	%}
@@ -959,7 +959,7 @@ function srand%(seed: count%): any
 ## s: The string to log via syslog
 function syslog%(s: string%): any
 	%{
-	reporter->Syslog("%s", s->CheckString());
+	reporter->Syslog("{:s}", s->CheckString());
 	return nullptr;
 	%}
 
@@ -2237,7 +2237,7 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 	len -= 4;
 
 	if ( ( len % 16 ) != 0 )
-		reporter->Warning("Bad ip6_routing data length: %d", s->Len());
+		reporter->Warning("Bad ip6_routing data length: {:d}", s->Len());
 
 	while ( len > 0 )
 		{
@@ -2893,7 +2893,7 @@ function hexstr_to_bytestring%(hexstr: string%): string
 	bro_uint_t len = hexstr->AsString()->Len();
 	if ( len % 2 != 0 )
 		{
-		reporter->Error("Hex string '%s' has invalid length (not divisible by 2)", hexstr->CheckString());
+		reporter->Error("Hex string '{:s}' has invalid length (not divisible by 2)", hexstr->CheckString());
 		return zeek::val_mgr->EmptyString();
 		}
 
@@ -2909,13 +2909,13 @@ function hexstr_to_bytestring%(hexstr: string%): string
 
 		if ( res == EOF )
 			{
-			reporter->Error("Hex string %s contains invalid input: %s", hexstr->CheckString(), strerror(errno));
+			reporter->Error("Hex string {:s} contains invalid input: {:s}", hexstr->CheckString(), strerror(errno));
 			return zeek::val_mgr->EmptyString();
 			}
 
 		else if ( res != 1 )
 			{
-			reporter->Error("Could not read hex element from input %s", hexstr->CheckString());
+			reporter->Error("Could not read hex element from input {:s}", hexstr->CheckString());
 			return zeek::val_mgr->EmptyString();
 			}
 
@@ -2963,7 +2963,7 @@ function decode_base64%(s: string, a: string &default=""%): string
 		return zeek::make_intrusive<zeek::StringVal>(t);
 	else
 		{
-		reporter->Error("error in decoding string %s", s->CheckString());
+		reporter->Error("error in decoding string {:s}", s->CheckString());
 		return zeek::val_mgr->EmptyString();
 		}
 	%}
@@ -2996,7 +2996,7 @@ function decode_base64_conn%(cid: conn_id, s: string, a: string &default=""%): s
 		return zeek::make_intrusive<zeek::StringVal>(t);
 	else
 		{
-		reporter->Error("error in decoding string %s", s->CheckString());
+		reporter->Error("error in decoding string {:s}", s->CheckString());
 		return zeek::val_mgr->EmptyString();
 		}
 	%}
@@ -3156,7 +3156,7 @@ function strptime%(fmt: string, d: string%) : time
 	if ( ! localtime_r(&timeval, &t) ||
 	     ! strptime(d->CheckString(), fmt->CheckString(), &t) )
 		{
-		reporter->Warning("strptime conversion failed: fmt:%s d:%s", fmt->CheckString(), d->CheckString());
+		reporter->Warning("strptime conversion failed: fmt:{:s} d:{:s}", fmt->CheckString(), d->CheckString());
 		return zeek::make_intrusive<zeek::TimeVal>(0.0);
 		}
 
@@ -3700,7 +3700,7 @@ static void report_mmdb_msg(const char* format, ...)
 	std::string msg = fmt(format, al);
 	va_end(al);
 
-	reporter->Info("%s", msg.data());
+	reporter->Info("{:s}", msg.data());
 	}
 
 class MMDB {
@@ -3775,7 +3775,7 @@ bool MMDB::StaleDB()
 
 	if ( buf.st_ino != file_info.st_ino || buf.st_mtime != file_info.st_mtime )
 		{
-		report_mmdb_msg("Inode change detected for MaxMind DB [%s]",
+		report_mmdb_msg("Inode change detected for MaxMind DB [{:s}]",
 		                mmdb.filename);
 		return true;
 		}
@@ -3821,7 +3821,7 @@ static bool mmdb_open(const char* filename, bool asn)
 		else
 			did_mmdb_loc_db_error = false;
 
-		report_mmdb_msg("Failed to open MaxMind DB: %s [%s]", filename,
+		report_mmdb_msg("Failed to open MaxMind DB: {:s} [{:s}]", filename,
 		                e.what());
 		return false;
 		}
@@ -3843,7 +3843,7 @@ static void mmdb_check_loc()
 	{
 	if ( mmdb_loc && mmdb_loc->StaleDB() )
 		{
-		report_mmdb_msg("Closing stale MaxMind DB [%s]", mmdb_loc->Filename());
+		report_mmdb_msg("Closing stale MaxMind DB [{:s}]", mmdb_loc->Filename());
 		did_mmdb_loc_db_error = false;
 		mmdb_loc.release();
 		}
@@ -3853,7 +3853,7 @@ static void mmdb_check_asn()
 	{
 	if ( mmdb_asn && mmdb_asn->StaleDB() )
 		{
-		report_mmdb_msg("Closing stale MaxMind DB [%s]", mmdb_asn->Filename());
+		report_mmdb_msg("Closing stale MaxMind DB [{:s}]", mmdb_asn->Filename());
 		did_mmdb_asn_db_error = false;
 		mmdb_asn.release();
 		}
@@ -3886,7 +3886,7 @@ static bool mmdb_lookup(const IPAddr& addr, MMDB_lookup_result_s& result,
 
 	catch ( const std::exception& e )
 		{
-		report_mmdb_msg("MaxMind DB lookup location error [%s]", e.what());
+		report_mmdb_msg("MaxMind DB lookup location error [{:s}]", e.what());
 		return false;
 		}
 
@@ -3936,7 +3936,7 @@ static zeek::ValPtr mmdb_getvalue(MMDB_entry_data_s* entry_data, int status,
 			break;
 
 		default:
-			report_mmdb_msg("MaxMind DB error [%s]", MMDB_strerror(status));
+			report_mmdb_msg("MaxMind DB error [{:s}]", MMDB_strerror(status));
 			break;
 		}
 

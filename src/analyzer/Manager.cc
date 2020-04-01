@@ -298,7 +298,7 @@ Analyzer* Manager::InstantiateAnalyzer(const Tag& tag, Connection* conn)
 
 	if ( ! c->Factory() )
 		{
-		reporter->InternalWarning("analyzer %s cannot be instantiated dynamically",
+		reporter->InternalWarning("analyzer {:s} cannot be instantiated dynamically",
 					  GetComponentName(tag).c_str());
 		return nullptr;
 		}

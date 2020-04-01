@@ -138,8 +138,7 @@ const zeek::detail::IDPtr& lookup_ID(const char* name, const char* curr_module,
 		if ( id )
 			{
 			if ( need_export && ! id->IsExport() && ! in_debug )
-				reporter->Error("identifier is not exported: %s",
-				                fullname.c_str());
+				reporter->Error("identifier is not exported: {:s}", fullname);
 
 			return id;
 			}

@@ -52,7 +52,7 @@ RuleActionAnalyzer::RuleActionAnalyzer(const char* arg_analyzer)
 	analyzer = analyzer_mgr->GetComponentTag(arg.c_str());
 
 	if ( ! analyzer )
-		reporter->Warning("unknown analyzer '%s' specified in rule", arg.c_str());
+		reporter->Warning("unknown analyzer '{:s}' specified in rule", arg);
 
 	if ( pos != string::npos )
 		{
@@ -60,7 +60,7 @@ RuleActionAnalyzer::RuleActionAnalyzer(const char* arg_analyzer)
 		child_analyzer = analyzer_mgr->GetComponentTag(arg.c_str());
 
 		if ( ! child_analyzer )
-			reporter->Warning("unknown analyzer '%s' specified in rule", arg.c_str());
+			reporter->Warning("unknown analyzer '{:s}' specified in rule", arg);
 		}
 	else
 		child_analyzer = analyzer::Tag();

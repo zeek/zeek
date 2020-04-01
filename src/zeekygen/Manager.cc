@@ -23,7 +23,7 @@ static void DbgAndWarn(const char* msg)
 		// be confusing.
 		return;
 
-	reporter->Warning("%s", msg);
+	reporter->Warning("{:s}", msg);
 	DBG_LOG(DBG_ZEEKYGEN, "%s", msg);
 	}
 
@@ -88,8 +88,8 @@ Manager::Manager(const string& arg_config, const string& bro_command)
 	// a PATH component that starts with a tilde (such as "~/bin").  A simple
 	// workaround is to just run bro with a relative or absolute path.
 	if ( path_to_bro.empty() || stat(path_to_bro.c_str(), &s) < 0 )
-		reporter->InternalError("Zeekygen can't get mtime of zeek binary %s (try again by specifying the absolute or relative path to Zeek): %s",
-		                        path_to_bro.c_str(), strerror(errno));
+		reporter->InternalError("Zeekygen can't get mtime of zeek binary {:s} (try again by specifying the absolute or relative path to Zeek): {:s}",
+		                        path_to_bro, strerror(errno));
 
 	// Internal error will abort above in the case that stat isn't initialized
 	// NOLINTNEXTLINE(clang-analyzer-core.uninitialized.Assign)

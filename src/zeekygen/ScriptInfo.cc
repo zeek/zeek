@@ -377,8 +377,8 @@ time_t ScriptInfo::DoGetModificationTime() const
 				}
 
 			if ( ! info )
-				reporter->InternalWarning("Zeekygen failed to get mtime of %s",
-				                          it->c_str());
+				reporter->InternalWarning("Zeekygen failed to get mtime of {:s}", *it);
+
 			continue;
 			}
 

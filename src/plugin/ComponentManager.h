@@ -186,8 +186,8 @@ const std::string& ComponentManager<T, C>::GetComponentName(T tag) const
 	if ( c )
 		return c->CanonicalName();
 
-	reporter->InternalWarning("requested name of unknown component tag %s",
-		                      tag.AsString().c_str());
+	reporter->InternalWarning("requested name of unknown component tag {:s}",
+		                      tag.AsString());
 	return error;
 	}
 
@@ -247,8 +247,8 @@ void ComponentManager<T, C>::RegisterComponent(C* component,
 	std::string cname = component->CanonicalName();
 
 	if ( Lookup(cname) )
-		reporter->FatalError("Component '%s::%s' defined more than once",
-		                     module.c_str(), cname.c_str());
+		reporter->FatalError("Component '{:s}::{:s}' defined more than once",
+		                     module, cname);
 
 	DBG_LOG(DBG_PLUGINS, "Registering component %s (tag %s)",
 	        component->Name().c_str(), component->Tag().AsString().c_str());

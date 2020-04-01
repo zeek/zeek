@@ -245,8 +245,8 @@ bool Manager::IsUpToDate(const std::string& target_file,
 			// Doesn't exist.
 			return false;
 
-		reporter->InternalError("Zeekygen failed to stat target file '%s': %s",
-		                        target_file.c_str(), strerror(errno));
+		reporter->InternalError("Zeekygen failed to stat target file '{:s}': {:s}",
+		                        target_file, strerror(errno));
 		}
 
 	if ( difftime(bro_mtime, s.st_mtime) > 0 )

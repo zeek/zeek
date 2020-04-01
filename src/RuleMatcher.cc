@@ -263,7 +263,7 @@ bool RuleMatcher::ReadFiles(const std::vector<std::string>& files)
 
 		if ( ! rules_in )
 			{
-			reporter->Error("Can't open signature file %s", f.data());
+			reporter->Error("Can't open signature file {:s}", f);
 			return false;
 			}
 

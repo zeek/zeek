@@ -90,7 +90,7 @@ function Files::__lookup_file%(fuid: string%): fa_file
 	if ( f != nullptr )
 		return f->ToVal();
 
-	reporter->Error("file ID %s not a known file", fuid->CheckString());
+	reporter->Error("file ID {:s} not a known file", fuid->CheckString());
 	return nullptr;
 	%}
 

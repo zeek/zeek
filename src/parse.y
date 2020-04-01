@@ -681,7 +681,7 @@ expr:
 			else
 				{
 				if ( id->IsDeprecated() )
-					reporter->Warning("%s", id->GetDeprecationWarning().c_str());
+					reporter->Warning("{:s}", id->GetDeprecationWarning());
 
 				if ( ! id->GetType() )
 					{
@@ -695,7 +695,7 @@ expr:
 					zeek::EnumType* t = id->GetType()->AsEnumType();
 					auto intval = t->Lookup(id->ModuleName(), id->Name());
 					if ( intval < 0 )
-						reporter->InternalError("enum value not found for %s", id->Name());
+						reporter->InternalError("enum value not found for {:s}", id->Name());
 					$$ = new zeek::detail::ConstExpr(t->GetEnumVal(intval));
 					}
 				else
@@ -1003,7 +1003,7 @@ type:
 				Ref($$);
 
 				if ( $1->IsDeprecated() )
-					reporter->Warning("%s", $1->GetDeprecationWarning().c_str());
+					reporter->Warning("{:s}", $1->GetDeprecationWarning());
 				}
 			}
 	;
@@ -1190,7 +1190,7 @@ func_hdr:
 			if ( streq("bro_init", name) || streq("bro_done", name) || streq("bro_script_loaded", name) )
 				{
 				auto base = std::string(name).substr(4);
-				reporter->Error("event %s() is no longer available, use zeek_%s() instead", name, base.c_str());
+				reporter->Error("event {:s}() is no longer available, use zeek_{:s}() instead", name, base);
 				}
 
 			begin_func({zeek::NewRef{}, $2}, zeek::detail::current_module.c_str(),
@@ -1403,7 +1403,7 @@ attr:
 				ODesc d;
 				$3->Describe(&d);
 				Unref($3);
-				reporter->Error("'&deprecated=%s' must use a string literal",
+				reporter->Error("'&deprecated={:s}' must use a string literal",
 				                d.Description());
 				$$ = new zeek::detail::Attr(zeek::detail::ATTR_DEPRECATED);
 				}
@@ -1628,7 +1628,7 @@ event:
 					}
 
 				if ( id->IsDeprecated() )
-					reporter->Warning("%s", id->GetDeprecationWarning().c_str());
+					reporter->Warning("{:s}", id->GetDeprecationWarning());
 				}
 
 			$$ = new zeek::detail::EventExpr($1, {zeek::AdoptRef{}, $3});
@@ -1840,7 +1840,7 @@ global_or_event_id:
 
 					if ( t->Tag() != zeek::TYPE_FUNC ||
 					     t->AsFuncType()->Flavor() != zeek::FUNC_FLAVOR_FUNCTION )
-						reporter->Warning("%s", $$->GetDeprecationWarning().c_str());
+						reporter->Warning("{:s}", $$->GetDeprecationWarning().c_str());
 					}
 
 				delete [] $1;
@@ -1867,7 +1867,7 @@ resolve_id:
 			$$ = id.release();
 
 			if ( ! $$ )
-				reporter->Error("identifier not defined: %s", $1);
+				reporter->Error("identifier not defined: {:s}", $1);
 
 			delete [] $1;
 			}
@@ -1897,7 +1897,7 @@ opt_deprecated:
 				{
 				ODesc d;
 				$3->Describe(&d);
-				reporter->Error("'&deprecated=%s' must use a string literal",
+				reporter->Error("'&deprecated={:s}' must use a string literal",
 				                d.Description());
 				$$ = new zeek::detail::ConstExpr(zeek::make_intrusive<zeek::StringVal>(""));
 				}
@@ -1913,22 +1913,22 @@ int yyerror(const char msg[])
 		g_curr_debug_error = copy_string(msg);
 
 	if ( last_tok[0] == '\n' )
-		reporter->Error("%s, on previous line", msg);
+		reporter->Error("{:s}, on previous line", msg);
 	else if ( last_tok[0] == '\0' )
 		{
 		if ( last_filename )
-			reporter->Error("%s, at end of file %s", msg, last_filename);
+			reporter->Error("{:s}, at end of file {:s}", msg, last_filename);
 		else
-			reporter->Error("%s, at end of file", msg);
+			reporter->Error("{:s}, at end of file", msg);
 		}
 	else
 		{
 		if ( last_last_tok_filename && last_tok_filename &&
 		     ! streq(last_last_tok_filename, last_tok_filename) )
-			reporter->Error("%s, at or near \"%s\" or end of file %s",
+			reporter->Error("{:s}, at or near \"{:s}\" or end of file {:s}",
 			                msg, last_tok, last_last_tok_filename);
 		else
-			reporter->Error("%s, at or near \"%s\"", msg, last_tok);
+			reporter->Error("{:s}, at or near \"{:s}\"", msg, last_tok);
 		}
 
 	return 0;

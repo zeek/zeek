@@ -129,7 +129,7 @@ bool Specific_RE_Matcher::Compile(bool lazy)
 
 	if ( parse_status )
 		{
-		reporter->Error("error compiling pattern /%s/", pattern_text);
+		reporter->Error("error compiling pattern /{:s}/", pattern_text);
 		Unref(nfa);
 		nfa = nullptr;
 		return false;
@@ -165,7 +165,7 @@ bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx
 
 		if ( parse_status )
 			{
-			reporter->Error("error compiling pattern /%s/", set[i]);
+			reporter->Error("error compiling pattern /{:s}/", set[i]);
 
 			if ( set_nfa && set_nfa != nfa )
 				Unref(set_nfa);

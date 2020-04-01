@@ -279,7 +279,7 @@ ValPtr PrintStmt::DoExec(std::vector<ValPtr> vals,
 			}
 		break;
 	default:
-		reporter->InternalError("unknown Log::PrintLogType value: %d",
+		reporter->InternalError("unknown Log::PrintLogType value: {:d}",
 		                        print_log_type);
 		break;
 	}
@@ -746,7 +746,7 @@ bool SwitchStmt::AddCaseLabelValueMapping(const Val* v, int idx)
 	if ( ! hk )
 		{
 		reporter->PushLocation(e->GetLocationInfo());
-		reporter->InternalError("switch expression type mismatch (%s/%s)",
+		reporter->InternalError("switch expression type mismatch ({:s}/{:s})",
 		    type_name(v->GetType()->Tag()), type_name(e->GetType()->Tag()));
 		}
 
@@ -786,7 +786,7 @@ std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const
 		if ( ! hk )
 			{
 			reporter->PushLocation(e->GetLocationInfo());
-			reporter->Error("switch expression type mismatch (%s/%s)",
+			reporter->Error("switch expression type mismatch ({:s}/{:s})",
 					type_name(v->GetType()->Tag()), type_name(e->GetType()->Tag()));
 			return std::make_pair(-1, nullptr);
 			}

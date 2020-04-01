@@ -10,14 +10,16 @@
 enum RDPEUDP_STATE {
         NEED_SYN	= 0x1,
         NEED_SYNACK	= 0x2,
-        ESTABLISHED	= 0x3,
+	NEED_ACK	= 0x3,
+        ESTABLISHED	= 0x4,
 };
 
 type RDPEUDP_PDU(is_orig: bool) = record {
 	state: case $context.connection.get_state() of {
 		NEED_SYN 	->  need_syn:		RDPEUDP_SYN(this, is_orig);
 		NEED_SYNACK 	->  need_synack:	RDPEUDP_SYNACK(this, is_orig);
-		ESTABLISHED	->  est1:		RDPEUDP_ACK(this, is_orig);
+		NEED_ACK	->  need_ack:		RDPEUDP_ACK(this, is_orig);
+		default		->  established:	RDPEUDP_ACK(this, is_orig);
 	};
 } &byteorder=bigendian;
 
@@ -46,7 +48,7 @@ enum RDPUDP_FLAG {
 	RDPUDP_FLAG_SYNLOSSY	= 0x0200,
 	RDPUDP_FLAG_ACKDELAYED 	= 0x0400,
 	RDPUDP_FLAG_CORRELATION_ID = 0x800,
-	RDPUDP_FLAG_SYNEX = 0x1000
+	RDPUDP_FLAG_SYNEX 	= 0x1000
 };
 
 type RDPEUDP_ACK(pdu: RDPEUDP_PDU, is_orig: bool) = record {

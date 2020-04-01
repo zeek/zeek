@@ -3,10 +3,12 @@ refine connection RDPEUDP_Conn += {
 		enum RDPEUDP_STATE {
 		        NEED_SYN	= 0x1,
 		        NEED_SYNACK	= 0x2,
-		        ESTABLISHED	= 0x3,
+			NED_ACK		= 0x3,
+		        ESTABLISHED	= 0x4,
 		};
 		uint8 state_ = NEED_SYN;
-		bool is_rdpeudp2_ = false;
+		bool client_rdpeudp2_ = false;
+		bool server_rdpeudp2_ = false;
 	%}
 	function get_state(): uint8
 	%{
@@ -25,7 +27,7 @@ refine connection RDPEUDP_Conn += {
 			return false;
 		}
 		if (uFlags >= 0x1000) {
-			is_rdpeudp2_ = true;
+			client_rdpeudp2_ = true;
 		}
                 BifEvent::generate_rdpeudp_syn(bro_analyzer(), bro_analyzer()->Conn());
 		state_ = NEED_SYNACK;
@@ -43,18 +45,17 @@ refine connection RDPEUDP_Conn += {
 		}
                 BifEvent::generate_rdpeudp_synack(bro_analyzer(), bro_analyzer()->Conn());
 		bro_analyzer()->ProtocolConfirmation();
-		if (is_rdpeudp2_) {
-			state_ = ESTABLISHED;
-	                BifEvent::generate_rdpeudp_established(bro_analyzer(), bro_analyzer()->Conn());
-		} else {
-			state_ = ESTABLISHED;
-        	        BifEvent::generate_rdpeudp_established(bro_analyzer(), bro_analyzer()->Conn());
+		state_ = NEED_ACK;
+		if (uFlags >= 0x1000) {
+			server_rdpeudp2_ = true;
 		}
                 return true;
 	%}
 
         function proc_rdpeudp_ack(is_orig: bool, data: bytestring): bool
 	%{
+        	BifEvent::generate_rdpeudp_established(bro_analyzer(), bro_analyzer()->Conn());
+		state_ = ESTABLISHED;
 		if ( rdpeudp_data )
 			BifEvent::generate_rdpeudp_data(bro_analyzer(),
 							bro_analyzer()->Conn(),

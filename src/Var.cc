@@ -474,6 +474,8 @@ void end_func(IntrusivePtr<Stmt> body)
 
 	bool is_addition = true;
 
+	bool is_addition = true;
+
 	if ( ingredients->id->HasVal() )
 		ingredients->id->ID_Val()->AsFunc()->AddBody(
 			ingredients->body,

@@ -128,6 +128,8 @@ protected:
 
 	bool IsReduced() const override;
 
+	bool IsReduced() const override;
+
 	void Describe(ODesc* d) const override;
 
 	IntrusivePtr<ListExpr> l;

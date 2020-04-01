@@ -93,11 +93,6 @@ bool Stmt::IsReduced() const
 	return true;
 	}
 
-bool Stmt::IsReduced() const
-	{
-	return true;
-	}
-
 void Stmt::Describe(ODesc* d) const
 	{
 	if ( ! d->IsReadable() || Tag() != STMT_EXPR )
@@ -167,16 +162,6 @@ IntrusivePtr<Val> ExprListStmt::Exec(Frame* f, stmt_flow_type& flow) const
 		return DoExec(std::move(*vals), flow);
 
 	return nullptr;
-	}
-
-bool ExprListStmt::IsReduced() const
-	{
-	const expr_list& e = l->Exprs();
-	for ( const auto& expr : e )
-		if ( ! expr->IsReduced() )
-			return false;
-
-	return true;
 	}
 
 bool ExprListStmt::IsReduced() const
@@ -900,20 +885,6 @@ bool SwitchStmt::IsReduced() const
 	return true;
 	}
 
-bool SwitchStmt::IsReduced() const
-	{
-	if ( ! e->IsReduced() )
-		return false;
-
-	for ( const auto& c : *cases )
-		{
-		if ( ! c->ExprCases()->IsReduced() || ! c->Body()->IsReduced() )
-			return false;
-		}
-
-	return true;
-	}
-
 void SwitchStmt::Describe(ODesc* d) const
 	{
 	ExprStmt::Describe(d);
@@ -1605,14 +1576,6 @@ bool StmtList::IsPure() const
 	{
 	for ( const auto& stmt : stmts )
 		if ( ! stmt->IsPure() )
-			return false;
-	return true;
-	}
-
-bool StmtList::IsReduced() const
-	{
-	for ( const auto& stmt : stmts )
-		if ( ! stmt->IsReduced() )
 			return false;
 	return true;
 	}

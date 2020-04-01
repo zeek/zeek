@@ -470,10 +470,6 @@ void end_func(IntrusivePtr<Stmt> body)
 	{
 	auto ingredients = std::make_unique<function_ingredients>(pop_scope(), std::move(body));
 
-	analyze_function_ingredients(ingredients);
-
-	bool is_addition = true;
-
 	bool is_addition = true;
 
 	if ( ingredients->id->HasVal() )

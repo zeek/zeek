@@ -282,7 +282,3 @@ event successful_connection_remove(c: connection) &priority=-5
 		write_log(c);
 		}
 	}
-
-event rdpeudp_established(c: connection) {
-	add c$service["rdpeudp"];
-}

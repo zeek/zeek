@@ -42,7 +42,7 @@ refine connection RDPEUDP_Conn += {
 			return false;
 		}
                 BifEvent::generate_rdpeudp_synack(bro_analyzer(), bro_analyzer()->Conn());
-
+		bro_analyzer()->ProtocolConfirmation();
 		if (is_rdpeudp2_) {
 			state_ = ESTABLISHED;
 	                BifEvent::generate_rdpeudp_established(bro_analyzer(), bro_analyzer()->Conn());

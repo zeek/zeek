@@ -12,7 +12,7 @@ inline RD_ptr make_new_RD_ptr() { return make_intrusive<ReachingDefs>(); }
 
 class ReachingDefs : public BroObj {
 public:
-	void AddRDs(const RD_ptr rd)
+	void AddRDs(const RD_ptr& rd)
 		{
 		auto& rd_m = rd->RDMap();
 
@@ -36,8 +36,8 @@ public:
 		return l != rd_map.end() && l->second.SameAs(dp);
 		}
 
-	RD_ptr Intersect(const RD_ptr r) const;
-	RD_ptr Union(const RD_ptr r) const;
+	RD_ptr Intersect(const RD_ptr& r) const;
+	RD_ptr Union(const RD_ptr& r) const;
 
 	void Dump() const;
 
@@ -86,7 +86,7 @@ public:
 		return RDs->second->HasDI(di);
 		}
 
-	RD_ptr RDs(const BroObj* o) const
+	RD_ptr RDsIfAny(const BroObj* o) const
 		{
 		if ( o == nullptr )
 			return nullptr;
@@ -111,7 +111,7 @@ public:
 			return make_new_RD_ptr();
 		}
 
-	void AddRDs(const BroObj* o, const RD_ptr rd)
+	void AddRDs(const BroObj* o, const RD_ptr& rd)
 		{
 		if ( HasRDs(o) )
 			MergeRDs(o, rd);
@@ -120,7 +120,7 @@ public:
 		}
 
 protected:
-	void MergeRDs(const BroObj* o, const RD_ptr rd)
+	void MergeRDs(const BroObj* o, const RD_ptr& rd)
 		{
 		auto curr_rds = a_i->find(o)->second;
 		curr_rds->AddRDs(rd);

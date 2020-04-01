@@ -48,7 +48,7 @@ protected:
 	bool ControlReachesEnd(const Stmt* s, bool is_definite,
 				bool ignore_break = false) const;
 
-	const RD_ptr PredecessorRDs() const
+	RD_ptr PredecessorRDs() const
 		{
 		auto rd = PostRDsIfAny(last_obj);
 		if ( rd && rd->Size() > 0 )
@@ -59,9 +59,9 @@ protected:
 		}
 
 	RD_ptr PreRDsIfAny(const BroObj* o) const
-		{ return pre_defs->FindRDs(o); }
+		{ return pre_defs->RDsIfAny(o); }
 	RD_ptr PostRDsIfAny(const BroObj* o) const
-		{ return post_defs->FindRDs(o); }
+		{ return post_defs->RDsIfAny(o); }
 
 	RD_ptr GetPreRDs(const BroObj* o) const
 		{ return GetRDs(pre_defs, o); }
@@ -75,9 +75,9 @@ protected:
 		return rds;
 		}
 
-	void AddPreRDs(const BroObj* o, const RD_ptr rd)
+	void AddPreRDs(const BroObj* o, const RD_ptr& rd)
 		{ pre_defs->AddRDs(o, rd); }
-	void AddPostRDs(const BroObj* o, const RD_ptr rd)
+	void AddPostRDs(const BroObj* o, const RD_ptr& rd)
 		{ post_defs->AddRDs(o, rd); }
 
 	bool HasPreRD(const BroObj* o, const ID* id) const

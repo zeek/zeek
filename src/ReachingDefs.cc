@@ -3,7 +3,7 @@
 #include "ReachingDefs.h"
 
 
-RD_ptr ReachingDefs::Intersect(const RD_ptr r) const
+RD_ptr ReachingDefs::Intersect(const RD_ptr& r) const
 	{
 	RD_ptr res = make_new_RD_ptr();
 
@@ -19,7 +19,7 @@ RD_ptr ReachingDefs::Intersect(const RD_ptr r) const
 	return res;
 	}
 
-RD_ptr ReachingDefs::Union(const RD_ptr r) const
+RD_ptr ReachingDefs::Union(const RD_ptr& r) const
 	{
 	auto res = make_new_RD_ptr();
 

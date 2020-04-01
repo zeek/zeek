@@ -101,31 +101,42 @@ type RDPUDP_ACK_VECTOR_HEADER = record {
 # version 2
 type RDPEUDP2_ACK(pdu: RDPEUDP_PDU, is_orig: bool) = record {
 	header:			RDPUDP2_PACKET_HEADER;
-	ack_payload:		case (header.Flags % 2) of {
-		0 -> none:	empty;
-		1 -> some:	RDPUDP2_ACK_PAYLOAD;
+	ack_payload:		case ((header.Flags & ACK) > 0) of {
+		true -> has_ack_p:		RDPUDP2_ACK_PAYLOAD;
+		false -> none:			empty;
 	};
 	oversize_payload:	case ((header.Flags & OVERHEADSIZE) > 0) of {
 		true -> has_oversize:		RDPUDP2_OVERSIZE_PAYLOAD;
 		false -> has_no_oversize:	empty;
 	};
-	delay_ack_info_payload:	RDPUDP2_DELAYACKINFO_PAYLOAD;
-	ack_of_acks_payload:	RDPUDP2_ACKOFACKS_PAYLOAD;
-	data_header_payload:	RDPUDP2_DATAHEADER_PAYLOAD;
-	ack_vector_payload:	case ((header.Flags & AOA) > 0) of {
-		true -> has_aoa:		RDPUDP2_ACKVECTOR_PAYLOAD;
-		false -> has_no_aoa:		empty;
+	delay_ack_info_payload:	case ((header.Flags & DELAYACKINFO) > 0) of {
+		true -> has_ack_info_p:		RDPUDP2_DELAYACKINFO_PAYLOAD;
+		false -> has_no_ack_info_p:	empty;
 	};
-	data_body_payload:	RDPUDP2_DATABODY_PAYLOAD;
+	ack_of_acks_payload:	case ((header.Flags & AOA) > 0) of {
+                true -> has_aoa_p:            	RDPUDP2_ACKOFACKS_PAYLOAD;
+                false -> has_no_aoa_p:          empty;
+        };
+	data_header_payload:	case ((header.Flags & DATA) > 0) of {
+		true -> has_data_h:		RDPUDP2_DATAHEADER_PAYLOAD;
+		false -> has_no_data_h:		empty;
+	};
+	ack_vector_payload:	case ((header.Flags & ACKVEC) > 0) of {
+		true -> has_av_p:		RDPUDP2_ACKVECTOR_PAYLOAD;
+		false -> has_no_av_p:		empty;
+	};
+#	data_body_payload:	case ((header.Flags & DATA) > 0) of {
+#		true -> has_data_p:		RDPUDP2_DATABODY_PAYLOAD;
+#		false -> has_no_data_p:		empty;
+#	};
+	data_body_payload:			RDPUDP2_DATABODY_PAYLOAD;
 } &let {
 	proc_rdpeudp2_ack: bool = $context.connection.proc_rdpeudp2_ack(is_orig, data_body_payload.Data);
 };
 
 type RDPUDP2_PACKET_HEADER = record {
-	# flags are 12 bits, A is 4 bits
 	everything:	uint16;	
 } &let {
-	# Flags should be some combination of RDPUDP2_PACKET_HEADER_FLAGS
 	Flags:		uint16 = everything & 0xfff0;   # The high 12
 	LogWindowSize:	uint8 = everything &  0x000f;   # The low 4
 };

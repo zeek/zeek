@@ -92,7 +92,8 @@ redef likely_server_ports += { rdp_ports, rdpeudp_ports };
 event zeek_init() &priority=5
 	{
 	Log::create_stream(RDP::LOG, [$columns=RDP::Info, $ev=log_rdp, $path="rdp"]);
-	Analyzer::register_for_ports(Analyzer::ANALYZER_RDP, likely_server_ports);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_RDP, rdp_ports);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_RDP, rdpudp_ports);
 	}
 
 function write_log(c: connection)

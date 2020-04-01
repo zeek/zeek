@@ -12,6 +12,7 @@
 #include <unordered_map>
 #include <map>
 #include <list>
+#include <optional>
 
 // BRO types.
 
@@ -439,6 +440,17 @@ protected:
 
 class FuncType : public BroType {
 public:
+	/**
+	 * Prototype is only currently used for events and hooks which declare
+	 * multiple signature prototypes that allow users to have handlers
+	 * with various argument permutations.
+	 */
+	struct Prototype {
+		bool deprecated;
+		IntrusivePtr<RecordType> args;
+		std::map<int, int> offsets;
+	};
+
 	FuncType(IntrusivePtr<RecordType> args, IntrusivePtr<BroType> yield,
 	         function_flavor f);
 	FuncType* ShallowClone() override;
@@ -464,12 +476,29 @@ public:
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
+	/**
+	 * Adds a new event/hook signature allowed for use in handlers.
+	 */
+	void AddPrototype(Prototype s);
+
+	/**
+	 * Returns a prototype signature that matches the desired argument types.
+	 */
+	std::optional<Prototype> FindPrototype(const RecordType& args) const;
+
+	/**
+	 * Returns all allowed function prototypes.
+	 */
+	const std::vector<Prototype>& Prototypes() const
+		{ return prototypes; }
+
 protected:
 	FuncType() : BroType(TYPE_FUNC) { flavor = FUNC_FLAVOR_FUNCTION; }
 	IntrusivePtr<RecordType> args;
 	IntrusivePtr<TypeList> arg_types;
 	IntrusivePtr<BroType> yield;
 	function_flavor flavor;
+	std::vector<Prototype> prototypes;
 };
 
 class TypeType : public BroType {

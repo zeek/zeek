@@ -431,7 +431,41 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const
 			d->Add("`");
 			}
 		else
+			{
 			type->DescribeReST(d, roles_only);
+
+			if ( IsFunc(type->Tag()) )
+				{
+				auto ft = type->AsFuncType();
+
+				if ( ft->Flavor() == FUNC_FLAVOR_EVENT ||
+				     ft->Flavor() == FUNC_FLAVOR_HOOK )
+					{
+					const auto& protos = ft->Prototypes();
+
+					if ( protos.size() > 1 )
+						{
+						auto first = true;
+
+						for ( const auto& proto : protos )
+							{
+							if ( first )
+								{
+								first = false;
+								continue;
+								}
+
+							d->NL();
+							d->Add(":Type: :zeek:type:`");
+							d->Add(ft->FlavorString());
+							d->Add("` (");
+							proto.args->DescribeFieldsReST(d, true);
+							d->Add(")");
+							}
+						}
+					}
+				}
+			}
 
 		d->NL();
 		}

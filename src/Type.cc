@@ -432,6 +432,7 @@ FuncType::FuncType(IntrusivePtr<RecordType> arg_args,
 	flavor = arg_flavor;
 
 	bool has_default_arg = false;
+	std::map<int, int> offsets;
 
 	for ( int i = 0; i < args->NumFields(); ++i )
 		{
@@ -448,7 +449,10 @@ FuncType::FuncType(IntrusivePtr<RecordType> arg_args,
 			}
 
 		arg_types->Append({NewRef{}, args->FieldType(i)});
+		offsets[i] = i;
 		}
+
+	prototypes.emplace_back(Prototype{false, args, std::move(offsets)});
 	}
 
 FuncType* FuncType::ShallowClone()
@@ -458,6 +462,7 @@ FuncType* FuncType::ShallowClone()
 	f->arg_types = {NewRef{}, arg_types->AsTypeList()};
 	f->yield = yield;
 	f->flavor = flavor;
+	f->prototypes = prototypes;
 	return f;
 	}
 
@@ -570,6 +575,47 @@ void FuncType::DescribeReST(ODesc* d, bool roles_only) const
 		else
 			yield->DescribeReST(d, roles_only);
 		}
+	}
+
+void FuncType::AddPrototype(Prototype p)
+	{
+	prototypes.emplace_back(std::move(p));
+	}
+
+std::optional<FuncType::Prototype> FuncType::FindPrototype(const RecordType& args) const
+	{
+	for ( const auto& p : prototypes )
+		{
+		if ( args.NumFields() != p.args->NumFields() )
+			continue;
+
+		if ( args.NumFields() == 0 )
+			{
+			if ( p.args->NumFields() == 0 )
+				return p;
+
+			continue;
+			}
+
+		bool matched = true;
+
+		for ( auto i = 0; i < args.NumFields(); ++i )
+			{
+			auto ptype = p.args->FieldType(i);
+			auto desired_type = args.FieldType(i);
+
+			if ( same_type(ptype, desired_type) )
+				continue;
+
+			matched = false;
+			break;
+			}
+
+		if ( matched )
+			return p;
+		}
+
+	return {};
 	}
 
 TypeDecl::TypeDecl(IntrusivePtr<BroType> t, const char* i, attr_list* arg_attrs, bool in_record)

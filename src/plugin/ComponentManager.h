@@ -250,8 +250,8 @@ void ComponentManager<T, C>::RegisterComponent(C* component,
 		reporter->FatalError("Component '{:s}::{:s}' defined more than once",
 		                     module, cname);
 
-	DBG_LOG(DBG_PLUGINS, "Registering component %s (tag %s)",
-	        component->Name().c_str(), component->Tag().AsString().c_str());
+	DBG_LOG(DBG_PLUGINS, "Registering component {:s} (tag {:s})",
+	        component->Name(), component->Tag().AsString());
 
 	components_by_name.insert(std::make_pair(cname, component));
 	components_by_tag.insert(std::make_pair(component->Tag(), component));

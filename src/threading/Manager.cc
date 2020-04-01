@@ -64,7 +64,7 @@ void Manager::Terminate()
 
 void Manager::AddThread(BasicThread* thread)
 	{
-	DBG_LOG(DBG_THREADING, "Adding thread %s ...", thread->Name());
+	DBG_LOG(DBG_THREADING, "Adding thread {:s} ...", thread->Name());
 	all_threads.push_back(thread);
 
 	if ( ! heartbeat_timer_running )
@@ -73,7 +73,7 @@ void Manager::AddThread(BasicThread* thread)
 
 void Manager::AddMsgThread(MsgThread* thread)
 	{
-	DBG_LOG(DBG_THREADING, "%s is a MsgThread ...", thread->Name());
+	DBG_LOG(DBG_THREADING, "{:s} is a MsgThread ...", thread->Name());
 	msg_threads.push_back(thread);
 	}
 
@@ -87,7 +87,7 @@ void Manager::KillThreads()
 
 void Manager::KillThread(BasicThread* thread)
 	{
-	DBG_LOG(DBG_THREADING, "Killing thread %s ...", thread->Name());
+	DBG_LOG(DBG_THREADING, "Killing thread {:s} ...", thread->Name());
 	thread->Kill();
 	}
 

@@ -187,8 +187,8 @@ void ScriptInfo::DoInitPostScript()
 		if ( id->IsType() )
 			{
 			types.push_back(info);
-			DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a type",
-			        id->Name(), name.c_str());
+			DBG_LOG(DBG_ZEEKYGEN, "Filter id '{:s}' in '{:s}' as a type",
+			        id->Name(), name);
 			continue;
 			}
 
@@ -196,17 +196,17 @@ void ScriptInfo::DoInitPostScript()
 			{
 			switch ( id->GetType()->AsFuncType()->Flavor() ) {
 			case zeek::FUNC_FLAVOR_HOOK:
-				DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a hook",
+				DBG_LOG(DBG_ZEEKYGEN, "Filter id '{:s}' in '{:s}' as a hook",
 				        id->Name(), name.c_str());
 				hooks.push_back(info);
 				break;
 			case zeek::FUNC_FLAVOR_EVENT:
-				DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a event",
+				DBG_LOG(DBG_ZEEKYGEN, "Filter id '{:s}' in '{:s}' as a event",
 				        id->Name(), name.c_str());
 				events.push_back(info);
 				break;
 			case zeek::FUNC_FLAVOR_FUNCTION:
-				DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a function",
+				DBG_LOG(DBG_ZEEKYGEN, "Filter id '{:s}' in '{:s}' as a function",
 				        id->Name(), name.c_str());
 				functions.push_back(info);
 				break;
@@ -222,14 +222,14 @@ void ScriptInfo::DoInitPostScript()
 			{
 			if ( id->GetAttr(zeek::detail::ATTR_REDEF) )
 				{
-				DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a redef_option",
-				        id->Name(), name.c_str());
+				DBG_LOG(DBG_ZEEKYGEN, "Filter id '{:s}' in '{:s}' as a redef_option",
+				        id->Name(), name);
 				redef_options.push_back(info);
 				}
 			else
 				{
-				DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a constant",
-				        id->Name(), name.c_str());
+				DBG_LOG(DBG_ZEEKYGEN, "Filter id '{:s}' in '{:s}' as a constant",
+				        id->Name(), name);
 				constants.push_back(info);
 				}
 
@@ -237,8 +237,8 @@ void ScriptInfo::DoInitPostScript()
 			}
 		else if ( id->IsOption() )
 			{
-			DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as an runtime option",
-							id->Name(), name.c_str());
+			DBG_LOG(DBG_ZEEKYGEN, "Filter id '{:s}' in '{:s}' as an runtime option",
+							id->Name(), name);
 			options.push_back(info);
 
 			continue;
@@ -249,8 +249,8 @@ void ScriptInfo::DoInitPostScript()
 			// documentation.
 			continue;
 
-		DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a state variable",
-		        id->Name(), name.c_str());
+		DBG_LOG(DBG_ZEEKYGEN, "Filter id '{:s}' in '{:s}' as a state variable",
+		        id->Name(), name);
 		state_vars.push_back(info);
 		}
 

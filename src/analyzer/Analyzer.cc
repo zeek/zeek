@@ -413,8 +413,8 @@ bool Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init)
 	if ( init )
 		analyzer->Init();
 
-	DBG_LOG(DBG_ANALYZER, "%s added child %s",
-			fmt_analyzer(this).c_str(), fmt_analyzer(analyzer).c_str());
+	DBG_LOG(DBG_ANALYZER, "{:s} added child {:s}",
+			fmt_analyzer(this), fmt_analyzer(analyzer));
 	return true;
 	}
 
@@ -446,8 +446,8 @@ bool Analyzer::RemoveChild(const analyzer_list& children, ID id)
 		if ( i->finished || i->removing )
 			return false;
 
-		DBG_LOG(DBG_ANALYZER, "%s disabling child %s",
-		        fmt_analyzer(this).c_str(), fmt_analyzer(i).c_str());
+		DBG_LOG(DBG_ANALYZER, "{:s} disabling child {:s}",
+		        fmt_analyzer(this), fmt_analyzer(i));
 		// We just flag it as being removed here but postpone
 		// actually doing that to later. Otherwise, we'd need
 		// to call Done() here, which then in turn might
@@ -559,8 +559,8 @@ void Analyzer::DeleteChild(analyzer_list::iterator i)
 		child->removing = false;
 		}
 
-	DBG_LOG(DBG_ANALYZER, "%s deleted child %s 3",
-		fmt_analyzer(this).c_str(), fmt_analyzer(child).c_str());
+	DBG_LOG(DBG_ANALYZER, "{:s} deleted child {:s} 3",
+		fmt_analyzer(this), fmt_analyzer(child));
 
 	children.erase(i);
 	delete child;
@@ -570,10 +570,10 @@ void Analyzer::AddSupportAnalyzer(SupportAnalyzer* analyzer)
 	{
 	if ( HasSupportAnalyzer(analyzer->GetAnalyzerTag(), analyzer->IsOrig()) )
 		{
-		DBG_LOG(DBG_ANALYZER, "%s already has %s %s",
-			fmt_analyzer(this).c_str(),
+		DBG_LOG(DBG_ANALYZER, "{:s} already has {:s} {:s}",
+			fmt_analyzer(this),
 			analyzer->IsOrig() ? "originator" : "responder",
-			fmt_analyzer(analyzer).c_str());
+			fmt_analyzer(analyzer));
 
 		analyzer->Done();
 		delete analyzer;
@@ -598,18 +598,18 @@ void Analyzer::AddSupportAnalyzer(SupportAnalyzer* analyzer)
 
 	analyzer->Init();
 
-	DBG_LOG(DBG_ANALYZER, "%s added %s support %s",
-			fmt_analyzer(this).c_str(),
+	DBG_LOG(DBG_ANALYZER, "{:s} added {:s} support {:s}",
+			fmt_analyzer(this),
 			analyzer->IsOrig() ? "originator" : "responder",
-			fmt_analyzer(analyzer).c_str());
+			fmt_analyzer(analyzer));
 	}
 
 void Analyzer::RemoveSupportAnalyzer(SupportAnalyzer* analyzer)
 	{
-	DBG_LOG(DBG_ANALYZER, "%s disabled %s support analyzer %s",
-			fmt_analyzer(this).c_str(),
+	DBG_LOG(DBG_ANALYZER, "{:s} disabled {:s} support analyzer {:s}",
+			fmt_analyzer(this),
 			analyzer->IsOrig() ? "originator" : "responder",
-			fmt_analyzer(analyzer).c_str());
+			fmt_analyzer(analyzer));
 
 	// We mark the analyzer as being removed here, which will prevent it
 	// from being used further. However, we don't actually delete it
@@ -646,33 +646,33 @@ SupportAnalyzer* Analyzer::FirstSupportAnalyzer(bool orig)
 void Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 				uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
-	DBG_LOG(DBG_ANALYZER, "%s DeliverPacket(%d, %s, %" PRIu64", %p, %d) [%s%s]",
-			fmt_analyzer(this).c_str(), len, is_orig ? "T" : "F", seq, ip, caplen,
+	DBG_LOG(DBG_ANALYZER, "{:s} DeliverPacket({:d}, {:s}, {:d}, {:p}, {:d}) [{:s}{:s}]",
+			fmt_analyzer(this), len, is_orig ? "T" : "F", seq, (void*)ip, caplen,
 			fmt_bytes((const char*) data, min(40, len)), len > 40 ? "..." : "");
 	}
 
 void Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 	{
-	DBG_LOG(DBG_ANALYZER, "%s DeliverStream(%d, %s) [%s%s]",
-			fmt_analyzer(this).c_str(), len, is_orig ? "T" : "F",
+	DBG_LOG(DBG_ANALYZER, "{:s} DeliverStream({:d}, {:s}) [{:s}{:s}]",
+			fmt_analyzer(this), len, is_orig ? "T" : "F",
 			fmt_bytes((const char*) data, min(40, len)), len > 40 ? "..." : "");
 	}
 
 void Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
 	{
-	DBG_LOG(DBG_ANALYZER, "%s Undelivered(%" PRIu64", %d, %s)",
-			fmt_analyzer(this).c_str(), seq, len, is_orig ? "T" : "F");
+	DBG_LOG(DBG_ANALYZER, "{:s} Undelivered({:d}, {:d}, {:s})",
+			fmt_analyzer(this), seq, len, is_orig ? "T" : "F");
 	}
 
 void Analyzer::EndOfData(bool is_orig)
 	{
-	DBG_LOG(DBG_ANALYZER, "%s EndOfData(%s)",
-			fmt_analyzer(this).c_str(), is_orig ? "T" : "F");
+	DBG_LOG(DBG_ANALYZER, "{:s} EndOfData({:s})",
+			fmt_analyzer(this), is_orig ? "T" : "F");
 	}
 
 void Analyzer::FlipRoles()
 	{
-	DBG_LOG(DBG_ANALYZER, "%s FlipRoles()", fmt_analyzer(this).c_str());
+	DBG_LOG(DBG_ANALYZER, "{:s} FlipRoles()", fmt_analyzer(this));
 
 	LOOP_OVER_CHILDREN(i)
 		(*i)->FlipRoles();

@@ -65,18 +65,14 @@ public:
 		if ( ! g->enabled )
 			return;
 
-		fprintf(file, "%17.06f/%17.06f [%s] ",
+		fmtlib::print(file, FMT_STRING("{:17.06f}/{:17.06f} [%s]"),
 			network_time, current_time(true), g->prefix);
 
 		for ( int i = g->indent; i > 0; --i )
-			fputs("   ", file);
+			fmtlib::print(file, "   ");
 
-		if constexpr ( sizeof...(args) > 0 )
-			fprintf(file, fmt, std::forward<Args>(args)...);
-		else
-			fprintf(file, "%s", fmt);
-
-		fputc('\n', file);
+		fmtlib::print(file, fmt, args...);
+		fmtlib::print(file, "\n");
 		fflush(file);
 		}
 
@@ -89,15 +85,10 @@ public:
 		if ( enabled_streams.find(tok) == enabled_streams.end() )
 			return;
 
-		fprintf(file, "%17.06f/%17.06f [plugin %s] ",
-		        network_time, current_time(true), GetPluginName(plugin).c_str());
-
-		if constexpr ( sizeof...(args) > 0 )
-			fprintf(file, fmt, std::forward<Args>(args)...);
-		else
-			fprintf(file, "%s", fmt);
-
-		fputc('\n', file);
+		fmtlib::print(file, FMT_STRING("{:17.06f}/{:17.06f} [plugin %s]"),
+			network_time, current_time(true), GetPluginName(plugin));
+		fmtlib::print(file, fmt, args...);
+		fmtlib::print(file, "\n");
 		fflush(file);
 		}
 

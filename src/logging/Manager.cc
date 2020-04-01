@@ -319,8 +319,8 @@ bool Manager::CreateStream(zeek::EnumVal* id, zeek::RecordVal* sval)
 
 	streams[idx]->enable_remote = zeek::id::find_val("Log::enable_remote_logging")->AsBool();
 
-	DBG_LOG(DBG_LOGGING, "Created new logging stream '%s', raising event %s",
-		streams[idx]->name.c_str(), event ? streams[idx]->event->Name() : "<none>");
+	DBG_LOG(DBG_LOGGING, "Created new logging stream '{:s}', raising event {:s}",
+		streams[idx]->name, event ? streams[idx]->event->Name() : "<none>");
 
 	return true;
 	}
@@ -341,8 +341,8 @@ bool Manager::RemoveStream(zeek::EnumVal* id)
 		{
 		WriterInfo* winfo = i->second;
 
-		DBG_LOG(DBG_LOGGING, "Removed writer '%s' from stream '%s'",
-			winfo->writer->Name(), stream->name.c_str());
+		DBG_LOG(DBG_LOGGING, "Removed writer '{:s}' from stream '{:s}'",
+			winfo->writer->Name(), stream->name);
 
 		winfo->writer->Stop();
 		delete winfo->writer;
@@ -354,7 +354,7 @@ bool Manager::RemoveStream(zeek::EnumVal* id)
 	delete stream;
 	streams[idx] = nullptr;
 
-	DBG_LOG(DBG_LOGGING, "Removed logging stream '%s'", sname.c_str());
+	DBG_LOG(DBG_LOGGING, "Removed logging stream '{:s}'", sname);
 	return true;
 	}
 
@@ -370,7 +370,7 @@ bool Manager::EnableStream(zeek::EnumVal* id)
 
 	stream->enabled = true;
 
-	DBG_LOG(DBG_LOGGING, "Reenabled logging stream '%s'", stream->name.c_str());
+	DBG_LOG(DBG_LOGGING, "Reenabled logging stream '{:s}'", stream->name);
 	return true;
 	}
 
@@ -386,7 +386,7 @@ bool Manager::DisableStream(zeek::EnumVal* id)
 
 	stream->enabled = false;
 
-	DBG_LOG(DBG_LOGGING, "Disabled logging stream '%s'", stream->name.c_str());
+	DBG_LOG(DBG_LOGGING, "Disabled logging stream '{:s}'", stream->name);
 	return true;
 	}
 
@@ -641,19 +641,19 @@ bool Manager::AddFilter(zeek::EnumVal* id, zeek::RecordVal* fval)
 	ODesc desc;
 	writer->Describe(&desc);
 
-	DBG_LOG(DBG_LOGGING, "Created new filter '%s' for stream '%s'",
-		filter->name.c_str(), stream->name.c_str());
+	DBG_LOG(DBG_LOGGING, "Created new filter '{:s}' for stream '{:s}'",
+		filter->name, stream->name);
 
-	DBG_LOG(DBG_LOGGING, "   writer    : %s", desc.Description());
-	DBG_LOG(DBG_LOGGING, "   path      : %s", filter->path.c_str());
-	DBG_LOG(DBG_LOGGING, "   path_func : %s", (filter->path_func ? "set" : "not set"));
-	DBG_LOG(DBG_LOGGING, "   pred      : %s", (filter->pred ? "set" : "not set"));
+	DBG_LOG(DBG_LOGGING, "   writer    : {:s}", desc.Description());
+	DBG_LOG(DBG_LOGGING, "   path      : {:s}", filter->path);
+	DBG_LOG(DBG_LOGGING, "   path_func : {:s}", (filter->path_func ? "set" : "not set"));
+	DBG_LOG(DBG_LOGGING, "   pred      : {:s}", (filter->pred ? "set" : "not set"));
 
 	for ( int i = 0; i < filter->num_fields; i++ )
 		{
 		threading::Field* field = filter->fields[i];
-		DBG_LOG(DBG_LOGGING, "   field %10s: %s",
-			field->name, zeek::type_name(field->type));
+		DBG_LOG(DBG_LOGGING, "   field {:>10s}: {:s}",
+		        field->name, zeek::type_name(field->type));
 		}
 #endif
 
@@ -678,16 +678,16 @@ bool Manager::RemoveFilter(zeek::EnumVal* id, const string& name)
 			{
 			Filter* filter = *i;
 			stream->filters.erase(i);
-			DBG_LOG(DBG_LOGGING, "Removed filter '%s' from stream '%s'",
-				filter->name.c_str(), stream->name.c_str());
+			DBG_LOG(DBG_LOGGING, "Removed filter '{:s}' from stream '{:s}'",
+				filter->name, stream->name);
 			delete filter;
 			return true;
 			}
 		}
 
 	// If we don't find the filter, we don't treat that as an error.
-	DBG_LOG(DBG_LOGGING, "No filter '%s' for removing from stream '%s'",
-		name.c_str(), stream->name.c_str());
+	DBG_LOG(DBG_LOGGING, "No filter '{:s}' for removing from stream '{:s}'",
+		name, stream->name);
 
 	return true;
 	}
@@ -774,8 +774,8 @@ bool Manager::Write(zeek::EnumVal* id, zeek::RecordVal* columns_arg)
 			path = v->AsString()->CheckString();
 
 #ifdef DEBUG
-			DBG_LOG(DBG_LOGGING, "Path function for filter '%s' on stream '%s' return '%s'",
-				filter->name.c_str(), stream->name.c_str(), path.c_str());
+			DBG_LOG(DBG_LOGGING, "Path function for filter '{:s}' on stream '{:s}' return '{:s}'",
+				filter->name, stream->name, path);
 #endif
 			}
 
@@ -899,8 +899,8 @@ bool Manager::Write(zeek::EnumVal* id, zeek::RecordVal* columns_arg)
 			DeleteVals(filter->num_fields, vals);
 
 #ifdef DEBUG
-			DBG_LOG(DBG_LOGGING, "Hook prevented writing to filter '%s' on stream '%s'",
-				filter->name.c_str(), stream->name.c_str());
+			DBG_LOG(DBG_LOGGING, "Hook prevented writing to filter '{:s}' on stream '{:s}'",
+				filter->name, stream->name);
 #endif
 			return true;
 			}
@@ -910,8 +910,8 @@ bool Manager::Write(zeek::EnumVal* id, zeek::RecordVal* columns_arg)
 		writer->Write(filter->num_fields, vals);
 
 #ifdef DEBUG
-		DBG_LOG(DBG_LOGGING, "Wrote record to filter '%s' on stream '%s'",
-			filter->name.c_str(), stream->name.c_str());
+		DBG_LOG(DBG_LOGGING, "Wrote record to filter '{:s}' on stream '{:s}'",
+			filter->name, stream->name);
 #endif
 		}
 
@@ -1252,7 +1252,7 @@ bool Manager::WriteFromRemote(zeek::EnumVal* id, zeek::EnumVal* writer, const st
 #ifdef DEBUG
 		ODesc desc;
 		id->Describe(&desc);
-		DBG_LOG(DBG_LOGGING, "unknown stream %s in Manager::Write()",
+		DBG_LOG(DBG_LOGGING, "unknown stream {:s} in Manager::Write()",
 			desc.Description());
 #endif
 		DeleteVals(num_fields, vals);
@@ -1274,7 +1274,7 @@ bool Manager::WriteFromRemote(zeek::EnumVal* id, zeek::EnumVal* writer, const st
 #ifdef DEBUG
 		ODesc desc;
 		id->Describe(&desc);
-		DBG_LOG(DBG_LOGGING, "unknown writer %s in Manager::Write()",
+		DBG_LOG(DBG_LOGGING, "unknown writer {:s} in Manager::Write()",
 			desc.Description());
 #endif
 		DeleteVals(num_fields, vals);
@@ -1284,8 +1284,8 @@ bool Manager::WriteFromRemote(zeek::EnumVal* id, zeek::EnumVal* writer, const st
 	w->second->writer->Write(num_fields, vals);
 
 	DBG_LOG(DBG_LOGGING,
-		"Wrote pre-filtered record to path '%s' on stream '%s'",
-		path.c_str(), stream->name.c_str());
+		"Wrote pre-filtered record to path '{:s}' on stream '{:s}'",
+		path, stream->name);
 
 	return true;
 	}
@@ -1482,7 +1482,7 @@ void Manager::InstallRotationTimer(WriterInfo* winfo)
 
 		timer_mgr->Add(winfo->rotation_timer);
 
-		DBG_LOG(DBG_LOGGING, "Scheduled rotation timer for %s to %.6f",
+		DBG_LOG(DBG_LOGGING, "Scheduled rotation timer for {:s} to {:.6f}",
 			winfo->writer->Name(), winfo->rotation_timer->Time());
 		}
 	}
@@ -1550,7 +1550,7 @@ std::string Manager::FormatRotationPath(zeek::EnumValPtr writer,
 
 void Manager::Rotate(WriterInfo* winfo)
 	{
-	DBG_LOG(DBG_LOGGING, "Rotating %s at %.6f",
+	DBG_LOG(DBG_LOGGING, "Rotating {:s} at {:.6f}",
 		winfo->writer->Name(), network_time);
 
 	static auto default_ppf = zeek::id::find_func("Log::__default_rotation_postprocessor");
@@ -1582,12 +1582,12 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 
 	if ( ! success )
 		{
-		DBG_LOG(DBG_LOGGING, "Non-successful rotating writer '%s', file '%s' at %.6f,",
+		DBG_LOG(DBG_LOGGING, "Non-successful rotating writer '{:s}', file '{:s}' at {:.6f},",
 			writer->Name(), filename, network_time);
 		return true;
 		}
 
-	DBG_LOG(DBG_LOGGING, "Finished rotating %s at %.6f, new name %s",
+	DBG_LOG(DBG_LOGGING, "Finished rotating {:s} at {:.6f}, new name {:s}",
 		writer->Name(), network_time, new_name);
 
 	WriterInfo* winfo = FindWriter(writer);

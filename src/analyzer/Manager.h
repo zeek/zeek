@@ -407,11 +407,11 @@ extern analyzer::Manager* analyzer_mgr;
 // message.
 #ifdef DEBUG
 # define DBG_ANALYZER(conn, txt) \
-	DBG_LOG(DBG_ANALYZER, "%s " txt, \
+	DBG_LOG(DBG_ANALYZER, "{:s} " txt, \
 		fmt_conn_id(conn->OrigAddr(), ntohs(conn->OrigPort()), \
 		conn->RespAddr(), ntohs(conn->RespPort())));
 # define DBG_ANALYZER_ARGS(conn, fmt, args...) \
-	DBG_LOG(DBG_ANALYZER, "%s " fmt, \
+	DBG_LOG(DBG_ANALYZER, "{:s} " fmt, \
 		fmt_conn_id(conn->OrigAddr(), ntohs(conn->OrigPort()), \
 		conn->RespAddr(), ntohs(conn->RespPort())), ##args);
 #else

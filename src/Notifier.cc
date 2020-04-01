@@ -9,12 +9,12 @@ notifier::Registry notifier::registry;
 
 notifier::Receiver::Receiver()
 	{
-	DBG_LOG(DBG_NOTIFIERS, "creating receiver %p", this);
+	DBG_LOG(DBG_NOTIFIERS, "creating receiver {:p}", (void*)this);
 	}
 
 notifier::Receiver::~Receiver()
 	{
-	DBG_LOG(DBG_NOTIFIERS, "deleting receiver %p", this);
+	DBG_LOG(DBG_NOTIFIERS, "deleting receiver {:p}", (void*)this);
 	}
 
 notifier::Registry::~Registry()
@@ -25,7 +25,7 @@ notifier::Registry::~Registry()
 
 void notifier::Registry::Register(Modifiable* m, notifier::Receiver* r)
 	{
-	DBG_LOG(DBG_NOTIFIERS, "registering object %p for receiver %p", m, r);
+	DBG_LOG(DBG_NOTIFIERS, "registering object {:p} for receiver {:p}", (void*)m, (void*)r);
 
 	registrations.insert({m, r});
 	++m->num_receivers;
@@ -33,7 +33,7 @@ void notifier::Registry::Register(Modifiable* m, notifier::Receiver* r)
 
 void notifier::Registry::Unregister(Modifiable* m, notifier::Receiver* r)
 	{
-	DBG_LOG(DBG_NOTIFIERS, "unregistering object %p from receiver %p", m, r);
+	DBG_LOG(DBG_NOTIFIERS, "unregistering object {:p} from receiver {:p}", (void*)m, (void*)r);
 
 	auto x = registrations.equal_range(m);
 	for ( auto i = x.first; i != x.second; i++ )
@@ -49,7 +49,7 @@ void notifier::Registry::Unregister(Modifiable* m, notifier::Receiver* r)
 
 void notifier::Registry::Unregister(Modifiable* m)
 	{
-	DBG_LOG(DBG_NOTIFIERS, "unregistering object %p from all notifiers", m);
+	DBG_LOG(DBG_NOTIFIERS, "unregistering object {:p} from all notifiers", (void*)m);
 
 	auto x = registrations.equal_range(m);
 	for ( auto i = x.first; i != x.second; i++ )
@@ -60,7 +60,7 @@ void notifier::Registry::Unregister(Modifiable* m)
 
 void notifier::Registry::Modified(Modifiable* m)
 	{
-	DBG_LOG(DBG_NOTIFIERS, "object %p has been modified", m);
+	DBG_LOG(DBG_NOTIFIERS, "object {:p} has been modified", (void*)m);
 
 	auto x = registrations.equal_range(m);
 	for ( auto i = x.first; i != x.second; i++ )

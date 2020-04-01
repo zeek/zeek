@@ -8,8 +8,8 @@ file_analysis::ID file_analysis::Analyzer::id_counter = 0;
 
 file_analysis::Analyzer::~Analyzer()
 	{
-	DBG_LOG(DBG_FILE_ANALYSIS, "Destroy file analyzer %s",
-	        file_mgr->GetComponentName(tag).c_str());
+	DBG_LOG(DBG_FILE_ANALYSIS, "Destroy file analyzer {:s}",
+	        file_mgr->GetComponentName(tag));
 	}
 
 void file_analysis::Analyzer::SetAnalyzerTag(const file_analysis::Tag& arg_tag)

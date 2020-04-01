@@ -82,7 +82,7 @@ void Manager::SetHandle(const string& handle)
 		{
 		zeek::String tmp{handle};
 		auto rendered = tmp.Render();
-		DBG_LOG(DBG_FILE_ANALYSIS, "Set current handle to %s", rendered);
+		DBG_LOG(DBG_FILE_ANALYSIS, "Set current handle to {:s}", rendered);
 		delete [] rendered;
 		}
 #endif
@@ -371,15 +371,14 @@ void Manager::Timeout(const string& file_id, bool is_terminating)
 
 	if ( file->postpone_timeout && ! is_terminating )
 		{
-		DBG_LOG(DBG_FILE_ANALYSIS, "Postpone file analysis timeout for %s",
-		        file->GetID().c_str());
+		DBG_LOG(DBG_FILE_ANALYSIS, "Postpone file analysis timeout for {:s}",
+		        file->GetID());
 		file->UpdateLastActivityTime();
 		file->ScheduleInactivityTimer();
 		return;
 		}
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "File analysis timeout for %s",
-	        file->GetID().c_str());
+	DBG_LOG(DBG_FILE_ANALYSIS, "File analysis timeout for {:s}", file->GetID());
 
 	RemoveFile(file->GetID());
 	}
@@ -389,7 +388,7 @@ bool Manager::IgnoreFile(const string& file_id)
 	if ( ! LookupFile(file_id) )
 		return false;
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "Ignore FileID %s", file_id.c_str());
+	DBG_LOG(DBG_FILE_ANALYSIS, "Ignore FileID {:s}", file_id);
 
 	ignored.insert(file_id);
 	return true;
@@ -405,7 +404,7 @@ bool Manager::RemoveFile(const string& file_id)
 	if ( ! f )
 		return false;
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Remove file", file_id.c_str());
+	DBG_LOG(DBG_FILE_ANALYSIS, "[{:s}] Remove file", file_id);
 
 	f->EndOfFile();
 
@@ -430,8 +429,8 @@ string Manager::GetFileID(const analyzer::Tag& tag, Connection* c, bool is_orig)
 	if ( ! get_file_handle )
 		return "";
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "Raise get_file_handle() for protocol analyzer %s",
-		analyzer_mgr->GetComponentName(tag).c_str());
+	DBG_LOG(DBG_FILE_ANALYSIS, "Raise get_file_handle() for protocol analyzer {:s}",
+		analyzer_mgr->GetComponentName(tag));
 
 	const auto& tagval = tag.AsVal();
 

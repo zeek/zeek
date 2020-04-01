@@ -24,7 +24,7 @@ static void DbgAndWarn(const char* msg)
 		return;
 
 	reporter->Warning("{:s}", msg);
-	DBG_LOG(DBG_ZEEKYGEN, "%s", msg);
+	DBG_LOG(DBG_ZEEKYGEN, "{:s}", msg);
 	}
 
 static void WarnMissingScript(const char* type, const zeek::detail::ID* id,
@@ -144,7 +144,7 @@ void Manager::Script(const string& path)
 	ScriptInfo* info = new ScriptInfo(name, path);
 	scripts.map[name] = info;
 	all_info.push_back(info);
-	DBG_LOG(DBG_ZEEKYGEN, "Made ScriptInfo %s", name.c_str());
+	DBG_LOG(DBG_ZEEKYGEN, "Made ScriptInfo {:s}", name);
 
 	if ( ! info->IsPkgLoader() )
 		return;
@@ -161,7 +161,7 @@ void Manager::Script(const string& path)
 	PackageInfo* pkginfo = new PackageInfo(name);
 	packages.map[name] = pkginfo;
 	all_info.push_back(pkginfo);
-	DBG_LOG(DBG_ZEEKYGEN, "Made PackageInfo %s", name.c_str());
+	DBG_LOG(DBG_ZEEKYGEN, "Made PackageInfo {:s}", name);
 	}
 
 void Manager::ScriptDependency(const string& path, const string& dep)
@@ -188,8 +188,8 @@ void Manager::ScriptDependency(const string& path, const string& dep)
 		}
 
 	script_info->AddDependency(depname);
-	DBG_LOG(DBG_ZEEKYGEN, "Added script dependency %s for %s",
-	        depname.c_str(), name.c_str());
+	DBG_LOG(DBG_ZEEKYGEN, "Added script dependency {:s} for {:s}",
+	        depname, name);
 
 	for ( size_t i = 0; i < comment_buffer.size(); ++i )
 		DbgAndWarn(fmt("Discarded extraneous Zeekygen comment: %s",
@@ -212,8 +212,8 @@ void Manager::ModuleUsage(const string& path, const string& module)
 		}
 
 	script_info->AddModule(module);
-	DBG_LOG(DBG_ZEEKYGEN, "Added module usage %s in %s",
-	        module.c_str(), name.c_str());
+	DBG_LOG(DBG_ZEEKYGEN, "Added module usage {:s} in {:s}",
+	        module, name);
 	}
 
 IdentifierInfo* Manager::CreateIdentifierInfo(zeek::detail::IDPtr id, ScriptInfo* script)
@@ -268,8 +268,8 @@ void Manager::StartType(zeek::detail::IDPtr id)
 		return;
 		}
 
-	DBG_LOG(DBG_ZEEKYGEN, "Making IdentifierInfo (incomplete) %s, in %s",
-	        id->Name(), script.c_str());
+	DBG_LOG(DBG_ZEEKYGEN, "Making IdentifierInfo (incomplete) {:s}, in {:s}",
+	        id->Name(), script);
 	incomplete_type = CreateIdentifierInfo(std::move(id), script_info);
 	}
 
@@ -287,7 +287,7 @@ void Manager::Identifier(zeek::detail::IDPtr id)
 		{
 		if ( incomplete_type->Name() == id->Name() )
 			{
-			DBG_LOG(DBG_ZEEKYGEN, "Finished document for type %s", id->Name());
+			DBG_LOG(DBG_ZEEKYGEN, "Finished document for type {:s}", id->Name());
 			incomplete_type->CompletedTypeDecl();
 			incomplete_type = nullptr;
 			return;
@@ -332,8 +332,8 @@ void Manager::Identifier(zeek::detail::IDPtr id)
 		return;
 		}
 
-	DBG_LOG(DBG_ZEEKYGEN, "Making IdentifierInfo %s, in script %s",
-	        id->Name(), script.c_str());
+	DBG_LOG(DBG_ZEEKYGEN, "Making IdentifierInfo {:s}, in script {:s}",
+	        id->Name(), script);
 	CreateIdentifierInfo(std::move(id), script_info);
 	}
 
@@ -356,8 +356,8 @@ void Manager::RecordField(const zeek::detail::ID* id, const zeek::TypeDecl* fiel
 	string script = NormalizeScriptPath(path);
 	idd->AddRecordField(field, script, comment_buffer);
 	comment_buffer.clear();
-	DBG_LOG(DBG_ZEEKYGEN, "Document record field %s, identifier %s, script %s",
-	        field->id, id->Name(), script.c_str());
+	DBG_LOG(DBG_ZEEKYGEN, "Document record field {:s}, identifier {:s}, script {:s}",
+	        field->id, id->Name(), script);
 	}
 
 void Manager::Redef(const zeek::detail::ID* id, const string& path,
@@ -394,8 +394,8 @@ void Manager::Redef(const zeek::detail::ID* id, const string& path,
 	script_info->AddRedef(id_info);
 	comment_buffer.clear();
 	last_identifier_seen = id_info;
-	DBG_LOG(DBG_ZEEKYGEN, "Added redef of %s from %s",
-	        id->Name(), from_script.c_str());
+	DBG_LOG(DBG_ZEEKYGEN, "Added redef of {:s} from {:s}",
+	        id->Name(), from_script);
 	}
 
 void Manager::Redef(const zeek::detail::ID* id, const std::string& path,

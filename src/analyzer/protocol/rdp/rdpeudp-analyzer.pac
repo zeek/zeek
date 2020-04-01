@@ -55,11 +55,12 @@ refine connection RDPEUDP_Conn += {
 
         function proc_rdpeudp_ack(is_orig: bool, data: bytestring): bool
 	%{
-                BifEvent::generate_rdpeudp_data(bro_analyzer(),
-						bro_analyzer()->Conn(),
-						is_orig,
-						new StringVal(data.length(), (const char*) data.data())
-		);
+		if ( rdpeudp_data )
+			BifEvent::generate_rdpeudp_data(bro_analyzer(),
+							bro_analyzer()->Conn(),
+							is_orig,
+							new StringVal(data.length(), (const char*) data.data())
+			);
                 return true;
 	%}
 };

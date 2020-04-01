@@ -32,6 +32,11 @@ string current_module = GLOBAL_MODULE_NAME;
 int definition_type;
 string type_name;
 
+// Alternate event prototypes are only written to the .zeek file, but
+// don't need any further changes to C++ source/header files, so this
+// set keeps track of whether the first event prototype information has
+// already been defined/written to the C++ files.
+static std::set<std::string> events;
 
 enum {
 	C_SEGMENT_DEF,
@@ -379,9 +384,13 @@ opt_func_attrs:	attr_list opt_ws
 event_def:	event_prefix opt_ws plain_head opt_func_attrs
 			{ fprintf(fp_bro_init, "%s", $4); } end_of_head ';'
 			{
-			print_event_c_prototype(fp_func_h, true);
-			print_event_c_prototype(fp_func_def, false);
-			print_event_c_body(fp_func_def);
+			if ( events.find(decl.bro_fullname) == events.end() )
+				{
+				print_event_c_prototype(fp_func_h, true);
+				print_event_c_prototype(fp_func_def, false);
+				print_event_c_body(fp_func_def);
+				events.insert(decl.bro_fullname);
+				}
 			}
 
 func_def:	func_prefix opt_ws typed_head opt_func_attrs
@@ -556,23 +565,25 @@ head_1:		TOK_ID opt_ws arg_begin
 				}
 			else if ( definition_type == EVENT_DEF )
 				{
-				// TODO: add namespace for events here
-				fprintf(fp_netvar_h,
-					"%sextern EventHandlerPtr %s; %s\n",
-					decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
+				if ( events.find(decl.bro_fullname) == events.end() )
+					{
+					// TODO: add namespace for events here
+					fprintf(fp_netvar_h,
+						"%sextern EventHandlerPtr %s; %s\n",
+						decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 
-				fprintf(fp_netvar_def,
-					"%sEventHandlerPtr %s; %s\n",
-					decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
+					fprintf(fp_netvar_def,
+						"%sEventHandlerPtr %s; %s\n",
+						decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 
-				fprintf(fp_netvar_init,
-					"\t%s = internal_handler(\"%s\");\n",
-					decl.c_fullname.c_str(), decl.bro_fullname.c_str());
+					fprintf(fp_netvar_init,
+						"\t%s = internal_handler(\"%s\");\n",
+						decl.c_fullname.c_str(), decl.bro_fullname.c_str());
 
-				record_bif_item(decl.bro_fullname.c_str(), "EVENT");
-
-				// C++ prototypes of bro_event_* functions will
-				// be generated later.
+					record_bif_item(decl.bro_fullname.c_str(), "EVENT");
+					// C++ prototypes of bro_event_* functions will
+					// be generated later.
+					}
 				}
 			}
 	;

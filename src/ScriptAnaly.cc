@@ -40,7 +40,7 @@ public:
 	void TrackInits(const Func* f, const id_list* inits);
 
 protected:
-	bool CheckLHS(ReachingDefs* rd, const Expr* lhs, const AssignExpr* a);
+	bool CheckLHS(RD_ptr rd, const Expr* lhs, const AssignExpr* a);
 
 	bool IsAggrTag(TypeTag tag) const;
 	bool IsAggr(const Expr* e) const;
@@ -48,24 +48,36 @@ protected:
 	bool ControlReachesEnd(const Stmt* s, bool is_definite,
 				bool ignore_break = false) const;
 
-	const ReachingDefs* PredecessorRDs() const
+	const RD_ptr PredecessorRDs() const
 		{
-		auto rd = PostRDs(last_obj);
-		if ( rd->Size() > 0 )
+		auto rd = PostRDsIfAny(last_obj);
+		if ( rd && rd->Size() > 0 )
 			return rd;
 
 		// PostRDs haven't been set yet.
-		return PreRDs(last_obj);
+		return GetPreRDs(last_obj);
 		}
 
-	ReachingDefs* PreRDs(const BroObj* o) const
-		{ return pre_defs->RDs(o); }
-	ReachingDefs* PostRDs(const BroObj* o) const
-		{ return post_defs->RDs(o); }
+	RD_ptr PreRDsIfAny(const BroObj* o) const
+		{ return pre_defs->FindRDs(o); }
+	RD_ptr PostRDsIfAny(const BroObj* o) const
+		{ return post_defs->FindRDs(o); }
 
-	void AddPreRDs(const BroObj* o, const ReachingDefs* rd)
+	RD_ptr GetPreRDs(const BroObj* o) const
+		{ return GetRDs(pre_defs, o); }
+	RD_ptr GetPostRDs(const BroObj* o) const
+		{ return GetRDs(post_defs, o); }
+
+	RD_ptr GetRDs(ReachingDefSet* defs, const BroObj* o) const
+		{
+		auto rds = defs->FindRDs(o);
+		ASSERT(rds != nullptr);
+		return rds;
+		}
+
+	void AddPreRDs(const BroObj* o, const RD_ptr rd)
 		{ pre_defs->AddRDs(o, rd); }
-	void AddPostRDs(const BroObj* o, const ReachingDefs* rd)
+	void AddPostRDs(const BroObj* o, const RD_ptr rd)
 		{ post_defs->AddRDs(o, rd); }
 
 	bool HasPreRD(const BroObj* o, const ID* id) const
@@ -73,16 +85,16 @@ protected:
 		return pre_defs->HasRD(o, id);
 		}
 
-	void AddRD(ReachingDefs* rd, const ID* id, DefinitionPoint dp);
+	void AddRD(RD_ptr rd, const ID* id, DefinitionPoint dp);
 
-	void AddRDWithInit(ReachingDefs* rd, const ID* id, DefinitionPoint dp,
+	void AddRDWithInit(RD_ptr rd, const ID* id, DefinitionPoint dp,
 				bool assume_full,const AssignExpr* init);
 
-	void AddRDWithInit(ReachingDefs* rd, DefinitionItem* di,
+	void AddRDWithInit(RD_ptr rd, DefinitionItem* di,
 				DefinitionPoint dp, bool assume_full,
 				const AssignExpr* init);
 
-	void CreateRecordRDs(ReachingDefs* rd, DefinitionItem* di,
+	void CreateRecordRDs(RD_ptr rd, DefinitionItem* di,
 				bool assume_full, DefinitionPoint dp,
 				const DefinitionItem* rhs_di);
 
@@ -118,7 +130,7 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 
 	int n = args->NumFields();
 
-	ReachingDefs rd;
+	auto rd = make_new_RD_ptr();
 
 	for ( int i = 0; i < n; ++i )
 		{
@@ -128,16 +140,16 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 		if ( ! arg_i_id )
 			arg_i_id = scope->Lookup(make_full_var_name(current_module.c_str(), arg_i).c_str());
 
-		AddRDWithInit(&rd, arg_i_id, DefinitionPoint(f), true, 0);
+		AddRDWithInit(rd, arg_i_id, DefinitionPoint(f), true, 0);
 		}
 
-	AddPostRDs(f, &rd);
+	AddPostRDs(f, rd);
 	last_obj = f;
 
 	if ( trace )
 		{
 		printf("traversing function %s, post RDs:\n", f->Name());
-		PostRDs(f)->Dump();
+		GetPostRDs(f)->Dump();
 		}
 
 	// Don't continue traversal here, as that will then loop over
@@ -149,7 +161,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 	{
 	AddPreRDs(s, PredecessorRDs());
 
-	auto rd = PreRDs(s);
+	auto rd = GetPreRDs(s);
 
 	if ( trace )
 		{
@@ -280,19 +292,19 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 
 TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 	{
-	ReachingDefs* post_rds = nullptr;
+	RD_ptr post_rds = nullptr;
 
 	switch ( s->Tag() ) {
 	case STMT_PRINT:
 	case STMT_EVENT:
 	case STMT_WHEN:
-		post_rds = PreRDs(s);
+		post_rds = GetPreRDs(s);
 		break;
 
         case STMT_EXPR:
 		{
 		auto e = s->AsExprStmt()->StmtExpr();
-		post_rds = PostRDs(e);
+		post_rds = GetPostRDs(e);
 		break;
 		}
 
@@ -302,8 +314,8 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 
 		// ### traverse i and propagate
 
-		auto if_branch_rd = PostRDs(i->TrueBranch());
-		auto else_branch_rd = PostRDs(i->FalseBranch());
+		auto if_branch_rd = GetPostRDs(i->TrueBranch());
+		auto else_branch_rd = GetPostRDs(i->FalseBranch());
 
 		auto true_reached = ControlReachesEnd(i->TrueBranch(), false);
 		auto false_reached = ControlReachesEnd(i->FalseBranch(), false);
@@ -335,7 +347,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 			{
 			if ( ControlReachesEnd(c->Body(), false) )
 				{
-				auto case_rd = PostRDs(c->Body());
+				auto case_rd = GetPostRDs(c->Body());
 				if ( did_first )
 					post_rds = post_rds->Intersect(case_rd);
 				else
@@ -355,9 +367,9 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		if ( ! default_seen )
 			{
 			if ( post_rds )
-				post_rds = post_rds->Union(PreRDs(s));
+				post_rds = post_rds->Union(GetPreRDs(s));
 			else
-				post_rds = PreRDs(s);
+				post_rds = GetPreRDs(s);
 			}
 
 		break;
@@ -373,7 +385,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 
 		// Apply intersection since loop might not execute
 		// at all.
-		post_rds = PreRDs(s)->Intersect(PostRDs(body));
+		post_rds = GetPreRDs(s)->Intersect(GetPostRDs(body));
 
 		break;
 		}
@@ -388,7 +400,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 
 		// Apply intersection since loop might not execute
 		// at all.
-		post_rds = PreRDs(s)->Intersect(PostRDs(body));
+		post_rds = GetPreRDs(s)->Intersect(GetPostRDs(body));
 
 		break;
 		}
@@ -402,9 +414,9 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		if ( ControlReachesEnd(l, false ) )
 			{
 			if ( stmts.length() == 0 )
-				post_rds = PreRDs(s);
+				post_rds = GetPreRDs(s);
 			else
-				post_rds = PostRDs(stmts[stmts.length() - 1]);
+				post_rds = GetPostRDs(stmts[stmts.length() - 1]);
 			}
 
 		else
@@ -418,7 +430,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		auto init = s->AsInitStmt();
 		auto& inits = *init->Inits();
 
-		post_rds = PreRDs(s);
+		post_rds = GetPreRDs(s);
 
 		for ( int i = 0; i < inits.length(); ++i )
 			{
@@ -471,7 +483,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 	}
 
 	if ( ! post_rds )
-		post_rds = new ReachingDefs;
+		post_rds = make_new_RD_ptr();
 
 	AddPostRDs(s, post_rds);
 	last_obj = s;
@@ -479,14 +491,13 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 	if ( trace )
 		{
 		printf("post RDs for stmt %s:\n", stmt_name(s->Tag()));
-		PostRDs(s)->Dump();
+		GetPostRDs(s)->Dump();
 		}
 
 	return TC_CONTINUE;
 	}
 
-bool RD_Decorate::CheckLHS(ReachingDefs* rd, const Expr* lhs,
-				const AssignExpr* a)
+bool RD_Decorate::CheckLHS(RD_ptr rd, const Expr* lhs, const AssignExpr* a)
 	{
 	switch ( lhs->Tag() ) {
 	case EXPR_REF:
@@ -694,12 +705,12 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	{
 	AddPreRDs(e, PredecessorRDs());
 
-	auto rd = PreRDs(e);
+	auto rd = GetPreRDs(e);
 
 	if ( trace )
 		{
 		printf("pre RDs for expr %s:\n", expr_name(e->Tag()));
-		PreRDs(e)->Dump();
+		GetPreRDs(e)->Dump();
 		}
 
 	last_obj = e;
@@ -742,7 +753,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 
 			// Treat this as an initalization of the set.
 			AddRD(rd, lhs_id, DefinitionPoint(a_t));
-			AddPostRDs(e, PreRDs(e));
+			AddPostRDs(e, GetPreRDs(e));
 			AddPostRDs(e, rd);
 
 			a_t->Op2()->Traverse(this);
@@ -762,7 +773,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 
 		if ( CheckLHS(rd, lhs, a) )
 			{
-			AddPostRDs(e, PreRDs(e));
+			AddPostRDs(e, GetPreRDs(e));
 			AddPostRDs(e, rd);
 
 			if ( ! rhs_aggr )
@@ -863,7 +874,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 				expr->Traverse(this);
 			}
 
-		AddPostRDs(e, PreRDs(e));
+		AddPostRDs(e, GetPreRDs(e));
 		AddPostRDs(e, rd);
 
 		return TC_ABORTSTMT;
@@ -871,21 +882,21 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 
 	case EXPR_LAMBDA:
 		// ### Too tricky to get these right.
-		AddPostRDs(e, PreRDs(e));
+		AddPostRDs(e, GetPreRDs(e));
 		return TC_ABORTSTMT;
 
 	default:
 		break;
 	}
 
-	AddPostRDs(e, PreRDs(e));
+	AddPostRDs(e, GetPreRDs(e));
 
 	return TC_CONTINUE;
 	}
 
 TraversalCode RD_Decorate::PostExpr(const Expr* e)
 	{
-	AddPostRDs(e, PreRDs(e));
+	AddPostRDs(e, GetPreRDs(e));
 	return TC_CONTINUE;
 	}
 
@@ -894,7 +905,7 @@ void RD_Decorate::TrackInits(const Func* f, const id_list* inits)
 	// This code is duplicated for STMT_INIT.  It's a pity that
 	// that doesn't get used for aggregates that are initialized
 	// just incidentally.
-	ReachingDefs rd;
+	RD_ptr rd = make_new_RD_ptr();
 	for ( int i = 0; i < inits->length(); ++i )
 		{
 		auto id = (*inits)[i];
@@ -903,13 +914,13 @@ void RD_Decorate::TrackInits(const Func* f, const id_list* inits)
 		// Only aggregates get initialized.
 		auto tag = id_t->Tag();
 		if ( IsAggrTag(tag) )
-			AddRDWithInit(&rd, id, DefinitionPoint(f), false, 0);
+			AddRDWithInit(rd, id, DefinitionPoint(f), false, 0);
 		}
 
-	AddPostRDs(f, &rd);
+	AddPostRDs(f, rd);
 	}
 
-void RD_Decorate::AddRD(ReachingDefs* rd, const ID* id, DefinitionPoint dp)
+void RD_Decorate::AddRD(RD_ptr rd, const ID* id, DefinitionPoint dp)
 	{
 	if ( id == 0 )
 		printf("oops\n");
@@ -920,7 +931,7 @@ void RD_Decorate::AddRD(ReachingDefs* rd, const ID* id, DefinitionPoint dp)
 		rd->AddRD(di, dp);
 	}
 
-void RD_Decorate::AddRDWithInit(ReachingDefs* rd, const ID* id,
+void RD_Decorate::AddRDWithInit(RD_ptr rd, const ID* id,
 				DefinitionPoint dp, bool assume_full,
 				const AssignExpr* init)
 	{
@@ -931,7 +942,7 @@ void RD_Decorate::AddRDWithInit(ReachingDefs* rd, const ID* id,
 	AddRDWithInit(rd, di, dp, assume_full, init);
 	}
 
-void RD_Decorate::AddRDWithInit(ReachingDefs* rd, DefinitionItem* di,
+void RD_Decorate::AddRDWithInit(RD_ptr rd, DefinitionItem* di,
 				DefinitionPoint dp, bool assume_full,
 				const AssignExpr* init)
 	{
@@ -966,7 +977,7 @@ void RD_Decorate::AddRDWithInit(ReachingDefs* rd, DefinitionItem* di,
 	CreateRecordRDs(rd, di, assume_full, dp, rhs_di);
 	}
 
-void RD_Decorate::CreateRecordRDs(ReachingDefs* rd, DefinitionItem* di,
+void RD_Decorate::CreateRecordRDs(RD_ptr rd, DefinitionItem* di,
 					bool assume_full, DefinitionPoint dp,
 					const DefinitionItem* rhs_di)
 	{

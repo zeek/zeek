@@ -5,9 +5,14 @@
 
 typedef std::map<const DefinitionItem*, DefinitionPoint> ReachingDefsMap;
 
-class ReachingDefs {
+class ReachingDefs;
+typedef IntrusivePtr<ReachingDefs> RD_ptr;
+
+inline RD_ptr make_new_RD_ptr() { return make_intrusive<ReachingDefs>(); }
+
+class ReachingDefs : public BroObj {
 public:
-	void AddRDs(const ReachingDefs* rd)
+	void AddRDs(const RD_ptr rd)
 		{
 		auto& rd_m = rd->RDMap();
 
@@ -31,8 +36,8 @@ public:
 		return l != rd_map.end() && l->second.SameAs(dp);
 		}
 
-	ReachingDefs* Intersect(const ReachingDefs* r) const;
-	ReachingDefs* Union(const ReachingDefs* r) const;
+	RD_ptr Intersect(const RD_ptr r) const;
+	RD_ptr Union(const RD_ptr r) const;
 
 	void Dump() const;
 
@@ -46,7 +51,7 @@ protected:
 	ReachingDefsMap rd_map;
 };
 
-typedef std::map<const BroObj*, ReachingDefs> AnalyInfo;
+typedef std::map<const BroObj*, RD_ptr> AnalyInfo;
 
 // Reaching definitions associated with a collection of BroObj's.
 class ReachingDefSet {
@@ -78,35 +83,47 @@ public:
 		if ( RDs == a_i->end() )
 			return false;
 
-		return RDs->second.HasDI(di);
+		return RDs->second->HasDI(di);
 		}
 
-	// Creates a new RDset if none exists.
-	ReachingDefs* RDs(const BroObj* o) const
+	RD_ptr RDs(const BroObj* o) const
 		{
 		if ( o == nullptr )
-			return new ReachingDefs;
+			return nullptr;
 
 		auto rd = a_i->find(o);
 		if ( rd != a_i->end() )
-			return &rd->second;
+			return rd->second;
 		else
-			return new ReachingDefs;
+			return nullptr;
 		}
 
-	void AddRDs(const BroObj* o, const ReachingDefs* rd)
+	// Creates a new RDset if none exists.
+	RD_ptr FindRDs(const BroObj* o) const
+		{
+		if ( o == nullptr )
+			return make_new_RD_ptr();
+
+		auto rd = a_i->find(o);
+		if ( rd != a_i->end() )
+			return rd->second;
+		else
+			return make_new_RD_ptr();
+		}
+
+	void AddRDs(const BroObj* o, const RD_ptr rd)
 		{
 		if ( HasRDs(o) )
 			MergeRDs(o, rd);
 		else
-			a_i->insert(AnalyInfo::value_type(o, *rd));
+			a_i->insert(AnalyInfo::value_type(o, rd));
 		}
 
 protected:
-	void MergeRDs(const BroObj* o, const ReachingDefs* rd)
+	void MergeRDs(const BroObj* o, const RD_ptr rd)
 		{
-		auto& curr_rds = a_i->find(o)->second;
-		curr_rds.AddRDs(rd);
+		auto curr_rds = a_i->find(o)->second;
+		curr_rds->AddRDs(rd);
 		}
 
 	AnalyInfo* a_i;

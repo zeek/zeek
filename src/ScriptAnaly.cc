@@ -75,6 +75,9 @@ protected:
 		return rds;
 		}
 
+	// ### If we want to go to sharing RD sets using copy-on-write,
+	// then a starting point is altering the const RD_ptr&'s in
+	// these APIs to instead be RD_ptr's.
 	void AddPreRDs(const BroObj* o, const RD_ptr& rd)
 		{ pre_defs->AddRDs(o, rd); }
 	void AddPostRDs(const BroObj* o, const RD_ptr& rd)

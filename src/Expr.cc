@@ -113,6 +113,11 @@ bool Expr::IsPure() const
 	return true;
 	}
 
+bool Expr::IsReduced() const
+	{
+	return true;
+	}
+
 IntrusivePtr<Val> Expr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) const
 	{
 	if ( aggr )
@@ -381,6 +386,11 @@ bool UnaryExpr::IsPure() const
 	return op->IsPure();
 	}
 
+bool UnaryExpr::IsReduced() const
+	{
+	return op->IsSingleton();
+	}
+
 TraversalCode UnaryExpr::Traverse(TraversalCallback* cb) const
 	{
 	TraversalCode tc = cb->PreExpr(this, Op());
@@ -494,6 +504,11 @@ IntrusivePtr<Val> BinaryExpr::Eval(Frame* f) const
 bool BinaryExpr::IsPure() const
 	{
 	return op1->IsPure() && op2->IsPure();
+	}
+
+bool BinaryExpr::IsReduced() const
+	{
+	return op1->IsSingleton() && op2->IsSingleton();
 	}
 
 TraversalCode BinaryExpr::Traverse(TraversalCallback* cb) const
@@ -1979,6 +1994,11 @@ bool CondExpr::IsPure() const
 	return op1->IsPure() && op2->IsPure() && op3->IsPure();
 	}
 
+bool CondExpr::IsReduced() const
+	{
+	return op1->IsSingleton() && op2->IsSingleton() && op3->IsSingleton();
+	}
+
 TraversalCode CondExpr::Traverse(TraversalCallback* cb) const
 	{
 	TraversalCode tc = cb->PreExpr(this, Op1());
@@ -2453,6 +2473,20 @@ bool AssignExpr::IsRecordElement(TypeDecl* td) const
 
 bool AssignExpr::IsPure() const
 	{
+	return false;
+	}
+
+bool AssignExpr::IsReduced() const
+	{
+	if ( ! op2->IsReduced() )
+		return false;
+
+	if ( op1->IsSingleton() )
+		return true;
+
+	if ( op1->Tag() == EXPR_REF )
+		return op1->AsRefExpr()->IsReduced();
+
 	return false;
 	}
 
@@ -3907,6 +3941,11 @@ bool ScheduleExpr::IsPure() const
 	return false;
 	}
 
+bool ScheduleExpr::IsReduced() const
+	{
+	return when->IsReduced() && event->IsReduced();
+	}
+
 IntrusivePtr<Val> ScheduleExpr::Eval(Frame* f) const
 	{
 	if ( terminating )
@@ -4194,6 +4233,11 @@ bool CallExpr::IsPure() const
 	return pure;
 	}
 
+bool CallExpr::IsReduced() const
+	{
+	return func->IsReduced() && args->IsReduced();
+	}
+
 IntrusivePtr<Val> CallExpr::Eval(Frame* f) const
 	{
 	if ( IsError() )
@@ -4440,6 +4484,11 @@ IntrusivePtr<Val> EventExpr::Eval(Frame* f) const
 	return nullptr;
 	}
 
+bool EventExpr::IsReduced() const
+	{
+	return Args()->IsReduced();
+	}
+
 TraversalCode EventExpr::Traverse(TraversalCallback* cb) const
 	{
 	TraversalCode tc = cb->PreExpr(this);
@@ -4492,6 +4541,15 @@ bool ListExpr::IsPure() const
 	{
 	for ( const auto& expr : exprs )
 		if ( ! expr->IsPure() )
+			return false;
+
+	return true;
+	}
+
+bool ListExpr::IsReduced() const
+	{
+	for ( const auto& expr : exprs )
+		if ( ! expr->IsReduced() )
 			return false;
 
 	return true;

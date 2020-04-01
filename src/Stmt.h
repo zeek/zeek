@@ -44,6 +44,9 @@ public:
 	// True if the statement has no side effects, false otherwise.
 	virtual int IsPure() const;
 
+	// True if the statement is in reduced form.
+	virtual bool IsReduced() const;
+
 #undef ACCESSOR
 #define ACCESSOR(tag, ctype, name) \
         ctype* name() \
@@ -122,6 +125,8 @@ protected:
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 	virtual IntrusivePtr<Val> DoExec(val_list* vals, stmt_flow_type& flow) const = 0;
 
+	bool IsReduced() const override;
+
 	void Describe(ODesc* d) const override;
 	void PrintVals(ODesc* d, val_list* vals, int offset) const;
 
@@ -155,6 +160,7 @@ protected:
 
 	virtual IntrusivePtr<Val> DoExec(Frame* f, Val* v, stmt_flow_type& flow) const;
 
+	bool IsReduced() const override;
 	int IsPure() const override;
 
 	IntrusivePtr<Expr> e;
@@ -175,6 +181,7 @@ public:
 protected:
 	IntrusivePtr<Val> DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
 	int IsPure() const override;
+	bool IsReduced() const override;
 
 	IntrusivePtr<Stmt> s1;
 	IntrusivePtr<Stmt> s2;
@@ -220,6 +227,7 @@ public:
 protected:
 	IntrusivePtr<Val> DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
 	int IsPure() const override;
+	bool IsReduced() const override;
 
 	// Initialize composite hash and case label map.
 	void Init();
@@ -286,6 +294,7 @@ public:
 	~WhileStmt() override;
 
 	int IsPure() const override;
+	bool IsReduced() const override;
 
 	const Expr* Condition() const	{ return loop_condition.get(); }
 	const Stmt* Body() const	{ return body.get(); }
@@ -316,6 +325,7 @@ public:
 	const Stmt* LoopBody() const	{ return body.get(); }
 
 	int IsPure() const override;
+	bool IsReduced() const override;
 
 	void Describe(ODesc* d) const override;
 
@@ -398,6 +408,7 @@ public:
 
 protected:
 	int IsPure() const override;
+	bool IsReduced() const override;
 
 	stmt_list stmts;
 };
@@ -459,6 +470,7 @@ public:
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 	int IsPure() const override;
+	bool IsReduced() const override;
 
 	const Expr* Cond() const	{ return cond.get(); }
 	const Stmt* Body() const	{ return s1.get(); }

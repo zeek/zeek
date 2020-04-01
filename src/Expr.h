@@ -117,6 +117,15 @@ public:
 	// True if the expression has no side effects, false otherwise.
 	virtual bool IsPure() const;
 
+	// True if the expression is in reduced form (only variables or
+	// constants as operands).
+	virtual bool IsReduced() const;
+
+	// True if the expression can serve as an operand to a reduced
+	// expression.
+	bool IsSingleton() const
+		{ return tag == EXPR_NAME || tag == EXPR_CONST; }
+
 	// True if the expression is a constant, false otherwise.
 	bool IsConst() const	{ return tag == EXPR_CONST; }
 
@@ -266,6 +275,7 @@ public:
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 	bool IsPure() const override;
+	bool IsReduced() const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -286,6 +296,7 @@ public:
 	Expr* Op2() const	{ return op2.get(); }
 
 	bool IsPure() const override;
+	bool IsReduced() const override;
 
 	// BinaryExpr::Eval correctly handles vector types.  Any child
 	// class that overrides Eval() should be modified to handle
@@ -478,6 +489,7 @@ public:
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 	bool IsPure() const override;
+	bool IsReduced() const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -510,6 +522,7 @@ public:
 	bool IsRecordElement(TypeDecl* td) const override;
 	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
 	bool IsPure() const override;
+	bool IsReduced() const override;
 
 protected:
 	bool TypeCheck(attr_list* attrs = 0);
@@ -746,6 +759,7 @@ public:
 	ScheduleExpr(IntrusivePtr<Expr> when, IntrusivePtr<EventExpr> event);
 
 	bool IsPure() const override;
+	bool IsReduced() const override;
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
@@ -779,6 +793,7 @@ public:
 	ListExpr* Args() const	{ return args.get(); }
 
 	bool IsPure() const override;
+	bool IsReduced() const override;
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
@@ -825,6 +840,8 @@ public:
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
+	bool IsReduced() const override;
+
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
@@ -846,8 +863,9 @@ public:
 	const expr_list& Exprs() const	{ return exprs; }
 	expr_list& Exprs()		{ return exprs; }
 
-	// True if the entire list represents pure values.
+	// True if the entire list represents pure values / reduced expressions.
 	bool IsPure() const override;
+	bool IsReduced() const override;
 
 	// True if the entire list represents constant values.
 	bool AllConst() const;

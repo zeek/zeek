@@ -88,6 +88,11 @@ int Stmt::IsPure() const
 	return 0;
 	}
 
+bool Stmt::IsReduced() const
+	{
+	return true;
+	}
+
 void Stmt::Describe(ODesc* d) const
 	{
 	if ( ! d->IsReadable() || Tag() != STMT_EXPR )
@@ -160,6 +165,16 @@ IntrusivePtr<Val> ExprListStmt::Exec(Frame* f, stmt_flow_type& flow) const
 		}
 	else
 		return nullptr;
+	}
+
+bool ExprListStmt::IsReduced() const
+	{
+	const expr_list& e = l->Exprs();
+	for ( const auto& expr : e )
+		if ( ! expr->IsReduced() )
+			return false;
+
+	return true;
 	}
 
 void ExprListStmt::Describe(ODesc* d) const
@@ -332,6 +347,11 @@ int ExprStmt::IsPure() const
 	return ! e || e->IsPure();
 	}
 
+bool ExprStmt::IsReduced() const
+	{
+	return e && e->IsReduced();
+	}
+
 void ExprStmt::Describe(ODesc* d) const
 	{
 	Stmt::Describe(d);
@@ -406,6 +426,11 @@ IntrusivePtr<Val> IfStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 int IfStmt::IsPure() const
 	{
 	return e->IsPure() && s1->IsPure() && s2->IsPure();
+	}
+
+bool IfStmt::IsReduced() const
+	{
+	return e->IsReduced() && s1->IsReduced() && s2->IsReduced();
 	}
 
 void IfStmt::Describe(ODesc* d) const
@@ -853,6 +878,20 @@ int SwitchStmt::IsPure() const
 	return 1;
 	}
 
+bool SwitchStmt::IsReduced() const
+	{
+	if ( ! e->IsReduced() )
+		return false;
+
+	for ( const auto& c : *cases )
+		{
+		if ( ! c->ExprCases()->IsReduced() || ! c->Body()->IsReduced() )
+			return false;
+		}
+
+	return true;
+	}
+
 void SwitchStmt::Describe(ODesc* d) const
 	{
 	ExprStmt::Describe(d);
@@ -1007,6 +1046,11 @@ WhileStmt::~WhileStmt() = default;
 int WhileStmt::IsPure() const
 	{
 	return loop_condition->IsPure() && body->IsPure();
+	}
+
+bool WhileStmt::IsReduced() const
+	{
+	return loop_condition->IsReduced() && body->IsReduced();
 	}
 
 void WhileStmt::Describe(ODesc* d) const
@@ -1277,6 +1321,11 @@ int ForStmt::IsPure() const
 	return e->IsPure() && body->IsPure();
 	}
 
+bool ForStmt::IsReduced() const
+	{
+	return e->IsReduced() && body->IsReduced();
+	}
+
 void ForStmt::Describe(ODesc* d) const
 	{
 	Stmt::Describe(d);
@@ -1532,6 +1581,14 @@ int StmtList::IsPure() const
 	return 1;
 	}
 
+bool StmtList::IsReduced() const
+	{
+	for ( const auto& stmt : stmts )
+		if ( ! stmt->IsReduced() )
+			return false;
+	return true;
+	}
+
 void StmtList::Describe(ODesc* d) const
 	{
 	if ( ! d->IsReadable() )
@@ -1785,7 +1842,16 @@ IntrusivePtr<Val> WhenStmt::Exec(Frame* f, stmt_flow_type& flow) const
 
 int WhenStmt::IsPure() const
 	{
-	return cond->IsPure() && s1->IsPure() && (! s2 || s2->IsPure());
+	// These are never pure, because they instill triggers every
+	// time they're executed.
+	return 0;
+	}
+
+bool WhenStmt::IsReduced() const
+	{
+	// We consider these always reduced because they're not
+	// candidates for any further optimization.
+	return true;
 	}
 
 void WhenStmt::Describe(ODesc* d) const

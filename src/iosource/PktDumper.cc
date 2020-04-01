@@ -45,12 +45,12 @@ double PktDumper::OpenTime() const
 
 bool PktDumper::IsError() const
 	{
-	return errmsg.size();
+	return ! errmsg.empty();
 	}
 
 const char* PktDumper::ErrorMsg() const
 	{
-	return errmsg.size() ? errmsg.c_str() : 0;
+	return errmsg.size() ? errmsg.c_str() : nullptr;
 	}
 
 int PktDumper::HdrSize() const

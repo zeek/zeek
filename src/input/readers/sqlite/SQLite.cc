@@ -156,7 +156,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 			{
 			Error("Invalid data type for boolean - expected Integer");
 			delete val;
-			return 0;
+			return nullptr;
 			}
 
 		int res = sqlite3_column_int(st, pos);
@@ -167,7 +167,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 			{
 			Error(Fmt("Invalid value for boolean: %d", res));
 			delete val;
-			return 0;
+			return nullptr;
 			}
 		break;
 		}
@@ -240,7 +240,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 	default:
 		Error(Fmt("unsupported field format %d", field->type));
 		delete val;
-		return 0;
+		return nullptr;
 	}
 
 	return val;
@@ -279,7 +279,7 @@ bool SQLite::DoUpdate()
 				mapping[j] = i;
 				}
 
-			if ( fields[j]->secondary_name != 0 && strcmp(fields[j]->secondary_name, name) == 0 )
+			if ( fields[j]->secondary_name != nullptr && strcmp(fields[j]->secondary_name, name) == 0 )
 				{
 				assert(fields[j]->type == TYPE_PORT);
 				if ( submapping[j] != -1 )
@@ -314,7 +314,7 @@ bool SQLite::DoUpdate()
 		for ( unsigned int j = 0; j < num_fields; ++j)
 			{
 			ofields[j] = EntryToVal(st, fields[j], mapping[j], submapping[j]);
-			if ( ofields[j] == 0 )
+			if ( ! ofields[j] )
 				{
 				for ( unsigned int k = 0; k < j; ++k )
 					delete ofields[k];

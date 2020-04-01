@@ -214,7 +214,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 
 	threading::Value* val = new threading::Value(type, subtype, true);
 	const char* start = s.c_str();
-	char* end = 0;
+	char* end = nullptr;
 	errno = 0;
 	size_t pos;
 
@@ -411,7 +411,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 				}
 
 			threading::Value* newval = ParseValue(element, name, subtype);
-			if ( newval == 0 )
+			if ( newval == nullptr )
 				{
 				GetThread()->Warning("Error while reading set or vector");
 				error = true;
@@ -429,7 +429,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 		if ( ! error && (s.empty() || *s.rbegin() == separators.set_separator[0]) )
 			{
 			lvals[pos] = ParseValue("", name, subtype);
-			if ( lvals[pos] == 0 )
+			if ( lvals[pos] == nullptr )
 				{
 				GetThread()->Warning("Error while trying to add empty set element");
 				goto parse_error;
@@ -470,7 +470,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 
 parse_error:
 	delete val;
-	return 0;
+	return nullptr;
 	}
 
 bool Ascii::CheckNumberError(const char* start, const char* end) const

@@ -24,7 +24,7 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 	tsv = false;
 	use_json = false;
 	enable_utf_8 = false;
-	formatter = 0;
+	formatter = nullptr;
 	gzip_level = 0;
 	gzfile = nullptr;
 
@@ -179,7 +179,7 @@ bool Ascii::InitFilterOptions()
 bool Ascii::InitFormatter()
 	{
 	delete formatter;
-	formatter = 0;
+	formatter = nullptr;
 
 	if ( use_json )
 		{

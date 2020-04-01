@@ -104,15 +104,15 @@ public:
 
 		ReaderInfo()
 			{
-			source = 0;
-			name = 0;
+			source = nullptr;
+			name = nullptr;
 			mode = MODE_NONE;
 			}
 
 		ReaderInfo(const ReaderInfo& other)
 			{
-			source = other.source ? copy_string(other.source) : 0;
-			name = other.name ? copy_string(other.name) : 0;
+			source = other.source ? copy_string(other.source) : nullptr;
+			name = other.name ? copy_string(other.name) : nullptr;
 			mode = other.mode;
 
 			for ( config_map::const_iterator i = other.config.begin(); i != other.config.end(); i++ )

@@ -396,7 +396,7 @@ bool Ascii::DoUpdate()
 
 			Value* val = formatter->ParseValue(stringfields[(*fit).position], (*fit).name, (*fit).type, (*fit).subtype);
 
-			if ( val == 0 )
+			if ( ! val )
 				{
 				Warning(Fmt("Could not convert line '%s' of %s to Val. Ignoring line.", line.c_str(), fname.c_str()));
 				error = true;

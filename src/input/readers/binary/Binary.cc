@@ -14,7 +14,7 @@ using threading::Field;
 streamsize Binary::chunk_size = 0;
 
 Binary::Binary(ReaderFrontend *frontend)
-	: ReaderBackend(frontend), in(0), mtime(0), ino(0), firstrun(true)
+	: ReaderBackend(frontend), in(nullptr), mtime(0), ino(0), firstrun(true)
 	{
 	if ( ! chunk_size )
 		{
@@ -64,7 +64,7 @@ bool Binary::CloseInput()
 
 	in->close();
 	delete in;
-	in = 0;
+	in = nullptr;
 
 #ifdef DEBUG
 	Debug(DBG_INPUT, "Binary reader finished close");
@@ -76,7 +76,7 @@ bool Binary::CloseInput()
 bool Binary::DoInit(const ReaderInfo& info, int num_fields,
                     const Field* const* fields)
 	{
-	in = 0;
+	in = nullptr;
 	mtime = 0;
 	ino = 0;
 	firstrun = true;
@@ -158,7 +158,7 @@ streamsize Binary::GetChunk(char** chunk)
 	if ( ! bytes_read )
 		{
 		delete [] *chunk;
-		*chunk = 0;
+		*chunk = nullptr;
 		return 0;
 		}
 
@@ -231,7 +231,7 @@ bool Binary::DoUpdate()
 		}
 		}
 
-	char* chunk = 0;
+	char* chunk = nullptr;
 	streamsize size = 0;
 	while ( (size = GetChunk(&chunk)) )
 		{

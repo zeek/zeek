@@ -59,7 +59,7 @@ public:
 	Packet(int link_type, pkt_timeval *ts, uint32_t caplen,
 	       uint32_t len, const u_char *data, bool copy = false,
 	       std::string tag = std::string(""))
-	           : data(0), l2_src(0), l2_dst(0)
+	           : data(nullptr), l2_src(nullptr), l2_dst(nullptr)
 	       {
 	       Init(link_type, ts, caplen, len, data, copy, tag);
 	       }
@@ -67,10 +67,10 @@ public:
 	/**
 	 * Default constructor. For internal use only.
 	 */
-	Packet() : data(0), l2_src(0), l2_dst(0)
+	Packet() : data(nullptr), l2_src(nullptr), l2_dst(nullptr)
 		{
 		pkt_timeval ts = {0, 0};
-		Init(0, &ts, 0, 0, 0);
+		Init(0, &ts, 0, 0, nullptr);
 		}
 
 	/**

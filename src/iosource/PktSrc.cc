@@ -51,7 +51,7 @@ const std::string& PktSrc::Path() const
 
 const char* PktSrc::ErrorMsg() const
 	{
-	return errbuf.size() ? errbuf.c_str() : 0;
+	return errbuf.size() ? errbuf.c_str() : nullptr;
 	}
 
 int PktSrc::LinkType() const
@@ -66,7 +66,7 @@ uint32_t PktSrc::Netmask() const
 
 bool PktSrc::IsError() const
 	{
-	return ErrorMsg();
+	return ! errbuf.empty();
 	}
 
 bool PktSrc::IsLive() const
@@ -153,7 +153,7 @@ void PktSrc::Info(const std::string& msg)
 
 void PktSrc::Weird(const std::string& msg, const Packet* p)
 	{
-	sessions->Weird(msg.c_str(), p, 0);
+	sessions->Weird(msg.c_str(), p, nullptr);
 	}
 
 void PktSrc::InternalError(const std::string& msg)
@@ -299,9 +299,9 @@ bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
 BPF_Program* PktSrc::GetBPFFilter(int index)
 	{
 	if ( index < 0 )
-		return 0;
+		return nullptr;
 
-	return (static_cast<int>(filters.size()) > index ? filters[index] : 0);
+	return (static_cast<int>(filters.size()) > index ? filters[index] : nullptr);
 	}
 
 bool PktSrc::ApplyBPFFilter(int index, const struct pcap_pkthdr *hdr, const u_char *pkt)

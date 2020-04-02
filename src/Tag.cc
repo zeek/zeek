@@ -41,13 +41,13 @@ Tag::Tag()
 	{
 	type = 0;
 	subtype = 0;
-	val = 0;
+	val = nullptr;
 	}
 
 Tag::~Tag()
 	{
 	Unref(val);
-	val = 0;
+	val = nullptr;
 	}
 
 Tag& Tag::operator=(const Tag& other)

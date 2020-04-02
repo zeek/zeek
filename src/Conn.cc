@@ -120,7 +120,7 @@ Connection::Connection(NetSessions* s, const ConnIDKey& k, double t, const ConnI
 	if ( arg_encap )
 		encapsulation = new EncapsulationStack(*arg_encap);
 	else
-		encapsulation = 0;
+		encapsulation = nullptr;
 	}
 
 Connection::~Connection()
@@ -132,7 +132,7 @@ Connection::~Connection()
 
 	if ( conn_val )
 		{
-		conn_val->SetOrigin(0);
+		conn_val->SetOrigin(nullptr);
 		Unref(conn_val);
 		}
 
@@ -148,7 +148,7 @@ void Connection::CheckEncapsulation(const EncapsulationStack* arg_encap)
 		{
 		if ( *encapsulation != *arg_encap )
 			{
-			Event(tunnel_changed, 0, arg_encap->GetVectorVal());
+			Event(tunnel_changed, nullptr, arg_encap->GetVectorVal());
 			delete encapsulation;
 			encapsulation = new EncapsulationStack(*arg_encap);
 			}
@@ -157,14 +157,14 @@ void Connection::CheckEncapsulation(const EncapsulationStack* arg_encap)
 	else if ( encapsulation )
 		{
 		EncapsulationStack empty;
-		Event(tunnel_changed, 0, empty.GetVectorVal());
+		Event(tunnel_changed, nullptr, empty.GetVectorVal());
 		delete encapsulation;
 		encapsulation = nullptr;
 		}
 
 	else if ( arg_encap )
 		{
-		Event(tunnel_changed, 0, arg_encap->GetVectorVal());
+		Event(tunnel_changed, nullptr, arg_encap->GetVectorVal());
 		encapsulation = new EncapsulationStack(*arg_encap);
 		}
 	}
@@ -269,7 +269,7 @@ void Connection::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig,
 void Connection::DeleteTimer(double /* t */)
 	{
 	if ( is_active )
-		Event(connection_timeout, 0);
+		Event(connection_timeout, nullptr);
 
 	sessions->Remove(this);
 	}
@@ -282,7 +282,7 @@ void Connection::InactivityTimer(double t)
 		{
 		if ( last_time + inactivity_timeout <= t )
 			{
-			Event(connection_timeout, 0);
+			Event(connection_timeout, nullptr);
 			sessions->Remove(this);
 			++killed_by_inactivity;
 			}
@@ -402,12 +402,12 @@ RecordVal* Connection::BuildConnVal()
 
 analyzer::Analyzer* Connection::FindAnalyzer(analyzer::ID id)
 	{
-	return root_analyzer ? root_analyzer->FindChild(id) : 0;
+	return root_analyzer ? root_analyzer->FindChild(id) : nullptr;
 	}
 
 analyzer::Analyzer* Connection::FindAnalyzer(const analyzer::Tag& tag)
 	{
-	return root_analyzer ? root_analyzer->FindChild(tag) : 0;
+	return root_analyzer ? root_analyzer->FindChild(tag) : nullptr;
 	}
 
 analyzer::Analyzer* Connection::FindAnalyzer(const char* name)
@@ -696,7 +696,7 @@ void Connection::CheckFlowLabel(bool is_orig, uint32_t flow_label)
 		if ( connection_flow_label_changed &&
 		     (is_orig ? saw_first_orig_packet : saw_first_resp_packet) )
 			{
-			EnqueueEvent(connection_flow_label_changed, 0,
+			EnqueueEvent(connection_flow_label_changed, nullptr,
 				IntrusivePtr{AdoptRef{}, BuildConnVal()},
 				IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)},
 				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(my_flow_label)},

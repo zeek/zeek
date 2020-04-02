@@ -29,7 +29,7 @@ class BroType;
 
 class ODesc {
 public:
-	explicit ODesc(desc_type t=DESC_READABLE, BroFile* f=0);
+	explicit ODesc(desc_type t=DESC_READABLE, BroFile* f=nullptr);
 
 	~ODesc();
 
@@ -131,7 +131,7 @@ public:
 	byte_vec TakeBytes()
 		{
 		const void* t = base;
-		base = 0;
+		base = nullptr;
 		size = 0;
 
 		// Don't clear offset, as we want to still support

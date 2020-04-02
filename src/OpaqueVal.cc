@@ -699,24 +699,24 @@ bool EntropyVal::DoUnserialize(const broker::data& data)
 BloomFilterVal::BloomFilterVal()
 	: OpaqueVal(bloomfilter_type)
 	{
-	type = 0;
-	hash = 0;
-	bloom_filter = 0;
+	type = nullptr;
+	hash = nullptr;
+	bloom_filter = nullptr;
 	}
 
 BloomFilterVal::BloomFilterVal(OpaqueType* t)
 	: OpaqueVal(t)
 	{
-	type = 0;
-	hash = 0;
-	bloom_filter = 0;
+	type = nullptr;
+	hash = nullptr;
+	bloom_filter = nullptr;
 	}
 
 BloomFilterVal::BloomFilterVal(probabilistic::BloomFilter* bf)
 	: OpaqueVal(bloomfilter_type)
 	{
-	type = 0;
-	hash = 0;
+	type = nullptr;
+	hash = nullptr;
 	bloom_filter = bf;
 	}
 
@@ -790,13 +790,13 @@ IntrusivePtr<BloomFilterVal> BloomFilterVal::Merge(const BloomFilterVal* x,
 	     ! same_type(x->Type(), y->Type()) )
 		{
 		reporter->Error("cannot merge Bloom filters with different types");
-		return 0;
+		return nullptr;
 		}
 
 	if ( typeid(*x->bloom_filter) != typeid(*y->bloom_filter) )
 		{
 		reporter->Error("cannot merge different Bloom filter types");
-		return 0;
+		return nullptr;
 		}
 
 	probabilistic::BloomFilter* copy = x->bloom_filter->Clone();
@@ -805,7 +805,7 @@ IntrusivePtr<BloomFilterVal> BloomFilterVal::Merge(const BloomFilterVal* x,
 		{
 		delete copy;
 		reporter->Error("failed to merge Bloom filter");
-		return 0;
+		return nullptr;
 		}
 
 	auto merged = make_intrusive<BloomFilterVal>(copy);
@@ -813,7 +813,7 @@ IntrusivePtr<BloomFilterVal> BloomFilterVal::Merge(const BloomFilterVal* x,
 	if ( x->Type() && ! merged->Typify(x->Type()) )
 		{
 		reporter->Error("failed to set type on merged Bloom filter");
-		return 0;
+		return nullptr;
 		}
 
 	return merged;
@@ -876,17 +876,17 @@ bool BloomFilterVal::DoUnserialize(const broker::data& data)
 
 CardinalityVal::CardinalityVal() : OpaqueVal(cardinality_type)
 	{
-	c = 0;
-	type = 0;
-	hash = 0;
+	c = nullptr;
+	type = nullptr;
+	hash = nullptr;
 	}
 
 CardinalityVal::CardinalityVal(probabilistic::CardinalityCounter* arg_c)
 	: OpaqueVal(cardinality_type)
 	{
 	c = arg_c;
-	type = 0;
-	hash = 0;
+	type = nullptr;
+	hash = nullptr;
 	}
 
 CardinalityVal::~CardinalityVal()

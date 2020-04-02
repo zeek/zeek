@@ -56,9 +56,9 @@ BroFile::BroFile(FILE* arg_f)
 	{
 	Init();
 	f = arg_f;
-	name = access = 0;
+	name = access = nullptr;
 	t = base_type(TYPE_STRING);
-	is_open = (f != 0);
+	is_open = (f != nullptr);
 	}
 
 BroFile::BroFile(FILE* arg_f, const char* arg_name, const char* arg_access)
@@ -68,13 +68,13 @@ BroFile::BroFile(FILE* arg_f, const char* arg_name, const char* arg_access)
 	name = copy_string(arg_name);
 	access = copy_string(arg_access);
 	t = base_type(TYPE_STRING);
-	is_open = (f != 0);
+	is_open = (f != nullptr);
 	}
 
 BroFile::BroFile(const char* arg_name, const char* arg_access)
 	{
 	Init();
-	f = 0;
+	f = nullptr;
 	name = copy_string(arg_name);
 	access = copy_string(arg_access);
 	t = base_type(TYPE_STRING);
@@ -110,7 +110,7 @@ const char* BroFile::Name() const
 	if ( f == stderr )
 		return "/dev/stderr";
 
-	return 0;
+	return nullptr;
 	}
 
 bool BroFile::Open(FILE* file, const char* mode)
@@ -168,7 +168,7 @@ void BroFile::Init()
 	{
 	open_time = 0;
 	is_open = false;
-	attrs = 0;
+	attrs = nullptr;
 	buffered = true;
 	raw_output = false;
 
@@ -185,7 +185,7 @@ FILE* BroFile::File()
 FILE* BroFile::Seek(long new_position)
 	{
 	if ( ! File() )
-		return 0;
+		return nullptr;
 
 	if ( fseek(f, new_position, SEEK_SET) < 0 )
 		reporter->Error("seek failed");
@@ -271,11 +271,11 @@ void BroFile::SetAttrs(Attributes* arg_attrs)
 RecordVal* BroFile::Rotate()
 	{
 	if ( ! is_open )
-		return 0;
+		return nullptr;
 
 	// Do not rotate stdin/stdout/stderr.
 	if ( f == stdin || f == stdout || f == stderr )
-		return 0;
+		return nullptr;
 
 	RecordVal* info = new RecordVal(rotate_info);
 	FILE* newf = rotate_file(name, info);
@@ -283,7 +283,7 @@ RecordVal* BroFile::Rotate()
 	if ( ! newf )
 		{
 		Unref(info);
-		return 0;
+		return nullptr;
 		}
 
 	info->Assign(2, make_intrusive<Val>(open_time, TYPE_TIME));
@@ -291,7 +291,7 @@ RecordVal* BroFile::Rotate()
 	Unlink();
 
  	fclose(f);
-	f = 0;
+	f = nullptr;
 
 	Open(newf);
 	return info;

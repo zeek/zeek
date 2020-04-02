@@ -25,7 +25,7 @@ ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 	scope = arg_scope;
 	is_export = arg_is_export;
 	is_option = false;
-	val = 0;
+	val = nullptr;
 	is_const = false;
 	is_enum_const = false;
 	is_type = false;
@@ -60,7 +60,7 @@ void ID::ClearVal()
 	if ( ! weak_ref )
 		Unref(val);
 
-	val = 0;
+	val = nullptr;
 	}
 
 void ID::SetVal(IntrusivePtr<Val> v, bool arg_weak_ref)
@@ -147,12 +147,12 @@ void ID::SetVal(IntrusivePtr<Expr> ev, init_class c)
 
 bool ID::IsRedefinable() const
 	{
-	return FindAttr(ATTR_REDEF) != 0;
+	return FindAttr(ATTR_REDEF) != nullptr;
 	}
 
 void ID::SetAttrs(IntrusivePtr<Attributes> a)
 	{
-	attrs = 0;
+	attrs = nullptr;
 	AddAttrs(std::move(a));
 	}
 
@@ -197,12 +197,12 @@ void ID::UpdateValAttrs()
 
 Attr* ID::FindAttr(attr_tag t) const
 	{
-	return attrs ? attrs->FindAttr(t) : 0;
+	return attrs ? attrs->FindAttr(t) : nullptr;
 	}
 
 bool ID::IsDeprecated() const
 	{
-	return FindAttr(ATTR_DEPRECATED) != 0;
+	return FindAttr(ATTR_DEPRECATED) != nullptr;
 	}
 
 void ID::MakeDeprecated(IntrusivePtr<Expr> deprecation)

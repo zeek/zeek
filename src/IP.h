@@ -136,7 +136,7 @@ public:
 	/**
 	 * Returns the script-layer record representation of the header.
 	 */
-	RecordVal* BuildRecordVal(VectorVal* chain = 0) const;
+	RecordVal* BuildRecordVal(VectorVal* chain = nullptr) const;
 
 protected:
 	uint8_t type;
@@ -184,7 +184,7 @@ public:
 	 */
 	const struct ip6_frag* GetFragHdr() const
 		{ return IsFragment() ?
-				(const struct ip6_frag*)chain[chain.size()-1]->Data(): 0; }
+				(const struct ip6_frag*)chain[chain.size()-1]->Data(): nullptr; }
 
 	/**
 	 * If the header chain is a fragment, returns the offset in number of bytes

@@ -129,7 +129,7 @@ protected:
  */
 class EncapsulationStack {
 public:
-	EncapsulationStack() : conns(0)
+	EncapsulationStack() : conns(nullptr)
 		{}
 
 	EncapsulationStack(const EncapsulationStack& other)
@@ -137,7 +137,7 @@ public:
 		if ( other.conns )
 			conns = new vector<EncapsulatingConn>(*(other.conns));
 		else
-			conns = 0;
+			conns = nullptr;
 		}
 
 	EncapsulationStack& operator=(const EncapsulationStack& other)
@@ -150,7 +150,7 @@ public:
 		if ( other.conns )
 			conns = new vector<EncapsulatingConn>(*(other.conns));
 		else
-			conns = 0;
+			conns = nullptr;
 
 		return *this;
 		}

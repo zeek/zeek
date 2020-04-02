@@ -149,7 +149,7 @@ bool post_execute_stmt(Stmt* stmt, Frame* f, Val* result, stmt_flow_type* flow);
 // Returns 1 if successful, 0 otherwise.
 // If cmdfile is non-nil, it contains the location of a file of commands
 // to be executed as debug commands.
-int dbg_init_debugger(const char* cmdfile = 0);
+int dbg_init_debugger(const char* cmdfile = nullptr);
 int dbg_shutdown_debugger();
 
 // Returns 1 if successful, 0 otherwise.

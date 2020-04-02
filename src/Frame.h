@@ -217,7 +217,7 @@ public:
 	trigger::Trigger* GetTrigger() const		{ return trigger.get(); }
 
 	void SetCall(const CallExpr* arg_call)	{ call = arg_call; }
-	void ClearCall()			{ call = 0; }
+	void ClearCall()			{ call = nullptr; }
 	const CallExpr* GetCall() const		{ return call; }
 
 	void SetDelayed()	{ delayed = true; }

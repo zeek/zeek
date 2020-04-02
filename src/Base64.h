@@ -59,5 +59,5 @@ protected:
 
 };
 
-BroString* decode_base64(const BroString* s, const BroString* a = 0, Connection* conn = 0);
-BroString* encode_base64(const BroString* s, const BroString* a = 0, Connection* conn = 0);
+BroString* decode_base64(const BroString* s, const BroString* a = nullptr, Connection* conn = nullptr);
+BroString* encode_base64(const BroString* s, const BroString* a = nullptr, Connection* conn = nullptr);

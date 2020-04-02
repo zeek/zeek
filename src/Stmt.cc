@@ -182,7 +182,7 @@ TraversalCode ExprListStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-static BroFile* print_stdout = 0;
+static BroFile* print_stdout = nullptr;
 
 static IntrusivePtr<EnumVal> lookup_enum_val(const char* module_name, const char* name)
 	{
@@ -629,7 +629,7 @@ SwitchStmt::SwitchStmt(IntrusivePtr<Expr> index, case_list* arg_cases)
 						NegExpr* ne = (NegExpr*)(expr);
 
 						if ( ne->Op()->IsConst() )
-							Unref(exprs.replace(j, new ConstExpr(ne->Eval(0))));
+							Unref(exprs.replace(j, new ConstExpr(ne->Eval(nullptr))));
 						}
 						break;
 
@@ -638,7 +638,7 @@ SwitchStmt::SwitchStmt(IntrusivePtr<Expr> index, case_list* arg_cases)
 						PosExpr* pe = (PosExpr*)(expr);
 
 						if ( pe->Op()->IsConst() )
-							Unref(exprs.replace(j, new ConstExpr(pe->Eval(0))));
+							Unref(exprs.replace(j, new ConstExpr(pe->Eval(nullptr))));
 						}
 						break;
 
@@ -648,7 +648,7 @@ SwitchStmt::SwitchStmt(IntrusivePtr<Expr> index, case_list* arg_cases)
 
 						if ( ne->Id()->IsConst() )
 							{
-							auto v = ne->Eval(0);
+							auto v = ne->Eval(nullptr);
 
 							if ( v )
 								Unref(exprs.replace(j, new ConstExpr(std::move(v))));
@@ -757,7 +757,7 @@ bool SwitchStmt::AddCaseLabelTypeMapping(ID* t, int idx)
 std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const
 	{
 	int label_idx = -1;
-	ID* label_id = 0;
+	ID* label_id = nullptr;
 
 	// Find matching expression cases.
 	if ( case_label_value_map.Length() )
@@ -1065,7 +1065,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 	: ExprStmt(STMT_FOR, std::move(loop_expr))
 	{
 	loop_vars = arg_loop_vars;
-	body = 0;
+	body = nullptr;
 
 	if ( e->Type()->Tag() == TYPE_TABLE )
 		{
@@ -1090,7 +1090,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 				{
 				add_local({NewRef{}, (*loop_vars)[i]},
 						{NewRef{}, ind_type}, INIT_NONE,
-						0, 0, VAR_REGULAR);
+						nullptr, nullptr, VAR_REGULAR);
 				}
 			}
 		}
@@ -1106,7 +1106,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 		BroType* t = (*loop_vars)[0]->Type();
 		if ( ! t )
 			add_local({NewRef{}, (*loop_vars)[0]}, base_type(TYPE_COUNT),
-						INIT_NONE, 0, 0, VAR_REGULAR);
+						INIT_NONE, nullptr, nullptr, VAR_REGULAR);
 
 		else if ( ! IsIntegral(t->Tag()) )
 			{
@@ -1127,7 +1127,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 		if ( ! t )
 			add_local({NewRef{}, (*loop_vars)[0]},
 					base_type(TYPE_STRING),
-					INIT_NONE, 0, 0, VAR_REGULAR);
+					INIT_NONE, nullptr, nullptr, VAR_REGULAR);
 
 		else if ( t->Tag() != TYPE_STRING )
 			{
@@ -1158,7 +1158,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars,
 		else
 			{
 			add_local(value_var, {NewRef{}, yield_type}, INIT_NONE,
-			                 0, 0, VAR_REGULAR);
+			                 nullptr, nullptr, VAR_REGULAR);
 			}
 		}
 	else
@@ -1471,7 +1471,7 @@ void ReturnStmt::Describe(ODesc* d) const
 	{
 	Stmt::Describe(d);
 	if ( ! d->IsReadable() )
-		d->Add(e != 0);
+		d->Add(e != nullptr);
 
 	if ( e )
 		{
@@ -1600,7 +1600,7 @@ IntrusivePtr<Val> EventBodyList::Exec(Frame* f, stmt_flow_type& flow) const
 
 	// Simulate a return so the hooks operate properly.
 	stmt_flow_type ft = FLOW_RETURN;
-	(void) post_execute_stmt(f->GetNextStmt(), f, 0, &ft);
+	(void) post_execute_stmt(f->GetNextStmt(), f, nullptr, &ft);
 
 	return nullptr;
 	}
@@ -1656,7 +1656,7 @@ IntrusivePtr<Val> InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
 		{
 		BroType* t = aggr->Type();
 
-		Val* v = 0;
+		Val* v = nullptr;
 
 		switch ( t->Tag() ) {
 		case TYPE_RECORD:

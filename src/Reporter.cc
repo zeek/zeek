@@ -30,7 +30,7 @@ int closelog();
 }
 #endif
 
-Reporter* reporter = 0;
+Reporter* reporter = nullptr;
 
 Reporter::Reporter()
 	{
@@ -88,8 +88,8 @@ void Reporter::Info(const char* fmt, ...)
 	{
 	va_list ap;
 	va_start(ap, fmt);
-	FILE* out = EmitToStderr(info_to_stderr) ? stderr : 0;
-	DoLog("", reporter_info, out, 0, 0, true, true, 0, fmt, ap);
+	FILE* out = EmitToStderr(info_to_stderr) ? stderr : nullptr;
+	DoLog("", reporter_info, out, nullptr, nullptr, true, true, nullptr, fmt, ap);
 	va_end(ap);
 	}
 
@@ -97,8 +97,8 @@ void Reporter::Warning(const char* fmt, ...)
 	{
 	va_list ap;
 	va_start(ap, fmt);
-	FILE* out = EmitToStderr(warnings_to_stderr) ? stderr : 0;
-	DoLog("warning", reporter_warning, out, 0, 0, true, true, 0, fmt, ap);
+	FILE* out = EmitToStderr(warnings_to_stderr) ? stderr : nullptr;
+	DoLog("warning", reporter_warning, out, nullptr, nullptr, true, true, nullptr, fmt, ap);
 	va_end(ap);
 	}
 
@@ -107,8 +107,8 @@ void Reporter::Error(const char* fmt, ...)
 	++errors;
 	va_list ap;
 	va_start(ap, fmt);
-	FILE* out = EmitToStderr(errors_to_stderr) ? stderr : 0;
-	DoLog("error", reporter_error, out, 0, 0, true, true, 0, fmt, ap);
+	FILE* out = EmitToStderr(errors_to_stderr) ? stderr : nullptr;
+	DoLog("error", reporter_error, out, nullptr, nullptr, true, true, nullptr, fmt, ap);
 	va_end(ap);
 	}
 
@@ -118,7 +118,7 @@ void Reporter::FatalError(const char* fmt, ...)
 	va_start(ap, fmt);
 
 	// Always log to stderr.
-	DoLog("fatal error", 0, stderr, 0, 0, true, false, 0, fmt, ap);
+	DoLog("fatal error", nullptr, stderr, nullptr, nullptr, true, false, nullptr, fmt, ap);
 
 	va_end(ap);
 
@@ -134,7 +134,7 @@ void Reporter::FatalErrorWithCore(const char* fmt, ...)
 	va_start(ap, fmt);
 
 	// Always log to stderr.
-	DoLog("fatal error", 0, stderr, 0, 0, true, false, 0, fmt, ap);
+	DoLog("fatal error", nullptr, stderr, nullptr, nullptr, true, false, nullptr, fmt, ap);
 
 	va_end(ap);
 
@@ -152,8 +152,8 @@ void Reporter::ExprRuntimeError(const Expr* expr, const char* fmt, ...)
 	PushLocation(expr->GetLocationInfo());
 	va_list ap;
 	va_start(ap, fmt);
-	FILE* out = EmitToStderr(errors_to_stderr) ? stderr : 0;
-	DoLog("expression error", reporter_error, out, 0, 0, true, true,
+	FILE* out = EmitToStderr(errors_to_stderr) ? stderr : nullptr;
+	DoLog("expression error", reporter_error, out, nullptr, nullptr, true, true,
 	      d.Description(), fmt, ap);
 	va_end(ap);
 	PopLocation();
@@ -166,8 +166,8 @@ void Reporter::RuntimeError(const Location* location, const char* fmt, ...)
 	PushLocation(location);
 	va_list ap;
 	va_start(ap, fmt);
-	FILE* out = EmitToStderr(errors_to_stderr) ? stderr : 0;
-	DoLog("runtime error", reporter_error, out, 0, 0, true, true, "", fmt, ap);
+	FILE* out = EmitToStderr(errors_to_stderr) ? stderr : nullptr;
+	DoLog("runtime error", reporter_error, out, nullptr, nullptr, true, true, "", fmt, ap);
 	va_end(ap);
 	PopLocation();
 	throw InterpreterException();
@@ -179,7 +179,7 @@ void Reporter::InternalError(const char* fmt, ...)
 	va_start(ap, fmt);
 
 	// Always log to stderr.
-	DoLog("internal error", 0, stderr, 0, 0, true, false, 0, fmt, ap);
+	DoLog("internal error", nullptr, stderr, nullptr, nullptr, true, false, nullptr, fmt, ap);
 
 	va_end(ap);
 
@@ -197,7 +197,7 @@ void Reporter::AnalyzerError(analyzer::Analyzer* a, const char* fmt,
 	va_start(ap, fmt);
 	// Always log to stderr.
 	// TODO: would be nice to also log a call stack.
-	DoLog("analyzer error", reporter_error, stderr, 0, 0, true, true, 0, fmt,
+	DoLog("analyzer error", reporter_error, stderr, nullptr, nullptr, true, true, nullptr, fmt,
 	      ap);
 	va_end(ap);
 	}
@@ -206,9 +206,9 @@ void Reporter::InternalWarning(const char* fmt, ...)
 	{
 	va_list ap;
 	va_start(ap, fmt);
-	FILE* out = EmitToStderr(warnings_to_stderr) ? stderr : 0;
+	FILE* out = EmitToStderr(warnings_to_stderr) ? stderr : nullptr;
 	// TODO: would be nice to also log a call stack.
-	DoLog("internal warning", reporter_warning, out, 0, 0, true, true, 0, fmt,
+	DoLog("internal warning", reporter_warning, out, nullptr, nullptr, true, true, nullptr, fmt,
 	      ap);
 	va_end(ap);
 	}
@@ -228,7 +228,7 @@ void Reporter::WeirdHelper(EventHandlerPtr event, val_list vl, const char* fmt_n
 	{
 	va_list ap;
 	va_start(ap, fmt_name);
-	DoLog("weird", event, 0, 0, &vl, false, false, 0, fmt_name, ap);
+	DoLog("weird", event, nullptr, nullptr, &vl, false, false, nullptr, fmt_name, ap);
 	va_end(ap);
 	}
 
@@ -382,7 +382,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 
 	int size = sizeof(tmp);
 	char* buffer  = tmp;
-	char* alloced = 0;
+	char* alloced = nullptr;
 
 	string loc_str;
 

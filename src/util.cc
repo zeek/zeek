@@ -277,7 +277,7 @@ std::string get_escaped_string(const char* str, size_t len, bool escape_all)
 char* copy_string(const char* s)
 	{
 	if ( ! s )
-		return 0;
+		return nullptr;
 
 	char* c = new char[strlen(s)+1];
 	strcpy(c, s);
@@ -558,7 +558,7 @@ const char* strpbrk_n(size_t len, const char* s, const char* charset)
 		if ( strchr(charset, *p) )
 			return p;
 
-	return 0;
+	return nullptr;
 	}
 
 #ifndef HAVE_STRCASESTR
@@ -819,7 +819,7 @@ const char* fmt_bytes(const char* data, int len)
 
 const char* vfmt(const char* format, va_list al)
 	{
-	static char* buf = 0;
+	static char* buf = nullptr;
 	static unsigned int buf_len = 1024;
 
 	if ( ! buf )
@@ -1017,7 +1017,7 @@ void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
 static bool read_random_seeds(const char* read_file, uint32_t* seed,
 				uint32_t* buf, int bufsiz)
 	{
-	FILE* f = 0;
+	FILE* f = nullptr;
 
 	if ( ! (f = fopen(read_file, "r")) )
 		{
@@ -1053,7 +1053,7 @@ static bool read_random_seeds(const char* read_file, uint32_t* seed,
 static bool write_random_seeds(const char* write_file, uint32_t seed,
 				uint32_t* buf, int bufsiz)
 	{
-	FILE* f = 0;
+	FILE* f = nullptr;
 
 	if ( ! (f = fopen(write_file, "w+")) )
 		{
@@ -1345,7 +1345,7 @@ bool is_package_loader(const string& path)
 FILE* open_file(const string& path, const string& mode)
 	{
 	if ( path.empty() )
-		return 0;
+		return nullptr;
 
 	FILE* rval = fopen(path.c_str(), mode.c_str());
 
@@ -1384,7 +1384,7 @@ FILE* open_package(string& path, const string& mode)
 	string package_loader = "__load__" + script_extensions[0];
 	reporter->Error("Failed to open package '%s': missing '%s' file",
 	                arg_path.c_str(), package_loader.c_str());
-	return 0;
+	return nullptr;
 	}
 
 TEST_CASE("util path ops")
@@ -1810,7 +1810,7 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 	if ( ! newf )
 		{
 		reporter->Error("rotate_file: can't open %s: %s", tmpname, strerror(errno));
-		return 0;
+		return nullptr;
 		}
 
 	// Then move old file to "<name>.<pid>.<timestamp>" and make sure
@@ -1822,7 +1822,7 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 		fclose(newf);
 		unlink(newname);
 		unlink(tmpname);
-		return 0;
+		return nullptr;
 		}
 
 	// Close current file, and move the tmp to its place.

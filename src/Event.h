@@ -64,7 +64,7 @@ public:
 	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
 	void QueueEventFast(const EventHandlerPtr &h, val_list vl,
 			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
-			TimerMgr* mgr = 0, BroObj* obj = 0);
+			TimerMgr* mgr = nullptr, BroObj* obj = nullptr);
 
 	// Queues an event if there's an event handler (or remote consumer).  This
 	// function always takes ownership of decrementing the reference count of
@@ -75,7 +75,7 @@ public:
 	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
 	void QueueEvent(const EventHandlerPtr &h, val_list vl,
 			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
-			TimerMgr* mgr = 0, BroObj* obj = 0);
+			TimerMgr* mgr = nullptr, BroObj* obj = nullptr);
 
 	// Same as QueueEvent, except taking the event's argument list via a
 	// pointer instead of by value.  This function takes ownership of the
@@ -84,7 +84,7 @@ public:
 	[[deprecated("Remove in v4.1.  Use Enqueue() instead.")]]
 	void QueueEvent(const EventHandlerPtr &h, val_list* vl,
 			SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
-			TimerMgr* mgr = 0, BroObj* obj = 0);
+			TimerMgr* mgr = nullptr, BroObj* obj = nullptr);
 
 	/**
 	 * Adds an event to the queue.  If no handler is found for the event
@@ -117,7 +117,7 @@ public:
 	void Drain();
 	bool IsDraining() const	{ return draining; }
 
-	bool HasEvents() const	{ return head != 0; }
+	bool HasEvents() const	{ return head != nullptr; }
 
 	// Returns the source ID of last raised event.
 	SourceID CurrentSource() const	{ return current_src; }

@@ -76,7 +76,7 @@ bool Brofiler::ReadStats()
 
 		pair<string, string> location_desc(std::move(location), std::move(desc));
 		uint64_t count;
-		atoi_n(cnt.size(), cnt.c_str(), 0, 10, count);
+		atoi_n(cnt.size(), cnt.c_str(), nullptr, 10, count);
 		usage_map.emplace(std::move(location_desc), count);
 		}
 

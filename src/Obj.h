@@ -66,7 +66,7 @@ public:
 		// we check for whether start_location has a line number
 		// of 0, which should only happen if it's been assigned
 		// to no_location (or hasn't been initialized at all).
-		location = 0;
+		location = nullptr;
 		if ( start_location.first_line != 0 )
 			SetLocationInfo(&start_location, &end_location);
 		}
@@ -80,14 +80,14 @@ public:
 	// Report user warnings/errors.  If obj2 is given, then it's
 	// included in the message, though if pinpoint_only is non-zero,
 	// then obj2 is only used to pinpoint the location.
-	void Warn(const char* msg, const BroObj* obj2 = 0,
-			bool pinpoint_only = false, const Location* expr_location = 0) const;
-	void Error(const char* msg, const BroObj* obj2 = 0,
-			bool pinpoint_only = false, const Location* expr_location = 0) const;
+	void Warn(const char* msg, const BroObj* obj2 = nullptr,
+			bool pinpoint_only = false, const Location* expr_location = nullptr) const;
+	void Error(const char* msg, const BroObj* obj2 = nullptr,
+			bool pinpoint_only = false, const Location* expr_location = nullptr) const;
 
 	// Report internal errors.
-	void BadTag(const char* msg, const char* t1 = 0,
-			const char* t2 = 0) const;
+	void BadTag(const char* msg, const char* t1 = nullptr,
+			const char* t2 = nullptr) const;
 #define CHECK_TAG(t1, t2, text, tag_to_text_func) \
 	{ \
 	if ( t1 != t2 ) \
@@ -134,9 +134,9 @@ protected:
 private:
 	friend class SuppressErrors;
 
-	void DoMsg(ODesc* d, const char s1[], const BroObj* obj2 = 0,
-			bool pinpoint_only = false, const Location* expr_location = 0) const;
-	void PinPoint(ODesc* d, const BroObj* obj2 = 0,
+	void DoMsg(ODesc* d, const char s1[], const BroObj* obj2 = nullptr,
+			bool pinpoint_only = false, const Location* expr_location = nullptr) const;
+	void PinPoint(ODesc* d, const BroObj* obj2 = nullptr,
 			bool pinpoint_only = false) const;
 
 	friend inline void Ref(BroObj* o);

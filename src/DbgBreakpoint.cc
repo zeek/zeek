@@ -49,13 +49,13 @@ DbgBreakpoint::DbgBreakpoint()
 	enabled = temporary = false;
 	BPID = -1;
 
-	at_stmt = 0;
+	at_stmt = nullptr;
 	at_time = -1.0;
 
 	repeat_count = hit_count = 0;
 
 	description[0] = 0;
-	source_filename = 0;
+	source_filename = nullptr;
 	source_line = 0;
 	}
 

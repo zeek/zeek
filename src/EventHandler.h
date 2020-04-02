@@ -69,7 +69,7 @@ private:
 // Encapsulates a ptr to an event handler to overload the boolean operator.
 class EventHandlerPtr {
 public:
-	EventHandlerPtr(EventHandler* p = 0)		{ handler = p; }
+	EventHandlerPtr(EventHandler* p = nullptr)		{ handler = p; }
 	EventHandlerPtr(const EventHandlerPtr& h)	{ handler = h.handler; }
 
 	const EventHandlerPtr& operator=(EventHandler* p)

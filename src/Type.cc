@@ -541,7 +541,7 @@ void FuncType::Describe(ODesc* d) const
 		{
 		d->Add(int(Tag()));
 		d->Add(flavor);
-		d->Add(yield != 0);
+		d->Add(yield != nullptr);
 		args->DescribeFields(d);
 		if ( yield )
 			yield->Describe(d);
@@ -648,7 +648,7 @@ bool RecordType::HasField(const char* field) const
 BroType* RecordType::FieldType(const char* field) const
 	{
 	int offset = FieldOffset(field);
-	return offset >= 0 ? FieldType(offset) : 0;
+	return offset >= 0 ? FieldType(offset) : nullptr;
 	}
 
 BroType* RecordType::FieldType(int field) const
@@ -783,7 +783,7 @@ IntrusivePtr<TableVal> RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 		if ( fv )
 			::Ref(fv);
 
-		bool logged = (fd->attrs && fd->FindAttr(ATTR_LOG) != 0);
+		bool logged = (fd->attrs && fd->FindAttr(ATTR_LOG) != nullptr);
 
 		auto nr = make_intrusive<RecordVal>(internal_type("record_field")->AsRecordType());
 
@@ -1575,10 +1575,10 @@ bool same_type(const BroType* t1, const BroType* t2, bool is_init, bool match_re
 bool same_attrs(const Attributes* a1, const Attributes* a2)
 	{
 	if ( ! a1 )
-		return (a2 == 0);
+		return (a2 == nullptr);
 
 	if ( ! a2 )
-		return (a1 == 0);
+		return (a1 == nullptr);
 
 	return (*a1 == *a2);
 	}
@@ -2023,7 +2023,7 @@ IntrusivePtr<BroType> init_type(Expr* init)
 	// Could be a record, a set, or a list of table elements.
 	Expr* e0 = el[0];
 
-	if ( e0->IsRecordElement(0) )
+	if ( e0->IsRecordElement(nullptr) )
 		// ListExpr's know how to build a record from their
 		// components.
 		return init_list->InitType();
@@ -2039,7 +2039,7 @@ IntrusivePtr<BroType> init_type(Expr* init)
 	for ( int i = 1; t && i < el.length(); ++i )
 		{
 		auto el_t = el[i]->InitType();
-		BroType* ti = el_t ? reduce_type(el_t.get()) : 0;
+		BroType* ti = el_t ? reduce_type(el_t.get()) : nullptr;
 
 		if ( ! ti )
 			return nullptr;

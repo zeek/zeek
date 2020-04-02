@@ -139,7 +139,7 @@ inline std::string get_escaped_string(const std::string& str, bool escape_all)
 
 std::vector<std::string>* tokenize_string(std::string_view input,
 					  std::string_view delim,
-					  std::vector<std::string>* rval = 0, int limit = 0);
+					  std::vector<std::string>* rval = nullptr, int limit = 0);
 
 std::vector<std::string_view> tokenize_string(std::string_view input, const char delim) noexcept;
 
@@ -167,7 +167,7 @@ extern char* strcasestr(const char* s, const char* find);
 #endif
 extern const char* strpbrk_n(size_t len, const char* s, const char* charset);
 template<class T> int atoi_n(int len, const char* s, const char** end, int base, T& result);
-extern char* uitoa_n(uint64_t value, char* str, int n, int base, const char* prefix=0);
+extern char* uitoa_n(uint64_t value, char* str, int n, int base, const char* prefix=nullptr);
 int strstr_n(const int big_len, const unsigned char* big,
 		const int little_len, const unsigned char* little);
 extern int fputs(int len, const char* s, FILE* fp);

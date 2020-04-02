@@ -136,7 +136,7 @@ void Frame::Reset(int startIdx)
 	for ( int i = startIdx; i < size; ++i )
 		{
 		UnrefElement(i);
-		frame[i] = 0;
+		frame[i] = nullptr;
 		}
 	}
 
@@ -159,7 +159,7 @@ void Frame::Describe(ODesc* d) const
 
 		for ( int i = 0; i < size; ++i )
 			 {
-			 d->Add(frame[i] != 0);
+			 d->Add(frame[i] != nullptr);
 			 d->SP();
 			 }
 		}

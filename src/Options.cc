@@ -186,49 +186,49 @@ zeek::Options zeek::parse_cmdline(int argc, char** argv)
 		}
 
 	constexpr struct option long_opts[] = {
-		{"parse-only",	no_argument,		0,	'a'},
-		{"bare-mode",	no_argument,		0,	'b'},
-		{"debug-script",	no_argument,		0,	'd'},
-		{"exec",		required_argument,	0,	'e'},
-		{"filter",		required_argument,	0,	'f'},
-		{"help",		no_argument,		0,	'h'},
-		{"iface",		required_argument,	0,	'i'},
-		{"zeekygen",		required_argument,		0,	'X'},
-		{"prefix",		required_argument,	0,	'p'},
-		{"readfile",		required_argument,	0,	'r'},
-		{"rulefile",		required_argument,	0,	's'},
-		{"tracefile",		required_argument,	0,	't'},
-		{"writefile",		required_argument,	0,	'w'},
-		{"version",		no_argument,		0,	'v'},
-		{"no-checksums",	no_argument,		0,	'C'},
-		{"force-dns",		no_argument,		0,	'F'},
-		{"load-seeds",		required_argument,	0,	'G'},
-		{"save-seeds",		required_argument,	0,	'H'},
-		{"print-plugins",	no_argument,		0,	'N'},
-		{"prime-dns",		no_argument,		0,	'P'},
-		{"time",		no_argument,		0,	'Q'},
-		{"debug-rules",		no_argument,		0,	'S'},
-		{"re-level",		required_argument,	0,	'T'},
-		{"watchdog",		no_argument,		0,	'W'},
-		{"print-id",		required_argument,	0,	'I'},
-		{"status-file",		required_argument,	0,	'U'},
+		{"parse-only",	no_argument,		nullptr,	'a'},
+		{"bare-mode",	no_argument,		nullptr,	'b'},
+		{"debug-script",	no_argument,		nullptr,	'd'},
+		{"exec",		required_argument,	nullptr,	'e'},
+		{"filter",		required_argument,	nullptr,	'f'},
+		{"help",		no_argument,		nullptr,	'h'},
+		{"iface",		required_argument,	nullptr,	'i'},
+		{"zeekygen",		required_argument,		nullptr,	'X'},
+		{"prefix",		required_argument,	nullptr,	'p'},
+		{"readfile",		required_argument,	nullptr,	'r'},
+		{"rulefile",		required_argument,	nullptr,	's'},
+		{"tracefile",		required_argument,	nullptr,	't'},
+		{"writefile",		required_argument,	nullptr,	'w'},
+		{"version",		no_argument,		nullptr,	'v'},
+		{"no-checksums",	no_argument,		nullptr,	'C'},
+		{"force-dns",		no_argument,		nullptr,	'F'},
+		{"load-seeds",		required_argument,	nullptr,	'G'},
+		{"save-seeds",		required_argument,	nullptr,	'H'},
+		{"print-plugins",	no_argument,		nullptr,	'N'},
+		{"prime-dns",		no_argument,		nullptr,	'P'},
+		{"time",		no_argument,		nullptr,	'Q'},
+		{"debug-rules",		no_argument,		nullptr,	'S'},
+		{"re-level",		required_argument,	nullptr,	'T'},
+		{"watchdog",		no_argument,		nullptr,	'W'},
+		{"print-id",		required_argument,	nullptr,	'I'},
+		{"status-file",		required_argument,	nullptr,	'U'},
 
 #ifdef	DEBUG
-		{"debug",		required_argument,	0,	'B'},
+		{"debug",		required_argument,	nullptr,	'B'},
 #endif
 #ifdef	USE_IDMEF
-		{"idmef-dtd",		required_argument,	0,	'n'},
+		{"idmef-dtd",		required_argument,	nullptr,	'n'},
 #endif
 #ifdef	USE_PERFTOOLS_DEBUG
-		{"mem-leaks",	no_argument,		0,	'm'},
-		{"mem-profile",	no_argument,		0,	'M'},
+		{"mem-leaks",	no_argument,		nullptr,	'm'},
+		{"mem-profile",	no_argument,		nullptr,	'M'},
 #endif
 
-		{"pseudo-realtime",	optional_argument, 0,	'E'},
-		{"jobs",	optional_argument, 0,	'j'},
-		{"test",		no_argument,		0,	'#'},
+		{"pseudo-realtime",	optional_argument, nullptr,	'E'},
+		{"jobs",	optional_argument, nullptr,	'j'},
+		{"test",		no_argument,		nullptr,	'#'},
 
-		{0,			0,			0,	0},
+		{nullptr,			0,			nullptr,	0},
 	};
 
 	char opts[256];

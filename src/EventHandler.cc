@@ -13,8 +13,8 @@ EventHandler::EventHandler(const char* arg_name)
 	{
 	name = copy_string(arg_name);
 	used = false;
-	local = 0;
-	type = 0;
+	local = nullptr;
+	type = nullptr;
 	error_handler = false;
 	enabled = true;
 	generate_always = false;
@@ -42,10 +42,10 @@ FuncType* EventHandler::FType(bool check_export)
 	                    check_export);
 
 	if ( ! id )
-		return 0;
+		return nullptr;
 
 	if ( id->Type()->Tag() != TYPE_FUNC )
-		return 0;
+		return nullptr;
 
 	type = id->Type()->AsFuncType();
 	return type;

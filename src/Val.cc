@@ -48,7 +48,7 @@ Val::Val(Func* f)
 
 static FileType* GetStringFileType() noexcept
 	{
-	static FileType* string_file_type = 0;
+	static FileType* string_file_type = nullptr;
 	if ( ! string_file_type )
 		string_file_type = new FileType(base_type(TYPE_STRING));
 	return string_file_type;
@@ -366,13 +366,13 @@ void Val::ValDescribeReST(ODesc* d) const
 #ifdef DEBUG
 ID* Val::GetID() const
 	{
-	return bound_id ? global_scope()->Lookup(bound_id) : 0;
+	return bound_id ? global_scope()->Lookup(bound_id) : nullptr;
 	}
 
 void Val::SetID(ID* id)
 	{
 	delete [] bound_id;
-	bound_id = id ? copy_string(id->Name()) : 0;
+	bound_id = id ? copy_string(id->Name()) : nullptr;
 	}
 #endif
 
@@ -1233,7 +1233,7 @@ TableVal* ListVal::ConvertToSet() const
 	TableVal* t = new TableVal(std::move(s));
 
 	for ( const auto& val : vals )
-		t->Assign(val, 0);
+		t->Assign(val, nullptr);
 
 	return t;
 	}
@@ -1381,16 +1381,16 @@ TableVal::TableVal(IntrusivePtr<TableType> t, IntrusivePtr<Attributes> a) : Val(
 void TableVal::Init(IntrusivePtr<TableType> t)
 	{
 	table_type = std::move(t);
-	expire_func = 0;
-	expire_time = 0;
-	expire_cookie = 0;
-	timer = 0;
-	def_val = 0;
+	expire_func = nullptr;
+	expire_time = nullptr;
+	expire_cookie = nullptr;
+	timer = nullptr;
+	def_val = nullptr;
 
 	if ( table_type->IsSubNetIndex() )
 		subnets = new PrefixTable;
 	else
-		subnets = 0;
+		subnets = nullptr;
 
 	table_hash = new CompositeHash(IntrusivePtr<TypeList>(NewRef{},
 	                               table_type->Indices()));
@@ -1603,12 +1603,12 @@ bool TableVal::AddTo(Val* val, bool is_first_init, bool propagate_ops) const
 
 		if ( type->IsSet() )
 			{
-			if ( ! t->Assign(v->Value(), k, 0) )
+			if ( ! t->Assign(v->Value(), k, nullptr) )
 				 return false;
 			}
 		else
 			{
-			if ( ! t->Assign(0, k, {NewRef{}, v->Value()}) )
+			if ( ! t->Assign(nullptr, k, {NewRef{}, v->Value()}) )
 				 return false;
 			}
 		}
@@ -1804,11 +1804,11 @@ IntrusivePtr<Val> TableVal::Default(Val* index)
 			auto coerce = make_intrusive<RecordCoerceExpr>(
 			        IntrusivePtr{NewRef{}, def_attr->AttrExpr()},
 			        IntrusivePtr{NewRef{}, ytype->AsRecordType()});
-			def_val = coerce->Eval(0);
+			def_val = coerce->Eval(nullptr);
 			}
 
 		else
-			def_val = def_attr->AttrExpr()->Eval(0);
+			def_val = def_attr->AttrExpr()->Eval(nullptr);
 		}
 
 	if ( ! def_val )
@@ -1942,7 +1942,7 @@ IntrusivePtr<TableVal> TableVal::LookupSubnetValues(const SubNetVal* search)
 		if ( entry && entry->Value() )
 			nt->Assign(s, {NewRef{}, entry->Value()});
 		else
-			nt->Assign(s, 0); // set
+			nt->Assign(s, nullptr); // set
 
 		if ( entry )
 			{
@@ -2050,7 +2050,7 @@ void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe
 IntrusivePtr<Val> TableVal::Delete(const Val* index)
 	{
 	HashKey* k = ComputeHash(index);
-	TableEntryVal* v = k ? AsNonConstTable()->RemoveEntry(k) : 0;
+	TableEntryVal* v = k ? AsNonConstTable()->RemoveEntry(k) : nullptr;
 	IntrusivePtr<Val> va{NewRef{}, v ? (v->Value() ? v->Value() : this) : nullptr};
 
 	if ( subnets && ! subnets->Remove(index) )
@@ -2128,7 +2128,7 @@ ListVal* TableVal::ConvertToPureList() const
 	if ( tl->length() != 1 )
 		{
 		InternalWarning("bad index type in TableVal::ConvertToPureList");
-		return 0;
+		return nullptr;
 		}
 
 	return ConvertToList((*tl)[0]->Tag());
@@ -2136,7 +2136,7 @@ ListVal* TableVal::ConvertToPureList() const
 
 Attr* TableVal::FindAttr(attr_tag t) const
 	{
-	return attrs ? attrs->FindAttr(t) : 0;
+	return attrs ? attrs->FindAttr(t) : nullptr;
 	}
 
 void TableVal::Describe(ODesc* d) const
@@ -2253,7 +2253,7 @@ bool TableVal::ExpandCompoundAndInit(val_list* vl, int k, IntrusivePtr<Val> new_
 
 bool TableVal::CheckAndAssign(Val* index, IntrusivePtr<Val> new_val)
 	{
-	Val* v = 0;
+	Val* v = nullptr;
 	if ( subnets )
 		// We need an exact match here.
 		v = (Val*) subnets->Lookup(index, true);
@@ -2392,7 +2392,7 @@ void TableVal::DoExpire(double t)
 
 	if ( ! v )
 		{
-		expire_cookie = 0;
+		expire_cookie = nullptr;
 		InitTimer(table_expire_interval);
 		}
 	else
@@ -2419,7 +2419,7 @@ double TableVal::GetExpireTime()
 	if ( interval >= 0 )
 		return interval;
 
-	expire_time = 0;
+	expire_time = nullptr;
 
 	if ( timer )
 		timer_mgr->Cancel(timer);
@@ -2819,7 +2819,7 @@ IntrusivePtr<RecordVal> RecordVal::CoerceTo(RecordType* t, bool allow_orphaning)
 	if ( same_type(Type(), t) )
 		return {NewRef{}, this};
 
-	return CoerceTo(t, 0, allow_orphaning);
+	return CoerceTo(t, nullptr, allow_orphaning);
 	}
 
 IntrusivePtr<TableVal> RecordVal::GetRecordFieldsVal() const
@@ -2975,7 +2975,7 @@ bool VectorVal::Assign(unsigned int index, IntrusivePtr<Val> element)
 	     ! same_type(element->Type(), vector_type->YieldType(), false) )
 		return false;
 
-	Val* val_at_index = 0;
+	Val* val_at_index = nullptr;
 
 	if ( index < val.vector_val->size() )
 		val_at_index = (*val.vector_val)[index];

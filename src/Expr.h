@@ -88,6 +88,7 @@ public:
 	~Expr()	{ Unref(original); }
 
 	BroType* Type() const		{ return type.get(); }
+	IntrusivePtr<BroType> TypeIP() const		{ return type; }
 	BroExprTag Tag() const	{ return tag; }
 
 	Expr* Ref()			{ ::Ref(this); return this; }

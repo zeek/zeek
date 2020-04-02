@@ -1073,11 +1073,11 @@ void analyze_func(const Func* f, const id_list* inits, const Stmt* body)
 	if ( ! activate )
 		return;
 
-	if ( ! only_func || streq(f->Name(), only_func) )
-		{
-		RD_Decorate cb;
-		f->Traverse(&cb);
-		cb.TrackInits(f, inits);
-		body->Traverse(&cb);
-		}
+	if ( only_func && ! streq(f->Name(), only_func) )
+		return;
+
+	RD_Decorate cb;
+	f->Traverse(&cb);
+	cb.TrackInits(f, inits);
+	body->Traverse(&cb);
 	}

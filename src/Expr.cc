@@ -2098,7 +2098,7 @@ Expr* CondExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 			}
 		}
 
-	auto res_reg = c->GenTemporaryExpr();
+	auto res_reg = c->GenTemporaryExpr(TypeIP());
 
 	auto true_branch_e = get_assign_expr(res_reg, op2, false);
 	IntrusivePtr<Stmt> true_branch_es =

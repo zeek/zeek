@@ -40,12 +40,14 @@ Stmt::Stmt(BroStmtTag arg_tag)
 	breakpoint_count = 0;
 	last_access = 0;
 	access_count = 0;
+	original = nullptr;
 
 	SetLocationInfo(&start_location, &end_location);
 	}
 
 Stmt::~Stmt()
 	{
+	Unref(original);
 	}
 
 bool Stmt::SetLocationInfo(const Location* start, const Location* end)
@@ -122,6 +124,15 @@ void Stmt::DescribeDone(ODesc* d) const
 		d->Add(";");
 	}
 
+Stmt* Stmt::TransformMe(Stmt* new_me, ReductionContext* c)
+	{
+	if ( new_me == this )
+		return this;
+
+	new_me->SetOriginal(this);
+	return new_me->Reduce(c);
+	}
+
 void Stmt::AccessStats(ODesc* d) const
 	{
 	if ( d->IncludeStats() )
@@ -172,6 +183,30 @@ bool ExprListStmt::IsReduced() const
 			return false;
 
 	return true;
+	}
+
+Stmt* ExprListStmt::Reduce(ReductionContext* c)
+	{
+	auto new_l = make_intrusive<ListExpr>();
+	auto s = new StmtList;
+
+	expr_list& e = l->Exprs();
+	for ( auto& expr : e )
+		if ( expr->IsSingleton() )
+			new_l->Append({AdoptRef{}, expr->Ref()});
+		else
+			{
+			IntrusivePtr<Stmt> red_e_stmt;
+			auto red_e = expr->Reduce(c, red_e_stmt);
+			new_l->Append({AdoptRef{}, red_e});
+
+			if ( red_e_stmt )
+				s->Stmts().push_back(red_e_stmt.get());
+			}
+
+	s->Stmts().push_back(DoReduce(new_l, c));
+
+	return TransformMe(s, c);
 	}
 
 void ExprListStmt::Describe(ODesc* d) const
@@ -301,6 +336,14 @@ IntrusivePtr<Val> PrintStmt::DoExec(std::vector<IntrusivePtr<Val>> vals,
 	return nullptr;
 	}
 
+Stmt* PrintStmt::DoReduce(IntrusivePtr<ListExpr> singletons,
+				ReductionContext* c)
+	{
+	auto new_me = new PrintStmt(singletons);
+	new_me->SetOriginal(this);
+	return new_me;
+	}
+
 ExprStmt::ExprStmt(IntrusivePtr<Expr> arg_e) : Stmt(STMT_EXPR), e(std::move(arg_e))
 	{
 	if ( e && e->IsPure() )
@@ -343,6 +386,29 @@ bool ExprStmt::IsPure() const
 bool ExprStmt::IsReduced() const
 	{
 	return e && e->IsReduced();
+	}
+
+Stmt* ExprStmt::Reduce(ReductionContext* c)
+	{
+	if ( e )
+		{
+		if ( e->IsSingleton() )
+			// No point evaluating.
+			return TransformMe(new NullStmt, c);
+
+		auto s = new StmtList;
+		IntrusivePtr<Stmt> red_e_stmt;
+
+		auto red_e = e->Reduce(c, red_e_stmt);
+		// ### Generate a temporary and assign to it
+
+		return TransformMe(s, c);
+		}
+
+	else
+		// Not clear if e can be nil, but older code checks for
+		// it, so let's play along.
+		return TransformMe(new NullStmt, c);
 	}
 
 void ExprStmt::Describe(ODesc* d) const
@@ -424,6 +490,23 @@ bool IfStmt::IsPure() const
 bool IfStmt::IsReduced() const
 	{
 	return e->IsReduced() && s1->IsReduced() && s2->IsReduced();
+	}
+
+Stmt* IfStmt::Reduce(ReductionContext* c)
+	{
+	s1 = {AdoptRef{}, s1->Reduce(c)};
+	s2 = {AdoptRef{}, s2->Reduce(c)};
+
+	if ( e->IsSingleton() )
+		return this;
+
+	IntrusivePtr<Stmt> red_e_stmt;
+	e = {AdoptRef{}, e->Reduce(c, red_e_stmt)};
+
+	if ( red_e_stmt )
+		return TransformMe(new StmtList(red_e_stmt, this), c);
+
+	return this;
 	}
 
 void IfStmt::Describe(ODesc* d) const
@@ -878,11 +961,46 @@ bool SwitchStmt::IsReduced() const
 
 	for ( const auto& c : *cases )
 		{
-		if ( ! c->ExprCases()->IsReduced() || ! c->Body()->IsReduced() )
+		if ( c->ExprCases() && ! c->ExprCases()->IsReduced() )
+			return false;
+
+		if ( ! c->Body()->IsReduced() )
 			return false;
 		}
 
 	return true;
+	}
+
+Stmt* SwitchStmt::Reduce(ReductionContext* rc)
+	{
+	auto s = new StmtList;
+	IntrusivePtr<Stmt> red_e_stmt;
+	e = {AdoptRef{}, e->Reduce(rc, red_e_stmt)};
+
+	if ( red_e_stmt )
+		s->Stmts().push_back(red_e_stmt.get());
+
+	for ( const auto& c : *cases )
+		{
+		auto c_e = c->ExprCases();
+		if ( c_e )
+			{
+			IntrusivePtr<Stmt> c_e_stmt;
+			auto red_cases = c_e->Reduce(rc, c_e_stmt);
+
+			if ( c_e_stmt )
+				s->Stmts().push_back(c_e_stmt.get());
+
+			c->UpdateBody(c->Body()->Reduce(rc));
+			}
+		}
+
+	if ( s->Stmts().length() > 0 )
+		return TransformMe(s, rc);
+
+	delete s;
+
+	return this;
 	}
 
 void SwitchStmt::Describe(ODesc* d) const
@@ -1042,6 +1160,17 @@ bool WhileStmt::IsPure() const
 bool WhileStmt::IsReduced() const
 	{
 	return loop_condition->IsReduced() && body->IsReduced();
+	}
+
+Stmt* WhileStmt::Reduce(ReductionContext* c)
+	{
+	IntrusivePtr<Stmt> red_cond_stmt;
+	loop_condition = {AdoptRef{}, loop_condition->Reduce(c, red_cond_stmt)};
+
+	if ( red_cond_stmt )
+		return TransformMe(new StmtList(red_cond_stmt, this), c);
+
+	return this;
 	}
 
 void WhileStmt::Describe(ODesc* d) const
@@ -1538,12 +1667,22 @@ void ReturnStmt::Describe(ODesc* d) const
 
 StmtList::StmtList() : Stmt(STMT_LIST)
 	{
+	stmts = new stmt_list;
+	}
+
+StmtList::StmtList(IntrusivePtr<Stmt> s1, Stmt* s2) : Stmt(STMT_LIST)
+	{
+	stmts = new stmt_list;
+	stmts->append(s1.release());
+	stmts->append(s2);
 	}
 
 StmtList::~StmtList()
 	{
-	for ( const auto& stmt : stmts )
+	for ( const auto& stmt : Stmts() )
 		Unref(stmt);
+
+	delete stmts;
 	}
 
 IntrusivePtr<Val> StmtList::Exec(Frame* f, stmt_flow_type& flow) const
@@ -1551,7 +1690,7 @@ IntrusivePtr<Val> StmtList::Exec(Frame* f, stmt_flow_type& flow) const
 	RegisterAccess();
 	flow = FLOW_NEXT;
 
-	for ( const auto& stmt : stmts )
+	for ( const auto& stmt : Stmts() )
 		{
 		f->SetNextStmt(stmt);
 
@@ -1574,7 +1713,7 @@ IntrusivePtr<Val> StmtList::Exec(Frame* f, stmt_flow_type& flow) const
 
 bool StmtList::IsPure() const
 	{
-	for ( const auto& stmt : stmts )
+	for ( const auto& stmt : Stmts() )
 		if ( ! stmt->IsPure() )
 			return false;
 	return true;
@@ -1582,10 +1721,60 @@ bool StmtList::IsPure() const
 
 bool StmtList::IsReduced() const
 	{
-	for ( const auto& stmt : stmts )
+	for ( const auto& stmt : Stmts() )
 		if ( ! stmt->IsReduced() )
 			return false;
 	return true;
+	}
+
+Stmt* StmtList::Reduce(ReductionContext* c)
+	{
+	stmt_list* f_stmts = new stmt_list;
+	bool did_change = false;
+
+	for ( auto stmt : Stmts() )
+		{
+		stmt = stmt->Reduce(c);
+
+		if ( stmt->Tag() == STMT_LIST )
+			{
+			auto sl = stmt->AsStmtList();
+
+			for ( auto& sub_stmt : sl->Stmts() )
+				f_stmts->append(sub_stmt->Ref());
+
+			Unref(stmt);
+			did_change = true;
+			}
+
+		else if ( stmt->Tag() == STMT_NULL )
+			// skip it
+			did_change = true;
+
+		else
+			// No need to Ref() because the stmt_list destructor
+			// doesn't Unref(), only the explict list-walking
+			// in the ~StmtList destructor.
+			f_stmts->append(stmt);
+		}
+
+	if ( f_stmts->length() == 0 )
+		return TransformMe(new NullStmt, c);
+
+	if ( f_stmts->length() == 1 )
+		{
+		// We're about to leak, but at least we can recover
+		// some of it.
+		ResetStmts(nullptr);
+		return Stmts()[0];
+		}
+
+	if ( did_change )
+		ResetStmts(f_stmts);
+	else
+		delete f_stmts;
+
+	return this;
 	}
 
 void StmtList::Describe(ODesc* d) const
@@ -1593,10 +1782,10 @@ void StmtList::Describe(ODesc* d) const
 	if ( ! d->IsReadable() )
 		{
 		AddTag(d);
-		d->AddCount(stmts.length());
+		d->AddCount(Stmts().length());
 		}
 
-	if ( stmts.length() == 0 )
+	if ( Stmts().length() == 0 )
 		DescribeDone(d);
 
 	else
@@ -1607,7 +1796,7 @@ void StmtList::Describe(ODesc* d) const
 			d->NL();
 			}
 
-		for ( const auto& stmt : stmts )
+		for ( const auto& stmt : Stmts() )
 			{
 			stmt->Describe(d);
 			d->NL();
@@ -1623,7 +1812,7 @@ TraversalCode StmtList::Traverse(TraversalCallback* cb) const
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
 
-	for ( const auto& stmt : stmts )
+	for ( const auto& stmt : Stmts() )
 		{
 		tc = stmt->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
@@ -1638,7 +1827,7 @@ IntrusivePtr<Val> EventBodyList::Exec(Frame* f, stmt_flow_type& flow) const
 	RegisterAccess();
 	flow = FLOW_NEXT;
 
-	for ( const auto& stmt : stmts )
+	for ( const auto& stmt : Stmts() )
 		{
 		f->SetNextStmt(stmt);
 
@@ -1666,9 +1855,9 @@ IntrusivePtr<Val> EventBodyList::Exec(Frame* f, stmt_flow_type& flow) const
 
 void EventBodyList::Describe(ODesc* d) const
 	{
-	if ( d->IsReadable() && stmts.length() > 0 )
+	if ( d->IsReadable() && Stmts().length() > 0 )
 		{
-		for ( const auto& stmt : stmts )
+		for ( const auto& stmt : Stmts() )
 			{
 			if ( ! d->IsBinary() )
 				{

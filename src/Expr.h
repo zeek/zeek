@@ -79,6 +79,8 @@ class AddToExpr;
 
 struct function_ingredients;
 
+class ReductionContext;
+
 
 class Expr : public BroObj {
 public:
@@ -124,6 +126,11 @@ public:
 	// True if the expression is in reduced form (only variables or
 	// constants as operands).
 	virtual bool IsReduced() const;
+
+	// Returns a set of predecessor statements in red_stmt (which might
+	// be nil if no reduction necessary), and the reduced version of
+	// the expression, suitable for replacing previous uses.
+	virtual Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt);
 
 	// True if the expression can serve as an operand to a reduced
 	// expression.

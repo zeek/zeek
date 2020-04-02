@@ -27,6 +27,8 @@ class SwitchStmt;
 class InitStmt;
 class Frame;
 
+class ReductionContext;
+
 class Stmt : public BroObj {
 public:
 	BroStmtTag Tag() const	{ return tag; }
@@ -46,6 +48,9 @@ public:
 
 	// True if the statement is in reduced form.
 	virtual bool IsReduced() const;
+
+	// Should deal with being called if IsReduced() returns true.
+	virtual Stmt* Reduce(ReductionContext* c)	{ return this; }
 
 #undef ACCESSOR
 #define ACCESSOR(tag, ctype, name) \
@@ -97,11 +102,21 @@ public:
 	virtual TraversalCode Traverse(TraversalCallback* cb) const = 0;
 
 protected:
-	Stmt()	{}
+	Stmt()	{ original = nullptr; }
 	explicit Stmt(BroStmtTag arg_tag);
+
+	void SetOriginal(Stmt* _orig)	{ original = _orig; }
 
 	void AddTag(ODesc* d) const;
 	void DescribeDone(ODesc* d) const;
+
+	// Helper function called after reductions to perform
+	// canonical actions.
+	Stmt* TransformMe(Stmt* new_me, ReductionContext* c);
+
+	// The original statement from which this statement was
+	// reduced, if any.  Non-const so it can be Unref()'d.
+	Stmt* original;
 
 	BroStmtTag tag;
 	int breakpoint_count;	// how many breakpoints on this statement
@@ -127,6 +142,12 @@ protected:
 	                                 stmt_flow_type& flow) const = 0;
 
 	bool IsReduced() const override;
+	Stmt* Reduce(ReductionContext* c) override;
+
+	// Returns a new version of the original derived object
+	// based on the given list of singleton expressions.
+	virtual Stmt* DoReduce(IntrusivePtr<ListExpr> singletons,
+				ReductionContext* c) = 0;
 
 	void Describe(ODesc* d) const override;
 
@@ -141,6 +162,9 @@ public:
 protected:
 	IntrusivePtr<Val> DoExec(std::vector<IntrusivePtr<Val>> vals,
 	                         stmt_flow_type& flow) const override;
+
+	Stmt* DoReduce(IntrusivePtr<ListExpr> singletons,
+			ReductionContext* c) override;
 };
 
 class ExprStmt : public Stmt {
@@ -163,6 +187,7 @@ protected:
 
 	bool IsPure() const override;
 	bool IsReduced() const override;
+	Stmt* Reduce(ReductionContext* c) override;
 
 	IntrusivePtr<Expr> e;
 };
@@ -183,6 +208,7 @@ protected:
 	IntrusivePtr<Val> DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
 	bool IsPure() const override;
 	bool IsReduced() const override;
+	Stmt* Reduce(ReductionContext* c) override;
 
 	IntrusivePtr<Stmt> s1;
 	IntrusivePtr<Stmt> s2;
@@ -201,6 +227,8 @@ public:
 
 	const Stmt* Body() const	{ return s.get(); }
 	Stmt* Body()			{ return s.get(); }
+
+	void UpdateBody(Stmt* new_body)	{ s = {AdoptRef{}, new_body}; }
 
 	void Describe(ODesc* d) const override;
 
@@ -229,6 +257,7 @@ protected:
 	IntrusivePtr<Val> DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
 	bool IsPure() const override;
 	bool IsReduced() const override;
+	Stmt* Reduce(ReductionContext* c) override;
 
 	// Initialize composite hash and case label map.
 	void Init();
@@ -296,6 +325,7 @@ public:
 
 	bool IsPure() const override;
 	bool IsReduced() const override;
+	Stmt* Reduce(ReductionContext* c) override;
 
 	const Expr* Condition() const	{ return loop_condition.get(); }
 	const Stmt* Body() const	{ return body.get(); }
@@ -327,6 +357,7 @@ public:
 
 	bool IsPure() const override;
 	bool IsReduced() const override;
+	Stmt* Reduce(ReductionContext* c) override;
 
 	void Describe(ODesc* d) const override;
 
@@ -396,22 +427,34 @@ public:
 class StmtList : public Stmt {
 public:
 	StmtList();
+
+	// Idiom commonly used in reduction.
+	StmtList(IntrusivePtr<Stmt> s1, Stmt* s2);
+
 	~StmtList() override;
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
-	const stmt_list& Stmts() const	{ return stmts; }
-	stmt_list& Stmts()		{ return stmts; }
+	const stmt_list& Stmts() const	{ return *stmts; }
+	stmt_list& Stmts()		{ return *stmts; }
 
 	void Describe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
+	void ResetStmts(stmt_list* new_stmts)
+		{
+		delete stmts;
+		stmts = new_stmts;
+		}
+
 	bool IsPure() const override;
 	bool IsReduced() const override;
 
-	stmt_list stmts;
+	Stmt* Reduce(ReductionContext* c) override;
+
+	stmt_list* stmts;
 };
 
 class EventBodyList : public StmtList {

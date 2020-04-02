@@ -497,11 +497,18 @@ Stmt* IfStmt::Reduce(ReductionContext* c)
 	s1 = {AdoptRef{}, s1->Reduce(c)};
 	s2 = {AdoptRef{}, s2->Reduce(c)};
 
-	if ( e->IsSingleton() )
-		return this;
-
 	IntrusivePtr<Stmt> red_e_stmt;
 	e = {AdoptRef{}, e->Reduce(c, red_e_stmt)};
+
+	if ( e->IsConst() )
+		{
+		auto c_e = e->AsConstExpr();
+		auto t = c_e->Value()->AsBool();
+		if ( t )
+			return TransformMe(new StmtList(red_e_stmt, s1), c);
+		else
+			return TransformMe(new StmtList(red_e_stmt, s2), c);
+		}
 
 	if ( red_e_stmt )
 		return TransformMe(new StmtList(red_e_stmt, this), c);
@@ -976,6 +983,8 @@ Stmt* SwitchStmt::Reduce(ReductionContext* rc)
 	auto s = new StmtList;
 	IntrusivePtr<Stmt> red_e_stmt;
 	e = {AdoptRef{}, e->Reduce(rc, red_e_stmt)};
+
+	// ### Could check for constant switch expression.
 
 	if ( red_e_stmt )
 		s->Stmts().push_back(red_e_stmt.get());

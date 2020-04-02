@@ -76,6 +76,7 @@ class CallExpr;
 class EventExpr;
 class RefExpr;
 class AddToExpr;
+class ConstExpr;
 
 struct function_ingredients;
 
@@ -84,6 +85,8 @@ class ReductionContext;
 
 class Expr : public BroObj {
 public:
+	~Expr()	{ Unref(original); }
+
 	BroType* Type() const		{ return type.get(); }
 	BroExprTag Tag() const	{ return tag; }
 
@@ -207,6 +210,7 @@ public:
 	CONST_ACCESSOR(EXPR_CALL, CallExpr, AsCallExpr);
 	CONST_ACCESSOR(EXPR_REF, RefExpr, AsRefExpr);
 	CONST_ACCESSOR(EXPR_ADD_TO, AddToExpr, AsAddToExpr);
+	CONST_ACCESSOR(EXPR_CONST, ConstExpr, AsConstExpr);
 
 #undef ACCESSORS
 #undef ACCESSOR
@@ -217,14 +221,20 @@ public:
 	virtual TraversalCode Traverse(TraversalCallback* cb) const = 0;
 
 protected:
-	Expr() = default;
+	// The following doesn't appear to be used.
+	// Expr() = default;
 	explicit Expr(BroExprTag arg_tag);
+
+	void SetOriginal(Expr* _orig)	{ original = _orig; }
 
 	virtual void ExprDescribe(ODesc* d) const = 0;
 	void AddTag(ODesc* d) const;
 
 	// Puts the expression in canonical form.
 	virtual void Canonicize();
+
+	Expr* TransformMe(Expr* new_me, ReductionContext* c,
+				IntrusivePtr<Stmt>& red_stmt);
 
 	void SetType(IntrusivePtr<BroType> t);
 
@@ -237,6 +247,7 @@ protected:
 	[[noreturn]] void RuntimeError(const std::string& msg) const;
 	[[noreturn]] void RuntimeErrorWithCallStack(const std::string& msg) const;
 
+	Expr* original;
 	BroExprTag tag;
 	IntrusivePtr<BroType> type;
 	bool paren;
@@ -471,6 +482,8 @@ public:
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 	IntrusivePtr<Val> DoSingleEval(Frame* f, IntrusivePtr<Val> v1, Expr* op2) const;
+
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
 class BitExpr : public BinaryExpr {

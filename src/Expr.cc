@@ -56,6 +56,7 @@ const char* expr_name(BroExprTag t)
 
 Expr::Expr(BroExprTag arg_tag) : tag(arg_tag), type(0), paren(false)
 	{
+	original = nullptr;
 	SetLocationInfo(&start_location, &end_location);
 	}
 
@@ -188,6 +189,19 @@ void Expr::AddTag(ODesc* d) const
 
 void Expr::Canonicize()
 	{
+	}
+
+Expr* Expr::TransformMe(Expr* new_me, ReductionContext* c,
+			IntrusivePtr<Stmt>& red_stmt)
+	{
+	if ( new_me == this )
+		return this;
+
+	new_me->SetOriginal(this);
+
+	// Unlike for Stmt's, we assume that new_me has already
+	// been reduced, so no need to do so further.
+	return new_me;
 	}
 
 void Expr::SetType(IntrusivePtr<BroType> t)
@@ -404,6 +418,13 @@ Expr* UnaryExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	if ( ! IsReduced() )
 		op = {AdoptRef{}, op->Reduce(c, red_stmt)};
 
+	if ( op->IsConst() )
+		{
+		auto c_op = op->AsConstExpr();
+		auto fold = Fold(c_op->Value());
+		return TransformMe(new ConstExpr(fold), c, red_stmt);
+		}
+
 	return this;
 	}
 
@@ -536,6 +557,14 @@ Expr* BinaryExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	IntrusivePtr<Stmt> red2_stmt;
 	if ( ! op2->IsSingleton() )
 		op2 = {AdoptRef{}, op2->Reduce(c, red2_stmt)};
+
+	if ( op1->IsConst() && op2->IsConst() )
+		{
+		auto c1 = op1->AsConstExpr();
+		auto c2 = op2->AsConstExpr();
+		auto fold = Fold(c1->Value(), c2->Value());
+		return TransformMe(new ConstExpr(fold), c, red_stmt);
+		}
 
 	if ( ! red_stmt )
 		red_stmt = red2_stmt;
@@ -1680,6 +1709,20 @@ IntrusivePtr<Val> BoolExpr::Eval(Frame* f) const
 	return result;
 	}
 
+Expr* BoolExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	// It's either an EXPR_AND_AND or an EXPR_OR_OR.
+	bool is_and = (tag == EXPR_AND_AND);
+	auto else_val = is_and ? val_mgr->GetFalse() : val_mgr->GetTrue();
+	IntrusivePtr<Val> else_val_int = {AdoptRef{}, else_val};
+	IntrusivePtr<Expr> else_e = {AdoptRef{}, new ConstExpr(else_val_int)};
+
+	auto cond = new CondExpr(op1, op2, else_e);
+	auto cond_red = cond->Reduce(c, red_stmt);
+	return TransformMe(cond_red, c, red_stmt);
+	}
+
+
 BitExpr::BitExpr(BroExprTag arg_tag,
                  IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 	: BinaryExpr(arg_tag, std::move(arg_op1), std::move(arg_op2))
@@ -2033,6 +2076,26 @@ Expr* CondExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	IntrusivePtr<Stmt> red3_stmt;
 	if ( ! op3->IsSingleton() )
 		op3 = {AdoptRef{}, op3->Reduce(c, red3_stmt)};
+
+	if ( op1->IsConst() )
+		{
+		auto c1 = op1->AsConstExpr();
+		auto t = c1->Value()->AsBool();
+
+		if ( t )
+			{
+			auto reds = new StmtList(red_stmt, red2_stmt);
+			red_stmt = {AdoptRef{}, reds->Reduce(c)};
+			return op2.get();
+			}
+
+		else
+			{
+			auto reds = new StmtList(red_stmt, red3_stmt);
+			red_stmt = {AdoptRef{}, reds->Reduce(c)};
+			return op3.get();
+			}
+		}
 
 	if ( red_stmt || red2_stmt || red3_stmt )
 		{
@@ -4302,6 +4365,9 @@ Expr* CallExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	IntrusivePtr<Stmt> red2_stmt;
 	// We assume that ListExpr won't transform itself fundamentally.
 	(void) args->Reduce(c, red2_stmt);
+
+	// ### could check here for (1) pure function, and (2) all
+	// arguments constants, and call it to fold right now.
 
 	if ( ! red_stmt )
 		red_stmt = red2_stmt;

@@ -1166,6 +1166,7 @@ Stmt* WhileStmt::Reduce(ReductionContext* c)
 	{
 	IntrusivePtr<Stmt> red_cond_stmt;
 	loop_condition = {AdoptRef{}, loop_condition->Reduce(c, red_cond_stmt)};
+	body = {AdoptRef{}, body->Reduce(c)};
 
 	if ( red_cond_stmt )
 		return TransformMe(new StmtList(red_cond_stmt, this), c);
@@ -1452,6 +1453,18 @@ bool ForStmt::IsPure() const
 bool ForStmt::IsReduced() const
 	{
 	return e->IsReduced() && body->IsReduced();
+	}
+
+Stmt* ForStmt::Reduce(ReductionContext* c)
+	{
+	IntrusivePtr<Stmt> red_e_stmt;
+	e = {AdoptRef{}, e->Reduce(c, red_e_stmt)};
+	body = {AdoptRef{}, body->Reduce(c)};
+
+	if ( red_e_stmt )
+		return TransformMe(new StmtList(red_e_stmt, this), c);
+
+	return this;
 	}
 
 void ForStmt::Describe(ODesc* d) const

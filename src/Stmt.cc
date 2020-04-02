@@ -396,11 +396,11 @@ Stmt* ExprStmt::Reduce(ReductionContext* c)
 			// No point evaluating.
 			return TransformMe(new NullStmt, c);
 
-		auto s = new StmtList;
 		IntrusivePtr<Stmt> red_e_stmt;
 
-		auto red_e = e->Reduce(c, red_e_stmt);
-		// ### Generate a temporary and assign to it
+		e = {AdoptRef{}, e->Reduce(c, red_e_stmt)};
+
+		auto s = new StmtList(red_e_stmt, {AdoptRef{}, this});
 
 		return TransformMe(s, c);
 		}

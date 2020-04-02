@@ -8,6 +8,7 @@
 #include "Frame.h"
 #include "Func.h"
 #include "RE.h"
+#include "Reduce.h"
 #include "Scope.h"
 #include "Stmt.h"
 #include "EventRegistry.h"
@@ -2097,13 +2098,28 @@ Expr* CondExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 			}
 		}
 
-	if ( red_stmt || red2_stmt || red3_stmt )
-		{
-		auto reds = new StmtList(red_stmt, red2_stmt, red3_stmt);
-		red_stmt = {AdoptRef{}, reds->Reduce(c)};
-		}
+	auto res_reg = c->GenTemporaryExpr();
 
-	return this;
+	auto true_branch_e = get_assign_expr(res_reg, op2, false);
+	IntrusivePtr<Stmt> true_branch_es =
+		{AdoptRef{}, new ExprStmt(true_branch_e)};
+	IntrusivePtr<Stmt> true_branch_stmts =
+		{AdoptRef{}, new StmtList(red2_stmt, true_branch_es)};
+
+	auto false_branch_e = get_assign_expr(res_reg, op3, false);
+	IntrusivePtr<Stmt> false_branch_es =
+		{AdoptRef{}, new ExprStmt(false_branch_e)};
+	IntrusivePtr<Stmt> false_branch_stmts =
+		{AdoptRef{}, new StmtList(red2_stmt, false_branch_es)};
+
+	IntrusivePtr<Stmt> if_else =
+		{AdoptRef{},
+			new IfStmt(op1, true_branch_stmts, false_branch_stmts)};
+
+	auto new_stmt = new StmtList(red_stmt, if_else);
+	red_stmt = {AdoptRef{}, new_stmt->Reduce(c)};
+
+	return TransformMe(res_reg.get(), c, red_stmt);
 	}
 
 TraversalCode CondExpr::Traverse(TraversalCallback* cb) const

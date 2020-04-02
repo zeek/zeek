@@ -7,8 +7,10 @@ refine connection RDPEUDP_Conn += {
 		        ESTABLISHED	= 0x4,
 		};
 		uint8 state_ = NEED_SYN;
-		bool client_rdpeudp2_ = false;
-		bool server_rdpeudp2_ = false;
+		bool orig_rdpeudp2_ = false;
+		bool resp_rdpeudp2_ = false;
+		bool orig_lossy_ = false;
+		bool resp_lossy_ = false;
 	%}
 	function get_state(): uint8
 	%{
@@ -17,7 +19,7 @@ refine connection RDPEUDP_Conn += {
 
 	function get_version(): bool
 	%{
-		return (client_rdpeudp2_ && server_rdpeudp2_);
+		return (orig_rdpeudp2_ && resp_rdpeudp2_);
 	%}
 
         function proc_rdpeudp_syn(is_orig: bool, uFlags: uint16, snSourceAck: uint32): bool
@@ -31,8 +33,12 @@ refine connection RDPEUDP_Conn += {
 		if (snSourceAck != 0xffffffff) {
 			return false;
 		}
+
 		if (uFlags >= 0x1000) {
-			client_rdpeudp2_ = true;
+			orig_rdpeudp2_ = true;
+		}
+		if ((uFlags & 0x0200) == 0x0200) {
+			orig_lossy_ = true;
 		}
 		if (rdpeudp_syn) {
 	                BifEvent::generate_rdpeudp_syn(bro_analyzer(), bro_analyzer()->Conn());
@@ -46,17 +52,20 @@ refine connection RDPEUDP_Conn += {
 		if (is_orig) {
 			return false;
 		}
-
 		if ((uFlags & 0x05) == 0) {
 			return false;
 		}
+
 		if (rdpeudp_synack) {
 	                BifEvent::generate_rdpeudp_synack(bro_analyzer(), bro_analyzer()->Conn());
 		}
 		bro_analyzer()->ProtocolConfirmation();
 		state_ = NEED_ACK;
 		if (uFlags >= 0x1000) {
-			server_rdpeudp2_ = true;
+			resp_rdpeudp2_ = true;
+		}
+		if ((uFlags & 0x0200) == 0x0200) {
+			resp_lossy_ = true;
 		}
                 return true;
 	%}
@@ -79,8 +88,12 @@ refine connection RDPEUDP_Conn += {
                 return true;
 	%}
 
-        function proc_rdpeudp2_ack(is_orig: bool, data: bytestring): bool
+        function proc_rdpeudp2_ack(is_orig: bool, pkt_type: uint8, data: bytestring): bool
 	%{
+		if (pkt_type == 8) {
+			// This is a "dummy packet".
+			return false;
+		}
 		if (state_ == NEED_ACK) {
 			if (rdpeudp_established) {
 		        	BifEvent::generate_rdpeudp_established(bro_analyzer(), bro_analyzer()->Conn(), 2);
@@ -96,5 +109,4 @@ refine connection RDPEUDP_Conn += {
 			);
                 return true;
 	%}
-
 };

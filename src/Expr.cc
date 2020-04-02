@@ -118,6 +118,12 @@ bool Expr::IsReduced() const
 	return true;
 	}
 
+Expr* Expr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	red_stmt = nullptr;
+	return this;
+	}
+
 IntrusivePtr<Val> Expr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) const
 	{
 	if ( aggr )
@@ -391,6 +397,16 @@ bool UnaryExpr::IsReduced() const
 	return op->IsSingleton();
 	}
 
+Expr* UnaryExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	red_stmt = nullptr;
+
+	if ( ! IsReduced() )
+		op = {AdoptRef{}, op->Reduce(c, red_stmt)};
+
+	return this;
+	}
+
 TraversalCode UnaryExpr::Traverse(TraversalCallback* cb) const
 	{
 	TraversalCode tc = cb->PreExpr(this, Op());
@@ -508,6 +524,26 @@ bool BinaryExpr::IsPure() const
 bool BinaryExpr::IsReduced() const
 	{
 	return op1->IsSingleton() && op2->IsSingleton();
+	}
+
+Expr* BinaryExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	red_stmt = nullptr;
+
+	if ( ! op1->IsSingleton() )
+		op1 = {AdoptRef{}, op1->Reduce(c, red_stmt)};
+
+	IntrusivePtr<Stmt> red2_stmt;
+	if ( ! op2->IsSingleton() )
+		op2 = {AdoptRef{}, op2->Reduce(c, red2_stmt)};
+
+	if ( ! red_stmt )
+		red_stmt = red2_stmt;
+
+	else if ( red2_stmt )
+		red_stmt = {AdoptRef{}, new StmtList(red_stmt, red2_stmt.get())};
+
+	return this;
 	}
 
 TraversalCode BinaryExpr::Traverse(TraversalCallback* cb) const
@@ -1983,6 +2019,30 @@ bool CondExpr::IsReduced() const
 	return op1->IsSingleton() && op2->IsSingleton() && op3->IsSingleton();
 	}
 
+Expr* CondExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	red_stmt = nullptr;
+
+	if ( ! op1->IsSingleton() )
+		op1 = {AdoptRef{}, op1->Reduce(c, red_stmt)};
+
+	IntrusivePtr<Stmt> red2_stmt;
+	if ( ! op2->IsSingleton() )
+		op2 = {AdoptRef{}, op2->Reduce(c, red2_stmt)};
+
+	IntrusivePtr<Stmt> red3_stmt;
+	if ( ! op3->IsSingleton() )
+		op3 = {AdoptRef{}, op3->Reduce(c, red3_stmt)};
+
+	if ( red_stmt || red2_stmt || red3_stmt )
+		{
+		auto reds = new StmtList(red_stmt, red2_stmt, red3_stmt);
+		red_stmt = {AdoptRef{}, reds->Reduce(c)};
+		}
+
+	return this;
+	}
+
 TraversalCode CondExpr::Traverse(TraversalCallback* cb) const
 	{
 	TraversalCode tc = cb->PreExpr(this, Op1());
@@ -2470,6 +2530,27 @@ bool AssignExpr::IsReduced() const
 		return op1->AsRefExpr()->IsReduced();
 
 	return false;
+	}
+
+Expr* AssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	red_stmt = nullptr;
+
+	if ( ! op1->IsSingleton() &&
+	     (op1->Tag() != EXPR_REF || ! op1->AsRefExpr()->IsSingleton()) )
+		op1 = {AdoptRef{}, op1->Reduce(c, red_stmt)};
+
+	IntrusivePtr<Stmt> red2_stmt;
+	if ( ! op2->IsSingleton() )
+		op2 = {AdoptRef{}, op2->Reduce(c, red2_stmt)};
+
+	if ( ! red_stmt )
+		red_stmt = red2_stmt;
+
+	else if ( red2_stmt )
+		red_stmt = {AdoptRef{}, new StmtList(red_stmt, red2_stmt.get())};
+
+	return this;
 	}
 
 IndexSliceAssignExpr::IndexSliceAssignExpr(IntrusivePtr<Expr> op1,
@@ -3906,6 +3987,26 @@ bool ScheduleExpr::IsReduced() const
 	return when->IsReduced() && event->IsReduced();
 	}
 
+Expr* ScheduleExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	red_stmt = nullptr;
+
+	if ( ! when->IsReduced() )
+		when = {AdoptRef{}, when->Reduce(c, red_stmt)};
+
+	IntrusivePtr<Stmt> red2_stmt;
+	// We assume that EventExpr won't transform itself fundamentally.
+	(void) event->Reduce(c, red2_stmt);
+
+	if ( ! red_stmt )
+		red_stmt = red2_stmt;
+
+	else if ( red2_stmt )
+		red_stmt = {AdoptRef{}, new StmtList(red_stmt, red2_stmt.get())};
+
+	return this;
+	}
+
 IntrusivePtr<Val> ScheduleExpr::Eval(Frame* f) const
 	{
 	if ( terminating )
@@ -4191,6 +4292,26 @@ bool CallExpr::IsReduced() const
 	return func->IsReduced() && args->IsReduced();
 	}
 
+Expr* CallExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	red_stmt = nullptr;
+
+	if ( ! func->IsReduced() )
+		func = {AdoptRef{}, func->Reduce(c, red_stmt)};
+
+	IntrusivePtr<Stmt> red2_stmt;
+	// We assume that ListExpr won't transform itself fundamentally.
+	(void) args->Reduce(c, red2_stmt);
+
+	if ( ! red_stmt )
+		red_stmt = red2_stmt;
+
+	else if ( red2_stmt )
+		red_stmt = {AdoptRef{}, new StmtList(red_stmt, red2_stmt.get())};
+
+	return this;
+	}
+
 IntrusivePtr<Val> CallExpr::Eval(Frame* f) const
 	{
 	if ( IsError() )
@@ -4440,6 +4561,17 @@ bool EventExpr::IsReduced() const
 	return Args()->IsReduced();
 	}
 
+Expr* EventExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	red_stmt = nullptr;
+
+	if ( ! Args()->IsReduced() )
+		// We assume that ListExpr won't transform itself fundamentally.
+		(void) Args()->Reduce(c, red_stmt);
+
+	return this;
+	}
+
 TraversalCode EventExpr::Traverse(TraversalCallback* cb) const
 	{
 	TraversalCode tc = cb->PreExpr(this);
@@ -4504,6 +4636,31 @@ bool ListExpr::IsReduced() const
 			return false;
 
 	return true;
+	}
+
+Expr* ListExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	red_stmt = nullptr;
+
+	for ( auto& expr : exprs )
+		{
+		if ( expr->IsReduced() )
+			continue;
+
+		IntrusivePtr<Stmt> e_stmt;
+		expr = expr->Reduce(c, e_stmt);
+
+		if ( e_stmt )
+			{
+			if ( red_stmt )
+				red_stmt = {AdoptRef{},
+						new StmtList(red_stmt, e_stmt)};
+			else
+				red_stmt = e_stmt;
+			}
+		}
+
+	return this;
 	}
 
 IntrusivePtr<Val> ListExpr::Eval(Frame* f) const

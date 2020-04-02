@@ -1686,8 +1686,32 @@ StmtList::StmtList() : Stmt(STMT_LIST)
 StmtList::StmtList(IntrusivePtr<Stmt> s1, Stmt* s2) : Stmt(STMT_LIST)
 	{
 	stmts = new stmt_list;
-	stmts->append(s1.release());
-	stmts->append(s2);
+	if ( s1 )
+		stmts->append(s1.release());
+	if ( s2 )
+		stmts->append(s2);
+	}
+
+StmtList::StmtList(IntrusivePtr<Stmt> s1, IntrusivePtr<Stmt> s2)
+: Stmt(STMT_LIST)
+	{
+	stmts = new stmt_list;
+	if ( s1 )
+		stmts->append(s1.release());
+	if ( s2 )
+		stmts->append(s2.release());
+	}
+
+StmtList::StmtList(IntrusivePtr<Stmt> s1, IntrusivePtr<Stmt> s2,
+			IntrusivePtr<Stmt> s3) : Stmt(STMT_LIST)
+	{
+	stmts = new stmt_list;
+	if ( s1 )
+		stmts->append(s1.release());
+	if ( s2 )
+		stmts->append(s2.release());
+	if ( s3 )
+		stmts->append(s3.release());
 	}
 
 StmtList::~StmtList()

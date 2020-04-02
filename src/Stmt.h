@@ -428,12 +428,17 @@ class StmtList : public Stmt {
 public:
 	StmtList();
 
-	// Idiom commonly used in reduction.
+	// Idioms commonly used in reduction.
 	StmtList(IntrusivePtr<Stmt> s1, Stmt* s2);
+	StmtList(IntrusivePtr<Stmt> s1, IntrusivePtr<Stmt> s2);
+	StmtList(IntrusivePtr<Stmt> s1, IntrusivePtr<Stmt> s2,
+			IntrusivePtr<Stmt> s3);
 
 	~StmtList() override;
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+
+	Stmt* Reduce(ReductionContext* c) override;
 
 	const stmt_list& Stmts() const	{ return *stmts; }
 	stmt_list& Stmts()		{ return *stmts; }
@@ -451,8 +456,6 @@ protected:
 
 	bool IsPure() const override;
 	bool IsReduced() const override;
-
-	Stmt* Reduce(ReductionContext* c) override;
 
 	stmt_list* stmts;
 };

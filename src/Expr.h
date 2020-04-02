@@ -288,6 +288,7 @@ public:
 
 	bool IsPure() const override;
 	bool IsReduced() const override;
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -309,6 +310,7 @@ public:
 
 	bool IsPure() const override;
 	bool IsReduced() const override;
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 
 	// BinaryExpr::Eval correctly handles vector types.  Any child
 	// class that overrides Eval() should be modified to handle
@@ -502,6 +504,7 @@ public:
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 	bool IsPure() const override;
 	bool IsReduced() const override;
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -535,6 +538,7 @@ public:
 	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
 	bool IsPure() const override;
 	bool IsReduced() const override;
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 
 protected:
 	bool TypeCheck(attr_list* attrs = 0);
@@ -770,6 +774,7 @@ public:
 
 	bool IsPure() const override;
 	bool IsReduced() const override;
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
@@ -804,6 +809,7 @@ public:
 
 	bool IsPure() const override;
 	bool IsReduced() const override;
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
@@ -853,6 +859,7 @@ public:
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 	bool IsReduced() const override;
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -878,6 +885,7 @@ public:
 	// True if the entire list represents pure values / reduced expressions.
 	bool IsPure() const override;
 	bool IsReduced() const override;
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 

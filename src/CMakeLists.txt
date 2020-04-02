@@ -249,6 +249,7 @@ set(MAIN_SRCS
     IPAddr.cc
     ReachingDefs.cc
     Reporter.cc
+    Reduce.cc
     NFA.cc
     Net.cc
     NetVar.cc

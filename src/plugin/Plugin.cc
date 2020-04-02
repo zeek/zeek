@@ -475,7 +475,7 @@ void Plugin::Describe(ODesc* d) const
 
 	for ( bif_item_list::const_iterator i = items.begin(); i != items.end(); i++ )
 		{
-		const char* type = 0;
+		const char* type = nullptr;
 
 		switch ( (*i).GetType() ) {
 		case BifItem::FUNCTION:

@@ -44,10 +44,10 @@ TopkVal::TopkVal(uint64_t arg_size) : OpaqueVal(topk_type)
 	elementDict = new PDict<Element>;
 	elementDict->SetDeleteFunc(topk_element_hash_delete_func);
 	size = arg_size;
-	type = 0;
+	type = nullptr;
 	numElements = 0;
 	pruned = false;
-	hash = 0;
+	hash = nullptr;
 	}
 
 TopkVal::TopkVal() : OpaqueVal(topk_type)
@@ -55,9 +55,9 @@ TopkVal::TopkVal() : OpaqueVal(topk_type)
 	elementDict = new PDict<Element>;
 	elementDict->SetDeleteFunc(topk_element_hash_delete_func);
 	size = 0;
-	type = 0;
+	type = nullptr;
 	numElements = 0;
-	hash = 0;
+	hash = nullptr;
 	}
 
 TopkVal::~TopkVal()
@@ -86,7 +86,7 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune)
 		return;
 		}
 
-	if ( type == 0 )
+	if ( type == nullptr )
 		{
 		assert(numElements == 0);
 		Typify(value->type);
@@ -115,7 +115,7 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune)
 			HashKey* key = GetHash(e->value);
 			Element* olde = (Element*) elementDict->Lookup(key);
 
-			if ( olde == 0 )
+			if ( olde == nullptr )
 				{
 				olde = new Element();
 				olde->epsilon = 0;
@@ -196,7 +196,7 @@ VectorVal* TopkVal::GetTopK(int k) const // returns vector
 	if ( numElements == 0 )
 		{
 		reporter->Error("Cannot return topk of empty");
-		return 0;
+		return nullptr;
 		}
 
 	auto vector_index = make_intrusive<TypeList>(IntrusivePtr{NewRef{}, type});
@@ -238,7 +238,7 @@ uint64_t TopkVal::GetCount(Val* value) const
 	Element* e = (Element*) elementDict->Lookup(key);
 	delete key;
 
-	if ( e == 0 )
+	if ( e == nullptr )
 		{
 		reporter->Error("GetCount for element that is not in top-k");
 		return 0;
@@ -253,7 +253,7 @@ uint64_t TopkVal::GetEpsilon(Val* value) const
 	Element* e = (Element*) elementDict->Lookup(key);
 	delete key;
 
-	if ( e == 0 )
+	if ( e == nullptr )
 		{
 		reporter->Error("GetEpsilon for element that is not in top-k");
 		return 0;
@@ -297,7 +297,7 @@ void TopkVal::Encountered(Val* encountered)
 	HashKey* key = GetHash(encountered);
 	Element* e = (Element*) elementDict->Lookup(key);
 
-	if ( e == 0 )
+	if ( e == nullptr )
 		{
 		e = new Element();
 		e->epsilon = 0;
@@ -370,7 +370,7 @@ void TopkVal::IncrementCounter(Element* e, unsigned int count)
 	// well, let's test if there is a bucket for currcount++
 	std::list<Bucket*>::iterator bucketIter = currBucket->bucketPos;
 
-	Bucket* nextBucket = 0;
+	Bucket* nextBucket = nullptr;
 
 	bucketIter++;
 
@@ -380,7 +380,7 @@ void TopkVal::IncrementCounter(Element* e, unsigned int count)
 	if ( bucketIter != buckets.end() && (*bucketIter)->count == currcount+count )
 		nextBucket = *bucketIter;
 
-	if ( nextBucket == 0 )
+	if ( nextBucket == nullptr )
 		{
 		// the bucket for the value that we want does not exist.
 		// create it...
@@ -405,7 +405,7 @@ void TopkVal::IncrementCounter(Element* e, unsigned int count)
 		{
 		buckets.remove(currBucket);
 		delete currBucket;
-		currBucket = 0;
+		currBucket = nullptr;
 		}
 	}
 
@@ -519,7 +519,7 @@ bool TopkVal::DoUnserialize(const broker::data& data)
 			b->elements.insert(b->elements.end(), e);
 
 			HashKey* key = GetHash(e->value);
-			assert (elementDict->Lookup(key) == 0);
+			assert (elementDict->Lookup(key) == nullptr);
 
 			elementDict->Insert(key, e);
 			delete key;

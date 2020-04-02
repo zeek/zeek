@@ -19,9 +19,9 @@
 
 using namespace plugin;
 
-Plugin* Manager::current_plugin = 0;
-const char* Manager::current_dir = 0;
-const char* Manager::current_sopath = 0;
+Plugin* Manager::current_plugin = nullptr;
+const char* Manager::current_dir = nullptr;
+const char* Manager::current_sopath = nullptr;
 
 Manager::Manager()
 	{
@@ -29,7 +29,7 @@ Manager::Manager()
 	hooks = new hook_list*[NUM_HOOKS];
 
 	for ( int i = 0; i < NUM_HOOKS; i++ )
-		hooks[i] = 0;
+		hooks[i] = nullptr;
 	}
 
 Manager::~Manager()
@@ -238,7 +238,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 			{
 			const char* path = gl.gl_pathv[i];
 
-			current_plugin = 0;
+			current_plugin = nullptr;
 			current_dir = dir.c_str();
 			current_sopath = path;
 			void* hdl = dlopen(path, RTLD_LAZY | RTLD_GLOBAL);
@@ -270,9 +270,9 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 				reporter->FatalError("inconsistent plugin name: %s vs %s",
 						     current_plugin->Name().c_str(), name.c_str());
 
-			current_dir = 0;
-			current_sopath = 0;
-			current_plugin = 0;
+			current_dir = nullptr;
+			current_sopath = nullptr;
+			current_plugin = nullptr;
 
 			DBG_LOG(DBG_PLUGINS, "  Loaded %s", path);
 			}
@@ -461,7 +461,7 @@ Manager::inactive_plugin_list Manager::InactivePlugins() const
 
 Manager::plugin_list* Manager::ActivePluginsInternal()
 	{
-	static plugin_list* plugins = 0;
+	static plugin_list* plugins = nullptr;
 
 	if ( ! plugins )
 		plugins = new plugin_list;
@@ -471,7 +471,7 @@ Manager::plugin_list* Manager::ActivePluginsInternal()
 
 Manager::bif_init_func_map* Manager::BifFilesInternal()
 	{
-	static bif_init_func_map* bifs = 0;
+	static bif_init_func_map* bifs = nullptr;
 
 	if ( ! bifs )
 		bifs = new bif_init_func_map;
@@ -571,7 +571,7 @@ void Manager::DisableHook(HookType hook, Plugin* plugin)
 	if ( l->empty() )
 		{
 		delete l;
-		hooks[hook] = 0;
+		hooks[hook] = nullptr;
 		}
 	}
 

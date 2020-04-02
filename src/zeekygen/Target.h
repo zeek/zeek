@@ -148,7 +148,7 @@ public:
 		target_creator_map::const_iterator it = target_creators.find(type_name);
 
 		if ( it == target_creators.end() )
-			return 0;
+			return nullptr;
 
 		return it->second(name, pattern);
 		}

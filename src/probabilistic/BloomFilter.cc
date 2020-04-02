@@ -17,7 +17,7 @@ using namespace probabilistic;
 
 BloomFilter::BloomFilter()
 	{
-	hasher = 0;
+	hasher = nullptr;
 	}
 
 BloomFilter::BloomFilter(const Hasher* arg_hasher)
@@ -142,7 +142,7 @@ std::string BasicBloomFilter::InternalState() const
 
 BasicBloomFilter::BasicBloomFilter()
 	{
-	bits = 0;
+	bits = nullptr;
 	}
 
 BasicBloomFilter::BasicBloomFilter(const Hasher* hasher, size_t cells)
@@ -195,7 +195,7 @@ bool BasicBloomFilter::DoUnserialize(const broker::data& data)
 
 CountingBloomFilter::CountingBloomFilter()
 	{
-	cells = 0;
+	cells = nullptr;
 	}
 
 CountingBloomFilter::CountingBloomFilter(const Hasher* hasher,

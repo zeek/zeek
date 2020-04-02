@@ -168,7 +168,7 @@ public:
 	bool HavePluginForHook(HookType hook) const
 		{
 		// Inline to avoid the function call.
-		return hooks[hook] != 0;
+		return hooks[hook] != nullptr;
 		}
 
 	/**

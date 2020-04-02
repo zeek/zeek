@@ -238,7 +238,8 @@ protected:
 	// Puts the expression in canonical form.
 	virtual void Canonicize();
 
-	Expr* AssignToTemporary(ReductionContext* c);
+	Expr* AssignToTemporary(ReductionContext* c,
+				IntrusivePtr<Stmt>& red_stmt);
 
 	Expr* TransformMe(Expr* new_me, ReductionContext* c,
 				IntrusivePtr<Stmt>& red_stmt);

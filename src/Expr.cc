@@ -198,10 +198,18 @@ void Expr::Canonicize()
 	{
 	}
 
-Expr* Expr::AssignToTemporary(ReductionContext* c)
+Expr* Expr::AssignToTemporary(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
-	auto res_reg = c->GenTemporaryExpr(TypeIP());
-	return get_assign_expr(res_reg, {NewRef{}, this}, false).get();
+	auto result_tmp = c->GenTemporaryExpr(TypeIP());
+	auto a_e = get_assign_expr(result_tmp, {NewRef{}, this}, false);
+	IntrusivePtr<Stmt> a_e_s = {AdoptRef{}, new ExprStmt(a_e)};
+
+	if ( red_stmt )
+		red_stmt = {AdoptRef{}, new StmtList(red_stmt, a_e_s)};
+	else
+		red_stmt = a_e_s;
+
+	return result_tmp.release();
 	}
 
 Expr* Expr::TransformMe(Expr* new_me, ReductionContext* c,
@@ -443,7 +451,7 @@ Expr* UnaryExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 		return TransformMe(new ConstExpr(fold), c, red_stmt);
 		}
 
-	return AssignToTemporary(c);
+	return AssignToTemporary(c, red_stmt);
 	}
 
 TraversalCode UnaryExpr::Traverse(TraversalCallback* cb) const
@@ -589,7 +597,7 @@ Expr* BinaryExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 
 	else if ( red2_stmt )
 		red_stmt = {AdoptRef{}, new StmtList(red_stmt, red2_stmt.get())};
-	return AssignToTemporary(c);
+	return AssignToTemporary(c, red_stmt);
 	}
 
 TraversalCode BinaryExpr::Traverse(TraversalCallback* cb) const
@@ -2103,14 +2111,14 @@ Expr* CondExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 			{
 			auto reds = new StmtList(red_stmt, red2_stmt);
 			red_stmt = {AdoptRef{}, reds->Reduce(c)};
-			return op2.get();
+			return op2.get()->Ref();
 			}
 
 		else
 			{
 			auto reds = new StmtList(red_stmt, red3_stmt);
 			red_stmt = {AdoptRef{}, reds->Reduce(c)};
-			return op3.get();
+			return op3.get()->Ref();
 			}
 		}
 
@@ -2135,7 +2143,7 @@ Expr* CondExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	auto new_stmt = new StmtList(red_stmt, if_else);
 	red_stmt = {AdoptRef{}, new_stmt->Reduce(c)};
 
-	return TransformMe(res_reg.get(), c, red_stmt);
+	return TransformMe(res_reg.release(), c, red_stmt);
 	}
 
 TraversalCode CondExpr::Traverse(TraversalCallback* cb) const
@@ -3675,7 +3683,7 @@ Expr* FieldAssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 
 	// Doesn't seem worth checking for constant folding.
 
-	return AssignToTemporary(c);
+	return AssignToTemporary(c, red_stmt);
 	}
 
 bool FieldAssignExpr::IsRecordElement(TypeDecl* td) const
@@ -4460,7 +4468,7 @@ Expr* CallExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	else if ( red2_stmt )
 		red_stmt = {AdoptRef{}, new StmtList(red_stmt, red2_stmt.get())};
 
-	return AssignToTemporary(c);
+	return AssignToTemporary(c, red_stmt);
 	}
 
 IntrusivePtr<Val> CallExpr::Eval(Frame* f) const
@@ -4811,7 +4819,7 @@ Expr* ListExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 			}
 		}
 
-	return AssignToTemporary(c);
+	return AssignToTemporary(c, red_stmt);
 	}
 
 IntrusivePtr<Val> ListExpr::Eval(Frame* f) const

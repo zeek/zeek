@@ -196,7 +196,7 @@ Stmt* ExprListStmt::Reduce(ReductionContext* c)
 	expr_list& e = l->Exprs();
 	for ( auto& expr : e )
 		if ( expr->IsSingleton() )
-			new_l->Append({AdoptRef{}, expr->Ref()});
+			new_l->Append({NewRef{}, expr});
 		else
 			{
 			IntrusivePtr<Stmt> red_e_stmt;

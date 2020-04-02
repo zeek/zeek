@@ -79,7 +79,7 @@ NetSessions::NetSessions()
 
 	packet_filter = 0;
 
-	dump_this_packet = 0;
+	dump_this_packet = false;
 	num_packets_processed = 0;
 
 	if ( pkt_profile_mode && pkt_profile_freq > 0 && pkt_profile_file )
@@ -130,7 +130,7 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 
 	++num_packets_processed;
 
-	dump_this_packet = 0;
+	dump_this_packet = false;
 
 	if ( record_all_packets )
 		DumpPacket(pkt);
@@ -265,7 +265,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 
 	if ( ip_hdr->IsFragment() )
 		{
-		dump_this_packet = 1;	// always record fragments
+		dump_this_packet = true;	// always record fragments
 
 		if ( caplen < len )
 			{
@@ -308,7 +308,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	// there, it's always the last.
 	if ( ip_hdr->LastHeader() == IPPROTO_ESP )
 		{
-		dump_this_packet = 1;
+		dump_this_packet = true;
 		if ( esp_packet )
 			mgr.Enqueue(esp_packet, IntrusivePtr{AdoptRef{}, ip_hdr->BuildPktHdrVal()});
 
@@ -321,7 +321,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	// last if present.
 	if ( ip_hdr->LastHeader() == IPPROTO_MOBILITY )
 		{
-		dump_this_packet = 1;
+		dump_this_packet = true;
 
 		if ( ! ignore_checksums && mobility_header_checksum(ip_hdr) != 0xffff )
 			{
@@ -710,7 +710,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	else if ( record_packet )
 		{
 		if ( record_content )
-			dump_this_packet = 1;	// save the whole thing
+			dump_this_packet = true;	// save the whole thing
 
 		else
 			{
@@ -1287,7 +1287,7 @@ void NetSessions::Weird(const char* name, const Packet* pkt,
                         const EncapsulationStack* encap, const char* addl)
 	{
 	if ( pkt )
-		dump_this_packet = 1;
+		dump_this_packet = true;
 
 	if ( encap && encap->LastType() != BifEnum::Tunnel::NONE )
 		reporter->Weird(fmt("%s_in_tunnel", name), addl);

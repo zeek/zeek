@@ -1,4 +1,10 @@
 
+3.2.0-dev.336 | 2020-04-02 15:03:04 -0700
+
+  * Fix uses of GetBool in bifs to use GetTrue/GetFalse (Tim Wojtulewicz, Corelight)
+
+  * Change Sessions::dump_this_packet to a bool (Tim Wojtulewicz, Corelight)
+
 3.2.0-dev.332 | 2020-03-31 15:34:52 -0700
 
   * GH-725: fix logic for finding a lambda's usage of outer IDs (Jon Siwek, Corelight)

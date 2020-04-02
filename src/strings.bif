@@ -627,9 +627,9 @@ function is_ascii%(str: string%): bool
 
 	for ( int i = 0; i < n; ++i )
 		if ( s[i] > 127 )
-			return val_mgr->GetBool(0);
+			return val_mgr->GetFalse();
 
-	return val_mgr->GetBool(1);
+	return val_mgr->GetTrue();
 	%}
 
 ## Replaces non-printable characters in a string with escaped sequences. The

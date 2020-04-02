@@ -311,7 +311,7 @@ public:
 	 *
 	 * @return True if at least one scheduled analyzer was found.
 	 */
-	bool ApplyScheduledAnalyzers(Connection* conn, bool init_and_event = true, TransportLayerAnalyzer* parent = 0);
+	bool ApplyScheduledAnalyzers(Connection* conn, bool init_and_event = true, TransportLayerAnalyzer* parent = nullptr);
 
 	/**
 	 * Schedules a particular analyzer for an upcoming connection. Once

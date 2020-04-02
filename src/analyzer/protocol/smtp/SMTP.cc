@@ -43,8 +43,8 @@ SMTP_Analyzer::SMTP_Analyzer(Connection* conn)
 
 	skip_data = false;
 	orig_is_sender = true;
-	line_after_gap = 0;
-	mail = 0;
+	line_after_gap = nullptr;
+	mail = nullptr;
 	UpdateState(first_cmd, 0, true);
 	cl_orig = new tcp::ContentLine_Analyzer(conn, true);
 	cl_orig->SetIsNULSensitive(true);
@@ -103,7 +103,7 @@ void SMTP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig)
 	if ( line_after_gap )
 		{
 		delete line_after_gap;
-		line_after_gap = 0;
+		line_after_gap = nullptr;
 		}
 
 	pending_cmd_q.clear();
@@ -247,7 +247,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 			if ( cmd_code == -1 )
 				{
 				Unexpected(true, "unknown command", cmd_len, cmd);
-				cmd = 0;
+				cmd = nullptr;
 				}
 			else
 				NewCmd(cmd_code);
@@ -921,7 +921,7 @@ void SMTP_Analyzer::BeginData(bool orig)
 	{
 	state = SMTP_IN_DATA;
 	skip_data = false; // reset the flag at the beginning of the mail
-	if ( mail != 0 )
+	if ( mail != nullptr )
 		{
 		Weird("smtp_nested_mail_transaction");
 		mail->Done();
@@ -939,6 +939,6 @@ void SMTP_Analyzer::EndData()
 		{
 		mail->Done();
 		delete mail;
-		mail = 0;
+		mail = nullptr;
 		}
 	}

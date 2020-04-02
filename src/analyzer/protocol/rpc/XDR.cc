@@ -17,7 +17,7 @@ uint32_t analyzer::rpc::extract_XDR_uint32(const u_char*& buf, int& len)
 
 	if ( len < 4 )
 		{
-		buf = 0;
+		buf = nullptr;
 		return 0;
 		}
 
@@ -36,7 +36,7 @@ uint64_t analyzer::rpc::extract_XDR_uint64(const u_char*& buf, int& len)
 	{
 	if ( ! buf || len < 8 )
 		{
-		buf = 0;
+		buf = nullptr;
 		return 0;
 		}
 
@@ -50,7 +50,7 @@ double analyzer::rpc::extract_XDR_time(const u_char*& buf, int& len)
 	{
 	if ( ! buf || len < 8 )
 		{
-		buf = 0;
+		buf = nullptr;
 		return 0.0;
 		}
 
@@ -64,15 +64,15 @@ const u_char* analyzer::rpc::extract_XDR_opaque(const u_char*& buf, int& len, in
 	{
 	n = int(extract_XDR_uint32(buf, len));
 	if ( ! buf )
-		return 0;
+		return nullptr;
 
 	if ( short_buf_ok )
 		n = std::min(n, len);
 
 	if ( n < 0 || n > len || n > max_len )
 		{ // ### Should really flag this as a different sort of error.
-		buf = 0;
-		return 0;
+		buf = nullptr;
+		return nullptr;
 		}
 
 	int n4 = ((n + 3) >> 2) << 2;	// n rounded up to next multiple of 4
@@ -87,11 +87,11 @@ const u_char* analyzer::rpc::extract_XDR_opaque(const u_char*& buf, int& len, in
 const u_char* analyzer::rpc::extract_XDR_opaque_fixed(const u_char*& buf, int& len, int n)
 	{
 	if ( ! buf )
-		return 0;
+		return nullptr;
 	if ( n < 0 || n > len)
 		{
-		buf = 0;
-		return 0;
+		buf = nullptr;
+		return nullptr;
 		}
 	int n4 = ((n + 3) >> 2) << 2;	// n rounded up to next multiple of 4
 

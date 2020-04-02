@@ -98,9 +98,9 @@ bool TeredoEncapsulation::DoParse(const u_char* data, int& len,
 
 RecordVal* TeredoEncapsulation::BuildVal(const IP_Hdr* inner) const
 	{
-	static RecordType* teredo_hdr_type = 0;
-	static RecordType* teredo_auth_type = 0;
-	static RecordType* teredo_origin_type = 0;
+	static RecordType* teredo_hdr_type = nullptr;
+	static RecordType* teredo_auth_type = nullptr;
+	static RecordType* teredo_origin_type = nullptr;
 
 	if ( ! teredo_hdr_type )
 		{
@@ -167,7 +167,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		return;
 		}
 
-	IP_Hdr* inner = 0;
+	IP_Hdr* inner = nullptr;
 	int rslt = sessions->ParseIPPacket(len, te.InnerIP(), IPPROTO_IPV6, inner);
 
 	if ( rslt > 0 )
@@ -201,33 +201,33 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		return;
 		}
 
-	Val* teredo_hdr = 0;
+	Val* teredo_hdr = nullptr;
 
 	if ( teredo_packet )
 		{
 		teredo_hdr = te.BuildVal(inner);
-		Conn()->Event(teredo_packet, 0, teredo_hdr);
+		Conn()->Event(teredo_packet, nullptr, teredo_hdr);
 		}
 
 	if ( te.Authentication() && teredo_authentication )
 		{
 		teredo_hdr = teredo_hdr ? teredo_hdr->Ref() : te.BuildVal(inner);
-		Conn()->Event(teredo_authentication, 0, teredo_hdr);
+		Conn()->Event(teredo_authentication, nullptr, teredo_hdr);
 		}
 
 	if ( te.OriginIndication() && teredo_origin_indication )
 		{
 		teredo_hdr = teredo_hdr ? teredo_hdr->Ref() : te.BuildVal(inner);
-		Conn()->Event(teredo_origin_indication, 0, teredo_hdr);
+		Conn()->Event(teredo_origin_indication, nullptr, teredo_hdr);
 		}
 
 	if ( inner->NextProto() == IPPROTO_NONE && teredo_bubble )
 		{
 		teredo_hdr = teredo_hdr ? teredo_hdr->Ref() : te.BuildVal(inner);
-		Conn()->Event(teredo_bubble, 0, teredo_hdr);
+		Conn()->Event(teredo_bubble, nullptr, teredo_hdr);
 		}
 
 	EncapsulatingConn ec(Conn(), BifEnum::Tunnel::TEREDO);
 
-	sessions->DoNextInnerPacket(network_time, 0, inner, e, ec);
+	sessions->DoNextInnerPacket(network_time, nullptr, inner, e, ec);
 	}

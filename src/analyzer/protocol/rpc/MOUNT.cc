@@ -22,7 +22,7 @@ bool MOUNT_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 
 	uint32_t proc = c->Proc();
 	// The call arguments, depends on the call type obviously ...
-	Val *callarg = 0;
+	Val *callarg = nullptr;
 
 	switch ( proc ) {
 		case BifEnum::MOUNT3::PROC_NULL:
@@ -41,7 +41,7 @@ bool MOUNT_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 		break;
 
 	default:
-		callarg = 0;
+		callarg = nullptr;
 		if ( proc < BifEnum::MOUNT3::PROC_END_OF_PROCS )
 			{
 			// We know the procedure but haven't implemented it.
@@ -65,7 +65,7 @@ bool MOUNT_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 		// RecordVal was allocated but we failed to fill it). So we
 		// Unref() the call arguments, and we are fine.
 		Unref(callarg);
-		callarg = 0;
+		callarg = nullptr;
 		return false;
 		}
 
@@ -78,8 +78,8 @@ bool MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_statu
 			       const u_char*& buf, int& n, double start_time,
 			       double last_time, int reply_len)
 	{
-	EventHandlerPtr event = 0;
-	Val* reply = 0;
+	EventHandlerPtr event = nullptr;
+	Val* reply = nullptr;
 	BifEnum::MOUNT3::status_t mount_status = BifEnum::MOUNT3::MNT3_OK;
 	bool rpc_success = ( rpc_status == BifEnum::RPC_SUCCESS );
 
@@ -104,7 +104,7 @@ bool MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_statu
 		// We set the buffer to NULL, the function that extract the
 		// reply from the data stream will then return empty records.
 		//
-		buf = NULL;
+		buf = nullptr;
 		n = 0;
 		}
 
@@ -119,14 +119,14 @@ bool MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_statu
 		break;
 
 	case BifEnum::MOUNT3::PROC_UMNT:
-		reply = 0;
+		reply = nullptr;
 		n = 0;
 		mount_status = BifEnum::MOUNT3::MNT3_OK;
 		event = mount_proc_umnt;
 		break;
 
 	case BifEnum::MOUNT3::PROC_UMNT_ALL:
-		reply = 0;
+		reply = nullptr;
 		n = 0;
 		mount_status = BifEnum::MOUNT3::MNT3_OK;
 		event = mount_proc_umnt;
@@ -151,7 +151,7 @@ bool MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_statu
 		// There was a parse error. We have to unref the reply. (see
 		// also comments in RPC_BuildCall.
 		Unref(reply);
-		reply = 0;
+		reply = nullptr;
 		return false;
 		}
 
@@ -230,7 +230,7 @@ StringVal* MOUNT_Interp::mount3_fh(const u_char*& buf, int& n)
 	const u_char* fh = extract_XDR_opaque(buf, n, fh_n, 64);
 
 	if ( ! fh )
-		return 0;
+		return nullptr;
 
 	return new StringVal(new BroString(fh, fh_n, false));
 	}
@@ -241,7 +241,7 @@ StringVal* MOUNT_Interp::mount3_filename(const u_char*& buf, int& n)
 	const u_char* name = extract_XDR_opaque(buf, n, name_len);
 
 	if ( ! name )
-		return 0;
+		return nullptr;
 
 	return new StringVal(new BroString(name, name_len, false));
 	}
@@ -288,8 +288,8 @@ RecordVal* MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& n,
 		}
 	else
 		{
-		rep->Assign(0, 0);
-		rep->Assign(1, 0);
+		rep->Assign(0, nullptr);
+		rep->Assign(1, nullptr);
 		}
 
 	return rep;
@@ -298,7 +298,7 @@ RecordVal* MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& n,
 MOUNT_Analyzer::MOUNT_Analyzer(Connection* conn)
 	: RPC_Analyzer("MOUNT", conn, new MOUNT_Interp(this))
 	{
-	orig_rpc = resp_rpc = 0;
+	orig_rpc = resp_rpc = nullptr;
 	}
 
 void MOUNT_Analyzer::Init()

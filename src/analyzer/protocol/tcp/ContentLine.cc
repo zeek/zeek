@@ -24,7 +24,7 @@ void ContentLine_Analyzer::InitState()
 	CR_LF_as_EOL = (CR_as_EOL | LF_as_EOL);
 	skip_deliveries = false;
 	skip_partial = false;
-	buf = 0;
+	buf = nullptr;
 	seq_delivered_in_lines = 0;
 	skip_pending = 0;
 	seq = 0;

@@ -12,7 +12,7 @@ public:
 	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("DNS", ::analyzer::dns::DNS_Analyzer::Instantiate));
-		AddComponent(new ::analyzer::Component("Contents_DNS", 0));
+		AddComponent(new ::analyzer::Component("Contents_DNS", nullptr));
 
 		plugin::Configuration config;
 		config.name = "Zeek::DNS";

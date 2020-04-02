@@ -60,7 +60,7 @@ void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig
 		assert(line <= end_of_line);
 		size_t n = end_of_line >= line ? end_of_line - line : 0; // just to be sure if assertions aren't on.
 		const char* at = reinterpret_cast<const char*>(memchr(line, '@', n));
-		const char* host = 0;
+		const char* host = nullptr;
 		if ( ! at )
 			at = host = end_of_line;
 		else

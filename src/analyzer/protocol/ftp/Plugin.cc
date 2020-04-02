@@ -12,7 +12,7 @@ public:
 	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("FTP", ::analyzer::ftp::FTP_Analyzer::Instantiate));
-		AddComponent(new ::analyzer::Component("FTP_ADAT", 0));
+		AddComponent(new ::analyzer::Component("FTP_ADAT", nullptr));
 
 		plugin::Configuration config;
 		config.name = "Zeek::FTP";

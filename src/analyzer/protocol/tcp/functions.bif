@@ -121,7 +121,7 @@ function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
 function get_contents_file%(cid: conn_id, direction: count%): file
 	%{
 	Connection* c = sessions->FindConnection(cid);
-	BroFile* f = c ? c->GetRootAnalyzer()->GetContentsFile(direction) : 0;
+	BroFile* f = c ? c->GetRootAnalyzer()->GetContentsFile(direction) : nullptr;
 
 	if ( f )
 		{

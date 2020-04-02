@@ -103,7 +103,7 @@ protected:
 	int ParseCmd(string cmd);
 	void AuthSuccessfull();
 	void POP3Event(EventHandlerPtr event, bool is_orig,
-			const char* arg1 = 0, const char* arg2 = 0);
+			const char* arg1 = nullptr, const char* arg2 = nullptr);
 
 	mime::MIME_Mail* mail;
 	list<string> cmds;

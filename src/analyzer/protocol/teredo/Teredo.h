@@ -55,7 +55,7 @@ protected:
 class TeredoEncapsulation {
 public:
 	explicit TeredoEncapsulation(const Teredo_Analyzer* ta)
-		: inner_ip(0), origin_indication(0), auth(0), analyzer(ta)
+		: inner_ip(nullptr), origin_indication(nullptr), auth(nullptr), analyzer(ta)
 		{}
 
 	/**

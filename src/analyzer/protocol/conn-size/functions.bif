@@ -7,7 +7,7 @@ static analyzer::Analyzer* GetConnsizeAnalyzer(Val* cid)
 	{
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
-		return 0;
+		return nullptr;
 
 	analyzer::Analyzer* a = c->FindAnalyzer("CONNSIZE");
 	if ( ! a )

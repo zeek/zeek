@@ -13,8 +13,8 @@ public:
 		{
 		AddComponent(new ::analyzer::Component("TCP", ::analyzer::tcp::TCP_Analyzer::Instantiate));
 		AddComponent(new ::analyzer::Component("TCPStats", ::analyzer::tcp::TCPStats_Analyzer::Instantiate));
-		AddComponent(new ::analyzer::Component("CONTENTLINE", 0));
-		AddComponent(new ::analyzer::Component("Contents", 0));
+		AddComponent(new ::analyzer::Component("CONTENTLINE", nullptr));
+		AddComponent(new ::analyzer::Component("Contents", nullptr));
 
 		plugin::Configuration config;
 		config.name = "Zeek::TCP";

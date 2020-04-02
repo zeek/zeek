@@ -17,10 +17,10 @@ public:
 		AddComponent(new ::analyzer::Component("Telnet", ::analyzer::login::Telnet_Analyzer::Instantiate));
 		AddComponent(new ::analyzer::Component("Rsh", ::analyzer::login::Rsh_Analyzer::Instantiate));
 		AddComponent(new ::analyzer::Component("Rlogin", ::analyzer::login::Rlogin_Analyzer::Instantiate));
-		AddComponent(new ::analyzer::Component("NVT", 0));
-		AddComponent(new ::analyzer::Component("Login", 0));
-		AddComponent(new ::analyzer::Component("Contents_Rsh", 0));
-		AddComponent(new ::analyzer::Component("Contents_Rlogin", 0));
+		AddComponent(new ::analyzer::Component("NVT", nullptr));
+		AddComponent(new ::analyzer::Component("Login", nullptr));
+		AddComponent(new ::analyzer::Component("Contents_Rsh", nullptr));
+		AddComponent(new ::analyzer::Component("Contents_Rlogin", nullptr));
 
 		plugin::Configuration config;
 		config.name = "Zeek::Login";

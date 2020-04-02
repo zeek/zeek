@@ -40,7 +40,7 @@ Gnutella_Analyzer::Gnutella_Analyzer(Connection* conn)
 	new_state = 0;
 	sent_establish = 0;
 
-	ms = 0;
+	ms = nullptr;
 
 	orig_msg_state = new GnutellaMsgState();
 	resp_msg_state = new GnutellaMsgState();

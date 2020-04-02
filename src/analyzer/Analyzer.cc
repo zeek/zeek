@@ -124,11 +124,11 @@ void Analyzer::CtorInit(const Tag& arg_tag, Connection* arg_conn)
 	skip = false;
 	finished = false;
 	removing = false;
-	parent = 0;
-	orig_supporters = 0;
-	resp_supporters = 0;
-	signature = 0;
-	output_handler = 0;
+	parent = nullptr;
+	orig_supporters = nullptr;
+	resp_supporters = nullptr;
+	signature = nullptr;
+	output_handler = nullptr;
 	}
 
 Analyzer::~Analyzer()
@@ -138,7 +138,7 @@ Analyzer::~Analyzer()
 	LOOP_OVER_CHILDREN(i)
 		delete *i;
 
-	SupportAnalyzer* next = 0;
+	SupportAnalyzer* next = nullptr;
 
 	for ( SupportAnalyzer* a = orig_supporters; a; a = next )
 		{
@@ -501,7 +501,7 @@ Analyzer* Analyzer::FindChild(ID arg_id)
 			return child;
 		}
 
-	return 0;
+	return nullptr;
 	}
 
 Analyzer* Analyzer::FindChild(Tag arg_tag)
@@ -523,13 +523,13 @@ Analyzer* Analyzer::FindChild(Tag arg_tag)
 			return child;
 		}
 
-	return 0;
+	return nullptr;
 	}
 
 Analyzer* Analyzer::FindChild(const char* name)
 	{
 	Tag tag = analyzer_mgr->GetComponentTag(name);
-	return tag ? FindChild(tag) : 0;
+	return tag ? FindChild(tag) : nullptr;
 	}
 
 void Analyzer::DeleteChild(analyzer_list::iterator i)
@@ -570,7 +570,7 @@ void Analyzer::AddSupportAnalyzer(SupportAnalyzer* analyzer)
 		analyzer->IsOrig() ? &orig_supporters : &resp_supporters;
 
 	// Find end of the list.
-	SupportAnalyzer* prev = 0;
+	SupportAnalyzer* prev = nullptr;
 	SupportAnalyzer* s;
 	for ( s = *head; s; prev = s, s = s->sibling )
 		;
@@ -621,7 +621,7 @@ SupportAnalyzer* Analyzer::FirstSupportAnalyzer(bool orig)
 	SupportAnalyzer* sa = orig ? orig_supporters : resp_supporters;
 
 	if ( ! sa )
-		return 0;
+		return nullptr;
 
 	if ( ! sa->Removing() )
 		return sa;
@@ -922,7 +922,7 @@ void TransportLayerAnalyzer::SetContentsFile(unsigned int /* direction */,
 BroFile* TransportLayerAnalyzer::GetContentsFile(unsigned int /* direction */) const
 	{
 	reporter->Error("analyzer type does not support writing to a contents file");
-	return 0;
+	return nullptr;
 	}
 
 void TransportLayerAnalyzer::PacketContents(const u_char* data, int len)

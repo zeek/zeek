@@ -188,7 +188,7 @@ public:
 		// Cannot initialize top_level entity because we do
 		// not know its type yet (MIME_Entity / MIME_Mail /
 		// etc.).
-		top_level = 0;
+		top_level = nullptr;
 		finished = false;
 		analyzer = arg_analyzer;
 		}

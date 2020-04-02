@@ -48,7 +48,7 @@ HTTP_Entity::HTTP_Entity(HTTP_Message *arg_message, MIME_Entity* parent_entity, 
 	header_length = 0;
 	deliver_body = true;
 	encoding = IDENTITY;
-	zip = 0;
+	zip = nullptr;
 	is_partial_content = false;
 	offset = 0;
 	instance_length = -1; // unspecified
@@ -67,7 +67,7 @@ void HTTP_Entity::EndOfData()
 		{
 		zip->Done();
 		delete zip;
-		zip = 0;
+		zip = nullptr;
 		encoding = IDENTITY;
 		}
 
@@ -114,7 +114,7 @@ void HTTP_Entity::Deliver(int len, const char* data, bool trailing_CRLF)
 		switch ( chunked_transfer_state ) {
 		case EXPECT_CHUNK_SIZE:
 			ASSERT(trailing_CRLF);
-			if ( ! atoi_n(len, data, 0, 16, expect_data_length) )
+			if ( ! atoi_n(len, data, nullptr, 16, expect_data_length) )
 				{
 				http_message->Weird("HTTP_bad_chunk_size");
 				expect_data_length = 0;
@@ -365,7 +365,7 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 		if ( ! mime::is_null_data_chunk(vt) )
 			{
 			int64_t n;
-			if ( atoi_n(vt.length, vt.data, 0, 10, n) )
+			if ( atoi_n(vt.length, vt.data, nullptr, 10, n) )
 				{
 				content_length = n;
 
@@ -427,8 +427,8 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 		              instance_length_str.c_str());
 
 		int64_t f, l;
-		atoi_n(first_byte_pos.size(), first_byte_pos.c_str(), 0, 10, f);
-		atoi_n(last_byte_pos.size(), last_byte_pos.c_str(), 0, 10, l);
+		atoi_n(first_byte_pos.size(), first_byte_pos.c_str(), nullptr, 10, f);
+		atoi_n(last_byte_pos.size(), last_byte_pos.c_str(), nullptr, 10, l);
 		int64_t len = l - f + 1;
 
 		if ( DEBUG_http )
@@ -439,7 +439,7 @@ void HTTP_Entity::SubmitHeader(mime::MIME_Header* h)
 			if ( instance_length_str != "*" )
 				{
 				if ( ! atoi_n(instance_length_str.size(),
-				              instance_length_str.c_str(), 0, 10,
+				              instance_length_str.c_str(), nullptr, 10,
 				              instance_length) )
 					instance_length = 0;
 				}
@@ -596,9 +596,9 @@ HTTP_Message::HTTP_Message(HTTP_Analyzer* arg_analyzer,
 	content_line = arg_cl;
 	is_orig = arg_is_orig;
 
-	current_entity = 0;
-	top_level = new HTTP_Entity(this, 0, expect_body);
-	entity_data_buffer = 0;
+	current_entity = nullptr;
+	top_level = new HTTP_Entity(this, nullptr, expect_body);
+	entity_data_buffer = nullptr;
 	BeginEntity(top_level);
 
 	start_time = network_time;
@@ -837,20 +837,20 @@ HTTP_Analyzer::HTTP_Analyzer(Connection* conn)
 	keep_alive = 0;
 	connection_close = 0;
 
-	request_message = reply_message = 0;
+	request_message = reply_message = nullptr;
 	request_state = EXPECT_REQUEST_LINE;
 	reply_state = EXPECT_REPLY_LINE;
 
 	request_ongoing = 0;
-	request_method = request_URI = 0;
-	unescaped_URI = 0;
+	request_method = request_URI = nullptr;
+	unescaped_URI = nullptr;
 
 	reply_ongoing = 0;
 	reply_code = 0;
-	reply_reason_phrase = 0;
+	reply_reason_phrase = nullptr;
 
 	connect_request = false;
-	pia = 0;
+	pia = nullptr;
 	upgraded = false;
 	upgrade_connection = false;
 	upgrade_protocol.clear();
@@ -882,10 +882,10 @@ void HTTP_Analyzer::Done()
 	ReplyMade(true, "message interrupted when connection done");
 
 	delete request_message;
-	request_message = 0;
+	request_message = nullptr;
 
 	delete reply_message;
-	reply_message = 0;
+	reply_message = nullptr;
 
 	GenStats();
 
@@ -1061,8 +1061,8 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 
 				if ( AddChildAnalyzer(pia) )
 					{
-					pia->FirstPacket(true, 0);
-					pia->FirstPacket(false, 0);
+					pia->FirstPacket(true, nullptr);
+					pia->FirstPacket(false, nullptr);
 
 					// This connection has transitioned to no longer
 					// being http and the content line support analyzers
@@ -1073,7 +1073,7 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 
 				else
 					// AddChildAnalyzer() will have deleted PIA.
-					pia = 0;
+					pia = nullptr;
 				}
 
 			break;
@@ -1193,7 +1193,7 @@ const char* HTTP_Analyzer::PrefixMatch(const char* line,
 
 	if ( *prefix )
 		// It didn't match.
-		return 0;
+		return nullptr;
 
 	return line;
 	}
@@ -1201,15 +1201,15 @@ const char* HTTP_Analyzer::PrefixMatch(const char* line,
 const char* HTTP_Analyzer::PrefixWordMatch(const char* line,
 				const char* end_of_line, const char* prefix)
 	{
-	if ( (line = PrefixMatch(line, end_of_line, prefix)) == 0 )
-		return 0;
+	if ( (line = PrefixMatch(line, end_of_line, prefix)) == nullptr )
+		return nullptr;
 
 	const char* orig_line = line;
 	line = skip_whitespace(line, end_of_line);
 
 	if ( line == orig_line )
 		// Word didn't end at prefix.
-		return 0;
+		return nullptr;
 
 	return line;
 	}
@@ -1235,7 +1235,7 @@ static const char* get_HTTP_token(const char* s, const char* e)
 
 int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 	{
-	const char* rest = 0;
+	const char* rest = nullptr;
 	const char* end_of_method = get_HTTP_token(line, end_of_line);
 
 	if ( end_of_method == line )
@@ -1439,7 +1439,7 @@ void HTTP_Analyzer::HTTP_Reply()
 	else
 		{
 		Unref(reply_reason_phrase);
-		reply_reason_phrase = 0;
+		reply_reason_phrase = nullptr;
 		}
 	}
 
@@ -1459,7 +1459,7 @@ void HTTP_Analyzer::RequestMade(bool interrupted, const char* msg)
 	Unref(unescaped_URI);
 	Unref(request_URI);
 
-	request_method = request_URI = unescaped_URI = 0;
+	request_method = request_URI = unescaped_URI = nullptr;
 
 	num_request_lines = 0;
 
@@ -1492,7 +1492,7 @@ void HTTP_Analyzer::ReplyMade(bool interrupted, const char* msg)
 	if ( reply_reason_phrase )
 		{
 		Unref(reply_reason_phrase);
-		reply_reason_phrase = 0;
+		reply_reason_phrase = nullptr;
 		}
 
 	// unanswered requests = 1 because there is no pop after 101.
@@ -1531,7 +1531,7 @@ void HTTP_Analyzer::RequestClash(Val* /* clash_val */)
 
 const BroString* HTTP_Analyzer::UnansweredRequestMethod()
 	{
-	return unanswered_requests.empty() ? 0 : unanswered_requests.front()->AsString();
+	return unanswered_requests.empty() ? nullptr : unanswered_requests.front()->AsString();
 	}
 
 int HTTP_Analyzer::HTTP_ReplyLine(const char* line, const char* end_of_line)

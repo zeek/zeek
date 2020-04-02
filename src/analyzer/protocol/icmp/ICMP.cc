@@ -81,7 +81,7 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 	if ( rule_matcher )
 		{
 		if ( ! matcher_state.MatcherInitialized(is_orig) )
-			matcher_state.InitEndpointMatcher(this, ip, len, is_orig, 0);
+			matcher_state.InitEndpointMatcher(this, ip, len, is_orig, nullptr);
 		}
 
 	type = icmpp->icmp_type;
@@ -497,7 +497,7 @@ void ICMP_Analyzer::Echo(double t, const struct icmp* icmpp, int len,
 					 int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
 	{
 	// For handling all Echo related ICMP messages
-	EventHandlerPtr f = 0;
+	EventHandlerPtr f = nullptr;
 
 	if ( ip_hdr->NextProto() == IPPROTO_ICMPV6 )
 		f = (icmpp->icmp_type == ICMP6_ECHO_REQUEST)
@@ -658,7 +658,7 @@ void ICMP_Analyzer::RouterSolicit(double t, const struct icmp* icmpp, int len,
 void ICMP_Analyzer::Context4(double t, const struct icmp* icmpp,
 		int len, int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
 	{
-	EventHandlerPtr f = 0;
+	EventHandlerPtr f = nullptr;
 
 	switch ( icmpp->icmp_type )
 		{
@@ -684,7 +684,7 @@ void ICMP_Analyzer::Context4(double t, const struct icmp* icmpp,
 void ICMP_Analyzer::Context6(double t, const struct icmp* icmpp,
 		int len, int caplen, const u_char*& data, const IP_Hdr* ip_hdr)
 	{
-	EventHandlerPtr f = 0;
+	EventHandlerPtr f = nullptr;
 
 	switch ( icmpp->icmp_type )
 		{
@@ -720,8 +720,8 @@ void ICMP_Analyzer::Context6(double t, const struct icmp* icmpp,
 
 VectorVal* ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* data)
 	{
-	static RecordType* icmp6_nd_option_type = 0;
-	static RecordType* icmp6_nd_prefix_info_type = 0;
+	static RecordType* icmp6_nd_option_type = nullptr;
+	static RecordType* icmp6_nd_prefix_info_type = nullptr;
 
 	if ( ! icmp6_nd_option_type )
 		{

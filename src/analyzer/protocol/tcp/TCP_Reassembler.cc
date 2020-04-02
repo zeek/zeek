@@ -30,7 +30,7 @@ TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 	type = arg_type;
 	endp = arg_endp;
 	had_gap = false;
-	record_contents_file = 0;
+	record_contents_file = nullptr;
 	deliver_tcp_contents = false;
 	skip_deliveries = false;
 	did_EOF = false;

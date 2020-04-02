@@ -15,7 +15,7 @@
 
 using namespace analyzer::bittorrent;
 
-static TableType* bt_tracker_headers = 0;
+static TableType* bt_tracker_headers = nullptr;
 static RecordType* bittorrent_peer;
 static TableType* bittorrent_peer_set;
 static RecordType* bittorrent_benc_value;
@@ -44,7 +44,7 @@ BitTorrentTracker_Analyzer::BitTorrentTracker_Analyzer(Connection* c)
 	req_buf[sizeof(req_buf) - 1] = 0;
 	req_buf_pos = req_buf;
 	req_buf_len = 0;
-	req_val_uri = 0;
+	req_val_uri = nullptr;
 	req_val_headers = new TableVal({NewRef{}, bt_tracker_headers});
 
 	res_state = BTT_RES_STATUS;
@@ -230,16 +230,16 @@ void BitTorrentTracker_Analyzer::InitBencParser(void)
 	benc_count.clear();
 
 	benc_state = BENC_STATE_EMPTY;
-	benc_raw = 0;
+	benc_raw = nullptr;
 	benc_raw_type = BENC_TYPE_NONE;
 	benc_raw_len = 0;
-	benc_key = 0;
+	benc_key = nullptr;
 	benc_key_len = 0;
-	benc_strlen = 0;
-	benc_str = 0;
+	benc_strlen = nullptr;
+	benc_str = nullptr;
 	benc_str_len = 0;
 	benc_str_have = 0;
-	benc_int = 0;
+	benc_int = nullptr;
 	benc_int_val = 0;
 	}
 
@@ -353,8 +353,8 @@ void BitTorrentTracker_Analyzer::EmitRequest(void)
 			IntrusivePtr{AdoptRef{}, req_val_headers}
 		);
 
-	req_val_uri = 0;
-	req_val_headers = 0;
+	req_val_uri = nullptr;
+	req_val_headers = nullptr;
 	}
 
 bool BitTorrentTracker_Analyzer::ParseResponse(char* line)
@@ -406,7 +406,7 @@ bool BitTorrentTracker_Analyzer::ParseResponse(char* line)
 						IntrusivePtr{AdoptRef{}, val_mgr->GetCount(res_status)},
 						IntrusivePtr{AdoptRef{}, res_val_headers}
 					);
-				res_val_headers = 0;
+				res_val_headers = nullptr;
 				res_buf_pos = res_buf + res_buf_len;
 				res_state = BTT_RES_DONE;
 				}
@@ -481,7 +481,7 @@ void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name,
 			RecordVal* peer = new RecordVal(bittorrent_peer);
 			peer->Assign(0, make_intrusive<AddrVal>(ad));
 			peer->Assign(1, val_mgr->GetPort(pt, TRANSPORT_TCP));
-			res_val_peers->Assign(peer, 0);
+			res_val_peers->Assign(peer, nullptr);
 
 			Unref(peer);
 			}
@@ -617,9 +617,9 @@ int BitTorrentTracker_Analyzer::ResponseParseBenc(void)
 					ResponseBenc(benc_key_len, benc_key,
 							benc_raw_type,
 							benc_raw_len, benc_raw);
-					benc_key = 0;
+					benc_key = nullptr;
 					benc_key_len = 0;
-					benc_raw = 0;
+					benc_raw = nullptr;
 					benc_raw_len = 0;
 					benc_raw_type = BENC_TYPE_NONE;
 					}
@@ -686,7 +686,7 @@ int BitTorrentTracker_Analyzer::ResponseParseBenc(void)
 						ResponseBenc(benc_key_len,
 							benc_key, BENC_TYPE_INT,
 							benc_int_val);
-						benc_key = 0;
+						benc_key = nullptr;
 						benc_key_len = 0;
 						}
 					}
@@ -764,7 +764,7 @@ int BitTorrentTracker_Analyzer::ResponseParseBenc(void)
 							BENC_TYPE_STR,
 							benc_str_len, benc_str);
 					benc_key_len = 0;
-					benc_key = 0;
+					benc_key = nullptr;
 					}
 
 				if ( ! benc_str_len )
@@ -796,7 +796,7 @@ void BitTorrentTracker_Analyzer::EmitResponse(void)
 			IntrusivePtr{AdoptRef{}, res_val_benc}
 		);
 
-	res_val_headers = 0;
-	res_val_peers = 0;
-	res_val_benc = 0;
+	res_val_headers = nullptr;
+	res_val_peers = nullptr;
+	res_val_benc = nullptr;
 	}

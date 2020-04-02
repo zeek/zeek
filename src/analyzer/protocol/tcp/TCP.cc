@@ -192,7 +192,7 @@ analyzer::Analyzer* TCP_Analyzer::FindChild(ID arg_id)
 			return child;
 		}
 
-	return 0;
+	return nullptr;
 	}
 
 analyzer::Analyzer* TCP_Analyzer::FindChild(Tag arg_tag)
@@ -209,7 +209,7 @@ analyzer::Analyzer* TCP_Analyzer::FindChild(Tag arg_tag)
 			return child;
 		}
 
-	return 0;
+	return nullptr;
 	}
 
 bool TCP_Analyzer::RemoveChildAnalyzer(ID id)
@@ -253,7 +253,7 @@ const struct tcphdr* TCP_Analyzer::ExtractTCP_Header(const u_char*& data,
 	if ( tcp_hdr_len < sizeof(struct tcphdr) )
 		{
 		Weird("bad_TCP_header_len");
-		return 0;
+		return nullptr;
 		}
 
 	if ( tcp_hdr_len > uint32_t(len) ||
@@ -262,7 +262,7 @@ const struct tcphdr* TCP_Analyzer::ExtractTCP_Header(const u_char*& data,
 		// This can happen even with the above test, due to TCP
 		// options.
 		Weird("truncated_header");
-		return 0;
+		return nullptr;
 		}
 
 	len -= tcp_hdr_len;	// remove TCP header
@@ -1587,8 +1587,8 @@ void TCP_Analyzer::SetContentsFile(unsigned int direction, BroFile* f)
 	{
 	if ( direction == CONTENTS_NONE )
 		{
-		orig->SetContentsFile(0);
-		resp->SetContentsFile(0);
+		orig->SetContentsFile(nullptr);
+		resp->SetContentsFile(nullptr);
 		}
 
 	else
@@ -1604,7 +1604,7 @@ BroFile* TCP_Analyzer::GetContentsFile(unsigned int direction) const
 	{
 	switch ( direction ) {
 	case CONTENTS_NONE:
-		return 0;
+		return nullptr;
 
 	case CONTENTS_ORIG:
 		return orig->GetContentsFile();
@@ -1615,7 +1615,7 @@ BroFile* TCP_Analyzer::GetContentsFile(unsigned int direction) const
 	case CONTENTS_BOTH:
 		if ( orig->GetContentsFile() != resp->GetContentsFile())
 			// This is an "error".
-			return 0;
+			return nullptr;
 		else
 			return orig->GetContentsFile();
 
@@ -1625,7 +1625,7 @@ BroFile* TCP_Analyzer::GetContentsFile(unsigned int direction) const
 
 	reporter->Error("bad direction %u in TCP_Analyzer::GetContentsFile",
 	                direction);
-	return 0;
+	return nullptr;
 	}
 
 void TCP_Analyzer::ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
@@ -2127,7 +2127,7 @@ void TCPStats_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	TCP_ApplicationAnalyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 
 	if ( is_orig )
-		orig_stats->DataSent(network_time, seq, len, caplen, data, ip, 0);
+		orig_stats->DataSent(network_time, seq, len, caplen, data, ip, nullptr);
 	else
-		resp_stats->DataSent(network_time, seq, len, caplen, data, ip, 0);
+		resp_stats->DataSent(network_time, seq, len, caplen, data, ip, nullptr);
 	}

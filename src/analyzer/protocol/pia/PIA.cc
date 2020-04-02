@@ -22,7 +22,7 @@ PIA::~PIA()
 
 void PIA::ClearBuffer(Buffer* buffer)
 	{
-	DataBlock* next = 0;
+	DataBlock* next = nullptr;
 	for ( DataBlock* b = buffer->head; b; b = next )
 		{
 		next = b->next;
@@ -31,14 +31,14 @@ void PIA::ClearBuffer(Buffer* buffer)
 		delete b;
 		}
 
-	buffer->head = buffer->tail = 0;
+	buffer->head = buffer->tail = nullptr;
 	buffer->size = 0;
 	}
 
 void PIA::AddToBuffer(Buffer* buffer, uint64_t seq, int len, const u_char* data,
 			bool is_orig, const IP_Hdr* ip)
 	{
-	u_char* tmp = 0;
+	u_char* tmp = nullptr;
 
 	if ( data )
 		{
@@ -47,12 +47,12 @@ void PIA::AddToBuffer(Buffer* buffer, uint64_t seq, int len, const u_char* data,
 		}
 
 	DataBlock* b = new DataBlock;
-	b->ip = ip ? ip->Copy() : 0;
+	b->ip = ip ? ip->Copy() : nullptr;
 	b->data = tmp;
 	b->is_orig = is_orig;
 	b->len = len;
 	b->seq = seq;
-	b->next = 0;
+	b->next = nullptr;
 
 	if ( buffer->tail )
 		{
@@ -117,14 +117,14 @@ void PIA::PIA_DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t 
 
 	pkt_buffer.state = new_state;
 
-	current_packet.data = 0;
+	current_packet.data = nullptr;
 	}
 
 void PIA::Match(Rule::PatternType type, const u_char* data, int len,
 		bool is_orig, bool bol, bool eol, bool clear_state)
 	{
 	if ( ! MatcherInitialized(is_orig) )
-		InitEndpointMatcher(AsAnalyzer(), 0, 0, is_orig, this);
+		InitEndpointMatcher(AsAnalyzer(), nullptr, 0, is_orig, this);
 
 	RuleMatcherState::Match(type, data, len, is_orig, bol, eol, clear_state);
 	}
@@ -207,9 +207,9 @@ void PIA_TCP::Init()
 void PIA_TCP::FirstPacket(bool is_orig, const IP_Hdr* ip)
 	{
 	static char dummy_packet[sizeof(struct ip) + sizeof(struct tcphdr)];
-	static struct ip* ip4 = 0;
-	static struct tcphdr* tcp4 = 0;
-	static IP_Hdr* ip4_hdr = 0;
+	static struct ip* ip4 = nullptr;
+	static struct tcphdr* tcp4 = nullptr;
+	static IP_Hdr* ip4_hdr = nullptr;
 
 	DBG_LOG(DBG_ANALYZER, "PIA_TCP[%d] FirstPacket(%s)", GetID(), (is_orig ? "T" : "F"));
 
@@ -277,7 +277,7 @@ void PIA_TCP::DeliverStream(int len, const u_char* data, bool is_orig)
 						SKIPPING : MATCHING_ONLY;
 		}
 
-	DoMatch(data, len, is_orig, false, false, false, 0);
+	DoMatch(data, len, is_orig, false, false, false, nullptr);
 
 	stream_buffer.state = new_state;
 	}
@@ -288,7 +288,7 @@ void PIA_TCP::Undelivered(uint64_t seq, int len, bool is_orig)
 
 	if ( stream_buffer.state == BUFFERING )
 		// We use data=nil to mark an undelivered.
-		AddToBuffer(&stream_buffer, seq, len, 0, is_orig);
+		AddToBuffer(&stream_buffer, seq, len, nullptr, is_orig);
 
 	// No check for buffer overrun here. I think that's ok.
 	}

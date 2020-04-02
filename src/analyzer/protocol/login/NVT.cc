@@ -320,7 +320,7 @@ char* TelnetEnvironmentOption::ExtractEnv(u_char*& data, int& len, int& code)
 
 	if ( code != ENVIRON_VAR && code != ENVIRON_VAL &&
 	     code != ENVIRON_USERVAR )
-		return 0;
+		return nullptr;
 
 	// Move past code.
 	--len;
@@ -338,7 +338,7 @@ char* TelnetEnvironmentOption::ExtractEnv(u_char*& data, int& len, int& code)
 			{
 			++d;	// move past ESC
 			if ( d >= data_end )
-				return 0;
+				return nullptr;
 			break;
 			}
 		}
@@ -400,7 +400,7 @@ TelnetOption* NVT_Analyzer::FindOption(unsigned int code)
 		if ( options[i]->Code() == code )
 			return options[i];
 
-	TelnetOption* opt = 0;
+	TelnetOption* opt = nullptr;
 	if ( i < NUM_TELNET_OPTIONS )
 		{ // Maybe we haven't created this option yet.
 		switch ( code ) {

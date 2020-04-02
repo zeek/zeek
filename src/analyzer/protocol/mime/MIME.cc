@@ -21,7 +21,7 @@
 
 namespace analyzer { namespace mime {
 
-static const data_chunk_t null_data_chunk = { 0, 0 };
+static const data_chunk_t null_data_chunk = { 0, nullptr };
 
 int mime_header_only = 0;
 int mime_decode_data = 1;
@@ -65,14 +65,14 @@ enum MIME_BOUNDARY_DELIMITER {
 static const char* MIMEHeaderName[] = {
 	"content-type",
 	"content-transfer-encoding",
-	0,
+	nullptr,
 };
 
 static const char* MIMEContentTypeName[] = {
 	"MULTIPART",
 	"MESSAGE",
 	"TEXT",
-	0,
+	nullptr,
 };
 
 static const char* MIMEContentSubtypeName[] = {
@@ -86,7 +86,7 @@ static const char* MIMEContentSubtypeName[] = {
 
 	"PLAIN",		// for text
 
-	0,			// other
+	nullptr,			// other
 };
 
 static const char* MIMEContentEncodingName[] = {
@@ -95,12 +95,12 @@ static const char* MIMEContentEncodingName[] = {
 	"BINARY",
 	"QUOTED-PRINTABLE",
 	"BASE64",
-	0,
+	nullptr,
 };
 
 bool is_null_data_chunk(data_chunk_t b)
 	{
-	return b.data == 0;
+	return b.data == nullptr;
 	}
 
 bool is_lws(char ch)
@@ -437,7 +437,7 @@ using namespace analyzer::mime;
 
 MIME_Multiline::MIME_Multiline()
 	{
-	line = 0;
+	line = nullptr;
 	}
 
 MIME_Multiline::~MIME_Multiline()
@@ -454,7 +454,7 @@ void MIME_Multiline::append(int len, const char* data)
 BroString* MIME_Multiline::get_concatenated_line()
 	{
 	if ( buffer.empty() )
-		return 0;
+		return nullptr;
 
 	delete line;
 	line = concatenate(buffer);
@@ -546,7 +546,7 @@ void MIME_Entity::init()
 	in_header = 1;
 	end_of_data = 0;
 
-	current_header_line = 0;
+	current_header_line = nullptr;
 	current_field_type = MIME_FIELD_OTHER;
 
 	need_to_parse_parameters = 0;
@@ -554,22 +554,22 @@ void MIME_Entity::init()
 	content_type_str = new StringVal("TEXT");
 	content_subtype_str = new StringVal("PLAIN");
 
-	content_encoding_str = 0;
-	multipart_boundary = 0;
+	content_encoding_str = nullptr;
+	multipart_boundary = nullptr;
 	content_type = CONTENT_TYPE_TEXT;
 	content_subtype = CONTENT_SUBTYPE_PLAIN;
 	content_encoding = CONTENT_ENCODING_OTHER;
 
-	parent = 0;
-	current_child_entity = 0;
+	parent = nullptr;
+	current_child_entity = nullptr;
 
-	base64_decoder = 0;
+	base64_decoder = nullptr;
 
 	data_buf_length = 0;
-	data_buf_data = 0;
+	data_buf_data = nullptr;
 	data_buf_offset = -1;
 
-	message = 0;
+	message = nullptr;
 	delay_adding_implicit_CRLF = false;
 	want_all_headers = false;
 	}
@@ -577,7 +577,7 @@ void MIME_Entity::init()
 MIME_Entity::~MIME_Entity()
 	{
 	if ( ! end_of_data )
-		reporter->AnalyzerError(message ? message->GetAnalyzer() : 0,
+		reporter->AnalyzerError(message ? message->GetAnalyzer() : nullptr,
 		            "missing MIME_Entity::EndOfData() before ~MIME_Entity");
 
 	delete current_header_line;
@@ -653,7 +653,7 @@ void MIME_Entity::EndOfData()
 
 	else
 		{
-		if ( current_child_entity != 0 )
+		if ( current_child_entity != nullptr )
 			{
 			if ( content_type == CONTENT_TYPE_MULTIPART )
 				IllegalFormat("multipart closing boundary delimiter missing");
@@ -675,13 +675,13 @@ void MIME_Entity::NewDataLine(int len, const char* data, bool trailing_CRLF)
 		{
 		switch ( CheckBoundaryDelimiter(len, data) ) {
 			case MULTIPART_BOUNDARY:
-				if ( current_child_entity != 0 )
+				if ( current_child_entity != nullptr )
 					EndChildEntity();
 				BeginChildEntity();
 				return;
 
 			case MULTIPART_CLOSING_BOUNDARY:
-				if ( current_child_entity != 0 )
+				if ( current_child_entity != nullptr )
 					EndChildEntity();
 				EndOfData();
 				return;
@@ -695,7 +695,7 @@ void MIME_Entity::NewDataLine(int len, const char* data, bool trailing_CRLF)
 		// binary encoding, and thus do not need to decode
 		// before passing the data to child.
 
-		if ( current_child_entity != 0 )
+		if ( current_child_entity != nullptr )
 			// Data before the first or after the last
 			// boundary delimiter are ignored
 			current_child_entity->Deliver(len, data, trailing_CRLF);
@@ -722,7 +722,7 @@ void MIME_Entity::NewHeader(int len, const char* data)
 
 void MIME_Entity::ContHeader(int len, const char* data)
 	{
-	if ( current_header_line == 0 )
+	if ( current_header_line == nullptr )
 		{
 		IllegalFormat("first header line starts with linear whitespace");
 
@@ -737,11 +737,11 @@ void MIME_Entity::ContHeader(int len, const char* data)
 
 void MIME_Entity::FinishHeader()
 	{
-	if ( current_header_line == 0 )
+	if ( current_header_line == nullptr )
 		return;
 
 	MIME_Header* h = new MIME_Header(current_header_line);
-	current_header_line = 0;
+	current_header_line = nullptr;
 
 	if ( ! is_null_data_chunk(h->get_name()) )
 		{
@@ -762,7 +762,7 @@ int MIME_Entity::LookupMIMEHeaderName(data_chunk_t name)
 	// A linear lookup should be fine for now.
 	// header names are case-insensitive (RFC 822, 2822, 2045).
 
-	for ( int i = 0; MIMEHeaderName[i] != 0; ++i )
+	for ( int i = 0; MIMEHeaderName[i] != nullptr; ++i )
 		if ( istrequal(name, MIMEHeaderName[i]) )
 			return i;
 	return -1;
@@ -770,7 +770,7 @@ int MIME_Entity::LookupMIMEHeaderName(data_chunk_t name)
 
 void MIME_Entity::ParseMIMEHeader(MIME_Header* h)
 	{
-	if ( h == 0 )
+	if ( h == nullptr )
 		return;
 
 	current_field_type = LookupMIMEHeaderName(h->get_name());
@@ -884,7 +884,7 @@ bool MIME_Entity::ParseFieldParameters(int len, const char* data)
 		data += offset;
 		len -= offset;
 
-		BroString* val = 0;
+		BroString* val = nullptr;
 
 		if ( current_field_type == MIME_CONTENT_TYPE &&
 		     content_type == CONTENT_TYPE_MULTIPART &&
@@ -1172,13 +1172,13 @@ void MIME_Entity::FinishDecodeBase64()
 		}
 
 	delete base64_decoder;
-	base64_decoder = 0;
+	base64_decoder = nullptr;
 	}
 
 bool MIME_Entity::GetDataBuffer()
 	{
 	int ret = message->RequestBuffer(&data_buf_length, &data_buf_data);
-	if ( ! ret || data_buf_length == 0 || data_buf_data == 0 )
+	if ( ! ret || data_buf_length == 0 || data_buf_data == nullptr )
 		{
 		// reporter->InternalError("cannot get data buffer from MIME_Message", "");
 		return false;
@@ -1250,18 +1250,18 @@ void MIME_Entity::SubmitAllHeaders()
 
 void MIME_Entity::BeginChildEntity()
 	{
-	ASSERT(current_child_entity == 0);
+	ASSERT(current_child_entity == nullptr);
 	current_child_entity = NewChildEntity();
 	message->BeginEntity(current_child_entity);
 	}
 
 void MIME_Entity::EndChildEntity()
 	{
-	ASSERT(current_child_entity != 0);
+	ASSERT(current_child_entity != nullptr);
 
 	current_child_entity->EndOfData();
 	delete current_child_entity;
-	current_child_entity = 0;
+	current_child_entity = nullptr;
 	}
 
 void MIME_Entity::IllegalFormat(const char* explanation)
@@ -1349,7 +1349,7 @@ MIME_Mail::MIME_Mail(analyzer::Analyzer* mail_analyzer, bool orig, int buf_size)
 
 	content_hash_length = 0;
 
-	top_level = new MIME_Entity(this, 0);	// to be changed to MIME_Mail
+	top_level = new MIME_Entity(this, nullptr);	// to be changed to MIME_Mail
 	BeginEntity(top_level);
 	}
 

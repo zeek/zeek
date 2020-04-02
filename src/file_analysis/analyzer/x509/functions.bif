@@ -11,7 +11,7 @@
 #include <openssl/err.h>
 
 // construct an error record
-RecordVal* x509_result_record(uint64_t num, const char* reason, Val* chainVector = 0)
+RecordVal* x509_result_record(uint64_t num, const char* reason, Val* chainVector = nullptr)
 	{
 	RecordVal* rrecord = new RecordVal(BifType::Record::X509::Result);
 
@@ -542,7 +542,7 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 
 	int result = X509_verify_cert(csc);
 
-	VectorVal* chainVector = 0;
+	VectorVal* chainVector = nullptr;
 
 	if ( result == 1 ) // we have a valid chain. try to get it...
 		{

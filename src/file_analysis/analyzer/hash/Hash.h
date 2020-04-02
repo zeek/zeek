@@ -84,7 +84,7 @@ public:
 	 *         handler for the "file_hash" event.
 	 */
 	static file_analysis::Analyzer* Instantiate(RecordVal* args, File* file)
-		{ return file_hash ? new MD5(args, file) : 0; }
+		{ return file_hash ? new MD5(args, file) : nullptr; }
 
 protected:
 
@@ -112,7 +112,7 @@ public:
 	 *         handler for the "file_hash" event.
 	 */
 	static file_analysis::Analyzer* Instantiate(RecordVal* args, File* file)
-		{ return file_hash ? new SHA1(args, file) : 0; }
+		{ return file_hash ? new SHA1(args, file) : nullptr; }
 
 protected:
 
@@ -140,7 +140,7 @@ public:
 	 *         handler for the "file_hash" event.
 	 */
 	static file_analysis::Analyzer* Instantiate(RecordVal* args, File* file)
-		{ return file_hash ? new SHA256(args, file) : 0; }
+		{ return file_hash ? new SHA256(args, file) : nullptr; }
 
 protected:
 

@@ -24,7 +24,7 @@ file_analysis::Analyzer* DataEvent::Instantiate(RecordVal* args, File* file)
 	auto chunk_val = args->Lookup("chunk_event");
 	auto stream_val = args->Lookup("stream_event");
 
-	if ( ! chunk_val && ! stream_val ) return 0;
+	if ( ! chunk_val && ! stream_val ) return nullptr;
 
 	EventHandlerPtr chunk;
 	EventHandlerPtr stream;

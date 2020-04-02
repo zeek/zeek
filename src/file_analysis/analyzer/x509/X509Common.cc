@@ -310,7 +310,7 @@ IntrusivePtr<StringVal> file_analysis::X509Common::GetExtensionFromBIO(BIO* bio,
 		ERR_error_string_n(ERR_get_error(), tmp, sizeof(tmp));
 		EmitWeird("x509_get_ext_from_bio", f, tmp);
 		BIO_free_all(bio);
-		return 0;
+		return nullptr;
 		}
 
 	if ( length == 0 )
@@ -327,7 +327,7 @@ IntrusivePtr<StringVal> file_analysis::X509Common::GetExtensionFromBIO(BIO* bio,
 		// because it's unclear the length value is very reliable.
 		reporter->Error("X509::GetExtensionFromBIO malloc(%d) failed", length);
 		BIO_free_all(bio);
-		return 0;
+		return nullptr;
 		}
 
 	BIO_read(bio, (void*) buffer, length);

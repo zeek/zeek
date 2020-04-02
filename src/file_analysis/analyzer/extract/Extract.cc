@@ -48,7 +48,7 @@ file_analysis::Analyzer* Extract::Instantiate(RecordVal* args, File* file)
 	auto limit = get_extract_field_val(args, "extract_limit");
 
 	if ( ! fname || ! limit )
-		return 0;
+		return nullptr;
 
 	return new Extract(args, file, fname->AsString()->CheckString(),
 	                   limit->AsCount());

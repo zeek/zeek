@@ -358,10 +358,10 @@ protected:
 	 *         exist, the activity time is refreshed along with any
 	 *         connection-related fields.
 	 */
-	File* GetFile(const string& file_id, Connection* conn = 0,
+	File* GetFile(const string& file_id, Connection* conn = nullptr,
 	              const analyzer::Tag& tag = analyzer::Tag::Error,
 	              bool is_orig = false, bool update_conn = true,
-	              const char* source_name = 0);
+	              const char* source_name = nullptr);
 
 	/**
 	 * Evaluate timeout policy for a file and remove the File object mapped to

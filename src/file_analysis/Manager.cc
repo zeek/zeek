@@ -16,8 +16,8 @@
 
 using namespace file_analysis;
 
-TableVal* Manager::disabled = 0;
-TableType* Manager::tag_set_type = 0;
+TableVal* Manager::disabled = nullptr;
+TableType* Manager::tag_set_type = nullptr;
 string Manager::salt;
 
 Manager::Manager()
@@ -159,7 +159,7 @@ string Manager::DataIn(const u_char* data, uint64_t len, const analyzer::Tag& ta
 void Manager::DataIn(const u_char* data, uint64_t len, const string& file_id,
                      const string& source)
 	{
-	File* file = GetFile(file_id, 0, analyzer::Tag::Error, false, false,
+	File* file = GetFile(file_id, nullptr, analyzer::Tag::Error, false, false,
 	                     source.c_str());
 
 	if ( ! file )
@@ -306,10 +306,10 @@ File* Manager::GetFile(const string& file_id, Connection* conn,
                        const char* source_name)
 	{
 	if ( file_id.empty() )
-		return 0;
+		return nullptr;
 
 	if ( IsIgnored(file_id) )
-		return 0;
+		return nullptr;
 
 	File* rval = LookupFile(file_id);
 
@@ -334,7 +334,7 @@ File* Manager::GetFile(const string& file_id, Connection* conn,
 		rval->RaiseFileOverNewConnection(conn, is_orig);
 
 		if ( IsIgnored(file_id) )
-			return 0;
+			return nullptr;
 		}
 	else
 		{
@@ -466,14 +466,14 @@ Analyzer* Manager::InstantiateAnalyzer(const Tag& tag, RecordVal* args, File* f)
 		reporter->InternalWarning(
 		            "unknown file analyzer instantiation request: %s",
 		            tag.AsString().c_str());
-		return 0;
+		return nullptr;
 		}
 
 	if ( ! c->Factory() )
 		{
 		reporter->InternalWarning("file analyzer %s cannot be instantiated "
 					  "dynamically", c->CanonicalName().c_str());
-		return 0;
+		return nullptr;
 		}
 
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Instantiate analyzer %s",

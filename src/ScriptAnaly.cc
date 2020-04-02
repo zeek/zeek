@@ -4,6 +4,7 @@
 #include "DefItem.h"
 #include "DefPoint.h"
 #include "ReachingDefs.h"
+#include "Reduce.h"
 #include "Desc.h"
 #include "Expr.h"
 #include "Stmt.h"
@@ -1055,7 +1056,7 @@ bool did_init = false;
 bool activate = false;
 const char* only_func = 0;
 
-void analyze_func(const Func* f, const id_list* inits, const Stmt* body)
+void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 	{
 	if ( ! did_init )
 		{
@@ -1073,6 +1074,8 @@ void analyze_func(const Func* f, const id_list* inits, const Stmt* body)
 	if ( ! activate )
 		return;
 
+	auto f = id->ID_Val()->AsFunc();
+
 	if ( only_func && ! streq(f->Name(), only_func) )
 		return;
 
@@ -1080,4 +1083,9 @@ void analyze_func(const Func* f, const id_list* inits, const Stmt* body)
 	f->Traverse(&cb);
 	cb.TrackInits(f, inits);
 	body->Traverse(&cb);
+
+	push_scope(id, nullptr);
+	ReductionContext rc(f->GetScope());
+	body->Reduce(&rc);
+	pop_scope();
 	}

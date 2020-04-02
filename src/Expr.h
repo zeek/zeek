@@ -136,6 +136,10 @@ public:
 	// the expression, suitable for replacing previous uses.
 	virtual Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt);
 
+	// Similar, but for use as the LHS of an assignment.  The expression
+	// itself doesn't transform.
+	virtual IntrusivePtr<Stmt> ReduceToLHS(ReductionContext* c);
+
 	// True if the expression can serve as an operand to a reduced
 	// expression.
 	bool IsSingleton() const
@@ -234,6 +238,8 @@ protected:
 	// Puts the expression in canonical form.
 	virtual void Canonicize();
 
+	Expr* AssignToTemporary(ReductionContext* c);
+
 	Expr* TransformMe(Expr* new_me, ReductionContext* c,
 				IntrusivePtr<Stmt>& red_stmt);
 
@@ -262,6 +268,7 @@ public:
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 	void Assign(Frame* f, IntrusivePtr<Val> v) override;
+	IntrusivePtr<Stmt> ReduceToLHS(ReductionContext* c) override;
 	IntrusivePtr<Expr> MakeLvalue() override;
 	bool IsPure() const override;
 
@@ -536,6 +543,9 @@ public:
 
 	void Assign(Frame* f, IntrusivePtr<Val> v) override;
 	IntrusivePtr<Expr> MakeLvalue() override;
+
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
+	IntrusivePtr<Stmt> ReduceToLHS(ReductionContext* c) override;
 };
 
 class AssignExpr : public BinaryExpr {
@@ -581,6 +591,7 @@ public:
 	void Delete(Frame* f) override;
 
 	void Assign(Frame* f, IntrusivePtr<Val> v) override;
+	IntrusivePtr<Stmt> ReduceToLHS(ReductionContext* c) override;
 	IntrusivePtr<Expr> MakeLvalue() override;
 
 	// Need to override Eval since it can take a vector arg but does
@@ -608,6 +619,7 @@ public:
 	bool CanDel() const override;
 
 	void Assign(Frame* f, IntrusivePtr<Val> v) override;
+	IntrusivePtr<Stmt> ReduceToLHS(ReductionContext* c) override;
 	void Delete(Frame* f) override;
 
 	IntrusivePtr<Expr> MakeLvalue() override;
@@ -708,6 +720,8 @@ public:
 	const char* FieldName() const	{ return field_name.c_str(); }
 
 	void EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const override;
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
+
 	bool IsRecordElement(TypeDecl* td) const override;
 
 protected:
@@ -907,6 +921,7 @@ public:
 	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
 	IntrusivePtr<Expr> MakeLvalue() override;
 	void Assign(Frame* f, IntrusivePtr<Val> v) override;
+	IntrusivePtr<Stmt> ReduceToLHS(ReductionContext* c) override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 

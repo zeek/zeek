@@ -123,7 +123,13 @@ bool Expr::IsReduced() const
 Expr* Expr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	red_stmt = nullptr;
-	return this;
+	return this->Ref();
+	}
+
+IntrusivePtr<Stmt> Expr::ReduceToLHS(ReductionContext* c)
+	{
+	Internal("Expr::ReduceLHS called");
+	return nullptr;
 	}
 
 IntrusivePtr<Val> Expr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) const
@@ -190,6 +196,12 @@ void Expr::AddTag(ODesc* d) const
 
 void Expr::Canonicize()
 	{
+	}
+
+Expr* Expr::AssignToTemporary(ReductionContext* c)
+	{
+	auto res_reg = c->GenTemporaryExpr(TypeIP());
+	return get_assign_expr(res_reg, {NewRef{}, this}, false).get();
 	}
 
 Expr* Expr::TransformMe(Expr* new_me, ReductionContext* c,
@@ -299,6 +311,11 @@ void NameExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 		id->SetVal(std::move(v));
 	else
 		f->SetElement(id.get(), v.release());
+	}
+
+IntrusivePtr<Stmt> NameExpr::ReduceToLHS(ReductionContext* c)
+	{
+	return nullptr;
 	}
 
 bool NameExpr::IsPure() const
@@ -426,7 +443,7 @@ Expr* UnaryExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 		return TransformMe(new ConstExpr(fold), c, red_stmt);
 		}
 
-	return this;
+	return AssignToTemporary(c);
 	}
 
 TraversalCode UnaryExpr::Traverse(TraversalCallback* cb) const
@@ -572,8 +589,7 @@ Expr* BinaryExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 
 	else if ( red2_stmt )
 		red_stmt = {AdoptRef{}, new StmtList(red_stmt, red2_stmt.get())};
-
-	return this;
+	return AssignToTemporary(c);
 	}
 
 TraversalCode BinaryExpr::Traverse(TraversalCallback* cb) const
@@ -2171,6 +2187,17 @@ void RefExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 	op->Assign(f, std::move(v));
 	}
 
+Expr* RefExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	red_stmt = op->ReduceToLHS(c);
+	return this->Ref();
+	}
+
+IntrusivePtr<Stmt> RefExpr::ReduceToLHS(ReductionContext* c)
+	{
+	return op->ReduceToLHS(c);
+	}
+
 AssignExpr::AssignExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2,
                        bool arg_is_init, IntrusivePtr<Val> arg_val,
                        attr_list* arg_attrs)
@@ -2629,7 +2656,7 @@ Expr* AssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	else if ( red2_stmt )
 		red_stmt = {AdoptRef{}, new StmtList(red_stmt, red2_stmt.get())};
 
-	return this;
+	return this->Ref();
 	}
 
 IndexSliceAssignExpr::IndexSliceAssignExpr(IntrusivePtr<Expr> op1,
@@ -3017,6 +3044,27 @@ void IndexExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 	}
 	}
 
+IntrusivePtr<Stmt> IndexExpr::ReduceToLHS(ReductionContext* c)
+	{
+	IntrusivePtr<Stmt> red1_stmt;
+	IntrusivePtr<Stmt> red2_stmt;
+
+	op1 = {AdoptRef{}, op1->Reduce(c, red1_stmt)};
+	op2 = {AdoptRef{}, op2->Reduce(c, red2_stmt)};
+
+	if ( red1_stmt && red2_stmt )
+		return make_intrusive<StmtList>(red1_stmt, red2_stmt);
+
+	else if ( red1_stmt )
+		return red1_stmt;
+
+	else if ( red2_stmt )
+		return red2_stmt;
+
+	else
+		return nullptr;
+	}
+
 void IndexExpr::ExprDescribe(ODesc* d) const
 	{
 	op1->Describe(d);
@@ -3080,6 +3128,15 @@ void FieldExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 		RecordVal* r = op_v->AsRecordVal();
 		r->Assign(field, std::move(v));
 		}
+	}
+
+IntrusivePtr<Stmt> FieldExpr::ReduceToLHS(ReductionContext* c)
+	{
+	IntrusivePtr<Stmt> red_stmt;
+
+	op = {AdoptRef{}, op->Reduce(c, red_stmt)};
+
+	return red_stmt;
 	}
 
 void FieldExpr::Delete(Frame* f)
@@ -3609,6 +3666,18 @@ void FieldAssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f)
 		}
 	}
 
+Expr* FieldAssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	red_stmt = nullptr;
+
+	if ( ! IsReduced() )
+		op = {AdoptRef{}, op->Reduce(c, red_stmt)};
+
+	// Doesn't seem worth checking for constant folding.
+
+	return AssignToTemporary(c);
+	}
+
 bool FieldAssignExpr::IsRecordElement(TypeDecl* td) const
 	{
 	if ( td )
@@ -4083,7 +4152,7 @@ Expr* ScheduleExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	else if ( red2_stmt )
 		red_stmt = {AdoptRef{}, new StmtList(red_stmt, red2_stmt.get())};
 
-	return this;
+	return this->Ref();
 	}
 
 IntrusivePtr<Val> ScheduleExpr::Eval(Frame* f) const
@@ -4391,7 +4460,7 @@ Expr* CallExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	else if ( red2_stmt )
 		red_stmt = {AdoptRef{}, new StmtList(red_stmt, red2_stmt.get())};
 
-	return this;
+	return AssignToTemporary(c);
 	}
 
 IntrusivePtr<Val> CallExpr::Eval(Frame* f) const
@@ -4651,7 +4720,7 @@ Expr* EventExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 		// We assume that ListExpr won't transform itself fundamentally.
 		(void) Args()->Reduce(c, red_stmt);
 
-	return this;
+	return this->Ref();
 	}
 
 TraversalCode EventExpr::Traverse(TraversalCallback* cb) const
@@ -4742,7 +4811,7 @@ Expr* ListExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 			}
 		}
 
-	return this;
+	return AssignToTemporary(c);
 	}
 
 IntrusivePtr<Val> ListExpr::Eval(Frame* f) const
@@ -5050,6 +5119,26 @@ void ListExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 
 	loop_over_list(exprs, i)
 		exprs[i]->Assign(f, {NewRef{}, (*lv->Vals())[i]});
+	}
+
+IntrusivePtr<Stmt> ListExpr::ReduceToLHS(ReductionContext* c)
+	{
+	auto red_stmt = make_intrusive<StmtList>();
+
+	loop_over_list(exprs, i)
+		{
+		IntrusivePtr<Stmt> s_i;
+		exprs.replace(i, exprs[i]->Reduce(c, s_i));
+
+		if ( s_i )
+			red_stmt->Stmts().push_back(s_i.release());
+		}
+
+	if ( red_stmt->Stmts().length() > 0 )
+		return red_stmt;
+
+	else
+		return nullptr;
 	}
 
 TraversalCode ListExpr::Traverse(TraversalCallback* cb) const

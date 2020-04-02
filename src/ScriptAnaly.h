@@ -7,4 +7,5 @@
 #include "Expr.h"
 
 
-extern void analyze_func(const Func* f, const id_list* ids, const Stmt* body);
+extern void analyze_func(const IntrusivePtr<ID>& id, const id_list* ids,
+				Stmt* body);

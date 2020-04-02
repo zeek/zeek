@@ -187,6 +187,9 @@ bool ExprListStmt::IsReduced() const
 
 Stmt* ExprListStmt::Reduce(ReductionContext* c)
 	{
+	if ( IsReduced() )
+		return this->Ref();
+
 	auto new_l = make_intrusive<ListExpr>();
 	auto s = new StmtList;
 
@@ -400,9 +403,14 @@ Stmt* ExprStmt::Reduce(ReductionContext* c)
 
 		e = {AdoptRef{}, e->Reduce(c, red_e_stmt)};
 
-		auto s = new StmtList(red_e_stmt, {AdoptRef{}, this});
+		if ( red_e_stmt )
+			{
+			auto s = new StmtList(red_e_stmt, {AdoptRef{}, this});
+			return TransformMe(s, c);
+			}
 
-		return TransformMe(s, c);
+		else
+			return this->Ref();
 		}
 
 	else
@@ -513,7 +521,7 @@ Stmt* IfStmt::Reduce(ReductionContext* c)
 	if ( red_e_stmt )
 		return TransformMe(new StmtList(red_e_stmt, this), c);
 
-	return this;
+	return this->Ref();
 	}
 
 void IfStmt::Describe(ODesc* d) const
@@ -1009,7 +1017,7 @@ Stmt* SwitchStmt::Reduce(ReductionContext* rc)
 
 	delete s;
 
-	return this;
+	return this->Ref();
 	}
 
 void SwitchStmt::Describe(ODesc* d) const
@@ -1180,7 +1188,7 @@ Stmt* WhileStmt::Reduce(ReductionContext* c)
 	if ( red_cond_stmt )
 		return TransformMe(new StmtList(red_cond_stmt, this), c);
 
-	return this;
+	return this->Ref();
 	}
 
 void WhileStmt::Describe(ODesc* d) const
@@ -1473,7 +1481,7 @@ Stmt* ForStmt::Reduce(ReductionContext* c)
 	if ( red_e_stmt )
 		return TransformMe(new StmtList(red_e_stmt, this), c);
 
-	return this;
+	return this->Ref();
 	}
 
 void ForStmt::Describe(ODesc* d) const
@@ -1808,19 +1816,14 @@ Stmt* StmtList::Reduce(ReductionContext* c)
 		return TransformMe(new NullStmt, c);
 
 	if ( f_stmts->length() == 1 )
-		{
-		// We're about to leak, but at least we can recover
-		// some of it.
-		ResetStmts(nullptr);
-		return Stmts()[0];
-		}
+		return (*f_stmts)[0];
 
 	if ( did_change )
 		ResetStmts(f_stmts);
 	else
 		delete f_stmts;
 
-	return this;
+	return this->Ref();
 	}
 
 void StmtList::Describe(ODesc* d) const

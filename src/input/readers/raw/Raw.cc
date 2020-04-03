@@ -530,7 +530,7 @@ void Raw::WriteToStdin()
 
 	if ( Info().mode == MODE_MANUAL && stdin_towrite != 0 )
 		{
-		Error(Fmt("Could not write whole string to stdin of child process in one go. Please use STREAM mode to pass more data to child."));
+		Error("Could not write whole string to stdin of child process in one go. Please use STREAM mode to pass more data to child.");
 		}
 	}
 

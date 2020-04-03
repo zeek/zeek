@@ -6,10 +6,14 @@ refine connection RDPEUDP_Conn += {
 			NED_ACK		= 0x3,
 			ESTABLISHED	= 0x4,
 		};
-
+		enum RDPUDP_VERSION_INFO_FLAG {
+		        RDPUDP_PROTOCOL_VERSION_1       = 0x0001,
+		        RDPUDP_PROTOCOL_VERSION_2       = 0x0002,
+		        RDPUDP_PROTOCOL_VERSION_3       = 0x0101
+		};
 		uint8 state_ = NEED_SYN;
-		bool orig_rdpeudp2_ = false;
-		bool resp_rdpeudp2_ = false;
+		uint16 orig_synex_flags_ = RDPUDP_PROTOCOL_VERSION_1;
+		uint16 resp_synex_flags_ = RDPUDP_PROTOCOL_VERSION_1;
 		bool orig_lossy_ = false;
 		bool resp_lossy_ = false;
 	%}
@@ -19,12 +23,12 @@ refine connection RDPEUDP_Conn += {
 		return state_;
 		%}
 
-	function is_version2(): bool
+	function is_rdpeudp2(): bool
 		%{
-		return (orig_rdpeudp2_ && resp_rdpeudp2_);
+		return ((orig_synex_flags_ & resp_synex_flags_) >= RDPUDP_PROTOCOL_VERSION_3);
 		%}
 
-	function proc_rdpeudp_syn(is_orig: bool, uFlags: uint16): bool
+	function proc_rdpeudp_syn(is_orig: bool, uFlags: uint16, snSourceAck: uint32, uUdpVer: uint16): bool
 		%{
 		if ( ! is_orig )
 			return false;
@@ -35,8 +39,7 @@ refine connection RDPEUDP_Conn += {
 		if ( snSourceAck != 0xffffffff )
 			return false;
 
-		if ( uFlags >= 0x1000 )
-			orig_rdpeudp2_ = true;
+		orig_synex_flags_ = uUdpVer;
 
 		if ( (uFlags & 0x0200) == 0x0200 )
 			orig_lossy_ = true;
@@ -63,7 +66,7 @@ refine connection RDPEUDP_Conn += {
 		state_ = NEED_ACK;
 
 		if ( uFlags >= 0x1000 )
-			resp_rdpeudp2_ = true;
+			resp_synex_flags_ = 0x0101;
 
 		if ( (uFlags & 0x0200) == 0x0200 )
 			resp_lossy_ = true;

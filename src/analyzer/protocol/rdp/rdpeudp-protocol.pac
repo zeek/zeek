@@ -35,7 +35,8 @@ type RDPEUDP_SYN(pdu: RDPEUDP_PDU, is_orig: bool) = record {
 		false -> has_no_synex_payload:		empty;
 	};
 } &let {
-	proc_rdpeudp_syn: bool = $context.connection.proc_rdpeudp_syn(is_orig, fec_header.uFlags);
+#	proc_rdpeudp_syn: bool = $context.connection.proc_rdpeudp_syn(is_orig, fec_header.uFlags, fec_header.snSourceAck);
+	proc_rdpeudp_syn: bool = $context.connection.proc_rdpeudp_syn(is_orig, fec_header.uFlags, fec_header.snSourceAck, has_synex_payload.uUdpVer);
 };
 
 # The tech specs refer to this as RDPUDP_SYNEX_PAYLOAD and RDPUDP_SYNDATAEX_PAYLOAD interchangably
@@ -88,7 +89,7 @@ enum RDPUDP_FLAG {
 };
 
 type RDPEUDP_ACK(pdu: RDPEUDP_PDU, is_orig: bool) = record {
-	version: case ($context.connection.is_version2()) of {
+	version: case ($context.connection.is_rdpeudp2()) of {
 		true ->	version2:	RDPEUDP2_ACK(pdu, is_orig);
 		false -> version1:	RDPEUDP1_ACK(pdu, is_orig);
 	};

@@ -1,4 +1,8 @@
 
+3.2.0-dev.338 | 2020-04-02 18:29:23 -0700
+
+  * Add RDP over UDP analyzer (Anthony Kasza, Corelight)
+
 3.2.0-dev.336 | 2020-04-02 15:03:04 -0700
 
   * Fix uses of GetBool in bifs to use GetTrue/GetFalse (Tim Wojtulewicz, Corelight)

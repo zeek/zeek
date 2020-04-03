@@ -12,16 +12,22 @@ New Functionality
 - X509 Certificate caching:
 
   Zeek now caches certificates if they have (by default) been encountered
-	more than 10 times in 62 seconds. Information for cached certificates is
-	retained; if the certificate is encountered again it does not have to
-	be re-parsed and already existing information is used to raise the events.
+  more than 10 times in 62 seconds. Information for cached certificates is
+  retained; if the certificate is encountered again it does not have to
+  be re-parsed and already existing information is used to raise the events.
 
-	This should especially help with performance in environments where the
-	same certificates are seen very often.
+  This should especially help with performance in environments where the
+  same certificates are seen very often.
 
-	Certificate caching is very configureable; it is possible to disable the
-	feature, change the time intervals or even suppress X509 events.
-	For details see ``scripts/base/files/x509/main.zeek``.
+  Certificate caching is very configureable; it is possible to disable the
+  feature, change the time intervals or even suppress X509 events.
+  For details see ``scripts/base/files/x509/main.zeek``.
+
+- Add parsing support for Remote Desktop Protocol UDP Transport Extension
+  (RDPEUDP versions 1 and 2).  This primarily only adds "rdpeudp" to
+  connection record service fields when an RDPEUDP session handhake is
+  detected, but also provides a few other events related to the RDPEUDP
+  connection establishment.
 
 Changed Functionality
 ---------------------

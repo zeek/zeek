@@ -43,7 +43,7 @@ type RDPEUDP_SYN(pdu: RDPEUDP_PDU, is_orig: bool) = record {
 type RDPUDP_SYNEX_PAYLOAD = record {
 	uSynExFlags:	uint16;
 	uUdpVer:	uint16;
-	cookieHash:	case ((uUdpVer & RDPUDP_PROTOCOL_VERSION_3) > 0) of {
+	cookieHash:	case (uUdpVer == RDPUDP_PROTOCOL_VERSION_3) of {
 		true -> has_cookie_hash:	uint8[32];
 		false -> has_no_cookie_hash:	empty;
 	};

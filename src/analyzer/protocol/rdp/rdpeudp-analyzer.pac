@@ -25,7 +25,7 @@ refine connection RDPEUDP_Conn += {
 
 	function is_rdpeudp2(): bool
 		%{
-		return ((orig_synex_flags_ & resp_synex_flags_) >= RDPUDP_PROTOCOL_VERSION_3);
+		return orig_synex_flags_  == RDPUDP_PROTOCOL_VERSION_3 && resp_synex_flags_ == RDPUDP_PROTOCOL_VERSION_3;
 		%}
 
 	function proc_rdpeudp_syn(is_orig: bool, uFlags: uint16, snSourceAck: uint32, uUdpVer: uint16): bool

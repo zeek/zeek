@@ -1,4 +1,14 @@
 
+3.0.4-dev.12 | 2020-04-14 11:11:33 -0700
+
+  * Fix Stack Overflow in POP3_Analyzer::ProcessRequest. (Johanna Amann, Corelight)
+
+    The VLA can overflow given a large enough string. As a small fix, this
+    commit gets rid of the VLA and assigns the password directly to the
+    target string.
+
+    This was reported by Matteo Rizzo (Google).
+
 3.0.4-dev.11 | 2020-04-10 16:45:10 -0700
 
   * Fix Broker topics used to uniquely identify cluster nodes (Jon Siwek, Corelight)

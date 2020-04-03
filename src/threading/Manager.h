@@ -9,7 +9,7 @@
 
 namespace threading {
 
-class HeartbeatTimer : public Timer {
+class HeartbeatTimer final : public Timer {
 public:
 	HeartbeatTimer(double t) : Timer(t, TIMER_THREAD_HEARTBEAT) {}
 	virtual ~HeartbeatTimer() {}

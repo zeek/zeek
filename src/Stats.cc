@@ -22,7 +22,7 @@ uint64_t tot_gap_events = 0;
 uint64_t tot_gap_bytes = 0;
 
 
-class ProfileTimer : public Timer {
+class ProfileTimer final : public Timer {
 public:
 	ProfileTimer(double t, ProfileLogger* l, double i)
 	: Timer(t, TIMER_PROFILE)

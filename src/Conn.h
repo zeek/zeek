@@ -379,7 +379,7 @@ protected:
 	WeirdStateMap weird_state;
 };
 
-class ConnectionTimer : public Timer {
+class ConnectionTimer final : public Timer {
 public:
 	ConnectionTimer(Connection* arg_conn, timer_func arg_timer,
 			double arg_t, bool arg_do_expire, TimerType arg_type)

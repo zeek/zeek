@@ -674,7 +674,7 @@ protected:
 	int expire_access_time;
 };
 
-class TableValTimer : public Timer {
+class TableValTimer final : public Timer {
 public:
 	TableValTimer(TableVal* val, double t);
 	~TableValTimer() override;

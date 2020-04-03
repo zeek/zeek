@@ -740,7 +740,7 @@ protected:
 	int num_fields;
 };
 
-class ScheduleTimer : public Timer {
+class ScheduleTimer final : public Timer {
 public:
 	ScheduleTimer(const EventHandlerPtr& event, zeek::Args args, double t);
 	~ScheduleTimer() override;

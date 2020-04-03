@@ -13,7 +13,7 @@ namespace file_analysis {
 /**
  * Timer to periodically check if file analysis for a given file is inactive.
  */
-class FileTimer : public Timer {
+class FileTimer final : public Timer {
 public:
 
 	/**

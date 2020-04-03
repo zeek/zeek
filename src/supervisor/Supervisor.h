@@ -394,7 +394,7 @@ private:
  * parent (supervisor) process has died.  If it has died, the supervised
  * process self-terminates.
  */
-class ParentProcessCheckTimer : public Timer {
+class ParentProcessCheckTimer final : public Timer {
 public:
 
 	/**

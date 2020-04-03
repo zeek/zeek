@@ -53,7 +53,7 @@ protected:
 	FragTimer* expire_timer;
 };
 
-class FragTimer : public Timer {
+class FragTimer final : public Timer {
 public:
 	FragTimer(FragReassembler* arg_f, double arg_t)
 		: Timer(arg_t, TIMER_FRAG)

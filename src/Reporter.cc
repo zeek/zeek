@@ -238,7 +238,7 @@ void Reporter::UpdateWeirdStats(const char* name)
 	++weird_count_by_type[name];
 	}
 
-class NetWeirdTimer : public Timer {
+class NetWeirdTimer final : public Timer {
 public:
 	NetWeirdTimer(double t, const char* name, double timeout)
 	: Timer(t + timeout, TIMER_NET_WEIRD_EXPIRE), weird_name(name)
@@ -250,7 +250,7 @@ public:
 	std::string weird_name;
 };
 
-class FlowWeirdTimer : public Timer {
+class FlowWeirdTimer final : public Timer {
 public:
 	using IPPair = std::pair<IPAddr, IPAddr>;
 

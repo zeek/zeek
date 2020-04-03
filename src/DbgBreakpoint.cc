@@ -21,7 +21,7 @@
 #include "module_util.h"
 
 // BreakpointTimer used for time-based breakpoints
-class BreakpointTimer : public Timer {
+class BreakpointTimer final : public Timer {
 public:
 	BreakpointTimer(DbgBreakpoint* arg_bp, double arg_t)
 		: Timer(arg_t, TIMER_BREAKPOINT)

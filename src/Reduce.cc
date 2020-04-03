@@ -34,6 +34,8 @@ IntrusivePtr<ID> ReductionContext::GenTemporary(const IntrusivePtr<BroType>& t)
 
 	add_local(temp_id, t, INIT_NONE, nullptr, nullptr, VAR_REGULAR);
 
+	temps.append(temp);
+
 	return temp_id;
 	}
 

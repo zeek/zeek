@@ -20,6 +20,20 @@
 #include "logging/Manager.h"
 #include "logging/logging.bif.h"
 
+static char obj_desc_storage[8192];
+
+static const char* obj_desc(const BroObj* o)
+	{
+	ODesc d;
+	o->Describe(&d);
+	d.SP();
+	o->GetLocationInfo()->Describe(&d);
+
+	strcpy(obj_desc_storage, d.Description());
+
+	return obj_desc_storage;
+	}
+
 const char* stmt_name(BroStmtTag t)
 	{
 	static const char* stmt_names[int(NUM_STMTS)] = {
@@ -204,7 +218,7 @@ Stmt* ExprListStmt::Reduce(ReductionContext* c)
 			new_l->Append({AdoptRef{}, red_e});
 
 			if ( red_e_stmt )
-				s->Stmts().push_back(red_e_stmt.get());
+				s->Stmts().push_back(red_e_stmt.release());
 			}
 
 	s->Stmts().push_back(DoReduce(new_l, c));
@@ -999,7 +1013,7 @@ Stmt* SwitchStmt::Reduce(ReductionContext* rc)
 	// ### Could check for constant switch expression.
 
 	if ( red_e_stmt )
-		s->Stmts().push_back(red_e_stmt.get());
+		s->Stmts().push_back(red_e_stmt.release());
 
 	for ( const auto& c : *cases )
 		{
@@ -1010,7 +1024,7 @@ Stmt* SwitchStmt::Reduce(ReductionContext* rc)
 			auto red_cases = c_e->Reduce(rc, c_e_stmt);
 
 			if ( c_e_stmt )
-				s->Stmts().push_back(c_e_stmt.get());
+				s->Stmts().push_back(c_e_stmt.release());
 
 			c->UpdateBody(c->Body()->Reduce(rc));
 			}
@@ -1792,7 +1806,9 @@ Stmt* StmtList::Reduce(ReductionContext* c)
 
 	for ( auto stmt : Stmts() )
 		{
+// printf("reduction of statement:\n%s\n", obj_desc(stmt));
 		stmt = stmt->Reduce(c);
+// printf("to:\n%s\n", obj_desc(stmt));
 
 		if ( stmt->Tag() == STMT_LIST )
 			{

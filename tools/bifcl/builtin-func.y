@@ -554,11 +554,11 @@ head_1:		TOK_ID opt_ws arg_begin
 					decl.c_fullname.c_str(), decl.bro_fullname.c_str());
 
 				fprintf(fp_func_h,
-					"%sextern Val* %s(Frame* frame, const zeek::Args*);%s\n",
+					"%sextern BifReturnVal %s(Frame* frame, const zeek::Args*);%s\n",
 					decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 
 				fprintf(fp_func_def,
-					"Val* %s(Frame* frame, const zeek::Args* %s)",
+					"BifReturnVal %s(Frame* frame, const zeek::Args* %s)",
 					decl.c_fullname.c_str(), arg_list_name);
 
 				record_bif_item(decl.bro_fullname.c_str(), "FUNCTION");

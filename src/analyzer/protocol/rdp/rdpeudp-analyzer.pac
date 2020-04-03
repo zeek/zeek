@@ -24,7 +24,7 @@ refine connection RDPEUDP_Conn += {
 		return (orig_rdpeudp2_ && resp_rdpeudp2_);
 		%}
 
-	function proc_rdpeudp_syn(is_orig: bool, uFlags: uint16, snSourceAck: uint32): bool
+	function proc_rdpeudp_syn(is_orig: bool, uFlags: uint16): bool
 		%{
 		if ( ! is_orig )
 			return false;

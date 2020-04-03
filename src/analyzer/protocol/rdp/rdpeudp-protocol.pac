@@ -35,7 +35,7 @@ type RDPEUDP_SYN(pdu: RDPEUDP_PDU, is_orig: bool) = record {
 		false -> has_no_synex_payload:		empty;
 	};
 } &let {
-	proc_rdpeudp_syn: bool = $context.connection.proc_rdpeudp_syn(is_orig, fec_header.uFlags, fec_header.snSourceAck);
+	proc_rdpeudp_syn: bool = $context.connection.proc_rdpeudp_syn(is_orig, fec_header.uFlags);
 };
 
 # The tech specs refer to this as RDPUDP_SYNEX_PAYLOAD and RDPUDP_SYNDATAEX_PAYLOAD interchangably

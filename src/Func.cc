@@ -633,7 +633,7 @@ IntrusivePtr<Val> BuiltinFunc::Call(const zeek::Args& args, Frame* parent) const
 
 	const CallExpr* call_expr = parent ? parent->GetCall() : nullptr;
 	call_stack.emplace_back(CallInfo{call_expr, this, args});
-	IntrusivePtr<Val> result{AdoptRef{}, func(parent, &args)};
+	auto result = std::move(func(parent, &args).rval);
 	call_stack.pop_back();
 
 	if ( result && g_trace_state.DoTrace() )
@@ -890,3 +890,7 @@ function_ingredients::~function_ingredients()
 
 	delete inits;
 	}
+
+BifReturnVal::BifReturnVal(Val* v) noexcept
+	: rval(AdoptRef{}, v)
+	{ }

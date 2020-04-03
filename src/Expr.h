@@ -565,11 +565,16 @@ public:
 	bool IsReduced() const override;
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 
+	// Whether this is an assignment to a temporary.
+	bool IsTemp() const	{ return is_temp; }
+	void SetIsTemp()	{ is_temp = true; }
+
 protected:
 	bool TypeCheck(attr_list* attrs = 0);
 	bool TypeCheckArithmetics(TypeTag bt1, TypeTag bt2);
 
 	bool is_init;
+	bool is_temp;
 	IntrusivePtr<Val> val;	// optional
 };
 

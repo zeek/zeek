@@ -201,7 +201,13 @@ void Expr::Canonicize()
 Expr* Expr::AssignToTemporary(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	auto result_tmp = c->GenTemporaryExpr(TypeIP());
+
 	auto a_e = get_assign_expr(result_tmp, {NewRef{}, this}, false);
+	if ( a_e->Tag() != EXPR_ASSIGN )
+		Internal("confusion in AssignToTemporary");
+
+	a_e->AsAssignExpr()->SetIsTemp();
+
 	IntrusivePtr<Stmt> a_e_s = {AdoptRef{}, new ExprStmt(a_e)};
 
 	if ( red_stmt )
@@ -2215,6 +2221,7 @@ AssignExpr::AssignExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2,
 	{
 	val = 0;
 	is_init = arg_is_init;
+	is_temp = false;
 
 	if ( IsError() )
 		return;
@@ -2634,6 +2641,9 @@ bool AssignExpr::IsPure() const
 
 bool AssignExpr::IsReduced() const
 	{
+	if ( IsTemp() )
+		return true;
+
 	if ( ! op2->IsReduced() )
 		return false;
 
@@ -2649,6 +2659,9 @@ bool AssignExpr::IsReduced() const
 Expr* AssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	red_stmt = nullptr;
+
+	if ( IsTemp() )
+		return this->Ref();
 
 	if ( ! op1->IsSingleton() &&
 	     (op1->Tag() != EXPR_REF || ! op1->AsRefExpr()->IsSingleton()) )

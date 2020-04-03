@@ -190,11 +190,7 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 				return;
 				}
 
-			char tmp[len];	// more than enough
-			int n = len - (s - str);
-			memcpy(tmp, s, n);
-			tmp[n] = '\0';
-			password = tmp;
+			password.assign(s, len - (s - str));
 
 			break;
 			}

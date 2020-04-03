@@ -25,6 +25,9 @@ refine connection RDPEUDP_Conn += {
 
 	function is_rdpeudp2(): bool
 		%{
+printf("orig synex flags: %d\n", orig_synex_flags_);
+printf("resp synex flags: %d\n", resp_synex_flags_);
+printf("anded synex flags: %d\n", (orig_synex_flags_ & resp_synex_flags_));
 		return ((orig_synex_flags_ & resp_synex_flags_) >= RDPUDP_PROTOCOL_VERSION_3);
 		%}
 
@@ -51,7 +54,7 @@ refine connection RDPEUDP_Conn += {
 		return true;
 		%}
 
-	function proc_rdpeudp_synack(is_orig: bool, uFlags: uint16): bool
+	function proc_rdpeudp_synack(is_orig: bool, uFlags: uint16, uUdpVer: uint16): bool
 		%{
 		if ( is_orig )
 			return false;
@@ -64,9 +67,7 @@ refine connection RDPEUDP_Conn += {
 
 		bro_analyzer()->ProtocolConfirmation();
 		state_ = NEED_ACK;
-
-		if ( uFlags >= 0x1000 )
-			resp_synex_flags_ = 0x0101;
+		resp_synex_flags_ = uUdpVer;
 
 		if ( (uFlags & 0x0200) == 0x0200 )
 			resp_lossy_ = true;

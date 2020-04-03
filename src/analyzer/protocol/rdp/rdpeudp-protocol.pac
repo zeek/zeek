@@ -67,9 +67,20 @@ type RDPUDP_SYNDATA_PAYLOAD = record {
 };
 
 type RDPEUDP_SYNACK(pdu: RDPEUDP_PDU, is_orig: bool) = record {
-	fec_header: 	RDPUDP_FEC_HEADER;
+	fec_header:	 	RDPUDP_FEC_HEADER;
+	syndata_payload:	RDPUDP_SYNDATA_PAYLOAD;
+	corr_id_payload:	case ((fec_header.uFlags & RDPUDP_FLAG_CORRELATION_ID) > 0) of {
+		true -> has_corr_id_payload:		RDPUDP_CORRELATION_ID_PAYLOAD;
+		false -> has_no_corr_id_payload:	empty;
+	};
+	synex_payload:		case ((fec_header.uFlags & RDPUDP_FLAG_SYNEX) > 0) of {
+		true -> has_synex_payload:		RDPUDP_SYNEX_PAYLOAD;
+		false -> has_no_synex_payload:		empty;
+	};
 } &let {
-	proc_rdpeudp_synack: bool = $context.connection.proc_rdpeudp_synack(is_orig, fec_header.uFlags);
+#	proc_rdpeudp_synack: bool = $context.connection.proc_rdpeudp_synack(is_orig, fec_header.uFlags);
+	proc_rdpeudp_synack: bool = $context.connection.proc_rdpeudp_synack(is_orig, fec_header.uFlags, has_synex_payload.uUdpVer);
+} &let {
 };
 
 enum RDPUDP_FLAG {

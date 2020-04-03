@@ -103,7 +103,7 @@ protected:
 	IntrusivePtr<ListExpr> l;
 };
 
-class PrintStmt : public ExprListStmt {
+class PrintStmt final : public ExprListStmt {
 public:
 	template<typename L>
 	explicit PrintStmt(L&& l) : ExprListStmt(STMT_PRINT, std::forward<L>(l)) { }
@@ -136,7 +136,7 @@ protected:
 	IntrusivePtr<Expr> e;
 };
 
-class IfStmt : public ExprStmt {
+class IfStmt final : public ExprStmt {
 public:
 	IfStmt(IntrusivePtr<Expr> test, IntrusivePtr<Stmt> s1, IntrusivePtr<Stmt> s2);
 	~IfStmt() override;
@@ -156,7 +156,7 @@ protected:
 	IntrusivePtr<Stmt> s2;
 };
 
-class Case : public BroObj {
+class Case final : public BroObj {
 public:
 	Case(IntrusivePtr<ListExpr> c, id_list* types, IntrusivePtr<Stmt> arg_s);
 	~Case() override;
@@ -180,9 +180,9 @@ protected:
 	IntrusivePtr<Stmt> s;
 };
 
-typedef PList<Case> case_list;
+using case_list = PList<Case>;
 
-class SwitchStmt : public ExprStmt {
+class SwitchStmt final : public ExprStmt {
 public:
 	SwitchStmt(IntrusivePtr<Expr> index, case_list* cases);
 	~SwitchStmt() override;
@@ -223,7 +223,7 @@ protected:
 	std::vector<std::pair<ID*, int>> case_label_type_list;
 };
 
-class AddStmt : public ExprStmt {
+class AddStmt final : public ExprStmt {
 public:
 	explicit AddStmt(IntrusivePtr<Expr> e);
 
@@ -233,7 +233,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 };
 
-class DelStmt : public ExprStmt {
+class DelStmt final : public ExprStmt {
 public:
 	explicit DelStmt(IntrusivePtr<Expr> e);
 
@@ -243,7 +243,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 };
 
-class EventStmt : public ExprStmt {
+class EventStmt final : public ExprStmt {
 public:
 	explicit EventStmt(IntrusivePtr<EventExpr> e);
 
@@ -255,7 +255,7 @@ protected:
 	IntrusivePtr<EventExpr> event_expr;
 };
 
-class WhileStmt : public Stmt {
+class WhileStmt final : public Stmt {
 public:
 
 	WhileStmt(IntrusivePtr<Expr> loop_condition, IntrusivePtr<Stmt> body);
@@ -274,7 +274,7 @@ protected:
 	IntrusivePtr<Stmt> body;
 };
 
-class ForStmt : public ExprStmt {
+class ForStmt final : public ExprStmt {
 public:
 	ForStmt(id_list* loop_vars, IntrusivePtr<Expr> loop_expr);
 	// Special constructor for key value for loop.
@@ -303,7 +303,7 @@ protected:
 	IntrusivePtr<ID> value_var;
 };
 
-class NextStmt : public Stmt {
+class NextStmt final : public Stmt {
 public:
 	NextStmt() : Stmt(STMT_NEXT)	{ }
 
@@ -317,7 +317,7 @@ public:
 protected:
 };
 
-class BreakStmt : public Stmt {
+class BreakStmt final : public Stmt {
 public:
 	BreakStmt() : Stmt(STMT_BREAK)	{ }
 
@@ -331,7 +331,7 @@ public:
 protected:
 };
 
-class FallthroughStmt : public Stmt {
+class FallthroughStmt final : public Stmt {
 public:
 	FallthroughStmt() : Stmt(STMT_FALLTHROUGH)	{ }
 
@@ -345,7 +345,7 @@ public:
 protected:
 };
 
-class ReturnStmt : public ExprStmt {
+class ReturnStmt final : public ExprStmt {
 public:
 	explicit ReturnStmt(IntrusivePtr<Expr> e);
 
@@ -374,7 +374,7 @@ protected:
 	stmt_list stmts;
 };
 
-class EventBodyList : public StmtList {
+class EventBodyList final : public StmtList {
 public:
 	EventBodyList() : StmtList()
 		{ topmost = false; tag = STMT_EVENT_BODY_LIST; }
@@ -391,7 +391,7 @@ protected:
 	bool topmost;
 };
 
-class InitStmt : public Stmt {
+class InitStmt final : public Stmt {
 public:
 	explicit InitStmt(id_list* arg_inits);
 
@@ -409,7 +409,7 @@ protected:
 	id_list* inits;
 };
 
-class NullStmt : public Stmt {
+class NullStmt final : public Stmt {
 public:
 	NullStmt() : Stmt(STMT_NULL)	{ }
 
@@ -421,7 +421,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 };
 
-class WhenStmt : public Stmt {
+class WhenStmt final : public Stmt {
 public:
 	// s2 is null if no timeout block given.
 	WhenStmt(IntrusivePtr<Expr> cond,

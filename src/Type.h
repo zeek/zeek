@@ -345,7 +345,7 @@ private:
 	static TypeAliasMap type_aliases;
 };
 
-class TypeList : public BroType {
+class TypeList final : public BroType {
 public:
 	explicit TypeList(IntrusivePtr<BroType> arg_pure_type = nullptr)
 		: BroType(TYPE_LIST), pure_type(std::move(arg_pure_type))
@@ -424,7 +424,7 @@ protected:
 	TypeList* ExpandRecordIndex(RecordType* rt) const;
 };
 
-class SetType : public TableType {
+class SetType final : public TableType {
 public:
 	SetType(IntrusivePtr<TypeList> ind, IntrusivePtr<ListExpr> arg_elements);
 	~SetType() override;
@@ -437,7 +437,7 @@ protected:
 	IntrusivePtr<ListExpr> elements;
 };
 
-class FuncType : public BroType {
+class FuncType final : public BroType {
 public:
 	FuncType(IntrusivePtr<RecordType> args, IntrusivePtr<BroType> yield,
 	         function_flavor f);
@@ -472,7 +472,7 @@ protected:
 	function_flavor flavor;
 };
 
-class TypeType : public BroType {
+class TypeType final : public BroType {
 public:
 	explicit TypeType(IntrusivePtr<BroType> t) : BroType(TYPE_TYPE), type(std::move(t)) {}
 	TypeType* ShallowClone() override { return new TypeType(type); }
@@ -501,7 +501,7 @@ public:
 
 typedef PList<TypeDecl> type_decl_list;
 
-class RecordType : public BroType {
+class RecordType final : public BroType {
 public:
 	explicit RecordType(type_decl_list* types);
 	RecordType* ShallowClone() override;
@@ -565,13 +565,13 @@ protected:
 	type_decl_list* types;
 };
 
-class SubNetType : public BroType {
+class SubNetType final : public BroType {
 public:
 	SubNetType();
 	void Describe(ODesc* d) const override;
 };
 
-class FileType : public BroType {
+class FileType final : public BroType {
 public:
 	explicit FileType(IntrusivePtr<BroType> yield_type);
 	FileType* ShallowClone() override { return new FileType(yield); }
@@ -585,7 +585,7 @@ protected:
 	IntrusivePtr<BroType> yield;
 };
 
-class OpaqueType : public BroType {
+class OpaqueType final : public BroType {
 public:
 	explicit OpaqueType(const std::string& name);
 	OpaqueType* ShallowClone() override { return new OpaqueType(name); }
@@ -602,7 +602,7 @@ protected:
 	std::string name;
 };
 
-class EnumType : public BroType {
+class EnumType final : public BroType {
 public:
 	typedef std::list<std::pair<std::string, bro_int_t> > enum_name_list;
 
@@ -655,7 +655,7 @@ protected:
 	bro_int_t counter;
 };
 
-class VectorType : public BroType {
+class VectorType final : public BroType {
 public:
 	explicit VectorType(IntrusivePtr<BroType> t);
 	VectorType* ShallowClone() override;

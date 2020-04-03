@@ -34,7 +34,7 @@ typedef enum {
 #define NUM_ATTRS (int(ATTR_DEPRECATED) + 1)
 } attr_tag;
 
-class Attr : public BroObj {
+class Attr final : public BroObj {
 public:
 	Attr(attr_tag t, IntrusivePtr<Expr> e);
 	explicit Attr(attr_tag t);
@@ -71,7 +71,7 @@ protected:
 };
 
 // Manages a collection of attributes.
-class Attributes : public BroObj {
+class Attributes final : public BroObj {
 public:
 	Attributes(attr_list* a, IntrusivePtr<BroType> t, bool in_record, bool is_global);
 	~Attributes() override;

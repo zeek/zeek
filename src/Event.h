@@ -14,7 +14,7 @@
 
 class EventMgr;
 
-class Event : public BroObj {
+class Event final : public BroObj {
 public:
 	Event(EventHandlerPtr handler, zeek::Args args,
 	      SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,

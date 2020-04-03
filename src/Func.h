@@ -118,7 +118,7 @@ protected:
 };
 
 
-class BroFunc : public Func {
+class BroFunc final : public Func {
 public:
 	BroFunc(ID* id, IntrusivePtr<Stmt> body, id_list* inits, size_t frame_size, int priority);
 	~BroFunc() override;
@@ -193,7 +193,7 @@ private:
 
 using built_in_func = Val* (*)(Frame* frame, const zeek::Args* args);
 
-class BuiltinFunc : public Func {
+class BuiltinFunc final : public Func {
 public:
 	BuiltinFunc(built_in_func func, const char* name, bool is_pure);
 	~BuiltinFunc() override;

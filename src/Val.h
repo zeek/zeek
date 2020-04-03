@@ -458,7 +458,7 @@ extern ValManager* val_mgr;
 #define Hours (60*Minutes)
 #define Days (24*Hours)
 
-class IntervalVal : public Val {
+class IntervalVal final : public Val {
 public:
 	IntervalVal(double quantity, double units);
 
@@ -469,7 +469,7 @@ protected:
 };
 
 
-class PortVal : public Val {
+class PortVal final : public Val {
 public:
 	IntrusivePtr<Val> SizeVal() const override;
 
@@ -505,7 +505,7 @@ protected:
 	IntrusivePtr<Val> DoClone(CloneState* state) override;
 };
 
-class AddrVal : public Val {
+class AddrVal final : public Val {
 public:
 	explicit AddrVal(const char* text);
 	explicit AddrVal(const std::string& text);
@@ -524,7 +524,7 @@ protected:
 	IntrusivePtr<Val> DoClone(CloneState* state) override;
 };
 
-class SubNetVal : public Val {
+class SubNetVal final : public Val {
 public:
 	explicit SubNetVal(const char* text);
 	SubNetVal(const char* text, int width);
@@ -549,7 +549,7 @@ protected:
 	IntrusivePtr<Val> DoClone(CloneState* state) override;
 };
 
-class StringVal : public Val {
+class StringVal final : public Val {
 public:
 	explicit StringVal(BroString* s);
 	explicit StringVal(const char* s);
@@ -579,7 +579,7 @@ protected:
 	IntrusivePtr<Val> DoClone(CloneState* state) override;
 };
 
-class PatternVal : public Val {
+class PatternVal final : public Val {
 public:
 	explicit PatternVal(RE_Matcher* re);
 	~PatternVal() override;
@@ -597,7 +597,7 @@ protected:
 
 // ListVals are mainly used to index tables that have more than one
 // element in their index.
-class ListVal : public Val {
+class ListVal final : public Val {
 public:
 	explicit ListVal(TypeTag t);
 	~ListVal() override;
@@ -691,7 +691,7 @@ class CompositeHash;
 class HashKey;
 class Frame;
 
-class TableVal : public Val, public notifier::Modifiable {
+class TableVal final : public Val, public notifier::Modifiable {
 public:
 	explicit TableVal(IntrusivePtr<TableType> t, IntrusivePtr<Attributes> attrs = nullptr);
 	~TableVal() override;
@@ -878,7 +878,7 @@ protected:
 	static ParseTimeTableStates parse_time_table_states;
 };
 
-class RecordVal : public Val, public notifier::Modifiable {
+class RecordVal final : public Val, public notifier::Modifiable {
 public:
 	explicit RecordVal(RecordType* t, bool init_fields = true);
 	~RecordVal() override;
@@ -947,7 +947,7 @@ protected:
 	static RecordTypeValMap parse_time_records;
 };
 
-class EnumVal : public Val {
+class EnumVal final : public Val {
 public:
 	IntrusivePtr<Val> SizeVal() const override;
 
@@ -964,7 +964,7 @@ protected:
 };
 
 
-class VectorVal : public Val, public notifier::Modifiable {
+class VectorVal final : public Val, public notifier::Modifiable {
 public:
 	explicit VectorVal(VectorType* t);
 	~VectorVal() override;

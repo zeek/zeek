@@ -25,7 +25,7 @@ using std::map;
 class TriggerTimer;
 class TriggerTraversalCallback;
 
-class Trigger : public BroObj, public notifier::Receiver {
+class Trigger final : public BroObj, public notifier::Receiver {
 public:
 	// Don't access Trigger objects; they take care of themselves after
 	// instantiation.  Note that if the condition is already true, the

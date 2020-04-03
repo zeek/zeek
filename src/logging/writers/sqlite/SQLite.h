@@ -13,7 +13,7 @@
 
 namespace logging { namespace writer {
 
-class SQLite : public WriterBackend {
+class SQLite final : public WriterBackend {
 public:
 	explicit SQLite(WriterFrontend* frontend);
 	~SQLite() override;

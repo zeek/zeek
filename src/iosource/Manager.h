@@ -159,7 +159,7 @@ private:
 
 	void RemoveAll();
 
-	class WakeupHandler : public IOSource {
+	class WakeupHandler final : public IOSource {
 	public:
 		WakeupHandler();
 		~WakeupHandler();

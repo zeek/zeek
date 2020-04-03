@@ -13,7 +13,7 @@
 
 namespace input { namespace reader {
 
-class SQLite : public ReaderBackend {
+class SQLite final : public ReaderBackend {
 public:
 	explicit SQLite(ReaderFrontend* frontend);
 	~SQLite() override;

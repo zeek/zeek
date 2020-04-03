@@ -114,7 +114,7 @@ private:
 	ValCache cache;
 };
 
-class Manager : public iosource::IOSource {
+class Manager final : public iosource::IOSource {
 public:
 
 	Manager();

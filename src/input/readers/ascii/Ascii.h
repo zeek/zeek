@@ -33,7 +33,7 @@ struct FieldMapping {
 /**
  * Reader for structured ASCII files.
  */
-class Ascii : public ReaderBackend {
+class Ascii final : public ReaderBackend {
 public:
 	explicit Ascii(ReaderFrontend* frontend);
 	~Ascii() override;

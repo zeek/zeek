@@ -17,7 +17,7 @@ namespace input { namespace reader {
 /**
  * Reader for Configuration files.
  */
-class Config : public ReaderBackend {
+class Config final : public ReaderBackend {
 public:
 	explicit Config(ReaderFrontend* frontend);
 	~Config() override;

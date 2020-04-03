@@ -6,7 +6,7 @@
 
 namespace analyzer { namespace teredo {
 
-class Teredo_Analyzer : public analyzer::Analyzer {
+class Teredo_Analyzer final : public analyzer::Analyzer {
 public:
 	explicit Teredo_Analyzer(Connection* conn) : Analyzer("TEREDO", conn),
 	                                    valid_orig(false), valid_resp(false)
@@ -88,4 +88,4 @@ protected:
 	const Teredo_Analyzer* analyzer;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

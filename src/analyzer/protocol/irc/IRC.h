@@ -9,7 +9,7 @@ namespace analyzer { namespace irc {
 /**
 * \brief Main class for analyzing IRC traffic.
 */
-class IRC_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class IRC_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 	enum { WAIT_FOR_REGISTRATION, REGISTERED, };
 	enum { NO_ZIP, ACCEPT_ZIP, ZIP_LOADED, };
 public:

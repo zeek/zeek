@@ -15,7 +15,7 @@ namespace tcp {
 
 class TCP_Analyzer;
 
-class TCP_Reassembler : public Reassembler {
+class TCP_Reassembler final : public Reassembler {
 public:
 	enum Type {
 		Direct,		// deliver to destination analyzer itself

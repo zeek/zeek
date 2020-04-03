@@ -43,7 +43,7 @@ enum btt_benc_states {
 	BENC_STATE_STR2,
 };
 
-class BitTorrentTracker_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class BitTorrentTracker_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit BitTorrentTracker_Analyzer(Connection* conn);
 	~BitTorrentTracker_Analyzer() override;
@@ -129,4 +129,4 @@ protected:
 	bool stop_orig, stop_resp;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

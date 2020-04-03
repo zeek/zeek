@@ -11,7 +11,7 @@
 
 namespace analyzer { namespace RADIUS {
 
-class RADIUS_Analyzer : public analyzer::Analyzer {
+class RADIUS_Analyzer final : public analyzer::Analyzer {
 public:
 	explicit RADIUS_Analyzer(Connection* conn);
 	~RADIUS_Analyzer() override;

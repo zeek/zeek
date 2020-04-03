@@ -8,7 +8,7 @@
 
 namespace analyzer { namespace bittorrent {
 
-class BitTorrent_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class BitTorrent_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit BitTorrent_Analyzer(Connection* conn);
 	~BitTorrent_Analyzer() override;
@@ -29,4 +29,4 @@ protected:
 	uint64_t stream_len_orig, stream_len_resp;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

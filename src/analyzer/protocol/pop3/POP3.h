@@ -61,7 +61,7 @@ typedef enum {
 	POP3_WOK,
 } POP3_SubState;
 
-class POP3_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class POP3_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit POP3_Analyzer(Connection* conn);
 	~POP3_Analyzer() override;

@@ -27,7 +27,7 @@ class HTTP_Entity;
 class HTTP_Message;
 class HTTP_Analyzer;
 
-class HTTP_Entity : public mime::MIME_Entity {
+class HTTP_Entity final : public mime::MIME_Entity {
 public:
 	HTTP_Entity(HTTP_Message* msg, MIME_Entity* parent_entity,
 			int expect_body);
@@ -96,7 +96,7 @@ enum {
 // HTTP_Message::EndEntity	-> Message::Done
 // HTTP_MessageDone	-> {Request,Reply}Made
 
-class HTTP_Message : public mime::MIME_Message {
+class HTTP_Message final : public mime::MIME_Message {
 friend class HTTP_Entity;
 
 public:
@@ -148,7 +148,7 @@ protected:
 	Val* BuildMessageStat(bool interrupted, const char* msg);
 };
 
-class HTTP_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class HTTP_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
 	HTTP_Analyzer(Connection* conn);
 	~HTTP_Analyzer() override;

@@ -17,7 +17,7 @@ typedef enum {
 
 // We do not have an PIA for ICMP (yet) and therefore derive from
 // RuleMatcherState to perform our own matching.
-class ICMP_Analyzer : public analyzer::TransportLayerAnalyzer {
+class ICMP_Analyzer final : public analyzer::TransportLayerAnalyzer {
 public:
 	explicit ICMP_Analyzer(Connection* conn);
 

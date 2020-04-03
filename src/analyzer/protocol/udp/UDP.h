@@ -12,7 +12,7 @@ typedef enum {
 	UDP_ACTIVE,	// packets seen
 } UDP_EndpointState;
 
-class UDP_Analyzer : public analyzer::TransportLayerAnalyzer {
+class UDP_Analyzer final : public analyzer::TransportLayerAnalyzer {
 public:
 	explicit UDP_Analyzer(Connection* conn);
 	~UDP_Analyzer() override;

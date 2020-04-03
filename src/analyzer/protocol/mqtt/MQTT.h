@@ -9,7 +9,7 @@ namespace binpac { namespace MQTT { class MQTT_Conn; } }
 
 namespace analyzer { namespace MQTT {
 
-class MQTT_Analyzer: public tcp::TCP_ApplicationAnalyzer {
+class MQTT_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 
 public:
 	MQTT_Analyzer(Connection* conn);

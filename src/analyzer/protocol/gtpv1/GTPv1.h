@@ -4,7 +4,7 @@
 
 namespace analyzer { namespace gtpv1 {
 
-class GTPv1_Analyzer : public analyzer::Analyzer {
+class GTPv1_Analyzer final : public analyzer::Analyzer {
 public:
 	explicit GTPv1_Analyzer(Connection* conn);
 	virtual ~GTPv1_Analyzer();
@@ -20,4 +20,4 @@ protected:
 	binpac::GTPv1::GTPv1_Conn* interp;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

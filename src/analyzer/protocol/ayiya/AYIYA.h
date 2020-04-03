@@ -4,7 +4,7 @@
 
 namespace analyzer { namespace ayiya {
 
-class AYIYA_Analyzer : public analyzer::Analyzer {
+class AYIYA_Analyzer final : public analyzer::Analyzer {
 public:
 	explicit AYIYA_Analyzer(Connection* conn);
 	virtual ~AYIYA_Analyzer();
@@ -20,4 +20,4 @@ protected:
 	binpac::AYIYA::AYIYA_Conn* interp;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

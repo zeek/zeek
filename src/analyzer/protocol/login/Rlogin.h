@@ -30,7 +30,7 @@ typedef enum {
 
 class Rlogin_Analyzer;
 
-class Contents_Rlogin_Analyzer : public tcp::ContentLine_Analyzer {
+class Contents_Rlogin_Analyzer final : public tcp::ContentLine_Analyzer {
 public:
 	Contents_Rlogin_Analyzer(Connection* conn, bool orig,
 					Rlogin_Analyzer* analyzer);
@@ -53,7 +53,7 @@ protected:
 	Rlogin_Analyzer* analyzer;
 };
 
-class Rlogin_Analyzer : public Login_Analyzer {
+class Rlogin_Analyzer final : public Login_Analyzer {
 public:
 	explicit Rlogin_Analyzer(Connection* conn);
 
@@ -65,4 +65,4 @@ public:
 		{ return new Rlogin_Analyzer(conn); }
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

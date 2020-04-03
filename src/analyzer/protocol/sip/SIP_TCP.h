@@ -11,7 +11,7 @@
 
 namespace analyzer { namespace sip_tcp {
 
-class SIP_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class SIP_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit SIP_Analyzer(Connection* conn);
 	~SIP_Analyzer() override;

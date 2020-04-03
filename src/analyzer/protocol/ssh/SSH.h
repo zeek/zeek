@@ -9,7 +9,7 @@
 
 namespace analyzer {
 	namespace SSH {
-		class SSH_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+		class SSH_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 
 		public:
 			explicit SSH_Analyzer(Connection* conn);

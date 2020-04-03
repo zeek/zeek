@@ -230,7 +230,7 @@ protected:
 	TableVal* BuildHeaderTable(MIME_HeaderList& hlist);
 };
 
-class MIME_Mail : public MIME_Message {
+class MIME_Mail final : public MIME_Message {
 public:
 	MIME_Mail(analyzer::Analyzer* mail_conn, bool is_orig, int buf_size = 0);
 	~MIME_Mail() override;

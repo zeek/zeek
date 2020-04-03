@@ -6,7 +6,7 @@
 
 namespace analyzer { namespace dhcp {
 
-class DHCP_Analyzer : public analyzer::Analyzer {
+class DHCP_Analyzer final : public analyzer::Analyzer {
 public:
 	explicit DHCP_Analyzer(Connection* conn);
 	~DHCP_Analyzer() override;
@@ -22,4 +22,4 @@ protected:
 	binpac::DHCP::DHCP_Conn* interp;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

@@ -50,7 +50,7 @@ public:
 	virtual bool IsReduced() const;
 
 	// Should deal with being called if IsReduced() returns true.
-	virtual Stmt* Reduce(ReductionContext* c)	{ return this; }
+	virtual Stmt* Reduce(ReductionContext* c)	{ return this->Ref(); }
 
 #undef ACCESSOR
 #define ACCESSOR(tag, ctype, name) \

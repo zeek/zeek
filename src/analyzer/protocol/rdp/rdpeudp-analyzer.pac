@@ -25,9 +25,6 @@ refine connection RDPEUDP_Conn += {
 
 	function is_rdpeudp2(): bool
 		%{
-printf("orig synex flags: %#010x\n", orig_synex_flags_);
-printf("resp synex flags: %#010x\n", resp_synex_flags_);
-printf("anded synex flags: %#010x\n", (orig_synex_flags_ & resp_synex_flags_));
 		return ((orig_synex_flags_ & resp_synex_flags_) >= RDPUDP_PROTOCOL_VERSION_3);
 		%}
 

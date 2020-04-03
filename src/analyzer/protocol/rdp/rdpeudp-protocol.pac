@@ -39,7 +39,7 @@ type RDPEUDP_SYN(pdu: RDPEUDP_PDU, is_orig: bool) = record {
 							fec_header.snSourceAck, has_synex_payload.uUdpVer);
 };
 
-# The tech specs refer to this as RDPUDP_SYNEX_PAYLOAD and RDPUDP_SYNDATAEX_PAYLOAD interchangably
+# The tech specs refer to this as both RDPUDP_SYNEX_PAYLOAD and RDPUDP_SYNDATAEX_PAYLOAD
 type RDPUDP_SYNEX_PAYLOAD = record {
 	uSynExFlags:	uint16;
 	uUdpVer:	uint16;
@@ -57,7 +57,7 @@ enum RDPUDP_VERSION_INFO_FLAG {
 
 type RDPUDP_CORRELATION_ID_PAYLOAD = record {
 	uCorrelationId:	uint8[16];
-	uReserved:	uint16;
+	uReserved:	uint8[16];
 };
 
 type RDPUDP_SYNDATA_PAYLOAD = record {

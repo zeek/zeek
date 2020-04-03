@@ -22,6 +22,20 @@
 
 #include "broker/Data.h"
 
+static char obj_desc_storage[8192];
+
+static const char* obj_desc(const BroObj* o)
+	{
+	ODesc d;
+	o->Describe(&d);
+	d.SP();
+	o->GetLocationInfo()->Describe(&d);
+
+	strcpy(obj_desc_storage, d.Description());
+
+	return obj_desc_storage;
+	}
+
 const char* expr_name(BroExprTag t)
 	{
 	static const char* expr_names[int(NUM_EXPRS)] = {
@@ -440,14 +454,14 @@ bool UnaryExpr::IsPure() const
 
 bool UnaryExpr::IsReduced() const
 	{
-	return op->IsSingleton();
+	return false;
 	}
 
 Expr* UnaryExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	red_stmt = nullptr;
 
-	if ( ! IsReduced() )
+	if ( ! op->IsReduced() )
 		op = {AdoptRef{}, op->Reduce(c, red_stmt)};
 
 	if ( op->IsConst() )
@@ -576,7 +590,7 @@ bool BinaryExpr::IsPure() const
 
 bool BinaryExpr::IsReduced() const
 	{
-	return op1->IsSingleton() && op2->IsSingleton();
+	return false;
 	}
 
 Expr* BinaryExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
@@ -2090,7 +2104,7 @@ bool CondExpr::IsPure() const
 
 bool CondExpr::IsReduced() const
 	{
-	return op1->IsSingleton() && op2->IsSingleton() && op3->IsSingleton();
+	return false;
 	}
 
 Expr* CondExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
@@ -2641,6 +2655,8 @@ bool AssignExpr::IsPure() const
 
 bool AssignExpr::IsReduced() const
 	{
+// printf("Reduction for %s: %s-temp, op2-%s-reduced, op1-%s-singleton, op1-%s-ref\n", obj_desc(this), IsTemp() ? "is" : "not", op2->IsReduced() ? "is" : "not", op1->IsSingleton() ? "is" : "not", op1->Tag() == EXPR_REF ? "is" : "not");
+
 	if ( IsTemp() )
 		return true;
 
@@ -3691,7 +3707,7 @@ Expr* FieldAssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	red_stmt = nullptr;
 
-	if ( ! IsReduced() )
+	if ( ! op->IsReduced() )
 		op = {AdoptRef{}, op->Reduce(c, red_stmt)};
 
 	// Doesn't seem worth checking for constant folding.
@@ -4458,7 +4474,6 @@ bool CallExpr::IsPure() const
 
 bool CallExpr::IsReduced() const
 	{
-	auto answer = func->IsReduced() && args->IsReduced();
 	return func->IsReduced() && args->IsReduced();
 	}
 
@@ -4804,9 +4819,15 @@ bool ListExpr::IsPure() const
 
 bool ListExpr::IsReduced() const
 	{
+// printf("reduction for %s:\n", obj_desc(this));
+
 	for ( const auto& expr : exprs )
+		{
+		auto e_red = expr->IsReduced();
+// printf(" expr %s: %sreduced\n", obj_desc(expr), e_red ? "" : "not ");
 		if ( ! expr->IsReduced() )
 			return false;
+		}
 
 	return true;
 	}

@@ -209,6 +209,8 @@ Stmt* ExprListStmt::Reduce(ReductionContext* c)
 
 	expr_list& e = l->Exprs();
 	for ( auto& expr : e )
+		{
+// printf("reducing expr list element %s (%ssingleton):\n", obj_desc(expr), expr->IsSingleton() ? "" : "not ");
 		if ( expr->IsSingleton() )
 			new_l->Append({NewRef{}, expr});
 		else
@@ -218,8 +220,12 @@ Stmt* ExprListStmt::Reduce(ReductionContext* c)
 			new_l->Append({AdoptRef{}, red_e});
 
 			if ( red_e_stmt )
+				{
+// printf(" ... reduced with some statements:\n%s\n", obj_desc(red_e_stmt.get()));
 				s->Stmts().push_back(red_e_stmt.release());
+				}
 			}
+		}
 
 	s->Stmts().push_back(DoReduce(new_l, c));
 

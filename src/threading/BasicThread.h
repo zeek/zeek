@@ -119,6 +119,7 @@ public:
 	 * other thread than the current one.
 	 */
 	template <typename... Args>
+	[[deprecated("Remove in v4.1. This version of Fmt is deprecated, use Fmt2 instead")]]
 	const char* Fmt(const char* format, Args&&... args)
 		{
 		if ( buf_len > 10 * STD_FMT_BUF_LEN )
@@ -148,7 +149,16 @@ public:
 			}
 
 		return buf;
-	}
+		}
+
+	template <typename... Args>
+	const char* Fmt2(const char* format, Args&&... args)
+		{
+		fmtbuf.clear();
+		format_to(fmtbuf, format, args...);
+		fmtbuf.push_back('\0');
+		return fmtbuf.data();
+		}
 
 	/**
 	 * A version of strerror() that the thread can safely use. This is
@@ -236,6 +246,7 @@ private:
 	// For implementing Fmt().
 	char* buf;
 	unsigned int buf_len;
+	fmtlib::memory_buffer fmtbuf;
 
 	// For implementating Strerror().
 	char* strerr_buffer;

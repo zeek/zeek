@@ -43,7 +43,7 @@ bool Binary::OpenInput()
 
 	if ( in->fail() )
 		{
-		Error(Fmt("Init: cannot open %s", fname.c_str()));
+		Error(Fmt2("Init: cannot open {:s}", fname));
 		return false;
 		}
 
@@ -54,8 +54,7 @@ bool Binary::CloseInput()
 	{
 	if ( ! in || ! in->is_open() )
 		{
-		InternalWarning(Fmt("Trying to close closed file for stream %s",
-		                    fname.c_str()));
+		InternalWarning(Fmt2("Trying to close closed file for stream {:s}", fname));
 		return false;
 		}
 
@@ -175,7 +174,7 @@ int Binary::UpdateModificationTime()
 
 	if ( stat(fname.c_str(), &sb) == -1 )
 		{
-		Error(Fmt("Could not get stat for %s", fname.c_str()));
+		Error(Fmt2("Could not get stat for {:s}", fname));
 		return -1;
 		}
 

@@ -92,7 +92,7 @@ bool Raw::SetFDFlags(int fd, int cmd, int flags)
 
 	char buf[256];
 	bro_strerror_r(errno, buf, sizeof(buf));
-	Error(Fmt("failed to set fd flags: %s", buf));
+	Error(Fmt2("failed to set fd flags: {:s}", buf));
 	return false;
 	}
 
@@ -128,14 +128,14 @@ bool Raw::Execute()
 
 	if ( pipe(pipes) != 0 || pipe(pipes+2) || pipe(pipes+4) )
 		{
-		Error(Fmt("Could not open pipe: %d", errno));
+		Error(Fmt2("Could not open pipe: {:d}", errno));
 		return false;
 		}
 
 	childpid = fork();
 	if ( childpid < 0 )
 		{
-		Error(Fmt("Could not create child process: %d", errno));
+		Error(Fmt2("Could not create child process: {:d}", errno));
 		return false;
 		}
 
@@ -199,7 +199,7 @@ bool Raw::Execute()
 				{
 				char buf[256];
 				bro_strerror_r(errno, buf, sizeof(buf));
-				Warning(Fmt("Could not set child process group: %s", buf));
+				Warning(Fmt2("Could not set child process group: {:s}", buf));
 				}
 			}
 
@@ -278,12 +278,12 @@ bool Raw::OpenInput()
 		file = std::unique_ptr<FILE, int(*)(FILE*)>(fopen(fname.c_str(), "r"), fclose);
 		if ( ! file )
 			{
-			Error(Fmt("Init: cannot open %s", fname.c_str()));
+			Error(Fmt2("Init: cannot open {:s}", fname));
 			return false;
 			}
 
 		if ( ! SetFDFlags(fileno(file.get()), F_SETFD, FD_CLOEXEC) )
-			Warning(Fmt("Init: cannot set close-on-exec for %s", fname.c_str()));
+			Warning(Fmt2("Init: cannot set close-on-exec for {:s}", fname));
 		}
 
 		if ( offset )
@@ -295,7 +295,7 @@ bool Raw::OpenInput()
 				{
 				char buf[256];
 				bro_strerror_r(errno, buf, sizeof(buf));
-				Error(Fmt("Seek failed in init: %s", buf));
+				Error(Fmt2("Seek failed in init: {:s}", buf));
 				}
 			}
 
@@ -306,8 +306,7 @@ bool Raw::CloseInput()
 	{
 	if ( ! file )
 		{
-		InternalWarning(Fmt("Trying to close closed file for stream %s",
-		                    fname.c_str()));
+		InternalWarning(Fmt2("Trying to close closed file for stream {:s}", fname));
 		return false;
 		}
 #ifdef DEBUG
@@ -390,7 +389,7 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 
 	if ( num_fields != want_fields )
 		{
-		Error(Fmt("Filter for raw reader contains wrong number of fields -- got %d, expected %d. "
+		Error(Fmt2("Filter for raw reader contains wrong number of fields -- got {:d}, expected {:d}. "
 		      "Filters for the raw reader contain one string field when used in normal mode and one string and one bool fields when using execute mode with stderr capuring. "
 		      "Filter ignored.", num_fields, want_fields));
 		return false;
@@ -504,7 +503,7 @@ int64_t Raw::GetLine(FILE* arg_file)
 	else
 		{
 		// an error code we did no expect. This probably is bad.
-		Error(Fmt("Reader encountered unexpected error code %d", errno));
+		Error(Fmt2("Reader encountered unexpected error code {:d}", errno));
 		return -3;
 		}
 	}
@@ -521,7 +520,7 @@ void Raw::WriteToStdin()
 
 	if ( errno != 0 && errno != EAGAIN && errno != EWOULDBLOCK )
 		{
-		Error(Fmt("Writing to child process stdin failed: %d. Stopping writing at position %" PRIu64, errno, pos));
+		Error(Fmt2("Writing to child process stdin failed: {:d}. Stopping writing at position {:d}", errno, pos));
 		stdin_towrite = 0;
 		}
 
@@ -551,7 +550,7 @@ bool Raw::DoUpdate()
 			struct stat sb;
 			if ( stat(fname.c_str(), &sb) == -1 )
 				{
-				Error(Fmt("Could not get stat for %s", fname.c_str()));
+				Error(Fmt2("Could not get stat for {:s}", fname));
 				return false;
 				}
 
@@ -661,14 +660,14 @@ bool Raw::DoUpdate()
 			{
 			code = WEXITSTATUS(return_code);
 			if ( code != 0 )
-				Error(Fmt("Child process exited with non-zero return code %d", code));
+				Error(Fmt2("Child process exited with non-zero return code {:d}", code));
 			}
 
 		else if ( WIFSIGNALED(return_code) )
 			{
 			signal = true;
 			code = WTERMSIG(return_code);
-			Error(Fmt("Child process exited due to signal %d", code));
+			Error(Fmt2("Child process exited due to signal {:d}", code));
 			}
 
 		else

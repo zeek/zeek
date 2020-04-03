@@ -86,7 +86,8 @@ bool Config::OpenFile()
 
 	if ( ! file.is_open() )
 		{
-		FailWarn(fail_on_file_problem, Fmt("Init: cannot open %s", Info().source), true);
+		const char* msg = Fmt2("Init: cannot open {:s}", Info().source);
+		FailWarn(fail_on_file_problem, msg, true);
 		return ! fail_on_file_problem;
 		}
 
@@ -124,7 +125,8 @@ bool Config::DoUpdate()
 			struct stat sb;
 			if ( stat(Info().source, &sb) == -1 )
 				{
-				FailWarn(fail_on_file_problem, Fmt("Could not get stat for %s", Info().source), true);
+				const char* msg = Fmt2("Could not get stat for {:s}", Info().source);
+				FailWarn(fail_on_file_problem, msg, true);
 
 				file.close();
 				return ! fail_on_file_problem;
@@ -193,7 +195,7 @@ bool Config::DoUpdate()
 		regmatch_t match[3];
 		if ( regexec(&re, line.c_str(), 3, match, 0) )
 			{
-			Warning(Fmt("Could not parse '%s'; line has invalid format. Ignoring line.", line.c_str()));
+			Warning(Fmt2("Could not parse '{:s}'; line has invalid format. Ignoring line.", line));
 			continue;
 			}
 
@@ -205,26 +207,26 @@ bool Config::DoUpdate()
 		auto typeit = option_types.find(key);
 		if ( typeit == option_types.end() )
 			{
-			Warning(Fmt("Option '%s' does not exist. Ignoring line.", key.c_str()));
+			Warning(Fmt2("Option '{:s}' does not exist. Ignoring line.", key));
 			continue;
 			}
 
 		if ( std::get<0>((*typeit).second) == zeek::TYPE_ERROR )
 			{
-			Warning(Fmt("Option '%s' has type '%s', which is not supported for file input. Ignoring line.",
-			            key.c_str(), zeek::type_name(std::get<1>((*typeit).second))));
+			Warning(Fmt2("Option '{:s}' has type '{:s}', which is not supported for file input. Ignoring line.",
+			             key, zeek::type_name(std::get<1>((*typeit).second))));
 			continue;
 			}
 
 		Value* eventval = formatter->ParseValue(value, key, std::get<0>((*typeit).second), std::get<1>((*typeit).second));
 		if ( ! eventval )
 			{
-			Warning(Fmt("Could not convert line '%s' to value. Ignoring line.", line.c_str()));
+			Warning(Fmt2("Could not convert line '{:s}' to value. Ignoring line.", line));
 			continue;
 			}
 		else if ( ! eventval->present )
 			{
-			Warning(Fmt("Line '%s' has no value. Ignoring line.", line.c_str()));
+			Warning(Fmt2("Line '{:s}' has no value. Ignoring line.", line));
 			delete eventval;
 			continue;
 			}

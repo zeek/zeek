@@ -412,7 +412,7 @@ BasicInputMessage* MsgThread::RetrieveIn()
 		return nullptr;
 
 #ifdef DEBUG
-	std::string s = Fmt("Retrieved '%s' in %s",  msg->Name(), Name());
+	std::string s = Fmt2("Retrieved '{:s}' in {:s}",  msg->Name(), Name());
 	Debug(DBG_THREADING, s.c_str());
 #endif
 

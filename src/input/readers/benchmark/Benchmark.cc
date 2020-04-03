@@ -74,7 +74,7 @@ double Benchmark::CurrTime()
 	{
 	struct timeval tv;
 	if ( gettimeofday(&tv, 0) != 0 ) {
-		FatalError(Fmt("Could not get time: %d", errno));
+		FatalError(Fmt2("Could not get time: {:d}", errno));
 	}
 
 	return double(tv.tv_sec) + double(tv.tv_usec) / 1e6;
@@ -224,7 +224,7 @@ threading::Value* Benchmark::EntryToVal(zeek::TypeTag type, zeek::TypeTag subtyp
 
 
 	default:
-		Error(Fmt("unsupported field format %d", type));
+		Error(Fmt2("unsupported field format {:d}", type));
 		delete val;
 		return nullptr;
 	}

@@ -139,7 +139,7 @@ void JSON::BuildJSON(NullDoubleWriter& writer, Value* val, const std::string& na
 				if ( ! gmtime_r(&the_time, &t) ||
 				     ! strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S", &t) )
 					{
-					GetThread()->Error(GetThread()->Fmt("json formatter: failure getting time: (%lf)", val->val.double_val));
+					GetThread()->Error(GetThread()->Fmt2("json formatter: failure getting time: ({:f})", val->val.double_val));
 					// This was a failure, doesn't really matter what gets put here
 					// but it should probably stand out...
 					writer.String("2000-01-01T00:00:00.000000");

@@ -9,8 +9,6 @@
 
 using namespace threading;
 
-static const int STD_FMT_BUF_LEN = 2048;
-
 uint64_t BasicThread::thread_counter = 0;
 
 BasicThread::BasicThread()
@@ -18,9 +16,6 @@ BasicThread::BasicThread()
 	started = false;
 	terminating = false;
 	killed = false;
-
-	buf_len = STD_FMT_BUF_LEN;
-	buf = (char*) safe_malloc(buf_len);
 
 	strerr_buffer = nullptr;
 
@@ -31,9 +26,6 @@ BasicThread::BasicThread()
 
 BasicThread::~BasicThread()
 	{
-	if ( buf )
-		free(buf);
-
 	delete [] name;
 	delete [] strerr_buffer;
 	}

@@ -369,7 +369,7 @@ bool Ascii::InitFormatter()
 			tf = formatter::JSON::TS_ISO8601;
 		else
 			{
-			Error(Fmt("Invalid JSON timestamp format: %s", json_timestamps.c_str()));
+			Error(Fmt2("Invalid JSON timestamp format: {:s}", json_timestamps));
 			return false;
 			}
 
@@ -480,8 +480,7 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 
 	if ( fd < 0 )
 		{
-		Error(Fmt("cannot open %s: %s", fname.c_str(),
-			  Strerror(errno)));
+		Error(Fmt2("cannot open {:s}: {:s}", fname, Strerror(errno)));
 		fd = 0;
 		return false;
 		}
@@ -501,8 +500,7 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 
 		if ( gzfile == nullptr )
 			{
-			Error(Fmt("cannot gzip %s: %s", fname.c_str(),
-			                                Strerror(errno)));
+			Error(Fmt2("cannot gzip {:s}: {:s}", fname, Strerror(errno)));
 			return false;
 			}
 		}
@@ -513,7 +511,7 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 
 	if ( ! WriteHeader(path) )
 		{
-		Error(Fmt("error writing to %s: %s", fname.c_str(), Strerror(errno)));
+		Error(Fmt2("error writing to {:s}: {:s}", fname, Strerror(errno)));
 		return false;
 		}
 
@@ -633,7 +631,7 @@ bool Ascii::DoWrite(int num_fields, const Field* const * fields,
 	return true;
 
 write_error:
-	Error(Fmt("error writing to %s: %s", fname.c_str(), Strerror(errno)));
+	Error(Fmt2("error writing to {:s}: {:s}", fname, Strerror(errno)));
 	return false;
 	}
 
@@ -660,8 +658,7 @@ bool Ascii::DoRotate(const char* rotated_path, double open, double close, bool t
 		{
 		char buf[256];
 		bro_strerror_r(errno, buf, sizeof(buf));
-		Error(Fmt("failed to rename %s to %s: %s", fname.c_str(),
-		          nname.c_str(), buf));
+		Error(Fmt2("failed to rename {:s} to {:s}: {:s}", fname, nname, buf));
 		FinishedRotation();
 		return false;
 		}
@@ -682,7 +679,7 @@ bool Ascii::DoRotate(const char* rotated_path, double open, double close, bool t
 
 	if ( ! FinishedRotation(nname.c_str(), fname.c_str(), open, close, terminating) )
 		{
-		Error(Fmt("error rotating %s to %s", fname.c_str(), nname.c_str()));
+		Error(Fmt2("error rotating {:s} to {:s}", fname, nname));
 		return false;
 		}
 
@@ -866,7 +863,7 @@ bool Ascii::InternalWrite(int fd, const char* data, int len)
 		if ( n <= 0 )
 			{
 			const char* err = gzerror(gzfile, &n);
-			Error(Fmt("Ascii::InternalWrite error: %s\n", err));
+			Error(Fmt2("Ascii::InternalWrite error: {:s}\n", err));
 			return false;
 			}
 
@@ -899,7 +896,7 @@ bool Ascii::InternalClose(int fd)
 		      "no compression progress possible during buffer flush");
 		break;
 	case Z_ERRNO:
-		Error(Fmt("Ascii::InternalClose gzclose error: %s\n", Strerror(errno)));
+		Error(Fmt2("Ascii::InternalClose gzclose error: {:s}\n", Strerror(errno)));
 		break;
 	default:
 		Error("Ascii::InternalClose invalid gzclose result");

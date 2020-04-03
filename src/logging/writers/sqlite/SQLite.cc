@@ -93,7 +93,7 @@ string SQLite::GetTableType(int arg_type, int arg_subtype) {
 		break;
 
 	default:
-		Error(Fmt("unsupported field format %d ", arg_type));
+		Error(Fmt2("unsupported field format {:d}", arg_type));
 		return ""; // not the cleanest way to abort. But sqlite will complain on create table...
 	}
 
@@ -105,7 +105,7 @@ bool SQLite::checkError(int code)
 	{
 	if ( code != SQLITE_OK && code != SQLITE_DONE )
 		{
-		Error(Fmt("SQLite call failed: %s", sqlite3_errmsg(db)));
+		Error(Fmt2("SQLite call failed: {:s}", sqlite3_errmsg(db)));
 		return true;
 		}
 
@@ -135,7 +135,7 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields,
 	WriterInfo::config_map::const_iterator it = info.config.find("tablename");
 	if ( it == info.config.end() )
 		{
-		MsgThread::Info(Fmt("tablename configuration option not found. Defaulting to path %s", info.path));
+		MsgThread::Info(Fmt2("tablename configuration option not found. Defaulting to path {:s}", info.path));
 		tablename = info.path;
 		}
 	else
@@ -175,7 +175,7 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields,
 		string type = GetTableType(field->type, field->subtype);
 		if ( type == "" )
 			{
-			InternalError(Fmt("Could not determine type for field %u:%s", i, fieldname));
+			InternalError(Fmt2("Could not determine type for field {:d}:{:s}", i, fieldname));
 			return false;
 			}
 
@@ -192,7 +192,7 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields,
 	int res = sqlite3_exec(db, create.c_str(), NULL, NULL, &errorMsg);
 	if ( res != SQLITE_OK )
 		{
-		Error(Fmt("Error executing table creation statement: %s", errorMsg));
+		Error(Fmt2("Error executing table creation statement: {:s}", errorMsg));
 		sqlite3_free(errorMsg);
 		return false;
 		}
@@ -329,7 +329,7 @@ int SQLite::AddParams(Value* val, int pos)
 		}
 
 	default:
-		Error(Fmt("unsupported field format %d", val->type));
+		Error(Fmt2("unsupported field format {:d}", val->type));
 		return 0;
 	}
 	}
@@ -361,7 +361,7 @@ bool SQLite::DoRotate(const char* rotated_path, double open, double close, bool 
 	{
 	if ( ! FinishedRotation("/dev/null", Info().path, open, close, terminating))
 		{
-		Error(Fmt("error rotating %s", Info().path));
+		Error(Fmt2("error rotating {:s}", Info().path));
 		return false;
 		}
 

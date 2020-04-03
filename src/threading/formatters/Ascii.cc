@@ -200,7 +200,7 @@ bool Ascii::Describe(ODesc* desc, threading::Value* val, const string& name) con
 		}
 
 	default:
-		GetThread()->Warning(GetThread()->Fmt("Ascii writer unsupported field format %d", val->type));
+		GetThread()->Warning(GetThread()->Fmt2("Ascii writer unsupported field format {:d}", val->type));
 		return false;
 	}
 
@@ -238,8 +238,8 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, zeek::T
 			val->val.int_val = 0;
 		else
 			{
-			GetThread()->Warning(GetThread()->Fmt("Field: %s Invalid value for boolean: %s",
-				  name.c_str(), start));
+			GetThread()->Warning(GetThread()->Fmt2("Field: {:s} Invalid value for boolean: {:s}",
+				  name, start));
 			goto parse_error;
 			}
 		break;
@@ -284,7 +284,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, zeek::T
 			else if ( strtolower(proto) == "unknown" )
 				val->val.port_val.proto = TRANSPORT_UNKNOWN;
 			else
-				GetThread()->Warning(GetThread()->Fmt("Port '%s' contained unknown protocol '%s'", s.c_str(), proto.c_str()));
+				GetThread()->Warning(GetThread()->Fmt2("Port '{:s}' contained unknown protocol '{:s}'", s, proto));
 			}
 
 		if ( pos != std::string::npos && pos > 0 )
@@ -304,7 +304,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, zeek::T
 		size_t pos = unescaped.find('/');
 		if ( pos == unescaped.npos )
 			{
-			GetThread()->Warning(GetThread()->Fmt("Invalid value for subnet: %s", start));
+			GetThread()->Warning(GetThread()->Fmt2("Invalid value for subnet: {:s}", start));
 			goto parse_error;
 			}
 
@@ -347,7 +347,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, zeek::T
 				}
 			}
 
-		GetThread()->Warning(GetThread()->Fmt("String '%s' contained no parseable pattern.", candidate.c_str()));
+		GetThread()->Warning(GetThread()->Fmt2("String '{:s}' contained no parseable pattern.", candidate));
 		goto parse_error;
 		}
 
@@ -405,8 +405,8 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, zeek::T
 
 			if ( pos >= length )
 				{
-				GetThread()->Warning(GetThread()->Fmt("Internal error while parsing set. pos %d >= length %d."
-				          " Element: %s", pos, length, element.c_str()));
+				GetThread()->Warning(GetThread()->Fmt2("Internal error while parsing set. pos {:d} >= length {:d}."
+				          " Element: {:s}", pos, length, element));
 				error = true;
 				break;
 				}
@@ -454,7 +454,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, zeek::T
 
 		if ( pos != length )
 			{
-			GetThread()->Warning(GetThread()->Fmt("Internal error while parsing set: did not find all elements: %s", start));
+			GetThread()->Warning(GetThread()->Fmt2("Internal error while parsing set: did not find all elements: {:s}", start));
 			goto parse_error;
 			}
 
@@ -462,8 +462,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, zeek::T
 		}
 
 	default:
-		GetThread()->Warning(GetThread()->Fmt("unsupported field format %d for %s", type,
-						    name.c_str()));
+		GetThread()->Warning(GetThread()->Fmt2("unsupported field format {:d} for {:s}", type, name));
 		goto parse_error;
 	}
 
@@ -479,7 +478,7 @@ bool Ascii::CheckNumberError(const char* start, const char* end) const
 	threading::MsgThread* thread = GetThread();
 
 	if ( end == start && *end != '\0'  ) {
-		thread->Warning(thread->Fmt("String '%s' contained no parseable number", start));
+		thread->Warning(thread->Fmt2("String '{:s}' contained no parseable number", start));
 		return true;
 	}
 
@@ -490,17 +489,17 @@ bool Ascii::CheckNumberError(const char* start, const char* end) const
 		}
 
 	if ( (*end != '\0') )
-		thread->Warning(thread->Fmt("Number '%s' contained non-numeric trailing characters. Ignored trailing characters '%s'", start, end));
+		thread->Warning(thread->Fmt2("Number '{:s}' contained non-numeric trailing characters. Ignored trailing characters '{:s}'", start, end));
 
 	if ( errno == EINVAL )
 		{
-		thread->Warning(thread->Fmt("String '%s' could not be converted to a number", start));
+		thread->Warning(thread->Fmt2("String '{:s}' could not be converted to a number", start));
 		return true;
 		}
 
 	else if ( errno == ERANGE )
 		{
-		thread->Warning(thread->Fmt("Number '%s' out of supported range.", start));
+		thread->Warning(thread->Fmt2("Number '{:s}' out of supported range.", start));
 		return true;
 		}
 

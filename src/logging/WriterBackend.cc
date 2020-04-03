@@ -183,7 +183,7 @@ void WriterBackend::DisableFrontend()
 
 bool WriterBackend::Init(int arg_num_fields, const Field* const* arg_fields)
 	{
-	SetOSName(Fmt("zk.%s", Name()));
+	SetOSName(Fmt2("zk.{:s}", Name()));
 	num_fields = arg_num_fields;
 	fields = arg_fields;
 
@@ -207,7 +207,7 @@ bool WriterBackend::Write(int arg_num_fields, int num_writes, Value*** vals)
 		{
 
 #ifdef DEBUG
-		const char* msg = Fmt("Number of fields don't match in WriterBackend::Write() (%d vs. %d)",
+		const char* msg = Fmt2("Number of fields don't match in WriterBackend::Write() ({:d} vs. {:d})",
 				      arg_num_fields, num_fields);
 		Debug(DBG_LOGGING, msg);
 #endif
@@ -225,7 +225,7 @@ bool WriterBackend::Write(int arg_num_fields, int num_writes, Value*** vals)
 			if ( vals[j][i]->type != fields[i]->type )
 				{
 #ifdef DEBUG
-				const char* msg = Fmt("Field #%d type doesn't match in WriterBackend::Write() (%d vs. %d)",
+				const char* msg = Fmt2("Field #%d type doesn't match in WriterBackend::Write() ({:d} vs. {:d})",
 						      i, vals[j][i]->type, fields[i]->type);
 				Debug(DBG_LOGGING, msg);
 #endif
@@ -293,10 +293,10 @@ bool WriterBackend::Rotate(const char* rotated_path, double open,
 
 	// Insurance against broken writers.
 	if ( rotation_counter > 0 )
-		InternalError(Fmt("writer %s did not call FinishedRotation() in DoRotation()", Name()));
+		InternalError(Fmt2("writer {:s} did not call FinishedRotation() in DoRotation()", Name()));
 
 	if ( rotation_counter < 0 )
-		InternalError(Fmt("writer %s called FinishedRotation() more than once in DoRotation()", Name()));
+		InternalError(Fmt2("writer {:s} called FinishedRotation() more than once in DoRotation()", Name()));
 
 	return true;
 	}

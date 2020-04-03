@@ -63,7 +63,7 @@ bool SQLite::checkError(int code)
 	{
 	if ( code != SQLITE_OK && code != SQLITE_DONE )
 		{
-		Error(Fmt("SQLite call failed: %s", sqlite3_errmsg(db)));
+		Error(Fmt2("SQLite call failed: {:s}", sqlite3_errmsg(db)));
 		return true;
 		}
 
@@ -97,7 +97,7 @@ bool SQLite::DoInit(const ReaderInfo& info, int arg_num_fields, const threading:
 	ReaderInfo::config_map::const_iterator it = info.config.find("query");
 	if ( it == info.config.end() )
 		{
-		Error(Fmt("No query specified when setting up SQLite data source %s. Aborting.", info.source));
+		Error(Fmt2("No query specified when setting up SQLite data source {:s}. Aborting.", info.source));
 		return false;
 		}
 	else
@@ -165,7 +165,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 			val->val.int_val = res;
 		else
 			{
-			Error(Fmt("Invalid value for boolean: %d", res));
+			Error(Fmt2("Invalid value for boolean: {:d}", res));
 			delete val;
 			return nullptr;
 			}
@@ -238,7 +238,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		}
 
 	default:
-		Error(Fmt("unsupported field format %d", field->type));
+		Error(Fmt2("unsupported field format {:d}", field->type));
 		delete val;
 		return nullptr;
 	}
@@ -270,7 +270,7 @@ bool SQLite::DoUpdate()
 				{
 				if ( mapping[j] != -1 )
 					{
-					Error(Fmt("SQLite statement returns several columns with name %s! Cannot decide which to choose, aborting", name));
+					Error(Fmt2("SQLite statement returns several columns with name {:s}! Cannot decide which to choose, aborting", name));
 					delete [] mapping;
 					delete [] submapping;
 					return false;
@@ -284,7 +284,7 @@ bool SQLite::DoUpdate()
 				assert(fields[j]->type == zeek::TYPE_PORT);
 				if ( submapping[j] != -1 )
 					{
-					Error(Fmt("SQLite statement returns several columns with name %s! Cannot decide which to choose, aborting", name));
+					Error(Fmt2("SQLite statement returns several columns with name {:s}! Cannot decide which to choose, aborting", name));
 					delete [] mapping;
 					delete [] submapping;
 					return false;
@@ -299,7 +299,7 @@ bool SQLite::DoUpdate()
 		{
 		if ( mapping[i] == -1 )
 			{
-			Error(Fmt("Required field %s not found after SQLite statement", fields[i]->name));
+			Error(Fmt2("Required field {:s} not found after SQLite statement", fields[i]->name));
 			delete [] mapping;
 			delete [] submapping;
 			return false;

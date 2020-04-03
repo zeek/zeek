@@ -4152,7 +4152,7 @@ Expr* ScheduleExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 
 	IntrusivePtr<Stmt> red2_stmt;
 	// We assume that EventExpr won't transform itself fundamentally.
-	(void) event->Reduce(c, red2_stmt);
+	Unref(event->Reduce(c, red2_stmt));
 
 	if ( ! red_stmt )
 		red_stmt = red2_stmt;
@@ -4445,6 +4445,7 @@ bool CallExpr::IsPure() const
 
 bool CallExpr::IsReduced() const
 	{
+	auto answer = func->IsReduced() && args->IsReduced();
 	return func->IsReduced() && args->IsReduced();
 	}
 
@@ -4457,7 +4458,7 @@ Expr* CallExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 
 	IntrusivePtr<Stmt> red2_stmt;
 	// We assume that ListExpr won't transform itself fundamentally.
-	(void) args->Reduce(c, red2_stmt);
+	Unref(args->Reduce(c, red2_stmt));
 
 	// ### could check here for (1) pure function, and (2) all
 	// arguments constants, and call it to fold right now.
@@ -4726,7 +4727,7 @@ Expr* EventExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 
 	if ( ! Args()->IsReduced() )
 		// We assume that ListExpr won't transform itself fundamentally.
-		(void) Args()->Reduce(c, red_stmt);
+		Unref(Args()->Reduce(c, red_stmt));
 
 	return this->Ref();
 	}
@@ -4819,7 +4820,7 @@ Expr* ListExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 			}
 		}
 
-	return AssignToTemporary(c, red_stmt);
+	return this->Ref();
 	}
 
 IntrusivePtr<Val> ListExpr::Eval(Frame* f) const

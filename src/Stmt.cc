@@ -269,6 +269,7 @@ static void print_log(const std::vector<IntrusivePtr<Val>>& vals)
 	log_mgr->Write(plval.get(), record.get());
 	}
 
+
 IntrusivePtr<Val> PrintStmt::DoExec(std::vector<IntrusivePtr<Val>> vals,
                                     stmt_flow_type& /* flow */) const
 	{
@@ -399,13 +400,16 @@ Stmt* ExprStmt::Reduce(ReductionContext* c)
 			// No point evaluating.
 			return TransformMe(new NullStmt, c);
 
+		if ( e->Tag() == EXPR_ASSIGN && e->IsReduced() )
+			return this->Ref();
+
 		IntrusivePtr<Stmt> red_e_stmt;
 
 		e = {AdoptRef{}, e->Reduce(c, red_e_stmt)};
 
 		if ( red_e_stmt )
 			{
-			auto s = new StmtList(red_e_stmt, {AdoptRef{}, this});
+			auto s = new StmtList(red_e_stmt, {NewRef{}, this});
 			return TransformMe(s, c);
 			}
 

@@ -3398,13 +3398,26 @@ bool can_cast_value_to_type(const BroType* s, BroType* t)
 	return false;
 	}
 
+IntrusivePtr<Val> Val::MakeBool(bool b)
+	{
+	return IntrusivePtr{AdoptRef{}, new Val(bro_int_t(b), TYPE_BOOL)};
+	}
+
+IntrusivePtr<Val> Val::MakeInt(bro_int_t i)
+	{
+	return IntrusivePtr{AdoptRef{}, new Val(i, TYPE_INT)};
+	}
+
+IntrusivePtr<Val> Val::MakeCount(bro_uint_t u)
+	{
+	return IntrusivePtr{AdoptRef{}, new Val(u, TYPE_COUNT)};
+	}
+
 ValManager::ValManager()
 	{
-	empty_string = new StringVal("");
+	empty_string = make_intrusive<StringVal>("");
 	b_false = Val::MakeBool(false);
 	b_true = Val::MakeBool(true);
-	counts = new Val*[PREALLOCATED_COUNTS];
-	ints = new Val*[PREALLOCATED_INTS];
 
 	for ( auto i = 0u; i < PREALLOCATED_COUNTS; ++i )
 		counts[i] = Val::MakeCount(i);
@@ -3418,37 +3431,16 @@ ValManager::ValManager()
 		auto port_type = (TransportProto)i;
 
 		for ( auto j = 0u; j < arr.size(); ++j )
-			arr[j] = new PortVal(PortVal::Mask(j, port_type));
+			arr[j] = IntrusivePtr{AdoptRef{}, new PortVal(PortVal::Mask(j, port_type))};
 		}
-	}
-
-ValManager::~ValManager()
-	{
-	Unref(empty_string);
-	Unref(b_true);
-	Unref(b_false);
-
-	for ( auto i = 0u; i < PREALLOCATED_COUNTS; ++i )
-		Unref(counts[i]);
-
-	for ( auto i = 0u; i < PREALLOCATED_INTS; ++i )
-		Unref(ints[i]);
-
-	delete [] counts;
-	delete [] ints;
-
-	for ( auto& arr : ports )
-		for ( auto& pv : arr )
-			Unref(pv);
 	}
 
 StringVal* ValManager::GetEmptyString() const
 	{
-	::Ref(empty_string);
-	return empty_string;
+	return empty_string->Ref()->AsStringVal();
 	}
 
-PortVal* ValManager::GetPort(uint32_t port_num, TransportProto port_type) const
+const IntrusivePtr<PortVal>& ValManager::Port(uint32_t port_num, TransportProto port_type) const
 	{
 	if ( port_num >= 65536 )
 		{
@@ -3456,22 +3448,30 @@ PortVal* ValManager::GetPort(uint32_t port_num, TransportProto port_type) const
 		port_num = 0;
 		}
 
-	auto rval = ports[port_type][port_num];
-	::Ref(rval);
-	return rval;
+	return ports[port_type][port_num];
 	}
 
-PortVal* ValManager::GetPort(uint32_t port_num) const
+PortVal* ValManager::GetPort(uint32_t port_num, TransportProto port_type) const
+	{
+	return Port(port_num, port_type)->Ref()->AsPortVal();
+	}
+
+const IntrusivePtr<PortVal>& ValManager::Port(uint32_t port_num) const
 	{
 	auto mask = port_num & PORT_SPACE_MASK;
 	port_num &= ~PORT_SPACE_MASK;
 
 	if ( mask == TCP_PORT_MASK )
-		return GetPort(port_num, TRANSPORT_TCP);
+		return Port(port_num, TRANSPORT_TCP);
 	else if ( mask == UDP_PORT_MASK )
-		return GetPort(port_num, TRANSPORT_UDP);
+		return Port(port_num, TRANSPORT_UDP);
 	else if ( mask == ICMP_PORT_MASK )
-		return GetPort(port_num, TRANSPORT_ICMP);
+		return Port(port_num, TRANSPORT_ICMP);
 	else
-		return GetPort(port_num, TRANSPORT_UNKNOWN);
+		return Port(port_num, TRANSPORT_UNKNOWN);
+	}
+
+PortVal* ValManager::GetPort(uint32_t port_num) const
+	{
+	return Port(port_num)->Ref()->AsPortVal();
 	}

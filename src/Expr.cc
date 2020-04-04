@@ -212,11 +212,13 @@ void Expr::Canonicize()
 	{
 	}
 
-Expr* Expr::AssignToTemporary(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* Expr::AssignToTemporary(ReductionContext* c,
+				IntrusivePtr<Stmt>& red_stmt)
 	{
 	auto result_tmp = c->GenTemporaryExpr(TypeIP());
 
-	auto a_e = get_assign_expr(result_tmp, {NewRef{}, this}, false);
+	auto a_e = get_assign_expr(result_tmp->MakeLvalue(),
+					{NewRef{}, this}, false);
 	if ( a_e->Tag() != EXPR_ASSIGN )
 		Internal("confusion in AssignToTemporary");
 
@@ -503,17 +505,29 @@ void UnaryExpr::ExprDescribe(ODesc* d) const
 			d->Add("(coerce ");
 		else if ( Tag() == EXPR_FLATTEN )
 			d->Add("flatten ");
-		else if ( Tag() != EXPR_REF )
+		else
+			{
+			if ( Tag() == EXPR_REF )
+				d->Add("(");
 			d->Add(expr_name(Tag()));
+			if ( Tag() == EXPR_REF )
+				d->SP();
+			}
 		}
 
 	op->Describe(d);
 
-	if ( d->IsReadable() && is_coerce )
+	if ( d->IsReadable() )
 		{
-		d->Add(" to ");
-		Type()->Describe(d);
-		d->Add(")");
+		if ( is_coerce )
+			{
+			d->Add(" to ");
+			Type()->Describe(d);
+			d->Add(")");
+			}
+
+		else if ( Tag() == EXPR_REF )
+			d->Add(")");
 		}
 	}
 
@@ -1119,6 +1133,46 @@ IntrusivePtr<Val> IncrExpr::Eval(Frame* f) const
 		op->Assign(f, new_v);
 		return new_v;
 		}
+	}
+
+Expr* IncrExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	if ( op->Tag() != EXPR_REF )
+		Internal("confusion in IncrExpr::Reduce");
+
+	IntrusivePtr<Stmt> ref_red_stmts;
+	op = {AdoptRef{}, op->Reduce(c, ref_red_stmts)};
+
+	auto ref_op = op->AsRefExpr();
+	auto target = ref_op->Op();
+
+	IntrusivePtr<Stmt> get_val_stmts;
+	auto get_target = target->AssignToTemporary(c, get_val_stmts);
+
+	// Now that we have the target, increment/decrement it and
+	// assign it back.
+	auto incr = Tag() == EXPR_INCR ? 1 : -1;
+	auto incr_const = new ConstExpr({AdoptRef{}, val_mgr->GetCount(incr)});
+	auto increment_expr = new AddExpr({AdoptRef{}, get_target},
+						{AdoptRef{}, incr_const});
+
+	IntrusivePtr<Stmt> incr_stmts;
+	auto result = increment_expr->AssignToTemporary(c, incr_stmts);
+
+	auto stmts = make_intrusive<StmtList>(ref_red_stmts,
+						get_val_stmts, incr_stmts);
+	red_stmt = {AdoptRef{}, stmts.get()->Reduce(c)};
+
+	// Assign it back to the target.
+	IntrusivePtr ref_op_ptr{NewRef{}, ref_op};
+	IntrusivePtr result_ptr{AdoptRef{}, result};
+	auto final = get_assign_expr(ref_op_ptr, result_ptr, false).release();
+
+	printf("reduced ++ to statements:\n%s\n", obj_desc(red_stmt.get()));
+	printf("... and assign %s\n", obj_desc(result_ptr.get()));
+	printf("... and expr %s\n", obj_desc(final));
+
+	return final;
 	}
 
 bool IncrExpr::IsPure() const
@@ -2215,6 +2269,30 @@ void RefExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 	op->Assign(f, std::move(v));
 	}
 
+bool RefExpr::IsReduced() const
+	{
+	switch ( op->Tag() ) {
+	case EXPR_NAME:
+		return true;
+
+	case EXPR_FIELD:
+		return op->AsFieldExpr()->Op()->IsReduced();
+
+	case EXPR_INDEX:
+		{
+		auto ind = op->AsIndexExpr();
+		return ind->Op1()->IsReduced() && ind->Op2()->IsReduced();
+		}
+
+	case EXPR_LIST:
+		return op->IsReduced();
+
+	default:
+		Internal("bad operand in RefExpr::IsReduced");
+		return true;
+	}
+	}
+
 Expr* RefExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	red_stmt = op->ReduceToLHS(c);
@@ -2667,7 +2745,9 @@ bool AssignExpr::IsReduced() const
 		return true;
 
 	if ( op1->Tag() == EXPR_REF )
+		{
 		return op1->AsRefExpr()->IsReduced();
+		}
 
 	return false;
 	}
@@ -2683,9 +2763,12 @@ Expr* AssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	     (op1->Tag() != EXPR_REF || ! op1->AsRefExpr()->IsSingleton()) )
 		op1 = {AdoptRef{}, op1->Reduce(c, red_stmt)};
 
+// printf("checking assign RHS %s (%ssingleton)\n", obj_desc(op2.get()), op2->IsSingleton() ? "" : "not ");
 	IntrusivePtr<Stmt> red2_stmt;
 	if ( ! op2->IsSingleton() )
 		op2 = {AdoptRef{}, op2->Reduce(c, red2_stmt)};
+
+// printf("for assign RHS, %s/%s\n", red_stmt ? "Y" : "N", red2_stmt ? "Y" :"N" );
 
 	if ( ! red_stmt )
 		red_stmt = red2_stmt;
@@ -2694,6 +2777,29 @@ Expr* AssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 		red_stmt = {AdoptRef{}, new StmtList(red_stmt, red2_stmt.get())};
 
 	return this->Ref();
+	}
+
+Expr* AssignExpr::ReduceToSingleton(ReductionContext* c,
+					IntrusivePtr<Stmt>& red_stmt)
+	{
+	IntrusivePtr<Stmt> op1_red_stmts;
+
+	if ( ! op1->IsSingleton() &&
+	     (op1->Tag() != EXPR_REF || ! op1->AsRefExpr()->IsSingleton()) )
+		op1 = {AdoptRef{}, op1->Reduce(c, op1_red_stmts)};
+
+	if ( op1->Tag() != EXPR_REF )
+		Internal("Confusion in AssignExpr::ReduceToSingleton");
+
+	IntrusivePtr<Expr> assign_expr{NewRef{}, this};
+	auto assign_stmt = make_intrusive<ExprStmt>(assign_expr);
+
+	if ( op1_red_stmts )
+		red_stmt = make_intrusive<StmtList>(op1_red_stmts, assign_stmt);
+	else
+		red_stmt = assign_stmt;
+
+	return op1->AsRefExpr()->Op()->Ref();
 	}
 
 IndexSliceAssignExpr::IndexSliceAssignExpr(IntrusivePtr<Expr> op1,
@@ -3086,8 +3192,10 @@ IntrusivePtr<Stmt> IndexExpr::ReduceToLHS(ReductionContext* c)
 	IntrusivePtr<Stmt> red1_stmt;
 	IntrusivePtr<Stmt> red2_stmt;
 
+// printf("IndexExpr::ReduceToLHS pre, op = %s, type = %s\n", obj_desc(op2.get()), expr_name(op2->Tag()));
 	op1 = {AdoptRef{}, op1->Reduce(c, red1_stmt)};
 	op2 = {AdoptRef{}, op2->Reduce(c, red2_stmt)};
+// printf("IndexExpr::ReduceToLHS post, op = %s, type = %s, %s/%s\n", obj_desc(op2.get()), expr_name(op2->Tag()), red1_stmt ? "Y" : "N", red2_stmt ? "Y" :"N" );
 
 	if ( red1_stmt && red2_stmt )
 		return make_intrusive<StmtList>(red1_stmt, red2_stmt);
@@ -4832,31 +4940,6 @@ bool ListExpr::IsReduced() const
 	return true;
 	}
 
-Expr* ListExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
-	{
-	red_stmt = nullptr;
-
-	for ( auto& expr : exprs )
-		{
-		if ( expr->IsReduced() )
-			continue;
-
-		IntrusivePtr<Stmt> e_stmt;
-		expr = expr->Reduce(c, e_stmt);
-
-		if ( e_stmt )
-			{
-			if ( red_stmt )
-				red_stmt = {AdoptRef{},
-						new StmtList(red_stmt, e_stmt)};
-			else
-				red_stmt = e_stmt;
-			}
-		}
-
-	return this->Ref();
-	}
-
 IntrusivePtr<Val> ListExpr::Eval(Frame* f) const
 	{
 	auto v = make_intrusive<ListVal>(TYPE_ANY);
@@ -5162,6 +5245,31 @@ void ListExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 
 	loop_over_list(exprs, i)
 		exprs[i]->Assign(f, {NewRef{}, (*lv->Vals())[i]});
+	}
+
+Expr* ListExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	red_stmt = nullptr;
+
+	loop_over_list(exprs, i)
+		{
+		if ( exprs[i]->IsReduced() )
+			continue;
+
+		IntrusivePtr<Stmt> e_stmt;
+		exprs.replace(i, exprs[i]->Reduce(c, e_stmt));
+
+		if ( e_stmt )
+			{
+			if ( red_stmt )
+				red_stmt = {AdoptRef{},
+						new StmtList(red_stmt, e_stmt)};
+			else
+				red_stmt = e_stmt;
+			}
+		}
+
+	return this->Ref();
 	}
 
 IntrusivePtr<Stmt> ListExpr::ReduceToLHS(ReductionContext* c)

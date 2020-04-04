@@ -193,7 +193,7 @@ bool ExprListStmt::IsReduced() const
 	{
 	const expr_list& e = l->Exprs();
 	for ( const auto& expr : e )
-		if ( ! expr->IsReduced() )
+		if ( ! expr->IsSingleton() )
 			return false;
 
 	return true;
@@ -216,7 +216,7 @@ Stmt* ExprListStmt::Reduce(ReductionContext* c)
 		else
 			{
 			IntrusivePtr<Stmt> red_e_stmt;
-			auto red_e = expr->Reduce(c, red_e_stmt);
+			auto red_e = expr->ReduceToSingleton(c, red_e_stmt);
 			new_l->Append({AdoptRef{}, red_e});
 
 			if ( red_e_stmt )
@@ -1812,7 +1812,7 @@ Stmt* StmtList::Reduce(ReductionContext* c)
 
 	for ( auto stmt : Stmts() )
 		{
-// printf("reduction of statement:\n%s\n", obj_desc(stmt));
+// printf("reduction of %s statement:\n%s\n", stmt_name(stmt->Tag()), obj_desc(stmt));
 		stmt = stmt->Reduce(c);
 // printf("to:\n%s\n", obj_desc(stmt));
 

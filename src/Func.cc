@@ -128,6 +128,14 @@ void Func::AddBody(IntrusivePtr<Stmt> /* new_body */, id_list* /* new_inits */,
 	Internal("Func::AddBody called");
 	}
 
+void Func::ReplaceBody(const IntrusivePtr<Stmt>& old_body,
+			IntrusivePtr<Stmt> new_body)
+	{
+	for ( auto& body : bodies )
+		if ( body.stmts == old_body )
+			body.stmts = new_body;
+	}
+
 void Func::SetScope(IntrusivePtr<Scope> newscope)
 	{
 	scope = std::move(newscope);

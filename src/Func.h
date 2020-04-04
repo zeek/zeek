@@ -52,6 +52,9 @@ public:
 	const vector<Body>& GetBodies() const	{ return bodies; }
 	bool HasBodies() const	{ return bodies.size(); }
 
+	void ReplaceBody(const IntrusivePtr<Stmt>& old_body,
+				IntrusivePtr<Stmt> new_body);
+
 	[[deprecated("Remove in v4.1. Use zeek::Args overload instead.")]]
 	virtual IntrusivePtr<Val> Call(val_list* args, Frame* parent = nullptr) const;
 

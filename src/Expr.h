@@ -107,6 +107,11 @@ public:
 	// Assign to the given value, if appropriate.
 	virtual void Assign(Frame* f, IntrusivePtr<Val> v);
 
+	// Returns an expression corresponding to a temporary
+	// that's been assigned to this expression via red_stmt.
+	Expr* AssignToTemporary(ReductionContext* c,
+				IntrusivePtr<Stmt>& red_stmt);
+
 	// Returns the type corresponding to this expression interpreted
 	// as an initialization.  Returns nil if the initialization is illegal.
 	virtual IntrusivePtr<BroType> InitType() const;
@@ -135,6 +140,9 @@ public:
 	// be nil if no reduction necessary), and the reduced version of
 	// the expression, suitable for replacing previous uses.
 	virtual Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt);
+	virtual Expr* ReduceToSingleton(ReductionContext* c,
+					IntrusivePtr<Stmt>& red_stmt)
+		{ return Reduce(c, red_stmt); }
 
 	// Similar, but for use as the LHS of an assignment.  The expression
 	// itself doesn't transform.
@@ -210,10 +218,10 @@ public:
 	ACCESSORS(EXPR_FIELD, FieldExpr, AsFieldExpr);
 	ACCESSORS(EXPR_FIELD_ASSIGN, FieldAssignExpr, AsFieldAssignExpr);
 	ACCESSORS(EXPR_INDEX, IndexExpr, AsIndexExpr);
+	ACCESSORS(EXPR_REF, RefExpr, AsRefExpr);
 
 	CONST_ACCESSOR(EXPR_HAS_FIELD, HasFieldExpr, AsHasFieldExpr);
 	CONST_ACCESSOR(EXPR_CALL, CallExpr, AsCallExpr);
-	CONST_ACCESSOR(EXPR_REF, RefExpr, AsRefExpr);
 	CONST_ACCESSOR(EXPR_ADD_TO, AddToExpr, AsAddToExpr);
 	CONST_ACCESSOR(EXPR_CONST, ConstExpr, AsConstExpr);
 
@@ -237,9 +245,6 @@ protected:
 
 	// Puts the expression in canonical form.
 	virtual void Canonicize();
-
-	Expr* AssignToTemporary(ReductionContext* c,
-				IntrusivePtr<Stmt>& red_stmt);
 
 	Expr* TransformMe(Expr* new_me, ReductionContext* c,
 				IntrusivePtr<Stmt>& red_stmt);
@@ -399,6 +404,7 @@ public:
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 	IntrusivePtr<Val> DoSingleEval(Frame* f, Val* v) const;
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 	bool IsPure() const override;
 };
 
@@ -545,6 +551,7 @@ public:
 	void Assign(Frame* f, IntrusivePtr<Val> v) override;
 	IntrusivePtr<Expr> MakeLvalue() override;
 
+	bool IsReduced() const override;
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 	IntrusivePtr<Stmt> ReduceToLHS(ReductionContext* c) override;
 };
@@ -564,6 +571,8 @@ public:
 	bool IsPure() const override;
 	bool IsReduced() const override;
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
+	Expr* ReduceToSingleton(ReductionContext* c,
+				IntrusivePtr<Stmt>& red_stmt) override;
 
 	// Whether this is an assignment to a temporary.
 	bool IsTemp() const	{ return is_temp; }

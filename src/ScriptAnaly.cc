@@ -1089,5 +1089,6 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 	printf("Original: %s\n", obj_desc(body));
 	auto new_body = body->Reduce(&rc);
 	printf("Transformed: %s\n", obj_desc(new_body));
+	f->ReplaceBody({AdoptRef{}, body}, {AdoptRef{}, new_body});
 	pop_scope();
 	}

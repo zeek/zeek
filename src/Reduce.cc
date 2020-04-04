@@ -30,7 +30,7 @@ IntrusivePtr<ID> ReductionContext::GenTemporary(const IntrusivePtr<BroType>& t)
 	{
 	auto temp = new TempVar(temps.length(), t);
 	IntrusivePtr<ID> temp_id =
-		{AdoptRef{}, new ID(temp->Name(), SCOPE_FUNCTION, false)};
+		install_ID(temp->Name(), nullptr, false, false);
 
 	add_local(temp_id, t, INIT_NONE, nullptr, nullptr, VAR_REGULAR);
 

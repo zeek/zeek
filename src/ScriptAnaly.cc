@@ -1074,7 +1074,7 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 	if ( ! activate )
 		return;
 
-	auto f = id->ID_Val()->AsFunc();
+	auto f = id->ID_Val()->AsFunc()->AsBroFunc();
 
 	if ( only_func && ! streq(f->Name(), only_func) )
 		return;
@@ -1090,5 +1090,6 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 	auto new_body = body->Reduce(&rc);
 	printf("Transformed: %s\n", obj_desc(new_body));
 	f->ReplaceBody({AdoptRef{}, body}, {AdoptRef{}, new_body});
+	f->GrowFrameSize(rc.NumTemps());
 	pop_scope();
 	}

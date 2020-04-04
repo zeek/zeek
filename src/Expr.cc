@@ -1168,10 +1168,6 @@ Expr* IncrExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	IntrusivePtr result_ptr{AdoptRef{}, result};
 	auto final = get_assign_expr(ref_op_ptr, result_ptr, false).release();
 
-	printf("reduced ++ to statements:\n%s\n", obj_desc(red_stmt.get()));
-	printf("... and assign %s\n", obj_desc(result_ptr.get()));
-	printf("... and expr %s\n", obj_desc(final));
-
 	return final;
 	}
 

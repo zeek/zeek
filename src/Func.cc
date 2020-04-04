@@ -128,14 +128,6 @@ void Func::AddBody(IntrusivePtr<Stmt> /* new_body */, id_list* /* new_inits */,
 	Internal("Func::AddBody called");
 	}
 
-void Func::ReplaceBody(const IntrusivePtr<Stmt>& old_body,
-			IntrusivePtr<Stmt> new_body)
-	{
-	for ( auto& body : bodies )
-		if ( body.stmts == old_body )
-			body.stmts = new_body;
-	}
-
 void Func::SetScope(IntrusivePtr<Scope> newscope)
 	{
 	scope = std::move(newscope);
@@ -472,6 +464,14 @@ void BroFunc::AddBody(IntrusivePtr<Stmt> new_body, id_list* new_inits,
 
 	bodies.push_back(b);
 	sort(bodies.begin(), bodies.end());
+	}
+
+void BroFunc::ReplaceBody(const IntrusivePtr<Stmt>& old_body,
+			IntrusivePtr<Stmt> new_body)
+	{
+	for ( auto& body : bodies )
+		if ( body.stmts == old_body )
+			body.stmts = new_body;
 	}
 
 void BroFunc::AddClosure(id_list ids, Frame* f)

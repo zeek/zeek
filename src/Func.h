@@ -30,6 +30,7 @@ class Frame;
 class ID;
 class CallExpr;
 class Scope;
+class BroFunc;
 
 class Func : public BroObj {
 public:
@@ -38,6 +39,14 @@ public:
 	explicit Func(Kind arg_kind);
 
 	~Func() override;
+
+        BroFunc* AsBroFunc()
+                {
+		if ( Kind() == BRO_FUNC )
+			return (BroFunc*) this;
+		else
+			return nullptr;
+                }
 
 	virtual bool IsPure() const = 0;
 	function_flavor Flavor() const	{ return FType()->Flavor(); }
@@ -51,9 +60,6 @@ public:
 
 	const vector<Body>& GetBodies() const	{ return bodies; }
 	bool HasBodies() const	{ return bodies.size(); }
-
-	void ReplaceBody(const IntrusivePtr<Stmt>& old_body,
-				IntrusivePtr<Stmt> new_body);
 
 	[[deprecated("Remove in v4.1. Use zeek::Args overload instead.")]]
 	virtual IntrusivePtr<Val> Call(val_list* args, Frame* parent = nullptr) const;
@@ -160,6 +166,11 @@ public:
 
 	void AddBody(IntrusivePtr<Stmt> new_body, id_list* new_inits,
 		     size_t new_frame_size, int priority) override;
+
+	void ReplaceBody(const IntrusivePtr<Stmt>& old_body,
+				IntrusivePtr<Stmt> new_body);
+
+	void GrowFrameSize(int size_incr)	{ frame_size += size_incr; }
 
 	/** Sets this function's outer_id list. */
 	void SetOuterIDs(id_list ids)

@@ -26,6 +26,8 @@ public:
 	IntrusivePtr<ID> GenTemporary(const IntrusivePtr<BroType>& t);
 	IntrusivePtr<Expr> GenTemporaryExpr(const IntrusivePtr<BroType>& t);
 
+	int NumTemps() const		{ return temps.length(); }
+
 protected:
 	Scope* scope;
 	PList<TempVar> temps;

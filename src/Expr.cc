@@ -50,7 +50,7 @@ const char* expr_name(BroExprTag t)
 		"table()", "set()", "vector()",
 		"$=", "in", "<<>>",
 		"()", "function()", "event", "schedule",
-		"coerce", "record_coerce", "table_coerce",
+		"coerce", "record_coerce", "table_coerce", "vector_coerce",
 		"sizeof", "flatten", "cast", "is", "[:]="
 	};
 
@@ -231,6 +231,8 @@ Expr* Expr::AssignToTemporary(ReductionContext* c,
 	else
 		red_stmt = a_e_s;
 
+	// printf("doing assign to temporary for %s\n", obj_desc(this));
+	// printf("statements:\n%s\n", obj_desc(red_stmt.get()));
 	return result_tmp.release();
 	}
 
@@ -618,6 +620,12 @@ Expr* BinaryExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	if ( ! op2->IsSingleton() )
 		op2 = {AdoptRef{}, op2->Reduce(c, red2_stmt)};
 
+	if ( ! red_stmt )
+		red_stmt = red2_stmt;
+
+	else if ( red2_stmt )
+		red_stmt = {AdoptRef{}, new StmtList(red_stmt, red2_stmt.release())};
+
 	if ( op1->IsConst() && op2->IsConst() )
 		{
 		auto c1 = op1->AsConstExpr();
@@ -626,11 +634,6 @@ Expr* BinaryExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 		return TransformMe(new ConstExpr(fold), c, red_stmt);
 		}
 
-	if ( ! red_stmt )
-		red_stmt = red2_stmt;
-
-	else if ( red2_stmt )
-		red_stmt = {AdoptRef{}, new StmtList(red_stmt, red2_stmt.get())};
 	return AssignToTemporary(c, red_stmt);
 	}
 
@@ -3194,11 +3197,15 @@ IntrusivePtr<Stmt> IndexExpr::ReduceToSingletons(ReductionContext* c)
 	IntrusivePtr<Stmt> red1_stmt;
 	IntrusivePtr<Stmt> red2_stmt;
 
+	// printf("reducing %s to singletons\n", obj_desc(this));
+
 	if ( ! op1->IsSingleton() )
-		op1 = {AdoptRef{}, op1->Reduce(c, red1_stmt)};
+		op1 = {AdoptRef{}, op1->ReduceToSingleton(c, red1_stmt)};
 
 	if ( ! op2->IsSingleton() )
-		op2 = {AdoptRef{}, op2->Reduce(c, red2_stmt)};
+		op2 = {AdoptRef{}, op2->ReduceToSingleton(c, red2_stmt)};
+
+	// printf("post-reduction: %s %s/%s\n", obj_desc(this), red1_stmt ? "Y" : "N", red2_stmt ? "Y" : "N");
 
 	if ( red1_stmt && red2_stmt )
 		return make_intrusive<StmtList>(red1_stmt, red2_stmt);
@@ -3292,7 +3299,7 @@ IntrusivePtr<Stmt> FieldExpr::ReduceToSingletons(ReductionContext* c)
 	IntrusivePtr<Stmt> red_stmt;
 
 	if ( ! op->IsSingleton() )
-		op = {AdoptRef{}, op->Reduce(c, red_stmt)};
+		op = {AdoptRef{}, op->ReduceToSingleton(c, red_stmt)};
 
 	return red_stmt;
 	}

@@ -1086,9 +1086,15 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 
 	push_scope(id, nullptr);
 	ReductionContext rc(f->GetScope());
-	printf("Original: %s\n", obj_desc(body));
+
+	if ( only_func )
+		printf("Original: %s\n", obj_desc(body));
+
 	auto new_body = body->Reduce(&rc);
-	printf("Transformed: %s\n", obj_desc(new_body));
+
+	if ( only_func )
+		printf("Transformed: %s\n", obj_desc(new_body));
+
 	f->ReplaceBody({AdoptRef{}, body}, {AdoptRef{}, new_body});
 	f->GrowFrameSize(rc.NumTemps());
 	pop_scope();

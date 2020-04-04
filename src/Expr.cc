@@ -2172,35 +2172,18 @@ Expr* CondExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	if ( ! op3->IsSingleton() )
 		op3 = {AdoptRef{}, op3->Reduce(c, red3_stmt)};
 
-	if ( op1->IsConst() )
-		{
-		auto c1 = op1->AsConstExpr();
-		auto t = c1->Value()->AsBool();
-
-		if ( t )
-			{
-			auto reds = new StmtList(red_stmt, red2_stmt);
-			red_stmt = {AdoptRef{}, reds->Reduce(c)};
-			return op2.get()->Ref();
-			}
-
-		else
-			{
-			auto reds = new StmtList(red_stmt, red3_stmt);
-			red_stmt = {AdoptRef{}, reds->Reduce(c)};
-			return op3.get()->Ref();
-			}
-		}
+	// Don't worry about constant folding here, the IfStmt will
+	// do that when it's reduced.
 
 	auto res_reg = c->GenTemporaryExpr(TypeIP());
 
-	auto true_branch_e = get_assign_expr(res_reg, op2, false);
+	auto true_branch_e = get_assign_expr(res_reg->MakeLvalue(), op2, false);
 	IntrusivePtr<Stmt> true_branch_es =
 		{AdoptRef{}, new ExprStmt(true_branch_e)};
 	IntrusivePtr<Stmt> true_branch_stmts =
 		{AdoptRef{}, new StmtList(red2_stmt, true_branch_es)};
 
-	auto false_branch_e = get_assign_expr(res_reg, op3, false);
+	auto false_branch_e = get_assign_expr(res_reg->MakeLvalue(), op3, false);
 	IntrusivePtr<Stmt> false_branch_es =
 		{AdoptRef{}, new ExprStmt(false_branch_e)};
 	IntrusivePtr<Stmt> false_branch_stmts =

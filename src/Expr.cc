@@ -2190,7 +2190,7 @@ Expr* CondExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	IntrusivePtr<Stmt> false_branch_es =
 		{AdoptRef{}, new ExprStmt(false_branch_e)};
 	IntrusivePtr<Stmt> false_branch_stmts =
-		{AdoptRef{}, new StmtList(red2_stmt, false_branch_es)};
+		{AdoptRef{}, new StmtList(red3_stmt, false_branch_es)};
 
 	IntrusivePtr<Stmt> if_else =
 		{AdoptRef{},

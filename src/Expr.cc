@@ -1817,8 +1817,14 @@ Expr* BoolExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	IntrusivePtr<Val> else_val_int = {AdoptRef{}, else_val};
 	IntrusivePtr<Expr> else_e = {AdoptRef{}, new ConstExpr(else_val_int)};
 
-	auto cond = new CondExpr(op1, op2, else_e);
+	Expr* cond;
+	if ( is_and )
+		cond = new CondExpr(op1, op2, else_e);
+	else
+		cond = new CondExpr(op1, else_e, op2);
+
 	auto cond_red = cond->Reduce(c, red_stmt);
+
 	return TransformMe(cond_red, c, red_stmt);
 	}
 

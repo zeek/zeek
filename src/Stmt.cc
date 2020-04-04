@@ -1081,15 +1081,65 @@ TraversalCode SwitchStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-AddStmt::AddStmt(IntrusivePtr<Expr> arg_e) : ExprStmt(STMT_ADD, std::move(arg_e))
+
+AddDelStmt::AddDelStmt(BroStmtTag t, IntrusivePtr<Expr> arg_e)
+: ExprStmt(t, std::move(arg_e))
+	{
+	}
+
+bool AddDelStmt::IsPure() const
+	{
+	return false;
+	}
+
+Stmt* AddDelStmt::Reduce(ReductionContext* c)
+	{
+	IntrusivePtr<Stmt> red_e_stmt;
+
+	if ( e->Tag() == EXPR_INDEX )
+		{
+		auto ind = e->AsIndexExpr();
+		red_e_stmt = ind->ReduceToSingletons(c);
+		}
+
+	else if ( e->Tag() == EXPR_FIELD )
+		{
+		auto field = e->AsFieldExpr();
+		red_e_stmt = field->ReduceToSingletons(c);
+		}
+
+	else
+		Internal("bad \"add\"/\"delete\"");
+
+	if ( red_e_stmt )
+		{
+		auto s = new StmtList(red_e_stmt, {NewRef{}, this});
+		return TransformMe(s, c);
+		}
+
+	else
+		return this->Ref();
+	}
+
+
+TraversalCode AddDelStmt::Traverse(TraversalCallback* cb) const
+	{
+	TraversalCode tc = cb->PreStmt(this);
+	HANDLE_TC_STMT_PRE(tc);
+
+	// Argument is stored in base class's "e" field.
+	tc = e->Traverse(cb);
+	HANDLE_TC_STMT_PRE(tc);
+
+	tc = cb->PostStmt(this);
+	HANDLE_TC_STMT_POST(tc);
+	}
+
+
+AddStmt::AddStmt(IntrusivePtr<Expr> arg_e) : AddDelStmt(STMT_ADD, std::move(arg_e))
 	{
 	if ( ! e->CanAdd() )
 		Error("illegal add statement");
-	}
-
-bool AddStmt::IsPure() const
-	{
-	return false;
 	}
 
 IntrusivePtr<Val> AddStmt::Exec(Frame* f, stmt_flow_type& flow) const
@@ -1101,31 +1151,13 @@ IntrusivePtr<Val> AddStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	}
 
 
-TraversalCode AddStmt::Traverse(TraversalCallback* cb) const
-	{
-	TraversalCode tc = cb->PreStmt(this);
-	HANDLE_TC_STMT_PRE(tc);
-
-	// Argument is stored in base class's "e" field.
-	tc = e->Traverse(cb);
-	HANDLE_TC_STMT_PRE(tc);
-
-	tc = cb->PostStmt(this);
-	HANDLE_TC_STMT_POST(tc);
-	}
-
-DelStmt::DelStmt(IntrusivePtr<Expr> arg_e) : ExprStmt(STMT_DELETE, std::move(arg_e))
+DelStmt::DelStmt(IntrusivePtr<Expr> arg_e) : AddDelStmt(STMT_DELETE, std::move(arg_e))
 	{
 	if ( e->IsError() )
 		return;
 
 	if ( ! e->CanDel() )
 		Error("illegal delete statement");
-	}
-
-bool DelStmt::IsPure() const
-	{
-	return false;
 	}
 
 IntrusivePtr<Val> DelStmt::Exec(Frame* f, stmt_flow_type& flow) const
@@ -1136,18 +1168,6 @@ IntrusivePtr<Val> DelStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	return nullptr;
 	}
 
-TraversalCode DelStmt::Traverse(TraversalCallback* cb) const
-	{
-	TraversalCode tc = cb->PreStmt(this);
-	HANDLE_TC_STMT_PRE(tc);
-
-	// Argument is stored in base class's "e" field.
-	tc = e->Traverse(cb);
-	HANDLE_TC_STMT_PRE(tc);
-
-	tc = cb->PostStmt(this);
-	HANDLE_TC_STMT_POST(tc);
-	}
 
 EventStmt::EventStmt(IntrusivePtr<EventExpr> arg_e)
 	: ExprStmt(STMT_EVENT, arg_e), event_expr(std::move(arg_e))

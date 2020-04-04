@@ -285,24 +285,30 @@ protected:
 	std::vector<std::pair<ID*, int>> case_label_type_list;
 };
 
-class AddStmt : public ExprStmt {
+class AddDelStmt : public ExprStmt {
+public:
+	bool IsPure() const override;
+
+	Stmt* Reduce(ReductionContext* c) override;
+
+	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+protected:
+	AddDelStmt(BroStmtTag t, IntrusivePtr<Expr> arg_e);
+};
+
+class AddStmt : public AddDelStmt {
 public:
 	explicit AddStmt(IntrusivePtr<Expr> e);
 
-	bool IsPure() const override;
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
-
-	TraversalCode Traverse(TraversalCallback* cb) const override;
 };
 
-class DelStmt : public ExprStmt {
+class DelStmt : public AddDelStmt {
 public:
 	explicit DelStmt(IntrusivePtr<Expr> e);
 
-	bool IsPure() const override;
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
-
-	TraversalCode Traverse(TraversalCallback* cb) const override;
 };
 
 class EventStmt : public ExprStmt {

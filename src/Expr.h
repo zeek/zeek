@@ -607,6 +607,7 @@ public:
 
 	void Assign(Frame* f, IntrusivePtr<Val> v) override;
 	IntrusivePtr<Stmt> ReduceToLHS(ReductionContext* c) override;
+	IntrusivePtr<Stmt> ReduceToSingletons(ReductionContext* c);
 	IntrusivePtr<Expr> MakeLvalue() override;
 
 	// Need to override Eval since it can take a vector arg but does
@@ -635,6 +636,7 @@ public:
 
 	void Assign(Frame* f, IntrusivePtr<Val> v) override;
 	IntrusivePtr<Stmt> ReduceToLHS(ReductionContext* c) override;
+	IntrusivePtr<Stmt> ReduceToSingletons(ReductionContext* c);
 	void Delete(Frame* f) override;
 
 	IntrusivePtr<Expr> MakeLvalue() override;

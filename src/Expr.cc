@@ -3206,6 +3206,30 @@ IntrusivePtr<Stmt> IndexExpr::ReduceToLHS(ReductionContext* c)
 		return nullptr;
 	}
 
+IntrusivePtr<Stmt> IndexExpr::ReduceToSingletons(ReductionContext* c)
+	{
+	IntrusivePtr<Stmt> red1_stmt;
+	IntrusivePtr<Stmt> red2_stmt;
+
+	if ( ! op1->IsSingleton() )
+		op1 = {AdoptRef{}, op1->Reduce(c, red1_stmt)};
+
+	if ( ! op2->IsSingleton() )
+		op2 = {AdoptRef{}, op2->Reduce(c, red2_stmt)};
+
+	if ( red1_stmt && red2_stmt )
+		return make_intrusive<StmtList>(red1_stmt, red2_stmt);
+
+	else if ( red1_stmt )
+		return red1_stmt;
+
+	else if ( red2_stmt )
+		return red2_stmt;
+
+	else
+		return nullptr;
+	}
+
 void IndexExpr::ExprDescribe(ODesc* d) const
 	{
 	op1->Describe(d);
@@ -3276,6 +3300,16 @@ IntrusivePtr<Stmt> FieldExpr::ReduceToLHS(ReductionContext* c)
 	IntrusivePtr<Stmt> red_stmt;
 
 	op = {AdoptRef{}, op->Reduce(c, red_stmt)};
+
+	return red_stmt;
+	}
+
+IntrusivePtr<Stmt> FieldExpr::ReduceToSingletons(ReductionContext* c)
+	{
+	IntrusivePtr<Stmt> red_stmt;
+
+	if ( ! op->IsSingleton() )
+		op = {AdoptRef{}, op->Reduce(c, red_stmt)};
 
 	return red_stmt;
 	}

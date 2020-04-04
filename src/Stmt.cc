@@ -1190,6 +1190,26 @@ IntrusivePtr<Val> EventStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	return nullptr;
 	}
 
+Stmt* EventStmt::Reduce(ReductionContext* c)
+	{
+	// ### remove reundancy w/ e.g. ReturnStmt
+	if ( ! event_expr->IsSingleton() )
+		{
+		IntrusivePtr<Stmt> red_e_stmt;
+		auto ee_red = event_expr->Reduce(c, red_e_stmt);
+
+		event_expr = {AdoptRef{}, ee_red->AsEventExpr()};
+
+		if ( red_e_stmt )
+			{
+			auto s = new StmtList(red_e_stmt, {NewRef{}, this});
+			return TransformMe(s, c);
+			}
+		}
+
+	return this->Ref();
+	}
+
 TraversalCode EventStmt::Traverse(TraversalCallback* cb) const
 	{
 	TraversalCode tc = cb->PreStmt(this);
@@ -1722,6 +1742,24 @@ IntrusivePtr<Val> ReturnStmt::Exec(Frame* f, stmt_flow_type& flow) const
 		return e->Eval(f);
 	else
 		return nullptr;
+	}
+
+Stmt* ReturnStmt::Reduce(ReductionContext* c)
+	{
+	if ( e && ! e->IsSingleton() )
+		{
+		IntrusivePtr<Stmt> red_e_stmt;
+
+		e = {AdoptRef{}, e->Reduce(c, red_e_stmt)};
+
+		if ( red_e_stmt )
+			{
+			auto s = new StmtList(red_e_stmt, {NewRef{}, this});
+			return TransformMe(s, c);
+			}
+		}
+
+	return this->Ref();
 	}
 
 void ReturnStmt::Describe(ODesc* d) const

@@ -317,6 +317,8 @@ public:
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
+	Stmt* Reduce(ReductionContext* c) override;
+
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
@@ -426,6 +428,8 @@ public:
 	explicit ReturnStmt(IntrusivePtr<Expr> e);
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+
+	Stmt* Reduce(ReductionContext* c) override;
 
 	void Describe(ODesc* d) const override;
 };

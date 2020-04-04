@@ -219,6 +219,7 @@ public:
 	ACCESSORS(EXPR_FIELD_ASSIGN, FieldAssignExpr, AsFieldAssignExpr);
 	ACCESSORS(EXPR_INDEX, IndexExpr, AsIndexExpr);
 	ACCESSORS(EXPR_REF, RefExpr, AsRefExpr);
+	ACCESSORS(EXPR_EVENT, EventExpr, AsEventExpr);
 
 	CONST_ACCESSOR(EXPR_HAS_FIELD, HasFieldExpr, AsHasFieldExpr);
 	CONST_ACCESSOR(EXPR_CALL, CallExpr, AsCallExpr);

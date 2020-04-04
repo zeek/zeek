@@ -318,7 +318,9 @@ IntrusivePtr<Val> NameExpr::Eval(Frame* f) const
 		return v;
 	else
 		{
-		RuntimeError("value used but not set");
+		// ###
+		if ( ! getenv("ZEEK_SUPPRESS_NOT_SET") )
+			RuntimeError("value used but not set");
 		return nullptr;
 		}
 	}

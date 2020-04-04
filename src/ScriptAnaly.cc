@@ -688,7 +688,7 @@ bool RD_Decorate::ControlReachesEnd(const Stmt* s, bool is_definite,
 			{
 			if ( ! reaches_so_far )
 				{
-				printf("dead code: %s\n", obj_desc(stmt));
+				// printf("dead code: %s\n", obj_desc(stmt));
 				return false;
 				}
 

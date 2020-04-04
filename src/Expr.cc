@@ -2741,6 +2741,7 @@ Expr* AssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	if ( IsTemp() )
 		return this->Ref();
 
+// printf("checking assign LHS %s (%ssingleton)\n", obj_desc(op1.get()), op1->IsSingleton() ? "" : "not ");
 	if ( ! op1->IsSingleton() &&
 	     (op1->Tag() != EXPR_REF || ! op1->AsRefExpr()->IsSingleton()) )
 		op1 = {AdoptRef{}, op1->Reduce(c, red_stmt)};
@@ -2751,12 +2752,14 @@ Expr* AssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 		op2 = {AdoptRef{}, op2->Reduce(c, red2_stmt)};
 
 // printf("for assign RHS, %s/%s\n", red_stmt ? "Y" : "N", red2_stmt ? "Y" :"N" );
+// if ( red_stmt ) printf("red1:\n%s\n", obj_desc(red_stmt.get()));
 
 	if ( ! red_stmt )
 		red_stmt = red2_stmt;
 
 	else if ( red2_stmt )
-		red_stmt = {AdoptRef{}, new StmtList(red_stmt, red2_stmt.get())};
+		red_stmt = {AdoptRef{}, new StmtList(red_stmt,
+						red2_stmt.release())};
 
 	return this->Ref();
 	}
@@ -4315,7 +4318,8 @@ Expr* ScheduleExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 		red_stmt = red2_stmt;
 
 	else if ( red2_stmt )
-		red_stmt = {AdoptRef{}, new StmtList(red_stmt, red2_stmt.get())};
+		red_stmt = {AdoptRef{}, new StmtList(red_stmt,
+							red2_stmt.release())};
 
 	return this->Ref();
 	}
@@ -4623,7 +4627,8 @@ Expr* CallExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 		red_stmt = red2_stmt;
 
 	else if ( red2_stmt )
-		red_stmt = {AdoptRef{}, new StmtList(red_stmt, red2_stmt.get())};
+		red_stmt = {AdoptRef{}, new StmtList(red_stmt,
+							red2_stmt.release())};
 
 	if ( Type()->Tag() == TYPE_VOID )
 		return this->Ref();

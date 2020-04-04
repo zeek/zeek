@@ -621,10 +621,13 @@ Case::Case(IntrusivePtr<ListExpr> arg_expr_cases, id_list* arg_type_cases,
 
 Case::~Case()
 	{
-	for ( const auto& id : *type_cases )
-		Unref(id);
+	if ( type_cases )
+		{
+		for ( const auto& id : *type_cases )
+			Unref(id);
 
-	delete type_cases;
+		delete type_cases;
+		}
 	}
 
 void Case::Describe(ODesc* d) const

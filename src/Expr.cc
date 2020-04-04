@@ -4635,7 +4635,10 @@ Expr* CallExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	else if ( red2_stmt )
 		red_stmt = {AdoptRef{}, new StmtList(red_stmt, red2_stmt.get())};
 
-	return AssignToTemporary(c, red_stmt);
+	if ( Type()->Tag() == TYPE_VOID )
+		return this->Ref();
+	else
+		return AssignToTemporary(c, red_stmt);
 	}
 
 IntrusivePtr<Val> CallExpr::Eval(Frame* f) const

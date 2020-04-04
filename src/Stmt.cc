@@ -420,7 +420,8 @@ Stmt* ExprStmt::Reduce(ReductionContext* c)
 			// No point evaluating.
 			return TransformMe(new NullStmt, c);
 
-		if ( e->Tag() == EXPR_ASSIGN && e->IsReduced() )
+		if ( (e->Tag() == EXPR_ASSIGN || e->Tag() == EXPR_CALL) &&
+		     e->IsReduced() )
 			return this->Ref();
 
 		IntrusivePtr<Stmt> red_e_stmt;

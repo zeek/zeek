@@ -562,7 +562,8 @@ public:
 	// If val is given, evaluating this expression will always yield the val
 	// yet still perform the assignment.  Used for triggers.
 	AssignExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2, bool is_init,
-	           IntrusivePtr<Val> val = nullptr, attr_list* attrs = nullptr);
+	           IntrusivePtr<Val> val = nullptr, attr_list* attrs = nullptr,
+		   bool typecheck = true);
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 	void EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const override;
@@ -988,6 +989,11 @@ inline Val* Expr::ExprVal() const
 // Decides whether to return an AssignExpr or a RecordAssignExpr.
 IntrusivePtr<Expr> get_assign_expr(IntrusivePtr<Expr> op1,
                                    IntrusivePtr<Expr> op2, bool is_init);
+
+// Helper function for making an assignment to an LHS that's
+// a temporary.
+IntrusivePtr<Expr> get_temp_assign_expr(IntrusivePtr<Expr> op1,
+					   IntrusivePtr<Expr> op2);
 
 // Type-check the given expression(s) against the given type(s).  Complain
 // if the expression cannot match the given type, returning 0.  If it can

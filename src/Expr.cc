@@ -217,8 +217,8 @@ Expr* Expr::AssignToTemporary(ReductionContext* c,
 	{
 	auto result_tmp = c->GenTemporaryExpr(TypeIP());
 
-	auto a_e = get_assign_expr(result_tmp->MakeLvalue(),
-					{NewRef{}, this}, false);
+	auto a_e = get_temp_assign_expr(result_tmp->MakeLvalue(),
+					{NewRef{}, this});
 	if ( a_e->Tag() != EXPR_ASSIGN )
 		Internal("confusion in AssignToTemporary");
 
@@ -2188,13 +2188,13 @@ Expr* CondExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 
 	auto res_reg = c->GenTemporaryExpr(TypeIP());
 
-	auto true_branch_e = get_assign_expr(res_reg->MakeLvalue(), op2, false);
+	auto true_branch_e = get_temp_assign_expr(res_reg->MakeLvalue(), op2);
 	IntrusivePtr<Stmt> true_branch_es =
 		{AdoptRef{}, new ExprStmt(true_branch_e)};
 	IntrusivePtr<Stmt> true_branch_stmts =
 		{AdoptRef{}, new StmtList(red2_stmt, true_branch_es)};
 
-	auto false_branch_e = get_assign_expr(res_reg->MakeLvalue(), op3, false);
+	auto false_branch_e = get_temp_assign_expr(res_reg->MakeLvalue(), op3);
 	IntrusivePtr<Stmt> false_branch_es =
 		{AdoptRef{}, new ExprStmt(false_branch_e)};
 	IntrusivePtr<Stmt> false_branch_stmts =
@@ -2296,7 +2296,7 @@ IntrusivePtr<Stmt> RefExpr::ReduceToLHS(ReductionContext* c)
 
 AssignExpr::AssignExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2,
                        bool arg_is_init, IntrusivePtr<Val> arg_val,
-                       attr_list* arg_attrs)
+                       attr_list* arg_attrs, bool typecheck)
 	: BinaryExpr(EXPR_ASSIGN, arg_is_init ?
 	             std::move(arg_op1) : arg_op1->MakeLvalue(),
 	             std::move(arg_op2))
@@ -2317,9 +2317,10 @@ AssignExpr::AssignExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2,
 		return;
 		}
 
-	// We discard the status from TypeCheck since it has already
-	// generated error messages.
-	(void) TypeCheck(arg_attrs);
+	if ( typecheck )
+		// We discard the status from TypeCheck since it has already
+		// generated error messages.
+		(void) TypeCheck(arg_attrs);
 
 	val = std::move(arg_val);
 
@@ -5489,6 +5490,13 @@ IntrusivePtr<Expr> get_assign_expr(IntrusivePtr<Expr> op1,
 	else
 		return make_intrusive<AssignExpr>(std::move(op1), std::move(op2),
 		                                  is_init);
+	}
+
+IntrusivePtr<Expr> get_temp_assign_expr(IntrusivePtr<Expr> op1,
+					   IntrusivePtr<Expr> op2)
+	{
+	return make_intrusive<AssignExpr>(std::move(op1), std::move(op2),
+						false, nullptr, nullptr, false);
 	}
 
 IntrusivePtr<Expr> check_and_promote_expr(Expr* const e, BroType* t)

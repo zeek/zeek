@@ -33,8 +33,8 @@ template<typename T>
 class List {
 public:
 
-	const int DEFAULT_LIST_SIZE = 10;
-	const int LIST_GROWTH_FACTOR = 2;
+	constexpr static int DEFAULT_LIST_SIZE = 10;
+	constexpr static int LIST_GROWTH_FACTOR = 2;
 
 	~List()		{ free(entries); }
 	explicit List(int size = 0)

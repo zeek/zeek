@@ -455,6 +455,8 @@ class AddExpr : public BinaryExpr {
 public:
 	AddExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	void Canonicize() override;
+
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
 class AddToExpr : public BinaryExpr {
@@ -482,12 +484,16 @@ public:
 class SubExpr : public BinaryExpr {
 public:
 	SubExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
+
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
 class TimesExpr : public BinaryExpr {
 public:
 	TimesExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	void Canonicize() override;
+
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
 class DivideExpr : public BinaryExpr {
@@ -496,6 +502,8 @@ public:
 
 protected:
 	IntrusivePtr<Val> AddrFold(Val* v1, Val* v2) const override;
+
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
 class ModExpr : public BinaryExpr {

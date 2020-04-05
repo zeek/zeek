@@ -1378,6 +1378,17 @@ void AddExpr::Canonicize()
 		SwapOps();
 	}
 
+Expr* AddExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	if ( op1->IsZero() )
+		return op2.get()->Ref();
+
+	if ( op2->IsZero() )
+		return op1.get()->Ref();
+
+	return BinaryExpr::Reduce(c, red_stmt);
+	}
+
 AddToExpr::AddToExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 	: BinaryExpr(EXPR_ADD_TO, is_vector(arg_op1.get()) ?
 	             std::move(arg_op1) : arg_op1->MakeLvalue(),
@@ -1552,6 +1563,14 @@ SubExpr::SubExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 		}
 	}
 
+Expr* SubExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	if ( op2->IsZero() )
+		return op1.get()->Ref();
+
+	return BinaryExpr::Reduce(c, red_stmt);
+	}
+
 RemoveFromExpr::RemoveFromExpr(IntrusivePtr<Expr> arg_op1,
 							   IntrusivePtr<Expr> arg_op2)
 	: BinaryExpr(EXPR_REMOVE_FROM, arg_op1->MakeLvalue(), std::move(arg_op2))
@@ -1639,6 +1658,24 @@ void TimesExpr::Canonicize()
 		SwapOps();
 	}
 
+Expr* TimesExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	if ( op1->IsOne() )
+		return op2.get()->Ref();
+
+	if ( op2->IsOne() )
+		return op1.get()->Ref();
+
+	if ( op1->IsZero() || op2->IsZero() )
+		{
+		auto zero_val = op1->IsZero() ?
+				op1->Eval(nullptr) : op2->Eval(nullptr);
+		return new ConstExpr(zero_val);
+		}
+
+	return BinaryExpr::Reduce(c, red_stmt);
+	}
+
 DivideExpr::DivideExpr(IntrusivePtr<Expr> arg_op1,
                        IntrusivePtr<Expr> arg_op2)
 	: BinaryExpr(EXPR_DIVIDE, std::move(arg_op1), std::move(arg_op2))
@@ -1680,6 +1717,17 @@ DivideExpr::DivideExpr(IntrusivePtr<Expr> arg_op1,
 
 	else
 		ExprError("requires arithmetic operands");
+	}
+
+Expr* DivideExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	if ( Type()->Tag() != TYPE_SUBNET )
+		{
+		if ( op2->IsOne() )
+			return op1.get()->Ref();
+		}
+
+	return BinaryExpr::Reduce(c, red_stmt);
 	}
 
 IntrusivePtr<Val> DivideExpr::AddrFold(Val* v1, Val* v2) const

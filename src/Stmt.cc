@@ -144,7 +144,10 @@ Stmt* Stmt::TransformMe(Stmt* new_me, ReductionContext* c)
 		return this;
 
 	new_me->SetOriginal(this);
-	return new_me->Reduce(c);
+// printf("pre reduction for %s\n", obj_desc(new_me));
+	new_me = new_me->Reduce(c);
+// printf("post reduction for %s\n", obj_desc(new_me));
+	return new_me;
 	}
 
 void Stmt::AccessStats(ODesc* d) const
@@ -416,9 +419,13 @@ Stmt* ExprStmt::Reduce(ReductionContext* c)
 	{
 	if ( e )
 		{
+// printf("reducing expr stmt: %s\n", obj_desc(e.get()));
 		if ( e->IsSingleton() )
+			{
 			// No point evaluating.
+// printf("discarding singleton\n");
 			return TransformMe(new NullStmt, c);
+			}
 
 		if ( (e->Tag() == EXPR_ASSIGN || e->Tag() == EXPR_CALL) &&
 		     e->IsReduced() )
@@ -428,9 +435,13 @@ Stmt* ExprStmt::Reduce(ReductionContext* c)
 
 		e = {AdoptRef{}, e->Reduce(c, red_e_stmt)};
 
+// printf("post reduction: %s\n", obj_desc(e.get()));
+
 		if ( red_e_stmt )
 			{
+// printf("statements: %s\n", obj_desc(red_e_stmt.get()));
 			auto s = new StmtList(red_e_stmt, {NewRef{}, this});
+// printf("statements: %s\n", obj_desc(s));
 			return TransformMe(s, c);
 			}
 
@@ -1889,14 +1900,17 @@ Stmt* StmtList::Reduce(ReductionContext* c)
 	stmt_list* f_stmts = new stmt_list;
 	bool did_change = false;
 
+// printf("reduction of statement list:\n%s\n", obj_desc(this));
 	for ( auto stmt : Stmts() )
 		{
-// printf("reduction of %s statement:\n%s\n", stmt_name(stmt->Tag()), obj_desc(stmt));
+		auto old_stmt = stmt;
 		stmt = stmt->Reduce(c);
-// printf("to:\n%s\n", obj_desc(stmt));
+
+		if ( stmt != old_stmt )
+			did_change = true;
 
 		if ( stmt->Tag() == STMT_LIST )
-			{
+			{ // inline the list
 			auto sl = stmt->AsStmtList();
 
 			for ( auto& sub_stmt : sl->Stmts() )
@@ -1917,11 +1931,15 @@ Stmt* StmtList::Reduce(ReductionContext* c)
 			f_stmts->append(stmt);
 		}
 
+// printf("post reduction, %schanged, %d statements\n", did_change ? "" : "un", f_stmts->length());
 	if ( f_stmts->length() == 0 )
 		return TransformMe(new NullStmt, c);
 
 	if ( f_stmts->length() == 1 )
-		return (*f_stmts)[0];
+		{
+// printf("transforming to single statement: %s\n", obj_desc((*f_stmts)[0]));
+		return TransformMe((*f_stmts)[0], c);
+		}
 
 	if ( did_change )
 		ResetStmts(f_stmts);

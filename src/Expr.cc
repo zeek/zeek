@@ -1471,7 +1471,11 @@ Expr* AddToExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	if ( IsVector(op1->Type()->Tag()) )
 		{
 		auto append = new AppendToExpr(op1, op2);
-		return append->Reduce(c, red_stmt);
+// printf("about to reduce %s\n", obj_desc(append));
+		auto res = append->Reduce(c, red_stmt);
+// printf(" ... reduced to: %s\n", obj_desc(res));
+// if ( red_stmt ) printf(" ... and: %s\n", obj_desc(red_stmt.get()));
+		return res;
 		}
 
 	else
@@ -1509,7 +1513,7 @@ IntrusivePtr<Val> AppendToExpr::Eval(Frame* f) const
 	VectorVal* vv = v1->AsVectorVal();
 
 	if ( ! vv->Assign(vv->Size(), v2) )
-		Internal("type-checking failed in internal vector append");
+		RuntimeError("type-checking failed in vector append");
 
 	return v1;
 	}

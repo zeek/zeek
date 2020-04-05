@@ -346,6 +346,7 @@ protected:
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	IntrusivePtr<Expr> loop_condition;
+	IntrusivePtr<Stmt> loop_cond_stmt;
 	IntrusivePtr<Stmt> body;
 };
 

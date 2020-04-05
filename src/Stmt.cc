@@ -1232,6 +1232,8 @@ WhileStmt::WhileStmt(IntrusivePtr<Expr> arg_loop_condition,
 	     ! IsBool(loop_condition->Type()->Tag()) )
 		loop_condition->Error("while conditional must be boolean");
 
+	loop_cond_stmt = nullptr;
+
 	tag = STMT_WHILE;
 	}
 
@@ -1244,17 +1246,20 @@ bool WhileStmt::IsPure() const
 
 bool WhileStmt::IsReduced() const
 	{
+	// No need to check loop_cond_stmt, as we create them reduced.
 	return loop_condition->IsReduced() && body->IsReduced();
 	}
 
 Stmt* WhileStmt::Reduce(ReductionContext* c)
 	{
-	IntrusivePtr<Stmt> red_cond_stmt;
-	loop_condition = {AdoptRef{}, loop_condition->Reduce(c, red_cond_stmt)};
+	if ( IsReduced() )
+		return this->Ref();
+
+	loop_condition = {AdoptRef{}, loop_condition->Reduce(c, loop_cond_stmt)};
 	body = {AdoptRef{}, body->Reduce(c)};
 
-	if ( red_cond_stmt )
-		return TransformMe(new StmtList(red_cond_stmt, this), c);
+	if ( loop_cond_stmt )
+		loop_cond_stmt = {AdoptRef{}, loop_cond_stmt.get()->Reduce(c)};
 
 	return this->Ref();
 	}
@@ -1265,6 +1270,13 @@ void WhileStmt::Describe(ODesc* d) const
 
 	if ( d->IsReadable() )
 		d->Add("(");
+
+	if ( loop_cond_stmt )
+		{
+		d->Add(" {");
+		loop_cond_stmt->Describe(d);
+		d->Add("} ");
+		}
 
 	loop_condition->Describe(d);
 
@@ -1301,6 +1313,9 @@ IntrusivePtr<Val> WhileStmt::Exec(Frame* f, stmt_flow_type& flow) const
 
 	for ( ; ; )
 		{
+		if ( loop_cond_stmt )
+			loop_cond_stmt->Exec(f, flow);
+
 		auto cond = loop_condition->Eval(f);
 
 		if ( ! cond )

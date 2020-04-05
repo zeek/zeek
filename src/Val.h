@@ -691,7 +691,7 @@ class CompositeHash;
 class HashKey;
 class Frame;
 
-class TableVal : public Val, public notifier::Modifiable {
+class TableVal final : public Val, public notifier::Modifiable {
 public:
 	explicit TableVal(IntrusivePtr<TableType> t, IntrusivePtr<Attributes> attrs = nullptr);
 	~TableVal() override;

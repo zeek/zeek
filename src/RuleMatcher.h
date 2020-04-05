@@ -102,6 +102,7 @@ private:
 
 	uint32_t id;	// For debugging, each HdrTest gets an unique ID
 	static uint32_t idcounter;
+	int32_t level;	// level within the tree
 
 	// The following are all set by RuleMatcher::BuildRulesTree().
 	friend class RuleMatcher;
@@ -132,8 +133,6 @@ private:
 
 	RuleHdrTest* sibling;	// linkage within HdrTest tree
 	RuleHdrTest* child;
-
-	int level;	// level within the tree
 };
 
 typedef PList<RuleHdrTest> rule_hdr_test_list;
@@ -173,7 +172,6 @@ private:
 
 	typedef PList<Matcher> matcher_list;
 
-	bool is_orig;
 	analyzer::Analyzer* analyzer;
 	RuleEndpointState* opposite;
 	analyzer::pia::PIA* pia;
@@ -188,6 +186,7 @@ private:
 	bstr_list matched_text;
 
 	int payload_size;
+	bool is_orig;
 
 	int_list matched_rules;		// Rules for which all conditions have matched
 };

@@ -261,6 +261,11 @@ private:
 	/** The number of vals that can be stored in this frame. */
 	int size;
 
+	bool weak_closure_ref = false;
+	bool break_before_next_stmt;
+	bool break_on_return;
+	bool delayed;
+
 	/** Associates ID's offsets with values. */
 	Val** frame;
 
@@ -270,7 +275,6 @@ private:
 
 	/** The enclosing frame of this frame. */
 	Frame* closure;
-	bool weak_closure_ref = false;
 
 	/** ID's used in this frame from the enclosing frame. */
 	id_list outer_ids;
@@ -289,12 +293,8 @@ private:
 	/** The next statement to be evaluted in the context of this frame. */
 	Stmt* next_stmt;
 
-	bool break_before_next_stmt;
-	bool break_on_return;
-
 	IntrusivePtr<trigger::Trigger> trigger;
 	const CallExpr* call;
-	bool delayed;
 
 	std::vector<BroFunc*> functions_with_closure_frame_reference;
 };

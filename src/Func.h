@@ -111,9 +111,9 @@ protected:
 	vector<Body> bodies;
 	IntrusivePtr<Scope> scope;
 	Kind kind;
+	uint32_t unique_id;
 	IntrusivePtr<BroType> type;
 	string name;
-	uint32_t unique_id;
 	static vector<Func*> unique_ids;
 };
 

@@ -122,6 +122,8 @@ protected:
 	const char* name;
 	IDScope scope;
 	bool is_export;
+	bool infer_return_type;
+	bool weak_ref;
 	IntrusivePtr<BroType> type;
 	bool is_const, is_enum_const, is_type, is_option;
 	int offset;
@@ -130,6 +132,4 @@ protected:
 	// contains list of functions that are called when an option changes
 	std::multimap<int, IntrusivePtr<Func>> option_handlers;
 
-	bool infer_return_type;
-	bool weak_ref;
 };

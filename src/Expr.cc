@@ -318,9 +318,7 @@ IntrusivePtr<Val> NameExpr::Eval(Frame* f) const
 		return v;
 	else
 		{
-		// ###
-		if ( ! getenv("ZEEK_SUPPRESS_NOT_SET") )
-			RuntimeError("value used but not set");
+		RuntimeError("value used but not set");
 		return nullptr;
 		}
 	}
@@ -502,6 +500,7 @@ void UnaryExpr::ExprDescribe(ODesc* d) const
 	bool is_coerce =
 		Tag() == EXPR_ARITH_COERCE || Tag() == EXPR_RECORD_COERCE ||
 		Tag() == EXPR_TABLE_COERCE;
+	bool explicit_refs = getenv("ZEEK_SHOW_REFS") != nullptr;
 
 	if ( d->IsReadable() )
 		{
@@ -512,10 +511,16 @@ void UnaryExpr::ExprDescribe(ODesc* d) const
 		else
 			{
 			if ( Tag() == EXPR_REF )
-				d->Add("(");
-			d->Add(expr_name(Tag()));
-			if ( Tag() == EXPR_REF )
-				d->SP();
+				{
+				if ( explicit_refs )
+					{
+					d->Add("(");
+					d->Add(expr_name(Tag()));
+					d->SP();
+					}
+				}
+			else
+				d->Add(expr_name(Tag()));
 			}
 		}
 
@@ -530,7 +535,7 @@ void UnaryExpr::ExprDescribe(ODesc* d) const
 			d->Add(")");
 			}
 
-		else if ( Tag() == EXPR_REF )
+		else if ( Tag() == EXPR_REF && explicit_refs)
 			d->Add(")");
 		}
 	}

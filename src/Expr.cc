@@ -42,7 +42,7 @@ const char* expr_name(BroExprTag t)
 		"name", "const",
 		"(*)",
 		"++", "--", "!", "~", "+", "-",
-		"+", "-", "+=", "-=", "*", "/", "%",
+		"+", "-", "+=", "vec+=", "-=", "*", "/", "%",
 		"&", "|", "^",
 		"&&", "||",
 		"<", "<=", "==", "!=", ">=", ">", "?:", "ref",
@@ -1452,13 +1452,52 @@ IntrusivePtr<Val> AddToExpr::Eval(Frame* f) const
 
 Expr* AddToExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
-	auto do_incr = new AddExpr(op1, op2);
-	IntrusivePtr<Expr> do_incr_ptr = {AdoptRef{}, do_incr};
-	auto assign = new AssignExpr(op1, do_incr_ptr, false, nullptr,
-					nullptr, false);
+	if ( IsVector(op1->Type()->Tag()) )
+		{
+		auto append = new AppendToExpr(op1, op2);
+		return append->Reduce(c, red_stmt);
+		}
 
-	return assign->Reduce(c, red_stmt);
+	else
+		{
+		auto do_incr = new AddExpr(op1, op2);
+		IntrusivePtr<Expr> do_incr_ptr = {AdoptRef{}, do_incr};
+		auto assign = new AssignExpr(op1, do_incr_ptr, false, nullptr,
+						nullptr, false);
+
+		return assign->Reduce(c, red_stmt);
+		}
 	}
+
+AppendToExpr::AppendToExpr(IntrusivePtr<Expr> arg_op1,
+				IntrusivePtr<Expr> arg_op2)
+	: BinaryExpr(EXPR_APPEND_TO, std::move(arg_op1), std::move(arg_op2))
+	{
+	// This is an internal type, so we don't bother with type-checking
+	// or coercions, those have already been done before we're created.
+	SetType({NewRef{}, op1->Type()});
+	}
+
+IntrusivePtr<Val> AppendToExpr::Eval(Frame* f) const
+	{
+	auto v1 = op1->Eval(f);
+
+	if ( ! v1 )
+		return nullptr;
+
+	auto v2 = op2->Eval(f);
+
+	if ( ! v2 )
+		return nullptr;
+
+	VectorVal* vv = v1->AsVectorVal();
+
+	if ( ! vv->Assign(vv->Size(), v2) )
+		Internal("type-checking failed in internal vector append");
+
+	return v1;
+	}
+
 
 SubExpr::SubExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 	: BinaryExpr(EXPR_SUB, std::move(arg_op1), std::move(arg_op2))

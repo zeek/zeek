@@ -26,7 +26,7 @@ enum BroExprTag : int {
 	EXPR_INCR, EXPR_DECR,
 	EXPR_NOT, EXPR_COMPLEMENT,
 	EXPR_POSITIVE, EXPR_NEGATE,
-	EXPR_ADD, EXPR_SUB, EXPR_ADD_TO, EXPR_REMOVE_FROM,
+	EXPR_ADD, EXPR_SUB, EXPR_ADD_TO, EXPR_APPEND_TO, EXPR_REMOVE_FROM,
 	EXPR_TIMES, EXPR_DIVIDE, EXPR_MOD,
 	EXPR_AND, EXPR_OR, EXPR_XOR,
 	EXPR_AND_AND, EXPR_OR_OR,
@@ -463,6 +463,12 @@ public:
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
+};
+
+class AppendToExpr : public BinaryExpr {
+public:
+	AppendToExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 };
 
 class RemoveFromExpr : public BinaryExpr {

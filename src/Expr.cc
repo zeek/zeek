@@ -2273,12 +2273,15 @@ Expr* CondExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 
 	IntrusivePtr<Stmt> if_else;
 
-	if ( red2_stmt && red3_stmt )
+	if ( red2_stmt || red3_stmt )
+		{
+		if ( ! red2_stmt )
+			red2_stmt = make_intrusive<NullStmt>();
+		if ( ! red3_stmt )
+			red3_stmt = make_intrusive<NullStmt>();
+
 		if_else = {AdoptRef{}, new IfStmt(op1, red2_stmt, red3_stmt)};
-	else if ( red2_stmt )
-		if_else = red2_stmt;
-	else if ( red3_stmt )
-		if_else = red3_stmt;
+		}
 
 	IntrusivePtr<Stmt> assign_stmt;
 	auto res = AssignToTemporary(c, assign_stmt);

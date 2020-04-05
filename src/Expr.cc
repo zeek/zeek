@@ -1156,10 +1156,13 @@ Expr* IncrExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 
 	// Now that we have the target, increment/decrement it and
 	// assign it back.
-	auto incr = Tag() == EXPR_INCR ? 1 : -1;
-	auto incr_const = new ConstExpr({AdoptRef{}, val_mgr->GetCount(incr)});
-	auto increment_expr = new AddExpr({AdoptRef{}, get_target},
-						{AdoptRef{}, incr_const});
+	auto incr_const = new ConstExpr({AdoptRef{}, val_mgr->GetCount(1)});
+	auto increment_expr =
+		Tag() == EXPR_INCR ?
+			(Expr*) new AddExpr({AdoptRef{}, get_target},
+					{AdoptRef{}, incr_const}) :
+			(Expr*) new SubExpr({AdoptRef{}, get_target},
+					{AdoptRef{}, incr_const});
 
 	IntrusivePtr<Stmt> incr_stmts;
 	auto result = increment_expr->AssignToTemporary(c, incr_stmts);

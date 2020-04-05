@@ -2237,44 +2237,56 @@ bool CondExpr::IsReduced() const
 
 Expr* CondExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
-	red_stmt = nullptr;
-
+	IntrusivePtr<Stmt> red1_stmt;
 	if ( ! op1->IsSingleton() )
-		op1 = {AdoptRef{}, op1->Reduce(c, red_stmt)};
+		op1 = {AdoptRef{}, op1->Reduce(c, red1_stmt)};
 
 	IntrusivePtr<Stmt> red2_stmt;
 	if ( ! op2->IsSingleton() )
+		{
 		op2 = {AdoptRef{}, op2->Reduce(c, red2_stmt)};
+
+		IntrusivePtr<Stmt> assign2_stmt;
+		op2 = {AdoptRef{}, op2->AssignToTemporary(c, assign2_stmt)};
+
+		if ( red2_stmt && assign2_stmt )
+			red2_stmt = make_intrusive<StmtList>(red2_stmt,
+								assign2_stmt);
+		else if ( assign2_stmt )
+			red2_stmt = assign2_stmt;
+		}
 
 	IntrusivePtr<Stmt> red3_stmt;
 	if ( ! op3->IsSingleton() )
+		{
 		op3 = {AdoptRef{}, op3->Reduce(c, red3_stmt)};
 
-	// Don't worry about constant folding here, the IfStmt will
-	// do that when it's reduced.
+		IntrusivePtr<Stmt> assign3_stmt;
+		op3 = {AdoptRef{}, op3->AssignToTemporary(c, assign3_stmt)};
 
-	auto res_reg = c->GenTemporaryExpr(TypeIP());
+		if ( red3_stmt && assign3_stmt )
+			red3_stmt = make_intrusive<StmtList>(red3_stmt,
+								assign3_stmt);
+		else if ( assign3_stmt )
+			red3_stmt = assign3_stmt;
+		}
 
-	auto true_branch_e = get_temp_assign_expr(res_reg->MakeLvalue(), op2);
-	IntrusivePtr<Stmt> true_branch_es =
-		{AdoptRef{}, new ExprStmt(true_branch_e)};
-	IntrusivePtr<Stmt> true_branch_stmts =
-		{AdoptRef{}, new StmtList(red2_stmt, true_branch_es)};
+	IntrusivePtr<Stmt> if_else;
 
-	auto false_branch_e = get_temp_assign_expr(res_reg->MakeLvalue(), op3);
-	IntrusivePtr<Stmt> false_branch_es =
-		{AdoptRef{}, new ExprStmt(false_branch_e)};
-	IntrusivePtr<Stmt> false_branch_stmts =
-		{AdoptRef{}, new StmtList(red3_stmt, false_branch_es)};
+	if ( red2_stmt && red3_stmt )
+		if_else = {AdoptRef{}, new IfStmt(op1, red2_stmt, red3_stmt)};
+	else if ( red2_stmt )
+		if_else = red2_stmt;
+	else if ( red3_stmt )
+		if_else = red3_stmt;
 
-	IntrusivePtr<Stmt> if_else =
-		{AdoptRef{},
-			new IfStmt(op1, true_branch_stmts, false_branch_stmts)};
+	IntrusivePtr<Stmt> assign_stmt;
+	auto res = AssignToTemporary(c, assign_stmt);
 
-	auto new_stmt = new StmtList(red_stmt, if_else);
+	auto new_stmt = new StmtList(red1_stmt, if_else, assign_stmt);
 	red_stmt = {AdoptRef{}, new_stmt->Reduce(c)};
 
-	return TransformMe(res_reg.release(), c, red_stmt);
+	return TransformMe(res, c, red_stmt);
 	}
 
 TraversalCode CondExpr::Traverse(TraversalCallback* cb) const

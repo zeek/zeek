@@ -1016,7 +1016,7 @@ bool SwitchStmt::IsReduced() const
 
 Stmt* SwitchStmt::Reduce(ReductionContext* rc)
 	{
-	auto s = new StmtList;
+	auto s = make_intrusive<StmtList>();
 	IntrusivePtr<Stmt> red_e_stmt;
 	e = {AdoptRef{}, e->Reduce(rc, red_e_stmt)};
 
@@ -1035,15 +1035,17 @@ Stmt* SwitchStmt::Reduce(ReductionContext* rc)
 
 			if ( c_e_stmt )
 				s->Stmts().push_back(c_e_stmt.release());
-
-			c->UpdateBody(c->Body()->Reduce(rc));
 			}
+
+		c->UpdateBody(c->Body()->Reduce(rc));
 		}
 
 	if ( s->Stmts().length() > 0 )
-		return TransformMe(s, rc);
-
-	delete s;
+		{
+		IntrusivePtr<Stmt> me = {NewRef{}, this};
+		auto pre_and_me = new StmtList(s, me);
+		return TransformMe(pre_and_me, rc);
+		}
 
 	return this->Ref();
 	}

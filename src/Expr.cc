@@ -1381,10 +1381,10 @@ void AddExpr::Canonicize()
 Expr* AddExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( op1->IsZero() )
-		return op2.get()->Ref();
+		return op2.get()->Reduce(c, red_stmt);
 
 	if ( op2->IsZero() )
-		return op1.get()->Ref();
+		return op1.get()->Reduce(c, red_stmt);
 
 	return BinaryExpr::Reduce(c, red_stmt);
 	}
@@ -1566,7 +1566,7 @@ SubExpr::SubExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 Expr* SubExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( op2->IsZero() )
-		return op1.get()->Ref();
+		return op1.get()->Reduce(c, red_stmt);
 
 	return BinaryExpr::Reduce(c, red_stmt);
 	}
@@ -1661,10 +1661,10 @@ void TimesExpr::Canonicize()
 Expr* TimesExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( op1->IsOne() )
-		return op2.get()->Ref();
+		return op2.get()->Reduce(c, red_stmt);
 
 	if ( op2->IsOne() )
-		return op1.get()->Ref();
+		return op1.get()->Reduce(c, red_stmt);
 
 	if ( op1->IsZero() || op2->IsZero() )
 		{
@@ -1724,7 +1724,7 @@ Expr* DivideExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	if ( Type()->Tag() != TYPE_SUBNET )
 		{
 		if ( op2->IsOne() )
-			return op1.get()->Ref();
+			return op1.get()->Reduce(c, red_stmt);
 		}
 
 	return BinaryExpr::Reduce(c, red_stmt);
@@ -2866,9 +2866,7 @@ bool AssignExpr::IsReduced() const
 		return true;
 
 	if ( op1->Tag() == EXPR_REF )
-		{
 		return op1->AsRefExpr()->IsReduced();
-		}
 
 	return false;
 	}

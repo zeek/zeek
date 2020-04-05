@@ -1450,6 +1450,16 @@ IntrusivePtr<Val> AddToExpr::Eval(Frame* f) const
 		return nullptr;
 	}
 
+Expr* AddToExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	auto do_incr = new AddExpr(op1, op2);
+	IntrusivePtr<Expr> do_incr_ptr = {AdoptRef{}, do_incr};
+	auto assign = new AssignExpr(op1, do_incr_ptr, false, nullptr,
+					nullptr, false);
+
+	return assign->Reduce(c, red_stmt);
+	}
+
 SubExpr::SubExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 	: BinaryExpr(EXPR_SUB, std::move(arg_op1), std::move(arg_op2))
 	{
@@ -1535,6 +1545,16 @@ IntrusivePtr<Val> RemoveFromExpr::Eval(Frame* f) const
 		}
 	else
 		return nullptr;
+	}
+
+Expr* RemoveFromExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	auto do_decr = new SubExpr(op1, op2);
+	IntrusivePtr<Expr> do_decr_ptr = {AdoptRef{}, do_decr};
+	auto assign = new AssignExpr(op1, do_decr_ptr, false, nullptr,
+					nullptr, false);
+
+	return assign->Reduce(c, red_stmt);
 	}
 
 TimesExpr::TimesExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)

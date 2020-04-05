@@ -76,6 +76,7 @@ class CallExpr;
 class EventExpr;
 class RefExpr;
 class AddToExpr;
+class RemoveFromExpr;
 class ConstExpr;
 
 struct function_ingredients;
@@ -460,12 +461,16 @@ class AddToExpr : public BinaryExpr {
 public:
 	AddToExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	IntrusivePtr<Val> Eval(Frame* f) const override;
+
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
 class RemoveFromExpr : public BinaryExpr {
 public:
 	RemoveFromExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	IntrusivePtr<Val> Eval(Frame* f) const override;
+
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
 class SubExpr : public BinaryExpr {

@@ -77,6 +77,7 @@ TableVal* udp_content_delivery_ports_orig;
 TableVal* udp_content_delivery_ports_resp;
 bool udp_content_deliver_all_orig;
 bool udp_content_deliver_all_resp;
+bool udp_content_delivery_ports_use_resp;
 
 double dns_session_timeout;
 double rpc_timeout;
@@ -323,6 +324,8 @@ void init_net_var()
 		bool(internal_val("udp_content_deliver_all_orig")->AsBool());
 	udp_content_deliver_all_resp =
 		bool(internal_val("udp_content_deliver_all_resp")->AsBool());
+	udp_content_delivery_ports_use_resp =
+		bool(internal_val("udp_content_delivery_ports_use_resp")->AsBool());
 
 	dns_session_timeout = opt_internal_double("dns_session_timeout");
 	rpc_timeout = opt_internal_double("rpc_timeout");

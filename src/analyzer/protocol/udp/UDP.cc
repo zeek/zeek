@@ -134,7 +134,9 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 	if ( udp_contents )
 		{
-		auto port_val = val_mgr->GetPort(ntohs(up->uh_dport), TRANSPORT_UDP);
+		uint16_t p = udp_content_delivery_ports_use_resp ? Conn()->RespPort()
+		                                                 : up->uh_dport;
+		auto port_val = val_mgr->GetPort(ntohs(p), TRANSPORT_UDP);
 		bool do_udp_contents = false;
 
 		if ( is_orig )

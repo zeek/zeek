@@ -77,6 +77,7 @@ extern TableVal* udp_content_delivery_ports_orig;
 extern TableVal* udp_content_delivery_ports_resp;
 extern bool udp_content_deliver_all_orig;
 extern bool udp_content_deliver_all_resp;
+extern bool udp_content_delivery_ports_use_resp;
 
 extern double dns_session_timeout;
 extern double rpc_timeout;

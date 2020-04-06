@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -r $TRACES/rdp/rdpeudp2-handshake-success.pcap %INPUT >out
+# @TEST-EXEC: zeek -Cr $TRACES/rdp/rdpeudp2-handshake-success.pcap %INPUT >out
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff out
 

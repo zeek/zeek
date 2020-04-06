@@ -54,7 +54,7 @@ protected:
 typedef std::map<const BroObj*, RD_ptr> AnalyInfo;
 
 // Reaching definitions associated with a collection of BroObj's.
-class ReachingDefSet {
+class ReachingDefSet : public BroObj {
 public:
 	ReachingDefSet(DefItemMap& _item_map) : item_map(_item_map)
 		{

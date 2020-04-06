@@ -61,16 +61,16 @@ protected:
 		}
 
 	RD_ptr PreRDsIfAny(const BroObj* o) const
-		{ return pre_defs->RDsIfAny(o); }
+		{ return pre_min_defs->RDsIfAny(o); }
 	RD_ptr PostRDsIfAny(const BroObj* o) const
-		{ return post_defs->RDsIfAny(o); }
+		{ return post_min_defs->RDsIfAny(o); }
 
 	RD_ptr GetPreRDs(const BroObj* o) const
-		{ return GetRDs(pre_defs, o); }
+		{ return GetRDs(pre_min_defs, o); }
 	RD_ptr GetPostRDs(const BroObj* o) const
-		{ return GetRDs(post_defs, o); }
+		{ return GetRDs(post_min_defs, o); }
 
-	RD_ptr GetRDs(ReachingDefSet* defs, const BroObj* o) const
+	RD_ptr GetRDs(IntrusivePtr<ReachingDefSet> defs, const BroObj* o) const
 		{
 		auto rds = defs->FindRDs(o);
 		ASSERT(rds != nullptr);
@@ -81,13 +81,13 @@ protected:
 	// then a starting point is altering the const RD_ptr&'s in
 	// these APIs to instead be RD_ptr's.
 	void AddPreRDs(const BroObj* o, const RD_ptr& rd)
-		{ pre_defs->AddRDs(o, rd); }
+		{ pre_min_defs->AddRDs(o, rd); }
 	void AddPostRDs(const BroObj* o, const RD_ptr& rd)
-		{ post_defs->AddRDs(o, rd); }
+		{ post_min_defs->AddRDs(o, rd); }
 
 	bool HasPreRD(const BroObj* o, const ID* id) const
 		{
-		return pre_defs->HasRD(o, id);
+		return pre_min_defs->HasRD(o, id);
 		}
 
 	void AddRD(RD_ptr rd, const ID* id, DefinitionPoint dp);
@@ -105,8 +105,8 @@ protected:
 
 	// Mappings of reaching defs pre- and post- execution
 	// of the given object.
-	ReachingDefSet* pre_defs;
-	ReachingDefSet* post_defs;
+	IntrusivePtr<ReachingDefSet> pre_min_defs;
+	IntrusivePtr<ReachingDefSet> post_min_defs;
 
 	// The object we most recently finished analyzing.
 	const BroObj* last_obj;
@@ -119,8 +119,6 @@ protected:
 
 RD_Decorate::RD_Decorate()
 	{
-	pre_defs = new ReachingDefSet(item_map);
-	post_defs = new ReachingDefSet(item_map);
 	last_obj = nullptr;
 
 	trace = getenv("ZEEK_OPT_TRACE") != nullptr;
@@ -316,8 +314,6 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 	case STMT_IF:
 		{
 		auto i = s->AsIfStmt();
-
-		// ### traverse i and propagate
 
 		auto if_branch_rd = GetPostRDs(i->TrueBranch());
 		auto else_branch_rd = GetPostRDs(i->FalseBranch());

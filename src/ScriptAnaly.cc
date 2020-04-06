@@ -50,24 +50,24 @@ protected:
 	bool ControlReachesEnd(const Stmt* s, bool is_definite,
 				bool ignore_break = false) const;
 
-	RD_ptr PredecessorRDs() const
+	RD_ptr PredecessorMinRDs() const
 		{
-		auto rd = PostRDsIfAny(last_obj);
+		auto rd = PostMinRDsIfAny(last_obj);
 		if ( rd && rd->Size() > 0 )
 			return rd;
 
 		// PostRDs haven't been set yet.
-		return GetPreRDs(last_obj);
+		return GetPreMinRDs(last_obj);
 		}
 
-	RD_ptr PreRDsIfAny(const BroObj* o) const
+	RD_ptr PreMinRDsIfAny(const BroObj* o) const
 		{ return pre_min_defs->RDsIfAny(o); }
-	RD_ptr PostRDsIfAny(const BroObj* o) const
+	RD_ptr PostMinRDsIfAny(const BroObj* o) const
 		{ return post_min_defs->RDsIfAny(o); }
 
-	RD_ptr GetPreRDs(const BroObj* o) const
+	RD_ptr GetPreMinRDs(const BroObj* o) const
 		{ return GetRDs(pre_min_defs, o); }
-	RD_ptr GetPostRDs(const BroObj* o) const
+	RD_ptr GetPostMinRDs(const BroObj* o) const
 		{ return GetRDs(post_min_defs, o); }
 
 	RD_ptr GetRDs(IntrusivePtr<ReachingDefSet> defs, const BroObj* o) const
@@ -157,7 +157,7 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 	if ( trace )
 		{
 		printf("traversing function %s, post RDs:\n", f->Name());
-		GetPostRDs(f)->Dump();
+		GetPostMinRDs(f)->Dump();
 		}
 
 	// Don't continue traversal here, as that will then loop over
@@ -167,9 +167,9 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 
 TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 	{
-	AddMinPreRDs(s, PredecessorRDs());
+	AddMinPreRDs(s, PredecessorMinRDs());
 
-	auto rd = GetPreRDs(s);
+	auto rd = GetPreMinRDs(s);
 
 	if ( trace )
 		{
@@ -201,8 +201,8 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		AddMinPreRDs(i->FalseBranch(), my_rds);
 		i->FalseBranch()->Traverse(this);
 
-		auto if_branch_rd = GetPostRDs(i->TrueBranch());
-		auto else_branch_rd = GetPostRDs(i->FalseBranch());
+		auto if_branch_rd = GetPostMinRDs(i->TrueBranch());
+		auto else_branch_rd = GetPostMinRDs(i->FalseBranch());
 
 		auto true_reached = ControlReachesEnd(i->TrueBranch(), false);
 		auto false_reached = ControlReachesEnd(i->FalseBranch(), false);
@@ -281,7 +281,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 
 		// Apply intersection since loop might not execute
 		// at all.
-		auto post_rds = GetPreRDs(s)->Intersect(GetPostRDs(body));
+		auto post_rds = GetPreMinRDs(s)->Intersect(GetPostMinRDs(body));
 
 		CreatePostRDs(s, post_rds);
 
@@ -303,13 +303,13 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 	case STMT_PRINT:
 	case STMT_EVENT:
 	case STMT_WHEN:
-		post_rds = GetPreRDs(s);
+		post_rds = GetPreMinRDs(s);
 		break;
 
         case STMT_EXPR:
 		{
 		auto e = s->AsExprStmt()->StmtExpr();
-		post_rds = GetPostRDs(e);
+		post_rds = GetPostMinRDs(e);
 		break;
 		}
 
@@ -325,7 +325,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 			{
 			if ( ControlReachesEnd(c->Body(), false) )
 				{
-				auto case_rd = GetPostRDs(c->Body());
+				auto case_rd = GetPostMinRDs(c->Body());
 				if ( did_first )
 					post_rds = post_rds->Intersect(case_rd);
 				else
@@ -345,9 +345,9 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		if ( ! default_seen )
 			{
 			if ( post_rds )
-				post_rds = post_rds->Union(GetPreRDs(s));
+				post_rds = post_rds->Union(GetPreMinRDs(s));
 			else
-				post_rds = GetPreRDs(s);
+				post_rds = GetPreMinRDs(s);
 			}
 
 		break;
@@ -363,7 +363,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 
 		// Apply intersection since loop might not execute
 		// at all.
-		post_rds = GetPreRDs(s)->Intersect(GetPostRDs(body));
+		post_rds = GetPreMinRDs(s)->Intersect(GetPostMinRDs(body));
 
 		break;
 		}
@@ -377,9 +377,9 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		if ( ControlReachesEnd(l, false ) )
 			{
 			if ( stmts.length() == 0 )
-				post_rds = GetPreRDs(s);
+				post_rds = GetPreMinRDs(s);
 			else
-				post_rds = GetPostRDs(stmts[stmts.length() - 1]);
+				post_rds = GetPostMinRDs(stmts[stmts.length() - 1]);
 			}
 
 		else
@@ -393,7 +393,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		auto init = s->AsInitStmt();
 		auto& inits = *init->Inits();
 
-		post_rds = GetPreRDs(s);
+		post_rds = GetPreMinRDs(s);
 
 		for ( int i = 0; i < inits.length(); ++i )
 			{
@@ -449,7 +449,7 @@ void RD_Decorate::CreatePostRDs(const Stmt* s, RD_ptr post_rds)
 	if ( trace )
 		{
 		printf("post RDs for stmt %s:\n", stmt_name(s->Tag()));
-		GetPostRDs(s)->Dump();
+		GetPostMinRDs(s)->Dump();
 		}
 	}
 
@@ -659,14 +659,14 @@ bool RD_Decorate::ControlReachesEnd(const Stmt* s, bool is_definite,
 
 TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	{
-	AddMinPreRDs(e, PredecessorRDs());
+	AddMinPreRDs(e, PredecessorMinRDs());
 
-	auto rd = GetPreRDs(e);
+	auto rd = GetPreMinRDs(e);
 
 	if ( trace )
 		{
 		printf("pre RDs for expr %s:\n", expr_name(e->Tag()));
-		GetPreRDs(e)->Dump();
+		GetPreMinRDs(e)->Dump();
 		}
 
 	last_obj = e;
@@ -709,7 +709,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 
 			// Treat this as an initalization of the set.
 			AddRD(rd, lhs_id, DefinitionPoint(a_t));
-			AddMinPostRDs(e, GetPreRDs(e));
+			AddMinPostRDs(e, GetPreMinRDs(e));
 			AddMinPostRDs(e, rd);
 
 			a_t->Op2()->Traverse(this);
@@ -729,7 +729,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 
 		if ( CheckLHS(rd, lhs, a) )
 			{
-			AddMinPostRDs(e, GetPreRDs(e));
+			AddMinPostRDs(e, GetPreMinRDs(e));
 			AddMinPostRDs(e, rd);
 
 			if ( ! rhs_aggr )
@@ -830,7 +830,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 				expr->Traverse(this);
 			}
 
-		AddMinPostRDs(e, GetPreRDs(e));
+		AddMinPostRDs(e, GetPreMinRDs(e));
 		AddMinPostRDs(e, rd);
 
 		return TC_ABORTSTMT;
@@ -838,21 +838,21 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 
 	case EXPR_LAMBDA:
 		// ### Too tricky to get these right.
-		AddMinPostRDs(e, GetPreRDs(e));
+		AddMinPostRDs(e, GetPreMinRDs(e));
 		return TC_ABORTSTMT;
 
 	default:
 		break;
 	}
 
-	AddMinPostRDs(e, GetPreRDs(e));
+	AddMinPostRDs(e, GetPreMinRDs(e));
 
 	return TC_CONTINUE;
 	}
 
 TraversalCode RD_Decorate::PostExpr(const Expr* e)
 	{
-	AddMinPostRDs(e, GetPreRDs(e));
+	AddMinPostRDs(e, GetPreMinRDs(e));
 
 	if ( e->Tag() == EXPR_APPEND_TO )
 		{

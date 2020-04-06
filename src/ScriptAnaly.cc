@@ -103,6 +103,8 @@ protected:
 				bool assume_full, DefinitionPoint dp,
 				const DefinitionItem* rhs_di);
 
+	void CreatePostRDs(const Stmt* s, RD_ptr post_rds);
+
 	// Mappings of reaching defs pre- and post- execution
 	// of the given object.
 	IntrusivePtr<ReachingDefSet> pre_min_defs;
@@ -119,6 +121,9 @@ protected:
 
 RD_Decorate::RD_Decorate()
 	{
+	pre_min_defs = make_intrusive<ReachingDefSet>(item_map);
+	post_min_defs = make_intrusive<ReachingDefSet>(item_map);
+
 	last_obj = nullptr;
 
 	trace = getenv("ZEEK_OPT_TRACE") != nullptr;
@@ -180,16 +185,45 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		// For now we assume there no definitions occur
 		// inside the conditional.  If one does, we'll
 		// detect that & complain about it in the PostStmt.
+		//
+		// (Note: when working with reduced statements, this
+		// is a non-issue.)
 		auto i = s->AsIfStmt();
-
-		// ### need to manually control traversal since
-		// don't want RDs coming out of the TrueBranch
-		// to propagate to the FalseBranch.
 		auto my_rds = rd;
-		AddPreRDs(i->TrueBranch(), my_rds);
-		AddPreRDs(i->FalseBranch(), my_rds);
 
-		break;
+		// Need to manually control traversal since don't want
+		// RDs coming out of the TrueBranch to propagate to the
+		// FalseBranch.
+
+		AddPreRDs(i->TrueBranch(), my_rds);
+		i->TrueBranch()->Traverse(this);
+
+		AddPreRDs(i->FalseBranch(), my_rds);
+		i->FalseBranch()->Traverse(this);
+
+		auto if_branch_rd = GetPostRDs(i->TrueBranch());
+		auto else_branch_rd = GetPostRDs(i->FalseBranch());
+
+		auto true_reached = ControlReachesEnd(i->TrueBranch(), false);
+		auto false_reached = ControlReachesEnd(i->FalseBranch(), false);
+
+		RD_ptr post_rds = nullptr;
+
+		if ( true_reached && false_reached )
+			post_rds = if_branch_rd->Intersect(else_branch_rd);
+
+		else if ( true_reached )
+			post_rds = if_branch_rd;
+
+		else if ( false_reached )
+			post_rds = else_branch_rd;
+
+		else
+			; // leave empty
+
+		CreatePostRDs(s, post_rds);
+
+		return TC_ABORTSTMT;
 		}
 
 	case STMT_SWITCH:
@@ -220,70 +254,38 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		auto ids = f->LoopVar();
 		auto e = f->LoopExpr();
 		auto body = f->LoopBody();
+		auto val_var = f->ValueVar();
 
 		for ( const auto& id : *ids )
 			AddRDWithInit(rd, id, DefinitionPoint(s),
 						true, 0);
-
-		auto val_var = f->ValueVar();
 		if ( val_var )
 			AddRDWithInit(rd, val_var, DefinitionPoint(s), true, 0);
 
 		AddPreRDs(e, rd);
 		AddPreRDs(body, rd);
 
-		if ( e->Tag() == EXPR_NAME )
-			{
-			// Don't traverse into the loop expression,
-			// as it's okay if it's not initialized at this
-			// point - that will just result in any empty loop.
-			//
-			// But then we do need to manually traverse the
-			// body.
-			body->Traverse(this);
-			return TC_ABORTSTMT;
+		// If the loop expression's value is uninitialized, that's
+		// okay, it will just result in an empty loop.  In principle,
+		// for a non-reduced statement it's possible that *getting*
+		// to the value will touch on something uninitialized.
+		// For reduced form, however, that will already have been
+		// hoisted out, so not a concern.
+		//
+		// To keep from traversing, we just do the body manually here.
 
-			// ### need to do PostStmt for For here
-			}
+		body->Traverse(this);
 
-		break;
-		}
+		// ### If post differs from pre, propagate to
+		// beginning and re-traverse.
 
-	case STMT_RETURN:
-		{
-		auto r = s->AsReturnStmt();
-		auto e = r->StmtExpr();
+		// Apply intersection since loop might not execute
+		// at all.
+		auto post_rds = GetPreRDs(s)->Intersect(GetPostRDs(body));
 
-		if ( e && IsAggr(e) )
-			return TC_ABORTSTMT;
+		CreatePostRDs(s, post_rds);
 
-		break;
-		}
-
-	case STMT_ADD:
-		{
-		auto a = s->AsAddStmt();
-		auto a_e = a->StmtExpr();
-
-		if ( a_e->Tag() == EXPR_INDEX )
-			{
-			auto a_e_i = a_e->AsIndexExpr();
-			auto a1 = a_e_i->Op1();
-			auto a2 = a_e_i->Op2();
-
-			if ( IsAggr(a1) )
-				{
-				a2->Traverse(this);
-
-				auto i1 = a1->AsNameExpr()->Id();
-				AddRD(rd, i1, DefinitionPoint(s));
-				AddPostRDs(s, rd);
-
-				return TC_ABORTSTMT;
-				}
-			}
-
-		break;
+		return TC_ABORTSTMT;
 		}
 
 	default:
@@ -308,31 +310,6 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		{
 		auto e = s->AsExprStmt()->StmtExpr();
 		post_rds = GetPostRDs(e);
-		break;
-		}
-
-	case STMT_IF:
-		{
-		auto i = s->AsIfStmt();
-
-		auto if_branch_rd = GetPostRDs(i->TrueBranch());
-		auto else_branch_rd = GetPostRDs(i->FalseBranch());
-
-		auto true_reached = ControlReachesEnd(i->TrueBranch(), false);
-		auto false_reached = ControlReachesEnd(i->FalseBranch(), false);
-
-		if ( true_reached && false_reached )
-			post_rds = if_branch_rd->Intersect(else_branch_rd);
-
-		else if ( true_reached )
-			post_rds = if_branch_rd;
-
-		else if ( false_reached )
-			post_rds = else_branch_rd;
-
-		else
-			; // leave empty
-
 		break;
 		}
 
@@ -372,21 +349,6 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 			else
 				post_rds = GetPreRDs(s);
 			}
-
-		break;
-		}
-
-	case STMT_FOR:
-		{
-		auto f = s->AsForStmt();
-		auto body = f->LoopBody();
-
-		// ### If post differs from pre, propagate to
-		// beginning and re-traverse.
-
-		// Apply intersection since loop might not execute
-		// at all.
-		post_rds = GetPreRDs(s)->Intersect(GetPostRDs(body));
 
 		break;
 		}
@@ -467,22 +429,17 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		// Anyhoo, punt for now. ###
 		break;
 
-	case STMT_ADD:
-		// Tracking what's added to sets could have
-		// some analysis utility but seems pretty rare,
-		// so we punt for now. ###
-		break;
-
-	case STMT_DELETE:
-		// Ideally we'd track these for removing optional
-		// record elements, or (maybe) some inferences
-		// about table/set elements. ###
-		break;
-
 	default:
 		break;
 	}
 
+	CreatePostRDs(s, post_rds);
+
+	return TC_CONTINUE;
+	}
+
+void RD_Decorate::CreatePostRDs(const Stmt* s, RD_ptr post_rds)
+	{
 	if ( ! post_rds )
 		post_rds = make_new_RD_ptr();
 
@@ -494,8 +451,6 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		printf("post RDs for stmt %s:\n", stmt_name(s->Tag()));
 		GetPostRDs(s)->Dump();
 		}
-
-	return TC_CONTINUE;
 	}
 
 bool RD_Decorate::CheckLHS(RD_ptr rd, const Expr* lhs, const AssignExpr* a)

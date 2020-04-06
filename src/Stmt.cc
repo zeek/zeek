@@ -1263,12 +1263,18 @@ WhileStmt::~WhileStmt() = default;
 
 bool WhileStmt::IsPure() const
 	{
-	return loop_condition->IsPure() && body->IsPure();
+	if ( ! loop_condition->IsPure() )
+		return false;
+
+	if ( ! body->IsPure() )
+		return false;
+
+	return ! loop_cond_stmt || loop_cond_stmt->IsPure();
 	}
 
 bool WhileStmt::IsReduced() const
 	{
-	// No need to check loop_cond_stmt, as we create them reduced.
+	// No need to check loop_cond_stmt, as we create it reduced.
 	return loop_condition->IsReduced() && body->IsReduced();
 	}
 
@@ -1316,6 +1322,12 @@ TraversalCode WhileStmt::Traverse(TraversalCallback* cb) const
 	{
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
+
+	if ( loop_cond_stmt )
+		{
+		tc = loop_cond_stmt->Traverse(cb);
+		HANDLE_TC_STMT_PRE(tc);
+		}
 
 	tc = loop_condition->Traverse(cb);
 	HANDLE_TC_STMT_PRE(tc);

@@ -349,6 +349,8 @@ public:
 	Stmt* Reduce(ReductionContext* c) override;
 
 	const Expr* Condition() const	{ return loop_condition.get(); }
+	const Stmt* CondStmt() const
+		{ return loop_cond_stmt ? loop_cond_stmt.get() : nullptr; }
 	const Stmt* Body() const	{ return body.get(); }
 
 	void StmtDescribe(ODesc* d) const override;

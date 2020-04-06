@@ -1,4 +1,13 @@
 
+3.0.4-dev.7 | 2020-04-09 14:25:33 -0700
+
+  * Fix connection duration thresholding (Jon Siwek, Corelight)
+
+    Connection durations were being compared "less than" instead of "greater
+    than" the desired duration threshold as provided to
+    set_current_conn_bytes_threshold() or
+    ConnThreshold::set_duration_threshold()
+
 3.0.4-dev.6 | 2020-04-09 14:19:17 -0700
 
   * Fix bug in intel indicator normalization (Antonio Nappa, Corelight)

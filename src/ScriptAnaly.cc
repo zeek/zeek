@@ -80,12 +80,12 @@ protected:
 	// ### If we want to go to sharing RD sets using copy-on-write,
 	// then a starting point is altering the const RD_ptr&'s in
 	// these APIs to instead be RD_ptr's.
-	void AddPreRDs(const BroObj* o, const RD_ptr& rd)
+	void AddMinPreRDs(const BroObj* o, const RD_ptr& rd)
 		{ pre_min_defs->AddRDs(o, rd); }
-	void AddPostRDs(const BroObj* o, const RD_ptr& rd)
+	void AddMinPostRDs(const BroObj* o, const RD_ptr& rd)
 		{ post_min_defs->AddRDs(o, rd); }
 
-	bool HasPreRD(const BroObj* o, const ID* id) const
+	bool HasMinPreRD(const BroObj* o, const ID* id) const
 		{
 		return pre_min_defs->HasRD(o, id);
 		}
@@ -151,7 +151,7 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 		AddRDWithInit(rd, arg_i_id, DefinitionPoint(f), true, 0);
 		}
 
-	AddPostRDs(f, rd);
+	AddMinPostRDs(f, rd);
 	last_obj = f;
 
 	if ( trace )
@@ -167,7 +167,7 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 
 TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 	{
-	AddPreRDs(s, PredecessorRDs());
+	AddMinPreRDs(s, PredecessorRDs());
 
 	auto rd = GetPreRDs(s);
 
@@ -195,10 +195,10 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		// RDs coming out of the TrueBranch to propagate to the
 		// FalseBranch.
 
-		AddPreRDs(i->TrueBranch(), my_rds);
+		AddMinPreRDs(i->TrueBranch(), my_rds);
 		i->TrueBranch()->Traverse(this);
 
-		AddPreRDs(i->FalseBranch(), my_rds);
+		AddMinPreRDs(i->FalseBranch(), my_rds);
 		i->FalseBranch()->Traverse(this);
 
 		auto if_branch_rd = GetPostRDs(i->TrueBranch());
@@ -241,7 +241,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 						DefinitionPoint(s), true, 0);
 				}
 
-			AddPreRDs(c->Body(), rd);
+			AddMinPreRDs(c->Body(), rd);
 			}
 
 		break;
@@ -262,8 +262,8 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		if ( val_var )
 			AddRDWithInit(rd, val_var, DefinitionPoint(s), true, 0);
 
-		AddPreRDs(e, rd);
-		AddPreRDs(body, rd);
+		AddMinPreRDs(e, rd);
+		AddMinPreRDs(body, rd);
 
 		// If the loop expression's value is uninitialized, that's
 		// okay, it will just result in an empty loop.  In principle,
@@ -443,7 +443,7 @@ void RD_Decorate::CreatePostRDs(const Stmt* s, RD_ptr post_rds)
 	if ( ! post_rds )
 		post_rds = make_new_RD_ptr();
 
-	AddPostRDs(s, post_rds);
+	AddMinPostRDs(s, post_rds);
 	last_obj = s;
 
 	if ( trace )
@@ -659,7 +659,7 @@ bool RD_Decorate::ControlReachesEnd(const Stmt* s, bool is_definite,
 
 TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	{
-	AddPreRDs(e, PredecessorRDs());
+	AddMinPreRDs(e, PredecessorRDs());
 
 	auto rd = GetPreRDs(e);
 
@@ -681,17 +681,17 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			{
 			// Treat global as fully initialized.
 			AddRDWithInit(rd, id, DefinitionPoint(n), true, nullptr);
-			AddPreRDs(e, rd);
+			AddMinPreRDs(e, rd);
 			}
 
-		if ( ! HasPreRD(e, id) )
+		if ( ! HasMinPreRD(e, id) )
 			printf("%s has no pre at %s\n", id->Name(), obj_desc(e));
 
 		if ( id->Type()->Tag() == TYPE_RECORD )
 			{
 			CreateRecordRDs(rd, item_map.GetIDReachingDef(id),
 					false, DefinitionPoint(n), nullptr);
-			AddPostRDs(e, rd);
+			AddMinPostRDs(e, rd);
 			}
 
 		break;
@@ -709,8 +709,8 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 
 			// Treat this as an initalization of the set.
 			AddRD(rd, lhs_id, DefinitionPoint(a_t));
-			AddPostRDs(e, GetPreRDs(e));
-			AddPostRDs(e, rd);
+			AddMinPostRDs(e, GetPreRDs(e));
+			AddMinPostRDs(e, rd);
 
 			a_t->Op2()->Traverse(this);
 			return TC_ABORTSTMT;
@@ -729,8 +729,8 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 
 		if ( CheckLHS(rd, lhs, a) )
 			{
-			AddPostRDs(e, GetPreRDs(e));
-			AddPostRDs(e, rd);
+			AddMinPostRDs(e, GetPreRDs(e));
+			AddMinPostRDs(e, rd);
 
 			if ( ! rhs_aggr )
 				rhs->Traverse(this);
@@ -799,7 +799,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 				auto ft = id_rt->FieldType(fn);
 				field_rd = id_rd->CreateField(fn, ft);
 				rd->AddRD(field_rd, DefinitionPoint(hf));
-				AddPostRDs(e, rd);
+				AddMinPostRDs(e, rd);
 				}
 			}
 
@@ -830,29 +830,29 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 				expr->Traverse(this);
 			}
 
-		AddPostRDs(e, GetPreRDs(e));
-		AddPostRDs(e, rd);
+		AddMinPostRDs(e, GetPreRDs(e));
+		AddMinPostRDs(e, rd);
 
 		return TC_ABORTSTMT;
 		}
 
 	case EXPR_LAMBDA:
 		// ### Too tricky to get these right.
-		AddPostRDs(e, GetPreRDs(e));
+		AddMinPostRDs(e, GetPreRDs(e));
 		return TC_ABORTSTMT;
 
 	default:
 		break;
 	}
 
-	AddPostRDs(e, GetPreRDs(e));
+	AddMinPostRDs(e, GetPreRDs(e));
 
 	return TC_CONTINUE;
 	}
 
 TraversalCode RD_Decorate::PostExpr(const Expr* e)
 	{
-	AddPostRDs(e, GetPreRDs(e));
+	AddMinPostRDs(e, GetPreRDs(e));
 
 	if ( e->Tag() == EXPR_APPEND_TO )
 		{
@@ -865,7 +865,7 @@ TraversalCode RD_Decorate::PostExpr(const Expr* e)
 		auto lhs = a_t->Op1();
 
 		if ( CheckLHS(rd, lhs, nullptr) )
-			AddPostRDs(e, rd);
+			AddMinPostRDs(e, rd);
 		}
 
 	return TC_CONTINUE;
@@ -888,7 +888,7 @@ void RD_Decorate::TrackInits(const Func* f, const id_list* inits)
 			AddRDWithInit(rd, id, DefinitionPoint(f), false, 0);
 		}
 
-	AddPostRDs(f, rd);
+	AddMinPostRDs(f, rd);
 	}
 
 void RD_Decorate::AddRD(RD_ptr rd, const ID* id, DefinitionPoint dp)

@@ -27,6 +27,7 @@ static char obj_desc_storage[8192];
 static const char* obj_desc(const BroObj* o)
 	{
 	ODesc d;
+	d.SetDoOrig(false);
 	o->Describe(&d);
 	d.SP();
 	o->GetLocationInfo()->Describe(&d);
@@ -194,7 +195,10 @@ void Expr::Describe(ODesc* d) const
 	if ( d->IsPortable() || d->IsBinary() )
 		AddTag(d);
 
-	ExprDescribe(d);
+	if ( d->DoOrig() )
+		Original()->ExprDescribe(d);
+	else
+		ExprDescribe(d);
 
 	if ( IsParen() && ! d->IsBinary() )
 		d->Add(")");
@@ -263,7 +267,7 @@ void Expr::ExprError(const char msg[])
 
 void Expr::RuntimeError(const std::string& msg) const
 	{
-	reporter->ExprRuntimeError(this, "%s", msg.data());
+	reporter->ExprRuntimeError(Original(), "%s", msg.data());
 	}
 
 void Expr::RuntimeErrorWithCallStack(const std::string& msg) const
@@ -271,13 +275,14 @@ void Expr::RuntimeErrorWithCallStack(const std::string& msg) const
 	auto rcs = render_call_stack();
 
 	if ( rcs.empty() )
-		reporter->ExprRuntimeError(this, "%s", msg.data());
+		reporter->ExprRuntimeError(Original(), "%s", msg.data());
 	else
 		{
 		ODesc d;
 		d.SetShort();
 		Describe(&d);
-		reporter->RuntimeError(GetLocationInfo(), "%s, expression: %s, call stack: %s",
+		reporter->RuntimeError(Original()->GetLocationInfo(),
+					"%s, expression: %s, call stack: %s",
 		                       msg.data(), d.Description(), rcs.data());
 		}
 	}
@@ -1471,6 +1476,7 @@ Expr* AddToExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	if ( IsVector(op1->Type()->Tag()) )
 		{
 		auto append = new AppendToExpr(op1, op2);
+		append->SetOriginal(this);
 // printf("about to reduce %s\n", obj_desc(append));
 		auto res = append->Reduce(c, red_stmt);
 // printf(" ... reduced to: %s\n", obj_desc(res));

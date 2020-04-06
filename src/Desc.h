@@ -45,6 +45,11 @@ public:
 	bool WantQuotes() const	{ return want_quotes; }
 	void SetQuotes(bool q)	{ want_quotes = q; }
 
+	// Whether to describe the original object from which a given
+	// object was derived, or the object itself.
+	bool DoOrig() const	{ return do_orig; }
+	void SetDoOrig(bool o)	{ do_orig = o; }
+
 	// Whether we want to print statistics like access time and execution
 	// count where available.
 	bool IncludeStats() const	{ return include_stats; }
@@ -200,6 +205,7 @@ protected:
 	bool is_short;
 	bool want_quotes;
 	bool do_flush;
+	bool do_orig;
 	bool include_stats;
 
 	std::set<const BroType*> encountered_types;

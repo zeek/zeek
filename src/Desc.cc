@@ -38,6 +38,7 @@ ODesc::ODesc(desc_type t, BroFile* arg_f)
 	is_short = false;
 	want_quotes = false;
 	do_flush = true;
+	do_orig = true;
 	include_stats = false;
 	indent_with_spaces = 0;
 	escape = false;

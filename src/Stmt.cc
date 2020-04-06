@@ -25,6 +25,7 @@ static char obj_desc_storage[8192];
 static const char* obj_desc(const BroObj* o)
 	{
 	ODesc d;
+	d.SetDoOrig(false);
 	o->Describe(&d);
 	d.SP();
 	o->GetLocationInfo()->Describe(&d);
@@ -110,6 +111,14 @@ bool Stmt::IsReduced() const
 	}
 
 void Stmt::Describe(ODesc* d) const
+	{
+	if ( d->DoOrig() )
+		Original()->StmtDescribe(d);
+	else
+		StmtDescribe(d);
+	}
+
+void Stmt::StmtDescribe(ODesc* d) const
 	{
 	if ( ! d->IsReadable() || Tag() != STMT_EXPR )
 		AddTag(d);
@@ -232,12 +241,12 @@ Stmt* ExprListStmt::Reduce(ReductionContext* c)
 
 	s->Stmts().push_back(DoReduce(new_l, c));
 
-	return TransformMe(s, c);
+	return s->Reduce(c);
 	}
 
-void ExprListStmt::Describe(ODesc* d) const
+void ExprListStmt::StmtDescribe(ODesc* d) const
 	{
-	Stmt::Describe(d);
+	Stmt::StmtDescribe(d);
 	l->Describe(d);
 	DescribeDone(d);
 	}
@@ -455,9 +464,9 @@ Stmt* ExprStmt::Reduce(ReductionContext* c)
 		return TransformMe(new NullStmt, c);
 	}
 
-void ExprStmt::Describe(ODesc* d) const
+void ExprStmt::StmtDescribe(ODesc* d) const
 	{
-	Stmt::Describe(d);
+	Stmt::StmtDescribe(d);
 
 	if ( d->IsReadable() && Tag() == STMT_IF )
 		d->Add("(");
@@ -560,9 +569,9 @@ Stmt* IfStmt::Reduce(ReductionContext* c)
 	return this->Ref();
 	}
 
-void IfStmt::Describe(ODesc* d) const
+void IfStmt::StmtDescribe(ODesc* d) const
 	{
-	ExprStmt::Describe(d);
+	ExprStmt::StmtDescribe(d);
 
 	d->PushIndent();
 	s1->AccessStats(d);
@@ -1061,9 +1070,9 @@ Stmt* SwitchStmt::Reduce(ReductionContext* rc)
 	return this->Ref();
 	}
 
-void SwitchStmt::Describe(ODesc* d) const
+void SwitchStmt::StmtDescribe(ODesc* d) const
 	{
-	ExprStmt::Describe(d);
+	ExprStmt::StmtDescribe(d);
 
 	if ( ! d->IsBinary() )
 		d->Add("{");
@@ -1277,9 +1286,9 @@ Stmt* WhileStmt::Reduce(ReductionContext* c)
 	return this->Ref();
 	}
 
-void WhileStmt::Describe(ODesc* d) const
+void WhileStmt::StmtDescribe(ODesc* d) const
 	{
-	Stmt::Describe(d);
+	Stmt::StmtDescribe(d);
 
 	if ( d->IsReadable() )
 		d->Add("(");
@@ -1580,9 +1589,9 @@ Stmt* ForStmt::Reduce(ReductionContext* c)
 	return this->Ref();
 	}
 
-void ForStmt::Describe(ODesc* d) const
+void ForStmt::StmtDescribe(ODesc* d) const
 	{
-	Stmt::Describe(d);
+	Stmt::StmtDescribe(d);
 
 	if ( d->IsReadable() )
 		d->Add("(");
@@ -1649,9 +1658,9 @@ bool NextStmt::IsPure() const
 	return true;
 	}
 
-void NextStmt::Describe(ODesc* d) const
+void NextStmt::StmtDescribe(ODesc* d) const
 	{
-	Stmt::Describe(d);
+	Stmt::StmtDescribe(d);
 	Stmt::DescribeDone(d);
 	}
 
@@ -1676,9 +1685,9 @@ bool BreakStmt::IsPure() const
 	return true;
 	}
 
-void BreakStmt::Describe(ODesc* d) const
+void BreakStmt::StmtDescribe(ODesc* d) const
 	{
-	Stmt::Describe(d);
+	Stmt::StmtDescribe(d);
 	Stmt::DescribeDone(d);
 	}
 
@@ -1703,9 +1712,9 @@ bool FallthroughStmt::IsPure() const
 	return false;
 	}
 
-void FallthroughStmt::Describe(ODesc* d) const
+void FallthroughStmt::StmtDescribe(ODesc* d) const
 	{
-	Stmt::Describe(d);
+	Stmt::StmtDescribe(d);
 	Stmt::DescribeDone(d);
 	}
 
@@ -1791,9 +1800,9 @@ Stmt* ReturnStmt::Reduce(ReductionContext* c)
 	return this->Ref();
 	}
 
-void ReturnStmt::Describe(ODesc* d) const
+void ReturnStmt::StmtDescribe(ODesc* d) const
 	{
-	Stmt::Describe(d);
+	Stmt::StmtDescribe(d);
 	if ( ! d->IsReadable() )
 		d->Add(e != 0);
 
@@ -1938,7 +1947,7 @@ Stmt* StmtList::Reduce(ReductionContext* c)
 	if ( f_stmts->length() == 1 )
 		{
 // printf("transforming to single statement: %s\n", obj_desc((*f_stmts)[0]));
-		return TransformMe((*f_stmts)[0], c);
+		return (*f_stmts)[0]->Reduce(c);
 		}
 
 	if ( did_change )
@@ -1949,7 +1958,7 @@ Stmt* StmtList::Reduce(ReductionContext* c)
 	return this->Ref();
 	}
 
-void StmtList::Describe(ODesc* d) const
+void StmtList::StmtDescribe(ODesc* d) const
 	{
 	if ( ! d->IsReadable() )
 		{
@@ -2025,7 +2034,7 @@ IntrusivePtr<Val> EventBodyList::Exec(Frame* f, stmt_flow_type& flow) const
 	return nullptr;
 	}
 
-void EventBodyList::Describe(ODesc* d) const
+void EventBodyList::StmtDescribe(ODesc* d) const
 	{
 	if ( d->IsReadable() && Stmts().length() > 0 )
 		{
@@ -2049,7 +2058,7 @@ void EventBodyList::Describe(ODesc* d) const
 		}
 
 	else
-		StmtList::Describe(d);
+		StmtList::StmtDescribe(d);
 	}
 
 InitStmt::InitStmt(id_list* arg_inits) : Stmt(STMT_INIT)
@@ -2098,7 +2107,7 @@ IntrusivePtr<Val> InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	return nullptr;
 	}
 
-void InitStmt::Describe(ODesc* d) const
+void InitStmt::StmtDescribe(ODesc* d) const
 	{
 	AddTag(d);
 
@@ -2143,7 +2152,7 @@ bool NullStmt::IsPure() const
 	return true;
 	}
 
-void NullStmt::Describe(ODesc* d) const
+void NullStmt::StmtDescribe(ODesc* d) const
 	{
 	if ( d->IsReadable() )
 		DescribeDone(d);
@@ -2214,9 +2223,9 @@ bool WhenStmt::IsReduced() const
 	return true;
 	}
 
-void WhenStmt::Describe(ODesc* d) const
+void WhenStmt::StmtDescribe(ODesc* d) const
 	{
-	Stmt::Describe(d);
+	Stmt::StmtDescribe(d);
 
 	if ( d->IsReadable() )
 		d->Add("(");

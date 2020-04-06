@@ -92,7 +92,7 @@ public:
 	void AccessStats(ODesc* d) const;
 	uint32_t GetAccessCount() const { return access_count; }
 
-	void Describe(ODesc* d) const override;
+	void Describe(ODesc* d) const final;
 
 	virtual void IncrBPCount()	{ ++breakpoint_count; }
 	virtual void DecrBPCount();
@@ -105,9 +105,22 @@ protected:
 	Stmt()	{ original = nullptr; }
 	explicit Stmt(BroStmtTag arg_tag);
 
-	void SetOriginal(Stmt* _orig)	{ original = _orig; }
+	const Stmt* Original() const
+		{
+		if ( original )
+			return original->Original();
+		else
+			return this;
+		}
+
+	void SetOriginal(Stmt* _orig)
+		{
+		if ( ! original )
+			original = _orig->Ref();
+		}
 
 	void AddTag(ODesc* d) const;
+	virtual void StmtDescribe(ODesc* d) const;
 	void DescribeDone(ODesc* d) const;
 
 	// Helper function called after reductions to perform
@@ -149,7 +162,7 @@ protected:
 	virtual Stmt* DoReduce(IntrusivePtr<ListExpr> singletons,
 				ReductionContext* c) = 0;
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 
 	IntrusivePtr<ListExpr> l;
 };
@@ -176,7 +189,7 @@ public:
 
 	const Expr* StmtExpr() const	{ return e.get(); }
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -200,7 +213,7 @@ public:
 	const Stmt* TrueBranch() const	{ return s1.get(); }
 	const Stmt* FalseBranch() const	{ return s2.get(); }
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -249,7 +262,7 @@ public:
 
 	const case_list* Cases() const	{ return cases; }
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -338,7 +351,7 @@ public:
 	const Expr* Condition() const	{ return loop_condition.get(); }
 	const Stmt* Body() const	{ return body.get(); }
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -368,7 +381,7 @@ public:
 	bool IsReduced() const override;
 	Stmt* Reduce(ReductionContext* c) override;
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -389,7 +402,7 @@ public:
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 	bool IsPure() const override;
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -403,7 +416,7 @@ public:
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 	bool IsPure() const override;
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -417,7 +430,7 @@ public:
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 	bool IsPure() const override;
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -432,7 +445,7 @@ public:
 
 	Stmt* Reduce(ReductionContext* c) override;
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 };
 
 class StmtList : public Stmt {
@@ -454,7 +467,7 @@ public:
 	const stmt_list& Stmts() const	{ return *stmts; }
 	stmt_list& Stmts()		{ return *stmts; }
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -478,7 +491,7 @@ public:
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 
 	// "Topmost" means that this is the main body of a function or event.
 	// void SetTopmost(bool is_topmost)	{ topmost = is_topmost; }
@@ -498,7 +511,7 @@ public:
 
 	const id_list* Inits() const	{ return inits; }
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -513,7 +526,7 @@ public:
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 	bool IsPure() const override;
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 };
@@ -535,7 +548,7 @@ public:
 	const Expr* TimeoutExpr() const	{ return timeout.get(); }
 	const Stmt* TimeoutBody() const	{ return s2.get(); }
 
-	void Describe(ODesc* d) const override;
+	void StmtDescribe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 

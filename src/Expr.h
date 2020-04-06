@@ -231,6 +231,12 @@ public:
 #undef ACCESSOR
 #undef CONST_ACCESSOR
 
+	void SetOriginal(Expr* _orig)
+		{
+		if ( ! original )
+			original = _orig->Ref();
+		}
+
 	void Describe(ODesc* d) const override;
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const = 0;
@@ -240,7 +246,13 @@ protected:
 	// Expr() = default;
 	explicit Expr(BroExprTag arg_tag);
 
-	void SetOriginal(Expr* _orig)	{ original = _orig; }
+	const Expr* Original() const
+		{
+		if ( original )
+			return original->Original();
+		else
+			return this;
+		}
 
 	virtual void ExprDescribe(ODesc* d) const = 0;
 	void AddTag(ODesc* d) const;

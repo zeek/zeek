@@ -342,6 +342,7 @@ class WhileStmt : public Stmt {
 public:
 
 	WhileStmt(IntrusivePtr<Expr> loop_condition, IntrusivePtr<Stmt> body);
+	~WhileStmt() override;
 
 	bool IsPure() const override;
 	bool IsReduced() const override;
@@ -358,29 +359,7 @@ protected:
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	IntrusivePtr<Expr> loop_condition;
-	IntrusivePtr<Stmt> body;
-};
-
-// Only used for reduced form.
-class DoWhileStmt : public Stmt {
-public:
-	DoWhileStmt(IntrusivePtr<Expr> loop_condition, IntrusivePtr<Stmt> body);
-
-	bool IsPure() const override;
-	bool IsReduced() const override;
-	Stmt* Reduce(ReductionContext* c) override;
-
-	const Expr* Condition() const	{ return loop_condition.get(); }
-	const Stmt* Body() const	{ return body.get(); }
-
-	void StmtDescribe(ODesc* d) const override;
-
-	TraversalCode Traverse(TraversalCallback* cb) const override;
-
-protected:
-	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
-
-	IntrusivePtr<Expr> loop_condition;
+	IntrusivePtr<Stmt> loop_cond_stmt;
 	IntrusivePtr<Stmt> body;
 };
 

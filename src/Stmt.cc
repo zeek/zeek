@@ -42,7 +42,7 @@ const char* stmt_name(BroStmtTag t)
 		"print", "event", "expr", "if", "when", "switch",
 		"for", "next", "break", "return", "add", "delete",
 		"list", "bodylist",
-		"<init>", "fallthrough", "while", "do-while",
+		"<init>", "fallthrough", "while",
 		"null",
 	};
 
@@ -1254,8 +1254,12 @@ WhileStmt::WhileStmt(IntrusivePtr<Expr> arg_loop_condition,
 	     ! IsBool(loop_condition->Type()->Tag()) )
 		loop_condition->Error("while conditional must be boolean");
 
+	loop_cond_stmt = nullptr;
+
 	tag = STMT_WHILE;
 	}
+
+WhileStmt::~WhileStmt() = default;
 
 bool WhileStmt::IsPure() const
 	{
@@ -1264,17 +1268,22 @@ bool WhileStmt::IsPure() const
 
 bool WhileStmt::IsReduced() const
 	{
-	// Never reduced, as we transform into a DoWhile on reduction.
-	return false;
+	// No need to check loop_cond_stmt, as we create them reduced.
+	return loop_condition->IsReduced() && body->IsReduced();
 	}
 
 Stmt* WhileStmt::Reduce(ReductionContext* c)
 	{
-	auto do_while = make_intrusive<DoWhileStmt>(loop_condition, body);
-	auto empty = make_intrusive<NullStmt>();
-	auto if_stmt = new IfStmt(loop_condition, do_while, empty);
+	if ( IsReduced() )
+		return this->Ref();
 
-	return TransformMe(if_stmt, c);
+	loop_condition = {AdoptRef{}, loop_condition->Reduce(c, loop_cond_stmt)};
+	body = {AdoptRef{}, body->Reduce(c)};
+
+	if ( loop_cond_stmt )
+		loop_cond_stmt = {AdoptRef{}, loop_cond_stmt.get()->Reduce(c)};
+
+	return this->Ref();
 	}
 
 void WhileStmt::StmtDescribe(ODesc* d) const
@@ -1283,6 +1292,13 @@ void WhileStmt::StmtDescribe(ODesc* d) const
 
 	if ( d->IsReadable() )
 		d->Add("(");
+
+	if ( loop_cond_stmt )
+		{
+		d->Add(" {");
+		loop_cond_stmt->Describe(d);
+		d->Add("} ");
+		}
 
 	loop_condition->Describe(d);
 
@@ -1319,6 +1335,9 @@ IntrusivePtr<Val> WhileStmt::Exec(Frame* f, stmt_flow_type& flow) const
 
 	for ( ; ; )
 		{
+		if ( loop_cond_stmt )
+			loop_cond_stmt->Exec(f, flow);
+
 		auto cond = loop_condition->Eval(f);
 
 		if ( ! cond )
@@ -1331,108 +1350,6 @@ IntrusivePtr<Val> WhileStmt::Exec(Frame* f, stmt_flow_type& flow) const
 		rval = body->Exec(f, flow);
 
 		if ( flow == FLOW_BREAK || flow == FLOW_RETURN )
-			break;
-		}
-
-	if ( flow == FLOW_LOOP || flow == FLOW_BREAK )
-		flow = FLOW_NEXT;
-
-	return rval;
-	}
-
-DoWhileStmt::DoWhileStmt(IntrusivePtr<Expr> arg_loop_condition,
-			     IntrusivePtr<Stmt> arg_body)
-	: loop_condition(std::move(arg_loop_condition)), body(std::move(arg_body))
-	{
-	// No need to type check, as we only generate these internally.
-	tag = STMT_DO_WHILE;
-	}
-
-bool DoWhileStmt::IsPure() const
-	{
-	// No need to check loop condition as it is in reduced form.
-	return body->IsPure();
-	}
-
-bool DoWhileStmt::IsReduced() const
-	{
-	return loop_condition->IsReduced() && body->IsReduced();
-	}
-
-Stmt* DoWhileStmt::Reduce(ReductionContext* c)
-	{
-	if ( IsReduced() )
-		return this->Ref();
-
-	body = {AdoptRef{}, body->Reduce(c)};
-
-	IntrusivePtr<Stmt> loop_cond_stmt;
-	loop_condition = {AdoptRef{}, loop_condition->Reduce(c, loop_cond_stmt)};
-
-	if ( loop_cond_stmt )
-		{
-		auto body_expand = new StmtList(body, loop_cond_stmt);
-		body = {AdoptRef{}, body_expand->Reduce(c)};
-		}
-
-	return this->Ref();
-	}
-
-void DoWhileStmt::StmtDescribe(ODesc* d) const
-	{
-	if ( d->IsReadable() )
-		d->Add("do");
-
-	d->SP();
-	d->PushIndent();
-	body->AccessStats(d);
-	body->Describe(d);
-	d->PopIndent();
-
-	if ( d->IsReadable() )
-		d->Add("while (");
-
-	loop_condition->Describe(d);
-
-	if ( d->IsReadable() )
-		d->Add(")");
-	}
-
-TraversalCode DoWhileStmt::Traverse(TraversalCallback* cb) const
-	{
-	TraversalCode tc = cb->PreStmt(this);
-	HANDLE_TC_STMT_PRE(tc);
-
-	tc = body->Traverse(cb);
-	HANDLE_TC_STMT_PRE(tc);
-
-	tc = loop_condition->Traverse(cb);
-	HANDLE_TC_STMT_PRE(tc);
-
-	tc = cb->PostStmt(this);
-	HANDLE_TC_STMT_POST(tc);
-	}
-
-IntrusivePtr<Val> DoWhileStmt::Exec(Frame* f, stmt_flow_type& flow) const
-	{
-	RegisterAccess();
-	flow = FLOW_NEXT;
-	IntrusivePtr<Val> rval;
-
-	for ( ; ; )
-		{
-		flow = FLOW_NEXT;
-		rval = body->Exec(f, flow);
-
-		if ( flow == FLOW_BREAK || flow == FLOW_RETURN )
-			break;
-
-		auto cond = loop_condition->Eval(f);
-
-		if ( ! cond )
-			break;
-
-		if ( ! cond->AsBool() )
 			break;
 		}
 

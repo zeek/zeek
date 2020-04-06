@@ -234,6 +234,8 @@ public:
 
 private:
 
+	using OffsetMap = std::unordered_map<std::string, int>;
+
 	/**
 	 * Unrefs the value at offset 'n' frame unless it's a weak reference.
 	 */
@@ -244,7 +246,7 @@ private:
 
 	/** Serializes an offset_map */
 	static broker::expected<broker::data>
-	SerializeOffsetMap(const std::unordered_map<std::string, int>& in);
+	SerializeOffsetMap(const OffsetMap& in);
 
 	/** Serializes an id_list */
 	static broker::expected<broker::data>
@@ -283,7 +285,7 @@ private:
 	 * Maps ID names to offsets. Used if this frame is  serialized
 	 * to maintain proper offsets after being sent elsewhere.
 	 */
-	std::unordered_map<std::string, int> offset_map;
+	std::unique_ptr<OffsetMap> offset_map;
 
 	/** The function this frame is associated with. */
 	const BroFunc* function;
@@ -296,7 +298,7 @@ private:
 	IntrusivePtr<trigger::Trigger> trigger;
 	const CallExpr* call;
 
-	std::vector<BroFunc*> functions_with_closure_frame_reference;
+	std::unique_ptr<std::vector<BroFunc*>> functions_with_closure_frame_reference;
 };
 
 /**

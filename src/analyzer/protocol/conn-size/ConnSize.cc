@@ -90,7 +90,7 @@ void ConnSize_Analyzer::CheckThresholds(bool is_orig)
 
 	if ( duration_thresh != 0 )
 		{
-		if ( duration_thresh > ( network_time - start_time ) && conn_duration_threshold_crossed )
+		if ( ( network_time - start_time ) > duration_thresh && conn_duration_threshold_crossed )
 			{
 			ConnectionEventFast(conn_duration_threshold_crossed, {
 					BuildConnVal(),

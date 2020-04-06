@@ -93,7 +93,7 @@ protected:
 	void AddRD(RD_ptr rd, const ID* id, DefinitionPoint dp);
 
 	void AddRDWithInit(RD_ptr rd, const ID* id, DefinitionPoint dp,
-				bool assume_full,const AssignExpr* init);
+				bool assume_full, const AssignExpr* init);
 
 	void AddRDWithInit(RD_ptr rd, DefinitionItem* di,
 				DefinitionPoint dp, bool assume_full,
@@ -853,6 +853,21 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 TraversalCode RD_Decorate::PostExpr(const Expr* e)
 	{
 	AddPostRDs(e, GetPreRDs(e));
+
+	if ( e->Tag() == EXPR_APPEND_TO )
+		{
+		// We don't treat the expression as an initialization
+		// in the PreExpr phase, because we want to catch a
+		// possible uninitialized LHS.  But now we can since
+		// it's definitely initialized after executing.
+		auto rd = make_new_RD_ptr();
+		auto a_t = e->AsAppendToExpr();
+		auto lhs = a_t->Op1();
+
+		if ( CheckLHS(rd, lhs, nullptr) )
+			AddPostRDs(e, rd);
+		}
+
 	return TC_CONTINUE;
 	}
 
@@ -861,7 +876,7 @@ void RD_Decorate::TrackInits(const Func* f, const id_list* inits)
 	// This code is duplicated for STMT_INIT.  It's a pity that
 	// that doesn't get used for aggregates that are initialized
 	// just incidentally.
-	RD_ptr rd = make_new_RD_ptr();
+	auto rd = make_new_RD_ptr();
 	for ( int i = 0; i < inits->length(); ++i )
 		{
 		auto id = (*inits)[i];

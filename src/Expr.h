@@ -76,6 +76,7 @@ class CallExpr;
 class EventExpr;
 class RefExpr;
 class AddToExpr;
+class AppendToExpr;
 class RemoveFromExpr;
 class ConstExpr;
 
@@ -225,6 +226,7 @@ public:
 	CONST_ACCESSOR(EXPR_HAS_FIELD, HasFieldExpr, AsHasFieldExpr);
 	CONST_ACCESSOR(EXPR_CALL, CallExpr, AsCallExpr);
 	CONST_ACCESSOR(EXPR_ADD_TO, AddToExpr, AsAddToExpr);
+	CONST_ACCESSOR(EXPR_APPEND_TO, AppendToExpr, AsAppendToExpr);
 	CONST_ACCESSOR(EXPR_CONST, ConstExpr, AsConstExpr);
 
 #undef ACCESSORS

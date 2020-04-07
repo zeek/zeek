@@ -29,6 +29,14 @@ New Functionality
   detected, but also provides a few other events related to the RDPEUDP
   connection establishment.
 
+- Add the ``udp_content_ports`` configuration option. Any port added to
+  this set will cause the ``udp_contents`` event to be raised.
+
+- Add the ``udp_content_delivery_ports_use_resp`` option which can be used
+  to specify how the destination port for the ``udp_content_delivery_ports_orig``
+  and ``udp_content_delivery_ports_orig`` options is determined. The current value
+  keeps behavior as it was in previous versions of Zeek.
+
 Changed Functionality
 ---------------------
 

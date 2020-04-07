@@ -134,22 +134,33 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 	if ( udp_contents )
 		{
-		auto port_val = val_mgr->GetPort(ntohs(up->uh_dport), TRANSPORT_UDP);
 		bool do_udp_contents = false;
+		auto sport_val = IntrusivePtr{AdoptRef{}, val_mgr->GetPort(ntohs(up->uh_sport), TRANSPORT_UDP)};
+		auto dport_val = IntrusivePtr{AdoptRef{}, val_mgr->GetPort(ntohs(up->uh_dport), TRANSPORT_UDP)};
 
-		if ( is_orig )
-			{
-			auto result = udp_content_delivery_ports_orig->Lookup(port_val);
-
-			if ( udp_content_deliver_all_orig || (result && result->AsBool()) )
-				do_udp_contents = true;
-			}
+		if ( udp_content_ports->Lookup(dport_val.get()) ||
+		     udp_content_ports->Lookup(sport_val.get()) )
+			do_udp_contents = true;
 		else
 			{
-			auto result = udp_content_delivery_ports_resp->Lookup(port_val);
+			uint16_t p = udp_content_delivery_ports_use_resp ? Conn()->RespPort()
+			                                                 : up->uh_dport;
+			auto port_val = IntrusivePtr{AdoptRef{}, val_mgr->GetPort(ntohs(p), TRANSPORT_UDP)};
 
-			if ( udp_content_deliver_all_resp || (result && result->AsBool()) )
-				do_udp_contents = true;
+			if ( is_orig )
+				{
+				auto result = udp_content_delivery_ports_orig->Lookup(port_val.get());
+
+				if ( udp_content_deliver_all_orig || (result && result->AsBool()) )
+					do_udp_contents = true;
+				}
+			else
+				{
+				auto result = udp_content_delivery_ports_resp->Lookup(port_val.get());
+
+				if ( udp_content_deliver_all_resp || (result && result->AsBool()) )
+					do_udp_contents = true;
+				}
 			}
 
 		if ( do_udp_contents )
@@ -158,8 +169,6 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 				IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)},
 				make_intrusive<StringVal>(len, (const char*) data)
 			);
-
-		Unref(port_val);
 		}
 
 	if ( is_orig )

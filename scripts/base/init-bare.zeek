@@ -1116,6 +1116,7 @@ const tcp_content_deliver_all_resp = F &redef;
 ##    tcp_content_deliver_all_orig tcp_content_deliver_all_resp
 ##    udp_content_delivery_ports_resp  udp_content_deliver_all_orig
 ##    udp_content_deliver_all_resp  udp_contents
+##    udp_content_delivery_ports_use_resp udp_content_ports
 const udp_content_delivery_ports_orig: table[port] of bool = {} &redef;
 
 ## Defines UDP destination ports for which the contents of the responder stream
@@ -1125,7 +1126,25 @@ const udp_content_delivery_ports_orig: table[port] of bool = {} &redef;
 ##    tcp_content_delivery_ports_resp tcp_content_deliver_all_orig
 ##    tcp_content_deliver_all_resp udp_content_delivery_ports_orig
 ##    udp_content_deliver_all_orig udp_content_deliver_all_resp udp_contents
+##    udp_content_delivery_ports_use_resp udp_content_ports
 const udp_content_delivery_ports_resp: table[port] of bool = {} &redef;
+
+## Defines UDP ports (source or destination) for which the contents of
+## either originator or responder streams should be delivered via
+## :zeek:see:`udp_contents`.
+##
+## .. zeek:see:: tcp_content_delivery_ports_orig
+##    tcp_content_delivery_ports_resp tcp_content_deliver_all_orig
+##    tcp_content_deliver_all_resp udp_content_delivery_ports_orig
+##    udp_content_deliver_all_orig udp_content_deliver_all_resp udp_contents
+##    udp_content_delivery_ports_use_resp udp_content_delivery_ports_resp
+option udp_content_ports: set[port] = {};
+
+## Whether ports given in :zeek:see:`udp_content_delivery_ports_orig`
+## and :zeek:see:`udp_content_delivery_ports_resp` are in terms of
+## UDP packet's destination port or the UDP connection's "responder"
+## port.
+option udp_content_delivery_ports_use_resp = F;
 
 ## If true, all UDP originator-side traffic is reported via
 ## :zeek:see:`udp_contents`.
@@ -1135,6 +1154,7 @@ const udp_content_delivery_ports_resp: table[port] of bool = {} &redef;
 ##    tcp_content_delivery_ports_orig udp_content_delivery_ports_orig
 ##    udp_content_delivery_ports_resp  udp_content_deliver_all_resp
 ##    udp_contents
+##    udp_content_delivery_ports_use_resp
 const udp_content_deliver_all_orig = F &redef;
 
 ## If true, all UDP responder-side traffic is reported via
@@ -1145,6 +1165,7 @@ const udp_content_deliver_all_orig = F &redef;
 ##    tcp_content_delivery_ports_orig udp_content_delivery_ports_orig
 ##    udp_content_delivery_ports_resp  udp_content_deliver_all_orig
 ##    udp_contents
+##    udp_content_delivery_ports_use_resp
 const udp_content_deliver_all_resp = F &redef;
 
 ## Check for expired table entries after this amount of time.

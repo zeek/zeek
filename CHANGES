@@ -1,4 +1,18 @@
 
+3.2.0-dev.360 | 2020-04-07 14:12:27 -0700
+
+  * Add "udp_content_ports" option
+
+    Any port in that set found as either source or destination port
+    of a UDP packet will cause the "udp_contents" event to be raised. (Jon Siwek, Corelight)
+
+  * Add new "udp_content_delivery_ports_use_resp" option
+
+    This controls whether ports given by "udp_content_delivery_ports_orig" and
+    "udp_content_delivery_ports_orig" are in terms of the UDP packet's
+    destination port or by the Connection's "responder" port (the former is
+    the unchanged default behavior). (Jon Siwek, Corelight)
+
 3.2.0-dev.357 | 2020-04-07 13:43:38 -0700
 
   * Fix connection duration thresholding

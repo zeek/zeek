@@ -5,11 +5,6 @@
 #include <list>
 #include <string>
 
-using std::list;
-using std::map;
-using std::pair;
-using std::string;
-
 class Stmt;
 
 /**
@@ -50,7 +45,7 @@ private:
 	/**
 	 * The current, global Brofiler instance creates this list at parse-time.
 	 */
-	list<Stmt*> stmts;
+	std::list<Stmt*> stmts;
 
 	/**
 	 * Indicates whether new statments will not be considered as part of
@@ -64,7 +59,7 @@ private:
 	 * startup time and modified at shutdown time before writing back
 	 * to a file.
 	 */
-	map<pair<string, string>, uint64_t> usage_map;
+	std::map<std::pair<std::string, std::string>, uint64_t> usage_map;
 
 	/**
 	 * The character to use to delimit Brofiler output files.  Default is '\t'.

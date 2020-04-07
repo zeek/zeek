@@ -4,8 +4,6 @@
 
 #include <string>
 
-using std::string;
-
 struct ParseLocationRec;
 class Stmt;
 
@@ -40,8 +38,8 @@ public:
 	BreakCode ShouldBreak(Stmt* s);
 	BreakCode ShouldBreak(double t);
 
-	const string& GetCondition() const	{ return condition; }
-	bool SetCondition(const string& new_condition);
+	const std::string& GetCondition() const	{ return condition; }
+	bool SetCondition(const std::string& new_condition);
 
 	int GetRepeatCount() const	{ return repeat_count; }
 	bool SetRepeatCount(int count); // implements function of ignore command in gdb
@@ -68,7 +66,7 @@ protected:
 	int BPID;
 
 	char description[512];
-	string function_name;	// location
+	std::string function_name;	// location
 	const char* source_filename;
 	int source_line;
 
@@ -79,5 +77,5 @@ protected:
 	int repeat_count;	// if positive, break after this many hits
 	int hit_count;	// how many times it's been hit (w/o breaking)
 
-	string condition;	// condition to evaluate; nil for none
+	std::string condition;	// condition to evaluate; nil for none
 };

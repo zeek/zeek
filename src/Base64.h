@@ -2,8 +2,6 @@
 
 #include <string>
 
-using std::string;
-
 class BroString;
 class Connection;
 
@@ -15,7 +13,7 @@ public:
 	// encode_base64()), encoding-errors will go to Reporter instead of
 	// Weird. Usage errors go to Reporter in any case. Empty alphabet
 	// indicates the default base64 alphabet.
-	explicit Base64Converter(Connection* conn, const string& alphabet = "");
+	explicit Base64Converter(Connection* conn, const std::string& alphabet = "");
 	~Base64Converter();
 
 	// A note on Decode():
@@ -44,10 +42,10 @@ protected:
 	char error_msg[256];
 
 protected:
-	static const string default_alphabet;
-	string alphabet;
+	static const std::string default_alphabet;
+	std::string alphabet;
 
-	static int* InitBase64Table(const string& alphabet);
+	static int* InitBase64Table(const std::string& alphabet);
 	static int default_base64_table[256];
 	char base64_group[4];
 	int base64_group_next;

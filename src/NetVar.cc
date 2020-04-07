@@ -75,6 +75,7 @@ bool tcp_content_deliver_all_resp;
 
 TableVal* udp_content_delivery_ports_orig;
 TableVal* udp_content_delivery_ports_resp;
+TableVal* udp_content_ports;
 bool udp_content_deliver_all_orig;
 bool udp_content_deliver_all_resp;
 bool udp_content_delivery_ports_use_resp;
@@ -320,6 +321,8 @@ void init_net_var()
 		internal_val("udp_content_delivery_ports_orig")->AsTableVal();
 	udp_content_delivery_ports_resp =
 		internal_val("udp_content_delivery_ports_resp")->AsTableVal();
+	udp_content_ports =
+		internal_val("udp_content_ports")->AsTableVal();
 	udp_content_deliver_all_orig =
 		bool(internal_val("udp_content_deliver_all_orig")->AsBool());
 	udp_content_deliver_all_resp =

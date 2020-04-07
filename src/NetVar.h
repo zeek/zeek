@@ -75,6 +75,7 @@ extern bool tcp_content_deliver_all_resp;
 
 extern TableVal* udp_content_delivery_ports_orig;
 extern TableVal* udp_content_delivery_ports_resp;
+extern TableVal* udp_content_ports;
 extern bool udp_content_deliver_all_orig;
 extern bool udp_content_deliver_all_resp;
 extern bool udp_content_delivery_ports_use_resp;

@@ -6,7 +6,7 @@
 
 using namespace file_analysis;
 
-FileTimer::FileTimer(double t, const string& id, double interval)
+FileTimer::FileTimer(double t, const std::string& id, double interval)
     : Timer(t + interval, TIMER_FILE_ANALYSIS_INACTIVITY), file_id(id)
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "New %f second timeout timer for %s",

@@ -17,6 +17,7 @@
 #include "../util.h"
 #include "../input.h"
 
+using namespace std;
 using namespace plugin;
 
 Plugin* Manager::current_plugin = 0;

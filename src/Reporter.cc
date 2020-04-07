@@ -78,7 +78,7 @@ void Reporter::InitOptions()
 	while ( (v = wl_table->NextEntry(k, c)) )
 		{
 		auto index = wl_val->RecoverIndex(k);
-		string key = index->Index(0)->AsString()->CheckString();
+		std::string key = index->Index(0)->AsString()->CheckString();
 		weird_sampling_whitelist.emplace(move(key));
 		delete k;
 		}
@@ -384,11 +384,11 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 	char* buffer  = tmp;
 	char* alloced = 0;
 
-	string loc_str;
+	std::string loc_str;
 
 	if ( location )
 		{
-		string loc_file = "";
+		std::string loc_file = "";
 		int loc_line = 0;
 
 		if ( locations.size() )
@@ -427,7 +427,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 			loc_str = filename;
 			char tmp[32];
 			snprintf(tmp, 32, "%d", line_number);
-			loc_str += string(", line ") + string(tmp);
+			loc_str += std::string(", line ") + std::string(tmp);
 			}
 		}
 
@@ -514,21 +514,21 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 
 	if ( out )
 		{
-		string s = "";
+		std::string s = "";
 
 		if ( bro_start_network_time != 0.0 )
 			{
 			char tmp[32];
 			snprintf(tmp, 32, "%.6f", network_time);
-			s += string(tmp) + " ";
+			s += std::string(tmp) + " ";
 			}
 
 		if ( prefix && *prefix )
 			{
 			if ( loc_str != "" )
-				s += string(prefix) + " in " + loc_str + ": ";
+				s += std::string(prefix) + " in " + loc_str + ": ";
 			else
-				s += string(prefix) + ": ";
+				s += std::string(prefix) + ": ";
 			}
 
 		else

@@ -709,7 +709,7 @@ IntrusivePtr<Val> BinaryExpr::StringFold(Val* v1, Val* v2) const
 	case EXPR_ADD:
 	case EXPR_ADD_TO:
 		{
-		vector<const BroString*> strings;
+		std::vector<const BroString*> strings;
 		strings.push_back(s1);
 		strings.push_back(s2);
 
@@ -3602,7 +3602,7 @@ RecordCoerceExpr::RecordCoerceExpr(IntrusivePtr<Expr> arg_op,
 				if ( ! is_arithmetic_promotable(sup_t_i, sub_t_i) &&
 				     ! is_record_promotable(sup_t_i, sub_t_i) )
 					{
-					string error_msg = fmt(
+					std::string error_msg = fmt(
 						"type clash for field \"%s\"", sub_r->FieldName(i));
 					Error(error_msg.c_str(), sub_t_i);
 					SetError();
@@ -3622,7 +3622,7 @@ RecordCoerceExpr::RecordCoerceExpr(IntrusivePtr<Expr> arg_op,
 				{
 				if ( ! t_r->FieldDecl(i)->FindAttr(ATTR_OPTIONAL) )
 					{
-					string error_msg = fmt(
+					std::string error_msg = fmt(
 						"non-optional field \"%s\" missing", t_r->FieldName(i));
 					Error(error_msg.c_str());
 					SetError();
@@ -4832,7 +4832,7 @@ RecordAssignExpr::RecordAssignExpr(const IntrusivePtr<Expr>& record,
 				}
 			else
 				{
-				string s = "No such field '";
+				std::string s = "No such field '";
 				s += field_name;
 				s += "'";
 				init_list->SetError(s.c_str());

@@ -16,10 +16,10 @@ class GnutellaMsgState {
 public:
 	GnutellaMsgState ();
 
-	string buffer;
+	std::string buffer;
 	int current_offset;
 	int got_CR;
-	string headers;
+	std::string headers;
 	char msg[GNUTELLA_MSG_SIZE];
 	u_char msg_hops;
 	unsigned int msg_len;
@@ -47,8 +47,8 @@ public:
 private:
 	bool NextLine(const u_char* data, int len);
 
-	bool GnutellaOK(string header);
-	bool IsHTTP(string header);
+	bool GnutellaOK(std::string header);
+	bool IsHTTP(std::string header);
 
 	bool Established() const	{ return state == (ORIG_OK | RESP_OK); }
 

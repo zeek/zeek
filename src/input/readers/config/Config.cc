@@ -72,7 +72,7 @@ bool Config::DoInit(const ReaderInfo& info, int num_fields, const Field* const* 
 	                   BifConst::InputConfig::empty_field->Len());
 
 	formatter::Ascii::SeparatorInfo sep_info("\t", set_separator, "", empty_field);
-	formatter = unique_ptr<threading::formatter::Formatter>(new formatter::Ascii(this, sep_info));
+	formatter = std::unique_ptr<threading::formatter::Formatter>(new formatter::Ascii(this, sep_info));
 
 	return DoUpdate();
 	}
@@ -94,7 +94,7 @@ bool Config::OpenFile()
 	return true;
 	}
 
-bool Config::GetLine(string& str)
+bool Config::GetLine(std::string& str)
 	{
 	while ( getline(file, str) )
 		{
@@ -170,7 +170,7 @@ bool Config::DoUpdate()
 			assert(false);
 		}
 
-	string line;
+	std::string line;
 	file.sync();
 
 	// keep a list of options to remove because they were no longer in the input file.
@@ -197,8 +197,8 @@ bool Config::DoUpdate()
 			continue;
 			}
 
-		string key = line.substr(match[1].rm_so, match[1].rm_eo - match[1].rm_so);
-		string value;
+		std::string key = line.substr(match[1].rm_so, match[1].rm_eo - match[1].rm_so);
+		std::string value;
 		if ( match[2].rm_so > 0 )
 			value = line.substr(match[2].rm_so, match[2].rm_eo - match[2].rm_so);
 
@@ -308,4 +308,3 @@ bool Config::DoHeartbeat(double network_time, double current_time)
 
 	return true;
 	}
-

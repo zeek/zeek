@@ -22,7 +22,7 @@ Formatter::~Formatter()
 	{
 	}
 
-string Formatter::Render(const threading::Value::addr_t& addr)
+std::string Formatter::Render(const threading::Value::addr_t& addr)
 	{
 	if ( addr.family == IPv4 )
 		{
@@ -44,7 +44,7 @@ string Formatter::Render(const threading::Value::addr_t& addr)
 		}
 	}
 
-TransportProto Formatter::ParseProto(const string &proto) const
+TransportProto Formatter::ParseProto(const std::string &proto) const
 	{
 	if ( proto == "unknown" )
 		return TRANSPORT_UNKNOWN;
@@ -62,7 +62,7 @@ TransportProto Formatter::ParseProto(const string &proto) const
 
 
 // More or less verbose copy from IPAddr.cc -- which uses reporter.
-threading::Value::addr_t Formatter::ParseAddr(const string &s) const
+threading::Value::addr_t Formatter::ParseAddr(const std::string &s) const
 	{
 	threading::Value::addr_t val;
 
@@ -90,7 +90,7 @@ threading::Value::addr_t Formatter::ParseAddr(const string &s) const
 	return val;
 	}
 
-string Formatter::Render(const threading::Value::subnet_t& subnet)
+std::string Formatter::Render(const threading::Value::subnet_t& subnet)
 	{
 	char l[16];
 
@@ -99,19 +99,19 @@ string Formatter::Render(const threading::Value::subnet_t& subnet)
 	else
 		modp_uitoa10(subnet.length, l);
 
-	string s = Render(subnet.prefix) + "/" + l;
+	std::string s = Render(subnet.prefix) + "/" + l;
 
 	return s;
 	}
 
-string Formatter::Render(double d)
+std::string Formatter::Render(double d)
 	{
 	char buf[256];
 	modp_dtoa(d, buf, 6);
 	return buf;
 	}
 
-string Formatter::Render(TransportProto proto)
+std::string Formatter::Render(TransportProto proto)
 	{
 	if ( proto == TRANSPORT_UDP )
 		return "udp";

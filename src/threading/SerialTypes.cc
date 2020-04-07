@@ -11,7 +11,7 @@ bool Field::Read(SerializationFormat* fmt)
 	{
 	int t;
 	int st;
-	string tmp_name;
+		std::string tmp_name;
 	bool have_2nd;
 
 	if ( ! fmt->Read(&have_2nd, "have_2nd") )
@@ -19,7 +19,7 @@ bool Field::Read(SerializationFormat* fmt)
 
 	if ( have_2nd )
 		{
-		string tmp_secondary_name;
+		std::string tmp_secondary_name;
 		if ( ! fmt->Read(&tmp_secondary_name, "secondary_name") )
 			return false;
 
@@ -64,9 +64,9 @@ bool Field::Write(SerializationFormat* fmt) const
 		fmt->Write(optional, "optional"));
 	}
 
-string Field::TypeName() const
+std::string Field::TypeName() const
 	{
-	string n;
+	std::string n;
 
 	// We do not support tables, if the internal Bro type is table it
 	// always is a set.

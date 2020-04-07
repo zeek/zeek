@@ -45,7 +45,7 @@ void ICMP_Analyzer::DeliverPacket(int len, const u_char* data,
 	// caplen > len.
 	if ( packet_contents )
 		// Subtract off the common part of ICMP header.
-		PacketContents(data + 8, min(len, caplen) - 8);
+		PacketContents(data + 8, std::min(len, caplen) - 8);
 
 	const struct icmp* icmpp = (const struct icmp*) data;
 
@@ -209,7 +209,7 @@ void ICMP_Analyzer::ICMP_Sent(const struct icmp* icmpp, int len, int caplen,
 
 	if ( icmp_sent_payload )
 		{
-		BroString* payload = new BroString(data, min(len, caplen), false);
+		BroString* payload = new BroString(data, std::min(len, caplen), false);
 
 		EnqueueConnEvent(icmp_sent_payload,
 			IntrusivePtr{AdoptRef{}, BuildConnVal()},
@@ -841,7 +841,7 @@ VectorVal* ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* data)
 
 		if ( set_payload_field )
 			{
-			BroString* payload = new BroString(data, min((int)length, caplen), false);
+			BroString* payload = new BroString(data, std::min((int)length, caplen), false);
 			rv->Assign(6, make_intrusive<StringVal>(payload));
 			}
 

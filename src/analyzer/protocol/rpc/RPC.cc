@@ -394,14 +394,14 @@ bool RPC_Reasm_Buffer::ConsumeChunk(const u_char*& data, int& len)
 	// How many bytes do we want to process with this call?  Either the
 	// all of the bytes available or the number of bytes that we are
 	// still missing.
-	int64_t to_process = min(int64_t(len), (expected-processed));
+	int64_t to_process = std::min(int64_t(len), (expected-processed));
 
 	if ( fill < maxsize )
 		{
 		// We haven't yet filled the buffer. How many bytes to copy
 		// into the buff. Either all of the bytes we want to process
 		// or the number of bytes until we reach maxsize.
-		int64_t to_copy = min( to_process, (maxsize-fill) );
+		int64_t to_copy = std::min( to_process, (maxsize-fill) );
 		if ( to_copy )
 			memcpy(buf+fill, data, to_copy);
 
@@ -741,7 +741,7 @@ void RPC_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 					uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
-	len = min(len, caplen);
+	len = std::min(len, caplen);
 
 	if ( orig )
 		{

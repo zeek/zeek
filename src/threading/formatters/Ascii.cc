@@ -9,6 +9,7 @@
 #include <sstream>
 #include <errno.h>
 
+using namespace std;
 using namespace threading::formatter;
 
 // If the value we'd write out would match exactly the a reserved string, we

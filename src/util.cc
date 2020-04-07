@@ -65,6 +65,8 @@
 #endif
 #endif
 
+using namespace std;
+
 static bool starts_with(std::string_view s, std::string_view beginning)
 	{
 	if ( beginning.size() > s.size() )

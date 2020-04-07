@@ -219,7 +219,7 @@ bool BinarySerializationFormat::Read(char** str, int* len, const char* tag)
 	return true;
 	}
 
-bool BinarySerializationFormat::Read(string* v, const char* tag)
+bool BinarySerializationFormat::Read(std::string* v, const char* tag)
 	{
 	char* buffer;
 	int len;
@@ -227,7 +227,7 @@ bool BinarySerializationFormat::Read(string* v, const char* tag)
 	if ( ! Read(&buffer, &len, tag) )
 		return false;
 
-	*v = string(buffer, len);
+	*v = std::string(buffer, len);
 
 	delete [] buffer;
 	return true;
@@ -362,7 +362,7 @@ bool BinarySerializationFormat::Write(const char* s, const char* tag)
 	return Write(s, strlen(s), tag);
 	}
 
-bool BinarySerializationFormat::Write(const string& s, const char* tag)
+bool BinarySerializationFormat::Write(const std::string& s, const char* tag)
 	{
 	return Write(s.data(), s.size(), tag);
 	}

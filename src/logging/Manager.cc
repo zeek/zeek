@@ -26,6 +26,7 @@
 
 #include <broker/endpoint_info.hh>
 
+using namespace std;
 using namespace logging;
 
 struct Manager::Filter {

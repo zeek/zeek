@@ -37,17 +37,17 @@ protected:
 	bool DoHeartbeat(double network_time, double current_time) override;
 
 private:
-	bool GetLine(string& str);
+	bool GetLine(std::string& str);
 	bool OpenFile();
 
-	ifstream file;
+	std::ifstream file;
 	time_t mtime;
 	ino_t ino;
 
 	bool fail_on_file_problem;
 
-	string set_separator;
-	string empty_field;
+	std::string set_separator;
+	std::string empty_field;
 
 	std::unique_ptr<threading::formatter::Formatter> formatter;
 	std::unordered_map<std::string, std::tuple<TypeTag, TypeTag>> option_types;

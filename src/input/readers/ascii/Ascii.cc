@@ -14,6 +14,7 @@
 
 using namespace input::reader;
 using namespace threading;
+using namespace std;
 using threading::Value;
 using threading::Field;
 
@@ -468,4 +469,3 @@ bool Ascii::DoHeartbeat(double network_time, double current_time)
 
 	return true;
 	}
-

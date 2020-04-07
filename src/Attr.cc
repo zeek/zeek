@@ -106,7 +106,7 @@ void Attr::DescribeReST(ODesc* d, bool shorten) const
 			ODesc dd;
 			dd.SetQuotes(true);
 			expr->Describe(&dd);
-			string s = dd.Description();
+			std::string s = dd.Description();
 			add_long_expr_string(d, s, shorten);
 			}
 
@@ -114,7 +114,7 @@ void Attr::DescribeReST(ODesc* d, bool shorten) const
 			{
 			ODesc dd;
 			expr->Eval(nullptr)->Describe(&dd);
-			string s = dd.Description();
+			std::string s = dd.Description();
 
 			for ( size_t i = 0; i < s.size(); ++i )
 				if ( s[i] == '\n' )

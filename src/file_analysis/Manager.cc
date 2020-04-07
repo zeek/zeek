@@ -15,6 +15,7 @@
 #include <openssl/md5.h>
 
 using namespace file_analysis;
+using namespace std;
 
 TableVal* Manager::disabled = 0;
 TableType* Manager::tag_set_type = 0;

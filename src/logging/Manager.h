@@ -112,7 +112,7 @@ public:
 	 * This methods corresponds directly to the internal BiF defined in
 	 * logging.bif, which just forwards here.
 	 */
-	bool RemoveFilter(EnumVal* id, const string& name);
+	bool RemoveFilter(EnumVal* id, const std::string& name);
 
 	/**
 	 * Write a record to a log stream.
@@ -165,7 +165,7 @@ public:
 	 * @param vals An array of log values to write, of size num_fields.
 	 * The method takes ownership of the array.
 	 */
-	bool WriteFromRemote(EnumVal* stream, EnumVal* writer, const string& path,
+	bool WriteFromRemote(EnumVal* stream, EnumVal* writer, const std::string& path,
 			     int num_fields, threading::Value** vals);
 
 	/**
@@ -241,7 +241,7 @@ protected:
 	// Takes ownership of fields and info.
 	WriterFrontend* CreateWriter(EnumVal* id, EnumVal* writer, WriterBackend::WriterInfo* info,
 				int num_fields, const threading::Field* const* fields,
-				bool local, bool remote, bool from_remote, const string& instantiating_filter="");
+				bool local, bool remote, bool from_remote, const std::string& instantiating_filter="");
 
 	// Signals that a file has been rotated.
 	bool FinishedRotation(WriterFrontend* writer, const char* new_name, const char* old_name,
@@ -256,7 +256,7 @@ private:
 	struct WriterInfo;
 
 	bool TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
-			    TableVal* include, TableVal* exclude, const string& path, const list<int>& indices);
+			    TableVal* include, TableVal* exclude, const std::string& path, const std::list<int>& indices);
 
 	threading::Value** RecordToFilterVals(Stream* stream, Filter* filter,
 				    RecordVal* columns);
@@ -270,7 +270,7 @@ private:
 	bool CompareFields(const Filter* filter, const WriterFrontend* writer);
 	bool CheckFilterWriterConflict(const WriterInfo* winfo, const Filter* filter);
 
-	vector<Stream *> streams;	// Indexed by stream enum.
+	std::vector<Stream *> streams;	// Indexed by stream enum.
 	int rotations_pending;	// Number of rotations not yet finished.
 };
 

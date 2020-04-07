@@ -10,7 +10,7 @@
 
 using namespace file_analysis;
 
-Extract::Extract(RecordVal* args, File* file, const string& arg_filename,
+Extract::Extract(RecordVal* args, File* file, const std::string& arg_filename,
                  uint64_t arg_limit)
     : file_analysis::Analyzer(file_mgr->GetComponentTag("EXTRACT"), args, file),
       filename(arg_filename), limit(arg_limit), depth(0)

@@ -14,13 +14,13 @@ public:
 	bool URG() const	{ return flags & TH_URG; }
 	bool PUSH() const	{ return flags & TH_PUSH; }
 
-	string AsString() const;
+	std::string AsString() const;
 
 protected:
 	u_char flags;
 };
 
-inline string TCP_Flags::AsString() const
+inline std::string TCP_Flags::AsString() const
 	{
 	char tcp_flags[10];
 	char* p = tcp_flags;

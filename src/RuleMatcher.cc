@@ -21,6 +21,8 @@
 #include "Reporter.h"
 #include "module_util.h"
 
+using namespace std;
+
 // FIXME: Things that are not fully implemented/working yet:
 //
 //		  - "ip-options" always evaluates to false

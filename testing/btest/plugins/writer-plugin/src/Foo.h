@@ -29,7 +29,7 @@ protected:
 	virtual bool DoHeartbeat(double network_time, double current_time)	{ return true; }
 
 private:
-    string path;
+	std::string path;
 	ODesc desc;
 	threading::formatter::Formatter* formatter;
 };

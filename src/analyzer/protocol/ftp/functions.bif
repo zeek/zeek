@@ -86,7 +86,7 @@ static Val* parse_eftp(const char* line)
 					good = 0;
 					}
 
-				string s(line, nptr-line); // extract IP address
+				std::string s(line, nptr-line); // extract IP address
 				IPAddr tmp(s);
 				// on error, "tmp" will have all 128 bits zero
 				if ( tmp == addr )

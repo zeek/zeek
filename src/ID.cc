@@ -45,7 +45,7 @@ ID::~ID()
 		Unref(val);
 	}
 
-string ID::ModuleName() const
+std::string ID::ModuleName() const
 	{
 	return extract_module_name(name);
 	}
@@ -214,9 +214,9 @@ void ID::MakeDeprecated(IntrusivePtr<Expr> deprecation)
 	AddAttrs(make_intrusive<Attributes>(attr, IntrusivePtr{NewRef{}, Type()}, false, IsGlobal()));
 	}
 
-string ID::GetDeprecationWarning() const
+std::string ID::GetDeprecationWarning() const
 	{
-	string result;
+	std::string result;
 	Attr* depr_attr = FindAttr(ATTR_DEPRECATED);
 	if ( depr_attr )
 		{
@@ -541,12 +541,12 @@ void ID::AddOptionHandler(IntrusivePtr<Func> callback, int priority)
 	option_handlers.emplace(priority, std::move(callback));
 	}
 
-vector<Func*> ID::GetOptionHandlers() const
+std::vector<Func*> ID::GetOptionHandlers() const
 	{
 	// multimap is sorted
 	// It might be worth caching this if we expect it to be called
 	// a lot...
-	vector<Func*> v;
+	std::vector<Func*> v;
 	for ( auto& element : option_handlers )
 		v.push_back(element.second.get());
 	return v;

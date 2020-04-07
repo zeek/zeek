@@ -50,6 +50,7 @@ extern int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);
 #include "nb_dns.h"
 }
 
+using namespace std;
 
 class DNS_Mgr_Request {
 public:

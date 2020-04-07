@@ -80,7 +80,7 @@ void File::StaticInit()
 	meta_inferred_idx = Idx("inferred", fa_metadata_type);
 	}
 
-File::File(const string& file_id, const string& source_name, Connection* conn,
+File::File(const std::string& file_id, const std::string& source_name, Connection* conn,
            analyzer::Tag tag, bool is_orig)
 	: id(file_id), val(0), file_reassembler(0), stream_offset(0),
 	  reassembly_max_buffer(0), did_metadata_inference(false),
@@ -174,7 +174,7 @@ double File::LookupFieldDefaultInterval(int idx) const
 	return v->AsInterval();
 	}
 
-int File::Idx(const string& field, const RecordType* type)
+int File::Idx(const std::string& field, const RecordType* type)
 	{
 	int rval = type->FieldOffset(field.c_str());
 
@@ -185,14 +185,14 @@ int File::Idx(const string& field, const RecordType* type)
 	return rval;
 	}
 
-string File::GetSource() const
+std::string File::GetSource() const
 	{
 	Val* v = val->Lookup(source_idx);
 
-	return v ? v->AsString()->CheckString() : string();
+	return v ? v->AsString()->CheckString() : std::string();
 	}
 
-void File::SetSource(const string& source)
+void File::SetSource(const std::string& source)
 	{
 	val->Assign(source_idx, make_intrusive<StringVal>(source.c_str()));
 	}
@@ -288,7 +288,7 @@ void File::SetReassemblyBuffer(uint64_t max)
 	reassembly_max_buffer = max;
 	}
 
-bool File::SetMime(const string& mime_type)
+bool File::SetMime(const std::string& mime_type)
 	{
 	if ( mime_type.empty() || bof_buffer.size != 0 || did_metadata_inference )
 		return false;
@@ -329,7 +329,7 @@ void File::InferMetadata()
 	RuleMatcher::MIME_Matches matches;
 	const u_char* data = bof_buffer_val->AsString()->Bytes();
 	uint64_t len = bof_buffer_val->AsString()->Len();
-	len = min(len, LookupFieldDefaultCount(bof_buffer_size_idx));
+	len = std::min(len, LookupFieldDefaultCount(bof_buffer_size_idx));
 	file_mgr->DetectMIME(data, len, &matches);
 
 	auto meta = make_intrusive<RecordVal>(fa_metadata_type);
@@ -383,7 +383,7 @@ void File::DeliverStream(const u_char* data, uint64_t len)
 	        "[%s] %" PRIu64 " stream bytes in at offset %" PRIu64 "; %s [%s%s]",
 	        id.c_str(), len, stream_offset,
 	        IsComplete() ? "complete" : "incomplete",
-	        fmt_bytes((const char*) data, min((uint64_t)40, len)),
+	        fmt_bytes((const char*) data, std::min((uint64_t)40, len)),
 	        len > 40 ? "..." : "");
 
 	file_analysis::Analyzer* a = 0;
@@ -487,7 +487,7 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 	        "[%s] %" PRIu64 " chunk bytes in at offset %" PRIu64 "; %s [%s%s]",
 	        id.c_str(), len, offset,
 	        IsComplete() ? "complete" : "incomplete",
-	        fmt_bytes((const char*) data, min((uint64_t)40, len)),
+	        fmt_bytes((const char*) data, std::min((uint64_t)40, len)),
 	        len > 40 ? "..." : "");
 
 	file_analysis::Analyzer* a = 0;

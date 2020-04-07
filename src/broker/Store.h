@@ -52,7 +52,7 @@ class StoreQueryCallback {
 public:
 	StoreQueryCallback(trigger::Trigger* arg_trigger, const CallExpr* arg_call,
 			   broker::store store)
-		: trigger(arg_trigger), call(arg_call), store(move(store))
+		: trigger(arg_trigger), call(arg_call), store(std::move(store))
 		{
 		Ref(trigger);
 		}

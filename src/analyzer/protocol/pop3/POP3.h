@@ -86,8 +86,8 @@ protected:
 	int lastRequiredCommand;
 	int authLines;
 
-	string user;
-	string password;
+	std::string user;
+	std::string password;
 
 	void ProcessRequest(int length, const char* line);
 	void ProcessReply(int length, const char* line);
@@ -99,14 +99,14 @@ protected:
 	void EndData();
 	void StartTLS();
 
-	vector<string> TokenizeLine(const string& input, char split);
-	int ParseCmd(string cmd);
+	std::vector<std::string> TokenizeLine(const std::string& input, char split);
+	int ParseCmd(std::string cmd);
 	void AuthSuccessfull();
 	void POP3Event(EventHandlerPtr event, bool is_orig,
 			const char* arg1 = 0, const char* arg2 = 0);
 
 	mime::MIME_Mail* mail;
-	list<string> cmds;
+	std::list<std::string> cmds;
 
 private:
 	bool tls;

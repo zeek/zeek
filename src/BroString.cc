@@ -44,7 +44,7 @@ BroString::BroString(const char* str) : BroString()
 	Set(str);
 	}
 
-BroString::BroString(const string &str) : BroString()
+BroString::BroString(const std::string &str) : BroString()
 	{
 	Set(str);
 	}
@@ -137,7 +137,7 @@ void BroString::Set(const char* str)
 	use_free_to_delete = false;
 	}
 
-void BroString::Set(const string& str)
+void BroString::Set(const std::string& str)
 	{
 	Reset();
 
@@ -234,7 +234,7 @@ char* BroString::Render(int format, int* len) const
 	return s;
 	}
 
-ostream& BroString::Render(ostream &os, int format) const
+std::ostream& BroString::Render(std::ostream &os, int format) const
 	{
 	char* tmp = Render(format);
 	os << tmp;
@@ -242,7 +242,7 @@ ostream& BroString::Render(ostream &os, int format) const
 	return os;
 	}
 
-istream& BroString::Read(istream &is, int format)
+std::istream& BroString::Read(std::istream &is, int format)
 	{
 	if ( (format & BroString::ESC_SER) )
 		{
@@ -260,7 +260,7 @@ istream& BroString::Read(istream &is, int format)
 		}
 	else
 		{
-		string str;
+		std::string str;
 		is >> str;
 		Set(str);
 		}
@@ -376,7 +376,7 @@ BroString::Vec* BroString::VecFromPolicy(VectorVal* vec)
 
 char* BroString::VecToString(const Vec* vec)
 	{
-	string result("[");
+		std::string result("[");
 
 	for ( BroString::VecCIt it = vec->begin(); it != vec->end(); ++it )
 		{
@@ -396,7 +396,7 @@ bool BroStringLenCmp::operator()(BroString * const& bst1,
 				(bst1->Len() > bst2->Len());
 	}
 
-ostream& operator<<(ostream& os, const BroString& bs)
+std::ostream& operator<<(std::ostream& os, const BroString& bs)
 	{
 	char* tmp = bs.Render(BroString::EXPANDED_STRING);
 	os << tmp;
@@ -414,7 +414,7 @@ int Bstr_eq(const BroString* s1, const BroString* s2)
 
 int Bstr_cmp(const BroString* s1, const BroString* s2)
 	{
-	int n = min(s1->Len(), s2->Len());
+	int n = std::min(s1->Len(), s2->Len());
 	int cmp = memcmp(s1->Bytes(), s2->Bytes(), n);
 
 	if ( cmp || s1->Len() == s2->Len() )

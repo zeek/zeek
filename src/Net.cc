@@ -65,7 +65,7 @@ iosource::PktSrc* current_pktsrc = nullptr;
 iosource::IOSource* current_iosrc = nullptr;
 
 std::list<ScannedFile> files_scanned;
-std::vector<string> sig_files;
+std::vector<std::string> sig_files;
 
 RETSIGTYPE watchdog(int /* signo */)
 	{

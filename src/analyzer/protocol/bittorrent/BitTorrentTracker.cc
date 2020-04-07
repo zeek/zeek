@@ -745,7 +745,7 @@ int BitTorrentTracker_Analyzer::ResponseParseBenc(void)
 			if ( benc_str_have < benc_str_len )
 				{
 				unsigned int seek =
-					min(len, benc_str_len - benc_str_have);
+					std::min(len, benc_str_len - benc_str_have);
 				benc_str_have += seek;
 
 				if ( benc_raw_type != BENC_TYPE_NONE )

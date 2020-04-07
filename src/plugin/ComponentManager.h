@@ -37,7 +37,7 @@ public:
 	 * @param local_id The local part of the ID of the new enum type
 	 * (e.g., "Tag").
 	 */
-	ComponentManager(const string& module, const string& local_id);
+	ComponentManager(const std::string& module, const std::string& local_id);
 
 	/**
 	 * @return The script-layer module in which the component's "Tag" ID lives.
@@ -47,7 +47,7 @@ public:
 	/**
 	 * @return A list of all registered components.
 	 */
-	list<C*> GetComponents() const;
+	std::list<C*> GetComponents() const;
 
 	/**
 	 * @return The enum type associated with the script-layer "Tag".
@@ -77,7 +77,7 @@ public:
 	 * @return The component's tag, or a tag representing an error if
 	 * no such component assoicated with the name exists.
 	 */
-	T GetComponentTag(const string& name) const;
+	T GetComponentTag(const std::string& name) const;
 
 	/**
 	 * Get a component tag from its enum value.
@@ -97,14 +97,14 @@ public:
 	 * value will be a concatenation of this prefix and the component's
 	 * canonical name.
 	 */
-	void RegisterComponent(C* component, const string& prefix = "");
+	void RegisterComponent(C* component, const std::string& prefix = "");
 
 	/**
 	 * @param name The canonical name of a component.
 	 * @return The component associated with the name or a null pointer if no
 	 * such component exists.
 	 */
-	C* Lookup(const string& name) const;
+	C* Lookup(const std::string& name) const;
 
 	/**
 	 * @param name A component tag.
@@ -121,15 +121,15 @@ public:
 	C* Lookup(EnumVal* val) const;
 
 private:
-	string module; /**< Script layer module in which component tags live. */
+	std::string module; /**< Script layer module in which component tags live. */
 	IntrusivePtr<EnumType> tag_enum_type; /**< Enum type of component tags. */
-	map<string, C*> components_by_name;
-	map<T, C*> components_by_tag;
-	map<int, C*> components_by_val;
+	std::map<std::string, C*> components_by_name;
+	std::map<T, C*> components_by_tag;
+	std::map<int, C*> components_by_val;
 };
 
 template <class T, class C>
-ComponentManager<T, C>::ComponentManager(const string& arg_module, const string& local_id)
+ComponentManager<T, C>::ComponentManager(const std::string& arg_module, const std::string& local_id)
 	: module(arg_module),
 	  tag_enum_type(make_intrusive<EnumType>(module + "::" + local_id))
 	{
@@ -145,10 +145,10 @@ const std::string& ComponentManager<T, C>::GetModule() const
 	}
 
 template <class T, class C>
-list<C*> ComponentManager<T, C>::GetComponents() const
+std::list<C*> ComponentManager<T, C>::GetComponents() const
 	{
-	list<C*> rval;
-	typename map<T, C*>::const_iterator i;
+	std::list<C*> rval;
+	typename std::map<T, C*>::const_iterator i;
 
 	for ( i = components_by_tag.begin(); i != components_by_tag.end(); ++i )
 	      rval.push_back(i->second);
@@ -187,7 +187,7 @@ const std::string& ComponentManager<T, C>::GetComponentName(Val* val) const
 	}
 
 template <class T, class C>
-T ComponentManager<T, C>::GetComponentTag(const string& name) const
+T ComponentManager<T, C>::GetComponentTag(const std::string& name) const
 	{
 	C* c = Lookup(name);
 	return c ? c->Tag() : T();
@@ -201,9 +201,9 @@ T ComponentManager<T, C>::GetComponentTag(Val* v) const
 	}
 
 template <class T, class C>
-C* ComponentManager<T, C>::Lookup(const string& name) const
+C* ComponentManager<T, C>::Lookup(const std::string& name) const
 	{
-	typename map<string, C*>::const_iterator i =
+	typename std::map<std::string, C*>::const_iterator i =
 	        components_by_name.find(to_upper(name));
 	return i != components_by_name.end() ? i->second : 0;
 	}
@@ -211,21 +211,21 @@ C* ComponentManager<T, C>::Lookup(const string& name) const
 template <class T, class C>
 C* ComponentManager<T, C>::Lookup(const T& tag) const
 	{
-	typename map<T, C*>::const_iterator i = components_by_tag.find(tag);
+	typename std::map<T, C*>::const_iterator i = components_by_tag.find(tag);
 	return i != components_by_tag.end() ? i->second : 0;
 	}
 
 template <class T, class C>
 C* ComponentManager<T, C>::Lookup(EnumVal* val) const
 	{
-	typename map<int, C*>::const_iterator i =
+	typename std::map<int, C*>::const_iterator i =
 	        components_by_val.find(val->InternalInt());
 	return i != components_by_val.end() ? i->second : 0;
 	}
 
 template <class T, class C>
 void ComponentManager<T, C>::RegisterComponent(C* component,
-                                               const string& prefix)
+                                               const std::string& prefix)
 	{
 	std::string cname = component->CanonicalName();
 
@@ -242,7 +242,7 @@ void ComponentManager<T, C>::RegisterComponent(C* component,
 	        component->Tag().AsEnumVal()->InternalInt(), component));
 
 	// Install an identfier for enum value
-	string id = fmt("%s%s", prefix.c_str(), cname.c_str());
+	std::string id = fmt("%s%s", prefix.c_str(), cname.c_str());
 	tag_enum_type->AddName(module, id.c_str(),
 	                       component->Tag().AsEnumVal()->InternalInt(), true,
 	                       nullptr);

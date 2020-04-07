@@ -40,6 +40,8 @@
 
 #include "threading/formatters/JSON.h"
 
+using namespace std;
+
 Val::Val(Func* f)
 	: val(f), type(f->FType()->Ref())
 	{

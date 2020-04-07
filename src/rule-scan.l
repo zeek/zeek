@@ -48,7 +48,7 @@ PID  {PIDCOMPONENT}(::{PIDCOMPONENT})*
 
 {IP6}{OWS}"/"{OWS}{D}	{
 	int len = 0;
-	string ip = extract_ip_and_len(yytext, &len);
+	std::string ip = extract_ip_and_len(yytext, &len);
 	rules_lval.prefixval = new IPPrefix(IPAddr(ip), len, true);
 	return TOK_IP6;
 	}

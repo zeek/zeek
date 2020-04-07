@@ -107,7 +107,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 
 		if ( strncmp((const char*) cmd_str->Bytes(),
 			     "AUTH", cmd_len) == 0 )
-			auth_requested = string(line, end_of_line - line);
+			auth_requested = std::string(line, end_of_line - line);
 
 		if ( rule_matcher )
 			Conn()->Match(Rule::FTP, (const u_char *) cmd,

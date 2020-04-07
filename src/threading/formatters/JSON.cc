@@ -55,7 +55,7 @@ bool JSON::Describe(ODesc* desc, int num_fields, const Field* const * fields,
 	return true;
 	}
 
-bool JSON::Describe(ODesc* desc, Value* val, const string& name) const
+bool JSON::Describe(ODesc* desc, Value* val, const std::string& name) const
 	{
 	if ( desc->IsBinary() )
 		{
@@ -78,13 +78,13 @@ bool JSON::Describe(ODesc* desc, Value* val, const string& name) const
 	return true;
 	}
 
-threading::Value* JSON::ParseValue(const string& s, const string& name, TypeTag type, TypeTag subtype) const
+threading::Value* JSON::ParseValue(const std::string& s, const std::string& name, TypeTag type, TypeTag subtype) const
 	{
 	GetThread()->Error("JSON formatter does not support parsing yet.");
 	return nullptr;
 	}
 
-void JSON::BuildJSON(NullDoubleWriter& writer, Value* val, const string& name) const
+void JSON::BuildJSON(NullDoubleWriter& writer, Value* val, const std::string& name) const
 	{
 	if ( ! val->present )
 		{
@@ -174,7 +174,7 @@ void JSON::BuildJSON(NullDoubleWriter& writer, Value* val, const string& name) c
 		case TYPE_FILE:
 		case TYPE_FUNC:
 			{
-			writer.String(json_escape_utf8(string(val->val.string_val.data, val->val.string_val.length)));
+			writer.String(json_escape_utf8(std::string(val->val.string_val.data, val->val.string_val.length)));
 			break;
 			}
 

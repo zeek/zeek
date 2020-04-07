@@ -20,6 +20,8 @@
 #include <list>
 #include <map>
 
+using namespace std;
+
 BroType::TypeAliasMap BroType::type_aliases;
 
 // Note: This function must be thread-safe.

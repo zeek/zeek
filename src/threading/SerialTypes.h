@@ -9,8 +9,6 @@
 #include "Type.h"
 #include "net_util.h"
 
-using namespace std;
-
 class SerializationFormat;
 
 namespace threading {
@@ -73,7 +71,7 @@ struct Field {
 	 * Returns a textual description of the field's type. This method is
 	 * thread-safe.
 	 */
-	string TypeName() const;
+	std::string TypeName() const;
 
 private:
 	// Force usage of constructor above.

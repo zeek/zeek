@@ -121,9 +121,9 @@ IntrusivePtr<ID> lookup_ID(const char* name, const char* curr_module,
                            bool no_global, bool same_module_only,
                            bool check_export)
 	{
-	string fullname = make_full_var_name(curr_module, name);
+	std::string fullname = make_full_var_name(curr_module, name);
 
-	string ID_module = extract_module_name(fullname.c_str());
+	std::string ID_module = extract_module_name(fullname.c_str());
 	bool need_export = check_export && (ID_module != GLOBAL_MODULE_NAME &&
 	                                    ID_module != curr_module);
 
@@ -143,7 +143,7 @@ IntrusivePtr<ID> lookup_ID(const char* name, const char* curr_module,
 	if ( ! no_global && (strcmp(GLOBAL_MODULE_NAME, curr_module) == 0 ||
 			     ! same_module_only) )
 		{
-		string globalname = make_full_var_name(GLOBAL_MODULE_NAME, name);
+		std::string globalname = make_full_var_name(GLOBAL_MODULE_NAME, name);
 		ID* id = global_scope()->Lookup(globalname);
 		if ( id )
 			return {NewRef{}, id};
@@ -168,7 +168,7 @@ IntrusivePtr<ID> install_ID(const char* name, const char* module_name,
 	else
 		scope = SCOPE_FUNCTION;
 
-	string full_name = make_full_var_name(module_name, name);
+	std::string full_name = make_full_var_name(module_name, name);
 
 	auto id = make_intrusive<ID>(full_name.data(), scope, is_export);
 

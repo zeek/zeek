@@ -364,7 +364,7 @@ PktSrc* Manager::OpenPktSrc(const std::string& path, bool is_live)
 	}
 
 
-PktDumper* Manager::OpenPktDumper(const string& path, bool append)
+PktDumper* Manager::OpenPktDumper(const std::string& path, bool append)
 	{
 	std::pair<std::string, std::string> t = split_prefix(path);
 	std::string prefix = t.first;

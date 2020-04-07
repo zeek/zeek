@@ -86,7 +86,7 @@ void POP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		ProcessReply(len, (char*) terminated_string.Bytes());
 	}
 
-static string trim_whitespace(const char* in)
+static std::string trim_whitespace(const char* in)
 	{
 	int n = strlen(in);
 	char* out = new char[n + 1];
@@ -121,7 +121,7 @@ static string trim_whitespace(const char* in)
 
 	*out_p = 0;
 
-	string rval(out);
+	std::string rval(out);
 	delete [] out;
 	return rval;
 	}
@@ -231,7 +231,7 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 		// Some clients pipeline their commands (i.e., keep sending
 		// without waiting for a server's responses). Therefore we
 		// keep a list of pending commands.
-		cmds.push_back(string(line));
+		cmds.push_back(std::string(line));
 
 		if ( cmds.size() == 1 )
 			// Not waiting for another server response,
@@ -241,7 +241,7 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 
 	}
 
-static string commands[] = {
+static std::string commands[] = {
 	"OK", "ERR", "USER", "PASS", "APOP", "AUTH",
 	"STAT", "LIST", "RETR", "DELE", "RSET", "NOOP", "LAST", "QUIT",
 	"TOP", "CAPA", "UIDL", "STLS", "XSENDER",
@@ -258,8 +258,8 @@ void POP3_Analyzer::ProcessClientCmd()
 	if ( ! cmds.size() )
 		return;
 
-	string str = trim_whitespace(cmds.front().c_str());
-	vector<string> tokens = TokenizeLine(str, ' ');
+	std::string str = trim_whitespace(cmds.front().c_str());
+	std::vector<std::string> tokens = TokenizeLine(str, ' ');
 
 	int cmd_code = -1;
 	const char* cmd = "";
@@ -593,7 +593,7 @@ void POP3_Analyzer::FinishClientCmd()
 void POP3_Analyzer::ProcessReply(int length, const char* line)
 	{
 	const char* end_of_line = line + length;
-	string str = trim_whitespace(line);
+	std::string str = trim_whitespace(line);
 
 	if ( multiLine == true )
 		{
@@ -631,7 +631,7 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 	int cmd_code = -1;
 	const char* cmd = "";
 
-	vector<string> tokens = TokenizeLine(str, ' ');
+	std::vector<std::string> tokens = TokenizeLine(str, ' ');
 	if ( tokens.size() > 0 )
 		cmd_code = ParseCmd(tokens[0]);
 
@@ -863,7 +863,7 @@ void POP3_Analyzer::ProcessData(int length, const char* line)
 	mail->Deliver(length, line, true);
 	}
 
-int POP3_Analyzer::ParseCmd(string cmd)
+int POP3_Analyzer::ParseCmd(std::string cmd)
 	{
 	if ( cmd.size() == 0 )
 		return -1;
@@ -884,18 +884,18 @@ int POP3_Analyzer::ParseCmd(string cmd)
 	return -1;
 	}
 
-vector<string> POP3_Analyzer::TokenizeLine(const string& input, char split)
+std::vector<std::string> POP3_Analyzer::TokenizeLine(const std::string& input, char split)
 	{
-	vector<string> tokens;
+	std::vector<std::string> tokens;
 
 	if ( input.size() < 1 )
 		return tokens;
 
 	int start = 0;
 	unsigned int splitPos = 0;
-	string token = "";
+	std::string token = "";
 
-	if ( input.find(split, 0) == string::npos )
+	if ( input.find(split, 0) == std::string::npos )
 		{
 		tokens.push_back(input);
 		return tokens;

@@ -12,7 +12,7 @@
 #include "Val.h"
 #include "ID.h"
 
-vector<Frame*> g_frame_stack;
+std::vector<Frame*> g_frame_stack;
 
 Frame::Frame(int arg_size, const BroFunc* func, const zeek::Args* fn_args)
 	{

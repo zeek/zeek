@@ -8,10 +8,10 @@ EventRegistry::~EventRegistry() noexcept = default;
 
 void EventRegistry::Register(EventHandlerPtr handler)
 	{
-	handlers[string(handler->Name())] = std::unique_ptr<EventHandler>(handler.Ptr());
+	handlers[std::string(handler->Name())] = std::unique_ptr<EventHandler>(handler.Ptr());
 	}
 
-EventHandler* EventRegistry::Lookup(const string& name)
+EventHandler* EventRegistry::Lookup(const std::string& name)
 	{
 	auto it = handlers.find(name);
 	if ( it != handlers.end() )
@@ -86,7 +86,7 @@ void EventRegistry::PrintDebug()
 		}
 	}
 
-void EventRegistry::SetErrorHandler(const string& name)
+void EventRegistry::SetErrorHandler(const std::string& name)
 	{
 	EventHandler* eh = Lookup(name);
 

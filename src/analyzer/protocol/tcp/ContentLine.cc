@@ -145,7 +145,7 @@ void ContentLine_Analyzer::DoDeliver(int len, const u_char* data)
 
 		if ( plain_delivery_length > 0 )
 			{
-			int deliver_plain = min(plain_delivery_length, (int64_t)len);
+			int deliver_plain = std::min(plain_delivery_length, (int64_t)len);
 
 			last_char = 0; // clear last_char
 			plain_delivery_length -= deliver_plain;

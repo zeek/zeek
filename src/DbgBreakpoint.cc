@@ -90,7 +90,7 @@ void DbgBreakpoint::AddToGlobalMap()
 
 void DbgBreakpoint::RemoveFromGlobalMap()
 	{
-	pair<BPMapType::iterator, BPMapType::iterator> p;
+		std::pair<BPMapType::iterator, BPMapType::iterator> p;
 	p = g_debugger_state.breakpoint_map.equal_range(at_stmt);
 
 	for ( BPMapType::iterator i = p.first; i != p.second; )
@@ -120,7 +120,7 @@ void DbgBreakpoint::RemoveFromStmt()
 	}
 
 
-bool DbgBreakpoint::SetLocation(ParseLocationRec plr, string_view loc_str)
+bool DbgBreakpoint::SetLocation(ParseLocationRec plr, std::string_view loc_str)
 	{
 	if ( plr.type == plrUnknown )
 		{
@@ -224,7 +224,7 @@ bool DbgBreakpoint::Reset()
 	return false;
 	}
 
-bool DbgBreakpoint::SetCondition(const string& new_condition)
+bool DbgBreakpoint::SetCondition(const std::string& new_condition)
 	{
 	condition = new_condition;
 	return true;

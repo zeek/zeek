@@ -165,7 +165,7 @@ void DebugLogger::Log(DebugStream stream, const char* fmt, ...)
 
 void DebugLogger::Log(const plugin::Plugin& plugin, const char* fmt, ...)
 	{
-	string tok = string("plugin-") + plugin.Name();
+	std::string tok = std::string("plugin-") + plugin.Name();
 	tok = strreplace(tok, "::", "-");
 
 	if ( enabled_streams.find(tok) == enabled_streams.end() )

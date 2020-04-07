@@ -59,7 +59,7 @@ public:
 	 */
 	bool Terminating() const	{ return terminating; }
 
-	typedef std::list<std::pair<string, MsgThread::Stats> > msg_stats_list;
+	typedef std::list<std::pair<std::string, MsgThread::Stats> > msg_stats_list;
 
 	/**
 	 * Returns statistics from all current MsgThread instances.

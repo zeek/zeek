@@ -35,9 +35,9 @@ bool Foo::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 	return true;
 	}
 
-string Foo::RandomString(const int len)
+std::string Foo::RandomString(const int len)
 	{
-	string s(len, ' ');
+	std::string s(len, ' ');
 
 	static const char values[] =
 	"0123456789!@#$%^&*()-_=+{}[]\\|"
@@ -83,7 +83,7 @@ threading::Value* Foo::EntryToVal(TypeTag type, TypeTag subtype)
 
 	case TYPE_STRING:
 		{
-		string rnd = RandomString(10);
+		std::string rnd = RandomString(10);
 		val->val.string_val.data = copy_string(rnd.c_str());
 		val->val.string_val.length = rnd.size();
 		break;

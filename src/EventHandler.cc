@@ -83,7 +83,7 @@ void EventHandler::Call(const zeek::Args& vl, bool no_remote)
 				auto opt_data = bro_broker::val_to_data(vl[i].get());
 
 				if ( opt_data )
-					xs.emplace_back(move(*opt_data));
+					xs.emplace_back(std::move(*opt_data));
 				else
 					{
 					valid_args = false;

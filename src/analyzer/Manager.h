@@ -342,8 +342,9 @@ public:
 		{ return vxlan_ports; }
 
 private:
-	typedef set<Tag> tag_set;
-	typedef map<uint32_t, tag_set*> analyzer_map_by_port;
+
+	using tag_set = std::set<Tag>;
+	using analyzer_map_by_port = std::map<uint32_t, tag_set*>;
 
 	tag_set* LookupPort(PortVal* val, bool add_if_not_found);
 	tag_set* LookupPort(TransportProto proto, uint32_t port, bool add_if_not_found);
@@ -387,10 +388,10 @@ private:
 		};
 	};
 
-	typedef std::multimap<ConnIndex, ScheduledAnalyzer*> conns_map;
-	typedef std::priority_queue<ScheduledAnalyzer*,
-				    vector<ScheduledAnalyzer*>,
-				    ScheduledAnalyzer::Comparator> conns_queue;
+	using conns_map = std::multimap<ConnIndex, ScheduledAnalyzer*>;
+	using conns_queue = std::priority_queue<ScheduledAnalyzer*,
+	                                        std::vector<ScheduledAnalyzer*>,
+	                                        ScheduledAnalyzer::Comparator>;
 
 	conns_map conns;
 	conns_queue conns_by_timeout;

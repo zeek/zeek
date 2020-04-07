@@ -777,7 +777,7 @@ bool BloomFilterVal::Empty() const
 	return bloom_filter->Empty();
 	}
 
-string BloomFilterVal::InternalState() const
+std::string BloomFilterVal::InternalState() const
 	{
 	return bloom_filter->InternalState();
 	}

@@ -106,8 +106,8 @@ protected:
 	TableVal* res_val_peers;
 	TableVal* res_val_benc;
 
-	vector<char> benc_stack;
-	vector<unsigned int> benc_count;
+	std::vector<char> benc_stack;
+	std::vector<unsigned int> benc_count;
 	enum btt_benc_states benc_state;
 
 	char* benc_raw;
@@ -129,4 +129,4 @@ protected:
 	bool stop_orig, stop_resp;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

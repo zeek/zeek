@@ -348,7 +348,7 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 	int want_fields = 1;
 	bool result;
 
-	string source = string(info.source);
+	std::string source = std::string(info.source);
 	char last = info.source[source.length() - 1];
 	if ( last == '|' )
 		{
@@ -379,7 +379,7 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 	it = info.config.find("offset"); // we want to seek to a given offset inside the file
 	if ( it != info.config.end() && ! execute && (Info().mode == MODE_STREAM || Info().mode == MODE_MANUAL) )
 		{
-		string offset_s = it->second;
+		std::string offset_s = it->second;
 		offset = strtoll(offset_s.c_str(), 0, 10);
 		}
 	else if ( it != info.config.end() )
@@ -585,7 +585,7 @@ bool Raw::DoUpdate()
 		}
 		}
 
-	string line;
+	std::string line;
 	assert ( (NumFields() == 1 && !use_stderr) || (NumFields() == 2 && use_stderr));
 	for ( ;; )
 		{

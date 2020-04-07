@@ -1,4 +1,13 @@
 
+3.2.0-dev.355 | 2020-04-07 12:05:17 -0700
+
+  * Fix using patterns stored as table/set indices
+
+    Pattern values used as table/set indices are stored in serialized form
+    using just the pattern text, but re-creating the value from that didn't
+    fully initialize/compile the regex matcher after (re-)creating it from
+    that pattern text. (Jon Siwek, Corelight)
+
 3.2.0-dev.353 | 2020-04-06 17:27:35 -0700
 
   * Improve parsing of RDPEUDP/RDPEUDP2 (Anthony Kasza, Corelight)

@@ -1,4 +1,8 @@
 
+3.1.2-dev.8 | 2020-04-09 14:33:47 -0700
+
+  * Fix using patterns stored as table/set indices (Jon Siwek, Corelight)
+
 3.1.2-dev.7 | 2020-04-09 14:25:39 -0700
 
   * Fix connection duration thresholding (Jon Siwek, Corelight)

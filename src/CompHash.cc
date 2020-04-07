@@ -897,6 +897,10 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 				re = new RE_Matcher(kp1, kp1 + len[0]);
 				kp1 += len[0] + len[1];
 				}
+
+			if ( ! re->Compile() )
+				reporter->InternalError("failed compiling table/set key pattern: %s",
+				                        re->PatternText());
 			pval = new PatternVal(re);
 			}
 			break;

@@ -1,8 +1,7 @@
 #pragma once
 
-#include "Rule.h"
-#include "RE.h"
-#include "CCL.h"
+#include <sys/types.h> // for u_char
+#include <limits.h>
 
 #include <vector>
 #include <map>
@@ -10,8 +9,9 @@
 #include <set>
 #include <string>
 
-#include <sys/types.h> // for u_char
-#include <limits.h>
+#include "Rule.h"
+#include "RE.h"
+#include "CCL.h"
 
 //#define MATCHER_PRINT_STATS
 
@@ -26,11 +26,6 @@ extern "C" int rules_wrap(void);
 extern FILE* rules_in;
 extern int rules_line_number;
 extern const char* current_rule_file;
-
-using std::vector;
-using std::map;
-using std::set;
-using std::string;
 
 class Val;
 class BroFile;
@@ -67,7 +62,7 @@ typedef PList<BroString> bstr_list;
 
 // Get values from Bro's script-level variables.
 extern void id_to_maskedvallist(const char* id, maskedvalue_list* append_to,
-                                vector<IPPrefix>* prefix_vector = 0);
+                                std::vector<IPPrefix>* prefix_vector = 0);
 extern char* id_to_str(const char* id);
 extern uint32_t id_to_uint(const char* id);
 
@@ -79,7 +74,7 @@ public:
 
 	RuleHdrTest(Prot arg_prot, uint32_t arg_offset, uint32_t arg_size,
 			Comp arg_comp, maskedvalue_list* arg_vals);
-	RuleHdrTest(Prot arg_prot, Comp arg_comp, vector<IPPrefix> arg_v);
+	RuleHdrTest(Prot arg_prot, Comp arg_comp, std::vector<IPPrefix> arg_v);
 	~RuleHdrTest();
 
 	void PrintDebug();
@@ -96,7 +91,7 @@ private:
 	Prot prot;
 	Comp comp;
 	maskedvalue_list* vals;
-	vector<IPPrefix> prefix_vals; // for use with IPSrc/IPDst comparisons
+	std::vector<IPPrefix> prefix_vals; // for use with IPSrc/IPDst comparisons
 	uint32_t offset;
 	uint32_t size;
 
@@ -241,7 +236,7 @@ public:
 	 * Ordered from greatest to least strength.  Matches of the same strength
 	 * will be in the set in lexicographic order of the MIME type string.
 	 */
-	typedef map<int, set<string>, std::greater<int> > MIME_Matches;
+	using MIME_Matches = std::map<int, std::set<std::string>, std::greater<int>>;
 
 	/**
 	 * Matches a chunk of data against file magic signatures.

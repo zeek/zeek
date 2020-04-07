@@ -7,8 +7,6 @@
 #include "Dict.h"
 #include "Tag.h"
 
-using std::queue;
-
 class CompositeHash;
 class RecordVal;
 
@@ -204,7 +202,7 @@ private:
 		HashKey* key;
 	};
 
-	typedef queue<Modification*> ModQueue;
+	using ModQueue = std::queue<Modification*>;
 	ModQueue mod_queue;	/**< A queue of analyzer additions/removals requests. */
 };
 

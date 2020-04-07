@@ -15,9 +15,6 @@
 
 #include <sys/types.h> // for u_char
 
-using std::vector;
-using std::string;
-
 // We have four different port name spaces: TCP, UDP, ICMP, and UNKNOWN.
 // We distinguish between them based on the bits specified in the *_PORT_MASK
 // entries specified below.
@@ -85,7 +82,7 @@ union BroValUnion {
 	PDict<TableEntryVal>* table_val;
 	val_list* val_list_val;
 
-	vector<Val*>* vector_val;
+	std::vector<Val*>* vector_val;
 
 	BroValUnion() = default;
 
@@ -122,7 +119,7 @@ union BroValUnion {
 	constexpr BroValUnion(val_list* value) noexcept
 		: val_list_val(value) {}
 
-	constexpr BroValUnion(vector<Val*> *value) noexcept
+	constexpr BroValUnion(std::vector<Val*> *value) noexcept
 		: vector_val(value) {}
 };
 
@@ -214,7 +211,7 @@ public:
 	CONST_ACCESSOR(TYPE_RECORD, val_list*, val_list_val, AsRecord)
 	CONST_ACCESSOR(TYPE_FILE, BroFile*, file_val, AsFile)
 	CONST_ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
-	CONST_ACCESSOR(TYPE_VECTOR, vector<Val*>*, vector_val, AsVector)
+	CONST_ACCESSOR(TYPE_VECTOR, std::vector<Val*>*, vector_val, AsVector)
 
 	const IPPrefix& AsSubNet() const
 		{
@@ -248,7 +245,7 @@ public:
 	ACCESSOR(TYPE_FUNC, Func*, func_val, AsFunc)
 	ACCESSOR(TYPE_FILE, BroFile*, file_val, AsFile)
 	ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
-	ACCESSOR(TYPE_VECTOR, vector<Val*>*, vector_val, AsVector)
+	ACCESSOR(TYPE_VECTOR, std::vector<Val*>*, vector_val, AsVector)
 
 	const IPPrefix& AsSubNet()
 		{
@@ -475,7 +472,7 @@ public:
 
 	// Returns the port number in host order (not including the mask).
 	uint32_t Port() const;
-	string Protocol() const;
+	std::string Protocol() const;
 
 	// Tests for protocol types.
 	bool IsTCP() const;
@@ -553,7 +550,7 @@ class StringVal : public Val {
 public:
 	explicit StringVal(BroString* s);
 	explicit StringVal(const char* s);
-	explicit StringVal(const string& s);
+	explicit StringVal(const std::string& s);
 	StringVal(int length, const char* s);
 
 	IntrusivePtr<Val> SizeVal() const override;

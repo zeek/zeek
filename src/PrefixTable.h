@@ -1,15 +1,12 @@
 #pragma once
 
-#include "IPAddr.h"
-
 extern "C" {
 	#include "patricia.h"
 }
 
 #include <list>
 
-using std::list;
-using std::tuple;
+#include "IPAddr.h"
 
 class Val;
 class SubNetVal;
@@ -42,8 +39,8 @@ public:
 	void* Lookup(const Val* value, bool exact = false) const;
 
 	// Returns list of all found matches or empty list otherwise.
-	list<tuple<IPPrefix,void*>> FindAll(const IPAddr& addr, int width) const;
-	list<tuple<IPPrefix,void*>> FindAll(const SubNetVal* value) const;
+	std::list<std::tuple<IPPrefix,void*>> FindAll(const IPAddr& addr, int width) const;
+	std::list<std::tuple<IPPrefix,void*>> FindAll(const SubNetVal* value) const;
 
 	// Returns pointer to data or nil if not found.
 	void* Remove(const IPAddr& addr, int width);

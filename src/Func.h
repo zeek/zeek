@@ -2,13 +2,6 @@
 
 #pragma once
 
-#include "BroList.h"
-#include "Obj.h"
-#include "IntrusivePtr.h"
-#include "Type.h" /* for function_flavor */
-#include "TraverseTypes.h"
-#include "ZeekArgs.h"
-
 #include <utility>
 #include <memory>
 #include <string>
@@ -19,8 +12,12 @@
 #include <broker/data.hh>
 #include <broker/expected.hh>
 
-using std::string;
-using std::vector;
+#include "BroList.h"
+#include "Obj.h"
+#include "IntrusivePtr.h"
+#include "Type.h" /* for function_flavor */
+#include "TraverseTypes.h"
+#include "ZeekArgs.h"
 
 class Val;
 class ListExpr;
@@ -49,7 +46,7 @@ public:
 			{ return priority > other.priority; } // reverse sort
 	};
 
-	const vector<Body>& GetBodies() const	{ return bodies; }
+	const std::vector<Body>& GetBodies() const	{ return bodies; }
 	bool HasBodies() const	{ return bodies.size(); }
 
 	[[deprecated("Remove in v4.1. Use zeek::Args overload instead.")]]
@@ -108,13 +105,13 @@ protected:
 	// Helper function for handling result of plugin hook.
 	std::pair<bool, Val*> HandlePluginResult(std::pair<bool, Val*> plugin_result, function_flavor flavor) const;
 
-	vector<Body> bodies;
+	std::vector<Body> bodies;
 	IntrusivePtr<Scope> scope;
 	Kind kind;
 	IntrusivePtr<BroType> type;
-	string name;
+	std::string name;
 	uint32_t unique_id;
-	static vector<Func*> unique_ids;
+	static std::vector<Func*> unique_ids;
 };
 
 
@@ -244,7 +241,7 @@ struct function_ingredients {
 	IntrusivePtr<Scope> scope;
 };
 
-extern vector<CallInfo> call_stack;
+extern std::vector<CallInfo> call_stack;
 
 extern std::string render_call_stack();
 

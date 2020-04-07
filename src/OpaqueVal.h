@@ -306,7 +306,7 @@ public:
 	size_t Count(const Val* val) const;
 	void Clear();
 	bool Empty() const;
-	string InternalState() const;
+	std::string InternalState() const;
 
 	static IntrusivePtr<BloomFilterVal> Merge(const BloomFilterVal* x,
 	                                          const BloomFilterVal* y);

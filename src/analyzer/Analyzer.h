@@ -2,22 +2,19 @@
 
 #pragma once
 
-#include "Tag.h"
-
-#include "../Obj.h"
-#include "../EventHandler.h"
-#include "../Timer.h"
-#include "../IntrusivePtr.h"
+#include <sys/types.h> // for u_char
 
 #include <list>
 #include <vector>
 #include <tuple>
 #include <type_traits>
 
-#include <sys/types.h> // for u_char
+#include "Tag.h"
 
-using std::list;
-using std::string;
+#include "../Obj.h"
+#include "../EventHandler.h"
+#include "../Timer.h"
+#include "../IntrusivePtr.h"
 
 class BroFile;
 class Rule;
@@ -34,7 +31,7 @@ class AnalyzerTimer;
 class SupportAnalyzer;
 class OutputHandler;
 
-typedef list<Analyzer*> analyzer_list;
+using analyzer_list = std::list<Analyzer*>;
 typedef uint32_t ID;
 typedef void (Analyzer::*analyzer_timer_func)(double t);
 
@@ -624,8 +621,8 @@ protected:
 	 * Return a string represantation of an analyzer, containing its name
 	 * and ID.
 	 */
-	static string fmt_analyzer(const Analyzer* a)
-		{ return string(a->GetAnalyzerName()) + fmt("[%d]", a->GetID()); }
+	static std::string fmt_analyzer(const Analyzer* a)
+		{ return std::string(a->GetAnalyzerName()) + fmt("[%d]", a->GetID()); }
 
 	/**
 	 * Associates a connection with this analyzer.  Must be called if

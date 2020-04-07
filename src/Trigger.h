@@ -20,8 +20,6 @@ namespace trigger {
 // Triggers are the heart of "when" statements: expressions that when
 // they become true execute a body of statements.
 
-using std::map;
-
 class TriggerTimer;
 class TriggerTraversalCallback;
 
@@ -110,7 +108,7 @@ private:
 
 	std::vector<std::pair<BroObj *, notifier::Modifiable*>> objs;
 
-	using ValCache = map<const CallExpr*, Val*>;
+	using ValCache = std::map<const CallExpr*, Val*>;
 	ValCache cache;
 };
 

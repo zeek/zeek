@@ -10,7 +10,6 @@
 
 #include <vector>
 
-using std::vector;
 class Connection;
 
 /**
@@ -135,7 +134,7 @@ public:
 	EncapsulationStack(const EncapsulationStack& other)
 		{
 		if ( other.conns )
-			conns = new vector<EncapsulatingConn>(*(other.conns));
+			conns = new std::vector<EncapsulatingConn>(*(other.conns));
 		else
 			conns = 0;
 		}
@@ -148,7 +147,7 @@ public:
 		delete conns;
 
 		if ( other.conns )
-			conns = new vector<EncapsulatingConn>(*(other.conns));
+			conns = new std::vector<EncapsulatingConn>(*(other.conns));
 		else
 			conns = 0;
 
@@ -165,7 +164,7 @@ public:
 	void Add(const EncapsulatingConn& c)
 		{
 		if ( ! conns )
-			conns = new vector<EncapsulatingConn>();
+			conns = new std::vector<EncapsulatingConn>();
 
 		conns->push_back(c);
 		}
@@ -215,5 +214,5 @@ public:
 		}
 
 protected:
-	vector<EncapsulatingConn>* conns;
+	std::vector<EncapsulatingConn>* conns;
 };

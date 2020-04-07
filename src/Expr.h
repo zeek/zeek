@@ -2,6 +2,12 @@
 
 #pragma once
 
+#include <memory>
+#include <string>
+#include <vector>
+#include <utility>
+#include <optional>
+
 #include "BroList.h"
 #include "IntrusivePtr.h"
 #include "Timer.h"
@@ -10,14 +16,6 @@
 #include "TraverseTypes.h"
 #include "Val.h"
 #include "ZeekArgs.h"
-
-#include <memory>
-#include <string>
-#include <vector>
-#include <utility>
-#include <optional>
-
-using std::string;
 
 enum BroExprTag : int {
 	EXPR_ANY = -1,
@@ -683,7 +681,7 @@ public:
 protected:
 	void ExprDescribe(ODesc* d) const override;
 
-	string field_name;
+	std::string field_name;
 };
 
 class ArithCoerceExpr : public UnaryExpr {
@@ -843,7 +841,7 @@ public:
 protected:
 	void ExprDescribe(ODesc* d) const override;
 
-	string name;
+	std::string name;
 	EventHandlerPtr handler;
 	IntrusivePtr<ListExpr> args;
 };

@@ -3,7 +3,6 @@
 #pragma once
 
 #include <list>
-using namespace std;
 
 #include "analyzer/protocol/tcp/TCP.h"
 #include "analyzer/protocol/tcp/ContentLine.h"

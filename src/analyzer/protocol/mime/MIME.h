@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <vector>
 #include <queue>
-using namespace std;
 
 #include "BroString.h"
 #include "Reporter.h"
@@ -61,7 +60,7 @@ public:
 	BroString* get_concatenated_line();
 
 protected:
-	vector<const BroString*> buffer;
+	std::vector<const BroString*> buffer;
 	BroString* line;
 };
 
@@ -86,7 +85,7 @@ protected:
 };
 
 
-typedef vector<MIME_Header*> MIME_HeaderList;
+using MIME_HeaderList = std::vector<MIME_Header*>;
 
 class MIME_Entity {
 public:
@@ -255,13 +254,13 @@ protected:
 	int compute_content_hash;
 	int content_hash_length;
 	EVP_MD_CTX* md5_hash;
-	vector<const BroString*> entity_content;
-	vector<const BroString*> all_content;
+	std::vector<const BroString*> entity_content;
+	std::vector<const BroString*> all_content;
 
 	BroString* data_buffer;
 
 	uint64_t cur_entity_len;
-	string cur_entity_id;
+	std::string cur_entity_id;
 };
 
 

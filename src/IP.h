@@ -4,8 +4,6 @@
 
 #include "zeek-config.h"
 
-#include <vector>
-
 #include <sys/types.h> // for u_char
 #include <netinet/in.h>
 #include <netinet/ip.h>
@@ -14,7 +12,7 @@
 #include <netinet/ip6.h>
 #endif
 
-using std::vector;
+#include <vector>
 
 class IPAddr;
 class RecordVal;
@@ -263,7 +261,7 @@ protected:
 	void ProcessDstOpts(const struct ip6_dest* d, uint16_t len);
 #endif
 
-	vector<IPv6_Hdr*> chain;
+	std::vector<IPv6_Hdr*> chain;
 
 	/**
 	 * The summation of all header lengths in the chain in bytes.

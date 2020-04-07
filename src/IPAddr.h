@@ -2,14 +2,13 @@
 
 #pragma once
 
-#include "threading/SerialTypes.h"
-
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <string.h>
 #include <string>
 
-using std::string;
+#include "threading/SerialTypes.h"
+
 struct ConnID;
 class BroString;
 class HashKey;
@@ -317,7 +316,7 @@ public:
 		if ( GetFamily() == IPv4 )
 			return AsString();
 
-		return string("[") + AsString() + "]";
+		return std::string("[") + AsString() + "]";
 		}
 
 	/**

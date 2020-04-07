@@ -26,11 +26,38 @@ type RDPEUDP_PDU(is_orig: bool) = record {
 type RDPEUDP_SYN(pdu: RDPEUDP_PDU, is_orig: bool) = record {
 	fec_header:	 	RDPUDP_FEC_HEADER;
 	syndata_payload:	RDPUDP_SYNDATA_PAYLOAD;
-# TODO: parse the rest of the SYN pkt fields
-#	RDPUDP_CORRELATION_ID_PAYLOAD
-#	RDPUDP_SYNEX_PAYLOAD
+	corr_id_payload:	case ((fec_header.uFlags & RDPUDP_FLAG_CORRELATION_ID) > 0) of {
+		true -> has_corr_id_payload:		RDPUDP_CORRELATION_ID_PAYLOAD;
+		false -> has_no_corr_id_payload:	empty;
+	};
+	synex_payload:		case ((fec_header.uFlags & RDPUDP_FLAG_SYNEX) > 0) of {
+		true -> has_synex_payload:		RDPUDP_SYNEX_PAYLOAD;
+		false -> has_no_synex_payload:		empty;
+	};
 } &let {
-	proc_rdpeudp_syn: bool = $context.connection.proc_rdpeudp_syn(is_orig, fec_header.uFlags, fec_header.snSourceAck);
+	proc_rdpeudp_syn: bool = $context.connection.proc_rdpeudp_syn(is_orig, fec_header.uFlags,
+							fec_header.snSourceAck, has_synex_payload.uUdpVer);
+};
+
+# The tech specs refer to this as both RDPUDP_SYNEX_PAYLOAD and RDPUDP_SYNDATAEX_PAYLOAD
+type RDPUDP_SYNEX_PAYLOAD = record {
+	uSynExFlags:	uint16;
+	uUdpVer:	uint16;
+	cookieHash:	case (uUdpVer == RDPUDP_PROTOCOL_VERSION_3) of {
+		true -> has_cookie_hash:	uint8[32];
+		false -> has_no_cookie_hash:	empty;
+	};
+};
+
+enum RDPUDP_VERSION_INFO_FLAG {
+	RDPUDP_PROTOCOL_VERSION_1	= 0x0001,
+	RDPUDP_PROTOCOL_VERSION_2	= 0x0002,
+	RDPUDP_PROTOCOL_VERSION_3	= 0x0101
+};
+
+type RDPUDP_CORRELATION_ID_PAYLOAD = record {
+	uCorrelationId:	uint8[16];
+	uReserved:	uint8[16];
 };
 
 type RDPUDP_SYNDATA_PAYLOAD = record {
@@ -40,9 +67,18 @@ type RDPUDP_SYNDATA_PAYLOAD = record {
 };
 
 type RDPEUDP_SYNACK(pdu: RDPEUDP_PDU, is_orig: bool) = record {
-	fec_header: 	RDPUDP_FEC_HEADER;
+	fec_header:	 	RDPUDP_FEC_HEADER;
+	syndata_payload:	RDPUDP_SYNDATA_PAYLOAD;
+	corr_id_payload:	case ((fec_header.uFlags & RDPUDP_FLAG_CORRELATION_ID) > 0) of {
+		true -> has_corr_id_payload:		RDPUDP_CORRELATION_ID_PAYLOAD;
+		false -> has_no_corr_id_payload:	empty;
+	};
+	synex_payload:		case ((fec_header.uFlags & RDPUDP_FLAG_SYNEX) > 0) of {
+		true -> has_synex_payload:		RDPUDP_SYNEX_PAYLOAD;
+		false -> has_no_synex_payload:		empty;
+	};
 } &let {
-	proc_rdpeudp_synack: bool = $context.connection.proc_rdpeudp_synack(is_orig, fec_header.uFlags);
+	proc_rdpeudp_synack: bool = $context.connection.proc_rdpeudp_synack(is_orig, fec_header.uFlags, has_synex_payload.uUdpVer);
 };
 
 enum RDPUDP_FLAG {
@@ -62,7 +98,7 @@ enum RDPUDP_FLAG {
 };
 
 type RDPEUDP_ACK(pdu: RDPEUDP_PDU, is_orig: bool) = record {
-	version: case ($context.connection.is_version2()) of {
+	version: case ($context.connection.is_rdpeudp2()) of {
 		true ->	version2:	RDPEUDP2_ACK(pdu, is_orig);
 		false -> version1:	RDPEUDP1_ACK(pdu, is_orig);
 	};

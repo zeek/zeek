@@ -1,4 +1,8 @@
 
+3.2.0-dev.353 | 2020-04-06 17:27:35 -0700
+
+  * Improve parsing of RDPEUDP/RDPEUDP2 (Anthony Kasza, Corelight)
+
 3.2.0-dev.338 | 2020-04-02 18:29:23 -0700
 
   * Add RDP over UDP analyzer (Anthony Kasza, Corelight)

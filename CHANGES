@@ -1,4 +1,23 @@
 
+3.2.0-dev.372 | 2020-04-08 14:00:28 -0700
+
+  * Lazy-initalize some of the fields in Frame to reduce size (Tim Wojtulewicz, Corelight)
+
+  * Set InternalHashTag to a uint16_t so CompositeHash doesn't have a gap in it.
+
+    Resizes CompositeHash from 32 bytes to 24 bytes. (Tim Wojtulewicz, Corelight)
+
+  * Mark constants in List constexpr so they don't actually take up space in created objects
+
+    This resizes List from 24 bytes to 16 bytes. (Tim Wojtulewicz, Corelight)
+
+  * Reorder some class variables to fill in gaps in structure packing (Tim Wojtulewicz, Corelight)
+
+  * Mark classes as final, where appropriate. (Tim Wojtulewicz, Corelight)
+
+    These classes were recommended by gcc's -Wsugggest-final-types as places where
+    large numbers of virtual functions could be optimized away.
+
 3.2.0-dev.360 | 2020-04-07 14:12:27 -0700
 
   * Add "udp_content_ports" option

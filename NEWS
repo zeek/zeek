@@ -61,6 +61,12 @@ Changed Functionality
   sure to catch changes you need to make to your plugin, double-check
   that all virtual method implementations use "override".
 
+- Many C++ classes were marked "final" which also has some performance benefits
+  due to devirtualization optimizations.
+
+- Data members of many C++ classes/structs were reordered to achieve better
+  packing and smaller memory footprint.
+
 Removed Functionality
 ---------------------
 

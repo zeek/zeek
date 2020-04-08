@@ -17,7 +17,7 @@ refine connection SMB_Conn += {
 
 	StringVal* parameters = new StringVal(${val.parameters}.length(),
 	                                      (const char*)${val.parameters}.data());
-	StringVal* payload_str = nullptr;
+	IntrusivePtr<StringVal> payload_str;
 	SMB1_transaction_data* payload = nullptr;
 
 	if ( ${val.data_count} > 0 )
@@ -29,20 +29,20 @@ refine connection SMB_Conn += {
 		{
 		switch ( payload->trans_type() ) {
 		case SMB_PIPE:
-			payload_str = new StringVal(${val.data_count}, (const char*)${val.data.pipe_data}.data());
+			payload_str = make_intrusive<StringVal>(${val.data_count}, (const char*)${val.data.pipe_data}.data());
 			break;
 		case SMB_UNKNOWN:
-			payload_str = new StringVal(${val.data_count}, (const char*)${val.data.unknown}.data());
+			payload_str = make_intrusive<StringVal>(${val.data_count}, (const char*)${val.data.unknown}.data());
 			break;
 		default:
-			payload_str = new StringVal(${val.data_count}, (const char*)${val.data.data}.data());
+			payload_str = make_intrusive<StringVal>(${val.data_count}, (const char*)${val.data.data}.data());
 			break;
 		}
 		}
 
 	if ( ! payload_str )
 		{
-		payload_str = val_mgr->GetEmptyString();
+		payload_str = val_mgr->EmptyString();
 		}
 
 	BifEvent::generate_smb1_transaction_secondary_request(bro_analyzer(),
@@ -50,7 +50,7 @@ refine connection SMB_Conn += {
 	                                                      BuildHeaderVal(header),
 	                                                      args,
 	                                                      parameters,
-	                                                      payload_str);
+	                                                      payload_str.release());
 
 	return true;
 	%}

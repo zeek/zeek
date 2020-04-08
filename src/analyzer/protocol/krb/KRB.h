@@ -25,7 +25,9 @@ public:
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new KRB_Analyzer(conn); }
 
-	StringVal* GetAuthenticationInfo(const BroString* principal, const BroString* ciphertext, const bro_uint_t enctype);
+	IntrusivePtr<StringVal> GetAuthenticationInfo(const BroString* principal,
+	                                              const BroString* ciphertext,
+	                                              const bro_uint_t enctype);
 
 protected:
 

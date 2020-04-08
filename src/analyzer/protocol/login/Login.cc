@@ -423,7 +423,7 @@ void Login_Analyzer::LoginEvent(EventHandlerPtr f, const char* line,
 		IntrusivePtr{AdoptRef{}, BuildConnVal()},
 		IntrusivePtr{NewRef{}, username},
 		client_name ? IntrusivePtr{NewRef{}, client_name}
-		            : IntrusivePtr{AdoptRef{}, val_mgr->GetEmptyString()},
+		            : val_mgr->EmptyString(),
 		IntrusivePtr{AdoptRef{}, password},
 		make_intrusive<StringVal>(line)
 	);
@@ -593,7 +593,7 @@ Val* Login_Analyzer::PopUserTextVal()
 	if ( s )
 		return new StringVal(new BroString(true, byte_vec(s), strlen(s)));
 	else
-		return val_mgr->GetEmptyString();
+		return val_mgr->EmptyString()->Ref();
 	}
 
 bool Login_Analyzer::MatchesTypeahead(const char* line) const

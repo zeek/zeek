@@ -91,9 +91,9 @@ refine connection SMB_Conn += {
 				{
 				case 3: // pre NT LM 0.12
 					response->Assign(1, val_mgr->Bool(${val.lanman.is_guest}));
-					response->Assign(2, ${val.lanman.byte_count} == 0 ? val_mgr->GetEmptyString() : smb_string2stringval(${val.lanman.native_os[0]}));
-					response->Assign(3, ${val.lanman.byte_count} == 0 ? val_mgr->GetEmptyString() : smb_string2stringval(${val.lanman.native_lanman[0]}));
-					response->Assign(4, ${val.lanman.byte_count} == 0 ? val_mgr->GetEmptyString() : smb_string2stringval(${val.lanman.primary_domain[0]}));
+					response->Assign(2, ${val.lanman.byte_count} == 0 ? val_mgr->EmptyString()->Ref()->AsStringVal() : smb_string2stringval(${val.lanman.native_os[0]}));
+					response->Assign(3, ${val.lanman.byte_count} == 0 ? val_mgr->EmptyString()->Ref()->AsStringVal() : smb_string2stringval(${val.lanman.native_lanman[0]}));
+					response->Assign(4, ${val.lanman.byte_count} == 0 ? val_mgr->EmptyString()->Ref()->AsStringVal() : smb_string2stringval(${val.lanman.primary_domain[0]}));
 					break;
 				case 4: // NT LM 0.12
 					response->Assign(1, val_mgr->Bool(${val.ntlm.is_guest}));

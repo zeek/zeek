@@ -100,17 +100,17 @@ refine flow SIP_Flow += {
 	function build_sip_header_val(name: const_bytestring, value: const_bytestring): BroVal
 		%{
 		RecordVal* header_record = new RecordVal(mime_header_rec);
+		IntrusivePtr<StringVal> name_val;
 
-		StringVal* name_val = 0;
 		if ( name.length() > 0 )
 			{
 			// Make it all uppercase.
-			name_val = new StringVal(name.length(), (const char*) name.begin());
+			name_val = make_intrusive<StringVal>(name.length(), (const char*) name.begin());
 			name_val->ToUpper();
 			}
 		else
 			{
-			name_val = val_mgr->GetEmptyString();
+			name_val = val_mgr->EmptyString();
 			}
 
 		header_record->Assign(0, name_val);

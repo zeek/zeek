@@ -192,7 +192,7 @@ function x509_get_certificate_string%(cert: opaque of x509, pem: bool &default=F
 	auto ext_val = file_analysis::X509::GetExtensionFromBIO(bio);
 
 	if ( ! ext_val )
-		ext_val = {AdoptRef{}, val_mgr->GetEmptyString()};
+		ext_val = val_mgr->EmptyString();
 
 	return ext_val.release();
 	%}

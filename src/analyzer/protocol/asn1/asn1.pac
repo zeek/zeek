@@ -152,7 +152,7 @@ StringVal* asn1_oid_to_val(const ASN1Encoding* oid)
 
 	if ( ! subidentifier.empty() || subidentifiers.size() < 1 )
 		// Underflow.
-		return val_mgr->GetEmptyString();
+		return val_mgr->EmptyString()->Ref()->AsStringVal();
 
 	for ( size_t i = 0; i < subidentifiers.size(); ++i )
 		{

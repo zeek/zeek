@@ -120,7 +120,7 @@ function Broker::__store_name%(h: opaque of Broker::Store%): string
 	if ( ! h )
 		{
 		builtin_error("invalid Broker store handle");
-		return val_mgr->GetEmptyString();
+		return val_mgr->EmptyString();
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);

@@ -171,8 +171,7 @@ bool HashVal::Init()
 IntrusivePtr<StringVal> HashVal::Get()
 	{
 	if ( ! valid )
-		return IntrusivePtr<StringVal>(AdoptRef{},
-					       val_mgr->GetEmptyString());
+		return val_mgr->EmptyString();
 
 	auto result = DoGet();
 	valid = false;
@@ -203,7 +202,7 @@ bool HashVal::DoFeed(const void*, size_t)
 IntrusivePtr<StringVal> HashVal::DoGet()
 	{
 	assert(! "missing implementation of DoGet()");
-	return IntrusivePtr<StringVal>(AdoptRef{}, val_mgr->GetEmptyString());
+	return val_mgr->EmptyString();
 	}
 
 HashVal::HashVal(OpaqueType* t) : OpaqueVal(t)
@@ -275,7 +274,7 @@ bool MD5Val::DoFeed(const void* data, size_t size)
 IntrusivePtr<StringVal> MD5Val::DoGet()
 	{
 	if ( ! IsValid() )
-		return IntrusivePtr<StringVal>(AdoptRef{}, val_mgr->GetEmptyString());
+		return val_mgr->EmptyString();
 
 	u_char digest[MD5_DIGEST_LENGTH];
 	hash_final(ctx, digest);
@@ -395,8 +394,7 @@ bool SHA1Val::DoFeed(const void* data, size_t size)
 IntrusivePtr<StringVal> SHA1Val::DoGet()
 	{
 	if ( ! IsValid() )
-		return IntrusivePtr<StringVal>(AdoptRef{},
-		                               val_mgr->GetEmptyString());
+		return val_mgr->EmptyString();
 
 	u_char digest[SHA_DIGEST_LENGTH];
 	hash_final(ctx, digest);
@@ -519,8 +517,7 @@ bool SHA256Val::DoFeed(const void* data, size_t size)
 IntrusivePtr<StringVal> SHA256Val::DoGet()
 	{
 	if ( ! IsValid() )
-		return IntrusivePtr<StringVal>(AdoptRef{},
-		                               val_mgr->GetEmptyString());
+		return val_mgr->EmptyString();
 
 	u_char digest[SHA256_DIGEST_LENGTH];
 	hash_final(ctx, digest);

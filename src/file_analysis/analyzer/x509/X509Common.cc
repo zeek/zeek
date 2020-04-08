@@ -316,7 +316,7 @@ IntrusivePtr<StringVal> file_analysis::X509Common::GetExtensionFromBIO(BIO* bio,
 	if ( length == 0 )
 		{
 		BIO_free_all(bio);
-		return {AdoptRef{}, val_mgr->GetEmptyString()};
+		return val_mgr->EmptyString();
 		}
 
 	char* buffer = (char*) malloc(length);

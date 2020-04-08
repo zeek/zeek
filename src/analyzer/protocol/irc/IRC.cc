@@ -740,15 +740,15 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		if ( parts.size() > 0 )
 			vl.emplace_back(make_intrusive<StringVal>(parts[0].c_str()));
-		else vl.emplace_back(AdoptRef{}, val_mgr->GetEmptyString());
+		else vl.emplace_back(val_mgr->EmptyString());
 
 		if ( parts.size() > 1 )
 			vl.emplace_back(make_intrusive<StringVal>(parts[1].c_str()));
-		else vl.emplace_back(AdoptRef{}, val_mgr->GetEmptyString());
+		else vl.emplace_back(val_mgr->EmptyString());
 
 		if ( parts.size() > 2 )
 			vl.emplace_back(make_intrusive<StringVal>(parts[2].c_str()));
-		else vl.emplace_back(AdoptRef{}, val_mgr->GetEmptyString());
+		else vl.emplace_back(val_mgr->EmptyString());
 
 		string realname;
 		for ( unsigned int i = 3; i < parts.size(); i++ )
@@ -810,7 +810,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			vl.emplace_back(make_intrusive<StringVal>(comment.c_str()));
 			}
 		else
-			vl.emplace_back(AdoptRef{}, val_mgr->GetEmptyString());
+			vl.emplace_back(val_mgr->EmptyString());
 
 		EnqueueConnEvent(irc_kick_message, std::move(vl));
 		}
@@ -1026,7 +1026,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			val_mgr->Bool(orig),
 			parts.size() > 0 ?
 				make_intrusive<StringVal>(parts[0].c_str()) :
-				IntrusivePtr{AdoptRef{}, val_mgr->GetEmptyString()},
+				val_mgr->EmptyString(),
 			val_mgr->Bool(oper)
 		);
 		}

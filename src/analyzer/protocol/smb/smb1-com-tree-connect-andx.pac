@@ -23,7 +23,7 @@ refine connection SMB_Conn += {
 			                                                   bro_analyzer()->Conn(),
 			                                                   BuildHeaderVal(header),
 			                                                   service_string,
-			                                                   ${val.byte_count} > ${val.service.a}->size() ? smb_string2stringval(${val.native_file_system[0]}) : val_mgr->GetEmptyString());
+			                                                   ${val.byte_count} > ${val.service.a}->size() ? smb_string2stringval(${val.native_file_system[0]}) : val_mgr->EmptyString()->Ref()->AsStringVal());
 		else
 			Unref(service_string);
 

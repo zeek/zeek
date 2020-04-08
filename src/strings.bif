@@ -952,7 +952,7 @@ function find_last%(str: string, re: pattern%) : string
 			return new StringVal(n, (const char*) t);
 		}
 
-	return val_mgr->GetEmptyString();
+	return val_mgr->EmptyString();
 	%}
 
 ## Returns a hex dump for given input data. The hex dump renders 16 bytes per
@@ -997,13 +997,13 @@ function hexdump%(data_str: string%) : string
 	unsigned data_size = data_str->Len();
 
 	if ( ! data )
-		return val_mgr->GetEmptyString();
+		return val_mgr->EmptyString();
 
 	int num_lines = (data_size / 16) + 1;
 	int len = num_lines * HEX_LINE_WIDTH;
 	u_char* hex_data = new u_char[len + 1];
 	if ( ! hex_data )
-		return val_mgr->GetEmptyString();
+		return val_mgr->EmptyString();
 
 	memset(hex_data, ' ', len);
 

@@ -56,7 +56,7 @@ static VectorVal* BuildOptionsVal(const u_char* data, int len)
 			{
 			// Pad1 option
 			rv->Assign(1, val_mgr->Count(0));
-			rv->Assign(2, val_mgr->GetEmptyString());
+			rv->Assign(2, val_mgr->EmptyString());
 			data += sizeof(uint8_t);
 			len -= sizeof(uint8_t);
 			}

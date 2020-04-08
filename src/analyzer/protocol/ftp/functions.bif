@@ -215,6 +215,6 @@ function fmt_ftp_port%(a: addr, p: port%): string
 		{
 		builtin_error("conversion of non-IPv4 address in fmt_ftp_port",
 		              @ARG@[0]);
-		return val_mgr->GetEmptyString();
+		return val_mgr->EmptyString();
 		}
 	%}

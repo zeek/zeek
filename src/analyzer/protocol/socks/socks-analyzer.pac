@@ -111,7 +111,7 @@ refine connection SOCKS_Conn += {
 			                                 ${request.command},
 			                                 sa,
 			                                 val_mgr->GetPort(${request.port}, TRANSPORT_TCP),
-			                                 val_mgr->GetEmptyString());
+			                                 val_mgr->EmptyString()->Ref()->AsStringVal());
 		else
 			Unref(sa);
 

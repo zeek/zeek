@@ -1655,7 +1655,7 @@ function cat_sep%(sep: string, def: string, ...%): string
 function fmt%(...%): string
 	%{
 	if ( @ARGC@ == 0 )
-		return val_mgr->GetEmptyString();
+		return val_mgr->EmptyString();
 
 	Val* fmt_v = @ARG@[0].get();
 
@@ -1674,13 +1674,13 @@ function fmt%(...%): string
 	if ( n < static_cast<int>(@ARGC@) - 1 )
 		{
 		builtin_error("too many arguments for format", fmt_v);
-		return val_mgr->GetEmptyString();
+		return val_mgr->EmptyString();
 		}
 
 	else if ( n >= static_cast<int>(@ARGC@) )
 		{
 		builtin_error("too few arguments for format", fmt_v);
-		return val_mgr->GetEmptyString();
+		return val_mgr->EmptyString();
 		}
 
 	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
@@ -2857,7 +2857,7 @@ function hexstr_to_bytestring%(hexstr: string%): string
 	if ( len % 2 != 0 )
 		{
 		reporter->Error("Hex string '%s' has invalid length (not divisible by 2)", hexstr->CheckString());
-		return val_mgr->GetEmptyString();
+		return val_mgr->EmptyString();
 		}
 
 	const char* bytes = hexstr->AsString()->CheckString();
@@ -2873,13 +2873,13 @@ function hexstr_to_bytestring%(hexstr: string%): string
 		if ( res == EOF )
 			{
 			reporter->Error("Hex string %s contains invalid input: %s", hexstr->CheckString(), strerror(errno));
-			return val_mgr->GetEmptyString();
+			return val_mgr->EmptyString();
 			}
 
 		else if ( res != 1 )
 			{
 			reporter->Error("Could not read hex element from input %s", hexstr->CheckString());
-			return val_mgr->GetEmptyString();
+			return val_mgr->EmptyString();
 			}
 
 		}
@@ -2905,7 +2905,7 @@ function encode_base64%(s: string, a: string &default=""%): string
 	else
 		{
 		reporter->Error("Broker query has an invalid data store");
-		return val_mgr->GetEmptyString();
+		return val_mgr->EmptyString();
 		}
 	%}
 
@@ -2927,7 +2927,7 @@ function decode_base64%(s: string, a: string &default=""%): string
 	else
 		{
 		reporter->Error("error in decoding string %s", s->CheckString());
-		return val_mgr->GetEmptyString();
+		return val_mgr->EmptyString();
 		}
 	%}
 
@@ -2951,7 +2951,7 @@ function decode_base64_conn%(cid: conn_id, s: string, a: string &default=""%): s
 	if ( ! conn )
 		{
 		builtin_error("connection ID not a known connection", cid);
-		return val_mgr->GetEmptyString();
+		return val_mgr->EmptyString();
 		}
 
 	BroString* t = decode_base64(s->AsString(), a->AsString(), conn);
@@ -2960,7 +2960,7 @@ function decode_base64_conn%(cid: conn_id, s: string, a: string &default=""%): s
 	else
 		{
 		reporter->Error("error in decoding string %s", s->CheckString());
-		return val_mgr->GetEmptyString();
+		return val_mgr->EmptyString();
 		}
 	%}
 
@@ -3327,7 +3327,7 @@ function lookup_connection%(cid: conn_id%): connection
 	c->Assign(3, make_intrusive<Val>(network_time, TYPE_TIME));
 	c->Assign(4, make_intrusive<Val>(0.0, TYPE_INTERVAL));
 	c->Assign(5, make_intrusive<TableVal>(IntrusivePtr{NewRef{}, string_set}));	// service
-	c->Assign(6, val_mgr->GetEmptyString());	// history
+	c->Assign(6, val_mgr->EmptyString());	// history
 
 	return c;
 	%}
@@ -3398,7 +3398,7 @@ function get_current_packet%(%) : pcap_packet
 		pkt->Assign(1, val_mgr->Count(0));
 		pkt->Assign(2, val_mgr->Count(0));
 		pkt->Assign(3, val_mgr->Count(0));
-		pkt->Assign(4, val_mgr->GetEmptyString());
+		pkt->Assign(4, val_mgr->EmptyString());
 		pkt->Assign(5, BifType::Enum::link_encap->GetVal(BifEnum::LINK_UNKNOWN));
 		return pkt;
 		}
@@ -4585,7 +4585,7 @@ function active_file%(f: file%): bool
 function get_file_name%(f: file%): string
 	%{
 	if ( ! f )
-		return val_mgr->GetEmptyString();
+		return val_mgr->EmptyString();
 
 	return new StringVal(f->Name());
 	%}
@@ -4606,8 +4606,8 @@ function rotate_file%(f: file%): rotate_info
 
 	// Record indicating error.
 	info = new RecordVal(rotate_info);
-	info->Assign(0, val_mgr->GetEmptyString());
-	info->Assign(1, val_mgr->GetEmptyString());
+	info->Assign(0, val_mgr->EmptyString());
+	info->Assign(1, val_mgr->EmptyString());
 	info->Assign(2, make_intrusive<Val>(0.0, TYPE_TIME));
 	info->Assign(3, make_intrusive<Val>(0.0, TYPE_TIME));
 
@@ -4647,8 +4647,8 @@ function rotate_file_by_name%(f: string%): rotate_info
 	if ( ! file )
 		{
 		// Record indicating error.
-		info->Assign(0, val_mgr->GetEmptyString());
-		info->Assign(1, val_mgr->GetEmptyString());
+		info->Assign(0, val_mgr->EmptyString());
+		info->Assign(1, val_mgr->EmptyString());
 		info->Assign(2, make_intrusive<Val>(0.0, TYPE_TIME));
 		info->Assign(3, make_intrusive<Val>(0.0, TYPE_TIME));
 		return info;

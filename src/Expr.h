@@ -346,6 +346,7 @@ public:
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 	bool IsPure() const override;
+	bool HasNoSideEffects() const override;
 	bool IsReduced() const override;
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 
@@ -371,6 +372,7 @@ public:
 	IntrusivePtr<Expr> GetOp2() const override final	{ return op2; }
 
 	bool IsPure() const override;
+	bool HasNoSideEffects() const override;
 	bool IsReduced() const override;
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 
@@ -443,6 +445,7 @@ public:
 	IntrusivePtr<Val> DoSingleEval(Frame* f, Val* v) const;
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 	bool IsPure() const override;
+	bool HasNoSideEffects() const override;
 };
 
 class ComplementExpr : public UnaryExpr {
@@ -600,6 +603,8 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
+	bool SameSingletons(IntrusivePtr<Expr> e1, IntrusivePtr<Expr> e2) const;
+
 	void ExprDescribe(ODesc* d) const override;
 
 	IntrusivePtr<Expr> op1;
@@ -633,6 +638,7 @@ public:
 	bool IsRecordElement(TypeDecl* td) const override;
 	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
 	bool IsPure() const override;
+	bool HasNoSideEffects() const override;
 	bool IsReduced() const override;
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 	Expr* ReduceToSingleton(ReductionContext* c,

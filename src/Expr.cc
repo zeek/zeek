@@ -480,6 +480,11 @@ bool UnaryExpr::IsPure() const
 	return op->IsPure();
 	}
 
+bool UnaryExpr::HasNoSideEffects() const
+	{
+	return op->HasNoSideEffects();
+	}
+
 bool UnaryExpr::IsReduced() const
 	{
 	return false;
@@ -633,6 +638,11 @@ IntrusivePtr<Val> BinaryExpr::Eval(Frame* f) const
 bool BinaryExpr::IsPure() const
 	{
 	return op1->IsPure() && op2->IsPure();
+	}
+
+bool BinaryExpr::HasNoSideEffects() const
+	{
+	return op1->HasNoSideEffects() && op2->HasNoSideEffects();
 	}
 
 bool BinaryExpr::IsReduced() const
@@ -1212,6 +1222,11 @@ Expr* IncrExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	}
 
 bool IncrExpr::IsPure() const
+	{
+	return false;
+	}
+
+bool IncrExpr::HasNoSideEffects() const
 	{
 	return false;
 	}
@@ -2429,6 +2444,17 @@ bool CondExpr::IsReduced() const
 
 Expr* CondExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
+	if ( op1->HasNoSideEffects() && SameSingletons(op2, op3) )
+		return op2->Reduce(c, red_stmt);
+
+	if ( op1->IsConst() )
+		{
+		if ( op1->AsConstExpr()->Value()->IsOne() )
+			return op2->Reduce(c, red_stmt);
+		else
+			return op3->Reduce(c, red_stmt);
+		}
+
 	IntrusivePtr<Stmt> red1_stmt;
 	if ( ! op1->IsSingleton() )
 		op1 = {AdoptRef{}, op1->Reduce(c, red1_stmt)};
@@ -2482,6 +2508,31 @@ Expr* CondExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	red_stmt = {AdoptRef{}, new_stmt->Reduce(c)};
 
 	return TransformMe(res, c, red_stmt);
+	}
+
+bool CondExpr::SameSingletons(IntrusivePtr<Expr> e1, IntrusivePtr<Expr> e2) const
+	{
+	if ( ! e1->IsSingleton() || ! e2->IsSingleton() )
+		return false;
+
+	if ( e1->IsConst() )
+		{
+		if ( ! e2->IsConst() )
+			return false;
+
+		auto c1 = e1->AsConstExpr()->Value();
+		auto c2 = e2->AsConstExpr()->Value();
+
+		if ( ! is_atomic_val(c1) || ! is_atomic_val(c2) )
+			return false;
+
+		return same_atomic_val(c1, c2);
+		}
+
+	auto i1 = e1->AsNameExpr()->Id();
+	auto i2 = e2->AsNameExpr()->Id();
+
+	return i1 == i2;
 	}
 
 TraversalCode CondExpr::Traverse(TraversalCallback* cb) const
@@ -2992,6 +3043,11 @@ bool AssignExpr::IsRecordElement(TypeDecl* td) const
 	}
 
 bool AssignExpr::IsPure() const
+	{
+	return false;
+	}
+
+bool AssignExpr::HasNoSideEffects() const
 	{
 	return false;
 	}

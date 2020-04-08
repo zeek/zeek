@@ -1449,10 +1449,10 @@ Expr* AddExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 		return op1.get()->Reduce(c, red_stmt);
 
 	if ( op1->Tag() == EXPR_NEGATE )
-		return BuildSub(op2, op1);
+		return BuildSub(op2, op1)->Reduce(c, red_stmt);
 
 	if ( op2->Tag() == EXPR_NEGATE )
-		return BuildSub(op1, op2);
+		return BuildSub(op1, op2)->Reduce(c, red_stmt);
 
 	return BinaryExpr::Reduce(c, red_stmt);
 	}
@@ -1649,6 +1649,14 @@ Expr* SubExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( op2->IsZero() )
 		return op1.get()->Reduce(c, red_stmt);
+
+	if ( op2->Tag() == EXPR_NEGATE )
+		{
+		auto rhs = op2->GetOp();
+		auto add = new AddExpr(op1, rhs);
+		add->SetOriginal(this);
+		return add->Reduce(c, red_stmt);
+		}
 
 	return BinaryExpr::Reduce(c, red_stmt);
 	}
@@ -1859,8 +1867,8 @@ ModExpr::ModExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 		ExprError("requires integral operands");
 	}
 
-BoolExpr::BoolExpr(BroExprTag arg_tag,
-				   IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
+BoolExpr::BoolExpr(BroExprTag arg_tag, IntrusivePtr<Expr> arg_op1,
+					IntrusivePtr<Expr> arg_op2)
 	: BinaryExpr(arg_tag, std::move(arg_op1), std::move(arg_op2))
 	{
 	if ( IsError() )
@@ -2010,6 +2018,42 @@ Expr* BoolExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	// It's either an EXPR_AND_AND or an EXPR_OR_OR.
 	bool is_and = (tag == EXPR_AND_AND);
+
+	if ( IsTrue(op1) )
+		{
+		if ( is_and )
+			return op2->Reduce(c, red_stmt);
+		else
+			return op1->Reduce(c, red_stmt);
+		}
+
+	if ( IsFalse(op1) )
+		{
+		if ( is_and )
+			return op1->Reduce(c, red_stmt);
+		else
+			return op2->Reduce(c, red_stmt);
+		}
+
+	if ( op1->HasNoSideEffects() )
+		{
+		if ( IsTrue(op2) )
+			{
+			if ( is_and )
+				return op1->Reduce(c, red_stmt);
+			else
+				return op2->Reduce(c, red_stmt);
+			}
+
+		if ( IsFalse(op2) )
+			{
+			if ( is_and )
+				return op2->Reduce(c, red_stmt);
+			else
+				return op1->Reduce(c, red_stmt);
+			}
+		}
+
 	auto else_val = is_and ? val_mgr->GetFalse() : val_mgr->GetTrue();
 	IntrusivePtr<Val> else_val_int = {AdoptRef{}, else_val};
 	IntrusivePtr<Expr> else_e = {AdoptRef{}, new ConstExpr(else_val_int)};
@@ -2023,6 +2067,24 @@ Expr* BoolExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	auto cond_red = cond->Reduce(c, red_stmt);
 
 	return TransformMe(cond_red, c, red_stmt);
+	}
+
+bool BoolExpr::IsTrue(const IntrusivePtr<Expr>& e) const
+	{
+	if ( ! e->IsConst() )
+		return false;
+
+	auto c_e = e->AsConstExpr();
+	return c_e->Value()->IsOne();
+	}
+
+bool BoolExpr::IsFalse(const IntrusivePtr<Expr>& e) const
+	{
+	if ( ! e->IsConst() )
+		return false;
+
+	auto c_e = e->AsConstExpr();
+	return c_e->Value()->IsZero();
 	}
 
 

@@ -132,8 +132,14 @@ public:
 	// accordingly.
 	virtual IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const;
 
-	// True if the expression has no side effects, false otherwise.
+	// This used to be framed as "true if the expression has no side
+	// effects, false otherwise", but that's not quite right, since
+	// for identifiers it's only true if they're constant.  So this
+	// is more like "has no variable elements".
 	virtual bool IsPure() const;
+
+	// True if the expression has no side effects, false otherwise.
+	virtual bool HasNoSideEffects() const	{ return IsPure(); }
 
 	// True if the expression is in reduced form (only variables or
 	// constants as operands).
@@ -302,6 +308,7 @@ public:
 	IntrusivePtr<Stmt> ReduceToLHS(ReductionContext* c) override;
 	IntrusivePtr<Expr> MakeLvalue() override;
 	bool IsPure() const override;
+	bool HasNoSideEffects() const override	{ return true; }
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -553,6 +560,8 @@ public:
 	IntrusivePtr<Val> DoSingleEval(Frame* f, IntrusivePtr<Val> v1, Expr* op2) const;
 
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
+	bool IsTrue(const IntrusivePtr<Expr>& e) const;
+	bool IsFalse(const IntrusivePtr<Expr>& e) const;
 };
 
 class BitExpr : public BinaryExpr {

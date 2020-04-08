@@ -2262,7 +2262,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 		return val_mgr->Bool(val->val.int_val)->Ref();
 
 	case TYPE_INT:
-		return val_mgr->GetInt(val->val.int_val);
+		return val_mgr->Int(val->val.int_val).release();
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
@@ -2410,7 +2410,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 		return val_mgr->Bool(val->val.int_val)->Ref();
 
 	case TYPE_INT:
-		return val_mgr->GetInt(val->val.int_val);
+		return val_mgr->Int(val->val.int_val).release();
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:

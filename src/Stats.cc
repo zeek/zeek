@@ -374,7 +374,7 @@ void SampleLogger::SegmentProfile(const char* /* name */,
 		mgr.Enqueue(load_sample,
 			IntrusivePtr{NewRef{}, load_samples},
 			make_intrusive<IntervalVal>(dtime, Seconds),
-			IntrusivePtr{AdoptRef{}, val_mgr->GetInt(dmem)}
+			val_mgr->Int(dmem)
 		);
 	}
 

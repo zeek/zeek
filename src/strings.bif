@@ -444,7 +444,7 @@ function gsub%(str: string, re: pattern, repl: string%): string
 ##          *s1* is greater than, equal to, or less than *s2*.
 function strcmp%(s1: string, s2: string%): int
 	%{
-	return val_mgr->GetInt(Bstr_cmp(s1->AsString(), s2->AsString()));
+	return val_mgr->Int(Bstr_cmp(s1->AsString(), s2->AsString()));
 	%}
 
 ## Locates the first occurrence of one string in another.

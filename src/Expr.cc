@@ -686,7 +686,7 @@ IntrusivePtr<Val> BinaryExpr::Fold(Val* v1, Val* v2) const
 	else if ( ret_type->Tag() == TYPE_BOOL )
 		return val_mgr->Bool(i3);
 	else
-		return {AdoptRef{}, val_mgr->GetInt(i3)};
+		return val_mgr->Int(i3);
 	}
 
 IntrusivePtr<Val> BinaryExpr::StringFold(Val* v1, Val* v2) const
@@ -958,7 +958,7 @@ IntrusivePtr<Val> IncrExpr::DoSingleEval(Frame* f, Val* v) const
 		ret_type = Type()->YieldType();
 
 	if ( ret_type->Tag() == TYPE_INT )
-		return {AdoptRef{}, val_mgr->GetInt(k)};
+		return val_mgr->Int(k);
 	else
 		return {AdoptRef{}, val_mgr->GetCount(k)};
 	}
@@ -1075,7 +1075,7 @@ IntrusivePtr<Val> PosExpr::Fold(Val* v) const
 	if ( t == TYPE_DOUBLE || t == TYPE_INTERVAL || t == TYPE_INT )
 		return {NewRef{}, v};
 	else
-		return {AdoptRef{}, val_mgr->GetInt(v->CoerceToInt())};
+		return val_mgr->Int(v->CoerceToInt());
 	}
 
 NegExpr::NegExpr(IntrusivePtr<Expr> arg_op)
@@ -1113,7 +1113,7 @@ IntrusivePtr<Val> NegExpr::Fold(Val* v) const
 	else if ( v->Type()->Tag() == TYPE_INTERVAL )
 		return make_intrusive<IntervalVal>(- v->InternalDouble(), 1.0);
 	else
-		return {AdoptRef{}, val_mgr->GetInt(- v->CoerceToInt())};
+		return val_mgr->Int(- v->CoerceToInt());
 	}
 
 SizeExpr::SizeExpr(IntrusivePtr<Expr> arg_op)
@@ -3485,7 +3485,7 @@ IntrusivePtr<Val> ArithCoerceExpr::FoldSingleVal(Val* v, InternalTypeTag t) cons
 		return make_intrusive<Val>(v->CoerceToDouble(), TYPE_DOUBLE);
 
 	case TYPE_INTERNAL_INT:
-		return {AdoptRef{}, val_mgr->GetInt(v->CoerceToInt())};
+		return val_mgr->Int(v->CoerceToInt());
 
 	case TYPE_INTERNAL_UNSIGNED:
 		return {AdoptRef{}, val_mgr->GetCount(v->CoerceToUnsigned())};

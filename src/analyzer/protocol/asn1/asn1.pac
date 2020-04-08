@@ -115,7 +115,7 @@ Val* asn1_integer_to_val(const ASN1Encoding* i, TypeTag t)
 	case TYPE_BOOL:
 		return val_mgr->Bool(v)->Ref();
 	case TYPE_INT:
-		return val_mgr->GetInt(v);
+		return val_mgr->Int(v).release();
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
 		return val_mgr->GetCount(v);

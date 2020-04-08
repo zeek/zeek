@@ -102,11 +102,11 @@ function Supervisor::__is_supervisor%(%): bool
 function Supervisor::__stem_pid%(%): int
 	%{
 	if ( zeek::supervisor_mgr )
-		return val_mgr->GetInt(zeek::supervisor_mgr->StemPID());
+		return val_mgr->Int(zeek::supervisor_mgr->StemPID());
 
 	if ( zeek::Supervisor::ThisNode() )
-		return val_mgr->GetInt(zeek::Supervisor::ThisNode()->parent_pid);
+		return val_mgr->Int(zeek::Supervisor::ThisNode()->parent_pid);
 
 	builtin_error("supervisor mode not enabled and not a supervised node");
-	return val_mgr->GetInt(-1);
+	return val_mgr->Int(-1);
 	%}

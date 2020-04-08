@@ -15,7 +15,7 @@ RecordVal* x509_result_record(uint64_t num, const char* reason, Val* chainVector
 	{
 	RecordVal* rrecord = new RecordVal(BifType::Record::X509::Result);
 
-	rrecord->Assign(0, val_mgr->GetInt(num));
+	rrecord->Assign(0, val_mgr->Int(num));
 	rrecord->Assign(1, make_intrusive<StringVal>(reason));
 	if ( chainVector )
 		rrecord->Assign(2, chainVector);

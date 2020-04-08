@@ -106,7 +106,7 @@ struct val_converter {
 	result_type operator()(int64_t a)
 		{
 		if ( type->Tag() == TYPE_INT )
-			return val_mgr->GetInt(a);
+			return val_mgr->Int(a).release();
 		return nullptr;
 		}
 

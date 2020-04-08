@@ -468,7 +468,7 @@ static int do_system(const char* s)
 function system%(str: string%): int
 	%{
 	int result = do_system(str->CheckString());
-	return val_mgr->GetInt(result);
+	return val_mgr->Int(result);
 	%}
 
 ## Invokes a command via the ``system`` function of the OS with a prepared
@@ -489,17 +489,17 @@ function system_env%(str: string, env: table_string_of_string%): int
 	if ( env->Type()->Tag() != TYPE_TABLE )
 		{
 		builtin_error("system_env() requires a table argument");
-		return val_mgr->GetInt(-1);
+		return val_mgr->Int(-1);
 		}
 
 	if ( ! prepare_environment(env->AsTableVal(), true) )
-		return val_mgr->GetInt(-1);
+		return val_mgr->Int(-1);
 
 	int result = do_system(str->CheckString());
 
 	prepare_environment(env->AsTableVal(), false);
 
-	return val_mgr->GetInt(result);
+	return val_mgr->Int(result);
 	%}
 
 ## Opens a program with ``popen`` and writes a given string to the returned
@@ -1901,7 +1901,7 @@ function packet_source%(%): PacketSource
 		{
 		r->Assign(0, val_mgr->Bool(ps->IsLive()));
 		r->Assign(1, make_intrusive<StringVal>(ps->Path()));
-		r->Assign(2, val_mgr->GetInt(ps->LinkType()));
+		r->Assign(2, val_mgr->Int(ps->LinkType()));
 		r->Assign(3, val_mgr->GetCount(ps->Netmask()));
 		}
 
@@ -2273,10 +2273,10 @@ function enum_to_int%(e: any%): int
 	if ( e->Type()->Tag() != TYPE_ENUM )
 		{
 		builtin_error("enum_to_int() requires enum value");
-		return val_mgr->GetInt(-1);
+		return val_mgr->Int(-1);
 		}
 
-	return val_mgr->GetInt(e->AsEnum());
+	return val_mgr->Int(e->AsEnum());
 	%}
 
 ## Converts a :zeek:type:`string` to an :zeek:type:`int`.
@@ -2300,7 +2300,7 @@ function to_int%(str: string%): int
 		builtin_error("bad conversion to integer", @ARG@[0]);
 #endif
 
-	return val_mgr->GetInt(i);
+	return val_mgr->Int(i);
 	%}
 
 

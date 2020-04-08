@@ -732,7 +732,7 @@ void IntervalVal::ValDescribe(ODesc* d) const
 
 IntrusivePtr<Val> PortVal::SizeVal() const
 	{
-	return {AdoptRef{}, val_mgr->GetInt(val.uint_val)};
+	return val_mgr->Int(val.uint_val);
 	}
 
 uint32_t PortVal::Mask(uint32_t port_num, TransportProto port_type)
@@ -2931,7 +2931,7 @@ unsigned int RecordVal::MemoryAllocation() const
 
 IntrusivePtr<Val> EnumVal::SizeVal() const
 	{
-	return {AdoptRef{}, val_mgr->GetInt(val.int_val)};
+	return val_mgr->Int(val.int_val);
 	}
 
 void EnumVal::ValDescribe(ODesc* d) const
@@ -3205,7 +3205,7 @@ IntrusivePtr<Val> check_and_promote(IntrusivePtr<Val> v, const BroType* t,
 			return nullptr;
 			}
 		else if ( t_tag == TYPE_INT )
-			promoted_v = {AdoptRef{}, val_mgr->GetInt(v->CoerceToInt())};
+			promoted_v = val_mgr->Int(v->CoerceToInt());
 		else // enum
 			{
 			reporter->InternalError("bad internal type in check_and_promote()");

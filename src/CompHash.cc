@@ -770,7 +770,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 		else if ( tag == TYPE_BOOL )
 			*pval = val_mgr->Bool(*kp);
 		else if ( tag == TYPE_INT )
-			*pval = {AdoptRef{}, val_mgr->GetInt(*kp)};
+			*pval = val_mgr->Int(*kp);
 		else
 			{
 			reporter->InternalError("bad internal unsigned int in CompositeHash::RecoverOneVal()");

@@ -193,9 +193,9 @@ refine connection SMB_Conn += {
 		if ( smb2_file_fscontrol )
 			{
 			RecordVal* r = new RecordVal(BifType::Record::SMB2::Fscontrol);
-			r->Assign(0, val_mgr->GetInt(${val.free_space_start_filtering}));
-			r->Assign(1, val_mgr->GetInt(${val.free_space_start_threshold}));
-			r->Assign(2, val_mgr->GetInt(${val.free_space_stop_filtering}));
+			r->Assign(0, val_mgr->Int(${val.free_space_start_filtering}));
+			r->Assign(1, val_mgr->Int(${val.free_space_start_threshold}));
+			r->Assign(2, val_mgr->Int(${val.free_space_stop_filtering}));
 			r->Assign(3, val_mgr->GetCount(${val.default_quota_threshold}));
 			r->Assign(4, val_mgr->GetCount(${val.default_quota_limit}));
 			r->Assign(5, val_mgr->GetCount(${val.file_system_control_flags}));

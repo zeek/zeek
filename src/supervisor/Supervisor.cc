@@ -1121,7 +1121,7 @@ IntrusivePtr<RecordVal> Supervisor::NodeConfig::ToRecord() const
 		rval->Assign(rt->FieldOffset("stderr_file"), make_intrusive<StringVal>(*stderr_file));
 
 	if ( cpu_affinity )
-		rval->Assign(rt->FieldOffset("cpu_affinity"), val_mgr->GetInt(*cpu_affinity));
+		rval->Assign(rt->FieldOffset("cpu_affinity"), val_mgr->Int(*cpu_affinity));
 
 	auto st = BifType::Record::Supervisor::NodeConfig->FieldType("scripts");
 	auto scripts_val = new VectorVal(st->AsVectorType());
@@ -1163,7 +1163,7 @@ IntrusivePtr<RecordVal> Supervisor::Node::ToRecord() const
 	rval->Assign(rt->FieldOffset("node"), config.ToRecord());
 
 	if ( pid )
-		rval->Assign(rt->FieldOffset("pid"), val_mgr->GetInt(pid));
+		rval->Assign(rt->FieldOffset("pid"), val_mgr->Int(pid));
 
 	return rval;
 	}

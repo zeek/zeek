@@ -503,7 +503,7 @@ void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name,
 	RecordVal* benc_value = new RecordVal(bittorrent_benc_value);
 	StringVal* name_ = new StringVal(name_len, name);
 
-	benc_value->Assign(type, val_mgr->GetInt(value));
+	benc_value->Assign(type, val_mgr->Int(value));
 	res_val_benc->Assign(name_, benc_value);
 
 	Unref(name_);

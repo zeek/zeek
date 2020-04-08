@@ -114,7 +114,7 @@ static RecordVal* build_syn_packet_val(bool is_orig, const IP_Hdr* ip,
 	v->Assign(2, val_mgr->GetCount((ip->TTL())));
 	v->Assign(3, val_mgr->GetCount((ip->TotalLen())));
 	v->Assign(4, val_mgr->GetCount(ntohs(tcp->th_win)));
-	v->Assign(5, val_mgr->GetInt(winscale));
+	v->Assign(5, val_mgr->Int(winscale));
 	v->Assign(6, val_mgr->GetCount(MSS));
 	v->Assign(7, val_mgr->Bool(SACK));
 

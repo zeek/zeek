@@ -378,10 +378,10 @@ RecordVal* Connection::BuildConnVal()
 			conn_val->Assign(8, encapsulation->GetVectorVal());
 
 		if ( vlan != 0 )
-			conn_val->Assign(9, val_mgr->GetInt(vlan));
+			conn_val->Assign(9, val_mgr->Int(vlan));
 
 		if ( inner_vlan != 0 )
-			conn_val->Assign(10, val_mgr->GetInt(inner_vlan));
+			conn_val->Assign(10, val_mgr->Int(inner_vlan));
 
 		}
 

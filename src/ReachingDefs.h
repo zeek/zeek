@@ -3,7 +3,20 @@
 #include "DefItem.h"
 
 
-typedef std::map<const DefinitionItem*, DefinitionPoint> ReachingDefsMap;
+// Maps a DefinitionItem (i.e., a variable or a record field within a
+// DefinitionItem) to a list of all the points where the item is defined.
+//
+// Those points are specific to a given location in a script (see
+// AnalyInfo below).  For example, right after an assignment to a variable,
+// it will have exactly one associated point (the assignment).  But at
+// other points there can be more than one reaching definition; for example,
+// a variable defined in both branches of an if-else will cause the location
+// in the script after the if-else statement to have both of those definitions
+// as reaching.
+
+// typedef PList<DefinitionPoint> DefPoints;
+typedef DefinitionPoint DefPoints;
+typedef std::map<const DefinitionItem*, DefPoints> ReachingDefsMap;
 
 class ReachingDefs;
 typedef IntrusivePtr<ReachingDefs> RD_ptr;
@@ -30,12 +43,6 @@ public:
 		return rd_map.find(di) != rd_map.end();
 		}
 
-	bool HasPair(const DefinitionItem* di, DefinitionPoint dp) const
-		{
-		auto l = rd_map.find(di);
-		return l != rd_map.end() && l->second.SameAs(dp);
-		}
-
 	RD_ptr Intersect(const RD_ptr& r) const;
 	RD_ptr Union(const RD_ptr& r) const;
 
@@ -44,6 +51,12 @@ public:
 	int Size() const	{ return rd_map.size(); }
 
 protected:
+	bool HasPair(const DefinitionItem* di, DefinitionPoint dp) const
+		{
+		auto l = rd_map.find(di);
+		return l != rd_map.end() && l->second.SameAs(dp);
+		}
+
 	const ReachingDefsMap& RDMap() const	{ return rd_map; }
 
 	void PrintRD(const DefinitionItem* di, const DefinitionPoint& dp) const;
@@ -51,6 +64,8 @@ protected:
 	ReachingDefsMap rd_map;
 };
 
+// Maps script locations (which are represented by their underlying BroObj
+// pointers) to the reaching definitions for that particular point.
 typedef std::map<const BroObj*, RD_ptr> AnalyInfo;
 
 // Reaching definitions associated with a collection of BroObj's.

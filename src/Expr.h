@@ -444,8 +444,7 @@ public:
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
-	Expr* Reduce(ReductionContext* c,
-			IntrusivePtr<Stmt>& red_stmt) override;
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
 class NotExpr : public UnaryExpr {
@@ -454,6 +453,7 @@ public:
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
 class PosExpr : public UnaryExpr {
@@ -462,6 +462,7 @@ public:
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
 class NegExpr : public UnaryExpr {
@@ -470,6 +471,7 @@ public:
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
 class SizeExpr : public UnaryExpr {

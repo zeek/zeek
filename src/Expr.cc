@@ -1239,9 +1239,9 @@ IntrusivePtr<Val> ComplementExpr::Fold(Val* v) const
 Expr* ComplementExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( op->Tag() == EXPR_COMPLEMENT )
-		return op->GetOp().get();
+		return op->GetOp().get()->Reduce(c, red_stmt);
 
-	return this->Ref();
+	return UnaryExpr::Reduce(c, red_stmt);
 	}
 
 NotExpr::NotExpr(IntrusivePtr<Expr> arg_op)
@@ -1261,6 +1261,14 @@ NotExpr::NotExpr(IntrusivePtr<Expr> arg_op)
 IntrusivePtr<Val> NotExpr::Fold(Val* v) const
 	{
 	return {AdoptRef{}, val_mgr->GetBool(! v->InternalInt())};
+	}
+
+Expr* NotExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	if ( op->Tag() == EXPR_NOT )
+		return op->GetOp().get()->Reduce(c, red_stmt);
+
+	return UnaryExpr::Reduce(c, red_stmt);
 	}
 
 PosExpr::PosExpr(IntrusivePtr<Expr> arg_op)
@@ -1301,6 +1309,17 @@ IntrusivePtr<Val> PosExpr::Fold(Val* v) const
 		return {AdoptRef{}, val_mgr->GetInt(v->CoerceToInt())};
 	}
 
+Expr* PosExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	if ( op->Type()->Tag() == TYPE_COUNT )
+		// We need to keep the expression because it leads
+		// to a coercion from unsigned to signed.
+		return UnaryExpr::Reduce(c, red_stmt);
+
+	else
+		return op.get()->Reduce(c, red_stmt);
+	}
+
 NegExpr::NegExpr(IntrusivePtr<Expr> arg_op)
 	: UnaryExpr(EXPR_NEGATE, std::move(arg_op))
 	{
@@ -1337,6 +1356,14 @@ IntrusivePtr<Val> NegExpr::Fold(Val* v) const
 		return make_intrusive<IntervalVal>(- v->InternalDouble(), 1.0);
 	else
 		return {AdoptRef{}, val_mgr->GetInt(- v->CoerceToInt())};
+	}
+
+Expr* NegExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	if ( op->Tag() == EXPR_NEGATE )
+		return op->GetOp().get()->Reduce(c, red_stmt);
+
+	return UnaryExpr::Reduce(c, red_stmt);
 	}
 
 SizeExpr::SizeExpr(IntrusivePtr<Expr> arg_op)

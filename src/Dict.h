@@ -162,17 +162,18 @@ private:
 	int num_buckets = 0;
 	int num_entries = 0;
 	int max_num_entries = 0;
+	int thresh_entries = 0;
 	uint64_t cumulative_entries = 0;
 	double den_thresh = 0.0;
-	int thresh_entries = 0;
 
 	// Resizing table (replicates tbl above).
 	PList<DictEntry>** tbl2 = nullptr;
 	int num_buckets2 = 0;
 	int num_entries2 = 0;
 	int max_num_entries2 = 0;
-	double den_thresh2 = 0;
+
 	int thresh_entries2 = 0;
+	double den_thresh2 = 0;
 
 	hash_t tbl_next_ind = 0;
 

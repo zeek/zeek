@@ -190,15 +190,17 @@ protected:
 
 	bool utf8; // whether valid utf-8 sequences may pass through unescaped
 	bool escape;	// escape unprintable characters in output?
-	typedef std::set<std::string> escape_set;
+	bool is_short;
+	bool want_quotes;
+
+	int indent_with_spaces;
+
+	using escape_set = std::set<std::string>;
 	escape_set escape_sequences; // additional sequences of chars to escape
 
 	BroFile* f;	// or the file we're using.
 
 	int indent_level;
-	int indent_with_spaces;
-	bool is_short;
-	bool want_quotes;
 	bool do_flush;
 	bool include_stats;
 

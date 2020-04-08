@@ -234,6 +234,8 @@ public:
 
 private:
 
+	using OffsetMap = std::unordered_map<std::string, int>;
+
 	/**
 	 * Unrefs the value at offset 'n' frame unless it's a weak reference.
 	 */
@@ -244,7 +246,7 @@ private:
 
 	/** Serializes an offset_map */
 	static broker::expected<broker::data>
-	SerializeOffsetMap(const std::unordered_map<std::string, int>& in);
+	SerializeOffsetMap(const OffsetMap& in);
 
 	/** Serializes an id_list */
 	static broker::expected<broker::data>
@@ -261,6 +263,11 @@ private:
 	/** The number of vals that can be stored in this frame. */
 	int size;
 
+	bool weak_closure_ref = false;
+	bool break_before_next_stmt;
+	bool break_on_return;
+	bool delayed;
+
 	/** Associates ID's offsets with values. */
 	Val** frame;
 
@@ -270,7 +277,6 @@ private:
 
 	/** The enclosing frame of this frame. */
 	Frame* closure;
-	bool weak_closure_ref = false;
 
 	/** ID's used in this frame from the enclosing frame. */
 	id_list outer_ids;
@@ -279,7 +285,7 @@ private:
 	 * Maps ID names to offsets. Used if this frame is  serialized
 	 * to maintain proper offsets after being sent elsewhere.
 	 */
-	std::unordered_map<std::string, int> offset_map;
+	std::unique_ptr<OffsetMap> offset_map;
 
 	/** The function this frame is associated with. */
 	const BroFunc* function;
@@ -289,14 +295,10 @@ private:
 	/** The next statement to be evaluted in the context of this frame. */
 	Stmt* next_stmt;
 
-	bool break_before_next_stmt;
-	bool break_on_return;
-
 	IntrusivePtr<trigger::Trigger> trigger;
 	const CallExpr* call;
-	bool delayed;
 
-	std::vector<BroFunc*> functions_with_closure_frame_reference;
+	std::unique_ptr<std::vector<BroFunc*>> functions_with_closure_frame_reference;
 };
 
 /**

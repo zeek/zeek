@@ -163,11 +163,11 @@ protected:
 
 	struct AsyncRequest {
 		double time;
-		bool is_txt;
-		bool processed;
 		IPAddr host;
 		string name;
 		CallbackList callbacks;
+		bool is_txt;
+		bool processed;
 
 		AsyncRequest() : time(0.0), is_txt(false), processed(false) { }
 

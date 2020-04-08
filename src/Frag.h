@@ -44,11 +44,11 @@ protected:
 
 	u_char* proto_hdr;
 	IP_Hdr* reassembled_pkt;
-	uint16_t proto_hdr_len;
 	NetSessions* s;
 	uint64_t frag_size;	// size of fully reassembled fragment
-	uint16_t next_proto; // first IPv6 fragment header's next proto field
 	FragReassemblerKey key;
+	uint16_t next_proto; // first IPv6 fragment header's next proto field
+	uint16_t proto_hdr_len;
 
 	FragTimer* expire_timer;
 };

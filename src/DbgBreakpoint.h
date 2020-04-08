@@ -63,21 +63,21 @@ protected:
 	void PrintHitMsg();	// display reason when the breakpoint hits
 
 	Kind kind;
-	bool enabled;	// ### comment this and next
-	bool temporary;
-	int BPID;
+	int32_t BPID;
 
 	char description[512];
 	string function_name;	// location
 	const char* source_filename;
-	int source_line;
+	int32_t source_line;
+	bool enabled;	// ### comment this and next
+	bool temporary;
 
 	Stmt* at_stmt;
 	double at_time;	// break when the virtual time is this
 
 	// Support for conditional and N'th time breakpoints.
-	int repeat_count;	// if positive, break after this many hits
-	int hit_count;	// how many times it's been hit (w/o breaking)
+	int32_t repeat_count;	// if positive, break after this many hits
+	int32_t hit_count;	// how many times it's been hit (w/o breaking)
 
 	string condition;	// condition to evaluate; nil for none
 };

@@ -36,10 +36,13 @@ Frame::Frame(int arg_size, const BroFunc* func, const zeek::Args* fn_args)
 
 Frame::~Frame()
 	{
-	for ( auto& func : functions_with_closure_frame_reference )
+	if ( functions_with_closure_frame_reference )
 		{
-		func->StrengthenClosureReference(this);
-		Unref(func);
+		for ( auto& func : *functions_with_closure_frame_reference )
+			{
+			func->StrengthenClosureReference(this);
+			Unref(func);
+			}
 		}
 
 	if ( ! weak_closure_ref )
@@ -56,7 +59,11 @@ Frame::~Frame()
 void Frame::AddFunctionWithClosureRef(BroFunc* func)
 	{
 	::Ref(func);
-	functions_with_closure_frame_reference.emplace_back(func);
+
+	if ( ! functions_with_closure_frame_reference )
+		functions_with_closure_frame_reference = make_unique<std::vector<BroFunc*>>();
+
+	functions_with_closure_frame_reference->emplace_back(func);
 	}
 
 void Frame::SetElement(int n, Val* v, bool weak_ref)
@@ -95,11 +102,11 @@ void Frame::SetElement(const ID* id, Val* v)
 		}
 
 	// do we have an offset for it?
-	if ( offset_map.size() )
+	if ( offset_map && ! offset_map->empty() )
 		{
-		auto where = offset_map.find(std::string(id->Name()));
+		auto where = offset_map->find(std::string(id->Name()));
 
-		if ( where != offset_map.end() )
+		if ( where != offset_map->end() )
 			{
 			// Need to add a Ref to 'v' since the SetElement() for
 			// id->Offset() below is otherwise responsible for keeping track
@@ -121,10 +128,10 @@ Val* Frame::GetElement(const ID* id) const
 		}
 
 	// do we have an offset for it?
-	if ( offset_map.size() )
+	if ( offset_map && ! offset_map->empty() )
 		{
-		auto where = offset_map.find(std::string(id->Name()));
-		if ( where != offset_map.end() )
+		auto where = offset_map->find(std::string(id->Name()));
+		if ( where != offset_map->end() )
 			return frame[where->second];
 		}
 
@@ -174,7 +181,10 @@ void Frame::Describe(ODesc* d) const
 Frame* Frame::Clone() const
 	{
 	Frame* other = new Frame(size, function, func_args);
-	other->offset_map = offset_map;
+
+	if ( offset_map )
+		other->offset_map = make_unique<OffsetMap>(*offset_map);
+
 	other->CaptureClosure(closure, outer_ids);
 
 	other->call = call;
@@ -233,10 +243,10 @@ Frame* Frame::SelectiveClone(const id_list& selection, BroFunc* func) const
 
 	for ( const auto& id : us )
 		{
-		if ( offset_map.size() )
+		if ( offset_map && ! offset_map->empty() )
 			{
-			auto where = offset_map.find(std::string(id->Name()));
-			if ( where != offset_map.end() )
+			auto where = offset_map->find(std::string(id->Name()));
+			if ( where != offset_map->end() )
 				{
 				clone_if_not_func(frame, where->second, func, other);
 				continue;
@@ -265,7 +275,15 @@ Frame* Frame::SelectiveClone(const id_list& selection, BroFunc* func) const
 	if( closure )
 		other->CaptureClosure(closure, outer_ids);
 
-	other->offset_map = offset_map;
+	if ( offset_map )
+		{
+		if ( ! other->offset_map )
+			other->offset_map = make_unique<OffsetMap>(*offset_map);
+		else
+			*(other->offset_map) = *offset_map;
+		}
+	else
+		other->offset_map.reset();
 
 	return other;
 	}
@@ -281,7 +299,9 @@ broker::expected<broker::data> Frame::Serialize(const Frame* target, const id_li
 	// and
 	id_list them;
 
-	std::unordered_map<std::string, int> new_map(target->offset_map);
+	std::unordered_map<std::string, int> new_map;
+	if ( target->offset_map )
+		new_map = *(target->offset_map);
 
 	for (const auto& we : selection)
 		{
@@ -358,7 +378,7 @@ std::pair<bool, IntrusivePtr<Frame>> Frame::Unserialize(const broker::vector& da
 		return std::make_pair(true, nullptr);
 
 	id_list outer_ids;
-	std::unordered_map<std::string, int> offset_map;
+	OffsetMap offset_map;
 	IntrusivePtr<Frame> closure;
 
 	auto where = data.begin();
@@ -442,7 +462,8 @@ std::pair<bool, IntrusivePtr<Frame>> Frame::Unserialize(const broker::vector& da
 
 	// We'll associate this frame with a function later.
 	auto rf = make_intrusive<Frame>(frame_size, nullptr, nullptr);
-	rf->offset_map = std::move(offset_map);
+	rf->offset_map = make_unique<OffsetMap>(std::move(offset_map));
+
 	// Frame takes ownership of unref'ing elements in outer_ids
 	rf->outer_ids = std::move(outer_ids);
 	rf->closure = closure.release();
@@ -477,7 +498,10 @@ std::pair<bool, IntrusivePtr<Frame>> Frame::Unserialize(const broker::vector& da
 
 void Frame::AddKnownOffsets(const id_list& ids)
 	{
-	std::transform(ids.begin(), ids.end(), std::inserter(offset_map, offset_map.end()),
+	if ( ! offset_map )
+		offset_map = make_unique<OffsetMap>();
+
+	std::transform(ids.begin(), ids.end(), std::inserter(*offset_map, offset_map->end()),
 		       [] (const ID* id) -> std::pair<std::string, int>
 		       {
 		       return std::make_pair(std::string(id->Name()), id->Offset());

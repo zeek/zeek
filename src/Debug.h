@@ -18,9 +18,9 @@ class Stmt;
 enum ParseLocationRecType { plrUnknown, plrFileAndLine, plrFunction };
 struct ParseLocationRec {
 	ParseLocationRecType type;
+	int32_t line;
 	Stmt* stmt;
 	const char* filename;
-	int line;
 };
 
 class StmtLocMapping;

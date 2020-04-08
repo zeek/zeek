@@ -56,7 +56,12 @@ private:
 	 * Indicates whether new statments will not be considered as part of
 	 * coverage statistics because it was marked with the @no-test tag.
 	 */
-	unsigned int ignoring;
+	uint32_t ignoring;
+
+	/**
+	 * The character to use to delimit Brofiler output files.  Default is '\t'.
+	 */
+	char delim;
 
 	/**
 	 * This maps Stmt location-desc pairs to the total number of times that
@@ -65,11 +70,6 @@ private:
 	 * to a file.
 	 */
 	map<pair<string, string>, uint64_t> usage_map;
-
-	/**
-	 * The character to use to delimit Brofiler output files.  Default is '\t'.
-	 */
-	char delim;
 
 	/**
 	 * A canonicalization routine for Stmt descriptions containing characters

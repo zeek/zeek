@@ -93,17 +93,18 @@ struct ScannedFile {
 	dev_t dev;
 	ino_t inode;
 	int include_level;
-	string name;
 	bool skipped;		// This ScannedFile was @unload'd.
 	bool prefixes_checked;	// If loading prefixes for this file has been tried.
+	string name;
 
 	ScannedFile(dev_t arg_dev, ino_t arg_inode, int arg_include_level,
 	            const string& arg_name, bool arg_skipped = false,
 	            bool arg_prefixes_checked = false)
 		: dev(arg_dev), inode(arg_inode),
 		  include_level(arg_include_level),
-		  name(arg_name), skipped(arg_skipped),
-		  prefixes_checked(arg_prefixes_checked)
+		  skipped(arg_skipped),
+		  prefixes_checked(arg_prefixes_checked),
+		  name(arg_name)
 		{ }
 };
 

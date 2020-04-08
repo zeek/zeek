@@ -170,6 +170,14 @@ public:
 	// if it's not a constant.
 	inline Val* ExprVal() const;
 
+	// Returns the expression's sole operand, or generates
+	// an internal error if it that's not the right model for it.
+	virtual IntrusivePtr<Expr> GetOp() const;
+
+	// Same for binary expressions.
+	virtual IntrusivePtr<Expr> GetOp1() const;
+	virtual IntrusivePtr<Expr> GetOp2() const;
+
 	// True if the expression is a constant zero, false otherwise.
 	bool IsZero() const;
 
@@ -228,7 +236,6 @@ public:
 	CONST_ACCESSOR(EXPR_CALL, CallExpr, AsCallExpr);
 	CONST_ACCESSOR(EXPR_ADD_TO, AddToExpr, AsAddToExpr);
 	CONST_ACCESSOR(EXPR_APPEND_TO, AppendToExpr, AsAppendToExpr);
-	CONST_ACCESSOR(EXPR_NEGATE, NegExpr, AsNegExpr);
 	CONST_ACCESSOR(EXPR_CONST, ConstExpr, AsConstExpr);
 
 #undef ACCESSORS
@@ -324,6 +331,8 @@ class UnaryExpr : public Expr {
 public:
 	Expr* Op() const	{ return op.get(); }
 
+	IntrusivePtr<Expr> GetOp() const override final	{ return op; }
+
 	// UnaryExpr::Eval correctly handles vector types.  Any child
 	// class that overrides Eval() should be modified to handle
 	// vectors correctly as necessary.
@@ -350,6 +359,9 @@ class BinaryExpr : public Expr {
 public:
 	Expr* Op1() const	{ return op1.get(); }
 	Expr* Op2() const	{ return op2.get(); }
+
+	IntrusivePtr<Expr> GetOp1() const override final	{ return op1; }
+	IntrusivePtr<Expr> GetOp2() const override final	{ return op2; }
 
 	bool IsPure() const override;
 	bool IsReduced() const override;
@@ -432,6 +444,8 @@ public:
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
+	Expr* Reduce(ReductionContext* c,
+			IntrusivePtr<Stmt>& red_stmt) override;
 };
 
 class NotExpr : public UnaryExpr {

@@ -177,6 +177,24 @@ void Expr::SetError(const char* msg)
 	SetError();
 	}
 
+IntrusivePtr<Expr> Expr::GetOp() const
+	{
+	Internal("Expr::GetOp() called");
+	return nullptr;
+	}
+
+IntrusivePtr<Expr> Expr::GetOp1() const
+	{
+	Internal("Expr::GetOp1() called");
+	return nullptr;
+	}
+
+IntrusivePtr<Expr> Expr::GetOp2() const
+	{
+	Internal("Expr::GetOp2() called");
+	return nullptr;
+	}
+
 bool Expr::IsZero() const
 	{
 	return IsConst() && ExprVal()->IsZero();
@@ -1168,12 +1186,15 @@ Expr* IncrExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	// Now that we have the target, increment/decrement it and
 	// assign it back.
 	auto incr_const = new ConstExpr({AdoptRef{}, val_mgr->GetCount(1)});
+	incr_const->SetOriginal(this);
+
 	auto increment_expr =
 		Tag() == EXPR_INCR ?
 			(Expr*) new AddExpr({AdoptRef{}, get_target},
 					{AdoptRef{}, incr_const}) :
 			(Expr*) new SubExpr({AdoptRef{}, get_target},
 					{AdoptRef{}, incr_const});
+	increment_expr->SetOriginal(this);
 
 	IntrusivePtr<Stmt> incr_stmts;
 	auto result = increment_expr->AssignToTemporary(c, incr_stmts);
@@ -1213,6 +1234,14 @@ ComplementExpr::ComplementExpr(IntrusivePtr<Expr> arg_op)
 IntrusivePtr<Val> ComplementExpr::Fold(Val* v) const
 	{
 	return {AdoptRef{}, val_mgr->GetCount(~ v->InternalUnsigned())};
+	}
+
+Expr* ComplementExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	if ( op->Tag() == EXPR_COMPLEMENT )
+		return op->GetOp().get();
+
+	return this->Ref();
 	}
 
 NotExpr::NotExpr(IntrusivePtr<Expr> arg_op)
@@ -1404,9 +1433,8 @@ Expr* AddExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 Expr* AddExpr::BuildSub(const IntrusivePtr<Expr>& op1,
 			const IntrusivePtr<Expr>& op2)
 	{
-	auto rhs = op2->AsNegExpr()->Op();
-	IntrusivePtr<Expr> rhs_ptr = {AdoptRef{}, rhs};
-	auto sub = new SubExpr(op1, rhs_ptr);
+	auto rhs = op2->GetOp();
+	auto sub = new SubExpr(op1, rhs);
 	sub->SetOriginal(this);
 	return sub;
 	}

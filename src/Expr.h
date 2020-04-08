@@ -570,6 +570,8 @@ public:
 class BitExpr : public BinaryExpr {
 public:
 	BitExpr(BroExprTag tag, IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
+
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
 class EqExpr : public BinaryExpr {
@@ -603,8 +605,6 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	bool SameSingletons(IntrusivePtr<Expr> e1, IntrusivePtr<Expr> e2) const;
-
 	void ExprDescribe(ODesc* d) const override;
 
 	IntrusivePtr<Expr> op1;
@@ -1092,6 +1092,10 @@ std::optional<std::vector<IntrusivePtr<Val>>> eval_list(Frame* f, const ListExpr
 // a heuristic, used with commutative operators to put them into
 // a canonical form.
 extern bool expr_greater(const Expr* e1, const Expr* e2);
+
+// Returns true if e1 and e2 are both singletons and further they represent
+// equivalent singletons.
+extern bool same_singletons(IntrusivePtr<Expr> e1, IntrusivePtr<Expr> e2);
 
 // True if the given Val* has a vector type
 inline bool is_vector(Expr* e)	{ return e->Type()->Tag() == TYPE_VECTOR; }

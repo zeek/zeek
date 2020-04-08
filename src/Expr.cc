@@ -2156,6 +2156,49 @@ BitExpr::BitExpr(BroExprTag arg_tag,
 		ExprError("requires \"count\" or compatible \"set\" operands");
 	}
 
+Expr* BitExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	if ( Type()->Tag() != TYPE_COUNT )
+		return BinaryExpr::Reduce(c, red_stmt);
+
+	auto zero1 = op1->IsZero();
+	auto zero2 = op2->IsZero();
+
+	if ( zero1 && zero2 )
+		// No matter the operation, the answer is zero.
+		return op1->Reduce(c, red_stmt);
+
+	if ( zero1 || zero2 )
+		{
+		IntrusivePtr<Expr>& zero_op = zero1 ? op1 : op2;
+		IntrusivePtr<Expr>& non_zero_op = zero1 ? op2 : op1;
+
+		if ( Tag() == EXPR_AND )
+			return zero_op->Reduce(c, red_stmt);
+		else
+			// OR or XOR
+			return non_zero_op->Reduce(c, red_stmt);
+		}
+
+	if ( same_singletons(op1, op2) && op1->Tag() == EXPR_NAME )
+		{
+		auto n = op1->AsNameExpr();
+
+		if ( Tag() == EXPR_XOR )
+			{
+			auto zero = new ConstExpr({AdoptRef{},
+						val_mgr->GetCount(0)});
+			zero->SetOriginal(this);
+			return zero->Reduce(c, red_stmt);
+			}
+
+		else
+			return op1->Reduce(c, red_stmt);
+		}
+
+	return BinaryExpr::Reduce(c, red_stmt);
+	}
+
 EqExpr::EqExpr(BroExprTag arg_tag,
                IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 	: BinaryExpr(arg_tag, std::move(arg_op1), std::move(arg_op2))
@@ -2444,7 +2487,7 @@ bool CondExpr::IsReduced() const
 
 Expr* CondExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
-	if ( op1->HasNoSideEffects() && SameSingletons(op2, op3) )
+	if ( op1->HasNoSideEffects() && same_singletons(op2, op3) )
 		return op2->Reduce(c, red_stmt);
 
 	if ( op1->IsConst() )
@@ -2508,31 +2551,6 @@ Expr* CondExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	red_stmt = {AdoptRef{}, new_stmt->Reduce(c)};
 
 	return TransformMe(res, c, red_stmt);
-	}
-
-bool CondExpr::SameSingletons(IntrusivePtr<Expr> e1, IntrusivePtr<Expr> e2) const
-	{
-	if ( ! e1->IsSingleton() || ! e2->IsSingleton() )
-		return false;
-
-	if ( e1->IsConst() )
-		{
-		if ( ! e2->IsConst() )
-			return false;
-
-		auto c1 = e1->AsConstExpr()->Value();
-		auto c2 = e2->AsConstExpr()->Value();
-
-		if ( ! is_atomic_val(c1) || ! is_atomic_val(c2) )
-			return false;
-
-		return same_atomic_val(c1, c2);
-		}
-
-	auto i1 = e1->AsNameExpr()->Id();
-	auto i2 = e2->AsNameExpr()->Id();
-
-	return i1 == i2;
 	}
 
 TraversalCode CondExpr::Traverse(TraversalCallback* cb) const
@@ -6028,6 +6046,31 @@ std::optional<std::vector<IntrusivePtr<Val>>> eval_list(Frame* f, const ListExpr
 		}
 
 	return rval;
+	}
+
+bool same_singletons(IntrusivePtr<Expr> e1, IntrusivePtr<Expr> e2)
+	{
+	if ( ! e1->IsSingleton() || ! e2->IsSingleton() )
+		return false;
+
+	if ( e1->IsConst() )
+		{
+		if ( ! e2->IsConst() )
+			return false;
+
+		auto c1 = e1->AsConstExpr()->Value();
+		auto c2 = e2->AsConstExpr()->Value();
+
+		if ( ! is_atomic_val(c1) || ! is_atomic_val(c2) )
+			return false;
+
+		return same_atomic_val(c1, c2);
+		}
+
+	auto i1 = e1->AsNameExpr()->Id();
+	auto i2 = e2->AsNameExpr()->Id();
+
+	return i1 == i2;
 	}
 
 bool expr_greater(const Expr* e1, const Expr* e2)

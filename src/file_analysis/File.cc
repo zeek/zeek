@@ -97,7 +97,7 @@ File::File(const std::string& file_id, const std::string& source_name, Connectio
 
 	if ( conn )
 		{
-		val->Assign(is_orig_idx, val_mgr->GetBool(is_orig));
+		val->Assign(is_orig_idx, val_mgr->Bool(is_orig));
 		UpdateConnectionFields(conn, is_orig);
 		}
 
@@ -157,7 +157,7 @@ void File::RaiseFileOverNewConnection(Connection* conn, bool is_orig)
 		FileEvent(file_over_new_connection, {
 			IntrusivePtr{NewRef{}, val},
 			IntrusivePtr{AdoptRef{}, conn->BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)},
+			val_mgr->Bool(is_orig),
 		});
 		}
 	}

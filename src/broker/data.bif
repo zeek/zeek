@@ -87,7 +87,7 @@ function Broker::__set_contains%(s: Broker::Data, key: any%): bool
 		return val_mgr->False();
 		}
 
-	return val_mgr->GetBool(v.find(*k) != v.end());
+	return val_mgr->Bool(v.find(*k) != v.end());
 	%}
 
 function Broker::__set_insert%(s: Broker::Data, key: any%): bool
@@ -103,7 +103,7 @@ function Broker::__set_insert%(s: Broker::Data, key: any%): bool
 		return val_mgr->False();
 		}
 
-	return val_mgr->GetBool(v.insert(std::move(*k)).second);
+	return val_mgr->Bool(v.insert(std::move(*k)).second);
 	%}
 
 function Broker::__set_remove%(s: Broker::Data, key: any%): bool
@@ -118,7 +118,7 @@ function Broker::__set_remove%(s: Broker::Data, key: any%): bool
 		return val_mgr->False();
 		}
 
-	return val_mgr->GetBool(v.erase(*k) > 0);
+	return val_mgr->Bool(v.erase(*k) > 0);
 	%}
 
 function Broker::__set_iterator%(s: Broker::Data%): opaque of Broker::SetIterator
@@ -129,7 +129,7 @@ function Broker::__set_iterator%(s: Broker::Data%): opaque of Broker::SetIterato
 function Broker::__set_iterator_last%(it: opaque of Broker::SetIterator%): bool
 	%{
 	auto set_it = static_cast<bro_broker::SetIterator*>(it);
-	return val_mgr->GetBool(set_it->it == set_it->dat.end());
+	return val_mgr->Bool(set_it->it == set_it->dat.end());
 	%}
 
 function Broker::__set_iterator_next%(it: opaque of Broker::SetIterator%): bool
@@ -140,7 +140,7 @@ function Broker::__set_iterator_next%(it: opaque of Broker::SetIterator%): bool
 		return val_mgr->False();
 
 	++set_it->it;
-	return val_mgr->GetBool(set_it->it != set_it->dat.end());
+	return val_mgr->Bool(set_it->it != set_it->dat.end());
 	%}
 
 function Broker::__set_iterator_value%(it: opaque of Broker::SetIterator%): Broker::Data
@@ -191,7 +191,7 @@ function Broker::__table_contains%(t: Broker::Data, key: any%): bool
 		return val_mgr->False();
 		}
 
-	return val_mgr->GetBool(v.find(*k) != v.end());
+	return val_mgr->Bool(v.find(*k) != v.end());
 	%}
 
 function Broker::__table_insert%(t: Broker::Data, key: any, val: any%): Broker::Data
@@ -283,7 +283,7 @@ function Broker::__table_iterator%(t: Broker::Data%): opaque of Broker::TableIte
 function Broker::__table_iterator_last%(it: opaque of Broker::TableIterator%): bool
 	%{
 	auto ti = static_cast<bro_broker::TableIterator*>(it);
-	return val_mgr->GetBool(ti->it == ti->dat.end());
+	return val_mgr->Bool(ti->it == ti->dat.end());
 	%}
 
 function Broker::__table_iterator_next%(it: opaque of Broker::TableIterator%): bool
@@ -294,7 +294,7 @@ function Broker::__table_iterator_next%(it: opaque of Broker::TableIterator%): b
 		return val_mgr->False();
 
 	++ti->it;
-	return val_mgr->GetBool(ti->it != ti->dat.end());
+	return val_mgr->Bool(ti->it != ti->dat.end());
 	%}
 
 function Broker::__table_iterator_value%(it: opaque of Broker::TableIterator%): Broker::TableItem
@@ -406,7 +406,7 @@ function Broker::__vector_iterator%(v: Broker::Data%): opaque of Broker::VectorI
 function Broker::__vector_iterator_last%(it: opaque of Broker::VectorIterator%): bool
 	%{
 	auto vi = static_cast<bro_broker::VectorIterator*>(it);
-	return val_mgr->GetBool(vi->it == vi->dat.end());
+	return val_mgr->Bool(vi->it == vi->dat.end());
 	%}
 
 function Broker::__vector_iterator_next%(it: opaque of Broker::VectorIterator%): bool
@@ -417,7 +417,7 @@ function Broker::__vector_iterator_next%(it: opaque of Broker::VectorIterator%):
 		return val_mgr->False();
 
 	++vi->it;
-	return val_mgr->GetBool(vi->it != vi->dat.end());
+	return val_mgr->Bool(vi->it != vi->dat.end());
 	%}
 
 function Broker::__vector_iterator_value%(it: opaque of Broker::VectorIterator%): Broker::Data
@@ -485,7 +485,7 @@ function Broker::__record_iterator%(r: Broker::Data%): opaque of Broker::RecordI
 function Broker::__record_iterator_last%(it: opaque of Broker::RecordIterator%): bool
 	%{
 	auto ri = static_cast<bro_broker::RecordIterator*>(it);
-	return val_mgr->GetBool(ri->it == ri->dat.end());
+	return val_mgr->Bool(ri->it == ri->dat.end());
 	%}
 
 function Broker::__record_iterator_next%(it: opaque of Broker::RecordIterator%): bool
@@ -496,7 +496,7 @@ function Broker::__record_iterator_next%(it: opaque of Broker::RecordIterator%):
 		return val_mgr->False();
 
 	++ri->it;
-	return val_mgr->GetBool(ri->it != ri->dat.end());
+	return val_mgr->Bool(ri->it != ri->dat.end());
 	%}
 
 function Broker::__record_iterator_value%(it: opaque of Broker::RecordIterator%): Broker::Data

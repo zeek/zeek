@@ -840,7 +840,7 @@ IntrusivePtr<TableVal> RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 
 		string s = container_type_name(ft);
 		nr->Assign(0, make_intrusive<StringVal>(s));
-		nr->Assign(1, val_mgr->GetBool(logged));
+		nr->Assign(1, val_mgr->Bool(logged));
 		nr->Assign(2, fv);
 		nr->Assign(3, FieldDefault(i));
 		Val* field_name = new StringVal(FieldName(i));

@@ -276,7 +276,7 @@ void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, const EventHa
 		pX509Ext->Assign(1, make_intrusive<StringVal>(short_name));
 
 	pX509Ext->Assign(2, make_intrusive<StringVal>(oid));
-	pX509Ext->Assign(3, val_mgr->GetBool(critical));
+	pX509Ext->Assign(3, val_mgr->Bool(critical));
 	pX509Ext->Assign(4, ext_val);
 
 	// send off generic extension event
@@ -289,7 +289,7 @@ void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, const EventHa
 	if ( h == ocsp_extension )
 		mgr.Enqueue(h, IntrusivePtr{NewRef{}, GetFile()->GetVal()},
 					std::move(pX509Ext),
-					IntrusivePtr{AdoptRef{}, val_mgr->GetBool(global)});
+					val_mgr->Bool(global));
 	else
 		mgr.Enqueue(h, IntrusivePtr{NewRef{}, GetFile()->GetVal()},
 		            std::move(pX509Ext));

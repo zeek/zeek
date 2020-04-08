@@ -94,7 +94,7 @@ bool PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status statu
 			if ( ! buf )
 				return false;
 
-			reply = val_mgr->GetBool(status);
+			reply = val_mgr->Bool(status)->Ref();
 			event = pm_request_set;
 			}
 		else
@@ -109,7 +109,7 @@ bool PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status statu
 			if ( ! buf )
 				return false;
 
-			reply = val_mgr->GetBool(status);
+			reply = val_mgr->Bool(status)->Ref();
 			event = pm_request_unset;
 			}
 		else
@@ -222,7 +222,7 @@ Val* PortmapperInterp::ExtractPortRequest(const u_char*& buf, int& len)
 	pr->Assign(1, val_mgr->GetCount(extract_XDR_uint32(buf, len)));
 
 	bool is_tcp = extract_XDR_uint32(buf, len) == IPPROTO_TCP;
-	pr->Assign(2, val_mgr->GetBool(is_tcp));
+	pr->Assign(2, val_mgr->Bool(is_tcp));
 	(void) extract_XDR_uint32(buf, len);	// consume the bogus port
 
 	if ( ! buf )

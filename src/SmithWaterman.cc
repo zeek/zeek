@@ -101,7 +101,7 @@ VectorVal* BroSubstring::VecToPolicy(Vec* vec)
 				}
 
 			st_val->Assign(1, std::move(aligns));
-			st_val->Assign(2, val_mgr->GetBool(bst->IsNewAlignment()));
+			st_val->Assign(2, val_mgr->Bool(bst->IsNewAlignment()));
 			result->Assign(i + 1, std::move(st_val));
 			}
 		}

@@ -90,7 +90,7 @@ struct val_converter {
 	result_type operator()(bool a)
 		{
 		if ( type->Tag() == TYPE_BOOL )
-			return val_mgr->GetBool(a);
+			return val_mgr->Bool(a)->Ref();
 		return nullptr;
 		}
 

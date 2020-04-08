@@ -149,7 +149,7 @@ void SteppingStoneEndpoint::CreateEndpEvent(bool is_orig)
 	endp->TCP()->EnqueueConnEvent(stp_create_endp,
 		IntrusivePtr{AdoptRef{}, endp->TCP()->BuildConnVal()},
 		IntrusivePtr{AdoptRef{}, val_mgr->GetInt(stp_id)},
-		IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)}
+		val_mgr->Bool(is_orig)
 	);
 	}
 

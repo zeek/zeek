@@ -20,7 +20,7 @@
 		for ( uint i = 0; i < quantity; i++ )
 			{
 			char currentCoil = (coils[i/8] >> (i % 8)) % 2;
-			modbus_coils->Assign(i, val_mgr->GetBool(currentCoil));
+			modbus_coils->Assign(i, val_mgr->Bool(currentCoil));
 			}
 
 		return modbus_coils;

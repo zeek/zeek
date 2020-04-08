@@ -21,9 +21,9 @@ refine connection SMB_Conn += {
 		if ( smb2_session_setup_response )
 			{
 			RecordVal* flags = new RecordVal(BifType::Record::SMB2::SessionSetupFlags);
-			flags->Assign(0, val_mgr->GetBool(${val.flag_guest}));
-			flags->Assign(1, val_mgr->GetBool(${val.flag_anonymous}));
-			flags->Assign(2, val_mgr->GetBool(${val.flag_encrypt}));
+			flags->Assign(0, val_mgr->Bool(${val.flag_guest}));
+			flags->Assign(1, val_mgr->Bool(${val.flag_anonymous}));
+			flags->Assign(2, val_mgr->Bool(${val.flag_encrypt}));
 
 			RecordVal* resp = new RecordVal(BifType::Record::SMB2::SessionSetupResponse);
 			resp->Assign(0, flags);

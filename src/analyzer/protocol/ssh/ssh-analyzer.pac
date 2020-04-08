@@ -101,7 +101,7 @@ refine flow SSH_Flow += {
 			}
 
 
-		result->Assign(6, val_mgr->GetBool(!${msg.is_orig}));
+		result->Assign(6, val_mgr->Bool(!${msg.is_orig}));
 
 		BifEvent::generate_ssh_capabilities(connection()->bro_analyzer(),
 			connection()->bro_analyzer()->Conn(), bytestring_to_val(${msg.cookie}),

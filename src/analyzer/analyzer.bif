@@ -11,13 +11,13 @@ module Analyzer;
 function Analyzer::__enable_analyzer%(id: Analyzer::Tag%) : bool
 	%{
 	bool result = analyzer_mgr->EnableAnalyzer(id->AsEnumVal());
-	return val_mgr->GetBool(result);
+	return val_mgr->Bool(result);
 	%}
 
 function Analyzer::__disable_analyzer%(id: Analyzer::Tag%) : bool
 	%{
 	bool result = analyzer_mgr->DisableAnalyzer(id->AsEnumVal());
-	return val_mgr->GetBool(result);
+	return val_mgr->Bool(result);
 	%}
 
 function Analyzer::__disable_all_analyzers%(%) : any
@@ -29,7 +29,7 @@ function Analyzer::__disable_all_analyzers%(%) : any
 function Analyzer::__register_for_port%(id: Analyzer::Tag, p: port%) : bool
 	%{
 	bool result = analyzer_mgr->RegisterAnalyzerForPort(id->AsEnumVal(), p);
-	return val_mgr->GetBool(result);
+	return val_mgr->Bool(result);
 	%}
 
 function Analyzer::__schedule_analyzer%(orig: addr, resp: addr, resp_p: port,

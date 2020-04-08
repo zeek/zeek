@@ -768,7 +768,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 		if ( tag == TYPE_ENUM )
 			*pval = t->AsEnumType()->GetVal(*kp);
 		else if ( tag == TYPE_BOOL )
-			*pval = {AdoptRef{}, val_mgr->GetBool(*kp)};
+			*pval = val_mgr->Bool(*kp);
 		else if ( tag == TYPE_INT )
 			*pval = {AdoptRef{}, val_mgr->GetInt(*kp)};
 		else

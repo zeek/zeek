@@ -91,9 +91,9 @@ refine flow NTP_Flow += {
 		RecordVal* rv = new RecordVal(BifType::Record::NTP::ControlMessage);
 
 		rv->Assign(0, val_mgr->GetCount(${ncm.OpCode}));
-		rv->Assign(1, val_mgr->GetBool(${ncm.R}));
-		rv->Assign(2, val_mgr->GetBool(${ncm.E}));
-		rv->Assign(3, val_mgr->GetBool(${ncm.M}));
+		rv->Assign(1, val_mgr->Bool(${ncm.R}));
+		rv->Assign(2, val_mgr->Bool(${ncm.E}));
+		rv->Assign(3, val_mgr->Bool(${ncm.M}));
 		rv->Assign(4, val_mgr->GetCount(${ncm.sequence}));
 		rv->Assign(5, val_mgr->GetCount(${ncm.status}));
 		rv->Assign(6, val_mgr->GetCount(${ncm.association_id}));
@@ -116,7 +116,7 @@ refine flow NTP_Flow += {
 		RecordVal* rv = new RecordVal(BifType::Record::NTP::Mode7Message);
 
 		rv->Assign(0, val_mgr->GetCount(${m7.request_code}));
-		rv->Assign(1, val_mgr->GetBool(${m7.auth_bit}));
+		rv->Assign(1, val_mgr->Bool(${m7.auth_bit}));
 		rv->Assign(2, val_mgr->GetCount(${m7.sequence}));
 		rv->Assign(3, val_mgr->GetCount(${m7.implementation}));
 		rv->Assign(4, val_mgr->GetCount(${m7.error_code}));

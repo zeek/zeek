@@ -47,11 +47,11 @@ function Supervisor::__destroy%(node: string%): bool
 	if ( ! zeek::supervisor_mgr )
 		{
 		builtin_error("supervisor mode not enabled");
-		return val_mgr->GetBool(false);
+		return val_mgr->Bool(false);
 		}
 
 	auto rval = zeek::supervisor_mgr->Destroy(node->CheckString());
-	return val_mgr->GetBool(rval);
+	return val_mgr->Bool(rval);
 	%}
 
 function Supervisor::__restart%(node: string%): bool
@@ -59,24 +59,24 @@ function Supervisor::__restart%(node: string%): bool
 	if ( ! zeek::supervisor_mgr )
 		{
 		builtin_error("supervisor mode not enabled");
-		return val_mgr->GetBool(false);
+		return val_mgr->Bool(false);
 		}
 
 	auto rval = zeek::supervisor_mgr->Restart(node->CheckString());
-	return val_mgr->GetBool(rval);
+	return val_mgr->Bool(rval);
 	%}
 
 function Supervisor::__init_cluster%(%): bool
 	%{
 	if ( zeek::Supervisor::ThisNode() )
-		return val_mgr->GetBool(zeek::Supervisor::ThisNode()->InitCluster());
+		return val_mgr->Bool(zeek::Supervisor::ThisNode()->InitCluster());
 
-	return val_mgr->GetBool(false);
+	return val_mgr->Bool(false);
 	%}
 
 function Supervisor::__is_supervised%(%): bool
 	%{
-	return val_mgr->GetBool(zeek::Supervisor::ThisNode().has_value());
+	return val_mgr->Bool(zeek::Supervisor::ThisNode().has_value());
 	%}
 
 function Supervisor::__node%(%): Supervisor::NodeConfig
@@ -96,7 +96,7 @@ function Supervisor::__node%(%): Supervisor::NodeConfig
 
 function Supervisor::__is_supervisor%(%): bool
 	%{
-	return val_mgr->GetBool(zeek::supervisor_mgr != nullptr);
+	return val_mgr->Bool(zeek::supervisor_mgr != nullptr);
 	%}
 
 function Supervisor::__stem_pid%(%): int

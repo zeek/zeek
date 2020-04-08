@@ -92,7 +92,7 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 			}
 
 		auto rval = call_option_handlers_and_set_value(ID, i, std::move(val_from_data), location);
-		return val_mgr->GetBool(rval);
+		return val_mgr->Bool(rval);
 		}
 
 	if ( ! same_type(i->Type(), val->Type()) )
@@ -106,7 +106,7 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 			        IntrusivePtr{NewRef{}, i->Type()->AsTableType()},
 			        IntrusivePtr{NewRef{}, i->ID_Val()->AsTableVal()->Attrs()});
 			auto rval = call_option_handlers_and_set_value(ID, i, std::move(tv), location);
-			return val_mgr->GetBool(rval);
+			return val_mgr->Bool(rval);
 			}
 
 		builtin_error(fmt("Incompatible type for set of ID '%s': got '%s', need '%s'",
@@ -115,7 +115,7 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 		}
 
 	auto rval = call_option_handlers_and_set_value(ID, i, {NewRef{}, val}, location);
-	return val_mgr->GetBool(rval);
+	return val_mgr->Bool(rval);
 	%}
 
 ## Set a change handler for an option. The change handler will be

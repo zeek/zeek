@@ -134,9 +134,9 @@ RecordVal* build_hdrV3(const Header* header)
 	v3->Assign(1, asn1_integer_to_val(global_data->max_size(),
 	                                        TYPE_COUNT));
 	v3->Assign(2, val_mgr->GetCount(flags_byte));
-	v3->Assign(3, val_mgr->GetBool(flags_byte & 0x01));
-	v3->Assign(4, val_mgr->GetBool(flags_byte & 0x02));
-	v3->Assign(5, val_mgr->GetBool(flags_byte & 0x04));
+	v3->Assign(3, val_mgr->Bool(flags_byte & 0x01));
+	v3->Assign(4, val_mgr->Bool(flags_byte & 0x02));
+	v3->Assign(5, val_mgr->Bool(flags_byte & 0x04));
 	v3->Assign(6, asn1_integer_to_val(global_data->security_model(),
 	                                        TYPE_COUNT));
 	v3->Assign(7, asn1_octet_string_to_val(v3hdr->security_parameters()));

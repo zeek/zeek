@@ -69,7 +69,7 @@ void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig
 		if ( finger_request )
 			EnqueueConnEvent(finger_request,
 				IntrusivePtr{AdoptRef{}, BuildConnVal()},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetBool(long_cnt)},
+				val_mgr->Bool(long_cnt),
 				make_intrusive<StringVal>(at - line, line),
 				make_intrusive<StringVal>(end_of_line - host, host)
 			);

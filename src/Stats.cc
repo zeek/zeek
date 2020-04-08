@@ -314,7 +314,7 @@ void ProfileLogger::Log()
 		Ref(file);
 		mgr.Dispatch(new Event(profiling_update, {
 			make_intrusive<Val>(file),
-			{AdoptRef{}, val_mgr->GetBool(expensive)},
+			val_mgr->Bool(expensive),
 		}));
 		}
 	}

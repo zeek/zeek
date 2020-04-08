@@ -248,7 +248,7 @@ void BitTorrentTracker_Analyzer::DeliverWeird(const char* msg, bool orig)
 	if ( bt_tracker_weird )
 		EnqueueConnEvent(bt_tracker_weird,
 			IntrusivePtr{AdoptRef{}, BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+			val_mgr->Bool(orig),
 			make_intrusive<StringVal>(msg)
 		);
 	}

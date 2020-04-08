@@ -747,7 +747,7 @@ RecordVal* NFS_Interp::nfs3_readdirargs(bool isplus, const u_char*& buf, int&n)
 	{
 	RecordVal *args = new RecordVal(BifType::Record::NFS3::readdirargs_t);
 
-	args->Assign(0, val_mgr->GetBool(isplus));
+	args->Assign(0, val_mgr->Bool(isplus));
 	args->Assign(1, nfs3_fh(buf, n));
 	args->Assign(2, ExtractUint64(buf,n));	// cookie
 	args->Assign(3, ExtractUint64(buf,n));	// cookieverf
@@ -764,7 +764,7 @@ RecordVal* NFS_Interp::nfs3_readdir_reply(bool isplus, const u_char*& buf,
 	{
 	RecordVal *rep = new RecordVal(BifType::Record::NFS3::readdir_reply_t);
 
-	rep->Assign(0, val_mgr->GetBool(isplus));
+	rep->Assign(0, val_mgr->Bool(isplus));
 
 	if ( status == BifEnum::NFS3::NFS3ERR_OK )
 		{
@@ -826,7 +826,7 @@ Val* NFS_Interp::ExtractInterval(const u_char*& buf, int& n)
 
 Val* NFS_Interp::ExtractBool(const u_char*& buf, int& n)
 	{
-	return val_mgr->GetBool(extract_XDR_uint32(buf, n));
+	return val_mgr->Bool(extract_XDR_uint32(buf, n))->Ref();
 	}
 
 

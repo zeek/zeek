@@ -43,7 +43,7 @@ function precompile_pcap_filter%(id: PcapFilterID, s: string%): bool
 	if ( ps && ! ps->PrecompileFilter(id->ForceAsInt(), s->CheckString()) )
 		success = false;
 
-	return val_mgr->GetBool(success);
+	return val_mgr->Bool(success);
 	%}
 
 ## Installs a PCAP filter that has been precompiled with
@@ -72,7 +72,7 @@ function Pcap::install_pcap_filter%(id: PcapFilterID%): bool
 	if ( ps && ! ps->SetFilter(id->ForceAsInt()) )
 		success = false;
 
-	return val_mgr->GetBool(success);
+	return val_mgr->Bool(success);
 	%}
 
 ## Returns a string representation of the last PCAP error.

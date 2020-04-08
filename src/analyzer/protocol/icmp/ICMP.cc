@@ -232,7 +232,7 @@ RecordVal* ICMP_Analyzer::BuildICMPVal(const struct icmp* icmpp, int len,
 		icmp_conn_val->Assign(3, val_mgr->GetCount(icmpp->icmp_code));
 		icmp_conn_val->Assign(4, val_mgr->GetCount(len));
 		icmp_conn_val->Assign(5, val_mgr->GetCount(ip_hdr->TTL()));
-		icmp_conn_val->Assign(6, val_mgr->GetBool(icmpv6));
+		icmp_conn_val->Assign(6, val_mgr->Bool(icmpv6));
 		}
 
 	Ref(icmp_conn_val);
@@ -363,10 +363,10 @@ RecordVal* ICMP_Analyzer::ExtractICMP4Context(int len, const u_char*& data)
 	iprec->Assign(1, val_mgr->GetCount(ip_len));
 	iprec->Assign(2, val_mgr->GetCount(proto));
 	iprec->Assign(3, val_mgr->GetCount(frag_offset));
-	iprec->Assign(4, val_mgr->GetBool(bad_hdr_len));
-	iprec->Assign(5, val_mgr->GetBool(bad_checksum));
-	iprec->Assign(6, val_mgr->GetBool(MF));
-	iprec->Assign(7, val_mgr->GetBool(DF));
+	iprec->Assign(4, val_mgr->Bool(bad_hdr_len));
+	iprec->Assign(5, val_mgr->Bool(bad_checksum));
+	iprec->Assign(6, val_mgr->Bool(MF));
+	iprec->Assign(7, val_mgr->Bool(DF));
 
 	return iprec;
 	}
@@ -422,11 +422,11 @@ RecordVal* ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& data)
 	iprec->Assign(1, val_mgr->GetCount(ip_len));
 	iprec->Assign(2, val_mgr->GetCount(proto));
 	iprec->Assign(3, val_mgr->GetCount(frag_offset));
-	iprec->Assign(4, val_mgr->GetBool(bad_hdr_len));
+	iprec->Assign(4, val_mgr->Bool(bad_hdr_len));
 	// bad_checksum is always false since IPv6 layer doesn't have a checksum.
 	iprec->Assign(5, val_mgr->False());
-	iprec->Assign(6, val_mgr->GetBool(MF));
-	iprec->Assign(7, val_mgr->GetBool(DF));
+	iprec->Assign(6, val_mgr->Bool(MF));
+	iprec->Assign(7, val_mgr->Bool(DF));
 
 	return iprec;
 	}
@@ -546,11 +546,11 @@ void ICMP_Analyzer::RouterAdvert(double t, const struct icmp* icmpp, int len,
 		IntrusivePtr{AdoptRef{}, BuildConnVal()},
 		IntrusivePtr{AdoptRef{}, BuildICMPVal(icmpp, len, 1, ip_hdr)},
 		IntrusivePtr{AdoptRef{}, val_mgr->GetCount(icmpp->icmp_num_addrs)}, // Cur Hop Limit
-		IntrusivePtr{AdoptRef{}, val_mgr->GetBool(icmpp->icmp_wpa & 0x80)}, // Managed
-		IntrusivePtr{AdoptRef{}, val_mgr->GetBool(icmpp->icmp_wpa & 0x40)}, // Other
-		IntrusivePtr{AdoptRef{}, val_mgr->GetBool(icmpp->icmp_wpa & 0x20)}, // Home Agent
+		val_mgr->Bool(icmpp->icmp_wpa & 0x80), // Managed
+		val_mgr->Bool(icmpp->icmp_wpa & 0x40), // Other
+		val_mgr->Bool(icmpp->icmp_wpa & 0x20), // Home Agent
 		IntrusivePtr{AdoptRef{}, val_mgr->GetCount((icmpp->icmp_wpa & 0x18)>>3)}, // Pref
-		IntrusivePtr{AdoptRef{}, val_mgr->GetBool(icmpp->icmp_wpa & 0x04)}, // Proxy
+		val_mgr->Bool(icmpp->icmp_wpa & 0x04), // Proxy
 		IntrusivePtr{AdoptRef{}, val_mgr->GetCount(icmpp->icmp_wpa & 0x02)}, // Reserved
 		make_intrusive<IntervalVal>((double)ntohs(icmpp->icmp_lifetime), Seconds),
 		make_intrusive<IntervalVal>((double)ntohl(reachable), Milliseconds),
@@ -578,9 +578,9 @@ void ICMP_Analyzer::NeighborAdvert(double t, const struct icmp* icmpp, int len,
 	EnqueueConnEvent(f,
 		IntrusivePtr{AdoptRef{}, BuildConnVal()},
 		IntrusivePtr{AdoptRef{}, BuildICMPVal(icmpp, len, 1, ip_hdr)},
-		IntrusivePtr{AdoptRef{}, val_mgr->GetBool(icmpp->icmp_num_addrs & 0x80)}, // Router
-		IntrusivePtr{AdoptRef{}, val_mgr->GetBool(icmpp->icmp_num_addrs & 0x40)}, // Solicited
-		IntrusivePtr{AdoptRef{}, val_mgr->GetBool(icmpp->icmp_num_addrs & 0x20)}, // Override
+		val_mgr->Bool(icmpp->icmp_num_addrs & 0x80), // Router
+		val_mgr->Bool(icmpp->icmp_num_addrs & 0x40), // Solicited
+		val_mgr->Bool(icmpp->icmp_num_addrs & 0x20), // Override
 		make_intrusive<AddrVal>(tgtaddr),
 		IntrusivePtr{AdoptRef{}, BuildNDOptionsVal(caplen - opt_offset, data + opt_offset)}
 	);
@@ -793,8 +793,8 @@ VectorVal* ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* data)
 				uint32_t prefer_life = *((const uint32_t*)(data + 6));
 				in6_addr prefix = *((const in6_addr*)(data + 14));
 				info->Assign(0, val_mgr->GetCount(prefix_len));
-				info->Assign(1, val_mgr->GetBool(L_flag));
-				info->Assign(2, val_mgr->GetBool(A_flag));
+				info->Assign(1, val_mgr->Bool(L_flag));
+				info->Assign(2, val_mgr->Bool(A_flag));
 				info->Assign(3, make_intrusive<IntervalVal>((double)ntohl(valid_life), Seconds));
 				info->Assign(4, make_intrusive<IntervalVal>((double)ntohl(prefer_life), Seconds));
 				info->Assign(5, make_intrusive<AddrVal>(IPAddr(prefix)));

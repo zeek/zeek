@@ -98,7 +98,7 @@ function Broker::__is_closed%(h: opaque of Broker::Store%): bool
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
-	return val_mgr->GetBool(broker_mgr->LookupStore(handle->store.name()));
+	return val_mgr->Bool(broker_mgr->LookupStore(handle->store.name()));
 	%}
 
 function Broker::__close%(h: opaque of Broker::Store%): bool
@@ -112,7 +112,7 @@ function Broker::__close%(h: opaque of Broker::Store%): bool
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
-	return val_mgr->GetBool(broker_mgr->CloseStore(handle->store.name()));
+	return val_mgr->Bool(broker_mgr->CloseStore(handle->store.name()));
 	%}
 
 function Broker::__store_name%(h: opaque of Broker::Store%): string

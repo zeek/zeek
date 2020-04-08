@@ -920,7 +920,7 @@ void POP3_Analyzer::POP3Event(EventHandlerPtr event, bool is_orig,
 	vl.reserve(2 + (bool)arg1 + (bool)arg2);
 
 	vl.emplace_back(AdoptRef{}, BuildConnVal());
-	vl.emplace_back(AdoptRef{}, val_mgr->GetBool(is_orig));
+	vl.emplace_back(val_mgr->Bool(is_orig));
 
 	if ( arg1 )
 		vl.emplace_back(make_intrusive<StringVal>(arg1));

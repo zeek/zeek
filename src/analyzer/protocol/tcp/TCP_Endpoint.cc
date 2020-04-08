@@ -239,7 +239,7 @@ bool TCP_Endpoint::DataSent(double t, uint64_t seq, int len, int caplen,
 			if ( contents_file_write_failure )
 				tcp_analyzer->EnqueueConnEvent(contents_file_write_failure,
 					IntrusivePtr{AdoptRef{}, Conn()->BuildConnVal()},
-					IntrusivePtr{AdoptRef{}, val_mgr->GetBool(IsOrig())},
+					val_mgr->Bool(IsOrig()),
 					make_intrusive<StringVal>(buf)
 				);
 			}

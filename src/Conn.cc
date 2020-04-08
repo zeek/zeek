@@ -261,7 +261,7 @@ void Connection::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig,
 
 	EnqueueEvent(e, nullptr,
 		IntrusivePtr{AdoptRef{}, BuildConnVal()},
-		IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)},
+		val_mgr->Bool(is_orig),
 		IntrusivePtr{AdoptRef{}, val_mgr->GetCount(threshold)}
 	);
 	}
@@ -391,7 +391,7 @@ RecordVal* Connection::BuildConnVal()
 	conn_val->Assign(3, make_intrusive<Val>(start_time, TYPE_TIME));	// ###
 	conn_val->Assign(4, make_intrusive<Val>(last_time - start_time, TYPE_INTERVAL));
 	conn_val->Assign(6, make_intrusive<StringVal>(history.c_str()));
-	conn_val->Assign(11, val_mgr->GetBool(is_successful));
+	conn_val->Assign(11, val_mgr->Bool(is_successful));
 
 	conn_val->SetOrigin(this);
 
@@ -698,7 +698,7 @@ void Connection::CheckFlowLabel(bool is_orig, uint32_t flow_label)
 			{
 			EnqueueEvent(connection_flow_label_changed, nullptr,
 				IntrusivePtr{AdoptRef{}, BuildConnVal()},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)},
+				val_mgr->Bool(is_orig),
 				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(my_flow_label)},
 				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(flow_label)}
 			);

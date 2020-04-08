@@ -238,21 +238,21 @@ function smb2_file_attrs_to_bro(val: SMB2_file_attributes): BroVal
 	%{
 	RecordVal* r = new RecordVal(BifType::Record::SMB2::FileAttrs);
 
-	r->Assign(0, val_mgr->GetBool(${val.read_only}));
-	r->Assign(1, val_mgr->GetBool(${val.hidden}));
-	r->Assign(2, val_mgr->GetBool(${val.system}));
-	r->Assign(3, val_mgr->GetBool(${val.directory}));
-	r->Assign(4, val_mgr->GetBool(${val.archive}));
-	r->Assign(5, val_mgr->GetBool(${val.normal}));
-	r->Assign(6, val_mgr->GetBool(${val.temporary}));
-	r->Assign(7, val_mgr->GetBool(${val.sparse_file}));
-	r->Assign(8, val_mgr->GetBool(${val.reparse_point}));
-	r->Assign(9, val_mgr->GetBool(${val.compressed}));
-	r->Assign(10, val_mgr->GetBool(${val.offline}));
-	r->Assign(11, val_mgr->GetBool(${val.not_content_indexed}));
-	r->Assign(12, val_mgr->GetBool(${val.encrypted}));
-	r->Assign(13, val_mgr->GetBool(${val.integrity_stream}));
-	r->Assign(14, val_mgr->GetBool(${val.no_scrub_data}));
+	r->Assign(0, val_mgr->Bool(${val.read_only}));
+	r->Assign(1, val_mgr->Bool(${val.hidden}));
+	r->Assign(2, val_mgr->Bool(${val.system}));
+	r->Assign(3, val_mgr->Bool(${val.directory}));
+	r->Assign(4, val_mgr->Bool(${val.archive}));
+	r->Assign(5, val_mgr->Bool(${val.normal}));
+	r->Assign(6, val_mgr->Bool(${val.temporary}));
+	r->Assign(7, val_mgr->Bool(${val.sparse_file}));
+	r->Assign(8, val_mgr->Bool(${val.reparse_point}));
+	r->Assign(9, val_mgr->Bool(${val.compressed}));
+	r->Assign(10, val_mgr->Bool(${val.offline}));
+	r->Assign(11, val_mgr->Bool(${val.not_content_indexed}));
+	r->Assign(12, val_mgr->Bool(${val.encrypted}));
+	r->Assign(13, val_mgr->Bool(${val.integrity_stream}));
+	r->Assign(14, val_mgr->Bool(${val.no_scrub_data}));
 
 	return r;
 	%}

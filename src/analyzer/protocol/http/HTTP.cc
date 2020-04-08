@@ -618,7 +618,7 @@ Val* HTTP_Message::BuildMessageStat(bool interrupted, const char* msg)
 	RecordVal* stat = new RecordVal(http_message_stat);
 	int field = 0;
 	stat->Assign(field++, make_intrusive<Val>(start_time, TYPE_TIME));
-	stat->Assign(field++, val_mgr->GetBool(interrupted));
+	stat->Assign(field++, val_mgr->Bool(interrupted));
 	stat->Assign(field++, make_intrusive<StringVal>(msg));
 	stat->Assign(field++, val_mgr->GetCount(body_length));
 	stat->Assign(field++, val_mgr->GetCount(content_gap_length));
@@ -651,7 +651,7 @@ void HTTP_Message::Done(bool interrupted, const char* detail)
 	if ( http_message_done )
 		GetAnalyzer()->EnqueueConnEvent(http_message_done,
 			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)},
+			val_mgr->Bool(is_orig),
 			IntrusivePtr{AdoptRef{}, BuildMessageStat(interrupted, detail)}
 		);
 
@@ -682,7 +682,7 @@ void HTTP_Message::BeginEntity(mime::MIME_Entity* entity)
 	if ( http_begin_entity )
 		analyzer->EnqueueConnEvent(http_begin_entity,
 			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)}
+			val_mgr->Bool(is_orig)
 		);
 	}
 
@@ -697,7 +697,7 @@ void HTTP_Message::EndEntity(mime::MIME_Entity* entity)
 	if ( http_end_entity )
 		analyzer->EnqueueConnEvent(http_end_entity,
 			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)}
+			val_mgr->Bool(is_orig)
 		);
 
 	current_entity = (HTTP_Entity*) entity->Parent();
@@ -736,7 +736,7 @@ void HTTP_Message::SubmitAllHeaders(mime::MIME_HeaderList& hlist)
 	if ( http_all_headers )
 		analyzer->EnqueueConnEvent(http_all_headers,
 			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)},
+			val_mgr->Bool(is_orig),
 			IntrusivePtr{AdoptRef{}, BuildHeaderTable(hlist)}
 		);
 
@@ -747,7 +747,7 @@ void HTTP_Message::SubmitAllHeaders(mime::MIME_HeaderList& hlist)
 
 		analyzer->EnqueueConnEvent(http_content_type,
 			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)},
+			val_mgr->Bool(is_orig),
 			IntrusivePtr{NewRef{}, ty},
 			IntrusivePtr{NewRef{}, subty}
 		);
@@ -1671,7 +1671,7 @@ void HTTP_Analyzer::HTTP_Header(bool is_orig, mime::MIME_Header* h)
 
 		EnqueueConnEvent(http_header,
 			IntrusivePtr{AdoptRef{}, BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)},
+			val_mgr->Bool(is_orig),
 			IntrusivePtr{AdoptRef{}, mime::new_string_val(h->get_name())->ToUpper()},
 			IntrusivePtr{AdoptRef{}, mime::new_string_val(h->get_value())}
 		);
@@ -1683,7 +1683,7 @@ void HTTP_Analyzer::HTTP_EntityData(bool is_orig, BroString* entity_data)
 	if ( http_entity_data )
 		EnqueueConnEvent(http_entity_data,
 			IntrusivePtr{AdoptRef{}, BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)},
+			val_mgr->Bool(is_orig),
 			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(entity_data->Len())},
 			make_intrusive<StringVal>(entity_data)
 		);

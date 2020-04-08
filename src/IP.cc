@@ -144,7 +144,7 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 		rv->Assign(1, val_mgr->GetCount(frag->ip6f_reserved));
 		rv->Assign(2, val_mgr->GetCount((ntohs(frag->ip6f_offlg) & 0xfff8)>>3));
 		rv->Assign(3, val_mgr->GetCount((ntohs(frag->ip6f_offlg) & 0x0006)>>1));
-		rv->Assign(4, val_mgr->GetBool(ntohs(frag->ip6f_offlg) & 0x0001));
+		rv->Assign(4, val_mgr->Bool(ntohs(frag->ip6f_offlg) & 0x0001));
 		rv->Assign(5, val_mgr->GetCount(ntohl(frag->ip6f_ident)));
 		}
 		break;
@@ -255,10 +255,10 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 			{
 			RecordVal* m = new RecordVal(hdrType(ip6_mob_brr_type, "ip6_mobility_bu"));
 			m->Assign(0, val_mgr->GetCount(ntohs(*((uint16_t*)msg_data))));
-			m->Assign(1, val_mgr->GetBool(ntohs(*((uint16_t*)(msg_data + sizeof(uint16_t)))) & 0x8000));
-			m->Assign(2, val_mgr->GetBool(ntohs(*((uint16_t*)(msg_data + sizeof(uint16_t)))) & 0x4000));
-			m->Assign(3, val_mgr->GetBool(ntohs(*((uint16_t*)(msg_data + sizeof(uint16_t)))) & 0x2000));
-			m->Assign(4, val_mgr->GetBool(ntohs(*((uint16_t*)(msg_data + sizeof(uint16_t)))) & 0x1000));
+			m->Assign(1, val_mgr->Bool(ntohs(*((uint16_t*)(msg_data + sizeof(uint16_t)))) & 0x8000));
+			m->Assign(2, val_mgr->Bool(ntohs(*((uint16_t*)(msg_data + sizeof(uint16_t)))) & 0x4000));
+			m->Assign(3, val_mgr->Bool(ntohs(*((uint16_t*)(msg_data + sizeof(uint16_t)))) & 0x2000));
+			m->Assign(4, val_mgr->Bool(ntohs(*((uint16_t*)(msg_data + sizeof(uint16_t)))) & 0x1000));
 			m->Assign(5, val_mgr->GetCount(ntohs(*((uint16_t*)(msg_data + 2*sizeof(uint16_t))))));
 			off += 3 * sizeof(uint16_t);
 			m->Assign(6, BuildOptionsVal(data + off, Length() - off));
@@ -270,7 +270,7 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 			{
 			RecordVal* m = new RecordVal(hdrType(ip6_mob_brr_type, "ip6_mobility_back"));
 			m->Assign(0, val_mgr->GetCount(*((uint8_t*)msg_data)));
-			m->Assign(1, val_mgr->GetBool(*((uint8_t*)(msg_data + sizeof(uint8_t))) & 0x80));
+			m->Assign(1, val_mgr->Bool(*((uint8_t*)(msg_data + sizeof(uint8_t))) & 0x80));
 			m->Assign(2, val_mgr->GetCount(ntohs(*((uint16_t*)(msg_data + sizeof(uint16_t))))));
 			m->Assign(3, val_mgr->GetCount(ntohs(*((uint16_t*)(msg_data + 2*sizeof(uint16_t))))));
 			off += 3 * sizeof(uint16_t);

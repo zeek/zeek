@@ -111,7 +111,7 @@ function Broker::publish%(topic: string, ...%): bool
 		args.push_back((*bif_args)[i].get());
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
-	return val_mgr->GetBool(rval);
+	return val_mgr->Bool(rval);
 	%}
 
 function Broker::__flush_logs%(%): count
@@ -125,42 +125,42 @@ function Broker::__publish_id%(topic: string, id: string%): bool
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->PublishIdentifier(topic->CheckString(),
 	                                          id->CheckString());
-	return val_mgr->GetBool(rval);
+	return val_mgr->Bool(rval);
 	%}
 
 function Broker::__auto_publish%(topic: string, ev: any%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->AutoPublishEvent(topic->CheckString(), ev);
-	return val_mgr->GetBool(rval);
+	return val_mgr->Bool(rval);
 	%}
 
 function Broker::__auto_unpublish%(topic: string, ev: any%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->AutoUnpublishEvent(topic->CheckString(), ev);
-	return val_mgr->GetBool(rval);
+	return val_mgr->Bool(rval);
 	%}
 
 function Broker::__subscribe%(topic_prefix: string%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->Subscribe(topic_prefix->CheckString());
-	return val_mgr->GetBool(rval);
+	return val_mgr->Bool(rval);
 	%}
 
 function Broker::__forward%(topic_prefix: string%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->Forward(topic_prefix->CheckString());
-	return val_mgr->GetBool(rval);
+	return val_mgr->Bool(rval);
 	%}
 
 function Broker::__unsubscribe%(topic_prefix: string%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->Unsubscribe(topic_prefix->CheckString());
-	return val_mgr->GetBool(rval);
+	return val_mgr->Bool(rval);
 	%}
 
 module Cluster;
@@ -201,7 +201,7 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 		args.push_back((*bif_args)[i].get());
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
-	return val_mgr->GetBool(rval);
+	return val_mgr->Bool(rval);
 	%}
 
 
@@ -238,5 +238,5 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 		args.push_back((*bif_args)[i].get());
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
-	return val_mgr->GetBool(rval);
+	return val_mgr->Bool(rval);
 	%}

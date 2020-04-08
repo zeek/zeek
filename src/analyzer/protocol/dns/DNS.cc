@@ -50,7 +50,7 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
 	if ( dns_message )
 		analyzer->EnqueueConnEvent(dns_message,
 			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_query)},
+			val_mgr->Bool(is_query),
 			IntrusivePtr{AdoptRef{}, msg.BuildHdrVal()},
 			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(len)}
 		);
@@ -1449,11 +1449,11 @@ Val* DNS_MsgInfo::BuildHdrVal()
 	r->Assign(0, val_mgr->GetCount(id));
 	r->Assign(1, val_mgr->GetCount(opcode));
 	r->Assign(2, val_mgr->GetCount(rcode));
-	r->Assign(3, val_mgr->GetBool(QR));
-	r->Assign(4, val_mgr->GetBool(AA));
-	r->Assign(5, val_mgr->GetBool(TC));
-	r->Assign(6, val_mgr->GetBool(RD));
-	r->Assign(7, val_mgr->GetBool(RA));
+	r->Assign(3, val_mgr->Bool(QR));
+	r->Assign(4, val_mgr->Bool(AA));
+	r->Assign(5, val_mgr->Bool(TC));
+	r->Assign(6, val_mgr->Bool(RD));
+	r->Assign(7, val_mgr->Bool(RA));
 	r->Assign(8, val_mgr->GetCount(Z));
 	r->Assign(9, val_mgr->GetCount(qdcount));
 	r->Assign(10, val_mgr->GetCount(ancount));

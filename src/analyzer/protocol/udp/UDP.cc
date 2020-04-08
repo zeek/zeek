@@ -166,7 +166,7 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		if ( do_udp_contents )
 			EnqueueConnEvent(udp_contents,
 				IntrusivePtr{AdoptRef{}, BuildConnVal()},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)},
+				val_mgr->Bool(is_orig),
 				make_intrusive<StringVal>(len, (const char*) data)
 			);
 		}

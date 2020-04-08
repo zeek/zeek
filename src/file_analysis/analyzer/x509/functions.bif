@@ -742,7 +742,7 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 	EVP_MD_CTX_destroy(mdctx);
 	EVP_PKEY_free(key);
 
-	return val_mgr->GetBool(success);
+	return val_mgr->Bool(success);
 
 sct_verify_err:
 	if (mdctx)

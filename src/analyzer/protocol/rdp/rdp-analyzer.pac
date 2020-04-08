@@ -62,15 +62,15 @@ refine flow RDP_Flow += {
 		if ( rdp_client_core_data )
 			{
 			RecordVal* ec_flags = new RecordVal(BifType::Record::RDP::EarlyCapabilityFlags);
-			ec_flags->Assign(0, val_mgr->GetBool(${ccore.SUPPORT_ERRINFO_PDU}));
-			ec_flags->Assign(1, val_mgr->GetBool(${ccore.WANT_32BPP_SESSION}));
-			ec_flags->Assign(2, val_mgr->GetBool(${ccore.SUPPORT_STATUSINFO_PDU}));
-			ec_flags->Assign(3, val_mgr->GetBool(${ccore.STRONG_ASYMMETRIC_KEYS}));
-			ec_flags->Assign(4, val_mgr->GetBool(${ccore.SUPPORT_MONITOR_LAYOUT_PDU}));
-			ec_flags->Assign(5, val_mgr->GetBool(${ccore.SUPPORT_NETCHAR_AUTODETECT}));
-			ec_flags->Assign(6, val_mgr->GetBool(${ccore.SUPPORT_DYNVC_GFX_PROTOCOL}));
-			ec_flags->Assign(7, val_mgr->GetBool(${ccore.SUPPORT_DYNAMIC_TIME_ZONE}));
-			ec_flags->Assign(8, val_mgr->GetBool(${ccore.SUPPORT_HEARTBEAT_PDU}));
+			ec_flags->Assign(0, val_mgr->Bool(${ccore.SUPPORT_ERRINFO_PDU}));
+			ec_flags->Assign(1, val_mgr->Bool(${ccore.WANT_32BPP_SESSION}));
+			ec_flags->Assign(2, val_mgr->Bool(${ccore.SUPPORT_STATUSINFO_PDU}));
+			ec_flags->Assign(3, val_mgr->Bool(${ccore.STRONG_ASYMMETRIC_KEYS}));
+			ec_flags->Assign(4, val_mgr->Bool(${ccore.SUPPORT_MONITOR_LAYOUT_PDU}));
+			ec_flags->Assign(5, val_mgr->Bool(${ccore.SUPPORT_NETCHAR_AUTODETECT}));
+			ec_flags->Assign(6, val_mgr->Bool(${ccore.SUPPORT_DYNVC_GFX_PROTOCOL}));
+			ec_flags->Assign(7, val_mgr->Bool(${ccore.SUPPORT_DYNAMIC_TIME_ZONE}));
+			ec_flags->Assign(8, val_mgr->Bool(${ccore.SUPPORT_HEARTBEAT_PDU}));
 
 			RecordVal* ccd = new RecordVal(BifType::Record::RDP::ClientCoreData);
 			ccd->Assign(0, val_mgr->GetCount(${ccore.version_major}));
@@ -133,17 +133,17 @@ refine flow RDP_Flow += {
 				channel_def->Assign(0, bytestring_to_val(${cnetwork.channel_def_array[i].name}));
 				channel_def->Assign(1, val_mgr->GetCount(${cnetwork.channel_def_array[i].options}));
 
-				channel_def->Assign(2, val_mgr->GetBool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_INITIALIZED}));
-				channel_def->Assign(3, val_mgr->GetBool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_ENCRYPT_RDP}));
-				channel_def->Assign(4, val_mgr->GetBool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_ENCRYPT_SC}));
-				channel_def->Assign(5, val_mgr->GetBool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_ENCRYPT_CS}));
-				channel_def->Assign(6, val_mgr->GetBool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_PRI_HIGH}));
-				channel_def->Assign(7, val_mgr->GetBool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_PRI_MED}));
-				channel_def->Assign(8, val_mgr->GetBool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_PRI_LOW}));
-				channel_def->Assign(9, val_mgr->GetBool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_COMPRESS_RDP}));
-				channel_def->Assign(10, val_mgr->GetBool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_COMPRESS}));
-				channel_def->Assign(11, val_mgr->GetBool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_SHOW_PROTOCOL}));
-				channel_def->Assign(12, val_mgr->GetBool(${cnetwork.channel_def_array[i].REMOTE_CONTROL_PERSISTENT}));
+				channel_def->Assign(2, val_mgr->Bool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_INITIALIZED}));
+				channel_def->Assign(3, val_mgr->Bool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_ENCRYPT_RDP}));
+				channel_def->Assign(4, val_mgr->Bool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_ENCRYPT_SC}));
+				channel_def->Assign(5, val_mgr->Bool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_ENCRYPT_CS}));
+				channel_def->Assign(6, val_mgr->Bool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_PRI_HIGH}));
+				channel_def->Assign(7, val_mgr->Bool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_PRI_MED}));
+				channel_def->Assign(8, val_mgr->Bool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_PRI_LOW}));
+				channel_def->Assign(9, val_mgr->Bool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_COMPRESS_RDP}));
+				channel_def->Assign(10, val_mgr->Bool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_COMPRESS}));
+				channel_def->Assign(11, val_mgr->Bool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_SHOW_PROTOCOL}));
+				channel_def->Assign(12, val_mgr->Bool(${cnetwork.channel_def_array[i].REMOTE_CONTROL_PERSISTENT}));
 
 				channels->Assign(channels->Size(), channel_def);
 				}
@@ -164,10 +164,10 @@ refine flow RDP_Flow += {
 		RecordVal* ccld = new RecordVal(BifType::Record::RDP::ClientClusterData);
 		ccld->Assign(0, val_mgr->GetCount(${ccluster.flags}));
 		ccld->Assign(1, val_mgr->GetCount(${ccluster.redir_session_id}));
-		ccld->Assign(2, val_mgr->GetBool(${ccluster.REDIRECTION_SUPPORTED}));
+		ccld->Assign(2, val_mgr->Bool(${ccluster.REDIRECTION_SUPPORTED}));
 		ccld->Assign(3, val_mgr->GetCount(${ccluster.SERVER_SESSION_REDIRECTION_VERSION_MASK}));
-		ccld->Assign(4, val_mgr->GetBool(${ccluster.REDIRECTED_SESSIONID_FIELD_VALID}));
-		ccld->Assign(5, val_mgr->GetBool(${ccluster.REDIRECTED_SMARTCARD}));
+		ccld->Assign(4, val_mgr->Bool(${ccluster.REDIRECTED_SESSIONID_FIELD_VALID}));
+		ccld->Assign(5, val_mgr->Bool(${ccluster.REDIRECTED_SMARTCARD}));
 
 		BifEvent::generate_rdp_client_cluster_data(connection()->bro_analyzer(),
 		                                           connection()->bro_analyzer()->Conn(),

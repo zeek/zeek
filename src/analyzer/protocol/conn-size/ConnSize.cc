@@ -53,7 +53,7 @@ void ConnSize_Analyzer::ThresholdEvent(EventHandlerPtr f, uint64_t threshold, bo
 	EnqueueConnEvent(f,
 		IntrusivePtr{AdoptRef{}, BuildConnVal()},
 		IntrusivePtr{AdoptRef{}, val_mgr->GetCount(threshold)},
-		IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)}
+		val_mgr->Bool(is_orig)
 	);
 	}
 
@@ -95,7 +95,7 @@ void ConnSize_Analyzer::CheckThresholds(bool is_orig)
 			EnqueueConnEvent(conn_duration_threshold_crossed,
 					IntrusivePtr{AdoptRef{}, BuildConnVal()},
 					make_intrusive<Val>(duration_thresh, TYPE_INTERVAL),
-					IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)}
+					val_mgr->Bool(is_orig)
 			);
 			duration_thresh = 0;
 			}

@@ -109,14 +109,14 @@ static RecordVal* build_syn_packet_val(bool is_orig, const IP_Hdr* ip,
 
 	RecordVal* v = new RecordVal(SYN_packet);
 
-	v->Assign(0, val_mgr->GetBool(is_orig));
-	v->Assign(1, val_mgr->GetBool(int(ip->DF())));
+	v->Assign(0, val_mgr->Bool(is_orig));
+	v->Assign(1, val_mgr->Bool(int(ip->DF())));
 	v->Assign(2, val_mgr->GetCount((ip->TTL())));
 	v->Assign(3, val_mgr->GetCount((ip->TotalLen())));
 	v->Assign(4, val_mgr->GetCount(ntohs(tcp->th_win)));
 	v->Assign(5, val_mgr->GetInt(winscale));
 	v->Assign(6, val_mgr->GetCount(MSS));
-	v->Assign(7, val_mgr->GetBool(SACK));
+	v->Assign(7, val_mgr->Bool(SACK));
 
 	return v;
 	}
@@ -787,7 +787,7 @@ void TCP_Analyzer::GeneratePacketEvent(
 	{
 	EnqueueConnEvent(tcp_packet,
 		IntrusivePtr{AdoptRef{}, BuildConnVal()},
-		IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)},
+		val_mgr->Bool(is_orig),
 		make_intrusive<StringVal>(flags.AsString()),
 		IntrusivePtr{AdoptRef{}, val_mgr->GetCount(rel_seq)},
 		IntrusivePtr{AdoptRef{}, val_mgr->GetCount(flags.ACK() ? rel_ack : 0)},
@@ -1347,7 +1347,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 			auto length = kind < 2 ? 1 : o[1];
 			EnqueueConnEvent(tcp_option,
 				IntrusivePtr{AdoptRef{}, BuildConnVal()},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)},
+				val_mgr->Bool(is_orig),
 				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(kind)},
 				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(length)}
 				);
@@ -1460,7 +1460,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 
 		EnqueueConnEvent(tcp_options,
 			IntrusivePtr{AdoptRef{}, BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)},
+			val_mgr->Bool(is_orig),
 			std::move(option_list)
 			);
 		}
@@ -1782,7 +1782,7 @@ void TCP_Analyzer::EndpointEOF(TCP_Reassembler* endp)
 	if ( connection_EOF )
 		EnqueueConnEvent(connection_EOF,
 			IntrusivePtr{AdoptRef{}, BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(endp->IsOrig())}
+			val_mgr->Bool(endp->IsOrig())
 		);
 
 	const analyzer_list& children(GetChildren());
@@ -2062,7 +2062,7 @@ bool TCPStats_Endpoint::DataSent(double /* t */, uint64_t seq, int len, int capl
 		if ( tcp_rexmit )
 			endp->TCP()->EnqueueConnEvent(tcp_rexmit,
 				IntrusivePtr{AdoptRef{}, endp->TCP()->BuildConnVal()},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetBool(endp->IsOrig())},
+				val_mgr->Bool(endp->IsOrig()),
 				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(seq)},
 				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(len)},
 				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(data_in_flight)},

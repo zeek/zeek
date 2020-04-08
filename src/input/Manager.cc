@@ -2259,7 +2259,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 
 	switch ( val->type ) {
 	case TYPE_BOOL:
-		return val_mgr->GetBool(val->val.int_val);
+		return val_mgr->Bool(val->val.int_val)->Ref();
 
 	case TYPE_INT:
 		return val_mgr->GetInt(val->val.int_val);
@@ -2407,7 +2407,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 
 	switch ( val->type ) {
 	case TYPE_BOOL:
-		return val_mgr->GetBool(val->val.int_val);
+		return val_mgr->Bool(val->val.int_val)->Ref();
 
 	case TYPE_INT:
 		return val_mgr->GetInt(val->val.int_val);

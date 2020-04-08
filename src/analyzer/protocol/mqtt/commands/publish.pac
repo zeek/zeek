@@ -24,9 +24,9 @@ refine flow MQTT_Flow += {
 		if ( mqtt_publish )
 			{
 			auto m = new RecordVal(BifType::Record::MQTT::PublishMsg);
-			m->Assign(0, val_mgr->GetBool(${msg.dup}));
+			m->Assign(0, val_mgr->Bool(${msg.dup}));
 			m->Assign(1, val_mgr->GetCount(${msg.qos}));
-			m->Assign(2, val_mgr->GetBool(${msg.retain}));
+			m->Assign(2, val_mgr->Bool(${msg.retain}));
 			m->Assign(3, new StringVal(${msg.topic.str}.length(),
 			                           reinterpret_cast<const char*>(${msg.topic.str}.begin())));
 

@@ -53,12 +53,12 @@ refine connection SMB_Conn += {
 
 				case 0x0d:
 					security = new RecordVal(BifType::Record::SMB1::NegotiateResponseSecurity);
-					security->Assign(0, val_mgr->GetBool(${val.lanman.security_user_level}));
-					security->Assign(1, val_mgr->GetBool(${val.lanman.security_challenge_response}));
+					security->Assign(0, val_mgr->Bool(${val.lanman.security_user_level}));
+					security->Assign(1, val_mgr->Bool(${val.lanman.security_challenge_response}));
 
 					raw = new RecordVal(BifType::Record::SMB1::NegotiateRawMode);
-					raw->Assign(0, val_mgr->GetBool(${val.lanman.raw_read_supported}));
-					raw->Assign(1, val_mgr->GetBool(${val.lanman.raw_write_supported}));
+					raw->Assign(0, val_mgr->Bool(${val.lanman.raw_read_supported}));
+					raw->Assign(1, val_mgr->Bool(${val.lanman.raw_write_supported}));
 
 					lanman = new RecordVal(BifType::Record::SMB1::NegotiateResponseLANMAN);
 					lanman->Assign(0, val_mgr->GetCount(${val.word_count}));
@@ -80,33 +80,33 @@ refine connection SMB_Conn += {
 
 				case 0x11:
 					security = new RecordVal(BifType::Record::SMB1::NegotiateResponseSecurity);
-					security->Assign(0, val_mgr->GetBool(${val.ntlm.security_user_level}));
-					security->Assign(1, val_mgr->GetBool(${val.ntlm.security_challenge_response}));
-					security->Assign(2, val_mgr->GetBool(${val.ntlm.security_signatures_enabled}));
-					security->Assign(3, val_mgr->GetBool(${val.ntlm.security_signatures_required}));
+					security->Assign(0, val_mgr->Bool(${val.ntlm.security_user_level}));
+					security->Assign(1, val_mgr->Bool(${val.ntlm.security_challenge_response}));
+					security->Assign(2, val_mgr->Bool(${val.ntlm.security_signatures_enabled}));
+					security->Assign(3, val_mgr->Bool(${val.ntlm.security_signatures_required}));
 
 					capabilities = new RecordVal(BifType::Record::SMB1::NegotiateCapabilities);
-					capabilities->Assign(0, val_mgr->GetBool(${val.ntlm.capabilities_raw_mode}));
-					capabilities->Assign(1, val_mgr->GetBool(${val.ntlm.capabilities_mpx_mode}));
-					capabilities->Assign(2, val_mgr->GetBool(${val.ntlm.capabilities_unicode}));
-					capabilities->Assign(3, val_mgr->GetBool(${val.ntlm.capabilities_large_files}));
-					capabilities->Assign(4, val_mgr->GetBool(${val.ntlm.capabilities_nt_smbs}));
+					capabilities->Assign(0, val_mgr->Bool(${val.ntlm.capabilities_raw_mode}));
+					capabilities->Assign(1, val_mgr->Bool(${val.ntlm.capabilities_mpx_mode}));
+					capabilities->Assign(2, val_mgr->Bool(${val.ntlm.capabilities_unicode}));
+					capabilities->Assign(3, val_mgr->Bool(${val.ntlm.capabilities_large_files}));
+					capabilities->Assign(4, val_mgr->Bool(${val.ntlm.capabilities_nt_smbs}));
 
-					capabilities->Assign(5, val_mgr->GetBool(${val.ntlm.capabilities_rpc_remote_apis}));
-					capabilities->Assign(6, val_mgr->GetBool(${val.ntlm.capabilities_status32}));
-					capabilities->Assign(7, val_mgr->GetBool(${val.ntlm.capabilities_level_2_oplocks}));
-					capabilities->Assign(8, val_mgr->GetBool(${val.ntlm.capabilities_lock_and_read}));
-					capabilities->Assign(9, val_mgr->GetBool(${val.ntlm.capabilities_nt_find}));
+					capabilities->Assign(5, val_mgr->Bool(${val.ntlm.capabilities_rpc_remote_apis}));
+					capabilities->Assign(6, val_mgr->Bool(${val.ntlm.capabilities_status32}));
+					capabilities->Assign(7, val_mgr->Bool(${val.ntlm.capabilities_level_2_oplocks}));
+					capabilities->Assign(8, val_mgr->Bool(${val.ntlm.capabilities_lock_and_read}));
+					capabilities->Assign(9, val_mgr->Bool(${val.ntlm.capabilities_nt_find}));
 
-					capabilities->Assign(10, val_mgr->GetBool(${val.ntlm.capabilities_dfs}));
-					capabilities->Assign(11, val_mgr->GetBool(${val.ntlm.capabilities_infolevel_passthru}));
-					capabilities->Assign(12, val_mgr->GetBool(${val.ntlm.capabilities_large_readx}));
-					capabilities->Assign(13, val_mgr->GetBool(${val.ntlm.capabilities_large_writex}));
-					capabilities->Assign(14, val_mgr->GetBool(${val.ntlm.capabilities_unix}));
+					capabilities->Assign(10, val_mgr->Bool(${val.ntlm.capabilities_dfs}));
+					capabilities->Assign(11, val_mgr->Bool(${val.ntlm.capabilities_infolevel_passthru}));
+					capabilities->Assign(12, val_mgr->Bool(${val.ntlm.capabilities_large_readx}));
+					capabilities->Assign(13, val_mgr->Bool(${val.ntlm.capabilities_large_writex}));
+					capabilities->Assign(14, val_mgr->Bool(${val.ntlm.capabilities_unix}));
 
-					capabilities->Assign(15, val_mgr->GetBool(${val.ntlm.capabilities_bulk_transfer}));
-					capabilities->Assign(16, val_mgr->GetBool(${val.ntlm.capabilities_compressed_data}));
-					capabilities->Assign(17, val_mgr->GetBool(${val.ntlm.capabilities_extended_security}));
+					capabilities->Assign(15, val_mgr->Bool(${val.ntlm.capabilities_bulk_transfer}));
+					capabilities->Assign(16, val_mgr->Bool(${val.ntlm.capabilities_compressed_data}));
+					capabilities->Assign(17, val_mgr->Bool(${val.ntlm.capabilities_extended_security}));
 
 					ntlm = new RecordVal(BifType::Record::SMB1::NegotiateResponseNTLM);
 					ntlm->Assign(0, val_mgr->GetCount(${val.word_count}));

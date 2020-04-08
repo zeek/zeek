@@ -9,11 +9,11 @@ RecordVal* BuildGTPv1Hdr(const GTPv1_Header* pdu)
 	RecordVal* rv = new RecordVal(BifType::Record::gtpv1_hdr);
 
 	rv->Assign(0, val_mgr->GetCount(pdu->version()));
-	rv->Assign(1, val_mgr->GetBool(pdu->pt_flag()));
-	rv->Assign(2, val_mgr->GetBool(pdu->rsv()));
-	rv->Assign(3, val_mgr->GetBool(pdu->e_flag()));
-	rv->Assign(4, val_mgr->GetBool(pdu->s_flag()));
-	rv->Assign(5, val_mgr->GetBool(pdu->pn_flag()));
+	rv->Assign(1, val_mgr->Bool(pdu->pt_flag()));
+	rv->Assign(2, val_mgr->Bool(pdu->rsv()));
+	rv->Assign(3, val_mgr->Bool(pdu->e_flag()));
+	rv->Assign(4, val_mgr->Bool(pdu->s_flag()));
+	rv->Assign(5, val_mgr->Bool(pdu->pn_flag()));
 	rv->Assign(6, val_mgr->GetCount(pdu->msg_type()));
 	rv->Assign(7, val_mgr->GetCount(pdu->length()));
 	rv->Assign(8, val_mgr->GetCount(pdu->teid()));
@@ -206,9 +206,9 @@ Val* BuildCause(const InformationElement* ie)
 	return val_mgr->GetCount(ie->cause()->value());
 	}
 
-Val* BuildReorderReq(const InformationElement* ie)
+static IntrusivePtr<Val> BuildReorderReq(const InformationElement* ie)
 	{
-	return val_mgr->GetBool(ie->reorder_req()->req());
+	return val_mgr->Bool(ie->reorder_req()->req());
 	}
 
 Val* BuildChargingID(const InformationElement* ie)
@@ -228,9 +228,9 @@ Val* BuildChargingGatewayAddr(const InformationElement* ie)
 		return 0;
 	}
 
-Val* BuildTeardownInd(const InformationElement* ie)
+static IntrusivePtr<Val> BuildTeardownInd(const InformationElement* ie)
 	{
-	return val_mgr->GetBool(ie->teardown_ind()->ind());
+	return val_mgr->Bool(ie->teardown_ind()->ind());
 	}
 
 void CreatePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)

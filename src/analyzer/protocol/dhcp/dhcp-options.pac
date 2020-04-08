@@ -250,7 +250,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_forwarding_option(v: OptionValue): bool
 		%{
-		${context.flow}->options->Assign(6, val_mgr->GetBool(${v.forwarding} == 0 ? false : true));
+		${context.flow}->options->Assign(6, val_mgr->Bool(${v.forwarding} == 0 ? false : true));
 
 		return true;
 		%}
@@ -781,7 +781,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_auto_config_option(v: OptionValue): bool
 		%{
-		${context.flow}->options->Assign(23, val_mgr->GetBool(${v.auto_config} == 0 ? false : true));
+		${context.flow}->options->Assign(23, val_mgr->Bool(${v.auto_config} == 0 ? false : true));
 
 		return true;
 		%}

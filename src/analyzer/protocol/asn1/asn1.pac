@@ -113,7 +113,7 @@ Val* asn1_integer_to_val(const ASN1Encoding* i, TypeTag t)
 
 	switch ( t ) {
 	case TYPE_BOOL:
-		return val_mgr->GetBool(v);
+		return val_mgr->Bool(v)->Ref();
 	case TYPE_INT:
 		return val_mgr->GetInt(v);
 	case TYPE_COUNT:

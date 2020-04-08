@@ -15,7 +15,7 @@ namespace input { namespace reader {
  * A reader that returns a file (or the output of a command) as a single
  * blob.
  */
-class Raw final : public ReaderBackend {
+class Raw : public ReaderBackend {
 public:
 	explicit Raw(ReaderFrontend* frontend);
 	~Raw() override;

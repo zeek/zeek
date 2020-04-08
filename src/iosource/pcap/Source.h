@@ -13,7 +13,7 @@ extern "C" {
 namespace iosource {
 namespace pcap {
 
-class PcapSource final : public iosource::PktSrc {
+class PcapSource : public iosource::PktSrc {
 public:
 	PcapSource(const std::string& path, bool is_live);
 	~PcapSource() override;

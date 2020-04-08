@@ -8,7 +8,7 @@
 
 namespace logging { namespace writer {
 
-class None final : public WriterBackend {
+class None : public WriterBackend {
 public:
 	explicit None(WriterFrontend* frontend) : WriterBackend(frontend)	{}
 	~None() override {};

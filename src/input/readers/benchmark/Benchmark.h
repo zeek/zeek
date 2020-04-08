@@ -10,7 +10,7 @@ namespace input { namespace reader {
 /**
  * A benchmark reader to measure performance of the input framework.
  */
-class Benchmark final : public ReaderBackend {
+class Benchmark : public ReaderBackend {
 public:
 	explicit Benchmark(ReaderFrontend* frontend);
 	~Benchmark() override;

@@ -12,7 +12,7 @@
 
 namespace logging { namespace writer {
 
-class Ascii final : public WriterBackend {
+class Ascii : public WriterBackend {
 public:
 	explicit Ascii(WriterFrontend* frontend);
 	~Ascii() override;

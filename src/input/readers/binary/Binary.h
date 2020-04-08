@@ -12,7 +12,7 @@ namespace input { namespace reader {
 /**
  * Binary mode file reader.
  */
-class Binary final : public ReaderBackend {
+class Binary : public ReaderBackend {
 public:
 	explicit Binary(ReaderFrontend* frontend);
 	~Binary() override;

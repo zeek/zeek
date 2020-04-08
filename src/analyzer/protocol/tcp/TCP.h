@@ -21,7 +21,7 @@ class TCP_Endpoint;
 class TCP_ApplicationAnalyzer;
 class TCP_Reassembler;
 
-class TCP_Analyzer : public analyzer::TransportLayerAnalyzer {
+class TCP_Analyzer final : public analyzer::TransportLayerAnalyzer {
 public:
 	explicit TCP_Analyzer(Connection* conn);
 	~TCP_Analyzer() override;

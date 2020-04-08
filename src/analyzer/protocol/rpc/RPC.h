@@ -184,7 +184,7 @@ protected:
 };
 
 /* Support Analyzer for reassembling RPC-over-TCP messages */
-class Contents_RPC : public tcp::TCP_SupportAnalyzer {
+class Contents_RPC final : public tcp::TCP_SupportAnalyzer {
 public:
 	Contents_RPC(Connection* conn, bool orig, RPC_Interpreter* interp);
 	~Contents_RPC() override;

@@ -84,7 +84,7 @@ TraversalCode TriggerTraversalCallback::PreExpr(const Expr* expr)
 
 namespace trigger {
 
-class TriggerTimer : public Timer {
+class TriggerTimer final : public Timer {
 public:
 	TriggerTimer(double arg_timeout, Trigger* arg_trigger)
 	: Timer(network_time + arg_timeout, TIMER_TRIGGER)

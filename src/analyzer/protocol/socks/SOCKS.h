@@ -13,7 +13,7 @@ namespace binpac  {
 
 namespace analyzer { namespace socks {
 
-class SOCKS_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class SOCKS_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit SOCKS_Analyzer(Connection* conn);
 	~SOCKS_Analyzer() override;
@@ -37,4 +37,4 @@ protected:
 	binpac::SOCKS::SOCKS_Conn* interp;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

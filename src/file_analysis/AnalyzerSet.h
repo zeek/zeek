@@ -165,7 +165,7 @@ private:
 	/**
 	 * Represents a request to add an analyzer to an analyzer set.
 	 */
-	class AddMod : public Modification {
+	class AddMod final : public Modification {
 	public:
 		/**
 		 * Construct request which can add an analyzer to an analyzer set.
@@ -186,7 +186,7 @@ private:
 	/**
 	 * Represents a request to remove an analyzer from an analyzer set.
 	 */
-	class RemoveMod : public Modification {
+	class RemoveMod final : public Modification {
 	public:
 		/**
 		 * Construct request which can remove an analyzer from an analyzer set.

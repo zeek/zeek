@@ -324,7 +324,7 @@ typedef enum {
 
 // Support analyzer which chunks the TCP stream into "packets".
 // ### This should be merged with TCP_Contents_RPC.
-class Contents_DNS : public tcp::TCP_SupportAnalyzer {
+class Contents_DNS final : public tcp::TCP_SupportAnalyzer {
 public:
 	Contents_DNS(Connection* c, bool orig, DNS_Interpreter* interp);
 	~Contents_DNS() override;
@@ -346,7 +346,7 @@ protected:
 };
 
 // Works for both TCP and UDP.
-class DNS_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class DNS_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit DNS_Analyzer(Connection* conn);
 	~DNS_Analyzer() override;

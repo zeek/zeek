@@ -65,7 +65,7 @@ protected:
 };
 
 
-class ProfileLogger : public SegmentStatsReporter {
+class ProfileLogger final : public SegmentStatsReporter {
 public:
 	ProfileLogger(BroFile* file, double interval);
 	~ProfileLogger() override;
@@ -84,7 +84,7 @@ private:
 
 
 // Generates load_sample() events.
-class SampleLogger : public SegmentStatsReporter {
+class SampleLogger final : public SegmentStatsReporter {
 public:
 	SampleLogger();
 	~SampleLogger() override;

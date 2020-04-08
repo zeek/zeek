@@ -58,7 +58,7 @@ protected:
 	int active;
 };
 
-class TelnetTerminalOption : public TelnetOption {
+class TelnetTerminalOption final : public TelnetOption {
 public:
 	explicit TelnetTerminalOption(NVT_Analyzer* arg_endp)
 		: TelnetOption(arg_endp, TELNET_OPTION_TERMINAL)	{ }
@@ -66,7 +66,7 @@ public:
 	void RecvSubOption(u_char* data, int len) override;
 };
 
-class TelnetEncryptOption : public TelnetOption {
+class TelnetEncryptOption final : public TelnetOption {
 public:
 	explicit TelnetEncryptOption(NVT_Analyzer* arg_endp)
 		: TelnetOption(arg_endp, TELNET_OPTION_ENCRYPT)
@@ -82,7 +82,7 @@ protected:
 	int did_encrypt_request, doing_encryption;
 };
 
-class TelnetAuthenticateOption : public TelnetOption {
+class TelnetAuthenticateOption final : public TelnetOption {
 public:
 	explicit TelnetAuthenticateOption(NVT_Analyzer* arg_endp)
 		: TelnetOption(arg_endp, TELNET_OPTION_AUTHENTICATE)
@@ -98,7 +98,7 @@ protected:
 	int authentication_requested;
 };
 
-class TelnetEnvironmentOption : public TelnetOption {
+class TelnetEnvironmentOption final : public TelnetOption {
 public:
 	explicit TelnetEnvironmentOption(NVT_Analyzer* arg_endp)
 		: TelnetOption(arg_endp, TELNET_OPTION_ENVIRON)
@@ -110,7 +110,7 @@ protected:
 	char* ExtractEnv(u_char*& data, int& len, int& code);
 };
 
-class TelnetBinaryOption : public TelnetOption {
+class TelnetBinaryOption final : public TelnetOption {
 public:
 	explicit TelnetBinaryOption(NVT_Analyzer* arg_endp)
 		: TelnetOption(arg_endp, TELNET_OPTION_BINARY)
@@ -122,7 +122,7 @@ protected:
 	void InconsistentOption(unsigned int type) override;
 };
 
-class NVT_Analyzer : public tcp::ContentLine_Analyzer {
+class NVT_Analyzer final : public tcp::ContentLine_Analyzer {
 public:
 	NVT_Analyzer(Connection* conn, bool orig);
 	~NVT_Analyzer() override;

@@ -10,7 +10,7 @@ namespace binpac { namespace TLSHandshake { class Handshake_Conn; } }
 
 namespace analyzer { namespace ssl {
 
-class SSL_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class SSL_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit SSL_Analyzer(Connection* conn);
 	~SSL_Analyzer() override;
@@ -38,4 +38,4 @@ protected:
 
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

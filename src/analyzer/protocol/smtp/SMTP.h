@@ -36,7 +36,7 @@ typedef enum {
 } SMTP_State;
 
 
-class SMTP_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class SMTP_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit SMTP_Analyzer(Connection* conn);
 	~SMTP_Analyzer() override;

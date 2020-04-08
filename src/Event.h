@@ -14,7 +14,7 @@
 
 class EventMgr;
 
-class Event : public BroObj {
+class Event final : public BroObj {
 public:
 	Event(EventHandlerPtr handler, zeek::Args args,
 	      SourceID src = SOURCE_LOCAL, analyzer::ID aid = 0,
@@ -48,7 +48,7 @@ protected:
 extern uint64_t num_events_queued;
 extern uint64_t num_events_dispatched;
 
-class EventMgr : public BroObj, public iosource::IOSource {
+class EventMgr final : public BroObj, public iosource::IOSource {
 public:
 	EventMgr();
 	~EventMgr() override;

@@ -112,7 +112,7 @@ typedef enum {
 } NetbiosSSN_State;
 
 // ### This should be merged with TCP_Contents_RPC, TCP_Contents_DNS.
-class Contents_NetbiosSSN : public tcp::TCP_SupportAnalyzer {
+class Contents_NetbiosSSN final : public tcp::TCP_SupportAnalyzer {
 public:
 	Contents_NetbiosSSN(Connection* conn, bool orig,
 				NetbiosSSN_Interpreter* interp);
@@ -138,7 +138,7 @@ protected:
 	NetbiosSSN_State state;
 };
 
-class NetbiosSSN_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class NetbiosSSN_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit NetbiosSSN_Analyzer(Connection* conn);
 	~NetbiosSSN_Analyzer() override;

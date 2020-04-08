@@ -12,7 +12,7 @@
 
 namespace analyzer {
 
-class AnalyzerTimer : public Timer {
+class AnalyzerTimer final : public Timer {
 public:
 	AnalyzerTimer(Analyzer* arg_analyzer, analyzer_timer_func arg_timer,
 			double arg_t, int arg_do_expire, TimerType arg_type);

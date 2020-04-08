@@ -38,7 +38,7 @@ enum DNS_MgrMode {
 // Number of seconds we'll wait for a reply.
 #define DNS_TIMEOUT 5
 
-class DNS_Mgr : public iosource::IOSource {
+class DNS_Mgr final : public iosource::IOSource {
 public:
 	explicit DNS_Mgr(DNS_MgrMode mode);
 	~DNS_Mgr() override;

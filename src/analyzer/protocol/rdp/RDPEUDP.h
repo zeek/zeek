@@ -5,7 +5,7 @@
 #include "rdpeudp_pac.h"
 
 namespace analyzer { namespace rdpeudp {
-class RDP_Analyzer : public analyzer::Analyzer {
+class RDP_Analyzer final : public analyzer::Analyzer {
 
 public:
 	explicit RDP_Analyzer(Connection* conn);

@@ -1390,7 +1390,7 @@ RecordType* Manager::StreamColumns(EnumVal* stream_id)
 	}
 
 // Timer which on dispatching rotates the filter.
-class RotationTimer : public Timer {
+class RotationTimer final : public Timer {
 public:
 	RotationTimer(double t, Manager::WriterInfo* arg_winfo, bool arg_rotate)
 		: Timer(t, TIMER_ROTATE)

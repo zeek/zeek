@@ -202,7 +202,7 @@ public:
 		return (IndexExpr*) this;
 		}
 
-	void Describe(ODesc* d) const override;
+	void Describe(ODesc* d) const override final;
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const = 0;
 
@@ -232,7 +232,7 @@ protected:
 	bool paren;
 };
 
-class NameExpr : public Expr {
+class NameExpr final : public Expr {
 public:
 	explicit NameExpr(IntrusivePtr<ID> id, bool const_init = false);
 
@@ -252,7 +252,7 @@ protected:
 	bool in_const_init;
 };
 
-class ConstExpr : public Expr {
+class ConstExpr final : public Expr {
 public:
 	explicit ConstExpr(IntrusivePtr<Val> val);
 
@@ -350,7 +350,7 @@ protected:
 	IntrusivePtr<Expr> op2;
 };
 
-class CloneExpr : public UnaryExpr {
+class CloneExpr final : public UnaryExpr {
 public:
 	explicit CloneExpr(IntrusivePtr<Expr> op);
 	IntrusivePtr<Val> Eval(Frame* f) const override;
@@ -359,7 +359,7 @@ protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
-class IncrExpr : public UnaryExpr {
+class IncrExpr final : public UnaryExpr {
 public:
 	IncrExpr(BroExprTag tag, IntrusivePtr<Expr> op);
 
@@ -368,7 +368,7 @@ public:
 	bool IsPure() const override;
 };
 
-class ComplementExpr : public UnaryExpr {
+class ComplementExpr final : public UnaryExpr {
 public:
 	explicit ComplementExpr(IntrusivePtr<Expr> op);
 
@@ -376,7 +376,7 @@ protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
-class NotExpr : public UnaryExpr {
+class NotExpr final : public UnaryExpr {
 public:
 	explicit NotExpr(IntrusivePtr<Expr> op);
 
@@ -384,7 +384,7 @@ protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
-class PosExpr : public UnaryExpr {
+class PosExpr final : public UnaryExpr {
 public:
 	explicit PosExpr(IntrusivePtr<Expr> op);
 
@@ -392,7 +392,7 @@ protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
-class NegExpr : public UnaryExpr {
+class NegExpr final : public UnaryExpr {
 public:
 	explicit NegExpr(IntrusivePtr<Expr> op);
 
@@ -400,7 +400,7 @@ protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
-class SizeExpr : public UnaryExpr {
+class SizeExpr final : public UnaryExpr {
 public:
 	explicit SizeExpr(IntrusivePtr<Expr> op);
 	IntrusivePtr<Val> Eval(Frame* f) const override;
@@ -409,36 +409,36 @@ protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
-class AddExpr : public BinaryExpr {
+class AddExpr final : public BinaryExpr {
 public:
 	AddExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	void Canonicize() override;
 };
 
-class AddToExpr : public BinaryExpr {
+class AddToExpr final : public BinaryExpr {
 public:
 	AddToExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 };
 
-class RemoveFromExpr : public BinaryExpr {
+class RemoveFromExpr final : public BinaryExpr {
 public:
 	RemoveFromExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 };
 
-class SubExpr : public BinaryExpr {
+class SubExpr final : public BinaryExpr {
 public:
 	SubExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 };
 
-class TimesExpr : public BinaryExpr {
+class TimesExpr final : public BinaryExpr {
 public:
 	TimesExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	void Canonicize() override;
 };
 
-class DivideExpr : public BinaryExpr {
+class DivideExpr final : public BinaryExpr {
 public:
 	DivideExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 
@@ -446,12 +446,12 @@ protected:
 	IntrusivePtr<Val> AddrFold(Val* v1, Val* v2) const override;
 };
 
-class ModExpr : public BinaryExpr {
+class ModExpr final : public BinaryExpr {
 public:
 	ModExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 };
 
-class BoolExpr : public BinaryExpr {
+class BoolExpr final : public BinaryExpr {
 public:
 	BoolExpr(BroExprTag tag, IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 
@@ -459,12 +459,12 @@ public:
 	IntrusivePtr<Val> DoSingleEval(Frame* f, IntrusivePtr<Val> v1, Expr* op2) const;
 };
 
-class BitExpr : public BinaryExpr {
+class BitExpr final : public BinaryExpr {
 public:
 	BitExpr(BroExprTag tag, IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 };
 
-class EqExpr : public BinaryExpr {
+class EqExpr final : public BinaryExpr {
 public:
 	EqExpr(BroExprTag tag, IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	void Canonicize() override;
@@ -473,13 +473,13 @@ protected:
 	IntrusivePtr<Val> Fold(Val* v1, Val* v2) const override;
 };
 
-class RelExpr : public BinaryExpr {
+class RelExpr final : public BinaryExpr {
 public:
 	RelExpr(BroExprTag tag, IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	void Canonicize() override;
 };
 
-class CondExpr : public Expr {
+class CondExpr final : public Expr {
 public:
 	CondExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2, IntrusivePtr<Expr> op3);
 
@@ -500,7 +500,7 @@ protected:
 	IntrusivePtr<Expr> op3;
 };
 
-class RefExpr : public UnaryExpr {
+class RefExpr final : public UnaryExpr {
 public:
 	explicit RefExpr(IntrusivePtr<Expr> op);
 
@@ -530,14 +530,14 @@ protected:
 	IntrusivePtr<Val> val;	// optional
 };
 
-class IndexSliceAssignExpr : public AssignExpr {
+class IndexSliceAssignExpr final : public AssignExpr {
 public:
 	IndexSliceAssignExpr(IntrusivePtr<Expr> op1,
 	                     IntrusivePtr<Expr> op2, bool is_init);
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 };
 
-class IndexExpr : public BinaryExpr {
+class IndexExpr final : public BinaryExpr {
 public:
 	IndexExpr(IntrusivePtr<Expr> op1,
 	          IntrusivePtr<ListExpr> op2, bool is_slice = false);
@@ -567,7 +567,7 @@ protected:
 	bool is_slice;
 };
 
-class FieldExpr : public UnaryExpr {
+class FieldExpr final : public UnaryExpr {
 public:
 	FieldExpr(IntrusivePtr<Expr> op, const char* field_name);
 	~FieldExpr() override;
@@ -594,7 +594,7 @@ protected:
 
 // "rec?$fieldname" is true if the value of $fieldname in rec is not nil.
 // "rec?$$attrname" is true if the attribute attrname is not nil.
-class HasFieldExpr : public UnaryExpr {
+class HasFieldExpr final : public UnaryExpr {
 public:
 	HasFieldExpr(IntrusivePtr<Expr> op, const char* field_name);
 	~HasFieldExpr() override;
@@ -610,7 +610,7 @@ protected:
 	int field;
 };
 
-class RecordConstructorExpr : public UnaryExpr {
+class RecordConstructorExpr final : public UnaryExpr {
 public:
 	explicit RecordConstructorExpr(IntrusivePtr<ListExpr> constructor_list);
 	~RecordConstructorExpr() override;
@@ -622,7 +622,7 @@ protected:
 	void ExprDescribe(ODesc* d) const override;
 };
 
-class TableConstructorExpr : public UnaryExpr {
+class TableConstructorExpr final : public UnaryExpr {
 public:
 	TableConstructorExpr(IntrusivePtr<ListExpr> constructor_list, attr_list* attrs,
 	                     IntrusivePtr<BroType> arg_type = nullptr);
@@ -640,7 +640,7 @@ protected:
 	Attributes* attrs;
 };
 
-class SetConstructorExpr : public UnaryExpr {
+class SetConstructorExpr final : public UnaryExpr {
 public:
 	SetConstructorExpr(IntrusivePtr<ListExpr> constructor_list, attr_list* attrs,
 	                   IntrusivePtr<BroType> arg_type = nullptr);
@@ -658,7 +658,7 @@ protected:
 	Attributes* attrs;
 };
 
-class VectorConstructorExpr : public UnaryExpr {
+class VectorConstructorExpr final : public UnaryExpr {
 public:
 	explicit VectorConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
 	                               IntrusivePtr<BroType> arg_type = nullptr);
@@ -671,7 +671,7 @@ protected:
 	void ExprDescribe(ODesc* d) const override;
 };
 
-class FieldAssignExpr : public UnaryExpr {
+class FieldAssignExpr final : public UnaryExpr {
 public:
 	FieldAssignExpr(const char* field_name, IntrusivePtr<Expr> value);
 
@@ -686,7 +686,7 @@ protected:
 	string field_name;
 };
 
-class ArithCoerceExpr : public UnaryExpr {
+class ArithCoerceExpr final : public UnaryExpr {
 public:
 	ArithCoerceExpr(IntrusivePtr<Expr> op, TypeTag t);
 
@@ -695,7 +695,7 @@ protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
-class RecordCoerceExpr : public UnaryExpr {
+class RecordCoerceExpr final : public UnaryExpr {
 public:
 	RecordCoerceExpr(IntrusivePtr<Expr> op, IntrusivePtr<RecordType> r);
 	~RecordCoerceExpr() override;
@@ -710,7 +710,7 @@ protected:
 	int map_size;	// equivalent to Type()->AsRecordType()->NumFields()
 };
 
-class TableCoerceExpr : public UnaryExpr {
+class TableCoerceExpr final : public UnaryExpr {
 public:
 	TableCoerceExpr(IntrusivePtr<Expr> op, IntrusivePtr<TableType> r);
 	~TableCoerceExpr() override;
@@ -719,7 +719,7 @@ protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
-class VectorCoerceExpr : public UnaryExpr {
+class VectorCoerceExpr final : public UnaryExpr {
 public:
 	VectorCoerceExpr(IntrusivePtr<Expr> op, IntrusivePtr<VectorType> v);
 	~VectorCoerceExpr() override;
@@ -730,7 +730,7 @@ protected:
 
 // An internal operator for flattening array indices that are records
 // into a list of individual values.
-class FlattenExpr : public UnaryExpr {
+class FlattenExpr final : public UnaryExpr {
 public:
 	explicit FlattenExpr(IntrusivePtr<Expr> op);
 
@@ -740,7 +740,7 @@ protected:
 	int num_fields;
 };
 
-class ScheduleTimer : public Timer {
+class ScheduleTimer final : public Timer {
 public:
 	ScheduleTimer(const EventHandlerPtr& event, zeek::Args args, double t);
 	~ScheduleTimer() override;
@@ -752,7 +752,7 @@ protected:
 	zeek::Args args;
 };
 
-class ScheduleExpr : public Expr {
+class ScheduleExpr final : public Expr {
 public:
 	ScheduleExpr(IntrusivePtr<Expr> when, IntrusivePtr<EventExpr> event);
 
@@ -772,7 +772,7 @@ protected:
 	IntrusivePtr<EventExpr> event;
 };
 
-class InExpr : public BinaryExpr {
+class InExpr final : public BinaryExpr {
 public:
 	InExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 
@@ -781,7 +781,7 @@ protected:
 
 };
 
-class CallExpr : public Expr {
+class CallExpr final : public Expr {
 public:
 	CallExpr(IntrusivePtr<Expr> func, IntrusivePtr<ListExpr> args,
 	         bool in_hook = false);
@@ -808,7 +808,7 @@ protected:
  * On evaluation, captures the frame that it is evaluated in. This becomes
  * the closure for the instance of the function that it creates.
  */
-class LambdaExpr : public Expr {
+class LambdaExpr final : public Expr {
 public:
 	LambdaExpr(std::unique_ptr<function_ingredients> ingredients,
 		   id_list outer_ids);
@@ -828,7 +828,7 @@ private:
 	std::string my_name;
 };
 
-class EventExpr : public Expr {
+class EventExpr final : public Expr {
 public:
 	EventExpr(const char* name, IntrusivePtr<ListExpr> args);
 
@@ -880,12 +880,12 @@ protected:
 };
 
 
-class RecordAssignExpr : public ListExpr {
+class RecordAssignExpr final : public ListExpr {
 public:
 	RecordAssignExpr(const IntrusivePtr<Expr>& record, const IntrusivePtr<Expr>& init_list, bool is_init);
 };
 
-class CastExpr : public UnaryExpr {
+class CastExpr final : public UnaryExpr {
 public:
 	CastExpr(IntrusivePtr<Expr> op, IntrusivePtr<BroType> t);
 
@@ -894,7 +894,7 @@ protected:
 	void ExprDescribe(ODesc* d) const override;
 };
 
-class IsExpr : public UnaryExpr {
+class IsExpr final : public UnaryExpr {
 public:
 	IsExpr(IntrusivePtr<Expr> op, IntrusivePtr<BroType> t);
 

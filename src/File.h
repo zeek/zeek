@@ -19,7 +19,7 @@ class Attributes;
 class BroType;
 class RecordVal;
 
-class BroFile : public BroObj {
+class BroFile final : public BroObj {
 public:
 	explicit BroFile(FILE* arg_f);
 	BroFile(FILE* arg_f, const char* filename, const char* access);

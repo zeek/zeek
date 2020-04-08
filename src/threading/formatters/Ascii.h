@@ -6,7 +6,7 @@
 
 namespace threading { namespace formatter {
 
-class Ascii : public Formatter {
+class Ascii final : public Formatter {
 public:
 	/**
 	 * A struct to pass the necessary configuration values to the

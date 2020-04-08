@@ -94,7 +94,7 @@ Manager::Stream::~Stream()
 	delete reader;
 	}
 
-class Manager::TableStream: public Manager::Stream {
+class Manager::TableStream final : public Manager::Stream {
 public:
 
 	unsigned int num_idx_fields;
@@ -116,7 +116,7 @@ public:
 	~TableStream() override;
 };
 
-class Manager::EventStream: public Manager::Stream {
+class Manager::EventStream final : public Manager::Stream {
 public:
 	EventHandlerPtr event;
 
@@ -128,7 +128,7 @@ public:
 	~EventStream() override;
 };
 
-class Manager::AnalysisStream: public Manager::Stream {
+class Manager::AnalysisStream final : public Manager::Stream {
 public:
 	string file_id;
 

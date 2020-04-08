@@ -237,7 +237,7 @@ protected:
 };
 
 
-class IPTunnelTimer : public Timer {
+class IPTunnelTimer final : public Timer {
 public:
 	IPTunnelTimer(double t, NetSessions::IPPair p)
 	: Timer(t + BifConst::Tunnel::ip_tunnel_timeout,

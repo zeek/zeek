@@ -227,6 +227,7 @@ Expr* Expr::AssignToTemporary(ReductionContext* c,
 		Internal("confusion in AssignToTemporary");
 
 	a_e->AsAssignExpr()->SetIsTemp();
+	a_e->SetOriginal(this);
 
 	IntrusivePtr<Stmt> a_e_s = {AdoptRef{}, new ExprStmt(a_e)};
 
@@ -1391,7 +1392,23 @@ Expr* AddExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	if ( op2->IsZero() )
 		return op1.get()->Reduce(c, red_stmt);
 
+	if ( op1->Tag() == EXPR_NEGATE )
+		return BuildSub(op2, op1);
+
+	if ( op2->Tag() == EXPR_NEGATE )
+		return BuildSub(op1, op2);
+
 	return BinaryExpr::Reduce(c, red_stmt);
+	}
+
+Expr* AddExpr::BuildSub(const IntrusivePtr<Expr>& op1,
+			const IntrusivePtr<Expr>& op2)
+	{
+	auto rhs = op2->AsNegExpr()->Op();
+	IntrusivePtr<Expr> rhs_ptr = {AdoptRef{}, rhs};
+	auto sub = new SubExpr(op1, rhs_ptr);
+	sub->SetOriginal(this);
+	return sub;
 	}
 
 AddToExpr::AddToExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)

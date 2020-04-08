@@ -78,6 +78,7 @@ class RefExpr;
 class AddToExpr;
 class AppendToExpr;
 class RemoveFromExpr;
+class NegExpr;
 class ConstExpr;
 
 struct function_ingredients;
@@ -227,6 +228,7 @@ public:
 	CONST_ACCESSOR(EXPR_CALL, CallExpr, AsCallExpr);
 	CONST_ACCESSOR(EXPR_ADD_TO, AddToExpr, AsAddToExpr);
 	CONST_ACCESSOR(EXPR_APPEND_TO, AppendToExpr, AsAppendToExpr);
+	CONST_ACCESSOR(EXPR_NEGATE, NegExpr, AsNegExpr);
 	CONST_ACCESSOR(EXPR_CONST, ConstExpr, AsConstExpr);
 
 #undef ACCESSORS
@@ -471,6 +473,8 @@ public:
 	void Canonicize() override;
 
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
+	Expr* BuildSub(const IntrusivePtr<Expr>& op1,
+			const IntrusivePtr<Expr>& op2);
 };
 
 class AddToExpr : public BinaryExpr {

@@ -2301,6 +2301,19 @@ IntrusivePtr<Val> EqExpr::Fold(Val* v1, Val* v2) const
 		return BinaryExpr::Fold(v1, v2);
 	}
 
+Expr* EqExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	if ( Type()->Tag() == TYPE_BOOL && same_singletons(op1, op2) )
+		{
+		bool t = Tag() == EXPR_EQ;
+		auto res = new ConstExpr({AdoptRef{}, val_mgr->GetBool(t)});
+		res->SetOriginal(this);
+		return res->Reduce(c, red_stmt);
+		}
+
+	return BinaryExpr::Reduce(c, red_stmt);
+	}
+
 RelExpr::RelExpr(BroExprTag arg_tag,
                  IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 	: BinaryExpr(arg_tag, std::move(arg_op1), std::move(arg_op2))
@@ -2357,6 +2370,19 @@ void RelExpr::Canonicize()
 		SwapOps();
 		tag = EXPR_LE;
 		}
+	}
+
+Expr* RelExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	if ( Type()->Tag() == TYPE_BOOL && same_singletons(op1, op2) )
+		{
+		bool t = Tag() == EXPR_GE || Tag() == EXPR_LE;
+		auto res = new ConstExpr({AdoptRef{}, val_mgr->GetBool(t)});
+		res->SetOriginal(this);
+		return res->Reduce(c, red_stmt);
+		}
+
+	return BinaryExpr::Reduce(c, red_stmt);
 	}
 
 CondExpr::CondExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2,

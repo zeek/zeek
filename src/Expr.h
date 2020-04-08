@@ -581,12 +581,14 @@ public:
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v1, Val* v2) const override;
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
 class RelExpr : public BinaryExpr {
 public:
 	RelExpr(BroExprTag tag, IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	void Canonicize() override;
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
 class CondExpr : public Expr {

@@ -135,8 +135,8 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	if ( udp_contents )
 		{
 		bool do_udp_contents = false;
-		auto sport_val = IntrusivePtr{AdoptRef{}, val_mgr->GetPort(ntohs(up->uh_sport), TRANSPORT_UDP)};
-		auto dport_val = IntrusivePtr{AdoptRef{}, val_mgr->GetPort(ntohs(up->uh_dport), TRANSPORT_UDP)};
+		const auto& sport_val = val_mgr->Port(ntohs(up->uh_sport), TRANSPORT_UDP);
+		const auto& dport_val = val_mgr->Port(ntohs(up->uh_dport), TRANSPORT_UDP);
 
 		if ( udp_content_ports->Lookup(dport_val.get()) ||
 		     udp_content_ports->Lookup(sport_val.get()) )
@@ -145,7 +145,7 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 			{
 			uint16_t p = udp_content_delivery_ports_use_resp ? Conn()->RespPort()
 			                                                 : up->uh_dport;
-			auto port_val = IntrusivePtr{AdoptRef{}, val_mgr->GetPort(ntohs(p), TRANSPORT_UDP)};
+			const auto& port_val = val_mgr->Port(ntohs(p), TRANSPORT_UDP);
 
 			if ( is_orig )
 				{

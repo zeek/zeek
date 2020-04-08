@@ -480,7 +480,7 @@ void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name,
 
 			RecordVal* peer = new RecordVal(bittorrent_peer);
 			peer->Assign(0, make_intrusive<AddrVal>(ad));
-			peer->Assign(1, val_mgr->GetPort(pt, TRANSPORT_TCP));
+			peer->Assign(1, val_mgr->Port(pt, TRANSPORT_TCP));
 			res_val_peers->Assign(peer, nullptr);
 
 			Unref(peer);

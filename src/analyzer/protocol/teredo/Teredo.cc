@@ -132,7 +132,7 @@ RecordVal* TeredoEncapsulation::BuildVal(const IP_Hdr* inner) const
 		RecordVal* teredo_origin = new RecordVal(teredo_origin_type);
 		uint16_t port = ntohs(*((uint16_t*)(origin_indication + 2))) ^ 0xFFFF;
 		uint32_t addr = ntohl(*((uint32_t*)(origin_indication + 4))) ^ 0xFFFFFFFF;
-		teredo_origin->Assign(0, val_mgr->GetPort(port, TRANSPORT_UDP));
+		teredo_origin->Assign(0, val_mgr->Port(port, TRANSPORT_UDP));
 		teredo_origin->Assign(1, make_intrusive<AddrVal>(htonl(addr)));
 		teredo_hdr->Assign(1, teredo_origin);
 		}

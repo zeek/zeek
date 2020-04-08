@@ -394,8 +394,8 @@ RecordVal* IP_Hdr::BuildPktHdrVal(RecordVal* pkt_hdr, int sindex) const
 		int tcp_hdr_len = tp->th_off * 4;
 		int data_len = PayloadLen() - tcp_hdr_len;
 
-		tcp_hdr->Assign(0, val_mgr->GetPort(ntohs(tp->th_sport), TRANSPORT_TCP));
-		tcp_hdr->Assign(1, val_mgr->GetPort(ntohs(tp->th_dport), TRANSPORT_TCP));
+		tcp_hdr->Assign(0, val_mgr->Port(ntohs(tp->th_sport), TRANSPORT_TCP));
+		tcp_hdr->Assign(1, val_mgr->Port(ntohs(tp->th_dport), TRANSPORT_TCP));
 		tcp_hdr->Assign(2, val_mgr->Count(uint32_t(ntohl(tp->th_seq))));
 		tcp_hdr->Assign(3, val_mgr->Count(uint32_t(ntohl(tp->th_ack))));
 		tcp_hdr->Assign(4, val_mgr->Count(tcp_hdr_len));
@@ -413,8 +413,8 @@ RecordVal* IP_Hdr::BuildPktHdrVal(RecordVal* pkt_hdr, int sindex) const
 		const struct udphdr* up = (const struct udphdr*) data;
 		RecordVal* udp_hdr = new RecordVal(udp_hdr_type);
 
-		udp_hdr->Assign(0, val_mgr->GetPort(ntohs(up->uh_sport), TRANSPORT_UDP));
-		udp_hdr->Assign(1, val_mgr->GetPort(ntohs(up->uh_dport), TRANSPORT_UDP));
+		udp_hdr->Assign(0, val_mgr->Port(ntohs(up->uh_sport), TRANSPORT_UDP));
+		udp_hdr->Assign(1, val_mgr->Port(ntohs(up->uh_dport), TRANSPORT_UDP));
 		udp_hdr->Assign(2, val_mgr->Count(ntohs(up->uh_ulen)));
 
 		pkt_hdr->Assign(sindex + 3, udp_hdr);

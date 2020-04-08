@@ -339,9 +339,9 @@ RecordVal* Connection::BuildConnVal()
 
 		auto id_val = make_intrusive<RecordVal>(conn_id);
 		id_val->Assign(0, make_intrusive<AddrVal>(orig_addr));
-		id_val->Assign(1, val_mgr->GetPort(ntohs(orig_port), prot_type));
+		id_val->Assign(1, val_mgr->Port(ntohs(orig_port), prot_type));
 		id_val->Assign(2, make_intrusive<AddrVal>(resp_addr));
-		id_val->Assign(3, val_mgr->GetPort(ntohs(resp_port), prot_type));
+		id_val->Assign(3, val_mgr->Port(ntohs(resp_port), prot_type));
 
 		auto orig_endp = make_intrusive<RecordVal>(endpoint);
 		orig_endp->Assign(0, val_mgr->Count(0));

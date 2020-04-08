@@ -487,7 +487,7 @@ F	RET_CONST(val_mgr->False()->Ref())
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(val_mgr->GetPort(p, TRANSPORT_TCP))
+		RET_CONST(val_mgr->Port(p, TRANSPORT_TCP)->Ref())
 		}
 {D}"/udp"	{
 		uint32_t p = atoi(yytext);
@@ -496,7 +496,7 @@ F	RET_CONST(val_mgr->False()->Ref())
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(val_mgr->GetPort(p, TRANSPORT_UDP))
+		RET_CONST(val_mgr->Port(p, TRANSPORT_UDP)->Ref())
 		}
 {D}"/icmp"	{
 		uint32_t p = atoi(yytext);
@@ -505,7 +505,7 @@ F	RET_CONST(val_mgr->False()->Ref())
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(val_mgr->GetPort(p, TRANSPORT_ICMP))
+		RET_CONST(val_mgr->Port(p, TRANSPORT_ICMP)->Ref())
 		}
 {D}"/unknown"	{
 		uint32_t p = atoi(yytext);
@@ -514,7 +514,7 @@ F	RET_CONST(val_mgr->False()->Ref())
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(val_mgr->GetPort(p, TRANSPORT_UNKNOWN))
+		RET_CONST(val_mgr->Port(p, TRANSPORT_UNKNOWN)->Ref())
 		}
 
 {FLOAT}{OWS}day(s?)	RET_CONST(new IntervalVal(atof(yytext),Days))

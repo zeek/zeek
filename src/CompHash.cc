@@ -791,7 +791,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 			break;
 
 		case TYPE_PORT:
-			*pval = {AdoptRef{}, val_mgr->GetPort(*kp)};
+			*pval = val_mgr->Port(*kp);
 			break;
 
 		default:

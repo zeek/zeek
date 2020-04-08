@@ -161,7 +161,7 @@ struct val_converter {
 	result_type operator()(broker::port& a)
 		{
 		if ( type->Tag() == TYPE_PORT )
-			return val_mgr->GetPort(a.number(), bro_broker::to_bro_port_proto(a.type()));
+			return val_mgr->Port(a.number(), bro_broker::to_bro_port_proto(a.type()))->Ref();
 
 		return nullptr;
 		}

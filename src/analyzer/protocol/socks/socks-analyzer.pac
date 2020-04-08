@@ -35,7 +35,7 @@ refine connection SOCKS_Conn += {
 			                                 4,
 			                                 ${request.command},
 			                                 sa,
-			                                 val_mgr->GetPort(${request.port}, TRANSPORT_TCP),
+			                                 val_mgr->Port(${request.port}, TRANSPORT_TCP)->Ref()->AsPortVal(),
 			                                 array_to_string(${request.user}));
 			}
 
@@ -56,7 +56,7 @@ refine connection SOCKS_Conn += {
 			                               4,
 			                               ${reply.status},
 			                               sa,
-			                               val_mgr->GetPort(${reply.port}, TRANSPORT_TCP));
+			                               val_mgr->Port(${reply.port}, TRANSPORT_TCP)->Ref()->AsPortVal());
 			}
 
 		bro_analyzer()->ProtocolConfirmation();
@@ -110,7 +110,7 @@ refine connection SOCKS_Conn += {
 			                                 5,
 			                                 ${request.command},
 			                                 sa,
-			                                 val_mgr->GetPort(${request.port}, TRANSPORT_TCP),
+			                                 val_mgr->Port(${request.port}, TRANSPORT_TCP)->Ref()->AsPortVal(),
 			                                 val_mgr->EmptyString()->Ref()->AsStringVal());
 		else
 			Unref(sa);
@@ -152,7 +152,7 @@ refine connection SOCKS_Conn += {
 			                               5,
 			                               ${reply.reply},
 			                               sa,
-			                               val_mgr->GetPort(${reply.port}, TRANSPORT_TCP));
+			                               val_mgr->Port(${reply.port}, TRANSPORT_TCP)->Ref()->AsPortVal());
 		else
 			Unref(sa);
 

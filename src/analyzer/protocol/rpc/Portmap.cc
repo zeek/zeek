@@ -126,9 +126,8 @@ bool PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status statu
 
 			RecordVal* rv = c->RequestVal()->AsRecordVal();
 			Val* is_tcp = rv->Lookup(2);
-			reply = val_mgr->GetPort(CheckPort(port),
-					is_tcp->IsOne() ?
-						TRANSPORT_TCP : TRANSPORT_UDP);
+			reply = val_mgr->Port(CheckPort(port), is_tcp->IsOne() ?
+			                      TRANSPORT_TCP : TRANSPORT_UDP)->Ref();
 			event = pm_request_getport;
 			}
 		else
@@ -177,7 +176,7 @@ bool PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status statu
 			if ( ! opaque_reply )
 				return false;
 
-			reply = val_mgr->GetPort(CheckPort(port), TRANSPORT_UDP);
+			reply = val_mgr->Port(CheckPort(port), TRANSPORT_UDP)->Ref();
 			event = pm_request_callit;
 			}
 		else
@@ -201,8 +200,7 @@ Val* PortmapperInterp::ExtractMapping(const u_char*& buf, int& len)
 
 	bool is_tcp = extract_XDR_uint32(buf, len) == IPPROTO_TCP;
 	uint32_t port = extract_XDR_uint32(buf, len);
-	mapping->Assign(2, val_mgr->GetPort(CheckPort(port),
-			is_tcp ? TRANSPORT_TCP : TRANSPORT_UDP));
+	mapping->Assign(2, val_mgr->Port(CheckPort(port), is_tcp ? TRANSPORT_TCP : TRANSPORT_UDP));
 
 	if ( ! buf )
 		{

@@ -42,19 +42,17 @@ TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 
 	if ( ::tcp_contents )
 		{
-		auto dst_port_val = val_mgr->GetPort(ntohs(tcp_analyzer->Conn()->RespPort()),
-					TRANSPORT_TCP);
+		const auto& dst_port_val = val_mgr->Port(ntohs(tcp_analyzer->Conn()->RespPort()),
+		                                         TRANSPORT_TCP);
 		TableVal* ports = IsOrig() ?
 			tcp_content_delivery_ports_orig :
 			tcp_content_delivery_ports_resp;
-		auto result = ports->Lookup(dst_port_val);
+		auto result = ports->Lookup(dst_port_val.get());
 
 		if ( (IsOrig() && tcp_content_deliver_all_orig) ||
 		     (! IsOrig() && tcp_content_deliver_all_resp) ||
 		     (result && result->AsBool()) )
 			deliver_tcp_contents = true;
-
-		Unref(dst_port_val);
 		}
 	}
 

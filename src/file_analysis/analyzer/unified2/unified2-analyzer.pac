@@ -45,7 +45,7 @@ refine flow Flow += {
 			}
 		%}
 
-	function to_port(n: uint16, p: uint8): PortVal
+	function to_port(n: uint16, p: uint8): Val
 		%{
 		TransportProto proto = TRANSPORT_UNKNOWN;
 		switch ( p ) {
@@ -54,7 +54,7 @@ refine flow Flow += {
 		case 17: proto = TRANSPORT_UDP; break;
 		}
 
-		return val_mgr->GetPort(n, proto);
+		return val_mgr->Port(n, proto)->Ref();
 		%}
 
 	#function proc_record(rec: Record) : bool

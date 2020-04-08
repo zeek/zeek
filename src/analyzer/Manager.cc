@@ -440,15 +440,13 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 
 		if ( tcp_contents && ! reass )
 			{
-			auto dport = val_mgr->GetPort(ntohs(conn->RespPort()), TRANSPORT_TCP);
+			const auto& dport = val_mgr->Port(ntohs(conn->RespPort()), TRANSPORT_TCP);
 
 			if ( ! reass )
-				reass = (bool)tcp_content_delivery_ports_orig->Lookup(dport);
+				reass = (bool)tcp_content_delivery_ports_orig->Lookup(dport.get());
 
 			if ( ! reass )
-				reass = (bool)tcp_content_delivery_ports_resp->Lookup(dport);
-
-			Unref(dport);
+				reass = (bool)tcp_content_delivery_ports_resp->Lookup(dport.get());
 			}
 
 		if ( reass )

@@ -1144,7 +1144,7 @@ IntrusivePtr<RecordVal> Supervisor::NodeConfig::ToRecord() const
 
 		val->Assign(ept->FieldOffset("role"), BifType::Enum::Supervisor::ClusterRole->GetVal(ep.role));
 		val->Assign(ept->FieldOffset("host"), make_intrusive<AddrVal>(ep.host));
-		val->Assign(ept->FieldOffset("p"), val_mgr->GetPort(ep.port, TRANSPORT_TCP));
+		val->Assign(ept->FieldOffset("p"), val_mgr->Port(ep.port, TRANSPORT_TCP));
 
 		if ( ep.interface )
 			val->Assign(ept->FieldOffset("interface"), make_intrusive<StringVal>(*ep.interface));
@@ -1217,7 +1217,7 @@ bool Supervisor::SupervisedNode::InitCluster() const
 		auto node_type = supervisor_role_to_cluster_node_type(ep.role);
 		val->Assign(cluster_node_type->FieldOffset("node_type"), std::move(node_type));
 		val->Assign(cluster_node_type->FieldOffset("ip"), make_intrusive<AddrVal>(ep.host));
-		val->Assign(cluster_node_type->FieldOffset("p"), val_mgr->GetPort(ep.port, TRANSPORT_TCP));
+		val->Assign(cluster_node_type->FieldOffset("p"), val_mgr->Port(ep.port, TRANSPORT_TCP));
 
 		if ( ep.interface )
 			val->Assign(cluster_node_type->FieldOffset("interface"),

@@ -2429,7 +2429,7 @@ function port_to_count%(p: port%): count
 ## .. zeek:see:: port_to_count
 function count_to_port%(num: count, proto: transport_proto%): port
 	%{
-	return val_mgr->GetPort(num, (TransportProto)proto->AsEnum());
+	return val_mgr->Port(num, (TransportProto)proto->AsEnum());
 	%}
 
 ## Converts a :zeek:type:`string` to an :zeek:type:`addr`.
@@ -2617,16 +2617,16 @@ function to_port%(s: string%): port
             {
             ++slash;
             if ( streq(slash, "tcp") )
-                return val_mgr->GetPort(port, TRANSPORT_TCP);
+                return val_mgr->Port(port, TRANSPORT_TCP);
             else if ( streq(slash, "udp") )
-                return val_mgr->GetPort(port, TRANSPORT_UDP);
+                return val_mgr->Port(port, TRANSPORT_UDP);
             else if ( streq(slash, "icmp") )
-                return val_mgr->GetPort(port, TRANSPORT_ICMP);
+                return val_mgr->Port(port, TRANSPORT_ICMP);
             }
         }
 
     builtin_error("wrong port format, must be /[0-9]{1,5}\\/(tcp|udp|icmp)/");
-    return val_mgr->GetPort(port, TRANSPORT_UNKNOWN);
+    return val_mgr->Port(port, TRANSPORT_UNKNOWN);
 	%}
 
 ## Converts a string of bytes (in network byte order) to a :zeek:type:`double`.
@@ -3308,9 +3308,9 @@ function lookup_connection%(cid: conn_id%): connection
 
 	RecordVal* id_val = new RecordVal(conn_id);
 	id_val->Assign(0, make_intrusive<AddrVal>((unsigned int) 0));
-	id_val->Assign(1, val_mgr->GetPort(ntohs(0), TRANSPORT_UDP));
+	id_val->Assign(1, val_mgr->Port(ntohs(0), TRANSPORT_UDP));
 	id_val->Assign(2, make_intrusive<AddrVal>((unsigned int) 0));
-	id_val->Assign(3, val_mgr->GetPort(ntohs(0), TRANSPORT_UDP));
+	id_val->Assign(3, val_mgr->Port(ntohs(0), TRANSPORT_UDP));
 	c->Assign(0, id_val);
 
 	auto orig_endp = make_intrusive<RecordVal>(endpoint);

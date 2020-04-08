@@ -424,7 +424,7 @@ RecordVal* ICMP_Analyzer::ExtractICMP6Context(int len, const u_char*& data)
 	iprec->Assign(3, val_mgr->GetCount(frag_offset));
 	iprec->Assign(4, val_mgr->GetBool(bad_hdr_len));
 	// bad_checksum is always false since IPv6 layer doesn't have a checksum.
-	iprec->Assign(5, val_mgr->GetFalse());
+	iprec->Assign(5, val_mgr->False());
 	iprec->Assign(6, val_mgr->GetBool(MF));
 	iprec->Assign(7, val_mgr->GetBool(DF));
 

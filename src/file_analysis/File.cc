@@ -301,7 +301,7 @@ bool File::SetMime(const std::string& mime_type)
 
 	auto meta = make_intrusive<RecordVal>(fa_metadata_type);
 	meta->Assign(meta_mime_type_idx, make_intrusive<StringVal>(mime_type));
-	meta->Assign(meta_inferred_idx, val_mgr->GetFalse());
+	meta->Assign(meta_inferred_idx, val_mgr->False());
 
 	FileEvent(file_sniff, {IntrusivePtr{NewRef{}, val}, std::move(meta)});
 	return true;

@@ -466,8 +466,8 @@ when	return TOK_WHEN;
 <IGNORE>[^@\n]+	/* eat */
 <IGNORE>.	/* eat */
 
-T	RET_CONST(val_mgr->GetTrue())
-F	RET_CONST(val_mgr->GetFalse())
+T	RET_CONST(val_mgr->True()->Ref())
+F	RET_CONST(val_mgr->False()->Ref())
 
 {ID}	{
 	yylval.str = copy_string(yytext);

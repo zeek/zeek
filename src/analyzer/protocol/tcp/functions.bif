@@ -99,10 +99,10 @@ function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
 	%{
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 
 	c->GetRootAnalyzer()->SetContentsFile(direction, f);
-	return val_mgr->GetTrue();
+	return val_mgr->True();
 	%}
 
 ## Returns the file handle of the contents file of a connection.

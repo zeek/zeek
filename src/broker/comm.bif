@@ -70,11 +70,11 @@ function Broker::__peer%(a: string, p: port, retry: interval%): bool
 	if ( ! p->IsTCP() )
 		{
 		builtin_error("remote connection port must use tcp");
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 		}
 
 	broker_mgr->Peer(a->CheckString(), p->Port(), retry);
-	return val_mgr->GetTrue();
+	return val_mgr->True();
 	%}
 
 function Broker::__unpeer%(a: string, p: port%): bool
@@ -84,11 +84,11 @@ function Broker::__unpeer%(a: string, p: port%): bool
 	if ( ! p->IsTCP() )
 		{
 		builtin_error("remote connection port must use tcp");
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 		}
 
 	broker_mgr->Unpeer(a->CheckString(), p->Port());
-	return val_mgr->GetTrue();
+	return val_mgr->True();
 	%}
 
 function Broker::__peers%(%): PeerInfos

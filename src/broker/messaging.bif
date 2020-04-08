@@ -192,7 +192,7 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 	auto topic = topic_func->Call(vl);
 
 	if ( ! topic->AsString()->Len() )
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 
 	const auto& bif_args = @ARGS@;
 	val_list args(bif_args->size() - 2);
@@ -229,7 +229,7 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 	auto topic = topic_func->Call(vl);
 
 	if ( ! topic->AsString()->Len() )
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 
 	const auto& bif_args = @ARGS@;
 	val_list args(bif_args->size() - 2);

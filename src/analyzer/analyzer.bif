@@ -36,7 +36,7 @@ function Analyzer::__schedule_analyzer%(orig: addr, resp: addr, resp_p: port,
 					analyzer: Analyzer::Tag, tout: interval%) : bool
 	%{
 	analyzer_mgr->ScheduleAnalyzer(orig->AsAddr(), resp->AsAddr(), resp_p, analyzer->AsEnumVal(), tout);
-	return val_mgr->GetTrue();
+	return val_mgr->True();
 	%}
 
 function __name%(atype: Analyzer::Tag%) : string

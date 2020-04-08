@@ -45,17 +45,17 @@ function hll_cardinality_add%(handle: opaque of cardinality, elem: any%): bool
 	if ( ! cv->Type() && ! cv->Typify(elem->Type()) )
 		{
 		reporter->Error("failed to set HLL type");
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 		}
 
 	else if ( ! same_type(cv->Type(), elem->Type()) )
 		{
 		reporter->Error("incompatible HLL data type");
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 		}
 
 	cv->Add(elem);
-	return val_mgr->GetTrue();
+	return val_mgr->True();
 	%}
 
 ## Merges a HLL cardinality counter into another.
@@ -82,7 +82,7 @@ function hll_cardinality_merge_into%(handle1: opaque of cardinality, handle2: op
 	     ! same_type(v1->Type(), v2->Type()) )
 		{
 		reporter->Error("incompatible HLL types");
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 		}
 
 	CardinalityCounter* h1 = v1->Get();
@@ -92,10 +92,10 @@ function hll_cardinality_merge_into%(handle1: opaque of cardinality, handle2: op
 	if ( ! res )
 		{
 		reporter->Error("Cardinality counters with different parameters cannot be merged");
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 		}
 
-	return val_mgr->GetTrue();
+	return val_mgr->True();
 	%}
 
 ## Estimate the current cardinality of an HLL cardinality counter.

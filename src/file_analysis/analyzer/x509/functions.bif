@@ -623,7 +623,7 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 	if ( precert && issuer_key_hash->Len() != 32)
 		{
 		reporter->Error("Invalid issuer_key_hash length");
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 		}
 
 	std::string data;
@@ -647,7 +647,7 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 		if ( pos < 0 )
 			{
 			reporter->Error("NID_ct_precert_scts not found");
-			return val_mgr->GetFalse();
+			return val_mgr->False();
 			}
 #else
 		int num_ext = X509_get_ext_count(x);
@@ -751,7 +751,7 @@ sct_verify_err:
 		EVP_PKEY_free(key);
 
 	reporter->Error("%s", errstr.c_str());
-	return val_mgr->GetFalse();
+	return val_mgr->False();
 	%}
 
 
@@ -902,7 +902,7 @@ function x509_set_certificate_cache%(tbl: string_any_table%) : bool
 	%{
 	file_analysis::X509::SetCertificateCache({NewRef{}, tbl->AsTableVal()});
 
-	return val_mgr->GetTrue();
+	return val_mgr->True();
 	%}
 
 ## This function sets up the callback that is called when an entry is matched against the table set
@@ -920,5 +920,5 @@ function x509_set_certificate_cache_hit_callback%(f: string_any_file_hook%) : bo
 	%{
 	file_analysis::X509::SetCertificateCacheHitCallback({NewRef{}, f->AsFunc()});
 
-	return val_mgr->GetTrue();
+	return val_mgr->True();
 	%}

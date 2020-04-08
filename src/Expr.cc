@@ -2374,12 +2374,24 @@ void RelExpr::Canonicize()
 
 Expr* RelExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
-	if ( Type()->Tag() == TYPE_BOOL && same_singletons(op1, op2) )
+	if ( Type()->Tag() == TYPE_BOOL )
 		{
-		bool t = Tag() == EXPR_GE || Tag() == EXPR_LE;
-		auto res = new ConstExpr({AdoptRef{}, val_mgr->GetBool(t)});
-		res->SetOriginal(this);
-		return res->Reduce(c, red_stmt);
+		if ( same_singletons(op1, op2) )
+			{
+			bool t = Tag() == EXPR_GE || Tag() == EXPR_LE;
+			auto res = new ConstExpr({AdoptRef{},
+						val_mgr->GetBool(t)});
+			res->SetOriginal(this);
+			return res->Reduce(c, red_stmt);
+			}
+
+		if ( op1->IsZero() && op2->Type()->Tag() == TYPE_COUNT &&
+		     (Tag() == EXPR_LE || Tag() == EXPR_GT || Tag() == EXPR_GE) )
+			Warn("degenerate comparison");
+
+		if ( op2->IsZero() && op1->Type()->Tag() == TYPE_COUNT &&
+		     (Tag() == EXPR_LE || Tag() == EXPR_LT || Tag() == EXPR_GE) )
+			Warn("degenerate comparison");
 		}
 
 	return BinaryExpr::Reduce(c, red_stmt);
@@ -6079,9 +6091,9 @@ bool same_singletons(IntrusivePtr<Expr> e1, IntrusivePtr<Expr> e2)
 	if ( ! e1->IsSingleton() || ! e2->IsSingleton() )
 		return false;
 
-	if ( e1->IsConst() )
+	if ( e1->IsConst() || e2->IsConst() )
 		{
-		if ( ! e2->IsConst() )
+		if ( ! e1->IsConst() || ! e2->IsConst() )
 			return false;
 
 		auto c1 = e1->AsConstExpr()->Value();

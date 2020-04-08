@@ -340,13 +340,13 @@ void RPC_Interpreter::Event_RPC_Dialogue(RPC_CallInfo* c, BifEnum::rpc_status st
 	if ( rpc_dialogue )
 		analyzer->EnqueueConnEvent(rpc_dialogue,
 			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(c->Program())},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(c->Version())},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(c->Proc())},
+			val_mgr->Count(c->Program()),
+			val_mgr->Count(c->Version()),
+			val_mgr->Count(c->Proc()),
 			BifType::Enum::rpc_status->GetVal(status),
 			make_intrusive<Val>(c->StartTime(), TYPE_TIME),
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(c->CallLen())},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(reply_len)}
+			val_mgr->Count(c->CallLen()),
+			val_mgr->Count(reply_len)
 		);
 	}
 
@@ -355,11 +355,11 @@ void RPC_Interpreter::Event_RPC_Call(RPC_CallInfo* c)
 	if ( rpc_call )
 		analyzer->EnqueueConnEvent(rpc_call,
 			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(c->XID())},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(c->Program())},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(c->Version())},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(c->Proc())},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(c->CallLen())}
+			val_mgr->Count(c->XID()),
+			val_mgr->Count(c->Program()),
+			val_mgr->Count(c->Version()),
+			val_mgr->Count(c->Proc()),
+			val_mgr->Count(c->CallLen())
 		);
 	}
 
@@ -368,9 +368,9 @@ void RPC_Interpreter::Event_RPC_Reply(uint32_t xid, BifEnum::rpc_status status, 
 	if ( rpc_reply )
 		analyzer->EnqueueConnEvent(rpc_reply,
 			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(xid)},
+			val_mgr->Count(xid),
 			BifType::Enum::rpc_status->GetVal(status),
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(reply_len)}
+			val_mgr->Count(reply_len)
 		);
 	}
 

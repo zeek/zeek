@@ -1319,8 +1319,7 @@ index_slice:
 			set_location(@1, @6);
 
 			auto low = $3 ? IntrusivePtr<Expr>{AdoptRef{}, $3} :
-			                make_intrusive<ConstExpr>(
-			                    IntrusivePtr<Val>{AdoptRef{}, val_mgr->GetCount(0)});
+			                make_intrusive<ConstExpr>(val_mgr->Count(0));
 
 			auto high = $5 ? IntrusivePtr<Expr>{AdoptRef{}, $5} :
 			                 make_intrusive<SizeExpr>(

@@ -692,7 +692,7 @@ void Analyzer::ProtocolConfirmation(Tag arg_tag)
 	mgr.Enqueue(protocol_confirmation,
 		IntrusivePtr{AdoptRef{}, BuildConnVal()},
 		IntrusivePtr{NewRef{}, tval},
-		IntrusivePtr{AdoptRef{}, val_mgr->GetCount(id)}
+		val_mgr->Count(id)
 	);
 	}
 
@@ -719,7 +719,7 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 	mgr.Enqueue(protocol_violation,
 		IntrusivePtr{AdoptRef{}, BuildConnVal()},
 		IntrusivePtr{NewRef{}, tval},
-		IntrusivePtr{AdoptRef{}, val_mgr->GetCount(id)},
+		val_mgr->Count(id),
 		IntrusivePtr{AdoptRef{}, r}
 	);
 	}

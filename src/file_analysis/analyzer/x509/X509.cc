@@ -121,7 +121,7 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val, File* f)
 	RecordVal* pX509Cert = new RecordVal(BifType::Record::X509::Certificate);
 	BIO *bio = BIO_new(BIO_s_mem());
 
-	pX509Cert->Assign(0, val_mgr->GetCount((uint64_t) X509_get_version(ssl_cert) + 1));
+	pX509Cert->Assign(0, val_mgr->Count((uint64_t) X509_get_version(ssl_cert) + 1));
 	i2a_ASN1_INTEGER(bio, X509_get_serialNumber(ssl_cert));
 	int len = BIO_read(bio, buf, sizeof(buf));
 	pX509Cert->Assign(1, make_intrusive<StringVal>(len, buf));
@@ -229,7 +229,7 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val, File* f)
 
 		unsigned int length = KeyLength(pkey);
 		if ( length > 0 )
-			pX509Cert->Assign(10, val_mgr->GetCount(length));
+			pX509Cert->Assign(10, val_mgr->Count(length));
 
 		EVP_PKEY_free(pkey);
 		}
@@ -293,7 +293,7 @@ void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex)
 			pBasicConstraint->Assign(0, val_mgr->Bool(constr->ca));
 
 			if ( constr->pathlen )
-				pBasicConstraint->Assign(1, val_mgr->GetCount((int32_t) ASN1_INTEGER_get(constr->pathlen)));
+				pBasicConstraint->Assign(1, val_mgr->Count((int32_t) ASN1_INTEGER_get(constr->pathlen)));
 
 			mgr.Enqueue(x509_ext_basic_constraints,
 				IntrusivePtr{NewRef{}, GetFile()->GetVal()},

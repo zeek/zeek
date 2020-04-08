@@ -35,8 +35,7 @@ refine flow DHCP_Flow += {
 		init_options();
 
 		if ( code != 255 )
-			all_options->Assign(all_options->Size(),
-			                    val_mgr->GetCount(code));
+			all_options->Assign(all_options->Size(), val_mgr->Count(code));
 
 		return true;
 		%}
@@ -58,11 +57,11 @@ refine flow DHCP_Flow += {
 			double secs = static_cast<double>(${msg.secs});
 
 			auto dhcp_msg_val = new RecordVal(BifType::Record::DHCP::Msg);
-			dhcp_msg_val->Assign(0, val_mgr->GetCount(${msg.op}));
-			dhcp_msg_val->Assign(1, val_mgr->GetCount(${msg.type}));
-			dhcp_msg_val->Assign(2, val_mgr->GetCount(${msg.xid}));
+			dhcp_msg_val->Assign(0, val_mgr->Count(${msg.op}));
+			dhcp_msg_val->Assign(1, val_mgr->Count(${msg.type}));
+			dhcp_msg_val->Assign(2, val_mgr->Count(${msg.xid}));
 			dhcp_msg_val->Assign(3, make_intrusive<Val>(secs, TYPE_INTERVAL));
-			dhcp_msg_val->Assign(4, val_mgr->GetCount(${msg.flags}));
+			dhcp_msg_val->Assign(4, val_mgr->Count(${msg.flags}));
 			dhcp_msg_val->Assign(5, make_intrusive<AddrVal>(htonl(${msg.ciaddr})));
 			dhcp_msg_val->Assign(6, make_intrusive<AddrVal>(htonl(${msg.yiaddr})));
 			dhcp_msg_val->Assign(7, make_intrusive<AddrVal>(htonl(${msg.siaddr})));

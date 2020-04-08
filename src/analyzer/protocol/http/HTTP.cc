@@ -620,9 +620,9 @@ Val* HTTP_Message::BuildMessageStat(bool interrupted, const char* msg)
 	stat->Assign(field++, make_intrusive<Val>(start_time, TYPE_TIME));
 	stat->Assign(field++, val_mgr->Bool(interrupted));
 	stat->Assign(field++, make_intrusive<StringVal>(msg));
-	stat->Assign(field++, val_mgr->GetCount(body_length));
-	stat->Assign(field++, val_mgr->GetCount(content_gap_length));
-	stat->Assign(field++, val_mgr->GetCount(header_length));
+	stat->Assign(field++, val_mgr->Count(body_length));
+	stat->Assign(field++, val_mgr->Count(content_gap_length));
+	stat->Assign(field++, val_mgr->Count(header_length));
 	return stat;
 	}
 
@@ -1172,8 +1172,8 @@ void HTTP_Analyzer::GenStats()
 	if ( http_stats )
 		{
 		auto r = make_intrusive<RecordVal>(http_stats_rec);
-		r->Assign(0, val_mgr->GetCount(num_requests));
-		r->Assign(1, val_mgr->GetCount(num_replies));
+		r->Assign(0, val_mgr->Count(num_requests));
+		r->Assign(1, val_mgr->Count(num_replies));
 		r->Assign(2, make_intrusive<Val>(request_version.ToDouble(), TYPE_DOUBLE));
 		r->Assign(3, make_intrusive<Val>(reply_version.ToDouble(), TYPE_DOUBLE));
 
@@ -1431,7 +1431,7 @@ void HTTP_Analyzer::HTTP_Reply()
 		EnqueueConnEvent(http_reply,
 			IntrusivePtr{AdoptRef{}, BuildConnVal()},
 			make_intrusive<StringVal>(fmt("%.1f", reply_version.ToDouble())),
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(reply_code)},
+			val_mgr->Count(reply_code),
 			reply_reason_phrase ?
 				IntrusivePtr{NewRef{}, reply_reason_phrase} :
 				make_intrusive<StringVal>("<empty>")
@@ -1684,7 +1684,7 @@ void HTTP_Analyzer::HTTP_EntityData(bool is_orig, BroString* entity_data)
 		EnqueueConnEvent(http_entity_data,
 			IntrusivePtr{AdoptRef{}, BuildConnVal()},
 			val_mgr->Bool(is_orig),
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(entity_data->Len())},
+			val_mgr->Count(entity_data->Len()),
 			make_intrusive<StringVal>(entity_data)
 		);
 	else

@@ -16,10 +16,10 @@ refine connection NTLM_Conn += {
 	function build_version_record(val: NTLM_Version): BroVal
 		%{
 		RecordVal* result = new RecordVal(BifType::Record::NTLM::Version);
-		result->Assign(0, val_mgr->GetCount(${val.major_version}));
-		result->Assign(1, val_mgr->GetCount(${val.minor_version}));
-		result->Assign(2, val_mgr->GetCount(${val.build_number}));
-		result->Assign(3, val_mgr->GetCount(${val.ntlm_revision}));
+		result->Assign(0, val_mgr->Count(${val.major_version}));
+		result->Assign(1, val_mgr->Count(${val.minor_version}));
+		result->Assign(2, val_mgr->Count(${val.build_number}));
+		result->Assign(3, val_mgr->Count(${val.ntlm_revision}));
 
 		return result;
 		%}
@@ -66,7 +66,7 @@ refine connection NTLM_Conn += {
 					result->Assign(6, filetime2brotime(${val.pairs[i].timestamp}));
 					break;
 				case 8:
-					result->Assign(7, val_mgr->GetCount(${val.pairs[i].single_host.machine_id}));
+					result->Assign(7, val_mgr->Count(${val.pairs[i].single_host.machine_id}));
 					break;
 				case 9:
 					result->Assign(8, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].target_name.data}));

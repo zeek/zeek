@@ -8,86 +8,86 @@ RecordVal* BuildGTPv1Hdr(const GTPv1_Header* pdu)
 	{
 	RecordVal* rv = new RecordVal(BifType::Record::gtpv1_hdr);
 
-	rv->Assign(0, val_mgr->GetCount(pdu->version()));
+	rv->Assign(0, val_mgr->Count(pdu->version()));
 	rv->Assign(1, val_mgr->Bool(pdu->pt_flag()));
 	rv->Assign(2, val_mgr->Bool(pdu->rsv()));
 	rv->Assign(3, val_mgr->Bool(pdu->e_flag()));
 	rv->Assign(4, val_mgr->Bool(pdu->s_flag()));
 	rv->Assign(5, val_mgr->Bool(pdu->pn_flag()));
-	rv->Assign(6, val_mgr->GetCount(pdu->msg_type()));
-	rv->Assign(7, val_mgr->GetCount(pdu->length()));
-	rv->Assign(8, val_mgr->GetCount(pdu->teid()));
+	rv->Assign(6, val_mgr->Count(pdu->msg_type()));
+	rv->Assign(7, val_mgr->Count(pdu->length()));
+	rv->Assign(8, val_mgr->Count(pdu->teid()));
 
 	if ( pdu->has_opt() )
 		{
-		rv->Assign(9, val_mgr->GetCount(pdu->opt_hdr()->seq()));
-		rv->Assign(10, val_mgr->GetCount(pdu->opt_hdr()->n_pdu()));
-		rv->Assign(11, val_mgr->GetCount(pdu->opt_hdr()->next_type()));
+		rv->Assign(9, val_mgr->Count(pdu->opt_hdr()->seq()));
+		rv->Assign(10, val_mgr->Count(pdu->opt_hdr()->n_pdu()));
+		rv->Assign(11, val_mgr->Count(pdu->opt_hdr()->next_type()));
 		}
 
 	return rv;
 	}
 
-Val* BuildIMSI(const InformationElement* ie)
+static IntrusivePtr<Val> BuildIMSI(const InformationElement* ie)
 	{
-	return val_mgr->GetCount(ie->imsi()->value());
+	return val_mgr->Count(ie->imsi()->value());
 	}
 
-Val* BuildRAI(const InformationElement* ie)
+static IntrusivePtr<Val> BuildRAI(const InformationElement* ie)
 	{
-	RecordVal* ev = new RecordVal(BifType::Record::gtp_rai);
-	ev->Assign(0, val_mgr->GetCount(ie->rai()->mcc()));
-	ev->Assign(1, val_mgr->GetCount(ie->rai()->mnc()));
-	ev->Assign(2, val_mgr->GetCount(ie->rai()->lac()));
-	ev->Assign(3, val_mgr->GetCount(ie->rai()->rac()));
+	auto ev = make_intrusive<RecordVal>(BifType::Record::gtp_rai);
+	ev->Assign(0, val_mgr->Count(ie->rai()->mcc()));
+	ev->Assign(1, val_mgr->Count(ie->rai()->mnc()));
+	ev->Assign(2, val_mgr->Count(ie->rai()->lac()));
+	ev->Assign(3, val_mgr->Count(ie->rai()->rac()));
 	return ev;
 	}
 
-Val* BuildRecovery(const InformationElement* ie)
+static IntrusivePtr<Val> BuildRecovery(const InformationElement* ie)
 	{
-	return val_mgr->GetCount(ie->recovery()->restart_counter());
+	return val_mgr->Count(ie->recovery()->restart_counter());
 	}
 
-Val* BuildSelectionMode(const InformationElement* ie)
+static IntrusivePtr<Val> BuildSelectionMode(const InformationElement* ie)
 	{
-	return val_mgr->GetCount(ie->selection_mode()->mode());
+	return val_mgr->Count(ie->selection_mode()->mode());
 	}
 
-Val* BuildTEID1(const InformationElement* ie)
+static IntrusivePtr<Val> BuildTEID1(const InformationElement* ie)
 	{
-	return val_mgr->GetCount(ie->teid1()->value());
+	return val_mgr->Count(ie->teid1()->value());
 	}
 
-Val* BuildTEID_ControlPlane(const InformationElement* ie)
+static IntrusivePtr<Val> BuildTEID_ControlPlane(const InformationElement* ie)
 	{
-	return val_mgr->GetCount(ie->teidcp()->value());
+	return val_mgr->Count(ie->teidcp()->value());
 	}
 
-Val* BuildNSAPI(const InformationElement* ie)
+static IntrusivePtr<Val> BuildNSAPI(const InformationElement* ie)
 	{
-	return val_mgr->GetCount(ie->nsapi()->nsapi());
+	return val_mgr->Count(ie->nsapi()->nsapi());
 	}
 
-Val* BuildChargingCharacteristics(const InformationElement* ie)
+static IntrusivePtr<Val> BuildChargingCharacteristics(const InformationElement* ie)
 	{
-	return val_mgr->GetCount(ie->charging_characteristics()->value());
+	return val_mgr->Count(ie->charging_characteristics()->value());
 	}
 
-Val* BuildTraceReference(const InformationElement* ie)
+static IntrusivePtr<Val> BuildTraceReference(const InformationElement* ie)
 	{
-	return val_mgr->GetCount(ie->trace_reference()->value());
+	return val_mgr->Count(ie->trace_reference()->value());
 	}
 
-Val* BuildTraceType(const InformationElement* ie)
+static IntrusivePtr<Val> BuildTraceType(const InformationElement* ie)
 	{
-	return val_mgr->GetCount(ie->trace_type()->value());
+	return val_mgr->Count(ie->trace_type()->value());
 	}
 
 Val* BuildEndUserAddr(const InformationElement* ie)
 	{
 	RecordVal* ev = new RecordVal(BifType::Record::gtp_end_user_addr);
-	ev->Assign(0, val_mgr->GetCount(ie->end_user_addr()->pdp_type_org()));
-	ev->Assign(1, val_mgr->GetCount(ie->end_user_addr()->pdp_type_num()));
+	ev->Assign(0, val_mgr->Count(ie->end_user_addr()->pdp_type_org()));
+	ev->Assign(1, val_mgr->Count(ie->end_user_addr()->pdp_type_num()));
 
 	int len = ie->end_user_addr()->pdp_addr().length();
 
@@ -161,7 +161,7 @@ Val* BuildQoS_Profile(const InformationElement* ie)
 	const u_char* d = (const u_char*) ie->qos_profile()->data().data();
 	int len = ie->qos_profile()->data().length();
 
-	ev->Assign(0, val_mgr->GetCount(ie->qos_profile()->alloc_retention_priority()));
+	ev->Assign(0, val_mgr->Count(ie->qos_profile()->alloc_retention_priority()));
 	ev->Assign(1, make_intrusive<StringVal>(new BroString(d, len, false)));
 
 	return ev;
@@ -195,15 +195,15 @@ Val* BuildPrivateExt(const InformationElement* ie)
 	const uint8* d = ie->private_ext()->value().data();
 	int len = ie->private_ext()->value().length();
 
-	ev->Assign(0, val_mgr->GetCount(ie->private_ext()->id()));
+	ev->Assign(0, val_mgr->Count(ie->private_ext()->id()));
 	ev->Assign(1, make_intrusive<StringVal>(new BroString((const u_char*) d, len, false)));
 
 	return ev;
 	}
 
-Val* BuildCause(const InformationElement* ie)
+static IntrusivePtr<Val> BuildCause(const InformationElement* ie)
 	{
-	return val_mgr->GetCount(ie->cause()->value());
+	return val_mgr->Count(ie->cause()->value());
 	}
 
 static IntrusivePtr<Val> BuildReorderReq(const InformationElement* ie)
@@ -211,9 +211,9 @@ static IntrusivePtr<Val> BuildReorderReq(const InformationElement* ie)
 	return val_mgr->Bool(ie->reorder_req()->req());
 	}
 
-Val* BuildChargingID(const InformationElement* ie)
+static IntrusivePtr<Val> BuildChargingID(const InformationElement* ie)
 	{
-	return val_mgr->GetCount(ie->charging_id()->value());;
+	return val_mgr->Count(ie->charging_id()->value());;
 	}
 
 Val* BuildChargingGatewayAddr(const InformationElement* ie)

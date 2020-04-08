@@ -262,7 +262,7 @@ void Connection::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig,
 	EnqueueEvent(e, nullptr,
 		IntrusivePtr{AdoptRef{}, BuildConnVal()},
 		val_mgr->Bool(is_orig),
-		IntrusivePtr{AdoptRef{}, val_mgr->GetCount(threshold)}
+		val_mgr->Count(threshold)
 	);
 	}
 
@@ -344,9 +344,9 @@ RecordVal* Connection::BuildConnVal()
 		id_val->Assign(3, val_mgr->GetPort(ntohs(resp_port), prot_type));
 
 		auto orig_endp = make_intrusive<RecordVal>(endpoint);
-		orig_endp->Assign(0, val_mgr->GetCount(0));
-		orig_endp->Assign(1, val_mgr->GetCount(0));
-		orig_endp->Assign(4, val_mgr->GetCount(orig_flow_label));
+		orig_endp->Assign(0, val_mgr->Count(0));
+		orig_endp->Assign(1, val_mgr->Count(0));
+		orig_endp->Assign(4, val_mgr->Count(orig_flow_label));
 
 		const int l2_len = sizeof(orig_l2_addr);
 		char null[l2_len]{};
@@ -355,9 +355,9 @@ RecordVal* Connection::BuildConnVal()
 			orig_endp->Assign(5, make_intrusive<StringVal>(fmt_mac(orig_l2_addr, l2_len)));
 
 		auto resp_endp = make_intrusive<RecordVal>(endpoint);
-		resp_endp->Assign(0, val_mgr->GetCount(0));
-		resp_endp->Assign(1, val_mgr->GetCount(0));
-		resp_endp->Assign(4, val_mgr->GetCount(resp_flow_label));
+		resp_endp->Assign(0, val_mgr->Count(0));
+		resp_endp->Assign(1, val_mgr->Count(0));
+		resp_endp->Assign(4, val_mgr->Count(resp_flow_label));
 
 		if ( memcmp(&resp_l2_addr, &null, l2_len) != 0 )
 			resp_endp->Assign(5, make_intrusive<StringVal>(fmt_mac(resp_l2_addr, l2_len)));
@@ -690,7 +690,7 @@ void Connection::CheckFlowLabel(bool is_orig, uint32_t flow_label)
 		if ( conn_val )
 			{
 			RecordVal *endp = conn_val->Lookup(is_orig ? 1 : 2)->AsRecordVal();
-			endp->Assign(4, val_mgr->GetCount(flow_label));
+			endp->Assign(4, val_mgr->Count(flow_label));
 			}
 
 		if ( connection_flow_label_changed &&
@@ -699,8 +699,8 @@ void Connection::CheckFlowLabel(bool is_orig, uint32_t flow_label)
 			EnqueueEvent(connection_flow_label_changed, nullptr,
 				IntrusivePtr{AdoptRef{}, BuildConnVal()},
 				val_mgr->Bool(is_orig),
-				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(my_flow_label)},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(flow_label)}
+				val_mgr->Count(my_flow_label),
+				val_mgr->Count(flow_label)
 			);
 			}
 

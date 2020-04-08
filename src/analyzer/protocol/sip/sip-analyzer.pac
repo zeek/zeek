@@ -69,9 +69,8 @@ refine flow SIP_Flow += {
 
 		for ( unsigned int i = 0; i < headers.size(); ++i )
 			{ // index starting from 1
-			Val* index = val_mgr->GetCount(i + 1);
-			t->Assign(index, headers[i]);
-			Unref(index);
+			auto index = val_mgr->Count(i + 1);
+			t->Assign(index.get(), headers[i]);
 			}
 
 		return t;

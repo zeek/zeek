@@ -448,9 +448,8 @@ bool Manager::IsDisabled(const analyzer::Tag& tag)
 	if ( ! disabled )
 		disabled = internal_const_val("Files::disable")->AsTableVal();
 
-	Val* index = val_mgr->GetCount(bool(tag));
-	auto yield = disabled->Lookup(index);
-	Unref(index);
+	auto index = val_mgr->Count(bool(tag));
+	auto yield = disabled->Lookup(index.get());
 
 	if ( ! yield )
 		return false;

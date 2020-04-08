@@ -177,7 +177,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 
 		vl = {
 			IntrusivePtr{AdoptRef{}, BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(reply_code)},
+			val_mgr->Count(reply_code),
 			make_intrusive<StringVal>(end_of_line - line, line),
 			val_mgr->Bool(cont_resp)
 		};

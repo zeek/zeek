@@ -250,19 +250,19 @@ IntrusivePtr<Val> Val::SizeVal() const
 		// Return abs value. However abs() only works on ints and llabs
 		// doesn't work on Mac OS X 10.5. So we do it by hand
 		if ( val.int_val < 0 )
-			return {AdoptRef{}, val_mgr->GetCount(-val.int_val)};
+			return val_mgr->Count(-val.int_val);
 		else
-			return {AdoptRef{}, val_mgr->GetCount(val.int_val)};
+			return val_mgr->Count(val.int_val);
 
 	case TYPE_INTERNAL_UNSIGNED:
-		return {AdoptRef{}, val_mgr->GetCount(val.uint_val)};
+		return val_mgr->Count(val.uint_val);
 
 	case TYPE_INTERNAL_DOUBLE:
 		return make_intrusive<Val>(fabs(val.double_val), TYPE_DOUBLE);
 
 	case TYPE_INTERNAL_OTHER:
 		if ( type->Tag() == TYPE_FUNC )
-			return {AdoptRef{}, val_mgr->GetCount(val.func_val->FType()->ArgTypes()->Types()->length())};
+			return val_mgr->Count(val.func_val->FType()->ArgTypes()->Types()->length());
 
 		if ( type->Tag() == TYPE_FILE )
 			return make_intrusive<Val>(val.file_val->Size(), TYPE_DOUBLE);
@@ -272,7 +272,7 @@ IntrusivePtr<Val> Val::SizeVal() const
 		break;
 	}
 
-	return {AdoptRef{}, val_mgr->GetCount(0)};
+	return val_mgr->Count(0);
 	}
 
 unsigned int Val::MemoryAllocation() const
@@ -851,9 +851,9 @@ unsigned int AddrVal::MemoryAllocation() const
 IntrusivePtr<Val> AddrVal::SizeVal() const
 	{
 	if ( val.addr_val->GetFamily() == IPv4 )
-		return {AdoptRef{}, val_mgr->GetCount(32)};
+		return val_mgr->Count(32);
 	else
-		return {AdoptRef{}, val_mgr->GetCount(128)};
+		return val_mgr->Count(128);
 	}
 
 IntrusivePtr<Val> AddrVal::DoClone(CloneState* state)
@@ -979,7 +979,7 @@ StringVal::StringVal(const string& s) : StringVal(s.length(), s.data())
 
 IntrusivePtr<Val> StringVal::SizeVal() const
 	{
-	return {AdoptRef{}, val_mgr->GetCount(val.string_val->Len())};
+	return val_mgr->Count(val.string_val->Len());
 	}
 
 int StringVal::Len()
@@ -1193,7 +1193,7 @@ ListVal::~ListVal()
 
 IntrusivePtr<Val> ListVal::SizeVal() const
 	{
-	return {AdoptRef{}, val_mgr->GetCount(vals.length())};
+	return val_mgr->Count(vals.length());
 	}
 
 RE_Matcher* ListVal::BuildRE() const
@@ -1564,7 +1564,7 @@ bool TableVal::Assign(Val* index, HashKey* k, Val* new_val)
 
 IntrusivePtr<Val> TableVal::SizeVal() const
 	{
-	return {AdoptRef{}, val_mgr->GetCount(Size())};
+	return val_mgr->Count(Size());
 	}
 
 bool TableVal::AddTo(Val* val, bool is_first_init) const
@@ -2683,7 +2683,7 @@ RecordVal::~RecordVal()
 
 IntrusivePtr<Val> RecordVal::SizeVal() const
 	{
-	return {AdoptRef{}, val_mgr->GetCount(Type()->AsRecordType()->NumFields())};
+	return val_mgr->Count(Type()->AsRecordType()->NumFields());
 	}
 
 void RecordVal::Assign(int field, IntrusivePtr<Val> new_val)
@@ -2968,7 +2968,7 @@ VectorVal::~VectorVal()
 
 IntrusivePtr<Val> VectorVal::SizeVal() const
 	{
-	return {AdoptRef{}, val_mgr->GetCount(uint32_t(val.vector_val->size()))};
+	return val_mgr->Count(uint32_t(val.vector_val->size()));
 	}
 
 bool VectorVal::Assign(unsigned int index, IntrusivePtr<Val> element)
@@ -3221,7 +3221,7 @@ IntrusivePtr<Val> check_and_promote(IntrusivePtr<Val> v, const BroType* t,
 			return nullptr;
 			}
 		else if ( t_tag == TYPE_COUNT || t_tag == TYPE_COUNTER )
-			promoted_v = {AdoptRef{}, val_mgr->GetCount(v->CoerceToUnsigned())};
+			promoted_v = val_mgr->Count(v->CoerceToUnsigned());
 		else // port
 			{
 			reporter->InternalError("bad internal type in check_and_promote()");

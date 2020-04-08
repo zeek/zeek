@@ -682,7 +682,7 @@ IntrusivePtr<Val> BinaryExpr::Fold(Val* v1, Val* v2) const
 	else if ( ret_type->InternalType() == TYPE_INTERNAL_DOUBLE )
 		return make_intrusive<Val>(d3, ret_type->Tag());
 	else if ( ret_type->InternalType() == TYPE_INTERNAL_UNSIGNED )
-		return {AdoptRef{}, val_mgr->GetCount(u3)};
+		return val_mgr->Count(u3);
 	else if ( ret_type->Tag() == TYPE_BOOL )
 		return val_mgr->Bool(i3);
 	else
@@ -960,7 +960,7 @@ IntrusivePtr<Val> IncrExpr::DoSingleEval(Frame* f, Val* v) const
 	if ( ret_type->Tag() == TYPE_INT )
 		return val_mgr->Int(k);
 	else
-		return {AdoptRef{}, val_mgr->GetCount(k)};
+		return val_mgr->Count(k);
 	}
 
 
@@ -1018,7 +1018,7 @@ ComplementExpr::ComplementExpr(IntrusivePtr<Expr> arg_op)
 
 IntrusivePtr<Val> ComplementExpr::Fold(Val* v) const
 	{
-	return {AdoptRef{}, val_mgr->GetCount(~ v->InternalUnsigned())};
+	return val_mgr->Count(~ v->InternalUnsigned());
 	}
 
 NotExpr::NotExpr(IntrusivePtr<Expr> arg_op)
@@ -3488,7 +3488,7 @@ IntrusivePtr<Val> ArithCoerceExpr::FoldSingleVal(Val* v, InternalTypeTag t) cons
 		return val_mgr->Int(v->CoerceToInt());
 
 	case TYPE_INTERNAL_UNSIGNED:
-		return {AdoptRef{}, val_mgr->GetCount(v->CoerceToUnsigned())};
+		return val_mgr->Count(v->CoerceToUnsigned());
 
 	default:
 		RuntimeErrorWithCallStack("bad type in CoerceExpr::Fold");

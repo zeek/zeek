@@ -46,7 +46,7 @@ refine connection SMB_Conn += {
 				{
 				case 0x01:
 					core = new RecordVal(BifType::Record::SMB1::NegotiateResponseCore);
-					core->Assign(0, val_mgr->GetCount(${val.dialect_index}));
+					core->Assign(0, val_mgr->Count(${val.dialect_index}));
 
 					response->Assign(0, core);
 					break;
@@ -61,15 +61,15 @@ refine connection SMB_Conn += {
 					raw->Assign(1, val_mgr->Bool(${val.lanman.raw_write_supported}));
 
 					lanman = new RecordVal(BifType::Record::SMB1::NegotiateResponseLANMAN);
-					lanman->Assign(0, val_mgr->GetCount(${val.word_count}));
-					lanman->Assign(1, val_mgr->GetCount(${val.dialect_index}));
+					lanman->Assign(0, val_mgr->Count(${val.word_count}));
+					lanman->Assign(1, val_mgr->Count(${val.dialect_index}));
 					lanman->Assign(2, security);
-					lanman->Assign(3, val_mgr->GetCount(${val.lanman.max_buffer_size}));
-					lanman->Assign(4, val_mgr->GetCount(${val.lanman.max_mpx_count}));
+					lanman->Assign(3, val_mgr->Count(${val.lanman.max_buffer_size}));
+					lanman->Assign(4, val_mgr->Count(${val.lanman.max_mpx_count}));
 
-					lanman->Assign(5, val_mgr->GetCount(${val.lanman.max_number_vcs}));
+					lanman->Assign(5, val_mgr->Count(${val.lanman.max_number_vcs}));
 					lanman->Assign(6, raw);
-					lanman->Assign(7, val_mgr->GetCount(${val.lanman.session_key}));
+					lanman->Assign(7, val_mgr->Count(${val.lanman.session_key}));
 					lanman->Assign(8, time_from_lanman(${val.lanman.server_time}, ${val.lanman.server_date}, ${val.lanman.server_tz}));
 					lanman->Assign(9, bytestring_to_val(${val.lanman.encryption_key}));
 
@@ -109,15 +109,15 @@ refine connection SMB_Conn += {
 					capabilities->Assign(17, val_mgr->Bool(${val.ntlm.capabilities_extended_security}));
 
 					ntlm = new RecordVal(BifType::Record::SMB1::NegotiateResponseNTLM);
-					ntlm->Assign(0, val_mgr->GetCount(${val.word_count}));
-					ntlm->Assign(1, val_mgr->GetCount(${val.dialect_index}));
+					ntlm->Assign(0, val_mgr->Count(${val.word_count}));
+					ntlm->Assign(1, val_mgr->Count(${val.dialect_index}));
 					ntlm->Assign(2, security);
-					ntlm->Assign(3, val_mgr->GetCount(${val.ntlm.max_buffer_size}));
-					ntlm->Assign(4, val_mgr->GetCount(${val.ntlm.max_mpx_count}));
+					ntlm->Assign(3, val_mgr->Count(${val.ntlm.max_buffer_size}));
+					ntlm->Assign(4, val_mgr->Count(${val.ntlm.max_mpx_count}));
 
-					ntlm->Assign(5, val_mgr->GetCount(${val.ntlm.max_number_vcs}));
-					ntlm->Assign(6, val_mgr->GetCount(${val.ntlm.max_raw_size}));
-					ntlm->Assign(7, val_mgr->GetCount(${val.ntlm.session_key}));
+					ntlm->Assign(5, val_mgr->Count(${val.ntlm.max_number_vcs}));
+					ntlm->Assign(6, val_mgr->Count(${val.ntlm.max_raw_size}));
+					ntlm->Assign(7, val_mgr->Count(${val.ntlm.session_key}));
 					ntlm->Assign(8, capabilities);
 					ntlm->Assign(9, filetime2brotime(${val.ntlm.server_time}));
 

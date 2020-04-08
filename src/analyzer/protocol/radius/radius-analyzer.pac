@@ -5,22 +5,23 @@ refine flow RADIUS_Flow += {
 		connection()->bro_analyzer()->ProtocolConfirmation();
 
 		if ( ! radius_message )
-		    return false;
+			return false;
 
 		RecordVal* result = new RecordVal(BifType::Record::RADIUS::Message);
-		result->Assign(0, val_mgr->GetCount(${msg.code}));
-		result->Assign(1, val_mgr->GetCount(${msg.trans_id}));
+		result->Assign(0, val_mgr->Count(${msg.code}));
+		result->Assign(1, val_mgr->Count(${msg.trans_id}));
 		result->Assign(2, bytestring_to_val(${msg.authenticator}));
 
 		if ( ${msg.attributes}->size() )
 			{
 			TableVal* attributes = new TableVal({NewRef{}, BifType::Table::RADIUS::Attributes});
 
-			for ( uint i = 0; i < ${msg.attributes}->size(); ++i ) {
-				Val* index = val_mgr->GetCount(${msg.attributes[i].code});
+			for ( uint i = 0; i < ${msg.attributes}->size(); ++i )
+				{
+				auto index = val_mgr->Count(${msg.attributes[i].code});
 
 				// Do we already have a vector of attributes for this type?
-				auto current = attributes->Lookup(index);
+				auto current = attributes->Lookup(index.get());
 				Val* val = bytestring_to_val(${msg.attributes[i].value});
 
 				if ( current )
@@ -30,14 +31,12 @@ refine flow RADIUS_Flow += {
 					}
 
 				else
-				    {
+					{
 					VectorVal* attribute_list = new VectorVal(BifType::Vector::RADIUS::AttributeList);
 					attribute_list->Assign((unsigned int)0, val);
-					attributes->Assign(index, attribute_list);
-				    }
-
-				Unref(index);
-			}
+					attributes->Assign(index.get(), attribute_list);
+					}
+				}
 
 			result->Assign(3, attributes);
 		}
@@ -49,7 +48,7 @@ refine flow RADIUS_Flow += {
 	function proc_radius_attribute(attr: RADIUS_Attribute): bool
 		%{
 		if ( ! radius_attribute )
-		    return false;
+			return false;
 
 		BifEvent::generate_radius_attribute(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
 		                                    ${attr.code}, bytestring_to_val(${attr.value}));

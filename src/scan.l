@@ -476,7 +476,7 @@ F	RET_CONST(val_mgr->False()->Ref())
 	}
 
 {D}		{
-		RET_CONST(val_mgr->GetCount(static_cast<bro_uint_t>(strtoull(yytext, (char**) NULL, 10))))
+		RET_CONST(val_mgr->Count(static_cast<bro_uint_t>(strtoull(yytext, (char**) NULL, 10))).release())
 		}
 {FLOAT}		RET_CONST(new Val(atof(yytext), TYPE_DOUBLE))
 
@@ -524,7 +524,7 @@ F	RET_CONST(val_mgr->False()->Ref())
 {FLOAT}{OWS}msec(s?)	RET_CONST(new IntervalVal(atof(yytext),Milliseconds))
 {FLOAT}{OWS}usec(s?)	RET_CONST(new IntervalVal(atof(yytext),Microseconds))
 
-"0x"{HEX}+	RET_CONST(val_mgr->GetCount(static_cast<bro_uint_t>(strtoull(yytext, 0, 16))))
+"0x"{HEX}+	RET_CONST(val_mgr->Count(static_cast<bro_uint_t>(strtoull(yytext, 0, 16))).release())
 
 {H}("."{H})+		RET_CONST(dns_mgr->LookupHost(yytext).release())
 

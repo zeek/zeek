@@ -102,7 +102,7 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 
 	if ( vxlan_packet )
 		Conn()->Event(vxlan_packet, nullptr, inner->BuildPktHdrVal(),
-		              val_mgr->GetCount(vni));
+		              val_mgr->Count(vni).release());
 
 	EncapsulatingConn ec(Conn(), BifEnum::Tunnel::VXLAN);
 	sessions->DoNextInnerPacket(network_time, &pkt, inner, estack, ec);

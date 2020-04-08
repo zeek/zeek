@@ -2266,7 +2266,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
-		return val_mgr->GetCount(val->val.int_val);
+		return val_mgr->Count(val->val.int_val).release();
 
 	case TYPE_DOUBLE:
 	case TYPE_TIME:
@@ -2414,7 +2414,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
-		return val_mgr->GetCount(val->val.int_val);
+		return val_mgr->Count(val->val.int_val).release();
 
 	case TYPE_DOUBLE:
 	case TYPE_TIME:

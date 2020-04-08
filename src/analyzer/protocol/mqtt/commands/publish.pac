@@ -25,7 +25,7 @@ refine flow MQTT_Flow += {
 			{
 			auto m = new RecordVal(BifType::Record::MQTT::PublishMsg);
 			m->Assign(0, val_mgr->Bool(${msg.dup}));
-			m->Assign(1, val_mgr->GetCount(${msg.qos}));
+			m->Assign(1, val_mgr->Count(${msg.qos}));
 			m->Assign(2, val_mgr->Bool(${msg.retain}));
 			m->Assign(3, new StringVal(${msg.topic.str}.length(),
 			                           reinterpret_cast<const char*>(${msg.topic.str}.begin())));
@@ -39,7 +39,7 @@ refine flow MQTT_Flow += {
 			m->Assign(4, new StringVal(len,
 			                           reinterpret_cast<const char*>(${msg.payload}.begin())));
 
-			m->Assign(5, val_mgr->GetCount(${msg.payload}.length()));
+			m->Assign(5, val_mgr->Count(${msg.payload}.length()));
 
 			BifEvent::generate_mqtt_publish(connection()->bro_analyzer(),
 			                                connection()->bro_analyzer()->Conn(),

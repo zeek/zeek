@@ -104,20 +104,20 @@ refine connection SMB_Conn += {
 		%{
 		RecordVal* r = new RecordVal(BifType::Record::SMB2::NegotiateContextValue);
 
-		r->Assign(0, val_mgr->GetCount(${ncv.context_type}));
-		r->Assign(1, val_mgr->GetCount(${ncv.data_length}));
+		r->Assign(0, val_mgr->Count(${ncv.context_type}));
+		r->Assign(1, val_mgr->Count(${ncv.data_length}));
 
 		switch ( ${ncv.context_type} ) {
 			case SMB2_PREAUTH_INTEGRITY_CAPABILITIES:
 				{
 				RecordVal* rpreauth = new RecordVal(BifType::Record::SMB2::PreAuthIntegrityCapabilities);
-				rpreauth->Assign(0, val_mgr->GetCount(${ncv.preauth_integrity_capabilities.hash_alg_count}));
-				rpreauth->Assign(1, val_mgr->GetCount(${ncv.preauth_integrity_capabilities.salt_length}));
+				rpreauth->Assign(0, val_mgr->Count(${ncv.preauth_integrity_capabilities.hash_alg_count}));
+				rpreauth->Assign(1, val_mgr->Count(${ncv.preauth_integrity_capabilities.salt_length}));
 
 				VectorVal* ha = new VectorVal(internal_type("index_vec")->AsVectorType());
 
 				for ( int i = 0; i < (${ncv.preauth_integrity_capabilities.hash_alg_count}); ++i )
-						ha->Assign(i, val_mgr->GetCount(${ncv.preauth_integrity_capabilities.hash_alg[i]}));
+						ha->Assign(i, val_mgr->Count(${ncv.preauth_integrity_capabilities.hash_alg[i]}));
 
 				rpreauth->Assign(2, ha);
 				rpreauth->Assign(3, bytestring_to_val(${ncv.preauth_integrity_capabilities.salt}));
@@ -128,12 +128,12 @@ refine connection SMB_Conn += {
 			case SMB2_ENCRYPTION_CAPABILITIES:
 				{
 				RecordVal* rencr = new RecordVal(BifType::Record::SMB2::EncryptionCapabilities);
-				rencr->Assign(0, val_mgr->GetCount(${ncv.encryption_capabilities.cipher_count}));
+				rencr->Assign(0, val_mgr->Count(${ncv.encryption_capabilities.cipher_count}));
 
 				VectorVal* c = new VectorVal(internal_type("index_vec")->AsVectorType());
 
 				for ( int i = 0; i < (${ncv.encryption_capabilities.cipher_count}); ++i )
-						c->Assign(i, val_mgr->GetCount(${ncv.encryption_capabilities.ciphers[i]}));
+						c->Assign(i, val_mgr->Count(${ncv.encryption_capabilities.ciphers[i]}));
 
 				rencr->Assign(1, c);
 				r->Assign(3, rencr);
@@ -143,12 +143,12 @@ refine connection SMB_Conn += {
 			case SMB2_COMPRESSION_CAPABILITIES:
 				{
 				RecordVal* rcomp = new RecordVal(BifType::Record::SMB2::CompressionCapabilities);
-				rcomp->Assign(0, val_mgr->GetCount(${ncv.compression_capabilities.alg_count}));
+				rcomp->Assign(0, val_mgr->Count(${ncv.compression_capabilities.alg_count}));
 
 				VectorVal* c = new VectorVal(internal_type("index_vec")->AsVectorType());
 
 				for ( int i = 0; i < (${ncv.compression_capabilities.alg_count}); ++i )
-						c->Assign(i, val_mgr->GetCount(${ncv.compression_capabilities.algs[i]}));
+						c->Assign(i, val_mgr->Count(${ncv.compression_capabilities.algs[i]}));
 
 				rcomp->Assign(1, c);
 				r->Assign(4, rcomp);
@@ -172,15 +172,15 @@ refine connection SMB_Conn += {
 		%{
 		RecordVal* r = new RecordVal(BifType::Record::SMB2::Header);
 
-		r->Assign(0, val_mgr->GetCount(${hdr.credit_charge}));
-		r->Assign(1, val_mgr->GetCount(${hdr.status}));
-		r->Assign(2, val_mgr->GetCount(${hdr.command}));
-		r->Assign(3, val_mgr->GetCount(${hdr.credits}));
-		r->Assign(4, val_mgr->GetCount(${hdr.flags}));
-		r->Assign(5, val_mgr->GetCount(${hdr.message_id}));
-		r->Assign(6, val_mgr->GetCount(${hdr.process_id}));
-		r->Assign(7, val_mgr->GetCount(${hdr.tree_id}));
-		r->Assign(8, val_mgr->GetCount(${hdr.session_id}));
+		r->Assign(0, val_mgr->Count(${hdr.credit_charge}));
+		r->Assign(1, val_mgr->Count(${hdr.status}));
+		r->Assign(2, val_mgr->Count(${hdr.command}));
+		r->Assign(3, val_mgr->Count(${hdr.credits}));
+		r->Assign(4, val_mgr->Count(${hdr.flags}));
+		r->Assign(5, val_mgr->Count(${hdr.message_id}));
+		r->Assign(6, val_mgr->Count(${hdr.process_id}));
+		r->Assign(7, val_mgr->Count(${hdr.tree_id}));
+		r->Assign(8, val_mgr->Count(${hdr.session_id}));
 		r->Assign(9, bytestring_to_val(${hdr.signature}));
 
 		return r;
@@ -190,8 +190,8 @@ refine connection SMB_Conn += {
 		%{
 		RecordVal* r = new RecordVal(BifType::Record::SMB2::GUID);
 
-		r->Assign(0, val_mgr->GetCount(${file_id.persistent}));
-		r->Assign(1, val_mgr->GetCount(${file_id._volatile}));
+		r->Assign(0, val_mgr->Count(${file_id.persistent}));
+		r->Assign(1, val_mgr->Count(${file_id._volatile}));
 
 		return r;
 		%}

@@ -15,13 +15,13 @@ refine connection SMB_Conn += {
 			RecordVal* request = new RecordVal(BifType::Record::SMB1::SessionSetupAndXRequest);
 			RecordVal* capabilities;
 
-			request->Assign(0, val_mgr->GetCount(${val.word_count}));
+			request->Assign(0, val_mgr->Count(${val.word_count}));
 			switch ( ${val.word_count} ) {
 				case 10:	// pre NT LM 0.12
-					request->Assign(1, val_mgr->GetCount(${val.lanman.max_buffer_size}));
-					request->Assign(2, val_mgr->GetCount(${val.lanman.max_mpx_count}));
-					request->Assign(3, val_mgr->GetCount(${val.lanman.vc_number}));
-					request->Assign(4, val_mgr->GetCount(${val.lanman.session_key}));
+					request->Assign(1, val_mgr->Count(${val.lanman.max_buffer_size}));
+					request->Assign(2, val_mgr->Count(${val.lanman.max_mpx_count}));
+					request->Assign(3, val_mgr->Count(${val.lanman.vc_number}));
+					request->Assign(4, val_mgr->Count(${val.lanman.session_key}));
 
 					request->Assign(5, smb_string2stringval(${val.lanman.native_os}));
 					request->Assign(6, smb_string2stringval(${val.lanman.native_lanman}));
@@ -39,10 +39,10 @@ refine connection SMB_Conn += {
 				 	capabilities->Assign(4, val_mgr->Bool(${val.ntlm_extended_security.capabilities.level_2_oplocks}));
 				 	capabilities->Assign(5, val_mgr->Bool(${val.ntlm_extended_security.capabilities.nt_find}));
 
-					request->Assign(1, val_mgr->GetCount(${val.ntlm_extended_security.max_buffer_size}));
-					request->Assign(2, val_mgr->GetCount(${val.ntlm_extended_security.max_mpx_count}));
-					request->Assign(3, val_mgr->GetCount(${val.ntlm_extended_security.vc_number}));
-					request->Assign(4, val_mgr->GetCount(${val.ntlm_extended_security.session_key}));
+					request->Assign(1, val_mgr->Count(${val.ntlm_extended_security.max_buffer_size}));
+					request->Assign(2, val_mgr->Count(${val.ntlm_extended_security.max_mpx_count}));
+					request->Assign(3, val_mgr->Count(${val.ntlm_extended_security.vc_number}));
+					request->Assign(4, val_mgr->Count(${val.ntlm_extended_security.session_key}));
 
 					request->Assign(5, smb_string2stringval(${val.ntlm_extended_security.native_os}));
 					request->Assign(6, smb_string2stringval(${val.ntlm_extended_security.native_lanman}));
@@ -59,10 +59,10 @@ refine connection SMB_Conn += {
 				 	capabilities->Assign(4, val_mgr->Bool(${val.ntlm_nonextended_security.capabilities.level_2_oplocks}));
 				 	capabilities->Assign(5, val_mgr->Bool(${val.ntlm_nonextended_security.capabilities.nt_find}));
 
-					request->Assign(1, val_mgr->GetCount(${val.ntlm_nonextended_security.max_buffer_size}));
-					request->Assign(2, val_mgr->GetCount(${val.ntlm_nonextended_security.max_mpx_count}));
-					request->Assign(3, val_mgr->GetCount(${val.ntlm_nonextended_security.vc_number}));
-					request->Assign(4, val_mgr->GetCount(${val.ntlm_nonextended_security.session_key}));
+					request->Assign(1, val_mgr->Count(${val.ntlm_nonextended_security.max_buffer_size}));
+					request->Assign(2, val_mgr->Count(${val.ntlm_nonextended_security.max_mpx_count}));
+					request->Assign(3, val_mgr->Count(${val.ntlm_nonextended_security.vc_number}));
+					request->Assign(4, val_mgr->Count(${val.ntlm_nonextended_security.session_key}));
 
 					request->Assign(5, smb_string2stringval(${val.ntlm_nonextended_security.native_os}));
 					request->Assign(6, smb_string2stringval(${val.ntlm_nonextended_security.native_lanman}));
@@ -86,7 +86,7 @@ refine connection SMB_Conn += {
 			{
 			RecordVal* response = new RecordVal(BifType::Record::SMB1::SessionSetupAndXResponse);
 
-			response->Assign(0, val_mgr->GetCount(${val.word_count}));
+			response->Assign(0, val_mgr->Count(${val.word_count}));
 			switch ( ${val.word_count} )
 				{
 				case 3: // pre NT LM 0.12

@@ -150,9 +150,8 @@ bool PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status statu
 				if ( ! m )
 					break;
 
-				Val* index = val_mgr->GetCount(++nmap);
-				mappings->Assign(index, m);
-				Unref(index);
+				auto index = val_mgr->Count(++nmap);
+				mappings->Assign(index.get(), m);
 				}
 
 			if ( ! buf )
@@ -197,8 +196,8 @@ Val* PortmapperInterp::ExtractMapping(const u_char*& buf, int& len)
 	{
 	RecordVal* mapping = new RecordVal(pm_mapping);
 
-	mapping->Assign(0, val_mgr->GetCount(extract_XDR_uint32(buf, len)));
-	mapping->Assign(1, val_mgr->GetCount(extract_XDR_uint32(buf, len)));
+	mapping->Assign(0, val_mgr->Count(extract_XDR_uint32(buf, len)));
+	mapping->Assign(1, val_mgr->Count(extract_XDR_uint32(buf, len)));
 
 	bool is_tcp = extract_XDR_uint32(buf, len) == IPPROTO_TCP;
 	uint32_t port = extract_XDR_uint32(buf, len);
@@ -218,8 +217,8 @@ Val* PortmapperInterp::ExtractPortRequest(const u_char*& buf, int& len)
 	{
 	RecordVal* pr = new RecordVal(pm_port_request);
 
-	pr->Assign(0, val_mgr->GetCount(extract_XDR_uint32(buf, len)));
-	pr->Assign(1, val_mgr->GetCount(extract_XDR_uint32(buf, len)));
+	pr->Assign(0, val_mgr->Count(extract_XDR_uint32(buf, len)));
+	pr->Assign(1, val_mgr->Count(extract_XDR_uint32(buf, len)));
 
 	bool is_tcp = extract_XDR_uint32(buf, len) == IPPROTO_TCP;
 	pr->Assign(2, val_mgr->Bool(is_tcp));
@@ -238,13 +237,13 @@ Val* PortmapperInterp::ExtractCallItRequest(const u_char*& buf, int& len)
 	{
 	RecordVal* c = new RecordVal(pm_callit_request);
 
-	c->Assign(0, val_mgr->GetCount(extract_XDR_uint32(buf, len)));
-	c->Assign(1, val_mgr->GetCount(extract_XDR_uint32(buf, len)));
-	c->Assign(2, val_mgr->GetCount(extract_XDR_uint32(buf, len)));
+	c->Assign(0, val_mgr->Count(extract_XDR_uint32(buf, len)));
+	c->Assign(1, val_mgr->Count(extract_XDR_uint32(buf, len)));
+	c->Assign(2, val_mgr->Count(extract_XDR_uint32(buf, len)));
 
 	int arg_n;
 	(void) extract_XDR_opaque(buf, len, arg_n);
-	c->Assign(3, val_mgr->GetCount(arg_n));
+	c->Assign(3, val_mgr->Count(arg_n));
 
 	if ( ! buf )
 		{
@@ -263,7 +262,7 @@ uint32_t PortmapperInterp::CheckPort(uint32_t port)
 			{
 			analyzer->EnqueueConnEvent(pm_bad_port,
 				IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(port)}
+				val_mgr->Count(port)
 			);
 			}
 

@@ -288,7 +288,7 @@ static StringVal* parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp,
 	return rval;
 	}
 
-static Val* parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
+static IntrusivePtr<Val> parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 	{
 	int der_basic_resp_len = 0;
 	unsigned char* der_basic_resp_dat = nullptr;
@@ -296,7 +296,7 @@ static Val* parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 	der_basic_resp_len = i2d_OCSP_BASICRESP(basic_resp, &der_basic_resp_dat);
 
 	if ( der_basic_resp_len <= 0 )
-		return val_mgr->GetCount(-1);
+		return val_mgr->Count(-1);
 
 	const unsigned char* const_der_basic_resp_dat = der_basic_resp_dat;
 
@@ -305,13 +305,13 @@ static Val* parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 	if ( ! bseq )
 		{
 		OPENSSL_free(der_basic_resp_dat);
-		return val_mgr->GetCount(-1);
+		return val_mgr->Count(-1);
 		}
 
 	if ( sk_ASN1_TYPE_num(bseq) < 3 )
 		{
 		OPENSSL_free(der_basic_resp_dat);
-		return val_mgr->GetCount(-1);
+		return val_mgr->Count(-1);
 		}
 
 	auto constexpr resp_data_idx = 0u;
@@ -320,7 +320,7 @@ static Val* parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 	if ( ASN1_TYPE_get(dseq_type) != V_ASN1_SEQUENCE )
 		{
 		OPENSSL_free(der_basic_resp_dat);
-		return val_mgr->GetCount(-1);
+		return val_mgr->Count(-1);
 		}
 
 	auto dseq_str = dseq_type->value.asn1_string;
@@ -332,13 +332,13 @@ static Val* parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 	if ( ! dseq )
 		{
 		OPENSSL_free(der_basic_resp_dat);
-		return val_mgr->GetEmptyString();
+		return val_mgr->Count(-1);
 		}
 
 	if ( sk_ASN1_TYPE_num(dseq) < 1 )
 		{
 		OPENSSL_free(der_basic_resp_dat);
-		return val_mgr->GetEmptyString();
+		return val_mgr->Count(-1);
 		}
 
 /*-  ResponseData ::= SEQUENCE {
@@ -356,12 +356,12 @@ static Val* parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 		{
 		OPENSSL_free(der_basic_resp_dat);
 		// Not present, use default value.
-		return val_mgr->GetCount(0);
+		return val_mgr->Count(0);
 		}
 
 	uint64_t asn1_int = ASN1_INTEGER_get(version_type->value.integer);
 	OPENSSL_free(der_basic_resp_dat);
-	return val_mgr->GetCount(asn1_int);
+	return val_mgr->Count(asn1_int);
 	}
 
 static uint64_t parse_request_version(OCSP_REQUEST* req)
@@ -422,7 +422,7 @@ void file_analysis::OCSP::ParseRequest(OCSP_REQUEST* req)
 	if ( ocsp_request )
 		mgr.Enqueue(ocsp_request,
 			IntrusivePtr{NewRef{}, GetFile()->GetVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(version)}
+			val_mgr->Count(version)
 		);
 
 	BIO *bio = BIO_new(BIO_s_mem());
@@ -506,9 +506,9 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 	vl.emplace_back(AdoptRef{}, status_val);
 
 #if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
-	vl.emplace_back(AdoptRef{}, val_mgr->GetCount((uint64_t)ASN1_INTEGER_get(resp_data->version)));
+	vl.emplace_back(val_mgr->Count((uint64_t)ASN1_INTEGER_get(resp_data->version)));
 #else
-	vl.emplace_back(AdoptRef{}, parse_basic_resp_data_version(basic_resp));
+	vl.emplace_back(parse_basic_resp_data_version(basic_resp));
 #endif
 
 	// responderID

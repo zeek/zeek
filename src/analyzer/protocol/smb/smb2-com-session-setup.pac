@@ -5,7 +5,7 @@ refine connection SMB_Conn += {
 		if ( smb2_session_setup_request )
 			{
 			RecordVal* req = new RecordVal(BifType::Record::SMB2::SessionSetupRequest);
-			req->Assign(0, val_mgr->GetCount(${val.security_mode}));
+			req->Assign(0, val_mgr->Count(${val.security_mode}));
 
 			BifEvent::generate_smb2_session_setup_request(bro_analyzer(),
 			                                              bro_analyzer()->Conn(),

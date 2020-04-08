@@ -331,20 +331,20 @@ zeek::Args NFS_Interp::event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_
 	auto auxgids = make_intrusive<VectorVal>(internal_type("index_vec")->AsVectorType());
 
 	for ( size_t i = 0; i < c->AuxGIDs().size(); ++i )
-		auxgids->Assign(i, val_mgr->GetCount(c->AuxGIDs()[i]));
+		auxgids->Assign(i, val_mgr->Count(c->AuxGIDs()[i]));
 
 	auto info = make_intrusive<RecordVal>(BifType::Record::NFS3::info_t);
 	info->Assign(0, BifType::Enum::rpc_status->GetVal(rpc_status));
 	info->Assign(1, BifType::Enum::NFS3::status_t->GetVal(nfs_status));
 	info->Assign(2, make_intrusive<Val>(c->StartTime(), TYPE_TIME));
 	info->Assign(3, make_intrusive<Val>(c->LastTime()-c->StartTime(), TYPE_INTERVAL));
-	info->Assign(4, val_mgr->GetCount(c->RPCLen()));
+	info->Assign(4, val_mgr->Count(c->RPCLen()));
 	info->Assign(5, make_intrusive<Val>(rep_start_time, TYPE_TIME));
 	info->Assign(6, make_intrusive<Val>(rep_last_time-rep_start_time, TYPE_INTERVAL));
-	info->Assign(7, val_mgr->GetCount(reply_len));
-	info->Assign(8, val_mgr->GetCount(c->Uid()));
-	info->Assign(9, val_mgr->GetCount(c->Gid()));
-	info->Assign(10, val_mgr->GetCount(c->Stamp()));
+	info->Assign(7, val_mgr->Count(reply_len));
+	info->Assign(8, val_mgr->Count(c->Uid()));
+	info->Assign(9, val_mgr->Count(c->Gid()));
+	info->Assign(10, val_mgr->Count(c->Stamp()));
 	info->Assign(11, make_intrusive<StringVal>(c->MachineName()));
 	info->Assign(12, std::move(auxgids));
 
@@ -577,7 +577,7 @@ RecordVal* NFS_Interp::nfs3_read_reply(const u_char*& buf, int& n, BifEnum::NFS3
 
 		rep->Assign(0, nfs3_post_op_attr(buf, n));
 		bytes_read = extract_XDR_uint32(buf, n);
-		rep->Assign(1, val_mgr->GetCount(bytes_read));
+		rep->Assign(1, val_mgr->Count(bytes_read));
 		rep->Assign(2, ExtractBool(buf, n));
 		rep->Assign(3, nfs3_file_data(buf, n, offset, bytes_read));
 		}
@@ -660,9 +660,9 @@ RecordVal *NFS_Interp::nfs3_writeargs(const u_char*& buf, int& n)
 
 	writeargs->Assign(0, nfs3_fh(buf, n));
 	offset = extract_XDR_uint64(buf, n);
-	writeargs->Assign(1, val_mgr->GetCount(offset));  // offset
+	writeargs->Assign(1, val_mgr->Count(offset));  // offset
 	bytes = extract_XDR_uint32(buf, n);
-	writeargs->Assign(2, val_mgr->GetCount(bytes));   // size
+	writeargs->Assign(2, val_mgr->Count(bytes));   // size
 
 	writeargs->Assign(3, nfs3_stable_how(buf, n));
 	writeargs->Assign(4, nfs3_file_data(buf, n, offset, bytes));
@@ -806,12 +806,12 @@ RecordVal* NFS_Interp::nfs3_readdir_reply(bool isplus, const u_char*& buf,
 
 Val* NFS_Interp::ExtractUint32(const u_char*& buf, int& n)
 	{
-	return val_mgr->GetCount(extract_XDR_uint32(buf, n));
+	return val_mgr->Count(extract_XDR_uint32(buf, n)).release();
 	}
 
 Val* NFS_Interp::ExtractUint64(const u_char*& buf, int& n)
 	{
-	return val_mgr->GetCount(extract_XDR_uint64(buf, n));
+	return val_mgr->Count(extract_XDR_uint64(buf, n)).release();
 	}
 
 Val* NFS_Interp::ExtractTime(const u_char*& buf, int& n)

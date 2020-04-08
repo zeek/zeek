@@ -72,7 +72,7 @@ function Broker::__set_size%(s: Broker::Data%): count
 	%{
 	auto& v = bro_broker::require_data_type<broker::set>(s->AsRecordVal(),
 	                                                     TYPE_TABLE, frame);
-	return val_mgr->GetCount(static_cast<uint64_t>(v.size()));
+	return val_mgr->Count(static_cast<uint64_t>(v.size()));
 	%}
 
 function Broker::__set_contains%(s: Broker::Data, key: any%): bool
@@ -175,7 +175,7 @@ function Broker::__table_size%(t: Broker::Data%): count
 	%{
 	auto& v = bro_broker::require_data_type<broker::table>(t->AsRecordVal(),
 	                                                       TYPE_TABLE, frame);
-	return val_mgr->GetCount(static_cast<uint64_t>(v.size()));
+	return val_mgr->Count(static_cast<uint64_t>(v.size()));
 	%}
 
 function Broker::__table_contains%(t: Broker::Data, key: any%): bool
@@ -334,7 +334,7 @@ function Broker::__vector_size%(v: Broker::Data%): count
 	%{
 	auto& vec = bro_broker::require_data_type<broker::vector>(v->AsRecordVal(),
 	                                                          TYPE_VECTOR, frame);
-	return val_mgr->GetCount(static_cast<uint64_t>(vec.size()));
+	return val_mgr->Count(static_cast<uint64_t>(vec.size()));
 	%}
 
 function Broker::__vector_insert%(v: Broker::Data, idx:count, d: any%): bool
@@ -444,7 +444,7 @@ function Broker::__record_size%(r: Broker::Data%): count
 	%{
 	auto& v = bro_broker::require_data_type<broker::vector>(r->AsRecordVal(),
 	                                                        TYPE_RECORD, frame);
-	return val_mgr->GetCount(static_cast<uint64_t>(v.size()));
+	return val_mgr->Count(static_cast<uint64_t>(v.size()));
 	%}
 
 function Broker::__record_assign%(r: Broker::Data, idx: count, d: any%): bool

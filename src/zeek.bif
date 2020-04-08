@@ -885,7 +885,7 @@ function fnv1a32%(input: any%): count
 		rval *= prime32;
 		}
 
-	return val_mgr->GetCount(rval);
+	return val_mgr->Count(rval);
 	%}
 
 ## Calculates a weight value for use in a Rendezvous Hashing algorithm.
@@ -912,7 +912,7 @@ function hrw_weight%(key_digest: count, site_id: count%): count
 
 	uint32_t rval = (a * ((a * si + b) ^ d) + b) % m;
 
-	return val_mgr->GetCount(rval);
+	return val_mgr->Count(rval);
 	%}
 
 ## Generates a random number.
@@ -930,7 +930,7 @@ function hrw_weight%(key_digest: count, site_id: count%): count
 function rand%(max: count%): count
 	%{
 	auto result = bro_uint_t(double(max) * double(bro_random()) / (RAND_MAX + 1.0));
-	return val_mgr->GetCount(result);
+	return val_mgr->Count(result);
 	%}
 
 ## Sets the seed for subsequent :zeek:id:`rand` calls.
@@ -1248,7 +1248,7 @@ function same_object%(o1: any, o2: any%): bool
 ## Returns: The number of bytes that *v* occupies.
 function val_size%(v: any%): count
 	%{
-	return val_mgr->GetCount(v->MemoryAllocation());
+	return val_mgr->Count(v->MemoryAllocation());
 	%}
 
 ## Resizes a vector.
@@ -1266,7 +1266,7 @@ function resize%(aggr: any, newsize: count%) : count
 		return 0;
 		}
 
-	return val_mgr->GetCount(aggr->AsVectorVal()->Resize(newsize));
+	return val_mgr->Count(aggr->AsVectorVal()->Resize(newsize));
 	%}
 
 ## Tests whether a boolean vector (``vector of bool``) has *any* true
@@ -1541,7 +1541,7 @@ function order%(v: any, ...%) : index_vec
 	for ( i = 0; i < n; ++i )
 		{
 		int ind = ind_vv[i];
-		result_v->Assign(i, val_mgr->GetCount(ind));
+		result_v->Assign(i, val_mgr->Count(ind));
 		}
 
 	return result_v;
@@ -1791,7 +1791,7 @@ function log10%(d: double%): double
 ##          none.
 function current_analyzer%(%) : count
 	%{
-	return val_mgr->GetCount(mgr.CurrentAnalyzer());
+	return val_mgr->Count(mgr.CurrentAnalyzer());
 	%}
 
 ## Returns Zeek's process ID.
@@ -1799,7 +1799,7 @@ function current_analyzer%(%) : count
 ## Returns: Zeek's process ID.
 function getpid%(%) : count
 	%{
-	return val_mgr->GetCount(getpid());
+	return val_mgr->Count(getpid());
 	%}
 
 %%{
@@ -1902,7 +1902,7 @@ function packet_source%(%): PacketSource
 		r->Assign(0, val_mgr->Bool(ps->IsLive()));
 		r->Assign(1, make_intrusive<StringVal>(ps->Path()));
 		r->Assign(2, val_mgr->Int(ps->LinkType()));
-		r->Assign(3, val_mgr->GetCount(ps->Netmask()));
+		r->Assign(3, val_mgr->Count(ps->Netmask()));
 		}
 
 	return r.release();
@@ -1925,8 +1925,8 @@ function global_sizes%(%): var_sizes
 		if ( id->HasVal() )
 			{
 			Val* id_name = new StringVal(id->Name());
-			Val* id_size = val_mgr->GetCount(id->ID_Val()->MemoryAllocation());
-			sizes->Assign(id_name, id_size);
+			auto id_size = val_mgr->Count(id->ID_Val()->MemoryAllocation());
+			sizes->Assign(id_name, std::move(id_size));
 			Unref(id_name);
 			}
 		}
@@ -2228,7 +2228,7 @@ function addr_to_counts%(a: addr%): index_vec
 	int len = a->AsAddr().GetBytes(&bytes);
 
 	for ( int i = 0; i < len; ++i )
-		rval->Assign(i, val_mgr->GetCount(ntohl(bytes[i])));
+		rval->Assign(i, val_mgr->Count(ntohl(bytes[i])));
 
 	return rval;
 	%}
@@ -2316,7 +2316,7 @@ function int_to_count%(n: int%): count
 		builtin_error("bad conversion to count", @ARG@[0]);
 		n = 0;
 		}
-	return val_mgr->GetCount(n);
+	return val_mgr->Count(n);
 	%}
 
 ## Converts a :zeek:type:`double` to a :zeek:type:`count`.
@@ -2331,7 +2331,7 @@ function double_to_count%(d: double%): count
 	if ( d < 0.0 )
 		builtin_error("bad conversion to count", @ARG@[0]);
 
-	return val_mgr->GetCount(bro_uint_t(rint(d)));
+	return val_mgr->Count(bro_uint_t(rint(d)));
 	%}
 
 ## Converts a :zeek:type:`string` to a :zeek:type:`count`.
@@ -2355,7 +2355,7 @@ function to_count%(str: string%): count
         u = 0;
         }
 
-	return val_mgr->GetCount(u);
+	return val_mgr->Count(u);
 	%}
 
 ## Converts an :zeek:type:`interval` to a :zeek:type:`double`.
@@ -2415,7 +2415,7 @@ function double_to_interval%(d: double%): interval
 ## .. zeek:see:: count_to_port
 function port_to_count%(p: port%): count
 	%{
-	return val_mgr->GetCount(p->Port());
+	return val_mgr->Count(p->Port());
 	%}
 
 ## Converts a :zeek:type:`count` and ``transport_proto`` to a :zeek:type:`port`.
@@ -2529,7 +2529,7 @@ function subnet_to_addr%(sn: subnet%): addr
 ## .. zeek:see:: to_subnet
 function subnet_width%(sn: subnet%): count
 	%{
-	return val_mgr->GetCount(sn->Width());
+	return val_mgr->Count(sn->Width());
 	%}
 
 ## Converts a :zeek:type:`string` to a :zeek:type:`double`.
@@ -2673,7 +2673,7 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 		{
 		uint8_t value = 0;
 		memcpy(&value, p, sizeof(uint8_t));
-		return val_mgr->GetCount(value);
+		return val_mgr->Count(value);
 		}
 
 	case sizeof(uint16_t):
@@ -2693,7 +2693,7 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 		else
 			memcpy(&value, p, sizeof(uint16_t));
 
-		return val_mgr->GetCount(value);
+		return val_mgr->Count(value);
 		}
 
 	case sizeof(uint32_t):
@@ -2713,7 +2713,7 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 		else
 			memcpy(&value, p, sizeof(uint32_t));
 
-		return val_mgr->GetCount(value);
+		return val_mgr->Count(value);
 		}
 
 	case sizeof(uint64_t):
@@ -2733,12 +2733,12 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 		else
 			memcpy(&value, p, sizeof(uint64_t));
 
-		return val_mgr->GetCount(value);
+		return val_mgr->Count(value);
 		}
 	}
 
 	builtin_error("unsupported byte length for bytestring_to_count");
-	return val_mgr->GetCount(0);
+	return val_mgr->Count(0);
 	%}
 
 ## Converts a reverse pointer name to an address. For example,
@@ -3314,12 +3314,12 @@ function lookup_connection%(cid: conn_id%): connection
 	c->Assign(0, id_val);
 
 	auto orig_endp = make_intrusive<RecordVal>(endpoint);
-	orig_endp->Assign(0, val_mgr->GetCount(0));
-	orig_endp->Assign(1, val_mgr->GetCount(int(0)));
+	orig_endp->Assign(0, val_mgr->Count(0));
+	orig_endp->Assign(1, val_mgr->Count(int(0)));
 
 	auto resp_endp = make_intrusive<RecordVal>(endpoint);
-	resp_endp->Assign(0, val_mgr->GetCount(0));
-	resp_endp->Assign(1, val_mgr->GetCount(int(0)));
+	resp_endp->Assign(0, val_mgr->Count(0));
+	resp_endp->Assign(1, val_mgr->Count(int(0)));
 
 	c->Assign(1, std::move(orig_endp));
 	c->Assign(2, std::move(resp_endp));
@@ -3394,19 +3394,19 @@ function get_current_packet%(%) : pcap_packet
 	if ( ! current_pktsrc ||
 	     ! current_pktsrc->GetCurrentPacket(&p) )
 		{
-		pkt->Assign(0, val_mgr->GetCount(0));
-		pkt->Assign(1, val_mgr->GetCount(0));
-		pkt->Assign(2, val_mgr->GetCount(0));
-		pkt->Assign(3, val_mgr->GetCount(0));
+		pkt->Assign(0, val_mgr->Count(0));
+		pkt->Assign(1, val_mgr->Count(0));
+		pkt->Assign(2, val_mgr->Count(0));
+		pkt->Assign(3, val_mgr->Count(0));
 		pkt->Assign(4, val_mgr->GetEmptyString());
 		pkt->Assign(5, BifType::Enum::link_encap->GetVal(BifEnum::LINK_UNKNOWN));
 		return pkt;
 		}
 
-	pkt->Assign(0, val_mgr->GetCount(uint32_t(p->ts.tv_sec)));
-	pkt->Assign(1, val_mgr->GetCount(uint32_t(p->ts.tv_usec)));
-	pkt->Assign(2, val_mgr->GetCount(p->cap_len));
-	pkt->Assign(3, val_mgr->GetCount(p->len));
+	pkt->Assign(0, val_mgr->Count(uint32_t(p->ts.tv_sec)));
+	pkt->Assign(1, val_mgr->Count(uint32_t(p->ts.tv_usec)));
+	pkt->Assign(2, val_mgr->Count(p->cap_len));
+	pkt->Assign(3, val_mgr->Count(p->len));
 	pkt->Assign(4, make_intrusive<StringVal>(p->cap_len, (const char*)p->data));
 	pkt->Assign(5, BifType::Enum::link_encap->GetVal(p->link_type));
 
@@ -3860,7 +3860,7 @@ static Val* mmdb_getvalue(MMDB_entry_data_s* entry_data, int status,
 						break;
 
 					case MMDB_DATA_TYPE_UINT32:
-						return val_mgr->GetCount(entry_data->uint32);
+						return val_mgr->Count(entry_data->uint32);
 
 					default:
 						break;
@@ -4072,7 +4072,7 @@ function lookup_asn%(a: addr%) : count
 				builtin_error("Failed to open GeoIP ASN database");
 				}
 
-			return val_mgr->GetCount(0);
+			return val_mgr->Count(0);
 			}
 		}
 
@@ -4087,7 +4087,7 @@ function lookup_asn%(a: addr%) : count
 		status = MMDB_get_value(&result.entry, &entry_data,
 		                        "autonomous_system_number", nullptr);
 		Val* asn = mmdb_getvalue(&entry_data, status, MMDB_DATA_TYPE_UINT32);
-		return asn == nullptr ? val_mgr->GetCount(0) : asn;
+		return asn == nullptr ? val_mgr->Count(0) : asn;
 		}
 
 #else // not USE_GEOIP
@@ -4103,7 +4103,7 @@ function lookup_asn%(a: addr%) : count
 	// We can get here even if we have GeoIP support, if we weren't
 	// able to initialize it or it didn't return any information for
 	// the address.
-	return val_mgr->GetCount(0);
+	return val_mgr->Count(0);
 	%}
 
 ## Calculates distance between two geographic locations using the haversine

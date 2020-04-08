@@ -97,9 +97,9 @@ struct val_converter {
 	result_type operator()(uint64_t a)
 		{
 		if ( type->Tag() == TYPE_COUNT )
-			return val_mgr->GetCount(a);
+			return val_mgr->Count(a).release();
 		if ( type->Tag() == TYPE_COUNTER )
-			return val_mgr->GetCount(a);
+			return val_mgr->Count(a).release();
 		return nullptr;
 		}
 

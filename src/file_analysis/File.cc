@@ -226,13 +226,13 @@ bool File::SetExtractionLimit(RecordVal* args, uint64_t bytes)
 void File::IncrementByteCount(uint64_t size, int field_idx)
 	{
 	uint64_t old = LookupFieldDefaultCount(field_idx);
-	val->Assign(field_idx, val_mgr->GetCount(old + size));
+	val->Assign(field_idx, val_mgr->Count(old + size));
 	}
 
 void File::SetTotalBytes(uint64_t size)
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Total bytes %" PRIu64, id.c_str(), size);
-	val->Assign(total_bytes_idx, val_mgr->GetCount(size));
+	val->Assign(total_bytes_idx, val_mgr->Count(size));
 	}
 
 bool File::IsComplete() const
@@ -455,8 +455,8 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 				{
 				FileEvent(file_reassembly_overflow, {
 					IntrusivePtr{NewRef{}, val},
-					IntrusivePtr{AdoptRef{}, val_mgr->GetCount(current_offset)},
-					IntrusivePtr{AdoptRef{}, val_mgr->GetCount(gap_bytes)}
+					val_mgr->Count(current_offset),
+					val_mgr->Count(gap_bytes)
 				});
 				}
 			}
@@ -600,8 +600,8 @@ void File::Gap(uint64_t offset, uint64_t len)
 		{
 		FileEvent(file_gap, {
 			IntrusivePtr{NewRef{}, val},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(offset)},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(len)}
+			val_mgr->Count(offset),
+			val_mgr->Count(len)
 		});
 		}
 

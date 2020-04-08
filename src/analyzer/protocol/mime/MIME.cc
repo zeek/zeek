@@ -1303,14 +1303,12 @@ TableVal* MIME_Message::BuildHeaderTable(MIME_HeaderList& hlist)
 
 	for ( unsigned int i = 0; i < hlist.size(); ++i )
 		{
-		Val* index = val_mgr->GetCount(i+1);	// index starting from 1
+		auto index = val_mgr->Count(i + 1);	// index starting from 1
 
 		MIME_Header* h = hlist[i];
 		RecordVal* header_record = BuildHeaderVal(h);
 
-		t->Assign(index, header_record);
-
-		Unref(index);
+		t->Assign(index.get(), header_record);
 		}
 
 	return t;
@@ -1367,7 +1365,7 @@ void MIME_Mail::Done()
 
 		analyzer->EnqueueConnEvent(mime_content_hash,
 			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(content_hash_length)},
+			val_mgr->Count(content_hash_length),
 			make_intrusive<StringVal>(new BroString(true, digest, 16))
 		);
 		}
@@ -1407,7 +1405,7 @@ void MIME_Mail::EndEntity(MIME_Entity* /* entity */)
 
 		analyzer->EnqueueConnEvent(mime_entity_data,
 			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(s->Len())},
+			val_mgr->Count(s->Len()),
 			make_intrusive<StringVal>(s)
 		);
 
@@ -1474,7 +1472,7 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 
 		analyzer->EnqueueConnEvent(mime_segment_data,
 			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(data_len)},
+			val_mgr->Count(data_len),
 			make_intrusive<StringVal>(data_len, data)
 		);
 		}
@@ -1521,7 +1519,7 @@ void MIME_Mail::SubmitAllData()
 
 		analyzer->EnqueueConnEvent(mime_all_data,
 			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(s->Len())},
+			val_mgr->Count(s->Len()),
 			make_intrusive<StringVal>(s)
 		);
 		}

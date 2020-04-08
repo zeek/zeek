@@ -352,7 +352,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 				EnqueueConnEvent(smtp_reply,
 					IntrusivePtr{AdoptRef{}, BuildConnVal()},
 					val_mgr->Bool(orig),
-					IntrusivePtr{AdoptRef{}, val_mgr->GetCount(reply_code)},
+					val_mgr->Count(reply_code),
 					make_intrusive<StringVal>(cmd),
 					make_intrusive<StringVal>(end_of_line - line, line),
 					val_mgr->Bool((pending_reply > 0))

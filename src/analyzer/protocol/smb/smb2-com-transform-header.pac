@@ -6,9 +6,9 @@ refine connection SMB_Conn += {
 
 		r->Assign(0, bytestring_to_val(${hdr.signature}));
 		r->Assign(1, bytestring_to_val(${hdr.nonce}));
-		r->Assign(2, val_mgr->GetCount(${hdr.orig_msg_size}));
-		r->Assign(3, val_mgr->GetCount(${hdr.flags}));
-		r->Assign(4, val_mgr->GetCount(${hdr.session_id}));
+		r->Assign(2, val_mgr->Count(${hdr.orig_msg_size}));
+		r->Assign(3, val_mgr->Count(${hdr.flags}));
+		r->Assign(4, val_mgr->Count(${hdr.session_id}));
 
 		return r;
 		%}

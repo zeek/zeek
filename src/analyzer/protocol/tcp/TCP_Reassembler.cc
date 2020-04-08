@@ -154,8 +154,8 @@ void TCP_Reassembler::Gap(uint64_t seq, uint64_t len)
 		dst_analyzer->EnqueueConnEvent(content_gap,
 			IntrusivePtr{AdoptRef{}, dst_analyzer->BuildConnVal()},
 			val_mgr->Bool(IsOrig()),
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(seq)},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(len)}
+			val_mgr->Count(seq),
+			val_mgr->Count(len)
 		);
 
 	if ( type == Direct )
@@ -615,7 +615,7 @@ void TCP_Reassembler::DeliverBlock(uint64_t seq, int len, const u_char* data)
 		tcp_analyzer->EnqueueConnEvent(tcp_contents,
 			IntrusivePtr{AdoptRef{}, tcp_analyzer->BuildConnVal()},
 			val_mgr->Bool(IsOrig()),
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(seq)},
+			val_mgr->Count(seq),
 			make_intrusive<StringVal>(len, (const char*) data)
 		);
 

@@ -787,7 +787,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 		switch ( tag ) {
 		case TYPE_COUNT:
 		case TYPE_COUNTER:
-			*pval = {AdoptRef{}, val_mgr->GetCount(*kp)};
+			*pval = val_mgr->Count(*kp);
 			break;
 
 		case TYPE_PORT:

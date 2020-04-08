@@ -73,24 +73,24 @@ refine flow RDP_Flow += {
 			ec_flags->Assign(8, val_mgr->Bool(${ccore.SUPPORT_HEARTBEAT_PDU}));
 
 			RecordVal* ccd = new RecordVal(BifType::Record::RDP::ClientCoreData);
-			ccd->Assign(0, val_mgr->GetCount(${ccore.version_major}));
-			ccd->Assign(1, val_mgr->GetCount(${ccore.version_minor}));
-			ccd->Assign(2, val_mgr->GetCount(${ccore.desktop_width}));
-			ccd->Assign(3, val_mgr->GetCount(${ccore.desktop_height}));
-			ccd->Assign(4, val_mgr->GetCount(${ccore.color_depth}));
-			ccd->Assign(5, val_mgr->GetCount(${ccore.sas_sequence}));
-			ccd->Assign(6, val_mgr->GetCount(${ccore.keyboard_layout}));
-			ccd->Assign(7, val_mgr->GetCount(${ccore.client_build}));
+			ccd->Assign(0, val_mgr->Count(${ccore.version_major}));
+			ccd->Assign(1, val_mgr->Count(${ccore.version_minor}));
+			ccd->Assign(2, val_mgr->Count(${ccore.desktop_width}));
+			ccd->Assign(3, val_mgr->Count(${ccore.desktop_height}));
+			ccd->Assign(4, val_mgr->Count(${ccore.color_depth}));
+			ccd->Assign(5, val_mgr->Count(${ccore.sas_sequence}));
+			ccd->Assign(6, val_mgr->Count(${ccore.keyboard_layout}));
+			ccd->Assign(7, val_mgr->Count(${ccore.client_build}));
 			ccd->Assign(8, utf16_bytestring_to_utf8_val(connection()->bro_analyzer()->Conn(), ${ccore.client_name}));
-			ccd->Assign(9, val_mgr->GetCount(${ccore.keyboard_type}));
-			ccd->Assign(10, val_mgr->GetCount(${ccore.keyboard_sub}));
-			ccd->Assign(11, val_mgr->GetCount(${ccore.keyboard_function_key}));
+			ccd->Assign(9, val_mgr->Count(${ccore.keyboard_type}));
+			ccd->Assign(10, val_mgr->Count(${ccore.keyboard_sub}));
+			ccd->Assign(11, val_mgr->Count(${ccore.keyboard_function_key}));
 			ccd->Assign(12, utf16_bytestring_to_utf8_val(connection()->bro_analyzer()->Conn(), ${ccore.ime_file_name}));
-			ccd->Assign(13, val_mgr->GetCount(${ccore.post_beta2_color_depth}));
-			ccd->Assign(14, val_mgr->GetCount(${ccore.client_product_id}));
-			ccd->Assign(15, val_mgr->GetCount(${ccore.serial_number}));
-			ccd->Assign(16, val_mgr->GetCount(${ccore.high_color_depth}));
-			ccd->Assign(17, val_mgr->GetCount(${ccore.supported_color_depths}));
+			ccd->Assign(13, val_mgr->Count(${ccore.post_beta2_color_depth}));
+			ccd->Assign(14, val_mgr->Count(${ccore.client_product_id}));
+			ccd->Assign(15, val_mgr->Count(${ccore.serial_number}));
+			ccd->Assign(16, val_mgr->Count(${ccore.high_color_depth}));
+			ccd->Assign(17, val_mgr->Count(${ccore.supported_color_depths}));
 			ccd->Assign(18, ec_flags);
 			ccd->Assign(19, utf16_bytestring_to_utf8_val(connection()->bro_analyzer()->Conn(), ${ccore.dig_product_id}));
 
@@ -108,8 +108,8 @@ refine flow RDP_Flow += {
 			return false;
 
 		RecordVal* csd = new RecordVal(BifType::Record::RDP::ClientSecurityData);
-		csd->Assign(0, val_mgr->GetCount(${csec.encryption_methods}));
-		csd->Assign(1, val_mgr->GetCount(${csec.ext_encryption_methods}));
+		csd->Assign(0, val_mgr->Count(${csec.encryption_methods}));
+		csd->Assign(1, val_mgr->Count(${csec.ext_encryption_methods}));
 
 		BifEvent::generate_rdp_client_security_data(connection()->bro_analyzer(),
 		                                            connection()->bro_analyzer()->Conn(),
@@ -131,7 +131,7 @@ refine flow RDP_Flow += {
 				RecordVal* channel_def = new RecordVal(BifType::Record::RDP::ClientChannelDef);
 
 				channel_def->Assign(0, bytestring_to_val(${cnetwork.channel_def_array[i].name}));
-				channel_def->Assign(1, val_mgr->GetCount(${cnetwork.channel_def_array[i].options}));
+				channel_def->Assign(1, val_mgr->Count(${cnetwork.channel_def_array[i].options}));
 
 				channel_def->Assign(2, val_mgr->Bool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_INITIALIZED}));
 				channel_def->Assign(3, val_mgr->Bool(${cnetwork.channel_def_array[i].CHANNEL_OPTION_ENCRYPT_RDP}));
@@ -162,10 +162,10 @@ refine flow RDP_Flow += {
 			return false;
 
 		RecordVal* ccld = new RecordVal(BifType::Record::RDP::ClientClusterData);
-		ccld->Assign(0, val_mgr->GetCount(${ccluster.flags}));
-		ccld->Assign(1, val_mgr->GetCount(${ccluster.redir_session_id}));
+		ccld->Assign(0, val_mgr->Count(${ccluster.flags}));
+		ccld->Assign(1, val_mgr->Count(${ccluster.redir_session_id}));
 		ccld->Assign(2, val_mgr->Bool(${ccluster.REDIRECTION_SUPPORTED}));
-		ccld->Assign(3, val_mgr->GetCount(${ccluster.SERVER_SESSION_REDIRECTION_VERSION_MASK}));
+		ccld->Assign(3, val_mgr->Count(${ccluster.SERVER_SESSION_REDIRECTION_VERSION_MASK}));
 		ccld->Assign(4, val_mgr->Bool(${ccluster.REDIRECTED_SESSIONID_FIELD_VALID}));
 		ccld->Assign(5, val_mgr->Bool(${ccluster.REDIRECTED_SMARTCARD}));
 

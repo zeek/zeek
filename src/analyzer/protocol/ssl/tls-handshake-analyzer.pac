@@ -80,7 +80,7 @@ refine connection Handshake_Conn += {
 		if ( point_format_list )
 			{
 			for ( unsigned int i = 0; i < point_format_list->size(); ++i )
-				points->Assign(i, val_mgr->GetCount((*point_format_list)[i]));
+				points->Assign(i, val_mgr->Count((*point_format_list)[i]));
 			}
 
 		BifEvent::generate_ssl_extension_ec_point_formats(bro_analyzer(), bro_analyzer()->Conn(),
@@ -99,7 +99,7 @@ refine connection Handshake_Conn += {
 		if ( list )
 			{
 			for ( unsigned int i = 0; i < list->size(); ++i )
-				curves->Assign(i, val_mgr->GetCount((*list)[i]));
+				curves->Assign(i, val_mgr->Count((*list)[i]));
 			}
 
 		BifEvent::generate_ssl_extension_elliptic_curves(bro_analyzer(), bro_analyzer()->Conn(),
@@ -118,7 +118,7 @@ refine connection Handshake_Conn += {
 		if ( keyshare )
 			{
 			for ( unsigned int i = 0; i < keyshare->size(); ++i )
-				nglist->Assign(i, val_mgr->GetCount((*keyshare)[i]->namedgroup()));
+				nglist->Assign(i, val_mgr->Count((*keyshare)[i]->namedgroup()));
 			}
 
 		BifEvent::generate_ssl_extension_key_share(bro_analyzer(), bro_analyzer()->Conn(), ${rec.is_orig}, nglist);
@@ -133,7 +133,7 @@ refine connection Handshake_Conn += {
 
 		VectorVal* nglist = new VectorVal(internal_type("index_vec")->AsVectorType());
 
-		nglist->Assign(0u, val_mgr->GetCount(keyshare->namedgroup()));
+		nglist->Assign(0u, val_mgr->Count(keyshare->namedgroup()));
 		BifEvent::generate_ssl_extension_key_share(bro_analyzer(), bro_analyzer()->Conn(), ${rec.is_orig}, nglist);
 		return true;
 		%}
@@ -145,7 +145,7 @@ refine connection Handshake_Conn += {
 
 		VectorVal* nglist = new VectorVal(internal_type("index_vec")->AsVectorType());
 
-		nglist->Assign(0u, val_mgr->GetCount(namedgroup));
+		nglist->Assign(0u, val_mgr->Count(namedgroup));
 		BifEvent::generate_ssl_extension_key_share(bro_analyzer(), bro_analyzer()->Conn(), ${rec.is_orig}, nglist);
 		return true;
 		%}
@@ -162,8 +162,8 @@ refine connection Handshake_Conn += {
 			for ( unsigned int i = 0; i < supported_signature_algorithms->size(); ++i )
 				{
 				RecordVal* el = new RecordVal(BifType::Record::SSL::SignatureAndHashAlgorithm);
-				el->Assign(0, val_mgr->GetCount((*supported_signature_algorithms)[i]->HashAlgorithm()));
-				el->Assign(1, val_mgr->GetCount((*supported_signature_algorithms)[i]->SignatureAlgorithm()));
+				el->Assign(0, val_mgr->Count((*supported_signature_algorithms)[i]->HashAlgorithm()));
+				el->Assign(1, val_mgr->Count((*supported_signature_algorithms)[i]->SignatureAlgorithm()));
 				slist->Assign(i, el);
 				}
 			}
@@ -233,7 +233,7 @@ refine connection Handshake_Conn += {
 		if ( versions_list )
 			{
 			for ( unsigned int i = 0; i < versions_list->size(); ++i )
-				versions->Assign(i, val_mgr->GetCount((*versions_list)[i]));
+				versions->Assign(i, val_mgr->Count((*versions_list)[i]));
 			}
 
 		BifEvent::generate_ssl_extension_supported_versions(bro_analyzer(), bro_analyzer()->Conn(),
@@ -248,7 +248,7 @@ refine connection Handshake_Conn += {
 			return true;
 
 		VectorVal* versions = new VectorVal(internal_type("index_vec")->AsVectorType());
-		versions->Assign(0u, val_mgr->GetCount(version));
+		versions->Assign(0u, val_mgr->Count(version));
 
 		BifEvent::generate_ssl_extension_supported_versions(bro_analyzer(), bro_analyzer()->Conn(),
 			${rec.is_orig}, versions);
@@ -266,7 +266,7 @@ refine connection Handshake_Conn += {
 		if ( mode_list )
 			{
 			for ( unsigned int i = 0; i < mode_list->size(); ++i )
-				modes->Assign(i, val_mgr->GetCount((*mode_list)[i]));
+				modes->Assign(i, val_mgr->Count((*mode_list)[i]));
 			}
 
 		BifEvent::generate_ssl_extension_psk_key_exchange_modes(bro_analyzer(), bro_analyzer()->Conn(),
@@ -345,14 +345,14 @@ refine connection Handshake_Conn += {
 			RecordVal* ha = new RecordVal(BifType::Record::SSL::SignatureAndHashAlgorithm);
 			if ( ${kex.signed_params.uses_signature_and_hashalgorithm} )
 				{
-				ha->Assign(0, val_mgr->GetCount(${kex.signed_params.algorithm.HashAlgorithm}));
-				ha->Assign(1, val_mgr->GetCount(${kex.signed_params.algorithm.SignatureAlgorithm}));
+				ha->Assign(0, val_mgr->Count(${kex.signed_params.algorithm.HashAlgorithm}));
+				ha->Assign(1, val_mgr->Count(${kex.signed_params.algorithm.SignatureAlgorithm}));
 				}
 			else
 				{
 				// set to impossible value
-				ha->Assign(0, val_mgr->GetCount(256));
-				ha->Assign(1, val_mgr->GetCount(256));
+				ha->Assign(0, val_mgr->Count(256));
+				ha->Assign(1, val_mgr->Count(256));
 				}
 
 			BifEvent::generate_ssl_server_signature(bro_analyzer(),
@@ -404,8 +404,8 @@ refine connection Handshake_Conn += {
 			return true;
 
 		RecordVal* ha = new RecordVal(BifType::Record::SSL::SignatureAndHashAlgorithm);
-		ha->Assign(0, val_mgr->GetCount(digitally_signed_algorithms->HashAlgorithm()));
-		ha->Assign(1, val_mgr->GetCount(digitally_signed_algorithms->SignatureAlgorithm()));
+		ha->Assign(0, val_mgr->Count(digitally_signed_algorithms->HashAlgorithm()));
+		ha->Assign(1, val_mgr->Count(digitally_signed_algorithms->SignatureAlgorithm()));
 
 		BifEvent::generate_ssl_extension_signed_certificate_timestamp(bro_analyzer(),
 			bro_analyzer()->Conn(), ${rec.is_orig},
@@ -434,14 +434,14 @@ refine connection Handshake_Conn += {
 			RecordVal* ha = new RecordVal(BifType::Record::SSL::SignatureAndHashAlgorithm);
 			if ( ${signed_params.uses_signature_and_hashalgorithm} )
 				{
-				ha->Assign(0, val_mgr->GetCount(${signed_params.algorithm.HashAlgorithm}));
-				ha->Assign(1, val_mgr->GetCount(${signed_params.algorithm.SignatureAlgorithm}));
+				ha->Assign(0, val_mgr->Count(${signed_params.algorithm.HashAlgorithm}));
+				ha->Assign(1, val_mgr->Count(${signed_params.algorithm.SignatureAlgorithm}));
 				}
 				else
 				{
 				// set to impossible value
-				ha->Assign(0, val_mgr->GetCount(256));
-				ha->Assign(1, val_mgr->GetCount(256));
+				ha->Assign(0, val_mgr->Count(256));
+				ha->Assign(1, val_mgr->Count(256));
 				}
 
 			BifEvent::generate_ssl_server_signature(bro_analyzer(),
@@ -488,7 +488,7 @@ refine connection Handshake_Conn += {
 				{
 				RecordVal* el = new RecordVal(BifType::Record::SSL::PSKIdentity);
 				el->Assign(0, make_intrusive<StringVal>(identity->identity().length(), (const char*) identity->identity().data()));
-				el->Assign(1, val_mgr->GetCount(identity->obfuscated_ticket_age()));
+				el->Assign(1, val_mgr->Count(identity->obfuscated_ticket_age()));
 				slist->Assign(slist->Size(), el);
 				}
 			}

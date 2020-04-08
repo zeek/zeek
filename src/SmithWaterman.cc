@@ -95,7 +95,7 @@ VectorVal* BroSubstring::VecToPolicy(Vec* vec)
 
 				auto align_val = make_intrusive<RecordVal>(sw_align_type);
 				align_val->Assign(0, make_intrusive<StringVal>(new BroString(*align.string)));
-				align_val->Assign(1, val_mgr->GetCount(align.index));
+				align_val->Assign(1, val_mgr->Count(align.index));
 
 				aligns->Assign(j + 1, std::move(align_val));
 				}

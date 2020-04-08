@@ -75,7 +75,7 @@ void Gnutella_Analyzer::Done()
 					IntrusivePtr{AdoptRef{}, BuildConnVal()},
 					make_intrusive<StringVal>(p->msg),
 					val_mgr->Bool((i == 0)),
-					IntrusivePtr{AdoptRef{}, val_mgr->GetCount(p->msg_pos)}
+					val_mgr->Count(p->msg_pos)
 				);
 
 			else if ( ! p->msg_sent && p->payload_left )
@@ -217,12 +217,12 @@ void Gnutella_Analyzer::SendEvents(GnutellaMsgState* p, bool is_orig)
 		EnqueueConnEvent(gnutella_binary_msg,
 			IntrusivePtr{AdoptRef{}, BuildConnVal()},
 			val_mgr->Bool(is_orig),
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(p->msg_type)},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(p->msg_ttl)},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(p->msg_hops)},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(p->msg_len)},
+			val_mgr->Count(p->msg_type),
+			val_mgr->Count(p->msg_ttl),
+			val_mgr->Count(p->msg_hops),
+			val_mgr->Count(p->msg_len),
 			make_intrusive<StringVal>(p->payload),
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(p->payload_len)},
+			val_mgr->Count(p->payload_len),
 			val_mgr->Bool((p->payload_len < std::min(p->msg_len, (unsigned int)GNUTELLA_MAX_PAYLOAD))),
 			val_mgr->Bool((p->payload_left == 0))
 		);

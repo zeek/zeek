@@ -19,7 +19,7 @@ refine connection SMB_Conn += {
 		if ( smb2_tree_connect_response )
 			{
 			RecordVal* resp = new RecordVal(BifType::Record::SMB2::TreeConnectResponse);
-			resp->Assign(0, val_mgr->GetCount(${val.share_type}));
+			resp->Assign(0, val_mgr->Count(${val.share_type}));
 
 			BifEvent::generate_smb2_tree_connect_response(bro_analyzer(),
 			                                              bro_analyzer()->Conn(),

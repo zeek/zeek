@@ -193,7 +193,7 @@ function Reporter::set_weird_sampling_whitelist%(weird_sampling_whitelist: strin
 ## Returns: current weird sampling threshold.
 function Reporter::get_weird_sampling_threshold%(%) : count
 	%{
-	return val_mgr->GetCount(reporter->GetWeirdSamplingThreshold());
+	return val_mgr->Count(reporter->GetWeirdSamplingThreshold());
 	%}
 
 ## Sets the current weird sampling threshold
@@ -213,7 +213,7 @@ function Reporter::set_weird_sampling_threshold%(weird_sampling_threshold: count
 ## Returns: weird sampling rate.
 function Reporter::get_weird_sampling_rate%(%) : count
 	%{
-	return val_mgr->GetCount(reporter->GetWeirdSamplingRate());
+	return val_mgr->Count(reporter->GetWeirdSamplingRate());
 	%}
 
 ## Sets the weird sampling rate.

@@ -25,10 +25,10 @@ function levenshtein_distance%(s1: string, s2: string%): count
 	unsigned int m = s2->Len();
 
 	if ( ! n )
-		return val_mgr->GetCount(m);
+		return val_mgr->Count(m);
 
 	if ( ! m )
-		return val_mgr->GetCount(n);
+		return val_mgr->Count(n);
 
 	vector<vector<unsigned int> > d(n + 1, vector<unsigned int>(m + 1));
 
@@ -47,7 +47,7 @@ function levenshtein_distance%(s1: string, s2: string%): count
 				      d[i-1][j-1] + (s1->Bytes()[i-1] == s2->Bytes()[j-1] ? 0 : 1));
 		}
 
-	return val_mgr->GetCount(d[n][m]);
+	return val_mgr->Count(d[n][m]);
 	%}
 
 ## Concatenates all arguments into a single string. The function takes a
@@ -285,9 +285,8 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, int incl_sep, int max_num_sep)
 			n=0;
 			}
 
-		Val* ind = val_mgr->GetCount(++num);
-		a->Assign(ind, make_intrusive<StringVal>(offset, (const char*) s));
-		Unref(ind);
+		auto ind = val_mgr->Count(++num);
+		a->Assign(ind.get(), make_intrusive<StringVal>(offset, (const char*) s));
 
 		// No more separators will be needed if this is the end of string.
 		if ( n <= 0 )
@@ -295,9 +294,8 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, int incl_sep, int max_num_sep)
 
 		if ( incl_sep )
 			{ // including the part that matches the pattern
-			ind = val_mgr->GetCount(++num);
-			a->Assign(ind, make_intrusive<StringVal>(end_of_match, (const char*) s+offset));
-			Unref(ind);
+			ind = val_mgr->Count(++num);
+			a->Assign(ind.get(), make_intrusive<StringVal>(end_of_match, (const char*) s+offset));
 			}
 
 		if ( max_num_sep && num_sep >= max_num_sep )
@@ -459,7 +457,7 @@ function strcmp%(s1: string, s2: string%): int
 ## .. zeek:see:: find_all find_last
 function strstr%(big: string, little: string%): count
 	%{
-	return val_mgr->GetCount(
+	return val_mgr->Count(
 		1 + big->AsString()->FindSubstring(little->AsString()));
 	%}
 

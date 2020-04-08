@@ -29,10 +29,10 @@
 	RecordVal* HeaderToBro(ModbusTCP_TransportHeader *header)
 		{
 		RecordVal* modbus_header = new RecordVal(BifType::Record::ModbusHeaders);
-		modbus_header->Assign(0, val_mgr->GetCount(header->tid()));
-		modbus_header->Assign(1, val_mgr->GetCount(header->pid()));
-		modbus_header->Assign(2, val_mgr->GetCount(header->uid()));
-		modbus_header->Assign(3, val_mgr->GetCount(header->fc()));
+		modbus_header->Assign(0, val_mgr->Count(header->tid()));
+		modbus_header->Assign(1, val_mgr->Count(header->pid()));
+		modbus_header->Assign(2, val_mgr->Count(header->uid()));
+		modbus_header->Assign(3, val_mgr->Count(header->fc()));
 		return modbus_header;
 		}
 
@@ -213,7 +213,7 @@ refine flow ModbusTCP_Flow += {
 			VectorVal* t = new VectorVal(BifType::Vector::ModbusRegisters);
 			for ( unsigned int i=0; i < ${message.registers}->size(); ++i )
 				{
-				Val* r = val_mgr->GetCount(${message.registers[i]});
+				auto r = val_mgr->Count(${message.registers[i]});
 				t->Assign(i, r);
 				}
 
@@ -256,7 +256,7 @@ refine flow ModbusTCP_Flow += {
 			VectorVal* t = new VectorVal(BifType::Vector::ModbusRegisters);
 			for ( unsigned int i=0; i < (${message.registers})->size(); ++i )
 				{
-				Val* r = val_mgr->GetCount(${message.registers[i]});
+				auto r = val_mgr->Count(${message.registers[i]});
 				t->Assign(i, r);
 				}
 
@@ -399,7 +399,7 @@ refine flow ModbusTCP_Flow += {
 			VectorVal * t = new VectorVal(BifType::Vector::ModbusRegisters);
 			for ( unsigned int i = 0; i < (${message.registers}->size()); ++i )
 				{
-				Val* r = val_mgr->GetCount(${message.registers[i]});
+				auto r = val_mgr->Count(${message.registers[i]});
 				t->Assign(i, r);
 				}
 
@@ -435,13 +435,13 @@ refine flow ModbusTCP_Flow += {
 			//VectorVal *t = create_vector_of_count();
 			//for ( unsigned int i = 0; i < (${message.references}->size()); ++i )
 			//	{
-			//	Val* r = val_mgr->GetCount((${message.references[i].ref_type}));
+			//	auto r = val_mgr->Count((${message.references[i].ref_type}));
 			//	t->Assign(i, r);
 			//
-			//	Val* k = val_mgr->GetCount((${message.references[i].file_num}));
+			//	auto k = val_mgr->Count((${message.references[i].file_num}));
 			//	t->Assign(i, k);
 			//
-			//	Val* l = val_mgr->GetCount((${message.references[i].record_num}));
+			//	auto l = val_mgr->Count((${message.references[i].record_num}));
 			//	t->Assign(i, l);
 			//	}
 
@@ -462,7 +462,7 @@ refine flow ModbusTCP_Flow += {
 			//for ( unsigned int i = 0; i < ${message.references}->size(); ++i )
 			//	{
 			//	//TODO: work the reference type in here somewhere
-			//	Val* r = val_mgr->GetCount(${message.references[i].record_data}));
+			//	auto r = val_mgr->Count(${message.references[i].record_data}));
 			//	t->Assign(i, r);
 			//	}
 
@@ -482,18 +482,18 @@ refine flow ModbusTCP_Flow += {
 			//VectorVal* t = create_vector_of_count();
 			//for ( unsigned int i = 0; i < (${message.references}->size()); ++i )
 			//	{
-			//	Val* r = val_mgr->GetCount((${message.references[i].ref_type}));
+			//	auto r = val_mgr->Count((${message.references[i].ref_type}));
 			//	t->Assign(i, r);
 			//
-			//	Val* k = val_mgr->GetCount((${message.references[i].file_num}));
+			//	auto k = val_mgr->Count((${message.references[i].file_num}));
 			//	t->Assign(i, k);
 			//
-			//	Val* n = val_mgr->GetCount((${message.references[i].record_num}));
+			//	auto n = val_mgr->Count((${message.references[i].record_num}));
 			//	t->Assign(i, n);
 			//
 			//	for ( unsigned int j = 0; j < (${message.references[i].register_value}->size()); ++j )
 			//		{
-			//		k = val_mgr->GetCount((${message.references[i].register_value[j]}));
+			//		k = val_mgr->Count((${message.references[i].register_value[j]}));
 			//		t->Assign(i, k);
 			//		}
 			//	}
@@ -515,18 +515,18 @@ refine flow ModbusTCP_Flow += {
 			//VectorVal* t = create_vector_of_count();
 			//for ( unsigned int i = 0; i < (${messages.references}->size()); ++i )
 			//	{
-			//	Val* r = val_mgr->GetCount((${message.references[i].ref_type}));
+			//	auto r = val_mgr->Count((${message.references[i].ref_type}));
 			//	t->Assign(i, r);
 			//
-			//	Val* f = val_mgr->GetCount((${message.references[i].file_num}));
+			//	auto f = val_mgr->Count((${message.references[i].file_num}));
 			//	t->Assign(i, f);
 			//
-			//	Val* rn = val_mgr->GetCount((${message.references[i].record_num}));
+			//	auto rn = val_mgr->Count((${message.references[i].record_num}));
 			//	t->Assign(i, rn);
 			//
 			//	for ( unsigned int j = 0; j<(${message.references[i].register_value}->size()); ++j )
 			//		{
-			//		Val* k = val_mgr->GetCount((${message.references[i].register_value[j]}));
+			//		auto k = val_mgr->Count((${message.references[i].register_value[j]}));
 			//		t->Assign(i, k);
 			//		}
 
@@ -583,7 +583,7 @@ refine flow ModbusTCP_Flow += {
 			VectorVal* t = new VectorVal(BifType::Vector::ModbusRegisters);
 			for ( unsigned int i = 0; i < ${message.write_register_values}->size(); ++i )
 				{
-				Val* r = val_mgr->GetCount(${message.write_register_values[i]});
+				auto r = val_mgr->Count(${message.write_register_values[i]});
 				t->Assign(i, r);
 				}
 
@@ -614,7 +614,7 @@ refine flow ModbusTCP_Flow += {
 			VectorVal* t = new VectorVal(BifType::Vector::ModbusRegisters);
 			for ( unsigned int i = 0; i < ${message.registers}->size(); ++i )
 				{
-				Val* r = val_mgr->GetCount(${message.registers[i]});
+				auto r = val_mgr->Count(${message.registers[i]});
 				t->Assign(i, r);
 				}
 
@@ -657,7 +657,7 @@ refine flow ModbusTCP_Flow += {
 			VectorVal* t = create_vector_of_count();
 			for ( unsigned int i = 0; i < (${message.register_data})->size(); ++i )
 				{
-				Val* r = val_mgr->GetCount(${message.register_data[i]});
+				auto r = val_mgr->Count(${message.register_data[i]});
 				t->Assign(i, r);
 				}
 

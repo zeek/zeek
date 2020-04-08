@@ -62,8 +62,8 @@ void NetbiosSSN_Interpreter::ParseMessage(unsigned int type, unsigned int flags,
 		analyzer->EnqueueConnEvent(netbios_session_message,
 			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
 			val_mgr->Bool(is_query),
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(type)},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(len)}
+			val_mgr->Count(type),
+			val_mgr->Count(len)
 		);
 
 	switch ( type ) {

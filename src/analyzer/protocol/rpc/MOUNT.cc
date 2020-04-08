@@ -196,7 +196,7 @@ zeek::Args MOUNT_Interp::event_common_vl(RPC_CallInfo *c,
 
 	for (size_t i = 0; i < c->AuxGIDs().size(); ++i)
 		{
-		auxgids->Assign(i, val_mgr->GetCount(c->AuxGIDs()[i]));
+		auxgids->Assign(i, val_mgr->Count(c->AuxGIDs()[i]));
 		}
 
 	auto info = make_intrusive<RecordVal>(BifType::Record::MOUNT3::info_t);
@@ -204,13 +204,13 @@ zeek::Args MOUNT_Interp::event_common_vl(RPC_CallInfo *c,
 	info->Assign(1, BifType::Enum::MOUNT3::status_t->GetVal(mount_status));
 	info->Assign(2, make_intrusive<Val>(c->StartTime(), TYPE_TIME));
 	info->Assign(3, make_intrusive<Val>(c->LastTime() - c->StartTime(), TYPE_INTERVAL));
-	info->Assign(4, val_mgr->GetCount(c->RPCLen()));
+	info->Assign(4, val_mgr->Count(c->RPCLen()));
 	info->Assign(5, make_intrusive<Val>(rep_start_time, TYPE_TIME));
 	info->Assign(6, make_intrusive<Val>(rep_last_time - rep_start_time, TYPE_INTERVAL));
-	info->Assign(7, val_mgr->GetCount(reply_len));
-	info->Assign(8, val_mgr->GetCount(c->Uid()));
-	info->Assign(9, val_mgr->GetCount(c->Gid()));
-	info->Assign(10, val_mgr->GetCount(c->Stamp()));
+	info->Assign(7, val_mgr->Count(reply_len));
+	info->Assign(8, val_mgr->Count(c->Uid()));
+	info->Assign(9, val_mgr->Count(c->Gid()));
+	info->Assign(10, val_mgr->Count(c->Stamp()));
 	info->Assign(11, make_intrusive<StringVal>(c->MachineName()));
 	info->Assign(12, std::move(auxgids));
 

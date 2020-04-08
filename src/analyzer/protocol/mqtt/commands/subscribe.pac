@@ -26,7 +26,7 @@ refine flow MQTT_Flow += {
 				{
 				auto subscribe_topic = new StringVal(${topic.name.str}.length(),
 				                                     reinterpret_cast<const char*>(${topic.name.str}.begin()));
-				auto qos = val_mgr->GetCount(${topic.requested_QoS});
+				auto qos = val_mgr->Count(${topic.requested_QoS});
 				topics->Assign(topics->Size(), subscribe_topic);
 				qos_levels->Assign(qos_levels->Size(), qos);
 				}

@@ -47,7 +47,7 @@ Val* asn1_obj_to_val(const ASN1Encoding* obj)
 	RecordVal* rval = new RecordVal(BifType::Record::SNMP::ObjectValue);
 	uint8 tag = obj->meta()->tag();
 
-	rval->Assign(0, val_mgr->GetCount(tag));
+	rval->Assign(0, val_mgr->Count(tag));
 
 	switch ( tag ) {
 	case VARBIND_UNSPECIFIED_TAG:
@@ -93,7 +93,7 @@ Val* time_ticks_to_val(const TimeTicks* tt)
 RecordVal* build_hdr(const Header* header)
 	{
 	RecordVal* rv = new RecordVal(BifType::Record::SNMP::Header);
-	rv->Assign(0, val_mgr->GetCount(header->version()));
+	rv->Assign(0, val_mgr->Count(header->version()));
 
 	switch ( header->version() ) {
 	case SNMPV1_TAG:
@@ -133,7 +133,7 @@ RecordVal* build_hdrV3(const Header* header)
 	v3->Assign(0, asn1_integer_to_val(global_data->id(), TYPE_COUNT));
 	v3->Assign(1, asn1_integer_to_val(global_data->max_size(),
 	                                        TYPE_COUNT));
-	v3->Assign(2, val_mgr->GetCount(flags_byte));
+	v3->Assign(2, val_mgr->Count(flags_byte));
 	v3->Assign(3, val_mgr->Bool(flags_byte & 0x01));
 	v3->Assign(4, val_mgr->Bool(flags_byte & 0x02));
 	v3->Assign(5, val_mgr->Bool(flags_byte & 0x04));

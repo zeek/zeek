@@ -37,7 +37,7 @@ refine flow NTP_Flow += {
 		%{
 		RecordVal* rv = new RecordVal(BifType::Record::NTP::StandardMessage);
 
-		rv->Assign(0, val_mgr->GetCount(${nsm.stratum}));
+		rv->Assign(0, val_mgr->Count(${nsm.stratum}));
 		rv->Assign(1, make_intrusive<Val>(pow(2, ${nsm.poll}), TYPE_INTERVAL));
 		rv->Assign(2, make_intrusive<Val>(pow(2, ${nsm.precision}), TYPE_INTERVAL));
 		rv->Assign(3, proc_ntp_short(${nsm.root_delay}));
@@ -67,19 +67,19 @@ refine flow NTP_Flow += {
 
 		if ( ${nsm.mac_len} == 20 )
 			{
-			rv->Assign(12, val_mgr->GetCount(${nsm.mac.key_id}));
+			rv->Assign(12, val_mgr->Count(${nsm.mac.key_id}));
 			rv->Assign(13, bytestring_to_val(${nsm.mac.digest}));
 			}
 		else if ( ${nsm.mac_len} == 24 )
 			{
-			rv->Assign(12, val_mgr->GetCount(${nsm.mac_ext.key_id}));
+			rv->Assign(12, val_mgr->Count(${nsm.mac_ext.key_id}));
 			rv->Assign(13, bytestring_to_val(${nsm.mac_ext.digest}));
 			}
 
 		if ( ${nsm.has_exts} )
 			{
 			// TODO: add extension fields
-			rv->Assign(14, val_mgr->GetCount((uint32) ${nsm.exts}->size()));
+			rv->Assign(14, val_mgr->Count((uint32) ${nsm.exts}->size()));
 			}
 
 		return rv;
@@ -90,20 +90,20 @@ refine flow NTP_Flow += {
 		%{
 		RecordVal* rv = new RecordVal(BifType::Record::NTP::ControlMessage);
 
-		rv->Assign(0, val_mgr->GetCount(${ncm.OpCode}));
+		rv->Assign(0, val_mgr->Count(${ncm.OpCode}));
 		rv->Assign(1, val_mgr->Bool(${ncm.R}));
 		rv->Assign(2, val_mgr->Bool(${ncm.E}));
 		rv->Assign(3, val_mgr->Bool(${ncm.M}));
-		rv->Assign(4, val_mgr->GetCount(${ncm.sequence}));
-		rv->Assign(5, val_mgr->GetCount(${ncm.status}));
-		rv->Assign(6, val_mgr->GetCount(${ncm.association_id}));
+		rv->Assign(4, val_mgr->Count(${ncm.sequence}));
+		rv->Assign(5, val_mgr->Count(${ncm.status}));
+		rv->Assign(6, val_mgr->Count(${ncm.association_id}));
 
 		if ( ${ncm.c} > 0 )
 			rv->Assign(7, bytestring_to_val(${ncm.data}));
 
 		if ( ${ncm.has_control_mac} )
 			{
-			rv->Assign(8, val_mgr->GetCount(${ncm.mac.key_id}));
+			rv->Assign(8, val_mgr->Count(${ncm.mac.key_id}));
 			rv->Assign(9, bytestring_to_val(${ncm.mac.crypto_checksum}));
 			}
 
@@ -115,11 +115,11 @@ refine flow NTP_Flow += {
 		%{
 		RecordVal* rv = new RecordVal(BifType::Record::NTP::Mode7Message);
 
-		rv->Assign(0, val_mgr->GetCount(${m7.request_code}));
+		rv->Assign(0, val_mgr->Count(${m7.request_code}));
 		rv->Assign(1, val_mgr->Bool(${m7.auth_bit}));
-		rv->Assign(2, val_mgr->GetCount(${m7.sequence}));
-		rv->Assign(3, val_mgr->GetCount(${m7.implementation}));
-		rv->Assign(4, val_mgr->GetCount(${m7.error_code}));
+		rv->Assign(2, val_mgr->Count(${m7.sequence}));
+		rv->Assign(3, val_mgr->Count(${m7.implementation}));
+		rv->Assign(4, val_mgr->Count(${m7.error_code}));
 
 		if ( ${m7.data_len} > 0 )
 			rv->Assign(5, bytestring_to_val(${m7.data}));
@@ -136,8 +136,8 @@ refine flow NTP_Flow += {
 			return false;
 
 		RecordVal* rv = new RecordVal(BifType::Record::NTP::Message);
-		rv->Assign(0, val_mgr->GetCount(${msg.version}));
-		rv->Assign(1, val_mgr->GetCount(${msg.mode}));
+		rv->Assign(0, val_mgr->Count(${msg.version}));
+		rv->Assign(1, val_mgr->Count(${msg.mode}));
 
 		// The standard record
 		if ( ${msg.mode} >=1 && ${msg.mode} <= 5 )

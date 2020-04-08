@@ -588,7 +588,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 					IntrusivePtr{AdoptRef{}, BuildConnVal()},
 					val_mgr->Bool(orig),
 					make_intrusive<StringVal>(prefix.c_str()),
-					IntrusivePtr{AdoptRef{}, val_mgr->GetCount(code)},
+					val_mgr->Count(code),
 					make_intrusive<StringVal>(params.c_str())
 				);
 			break;
@@ -663,10 +663,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 					make_intrusive<StringVal>(parts[1].c_str()),
 					make_intrusive<StringVal>(parts[2].c_str()),
 					make_intrusive<AddrVal>(htonl(raw_ip)),
-					IntrusivePtr{AdoptRef{}, val_mgr->GetCount(atoi(parts[4].c_str()))},
-					IntrusivePtr{AdoptRef{}, parts.size() >= 6 ?
-						val_mgr->GetCount(atoi(parts[5].c_str())) :
-						val_mgr->GetCount(0)}
+					val_mgr->Count(atoi(parts[4].c_str())),
+					parts.size() >= 6 ? val_mgr->Count(atoi(parts[5].c_str())) : val_mgr->Count(0)
 				);
 			}
 

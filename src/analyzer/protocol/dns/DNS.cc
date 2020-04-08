@@ -52,7 +52,7 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
 			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
 			val_mgr->Bool(is_query),
 			IntrusivePtr{AdoptRef{}, msg.BuildHdrVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(len)}
+			val_mgr->Count(len)
 		);
 
 	// There is a great deal of non-DNS traffic that runs on port 53.
@@ -596,7 +596,7 @@ bool DNS_Interpreter::ParseRR_SOA(DNS_MsgInfo* msg,
 		auto r = make_intrusive<RecordVal>(dns_soa);
 		r->Assign(0, make_intrusive<StringVal>(new BroString(mname, mname_end - mname, true)));
 		r->Assign(1, make_intrusive<StringVal>(new BroString(rname, rname_end - rname, true)));
-		r->Assign(2, val_mgr->GetCount(serial));
+		r->Assign(2, val_mgr->Count(serial));
 		r->Assign(3, make_intrusive<IntervalVal>(double(refresh), Seconds));
 		r->Assign(4, make_intrusive<IntervalVal>(double(retry), Seconds));
 		r->Assign(5, make_intrusive<IntervalVal>(double(expire), Seconds));
@@ -637,7 +637,7 @@ bool DNS_Interpreter::ParseRR_MX(DNS_MsgInfo* msg,
 			IntrusivePtr{AdoptRef{}, msg->BuildHdrVal()},
 			IntrusivePtr{AdoptRef{}, msg->BuildAnswerVal()},
 			make_intrusive<StringVal>(new BroString(name, name_end - name, true)),
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(preference)}
+			val_mgr->Count(preference)
 		);
 
 	return true;
@@ -678,9 +678,9 @@ bool DNS_Interpreter::ParseRR_SRV(DNS_MsgInfo* msg,
 			IntrusivePtr{AdoptRef{}, msg->BuildHdrVal()},
 			IntrusivePtr{AdoptRef{}, msg->BuildAnswerVal()},
 			make_intrusive<StringVal>(new BroString(name, name_end - name, true)),
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(priority)},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(weight)},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(port)}
+			val_mgr->Count(priority),
+			val_mgr->Count(weight),
+			val_mgr->Count(port)
 		);
 
 	return true;
@@ -1371,7 +1371,7 @@ bool DNS_Interpreter::ParseRR_CAA(DNS_MsgInfo* msg,
 			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
 			IntrusivePtr{AdoptRef{}, msg->BuildHdrVal()},
 			IntrusivePtr{AdoptRef{}, msg->BuildAnswerVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(flags)},
+			val_mgr->Count(flags),
 			make_intrusive<StringVal>(tag),
 			make_intrusive<StringVal>(value)
 		);
@@ -1399,8 +1399,8 @@ void DNS_Interpreter::SendReplyOrRejectEvent(DNS_MsgInfo* msg,
 		IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
 		IntrusivePtr{AdoptRef{}, msg->BuildHdrVal()},
 		make_intrusive<StringVal>(question_name),
-		IntrusivePtr{AdoptRef{}, val_mgr->GetCount(qtype)},
-		IntrusivePtr{AdoptRef{}, val_mgr->GetCount(qclass)}
+		val_mgr->Count(qtype),
+		val_mgr->Count(qclass)
 	);
 	}
 
@@ -1446,19 +1446,19 @@ Val* DNS_MsgInfo::BuildHdrVal()
 	{
 	RecordVal* r = new RecordVal(dns_msg);
 
-	r->Assign(0, val_mgr->GetCount(id));
-	r->Assign(1, val_mgr->GetCount(opcode));
-	r->Assign(2, val_mgr->GetCount(rcode));
+	r->Assign(0, val_mgr->Count(id));
+	r->Assign(1, val_mgr->Count(opcode));
+	r->Assign(2, val_mgr->Count(rcode));
 	r->Assign(3, val_mgr->Bool(QR));
 	r->Assign(4, val_mgr->Bool(AA));
 	r->Assign(5, val_mgr->Bool(TC));
 	r->Assign(6, val_mgr->Bool(RD));
 	r->Assign(7, val_mgr->Bool(RA));
-	r->Assign(8, val_mgr->GetCount(Z));
-	r->Assign(9, val_mgr->GetCount(qdcount));
-	r->Assign(10, val_mgr->GetCount(ancount));
-	r->Assign(11, val_mgr->GetCount(nscount));
-	r->Assign(12, val_mgr->GetCount(arcount));
+	r->Assign(8, val_mgr->Count(Z));
+	r->Assign(9, val_mgr->Count(qdcount));
+	r->Assign(10, val_mgr->Count(ancount));
+	r->Assign(11, val_mgr->Count(nscount));
+	r->Assign(12, val_mgr->Count(arcount));
 
 	return r;
 	}
@@ -1468,10 +1468,10 @@ Val* DNS_MsgInfo::BuildAnswerVal()
 	RecordVal* r = new RecordVal(dns_answer);
 
 	Ref(query_name);
-	r->Assign(0, val_mgr->GetCount(int(answer_type)));
+	r->Assign(0, val_mgr->Count(int(answer_type)));
 	r->Assign(1, query_name);
-	r->Assign(2, val_mgr->GetCount(atype));
-	r->Assign(3, val_mgr->GetCount(aclass));
+	r->Assign(2, val_mgr->Count(atype));
+	r->Assign(3, val_mgr->Count(aclass));
 	r->Assign(4, make_intrusive<IntervalVal>(double(ttl), Seconds));
 
 	return r;
@@ -1484,14 +1484,14 @@ Val* DNS_MsgInfo::BuildEDNS_Val()
 	RecordVal* r = new RecordVal(dns_edns_additional);
 
 	Ref(query_name);
-	r->Assign(0, val_mgr->GetCount(int(answer_type)));
+	r->Assign(0, val_mgr->Count(int(answer_type)));
 	r->Assign(1, query_name);
 
 	// type = 0x29 or 41 = EDNS
-	r->Assign(2, val_mgr->GetCount(atype));
+	r->Assign(2, val_mgr->Count(atype));
 
 	// sender's UDP payload size, per RFC 2671 4.3
-	r->Assign(3, val_mgr->GetCount(aclass));
+	r->Assign(3, val_mgr->Count(aclass));
 
 	// Need to break the TTL field into three components:
 	// initial: [------------- ttl (32) ---------------------]
@@ -1504,11 +1504,11 @@ Val* DNS_MsgInfo::BuildEDNS_Val()
 
 	unsigned int return_error = (ercode << 8) | rcode;
 
-	r->Assign(4, val_mgr->GetCount(return_error));
-	r->Assign(5, val_mgr->GetCount(version));
-	r->Assign(6, val_mgr->GetCount(z));
+	r->Assign(4, val_mgr->Count(return_error));
+	r->Assign(5, val_mgr->Count(version));
+	r->Assign(6, val_mgr->Count(z));
 	r->Assign(7, make_intrusive<IntervalVal>(double(ttl), Seconds));
-	r->Assign(8, val_mgr->GetCount(is_query));
+	r->Assign(8, val_mgr->Count(is_query));
 
 	return r;
 	}
@@ -1519,16 +1519,16 @@ Val* DNS_MsgInfo::BuildTSIG_Val(struct TSIG_DATA* tsig)
 	double rtime = tsig->time_s + tsig->time_ms / 1000.0;
 
 	Ref(query_name);
-	// r->Assign(0, val_mgr->GetCount(int(answer_type)));
+	// r->Assign(0, val_mgr->Count(int(answer_type)));
 	r->Assign(0, query_name);
-	r->Assign(1, val_mgr->GetCount(int(answer_type)));
+	r->Assign(1, val_mgr->Count(int(answer_type)));
 	r->Assign(2, make_intrusive<StringVal>(tsig->alg_name));
 	r->Assign(3, make_intrusive<StringVal>(tsig->sig));
 	r->Assign(4, make_intrusive<Val>(rtime, TYPE_TIME));
 	r->Assign(5, make_intrusive<Val>(double(tsig->fudge), TYPE_TIME));
-	r->Assign(6, val_mgr->GetCount(tsig->orig_id));
-	r->Assign(7, val_mgr->GetCount(tsig->rr_error));
-	r->Assign(8, val_mgr->GetCount(is_query));
+	r->Assign(6, val_mgr->Count(tsig->orig_id));
+	r->Assign(7, val_mgr->Count(tsig->rr_error));
+	r->Assign(8, val_mgr->Count(is_query));
 
 	return r;
 	}
@@ -1539,17 +1539,17 @@ Val* DNS_MsgInfo::BuildRRSIG_Val(RRSIG_DATA* rrsig)
 
 	Ref(query_name);
 	r->Assign(0, query_name);
-	r->Assign(1, val_mgr->GetCount(int(answer_type)));
-	r->Assign(2, val_mgr->GetCount(rrsig->type_covered));
-	r->Assign(3, val_mgr->GetCount(rrsig->algorithm));
-	r->Assign(4, val_mgr->GetCount(rrsig->labels));
+	r->Assign(1, val_mgr->Count(int(answer_type)));
+	r->Assign(2, val_mgr->Count(rrsig->type_covered));
+	r->Assign(3, val_mgr->Count(rrsig->algorithm));
+	r->Assign(4, val_mgr->Count(rrsig->labels));
 	r->Assign(5, make_intrusive<IntervalVal>(double(rrsig->orig_ttl), Seconds));
 	r->Assign(6, make_intrusive<Val>(double(rrsig->sig_exp), TYPE_TIME));
 	r->Assign(7, make_intrusive<Val>(double(rrsig->sig_incep), TYPE_TIME));
-	r->Assign(8, val_mgr->GetCount(rrsig->key_tag));
+	r->Assign(8, val_mgr->Count(rrsig->key_tag));
 	r->Assign(9, make_intrusive<StringVal>(rrsig->signer_name));
 	r->Assign(10, make_intrusive<StringVal>(rrsig->signature));
-	r->Assign(11, val_mgr->GetCount(is_query));
+	r->Assign(11, val_mgr->Count(is_query));
 
 	return r;
 	}
@@ -1560,12 +1560,12 @@ Val* DNS_MsgInfo::BuildDNSKEY_Val(DNSKEY_DATA* dnskey)
 
 	Ref(query_name);
 	r->Assign(0, query_name);
-	r->Assign(1, val_mgr->GetCount(int(answer_type)));
-	r->Assign(2, val_mgr->GetCount(dnskey->dflags));
-	r->Assign(3, val_mgr->GetCount(dnskey->dprotocol));
-	r->Assign(4, val_mgr->GetCount(dnskey->dalgorithm));
+	r->Assign(1, val_mgr->Count(int(answer_type)));
+	r->Assign(2, val_mgr->Count(dnskey->dflags));
+	r->Assign(3, val_mgr->Count(dnskey->dprotocol));
+	r->Assign(4, val_mgr->Count(dnskey->dalgorithm));
 	r->Assign(5, make_intrusive<StringVal>(dnskey->public_key));
-	r->Assign(6, val_mgr->GetCount(is_query));
+	r->Assign(6, val_mgr->Count(is_query));
 
 	return r;
 	}
@@ -1576,16 +1576,16 @@ Val* DNS_MsgInfo::BuildNSEC3_Val(NSEC3_DATA* nsec3)
 
 	Ref(query_name);
 	r->Assign(0, query_name);
-	r->Assign(1, val_mgr->GetCount(int(answer_type)));
-	r->Assign(2, val_mgr->GetCount(nsec3->nsec_flags));
-	r->Assign(3, val_mgr->GetCount(nsec3->nsec_hash_algo));
-	r->Assign(4, val_mgr->GetCount(nsec3->nsec_iter));
-	r->Assign(5, val_mgr->GetCount(nsec3->nsec_salt_len));
+	r->Assign(1, val_mgr->Count(int(answer_type)));
+	r->Assign(2, val_mgr->Count(nsec3->nsec_flags));
+	r->Assign(3, val_mgr->Count(nsec3->nsec_hash_algo));
+	r->Assign(4, val_mgr->Count(nsec3->nsec_iter));
+	r->Assign(5, val_mgr->Count(nsec3->nsec_salt_len));
 	r->Assign(6, make_intrusive<StringVal>(nsec3->nsec_salt));
-	r->Assign(7, val_mgr->GetCount(nsec3->nsec_hlen));
+	r->Assign(7, val_mgr->Count(nsec3->nsec_hlen));
 	r->Assign(8, make_intrusive<StringVal>(nsec3->nsec_hash));
 	r->Assign(9, nsec3->bitmaps);
-	r->Assign(10, val_mgr->GetCount(is_query));
+	r->Assign(10, val_mgr->Count(is_query));
 
 	return r;
 	}
@@ -1596,12 +1596,12 @@ Val* DNS_MsgInfo::BuildDS_Val(DS_DATA* ds)
 
 	Ref(query_name);
 	r->Assign(0, query_name);
-	r->Assign(1, val_mgr->GetCount(int(answer_type)));
-	r->Assign(2, val_mgr->GetCount(ds->key_tag));
-	r->Assign(3, val_mgr->GetCount(ds->algorithm));
-	r->Assign(4, val_mgr->GetCount(ds->digest_type));
+	r->Assign(1, val_mgr->Count(int(answer_type)));
+	r->Assign(2, val_mgr->Count(ds->key_tag));
+	r->Assign(3, val_mgr->Count(ds->algorithm));
+	r->Assign(4, val_mgr->Count(ds->digest_type));
 	r->Assign(5, make_intrusive<StringVal>(ds->digest_val));
-	r->Assign(6, val_mgr->GetCount(is_query));
+	r->Assign(6, val_mgr->Count(is_query));
 
 	return r;
 	}

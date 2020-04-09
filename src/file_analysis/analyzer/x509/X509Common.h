@@ -7,7 +7,7 @@
 #define FILE_ANALYSIS_X509_COMMON
 
 #include "file_analysis/File.h"
-#include "Analyzer.h"
+#include "file_analysis/Analyzer.h"
 
 #include <openssl/x509.h>
 #include <openssl/asn1.h>

@@ -1,4 +1,11 @@
 
+3.0.4-dev.10 | 2020-04-09 17:10:47 -0700
+
+  * Fix include in X509Common.h (Johanna Amann, Corelight)
+
+    Give full path to Analyzer.h, so that X509Common.h is include-able by
+    plugins.
+
 3.0.4-dev.9 | 2020-04-09 17:02:50 -0700
 
   * Rebuild dependent table/record values after record redef (Jon Siwek, Corelight)

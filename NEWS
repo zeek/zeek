@@ -107,6 +107,10 @@ Deprecated Functionality
 - All ``val_mgr`` methods starting with "Get" are deprecated, use the new
   ``val_mgr`` methods that return ``IntrusivePtr``.
 
+- ``Connection::BuildConnVal()`` is deprecated, use ``Connection::ConnVal()``.
+
+- ``Analyzer::BuildConnVal()`` is deprecated, use ``Analyzer::ConnVal()``.
+
 Zeek 3.1.0
 ==========
 

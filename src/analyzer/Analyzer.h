@@ -549,7 +549,14 @@ public:
 	 * Convenience function that forwards directly to
 	 * Connection::BuildConnVal().
 	 */
+	[[deprecated("Remove in v4.1.  Use ConnVal() instead.")]]
 	RecordVal* BuildConnVal();
+
+	/**
+	 * Convenience function that forwards directly to
+	 * Connection::ConnVal().
+	 */
+	const IntrusivePtr<RecordVal>& ConnVal();
 
 	/**
 	 * Convenience function that forwards directly to the corresponding

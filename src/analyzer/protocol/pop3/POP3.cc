@@ -826,7 +826,7 @@ void POP3_Analyzer::StartTLS()
 		AddChildAnalyzer(ssl);
 
 	if ( pop3_starttls )
-		EnqueueConnEvent(pop3_starttls, IntrusivePtr{AdoptRef{}, BuildConnVal()});
+		EnqueueConnEvent(pop3_starttls, ConnVal());
 	}
 
 void POP3_Analyzer::AuthSuccessfull()
@@ -919,7 +919,7 @@ void POP3_Analyzer::POP3Event(EventHandlerPtr event, bool is_orig,
 	zeek::Args vl;
 	vl.reserve(2 + (bool)arg1 + (bool)arg2);
 
-	vl.emplace_back(AdoptRef{}, BuildConnVal());
+	vl.emplace_back(ConnVal());
 	vl.emplace_back(val_mgr->Bool(is_orig));
 
 	if ( arg1 )

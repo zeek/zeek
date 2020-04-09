@@ -85,7 +85,7 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 			}
 
 		EnqueueConnEvent(ident_request,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			ConnVal(),
 			val_mgr->Port(local_port, TRANSPORT_TCP),
 			val_mgr->Port(remote_port, TRANSPORT_TCP)
 		);
@@ -146,7 +146,7 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 			{
 			if ( ident_error )
 				EnqueueConnEvent(ident_error,
-					IntrusivePtr{AdoptRef{}, BuildConnVal()},
+					ConnVal(),
 					val_mgr->Port(local_port, TRANSPORT_TCP),
 					val_mgr->Port(remote_port, TRANSPORT_TCP),
 					make_intrusive<StringVal>(end_of_line - line, line)
@@ -179,7 +179,7 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 			line = skip_whitespace(colon + 1, end_of_line);
 
 			EnqueueConnEvent(ident_reply,
-				IntrusivePtr{AdoptRef{}, BuildConnVal()},
+				ConnVal(),
 				val_mgr->Port(local_port, TRANSPORT_TCP),
 				val_mgr->Port(remote_port, TRANSPORT_TCP),
 				make_intrusive<StringVal>(end_of_line - line, line),

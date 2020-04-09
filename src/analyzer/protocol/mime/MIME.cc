@@ -1364,7 +1364,7 @@ void MIME_Mail::Done()
 		md5_hash = nullptr;
 
 		analyzer->EnqueueConnEvent(mime_content_hash,
-			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			analyzer->ConnVal(),
 			val_mgr->Count(content_hash_length),
 			make_intrusive<StringVal>(new BroString(true, digest, 16))
 		);
@@ -1391,7 +1391,7 @@ void MIME_Mail::BeginEntity(MIME_Entity* /* entity */)
 	cur_entity_id.clear();
 
 	if ( mime_begin_entity )
-		analyzer->EnqueueConnEvent(mime_begin_entity, IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()});
+		analyzer->EnqueueConnEvent(mime_begin_entity, analyzer->ConnVal());
 
 	buffer_start = data_start = 0;
 	ASSERT(entity_content.size() == 0);
@@ -1404,7 +1404,7 @@ void MIME_Mail::EndEntity(MIME_Entity* /* entity */)
 		BroString* s = concatenate(entity_content);
 
 		analyzer->EnqueueConnEvent(mime_entity_data,
-			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			analyzer->ConnVal(),
 			val_mgr->Count(s->Len()),
 			make_intrusive<StringVal>(s)
 		);
@@ -1416,7 +1416,7 @@ void MIME_Mail::EndEntity(MIME_Entity* /* entity */)
 		}
 
 	if ( mime_end_entity )
-		analyzer->EnqueueConnEvent(mime_end_entity, IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()});
+		analyzer->EnqueueConnEvent(mime_end_entity, analyzer->ConnVal());
 
 	file_mgr->EndOfFile(analyzer->GetAnalyzerTag(), analyzer->Conn());
 	cur_entity_id.clear();
@@ -1426,7 +1426,7 @@ void MIME_Mail::SubmitHeader(MIME_Header* h)
 	{
 	if ( mime_one_header )
 		analyzer->EnqueueConnEvent(mime_one_header,
-			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			analyzer->ConnVal(),
 			IntrusivePtr{AdoptRef{}, BuildHeaderVal(h)}
 		);
 	}
@@ -1435,7 +1435,7 @@ void MIME_Mail::SubmitAllHeaders(MIME_HeaderList& hlist)
 	{
 	if ( mime_all_headers )
 		analyzer->EnqueueConnEvent(mime_all_headers,
-			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			analyzer->ConnVal(),
 			IntrusivePtr{AdoptRef{}, BuildHeaderTable(hlist)}
 		);
 	}
@@ -1471,7 +1471,7 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 		int data_len = (buf + len) - data;
 
 		analyzer->EnqueueConnEvent(mime_segment_data,
-			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			analyzer->ConnVal(),
 			val_mgr->Count(data_len),
 			make_intrusive<StringVal>(data_len, data)
 		);
@@ -1518,7 +1518,7 @@ void MIME_Mail::SubmitAllData()
 		delete_strings(all_content);
 
 		analyzer->EnqueueConnEvent(mime_all_data,
-			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			analyzer->ConnVal(),
 			val_mgr->Count(s->Len()),
 			make_intrusive<StringVal>(s)
 		);
@@ -1546,7 +1546,7 @@ void MIME_Mail::SubmitEvent(int event_type, const char* detail)
 
 	if ( mime_event )
 		analyzer->EnqueueConnEvent(mime_event,
-			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			analyzer->ConnVal(),
 			make_intrusive<StringVal>(category),
 			make_intrusive<StringVal>(detail)
 		);

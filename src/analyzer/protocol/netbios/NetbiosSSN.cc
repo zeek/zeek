@@ -60,7 +60,7 @@ void NetbiosSSN_Interpreter::ParseMessage(unsigned int type, unsigned int flags,
 	{
 	if ( netbios_session_message )
 		analyzer->EnqueueConnEvent(netbios_session_message,
-			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			analyzer->ConnVal(),
 			val_mgr->Bool(is_query),
 			val_mgr->Count(type),
 			val_mgr->Count(len)
@@ -322,13 +322,13 @@ void NetbiosSSN_Interpreter::Event(EventHandlerPtr event, const u_char* data,
 
 	if ( is_orig >= 0 )
 		analyzer->EnqueueConnEvent(event,
-			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			analyzer->ConnVal(),
 			val_mgr->Bool(is_orig),
 			make_intrusive<StringVal>(new BroString(data, len, false))
 		);
 	else
 		analyzer->EnqueueConnEvent(event,
-			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			analyzer->ConnVal(),
 			make_intrusive<StringVal>(new BroString(data, len, false))
 		);
 	}

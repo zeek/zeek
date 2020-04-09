@@ -786,7 +786,7 @@ void TCP_Analyzer::GeneratePacketEvent(
 					bool is_orig, TCP_Flags flags)
 	{
 	EnqueueConnEvent(tcp_packet,
-		IntrusivePtr{AdoptRef{}, BuildConnVal()},
+		ConnVal(),
 		val_mgr->Bool(is_orig),
 		make_intrusive<StringVal>(flags.AsString()),
 		val_mgr->Count(rel_seq),
@@ -1102,7 +1102,7 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 		if ( connection_SYN_packet )
 			EnqueueConnEvent(connection_SYN_packet,
-				IntrusivePtr{AdoptRef{}, BuildConnVal()},
+				ConnVal(),
 				IntrusivePtr{NewRef{}, SYN_vals}
 			);
 
@@ -1346,7 +1346,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 			auto kind = o[0];
 			auto length = kind < 2 ? 1 : o[1];
 			EnqueueConnEvent(tcp_option,
-				IntrusivePtr{AdoptRef{}, BuildConnVal()},
+				ConnVal(),
 				val_mgr->Bool(is_orig),
 				val_mgr->Count(kind),
 				val_mgr->Count(length)
@@ -1459,7 +1459,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 			}
 
 		EnqueueConnEvent(tcp_options,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			ConnVal(),
 			val_mgr->Bool(is_orig),
 			std::move(option_list)
 			);
@@ -1781,7 +1781,7 @@ void TCP_Analyzer::EndpointEOF(TCP_Reassembler* endp)
 	{
 	if ( connection_EOF )
 		EnqueueConnEvent(connection_EOF,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			ConnVal(),
 			val_mgr->Bool(endp->IsOrig())
 		);
 
@@ -2061,7 +2061,7 @@ bool TCPStats_Endpoint::DataSent(double /* t */, uint64_t seq, int len, int capl
 
 		if ( tcp_rexmit )
 			endp->TCP()->EnqueueConnEvent(tcp_rexmit,
-				IntrusivePtr{AdoptRef{}, endp->TCP()->BuildConnVal()},
+				endp->TCP()->ConnVal(),
 				val_mgr->Bool(endp->IsOrig()),
 				val_mgr->Count(seq),
 				val_mgr->Count(len),
@@ -2116,7 +2116,7 @@ void TCPStats_Analyzer::Done()
 
 	if ( conn_stats )
 		EnqueueConnEvent(conn_stats,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			ConnVal(),
 			IntrusivePtr{AdoptRef{}, orig_stats->BuildStats()},
 			IntrusivePtr{AdoptRef{}, resp_stats->BuildStats()}
 		);

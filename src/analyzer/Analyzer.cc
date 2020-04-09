@@ -690,7 +690,7 @@ void Analyzer::ProtocolConfirmation(Tag arg_tag)
 	EnumVal* tval = arg_tag ? arg_tag.AsEnumVal() : tag.AsEnumVal();
 
 	mgr.Enqueue(protocol_confirmation,
-		IntrusivePtr{AdoptRef{}, BuildConnVal()},
+		ConnVal(),
 		IntrusivePtr{NewRef{}, tval},
 		val_mgr->Count(id)
 	);
@@ -717,7 +717,7 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 	EnumVal* tval = tag.AsEnumVal();
 
 	mgr.Enqueue(protocol_violation,
-		IntrusivePtr{AdoptRef{}, BuildConnVal()},
+		ConnVal(),
 		IntrusivePtr{NewRef{}, tval},
 		val_mgr->Count(id),
 		IntrusivePtr{AdoptRef{}, r}
@@ -788,7 +788,12 @@ void Analyzer::UpdateConnVal(RecordVal *conn_val)
 
 RecordVal* Analyzer::BuildConnVal()
 	{
-	return conn->BuildConnVal();
+	return conn->ConnVal()->Ref()->AsRecordVal();
+	}
+
+const IntrusivePtr<RecordVal>& Analyzer::ConnVal()
+	{
+	return conn->ConnVal();
 	}
 
 void Analyzer::Event(EventHandlerPtr f, const char* name)

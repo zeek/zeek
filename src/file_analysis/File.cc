@@ -145,7 +145,7 @@ bool File::UpdateConnectionFields(Connection* conn, bool is_orig)
 		return false;
 		}
 
-	conns->AsTableVal()->Assign(idx, conn->BuildConnVal());
+	conns->AsTableVal()->Assign(idx, conn->ConnVal());
 	Unref(idx);
 	return true;
 	}
@@ -156,7 +156,7 @@ void File::RaiseFileOverNewConnection(Connection* conn, bool is_orig)
 		{
 		FileEvent(file_over_new_connection, {
 			IntrusivePtr{NewRef{}, val},
-			IntrusivePtr{AdoptRef{}, conn->BuildConnVal()},
+			conn->ConnVal(),
 			val_mgr->Bool(is_orig),
 		});
 		}

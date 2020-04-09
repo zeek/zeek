@@ -3300,7 +3300,7 @@ function lookup_connection%(cid: conn_id%): connection
 	%{
 	Connection* conn = sessions->FindConnection(cid);
 	if ( conn )
-		return IntrusivePtr{AdoptRef{}, conn->BuildConnVal()};
+		return conn->ConnVal();
 
 	builtin_error("connection ID not a known connection", cid);
 

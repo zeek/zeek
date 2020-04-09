@@ -650,7 +650,7 @@ void HTTP_Message::Done(bool interrupted, const char* detail)
 
 	if ( http_message_done )
 		GetAnalyzer()->EnqueueConnEvent(http_message_done,
-			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			analyzer->ConnVal(),
 			val_mgr->Bool(is_orig),
 			IntrusivePtr{AdoptRef{}, BuildMessageStat(interrupted, detail)}
 		);
@@ -681,7 +681,7 @@ void HTTP_Message::BeginEntity(mime::MIME_Entity* entity)
 
 	if ( http_begin_entity )
 		analyzer->EnqueueConnEvent(http_begin_entity,
-			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			analyzer->ConnVal(),
 			val_mgr->Bool(is_orig)
 		);
 	}
@@ -696,7 +696,7 @@ void HTTP_Message::EndEntity(mime::MIME_Entity* entity)
 
 	if ( http_end_entity )
 		analyzer->EnqueueConnEvent(http_end_entity,
-			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			analyzer->ConnVal(),
 			val_mgr->Bool(is_orig)
 		);
 
@@ -735,7 +735,7 @@ void HTTP_Message::SubmitAllHeaders(mime::MIME_HeaderList& hlist)
 	{
 	if ( http_all_headers )
 		analyzer->EnqueueConnEvent(http_all_headers,
-			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			analyzer->ConnVal(),
 			val_mgr->Bool(is_orig),
 			IntrusivePtr{AdoptRef{}, BuildHeaderTable(hlist)}
 		);
@@ -746,7 +746,7 @@ void HTTP_Message::SubmitAllHeaders(mime::MIME_HeaderList& hlist)
 		StringVal* subty = current_entity->ContentSubType();
 
 		analyzer->EnqueueConnEvent(http_content_type,
-			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			analyzer->ConnVal(),
 			val_mgr->Bool(is_orig),
 			IntrusivePtr{NewRef{}, ty},
 			IntrusivePtr{NewRef{}, subty}
@@ -1178,7 +1178,7 @@ void HTTP_Analyzer::GenStats()
 		r->Assign(3, make_intrusive<Val>(reply_version.ToDouble(), TYPE_DOUBLE));
 
 		// DEBUG_MSG("%.6f http_stats\n", network_time);
-		EnqueueConnEvent(http_stats, IntrusivePtr{AdoptRef{}, BuildConnVal()}, std::move(r));
+		EnqueueConnEvent(http_stats, ConnVal(), std::move(r));
 		}
 	}
 
@@ -1378,7 +1378,7 @@ void HTTP_Analyzer::HTTP_Event(const char* category, StringVal* detail)
 	if ( http_event )
 		// DEBUG_MSG("%.6f http_event\n", network_time);
 		EnqueueConnEvent(http_event,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			ConnVal(),
 			make_intrusive<StringVal>(category),
 			IntrusivePtr{AdoptRef{}, detail}
 		);
@@ -1417,7 +1417,7 @@ void HTTP_Analyzer::HTTP_Request()
 	if ( http_request )
 		// DEBUG_MSG("%.6f http_request\n", network_time);
 		EnqueueConnEvent(http_request,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			ConnVal(),
 			IntrusivePtr{NewRef{}, request_method},
 			IntrusivePtr{AdoptRef{}, TruncateURI(request_URI->AsStringVal())},
 			IntrusivePtr{AdoptRef{}, TruncateURI(unescaped_URI->AsStringVal())},
@@ -1429,7 +1429,7 @@ void HTTP_Analyzer::HTTP_Reply()
 	{
 	if ( http_reply )
 		EnqueueConnEvent(http_reply,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			ConnVal(),
 			make_intrusive<StringVal>(fmt("%.1f", reply_version.ToDouble())),
 			val_mgr->Count(reply_code),
 			reply_reason_phrase ?
@@ -1506,7 +1506,7 @@ void HTTP_Analyzer::ReplyMade(bool interrupted, const char* msg)
 
 		if ( http_connection_upgrade )
 			EnqueueConnEvent(http_connection_upgrade,
-				IntrusivePtr{AdoptRef{}, BuildConnVal()},
+				ConnVal(),
 				make_intrusive<StringVal>(upgrade_protocol)
 			);
 		}
@@ -1670,7 +1670,7 @@ void HTTP_Analyzer::HTTP_Header(bool is_orig, mime::MIME_Header* h)
 			DEBUG_MSG("%.6f http_header\n", network_time);
 
 		EnqueueConnEvent(http_header,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			ConnVal(),
 			val_mgr->Bool(is_orig),
 			IntrusivePtr{AdoptRef{}, mime::new_string_val(h->get_name())->ToUpper()},
 			IntrusivePtr{AdoptRef{}, mime::new_string_val(h->get_value())}
@@ -1682,7 +1682,7 @@ void HTTP_Analyzer::HTTP_EntityData(bool is_orig, BroString* entity_data)
 	{
 	if ( http_entity_data )
 		EnqueueConnEvent(http_entity_data,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			ConnVal(),
 			val_mgr->Bool(is_orig),
 			val_mgr->Count(entity_data->Len()),
 			make_intrusive<StringVal>(entity_data)

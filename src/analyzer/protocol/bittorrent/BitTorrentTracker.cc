@@ -247,7 +247,7 @@ void BitTorrentTracker_Analyzer::DeliverWeird(const char* msg, bool orig)
 	{
 	if ( bt_tracker_weird )
 		EnqueueConnEvent(bt_tracker_weird,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			ConnVal(),
 			val_mgr->Bool(orig),
 			make_intrusive<StringVal>(msg)
 		);
@@ -348,7 +348,7 @@ void BitTorrentTracker_Analyzer::EmitRequest(void)
 
 	if ( bt_tracker_request )
 		EnqueueConnEvent(bt_tracker_request,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			ConnVal(),
 			IntrusivePtr{AdoptRef{}, req_val_uri},
 			IntrusivePtr{AdoptRef{}, req_val_headers}
 		);
@@ -402,7 +402,7 @@ bool BitTorrentTracker_Analyzer::ParseResponse(char* line)
 				{
 				if ( bt_tracker_response_not_ok )
 					EnqueueConnEvent(bt_tracker_response_not_ok,
-						IntrusivePtr{AdoptRef{}, BuildConnVal()},
+						ConnVal(),
 						val_mgr->Count(res_status),
 						IntrusivePtr{AdoptRef{}, res_val_headers}
 					);
@@ -789,7 +789,7 @@ void BitTorrentTracker_Analyzer::EmitResponse(void)
 
 	if ( bt_tracker_response )
 		EnqueueConnEvent(bt_tracker_response,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			ConnVal(),
 			val_mgr->Count(res_status),
 			IntrusivePtr{AdoptRef{}, res_val_headers},
 			IntrusivePtr{AdoptRef{}, res_val_peers},

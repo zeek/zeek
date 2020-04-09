@@ -203,7 +203,7 @@ void ICMP_Analyzer::ICMP_Sent(const struct icmp* icmpp, int len, int caplen,
     {
 	if ( icmp_sent )
 		EnqueueConnEvent(icmp_sent,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			ConnVal(),
 			IntrusivePtr{AdoptRef{}, BuildICMPVal(icmpp, len, icmpv6, ip_hdr)}
 		);
 
@@ -212,7 +212,7 @@ void ICMP_Analyzer::ICMP_Sent(const struct icmp* icmpp, int len, int caplen,
 		BroString* payload = new BroString(data, std::min(len, caplen), false);
 
 		EnqueueConnEvent(icmp_sent_payload,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			ConnVal(),
 			IntrusivePtr{AdoptRef{}, BuildICMPVal(icmpp, len, icmpv6, ip_hdr)},
 			make_intrusive<StringVal>(payload)
 		);
@@ -515,7 +515,7 @@ void ICMP_Analyzer::Echo(double t, const struct icmp* icmpp, int len,
 	BroString* payload = new BroString(data, caplen, false);
 
 	EnqueueConnEvent(f,
-		IntrusivePtr{AdoptRef{}, BuildConnVal()},
+		ConnVal(),
 		IntrusivePtr{AdoptRef{}, BuildICMPVal(icmpp, len, ip_hdr->NextProto() != IPPROTO_ICMP, ip_hdr)},
 		val_mgr->Count(iid),
 		val_mgr->Count(iseq),
@@ -543,7 +543,7 @@ void ICMP_Analyzer::RouterAdvert(double t, const struct icmp* icmpp, int len,
 	int opt_offset = sizeof(reachable) + sizeof(retrans);
 
 	EnqueueConnEvent(f,
-		IntrusivePtr{AdoptRef{}, BuildConnVal()},
+		ConnVal(),
 		IntrusivePtr{AdoptRef{}, BuildICMPVal(icmpp, len, 1, ip_hdr)},
 		val_mgr->Count(icmpp->icmp_num_addrs), // Cur Hop Limit
 		val_mgr->Bool(icmpp->icmp_wpa & 0x80), // Managed
@@ -576,7 +576,7 @@ void ICMP_Analyzer::NeighborAdvert(double t, const struct icmp* icmpp, int len,
 	int opt_offset = sizeof(in6_addr);
 
 	EnqueueConnEvent(f,
-		IntrusivePtr{AdoptRef{}, BuildConnVal()},
+		ConnVal(),
 		IntrusivePtr{AdoptRef{}, BuildICMPVal(icmpp, len, 1, ip_hdr)},
 		val_mgr->Bool(icmpp->icmp_num_addrs & 0x80), // Router
 		val_mgr->Bool(icmpp->icmp_num_addrs & 0x40), // Solicited
@@ -603,7 +603,7 @@ void ICMP_Analyzer::NeighborSolicit(double t, const struct icmp* icmpp, int len,
 	int opt_offset = sizeof(in6_addr);
 
 	EnqueueConnEvent(f,
-		IntrusivePtr{AdoptRef{}, BuildConnVal()},
+		ConnVal(),
 		IntrusivePtr{AdoptRef{}, BuildICMPVal(icmpp, len, 1, ip_hdr)},
 		make_intrusive<AddrVal>(tgtaddr),
 		IntrusivePtr{AdoptRef{}, BuildNDOptionsVal(caplen - opt_offset, data + opt_offset)}
@@ -630,7 +630,7 @@ void ICMP_Analyzer::Redirect(double t, const struct icmp* icmpp, int len,
 	int opt_offset = 2 * sizeof(in6_addr);
 
 	EnqueueConnEvent(f,
-		IntrusivePtr{AdoptRef{}, BuildConnVal()},
+		ConnVal(),
 		IntrusivePtr{AdoptRef{}, BuildICMPVal(icmpp, len, 1, ip_hdr)},
 		make_intrusive<AddrVal>(tgtaddr),
 		make_intrusive<AddrVal>(dstaddr),
@@ -648,7 +648,7 @@ void ICMP_Analyzer::RouterSolicit(double t, const struct icmp* icmpp, int len,
 		return;
 
 	EnqueueConnEvent(f,
-		IntrusivePtr{AdoptRef{}, BuildConnVal()},
+		ConnVal(),
 		IntrusivePtr{AdoptRef{}, BuildICMPVal(icmpp, len, 1, ip_hdr)},
 		IntrusivePtr{AdoptRef{}, BuildNDOptionsVal(caplen, data)}
 	);
@@ -673,7 +673,7 @@ void ICMP_Analyzer::Context4(double t, const struct icmp* icmpp,
 
 	if ( f )
 		EnqueueConnEvent(f,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			ConnVal(),
 			IntrusivePtr{AdoptRef{}, BuildICMPVal(icmpp, len, 0, ip_hdr)},
 			val_mgr->Count(icmpp->icmp_code),
 			IntrusivePtr{AdoptRef{}, ExtractICMP4Context(caplen, data)}
@@ -711,7 +711,7 @@ void ICMP_Analyzer::Context6(double t, const struct icmp* icmpp,
 
 	if ( f )
 		EnqueueConnEvent(f,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			ConnVal(),
 			IntrusivePtr{AdoptRef{}, BuildICMPVal(icmpp, len, 1, ip_hdr)},
 			val_mgr->Count(icmpp->icmp_code),
 			IntrusivePtr{AdoptRef{}, ExtractICMP6Context(caplen, data)}

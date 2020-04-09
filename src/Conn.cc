@@ -90,7 +90,6 @@ Connection::Connection(NetSessions* s, const ConnIDKey& k, double t, const ConnI
 	vlan = pkt->vlan;
 	inner_vlan = pkt->inner_vlan;
 
-	conn_val = nullptr;
 	login_conn = nullptr;
 
 	is_active = 1;
@@ -131,10 +130,7 @@ Connection::~Connection()
 	CancelTimers();
 
 	if ( conn_val )
-		{
 		conn_val->SetOrigin(nullptr);
-		Unref(conn_val);
-		}
 
 	delete root_analyzer;
 	delete encapsulation;
@@ -203,7 +199,7 @@ void Connection::NextPacket(double t, bool is_orig,
 			is_successful = true;
 
 		if ( ! was_successful && is_successful && connection_successful )
-			EnqueueEvent(connection_successful, nullptr, IntrusivePtr{AdoptRef{}, BuildConnVal()});
+			EnqueueEvent(connection_successful, nullptr, ConnVal());
 		}
 	else
 		last_time = t;
@@ -260,7 +256,7 @@ void Connection::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig,
 		return;
 
 	EnqueueEvent(e, nullptr,
-		IntrusivePtr{AdoptRef{}, BuildConnVal()},
+		ConnVal(),
 		val_mgr->Bool(is_orig),
 		val_mgr->Count(threshold)
 	);
@@ -323,7 +319,7 @@ void Connection::EnableStatusUpdateTimer()
 
 void Connection::StatusUpdateTimer(double t)
 	{
-	EnqueueEvent(connection_status_update, nullptr, IntrusivePtr{AdoptRef{}, BuildConnVal()});
+	EnqueueEvent(connection_status_update, nullptr, ConnVal());
 	ADD_TIMER(&Connection::StatusUpdateTimer,
 			network_time + connection_status_update_interval, 0,
 			TIMER_CONN_STATUS_UPDATE);
@@ -331,9 +327,14 @@ void Connection::StatusUpdateTimer(double t)
 
 RecordVal* Connection::BuildConnVal()
 	{
+	return ConnVal()->Ref()->AsRecordVal();
+	}
+
+const IntrusivePtr<RecordVal>& Connection::ConnVal()
+	{
 	if ( ! conn_val )
 		{
-		conn_val = new RecordVal(connection_type);
+		conn_val = make_intrusive<RecordVal>(connection_type);
 
 		TransportProto prot_type = ConnTransport();
 
@@ -386,7 +387,7 @@ RecordVal* Connection::BuildConnVal()
 		}
 
 	if ( root_analyzer )
-		root_analyzer->UpdateConnVal(conn_val);
+		root_analyzer->UpdateConnVal(conn_val.get());
 
 	conn_val->Assign(3, make_intrusive<Val>(start_time, TYPE_TIME));	// ###
 	conn_val->Assign(4, make_intrusive<Val>(last_time - start_time, TYPE_INTERVAL));
@@ -394,8 +395,6 @@ RecordVal* Connection::BuildConnVal()
 	conn_val->Assign(11, val_mgr->Bool(is_successful));
 
 	conn_val->SetOrigin(this);
-
-	Ref(conn_val);
 
 	return conn_val;
 	}
@@ -417,12 +416,12 @@ analyzer::Analyzer* Connection::FindAnalyzer(const char* name)
 
 void Connection::AppendAddl(const char* str)
 	{
-	Unref(BuildConnVal());
+	const auto& cv = ConnVal();
 
-	const char* old = conn_val->Lookup(6)->AsString()->CheckString();
+	const char* old = cv->Lookup(6)->AsString()->CheckString();
 	const char* format = *old ? "%s %s" : "%s%s";
 
-	conn_val->Assign(6, make_intrusive<StringVal>(fmt(format, old, str)));
+	cv->Assign(6, make_intrusive<StringVal>(fmt(format, old, str)));
 	}
 
 // Returns true if the character at s separates a version number.
@@ -446,7 +445,7 @@ void Connection::Match(Rule::PatternType type, const u_char* data, int len, bool
 
 void Connection::RemovalEvent()
 	{
-	auto cv = IntrusivePtr{AdoptRef{}, BuildConnVal()};
+	auto cv = ConnVal();
 
 	if ( connection_state_remove )
 		EnqueueEvent(connection_state_remove, nullptr, cv);
@@ -461,9 +460,9 @@ void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const ch
 		return;
 
 	if ( name )
-		EnqueueEvent(f, analyzer, make_intrusive<StringVal>(name), IntrusivePtr{AdoptRef{}, BuildConnVal()});
+		EnqueueEvent(f, analyzer, make_intrusive<StringVal>(name), ConnVal());
 	else
-		EnqueueEvent(f, analyzer, IntrusivePtr{AdoptRef{}, BuildConnVal()});
+		EnqueueEvent(f, analyzer, ConnVal());
 	}
 
 void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1, Val* v2)
@@ -477,12 +476,12 @@ void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1,
 
 	if ( v2 )
 		EnqueueEvent(f, analyzer,
-		             IntrusivePtr{AdoptRef{}, BuildConnVal()},
+		             ConnVal(),
 		             IntrusivePtr{AdoptRef{}, v1},
 		             IntrusivePtr{AdoptRef{}, v2});
 	else
 		EnqueueEvent(f, analyzer,
-		             IntrusivePtr{AdoptRef{}, BuildConnVal()},
+		             ConnVal(),
 		             IntrusivePtr{AdoptRef{}, v1});
 	}
 
@@ -590,7 +589,6 @@ void Connection::FlipRoles()
 	resp_flow_label = orig_flow_label;
 	orig_flow_label = tmp_flow;
 
-	Unref(conn_val);
 	conn_val = nullptr;
 
 	if ( root_analyzer )
@@ -697,7 +695,7 @@ void Connection::CheckFlowLabel(bool is_orig, uint32_t flow_label)
 		     (is_orig ? saw_first_orig_packet : saw_first_resp_packet) )
 			{
 			EnqueueEvent(connection_flow_label_changed, nullptr,
-				IntrusivePtr{AdoptRef{}, BuildConnVal()},
+				ConnVal(),
 				val_mgr->Bool(is_orig),
 				val_mgr->Count(my_flow_label),
 				val_mgr->Count(flow_label)

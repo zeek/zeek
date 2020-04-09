@@ -59,9 +59,9 @@ void Gnutella_Analyzer::Done()
 	if ( ! sent_establish && (gnutella_establish || gnutella_not_establish) )
 		{
 		if ( Established() && gnutella_establish )
-			EnqueueConnEvent(gnutella_establish, IntrusivePtr{AdoptRef{}, BuildConnVal()});
+			EnqueueConnEvent(gnutella_establish, ConnVal());
 		else if ( ! Established () && gnutella_not_establish )
-			EnqueueConnEvent(gnutella_not_establish, IntrusivePtr{AdoptRef{}, BuildConnVal()});
+			EnqueueConnEvent(gnutella_not_establish, ConnVal());
 		}
 
 	if ( gnutella_partial_binary_msg )
@@ -72,7 +72,7 @@ void Gnutella_Analyzer::Done()
 			{
 			if ( ! p->msg_sent && p->msg_pos )
 				EnqueueConnEvent(gnutella_partial_binary_msg,
-					IntrusivePtr{AdoptRef{}, BuildConnVal()},
+					ConnVal(),
 					make_intrusive<StringVal>(p->msg),
 					val_mgr->Bool((i == 0)),
 					val_mgr->Count(p->msg_pos)
@@ -118,7 +118,7 @@ bool Gnutella_Analyzer::IsHTTP(std::string header)
 		return false;
 
 	if ( gnutella_http_notify )
-		EnqueueConnEvent(gnutella_http_notify, IntrusivePtr{AdoptRef{}, BuildConnVal()});
+		EnqueueConnEvent(gnutella_http_notify, ConnVal());
 
 	analyzer::Analyzer* a = analyzer_mgr->InstantiateAnalyzer("HTTP", Conn());
 
@@ -177,7 +177,7 @@ void Gnutella_Analyzer::DeliverLines(int len, const u_char* data, bool orig)
 			{
 			if ( gnutella_text_msg )
 				EnqueueConnEvent(gnutella_text_msg,
-					IntrusivePtr{AdoptRef{}, BuildConnVal()},
+					ConnVal(),
 					val_mgr->Bool(orig),
 					make_intrusive<StringVal>(ms->headers.data())
 				);
@@ -189,7 +189,7 @@ void Gnutella_Analyzer::DeliverLines(int len, const u_char* data, bool orig)
 				{
 				sent_establish = 1;
 
-				EnqueueConnEvent(gnutella_establish, IntrusivePtr{AdoptRef{}, BuildConnVal()});
+				EnqueueConnEvent(gnutella_establish, ConnVal());
 				}
 			}
 		}
@@ -215,7 +215,7 @@ void Gnutella_Analyzer::SendEvents(GnutellaMsgState* p, bool is_orig)
 
 	if ( gnutella_binary_msg )
 		EnqueueConnEvent(gnutella_binary_msg,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			ConnVal(),
 			val_mgr->Bool(is_orig),
 			val_mgr->Count(p->msg_type),
 			val_mgr->Count(p->msg_ttl),

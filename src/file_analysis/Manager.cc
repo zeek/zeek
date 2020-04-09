@@ -436,7 +436,7 @@ string Manager::GetFileID(const analyzer::Tag& tag, Connection* c, bool is_orig)
 
 	mgr.Enqueue(get_file_handle,
 		IntrusivePtr{NewRef{}, tagval},
-		IntrusivePtr{AdoptRef{}, c->BuildConnVal()},
+		c->ConnVal(),
 		val_mgr->Bool(is_orig)
 	);
 	mgr.Drain(); // need file handle immediately so we don't have to buffer data

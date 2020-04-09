@@ -4,7 +4,7 @@ DEFINE_BIF_TYPE(TYPE_ADDR, 	"addr", "addr", "AddrVal*", 		"%s->AsAddrVal()", 	"I
 DEFINE_BIF_TYPE(TYPE_ANY, 	"any", "any", "Val*", 			"%s", 			"IntrusivePtr{AdoptRef{}, %s}")
 DEFINE_BIF_TYPE(TYPE_BOOL, 	"bool", "bool", "int", 			"%s->AsBool()", 	"val_mgr->Bool(%s)")
 DEFINE_BIF_TYPE(TYPE_CONN_ID, 	"conn_id", "conn_id", "Val*", 		"%s", 			"IntrusivePtr{AdoptRef{}, %s}")
-DEFINE_BIF_TYPE(TYPE_CONNECTION, "connection", "connection", "Connection*", "%s->AsRecordVal()->GetOrigin()", "IntrusivePtr{AdoptRef{}, %s->BuildConnVal()}")
+DEFINE_BIF_TYPE(TYPE_CONNECTION, "connection", "connection", "Connection*", "%s->AsRecordVal()->GetOrigin()", "%s->ConnVal()")
 DEFINE_BIF_TYPE(TYPE_COUNT, 	"count", "count", "bro_uint_t", 	"%s->AsCount()", 	"val_mgr->Count(%s)")
 DEFINE_BIF_TYPE(TYPE_DOUBLE, 	"double", "double", "double", 		"%s->AsDouble()", 	"make_intrusive<Val>(%s, TYPE_DOUBLE)")
 DEFINE_BIF_TYPE(TYPE_FILE, 	"file", "file", "BroFile*", 		"%s->AsFile()", 	"make_intrusive<Val>(%s)")

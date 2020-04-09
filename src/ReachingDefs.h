@@ -14,54 +14,66 @@
 // in the script after the if-else statement to have both of those definitions
 // as reaching.
 
-// typedef PList<DefinitionPoint> DefPoints;
-typedef DefinitionPoint DefPoints;
+typedef List<DefinitionPoint>* DefPoints;
 typedef std::map<const DefinitionItem*, DefPoints> ReachingDefsMap;
 
 class ReachingDefs;
 typedef IntrusivePtr<ReachingDefs> RD_ptr;
 
 inline RD_ptr make_new_RD_ptr() { return make_intrusive<ReachingDefs>(); }
+inline RD_ptr make_new_RD_ptr(const ReachingDefs* rd)
+	{ return make_intrusive<ReachingDefs>(rd); }
 
 class ReachingDefs : public BroObj {
 public:
-	void AddRDs(const RD_ptr& rd)
-		{
-		auto& rd_m = rd->RDMap();
+	ReachingDefs();
+	ReachingDefs(const ReachingDefs* rd);
 
-		for ( const auto& one_rd : rd_m )
-			AddRD(one_rd.first, one_rd.second);
-		}
+	~ReachingDefs();
 
-	void AddRD(const DefinitionItem* di, DefinitionPoint dp)
-		{
-		rd_map.insert(ReachingDefsMap::value_type(di, dp));
-		}
+	// Add in all the definition points from rd into our set.
+	void AddRDs(const RD_ptr& rd)	{ AddRDs(rd->RDMap()); }
+
+	// Add in a single definition pair, creating the entry for
+	// the item if necessary.
+	void AddRD(const DefinitionItem* di, DefinitionPoint dp);
+
+	// Add a single definition pair if missing.  If present,
+	// replace everything currently associated with new definition.
+	void AddOrFullyReplace(const DefinitionItem* di, DefinitionPoint dp);
 
 	bool HasDI(const DefinitionItem* di) const
 		{
-		return rd_map.find(di) != rd_map.end();
+		return const_rd_map->find(di) != const_rd_map->end();
 		}
 
+	// Return a new object representing the intersection/union of
+	// this object's RDs and those of another.
 	RD_ptr Intersect(const RD_ptr& r) const;
 	RD_ptr Union(const RD_ptr& r) const;
 
 	void Dump() const;
 
-	int Size() const	{ return rd_map.size(); }
+	int Size() const	{ return const_rd_map->size(); }
 
 protected:
-	bool HasPair(const DefinitionItem* di, DefinitionPoint dp) const
-		{
-		auto l = rd_map.find(di);
-		return l != rd_map.end() && l->second.SameAs(dp);
-		}
+	bool HasPair(const DefinitionItem* di, DefinitionPoint dp) const;
 
-	const ReachingDefsMap& RDMap() const	{ return rd_map; }
+	void AddRDs(const ReachingDefsMap* rd_m);
 
+	const ReachingDefsMap* RDMap() const	{ return const_rd_map; }
+
+	void CopyMapIfNeeded();
+
+	void PrintRD(const DefinitionItem* di, const DefPoints& dp) const;
 	void PrintRD(const DefinitionItem* di, const DefinitionPoint& dp) const;
 
-	ReachingDefsMap rd_map;
+	// The first of these is always valid.  It either points to
+	// my_rd_map, or to the (unmodified) map that we inherited.
+	// The second, if non-nil, means we've done copy-on-write
+	// of our original map (or started afresh).
+	const ReachingDefsMap* const_rd_map;
+	ReachingDefsMap* my_rd_map;
 };
 
 // Maps script locations (which are represented by their underlying BroObj
@@ -101,30 +113,21 @@ public:
 		return RDs->second->HasDI(di);
 		}
 
-	RD_ptr RDsIfAny(const BroObj* o) const
-		{
-		if ( o == nullptr )
-			return nullptr;
+	// Should only be called if there are already RDs associated with
+	// the given object.
+	const RD_ptr& FindRDs(const BroObj* o) const;
 
-		auto rd = a_i->find(o);
-		if ( rd != a_i->end() )
-			return rd->second;
-		else
-			return nullptr;
+	void SetRDs(const BroObj* o, const RD_ptr& rd)
+		{
+		auto new_rd = make_new_RD_ptr(rd.get());
+		a_i->insert(AnalyInfo::value_type(o, new_rd));
 		}
 
-	// Creates a new RDset if none exists.
-	RD_ptr FindRDs(const BroObj* o) const
-		{
-		if ( o == nullptr )
-			return make_new_RD_ptr();
-
-		auto rd = a_i->find(o);
-		if ( rd != a_i->end() )
-			return rd->second;
-		else
-			return make_new_RD_ptr();
-		}
+	// If the given di is new, add this definition.  If it
+	// already exists, replace *all* of its reaching definitions
+	// with this new one.
+	void AddOrReplace(const BroObj* o, const DefinitionItem* di,
+				DefinitionPoint dp);
 
 	void AddRDs(const BroObj* o, const RD_ptr& rd)
 		{

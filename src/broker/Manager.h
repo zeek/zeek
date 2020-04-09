@@ -194,7 +194,7 @@ public:
 	 * See the Broker::SendFlags record type.
 	 * @return true if the message is sent successfully.
 	 */
-	bool PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int num_vals,
+	bool PublishLogWrite(EnumVal* stream, EnumVal* writer, std::string path, int num_vals,
 			     const threading::Value* const * vals);
 
 	/**

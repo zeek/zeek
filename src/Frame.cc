@@ -12,7 +12,7 @@
 #include "Val.h"
 #include "ID.h"
 
-vector<Frame*> g_frame_stack;
+std::vector<Frame*> g_frame_stack;
 
 Frame::Frame(int arg_size, const BroFunc* func, const zeek::Args* fn_args)
 	{
@@ -61,7 +61,7 @@ void Frame::AddFunctionWithClosureRef(BroFunc* func)
 	::Ref(func);
 
 	if ( ! functions_with_closure_frame_reference )
-		functions_with_closure_frame_reference = make_unique<std::vector<BroFunc*>>();
+		functions_with_closure_frame_reference = std::make_unique<std::vector<BroFunc*>>();
 
 	functions_with_closure_frame_reference->emplace_back(func);
 	}
@@ -183,7 +183,7 @@ Frame* Frame::Clone() const
 	Frame* other = new Frame(size, function, func_args);
 
 	if ( offset_map )
-		other->offset_map = make_unique<OffsetMap>(*offset_map);
+		other->offset_map = std::make_unique<OffsetMap>(*offset_map);
 
 	other->CaptureClosure(closure, outer_ids);
 
@@ -278,7 +278,7 @@ Frame* Frame::SelectiveClone(const id_list& selection, BroFunc* func) const
 	if ( offset_map )
 		{
 		if ( ! other->offset_map )
-			other->offset_map = make_unique<OffsetMap>(*offset_map);
+			other->offset_map = std::make_unique<OffsetMap>(*offset_map);
 		else
 			*(other->offset_map) = *offset_map;
 		}
@@ -462,7 +462,7 @@ std::pair<bool, IntrusivePtr<Frame>> Frame::Unserialize(const broker::vector& da
 
 	// We'll associate this frame with a function later.
 	auto rf = make_intrusive<Frame>(frame_size, nullptr, nullptr);
-	rf->offset_map = make_unique<OffsetMap>(std::move(offset_map));
+	rf->offset_map = std::make_unique<OffsetMap>(std::move(offset_map));
 
 	// Frame takes ownership of unref'ing elements in outer_ids
 	rf->outer_ids = std::move(outer_ids);
@@ -499,7 +499,7 @@ std::pair<bool, IntrusivePtr<Frame>> Frame::Unserialize(const broker::vector& da
 void Frame::AddKnownOffsets(const id_list& ids)
 	{
 	if ( ! offset_map )
-		offset_map = make_unique<OffsetMap>();
+		offset_map = std::make_unique<OffsetMap>();
 
 	std::transform(ids.begin(), ids.end(), std::inserter(*offset_map, offset_map->end()),
 		       [] (const ID* id) -> std::pair<std::string, int>

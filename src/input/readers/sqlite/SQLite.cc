@@ -38,7 +38,7 @@ SQLite::SQLite(ReaderFrontend *frontend)
 			BifConst::InputSQLite::empty_field->Len()
 			);
 
-	io = new threading::formatter::Ascii(this, threading::formatter::Ascii::SeparatorInfo(string(), set_separator, unset_field, empty_field));
+	io = new threading::formatter::Ascii(this, threading::formatter::Ascii::SeparatorInfo(std::string(), set_separator, unset_field, empty_field));
 	}
 
 SQLite::~SQLite()
@@ -90,10 +90,10 @@ bool SQLite::DoInit(const ReaderInfo& info, int arg_num_fields, const threading:
 
 	started = false;
 
-	string fullpath(info.source);
+	std::string fullpath(info.source);
 	fullpath.append(".sqlite");
 
-	string query;
+	std::string query;
 	ReaderInfo::config_map::const_iterator it = info.config.find("query");
 	if ( it == info.config.end() )
 		{
@@ -199,7 +199,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 				Error("Port protocol definition did not contain text");
 			else
 				{
-				string s(text, sqlite3_column_bytes(st, subpos));
+				std::string s(text, sqlite3_column_bytes(st, subpos));
 				val->val.port_val.proto = io->ParseProto(s);
 				}
 			}
@@ -209,10 +209,10 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 	case TYPE_SUBNET:
 		{
 		const char *text = (const char*) sqlite3_column_text(st, pos);
-		string s(text, sqlite3_column_bytes(st, pos));
+		std::string s(text, sqlite3_column_bytes(st, pos));
 		int pos = s.find('/');
 		int width = atoi(s.substr(pos+1).c_str());
-		string addr = s.substr(0, pos);
+		std::string addr = s.substr(0, pos);
 
 		val->val.subnet_val.prefix = io->ParseAddr(addr);
 		val->val.subnet_val.length = width;
@@ -222,7 +222,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 	case TYPE_ADDR:
 		{
 		const char *text = (const char*) sqlite3_column_text(st, pos);
-		string s(text, sqlite3_column_bytes(st, pos));
+		std::string s(text, sqlite3_column_bytes(st, pos));
 		val->val.addr_val = io->ParseAddr(s);
 		break;
 		}
@@ -231,7 +231,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 	case TYPE_VECTOR:
 		{
 		const char *text = (const char*) sqlite3_column_text(st, pos);
-		string s(text, sqlite3_column_bytes(st, pos));
+		std::string s(text, sqlite3_column_bytes(st, pos));
 		delete val;
 		val = io->ParseValue(s, "", field->type, field->subtype);
 		break;
@@ -342,4 +342,3 @@ bool SQLite::DoUpdate()
 
 	return true;
 	}
-

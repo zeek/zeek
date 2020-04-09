@@ -77,10 +77,10 @@ static void deprecated_attr(const char* attr)
 	reporter->Warning("Use of deprecated attribute: %s", attr);
 	}
 
-static string find_relative_file(const string& filename, const string& ext)
+static std::string find_relative_file(const std::string& filename, const std::string& ext)
 	{
 	if ( filename.empty() )
-		return string();
+		return std::string();
 
 	if ( filename[0] == '.' )
 		return find_file(filename, SafeDirname(::filename).result, ext);
@@ -88,10 +88,10 @@ static string find_relative_file(const string& filename, const string& ext)
 		return find_file(filename, bro_path(), ext);
 	}
 
-static string find_relative_script_file(const string& filename)
+static std::string find_relative_script_file(const std::string& filename)
 	{
 	if ( filename.empty() )
-		return string();
+		return std::string();
 
 	if ( filename[0] == '.' )
 		return find_script_file(filename, SafeDirname(::filename).result);
@@ -99,7 +99,7 @@ static string find_relative_script_file(const string& filename)
 		return find_script_file(filename, bro_path());
 	}
 
-static ZeekINode get_inode(FILE* f, const string& path)
+static ZeekINode get_inode(FILE* f, const std::string& path)
 	{
 	struct stat b;
 
@@ -110,7 +110,7 @@ static ZeekINode get_inode(FILE* f, const string& path)
 	return {b.st_dev, b.st_ino};
 	}
 
-static ZeekINode get_inode(const string& path)
+static ZeekINode get_inode(const std::string& path)
 	{
 	FILE* f = open_file(path);
 
@@ -125,11 +125,11 @@ static ZeekINode get_inode(const string& path)
 
 class FileInfo {
 public:
-	FileInfo(string restore_module = "");
+	FileInfo(std::string restore_module = "");
 	~FileInfo();
 
 	YY_BUFFER_STATE buffer_state;
-	string restore_module;
+	std::string restore_module;
 	const char* name;
 	int line;
 	int level;
@@ -176,7 +176,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 	}
 
 ##<.* {
-	string hint(cur_enum_type && last_id_tok ?
+	std::string hint(cur_enum_type && last_id_tok ?
 	            make_full_var_name(current_module.c_str(), last_id_tok) : "");
 
 	zeekygen_mgr->PostComment(yytext + 3, hint);
@@ -206,7 +206,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 
 {IP6}{OWS}"/"{OWS}{D}	{
 	int len = 0;
-	string ip = extract_ip_and_len(yytext, &len);
+	std::string ip = extract_ip_and_len(yytext, &len);
 	RET_CONST(new SubNetVal(IPPrefix(IPAddr(ip), len, true)))
 }
 
@@ -215,7 +215,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 
 ({D}"."){3}{D}{OWS}"/"{OWS}{D}	{
 	int len = 0;
-	string ip = extract_ip_and_len(yytext, &len);
+	std::string ip = extract_ip_and_len(yytext, &len);
 	RET_CONST(new SubNetVal(IPPrefix(IPAddr(ip), len)))
 }
 
@@ -332,7 +332,7 @@ when	return TOK_WHEN;
 @DEBUG	return TOK_DEBUG;	// marks input for debugger
 
 @DIR	{
-	string rval = SafeDirname(::filename).result;
+	std::string rval = SafeDirname(::filename).result;
 
 	if ( ! rval.empty() && rval[0] == '.' )
 		{
@@ -341,7 +341,7 @@ when	return TOK_WHEN;
 		if ( ! getcwd(path, MAXPATHLEN) )
 			reporter->InternalError("getcwd failed: %s", strerror(errno));
 		else
-			rval = string(path) + "/" + rval;
+			rval = std::string(path) + "/" + rval;
 		}
 
 	RET_CONST(new StringVal(rval.c_str()));
@@ -353,15 +353,15 @@ when	return TOK_WHEN;
 
 @load{WS}{FILE}	{
 	const char* new_file = skip_whitespace(yytext + 5);	// Skip "@load".
-	string loader = ::filename;  // load_files may change ::filename, save copy
-	string loading = find_relative_script_file(new_file);
+	std::string loader = ::filename;  // load_files may change ::filename, save copy
+	std::string loading = find_relative_script_file(new_file);
 	(void) load_files(new_file);
 	zeekygen_mgr->ScriptDependency(loader, loading);
 	}
 
 @load-sigs{WS}{FILE} {
 	const char* file = skip_whitespace(yytext + 10);
-	string path = find_relative_file(file, ".sig");
+	std::string path = find_relative_file(file, ".sig");
 	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(plugin::Plugin::SIGNATURES, file, path), -1);
 
 	switch ( rc ) {
@@ -421,7 +421,7 @@ when	return TOK_WHEN;
 @unload{WS}{FILE}	{
 	// Skip "@unload".
 	const char* file = skip_whitespace(yytext + 7);
-	string path = find_relative_script_file(file);
+	std::string path = find_relative_script_file(file);
 
 	if ( path.empty() )
 		reporter->Error("failed find file associated with @unload %s", file);
@@ -605,14 +605,14 @@ static bool already_scanned(ZeekINode in)
 	return false;
 	}
 
-static bool already_scanned(const string& path)
+static bool already_scanned(const std::string& path)
 	{
 	return already_scanned(get_inode(path));
 	}
 
 static int load_files(const char* orig_file)
 	{
-	string file_path = find_relative_script_file(orig_file);
+	std::string file_path = find_relative_script_file(orig_file);
 	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(plugin::Plugin::SCRIPT, orig_file, file_path), -1);
 
 	if ( rc == 1 )
@@ -953,9 +953,9 @@ int yywrap()
 			if ( ! zeek_script_prefixes[i][0] )
 				continue;
 
-			string canon = without_bropath_component(it->name);
-			string flat = flatten_script_name(canon, zeek_script_prefixes[i]);
-			string path = find_relative_script_file(flat);
+			std::string canon = without_bropath_component(it->name);
+			std::string flat = flatten_script_name(canon, zeek_script_prefixes[i]);
+			std::string path = find_relative_script_file(flat);
 
 			if ( ! path.empty() )
 				{
@@ -978,7 +978,7 @@ int yywrap()
 	// Add redef statements for any X=Y command line parameters.
 	if ( params.size() > 0 )
 		{
-		string policy;
+		std::string policy;
 
 		for ( unsigned int i = 0; i < params.size(); ++i )
 			{
@@ -999,13 +999,13 @@ int yywrap()
 			// that just means quoting the value if it's a
 			// string type.)  If no type is found, the value
 			// is left unchanged.
-			string opt_quote;	// no optional quote by default
+			std::string opt_quote;	// no optional quote by default
 			Val* v = opt_internal_val(param);
 
 			if ( v && v->Type() && v->Type()->Tag() == TYPE_STRING )
 				opt_quote = "\"";	// use quotes
 
-			policy += string("redef ") + param + "="
+			policy += std::string("redef ") + param + "="
 					+ opt_quote + val + opt_quote + ";";
 
 			delete [] param;
@@ -1042,7 +1042,7 @@ int yywrap()
 	return 1;
 	}
 
-FileInfo::FileInfo(string arg_restore_module)
+FileInfo::FileInfo(std::string arg_restore_module)
 	{
 	buffer_state = YY_CURRENT_BUFFER;
 	restore_module = arg_restore_module;

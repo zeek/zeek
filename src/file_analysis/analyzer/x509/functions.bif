@@ -703,7 +703,7 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 	EVP_MD_CTX *mdctx = EVP_MD_CTX_create();
 	assert(mdctx);
 
-	string errstr;
+	std::string errstr;
 	int success = 0;
 
 	const EVP_MD* hash = hash_to_evp(hash_algorithm);

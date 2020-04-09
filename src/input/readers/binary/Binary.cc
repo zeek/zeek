@@ -8,6 +8,7 @@
 #include "threading/SerialTypes.h"
 
 using namespace input::reader;
+using namespace std;
 using threading::Value;
 using threading::Field;
 

@@ -13,8 +13,6 @@
 #include <vector>
 #include <map>
 
-using std::map;
-
 // TODO: Anon.h may not be the right place to put these functions ...
 
 enum ip_addr_anonymization_class_t {
@@ -51,7 +49,7 @@ public:
 	bool PreserveNet(ipaddr32_t input);
 
 protected:
-	map<ipaddr32_t, ipaddr32_t> mapping;
+	std::map<ipaddr32_t, ipaddr32_t> mapping;
 };
 
 class AnonymizeIPAddr_Seq : public AnonymizeIPAddr {

@@ -143,7 +143,7 @@ BroSubstring::Vec* BroSubstring::VecFromPolicy(VectorVal* vec)
 
 char* BroSubstring::VecToString(Vec* vec)
 	{
-	string result("[");
+	std::string result("[");
 
 	for ( BroSubstring::VecIt it = vec->begin(); it != vec->end(); ++it )
 		{
@@ -276,7 +276,7 @@ private:
 static void sw_collect_single(BroSubstring::Vec* result, SWNodeMatrix& matrix,
 			      SWNode* node, SWParams& params)
 	{
-	string substring("");
+	std::string substring("");
 	int row = 0, col = 0;
 
 	while ( node )
@@ -340,7 +340,7 @@ static void sw_collect_single(BroSubstring::Vec* result, SWNodeMatrix& matrix,
 static void sw_collect_multiple(BroSubstring::Vec* result,
 				SWNodeMatrix& matrix, SWParams& params)
 	{
-	vector<BroSubstring::Vec*> als;
+	std::vector<BroSubstring::Vec*> als;
 
 	for ( int i = matrix.GetHeight() - 1; i > 0; --i )
 		{
@@ -354,7 +354,7 @@ static void sw_collect_multiple(BroSubstring::Vec* result,
 			BroSubstring::Vec* new_al = new BroSubstring::Vec();
 			sw_collect_single(new_al, matrix, node, params);
 
-			for ( vector<BroSubstring::Vec*>::iterator it = als.begin();
+			for ( std::vector<BroSubstring::Vec*>::iterator it = als.begin();
 			      it != als.end(); ++it )
 				{
 				BroSubstring::Vec* old_al = *it;
@@ -393,7 +393,7 @@ end_loop:
 			}
 		}
 
-	for ( vector<BroSubstring::Vec*>::iterator it = als.begin();
+	for ( std::vector<BroSubstring::Vec*>::iterator it = als.begin();
 	      it != als.end(); ++it )
 		{
 		BroSubstring::Vec* al = *it;
@@ -506,7 +506,7 @@ BroSubstring::Vec* smith_waterman(const BroString* s1, const BroString* s2,
 			if ( current->swn_byte_assigned )
 				current->swn_score = score_tl;
 			else
-				current->swn_score = max(max(score_t, score_l), score_tl);
+				current->swn_score = std::max(std::max(score_t, score_l), score_tl);
 
 			// Establish predecessor chain according to neighbor
 			// with best score.

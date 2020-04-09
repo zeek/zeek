@@ -169,7 +169,7 @@ private:
 	TCP_Endpoint* orig;
 	TCP_Endpoint* resp;
 
-	typedef list<analyzer::Analyzer*> analyzer_list;
+	using analyzer_list = std::list<analyzer::Analyzer*>;
 	analyzer_list packet_children;
 
 	unsigned int first_packet_seen: 2;

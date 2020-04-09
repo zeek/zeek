@@ -273,10 +273,10 @@ bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
 
 	if ( ! code->Compile(BifConst::Pcap::snaplen, LinkType(), filter.c_str(), Netmask(), errbuf, sizeof(errbuf)) )
 		{
-		string msg = fmt("cannot compile BPF filter \"%s\"", filter.c_str());
+		std::string msg = fmt("cannot compile BPF filter \"%s\"", filter.c_str());
 
 		if ( *errbuf )
-			msg += ": " + string(errbuf);
+			msg += ": " + std::string(errbuf);
 
 		Error(msg);
 

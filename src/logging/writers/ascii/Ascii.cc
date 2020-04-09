@@ -10,6 +10,7 @@
 #include "Ascii.h"
 #include "ascii.bif.h"
 
+using namespace std;
 using namespace logging::writer;
 using namespace threading;
 using threading::Value;

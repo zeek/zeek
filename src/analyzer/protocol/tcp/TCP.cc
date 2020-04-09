@@ -794,7 +794,7 @@ void TCP_Analyzer::GeneratePacketEvent(
 		IntrusivePtr{AdoptRef{}, val_mgr->GetCount(len)},
 		// We need the min() here because Ethernet padding can lead to
 		// caplen > len.
-		make_intrusive<StringVal>(min(caplen, len), (const char*) data)
+		make_intrusive<StringVal>(std::min(caplen, len), (const char*) data)
 	);
 	}
 
@@ -1055,7 +1055,7 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	// We need the min() here because Ethernet frame padding can lead to
 	// caplen > len.
 	if ( packet_contents )
-		PacketContents(data, min(len, caplen));
+		PacketContents(data, std::min(len, caplen));
 
 	TCP_Endpoint* endpoint = is_orig ? orig : resp;
 	TCP_Endpoint* peer = endpoint->peer;
@@ -1906,7 +1906,7 @@ void TCP_ApplicationAnalyzer::DeliverPacket(int len, const u_char* data,
 	Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 	DBG_LOG(DBG_ANALYZER, "TCP_ApplicationAnalyzer ignoring DeliverPacket(%d, %s, %" PRIu64", %p, %d) [%s%s]",
 			len, is_orig ? "T" : "F", seq, ip, caplen,
-			fmt_bytes((const char*) data, min(40, len)), len > 40 ? "..." : "");
+			fmt_bytes((const char*) data, std::min(40, len)), len > 40 ? "..." : "");
 	}
 
 void TCP_ApplicationAnalyzer::SetEnv(bool /* is_orig */, char* name, char* val)

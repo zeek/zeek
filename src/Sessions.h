@@ -221,9 +221,9 @@ protected:
 
 	SessionStats stats;
 
-	typedef pair<IPAddr, IPAddr> IPPair;
-	typedef pair<EncapsulatingConn, double> TunnelActivity;
-	typedef std::map<IPPair, TunnelActivity> IPTunnelMap;
+	using IPPair = std::pair<IPAddr, IPAddr>;
+	using TunnelActivity = std::pair<EncapsulatingConn, double>;
+	using IPTunnelMap = std::map<IPPair, TunnelActivity>;
 	IPTunnelMap ip_tunnels;
 
 	analyzer::arp::ARP_Analyzer* arp_analyzer;

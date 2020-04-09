@@ -25,6 +25,8 @@
 #include "Val.h"
 #include "util.h"
 
+using namespace std;
+
 //
 // Helper routines
 //

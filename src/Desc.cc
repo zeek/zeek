@@ -251,7 +251,7 @@ size_t ODesc::StartsWithEscapeSequence(const char* start, const char* end)
 
 	for ( it = escape_sequences.begin(); it != escape_sequences.end(); ++it )
 		{
-		const string& esc_str = *it;
+		const std::string& esc_str = *it;
 		size_t esc_len = esc_str.length();
 
 		if ( start + esc_len > end )
@@ -264,9 +264,9 @@ size_t ODesc::StartsWithEscapeSequence(const char* start, const char* end)
 	return 0;
 	}
 
-pair<const char*, size_t> ODesc::FirstEscapeLoc(const char* bytes, size_t n)
+std::pair<const char*, size_t> ODesc::FirstEscapeLoc(const char* bytes, size_t n)
 	{
-	typedef pair<const char*, size_t> escape_pos;
+	typedef std::pair<const char*, size_t> escape_pos;
 
 	if ( IsBinary() )
 		return escape_pos(0, 0);
@@ -327,7 +327,7 @@ void ODesc::AddBytes(const void* bytes, unsigned int n)
 
 	while ( s < e )
 		{
-		pair<const char*, size_t> p = FirstEscapeLoc(s, e - s);
+		std::pair<const char*, size_t> p = FirstEscapeLoc(s, e - s);
 
 		if ( p.first )
 			{

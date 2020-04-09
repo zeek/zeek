@@ -3,7 +3,6 @@
 #pragma once
 
 #include <list>
-using namespace std;
 
 #include "analyzer/protocol/tcp/TCP.h"
 #include "analyzer/protocol/tcp/ContentLine.h"
@@ -83,7 +82,7 @@ protected:
 	int last_replied_cmd;
 	int first_cmd;			// first un-replied SMTP cmd, or -1
 	int pending_reply;		// code assoc. w/ multi-line reply, or 0
-	list<int> pending_cmd_q;	// to support pipelining
+	std::list<int> pending_cmd_q;	// to support pipelining
 	bool skip_data;			// whether to skip message body
 	BroString* line_after_gap;	// last line before the first reply
 					// after a gap

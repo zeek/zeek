@@ -1215,7 +1215,7 @@ void MIME_Entity::DataOctets(int len, const char* data)
 		if ( data_buf_offset < 0 && ! GetDataBuffer() )
 			return;
 
-		int n = min(data_buf_length - data_buf_offset, len);
+		int n = std::min(data_buf_length - data_buf_offset, len);
 		memcpy(data_buf_data + data_buf_offset, data, n);
 		data += n;
 		data_buf_offset += n;

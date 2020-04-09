@@ -81,7 +81,7 @@ static uint8_t ip4_mask_to_len(uint32_t mask)
 	Rule* rule;
 	RuleHdrTest* hdr_test;
 	maskedvalue_list* vallist;
-	vector<IPPrefix>* prefix_val_list;
+	std::vector<IPPrefix>* prefix_val_list;
 	IPPrefix* prefixval;
 
 	bool bl;
@@ -318,12 +318,12 @@ prefix_value_list:
 			}
 	|	prefix_value
 			{
-			$$ = new vector<IPPrefix>();
+			$$ = new std::vector<IPPrefix>();
 			$$->push_back(*($1));
 			}
 	|	TOK_IDENT
 			{
-			$$ = new vector<IPPrefix>();
+			$$ = new std::vector<IPPrefix>();
 			id_to_maskedvallist($1, 0, $$);
 			}
 	;

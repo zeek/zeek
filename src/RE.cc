@@ -195,13 +195,13 @@ bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx
 	return true;
 	}
 
-string Specific_RE_Matcher::LookupDef(const string& def)
+std::string Specific_RE_Matcher::LookupDef(const std::string& def)
 	{
 	const auto& iter = defs.find(def);
 	if ( iter != defs.end() )
 		return iter->second;
 
-	return string();
+	return std::string();
 	}
 
 bool Specific_RE_Matcher::MatchAll(const char* s)

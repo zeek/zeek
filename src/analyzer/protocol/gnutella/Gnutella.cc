@@ -112,9 +112,9 @@ bool Gnutella_Analyzer::NextLine(const u_char* data, int len)
 	}
 
 
-bool Gnutella_Analyzer::IsHTTP(string header)
+bool Gnutella_Analyzer::IsHTTP(std::string header)
 	{
-	if ( header.find(" HTTP/1.") == string::npos )
+	if ( header.find(" HTTP/1.") == std::string::npos )
 		return false;
 
 	if ( gnutella_http_notify )
@@ -139,7 +139,7 @@ bool Gnutella_Analyzer::IsHTTP(string header)
 	}
 
 
-bool Gnutella_Analyzer::GnutellaOK(string header)
+bool Gnutella_Analyzer::GnutellaOK(std::string header)
 	{
 	if ( strncmp("GNUTELLA", header.data(), 8) )
 		return false;
@@ -223,7 +223,7 @@ void Gnutella_Analyzer::SendEvents(GnutellaMsgState* p, bool is_orig)
 			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(p->msg_len)},
 			make_intrusive<StringVal>(p->payload),
 			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(p->payload_len)},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool((p->payload_len < min(p->msg_len, (unsigned int)GNUTELLA_MAX_PAYLOAD)))},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetBool((p->payload_len < std::min(p->msg_len, (unsigned int)GNUTELLA_MAX_PAYLOAD)))},
 			IntrusivePtr{AdoptRef{}, val_mgr->GetBool((p->payload_left == 0))}
 		);
 	}

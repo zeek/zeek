@@ -6,8 +6,6 @@
 
 #include <sys/types.h> // for u_char
 
-using std::string;
-
 class Rule;
 class RuleEndpointState;
 
@@ -50,7 +48,7 @@ public:
 
 	void PrintDebug() override;
 
-	string GetMIME() const
+	std::string GetMIME() const
 		{ return mime; }
 
 	int GetStrength() const

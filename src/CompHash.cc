@@ -906,7 +906,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 			RecordType* rt = t->AsRecordType();
 			int num_fields = rt->NumFields();
 
-			vector<Val*> values;
+			std::vector<Val*> values;
 			int i;
 			for ( i = 0; i < num_fields; ++i )
 				{

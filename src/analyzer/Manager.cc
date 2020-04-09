@@ -108,8 +108,8 @@ void Manager::DumpDebug()
 	{
 #ifdef DEBUG
 	DBG_LOG(DBG_ANALYZER, "Available analyzers after zeek_init():");
-	list<Component*> all_analyzers = GetComponents();
-	for ( list<Component*>::const_iterator i = all_analyzers.begin(); i != all_analyzers.end(); ++i )
+	std::list<Component*> all_analyzers = GetComponents();
+	for ( std::list<Component*>::const_iterator i = all_analyzers.begin(); i != all_analyzers.end(); ++i )
 		DBG_LOG(DBG_ANALYZER, "    %s (%s)", (*i)->Name().c_str(),
 			IsEnabled((*i)->Tag()) ? "enabled" : "disabled");
 
@@ -118,20 +118,20 @@ void Manager::DumpDebug()
 
 	for ( analyzer_map_by_port::const_iterator i = analyzers_by_port_tcp.begin(); i != analyzers_by_port_tcp.end(); i++ )
 		{
-		string s;
+		std::string s;
 
 		for ( tag_set::const_iterator j = i->second->begin(); j != i->second->end(); j++ )
-			s += string(GetComponentName(*j)) + " ";
+			s += std::string(GetComponentName(*j)) + " ";
 
 		DBG_LOG(DBG_ANALYZER, "    %d/tcp: %s", i->first, s.c_str());
 		}
 
 	for ( analyzer_map_by_port::const_iterator i = analyzers_by_port_udp.begin(); i != analyzers_by_port_udp.end(); i++ )
 		{
-		string s;
+		std::string s;
 
 		for ( tag_set::const_iterator j = i->second->begin(); j != i->second->end(); j++ )
-			s += string(GetComponentName(*j)) + " ";
+			s += std::string(GetComponentName(*j)) + " ";
 
 		DBG_LOG(DBG_ANALYZER, "    %d/udp: %s", i->first, s.c_str());
 		}
@@ -199,8 +199,8 @@ void Manager::DisableAllAnalyzers()
 	{
 	DBG_LOG(DBG_ANALYZER, "Disabling all analyzers");
 
-	list<Component*> all_analyzers = GetComponents();
-	for ( list<Component*>::const_iterator i = all_analyzers.begin(); i != all_analyzers.end(); ++i )
+	std::list<Component*> all_analyzers = GetComponents();
+	for ( std::list<Component*>::const_iterator i = all_analyzers.begin(); i != all_analyzers.end(); ++i )
 		(*i)->SetEnabled(false);
 	}
 

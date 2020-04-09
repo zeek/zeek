@@ -308,7 +308,7 @@ void PcapSource::Statistics(Stats* s)
 
 void PcapSource::PcapError(const char* where)
 	{
-	string location;
+	std::string location;
 
 	if ( where )
 		location = fmt(" (%s)", where);

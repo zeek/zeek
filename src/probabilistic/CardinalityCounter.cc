@@ -173,7 +173,7 @@ bool CardinalityCounter::Merge(CardinalityCounter* c)
 	if ( m != c->GetM() )
 		return false;
 
-	const vector<uint8_t>& temp = c->GetBuckets();
+	const std::vector<uint8_t>& temp = c->GetBuckets();
 
 	V = 0;
 
@@ -189,7 +189,7 @@ bool CardinalityCounter::Merge(CardinalityCounter* c)
 	return true;
 	}
 
-const vector<uint8_t> &CardinalityCounter::GetBuckets() const
+const std::vector<uint8_t> &CardinalityCounter::GetBuckets() const
 	{
 	return buckets;
 	}

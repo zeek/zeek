@@ -58,7 +58,7 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	// We need the min() here because Ethernet frame padding can lead to
 	// caplen > len.
 	if ( packet_contents )
-		PacketContents(data, min(len, caplen) - sizeof(struct udphdr));
+		PacketContents(data, std::min(len, caplen) - sizeof(struct udphdr));
 
 	int chksum = up->uh_sum;
 

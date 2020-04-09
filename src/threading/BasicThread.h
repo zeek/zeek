@@ -1,12 +1,10 @@
 
 #pragma once
 
-#include <iosfwd>
-#include <thread>
-
 #include <stdint.h>
 
-using namespace std;
+#include <iosfwd>
+#include <thread>
 
 namespace threading {
 

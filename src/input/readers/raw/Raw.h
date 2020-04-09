@@ -45,7 +45,7 @@ private:
 	bool Execute();
 	void WriteToStdin();
 
-	string fname; // Source with a potential "|" removed.
+	std::string fname; // Source with a potential "|" removed.
 	std::unique_ptr<FILE, int(*)(FILE*)> file;
 	std::unique_ptr<FILE, int(*)(FILE*)> stderrfile;
 	bool execute;
@@ -54,7 +54,7 @@ private:
 	ino_t ino;
 
 	// options set from the script-level.
-	string separator;
+	std::string separator;
 	unsigned int sep_length; // length of the separator
 
 	int bufpos;
@@ -65,7 +65,7 @@ private:
 	int stdout_fileno;
 	int stderr_fileno;
 
-	string stdin_string;
+	std::string stdin_string;
 	uint64_t stdin_towrite;
 
 	bool use_stderr;

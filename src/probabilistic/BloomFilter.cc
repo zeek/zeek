@@ -254,7 +254,7 @@ CountingBloomFilter* CountingBloomFilter::Clone() const
 	return copy;
 	}
 
-string CountingBloomFilter::InternalState() const
+std::string CountingBloomFilter::InternalState() const
 	{
 	return fmt("%" PRIu64, cells->Hash());
 	}

@@ -13,6 +13,8 @@
 #include "Reporter.h"
 #include "util.h"
 
+using namespace std;
+
 Brofiler::Brofiler()
 	: ignoring(0), delim('\t')
 	{

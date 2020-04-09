@@ -46,7 +46,7 @@ protected:
 private:
 	void StartTLS();
 
-	inline void SkipLeadingWhitespace(string& str);
+	inline void SkipLeadingWhitespace(std::string& str);
 
 	/** \brief counts number of invalid IRC messages */
 	int invalid_msg_count;
@@ -62,7 +62,7 @@ private:
 	* \param split character which separates the words
 	* \return vector containing words
 	*/
-	vector<string> SplitWords(const string& input, char split);
+	std::vector<std::string> SplitWords(const std::string& input, char split);
 
 	tcp::ContentLine_Analyzer* cl_orig;
 	tcp::ContentLine_Analyzer* cl_resp;

@@ -38,7 +38,7 @@ const std::vector<std::string>& PktSrcComponent::Prefixes() const
 	return prefixes;
 	}
 
-bool PktSrcComponent::HandlesPrefix(const string& prefix) const
+bool PktSrcComponent::HandlesPrefix(const std::string& prefix) const
 	{
 	for ( std::vector<std::string>::const_iterator i = prefixes.begin();
 	      i != prefixes.end(); i++ )
@@ -69,7 +69,7 @@ void PktSrcComponent::DoDescribe(ODesc* d) const
 	{
 	iosource::Component::DoDescribe(d);
 
-	string prefs;
+	std::string prefs;
 
 	for ( std::vector<std::string>::const_iterator i = prefixes.begin();
 	      i != prefixes.end(); i++ )
@@ -128,7 +128,7 @@ const std::vector<std::string>& PktDumperComponent::Prefixes() const
 	return prefixes;
 	}
 
-bool PktDumperComponent::HandlesPrefix(const string& prefix) const
+bool PktDumperComponent::HandlesPrefix(const std::string& prefix) const
 	{
 	for ( std::vector<std::string>::const_iterator i = prefixes.begin();
 	      i != prefixes.end(); i++ )
@@ -144,7 +144,7 @@ void PktDumperComponent::DoDescribe(ODesc* d) const
 	{
 	plugin::Component::DoDescribe(d);
 
-	string prefs;
+	std::string prefs;
 
 	for ( std::vector<std::string>::const_iterator i = prefixes.begin();
 	      i != prefixes.end(); i++ )

@@ -272,8 +272,8 @@ extern IntrusivePtr<Expr> add_and_assign_local(IntrusivePtr<ID> id,
 
 void add_type(ID* id, IntrusivePtr<BroType> t, attr_list* attr)
 	{
-	string new_type_name = id->Name();
-	string old_type_name = t->GetName();
+	std::string new_type_name = id->Name();
+	std::string old_type_name = t->GetName();
 	IntrusivePtr<BroType> tnew;
 
 	if ( (t->Tag() == TYPE_RECORD || t->Tag() == TYPE_ENUM) &&
@@ -427,7 +427,7 @@ public:
 	TraversalCode PostExpr(const Expr*) override;
 
 	std::vector<Scope*> scopes;
-	vector<const NameExpr*> outer_id_references;
+	std::vector<const NameExpr*> outer_id_references;
 };
 
 TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)

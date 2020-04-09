@@ -369,7 +369,7 @@ protected:
 	static uint64_t total_connections;
 	static uint64_t current_connections;
 
-	string history;
+	std::string history;
 	uint32_t hist_seen;
 
 	analyzer::TransportLayerAnalyzer* root_analyzer;

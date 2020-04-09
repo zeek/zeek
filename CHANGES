@@ -1,4 +1,12 @@
 
+3.2.0-dev.382 | 2020-04-09 13:17:03 -0700
+
+  * Remove 'using namespace std' as well as other using statements from headers.
+
+    This unfortunately cuases a ton of flow-down changes because a lot of other
+    code was depending on that definition existing. This has a fairly large chance
+    to break builds of external plugins, considering how many internal ones it broke. (Tim Wojtulewicz, Corelight)
+
 3.2.0-dev.378 | 2020-04-09 08:47:44 -0700
 
   * Replace most of the uses of 0 or NULL to indicate null pointers with nullptr.

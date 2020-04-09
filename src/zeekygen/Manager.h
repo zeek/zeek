@@ -234,8 +234,8 @@ private:
 };
 
 template <class T>
-bool Manager::IsUpToDate(const string& target_file,
-                         const vector<T*>& dependencies) const
+bool Manager::IsUpToDate(const std::string& target_file,
+                         const std::vector<T*>& dependencies) const
 	{
 	struct stat s;
 

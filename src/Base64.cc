@@ -7,7 +7,7 @@
 #include <math.h>
 
 int Base64Converter::default_base64_table[256];
-const string Base64Converter::default_alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+const std::string Base64Converter::default_alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 void Base64Converter::Encode(int len, const unsigned char* data, int* pblen, char** pbuf)
 	{
@@ -46,7 +46,7 @@ void Base64Converter::Encode(int len, const unsigned char* data, int* pblen, cha
 	}
 
 
-int* Base64Converter::InitBase64Table(const string& alphabet)
+int* Base64Converter::InitBase64Table(const std::string& alphabet)
 	{
 	assert(alphabet.size() == 64);
 
@@ -86,7 +86,7 @@ int* Base64Converter::InitBase64Table(const string& alphabet)
 	return base64_table;
 	}
 
-Base64Converter::Base64Converter(Connection* arg_conn, const string& arg_alphabet)
+Base64Converter::Base64Converter(Connection* arg_conn, const std::string& arg_alphabet)
 	{
 	if ( arg_alphabet.size() > 0 )
 		{

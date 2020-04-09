@@ -67,6 +67,11 @@ Changed Functionality
 - Data members of many C++ classes/structs were reordered to achieve better
   packing and smaller memory footprint.
 
+- "using namespace std" was removed from the Zeek header files; Zeek now always
+  explicitly specifies std when using STL functionality in headers. This may
+  necessitate small changes in external plugins, if they relied on the using 
+  statement in Zeek headers.
+
 Removed Functionality
 ---------------------
 

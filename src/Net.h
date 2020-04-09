@@ -2,14 +2,12 @@
 
 #pragma once
 
+#include <sys/stat.h> // for ino_t
+
 #include <list>
 #include <vector>
 #include <string>
 #include <optional>
-
-#include <sys/stat.h> // for ino_t
-
-using std::string;
 
 namespace iosource {
 	class IOSource;
@@ -95,10 +93,10 @@ struct ScannedFile {
 	int include_level;
 	bool skipped;		// This ScannedFile was @unload'd.
 	bool prefixes_checked;	// If loading prefixes for this file has been tried.
-	string name;
+	std::string name;
 
 	ScannedFile(dev_t arg_dev, ino_t arg_inode, int arg_include_level,
-	            const string& arg_name, bool arg_skipped = false,
+	            const std::string& arg_name, bool arg_skipped = false,
 	            bool arg_prefixes_checked = false)
 		: dev(arg_dev), inode(arg_inode),
 		  include_level(arg_include_level),
@@ -109,4 +107,4 @@ struct ScannedFile {
 };
 
 extern std::list<ScannedFile> files_scanned;
-extern std::vector<string> sig_files;
+extern std::vector<std::string> sig_files;

@@ -1196,7 +1196,7 @@ Connection* NetSessions::LookupConn(const ConnectionMap& conns, const ConnIDKey&
 bool NetSessions::IsLikelyServerPort(uint32_t port, TransportProto proto) const
 	{
 	// We keep a cached in-core version of the table to speed up the lookup.
-	static set<bro_uint_t> port_cache;
+	static std::set<bro_uint_t> port_cache;
 	static bool have_cache = false;
 
 	if ( ! have_cache )

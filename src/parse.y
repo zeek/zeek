@@ -114,7 +114,7 @@ extern int brolex();
  * Part of the module facility: while parsing, keep track of which
  * module to put things in.
  */
-string current_module = GLOBAL_MODULE_NAME;
+std::string current_module = GLOBAL_MODULE_NAME;
 bool is_export = false; // true if in an export {} block
 
 /*
@@ -196,7 +196,7 @@ static attr_list* copy_attr_list(attr_list* al)
 
 static void extend_record(ID* id, type_decl_list* fields, attr_list* attrs)
 	{
-	set<BroType*> types = BroType::GetAliases(id->Name());
+	std::set<BroType*> types = BroType::GetAliases(id->Name());
 
 	if ( types.empty() )
 		{
@@ -204,7 +204,7 @@ static void extend_record(ID* id, type_decl_list* fields, attr_list* attrs)
 		return;
 		}
 
-	for ( set<BroType*>::const_iterator it = types.begin(); it != types.end(); )
+	for ( std::set<BroType*>::const_iterator it = types.begin(); it != types.end(); )
 		{
 		RecordType* add_to = (*it)->AsRecordType();
 		const char* error = 0;

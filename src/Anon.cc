@@ -56,7 +56,7 @@ int bi_ffs(uint32_t value)
 
 ipaddr32_t AnonymizeIPAddr::Anonymize(ipaddr32_t addr)
 	{
-	map<ipaddr32_t, ipaddr32_t>::iterator p = mapping.find(addr);
+	std::map<ipaddr32_t, ipaddr32_t>::iterator p = mapping.find(addr);
 	if ( p != mapping.end() )
 		return p->second;
 	else

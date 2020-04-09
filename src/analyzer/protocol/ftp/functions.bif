@@ -4,9 +4,9 @@ type ftp_port: record;
 %%{
 #include "Reporter.h"
 
-static Val* parse_port(const char* line)
+static IntrusivePtr<Val> parse_port(const char* line)
 	{
-	RecordVal* r = new RecordVal(BifType::Record::ftp_port);
+	auto r = make_intrusive<RecordVal>(BifType::Record::ftp_port);
 
 	int bytes[6];
 	if ( line && sscanf(line, "%d,%d,%d,%d,%d,%d",
@@ -47,9 +47,9 @@ static Val* parse_port(const char* line)
 	return r;
 	}
 
-static Val* parse_eftp(const char* line)
+static IntrusivePtr<Val> parse_eftp(const char* line)
 	{
-	RecordVal* r = new RecordVal(BifType::Record::ftp_port);
+	auto r = make_intrusive<RecordVal>(BifType::Record::ftp_port);
 
 	int net_proto = 0;	// currently not used
 	IPAddr addr;	// unspecified IPv6 address (all 128 bits zero)
@@ -206,7 +206,7 @@ function fmt_ftp_port%(a: addr, p: port%): string
 		{
 		uint32_t a = ntohl(addr[0]);
 		uint32_t pn = p->Port();
-		return new StringVal(fmt("%d,%d,%d,%d,%d,%d",
+		return make_intrusive<StringVal>(fmt("%d,%d,%d,%d,%d,%d",
 						a >> 24, (a >> 16) & 0xff,
 						(a >> 8) & 0xff, a & 0xff,
 						pn >> 8, pn & 0xff));

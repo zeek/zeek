@@ -126,7 +126,7 @@ function get_contents_file%(cid: conn_id, direction: count%): file
 	if ( f )
 		{
 		Ref(f);
-		return new Val(f);
+		return make_intrusive<Val>(f);
 		}
 
 	// Return some sort of error value.
@@ -135,5 +135,5 @@ function get_contents_file%(cid: conn_id, direction: count%): file
 	else
 		builtin_error("no contents file for given direction");
 
-	return new Val(new BroFile(stderr, "-", "w"));
+	return make_intrusive<Val>(new BroFile(stderr, "-", "w"));
 	%}

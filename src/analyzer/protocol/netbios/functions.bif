@@ -34,7 +34,7 @@ function decode_netbios_name%(name: string%): string
 			break;
 		}
 
-	return new StringVal(i, result);
+	return make_intrusive<StringVal>(i, result);
 	%}
 
 ## Converts a NetBIOS name type to its corresponding numeric value.

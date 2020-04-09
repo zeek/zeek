@@ -135,5 +135,5 @@ function Broker::__peers%(%): PeerInfos
 function Broker::__node_id%(%): string
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
-	return new StringVal(broker_mgr->NodeID());
+	return make_intrusive<StringVal>(broker_mgr->NodeID());
 	%}

@@ -583,9 +583,8 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 						{
 						auto blank = make_intrusive<StringVal>("");
 						auto fn_val = make_intrusive<StringVal>(field_name);
-						auto key_val = fn_val->Substitute(re, blank.get(), false)->AsStringVal();
+						auto key_val = fn_val->Substitute(re, blank.get(), false);
 						key_str = key_val->ToStdString();
-						Unref(key_val);
 						}
 					else
 						key_str = field_name;
@@ -1024,7 +1023,7 @@ unsigned int StringVal::MemoryAllocation() const
 	return padded_sizeof(*this) + val.string_val->MemoryAllocation();
 	}
 
-Val* StringVal::Substitute(RE_Matcher* re, StringVal* repl, bool do_all)
+IntrusivePtr<StringVal> StringVal::Substitute(RE_Matcher* re, StringVal* repl, bool do_all)
 	{
 	const u_char* s = Bytes();
 	int offset = 0;
@@ -1105,7 +1104,7 @@ Val* StringVal::Substitute(RE_Matcher* re, StringVal* repl, bool do_all)
 	// the NUL.
 	r[0] = '\0';
 
-	return new StringVal(new BroString(true, result, r - result));
+	return make_intrusive<StringVal>(new BroString(true, result, r - result));
 	}
 
 IntrusivePtr<Val> StringVal::DoClone(CloneState* state)

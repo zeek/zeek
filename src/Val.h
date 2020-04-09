@@ -593,7 +593,7 @@ public:
 
 	unsigned int MemoryAllocation() const override;
 
-	Val* Substitute(RE_Matcher* re, StringVal* repl, bool do_all);
+	IntrusivePtr<StringVal> Substitute(RE_Matcher* re, StringVal* repl, bool do_all);
 
 protected:
 	void ValDescribe(ODesc* d) const override;

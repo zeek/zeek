@@ -124,7 +124,7 @@ function Broker::__store_name%(h: opaque of Broker::Store%): string
 		}
 
 	auto handle = static_cast<bro_broker::StoreHandleVal*>(h);
-	return new StringVal(handle->store.name());
+	return make_intrusive<StringVal>(handle->store.name());
 	%}
 
 function Broker::__exists%(h: opaque of Broker::Store,
@@ -169,7 +169,7 @@ function Broker::__exists%(h: opaque of Broker::Store,
 	auto req_id = handle->proxy.exists(std::move(*key));
 	broker_mgr->TrackStoreQuery(handle, req_id, cb);
 
-	return 0;
+	return nullptr;
 	%}
 
 function Broker::__get%(h: opaque of Broker::Store,
@@ -214,7 +214,7 @@ function Broker::__get%(h: opaque of Broker::Store,
 	auto req_id = handle->proxy.get(std::move(*key));
 	broker_mgr->TrackStoreQuery(handle, req_id, cb);
 
-	return 0;
+	return nullptr;
 	%}
 
 function Broker::__put_unique%(h: opaque of Broker::Store,
@@ -268,7 +268,7 @@ function Broker::__put_unique%(h: opaque of Broker::Store,
 	                                       prepare_expiry(e));
 	broker_mgr->TrackStoreQuery(handle, req_id, cb);
 
-	return 0;
+	return nullptr;
 	%}
 
 function Broker::__get_index_from_value%(h: opaque of Broker::Store,
@@ -322,7 +322,7 @@ function Broker::__get_index_from_value%(h: opaque of Broker::Store,
 	                                                 std::move(*index));
 	broker_mgr->TrackStoreQuery(handle, req_id, cb);
 
-	return 0;
+	return nullptr;
 	%}
 
 function Broker::__keys%(h: opaque of Broker::Store%): Broker::QueryResult
@@ -359,7 +359,7 @@ function Broker::__keys%(h: opaque of Broker::Store%): Broker::QueryResult
 	auto req_id = handle->proxy.keys();
 	broker_mgr->TrackStoreQuery(handle, req_id, cb);
 
-	return 0;
+	return nullptr;
 	%}
 
 function Broker::__put%(h: opaque of Broker::Store,

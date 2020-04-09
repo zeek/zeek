@@ -511,14 +511,14 @@ string Manager::DetectMIME(const u_char* data, uint64_t len) const
 	return *(matches.begin()->second.begin());
 	}
 
-VectorVal* file_analysis::GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m)
+IntrusivePtr<VectorVal> file_analysis::GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m)
 	{
-	VectorVal* rval = new VectorVal(mime_matches);
+	auto rval = make_intrusive<VectorVal>(mime_matches);
 
 	for ( RuleMatcher::MIME_Matches::const_iterator it = m.begin();
 	      it != m.end(); ++it )
 		{
-		RecordVal* element = new RecordVal(mime_match);
+		auto element = make_intrusive<RecordVal>(mime_match);
 
 		for ( set<string>::const_iterator it2 = it->second.begin();
 		      it2 != it->second.end(); ++it2 )
@@ -527,7 +527,7 @@ VectorVal* file_analysis::GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m)
 			element->Assign(1, make_intrusive<StringVal>(*it2));
 			}
 
-		rval->Assign(rval->Size(), element);
+		rval->Assign(rval->Size(), std::move(element));
 		}
 
 	return rval;

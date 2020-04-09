@@ -113,7 +113,7 @@ function hll_cardinality_estimate%(handle: opaque of cardinality%): double
 
 	double estimate = h->Size();
 
-	return new Val(estimate, TYPE_DOUBLE);
+	return make_intrusive<Val>(estimate, TYPE_DOUBLE);
 	%}
 
 ## Copy a HLL cardinality counter.

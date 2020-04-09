@@ -9,9 +9,9 @@
 #include "zeekygen/ScriptInfo.h"
 #include "util.h"
 
-static StringVal* comments_to_val(const vector<string>& comments)
+static IntrusivePtr<StringVal> comments_to_val(const vector<string>& comments)
 	{
-	return new StringVal(implode_string_vector(comments));
+	return make_intrusive<StringVal>(implode_string_vector(comments));
 	}
 %%}
 

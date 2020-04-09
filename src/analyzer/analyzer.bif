@@ -23,7 +23,7 @@ function Analyzer::__disable_analyzer%(id: Analyzer::Tag%) : bool
 function Analyzer::__disable_all_analyzers%(%) : any
 	%{
 	analyzer_mgr->DisableAllAnalyzers();
-	return 0;
+	return nullptr;
 	%}
 
 function Analyzer::__register_for_port%(id: Analyzer::Tag, p: port%) : bool
@@ -41,11 +41,11 @@ function Analyzer::__schedule_analyzer%(orig: addr, resp: addr, resp_p: port,
 
 function __name%(atype: Analyzer::Tag%) : string
 	%{
-	return new StringVal(analyzer_mgr->GetComponentName(atype));
+	return make_intrusive<StringVal>(analyzer_mgr->GetComponentName(atype));
 	%}
 
 function __tag%(name: string%) : Analyzer::Tag
 	%{
 	analyzer::Tag t = analyzer_mgr->GetComponentTag(name->CheckString());
-	return t.AsEnumVal()->Ref();
+	return IntrusivePtr{NewRef{}, t.AsEnumVal()};
 	%}

@@ -139,7 +139,7 @@ function get_current_conn_duration_threshold%(cid: conn_id%): interval
 	%{
 	analyzer::Analyzer* a = GetConnsizeAnalyzer(cid);
 	if ( ! a )
-		return new Val(0.0, TYPE_INTERVAL);
+		return make_intrusive<Val>(0.0, TYPE_INTERVAL);
 
-	return new Val(static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->GetDurationThreshold(), TYPE_INTERVAL);
+	return make_intrusive<Val>(static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->GetDurationThreshold(), TYPE_INTERVAL);
 	%}

@@ -153,7 +153,7 @@ function Reporter::file_weird%(name: string, f: fa_file, addl: string &default="
 ## Returns: Current weird sampling whitelist
 function Reporter::get_weird_sampling_whitelist%(%): string_set
 	%{
-	TableVal* set = new TableVal({NewRef{}, string_set});
+	auto set = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, string_set});
 	for ( auto el : reporter->GetWeirdSamplingWhitelist() )
 		{
 		auto idx = make_intrusive<StringVal>(el);
@@ -232,7 +232,7 @@ function Reporter::set_weird_sampling_rate%(weird_sampling_rate: count%) : bool
 ## Returns: weird sampling duration.
 function Reporter::get_weird_sampling_duration%(%) : interval
 	%{
-	return new Val(reporter->GetWeirdSamplingDuration(), TYPE_INTERVAL);
+	return make_intrusive<Val>(reporter->GetWeirdSamplingDuration(), TYPE_INTERVAL);
 	%}
 
 ## Sets the current weird sampling duration. Please note that

@@ -68,7 +68,7 @@ function Files::__stop%(file_id: string%): bool
 ## :zeek:see:`Files::analyzer_name`.
 function Files::__analyzer_name%(tag: Files::Tag%) : string
 	%{
-	return new StringVal(file_mgr->GetComponentName(tag));
+	return make_intrusive<StringVal>(file_mgr->GetComponentName(tag));
 	%}
 
 ## :zeek:see:`Files::file_exists`.
@@ -86,11 +86,11 @@ function Files::__lookup_file%(fuid: string%): fa_file
 	auto f = file_mgr->LookupFile(fuid->CheckString());
 	if ( f != nullptr )
 		{
-		return f->GetVal()->Ref();
+		return IntrusivePtr{NewRef{}, f->GetVal()};
 		}
 	
 	reporter->Error("file ID %s not a known file", fuid->CheckString());
-	return 0;
+	return nullptr;
 	%}
 
 module GLOBAL;
@@ -108,7 +108,7 @@ function set_file_handle%(handle: string%): any
 	auto bytes = reinterpret_cast<const char*>(handle->Bytes());
 	auto h = std::string(bytes, handle->Len());
 	file_mgr->SetHandle(h);
-	return 0;
+	return nullptr;
 	%}
 
 const Files::salt: string;

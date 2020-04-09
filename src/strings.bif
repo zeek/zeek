@@ -75,7 +75,7 @@ function string_cat%(...%): string
 		}
 	*b = 0;
 
-	return new StringVal(s);
+	return make_intrusive<StringVal>(s);
 	%}
 
 ## Joins all values in the given vector of strings with a separator placed
@@ -114,7 +114,7 @@ function join_string_vec%(vec: string_vec, sep: string%): string
 	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
 	s->SetUseFreeToDelete(true);
 
-	return new StringVal(s);
+	return make_intrusive<StringVal>(s);
 	%}
 
 ## Returns an edited version of a string that applies a special
@@ -162,7 +162,7 @@ function edit%(arg_s: string, arg_edit_char: string%): string
 
 	new_s[ind] = '\0';
 
-	return new StringVal(new BroString(1, byte_vec(new_s), ind));
+	return make_intrusive<StringVal>(new BroString(1, byte_vec(new_s), ind));
 	%}
 
 ## Get a substring from a string, given a starting position and length.
@@ -185,7 +185,7 @@ function sub_bytes%(s: string, start: count, n: int%): string
 	if ( ! ss )
 		ss = new BroString("");
 
-	return new StringVal(ss);
+	return make_intrusive<StringVal>(ss);
 	%}
 
 %%{
@@ -199,11 +199,12 @@ static int match_prefix(int s_len, const char* s, int t_len, const char* t)
 	return 1;
 	}
 
-VectorVal* do_split_string(StringVal* str_val, RE_Matcher* re, int incl_sep,
-                           int max_num_sep)
+static IntrusivePtr<VectorVal> do_split_string(StringVal* str_val,
+                                               RE_Matcher* re, int incl_sep,
+                                               int max_num_sep)
 	{
 	// string_vec is used early in the version script - do not use the NetVar.
-	VectorVal* rval = new VectorVal(internal_type("string_vec")->AsVectorType());
+	auto rval = make_intrusive<VectorVal>(internal_type("string_vec")->AsVectorType());
 	const u_char* s = str_val->Bytes();
 	int n = str_val->Len();
 	const u_char* end_of_s = s + n;
@@ -476,7 +477,7 @@ function subst_string%(s: string, from: string, to: string%): string
 	%{
 	const int little_len = from->Len();
 	if ( little_len == 0 )
-		return s->Ref();
+		return IntrusivePtr{NewRef{}, s};
 
 	int big_len = s->Len();
 	const u_char* big = s->Bytes();
@@ -511,7 +512,7 @@ function subst_string%(s: string, from: string, to: string%): string
 		vs.push_back(dc);
 		}
 
-	return new StringVal(concatenate(vs));
+	return make_intrusive<StringVal>(concatenate(vs));
 	%}
 
 ## Replaces all uppercase letters in a string with their lowercase counterpart.
@@ -540,7 +541,7 @@ function to_lower%(str: string%): string
 
     *ls++ = '\0';
 
-	return new StringVal(new BroString(1, lower_s, n));
+	return make_intrusive<StringVal>(new BroString(1, lower_s, n));
 	%}
 
 ## Replaces all lowercase letters in a string with their uppercase counterpart.
@@ -569,7 +570,7 @@ function to_upper%(str: string%): string
 
     *us++ = '\0';
 
-	return new StringVal(new BroString(1, upper_s, n));
+	return make_intrusive<StringVal>(new BroString(1, upper_s, n));
 	%}
 
 ## Replaces non-printable characters in a string with escaped sequences. The
@@ -589,7 +590,7 @@ function to_upper%(str: string%): string
 function clean%(str: string%): string
 	%{
 	char* s = str->AsString()->Render();
-	return new StringVal(new BroString(1, byte_vec(s), strlen(s)));
+	return make_intrusive<StringVal>(new BroString(1, byte_vec(s), strlen(s)));
 	%}
 
 ## Replaces non-printable characters in a string with escaped sequences. The
@@ -607,7 +608,7 @@ function clean%(str: string%): string
 function to_string_literal%(str: string%): string
 	%{
 	char* s = str->AsString()->Render(BroString::BRO_STRING_LITERAL);
-	return new StringVal(new BroString(1, byte_vec(s), strlen(s)));
+	return make_intrusive<StringVal>(new BroString(1, byte_vec(s), strlen(s)));
 	%}
 
 ## Determines whether a given string contains only ASCII characters.
@@ -665,7 +666,7 @@ function string_to_ascii_hex%(s: string%): string
 	for ( int i = 0; i < s->Len(); ++i )
 		sprintf(x + i * 2, "%02x", sp[i]);
 
-	return new StringVal(new BroString(1, (u_char*) x, s->Len() * 2));
+	return make_intrusive<StringVal>(new BroString(1, (u_char*) x, s->Len() * 2));
 	%}
 
 ## Uses the Smith-Waterman algorithm to find similar/overlapping substrings.
@@ -744,7 +745,7 @@ function strip%(str: string%): string
 
 	if ( n == 0 )
 		// Empty string.
-		return new StringVal(new BroString(s, n, 1));
+		return make_intrusive<StringVal>(new BroString(s, n, 1));
 
 	const u_char* sp = s;
 
@@ -757,7 +758,7 @@ function strip%(str: string%): string
 	while ( isspace(*sp) && sp <= e )
 		++sp;
 
-	return new StringVal(new BroString(sp, (e - sp + 1), 1));
+	return make_intrusive<StringVal>(new BroString(sp, (e - sp + 1), 1));
 	%}
 
 %%{
@@ -792,7 +793,7 @@ function lstrip%(str: string, chars: string &default=" \t\n\r\v\f"%): string
 
 	// empty input string
 	if ( n == 0 )
-		return new StringVal(new BroString(s, n, 1));
+		return make_intrusive<StringVal>(new BroString(s, n, 1));
 
 	int i;
 	auto bs_chars = chars->AsString();
@@ -801,7 +802,7 @@ function lstrip%(str: string, chars: string &default=" \t\n\r\v\f"%): string
 		if ( ! should_strip(s[i], bs_chars) )
 			break;
 
-	return new StringVal(new BroString(s + i, n - i, 1));
+	return make_intrusive<StringVal>(new BroString(s + i, n - i, 1));
 	%}
 
 ## Removes all combinations of characters in the *chars* argument
@@ -823,7 +824,7 @@ function rstrip%(str: string, chars: string &default=" \t\n\r\v\f"%): string
 
 	// empty input string
 	if ( n == 0 )
-		return new StringVal(new BroString(s, n, 1));
+		return make_intrusive<StringVal>(new BroString(s, n, 1));
 
 	int n_to_remove;
 	auto bs_chars = chars->AsString();
@@ -832,7 +833,7 @@ function rstrip%(str: string, chars: string &default=" \t\n\r\v\f"%): string
 		if ( ! should_strip(s[n - n_to_remove - 1], bs_chars) )
 			break;
 
-	return new StringVal(new BroString(s, n - n_to_remove, 1));
+	return make_intrusive<StringVal>(new BroString(s, n - n_to_remove, 1));
 	%}
 
 ## Generates a string of a given size and fills it with repetitions of a source
@@ -854,7 +855,7 @@ function string_fill%(len: int, source: string%): string
 
 	dst[len - 1] = 0;
 
-	return new StringVal(new BroString(1, byte_vec(dst), len));
+	return make_intrusive<StringVal>(new BroString(1, byte_vec(dst), len));
 	%}
 
 ## Takes a string and escapes characters that would allow execution of
@@ -894,7 +895,7 @@ function safe_shell_quote%(source: string%): string
 
 	dst[j++] = '"';
 	dst[j] = '\0';
-	return new StringVal(new BroString(1, dst, j));
+	return make_intrusive<StringVal>(new BroString(1, dst, j));
 	%}
 
 ## Finds all occurrences of a pattern in a string.
@@ -949,7 +950,7 @@ function find_last%(str: string, re: pattern%) : string
 		{
 		int n = re->MatchPrefix(t, e - t);
 		if ( n >= 0 )
-			return new StringVal(n, (const char*) t);
+			return make_intrusive<StringVal>(n, (const char*) t);
 		}
 
 	return val_mgr->EmptyString();
@@ -1083,5 +1084,5 @@ function reverse%(str: string%) : string
 	%{
 	string s = string((const char*)str->Bytes(), str->Len());
 	reverse(s.begin(), s.end());
-	return new StringVal(s.length(), (const char*)s.c_str());
+	return make_intrusive<StringVal>(s.length(), (const char*)s.c_str());
 	%}

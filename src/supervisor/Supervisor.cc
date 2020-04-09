@@ -1311,9 +1311,9 @@ void Supervisor::SupervisedNode::Init(zeek::Options* options) const
 		options->scripts_to_load.emplace_back(s);
 	}
 
-RecordVal* Supervisor::Status(std::string_view node_name)
+IntrusivePtr<RecordVal> Supervisor::Status(std::string_view node_name)
 	{
-	auto rval = new RecordVal(BifType::Record::Supervisor::Status);
+	auto rval = make_intrusive<RecordVal>(BifType::Record::Supervisor::Status);
 	auto tt = BifType::Record::Supervisor::Status->FieldType("nodes");
 	auto node_table_val = new TableVal({NewRef{}, tt->AsTableType()});
 	rval->Assign(0, node_table_val);

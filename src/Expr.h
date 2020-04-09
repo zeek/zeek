@@ -523,7 +523,7 @@ public:
 	bool IsPure() const override;
 
 protected:
-	bool TypeCheck(attr_list* attrs = 0);
+	bool TypeCheck(attr_list* attrs = nullptr);
 	bool TypeCheckArithmetics(TypeTag bt1, TypeTag bt2);
 
 	bool is_init;

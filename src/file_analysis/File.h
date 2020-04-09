@@ -236,7 +236,7 @@ protected:
 	 *        of the connection to the responder.  False indicates the other
 	 *        direction.
 	 */
-	File(const string& file_id, const string& source_name, Connection* conn = 0,
+	File(const string& file_id, const string& source_name, Connection* conn = nullptr,
 	     analyzer::Tag tag = analyzer::Tag::Error, bool is_orig = false);
 
 	/**

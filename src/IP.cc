@@ -13,26 +13,26 @@
 #include "BroString.h"
 #include "Reporter.h"
 
-static RecordType* ip4_hdr_type = 0;
-static RecordType* ip6_hdr_type = 0;
-static RecordType* ip6_ext_hdr_type = 0;
-static RecordType* ip6_option_type = 0;
-static RecordType* ip6_hopopts_type = 0;
-static RecordType* ip6_dstopts_type = 0;
-static RecordType* ip6_routing_type = 0;
-static RecordType* ip6_fragment_type = 0;
-static RecordType* ip6_ah_type = 0;
-static RecordType* ip6_esp_type = 0;
-static RecordType* ip6_mob_type = 0;
-static RecordType* ip6_mob_msg_type = 0;
-static RecordType* ip6_mob_brr_type = 0;
-static RecordType* ip6_mob_hoti_type = 0;
-static RecordType* ip6_mob_coti_type = 0;
-static RecordType* ip6_mob_hot_type = 0;
-static RecordType* ip6_mob_cot_type = 0;
-static RecordType* ip6_mob_bu_type = 0;
-static RecordType* ip6_mob_back_type = 0;
-static RecordType* ip6_mob_be_type = 0;
+static RecordType* ip4_hdr_type = nullptr;
+static RecordType* ip6_hdr_type = nullptr;
+static RecordType* ip6_ext_hdr_type = nullptr;
+static RecordType* ip6_option_type = nullptr;
+static RecordType* ip6_hopopts_type = nullptr;
+static RecordType* ip6_dstopts_type = nullptr;
+static RecordType* ip6_routing_type = nullptr;
+static RecordType* ip6_fragment_type = nullptr;
+static RecordType* ip6_ah_type = nullptr;
+static RecordType* ip6_esp_type = nullptr;
+static RecordType* ip6_mob_type = nullptr;
+static RecordType* ip6_mob_msg_type = nullptr;
+static RecordType* ip6_mob_brr_type = nullptr;
+static RecordType* ip6_mob_hoti_type = nullptr;
+static RecordType* ip6_mob_coti_type = nullptr;
+static RecordType* ip6_mob_hot_type = nullptr;
+static RecordType* ip6_mob_cot_type = nullptr;
+static RecordType* ip6_mob_bu_type = nullptr;
+static RecordType* ip6_mob_back_type = nullptr;
+static RecordType* ip6_mob_be_type = nullptr;
 
 static inline RecordType* hdrType(RecordType*& type, const char* name)
 	{
@@ -79,7 +79,7 @@ static VectorVal* BuildOptionsVal(const u_char* data, int len)
 
 RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 	{
-	RecordVal* rv = 0;
+	RecordVal* rv = nullptr;
 
 	switch ( type ) {
 	case IPPROTO_IPV6:
@@ -330,7 +330,7 @@ IPAddr IP_Hdr::DstAddr() const
 
 RecordVal* IP_Hdr::BuildIPHdrVal() const
 	{
-	RecordVal* rval = 0;
+	RecordVal* rval = nullptr;
 
 	if ( ip4 )
 		{
@@ -354,7 +354,7 @@ RecordVal* IP_Hdr::BuildIPHdrVal() const
 
 RecordVal* IP_Hdr::BuildPktHdrVal() const
 	{
-	static RecordType* pkt_hdr_type = 0;
+	static RecordType* pkt_hdr_type = nullptr;
 
 	if ( ! pkt_hdr_type )
 		pkt_hdr_type = internal_type("pkt_hdr")->AsRecordType();
@@ -365,9 +365,9 @@ RecordVal* IP_Hdr::BuildPktHdrVal() const
 
 RecordVal* IP_Hdr::BuildPktHdrVal(RecordVal* pkt_hdr, int sindex) const
 	{
-	static RecordType* tcp_hdr_type = 0;
-	static RecordType* udp_hdr_type = 0;
-	static RecordType* icmp_hdr_type = 0;
+	static RecordType* tcp_hdr_type = nullptr;
+	static RecordType* udp_hdr_type = nullptr;
+	static RecordType* icmp_hdr_type = nullptr;
 
 	if ( ! tcp_hdr_type )
 		{

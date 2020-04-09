@@ -55,7 +55,7 @@ DebuggerState::DebuggerState()
 	BreakFromSignal(false);
 
 	// ### Don't choose this arbitrary size! Extend Frame.
-	dbg_locals = new Frame(1024, /* func = */ 0, /* fn_args = */ 0);
+	dbg_locals = new Frame(1024, /* func = */ nullptr, /* fn_args = */ nullptr);
 	}
 
 DebuggerState::~DebuggerState()
@@ -107,7 +107,7 @@ FILE* TraceState::SetTraceFile(const char* filename)
 	else
 		{
 		fprintf(stderr, "Unable to open trace file %s\n", filename);
-		trace_file = 0;
+		trace_file = nullptr;
 		}
 
 	return oldfile;
@@ -137,7 +137,7 @@ int TraceState::LogTrace(const char* fmt, ...)
 
 	const Stmt* stmt;
 	Location loc;
-	loc.filename = 0;
+	loc.filename = nullptr;
 
 	if ( g_frame_stack.size() > 0 && g_frame_stack.back() )
 		{
@@ -178,7 +178,7 @@ void get_first_statement(Stmt* list, Stmt*& first, Location& loc)
 	{
 	if ( ! list )
 		{
-		first = 0;
+		first = nullptr;
 		return;
 		}
 
@@ -231,7 +231,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 		return;
 		}
 
-	Stmt* body = 0;	// the particular body we care about; 0 = all
+	Stmt* body = nullptr;	// the particular body we care about; 0 = all
 
 	if ( bodies.size() == 1 )
 		body = bodies[0].stmts.get();
@@ -380,7 +380,7 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 			return result;
 			}
 
-		StmtLocMapping* hit = 0;
+		StmtLocMapping* hit = nullptr;
 		for ( const auto entry : *(iter->second) )
 			{
 			plr.filename = entry->Loc().filename;
@@ -399,7 +399,7 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 		if ( hit )
 			plr.stmt = hit->Statement();
 		else
-			plr.stmt = 0;
+			plr.stmt = nullptr;
 		}
 
 	return result;
@@ -730,7 +730,7 @@ static char* get_prompt(bool reset_counter = false)
 string get_context_description(const Stmt* stmt, const Frame* frame)
 	{
 	ODesc d;
-	const BroFunc* func = frame ? frame->GetFunction() : 0;
+	const BroFunc* func = frame ? frame->GetFunction() : nullptr;
 
 	if ( func )
 		func->DescribeDebug(&d, frame->GetFuncArgs());
@@ -758,7 +758,7 @@ string get_context_description(const Stmt* stmt, const Frame* frame)
 
 int dbg_handle_debug_input()
 	{
-	static char* input_line = 0;
+	static char* input_line = nullptr;
 	int status = 0;
 
 	if ( g_debugger_state.BreakFromSignal() )
@@ -820,7 +820,7 @@ int dbg_handle_debug_input()
 		if ( input_line )
 			{
 			free(input_line);	// this was malloc'ed
-			input_line = 0;
+			input_line = nullptr;
 			}
 		else
 			exit(0);
@@ -934,8 +934,8 @@ bool post_execute_stmt(Stmt* stmt, Frame* f, Val* result, stmt_flow_type* flow)
 
 // Evaluates the given expression in the context of the currently selected
 // frame.  Returns the resulting value, or nil if none (or there was an error).
-Expr* g_curr_debug_expr = 0;
-const char* g_curr_debug_error = 0;
+Expr* g_curr_debug_expr = nullptr;
+const char* g_curr_debug_error = nullptr;
 bool in_debug = false;
 
 // ### fix this hardwired access to external variables etc.
@@ -993,7 +993,7 @@ IntrusivePtr<Val> dbg_eval_expr(const char* expr)
 		if ( g_curr_debug_expr )
 			{
 			delete g_curr_debug_expr;
-			g_curr_debug_expr = 0;
+			g_curr_debug_expr = nullptr;
 			}
 		}
 	else
@@ -1003,9 +1003,9 @@ IntrusivePtr<Val> dbg_eval_expr(const char* expr)
 		pop_scope();
 
 	delete g_curr_debug_expr;
-	g_curr_debug_expr = 0;
+	g_curr_debug_expr = nullptr;
 	delete [] g_curr_debug_error;
-	g_curr_debug_error = 0;
+	g_curr_debug_error = nullptr;
 	in_debug = false;
 
 	return result;

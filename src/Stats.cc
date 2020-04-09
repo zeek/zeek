@@ -339,7 +339,7 @@ void ProfileLogger::SegmentProfile(const char* name, const Location* loc,
 
 SampleLogger::SampleLogger()
 	{
-	static TableType* load_sample_info = 0;
+	static TableType* load_sample_info = nullptr;
 
 	if ( ! load_sample_info )
 		load_sample_info = internal_type("load_sample_info")->AsTableType();
@@ -355,14 +355,14 @@ SampleLogger::~SampleLogger()
 void SampleLogger::FunctionSeen(const Func* func)
 	{
 	Val* idx = new StringVal(func->Name());
-	load_samples->Assign(idx, 0);
+	load_samples->Assign(idx, nullptr);
 	Unref(idx);
 	}
 
 void SampleLogger::LocationSeen(const Location* loc)
 	{
 	Val* idx = new StringVal(loc->filename);
-	load_samples->Assign(idx, 0);
+	load_samples->Assign(idx, nullptr);
 	Unref(idx);
 	}
 
@@ -438,7 +438,7 @@ void PacketProfiler::ProfilePkt(double t, unsigned int bytes)
 		getrusage(RUSAGE_SELF, &res);
 		gettimeofday(&ptimestamp, 0);
 
-		get_memory_usage(&last_mem, 0);
+		get_memory_usage(&last_mem, nullptr);
 		last_Utime = res.ru_utime.tv_sec + res.ru_utime.tv_usec / 1e6;
 		last_Stime = res.ru_stime.tv_sec + res.ru_stime.tv_usec / 1e6;
 		last_Rtime = ptimestamp.tv_sec + ptimestamp.tv_usec / 1e6;
@@ -462,7 +462,7 @@ void PacketProfiler::ProfilePkt(double t, unsigned int bytes)
 			ptimestamp.tv_sec + ptimestamp.tv_usec / 1e6;
 
 		uint64_t curr_mem;
-		get_memory_usage(&curr_mem, 0);
+		get_memory_usage(&curr_mem, nullptr);
 
 		file->Write(fmt("%.06f %.03f %" PRIu64 " %" PRIu64 " %.03f %.03f %.03f %" PRIu64 "\n",
 				t, time-last_timestamp, pkt_cnt, byte_cnt,

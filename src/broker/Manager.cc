@@ -695,7 +695,7 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 	auto rval = new RecordVal(BifType::Record::Broker::Event);
 	auto arg_vec = new VectorVal(vector_of_data_type);
 	rval->Assign(1, arg_vec);
-	Func* func = 0;
+	Func* func = nullptr;
 	scoped_reporter_location srl{frame};
 
 	for ( auto i = 0; i < args->length(); ++i )
@@ -738,7 +738,7 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 
 		if ( ! same_type(got_type, expected_type) )
 			{
-			rval->Assign(0, 0);
+			rval->Assign(0, nullptr);
 			Error("event parameter #%d type mismatch, got %s, expect %s", i,
 			      type_name(got_type->Tag()),
 			      type_name(expected_type->Tag()));
@@ -758,7 +758,7 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 		if ( ! data_val->Lookup(0) )
 			{
 			Unref(data_val);
-			rval->Assign(0, 0);
+			rval->Assign(0, nullptr);
 			Error("failed to convert param #%d of type %s to broker data",
 				  i, type_name(got_type->Tag()));
 			return rval;

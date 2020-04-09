@@ -17,8 +17,8 @@ public:
 		AddComponent(new ::analyzer::Component("NFS", ::analyzer::rpc::NFS_Analyzer::Instantiate));
 		AddComponent(new ::analyzer::Component("MOUNT", ::analyzer::rpc::MOUNT_Analyzer::Instantiate));
 		AddComponent(new ::analyzer::Component("Portmapper", ::analyzer::rpc::Portmapper_Analyzer::Instantiate));
-		AddComponent(new ::analyzer::Component("Contents_RPC", 0));
-		AddComponent(new ::analyzer::Component("Contents_NFS", 0));
+		AddComponent(new ::analyzer::Component("Contents_RPC", nullptr));
+		AddComponent(new ::analyzer::Component("Contents_NFS", nullptr));
 
 		plugin::Configuration config;
 		config.name = "Zeek::RPC";

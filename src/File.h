@@ -80,7 +80,7 @@ protected:
 	 * If file is not given and mode is, the filename will be opened with that
 	 * access mode.
 	 */
-	bool Open(FILE* f = nullptr, const char* mode = 0);
+	bool Open(FILE* f = nullptr, const char* mode = nullptr);
 
 	void Unlink();
 

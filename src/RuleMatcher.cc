@@ -48,10 +48,10 @@ RuleHdrTest::RuleHdrTest(Prot arg_prot, uint32_t arg_offset, uint32_t arg_size,
 	size = arg_size;
 	comp = arg_comp;
 	vals = arg_vals;
-	sibling = 0;
-	child = 0;
-	pattern_rules = 0;
-	pure_rules = 0;
+	sibling = nullptr;
+	child = nullptr;
+	pattern_rules = nullptr;
+	pure_rules = nullptr;
 	ruleset = new IntSet;
 	id = ++idcounter;
 	level = 0;
@@ -65,10 +65,10 @@ RuleHdrTest::RuleHdrTest(Prot arg_prot, Comp arg_comp, vector<IPPrefix> arg_v)
 	comp = arg_comp;
 	vals = new maskedvalue_list;
 	prefix_vals = std::move(arg_v);
-	sibling = 0;
-	child = 0;
-	pattern_rules = 0;
-	pure_rules = 0;
+	sibling = nullptr;
+	child = nullptr;
+	pattern_rules = nullptr;
+	pure_rules = nullptr;
 	ruleset = new IntSet;
 	id = ++idcounter;
 	level = 0;
@@ -103,7 +103,7 @@ RuleHdrTest::RuleHdrTest(RuleHdrTest& h)
 		for ( PatternSet* orig_set : h.psets[j] )
 			{
 			PatternSet* copied_set = new PatternSet;
-			copied_set->re = 0;
+			copied_set->re = nullptr;
 			copied_set->ids = orig_set->ids;
 			for ( const auto& pattern : orig_set->patterns )
 				copied_set->patterns.push_back(copy_string(pattern));
@@ -113,10 +113,10 @@ RuleHdrTest::RuleHdrTest(RuleHdrTest& h)
 			}
 		}
 
-	sibling = 0;
-	child = 0;
-	pattern_rules = 0;
-	pure_rules = 0;
+	sibling = nullptr;
+	child = nullptr;
+	pattern_rules = nullptr;
+	pure_rules = nullptr;
 	ruleset = new IntSet;
 	id = ++idcounter;
 	level = 0;
@@ -758,8 +758,8 @@ RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer,
 		// Evaluate all rules on this node which don't contain
 		// any patterns.
 		for ( Rule* r = hdr_test->pure_rules; r; r = r->next )
-			if ( EvalRuleConditions(r, state, 0, 0, false) )
-				ExecRuleActions(r, state, 0, 0, false);
+			if ( EvalRuleConditions(r, state, nullptr, 0, false) )
+				ExecRuleActions(r, state, nullptr, 0, false);
 
 		// If we're on or above the RE_level, we may have some
 		// pattern matching to do.
@@ -989,7 +989,7 @@ void RuleMatcher::ExecPureRules(RuleEndpointState* state, bool eos)
 	for ( const auto& hdr_test : state->hdr_tests )
 		{
 		for ( Rule* r = hdr_test->pure_rules; r; r = r->next )
-			ExecRulePurely(r, 0, state, eos);
+			ExecRulePurely(r, nullptr, state, eos);
 		}
 	}
 
@@ -1001,14 +1001,14 @@ bool RuleMatcher::ExecRulePurely(Rule* r, BroString* s,
 
 	DBG_LOG(DBG_RULES, "Checking rule %s purely", r->ID());
 
-	if ( EvalRuleConditions(r, state, 0, 0, eos) )
+	if ( EvalRuleConditions(r, state, nullptr, 0, eos) )
 		{
 		DBG_LOG(DBG_RULES, "MATCH!");
 
 		if ( s )
 			ExecRuleActions(r, state, s->Bytes(), s->Len(), eos);
 		else
-			ExecRuleActions(r, state, 0, 0, eos);
+			ExecRuleActions(r, state, nullptr, 0, eos);
 
 		return true;
 		}
@@ -1098,7 +1098,7 @@ void RuleMatcher::ExecRule(Rule* rule, RuleEndpointState* state, bool eos)
 		for ( Rule* r = h->pure_rules; r; r = r->next )
 			if ( r == rule )
 				{ // found, so let's evaluate it
-				ExecRulePurely(rule, 0, state, eos);
+				ExecRulePurely(rule, nullptr, state, eos);
 				return;
 				}
 
@@ -1273,7 +1273,7 @@ static Val* get_bro_val(const char* label)
 	if ( ! id )
 		{
 		rules_error("unknown script-level identifier", label);
-		return 0;
+		return nullptr;
 		}
 
 	return id->ID_Val();
@@ -1464,7 +1464,7 @@ void RuleMatcherState::FinishEndpointMatcher()
 	delete orig_match_state;
 	delete resp_match_state;
 
-	orig_match_state = resp_match_state = 0;
+	orig_match_state = resp_match_state = nullptr;
 	}
 
 void RuleMatcherState::Match(Rule::PatternType type, const u_char* data,

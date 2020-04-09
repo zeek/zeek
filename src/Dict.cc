@@ -81,7 +81,7 @@ TEST_CASE("dict operation")
 	dict.Remove(key2);
 	CHECK(dict.Length() == 0);
 	uint32_t* lookup2 = dict.Lookup(key2);
-	CHECK(lookup2 == (uint32_t*)0);
+	CHECK(lookup2 == (uint32_t*)nullptr);
 	delete key2;
 
 	CHECK(dict.MaxLength() == 1);
@@ -132,7 +132,7 @@ TEST_CASE("dict nthentry")
 
 	// NthEntry returns null for unordered dicts
 	uint32_t* lookup = unordered.NthEntry(0);
-	CHECK(lookup == (uint32_t*)0);
+	CHECK(lookup == (uint32_t*)nullptr);
 
 	// Ordered dicts are based on order of insertion, nothing about the
 	// data itself
@@ -256,7 +256,7 @@ void Dictionary::DeInit()
 void* Dictionary::Lookup(const void* key, int key_size, hash_t hash) const
 	{
 	if ( ! tbl && ! tbl2 )
-		return 0;
+		return nullptr;
 
 	hash_t h;
 	PList<DictEntry>* chain;
@@ -280,7 +280,7 @@ void* Dictionary::Lookup(const void* key, int key_size, hash_t hash) const
 			}
 		}
 
-	return 0;
+	return nullptr;
 	}
 
 void* Dictionary::Insert(void* key, int key_size, hash_t hash, void* val,
@@ -314,7 +314,7 @@ void* Dictionary::Remove(const void* key, int key_size, hash_t hash,
 				bool dont_delete)
 	{
 	if ( ! tbl && ! tbl2 )
-		return 0;
+		return nullptr;
 
 	hash_t h;
 	PList<DictEntry>* chain;
@@ -334,7 +334,7 @@ void* Dictionary::Remove(const void* key, int key_size, hash_t hash,
 		}
 
 	if ( ! chain )
-		return 0;
+		return nullptr;
 
 	for ( int i = 0; i < chain->length(); ++i )
 		{
@@ -346,7 +346,7 @@ void* Dictionary::Remove(const void* key, int key_size, hash_t hash,
 			void* entry_value = DoRemove(entry, h, chain, i);
 
 			if ( dont_delete )
-				entry->key = 0;
+				entry->key = nullptr;
 
 			delete entry;
 			--*num_entries_ptr;
@@ -354,7 +354,7 @@ void* Dictionary::Remove(const void* key, int key_size, hash_t hash,
 			}
 		}
 
-	return 0;
+	return nullptr;
 	}
 
 void* Dictionary::DoRemove(DictEntry* entry, hash_t h,
@@ -395,7 +395,7 @@ void* Dictionary::DoRemove(DictEntry* entry, hash_t h,
 void* Dictionary::NthEntry(int n, const void*& key, int& key_len) const
 	{
 	if ( ! order || n < 0 || n >= Length() )
-		return 0;
+		return nullptr;
 
 	DictEntry* entry = (*order)[n];
 	key = entry->key;
@@ -419,8 +419,8 @@ void* Dictionary::NextEntry(HashKey*& h, IterCookie*& cookie, int return_hash) c
 		{
 		const_cast<PList<IterCookie>*>(&cookies)->remove(cookie);
 		delete cookie;
-		cookie = 0;
-		return 0;
+		cookie = nullptr;
+		return nullptr;
 		}
 
 	// If there are any inserted entries, return them first.
@@ -486,8 +486,8 @@ void* Dictionary::NextEntry(HashKey*& h, IterCookie*& cookie, int return_hash) c
 		// a better way?
 		const_cast<PList<IterCookie>*>(&cookies)->remove(cookie);
 		delete cookie;
-		cookie = 0;
-		return 0;
+		cookie = nullptr;
+		return nullptr;
 		}
 
 	entry = (*ttbl[b])[0];
@@ -604,7 +604,7 @@ void* Dictionary::Insert(DictEntry* new_entry, bool copy_key)
 			c->inserted.push_back(new_entry);
 		}
 
-	return 0;
+	return nullptr;
 	}
 
 int Dictionary::NextPrime(int n) const
@@ -665,7 +665,7 @@ void Dictionary::MoveChains()
 		if ( ! chain )
 			continue;
 
-		tbl[tbl_next_ind - 1] = 0;
+		tbl[tbl_next_ind - 1] = nullptr;
 
 		for ( int j = 0; j < chain->length(); ++j )
 			{

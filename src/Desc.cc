@@ -21,7 +21,7 @@ ODesc::ODesc(desc_type t, BroFile* arg_f)
 	style = STANDARD_STYLE;
 	f = arg_f;
 
-	if ( f == 0 )
+	if ( f == nullptr )
 		{
 		size = DEFAULT_SIZE;
 		base = safe_malloc(size);
@@ -31,7 +31,7 @@ ODesc::ODesc(desc_type t, BroFile* arg_f)
 	else
 		{
 		offset = size = 0;
-		base = 0;
+		base = nullptr;
 		}
 
 	indent_level = 0;

@@ -284,7 +284,7 @@ BroString* BroString::GetSubstring(int start, int len) const
 	{
 	// This code used to live in zeek.bif's sub_bytes() routine.
 	if ( start < 0 || start > n )
-		return 0;
+		return nullptr;
 
 	if ( len < 0 || len > n - start )
 		len = n - start;
@@ -302,7 +302,7 @@ BroString::Vec* BroString::Split(const BroString::IdxVec& indices) const
 	unsigned int i;
 
 	if ( indices.empty() )
-		return 0;
+		return nullptr;
 
 	// Copy input, ensuring space for "0":
 	IdxVec idx(1 + indices.size());
@@ -343,7 +343,7 @@ VectorVal* BroString:: VecToPolicy(Vec* vec)
 	VectorVal* result =
 		new VectorVal(internal_type("string_vec")->AsVectorType());
 	if ( ! result )
-		return 0;
+		return nullptr;
 
 	for ( unsigned int i = 0; i < vec->size(); ++i )
 		{

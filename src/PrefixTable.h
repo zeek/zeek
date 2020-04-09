@@ -30,10 +30,10 @@ public:
 	// Addr in network byte order. If data is zero, acts like a set.
 	// Returns ptr to old data if already existing.
 	// For existing items without data, returns non-nil if found.
-	void* Insert(const IPAddr& addr, int width, void* data = 0);
+	void* Insert(const IPAddr& addr, int width, void* data = nullptr);
 
 	// Value may be addr or subnet.
-	void* Insert(const Val* value, void* data = 0);
+	void* Insert(const Val* value, void* data = nullptr);
 
 	// Returns nil if not found, pointer to data otherwise.
 	// For items without data, returns non-nil if found.

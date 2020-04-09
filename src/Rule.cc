@@ -87,7 +87,7 @@ void Rule::AddRequires(const char* id, bool opposite_direction, bool negate)
 	{
 	Precond* p = new Precond;
 	p->id = copy_string(id);
-	p->rule = 0;
+	p->rule = nullptr;
 	p->opposite_dir = opposite_direction;
 	p->negate = negate;
 

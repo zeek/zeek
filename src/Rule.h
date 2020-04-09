@@ -25,7 +25,7 @@ public:
 		idx = rule_counter++;
 		location = arg_location;
 		active = true;
-		next = 0;
+		next = nullptr;
 		}
 
 	~Rule();

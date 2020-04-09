@@ -16,7 +16,7 @@ Contents_Rlogin_Analyzer::Contents_Rlogin_Analyzer(Connection* conn, bool orig, 
 	{
 	num_bytes_to_scan = 0;
 	analyzer = arg_analyzer;
-	peer = 0;
+	peer = nullptr;
 
 	if ( orig )
 		state = save_state = RLOGIN_FIRST_NULL;

@@ -288,7 +288,7 @@ void Manager::Identifier(IntrusivePtr<ID> id)
 			{
 			DBG_LOG(DBG_ZEEKYGEN, "Finished document for type %s", id->Name());
 			incomplete_type->CompletedTypeDecl();
-			incomplete_type = 0;
+			incomplete_type = nullptr;
 			return;
 			}
 
@@ -318,7 +318,7 @@ void Manager::Identifier(IntrusivePtr<ID> id)
 		// Handled specially since they don't have a script location.
 		DBG_LOG(DBG_ZEEKYGEN, "Made internal IdentifierInfo %s",
 		        id->Name());
-		CreateIdentifierInfo(id, 0);
+		CreateIdentifierInfo(id, nullptr);
 		return;
 		}
 

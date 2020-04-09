@@ -158,7 +158,7 @@ SteppingStone_Analyzer::SteppingStone_Analyzer(Connection* c)
 	{
 	stp_manager = sessions->GetSTPManager();
 
-	orig_endp = resp_endp = 0;
+	orig_endp = resp_endp = nullptr;
 	orig_stream_pos = resp_stream_pos = 1;
 	}
 
@@ -179,9 +179,9 @@ void SteppingStone_Analyzer::DeliverPacket(int len, const u_char* data,
 						ip, caplen);
 
 	if ( is_orig )
-		orig_endp->DataSent(network_time, seq, len, caplen, data, 0, 0);
+		orig_endp->DataSent(network_time, seq, len, caplen, data, nullptr, nullptr);
 	else
-		resp_endp->DataSent(network_time, seq, len, caplen, data, 0, 0);
+		resp_endp->DataSent(network_time, seq, len, caplen, data, nullptr, nullptr);
 	}
 
 void SteppingStone_Analyzer::DeliverStream(int len, const u_char* data,
@@ -192,14 +192,14 @@ void SteppingStone_Analyzer::DeliverStream(int len, const u_char* data,
 	if ( is_orig )
 		{
 		orig_endp->DataSent(network_time, orig_stream_pos, len, len,
-					data, 0, 0);
+					data, nullptr, nullptr);
 		orig_stream_pos += len;
 		}
 
 	else
 		{
 		resp_endp->DataSent(network_time, resp_stream_pos, len, len,
-					data, 0, 0);
+					data, nullptr, nullptr);
 		resp_stream_pos += len;
 		}
 	}

@@ -32,7 +32,7 @@ public:
 
 	void Expire(double t);
 	void DeleteTimer();
-	void ClearTimer()	{ expire_timer = 0; }
+	void ClearTimer()	{ expire_timer = nullptr; }
 
 	const IP_Hdr* ReassembledPkt()	{ return reassembled_pkt; }
 	const FragReassemblerKey& Key() const	{ return key; }
@@ -63,7 +63,7 @@ public:
 	void Dispatch(double t, bool is_expire) override;
 
 	// Break the association between this timer and its creator.
-	void ClearReassembler()	{ f = 0; }
+	void ClearReassembler()	{ f = nullptr; }
 
 protected:
 	FragReassembler* f;

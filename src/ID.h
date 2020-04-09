@@ -41,8 +41,8 @@ public:
 	const BroType* Type() const	{ return type.get(); }
 
 	void MakeType()			{ is_type = true; }
-	BroType* AsType()		{ return is_type ? Type() : 0; }
-	const BroType* AsType() const	{ return is_type ? Type() : 0; }
+	BroType* AsType()		{ return is_type ? Type() : nullptr; }
+	const BroType* AsType() const	{ return is_type ? Type() : nullptr; }
 
 	// If weak_ref is false, the Val is assumed to be already ref'ed
 	// and will be deref'ed when the ID is deleted.
@@ -57,7 +57,7 @@ public:
 	void SetVal(IntrusivePtr<Val> v, init_class c);
 	void SetVal(IntrusivePtr<Expr> ev, init_class c);
 
-	bool HasVal() const		{ return val != 0; }
+	bool HasVal() const		{ return val != nullptr; }
 	Val* ID_Val()			{ return val; }
 	const Val* ID_Val() const	{ return val; }
 	void ClearVal();
@@ -90,7 +90,7 @@ public:
 
 	std::string GetDeprecationWarning() const;
 
-	void Error(const char* msg, const BroObj* o2 = 0);
+	void Error(const char* msg, const BroObj* o2 = nullptr);
 
 	void Describe(ODesc* d) const override;
 	// Adds type and value to description.

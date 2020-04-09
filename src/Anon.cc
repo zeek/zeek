@@ -12,7 +12,7 @@
 #include "Reporter.h"
 
 
-AnonymizeIPAddr* ip_anonymizer[NUM_ADDR_ANONYMIZATION_METHODS] = {0};
+AnonymizeIPAddr* ip_anonymizer[NUM_ADDR_ANONYMIZATION_METHODS] = {nullptr};
 
 static uint32_t rand32()
 	{
@@ -148,7 +148,7 @@ AnonymizeIPAddr_A50::~AnonymizeIPAddr_A50()
 
 void AnonymizeIPAddr_A50::init()
 	{
-	root = next_free_node = 0;
+	root = next_free_node = nullptr;
 
 	// Prepare special nodes for 0.0.0.0 and 255.255.255.255.
 	memset(&special_nodes[0], 0, sizeof(special_nodes));
@@ -222,7 +222,7 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::new_node_block()
 	for ( int i = 1; i < block_size - 1; ++i )
 		block[i].child[0] = &block[i+1];
 
-	block[block_size - 1].child[0] = 0;
+	block[block_size - 1].child[0] = nullptr;
 	next_free_node = &block[1];
 
 	return &block[0];
@@ -276,12 +276,12 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::make_peer(ipaddr32_t a, Node* n)
 	Node* down[2];
 
 	if ( ! (down[0] = new_node()) )
-		return 0;
+		return nullptr;
 
 	if ( ! (down[1] = new_node()) )
 		{
 		free_node(down[0]);
-		return 0;
+		return nullptr;
 		}
 
 	// swivel is first bit 'a' and 'old->input' differ.
@@ -292,7 +292,7 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::make_peer(ipaddr32_t a, Node* n)
 
 	down[bitvalue]->input = a;
 	down[bitvalue]->output = make_output(n->output, swivel);
-	down[bitvalue]->child[0] = down[bitvalue]->child[1] = 0;
+	down[bitvalue]->child[0] = down[bitvalue]->child[1] = nullptr;
 
 	*down[1 - bitvalue] = *n;	// copy orig node down one level
 
@@ -316,7 +316,7 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::find_node(ipaddr32_t a)
 		root = new_node();
 		root->input = a;
 		root->output = rand32();
-		root->child[0] = root->child[1] = 0;
+		root->child[0] = root->child[1] = nullptr;
 
 		return root;
 		}
@@ -351,12 +351,12 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::find_node(ipaddr32_t a)
 		}
 
 	reporter->InternalError("out of memory!");
-	return 0;
+	return nullptr;
 	}
 
 void init_ip_addr_anonymizers()
 	{
-	ip_anonymizer[KEEP_ORIG_ADDR] = 0;
+	ip_anonymizer[KEEP_ORIG_ADDR] = nullptr;
 	ip_anonymizer[SEQUENTIALLY_NUMBERED] = new AnonymizeIPAddr_Seq();
 	ip_anonymizer[RANDOM_MD5] = new AnonymizeIPAddr_RandomMD5();
 	ip_anonymizer[PREFIX_PRESERVING_A50] = new AnonymizeIPAddr_A50();
@@ -365,7 +365,7 @@ void init_ip_addr_anonymizers()
 
 ipaddr32_t anonymize_ip(ipaddr32_t ip, enum ip_addr_anonymization_class_t cl)
 	{
-	TableVal* preserve_addr = 0;
+	TableVal* preserve_addr = nullptr;
 	AddrVal addr(ip);
 
 	int method = -1;

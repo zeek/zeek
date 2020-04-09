@@ -18,7 +18,7 @@ public:
 			bool resume_execution, const char* const helpstring,
 			bool repeatable);
 
-	DebugCmdInfo() : helpstring(0) {}
+	DebugCmdInfo() : helpstring(nullptr) {}
 
 	int Cmd() const		{ return cmd; }
 	int NumNames() const	{ return num_names; }

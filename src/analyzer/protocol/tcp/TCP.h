@@ -161,7 +161,7 @@ protected:
 	// A couple utility functions that may also be useful to derived analyzers.
 	static uint64_t get_relative_seq(const TCP_Endpoint* endpoint,
 	                               uint32_t cur_base, uint32_t last,
-	                               uint32_t wraps, bool* underflow = 0);
+	                               uint32_t wraps, bool* underflow = nullptr);
 
 	static int get_segment_len(int payload_len, TCP_Flags flags);
 
@@ -192,12 +192,10 @@ private:
 class TCP_ApplicationAnalyzer : public analyzer::Analyzer {
 public:
 	TCP_ApplicationAnalyzer(const char* name, Connection* conn)
-	: Analyzer(name, conn)
-		{ tcp = 0; }
+		: Analyzer(name, conn), tcp(nullptr) { }
 
 	explicit TCP_ApplicationAnalyzer(Connection* conn)
-	: Analyzer(conn)
-		{ tcp = 0; }
+		: Analyzer(conn), tcp(nullptr) { }
 
 	~TCP_ApplicationAnalyzer() override { }
 
@@ -235,7 +233,7 @@ public:
 	// This suppresses violations if the TCP connection wasn't
 	// fully established.
 	void ProtocolViolation(const char* reason,
-					const char* data = 0, int len = 0) override;
+					const char* data = nullptr, int len = 0) override;
 
 	// "name" and "val" both now belong to this object, which needs to
 	//  delete them when done with them.

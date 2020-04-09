@@ -79,7 +79,7 @@ bool PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status statu
 				     int reply_len)
 	{
 	EventHandlerPtr event;
-	Val *reply = 0;
+	Val *reply = nullptr;
 	int success = (status == BifEnum::RPC_SUCCESS);
 
 	switch ( c->Proc() ) {
@@ -208,7 +208,7 @@ Val* PortmapperInterp::ExtractMapping(const u_char*& buf, int& len)
 	if ( ! buf )
 		{
 		Unref(mapping);
-		return 0;
+		return nullptr;
 		}
 
 	return mapping;
@@ -228,7 +228,7 @@ Val* PortmapperInterp::ExtractPortRequest(const u_char*& buf, int& len)
 	if ( ! buf )
 		{
 		Unref(pr);
-		return 0;
+		return nullptr;
 		}
 
 	return pr;
@@ -249,7 +249,7 @@ Val* PortmapperInterp::ExtractCallItRequest(const u_char*& buf, int& len)
 	if ( ! buf )
 		{
 		Unref(c);
-		return 0;
+		return nullptr;
 		}
 
 	return c;
@@ -307,7 +307,7 @@ void PortmapperInterp::Event(EventHandlerPtr f, Val* request, BifEnum::rpc_statu
 Portmapper_Analyzer::Portmapper_Analyzer(Connection* conn)
 : RPC_Analyzer("PORTMAPPER", conn, new PortmapperInterp(this))
 	{
-	orig_rpc = resp_rpc = 0;
+	orig_rpc = resp_rpc = nullptr;
 	}
 
 Portmapper_Analyzer::~Portmapper_Analyzer()

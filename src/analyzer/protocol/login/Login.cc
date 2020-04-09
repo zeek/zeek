@@ -16,7 +16,7 @@
 
 using namespace analyzer::login;
 
-static RE_Matcher* re_skip_authentication = 0;
+static RE_Matcher* re_skip_authentication = nullptr;
 static RE_Matcher* re_direct_login_prompts;
 static RE_Matcher* re_login_prompts;
 static RE_Matcher* re_login_non_failure_msgs;
@@ -39,7 +39,7 @@ Login_Analyzer::Login_Analyzer(const char* name, Connection* conn)
 	user_text_first = 0;
 	user_text_last = MAX_USER_TEXT - 1;
 	num_user_text = 0;
-	client_name = username = 0;
+	client_name = username = nullptr;
 	saw_ploy = is_VMS = false;
 
 	if ( ! re_skip_authentication )
@@ -214,7 +214,7 @@ void Login_Analyzer::AuthenticationDialog(bool orig, char* line)
 			 // respect to it (see below).
 			 login_prompt_line != failure_line);
 
-		const char* next_prompt = 0;
+		const char* next_prompt = nullptr;
 		while ( (*prompt != '\0' &&
 			 (next_prompt = IsLoginPrompt(prompt + 1))) ||
 			multi_line_prompt )
@@ -507,7 +507,7 @@ const char* Login_Analyzer::IsLoginPrompt(const char* line) const
 	int prompt_match = re_login_prompts->MatchAnywhere(line);
 	if ( ! prompt_match || IsFailureMsg(line) )
 		// IRIX can report "login: ERROR: Login incorrect"
-		return 0;
+		return nullptr;
 
 	return &line[prompt_match];
 	}
@@ -565,7 +565,7 @@ char* Login_Analyzer::PeekUserText()
 		{
 		reporter->AnalyzerError(this,
 		  "underflow in Login_Analyzer::PeekUserText()");
-		return 0;
+		return nullptr;
 		}
 
 	return user_text[user_text_first];
@@ -576,7 +576,7 @@ char* Login_Analyzer::PopUserText()
 	char* s = PeekUserText();
 
 	if ( ! s )
-		return 0;
+		return nullptr;
 
 	if ( ++user_text_first == MAX_USER_TEXT )
 		user_text_first = 0;

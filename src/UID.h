@@ -28,7 +28,7 @@ public:
 	 * Construct a UID of a given bit-length, optionally from given values.
 	 * @see UID::Set
 	 */
-	explicit UID(bro_uint_t bits, const uint64_t* v = 0, size_t n = 0)
+	explicit UID(bro_uint_t bits, const uint64_t* v = nullptr, size_t n = 0)
 		{ Set(bits, v, n); }
 
 	/**
@@ -47,7 +47,7 @@ public:
 	 *          64, then a value is truncated to bit in desired bit-length.
 	 * @param n number of 64-bit elements in array pointed to by \a v.
 	 */
-	void Set(bro_uint_t bits, const uint64_t* v = 0, size_t n = 0);
+	void Set(bro_uint_t bits, const uint64_t* v = nullptr, size_t n = 0);
 
 	/**
 	 * Returns a base62 (characters 0-9, A-Z, a-z) representation of the UID.

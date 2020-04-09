@@ -304,12 +304,12 @@ public:
 
 	bool IsSet() const
 		{
-		return tag == TYPE_TABLE && (YieldType() == 0);
+		return tag == TYPE_TABLE && (YieldType() == nullptr);
 		}
 
 	bool IsTable() const
 		{
-		return tag == TYPE_TABLE && (YieldType() != 0);
+		return tag == TYPE_TABLE && (YieldType() != nullptr);
 		}
 
 	BroType* Ref()		{ ::Ref(this); return this; }
@@ -357,7 +357,7 @@ public:
 	const type_list* Types() const	{ return &types; }
 	type_list* Types()		{ return &types; }
 
-	bool IsPure() const		{ return pure_type != 0; }
+	bool IsPure() const		{ return pure_type != nullptr; }
 
 	// Returns the underlying pure type, or nil if the list
 	// is not pure or is empty.
@@ -485,12 +485,12 @@ protected:
 
 class TypeDecl final {
 public:
-	TypeDecl(IntrusivePtr<BroType> t, const char* i, attr_list* attrs = 0, bool in_record = false);
+	TypeDecl(IntrusivePtr<BroType> t, const char* i, attr_list* attrs = nullptr, bool in_record = false);
 	TypeDecl(const TypeDecl& other);
 	~TypeDecl();
 
 	const Attr* FindAttr(attr_tag a) const
-		{ return attrs ? attrs->FindAttr(a) : 0; }
+		{ return attrs ? attrs->FindAttr(a) : nullptr; }
 
 	void DescribeReST(ODesc* d, bool roles_only = false) const;
 
@@ -547,19 +547,19 @@ public:
 	bool IsFieldDeprecated(int field) const
 		{
 		const TypeDecl* decl = FieldDecl(field);
-		return decl && decl->FindAttr(ATTR_DEPRECATED) != 0;
+		return decl && decl->FindAttr(ATTR_DEPRECATED) != nullptr;
 		}
 
 	bool FieldHasAttr(int field, attr_tag at) const
 		{
 		const TypeDecl* decl = FieldDecl(field);
-		return decl && decl->FindAttr(at) != 0;
+		return decl && decl->FindAttr(at) != nullptr;
 		}
 
 	std::string GetFieldDeprecationWarning(int field, bool has_check) const;
 
 protected:
-	RecordType() { types = 0; }
+	RecordType() { types = nullptr; }
 
 	int num_fields;
 	type_decl_list* types;

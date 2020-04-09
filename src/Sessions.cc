@@ -68,16 +68,16 @@ NetSessions::NetSessions()
 	if ( stp_correlate_pair )
 		stp_manager = new analyzer::stepping_stone::SteppingStoneManager();
 	else
-		stp_manager = 0;
+		stp_manager = nullptr;
 
 	discarder = new Discarder();
 	if ( ! discarder->IsActive() )
 		{
 		delete discarder;
-		discarder = 0;
+		discarder = nullptr;
 		}
 
-	packet_filter = 0;
+	packet_filter = nullptr;
 
 	dump_this_packet = false;
 	num_packets_processed = 0;
@@ -86,12 +86,12 @@ NetSessions::NetSessions()
 		pkt_profiler = new PacketProfiler(pkt_profile_mode,
 				pkt_profile_freq, pkt_profile_file->AsFile());
 	else
-		pkt_profiler = 0;
+		pkt_profiler = nullptr;
 
 	if ( arp_request || arp_reply || bad_arp )
 		arp_analyzer = new analyzer::arp::ARP_Analyzer();
 	else
-		arp_analyzer = 0;
+		arp_analyzer = nullptr;
 
 	memset(&stats, 0, sizeof(SessionStats));
 	}
@@ -153,7 +153,7 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 
 		const struct ip* ip = (const struct ip*) (pkt->data + pkt->hdr_size);
 		IP_Hdr ip_hdr(ip, false);
-		DoNextPacket(t, pkt, &ip_hdr, 0);
+		DoNextPacket(t, pkt, &ip_hdr, nullptr);
 		}
 
 	else if ( pkt->l3_proto == L3_IPV6 )
@@ -165,7 +165,7 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 			}
 
 		IP_Hdr ip_hdr((const struct ip6_hdr*) (pkt->data + pkt->hdr_size), false, caplen);
-		DoNextPacket(t, pkt, &ip_hdr, 0);
+		DoNextPacket(t, pkt, &ip_hdr, nullptr);
 		}
 
 	else if ( pkt->l3_proto == L3_ARP )
@@ -261,7 +261,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	if ( discarder && discarder->NextPacket(ip_hdr, len, caplen) )
 		return;
 
-	FragReassembler* f = 0;
+	FragReassembler* f = nullptr;
 
 	if ( ip_hdr->IsFragment() )
 		{
@@ -574,7 +574,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 			return;
 			}
 
-		IP_Hdr* inner = 0;
+		IP_Hdr* inner = nullptr;
 
 		if ( gre_version != 0 )
 			{
@@ -662,7 +662,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		// We already know that connection.
 		if ( conn->IsReuse(t, data) )
 			{
-			conn->Event(connection_reused, 0);
+			conn->Event(connection_reused, nullptr);
 
 			Remove(conn);
 			conn = NewConn(key, t, &id, data, proto, ip_hdr->FlowLabel(), pkt, encapsulation);
@@ -686,16 +686,16 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 
 	conn->CheckFlowLabel(is_orig, ip_hdr->FlowLabel());
 
-	Val* pkt_hdr_val = 0;
+	Val* pkt_hdr_val = nullptr;
 
 	if ( ipv6_ext_headers && ip_hdr->NumHeaders() > 1 )
 		{
 		pkt_hdr_val = ip_hdr->BuildPktHdrVal();
-		conn->Event(ipv6_ext_headers, 0, pkt_hdr_val);
+		conn->Event(ipv6_ext_headers, nullptr, pkt_hdr_val);
 		}
 
 	if ( new_packet )
-		conn->Event(new_packet, 0,
+		conn->Event(new_packet, nullptr,
 		        pkt_hdr_val ? pkt_hdr_val->Ref() : ip_hdr->BuildPktHdrVal());
 
 	conn->NextPacket(t, is_orig, ip_hdr, len, caplen, data,
@@ -739,7 +739,7 @@ void NetSessions::DoNextInnerPacket(double t, const Packet* pkt,
 		    ((network_time - (double)ts.tv_sec) * 1000000);
 		}
 
-	const u_char* data = 0;
+	const u_char* data = nullptr;
 
 	if ( inner->IP4_Hdr() )
 		data = (const u_char*) inner->IP4_Hdr();
@@ -906,7 +906,7 @@ Connection* NetSessions::FindConnection(Val* v)
 	{
 	BroType* vt = v->Type();
 	if ( ! IsRecord(vt->Tag()) )
-		return 0;
+		return nullptr;
 
 	RecordType* vr = vt->AsRecordType();
 	const val_list* vl = v->AsRecord();
@@ -931,7 +931,7 @@ Connection* NetSessions::FindConnection(Val* v)
 		resp_p = vr->FieldOffset("resp_p");
 
 		if ( orig_h < 0 || resp_h < 0 || orig_p < 0 || resp_p < 0 )
-			return 0;
+			return nullptr;
 
 		// ### we ought to check that the fields have the right
 		// types, too.
@@ -967,7 +967,7 @@ Connection* NetSessions::FindConnection(Val* v)
 		// This can happen due to pseudo-connections we
 		// construct, for example for packet headers embedded
 		// in ICMPs.
-		return 0;
+		return nullptr;
 		}
 
 	Connection* conn = nullptr;
@@ -1151,7 +1151,7 @@ Connection* NetSessions::NewConn(const ConnIDKey& k, double t, const ConnID* id,
 			break;
 		default:
 			reporter->InternalWarning("unknown transport protocol");
-			return 0;
+			return nullptr;
 	};
 
 	if ( tproto == TRANSPORT_TCP )
@@ -1163,7 +1163,7 @@ Connection* NetSessions::NewConn(const ConnIDKey& k, double t, const ConnID* id,
 	bool flip = false;
 
 	if ( ! WantConnection(src_h, dst_h, tproto, flags, flip) )
-		return 0;
+		return nullptr;
 
 	Connection* conn = new Connection(this, k, t, id, flow_label, pkt, encapsulation);
 	conn->SetTransport(tproto);
@@ -1175,11 +1175,11 @@ Connection* NetSessions::NewConn(const ConnIDKey& k, double t, const ConnID* id,
 		{
 		conn->Done();
 		Unref(conn);
-		return 0;
+		return nullptr;
 		}
 
 	if ( new_connection )
-		conn->Event(new_connection, 0);
+		conn->Event(new_connection, nullptr);
 
 	return conn;
 	}

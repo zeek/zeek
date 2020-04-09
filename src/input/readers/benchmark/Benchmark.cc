@@ -210,11 +210,11 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype)
 		for ( unsigned int pos = 0; pos < length; pos++ )
 			{
 			Value* newval = EntryToVal(subtype, TYPE_ENUM);
-			if ( newval == 0 )
+			if ( newval == nullptr )
 				{
 				Error("Error while reading set");
 				delete val;
-				return 0;
+				return nullptr;
 				}
 			lvals[pos] = newval;
 			}
@@ -226,7 +226,7 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype)
 	default:
 		Error(Fmt("unsupported field format %d", type));
 		delete val;
-		return 0;
+		return nullptr;
 	}
 
 	return val;
@@ -265,7 +265,7 @@ bool Benchmark::DoHeartbeat(double network_time, double current_time)
 
 			Update(); // call update and not DoUpdate, because update actually checks disabled.
 
-			SendEvent("HeartbeatDone", 0, 0);
+			SendEvent("HeartbeatDone", 0, nullptr);
 			break;
 
 		default:

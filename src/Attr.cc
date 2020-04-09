@@ -197,7 +197,7 @@ void Attributes::AddAttrs(Attributes* a)
 Attr* Attributes::FindAttr(attr_tag t) const
 	{
 	if ( ! attrs )
-		return 0;
+		return nullptr;
 
 	for ( const auto& a : *attrs )
 		{
@@ -205,7 +205,7 @@ Attr* Attributes::FindAttr(attr_tag t) const
 			return a;
 		}
 
-	return 0;
+	return nullptr;
 	}
 
 void Attributes::RemoveAttr(attr_tag t)

@@ -82,7 +82,7 @@ void File::StaticInit()
 
 File::File(const string& file_id, const string& source_name, Connection* conn,
            analyzer::Tag tag, bool is_orig)
-	: id(file_id), val(0), file_reassembler(0), stream_offset(0),
+	: id(file_id), val(nullptr), file_reassembler(nullptr), stream_offset(0),
 	  reassembly_max_buffer(0), did_metadata_inference(false),
 	  reassembly_enabled(false), postpone_timeout(false), done(false),
 	  analyzers(this)
@@ -260,7 +260,7 @@ bool File::AddAnalyzer(file_analysis::Tag tag, RecordVal* args)
 	if ( done )
 		return false;
 
-	return analyzers.QueueAdd(tag, args) != 0;
+	return analyzers.QueueAdd(tag, args) != nullptr;
 	}
 
 bool File::RemoveAnalyzer(file_analysis::Tag tag, RecordVal* args)
@@ -280,7 +280,7 @@ void File::DisableReassembly()
 	{
 	reassembly_enabled = false;
 	delete file_reassembler;
-	file_reassembler = 0;
+	file_reassembler = nullptr;
 	}
 
 void File::SetReassemblyBuffer(uint64_t max)
@@ -386,7 +386,7 @@ void File::DeliverStream(const u_char* data, uint64_t len)
 	        fmt_bytes((const char*) data, min((uint64_t)40, len)),
 	        len > 40 ? "..." : "");
 
-	file_analysis::Analyzer* a = 0;
+	file_analysis::Analyzer* a = nullptr;
 	IterCookie* c = analyzers.InitForIteration();
 
 	while ( (a = analyzers.NextEntry(c)) )
@@ -490,7 +490,7 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 	        fmt_bytes((const char*) data, min((uint64_t)40, len)),
 	        len > 40 ? "..." : "");
 
-	file_analysis::Analyzer* a = 0;
+	file_analysis::Analyzer* a = nullptr;
 	IterCookie* c = analyzers.InitForIteration();
 
 	while ( (a = analyzers.NextEntry(c)) )
@@ -554,7 +554,7 @@ void File::EndOfFile()
 
 	done = true;
 
-	file_analysis::Analyzer* a = 0;
+	file_analysis::Analyzer* a = nullptr;
 	IterCookie* c = analyzers.InitForIteration();
 
 	while ( (a = analyzers.NextEntry(c)) )
@@ -587,7 +587,7 @@ void File::Gap(uint64_t offset, uint64_t len)
 		DeliverStream((const u_char*) "", 0);
 		}
 
-	file_analysis::Analyzer* a = 0;
+	file_analysis::Analyzer* a = nullptr;
 	IterCookie* c = analyzers.InitForIteration();
 
 	while ( (a = analyzers.NextEntry(c)) )

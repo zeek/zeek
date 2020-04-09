@@ -121,7 +121,7 @@ bool WriterBackend::WriterInfo::FromBroker(broker::data d)
 WriterBackend::WriterBackend(WriterFrontend* arg_frontend) : MsgThread()
 	{
 	num_fields = 0;
-	fields = 0;
+	fields = nullptr;
 	buffering = true;
 	frontend = arg_frontend;
 	info = new WriterInfo(frontend->Info());
@@ -168,7 +168,7 @@ bool WriterBackend::FinishedRotation(const char* new_name, const char* old_name,
 bool WriterBackend::FinishedRotation()
 	{
 	--rotation_counter;
-	SendOut(new RotationFinishedMessage(frontend, 0, 0, 0, 0, false, false));
+	SendOut(new RotationFinishedMessage(frontend, nullptr, nullptr, 0, 0, false, false));
 	return true;
 	}
 

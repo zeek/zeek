@@ -54,7 +54,7 @@ const char* expr_name(BroExprTag t)
 	return expr_names[int(t)];
 	}
 
-Expr::Expr(BroExprTag arg_tag) : tag(arg_tag), type(0), paren(false)
+Expr::Expr(BroExprTag arg_tag) : tag(arg_tag), type(nullptr), paren(false)
 	{
 	SetLocationInfo(&start_location, &end_location);
 	}
@@ -1623,7 +1623,7 @@ IntrusivePtr<Val> BoolExpr::Eval(Frame* f) const
 			result->Assign(i, val_mgr->GetBool(local_result));
 			}
 		else
-			result->Assign(i, 0);
+			result->Assign(i, nullptr);
 		}
 
 	return result;
@@ -1952,7 +1952,7 @@ IntrusivePtr<Val> CondExpr::Eval(Frame* f) const
 			result->Assign(i, v ? v->Ref() : nullptr);
 			}
 		else
-			result->Assign(i, 0);
+			result->Assign(i, nullptr);
 		}
 
 	return result;
@@ -2019,7 +2019,7 @@ AssignExpr::AssignExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2,
 	             std::move(arg_op1) : arg_op1->MakeLvalue(),
 	             std::move(arg_op2))
 	{
-	val = 0;
+	val = nullptr;
 	is_init = arg_is_init;
 
 	if ( IsError() )
@@ -2079,7 +2079,7 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 
 	if ( bt1 == TYPE_TABLE && op2->Tag() == EXPR_LIST )
 		{
-		attr_list* attr_copy = 0;
+		attr_list* attr_copy = nullptr;
 
 		if ( attrs )
 			{
@@ -2178,7 +2178,7 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 					return false;
 					}
 
-				attr_list* attr_copy = 0;
+				attr_list* attr_copy = nullptr;
 
 				if ( sce->Attrs() )
 					{
@@ -2293,7 +2293,7 @@ void AssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const
 	if ( IsError() )
 		return;
 
-	TypeDecl td(0, 0);
+	TypeDecl td(nullptr, nullptr);
 
 	if ( IsRecordElement(&td) )
 		{
@@ -2348,7 +2348,7 @@ IntrusivePtr<Val> AssignExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) 
 	if ( IsError() )
 		return nullptr;
 
-	TypeDecl td(0, 0);
+	TypeDecl td(nullptr, nullptr);
 
 	if ( IsRecordElement(&td) )
 		{
@@ -2690,7 +2690,7 @@ IntrusivePtr<Val> IndexExpr::Fold(Val* v1, Val* v2) const
 		const ListVal* lv = v2->AsListVal();
 		const BroString* s = v1->AsString();
 		int len = s->Len();
-		BroString* substring = 0;
+		BroString* substring = nullptr;
 
 		if ( lv->Length() == 1 )
 			{
@@ -2709,7 +2709,7 @@ IntrusivePtr<Val> IndexExpr::Fold(Val* v1, Val* v2) const
 			bro_int_t substring_len = last - first;
 
 			if ( substring_len < 0 )
-				substring = 0;
+				substring = nullptr;
 			else
 				substring = s->GetSubstring(first, substring_len);
 			}
@@ -2851,7 +2851,7 @@ TraversalCode IndexExpr::Traverse(TraversalCallback* cb) const
 
 FieldExpr::FieldExpr(IntrusivePtr<Expr> arg_op, const char* arg_field_name)
 	: UnaryExpr(EXPR_FIELD, std::move(arg_op)),
-	  field_name(copy_string(arg_field_name)), td(0), field(0)
+	  field_name(copy_string(arg_field_name)), td(nullptr), field(0)
 	{
 	if ( IsError() )
 		return;
@@ -2905,7 +2905,7 @@ void FieldExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 
 void FieldExpr::Delete(Frame* f)
 	{
-	Assign(f, 0);
+	Assign(f, nullptr);
 	}
 
 IntrusivePtr<Val> FieldExpr::Fold(Val* v) const
@@ -2914,7 +2914,7 @@ IntrusivePtr<Val> FieldExpr::Fold(Val* v) const
 		return {NewRef{}, result};
 
 	// Check for &default.
-	const Attr* def_attr = td ? td->FindAttr(ATTR_DEFAULT) : 0;
+	const Attr* def_attr = td ? td->FindAttr(ATTR_DEFAULT) : nullptr;
 
 	if ( def_attr )
 		return def_attr->AttrExpr()->Eval(nullptr);
@@ -3101,7 +3101,7 @@ TableConstructorExpr::TableConstructorExpr(IntrusivePtr<ListExpr> constructor_li
 			}
 		}
 
-	attrs = arg_attrs ? new Attributes(arg_attrs, type, false, false) : 0;
+	attrs = arg_attrs ? new Attributes(arg_attrs, type, false, false) : nullptr;
 
 	type_list* indices = type->AsTableType()->Indices()->Types();
 	const expr_list& cle = op->AsListExpr()->Exprs();
@@ -3173,7 +3173,7 @@ IntrusivePtr<Val> TableConstructorExpr::InitVal(const BroType* t, IntrusivePtr<V
 	const expr_list& exprs = op->AsListExpr()->Exprs();
 
 	for ( const auto& expr : exprs )
-		expr->EvalIntoAggregate(t, tval.get(), 0);
+		expr->EvalIntoAggregate(t, tval.get(), nullptr);
 
 	return tval;
 	}
@@ -3219,7 +3219,7 @@ SetConstructorExpr::SetConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
 	else if ( type->Tag() != TYPE_TABLE || ! type->AsTableType()->IsSet() )
 		SetError("values in set(...) constructor do not specify a set");
 
-	attrs = arg_attrs ? new Attributes(arg_attrs, type, false, false) : 0;
+	attrs = arg_attrs ? new Attributes(arg_attrs, type, false, false) : nullptr;
 
 	type_list* indices = type->AsTableType()->Indices()->Types();
 	expr_list& cle = op->AsListExpr()->Exprs();
@@ -3265,7 +3265,7 @@ IntrusivePtr<Val> SetConstructorExpr::Eval(Frame* f) const
 	for ( const auto& expr : exprs )
 		{
 		auto element = expr->Eval(f);
-		aggr->Assign(element.get(), 0);
+		aggr->Assign(element.get(), nullptr);
 		}
 
 	return aggr;
@@ -3287,7 +3287,7 @@ IntrusivePtr<Val> SetConstructorExpr::InitVal(const BroType* t, IntrusivePtr<Val
 		{
 		auto element = check_and_promote(e->Eval(nullptr), index_type, true);
 
-		if ( ! element || ! tval->Assign(element.get(), 0) )
+		if ( ! element || ! tval->Assign(element.get(), nullptr) )
 			{
 			Error(fmt("initialization type mismatch in set"), e);
 			return nullptr;
@@ -3521,7 +3521,7 @@ IntrusivePtr<Val> ArithCoerceExpr::Fold(Val* v) const
 		if ( Val* elt = vv->Lookup(i) )
 			result->Assign(i, FoldSingleVal(elt, t));
 		else
-			result->Assign(i, 0);
+			result->Assign(i, nullptr);
 		}
 
 	return result;
@@ -4191,7 +4191,7 @@ IntrusivePtr<Val> CallExpr::Eval(Frame* f) const
 	if ( func_val && v )
 		{
 		const ::Func* funcv = func_val->AsFunc();
-		const CallExpr* current_call = f ? f->GetCall() : 0;
+		const CallExpr* current_call = f ? f->GetCall() : nullptr;
 
 		if ( f )
 			f->SetCall(this);
@@ -4491,12 +4491,12 @@ IntrusivePtr<BroType> ListExpr::InitType() const
 		return nullptr;
 		}
 
-	if ( exprs[0]->IsRecordElement(0) )
+	if ( exprs[0]->IsRecordElement(nullptr) )
 		{
 		type_decl_list* types = new type_decl_list(exprs.length());
 		for ( const auto& expr : exprs )
 			{
-			TypeDecl* td = new TypeDecl(0, 0);
+			TypeDecl* td = new TypeDecl(nullptr, nullptr);
 			if ( ! expr->IsRecordElement(td) )
 				{
 				expr->Error("record element expected");
@@ -5063,7 +5063,7 @@ bool check_and_promote_args(ListExpr* const args, RecordType* types)
 		for ( int i = ntypes - 1; i >= el.length(); --i )
 			{
 			TypeDecl* td = types->FieldDecl(i);
-			Attr* def_attr = td->attrs ? td->attrs->FindAttr(ATTR_DEFAULT) : 0;
+			Attr* def_attr = td->attrs ? td->attrs->FindAttr(ATTR_DEFAULT) : nullptr;
 
 			if ( ! def_attr )
 				{

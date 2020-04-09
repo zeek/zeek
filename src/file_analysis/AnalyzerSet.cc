@@ -83,7 +83,7 @@ Analyzer* AnalyzerSet::QueueAdd(const file_analysis::Tag& tag, RecordVal* args)
 	if ( ! a )
 		{
 		delete key;
-		return 0;
+		return nullptr;
 		}
 
 	mod_queue.push(new AddMod(a, key));
@@ -184,7 +184,7 @@ file_analysis::Analyzer* AnalyzerSet::InstantiateAnalyzer(const Tag& tag,
 		reporter->Error("[%s] Failed file analyzer %s instantiation",
 		                file->GetID().c_str(),
 		                file_mgr->GetComponentName(tag).c_str());
-		return 0;
+		return nullptr;
 		}
 
 	return a;

@@ -52,7 +52,7 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 	const char* orig_line = line;
 	const char* end_of_line = line + length;
 
-	tcp::TCP_Endpoint* s = 0;
+	tcp::TCP_Endpoint* s = nullptr;
 
 	if ( TCP() )
 		s = is_orig ? TCP()->Orig() : TCP()->Resp();
@@ -194,17 +194,17 @@ const char* Ident_Analyzer::ParsePair(const char* line, const char* end_of_line,
 	line = ParsePort(line, end_of_line, p1);
 	if ( ! line )
 		{
-		return 0;
+		return nullptr;
 		}
 
 	if ( line >= end_of_line || line[0] != ',' )
-		return 0;
+		return nullptr;
 
 	++line;
 
 	line = ParsePort(line, end_of_line, p2);
 	if ( ! line )
-		return 0;
+		return nullptr;
 
 	return line;
 	}
@@ -216,7 +216,7 @@ const char* Ident_Analyzer::ParsePort(const char* line, const char* end_of_line,
 
 	line = skip_whitespace(line, end_of_line);
 	if ( ! isdigit(*line) )
-		return 0;
+		return nullptr;
 
 	const char* l = line;
 

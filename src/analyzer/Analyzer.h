@@ -152,7 +152,7 @@ public:
 	 * @param caplen The packet's capture length, if available.
 	 */
 	void NextPacket(int len, const u_char* data, bool is_orig,
-			uint64_t seq = -1, const IP_Hdr* ip = 0, int caplen = 0);
+			uint64_t seq = -1, const IP_Hdr* ip = nullptr, int caplen = 0);
 
 	/**
 	 * Passes stream input to the analyzer for processing. The analyzer
@@ -528,7 +528,7 @@ public:
 	 * @param len If \a data is given, the length of it.
 	 */
 	virtual void ProtocolViolation(const char* reason,
-					const char* data = 0, int len = 0);
+					const char* data = nullptr, int len = 0);
 
 	/**
 	 * Returns true if ProtocolConfirmation() has been called at least
@@ -558,13 +558,13 @@ public:
 	 * Convenience function that forwards directly to the corresponding
 	 * Connection::Event().
 	 */
-	void Event(EventHandlerPtr f, const char* name = 0);
+	void Event(EventHandlerPtr f, const char* name = nullptr);
 
 	/**
 	 * Convenience function that forwards directly to the corresponding
 	 * Connection::Event().
 	 */
-	void Event(EventHandlerPtr f, Val* v1, Val* v2 = 0);
+	void Event(EventHandlerPtr f, Val* v1, Val* v2 = nullptr);
 
 	/**
 	 * Convenience function that forwards directly to
@@ -796,7 +796,7 @@ public:
 	 * connection originator side, and otherwise for the responder side.
 	 */
 	SupportAnalyzer(const char* name, Connection* conn, bool arg_orig)
-		: Analyzer(name, conn)	{ orig = arg_orig; sibling = 0; }
+		: Analyzer(name, conn)	{ orig = arg_orig; sibling = nullptr; }
 
 	/**
 	 * Destructor.
@@ -879,7 +879,7 @@ public:
 	 * @param conn The connection the analyzer is associated with.
 	 */
 	TransportLayerAnalyzer(const char* name, Connection* conn)
-		: Analyzer(name, conn)	{ pia = 0; }
+		: Analyzer(name, conn)	{ pia = nullptr; }
 
 	/**
 	 * Overridden from parent class.

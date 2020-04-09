@@ -91,7 +91,7 @@ public:
 	 * comments are correctly associated.
 	 */
 	void CompletedTypeDecl()
-		{ last_field_seen = 0; }
+		{ last_field_seen = nullptr; }
 
 	/**
 	 * @return the script-level ID tracked by this info object.

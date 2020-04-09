@@ -17,7 +17,7 @@ DFA_State::DFA_State(int arg_state_num, const EquivClass* ec,
 	num_sym = ec->NumClasses();
 	nfa_states = arg_nfa_states;
 	accept = arg_accept;
-	mark = 0;
+	mark = nullptr;
 
 	SymPartition(ec);
 
@@ -96,7 +96,7 @@ DFA_State* DFA_State::ComputeXtion(int sym, DFA_Machine* machine)
 	else
 		{
 		delete ns;
-		next_d = 0;	// Jam
+		next_d = nullptr;	// Jam
 		}
 
 	AddXtion(equiv_sym, next_d);
@@ -182,7 +182,7 @@ void DFA_State::ClearMarks()
 	{
 	if ( mark )
 		{
-		SetMark(0);
+		SetMark(nullptr);
 
 		for ( int i = 0; i < num_sym; ++i )
 			{
@@ -395,7 +395,7 @@ DFA_Machine::DFA_Machine(NFA_Machine* n, EquivClass* arg_ec)
 		}
 	else
 		{
-		start_state = 0; // Jam
+		start_state = nullptr; // Jam
 		delete ns;
 		}
 	}
@@ -451,7 +451,7 @@ bool DFA_Machine::StateSetToDFA_State(NFA_state_list* state_set,
 	if ( accept->empty() )
 		{
 		delete accept;
-		accept = 0;
+		accept = nullptr;
 		}
 
 	DFA_State* ds = new DFA_State(state_count++, ec, state_set, accept);

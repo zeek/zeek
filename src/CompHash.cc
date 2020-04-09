@@ -47,19 +47,19 @@ CompositeHash::CompositeHash(IntrusivePtr<TypeList> composite_type)
 		// via the singleton later.
 		singleton_tag = (*type->Types())[0]->InternalType();
 		size = 0;
-		key = 0;
+		key = nullptr;
 		}
 
 	else
 		{
-		size = ComputeKeySize(0, true, true);
+		size = ComputeKeySize(nullptr, true, true);
 
 		if ( size > 0 )
 			// Fixed size.  Make sure what we get is fully aligned.
 			key = reinterpret_cast<char*>
 				(new double[size/sizeof(double) + 1]);
 		else
-			key = 0;
+			key = nullptr;
 		}
 	}
 
@@ -72,7 +72,7 @@ CompositeHash::~CompositeHash()
 char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 				   BroType* bt, Val* v, bool optional) const
 	{
-	char* kp1 = 0;
+	char* kp1 = nullptr;
 	InternalTypeTag t = bt->InternalType();
 
 	if ( optional )
@@ -90,7 +90,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 		{
 		InternalTypeTag vt = v->Type()->InternalType();
 		if ( vt != t )
-			return 0;
+			return nullptr;
 		}
 
 	switch ( t ) {
@@ -186,12 +186,12 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 				bool optional = (a && a->FindAttr(ATTR_OPTIONAL));
 
 				if ( ! (rv_i || optional) )
-					return 0;
+					return nullptr;
 
 				if ( ! (kp = SingleValHash(type_check, kp,
 							   rt->FieldType(i),
 							   rv_i, optional)) )
-					return 0;
+					return nullptr;
 				}
 
 			kp1 = kp;
@@ -242,7 +242,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 
 				if ( ! (kp1 = SingleValHash(type_check, kp1, key->Type(), key,
 				                            false)) )
-					return 0;
+					return nullptr;
 
 				if ( ! v->Type()->IsSet() )
 					{
@@ -250,7 +250,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 
 					if ( ! (kp1 = SingleValHash(type_check, kp1, val->Type(),
 								    val.get(), false)) )
-						return 0;
+						return nullptr;
 					}
 				}
 
@@ -278,7 +278,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 					{
 					if ( ! (kp1 = SingleValHash(type_check, kp1,
 					                            vt->YieldType(), val, false)) )
-						return 0;
+						return nullptr;
 					}
 				}
 			}
@@ -295,7 +295,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 				Val* v = lv->Index(i);
 				if ( ! (kp1 = SingleValHash(type_check, kp1, v->Type(), v,
 				                            false)) )
-					return 0;
+					return nullptr;
 				}
 			}
 			break;
@@ -303,7 +303,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 		default:
 			{
 			reporter->InternalError("bad index type in CompositeHash::SingleValHash");
-			return 0;
+			return nullptr;
 			}
 		}
 
@@ -326,7 +326,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 		break;
 
 	case TYPE_INTERNAL_ERROR:
-		return 0;
+		return nullptr;
 	}
 
 	return kp1;
@@ -361,7 +361,7 @@ HashKey* CompositeHash::ComputeHash(const Val* v, bool type_check) const
 		{
 		int sz = ComputeKeySize(v, type_check, false);
 		if ( sz == 0 )
-			return 0;
+			return nullptr;
 
 		k = reinterpret_cast<char*>(new double[sz/sizeof(double) + 1]);
 		type_check = false;	// no need to type-check again.
@@ -370,18 +370,18 @@ HashKey* CompositeHash::ComputeHash(const Val* v, bool type_check) const
 	const type_list* tl = type->Types();
 
 	if ( type_check && v->Type()->Tag() != TYPE_LIST )
-		return 0;
+		return nullptr;
 
 	const val_list* vl = v->AsListVal()->Vals();
 	if ( type_check && vl->length() != tl->length() )
-		return 0;
+		return nullptr;
 
 	char* kp = k;
 	loop_over_list(*tl, i)
 		{
 		kp = SingleValHash(type_check, kp, (*tl)[i], (*vl)[i], false);
 		if ( ! kp )
-			return 0;
+			return nullptr;
 		}
 
 	return new HashKey((k == key), (void*) k, kp - k);
@@ -393,13 +393,13 @@ HashKey* CompositeHash::ComputeSingletonHash(const Val* v, bool type_check) cons
 		{
 		const val_list* vl = v->AsListVal()->Vals();
 		if ( type_check && vl->length() != 1 )
-			return 0;
+			return nullptr;
 
 		v = (*vl)[0];
 		}
 
 	if ( type_check && v->Type()->InternalType() != singleton_tag )
-		return 0;
+		return nullptr;
 
 	switch ( singleton_tag ) {
 	case TYPE_INTERNAL_INT:
@@ -434,17 +434,17 @@ HashKey* CompositeHash::ComputeSingletonHash(const Val* v, bool type_check) cons
 			}
 
 		reporter->InternalError("bad index type in CompositeHash::ComputeSingletonHash");
-		return 0;
+		return nullptr;
 
 	case TYPE_INTERNAL_STRING:
 		return new HashKey(v->AsString());
 
 	case TYPE_INTERNAL_ERROR:
-		return 0;
+		return nullptr;
 
 	default:
 		reporter->InternalError("bad internal type in CompositeHash::ComputeSingletonHash");
-		return 0;
+		return nullptr;
 	}
 	}
 
@@ -507,7 +507,7 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 
 		case TYPE_RECORD:
 			{
-			const RecordVal* rv = v ? v->AsRecordVal() : 0;
+			const RecordVal* rv = v ? v->AsRecordVal() : nullptr;
 			RecordType* rt = bt->AsRecordType();
 			int num_fields = rt->NumFields();
 
@@ -517,7 +517,7 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 				bool optional = (a && a->FindAttr(ATTR_OPTIONAL));
 
 				sz = SingleTypeKeySize(rt->FieldType(i),
-						       rv ? rv->Lookup(i) : 0,
+						       rv ? rv->Lookup(i) : nullptr,
 						       type_check, sz, optional,
 						       calc_static_size);
 				if ( ! sz )
@@ -632,7 +632,7 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 int CompositeHash::ComputeKeySize(const Val* v, bool type_check, bool calc_static_size) const
 	{
 	const type_list* tl = type->Types();
-	const val_list* vl = 0;
+	const val_list* vl = nullptr;
 	if ( v )
 		{
 		if ( type_check && v->Type()->Tag() != TYPE_LIST )
@@ -646,7 +646,7 @@ int CompositeHash::ComputeKeySize(const Val* v, bool type_check, bool calc_stati
 	int sz = 0;
 	loop_over_list(*tl, i)
 		{
-		sz = SingleTypeKeySize((*tl)[i], v ? v->AsListVal()->Index(i) : 0,
+		sz = SingleTypeKeySize((*tl)[i], v ? v->AsListVal()->Index(i) : nullptr,
 				       type_check, sz, false, calc_static_size);
 		if ( ! sz )
 			return 0;
@@ -745,7 +745,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 
 	TypeTag tag = t->Tag();
 	InternalTypeTag it = t->InternalType();
-	const char* kp1 = 0;
+	const char* kp1 = nullptr;
 
 	if ( optional )
 		{

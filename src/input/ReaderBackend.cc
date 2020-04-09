@@ -204,7 +204,7 @@ ReaderBackend::ReaderBackend(ReaderFrontend* arg_frontend) : MsgThread()
 	frontend = arg_frontend;
 	info = new ReaderInfo(frontend->Info());
 	num_fields = 0;
-	fields = 0;
+	fields = nullptr;
 
 	SetName(frontend->Name());
 	}
@@ -282,13 +282,13 @@ bool ReaderBackend::OnFinish(double network_time)
 	disabled = true; // frontend disables itself when it gets the Close-message.
 	SendOut(new ReaderClosedMessage(frontend));
 
-	if ( fields != 0 )
+	if ( fields )
 		{
 		for ( unsigned int i = 0; i < num_fields; i++ )
 			delete(fields[i]);
 
 		delete [] (fields);
-		fields = 0;
+		fields = nullptr;
 		}
 
 	return true;

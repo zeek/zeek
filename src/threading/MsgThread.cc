@@ -172,7 +172,7 @@ bool ReporterMessage::Process()
 	return true;
 	}
 
-MsgThread::MsgThread() : BasicThread(), queue_in(this, 0), queue_out(0, this)
+MsgThread::MsgThread() : BasicThread(), queue_in(this, nullptr), queue_out(nullptr, this)
 	{
 	cnt_sent_in = cnt_sent_out = 0;
 	main_finished = false;
@@ -367,7 +367,7 @@ BasicOutputMessage* MsgThread::RetrieveOut()
 	{
 	BasicOutputMessage* msg = queue_out.Get();
 	if ( ! msg )
-		return 0;
+		return nullptr;
 
 	DBG_LOG(DBG_THREADING, "Retrieved '%s' from %s",  msg->Name(), Name());
 
@@ -379,7 +379,7 @@ BasicInputMessage* MsgThread::RetrieveIn()
 	BasicInputMessage* msg = queue_in.Get();
 
 	if ( ! msg )
-		return 0;
+		return nullptr;
 
 #ifdef DEBUG
 	string s = Fmt("Retrieved '%s' in %s",  msg->Name(), Name());

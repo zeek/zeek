@@ -310,7 +310,7 @@ public:
 
 	// To be overridden by mutable derived class to enable change
 	// notification.
-	virtual notifier::Modifiable* Modifiable()	{ return 0; }
+	virtual notifier::Modifiable* Modifiable()	{ return nullptr; }
 
 #ifdef DEBUG
 	// For debugging, we keep a reference to the global ID to which a
@@ -804,7 +804,7 @@ public:
 	void ClearTimer(Timer* t)
 		{
 		if ( timer == t )
-			timer = 0;
+			timer = nullptr;
 		}
 
 	HashKey* ComputeHash(const Val* index) const;
@@ -843,7 +843,7 @@ protected:
 	IntrusivePtr<Val> Default(Val* index);
 
 	// Returns true if item expiration is enabled.
-	bool ExpirationEnabled()	{ return expire_time != 0; }
+	bool ExpirationEnabled()	{ return expire_time != nullptr; }
 
 	// Returns the expiration time defined by %{create,read,write}_expire
 	// attribute, or -1 for unset/invalid values. In the invalid case, an

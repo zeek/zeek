@@ -147,7 +147,7 @@ WriterBackend* Manager::CreateBackend(WriterFrontend* frontend, EnumVal* tag)
 	if ( ! c )
 		{
 		reporter->Error("unknown writer type requested");
-		return 0;
+		return nullptr;
 		}
 
 	WriterBackend* backend = (*c->Factory())(frontend);
@@ -161,7 +161,7 @@ Manager::Stream* Manager::FindStream(EnumVal* id)
 	unsigned int idx = id->AsEnum();
 
 	if ( idx >= streams.size() || ! streams[idx] )
-		return 0;
+		return nullptr;
 
 	return streams[idx];
 	}
@@ -182,7 +182,7 @@ Manager::WriterInfo* Manager::FindWriter(WriterFrontend* writer)
 			}
 		}
 
-	return 0;
+	return nullptr;
 	}
 
 bool Manager::CompareFields(const Filter* filter, const WriterFrontend* writer)
@@ -264,7 +264,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 		}
 
 	auto event_val = sval->Lookup("ev");
-	Func* event = event_val ? event_val->AsFunc() : 0;
+	Func* event = event_val ? event_val->AsFunc() : nullptr;
 
 	if ( event )
 		{
@@ -298,7 +298,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 	unsigned int idx = id->AsEnum();
 
 	while ( idx >= streams.size() )
-		streams.push_back(0);
+		streams.push_back(nullptr);
 
 	if ( streams[idx] )
 		// We already know this one, delete the previous definition.
@@ -309,7 +309,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 	streams[idx]->id = id->Ref()->AsEnumVal();
 	streams[idx]->enabled = true;
 	streams[idx]->name = id->Type()->AsEnumType()->Lookup(idx);
-	streams[idx]->event = event ? event_registry->Lookup(event->Name()) : 0;
+	streams[idx]->event = event ? event_registry->Lookup(event->Name()) : nullptr;
 	streams[idx]->columns = columns->Ref()->AsRecordType();
 
 	streams[idx]->enable_remote = internal_val("Log::enable_remote_logging")->AsBool();
@@ -347,7 +347,7 @@ bool Manager::RemoveStream(EnumVal* id)
 	stream->writers.clear();
 	string sname(stream->name);
 	delete stream;
-	streams[idx] = 0;
+	streams[idx] = nullptr;
 
 	DBG_LOG(DBG_LOGGING, "Removed logging stream '%s'", sname.c_str());
 	return true;
@@ -523,7 +523,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 
 		bool optional = rtype->FieldDecl(i)->FindAttr(ATTR_OPTIONAL);
 
-		filter->fields[filter->num_fields - 1] = new threading::Field(new_path.c_str(), 0, t->Tag(), st, optional);
+		filter->fields[filter->num_fields - 1] = new threading::Field(new_path.c_str(), nullptr, t->Tag(), st, optional);
 		}
 
 	return true;
@@ -565,18 +565,18 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	filter->fval = fval->Ref();
 	filter->name = name->AsString()->CheckString();
 	filter->id = id->Ref()->AsEnumVal();
-	filter->pred = pred ? pred->AsFunc() : 0;
-	filter->path_func = path_func ? path_func->AsFunc() : 0;
+	filter->pred = pred ? pred->AsFunc() : nullptr;
+	filter->path_func = path_func ? path_func->AsFunc() : nullptr;
 	filter->writer = writer->Ref()->AsEnumVal();
 	filter->local = log_local->AsBool();
 	filter->remote = log_remote->AsBool();
 	filter->interval = interv->AsInterval();
-	filter->postprocessor = postprocessor ? postprocessor->AsFunc() : 0;
+	filter->postprocessor = postprocessor ? postprocessor->AsFunc() : nullptr;
 	filter->config = config->Ref()->AsTableVal();
 	filter->field_name_map = field_name_map->Ref()->AsTableVal();
 	filter->scope_sep = scope_sep->AsString()->CheckString();
 	filter->ext_prefix = ext_prefix->AsString()->CheckString();
-	filter->ext_func = ext_func ? ext_func->AsFunc() : 0;
+	filter->ext_func = ext_func ? ext_func->AsFunc() : nullptr;
 
 	// Build the list of fields that the filter wants included, including
 	// potentially rolling out fields.
@@ -604,7 +604,7 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 		}
 
 	filter->num_fields = 0;
-	filter->fields = 0;
+	filter->fields = nullptr;
 	if ( ! TraverseRecord(stream, filter, stream->columns,
 			      include ? include->AsTableVal() : nullptr,
 			      exclude ? exclude->AsTableVal() : nullptr,
@@ -627,7 +627,7 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 		{
 		// If no path is given, it's derived based upon the value returned by
 		// the first call to the filter's path_func (during first write).
-		filter->path_val = 0;
+		filter->path_val = nullptr;
 		}
 
 	// Remove any filter with the same name we might already have.
@@ -811,8 +811,8 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 			path = filter->path = filter->path_val->AsString()->CheckString();
 			}
 
-		WriterBackend::WriterInfo* info = 0;
-		WriterFrontend* writer = 0;
+		WriterBackend::WriterInfo* info = nullptr;
+		WriterFrontend* writer = nullptr;
 
 		if ( w != stream->writers.end() )
 			{
@@ -1125,7 +1125,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 				int num_fields, const threading::Field* const* fields, bool local, bool remote, bool from_remote,
 				const string& instantiating_filter)
 	{
-	WriterFrontend* result = 0;
+	WriterFrontend* result = nullptr;
 
 	Stream* stream = FindStream(id);
 
@@ -1133,7 +1133,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 		{
 		// Don't know this stream.
 		delete_info_and_fields(info, num_fields, fields);
-		return 0;
+		return nullptr;
 		}
 
 	Stream::WriterMap::iterator w =
@@ -1149,11 +1149,11 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 
 	WriterInfo* winfo = new WriterInfo;
 	winfo->type = writer->Ref()->AsEnumVal();
-	winfo->writer = 0;
+	winfo->writer = nullptr;
 	winfo->open_time = network_time;
-	winfo->rotation_timer = 0;
+	winfo->rotation_timer = nullptr;
 	winfo->interval = 0;
-	winfo->postprocessor = 0;
+	winfo->postprocessor = nullptr;
 	winfo->info = info;
 	winfo->from_remote = from_remote;
 	winfo->hook_initialized = false;
@@ -1194,7 +1194,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 	// Still need to set the WriterInfo's rotation parameters, which we
 	// computed above.
 	const char* base_time = log_rotate_base_time ?
-		log_rotate_base_time->AsString()->CheckString() : 0;
+		log_rotate_base_time->AsString()->CheckString() : nullptr;
 
 	winfo->info->rotation_interval = winfo->interval;
 	winfo->info->rotation_base = parse_rotate_base_time(base_time);
@@ -1411,12 +1411,12 @@ protected:
 RotationTimer::~RotationTimer()
 	{
 	if ( winfo->rotation_timer == this )
-		winfo->rotation_timer = 0;
+		winfo->rotation_timer = nullptr;
 	}
 
 void RotationTimer::Dispatch(double t, bool is_expire)
 	{
-	winfo->rotation_timer = 0;
+	winfo->rotation_timer = nullptr;
 
 	if ( rotate )
 		log_mgr->Rotate(winfo);
@@ -1436,7 +1436,7 @@ void Manager::InstallRotationTimer(WriterInfo* winfo)
 	if ( winfo->rotation_timer )
 		{
 		timer_mgr->Cancel(winfo->rotation_timer);
-		winfo->rotation_timer = 0;
+		winfo->rotation_timer = nullptr;
 		}
 
 	double rotation_interval = winfo->interval;
@@ -1454,7 +1454,7 @@ void Manager::InstallRotationTimer(WriterInfo* winfo)
 				winfo->open_time = network_time;
 
 			const char* base_time = log_rotate_base_time ?
-				log_rotate_base_time->AsString()->CheckString() : 0;
+				log_rotate_base_time->AsString()->CheckString() : nullptr;
 
 			double base = parse_rotate_base_time(base_time);
 			double delta_t =

@@ -97,7 +97,7 @@ public:
 
 	uint32_t GetUniqueFuncID() const { return unique_id; }
 	static Func* GetFuncPtrByID(uint32_t id)
-		{ return id >= unique_ids.size() ? 0 : unique_ids[id]; }
+		{ return id >= unique_ids.size() ? nullptr : unique_ids[id]; }
 
 protected:
 	Func();
@@ -205,7 +205,7 @@ public:
 	void Describe(ODesc* d) const override;
 
 protected:
-	BuiltinFunc()	{ func = 0; is_pure = 0; }
+	BuiltinFunc()	{ func = nullptr; is_pure = 0; }
 
 	built_in_func func;
 	bool is_pure;

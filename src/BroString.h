@@ -94,7 +94,7 @@ public:
 	//
 	// Note that you need to delete[] the resulting string.
 	//
-	char* Render(int format = EXPANDED_STRING, int* len = 0) const;
+	char* Render(int format = EXPANDED_STRING, int* len = nullptr) const;
 
 	// Similar to the above, but useful for output streams.
 	// Also more useful for debugging purposes since no deallocation

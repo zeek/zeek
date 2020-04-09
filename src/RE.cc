@@ -12,10 +12,10 @@
 #include "Reporter.h"
 #include "BroString.h"
 
-CCL* curr_ccl = 0;
+CCL* curr_ccl = nullptr;
 
 Specific_RE_Matcher* rem;
-NFA_Machine* nfa = 0;
+NFA_Machine* nfa = nullptr;
 int case_insensitive = 0;
 
 extern int RE_parse(void);
@@ -27,10 +27,10 @@ Specific_RE_Matcher::Specific_RE_Matcher(match_type arg_mt, int arg_multiline)
 	{
 	mt = arg_mt;
 	multiline = arg_multiline;
-	any_ccl = 0;
-	pattern_text = 0;
-	dfa = 0;
-	ecs = 0;
+	any_ccl = nullptr;
+	pattern_text = nullptr;
+	dfa = nullptr;
+	ecs = nullptr;
 	accepted = new AcceptingSet();
 	}
 
@@ -131,7 +131,7 @@ bool Specific_RE_Matcher::Compile(bool lazy)
 		{
 		reporter->Error("error compiling pattern /%s/", pattern_text);
 		Unref(nfa);
-		nfa = 0;
+		nfa = nullptr;
 		return false;
 		}
 
@@ -141,7 +141,7 @@ bool Specific_RE_Matcher::Compile(bool lazy)
 	dfa = new DFA_Machine(nfa, EC());
 
 	Unref(nfa);
-	nfa = 0;
+	nfa = nullptr;
 
 	ecs = EC()->EquivClasses();
 
@@ -155,7 +155,7 @@ bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx
 
 	rem = this;
 
-	NFA_Machine* set_nfa = 0;
+	NFA_Machine* set_nfa = nullptr;
 
 	loop_over_list(set, i)
 		{
@@ -172,7 +172,7 @@ bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx
 			else
 				Unref(nfa);
 
-			nfa = 0;
+			nfa = nullptr;
 			return false;
 			}
 
@@ -257,7 +257,7 @@ bool Specific_RE_Matcher::MatchAll(const u_char* bv, int n)
 	if ( d )
 		d = d->Xtion(ecs[SYM_EOL], dfa);
 
-	return d && d->Accept() != 0;
+	return d && d->Accept() != nullptr;
 	}
 
 
@@ -354,7 +354,7 @@ bool RE_Match_State::Match(const u_char* bv, int n,
 
 		if ( ! next_state )
 			{
-			current_state = 0;
+			current_state = nullptr;
 			break;
 			}
 

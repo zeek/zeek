@@ -277,7 +277,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				if ( parts[i][0] == '@' )
 					parts[i] = parts[i].substr(1);
 				auto idx = make_intrusive<StringVal>(parts[i].c_str());
-				set->Assign(idx.get(), 0);
+				set->Assign(idx.get(), nullptr);
 				}
 
 			EnqueueConnEvent(irc_names_info,
@@ -468,7 +468,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			for ( unsigned int i = 0; i < parts.size(); ++i )
 				{
 				auto idx = make_intrusive<StringVal>(parts[i].c_str());
-				set->Assign(idx.get(), 0);
+				set->Assign(idx.get(), nullptr);
 				}
 
 			EnqueueConnEvent(irc_whois_channel_line,
@@ -857,7 +857,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				info->Assign(2, make_intrusive<StringVal>(empty_string.c_str()));
 			// User mode.
 			info->Assign(3, make_intrusive<StringVal>(empty_string.c_str()));
-			list->Assign(info, 0);
+			list->Assign(info, nullptr);
 			Unref(info);
 			}
 
@@ -918,7 +918,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			info->Assign(2, make_intrusive<StringVal>(empty_string.c_str()));
 			// User mode:
 			info->Assign(3, make_intrusive<StringVal>(mode.c_str()));
-			list->Assign(info.get(), 0);
+			list->Assign(info.get(), nullptr);
 			}
 
 		EnqueueConnEvent(irc_join_message,
@@ -957,7 +957,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		for ( unsigned int i = 0; i < channelList.size(); ++i )
 			{
 			auto idx = make_intrusive<StringVal>(channelList[i].c_str());
-			set->Assign(idx.get(), 0);
+			set->Assign(idx.get(), nullptr);
 			}
 
 		EnqueueConnEvent(irc_part_message,

@@ -12,7 +12,7 @@ RDP_Analyzer::RDP_Analyzer(Connection* c)
 	interp = new binpac::RDP::RDP_Conn(this);
 
 	had_gap = false;
-	pia = 0;
+	pia = nullptr;
 	}
 
 RDP_Analyzer::~RDP_Analyzer()
@@ -66,8 +66,8 @@ void RDP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 					return;
 					}
 
-				pia->FirstPacket(true, 0);
-				pia->FirstPacket(false, 0);
+				pia->FirstPacket(true, nullptr);
+				pia->FirstPacket(false, nullptr);
 				}
 
 			ForwardStream(len, data, orig);

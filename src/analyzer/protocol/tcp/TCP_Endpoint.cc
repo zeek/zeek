@@ -16,9 +16,9 @@ using namespace analyzer::tcp;
 
 TCP_Endpoint::TCP_Endpoint(TCP_Analyzer* arg_analyzer, bool arg_is_orig)
 	{
-	contents_processor = 0;
+	contents_processor = nullptr;
 	prev_state = state = TCP_ENDPOINT_INACTIVE;
-	peer = 0;
+	peer = nullptr;
 	start_time = last_time = 0.0;
 	start_seq = last_seq = ack_seq = 0;
 	seq_wraps = ack_wraps = 0;
@@ -29,7 +29,7 @@ TCP_Endpoint::TCP_Endpoint(TCP_Analyzer* arg_analyzer, bool arg_is_orig)
 	FIN_seq = 0;
 	SYN_cnt = FIN_cnt = RST_cnt = 0;
 	did_close = false;
-	contents_file = 0;
+	contents_file = nullptr;
 	tcp_analyzer = arg_analyzer;
 	is_orig = arg_is_orig;
 

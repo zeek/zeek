@@ -109,12 +109,12 @@ WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, EnumVa
 	buf = true;
 	local = arg_local;
 	remote = arg_remote;
-	write_buffer = 0;
+	write_buffer = nullptr;
 	write_buffer_pos = 0;
 	info = new WriterBackend::WriterInfo(arg_info);
 
 	num_fields = 0;
-	fields = 0;
+	fields = nullptr;
 
 	const char* w = arg_writer->Type()->AsEnumType()->Lookup(arg_writer->InternalInt());
 	name = copy_string(fmt("%s/%s", arg_info.path, w));
@@ -128,7 +128,7 @@ WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, EnumVa
 		}
 
 	else
-		backend = 0;
+		backend = nullptr;
 	}
 
 WriterFrontend::~WriterFrontend()
@@ -152,7 +152,7 @@ void WriterFrontend::Stop()
 	if ( backend )
 		{
 		backend->SignalStop();
-		backend = 0; // Thread manager will clean it up once it finishes.
+		backend = nullptr; // Thread manager will clean it up once it finishes.
 		}
 	}
 
@@ -245,7 +245,7 @@ void WriterFrontend::FlushWriteBuffer()
 		backend->SendIn(new WriteMessage(backend, num_fields, write_buffer_pos, write_buffer));
 
 	// Clear buffer (no delete, we pass ownership to child thread.)
-	write_buffer = 0;
+	write_buffer = nullptr;
 	write_buffer_pos = 0;
 	}
 
@@ -286,7 +286,7 @@ void WriterFrontend::Rotate(const char* rotated_path, double open, double close,
 		backend->SendIn(new RotateMessage(backend, this, rotated_path, open, close, terminating));
 	else
 		// Still signal log manager that we're done.
-		log_mgr->FinishedRotation(this, 0, 0, 0, 0, false, terminating);
+		log_mgr->FinishedRotation(this, nullptr, nullptr, 0, 0, false, terminating);
 	}
 
 void WriterFrontend::DeleteVals(int num_fields, Value** vals)

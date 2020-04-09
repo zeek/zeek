@@ -33,7 +33,7 @@ protected:
 private:
 	void OpenLive();
 	void OpenOffline();
-	void PcapError(const char* where = 0);
+	void PcapError(const char* where = nullptr);
 
 	Properties props;
 	Stats stats;

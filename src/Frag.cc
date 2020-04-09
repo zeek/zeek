@@ -49,7 +49,7 @@ FragReassembler::FragReassembler(NetSessions* arg_s,
 		memcpy(proto_hdr, ip->IP6_Hdr(), proto_hdr_len);
 		}
 
-	reassembled_pkt = 0;
+	reassembled_pkt = nullptr;
 	frag_size = 0;	// flag meaning "not known"
 	next_proto = ip->NextProto();
 
@@ -59,7 +59,7 @@ FragReassembler::FragReassembler(NetSessions* arg_s,
 		timer_mgr->Add(expire_timer);
 		}
 	else
-		expire_timer = 0;
+		expire_timer = nullptr;
 
 	AddFragment(t, ip, pkt);
 	}
@@ -285,7 +285,7 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 		}
 
 	delete reassembled_pkt;
-	reassembled_pkt = 0;
+	reassembled_pkt = nullptr;
 
 	unsigned int version = ((const struct ip*)pkt_start)->ip_v;
 
@@ -318,7 +318,7 @@ void FragReassembler::Expire(double t)
 	{
 	block_list.Clear();
 	expire_timer->ClearReassembler();
-	expire_timer = 0;	// timer manager will delete it
+	expire_timer = nullptr;	// timer manager will delete it
 
 	sessions->Remove(this);
 	}
@@ -329,6 +329,6 @@ void FragReassembler::DeleteTimer()
 		{
 		expire_timer->ClearReassembler();
 		timer_mgr->Cancel(expire_timer);
-		expire_timer = 0;	// timer manager will delete it
+		expire_timer = nullptr;	// timer manager will delete it
 		}
 	}

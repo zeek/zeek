@@ -74,10 +74,10 @@ void Event::Dispatch(bool no_remote)
 
 EventMgr::EventMgr()
 	{
-	head = tail = 0;
+	head = tail = nullptr;
 	current_src = SOURCE_LOCAL;
 	current_aid = 0;
-	src_val = 0;
+	src_val = nullptr;
 	draining = false;
 	}
 
@@ -176,8 +176,8 @@ void EventMgr::Drain()
 	for ( int round = 0; head && round < 2; round++ )
 		{
 		Event* current = head;
-		head = 0;
-		tail = 0;
+		head = nullptr;
+		tail = nullptr;
 
 		while ( current )
 			{

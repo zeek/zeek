@@ -1,4 +1,10 @@
 
+3.2.0-dev.378 | 2020-04-09 08:47:44 -0700
+
+  * Replace most of the uses of 0 or NULL to indicate null pointers with nullptr.
+    This change does not change any calls to syscalls, in the interest of passing
+    what the API for those calls says to pass. (Tim Wojtulewicz, Corelight)
+
 3.2.0-dev.372 | 2020-04-08 14:00:28 -0700
 
   * Lazy-initalize some of the fields in Frame to reduce size (Tim Wojtulewicz, Corelight)

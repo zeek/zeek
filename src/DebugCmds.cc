@@ -125,7 +125,7 @@ void choose_global_symbols_regex(const string& regex, vector<ID*>& choices,
 PQueue<DebugCmdInfo> g_DebugCmdInfos;
 
 DebugCmdInfo::DebugCmdInfo(const DebugCmdInfo& info)
-: cmd(info.cmd), helpstring(0)
+: cmd(info.cmd), helpstring(nullptr)
 	{
 	num_names = info.num_names;
 	names = info.names;
@@ -153,7 +153,7 @@ const DebugCmdInfo* get_debug_cmd_info(DebugCmd cmd)
 	if ( (int) cmd < g_DebugCmdInfos.length() )
 		return g_DebugCmdInfos[(int) cmd];
 	else
-		return 0;
+		return nullptr;
 	}
 
 int find_all_matching_cmds(const string& prefix, const char* array_of_matches[])
@@ -165,7 +165,7 @@ int find_all_matching_cmds(const string& prefix, const char* array_of_matches[])
 
 	for ( int i = 0; i < num_debug_cmds(); ++i )
 		{
-		array_of_matches[g_DebugCmdInfos[i]->Cmd()] = 0;
+		array_of_matches[g_DebugCmdInfos[i]->Cmd()] = nullptr;
 
 		for ( int j = 0; j < g_DebugCmdInfos[i]->NumNames(); ++j )
 			{
@@ -177,7 +177,7 @@ int find_all_matching_cmds(const string& prefix, const char* array_of_matches[])
 			if ( ! prefix.compare(curr_name) )
 				{
 				for ( int k = 0; k < num_debug_cmds(); ++k )
-					array_of_matches[k] = 0;
+					array_of_matches[k] = nullptr;
 
 				array_of_matches[g_DebugCmdInfos[i]->Cmd()] = curr_name;
 				return 1;
@@ -214,7 +214,7 @@ static int dbg_backtrace_internal(int start, int end)
 	for ( int i = start; i >= end; --i )
 		{
 		const Frame* f = g_frame_stack[i];
-		const Stmt* stmt = f ? f->GetNextStmt() : 0;
+		const Stmt* stmt = f ? f->GetNextStmt() : nullptr;
 
 		string context = get_context_description(stmt, f);
 		debug_msg("#%d  %s\n",

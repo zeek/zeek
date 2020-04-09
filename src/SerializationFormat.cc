@@ -29,7 +29,7 @@ void SerializationFormat::StartRead(const char* data, uint32_t arg_len)
 
 void SerializationFormat::EndRead()
 	{
-	input = 0;
+	input = nullptr;
 	}
 
 void SerializationFormat::StartWrite()
@@ -37,7 +37,7 @@ void SerializationFormat::StartWrite()
 	if ( output && output_size > INITIAL_SIZE )
 		{
 		free(output);
-		output = 0;
+		output = nullptr;
 		}
 
 	if ( ! output )
@@ -54,7 +54,7 @@ uint32_t SerializationFormat::EndWrite(char** data)
 	{
 	uint32_t rval = output_pos;
 	*data = output;
-	output = 0;
+	output = nullptr;
 	output_size = 0;
 	output_pos = 0;
 	return rval;
@@ -193,7 +193,7 @@ bool BinarySerializationFormat::Read(char** str, int* len, const char* tag)
 	if ( ! ReadData(s, l) )
 		{
 		delete [] s;
-		*str = 0;
+		*str = nullptr;
 		return false;
 		}
 

@@ -204,7 +204,7 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	const char* line = (const char*) data;
 	const char* end_of_line = line + len;
 
-	BroString* decoded_adat = 0;
+	BroString* decoded_adat = nullptr;
 
 	if ( orig )
 		{
@@ -217,7 +217,7 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 			{
 			line = skip_whitespace(line + cmd_len, end_of_line);
 			StringVal encoded(end_of_line - line, line);
-			decoded_adat = decode_base64(encoded.AsString(), 0, Conn());
+			decoded_adat = decode_base64(encoded.AsString(), nullptr, Conn());
 
 			if ( first_token )
 				{
@@ -247,7 +247,7 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 					// Doesn't look like TLS/SSL, so done analyzing.
 					done = true;
 					delete decoded_adat;
-					decoded_adat = 0;
+					decoded_adat = nullptr;
 					}
 				}
 
@@ -292,7 +292,7 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 				{
 				line += 5;
 				StringVal encoded(end_of_line - line, line);
-				decoded_adat = decode_base64(encoded.AsString(), 0, Conn());
+				decoded_adat = decode_base64(encoded.AsString(), nullptr, Conn());
 				}
 
 			break;

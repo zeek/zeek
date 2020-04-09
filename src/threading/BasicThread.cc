@@ -22,7 +22,7 @@ BasicThread::BasicThread()
 	buf_len = STD_FMT_BUF_LEN;
 	buf = (char*) safe_malloc(buf_len);
 
-	strerr_buffer = 0;
+	strerr_buffer = nullptr;
 
 	name = copy_string(fmt("thread-%" PRIu64, ++thread_counter));
 
@@ -191,5 +191,5 @@ void* BasicThread::launcher(void *arg)
 
 	thread->Done();
 
-	return 0;
+	return nullptr;
 	}

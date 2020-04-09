@@ -34,7 +34,7 @@ public:
 	PQ_Element* Top() const
 		{
 		if ( heap_size == 0 )
-			return 0;
+			return nullptr;
 
 		return heap[0];
 		}

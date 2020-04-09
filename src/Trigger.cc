@@ -130,10 +130,10 @@ Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
 	timeout_stmts = arg_timeout_stmts;
 	timeout = arg_timeout;
 	frame = arg_frame->Clone();
-	timer = 0;
+	timer = nullptr;
 	delayed = false;
 	disabled = false;
-	attached = 0;
+	attached = nullptr;
 	is_return = arg_is_return;
 	location = arg_location;
 	timeout_value = -1;

@@ -214,7 +214,7 @@ int NetbiosSSN_Interpreter::ConvertName(const u_char* name, int name_len,
 	{
 	// Taken from tcpdump's smbutil.c.
 
-	xname = 0;
+	xname = nullptr;
 
 	if ( name_len < 1 )
 		return 0;
@@ -340,7 +340,7 @@ Contents_NetbiosSSN::Contents_NetbiosSSN(Connection* conn, bool orig,
 	{
 	interp = arg_interp;
 	type = flags = msg_size = 0;
-	msg_buf = 0;
+	msg_buf = nullptr;
 	buf_n = buf_len = msg_size = 0;
 	state = NETBIOS_SSN_TYPE;
 	}
@@ -455,7 +455,7 @@ NetbiosSSN_Analyzer::NetbiosSSN_Analyzer(Connection* conn)
 	{
 	//smb_session = new SMB_Session(this);
 	interp = new NetbiosSSN_Interpreter(this);
-	orig_netbios = resp_netbios = 0;
+	orig_netbios = resp_netbios = nullptr;
 	did_session_done = 0;
 
 	if ( Conn()->ConnTransport() == TRANSPORT_TCP )

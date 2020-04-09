@@ -20,7 +20,7 @@ Scope::Scope(IntrusivePtr<ID> id, attr_list* al)
 	: scope_id(std::move(id))
 	{
 	attrs = al;
-	return_type = 0;
+	return_type = nullptr;
 
 	inits = new id_list;
 
@@ -65,7 +65,7 @@ ID* Scope::GenerateTemporary(const char* name)
 id_list* Scope::GetInits()
 	{
 	id_list* ids = inits;
-	inits = 0;
+	inits = nullptr;
 	return ids;
 	}
 
@@ -76,9 +76,9 @@ void Scope::Describe(ODesc* d) const
 
 	else
 		{
-		d->Add(scope_id != 0);
+		d->Add(scope_id != nullptr);
 		d->SP();
-		d->Add(return_type != 0);
+		d->Add(return_type != nullptr);
 		d->SP();
 		d->Add(static_cast<uint64_t>(local.size()));
 		d->SP();
@@ -149,7 +149,7 @@ IntrusivePtr<ID> lookup_ID(const char* name, const char* curr_module,
 			return {NewRef{}, id};
 		}
 
-	return 0;
+	return nullptr;
 	}
 
 IntrusivePtr<ID> install_ID(const char* name, const char* module_name,

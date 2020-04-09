@@ -28,7 +28,7 @@ void* PrefixTable::Insert(const IPAddr& addr, int width, void* data)
 	if ( ! node )
 		{
 		reporter->InternalWarning("Cannot create node in patricia tree");
-		return 0;
+		return nullptr;
 		}
 
 	void* old = node->data;
@@ -59,7 +59,7 @@ void* PrefixTable::Insert(const Val* value, void* data)
 
 	default:
 		reporter->InternalWarning("Wrong index type for PrefixTable");
-		return 0;
+		return nullptr;
 	}
 	}
 
@@ -97,7 +97,7 @@ void* PrefixTable::Lookup(const IPAddr& addr, int width, bool exact) const
 	patricia_node_t** list = nullptr;
 
 	Deref_Prefix(prefix);
-	return node ? node->data : 0;
+	return node ? node->data : nullptr;
 	}
 
 void* PrefixTable::Lookup(const Val* value, bool exact) const
@@ -120,7 +120,7 @@ void* PrefixTable::Lookup(const Val* value, bool exact) const
 	default:
 		reporter->InternalWarning("Wrong index type %d for PrefixTable",
 		                          value->Type()->Tag());
-		return 0;
+		return nullptr;
 	}
 	}
 
@@ -131,7 +131,7 @@ void* PrefixTable::Remove(const IPAddr& addr, int width)
 	Deref_Prefix(prefix);
 
 	if ( ! node )
-		return 0;
+		return nullptr;
 
 	void* old = node->data;
 	patricia_remove(tree, node);
@@ -158,7 +158,7 @@ void* PrefixTable::Remove(const Val* value)
 
 	default:
 		reporter->InternalWarning("Wrong index type for PrefixTable");
-		return 0;
+		return nullptr;
 	}
 	}
 
@@ -167,7 +167,7 @@ PrefixTable::iterator PrefixTable::InitIterator()
 	iterator i;
 	i.Xsp = i.Xstack;
 	i.Xrn = tree->head;
-	i.Xnode = 0;
+	i.Xnode = nullptr;
 	return i;
 	}
 
@@ -177,7 +177,7 @@ void* PrefixTable::GetNext(iterator* i)
 		{
 		i->Xnode = i->Xrn;
 		if ( ! i->Xnode )
-			return 0;
+			return nullptr;
 
 		if ( i->Xrn->l )
 			{
@@ -194,7 +194,7 @@ void* PrefixTable::GetNext(iterator* i)
 			i->Xrn = *(--i->Xsp);
 
 		else
-			i->Xrn = (patricia_node_t*) 0;
+			i->Xrn = (patricia_node_t*) nullptr;
 
 		if ( i->Xnode->prefix )
 			return (void*) i->Xnode->data;

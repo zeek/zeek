@@ -140,10 +140,10 @@ class RE_Match_State {
 public:
 	explicit RE_Match_State(Specific_RE_Matcher* matcher)
 		{
-		dfa = matcher->DFA() ? matcher->DFA() : 0;
+		dfa = matcher->DFA() ? matcher->DFA() : nullptr;
 		ecs = matcher->EC()->EquivClasses();
 		current_pos = -1;
-		current_state = 0;
+		current_state = nullptr;
 		}
 
 	const AcceptingMatchSet& AcceptedMatches() const
@@ -159,7 +159,7 @@ public:
 	void Clear()
 		{
 		current_pos = -1;
-		current_state = 0;
+		current_state = nullptr;
 		accepted_matches.clear();
 		}
 

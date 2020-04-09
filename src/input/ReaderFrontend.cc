@@ -52,7 +52,7 @@ void ReaderFrontend::Stop()
 	if ( backend )
 		{
 		backend->SignalStop();
-		backend = 0; // Thread manager will clean it up once it finishes.
+		backend = nullptr; // Thread manager will clean it up once it finishes.
 		}
 	}
 

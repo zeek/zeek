@@ -545,7 +545,7 @@ bool DNS_Interpreter::ParseRR_Name(DNS_MsgInfo* msg,
 
 		default:
 			analyzer->Conn()->Internal("DNS_RR_bad_name");
-			reply_event = 0;
+			reply_event = nullptr;
 	}
 
 	if ( reply_event && ! msg->skip_event )
@@ -757,7 +757,7 @@ bool DNS_Interpreter::ParseRR_TSIG(DNS_MsgInfo* msg,
 	ExtractOctets(data, len, dns_TSIG_addl ? &request_MAC : nullptr);
 	unsigned int orig_id = ExtractShort(data, len);
 	unsigned int rr_error = ExtractShort(data, len);
-	ExtractOctets(data, len, 0);  // Other Data
+	ExtractOctets(data, len, nullptr);  // Other Data
 
 	if ( dns_TSIG_addl )
 		{
@@ -1256,7 +1256,7 @@ static StringVal* extract_char_string(analyzer::Analyzer* analyzer,
                                       const u_char*& data, int& len, int& rdlen)
 	{
 	if ( rdlen <= 0 )
-		return 0;
+		return nullptr;
 
 	uint8_t str_size = data[0];
 
@@ -1267,7 +1267,7 @@ static StringVal* extract_char_string(analyzer::Analyzer* analyzer,
 	if ( str_size > rdlen )
 		{
 		analyzer->Weird("DNS_TXT_char_str_past_rdlen");
-		return 0;
+		return nullptr;
 		}
 
 	StringVal* rval = new StringVal(str_size,
@@ -1428,7 +1428,7 @@ DNS_MsgInfo::DNS_MsgInfo(DNS_RawMsgHdr* hdr, int arg_is_query)
 	id = ntohs(hdr->id);
 	is_query = arg_is_query;
 
-	query_name = 0;
+	query_name = nullptr;
 	atype = TYPE_ALL;
 	aclass = 0;
 	ttl = 0;
@@ -1612,7 +1612,7 @@ Contents_DNS::Contents_DNS(Connection* conn, bool orig,
 	{
 	interp = arg_interp;
 
-	msg_buf = 0;
+	msg_buf = nullptr;
 	buf_n = buf_len = msg_size = 0;
 	state = DNS_LEN_HI;
 	}
@@ -1685,7 +1685,7 @@ void Contents_DNS::DeliverStream(int len, const u_char* data, bool orig)
 		// Haven't filled up the message buffer yet, no more to do.
 		return;
 
-	ForwardPacket(msg_size, msg_buf, orig, -1, 0, 0);
+	ForwardPacket(msg_size, msg_buf, orig, -1, nullptr, 0);
 
 	buf_n = 0;
 	state = DNS_LEN_HI;
@@ -1699,7 +1699,7 @@ DNS_Analyzer::DNS_Analyzer(Connection* conn)
 : tcp::TCP_ApplicationAnalyzer("DNS", conn)
 	{
 	interp = new DNS_Interpreter(this);
-	contents_dns_orig = contents_dns_resp = 0;
+	contents_dns_orig = contents_dns_resp = nullptr;
 
 	if ( Conn()->ConnTransport() == TRANSPORT_TCP )
 		{

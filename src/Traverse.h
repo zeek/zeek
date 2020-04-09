@@ -12,7 +12,7 @@ class ID;
 
 class TraversalCallback {
 public:
-	TraversalCallback()	{ current_scope = 0; }
+	TraversalCallback()	{ current_scope = nullptr; }
 	virtual ~TraversalCallback() {}
 
 	virtual TraversalCode PreFunction(const Func*) { return TC_CONTINUE; }

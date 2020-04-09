@@ -11,7 +11,7 @@ class Plugin : public plugin::Plugin {
 public:
 	plugin::Configuration Configure() override
 		{
-		AddComponent(new ::analyzer::Component("ZIP", 0));
+		AddComponent(new ::analyzer::Component("ZIP", nullptr));
 
 		plugin::Configuration config;
 		config.name = "Zeek::ZIP";

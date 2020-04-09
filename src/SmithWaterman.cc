@@ -61,22 +61,22 @@ VectorVal* BroSubstring::VecToPolicy(Vec* vec)
 	RecordType* sw_substring_type =
 		internal_type("sw_substring")->AsRecordType();
 	if ( ! sw_substring_type )
-		return 0;
+		return nullptr;
 
 	RecordType* sw_align_type =
 		internal_type("sw_align")->AsRecordType();
 	if ( ! sw_align_type )
-		return 0;
+		return nullptr;
 
 	VectorType* sw_align_vec_type =
 		internal_type("sw_align_vec")->AsVectorType();
 	if ( ! sw_align_vec_type )
-		return 0;
+		return nullptr;
 
 	VectorVal* result =
 		new VectorVal(internal_type("sw_substring_vec")->AsVectorType());
 	if ( ! result )
-		return 0;
+		return nullptr;
 
 	if ( vec )
 		{
@@ -235,9 +235,9 @@ public:
 		{
 		// Make sure access is in allowed range.
 		if ( row < 0 || row >= _rows )
-			return 0;
+			return nullptr;
 		if ( col < 0 || col >= _cols )
-			return 0;
+			return nullptr;
 
 		return &(_nodes[row * _cols + col]);
 		}
@@ -359,7 +359,7 @@ static void sw_collect_multiple(BroSubstring::Vec* result,
 				{
 				BroSubstring::Vec* old_al = *it;
 
-				if ( old_al == 0 )
+				if ( old_al == nullptr )
 					continue;
 
 				for ( BroSubstring::VecIt it2 = old_al->begin();
@@ -372,7 +372,7 @@ static void sw_collect_multiple(BroSubstring::Vec* result,
 							{
 							delete_each(new_al);
 							delete new_al;
-							new_al = 0;
+							new_al = nullptr;
 							goto end_loop;
 							}
 
@@ -398,7 +398,7 @@ end_loop:
 		{
 		BroSubstring::Vec* al = *it;
 
-		if ( al == 0 )
+		if ( al == nullptr )
 			continue;
 
 		for ( BroSubstring::VecIt it2 = al->begin();
@@ -432,8 +432,8 @@ BroSubstring::Vec* smith_waterman(const BroString* s1, const BroString* s2,
 	byte_vec string2 = s2->Bytes();
 
 	SWNodeMatrix matrix(s1, s2);	// dynamic programming matrix.
-	SWNode* node_max = 0;	// pointer to the best score's node
-	SWNode* node_br_max = 0;	// pointer to lowest-right matching node
+	SWNode* node_max = nullptr;	// pointer to the best score's node
+	SWNode* node_br_max = nullptr;	// pointer to lowest-right matching node
 
 	// The highest score in the matrix, globally.  We initialize to 1
 	// because we are only interested in real scores (initializing to

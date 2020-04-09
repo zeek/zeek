@@ -330,7 +330,7 @@ PktSrc* Manager::OpenPktSrc(const std::string& path, bool is_live)
 
 	// Find the component providing packet sources of the requested prefix.
 
-	PktSrcComponent* component = 0;
+	PktSrcComponent* component = nullptr;
 
 	std::list<PktSrcComponent*> all_components = plugin_mgr->Components<PktSrcComponent>();
 	for ( const auto& c : all_components )
@@ -372,7 +372,7 @@ PktDumper* Manager::OpenPktDumper(const string& path, bool append)
 
 	// Find the component providing packet dumpers of the requested prefix.
 
-	PktDumperComponent* component = 0;
+	PktDumperComponent* component = nullptr;
 
 	std::list<PktDumperComponent*> all_components = plugin_mgr->Components<PktDumperComponent>();
 	for ( const auto& c : all_components )

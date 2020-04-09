@@ -35,7 +35,7 @@ public:
 	 *
 	 * @return The X509 extension value.
 	 */
-	static IntrusivePtr<StringVal> GetExtensionFromBIO(BIO* bio, File* f = 0);
+	static IntrusivePtr<StringVal> GetExtensionFromBIO(BIO* bio, File* f = nullptr);
 
 	static double GetTimeFromAsn1(const ASN1_TIME* atime, File* f, Reporter* reporter);
 

@@ -257,8 +257,8 @@ X509_STORE* file_analysis::X509::GetRootStore(TableVal* root_certs)
 		::X509* x = d2i_X509(NULL, &data, sv->Len());
 		if ( ! x )
 			{
-			builtin_error(fmt("Root CA error: %s", ERR_error_string(ERR_get_error(),NULL)));
-			return 0;
+			builtin_error(fmt("Root CA error: %s", ERR_error_string(ERR_get_error(), NULL)));
+			return nullptr;
 			}
 
 		X509_STORE_add_cert(ctx, x);
@@ -339,10 +339,10 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 		return;
 		}
 
-	VectorVal* names = 0;
-	VectorVal* emails = 0;
-	VectorVal* uris = 0;
-	VectorVal* ips = 0;
+	VectorVal* names = nullptr;
+	VectorVal* emails = nullptr;
+	VectorVal* uris = nullptr;
+	VectorVal* ips = nullptr;
 
 	bool otherfields = false;
 
@@ -369,21 +369,21 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 			switch ( gen->type )
 				{
 				case GEN_DNS:
-					if ( names == 0 )
+					if ( names == nullptr )
 						names = new VectorVal(internal_type("string_vec")->AsVectorType());
 
 					names->Assign(names->Size(), bs);
 					break;
 
 				case GEN_URI:
-					if ( uris == 0 )
+					if ( uris == nullptr )
 						uris = new VectorVal(internal_type("string_vec")->AsVectorType());
 
 					uris->Assign(uris->Size(), bs);
 					break;
 
 				case GEN_EMAIL:
-					if ( emails == 0 )
+					if ( emails == nullptr )
 						emails = new VectorVal(internal_type("string_vec")->AsVectorType());
 
 					emails->Assign(emails->Size(), bs);
@@ -393,7 +393,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 
 		else if ( gen->type == GEN_IPADD )
 			{
-				if ( ips == 0 )
+				if ( ips == nullptr )
 					ips = new VectorVal(internal_type("addr_vec")->AsVectorType());
 
 				uint32_t* addr = (uint32_t*) gen->d.ip->data;
@@ -422,16 +422,16 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 
 		auto sanExt = make_intrusive<RecordVal>(BifType::Record::X509::SubjectAlternativeName);
 
-		if ( names != 0 )
+		if ( names != nullptr )
 			sanExt->Assign(0, names);
 
-		if ( uris != 0 )
+		if ( uris != nullptr )
 			sanExt->Assign(1, uris);
 
-		if ( emails != 0 )
+		if ( emails != nullptr )
 			sanExt->Assign(2, emails);
 
-		if ( ips != 0 )
+		if ( ips != nullptr )
 			sanExt->Assign(3, ips);
 
 		sanExt->Assign(4, val_mgr->GetBool(otherfields));
@@ -453,23 +453,23 @@ StringVal* file_analysis::X509::KeyCurve(EVP_PKEY *key)
 	if ( EVP_PKEY_base_id(key) != EVP_PKEY_EC )
 		{
 		// no EC-key - no curve name
-		return NULL;
+		return nullptr;
 		}
 
 	const EC_GROUP *group;
 	int nid;
 	if ( (group = EC_KEY_get0_group(EVP_PKEY_get0_EC_KEY(key))) == NULL )
 		// I guess we could not parse this
-		return NULL;
+		return nullptr;
 
 	nid = EC_GROUP_get_curve_name(group);
 	if ( nid == 0 )
 		// and an invalid nid...
-		return NULL;
+		return nullptr;
 
 	const char * curve_name = OBJ_nid2sn(nid);
-	if ( curve_name == NULL )
-		return NULL;
+	if ( curve_name == nullptr )
+		return nullptr;
 
 	return new StringVal(curve_name);
 #endif
@@ -560,7 +560,7 @@ IMPLEMENT_OPAQUE_VALUE(X509Val)
 
 broker::expected<broker::data> X509Val::DoSerialize() const
 	{
-	unsigned char *buf = NULL;
+	unsigned char *buf = nullptr;
 	int length = i2d_X509(certificate, &buf);
 
 	if ( length < 0 )

@@ -67,7 +67,7 @@ typedef PList<BroString> bstr_list;
 
 // Get values from Bro's script-level variables.
 extern void id_to_maskedvallist(const char* id, maskedvalue_list* append_to,
-                                vector<IPPrefix>* prefix_vector = 0);
+                                vector<IPPrefix>* prefix_vector = nullptr);
 extern char* id_to_str(const char* id);
 extern uint32_t id_to_uint(const char* id);
 
@@ -255,7 +255,7 @@ public:
 	 * @return The results of the signature matching.
 	 */
 	MIME_Matches* Match(RuleFileMagicState* state, const u_char* data,
-	                   uint64_t len, MIME_Matches* matches = 0) const;
+	                   uint64_t len, MIME_Matches* matches = nullptr) const;
 
 
 	/**
@@ -312,7 +312,7 @@ public:
 	Val* BuildRuleStateValue(const Rule* rule,
 					const RuleEndpointState* state) const;
 
-	void GetStats(Stats* stats, RuleHdrTest* hdr_test = 0);
+	void GetStats(Stats* stats, RuleHdrTest* hdr_test = nullptr);
 	void DumpStats(BroFile* f);
 
 private:
@@ -372,13 +372,13 @@ private:
 // Keeps bi-directional matching-state.
 class RuleMatcherState {
 public:
-	RuleMatcherState()	{ orig_match_state = resp_match_state = 0; }
+	RuleMatcherState()	{ orig_match_state = resp_match_state = nullptr; }
 	~RuleMatcherState()
 		{ delete orig_match_state; delete resp_match_state; }
 
 	// ip may be nil.
 	void InitEndpointMatcher(analyzer::Analyzer* analyzer, const IP_Hdr* ip,
-				 int caplen, bool from_orig, analyzer::pia::PIA* pia = 0);
+				 int caplen, bool from_orig, analyzer::pia::PIA* pia = nullptr);
 
 	// bol/eol should be set to false for type Rule::PAYLOAD; they're
 	// deduced automatically.

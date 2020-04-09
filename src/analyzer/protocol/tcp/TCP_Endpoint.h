@@ -141,7 +141,7 @@ public:
 
 	Connection* Conn() const;
 
-	bool HasContents() const		{ return contents_processor != 0; }
+	bool HasContents() const		{ return contents_processor != nullptr; }
 	bool HadGap() const;
 
 	inline bool IsOrig() const		{ return is_orig; }

@@ -84,44 +84,44 @@ int perftools_profile = 0;
 
 DNS_Mgr* dns_mgr;
 TimerMgr* timer_mgr;
-ValManager* val_mgr = 0;
-logging::Manager* log_mgr = 0;
-threading::Manager* thread_mgr = 0;
-input::Manager* input_mgr = 0;
-plugin::Manager* plugin_mgr = 0;
-analyzer::Manager* analyzer_mgr = 0;
-file_analysis::Manager* file_mgr = 0;
-zeekygen::Manager* zeekygen_mgr = 0;
-iosource::Manager* iosource_mgr = 0;
-bro_broker::Manager* broker_mgr = 0;
-zeek::Supervisor* zeek::supervisor_mgr = 0;
-trigger::Manager* trigger_mgr = 0;
+ValManager* val_mgr = nullptr;
+logging::Manager* log_mgr = nullptr;
+threading::Manager* thread_mgr = nullptr;
+input::Manager* input_mgr = nullptr;
+plugin::Manager* plugin_mgr = nullptr;
+analyzer::Manager* analyzer_mgr = nullptr;
+file_analysis::Manager* file_mgr = nullptr;
+zeekygen::Manager* zeekygen_mgr = nullptr;
+iosource::Manager* iosource_mgr = nullptr;
+bro_broker::Manager* broker_mgr = nullptr;
+zeek::Supervisor* zeek::supervisor_mgr = nullptr;
+trigger::Manager* trigger_mgr = nullptr;
 
 std::vector<std::string> zeek_script_prefixes;
 Stmt* stmts;
-EventHandlerPtr net_done = 0;
-RuleMatcher* rule_matcher = 0;
-EventRegistry* event_registry = 0;
-ProfileLogger* profiling_logger = 0;
-ProfileLogger* segment_logger = 0;
-SampleLogger* sample_logger = 0;
+EventHandlerPtr net_done = nullptr;
+RuleMatcher* rule_matcher = nullptr;
+EventRegistry* event_registry = nullptr;
+ProfileLogger* profiling_logger = nullptr;
+ProfileLogger* segment_logger = nullptr;
+SampleLogger* sample_logger = nullptr;
 int signal_val = 0;
 extern char version[];
-const char* command_line_policy = 0;
+const char* command_line_policy = nullptr;
 vector<string> params;
 set<string> requested_plugins;
-const char* proc_status_file = 0;
+const char* proc_status_file = nullptr;
 
-OpaqueType* md5_type = 0;
-OpaqueType* sha1_type = 0;
-OpaqueType* sha256_type = 0;
-OpaqueType* entropy_type = 0;
-OpaqueType* cardinality_type = 0;
-OpaqueType* topk_type = 0;
-OpaqueType* bloomfilter_type = 0;
-OpaqueType* x509_opaque_type = 0;
-OpaqueType* ocsp_resp_opaque_type = 0;
-OpaqueType* paraglob_type = 0;
+OpaqueType* md5_type = nullptr;
+OpaqueType* sha1_type = nullptr;
+OpaqueType* sha256_type = nullptr;
+OpaqueType* entropy_type = nullptr;
+OpaqueType* cardinality_type = nullptr;
+OpaqueType* topk_type = nullptr;
+OpaqueType* bloomfilter_type = nullptr;
+OpaqueType* x509_opaque_type = nullptr;
+OpaqueType* ocsp_resp_opaque_type = nullptr;
+OpaqueType* paraglob_type = nullptr;
 
 // Keep copy of command line
 int bro_argc;
@@ -130,7 +130,7 @@ char** bro_argv;
 const char* zeek_version()
 	{
 #ifdef DEBUG
-	static char* debug_version = 0;
+	static char* debug_version = nullptr;
 
 	if ( ! debug_version )
 		{
@@ -311,7 +311,7 @@ void terminate_bro()
 	// free the global scope
 	pop_scope();
 
-	reporter = 0;
+	reporter = nullptr;
 	}
 
 void zeek_terminate_loop(const char* reason)
@@ -527,8 +527,8 @@ int main(int argc, char** argv)
 	if ( options.random_seed_input_file )
 		seed_load_file = options.random_seed_input_file->data();
 
-	init_random_seed((seed_load_file && *seed_load_file ? seed_load_file : 0),
-					 options.random_seed_output_file ? options.random_seed_output_file->data() : 0);
+	init_random_seed((seed_load_file && *seed_load_file ? seed_load_file : nullptr),
+					 options.random_seed_output_file ? options.random_seed_output_file->data() : nullptr);
 	// DEBUG_MSG("HMAC key: %s\n", md5_digest_print(shared_hmac_md5_key));
 	init_hash_function();
 
@@ -748,7 +748,7 @@ int main(int argc, char** argv)
 
 	if ( g_policy_debug )
 		// ### Add support for debug command file.
-		dbg_init_debugger(0);
+		dbg_init_debugger(nullptr);
 
 	if ( ! options.pcap_file && ! options.interface )
 		{
@@ -847,7 +847,7 @@ int main(int argc, char** argv)
 	if ( stmts )
 		{
 		stmt_flow_type flow;
-		Frame f(current_scope()->Length(), 0, 0);
+		Frame f(current_scope()->Length(), nullptr, nullptr);
 		g_frame_stack.push_back(&f);
 
 		try

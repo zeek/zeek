@@ -70,7 +70,7 @@ public:
 		}
 
 	// True if the dictionary is ordered, false otherwise.
-	bool IsOrdered() const		{ return order != 0; }
+	bool IsOrdered() const		{ return order != nullptr; }
 
 	// If the dictionary is ordered then returns the n'th entry's value;
 	// the second method also returns the key.  The first entry inserted

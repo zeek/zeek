@@ -101,7 +101,7 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	ProtocolConfirmation();
 
 	if ( vxlan_packet )
-		Conn()->Event(vxlan_packet, 0, inner->BuildPktHdrVal(),
+		Conn()->Event(vxlan_packet, nullptr, inner->BuildPktHdrVal(),
 		              val_mgr->GetCount(vni));
 
 	EncapsulatingConn ec(Conn(), BifEnum::Tunnel::VXLAN);

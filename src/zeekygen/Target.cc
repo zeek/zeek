@@ -438,7 +438,7 @@ vector<string> dir_contents_recursive(string dir)
 	char* dir_copy = copy_string(dir.c_str());
 	char** scan_path = new char*[2];
 	scan_path[0] = dir_copy;
-	scan_path[1] = 0;
+	scan_path[1] = NULL;
 
 	FTS* fts = fts_open(scan_path, FTS_NOCHDIR, 0);
 

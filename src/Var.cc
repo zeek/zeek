@@ -216,7 +216,7 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 		// For events, add a function value (without any body) here so that
 		// we can later access the ID even if no implementations have been
 		// defined.
-		Func* f = new BroFunc(id, 0, 0, 0, 0);
+		Func* f = new BroFunc(id, nullptr, nullptr, 0, 0);
 		id->SetVal(make_intrusive<Val>(f));
 		}
 	}
@@ -305,7 +305,7 @@ static void transfer_arg_defaults(RecordType* args, RecordType* recv)
 		TypeDecl* args_i = args->FieldDecl(i);
 		TypeDecl* recv_i = recv->FieldDecl(i);
 
-		Attr* def = args_i->attrs ? args_i->attrs->FindAttr(ATTR_DEFAULT) : 0;
+		Attr* def = args_i->attrs ? args_i->attrs->FindAttr(ATTR_DEFAULT) : nullptr;
 
 		if ( ! def )
 			continue;
@@ -379,7 +379,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 		case FUNC_FLAVOR_HOOK:
 			if ( is_redef )
 				// Clear out value so it will be replaced.
-				id->SetVal(0);
+				id->SetVal(nullptr);
 			break;
 
 		case FUNC_FLAVOR_FUNCTION:

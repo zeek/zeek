@@ -26,7 +26,7 @@ bool Field::Read(SerializationFormat* fmt)
 		secondary_name = copy_string(tmp_secondary_name.c_str());
 		}
 	else
-		secondary_name = 0;
+		secondary_name = nullptr;
 
 	bool success = (fmt->Read(&tmp_name, "name")
 			&& fmt->Read(&t, "type")

@@ -194,7 +194,7 @@ DNS_Mapping::DNS_Mapping(const IPAddr& addr, struct hostent* h, uint32_t ttl)
 	{
 	Init(h);
 	req_addr = addr;
-	req_host = 0;
+	req_host = nullptr;
 	req_ttl = ttl;
 	}
 
@@ -203,7 +203,7 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 	Clear();
 	init_failed = true;
 
-	req_host = 0;
+	req_host = nullptr;
 	req_ttl = 0;
 	creation_time = 0;
 
@@ -255,7 +255,7 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 			}
 		}
 	else
-		addrs = 0;
+		addrs = nullptr;
 
 	init_failed = false;
 	}
@@ -302,7 +302,7 @@ IntrusivePtr<TableVal> DNS_Mapping::AddrsSet() {
 IntrusivePtr<StringVal> DNS_Mapping::Host()
 	{
 	if ( failed || num_names == 0 || ! names[0] )
-		return 0;
+		return nullptr;
 
 	if ( ! host_val )
 		host_val = make_intrusive<StringVal>(names[0]);
@@ -315,8 +315,8 @@ void DNS_Mapping::Init(struct hostent* h)
 	no_mapping = false;
 	init_failed = false;
 	creation_time = current_time();
-	host_val = 0;
-	addrs_val = 0;
+	host_val = nullptr;
+	addrs_val = nullptr;
 
 	if ( ! h )
 		{
@@ -327,7 +327,7 @@ void DNS_Mapping::Init(struct hostent* h)
 	map_type = h->h_addrtype;
 	num_names = 1;	// for now, just use official name
 	names = new char*[num_names];
-	names[0] = h->h_name ? copy_string(h->h_name) : 0;
+	names[0] = h->h_name ? copy_string(h->h_name) : nullptr;
 
 	for ( num_addrs = 0; h->h_addr_list[num_addrs]; ++num_addrs )
 		;
@@ -344,7 +344,7 @@ void DNS_Mapping::Init(struct hostent* h)
 				                  IPAddr::Network);
 		}
 	else
-		addrs = 0;
+		addrs = nullptr;
 
 	failed = false;
 	}
@@ -352,10 +352,10 @@ void DNS_Mapping::Init(struct hostent* h)
 void DNS_Mapping::Clear()
 	{
 	num_names = num_addrs = 0;
-	names = 0;
-	addrs = 0;
-	host_val = 0;
-	addrs_val = 0;
+	names = nullptr;
+	addrs = nullptr;
+	host_val = nullptr;
+	addrs_val = nullptr;
 	no_mapping = false;
 	map_type = 0;
 	failed = true;
@@ -363,7 +363,7 @@ void DNS_Mapping::Clear()
 
 void DNS_Mapping::Save(FILE* f) const
 	{
-	fprintf(f, "%.0f %d %s %d %s %d %d %" PRIu32"\n", creation_time, req_host != 0,
+	fprintf(f, "%.0f %d %s %d %s %d %d %" PRIu32"\n", creation_time, req_host != nullptr,
 		req_host ? req_host : req_addr.AsString().c_str(),
 		failed, (names && names[0]) ? names[0] : "*",
 		map_type, num_addrs, req_ttl);
@@ -381,11 +381,11 @@ DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode)
 
 	dns_mapping_valid = dns_mapping_unverified = dns_mapping_new_name =
 		dns_mapping_lost_name = dns_mapping_name_changed =
-			dns_mapping_altered =  0;
+			dns_mapping_altered =  nullptr;
 
-	dm_rec = 0;
+	dm_rec = nullptr;
 
-	cache_name = dir = 0;
+	cache_name = dir = nullptr;
 
 	asyncs_pending = 0;
 	num_requests = 0;
@@ -540,7 +540,7 @@ IntrusivePtr<TableVal> DNS_Mgr::LookupHost(const char* name)
 
 	case DNS_FORCE:
 		reporter->FatalError("can't find DNS entry for %s in cache", name);
-		return 0;
+		return nullptr;
 
 	case DNS_DEFAULT:
 		requests.push_back(new DNS_Mgr_Request(name, AF_INET, false));
@@ -550,7 +550,7 @@ IntrusivePtr<TableVal> DNS_Mgr::LookupHost(const char* name)
 
 	default:
 		reporter->InternalError("bad mode in DNS_Mgr::LookupHost");
-		return 0;
+		return nullptr;
 	}
 	}
 
@@ -585,7 +585,7 @@ IntrusivePtr<Val> DNS_Mgr::LookupAddr(const IPAddr& addr)
 	case DNS_FORCE:
 		reporter->FatalError("can't find DNS entry for %s in cache",
 		    addr.AsString().c_str());
-		return 0;
+		return nullptr;
 
 	case DNS_DEFAULT:
 		requests.push_back(new DNS_Mgr_Request(addr));
@@ -594,7 +594,7 @@ IntrusivePtr<Val> DNS_Mgr::LookupAddr(const IPAddr& addr)
 
 	default:
 		reporter->InternalError("bad mode in DNS_Mgr::LookupAddr");
-		return 0;
+		return nullptr;
 	}
 	}
 
@@ -634,7 +634,7 @@ void DNS_Mgr::Resolve()
 				DNS_Mgr_Request* dr = requests[i];
 				if ( dr->RequestPending() )
 					{
-					AddResult(dr, 0);
+					AddResult(dr, nullptr);
 					dr->RequestDone();
 					}
 				}
@@ -748,7 +748,7 @@ IntrusivePtr<Val> DNS_Mgr::BuildMappingVal(DNS_Mapping* dm)
 
 void DNS_Mgr::AddResult(DNS_Mgr_Request* dr, struct nb_dns_result* r)
 	{
-	struct hostent* h = (r && r->host_errno == 0) ? r->hostent : 0;
+	struct hostent* h = (r && r->host_errno == 0) ? r->hostent : nullptr;
 	u_int32_t ttl = (r && r->host_errno == 0) ? r->ttl : 0;
 
 	DNS_Mapping* new_dm;
@@ -758,7 +758,7 @@ void DNS_Mgr::AddResult(DNS_Mgr_Request* dr, struct nb_dns_result* r)
 	if ( dr->ReqHost() )
 		{
 		new_dm = new DNS_Mapping(dr->ReqHost(), h, ttl);
-		prev_dm = 0;
+		prev_dm = nullptr;
 
 		if ( dr->ReqIsTxt() )
 			{
@@ -784,10 +784,10 @@ void DNS_Mgr::AddResult(DNS_Mgr_Request* dr, struct nb_dns_result* r)
 			if ( it == host_mappings.end() )
 				{
 				host_mappings[dr->ReqHost()].first =
-					new_dm->Type() == AF_INET ? new_dm : 0;
+					new_dm->Type() == AF_INET ? new_dm : nullptr;
 
 				host_mappings[dr->ReqHost()].second =
-					new_dm->Type() == AF_INET ? 0 : new_dm;
+					new_dm->Type() == AF_INET ? nullptr : new_dm;
 				}
 			else
 				{
@@ -980,7 +980,7 @@ const char* DNS_Mgr::LookupAddrInCache(const IPAddr& addr)
 	AddrMap::iterator it = addr_mappings.find(addr);
 
 	if ( it == addr_mappings.end() )
-		return 0;
+		return nullptr;
 
 	DNS_Mapping* d = it->second;
 
@@ -988,7 +988,7 @@ const char* DNS_Mgr::LookupAddrInCache(const IPAddr& addr)
 		{
 		addr_mappings.erase(it);
 		delete d;
-		return 0;
+		return nullptr;
 		}
 
 	// The escapes in the following strings are to avoid having it
@@ -1002,21 +1002,21 @@ IntrusivePtr<TableVal> DNS_Mgr::LookupNameInCache(const string& name)
 	if ( it == host_mappings.end() )
 		{
 		it = host_mappings.begin();
-		return 0;
+		return nullptr;
 		}
 
 	DNS_Mapping* d4 = it->second.first;
 	DNS_Mapping* d6 = it->second.second;
 
 	if ( ! d4 || ! d4->names || ! d6 || ! d6->names )
-		return 0;
+		return nullptr;
 
 	if ( d4->Expired() || d6->Expired() )
 		{
 		host_mappings.erase(it);
 		delete d4;
 		delete d6;
-		return 0;
+		return nullptr;
 		}
 
 	auto tv4 = d4->AddrsSet();
@@ -1029,7 +1029,7 @@ const char* DNS_Mgr::LookupTextInCache(const string& name)
 	{
 	TextMap::iterator it = text_mappings.find(name);
 	if ( it == text_mappings.end() )
-		return 0;
+		return nullptr;
 
 	DNS_Mapping* d = it->second;
 
@@ -1037,7 +1037,7 @@ const char* DNS_Mgr::LookupTextInCache(const string& name)
 		{
 		text_mappings.erase(it);
 		delete d;
-		return 0;
+		return nullptr;
 		}
 
 	// The escapes in the following strings are to avoid having it
@@ -1077,7 +1077,7 @@ void DNS_Mgr::AsyncLookupAddr(const IPAddr& host, LookupCallback* callback)
 		return;
 		}
 
-	AsyncRequest* req = 0;
+	AsyncRequest* req = nullptr;
 
 	// Have we already a request waiting for this host?
 	AsyncRequestAddrMap::iterator i = asyncs_addrs.find(host);
@@ -1115,7 +1115,7 @@ void DNS_Mgr::AsyncLookupName(const string& name, LookupCallback* callback)
 		return;
 		}
 
-	AsyncRequest* req = 0;
+	AsyncRequest* req = nullptr;
 
 	// Have we already a request waiting for this host?
 	AsyncRequestNameMap::iterator i = asyncs_names.find(name);
@@ -1154,7 +1154,7 @@ void DNS_Mgr::AsyncLookupNameText(const string& name, LookupCallback* callback)
 		return;
 		}
 
-	AsyncRequest* req = 0;
+	AsyncRequest* req = nullptr;
 
 	// Have we already a request waiting for this host?
 	AsyncRequestTextMap::iterator i = asyncs_texts.find(name);

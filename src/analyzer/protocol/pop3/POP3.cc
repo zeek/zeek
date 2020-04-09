@@ -43,7 +43,7 @@ POP3_Analyzer::POP3_Analyzer(Connection* conn)
 	lastRequiredCommand = 0;
 	authLines = 0;
 
-	mail = 0;
+	mail = nullptr;
 
 	cl_orig = new tcp::ContentLine_Analyzer(conn, true);
 	AddSupportAnalyzer(cl_orig);
@@ -136,7 +136,7 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 		++authLines;
 
 		BroString encoded(line);
-		BroString* decoded = decode_base64(&encoded, 0, Conn());
+		BroString* decoded = decode_base64(&encoded, nullptr, Conn());
 
 		if ( ! decoded )
 			{
@@ -854,7 +854,7 @@ void POP3_Analyzer::EndData()
 		{
 		mail->Done();
 		delete mail;
-		mail = 0;
+		mail = nullptr;
 		}
 	}
 

@@ -54,7 +54,7 @@ public:
 
 	void AddVal(Val* arg_v)		{ Unref(v); v = arg_v; }
 	Val* RequestVal() const		{ return v; }
-	Val* TakeRequestVal()		{ Val* rv = v; v = 0; return rv; }
+	Val* TakeRequestVal()		{ Val* rv = v; v = nullptr; return rv; }
 
 	bool CompareRexmit(const u_char* buf, int n) const;
 
@@ -149,7 +149,7 @@ public:
 	RPC_Reasm_Buffer() {
 		maxsize = expected = 0;
 		fill = processed = 0;
-		buf = 0;
+		buf = nullptr;
 	};
 
 	~RPC_Reasm_Buffer() { if (buf) delete [] buf; }

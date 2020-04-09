@@ -670,7 +670,7 @@ body_start:	TOK_LPB c_code_begin
 				fprintf(fp_func_def,
 					"\t\treporter->Error(\"%s() takes exactly %d argument(s)\");\n",
 					decl.bro_fullname.c_str(), argc);
-				fprintf(fp_func_def, "\t\treturn 0;\n");
+				fprintf(fp_func_def, "\t\treturn nullptr;\n");
 				fprintf(fp_func_def, "\t\t}\n");
 				}
 			else if ( argc > 0 )
@@ -680,7 +680,7 @@ body_start:	TOK_LPB c_code_begin
 				fprintf(fp_func_def,
 					"\t\treporter->Error(\"%s() takes at least %d argument(s)\");\n",
 					decl.bro_fullname.c_str(), argc);
-				fprintf(fp_func_def, "\t\treturn 0;\n");
+				fprintf(fp_func_def, "\t\treturn nullptr;\n");
 				fprintf(fp_func_def, "\t\t}\n");
 				}
 

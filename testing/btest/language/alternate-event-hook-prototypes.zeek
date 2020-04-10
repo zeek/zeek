@@ -13,6 +13,18 @@ global my_hook: hook(s: string);
 global my_hook: hook(c: count) &deprecated;
 global my_hook: hook();
 
+# Required Frame size gets (re)calculated on AddBody, so this "foo" setup is
+# checking that if the only existing body doesn't use all arguments, the Frame
+# size is still allocated sufficiently to hold all arguments of the canonical
+# prototype.
+global foo: event(a: string, b: string, c: string);
+global foo: event(c: string);
+
+event foo(c: string)
+	{
+	print "foo", c;
+	}
+
 event my_event(s: string, c: count)
 	{
 	print "my_event", s, c;
@@ -67,4 +79,5 @@ event zeek_init()
 	{
 	hook my_hook("infinite", 13);
 	event my_event("enantiodromia", 42);
+	event foo("A", "B", "C");
 	}

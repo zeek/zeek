@@ -449,6 +449,11 @@ void BroFunc::AddBody(IntrusivePtr<Stmt> new_body, id_list* new_inits,
 	if ( new_frame_size > frame_size )
 		frame_size = new_frame_size;
 
+	auto num_args = FType()->Args()->NumFields();
+
+	if ( num_args > static_cast<int>(frame_size) )
+		frame_size = num_args;
+
 	new_body = AddInits(std::move(new_body), new_inits);
 
 	if ( Flavor() == FUNC_FLAVOR_FUNCTION )

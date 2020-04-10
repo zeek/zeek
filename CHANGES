@@ -1,4 +1,13 @@
 
+3.1.2-dev.12 | 2020-04-10 16:44:29 -0700
+
+  * Fix Broker topics used to uniquely identify cluster nodes (Jon Siwek, Corelight)
+
+    Node-specific topic prefix subscriptions/publications now add a trailing
+    slash like "zeek/cluster/node/<name>/".  Without the trailing slash,
+    messages attempting to target "proxy-10" may also be sent to "proxy-1"
+    since subscription matching is prefix-based.
+
 3.1.2-dev.11 | 2020-04-09 17:10:04 -0700
 
   * Fix include in X509Common.h (Johanna Amann, Corelight)

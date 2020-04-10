@@ -298,12 +298,12 @@ function local_node_type(): NodeType
 
 function node_topic(name: string): string
 	{
-	return node_topic_prefix + name;
+	return node_topic_prefix + name + "/";
 	}
 
 function nodeid_topic(id: string): string
 	{
-	return node_topic_prefix + id;
+	return nodeid_topic_prefix + id + "/";
 	}
 
 event Cluster::hello(name: string, id: string) &priority=10

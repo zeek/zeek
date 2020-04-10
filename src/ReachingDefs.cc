@@ -22,12 +22,12 @@ static const char* obj_desc(const BroObj* o)
 ReachingDefs::ReachingDefs()
 	{
 	my_rd_map = new ReachingDefsMap;
-	const_rd_map = my_rd_map;
+	const_rd_map = nullptr;
 	}
 
-ReachingDefs::ReachingDefs(const ReachingDefs* rd)
+ReachingDefs::ReachingDefs(RD_ptr& rd)
 	{
-	const_rd_map = rd->RDMap();
+	const_rd_map = rd;
 	my_rd_map = nullptr;
 	}
 
@@ -84,7 +84,7 @@ RD_ptr ReachingDefs::Intersect(const RD_ptr& r) const
 	{
 	auto res = make_new_RD_ptr();
 
-	for ( const auto& i : *const_rd_map )
+	for ( const auto& i : *RDMap() )
 		for ( const auto& dp : *i.second )
 			if ( r->HasPair(i.first, dp) )
 				res->AddRD(i.first, dp);
@@ -96,7 +96,7 @@ RD_ptr ReachingDefs::Union(const RD_ptr& r) const
 	{
 	auto res = make_new_RD_ptr();
 
-	for ( const auto& i : *const_rd_map )
+	for ( const auto& i : *RDMap() )
 		for ( const auto& dp : *i.second )
 			if ( ! r->HasPair(i.first, dp) )
 				res->AddRD(i.first, dp);
@@ -109,13 +109,14 @@ RD_ptr ReachingDefs::IntersectWithConsolidation(const RD_ptr& r,
 	{
 	auto res = make_new_RD_ptr();
 
-	for ( const auto& i : *const_rd_map )
+	for ( const auto& i : *RDMap() )
 		for ( const auto& dp : *i.second )
 			{
 			if ( r->HasPair(i.first, dp) )
 				res->AddRD(i.first, dp);
 
-			else if ( r->HasDI(i.first) && ! HasPair(i.first, di) )
+			else if ( r->HasDI(i.first) &&
+				  ! HasPair(i.first, di) )
 				res->AddRD(i.first, di);
 			}
 
@@ -125,9 +126,10 @@ RD_ptr ReachingDefs::IntersectWithConsolidation(const RD_ptr& r,
 bool ReachingDefs::HasPair(const DefinitionItem* di, const DefinitionPoint& dp)
 const
 	{
-	auto l = const_rd_map->find(di);
+	auto map = RDMap();
 
-	if ( l == const_rd_map->end() )
+	auto l = map->find(di);
+	if ( l == map->end() )
 		return false;
 
 	for ( const auto& l_dp : *l->second )
@@ -154,13 +156,13 @@ void ReachingDefs::CopyMapIfNeeded()
 
 	my_rd_map = new ReachingDefsMap;
 	auto old_const_rd_map = const_rd_map;
-	const_rd_map = my_rd_map;
+	const_rd_map = nullptr;
 	AddRDs(old_const_rd_map);
 	}
 
 void ReachingDefs::Dump() const
 	{
-	DumpMap(const_rd_map);
+	DumpMap(RDMap());
 	}
 
 void ReachingDefs::DumpMap(const ReachingDefsMap* map) const
@@ -186,7 +188,7 @@ void ReachingDefs::PrintRD(const DefinitionItem* di,
 	}
 
 
-const RD_ptr& ReachingDefSet::FindRDs(const BroObj* o) const
+RD_ptr& ReachingDefSet::FindRDs(const BroObj* o) const
 	{
 	auto rd = a_i->find(o);
 	if ( rd == a_i->end() )

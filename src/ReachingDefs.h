@@ -21,13 +21,13 @@ class ReachingDefs;
 typedef IntrusivePtr<ReachingDefs> RD_ptr;
 
 inline RD_ptr make_new_RD_ptr() { return make_intrusive<ReachingDefs>(); }
-inline RD_ptr make_new_RD_ptr(const ReachingDefs* rd)
+inline RD_ptr make_new_RD_ptr(RD_ptr& rd)
 	{ return make_intrusive<ReachingDefs>(rd); }
 
 class ReachingDefs : public BroObj {
 public:
 	ReachingDefs();
-	ReachingDefs(const ReachingDefs* rd);
+	ReachingDefs(RD_ptr& rd);
 
 	~ReachingDefs();
 
@@ -45,7 +45,8 @@ public:
 
 	bool HasDI(const DefinitionItem* di) const
 		{
-		return const_rd_map->find(di) != const_rd_map->end();
+		auto map = RDMap();
+		return map->find(di) != map->end();
 		}
 
 	// Return a new object representing the intersection/union of
@@ -63,25 +64,24 @@ public:
 	void Dump() const;
 	void DumpMap(const ReachingDefsMap* map) const;
 
-	int Size() const	{ return const_rd_map->size(); }
+	int Size() const	{ return RDMap()->size(); }
 
 protected:
 	bool HasPair(const DefinitionItem* di, const DefinitionPoint& dp) const;
 
 	void AddRDs(const ReachingDefsMap* rd_m);
 
-	const ReachingDefsMap* RDMap() const	{ return const_rd_map; }
+	const ReachingDefsMap* RDMap() const
+		{ return my_rd_map ? my_rd_map : const_rd_map->RDMap(); }
 
 	void CopyMapIfNeeded();
 
 	void PrintRD(const DefinitionItem* di, const DefPoints& dp) const;
 	void PrintRD(const DefinitionItem* di, const DefinitionPoint& dp) const;
 
-	// The first of these is always valid.  It either points to
-	// my_rd_map, or to the (unmodified) map that we inherited.
-	// The second, if non-nil, means we've done copy-on-write
-	// of our original map (or started afresh).
-	const ReachingDefsMap* const_rd_map;
+	// If my_rd_map is non-nill, then we use that map.  Otherwise,
+	// we use the map that const_rd_map points to.
+	RD_ptr const_rd_map;
 	ReachingDefsMap* my_rd_map;
 };
 
@@ -124,11 +124,11 @@ public:
 
 	// Should only be called if there are already RDs associated with
 	// the given object.
-	const RD_ptr& FindRDs(const BroObj* o) const;
+	RD_ptr& FindRDs(const BroObj* o) const;
 
-	void SetRDs(const BroObj* o, const RD_ptr& rd)
+	void SetRDs(const BroObj* o, RD_ptr& rd)
 		{
-		auto new_rd = make_new_RD_ptr(rd.get());
+		auto new_rd = make_new_RD_ptr(rd);
 		a_i->insert(AnalyInfo::value_type(o, new_rd));
 		}
 

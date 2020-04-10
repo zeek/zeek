@@ -50,9 +50,9 @@ protected:
 	bool ControlReachesEnd(const Stmt* s, bool is_definite,
 				bool ignore_break) const;
 
-	const RD_ptr& GetPreMinRDs(const BroObj* o) const
+	RD_ptr& GetPreMinRDs(const BroObj* o) const
 		{ return GetRDs(pre_min_defs, o); }
-	const RD_ptr& GetPostMinRDs(const BroObj* o) const
+	RD_ptr& GetPostMinRDs(const BroObj* o) const
 		{
 		if ( HasPostMinRDs(o) )
 			return GetRDs(post_min_defs, o);
@@ -60,7 +60,7 @@ protected:
 			return GetPreMinRDs(o);
 		}
 
-	const RD_ptr& GetRDs(const IntrusivePtr<ReachingDefSet> defs,
+	RD_ptr& GetRDs(const IntrusivePtr<ReachingDefSet> defs,
 				const BroObj* o) const
 		{
 		return defs->FindRDs(o);
@@ -69,9 +69,9 @@ protected:
 	// ### If we want to go to sharing RD sets using copy-on-write,
 	// then a starting point is altering the const RD_ptr&'s in
 	// these APIs to instead be RD_ptr's.
-	void SetPreMinRDs(const BroObj* o, const RD_ptr& rd)
+	void SetPreMinRDs(const BroObj* o, RD_ptr& rd)
 		{ pre_min_defs->SetRDs(o, rd); }
-	void SetPostMinRDs(const BroObj* o, const RD_ptr& rd)
+	void SetPostMinRDs(const BroObj* o, RD_ptr& rd)
 		{ post_min_defs->SetRDs(o, rd); }
 
 	bool HasPreMinRDs(const BroObj* o) const
@@ -118,7 +118,7 @@ protected:
 				bool assume_full, const DefinitionItem* rhs_di);
 
 	void CreateEmptyPostRDs(const Stmt* s);
-	void CreatePostRDs(const Stmt* s, const RD_ptr& post_rds);
+	void CreatePostRDs(const Stmt* s, RD_ptr& post_rds);
 
 	// Mappings of reaching defs pre- and post- execution
 	// of the given object.
@@ -197,7 +197,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 	if ( ! HasPreMinRDs(s) )
 		SetPreMinRDs(s, GetPostMinRDs(last_obj));
 
-	const auto my_rds = GetPreMinRDs(s);
+	auto my_rds = GetPreMinRDs(s);
 	DefinitionPoint ds(s);
 
 	if ( trace )
@@ -399,8 +399,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 						sw_post_rds->IntersectWithConsolidation(case_rd, ds);
 				else
 					{
-					sw_post_rds =
-						make_new_RD_ptr(case_rd.get());
+					sw_post_rds = make_new_RD_ptr(case_rd);
 					did_first = true;
 					}
 				}
@@ -506,10 +505,11 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 
 void RD_Decorate::CreateEmptyPostRDs(const Stmt* s)
 	{
-	CreatePostRDs(s, make_new_RD_ptr());
+	auto empty_rds = make_new_RD_ptr();
+	CreatePostRDs(s, empty_rds);
 	}
 
-void RD_Decorate::CreatePostRDs(const Stmt* s, const RD_ptr& post_rds)
+void RD_Decorate::CreatePostRDs(const Stmt* s, RD_ptr& post_rds)
 	{
 	SetPostMinRDs(s, post_rds);
 	last_obj = s;

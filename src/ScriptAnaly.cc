@@ -29,30 +29,9 @@ static const char* obj_desc(const BroObj* o)
 	}
 
 
-class RD_Decorate : public TraversalCallback {
+class DefSetsMgr {
 public:
-	RD_Decorate();
-
-	TraversalCode PreFunction(const Func*) override;
-	TraversalCode PreStmt(const Stmt*) override;
-	TraversalCode PostStmt(const Stmt*) override;
-	TraversalCode PreExpr(const Expr*) override;
-	TraversalCode PostExpr(const Expr*) override;
-
-	void TrackInits(const Func* f, const id_list* inits);
-
-protected:
-	bool CheckLHS(const Expr* lhs, const AssignExpr* a);
-
-	bool IsAggrTag(TypeTag tag) const;
-	bool IsAggr(const Expr* e) const;
-
-	bool ControlCouldReachEnd(const Stmt* s, bool ignore_break) const;
-
-	// ### Check whether this is still needed, or if it's wholly
-	// supplanted by ControlCouldReachEnd.
-	bool ControlReachesEnd(const Stmt* s, bool is_definite,
-				bool ignore_break, bool ignore_next) const;
+	DefSetsMgr();
 
 	RD_ptr& GetPreMinRDs(const BroObj* o) const
 		{ return GetRDs(pre_min_defs, o); }
@@ -83,14 +62,10 @@ protected:
 		}
 
 	void SetPreFromPre(const BroObj* target, const BroObj* source)
-		{
-		SetPreMinRDs(target, GetPreMinRDs(source));
-		}
+		{ SetPreMinRDs(target, GetPreMinRDs(source)); }
 
 	void SetPreFromPost(const BroObj* target, const BroObj* source)
-		{
-		SetPreMinRDs(target, GetPostMinRDs(source));
-		}
+		{ SetPreMinRDs(target, GetPostMinRDs(source)); }
 
 	void SetPostFromPre(const BroObj* o)
 		{ SetPostMinRDs(o, GetPreMinRDs(o)); }
@@ -102,25 +77,114 @@ protected:
 		{ SetPostMinRDs(target, GetPostMinRDs(source)); }
 
 	bool HasPreMinRDs(const BroObj* o) const
-		{
-		return pre_min_defs->HasRDs(o);
-		}
+		{ return pre_min_defs->HasRDs(o); }
 
 	bool HasPreMinRD(const BroObj* o, const ID* id) const
-		{
-		return pre_min_defs->HasRD(o, id);
-		}
+		{ return pre_min_defs->HasRD(o, id); }
 
 	bool HasPostMinRDs(const BroObj* o) const
-		{
-		return post_min_defs->HasRDs(o);
-		}
+		{ return post_min_defs->HasRDs(o); }
 
 	void CreatePreDef(DefinitionItem* di, DefinitionPoint dp);
 	void CreatePostDef(const ID* id, DefinitionPoint dp);
 	void CreatePostDef(DefinitionItem* di, DefinitionPoint dp);
 
 	void CreateDef(DefinitionItem* di, DefinitionPoint dp, bool is_pre);
+
+	DefinitionItem* GetExprReachingDef(Expr* e)
+		{ return item_map.GetExprReachingDef(e); }
+	DefinitionItem* GetIDReachingDef(const ID* id)
+		{ return item_map.GetIDReachingDef(id); }
+        const DefinitionItem* GetConstIDReachingDef(const DefinitionItem* di,
+						const char* field_name) const
+		{ return item_map.GetConstIDReachingDef(di, field_name); }
+
+protected:
+	// Mappings of minimal reaching defs pre- and post- execution
+	// of the given object.
+	IntrusivePtr<ReachingDefSet> pre_min_defs;
+	IntrusivePtr<ReachingDefSet> post_min_defs;
+
+	// Mappings of maximal reaching defs pre- and post- execution
+	// of the given object.
+	IntrusivePtr<ReachingDefSet> pre_max_defs;
+	IntrusivePtr<ReachingDefSet> post_max_defs;
+
+	DefItemMap item_map;
+};
+
+
+DefSetsMgr::DefSetsMgr()
+	{
+	pre_min_defs = make_intrusive<ReachingDefSet>(item_map);
+	post_min_defs = make_intrusive<ReachingDefSet>(item_map);
+
+	pre_max_defs = make_intrusive<ReachingDefSet>(item_map);
+	post_max_defs = make_intrusive<ReachingDefSet>(item_map);
+	}
+
+
+void DefSetsMgr::CreatePreDef(DefinitionItem* di, DefinitionPoint dp)
+	{
+	CreateDef(di, dp, true);
+	}
+
+void DefSetsMgr::CreatePostDef(const ID* id, DefinitionPoint dp)
+	{
+	auto di = item_map.GetIDReachingDef(id);
+	CreatePostDef(di, dp);
+	}
+
+void DefSetsMgr::CreatePostDef(DefinitionItem* di, DefinitionPoint dp)
+	{
+	auto where = dp.OpaqueVal();
+
+	if ( ! post_min_defs->HasRDs(where) )
+		{
+		// We haven't yet started creating post RDs for this
+		// statement/expression, so create them.
+		auto pre = GetPreMinRDs(where);
+		SetPostFromPre(where);
+		}
+
+	CreateDef(di, dp, false);
+	}
+
+void DefSetsMgr::CreateDef(DefinitionItem* di, DefinitionPoint dp, bool is_pre)
+	{
+	auto where = dp.OpaqueVal();
+
+	IntrusivePtr<ReachingDefSet>& defs =
+		is_pre ? pre_min_defs : post_min_defs;
+
+	defs->AddOrReplace(where, di, dp);
+	}
+
+
+class RD_Decorate : public TraversalCallback {
+public:
+	RD_Decorate();
+
+	TraversalCode PreFunction(const Func*) override;
+	TraversalCode PreStmt(const Stmt*) override;
+	TraversalCode PostStmt(const Stmt*) override;
+	TraversalCode PreExpr(const Expr*) override;
+	TraversalCode PostExpr(const Expr*) override;
+
+	void TrackInits(const Func* f, const id_list* inits);
+
+protected:
+	bool CheckLHS(const Expr* lhs, const AssignExpr* a);
+
+	bool IsAggrTag(TypeTag tag) const;
+	bool IsAggr(const Expr* e) const;
+
+	bool ControlCouldReachEnd(const Stmt* s, bool ignore_break) const;
+
+	// ### Check whether this is still needed, or if it's wholly
+	// supplanted by ControlCouldReachEnd.
+	bool ControlReachesEnd(const Stmt* s, bool is_definite,
+				bool ignore_break, bool ignore_next) const;
 
 	void CreateInitPreDef(const ID* id, DefinitionPoint dp);
 
@@ -142,28 +206,18 @@ protected:
 	void CreateEmptyPostRDs(const Stmt* s);
 
 	void CreatePostRDsFromPre(const Stmt* s)
-		{ CreatePostRDs(s, GetPreMinRDs(s)); }
+		{ CreatePostRDs(s, mgr.GetPreMinRDs(s)); }
 	void CreatePostRDsFromPre(const Stmt* target, const BroObj* source)
-		{ CreatePostRDs(target, GetPreMinRDs(source)); }
+		{ CreatePostRDs(target, mgr.GetPreMinRDs(source)); }
 	void CreatePostRDsFromPost(const Stmt* target, const BroObj* source)
-		{ CreatePostRDs(target, GetPostMinRDs(source)); }
+		{ CreatePostRDs(target, mgr.GetPostMinRDs(source)); }
 
 	void CreatePostRDs(const Stmt* s, RD_ptr& post_rds);
-
-	// Mappings of minimal reaching defs pre- and post- execution
-	// of the given object.
-	IntrusivePtr<ReachingDefSet> pre_min_defs;
-	IntrusivePtr<ReachingDefSet> post_min_defs;
-
-	// Mappings of maximal reaching defs pre- and post- execution
-	// of the given object.
-	IntrusivePtr<ReachingDefSet> pre_max_defs;
-	IntrusivePtr<ReachingDefSet> post_max_defs;
 
 	// The object we most recently finished analyzing.
 	const BroObj* last_obj;
 
-	DefItemMap item_map;
+	DefSetsMgr mgr;
 
 	bool trace;
 };
@@ -171,12 +225,6 @@ protected:
 
 RD_Decorate::RD_Decorate()
 	{
-	pre_min_defs = make_intrusive<ReachingDefSet>(item_map);
-	post_min_defs = make_intrusive<ReachingDefSet>(item_map);
-
-	pre_max_defs = make_intrusive<ReachingDefSet>(item_map);
-	post_max_defs = make_intrusive<ReachingDefSet>(item_map);
-
 	last_obj = nullptr;
 
 	trace = getenv("ZEEK_OPT_TRACE") != nullptr;
@@ -191,7 +239,7 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 
 	int n = args->NumFields();
 
-	SetEmptyPre(f);
+	mgr.SetEmptyPre(f);
 
 	for ( int i = 0; i < n; ++i )
 		{
@@ -204,20 +252,20 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 		CreateInitPostDef(arg_i_id, DefinitionPoint(f), true, 0);
 		}
 
-	if ( ! HasPostMinRDs(f) )
+	if ( ! mgr.HasPostMinRDs(f) )
 		// This happens if we have no arguments.  Use the
 		// empty ones we set up.
-		SetPostFromPre(f);
+		mgr.SetPostFromPre(f);
 
 	if ( trace )
 		{
 		printf("traversing function %s, post RDs:\n", f->Name());
-		GetPostMinRDs(f)->Dump();
+		mgr.GetPostMinRDs(f)->Dump();
 		}
 
 	auto bodies = f->GetBodies();
 	for ( const auto& body : bodies )
-		SetPreFromPost(body.stmts.get(), f);
+		mgr.SetPreFromPost(body.stmts.get(), f);
 
 	// This shouldn't be needed, since the body will have
 	// explicit PreMinRDs set.
@@ -230,15 +278,15 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 
 TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 	{
-	if ( ! HasPreMinRDs(s) )
-		SetPreFromPost(s, last_obj);
+	if ( ! mgr.HasPreMinRDs(s) )
+		mgr.SetPreFromPost(s, last_obj);
 
 	DefinitionPoint ds(s);
 
 	if ( trace )
 		{
 		printf("pre RDs for stmt %s:\n", obj_desc(s));
-		GetPreMinRDs(s)->Dump();
+		mgr.GetPreMinRDs(s)->Dump();
 		}
 
 	last_obj = s;
@@ -247,7 +295,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
         case STMT_EXPR:
 		{
 		auto e = s->AsExprStmt()->StmtExpr();
-		SetPreFromPre(e, s);
+		mgr.SetPreFromPre(e, s);
 		break;
 		}
 
@@ -261,9 +309,9 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		for ( const auto& stmt : stmts )
 			{
 			if ( pred_stmt == s )
-				SetPreFromPre(stmt, pred_stmt);
+				mgr.SetPreFromPre(stmt, pred_stmt);
 			else
-				SetPreFromPost(stmt, pred_stmt);
+				mgr.SetPreFromPost(stmt, pred_stmt);
 
 			stmt->Traverse(this);
 			last_obj = stmt;
@@ -271,9 +319,9 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 			}
 
 		if ( pred_stmt == s )
-			SetPostFromPre(sl, pred_stmt);
+			mgr.SetPostFromPre(sl, pred_stmt);
 		else
-			SetPostFromPost(sl, pred_stmt);
+			mgr.SetPostFromPost(sl, pred_stmt);
 
 		last_obj = s;
 
@@ -290,13 +338,13 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		auto i = s->AsIfStmt();
 		auto cond = i->StmtExpr();
 
-		SetPreFromPre(cond, s);
+		mgr.SetPreFromPre(cond, s);
 		cond->Traverse(this);
 
-		SetPreFromPost(i->TrueBranch(), cond);
+		mgr.SetPreFromPost(i->TrueBranch(), cond);
 		i->TrueBranch()->Traverse(this);
 
-		SetPreFromPost(i->FalseBranch(), cond);
+		mgr.SetPreFromPost(i->FalseBranch(), cond);
 		i->FalseBranch()->Traverse(this);
 
 		auto true_reached =
@@ -306,8 +354,8 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 
 		if ( true_reached && false_reached )
 			{
-			auto if_branch_rd = GetPostMinRDs(i->TrueBranch());
-			auto else_branch_rd = GetPostMinRDs(i->FalseBranch());
+			auto if_branch_rd = mgr.GetPostMinRDs(i->TrueBranch());
+			auto else_branch_rd = mgr.GetPostMinRDs(i->FalseBranch());
 			auto post_rds = if_branch_rd->IntersectWithConsolidation(else_branch_rd, ds);
 			CreatePostRDs(s, post_rds);
 			post_rds.release();
@@ -336,7 +384,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		for ( const auto& c : *cases )
 			{
 			auto body = c->Body();
-			SetPreFromPre(body, s);
+			mgr.SetPreFromPre(body, s);
 
 			auto type_ids = c->TypeCases();
 			if ( type_ids )
@@ -359,9 +407,9 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		auto body = f->LoopBody();
 		auto val_var = f->ValueVar();
 
-		SetPreFromPre(e, s);
+		mgr.SetPreFromPre(e, s);
 		e->Traverse(this);
-		SetPreFromPost(body, e);
+		mgr.SetPreFromPost(body, e);
 
 		for ( const auto& id : *ids )
 			CreateInitPreDef(id, DefinitionPoint(body));
@@ -385,7 +433,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 
 		// Apply intersection since loop might not execute
 		// at all.
-		auto post_rds = GetPreMinRDs(s)->IntersectWithConsolidation(GetPostMinRDs(body), ds);
+		auto post_rds = mgr.GetPreMinRDs(s)->IntersectWithConsolidation(mgr.GetPostMinRDs(body), ds);
 
 		CreatePostRDs(s, post_rds);
 		post_rds.release();
@@ -432,7 +480,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 			{
 			if ( ControlCouldReachEnd(c->Body(), true) )
 				{
-				auto case_rd = GetPostMinRDs(c->Body());
+				auto case_rd = mgr.GetPostMinRDs(c->Body());
 
 				if ( did_first )
 					sw_post_rds =
@@ -454,7 +502,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		if ( ! default_seen )
 			{
 			if ( sw_post_rds )
-				sw_post_rds = sw_post_rds->Union(GetPreMinRDs(s));
+				sw_post_rds = sw_post_rds->Union(mgr.GetPreMinRDs(s));
 			else
 				{
 				// We can fall through, and if so the
@@ -486,7 +534,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		// Apply intersection since loop might not execute
 		// at all.
 		auto while_post_rds =
-			GetPreMinRDs(s)->IntersectWithConsolidation(GetPostMinRDs(body), ds);
+			mgr.GetPreMinRDs(s)->IntersectWithConsolidation(mgr.GetPostMinRDs(body), ds);
 
 		CreatePostRDs(s, while_post_rds);
 		while_post_rds.release();
@@ -549,13 +597,13 @@ void RD_Decorate::CreateEmptyPostRDs(const Stmt* s)
 
 void RD_Decorate::CreatePostRDs(const Stmt* s, RD_ptr& post_rds)
 	{
-	SetPostMinRDs(s, post_rds);
+	mgr.SetPostMinRDs(s, post_rds);
 	last_obj = s;
 
 	if ( trace )
 		{
 		printf("post RDs for stmt %s:\n", obj_desc(s));
-		GetPostMinRDs(s)->Dump();
+		mgr.GetPostMinRDs(s)->Dump();
 		}
 	}
 
@@ -613,7 +661,7 @@ bool RD_Decorate::CheckLHS(const Expr* lhs, const AssignExpr* a)
 		// Recurse to traverse LHS so as to install its definitions.
 		r->Traverse(this);
 
-		auto r_def = item_map.GetExprReachingDef(r);
+		auto r_def = mgr.GetExprReachingDef(r);
 
 		if ( ! r_def )
 			// This should have already generated a complaint.
@@ -642,7 +690,7 @@ bool RD_Decorate::CheckLHS(const Expr* lhs, const AssignExpr* a)
 			{
 			// Count this as an initialization of the aggregate.
 			auto id = aggr->AsNameExpr()->Id();
-			CreatePostDef(id, DefinitionPoint(a));
+			mgr.CreatePostDef(id, DefinitionPoint(a));
 
 			// Don't recurse into assessing the aggregate,
 			// since it's okay in this context.  However,
@@ -871,13 +919,13 @@ bool RD_Decorate::ControlReachesEnd(const Stmt* s, bool is_definite,
 
 TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	{
-	if ( ! HasPreMinRDs(e) )
-		SetPreFromPost(e, last_obj);
+	if ( ! mgr.HasPreMinRDs(e) )
+		mgr.SetPreFromPost(e, last_obj);
 
 	if ( trace )
 		{
 		printf("pre RDs for expr %s:\n", obj_desc(e));
-		GetPreMinRDs(e)->Dump();
+		mgr.GetPreMinRDs(e)->Dump();
 		}
 
 	// Since there are no control flow or confluence issues (the latter
@@ -885,12 +933,12 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	// inside &&/|| introduce confluence issues, but that won't lead
 	// to optimization issues, just imprecision in tracking uninitialized
 	// values).
-	SetPostFromPre(e);
+	mgr.SetPostFromPre(e);
 
 	if ( trace )
 		{
 		printf("nominal post RDs for expr %s:\n", obj_desc(e));
-		GetPostMinRDs(e)->Dump();
+		mgr.GetPostMinRDs(e)->Dump();
 		}
 
 	last_obj = e;
@@ -907,11 +955,11 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			CreateInitPostDef(id, DefinitionPoint(n), true, nullptr);
 			}
 
-		else if ( ! HasPreMinRD(e, id) )
+		else if ( ! mgr.HasPreMinRD(e, id) )
 			printf("%s has no pre at %s\n", id->Name(), obj_desc(e));
 
 		if ( id->Type()->Tag() == TYPE_RECORD )
-			CreateRecordRDs(item_map.GetIDReachingDef(id),
+			CreateRecordRDs(mgr.GetIDReachingDef(id),
 					DefinitionPoint(n), false, nullptr);
 
 		break;
@@ -928,7 +976,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			auto lhs_id = lhs_n->Id();
 
 			// Treat this as an initalization of the set.
-			CreatePostDef(lhs_id, DefinitionPoint(a_t));
+			mgr.CreatePostDef(lhs_id, DefinitionPoint(a_t));
 
 			a_t->Op2()->Traverse(this);
 			return TC_ABORTSTMT;
@@ -984,15 +1032,15 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 				return TC_ABORTSTMT;
 			}
 
-		auto r_def = item_map.GetExprReachingDef(r);
+		auto r_def = mgr.GetExprReachingDef(r);
 
 		if ( r_def )
 			{
 			auto fn = f->FieldName();
 			auto field_rd =
-				item_map.GetConstIDReachingDef(r_def, fn);
+				mgr.GetConstIDReachingDef(r_def, fn);
 
-			auto e_pre = GetPreMinRDs(e);
+			auto e_pre = mgr.GetPreMinRDs(e);
 			if ( ! field_rd || ! e_pre->HasDI(field_rd) )
 				printf("no reaching def for %s\n", obj_desc(e));
 			}
@@ -1013,7 +1061,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			auto id_e = r->AsNameExpr();
 			auto id = id_e->Id();
 			auto id_rt = id_e->Type()->AsRecordType();
-			auto id_rd = item_map.GetIDReachingDef(id);
+			auto id_rd = mgr.GetIDReachingDef(id);
 
 			if ( ! id_rd )
 				{
@@ -1053,7 +1101,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			if ( IsAggr(expr) )
 				// Not only do we skip analyzing it, but
 				// we consider it initialized post-return.
-				CreatePostDef(expr->AsNameExpr()->Id(), 
+				mgr.CreatePostDef(expr->AsNameExpr()->Id(), 
 						DefinitionPoint(c));
 			else
 				expr->Traverse(this);
@@ -1106,45 +1154,9 @@ void RD_Decorate::TrackInits(const Func* f, const id_list* inits)
 		}
 	}
 
-void RD_Decorate::CreatePreDef(DefinitionItem* di, DefinitionPoint dp)
-	{
-	CreateDef(di, dp, true);
-	}
-
-void RD_Decorate::CreatePostDef(const ID* id, DefinitionPoint dp)
-	{
-	auto di = item_map.GetIDReachingDef(id);
-	CreatePostDef(di, dp);
-	}
-
-void RD_Decorate::CreatePostDef(DefinitionItem* di, DefinitionPoint dp)
-	{
-	auto where = dp.OpaqueVal();
-
-	if ( ! post_min_defs->HasRDs(where) )
-		{
-		// We haven't yet started creating post RDs for this
-		// statement/expression, so create them.
-		auto pre = GetPreMinRDs(where);
-		SetPostFromPre(where);
-		}
-
-	CreateDef(di, dp, false);
-	}
-
-void RD_Decorate::CreateDef(DefinitionItem* di, DefinitionPoint dp, bool is_pre)
-	{
-	auto where = dp.OpaqueVal();
-
-	IntrusivePtr<ReachingDefSet>& defs =
-		is_pre ? pre_min_defs : post_min_defs;
-
-	defs->AddOrReplace(where, di, dp);
-	}
-
 void RD_Decorate::CreateInitPreDef(const ID* id, DefinitionPoint dp)
 	{
-	auto di = item_map.GetIDReachingDef(id);
+	auto di = mgr.GetIDReachingDef(id);
 	if ( ! di )
 		return;
 
@@ -1154,7 +1166,7 @@ void RD_Decorate::CreateInitPreDef(const ID* id, DefinitionPoint dp)
 void RD_Decorate::CreateInitPostDef(const ID* id, DefinitionPoint dp,
 				bool assume_full, const AssignExpr* init)
 	{
-	auto di = item_map.GetIDReachingDef(id);
+	auto di = mgr.GetIDReachingDef(id);
 	if ( ! di )
 		return;
 
@@ -1172,9 +1184,9 @@ void RD_Decorate::CreateInitDef(DefinitionItem* di, DefinitionPoint dp,
 				const AssignExpr* init)
 	{
 	if ( is_pre )
-		CreatePreDef(di, dp);
+		mgr.CreatePreDef(di, dp);
 	else
-		CreatePostDef(di, dp);
+		mgr.CreatePostDef(di, dp);
 
 	if ( di->Type()->Tag() != TYPE_RECORD )
 		return;
@@ -1191,7 +1203,7 @@ void RD_Decorate::CreateInitDef(DefinitionItem* di, DefinitionPoint dp,
 
 		else
 			{
-			rhs_di = item_map.GetExprReachingDef(rhs);
+			rhs_di = mgr.GetExprReachingDef(rhs);
 
 			if ( ! rhs_di )
 				// This happens because the RHS is an
@@ -1237,9 +1249,9 @@ void RD_Decorate::CreateRecordRDs(DefinitionItem* di, DefinitionPoint dp,
 		auto di_i = di->CreateField(n_i, t_i);
 
 		if ( is_pre )
-			CreatePreDef(di_i, dp);
+			mgr.CreatePreDef(di_i, dp);
 		else
-			CreatePostDef(di_i, dp);
+			mgr.CreatePostDef(di_i, dp);
 
 		if ( t_i->Tag() == TYPE_RECORD )
 			CreateRecordRDs(di_i, dp, is_pre, assume_full, rhs_di_i);

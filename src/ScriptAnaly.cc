@@ -88,17 +88,11 @@ protected:
 		return pre_min_defs->HasRD(o, id);
 		}
 
-	bool HasPreMinRD(const BroObj* o, const DefinitionItem* di)
-		{
-		return pre_min_defs->HasRD(o, di);
-		}
-
 	bool HasPostMinRDs(const BroObj* o) const
 		{
 		return post_min_defs->HasRDs(o);
 		}
 
-	void CreatePreDef(const ID* id, DefinitionPoint dp);
 	void CreatePreDef(DefinitionItem* di, DefinitionPoint dp);
 	void CreatePostDef(const ID* id, DefinitionPoint dp);
 	void CreatePostDef(DefinitionItem* di, DefinitionPoint dp);
@@ -117,7 +111,8 @@ protected:
 				bool assume_full, const AssignExpr* init);
 
 	void CreateRecordRDs(DefinitionItem* di, DefinitionPoint dp,
-				bool assume_full, const DefinitionItem* rhs_di);
+				bool assume_full, const DefinitionItem* rhs_di)
+		{ CreateRecordRDs(di, dp, false, assume_full, rhs_di); }
 	void CreateRecordRDs(DefinitionItem* di, DefinitionPoint dp, bool is_pre,
 				bool assume_full, const DefinitionItem* rhs_di);
 
@@ -1071,12 +1066,6 @@ void RD_Decorate::TrackInits(const Func* f, const id_list* inits)
 		}
 	}
 
-void RD_Decorate::CreatePreDef(const ID* id, DefinitionPoint dp)
-	{
-	auto di = item_map.GetIDReachingDef(id);
-	CreatePreDef(di, dp);
-	}
-
 void RD_Decorate::CreatePreDef(DefinitionItem* di, DefinitionPoint dp)
 	{
 	CreateDef(di, dp, true);
@@ -1174,12 +1163,6 @@ void RD_Decorate::CreateInitDef(DefinitionItem* di, DefinitionPoint dp,
 		}
 
 	CreateRecordRDs(di, dp, is_pre, assume_full, rhs_di);
-	}
-
-void RD_Decorate::CreateRecordRDs(DefinitionItem* di, DefinitionPoint dp,
-				bool assume_full, const DefinitionItem* rhs_di)
-	{
-	CreateRecordRDs(di, dp, false, assume_full, rhs_di);
 	}
 
 void RD_Decorate::CreateRecordRDs(DefinitionItem* di, DefinitionPoint dp,

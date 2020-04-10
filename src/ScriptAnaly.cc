@@ -72,13 +72,19 @@ protected:
 	void CreateEmptyPostRDs(const Stmt* s);
 
 	void CreatePostRDsFromPre(const Stmt* s)
-		{ CreatePostRDs(s, mgr.GetPreMinRDs(s)); }
-	void CreatePostRDsFromPre(const Stmt* target, const BroObj* source)
-		{ CreatePostRDs(target, mgr.GetPreMinRDs(source)); }
+		{
+		mgr.CreatePostRDsFromPre(s);
+		FinishStmt(s);
+		}
+
 	void CreatePostRDsFromPost(const Stmt* target, const BroObj* source)
-		{ CreatePostRDs(target, mgr.GetPostMinRDs(source)); }
+		{
+		mgr.CreatePostRDsFromPost(target, source);
+		FinishStmt(target);
+		}
 
 	void CreatePostRDs(const Stmt* s, RD_ptr& post_rds);
+	void FinishStmt(const Stmt* s);
 
 	// The object we most recently finished analyzing.
 	const BroObj* last_obj;
@@ -464,6 +470,17 @@ void RD_Decorate::CreateEmptyPostRDs(const Stmt* s)
 void RD_Decorate::CreatePostRDs(const Stmt* s, RD_ptr& post_rds)
 	{
 	mgr.SetPostMinRDs(s, post_rds);
+	last_obj = s;
+
+	if ( trace )
+		{
+		printf("post RDs for stmt %s:\n", obj_desc(s));
+		mgr.GetPostMinRDs(s)->Dump();
+		}
+	}
+
+void RD_Decorate::FinishStmt(const Stmt* s)
+	{
 	last_obj = s;
 
 	if ( trace )

@@ -67,6 +67,11 @@ public:
 	void CreatePostDef(const ID* id, DefinitionPoint dp);
 	void CreatePostDef(DefinitionItem* di, DefinitionPoint dp);
 
+	void CreatePostRDsFromPre(const Stmt* s)
+		{ SetPostMinRDs(s, GetPreMinRDs(s)); }
+	void CreatePostRDsFromPost(const Stmt* target, const BroObj* source)
+		{ SetPostMinRDs(target, GetPostMinRDs(source)); }
+
 	void CreateDef(DefinitionItem* di, DefinitionPoint dp, bool is_pre);
 
 	DefinitionItem* GetExprReachingDef(Expr* e)

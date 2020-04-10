@@ -104,6 +104,24 @@ RD_ptr ReachingDefs::Union(const RD_ptr& r) const
 	return res;
 	}
 
+RD_ptr ReachingDefs::IntersectWithConsolidation(const RD_ptr& r,
+						const DefinitionPoint& di) const
+	{
+	auto res = make_new_RD_ptr();
+
+	for ( const auto& i : *const_rd_map )
+		for ( const auto& dp : *i.second )
+			{
+			if ( r->HasPair(i.first, dp) )
+				res->AddRD(i.first, dp);
+
+			else if ( r->HasDI(i.first) && ! HasPair(i.first, di) )
+				res->AddRD(i.first, di);
+			}
+
+	return res;
+	}
+
 bool ReachingDefs::HasPair(const DefinitionItem* di, const DefinitionPoint& dp)
 const
 	{
@@ -161,7 +179,7 @@ void ReachingDefs::DumpMap(const ReachingDefsMap* map) const
 void ReachingDefs::PrintRD(const DefinitionItem* di,
 				const DefPoints& dps) const
 	{
-	printf("%s (%d)", di->Name(), dps->length());
+	printf("%s (%d) (%x)", di->Name(), dps->length(), di);
 	}
 
 

@@ -62,6 +62,9 @@ DefinitionItem* DefinitionItem::CreateField(const char* field, const BroType* t)
 	{
 	auto offset = rt->FieldOffset(field);
 
+	if ( fields[offset] )
+		return fields[offset];
+
 	fields[offset] = new DefinitionItem(this, field, t);
 
 	return fields[offset];

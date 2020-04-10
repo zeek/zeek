@@ -84,14 +84,14 @@ protected:
 		return pre_min_defs->HasRD(o, id);
 		}
 
+	bool HasPreMinRD(const BroObj* o, const DefinitionItem* di)
+		{
+		return pre_min_defs->HasRD(o, di);
+		}
+
 	bool HasPostMinRDs(const BroObj* o) const
 		{
 		return post_min_defs->HasRDs(o);
-		}
-
-	bool HasPreDef(const BroObj* o, const DefinitionItem* di)
-		{
-		return pre_min_defs->HasRD(o, di);
 		}
 
 	void CreatePreDef(const ID* id, DefinitionPoint dp);
@@ -198,6 +198,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		SetPreMinRDs(s, GetPostMinRDs(last_obj));
 
 	const auto my_rds = GetPreMinRDs(s);
+	DefinitionPoint ds(s);
 
 	if ( trace )
 		{
@@ -265,7 +266,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 
 		if ( true_reached && false_reached )
 			{
-			auto post_rds = if_branch_rd->Intersect(else_branch_rd);
+			auto post_rds = if_branch_rd->IntersectWithConsolidation(else_branch_rd, ds);
 			CreatePostRDs(s, post_rds);
 			post_rds.release();
 			}
@@ -342,7 +343,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 
 		// Apply intersection since loop might not execute
 		// at all.
-		auto post_rds = GetPreMinRDs(s)->Intersect(GetPostMinRDs(body));
+		auto post_rds = GetPreMinRDs(s)->IntersectWithConsolidation(GetPostMinRDs(body), ds);
 
 		CreatePostRDs(s, post_rds);
 		post_rds.release();
@@ -359,6 +360,8 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 
 TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 	{
+	DefinitionPoint ds(s);
+
 	switch ( s->Tag() ) {
         case STMT_EXPR:
 		{
@@ -385,7 +388,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 
 				if ( did_first )
 					sw_post_rds =
-						sw_post_rds->Intersect(case_rd);
+						sw_post_rds->IntersectWithConsolidation(case_rd, ds);
 				else
 					{
 					sw_post_rds =
@@ -432,7 +435,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		// Apply intersection since loop might not execute
 		// at all.
 		auto while_post_rds =
-			GetPreMinRDs(s)->Intersect(GetPostMinRDs(body));
+			GetPreMinRDs(s)->IntersectWithConsolidation(GetPostMinRDs(body), ds);
 
 		CreatePostRDs(s, while_post_rds);
 		while_post_rds.release();
@@ -824,7 +827,8 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			auto field_rd =
 				item_map.GetConstIDReachingDef(r_def, fn);
 
-			if ( ! field_rd || ! HasPreDef(e, field_rd) )
+			auto e_pre = GetPreMinRDs(e);
+			if ( ! field_rd || ! e_pre->HasDI(field_rd) )
 				printf("no reaching def for %s\n", obj_desc(e));
 			}
 
@@ -847,7 +851,10 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			auto id_rd = item_map.GetIDReachingDef(id);
 
 			if ( ! id_rd )
+				{
 				printf("no ID reaching def for %s\n", id->Name());
+				break;
+				}
 
 			auto fn = hf->FieldName();
 			auto field_rd = id_rd->FindField(fn);

@@ -139,6 +139,9 @@ const
 
 void ReachingDefs::AddRDs(const ReachingDefsMap* rd_m)
 	{
+	if ( rd_m->size() == 0 )
+		return;
+
 	for ( const auto& one_rd : *rd_m )
 		for ( const auto& dp : *one_rd.second )
 			AddRD(one_rd.first, dp);

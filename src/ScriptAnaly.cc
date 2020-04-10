@@ -819,6 +819,15 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			break;
 
 		r->Traverse(this);
+
+		if ( r->Tag() == EXPR_NAME )
+			{
+			auto r_n = r->AsNameExpr();
+			if ( r_n->Id()->IsGlobal() )
+				// Don't worry about record fields in globals.
+				return TC_ABORTSTMT;
+			}
+
 		auto r_def = item_map.GetExprReachingDef(r);
 
 		if ( r_def )

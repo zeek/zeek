@@ -240,22 +240,23 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 
 	case STMT_IF:
 		{
-		// For now we assume there no definitions occur
-		// inside the conditional.  If one does, we'll
-		// detect that & complain about it in the PostStmt.
-		//
-		// (Note: when working with reduced statements, this
-		// is a non-issue.)
+		// While we'd like to think no assignment definitions
+		// will occur inside conditions (though they could for
+		// non-reduced code), in any case a ?$ operator can
+		// create definitions, so we have to accommodate that
+		// possibility.
 		auto i = s->AsIfStmt();
+		auto cond = i->StmtExpr();
 
-		// Need to manually control traversal since don't want
-		// RDs coming out of the TrueBranch to propagate to the
-		// FalseBranch.
+		SetPreMinRDs(cond, my_rds);
+		cond->Traverse(this);
 
-		SetPreMinRDs(i->TrueBranch(), my_rds);
+		auto post_cond_rds = GetPostMinRDs(cond);
+
+		SetPreMinRDs(i->TrueBranch(), post_cond_rds);
 		i->TrueBranch()->Traverse(this);
 
-		SetPreMinRDs(i->FalseBranch(), my_rds);
+		SetPreMinRDs(i->FalseBranch(), post_cond_rds);
 		i->FalseBranch()->Traverse(this);
 
 		auto if_branch_rd = GetPostMinRDs(i->TrueBranch());
@@ -477,8 +478,6 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		break;
 		}
 
-	case STMT_NEXT:
-	case STMT_BREAK:
 	case STMT_RETURN:
 		CreateEmptyPostRDs(s);
 		break;
@@ -650,6 +649,28 @@ bool RD_Decorate::ControlReachesEnd(const Stmt* s, bool is_definite,
 	case STMT_BREAK:
 		return ignore_break;
 
+	case STMT_FOR:
+		{
+		if ( ! is_definite )
+			// The loop body might not execute at all.
+			return true;
+
+		auto f = s->AsForStmt();
+		auto body = f->LoopBody();
+		return ControlReachesEnd(body, true, true);
+		}
+
+	case STMT_WHILE:
+		{
+		if ( ! is_definite )
+			// The loop body might not execute at all.
+			return true;
+
+		auto w = s->AsWhileStmt();
+		auto body = w->Body();
+		return ControlReachesEnd(body, is_definite, true);
+		}
+
 	case STMT_IF:
 		{
 		auto i = s->AsIfStmt();
@@ -676,7 +697,7 @@ bool RD_Decorate::ControlReachesEnd(const Stmt* s, bool is_definite,
 			{
 			bool body_def = ControlReachesEnd(c->Body(),
 								is_definite,
-								true);
+								false);
 
 			if ( is_definite && ! body_def )
 				control_reaches_end = false;

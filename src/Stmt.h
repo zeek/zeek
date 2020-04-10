@@ -25,6 +25,7 @@ class ExprStmt;
 class AddStmt;
 class SwitchStmt;
 class InitStmt;
+class WhenStmt;
 class Frame;
 
 class ReductionContext;
@@ -82,6 +83,7 @@ public:
 	CONST_ACCESSOR(STMT_EXPR, ExprStmt, AsExprStmt)
 	CONST_ACCESSOR(STMT_ADD, AddStmt, AsAddStmt)
 	CONST_ACCESSOR(STMT_SWITCH, SwitchStmt, AsSwitchStmt)
+	CONST_ACCESSOR(STMT_WHEN, WhenStmt, AsWhenStmt)
 	CONST_ACCESSOR(STMT_INIT, InitStmt, AsInitStmt)
 
 #undef ACCESSORS

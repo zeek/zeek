@@ -432,6 +432,21 @@ static std::optional<FuncType::Prototype> func_type_check(const FuncType* decl, 
 	return decl->FindPrototype(*impl->Args());
 	}
 
+static bool canonical_arg_types_match(const FuncType* decl, const FuncType* impl)
+	{
+	auto canon_args = decl->Args();
+	auto impl_args = impl->Args();
+
+	if ( canon_args->NumFields() != impl_args->NumFields() )
+		return false;
+
+	for ( auto i = 0; i < canon_args->NumFields(); ++i )
+		if ( ! same_type(canon_args->FieldType(i), impl_args->FieldType(i)) )
+			return false;
+
+	return true;
+	}
+
 void begin_func(ID* id, const char* module_name, function_flavor flavor,
                 bool is_redef, IntrusivePtr<FuncType> t, attr_list* attrs)
 	{
@@ -462,7 +477,16 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 				t->Warn("use of deprecated prototype", id);
 			}
 		else
-			t->Error("use of undeclared alternate prototype", id);
+			{
+			auto decl = id->Type()->AsFuncType();
+
+			// Allow renaming arguments, but only for the canonical
+			// prototypes of hooks/events.
+			if ( canonical_arg_types_match(decl, t.get()) )
+				prototype = decl->Prototypes()[0];
+			else
+				t->Error("use of undeclared alternate prototype", id);
+			}
 		}
 
 	else if ( is_redef )

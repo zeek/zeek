@@ -584,8 +584,10 @@ void FuncType::AddPrototype(Prototype p)
 
 std::optional<FuncType::Prototype> FuncType::FindPrototype(const RecordType& args) const
 	{
-	for ( const auto& p : prototypes )
+	for ( auto i = 0u; i < prototypes.size(); ++i )
 		{
+		const auto& p = prototypes[i];
+
 		if ( args.NumFields() != p.args->NumFields() )
 			continue;
 
@@ -604,11 +606,12 @@ std::optional<FuncType::Prototype> FuncType::FindPrototype(const RecordType& arg
 			auto ptype = p.args->FieldType(i);
 			auto desired_type = args.FieldType(i);
 
-			if ( same_type(ptype, desired_type) )
-				continue;
-
-			matched = false;
-			break;
+			if ( ! same_type(ptype, desired_type) ||
+			     ! streq(args.FieldName(i), p.args->FieldName(i)) )
+				{
+				matched = false;
+				break;
+				}
 			}
 
 		if ( matched )

@@ -96,10 +96,11 @@ RD_ptr ReachingDefs::Union(const RD_ptr& r) const
 	{
 	auto res = make_new_RD_ptr();
 
+	res->AddRDs(r);
+
 	for ( const auto& i : *RDMap() )
 		for ( const auto& dp : *i.second )
-			if ( ! r->HasPair(i.first, dp) )
-				res->AddRD(i.first, dp);
+			res->AddRD(i.first, dp);
 
 	return res;
 	}

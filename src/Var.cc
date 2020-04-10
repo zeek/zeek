@@ -76,6 +76,13 @@ static bool add_prototype(ID* id, BroType* t, attr_list* attrs,
 	for ( auto i = 0; i < alt_args->NumFields(); ++i )
 		{
 		auto field = alt_args->FieldName(i);
+
+		if ( alt_args->FieldDecl(i)->attrs )
+			{
+			alt_ft->Error(fmt("alternate function prototype arguments may not have attributes: arg '%s'", field), canon_ft);
+			return false;
+			}
+
 		auto o = canon_args->FieldOffset(field);
 
 		if ( o < 0 )

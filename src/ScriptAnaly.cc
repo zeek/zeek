@@ -150,6 +150,7 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 
 TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 	{
+	// ###
 	if ( ! mgr.HasPreMinRDs(s) )
 		mgr.SetPreFromPost(s, last_obj);
 
@@ -226,11 +227,19 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 
 		if ( true_reached && false_reached )
 			{
-			auto if_branch_rd = mgr.GetPostMinRDs(i->TrueBranch());
-			auto else_branch_rd = mgr.GetPostMinRDs(i->FalseBranch());
-			auto post_rds = if_branch_rd->IntersectWithConsolidation(else_branch_rd, ds);
-			CreatePostRDs(s, post_rds);
-			post_rds.release();
+			auto min_if_branch_rd = mgr.GetPostMinRDs(i->TrueBranch());
+			auto min_else_branch_rd = mgr.GetPostMinRDs(i->FalseBranch());
+			auto min_post_rds =
+				min_if_branch_rd->IntersectWithConsolidation(min_else_branch_rd, ds);
+			auto max_if_branch_rd = mgr.GetPostMaxRDs(i->TrueBranch());
+			auto max_else_branch_rd = mgr.GetPostMaxRDs(i->FalseBranch());
+			auto max_post_rds = max_if_branch_rd->Union(max_else_branch_rd);
+
+			mgr.CreateMinMaxPostRDs(s, min_post_rds, max_post_rds);
+			min_post_rds.release();
+			max_post_rds.release();
+
+			FinishStmt(s);
 			}
 
 		else
@@ -303,12 +312,13 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		// ### If post differs from pre, propagate to
 		// beginning and re-traverse.
 
-		// Apply intersection since loop might not execute
-		// at all.
-		auto post_rds = mgr.GetPreMinRDs(s)->IntersectWithConsolidation(mgr.GetPostMinRDs(body), ds);
+		// Factor in that the loop might not execute at all.
+		auto min_post_rds = mgr.GetPreMinRDs(s)->IntersectWithConsolidation(mgr.GetPostMinRDs(body), ds);
+		auto max_post_rds = mgr.GetPreMaxRDs(s)->Union(mgr.GetPostMaxRDs(body));
 
-		CreatePostRDs(s, post_rds);
-		post_rds.release();
+		mgr.CreateMinMaxPostRDs(s, min_post_rds, max_post_rds);
+		min_post_rds.release();
+		max_post_rds.release();
 
 		return TC_ABORTSTMT;
 		}
@@ -802,6 +812,7 @@ bool RD_Decorate::ControlReachesEnd(const Stmt* s, bool is_definite,
 
 TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	{
+	// ###
 	if ( ! mgr.HasPreMinRDs(e) )
 		mgr.SetPreFromPost(e, last_obj);
 

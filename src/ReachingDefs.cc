@@ -1,7 +1,23 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "ReachingDefs.h"
+#include "Desc.h"
 
+
+static char obj_desc_storage[8192];
+
+static const char* obj_desc(const BroObj* o)
+	{
+	ODesc d;
+	d.SetDoOrig(false);
+	o->Describe(&d);
+	d.SP();
+	o->GetLocationInfo()->Describe(&d);
+
+	strcpy(obj_desc_storage, d.Description());
+
+	return obj_desc_storage;
+	}
 
 ReachingDefs::ReachingDefs()
 	{
@@ -28,7 +44,7 @@ ReachingDefs::~ReachingDefs()
 		}
 	}
 
-void ReachingDefs::AddRD(const DefinitionItem* di, DefinitionPoint dp)
+void ReachingDefs::AddRD(const DefinitionItem* di, const DefinitionPoint& dp)
 	{
 	if ( HasPair(di, dp) )
 		return;
@@ -52,8 +68,10 @@ void ReachingDefs::AddRD(const DefinitionItem* di, DefinitionPoint dp)
 	}
 
 void ReachingDefs::AddOrFullyReplace(const DefinitionItem* di,
-					DefinitionPoint dp)
+					const DefinitionPoint& dp)
 	{
+	CopyMapIfNeeded();
+
 	auto curr_defs = my_rd_map->find(di);
 
 	if ( curr_defs != my_rd_map->end() )
@@ -86,7 +104,8 @@ RD_ptr ReachingDefs::Union(const RD_ptr& r) const
 	return res;
 	}
 
-bool ReachingDefs::HasPair(const DefinitionItem* di, DefinitionPoint dp) const
+bool ReachingDefs::HasPair(const DefinitionItem* di, const DefinitionPoint& dp)
+const
 	{
 	auto l = const_rd_map->find(di);
 
@@ -103,7 +122,7 @@ bool ReachingDefs::HasPair(const DefinitionItem* di, DefinitionPoint dp) const
 void ReachingDefs::AddRDs(const ReachingDefsMap* rd_m)
 	{
 	for ( const auto& one_rd : *rd_m )
-		for ( auto& dp : *one_rd.second )
+		for ( const auto& dp : *one_rd.second )
 			AddRD(one_rd.first, dp);
 	}
 
@@ -113,28 +132,36 @@ void ReachingDefs::CopyMapIfNeeded()
 		return;
 
 	my_rd_map = new ReachingDefsMap;
-	AddRDs(const_rd_map);
-
+	auto old_const_rd_map = const_rd_map;
 	const_rd_map = my_rd_map;
+	AddRDs(old_const_rd_map);
 	}
 
 void ReachingDefs::Dump() const
 	{
-	if ( Size() == 0 )
+	DumpMap(const_rd_map);
+	}
+
+void ReachingDefs::DumpMap(const ReachingDefsMap* map) const
+	{
+	printf("%d RD element%s: ", Size(), Size() == 1 ? "" : "s");
+
+	int n = 0;
+	for ( auto r = map->begin(); r != map->end(); ++r )
 		{
-		printf("<none>\n");
-		return;
+		if ( ++n > 1 )
+			printf(", ");
+
+		PrintRD(r->first, r->second);
 		}
 
-	for ( auto r = const_rd_map->begin(); r != const_rd_map->end(); ++r )
-		PrintRD(r->first, r->second);
+	printf("\n");
 	}
 
 void ReachingDefs::PrintRD(const DefinitionItem* di,
 				const DefPoints& dps) const
 	{
-	int n = dps->length();
-	printf("%d RD%s for %s\n", n, n > 1 ? "s" : "", di->Name());
+	printf("%s (%d)", di->Name(), dps->length());
 	}
 
 
@@ -142,18 +169,23 @@ const RD_ptr& ReachingDefSet::FindRDs(const BroObj* o) const
 	{
 	auto rd = a_i->find(o);
 	if ( rd == a_i->end() )
+		{
+		printf("miscall object: %s\n", obj_desc(o));
 		Internal("miscall of ReachingDefSet::FindRDs");
+		}
 
 	return rd->second;
 	}
 
 void ReachingDefSet::AddOrReplace(const BroObj* o, const DefinitionItem* di,
-					DefinitionPoint dp)
+					const DefinitionPoint& dp)
 	{
 	auto rd = a_i->find(o);
 	if ( rd == a_i->end() )
+		{
+		printf("miscall object: %s\n", obj_desc(o));
 		Internal("miscall of ReachingDefSet::AddOrReplace");
+		}
 
-	return rd->second->AddOrFullyReplace(di, dp);
+	rd->second->AddOrFullyReplace(di, dp);
 	}
-

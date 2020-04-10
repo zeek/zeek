@@ -57,7 +57,10 @@ public:
 	// any such definition.
 	DefinitionItem* GetExprReachingDef(Expr* expr);
 
+	// Returns the definition item for a given ID; creates it if
+	// it doesn't already exist.
 	DefinitionItem* GetIDReachingDef(const ID* id);
+
 	const DefinitionItem* GetConstIDReachingDef(const ID* id) const;
 
 	const DefinitionItem* GetConstIDReachingDef(const DefinitionItem* di,

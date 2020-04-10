@@ -36,11 +36,12 @@ public:
 
 	// Add in a single definition pair, creating the entry for
 	// the item if necessary.
-	void AddRD(const DefinitionItem* di, DefinitionPoint dp);
+	void AddRD(const DefinitionItem* di, const DefinitionPoint& dp);
 
 	// Add a single definition pair if missing.  If present,
 	// replace everything currently associated with new definition.
-	void AddOrFullyReplace(const DefinitionItem* di, DefinitionPoint dp);
+	void AddOrFullyReplace(const DefinitionItem* di,
+				const DefinitionPoint& dp);
 
 	bool HasDI(const DefinitionItem* di) const
 		{
@@ -53,11 +54,12 @@ public:
 	RD_ptr Union(const RD_ptr& r) const;
 
 	void Dump() const;
+	void DumpMap(const ReachingDefsMap* map) const;
 
 	int Size() const	{ return const_rd_map->size(); }
 
 protected:
-	bool HasPair(const DefinitionItem* di, DefinitionPoint dp) const;
+	bool HasPair(const DefinitionItem* di, const DefinitionPoint& dp) const;
 
 	void AddRDs(const ReachingDefsMap* rd_m);
 
@@ -127,7 +129,7 @@ public:
 	// already exists, replace *all* of its reaching definitions
 	// with this new one.
 	void AddOrReplace(const BroObj* o, const DefinitionItem* di,
-				DefinitionPoint dp);
+				const DefinitionPoint& dp);
 
 	void AddRDs(const BroObj* o, const RD_ptr& rd)
 		{

@@ -53,9 +53,14 @@ protected:
 	const RD_ptr& GetPreMinRDs(const BroObj* o) const
 		{ return GetRDs(pre_min_defs, o); }
 	const RD_ptr& GetPostMinRDs(const BroObj* o) const
-		{ return GetRDs(post_min_defs, o); }
+		{
+		if ( HasPostMinRDs(o) )
+			return GetRDs(post_min_defs, o);
+		else
+			return GetPreMinRDs(o);
+		}
 
-	const RD_ptr& GetRDs(IntrusivePtr<ReachingDefSet> defs,
+	const RD_ptr& GetRDs(const IntrusivePtr<ReachingDefSet> defs,
 				const BroObj* o) const
 		{
 		return defs->FindRDs(o);
@@ -64,18 +69,29 @@ protected:
 	// ### If we want to go to sharing RD sets using copy-on-write,
 	// then a starting point is altering the const RD_ptr&'s in
 	// these APIs to instead be RD_ptr's.
-	void AddMinPreRDs(const BroObj* o, const RD_ptr& rd)
-		{ pre_min_defs->AddRDs(o, rd); }
-	void SetMinPreRDs(const BroObj* o, const RD_ptr& rd)
+	void SetPreMinRDs(const BroObj* o, const RD_ptr& rd)
 		{ pre_min_defs->SetRDs(o, rd); }
-	void AddMinPostRDs(const BroObj* o, const RD_ptr& rd)
-		{ post_min_defs->AddRDs(o, rd); }
-	void SetMinPostRDs(const BroObj* o, const RD_ptr& rd)
+	void SetPostMinRDs(const BroObj* o, const RD_ptr& rd)
 		{ post_min_defs->SetRDs(o, rd); }
 
-	bool HasMinPreRD(const BroObj* o, const ID* id) const
+	bool HasPreMinRDs(const BroObj* o) const
+		{
+		return pre_min_defs->HasRDs(o);
+		}
+
+	bool HasPreMinRD(const BroObj* o, const ID* id) const
 		{
 		return pre_min_defs->HasRD(o, id);
+		}
+
+	bool HasPostMinRDs(const BroObj* o) const
+		{
+		return post_min_defs->HasRDs(o);
+		}
+
+	bool HasPreDef(const BroObj* o, const DefinitionItem* di)
+		{
+		return pre_min_defs->HasRD(o, di);
 		}
 
 	void CreatePreDef(const ID* id, DefinitionPoint dp);
@@ -138,7 +154,7 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 	int n = args->NumFields();
 
 	auto empty_rds = make_new_RD_ptr();
-	SetMinPreRDs(f, empty_rds);
+	SetPreMinRDs(f, empty_rds);
 	empty_rds.release();
 
 	for ( int i = 0; i < n; ++i )
@@ -152,13 +168,24 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 		CreateInitPostDef(arg_i_id, DefinitionPoint(f), true, 0);
 		}
 
-	last_obj = f;
+	if ( ! HasPostMinRDs(f) )
+		// This happens if we have no arguments.  Use the
+		// empty ones we set up.
+		SetPostMinRDs(f, GetPreMinRDs(f));
 
 	if ( trace )
 		{
 		printf("traversing function %s, post RDs:\n", f->Name());
 		GetPostMinRDs(f)->Dump();
 		}
+
+	auto bodies = f->GetBodies();
+	for ( const auto& body : bodies )
+		SetPreMinRDs(body.stmts.get(), GetPostMinRDs(f));
+
+	// This shouldn't be needed, since the body will have
+	// explicit PreMinRDs set.
+	last_obj = f;
 
 	// Don't continue traversal here, as that will then loop over
 	// older bodies.  Instead, we do it manually.
@@ -167,19 +194,49 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 
 TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 	{
-	SetMinPreRDs(s, GetPostMinRDs(last_obj));
+	if ( ! HasPreMinRDs(s) )
+		SetPreMinRDs(s, GetPostMinRDs(last_obj));
 
-	const auto rds = GetPreMinRDs(s);
+	const auto my_rds = GetPreMinRDs(s);
 
 	if ( trace )
 		{
-		printf("pre RDs for stmt %s:\n", stmt_name(s->Tag()));
-		rds->Dump();
+		printf("pre RDs for stmt %s:\n", obj_desc(s));
+		my_rds->Dump();
 		}
 
 	last_obj = s;
 
 	switch ( s->Tag() ) {
+        case STMT_EXPR:
+		{
+		auto e = s->AsExprStmt()->StmtExpr();
+		SetPreMinRDs(e, my_rds);
+		break;
+		}
+
+	case STMT_LIST:
+	case STMT_EVENT_BODY_LIST:
+		{
+		auto sl = s->AsStmtList();
+		auto stmts = sl->Stmts();
+		auto curr_rds = my_rds;
+
+		for ( const auto& stmt : stmts )
+			{
+			SetPreMinRDs(stmt, curr_rds);
+			stmt->Traverse(this);
+			last_obj = stmt;
+			curr_rds = GetPostMinRDs(stmt);
+			}
+
+		SetPostMinRDs(sl, curr_rds);
+
+		last_obj = s;
+
+		return TC_ABORTSTMT;
+		}
+
 	case STMT_IF:
 		{
 		// For now we assume there no definitions occur
@@ -189,20 +246,15 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		// (Note: when working with reduced statements, this
 		// is a non-issue.)
 		auto i = s->AsIfStmt();
-		auto my_rds = rds;
 
 		// Need to manually control traversal since don't want
 		// RDs coming out of the TrueBranch to propagate to the
 		// FalseBranch.
 
-		printf("my RDs #1:\n"); my_rds->Dump();
-		SetMinPreRDs(i->TrueBranch(), my_rds);
-		printf("if branch pre-RDs:\n"); GetPreMinRDs(i->TrueBranch())->Dump();
+		SetPreMinRDs(i->TrueBranch(), my_rds);
 		i->TrueBranch()->Traverse(this);
-		printf("my RDs #2:\n"); my_rds->Dump();
 
-		SetMinPreRDs(i->FalseBranch(), my_rds);
-		printf("else branch pre-RDs:\n"); GetPreMinRDs(i->FalseBranch())->Dump();
+		SetPreMinRDs(i->FalseBranch(), my_rds);
 		i->FalseBranch()->Traverse(this);
 
 		auto if_branch_rd = GetPostMinRDs(i->TrueBranch());
@@ -213,12 +265,9 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 
 		if ( true_reached && false_reached )
 			{
-			printf("if branch RDs:\n"); if_branch_rd->Dump();
-			printf("else branch RDs:\n"); else_branch_rd->Dump();
 			auto post_rds = if_branch_rd->Intersect(else_branch_rd);
 			CreatePostRDs(s, post_rds);
 			post_rds.release();
-			printf("intersect RDs:\n"); post_rds->Dump();
 			}
 
 		else
@@ -244,6 +293,8 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		for ( const auto& c : *cases )
 			{
 			auto body = c->Body();
+			SetPreMinRDs(body, my_rds);
+
 			auto type_ids = c->TypeCases();
 			if ( type_ids )
 				{
@@ -265,12 +316,15 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		auto body = f->LoopBody();
 		auto val_var = f->ValueVar();
 
+		SetPreMinRDs(e, my_rds);
+		e->Traverse(this);
+		SetPreMinRDs(body, GetPostMinRDs(e));
+
 		for ( const auto& id : *ids )
 			CreateInitPreDef(id, DefinitionPoint(body));
+
 		if ( val_var )
 			CreateInitPreDef(val_var, DefinitionPoint(body));
-
-		SetMinPreRDs(e, rds);
 
 		// If the loop expression's value is uninitialized, that's
 		// okay, it will just result in an empty loop.  In principle,
@@ -306,12 +360,6 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 	{
 	switch ( s->Tag() ) {
-	case STMT_PRINT:
-	case STMT_EVENT:
-	case STMT_WHEN:
-		CreatePostRDs(s, GetPreMinRDs(s));
-		break;
-
         case STMT_EXPR:
 		{
 		auto e = s->AsExprStmt()->StmtExpr();
@@ -392,29 +440,10 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		break;
 		}
 
-	case STMT_LIST:
-	case STMT_EVENT_BODY_LIST:
-		{
-		auto l = s->AsStmtList();
-		auto stmts = l->Stmts();
-
-		if ( ControlReachesEnd(l, false ) )
-			{
-			auto post_rds = stmts.length() == 0 ?
-				GetPreMinRDs(s) :
-				GetPostMinRDs(stmts[stmts.length() - 1]);
-
-			CreatePostRDs(s, post_rds);
-			}
-
-		else
-			;  // leave empty
-
-		break;
-		}
-
 	case STMT_INIT:
 		{
+		CreatePostRDs(s, GetPreMinRDs(s));
+
 		auto init = s->AsInitStmt();
 		auto& inits = *init->Inits();
 
@@ -437,8 +466,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 	case STMT_NEXT:
 	case STMT_BREAK:
 	case STMT_RETURN:
-		// No control flow past these statements, so no
-		// post reaching defs.
+		CreateEmptyPostRDs(s);
 		break;
 
 	case STMT_FALLTHROUGH:
@@ -450,9 +478,11 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		// potential RDs and not just minimalist RDs.
 		//
 		// Anyhoo, punt for now. ###
+		CreatePostRDs(s, GetPreMinRDs(s));
 		break;
 
 	default:
+		CreatePostRDs(s, GetPreMinRDs(s));
 		break;
 	}
 
@@ -461,26 +491,17 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 
 void RD_Decorate::CreateEmptyPostRDs(const Stmt* s)
 	{
-	auto post_rds = make_new_RD_ptr();
-
-	SetMinPostRDs(s, post_rds);
-	last_obj = s;
-
-	if ( trace )
-		{
-		printf("post RDs for stmt %s:\n", stmt_name(s->Tag()));
-		GetPostMinRDs(s)->Dump();
-		}
+	CreatePostRDs(s, make_new_RD_ptr());
 	}
 
 void RD_Decorate::CreatePostRDs(const Stmt* s, const RD_ptr& post_rds)
 	{
-	SetMinPostRDs(s, post_rds);
+	SetPostMinRDs(s, post_rds);
 	last_obj = s;
 
 	if ( trace )
 		{
-		printf("post RDs for stmt %s:\n", stmt_name(s->Tag()));
+		printf("post RDs for stmt %s:\n", obj_desc(s));
 		GetPostMinRDs(s)->Dump();
 		}
 	}
@@ -691,12 +712,26 @@ bool RD_Decorate::ControlReachesEnd(const Stmt* s, bool is_definite,
 
 TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	{
-	SetMinPreRDs(e, GetPostMinRDs(last_obj));
+	if ( ! HasPreMinRDs(e) )
+		SetPreMinRDs(e, GetPostMinRDs(last_obj));
 
 	if ( trace )
 		{
-		printf("pre RDs for expr %s:\n", expr_name(e->Tag()));
+		printf("pre RDs for expr %s:\n", obj_desc(e));
 		GetPreMinRDs(e)->Dump();
+		}
+
+	// Since there are no control flow or confluence issues (the latter
+	// holds when working on reduced expressions; perverse assignments
+	// inside &&/|| introduce confluence issues, but that won't lead
+	// to optimization issues, just imprecision in tracking uninitialized
+	// values).
+	SetPostMinRDs(e, GetPreMinRDs(e));
+
+	if ( trace )
+		{
+		printf("nominal post RDs for expr %s:\n", obj_desc(e));
+		GetPostMinRDs(e)->Dump();
 		}
 
 	last_obj = e;
@@ -713,7 +748,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			CreateInitPostDef(id, DefinitionPoint(n), true, nullptr);
 			}
 
-		else if ( ! HasMinPreRD(e, id) )
+		else if ( ! HasPreMinRD(e, id) )
 			printf("%s has no pre at %s\n", id->Name(), obj_desc(e));
 
 		if ( id->Type()->Tag() == TYPE_RECORD )
@@ -735,7 +770,6 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 
 			// Treat this as an initalization of the set.
 			CreatePostDef(lhs_id, DefinitionPoint(a_t));
-			AddMinPostRDs(e, GetPreMinRDs(e));
 
 			a_t->Op2()->Traverse(this);
 			return TC_ABORTSTMT;
@@ -754,11 +788,10 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 
 		if ( CheckLHS(lhs, a) )
 			{
-			AddMinPostRDs(e, GetPreMinRDs(e));
-
 			if ( ! rhs_aggr )
 				rhs->Traverse(this);
 
+			last_obj = e;
 			return TC_ABORTSTMT;
 			}
 
@@ -791,7 +824,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			auto field_rd =
 				item_map.GetConstIDReachingDef(r_def, fn);
 
-			if ( ! field_rd )
+			if ( ! field_rd || ! HasPreDef(e, field_rd) )
 				printf("no reaching def for %s\n", obj_desc(e));
 			}
 
@@ -854,41 +887,31 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 				expr->Traverse(this);
 			}
 
-		AddMinPostRDs(e, GetPreMinRDs(e));
-
 		return TC_ABORTSTMT;
 		}
 
 	case EXPR_LAMBDA:
 		// ### Too tricky to get these right.
-		AddMinPostRDs(e, GetPreMinRDs(e));
 		return TC_ABORTSTMT;
 
 	default:
 		break;
 	}
 
-	AddMinPostRDs(e, GetPreMinRDs(e));
-
 	return TC_CONTINUE;
 	}
 
 TraversalCode RD_Decorate::PostExpr(const Expr* e)
 	{
-	AddMinPostRDs(e, GetPreMinRDs(e));
-
 	if ( e->Tag() == EXPR_APPEND_TO )
 		{
 		// We don't treat the expression as an initialization
 		// in the PreExpr phase, because we want to catch a
 		// possible uninitialized LHS.  But now we can since
 		// it's definitely initialized after executing.
-		auto rd = make_new_RD_ptr();
-		auto a_t = e->AsAppendToExpr();
-		auto lhs = a_t->Op1();
+		auto lhs = e->GetOp1();
 
-		if ( CheckLHS(lhs, nullptr) )
-			AddMinPostRDs(e, rd);
+		(void) CheckLHS(lhs.get(), nullptr);
 		}
 
 	return TC_CONTINUE;
@@ -930,6 +953,16 @@ void RD_Decorate::CreatePostDef(const ID* id, DefinitionPoint dp)
 
 void RD_Decorate::CreatePostDef(DefinitionItem* di, DefinitionPoint dp)
 	{
+	auto where = dp.OpaqueVal();
+
+	if ( ! post_min_defs->HasRDs(where) )
+		{
+		// We haven't yet started creating post RDs for this
+		// statement/expression, so create them.
+		auto pre = GetPreMinRDs(where);
+		SetPostMinRDs(where, GetPreMinRDs(where));
+		}
+
 	CreateDef(di, dp, false);
 	}
 
@@ -939,15 +972,6 @@ void RD_Decorate::CreateDef(DefinitionItem* di, DefinitionPoint dp, bool is_pre)
 
 	IntrusivePtr<ReachingDefSet>& defs =
 		is_pre ? pre_min_defs : post_min_defs;
-
-	if ( ! defs->HasRDs(where) )
-		{
-		// ###
-
-		// We haven't yet started creating post RDs for this
-		// statement/expression, so create them.
-		post_min_defs->SetRDs(where, GetPreMinRDs(where));
-		}
 
 	defs->AddOrReplace(where, di, dp);
 	}
@@ -968,7 +992,7 @@ void RD_Decorate::CreateInitPostDef(const ID* id, DefinitionPoint dp,
 	if ( ! di )
 		return;
 
-	CreateInitDef(di, dp, true, assume_full, init);
+	CreateInitDef(di, dp, false, assume_full, init);
 	}
 
 void RD_Decorate::CreateInitPostDef(DefinitionItem* di, DefinitionPoint dp,
@@ -1130,6 +1154,7 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 	push_scope(id, nullptr);
 	ReductionContext rc(f->GetScope());
 
+return;
 	if ( only_func )
 		printf("Original: %s\n", obj_desc(body));
 

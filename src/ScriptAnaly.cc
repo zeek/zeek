@@ -47,8 +47,12 @@ protected:
 	bool IsAggrTag(TypeTag tag) const;
 	bool IsAggr(const Expr* e) const;
 
+	bool ControlCouldReachEnd(const Stmt* s, bool ignore_break) const;
+
+	// ### Check whether this is still needed, or if it's wholly
+	// supplanted by ControlCouldReachEnd.
 	bool ControlReachesEnd(const Stmt* s, bool is_definite,
-				bool ignore_break) const;
+				bool ignore_break, bool ignore_next) const;
 
 	RD_ptr& GetPreMinRDs(const BroObj* o) const
 		{ return GetRDs(pre_min_defs, o); }
@@ -263,9 +267,9 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		auto else_branch_rd = GetPostMinRDs(i->FalseBranch());
 
 		auto true_reached =
-			ControlReachesEnd(i->TrueBranch(), false, false);
+			ControlCouldReachEnd(i->TrueBranch(), false);
 		auto false_reached =
-			ControlReachesEnd(i->FalseBranch(), false, false);
+			ControlCouldReachEnd(i->FalseBranch(), false);
 
 		if ( true_reached && false_reached )
 			{
@@ -391,7 +395,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 
 		for ( const auto& c : *cases )
 			{
-			if ( ControlReachesEnd(c->Body(), false, true) )
+			if ( ControlCouldReachEnd(c->Body(), true) )
 				{
 				auto case_rd = GetPostMinRDs(c->Body());
 
@@ -638,16 +642,100 @@ bool RD_Decorate::IsAggr(const Expr* e) const
 	return IsAggrTag(tag);
 	}
 
-bool RD_Decorate::ControlReachesEnd(const Stmt* s, bool is_definite,
-					bool ignore_break) const
+bool RD_Decorate::ControlCouldReachEnd(const Stmt* s, bool ignore_break) const
 	{
 	switch ( s->Tag() ) {
+	case STMT_RETURN:
 	case STMT_NEXT:
+		return false;
+
+	case STMT_BREAK:
+		return ignore_break;
+
+	case STMT_FOR:
+		// The loop body might not execute at all.
+		return true;
+
+	case STMT_WHILE:
+		// The loop body might not execute at all.
+		return true;
+
+	case STMT_IF:
+		{
+		auto i = s->AsIfStmt();
+
+		if ( ControlCouldReachEnd(i->TrueBranch(), ignore_break) )
+			return true;
+
+		return ControlCouldReachEnd(i->FalseBranch(), ignore_break);
+		}
+
+	case STMT_SWITCH:
+		{
+		auto sw = s->AsSwitchStmt();
+		auto cases = sw->Cases();
+
+		bool control_reaches_end = false;
+		bool default_seen = false;
+		for ( const auto& c : *cases )
+			{
+			bool body_def = ControlCouldReachEnd(c->Body(), true);
+
+			if ( body_def )
+				control_reaches_end = true;
+
+			if ( (! c->ExprCases() ||
+			      c->ExprCases()->Exprs().length() == 0) &&
+			     (! c->TypeCases() ||
+			      c->TypeCases()->length() == 0) )
+				default_seen = true;
+			}
+
+		if ( ! default_seen )
+			return true;
+
+		return control_reaches_end;
+		}
+
+	case STMT_LIST:
+	case STMT_EVENT_BODY_LIST:
+		{
+		auto l = s->AsStmtList();
+
+		bool reaches_so_far = true;
+
+		for ( const auto& stmt : l->Stmts() )
+			{
+			if ( ! reaches_so_far )
+				{
+				// printf("dead code: %s\n", obj_desc(stmt));
+				return false;
+				}
+
+			if ( ! ControlCouldReachEnd(stmt, ignore_break) )
+				reaches_so_far = false;
+			}
+
+		return reaches_so_far;
+		}
+
+	default:
+		return true;
+	}
+	}
+
+bool RD_Decorate::ControlReachesEnd(const Stmt* s, bool is_definite,
+				bool ignore_break, bool ignore_next) const
+	{
+	switch ( s->Tag() ) {
 	case STMT_RETURN:
 		return false;
 
 	case STMT_BREAK:
 		return ignore_break;
+
+	case STMT_NEXT:
+		return ignore_next;
 
 	case STMT_FOR:
 		{
@@ -657,7 +745,7 @@ bool RD_Decorate::ControlReachesEnd(const Stmt* s, bool is_definite,
 
 		auto f = s->AsForStmt();
 		auto body = f->LoopBody();
-		return ControlReachesEnd(body, true, true);
+		return ControlReachesEnd(body, is_definite, true, true);
 		}
 
 	case STMT_WHILE:
@@ -668,7 +756,7 @@ bool RD_Decorate::ControlReachesEnd(const Stmt* s, bool is_definite,
 
 		auto w = s->AsWhileStmt();
 		auto body = w->Body();
-		return ControlReachesEnd(body, is_definite, true);
+		return ControlReachesEnd(body, is_definite, true, true);
 		}
 
 	case STMT_IF:
@@ -676,9 +764,9 @@ bool RD_Decorate::ControlReachesEnd(const Stmt* s, bool is_definite,
 		auto i = s->AsIfStmt();
 
 		auto true_reaches = ControlReachesEnd(i->TrueBranch(),
-						is_definite, ignore_break);
+					is_definite, ignore_break, ignore_next);
 		auto false_reaches = ControlReachesEnd(i->FalseBranch(),
-						is_definite, ignore_break);
+					is_definite, ignore_break, ignore_next);
 
 		if ( is_definite )
 			return true_reaches && false_reaches;
@@ -697,7 +785,7 @@ bool RD_Decorate::ControlReachesEnd(const Stmt* s, bool is_definite,
 			{
 			bool body_def = ControlReachesEnd(c->Body(),
 								is_definite,
-								false);
+								true, false);
 
 			if ( is_definite && ! body_def )
 				control_reaches_end = false;
@@ -734,7 +822,7 @@ bool RD_Decorate::ControlReachesEnd(const Stmt* s, bool is_definite,
 				}
 
 			if ( ! ControlReachesEnd(stmt, is_definite,
-							ignore_break) )
+						ignore_break, ignore_next) )
 				reaches_so_far = false;
 			}
 

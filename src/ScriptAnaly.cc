@@ -48,7 +48,7 @@ protected:
 	bool IsAggr(const Expr* e) const;
 
 	bool ControlReachesEnd(const Stmt* s, bool is_definite,
-				bool ignore_break = false) const;
+				bool ignore_break) const;
 
 	const RD_ptr& GetPreMinRDs(const BroObj* o) const
 		{ return GetRDs(pre_min_defs, o); }
@@ -261,8 +261,10 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		auto if_branch_rd = GetPostMinRDs(i->TrueBranch());
 		auto else_branch_rd = GetPostMinRDs(i->FalseBranch());
 
-		auto true_reached = ControlReachesEnd(i->TrueBranch(), false);
-		auto false_reached = ControlReachesEnd(i->FalseBranch(), false);
+		auto true_reached =
+			ControlReachesEnd(i->TrueBranch(), false, false);
+		auto false_reached =
+			ControlReachesEnd(i->FalseBranch(), false, false);
 
 		if ( true_reached && false_reached )
 			{
@@ -388,7 +390,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 
 		for ( const auto& c : *cases )
 			{
-			if ( ControlReachesEnd(c->Body(), false) )
+			if ( ControlReachesEnd(c->Body(), false, true) )
 				{
 				auto case_rd = GetPostMinRDs(c->Body());
 
@@ -423,6 +425,10 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 				break;
 				}
 			}
+
+		if ( ! sw_post_rds )
+			// This happens when all of the cases return.
+			sw_post_rds = make_new_RD_ptr();
 
 		CreatePostRDs(s, sw_post_rds);
 		sw_post_rds.release();
@@ -648,10 +654,10 @@ bool RD_Decorate::ControlReachesEnd(const Stmt* s, bool is_definite,
 		{
 		auto i = s->AsIfStmt();
 
-		auto true_reaches =
-			ControlReachesEnd(i->TrueBranch(), is_definite);
-		auto false_reaches =
-			ControlReachesEnd(i->FalseBranch(), is_definite);
+		auto true_reaches = ControlReachesEnd(i->TrueBranch(),
+						is_definite, ignore_break);
+		auto false_reaches = ControlReachesEnd(i->FalseBranch(),
+						is_definite, ignore_break);
 
 		if ( is_definite )
 			return true_reaches && false_reaches;

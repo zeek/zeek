@@ -227,6 +227,7 @@ set(MAIN_SRCS
     DebugCmds.cc
     DebugLogger.cc
     DefItem.cc
+    DefSetsMgr.cc
     Desc.cc
     Dict.cc
     Discard.cc

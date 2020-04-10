@@ -471,22 +471,46 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 
 	if ( id->Type() )
 		{
-		prototype = func_type_check(id->Type()->AsFuncType(), t.get());
+		auto decl = id->Type()->AsFuncType();
+		prototype = func_type_check(decl, t.get());
 
 		if ( prototype )
 			{
-			// If a previous declaration of the function had &default params,
-			// automatically transfer any that are missing (convenience so that
-			// implementations don't need to specify the &default expression again).
-			transfer_arg_defaults(prototype->args.get(), t->Args());
+			if ( decl->Flavor() == FUNC_FLAVOR_FUNCTION )
+				{
+				// If a previous declaration of the function had &default
+				// params, automatically transfer any that are missing
+				// (convenience so that implementations don't need to specify
+				// the &default expression again).
+				transfer_arg_defaults(prototype->args.get(), t->Args());
+				}
+			else
+				{
+				// Warn for trying to use &default parameters in hook/event
+				// handler body when it already has a declaration since only
+				// &default in the declaration has any effect.
+				auto args = t->Args();
+
+				for ( int i = 0; i < args->NumFields(); ++i )
+					{
+					auto f = args->FieldDecl(i);
+
+					if ( f->attrs && f->attrs->FindAttr(ATTR_DEFAULT) )
+						{
+						reporter->PushLocation(args->GetLocationInfo());
+						reporter->Warning(
+						    "&default on parameter '%s' has no effect (not a %s declaration)",
+						    args->FieldName(i), t->FlavorString().data());
+						reporter->PopLocation();
+						}
+					}
+				}
 
 			if ( prototype->deprecated )
 				t->Warn("use of deprecated prototype", id);
 			}
 		else
 			{
-			auto decl = id->Type()->AsFuncType();
-
 			// Allow renaming arguments, but only for the canonical
 			// prototypes of hooks/events.
 			if ( canonical_arg_types_match(decl, t.get()) )

@@ -40,6 +40,8 @@ public:
 	void TrackInits(const Func* f, const id_list* inits);
 
 protected:
+	void DoIfStmtConfluence(const IfStmt* i);
+	void DoLoopConfluence(const Stmt* s, const Stmt* body);
 	bool CheckLHS(const Expr* lhs, const AssignExpr* a);
 
 	bool IsAggrTag(TypeTag tag) const;
@@ -154,8 +156,6 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 	if ( ! mgr.HasPreMinRDs(s) )
 		mgr.SetPreFromPost(s, last_obj);
 
-	DefinitionPoint ds(s);
-
 	if ( trace )
 		{
 		printf("pre RDs for stmt %s:\n", obj_desc(s));
@@ -226,21 +226,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 			ControlCouldReachEnd(i->FalseBranch(), false);
 
 		if ( true_reached && false_reached )
-			{
-			auto min_if_branch_rd = mgr.GetPostMinRDs(i->TrueBranch());
-			auto min_else_branch_rd = mgr.GetPostMinRDs(i->FalseBranch());
-			auto min_post_rds =
-				min_if_branch_rd->IntersectWithConsolidation(min_else_branch_rd, ds);
-			auto max_if_branch_rd = mgr.GetPostMaxRDs(i->TrueBranch());
-			auto max_else_branch_rd = mgr.GetPostMaxRDs(i->FalseBranch());
-			auto max_post_rds = max_if_branch_rd->Union(max_else_branch_rd);
-
-			mgr.CreateMinMaxPostRDs(s, min_post_rds, max_post_rds);
-			min_post_rds.release();
-			max_post_rds.release();
-
-			FinishStmt(s);
-			}
+			DoIfStmtConfluence(i);
 
 		else
 			{
@@ -305,20 +291,12 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		// For reduced form, however, that will already have been
 		// hoisted out, so not a concern.
 		//
-		// To keep from traversing, we just do the body manually here.
+		// To keep from traversing the loop expression, we just do
+		// the body manually here.
 
 		body->Traverse(this);
 
-		// ### If post differs from pre, propagate to
-		// beginning and re-traverse.
-
-		// Factor in that the loop might not execute at all.
-		auto min_post_rds = mgr.GetPreMinRDs(s)->IntersectWithConsolidation(mgr.GetPostMinRDs(body), ds);
-		auto max_post_rds = mgr.GetPreMaxRDs(s)->Union(mgr.GetPostMaxRDs(body));
-
-		mgr.CreateMinMaxPostRDs(s, min_post_rds, max_post_rds);
-		min_post_rds.release();
-		max_post_rds.release();
+		DoLoopConfluence(s, body);
 
 		return TC_ABORTSTMT;
 		}
@@ -334,6 +312,51 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 	}
 
 	return TC_CONTINUE;
+	}
+
+void RD_Decorate::DoIfStmtConfluence(const IfStmt* i)
+	{
+	DefinitionPoint di(i);
+	auto min_if_branch_rd = mgr.GetPostMinRDs(i->TrueBranch());
+	auto min_else_branch_rd = mgr.GetPostMinRDs(i->FalseBranch());
+	auto min_post_rds =
+		min_if_branch_rd->IntersectWithConsolidation(min_else_branch_rd,
+								di);
+	auto max_if_branch_rd = mgr.GetPostMaxRDs(i->TrueBranch());
+	auto max_else_branch_rd = mgr.GetPostMaxRDs(i->FalseBranch());
+	auto max_post_rds = max_if_branch_rd->Union(max_else_branch_rd);
+
+	mgr.CreateMinMaxPostRDs(i, min_post_rds, max_post_rds);
+	min_post_rds.release();
+	max_post_rds.release();
+
+	FinishStmt(i);
+	}
+
+void RD_Decorate::DoLoopConfluence(const Stmt* s, const Stmt* body)
+	{
+	if ( mgr.GetPreMaxRDs(body) != mgr.GetPostMaxRDs(body) )
+		{
+		// Some body assignments reached the end.  Propagate them
+		// around the loop.
+		mgr.MergePostIntoPre(body);
+		body->Traverse(this);
+		}
+
+	DefinitionPoint ds(s);
+
+	// Factor in that the loop might not execute at all.
+	auto s_pre = mgr.GetPreMinRDs(s);
+	auto body_min_post = mgr.GetPostMinRDs(body);
+	auto body_max_post = mgr.GetPostMaxRDs(body);
+
+	auto min_post_rds =
+		s_pre->IntersectWithConsolidation(body_min_post, ds);
+	auto max_post_rds = s_pre->Union(body_max_post);
+
+	mgr.CreateMinMaxPostRDs(s, min_post_rds, max_post_rds);
+	min_post_rds.release();
+	max_post_rds.release();
 	}
 
 TraversalCode RD_Decorate::PostStmt(const Stmt* s)
@@ -409,17 +432,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		{
 		auto w = s->AsWhileStmt();
 		auto body = w->Body();
-
-		// ### If post differs from pre, propagate to
-		// beginning and re-traverse.
-
-		// Apply intersection since loop might not execute
-		// at all.
-		auto while_post_rds =
-			mgr.GetPreMinRDs(s)->IntersectWithConsolidation(mgr.GetPostMinRDs(body), ds);
-
-		CreatePostRDs(s, while_post_rds);
-		while_post_rds.release();
+		DoLoopConfluence(s, body);
 
 		break;
 		}

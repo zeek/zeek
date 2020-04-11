@@ -31,7 +31,8 @@ public:
 
 	~ReachingDefs();
 
-	// Add in all the definition points from rd into our set.
+	// Add in all the definition points from rd into our set if
+	// we don't already have them.
 	void AddRDs(const RD_ptr& rd)	{ AddRDs(rd->RDMap()); }
 
 	// Add in a single definition pair, creating the entry for
@@ -69,6 +70,7 @@ public:
 protected:
 	bool HasPair(const DefinitionItem* di, const DefinitionPoint& dp) const;
 
+	// Adds in the given RDs if we don't already have them.
 	void AddRDs(const ReachingDefsMap* rd_m);
 
 	const ReachingDefsMap* RDMap() const
@@ -138,6 +140,7 @@ public:
 	void AddOrReplace(const BroObj* o, const DefinitionItem* di,
 				const DefinitionPoint& dp);
 
+	// Add the given RDs to those associated with o.
 	void AddRDs(const BroObj* o, const RD_ptr& rd)
 		{
 		if ( HasRDs(o) )
@@ -147,6 +150,7 @@ public:
 		}
 
 protected:
+	// Merge in the given RDs with those of associated with o's.
 	void MergeRDs(const BroObj* o, const RD_ptr& rd)
 		{
 		auto curr_rds = a_i->find(o)->second;

@@ -85,6 +85,14 @@ public:
 		SetPostMaxRDs(target, GetPostMaxRDs(source));
 		}
 
+	// The following only applies to max RDs.
+	void MergePostIntoPre(const BroObj* o)
+		{
+		// Don't use SetRDs as that overwrites.  We instead
+		// want to merge.
+		pre_max_defs->AddRDs(o, GetPostMaxRDs(o));
+		}
+
 
 	bool HasPreMinRDs(const BroObj* o) const
 		{ return pre_min_defs->HasRDs(o); }

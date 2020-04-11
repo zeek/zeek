@@ -256,12 +256,8 @@ TraversalCode ExprListStmt::Traverse(TraversalCallback* cb) const
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
 
-	const expr_list& e = l->Exprs();
-	for ( const auto& expr : e )
-		{
-		tc = expr->Traverse(cb);
-		HANDLE_TC_STMT_PRE(tc);
-		}
+	tc = l->Traverse(cb);
+	HANDLE_TC_STMT_PRE(tc);
 
 	tc = cb->PostStmt(this);
 	HANDLE_TC_STMT_POST(tc);

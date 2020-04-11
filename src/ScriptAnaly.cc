@@ -42,7 +42,7 @@ public:
 protected:
 	void DoIfStmtConfluence(const IfStmt* i);
 	void DoLoopConfluence(const Stmt* s, const Stmt* body);
-	bool CheckLHS(const Expr* lhs, const AssignExpr* a);
+	bool CheckLHS(const Expr* lhs, const Expr* a);
 
 	bool IsAggrTag(TypeTag tag) const;
 	bool IsAggr(const Expr* e) const;
@@ -500,14 +500,17 @@ void RD_Decorate::CreateEmptyPostRDs(const Stmt* s)
 	mgr.SetPostRDs(s, empty_rds, empty_rds);
 	}
 
-bool RD_Decorate::CheckLHS(const Expr* lhs, const AssignExpr* a)
+bool RD_Decorate::CheckLHS(const Expr* lhs, const Expr* e)
 	{
+	const AssignExpr* a =
+		(e->Tag() == EXPR_ASSIGN) ? e->AsAssignExpr() : nullptr;
+		
 	switch ( lhs->Tag() ) {
 	case EXPR_REF:
 		{
 		auto r = lhs->AsRefExpr();
 		mgr.SetPreFromPre(r->Op(), lhs);
-		return CheckLHS(r->Op(), a);
+		return CheckLHS(r->Op(), e);
 		}
 
 	case EXPR_NAME:
@@ -515,7 +518,7 @@ bool RD_Decorate::CheckLHS(const Expr* lhs, const AssignExpr* a)
 		auto n = lhs->AsNameExpr();
 		auto id = n->Id();
 
-		CreateInitPostDef(id, DefinitionPoint(a), false, a);
+		CreateInitPostDef(id, DefinitionPoint(e), false, a);
 
 		return true;
 		}
@@ -570,7 +573,7 @@ bool RD_Decorate::CheckLHS(const Expr* lhs, const AssignExpr* a)
 		if ( ! field_rd )
 			field_rd = r_def->CreateField(fn, ft);
 
-		CreateInitPostDef(field_rd, DefinitionPoint(a), false, a);
+		CreateInitPostDef(field_rd, DefinitionPoint(e), false, a);
 
 		return true;
 		}
@@ -585,7 +588,7 @@ bool RD_Decorate::CheckLHS(const Expr* lhs, const AssignExpr* a)
 			{
 			// Count this as an initialization of the aggregate.
 			auto id = aggr->AsNameExpr()->Id();
-			mgr.CreatePostDef(id, DefinitionPoint(a), false);
+			mgr.CreatePostDef(id, DefinitionPoint(e), false);
 
 			// Don't recurse into assessing the aggregate,
 			// since it's okay in this context.  However,
@@ -1073,7 +1076,7 @@ TraversalCode RD_Decorate::PostExpr(const Expr* e)
 		// it's definitely initialized after executing.
 		auto lhs = e->GetOp1();
 
-		(void) CheckLHS(lhs.get(), nullptr);
+		(void) CheckLHS(lhs.get(), e);
 		}
 
 	return TC_CONTINUE;
@@ -1260,13 +1263,9 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 	if ( only_func && ! streq(f->Name(), only_func) )
 		return;
 
-	RD_Decorate cb;
-	f->Traverse(&cb);
-
 	push_scope(id, nullptr);
 	ReductionContext rc(f->GetScope());
 
-return;
 	if ( only_func )
 		printf("Original: %s\n", obj_desc(body));
 
@@ -1278,4 +1277,7 @@ return;
 	f->ReplaceBody({AdoptRef{}, body}, {AdoptRef{}, new_body});
 	f->GrowFrameSize(rc.NumTemps());
 	pop_scope();
+
+	RD_Decorate cb;
+	f->Traverse(&cb);
 	}

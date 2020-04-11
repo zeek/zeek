@@ -88,9 +88,6 @@ protected:
 	void CreatePostRDs(const Stmt* s, RD_ptr& post_rds);
 	void FinishStmt(const Stmt* s);
 
-	// The object we most recently finished analyzing.
-	const BroObj* last_obj;
-
 	DefSetsMgr mgr;
 
 	bool trace;
@@ -99,8 +96,6 @@ protected:
 
 RD_Decorate::RD_Decorate()
 	{
-	last_obj = nullptr;
-
 	trace = getenv("ZEEK_OPT_TRACE") != nullptr;
 	}
 
@@ -141,10 +136,6 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 	for ( const auto& body : bodies )
 		mgr.SetPreFromPost(body.stmts.get(), f);
 
-	// This shouldn't be needed, since the body will have
-	// explicit PreMinRDs set.
-	last_obj = f;
-
 	return TC_CONTINUE;
 	}
 
@@ -157,8 +148,6 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		printf("pre RDs for stmt %s:\n", obj_desc(s));
 		mgr.GetPreMinRDs(s)->Dump();
 		}
-
-	last_obj = s;
 
 	switch ( s->Tag() ) {
         case STMT_EXPR:
@@ -196,7 +185,6 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 				mgr.SetPreFromPost(stmt, pred_stmt);
 
 			stmt->Traverse(this);
-			last_obj = stmt;
 			pred_stmt = stmt;
 			}
 
@@ -204,8 +192,6 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 			mgr.SetPostFromPre(sl, pred_stmt);
 		else
 			mgr.SetPostFromPost(sl, pred_stmt);
-
-		last_obj = s;
 
 		return TC_ABORTSTMT;
 		}
@@ -512,7 +498,6 @@ void RD_Decorate::CreateEmptyPostRDs(const Stmt* s)
 void RD_Decorate::CreatePostRDs(const Stmt* s, RD_ptr& post_rds)
 	{
 	mgr.SetPostMinRDs(s, post_rds);
-	last_obj = s;
 
 	if ( trace )
 		{
@@ -523,8 +508,6 @@ void RD_Decorate::CreatePostRDs(const Stmt* s, RD_ptr& post_rds)
 
 void RD_Decorate::FinishStmt(const Stmt* s)
 	{
-	last_obj = s;
-
 	if ( trace )
 		{
 		printf("post RDs for stmt %s:\n", obj_desc(s));
@@ -868,8 +851,6 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		mgr.GetPostMinRDs(e)->Dump();
 		}
 
-	last_obj = e;
-
 	switch ( e->Tag() ) {
         case EXPR_NAME:
 		{
@@ -943,7 +924,6 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			if ( ! rhs_aggr )
 				rhs->Traverse(this);
 
-			last_obj = e;
 			return TC_ABORTSTMT;
 			}
 

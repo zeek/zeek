@@ -145,16 +145,12 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 	// explicit PreMinRDs set.
 	last_obj = f;
 
-	// Don't continue traversal here, as that will then loop over
-	// older bodies.  Instead, we do it manually.
-	return TC_ABORTALL;
+	return TC_CONTINUE;
 	}
 
 TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 	{
-	// ###
-	if ( ! mgr.HasPreMinRDs(s) )
-		mgr.SetPreFromPost(s, last_obj);
+	ASSERT(mgr.HasPreMinRDs(s));
 
 	if ( trace )
 		{
@@ -166,9 +162,21 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 
 	switch ( s->Tag() ) {
         case STMT_EXPR:
+        case STMT_ADD:
+        case STMT_DELETE:
+        case STMT_RETURN:
 		{
-		auto e = s->AsExprStmt()->StmtExpr();
+		// Can't use AsExprStmt() since it doesn't know about
+		// the tags of its subclasses.
+		auto e = ((const ExprStmt*) s)->StmtExpr();
 		mgr.SetPreFromPre(e, s);
+		break;
+		}
+
+        case STMT_PRINT:
+		{
+		auto l = s->AsPrintStmt()->ExprList();
+		mgr.SetPreFromPre(l, s);
 		break;
 		}
 
@@ -301,6 +309,18 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		return TC_ABORTSTMT;
 		}
 
+	case STMT_WHILE:
+		{
+		auto w = s->AsWhileStmt();
+		auto body = w->Body();
+		mgr.SetPreFromPre(body, w);
+
+		body->Traverse(this);
+		DoLoopConfluence(s, body);
+
+		return TC_ABORTSTMT;
+		}
+
 	case STMT_WHEN:
 		{
 		// ### punt on these for now, need to reflect on bindings.
@@ -424,15 +444,6 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 
 		CreatePostRDs(s, sw_post_rds);
 		sw_post_rds.release();
-
-		break;
-		}
-
-	case STMT_WHILE:
-		{
-		auto w = s->AsWhileStmt();
-		auto body = w->Body();
-		DoLoopConfluence(s, body);
 
 		break;
 		}
@@ -827,7 +838,10 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	{
 	// ###
 	if ( ! mgr.HasPreMinRDs(e) )
+		{
+		printf("no pre for %s\n", obj_desc(e));
 		mgr.SetPreFromPost(e, last_obj);
+		}
 
 	if ( trace )
 		{
@@ -1227,8 +1241,6 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 
 	RD_Decorate cb;
 	f->Traverse(&cb);
-	cb.TrackInits(f, inits);
-	body->Traverse(&cb);
 
 	push_scope(id, nullptr);
 	ReductionContext rc(f->GetScope());

@@ -307,6 +307,7 @@ public:
 	bool IsPure() const override;
 
 	Stmt* Reduce(ReductionContext* c) override;
+	bool IsReduced() const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 

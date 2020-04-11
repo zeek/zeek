@@ -1270,6 +1270,8 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 		printf("Original: %s\n", obj_desc(body));
 
 	auto new_body = body->Reduce(&rc);
+	if ( ! new_body->IsReduced() )
+		printf("Reduction inconsistency: %s\n", id->Name());
 
 	if ( only_func )
 		printf("Transformed: %s\n", obj_desc(new_body));

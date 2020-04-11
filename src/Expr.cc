@@ -135,6 +135,11 @@ bool Expr::IsReduced() const
 	return true;
 	}
 
+bool Expr::HasReducedOps() const
+	{
+	return true;
+	}
+
 Expr* Expr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	red_stmt = nullptr;
@@ -500,6 +505,11 @@ bool UnaryExpr::IsReduced() const
 	return false;
 	}
 
+bool UnaryExpr::HasReducedOps() const
+	{
+	return op->IsSingleton();
+	}
+
 Expr* UnaryExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	red_stmt = nullptr;
@@ -658,6 +668,11 @@ bool BinaryExpr::HasNoSideEffects() const
 bool BinaryExpr::IsReduced() const
 	{
 	return false;
+	}
+
+bool BinaryExpr::HasReducedOps() const
+	{
+	return op1->IsSingleton() && op2->IsSingleton();
 	}
 
 Expr* BinaryExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
@@ -2533,6 +2548,11 @@ bool CondExpr::IsReduced() const
 	return false;
 	}
 
+bool CondExpr::HasReducedOps() const
+	{
+	return op1->IsSingleton() && op2->IsSingleton() && op3->IsSingleton();
+	}
+
 Expr* CondExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( op1->HasNoSideEffects() && same_singletons(op2, op3) )
@@ -2672,6 +2692,11 @@ bool RefExpr::IsReduced() const
 		Internal("bad operand in RefExpr::IsReduced");
 		return true;
 	}
+	}
+
+bool RefExpr::HasReducedOps() const
+	{
+	return IsReduced();
 	}
 
 Expr* RefExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
@@ -3137,6 +3162,11 @@ bool AssignExpr::IsReduced() const
 	return false;
 	}
 
+bool AssignExpr::HasReducedOps() const
+	{
+	return op1->IsReduced() && op2->IsSingleton();
+	}
+
 Expr* AssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	red_stmt = nullptr;
@@ -3573,6 +3603,17 @@ void IndexExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 		RuntimeErrorWithCallStack("bad index expression type in assignment");
 		break;
 	}
+	}
+
+bool IndexExpr::HasReducedOps() const
+	{
+	if ( ! op1->IsSingleton() )
+		return false;
+
+	if ( op2->Tag() == EXPR_LIST )
+		return op2->HasReducedOps();
+	else
+		return op2->IsSingleton();
 	}
 
 IntrusivePtr<Stmt> IndexExpr::ReduceToLHS(ReductionContext* c)
@@ -4706,6 +4747,11 @@ bool ScheduleExpr::IsReduced() const
 	return when->IsReduced() && event->IsReduced();
 	}
 
+bool ScheduleExpr::HasReducedOps() const
+	{
+	return when->IsSingleton() && event->IsSingleton();
+	}
+
 Expr* ScheduleExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	red_stmt = nullptr;
@@ -5027,7 +5073,15 @@ bool CallExpr::IsPure() const
 
 bool CallExpr::IsReduced() const
 	{
-	return func->IsReduced() && args->IsReduced();
+	if ( Type()->Tag() == TYPE_VOID )
+		return func->IsReduced() && args->IsReduced();
+	else
+		return false;
+	}
+
+bool CallExpr::HasReducedOps() const
+	{
+	return func->IsSingleton() && args->IsSingleton();
 	}
 
 Expr* CallExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
@@ -5306,6 +5360,11 @@ bool EventExpr::IsReduced() const
 	return Args()->IsReduced();
 	}
 
+bool EventExpr::HasReducedOps() const
+	{
+	return Args()->IsSingleton();
+	}
+
 Expr* EventExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	red_stmt = nullptr;
@@ -5385,6 +5444,15 @@ bool ListExpr::IsReduced() const
 		if ( ! expr->IsReduced() )
 			return false;
 		}
+
+	return true;
+	}
+
+bool ListExpr::HasReducedOps() const
+	{
+	for ( const auto& expr : exprs )
+		if ( ! expr->HasReducedOps() )
+			return false;
 
 	return true;
 	}

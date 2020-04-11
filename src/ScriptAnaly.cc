@@ -73,21 +73,6 @@ protected:
 
 	void CreateEmptyPostRDs(const Stmt* s);
 
-	void CreatePostRDsFromPre(const Stmt* s)
-		{
-		mgr.CreatePostRDsFromPre(s);
-		FinishStmt(s);
-		}
-
-	void CreatePostRDsFromPost(const Stmt* target, const BroObj* source)
-		{
-		mgr.CreatePostRDsFromPost(target, source);
-		FinishStmt(target);
-		}
-
-	void CreatePostRDs(const Stmt* s, RD_ptr& post_rds);
-	void FinishStmt(const Stmt* s);
-
 	DefSetsMgr mgr;
 
 	bool trace;
@@ -226,10 +211,10 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		else
 			{
 			if ( true_reached )
-				CreatePostRDsFromPost(s, i->TrueBranch());
+				mgr.CreatePostRDsFromPost(s, i->TrueBranch());
 
 			else if ( false_reached )
-				CreatePostRDsFromPost(s, i->FalseBranch());
+				mgr.CreatePostRDsFromPost(s, i->FalseBranch());
 
 			else
 				CreateEmptyPostRDs(s);
@@ -343,8 +328,6 @@ void RD_Decorate::DoIfStmtConfluence(const IfStmt* i)
 	mgr.CreateMinMaxPostRDs(i, min_post_rds, max_post_rds);
 	min_post_rds.release();
 	max_post_rds.release();
-
-	FinishStmt(i);
 	}
 
 void RD_Decorate::DoLoopConfluence(const Stmt* s, const Stmt* body)
@@ -381,7 +364,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
         case STMT_EXPR:
 		{
 		auto e = s->AsExprStmt()->StmtExpr();
-		CreatePostRDsFromPost(s, e);
+		mgr.CreatePostRDsFromPost(s, e);
 		break;
 		}
 
@@ -427,7 +410,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 				// We can fall through, and if so the
 				// only definitions are those that came
 				// into this statement.
-				CreatePostRDsFromPre(s);
+				mgr.CreatePostRDsFromPre(s);
 				break;
 				}
 			}
@@ -436,7 +419,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 			// This happens when all of the cases return.
 			sw_post_rds = make_new_RD_ptr();
 
-		CreatePostRDs(s, sw_post_rds);
+		mgr.SetPostRDs(s, sw_post_rds);
 		sw_post_rds.release();
 
 		break;
@@ -444,7 +427,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 
 	case STMT_INIT:
 		{
-		CreatePostRDsFromPre(s);
+		mgr.CreatePostRDsFromPre(s);
 
 		auto init = s->AsInitStmt();
 		auto& inits = *init->Inits();
@@ -478,11 +461,11 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		// potential RDs and not just minimalist RDs.
 		//
 		// Anyhoo, punt for now. ###
-		CreatePostRDsFromPre(s);
+		mgr.CreatePostRDsFromPre(s);
 		break;
 
 	default:
-		CreatePostRDsFromPre(s);
+		mgr.CreatePostRDsFromPre(s);
 		break;
 	}
 
@@ -492,27 +475,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 void RD_Decorate::CreateEmptyPostRDs(const Stmt* s)
 	{
 	auto empty_rds = make_new_RD_ptr();
-	CreatePostRDs(s, empty_rds);
-	}
-
-void RD_Decorate::CreatePostRDs(const Stmt* s, RD_ptr& post_rds)
-	{
-	mgr.SetPostMinRDs(s, post_rds);
-
-	if ( trace )
-		{
-		printf("post RDs for stmt %s:\n", obj_desc(s));
-		mgr.GetPostMinRDs(s)->Dump();
-		}
-	}
-
-void RD_Decorate::FinishStmt(const Stmt* s)
-	{
-	if ( trace )
-		{
-		printf("post RDs for stmt %s:\n", obj_desc(s));
-		mgr.GetPostMinRDs(s)->Dump();
-		}
+	mgr.SetPostRDs(s, empty_rds);
 	}
 
 bool RD_Decorate::CheckLHS(const Expr* lhs, const AssignExpr* a)
@@ -600,7 +563,7 @@ bool RD_Decorate::CheckLHS(const Expr* lhs, const AssignExpr* a)
 			{
 			// Count this as an initialization of the aggregate.
 			auto id = aggr->AsNameExpr()->Id();
-			mgr.CreatePostDef(id, DefinitionPoint(a));
+			mgr.CreatePostDef(id, DefinitionPoint(a), false);
 
 			// Don't recurse into assessing the aggregate,
 			// since it's okay in this context.  However,
@@ -897,7 +860,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			auto lhs_id = lhs_n->Id();
 
 			// Treat this as an initalization of the set.
-			mgr.CreatePostDef(lhs_id, DefinitionPoint(a_t));
+			mgr.CreatePostDef(lhs_id, DefinitionPoint(a_t), false);
 
 			mgr.SetPreFromPre(rhs, e);
 			rhs->Traverse(this);
@@ -1032,7 +995,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 				// Not only do we skip analyzing it, but
 				// we consider it initialized post-return.
 				mgr.CreatePostDef(expr->AsNameExpr()->Id(), 
-						DefinitionPoint(c));
+						DefinitionPoint(c), false);
 			else
 				{
 				mgr.SetPreFromPre(expr, e);
@@ -1140,9 +1103,9 @@ void RD_Decorate::CreateInitDef(DefinitionItem* di, DefinitionPoint dp,
 				const AssignExpr* init)
 	{
 	if ( is_pre )
-		mgr.CreatePreDef(di, dp);
+		mgr.CreatePreDef(di, dp, false);
 	else
-		mgr.CreatePostDef(di, dp);
+		mgr.CreatePostDef(di, dp, false);
 
 	if ( di->Type()->Tag() != TYPE_RECORD )
 		return;
@@ -1205,9 +1168,9 @@ void RD_Decorate::CreateRecordRDs(DefinitionItem* di, DefinitionPoint dp,
 		auto di_i = di->CreateField(n_i, t_i);
 
 		if ( is_pre )
-			mgr.CreatePreDef(di_i, dp);
+			mgr.CreatePreDef(di_i, dp, true);
 		else
-			mgr.CreatePostDef(di_i, dp);
+			mgr.CreatePostDef(di_i, dp, true);
 
 		if ( t_i->Tag() == TYPE_RECORD )
 			CreateRecordRDs(di_i, dp, is_pre, assume_full, rhs_di_i);

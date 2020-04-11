@@ -13,18 +13,14 @@ DefSetsMgr::DefSetsMgr()
 	}
 
 
-void DefSetsMgr::CreatePreDef(DefinitionItem* di, DefinitionPoint dp)
-	{
-	CreateDef(di, dp, true);
-	}
-
-void DefSetsMgr::CreatePostDef(const ID* id, DefinitionPoint dp)
+void DefSetsMgr::CreatePostDef(const ID* id, DefinitionPoint dp, bool min_only)
 	{
 	auto di = item_map.GetIDReachingDef(id);
-	CreatePostDef(di, dp);
+	CreatePostDef(di, dp, min_only);
 	}
 
-void DefSetsMgr::CreatePostDef(DefinitionItem* di, DefinitionPoint dp)
+void DefSetsMgr::CreatePostDef(DefinitionItem* di, DefinitionPoint dp,
+				bool min_only)
 	{
 	auto where = dp.OpaqueVal();
 
@@ -36,15 +32,30 @@ void DefSetsMgr::CreatePostDef(DefinitionItem* di, DefinitionPoint dp)
 		SetPostFromPre(where);
 		}
 
-	CreateDef(di, dp, false);
+	if ( ! min_only && ! post_max_defs->HasRDs(where) )
+		{
+		auto pre = GetPreMaxRDs(where);
+		SetPostFromPre(where);
+		}
+
+	CreateDef(di, dp, false, min_only);
 	}
 
-void DefSetsMgr::CreateDef(DefinitionItem* di, DefinitionPoint dp, bool is_pre)
+void DefSetsMgr::CreateDef(DefinitionItem* di, DefinitionPoint dp,
+				bool is_pre, bool min_only)
 	{
 	auto where = dp.OpaqueVal();
 
-	IntrusivePtr<ReachingDefSet>& defs =
+	IntrusivePtr<ReachingDefSet>& min_defs =
 		is_pre ? pre_min_defs : post_min_defs;
 
-	defs->AddOrReplace(where, di, dp);
+	min_defs->AddOrReplace(where, di, dp);
+
+	if ( min_only )
+		return;
+
+	IntrusivePtr<ReachingDefSet>& max_defs =
+		is_pre ? pre_max_defs : post_max_defs;
+
+	max_defs->AddOrReplace(where, di, dp);
 	}

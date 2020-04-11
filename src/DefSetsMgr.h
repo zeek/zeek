@@ -31,16 +31,16 @@ public:
 			return GetPreMaxRDs(o);
 		}
 
-	RD_ptr& GetRDs(const IntrusivePtr<ReachingDefSet> defs,
-				const BroObj* o) const
-		{
-		return defs->FindRDs(o);
-		}
-
 	void SetPreMinRDs(const BroObj* o, RD_ptr& rd)
 		{ pre_min_defs->SetRDs(o, rd); }
 	void SetPreMaxRDs(const BroObj* o, RD_ptr& rd)
 		{ pre_max_defs->SetRDs(o, rd); }
+
+	void SetPostRDs(const BroObj* o, RD_ptr& rd)
+		{
+		SetPostMinRDs(o, rd);
+		SetPostMaxRDs(o, rd);
+		}
 
 	void SetPostMinRDs(const BroObj* o, RD_ptr& rd)
 		{ post_min_defs->SetRDs(o, rd); }
@@ -105,9 +105,10 @@ public:
 	bool HasPostMaxRDs(const BroObj* o) const
 		{ return post_max_defs->HasRDs(o); }
 
-	void CreatePreDef(DefinitionItem* di, DefinitionPoint dp);
-	void CreatePostDef(const ID* id, DefinitionPoint dp);
-	void CreatePostDef(DefinitionItem* di, DefinitionPoint dp);
+	void CreatePreDef(DefinitionItem* di, DefinitionPoint dp, bool min_only)
+		{ CreateDef(di, dp, true, min_only); }
+	void CreatePostDef(const ID* id, DefinitionPoint dp, bool min_only);
+	void CreatePostDef(DefinitionItem* di, DefinitionPoint dp, bool min_only);
 
 	void CreatePostRDsFromPre(const Stmt* s)
 		{ SetPostMinRDs(s, GetPreMinRDs(s)); }
@@ -121,7 +122,8 @@ public:
 		SetPostMaxRDs(target, max_rds);
 		}
 
-	void CreateDef(DefinitionItem* di, DefinitionPoint dp, bool is_pre);
+	void CreateDef(DefinitionItem* di, DefinitionPoint dp,
+			bool is_pre, bool min_only);
 
 	DefinitionItem* GetExprReachingDef(Expr* e)
 		{ return item_map.GetExprReachingDef(e); }
@@ -132,6 +134,12 @@ public:
 		{ return item_map.GetConstIDReachingDef(di, field_name); }
 
 protected:
+	RD_ptr& GetRDs(const IntrusivePtr<ReachingDefSet> defs,
+				const BroObj* o) const
+		{
+		return defs->FindRDs(o);
+		}
+
 	// Mappings of minimal reaching defs pre- and post- execution
 	// of the given object.
 	IntrusivePtr<ReachingDefSet> pre_min_defs;

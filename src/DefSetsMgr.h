@@ -31,21 +31,11 @@ public:
 			return GetPreMaxRDs(o);
 		}
 
-	void SetPreMinRDs(const BroObj* o, RD_ptr& rd)
-		{ pre_min_defs->SetRDs(o, rd); }
-	void SetPreMaxRDs(const BroObj* o, RD_ptr& rd)
-		{ pre_max_defs->SetRDs(o, rd); }
-
 	void SetPostRDs(const BroObj* o, RD_ptr& min_rd, RD_ptr& max_rd)
 		{
 		SetPostMinRDs(o, min_rd);
 		SetPostMaxRDs(o, max_rd);
 		}
-
-	void SetPostMinRDs(const BroObj* o, RD_ptr& rd)
-		{ post_min_defs->SetRDs(o, rd); }
-	void SetPostMaxRDs(const BroObj* o, RD_ptr& rd)
-		{ post_max_defs->SetRDs(o, rd); }
 
 	void SetEmptyPre(const BroObj* o)
 		{
@@ -146,6 +136,16 @@ protected:
 		{
 		return defs->FindRDs(o);
 		}
+
+	void SetPreMinRDs(const BroObj* o, RD_ptr& rd)
+		{ pre_min_defs->SetRDs(o, rd); }
+	void SetPreMaxRDs(const BroObj* o, RD_ptr& rd)
+		{ pre_max_defs->SetRDs(o, rd); }
+
+	void SetPostMinRDs(const BroObj* o, RD_ptr& rd)
+		{ post_min_defs->SetRDs(o, rd); }
+	void SetPostMaxRDs(const BroObj* o, RD_ptr& rd)
+		{ post_max_defs->SetRDs(o, rd); }
 
 	// Mappings of minimal reaching defs pre- and post- execution
 	// of the given object.

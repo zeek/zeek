@@ -36,10 +36,10 @@ public:
 	void SetPreMaxRDs(const BroObj* o, RD_ptr& rd)
 		{ pre_max_defs->SetRDs(o, rd); }
 
-	void SetPostRDs(const BroObj* o, RD_ptr& rd)
+	void SetPostRDs(const BroObj* o, RD_ptr& min_rd, RD_ptr& max_rd)
 		{
-		SetPostMinRDs(o, rd);
-		SetPostMaxRDs(o, rd);
+		SetPostMinRDs(o, min_rd);
+		SetPostMaxRDs(o, max_rd);
 		}
 
 	void SetPostMinRDs(const BroObj* o, RD_ptr& rd)
@@ -96,6 +96,8 @@ public:
 
 	bool HasPreMinRDs(const BroObj* o) const
 		{ return pre_min_defs->HasRDs(o); }
+	bool HasPreMaxRDs(const BroObj* o) const
+		{ return pre_max_defs->HasRDs(o); }
 
 	bool HasPreMinRD(const BroObj* o, const ID* id) const
 		{ return pre_min_defs->HasRD(o, id); }
@@ -111,12 +113,17 @@ public:
 	void CreatePostDef(DefinitionItem* di, DefinitionPoint dp, bool min_only);
 
 	void CreatePostRDsFromPre(const Stmt* s)
-		{ SetPostMinRDs(s, GetPreMinRDs(s)); }
+		{
+		SetPostMinRDs(s, GetPreMinRDs(s));
+		SetPostMaxRDs(s, GetPreMaxRDs(s));
+		}
 	void CreatePostRDsFromPost(const Stmt* target, const BroObj* source)
-		{ SetPostMinRDs(target, GetPostMinRDs(source)); }
+		{
+		SetPostMinRDs(target, GetPostMinRDs(source));
+		SetPostMaxRDs(target, GetPostMaxRDs(source));
+		}
 
-	void CreateMinMaxPostRDs(const Stmt* target, RD_ptr& min_rds,
-					RD_ptr& max_rds)
+	void CreatePostRDs(const Stmt* target, RD_ptr& min_rds, RD_ptr& max_rds)
 		{
 		SetPostMinRDs(target, min_rds);
 		SetPostMaxRDs(target, max_rds);

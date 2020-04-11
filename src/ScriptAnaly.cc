@@ -127,11 +127,13 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 	{
 	ASSERT(mgr.HasPreMinRDs(s));
+	ASSERT(mgr.HasPreMaxRDs(s));
 
 	if ( trace )
 		{
 		printf("pre RDs for stmt %s:\n", obj_desc(s));
 		mgr.GetPreMinRDs(s)->Dump();
+		mgr.GetPreMaxRDs(s)->Dump();
 		}
 
 	switch ( s->Tag() ) {
@@ -325,7 +327,7 @@ void RD_Decorate::DoIfStmtConfluence(const IfStmt* i)
 	auto max_else_branch_rd = mgr.GetPostMaxRDs(i->FalseBranch());
 	auto max_post_rds = max_if_branch_rd->Union(max_else_branch_rd);
 
-	mgr.CreateMinMaxPostRDs(i, min_post_rds, max_post_rds);
+	mgr.CreatePostRDs(i, min_post_rds, max_post_rds);
 	min_post_rds.release();
 	max_post_rds.release();
 	}
@@ -343,15 +345,16 @@ void RD_Decorate::DoLoopConfluence(const Stmt* s, const Stmt* body)
 	DefinitionPoint ds(s);
 
 	// Factor in that the loop might not execute at all.
-	auto s_pre = mgr.GetPreMinRDs(s);
+	auto s_min_pre = mgr.GetPreMinRDs(s);
+	auto s_max_pre = mgr.GetPreMaxRDs(s);
 	auto body_min_post = mgr.GetPostMinRDs(body);
 	auto body_max_post = mgr.GetPostMaxRDs(body);
 
 	auto min_post_rds =
-		s_pre->IntersectWithConsolidation(body_min_post, ds);
-	auto max_post_rds = s_pre->Union(body_max_post);
+		s_min_pre->IntersectWithConsolidation(body_min_post, ds);
+	auto max_post_rds = s_max_pre->Union(body_max_post);
 
-	mgr.CreateMinMaxPostRDs(s, min_post_rds, max_post_rds);
+	mgr.CreatePostRDs(s, min_post_rds, max_post_rds);
 	min_post_rds.release();
 	max_post_rds.release();
 	}
@@ -376,20 +379,30 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		bool did_first = false;
 		bool default_seen = false;
 
-		RD_ptr sw_post_rds = nullptr;
+		RD_ptr sw_post_min_rds = nullptr;
+		RD_ptr sw_post_max_rds = nullptr;
 
 		for ( const auto& c : *cases )
 			{
 			if ( ControlCouldReachEnd(c->Body(), true) )
 				{
-				auto case_rd = mgr.GetPostMinRDs(c->Body());
+				auto case_min_rd = mgr.GetPostMinRDs(c->Body());
+				auto case_max_rd = mgr.GetPostMaxRDs(c->Body());
 
 				if ( did_first )
-					sw_post_rds =
-						sw_post_rds->IntersectWithConsolidation(case_rd, ds);
+					{
+					sw_post_min_rds =
+						sw_post_min_rds->IntersectWithConsolidation(case_min_rd, ds);
+					sw_post_max_rds =
+						sw_post_max_rds->Union(case_max_rd);
+					}
 				else
 					{
-					sw_post_rds = make_new_RD_ptr(case_rd);
+					sw_post_min_rds =
+						make_new_RD_ptr(case_min_rd);
+					sw_post_max_rds =
+						make_new_RD_ptr(case_max_rd);
+
 					did_first = true;
 					}
 				}
@@ -403,8 +416,13 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 
 		if ( ! default_seen )
 			{
-			if ( sw_post_rds )
-				sw_post_rds = sw_post_rds->Union(mgr.GetPreMinRDs(s));
+			// Entire set of cases is optional, so merge
+			// in entering RDs.
+			if ( sw_post_min_rds )
+				{ // if min is set, so is max
+				sw_post_min_rds = sw_post_min_rds->Union(mgr.GetPreMinRDs(s));
+				sw_post_max_rds = sw_post_max_rds->Union(mgr.GetPreMaxRDs(s));
+				}
 			else
 				{
 				// We can fall through, and if so the
@@ -415,12 +433,16 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 				}
 			}
 
-		if ( ! sw_post_rds )
+		if ( ! sw_post_min_rds )
+			{
 			// This happens when all of the cases return.
-			sw_post_rds = make_new_RD_ptr();
+			sw_post_min_rds = make_new_RD_ptr();
+			sw_post_max_rds = make_new_RD_ptr();
+			}
 
-		mgr.SetPostRDs(s, sw_post_rds);
-		sw_post_rds.release();
+		mgr.SetPostRDs(s, sw_post_min_rds, sw_post_max_rds);
+		sw_post_min_rds.release();
+		sw_post_max_rds.release();
 
 		break;
 		}
@@ -475,7 +497,7 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 void RD_Decorate::CreateEmptyPostRDs(const Stmt* s)
 	{
 	auto empty_rds = make_new_RD_ptr();
-	mgr.SetPostRDs(s, empty_rds);
+	mgr.SetPostRDs(s, empty_rds, empty_rds);
 	}
 
 bool RD_Decorate::CheckLHS(const Expr* lhs, const AssignExpr* a)
@@ -794,6 +816,7 @@ bool RD_Decorate::ControlReachesEnd(const Stmt* s, bool is_definite,
 TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	{
 	ASSERT(mgr.HasPreMinRDs(e));
+	ASSERT(mgr.HasPreMaxRDs(e));
 
 	if ( trace )
 		{

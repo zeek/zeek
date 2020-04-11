@@ -417,8 +417,7 @@ bool ExprStmt::IsPure() const
 
 bool ExprStmt::IsReduced() const
 	{
-if ( e && ! e->IsReduced() ) printf("reduction inconsistency: %s\n", obj_desc(e.get()));
-	return e && e->IsReduced();
+	return ! e || e->IsReduced();
 	}
 
 Stmt* ExprStmt::Reduce(ReductionContext* c)
@@ -1914,10 +1913,7 @@ bool StmtList::IsReduced() const
 	{
 	for ( const auto& stmt : Stmts() )
 		if ( ! stmt->IsReduced() )
-			{
-printf("statement not reduced: %s\n", obj_desc(stmt));
 			return false;
-			}
 	return true;
 	}
 

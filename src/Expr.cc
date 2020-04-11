@@ -183,6 +183,11 @@ IntrusivePtr<Expr> Expr::GetOp() const
 	return nullptr;
 	}
 
+bool Expr::HaveGetOp() const
+	{
+	return false;
+	}
+
 IntrusivePtr<Expr> Expr::GetOp1() const
 	{
 	Internal("Expr::GetOp1() called");
@@ -193,6 +198,11 @@ IntrusivePtr<Expr> Expr::GetOp2() const
 	{
 	Internal("Expr::GetOp2() called");
 	return nullptr;
+	}
+
+bool Expr::HaveGetOps() const
+	{
+	return false;
 	}
 
 bool Expr::IsZero() const
@@ -4738,6 +4748,24 @@ IntrusivePtr<Val> ScheduleExpr::Eval(Frame* f) const
 		timer_mgr->Add(new ScheduleTimer(event->Handler(), std::move(*args), dt));
 
 	return nullptr;
+	}
+
+IntrusivePtr<Expr> ScheduleExpr::GetOp1() const
+	{
+	return when;
+	}
+
+// We can't inline the following without moving the definition of
+// EventExpr in Expr.h to come before that of ScheduleExpr.  Just
+// doing this out-of-line seems cleaner.
+IntrusivePtr<Expr> ScheduleExpr::GetOp2() const
+	{
+	return event;
+	}
+
+bool ScheduleExpr::HaveGetOps() const
+	{
+	return true;
 	}
 
 TraversalCode ScheduleExpr::Traverse(TraversalCallback* cb) const

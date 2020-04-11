@@ -80,6 +80,7 @@ class AppendToExpr;
 class RemoveFromExpr;
 class NegExpr;
 class ConstExpr;
+class CondExpr;
 
 struct function_ingredients;
 
@@ -178,11 +179,14 @@ public:
 
 	// Returns the expression's sole operand, or generates
 	// an internal error if it that's not the right model for it.
+	// The second function returns true if it's safe to call it.
 	virtual IntrusivePtr<Expr> GetOp() const;
+	virtual bool HaveGetOp() const;
 
 	// Same for binary expressions.
 	virtual IntrusivePtr<Expr> GetOp1() const;
 	virtual IntrusivePtr<Expr> GetOp2() const;
+	virtual bool HaveGetOps() const;
 
 	// True if the expression is a constant zero, false otherwise.
 	bool IsZero() const;
@@ -243,6 +247,7 @@ public:
 	CONST_ACCESSOR(EXPR_ADD_TO, AddToExpr, AsAddToExpr);
 	CONST_ACCESSOR(EXPR_APPEND_TO, AppendToExpr, AsAppendToExpr);
 	CONST_ACCESSOR(EXPR_CONST, ConstExpr, AsConstExpr);
+	CONST_ACCESSOR(EXPR_COND, CondExpr, AsCondExpr);
 
 #undef ACCESSORS
 #undef ACCESSOR
@@ -339,6 +344,7 @@ public:
 	Expr* Op() const	{ return op.get(); }
 
 	IntrusivePtr<Expr> GetOp() const override final	{ return op; }
+	bool HaveGetOp() const override final	{ return true; }
 
 	// UnaryExpr::Eval correctly handles vector types.  Any child
 	// class that overrides Eval() should be modified to handle
@@ -370,6 +376,7 @@ public:
 
 	IntrusivePtr<Expr> GetOp1() const override final	{ return op1; }
 	IntrusivePtr<Expr> GetOp2() const override final	{ return op2; }
+	bool HaveGetOps() const override final	{ return true; }
 
 	bool IsPure() const override;
 	bool HasNoSideEffects() const override;
@@ -898,6 +905,10 @@ public:
 	Expr* When() const	{ return when.get(); }
 	EventExpr* Event() const	{ return event.get(); }
 
+	IntrusivePtr<Expr> GetOp1() const override final;
+	IntrusivePtr<Expr> GetOp2() const override final;
+	bool HaveGetOps() const override final;
+
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
@@ -965,29 +976,6 @@ private:
 	std::string my_name;
 };
 
-class EventExpr : public Expr {
-public:
-	EventExpr(const char* name, IntrusivePtr<ListExpr> args);
-
-	const char* Name() const	{ return name.c_str(); }
-	ListExpr* Args() const		{ return args.get(); }
-	EventHandlerPtr Handler()  const	{ return handler; }
-
-	IntrusivePtr<Val> Eval(Frame* f) const override;
-
-	bool IsReduced() const override;
-	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
-
-	TraversalCode Traverse(TraversalCallback* cb) const override;
-
-protected:
-	void ExprDescribe(ODesc* d) const override;
-
-	string name;
-	EventHandlerPtr handler;
-	IntrusivePtr<ListExpr> args;
-};
-
 class ListExpr : public Expr {
 public:
 	ListExpr();
@@ -1020,6 +1008,32 @@ protected:
 	void ExprDescribe(ODesc* d) const override;
 
 	expr_list exprs;
+};
+
+class EventExpr : public Expr {
+public:
+	EventExpr(const char* name, IntrusivePtr<ListExpr> args);
+
+	const char* Name() const	{ return name.c_str(); }
+	ListExpr* Args() const		{ return args.get(); }
+	EventHandlerPtr Handler()  const	{ return handler; }
+
+	IntrusivePtr<Val> Eval(Frame* f) const override;
+
+	bool IsReduced() const override;
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
+
+	IntrusivePtr<Expr> GetOp() const override final	{ return args; }
+	bool HaveGetOp() const override final	{ return true; }
+
+	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+protected:
+	void ExprDescribe(ODesc* d) const override;
+
+	string name;
+	EventHandlerPtr handler;
+	IntrusivePtr<ListExpr> args;
 };
 
 

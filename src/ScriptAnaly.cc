@@ -162,6 +162,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 
 	switch ( s->Tag() ) {
         case STMT_EXPR:
+        case STMT_EVENT:
         case STMT_ADD:
         case STMT_DELETE:
         case STMT_RETURN:
@@ -254,12 +255,19 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 	case STMT_SWITCH:
 		{
 		auto sw = s->AsSwitchStmt();
+		auto e = sw->StmtExpr();
+		mgr.SetPreFromPre(e, sw);
+
 		auto cases = sw->Cases();
 
 		for ( const auto& c : *cases )
 			{
 			auto body = c->Body();
 			mgr.SetPreFromPre(body, s);
+
+			auto exprs = c->ExprCases();
+			if ( exprs )
+				mgr.SetPreFromPre(exprs, sw);
 
 			auto type_ids = c->TypeCases();
 			if ( type_ids )
@@ -530,6 +538,7 @@ bool RD_Decorate::CheckLHS(const Expr* lhs, const AssignExpr* a)
 	case EXPR_REF:
 		{
 		auto r = lhs->AsRefExpr();
+		mgr.SetPreFromPre(r->Op(), lhs);
 		return CheckLHS(r->Op(), a);
 		}
 
@@ -576,6 +585,7 @@ bool RD_Decorate::CheckLHS(const Expr* lhs, const AssignExpr* a)
 			return false;
 
 		// Recurse to traverse LHS so as to install its definitions.
+		mgr.SetPreFromPre(r, lhs);
 		r->Traverse(this);
 
 		auto r_def = mgr.GetExprReachingDef(r);
@@ -613,6 +623,7 @@ bool RD_Decorate::CheckLHS(const Expr* lhs, const AssignExpr* a)
 			// since it's okay in this context.  However,
 			// we do need to recurse into the index, which
 			// could have problems.
+			mgr.SetPreFromPre(index, lhs);
 			index->Traverse(this);
 			return true;
 			}
@@ -836,12 +847,7 @@ bool RD_Decorate::ControlReachesEnd(const Stmt* s, bool is_definite,
 
 TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	{
-	// ###
-	if ( ! mgr.HasPreMinRDs(e) )
-		{
-		printf("no pre for %s\n", obj_desc(e));
-		mgr.SetPreFromPost(e, last_obj);
-		}
+	ASSERT(mgr.HasPreMinRDs(e));
 
 	if ( trace )
 		{
@@ -886,10 +892,23 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		break;
 		}
 
+	case EXPR_LIST:
+		{
+		auto l = e->AsListExpr();
+		for ( const auto& expr : l->Exprs() )
+			mgr.SetPreFromPre(expr, e);
+
+		break;
+		}
+
         case EXPR_ADD_TO:
 		{
 		auto a_t = e->AsAddToExpr();
 		auto lhs = a_t->Op1();
+		auto rhs = a_t->Op2();
+
+		mgr.SetPreFromPre(lhs, e);
+		mgr.SetPreFromPre(rhs, e);
 
 		if ( IsAggr(lhs) )
 			{
@@ -899,7 +918,9 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			// Treat this as an initalization of the set.
 			mgr.CreatePostDef(lhs_id, DefinitionPoint(a_t));
 
-			a_t->Op2()->Traverse(this);
+			mgr.SetPreFromPre(rhs, e);
+			rhs->Traverse(this);
+
 			return TC_ABORTSTMT;
 			}
 
@@ -913,6 +934,9 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		auto rhs = a->Op2();
 
 		bool rhs_aggr = IsAggr(rhs);
+
+		mgr.SetPreFromPre(lhs, a);
+		mgr.SetPreFromPre(rhs, a);
 
 		if ( CheckLHS(lhs, a) )
 			{
@@ -939,6 +963,8 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		{
 		auto f = e->AsFieldExpr();
 		auto r = f->Op();
+
+		mgr.SetPreFromPre(r, e);
 
 		if ( r->Tag() != EXPR_NAME && r->Tag() != EXPR_FIELD )
 			break;
@@ -973,6 +999,8 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		{
 		auto hf = e->AsHasFieldExpr();
 		auto r = hf->Op();
+
+		mgr.SetPreFromPre(r, e);
 
 		// Treat this as a definition of lhs$fn, since it's
 		// assuring that that field exists.
@@ -1015,6 +1043,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		// ding it for not being initialized.
 		//
 		// We handle this by just doing the traversal ourselves.
+		mgr.SetPreFromPre(f, e);
 		f->Traverse(this);
 
 		for ( const auto& expr : args_l->Exprs() )
@@ -1025,10 +1054,27 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 				mgr.CreatePostDef(expr->AsNameExpr()->Id(), 
 						DefinitionPoint(c));
 			else
+				{
+				mgr.SetPreFromPre(expr, e);
 				expr->Traverse(this);
+				}
 			}
 
 		return TC_ABORTSTMT;
+		}
+
+	case EXPR_COND:
+		{
+		auto c = e->AsCondExpr();
+
+		// We assume that no assignments are happening inside
+		// the conditional (for sure the case for reduced form).
+
+		mgr.SetPreFromPre(c->Op1(), e);
+		mgr.SetPreFromPre(c->Op2(), e);
+		mgr.SetPreFromPre(c->Op3(), e);
+
+		break;
 		}
 
 	case EXPR_LAMBDA:
@@ -1036,6 +1082,15 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		return TC_ABORTSTMT;
 
 	default:
+		if ( e->HaveGetOp() )
+			mgr.SetPreFromPre(e->GetOp().get(), e);
+
+		else if ( e->HaveGetOps() )
+			{
+			mgr.SetPreFromPre(e->GetOp1().get(), e);
+			mgr.SetPreFromPre(e->GetOp2().get(), e);
+			}
+
 		break;
 	}
 

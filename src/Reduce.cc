@@ -9,12 +9,43 @@
 #include "Reduce.h"
 
 
-TempVar::TempVar(int num, const IntrusivePtr<BroType>& t) : type(t)
+class TempVar {
+public:
+	TempVar(int num, const IntrusivePtr<BroType>& t, IntrusivePtr<Expr> rhs);
+	~TempVar()	{ delete name; }
+
+	const char* Name() const	{ return name; }
+	const BroType* Type() const	{ return type.get(); }
+	const Expr* RHS() const		{ return rhs.get(); }
+
+	const ID* Alias() const		{ return alias; }
+	void SetAlias(const ID*);
+
+protected:
+	char* name;
+	const IntrusivePtr<BroType>& type;
+	IntrusivePtr<Expr> rhs;
+	const ID* alias;
+};
+
+TempVar::TempVar(int num, const IntrusivePtr<BroType>& t,
+			IntrusivePtr<Expr> _rhs) : type(t)
 	{
 	char buf[8192];
 	snprintf(buf, sizeof buf, "#%d", num);
 	name = copy_string(buf);
+	rhs = _rhs;
+	alias = nullptr;
 	}
+
+void TempVar::SetAlias(const ID* _alias)
+	{
+	if ( alias )
+		reporter->InternalError("Re-aliasing a temporary\n");
+
+	alias = _alias;
+	}
+
 
 ReductionContext::ReductionContext(Scope* s)
 	{
@@ -28,25 +59,10 @@ ReductionContext::~ReductionContext()
 		delete temps[i];
 	}
 
-IntrusivePtr<ID> ReductionContext::GenTemporary(const IntrusivePtr<BroType>& t)
+IntrusivePtr<Expr> ReductionContext::GenTemporaryExpr(const IntrusivePtr<BroType>& t,
+						IntrusivePtr<Expr> rhs)
 	{
-	if ( mgr )
-		reporter->InternalError("Generating a new temporary while optimizing\n");
-
-	auto temp = new TempVar(temps.length(), t);
-	IntrusivePtr<ID> temp_id =
-		install_ID(temp->Name(), nullptr, false, false);
-
-	temp_id->SetType(t);
-
-	temps.append(temp);
-
-	return temp_id;
-	}
-
-IntrusivePtr<Expr> ReductionContext::GenTemporaryExpr(const IntrusivePtr<BroType>& t)
-	{
-	return {AdoptRef{}, new NameExpr(GenTemporary(t))};
+	return {AdoptRef{}, new NameExpr(GenTemporary(t, rhs))};
 	}
 
 bool ReductionContext::IsCSE(const NameExpr* lhs, const Expr* rhs)
@@ -56,7 +72,13 @@ bool ReductionContext::IsCSE(const NameExpr* lhs, const Expr* rhs)
 
 Expr* ReductionContext::OptExpr(Expr* e)
 	{
-	return e->Ref();
+	IntrusivePtr<Stmt> opt_stmts;
+	auto opt_e = e->Reduce(this, opt_stmts);
+
+	if ( opt_stmts )
+		reporter->InternalError("Generating new statements while optimizing\n");
+
+	return opt_e;
 	}
 
 IntrusivePtr<Expr> ReductionContext::OptExpr(IntrusivePtr<Expr> e_ptr)
@@ -76,4 +98,21 @@ IntrusivePtr<Expr> ReductionContext::OptExpr(IntrusivePtr<Expr> e_ptr)
 IntrusivePtr<Expr> ReductionContext::UpdateExpr(IntrusivePtr<Expr> e)
 	{
 	return e;
+	}
+
+IntrusivePtr<ID> ReductionContext::GenTemporary(const IntrusivePtr<BroType>& t,
+						IntrusivePtr<Expr> rhs)
+	{
+	if ( Optimizing() )
+		reporter->InternalError("Generating a new temporary while optimizing\n");
+
+	auto temp = new TempVar(temps.length(), t, rhs);
+	IntrusivePtr<ID> temp_id =
+		install_ID(temp->Name(), nullptr, false, false);
+
+	temp_id->SetType(t);
+
+	temps.append(temp);
+
+	return temp_id;
 	}

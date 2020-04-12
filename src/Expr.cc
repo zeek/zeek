@@ -252,10 +252,11 @@ void Expr::Canonicize()
 Expr* Expr::AssignToTemporary(ReductionContext* c,
 				IntrusivePtr<Stmt>& red_stmt)
 	{
-	auto result_tmp = c->GenTemporaryExpr(TypeIP());
+	IntrusivePtr<Expr> this_ptr = {NewRef{}, this};
+	auto result_tmp = c->GenTemporaryExpr(TypeIP(), this_ptr);
 
 	auto a_e = get_temp_assign_expr(result_tmp->MakeLvalue(),
-					{NewRef{}, this});
+					this_ptr);
 	if ( a_e->Tag() != EXPR_ASSIGN )
 		Internal("confusion in AssignToTemporary");
 

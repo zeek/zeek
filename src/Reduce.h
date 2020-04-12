@@ -31,10 +31,11 @@ public:
 protected:
 	IntrusivePtr<ID> GenTemporary(const IntrusivePtr<BroType>& t,
 					IntrusivePtr<Expr> rhs);
+	TempVar* FindTemporary(const ID* id);
 
 	Scope* scope;
 	PList<TempVar> temps;
-	std::map<ID*, TempVar*> ids_to_temps;
+	std::map<const ID*, TempVar*> ids_to_temps;
 
 	const DefSetsMgr* mgr;
 };

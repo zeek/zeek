@@ -19,13 +19,15 @@ public:
 	const Expr* RHS() const		{ return rhs.get(); }
 
 	IntrusivePtr<ID> Alias() const		{ return alias; }
-	void SetAlias(IntrusivePtr<ID> id);
+	void SetAlias(IntrusivePtr<ID> id, const DefinitionItem* di,
+			const RD_ptr& rds);
 
 protected:
 	char* name;
 	const IntrusivePtr<BroType>& type;
 	IntrusivePtr<Expr> rhs;
 	IntrusivePtr<ID> alias;
+	DefPoints dps;
 };
 
 TempVar::TempVar(int num, const IntrusivePtr<BroType>& t,
@@ -36,14 +38,17 @@ TempVar::TempVar(int num, const IntrusivePtr<BroType>& t,
 	name = copy_string(buf);
 	rhs = _rhs;
 	alias = nullptr;
+	dps = nullptr;
 	}
 
-void TempVar::SetAlias(IntrusivePtr<ID> _alias)
+void TempVar::SetAlias(IntrusivePtr<ID> _alias, const DefinitionItem* di,
+			const RD_ptr& rds)
 	{
 	if ( alias )
 		reporter->InternalError("Re-aliasing a temporary\n");
 
 	alias = _alias;
+	dps = rds->GetDefPoints(di);
 	}
 
 
@@ -67,6 +72,19 @@ IntrusivePtr<Expr> ReductionContext::GenTemporaryExpr(const IntrusivePtr<BroType
 
 bool ReductionContext::IsCSE(const NameExpr* lhs, const Expr* rhs)
 	{
+	auto lhs_id = lhs->Id();
+	auto lhs_tmp = FindTemporary(lhs_id);
+
+	if ( lhs_tmp && rhs->Tag() == EXPR_NAME )
+		{
+		auto rhs_id = rhs->AsNameExpr()->Id();
+		IntrusivePtr<ID> rhs_id_ptr = {AdoptRef{}, rhs_id};
+		auto rhs_rds = mgr->GetPreMaxRDs(rhs);
+		auto rhs_di = mgr->GetConstIDReachingDef(rhs_id);
+		lhs_tmp->SetAlias(rhs_id_ptr, rhs_di, rhs_rds);
+		return true;
+		}
+
 	return false;
 	}
 
@@ -103,11 +121,10 @@ IntrusivePtr<Expr> ReductionContext::UpdateExpr(IntrusivePtr<Expr> e)
 	auto n = e->AsNameExpr();
 	auto id = n->Id();
 
-	auto tmp = ids_to_temps.find(id);
-	if ( tmp == ids_to_temps.end() )
+	auto tmp_var = FindTemporary(id);
+	if ( ! tmp_var )
 		return e;
 
-	auto tmp_var = tmp->second;
 	if ( tmp_var->Alias() )
 		return make_intrusive<NameExpr>(tmp_var->Alias());
 
@@ -132,7 +149,16 @@ IntrusivePtr<ID> ReductionContext::GenTemporary(const IntrusivePtr<BroType>& t,
 	temp_id->SetType(t);
 
 	temps.append(temp);
-	ids_to_temps.insert(std::pair<ID*, TempVar*>(temp_id.get(), temp));
+	ids_to_temps.insert(std::pair<const ID*, TempVar*>(temp_id.get(), temp));
 
 	return temp_id;
+	}
+
+TempVar* ReductionContext::FindTemporary(const ID* id)
+	{
+	auto tmp = ids_to_temps.find(id);
+	if ( tmp == ids_to_temps.end() )
+		return nullptr;
+	else
+		return tmp->second;
 	}

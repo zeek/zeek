@@ -126,6 +126,8 @@ public:
 		{ return item_map.GetExprReachingDef(e); }
 	DefinitionItem* GetIDReachingDef(const ID* id)
 		{ return item_map.GetIDReachingDef(id); }
+	const DefinitionItem* GetConstIDReachingDef(const ID* id) const
+		{ return item_map.GetConstIDReachingDef(id); }
         const DefinitionItem* GetConstIDReachingDef(const DefinitionItem* di,
 						const char* field_name) const
 		{ return item_map.GetConstIDReachingDef(di, field_name); }

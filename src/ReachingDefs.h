@@ -50,6 +50,16 @@ public:
 		return map->find(di) != map->end();
 		}
 
+	DefPoints GetDefPoints(const DefinitionItem* di)
+		{
+		auto map = RDMap();
+		auto dps = map->find(di);
+		if ( dps == map->end() )
+			return nullptr;
+		else
+			return dps->second;
+		}
+
 	// Return a new object representing the intersection/union of
 	// this object's RDs and those of another.
 	RD_ptr Intersect(const RD_ptr& r) const;
@@ -81,7 +91,7 @@ protected:
 	void PrintRD(const DefinitionItem* di, const DefPoints& dp) const;
 	void PrintRD(const DefinitionItem* di, const DefinitionPoint& dp) const;
 
-	// If my_rd_map is non-nill, then we use that map.  Otherwise,
+	// If my_rd_map is non-nil, then we use that map.  Otherwise,
 	// we use the map that const_rd_map points to.
 	RD_ptr const_rd_map;
 	ReachingDefsMap* my_rd_map;

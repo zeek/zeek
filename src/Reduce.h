@@ -34,6 +34,7 @@ protected:
 
 	Scope* scope;
 	PList<TempVar> temps;
+	std::map<ID*, TempVar*> ids_to_temps;
 
 	const DefSetsMgr* mgr;
 };

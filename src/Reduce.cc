@@ -18,14 +18,14 @@ public:
 	const BroType* Type() const	{ return type.get(); }
 	const Expr* RHS() const		{ return rhs.get(); }
 
-	const ID* Alias() const		{ return alias; }
-	void SetAlias(const ID*);
+	IntrusivePtr<ID> Alias() const		{ return alias; }
+	void SetAlias(IntrusivePtr<ID> id);
 
 protected:
 	char* name;
 	const IntrusivePtr<BroType>& type;
 	IntrusivePtr<Expr> rhs;
-	const ID* alias;
+	IntrusivePtr<ID> alias;
 };
 
 TempVar::TempVar(int num, const IntrusivePtr<BroType>& t,
@@ -38,7 +38,7 @@ TempVar::TempVar(int num, const IntrusivePtr<BroType>& t,
 	alias = nullptr;
 	}
 
-void TempVar::SetAlias(const ID* _alias)
+void TempVar::SetAlias(IntrusivePtr<ID> _alias)
 	{
 	if ( alias )
 		reporter->InternalError("Re-aliasing a temporary\n");
@@ -97,7 +97,26 @@ IntrusivePtr<Expr> ReductionContext::OptExpr(IntrusivePtr<Expr> e_ptr)
 
 IntrusivePtr<Expr> ReductionContext::UpdateExpr(IntrusivePtr<Expr> e)
 	{
-	return e;
+	if ( e->Tag() != EXPR_NAME )
+		return e;
+
+	auto n = e->AsNameExpr();
+	auto id = n->Id();
+
+	auto tmp = ids_to_temps.find(id);
+	if ( tmp == ids_to_temps.end() )
+		return e;
+
+	auto tmp_var = tmp->second;
+	if ( tmp_var->Alias() )
+		return make_intrusive<NameExpr>(tmp_var->Alias());
+
+	auto rhs = tmp_var->RHS();
+	if ( rhs->Tag() != EXPR_CONST )
+		return e;
+
+	auto c = rhs->AsConstExpr();
+	return make_intrusive<ConstExpr>(c->ValuePtr());
 	}
 
 IntrusivePtr<ID> ReductionContext::GenTemporary(const IntrusivePtr<BroType>& t,
@@ -113,6 +132,7 @@ IntrusivePtr<ID> ReductionContext::GenTemporary(const IntrusivePtr<BroType>& t,
 	temp_id->SetType(t);
 
 	temps.append(temp);
+	ids_to_temps.insert(std::pair<ID*, TempVar*>(temp_id.get(), temp));
 
 	return temp_id;
 	}

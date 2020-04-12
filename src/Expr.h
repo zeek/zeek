@@ -332,6 +332,7 @@ public:
 	explicit ConstExpr(IntrusivePtr<Val> val);
 
 	Val* Value() const	{ return val.get(); }
+	IntrusivePtr<Val> ValuePtr() const	{ return val; }
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 

@@ -72,3 +72,8 @@ IntrusivePtr<Expr> ReductionContext::OptExpr(IntrusivePtr<Expr> e_ptr)
 
 	return {AdoptRef{}, new_e};
 	}
+
+IntrusivePtr<Expr> ReductionContext::UpdateExpr(IntrusivePtr<Expr> e)
+	{
+	return e;
+	}

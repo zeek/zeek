@@ -512,6 +512,9 @@ bool UnaryExpr::HasReducedOps() const
 
 Expr* UnaryExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
+	if ( c->Optimizing() )
+		op = c->UpdateExpr(op);
+
 	red_stmt = nullptr;
 
 	if ( ! op->IsReduced() )
@@ -524,7 +527,10 @@ Expr* UnaryExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 		return TransformMe(new ConstExpr(fold), c, red_stmt);
 		}
 
-	return AssignToTemporary(c, red_stmt);
+	if ( c->Optimizing() )
+		return this->Ref();
+	else
+		return AssignToTemporary(c, red_stmt);
 	}
 
 TraversalCode UnaryExpr::Traverse(TraversalCallback* cb) const
@@ -677,6 +683,12 @@ bool BinaryExpr::HasReducedOps() const
 
 Expr* BinaryExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
+	if ( c->Optimizing() )
+		{
+		op1 = c->UpdateExpr(op1);
+		op2 = c->UpdateExpr(op2);
+		}
+
 	red_stmt = nullptr;
 
 	if ( ! op1->IsSingleton() )
@@ -700,7 +712,10 @@ Expr* BinaryExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 		return TransformMe(new ConstExpr(fold), c, red_stmt);
 		}
 
-	return AssignToTemporary(c, red_stmt);
+	if ( c->Optimizing() )
+		return this->Ref();
+	else
+		return AssignToTemporary(c, red_stmt);
 	}
 
 TraversalCode BinaryExpr::Traverse(TraversalCallback* cb) const
@@ -2552,6 +2567,13 @@ bool CondExpr::HasReducedOps() const
 
 Expr* CondExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
+	if ( c->Optimizing() )
+		{
+		op1 = c->UpdateExpr(op1);
+		op2 = c->UpdateExpr(op2);
+		op3 = c->UpdateExpr(op3);
+		}
+
 	if ( op1->HasNoSideEffects() && same_singletons(op2, op3) )
 		return op2->Reduce(c, red_stmt);
 
@@ -3164,6 +3186,12 @@ bool AssignExpr::HasReducedOps() const
 
 Expr* AssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
+	if ( c->Optimizing() )
+		{
+		op1 = c->UpdateExpr(op1);
+		op2 = c->UpdateExpr(op2);
+		}
+
 	red_stmt = nullptr;
 
 	if ( IsTemp() )
@@ -4268,6 +4296,12 @@ void FieldAssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f)
 
 Expr* FieldAssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
+	if ( c->Optimizing() )
+		{
+		op = c->UpdateExpr(op);
+		return this->Ref();
+		}
+
 	red_stmt = nullptr;
 
 	if ( ! op->IsReduced() )
@@ -4742,6 +4776,14 @@ bool ScheduleExpr::HasReducedOps() const
 
 Expr* ScheduleExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
+	if ( c->Optimizing() )
+		{
+		when = c->UpdateExpr(when);
+		auto e = c->UpdateExpr(event);
+		auto ev = e->AsEventExpr();
+		event = {NewRef{}, ev};
+		}
+
 	red_stmt = nullptr;
 
 	if ( ! when->IsReduced() )
@@ -5074,6 +5116,15 @@ bool CallExpr::HasReducedOps() const
 
 Expr* CallExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
+	if ( c->Optimizing() )
+		{
+		func = c->UpdateExpr(func);
+		auto e = c->UpdateExpr(args);
+		auto el = e->AsListExpr();
+		args = {NewRef{}, el};
+		return this->Ref();
+		}
+
 	red_stmt = nullptr;
 
 	if ( ! func->IsReduced() )
@@ -5355,6 +5406,14 @@ bool EventExpr::HasReducedOps() const
 
 Expr* EventExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
+	if ( c->Optimizing() )
+		{
+		auto e = c->UpdateExpr(args);
+		auto el = e->AsListExpr();
+		args = {NewRef{}, el};
+		return this->Ref();
+		}
+
 	red_stmt = nullptr;
 
 	if ( ! Args()->IsReduced() )
@@ -5755,6 +5814,15 @@ Expr* ListExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 
 	loop_over_list(exprs, i)
 		{
+		if ( c->Optimizing() )
+			{
+			IntrusivePtr<Expr> e_i_ptr = {NewRef{}, exprs[i]};
+			auto e_i = c->UpdateExpr(e_i_ptr);
+			exprs.replace(i, e_i.get());
+			e_i.release();
+			continue;
+			}
+
 		if ( exprs[i]->IsReduced() )
 			continue;
 

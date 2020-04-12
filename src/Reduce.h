@@ -38,6 +38,8 @@ public:
 	Expr* OptExpr(Expr* e);
 	IntrusivePtr<Expr> OptExpr(IntrusivePtr<Expr> e);
 
+	IntrusivePtr<Expr> UpdateExpr(IntrusivePtr<Expr> e);
+
 protected:
 	Scope* scope;
 	PList<TempVar> temps;

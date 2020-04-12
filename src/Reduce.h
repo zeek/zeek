@@ -33,6 +33,8 @@ public:
 
 	bool Optimizing() const		{ return mgr != nullptr; }
 
+	bool IsCSE(const NameExpr* lhs, const Expr* rhs);
+
 	Expr* OptExpr(Expr* e);
 	IntrusivePtr<Expr> OptExpr(IntrusivePtr<Expr> e);
 

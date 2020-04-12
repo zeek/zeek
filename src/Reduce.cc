@@ -49,6 +49,11 @@ IntrusivePtr<Expr> ReductionContext::GenTemporaryExpr(const IntrusivePtr<BroType
 	return {AdoptRef{}, new NameExpr(GenTemporary(t))};
 	}
 
+bool ReductionContext::IsCSE(const NameExpr* lhs, const Expr* rhs)
+	{
+	return false;
+	}
+
 Expr* ReductionContext::OptExpr(Expr* e)
 	{
 	return e->Ref();

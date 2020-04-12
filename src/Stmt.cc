@@ -1964,35 +1964,9 @@ Stmt* StmtList::Reduce(ReductionContext* c)
 	stmt_list* f_stmts = new stmt_list;
 	bool did_change = false;
 
-	for ( auto stmt : Stmts() )
-		{
-		auto old_stmt = stmt;
-		stmt = stmt->Reduce(c);
-
-		if ( stmt != old_stmt )
+	for ( auto i = 0; i < Stmts().length(); ++i )
+		if ( ReduceStmt(i, f_stmts, c) )
 			did_change = true;
-
-		if ( stmt->Tag() == STMT_LIST )
-			{ // inline the list
-			auto sl = stmt->AsStmtList();
-
-			for ( auto& sub_stmt : sl->Stmts() )
-				f_stmts->append(sub_stmt->Ref());
-
-			Unref(stmt);
-			did_change = true;
-			}
-
-		else if ( stmt->Tag() == STMT_NULL )
-			// skip it
-			did_change = true;
-
-		else
-			// No need to Ref() because the stmt_list destructor
-			// doesn't Unref(), only the explict list-walking
-			// in the ~StmtList destructor.
-			f_stmts->append(stmt);
-		}
 
 	if ( f_stmts->length() == 0 )
 		return TransformMe(new NullStmt, c);
@@ -2006,6 +1980,64 @@ Stmt* StmtList::Reduce(ReductionContext* c)
 		delete f_stmts;
 
 	return this->Ref();
+	}
+
+bool StmtList::ReduceStmt(int s_i, stmt_list* f_stmts, ReductionContext* c)
+	{
+	bool did_change = false;
+	auto& stmt = Stmts()[s_i];
+	auto old_stmt = stmt;
+
+	stmt = stmt->Reduce(c);
+
+	if ( stmt != old_stmt )
+		did_change = true;
+
+	if ( c->Optimizing() && stmt->Tag() == STMT_EXPR )
+		{
+		auto s_e = stmt->AsExprStmt();
+		auto e = s_e->StmtExpr();
+
+		if ( e->Tag() == EXPR_ASSIGN )
+			{
+			auto a = e->AsAssignExpr();
+			auto lhs = a->Op1()->AsRefExpr()->Op();
+			auto rhs = a->Op2();
+
+			if ( lhs->Tag() == EXPR_NAME )
+				{
+				auto var = lhs->AsNameExpr();
+				if ( c->IsCSE(var, rhs) )
+					// Skip this now unnecessary statement.
+					return true;
+				}
+
+			// ### Fold assignment pairs.
+			}
+		}
+
+	if ( stmt->Tag() == STMT_LIST )
+		{ // inline the list
+		auto sl = stmt->AsStmtList();
+
+		for ( auto& sub_stmt : sl->Stmts() )
+			f_stmts->append(sub_stmt->Ref());
+
+		Unref(stmt);
+		did_change = true;
+		}
+
+	else if ( stmt->Tag() == STMT_NULL )
+		// skip it
+		did_change = true;
+
+	else
+		// No need to Ref() because the stmt_list destructor
+		// doesn't Unref(), only the explict list-walking
+		// in the ~StmtList destructor.
+		f_stmts->append(stmt);
+
+	return did_change;
 	}
 
 void StmtList::StmtDescribe(ODesc* d) const

@@ -479,6 +479,8 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
+	bool ReduceStmt(int s_i, stmt_list* f_stmts, ReductionContext* c);
+
 	void ResetStmts(stmt_list* new_stmts)
 		{
 		delete stmts;

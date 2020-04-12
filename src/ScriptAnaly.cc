@@ -1283,7 +1283,6 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 
 	f->ReplaceBody(body_ptr, new_body_ptr);
 	f->GrowFrameSize(rc.NumTemps());
-	pop_scope();
 
 	RD_Decorate cb;
 	f->Traverse(&cb);
@@ -1297,4 +1296,5 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 		printf("Optimized: %s\n", obj_desc(new_body));
 
 	f->ReplaceBody(body_ptr, new_body_ptr);
+	pop_scope();
 	}

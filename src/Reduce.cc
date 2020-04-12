@@ -48,3 +48,22 @@ IntrusivePtr<Expr> ReductionContext::GenTemporaryExpr(const IntrusivePtr<BroType
 	{
 	return {AdoptRef{}, new NameExpr(GenTemporary(t))};
 	}
+
+Expr* ReductionContext::OptExpr(Expr* e)
+	{
+	return e->Ref();
+	}
+
+IntrusivePtr<Expr> ReductionContext::OptExpr(IntrusivePtr<Expr> e_ptr)
+	{
+	auto e = e_ptr.get();
+	auto new_e = OptExpr(e);
+	if ( new_e == e )
+		{
+		// Undo the Ref() that occurred.
+		Unref(e);
+		return e_ptr;
+		}
+
+	return {AdoptRef{}, new_e};
+	}

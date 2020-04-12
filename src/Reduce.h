@@ -31,6 +31,11 @@ public:
 
 	int NumTemps() const		{ return temps.length(); }
 
+	bool Optimizing() const		{ return mgr != nullptr; }
+
+	Expr* OptExpr(Expr* e);
+	IntrusivePtr<Expr> OptExpr(IntrusivePtr<Expr> e);
+
 protected:
 	Scope* scope;
 	PList<TempVar> temps;

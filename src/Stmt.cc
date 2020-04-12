@@ -14,6 +14,7 @@
 #include "Var.h"
 #include "Desc.h"
 #include "Debug.h"
+#include "Reduce.h"
 #include "Traverse.h"
 #include "Trigger.h"
 #include "IntrusivePtr.h"
@@ -213,7 +214,7 @@ bool ExprListStmt::IsReduced() const
 
 Stmt* ExprListStmt::Reduce(ReductionContext* c)
 	{
-	if ( IsReduced() )
+	if ( ! c->Optimizing() && IsReduced() )
 		return this->Ref();
 
 	auto new_l = make_intrusive<ListExpr>();
@@ -223,8 +224,12 @@ Stmt* ExprListStmt::Reduce(ReductionContext* c)
 	for ( auto& expr : e )
 		{
 // printf("reducing expr list element %s (%ssingleton):\n", obj_desc(expr), expr->IsSingleton() ? "" : "not ");
-		if ( expr->IsSingleton() )
+		if ( c->Optimizing() )
+			new_l->Append({AdoptRef{}, c->OptExpr(expr)});
+
+		else if ( expr->IsSingleton() )
 			new_l->Append({NewRef{}, expr});
+
 		else
 			{
 			IntrusivePtr<Stmt> red_e_stmt;
@@ -239,9 +244,17 @@ Stmt* ExprListStmt::Reduce(ReductionContext* c)
 			}
 		}
 
-	s->Stmts().push_back(DoReduce(new_l, c));
+	if ( c->Optimizing() )
+		{
+		l = new_l;
+		return this->Ref();
+		}
 
-	return s->Reduce(c);
+	else
+		{
+		s->Stmts().push_back(DoReduce(new_l, c));
+		return s->Reduce(c);
+		}
 	}
 
 void ExprListStmt::StmtDescribe(ODesc* d) const
@@ -424,6 +437,12 @@ Stmt* ExprStmt::Reduce(ReductionContext* c)
 	{
 	if ( e )
 		{
+		if ( c->Optimizing() )
+			{
+			e = c->OptExpr(e);
+			return this->Ref();
+			}
+
 // printf("reducing expr stmt: %s\n", obj_desc(e.get()));
 		if ( e->IsSingleton() )
 			{
@@ -547,12 +566,20 @@ Stmt* IfStmt::Reduce(ReductionContext* c)
 	s2 = {AdoptRef{}, s2->Reduce(c)};
 
 	IntrusivePtr<Stmt> red_e_stmt;
-	e = {AdoptRef{}, e->Reduce(c, red_e_stmt)};
+
+	if ( c->Optimizing() )
+		e = c->OptExpr(e);
+	else
+		e = {AdoptRef{}, e->Reduce(c, red_e_stmt)};
 
 	if ( e->IsConst() )
 		{
 		auto c_e = e->AsConstExpr();
 		auto t = c_e->Value()->AsBool();
+
+		if ( c->Optimizing() )
+			return t ? s1.get()->Ref() : s2.get()->Ref();
+
 		if ( t )
 			return TransformMe(new StmtList(red_e_stmt, s1), c);
 		else
@@ -1034,7 +1061,11 @@ Stmt* SwitchStmt::Reduce(ReductionContext* rc)
 	{
 	auto s = make_intrusive<StmtList>();
 	IntrusivePtr<Stmt> red_e_stmt;
-	e = {AdoptRef{}, e->Reduce(rc, red_e_stmt)};
+
+	if ( rc->Optimizing() )
+		e = rc->OptExpr(e);
+	else
+		e = {AdoptRef{}, e->Reduce(rc, red_e_stmt)};
 
 	// ### Could check for constant switch expression.
 
@@ -1123,7 +1154,10 @@ Stmt* AddDelStmt::Reduce(ReductionContext* c)
 	{
 	IntrusivePtr<Stmt> red_e_stmt;
 
-	if ( e->Tag() == EXPR_INDEX )
+	if ( c->Optimizing() )
+		e = c->OptExpr(e);
+
+	else if ( e->Tag() == EXPR_INDEX )
 		{
 		auto ind = e->AsIndexExpr();
 		red_e_stmt = ind->ReduceToSingletons(c);
@@ -1217,12 +1251,19 @@ IntrusivePtr<Val> EventStmt::Exec(Frame* f, stmt_flow_type& flow) const
 Stmt* EventStmt::Reduce(ReductionContext* c)
 	{
 	// ### remove reundancy w/ e.g. ReturnStmt
-	if ( ! event_expr->IsSingleton() )
+	if ( c->Optimizing() )
+		{
+		e = c->OptExpr(e);
+		event_expr = {NewRef{}, e->AsEventExpr()};
+		}
+
+	else if ( ! event_expr->IsSingleton() )
 		{
 		IntrusivePtr<Stmt> red_e_stmt;
 		auto ee_red = event_expr->Reduce(c, red_e_stmt);
 
 		event_expr = {AdoptRef{}, ee_red->AsEventExpr()};
+		e = event_expr;
 
 		if ( red_e_stmt )
 			{
@@ -1281,10 +1322,17 @@ bool WhileStmt::IsReduced() const
 
 Stmt* WhileStmt::Reduce(ReductionContext* c)
 	{
-	if ( IsReduced() )
-		return this->Ref();
+	if ( c->Optimizing() )
+		loop_condition = c->OptExpr(loop_condition);
+	else
+		{
+		if ( IsReduced() )
+			return this->Ref();
 
-	loop_condition = {AdoptRef{}, loop_condition->Reduce(c, loop_cond_stmt)};
+		loop_condition =
+			{AdoptRef{}, loop_condition->Reduce(c, loop_cond_stmt)};
+		}
+
 	body = {AdoptRef{}, body->Reduce(c)};
 
 	if ( loop_cond_stmt )
@@ -1593,7 +1641,12 @@ bool ForStmt::IsReduced() const
 Stmt* ForStmt::Reduce(ReductionContext* c)
 	{
 	IntrusivePtr<Stmt> red_e_stmt;
-	e = {AdoptRef{}, e->Reduce(c, red_e_stmt)};
+
+	if ( c->Optimizing() )
+		e = c->OptExpr(e);
+	else
+		e = {AdoptRef{}, e->Reduce(c, red_e_stmt)};
+
 	body = {AdoptRef{}, body->Reduce(c)};
 
 	if ( red_e_stmt )
@@ -1801,7 +1854,10 @@ Stmt* ReturnStmt::Reduce(ReductionContext* c)
 		{
 		IntrusivePtr<Stmt> red_e_stmt;
 
-		e = {AdoptRef{}, e->Reduce(c, red_e_stmt)};
+		if ( c->Optimizing() )
+			e = c->OptExpr(e);
+		else
+			e = {AdoptRef{}, e->Reduce(c, red_e_stmt)};
 
 		if ( red_e_stmt )
 			{

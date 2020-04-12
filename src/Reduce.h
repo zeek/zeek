@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "IntrusivePtr.h"
+#include "DefSetsMgr.h"
 
 class ID;
 class Expr;
@@ -23,6 +24,8 @@ public:
 	ReductionContext(Scope* s);
 	~ReductionContext();
 
+	void SetDefSetsMgr(const DefSetsMgr* _mgr)	{ mgr = _mgr; }
+
 	IntrusivePtr<ID> GenTemporary(const IntrusivePtr<BroType>& t);
 	IntrusivePtr<Expr> GenTemporaryExpr(const IntrusivePtr<BroType>& t);
 
@@ -31,4 +34,6 @@ public:
 protected:
 	Scope* scope;
 	PList<TempVar> temps;
+
+	const DefSetsMgr* mgr;
 };

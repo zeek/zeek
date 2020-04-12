@@ -5,6 +5,7 @@
 #include "Scope.h"
 #include "Expr.h"
 #include "Stmt.h"
+#include "Reporter.h"
 #include "Reduce.h"
 
 
@@ -18,6 +19,7 @@ TempVar::TempVar(int num, const IntrusivePtr<BroType>& t) : type(t)
 ReductionContext::ReductionContext(Scope* s)
 	{
 	scope = s;
+	mgr = nullptr;
 	}
 
 ReductionContext::~ReductionContext()
@@ -28,6 +30,9 @@ ReductionContext::~ReductionContext()
 
 IntrusivePtr<ID> ReductionContext::GenTemporary(const IntrusivePtr<BroType>& t)
 	{
+	if ( mgr )
+		reporter->InternalError("Generating a new temporary while optimizing\n");
+
 	auto temp = new TempVar(temps.length(), t);
 	IntrusivePtr<ID> temp_id =
 		install_ID(temp->Name(), nullptr, false, false);

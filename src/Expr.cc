@@ -1589,10 +1589,7 @@ Expr* AddToExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 		{
 		auto append = new AppendToExpr(op1, op2);
 		append->SetOriginal(this);
-// printf("about to reduce %s\n", obj_desc(append));
 		auto res = append->Reduce(c, red_stmt);
-// printf(" ... reduced to: %s\n", obj_desc(res));
-// if ( red_stmt ) printf(" ... and: %s\n", obj_desc(red_stmt.get()));
 		return res;
 		}
 
@@ -3145,8 +3142,6 @@ bool AssignExpr::HasNoSideEffects() const
 
 bool AssignExpr::IsReduced() const
 	{
-// printf("Reduction for %s: %s-temp, op2-%s-reduced, op1-%s-singleton, op1-%s-ref\n", obj_desc(this), IsTemp() ? "is" : "not", op2->IsReduced() ? "is" : "not", op1->IsSingleton() ? "is" : "not", op1->Tag() == EXPR_REF ? "is" : "not");
-
 	if ( IsTemp() )
 		return true;
 
@@ -3174,18 +3169,13 @@ Expr* AssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	if ( IsTemp() )
 		return this->Ref();
 
-// printf("checking assign LHS %s (%ssingleton)\n", obj_desc(op1.get()), op1->IsSingleton() ? "" : "not ");
 	if ( ! op1->IsSingleton() &&
 	     (op1->Tag() != EXPR_REF || ! op1->AsRefExpr()->IsSingleton()) )
 		op1 = {AdoptRef{}, op1->Reduce(c, red_stmt)};
 
-// printf("checking assign RHS %s (%ssingleton)\n", obj_desc(op2.get()), op2->IsSingleton() ? "" : "not ");
 	IntrusivePtr<Stmt> red2_stmt;
 	if ( ! op2->IsSingleton() )
 		op2 = {AdoptRef{}, op2->Reduce(c, red2_stmt)};
-
-// printf("for assign RHS, %s/%s\n", red_stmt ? "Y" : "N", red2_stmt ? "Y" :"N" );
-// if ( red_stmt ) printf("red1:\n%s\n", obj_desc(red_stmt.get()));
 
 	if ( ! red_stmt )
 		red_stmt = red2_stmt;
@@ -3621,10 +3611,8 @@ IntrusivePtr<Stmt> IndexExpr::ReduceToLHS(ReductionContext* c)
 	IntrusivePtr<Stmt> red1_stmt;
 	IntrusivePtr<Stmt> red2_stmt;
 
-// printf("IndexExpr::ReduceToLHS pre, op = %s, type = %s\n", obj_desc(op2.get()), expr_name(op2->Tag()));
 	op1 = {AdoptRef{}, op1->Reduce(c, red1_stmt)};
 	op2 = {AdoptRef{}, op2->Reduce(c, red2_stmt)};
-// printf("IndexExpr::ReduceToLHS post, op = %s, type = %s, %s/%s\n", obj_desc(op2.get()), expr_name(op2->Tag()), red1_stmt ? "Y" : "N", red2_stmt ? "Y" :"N" );
 
 	if ( red1_stmt && red2_stmt )
 		return make_intrusive<StmtList>(red1_stmt, red2_stmt);
@@ -5435,12 +5423,9 @@ bool ListExpr::IsPure() const
 
 bool ListExpr::IsReduced() const
 	{
-// printf("reduction for %s:\n", obj_desc(this));
-
 	for ( const auto& expr : exprs )
 		{
 		auto e_red = expr->IsReduced();
-// printf(" expr %s: %sreduced\n", obj_desc(expr), e_red ? "" : "not ");
 		if ( ! expr->IsReduced() )
 			return false;
 		}

@@ -1034,33 +1034,17 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		return TC_ABORTSTMT;
 		}
 
-	case EXPR_COND:
-		{
-		auto c = e->AsCondExpr();
-
-		// We assume that no assignments are happening inside
-		// the conditional (for sure the case for reduced form).
-
-		mgr.SetPreFromPre(c->Op1(), e);
-		mgr.SetPreFromPre(c->Op2(), e);
-		mgr.SetPreFromPre(c->Op3(), e);
-
-		break;
-		}
-
 	case EXPR_LAMBDA:
 		// ### Too tricky to get these right.
 		return TC_ABORTSTMT;
 
 	default:
-		if ( e->HaveGetOp() )
-			mgr.SetPreFromPre(e->GetOp().get(), e);
-
-		else if ( e->HaveGetOps() )
-			{
+		if ( e->GetOp1() )
 			mgr.SetPreFromPre(e->GetOp1().get(), e);
+		if ( e->GetOp2() )
 			mgr.SetPreFromPre(e->GetOp2().get(), e);
-			}
+		if ( e->GetOp3() )
+			mgr.SetPreFromPre(e->GetOp3().get(), e);
 
 		break;
 	}

@@ -236,15 +236,19 @@ bool ReductionContext::SameExpr(const Expr* e1, const Expr* e2) const
 		return false;
 
 	default:
-		if ( e1->HaveGetOp() )
-			return SameOp(e1->GetOp(), e2->GetOp());
-
-		else if ( e1->HaveGetOps() )
-			return SameOp(e1->GetOp1(), e2->GetOp1()) &&
-				SameOp(e1->GetOp2(), e2->GetOp2());
-
-		else
+		if ( ! e1->GetOp1() )
 			reporter->InternalError("Bad default in ReductionContext::SameExpr");
+
+		if ( ! SameOp(e1->GetOp1(), e2->GetOp1()) )
+			return false;
+
+		if ( e1->GetOp2() && ! SameOp(e1->GetOp2(), e2->GetOp2()) )
+			return false;
+
+		if ( e1->GetOp3() && ! SameOp(e1->GetOp3(), e2->GetOp3()) )
+			return false;
+
+		return true;
 	}
 	}
 
@@ -344,11 +348,14 @@ IntrusivePtr<Expr> ReductionContext::OptExpr(IntrusivePtr<Expr> e_ptr)
 
 IntrusivePtr<Expr> ReductionContext::UpdateExpr(IntrusivePtr<Expr> e)
 	{
+printf("updating %s (%s)\n", obj_desc(e.get()), expr_name(e->Tag()));
 	if ( e->Tag() != EXPR_NAME )
-		return e;
+		return OptExpr(e);
 
 	auto n = e->AsNameExpr();
 	auto id = n->Id();
+
+printf("doing update for %s\n", id->Name());
 
 	auto tmp_var = FindTemporary(id);
 	if ( ! tmp_var )

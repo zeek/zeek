@@ -180,16 +180,11 @@ public:
 	// if it's not a constant.
 	inline Val* ExprVal() const;
 
-	// Returns the expression's sole operand, or generates
-	// an internal error if it that's not the right model for it.
-	// The second function returns true if it's safe to call it.
-	virtual IntrusivePtr<Expr> GetOp() const;
-	virtual bool HaveGetOp() const;
-
-	// Same for binary expressions.
+	// Returns the expressions operands, or nil if it doesn't
+	// have one.
 	virtual IntrusivePtr<Expr> GetOp1() const;
 	virtual IntrusivePtr<Expr> GetOp2() const;
-	virtual bool HaveGetOps() const;
+	virtual IntrusivePtr<Expr> GetOp3() const;
 
 	// True if the expression is a constant zero, false otherwise.
 	bool IsZero() const;
@@ -347,8 +342,7 @@ class UnaryExpr : public Expr {
 public:
 	Expr* Op() const	{ return op.get(); }
 
-	IntrusivePtr<Expr> GetOp() const override final	{ return op; }
-	bool HaveGetOp() const override final	{ return true; }
+	IntrusivePtr<Expr> GetOp1() const override final	{ return op; }
 
 	// UnaryExpr::Eval correctly handles vector types.  Any child
 	// class that overrides Eval() should be modified to handle
@@ -381,7 +375,6 @@ public:
 
 	IntrusivePtr<Expr> GetOp1() const override final	{ return op1; }
 	IntrusivePtr<Expr> GetOp2() const override final	{ return op2; }
-	bool HaveGetOps() const override final	{ return true; }
 
 	bool IsPure() const override;
 	bool HasNoSideEffects() const override;
@@ -918,7 +911,6 @@ public:
 
 	IntrusivePtr<Expr> GetOp1() const override final;
 	IntrusivePtr<Expr> GetOp2() const override final;
-	bool HaveGetOps() const override final;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -1037,8 +1029,7 @@ public:
 	bool HasReducedOps() const override;
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 
-	IntrusivePtr<Expr> GetOp() const override final	{ return args; }
-	bool HaveGetOp() const override final	{ return true; }
+	IntrusivePtr<Expr> GetOp1() const override final	{ return args; }
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 

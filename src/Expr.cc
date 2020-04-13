@@ -182,32 +182,19 @@ void Expr::SetError(const char* msg)
 	SetError();
 	}
 
-IntrusivePtr<Expr> Expr::GetOp() const
-	{
-	Internal("Expr::GetOp() called");
-	return nullptr;
-	}
-
-bool Expr::HaveGetOp() const
-	{
-	return false;
-	}
-
 IntrusivePtr<Expr> Expr::GetOp1() const
 	{
-	Internal("Expr::GetOp1() called");
 	return nullptr;
 	}
 
 IntrusivePtr<Expr> Expr::GetOp2() const
 	{
-	Internal("Expr::GetOp2() called");
 	return nullptr;
 	}
 
-bool Expr::HaveGetOps() const
+IntrusivePtr<Expr> Expr::GetOp3() const
 	{
-	return false;
+	return nullptr;
 	}
 
 bool Expr::IsZero() const
@@ -1295,7 +1282,7 @@ IntrusivePtr<Val> ComplementExpr::Fold(Val* v) const
 Expr* ComplementExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( op->Tag() == EXPR_COMPLEMENT )
-		return op->GetOp().get()->Reduce(c, red_stmt);
+		return op->GetOp1().get()->Reduce(c, red_stmt);
 
 	return UnaryExpr::Reduce(c, red_stmt);
 	}
@@ -1322,7 +1309,7 @@ IntrusivePtr<Val> NotExpr::Fold(Val* v) const
 Expr* NotExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( op->Tag() == EXPR_NOT )
-		return op->GetOp().get()->Reduce(c, red_stmt);
+		return op->GetOp1().get()->Reduce(c, red_stmt);
 
 	return UnaryExpr::Reduce(c, red_stmt);
 	}
@@ -1417,7 +1404,7 @@ IntrusivePtr<Val> NegExpr::Fold(Val* v) const
 Expr* NegExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( op->Tag() == EXPR_NEGATE )
-		return op->GetOp().get()->Reduce(c, red_stmt);
+		return op->GetOp1().get()->Reduce(c, red_stmt);
 
 	return UnaryExpr::Reduce(c, red_stmt);
 	}
@@ -1516,7 +1503,7 @@ Expr* AddExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 Expr* AddExpr::BuildSub(const IntrusivePtr<Expr>& op1,
 			const IntrusivePtr<Expr>& op2)
 	{
-	auto rhs = op2->GetOp();
+	auto rhs = op2->GetOp1();
 	auto sub = new SubExpr(op1, rhs);
 	sub->SetOriginal(this);
 	return sub;
@@ -1705,7 +1692,7 @@ Expr* SubExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 
 	if ( op2->Tag() == EXPR_NEGATE )
 		{
-		auto rhs = op2->GetOp();
+		auto rhs = op2->GetOp1();
 		auto add = new AddExpr(op1, rhs);
 		add->SetOriginal(this);
 		return add->Reduce(c, red_stmt);
@@ -4838,11 +4825,6 @@ IntrusivePtr<Expr> ScheduleExpr::GetOp1() const
 IntrusivePtr<Expr> ScheduleExpr::GetOp2() const
 	{
 	return event;
-	}
-
-bool ScheduleExpr::HaveGetOps() const
-	{
-	return true;
 	}
 
 TraversalCode ScheduleExpr::Traverse(TraversalCallback* cb) const

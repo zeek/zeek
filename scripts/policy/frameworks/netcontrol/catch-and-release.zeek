@@ -259,7 +259,7 @@ function cr_check_rule(r: Rule): bool
 
 @if ( ! Cluster::is_enabled() || ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER ) )
 
-event rule_added(r: Rule, p: PluginState, msg: string &default="")
+event rule_added(r: Rule, p: PluginState, msg: string)
 	{
 	if ( !cr_check_rule(r) )
 		return;

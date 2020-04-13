@@ -1,4 +1,66 @@
 
+3.2.0-dev.391 | 2020-04-13 14:59:50 -0700
+
+  * Add warning for ineffective &default arguments in handlers
+
+    For event/hook handlers that had a previous declaration, any &default
+    arguments are ineffective.  Only &default uses in the initial
+    prototype's arguments have an effect (that includes if the handler
+    is actually the site at which the declaration occurs). (Jon Siwek, Corelight)
+
+  * Fix frame size allocation of alternate event/hook handlers
+
+    When the only existing handler doesn't use the full argument list, still
+    have to ensure the full frame is allocated because all arguments get set
+    regardless. (Jon Siwek, Corelight)
+
+  * Emit error for alternate event/hook prototype args with attributes
+
+    Argument attributes are only allowed in the canonical prototype. (Jon Siwek, Corelight)
+
+  * Improve alternate event/hook prototype matching
+
+    This fixes it to again allow the old behavior of matching a handler
+    against the canonical prototype as long as all argument types, but not
+    necessarily names, match. (Jon Siwek, Corelight)
+
+  * Allow alternate event/hook prototype declarations
+
+    The alternates must be some subset of the canonical prototype (the one
+    that's first declared) and allows users to define handlers for any
+    such prototype.  Example:
+
+        # Prototype declarations
+        global my_event: event(s: string, c: count);
+        global my_event: event(c: count);
+        global my_event: event();
+
+        # Handler definitions
+        event my_event(s: string, c: count) { print s, c; }
+        event my_event(c: count) { print c; }
+        event my_event() { }
+
+    This allows handlers to consume a subset of the arguments or even
+    re-order them.  This makes it easier to either extend an existing
+    event/hook's arguments and/or deprecate usages of certain prototypes. (Jon Siwek, Corelight)
+
+  * Fix Broker topics used to uniquely identify cluster nodes
+
+    Node-specific topic prefix subscriptions/publications now add a trailing
+    slash like "zeek/cluster/node/<name>/".  Without the trailing slash,
+    messages attempting to target "proxy-10" may also be sent to "proxy-1"
+    since subscription matching is prefix-based. (Jon Siwek, Corelight)
+
+  * Update submodule(s)
+
+     [nomail] (Jon Siwek, Corelight)
+
+  * Fix include in X509Common.h
+
+    Give full path to Analyzer.h, so that X509Common.h is include-able by
+    plugins. (Johanna Amann, Corelight)
+
+
 3.2.0-dev.382 | 2020-04-09 13:17:03 -0700
 
   * Remove 'using namespace std' as well as other using statements from headers.

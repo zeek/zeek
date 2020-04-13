@@ -29,13 +29,90 @@ static IntrusivePtr<Val> init_val(Expr* init, const BroType* t,
 		}
 	}
 
+static bool add_prototype(ID* id, BroType* t, attr_list* attrs,
+                          const IntrusivePtr<Expr>& init)
+	{
+	if ( ! IsFunc(id->Type()->Tag()) )
+		return false;
+
+	if ( ! IsFunc(t->Tag()) )
+		{
+		t->Error("type incompatible with previous definition", id);
+		return false;
+		}
+
+	auto canon_ft = id->Type()->AsFuncType();
+	auto alt_ft = t->AsFuncType();
+
+	if ( canon_ft->Flavor() != alt_ft->Flavor() )
+		{
+		alt_ft->Error("incompatible function flavor", canon_ft);
+		return false;
+		}
+
+	if ( canon_ft->Flavor() == FUNC_FLAVOR_FUNCTION )
+		{
+		alt_ft->Error("redeclaration of function", canon_ft);
+		return false;
+		}
+
+	if ( init )
+		{
+		init->Error("initialization not allowed during event/hook alternate prototype declaration");
+		return false;
+		}
+
+	auto canon_args = canon_ft->Args();
+	auto alt_args = alt_ft->Args();
+
+	if ( auto p = canon_ft->FindPrototype(*alt_args); p )
+		{
+		alt_ft->Error("alternate function prototype already exists", p->args.get());
+		return false;
+		}
+
+	std::map<int, int> offsets;
+
+	for ( auto i = 0; i < alt_args->NumFields(); ++i )
+		{
+		auto field = alt_args->FieldName(i);
+
+		if ( alt_args->FieldDecl(i)->attrs )
+			{
+			alt_ft->Error(fmt("alternate function prototype arguments may not have attributes: arg '%s'", field), canon_ft);
+			return false;
+			}
+
+		auto o = canon_args->FieldOffset(field);
+
+		if ( o < 0 )
+			{
+			alt_ft->Error(fmt("alternate function prototype arg '%s' not found in canonical prototype", field), canon_ft);
+			return false;
+			}
+
+		offsets[i] = o;
+		}
+
+	auto deprecated = false;
+
+	if ( attrs )
+		for ( const auto& a : *attrs )
+			if ( a->Tag() == ATTR_DEPRECATED )
+				deprecated = true;
+
+	FuncType::Prototype p{deprecated, {NewRef{}, alt_args}, std::move(offsets)};
+	canon_ft->AddPrototype(std::move(p));
+	return true;
+	}
+
 static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
                      IntrusivePtr<Expr> init, attr_list* attr, decl_type dt,
                      bool do_init)
 	{
 	if ( id->Type() )
 		{
-		if ( id->IsRedefinable() || (! init && attr) )
+		if ( id->IsRedefinable() || (! init && attr && ! IsFunc(id->Type()->Tag())) )
 			{
 			BroObj* redef_obj = init ? (BroObj*) init.get() : (BroObj*) t.get();
 			if ( dt != VAR_REDEF )
@@ -44,7 +121,11 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 
 		else if ( dt != VAR_REDEF || init || ! attr )
 			{
-			id->Error("already defined", init.get());
+			if ( IsFunc(id->Type()->Tag()) )
+				add_prototype(id, t.get(), attr, init);
+			else
+				id->Error("already defined", init.get());
+
 			return;
 			}
 		}
@@ -338,6 +419,41 @@ static bool has_attr(const attr_list* al, attr_tag tag)
 	return find_attr(al, tag) != nullptr;
 	}
 
+static std::optional<FuncType::Prototype> func_type_check(const FuncType* decl, const FuncType* impl)
+	{
+	if ( decl->Flavor() != impl->Flavor() )
+		{
+		impl->Error("incompatible function flavor", decl);
+		return {};
+		}
+
+	if ( impl->Flavor() == FUNC_FLAVOR_FUNCTION )
+		{
+		if ( same_type(decl, impl) )
+			return decl->Prototypes()[0];
+
+		impl->Error("incompatible function types", decl);
+		return {};
+		}
+
+	return decl->FindPrototype(*impl->Args());
+	}
+
+static bool canonical_arg_types_match(const FuncType* decl, const FuncType* impl)
+	{
+	auto canon_args = decl->Args();
+	auto impl_args = impl->Args();
+
+	if ( canon_args->NumFields() != impl_args->NumFields() )
+		return false;
+
+	for ( auto i = 0; i < canon_args->NumFields(); ++i )
+		if ( ! same_type(canon_args->FieldType(i), impl_args->FieldType(i)) )
+			return false;
+
+	return true;
+	}
+
 void begin_func(ID* id, const char* module_name, function_flavor flavor,
                 bool is_redef, IntrusivePtr<FuncType> t, attr_list* attrs)
 	{
@@ -351,16 +467,57 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 		t->ClearYieldType(flavor);
 		}
 
+	std::optional<FuncType::Prototype> prototype;
+
 	if ( id->Type() )
 		{
-		if ( ! same_type(id->Type(), t.get()) )
-			id->Type()->Error("incompatible types", t.get());
+		auto decl = id->Type()->AsFuncType();
+		prototype = func_type_check(decl, t.get());
 
+		if ( prototype )
+			{
+			if ( decl->Flavor() == FUNC_FLAVOR_FUNCTION )
+				{
+				// If a previous declaration of the function had &default
+				// params, automatically transfer any that are missing
+				// (convenience so that implementations don't need to specify
+				// the &default expression again).
+				transfer_arg_defaults(prototype->args.get(), t->Args());
+				}
+			else
+				{
+				// Warn for trying to use &default parameters in hook/event
+				// handler body when it already has a declaration since only
+				// &default in the declaration has any effect.
+				auto args = t->Args();
+
+				for ( int i = 0; i < args->NumFields(); ++i )
+					{
+					auto f = args->FieldDecl(i);
+
+					if ( f->attrs && f->attrs->FindAttr(ATTR_DEFAULT) )
+						{
+						reporter->PushLocation(args->GetLocationInfo());
+						reporter->Warning(
+						    "&default on parameter '%s' has no effect (not a %s declaration)",
+						    args->FieldName(i), t->FlavorString().data());
+						reporter->PopLocation();
+						}
+					}
+				}
+
+			if ( prototype->deprecated )
+				t->Warn("use of deprecated prototype", id);
+			}
 		else
-			// If a previous declaration of the function had &default params,
-			// automatically transfer any that are missing (convenience so that
-			// implementations don't need to specify the &default expression again).
-			transfer_arg_defaults(id->Type()->AsFuncType()->Args(), t->Args());
+			{
+			// Allow renaming arguments, but only for the canonical
+			// prototypes of hooks/events.
+			if ( canonical_arg_types_match(decl, t.get()) )
+				prototype = decl->Prototypes()[0];
+			else
+				t->Error("use of undeclared alternate prototype", id);
+			}
 		}
 
 	else if ( is_redef )
@@ -410,6 +567,9 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 
 		arg_id = install_ID(arg_i->id, module_name, false, false);
 		arg_id->SetType(arg_i->type);
+
+		if ( prototype )
+			arg_id->SetOffset(prototype->offsets[i]);
 		}
 
 	if ( Attr* depr_attr = find_attr(attrs, ATTR_DEPRECATED) )

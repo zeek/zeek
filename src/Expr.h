@@ -605,6 +605,10 @@ public:
 	const Expr* Op2() const	{ return op2.get(); }
 	const Expr* Op3() const	{ return op3.get(); }
 
+	IntrusivePtr<Expr> GetOp1() const override final	{ return op1; }
+	IntrusivePtr<Expr> GetOp2() const override final	{ return op2; }
+	IntrusivePtr<Expr> GetOp3() const override final	{ return op3; }
+
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 	bool IsPure() const override;
 	bool IsReduced() const override;

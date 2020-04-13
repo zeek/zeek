@@ -348,14 +348,11 @@ IntrusivePtr<Expr> ReductionContext::OptExpr(IntrusivePtr<Expr> e_ptr)
 
 IntrusivePtr<Expr> ReductionContext::UpdateExpr(IntrusivePtr<Expr> e)
 	{
-printf("updating %s (%s)\n", obj_desc(e.get()), expr_name(e->Tag()));
 	if ( e->Tag() != EXPR_NAME )
 		return OptExpr(e);
 
 	auto n = e->AsNameExpr();
 	auto id = n->Id();
-
-printf("doing update for %s\n", id->Name());
 
 	auto tmp_var = FindTemporary(id);
 	if ( ! tmp_var )
@@ -364,6 +361,7 @@ printf("doing update for %s\n", id->Name());
 	auto alias = tmp_var->Alias();
 	if ( alias )
 		{
+printf("expanding alias for %s\n", tmp_var->Id()->Name());
 		// Make sure that the definition points for the
 		// alias here are the same as when the alias
 		// was created.

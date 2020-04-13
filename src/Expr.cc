@@ -2573,6 +2573,9 @@ Expr* CondExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 			return op3->Reduce(c, red_stmt);
 		}
 
+	if ( c->Optimizing() )
+		return this->Ref();
+
 	IntrusivePtr<Stmt> red1_stmt;
 	if ( ! op1->IsSingleton() )
 		op1 = {AdoptRef{}, op1->Reduce(c, red1_stmt)};

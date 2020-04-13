@@ -183,7 +183,7 @@ void ReachingDefs::DumpMap(const ReachingDefsMap* map) const
 	}
 
 void ReachingDefs::PrintRD(const DefinitionItem* di,
-				const DefPoints& dps) const
+				const DefPoints* dps) const
 	{
 	printf("%s (%d)", di->Name(), dps->length());
 	}

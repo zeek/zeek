@@ -14,8 +14,8 @@
 // in the script after the if-else statement to have both of those definitions
 // as reaching.
 
-typedef List<DefinitionPoint>* DefPoints;
-typedef std::map<const DefinitionItem*, DefPoints> ReachingDefsMap;
+typedef List<DefinitionPoint> DefPoints;
+typedef std::map<const DefinitionItem*, DefPoints*> ReachingDefsMap;
 
 class ReachingDefs;
 typedef IntrusivePtr<ReachingDefs> RD_ptr;
@@ -50,7 +50,7 @@ public:
 		return map->find(di) != map->end();
 		}
 
-	DefPoints GetDefPoints(const DefinitionItem* di)
+	DefPoints* GetDefPoints(const DefinitionItem* di)
 		{
 		auto map = RDMap();
 		auto dps = map->find(di);
@@ -88,7 +88,7 @@ protected:
 
 	void CopyMapIfNeeded();
 
-	void PrintRD(const DefinitionItem* di, const DefPoints& dp) const;
+	void PrintRD(const DefinitionItem* di, const DefPoints* dp) const;
 	void PrintRD(const DefinitionItem* di, const DefinitionPoint& dp) const;
 
 	// If my_rd_map is non-nil, then we use that map.  Otherwise,

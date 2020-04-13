@@ -39,15 +39,21 @@ public:
 protected:
 	bool SameDPs(const DefPoints* dp1, const DefPoints* dp2) const;
 	bool SameVal(const Val* v1, const Val* v2) const;
-	bool SameOp(const Expr* op1, const Expr* op2) const;
+	IntrusivePtr<Expr> NewVarUsage(IntrusivePtr<ID> var,
+					const DefPoints* dps);
+	const DefPoints* GetDefPoints(const NameExpr* var);
+	const DefPoints* FindDefPoints(const NameExpr* var) const;
+	void AddDefPoints(const NameExpr* var, const DefPoints* dps);
+	bool SameOp(const Expr* op1, const Expr* op2);
 	bool SameOp(const IntrusivePtr<Expr>& op1,
-			const IntrusivePtr<Expr>& op2) const
+			const IntrusivePtr<Expr>& op2)
 		{ return SameOp(op1.get(), op2.get()); }
-	bool SameExpr(const Expr* e1, const Expr* e2) const;
-	IntrusivePtr<ID> FindExprTmp(const Expr* rhs, const Expr* lhs) const;
+	bool SameExpr(const Expr* e1, const Expr* e2);
+
+	IntrusivePtr<ID> FindExprTmp(const Expr* rhs, const Expr* lhs);
 	IntrusivePtr<ID> GenTemporary(const IntrusivePtr<BroType>& t,
 					IntrusivePtr<Expr> rhs);
-	TempVar* FindTemporary(const ID* id);
+	TempVar* FindTemporary(const ID* id) const;
 
 	Scope* scope;
 	PList<TempVar> temps;
@@ -56,7 +62,16 @@ protected:
 	// (and they didn't wind up being aliases).
 	PList<TempVar> expr_temps;
 
+	// Let's us go from an identifier to an associated temporary
+	// variable, if it corresponds to one.
 	std::map<const ID*, TempVar*> ids_to_temps;
+
+	// For a given usage of a variable's value, return the definition
+	// points associated with its use at that point.  We use this
+	// both as a cache (populating it every time we do a more
+	// laborious lookup), and proactively when creating new
+	// references to variables.
+	std::map<const NameExpr*, const DefPoints*> var_usage_to_DPs;
 
 	const DefSetsMgr* mgr;
 };

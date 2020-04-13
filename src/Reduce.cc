@@ -119,7 +119,48 @@ bool ReductionContext::SameVal(const Val* v1, const Val* v2) const
 		return v1 == v2;
 	}
 
-bool ReductionContext::SameOp(const Expr* op1, const Expr* op2) const
+IntrusivePtr<Expr> ReductionContext::NewVarUsage(IntrusivePtr<ID> var,
+						const DefPoints* dps)
+	{
+	auto var_usage = make_intrusive<NameExpr>(var);
+	AddDefPoints(var_usage.get(), dps);
+	return var_usage;
+	}
+
+const DefPoints* ReductionContext::GetDefPoints(const NameExpr* var)
+	{
+	auto dps = FindDefPoints(var);
+
+	if ( ! dps )
+		{
+		auto id = var->Id();
+		auto di = mgr->GetConstIDReachingDef(id);
+		auto rds = mgr->GetPreMaxRDs(var);
+
+		dps = rds->GetDefPoints(di);
+
+		AddDefPoints(var, dps);
+		}
+
+	return dps;
+	}
+
+const DefPoints* ReductionContext::FindDefPoints(const NameExpr* var) const
+	{
+	auto dps = var_usage_to_DPs.find(var);
+	if ( dps == var_usage_to_DPs.end() )
+		return nullptr;
+	else
+		return dps->second;
+	}
+
+void ReductionContext::AddDefPoints(const NameExpr* var, const DefPoints* dps)
+	{
+	var_usage_to_DPs.insert(std::pair<const NameExpr*,
+				const DefPoints*>(var, dps));
+	}
+
+bool ReductionContext::SameOp(const Expr* op1, const Expr* op2)
 	{
 	if ( op1->Tag() != op2->Tag() )
 		return false;
@@ -135,16 +176,8 @@ bool ReductionContext::SameOp(const Expr* op1, const Expr* op2) const
 		if ( op1_id != op2_id )
 			return false;
 
-		auto di = mgr->GetConstIDReachingDef(op1_id);
-
-		auto op1_rds = mgr->GetPreMaxRDs(op1);
-		auto op2_rds = mgr->GetPreMaxRDs(op2);
-
-		if ( op1_rds == op2_rds )
-			return true;
-
-		auto op1_dps = op1_rds->GetDefPoints(di);
-		auto op2_dps = op2_rds->GetDefPoints(di);
+		auto op1_dps = GetDefPoints(op1_n);
+		auto op2_dps = GetDefPoints(op2_n);
 
 		return SameDPs(op1_dps, op2_dps);
 		}
@@ -167,7 +200,7 @@ bool ReductionContext::SameOp(const Expr* op1, const Expr* op2) const
 // Returns true if the RHS associated with the expression "tmp" is
 // equivalent to orig_rhs, given the reaching definitions associated
 // with lhs.
-bool ReductionContext::SameExpr(const Expr* e1, const Expr* e2) const
+bool ReductionContext::SameExpr(const Expr* e1, const Expr* e2)
 	{
 	if ( e1 == e2 )
 		return true;
@@ -255,7 +288,7 @@ bool ReductionContext::SameExpr(const Expr* e1, const Expr* e2) const
 // Find a temporary, if any, whose RHS matches the given "rhs", using
 // the reaching defs associated with "lhs".
 IntrusivePtr<ID> ReductionContext::FindExprTmp(const Expr* rhs,
-						const Expr* lhs) const
+						const Expr* lhs)
 	{
 	for ( int i = 0; i < expr_temps.length(); ++i )
 		{
@@ -298,7 +331,9 @@ bool ReductionContext::IsCSE(const NameExpr* lhs, const Expr* rhs)
 	IntrusivePtr<Expr> new_rhs;
 	if ( rhs_tmp )
 		{
-		new_rhs = make_intrusive<NameExpr>(rhs_tmp);
+		auto tmp_di = mgr->GetConstIDReachingDef(rhs_tmp.get());
+		auto dps = lhs_max_rds->GetDefPoints(tmp_di);
+		new_rhs = NewVarUsage(rhs_tmp, dps);
 		rhs = new_rhs.get();
 		did_reduction = true;
 		}
@@ -373,7 +408,8 @@ printf("expanding alias for %s\n", tmp_var->Id()->Name());
 				reporter->InternalError("double alias");
 
 			// Temporaries always have only one definition point,
-			return make_intrusive<NameExpr>(alias);
+			// so no need to check for consistency.
+			return NewVarUsage(alias, alias_tmp->DPs());
 			}
 
 		auto e_max_rds = mgr->GetPreMaxRDs(e.get());
@@ -381,9 +417,7 @@ printf("expanding alias for %s\n", tmp_var->Id()->Name());
 		auto alias_dps = e_max_rds->GetDefPoints(alias_di);
 
 		if ( SameDPs(alias_dps, tmp_var->DPs()) )
-			// ### may need to attach RDs here for
-			// future comparisons
-			return make_intrusive<NameExpr>(alias);
+			return NewVarUsage(alias, alias_dps);
 		else
 			{
 			printf("DPs differ: %s\n", obj_desc(e.get()));
@@ -418,7 +452,7 @@ IntrusivePtr<ID> ReductionContext::GenTemporary(const IntrusivePtr<BroType>& t,
 	return temp_id;
 	}
 
-TempVar* ReductionContext::FindTemporary(const ID* id)
+TempVar* ReductionContext::FindTemporary(const ID* id) const
 	{
 	auto tmp = ids_to_temps.find(id);
 	if ( tmp == ids_to_temps.end() )

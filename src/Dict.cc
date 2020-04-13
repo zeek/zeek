@@ -270,10 +270,8 @@ void* Dictionary::Lookup(const void* key, int key_size, hash_t hash) const
 
 	if ( chain )
 		{
-		for ( int i = 0; i < chain->length(); ++i )
+		for ( const auto& entry : *chain )
 			{
-			DictEntry* entry = (*chain)[i];
-
 			if ( entry->hash == hash && entry->len == key_size &&
 			     ! memcmp(key, entry->key, key_size) )
 				return entry->value;
@@ -336,7 +334,8 @@ void* Dictionary::Remove(const void* key, int key_size, hash_t hash,
 	if ( ! chain )
 		return nullptr;
 
-	for ( int i = 0; i < chain->length(); ++i )
+	size_t chain_length = chain->length();
+	for ( int i = 0; i < chain_length; ++i )
 		{
 		DictEntry* entry = (*chain)[i];
 
@@ -635,7 +634,7 @@ bool Dictionary::IsPrime(int n) const
 void Dictionary::StartChangeSize(int new_size)
 	{
 	// Only start resizing if there isn't any iteration in progress.
-	if ( cookies.length() > 0 )
+	if ( ! cookies.empty() )
 		return;
 
 	if ( tbl2 )
@@ -652,7 +651,7 @@ void Dictionary::StartChangeSize(int new_size)
 void Dictionary::MoveChains()
 	{
 	// Do not change current distribution if there an ongoing iteration.
-	if ( cookies.length() > 0 )
+	if ( ! cookies.empty() )
 		return;
 
 	// Attempt to move this many entries (must do at least 2)
@@ -667,9 +666,9 @@ void Dictionary::MoveChains()
 
 		tbl[tbl_next_ind - 1] = nullptr;
 
-		for ( int j = 0; j < chain->length(); ++j )
+		for ( const auto& elem : *chain )
 			{
-			Insert((*chain)[j], false);
+			Insert(elem, false);
 			--num_entries;
 			--num;
 			}

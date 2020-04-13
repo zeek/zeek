@@ -43,7 +43,7 @@ protected:
 	bool SameOp(const IntrusivePtr<Expr>& op1,
 			const IntrusivePtr<Expr>& op2) const
 		{ return SameOp(op1.get(), op2.get()); }
-	bool SameExpr(const Expr* orig_rhs, const TempVar* tmp) const;
+	bool SameExpr(const Expr* e1, const Expr* e2) const;
 	IntrusivePtr<ID> FindExprTmp(const Expr* rhs, const Expr* lhs) const;
 	IntrusivePtr<ID> GenTemporary(const IntrusivePtr<BroType>& t,
 					IntrusivePtr<Expr> rhs);

@@ -167,26 +167,26 @@ bool ReductionContext::SameOp(const Expr* op1, const Expr* op2) const
 // Returns true if the RHS associated with the expression "tmp" is
 // equivalent to orig_rhs, given the reaching definitions associated
 // with lhs.
-bool ReductionContext::SameExpr(const Expr* orig_rhs, const TempVar* tmp) const
+bool ReductionContext::SameExpr(const Expr* e1, const Expr* e2) const
 	{
-	auto e = tmp->RHS();
-
-	if ( e == orig_rhs )
+	if ( e1 == e2 )
 		return true;
 
-	if ( e->Tag() != orig_rhs->Tag() )
+	if ( e1->Tag() != e2->Tag() )
 		return false;
 
-	switch ( e->Tag() ) {
+	switch ( e1->Tag() ) {
 	case EXPR_NAME:
 	case EXPR_CONST:
-		return SameOp(e, orig_rhs);
+		return SameOp(e1, e2);
 
 	case EXPR_CLONE:
 	case EXPR_RECORD_CONSTRUCTOR:
 	case EXPR_TABLE_CONSTRUCTOR:
 	case EXPR_SET_CONSTRUCTOR:
 	case EXPR_VECTOR_CONSTRUCTOR:
+	case EXPR_EVENT:
+	case EXPR_SCHEDULE:
 		// These always generate a new value.
 		return false;
 
@@ -203,22 +203,45 @@ bool ReductionContext::SameExpr(const Expr* orig_rhs, const TempVar* tmp) const
 		reporter->InternalError("Unexpected tag in ReductionContext::SameExpr");
 
 	case EXPR_LIST:
+		{
+		auto l1 = e1->AsListExpr()->Exprs();
+		auto l2 = e2->AsListExpr()->Exprs();
+
+		ASSERT(l1.length() == l2.length());
+
+		for ( int i = 0; i < l1.length(); ++i )
+			if ( ! SameExpr(l1[i], l2[i]) )
+				return false;
+
+		return true;
+		}
 
 	case EXPR_CALL:
+		{
+		auto c1 = e1->AsCallExpr();
+		auto c2 = e2->AsCallExpr();
+		auto f1 = c1->Func();
+		auto f2 = c2->Func();
+
+		if ( f1 != f2 )
+			return false;
+
+		if ( ! f1->IsPure() )
+			return false;
+
+		return SameExpr(c1->Args(), c2->Args());
+		}
 
 	case EXPR_LAMBDA:
 		return false;
 
-	case EXPR_EVENT:
-	case EXPR_SCHEDULE:
-
 	default:
-		if ( e->HaveGetOp() )
-			return SameOp(e->GetOp(), orig_rhs->GetOp());
+		if ( e1->HaveGetOp() )
+			return SameOp(e1->GetOp(), e2->GetOp());
 
-		else if ( e->HaveGetOps() )
-			return SameOp(e->GetOp1(), orig_rhs->GetOp1()) &&
-				SameOp(e->GetOp2(), orig_rhs->GetOp2());
+		else if ( e1->HaveGetOps() )
+			return SameOp(e1->GetOp1(), e2->GetOp1()) &&
+				SameOp(e1->GetOp2(), e2->GetOp2());
 
 		else
 			reporter->InternalError("Bad default in ReductionContext::SameExpr");
@@ -236,7 +259,7 @@ IntrusivePtr<ID> ReductionContext::FindExprTmp(const Expr* rhs,
 		if ( et_i->Alias() )
 			reporter->InternalError("Encountered ExprTmp with an alias");
 
-		if ( SameExpr(rhs, et_i) )
+		if ( SameExpr(rhs, et_i->RHS()) )
 			{
 			// Make sure its value always makes it here.
 			auto id = et_i->Id();

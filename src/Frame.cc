@@ -14,7 +14,7 @@
 
 std::vector<Frame*> g_frame_stack;
 
-Frame::Frame(int arg_size, const BroFunc* func, const zeek::Args* fn_args)
+Frame::Frame(size_t arg_size, const BroFunc* func, const zeek::Args* fn_args)
 	{
 	size = arg_size;
 	frame = new Val*[size];
@@ -27,10 +27,9 @@ Frame::Frame(int arg_size, const BroFunc* func, const zeek::Args* fn_args)
 
 	call = nullptr;
 	delayed = false;
-
 	closure = nullptr;
 
-	for (int i = 0; i < size; ++i)
+	for (size_t i = 0; i < size; ++i)
 		frame[i] = nullptr;
 	}
 
@@ -66,7 +65,7 @@ void Frame::AddFunctionWithClosureRef(BroFunc* func)
 	functions_with_closure_frame_reference->emplace_back(func);
 	}
 
-void Frame::SetElement(int n, Val* v, bool weak_ref)
+void Frame::SetElement(size_t n, Val* v, bool weak_ref)
 	{
 	UnrefElement(n);
 	frame[n] = v;
@@ -138,9 +137,9 @@ Val* Frame::GetElement(const ID* id) const
 	return frame[id->Offset()];
 	}
 
-void Frame::Reset(int startIdx)
+void Frame::Reset(size_t startIdx)
 	{
-	for ( int i = startIdx; i < size; ++i )
+	for ( size_t i = startIdx; i < size; ++i )
 		{
 		UnrefElement(i);
 		frame[i] = nullptr;
@@ -149,7 +148,7 @@ void Frame::Reset(int startIdx)
 
 void Frame::Release()
 	{
-	for ( int i = 0; i < size; ++i )
+	for ( size_t i = 0; i < size; ++i )
 		UnrefElement(i);
 
 	delete [] frame;
@@ -164,14 +163,14 @@ void Frame::Describe(ODesc* d) const
 		{
 		d->Add(size);
 
-		for ( int i = 0; i < size; ++i )
+		for ( size_t i = 0; i < size; ++i )
 			 {
 			 d->Add(frame[i] != nullptr);
 			 d->SP();
 			 }
 		}
 
-	for ( int i = 0; i < size; ++i )
+	for ( size_t i = 0; i < size; ++i )
 		if ( frame[i] )
 			frame[i]->Describe(d);
 		else if ( d->IsReadable() )
@@ -190,7 +189,7 @@ Frame* Frame::Clone() const
 	other->call = call;
 	other->trigger = trigger;
 
-	for (int i = 0; i < size; i++)
+	for ( size_t i = 0; i < size; i++ )
 		other->frame[i] = frame[i] ? frame[i]->Clone().release() : nullptr;
 
 	return other;
@@ -204,7 +203,7 @@ static bool val_is_func(Val* v, BroFunc* func)
 	return v->AsFunc() == func;
 	}
 
-static void clone_if_not_func(Val** frame, int offset, BroFunc* func,
+static void clone_if_not_func(Val** frame, size_t offset, BroFunc* func,
                               Frame* other)
 	{
 	auto v = frame[offset];
@@ -255,7 +254,7 @@ Frame* Frame::SelectiveClone(const id_list& selection, BroFunc* func) const
 
 		if ( ! frame[id->Offset()] )
 			reporter->InternalError("Attempted to clone an id ('%s') with no associated value.", id->Name());
-
+		
 		clone_if_not_func(frame, id->Offset(), func, other);
 		}
 
@@ -299,7 +298,7 @@ broker::expected<broker::data> Frame::Serialize(const Frame* target, const id_li
 	// and
 	id_list them;
 
-	std::unordered_map<std::string, int> new_map;
+	std::unordered_map<std::string, size_t> new_map;
 	if ( target->offset_map )
 		new_map = *(target->offset_map);
 
@@ -344,7 +343,7 @@ broker::expected<broker::data> Frame::Serialize(const Frame* target, const id_li
 
 	broker::vector body;
 
-	for ( int i = 0; i < target->size; ++i )
+	for ( size_t i = 0; i < target->size; ++i )
 		body.emplace_back(broker::none());
 
 	for ( const auto& id : us )
@@ -458,7 +457,7 @@ std::pair<bool, IntrusivePtr<Frame>> Frame::Unserialize(const broker::vector& da
 		}
 
 	broker::vector body = *has_body;
-	int frame_size = body.size();
+	size_t frame_size = body.size();
 
 	// We'll associate this frame with a function later.
 	auto rf = make_intrusive<Frame>(frame_size, nullptr, nullptr);
@@ -469,7 +468,7 @@ std::pair<bool, IntrusivePtr<Frame>> Frame::Unserialize(const broker::vector& da
 	rf->closure = closure.release();
 	rf->weak_closure_ref = false;
 
-	for ( int i = 0; i < frame_size; ++i )
+	for ( size_t i = 0; i < frame_size; ++i )
 		{
 		auto has_vec = broker::get_if<broker::vector>(body[i]);
 		if ( ! has_vec )
@@ -502,7 +501,7 @@ void Frame::AddKnownOffsets(const id_list& ids)
 		offset_map = std::make_unique<OffsetMap>();
 
 	std::transform(ids.begin(), ids.end(), std::inserter(*offset_map, offset_map->end()),
-		       [] (const ID* id) -> std::pair<std::string, int>
+		       [] (const ID* id) -> std::pair<std::string, size_t>
 		       {
 		       return std::make_pair(std::string(id->Name()), id->Offset());
 		       });
@@ -539,7 +538,7 @@ void Frame::ClearTrigger()
 	trigger = nullptr;
 	}
 
-void Frame::UnrefElement(int n)
+void Frame::UnrefElement(size_t n)
 	{
 	if ( weak_refs && weak_refs[n] )
 		return;
@@ -569,12 +568,12 @@ broker::expected<broker::data> Frame::SerializeIDList(const id_list& in)
 	}
 
 broker::expected<broker::data>
-Frame::SerializeOffsetMap(const std::unordered_map<std::string, int>& in)
+Frame::SerializeOffsetMap(const std::unordered_map<std::string, size_t>& in)
 	{
 	broker::vector rval;
 
 	std::for_each(in.begin(), in.end(),
-		[&rval] (const std::pair<std::string, int>& e)
+		[&rval] (const std::pair<std::string, size_t>& e)
 			{ rval.emplace_back(e.first); rval.emplace_back(e.second);});
 
 	return {std::move(rval)};
@@ -621,10 +620,10 @@ Frame::UnserializeIDList(const broker::vector& data)
 	return std::make_pair(true, std::move(rval));
 	}
 
-std::pair<bool, std::unordered_map<std::string, int>>
+std::pair<bool, std::unordered_map<std::string, size_t>>
 Frame::UnserializeOffsetMap(const broker::vector& data)
 	{
-	std::unordered_map<std::string, int> rval;
+	std::unordered_map<std::string, size_t> rval;
 
 	for ( broker::vector::size_type i = 0; i < data.size(); i += 2 )
 		{

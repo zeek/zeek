@@ -84,6 +84,7 @@ public:
 	void Add(uint32_t u);
 	void Add(int64_t i);
 	void Add(uint64_t u);
+	void Add(size_t u);
 	void Add(double d, bool no_exp=false);
 	void Add(const IPAddr& addr);
 	void Add(const IPPrefix& prefix);

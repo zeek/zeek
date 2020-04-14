@@ -29,7 +29,7 @@ public:
 	 * @param func the function that is creating this frame
 	 * @param fn_args the arguments being passed to that function.
 	 */
-	Frame(int size, const BroFunc* func, const zeek::Args* fn_args);
+	Frame(size_t size, const BroFunc* func, const zeek::Args* fn_args);
 
 	/**
 	 * Deletes the frame. Unrefs its trigger, the values that it
@@ -41,7 +41,7 @@ public:
 	 * @param n the index to get.
 	 * @return the value at index *n* of the underlying array.
 	 */
-	Val* NthElement(int n) const	{ return frame[n]; }
+	Val* NthElement(size_t n) const	{ return frame[n]; }
 
 	/**
 	 * Sets the element at index *n* of the underlying array
@@ -53,7 +53,7 @@ public:
 	 * it upon destruction.  Used to break circular references between
 	 * lambda functions and closure frames.
 	 */
-	void SetElement(int n, Val* v, bool weak_ref = false);
+	void SetElement(size_t n, Val* v, bool weak_ref = false);
 
 	/**
 	 * Associates *id* and *v* in the frame. Future lookups of
@@ -79,7 +79,7 @@ public:
 	 *
 	 * @param the first index to unref.
 	 */
-	void Reset(int startIdx);
+	void Reset(size_t startIdx);
 
 	/**
 	 * Resets all of the values in the frame and clears out the
@@ -234,12 +234,12 @@ public:
 
 private:
 
-	using OffsetMap = std::unordered_map<std::string, int>;
+	using OffsetMap = std::unordered_map<std::string, size_t>;
 
 	/**
 	 * Unrefs the value at offset 'n' frame unless it's a weak reference.
 	 */
-	void UnrefElement(int n);
+	void UnrefElement(size_t n);
 
 	/** Have we captured this id? */
 	bool IsOuterID(const ID* in) const;
@@ -253,7 +253,7 @@ private:
 	SerializeIDList(const id_list& in);
 
 	/** Unserializes an offset map. */
-	static std::pair<bool, std::unordered_map<std::string, int>>
+	static std::pair<bool, std::unordered_map<std::string, size_t>>
 	UnserializeOffsetMap(const broker::vector& data);
 
 	/** Unserializes an id_list. */
@@ -261,7 +261,7 @@ private:
 	UnserializeIDList(const broker::vector& data);
 
 	/** The number of vals that can be stored in this frame. */
-	int size;
+	size_t size;
 
 	bool weak_closure_ref = false;
 	bool break_before_next_stmt;

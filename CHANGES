@@ -1,4 +1,8 @@
 
+3.2.0-dev.396 | 2020-04-14 15:45:54 -0700
+
+  * A few minor cleanups in Dict (Tim Wojtulewicz, Corelight)
+
 3.2.0-dev.394 | 2020-04-14 15:29:00 -0700
 
   * Fix a confusing variable name shadowing (Jon Siwek, Corelight)

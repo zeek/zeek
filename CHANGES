@@ -1,4 +1,14 @@
 
+3.2.0-dev.392 | 2020-04-14 11:06:04 -0700
+
+  * Fix Stack Overflow in POP3_Analyzer::ProcessRequest. (Johanna Amann, Corelight)
+
+    The VLA can overflow given a large enough string. As a small fix, this
+    commit gets rid of the VLA and assigns the password directly to the
+    target string.
+
+    This was reported by Matteo Rizzo (Google).
+
 3.2.0-dev.391 | 2020-04-13 14:59:50 -0700
 
   * Add warning for ineffective &default arguments in handlers

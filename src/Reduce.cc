@@ -381,6 +381,9 @@ Expr* ReductionContext::OptExpr(Expr* e)
 	if ( opt_stmts )
 		reporter->InternalError("Generating new statements while optimizing");
 
+	if ( opt_e->Tag() == EXPR_NAME )
+		return UpdateExpr({AdoptRef{}, opt_e}).release();
+
 	return opt_e;
 	}
 
@@ -413,6 +416,7 @@ IntrusivePtr<Expr> ReductionContext::UpdateExpr(IntrusivePtr<Expr> e)
 	auto alias = tmp_var->Alias();
 	if ( alias )
 		{
+// printf("updating tmp %s: alias %s\n", tmp_var->Id()->Name(), alias->Name());
 		// Make sure that the definition points for the
 		// alias here are the same as when the alias
 		// was created.
@@ -423,6 +427,7 @@ IntrusivePtr<Expr> ReductionContext::UpdateExpr(IntrusivePtr<Expr> e)
 			if ( alias_tmp->Alias() )
 				reporter->InternalError("double alias");
 
+// printf("alias of %s to tmp %s\n", tmp_var->Id()->Name(), alias_tmp->Id()->Name());
 			// Temporaries always have only one definition point,
 			// so no need to check for consistency.
 			auto new_usage = NewVarUsage(alias, alias_tmp->DPs());

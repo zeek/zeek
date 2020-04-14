@@ -222,7 +222,10 @@ Stmt* ExprListStmt::Reduce(ReductionContext* c)
 	for ( auto& expr : e )
 		{
 		if ( c->Optimizing() )
-			new_l->Append({AdoptRef{}, c->OptExpr(expr)});
+			{
+			auto expr_opt = c->OptExpr(expr);
+			new_l->Append({AdoptRef{}, expr_opt});
+			}
 
 		else if ( expr->IsSingleton() )
 			new_l->Append({NewRef{}, expr});

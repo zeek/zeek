@@ -1,4 +1,8 @@
 
+3.2.0-dev.394 | 2020-04-14 15:29:00 -0700
+
+  * Fix a confusing variable name shadowing (Jon Siwek, Corelight)
+
 3.2.0-dev.392 | 2020-04-14 11:06:04 -0700
 
   * Fix Stack Overflow in POP3_Analyzer::ProcessRequest. (Johanna Amann, Corelight)

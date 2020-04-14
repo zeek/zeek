@@ -1,4 +1,10 @@
 
+3.0.5 | 2020-04-14 14:45:05 -0700
+
+  * Release 3.0.5
+
+  * Fix compilation on various platforms, e.g. with GCC 4.8.x (Jon Siwek, Corelight)
+
 3.0.4 | 2020-04-14 12:15:58 -0700
 
   * Release 3.0.4

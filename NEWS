@@ -6,7 +6,8 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 3.0.5
 ==========
 
-TODO: no changes/release yet
+Same as 3.0.4 but fixes compilation on various platforms with older compilers,
+for example GCC 4.8.x.
 
 Zeek 3.0.4
 ==========

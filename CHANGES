@@ -1,4 +1,8 @@
 
+3.0.4 | 2020-04-14 12:15:58 -0700
+
+  * Release 3.0.4
+
 3.0.4-dev.12 | 2020-04-14 11:11:33 -0700
 
   * Fix Stack Overflow in POP3_Analyzer::ProcessRequest. (Johanna Amann, Corelight)

@@ -6,7 +6,69 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 3.1.2
 ==========
 
-TODO: not yet released
+This release fixes the following security issue:
+
+* Fix stack overflow in POP3 analyzer
+  https://github.com/zeek/zeek/commit/bb3250c28ea6600ec82dd4d98186d15de1572901
+
+  Thanks to Matteo Rizzo (Google) for reporting this issue.
+
+  Impact: An attacker can crash Zeek remotely via crafted packet sequence.
+
+  Affected versions: All versions since at least late 2010 and possibly earlier.
+
+  POP3Analyzer parses the POP3 protocol. The affected code processes AUTH_PLAIN
+  authentication requests, in which the client authenticates to the server by
+  sending its credentials to the server as base64-encoded plaintext. Zeek
+  allocates a variable length array (VLA) on the stack that is as big as the
+  credentials sent by the client.  GCC implements VLA allocation by subtracting
+  the size of the VLA from the stack pointer. When the credentials sent by the
+  client are larger than the available stack space, the stack pointer lands
+  into the unmapped memory that the OS places above the stack. When that
+  happens, the call to memcpy immediately below causes Zeek to crash with a
+  segmentation fault because the destination address now points to unmapped
+  memory. An attacker can crash Zeek by sending a very long credential line.
+
+  This class of bug is normally turned into a memory corruption primitive by
+  moving the stack pointer into a writable region (for example a library) and
+  overwriting that region. However in this case it is not possible to move the
+  stack pointer far enough because ContentLineAnalyzer limits the length of the
+  credentials to slightly less than 16MiB by default. Therefore it should not
+  be possible to gain remote code execution using this bug, but only to crash
+  Zeek.
+
+Also fixed are the following bugs:
+
+* Fix use-after-free in Zeek lambda functions with uninitialized locals
+  https://github.com/zeek/zeek/issues/845
+
+* Fix buffer overflow due to tables/records created at parse-time not rebuilt on record `redef`
+  https://github.com/zeek/zeek/pull/860
+
+* Fix SMB NegotiateContextList parsing
+  https://github.com/zeek/zeek/pull/869
+
+* Fix binpac flowbuffer frame length parsing doing too much bounds checking
+  https://github.com/zeek/zeek/pull/873
+
+* Fix parsing ERSPAN III optional sub-header
+  https://github.com/zeek/zeek/commit/42dc2906afaa3b07aebb8dd8474d1fc8510e8d50
+
+* Fix bug in intel indicator normalization
+  https://github.com/zeek/zeek/pull/883
+
+* Fix connection duration thresholding
+  https://github.com/zeek/zeek/pull/899
+
+* Fix using patterns as table/set indices
+  https://github.com/zeek/zeek/pull/902
+
+* Fix `X509Common.h` header include for external plugins
+  https://github.com/zeek/zeek/commit/c83567246ee9d86ca695787821172e3ebe00884a
+
+* Fix incorrect targeting of node-specific Broker/Cluster messages
+  https://github.com/zeek/zeek/commit/ce9183a2ed776e3815ecb3e7b89eb0a7e43852b2
+  https://github.com/zeek/broker/commit/0d04bf43131ade7000506711cbe43c068dab2471
 
 Zeek 3.1.1
 ==========

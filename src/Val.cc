@@ -1326,8 +1326,8 @@ static void find_nested_record_types(BroType* t, std::set<RecordType*>* found)
 		return;
 	case TYPE_LIST:
 		{
-		for ( auto& t : *t->AsTypeList()->Types() )
-			find_nested_record_types(t, found);
+		for ( auto& type : *t->AsTypeList()->Types() )
+			find_nested_record_types(type, found);
 		}
 		return;
 	case TYPE_FUNC:

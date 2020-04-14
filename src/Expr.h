@@ -274,6 +274,9 @@ protected:
 			return this;
 		}
 
+	Val* MakeZero(TypeTag t) const;
+	ConstExpr* MakeZeroExpr(TypeTag t) const;
+
 	virtual void ExprDescribe(ODesc* d) const = 0;
 	void AddTag(ODesc* d) const;
 

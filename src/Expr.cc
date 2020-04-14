@@ -166,6 +166,28 @@ IntrusivePtr<Val> Expr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) const
 	return check_and_promote(Eval(nullptr), t, true);
 	}
 
+Val* Expr::MakeZero(TypeTag t) const
+	{
+	switch ( t ) {
+	case TYPE_BOOL:		return val_mgr->GetFalse();
+	case TYPE_INT:		return val_mgr->GetInt(0);
+	case TYPE_COUNT:	return val_mgr->GetCount(0);
+
+	case TYPE_DOUBLE:	return new Val(0.0, TYPE_DOUBLE);
+	case TYPE_TIME:		return new Val(0.0, TYPE_TIME);
+	case TYPE_INTERVAL:	return new IntervalVal(0.0, 1.0);
+
+	default:
+		reporter->InternalError("bad call to MakeZero");
+	}
+	}
+
+ConstExpr* Expr::MakeZeroExpr(TypeTag t) const
+	{
+	auto z = MakeZero(t);
+	return new ConstExpr({AdoptRef{}, z});
+	}
+
 bool Expr::IsError() const
 	{
 	return type && type->Tag() == TYPE_ERROR;
@@ -257,8 +279,6 @@ Expr* Expr::AssignToTemporary(ReductionContext* c,
 	else
 		red_stmt = a_e_s;
 
-	// printf("doing assign to temporary for %s\n", obj_desc(this));
-	// printf("statements:\n%s\n", obj_desc(red_stmt.get()));
 	return result_tmp.release();
 	}
 
@@ -1656,7 +1676,7 @@ SubExpr::SubExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 
 	IntrusivePtr<BroType> base_result_type;
 
-	if ( bt2 == TYPE_INTERVAL && ( bt1 == TYPE_TIME || bt1 == TYPE_INTERVAL ) )
+	if ( bt2 == TYPE_INTERVAL && (bt1 == TYPE_TIME || bt1 == TYPE_INTERVAL) )
 		base_result_type = base_type(bt1);
 
 	else if ( bt1 == TYPE_TIME && bt2 == TYPE_TIME )
@@ -1696,6 +1716,24 @@ Expr* SubExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 		auto add = new AddExpr(op1, rhs);
 		add->SetOriginal(this);
 		return add->Reduce(c, red_stmt);
+		}
+
+	if ( type->Tag() != TYPE_VECTOR && type->Tag() != TYPE_TABLE &&
+	     op1->Tag() == EXPR_NAME && op2->Tag() == EXPR_NAME )
+		{
+		if ( c->Optimizing() )
+			{ // Allow for alias expansion.
+			op1 = c->UpdateExpr(op1);
+			op2 = c->UpdateExpr(op2);
+			}
+
+		auto n1 = op1->AsNameExpr();
+		auto n2 = op2->AsNameExpr();
+		if ( n1->Id() == n2->Id() )
+			{
+			auto zero = MakeZeroExpr(type->Tag());
+			return TransformMe(zero, c, red_stmt);
+			}
 		}
 
 	return BinaryExpr::Reduce(c, red_stmt);
@@ -3651,15 +3689,11 @@ IntrusivePtr<Stmt> IndexExpr::ReduceToSingletons(ReductionContext* c)
 	IntrusivePtr<Stmt> red1_stmt;
 	IntrusivePtr<Stmt> red2_stmt;
 
-	// printf("reducing %s to singletons\n", obj_desc(this));
-
 	if ( ! op1->IsSingleton() )
 		op1 = {AdoptRef{}, op1->ReduceToSingleton(c, red1_stmt)};
 
 	if ( ! op2->IsSingleton() )
 		op2 = {AdoptRef{}, op2->ReduceToSingleton(c, red2_stmt)};
-
-	// printf("post-reduction: %s %s/%s\n", obj_desc(this), red1_stmt ? "Y" : "N", red2_stmt ? "Y" : "N");
 
 	if ( red1_stmt && red2_stmt )
 		return make_intrusive<StmtList>(red1_stmt, red2_stmt);

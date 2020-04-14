@@ -40,6 +40,7 @@ public:
 	IntrusivePtr<ID> Alias() const		{ return alias; }
 	const DefPoints* DPs() const		{ return dps; }
 	void SetAlias(IntrusivePtr<ID> id, const DefPoints* dps);
+	void SetDPs(const DefPoints* _dps)	{ dps = _dps; }
 
 	const RD_ptr& MaxRDs() const	{ return max_rds; }
 	void SetMaxRDs(RD_ptr rds)	{ max_rds = rds; }
@@ -63,6 +64,7 @@ TempVar::TempVar(int num, const IntrusivePtr<BroType>& t,
 	id = nullptr;
 	rhs = _rhs;
 	alias = nullptr;
+	dps = nullptr;
 	max_rds = nullptr;
 	}
 
@@ -70,6 +72,9 @@ void TempVar::SetAlias(IntrusivePtr<ID> _alias, const DefPoints* _dps)
 	{
 	if ( alias )
 		reporter->InternalError("Re-aliasing a temporary");
+
+	if ( ! _dps )
+		reporter->InternalError("Empty dps for alias");
 
 	alias = _alias;
 	dps = _dps;
@@ -122,6 +127,9 @@ bool ReductionContext::SameVal(const Val* v1, const Val* v2) const
 IntrusivePtr<Expr> ReductionContext::NewVarUsage(IntrusivePtr<ID> var,
 						const DefPoints* dps)
 	{
+	if ( ! dps )
+		reporter->InternalError("null defpoints in NewVarUsage");
+
 	auto var_usage = make_intrusive<NameExpr>(var);
 	AddDefPoints(var_usage.get(), dps);
 	return var_usage;
@@ -316,23 +324,22 @@ IntrusivePtr<ID> ReductionContext::FindExprTmp(const Expr* rhs,
 	return nullptr;
 	}
 
-bool ReductionContext::IsCSE(const NameExpr* lhs, const Expr* rhs)
+bool ReductionContext::IsCSE(const AssignExpr* a,
+				const NameExpr* lhs, const Expr* rhs)
 	{
 	bool did_reduction = false;
 
+	auto a_max_rds = mgr->GetPostMaxRDs(a);
+
 	auto lhs_id = lhs->Id();
 	auto lhs_tmp = FindTemporary(lhs_id);
-	if ( ! mgr->HasPreMaxRDs(lhs) )
-		reporter->InternalError("RD confusion in ReductionContext::IsCSE");
-	auto lhs_max_rds = mgr->GetPreMaxRDs(lhs);
-
 	auto rhs_tmp = FindExprTmp(rhs, lhs);
 
 	IntrusivePtr<Expr> new_rhs;
 	if ( rhs_tmp )
 		{
 		auto tmp_di = mgr->GetConstIDReachingDef(rhs_tmp.get());
-		auto dps = lhs_max_rds->GetDefPoints(tmp_di);
+		auto dps = a_max_rds->GetDefPoints(tmp_di);
 		new_rhs = NewVarUsage(rhs_tmp, dps);
 		rhs = new_rhs.get();
 		did_reduction = true;
@@ -345,10 +352,20 @@ bool ReductionContext::IsCSE(const NameExpr* lhs, const Expr* rhs)
 			auto rhs_id = rhs->AsNameExpr()->Id();
 			IntrusivePtr<ID> rhs_id_ptr = {AdoptRef{}, rhs_id};
 			auto rhs_di = mgr->GetConstIDReachingDef(rhs_id);
-			auto dps = lhs_max_rds->GetDefPoints(rhs_di);
+			auto dps = a_max_rds->GetDefPoints(rhs_di);
 			lhs_tmp->SetAlias(rhs_id_ptr, dps);
 			return true;
 			}
+
+		// Track where we define the temporary.
+		auto lhs_di = mgr->GetConstIDReachingDef(lhs_id);
+		auto dps = a_max_rds->GetDefPoints(lhs_di);
+
+		if ( lhs_tmp->DPs() )
+			reporter->InternalError("double DPs for temporary");
+
+		lhs_tmp->SetDPs(dps);
+		AddDefPoints(lhs, dps);
 
 		expr_temps.append(lhs_tmp);
 		}
@@ -396,7 +413,6 @@ IntrusivePtr<Expr> ReductionContext::UpdateExpr(IntrusivePtr<Expr> e)
 	auto alias = tmp_var->Alias();
 	if ( alias )
 		{
-printf("expanding alias for %s\n", tmp_var->Id()->Name());
 		// Make sure that the definition points for the
 		// alias here are the same as when the alias
 		// was created.
@@ -409,7 +425,8 @@ printf("expanding alias for %s\n", tmp_var->Id()->Name());
 
 			// Temporaries always have only one definition point,
 			// so no need to check for consistency.
-			return NewVarUsage(alias, alias_tmp->DPs());
+			auto new_usage = NewVarUsage(alias, alias_tmp->DPs());
+			return new_usage;
 			}
 
 		auto e_max_rds = mgr->GetPreMaxRDs(e.get());

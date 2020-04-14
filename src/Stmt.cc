@@ -2007,7 +2007,7 @@ bool StmtList::ReduceStmt(int s_i, stmt_list* f_stmts, ReductionContext* c)
 			if ( lhs->Tag() == EXPR_NAME )
 				{
 				auto var = lhs->AsNameExpr();
-				if ( c->IsCSE(var, rhs) )
+				if ( c->IsCSE(a, var, rhs) )
 					// Skip this now unnecessary statement.
 					return true;
 				}

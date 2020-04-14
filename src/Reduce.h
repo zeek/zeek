@@ -29,7 +29,7 @@ public:
 	//
 	// Assumes reduction (including alias propagation) has
 	// already been applied.
-	bool IsCSE(const NameExpr* lhs, const Expr* rhs);
+	bool IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs);
 
 	Expr* OptExpr(Expr* e);
 	IntrusivePtr<Expr> OptExpr(IntrusivePtr<Expr> e);

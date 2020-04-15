@@ -400,6 +400,10 @@ bool ReductionContext::IsCSE(const AssignExpr* a,
 const ConstExpr* ReductionContext::CheckForConst(const IntrusivePtr<ID>& id,
 						const DefPoints* dps) const
 	{
+	if ( ! dps && id->IsGlobal() )
+		// It's valid to use a global without defining it.
+		return nullptr;
+
 	ASSERT(dps && dps->length() > 0);
 	if ( dps->length() != 1 )
 		// Multiple definitions of the variable reach to this

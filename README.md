@@ -1,12 +1,12 @@
 <h1 align="center">
 
-[![Zeek Logo](https://www.zeek.org/images/zeek-logo-without-text.png)](https:://www.zeek.org)
+[![Zeek Logo](https://zeek.org/wp-content/uploads/2020/04/zeek-logo-without-text.png)](https:://www.zeek.org)
 
 The Zeek Network Security Monitor
 
 </h1><h4 align="center">
 
-A [powerful](https://www.zeek.org/why_choose_zeek.pdf) framework for network
+A [powerful](https://old.zeek.org/why_choose_zeek.pdf) framework for network
 traffic analysis and security monitoring.
 
 [_Key Features_](#key-features) —

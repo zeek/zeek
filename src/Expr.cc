@@ -3949,20 +3949,6 @@ IntrusivePtr<Val> RecordConstructorExpr::Fold(Val* v) const
 	return rv;
 	}
 
-bool RecordConstructorExpr::IsReduced() const
-	{
-	expr_list& exprs = op->AsListExpr()->Exprs();
-	loop_over_list(exprs, i)
-		{
-		auto e_i = exprs[i];
-		auto fa_i = e_i->AsFieldAssignExpr();
-		if ( ! fa_i->Op()->IsReduced() )
-			return false;
-		}
-
-	return true;
-	}
-
 Expr* RecordConstructorExpr::Reduce(ReductionContext* c,
  				IntrusivePtr<Stmt>& red_stmt)
 	{
@@ -4003,7 +3989,10 @@ Expr* RecordConstructorExpr::Reduce(ReductionContext* c,
 			}
 		}
 
-	return this->Ref();
+	if ( c->Optimizing() )
+		return this->Ref();
+	else
+		return AssignToTemporary(c, red_stmt);
 	}
 
 void RecordConstructorExpr::ExprDescribe(ODesc* d) const

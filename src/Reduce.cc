@@ -368,7 +368,7 @@ bool ReductionContext::IsCSE(const AssignExpr* a,
 				return true;
 				}
 
-			IntrusivePtr<ID> rhs_id_ptr = {AdoptRef{}, rhs_id};
+			IntrusivePtr<ID> rhs_id_ptr = {NewRef{}, rhs_id};
 			auto rhs_di = mgr->GetConstIDReachingDef(rhs_id);
 			auto dps = a_max_rds->GetDefPoints(rhs_di);
 
@@ -397,7 +397,7 @@ bool ReductionContext::IsCSE(const AssignExpr* a,
 	return false;
 	}
 
-const ConstExpr* ReductionContext::CheckForConst(IntrusivePtr<ID> id,
+const ConstExpr* ReductionContext::CheckForConst(const IntrusivePtr<ID>& id,
 						const DefPoints* dps) const
 	{
 	ASSERT(dps && dps->length() > 0);
@@ -480,7 +480,20 @@ IntrusivePtr<Expr> ReductionContext::UpdateExpr(IntrusivePtr<Expr> e)
 
 	auto tmp_var = FindTemporary(id);
 	if ( ! tmp_var )
+		{
+		// Reference to a regular variable.  See if it's
+		// constant in this context.
+		auto max_rds = mgr->GetPreMaxRDs(e.get());
+		IntrusivePtr<ID> id_ptr = {NewRef{}, id};
+		auto di = mgr->GetConstIDReachingDef(id);
+		auto dps = max_rds->GetDefPoints(di);
+
+		auto is_const = CheckForConst(id_ptr, dps);
+		if ( is_const )
+			return make_intrusive<ConstExpr>(is_const->ValuePtr());
+
 		return e;
+		}
 
 	if ( tmp_var->Const() )
 		return make_intrusive<ConstExpr>(tmp_var->Const()->ValuePtr());

@@ -1328,8 +1328,8 @@ IntrusivePtr<Val> NotExpr::Fold(Val* v) const
 
 Expr* NotExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
-	if ( op->Tag() == EXPR_NOT )
-		return op->GetOp1().get()->Reduce(c, red_stmt);
+	if ( op->Tag() == EXPR_NOT && Op()->Type()->Tag() == TYPE_BOOL )
+		return Op()->Reduce(c, red_stmt);
 
 	return UnaryExpr::Reduce(c, red_stmt);
 	}
@@ -1718,15 +1718,15 @@ Expr* SubExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 		return add->Reduce(c, red_stmt);
 		}
 
+	if ( c->Optimizing() )
+		{ // Allow for alias expansion.
+		op1 = c->UpdateExpr(op1);
+		op2 = c->UpdateExpr(op2);
+		}
+
 	if ( type->Tag() != TYPE_VECTOR && type->Tag() != TYPE_TABLE &&
 	     op1->Tag() == EXPR_NAME && op2->Tag() == EXPR_NAME )
 		{
-		if ( c->Optimizing() )
-			{ // Allow for alias expansion.
-			op1 = c->UpdateExpr(op1);
-			op2 = c->UpdateExpr(op2);
-			}
-
 		auto n1 = op1->AsNameExpr();
 		auto n2 = op2->AsNameExpr();
 		if ( n1->Id() == n2->Id() )

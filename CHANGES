@@ -1,4 +1,12 @@
 
+3.0.6-dev.2 | 2020-04-14 17:52:33 -0700
+
+  * Update CI config to use default compilers per platform (Jon Siwek, Corelight)
+
+    The newer compiler config was backported from Zeek 3.1+, which requires
+    a C++17-capabile compiler, but Zeek 3.0.x only requires C++11 and so
+    should test against those older compilers.
+
 3.0.5 | 2020-04-14 14:45:05 -0700
 
   * Release 3.0.5

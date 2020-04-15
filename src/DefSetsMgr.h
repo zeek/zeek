@@ -75,6 +75,17 @@ public:
 		SetPostMaxRDs(target, GetPostMaxRDs(source));
 		}
 
+	// Fine-grained control for setting RDs.
+	void SetPreMinRDs(const BroObj* o, RD_ptr& rd)
+		{ pre_min_defs->SetRDs(o, rd); }
+	void SetPreMaxRDs(const BroObj* o, RD_ptr& rd)
+		{ pre_max_defs->SetRDs(o, rd); }
+
+	void SetPostMinRDs(const BroObj* o, RD_ptr& rd)
+		{ post_min_defs->SetRDs(o, rd); }
+	void SetPostMaxRDs(const BroObj* o, RD_ptr& rd)
+		{ post_max_defs->SetRDs(o, rd); }
+
 	// The following only apply to max RDs.
 	void MergeIntoPre(const BroObj* o, const RD_ptr& rds)
 		{
@@ -148,16 +159,6 @@ protected:
 		{
 		return defs->FindRDs(o);
 		}
-
-	void SetPreMinRDs(const BroObj* o, RD_ptr& rd)
-		{ pre_min_defs->SetRDs(o, rd); }
-	void SetPreMaxRDs(const BroObj* o, RD_ptr& rd)
-		{ pre_max_defs->SetRDs(o, rd); }
-
-	void SetPostMinRDs(const BroObj* o, RD_ptr& rd)
-		{ post_min_defs->SetRDs(o, rd); }
-	void SetPostMaxRDs(const BroObj* o, RD_ptr& rd)
-		{ post_max_defs->SetRDs(o, rd); }
 
 	// Mappings of minimal reaching defs pre- and post- execution
 	// of the given object.

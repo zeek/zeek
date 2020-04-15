@@ -65,7 +65,7 @@ public:
 	RD_ptr Intersect(const RD_ptr& r) const;
 	RD_ptr Union(const RD_ptr& r) const;
 
-	// The following interesects this RD with another, but for
+	// The following intersects this RD with another, but for
 	// DefinitionItem's that have different DefPoints, rather
 	// than just fully omitting them, creates a new entry
 	// using the supplied DefinitionPoint.

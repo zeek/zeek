@@ -39,9 +39,14 @@ struct BlockDefs {
 
 	void AddPreRDs(RD_ptr RDs)	{ pre_RDs.push_back(RDs); }
 	void AddPostRDs(RD_ptr RDs)	{ post_RDs.push_back(RDs); }
+	void AddFutureRDs(RD_ptr RDs)	{ future_RDs.push_back(RDs); }
+
+	void Clear()
+		{ pre_RDs.clear(); post_RDs.clear(); future_RDs.clear(); }
 
 	vector<RD_ptr> pre_RDs;
 	vector<RD_ptr> post_RDs;
+	vector<RD_ptr> future_RDs;	// RDs for next case block
 
 	// Whether this block is for a switch case.  If not,
 	// it's for a loop body.
@@ -63,6 +68,7 @@ public:
 	const DefSetsMgr* GetDefSetsMgr() const	{ return &mgr; }
 
 protected:
+	void TraverseSwitch(const SwitchStmt* sw);
 	void DoIfStmtConfluence(const IfStmt* i);
 	void DoLoopConfluence(const Stmt* s, const Stmt* body);
 	bool CheckLHS(const Expr* lhs, const Expr* a);
@@ -90,7 +96,8 @@ protected:
 				bool assume_full, const DefinitionItem* rhs_di);
 
 	void CreateEmptyPostRDs(const Stmt* s);
-	void AddBlockDefs(const Stmt* s, bool is_pre, bool is_case);
+	void AddBlockDefs(const Stmt* s,
+				bool is_pre, bool is_future, bool is_case);
 
 	DefSetsMgr mgr;
 	vector<BlockDefs*> block_defs;
@@ -245,35 +252,8 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		}
 
 	case STMT_SWITCH:
-		{
-		auto sw = s->AsSwitchStmt();
-		auto e = sw->StmtExpr();
-		mgr.SetPreFromPre(e, sw);
-
-		block_defs.push_back(new BlockDefs(true));
-
-		auto cases = sw->Cases();
-
-		for ( const auto& c : *cases )
-			{
-			auto body = c->Body();
-			mgr.SetPreFromPre(body, s);
-
-			auto exprs = c->ExprCases();
-			if ( exprs )
-				mgr.SetPreFromPre(exprs, sw);
-
-			auto type_ids = c->TypeCases();
-			if ( type_ids )
-				{
-				for ( const auto& id : *type_ids )
-					CreateInitPreDef(id,
-						DefinitionPoint(body));
-				}
-			}
-
-		break;
-		}
+		TraverseSwitch(s->AsSwitchStmt());
+		return TC_ABORTSTMT;
 
 	case STMT_FOR:
 		{
@@ -338,6 +318,139 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 	}
 
 	return TC_CONTINUE;
+	}
+
+void RD_Decorate::TraverseSwitch(const SwitchStmt* sw)
+	{
+	DefinitionPoint ds(sw);
+
+	auto e = sw->StmtExpr();
+	auto cases = sw->Cases();
+
+	mgr.SetPreFromPre(e, sw);
+	auto sw_min_pre = mgr.GetPreMinRDs(sw);
+	auto sw_max_pre = mgr.GetPreMaxRDs(sw);
+
+	auto bd = new BlockDefs(true);
+	block_defs.push_back(bd);
+
+	bool has_default = false;
+	for ( const auto& c : *cases )
+		{
+		if ( (! c->ExprCases() ||
+		      c->ExprCases()->Exprs().length() == 0) &&
+		     (! c->TypeCases() ||
+		      c->TypeCases()->length() == 0) )
+			has_default = true;
+		}
+
+	RD_ptr sw_post_min_rds = nullptr;
+	RD_ptr sw_post_max_rds = nullptr;
+
+	if ( has_default )
+		// Guaranteed that we'll execute one of the switch blocks.
+		// Start with an empty set of RDs for the post-max and
+		// build them up via union.
+		sw_post_max_rds = make_new_RD_ptr();
+
+	else
+		{
+		// Entire set of cases is optional, so merge in entering RDs.
+		mgr.CreatePostRDsFromPre(sw);
+
+		sw_post_min_rds = mgr.GetPostMinRDs(sw);
+		sw_post_max_rds = mgr.GetPostMaxRDs(sw);
+		}
+
+	// Used to track fall-through.
+	RD_ptr prev_RDs;
+
+	for ( const auto& c : *cases )
+		{
+		auto body = c->Body();
+
+		mgr.SetPreMinRDs(body, sw_min_pre);
+		mgr.SetPreMaxRDs(body, sw_max_pre);
+
+		if ( prev_RDs )
+			{
+			mgr.MergeIntoPre(body, prev_RDs);
+			prev_RDs = nullptr;
+			}
+
+		auto exprs = c->ExprCases();
+		if ( exprs )
+			{
+			mgr.SetPreFromPre(exprs, body);
+			exprs->Traverse(this);
+
+			// It's perverse to modify a variable in a
+			// case expression ... and won't happen for
+			// reduced code, so we just ignore the
+			// possibility that it occurred.
+			}
+
+		auto type_ids = c->TypeCases();
+		if ( type_ids )
+			{
+			for ( const auto& id : *type_ids )
+				CreateInitPreDef(id, DefinitionPoint(body));
+			}
+
+		auto body_min_pre = mgr.GetPreMinRDs(body);
+		auto body_max_pre = mgr.GetPreMaxRDs(body);
+
+		// Don't inherit body-def analysis developed for previous case.
+		bd->Clear();
+		body->Traverse(this);
+
+		if ( bd->pre_RDs.size() > 0 )
+			reporter->InternalError("mispropagation of switch body defs");
+
+		if ( ! ControlCouldReachEnd(body, true) )
+			// Post RDs for this block are irrelevant.
+			continue;
+
+		// Propagate what comes out of the block.
+		auto case_min_rd = mgr.GetPostMinRDs(body);
+		auto case_max_rd = mgr.GetPostMaxRDs(body);
+
+		// Look for any definitions reflecting break or fallthrough
+		// short-circuiting.  These only matter for max RDs.
+		for ( const auto& post : bd->post_RDs )
+			case_max_rd = case_max_rd->Union(post);
+
+		// Scoop up definitions from fallthrough's and remember
+		// them for the next block.
+		for ( const auto& future : bd->future_RDs )
+			{
+			if ( ! prev_RDs )
+				prev_RDs = future;
+			else
+				prev_RDs = prev_RDs->Union(future);
+			}
+
+		// It's possible we haven't set sw_post_min_rds (if the
+		// switch has a default and thus is guaranteed to execute
+		// one of the blocks).  OTOH, sw_post_max_rds is always set.
+		sw_post_min_rds = sw_post_min_rds ?
+			sw_post_min_rds->IntersectWithConsolidation(case_min_rd, ds) :
+			make_new_RD_ptr(case_min_rd);
+
+		sw_post_max_rds = sw_post_max_rds->Union(case_max_rd);
+		}
+
+	if ( ! sw_post_min_rds )
+		// This happens when all of the cases return, including
+		// a default.  In that case, sw_post_max_rds is already
+		// an empty RD.
+		sw_post_min_rds = make_new_RD_ptr();
+
+	mgr.SetPostRDs(sw, sw_post_min_rds, sw_post_max_rds);
+	sw_post_min_rds.release();
+	sw_post_max_rds.release();
+
+	delete bd;
 	}
 
 void RD_Decorate::DoIfStmtConfluence(const IfStmt* i)
@@ -416,82 +529,6 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		break;
 		}
 
-	case STMT_SWITCH:
-		{
-		auto sw = s->AsSwitchStmt();
-		auto cases = sw->Cases();
-
-		bool did_first = false;
-		bool default_seen = false;
-
-		RD_ptr sw_post_min_rds = nullptr;
-		RD_ptr sw_post_max_rds = nullptr;
-
-		for ( const auto& c : *cases )
-			{
-			if ( ControlCouldReachEnd(c->Body(), true) )
-				{
-				auto case_min_rd = mgr.GetPostMinRDs(c->Body());
-				auto case_max_rd = mgr.GetPostMaxRDs(c->Body());
-
-				if ( did_first )
-					{
-					sw_post_min_rds =
-						sw_post_min_rds->IntersectWithConsolidation(case_min_rd, ds);
-					sw_post_max_rds =
-						sw_post_max_rds->Union(case_max_rd);
-					}
-				else
-					{
-					sw_post_min_rds =
-						make_new_RD_ptr(case_min_rd);
-					sw_post_max_rds =
-						make_new_RD_ptr(case_max_rd);
-
-					did_first = true;
-					}
-				}
-
-			if ( (! c->ExprCases() ||
-			      c->ExprCases()->Exprs().length() == 0) &&
-			     (! c->TypeCases() ||
-			      c->TypeCases()->length() == 0) )
-				default_seen = true;
-			}
-
-		if ( ! default_seen )
-			{
-			// Entire set of cases is optional, so merge
-			// in entering RDs.
-			if ( sw_post_min_rds )
-				{ // if min is set, so is max
-				sw_post_min_rds = sw_post_min_rds->Union(mgr.GetPreMinRDs(s));
-				sw_post_max_rds = sw_post_max_rds->Union(mgr.GetPreMaxRDs(s));
-				}
-			else
-				{
-				// We can fall through, and if so the
-				// only definitions are those that came
-				// into this statement.
-				mgr.CreatePostRDsFromPre(s);
-				break;
-				}
-			}
-
-		if ( ! sw_post_min_rds )
-			{
-			// This happens when all of the cases return.
-			sw_post_min_rds = make_new_RD_ptr();
-			sw_post_max_rds = make_new_RD_ptr();
-			}
-
-		mgr.SetPostRDs(s, sw_post_min_rds, sw_post_max_rds);
-		sw_post_min_rds.release();
-		sw_post_max_rds.release();
-
-		break;
-		}
-
 	case STMT_INIT:
 		{
 		mgr.CreatePostRDsFromPre(s);
@@ -520,17 +557,17 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		break;
 
 	case STMT_NEXT:
-		AddBlockDefs(s, true, false);
+		AddBlockDefs(s, true, false, false);
 		CreateEmptyPostRDs(s);
 		break;
 
 	case STMT_BREAK:
-		AddBlockDefs(s, false, block_defs.back()->is_case);
+		AddBlockDefs(s, false, false, block_defs.back()->is_case);
 		CreateEmptyPostRDs(s);
 		break;
 
 	case STMT_FALLTHROUGH:
-		AddBlockDefs(s, false, true);
+		AddBlockDefs(s, false, true, true);
 		mgr.CreatePostRDsFromPre(s);
 		break;
 
@@ -548,11 +585,9 @@ void RD_Decorate::CreateEmptyPostRDs(const Stmt* s)
 	mgr.SetPostRDs(s, empty_rds, empty_rds);
 	}
 
-void RD_Decorate::AddBlockDefs(const Stmt* s, bool is_pre, bool is_case)
+void RD_Decorate::AddBlockDefs(const Stmt* s,
+				bool is_pre, bool is_future, bool is_case)
 	{
-	if ( block_defs.size() == 0 )
-		reporter->InternalError("missing block defs");
-
 	auto rds = mgr.GetPreMaxRDs(s);
 
 	// Walk backward through the block defs finding the appropriate
@@ -562,12 +597,15 @@ void RD_Decorate::AddBlockDefs(const Stmt* s, bool is_pre, bool is_case)
 		auto bd = block_defs[i];
 
 		if ( bd->is_case == is_case )
-			{
-			// This one matches what we're looking for.
+			{ // This one matches what we're looking for.
 			if ( is_pre )
 				bd->AddPreRDs(rds);
 			else
+				{
 				bd->AddPostRDs(rds);
+				if ( is_future )
+					bd->AddFutureRDs(rds);
+				}
 			return;
 			}
 		}
@@ -710,9 +748,6 @@ bool RD_Decorate::ControlCouldReachEnd(const Stmt* s, bool ignore_break) const
 		return ignore_break;
 
 	case STMT_FOR:
-		// The loop body might not execute at all.
-		return true;
-
 	case STMT_WHILE:
 		// The loop body might not execute at all.
 		return true;

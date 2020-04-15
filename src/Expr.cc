@@ -3949,6 +3949,64 @@ IntrusivePtr<Val> RecordConstructorExpr::Fold(Val* v) const
 	return rv;
 	}
 
+bool RecordConstructorExpr::IsReduced() const
+	{
+	expr_list& exprs = op->AsListExpr()->Exprs();
+	loop_over_list(exprs, i)
+		{
+		auto e_i = exprs[i];
+		auto fa_i = e_i->AsFieldAssignExpr();
+		if ( ! fa_i->Op()->IsReduced() )
+			return false;
+		}
+
+	return true;
+	}
+
+Expr* RecordConstructorExpr::Reduce(ReductionContext* c,
+ 				IntrusivePtr<Stmt>& red_stmt)
+	{
+	expr_list& exprs = op->AsListExpr()->Exprs();
+
+	// Could consider merging this code with that for ListExpr::Reduce.
+	loop_over_list(exprs, i)
+		{
+		auto e_i = exprs[i];
+		printf("e_i = %s\n", obj_desc(e_i));
+		auto fa_i = e_i->AsFieldAssignExpr();
+		auto fa_i_rhs = e_i->GetOp1();
+
+		if ( c->Optimizing() )
+			{
+			auto rhs_i = c->UpdateExpr(fa_i_rhs);
+			auto new_rhs_i = new FieldAssignExpr(fa_i->FieldName(), 
+								rhs_i);
+			exprs.replace(i, new_rhs_i);
+			continue;
+			}
+
+		if ( fa_i_rhs->IsReduced() )
+			continue;
+
+		IntrusivePtr<Stmt> e_stmt;
+		IntrusivePtr<Expr> rhs_red =
+			{AdoptRef{}, fa_i_rhs->Reduce(c, e_stmt)};
+		auto new_e = new FieldAssignExpr(fa_i->FieldName(), rhs_red);
+		exprs.replace(i, new_e);
+
+		if ( e_stmt )
+			{
+			if ( red_stmt )
+				red_stmt = {AdoptRef{},
+						new StmtList(red_stmt, e_stmt)};
+			else
+				red_stmt = e_stmt;
+			}
+		}
+
+	return this->Ref();
+	}
+
 void RecordConstructorExpr::ExprDescribe(ODesc* d) const
 	{
 	d->Add("[");

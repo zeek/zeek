@@ -563,6 +563,47 @@ IntrusivePtr<Expr> ReductionContext::UpdateExpr(IntrusivePtr<Expr> e)
 	return make_intrusive<ConstExpr>(c->ValuePtr());
 	}
 
+Stmt* ReductionContext::MergeStmts(const NameExpr* lhs, IntrusivePtr<Expr> rhs,
+					Stmt* succ_stmt) const
+	{
+	auto lhs_id = lhs->Id();
+	auto lhs_tmp = FindTemporary(lhs_id);
+
+	if ( ! lhs_tmp )
+		return nullptr;
+
+	if ( succ_stmt->Tag() != STMT_EXPR )
+		return nullptr;
+
+	auto s_e = succ_stmt->AsExprStmt()->StmtExpr();
+	if ( s_e->Tag() != EXPR_ASSIGN )
+		return nullptr;
+
+	auto a = s_e->AsAssignExpr();
+	auto a_lhs = a->GetOp1();
+	auto a_rhs = a->GetOp2();
+
+	if ( a_lhs->Tag() != EXPR_REF || a_rhs->Tag() != EXPR_NAME )
+		return nullptr;
+
+	auto a_lhs_deref = a_lhs->AsRefExpr()->GetOp1();
+	if ( a_lhs_deref->Tag() != EXPR_NAME )
+		return nullptr;
+
+	auto a_lhs_var = a_lhs_deref->AsNameExpr()->Id();
+	auto a_rhs_var = a_rhs->AsNameExpr()->Id();
+
+	if ( a_rhs_var != lhs_id )
+		return nullptr;
+
+	if ( FindTemporary(a_lhs_var) )
+		reporter->InternalError("assignment of temporary to temporary");
+
+	auto merge_e = make_intrusive<AssignExpr>(a_lhs_deref, rhs, false,
+							nullptr, nullptr, false);
+	return new ExprStmt(merge_e);
+	}
+
 IntrusivePtr<ID> ReductionContext::GenTemporary(const IntrusivePtr<BroType>& t,
 						IntrusivePtr<Expr> rhs)
 	{

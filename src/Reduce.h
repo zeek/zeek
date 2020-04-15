@@ -31,6 +31,12 @@ public:
 	// already been applied.
 	bool IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs);
 
+	// Given an lhs=rhs statement followed by succ_stmt, returns
+	// a (new) merge of the two if they're of the form tmp=rhs, var=tmp;
+	// otherwise, nil.
+	Stmt* MergeStmts(const NameExpr* lhs, IntrusivePtr<Expr> rhs,
+						Stmt* succ_stmt) const;
+
 	Expr* OptExpr(Expr* e);
 	IntrusivePtr<Expr> OptExpr(IntrusivePtr<Expr> e);
 

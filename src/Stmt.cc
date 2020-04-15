@@ -1985,10 +1985,11 @@ Stmt* StmtList::Reduce(ReductionContext* c)
 	return this->Ref();
 	}
 
-bool StmtList::ReduceStmt(int s_i, stmt_list* f_stmts, ReductionContext* c)
+bool StmtList::ReduceStmt(int& s_i, stmt_list* f_stmts, ReductionContext* c)
 	{
 	bool did_change = false;
 	auto& stmt = Stmts()[s_i];
+
 	auto old_stmt = stmt;
 
 	stmt = stmt->Reduce(c);
@@ -2001,22 +2002,43 @@ bool StmtList::ReduceStmt(int s_i, stmt_list* f_stmts, ReductionContext* c)
 		auto s_e = stmt->AsExprStmt();
 		auto e = s_e->StmtExpr();
 
-		if ( e->Tag() == EXPR_ASSIGN )
+		if ( e->Tag() != EXPR_ASSIGN )
 			{
-			auto a = e->AsAssignExpr();
-			auto lhs = a->Op1()->AsRefExpr()->Op();
-			auto rhs = a->Op2();
-
-			if ( lhs->Tag() == EXPR_NAME )
-				{
-				auto var = lhs->AsNameExpr();
-				if ( c->IsCSE(a, var, rhs) )
-					// Skip this now unnecessary statement.
-					return true;
-				}
-
-			// ### Fold assignment pairs.
+			f_stmts->append(stmt);
+			return false;
 			}
+
+		auto a = e->AsAssignExpr();
+		auto lhs = a->Op1()->AsRefExpr()->Op();
+
+		if ( lhs->Tag() != EXPR_NAME )
+			{
+			f_stmts->append(stmt);
+			return false;
+			}
+
+		auto var = lhs->AsNameExpr();
+		auto rhs = a->GetOp2();
+
+		if ( s_i < Stmts().length() - 1 )
+			{
+			// See if we can compress an assignment chain.
+			auto s_i_succ = Stmts()[s_i + 1];
+			auto merge = c->MergeStmts(var, rhs, s_i_succ);
+			if ( merge )
+				{
+				f_stmts->append(merge);
+
+				// Skip both this statement and the next,
+				// now that we've substituted the merge.
+				++s_i;
+				return true;
+				}
+			}
+
+		if ( c->IsCSE(a, var, rhs.get()) )
+			// Skip this now unnecessary statement.
+			return true;
 		}
 
 	if ( stmt->Tag() == STMT_LIST )

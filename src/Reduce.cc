@@ -259,7 +259,6 @@ bool ReductionContext::SameExpr(const Expr* e1, const Expr* e2)
 	case EXPR_ASSIGN:
 	case EXPR_FIELD_ASSIGN:
 	case EXPR_INDEX_SLICE_ASSIGN:
-	case EXPR_COND:
 		// All of these should have been translated into something
 		// else.
 		reporter->InternalError("Unexpected tag in ReductionContext::SameExpr");

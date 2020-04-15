@@ -51,11 +51,6 @@ protected:
 
 	bool ControlCouldReachEnd(const Stmt* s, bool ignore_break) const;
 
-	// ### Check whether this is still needed, or if it's wholly
-	// supplanted by ControlCouldReachEnd.
-	bool ControlReachesEnd(const Stmt* s, bool is_definite,
-				bool ignore_break, bool ignore_next) const;
-
 	void CreateInitPreDef(const ID* id, DefinitionPoint dp);
 
 	void CreateInitPostDef(const ID* id, DefinitionPoint dp,
@@ -697,116 +692,6 @@ bool RD_Decorate::ControlCouldReachEnd(const Stmt* s, bool ignore_break) const
 				}
 
 			if ( ! ControlCouldReachEnd(stmt, ignore_break) )
-				reaches_so_far = false;
-			}
-
-		return reaches_so_far;
-		}
-
-	default:
-		return true;
-	}
-	}
-
-bool RD_Decorate::ControlReachesEnd(const Stmt* s, bool is_definite,
-				bool ignore_break, bool ignore_next) const
-	{
-	switch ( s->Tag() ) {
-	case STMT_RETURN:
-		return false;
-
-	case STMT_BREAK:
-		return ignore_break;
-
-	case STMT_NEXT:
-		return ignore_next;
-
-	case STMT_FOR:
-		{
-		if ( ! is_definite )
-			// The loop body might not execute at all.
-			return true;
-
-		auto f = s->AsForStmt();
-		auto body = f->LoopBody();
-		return ControlReachesEnd(body, is_definite, true, true);
-		}
-
-	case STMT_WHILE:
-		{
-		if ( ! is_definite )
-			// The loop body might not execute at all.
-			return true;
-
-		auto w = s->AsWhileStmt();
-		auto body = w->Body();
-		return ControlReachesEnd(body, is_definite, true, true);
-		}
-
-	case STMT_IF:
-		{
-		auto i = s->AsIfStmt();
-
-		auto true_reaches = ControlReachesEnd(i->TrueBranch(),
-					is_definite, ignore_break, ignore_next);
-		auto false_reaches = ControlReachesEnd(i->FalseBranch(),
-					is_definite, ignore_break, ignore_next);
-
-		if ( is_definite )
-			return true_reaches && false_reaches;
-		else
-			return true_reaches || false_reaches;
-		}
-
-	case STMT_SWITCH:
-		{
-		auto sw = s->AsSwitchStmt();
-		auto cases = sw->Cases();
-
-		bool control_reaches_end = is_definite;
-		bool default_seen = false;
-		for ( const auto& c : *cases )
-			{
-			bool body_def = ControlReachesEnd(c->Body(),
-								is_definite,
-								true, false);
-
-			if ( is_definite && ! body_def )
-				control_reaches_end = false;
-
-			if ( ! is_definite && body_def )
-				control_reaches_end = true;
-
-			if ( (! c->ExprCases() ||
-			      c->ExprCases()->Exprs().length() == 0) &&
-			     (! c->TypeCases() ||
-			      c->TypeCases()->length() == 0) )
-				default_seen = true;
-			}
-
-		if ( ! is_definite && ! default_seen )
-			return true;
-
-		return control_reaches_end;
-		}
-
-	case STMT_LIST:
-	case STMT_EVENT_BODY_LIST:
-		{
-		auto l = s->AsStmtList();
-
-		bool reaches_so_far = true;
-
-		for ( const auto& stmt : l->Stmts() )
-			{
-			if ( ! reaches_so_far )
-				{
-				// printf("dead code: %s\n", obj_desc(stmt));
-				return false;
-				}
-
-			if ( ! ControlReachesEnd(stmt, is_definite,
-						ignore_break, ignore_next) )
 				reaches_so_far = false;
 			}
 

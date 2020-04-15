@@ -71,8 +71,8 @@ public:
 	void SetEnumConst()		{ is_enum_const = true; }
 	bool IsEnumConst() const		{ return is_enum_const; }
 
-	void SetOffset(int arg_offset)	{ offset = arg_offset; }
-	int Offset() const		{ return offset; }
+	void SetOffset(size_t arg_offset)	{ offset = arg_offset; }
+	size_t Offset() const		{ return offset; }
 
 	bool IsRedefinable() const;
 
@@ -126,7 +126,7 @@ protected:
 	bool weak_ref;
 	IntrusivePtr<BroType> type;
 	bool is_const, is_enum_const, is_type, is_option;
-	int offset;
+	size_t offset;
 	Val* val;
 	IntrusivePtr<Attributes> attrs;
 	// contains list of functions that are called when an option changes

@@ -348,7 +348,7 @@ broker::expected<broker::data> Frame::Serialize(const Frame* target, const id_li
 
 	for ( const auto& id : us )
 		{
-		int location = id->Offset();
+		size_t location = id->Offset();
 
 		auto where = new_map.find(std::string(id->Name()));
 		if (where != new_map.end())

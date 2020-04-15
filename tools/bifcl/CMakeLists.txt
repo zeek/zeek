@@ -16,6 +16,8 @@ if ( MISSING_PREREQS )
     message(FATAL_ERROR "Configuration aborted due to missing prerequisites")
 endif ()
 
+include(RequireCXX17)
+
 include_directories(BEFORE
                     ${CMAKE_CURRENT_SOURCE_DIR}/include
                     ${CMAKE_CURRENT_BINARY_DIR}

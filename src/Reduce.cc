@@ -208,6 +208,20 @@ bool ReductionContext::SameOp(const Expr* op1, const Expr* op2)
 		return SameVal(op1_v, op2_v);
 		}
 
+	else if ( op1->Tag() == EXPR_LIST )
+		{
+		auto op1_l = op1->AsListExpr()->Exprs();
+		auto op2_l = op2->AsListExpr()->Exprs();
+
+		ASSERT(op1_l.length() == op2_l.length());
+
+		for ( auto i = 0; i < op1_l.length(); ++i )
+			if ( ! SameExpr(op1_l[i], op2_l[i]) )
+				return false;
+
+		return true;
+		}
+
 	else
 		reporter->InternalError("bad singleton tag");
 	}

@@ -1618,7 +1618,10 @@ Expr* AddToExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 
 	else
 		{
-		auto do_incr = new AddExpr(op1, op2);
+		// We could do an ASSERT that op1 is an EXPR_REF, but
+		// the following is basically equivalent.
+		auto op1_ref = op1->AsRefExpr()->Op();
+		auto do_incr = new AddExpr({NewRef{}, op1_ref}, op2);
 		IntrusivePtr<Expr> do_incr_ptr = {AdoptRef{}, do_incr};
 		auto assign = new AssignExpr(op1, do_incr_ptr, false, nullptr,
 						nullptr, false);

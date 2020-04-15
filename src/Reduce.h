@@ -55,6 +55,9 @@ protected:
 					IntrusivePtr<Expr> rhs);
 	TempVar* FindTemporary(const ID* id) const;
 
+	const ConstExpr* CheckForConst(IntrusivePtr<ID> id,
+					const DefPoints* dps) const;
+
 	Scope* scope;
 	PList<TempVar> temps;
 

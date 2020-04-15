@@ -37,6 +37,11 @@ public:
 	IntrusivePtr<ID> Id() const		{ return id; }
 	void SetID(IntrusivePtr<ID> _id)	{ id = _id; }
 
+	const ConstExpr* Const() const	{ return const_expr; }
+	// Surely the most use of "const" in any single line in
+	// the Zeek codebase :-P.
+	void SetConst(const ConstExpr* _const) { const_expr = _const; }
+
 	IntrusivePtr<ID> Alias() const		{ return alias; }
 	const DefPoints* DPs() const		{ return dps; }
 	void SetAlias(IntrusivePtr<ID> id, const DefPoints* dps);
@@ -50,6 +55,7 @@ protected:
 	IntrusivePtr<ID> id;
 	const IntrusivePtr<BroType>& type;
 	IntrusivePtr<Expr> rhs;
+	const ConstExpr* const_expr;
 	IntrusivePtr<ID> alias;
 	const DefPoints* dps;
 	RD_ptr max_rds;
@@ -63,6 +69,7 @@ TempVar::TempVar(int num, const IntrusivePtr<BroType>& t,
 	name = copy_string(buf);
 	id = nullptr;
 	rhs = _rhs;
+	const_expr = nullptr;
 	alias = nullptr;
 	dps = nullptr;
 	max_rds = nullptr;
@@ -327,8 +334,6 @@ IntrusivePtr<ID> ReductionContext::FindExprTmp(const Expr* rhs,
 bool ReductionContext::IsCSE(const AssignExpr* a,
 				const NameExpr* lhs, const Expr* rhs)
 	{
-	bool did_reduction = false;
-
 	auto a_max_rds = mgr->GetPostMaxRDs(a);
 
 	auto lhs_id = lhs->Id();
@@ -342,18 +347,37 @@ bool ReductionContext::IsCSE(const AssignExpr* a,
 		auto dps = a_max_rds->GetDefPoints(tmp_di);
 		new_rhs = NewVarUsage(rhs_tmp, dps);
 		rhs = new_rhs.get();
-		did_reduction = true;
 		}
 
 	if ( lhs_tmp )
 		{
+		if ( rhs->Tag() == EXPR_CONST )
+			{ // mark temporary as just being a constant
+			lhs_tmp->SetConst(rhs->AsConstExpr());
+			return true;
+			}
+
 		if ( rhs->Tag() == EXPR_NAME )
-			{ // create alias
+			{
 			auto rhs_id = rhs->AsNameExpr()->Id();
+			auto rhs_tmp_var = FindTemporary(rhs_id);
+
+			if ( rhs_tmp_var && rhs_tmp_var->Const() )
+				{
+				lhs_tmp->SetConst(rhs_tmp_var->Const());
+				return true;
+				}
+
 			IntrusivePtr<ID> rhs_id_ptr = {AdoptRef{}, rhs_id};
 			auto rhs_di = mgr->GetConstIDReachingDef(rhs_id);
 			auto dps = a_max_rds->GetDefPoints(rhs_di);
-			lhs_tmp->SetAlias(rhs_id_ptr, dps);
+
+			auto rhs_const = CheckForConst(rhs_id_ptr, dps);
+			if ( rhs_const )
+				lhs_tmp->SetConst(rhs_const);
+			else
+				lhs_tmp->SetAlias(rhs_id_ptr, dps);
+
 			return true;
 			}
 
@@ -370,7 +394,52 @@ bool ReductionContext::IsCSE(const AssignExpr* a,
 		expr_temps.append(lhs_tmp);
 		}
 
-	return did_reduction;
+	return false;
+	}
+
+const ConstExpr* ReductionContext::CheckForConst(IntrusivePtr<ID> id,
+						const DefPoints* dps) const
+	{
+	ASSERT(dps && dps->length() > 0);
+	if ( dps->length() != 1 )
+		// Multiple definitions of the variable reach to this
+		// location.  In theory we could check whether they *all*
+		// provide the same constant, but that seems hardly likely.
+		return nullptr;
+
+	auto dp = (*dps)[0];
+	const Expr* e = nullptr;
+
+	if ( dp.Tag() == STMT_DEF )
+		{
+		auto s = dp.StmtVal();
+		if ( s->Tag() != STMT_EXPR )
+			// Defined in a statement other than an assignment.
+			return nullptr;
+
+		auto s_e = s->AsExprStmt();
+		e = s_e->StmtExpr();
+		}
+
+	else if ( dp.Tag() == EXPR_DEF )
+		e = dp.ExprVal();
+
+	else
+		return nullptr;
+
+	if ( e->Tag() != EXPR_ASSIGN )
+		// Not sure why this would happen, other than EXPR_APPEND_TO,
+		// but in any case not an expression we can mine for a
+		// constant.
+		return nullptr;
+
+	auto a_e = e->AsAssignExpr();
+	auto rhs = a_e->Op2();
+
+	if ( rhs->Tag() != EXPR_CONST )
+		return nullptr;
+
+	return rhs->AsConstExpr();
 	}
 
 Expr* ReductionContext::OptExpr(Expr* e)
@@ -412,6 +481,9 @@ IntrusivePtr<Expr> ReductionContext::UpdateExpr(IntrusivePtr<Expr> e)
 	auto tmp_var = FindTemporary(id);
 	if ( ! tmp_var )
 		return e;
+
+	if ( tmp_var->Const() )
+		return make_intrusive<ConstExpr>(tmp_var->Const()->ValuePtr());
 
 	auto alias = tmp_var->Alias();
 	if ( alias )

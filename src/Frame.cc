@@ -601,7 +601,7 @@ Frame::UnserializeIDList(const broker::vector& data)
 
 		std::advance(where, 1);
 
-		auto has_offset = broker::get_if<broker::integer>(*where);
+		auto has_offset = broker::get_if<broker::count>(*where);
 		if ( ! has_offset )
 			{
 			for ( auto& i : rval )
@@ -631,7 +631,7 @@ Frame::UnserializeOffsetMap(const broker::vector& data)
 		if ( ! key )
 			return std::make_pair(false, std::move(rval));
 
-		auto offset = broker::get_if<broker::integer>(data[i+1]);
+		auto offset = broker::get_if<broker::count>(data[i+1]);
 		if ( ! offset )
 			return std::make_pair(false, std::move(rval));
 

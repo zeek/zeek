@@ -45,7 +45,7 @@ public:
 	IntrusivePtr<ID> Alias() const		{ return alias; }
 	const DefPoints* DPs() const		{ return dps; }
 	void SetAlias(IntrusivePtr<ID> id, const DefPoints* dps);
-	void SetDPs(const DefPoints* _dps)	{ dps = _dps; }
+	void SetDPs(const DefPoints* _dps);
 
 	const RD_ptr& MaxRDs() const	{ return max_rds; }
 	void SetMaxRDs(RD_ptr rds)	{ max_rds = rds; }
@@ -84,6 +84,12 @@ void TempVar::SetAlias(IntrusivePtr<ID> _alias, const DefPoints* _dps)
 		reporter->InternalError("Empty dps for alias");
 
 	alias = _alias;
+	dps = _dps;
+	}
+
+void TempVar::SetDPs(const DefPoints* _dps)
+	{
+	ASSERT(_dps->length() == 1);
 	dps = _dps;
 	}
 
@@ -398,7 +404,7 @@ bool ReductionContext::IsCSE(const AssignExpr* a,
 		auto lhs_di = mgr->GetConstIDReachingDef(lhs_id);
 		auto dps = a_max_rds->GetDefPoints(lhs_di);
 
-		if ( lhs_tmp->DPs() )
+		if ( lhs_tmp->DPs() && lhs_tmp->DPs() != dps )
 			reporter->InternalError("double DPs for temporary");
 
 		lhs_tmp->SetDPs(dps);

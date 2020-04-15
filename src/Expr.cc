@@ -3972,7 +3972,6 @@ Expr* RecordConstructorExpr::Reduce(ReductionContext* c,
 	loop_over_list(exprs, i)
 		{
 		auto e_i = exprs[i];
-		printf("e_i = %s\n", obj_desc(e_i));
 		auto fa_i = e_i->AsFieldAssignExpr();
 		auto fa_i_rhs = e_i->GetOp1();
 

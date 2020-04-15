@@ -1017,19 +1017,23 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		mgr.SetPreFromPre(f, e);
 		f->Traverse(this);
 
+		mgr.SetPreFromPre(args_l, e);
+
 		for ( const auto& expr : args_l->Exprs() )
 			{
+			mgr.SetPreFromPre(expr, e);
+
 			if ( IsAggr(expr) )
 				// Not only do we skip analyzing it, but
 				// we consider it initialized post-return.
 				mgr.CreatePostDef(expr->AsNameExpr()->Id(), 
 						DefinitionPoint(c), false);
 			else
-				{
-				mgr.SetPreFromPre(expr, e);
 				expr->Traverse(this);
-				}
 			}
+
+		// ### Should kill definitions dependent on globals
+		// that might have been modified by the call.
 
 		return TC_ABORTSTMT;
 		}

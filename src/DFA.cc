@@ -308,7 +308,8 @@ DFA_State* DFA_State_Cache::Lookup(const NFA_state_list& nfas, DigestStr* digest
 	{
 	// We assume that state ID's don't exceed 10 digits, plus
 	// we allow one more character for the delimiter.
-	u_char id_tag[nfas.length() * 11 + 1];
+	auto id_tag_buf = std::make_unique<u_char[]>(nfas.length() * 11 + 1);
+	auto id_tag = id_tag_buf.get();
 	u_char* p = id_tag;
 
 	for ( int i = 0; i < nfas.length(); ++i )

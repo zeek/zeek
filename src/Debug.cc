@@ -565,7 +565,8 @@ int dbg_execute_command(const char* cmd)
 	delete [] localcmd;
 
 	// Make sure we know this op name.
-	const char* matching_cmds[num_debug_cmds()];
+	auto matching_cmds_buf = std::make_unique<const char*[]>(num_debug_cmds());
+	auto matching_cmds = matching_cmds_buf.get();
 	int num_matches = find_all_matching_cmds(opstring, matching_cmds);
 
 	if ( ! num_matches )

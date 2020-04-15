@@ -51,7 +51,7 @@ void ZIP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		return;
 
 	static unsigned int unzip_size = 4096;
-	Bytef unzipbuf[unzip_size];
+	auto unzipbuf = std::make_unique<Bytef[]>(unzip_size);
 
 	int allow_restart = 1;
 
@@ -63,7 +63,7 @@ void ZIP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 	while ( true )
 		{
-		zip->next_out = unzipbuf;
+		zip->next_out = unzipbuf.get();
 		zip->avail_out = unzip_size;
 
 		zip_status = inflate(zip, Z_SYNC_FLUSH);
@@ -75,7 +75,7 @@ void ZIP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 
 			int have = unzip_size - zip->avail_out;
 			if ( have )
-				ForwardStream(have, unzipbuf, IsOrig());
+				ForwardStream(have, unzipbuf.get(), IsOrig());
 
 			if ( zip_status == Z_STREAM_END )
 				{

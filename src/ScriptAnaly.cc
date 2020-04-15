@@ -8,6 +8,7 @@
 #include "Stmt.h"
 #include "Scope.h"
 #include "Traverse.h"
+#include "Reporter.h"
 #include "module_util.h"
 
 
@@ -26,6 +27,26 @@ static const char* obj_desc(const BroObj* o)
 	return obj_desc_storage;
 	}
 
+
+// Helper class that tracks definitions gathered in a block that either
+// need to be propagated to the beginning of the block or to the end.
+// Used for RD propagation due to altered control flow (next/break/fallthrough).
+// Managed as a stack (vector) to deal with nested loops, switches, etc.
+// Only applies to gathering maximum RDs.
+struct BlockDefs {
+	BlockDefs(bool _is_case)
+		{ is_case = _is_case; }
+
+	void AddPreRDs(RD_ptr RDs)	{ pre_RDs.push_back(RDs); }
+	void AddPostRDs(RD_ptr RDs)	{ post_RDs.push_back(RDs); }
+
+	vector<RD_ptr> pre_RDs;
+	vector<RD_ptr> post_RDs;
+
+	// Whether this block is for a switch case.  If not,
+	// it's for a loop body.
+	bool is_case;
+};
 
 class RD_Decorate : public TraversalCallback {
 public:
@@ -69,9 +90,10 @@ protected:
 				bool assume_full, const DefinitionItem* rhs_di);
 
 	void CreateEmptyPostRDs(const Stmt* s);
+	void AddBlockDefs(const Stmt* s, bool is_pre, bool is_case);
 
 	DefSetsMgr mgr;
-
+	vector<BlockDefs*> block_defs;
 	bool trace;
 };
 
@@ -228,6 +250,8 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		auto e = sw->StmtExpr();
 		mgr.SetPreFromPre(e, sw);
 
+		block_defs.push_back(new BlockDefs(true));
+
 		auto cases = sw->Cases();
 
 		for ( const auto& c : *cases )
@@ -280,6 +304,8 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		// To keep from traversing the loop expression, we just do
 		// the body manually here.
 
+		block_defs.push_back(new BlockDefs(false));
+
 		body->Traverse(this);
 
 		DoLoopConfluence(s, body);
@@ -292,6 +318,8 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		auto w = s->AsWhileStmt();
 		auto body = w->Body();
 		mgr.SetPreFromPre(body, w);
+
+		block_defs.push_back(new BlockDefs(false));
 
 		body->Traverse(this);
 		DoLoopConfluence(s, body);
@@ -331,7 +359,25 @@ void RD_Decorate::DoIfStmtConfluence(const IfStmt* i)
 
 void RD_Decorate::DoLoopConfluence(const Stmt* s, const Stmt* body)
 	{
-	if ( mgr.GetPreMaxRDs(body) != mgr.GetPostMaxRDs(body) )
+	auto bd = block_defs.back();
+	block_defs.pop_back();
+
+	auto loop_pre = mgr.GetPreMaxRDs(body);
+	auto loop_post = mgr.GetPostMaxRDs(body);
+
+	for ( const auto& pre : bd->pre_RDs )
+		if ( pre != loop_pre )
+			mgr.MergeIntoPre(body, pre);
+
+	for ( const auto& post : bd->post_RDs )
+		if ( post != loop_post )
+			mgr.MergeIntoPost(body, post);
+
+	// Freshen due to mergers.
+	loop_pre = mgr.GetPreMaxRDs(body);
+	loop_post = mgr.GetPostMaxRDs(body);
+
+	if ( loop_pre != loop_post )
 		{
 		// Some body assignments reached the end.  Propagate them
 		// around the loop.
@@ -354,6 +400,8 @@ void RD_Decorate::DoLoopConfluence(const Stmt* s, const Stmt* body)
 	mgr.CreatePostRDs(s, min_post_rds, max_post_rds);
 	min_post_rds.release();
 	max_post_rds.release();
+
+	delete bd;
 	}
 
 TraversalCode RD_Decorate::PostStmt(const Stmt* s)
@@ -471,15 +519,18 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		CreateEmptyPostRDs(s);
 		break;
 
+	case STMT_NEXT:
+		AddBlockDefs(s, true, false);
+		CreateEmptyPostRDs(s);
+		break;
+
+	case STMT_BREAK:
+		AddBlockDefs(s, false, block_defs.back()->is_case);
+		CreateEmptyPostRDs(s);
+		break;
+
 	case STMT_FALLTHROUGH:
-		// Yuck, really ought to propagate its RDs into
-		// the next case, but that's quite ugly.  It
-		// only matters if (1) there are meaningful
-		// definitions crossing into the case *and*
-		// (2) we start doing analyses that depend on
-		// potential RDs and not just minimalist RDs.
-		//
-		// Anyhoo, punt for now. ###
+		AddBlockDefs(s, false, true);
 		mgr.CreatePostRDsFromPre(s);
 		break;
 
@@ -495,6 +546,33 @@ void RD_Decorate::CreateEmptyPostRDs(const Stmt* s)
 	{
 	auto empty_rds = make_new_RD_ptr();
 	mgr.SetPostRDs(s, empty_rds, empty_rds);
+	}
+
+void RD_Decorate::AddBlockDefs(const Stmt* s, bool is_pre, bool is_case)
+	{
+	if ( block_defs.size() == 0 )
+		reporter->InternalError("missing block defs");
+
+	auto rds = mgr.GetPreMaxRDs(s);
+
+	// Walk backward through the block defs finding the appropriate
+	// match to this one.
+	for ( auto i = block_defs.size() - 1; i >= 0; --i )
+		{
+		auto bd = block_defs[i];
+
+		if ( bd->is_case == is_case )
+			{
+			// This one matches what we're looking for.
+			if ( is_pre )
+				bd->AddPreRDs(rds);
+			else
+				bd->AddPostRDs(rds);
+			return;
+			}
+		}
+
+	reporter->InternalError("didn't find matching block defs");
 	}
 
 bool RD_Decorate::CheckLHS(const Expr* lhs, const Expr* e)

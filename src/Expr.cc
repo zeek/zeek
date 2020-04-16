@@ -236,11 +236,6 @@ bool Expr::IsReduced() const
 	return true;
 	}
 
-bool Expr::HasReducedOps() const
-	{
-	return true;
-	}
-
 Expr* Expr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	red_stmt = nullptr;
@@ -629,11 +624,6 @@ bool UnaryExpr::IsReduced() const
 	return false;
 	}
 
-bool UnaryExpr::HasReducedOps() const
-	{
-	return op->IsSingleton();
-	}
-
 Expr* UnaryExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( c->Optimizing() )
@@ -798,11 +788,6 @@ bool BinaryExpr::HasNoSideEffects() const
 bool BinaryExpr::IsReduced() const
 	{
 	return false;
-	}
-
-bool BinaryExpr::HasReducedOps() const
-	{
-	return op1->IsSingleton() && op2->IsSingleton();
 	}
 
 Expr* BinaryExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
@@ -2700,11 +2685,6 @@ bool CondExpr::IsReduced() const
 	return false;
 	}
 
-bool CondExpr::HasReducedOps() const
-	{
-	return op1->IsSingleton() && op2->IsSingleton() && op3->IsSingleton();
-	}
-
 Expr* CondExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( c->Optimizing() )
@@ -2826,30 +2806,6 @@ void RefExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 bool RefExpr::IsReduced() const
 	{
 	return op->Tag() == EXPR_NAME;
-	}
-
-bool RefExpr::HasReducedOps() const
-	{
-	switch ( op->Tag() ) {
-	case EXPR_NAME:
-		return true;
-
-	case EXPR_FIELD:
-		return op->AsFieldExpr()->Op()->IsReduced();
-
-	case EXPR_INDEX:
-		{
-		auto ind = op->AsIndexExpr();
-		return ind->Op1()->IsReduced() && ind->Op2()->IsReduced();
-		}
-
-	case EXPR_LIST:
-		return op->IsReduced();
-
-	default:
-		Internal("bad operand in RefExpr::IsReduced");
-		return true;
-	}
 	}
 
 Expr* RefExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
@@ -3325,11 +3281,6 @@ bool AssignExpr::IsReduced() const
 	return false;
 	}
 
-bool AssignExpr::HasReducedOps() const
-	{
-	return op1->IsReduced() && op2->IsSingleton();
-	}
-
 Expr* AssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	// Yields a fully reduced assignment expression.
@@ -3464,11 +3415,6 @@ bool IndexAssignExpr::IsReduced() const
 	{
 	// op2 is a ListExpr, not a singleton expression.
 	ASSERT(op1->IsSingleton() && op2->IsReduced() && op3->IsSingleton());
-	return true;
-	}
-
-bool IndexAssignExpr::HasReducedOps() const
-	{
 	return true;
 	}
 
@@ -3793,17 +3739,6 @@ void IndexExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 	AssignToIndex(v1, v2, v);
 	}
 
-bool IndexExpr::HasReducedOps() const
-	{
-	if ( ! op1->IsSingleton() )
-		return false;
-
-	if ( op2->Tag() == EXPR_LIST )
-		return op2->HasReducedOps();
-	else
-		return op2->IsSingleton();
-	}
-
 void IndexExpr::ExprDescribe(ODesc* d) const
 	{
 	op1->Describe(d);
@@ -3825,6 +3760,11 @@ IntrusivePtr<Val> AnyIndexExpr::Fold(Val* v) const
 	{
 	auto lv = v->AsListVal()->Vals();
 	return {AdoptRef{}, (*lv)[index]};
+	}
+
+bool AnyIndexExpr::IsReduced() const
+	{
+	return true;
 	}
 
 Expr* AnyIndexExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
@@ -3874,11 +3814,6 @@ IntrusivePtr<Val> FieldLHSAssignExpr::Eval(Frame* f) const
 bool FieldLHSAssignExpr::IsReduced() const
 	{
 	ASSERT(op1->IsSingleton() && op2->IsReduced());
-	return true;
-	}
-
-bool FieldLHSAssignExpr::HasReducedOps() const
-	{
 	return true;
 	}
 
@@ -5005,11 +4940,6 @@ bool ScheduleExpr::IsReduced() const
 	return when->IsReduced() && event->IsReduced();
 	}
 
-bool ScheduleExpr::HasReducedOps() const
-	{
-	return when->IsSingleton() && event->IsSingleton();
-	}
-
 Expr* ScheduleExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( c->Optimizing() )
@@ -5345,11 +5275,6 @@ bool CallExpr::IsReduced() const
 		return false;
 	}
 
-bool CallExpr::HasReducedOps() const
-	{
-	return func->IsSingleton() && args->IsSingleton();
-	}
-
 Expr* CallExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( c->Optimizing() )
@@ -5630,11 +5555,6 @@ bool EventExpr::IsReduced() const
 	return Args()->IsReduced();
 	}
 
-bool EventExpr::HasReducedOps() const
-	{
-	return Args()->IsSingleton();
-	}
-
 Expr* EventExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( c->Optimizing() )
@@ -5714,19 +5634,7 @@ bool ListExpr::IsPure() const
 bool ListExpr::IsReduced() const
 	{
 	for ( const auto& expr : exprs )
-		{
-		auto e_red = expr->IsReduced();
-		if ( ! expr->IsReduced() )
-			return false;
-		}
-
-	return true;
-	}
-
-bool ListExpr::HasReducedOps() const
-	{
-	for ( const auto& expr : exprs )
-		if ( ! expr->HasReducedOps() )
+		if ( ! expr->IsSingleton() )
 			return false;
 
 	return true;

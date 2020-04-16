@@ -94,7 +94,7 @@ DefinitionItem* DefItemMap::GetIDReachingDef(const ID* id)
 	if ( di == i2d.end() )
 		{
 		auto new_entry = new DefinitionItem(id);
-		i2d.insert(ID_to_DI_Map::value_type(id, new_entry));
+		i2d[id] = new_entry;
 		return new_entry;
 		}
 	else

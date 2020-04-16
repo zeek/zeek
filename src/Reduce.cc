@@ -177,8 +177,7 @@ const DefPoints* ReductionContext::FindDefPoints(const NameExpr* var) const
 
 void ReductionContext::AddDefPoints(const NameExpr* var, const DefPoints* dps)
 	{
-	var_usage_to_DPs.insert(std::pair<const NameExpr*,
-				const DefPoints*>(var, dps));
+	var_usage_to_DPs[var] = dps;
 	}
 
 bool ReductionContext::SameOp(const Expr* op1, const Expr* op2)
@@ -621,7 +620,7 @@ IntrusivePtr<ID> ReductionContext::GenTemporary(const IntrusivePtr<BroType>& t,
 	temp_id->SetType(t);
 
 	temps.append(temp);
-	ids_to_temps.insert(std::pair<const ID*, TempVar*>(temp_id.get(), temp));
+	ids_to_temps[temp_id.get()] = temp;
 
 	return temp_id;
 	}

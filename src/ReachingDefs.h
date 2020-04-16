@@ -141,7 +141,7 @@ public:
 	void SetRDs(const BroObj* o, RD_ptr& rd)
 		{
 		auto new_rd = make_new_RD_ptr(rd);
-		a_i->insert(AnalyInfo::value_type(o, new_rd));
+		(*a_i)[o] = new_rd;
 		}
 
 	// If the given di is new, add this definition.  If it
@@ -156,7 +156,7 @@ public:
 		if ( HasRDs(o) )
 			MergeRDs(o, rd);
 		else
-			a_i->insert(AnalyInfo::value_type(o, rd));
+			(*a_i)[o] = rd;
 		}
 
 protected:

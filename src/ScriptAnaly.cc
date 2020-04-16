@@ -140,7 +140,7 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 	if ( trace )
 		{
 		printf("traversing function %s, post RDs:\n", f->Name());
-		mgr.GetPostMinRDs(f)->Dump();
+		mgr.GetPostMaxRDs(f)->Dump();
 		}
 
 	auto bodies = f->GetBodies();
@@ -158,8 +158,8 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 	if ( trace )
 		{
 		printf("pre RDs for stmt %s:\n", obj_desc(s));
-		mgr.GetPreMinRDs(s)->Dump();
 		mgr.GetPreMaxRDs(s)->Dump();
+		printf("\n");
 		}
 
 	switch ( s->Tag() ) {
@@ -199,6 +199,14 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 				mgr.SetPreFromPost(stmt, pred_stmt);
 
 			stmt->Traverse(this);
+
+			if ( trace )
+				{
+				printf("post RDs for stmt %s:\n", obj_desc(stmt));
+				mgr.GetPostMaxRDs(stmt)->Dump();
+				printf("\n");
+				}
+
 			pred_stmt = stmt;
 			}
 
@@ -822,10 +830,10 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	ASSERT(mgr.HasPreMinRDs(e));
 	ASSERT(mgr.HasPreMaxRDs(e));
 
-	if ( trace )
+	if ( trace && e->Tag() == EXPR_ASSIGN )
 		{
-		printf("pre RDs for expr %s:\n", obj_desc(e));
-		mgr.GetPreMinRDs(e)->Dump();
+		printf("---\npre RDs for expr %s:\n", obj_desc(e));
+		mgr.GetPreMaxRDs(e)->Dump();
 		}
 
 	// Since there are no control flow or confluence issues (the latter
@@ -835,10 +843,11 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	// values).
 	mgr.SetPostFromPre(e);
 
-	if ( trace )
+	if ( trace && e->Tag() == EXPR_ASSIGN )
 		{
-		printf("nominal post RDs for expr %s:\n", obj_desc(e));
-		mgr.GetPostMinRDs(e)->Dump();
+		printf("---\nnominal post RDs for expr %s:\n", obj_desc(e));
+		mgr.GetPostMaxRDs(e)->Dump();
+		printf("---\n\n");
 		}
 
 	switch ( e->Tag() ) {

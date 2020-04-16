@@ -57,7 +57,7 @@ void ReachingDefs::AddRD(const DefinitionItem* di, const DefinitionPoint& dp)
 		{
 		auto dps = new List<DefinitionPoint>();
 		dps->push_back(dp);
-		my_rd_map->insert(ReachingDefsMap::value_type(di, dps));
+		(*my_rd_map)[di] = dps;
 		}
 
 	else

@@ -57,7 +57,7 @@ const char* expr_name(BroExprTag t)
 		"&", "|", "^",
 		"&&", "||",
 		"<", "<=", "==", "!=", ">=", ">", "?:", "ref",
-		"=", "[]=", "$=", "[]", "$", "?$", "[=]",
+		"=", "[]=", "$=", "[]", "any[]", "$", "?$", "[=]",
 		"table()", "set()", "vector()",
 		"$=", "in", "<<>>",
 		"()", "function()", "event", "schedule",
@@ -3379,7 +3379,7 @@ Expr* AssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 
 		IntrusivePtr<Expr> lhs_e =
 			{AdoptRef{}, field_e->Op()->Reduce(c, lhs_stmt)};
-		IntrusivePtr<Expr> rhs_e 
+		IntrusivePtr<Expr> rhs_e =
 			{AdoptRef{}, op2->Reduce(c, rhs_stmt)};
 
 		red_stmt = MergeStmts(lhs_stmt, rhs_stmt);
@@ -3388,6 +3388,33 @@ Expr* AssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 		auto field_assign = new FieldLHSAssignExpr(lhs_e, rhs_e, field);
 
 		return TransformMe(field_assign, c, red_stmt);
+		}
+
+	if ( lhs_expr->Tag() == EXPR_LIST )
+		{
+		auto lhs_list = lhs_expr->AsListExpr()->Exprs();
+
+		IntrusivePtr<Stmt> rhs_stmt;
+		IntrusivePtr<Expr> rhs_e =
+			{AdoptRef{}, op2->Reduce(c, rhs_stmt)};
+
+		auto len = lhs_list.length();
+		auto check_stmt = make_intrusive<CheckAnyLenStmt>(rhs_e, len);
+
+		red_stmt = MergeStmts(rhs_stmt, check_stmt);
+
+		loop_over_list(lhs_list, i)
+			{
+			auto rhs = make_intrusive<AnyIndexExpr>(rhs_e, i);
+			IntrusivePtr<Expr> lhs = {NewRef{}, lhs_list[i]};
+			auto assign = make_intrusive<AssignExpr>(lhs, rhs,
+						false, nullptr, nullptr, false);
+			auto assign_stmt = make_intrusive<ExprStmt>(assign);
+			red_stmt = MergeStmts(red_stmt, assign_stmt);
+			}
+
+		// All the work is now in red_stmt.
+		return nullptr;
 		}
 
 	IntrusivePtr<Stmt> lhs_stmt = lhs_ref->ReduceToLHS(c);
@@ -3784,6 +3811,39 @@ void IndexExpr::ExprDescribe(ODesc* d) const
 		d->Add("[");
 
 	op2->Describe(d);
+	if ( d->IsReadable() )
+		d->Add("]");
+	}
+
+AnyIndexExpr::AnyIndexExpr(IntrusivePtr<Expr> arg_op, int _index)
+	: UnaryExpr(EXPR_ANY_INDEX, std::move(arg_op))
+	{
+	index = _index;
+	}
+
+IntrusivePtr<Val> AnyIndexExpr::Fold(Val* v) const
+	{
+	auto lv = v->AsListVal()->Vals();
+	return {AdoptRef{}, (*lv)[index]};
+	}
+
+Expr* AnyIndexExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	return this->Ref();
+	}
+
+void AnyIndexExpr::ExprDescribe(ODesc* d) const
+	{
+	if ( d->IsReadable() )
+		d->Add("(");
+
+	op->Describe(d);
+
+	if ( d->IsReadable() )
+		d->Add(")any [");
+
+	d->Add(index);
+
 	if ( d->IsReadable() )
 		d->Add("]");
 	}

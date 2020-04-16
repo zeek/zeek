@@ -568,3 +568,17 @@ protected:
 	IntrusivePtr<Expr> timeout;
 	bool is_return;
 };
+
+class CheckAnyLenStmt : public ExprStmt {
+public:
+	explicit CheckAnyLenStmt(IntrusivePtr<Expr> e, int expected_len);
+
+	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+
+	Stmt* Reduce(ReductionContext* c) override;
+
+	void StmtDescribe(ODesc* d) const override;
+
+protected:
+	int expected_len;
+};

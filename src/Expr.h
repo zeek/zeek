@@ -34,7 +34,7 @@ enum BroExprTag : int {
 	EXPR_COND,
 	EXPR_REF,
 	EXPR_ASSIGN, EXPR_INDEX_ASSIGN, EXPR_FIELD_LHS_ASSIGN,
-	EXPR_INDEX,
+	EXPR_INDEX, EXPR_ANY_INDEX,
 	EXPR_FIELD, EXPR_HAS_FIELD,
 	EXPR_RECORD_CONSTRUCTOR,
 	EXPR_TABLE_CONSTRUCTOR,
@@ -761,6 +761,20 @@ protected:
 	void ExprDescribe(ODesc* d) const override;
 
 	bool is_slice;
+};
+
+// Any internal call used for [a, b, c, ...] = x assignments.
+class AnyIndexExpr : public UnaryExpr {
+public:
+	AnyIndexExpr(IntrusivePtr<Expr> op, int index);
+
+protected:
+	IntrusivePtr<Val> Fold(Val* v) const override;
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
+
+	void ExprDescribe(ODesc* d) const override;
+
+	int index;
 };
 
 // An internal class for reduced form.

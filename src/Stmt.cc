@@ -44,6 +44,7 @@ const char* stmt_name(BroStmtTag t)
 		"for", "next", "break", "return", "add", "delete",
 		"list", "bodylist",
 		"<init>", "fallthrough", "while",
+		"check-any-length",
 		"null",
 	};
 
@@ -463,8 +464,7 @@ Stmt* ExprStmt::Reduce(ReductionContext* c)
 		}
 
 	else
-		// Not clear if e can be nil, but older code checks for
-		// it, so let's play along.
+		// e can be nil for our derived classes (like ReturnStmt).
 		return TransformMe(new NullStmt, c);
 	}
 
@@ -2378,4 +2378,43 @@ TraversalCode WhenStmt::Traverse(TraversalCallback* cb) const
 
 	tc = cb->PostStmt(this);
 	HANDLE_TC_STMT_POST(tc);
+	}
+
+
+CheckAnyLenStmt::CheckAnyLenStmt(IntrusivePtr<Expr> arg_e, int _expected_len)
+	: ExprStmt(STMT_CHECK_ANY_LEN, std::move(arg_e))
+	{
+	expected_len = _expected_len;
+	}
+
+IntrusivePtr<Val> CheckAnyLenStmt::Exec(Frame* f, stmt_flow_type& flow) const
+	{
+	RegisterAccess();
+	flow = FLOW_NEXT;
+
+	auto v = e->Eval(f)->AsListVal()->Vals();
+
+	if ( v->length() != expected_len )
+		reporter->ExprRuntimeError(e.get(), "mismatch in list lengths");
+
+	return nullptr;
+	}
+
+Stmt* CheckAnyLenStmt::Reduce(ReductionContext* c)
+	{
+	// These are created in reduced form.
+	return this->Ref();
+	}
+
+void CheckAnyLenStmt::StmtDescribe(ODesc* d) const
+	{
+	Stmt::StmtDescribe(d);
+
+	e->Describe(d);
+	if ( ! d->IsBinary() )
+		d->Add(".length == ");
+	
+	d->Add(expected_len);
+
+	DescribeDone(d);
 	}

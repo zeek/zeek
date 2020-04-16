@@ -168,6 +168,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
         case STMT_ADD:
         case STMT_DELETE:
         case STMT_RETURN:
+        case STMT_CHECK_ANY_LEN:
 		{
 		// Can't use AsExprStmt() since it doesn't know about
 		// the tags of its subclasses.

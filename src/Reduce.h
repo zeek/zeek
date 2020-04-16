@@ -84,3 +84,7 @@ protected:
 
 	const DefSetsMgr* mgr;
 };
+
+// Used for debugging, to communicate which expression wasn't
+// reduced when we expected them all to be.
+extern const Expr* non_reduced_perp;

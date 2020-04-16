@@ -25,6 +25,8 @@ static const char* obj_desc(const BroObj* o)
 	return obj_desc_storage;
 	}
 
+const Expr* non_reduced_perp;
+
 class TempVar {
 public:
 	TempVar(int num, const IntrusivePtr<BroType>& t, IntrusivePtr<Expr> rhs);

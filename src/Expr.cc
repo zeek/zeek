@@ -621,6 +621,7 @@ bool UnaryExpr::HasNoSideEffects() const
 
 bool UnaryExpr::IsReduced() const
 	{
+	non_reduced_perp = this;
 	return false;
 	}
 
@@ -787,6 +788,7 @@ bool BinaryExpr::HasNoSideEffects() const
 
 bool BinaryExpr::IsReduced() const
 	{
+	non_reduced_perp = this;
 	return false;
 	}
 
@@ -2682,6 +2684,7 @@ bool CondExpr::IsPure() const
 
 bool CondExpr::IsReduced() const
 	{
+	non_reduced_perp = this;
 	return false;
 	}
 
@@ -2805,7 +2808,11 @@ void RefExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 
 bool RefExpr::IsReduced() const
 	{
-	return op->Tag() == EXPR_NAME;
+	if ( op->Tag() == EXPR_NAME )
+		return true;
+
+	non_reduced_perp = this;
+	return false;
 	}
 
 Expr* RefExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
@@ -3270,10 +3277,17 @@ bool AssignExpr::IsReduced() const
 		return true;
 
 	if ( ! op2->IsReduced() )
+		{
+		non_reduced_perp = this;
 		return false;
+		}
 
 	if ( op1->IsSingleton() )
 		return true;
+
+	// This can't hurt, and makes the following logic a bit more
+	// streamlined.
+	non_reduced_perp = this;
 
 	if ( op1->Tag() == EXPR_REF )
 		return op1->AsRefExpr()->IsReduced();
@@ -5272,7 +5286,10 @@ bool CallExpr::IsReduced() const
 	if ( Type()->Tag() == TYPE_VOID )
 		return func->IsReduced() && args->IsReduced();
 	else
+		{
+		non_reduced_perp = this;
 		return false;
+		}
 	}
 
 Expr* CallExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
@@ -5635,7 +5652,10 @@ bool ListExpr::IsReduced() const
 	{
 	for ( const auto& expr : exprs )
 		if ( ! expr->IsSingleton() )
+			{
+			non_reduced_perp = expr;
 			return false;
+			}
 
 	return true;
 	}

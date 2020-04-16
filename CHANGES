@@ -1,4 +1,9 @@
 
+3.0.6-dev.4 | 2020-04-29 17:42:18 -0700
+
+  * Check for the existance of f?$conns in file_sniff event in
+    policy/protocols/ssl/log-hostcerts-only.zeek (SG)
+
 3.0.6-dev.3 | 2020-04-29 17:32:04 -0700
 
   * Add default function for Kerberos constant-lookup-tables (Jon Siwek, Corelight)

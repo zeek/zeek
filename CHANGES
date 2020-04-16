@@ -1,4 +1,8 @@
 
+3.2.0-dev.405 | 2020-04-16 15:38:46 -0700
+
+  * Remove ineffective &default in netcontrol cluster event handler args (Jon Siwek, Corelight)
+
 3.2.0-dev.404 | 2020-04-16 14:12:20 -0700
 
   * GH-895: Remove use of Variable-Length-Arrays (Jon Siwek, Corelight)

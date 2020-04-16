@@ -114,7 +114,7 @@ event rule_expire(r: Rule, p: PluginState) &priority=-5
 	rule_expire_impl(r, p);
 	}
 
-event rule_exists(r: Rule, p: PluginState, msg: string &default="") &priority=5
+event rule_exists(r: Rule, p: PluginState, msg: string) &priority=5
 	{
 	rule_added_impl(r, p, T, msg);
 
@@ -122,7 +122,7 @@ event rule_exists(r: Rule, p: PluginState, msg: string &default="") &priority=5
 		schedule r$expire { rule_expire(r, p) };
 	}
 
-event rule_added(r: Rule, p: PluginState, msg: string &default="") &priority=5
+event rule_added(r: Rule, p: PluginState, msg: string) &priority=5
 	{
 	rule_added_impl(r, p, F, msg);
 
@@ -130,7 +130,7 @@ event rule_added(r: Rule, p: PluginState, msg: string &default="") &priority=5
 		schedule r$expire { rule_expire(r, p) };
 	}
 
-event rule_removed(r: Rule, p: PluginState, msg: string &default="") &priority=-5
+event rule_removed(r: Rule, p: PluginState, msg: string) &priority=-5
 	{
 	rule_removed_impl(r, p, msg);
 	}
@@ -140,7 +140,7 @@ event rule_timeout(r: Rule, i: FlowInfo, p: PluginState) &priority=-5
 	rule_timeout_impl(r, i, p);
 	}
 
-event rule_error(r: Rule, p: PluginState, msg: string &default="") &priority=-5
+event rule_error(r: Rule, p: PluginState, msg: string) &priority=-5
 	{
 	rule_error_impl(r, p, msg);
 	}

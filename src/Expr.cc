@@ -37,6 +37,16 @@ static const char* obj_desc(const BroObj* o)
 	return obj_desc_storage;
 	}
 
+static int get_slice_index(int idx, int len)
+	{
+	if ( abs(idx) > len )
+		idx = idx > 0 ? len : 0; // Clamp maximum positive/negative indices.
+	else if ( idx < 0 )
+		idx += len;  // Map to a positive index.
+
+	return idx;
+	}
+
 const char* expr_name(BroExprTag t)
 	{
 	static const char* expr_names[int(NUM_EXPRS)] = {
@@ -47,7 +57,7 @@ const char* expr_name(BroExprTag t)
 		"&", "|", "^",
 		"&&", "||",
 		"<", "<=", "==", "!=", ">=", ">", "?:", "ref",
-		"=", "[]", "$", "?$", "[=]",
+		"=", "[]=", "$=", "[]", "$", "?$", "[=]",
 		"table()", "set()", "vector()",
 		"$=", "in", "<<>>",
 		"()", "function()", "event", "schedule",
@@ -113,6 +123,97 @@ void Expr::EvalIntoAggregate(const BroType* /* t */, Val* /* aggr */,
 void Expr::Assign(Frame* /* f */, IntrusivePtr<Val> /* v */)
 	{
 	Internal("Expr::Assign called");
+	}
+
+void Expr::AssignToIndex(IntrusivePtr<Val> v1, IntrusivePtr<Val> v2,
+				IntrusivePtr<Val> v3) const
+	{
+	if ( ! v1 || ! v2 || ! v3 )
+		return;
+
+	// Hold an extra reference to 'arg_v' in case the ownership transfer
+	// to the table/vector goes wrong and we still want to obtain
+	// diagnostic info from the original value after the assignment
+	// already unref'd.
+	auto v_extra = v3;
+
+	switch ( v1->Type()->Tag() ) {
+	case TYPE_VECTOR:
+		{
+		const ListVal* lv = v2->AsListVal();
+		VectorVal* v1_vect = v1->AsVectorVal();
+
+		if ( lv->Length() > 1 )
+			{
+			auto len = v1_vect->Size();
+			bro_int_t first = get_slice_index(lv->Index(0)->CoerceToInt(), len);
+			bro_int_t last = get_slice_index(lv->Index(1)->CoerceToInt(), len);
+
+			// Remove the elements from the vector within the slice.
+			for ( auto idx = first; idx < last; idx++ )
+				v1_vect->Remove(first);
+
+			// Insert the new elements starting at the first
+			// position.
+
+			VectorVal* v_vect = v3->AsVectorVal();
+
+			for ( auto idx = 0u; idx < v_vect->Size();
+			      idx++, first++ )
+				v1_vect->Insert(first,
+					v_vect->Lookup(idx)->Ref());
+			}
+
+		else if ( ! v1_vect->Assign(v2.get(), std::move(v3)) )
+			{
+			v3 = std::move(v_extra);
+
+			if ( v3 )
+				{
+				ODesc d;
+				v3->Describe(&d);
+				auto vt = v3->Type();
+				auto vtt = vt->Tag();
+				std::string tn = vtt == TYPE_RECORD ?
+					vt->GetName() : type_name(vtt);
+				RuntimeErrorWithCallStack(fmt("vector index assignment failed for invalid type '%s', value: %s",
+					tn.data(), d.Description()));
+				}
+			else
+				RuntimeErrorWithCallStack("assignment failed with null value");
+			}
+		break;
+		}
+
+	case TYPE_TABLE:
+		if ( ! v1->AsTableVal()->Assign(v2.get(), std::move(v3)) )
+			{
+			v3 = std::move(v_extra);
+
+			if ( v3 )
+				{
+				ODesc d;
+				v3->Describe(&d);
+				auto vt = v3->Type();
+				auto vtt = vt->Tag();
+				std::string tn = vtt == TYPE_RECORD ?
+					vt->GetName() : type_name(vtt);
+				RuntimeErrorWithCallStack(fmt("table index assignment failed for invalid type '%s', value: %s",
+					tn.data(), d.Description()));
+				}
+			else
+				RuntimeErrorWithCallStack("assignment failed with null value");
+			}
+		break;
+
+	case TYPE_STRING:
+		RuntimeErrorWithCallStack("assignment via string index accessor not allowed");
+		break;
+
+	default:
+		RuntimeErrorWithCallStack("bad index expression type in assignment");
+		break;
+	}
 	}
 
 IntrusivePtr<BroType> Expr::InitType() const
@@ -3246,6 +3347,48 @@ Expr* AssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 
 	ASSERT(op1->Tag() == EXPR_REF);
 	auto lhs_ref = op1->AsRefExpr();
+	auto lhs_expr = lhs_ref->Op();
+
+	if ( lhs_expr->Tag() == EXPR_INDEX )
+		{
+		auto ind_e = lhs_expr->AsIndexExpr();
+
+		IntrusivePtr<Stmt> ind1_stmt;
+		IntrusivePtr<Stmt> ind2_stmt;
+		IntrusivePtr<Stmt> rhs_stmt;
+
+		IntrusivePtr<Expr> ind1_e =
+			{AdoptRef{}, ind_e->Op1()->Reduce(c, ind1_stmt)};
+		IntrusivePtr<Expr> ind2_e 
+			{AdoptRef{}, ind_e->Op2()->Reduce(c, ind2_stmt)};
+		IntrusivePtr<Expr> rhs_e 
+			{AdoptRef{}, op2->Reduce(c, rhs_stmt)};
+
+		red_stmt = MergeStmts(ind1_stmt, ind2_stmt, rhs_stmt);
+
+		auto index_assign = new IndexAssignExpr(ind1_e, ind2_e, rhs_e);
+		return TransformMe(index_assign, c, red_stmt);
+		}
+
+	if ( lhs_expr->Tag() == EXPR_FIELD )
+		{
+		auto field_e = lhs_expr->AsFieldExpr();
+
+		IntrusivePtr<Stmt> lhs_stmt;
+		IntrusivePtr<Stmt> rhs_stmt;
+
+		IntrusivePtr<Expr> lhs_e =
+			{AdoptRef{}, field_e->Op()->Reduce(c, lhs_stmt)};
+		IntrusivePtr<Expr> rhs_e 
+			{AdoptRef{}, op2->Reduce(c, rhs_stmt)};
+
+		red_stmt = MergeStmts(lhs_stmt, rhs_stmt);
+
+		int field = field_e->Field();
+		auto field_assign = new FieldLHSAssignExpr(lhs_e, rhs_e, field);
+
+		return TransformMe(field_assign, c, red_stmt);
+		}
 
 	IntrusivePtr<Stmt> lhs_stmt = lhs_ref->ReduceToLHS(c);
 	IntrusivePtr<Stmt> rhs_stmt = op2->ReduceToSingletons(c);
@@ -3268,6 +3411,68 @@ Expr* AssignExpr::ReduceToSingleton(ReductionContext* c,
 
 	return op1->AsRefExpr()->Op()->Ref();
 	}
+
+
+IndexAssignExpr::IndexAssignExpr(IntrusivePtr<Expr> arg_op1,
+					IntrusivePtr<Expr> arg_op2,
+					IntrusivePtr<Expr> arg_op3)
+: BinaryExpr(EXPR_INDEX_ASSIGN, std::move(arg_op1), std::move(arg_op2))
+	{
+	op3 = arg_op3;
+	SetType({NewRef{}, op3->Type()});
+	}
+
+IntrusivePtr<Val> IndexAssignExpr::Eval(Frame* f) const
+	{
+	auto v1 = op1->Eval(f);
+	auto v2 = op2->Eval(f);
+	auto v3 = op3->Eval(f);
+
+	AssignToIndex(v1, v2, v3);
+
+	return nullptr;
+	}
+
+bool IndexAssignExpr::IsReduced() const
+	{
+	// op2 is a ListExpr, not a singleton expression.
+	ASSERT(op1->IsSingleton() && op2->IsReduced() && op3->IsSingleton());
+	return true;
+	}
+
+bool IndexAssignExpr::HasReducedOps() const
+	{
+	return true;
+	}
+
+Expr* IndexAssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	if ( c->Optimizing() )
+		{
+		op1 = c->UpdateExpr(op1);
+		op2 = c->UpdateExpr(op2);
+		op3 = c->UpdateExpr(op3);
+		}
+
+	return this->Ref();
+	}
+
+void IndexAssignExpr::ExprDescribe(ODesc* d) const
+	{
+	op1->Describe(d);
+	if ( d->IsReadable() )
+		d->Add("[");
+
+	op2->Describe(d);
+	if ( d->IsReadable() )
+		{
+		d->Add("]");
+		d->Add(" []= ");
+		}
+
+	op3->Describe(d);
+	}
+
 
 IndexSliceAssignExpr::IndexSliceAssignExpr(IntrusivePtr<Expr> op1,
                                            IntrusivePtr<Expr> op2, bool is_init)
@@ -3462,16 +3667,6 @@ IntrusivePtr<Val> IndexExpr::Eval(Frame* f) const
 		return Fold(v1.get(), v2.get());
 	}
 
-static int get_slice_index(int idx, int len)
-	{
-	if ( abs(idx) > len )
-		idx = idx > 0 ? len : 0; // Clamp maximum positive/negative indices.
-	else if ( idx < 0 )
-		idx += len;  // Map to a positive index.
-
-	return idx;
-	}
-
 IntrusivePtr<Val> IndexExpr::Fold(Val* v1, Val* v2) const
 	{
 	if ( IsError() )
@@ -3566,92 +3761,9 @@ void IndexExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 		return;
 
 	auto v1 = op1->Eval(f);
-
-	if ( ! v1 )
-		return;
-
 	auto v2 = op2->Eval(f);
 
-	if ( ! v1 || ! v2 )
-		return;
-
-	// Hold an extra reference to 'arg_v' in case the ownership transfer to
-	// the table/vector goes wrong and we still want to obtain diagnostic info
-	// from the original value after the assignment already unref'd.
-	auto v_extra = v;
-
-	switch ( v1->Type()->Tag() ) {
-	case TYPE_VECTOR:
-		{
-		const ListVal* lv = v2->AsListVal();
-		VectorVal* v1_vect = v1->AsVectorVal();
-
-		if ( lv->Length() > 1 )
-			{
-			auto len = v1_vect->Size();
-			bro_int_t first = get_slice_index(lv->Index(0)->CoerceToInt(), len);
-			bro_int_t last = get_slice_index(lv->Index(1)->CoerceToInt(), len);
-
-			// Remove the elements from the vector within the slice
-			for ( auto idx = first; idx < last; idx++ )
-				v1_vect->Remove(first);
-
-			// Insert the new elements starting at the first position
-			VectorVal* v_vect = v->AsVectorVal();
-
-			for ( auto idx = 0u; idx < v_vect->Size(); idx++, first++ )
-				v1_vect->Insert(first, v_vect->Lookup(idx)->Ref());
-			}
-		else if ( ! v1_vect->Assign(v2.get(), std::move(v)) )
-			{
-			v = std::move(v_extra);
-
-			if ( v )
-				{
-				ODesc d;
-				v->Describe(&d);
-				auto vt = v->Type();
-				auto vtt = vt->Tag();
-				std::string tn = vtt == TYPE_RECORD ? vt->GetName() : type_name(vtt);
-				RuntimeErrorWithCallStack(fmt(
-				  "vector index assignment failed for invalid type '%s', value: %s",
-				  tn.data(), d.Description()));
-				}
-			else
-				RuntimeErrorWithCallStack("assignment failed with null value");
-			}
-		break;
-		}
-
-	case TYPE_TABLE:
-		if ( ! v1->AsTableVal()->Assign(v2.get(), std::move(v)) )
-			{
-			v = std::move(v_extra);
-
-			if ( v )
-				{
-				ODesc d;
-				v->Describe(&d);
-				auto vt = v->Type();
-				auto vtt = vt->Tag();
-				std::string tn = vtt == TYPE_RECORD ? vt->GetName() : type_name(vtt);
-				RuntimeErrorWithCallStack(fmt(
-				  "table index assignment failed for invalid type '%s', value: %s",
-				  tn.data(), d.Description()));
-				}
-			else
-				RuntimeErrorWithCallStack("assignment failed with null value");
-			}
-		break;
-
-	case TYPE_STRING:
-		RuntimeErrorWithCallStack("assignment via string index accessor not allowed");
-		break;
-
-	default:
-		RuntimeErrorWithCallStack("bad index expression type in assignment");
-		break;
-	}
+	AssignToIndex(v1, v2, v);
 	}
 
 bool IndexExpr::HasReducedOps() const
@@ -3675,6 +3787,67 @@ void IndexExpr::ExprDescribe(ODesc* d) const
 	if ( d->IsReadable() )
 		d->Add("]");
 	}
+
+
+FieldLHSAssignExpr::FieldLHSAssignExpr(IntrusivePtr<Expr> arg_op1,
+				IntrusivePtr<Expr> arg_op2, int _field)
+: BinaryExpr(EXPR_FIELD_LHS_ASSIGN, std::move(arg_op1), std::move(arg_op2))
+	{
+	field = _field;
+	SetType({NewRef{}, op2->Type()});
+	}
+
+IntrusivePtr<Val> FieldLHSAssignExpr::Eval(Frame* f) const
+	{
+	auto v1 = op1->Eval(f);
+	auto v2 = op2->Eval(f);
+
+	if ( v1 && v2 )
+		{
+		RecordVal* r = v1->AsRecordVal();
+		r->Assign(field, std::move(v2));
+		}
+
+	return nullptr;
+	}
+
+bool FieldLHSAssignExpr::IsReduced() const
+	{
+	ASSERT(op1->IsSingleton() && op2->IsReduced());
+	return true;
+	}
+
+bool FieldLHSAssignExpr::HasReducedOps() const
+	{
+	return true;
+	}
+
+Expr* FieldLHSAssignExpr::Reduce(ReductionContext* c,
+					IntrusivePtr<Stmt>& red_stmt)
+	{
+	if ( c->Optimizing() )
+		{
+		op1 = c->UpdateExpr(op1);
+		op2 = c->UpdateExpr(op2);
+		}
+
+	return this->Ref();
+	}
+
+void FieldLHSAssignExpr::ExprDescribe(ODesc* d) const
+	{
+	op1->Describe(d);
+	if ( d->IsReadable() )
+		d->Add("$");
+
+	d->Add(field);
+
+	if ( d->IsReadable() )
+		d->Add(" $= ");
+
+	op2->Describe(d);
+	}
+
 
 FieldExpr::FieldExpr(IntrusivePtr<Expr> arg_op, const char* arg_field_name)
 	: UnaryExpr(EXPR_FIELD, std::move(arg_op)),
@@ -5777,6 +5950,9 @@ void ListExpr::ExprDescribe(ODesc* d) const
 	{
 	d->AddCount(exprs.length());
 
+	if ( ! d->DoOrig() )
+		d->Add("<");
+
 	loop_over_list(exprs, i)
 		{
 		if ( (d->IsReadable() || d->IsPortable()) && i > 0 )
@@ -5784,6 +5960,9 @@ void ListExpr::ExprDescribe(ODesc* d) const
 
 		exprs[i]->Describe(d);
 		}
+
+	if ( ! d->DoOrig() )
+		d->Add(">");
 	}
 
 IntrusivePtr<Expr> ListExpr::MakeLvalue()
@@ -5831,7 +6010,10 @@ Expr* ListExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 			red_stmt = MergeStmts(red_stmt, e_stmt);
 		}
 
-	return this->Ref();
+	if ( c->Optimizing() )
+		return this->Ref();
+	else
+		return AssignToTemporary(c, red_stmt);
 	}
 
 TraversalCode ListExpr::Traverse(TraversalCallback* cb) const

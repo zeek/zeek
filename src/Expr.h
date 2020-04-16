@@ -33,7 +33,7 @@ enum BroExprTag : int {
 	EXPR_LT, EXPR_LE, EXPR_EQ, EXPR_NE, EXPR_GE, EXPR_GT,
 	EXPR_COND,
 	EXPR_REF,
-	EXPR_ASSIGN,
+	EXPR_ASSIGN, EXPR_INDEX_ASSIGN, EXPR_FIELD_LHS_ASSIGN,
 	EXPR_INDEX,
 	EXPR_FIELD, EXPR_HAS_FIELD,
 	EXPR_RECORD_CONSTRUCTOR,
@@ -110,6 +110,10 @@ public:
 
 	// Assign to the given value, if appropriate.
 	virtual void Assign(Frame* f, IntrusivePtr<Val> v);
+
+	// Helper function for factoring out index-based assignment.
+	void AssignToIndex(IntrusivePtr<Val> v1, IntrusivePtr<Val> v2,
+				IntrusivePtr<Val> v3) const;
 
 	// Returns a new expression corresponding to a temporary
 	// that's been assigned to the given expression via red_stmt.
@@ -702,6 +706,27 @@ protected:
 	IntrusivePtr<Val> val;	// optional
 };
 
+// An internal class for reduced form.
+class IndexAssignExpr : public BinaryExpr {
+public:
+	// "op1[op2] = op3", all reduced.
+	IndexAssignExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2,
+			IntrusivePtr<Expr> op3);
+
+	IntrusivePtr<Val> Eval(Frame* f) const override;
+	bool IsReduced() const override;
+	bool HasReducedOps() const override;
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
+
+	IntrusivePtr<Expr> GetOp3() const override final	{ return op3; }
+	void SetOp3(IntrusivePtr<Expr> _op) override final { op3 = _op; }
+
+protected:
+	void ExprDescribe(ODesc* d) const override;
+
+	IntrusivePtr<Expr> op3;	// assignment RHS
+};
+
 class IndexSliceAssignExpr : public AssignExpr {
 public:
 	IndexSliceAssignExpr(IntrusivePtr<Expr> op1,
@@ -736,6 +761,24 @@ protected:
 	void ExprDescribe(ODesc* d) const override;
 
 	bool is_slice;
+};
+
+// An internal class for reduced form.
+class FieldLHSAssignExpr : public BinaryExpr {
+public:
+	// "op1$field = op2", reduced.
+	FieldLHSAssignExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2,
+				int field_name);
+
+	IntrusivePtr<Val> Eval(Frame* f) const override;
+	bool IsReduced() const override;
+	bool HasReducedOps() const override;
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
+
+protected:
+	void ExprDescribe(ODesc* d) const override;
+
+	int field;
 };
 
 class FieldExpr : public UnaryExpr {

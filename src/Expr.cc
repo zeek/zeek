@@ -631,7 +631,7 @@ Expr* UnaryExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 
 	red_stmt = nullptr;
 
-	if ( ! op->IsReduced() )
+	if ( ! op->IsSingleton() )
 		op = {AdoptRef{}, op->ReduceToSingleton(c, red_stmt)};
 
 	if ( op->IsConst() )
@@ -3641,6 +3641,28 @@ IntrusivePtr<Val> IndexExpr::Eval(Frame* f) const
 		}
 	else
 		return Fold(v1.get(), v2.get());
+	}
+
+bool IndexExpr::IsReduced() const
+	{
+	if ( ! op1->IsReduced() )
+		return NonReduced(op1.get());
+
+	if ( op2->Tag() != EXPR_LIST )
+		return NonReduced(this);
+
+	return op2->IsReduced();
+	}
+
+IntrusivePtr<Stmt> IndexExpr::ReduceToSingletons(ReductionContext* c)
+	{
+	IntrusivePtr<Stmt> red1_stmt;
+	if ( ! op1->IsSingleton() )
+		SetOp1({AdoptRef{}, op1->ReduceToSingleton(c, red1_stmt)});
+
+	IntrusivePtr<Stmt> red2_stmt = op2->ReduceToSingletons(c);
+
+	return MergeStmts(red1_stmt, red2_stmt);
 	}
 
 IntrusivePtr<Val> IndexExpr::Fold(Val* v1, Val* v2) const

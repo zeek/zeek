@@ -1,4 +1,8 @@
 
+3.0.6-dev.3 | 2020-04-29 17:32:04 -0700
+
+  * Add default function for Kerberos constant-lookup-tables (Jon Siwek, Corelight)
+
 3.0.6-dev.2 | 2020-04-14 17:52:33 -0700
 
   * Update CI config to use default compilers per platform (Jon Siwek, Corelight)

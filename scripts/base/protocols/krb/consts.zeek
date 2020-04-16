@@ -71,7 +71,7 @@ export {
 		[74] = "KDC_ERR_REVOCATION_STATUS_UNAVAILABLE",
 		[75] = "KDC_ERR_CLIENT_NAME_MISMATCH",
 		[76] = "KDC_ERR_KDC_NAME_MISMATCH",
-	};
+	} &default=function(i: count): string { return fmt("unknown-%d", i); };
 
 	const cipher_name: table[count] of string = {
 		[1] = "des-cbc-crc",
@@ -94,6 +94,6 @@ export {
 		[25] = "camellia128-cts-cmac",
 		[26] = "camellia256-cts-cmac",
 		[65] = "subkey-keymaterial",
-	};
+	} &default=function(i: count): string { return fmt("unknown-%d", i); };
 
 }

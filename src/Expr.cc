@@ -2766,6 +2766,9 @@ Expr* CondExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 		if_else = {AdoptRef{}, new IfStmt(op1, red2_stmt, red3_stmt)};
 		}
 
+	if ( c->Optimizing() )
+		return this->Ref();
+
 	IntrusivePtr<Stmt> assign_stmt;
 	auto res = AssignToTemporary(c, assign_stmt);
 

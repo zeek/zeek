@@ -35,7 +35,7 @@ public:
 	// a (new) merge of the two if they're of the form tmp=rhs, var=tmp;
 	// otherwise, nil.
 	Stmt* MergeStmts(const NameExpr* lhs, IntrusivePtr<Expr> rhs,
-						Stmt* succ_stmt) const;
+						Stmt* succ_stmt);
 
 	Expr* OptExpr(Expr* e);
 	IntrusivePtr<Expr> OptExpr(IntrusivePtr<Expr> e);
@@ -46,7 +46,7 @@ protected:
 	bool SameDPs(const DefPoints* dp1, const DefPoints* dp2) const;
 	bool SameVal(const Val* v1, const Val* v2) const;
 	IntrusivePtr<Expr> NewVarUsage(IntrusivePtr<ID> var,
-					const DefPoints* dps);
+					const DefPoints* dps, const Expr* orig);
 	const DefPoints* GetDefPoints(const NameExpr* var);
 	const DefPoints* FindDefPoints(const NameExpr* var) const;
 	void AddDefPoints(const NameExpr* var, const DefPoints* dps);
@@ -63,6 +63,9 @@ protected:
 
 	const ConstExpr* CheckForConst(const IntrusivePtr<ID>& id,
 					const DefPoints* dps) const;
+
+	void TrackExprReplacement(const Expr* orig, const Expr* e);
+	const BroObj* GetRDLookupObj(const Expr* e) const;
 
 	Scope* scope;
 	PList<TempVar> temps;
@@ -81,6 +84,11 @@ protected:
 	// laborious lookup), and proactively when creating new
 	// references to variables.
 	std::map<const NameExpr*, const DefPoints*> var_usage_to_DPs;
+
+	// For a new expression we've created, map it to the expression
+	// it's replacing.  This allows us to locate the RDs associated
+	// with the usage.
+	std::map<const Expr*, const Expr*> new_expr_to_orig;
 
 	const DefSetsMgr* mgr;
 };

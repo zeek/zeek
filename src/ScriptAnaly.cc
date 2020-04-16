@@ -725,7 +725,7 @@ bool RD_Decorate::CheckLHS(const Expr* lhs, const Expr* e)
 		}
 
 	default:
-		return false;
+		reporter->InternalError("bad tag in RD_Decorate::CheckLHS");
 	}
 	}
 
@@ -830,9 +830,9 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	ASSERT(mgr.HasPreMinRDs(e));
 	ASSERT(mgr.HasPreMaxRDs(e));
 
-	if ( trace && e->Tag() == EXPR_ASSIGN )
+	if ( trace )
 		{
-		printf("---\npre RDs for expr %s:\n", obj_desc(e));
+		printf("---\npre RDs for expr %x %s:\n", e, obj_desc(e));
 		mgr.GetPreMaxRDs(e)->Dump();
 		}
 
@@ -843,7 +843,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	// values).
 	mgr.SetPostFromPre(e);
 
-	if ( trace && e->Tag() == EXPR_ASSIGN )
+	if ( trace && 0 )
 		{
 		printf("---\nnominal post RDs for expr %s:\n", obj_desc(e));
 		mgr.GetPostMaxRDs(e)->Dump();

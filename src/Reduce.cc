@@ -138,13 +138,16 @@ bool ReductionContext::SameVal(const Val* v1, const Val* v2) const
 	}
 
 IntrusivePtr<Expr> ReductionContext::NewVarUsage(IntrusivePtr<ID> var,
-						const DefPoints* dps)
+						const DefPoints* dps,
+						const Expr* orig)
 	{
 	if ( ! dps )
 		reporter->InternalError("null defpoints in NewVarUsage");
 
 	auto var_usage = make_intrusive<NameExpr>(var);
 	AddDefPoints(var_usage.get(), dps);
+	TrackExprReplacement(orig, var_usage.get());
+
 	return var_usage;
 	}
 
@@ -156,7 +159,7 @@ const DefPoints* ReductionContext::GetDefPoints(const NameExpr* var)
 		{
 		auto id = var->Id();
 		auto di = mgr->GetConstIDReachingDef(id);
-		auto rds = mgr->GetPreMaxRDs(var);
+		auto rds = mgr->GetPreMaxRDs(GetRDLookupObj(var));
 
 		dps = rds->GetDefPoints(di);
 
@@ -352,7 +355,7 @@ IntrusivePtr<ID> ReductionContext::FindExprTmp(const Expr* rhs,
 bool ReductionContext::IsCSE(const AssignExpr* a,
 				const NameExpr* lhs, const Expr* rhs)
 	{
-	auto a_max_rds = mgr->GetPostMaxRDs(a);
+	auto a_max_rds = mgr->GetPostMaxRDs(GetRDLookupObj(a));
 
 	auto lhs_id = lhs->Id();
 	auto lhs_tmp = FindTemporary(lhs_id);
@@ -363,7 +366,7 @@ bool ReductionContext::IsCSE(const AssignExpr* a,
 		{
 		auto tmp_di = mgr->GetConstIDReachingDef(rhs_tmp.get());
 		auto dps = a_max_rds->GetDefPoints(tmp_di);
-		new_rhs = NewVarUsage(rhs_tmp, dps);
+		new_rhs = NewVarUsage(rhs_tmp, dps, rhs);
 		rhs = new_rhs.get();
 		}
 
@@ -464,6 +467,20 @@ const ConstExpr* ReductionContext::CheckForConst(const IntrusivePtr<ID>& id,
 	return rhs->AsConstExpr();
 	}
 
+void ReductionContext::TrackExprReplacement(const Expr* orig, const Expr* e)
+	{
+	new_expr_to_orig[e] = orig;
+	}
+
+const BroObj* ReductionContext::GetRDLookupObj(const Expr* e) const
+	{
+	auto orig_e = new_expr_to_orig.find(e);
+	if ( orig_e == new_expr_to_orig.end() )
+		return e;
+	else
+		return orig_e->second;
+	}
+
 Expr* ReductionContext::OptExpr(Expr* e)
 	{
 	IntrusivePtr<Stmt> opt_stmts;
@@ -503,9 +520,8 @@ IntrusivePtr<Expr> ReductionContext::UpdateExpr(IntrusivePtr<Expr> e)
 	auto tmp_var = FindTemporary(id);
 	if ( ! tmp_var )
 		{
-		// Reference to a regular variable.  See if it's
-		// constant in this context.
-		auto max_rds = mgr->GetPreMaxRDs(e.get());
+		auto max_rds = mgr->GetPreMaxRDs(GetRDLookupObj(n));
+
 		IntrusivePtr<ID> id_ptr = {NewRef{}, id};
 		auto di = mgr->GetConstIDReachingDef(id);
 		auto dps = max_rds->GetDefPoints(di);
@@ -537,16 +553,16 @@ IntrusivePtr<Expr> ReductionContext::UpdateExpr(IntrusivePtr<Expr> e)
 // printf("alias of %s to tmp %s\n", tmp_var->Id()->Name(), alias_tmp->Id()->Name());
 			// Temporaries always have only one definition point,
 			// so no need to check for consistency.
-			auto new_usage = NewVarUsage(alias, alias_tmp->DPs());
+			auto new_usage = NewVarUsage(alias, alias_tmp->DPs(), e.get());
 			return new_usage;
 			}
 
-		auto e_max_rds = mgr->GetPreMaxRDs(e.get());
+		auto e_max_rds = mgr->GetPreMaxRDs(GetRDLookupObj(e.get()));
 		auto alias_di = mgr->GetConstIDReachingDef(alias.get());
 		auto alias_dps = e_max_rds->GetDefPoints(alias_di);
 
 		if ( SameDPs(alias_dps, tmp_var->DPs()) )
-			return NewVarUsage(alias, alias_dps);
+			return NewVarUsage(alias, alias_dps, e.get());
 		else
 			{
 			printf("DPs differ: %s\n", obj_desc(e.get()));
@@ -563,7 +579,7 @@ IntrusivePtr<Expr> ReductionContext::UpdateExpr(IntrusivePtr<Expr> e)
 	}
 
 Stmt* ReductionContext::MergeStmts(const NameExpr* lhs, IntrusivePtr<Expr> rhs,
-					Stmt* succ_stmt) const
+					Stmt* succ_stmt)
 	{
 	auto lhs_id = lhs->Id();
 	auto lhs_tmp = FindTemporary(lhs_id);
@@ -603,6 +619,8 @@ Stmt* ReductionContext::MergeStmts(const NameExpr* lhs, IntrusivePtr<Expr> rhs,
 
 	auto merge_e = make_intrusive<AssignExpr>(a_lhs_deref, rhs, false,
 							nullptr, nullptr, false);
+	TrackExprReplacement(rhs.get(), merge_e.get());
+
 	return new ExprStmt(merge_e);
 	}
 

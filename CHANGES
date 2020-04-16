@@ -1,4 +1,13 @@
 
+3.2.0-dev.402 | 2020-04-16 13:00:59 -0700
+
+  * Add default function for Kerberos constant-lookup-tables (Jon Siwek, Corelight)
+
+  * check for the existance of f?$conns in file_sniff event in policy/protocols/ssl/log-hostcerts-only.zeek
+	  (SG)
+
+  * Update README.md to fix the logo and one of the links (Tim Wojtulewicz, Corelight)
+
 3.2.0-dev.396 | 2020-04-14 15:45:54 -0700
 
   * A few minor cleanups in Dict (Tim Wojtulewicz, Corelight)

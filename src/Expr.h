@@ -154,6 +154,9 @@ public:
 	// or an assignment to an operator with singleton operands.
 	virtual bool IsReduced() const;
 
+	// True if the expression's operands are singletons.
+	virtual bool HasReducedOps() const;
+
 	// Returns a set of predecessor statements in red_stmt (which might
 	// be nil if no reduction necessary), and the reduced version of
 	// the expression, suitable for replacing previous uses.  The
@@ -374,6 +377,7 @@ public:
 	bool IsPure() const override;
 	bool HasNoSideEffects() const override;
 	bool IsReduced() const override;
+	bool HasReducedOps() const override;
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
@@ -403,6 +407,7 @@ public:
 	bool IsPure() const override;
 	bool HasNoSideEffects() const override;
 	bool IsReduced() const override;
+	bool HasReducedOps() const override;
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 
 	// BinaryExpr::Eval correctly handles vector types.  Any child
@@ -639,6 +644,7 @@ public:
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 	bool IsPure() const override;
 	bool IsReduced() const override;
+	bool HasReducedOps() const override;
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
@@ -659,6 +665,7 @@ public:
 	IntrusivePtr<Expr> MakeLvalue() override;
 
 	bool IsReduced() const override;
+	bool HasReducedOps() const override;
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 
 	// Reduce to simplifed LHS form, i.e., a reference to only a name.
@@ -681,6 +688,7 @@ public:
 	bool IsPure() const override;
 	bool HasNoSideEffects() const override;
 	bool IsReduced() const override;
+	bool HasReducedOps() const override;
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 	Expr* ReduceToSingleton(ReductionContext* c,
 				IntrusivePtr<Stmt>& red_stmt) override;
@@ -707,6 +715,7 @@ public:
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 	bool IsReduced() const override;
+	bool HasReducedOps() const override;
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 
 	IntrusivePtr<Expr> GetOp3() const override final	{ return op3; }
@@ -737,6 +746,7 @@ public:
 	void Delete(Frame* f) override;
 
 	void Assign(Frame* f, IntrusivePtr<Val> v) override;
+	bool HasReducedOps() const override;
 	IntrusivePtr<Expr> MakeLvalue() override;
 
 	// Need to override Eval since it can take a vector arg but does
@@ -763,7 +773,6 @@ public:
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
-	bool IsReduced() const override;
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 
 	void ExprDescribe(ODesc* d) const override;
@@ -780,6 +789,7 @@ public:
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 	bool IsReduced() const override;
+	bool HasReducedOps() const override;
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 
 protected:
@@ -982,6 +992,7 @@ public:
 
 	bool IsPure() const override;
 	bool IsReduced() const override;
+	bool HasReducedOps() const override;
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
@@ -1023,6 +1034,7 @@ public:
 
 	bool IsPure() const override;
 	bool IsReduced() const override;
+	bool HasReducedOps() const override;
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 	IntrusivePtr<Stmt> ReduceToSingletons(ReductionContext* c) override;
 
@@ -1077,6 +1089,7 @@ public:
 	// True if the entire list represents pure values / reduced expressions.
 	bool IsPure() const override;
 	bool IsReduced() const override;
+	bool HasReducedOps() const override;
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 	IntrusivePtr<Stmt> ReduceToSingletons(ReductionContext* c) override;
 

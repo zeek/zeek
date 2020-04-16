@@ -1142,22 +1142,7 @@ bool AddDelStmt::IsPure() const
 
 bool AddDelStmt::IsReduced() const
 	{
-	if ( e->Tag() != EXPR_INDEX )
-		Internal("bad expression in AddDelStmt");
-
-	auto op1 = e->GetOp1();
-	auto op2 = e->GetOp2();
-
-        if ( ! op1->IsSingleton() )
-		return NonReduced(op1.get());
-
-        if ( op2->Tag() == EXPR_LIST )
-                return op2->IsReduced();
-
-	else if ( ! op2->IsSingleton() )
-		return NonReduced(op2.get());
-
-	return true;
+	return e->HasReducedOps();
 	}
 
 Stmt* AddDelStmt::Reduce(ReductionContext* c)

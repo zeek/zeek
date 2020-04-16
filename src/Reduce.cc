@@ -25,8 +25,6 @@ static const char* obj_desc(const BroObj* o)
 	return obj_desc_storage;
 	}
 
-const Expr* non_reduced_perp;
-
 class TempVar {
 public:
 	TempVar(int num, const IntrusivePtr<BroType>& t, IntrusivePtr<Expr> rhs);
@@ -635,4 +633,16 @@ TempVar* ReductionContext::FindTemporary(const ID* id) const
 		return nullptr;
 	else
 		return tmp->second;
+	}
+
+
+const Expr* non_reduced_perp;
+bool checking_reduction;
+
+bool NonReduced(const Expr* perp)
+	{
+	if ( checking_reduction )
+		non_reduced_perp = perp;
+
+	return false;
 	}

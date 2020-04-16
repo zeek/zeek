@@ -88,3 +88,7 @@ protected:
 // Used for debugging, to communicate which expression wasn't
 // reduced when we expected them all to be.
 extern const Expr* non_reduced_perp;
+extern bool checking_reduction;
+
+// Used to report a non-reduced expression.
+extern bool NonReduced(const Expr* perp);

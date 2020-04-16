@@ -206,10 +206,7 @@ bool ExprListStmt::IsReduced() const
 	const expr_list& e = l->Exprs();
 	for ( const auto& expr : e )
 		if ( ! expr->IsSingleton() )
-			{
-			non_reduced_perp = expr;
-			return false;
-			}
+			return NonReduced(expr);
 
 	return true;
 	}
@@ -434,8 +431,7 @@ bool ExprStmt::IsReduced() const
 	if ( ! e || e->IsReduced() )
 		return true;
 
-	non_reduced_perp = e.get();
-	return false;
+	return NonReduced(e.get());
 	}
 
 Stmt* ExprStmt::Reduce(ReductionContext* c)
@@ -554,10 +550,7 @@ bool IfStmt::IsPure() const
 bool IfStmt::IsReduced() const
 	{
 	if ( ! e->IsReduced() )
-		{
-		non_reduced_perp = e.get();
-		return false;
-		}
+		return NonReduced(e.get());
 
 	return s1->IsReduced() && s2->IsReduced();
 	}
@@ -1045,10 +1038,7 @@ bool SwitchStmt::IsPure() const
 bool SwitchStmt::IsReduced() const
 	{
 	if ( ! e->IsReduced() )
-		{
-		non_reduced_perp = e.get();
-		return false;
-		}
+		return NonReduced(e.get());
 
 	for ( const auto& c : *cases )
 		{
@@ -1159,19 +1149,13 @@ bool AddDelStmt::IsReduced() const
 	auto op2 = e->GetOp2();
 
         if ( ! op1->IsSingleton() )
-		{
-		non_reduced_perp = op1.get();
-                return false;
-		}
-                
+		return NonReduced(op1.get());
+
         if ( op2->Tag() == EXPR_LIST )
                 return op2->IsReduced();
 
 	else if ( ! op2->IsSingleton() )
-		{
-		non_reduced_perp = op2.get();
-		return false;
-		}
+		return NonReduced(op2.get());
 
 	return true;
 	}
@@ -1653,10 +1637,7 @@ bool ForStmt::IsPure() const
 bool ForStmt::IsReduced() const
 	{
 	if ( ! e->IsReduced() )
-		{
-		non_reduced_perp = e.get();
-		return false;
-		}
+		return NonReduced(e.get());
 
 	return body->IsReduced();
 	}

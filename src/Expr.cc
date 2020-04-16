@@ -238,7 +238,7 @@ IntrusivePtr<Val> NameExpr::Eval(Frame* f) const
 		v = {NewRef{}, id->ID_Val()};
 
 	else if ( f )
-		v = {NewRef{}, f->GetElement(id.get())};
+		v = {NewRef{}, f->GetElement(id)};
 
 	else
 		// No frame - evaluating for Simplify() purposes
@@ -272,7 +272,7 @@ void NameExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 	if ( id->IsGlobal() )
 		id->SetVal(std::move(v));
 	else
-		f->SetElement(id.get(), v.release());
+		f->SetElement(id, v.release());
 	}
 
 bool NameExpr::IsPure() const

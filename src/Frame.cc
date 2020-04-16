@@ -89,7 +89,7 @@ void Frame::SetElement(size_t n, Val* v, bool weak_ref)
 		}
 	}
 
-void Frame::SetElement(const ID* id, Val* v)
+void Frame::SetElement(const IntrusivePtr<ID> id, Val* v)
 	{
 	if ( closure )
 		{
@@ -100,7 +100,7 @@ void Frame::SetElement(const ID* id, Val* v)
 			}
 		}
 
-	// do we have an offset for it?
+	// Do we have an offset for it?
 	if ( offset_map && ! offset_map->empty() )
 		{
 		auto where = offset_map->find(std::string(id->Name()));
@@ -118,7 +118,7 @@ void Frame::SetElement(const ID* id, Val* v)
 	SetElement(id->Offset(), v);
 	}
 
-Val* Frame::GetElement(const ID* id) const
+Val* Frame::GetElement(const IntrusivePtr<ID> id) const
 	{
 	if ( closure )
 		{
@@ -544,11 +544,17 @@ void Frame::UnrefElement(size_t n)
 	Unref(frame[n]);
 	}
 
+bool Frame::IsOuterID(const IntrusivePtr<ID> in) const
+	{
+	return IsOuterID(in.get());
+	}
+
 bool Frame::IsOuterID(const ID* in) const
 	{
 	return std::any_of(outer_ids.begin(), outer_ids.end(),
 		[&in](ID* id)-> bool { return strcmp(id->Name(), in->Name()) == 0; });
 	}
+
 
 broker::expected<broker::data> Frame::SerializeIDList(const id_list& in)
 	{

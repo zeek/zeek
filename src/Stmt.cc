@@ -816,7 +816,7 @@ IntrusivePtr<Val> SwitchStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) con
 		if ( matching_id )
 			{
 			auto cv = cast_value_to_type(v, matching_id->Type());
-			f->SetElement(matching_id, cv.release());
+			f->SetElement({NewRef{}, matching_id}, cv.release());
 			}
 
 		flow = FLOW_NEXT;
@@ -1193,10 +1193,10 @@ IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 			delete k;
 
 			if ( value_var )
-				f->SetElement(value_var.get(), current_tev->Value()->Ref());
+				f->SetElement(value_var, current_tev->Value()->Ref());
 
 			for ( int i = 0; i < ind_lv->Length(); i++ )
-				f->SetElement((*loop_vars)[i], ind_lv->Index(i)->Ref());
+				f->SetElement({NewRef{}, (*loop_vars)[i]}, ind_lv->Index(i)->Ref());
 
 			flow = FLOW_NEXT;
 
@@ -1232,7 +1232,7 @@ IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 
 			// Set the loop variable to the current index, and make
 			// another pass over the loop body.
-			f->SetElement((*loop_vars)[0],
+			f->SetElement({NewRef{}, (*loop_vars)[0]},
 					val_mgr->GetCount(i));
 			flow = FLOW_NEXT;
 			ret = body->Exec(f, flow);
@@ -1247,7 +1247,7 @@ IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 
 		for ( int i = 0; i < sval->Len(); ++i )
 			{
-			f->SetElement((*loop_vars)[0],
+			f->SetElement({NewRef{}, (*loop_vars)[0]},
 					new StringVal(1, (const char*) sval->Bytes() + i));
 			flow = FLOW_NEXT;
 			ret = body->Exec(f, flow);
@@ -1672,7 +1672,7 @@ IntrusivePtr<Val> InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
 			break;
 		}
 
-		f->SetElement(aggr, v);
+		f->SetElement({NewRef{}, aggr}, v);
 		}
 
 	return nullptr;

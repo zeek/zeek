@@ -7,14 +7,14 @@ StringVal* array_to_string(vector<uint8> *a);
 StringVal* array_to_string(vector<uint8> *a)
 	{
 	int len = a->size();
-	char tmp[len];
-	char *s = tmp;
+	auto tmp = std::make_unique<char[]>(len);
+	char *s = tmp.get();
 	for ( vector<uint8>::iterator i = a->begin(); i != a->end(); *s++ = *i++ );
 
 	while ( len > 0 && tmp[len-1] == '\0' )
 		--len;
 
-	return new StringVal(len, tmp);
+	return new StringVal(len, tmp.get());
 	}
 %}
 

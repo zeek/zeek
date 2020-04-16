@@ -1,4 +1,8 @@
 
+3.2.0-dev.404 | 2020-04-16 14:12:20 -0700
+
+  * GH-895: Remove use of Variable-Length-Arrays (Jon Siwek, Corelight)
+
 3.2.0-dev.402 | 2020-04-16 13:00:59 -0700
 
   * Add default function for Kerberos constant-lookup-tables (Jon Siwek, Corelight)

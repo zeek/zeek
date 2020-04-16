@@ -2830,7 +2830,8 @@ function bytestring_to_hexstr%(bytestring: string%): string
 	%{
 	bro_uint_t len = bytestring->AsString()->Len();
 	const u_char* bytes = bytestring->AsString()->Bytes();
-	char hexstr[(2 * len) + 1];
+	auto hextr_buf = std::make_unique<char[]>((2 * len) + 1);
+	auto hexstr = hextr_buf.get();
 
 	hexstr[0] = 0;
 	for ( bro_uint_t i = 0; i < len; ++i )
@@ -2861,7 +2862,8 @@ function hexstr_to_bytestring%(hexstr: string%): string
 
 	const char* bytes = hexstr->AsString()->CheckString();
 	int outlen = (len/2);
-	char bytestring[outlen];
+	auto bytestring_buf = std::make_unique<char[]>(outlen);
+	auto bytestring = bytestring_buf.get();
 	memset(bytestring, 0, outlen);
 
 	for ( bro_uint_t i = 0; i < len/2; ++i )

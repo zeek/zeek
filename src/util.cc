@@ -1799,7 +1799,10 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 	// Build file names.
 	const int buflen = strlen(name) + 128;
 
-	char newname[buflen], tmpname[buflen+4];
+	auto newname_buf = std::make_unique<char[]>(buflen);
+	auto tmpname_buf = std::make_unique<char[]>(buflen + 4);
+	auto newname = newname_buf.get();
+	auto tmpname = tmpname_buf.get();
 
 	snprintf(newname, buflen, "%s.%d.%.06f.tmp",
 			name, getpid(), network_time);

@@ -1341,11 +1341,11 @@ IntrusivePtr<Val> IncrExpr::Eval(Frame* f) const
 
 Expr* IncrExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
-	if ( op->Tag() != EXPR_REF )
-		Internal("confusion in IncrExpr::Reduce");
-
 	IntrusivePtr<Stmt> ref_red_stmts;
 	op = {AdoptRef{}, op->Reduce(c, ref_red_stmts)};
+
+	if ( op->Tag() != EXPR_REF )
+		Internal("confusion in IncrExpr::Reduce");
 
 	auto ref_op = op->AsRefExpr();
 	auto target = ref_op->Op();
@@ -2857,10 +2857,9 @@ bool RefExpr::HasReducedOps() const
 
 Expr* RefExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
-	if ( op->Tag() == EXPR_NAME )
-		return nullptr;
+	if ( op->Tag() != EXPR_NAME )
+		op = {AdoptRef{}, AssignToTemporary(c, red_stmt)};
 
-	op = {AdoptRef{}, AssignToTemporary(c, red_stmt)};
 	return this->Ref();
 	}
 
@@ -3417,7 +3416,7 @@ Expr* AssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 			}
 
 		// All the work is now in red_stmt.
-		return nullptr;
+		return this->Ref();
 		}
 
 	IntrusivePtr<Stmt> lhs_stmt = lhs_ref->ReduceToLHS(c);

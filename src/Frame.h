@@ -269,7 +269,7 @@ private:
 	bool delayed;
 
 	/** Associates ID's offsets with values. */
-	Val** frame;
+	std::unique_ptr<Val*[]> frame;
 
 	/** Values that are weakly referenced by the frame.  Used to
 	 * prevent circular reference memory leaks in lambda/closures */

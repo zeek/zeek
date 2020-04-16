@@ -15,9 +15,9 @@
 std::vector<Frame*> g_frame_stack;
 
 Frame::Frame(size_t arg_size, const BroFunc* func, const zeek::Args* fn_args)
+	: frame(new Val*[arg_size])
 	{
 	size = arg_size;
-	frame = new Val*[size];
 	function = func;
 	func_args = fn_args;
 
@@ -150,8 +150,6 @@ void Frame::Release()
 	{
 	for ( size_t i = 0; i < size; ++i )
 		UnrefElement(i);
-
-	delete [] frame;
 	}
 
 void Frame::Describe(ODesc* d) const
@@ -203,7 +201,7 @@ static bool val_is_func(Val* v, BroFunc* func)
 	return v->AsFunc() == func;
 	}
 
-static void clone_if_not_func(Val** frame, size_t offset, BroFunc* func,
+static void clone_if_not_func(const std::unique_ptr<Val*[]>& frame, size_t offset, BroFunc* func,
                               Frame* other)
 	{
 	auto v = frame[offset];

@@ -1021,6 +1021,7 @@ public:
 	bool IsPure() const override;
 	bool IsReduced() const override;
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
+	IntrusivePtr<Stmt> ReduceToSingletons(ReductionContext* c) override;
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
@@ -1074,6 +1075,7 @@ public:
 	bool IsPure() const override;
 	bool IsReduced() const override;
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
+	IntrusivePtr<Stmt> ReduceToSingletons(ReductionContext* c) override;
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
@@ -1104,6 +1106,7 @@ public:
 
 	bool IsReduced() const override;
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
+	IntrusivePtr<Stmt> ReduceToSingletons(ReductionContext* c) override;
 
 	IntrusivePtr<Expr> GetOp1() const override final	{ return args; }
 	void SetOp1(IntrusivePtr<Expr> _op) override final

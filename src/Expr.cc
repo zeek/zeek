@@ -5283,13 +5283,7 @@ bool CallExpr::IsPure() const
 
 bool CallExpr::IsReduced() const
 	{
-	if ( Type()->Tag() == TYPE_VOID )
-		return func->IsReduced() && args->IsReduced();
-	else
-		{
-		non_reduced_perp = this;
-		return false;
-		}
+	return func->IsReduced() && args->IsReduced();
 	}
 
 Expr* CallExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
@@ -5321,6 +5315,14 @@ Expr* CallExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 		return this->Ref();
 	else
 		return AssignToTemporary(c, red_stmt);
+	}
+
+IntrusivePtr<Stmt> CallExpr::ReduceToSingletons(ReductionContext* c)
+	{
+	auto func_stmt = func->ReduceToSingletons(c);
+	auto args_stmt = args->ReduceToSingletons(c);
+
+	return MergeStmts(func_stmt, args_stmt);
 	}
 
 IntrusivePtr<Val> CallExpr::Eval(Frame* f) const
@@ -5589,6 +5591,11 @@ Expr* EventExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 		Unref(Args()->Reduce(c, red_stmt));
 
 	return this->Ref();
+	}
+
+IntrusivePtr<Stmt> EventExpr::ReduceToSingletons(ReductionContext* c)
+	{
+	return args->ReduceToSingletons(c);
 	}
 
 TraversalCode EventExpr::Traverse(TraversalCallback* cb) const
@@ -5988,7 +5995,7 @@ Expr* ListExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 			continue;
 			}
 
-		if ( exprs[i]->IsReduced() )
+		if ( exprs[i]->IsSingleton() )
 			continue;
 
 		IntrusivePtr<Stmt> e_stmt;
@@ -5998,10 +6005,26 @@ Expr* ListExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 			red_stmt = MergeStmts(red_stmt, e_stmt);
 		}
 
-	if ( c->Optimizing() )
-		return this->Ref();
-	else
-		return AssignToTemporary(c, red_stmt);
+	return this->Ref();
+	}
+
+IntrusivePtr<Stmt> ListExpr::ReduceToSingletons(ReductionContext* c)
+	{
+	IntrusivePtr<Stmt> red_stmt;
+
+	loop_over_list(exprs, i)
+		{
+		if ( exprs[i]->IsSingleton() )
+			continue;
+
+		IntrusivePtr<Stmt> e_stmt;
+		exprs.replace(i, exprs[i]->Reduce(c, e_stmt));
+
+		if ( e_stmt )
+			red_stmt = MergeStmts(red_stmt, e_stmt);
+		}
+
+	return red_stmt;
 	}
 
 TraversalCode ListExpr::Traverse(TraversalCallback* cb) const

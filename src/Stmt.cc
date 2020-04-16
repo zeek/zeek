@@ -1141,25 +1141,16 @@ bool AddDelStmt::IsReduced() const
 
 Stmt* AddDelStmt::Reduce(ReductionContext* c)
 	{
-	IntrusivePtr<Stmt> red_e_stmt;
-
 	if ( c->Optimizing() )
+		{
 		e = c->OptExpr(e);
-
-	else if ( e->Tag() == EXPR_INDEX )
-		{
-		auto ind = e->AsIndexExpr();
-		red_e_stmt = ind->ReduceToSingletons(c);
+		return this->Ref();
 		}
 
-	else if ( e->Tag() == EXPR_FIELD )
-		{
-		auto field = e->AsFieldExpr();
-		red_e_stmt = field->ReduceToSingletons(c);
-		}
-
-	else
+	if ( e->Tag() != EXPR_INDEX && e->Tag() != EXPR_FIELD )
 		Internal("bad \"add\"/\"delete\"");
+
+	auto red_e_stmt = e->ReduceToSingletons(c);
 
 	if ( red_e_stmt )
 		{
@@ -2023,7 +2014,8 @@ bool StmtList::ReduceStmt(int& s_i, stmt_list* f_stmts, ReductionContext* c)
 		if ( s_i < Stmts().length() - 1 )
 			{
 			// See if we can compress an assignment chain.
-			auto s_i_succ = Stmts()[s_i + 1];
+			auto& s_i_succ = Stmts()[s_i + 1];
+			s_i_succ = s_i_succ->Reduce(c);
 			auto merge = c->MergeStmts(var, rhs, s_i_succ);
 			if ( merge )
 				{

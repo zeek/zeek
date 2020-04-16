@@ -597,7 +597,10 @@ Stmt* ReductionContext::MergeStmts(const NameExpr* lhs, IntrusivePtr<Expr> rhs,
 		return nullptr;
 
 	if ( FindTemporary(a_lhs_var) )
-		reporter->InternalError("assignment of temporary to temporary");
+		{
+		// reporter->InternalError("assignment of temporary to temporary");
+		return nullptr;
+		}
 
 	auto merge_e = make_intrusive<AssignExpr>(a_lhs_deref, rhs, false,
 							nullptr, nullptr, false);

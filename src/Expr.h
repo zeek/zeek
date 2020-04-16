@@ -111,10 +111,14 @@ public:
 	// Assign to the given value, if appropriate.
 	virtual void Assign(Frame* f, IntrusivePtr<Val> v);
 
-	// Returns an expression corresponding to a temporary
-	// that's been assigned to this expression via red_stmt.
-	Expr* AssignToTemporary(ReductionContext* c,
+	// Returns a new expression corresponding to a temporary
+	// that's been assigned to the given expression via red_stmt.
+	Expr* AssignToTemporary(Expr* e, ReductionContext* c,
 				IntrusivePtr<Stmt>& red_stmt);
+	// Same but for this expression.
+	Expr* AssignToTemporary(ReductionContext* c,
+				IntrusivePtr<Stmt>& red_stmt)
+		{ return AssignToTemporary(this, c, red_stmt); }
 
 	// Returns the type corresponding to this expression interpreted
 	// as an initialization.  Returns nil if the initialization is illegal.
@@ -151,15 +155,19 @@ public:
 
 	// Returns a set of predecessor statements in red_stmt (which might
 	// be nil if no reduction necessary), and the reduced version of
-	// the expression, suitable for replacing previous uses.
+	// the expression, suitable for replacing previous uses.  The
+	// second version always yields a singleton suitable for use
+	// as an operand.  The first version does this too except
+	// for assignment statements; thus, its form is not guarantee
+	// suitable for use as an operand.
 	virtual Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt);
 	virtual Expr* ReduceToSingleton(ReductionContext* c,
 					IntrusivePtr<Stmt>& red_stmt)
 		{ return Reduce(c, red_stmt); }
 
-	// Similar, but for use as the LHS of an assignment.  The expression
-	// itself doesn't transform.
-	virtual IntrusivePtr<Stmt> ReduceToLHS(ReductionContext* c);
+	// Reduces the expression to one whose operands are singletons.
+	// Returns a predecessor statement(list), if any.
+	virtual IntrusivePtr<Stmt> ReduceToSingletons(ReductionContext* c);
 
 	// True if the expression can serve as an operand to a reduced
 	// expression.
@@ -185,6 +193,16 @@ public:
 	virtual IntrusivePtr<Expr> GetOp1() const;
 	virtual IntrusivePtr<Expr> GetOp2() const;
 	virtual IntrusivePtr<Expr> GetOp3() const;
+
+	// Sets the operands to new values.
+	virtual void SetOp1(IntrusivePtr<Expr> new_op);
+	virtual void SetOp2(IntrusivePtr<Expr> new_op);
+	virtual void SetOp3(IntrusivePtr<Expr> new_op);
+
+	// Helper function to reduce boring code runs.
+	IntrusivePtr<Stmt> MergeStmts(IntrusivePtr<Stmt> s1,
+					IntrusivePtr<Stmt> s2,
+					IntrusivePtr<Stmt> s3 = nullptr) const;
 
 	// True if the expression is a constant zero, false otherwise.
 	bool IsZero() const;
@@ -311,7 +329,6 @@ public:
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 	void Assign(Frame* f, IntrusivePtr<Val> v) override;
-	IntrusivePtr<Stmt> ReduceToLHS(ReductionContext* c) override;
 	IntrusivePtr<Expr> MakeLvalue() override;
 	bool IsPure() const override;
 	bool HasNoSideEffects() const override	{ return true; }
@@ -346,6 +363,7 @@ public:
 	Expr* Op() const	{ return op.get(); }
 
 	IntrusivePtr<Expr> GetOp1() const override final	{ return op; }
+	void SetOp1(IntrusivePtr<Expr> _op) override final { op = _op; }
 
 	// UnaryExpr::Eval correctly handles vector types.  Any child
 	// class that overrides Eval() should be modified to handle
@@ -378,6 +396,9 @@ public:
 
 	IntrusivePtr<Expr> GetOp1() const override final	{ return op1; }
 	IntrusivePtr<Expr> GetOp2() const override final	{ return op2; }
+
+	void SetOp1(IntrusivePtr<Expr> _op) override final { op1 = _op; }
+	void SetOp2(IntrusivePtr<Expr> _op) override final { op2 = _op; }
 
 	bool IsPure() const override;
 	bool HasNoSideEffects() const override;
@@ -612,6 +633,10 @@ public:
 	IntrusivePtr<Expr> GetOp2() const override final	{ return op2; }
 	IntrusivePtr<Expr> GetOp3() const override final	{ return op3; }
 
+	void SetOp1(IntrusivePtr<Expr> _op) override final { op1 = _op; }
+	void SetOp2(IntrusivePtr<Expr> _op) override final { op2 = _op; }
+	void SetOp3(IntrusivePtr<Expr> _op) override final { op3 = _op; }
+
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 	bool IsPure() const override;
 	bool IsReduced() const override;
@@ -638,7 +663,9 @@ public:
 	bool IsReduced() const override;
 	bool HasReducedOps() const override;
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
-	IntrusivePtr<Stmt> ReduceToLHS(ReductionContext* c) override;
+
+	// Reduce to simplifed LHS form, i.e., a reference to only a name.
+	IntrusivePtr<Stmt> ReduceToLHS(ReductionContext* c);
 };
 
 class AssignExpr : public BinaryExpr {
@@ -695,8 +722,6 @@ public:
 
 	void Assign(Frame* f, IntrusivePtr<Val> v) override;
 	bool HasReducedOps() const override;
-	IntrusivePtr<Stmt> ReduceToLHS(ReductionContext* c) override;
-	IntrusivePtr<Stmt> ReduceToSingletons(ReductionContext* c);
 	IntrusivePtr<Expr> MakeLvalue() override;
 
 	// Need to override Eval since it can take a vector arg but does
@@ -724,8 +749,6 @@ public:
 	bool CanDel() const override;
 
 	void Assign(Frame* f, IntrusivePtr<Val> v) override;
-	IntrusivePtr<Stmt> ReduceToLHS(ReductionContext* c) override;
-	IntrusivePtr<Stmt> ReduceToSingletons(ReductionContext* c);
 	void Delete(Frame* f) override;
 
 	IntrusivePtr<Expr> MakeLvalue() override;
@@ -920,6 +943,9 @@ public:
 	IntrusivePtr<Expr> GetOp1() const override final;
 	IntrusivePtr<Expr> GetOp2() const override final;
 
+	void SetOp1(IntrusivePtr<Expr> _op) override final;
+	void SetOp2(IntrusivePtr<Expr> _op) override final;
+
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
@@ -1011,7 +1037,6 @@ public:
 	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
 	IntrusivePtr<Expr> MakeLvalue() override;
 	void Assign(Frame* f, IntrusivePtr<Val> v) override;
-	IntrusivePtr<Stmt> ReduceToLHS(ReductionContext* c) override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -1038,6 +1063,8 @@ public:
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 
 	IntrusivePtr<Expr> GetOp1() const override final	{ return args; }
+	void SetOp1(IntrusivePtr<Expr> _op) override final
+		{ args = {NewRef{}, _op->AsListExpr()}; }
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 

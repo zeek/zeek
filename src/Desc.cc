@@ -135,30 +135,6 @@ void ODesc::Add(int64_t i)
 		}
 	}
 
-void ODesc::Add(uint64_t u)
-	{
-	if ( IsBinary() )
-		AddBytes(&u, sizeof(u));
-	else
-		{
-		char tmp[256];
-		modp_ulitoa10(u, tmp);
-		Add(tmp);
-		}
-	}
-
-void ODesc::Add(size_t u)
-    	{
-	if ( IsBinary() )
-		AddBytes(&u, sizeof(u));
-	else
-		{
-		char tmp[256];
-		modp_ulitoa10(u, tmp);
-		Add(tmp);
-		}
-	}
-
 void ODesc::Add(double d, bool no_exp)
 	{
 	if ( IsBinary() )

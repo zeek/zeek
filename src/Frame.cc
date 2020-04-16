@@ -89,7 +89,7 @@ void Frame::SetElement(size_t n, Val* v, bool weak_ref)
 		}
 	}
 
-void Frame::SetElement(const IntrusivePtr<ID> id, Val* v)
+void Frame::SetElement(const IntrusivePtr<ID>& id, Val* v)
 	{
 	if ( closure )
 		{
@@ -118,7 +118,7 @@ void Frame::SetElement(const IntrusivePtr<ID> id, Val* v)
 	SetElement(id->Offset(), v);
 	}
 
-Val* Frame::GetElement(const IntrusivePtr<ID> id) const
+Val* Frame::GetElement(const IntrusivePtr<ID>& id) const
 	{
 	if ( closure )
 		{
@@ -544,7 +544,7 @@ void Frame::UnrefElement(size_t n)
 	Unref(frame[n]);
 	}
 
-bool Frame::IsOuterID(const IntrusivePtr<ID> in) const
+bool Frame::IsOuterID(const IntrusivePtr<ID>& in) const
 	{
 	return IsOuterID(in.get());
 	}

@@ -83,8 +83,28 @@ public:
 	void Add(int i);
 	void Add(uint32_t u);
 	void Add(int64_t i);
-	void Add(uint64_t u);
-	void Add(size_t u);
+
+	// You might be asking, why use an arcane template
+	// specialization rather than just use function overloading?
+	// The answer my friend is that on many platforms uint64_t and
+	// size_t are the same type. This prevents a compiler from
+	// properly handling overloads between those two types and
+	// leads us to this strange looking template.
+	template <class T>
+	typename std::enable_if<
+		std::is_same<T, uint64_t>::value or std::is_same<T, size_t>::value>::type
+	Add(T u)
+		{
+		if ( IsBinary() )
+			AddBytes(&u, sizeof(u));
+		else
+			{
+			char tmp[256];
+			modp_ulitoa10(u, tmp);
+			Add(tmp);
+			}
+		}
+	
 	void Add(double d, bool no_exp=false);
 	void Add(const IPAddr& addr);
 	void Add(const IPPrefix& prefix);

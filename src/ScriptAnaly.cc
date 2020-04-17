@@ -158,8 +158,8 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 	if ( trace )
 		{
 		printf("pre RDs for stmt %s:\n", obj_desc(s));
-		mgr.GetPreMinRDs(s)->Dump();
-		// mgr.GetPreMaxRDs(s)->Dump();
+		// mgr.GetPreMinRDs(s)->Dump();
+		mgr.GetPreMaxRDs(s)->Dump();
 		printf("\n");
 		}
 
@@ -204,8 +204,8 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 			if ( trace )
 				{
 				printf("post RDs for stmt %s:\n", obj_desc(stmt));
-				mgr.GetPostMinRDs(stmt)->Dump();
-				// mgr.GetPostMaxRDs(stmt)->Dump();
+				// mgr.GetPostMinRDs(stmt)->Dump();
+				mgr.GetPostMaxRDs(stmt)->Dump();
 				printf("\n");
 				}
 
@@ -307,6 +307,11 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 	case STMT_WHILE:
 		{
 		auto w = s->AsWhileStmt();
+
+		auto cond = w->Condition();
+		mgr.SetPreFromPre(cond, w);
+		cond->Traverse(this);
+
 		auto body = w->Body();
 		mgr.SetPreFromPre(body, w);
 
@@ -847,7 +852,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	ASSERT(mgr.HasPreMinRDs(e));
 	ASSERT(mgr.HasPreMaxRDs(e));
 
-	if ( trace )
+	if ( trace && 0 )
 		{
 		printf("---\npre RDs for expr %s:\n", obj_desc(e));
 		mgr.GetPreMinRDs(e)->Dump();

@@ -505,7 +505,7 @@ void RD_Decorate::DoLoopConfluence(const Stmt* s, const Stmt* body)
 		// around the loop.
 		mgr.MergePostIntoPre(body);
 
-		auto bd2 = new BlockDefs(true);
+		auto bd2 = new BlockDefs(false);
 		block_defs.push_back(bd2);
 		body->Traverse(this);
 		block_defs.pop_back();

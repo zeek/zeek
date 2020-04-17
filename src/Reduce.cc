@@ -83,6 +83,9 @@ void TempVar::SetAlias(IntrusivePtr<ID> _alias, const DefPoints* _dps)
 	if ( ! _dps )
 		reporter->InternalError("Empty dps for alias");
 
+	if ( alias == id )
+		reporter->InternalError("Creating alias loop");
+
 	alias = _alias;
 	dps = _dps;
 	}
@@ -330,7 +333,9 @@ IntrusivePtr<ID> ReductionContext::FindExprTmp(const Expr* rhs,
 		{
 		auto et_i = expr_temps[i];
 		if ( et_i->Alias() )
-			reporter->InternalError("Encountered ExprTmp with an alias");
+			// This can happen due to re-reduction while
+			// optimizing.
+			continue;
 
 		if ( SameExpr(rhs, et_i->RHS()) )
 			{
@@ -539,7 +544,6 @@ IntrusivePtr<Expr> ReductionContext::UpdateExpr(IntrusivePtr<Expr> e)
 	auto alias = tmp_var->Alias();
 	if ( alias )
 		{
-// printf("updating tmp %s: alias %s\n", tmp_var->Id()->Name(), alias->Name());
 		// Make sure that the definition points for the
 		// alias here are the same as when the alias
 		// was created.
@@ -547,10 +551,11 @@ IntrusivePtr<Expr> ReductionContext::UpdateExpr(IntrusivePtr<Expr> e)
 
 		if ( alias_tmp )
 			{
-			if ( alias_tmp->Alias() )
-				reporter->InternalError("double alias");
+			while ( alias_tmp->Alias() )
+				// Alias chains can occur due to
+				// re-reduction while optimizing.
+				alias_tmp = FindTemporary(alias_tmp->Id().get());
 
-// printf("alias of %s to tmp %s\n", tmp_var->Id()->Name(), alias_tmp->Id()->Name());
 			// Temporaries always have only one definition point,
 			// so no need to check for consistency.
 			auto new_usage = NewVarUsage(alias, alias_tmp->DPs(), e.get());

@@ -4475,6 +4475,31 @@ IntrusivePtr<Val> SetConstructorExpr::Eval(Frame* f) const
 	return aggr;
 	}
 
+bool SetConstructorExpr::HasReducedOps() const
+	{
+	return op->IsReduced();
+	}
+
+Expr* SetConstructorExpr::Reduce(ReductionContext* c,
+					IntrusivePtr<Stmt>& red_stmt)
+	{
+	// We rely on the fact that ListExpr's don't change into
+	// temporaries.
+	red_stmt = nullptr;
+
+	Unref(op->Reduce(c, red_stmt));
+
+	if ( c->Optimizing() )
+		return this->Ref();
+	else
+		return AssignToTemporary(c, red_stmt);
+	}
+
+IntrusivePtr<Stmt> SetConstructorExpr::ReduceToSingletons(ReductionContext* c)
+	{
+	return op->ReduceToSingletons(c);
+	}
+
 IntrusivePtr<Val> SetConstructorExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) const
 	{
 	if ( IsError() )

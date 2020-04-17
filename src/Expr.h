@@ -886,6 +886,10 @@ public:
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
+	bool HasReducedOps() const override;
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
+	IntrusivePtr<Stmt> ReduceToSingletons(ReductionContext* c) override;
+
 protected:
 	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
 

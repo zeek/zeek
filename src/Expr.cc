@@ -3319,7 +3319,7 @@ bool AssignExpr::IsReduced() const
 		return true;
 
 	if ( ! op2->HasReducedOps() )
-		return NonReduced(this);
+		return false;
 
 	if ( op1->IsSingleton() )
 		return true;
@@ -3826,12 +3826,17 @@ void IndexExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 bool IndexExpr::HasReducedOps() const
 	{
 	if ( ! op1->IsSingleton() )
-		return false;
+		return NonReduced(this);
 
 	if ( op2->Tag() == EXPR_LIST )
 		return op2->HasReducedOps();
 	else
-		return op2->IsSingleton();
+		{
+		if ( op2->IsSingleton() )
+			return true;
+
+		return NonReduced(this);
+		}
 	}
 
 void IndexExpr::ExprDescribe(ODesc* d) const
@@ -4289,6 +4294,22 @@ IntrusivePtr<Val> TableConstructorExpr::Eval(Frame* f) const
 	aggr->InitDefaultFunc(f);
 
 	return aggr;
+	}
+
+bool TableConstructorExpr::HasReducedOps() const
+	{
+	const expr_list& exprs = op->AsListExpr()->Exprs();
+
+	for ( const auto& expr : exprs )
+		{
+		auto a = expr->AsAssignExpr();
+		// LHS is a list, not a singleton.
+		if ( ! a->GetOp1()->HasReducedOps() ||
+		     ! a->GetOp2()->IsSingleton() )
+			return NonReduced(this);
+		}
+
+	return true;
 	}
 
 Expr* TableConstructorExpr::Reduce(ReductionContext* c,
@@ -5090,7 +5111,10 @@ bool ScheduleExpr::IsReduced() const
 
 bool ScheduleExpr::HasReducedOps() const
 	{
-	return when->IsSingleton() && event->IsSingleton();
+	if ( when->IsSingleton() && event->IsSingleton() )
+		return true;
+
+	return NonReduced(this);
 	}
 
 Expr* ScheduleExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
@@ -5427,7 +5451,10 @@ bool CallExpr::IsReduced() const
 
 bool CallExpr::HasReducedOps() const
 	{
-	return func->IsSingleton() && args->HasReducedOps();
+	if ( ! func->IsSingleton() )
+		return NonReduced(this);
+
+	return args->HasReducedOps();
 	}
 
 Expr* CallExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)

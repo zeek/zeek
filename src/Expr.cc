@@ -3860,7 +3860,7 @@ AnyIndexExpr::AnyIndexExpr(IntrusivePtr<Expr> arg_op, int _index)
 IntrusivePtr<Val> AnyIndexExpr::Fold(Val* v) const
 	{
 	auto lv = v->AsListVal()->Vals();
-	return {AdoptRef{}, (*lv)[index]};
+	return {NewRef{}, (*lv)[index]};
 	}
 
 Expr* AnyIndexExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)

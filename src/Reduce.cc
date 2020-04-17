@@ -224,7 +224,8 @@ bool ReductionContext::SameOp(const Expr* op1, const Expr* op2)
 		auto op1_l = op1->AsListExpr()->Exprs();
 		auto op2_l = op2->AsListExpr()->Exprs();
 
-		ASSERT(op1_l.length() == op2_l.length());
+		if ( op1_l.length() != op2_l.length() )
+			return false;
 
 		for ( auto i = 0; i < op1_l.length(); ++i )
 			if ( ! SameExpr(op1_l[i], op2_l[i]) )

@@ -158,7 +158,8 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 	if ( trace )
 		{
 		printf("pre RDs for stmt %s:\n", obj_desc(s));
-		mgr.GetPreMaxRDs(s)->Dump();
+		mgr.GetPreMinRDs(s)->Dump();
+		// mgr.GetPreMaxRDs(s)->Dump();
 		printf("\n");
 		}
 
@@ -203,7 +204,8 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 			if ( trace )
 				{
 				printf("post RDs for stmt %s:\n", obj_desc(stmt));
-				mgr.GetPostMaxRDs(stmt)->Dump();
+				mgr.GetPostMinRDs(stmt)->Dump();
+				// mgr.GetPostMaxRDs(stmt)->Dump();
 				printf("\n");
 				}
 
@@ -580,7 +582,14 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 
 	case STMT_BREAK:
 		AddBlockDefs(s, false, false, block_defs.back()->is_case);
-		CreateEmptyPostRDs(s);
+
+		if ( block_defs.back()->is_case )
+			// The following propagates min RDs so they can
+			// be intersected across switch cases.
+			mgr.CreatePostRDsFromPre(s);
+		else
+			CreateEmptyPostRDs(s);
+
 		break;
 
 	case STMT_FALLTHROUGH:
@@ -841,7 +850,8 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	if ( trace )
 		{
 		printf("---\npre RDs for expr %s:\n", obj_desc(e));
-		mgr.GetPreMaxRDs(e)->Dump();
+		mgr.GetPreMinRDs(e)->Dump();
+		// mgr.GetPreMaxRDs(e)->Dump();
 		}
 
 	// Since there are no control flow or confluence issues (the latter
@@ -871,7 +881,10 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			}
 
 		else if ( ! mgr.HasPreMinRD(e, id) )
+			{
 			printf("%s has no pre at %s\n", id->Name(), obj_desc(e));
+			exit(1);
+			}
 
 		if ( id->Type()->Tag() == TYPE_RECORD )
 			CreateRecordRDs(mgr.GetIDReachingDef(id),
@@ -990,7 +1003,10 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		mgr.SetPreFromPre(r, e);
 
 		// Treat this as a definition of lhs$fn, since it's
-		// assuring that that field exists.
+		// assuring that that field exists.  That's not quite
+		// right, since this expression's parent could be a
+		// negation, but at least we know that the script
+		// writer is thinking about whether it's defined.
 
 		if ( r->Tag() == EXPR_NAME )
 			{

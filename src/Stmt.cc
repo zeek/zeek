@@ -2024,7 +2024,9 @@ bool StmtList::ReduceStmt(int& s_i, stmt_list* f_stmts, ReductionContext* c)
 			{
 			// See if we can compress an assignment chain.
 			auto& s_i_succ = Stmts()[s_i + 1];
-			s_i_succ = s_i_succ->Reduce(c);
+
+			// Don't reduce s_i_succ.  If it's what we're
+			// looking for, it's already reduced.
 			auto merge = c->MergeStmts(var, rhs, s_i_succ);
 			if ( merge )
 				{

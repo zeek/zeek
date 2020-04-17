@@ -3350,7 +3350,10 @@ Expr* AssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	if ( IsTemp() )
 		return this->Ref();
 
-	ASSERT(op1->Tag() == EXPR_REF);
+	if ( op1->Tag() != EXPR_REF )
+		{
+		printf("oops: %s\n", obj_desc(this));
+		}
 	auto lhs_ref = op1->AsRefExpr();
 	auto lhs_expr = lhs_ref->Op();
 
@@ -4286,6 +4289,59 @@ IntrusivePtr<Val> TableConstructorExpr::Eval(Frame* f) const
 	aggr->InitDefaultFunc(f);
 
 	return aggr;
+	}
+
+Expr* TableConstructorExpr::Reduce(ReductionContext* c,
+					IntrusivePtr<Stmt>& red_stmt)
+	{
+	red_stmt = ReduceToSingletons(c);
+
+	if ( c->Optimizing() )
+		return this->Ref();
+	else
+		return AssignToTemporary(c, red_stmt);
+	}
+
+IntrusivePtr<Stmt> TableConstructorExpr::ReduceToSingletons(ReductionContext* c)
+	{
+	// Need to process the list of initializers directly, as
+	// they may be expressed as AssignExpr's, and those get
+	// treated quite differently during reduction.
+	const expr_list& exprs = op->AsListExpr()->Exprs();
+
+	IntrusivePtr<Stmt> red_stmt;
+
+	for ( const auto& expr : exprs )
+		{
+		if ( expr->Tag() == EXPR_ASSIGN )
+			{
+			auto a = expr->AsAssignExpr();
+			auto op1 = a->GetOp1();
+			auto op2 = a->GetOp2();
+
+			if ( c->Optimizing() )
+				{
+				a->SetOp1(c->UpdateExpr(op1));
+				a->SetOp2(c->UpdateExpr(op2));
+				continue;
+				}
+
+			IntrusivePtr<Stmt> red1_stmt;
+			IntrusivePtr<Stmt> red2_stmt;
+
+			a->SetOp1({AdoptRef{},
+					op1->ReduceToSingleton(c, red1_stmt)});
+			a->SetOp2({AdoptRef{},
+					op2->ReduceToSingleton(c, red2_stmt)});
+
+			red_stmt = MergeStmts(red1_stmt, red2_stmt);
+			}
+
+		else
+			reporter->InternalError("confused in TableConstructorExpr::Reduce");
+		}
+
+	return red_stmt;
 	}
 
 IntrusivePtr<Val> TableConstructorExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) const

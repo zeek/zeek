@@ -832,7 +832,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 
 	if ( trace )
 		{
-		printf("---\npre RDs for expr %x %s:\n", e, obj_desc(e));
+		printf("---\npre RDs for expr %s:\n", obj_desc(e));
 		mgr.GetPreMaxRDs(e)->Dump();
 		}
 

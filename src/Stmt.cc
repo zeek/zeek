@@ -438,6 +438,9 @@ Stmt* ExprStmt::Reduce(ReductionContext* c)
 	{
 	if ( e )
 		{
+		if ( e->Tag() == EXPR_NOP )
+			return TransformMe(new NullStmt, c);
+
 		if ( c->Optimizing() )
 			{
 			e = c->OptExpr(e);
@@ -2409,6 +2412,11 @@ IntrusivePtr<Val> CheckAnyLenStmt::Exec(Frame* f, stmt_flow_type& flow) const
 		reporter->ExprRuntimeError(e.get(), "mismatch in list lengths");
 
 	return nullptr;
+	}
+
+bool CheckAnyLenStmt::IsReduced() const
+	{
+	return true;
 	}
 
 Stmt* CheckAnyLenStmt::Reduce(ReductionContext* c)

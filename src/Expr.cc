@@ -62,7 +62,8 @@ const char* expr_name(BroExprTag t)
 		"$=", "in", "<<>>",
 		"()", "function()", "event", "schedule",
 		"coerce", "record_coerce", "table_coerce", "vector_coerce",
-		"sizeof", "flatten", "cast", "is", "[:]="
+		"sizeof", "flatten", "cast", "is", "[:]=",
+		"nop",
 	};
 
 	if ( int(t) >= NUM_EXPRS )
@@ -3421,8 +3422,8 @@ Expr* AssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 			red_stmt = MergeStmts(red_stmt, assign_stmt);
 			}
 
-		// All the work is now in red_stmt.
-		return this->Ref();
+		auto nop = new NopExpr();
+		return TransformMe(nop, c, red_stmt);
 		}
 
 	IntrusivePtr<Stmt> lhs_stmt = lhs_ref->ReduceToLHS(c);
@@ -6373,6 +6374,26 @@ void IsExpr::ExprDescribe(ODesc* d) const
 	Op()->Describe(d);
 	d->Add(" is ");
 	t->Describe(d);
+	}
+
+void NopExpr::ExprDescribe(ODesc* d) const
+	{
+	if ( d->IsReadable() )
+		d->Add("NOP");
+	}
+
+IntrusivePtr<Val> NopExpr::Eval(Frame* /* f */) const
+	{
+	return nullptr;
+	}
+
+TraversalCode NopExpr::Traverse(TraversalCallback* cb) const
+	{
+	TraversalCode tc = cb->PreExpr(this);
+	HANDLE_TC_EXPR_PRE(tc);
+
+	tc = cb->PostExpr(this);
+	HANDLE_TC_EXPR_POST(tc);
 	}
 
 IntrusivePtr<Expr> get_assign_expr(IntrusivePtr<Expr> op1,

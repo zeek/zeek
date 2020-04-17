@@ -575,6 +575,7 @@ public:
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
+	bool IsReduced() const override;
 	Stmt* Reduce(ReductionContext* c) override;
 
 	void StmtDescribe(ODesc* d) const override;

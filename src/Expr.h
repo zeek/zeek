@@ -56,7 +56,8 @@ enum BroExprTag : int {
 	EXPR_CAST,
 	EXPR_IS,
 	EXPR_INDEX_SLICE_ASSIGN,
-#define NUM_EXPRS (int(EXPR_INDEX_SLICE_ASSIGN) + 1)
+	EXPR_NOP,
+#define NUM_EXPRS (int(EXPR_NOP) + 1)
 };
 
 extern const char* expr_name(BroExprTag t);
@@ -1171,6 +1172,20 @@ protected:
 
 private:
 	IntrusivePtr<BroType> t;
+};
+
+
+// Used internally for optimization.
+class NopExpr : public Expr {
+public:
+	explicit NopExpr() : Expr(EXPR_NOP) { }
+
+	IntrusivePtr<Val> Eval(Frame* f) const override;
+
+	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+protected:
+	void ExprDescribe(ODesc* d) const override;
 };
 
 inline Val* Expr::ExprVal() const

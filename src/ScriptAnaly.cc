@@ -504,7 +504,15 @@ void RD_Decorate::DoLoopConfluence(const Stmt* s, const Stmt* body)
 		// Some body assignments reached the end.  Propagate them
 		// around the loop.
 		mgr.MergePostIntoPre(body);
+
+		auto bd2 = new BlockDefs(true);
+		block_defs.push_back(bd2);
 		body->Traverse(this);
+		block_defs.pop_back();
+
+		// Ideally we'd check for consistency with the previous
+		// definitions in bd.
+		delete bd2;
 		}
 
 	DefinitionPoint ds(s);

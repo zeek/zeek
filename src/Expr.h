@@ -92,8 +92,7 @@ class Expr : public BroObj {
 public:
 	~Expr()	{ Unref(original); }
 
-	BroType* Type() const		{ return type.get(); }
-	IntrusivePtr<BroType> TypeIP() const		{ return type; }
+	IntrusivePtr<BroType> Type() const		{ return type; }
 	BroExprTag Tag() const	{ return tag; }
 
 	Expr* Ref()			{ ::Ref(this); return this; }

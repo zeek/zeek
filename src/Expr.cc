@@ -389,7 +389,7 @@ Expr* Expr::AssignToTemporary(Expr* e, ReductionContext* c,
 				IntrusivePtr<Stmt>& red_stmt)
 	{
 	IntrusivePtr<Expr> e_ptr = {NewRef{}, e};
-	auto result_tmp = c->GenTemporaryExpr(TypeIP(), e_ptr);
+	auto result_tmp = c->GenTemporaryExpr(Type(), e_ptr);
 
 	auto a_e = get_temp_assign_expr(result_tmp->MakeLvalue(), e_ptr);
 	if ( a_e->Tag() != EXPR_ASSIGN )
@@ -1016,7 +1016,7 @@ IntrusivePtr<Val> BinaryExpr::Fold(Val* v1, Val* v2) const
 		BadTag("BinaryExpr::Fold", expr_name(tag));
 	}
 
-	BroType* ret_type = Type();
+	auto ret_type = Type().get();
 
 	if ( IsVector(ret_type->Tag()) )
 	     ret_type = ret_type->YieldType();
@@ -1235,8 +1235,7 @@ CloneExpr::CloneExpr(IntrusivePtr<Expr> arg_op)
 	if ( IsError() )
 		return;
 
-	BroType* t = op->Type();
-	SetType({NewRef{}, t});
+	SetType(op->Type());
 	}
 
 IntrusivePtr<Val> CloneExpr::Eval(Frame* f) const
@@ -1261,7 +1260,7 @@ IncrExpr::IncrExpr(BroExprTag arg_tag, IntrusivePtr<Expr> arg_op)
 	if ( IsError() )
 		return;
 
-	BroType* t = op->Type();
+	auto t = op->Type();
 
 	if ( IsVector(t->Tag()) )
 		{
@@ -1270,7 +1269,7 @@ IncrExpr::IncrExpr(BroExprTag arg_tag, IntrusivePtr<Expr> arg_op)
 		else
 			{
 			reporter->Warning("increment/decrement operations for vectors deprecated");
-			SetType({NewRef{}, t});
+			SetType(t);
 			}
 		}
 	else
@@ -1278,7 +1277,7 @@ IncrExpr::IncrExpr(BroExprTag arg_tag, IntrusivePtr<Expr> arg_op)
 		if ( ! IsIntegral(t->Tag()) )
 			ExprError("requires an integral operand");
 		else
-			SetType({NewRef{}, t});
+			SetType(t);
 		}
 	}
 
@@ -1297,7 +1296,7 @@ IntrusivePtr<Val> IncrExpr::DoSingleEval(Frame* f, Val* v) const
 			RuntimeError("count underflow");
 		}
 
-	BroType* ret_type = Type();
+	auto ret_type = Type().get();
 	if ( IsVector(ret_type->Tag()) )
 		ret_type = Type()->YieldType();
 
@@ -1397,7 +1396,7 @@ ComplementExpr::ComplementExpr(IntrusivePtr<Expr> arg_op)
 	if ( IsError() )
 		return;
 
-	BroType* t = op->Type();
+	auto t = op->Type();
 	TypeTag bt = t->Tag();
 
 	if ( bt != TYPE_COUNT )
@@ -1452,7 +1451,7 @@ PosExpr::PosExpr(IntrusivePtr<Expr> arg_op)
 	if ( IsError() )
 		return;
 
-	BroType* t = op->Type();
+	auto t = op->Type().get();
 
 	if ( IsVector(t->Tag()) )
 		t = t->AsVectorType()->YieldType();
@@ -1501,7 +1500,7 @@ NegExpr::NegExpr(IntrusivePtr<Expr> arg_op)
 	if ( IsError() )
 		return;
 
-	BroType* t = op->Type();
+	BroType* t = op->Type().get();
 
 	if ( IsVector(t->Tag()) )
 		t = t->AsVectorType()->YieldType();
@@ -1668,7 +1667,7 @@ AddToExpr::AddToExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 				if ( bt2 != bt1 )
 					op2 = make_intrusive<ArithCoerceExpr>(std::move(op2), bt1);
 
-				SetType({NewRef{}, op1->Type()});
+				SetType(op1->Type());
 				}
 
 			else
@@ -1680,7 +1679,7 @@ AddToExpr::AddToExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 					  type_name(bt1), type_name(bt2)));
 
 		else
-			SetType({NewRef{}, op1->Type()});
+			SetType(op1->Type());
 		}
 
 	else
@@ -1748,7 +1747,7 @@ AppendToExpr::AppendToExpr(IntrusivePtr<Expr> arg_op1,
 	{
 	// This is an internal type, so we don't bother with type-checking
 	// or coercions, those have already been done before we're created.
-	SetType({NewRef{}, op1->Type()});
+	SetType(op1->Type());
 	}
 
 IntrusivePtr<Val> AppendToExpr::Eval(Frame* f) const
@@ -1778,8 +1777,8 @@ SubExpr::SubExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 	if ( IsError() )
 		return;
 
-	const BroType* t1 = op1->Type();
-	const BroType* t2 = op2->Type();
+	auto t1 = op1->Type();
+	auto t2 = op2->Type();
 
 	TypeTag bt1 = t1->Tag();
 	if ( IsVector(bt1) )
@@ -1799,8 +1798,8 @@ SubExpr::SubExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 
 	else if ( t1->IsSet() && t2->IsSet() )
 		{
-		if ( same_type(t1, t2) )
-			SetType({NewRef{}, op1->Type()});
+		if ( same_type(t1.get(), t2.get()) )
+			SetType(op1->Type());
 		else
 			ExprError("incompatible \"set\" operands");
 		}
@@ -2288,8 +2287,8 @@ BitExpr::BitExpr(BroExprTag arg_tag,
 	if ( IsError() )
 		return;
 
-	const BroType* t1 = op1->Type();
-	const BroType* t2 = op2->Type();
+	auto t1 = op1->Type();
+	auto t2 = op2->Type();
 
 	TypeTag bt1 = t1->Tag();
 
@@ -2324,8 +2323,8 @@ BitExpr::BitExpr(BroExprTag arg_tag,
 
 	else if ( t1->IsSet() && t2->IsSet() )
 		{
-		if ( same_type(t1, t2) )
-			SetType({NewRef{}, op1->Type()});
+		if ( same_type(t1.get(), t2.get()) )
+			SetType(op1->Type());
 		else
 			ExprError("incompatible \"set\" operands");
 		}
@@ -2386,8 +2385,8 @@ EqExpr::EqExpr(BroExprTag arg_tag,
 
 	Canonicize();
 
-	const BroType* t1 = op1->Type();
-	const BroType* t2 = op2->Type();
+	auto t1 = op1->Type();
+	auto t2 = op2->Type();
 
 	TypeTag bt1 = t1->Tag();
 	if ( IsVector(bt1) )
@@ -2425,14 +2424,14 @@ EqExpr::EqExpr(BroExprTag arg_tag,
 			break;
 
 		case TYPE_ENUM:
-			if ( ! same_type(t1, t2) )
+			if ( ! same_type(t1.get(), t2.get()) )
 				ExprError("illegal enum comparison");
 			break;
 
 		case TYPE_TABLE:
 			if ( t1->IsSet() && t2->IsSet() )
 				{
-				if ( ! same_type(t1, t2) )
+				if ( ! same_type(t1.get(), t2.get()) )
 					ExprError("incompatible sets in comparison");
 				break;
 				}
@@ -2501,8 +2500,8 @@ RelExpr::RelExpr(BroExprTag arg_tag,
 
 	Canonicize();
 
-	const BroType* t1 = op1->Type();
-	const BroType* t2 = op2->Type();
+	auto t1 = op1->Type();
+	auto t2 = op2->Type();
 
 	TypeTag bt1 = t1->Tag();
 	if ( IsVector(bt1) )
@@ -2522,7 +2521,7 @@ RelExpr::RelExpr(BroExprTag arg_tag,
 
 	else if ( t1->IsSet() && t2->IsSet() )
 		{
-		if ( ! same_type(t1, t2) )
+		if ( ! same_type(t1.get(), t2.get()) )
 			ExprError("incompatible sets in comparison");
 		}
 
@@ -2629,10 +2628,10 @@ CondExpr::CondExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2,
 		else
 			{
 			if ( IsRecord(bt2) && IsRecord(bt3) &&
-			     ! same_type(op2->Type(), op3->Type()) )
+			     ! same_type(op2->Type().get(), op3->Type().get()) )
 				ExprError("operands must be of the same type");
 			else
-				SetType({NewRef{}, op2->Type()});
+				SetType(op2->Type());
 			}
 		}
 	}
@@ -2811,10 +2810,10 @@ RefExpr::RefExpr(IntrusivePtr<Expr> arg_op)
 	if ( IsError() )
 		return;
 
-	if ( ! ::is_assignable(op->Type()) )
+	if ( ! ::is_assignable(op->Type().get()) )
 		ExprError("illegal assignment target");
 	else
-		SetType({NewRef{}, op->Type()});
+		SetType(op->Type());
 	}
 
 IntrusivePtr<Expr> RefExpr::MakeLvalue()
@@ -2895,7 +2894,7 @@ AssignExpr::AssignExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2,
 	if ( IsError() )
 		return;
 
-	SetType({NewRef{}, arg_val ? arg_val->Type() : op1->Type()});
+	SetType({NewRef{}, arg_val ? arg_val->Type() : op1->Type().get()});
 
 	if ( is_init )
 		{
@@ -2967,7 +2966,8 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 			op2 = make_intrusive<TableConstructorExpr>(
 			        IntrusivePtr{NewRef{}, op2->AsListExpr()}, attr_copy);
 
-		if ( ! empty_list_assignment && ! same_type(op1->Type(), op2->Type()) )
+		if ( ! empty_list_assignment &&
+		     ! same_type(op1->Type().get(), op2->Type().get()) )
 			{
 			if ( op1->Type()->IsSet() )
 				ExprError("set type mismatch in assignment");
@@ -2993,7 +2993,7 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 			{
 			op2 = make_intrusive<VectorConstructorExpr>(
 			        IntrusivePtr{AdoptRef{}, op2.release()->AsListExpr()},
-			        IntrusivePtr{NewRef{}, op1->Type()});
+			        op1->Type());
 			return true;
 			}
 		}
@@ -3001,7 +3001,7 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 	if ( op1->Type()->Tag() == TYPE_RECORD &&
 	     op2->Type()->Tag() == TYPE_RECORD )
 		{
-		if ( same_type(op1->Type(), op2->Type()) )
+		if ( same_type(op1->Type().get(), op2->Type().get()) )
 			{
 			RecordType* rt1 = op1->Type()->AsRecordType();
 			RecordType* rt2 = op2->Type()->AsRecordType();
@@ -3024,7 +3024,7 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 		return true;
 		}
 
-	if ( ! same_type(op1->Type(), op2->Type()) )
+	if ( ! same_type(op1->Type().get(), op2->Type().get()) )
 		{
 		if ( bt1 == TYPE_TABLE && bt2 == TYPE_TABLE )
 			{
@@ -3061,7 +3061,7 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 				int errors_before = reporter->Errors();
 				op2 = make_intrusive<SetConstructorExpr>(
 				        IntrusivePtr{NewRef{}, ctor_list}, attr_copy,
-				        IntrusivePtr{NewRef{}, op1->Type()});
+				        op1->Type());
 				int errors_after = reporter->Errors();
 
 				if ( errors_after > errors_before )
@@ -3151,12 +3151,12 @@ IntrusivePtr<BroType> AssignExpr::InitType() const
 		return nullptr;
 		}
 
-	BroType* tl = op1->Type();
+	auto tl = op1->Type();
 	if ( tl->Tag() != TYPE_LIST )
 		Internal("inconsistent list expr in AssignExpr::InitType");
 
 	return make_intrusive<TableType>(IntrusivePtr{NewRef{}, tl->AsTypeList()},
-	                                 IntrusivePtr{NewRef{}, op2->Type()});
+	                                 op2->Type());
 	}
 
 void AssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const
@@ -3294,7 +3294,7 @@ bool AssignExpr::IsRecordElement(TypeDecl* td) const
 		if ( td )
 			{
 			const NameExpr* n = (const NameExpr*) op1.get();
-			td->type = {NewRef{}, op2->Type()};
+			td->type = op2->Type();
 			td->id = copy_string(n->Id()->Name());
 			}
 
@@ -3455,7 +3455,7 @@ IndexAssignExpr::IndexAssignExpr(IntrusivePtr<Expr> arg_op1,
 : BinaryExpr(EXPR_INDEX_ASSIGN, std::move(arg_op1), std::move(arg_op2))
 	{
 	op3 = arg_op3;
-	SetType({NewRef{}, op3->Type()});
+	SetType(op3->Type());
 	}
 
 IntrusivePtr<Val> IndexAssignExpr::Eval(Frame* f) const
@@ -3890,7 +3890,7 @@ FieldLHSAssignExpr::FieldLHSAssignExpr(IntrusivePtr<Expr> arg_op1,
 : BinaryExpr(EXPR_FIELD_LHS_ASSIGN, std::move(arg_op1), std::move(arg_op2))
 	{
 	field = _field;
-	SetType({NewRef{}, op2->Type()});
+	SetType(op2->Type());
 	}
 
 IntrusivePtr<Val> FieldLHSAssignExpr::Eval(Frame* f) const
@@ -4108,7 +4108,7 @@ RecordConstructorExpr::RecordConstructorExpr(IntrusivePtr<ListExpr> constructor_
 			}
 
 		FieldAssignExpr* field = (FieldAssignExpr*) e;
-		IntrusivePtr<BroType> field_type{NewRef{}, field->Type()};
+		IntrusivePtr<BroType> field_type = field->Type();
 		char* field_name = copy_string(field->FieldName());
 		record_types->push_back(new TypeDecl(std::move(field_type), field_name));
 		}
@@ -4636,7 +4636,7 @@ FieldAssignExpr::FieldAssignExpr(const char* arg_field_name,
                                  IntrusivePtr<Expr> value)
 	: UnaryExpr(EXPR_FIELD_ASSIGN, std::move(value)), field_name(arg_field_name)
 	{
-	SetType({NewRef{}, op->Type()});
+	SetType(op->Type());
 	}
 
 void FieldAssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f)
@@ -4682,7 +4682,7 @@ bool FieldAssignExpr::IsRecordElement(TypeDecl* td) const
 	{
 	if ( td )
 		{
-		td->type = {NewRef{}, op->Type()};
+		td->type = op->Type();
 		td->id = copy_string(field_name.c_str());
 		}
 
@@ -5051,7 +5051,7 @@ FlattenExpr::FlattenExpr(IntrusivePtr<Expr> arg_op)
 	if ( IsError() )
 		return;
 
-	BroType* t = op->Type();
+	auto t = op->Type();
 
 	if ( t->Tag() != TYPE_RECORD )
 		Internal("bad type in FlattenExpr::FlattenExpr");
@@ -5275,13 +5275,13 @@ InExpr::InExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 
 		else
 			{
-			const BroType* t1 = op1->Type();
+			auto t1 = op1->Type();
 			const TypeList* it =
 				op2->Type()->AsTableType()->Indices();
 
-			if ( ! same_type(t1, it) )
+			if ( ! same_type(t1.get(), it) )
 				{
-				t1->Error("indexing mismatch", op2->Type());
+				t1->Error("indexing mismatch", op2->Type().get());
 				SetError();
 				}
 			else
@@ -5370,7 +5370,7 @@ CallExpr::CallExpr(IntrusivePtr<Expr> arg_func,
 		return;
 		}
 
-	BroType* func_type = func->Type();
+	auto func_type = func->Type();
 
 	if ( ! IsFunc(func_type->Tag()) )
 		{
@@ -5840,7 +5840,7 @@ ListExpr::~ListExpr()
 void ListExpr::Append(IntrusivePtr<Expr> e)
 	{
 	exprs.push_back(e.release());
-	((TypeList*) type.get())->Append({NewRef{}, exprs.back()->Type()});
+	((TypeList*) type.get())->Append(exprs.back()->Type());
 	}
 
 bool ListExpr::IsPure() const
@@ -5925,7 +5925,7 @@ IntrusivePtr<BroType> ListExpr::InitType() const
 
 		for ( const auto& e : exprs )
 			{
-			BroType* ti = e->Type();
+			auto ti = e->Type();
 
 			// Collapse any embedded sets or lists.
 			if ( ti->IsSet() || ti->Tag() == TYPE_LIST )
@@ -5941,7 +5941,7 @@ IntrusivePtr<BroType> ListExpr::InitType() const
 					tl->Append({NewRef{}, til->PureType()});
 				}
 			else
-				tl->Append({NewRef{}, ti});
+				tl->Append(ti);
 			}
 
 		return tl;
@@ -6314,7 +6314,7 @@ CastExpr::CastExpr(IntrusivePtr<Expr> arg_op, IntrusivePtr<BroType> t)
 
 	SetType(std::move(t));
 
-	if ( ! can_cast_value_to_type(stype, Type()) )
+	if ( ! can_cast_value_to_type(stype.get(), Type().get()) )
 		ExprError("cast not supported");
 	}
 
@@ -6328,7 +6328,7 @@ IntrusivePtr<Val> CastExpr::Eval(Frame* f) const
 	if ( ! v )
 		return nullptr;
 
-	auto nv = cast_value_to_type(v.get(), Type());
+	auto nv = cast_value_to_type(v.get(), Type().get());
 
 	if ( nv )
 		return nv;
@@ -6422,7 +6422,7 @@ IntrusivePtr<Expr> get_temp_assign_expr(IntrusivePtr<Expr> op1,
 
 IntrusivePtr<Expr> check_and_promote_expr(Expr* const e, BroType* t)
 	{
-	BroType* et = e->Type();
+	auto et = e->Type();
 	TypeTag e_tag = et->Tag();
 	TypeTag t_tag = t->Tag();
 
@@ -6455,7 +6455,7 @@ IntrusivePtr<Expr> check_and_promote_expr(Expr* const e, BroType* t)
 		RecordType* t_r = t->AsRecordType();
 		RecordType* et_r = et->AsRecordType();
 
-		if ( same_type(t, et) )
+		if ( same_type(t, et.get()) )
 			{
 			// Make sure the attributes match as well.
 			for ( int i = 0; i < t_r->NumFields(); ++i )
@@ -6478,7 +6478,7 @@ IntrusivePtr<Expr> check_and_promote_expr(Expr* const e, BroType* t)
 		}
 
 
-	if ( ! same_type(t, et) )
+	if ( ! same_type(t, et.get()) )
 		{
 		if ( t->Tag() == TYPE_TABLE && et->Tag() == TYPE_TABLE &&
 			  et->AsTableType()->IsUnspecifiedTable() )

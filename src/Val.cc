@@ -1793,11 +1793,11 @@ IntrusivePtr<Val> TableVal::Default(Val* index)
 
 	if ( ! def_val )
 		{
-		BroType* ytype = Type()->YieldType();
-		BroType* dtype = def_attr->AttrExpr()->Type();
+		auto ytype = Type()->YieldType();
+		auto dtype = def_attr->AttrExpr()->Type();
 
 		if ( dtype->Tag() == TYPE_RECORD && ytype->Tag() == TYPE_RECORD &&
-		     ! same_type(dtype, ytype) &&
+		     ! same_type(dtype.get(), ytype) &&
 		     record_promotion_compatible(dtype->AsRecordType(),
 						 ytype->AsRecordType()) )
 			{
@@ -2277,10 +2277,10 @@ void TableVal::InitDefaultFunc(Frame* f)
 		return;
 
 	BroType* ytype = Type()->YieldType();
-	BroType* dtype = def_attr->AttrExpr()->Type();
+	auto dtype = def_attr->AttrExpr()->Type();
 
 	if ( dtype->Tag() == TYPE_RECORD && ytype->Tag() == TYPE_RECORD &&
-	     ! same_type(dtype, ytype) &&
+	     ! same_type(dtype.get(), ytype) &&
 	     record_promotion_compatible(dtype->AsRecordType(),
 					 ytype->AsRecordType()) )
 		return; // TableVal::Default will handle this.

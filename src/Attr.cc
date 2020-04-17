@@ -262,7 +262,7 @@ void Attributes::CheckAttr(Attr* a)
 		{
 		bool is_add = a->Tag() == ATTR_ADD_FUNC;
 
-		BroType* at = a->AttrExpr()->Type();
+		auto at = a->AttrExpr()->Type();
 		if ( at->Tag() != TYPE_FUNC )
 			{
 			a->AttrExpr()->Error(
@@ -294,11 +294,11 @@ void Attributes::CheckAttr(Attr* a)
 			break;
 			}
 
-		BroType* atype = a->AttrExpr()->Type();
+		auto atype = a->AttrExpr()->Type();
 
 		if ( type->Tag() != TYPE_TABLE || (type->IsSet() && ! in_record) )
 			{
-			if ( same_type(atype, type.get()) )
+			if ( same_type(atype.get(), type.get()) )
 				// Ok.
 				break;
 
@@ -333,7 +333,7 @@ void Attributes::CheckAttr(Attr* a)
 		if ( ! in_record )
 			{
 			// &default applies to the type itself.
-			if ( ! same_type(atype, ytype) )
+			if ( ! same_type(atype.get(), ytype) )
 				{
 				// It can still be a default function.
 				if ( atype->Tag() == TYPE_FUNC )
@@ -374,7 +374,7 @@ void Attributes::CheckAttr(Attr* a)
 			{
 			// &default applies to record field.
 
-			if ( same_type(atype, type.get()) )
+			if ( same_type(atype.get(), type.get()) )
 				// Ok.
 				break;
 
@@ -587,7 +587,7 @@ void Attributes::CheckAttr(Attr* a)
 			break;
 			}
 
-		BroType* atype = a->AttrExpr()->Type();
+		auto atype = a->AttrExpr()->Type();
 
 		if ( atype->Tag() != TYPE_STRING ) {
 			Error("type column needs to have a string argument");

@@ -715,7 +715,7 @@ bool RD_Decorate::CheckLHS(const Expr* lhs, const Expr* e)
 		auto field_rd = r_def->FindField(fn);
 		auto ft = f->Type();
 		if ( ! field_rd )
-			field_rd = r_def->CreateField(fn, ft);
+			field_rd = r_def->CreateField(fn, ft.get());
 
 		CreateInitPostDef(field_rd, DefinitionPoint(e), false, a);
 

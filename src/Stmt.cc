@@ -178,7 +178,7 @@ ExprListStmt::ExprListStmt(BroStmtTag t, IntrusivePtr<ListExpr> arg_l)
 	const expr_list& e = l->Exprs();
 	for ( const auto& expr : e )
 		{
-		const BroType* t = expr->Type();
+		auto t = expr->Type();
 		if ( ! t || t->Tag() == TYPE_VOID )
 			Error("value of type void illegal");
 		}
@@ -772,7 +772,7 @@ static void int_del_func(void* v)
 void SwitchStmt::Init()
 	{
 	auto t = make_intrusive<TypeList>();
-	t->Append({NewRef{}, e->Type()});
+	t->Append(e->Type());
 	comp_hash = new CompositeHash(std::move(t));
 
 	case_label_value_map.SetDeleteFunc(int_del_func);
@@ -797,10 +797,10 @@ SwitchStmt::SwitchStmt(IntrusivePtr<Expr> index, case_list* arg_cases)
 			{
 			have_exprs = true;
 
-			if ( ! is_atomic_type(e->Type()) )
+			if ( ! is_atomic_type(e->Type().get()) )
 				e->Error("switch expression must be of an atomic type when cases are expressions");
 
-			if ( ! le->Type()->AsTypeList()->AllMatch(e->Type(), false) )
+			if ( ! le->Type()->AsTypeList()->AllMatch(e->Type().get(), false) )
 				{
 				le->Error("case expression type differs from switch type", e.get());
 				continue;
@@ -871,7 +871,7 @@ SwitchStmt::SwitchStmt(IntrusivePtr<Expr> index, case_list* arg_cases)
 				{
 				BroType* ct = t->Type();
 
-	   			if ( ! can_cast_value_to_type(e->Type(), ct) )
+	   			if ( ! can_cast_value_to_type(e->Type().get(), ct) )
 					{
 					c->Error("cannot cast switch expression to case type");
 					continue;
@@ -1803,7 +1803,7 @@ ReturnStmt::ReturnStmt(IntrusivePtr<Expr> arg_e)
 		{
 		if ( e )
 			{
-			ft->SetYieldType({NewRef{}, e->Type()});
+			ft->SetYieldType(e->Type());
 			s->ScopeID()->SetInferReturnType(false);
 			}
 		}

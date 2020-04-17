@@ -229,7 +229,7 @@ static bool expr_is_table_type_name(const Expr* expr)
 	if ( expr->Tag() != EXPR_NAME )
 		return false;
 
-	BroType* type = expr->Type();
+	auto type = expr->Type();
 
 	if ( type->IsTable() )
 		return true;

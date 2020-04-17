@@ -803,7 +803,11 @@ void Analyzer::Event(EventHandlerPtr f, const char* name)
 
 void Analyzer::Event(EventHandlerPtr f, Val* v1, Val* v2)
 	{
-	conn->Event(f, this, v1, v2);
+	IntrusivePtr val1{AdoptRef{}, v1};
+	IntrusivePtr val2{AdoptRef{}, v2};
+
+	if ( f )
+		conn->EnqueueEvent(f, this, conn->ConnVal(), std::move(val1), std::move(val2));
 	}
 
 void Analyzer::ConnectionEvent(EventHandlerPtr f, val_list* vl)
@@ -935,7 +939,7 @@ void TransportLayerAnalyzer::PacketContents(const u_char* data, int len)
 	if ( packet_contents && len > 0 )
 		{
 		BroString* cbs = new BroString(data, len, true);
-		Val* contents = new StringVal(cbs);
-		Event(packet_contents, contents);
+		auto contents = make_intrusive<StringVal>(cbs);
+		EnqueueConnEvent(packet_contents, ConnVal(), std::move(contents));
 		}
 	}

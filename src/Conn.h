@@ -193,6 +193,7 @@ public:
 	// 'v1' and 'v2' reference counts get decremented.  The event's first
 	// argument is the connection value, second argument is 'v1', and if 'v2'
 	// is given that will be it's third argument.
+	[[deprecated("Remove in v4.1.  Use EnqueueEvent() instead (note it doesn't automatically add the connection argument).")]]
 	void Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1, Val* v2 = nullptr);
 
 	// If a handler exists for 'f', an event will be generated.  In any case,

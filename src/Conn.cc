@@ -144,7 +144,10 @@ void Connection::CheckEncapsulation(const EncapsulationStack* arg_encap)
 		{
 		if ( *encapsulation != *arg_encap )
 			{
-			Event(tunnel_changed, nullptr, arg_encap->GetVectorVal());
+			if ( tunnel_changed )
+				EnqueueEvent(tunnel_changed, nullptr, ConnVal(),
+				             IntrusivePtr{AdoptRef{}, arg_encap->GetVectorVal()});
+
 			delete encapsulation;
 			encapsulation = new EncapsulationStack(*arg_encap);
 			}
@@ -152,15 +155,23 @@ void Connection::CheckEncapsulation(const EncapsulationStack* arg_encap)
 
 	else if ( encapsulation )
 		{
-		EncapsulationStack empty;
-		Event(tunnel_changed, nullptr, empty.GetVectorVal());
+		if ( tunnel_changed )
+			{
+			EncapsulationStack empty;
+			EnqueueEvent(tunnel_changed, nullptr, ConnVal(),
+			             IntrusivePtr{AdoptRef{}, empty.GetVectorVal()});
+			}
+
 		delete encapsulation;
 		encapsulation = nullptr;
 		}
 
 	else if ( arg_encap )
 		{
-		Event(tunnel_changed, nullptr, arg_encap->GetVectorVal());
+		if ( tunnel_changed )
+			EnqueueEvent(tunnel_changed, nullptr, ConnVal(),
+			             IntrusivePtr{AdoptRef{}, arg_encap->GetVectorVal()});
+
 		encapsulation = new EncapsulationStack(*arg_encap);
 		}
 	}

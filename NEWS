@@ -92,7 +92,7 @@ Deprecated Functionality
 - The ``EventMgr::QueueEvent()`` and EventMgr::QueueEventFast()`` methods
   are now deprecated, use ``EventMgr::Enqueue()`` instead.
 
-- The ``Connection::ConnectionEvent()`` and
+- The ``Connection::ConnectionEvent()``, ``Connection::Event()``, and
   ``Connection::ConnectionEventFast()`` methods are now deprecated, use
   ``Connection::EnqueueEvent()`` instead.
 
@@ -100,8 +100,8 @@ Deprecated Functionality
   arguments are now deprecated, use the overload that takes a ``zeek::Args``
   instead.
 
-- The ``analyzer::Analyzer::ConnectionEvent()`` and
-  ``analyzer::Analyzer::ConectionEventFast()`` methods are deprecated, use
+- The ``analyzer::Analyzer::ConnectionEvent()``, ``analyzer::Analyzer::Event``,
+  and ``analyzer::Analyzer::ConectionEventFast()`` methods are deprecated, use
   ``analyzer::Analyzer::EnqueueConnEvent()`` instead.
 
 - All ``val_mgr`` methods starting with "Get" are deprecated, use the new

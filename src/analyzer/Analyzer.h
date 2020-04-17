@@ -568,6 +568,7 @@ public:
 	 * Convenience function that forwards directly to the corresponding
 	 * Connection::Event().
 	 */
+	[[deprecated("Remove in v4.1.  Use EnqueueConnEvent() instead (note it doesn't automatically ad the connection argument).")]]
 	void Event(EventHandlerPtr f, Val* v1, Val* v2 = nullptr);
 
 	/**

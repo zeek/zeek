@@ -624,9 +624,10 @@ bool Manager::ApplyScheduledAnalyzers(Connection* conn, bool init, TransportLaye
 
 		parent->AddChildAnalyzer(analyzer, init);
 
-		EnumVal* tag = it->AsEnumVal();
-		Ref(tag);
-		conn->Event(scheduled_analyzer_applied, nullptr, tag);
+		if ( scheduled_analyzer_applied )
+			conn->EnqueueEvent(scheduled_analyzer_applied, nullptr,
+			                   conn->ConnVal(),
+			                   IntrusivePtr{NewRef{}, it->AsEnumVal()});
 
 		DBG_ANALYZER_ARGS(conn, "activated %s analyzer as scheduled",
 		                  analyzer_mgr->GetComponentName(*it).c_str());

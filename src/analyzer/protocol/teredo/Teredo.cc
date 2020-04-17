@@ -96,7 +96,7 @@ bool TeredoEncapsulation::DoParse(const u_char* data, int& len,
 	return false;
 	}
 
-RecordVal* TeredoEncapsulation::BuildVal(const IP_Hdr* inner) const
+IntrusivePtr<RecordVal> TeredoEncapsulation::BuildVal(const IP_Hdr* inner) const
 	{
 	static RecordType* teredo_hdr_type = nullptr;
 	static RecordType* teredo_auth_type = nullptr;
@@ -109,7 +109,7 @@ RecordVal* TeredoEncapsulation::BuildVal(const IP_Hdr* inner) const
 		teredo_origin_type = internal_type("teredo_origin")->AsRecordType();
 		}
 
-	RecordVal* teredo_hdr = new RecordVal(teredo_hdr_type);
+	auto teredo_hdr = make_intrusive<RecordVal>(teredo_hdr_type);
 
 	if ( auth )
 		{
@@ -201,30 +201,36 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		return;
 		}
 
-	Val* teredo_hdr = nullptr;
+	IntrusivePtr<Val> teredo_hdr;
 
 	if ( teredo_packet )
 		{
 		teredo_hdr = te.BuildVal(inner);
-		Conn()->Event(teredo_packet, nullptr, teredo_hdr);
+		Conn()->EnqueueEvent(teredo_packet, nullptr, ConnVal(), teredo_hdr);
 		}
 
 	if ( te.Authentication() && teredo_authentication )
 		{
-		teredo_hdr = teredo_hdr ? teredo_hdr->Ref() : te.BuildVal(inner);
-		Conn()->Event(teredo_authentication, nullptr, teredo_hdr);
+		if ( ! teredo_hdr )
+			teredo_hdr = te.BuildVal(inner);
+
+		Conn()->EnqueueEvent(teredo_authentication, nullptr, ConnVal(), teredo_hdr);
 		}
 
 	if ( te.OriginIndication() && teredo_origin_indication )
 		{
-		teredo_hdr = teredo_hdr ? teredo_hdr->Ref() : te.BuildVal(inner);
-		Conn()->Event(teredo_origin_indication, nullptr, teredo_hdr);
+		if ( ! teredo_hdr )
+			teredo_hdr = te.BuildVal(inner);
+
+		Conn()->EnqueueEvent(teredo_origin_indication, nullptr, ConnVal(), teredo_hdr);
 		}
 
 	if ( inner->NextProto() == IPPROTO_NONE && teredo_bubble )
 		{
-		teredo_hdr = teredo_hdr ? teredo_hdr->Ref() : te.BuildVal(inner);
-		Conn()->Event(teredo_bubble, nullptr, teredo_hdr);
+		if ( ! teredo_hdr )
+			teredo_hdr = te.BuildVal(inner);
+
+		Conn()->EnqueueEvent(teredo_bubble, nullptr, ConnVal(), teredo_hdr);
 		}
 
 	EncapsulatingConn ec(Conn(), BifEnum::Tunnel::TEREDO);

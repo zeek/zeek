@@ -552,9 +552,15 @@ IntrusivePtr<Expr> ReductionContext::UpdateExpr(IntrusivePtr<Expr> e)
 		if ( alias_tmp )
 			{
 			while ( alias_tmp->Alias() )
+				{
 				// Alias chains can occur due to
 				// re-reduction while optimizing.
+				auto a_id = alias_tmp->Id();
+				if ( a_id == id )
+					return e;
+
 				alias_tmp = FindTemporary(alias_tmp->Id().get());
+				}
 
 			// Temporaries always have only one definition point,
 			// so no need to check for consistency.

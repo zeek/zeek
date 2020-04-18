@@ -1332,6 +1332,10 @@ Expr* IncrExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	auto ref_op = op->AsRefExpr();
 	auto target = ref_op->GetOp1();
 
+	IntrusivePtr<Stmt> target_stmt;
+	auto orig_target = target;
+	target = {AdoptRef{}, target->ReduceToSingleton(c, target_stmt)};
+
 	auto incr_const = new ConstExpr({AdoptRef{}, val_mgr->GetCount(1)});
 	IntrusivePtr<Expr> incr_ptr = {AdoptRef{}, incr_const};
 	incr_const->SetOriginal(this);
@@ -1341,11 +1345,23 @@ Expr* IncrExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 				(Expr*) new SubExpr(target, incr_ptr);
 	increment_expr->SetOriginal(this);
 
-	IntrusivePtr<Expr> increment_ptr = {AdoptRef{}, increment_expr};
-	auto assign = make_intrusive<AssignExpr>(target, increment_ptr,
+	IntrusivePtr<Stmt> assign_stmt;
+	auto rhs = increment_expr->AssignToTemporary(c, assign_stmt);
+	IntrusivePtr<Expr> rhs_ptr = {AdoptRef{}, rhs};
+
+	auto assign = make_intrusive<AssignExpr>(orig_target, rhs_ptr,
 						false, nullptr, nullptr, false);
 
-	return assign->ReduceToSingleton(c, red_stmt);
+	// First reduce it regularly, so it can transform into $= or
+	// such as needed.  Then reduce that to a singleton to provide
+	// the result for this expression.
+	IntrusivePtr<Stmt> assign_stmt2;
+	auto res = assign->Reduce(c, assign_stmt2);
+	res = res->ReduceToSingleton(c, red_stmt);
+	red_stmt = MergeStmts(target_stmt,
+			MergeStmts(assign_stmt, assign_stmt2), red_stmt);
+
+	return res;
 	}
 
 bool IncrExpr::IsPure() const
@@ -3433,6 +3449,7 @@ Expr* AssignExpr::ReduceToSingleton(ReductionContext* c,
 
 	IntrusivePtr<Expr> assign_expr{NewRef{}, this};
 	red_stmt = make_intrusive<ExprStmt>(assign_expr);
+	red_stmt = {AdoptRef{}, red_stmt->Reduce(c)};
 
 	return op1->AsRefExpr()->Op()->Ref();
 	}
@@ -3480,6 +3497,26 @@ Expr* IndexAssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 		}
 
 	return this->Ref();
+	}
+
+Expr* IndexAssignExpr::ReduceToSingleton(ReductionContext* c,
+					IntrusivePtr<Stmt>& red_stmt)
+	{
+	// Yields a statement performing the assignment and for the
+	// expression the LHS (but turned into an RHS).
+	if ( op1->Tag() != EXPR_NAME )
+		Internal("Confusion in IndexAssignExpr::ReduceToSingleton");
+
+	IntrusivePtr<Expr> assign_expr{NewRef{}, this};
+	auto assign_stmt = make_intrusive<ExprStmt>(assign_expr);
+
+	IntrusivePtr<ListExpr> index = {NewRef{}, op2->AsListExpr()};
+	auto res = new IndexExpr(GetOp1(), index, false);
+	auto final_res = res->ReduceToSingleton(c, red_stmt);
+
+	red_stmt = MergeStmts(assign_stmt, red_stmt);
+
+	return final_res;
 	}
 
 void IndexAssignExpr::ExprDescribe(ODesc* d) const
@@ -3898,6 +3935,9 @@ IntrusivePtr<Val> FieldLHSAssignExpr::Eval(Frame* f) const
 
 bool FieldLHSAssignExpr::IsReduced() const
 	{
+	if ( ! (op1->IsSingleton() && op2->IsReduced()) )
+		printf("oops: %s\n", obj_desc(op2.get()));
+		
 	ASSERT(op1->IsSingleton() && op2->IsReduced());
 	return true;
 	}
@@ -3917,6 +3957,24 @@ Expr* FieldLHSAssignExpr::Reduce(ReductionContext* c,
 		}
 
 	return this->Ref();
+	}
+
+Expr* FieldLHSAssignExpr::ReduceToSingleton(ReductionContext* c,
+					IntrusivePtr<Stmt>& red_stmt)
+	{
+	// Yields a statement performing the assignment and for the
+	// expression the LHS (but turned into an RHS).
+	if ( op1->Tag() != EXPR_NAME )
+		Internal("Confusion in FieldLHSAssignExpr::ReduceToSingleton");
+
+	IntrusivePtr<Expr> assign_expr{NewRef{}, this};
+	auto assign_stmt = make_intrusive<ExprStmt>(assign_expr);
+
+	auto res = op1->ReduceToSingleton(c, red_stmt);
+
+	red_stmt = MergeStmts(assign_stmt, red_stmt);
+
+	return res;
 	}
 
 void FieldLHSAssignExpr::ExprDescribe(ODesc* d) const

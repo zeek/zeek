@@ -726,6 +726,8 @@ public:
 	bool IsReduced() const override;
 	bool HasReducedOps() const override;
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
+	Expr* ReduceToSingleton(ReductionContext* c,
+				IntrusivePtr<Stmt>& red_stmt) override;
 
 	IntrusivePtr<Expr> GetOp3() const override final	{ return op3; }
 	void SetOp3(IntrusivePtr<Expr> _op) override final { op3 = _op; }
@@ -804,6 +806,8 @@ public:
 	bool IsReduced() const override;
 	bool HasReducedOps() const override;
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
+	Expr* ReduceToSingleton(ReductionContext* c,
+				IntrusivePtr<Stmt>& red_stmt) override;
 
 protected:
 	void ExprDescribe(ODesc* d) const override;

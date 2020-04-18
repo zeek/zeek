@@ -108,6 +108,9 @@ bool ReductionContext::SameDPs(const DefPoints* dp1, const DefPoints* dp2) const
 	if ( dp1 == dp2 )
 		return true;
 
+	if ( ! dp1 || ! dp2 )
+		return false;
+
 	// Given how we construct DPs, they should be element-by-element
 	// equivalent; we don't have to worry about reordering.
 	if ( dp1->length() != dp2->length() )
@@ -436,7 +439,7 @@ bool ReductionContext::IsCSE(const AssignExpr* a,
 		auto lhs_di = mgr->GetConstIDReachingDef(lhs_id);
 		auto dps = a_max_rds->GetDefPoints(lhs_di);
 
-		if ( lhs_tmp->DPs() && lhs_tmp->DPs() != dps )
+		if ( lhs_tmp->DPs() && ! SameDPs(lhs_tmp->DPs(), dps) )
 			reporter->InternalError("double DPs for temporary");
 
 		lhs_tmp->SetDPs(dps);

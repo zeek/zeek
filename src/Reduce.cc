@@ -237,6 +237,9 @@ bool ReductionContext::SameExpr(const Expr* e1, const Expr* e2)
 	if ( e1->Tag() != e2->Tag() )
 		return false;
 
+	if ( ! same_type(e1->Type().get(), e2->Type().get()) )
+		return false;
+
 	switch ( e1->Tag() ) {
 	case EXPR_NAME:
 	case EXPR_CONST:
@@ -263,10 +266,32 @@ bool ReductionContext::SameExpr(const Expr* e1, const Expr* e2)
 		// else.
 		reporter->InternalError("Unexpected tag in ReductionContext::SameExpr");
 
+	case EXPR_ANY_INDEX:
+		{
+		auto a1 = e1->AsAnyIndexExpr();
+		auto a2 = e2->AsAnyIndexExpr();
+
+		if ( a1->Index() != a2->Index() )
+			return false;
+
+		return SameOp(a1->GetOp1(), a2->GetOp1());
+		}
+
 	case EXPR_FIELD:
 		{
 		auto f1 = e1->AsFieldExpr();
 		auto f2 = e2->AsFieldExpr();
+
+		if ( f1->Field() != f2->Field() )
+			return false;
+
+		return SameOp(f1->GetOp1(), f2->GetOp1());
+		}
+
+	case EXPR_HAS_FIELD:
+		{
+		auto f1 = e1->AsHasFieldExpr();
+		auto f2 = e2->AsHasFieldExpr();
 
 		if ( f1->Field() != f2->Field() )
 			return false;

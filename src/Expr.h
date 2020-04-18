@@ -71,6 +71,7 @@ class NameExpr;
 class IndexExpr;
 class AssignExpr;
 class IndexAssignExpr;
+class AnyIndexExpr;
 class FieldLHSAssignExpr;
 class FieldExpr;
 class HasFieldExpr;
@@ -259,6 +260,7 @@ public:
 	ACCESSORS(EXPR_NAME, NameExpr, AsNameExpr);
 	ACCESSORS(EXPR_ASSIGN, AssignExpr, AsAssignExpr);
 	ACCESSORS(EXPR_INDEX_ASSIGN, IndexAssignExpr, AsIndexAssignExpr);
+	ACCESSORS(EXPR_ANY_INDEX, AnyIndexExpr, AsAnyIndexExpr);
 	ACCESSORS(EXPR_FIELD_LHS_ASSIGN, FieldLHSAssignExpr, AsFieldLHSAssignExpr);
 	ACCESSORS(EXPR_FIELD, FieldExpr, AsFieldExpr);
 	ACCESSORS(EXPR_FIELD_ASSIGN, FieldAssignExpr, AsFieldAssignExpr);
@@ -775,6 +777,8 @@ class AnyIndexExpr : public UnaryExpr {
 public:
 	AnyIndexExpr(IntrusivePtr<Expr> op, int index);
 
+	int Index() const	{ return index; }
+
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
@@ -837,6 +841,7 @@ public:
 	~HasFieldExpr() override;
 
 	const char* FieldName() const	{ return field_name; }
+	int Field() const		{ return field; }
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;

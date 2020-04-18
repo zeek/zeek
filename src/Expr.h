@@ -70,6 +70,8 @@ class ListExpr;
 class NameExpr;
 class IndexExpr;
 class AssignExpr;
+class IndexAssignExpr;
+class FieldLHSAssignExpr;
 class FieldExpr;
 class HasFieldExpr;
 class FieldAssignExpr;
@@ -256,6 +258,8 @@ public:
 	ACCESSORS(EXPR_LIST, ListExpr, AsListExpr);
 	ACCESSORS(EXPR_NAME, NameExpr, AsNameExpr);
 	ACCESSORS(EXPR_ASSIGN, AssignExpr, AsAssignExpr);
+	ACCESSORS(EXPR_INDEX_ASSIGN, IndexAssignExpr, AsIndexAssignExpr);
+	ACCESSORS(EXPR_FIELD_LHS_ASSIGN, FieldLHSAssignExpr, AsFieldLHSAssignExpr);
 	ACCESSORS(EXPR_FIELD, FieldExpr, AsFieldExpr);
 	ACCESSORS(EXPR_FIELD_ASSIGN, FieldAssignExpr, AsFieldAssignExpr);
 	ACCESSORS(EXPR_INDEX, IndexExpr, AsIndexExpr);
@@ -786,6 +790,8 @@ public:
 	// "op1$field = op2", reduced.
 	FieldLHSAssignExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2,
 				int field_name);
+
+	int Field() const	{ return field; }
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 	bool IsReduced() const override;

@@ -143,7 +143,7 @@ public:
 	void CreateDef(DefinitionItem* di, DefinitionPoint dp,
 			bool is_pre, bool min_only);
 
-	DefinitionItem* GetExprReachingDef(Expr* e)
+	DefinitionItem* GetExprReachingDef(const Expr* e)
 		{ return item_map.GetExprReachingDef(e); }
 	DefinitionItem* GetIDReachingDef(const ID* id)
 		{ return item_map.GetIDReachingDef(id); }

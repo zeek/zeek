@@ -55,6 +55,14 @@ DefinitionItem* DefinitionItem::FindField(const char* field) const
 
 	auto offset = rt->FieldOffset(field);
 
+	return FindField(offset);
+	}
+
+DefinitionItem* DefinitionItem::FindField(int offset) const
+	{
+	if ( ! IsRecord() )
+		return nullptr;
+
 	return fields[offset];
 	}
 
@@ -64,6 +72,18 @@ DefinitionItem* DefinitionItem::CreateField(const char* field, const BroType* t)
 
 	if ( fields[offset] )
 		return fields[offset];
+
+	fields[offset] = new DefinitionItem(this, field, t);
+
+	return fields[offset];
+	}
+
+DefinitionItem* DefinitionItem::CreateField(int offset, const BroType* t)
+	{
+	if ( fields[offset] )
+		return fields[offset];
+
+	auto field = rt->FieldName(offset);
 
 	fields[offset] = new DefinitionItem(this, field, t);
 
@@ -116,7 +136,7 @@ const DefinitionItem* DefItemMap::GetConstIDReachingDef(const DefinitionItem* di
 	return di->FindField(field_name);
 	}
 
-DefinitionItem* DefItemMap::GetExprReachingDef(Expr* expr)
+DefinitionItem* DefItemMap::GetExprReachingDef(const Expr* expr)
 	{
 	if ( expr->Tag() == EXPR_NAME )
 		{

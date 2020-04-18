@@ -65,13 +65,13 @@ protected:
 	void CreateInitPreDef(const ID* id, DefinitionPoint dp);
 
 	void CreateInitPostDef(const ID* id, DefinitionPoint dp,
-				bool assume_full, const AssignExpr* init);
+				bool assume_full, const Expr* rhs);
 
 	void CreateInitPostDef(DefinitionItem* di, DefinitionPoint dp,
-				bool assume_full, const AssignExpr* init);
+				bool assume_full, const Expr* rhs);
 
 	void CreateInitDef(DefinitionItem* di, DefinitionPoint dp, bool is_pre,
-				bool assume_full, const AssignExpr* init);
+				bool assume_full, const Expr* rhs);
 
 	void CreateRecordRDs(DefinitionItem* di, DefinitionPoint dp,
 				bool assume_full, const DefinitionItem* rhs_di)
@@ -632,7 +632,8 @@ bool RD_Decorate::CheckLHS(const Expr* lhs, const Expr* e)
 	{
 	const AssignExpr* a =
 		(e->Tag() == EXPR_ASSIGN) ? e->AsAssignExpr() : nullptr;
-		
+	auto rhs = a->Op2();
+
 	switch ( lhs->Tag() ) {
 	case EXPR_REF:
 		{
@@ -646,7 +647,7 @@ bool RD_Decorate::CheckLHS(const Expr* lhs, const Expr* e)
 		auto n = lhs->AsNameExpr();
 		auto id = n->Id();
 
-		CreateInitPostDef(id, DefinitionPoint(e), false, a);
+		CreateInitPostDef(id, DefinitionPoint(e), false, rhs);
 
 		return true;
 		}
@@ -701,7 +702,7 @@ bool RD_Decorate::CheckLHS(const Expr* lhs, const Expr* e)
 		if ( ! field_rd )
 			field_rd = r_def->CreateField(fn, ft.get());
 
-		CreateInitPostDef(field_rd, DefinitionPoint(e), false, a);
+		CreateInitPostDef(field_rd, DefinitionPoint(e), false, rhs);
 
 		return true;
 		}
@@ -948,6 +949,71 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		break;
 		}
 
+        case EXPR_INDEX_ASSIGN:
+		{
+		auto a = e->AsIndexAssignExpr();
+		auto aggr = a->Op1();
+		auto index = a->Op2();
+		auto rhs = a->GetOp3().get();
+
+		bool rhs_aggr = IsAggr(rhs);
+
+		mgr.SetPreFromPre(aggr, a);
+		mgr.SetPreFromPre(index, a);
+		mgr.SetPreFromPre(rhs, a);
+
+		if ( aggr->Tag() == EXPR_NAME )
+			{ // Same as corresponding CheckLHS code.
+			// Count this as an initialization of the aggregate.
+			auto id = aggr->AsNameExpr()->Id();
+			mgr.CreatePostDef(id, DefinitionPoint(e), false);
+
+			// Don't recurse into assessing the aggregate,
+			// since it's okay in this context.
+			}
+		else
+			aggr->Traverse(this);
+
+		index->Traverse(this);
+		rhs->Traverse(this);
+
+		return TC_ABORTSTMT;
+		}
+
+        case EXPR_FIELD_LHS_ASSIGN:
+		{
+		auto f = e->AsFieldLHSAssignExpr();
+		auto aggr = f->Op1();
+		auto r = f->Op2();
+
+		mgr.SetPreFromPre(aggr, f);
+		mgr.SetPreFromPre(r, f);
+
+		if ( r->Tag() != EXPR_NAME && r->Tag() != EXPR_FIELD )
+			// This is a more complicated expression that we're
+			// not able to concretely track.
+			break;
+
+		r->Traverse(this);
+
+		auto r_def = mgr.GetExprReachingDef(f);
+		if ( ! r_def )
+			// This should have already generated a complaint.
+			// Avoid cascade.
+			break;
+
+		auto offset = f->Field();
+		auto field_rd = r_def->FindField(offset);
+
+		auto ft = f->Type();
+		if ( ! field_rd )
+			field_rd = r_def->CreateField(offset, ft.get());
+
+		CreateInitPostDef(field_rd, DefinitionPoint(e), false, r);
+
+		return TC_ABORTSTMT;
+		}
+
 	case EXPR_FIELD:
 		{
 		auto f = e->AsFieldExpr();
@@ -1120,24 +1186,24 @@ void RD_Decorate::CreateInitPreDef(const ID* id, DefinitionPoint dp)
 	}
 
 void RD_Decorate::CreateInitPostDef(const ID* id, DefinitionPoint dp,
-				bool assume_full, const AssignExpr* init)
+				bool assume_full, const Expr* rhs)
 	{
 	auto di = mgr.GetIDReachingDef(id);
 	if ( ! di )
 		return;
 
-	CreateInitDef(di, dp, false, assume_full, init);
+	CreateInitDef(di, dp, false, assume_full, rhs);
 	}
 
 void RD_Decorate::CreateInitPostDef(DefinitionItem* di, DefinitionPoint dp,
-				bool assume_full, const AssignExpr* init)
+				bool assume_full, const Expr* rhs)
 	{
-	CreateInitDef(di, dp, false, assume_full, init);
+	CreateInitDef(di, dp, false, assume_full, rhs);
 	}
 
 void RD_Decorate::CreateInitDef(DefinitionItem* di, DefinitionPoint dp,
 				bool is_pre, bool assume_full,
-				const AssignExpr* init)
+				const Expr* rhs)
 	{
 	if ( is_pre )
 		mgr.CreatePreDef(di, dp, false);
@@ -1149,10 +1215,8 @@ void RD_Decorate::CreateInitDef(DefinitionItem* di, DefinitionPoint dp,
 
 	const DefinitionItem* rhs_di = nullptr;
 
-	if ( init )
+	if ( rhs )
 		{
-		auto rhs = init->Op2();
-
 		if ( rhs->Type()->Tag() == TYPE_ANY )
 			// All bets are off.
 			assume_full = true;

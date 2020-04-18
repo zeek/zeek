@@ -23,7 +23,9 @@ public:
 	// For this definition item, look for a field corresponding
 	// to the given name.
 	DefinitionItem* FindField(const char* field) const;
+	DefinitionItem* FindField(int offset) const;
 	DefinitionItem* CreateField(const char* field, const BroType* t);
+	DefinitionItem* CreateField(int offset, const BroType* t);
 
 protected:
 	void CheckForRecord();
@@ -55,7 +57,7 @@ public:
 	// Gets definition for either a name or a record field reference.
 	// Returns nil if "expr" lacks such a form, or if there isn't
 	// any such definition.
-	DefinitionItem* GetExprReachingDef(Expr* expr);
+	DefinitionItem* GetExprReachingDef(const Expr* expr);
 
 	// Returns the definition item for a given ID; creates it if
 	// it doesn't already exist.

@@ -1689,10 +1689,21 @@ Expr* AddToExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( IsVector(op1->Type()->Tag()) )
 		{
+		IntrusivePtr<Stmt> red_stmt1;
+		IntrusivePtr<Stmt> red_stmt2;
+
+		op1 = {AdoptRef{}, op1->Reduce(c, red_stmt1)};
+		op2 = {AdoptRef{}, op2->Reduce(c, red_stmt2)};
+
 		auto append = new AppendToExpr(op1, op2);
 		append->SetOriginal(this);
-		auto res = append->Reduce(c, red_stmt);
-		return res;
+
+		IntrusivePtr<Expr> append_ptr = {AdoptRef{}, append};
+		auto append_stmt = make_intrusive<ExprStmt>(append_ptr);
+
+		red_stmt = MergeStmts(red_stmt1, red_stmt2, append_stmt);
+
+		return op1->Ref();
 		}
 
 	else
@@ -1736,6 +1747,16 @@ IntrusivePtr<Val> AppendToExpr::Eval(Frame* f) const
 		RuntimeError("type-checking failed in vector append");
 
 	return v1;
+	}
+
+bool AppendToExpr::IsReduced() const
+	{
+	return true;
+	}
+
+Expr* AppendToExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	return this->Ref();
 	}
 
 

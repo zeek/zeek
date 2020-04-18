@@ -423,7 +423,9 @@ Stmt* ExprStmt::Reduce(ReductionContext* c)
 	{
 	if ( e )
 		{
-		if ( e->Tag() == EXPR_NOP )
+		auto t = e->Tag();
+
+		if ( t == EXPR_NOP )
 			return TransformMe(new NullStmt, c);
 
 		if ( c->Optimizing() )
@@ -436,7 +438,9 @@ Stmt* ExprStmt::Reduce(ReductionContext* c)
 			// No point evaluating.
 			return TransformMe(new NullStmt, c);
 
-		if ( (e->Tag() == EXPR_ASSIGN || e->Tag() == EXPR_CALL) &&
+		if ( (t == EXPR_ASSIGN || t == EXPR_CALL ||
+		      t == EXPR_INDEX_ASSIGN || t == EXPR_FIELD_LHS_ASSIGN ||
+		      t == EXPR_APPEND_TO) &&
 		     e->IsReduced() )
 			return this->Ref();
 

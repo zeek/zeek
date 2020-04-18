@@ -555,6 +555,9 @@ class AppendToExpr : public BinaryExpr {
 public:
 	AppendToExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	IntrusivePtr<Val> Eval(Frame* f) const override;
+
+	bool IsReduced() const override;
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
 class RemoveFromExpr : public BinaryExpr {

@@ -1326,46 +1326,26 @@ IntrusivePtr<Val> IncrExpr::Eval(Frame* f) const
 
 Expr* IncrExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
-	IntrusivePtr<Stmt> ref_red_stmts;
-	op = {AdoptRef{}, op->Reduce(c, ref_red_stmts)};
-
 	if ( op->Tag() != EXPR_REF )
 		Internal("confusion in IncrExpr::Reduce");
 
 	auto ref_op = op->AsRefExpr();
-	auto target = ref_op->Op();
+	auto target = ref_op->GetOp1();
 
-	IntrusivePtr<Stmt> get_val_stmts;
-	auto get_target = target->AssignToTemporary(c, get_val_stmts);
-
-	// Now that we have the target, increment/decrement it and
-	// assign it back.
 	auto incr_const = new ConstExpr({AdoptRef{}, val_mgr->GetCount(1)});
+	IntrusivePtr<Expr> incr_ptr = {AdoptRef{}, incr_const};
 	incr_const->SetOriginal(this);
 
-	auto increment_expr =
-		Tag() == EXPR_INCR ?
-			(Expr*) new AddExpr({AdoptRef{}, get_target},
-					{AdoptRef{}, incr_const}) :
-			(Expr*) new SubExpr({AdoptRef{}, get_target},
-					{AdoptRef{}, incr_const});
+	auto increment_expr = Tag() == EXPR_INCR ?
+				(Expr*) new AddExpr(target, incr_ptr) :
+				(Expr*) new SubExpr(target, incr_ptr);
 	increment_expr->SetOriginal(this);
 
-	IntrusivePtr<Stmt> incr_stmts;
-	auto result = increment_expr->AssignToTemporary(c, incr_stmts);
+	IntrusivePtr<Expr> increment_ptr = {AdoptRef{}, increment_expr};
+	auto assign = make_intrusive<AssignExpr>(target, increment_ptr,
+						false, nullptr, nullptr, false);
 
-	// Assign it back to the target.
-	IntrusivePtr ref_op_ptr{NewRef{}, ref_op};
-	IntrusivePtr result_ptr{AdoptRef{}, result};
-	auto final = get_assign_expr(ref_op_ptr, result_ptr, false).release();
-
-	IntrusivePtr<Stmt> assign_red_stmt;
-	final = final->ReduceToSingleton(c, assign_red_stmt);
-
-	auto m1 = MergeStmts(ref_red_stmts, get_val_stmts, incr_stmts);
-	red_stmt = {AdoptRef{}, MergeStmts(m1, assign_red_stmt)->Reduce(c)};
-
-	return final;
+	return assign->Reduce(c, red_stmt);
 	}
 
 bool IncrExpr::IsPure() const

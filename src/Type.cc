@@ -1513,6 +1513,10 @@ bool same_type(const BroType* t1, const BroType* t2, bool is_init, bool match_re
 				return false;
 			}
 
+		if ( ft1->ArgTypes()->Types()->length() !=
+		     ft2->ArgTypes()->Types()->length() )
+			return false;
+
 		return ft1->CheckArgs(ft2->ArgTypes()->Types(), is_init);
 		}
 

@@ -5484,7 +5484,11 @@ Expr* CallExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 
 IntrusivePtr<Stmt> CallExpr::ReduceToSingletons(ReductionContext* c)
 	{
-	auto func_stmt = func->ReduceToSingletons(c);
+	IntrusivePtr<Stmt> func_stmt;
+
+	if ( ! func->IsSingleton() )
+		func = {AdoptRef{}, func->Reduce(c, func_stmt)};
+
 	auto args_stmt = args->ReduceToSingletons(c);
 
 	return MergeStmts(func_stmt, args_stmt);

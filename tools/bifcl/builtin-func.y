@@ -63,6 +63,8 @@ struct decl_struct {
 	string generate_c_fullname;
 	string generate_c_namespace_start;
 	string generate_c_namespace_end;
+	string enqueue_c_barename;
+	string enqueue_c_fullname;
 } decl;
 
 void set_definition_type(int type, const char *arg_type_name)
@@ -90,7 +92,9 @@ void set_decl_name(const char *name)
 	decl.bro_name = "";
 
 	decl.generate_c_fullname = "";
+	decl.enqueue_c_fullname = "";
 	decl.generate_bare_name = string("generate_") + decl.bare_name;
+	decl.enqueue_c_barename = string("enqueue_") + decl.bare_name;
 	decl.generate_c_namespace_start = "";
 	decl.generate_c_namespace_end = "";
 
@@ -120,6 +124,7 @@ void set_decl_name(const char *name)
 		decl.generate_c_namespace_start = "namespace BifEvent { ";
 		decl.generate_c_namespace_end = " } ";
 		decl.generate_c_fullname = "BifEvent::";
+		decl.enqueue_c_fullname = "BifEvent::";
 		break;
 
 	default:
@@ -136,6 +141,7 @@ void set_decl_name(const char *name)
 		decl.generate_c_namespace_start  += "namespace " + decl.module_name + " { ";
 		decl.generate_c_namespace_end += " } ";
 		decl.generate_c_fullname += decl.module_name + "::";
+		decl.enqueue_c_fullname += decl.module_name + "::";
 		}
 
 	decl.bro_fullname += decl.bare_name;
@@ -145,7 +151,7 @@ void set_decl_name(const char *name)
 	decl.c_fullname += decl.bare_name;
 	decl.bro_name += name;
 	decl.generate_c_fullname += decl.generate_bare_name;
-
+	decl.enqueue_c_fullname += decl.enqueue_c_barename;
 	}
 
 const char* arg_list_name = "BiF_ARGS";
@@ -157,11 +163,13 @@ static struct {
 	const char* bif_type;
 	const char* bro_type;
 	const char* c_type;
+	const char* c_type_smart;
 	const char* accessor;
 	const char* constructor;
+	const char* ctor_smatr;
 } builtin_types[] = {
-#define DEFINE_BIF_TYPE(id, bif_type, bro_type, c_type, accessor, constructor) \
-	{bif_type, bro_type, c_type, accessor, constructor},
+#define DEFINE_BIF_TYPE(id, bif_type, bro_type, c_type, c_type_smart, accessor, constructor, ctor_smart) \
+	{bif_type, bro_type, c_type, c_type_smart, accessor, constructor, ctor_smart},
 #include "bif_type.def"
 #undef DEFINE_BIF_TYPE
 };
@@ -199,32 +207,54 @@ char* concat(const char* str1, const char* str2)
 	return s;
 	}
 
-// Print the bro_event_* function prototype in C++, without the ending ';'
-void print_event_c_prototype(FILE *fp, bool is_header)
+static void print_event_c_prototype_args(FILE* fp, bool smart)
 	{
-	if ( is_header )
+	for ( auto i = 0u; i < args.size(); ++i )
+		{
+		if ( i > 0 )
+			fprintf(fp, ", ");
+
+		args[i]->PrintCArg(fp, i, smart);
+		}
+	}
+
+static void print_event_c_prototype_header(FILE* fp, bool smart)
+	{
+	if ( smart )
 		fprintf(fp, "%s void %s(analyzer::Analyzer* analyzer%s",
-			decl.generate_c_namespace_start.c_str(), decl.generate_bare_name.c_str(),
+		        decl.generate_c_namespace_start.c_str(),
+		        decl.enqueue_c_barename.c_str(),
+		        args.size() ? ", " : "" );
+	else
+		fprintf(fp, "%s [[deprecated(\"Remove in 4.1. Use %s instead.\")]] void %s(analyzer::Analyzer* analyzer%s",
+		        decl.generate_c_namespace_start.c_str(),
+		        decl.enqueue_c_fullname.c_str(),
+		        decl.generate_bare_name.c_str(),
+		        args.size() ? ", " : "" );
+
+
+	print_event_c_prototype_args(fp, smart);
+	fprintf(fp, ")");
+	fprintf(fp, "; %s\n", decl.generate_c_namespace_end.c_str());
+	}
+
+static void print_event_c_prototype_impl(FILE* fp, bool smart)
+	{
+	if ( smart )
+		fprintf(fp, "void %s(analyzer::Analyzer* analyzer%s",
+			decl.enqueue_c_fullname.c_str(),
 			args.size() ? ", " : "" );
 	else
 		fprintf(fp, "void %s(analyzer::Analyzer* analyzer%s",
 			decl.generate_c_fullname.c_str(),
 			args.size() ? ", " : "" );
-	for ( int i = 0; i < (int) args.size(); ++i )
-		{
-		if ( i > 0 )
-			fprintf(fp, ", ");
-		args[i]->PrintCArg(fp, i);
-		}
+
+	print_event_c_prototype_args(fp, smart);
 	fprintf(fp, ")");
-	if ( is_header )
-		fprintf(fp, "; %s\n", decl.generate_c_namespace_end.c_str());
-	else
-		fprintf(fp, "\n");
+	fprintf(fp, "\n");
 	}
 
-// Print the bro_event_* function body in C++.
-void print_event_c_body(FILE *fp)
+static void print_event_c_body(FILE* fp, bool smart)
 	{
 	fprintf(fp, "\t{\n");
 	fprintf(fp, "\t// Note that it is intentional that here we do not\n");
@@ -242,7 +272,7 @@ void print_event_c_body(FILE *fp)
 	for ( int i = 0; i < (int) args.size(); ++i )
 		{
 		fprintf(fp, "\t        ");
-		args[i]->PrintBroValConstructor(fp);
+		args[i]->PrintBroValConstructor(fp, smart);
 		fprintf(fp, ",\n");
 
 		if ( args[i]->Type() == TYPE_CONNECTION )
@@ -266,7 +296,7 @@ void print_event_c_body(FILE *fp)
 		fprintf(fp, ", %s", connection_arg->Name());
 
 	fprintf(fp, ");\n");
-	fprintf(fp, "\t} // event generation\n");
+	fprintf(fp, "\t}\n\n");
 	//fprintf(fp, "%s // end namespace\n", decl.generate_c_namespace_end.c_str());
 	}
 
@@ -386,9 +416,12 @@ event_def:	event_prefix opt_ws plain_head opt_func_attrs
 			{
 			if ( events.find(decl.bro_fullname) == events.end() )
 				{
-				print_event_c_prototype(fp_func_h, true);
-				print_event_c_prototype(fp_func_def, false);
-				print_event_c_body(fp_func_def);
+				print_event_c_prototype_header(fp_func_h, false);
+				print_event_c_prototype_impl(fp_func_def, false);
+				print_event_c_body(fp_func_def, false);
+				print_event_c_prototype_header(fp_func_h, true);
+				print_event_c_prototype_impl(fp_func_def, true);
+				print_event_c_body(fp_func_def, true);
 				events.insert(decl.bro_fullname);
 				}
 			}

@@ -11,11 +11,13 @@ static struct {
 	const char* bif_type;
 	const char* bro_type;
 	const char* c_type;
+	const char* c_type_smart;
 	const char* accessor;
 	const char* constructor;
+	const char* ctor_smart;
 } builtin_func_arg_type[] = {
-#define DEFINE_BIF_TYPE(id, bif_type, bro_type, c_type, accessor, constructor) \
-	{bif_type, bro_type, c_type, accessor, constructor},
+#define DEFINE_BIF_TYPE(id, bif_type, bro_type, c_type, c_type_smart, accessor, constructor, ctor_smart) \
+	{bif_type, bro_type, c_type, c_type_smart, accessor, constructor, ctor_smart},
 #include "bif_type.def"
 #undef DEFINE_BIF_TYPE
 };
@@ -68,15 +70,19 @@ void BuiltinFuncArg::PrintCDef(FILE* fp, int n)
 	fprintf(fp, ");\n");
 	}
 
-void BuiltinFuncArg::PrintCArg(FILE* fp, int n)
+void BuiltinFuncArg::PrintCArg(FILE* fp, int n, bool smart)
 	{
-	const char* ctype = builtin_func_arg_type[type].c_type;
+	const char* ctype = smart ? builtin_func_arg_type[type].c_type_smart
+	                          : builtin_func_arg_type[type].c_type;
 	char buf[1024];
 
 	fprintf(fp, "%s %s", ctype, name);
 	}
 
-void BuiltinFuncArg::PrintBroValConstructor(FILE* fp)
+void BuiltinFuncArg::PrintBroValConstructor(FILE* fp, bool smart)
 	{
-	fprintf(fp, builtin_func_arg_type[type].constructor, name);
+	if ( smart )
+		fprintf(fp, builtin_func_arg_type[type].ctor_smart, name);
+	else
+		fprintf(fp, builtin_func_arg_type[type].constructor, name);
 	}

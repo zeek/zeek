@@ -3,20 +3,10 @@
 #include <stdio.h>
 
 enum builtin_func_arg_type {
-#define DEFINE_BIF_TYPE(id, bif_type, bro_type, c_type, accessor, constructor) \
+#define DEFINE_BIF_TYPE(id, bif_type, bro_type, c_type, c_type_smart, accessor, constructor, ctor_smart) \
 	id,
 #include "bif_type.def"
 #undef DEFINE_BIF_TYPE
-/*
-	TYPE_ANY,
-	TYPE_BOOL,
-	TYPE_COUNT,
-	TYPE_INT,
-	TYPE_STRING,
-	TYPE_PATTERN,
-	TYPE_PORT,
-	TYPE_OTHER,
-*/
 };
 
 extern const char* builtin_func_arg_type_bro_name[];
@@ -37,8 +27,8 @@ public:
 
 	void PrintBro(FILE* fp);
 	void PrintCDef(FILE* fp, int n);
-	void PrintCArg(FILE* fp, int n);
-	void PrintBroValConstructor(FILE* fp);
+	void PrintCArg(FILE* fp, int n, bool smart);
+	void PrintBroValConstructor(FILE* fp, bool smart);
 
 protected:
 	const char* name;

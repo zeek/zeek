@@ -352,7 +352,14 @@ void Expr::Describe(ODesc* d) const
 	if ( d->DoOrig() )
 		Original()->ExprDescribe(d);
 	else
+		{
+		// d->Add("{");
 		ExprDescribe(d);
+
+		// d->Add(" (type ");
+		// d->Add(type_name(Type()->Tag()));
+		// d->Add(")}");
+		}
 
 	if ( IsParen() && ! d->IsBinary() )
 		d->Add(")");

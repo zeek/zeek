@@ -21,21 +21,6 @@
 #include "logging/Manager.h"
 #include "logging/logging.bif.h"
 
-static char obj_desc_storage[8192];
-
-static const char* obj_desc(const BroObj* o)
-	{
-	ODesc d;
-	d.SetDoOrig(false);
-	o->Describe(&d);
-	d.SP();
-	o->GetLocationInfo()->Describe(&d);
-
-	strcpy(obj_desc_storage, d.Description());
-
-	return obj_desc_storage;
-	}
-
 const char* stmt_name(BroStmtTag t)
 	{
 	static const char* stmt_names[int(NUM_STMTS)] = {

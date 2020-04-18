@@ -210,3 +210,10 @@ protected:
 
 	std::set<const BroType*> encountered_types;
 };
+
+// Returns a string representation of an object's description.  (This
+// is for the object itself, not for its original.)  Used for debugging.
+// Uses common storage, so do not call twice without first making full use
+// of the value returned from the initial call.
+class BroObj;
+extern const char* obj_desc(const BroObj* o);

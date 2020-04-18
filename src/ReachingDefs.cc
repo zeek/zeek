@@ -4,21 +4,6 @@
 #include "Desc.h"
 
 
-static char obj_desc_storage[8192];
-
-static const char* obj_desc(const BroObj* o)
-	{
-	ODesc d;
-	d.SetDoOrig(false);
-	o->Describe(&d);
-	d.SP();
-	o->GetLocationInfo()->Describe(&d);
-
-	strcpy(obj_desc_storage, d.Description());
-
-	return obj_desc_storage;
-	}
-
 ReachingDefs::ReachingDefs()
 	{
 	my_rd_map = new ReachingDefsMap;

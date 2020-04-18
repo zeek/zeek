@@ -424,3 +424,16 @@ bool ODesc::FindType(const BroType* type)
 
 	return false;
 	}
+
+const char* obj_desc(const BroObj* o)
+	{
+	static ODesc d;
+
+	d.Clear();
+	d.SetDoOrig(false);
+	o->Describe(&d);
+	d.SP();
+	o->GetLocationInfo()->Describe(&d);
+
+	return d.Description();
+	}

@@ -12,22 +12,6 @@
 #include "module_util.h"
 
 
-static char obj_desc_storage[8192];
-
-static const char* obj_desc(const BroObj* o)
-	{
-	ODesc d;
-	d.SetDoOrig(false);
-	o->Describe(&d);
-	d.SP();
-	o->GetLocationInfo()->Describe(&d);
-
-	strcpy(obj_desc_storage, d.Description());
-
-	return obj_desc_storage;
-	}
-
-
 // Helper class that tracks definitions gathered in a block that either
 // need to be propagated to the beginning of the block or to the end.
 // Used for RD propagation due to altered control flow (next/break/fallthrough).

@@ -1345,7 +1345,7 @@ Expr* IncrExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	auto assign = make_intrusive<AssignExpr>(target, increment_ptr,
 						false, nullptr, nullptr, false);
 
-	return assign->Reduce(c, red_stmt);
+	return assign->ReduceToSingleton(c, red_stmt);
 	}
 
 bool IncrExpr::IsPure() const

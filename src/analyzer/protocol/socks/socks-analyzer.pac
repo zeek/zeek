@@ -1,10 +1,10 @@
 
 %header{
-StringVal* array_to_string(vector<uint8> *a);
+IntrusivePtr<StringVal> array_to_string(vector<uint8> *a);
 %}
 
 %code{
-StringVal* array_to_string(vector<uint8> *a)
+IntrusivePtr<StringVal> array_to_string(vector<uint8> *a)
 	{
 	int len = a->size();
 	auto tmp = std::make_unique<char[]>(len);
@@ -14,7 +14,7 @@ StringVal* array_to_string(vector<uint8> *a)
 	while ( len > 0 && tmp[len-1] == '\0' )
 		--len;
 
-	return new StringVal(len, tmp.get());
+	return make_intrusive<StringVal>(len, tmp.get());
 	}
 %}
 
@@ -24,19 +24,19 @@ refine connection SOCKS_Conn += {
 		%{
 		if ( socks_request )
 			{
-			RecordVal* sa = new RecordVal(socks_address);
+			auto sa = make_intrusive<RecordVal>(socks_address);
 			sa->Assign(0, make_intrusive<AddrVal>(htonl(${request.addr})));
 
 			if ( ${request.v4a} )
 				sa->Assign(1, array_to_string(${request.name}));
 
-			BifEvent::generate_socks_request(bro_analyzer(),
-			                                 bro_analyzer()->Conn(),
-			                                 4,
-			                                 ${request.command},
-			                                 sa,
-			                                 val_mgr->Port(${request.port}, TRANSPORT_TCP)->Ref()->AsPortVal(),
-			                                 array_to_string(${request.user}));
+			BifEvent::enqueue_socks_request(bro_analyzer(),
+			                                bro_analyzer()->Conn(),
+			                                4,
+			                                ${request.command},
+			                                std::move(sa),
+			                                val_mgr->Port(${request.port}, TRANSPORT_TCP),
+			                                array_to_string(${request.user}));
 			}
 
 		static_cast<analyzer::socks::SOCKS_Analyzer*>(bro_analyzer())->EndpointDone(true);
@@ -48,15 +48,15 @@ refine connection SOCKS_Conn += {
 		%{
 		if ( socks_reply )
 			{
-			RecordVal* sa = new RecordVal(socks_address);
+			auto sa = make_intrusive<RecordVal>(socks_address);
 			sa->Assign(0, make_intrusive<AddrVal>(htonl(${reply.addr})));
 
-			BifEvent::generate_socks_reply(bro_analyzer(),
-			                               bro_analyzer()->Conn(),
-			                               4,
-			                               ${reply.status},
-			                               sa,
-			                               val_mgr->Port(${reply.port}, TRANSPORT_TCP)->Ref()->AsPortVal());
+			BifEvent::enqueue_socks_reply(bro_analyzer(),
+			                              bro_analyzer()->Conn(),
+			                              4,
+			                              ${reply.status},
+			                              std::move(sa),
+			                              val_mgr->Port(${reply.port}, TRANSPORT_TCP));
 			}
 
 		bro_analyzer()->ProtocolConfirmation();
@@ -80,7 +80,7 @@ refine connection SOCKS_Conn += {
 			return false;
 			}
 
-		RecordVal* sa = new RecordVal(socks_address);
+		auto sa = make_intrusive<RecordVal>(socks_address);
 
 		// This is dumb and there must be a better way (checking for presence of a field)...
 		switch ( ${request.remote_name.addr_type} )
@@ -100,20 +100,17 @@ refine connection SOCKS_Conn += {
 
 			default:
 				bro_analyzer()->ProtocolViolation(fmt("invalid SOCKSv5 addr type: %d", ${request.remote_name.addr_type}));
-				Unref(sa);
 				return false;
 			}
 
 		if ( socks_request )
-			BifEvent::generate_socks_request(bro_analyzer(),
-			                                 bro_analyzer()->Conn(),
-			                                 5,
-			                                 ${request.command},
-			                                 sa,
-			                                 val_mgr->Port(${request.port}, TRANSPORT_TCP)->Ref()->AsPortVal(),
-			                                 val_mgr->EmptyString()->Ref()->AsStringVal());
-		else
-			Unref(sa);
+			BifEvent::enqueue_socks_request(bro_analyzer(),
+			                                bro_analyzer()->Conn(),
+			                                5,
+			                                ${request.command},
+			                                std::move(sa),
+			                                val_mgr->Port(${request.port}, TRANSPORT_TCP),
+			                                val_mgr->EmptyString());
 
 		static_cast<analyzer::socks::SOCKS_Analyzer*>(bro_analyzer())->EndpointDone(true);
 
@@ -122,8 +119,8 @@ refine connection SOCKS_Conn += {
 
 	function socks5_reply(reply: SOCKS5_Reply): bool
 		%{
-		RecordVal* sa = new RecordVal(socks_address);
-		
+		auto sa = make_intrusive<RecordVal>(socks_address);
+
 		// This is dumb and there must be a better way (checking for presence of a field)...
 		switch ( ${reply.bound.addr_type} )
 			{
@@ -142,19 +139,16 @@ refine connection SOCKS_Conn += {
 
 			default:
 				bro_analyzer()->ProtocolViolation(fmt("invalid SOCKSv5 addr type: %d", ${reply.bound.addr_type}));
-				Unref(sa);
 				return false;
 			}
 
 		if ( socks_reply )
-			BifEvent::generate_socks_reply(bro_analyzer(),
-			                               bro_analyzer()->Conn(),
-			                               5,
-			                               ${reply.reply},
-			                               sa,
-			                               val_mgr->Port(${reply.port}, TRANSPORT_TCP)->Ref()->AsPortVal());
-		else
-			Unref(sa);
+			BifEvent::enqueue_socks_reply(bro_analyzer(),
+			                              bro_analyzer()->Conn(),
+			                              5,
+			                              ${reply.reply},
+			                              std::move(sa),
+			                              val_mgr->Port(${reply.port}, TRANSPORT_TCP));
 
 		bro_analyzer()->ProtocolConfirmation();
 		static_cast<analyzer::socks::SOCKS_Analyzer*>(bro_analyzer())->EndpointDone(false);
@@ -166,12 +160,12 @@ refine connection SOCKS_Conn += {
 		if ( ! socks_login_userpass_request )
 			return true;
 
-		StringVal* user = new StringVal(${request.username}.length(), (const char*) ${request.username}.begin());
-		StringVal* pass = new StringVal(${request.password}.length(), (const char*) ${request.password}.begin());
-		
-		BifEvent::generate_socks_login_userpass_request(bro_analyzer(),
-		                                                bro_analyzer()->Conn(),
-		                                                user, pass);
+		auto user = make_intrusive<StringVal>(${request.username}.length(), (const char*) ${request.username}.begin());
+		auto pass = make_intrusive<StringVal>(${request.password}.length(), (const char*) ${request.password}.begin());
+
+		BifEvent::enqueue_socks_login_userpass_request(bro_analyzer(),
+		                                               bro_analyzer()->Conn(),
+		                                               std::move(user), std::move(pass));
 		return true;
 		%}
 
@@ -186,13 +180,13 @@ refine connection SOCKS_Conn += {
 		reporter->Weird(bro_analyzer()->Conn(), "socks5_unsupported_authentication", fmt("method %d, version %d", auth_method, version));
 		return true;
 		%}
-	
+
 	function socks5_auth_reply_userpass(reply: SOCKS5_Auth_Reply_UserPass_v1): bool
 		%{
 		if ( socks_login_userpass_reply )
-			BifEvent::generate_socks_login_userpass_reply(bro_analyzer(),
-			                                              bro_analyzer()->Conn(),
-			                                              ${reply.code});
+			BifEvent::enqueue_socks_login_userpass_reply(bro_analyzer(),
+			                                             bro_analyzer()->Conn(),
+			                                             ${reply.code});
 		return true;
 		%}
 

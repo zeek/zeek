@@ -16,20 +16,23 @@
 
 		if ( ssl_client_hello )
 			{
-			vector<int>* cipher_suites = new vector<int>();
-			if ( cipher_suites16 )
-				std::copy(cipher_suites16->begin(), cipher_suites16->end(), std::back_inserter(*cipher_suites));
-			else
-				std::transform(cipher_suites24->begin(), cipher_suites24->end(), std::back_inserter(*cipher_suites), to_int());
+			vector<int> cipher_suites;
 
-			VectorVal* cipher_vec = new VectorVal(internal_type("index_vec")->AsVectorType());
-			for ( unsigned int i = 0; i < cipher_suites->size(); ++i )
+			if ( cipher_suites16 )
+				std::copy(cipher_suites16->begin(), cipher_suites16->end(), std::back_inserter(cipher_suites));
+			else
+				std::transform(cipher_suites24->begin(), cipher_suites24->end(), std::back_inserter(cipher_suites), to_int());
+
+			auto cipher_vec = make_intrusive<VectorVal>(internal_type("index_vec")->AsVectorType());
+
+			for ( unsigned int i = 0; i < cipher_suites.size(); ++i )
 				{
-				auto ciph = val_mgr->Count((*cipher_suites)[i]);
+				auto ciph = val_mgr->Count(cipher_suites[i]);
 				cipher_vec->Assign(i, ciph);
 				}
 
-			VectorVal* comp_vec = new VectorVal(internal_type("index_vec")->AsVectorType());
+			auto comp_vec = make_intrusive<VectorVal>(internal_type("index_vec")->AsVectorType());
+
 			if ( compression_methods )
 				{
 				for ( unsigned int i = 0; i < compression_methods->size(); ++i )
@@ -39,13 +42,12 @@
 					}
 				}
 
-			BifEvent::generate_ssl_client_hello(bro_analyzer(), bro_analyzer()->Conn(),
-							version, record_version(), ts, new StringVal(client_random.length(),
-							(const char*) client_random.data()),
-							to_string_val(session_id),
-							cipher_vec, comp_vec);
-
-			delete cipher_suites;
+			BifEvent::enqueue_ssl_client_hello(bro_analyzer(), bro_analyzer()->Conn(),
+							version, record_version(), ts,
+							make_intrusive<StringVal>(client_random.length(),
+							                          (const char*) client_random.data()),
+							{AdoptRef{}, to_string_val(session_id)},
+							std::move(cipher_vec), std::move(comp_vec));
 			}
 
 		return true;

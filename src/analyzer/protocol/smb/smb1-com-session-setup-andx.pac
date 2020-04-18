@@ -12,7 +12,7 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb1_session_setup_andx_request )
 			{
-			RecordVal* request = new RecordVal(BifType::Record::SMB1::SessionSetupAndXRequest);
+			auto request = make_intrusive<RecordVal>(BifType::Record::SMB1::SessionSetupAndXRequest);
 			RecordVal* capabilities;
 
 			request->Assign(0, val_mgr->Count(${val.word_count}));
@@ -75,7 +75,10 @@ refine connection SMB_Conn += {
 					break;
 				}
 
-			BifEvent::generate_smb1_session_setup_andx_request(bro_analyzer(), bro_analyzer()->Conn(), BuildHeaderVal(header), request);
+			BifEvent::enqueue_smb1_session_setup_andx_request(bro_analyzer(),
+			                                                  bro_analyzer()->Conn(),
+			                                                  SMBHeaderVal(header),
+			                                                  std::move(request));
 			}
 		return true;
 		%}
@@ -84,9 +87,9 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb1_session_setup_andx_response )
 			{
-			RecordVal* response = new RecordVal(BifType::Record::SMB1::SessionSetupAndXResponse);
-
+			auto response = make_intrusive<RecordVal>(BifType::Record::SMB1::SessionSetupAndXResponse);
 			response->Assign(0, val_mgr->Count(${val.word_count}));
+
 			switch ( ${val.word_count} )
 				{
 				case 3: // pre NT LM 0.12
@@ -106,10 +109,10 @@ refine connection SMB_Conn += {
 					break;
 				}
 
-			BifEvent::generate_smb1_session_setup_andx_response(bro_analyzer(),
-			                                                    bro_analyzer()->Conn(),
-			                                                    BuildHeaderVal(header),
-			                                                    response);
+			BifEvent::enqueue_smb1_session_setup_andx_response(bro_analyzer(),
+			                                                   bro_analyzer()->Conn(),
+			                                                   SMBHeaderVal(header),
+			                                                   std::move(response));
 			}
 
 		return true;

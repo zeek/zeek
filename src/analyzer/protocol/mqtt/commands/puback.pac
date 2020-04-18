@@ -13,10 +13,10 @@ refine flow MQTT_Flow += {
 		%{
 		if ( mqtt_puback )
 			{
-			BifEvent::generate_mqtt_puback(connection()->bro_analyzer(),
-			                               connection()->bro_analyzer()->Conn(),
-			                               is_orig,
-			                               ${msg.msg_id});
+			BifEvent::enqueue_mqtt_puback(connection()->bro_analyzer(),
+			                              connection()->bro_analyzer()->Conn(),
+			                              is_orig,
+			                              ${msg.msg_id});
 			}
 		return true;
 		%}

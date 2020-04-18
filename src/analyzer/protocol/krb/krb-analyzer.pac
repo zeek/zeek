@@ -180,7 +180,7 @@ refine connection KRB_Conn += {
 				return false;
 
 			RecordVal* rv = proc_krb_kdc_req_arguments(${msg}, bro_analyzer());
-			BifEvent::generate_krb_as_request(bro_analyzer(), bro_analyzer()->Conn(), rv);
+			BifEvent::enqueue_krb_as_request(bro_analyzer(), bro_analyzer()->Conn(), {AdoptRef{}, rv});
 			return true;
 			}
 
@@ -190,7 +190,7 @@ refine connection KRB_Conn += {
 				return false;
 
 			RecordVal* rv = proc_krb_kdc_req_arguments(${msg}, bro_analyzer());
-			BifEvent::generate_krb_tgs_request(bro_analyzer(), bro_analyzer()->Conn(), rv);
+			BifEvent::enqueue_krb_tgs_request(bro_analyzer(), bro_analyzer()->Conn(), {AdoptRef{}, rv});
 			return true;
 			}
 
@@ -201,9 +201,9 @@ refine connection KRB_Conn += {
 		%{
 		bro_analyzer()->ProtocolConfirmation();
 		auto msg_type = binary_to_int64(${msg.msg_type.data.content});
-		auto make_arg = [this, msg]() -> RecordVal*
+		auto make_arg = [this, msg]() -> IntrusivePtr<RecordVal>
 			{
-			RecordVal* rv = new RecordVal(BifType::Record::KRB::KDC_Response);
+			auto rv = make_intrusive<RecordVal>(BifType::Record::KRB::KDC_Response);
 
 			rv->Assign(0, asn1_integer_to_val(${msg.pvno.data}, TYPE_COUNT));
 			rv->Assign(1, asn1_integer_to_val(${msg.msg_type.data}, TYPE_COUNT));
@@ -223,7 +223,7 @@ refine connection KRB_Conn += {
 			if ( ! krb_as_response )
 				return false;
 
-			BifEvent::generate_krb_as_response(bro_analyzer(), bro_analyzer()->Conn(), make_arg());
+			BifEvent::enqueue_krb_as_response(bro_analyzer(), bro_analyzer()->Conn(), make_arg());
 			return true;
 			}
 
@@ -232,7 +232,7 @@ refine connection KRB_Conn += {
 			if ( ! krb_tgs_response )
 				return false;
 
-			BifEvent::generate_krb_tgs_response(bro_analyzer(), bro_analyzer()->Conn(), make_arg());
+			BifEvent::enqueue_krb_tgs_response(bro_analyzer(), bro_analyzer()->Conn(), make_arg());
 			return true;
 			}
 
@@ -244,11 +244,11 @@ refine connection KRB_Conn += {
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_error )
 			{
-			RecordVal* rv = new RecordVal(BifType::Record::KRB::Error_Msg);
-			proc_error_arguments(rv, ${msg.args1}, 0);
+			auto rv = make_intrusive<RecordVal>(BifType::Record::KRB::Error_Msg);
+			proc_error_arguments(rv.get(), ${msg.args1}, 0);
 			rv->Assign(4, asn1_integer_to_val(${msg.error_code}, TYPE_COUNT));
-			proc_error_arguments(rv, ${msg.args2}, binary_to_int64(${msg.error_code.encoding.content}));
-			BifEvent::generate_krb_error(bro_analyzer(), bro_analyzer()->Conn(), rv);
+			proc_error_arguments(rv.get(), ${msg.args2}, binary_to_int64(${msg.error_code.encoding.content}));
+			BifEvent::enqueue_krb_error(bro_analyzer(), bro_analyzer()->Conn(), std::move(rv));
 			}
 		return true;
 		%}
@@ -258,16 +258,18 @@ refine connection KRB_Conn += {
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_ap_request )
 			{
-			RecordVal* rv = new RecordVal(BifType::Record::KRB::AP_Options);
+			auto rv = make_intrusive<RecordVal>(BifType::Record::KRB::AP_Options);
 			rv->Assign(0, val_mgr->Bool(${msg.ap_options.use_session_key}));
 			rv->Assign(1, val_mgr->Bool(${msg.ap_options.mutual_required}));
 
-			RecordVal* rvticket = proc_ticket(${msg.ticket});
+			auto rvticket = proc_ticket(${msg.ticket});
 			auto authenticationinfo = bro_analyzer()->GetAuthenticationInfo(rvticket->Lookup(2)->AsString(), rvticket->Lookup(4)->AsString(), rvticket->Lookup(3)->AsCount());
+
 			if ( authenticationinfo )
 				rvticket->Assign(5, authenticationinfo);
-			BifEvent::generate_krb_ap_request(bro_analyzer(), bro_analyzer()->Conn(),
-						      rvticket, rv);
+
+			BifEvent::enqueue_krb_ap_request(bro_analyzer(), bro_analyzer()->Conn(),
+						      std::move(rvticket), std::move(rv));
 			}
 		return true;
 		%}
@@ -277,7 +279,7 @@ refine connection KRB_Conn += {
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_ap_response )
 			{
-			BifEvent::generate_krb_ap_response(bro_analyzer(), bro_analyzer()->Conn());
+			BifEvent::enqueue_krb_ap_response(bro_analyzer(), bro_analyzer()->Conn());
 			}
 		return true;
 		%}
@@ -287,7 +289,7 @@ refine connection KRB_Conn += {
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_safe )
 			{
-			RecordVal* rv = new RecordVal(BifType::Record::KRB::SAFE_Msg);
+			auto rv = make_intrusive<RecordVal>(BifType::Record::KRB::SAFE_Msg);
 
 			rv->Assign(0, asn1_integer_to_val(${msg.pvno.data}, TYPE_COUNT));
 			rv->Assign(1, asn1_integer_to_val(${msg.msg_type.data}, TYPE_COUNT));
@@ -335,7 +337,7 @@ refine connection KRB_Conn += {
 						break;
 					}
 				}
-			BifEvent::generate_krb_safe(bro_analyzer(), bro_analyzer()->Conn(), ${msg.is_orig}, rv);
+			BifEvent::enqueue_krb_safe(bro_analyzer(), bro_analyzer()->Conn(), ${msg.is_orig}, std::move(rv));
 			}
 		return true;
 		%}
@@ -345,7 +347,7 @@ refine connection KRB_Conn += {
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_priv )
 			{
-			BifEvent::generate_krb_priv(bro_analyzer(), bro_analyzer()->Conn(), ${msg.is_orig});
+			BifEvent::enqueue_krb_priv(bro_analyzer(), bro_analyzer()->Conn(), ${msg.is_orig});
 			}
 		return true;
 		%}
@@ -355,8 +357,8 @@ refine connection KRB_Conn += {
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_cred )
 			{
-			BifEvent::generate_krb_cred(bro_analyzer(), bro_analyzer()->Conn(), ${msg.is_orig},
-						    proc_tickets(${msg.tickets}));
+			BifEvent::enqueue_krb_cred(bro_analyzer(), bro_analyzer()->Conn(), ${msg.is_orig},
+						    		   proc_tickets(${msg.tickets}));
 			}
 		return true;
 

@@ -16,9 +16,9 @@ refine connection SMB_Conn += {
 	function proc_smb2_transform_header(hdr: SMB2_transform_header) : bool
 		%{
 		if ( smb2_transform_header )
-			BifEvent::generate_smb2_transform_header(bro_analyzer(),
-			                                         bro_analyzer()->Conn(),
-			                                         BuildSMB2TransformHeaderVal(hdr));
+			BifEvent::enqueue_smb2_transform_header(bro_analyzer(),
+			                                        bro_analyzer()->Conn(),
+			                                        {AdoptRef{}, BuildSMB2TransformHeaderVal(hdr)});
 
 		return true;
 		%}

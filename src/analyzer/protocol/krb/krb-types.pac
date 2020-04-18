@@ -8,8 +8,8 @@ VectorVal* proc_cipher_list(const Array* list);
 VectorVal* proc_host_address_list(const BroAnalyzer a, const KRB_Host_Addresses* list);
 RecordVal* proc_host_address(const BroAnalyzer a, const KRB_Host_Address* addr);
 
-VectorVal* proc_tickets(const KRB_Ticket_Sequence* list);
-RecordVal* proc_ticket(const KRB_Ticket* ticket);
+IntrusivePtr<VectorVal> proc_tickets(const KRB_Ticket_Sequence* list);
+IntrusivePtr<RecordVal> proc_ticket(const KRB_Ticket* ticket);
 %}
 
 %code{
@@ -92,9 +92,10 @@ RecordVal* proc_host_address(const BroAnalyzer a, const KRB_Host_Address* addr)
 	return rv;
 }
 
-VectorVal* proc_tickets(const KRB_Ticket_Sequence* list)
-{
-	VectorVal* tickets = new VectorVal(internal_type("KRB::Ticket_Vector")->AsVectorType());
+IntrusivePtr<VectorVal> proc_tickets(const KRB_Ticket_Sequence* list)
+	{
+	auto tickets = make_intrusive<VectorVal>(internal_type("KRB::Ticket_Vector")->AsVectorType());
+
 	for ( uint i = 0; i < list->tickets()->size(); ++i )
 		{
 		KRB_Ticket* element = (*list->tickets())[i];
@@ -102,11 +103,11 @@ VectorVal* proc_tickets(const KRB_Ticket_Sequence* list)
 		}
 
 	return tickets;
-}
+	}
 
-RecordVal* proc_ticket(const KRB_Ticket* ticket)
-{
-	RecordVal* rv = new RecordVal(BifType::Record::KRB::Ticket);
+IntrusivePtr<RecordVal> proc_ticket(const KRB_Ticket* ticket)
+	{
+	auto rv = make_intrusive<RecordVal>(BifType::Record::KRB::Ticket);
 
 	rv->Assign(0, asn1_integer_to_val(ticket->tkt_vno()->data(), TYPE_COUNT));
 	rv->Assign(1, bytestring_to_val(ticket->realm()->data()->content()));
@@ -115,7 +116,7 @@ RecordVal* proc_ticket(const KRB_Ticket* ticket)
 	rv->Assign(4, bytestring_to_val(ticket->enc_part()->data()->ciphertext()->encoding()->content()));
 
 	return rv;
-}
+	}
 %}
 
 type KRB_Principal_Name = record {

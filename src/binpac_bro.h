@@ -8,6 +8,7 @@ namespace analyzer { class Analyzer; }
 
 #include "util.h"
 #include "Val.h"
+#include "IntrusivePtr.h"
 #include "event.bif.func_h"
 #include "analyzer/Analyzer.h"
 #include "file_analysis/Analyzer.h"
@@ -31,5 +32,10 @@ inline StringVal* bytestring_to_val(const_bytestring const &str)
 	{
 	return new StringVal(str.length(), (const char*) str.begin());
 	}
+
+inline IntrusivePtr<StringVal> to_stringval(const_bytestring const& str)
+    {
+	return make_intrusive<StringVal>(str.length(), (const char*) str.begin());
+    }
 
 } // namespace binpac

@@ -5,7 +5,7 @@ refine connection SMB_Conn += {
 	if ( ! smb1_transaction_secondary_request )
 		return false;
 
-	RecordVal* args = new RecordVal(BifType::Record::SMB1::Trans_Sec_Args);
+	auto args = make_intrusive<RecordVal>(BifType::Record::SMB1::Trans_Sec_Args);
 	args->Assign(0, val_mgr->Count(${val.total_param_count}));
 	args->Assign(1, val_mgr->Count(${val.total_data_count}));
 	args->Assign(2, val_mgr->Count(${val.param_count}));
@@ -15,8 +15,8 @@ refine connection SMB_Conn += {
 	args->Assign(6, val_mgr->Count(${val.data_offset}));
 	args->Assign(7, val_mgr->Count(${val.data_displacement}));
 
-	StringVal* parameters = new StringVal(${val.parameters}.length(),
-	                                      (const char*)${val.parameters}.data());
+	auto parameters = make_intrusive<StringVal>(${val.parameters}.length(),
+	                                            (const char*)${val.parameters}.data());
 	IntrusivePtr<StringVal> payload_str;
 	SMB1_transaction_data* payload = nullptr;
 
@@ -45,12 +45,12 @@ refine connection SMB_Conn += {
 		payload_str = val_mgr->EmptyString();
 		}
 
-	BifEvent::generate_smb1_transaction_secondary_request(bro_analyzer(),
-	                                                      bro_analyzer()->Conn(),
-	                                                      BuildHeaderVal(header),
-	                                                      args,
-	                                                      parameters,
-	                                                      payload_str.release());
+	BifEvent::enqueue_smb1_transaction_secondary_request(bro_analyzer(),
+	                                                     bro_analyzer()->Conn(),
+	                                                     SMBHeaderVal(header),
+	                                                     std::move(args),
+	                                                     std::move(parameters),
+	                                                     std::move(payload_str));
 
 	return true;
 	%}

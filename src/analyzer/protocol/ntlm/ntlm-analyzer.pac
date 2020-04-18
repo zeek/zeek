@@ -110,7 +110,7 @@ refine connection NTLM_Conn += {
 		if ( ! ntlm_negotiate )
 			return true;
 
-		RecordVal* result = new RecordVal(BifType::Record::NTLM::Negotiate);
+		auto result = make_intrusive<RecordVal>(BifType::Record::NTLM::Negotiate);
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
 		if ( ${val}->has_domain_name() )
@@ -122,9 +122,9 @@ refine connection NTLM_Conn += {
 		if ( ${val}->has_version() )
 		        result->Assign(3, build_version_record(${val.version}));
 
-		BifEvent::generate_ntlm_negotiate(bro_analyzer(),
-		                                  bro_analyzer()->Conn(),
-		                                  result);
+		BifEvent::enqueue_ntlm_negotiate(bro_analyzer(),
+		                                 bro_analyzer()->Conn(),
+		                                 std::move(result));
 
 		return true;
 		%}
@@ -134,7 +134,7 @@ refine connection NTLM_Conn += {
 		if ( ! ntlm_challenge )
 			return true;
 
-		RecordVal* result = new RecordVal(BifType::Record::NTLM::Challenge);
+		auto result = make_intrusive<RecordVal>(BifType::Record::NTLM::Challenge);
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
 		if ( ${val}->has_target_name() )
@@ -146,9 +146,9 @@ refine connection NTLM_Conn += {
 		if ( ${val}->has_target_info() )
 			result->Assign(3, build_av_record(${val.target_info},  ${val.target_info_fields.length}));
 
-		BifEvent::generate_ntlm_challenge(bro_analyzer(),
-		                                  bro_analyzer()->Conn(),
-		                                  result);
+		BifEvent::enqueue_ntlm_challenge(bro_analyzer(),
+		                                 bro_analyzer()->Conn(),
+		                                 std::move(result));
 
 		return true;
 		%}
@@ -158,7 +158,7 @@ refine connection NTLM_Conn += {
 		if ( ! ntlm_authenticate )
 			return true;
 
-		RecordVal* result = new RecordVal(BifType::Record::NTLM::Authenticate);
+		auto result = make_intrusive<RecordVal>(BifType::Record::NTLM::Authenticate);
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
 		if ( ${val}->has_domain_name() > 0 )
@@ -176,9 +176,9 @@ refine connection NTLM_Conn += {
 		if ( ${val}->has_version() )
 			result->Assign(5, build_version_record(${val.version}));
 
-		BifEvent::generate_ntlm_authenticate(bro_analyzer(),
-		                                     bro_analyzer()->Conn(),
-		                                     result);
+		BifEvent::enqueue_ntlm_authenticate(bro_analyzer(),
+		                                    bro_analyzer()->Conn(),
+		                                    std::move(result));
 		return true;
 		%}
 }

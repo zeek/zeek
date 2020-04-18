@@ -26,12 +26,12 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_read_request )
 			{
-			BifEvent::generate_smb2_read_request(bro_analyzer(),
-			                                     bro_analyzer()->Conn(),
-			                                     BuildSMB2HeaderVal(h),
-			                                     BuildSMB2GUID(${val.file_id}),
-			                                     ${val.offset},
-			                                     ${val.read_len});
+			BifEvent::enqueue_smb2_read_request(bro_analyzer(),
+			                                    bro_analyzer()->Conn(),
+			                                    {AdoptRef{}, BuildSMB2HeaderVal(h)},
+			                                    {AdoptRef{}, BuildSMB2GUID(${val.file_id})},
+			                                    ${val.offset},
+			                                    ${val.read_len});
 			}
 
 		smb2_read_offsets[${h.message_id}] = ${val.offset};

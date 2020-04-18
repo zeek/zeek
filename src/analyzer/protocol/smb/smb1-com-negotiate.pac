@@ -15,15 +15,17 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb1_negotiate_request )
 			{
-			VectorVal* dialects = new VectorVal(string_vec);
+			auto dialects = make_intrusive<VectorVal>(string_vec);
+
 			for ( unsigned int i = 0; i < ${val.dialects}->size(); ++i )
 				{
 				StringVal* dia = smb_string2stringval((*${val.dialects})[i]->name());
 				dialects->Assign(i, dia);
 				}
-			BifEvent::generate_smb1_negotiate_request(bro_analyzer(), bro_analyzer()->Conn(),
-			                                         BuildHeaderVal(header),
-			                                         dialects);
+
+			BifEvent::enqueue_smb1_negotiate_request(bro_analyzer(), bro_analyzer()->Conn(),
+			                                         SMBHeaderVal(header),
+			                                         std::move(dialects));
 			}
 
 		return true;
@@ -33,7 +35,7 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb1_negotiate_response )
 			{
-			RecordVal* response = new RecordVal(BifType::Record::SMB1::NegotiateResponse);
+			auto response = make_intrusive<RecordVal>(BifType::Record::SMB1::NegotiateResponse);
 
 			RecordVal* core;
 			RecordVal* lanman;
@@ -134,7 +136,10 @@ refine connection SMB_Conn += {
 					response->Assign(2, ntlm);
 					break;
 				}
-			BifEvent::generate_smb1_negotiate_response(bro_analyzer(), bro_analyzer()->Conn(), BuildHeaderVal(header), response);
+			BifEvent::enqueue_smb1_negotiate_response(bro_analyzer(),
+			                                          bro_analyzer()->Conn(),
+			                                          SMBHeaderVal(header),
+			                                          std::move(response));
 			}
 
 		return true;

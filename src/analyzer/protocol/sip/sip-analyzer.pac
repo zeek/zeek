@@ -20,9 +20,9 @@ refine flow SIP_Flow += {
 		%{
 		if ( sip_request )
 			{
-			BifEvent::generate_sip_request(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
-						       bytestring_to_val(method), bytestring_to_val(uri),
-						       bytestring_to_val(${vers.vers_str}));
+			BifEvent::enqueue_sip_request(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
+						       to_stringval(method), to_stringval(uri),
+						       to_stringval(${vers.vers_str}));
 			}
 
 		proc_sip_message_begin();
@@ -35,8 +35,8 @@ refine flow SIP_Flow += {
 		connection()->bro_analyzer()->ProtocolConfirmation();
 		if ( sip_reply )
 			{
-			BifEvent::generate_sip_reply(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
-						     bytestring_to_val(${vers.vers_str}), code, bytestring_to_val(reason));
+			BifEvent::enqueue_sip_reply(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
+						     to_stringval(${vers.vers_str}), code, to_stringval(reason));
 			}
 
 		proc_sip_message_begin();
@@ -51,8 +51,10 @@ refine flow SIP_Flow += {
 
 		if ( sip_header )
 			{
-			BifEvent::generate_sip_header(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
-						      is_orig(), bytestring_to_val(name)->ToUpper(), bytestring_to_val(value));
+			auto nameval = to_stringval(name);
+			nameval->ToUpper();
+			BifEvent::enqueue_sip_header(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
+						      is_orig(), std::move(nameval), to_stringval(value));
 			}
 
 		if ( build_headers )
@@ -80,8 +82,8 @@ refine flow SIP_Flow += {
 		%{
 		if ( sip_all_headers )
 			{
-			BifEvent::generate_sip_all_headers(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
-							   is_orig(), build_sip_headers_val());
+			BifEvent::enqueue_sip_all_headers(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
+							   is_orig(), {AdoptRef{}, build_sip_headers_val()});
 			}
 
 		headers.clear();
@@ -123,7 +125,7 @@ refine flow SIP_Flow += {
 		%{
 		if ( sip_begin_entity )
 			{
-			BifEvent::generate_sip_begin_entity(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), is_orig());
+			BifEvent::enqueue_sip_begin_entity(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), is_orig());
 			}
 		%}
 
@@ -131,7 +133,7 @@ refine flow SIP_Flow += {
 		%{
 		if ( sip_end_entity )
 			{
-			BifEvent::generate_sip_end_entity(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), is_orig());
+			BifEvent::enqueue_sip_end_entity(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), is_orig());
 			}
 
 		return true;

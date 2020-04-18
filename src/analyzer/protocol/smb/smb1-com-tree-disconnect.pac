@@ -3,10 +3,10 @@ refine connection SMB_Conn += {
 	function proc_smb1_tree_disconnect(header: SMB_Header, val: SMB1_tree_disconnect): bool
 		%{
 		if ( smb1_tree_disconnect )
-			BifEvent::generate_smb1_tree_disconnect(bro_analyzer(),
-			                                        bro_analyzer()->Conn(),
-			                                        BuildHeaderVal(header),
-			                                        ${val.is_orig});
+			BifEvent::enqueue_smb1_tree_disconnect(bro_analyzer(),
+			                                       bro_analyzer()->Conn(),
+			                                       SMBHeaderVal(header),
+			                                       ${val.is_orig});
 		return true;
 		%}
 

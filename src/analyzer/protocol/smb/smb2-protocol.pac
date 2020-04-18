@@ -215,9 +215,9 @@ refine connection SMB_Conn += {
 
 		if ( smb2_message )
 			{
-			BifEvent::generate_smb2_message(bro_analyzer(), bro_analyzer()->Conn(),
-			                                BuildSMB2HeaderVal(h),
-			                                is_orig);
+			BifEvent::enqueue_smb2_message(bro_analyzer(), bro_analyzer()->Conn(),
+			                               {AdoptRef{}, BuildSMB2HeaderVal(h)},
+			                               is_orig);
 			}
 		return true;
 		%}

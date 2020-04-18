@@ -4,13 +4,13 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_session_setup_request )
 			{
-			RecordVal* req = new RecordVal(BifType::Record::SMB2::SessionSetupRequest);
+			auto req = make_intrusive<RecordVal>(BifType::Record::SMB2::SessionSetupRequest);
 			req->Assign(0, val_mgr->Count(${val.security_mode}));
 
-			BifEvent::generate_smb2_session_setup_request(bro_analyzer(),
-			                                              bro_analyzer()->Conn(),
-			                                              BuildSMB2HeaderVal(h),
-			                                              req);
+			BifEvent::enqueue_smb2_session_setup_request(bro_analyzer(),
+			                                             bro_analyzer()->Conn(),
+			                                             {AdoptRef{}, BuildSMB2HeaderVal(h)},
+														 std::move(req));
 			}
 
 		return true;
@@ -20,18 +20,18 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_session_setup_response )
 			{
-			RecordVal* flags = new RecordVal(BifType::Record::SMB2::SessionSetupFlags);
+			auto flags = make_intrusive<RecordVal>(BifType::Record::SMB2::SessionSetupFlags);
 			flags->Assign(0, val_mgr->Bool(${val.flag_guest}));
 			flags->Assign(1, val_mgr->Bool(${val.flag_anonymous}));
 			flags->Assign(2, val_mgr->Bool(${val.flag_encrypt}));
 
-			RecordVal* resp = new RecordVal(BifType::Record::SMB2::SessionSetupResponse);
-			resp->Assign(0, flags);
+			auto resp = make_intrusive<RecordVal>(BifType::Record::SMB2::SessionSetupResponse);
+			resp->Assign(0, std::move(flags));
 
-			BifEvent::generate_smb2_session_setup_response(bro_analyzer(),
-			                                               bro_analyzer()->Conn(),
-			                                               BuildSMB2HeaderVal(h),
-			                                               resp);
+			BifEvent::enqueue_smb2_session_setup_response(bro_analyzer(),
+			                                              bro_analyzer()->Conn(),
+			                                              {AdoptRef{}, BuildSMB2HeaderVal(h)},
+			                                              std::move(resp));
 			}
 
 		return true;

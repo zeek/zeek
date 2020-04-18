@@ -8,15 +8,16 @@
 #
 
 %header{
-	VectorVal* bytestring_to_coils(const bytestring& coils, uint quantity);
-	RecordVal* HeaderToBro(ModbusTCP_TransportHeader *header);
-	VectorVal* create_vector_of_count();
+	IntrusivePtr<VectorVal> bytestring_to_coils(const bytestring& coils, uint quantity);
+	IntrusivePtr<RecordVal> HeaderToVal(ModbusTCP_TransportHeader* header);
+	IntrusivePtr<VectorVal> create_vector_of_count();
 	%}
 
 %code{
-	VectorVal* bytestring_to_coils(const bytestring& coils, uint quantity)
+	IntrusivePtr<VectorVal> bytestring_to_coils(const bytestring& coils, uint quantity)
 		{
-		VectorVal* modbus_coils = new VectorVal(BifType::Vector::ModbusCoils);
+		auto modbus_coils = make_intrusive<VectorVal>(BifType::Vector::ModbusCoils);
+
 		for ( uint i = 0; i < quantity; i++ )
 			{
 			char currentCoil = (coils[i/8] >> (i % 8)) % 2;
@@ -26,9 +27,9 @@
 		return modbus_coils;
 		}
 
-	RecordVal* HeaderToBro(ModbusTCP_TransportHeader *header)
+	IntrusivePtr<RecordVal> HeaderToVal(ModbusTCP_TransportHeader* header)
 		{
-		RecordVal* modbus_header = new RecordVal(BifType::Record::ModbusHeaders);
+		auto modbus_header = make_intrusive<RecordVal>(BifType::Record::ModbusHeaders);
 		modbus_header->Assign(0, val_mgr->Count(header->tid()));
 		modbus_header->Assign(1, val_mgr->Count(header->pid()));
 		modbus_header->Assign(2, val_mgr->Count(header->uid()));
@@ -36,11 +37,10 @@
 		return modbus_header;
 		}
 
-	VectorVal* create_vector_of_count()
+	IntrusivePtr<VectorVal> create_vector_of_count()
 		{
-		VectorType* vt = new VectorType(base_type(TYPE_COUNT));
-		VectorVal* vv = new VectorVal(vt);
-		Unref(vt);
+		auto vt = make_intrusive<VectorType>(base_type(TYPE_COUNT));
+		auto vv = make_intrusive<VectorVal>(vt.get());
 		return vv;
 		}
 
@@ -88,10 +88,10 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_message )
 			{
-			BifEvent::generate_modbus_message(connection()->bro_analyzer(),
-			                                  connection()->bro_analyzer()->Conn(),
-			                                  HeaderToBro(header),
-			                                  is_orig());
+			BifEvent::enqueue_modbus_message(connection()->bro_analyzer(),
+			                                 connection()->bro_analyzer()->Conn(),
+			                                 HeaderToVal(header),
+			                                 is_orig());
 			}
 
 		return true;
@@ -117,10 +117,10 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_exception )
 			{
-			BifEvent::generate_modbus_exception(connection()->bro_analyzer(),
-			                                    connection()->bro_analyzer()->Conn(),
-			                                    HeaderToBro(header),
-			                                    ${message.code});
+			BifEvent::enqueue_modbus_exception(connection()->bro_analyzer(),
+			                                   connection()->bro_analyzer()->Conn(),
+			                                   HeaderToVal(header),
+			                                   ${message.code});
 			}
 
 		return true;
@@ -131,11 +131,11 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_read_coils_request )
 			{
-			BifEvent::generate_modbus_read_coils_request(connection()->bro_analyzer(),
-			                                             connection()->bro_analyzer()->Conn(),
-			                                             HeaderToBro(header),
-			                                             ${message.start_address},
-			                                             ${message.quantity});
+			BifEvent::enqueue_modbus_read_coils_request(connection()->bro_analyzer(),
+			                                            connection()->bro_analyzer()->Conn(),
+			                                            HeaderToVal(header),
+			                                            ${message.start_address},
+			                                            ${message.quantity});
 			}
 
 		return true;
@@ -146,10 +146,10 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_read_coils_response )
 			{
-			BifEvent::generate_modbus_read_coils_response(connection()->bro_analyzer(),
-			                                              connection()->bro_analyzer()->Conn(),
-			                                              HeaderToBro(header),
-			                                              bytestring_to_coils(${message.bits}, ${message.bits}.length()*8));
+			BifEvent::enqueue_modbus_read_coils_response(connection()->bro_analyzer(),
+			                                             connection()->bro_analyzer()->Conn(),
+			                                             HeaderToVal(header),
+			                                             bytestring_to_coils(${message.bits}, ${message.bits}.length()*8));
 			}
 		return true;
 		%}
@@ -159,10 +159,10 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_read_discrete_inputs_request )
 			{
-			BifEvent::generate_modbus_read_discrete_inputs_request(connection()->bro_analyzer(),
-			                                                       connection()->bro_analyzer()->Conn(),
-			                                                       HeaderToBro(header),
-			                                                       ${message.start_address}, ${message.quantity});
+			BifEvent::enqueue_modbus_read_discrete_inputs_request(connection()->bro_analyzer(),
+			                                                      connection()->bro_analyzer()->Conn(),
+			                                                      HeaderToVal(header),
+			                                                      ${message.start_address}, ${message.quantity});
 			}
 
 		return true;
@@ -173,10 +173,10 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_read_discrete_inputs_response )
 			{
-			BifEvent::generate_modbus_read_discrete_inputs_response(connection()->bro_analyzer(),
-			                                                        connection()->bro_analyzer()->Conn(),
-			                                                        HeaderToBro(header),
-			                                                        bytestring_to_coils(${message.bits}, ${message.bits}.length()*8));
+			BifEvent::enqueue_modbus_read_discrete_inputs_response(connection()->bro_analyzer(),
+			                                                       connection()->bro_analyzer()->Conn(),
+			                                                       HeaderToVal(header),
+			                                                       bytestring_to_coils(${message.bits}, ${message.bits}.length()*8));
 			}
 
 		return true;
@@ -188,10 +188,10 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_read_holding_registers_request )
 			{
-			BifEvent::generate_modbus_read_holding_registers_request(connection()->bro_analyzer(),
-			                                                         connection()->bro_analyzer()->Conn(),
-			                                                         HeaderToBro(header),
-			                                                         ${message.start_address}, ${message.quantity});
+			BifEvent::enqueue_modbus_read_holding_registers_request(connection()->bro_analyzer(),
+			                                                        connection()->bro_analyzer()->Conn(),
+			                                                        HeaderToVal(header),
+			                                                        ${message.start_address}, ${message.quantity});
 			}
 
 		return true;
@@ -209,18 +209,18 @@ refine flow ModbusTCP_Flow += {
 
 		if ( ::modbus_read_holding_registers_response )
 			{
+			auto t = make_intrusive<VectorVal>(BifType::Vector::ModbusRegisters);
 
-			VectorVal* t = new VectorVal(BifType::Vector::ModbusRegisters);
 			for ( unsigned int i=0; i < ${message.registers}->size(); ++i )
 				{
 				auto r = val_mgr->Count(${message.registers[i]});
 				t->Assign(i, r);
 				}
 
-			BifEvent::generate_modbus_read_holding_registers_response(connection()->bro_analyzer(),
-			                                                          connection()->bro_analyzer()->Conn(),
-			                                                          HeaderToBro(header),
-			                                                          t);
+			BifEvent::enqueue_modbus_read_holding_registers_response(connection()->bro_analyzer(),
+			                                                         connection()->bro_analyzer()->Conn(),
+			                                                         HeaderToVal(header),
+			                                                         std::move(t));
 			}
 
 		return true;
@@ -232,10 +232,10 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_read_input_registers_request )
 			{
-			BifEvent::generate_modbus_read_input_registers_request(connection()->bro_analyzer(),
-			                                                       connection()->bro_analyzer()->Conn(),
-			                                                       HeaderToBro(header),
-			                                                       ${message.start_address}, ${message.quantity});
+			BifEvent::enqueue_modbus_read_input_registers_request(connection()->bro_analyzer(),
+			                                                      connection()->bro_analyzer()->Conn(),
+			                                                      HeaderToVal(header),
+			                                                      ${message.start_address}, ${message.quantity});
 			}
 
 		return true;
@@ -253,17 +253,18 @@ refine flow ModbusTCP_Flow += {
 
 		if ( ::modbus_read_input_registers_response )
 			{
-			VectorVal* t = new VectorVal(BifType::Vector::ModbusRegisters);
+			auto t = make_intrusive<VectorVal>(BifType::Vector::ModbusRegisters);
+
 			for ( unsigned int i=0; i < (${message.registers})->size(); ++i )
 				{
 				auto r = val_mgr->Count(${message.registers[i]});
 				t->Assign(i, r);
 				}
 
-			BifEvent::generate_modbus_read_input_registers_response(connection()->bro_analyzer(),
-			                                                        connection()->bro_analyzer()->Conn(),
-			                                                        HeaderToBro(header),
-			                                                        t);
+			BifEvent::enqueue_modbus_read_input_registers_response(connection()->bro_analyzer(),
+			                                                       connection()->bro_analyzer()->Conn(),
+			                                                       HeaderToVal(header),
+			                                                       std::move(t));
 			}
 
 		return true;
@@ -287,11 +288,11 @@ refine flow ModbusTCP_Flow += {
 				return false;
 				}
 
-			BifEvent::generate_modbus_write_single_coil_request(connection()->bro_analyzer(),
-			                                                    connection()->bro_analyzer()->Conn(),
-			                                                    HeaderToBro(header),
-			                                                    ${message.address},
-			                                                    val);
+			BifEvent::enqueue_modbus_write_single_coil_request(connection()->bro_analyzer(),
+			                                                   connection()->bro_analyzer()->Conn(),
+			                                                   HeaderToVal(header),
+			                                                   ${message.address},
+			                                                   val);
 			}
 
 		return true;
@@ -314,11 +315,11 @@ refine flow ModbusTCP_Flow += {
 				return false;
 				}
 
-			BifEvent::generate_modbus_write_single_coil_response(connection()->bro_analyzer(),
-			                                                     connection()->bro_analyzer()->Conn(),
-			                                                     HeaderToBro(header),
-			                                                     ${message.address},
-			                                                     val);
+			BifEvent::enqueue_modbus_write_single_coil_response(connection()->bro_analyzer(),
+			                                                    connection()->bro_analyzer()->Conn(),
+			                                                    HeaderToVal(header),
+			                                                    ${message.address},
+			                                                    val);
 			}
 
 		return true;
@@ -330,10 +331,10 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_write_single_register_request )
 			{
-			BifEvent::generate_modbus_write_single_register_request(connection()->bro_analyzer(),
-			                                                        connection()->bro_analyzer()->Conn(),
-			                                                        HeaderToBro(header),
-			                                                        ${message.address}, ${message.value});
+			BifEvent::enqueue_modbus_write_single_register_request(connection()->bro_analyzer(),
+			                                                       connection()->bro_analyzer()->Conn(),
+			                                                       HeaderToVal(header),
+			                                                       ${message.address}, ${message.value});
 			}
 
 		return true;
@@ -344,10 +345,10 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_write_single_register_response )
 			{
-			BifEvent::generate_modbus_write_single_register_response(connection()->bro_analyzer(),
-			                                                         connection()->bro_analyzer()->Conn(),
-			                                                         HeaderToBro(header),
-			                                                         ${message.address}, ${message.value});
+			BifEvent::enqueue_modbus_write_single_register_response(connection()->bro_analyzer(),
+			                                                        connection()->bro_analyzer()->Conn(),
+			                                                        HeaderToVal(header),
+			                                                        ${message.address}, ${message.value});
 			}
 
 		return true;
@@ -359,11 +360,11 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_write_multiple_coils_request )
 			{
-			BifEvent::generate_modbus_write_multiple_coils_request(connection()->bro_analyzer(),
-			                                                       connection()->bro_analyzer()->Conn(),
-			                                                       HeaderToBro(header),
-			                                                       ${message.start_address},
-			                                                       bytestring_to_coils(${message.coils}, ${message.quantity}));
+			BifEvent::enqueue_modbus_write_multiple_coils_request(connection()->bro_analyzer(),
+			                                                      connection()->bro_analyzer()->Conn(),
+			                                                      HeaderToVal(header),
+			                                                      ${message.start_address},
+			                                                      bytestring_to_coils(${message.coils}, ${message.quantity}));
 			}
 
 		return true;
@@ -374,10 +375,10 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_write_multiple_coils_response )
 			{
-			BifEvent::generate_modbus_write_multiple_coils_response(connection()->bro_analyzer(),
-			                                                        connection()->bro_analyzer()->Conn(),
-			                                                        HeaderToBro(header),
-			                                                        ${message.start_address}, ${message.quantity});
+			BifEvent::enqueue_modbus_write_multiple_coils_response(connection()->bro_analyzer(),
+			                                                       connection()->bro_analyzer()->Conn(),
+			                                                       HeaderToVal(header),
+			                                                       ${message.start_address}, ${message.quantity});
 			}
 
 		return true;
@@ -396,17 +397,18 @@ refine flow ModbusTCP_Flow += {
 
 		if ( ::modbus_write_multiple_registers_request )
 			{
-			VectorVal * t = new VectorVal(BifType::Vector::ModbusRegisters);
+			auto t = make_intrusive<VectorVal>(BifType::Vector::ModbusRegisters);
+
 			for ( unsigned int i = 0; i < (${message.registers}->size()); ++i )
 				{
 				auto r = val_mgr->Count(${message.registers[i]});
 				t->Assign(i, r);
 				}
 
-				BifEvent::generate_modbus_write_multiple_registers_request(connection()->bro_analyzer(),
-				                                                           connection()->bro_analyzer()->Conn(),
-				                                                           HeaderToBro(header),
-				                                                           ${message.start_address}, t);
+				BifEvent::enqueue_modbus_write_multiple_registers_request(connection()->bro_analyzer(),
+				                                                          connection()->bro_analyzer()->Conn(),
+				                                                          HeaderToVal(header),
+				                                                          ${message.start_address}, std::move(t));
 			}
 
 		return true;
@@ -417,10 +419,10 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_write_multiple_registers_response )
 			{
-			BifEvent::generate_modbus_write_multiple_registers_response(connection()->bro_analyzer(),
-			                                                            connection()->bro_analyzer()->Conn(),
-			                                                            HeaderToBro(header),
-			                                                            ${message.start_address}, ${message.quantity});
+			BifEvent::enqueue_modbus_write_multiple_registers_response(connection()->bro_analyzer(),
+			                                                           connection()->bro_analyzer()->Conn(),
+			                                                           HeaderToVal(header),
+			                                                           ${message.start_address}, ${message.quantity});
 			}
 
 		return true;
@@ -432,7 +434,7 @@ refine flow ModbusTCP_Flow += {
 		if ( ::modbus_read_file_record_request )
 			{
 			//TODO: this need to be a vector of some Reference Request record type
-			//VectorVal *t = create_vector_of_count();
+			//auto t = create_vector_of_count();
 			//for ( unsigned int i = 0; i < (${message.references}->size()); ++i )
 			//	{
 			//	auto r = val_mgr->Count((${message.references[i].ref_type}));
@@ -445,9 +447,9 @@ refine flow ModbusTCP_Flow += {
 			//	t->Assign(i, l);
 			//	}
 
-			BifEvent::generate_modbus_read_file_record_request(connection()->bro_analyzer(),
-			                                                   connection()->bro_analyzer()->Conn(),
-			                                                   HeaderToBro(header));
+			BifEvent::enqueue_modbus_read_file_record_request(connection()->bro_analyzer(),
+			                                                  connection()->bro_analyzer()->Conn(),
+			                                                  HeaderToVal(header));
 			}
 
 		return true;
@@ -458,7 +460,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_read_file_record_response )
 			{
-			//VectorVal *t = create_vector_of_count();
+			//auto t = create_vector_of_count();
 			//for ( unsigned int i = 0; i < ${message.references}->size(); ++i )
 			//	{
 			//	//TODO: work the reference type in here somewhere
@@ -466,9 +468,9 @@ refine flow ModbusTCP_Flow += {
 			//	t->Assign(i, r);
 			//	}
 
-			BifEvent::generate_modbus_read_file_record_response(connection()->bro_analyzer(),
-			                                                    connection()->bro_analyzer()->Conn(),
-			                                                    HeaderToBro(header));
+			BifEvent::enqueue_modbus_read_file_record_response(connection()->bro_analyzer(),
+			                                                   connection()->bro_analyzer()->Conn(),
+			                                                   HeaderToVal(header));
 			}
 
 		return true;
@@ -479,7 +481,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_write_file_record_request )
 			{
-			//VectorVal* t = create_vector_of_count();
+			//auto t = create_vector_of_count();
 			//for ( unsigned int i = 0; i < (${message.references}->size()); ++i )
 			//	{
 			//	auto r = val_mgr->Count((${message.references[i].ref_type}));
@@ -498,9 +500,9 @@ refine flow ModbusTCP_Flow += {
 			//		}
 			//	}
 
-			BifEvent::generate_modbus_write_file_record_request(connection()->bro_analyzer(),
-			                                                    connection()->bro_analyzer()->Conn(),
-			                                                    HeaderToBro(header));
+			BifEvent::enqueue_modbus_write_file_record_request(connection()->bro_analyzer(),
+			                                                   connection()->bro_analyzer()->Conn(),
+			                                                   HeaderToVal(header));
 			}
 
 		return true;
@@ -512,7 +514,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_write_file_record_response )
 			{
-			//VectorVal* t = create_vector_of_count();
+			//auto t = create_vector_of_count();
 			//for ( unsigned int i = 0; i < (${messages.references}->size()); ++i )
 			//	{
 			//	auto r = val_mgr->Count((${message.references[i].ref_type}));
@@ -530,9 +532,9 @@ refine flow ModbusTCP_Flow += {
 			//		t->Assign(i, k);
 			//		}
 
-			BifEvent::generate_modbus_write_file_record_response(connection()->bro_analyzer(),
-			                                                     connection()->bro_analyzer()->Conn(),
-			                                                     HeaderToBro(header));
+			BifEvent::enqueue_modbus_write_file_record_response(connection()->bro_analyzer(),
+			                                                    connection()->bro_analyzer()->Conn(),
+			                                                    HeaderToVal(header));
 			}
 
 		return true;
@@ -543,11 +545,11 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_mask_write_register_request )
 			{
-			BifEvent::generate_modbus_mask_write_register_request(connection()->bro_analyzer(),
-			                                                      connection()->bro_analyzer()->Conn(),
-			                                                      HeaderToBro(header),
-			                                                      ${message.address},
-			                                                      ${message.and_mask}, ${message.or_mask});
+			BifEvent::enqueue_modbus_mask_write_register_request(connection()->bro_analyzer(),
+			                                                     connection()->bro_analyzer()->Conn(),
+			                                                     HeaderToVal(header),
+			                                                     ${message.address},
+			                                                     ${message.and_mask}, ${message.or_mask});
 			}
 
 		return true;
@@ -558,11 +560,11 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_mask_write_register_response )
 			{
-			BifEvent::generate_modbus_mask_write_register_response(connection()->bro_analyzer(),
-			                                                       connection()->bro_analyzer()->Conn(),
-			                                                       HeaderToBro(header),
-			                                                       ${message.address},
-			                                                       ${message.and_mask}, ${message.or_mask});
+			BifEvent::enqueue_modbus_mask_write_register_response(connection()->bro_analyzer(),
+			                                                      connection()->bro_analyzer()->Conn(),
+			                                                      HeaderToVal(header),
+			                                                      ${message.address},
+			                                                      ${message.and_mask}, ${message.or_mask});
 			}
 
 		return true;
@@ -580,20 +582,21 @@ refine flow ModbusTCP_Flow += {
 
 		if ( ::modbus_read_write_multiple_registers_request )
 			{
-			VectorVal* t = new VectorVal(BifType::Vector::ModbusRegisters);
+			auto t = make_intrusive<VectorVal>(BifType::Vector::ModbusRegisters);
+
 			for ( unsigned int i = 0; i < ${message.write_register_values}->size(); ++i )
 				{
 				auto r = val_mgr->Count(${message.write_register_values[i]});
 				t->Assign(i, r);
 				}
 
-			BifEvent::generate_modbus_read_write_multiple_registers_request(connection()->bro_analyzer(),
-			                                                                connection()->bro_analyzer()->Conn(),
-			                                                                HeaderToBro(header),
-			                                                                ${message.read_start_address},
-			                                                                ${message.read_quantity},
-			                                                                ${message.write_start_address},
-			                                                                t);
+			BifEvent::enqueue_modbus_read_write_multiple_registers_request(connection()->bro_analyzer(),
+			                                                               connection()->bro_analyzer()->Conn(),
+			                                                               HeaderToVal(header),
+			                                                               ${message.read_start_address},
+			                                                               ${message.read_quantity},
+			                                                               ${message.write_start_address},
+			                                                               std::move(t));
 			}
 
 		return true;
@@ -611,17 +614,18 @@ refine flow ModbusTCP_Flow += {
 
 		if ( ::modbus_read_write_multiple_registers_response )
 			{
-			VectorVal* t = new VectorVal(BifType::Vector::ModbusRegisters);
+			auto t = make_intrusive<VectorVal>(BifType::Vector::ModbusRegisters);
+
 			for ( unsigned int i = 0; i < ${message.registers}->size(); ++i )
 				{
 				auto r = val_mgr->Count(${message.registers[i]});
 				t->Assign(i, r);
 				}
 
-			BifEvent::generate_modbus_read_write_multiple_registers_response(connection()->bro_analyzer(),
-			                                                                 connection()->bro_analyzer()->Conn(),
-			                                                                 HeaderToBro(header),
-			                                                                 t);
+			BifEvent::enqueue_modbus_read_write_multiple_registers_response(connection()->bro_analyzer(),
+			                                                                connection()->bro_analyzer()->Conn(),
+			                                                                HeaderToVal(header),
+			                                                                std::move(t));
 			}
 
 		return true;
@@ -632,10 +636,10 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_read_fifo_queue_request )
 			{
-			BifEvent::generate_modbus_read_fifo_queue_request(connection()->bro_analyzer(),
-			                                                  connection()->bro_analyzer()->Conn(),
-			                                                  HeaderToBro(header),
-			                                                  ${message.start_address});
+			BifEvent::enqueue_modbus_read_fifo_queue_request(connection()->bro_analyzer(),
+			                                                 connection()->bro_analyzer()->Conn(),
+			                                                 HeaderToVal(header),
+			                                                 ${message.start_address});
 			}
 
 		return true;
@@ -654,17 +658,18 @@ refine flow ModbusTCP_Flow += {
 
 		if ( ::modbus_read_fifo_queue_response )
 			{
-			VectorVal* t = create_vector_of_count();
+			auto t = create_vector_of_count();
+
 			for ( unsigned int i = 0; i < (${message.register_data})->size(); ++i )
 				{
 				auto r = val_mgr->Count(${message.register_data[i]});
 				t->Assign(i, r);
 				}
 
-			BifEvent::generate_modbus_read_fifo_queue_response(connection()->bro_analyzer(),
-			                                                   connection()->bro_analyzer()->Conn(),
-			                                                   HeaderToBro(header),
-			                                                   t);
+			BifEvent::enqueue_modbus_read_fifo_queue_response(connection()->bro_analyzer(),
+			                                                  connection()->bro_analyzer()->Conn(),
+			                                                  HeaderToVal(header),
+			                                                  std::move(t));
 			}
 
 		return true;

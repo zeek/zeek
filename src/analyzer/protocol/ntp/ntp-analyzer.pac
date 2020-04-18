@@ -135,7 +135,7 @@ refine flow NTP_Flow += {
 		if ( ! ntp_message )
 			return false;
 
-		RecordVal* rv = new RecordVal(BifType::Record::NTP::Message);
+		auto rv = make_intrusive<RecordVal>(BifType::Record::NTP::Message);
 		rv->Assign(0, val_mgr->Count(${msg.version}));
 		rv->Assign(1, val_mgr->Count(${msg.mode}));
 
@@ -147,9 +147,9 @@ refine flow NTP_Flow += {
 		else if ( ${msg.mode} == 7 )
 			rv->Assign(4, BuildNTPMode7Msg(${msg.mode7}));
 
-		BifEvent::generate_ntp_message(connection()->bro_analyzer(),
-		                               connection()->bro_analyzer()->Conn(),
-		                               is_orig(), rv);
+		BifEvent::enqueue_ntp_message(connection()->bro_analyzer(),
+		                              connection()->bro_analyzer()->Conn(),
+		                              is_orig(), std::move(rv));
 		return true;
 		%}
 };

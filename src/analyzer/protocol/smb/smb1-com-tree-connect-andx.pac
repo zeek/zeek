@@ -3,29 +3,30 @@ refine connection SMB_Conn += {
 	function proc_smb1_tree_connect_andx_request(header: SMB_Header, val: SMB1_tree_connect_andx_request): bool
 		%{
 		if ( smb1_tree_connect_andx_request )
-			BifEvent::generate_smb1_tree_connect_andx_request(bro_analyzer(),
-			                                                  bro_analyzer()->Conn(),
-			                                                  BuildHeaderVal(header),
-			                                                  smb_string2stringval(${val.path}),
-			                                                  smb_string2stringval(${val.service}));
+			BifEvent::enqueue_smb1_tree_connect_andx_request(bro_analyzer(),
+			                                                 bro_analyzer()->Conn(),
+			                                                 SMBHeaderVal(header),
+			                                                 {AdoptRef{}, smb_string2stringval(${val.path})},
+			                                                 {AdoptRef{}, smb_string2stringval(${val.service})});
 		return true;
 		%}
 
 	function proc_smb1_tree_connect_andx_response(header: SMB_Header, val: SMB1_tree_connect_andx_response): bool
 		%{
-		auto service_string = smb_string2stringval(${val.service});
+		auto service_string = IntrusivePtr<StringVal>{AdoptRef{}, smb_string2stringval(${val.service})};
 		auto s = reinterpret_cast<const char*>(service_string->Bytes());
+
 		if ( strncmp(s, "IPC", 3) == 0 )
 			set_tree_is_pipe(${header.tid});
 
 		if ( smb1_tree_connect_andx_response )
-			BifEvent::generate_smb1_tree_connect_andx_response(bro_analyzer(),
-			                                                   bro_analyzer()->Conn(),
-			                                                   BuildHeaderVal(header),
-			                                                   service_string,
-			                                                   ${val.byte_count} > ${val.service.a}->size() ? smb_string2stringval(${val.native_file_system[0]}) : val_mgr->EmptyString()->Ref()->AsStringVal());
-		else
-			Unref(service_string);
+			BifEvent::enqueue_smb1_tree_connect_andx_response(bro_analyzer(),
+			                                                  bro_analyzer()->Conn(),
+			                                                  SMBHeaderVal(header),
+			                                                  std::move(service_string),
+			                                                  ${val.byte_count} > ${val.service.a}->size() ?
+			                                                     IntrusivePtr<StringVal>{AdoptRef{}, smb_string2stringval(${val.native_file_system[0]})} :
+			                                                     val_mgr->EmptyString());
 
 		return true;
 		%}

@@ -9,20 +9,20 @@ refine connection SMB_Conn += {
 			set_tree_is_pipe(${h.tree_id});
 
 			if ( smb_pipe_connect_heuristic )
-				BifEvent::generate_smb_pipe_connect_heuristic(bro_analyzer(),
-				                                              bro_analyzer()->Conn());
+				BifEvent::enqueue_smb_pipe_connect_heuristic(bro_analyzer(),
+				                                             bro_analyzer()->Conn());
 			}
 
 		if ( smb2_create_request )
 			{
-			RecordVal* requestinfo = new RecordVal(BifType::Record::SMB2::CreateRequest);
+			auto requestinfo = make_intrusive<RecordVal>(BifType::Record::SMB2::CreateRequest);
 			requestinfo->Assign(0, filename);
 			requestinfo->Assign(1, val_mgr->Count(${val.disposition}));
 			requestinfo->Assign(2, val_mgr->Count(${val.create_options}));
-			BifEvent::generate_smb2_create_request(bro_analyzer(),
-			                                       bro_analyzer()->Conn(),
-			                                       BuildSMB2HeaderVal(h),
-			                                       requestinfo);
+			BifEvent::enqueue_smb2_create_request(bro_analyzer(),
+			                                      bro_analyzer()->Conn(),
+			                                      {AdoptRef{}, BuildSMB2HeaderVal(h)},
+			                                      std::move(requestinfo));
 			}
 		else
 			{
@@ -36,7 +36,7 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_create_response )
 			{
-			RecordVal* responseinfo = new RecordVal(BifType::Record::SMB2::CreateResponse);
+			auto responseinfo = make_intrusive<RecordVal>(BifType::Record::SMB2::CreateResponse);
 			responseinfo->Assign(0, BuildSMB2GUID(${val.file_id}));
 			responseinfo->Assign(1, val_mgr->Count(${val.eof}));
 			responseinfo->Assign(2, SMB_BuildMACTimes(${val.last_write_time},
@@ -45,10 +45,10 @@ refine connection SMB_Conn += {
 			                                          ${val.change_time}));
 			responseinfo->Assign(3, smb2_file_attrs_to_bro(${val.file_attrs}));
 			responseinfo->Assign(4, val_mgr->Count(${val.create_action}));
-			BifEvent::generate_smb2_create_response(bro_analyzer(),
-			                                        bro_analyzer()->Conn(),
-			                                        BuildSMB2HeaderVal(h),
-			                                        responseinfo);
+			BifEvent::enqueue_smb2_create_response(bro_analyzer(),
+			                                       bro_analyzer()->Conn(),
+			                                       {AdoptRef{}, BuildSMB2HeaderVal(h)},
+												   std::move(responseinfo));
 			}
 
 		return true;

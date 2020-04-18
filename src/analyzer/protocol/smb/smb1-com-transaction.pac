@@ -53,8 +53,8 @@ refine connection SMB_Conn += {
 		if ( ! smb1_transaction_request )
 			return false;
 
-		StringVal* parameters = new StringVal(${val.parameters}.length(),
-		                                      (const char*)${val.parameters}.data());
+		auto parameters = make_intrusive<StringVal>(${val.parameters}.length(),
+		                                            (const char*)${val.parameters}.data());
 		IntrusivePtr<StringVal> payload_str;
 
 		if ( ${val.data_count} > 0 )
@@ -62,13 +62,13 @@ refine connection SMB_Conn += {
 		else
 			payload_str = val_mgr->EmptyString();
 
-		BifEvent::generate_smb1_transaction_request(bro_analyzer(),
-		                                            bro_analyzer()->Conn(),
-		                                            BuildHeaderVal(header),
-		                                            smb_string2stringval(${val.name}),
-		                                            ${val.sub_cmd},
-		                                            parameters,
-		                                            payload_str.release());
+		BifEvent::enqueue_smb1_transaction_request(bro_analyzer(),
+		                                           bro_analyzer()->Conn(),
+		                                           SMBHeaderVal(header),
+		                                           {AdoptRef{}, smb_string2stringval(${val.name})},
+		                                           ${val.sub_cmd},
+		                                           std::move(parameters),
+		                                           std::move(payload_str));
 
 		return true;
 		%}
@@ -78,8 +78,8 @@ refine connection SMB_Conn += {
 		if ( ! smb1_transaction_response )
 			return false;
 
-		StringVal* parameters = new StringVal(${val.parameters}.length(),
-		                                      (const char*)${val.parameters}.data());
+		auto parameters = make_intrusive<StringVal>(${val.parameters}.length(),
+		                                            (const char*)${val.parameters}.data());
 		IntrusivePtr<StringVal> payload_str;
 
 		if ( ${val.data_count} > 0 )
@@ -87,11 +87,11 @@ refine connection SMB_Conn += {
 		else
 			payload_str = val_mgr->EmptyString();
 
-		BifEvent::generate_smb1_transaction_response(bro_analyzer(),
-		                                             bro_analyzer()->Conn(),
-		                                             BuildHeaderVal(header),
-		                                             parameters,
-		                                             payload_str.release());
+		BifEvent::enqueue_smb1_transaction_response(bro_analyzer(),
+		                                            bro_analyzer()->Conn(),
+		                                            SMBHeaderVal(header),
+		                                            std::move(parameters),
+		                                            std::move(payload_str));
 		return true;
 		%}
 };

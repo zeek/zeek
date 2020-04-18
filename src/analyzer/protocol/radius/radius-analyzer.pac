@@ -7,7 +7,7 @@ refine flow RADIUS_Flow += {
 		if ( ! radius_message )
 			return false;
 
-		RecordVal* result = new RecordVal(BifType::Record::RADIUS::Message);
+		auto result = make_intrusive<RecordVal>(BifType::Record::RADIUS::Message);
 		result->Assign(0, val_mgr->Count(${msg.code}));
 		result->Assign(1, val_mgr->Count(${msg.trans_id}));
 		result->Assign(2, bytestring_to_val(${msg.authenticator}));
@@ -41,7 +41,7 @@ refine flow RADIUS_Flow += {
 			result->Assign(3, attributes);
 		}
 
-		BifEvent::generate_radius_message(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), result);
+		BifEvent::enqueue_radius_message(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), std::move(result));
 		return true;
 		%}
 
@@ -50,8 +50,8 @@ refine flow RADIUS_Flow += {
 		if ( ! radius_attribute )
 			return false;
 
-		BifEvent::generate_radius_attribute(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
-		                                    ${attr.code}, bytestring_to_val(${attr.value}));
+		BifEvent::enqueue_radius_attribute(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
+		                                    ${attr.code}, to_stringval(${attr.value}));
 		return true;
 		%}
 };

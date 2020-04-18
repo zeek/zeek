@@ -1,8 +1,8 @@
 
 refine flow DHCP_Flow += {
 	%member{
-		RecordVal* options;
-		VectorVal* all_options;
+		IntrusivePtr<RecordVal> options;
+		IntrusivePtr<VectorVal> all_options;
 	%}
 
 	%init{
@@ -11,10 +11,7 @@ refine flow DHCP_Flow += {
 	%}
 
 	%cleanup{
-		Unref(options);
 		options = nullptr;
-
-		Unref(all_options);
 		all_options = nullptr;
 	%}
 
@@ -22,9 +19,9 @@ refine flow DHCP_Flow += {
 		%{
 		if ( ! options )
 			{
-			options = new RecordVal(BifType::Record::DHCP::Options);
-			all_options = new VectorVal(index_vec);
-			options->Assign(0, all_options->Ref());
+			options = make_intrusive<RecordVal>(BifType::Record::DHCP::Options);
+			all_options = make_intrusive<VectorVal>(index_vec);
+			options->Assign(0, all_options);
 			}
 
 		return true;
@@ -56,7 +53,7 @@ refine flow DHCP_Flow += {
 			std::string mac_str = fmt_mac(${msg.chaddr}.data(), ${msg.chaddr}.length());
 			double secs = static_cast<double>(${msg.secs});
 
-			auto dhcp_msg_val = new RecordVal(BifType::Record::DHCP::Msg);
+			auto dhcp_msg_val = make_intrusive<RecordVal>(BifType::Record::DHCP::Msg);
 			dhcp_msg_val->Assign(0, val_mgr->Count(${msg.op}));
 			dhcp_msg_val->Assign(1, val_mgr->Count(${msg.type}));
 			dhcp_msg_val->Assign(2, val_mgr->Count(${msg.xid}));
@@ -94,14 +91,13 @@ refine flow DHCP_Flow += {
 
 			init_options();
 
-			BifEvent::generate_dhcp_message(connection()->bro_analyzer(),
-			                                connection()->bro_analyzer()->Conn(),
-			                                ${msg.is_orig},
-			                                dhcp_msg_val,
-			                                options);
+			BifEvent::enqueue_dhcp_message(connection()->bro_analyzer(),
+			                               connection()->bro_analyzer()->Conn(),
+			                               ${msg.is_orig},
+			                               std::move(dhcp_msg_val),
+			                               std::move(options));
 
 			options = nullptr;
-			Unref(all_options);
 			all_options = nullptr;
 			}
 

@@ -4142,9 +4142,34 @@ IntrusivePtr<Val> RecordConstructorExpr::Fold(Val* v) const
 	return rv;
 	}
 
-Expr* RecordConstructorExpr::Reduce(ReductionContext* c,
- 				IntrusivePtr<Stmt>& red_stmt)
+bool RecordConstructorExpr::HasReducedOps() const
 	{
+	expr_list& exprs = op->AsListExpr()->Exprs();
+
+	loop_over_list(exprs, i)
+		{
+		auto e_i = exprs[i];
+		if ( ! e_i->AsFieldAssignExpr()->Op()->IsSingleton() )
+			return false;
+		}
+
+	return true;
+	}
+
+Expr* RecordConstructorExpr::Reduce(ReductionContext* c,
+					IntrusivePtr<Stmt>& red_stmt)
+	{
+	red_stmt = ReduceToSingletons(c);
+
+	if ( c->Optimizing() )
+		return this->Ref();
+	else
+		return AssignToTemporary(c, red_stmt);
+	}
+
+IntrusivePtr<Stmt> RecordConstructorExpr::ReduceToSingletons(ReductionContext* c)
+	{
+	IntrusivePtr<Stmt> red_stmt;
 	expr_list& exprs = op->AsListExpr()->Exprs();
 
 	// Could consider merging this code with that for ListExpr::Reduce.
@@ -4156,30 +4181,23 @@ Expr* RecordConstructorExpr::Reduce(ReductionContext* c,
 
 		if ( c->Optimizing() )
 			{
-			auto rhs_i = c->UpdateExpr(fa_i_rhs);
-			auto new_rhs_i = new FieldAssignExpr(fa_i->FieldName(), 
-								rhs_i);
-			exprs.replace(i, new_rhs_i);
+			fa_i->SetOp1(c->UpdateExpr(fa_i_rhs));
 			continue;
 			}
 
-		if ( fa_i_rhs->IsReduced() )
+		if ( fa_i_rhs->IsSingleton() )
 			continue;
 
 		IntrusivePtr<Stmt> e_stmt;
 		IntrusivePtr<Expr> rhs_red =
-			{AdoptRef{}, fa_i_rhs->Reduce(c, e_stmt)};
-		auto new_e = new FieldAssignExpr(fa_i->FieldName(), rhs_red);
-		exprs.replace(i, new_e);
+			{AdoptRef{}, fa_i_rhs->ReduceToSingleton(c, e_stmt)};
+		fa_i->SetOp1(rhs_red);
 
 		if ( e_stmt )
 			red_stmt = MergeStmts(red_stmt, e_stmt);
 		}
 
-	if ( c->Optimizing() )
-		return this->Ref();
-	else
-		return AssignToTemporary(c, red_stmt);
+	return red_stmt;
 	}
 
 void RecordConstructorExpr::ExprDescribe(ODesc* d) const

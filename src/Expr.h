@@ -863,7 +863,10 @@ public:
 protected:
 	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
 	IntrusivePtr<Val> Fold(Val* v) const override;
+
+	bool HasReducedOps() const override;
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
+	IntrusivePtr<Stmt> ReduceToSingletons(ReductionContext* c) override;
 
 	void ExprDescribe(ODesc* d) const override;
 };

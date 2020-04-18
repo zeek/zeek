@@ -263,6 +263,17 @@ bool ReductionContext::SameExpr(const Expr* e1, const Expr* e2)
 		// else.
 		reporter->InternalError("Unexpected tag in ReductionContext::SameExpr");
 
+	case EXPR_FIELD:
+		{
+		auto f1 = e1->AsFieldExpr();
+		auto f2 = e2->AsFieldExpr();
+
+		if ( f1->Field() != f2->Field() )
+			return false;
+
+		return SameOp(f1->GetOp1(), f2->GetOp1());
+		}
+
 	case EXPR_LIST:
 		{
 		auto l1 = e1->AsListExpr()->Exprs();

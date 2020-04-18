@@ -539,13 +539,19 @@ void RD_Decorate::DoLoopConfluence(const Stmt* s, const Stmt* body)
 	auto body_min_post = mgr.GetPostMinRDs(body);
 	auto body_max_post = mgr.GetPostMaxRDs(body);
 
-	auto min_post_rds =
-		s_min_pre->IntersectWithConsolidation(body_min_post, ds);
-	auto max_post_rds = s_max_pre->Union(body_max_post);
+	if ( ControlCouldReachEnd(body, false) )
+		{
+		auto min_post_rds =
+			s_min_pre->IntersectWithConsolidation(body_min_post, ds);
+		auto max_post_rds = s_max_pre->Union(body_max_post);
 
-	mgr.CreatePostRDs(s, min_post_rds, max_post_rds);
-	min_post_rds.release();
-	max_post_rds.release();
+		mgr.CreatePostRDs(s, min_post_rds, max_post_rds);
+		min_post_rds.release();
+		max_post_rds.release();
+		}
+
+	else
+		mgr.CreatePostRDs(s, s_min_pre, s_max_pre);
 
 	delete bd;
 	}

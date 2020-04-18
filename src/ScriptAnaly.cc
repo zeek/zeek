@@ -1351,6 +1351,7 @@ TraversalCode FolderFinder::PreExpr(const Expr* expr, const Expr* op1, const Exp
 
 bool did_init = false;
 bool activate = false;
+bool optimize = false;
 const char* only_func = 0;
 
 void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
@@ -1361,6 +1362,8 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 			activate = true;
 
 		only_func = getenv("ZEEK_ONLY");
+
+		optimize = getenv("ZEEK_OPTIMIZE");
 
 		if ( only_func )
 			activate = true;
@@ -1400,20 +1403,24 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 	f->ReplaceBody(body_ptr, new_body_ptr);
 	f->GrowFrameSize(rc.NumTemps());
 
-	ProfileFunc pf;
-	f->Traverse(&pf);
+	if ( optimize )
+		{
+		ProfileFunc pf;
+		f->Traverse(&pf);
 
-	RD_Decorate cb(pf);
-	f->Traverse(&cb);
+		RD_Decorate cb(pf);
+		f->Traverse(&cb);
 
-	rc.SetDefSetsMgr(cb.GetDefSetsMgr());
-	body_ptr = new_body_ptr;
-	new_body = new_body->Reduce(&rc);
-	new_body_ptr = {AdoptRef{}, new_body};
+		rc.SetDefSetsMgr(cb.GetDefSetsMgr());
+		body_ptr = new_body_ptr;
+		new_body = new_body->Reduce(&rc);
+		new_body_ptr = {AdoptRef{}, new_body};
 
-	if ( only_func )
-		printf("Optimized: %s\n", obj_desc(new_body));
+		if ( only_func )
+			printf("Optimized: %s\n", obj_desc(new_body));
 
-	f->ReplaceBody(body_ptr, new_body_ptr);
+		f->ReplaceBody(body_ptr, new_body_ptr);
+		}
+
 	pop_scope();
 	}

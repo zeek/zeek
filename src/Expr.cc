@@ -4344,7 +4344,7 @@ IntrusivePtr<Stmt> TableConstructorExpr::ReduceToSingletons(ReductionContext* c)
 			a->SetOp2({AdoptRef{},
 					op2->ReduceToSingleton(c, red2_stmt)});
 
-			red_stmt = MergeStmts(red1_stmt, red2_stmt);
+			red_stmt = MergeStmts(red_stmt, red1_stmt, red2_stmt);
 			}
 
 		else

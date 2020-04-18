@@ -139,10 +139,7 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 		}
 
 	for ( const auto& g : pf.globals )
-		{
-		printf("defining global %s\n", g->Name());
 		CreateInitPostDef(g, DefinitionPoint(f), true, nullptr);
-		}
 
 	if ( ! mgr.HasPostMinRDs(f) )
 		// This happens if we have no arguments or globals.  Use the

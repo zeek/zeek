@@ -1354,13 +1354,16 @@ Expr* IncrExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	IntrusivePtr<Stmt> incr_stmts;
 	auto result = increment_expr->AssignToTemporary(c, incr_stmts);
 
-	auto stmts = MergeStmts(ref_red_stmts, get_val_stmts, incr_stmts);
-	red_stmt = {NewRef{}, stmts.get()->Reduce(c)};
-
 	// Assign it back to the target.
 	IntrusivePtr ref_op_ptr{NewRef{}, ref_op};
 	IntrusivePtr result_ptr{AdoptRef{}, result};
 	auto final = get_assign_expr(ref_op_ptr, result_ptr, false).release();
+
+	IntrusivePtr<Stmt> assign_red_stmt;
+	final = final->ReduceToSingleton(c, assign_red_stmt);
+
+	auto m1 = MergeStmts(ref_red_stmts, get_val_stmts, incr_stmts);
+	red_stmt = {AdoptRef{}, MergeStmts(m1, assign_red_stmt)->Reduce(c)};
 
 	return final;
 	}

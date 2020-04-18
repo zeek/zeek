@@ -630,9 +630,8 @@ void RD_Decorate::AddBlockDefs(const Stmt* s,
 
 bool RD_Decorate::CheckLHS(const Expr* lhs, const Expr* e)
 	{
-	const AssignExpr* a =
-		(e->Tag() == EXPR_ASSIGN) ? e->AsAssignExpr() : nullptr;
-	auto rhs = a->Op2();
+	// e can be an EXPR_ASSIGN or an EXPR_APPEND_TO.
+	auto rhs = e->GetOp2();
 
 	switch ( lhs->Tag() ) {
 	case EXPR_REF:
@@ -647,7 +646,7 @@ bool RD_Decorate::CheckLHS(const Expr* lhs, const Expr* e)
 		auto n = lhs->AsNameExpr();
 		auto id = n->Id();
 
-		CreateInitPostDef(id, DefinitionPoint(e), false, rhs);
+		CreateInitPostDef(id, DefinitionPoint(e), false, rhs.get());
 
 		return true;
 		}
@@ -668,7 +667,7 @@ bool RD_Decorate::CheckLHS(const Expr* lhs, const Expr* e)
 			// Since the typing on the RHS may be dynamic,
 			// we don't try to do any inference of possible
 			// missing fields, hence "true" in the following.
-			CreateInitPostDef(id, DefinitionPoint(a), true, 0);
+			CreateInitPostDef(id, DefinitionPoint(e), true, 0);
 			}
 
 		return true;
@@ -702,7 +701,7 @@ bool RD_Decorate::CheckLHS(const Expr* lhs, const Expr* e)
 		if ( ! field_rd )
 			field_rd = r_def->CreateField(fn, ft.get());
 
-		CreateInitPostDef(field_rd, DefinitionPoint(e), false, rhs);
+		CreateInitPostDef(field_rd, DefinitionPoint(e), false, rhs.get());
 
 		return true;
 		}
@@ -986,17 +985,13 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		auto aggr = f->Op1();
 		auto r = f->Op2();
 
-		mgr.SetPreFromPre(aggr, f);
-		mgr.SetPreFromPre(r, f);
+		mgr.SetPreFromPre(aggr, e);
+		mgr.SetPreFromPre(r, e);
 
-		if ( r->Tag() != EXPR_NAME && r->Tag() != EXPR_FIELD )
-			// This is a more complicated expression that we're
-			// not able to concretely track.
-			break;
-
+		aggr->Traverse(this);
 		r->Traverse(this);
 
-		auto r_def = mgr.GetExprReachingDef(f);
+		auto r_def = mgr.GetExprReachingDef(aggr);
 		if ( ! r_def )
 			// This should have already generated a complaint.
 			// Avoid cascade.

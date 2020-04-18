@@ -66,7 +66,10 @@ void TempVar::SetAlias(IntrusivePtr<ID> _alias, const DefPoints* _dps)
 		reporter->InternalError("Re-aliasing a temporary");
 
 	if ( ! _dps )
+		{
+		printf("trying to alias %s to %s\n", name, _alias->Name());
 		reporter->InternalError("Empty dps for alias");
+		}
 
 	if ( alias == id )
 		reporter->InternalError("Creating alias loop");
@@ -412,10 +415,6 @@ bool ReductionContext::IsCSE(const AssignExpr* a,
 const ConstExpr* ReductionContext::CheckForConst(const IntrusivePtr<ID>& id,
 						const DefPoints* dps) const
 	{
-	if ( ! dps && id->IsGlobal() )
-		// It's valid to use a global without defining it.
-		return nullptr;
-
 	ASSERT(dps && dps->length() > 0);
 	if ( dps->length() != 1 )
 		// Multiple definitions of the variable reach to this
@@ -629,7 +628,7 @@ IntrusivePtr<ID> ReductionContext::GenTemporary(const IntrusivePtr<BroType>& t,
 
 	auto temp = new TempVar(temps.length(), t, rhs);
 	IntrusivePtr<ID> temp_id =
-		install_ID(temp->Name(), nullptr, false, false);
+		install_ID(temp->Name(), "<internal>", false, false);
 
 	temp->SetID(temp_id);
 	temp_id->SetType(t);

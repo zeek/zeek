@@ -91,13 +91,14 @@ TEST_CASE("module_util make_full_var_name")
 
 	CHECK(make_full_var_name("module", "var") == "module::var");
 	CHECK(make_full_var_name("module::", "var") == "module::var");
+	CHECK(make_full_var_name("module::", "#var") == "#var");
 	CHECK(make_full_var_name("", "var") == "::var");
 	}
 
 string make_full_var_name(const char* module_name, const char* var_name)
 	{
 	if ( ! module_name || streq(module_name, GLOBAL_MODULE_NAME) ||
-	     strstr(var_name, "::") )
+	     strstr(var_name, "::") || strstr(var_name, "#") )
 		{
 		if ( streq(GLOBAL_MODULE_NAME, extract_module_name(var_name).c_str()) )
 			return extract_var_name(var_name);

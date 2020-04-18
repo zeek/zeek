@@ -37,9 +37,30 @@ struct BlockDefs {
 	bool is_case;
 };
 
+class ProfileFunc : public TraversalCallback {
+public:
+	TraversalCode PreExpr(const Expr*) override;
+
+	// Globals seen in the function.
+	std::unordered_set<const ID*> globals;
+};
+
+TraversalCode ProfileFunc::PreExpr(const Expr* e)
+	{
+	if ( e->Tag() == EXPR_NAME )
+		{
+		auto n = e->AsNameExpr();
+		auto id = n->Id();
+		if ( id->IsGlobal() )
+			globals.insert(id);
+		}
+
+	return TC_CONTINUE;
+	}
+
 class RD_Decorate : public TraversalCallback {
 public:
-	RD_Decorate();
+	RD_Decorate(const ProfileFunc& pf);
 
 	TraversalCode PreFunction(const Func*) override;
 	TraversalCode PreStmt(const Stmt*) override;
@@ -83,13 +104,14 @@ protected:
 	void AddBlockDefs(const Stmt* s,
 				bool is_pre, bool is_future, bool is_case);
 
+	const ProfileFunc& pf;
 	DefSetsMgr mgr;
 	vector<BlockDefs*> block_defs;
 	bool trace;
 };
 
 
-RD_Decorate::RD_Decorate()
+RD_Decorate::RD_Decorate(const ProfileFunc& _pf) : pf(_pf)
 	{
 	trace = getenv("ZEEK_OPT_TRACE") != nullptr;
 	}
@@ -113,11 +135,17 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 		if ( ! arg_i_id )
 			arg_i_id = scope->Lookup(make_full_var_name(current_module.c_str(), arg_i).c_str());
 
-		CreateInitPostDef(arg_i_id, DefinitionPoint(f), true, 0);
+		CreateInitPostDef(arg_i_id, DefinitionPoint(f), true, nullptr);
+		}
+
+	for ( const auto& g : pf.globals )
+		{
+		printf("defining global %s\n", g->Name());
+		CreateInitPostDef(g, DefinitionPoint(f), true, nullptr);
 		}
 
 	if ( ! mgr.HasPostMinRDs(f) )
-		// This happens if we have no arguments.  Use the
+		// This happens if we have no arguments or globals.  Use the
 		// empty ones we set up.
 		mgr.SetPostFromPre(f);
 
@@ -863,13 +891,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		auto n = e->AsNameExpr();
 		auto id = n->Id();
 
-		if ( id->IsGlobal() )
-			{
-			// Treat global as fully initialized. ### may need Pre here
-			CreateInitPostDef(id, DefinitionPoint(n), true, nullptr);
-			}
-
-		else if ( ! mgr.HasPreMinRD(e, id) )
+		if ( ! mgr.HasPreMinRD(e, id) )
 			{
 			printf("%s has no pre at %s\n", id->Name(), obj_desc(e));
 			exit(1);
@@ -1120,6 +1142,24 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		return TC_ABORTSTMT;
 		}
 
+	case EXPR_COND:
+		// Special hack.  We don't bother traversing the operands
+		// of conditionals.  This is because we use them heavily
+		// to deconstruct logical expressions for which the
+		// actual operand access is safe (guaranteed not to
+		// access a value that hasn't been undefined), but the
+		// flow analysis has trouble determining that.  In principle
+		// we could do a bit better here and only traverse operands
+		// that aren't temporaries, but that's a bit of a pain
+		// to discern.
+		mgr.SetPreFromPre(e->GetOp1().get(), e);
+		mgr.SetPreFromPre(e->GetOp2().get(), e);
+		mgr.SetPreFromPre(e->GetOp3().get(), e);
+
+		e->GetOp1()->Traverse(this);
+
+		return TC_ABORTSTMT;
+
 	case EXPR_LAMBDA:
 		// ### Too tricky to get these right.
 		return TC_ABORTSTMT;
@@ -1357,7 +1397,10 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 	f->ReplaceBody(body_ptr, new_body_ptr);
 	f->GrowFrameSize(rc.NumTemps());
 
-	RD_Decorate cb;
+	ProfileFunc pf;
+	f->Traverse(&pf);
+
+	RD_Decorate cb(pf);
 	f->Traverse(&cb);
 
 	rc.SetDefSetsMgr(cb.GetDefSetsMgr());

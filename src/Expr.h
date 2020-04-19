@@ -655,6 +655,7 @@ public:
 	bool IsReduced() const override;
 	bool HasReducedOps() const override;
 	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
+	IntrusivePtr<Stmt> ReduceToSingletons(ReductionContext* c) override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 

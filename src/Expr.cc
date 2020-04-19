@@ -2726,9 +2726,6 @@ Expr* CondExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 		op3 = c->UpdateExpr(op3);
 		}
 
-	if ( op1->HasNoSideEffects() && same_singletons(op2, op3) )
-		return op2->ReduceToSingleton(c, red_stmt);
-
 	if ( op1->IsConst() )
 		{
 		if ( op1->AsConstExpr()->Value()->IsOne() )
@@ -2737,34 +2734,40 @@ Expr* CondExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 			return op3->ReduceToSingleton(c, red_stmt);
 		}
 
-	if ( c->Optimizing() )
+	if ( same_singletons(op2, op3) )
+		{
+		if ( op1->HasNoSideEffects() )
+			op1 = {AdoptRef{}, op1->AssignToTemporary(c, red_stmt)};
+
+		return op2->Ref();
+		}
+
+	if ( c->Optimizing() || HasReducedOps() )
 		return this->Ref();
 
+	red_stmt = ReduceToSingletons(c);
+
+	IntrusivePtr<Stmt> assign_stmt;
+	auto res = AssignToTemporary(c, assign_stmt);
+
+	red_stmt = MergeStmts(red_stmt, assign_stmt);
+
+	return TransformMe(res, c, red_stmt);
+	}
+
+IntrusivePtr<Stmt> CondExpr::ReduceToSingletons(ReductionContext* c)
+	{
 	IntrusivePtr<Stmt> red1_stmt;
 	if ( ! op1->IsSingleton() )
 		op1 = {AdoptRef{}, op1->ReduceToSingleton(c, red1_stmt)};
 
 	IntrusivePtr<Stmt> red2_stmt;
 	if ( ! op2->IsSingleton() )
-		{
 		op2 = {AdoptRef{}, op2->ReduceToSingleton(c, red2_stmt)};
-
-		IntrusivePtr<Stmt> assign2_stmt;
-		op2 = {AdoptRef{}, op2->AssignToTemporary(c, assign2_stmt)};
-
-		red2_stmt = MergeStmts(red2_stmt, assign2_stmt);
-		}
 
 	IntrusivePtr<Stmt> red3_stmt;
 	if ( ! op3->IsSingleton() )
-		{
 		op3 = {AdoptRef{}, op3->ReduceToSingleton(c, red3_stmt)};
-
-		IntrusivePtr<Stmt> assign3_stmt;
-		op3 = {AdoptRef{}, op3->AssignToTemporary(c, assign3_stmt)};
-
-		red3_stmt = MergeStmts(red3_stmt, assign3_stmt);
-		}
 
 	IntrusivePtr<Stmt> if_else;
 
@@ -2778,15 +2781,7 @@ Expr* CondExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 		if_else = {AdoptRef{}, new IfStmt(op1, red2_stmt, red3_stmt)};
 		}
 
-	if ( c->Optimizing() )
-		return this->Ref();
-
-	IntrusivePtr<Stmt> assign_stmt;
-	auto res = AssignToTemporary(c, assign_stmt);
-
-	red_stmt = MergeStmts(red1_stmt, if_else, assign_stmt);
-
-	return TransformMe(res, c, red_stmt);
+	return MergeStmts(red1_stmt, if_else);
 	}
 
 TraversalCode CondExpr::Traverse(TraversalCallback* cb) const
@@ -3363,10 +3358,6 @@ Expr* AssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	if ( IsTemp() )
 		return this->Ref();
 
-	if ( op1->Tag() != EXPR_REF )
-		{
-		printf("oops: %s\n", obj_desc(this));
-		}
 	auto lhs_ref = op1->AsRefExpr();
 	auto lhs_expr = lhs_ref->Op();
 

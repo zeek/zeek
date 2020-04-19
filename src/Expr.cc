@@ -2268,7 +2268,7 @@ Expr* BoolExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	else
 		cond = new CondExpr(op1, else_e, op2);
 
-	auto cond_red = cond->Reduce(c, red_stmt);
+	auto cond_red = cond->ReduceToSingleton(c, red_stmt);
 
 	return TransformMe(cond_red, c, red_stmt);
 	}
@@ -2742,7 +2742,7 @@ Expr* CondExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 		return op2->Ref();
 		}
 
-	if ( c->Optimizing() || HasReducedOps() )
+	if ( c->Optimizing() )
 		return this->Ref();
 
 	red_stmt = ReduceToSingletons(c);

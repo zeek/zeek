@@ -302,6 +302,14 @@ protected:
 			return this;
 		}
 
+	void SeatBelts(const BroType* t1, const BroType* t2) const;
+	void SeatBelts(const BroType* t1, IntrusivePtr<BroType> t2) const
+		{ SeatBelts(t1, t2.get()); }
+	void SeatBelts(IntrusivePtr<BroType> t1, const BroType* t2) const
+		{ SeatBelts(t1.get(), t2); }
+	void SeatBelts(IntrusivePtr<BroType> t1, IntrusivePtr<BroType> t2) const
+		{ SeatBelts(t1.get(), t2.get()); }
+
 	Val* MakeZero(TypeTag t) const;
 	ConstExpr* MakeZeroExpr(TypeTag t) const;
 
@@ -799,9 +807,10 @@ class FieldLHSAssignExpr : public BinaryExpr {
 public:
 	// "op1$field = op2", reduced.
 	FieldLHSAssignExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2,
-				int field_name);
+				const char* field_name, int field);
 
-	int Field() const	{ return field; }
+	const char* FieldName() const	{ return field_name; }
+	int Field() const		{ return field; }
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 	bool IsReduced() const override;
@@ -813,6 +822,7 @@ public:
 protected:
 	void ExprDescribe(ODesc* d) const override;
 
+	const char* field_name;
 	int field;
 };
 

@@ -285,6 +285,17 @@ IntrusivePtr<Val> Expr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) const
 	return check_and_promote(Eval(nullptr), t, true);
 	}
 
+void Expr::SeatBelts(const BroType* t1, const BroType* t2) const
+	{
+	if ( ! same_type(t1, t2) )
+		{
+		printf("type mismatch for %s\n", obj_desc(this));
+		printf(" ... %s vs. %s\n",
+			type_name(t1->Tag()), type_name(t2->Tag()));
+		reporter->InternalError("SeatBelts");
+		}
+	}
+
 Val* Expr::MakeZero(TypeTag t) const
 	{
 	switch ( t ) {
@@ -3139,6 +3150,8 @@ IntrusivePtr<Val> AssignExpr::Eval(Frame* f) const
 
 	if ( auto v = op2->Eval(f) )
 		{
+		SeatBelts(v->Type(), op2->Type());
+
 		op1->Assign(f, v);
 
 		if ( val )
@@ -3396,8 +3409,10 @@ Expr* AssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 
 		red_stmt = MergeStmts(lhs_stmt, rhs_stmt);
 
-		int field = field_e->Field();
-		auto field_assign = new FieldLHSAssignExpr(lhs_e, rhs_e, field);
+		auto field_name = field_e->FieldName();
+		auto field = field_e->Field();
+		auto field_assign =
+			new FieldLHSAssignExpr(lhs_e, rhs_e, field_name, field);
 
 		return TransformMe(field_assign, c, red_stmt);
 		}
@@ -3910,11 +3925,17 @@ void AnyIndexExpr::ExprDescribe(ODesc* d) const
 
 
 FieldLHSAssignExpr::FieldLHSAssignExpr(IntrusivePtr<Expr> arg_op1,
-				IntrusivePtr<Expr> arg_op2, int _field)
+				IntrusivePtr<Expr> arg_op2,
+				const char* _field_name, int _field)
 : BinaryExpr(EXPR_FIELD_LHS_ASSIGN, std::move(arg_op1), std::move(arg_op2))
 	{
+	field_name = _field_name;
 	field = _field;
 	SetType(op2->Type());
+
+	auto rt = op1->Type()->AsRecordType();
+	auto ft = rt->FieldType(field);
+	SeatBelts(ft, Type());
 	}
 
 IntrusivePtr<Val> FieldLHSAssignExpr::Eval(Frame* f) const
@@ -3924,6 +3945,8 @@ IntrusivePtr<Val> FieldLHSAssignExpr::Eval(Frame* f) const
 
 	if ( v1 && v2 )
 		{
+		SeatBelts(v2->Type(), Type());
+
 		RecordVal* r = v1->AsRecordVal();
 		r->Assign(field, std::move(v2));
 		}
@@ -3968,9 +3991,11 @@ Expr* FieldLHSAssignExpr::ReduceToSingleton(ReductionContext* c,
 	IntrusivePtr<Expr> assign_expr{NewRef{}, this};
 	auto assign_stmt = make_intrusive<ExprStmt>(assign_expr);
 
-	auto res = op1->ReduceToSingleton(c, red_stmt);
+	auto field_res = new FieldExpr(op1, field_name);
+	IntrusivePtr<Stmt> field_res_stmt;
+	auto res = field_res->ReduceToSingleton(c, field_res_stmt);
 
-	red_stmt = MergeStmts(assign_stmt, red_stmt);
+	red_stmt = MergeStmts(assign_stmt, red_stmt, field_res_stmt);
 
 	return res;
 	}
@@ -4052,7 +4077,10 @@ void FieldExpr::Delete(Frame* f)
 IntrusivePtr<Val> FieldExpr::Fold(Val* v) const
 	{
 	if ( Val* result = v->AsRecordVal()->Lookup(field) )
+		{
+		SeatBelts(result->Type(), Type());
 		return {NewRef{}, result};
+		}
 
 	// Check for &default.
 	const Attr* def_attr = td ? td->FindAttr(ATTR_DEFAULT) : 0;

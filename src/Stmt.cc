@@ -1992,7 +1992,6 @@ bool StmtList::ReduceStmt(int& s_i, stmt_list* f_stmts, ReductionContext* c)
 	if ( stmt != old_stmt )
 		did_change = true;
 
-printf("Reducing statement: %s\n", obj_desc(stmt));
 	if ( c->Optimizing() && stmt->Tag() == STMT_EXPR )
 		{
 		auto s_e = stmt->AsExprStmt();
@@ -2036,11 +2035,8 @@ printf("Reducing statement: %s\n", obj_desc(stmt));
 			}
 
 		if ( c->IsCSE(a, var, rhs.get()) )
-			{
-			printf(" ... ELIDING\n");
 			// Skip this now unnecessary statement.
 			return true;
-			}
 		}
 
 	if ( stmt->Tag() == STMT_LIST )

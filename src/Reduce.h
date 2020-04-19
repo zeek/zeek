@@ -56,7 +56,8 @@ protected:
 		{ return SameOp(op1.get(), op2.get()); }
 	bool SameExpr(const Expr* e1, const Expr* e2);
 
-	IntrusivePtr<ID> FindExprTmp(const Expr* rhs, const Expr* lhs);
+	IntrusivePtr<ID> FindExprTmp(const Expr* rhs, const Expr* lhs,
+					const TempVar* lhs_tmp);
 	IntrusivePtr<ID> GenTemporary(const IntrusivePtr<BroType>& t,
 					IntrusivePtr<Expr> rhs);
 	TempVar* FindTemporary(const ID* id) const;

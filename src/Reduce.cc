@@ -355,12 +355,13 @@ bool ReductionContext::SameExpr(const Expr* e1, const Expr* e2)
 // Find a temporary, if any, whose RHS matches the given "rhs", using
 // the reaching defs associated with "lhs".
 IntrusivePtr<ID> ReductionContext::FindExprTmp(const Expr* rhs,
-						const Expr* lhs)
+						const Expr* lhs,
+						const TempVar* lhs_tmp)
 	{
 	for ( int i = 0; i < expr_temps.length(); ++i )
 		{
 		auto et_i = expr_temps[i];
-		if ( et_i->Alias() )
+		if ( et_i->Alias() || et_i == lhs_tmp )
 			// This can happen due to re-reduction while
 			// optimizing.
 			continue;
@@ -392,7 +393,7 @@ bool ReductionContext::IsCSE(const AssignExpr* a,
 
 	auto lhs_id = lhs->Id();
 	auto lhs_tmp = FindTemporary(lhs_id);
-	auto rhs_tmp = FindExprTmp(rhs, lhs);
+	auto rhs_tmp = FindExprTmp(rhs, lhs, lhs_tmp);
 
 	IntrusivePtr<Expr> new_rhs;
 	if ( rhs_tmp )
@@ -408,6 +409,7 @@ bool ReductionContext::IsCSE(const AssignExpr* a,
 		if ( rhs->Tag() == EXPR_CONST )
 			{ // mark temporary as just being a constant
 			lhs_tmp->SetConst(rhs->AsConstExpr());
+			printf(" CSE due to constant\n");
 			return true;
 			}
 
@@ -419,6 +421,7 @@ bool ReductionContext::IsCSE(const AssignExpr* a,
 			if ( rhs_tmp_var && rhs_tmp_var->Const() )
 				{
 				lhs_tmp->SetConst(rhs_tmp_var->Const());
+				printf(" CSE due to temp var constant\n");
 				return true;
 				}
 
@@ -432,6 +435,7 @@ bool ReductionContext::IsCSE(const AssignExpr* a,
 			else
 				lhs_tmp->SetAlias(rhs_id_ptr, dps);
 
+			printf(" CSE due to assignment to variable, lhs_tmp %s rhs %s\n", lhs_tmp->Name(), obj_desc(rhs));
 			return true;
 			}
 

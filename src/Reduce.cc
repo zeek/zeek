@@ -409,7 +409,6 @@ bool ReductionContext::IsCSE(const AssignExpr* a,
 		if ( rhs->Tag() == EXPR_CONST )
 			{ // mark temporary as just being a constant
 			lhs_tmp->SetConst(rhs->AsConstExpr());
-			printf(" CSE due to constant\n");
 			return true;
 			}
 
@@ -421,7 +420,6 @@ bool ReductionContext::IsCSE(const AssignExpr* a,
 			if ( rhs_tmp_var && rhs_tmp_var->Const() )
 				{
 				lhs_tmp->SetConst(rhs_tmp_var->Const());
-				printf(" CSE due to temp var constant\n");
 				return true;
 				}
 
@@ -435,7 +433,6 @@ bool ReductionContext::IsCSE(const AssignExpr* a,
 			else
 				lhs_tmp->SetAlias(rhs_id_ptr, dps);
 
-			printf(" CSE due to assignment to variable, lhs_tmp %s rhs %s\n", lhs_tmp->Name(), obj_desc(rhs));
 			return true;
 			}
 

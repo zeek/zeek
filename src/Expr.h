@@ -936,6 +936,7 @@ public:
 	                               IntrusivePtr<BroType> arg_type = nullptr);
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
+	bool HasReducedOps() const override;
 
 protected:
 	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;

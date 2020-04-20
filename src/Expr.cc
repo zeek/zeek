@@ -4690,6 +4690,11 @@ IntrusivePtr<Val> VectorConstructorExpr::Eval(Frame* f) const
 	return vec;
 	}
 
+bool VectorConstructorExpr::HasReducedOps() const
+	{
+	return Op()->HasReducedOps();
+	}
+
 IntrusivePtr<Val> VectorConstructorExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) const
 	{
 	if ( IsError() )

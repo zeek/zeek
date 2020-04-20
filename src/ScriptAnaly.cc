@@ -621,6 +621,14 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		break;
 
 	case STMT_BREAK:
+		if ( block_defs.size() == 0 )
+			{
+			// This is presumably a break inside a hook.
+			// Treat as a return.
+			CreateEmptyPostRDs(s);
+			break;
+			}
+
 		AddBlockDefs(s, false, false, block_defs.back()->is_case);
 
 		if ( block_defs.back()->is_case )

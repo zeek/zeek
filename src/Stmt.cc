@@ -2041,8 +2041,11 @@ bool StmtList::ReduceStmt(int& s_i, stmt_list* f_stmts, ReductionContext* c)
 			}
 
 		if ( c->IsCSE(a, var, rhs.get()) )
+			{
+			// printf("discarding %s as unnecessary\n", obj_desc(a));
 			// Skip this now unnecessary statement.
 			return true;
+			}
 		}
 
 	if ( stmt->Tag() == STMT_LIST )

@@ -1790,6 +1790,12 @@ bool AppendToExpr::IsReduced() const
 
 Expr* AppendToExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	{
+	if ( c->Optimizing() )
+		{
+		op1 = c->UpdateExpr(op1);
+		op2 = c->UpdateExpr(op2);
+		}
+
 	return this->Ref();
 	}
 

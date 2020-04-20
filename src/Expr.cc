@@ -5800,6 +5800,14 @@ IntrusivePtr<Val> LambdaExpr::Eval(Frame* f) const
 	return make_intrusive<Val>(lamb.get());
 	}
 
+Expr* LambdaExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	if ( c->Optimizing() )
+		return this->Ref();
+	else
+		return AssignToTemporary(c, red_stmt);
+	}
+
 void LambdaExpr::ExprDescribe(ODesc* d) const
 	{
 	d->Add(expr_name(Tag()));

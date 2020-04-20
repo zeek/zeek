@@ -1104,6 +1104,9 @@ public:
 		   id_list outer_ids);
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
+
+	Expr* Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt) override;
+
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	Scope* GetScope() const;

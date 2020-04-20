@@ -134,6 +134,10 @@ IntrusivePtr<Val> Val::DoClone(CloneState* state)
 			return {NewRef{}, this};
 			}
 
+		if ( type->Tag() == TYPE_TYPE )
+			// These are immutable, essentially.
+			return {NewRef{}, this};
+
 		// Fall-through.
 
 	default:

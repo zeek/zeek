@@ -23,6 +23,7 @@ typedef Val* BroVal;
 typedef PortVal* BroPortVal;
 typedef StringVal* BroStringVal;
 
+[[deprecated("Remove in v4.1.  Use StringVal constructor directly.")]]
 inline StringVal* string_to_val(string const &str)
 	{
 	return new StringVal(str.c_str());

@@ -5456,6 +5456,12 @@ IntrusivePtr<Val> InExpr::Fold(Val* v1, Val* v2) const
 	return {AdoptRef{}, val_mgr->GetBool(res)};
 	}
 
+bool InExpr::HasReducedOps() const
+	{
+	return op1->HasReducedOps() && op2->IsSingleton();
+	}
+
+
 CallExpr::CallExpr(IntrusivePtr<Expr> arg_func,
                    IntrusivePtr<ListExpr> arg_args, bool in_hook)
 	: Expr(EXPR_CALL), func(std::move(arg_func)), args(std::move(arg_args))

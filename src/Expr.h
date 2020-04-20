@@ -1060,6 +1060,8 @@ class InExpr : public BinaryExpr {
 public:
 	InExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 
+	bool HasReducedOps() const override;
+
 protected:
 	IntrusivePtr<Val> Fold(Val* v1, Val* v2) const override;
 

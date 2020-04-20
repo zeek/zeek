@@ -75,7 +75,7 @@ public:
 protected:
 	void TraverseSwitch(const SwitchStmt* sw);
 	void DoIfStmtConfluence(const IfStmt* i);
-	void DoLoopConfluence(const Stmt* s, const Stmt* body);
+	void DoLoopConfluence(const Stmt* s, const Stmt* top, const Stmt* body);
 	bool CheckLHS(const Expr* lhs, const Expr* a);
 
 	bool IsAggrTag(TypeTag tag) const;
@@ -308,7 +308,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 
 		body->Traverse(this);
 
-		DoLoopConfluence(s, body);
+		DoLoopConfluence(s, body, body);
 
 		return TC_ABORTSTMT;
 		}
@@ -317,17 +317,27 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		{
 		auto w = s->AsWhileStmt();
 
+		auto cond_stmt = w->CondStmt();
 		auto cond = w->Condition();
-		mgr.SetPreFromPre(cond, w);
+
+		if ( cond_stmt )
+			{
+			mgr.SetPreFromPre(cond_stmt, w);
+			cond_stmt->Traverse(this);
+			mgr.SetPreFromPost(cond, cond_stmt);
+			}
+		else
+			mgr.SetPreFromPre(cond, w);
+
 		cond->Traverse(this);
 
 		auto body = w->Body();
-		mgr.SetPreFromPre(body, w);
+		mgr.SetPreFromPre(body, cond);
 
 		block_defs.push_back(new BlockDefs(false));
 
 		body->Traverse(this);
-		DoLoopConfluence(s, body);
+		DoLoopConfluence(s, cond_stmt, body);
 
 		return TC_ABORTSTMT;
 		}
@@ -495,31 +505,40 @@ void RD_Decorate::DoIfStmtConfluence(const IfStmt* i)
 	max_post_rds.release();
 	}
 
-void RD_Decorate::DoLoopConfluence(const Stmt* s, const Stmt* body)
+void RD_Decorate::DoLoopConfluence(const Stmt* s, const Stmt* top,
+					const Stmt* body)
 	{
 	auto bd = block_defs.back();
 	block_defs.pop_back();
 
-	auto loop_pre = mgr.GetPreMaxRDs(body);
+	auto loop_pre = mgr.GetPreMaxRDs(top);
 	auto loop_post = mgr.GetPostMaxRDs(body);
 
 	for ( const auto& pre : bd->pre_RDs )
 		if ( pre != loop_pre )
-			mgr.MergeIntoPre(body, pre);
+			mgr.MergeIntoPre(top, pre);
 
 	for ( const auto& post : bd->post_RDs )
 		if ( post != loop_post )
 			mgr.MergeIntoPost(body, post);
 
 	// Freshen due to mergers.
-	loop_pre = mgr.GetPreMaxRDs(body);
+	loop_pre = mgr.GetPreMaxRDs(top);
 	loop_post = mgr.GetPostMaxRDs(body);
 
 	if ( loop_pre != loop_post )
 		{
 		// Some body assignments reached the end.  Propagate them
 		// around the loop.
-		mgr.MergePostIntoPre(body);
+		mgr.MergeIntoPre(top, loop_post);
+
+		if ( top != body )
+			{
+			// Don't have to worry about block-defs as it's
+			// simply an expression evaluation, no next/break's.
+			top->Traverse(this);
+			mgr.MergeIntoPre(body, mgr.GetPostMaxRDs(top));
+			}
 
 		auto bd2 = new BlockDefs(false);
 		block_defs.push_back(bd2);
@@ -536,11 +555,12 @@ void RD_Decorate::DoLoopConfluence(const Stmt* s, const Stmt* body)
 	// Factor in that the loop might not execute at all.
 	auto s_min_pre = mgr.GetPreMinRDs(s);
 	auto s_max_pre = mgr.GetPreMaxRDs(s);
-	auto body_min_post = mgr.GetPostMinRDs(body);
-	auto body_max_post = mgr.GetPostMaxRDs(body);
 
 	if ( ControlCouldReachEnd(body, false) )
 		{
+		auto body_min_post = mgr.GetPostMinRDs(body);
+		auto body_max_post = mgr.GetPostMaxRDs(body);
+
 		auto min_post_rds =
 			s_min_pre->IntersectWithConsolidation(body_min_post, ds);
 		auto max_post_rds = s_max_pre->Union(body_max_post);

@@ -2076,7 +2076,8 @@ global login_timeouts: set[string] &redef;
 ##
 ## .. zeek:see:: mime_header_list http_all_headers mime_all_headers mime_one_header
 type mime_header_rec: record {
-	name: string;	##< The header name.
+	original_name: string; ##< The header name (unaltered).
+	name: string;	##< The header name (converted to all upper-case).
 	value: string;	##< The header value.
 };
 

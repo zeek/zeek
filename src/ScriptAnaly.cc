@@ -1356,6 +1356,9 @@ const char* only_func = 0;
 
 void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 	{
+	if ( reporter->Errors() > 0 )
+		return;
+
 	if ( ! did_init )
 		{
 		if ( getenv("ZEEK_ANALY") )

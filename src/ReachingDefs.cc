@@ -170,7 +170,17 @@ void ReachingDefs::DumpMap(const ReachingDefsMap* map) const
 void ReachingDefs::PrintRD(const DefinitionItem* di,
 				const DefPoints* dps) const
 	{
-	printf("%s (%d)", di->Name(), dps->length());
+	// printf("%s (%d)", di->Name(), dps->length());
+	printf("%s (", di->Name());
+
+	loop_over_list(*dps, i)
+		{
+		if ( i > 0 )
+			printf(",");
+		printf("%x", (*dps)[i].OpaqueVal());
+		}
+
+	printf(")");
 	}
 
 

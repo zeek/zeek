@@ -337,7 +337,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		block_defs.push_back(new BlockDefs(false));
 
 		body->Traverse(this);
-		DoLoopConfluence(s, cond_stmt, body);
+		DoLoopConfluence(s, cond_stmt ? cond_stmt : body, body);
 
 		return TC_ABORTSTMT;
 		}

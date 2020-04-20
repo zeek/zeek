@@ -129,7 +129,7 @@ refine flow Flow += {
 			packet->Assign(2, val_mgr->Count(${pkt.event_second}));
 			packet->Assign(3, make_intrusive<Val>(ts_to_double(${pkt.packet_ts}), TYPE_TIME));
 			packet->Assign(4, val_mgr->Count(${pkt.link_type}));
-			packet->Assign(5, bytestring_to_val(${pkt.packet_data}));
+			packet->Assign(5, to_stringval(${pkt.packet_data}));
 
 			mgr.Enqueue(::unified2_packet,
 					IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},

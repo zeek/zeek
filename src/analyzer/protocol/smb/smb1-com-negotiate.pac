@@ -73,7 +73,7 @@ refine connection SMB_Conn += {
 					lanman->Assign(6, raw);
 					lanman->Assign(7, val_mgr->Count(${val.lanman.session_key}));
 					lanman->Assign(8, time_from_lanman(${val.lanman.server_time}, ${val.lanman.server_date}, ${val.lanman.server_tz}));
-					lanman->Assign(9, bytestring_to_val(${val.lanman.encryption_key}));
+					lanman->Assign(9, to_stringval(${val.lanman.encryption_key}));
 
 					lanman->Assign(10, smb_string2stringval(${val.lanman.primary_domain}));
 
@@ -125,12 +125,12 @@ refine connection SMB_Conn += {
 
 					if ( ${val.ntlm.capabilities_extended_security} == false )
 						{
-						ntlm->Assign(10, bytestring_to_val(${val.ntlm.encryption_key}));
+						ntlm->Assign(10, to_stringval(${val.ntlm.encryption_key}));
 						ntlm->Assign(11, smb_string2stringval(${val.ntlm.domain_name}));
 						}
 					else
 						{
-						ntlm->Assign(12, bytestring_to_val(${val.ntlm.server_guid}));
+						ntlm->Assign(12, to_stringval(${val.ntlm.server_guid}));
 						}
 
 					response->Assign(2, ntlm);

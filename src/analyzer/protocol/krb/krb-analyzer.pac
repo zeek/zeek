@@ -49,7 +49,7 @@ RecordVal* proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_an
 				rv->Assign(4, GetStringFromPrincipalName(element->data()->principal()));
 				break;
 			case 2:
-				rv->Assign(5, bytestring_to_val(element->data()->realm()->encoding()->content()));
+				rv->Assign(5, to_stringval(element->data()->realm()->encoding()->content()));
 				break;
 			case 3:
 				rv->Assign(6, GetStringFromPrincipalName(element->data()->sname()));
@@ -139,19 +139,19 @@ bool proc_error_arguments(RecordVal* rv, const std::vector<KRB_ERROR_Arg*>* args
 				break;
 			// ctime/stime handled above
 			case 7:
-				rv->Assign(5, bytestring_to_val((*args)[i]->args()->crealm()->encoding()->content()));
+				rv->Assign(5, to_stringval((*args)[i]->args()->crealm()->encoding()->content()));
 				break;
 			case 8:
 				rv->Assign(6, GetStringFromPrincipalName((*args)[i]->args()->cname()));
 				break;
 			case 9:
-				rv->Assign(7, bytestring_to_val((*args)[i]->args()->realm()->encoding()->content()));
+				rv->Assign(7, to_stringval((*args)[i]->args()->realm()->encoding()->content()));
 				break;
 			case 10:
 				rv->Assign(8, GetStringFromPrincipalName((*args)[i]->args()->sname()));
 				break;
 			case 11:
-				rv->Assign(9, bytestring_to_val((*args)[i]->args()->e_text()->encoding()->content()));
+				rv->Assign(9, to_stringval((*args)[i]->args()->e_text()->encoding()->content()));
 				break;
 			case 12:
 				if ( error_code == KDC_ERR_PREAUTH_REQUIRED )
@@ -211,7 +211,7 @@ refine connection KRB_Conn += {
 			if ( ${msg.padata.has_padata} )
 				rv->Assign(2, proc_padata(${msg.padata.padata.padata}, bro_analyzer(), false));
 
-			rv->Assign(3, bytestring_to_val(${msg.client_realm.encoding.content}));
+			rv->Assign(3, to_stringval(${msg.client_realm.encoding.content}));
 			rv->Assign(4, GetStringFromPrincipalName(${msg.client_name}));
 
 			rv->Assign(5, proc_ticket(${msg.ticket}));
@@ -322,7 +322,7 @@ refine connection KRB_Conn += {
 				switch ( ${msg.safe_body.args[i].seq_meta.index} )
 					{
 					case 0:
-						rv->Assign(3, bytestring_to_val(${msg.safe_body.args[i].args.user_data.encoding.content}));
+						rv->Assign(3, to_stringval(${msg.safe_body.args[i].args.user_data.encoding.content}));
 						break;
 					case 3:
 						rv->Assign(5, asn1_integer_to_val(${msg.safe_body.args[i].args.seq_number}, TYPE_COUNT));

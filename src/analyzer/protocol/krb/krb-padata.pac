@@ -38,7 +38,7 @@ VectorVal* proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_a
 				{
 				RecordVal * type_val = new RecordVal(BifType::Record::KRB::Type_Value);
 				type_val->Assign(0, val_mgr->Count(element->data_type()));
-				type_val->Assign(1, bytestring_to_val(element->pa_data_element()->pa_pw_salt()->encoding()->content()));
+				type_val->Assign(1, to_stringval(element->pa_data_element()->pa_pw_salt()->encoding()->content()));
 				vv->Assign(vv->Size(), type_val);
 				break;
 				}
@@ -46,7 +46,7 @@ VectorVal* proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_a
 				{
 				RecordVal * type_val = new RecordVal(BifType::Record::KRB::Type_Value);
 				type_val->Assign(0, val_mgr->Count(element->data_type()));
-				type_val->Assign(1, bytestring_to_val(element->pa_data_element()->pf_enctype_info()->salt()));
+				type_val->Assign(1, to_stringval(element->pa_data_element()->pf_enctype_info()->salt()));
 				vv->Assign(vv->Size(), type_val);
 				break;
 				}
@@ -54,7 +54,7 @@ VectorVal* proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_a
 				{
 				RecordVal * type_val = new RecordVal(BifType::Record::KRB::Type_Value);
 				type_val->Assign(0, val_mgr->Count(element->data_type()));
-				type_val->Assign(1, bytestring_to_val(element->pa_data_element()->pf_enctype_info2()->salt()));
+				type_val->Assign(1, to_stringval(element->pa_data_element()->pf_enctype_info2()->salt()));
 				vv->Assign(vv->Size(), type_val);
 				break;
 				}
@@ -112,7 +112,7 @@ VectorVal* proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_a
 					{
 					RecordVal * type_val = new RecordVal(BifType::Record::KRB::Type_Value);
 					type_val->Assign(0, val_mgr->Count(element->data_type()));
-					type_val->Assign(1, bytestring_to_val(element->pa_data_element()->unknown()->content()));
+					type_val->Assign(1, to_stringval(element->pa_data_element()->unknown()->content()));
 					vv->Assign(vv->Size(), type_val);
 					}
 				break;

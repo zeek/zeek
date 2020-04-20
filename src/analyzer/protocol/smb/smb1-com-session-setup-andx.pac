@@ -26,7 +26,7 @@ refine connection SMB_Conn += {
 					request->Assign(5, smb_string2stringval(${val.lanman.native_os}));
 					request->Assign(6, smb_string2stringval(${val.lanman.native_lanman}));
 					request->Assign(7, smb_string2stringval(${val.lanman.account_name}));
-					request->Assign(8, bytestring_to_val(${val.lanman.account_password}));
+					request->Assign(8, to_stringval(${val.lanman.account_password}));
 					request->Assign(9, smb_string2stringval(${val.lanman.primary_domain}));
 
 					break;
@@ -69,8 +69,8 @@ refine connection SMB_Conn += {
 					request->Assign(7, smb_string2stringval(${val.ntlm_nonextended_security.account_name}));
 					request->Assign(9, smb_string2stringval(${val.ntlm_nonextended_security.primary_domain}));
 
-					request->Assign(10, bytestring_to_val(${val.ntlm_nonextended_security.case_insensitive_password}));
-					request->Assign(11, bytestring_to_val(${val.ntlm_nonextended_security.case_sensitive_password}));
+					request->Assign(10, to_stringval(${val.ntlm_nonextended_security.case_insensitive_password}));
+					request->Assign(11, to_stringval(${val.ntlm_nonextended_security.case_sensitive_password}));
 					request->Assign(13, capabilities);
 					break;
 				}
@@ -103,7 +103,7 @@ refine connection SMB_Conn += {
 					response->Assign(2, smb_string2stringval(${val.ntlm.native_os}));
 					response->Assign(3, smb_string2stringval(${val.ntlm.native_lanman}));
 					//response->Assign(4, smb_string2stringval(${val.ntlm.primary_domain}));
-					//response->Assign(5, bytestring_to_val(${val.ntlm.security_blob}));
+					//response->Assign(5, to_stringval(${val.ntlm.security_blob}));
 					break;
 				default: // Error!
 					break;

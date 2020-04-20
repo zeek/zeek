@@ -9,11 +9,11 @@ enum Trans_subcommands {
 		{
 		switch ( payload->trans_type() ) {
 		case SMB_PIPE:
-			return {AdoptRef{}, bytestring_to_val(payload->pipe_data())};
+			return to_stringval(payload->pipe_data());
 		case SMB_UNKNOWN:
-			return {AdoptRef{}, bytestring_to_val(payload->unknown())};
+			return to_stringval(payload->unknown());
 		default:
-			return {AdoptRef{}, bytestring_to_val(payload->data())};
+			return to_stringval(payload->data());
 		}
 
 		assert(false);

@@ -46,11 +46,11 @@ refine flow NTP_Flow += {
 		switch ( ${nsm.stratum} ) {
 		case 0:
 			// unknown stratum => kiss code
-			rv->Assign(5, bytestring_to_val(${nsm.reference_id}));
+			rv->Assign(5, to_stringval(${nsm.reference_id}));
 			break;
 		case 1:
 			// reference clock => ref clock string
-			rv->Assign(6, bytestring_to_val(${nsm.reference_id}));
+			rv->Assign(6, to_stringval(${nsm.reference_id}));
 			break;
 		default:
 			{
@@ -68,12 +68,12 @@ refine flow NTP_Flow += {
 		if ( ${nsm.mac_len} == 20 )
 			{
 			rv->Assign(12, val_mgr->Count(${nsm.mac.key_id}));
-			rv->Assign(13, bytestring_to_val(${nsm.mac.digest}));
+			rv->Assign(13, to_stringval(${nsm.mac.digest}));
 			}
 		else if ( ${nsm.mac_len} == 24 )
 			{
 			rv->Assign(12, val_mgr->Count(${nsm.mac_ext.key_id}));
-			rv->Assign(13, bytestring_to_val(${nsm.mac_ext.digest}));
+			rv->Assign(13, to_stringval(${nsm.mac_ext.digest}));
 			}
 
 		if ( ${nsm.has_exts} )
@@ -99,12 +99,12 @@ refine flow NTP_Flow += {
 		rv->Assign(6, val_mgr->Count(${ncm.association_id}));
 
 		if ( ${ncm.c} > 0 )
-			rv->Assign(7, bytestring_to_val(${ncm.data}));
+			rv->Assign(7, to_stringval(${ncm.data}));
 
 		if ( ${ncm.has_control_mac} )
 			{
 			rv->Assign(8, val_mgr->Count(${ncm.mac.key_id}));
-			rv->Assign(9, bytestring_to_val(${ncm.mac.crypto_checksum}));
+			rv->Assign(9, to_stringval(${ncm.mac.crypto_checksum}));
 			}
 
 		return rv;
@@ -122,7 +122,7 @@ refine flow NTP_Flow += {
 		rv->Assign(4, val_mgr->Count(${m7.error_code}));
 
 		if ( ${m7.data_len} > 0 )
-			rv->Assign(5, bytestring_to_val(${m7.data}));
+			rv->Assign(5, to_stringval(${m7.data}));
 
 		return rv;
 		%}

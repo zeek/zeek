@@ -120,7 +120,7 @@ refine connection SMB_Conn += {
 						ha->Assign(i, val_mgr->Count(${ncv.preauth_integrity_capabilities.hash_alg[i]}));
 
 				rpreauth->Assign(2, ha);
-				rpreauth->Assign(3, bytestring_to_val(${ncv.preauth_integrity_capabilities.salt}));
+				rpreauth->Assign(3, to_stringval(${ncv.preauth_integrity_capabilities.salt}));
 				r->Assign(2, rpreauth);
 				}
 				break;
@@ -157,7 +157,7 @@ refine connection SMB_Conn += {
 
 			case SMB2_NETNAME_NEGOTIATE_CONTEXT_ID:
 				{
-				r->Assign(5, bytestring_to_val(${ncv.netname_negotiate_context_id.net_name}));
+				r->Assign(5, to_stringval(${ncv.netname_negotiate_context_id.net_name}));
 				}
 				break;
 
@@ -181,7 +181,7 @@ refine connection SMB_Conn += {
 		r->Assign(6, val_mgr->Count(${hdr.process_id}));
 		r->Assign(7, val_mgr->Count(${hdr.tree_id}));
 		r->Assign(8, val_mgr->Count(${hdr.session_id}));
-		r->Assign(9, bytestring_to_val(${hdr.signature}));
+		r->Assign(9, to_stringval(${hdr.signature}));
 
 		return r;
 		%}

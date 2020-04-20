@@ -116,7 +116,7 @@ refine flow SIP_Flow += {
 			}
 
 		header_record->Assign(0, name_val);
-		header_record->Assign(1, bytestring_to_val(value));
+		header_record->Assign(1, to_stringval(value));
 
 		return header_record;
 		%}

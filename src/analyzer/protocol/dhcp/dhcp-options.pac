@@ -752,7 +752,7 @@ refine flow DHCP_Flow += {
 			{
 			auto r = new RecordVal(BifType::Record::DHCP::SubOpt);
 			r->Assign(0, val_mgr->Count((*ptrsubopt)->code()));
-			r->Assign(1, bytestring_to_val((*ptrsubopt)->value()));
+			r->Assign(1, to_stringval((*ptrsubopt)->value()));
 
 			relay_agent_sub_opt->Assign(i, r);
 			++i;

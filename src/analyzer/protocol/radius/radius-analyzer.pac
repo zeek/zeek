@@ -10,7 +10,7 @@ refine flow RADIUS_Flow += {
 		auto result = make_intrusive<RecordVal>(BifType::Record::RADIUS::Message);
 		result->Assign(0, val_mgr->Count(${msg.code}));
 		result->Assign(1, val_mgr->Count(${msg.trans_id}));
-		result->Assign(2, bytestring_to_val(${msg.authenticator}));
+		result->Assign(2, to_stringval(${msg.authenticator}));
 
 		if ( ${msg.attributes}->size() )
 			{
@@ -22,18 +22,18 @@ refine flow RADIUS_Flow += {
 
 				// Do we already have a vector of attributes for this type?
 				auto current = attributes->Lookup(index.get());
-				Val* val = bytestring_to_val(${msg.attributes[i].value});
+				IntrusivePtr<Val> val = to_stringval(${msg.attributes[i].value});
 
 				if ( current )
 					{
 					VectorVal* vcurrent = current->AsVectorVal();
-					vcurrent->Assign(vcurrent->Size(), val);
+					vcurrent->Assign(vcurrent->Size(), std::move(val));
 					}
 
 				else
 					{
 					VectorVal* attribute_list = new VectorVal(BifType::Vector::RADIUS::AttributeList);
-					attribute_list->Assign((unsigned int)0, val);
+					attribute_list->Assign((unsigned int)0, std::move(val));
 					attributes->Assign(index.get(), attribute_list);
 					}
 				}

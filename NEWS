@@ -113,6 +113,8 @@ Deprecated Functionality
 
 - ``BifEvent::generate_`` functions are deprecated, use ``BifEvent::enqueue_``.
 
+- ``binpac::bytestring_to_val()`` is deprecated, use ``binpac::to_stringval()``.
+
 Zeek 3.1.0
 ==========
 

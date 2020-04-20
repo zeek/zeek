@@ -28,6 +28,7 @@ inline StringVal* string_to_val(string const &str)
 	return new StringVal(str.c_str());
 	}
 
+[[deprecated("Remove in v4.1.  Use binpac::to_stringval() instead.")]]
 inline StringVal* bytestring_to_val(const_bytestring const &str)
 	{
 	return new StringVal(str.length(), (const char*) str.begin());

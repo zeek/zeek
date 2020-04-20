@@ -1834,19 +1834,25 @@ IntrusivePtr<Val> ReturnStmt::Exec(Frame* f, stmt_flow_type& flow) const
 
 Stmt* ReturnStmt::Reduce(ReductionContext* c)
 	{
-	if ( e && ! e->IsSingleton() )
+	if ( e )
 		{
-		IntrusivePtr<Stmt> red_e_stmt;
-
 		if ( c->Optimizing() )
+			{
 			e = c->OptExpr(e);
-		else
+			return this->Ref();
+			}
+
+		if ( ! e->IsSingleton() )
+			{
+			IntrusivePtr<Stmt> red_e_stmt;
 			e = {AdoptRef{}, e->Reduce(c, red_e_stmt)};
 
-		if ( red_e_stmt )
-			{
-			auto s = new StmtList(red_e_stmt, {NewRef{}, this});
-			return TransformMe(s, c);
+			if ( red_e_stmt )
+				{
+				auto s = new StmtList(red_e_stmt,
+							{NewRef{}, this});
+				return TransformMe(s, c);
+				}
 			}
 		}
 

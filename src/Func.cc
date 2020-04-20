@@ -891,6 +891,9 @@ function_ingredients::~function_ingredients()
 	delete inits;
 	}
 
+BifReturnVal::BifReturnVal(std::nullptr_t) noexcept
+	{ }
+
 BifReturnVal::BifReturnVal(Val* v) noexcept
 	: rval(AdoptRef{}, v)
 	{ }

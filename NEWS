@@ -117,6 +117,8 @@ Deprecated Functionality
 
 - ``binpac::string_to_val()`` is deprecated, use ``StringVal`` constructor.
 
+- Returning ``Val*`` from BIFs is deprecated, return ``IntrusivePtr`` instead.
+
 Zeek 3.1.0
 ==========
 

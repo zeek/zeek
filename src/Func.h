@@ -201,6 +201,9 @@ public:
 		: rval(AdoptRef{}, v.release())
 		{ }
 
+	BifReturnVal(std::nullptr_t) noexcept;
+
+	[[deprecated("Remove in v4.1.  Return an IntrusivePtr instead.")]]
 	BifReturnVal(Val* v) noexcept;
 
 private:

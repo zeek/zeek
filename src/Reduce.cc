@@ -335,6 +335,17 @@ bool ReductionContext::SameExpr(const Expr* e1, const Expr* e2)
 	case EXPR_LAMBDA:
 		return false;
 
+	case EXPR_IS:
+		{
+		if ( ! SameOp(e1->GetOp1(), e2->GetOp1()) )
+			return false;
+
+		auto i1 = e1->AsIsExpr();
+		auto i2 = e2->AsIsExpr();
+
+		return same_type(i1->TestType().get(), i2->TestType().get());
+		}
+
 	default:
 		if ( ! e1->GetOp1() )
 			reporter->InternalError("Bad default in ReductionContext::SameExpr");

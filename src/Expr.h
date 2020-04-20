@@ -79,6 +79,7 @@ class FieldAssignExpr;
 class CallExpr;
 class EventExpr;
 class RefExpr;
+class IsExpr;
 class AddToExpr;
 class AppendToExpr;
 class RemoveFromExpr;
@@ -274,6 +275,7 @@ public:
 	CONST_ACCESSOR(EXPR_APPEND_TO, AppendToExpr, AsAppendToExpr);
 	CONST_ACCESSOR(EXPR_CONST, ConstExpr, AsConstExpr);
 	CONST_ACCESSOR(EXPR_COND, CondExpr, AsCondExpr);
+	CONST_ACCESSOR(EXPR_IS, IsExpr, AsIsExpr);
 
 #undef ACCESSORS
 #undef ACCESSOR
@@ -1202,6 +1204,8 @@ protected:
 class IsExpr : public UnaryExpr {
 public:
 	IsExpr(IntrusivePtr<Expr> op, IntrusivePtr<BroType> t);
+
+	const IntrusivePtr<BroType>& TestType() const	{ return t; }
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;

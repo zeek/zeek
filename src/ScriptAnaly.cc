@@ -1181,8 +1181,13 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 				expr->Traverse(this);
 			}
 
-		// ### Should kill definitions dependent on globals
-		// that might have been modified by the call.
+		// Kill definitions dependent on globals that might have
+		// been modified by the call.  In the future, we can
+		// aim to comprehensively understand which globals could
+		// possibly be altered, but for now we just assume they
+		// call could.
+		for ( const auto& g : pf.globals )
+			mgr.CreatePostDef(g, DefinitionPoint(c), false);
 
 		return TC_ABORTSTMT;
 		}
@@ -1321,8 +1326,6 @@ void RD_Decorate::CreateRecordRDs(DefinitionItem* di, DefinitionPoint dp,
 				bool is_pre, bool assume_full,
 				const DefinitionItem* rhs_di)
 	{
-	// (1) deal with LHS record creators
-	// (2) populate globals
 	auto rt = di->Type()->AsRecordType();
 	auto n = rt->NumFields();
 

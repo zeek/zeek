@@ -615,7 +615,7 @@ IntrusivePtr<Expr> ReductionContext::UpdateExpr(IntrusivePtr<Expr> e)
 			return NewVarUsage(alias, alias_dps, e.get());
 		else
 			{
-			printf("DPs differ: %s\n", obj_desc(e.get()));
+			printf("DPs differ: %s\n", obj_desc(e));
 			return e;
 			}
 		}

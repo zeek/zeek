@@ -4,6 +4,7 @@
 
 #include "BroString.h" // for byte_vec
 #include "util.h" // for bro_int_t
+#include "IntrusivePtr.h"
 
 #include <set>
 #include <utility>
@@ -217,3 +218,4 @@ protected:
 // of the value returned from the initial call.
 class BroObj;
 extern const char* obj_desc(const BroObj* o);
+extern const char* obj_desc(const IntrusivePtr<BroObj>& o);

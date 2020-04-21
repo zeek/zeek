@@ -437,3 +437,8 @@ const char* obj_desc(const BroObj* o)
 
 	return d.Description();
 	}
+
+const char* obj_desc(const IntrusivePtr<BroObj>& o)
+	{
+	return obj_desc(o.get());
+	}

@@ -4004,7 +4004,7 @@ IntrusivePtr<Val> FieldLHSAssignExpr::Eval(Frame* f) const
 bool FieldLHSAssignExpr::IsReduced() const
 	{
 	if ( ! (op1->IsSingleton() && op2->IsReduced()) )
-		printf("oops: %s\n", obj_desc(op2.get()));
+		printf("oops: %s\n", obj_desc(op2));
 		
 	ASSERT(op1->IsSingleton() && op2->IsReduced());
 	return true;

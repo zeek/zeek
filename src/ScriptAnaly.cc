@@ -339,6 +339,13 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		body->Traverse(this);
 		DoLoopConfluence(s, cond_stmt ? cond_stmt : body, body);
 
+		// Make sure the conditional gets its RDs updated.
+
+		if ( cond_stmt )
+			mgr.SetPreFromPost(cond, cond_stmt);
+		else
+			mgr.SetPreFromPost(cond, body);
+
 		return TC_ABORTSTMT;
 		}
 

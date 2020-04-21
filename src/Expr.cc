@@ -285,6 +285,15 @@ IntrusivePtr<Val> Expr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) const
 	return check_and_promote(Eval(nullptr), t, true);
 	}
 
+IntrusivePtr<Expr> Expr::CopyName(const IntrusivePtr<Expr>& e) const
+	{
+	if ( e->Tag() != EXPR_NAME )
+		reporter->InternalError("confused in Expr::CopyName");
+
+	auto n = e->AsNameExpr();
+	return make_intrusive<NameExpr>(n->IdPtr());
+	}
+
 void Expr::SeatBelts(const BroType* t1, const BroType* t2) const
 	{
 	if ( ! same_type(t1, t2) )
@@ -1367,8 +1376,40 @@ Expr* IncrExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	auto rhs = increment_expr->AssignToTemporary(c, assign_stmt);
 	IntrusivePtr<Expr> rhs_ptr = {AdoptRef{}, rhs};
 
+	// This is subtle.  We need to update the NameExpr in the
+	// original target with a new instance of the expression, rather
+	// than reusing the old one.  This is because we track reaching
+	// defs on the assumption that each appearance of a name corresponds
+	// to a distinct expression, and the original target already
+	// appears in the RHS of the assignment we're going to make.
+	// We don't update it in place since that can propagate back to
+	// the RHS via its construction above.
+
+	if ( orig_target->Tag() == EXPR_NAME )
+		orig_target = CopyName(orig_target);
+
+	else if ( orig_target->Tag() == EXPR_INDEX )
+		{
+		auto new_aggr = CopyName(orig_target->GetOp1());
+		auto index = orig_target->AsIndexExpr()->GetOp2()->AsListExpr();
+		IntrusivePtr<ListExpr> index_ptr = {NewRef{}, index};
+		orig_target = make_intrusive<IndexExpr>(new_aggr, index_ptr);
+		}
+
+	else if ( orig_target->Tag() == EXPR_FIELD )
+		{
+		auto new_aggr = CopyName(orig_target->GetOp1());
+		auto field_name = orig_target->AsFieldExpr()->FieldName();
+		orig_target = make_intrusive<FieldExpr>(new_aggr, field_name);
+		}
+
+	else
+		reporter->InternalError("confused in IncrExpr::Reduce");
+
 	auto assign = make_intrusive<AssignExpr>(orig_target, rhs_ptr,
 						false, nullptr, nullptr, false);
+
+	orig_target->SetOriginal(this);
 
 	// First reduce it regularly, so it can transform into $= or
 	// such as needed.  Then reduce that to a singleton to provide

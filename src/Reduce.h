@@ -45,15 +45,21 @@ public:
 protected:
 	bool SameDPs(const DefPoints* dp1, const DefPoints* dp2) const;
 	bool SameVal(const Val* v1, const Val* v2) const;
+
 	IntrusivePtr<Expr> NewVarUsage(IntrusivePtr<ID> var,
 					const DefPoints* dps, const Expr* orig);
+
 	const DefPoints* GetDefPoints(const NameExpr* var);
 	const DefPoints* FindDefPoints(const NameExpr* var) const;
-	void AddDefPoints(const NameExpr* var, const DefPoints* dps);
+	void SetDefPoints(const NameExpr* var, const DefPoints* dps);
+
+	// Returns true if op1 and op2 represent the same operand, given
+	// the reaching definitions available at their usages (e1 and e2).
 	bool SameOp(const Expr* op1, const Expr* op2);
 	bool SameOp(const IntrusivePtr<Expr>& op1,
 			const IntrusivePtr<Expr>& op2)
 		{ return SameOp(op1.get(), op2.get()); }
+
 	bool SameExpr(const Expr* e1, const Expr* e2);
 
 	IntrusivePtr<ID> FindExprTmp(const Expr* rhs, const Expr* lhs,

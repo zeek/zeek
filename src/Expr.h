@@ -4,6 +4,7 @@
 
 #include "BroList.h"
 #include "IntrusivePtr.h"
+#include "ID.h"
 #include "Timer.h"
 #include "Type.h"
 #include "EventHandler.h"
@@ -304,6 +305,10 @@ protected:
 			return this;
 		}
 
+	// For a given expression, confirms that it's a NameExpr and
+	// returns a new NameExpr for the same identifier.
+	IntrusivePtr<Expr> CopyName(const IntrusivePtr<Expr>& e) const;
+
 	void SeatBelts(const BroType* t1, const BroType* t2) const;
 	void SeatBelts(const BroType* t1, IntrusivePtr<BroType> t2) const
 		{ SeatBelts(t1, t2.get()); }
@@ -345,7 +350,8 @@ class NameExpr : public Expr {
 public:
 	explicit NameExpr(IntrusivePtr<ID> id, bool const_init = false);
 
-	ID* Id() const		{ return id.get(); }
+	ID* Id() const			{ return id.get(); }
+	IntrusivePtr<ID> IdPtr() const	{ return id; }
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 	void Assign(Frame* f, IntrusivePtr<Val> v) override;

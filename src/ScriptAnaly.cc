@@ -1041,6 +1041,13 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		mgr.SetPreFromPre(aggr, e);
 		mgr.SetPreFromPre(r, e);
 
+		if ( aggr->Tag() == EXPR_NAME )
+			{
+			// Count this as an initialization of the aggregate.
+			auto id = aggr->AsNameExpr()->Id();
+			mgr.CreatePostDef(id, DefinitionPoint(e), false);
+			}
+
 		aggr->Traverse(this);
 		r->Traverse(this);
 

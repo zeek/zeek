@@ -139,7 +139,7 @@ IntrusivePtr<Expr> ReductionContext::NewVarUsage(IntrusivePtr<ID> var,
 		reporter->InternalError("null defpoints in NewVarUsage");
 
 	auto var_usage = make_intrusive<NameExpr>(var);
-	AddDefPoints(var_usage.get(), dps);
+	SetDefPoints(var_usage.get(), dps);
 	TrackExprReplacement(orig, var_usage.get());
 
 	return var_usage;
@@ -157,7 +157,7 @@ const DefPoints* ReductionContext::GetDefPoints(const NameExpr* var)
 
 		dps = rds->GetDefPoints(di);
 
-		AddDefPoints(var, dps);
+		SetDefPoints(var, dps);
 		}
 
 	return dps;
@@ -172,13 +172,16 @@ const DefPoints* ReductionContext::FindDefPoints(const NameExpr* var) const
 		return dps->second;
 	}
 
-void ReductionContext::AddDefPoints(const NameExpr* var, const DefPoints* dps)
+void ReductionContext::SetDefPoints(const NameExpr* var, const DefPoints* dps)
 	{
 	var_usage_to_DPs[var] = dps;
 	}
 
 bool ReductionContext::SameOp(const Expr* op1, const Expr* op2)
 	{
+	if ( op1 == op2 )
+		return true;
+
 	if ( op1->Tag() != op2->Tag() )
 		return false;
 
@@ -455,7 +458,7 @@ bool ReductionContext::IsCSE(const AssignExpr* a,
 			reporter->InternalError("double DPs for temporary");
 
 		lhs_tmp->SetDPs(dps);
-		AddDefPoints(lhs, dps);
+		SetDefPoints(lhs, dps);
 
 		expr_temps.append(lhs_tmp);
 		}

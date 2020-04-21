@@ -1,4 +1,11 @@
 
+3.2.0-dev.410 | 2020-04-21 10:25:29 -0700
+
+  * Remove "connection_external" event (Johanna Amann, Corelight)
+
+    This event was forgotten in our broccoli cleanup. It cannot be
+    raised by anything anymore
+
 3.2.0-dev.405 | 2020-04-16 15:38:46 -0700
 
   * Remove ineffective &default in netcontrol cluster event handler args (Jon Siwek, Corelight)

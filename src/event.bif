@@ -69,7 +69,7 @@ event zeek_done%(%);
 ## c: The connection.
 ##
 ## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
-##    connection_established connection_external connection_finished
+##    connection_established connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
 ##    connection_state_remove connection_status_update connection_timeout
@@ -104,7 +104,7 @@ event tunnel_changed%(c: connection, e: EncapsulatingConnVector%);
 ## c: The connection.
 ##
 ## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
-##    connection_established connection_external connection_finished
+##    connection_established connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
 ##    connection_state_remove connection_status_update
@@ -131,7 +131,7 @@ event connection_timeout%(c: connection%);
 ## c: The connection.
 ##
 ## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
-##    connection_established connection_external connection_finished
+##    connection_established connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
 ##    connection_status_update connection_timeout scheduled_analyzer_applied
@@ -152,7 +152,7 @@ event connection_state_remove%(c: connection%);
 ## c: The new connection.
 ##
 ## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
-##    connection_established connection_external connection_finished
+##    connection_established connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
 ##    connection_status_update connection_timeout scheduled_analyzer_applied
@@ -171,7 +171,7 @@ event connection_successful%(c: connection%);
 ## c: The connection being removed
 ##
 ## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
-##    connection_established connection_external connection_finished
+##    connection_established connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
 ##    connection_status_update connection_timeout scheduled_analyzer_applied
@@ -187,7 +187,7 @@ event successful_connection_remove%(c: connection%);
 ## c: The connection.
 ##
 ## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
-##    connection_established connection_external connection_finished
+##    connection_established connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_state_remove
 ##    connection_status_update connection_timeout scheduled_analyzer_applied
@@ -201,7 +201,7 @@ event connection_reused%(c: connection%);
 ## c: The connection.
 ##
 ## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
-##    connection_established connection_external connection_finished
+##    connection_established connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
 ##    connection_state_remove  connection_timeout scheduled_analyzer_applied
@@ -221,16 +221,6 @@ event connection_status_update%(c: connection%);
 ##
 ## .. zeek:see:: connection_established new_connection
 event connection_flow_label_changed%(c: connection, is_orig: bool, old_label: count, new_label: count%);
-
-## Generated for a new connection received from the communication subsystem.
-## Remote peers can inject packets into Zeek's packet loop, for example via
-## Broccoli.  The communication system
-## raises this event with the first packet of a connection coming in this way.
-##
-## c: The connection.
-##
-## tag: TODO.
-event connection_external%(c: connection, tag: string%);
 
 ## Generated when a UDP session for a supported protocol has finished. Some of
 ## Zeek's application-layer UDP analyzers flag the end of a session by raising
@@ -256,7 +246,7 @@ event udp_session_done%(u: connection%);
 ##    ``count`` is one of the ``ANALYZER_*`` constants, e.g., ``ANALYZER_HTTP``.
 ##
 ## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
-##    connection_established connection_external connection_finished
+##    connection_established connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
 ##    connection_state_remove connection_status_update connection_timeout

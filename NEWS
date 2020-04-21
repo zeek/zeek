@@ -72,6 +72,10 @@ Changed Functionality
   necessitate small changes in external plugins, if they relied on the using 
   statement in Zeek headers.
 
+- The ``connection_external`` event was removed. This functionality that could
+  raise this event (injecting connections via broccoli) was removed a while ago;
+  the event handler served no purpose anymore.
+
 Removed Functionality
 ---------------------
 

@@ -57,15 +57,14 @@ public:
 	// Gets definition for either a name or a record field reference.
 	// Returns nil if "expr" lacks such a form, or if there isn't
 	// any such definition.
-	DefinitionItem* GetExprReachingDef(const Expr* expr);
+	DefinitionItem* GetExprDI(const Expr* expr);
 
 	// Returns the definition item for a given ID; creates it if
 	// it doesn't already exist.
-	DefinitionItem* GetIDReachingDef(const ID* id);
+	DefinitionItem* GetID_DI(const ID* id);
 
-	const DefinitionItem* GetConstIDReachingDef(const ID* id) const;
-
-	const DefinitionItem* GetConstIDReachingDef(const DefinitionItem* di,
+	const DefinitionItem* GetConstID_DI(const ID* id) const;
+	const DefinitionItem* GetConstID_DI(const DefinitionItem* di,
 						const char* field_name) const;
 
 protected:

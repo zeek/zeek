@@ -122,7 +122,7 @@ public:
 
 	bool HasRD(const BroObj* o, const ID* id) const
 		{
-		return HasRD(o, item_map.GetConstIDReachingDef(id));
+		return HasRD(o, item_map.GetConstID_DI(id));
 		}
 
 	bool HasRD(const BroObj* o, const DefinitionItem* di) const

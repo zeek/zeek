@@ -108,7 +108,7 @@ void DefinitionItem::CheckForRecord()
 	}
 
 
-DefinitionItem* DefItemMap::GetIDReachingDef(const ID* id)
+DefinitionItem* DefItemMap::GetID_DI(const ID* id)
 	{
 	auto di = i2d.find(id);
 	if ( di == i2d.end() )
@@ -121,7 +121,7 @@ DefinitionItem* DefItemMap::GetIDReachingDef(const ID* id)
 		return di->second;
 	}
 
-const DefinitionItem* DefItemMap::GetConstIDReachingDef(const ID* id) const
+const DefinitionItem* DefItemMap::GetConstID_DI(const ID* id) const
 	{
 	auto di = i2d.find(id);
 	if ( di != i2d.end() )
@@ -130,19 +130,19 @@ const DefinitionItem* DefItemMap::GetConstIDReachingDef(const ID* id) const
 		return nullptr;
 	}
 
-const DefinitionItem* DefItemMap::GetConstIDReachingDef(const DefinitionItem* di,
+const DefinitionItem* DefItemMap::GetConstID_DI(const DefinitionItem* di,
 					const char* field_name) const
 	{
 	return di->FindField(field_name);
 	}
 
-DefinitionItem* DefItemMap::GetExprReachingDef(const Expr* expr)
+DefinitionItem* DefItemMap::GetExprDI(const Expr* expr)
 	{
 	if ( expr->Tag() == EXPR_NAME )
 		{
 		auto id_e = expr->AsNameExpr();
 		auto id = id_e->Id();
-		return GetIDReachingDef(id);
+		return GetID_DI(id);
 		}
 
 	else if ( expr->Tag() == EXPR_FIELD )
@@ -150,7 +150,7 @@ DefinitionItem* DefItemMap::GetExprReachingDef(const Expr* expr)
 		auto f = expr->AsFieldExpr();
 		auto r = f->Op();
 
-		auto r_def = GetExprReachingDef(r);
+		auto r_def = GetExprDI(r);
 
 		if ( ! r_def )
 			return nullptr;

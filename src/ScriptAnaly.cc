@@ -753,7 +753,7 @@ bool RD_Decorate::CheckLHS(const Expr* lhs, const Expr* e)
 		mgr.SetPreFromPre(r, lhs);
 		r->Traverse(this);
 
-		auto r_def = mgr.GetExprReachingDef(r);
+		auto r_def = mgr.GetExprDI(r);
 
 		if ( ! r_def )
 			// This should have already generated a complaint.
@@ -936,8 +936,8 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			}
 
 		if ( id->Type()->Tag() == TYPE_RECORD )
-			CreateRecordRDs(mgr.GetIDReachingDef(id),
-					DefinitionPoint(n), false, nullptr);
+			CreateRecordRDs(mgr.GetID_DI(id), DefinitionPoint(n),
+					false, nullptr);
 
 		break;
 		}
@@ -1058,7 +1058,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		aggr->Traverse(this);
 		r->Traverse(this);
 
-		auto r_def = mgr.GetExprReachingDef(aggr);
+		auto r_def = mgr.GetExprDI(aggr);
 		if ( ! r_def )
 			// This should have already generated a complaint.
 			// Avoid cascade.
@@ -1096,13 +1096,12 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 				return TC_ABORTSTMT;
 			}
 
-		auto r_def = mgr.GetExprReachingDef(r);
+		auto r_def = mgr.GetExprDI(r);
 
 		if ( r_def )
 			{
 			auto fn = f->FieldName();
-			auto field_rd =
-				mgr.GetConstIDReachingDef(r_def, fn);
+			auto field_rd = mgr.GetConstID_DI(r_def, fn);
 
 			auto e_pre = mgr.GetPreMinRDs(e);
 			if ( ! field_rd || ! e_pre->HasDI(field_rd) )
@@ -1130,20 +1129,20 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			auto id_e = r->AsNameExpr();
 			auto id = id_e->Id();
 			auto id_rt = id_e->Type()->AsRecordType();
-			auto id_rd = mgr.GetIDReachingDef(id);
+			auto id_di = mgr.GetID_DI(id);
 
-			if ( ! id_rd )
+			if ( ! id_di )
 				{
 				printf("no ID reaching def for %s\n", id->Name());
 				break;
 				}
 
 			auto fn = hf->FieldName();
-			auto field_rd = id_rd->FindField(fn);
+			auto field_rd = id_di->FindField(fn);
 			if ( ! field_rd )
 				{
 				auto ft = id_rt->FieldType(fn);
-				field_rd = id_rd->CreateField(fn, ft);
+				field_rd = id_di->CreateField(fn, ft);
 				CreateInitPostDef(field_rd, DefinitionPoint(hf),
 							false, 0);
 				}
@@ -1263,7 +1262,7 @@ void RD_Decorate::TrackInits(const Func* f, const id_list* inits)
 
 void RD_Decorate::CreateInitPreDef(const ID* id, DefinitionPoint dp)
 	{
-	auto di = mgr.GetIDReachingDef(id);
+	auto di = mgr.GetID_DI(id);
 	if ( ! di )
 		return;
 
@@ -1273,7 +1272,7 @@ void RD_Decorate::CreateInitPreDef(const ID* id, DefinitionPoint dp)
 void RD_Decorate::CreateInitPostDef(const ID* id, DefinitionPoint dp,
 				bool assume_full, const Expr* rhs)
 	{
-	auto di = mgr.GetIDReachingDef(id);
+	auto di = mgr.GetID_DI(id);
 	if ( ! di )
 		return;
 
@@ -1308,7 +1307,7 @@ void RD_Decorate::CreateInitDef(DefinitionItem* di, DefinitionPoint dp,
 
 		else
 			{
-			rhs_di = mgr.GetExprReachingDef(rhs);
+			rhs_di = mgr.GetExprDI(rhs);
 
 			if ( ! rhs_di )
 				// This happens because the RHS is an

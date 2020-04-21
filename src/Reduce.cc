@@ -152,7 +152,7 @@ const DefPoints* ReductionContext::GetDefPoints(const NameExpr* var)
 	if ( ! dps )
 		{
 		auto id = var->Id();
-		auto di = mgr->GetConstIDReachingDef(id);
+		auto di = mgr->GetConstID_DI(id);
 		auto rds = mgr->GetPreMaxRDs(GetRDLookupObj(var));
 
 		dps = rds->GetDefPoints(di);
@@ -412,7 +412,7 @@ bool ReductionContext::IsCSE(const AssignExpr* a,
 	IntrusivePtr<Expr> new_rhs;
 	if ( rhs_tmp )
 		{
-		auto tmp_di = mgr->GetConstIDReachingDef(rhs_tmp.get());
+		auto tmp_di = mgr->GetConstID_DI(rhs_tmp.get());
 		auto dps = a_max_rds->GetDefPoints(tmp_di);
 		new_rhs = NewVarUsage(rhs_tmp, dps, rhs);
 		rhs = new_rhs.get();
@@ -438,7 +438,7 @@ bool ReductionContext::IsCSE(const AssignExpr* a,
 				}
 
 			IntrusivePtr<ID> rhs_id_ptr = {NewRef{}, rhs_id};
-			auto rhs_di = mgr->GetConstIDReachingDef(rhs_id);
+			auto rhs_di = mgr->GetConstID_DI(rhs_id);
 			auto dps = a_max_rds->GetDefPoints(rhs_di);
 
 			auto rhs_const = CheckForConst(rhs_id_ptr, dps);
@@ -451,7 +451,7 @@ bool ReductionContext::IsCSE(const AssignExpr* a,
 			}
 
 		// Track where we define the temporary.
-		auto lhs_di = mgr->GetConstIDReachingDef(lhs_id);
+		auto lhs_di = mgr->GetConstID_DI(lhs_id);
 		auto dps = a_max_rds->GetDefPoints(lhs_di);
 
 		if ( lhs_tmp->DPs() && ! SameDPs(lhs_tmp->DPs(), dps) )
@@ -567,7 +567,7 @@ IntrusivePtr<Expr> ReductionContext::UpdateExpr(IntrusivePtr<Expr> e)
 		auto max_rds = mgr->GetPreMaxRDs(GetRDLookupObj(n));
 
 		IntrusivePtr<ID> id_ptr = {NewRef{}, id};
-		auto di = mgr->GetConstIDReachingDef(id);
+		auto di = mgr->GetConstID_DI(id);
 		auto dps = max_rds->GetDefPoints(di);
 
 		auto is_const = CheckForConst(id_ptr, dps);
@@ -608,7 +608,7 @@ IntrusivePtr<Expr> ReductionContext::UpdateExpr(IntrusivePtr<Expr> e)
 			}
 
 		auto e_max_rds = mgr->GetPreMaxRDs(GetRDLookupObj(e.get()));
-		auto alias_di = mgr->GetConstIDReachingDef(alias.get());
+		auto alias_di = mgr->GetConstID_DI(alias.get());
 		auto alias_dps = e_max_rds->GetDefPoints(alias_di);
 
 		if ( SameDPs(alias_dps, tmp_var->DPs()) )

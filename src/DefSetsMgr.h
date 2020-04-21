@@ -143,15 +143,15 @@ public:
 	void CreateDef(DefinitionItem* di, DefinitionPoint dp,
 			bool is_pre, bool min_only);
 
-	DefinitionItem* GetExprReachingDef(const Expr* e)
-		{ return item_map.GetExprReachingDef(e); }
-	DefinitionItem* GetIDReachingDef(const ID* id)
-		{ return item_map.GetIDReachingDef(id); }
-	const DefinitionItem* GetConstIDReachingDef(const ID* id) const
-		{ return item_map.GetConstIDReachingDef(id); }
-        const DefinitionItem* GetConstIDReachingDef(const DefinitionItem* di,
+	DefinitionItem* GetExprDI(const Expr* e)
+		{ return item_map.GetExprDI(e); }
+	DefinitionItem* GetID_DI(const ID* id)
+		{ return item_map.GetID_DI(id); }
+	const DefinitionItem* GetConstID_DI(const ID* id) const
+		{ return item_map.GetConstID_DI(id); }
+        const DefinitionItem* GetConstID_DI(const DefinitionItem* di,
 						const char* field_name) const
-		{ return item_map.GetConstIDReachingDef(di, field_name); }
+		{ return item_map.GetConstID_DI(di, field_name); }
 
 protected:
 	RD_ptr& GetRDs(const IntrusivePtr<ReachingDefSet> defs,

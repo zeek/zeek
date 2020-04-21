@@ -15,7 +15,7 @@ DefSetsMgr::DefSetsMgr()
 
 void DefSetsMgr::CreatePostDef(const ID* id, DefinitionPoint dp, bool min_only)
 	{
-	auto di = item_map.GetIDReachingDef(id);
+	auto di = item_map.GetID_DI(id);
 	CreatePostDef(di, dp, min_only);
 	}
 

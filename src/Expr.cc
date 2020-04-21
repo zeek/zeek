@@ -4012,7 +4012,7 @@ void FieldLHSAssignExpr::ExprDescribe(ODesc* d) const
 	if ( d->IsReadable() )
 		d->Add("$");
 
-	d->Add(field);
+	d->Add(field_name);
 
 	if ( d->IsReadable() )
 		d->Add(" $= ");

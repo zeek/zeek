@@ -39,11 +39,21 @@ struct BlockDefs {
 
 class ProfileFunc : public TraversalCallback {
 public:
+	TraversalCode PreStmt(const Stmt*) override;
 	TraversalCode PreExpr(const Expr*) override;
 
 	// Globals seen in the function.
 	std::unordered_set<const ID*> globals;
+
+	int num_stmts = 0;
+	int num_exprs = 0;
 };
+
+TraversalCode ProfileFunc::PreStmt(const Stmt* s)
+	{
+	++num_stmts;
+	return TC_CONTINUE;
+	}
 
 TraversalCode ProfileFunc::PreExpr(const Expr* e)
 	{
@@ -55,12 +65,14 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 			globals.insert(id);
 		}
 
+	++num_exprs;
+
 	return TC_CONTINUE;
 	}
 
 class RD_Decorate : public TraversalCallback {
 public:
-	RD_Decorate(const ProfileFunc& pf);
+	RD_Decorate(const ProfileFunc* pf);
 
 	TraversalCode PreFunction(const Func*) override;
 	TraversalCode PreStmt(const Stmt*) override;
@@ -104,14 +116,14 @@ protected:
 	void AddBlockDefs(const Stmt* s,
 				bool is_pre, bool is_future, bool is_case);
 
-	const ProfileFunc& pf;
+	const ProfileFunc* pf;
 	DefSetsMgr mgr;
 	vector<BlockDefs*> block_defs;
 	bool trace;
 };
 
 
-RD_Decorate::RD_Decorate(const ProfileFunc& _pf) : pf(_pf)
+RD_Decorate::RD_Decorate(const ProfileFunc* _pf) : pf(_pf)
 	{
 	trace = getenv("ZEEK_OPT_TRACE") != nullptr;
 	}
@@ -138,7 +150,7 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 		CreateInitPostDef(arg_i_id, DefinitionPoint(f), true, nullptr);
 		}
 
-	for ( const auto& g : pf.globals )
+	for ( const auto& g : pf->globals )
 		CreateInitPostDef(g, DefinitionPoint(f), true, nullptr);
 
 	if ( ! mgr.HasPostMinRDs(f) )
@@ -1185,7 +1197,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		// aim to comprehensively understand which globals could
 		// possibly be altered, but for now we just assume they
 		// call could.
-		for ( const auto& g : pf.globals )
+		for ( const auto& g : pf->globals )
 			mgr.CreatePostDef(g, DefinitionPoint(c), false);
 
 		return TC_ABORTSTMT;
@@ -1395,6 +1407,7 @@ TraversalCode FolderFinder::PreExpr(const Expr* expr, const Expr* op1, const Exp
 
 bool did_init = false;
 bool activate = false;
+bool report_profile = false;
 bool optimize = false;
 const char* only_func = 0;
 
@@ -1409,7 +1422,7 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 			activate = true;
 
 		only_func = getenv("ZEEK_ONLY");
-
+		report_profile = getenv("ZEEK_REPORT_PROFILE");
 		optimize = getenv("ZEEK_OPTIMIZE");
 
 		if ( only_func )
@@ -1426,11 +1439,19 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 	if ( only_func && ! streq(f->Name(), only_func) )
 		return;
 
-	push_scope(id, nullptr);
-	ReductionContext rc(f->GetScope());
-
 	if ( only_func )
 		printf("Original: %s\n", obj_desc(body));
+
+	push_scope(id, nullptr);
+
+	ProfileFunc* pf_orig = nullptr;
+	if ( report_profile )
+		{
+		pf_orig = new ProfileFunc;
+		f->Traverse(pf_orig);
+		}
+
+	ReductionContext rc(f->GetScope());
 
 	auto new_body = body->Reduce(&rc);
 
@@ -1450,12 +1471,14 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 	f->ReplaceBody(body_ptr, new_body_ptr);
 	f->GrowFrameSize(rc.NumTemps());
 
+	ProfileFunc* pf_red = new ProfileFunc;
+	f->Traverse(pf_red);
+
+	ProfileFunc* pf_opt = nullptr;
+
 	if ( optimize )
 		{
-		ProfileFunc pf;
-		f->Traverse(&pf);
-
-		RD_Decorate cb(pf);
+		RD_Decorate cb(pf_red);
 		f->Traverse(&cb);
 
 		rc.SetDefSetsMgr(cb.GetDefSetsMgr());
@@ -1467,7 +1490,33 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 			printf("Optimized: %s\n", obj_desc(new_body));
 
 		f->ReplaceBody(body_ptr, new_body_ptr);
+
+		if ( report_profile )
+			{
+			pf_opt = new ProfileFunc;
+			f->Traverse(pf_opt);
+			}
 		}
+
+
+	if ( report_profile )
+		{
+		if ( optimize )
+			printf("Orig/Xform/Opt %s: %d/%d, %d/%d, %d/%d\n",
+				f->Name(),
+				pf_orig->num_stmts, pf_orig->num_exprs,
+				pf_red->num_stmts, pf_red->num_exprs,
+				pf_opt->num_stmts, pf_opt->num_exprs);
+		else
+			printf("Orig/Xform %s: %d/%d, %d/%d\n",
+				f->Name(),
+				pf_orig->num_stmts, pf_orig->num_exprs,
+				pf_red->num_stmts, pf_red->num_exprs);
+		}
+
+	delete pf_orig;
+	delete pf_red;
+	delete pf_opt;
 
 	pop_scope();
 	}

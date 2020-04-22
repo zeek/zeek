@@ -6025,8 +6025,16 @@ bool ListExpr::IsReduced() const
 bool ListExpr::HasReducedOps() const
 	{
 	for ( const auto& expr : exprs )
-		if ( ! expr->HasReducedOps() )
+		{
+		// Ugly hack for record constructors.
+		if ( expr->Tag() == EXPR_FIELD_ASSIGN )
+			{
+			if ( ! expr->HasReducedOps() )
+				return false;
+			}
+		else if ( ! expr->IsSingleton() )
 			return false;
+		}
 
 	return true;
 	}

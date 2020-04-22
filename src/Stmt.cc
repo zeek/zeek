@@ -555,6 +555,15 @@ Stmt* IfStmt::Reduce(ReductionContext* c)
 	if ( s1->Tag() == STMT_NULL && s2->Tag() == STMT_NULL )
 		return TransformMe(new NullStmt(), c);
 
+	if ( e->Tag() == EXPR_NOT )
+		{
+		auto s1_orig = s1;
+		s1 = s2;
+		s2 = s1_orig;
+
+		e = e->GetOp1();
+		}
+
 	IntrusivePtr<Stmt> red_e_stmt;
 
 	if ( c->Optimizing() )

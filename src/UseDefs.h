@@ -72,6 +72,12 @@ protected:
 	// The given statement uses a (shallow) copy of the given UDs.
 	use_defs* CopyUDs(const Stmt* s, use_defs* UDs);
 
+	// Sets the given statement's UDs to a new UD set corresponding
+	// to the union of the given UDs and those associated with the 
+	// given expression.
+	use_defs* CreateExprUDs(const Stmt* s, const Expr* e,
+				const use_defs* UDs);
+
 	// The given statement takes ownership of the given UDs.
 	use_defs* CreateUDs(const Stmt* s, use_defs* UDs);
 

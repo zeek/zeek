@@ -21,6 +21,7 @@ void UseDefs::Analyze(const Stmt* s)
 use_defs* UseDefs::PropagateUDs(const Stmt* s, use_defs* succ_UDs)
 	{
 	switch ( s->Tag() ) {
+	case STMT_EVENT_BODY_LIST:	// ###
 	case STMT_LIST:
 		{
 		auto sl = s->AsStmtList();
@@ -35,14 +36,13 @@ use_defs* UseDefs::PropagateUDs(const Stmt* s, use_defs* succ_UDs)
 		return CopyUDs(s, succ_UDs);
 		}
 
-	case STMT_EVENT_BODY_LIST:	// ###
-		break;
-
-	case STMT_PRINT:
 	case STMT_NEXT:
 	case STMT_BREAK:
 	case STMT_FALLTHROUGH:
 		return CopyUDs(s, succ_UDs);
+
+	case STMT_PRINT:
+		return CreateExprUDs(s, s->AsPrintStmt()->ExprList(), succ_UDs);
 
 	case STMT_EVENT:
 	case STMT_CHECK_ANY_LEN:
@@ -51,11 +51,37 @@ use_defs* UseDefs::PropagateUDs(const Stmt* s, use_defs* succ_UDs)
 	case STMT_RETURN:
 		{
 		auto e = ((const ExprStmt*) s)->StmtExpr();
-		return CreateUDs(s, ExprUDs(e));
+
+		if ( e )
+			return CreateExprUDs(s, e, succ_UDs);
+		else
+			return CopyUDs(s, succ_UDs);
 		}
 
 	case STMT_EXPR:
-		break;
+		{
+		auto e = s->AsExprStmt()->StmtExpr();
+
+		if ( e->Tag() != EXPR_ASSIGN )
+			return CreateExprUDs(s, e, succ_UDs);
+
+		auto a = e->AsAssignExpr();
+		auto lhs_ref = a->GetOp1();
+
+		if ( lhs_ref->Tag() != EXPR_REF )
+			reporter->InternalError("lhs inconsistency in UseDefs::ExprUDs");
+
+		auto lhs_var = lhs_ref->GetOp1();
+		auto lhs_id = lhs_var->AsNameExpr()->Id();
+		auto lhs_UDs = RemoveID(lhs_id, succ_UDs);
+		auto rhs_UDs = ExprUDs(a->GetOp2().get());
+		auto UDs = UD_Union(lhs_UDs, rhs_UDs);
+
+		delete lhs_UDs;
+		delete rhs_UDs;
+
+		return CreateUDs(s, UDs);
+		}
 
 	case STMT_IF:
 		{
@@ -74,7 +100,7 @@ use_defs* UseDefs::PropagateUDs(const Stmt* s, use_defs* succ_UDs)
 
 	case STMT_WHEN:
 		// ###
-		break;
+		return CopyUDs(s, succ_UDs);
 
 	case STMT_SWITCH:
 		{
@@ -211,6 +237,14 @@ use_defs* UseDefs::ExprUDs(const Expr* e)
 	case EXPR_CONST:
 		break;
 
+	case EXPR_CALL:
+		{
+		auto c = e->AsCallExpr();
+		AddInExprUDs(uds, c->Func());
+		AddInExprUDs(uds, c->Args());
+		break;
+		}
+
 	case EXPR_LIST:
 		{
 		auto l = e->AsListExpr();
@@ -332,6 +366,16 @@ use_defs* UseDefs::CopyUDs(const Stmt* s, use_defs* UDs)
 	use_defs_map[s] = UDs;
 	UDs_are_copies.insert(s);
 	return UDs;
+	}
+
+use_defs* UseDefs::CreateExprUDs(const Stmt* s, const Expr* e,
+					const use_defs* UDs)
+	{
+	auto e_UDs = ExprUDs(e);
+	auto new_UDs = UD_Union(UDs, e_UDs);
+	delete e_UDs;
+
+	return CreateUDs(s, new_UDs);
 	}
 
 use_defs* UseDefs::CreateUDs(const Stmt* s, use_defs* UDs)

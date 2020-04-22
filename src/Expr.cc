@@ -3789,17 +3789,6 @@ IntrusivePtr<Val> IndexExpr::Eval(Frame* f) const
 		return Fold(v1.get(), v2.get());
 	}
 
-bool IndexExpr::IsReduced() const
-	{
-	if ( ! op1->IsReduced() )
-		return NonReduced(op1.get());
-
-	if ( op2->Tag() != EXPR_LIST )
-		return NonReduced(this);
-
-	return op2->IsReduced();
-	}
-
 IntrusivePtr<Stmt> IndexExpr::ReduceToSingletons(ReductionContext* c)
 	{
 	IntrusivePtr<Stmt> red1_stmt;
@@ -5646,7 +5635,7 @@ Expr* CallExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	red_stmt = nullptr;
 
 	if ( ! func->IsReduced() )
-		func = {AdoptRef{}, func->Reduce(c, red_stmt)};
+		func = {AdoptRef{}, func->ReduceToSingleton(c, red_stmt)};
 
 	IntrusivePtr<Stmt> red2_stmt;
 	// We assume that ListExpr won't transform itself fundamentally.

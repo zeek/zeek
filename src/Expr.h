@@ -781,7 +781,6 @@ public:
 	// not necessarily return a vector.
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
-	bool IsReduced() const override;
 	IntrusivePtr<Stmt> ReduceToSingletons(ReductionContext* c) override;
 
 	bool IsSlice() const { return is_slice; }

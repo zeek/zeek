@@ -1399,6 +1399,7 @@ TraversalCode FolderFinder::PreExpr(const Expr* expr, const Expr* op1, const Exp
 bool did_init = false;
 bool activate = false;
 bool report_profile = false;
+bool ud_dump = false;
 bool optimize = false;
 const char* only_func = 0;
 
@@ -1414,6 +1415,7 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 
 		only_func = getenv("ZEEK_ONLY");
 		report_profile = getenv("ZEEK_REPORT_PROFILE");
+		ud_dump = getenv("ZEEK_UD_DUMP");
 		optimize = getenv("ZEEK_OPTIMIZE");
 
 		if ( only_func )
@@ -1491,7 +1493,9 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 
 	UseDefs ud;
 	ud.Analyze(new_body);
-	ud.Dump();
+
+	if ( ud_dump )
+		ud.Dump();
 
 	if ( report_profile )
 		{

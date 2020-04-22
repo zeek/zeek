@@ -30,6 +30,7 @@ const char* stmt_name(BroStmtTag t)
 		"list", "bodylist",
 		"<init>", "fallthrough", "while",
 		"check-any-length",
+		"<compiled>",
 		"null",
 	};
 

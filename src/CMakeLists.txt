@@ -217,6 +217,7 @@ set(MAIN_SRCS
     BroString.cc
     CCL.cc
     CompHash.cc
+    Compiled.cc
     Conn.cc
     ConvertUTF.c
     DFA.cc

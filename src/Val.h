@@ -334,6 +334,7 @@ protected:
 	friend class VectorVal;
 	friend class ValManager;
 	friend class TableEntryVal;
+	friend class AbstractMachine;
 
 	virtual void ValDescribe(ODesc* d) const;
 	virtual void ValDescribeReST(ODesc* d) const;

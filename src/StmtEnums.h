@@ -18,6 +18,7 @@ typedef enum {
 	STMT_FALLTHROUGH,
 	STMT_WHILE,
 	STMT_CHECK_ANY_LEN,	// internal reduced statement
+	STMT_COMPILED,
 	STMT_NULL
 #define NUM_STMTS (int(STMT_NULL) + 1)
 } BroStmtTag;

@@ -38,9 +38,16 @@ protected:
 
 	use_defs* FindUsage(const Stmt* s);
 
-	// Returns a new use-def corresonding to the variables
+	// Returns a new use-def corresponding to the variables
 	// referenced in e.
 	use_defs* ExprUDs(const Expr* e);
+
+	// Helper method that adds in an expression's use-defs (if any)
+	// to an existing set of UDs.
+	void AddInExprUDs(use_defs* uds, const Expr* e);
+
+	// Add an ID into an existing set of UDs.
+	void AddID(use_defs* uds, const ID* id);
 
 	// Returns a new use-def corresonding to given one but
 	// with the definition of "id" removed.
@@ -52,17 +59,8 @@ protected:
 	// Adds in the additional UDs to the main UDs.  Always
 	// creates a new use_def and updates main_UDs to point to
 	// it, deleting the previous value of main_UDs.
-	void FoldInUDs(use_defs*& main_UDs, const use_defs* addl_UDs);
-
-	// Same but for two sets of new UDs, for convenience.
-	void FoldInUDs(use_defs*& main_UDs,
-			const use_defs* u1, const use_defs* u2);
-
-	// The given statement uses a (shallow) copy of the given UDs.
-	use_defs* CopyUDs(const Stmt* s, use_defs* UDs);
-
-	// The given statement takes ownership of the given UDs.
-	use_defs* CreateUDs(const Stmt* s, use_defs* UDs);
+	void FoldInUDs(use_defs*& main_UDs, const use_defs* u1,
+			const use_defs* u2 = nullptr);
 
 	// Adds in the given UDs to those already associated with s.
 	void UpdateUDs(const Stmt* s, const use_defs* UDs);
@@ -70,6 +68,12 @@ protected:
 	// Returns a new use-def corresponding to the union of 2 or 3 UDs.
 	use_defs* UD_Union(const use_defs* u1, const use_defs* u2,
 			const use_defs* u3 = nullptr);
+
+	// The given statement uses a (shallow) copy of the given UDs.
+	use_defs* CopyUDs(const Stmt* s, use_defs* UDs);
+
+	// The given statement takes ownership of the given UDs.
+	use_defs* CreateUDs(const Stmt* s, use_defs* UDs);
 
 	// Note, the value in this could be nullptr.
 	std::unordered_map<const Stmt*, use_defs*> use_defs_map;

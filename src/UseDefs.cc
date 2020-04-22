@@ -200,6 +200,133 @@ use_defs* UseDefs::FindUsage(const Stmt* s)
 	return s_map->second;
 	}
 
+use_defs* UseDefs::ExprUDs(const Expr* e)
+	{
+	auto uds = new use_defs;
+	switch ( e->Tag() ) {
+	case EXPR_NAME:
+		AddInExprUDs(uds, e);
+		break;
+
+	case EXPR_CONST:
+		break;
+
+	case EXPR_LIST:
+		{
+		auto l = e->AsListExpr();
+		for ( const auto& l_e : l->Exprs() )
+			AddInExprUDs(uds, l_e);
+
+		break;
+		}
+
+	default:
+		auto op1 = e->GetOp1();
+		auto op2 = e->GetOp2();
+		auto op3 = e->GetOp3();
+
+		if ( ! op1 )
+			reporter->InternalError("expression inconsistency in UseDefs::ExprUDs");
+
+		AddInExprUDs(uds, op1.get());
+		if ( op2 ) AddInExprUDs(uds, op2.get());
+		if ( op3 ) AddInExprUDs(uds, op3.get());
+
+		break;
+	}
+
+	return uds;
+	}
+
+void UseDefs::AddInExprUDs(use_defs* uds, const Expr* e)
+	{
+	if ( e->Tag() == EXPR_NAME )
+		AddID(uds, e->AsNameExpr()->Id());
+
+	else if ( e->Tag() != EXPR_CONST )
+		reporter->InternalError("list expression not reduced");
+	}
+
+void UseDefs::AddID(use_defs* uds, const ID* id)
+	{
+	uds->insert(id);
+	}
+
+use_defs* UseDefs::RemoveID(const ID* id, const use_defs* UDs)
+	{
+	if ( ! UDs )
+		return nullptr;
+
+	use_defs* new_uds = new use_defs;
+
+	*new_uds = *UDs;
+	new_uds->erase(id);
+
+	return new_uds;
+	}
+
+void UseDefs::RemoveUDFrom(use_defs* UDs, const ID* id)
+	{
+	if ( UDs )
+		UDs->erase(id);
+	}
+
+void UseDefs::FoldInUDs(use_defs*& main_UDs, const use_defs* u1,
+			const use_defs* u2)
+	{
+	auto old_main = main_UDs;
+	main_UDs = new use_defs;
+	*main_UDs = *old_main;
+	delete old_main;
+
+	for ( auto ud : *u1 )
+		main_UDs->insert(ud);
+
+	if ( u2 )
+		for ( auto ud : *u2 )
+			main_UDs->insert(ud);
+	}
+
+void UseDefs::UpdateUDs(const Stmt* s, const use_defs* UDs)
+	{
+	auto curr_uds = FindUsage(s);
+
+	if ( ! curr_uds || UDs_are_copies.find(s) != UDs_are_copies.end() )
+		{
+		// Copy-on-write.
+		auto new_uds = new use_defs;
+
+		if ( curr_uds )
+			*new_uds = *curr_uds;
+
+		CreateUDs(s, new_uds);
+
+		curr_uds = new_uds;
+		}
+
+	if ( UDs )
+		{
+		for ( auto u : *UDs )
+			curr_uds->insert(u);
+		}
+	}
+
+use_defs* UseDefs::UD_Union(const use_defs* u1, const use_defs* u2,
+				const use_defs* u3)
+	{
+	auto new_uds = new use_defs;
+	*new_uds = *u1;
+
+	for ( auto& u : *u2 )
+		AddID(new_uds, u);
+
+	if ( u3 )
+		for ( auto& u : *u3 )
+			AddID(new_uds, u);
+
+	return new_uds;
+	}
+
 use_defs* UseDefs::CopyUDs(const Stmt* s, use_defs* UDs)
 	{
 	use_defs_map[s] = UDs;

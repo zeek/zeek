@@ -36,9 +36,12 @@ use_defs* UseDefs::PropagateUDs(const Stmt* s, use_defs* succ_UDs)
 		return CopyUDs(s, succ_UDs);
 		}
 
+	case STMT_NULL:
 	case STMT_NEXT:
 	case STMT_BREAK:
 	case STMT_FALLTHROUGH:
+		// ### For most of these this isn't right, but Oh Well,
+		// doesn't actually do any harm.
 		return CopyUDs(s, succ_UDs);
 
 	case STMT_PRINT:
@@ -277,6 +280,22 @@ void UseDefs::AddInExprUDs(use_defs* uds, const Expr* e)
 	if ( e->Tag() == EXPR_NAME )
 		AddID(uds, e->AsNameExpr()->Id());
 
+	else if ( e->Tag() == EXPR_LIST )
+		{
+		auto l = e->AsListExpr();
+		for ( const auto& l_e : l->Exprs() )
+			AddInExprUDs(uds, l_e);
+		}
+
+	else if ( e->Tag() == EXPR_EVENT )
+		AddInExprUDs(uds, e->GetOp1().get());
+
+	else if ( e->Tag() == EXPR_FIELD_ASSIGN )
+		{
+		auto f = e->AsFieldAssignExpr();
+		AddInExprUDs(uds, f->Op());
+		}
+
 	else if ( e->Tag() != EXPR_CONST )
 		reporter->InternalError("list expression not reduced");
 	}
@@ -310,11 +329,16 @@ void UseDefs::FoldInUDs(use_defs*& main_UDs, const use_defs* u1,
 	{
 	auto old_main = main_UDs;
 	main_UDs = new use_defs;
-	*main_UDs = *old_main;
-	delete old_main;
 
-	for ( auto ud : *u1 )
-		main_UDs->insert(ud);
+	if ( old_main )
+		{
+		*main_UDs = *old_main;
+		delete old_main;
+		}
+
+	if ( u1 )
+		for ( auto ud : *u1 )
+			main_UDs->insert(ud);
 
 	if ( u2 )
 		for ( auto ud : *u2 )
@@ -349,10 +373,13 @@ use_defs* UseDefs::UD_Union(const use_defs* u1, const use_defs* u2,
 				const use_defs* u3)
 	{
 	auto new_uds = new use_defs;
-	*new_uds = *u1;
 
-	for ( auto& u : *u2 )
-		AddID(new_uds, u);
+	if ( u1 )
+		*new_uds = *u1;
+
+	if ( u2 )
+		for ( auto& u : *u2 )
+			AddID(new_uds, u);
 
 	if ( u3 )
 		for ( auto& u : *u3 )

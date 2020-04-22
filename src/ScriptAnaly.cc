@@ -3,6 +3,7 @@
 #include "ScriptAnaly.h"
 #include "DefSetsMgr.h"
 #include "Reduce.h"
+#include "UseDefs.h"
 #include "Desc.h"
 #include "Expr.h"
 #include "Stmt.h"
@@ -1488,6 +1489,8 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 			}
 		}
 
+	UseDefs ud;
+	ud.Analyze(new_body);
 
 	if ( report_profile )
 		{

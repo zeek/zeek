@@ -215,7 +215,7 @@ const char* Ident_Analyzer::ParsePort(const char* line, const char* end_of_line,
 	int n = 0;
 
 	line = skip_whitespace(line, end_of_line);
-	if ( ! isdigit(*line) )
+	if ( line >= end_of_line || ! isdigit(*line) )
 		return nullptr;
 
 	const char* l = line;
@@ -225,7 +225,7 @@ const char* Ident_Analyzer::ParsePort(const char* line, const char* end_of_line,
 		n = n * 10 + (*line - '0');
 		++line;
 		}
-	while ( isdigit(*line) );
+	while ( line < end_of_line && isdigit(*line) );
 
 	line = skip_whitespace(line, end_of_line);
 

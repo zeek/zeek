@@ -1,4 +1,8 @@
 
+3.2.0-dev.412 | 2020-04-22 10:43:39 -0700
+
+  * Fix buffer over-read in Ident analyzer (Max Kellermann)
+
 3.2.0-dev.410 | 2020-04-21 10:25:29 -0700
 
   * Remove "connection_external" event (Johanna Amann, Corelight)

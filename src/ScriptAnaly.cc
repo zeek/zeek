@@ -1491,6 +1491,7 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 
 	UseDefs ud;
 	ud.Analyze(new_body);
+	ud.Dump();
 
 	if ( report_profile )
 		{

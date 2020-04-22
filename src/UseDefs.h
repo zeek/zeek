@@ -2,6 +2,7 @@
 
 #include "IntrusivePtr.h"
 
+#include <vector>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -26,6 +27,8 @@ public:
 	const use_defs* GetUsage(const Stmt* s)
 		{ return FindUsage(s); }
 
+	void Dump();
+
 protected:
 	// Propagates use-defs (backward) across statement s,
 	// given its successor's UDs.  May return a shallow
@@ -36,7 +39,7 @@ protected:
 	// only be used via copy-on-write.
 	use_defs* PropagateUDs(const Stmt* s, use_defs* succ_UDs);
 
-	use_defs* FindUsage(const Stmt* s);
+	use_defs* FindUsage(const Stmt* s) const;
 
 	// Returns a new use-def corresponding to the variables
 	// referenced in e.
@@ -87,4 +90,8 @@ protected:
 	// The following stores statements whose use-defs are
 	// currently copies of some other statement's use-defs.
 	std::unordered_set<const Stmt*> UDs_are_copies;
+
+	// Track the statements we've processed.  This lets us dump
+	// things out in order, even though the main map is unordered.
+	std::vector<const Stmt*> stmts;
 };

@@ -3,6 +3,7 @@
 #include "UseDefs.h"
 #include "Expr.h"
 #include "Stmt.h"
+#include "Desc.h"
 #include "Reporter.h"
 
 
@@ -18,8 +19,29 @@ void UseDefs::Analyze(const Stmt* s)
 	(void) PropagateUDs(s, nullptr);
 	}
 
+void UseDefs::Dump()
+	{
+	for ( int i = stmts.size(); --i >= 0; )
+		{
+		auto& s = stmts[i];
+		auto UDs = FindUsage(s);
+		auto are_copies =
+			(UDs_are_copies.find(s) != UDs_are_copies.end());
+
+		printf("UDs (%s) for %s:\n", are_copies ? "copy" : "orig",
+			obj_desc(s));
+
+		for ( const auto& u : *UDs )
+			printf(" %s", u->Name());
+
+		printf("\n\n");
+		}
+	}
+
 use_defs* UseDefs::PropagateUDs(const Stmt* s, use_defs* succ_UDs)
 	{
+	stmts.push_back(s);
+
 	switch ( s->Tag() ) {
 	case STMT_EVENT_BODY_LIST:	// ###
 	case STMT_LIST:
@@ -219,7 +241,7 @@ use_defs* UseDefs::PropagateUDs(const Stmt* s, use_defs* succ_UDs)
 	}
 	}
 
-use_defs* UseDefs::FindUsage(const Stmt* s)
+use_defs* UseDefs::FindUsage(const Stmt* s) const
 	{
 	auto s_map = use_defs_map.find(s);
 

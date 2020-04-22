@@ -207,7 +207,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		}
 
 	case STMT_LIST:
-	case STMT_EVENT_BODY_LIST:
+	case STMT_EVENT_BODY_LIST:	// ###
 		{
 		auto sl = s->AsStmtList();
 		auto stmts = sl->Stmts();
@@ -388,20 +388,10 @@ void RD_Decorate::TraverseSwitch(const SwitchStmt* sw)
 	auto bd = new BlockDefs(true);
 	block_defs.push_back(bd);
 
-	bool has_default = false;
-	for ( const auto& c : *cases )
-		{
-		if ( (! c->ExprCases() ||
-		      c->ExprCases()->Exprs().length() == 0) &&
-		     (! c->TypeCases() ||
-		      c->TypeCases()->length() == 0) )
-			has_default = true;
-		}
-
 	RD_ptr sw_post_min_rds = nullptr;
 	RD_ptr sw_post_max_rds = nullptr;
 
-	if ( has_default )
+	if ( sw->HasDefault() )
 		// Guaranteed that we'll execute one of the switch blocks.
 		// Start with an empty set of RDs for the post-max and
 		// build them up via union.
@@ -883,7 +873,7 @@ bool RD_Decorate::ControlCouldReachEnd(const Stmt* s, bool ignore_break) const
 		}
 
 	case STMT_LIST:
-	case STMT_EVENT_BODY_LIST:
+	case STMT_EVENT_BODY_LIST:	// ###
 		{
 		auto l = s->AsStmtList();
 

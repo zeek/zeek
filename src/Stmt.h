@@ -265,6 +265,7 @@ public:
 	~SwitchStmt() override;
 
 	const case_list* Cases() const	{ return cases; }
+	bool HasDefault() const		{ return default_case_idx != -1; }
 
 	void StmtDescribe(ODesc* d) const override;
 

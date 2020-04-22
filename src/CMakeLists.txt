@@ -285,6 +285,7 @@ set(MAIN_SRCS
     TunnelEncapsulation.cc
     Type.cc
     UID.cc
+    UseDefs.cc
     Val.cc
     Var.cc
     WeirdState.cc

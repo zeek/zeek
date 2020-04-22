@@ -312,6 +312,13 @@ void UseDefs::AddInExprUDs(use_defs* uds, const Expr* e)
 	else if ( e->Tag() == EXPR_EVENT )
 		AddInExprUDs(uds, e->GetOp1().get());
 
+	else if ( e->Tag() == EXPR_ASSIGN )
+		{
+		// These occur inside of table constructors.
+		AddInExprUDs(uds, e->GetOp1().get());
+		AddInExprUDs(uds, e->GetOp2().get());
+		}
+
 	else if ( e->Tag() == EXPR_FIELD_ASSIGN )
 		{
 		auto f = e->AsFieldAssignExpr();

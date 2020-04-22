@@ -124,10 +124,10 @@ static std::string RenderMessage(const broker::error& e)
 
 #endif
 
-Manager::Manager(bool arg_reading_pcaps)
+Manager::Manager(bool arg_use_real_time)
 	{
 	bound_port = 0;
-	reading_pcaps = arg_reading_pcaps;
+	use_real_time = arg_use_real_time;
 	after_zeek_init = false;
 	peer_count = 0;
 	log_batch_size = 0;
@@ -166,7 +166,7 @@ void Manager::InitPostScript()
 	broker::broker_options options;
 	options.disable_ssl = get_option("Broker::disable_ssl")->AsBool();
 	options.forward = get_option("Broker::forward_messages")->AsBool();
-	options.use_real_time = ! reading_pcaps;
+	options.use_real_time = use_real_time;
 
 	BrokerConfig config{std::move(options)};
 
@@ -281,6 +281,14 @@ void Manager::FlushPendingQueries()
 				}
 			}
 		}
+	}
+
+void Manager::ClearStores()
+	{
+	FlushPendingQueries();
+
+	for ( const auto& [name, handle] : data_stores )
+		handle->store.clear();
 	}
 
 uint16_t Manager::Listen(const string& addr, uint16_t port)

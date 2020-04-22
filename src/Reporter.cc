@@ -32,8 +32,9 @@ int closelog();
 
 Reporter* reporter = nullptr;
 
-Reporter::Reporter()
+Reporter::Reporter(bool arg_abort_on_scripting_errors)
 	{
+	abort_on_scripting_errors = arg_abort_on_scripting_errors;
 	errors = 0;
 	via_events = false;
 	in_error_handler = 0;
@@ -157,6 +158,10 @@ void Reporter::ExprRuntimeError(const Expr* expr, const char* fmt, ...)
 	      d.Description(), fmt, ap);
 	va_end(ap);
 	PopLocation();
+
+	if ( abort_on_scripting_errors )
+		abort();
+
 	throw InterpreterException();
 	}
 
@@ -170,6 +175,10 @@ void Reporter::RuntimeError(const Location* location, const char* fmt, ...)
 	DoLog("runtime error", reporter_error, out, nullptr, nullptr, true, true, "", fmt, ap);
 	va_end(ap);
 	PopLocation();
+
+	if ( abort_on_scripting_errors )
+		abort();
+
 	throw InterpreterException();
 	}
 

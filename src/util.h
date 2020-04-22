@@ -208,13 +208,13 @@ extern uint8_t shared_siphash_key[SIPHASH_KEYLEN];
 extern void hmac_md5(size_t size, const unsigned char* bytes,
 			unsigned char digest[16]);
 
-// Initializes RNGs for bro_random() and MD5 usage.  If seed is given, then
-// it is used (to provide determinism).  If load_file is given, the seeds
-// (both random & MD5) are loaded from that file.  This takes precedence
-// over the "seed" argument.  If write_file is given, the seeds are written
-// to that file.
-//
-extern void init_random_seed(const char* load_file, const char* write_file);
+// Initializes RNGs for bro_random() and MD5 usage.  If load_file is given,
+// the seeds (both random & MD5) are loaded from that file.  This takes
+// precedence over the "use_empty_seeds" argument, which just
+// zero-initializes all seed values.  If write_file is given, the seeds are
+// written to that file.
+extern void init_random_seed(const char* load_file, const char* write_file,
+                             bool use_empty_seeds);
 
 // Retrieves the initial seed computed after the very first call to
 // init_random_seed(). Repeated calls to init_random_seed() will not affect

@@ -1094,7 +1094,8 @@ void bro_srandom(unsigned int seed)
 		srandom(seed);
 	}
 
-void init_random_seed(const char* read_file, const char* write_file)
+void init_random_seed(const char* read_file, const char* write_file,
+                      bool use_empty_seeds)
 	{
 	static const int bufsiz = 20;
 	uint32_t buf[bufsiz];
@@ -1111,6 +1112,8 @@ void init_random_seed(const char* read_file, const char* write_file)
 		else
 			seeds_done = true;
 		}
+	else if ( use_empty_seeds )
+		seeds_done = true;
 
 #ifdef HAVE_GETRANDOM
 	if ( ! seeds_done )

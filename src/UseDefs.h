@@ -24,8 +24,10 @@ public:
 	void Analyze(const Stmt* s);
 
 	// Note, can return nullptr if there are no usages at all.
-	const use_defs* GetUsage(const Stmt* s)
+	const use_defs* GetUsage(const Stmt* s) const
 		{ return FindUsage(s); }
+
+	void FindUnused();
 
 	void Dump();
 
@@ -37,7 +39,12 @@ protected:
 	// discipline is to assume that whatever's returned
 	// is ultimately owned by some statement, and should
 	// only be used via copy-on-write.
-	use_defs* PropagateUDs(const Stmt* s, use_defs* succ_UDs);
+	//
+	// succ_stmt is the successor statement to this statement.
+	// We only care about it for potential assignment statements,
+	// (see the "successor" map below).
+	use_defs* PropagateUDs(const Stmt* s, use_defs* succ_UDs,
+				const Stmt* succ_stmt);
 
 	use_defs* FindUsage(const Stmt* s) const;
 
@@ -94,4 +101,11 @@ protected:
 	// Track the statements we've processed.  This lets us dump
 	// things out in order, even though the main map is unordered.
 	std::vector<const Stmt*> stmts;
+
+	// For a given assignment statement, maps it to its successor
+	// (the statement that will execute after it).  We need this
+	// because we track UDs present at the *beginning* of
+	// a statement, not at its end; those at the end are
+	// the same as those at the beginning of the successor.
+	std::unordered_map<const Stmt*, const Stmt*> successor;
 };

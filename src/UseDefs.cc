@@ -16,7 +16,51 @@ UseDefs::~UseDefs()
 
 void UseDefs::Analyze(const Stmt* s)
 	{
-	(void) PropagateUDs(s, nullptr);
+	(void) PropagateUDs(s, nullptr, nullptr);
+	}
+
+void UseDefs::FindUnused()
+	{
+	for ( int i = stmts.size(); --i >= 0; )
+		{
+		auto& s = stmts[i];
+		if ( s->Tag() != STMT_EXPR )
+			continue;
+
+		auto s_e = s->AsExprStmt();
+		auto e = s_e->StmtExpr();
+
+		if ( e->Tag() != EXPR_ASSIGN )
+			continue;
+
+		auto a = e->AsAssignExpr();
+		auto r = a->GetOp1();
+		if ( r->Tag() != EXPR_REF )
+			reporter->InternalError("lhs ref inconsistency in UseDefs::FindUnused");
+
+		auto n = r->AsRefExpr()->GetOp1();
+		if ( n->Tag() != EXPR_NAME )
+			reporter->InternalError("lhs name inconsistency in UseDefs::FindUnused");
+
+		auto id = n->AsNameExpr()->Id();
+		auto succ = successor[s];
+		auto UDs = FindUsage(succ);
+
+		if ( UDs->find(id) == UDs->end() )
+			printf("%s has no use-def at %s\n", id->Name(),
+				obj_desc(s));
+
+		auto are_copies =
+			(UDs_are_copies.find(s) != UDs_are_copies.end());
+
+		printf("UDs (%s) for %s:\n", are_copies ? "copy" : "orig",
+			obj_desc(s));
+
+		for ( const auto& u : *UDs )
+			printf(" %s", u->Name());
+
+		printf("\n\n");
+		}
 	}
 
 void UseDefs::Dump()
@@ -38,7 +82,8 @@ void UseDefs::Dump()
 		}
 	}
 
-use_defs* UseDefs::PropagateUDs(const Stmt* s, use_defs* succ_UDs)
+use_defs* UseDefs::PropagateUDs(const Stmt* s, use_defs* succ_UDs,
+				const Stmt* succ_stmt)
 	{
 	stmts.push_back(s);
 
@@ -52,7 +97,9 @@ use_defs* UseDefs::PropagateUDs(const Stmt* s, use_defs* succ_UDs)
 		for ( int i = stmts.length(); --i >= 0; )
 			{
 			auto s = stmts[i];
-			succ_UDs = PropagateUDs(s, succ_UDs);
+			auto succ = (i == stmts.length() - 1) ?
+					succ_stmt : stmts[i+1];
+			succ_UDs = PropagateUDs(s, succ_UDs, succ);
 			}
 
 		return CopyUDs(s, succ_UDs);
@@ -63,7 +110,8 @@ use_defs* UseDefs::PropagateUDs(const Stmt* s, use_defs* succ_UDs)
 	case STMT_BREAK:
 	case STMT_FALLTHROUGH:
 		// ### For most of these this isn't right, but Oh Well,
-		// doesn't actually do any harm.
+		// doesn't actually do any harm.  Also, we don't note
+		// their successor
 		return CopyUDs(s, succ_UDs);
 
 	case STMT_PRINT:
@@ -105,6 +153,8 @@ use_defs* UseDefs::PropagateUDs(const Stmt* s, use_defs* succ_UDs)
 		delete lhs_UDs;
 		delete rhs_UDs;
 
+		successor[s] = succ_stmt;
+
 		return CreateUDs(s, UDs);
 		}
 
@@ -114,8 +164,10 @@ use_defs* UseDefs::PropagateUDs(const Stmt* s, use_defs* succ_UDs)
 		auto cond = i->StmtExpr();
 
 		auto cond_UDs = ExprUDs(cond);
-		auto true_UDs = PropagateUDs(i->TrueBranch(), succ_UDs);
-		auto false_UDs = PropagateUDs(i->FalseBranch(), succ_UDs);
+		auto true_UDs = PropagateUDs(i->TrueBranch(), succ_UDs,
+						succ_stmt);
+		auto false_UDs = PropagateUDs(i->FalseBranch(), succ_UDs,
+						succ_stmt);
 
 		auto UDs = CreateUDs(s, UD_Union(cond_UDs, true_UDs, false_UDs));
 		delete cond_UDs;
@@ -137,7 +189,7 @@ use_defs* UseDefs::PropagateUDs(const Stmt* s, use_defs* succ_UDs)
 		for ( const auto& c : *cases )
 			{
 			auto body = c->Body();
-			auto UDs = PropagateUDs(body, succ_UDs);
+			auto UDs = PropagateUDs(body, succ_UDs, succ_stmt);
 
 			auto exprs = c->ExprCases();
 			if ( exprs )
@@ -180,7 +232,14 @@ use_defs* UseDefs::PropagateUDs(const Stmt* s, use_defs* succ_UDs)
 		auto f = s->AsForStmt();
 
 		auto body = f->LoopBody();
-		auto body_UDs = PropagateUDs(body, succ_UDs);
+
+		// The loop body has two potential successors, itself
+		// and the successor of the entire "for" statement.
+		// Since we propagate definitions in it around back
+		// to the top, that's the one to use for successor,
+		// to ensure we're conservative in concluding that an
+		// assignment isn't needed.
+		auto body_UDs = PropagateUDs(body, succ_UDs, body);
 
 		auto e = f->LoopExpr();
 		auto f_UDs = ExprUDs(e);
@@ -207,17 +266,20 @@ use_defs* UseDefs::PropagateUDs(const Stmt* s, use_defs* succ_UDs)
 		{
 		auto w = s->AsWhileStmt();
 		auto body = w->Body();
+		auto cond_stmt = w->CondStmt();
 
-		auto body_UDs = PropagateUDs(body, succ_UDs);
+		// See note above for STMT_FOR regarding propagating
+		// around the loop.
+		auto succ = cond_stmt ? cond_stmt : body;
+		auto body_UDs = PropagateUDs(body, succ_UDs, succ);
 
 		auto cond = w->Condition();
 		auto w_UDs = ExprUDs(cond);
 		FoldInUDs(w_UDs, body_UDs);
 
-		auto cond_stmt = w->CondStmt();
 		if ( cond_stmt )
 			{
-			auto new_UDs = PropagateUDs(cond_stmt, w_UDs);
+			auto new_UDs = PropagateUDs(cond_stmt, w_UDs, body);
 
 			// That propagate definitely created a new
 			// set of UDs since the whole point of cond_stmt
@@ -260,6 +322,10 @@ use_defs* UseDefs::ExprUDs(const Expr* e)
 		break;
 
 	case EXPR_CONST:
+		break;
+
+	case EXPR_LAMBDA:
+		// ### Punt on these for now.
 		break;
 
 	case EXPR_CALL:

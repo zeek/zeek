@@ -1367,13 +1367,15 @@ Expr* IncrExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	IntrusivePtr<Expr> incr_ptr = {AdoptRef{}, incr_const};
 	incr_const->SetOriginal(this);
 
-	auto increment_expr = Tag() == EXPR_INCR ?
+	auto incr_expr = Tag() == EXPR_INCR ?
 				(Expr*) new AddExpr(target, incr_ptr) :
 				(Expr*) new SubExpr(target, incr_ptr);
-	increment_expr->SetOriginal(this);
+	incr_expr->SetOriginal(this);
+	IntrusivePtr<Stmt> incr_stmt;
+	incr_expr = incr_expr->Reduce(c, incr_stmt);
 
 	IntrusivePtr<Stmt> assign_stmt;
-	auto rhs = increment_expr->AssignToTemporary(c, assign_stmt);
+	auto rhs = incr_expr->AssignToTemporary(c, assign_stmt);
 	IntrusivePtr<Expr> rhs_ptr = {AdoptRef{}, rhs};
 
 	// This is subtle.  We need to update the NameExpr in the
@@ -1418,7 +1420,8 @@ Expr* IncrExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	auto res = assign->Reduce(c, assign_stmt2);
 	res = res->ReduceToSingleton(c, red_stmt);
 	red_stmt = MergeStmts(target_stmt,
-			MergeStmts(assign_stmt, assign_stmt2), red_stmt);
+			MergeStmts(incr_stmt, assign_stmt, assign_stmt2),
+				red_stmt);
 
 	return res;
 	}

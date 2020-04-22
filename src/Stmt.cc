@@ -1989,7 +1989,11 @@ Stmt* StmtList::Reduce(ReductionContext* c)
 		return (*f_stmts)[0]->Reduce(c);
 
 	if ( did_change )
+		{
 		ResetStmts(f_stmts);
+		auto r = Reduce(c);
+		return r;
+		}
 	else
 		delete f_stmts;
 

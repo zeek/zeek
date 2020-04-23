@@ -55,9 +55,12 @@ void UseDefs::FindUnused()
 
 		if ( ! uds || ! uds->HasID(id) )
 			{
-			printf("%s has no use-def at %s\n", id->Name(),
-				obj_desc(s));
-			// printf("successor is: %s\n", succ ? obj_desc(succ) : "<none>");
+			auto succ2 = successor2[s];
+			uds = succ2 ? FindUsage(succ2) : nullptr;
+
+			if ( ! uds || ! uds->HasID(id) )
+				printf("%s has no use-def at %s\n", id->Name(),
+					obj_desc(s));
 			}
 		}
 	}
@@ -98,10 +101,20 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt,
 
 		for ( int i = stmts.length(); --i >= 0; )
 			{
-			auto s = stmts[i];
-			auto succ = (i == stmts.length() - 1) ?
-					succ_stmt : stmts[i+1];
-			succ_UDs = PropagateUDs(s, succ_UDs, succ, second_pass);
+			auto s_i = stmts[i];
+
+			const Stmt* succ;
+
+			if ( i == stmts.length() - 1 )
+				{ // Very last statement.
+				succ = succ_stmt;
+				if ( successor2.find(s) != successor2.end() )
+					successor2[s_i] = successor2[s];
+				}
+			else
+				succ = stmts[i + 1];
+
+			succ_UDs = PropagateUDs(s_i, succ_UDs, succ, second_pass);
 			}
 
 		return UseUDs(s, succ_UDs);
@@ -220,15 +233,11 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt,
 	case STMT_FOR:
 		{
 		auto f = s->AsForStmt();
-
 		auto body = f->LoopBody();
 
 		// The loop body has two potential successors, itself
 		// and the successor of the entire "for" statement.
-		// Since we propagate definitions in it around back
-		// to the top, that's the one to use for successor,
-		// to ensure we're conservative in concluding that an
-		// assignment isn't needed.
+		successor2[body] = succ_stmt;
 		auto body_UDs = PropagateUDs(body, succ_UDs, body, second_pass);
 
 		auto e = f->LoopExpr();
@@ -265,6 +274,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt,
 		// See note above for STMT_FOR regarding propagating
 		// around the loop.
 		auto succ = cond_stmt ? cond_stmt : body;
+		successor2[body] = succ_stmt;
 		auto body_UDs = PropagateUDs(body, succ_UDs, succ, second_pass);
 
 		auto cond = w->Condition();

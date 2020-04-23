@@ -133,4 +133,9 @@ protected:
 	// a statement, not at its end; those at the end are
 	// the same as those at the beginning of the successor.
 	std::unordered_map<const Stmt*, const Stmt*> successor;
+
+	// Loop bodies have two successors, and it's important to
+	// track both because sometimes a relevant UD will be present
+	// in only one or the other.
+	std::unordered_map<const Stmt*, const Stmt*> successor2;
 };

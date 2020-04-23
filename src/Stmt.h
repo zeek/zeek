@@ -355,6 +355,14 @@ public:
 	Stmt* Reduce(ReductionContext* c) override;
 
 	const Expr* Condition() const	{ return loop_condition.get(); }
+
+	// If we construct a loop_cond_stmt, then for optimization
+	// it turns out to be helpful if we have a *statement* associated
+	// with evaluating the conditional as well as an expression,
+	// so we construct one in that case.
+	const Stmt* ConditionAsStmt() const
+		{ return stmt_loop_condition.get(); }
+
 	const Stmt* CondStmt() const
 		{ return loop_cond_stmt ? loop_cond_stmt.get() : nullptr; }
 	const Stmt* Body() const	{ return body.get(); }
@@ -367,6 +375,7 @@ protected:
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	IntrusivePtr<Expr> loop_condition;
+	IntrusivePtr<Stmt> stmt_loop_condition;
 	IntrusivePtr<Stmt> loop_cond_stmt;
 	IntrusivePtr<Stmt> body;
 };

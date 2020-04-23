@@ -1327,7 +1327,10 @@ Stmt* WhileStmt::Reduce(ReductionContext* c)
 	body = {AdoptRef{}, body->Reduce(c)};
 
 	if ( loop_cond_stmt )
+		{
 		loop_cond_stmt = {AdoptRef{}, loop_cond_stmt.get()->Reduce(c)};
+		stmt_loop_condition = make_intrusive<ExprStmt>(loop_condition);
+		}
 
 	return this->Ref();
 	}

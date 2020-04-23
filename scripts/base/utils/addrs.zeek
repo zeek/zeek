@@ -70,10 +70,9 @@ const ip_addr_regex = ipv4_addr_regex | ipv6_addr_regex;
 ## Returns: T if every element is between 0 and 255, inclusive, else F.
 function has_valid_octets(octets: string_vec): bool
 	{
-	local num = 0;
 	for ( i in octets )
 		{
-		num = to_count(octets[i]);
+		local num = to_count(octets[i]);
 		if ( 255 < num )
 			return F;
 		}

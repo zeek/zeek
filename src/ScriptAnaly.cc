@@ -1497,6 +1497,8 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 	if ( ud_dump )
 		ud.Dump();
 
+	ud.FindUnused();
+
 	if ( report_profile )
 		{
 		if ( optimize )

@@ -44,22 +44,11 @@ void UseDefs::FindUnused()
 
 		auto id = n->AsNameExpr()->Id();
 		auto succ = successor[s];
-		auto UDs = FindUsage(succ);
+		auto UDs = succ ? FindUsage(succ) : nullptr;
 
-		if ( UDs->find(id) == UDs->end() )
+		if ( ! UDs || UDs->find(id) == UDs->end() )
 			printf("%s has no use-def at %s\n", id->Name(),
 				obj_desc(s));
-
-		auto are_copies =
-			(UDs_are_copies.find(s) != UDs_are_copies.end());
-
-		printf("UDs (%s) for %s:\n", are_copies ? "copy" : "orig",
-			obj_desc(s));
-
-		for ( const auto& u : *UDs )
-			printf(" %s", u->Name());
-
-		printf("\n\n");
 		}
 	}
 
@@ -75,8 +64,11 @@ void UseDefs::Dump()
 		printf("UDs (%s) for %s:\n", are_copies ? "copy" : "orig",
 			obj_desc(s));
 
-		for ( const auto& u : *UDs )
-			printf(" %s", u->Name());
+		if ( UDs )
+			for ( const auto& u : *UDs )
+				printf(" %s", u->Name());
+		else
+			printf(" <none>");
 
 		printf("\n\n");
 		}

@@ -20,6 +20,8 @@ public:
 	int NumTemps() const		{ return temps.length(); }
 	bool IsTemporary(const ID* id) const
 		{ return FindTemporary(id) != nullptr; }
+	bool IsConstantVar(const ID* id) const
+		{ return constant_vars.find(id) != constant_vars.end(); }
 
 	bool Optimizing() const	
 		{ return ! IsPruning() && mgr != nullptr; }
@@ -83,6 +85,9 @@ protected:
 					IntrusivePtr<Expr> rhs);
 	TempVar* FindTemporary(const ID* id) const;
 
+	// This is the heart of constant propagation.  Given an identifier
+	// and a set of definition points for it, if its value is constant
+	// then returns the corresponding ConstExpr with the value.
 	const ConstExpr* CheckForConst(const IntrusivePtr<ID>& id,
 					const DefPoints* dps) const;
 
@@ -106,6 +111,10 @@ protected:
 	// laborious lookup), and proactively when creating new
 	// references to variables.
 	std::map<const NameExpr*, const DefPoints*> var_usage_to_DPs;
+
+	// Tracks which (non-temporary) variables had constant
+	// values used for constant propagation.
+	std::unordered_set<const ID*> constant_vars;
 
 	// For a new expression we've created, map it to the expression
 	// it's replacing.  This allows us to locate the RDs associated

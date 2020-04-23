@@ -127,7 +127,8 @@ bool UseDefs::RemoveUnused(int iter)
 
 		if ( unused )
 			{
-			if ( iter == 1 && ! rc->IsTemporary(id) )
+			if ( iter == 1 && ! rc->IsTemporary(id) &&
+			     ! rc->IsConstantVar(id) )
 				printf("%s has no use-def at %s\n", id->Name(),
 					obj_desc(s));
 

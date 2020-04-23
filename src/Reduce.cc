@@ -575,7 +575,15 @@ IntrusivePtr<Expr> Reducer::UpdateExpr(IntrusivePtr<Expr> e)
 
 		auto is_const = CheckForConst(id_ptr, dps);
 		if ( is_const )
+			{
+			// Remember this variable as one whose value
+			// we used for constrant propagation.  That
+			// ensures we can subsequently not complain
+			// about it being assigned but not used (though
+			// we can still omit the assignment).
+			constant_vars.insert(id);
 			return make_intrusive<ConstExpr>(is_const->ValuePtr());
+			}
 
 		return e;
 		}

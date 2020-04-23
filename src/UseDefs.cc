@@ -127,15 +127,12 @@ bool UseDefs::RemoveUnused(int iter)
 
 		if ( unused )
 			{
-			if ( rc->IsTemporary(id) )
-				{
-				rc->AddStmtToOmit(s);
-				did_omission = true;
-				}
-
-			else if ( iter == 1 )
+			if ( iter == 1 && ! rc->IsTemporary(id) )
 				printf("%s has no use-def at %s\n", id->Name(),
 					obj_desc(s));
+
+			rc->AddStmtToOmit(s);
+			did_omission = true;
 			}
 		}
 

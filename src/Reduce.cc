@@ -22,6 +22,9 @@ public:
 	IntrusivePtr<ID> Id() const		{ return id; }
 	void SetID(IntrusivePtr<ID> _id)	{ id = _id; }
 
+	void Deactivate()	{ active = false; }
+	bool IsActive() const	{ return active; }
+
 	const ConstExpr* Const() const	{ return const_expr; }
 	// Surely the most use of "const" in any single line in
 	// the Zeek codebase :-P.
@@ -40,6 +43,7 @@ protected:
 	IntrusivePtr<ID> id;
 	const IntrusivePtr<BroType>& type;
 	IntrusivePtr<Expr> rhs;
+	bool active = true;
 	const ConstExpr* const_expr;
 	IntrusivePtr<ID> alias;
 	const DefPoints* dps;
@@ -375,7 +379,7 @@ IntrusivePtr<ID> Reducer::FindExprTmp(const Expr* rhs,
 	for ( int i = 0; i < expr_temps.length(); ++i )
 		{
 		auto et_i = expr_temps[i];
-		if ( et_i->Alias() || et_i == lhs_tmp )
+		if ( et_i->Alias() || ! et_i->IsActive() || et_i == lhs_tmp )
 			// This can happen due to re-reduction while
 			// optimizing.
 			continue;
@@ -453,7 +457,6 @@ bool Reducer::IsCSE(const AssignExpr* a,
 		// Track where we define the temporary.
 		auto lhs_di = mgr->GetConstID_DI(lhs_id);
 		auto dps = a_max_rds->GetDefPoints(lhs_di);
-
 		if ( lhs_tmp->DPs() && ! SameDPs(lhs_tmp->DPs(), dps) )
 			reporter->InternalError("double DPs for temporary");
 
@@ -631,12 +634,14 @@ IntrusivePtr<Expr> Reducer::UpdateExpr(IntrusivePtr<Expr> e)
 Stmt* Reducer::MergeStmts(const NameExpr* lhs, IntrusivePtr<Expr> rhs,
 					Stmt* succ_stmt)
 	{
+	// First check for tmp=rhs.
 	auto lhs_id = lhs->Id();
 	auto lhs_tmp = FindTemporary(lhs_id);
 
 	if ( ! lhs_tmp )
 		return nullptr;
 
+	// We have tmp=rhs.  Now look for var=tmp.
 	if ( succ_stmt->Tag() != STMT_EXPR )
 		return nullptr;
 
@@ -649,24 +654,31 @@ Stmt* Reducer::MergeStmts(const NameExpr* lhs, IntrusivePtr<Expr> rhs,
 	auto a_rhs = a->GetOp2();
 
 	if ( a_lhs->Tag() != EXPR_REF || a_rhs->Tag() != EXPR_NAME )
+		// Complex 2nd-statement assignment, or RHS not a candidate.
 		return nullptr;
 
 	auto a_lhs_deref = a_lhs->AsRefExpr()->GetOp1();
 	if ( a_lhs_deref->Tag() != EXPR_NAME )
+		// Complex 2nd-statement assignment.
 		return nullptr;
 
 	auto a_lhs_var = a_lhs_deref->AsNameExpr()->Id();
 	auto a_rhs_var = a_rhs->AsNameExpr()->Id();
 
 	if ( a_rhs_var != lhs_id )
+		// 2nd statement is var=something else.
 		return nullptr;
 
 	if ( FindTemporary(a_lhs_var) )
 		{
-		// reporter->InternalError("assignment of temporary to temporary");
+		// "var" is itself a temporary.  Don't complain, as
+		// complex reductions can generate these.  We'll wind
+		// up folding the chain once it hits a regular variable.
 		return nullptr;
 		}
 
+	// Got it.  Mark the original temporary as no longer relevant.
+	lhs_tmp->Deactivate();
 	auto merge_e = make_intrusive<AssignExpr>(a_lhs_deref, rhs, false,
 							nullptr, nullptr, false);
 	TrackExprReplacement(rhs.get(), merge_e.get());

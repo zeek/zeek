@@ -103,7 +103,17 @@ Stmt* Stmt::Reduce(Reducer* c)
 	if ( c->ShouldOmitStmt(this) )
 		return new NullStmt;
 	else
+		{
+		if ( c->Optimizing() )
+			{
+			// printf("pre-reduction: %s\n", obj_desc(this));
+			auto s = DoReduce(c);
+			// printf(" ... post-reduction: %s\n", obj_desc(s));
+			return s;
+			}
+
 		return DoReduce(c);
+		}
 	}
 
 void Stmt::Describe(ODesc* d) const

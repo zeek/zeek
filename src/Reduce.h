@@ -21,7 +21,8 @@ public:
 	bool IsTemporary(const ID* id) const
 		{ return FindTemporary(id) != nullptr; }
 
-	bool Optimizing() const		{ return mgr != nullptr; }
+	bool Optimizing() const	
+		{ return ! IsPruning() && mgr != nullptr; }
 
 	bool IsPruning() const		{ return omitted_stmts.size() > 0; }
 	bool ShouldOmitStmt(const Stmt* s) const

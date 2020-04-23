@@ -46,6 +46,10 @@ void UseDefs::FindUnused()
 			reporter->InternalError("lhs name inconsistency in UseDefs::FindUnused");
 
 		auto id = n->AsNameExpr()->Id();
+
+		if ( id->IsGlobal() )
+			continue;
+
 		auto succ = successor[s];
 		auto uds = succ ? FindUsage(succ) : nullptr;
 
@@ -53,7 +57,7 @@ void UseDefs::FindUnused()
 			{
 			printf("%s has no use-def at %s\n", id->Name(),
 				obj_desc(s));
-			printf("successor is: %s\n", succ ? obj_desc(succ) : "<none>");
+			// printf("successor is: %s\n", succ ? obj_desc(succ) : "<none>");
 			}
 		}
 	}
@@ -408,7 +412,7 @@ void UseDefs::RemoveUDFrom(UDs uds, const ID* id)
 		uds->Remove(id);
 	}
 
-void UseDefs::FoldInUDs(UDs main_UDs, const UDs& u1, const UDs& u2)
+void UseDefs::FoldInUDs(UDs& main_UDs, const UDs& u1, const UDs& u2)
 	{
 	auto old_main = main_UDs;
 	main_UDs = make_intrusive<UseDefSet>();

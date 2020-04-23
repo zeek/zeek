@@ -96,9 +96,8 @@ protected:
 	void RemoveUDFrom(UDs uds, const ID* id);
 
 	// Adds in the additional UDs to the main UDs.  Always
-	// creates a new use_def and updates main_UDs to point to
-	// it, deleting the previous value of main_UDs.
-	void FoldInUDs(UDs main_UDs, const UDs& u1, const UDs& u2 = nullptr);
+	// creates a new use_def and updates main_UDs to point to it.
+	void FoldInUDs(UDs& main_UDs, const UDs& u1, const UDs& u2 = nullptr);
 
 	// Adds in the given UDs to those already associated with s.
 	void UpdateUDs(const Stmt* s, const UDs& uds);

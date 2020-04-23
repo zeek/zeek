@@ -47,12 +47,17 @@ public:
 	std::unordered_set<const ID*> globals;
 
 	int num_stmts = 0;
+	int num_when_stmts = 0;
 	int num_exprs = 0;
 };
 
 TraversalCode ProfileFunc::PreStmt(const Stmt* s)
 	{
 	++num_stmts;
+
+	if ( s->Tag() == STMT_WHEN )
+		++num_when_stmts;
+
 	return TC_CONTINUE;
 	}
 
@@ -1435,14 +1440,17 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 	if ( only_func )
 		printf("Original: %s\n", obj_desc(body));
 
-	push_scope(id, nullptr);
+	ProfileFunc* pf_orig = new ProfileFunc;
+	f->Traverse(pf_orig);
 
-	ProfileFunc* pf_orig = nullptr;
-	if ( report_profile )
+	if ( pf_orig->num_when_stmts > 0 )
 		{
-		pf_orig = new ProfileFunc;
-		f->Traverse(pf_orig);
+		if ( only_func )
+			printf("Skipping analysis due to \"when\" statement\n");
+		return;
 		}
+
+	push_scope(id, nullptr);
 
 	ReductionContext rc(f->GetScope());
 

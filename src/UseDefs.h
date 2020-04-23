@@ -91,6 +91,9 @@ protected:
 	// The given statement takes ownership of the given UDs.
 	use_defs* CreateUDs(const Stmt* s, use_defs* UDs);
 
+	use_defs* MakeUDs(const char* msg) const;
+	void DeleteUDs(use_defs* UDs, const char* msg) const;
+
 	// Note, the value in this could be nullptr.
 	std::unordered_map<const Stmt*, use_defs*> use_defs_map;
 

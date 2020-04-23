@@ -11,7 +11,7 @@ UseDefs::~UseDefs()
 	{
 	for ( auto& s : use_defs_map )
 		if ( UDs_are_copies.find(s.first) == UDs_are_copies.end() )
-			delete s.second;
+			DeleteUDs(s.second, "destructor");
 	}
 
 void UseDefs::Analyze(const Stmt* s)
@@ -142,8 +142,8 @@ use_defs* UseDefs::PropagateUDs(const Stmt* s, use_defs* succ_UDs,
 		auto rhs_UDs = ExprUDs(a->GetOp2().get());
 		auto UDs = UD_Union(lhs_UDs, rhs_UDs);
 
-		delete lhs_UDs;
-		delete rhs_UDs;
+		DeleteUDs(lhs_UDs, "assignment LHS");
+		DeleteUDs(rhs_UDs, "assignment RHS");
 
 		successor[s] = succ_stmt;
 
@@ -162,7 +162,7 @@ use_defs* UseDefs::PropagateUDs(const Stmt* s, use_defs* succ_UDs,
 						succ_stmt);
 
 		auto UDs = CreateUDs(s, UD_Union(cond_UDs, true_UDs, false_UDs));
-		delete cond_UDs;
+		DeleteUDs(cond_UDs, "cond");
 
 		return UDs;
 		}
@@ -173,7 +173,7 @@ use_defs* UseDefs::PropagateUDs(const Stmt* s, use_defs* succ_UDs,
 
 	case STMT_SWITCH:
 		{
-		use_defs* sw_UDs = nullptr;
+		auto sw_UDs = MakeUDs("switch");
 
 		auto sw = s->AsSwitchStmt();
 		auto cases = sw->Cases();
@@ -188,7 +188,7 @@ use_defs* UseDefs::PropagateUDs(const Stmt* s, use_defs* succ_UDs,
 				{
 				auto e_UDs = ExprUDs(exprs);
 				UDs = UD_Union(UDs, e_UDs);
-				delete e_UDs;
+				DeleteUDs(e_UDs, "switch case");
 				}
 
 			auto type_ids = c->TypeCases();
@@ -197,13 +197,10 @@ use_defs* UseDefs::PropagateUDs(const Stmt* s, use_defs* succ_UDs,
 					UDs = RemoveID(id, UDs);
 
 			FoldInUDs(sw_UDs, UDs);
-			// sw_UDs = UD_Union(sw_UDs, UDs); delete old
 
 			// We either created UDs afresh via UD_Union
 			// or via RemoveID.
-			delete UDs;
-
-			return sw_UDs;
+			DeleteUDs(UDs, "case processing");
 			}
 
 		auto e_UDs = ExprUDs(sw->StmtExpr());
@@ -214,7 +211,7 @@ use_defs* UseDefs::PropagateUDs(const Stmt* s, use_defs* succ_UDs,
 			// keep successor definitions in the mix
 			FoldInUDs(sw_UDs, succ_UDs, e_UDs);
 
-		delete e_UDs;
+		DeleteUDs(e_UDs, "done with switch");
 
 		return CreateUDs(s, sw_UDs);
 		}
@@ -277,7 +274,7 @@ use_defs* UseDefs::PropagateUDs(const Stmt* s, use_defs* succ_UDs,
 			// set of UDs since the whole point of cond_stmt
 			// is that it has assignments in it.  So
 			// don't leak the old one.
-			delete w_UDs;
+			DeleteUDs(w_UDs, "while cond");
 			w_UDs = new_UDs;
 			}
 
@@ -307,7 +304,7 @@ use_defs* UseDefs::FindUsage(const Stmt* s) const
 
 use_defs* UseDefs::ExprUDs(const Expr* e)
 	{
-	auto uds = new use_defs;
+	auto uds = MakeUDs("ExprUDs");
 	switch ( e->Tag() ) {
 	case EXPR_NAME:
 		AddInExprUDs(uds, e);
@@ -397,7 +394,7 @@ use_defs* UseDefs::RemoveID(const ID* id, const use_defs* UDs)
 	if ( ! UDs )
 		return nullptr;
 
-	use_defs* new_uds = new use_defs;
+	use_defs* new_uds = MakeUDs("RemoveID");
 
 	*new_uds = *UDs;
 	new_uds->erase(id);
@@ -415,12 +412,12 @@ void UseDefs::FoldInUDs(use_defs*& main_UDs, const use_defs* u1,
 			const use_defs* u2)
 	{
 	auto old_main = main_UDs;
-	main_UDs = new use_defs;
+	main_UDs = MakeUDs("FoldInUDs");
 
 	if ( old_main )
 		{
 		*main_UDs = *old_main;
-		delete old_main;
+		DeleteUDs(old_main, "FoldIn");
 		}
 
 	if ( u1 )
@@ -439,7 +436,7 @@ void UseDefs::UpdateUDs(const Stmt* s, const use_defs* UDs)
 	if ( ! curr_uds || UDs_are_copies.find(s) != UDs_are_copies.end() )
 		{
 		// Copy-on-write.
-		auto new_uds = new use_defs;
+		auto new_uds = MakeUDs("copy-on-write");
 
 		if ( curr_uds )
 			*new_uds = *curr_uds;
@@ -459,7 +456,7 @@ void UseDefs::UpdateUDs(const Stmt* s, const use_defs* UDs)
 use_defs* UseDefs::UD_Union(const use_defs* u1, const use_defs* u2,
 				const use_defs* u3)
 	{
-	auto new_uds = new use_defs;
+	auto new_uds = MakeUDs("union");
 
 	if ( u1 )
 		*new_uds = *u1;
@@ -477,6 +474,7 @@ use_defs* UseDefs::UD_Union(const use_defs* u1, const use_defs* u2,
 
 use_defs* UseDefs::CopyUDs(const Stmt* s, use_defs* UDs)
 	{
+	// printf("copying UDs %x for %x\n", UDs, s);
 	use_defs_map[s] = UDs;
 	UDs_are_copies.insert(s);
 	return UDs;
@@ -487,14 +485,28 @@ use_defs* UseDefs::CreateExprUDs(const Stmt* s, const Expr* e,
 	{
 	auto e_UDs = ExprUDs(e);
 	auto new_UDs = UD_Union(UDs, e_UDs);
-	delete e_UDs;
+	DeleteUDs(e_UDs, "CreateExprUDs");
 
 	return CreateUDs(s, new_UDs);
 	}
 
 use_defs* UseDefs::CreateUDs(const Stmt* s, use_defs* UDs)
 	{
+	// printf("creating UDs %x for %x\n", UDs, s);
 	use_defs_map[s] = UDs;
 	UDs_are_copies.erase(s);
 	return UDs;
+	}
+
+use_defs* UseDefs::MakeUDs(const char* msg) const
+	{
+	auto UDs = new use_defs;
+	// printf("making UDs %x (%s)\n", UDs, msg);
+	return UDs;
+	}
+
+void UseDefs::DeleteUDs(use_defs* UDs, const char* msg) const
+	{
+	// printf("deleting UDs %x (%s)\n", UDs, msg);
+	delete UDs;
 	}

@@ -8,7 +8,7 @@
 
 #include "NetVar.h"
 #include "digest.h"
-#include "siphash24.h"
+#include "highwayhash/sip_hash.h"
 
 #include <broker/data.hh>
 
@@ -106,14 +106,10 @@ UHF::UHF(Hasher::seed_t arg_seed)
 // times.
 Hasher::digest UHF::hash(const void* x, size_t n) const
 	{
-	assert(sizeof(Hasher::seed_t) == SIPHASH_KEYLEN);
+	assert(sizeof(Hasher::seed_t) == 16); // siphash always needs a 128 bit seed
 
 	if ( n <= UHASH_KEY_SIZE )
-		{
-		hash_t outdigest;
-		siphash(&outdigest, reinterpret_cast<const uint8_t*>(x), n, reinterpret_cast<const uint8_t*>(&seed));
-		return outdigest;
-		}
+		return highwayhash::SipHash(*(reinterpret_cast<const highwayhash::SipHashState::Key*>(&seed)), reinterpret_cast<const char*>(x), n);
 
 	union {
 		unsigned char d[16];

@@ -21,7 +21,7 @@
 #include "Reporter.h"
 #include "BroString.h"
 
-#include "siphash24.h"
+#include "highwayhash/sip_hash.h"
 
 void init_hash_function()
 	{
@@ -158,8 +158,7 @@ hash_t HashKey::HashBytes(const void* bytes, int size)
 	{
 	if ( size <= UHASH_KEY_SIZE )
 		{
-		hash_t digest;
-		siphash(&digest, (const uint8_t *)bytes, size, shared_siphash_key);
+		hash_t digest = highwayhash::SipHash(shared_siphash_key, reinterpret_cast<const char *>(bytes), size);
 		return digest;
 		}
 

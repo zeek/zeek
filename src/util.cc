@@ -1001,7 +1001,7 @@ bool hmac_key_set = false;
 uint8_t shared_hmac_md5_key[16];
 
 bool siphash_key_set = false;
-uint8_t shared_siphash_key[SIPHASH_KEYLEN];
+highwayhash::SipHashState::Key shared_siphash_key;
 
 void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
 	{
@@ -1181,8 +1181,9 @@ void init_random_seed(const char* read_file, const char* write_file)
 
 	if ( ! siphash_key_set )
 		{
-		assert(sizeof(buf) - 64 == SIPHASH_KEYLEN);
-		memcpy(shared_siphash_key, reinterpret_cast<const char*>(buf) + 64, SIPHASH_KEYLEN);
+		assert(sizeof(buf) - 64 == 16); // siphash key length is always 128 bytes, independent of implementation
+		assert(sizeof(shared_siphash_key) == 16);
+		memcpy(shared_siphash_key, reinterpret_cast<const char*>(buf) + 64, 16);
 		siphash_key_set = true;
 		}
 

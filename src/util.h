@@ -25,9 +25,9 @@
 #include <stdarg.h>
 #include <libgen.h>
 #include <memory> // std::unique_ptr
+#include "highwayhash/sip_hash.h"
 
 #include "zeek-config.h"
-#include "siphash24.h"
 
 #ifdef DEBUG
 
@@ -203,7 +203,7 @@ extern std::string strstrip(std::string s);
 extern bool hmac_key_set;
 extern uint8_t shared_hmac_md5_key[16];
 extern bool siphash_key_set;
-extern uint8_t shared_siphash_key[SIPHASH_KEYLEN];
+extern highwayhash::SipHashState::Key shared_siphash_key;
 
 extern void hmac_md5(size_t size, const unsigned char* bytes,
 			unsigned char digest[16]);

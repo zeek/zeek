@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "IntrusivePtr.h"
+#include "Obj.h"
 
 #include <vector>
 #include <unordered_map>
@@ -15,7 +16,31 @@
 class Expr;
 class Stmt;
 class ID;
-typedef std::unordered_set<const ID*> use_defs;
+
+typedef std::unordered_set<const ID*> use_def_set;
+
+class UseDefSet : public BroObj {
+public:
+	UseDefSet() : BroObj()	{ }
+
+	void Replicate(const IntrusivePtr<UseDefSet>& from)
+		{
+		use_defs = from->use_defs;
+		}
+
+	bool HasID(const ID* id)
+		{ return use_defs.find(id) != use_defs.end(); }
+
+	void Add(const ID* id)		{ use_defs.insert(id); }
+	void Remove(const ID* id)	{ use_defs.erase(id); }
+
+	const use_def_set IterateOver() const	{ return use_defs; }
+
+protected:
+	std::unordered_set<const ID*> use_defs;
+};
+
+typedef IntrusivePtr<UseDefSet> UDs;
 
 class UseDefs {
 public:
@@ -24,8 +49,7 @@ public:
 	void Analyze(const Stmt* s);
 
 	// Note, can return nullptr if there are no usages at all.
-	const use_defs* GetUsage(const Stmt* s) const
-		{ return FindUsage(s); }
+	UDs GetUsage(const Stmt* s) const	{ return FindUsage(s); }
 
 	void FindUnused();
 
@@ -33,69 +57,57 @@ public:
 
 protected:
 	// Propagates use-defs (backward) across statement s,
-	// given its successor's UDs.  May return a shallow
-	// copy to the successor UDs, or may have taken ownership
-	// for an independent set of UDs.  When calling, the
-	// discipline is to assume that whatever's returned
-	// is ultimately owned by some statement, and should
-	// only be used via copy-on-write.
+	// given its successor's UDs.
 	//
 	// succ_stmt is the successor statement to this statement.
 	// We only care about it for potential assignment statements,
 	// (see the "successor" map below).
-	use_defs* PropagateUDs(const Stmt* s, use_defs* succ_UDs,
-				const Stmt* succ_stmt);
+	UDs PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt);
 
-	use_defs* FindUsage(const Stmt* s) const;
+	UDs FindUsage(const Stmt* s) const;
 
 	// Returns a new use-def corresponding to the variables
 	// referenced in e.
-	use_defs* ExprUDs(const Expr* e);
+	UDs ExprUDs(const Expr* e);
 
 	// Helper method that adds in an expression's use-defs (if any)
 	// to an existing set of UDs.
-	void AddInExprUDs(use_defs* uds, const Expr* e);
+	void AddInExprUDs(UDs uds, const Expr* e);
 
 	// Add an ID into an existing set of UDs.
-	void AddID(use_defs* uds, const ID* id);
+	void AddID(UDs uds, const ID* id);
 
 	// Returns a new use-def corresonding to given one but
 	// with the definition of "id" removed.
-	use_defs* RemoveID(const ID* id, const use_defs* UDs);
+	UDs RemoveID(const ID* id, const UDs& uds);
 
 	// Similar, but updates the UDs in place.
-	void RemoveUDFrom(use_defs* UDs, const ID* id);
+	void RemoveUDFrom(UDs uds, const ID* id);
 
 	// Adds in the additional UDs to the main UDs.  Always
 	// creates a new use_def and updates main_UDs to point to
 	// it, deleting the previous value of main_UDs.
-	void FoldInUDs(use_defs*& main_UDs, const use_defs* u1,
-			const use_defs* u2 = nullptr);
+	void FoldInUDs(UDs main_UDs, const UDs& u1, const UDs& u2 = nullptr);
 
 	// Adds in the given UDs to those already associated with s.
-	void UpdateUDs(const Stmt* s, const use_defs* UDs);
+	void UpdateUDs(const Stmt* s, const UDs& uds);
 
 	// Returns a new use-def corresponding to the union of 2 or 3 UDs.
-	use_defs* UD_Union(const use_defs* u1, const use_defs* u2,
-			const use_defs* u3 = nullptr);
+	UDs UD_Union(const UDs& u1, const UDs& u2, const UDs& u3 = nullptr);
 
 	// The given statement uses a (shallow) copy of the given UDs.
-	use_defs* CopyUDs(const Stmt* s, use_defs* UDs);
+	UDs CopyUDs(const Stmt* s, const UDs& uds);
 
 	// Sets the given statement's UDs to a new UD set corresponding
 	// to the union of the given UDs and those associated with the 
 	// given expression.
-	use_defs* CreateExprUDs(const Stmt* s, const Expr* e,
-				const use_defs* UDs);
+	UDs CreateExprUDs(const Stmt* s, const Expr* e, const UDs& uds);
 
 	// The given statement takes ownership of the given UDs.
-	use_defs* CreateUDs(const Stmt* s, use_defs* UDs);
-
-	use_defs* MakeUDs(const char* msg) const;
-	void DeleteUDs(use_defs* UDs, const char* msg) const;
+	UDs CreateUDs(const Stmt* s, UDs uds);
 
 	// Note, the value in this could be nullptr.
-	std::unordered_map<const Stmt*, use_defs*> use_defs_map;
+	std::unordered_map<const Stmt*, UDs> use_defs_map;
 
 	// The following stores statements whose use-defs are
 	// currently copies of some other statement's use-defs.

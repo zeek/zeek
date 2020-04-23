@@ -48,11 +48,11 @@ protected:
 	std::unordered_set<const ID*> use_defs;
 };
 
-class ReductionContext;
+class Reducer;
 
 class UseDefs {
 public:
-	UseDefs(Stmt* body, ReductionContext* rc);
+	UseDefs(Stmt* body, Reducer* rc);
 	~UseDefs();
 
 	void Analyze();
@@ -154,5 +154,5 @@ protected:
 	std::unordered_map<const Stmt*, const Stmt*> successor2;
 
 	Stmt* body;
-	ReductionContext* rc;
+	Reducer* rc;
 };

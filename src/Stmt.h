@@ -29,7 +29,7 @@ class WhenStmt;
 class PrintStmt;
 class Frame;
 
-class ReductionContext;
+class Reducer;
 
 class Stmt : public BroObj {
 public:
@@ -52,8 +52,8 @@ public:
 	virtual bool IsReduced() const;
 
 	// Should deal with being called if IsReduced() returns true.
-	Stmt* Reduce(ReductionContext* c);
-	virtual Stmt* DoReduce(ReductionContext* c)	{ return this->Ref(); }
+	Stmt* Reduce(Reducer* c);
+	virtual Stmt* DoReduce(Reducer* c)	{ return this->Ref(); }
 
 #undef ACCESSOR
 #define ACCESSOR(tag, ctype, name) \
@@ -130,7 +130,7 @@ protected:
 
 	// Helper function called after reductions to perform
 	// canonical actions.
-	Stmt* TransformMe(Stmt* new_me, ReductionContext* c);
+	Stmt* TransformMe(Stmt* new_me, Reducer* c);
 
 	// The original statement from which this statement was
 	// reduced, if any.  Non-const so it can be Unref()'d.
@@ -160,12 +160,12 @@ protected:
 	                                 stmt_flow_type& flow) const = 0;
 
 	bool IsReduced() const override;
-	Stmt* DoReduce(ReductionContext* c) override;
+	Stmt* DoReduce(Reducer* c) override;
 
 	// Returns a new version of the original derived object
 	// based on the given list of singleton expressions.
 	virtual Stmt* DoSubclassReduce(IntrusivePtr<ListExpr> singletons,
-				ReductionContext* c) = 0;
+				Reducer* c) = 0;
 
 	void StmtDescribe(ODesc* d) const override;
 
@@ -182,7 +182,7 @@ protected:
 	                         stmt_flow_type& flow) const override;
 
 	Stmt* DoSubclassReduce(IntrusivePtr<ListExpr> singletons,
-			ReductionContext* c) override;
+			Reducer* c) override;
 };
 
 class ExprStmt : public Stmt {
@@ -205,7 +205,7 @@ protected:
 
 	bool IsPure() const override;
 	bool IsReduced() const override;
-	Stmt* DoReduce(ReductionContext* c) override;
+	Stmt* DoReduce(Reducer* c) override;
 
 	IntrusivePtr<Expr> e;
 };
@@ -226,7 +226,7 @@ protected:
 	IntrusivePtr<Val> DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
 	bool IsPure() const override;
 	bool IsReduced() const override;
-	Stmt* DoReduce(ReductionContext* c) override;
+	Stmt* DoReduce(Reducer* c) override;
 
 	IntrusivePtr<Stmt> s1;
 	IntrusivePtr<Stmt> s2;
@@ -276,7 +276,7 @@ protected:
 	IntrusivePtr<Val> DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
 	bool IsPure() const override;
 	bool IsReduced() const override;
-	Stmt* DoReduce(ReductionContext* c) override;
+	Stmt* DoReduce(Reducer* c) override;
 
 	// Initialize composite hash and case label map.
 	void Init();
@@ -308,7 +308,7 @@ class AddDelStmt : public ExprStmt {
 public:
 	bool IsPure() const override;
 
-	Stmt* DoReduce(ReductionContext* c) override;
+	Stmt* DoReduce(Reducer* c) override;
 	bool IsReduced() const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
@@ -337,7 +337,7 @@ public:
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
-	Stmt* DoReduce(ReductionContext* c) override;
+	Stmt* DoReduce(Reducer* c) override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -353,7 +353,7 @@ public:
 
 	bool IsPure() const override;
 	bool IsReduced() const override;
-	Stmt* DoReduce(ReductionContext* c) override;
+	Stmt* DoReduce(Reducer* c) override;
 
 	const Expr* Condition() const	{ return loop_condition.get(); }
 
@@ -397,7 +397,7 @@ public:
 
 	bool IsPure() const override;
 	bool IsReduced() const override;
-	Stmt* DoReduce(ReductionContext* c) override;
+	Stmt* DoReduce(Reducer* c) override;
 
 	void StmtDescribe(ODesc* d) const override;
 
@@ -461,7 +461,7 @@ public:
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
-	Stmt* DoReduce(ReductionContext* c) override;
+	Stmt* DoReduce(Reducer* c) override;
 
 	void StmtDescribe(ODesc* d) const override;
 };
@@ -480,7 +480,7 @@ public:
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
-	Stmt* DoReduce(ReductionContext* c) override;
+	Stmt* DoReduce(Reducer* c) override;
 
 	const stmt_list& Stmts() const	{ return *stmts; }
 	stmt_list& Stmts()		{ return *stmts; }
@@ -490,7 +490,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	bool ReduceStmt(int& s_i, stmt_list* f_stmts, ReductionContext* c);
+	bool ReduceStmt(int& s_i, stmt_list* f_stmts, Reducer* c);
 
 	void ResetStmts(stmt_list* new_stmts)
 		{
@@ -587,7 +587,7 @@ public:
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	bool IsReduced() const override;
-	Stmt* DoReduce(ReductionContext* c) override;
+	Stmt* DoReduce(Reducer* c) override;
 
 	void StmtDescribe(ODesc* d) const override;
 

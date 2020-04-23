@@ -85,25 +85,25 @@ void TempVar::SetDPs(const DefPoints* _dps)
 	}
 
 
-ReductionContext::ReductionContext(Scope* s)
+Reducer::Reducer(Scope* s)
 	{
 	scope = s;
 	mgr = nullptr;
 	}
 
-ReductionContext::~ReductionContext()
+Reducer::~Reducer()
 	{
 	for ( int i = 0; i < temps.length(); ++i )
 		delete temps[i];
 	}
 
-IntrusivePtr<Expr> ReductionContext::GenTemporaryExpr(const IntrusivePtr<BroType>& t,
+IntrusivePtr<Expr> Reducer::GenTemporaryExpr(const IntrusivePtr<BroType>& t,
 						IntrusivePtr<Expr> rhs)
 	{
 	return {AdoptRef{}, new NameExpr(GenTemporary(t, rhs))};
 	}
 
-bool ReductionContext::SameDPs(const DefPoints* dp1, const DefPoints* dp2) const
+bool Reducer::SameDPs(const DefPoints* dp1, const DefPoints* dp2) const
 	{
 	if ( dp1 == dp2 )
 		return true;
@@ -123,7 +123,7 @@ bool ReductionContext::SameDPs(const DefPoints* dp1, const DefPoints* dp2) const
 	return true;
 	}
 
-bool ReductionContext::SameVal(const Val* v1, const Val* v2) const
+bool Reducer::SameVal(const Val* v1, const Val* v2) const
 	{
 	if ( is_atomic_val(v1) )
 		return same_atomic_val(v1, v2);
@@ -131,7 +131,7 @@ bool ReductionContext::SameVal(const Val* v1, const Val* v2) const
 		return v1 == v2;
 	}
 
-IntrusivePtr<Expr> ReductionContext::NewVarUsage(IntrusivePtr<ID> var,
+IntrusivePtr<Expr> Reducer::NewVarUsage(IntrusivePtr<ID> var,
 						const DefPoints* dps,
 						const Expr* orig)
 	{
@@ -145,7 +145,7 @@ IntrusivePtr<Expr> ReductionContext::NewVarUsage(IntrusivePtr<ID> var,
 	return var_usage;
 	}
 
-const DefPoints* ReductionContext::GetDefPoints(const NameExpr* var)
+const DefPoints* Reducer::GetDefPoints(const NameExpr* var)
 	{
 	auto dps = FindDefPoints(var);
 
@@ -163,7 +163,7 @@ const DefPoints* ReductionContext::GetDefPoints(const NameExpr* var)
 	return dps;
 	}
 
-const DefPoints* ReductionContext::FindDefPoints(const NameExpr* var) const
+const DefPoints* Reducer::FindDefPoints(const NameExpr* var) const
 	{
 	auto dps = var_usage_to_DPs.find(var);
 	if ( dps == var_usage_to_DPs.end() )
@@ -172,12 +172,12 @@ const DefPoints* ReductionContext::FindDefPoints(const NameExpr* var) const
 		return dps->second;
 	}
 
-void ReductionContext::SetDefPoints(const NameExpr* var, const DefPoints* dps)
+void Reducer::SetDefPoints(const NameExpr* var, const DefPoints* dps)
 	{
 	var_usage_to_DPs[var] = dps;
 	}
 
-bool ReductionContext::SameOp(const Expr* op1, const Expr* op2)
+bool Reducer::SameOp(const Expr* op1, const Expr* op2)
 	{
 	if ( op1 == op2 )
 		return true;
@@ -235,7 +235,7 @@ bool ReductionContext::SameOp(const Expr* op1, const Expr* op2)
 // Returns true if the RHS associated with the expression "tmp" is
 // equivalent to orig_rhs, given the reaching definitions associated
 // with lhs.
-bool ReductionContext::SameExpr(const Expr* e1, const Expr* e2)
+bool Reducer::SameExpr(const Expr* e1, const Expr* e2)
 	{
 	if ( e1 == e2 )
 		return true;
@@ -270,7 +270,7 @@ bool ReductionContext::SameExpr(const Expr* e1, const Expr* e2)
 	case EXPR_INDEX_SLICE_ASSIGN:
 		// All of these should have been translated into something
 		// else.
-		reporter->InternalError("Unexpected tag in ReductionContext::SameExpr");
+		reporter->InternalError("Unexpected tag in Reducer::SameExpr");
 
 	case EXPR_ANY_INDEX:
 		{
@@ -351,7 +351,7 @@ bool ReductionContext::SameExpr(const Expr* e1, const Expr* e2)
 
 	default:
 		if ( ! e1->GetOp1() )
-			reporter->InternalError("Bad default in ReductionContext::SameExpr");
+			reporter->InternalError("Bad default in Reducer::SameExpr");
 
 		if ( ! SameOp(e1->GetOp1(), e2->GetOp1()) )
 			return false;
@@ -368,7 +368,7 @@ bool ReductionContext::SameExpr(const Expr* e1, const Expr* e2)
 
 // Find a temporary, if any, whose RHS matches the given "rhs", using
 // the reaching defs associated with "lhs".
-IntrusivePtr<ID> ReductionContext::FindExprTmp(const Expr* rhs,
+IntrusivePtr<ID> Reducer::FindExprTmp(const Expr* rhs,
 						const Expr* lhs,
 						const TempVar* lhs_tmp)
 	{
@@ -400,7 +400,7 @@ IntrusivePtr<ID> ReductionContext::FindExprTmp(const Expr* rhs,
 	return nullptr;
 	}
 
-bool ReductionContext::IsCSE(const AssignExpr* a,
+bool Reducer::IsCSE(const AssignExpr* a,
 				const NameExpr* lhs, const Expr* rhs)
 	{
 	auto a_max_rds = mgr->GetPostMaxRDs(GetRDLookupObj(a));
@@ -466,7 +466,7 @@ bool ReductionContext::IsCSE(const AssignExpr* a,
 	return false;
 	}
 
-const ConstExpr* ReductionContext::CheckForConst(const IntrusivePtr<ID>& id,
+const ConstExpr* Reducer::CheckForConst(const IntrusivePtr<ID>& id,
 						const DefPoints* dps) const
 	{
 	ASSERT(dps && dps->length() > 0);
@@ -511,12 +511,12 @@ const ConstExpr* ReductionContext::CheckForConst(const IntrusivePtr<ID>& id,
 	return rhs->AsConstExpr();
 	}
 
-void ReductionContext::TrackExprReplacement(const Expr* orig, const Expr* e)
+void Reducer::TrackExprReplacement(const Expr* orig, const Expr* e)
 	{
 	new_expr_to_orig[e] = orig;
 	}
 
-const BroObj* ReductionContext::GetRDLookupObj(const Expr* e) const
+const BroObj* Reducer::GetRDLookupObj(const Expr* e) const
 	{
 	auto orig_e = new_expr_to_orig.find(e);
 	if ( orig_e == new_expr_to_orig.end() )
@@ -525,7 +525,7 @@ const BroObj* ReductionContext::GetRDLookupObj(const Expr* e) const
 		return orig_e->second;
 	}
 
-Expr* ReductionContext::OptExpr(Expr* e)
+Expr* Reducer::OptExpr(Expr* e)
 	{
 	IntrusivePtr<Stmt> opt_stmts;
 	auto opt_e = e->Reduce(this, opt_stmts);
@@ -539,7 +539,7 @@ Expr* ReductionContext::OptExpr(Expr* e)
 	return opt_e;
 	}
 
-IntrusivePtr<Expr> ReductionContext::OptExpr(IntrusivePtr<Expr> e_ptr)
+IntrusivePtr<Expr> Reducer::OptExpr(IntrusivePtr<Expr> e_ptr)
 	{
 	auto e = e_ptr.get();
 	auto new_e = OptExpr(e);
@@ -553,7 +553,7 @@ IntrusivePtr<Expr> ReductionContext::OptExpr(IntrusivePtr<Expr> e_ptr)
 	return {AdoptRef{}, new_e};
 	}
 
-IntrusivePtr<Expr> ReductionContext::UpdateExpr(IntrusivePtr<Expr> e)
+IntrusivePtr<Expr> Reducer::UpdateExpr(IntrusivePtr<Expr> e)
 	{
 	if ( e->Tag() != EXPR_NAME )
 		return OptExpr(e);
@@ -628,7 +628,7 @@ IntrusivePtr<Expr> ReductionContext::UpdateExpr(IntrusivePtr<Expr> e)
 	return make_intrusive<ConstExpr>(c->ValuePtr());
 	}
 
-Stmt* ReductionContext::MergeStmts(const NameExpr* lhs, IntrusivePtr<Expr> rhs,
+Stmt* Reducer::MergeStmts(const NameExpr* lhs, IntrusivePtr<Expr> rhs,
 					Stmt* succ_stmt)
 	{
 	auto lhs_id = lhs->Id();
@@ -674,7 +674,7 @@ Stmt* ReductionContext::MergeStmts(const NameExpr* lhs, IntrusivePtr<Expr> rhs,
 	return new ExprStmt(merge_e);
 	}
 
-IntrusivePtr<ID> ReductionContext::GenTemporary(const IntrusivePtr<BroType>& t,
+IntrusivePtr<ID> Reducer::GenTemporary(const IntrusivePtr<BroType>& t,
 						IntrusivePtr<Expr> rhs)
 	{
 	if ( Optimizing() )
@@ -698,7 +698,7 @@ IntrusivePtr<ID> ReductionContext::GenTemporary(const IntrusivePtr<BroType>& t,
 	return temp_id;
 	}
 
-TempVar* ReductionContext::FindTemporary(const ID* id) const
+TempVar* Reducer::FindTemporary(const ID* id) const
 	{
 	auto tmp = ids_to_temps.find(id);
 	if ( tmp == ids_to_temps.end() )

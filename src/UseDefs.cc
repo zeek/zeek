@@ -14,7 +14,7 @@ void UseDefSet::Dump() const
 		printf(" %s", u->Name());
 	}
 
-UseDefs::UseDefs(Stmt* _body, ReductionContext* _rc)
+UseDefs::UseDefs(Stmt* _body, Reducer* _rc)
 	{
 	body = _body;
 	rc = _rc;

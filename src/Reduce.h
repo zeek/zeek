@@ -7,10 +7,10 @@ class ID;
 class Expr;
 class TempVar;
 
-class ReductionContext {
+class Reducer {
 public:
-	ReductionContext(Scope* s);
-	~ReductionContext();
+	Reducer(Scope* s);
+	~Reducer();
 
 	void SetDefSetsMgr(const DefSetsMgr* _mgr)	{ mgr = _mgr; }
 

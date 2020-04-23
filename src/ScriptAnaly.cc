@@ -1452,7 +1452,7 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 
 	push_scope(id, nullptr);
 
-	ReductionContext rc(f->GetScope());
+	Reducer rc(f->GetScope());
 
 	auto new_body = body->Reduce(&rc);
 

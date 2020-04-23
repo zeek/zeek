@@ -227,13 +227,13 @@ bool Expr::HasReducedOps() const
 	return true;
 	}
 
-Expr* Expr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* Expr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	red_stmt = nullptr;
 	return this->Ref();
 	}
 
-IntrusivePtr<Stmt> Expr::ReduceToSingletons(ReductionContext* c)
+IntrusivePtr<Stmt> Expr::ReduceToSingletons(Reducer* c)
 	{
 	auto op1 = GetOp1();
 	auto op2 = GetOp2();
@@ -397,7 +397,7 @@ void Expr::Canonicize()
 	{
 	}
 
-Expr* Expr::AssignToTemporary(Expr* e, ReductionContext* c,
+Expr* Expr::AssignToTemporary(Expr* e, Reducer* c,
 				IntrusivePtr<Stmt>& red_stmt)
 	{
 	IntrusivePtr<Expr> e_ptr = {NewRef{}, e};
@@ -416,7 +416,7 @@ Expr* Expr::AssignToTemporary(Expr* e, ReductionContext* c,
 	return result_tmp.release();
 	}
 
-Expr* Expr::TransformMe(Expr* new_me, ReductionContext* c,
+Expr* Expr::TransformMe(Expr* new_me, Reducer* c,
 			IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( new_me == this )
@@ -647,7 +647,7 @@ bool UnaryExpr::HasReducedOps() const
 	return op->IsSingleton();
 	}
 
-Expr* UnaryExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* UnaryExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( c->Optimizing() )
 		op = c->UpdateExpr(op);
@@ -818,7 +818,7 @@ bool BinaryExpr::HasReducedOps() const
 	return op1->IsSingleton() && op2->IsSingleton();
 	}
 
-Expr* BinaryExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* BinaryExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( c->Optimizing() )
 		{
@@ -1351,7 +1351,7 @@ IntrusivePtr<Val> IncrExpr::Eval(Frame* f) const
 		}
 	}
 
-Expr* IncrExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* IncrExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( op->Tag() != EXPR_REF )
 		Internal("confusion in IncrExpr::Reduce");
@@ -1456,7 +1456,7 @@ IntrusivePtr<Val> ComplementExpr::Fold(Val* v) const
 	return {AdoptRef{}, val_mgr->GetCount(~ v->InternalUnsigned())};
 	}
 
-Expr* ComplementExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* ComplementExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( op->Tag() == EXPR_COMPLEMENT )
 		return op->GetOp1().get()->ReduceToSingleton(c, red_stmt);
@@ -1483,7 +1483,7 @@ IntrusivePtr<Val> NotExpr::Fold(Val* v) const
 	return {AdoptRef{}, val_mgr->GetBool(! v->InternalInt())};
 	}
 
-Expr* NotExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* NotExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( op->Tag() == EXPR_NOT && Op()->Type()->Tag() == TYPE_BOOL )
 		return Op()->Reduce(c, red_stmt);
@@ -1529,7 +1529,7 @@ IntrusivePtr<Val> PosExpr::Fold(Val* v) const
 		return {AdoptRef{}, val_mgr->GetInt(v->CoerceToInt())};
 	}
 
-Expr* PosExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* PosExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( op->Type()->Tag() == TYPE_COUNT )
 		// We need to keep the expression because it leads
@@ -1578,7 +1578,7 @@ IntrusivePtr<Val> NegExpr::Fold(Val* v) const
 		return {AdoptRef{}, val_mgr->GetInt(- v->CoerceToInt())};
 	}
 
-Expr* NegExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* NegExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( op->Tag() == EXPR_NEGATE )
 		return op->GetOp1().get()->ReduceToSingleton(c, red_stmt);
@@ -1660,7 +1660,7 @@ void AddExpr::Canonicize()
 		SwapOps();
 	}
 
-Expr* AddExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* AddExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( op1->IsZero() )
 		return op2.get()->ReduceToSingleton(c, red_stmt);
@@ -1763,7 +1763,7 @@ IntrusivePtr<Val> AddToExpr::Eval(Frame* f) const
 		return nullptr;
 	}
 
-Expr* AddToExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* AddToExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( IsVector(op1->Type()->Tag()) )
 		{
@@ -1832,7 +1832,7 @@ bool AppendToExpr::IsReduced() const
 	return true;
 	}
 
-Expr* AppendToExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* AppendToExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( c->Optimizing() )
 		{
@@ -1892,7 +1892,7 @@ SubExpr::SubExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 		}
 	}
 
-Expr* SubExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* SubExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( op2->IsZero() )
 		return op1.get()->ReduceToSingleton(c, red_stmt);
@@ -1965,7 +1965,7 @@ IntrusivePtr<Val> RemoveFromExpr::Eval(Frame* f) const
 		return nullptr;
 	}
 
-Expr* RemoveFromExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* RemoveFromExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	auto do_decr = new SubExpr(op1, op2);
 	IntrusivePtr<Expr> do_decr_ptr = {AdoptRef{}, do_decr};
@@ -2013,7 +2013,7 @@ void TimesExpr::Canonicize()
 		SwapOps();
 	}
 
-Expr* TimesExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* TimesExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( op1->IsOne() )
 		return op2.get()->ReduceToSingleton(c, red_stmt);
@@ -2074,7 +2074,7 @@ DivideExpr::DivideExpr(IntrusivePtr<Expr> arg_op1,
 		ExprError("requires arithmetic operands");
 	}
 
-Expr* DivideExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* DivideExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( Type()->Tag() != TYPE_SUBNET )
 		{
@@ -2279,7 +2279,7 @@ IntrusivePtr<Val> BoolExpr::Eval(Frame* f) const
 	return result;
 	}
 
-Expr* BoolExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* BoolExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	// It's either an EXPR_AND_AND or an EXPR_OR_OR.
 	bool is_and = (tag == EXPR_AND_AND);
@@ -2406,7 +2406,7 @@ BitExpr::BitExpr(BroExprTag arg_tag,
 		ExprError("requires \"count\" or compatible \"set\" operands");
 	}
 
-Expr* BitExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* BitExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( Type()->Tag() != TYPE_COUNT )
 		return BinaryExpr::Reduce(c, red_stmt);
@@ -2551,7 +2551,7 @@ IntrusivePtr<Val> EqExpr::Fold(Val* v1, Val* v2) const
 		return BinaryExpr::Fold(v1, v2);
 	}
 
-Expr* EqExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* EqExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( Type()->Tag() == TYPE_BOOL && same_singletons(op1, op2) )
 		{
@@ -2622,7 +2622,7 @@ void RelExpr::Canonicize()
 		}
 	}
 
-Expr* RelExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* RelExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( Type()->Tag() == TYPE_BOOL )
 		{
@@ -2778,7 +2778,7 @@ bool CondExpr::HasReducedOps() const
 	return op1->IsSingleton() && op2->IsSingleton() && op3->IsSingleton();
 	}
 
-Expr* CondExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* CondExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( c->Optimizing() )
 		{
@@ -2816,7 +2816,7 @@ Expr* CondExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	return TransformMe(res, c, red_stmt);
 	}
 
-IntrusivePtr<Stmt> CondExpr::ReduceToSingletons(ReductionContext* c)
+IntrusivePtr<Stmt> CondExpr::ReduceToSingletons(Reducer* c)
 	{
 	IntrusivePtr<Stmt> red1_stmt;
 	if ( ! op1->IsSingleton() )
@@ -2926,7 +2926,7 @@ bool RefExpr::HasReducedOps() const
 	}
 	}
 
-Expr* RefExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* RefExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( op->Tag() != EXPR_NAME )
 		op = {AdoptRef{}, AssignToTemporary(c, red_stmt)};
@@ -2934,7 +2934,7 @@ Expr* RefExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	return this->Ref();
 	}
 
-IntrusivePtr<Stmt> RefExpr::ReduceToLHS(ReductionContext* c)
+IntrusivePtr<Stmt> RefExpr::ReduceToLHS(Reducer* c)
 	{
 	if ( op->Tag() == EXPR_NAME )
 		return nullptr;
@@ -3406,7 +3406,7 @@ bool AssignExpr::HasReducedOps() const
 	return op1->IsReduced() && op2->IsSingleton();
 	}
 
-Expr* AssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* AssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	// Yields a fully reduced assignment expression.
 
@@ -3502,7 +3502,7 @@ Expr* AssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	return this->Ref();
 	}
 
-Expr* AssignExpr::ReduceToSingleton(ReductionContext* c,
+Expr* AssignExpr::ReduceToSingleton(Reducer* c,
 					IntrusivePtr<Stmt>& red_stmt)
 	{
 	// Yields a statement performing the assignment and for the
@@ -3550,7 +3550,7 @@ bool IndexAssignExpr::HasReducedOps() const
 	return true;
 	}
 
-Expr* IndexAssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* IndexAssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( c->Optimizing() )
 		{
@@ -3562,7 +3562,7 @@ Expr* IndexAssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	return this->Ref();
 	}
 
-Expr* IndexAssignExpr::ReduceToSingleton(ReductionContext* c,
+Expr* IndexAssignExpr::ReduceToSingleton(Reducer* c,
 					IntrusivePtr<Stmt>& red_stmt)
 	{
 	// Yields a statement performing the assignment and for the
@@ -3792,7 +3792,7 @@ IntrusivePtr<Val> IndexExpr::Eval(Frame* f) const
 		return Fold(v1.get(), v2.get());
 	}
 
-IntrusivePtr<Stmt> IndexExpr::ReduceToSingletons(ReductionContext* c)
+IntrusivePtr<Stmt> IndexExpr::ReduceToSingletons(Reducer* c)
 	{
 	IntrusivePtr<Stmt> red1_stmt;
 	if ( ! op1->IsSingleton() )
@@ -3941,7 +3941,7 @@ IntrusivePtr<Val> AnyIndexExpr::Fold(Val* v) const
 	return {NewRef{}, (*lv)[index]};
 	}
 
-Expr* AnyIndexExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* AnyIndexExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	return this->Ref();
 	}
@@ -4007,7 +4007,7 @@ bool FieldLHSAssignExpr::HasReducedOps() const
 	return true;
 	}
 
-Expr* FieldLHSAssignExpr::Reduce(ReductionContext* c,
+Expr* FieldLHSAssignExpr::Reduce(Reducer* c,
 					IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( c->Optimizing() )
@@ -4019,7 +4019,7 @@ Expr* FieldLHSAssignExpr::Reduce(ReductionContext* c,
 	return this->Ref();
 	}
 
-Expr* FieldLHSAssignExpr::ReduceToSingleton(ReductionContext* c,
+Expr* FieldLHSAssignExpr::ReduceToSingleton(Reducer* c,
 					IntrusivePtr<Stmt>& red_stmt)
 	{
 	// Yields a statement performing the assignment and for the
@@ -4279,7 +4279,7 @@ bool RecordConstructorExpr::HasReducedOps() const
 	return true;
 	}
 
-Expr* RecordConstructorExpr::Reduce(ReductionContext* c,
+Expr* RecordConstructorExpr::Reduce(Reducer* c,
 					IntrusivePtr<Stmt>& red_stmt)
 	{
 	red_stmt = ReduceToSingletons(c);
@@ -4290,7 +4290,7 @@ Expr* RecordConstructorExpr::Reduce(ReductionContext* c,
 		return AssignToTemporary(c, red_stmt);
 	}
 
-IntrusivePtr<Stmt> RecordConstructorExpr::ReduceToSingletons(ReductionContext* c)
+IntrusivePtr<Stmt> RecordConstructorExpr::ReduceToSingletons(Reducer* c)
 	{
 	IntrusivePtr<Stmt> red_stmt;
 	expr_list& exprs = op->AsListExpr()->Exprs();
@@ -4443,7 +4443,7 @@ bool TableConstructorExpr::HasReducedOps() const
 	return true;
 	}
 
-Expr* TableConstructorExpr::Reduce(ReductionContext* c,
+Expr* TableConstructorExpr::Reduce(Reducer* c,
 					IntrusivePtr<Stmt>& red_stmt)
 	{
 	red_stmt = ReduceToSingletons(c);
@@ -4454,7 +4454,7 @@ Expr* TableConstructorExpr::Reduce(ReductionContext* c,
 		return AssignToTemporary(c, red_stmt);
 	}
 
-IntrusivePtr<Stmt> TableConstructorExpr::ReduceToSingletons(ReductionContext* c)
+IntrusivePtr<Stmt> TableConstructorExpr::ReduceToSingletons(Reducer* c)
 	{
 	// Need to process the list of initializers directly, as
 	// they may be expressed as AssignExpr's, and those get
@@ -4611,7 +4611,7 @@ bool SetConstructorExpr::HasReducedOps() const
 	return op->IsReduced();
 	}
 
-Expr* SetConstructorExpr::Reduce(ReductionContext* c,
+Expr* SetConstructorExpr::Reduce(Reducer* c,
 					IntrusivePtr<Stmt>& red_stmt)
 	{
 	// We rely on the fact that ListExpr's don't change into
@@ -4626,7 +4626,7 @@ Expr* SetConstructorExpr::Reduce(ReductionContext* c,
 		return AssignToTemporary(c, red_stmt);
 	}
 
-IntrusivePtr<Stmt> SetConstructorExpr::ReduceToSingletons(ReductionContext* c)
+IntrusivePtr<Stmt> SetConstructorExpr::ReduceToSingletons(Reducer* c)
 	{
 	return op->ReduceToSingletons(c);
 	}
@@ -4795,7 +4795,7 @@ void FieldAssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f)
 		}
 	}
 
-Expr* FieldAssignExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* FieldAssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( c->Optimizing() )
 		{
@@ -5278,7 +5278,7 @@ bool ScheduleExpr::HasReducedOps() const
 	return NonReduced(this);
 	}
 
-Expr* ScheduleExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* ScheduleExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( c->Optimizing() )
 		{
@@ -5624,7 +5624,7 @@ bool CallExpr::HasReducedOps() const
 	return args->HasReducedOps();
 	}
 
-Expr* CallExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* CallExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( c->Optimizing() )
 		{
@@ -5655,7 +5655,7 @@ Expr* CallExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 		return AssignToTemporary(c, red_stmt);
 	}
 
-IntrusivePtr<Stmt> CallExpr::ReduceToSingletons(ReductionContext* c)
+IntrusivePtr<Stmt> CallExpr::ReduceToSingletons(Reducer* c)
 	{
 	IntrusivePtr<Stmt> func_stmt;
 
@@ -5839,7 +5839,7 @@ IntrusivePtr<Val> LambdaExpr::Eval(Frame* f) const
 	return make_intrusive<Val>(lamb.get());
 	}
 
-Expr* LambdaExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* LambdaExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( c->Optimizing() )
 		return this->Ref();
@@ -5924,7 +5924,7 @@ bool EventExpr::IsReduced() const
 	return Args()->IsReduced();
 	}
 
-Expr* EventExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* EventExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( c->Optimizing() )
 		{
@@ -5943,7 +5943,7 @@ Expr* EventExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	return this->Ref();
 	}
 
-IntrusivePtr<Stmt> EventExpr::ReduceToSingletons(ReductionContext* c)
+IntrusivePtr<Stmt> EventExpr::ReduceToSingletons(Reducer* c)
 	{
 	return args->ReduceToSingletons(c);
 	}
@@ -6344,7 +6344,7 @@ void ListExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 		exprs[i]->Assign(f, {NewRef{}, (*lv->Vals())[i]});
 	}
 
-Expr* ListExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
+Expr* ListExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	red_stmt = nullptr;
 
@@ -6372,7 +6372,7 @@ Expr* ListExpr::Reduce(ReductionContext* c, IntrusivePtr<Stmt>& red_stmt)
 	return this->Ref();
 	}
 
-IntrusivePtr<Stmt> ListExpr::ReduceToSingletons(ReductionContext* c)
+IntrusivePtr<Stmt> ListExpr::ReduceToSingletons(Reducer* c)
 	{
 	IntrusivePtr<Stmt> red_stmt;
 

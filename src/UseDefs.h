@@ -48,20 +48,34 @@ protected:
 	std::unordered_set<const ID*> use_defs;
 };
 
+class ReductionContext;
+
 class UseDefs {
 public:
+	UseDefs(Stmt* body, ReductionContext* rc);
 	~UseDefs();
 
-	void Analyze(const Stmt* s);
+	void Analyze();
 
 	// Note, can return nullptr if there are no usages at all.
 	UDs GetUsage(const Stmt* s) const	{ return FindUsage(s); }
 
-	void FindUnused();
+	// Removes assignments corresponding to unused temporaries.
+	// In the process, reports on locals that are assigned
+	// but never used.
+	void RemoveUnused();
 
 	void Dump();
 
 protected:
+	// Makes one pass over the statements, removing assignments
+	// corresponding to temporaries.  "iter" is the iteration
+	// count of how often we've done such passes, with the first
+	// pass being numbered 1.
+	//
+	// Returns true if something was removed, false if not.
+	bool RemoveUnused(int iter);
+
 	// Propagates use-defs (backward) across statement s,
 	// given its successor's UDs.
 	//
@@ -138,4 +152,7 @@ protected:
 	// track both because sometimes a relevant UD will be present
 	// in only one or the other.
 	std::unordered_map<const Stmt*, const Stmt*> successor2;
+
+	Stmt* body;
+	ReductionContext* rc;
 };

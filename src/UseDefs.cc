@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "UseDefs.h"
+#include "Reduce.h"
 #include "Expr.h"
 #include "Stmt.h"
 #include "Desc.h"
@@ -13,18 +14,66 @@ void UseDefSet::Dump() const
 		printf(" %s", u->Name());
 	}
 
+UseDefs::UseDefs(Stmt* _body, ReductionContext* _rc)
+	{
+	body = _body;
+	rc = _rc;
+	}
+
 UseDefs::~UseDefs()
 	{
 	}
 
-void UseDefs::Analyze(const Stmt* s)
+void UseDefs::Analyze()
 	{
-	(void) PropagateUDs(s, nullptr, nullptr, false);
+	// Start afresh.
+	use_defs_map.clear();
+	UDs_are_copies.clear();
+	stmts.clear();
+	successor.clear();
+	successor2.clear();
+
+	(void) PropagateUDs(body, nullptr, nullptr, false);
 	}
 
-void UseDefs::FindUnused()
+void UseDefs::RemoveUnused()
+	{
+	int iter = 0;
+	while ( RemoveUnused(++iter) )
+		{
+		body = body->Reduce(rc);
+		Analyze();
+		}
+	}
+
+void UseDefs::Dump()
 	{
 	for ( int i = stmts.size(); --i >= 0; )
+		{
+		auto& s = stmts[i];
+		auto uds = FindUsage(s);
+		auto are_copies =
+			(UDs_are_copies.find(s) != UDs_are_copies.end());
+
+		printf("UDs (%s) for %s:\n", are_copies ? "copy" : "orig",
+			obj_desc(s));
+
+		if ( uds )
+			uds->Dump();
+		else
+			printf(" <none>");
+
+		printf("\n\n");
+		}
+	}
+
+bool UseDefs::RemoveUnused(int iter)
+	{
+	rc->ResetOmittedStmts();
+
+	bool did_omission = false;
+
+	for ( int i = 0; i < stmts.size(); ++i )
 		{
 		auto& s = stmts[i];
 		if ( s->Tag() != STMT_EXPR )
@@ -50,8 +99,22 @@ void UseDefs::FindUnused()
 		if ( id->IsGlobal() )
 			continue;
 
+		auto rhs = a->GetOp2();
+		auto rt = rhs->Tag();
+		if ( rt == EXPR_CALL && ! rhs->IsPure() )
+			// Need to do the call for the side effects.
+			// Could prune out the assignment and just
+			// keep the call, but not clear that's
+			// worth the complexity.
+			continue;
+
+		if ( rt == EXPR_EVENT || rt == EXPR_SCHEDULE )
+			// These always have side effects.
+			continue;
+
 		auto succ = successor[s];
 		auto uds = succ ? FindUsage(succ) : nullptr;
+		auto unused = false;
 
 		if ( ! uds || ! uds->HasID(id) )
 			{
@@ -59,31 +122,24 @@ void UseDefs::FindUnused()
 			uds = succ2 ? FindUsage(succ2) : nullptr;
 
 			if ( ! uds || ! uds->HasID(id) )
+				unused = true;
+			}
+
+		if ( unused )
+			{
+			if ( rc->IsTemporary(id) )
+				{
+				rc->AddStmtToOmit(s);
+				did_omission = true;
+				}
+
+			else if ( iter == 1 )
 				printf("%s has no use-def at %s\n", id->Name(),
 					obj_desc(s));
 			}
 		}
-	}
 
-void UseDefs::Dump()
-	{
-	for ( int i = stmts.size(); --i >= 0; )
-		{
-		auto& s = stmts[i];
-		auto uds = FindUsage(s);
-		auto are_copies =
-			(UDs_are_copies.find(s) != UDs_are_copies.end());
-
-		printf("UDs (%s) for %s:\n", are_copies ? "copy" : "orig",
-			obj_desc(s));
-
-		if ( uds )
-			uds->Dump();
-		else
-			printf(" <none>");
-
-		printf("\n\n");
-		}
+	return did_omission;
 	}
 
 UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt,

@@ -98,6 +98,14 @@ bool Stmt::IsReduced() const
 	return true;
 	}
 
+Stmt* Stmt::Reduce(ReductionContext* c)
+	{
+	if ( c->ShouldOmitStmt(this) )
+		return new NullStmt;
+	else
+		return DoReduce(c);
+	}
+
 void Stmt::Describe(ODesc* d) const
 	{
 	if ( d->DoOrig() )
@@ -197,7 +205,7 @@ bool ExprListStmt::IsReduced() const
 	return true;
 	}
 
-Stmt* ExprListStmt::Reduce(ReductionContext* c)
+Stmt* ExprListStmt::DoReduce(ReductionContext* c)
 	{
 	if ( ! c->Optimizing() && IsReduced() )
 		return this->Ref();
@@ -236,7 +244,7 @@ Stmt* ExprListStmt::Reduce(ReductionContext* c)
 
 	else
 		{
-		s->Stmts().push_back(DoReduce(new_l, c));
+		s->Stmts().push_back(DoSubclassReduce(new_l, c));
 		return s->Reduce(c);
 		}
 	}
@@ -365,7 +373,7 @@ IntrusivePtr<Val> PrintStmt::DoExec(std::vector<IntrusivePtr<Val>> vals,
 	return nullptr;
 	}
 
-Stmt* PrintStmt::DoReduce(IntrusivePtr<ListExpr> singletons,
+Stmt* PrintStmt::DoSubclassReduce(IntrusivePtr<ListExpr> singletons,
 				ReductionContext* c)
 	{
 	auto new_me = new PrintStmt(singletons);
@@ -420,7 +428,7 @@ bool ExprStmt::IsReduced() const
 	return NonReduced(e.get());
 	}
 
-Stmt* ExprStmt::Reduce(ReductionContext* c)
+Stmt* ExprStmt::DoReduce(ReductionContext* c)
 	{
 	if ( e )
 		{
@@ -548,7 +556,7 @@ bool IfStmt::IsReduced() const
 	return s1->IsReduced() && s2->IsReduced();
 	}
 
-Stmt* IfStmt::Reduce(ReductionContext* c)
+Stmt* IfStmt::DoReduce(ReductionContext* c)
 	{
 	s1 = {AdoptRef{}, s1->Reduce(c)};
 	s2 = {AdoptRef{}, s2->Reduce(c)};
@@ -1057,7 +1065,7 @@ bool SwitchStmt::IsReduced() const
 	return true;
 	}
 
-Stmt* SwitchStmt::Reduce(ReductionContext* rc)
+Stmt* SwitchStmt::DoReduce(ReductionContext* rc)
 	{
 	auto s = make_intrusive<StmtList>();
 	IntrusivePtr<Stmt> red_e_stmt;
@@ -1150,7 +1158,7 @@ bool AddDelStmt::IsReduced() const
 	return e->HasReducedOps();
 	}
 
-Stmt* AddDelStmt::Reduce(ReductionContext* c)
+Stmt* AddDelStmt::DoReduce(ReductionContext* c)
 	{
 	if ( c->Optimizing() )
 		{
@@ -1239,7 +1247,7 @@ IntrusivePtr<Val> EventStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	return nullptr;
 	}
 
-Stmt* EventStmt::Reduce(ReductionContext* c)
+Stmt* EventStmt::DoReduce(ReductionContext* c)
 	{
 	// ### remove reundancy w/ e.g. ReturnStmt
 	if ( c->Optimizing() )
@@ -1311,13 +1319,13 @@ bool WhileStmt::IsReduced() const
 	return loop_condition->IsReduced() && body->IsReduced();
 	}
 
-Stmt* WhileStmt::Reduce(ReductionContext* c)
+Stmt* WhileStmt::DoReduce(ReductionContext* c)
 	{
 	if ( c->Optimizing() )
 		loop_condition = c->OptExpr(loop_condition);
 	else
 		{
-		if ( IsReduced() )
+		if ( ! c->IsPruning() && IsReduced() )
 			return this->Ref();
 
 		loop_condition =
@@ -1635,7 +1643,7 @@ bool ForStmt::IsReduced() const
 	return body->IsReduced();
 	}
 
-Stmt* ForStmt::Reduce(ReductionContext* c)
+Stmt* ForStmt::DoReduce(ReductionContext* c)
 	{
 	IntrusivePtr<Stmt> red_e_stmt;
 
@@ -1845,7 +1853,7 @@ IntrusivePtr<Val> ReturnStmt::Exec(Frame* f, stmt_flow_type& flow) const
 		return nullptr;
 	}
 
-Stmt* ReturnStmt::Reduce(ReductionContext* c)
+Stmt* ReturnStmt::DoReduce(ReductionContext* c)
 	{
 	if ( e )
 		{
@@ -1976,7 +1984,7 @@ bool StmtList::IsReduced() const
 	return true;
 	}
 
-Stmt* StmtList::Reduce(ReductionContext* c)
+Stmt* StmtList::DoReduce(ReductionContext* c)
 	{
 	stmt_list* f_stmts = new stmt_list;
 	bool did_change = false;
@@ -2437,7 +2445,7 @@ bool CheckAnyLenStmt::IsReduced() const
 	return true;
 	}
 
-Stmt* CheckAnyLenStmt::Reduce(ReductionContext* c)
+Stmt* CheckAnyLenStmt::DoReduce(ReductionContext* c)
 	{
 	// These are created in reduced form.
 	return this->Ref();

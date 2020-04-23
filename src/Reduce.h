@@ -18,8 +18,22 @@ public:
 						IntrusivePtr<Expr> rhs);
 
 	int NumTemps() const		{ return temps.length(); }
+	bool IsTemporary(const ID* id) const
+		{ return FindTemporary(id) != nullptr; }
 
 	bool Optimizing() const		{ return mgr != nullptr; }
+
+	bool IsPruning() const		{ return omitted_stmts.size() > 0; }
+	bool ShouldOmitStmt(const Stmt* s) const
+		{ return omitted_stmts.find(s) != omitted_stmts.end(); }
+
+	// Tells the reducer to prune the given statement during the
+	// next reduction pass.
+	void AddStmtToOmit(const Stmt* s)	{ omitted_stmts.insert(s); }
+
+	// Tells the reducer that it can reclaim the storage associated
+	// with the omitted statements.
+	void ResetOmittedStmts()		{ omitted_stmts.clear(); }
 
 	// Given the LHS and RHS of an assignment, returns true
 	// if the RHS is a common subexpression (meaning that the
@@ -96,6 +110,8 @@ protected:
 	// it's replacing.  This allows us to locate the RDs associated
 	// with the usage.
 	std::map<const Expr*, const Expr*> new_expr_to_orig;
+
+	std::unordered_set<const Stmt*> omitted_stmts;
 
 	const DefSetsMgr* mgr;
 };

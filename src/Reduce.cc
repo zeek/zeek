@@ -680,6 +680,9 @@ IntrusivePtr<ID> ReductionContext::GenTemporary(const IntrusivePtr<BroType>& t,
 	if ( Optimizing() )
 		reporter->InternalError("Generating a new temporary while optimizing");
 
+	if ( omitted_stmts.size() > 0 )
+		reporter->InternalError("Generating a new temporary while pruning statements");
+
 	auto temp = new TempVar(temps.length(), t, rhs);
 	IntrusivePtr<ID> temp_id =
 		install_ID(temp->Name(), "<internal>", false, false);

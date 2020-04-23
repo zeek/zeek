@@ -1499,13 +1499,13 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 			}
 		}
 
-	UseDefs ud;
-	ud.Analyze(new_body);
+	UseDefs ud(new_body, &rc);
+	ud.Analyze();
 
 	if ( ud_dump )
 		ud.Dump();
 
-	ud.FindUnused();
+	ud.RemoveUnused();
 
 	if ( report_profile )
 		{

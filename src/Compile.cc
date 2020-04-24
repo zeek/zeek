@@ -559,7 +559,7 @@ const CompiledStmt AbstractMachine::AppendToVV(const NameExpr* n1,
 const CompiledStmt AbstractMachine::AppendToVC(const NameExpr* n,
 						const ConstExpr* c)
 	{
-	int s = FrameSlot(n->Id());
+	return AddStmt(GenStmt(this, OP_APPEND_TO_VC, n, c));
 	}
 
 const CompiledStmt AbstractMachine::StartingBlock()

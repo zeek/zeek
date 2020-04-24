@@ -4,11 +4,11 @@ refine connection SMB_Conn += {
 		%{
 		RecordVal* r = new RecordVal(BifType::Record::SMB2::Transform_header);
 
-		r->Assign(0, bytestring_to_val(${hdr.signature}));
-		r->Assign(1, bytestring_to_val(${hdr.nonce}));
-		r->Assign(2, val_mgr->GetCount(${hdr.orig_msg_size}));
-		r->Assign(3, val_mgr->GetCount(${hdr.flags}));
-		r->Assign(4, val_mgr->GetCount(${hdr.session_id}));
+		r->Assign(0, to_stringval(${hdr.signature}));
+		r->Assign(1, to_stringval(${hdr.nonce}));
+		r->Assign(2, val_mgr->Count(${hdr.orig_msg_size}));
+		r->Assign(3, val_mgr->Count(${hdr.flags}));
+		r->Assign(4, val_mgr->Count(${hdr.session_id}));
 
 		return r;
 		%}
@@ -16,9 +16,9 @@ refine connection SMB_Conn += {
 	function proc_smb2_transform_header(hdr: SMB2_transform_header) : bool
 		%{
 		if ( smb2_transform_header )
-			BifEvent::generate_smb2_transform_header(bro_analyzer(),
-			                                         bro_analyzer()->Conn(),
-			                                         BuildSMB2TransformHeaderVal(hdr));
+			BifEvent::enqueue_smb2_transform_header(bro_analyzer(),
+			                                        bro_analyzer()->Conn(),
+			                                        {AdoptRef{}, BuildSMB2TransformHeaderVal(hdr)});
 
 		return true;
 		%}

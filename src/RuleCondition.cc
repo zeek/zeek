@@ -174,7 +174,7 @@ bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state,
 	if ( data )
 		args.emplace_back(make_intrusive<StringVal>(len, (const char*) data));
 	else
-		args.emplace_back(AdoptRef{}, val_mgr->GetEmptyString());
+		args.emplace_back(val_mgr->EmptyString());
 
 	bool result = false;
 

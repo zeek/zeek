@@ -96,7 +96,7 @@ Deprecated Functionality
 - The ``EventMgr::QueueEvent()`` and EventMgr::QueueEventFast()`` methods
   are now deprecated, use ``EventMgr::Enqueue()`` instead.
 
-- The ``Connection::ConnectionEvent()`` and
+- The ``Connection::ConnectionEvent()``, ``Connection::Event()``, and
   ``Connection::ConnectionEventFast()`` methods are now deprecated, use
   ``Connection::EnqueueEvent()`` instead.
 
@@ -104,9 +104,24 @@ Deprecated Functionality
   arguments are now deprecated, use the overload that takes a ``zeek::Args``
   instead.
 
-- The ``analyzer::Analyzer::ConnectionEvent()`` and
-  ``analyzer::Analyzer::ConectionEventFast()`` methods are deprecated, use
+- The ``analyzer::Analyzer::ConnectionEvent()``, ``analyzer::Analyzer::Event``,
+  and ``analyzer::Analyzer::ConectionEventFast()`` methods are deprecated, use
   ``analyzer::Analyzer::EnqueueConnEvent()`` instead.
+
+- All ``val_mgr`` methods starting with "Get" are deprecated, use the new
+  ``val_mgr`` methods that return ``IntrusivePtr``.
+
+- ``Connection::BuildConnVal()`` is deprecated, use ``Connection::ConnVal()``.
+
+- ``Analyzer::BuildConnVal()`` is deprecated, use ``Analyzer::ConnVal()``.
+
+- ``BifEvent::generate_`` functions are deprecated, use ``BifEvent::enqueue_``.
+
+- ``binpac::bytestring_to_val()`` is deprecated, use ``binpac::to_stringval()``.
+
+- ``binpac::string_to_val()`` is deprecated, use ``StringVal`` constructor.
+
+- Returning ``Val*`` from BIFs is deprecated, return ``IntrusivePtr`` instead.
 
 Zeek 3.1.0
 ==========

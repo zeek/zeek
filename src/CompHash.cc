@@ -768,9 +768,9 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 		if ( tag == TYPE_ENUM )
 			*pval = t->AsEnumType()->GetVal(*kp);
 		else if ( tag == TYPE_BOOL )
-			*pval = {AdoptRef{}, val_mgr->GetBool(*kp)};
+			*pval = val_mgr->Bool(*kp);
 		else if ( tag == TYPE_INT )
-			*pval = {AdoptRef{}, val_mgr->GetInt(*kp)};
+			*pval = val_mgr->Int(*kp);
 		else
 			{
 			reporter->InternalError("bad internal unsigned int in CompositeHash::RecoverOneVal()");
@@ -787,11 +787,11 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 		switch ( tag ) {
 		case TYPE_COUNT:
 		case TYPE_COUNTER:
-			*pval = {AdoptRef{}, val_mgr->GetCount(*kp)};
+			*pval = val_mgr->Count(*kp);
 			break;
 
 		case TYPE_PORT:
-			*pval = {AdoptRef{}, val_mgr->GetPort(*kp)};
+			*pval = val_mgr->Port(*kp);
 			break;
 
 		default:

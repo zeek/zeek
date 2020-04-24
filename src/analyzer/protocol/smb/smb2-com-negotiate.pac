@@ -22,14 +22,14 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_negotiate_request )
 			{
-			VectorVal* dialects = new VectorVal(index_vec);
+			auto dialects = make_intrusive<VectorVal>(index_vec);
+
 			for ( unsigned int i = 0; i < ${val.dialects}->size(); ++i )
-				{
-				dialects->Assign(i, val_mgr->GetCount((*${val.dialects})[i]));
-				}
-			BifEvent::generate_smb2_negotiate_request(bro_analyzer(), bro_analyzer()->Conn(),
-			                                          BuildSMB2HeaderVal(h),
-			                                          dialects);
+				dialects->Assign(i, val_mgr->Count((*${val.dialects})[i]));
+
+			BifEvent::enqueue_smb2_negotiate_request(bro_analyzer(), bro_analyzer()->Conn(),
+			                                         {AdoptRef{}, BuildSMB2HeaderVal(h)},
+			                                         std::move(dialects));
 			}
 
 		return true;
@@ -39,14 +39,14 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_negotiate_response )
 			{
-			RecordVal* nr = new RecordVal(BifType::Record::SMB2::NegotiateResponse);
+			auto nr = make_intrusive<RecordVal>(BifType::Record::SMB2::NegotiateResponse);
 
-			nr->Assign(0, val_mgr->GetCount(${val.dialect_revision}));
-			nr->Assign(1, val_mgr->GetCount(${val.security_mode}));
+			nr->Assign(0, val_mgr->Count(${val.dialect_revision}));
+			nr->Assign(1, val_mgr->Count(${val.security_mode}));
 			nr->Assign(2, BuildSMB2GUID(${val.server_guid}));
 			nr->Assign(3, filetime2brotime(${val.system_time}));
 			nr->Assign(4, filetime2brotime(${val.server_start_time}));
-			nr->Assign(5, val_mgr->GetCount(${val.negotiate_context_count}));
+			nr->Assign(5, val_mgr->Count(${val.negotiate_context_count}));
 
 			VectorVal* cv = new VectorVal(BifType::Vector::SMB2::NegotiateContextValues);
 
@@ -60,9 +60,9 @@ refine connection SMB_Conn += {
 
 			nr->Assign(6, cv);
 
-			BifEvent::generate_smb2_negotiate_response(bro_analyzer(), bro_analyzer()->Conn(),
-			                                           BuildSMB2HeaderVal(h),
-			                                           nr);
+			BifEvent::enqueue_smb2_negotiate_response(bro_analyzer(), bro_analyzer()->Conn(),
+			                                          {AdoptRef{}, BuildSMB2HeaderVal(h)},
+													  std::move(nr));
 			}
 
 		return true;

@@ -75,7 +75,7 @@ void RDP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		else
 			{
 			if ( rdp_native_encrypted_data )
-				BifEvent::generate_rdp_native_encrypted_data(
+				BifEvent::enqueue_rdp_native_encrypted_data(
 				        interp->bro_analyzer(), interp->bro_analyzer()->Conn(),
 				        orig, len);
 			}

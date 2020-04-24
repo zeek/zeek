@@ -682,11 +682,11 @@ IntrusivePtr<Val> BinaryExpr::Fold(Val* v1, Val* v2) const
 	else if ( ret_type->InternalType() == TYPE_INTERNAL_DOUBLE )
 		return make_intrusive<Val>(d3, ret_type->Tag());
 	else if ( ret_type->InternalType() == TYPE_INTERNAL_UNSIGNED )
-		return {AdoptRef{}, val_mgr->GetCount(u3)};
+		return val_mgr->Count(u3);
 	else if ( ret_type->Tag() == TYPE_BOOL )
-		return {AdoptRef{}, val_mgr->GetBool(i3)};
+		return val_mgr->Bool(i3);
 	else
-		return {AdoptRef{}, val_mgr->GetInt(i3)};
+		return val_mgr->Int(i3);
 	}
 
 IntrusivePtr<Val> BinaryExpr::StringFold(Val* v1, Val* v2) const
@@ -720,7 +720,7 @@ IntrusivePtr<Val> BinaryExpr::StringFold(Val* v1, Val* v2) const
 		BadTag("BinaryExpr::StringFold", expr_name(tag));
 	}
 
-	return {AdoptRef{}, val_mgr->GetBool(result)};
+	return val_mgr->Bool(result);
 	}
 
 
@@ -796,7 +796,7 @@ IntrusivePtr<Val> BinaryExpr::SetFold(Val* v1, Val* v2) const
 		return nullptr;
 	}
 
-	return {AdoptRef{}, val_mgr->GetBool(res)};
+	return val_mgr->Bool(res);
 	}
 
 IntrusivePtr<Val> BinaryExpr::AddrFold(Val* v1, Val* v2) const
@@ -830,7 +830,7 @@ IntrusivePtr<Val> BinaryExpr::AddrFold(Val* v1, Val* v2) const
 		BadTag("BinaryExpr::AddrFold", expr_name(tag));
 	}
 
-	return {AdoptRef{}, val_mgr->GetBool(result)};
+	return val_mgr->Bool(result);
 	}
 
 IntrusivePtr<Val> BinaryExpr::SubNetFold(Val* v1, Val* v2) const
@@ -843,7 +843,7 @@ IntrusivePtr<Val> BinaryExpr::SubNetFold(Val* v1, Val* v2) const
 	if ( tag == EXPR_NE )
 		result = ! result;
 
-	return {AdoptRef{}, val_mgr->GetBool(result)};
+	return val_mgr->Bool(result);
 	}
 
 void BinaryExpr::SwapOps()
@@ -958,9 +958,9 @@ IntrusivePtr<Val> IncrExpr::DoSingleEval(Frame* f, Val* v) const
 		ret_type = Type()->YieldType();
 
 	if ( ret_type->Tag() == TYPE_INT )
-		return {AdoptRef{}, val_mgr->GetInt(k)};
+		return val_mgr->Int(k);
 	else
-		return {AdoptRef{}, val_mgr->GetCount(k)};
+		return val_mgr->Count(k);
 	}
 
 
@@ -1018,7 +1018,7 @@ ComplementExpr::ComplementExpr(IntrusivePtr<Expr> arg_op)
 
 IntrusivePtr<Val> ComplementExpr::Fold(Val* v) const
 	{
-	return {AdoptRef{}, val_mgr->GetCount(~ v->InternalUnsigned())};
+	return val_mgr->Count(~ v->InternalUnsigned());
 	}
 
 NotExpr::NotExpr(IntrusivePtr<Expr> arg_op)
@@ -1037,7 +1037,7 @@ NotExpr::NotExpr(IntrusivePtr<Expr> arg_op)
 
 IntrusivePtr<Val> NotExpr::Fold(Val* v) const
 	{
-	return {AdoptRef{}, val_mgr->GetBool(! v->InternalInt())};
+	return val_mgr->Bool(! v->InternalInt());
 	}
 
 PosExpr::PosExpr(IntrusivePtr<Expr> arg_op)
@@ -1075,7 +1075,7 @@ IntrusivePtr<Val> PosExpr::Fold(Val* v) const
 	if ( t == TYPE_DOUBLE || t == TYPE_INTERVAL || t == TYPE_INT )
 		return {NewRef{}, v};
 	else
-		return {AdoptRef{}, val_mgr->GetInt(v->CoerceToInt())};
+		return val_mgr->Int(v->CoerceToInt());
 	}
 
 NegExpr::NegExpr(IntrusivePtr<Expr> arg_op)
@@ -1113,7 +1113,7 @@ IntrusivePtr<Val> NegExpr::Fold(Val* v) const
 	else if ( v->Type()->Tag() == TYPE_INTERVAL )
 		return make_intrusive<IntervalVal>(- v->InternalDouble(), 1.0);
 	else
-		return {AdoptRef{}, val_mgr->GetInt(- v->CoerceToInt())};
+		return val_mgr->Int(- v->CoerceToInt());
 	}
 
 SizeExpr::SizeExpr(IntrusivePtr<Expr> arg_op)
@@ -1620,7 +1620,7 @@ IntrusivePtr<Val> BoolExpr::Eval(Frame* f) const
 				(! op1->IsZero() && ! op2->IsZero()) :
 				(! op1->IsZero() || ! op2->IsZero());
 
-			result->Assign(i, val_mgr->GetBool(local_result));
+			result->Assign(i, val_mgr->Bool(local_result));
 			}
 		else
 			result->Assign(i, nullptr);
@@ -1775,9 +1775,9 @@ IntrusivePtr<Val> EqExpr::Fold(Val* v1, Val* v2) const
 		RE_Matcher* re = v1->AsPattern();
 		const BroString* s = v2->AsString();
 		if ( tag == EXPR_EQ )
-			return {AdoptRef{}, val_mgr->GetBool(re->MatchExactly(s))};
+			return val_mgr->Bool(re->MatchExactly(s));
 		else
-			return {AdoptRef{}, val_mgr->GetBool(! re->MatchExactly(s))};
+			return val_mgr->Bool(! re->MatchExactly(s));
 		}
 
 	else
@@ -2972,7 +2972,7 @@ HasFieldExpr::~HasFieldExpr()
 IntrusivePtr<Val> HasFieldExpr::Fold(Val* v) const
 	{
 	auto rv = v->AsRecordVal();
-	return {AdoptRef{}, val_mgr->GetBool(rv->Lookup(field))};
+	return val_mgr->Bool(rv->Lookup(field));
 	}
 
 void HasFieldExpr::ExprDescribe(ODesc* d) const
@@ -3485,10 +3485,10 @@ IntrusivePtr<Val> ArithCoerceExpr::FoldSingleVal(Val* v, InternalTypeTag t) cons
 		return make_intrusive<Val>(v->CoerceToDouble(), TYPE_DOUBLE);
 
 	case TYPE_INTERNAL_INT:
-		return {AdoptRef{}, val_mgr->GetInt(v->CoerceToInt())};
+		return val_mgr->Int(v->CoerceToInt());
 
 	case TYPE_INTERNAL_UNSIGNED:
-		return {AdoptRef{}, val_mgr->GetCount(v->CoerceToUnsigned())};
+		return val_mgr->Count(v->CoerceToUnsigned());
 
 	default:
 		RuntimeErrorWithCallStack("bad type in CoerceExpr::Fold");
@@ -4024,7 +4024,7 @@ IntrusivePtr<Val> InExpr::Fold(Val* v1, Val* v2) const
 		{
 		RE_Matcher* re = v1->AsPattern();
 		const BroString* s = v2->AsString();
-		return {AdoptRef{}, val_mgr->GetBool(re->MatchAnywhere(s) != 0)};
+		return val_mgr->Bool(re->MatchAnywhere(s) != 0);
 		}
 
 	if ( v2->Type()->Tag() == TYPE_STRING )
@@ -4035,12 +4035,12 @@ IntrusivePtr<Val> InExpr::Fold(Val* v1, Val* v2) const
 		// Could do better here e.g. Boyer-Moore if done repeatedly.
 		auto s = reinterpret_cast<const unsigned char*>(s1->CheckString());
 		auto res = strstr_n(s2->Len(), s2->Bytes(), s1->Len(), s) != -1;
-		return {AdoptRef{}, val_mgr->GetBool(res)};
+		return val_mgr->Bool(res);
 		}
 
 	if ( v1->Type()->Tag() == TYPE_ADDR &&
 	     v2->Type()->Tag() == TYPE_SUBNET )
-		return {AdoptRef{}, val_mgr->GetBool(v2->AsSubNetVal()->Contains(v1->AsAddr()))};
+		return val_mgr->Bool(v2->AsSubNetVal()->Contains(v1->AsAddr()));
 
 	bool res;
 
@@ -4049,7 +4049,7 @@ IntrusivePtr<Val> InExpr::Fold(Val* v1, Val* v2) const
 	else
 		res = (bool)v2->AsTableVal()->Lookup(v1, false);
 
-	return {AdoptRef{}, val_mgr->GetBool(res)};
+	return val_mgr->Bool(res);
 	}
 
 CallExpr::CallExpr(IntrusivePtr<Expr> arg_func,
@@ -4906,7 +4906,7 @@ IntrusivePtr<Val> IsExpr::Fold(Val* v) const
 	if ( IsError() )
 		return nullptr;
 
-	return {AdoptRef{}, val_mgr->GetBool(can_cast_value_to_type(v, t.get()))};
+	return val_mgr->Bool(can_cast_value_to_type(v, t.get()));
 	}
 
 void IsExpr::ExprDescribe(ODesc* d) const

@@ -172,7 +172,7 @@ void Rsh_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	vl.reserve(4 + orig);
 	const char* line = (const char*) data;
 	line = skip_whitespace(line);
-	vl.emplace_back(AdoptRef{}, BuildConnVal());
+	vl.emplace_back(ConnVal());
 
 	if ( client_name )
 		vl.emplace_back(NewRef{}, client_name);
@@ -190,9 +190,9 @@ void Rsh_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		{
 		if ( contents_orig->RshSaveState() == RSH_SERVER_USER_NAME )
 			// First input
-			vl.emplace_back(AdoptRef{}, val_mgr->GetTrue());
+			vl.emplace_back(val_mgr->True());
 		else
-			vl.emplace_back(AdoptRef{}, val_mgr->GetFalse());
+			vl.emplace_back(val_mgr->False());
 
 		EnqueueConnEvent(rsh_request, std::move(vl));
 		}

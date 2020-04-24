@@ -90,23 +90,23 @@ struct val_converter {
 	result_type operator()(bool a)
 		{
 		if ( type->Tag() == TYPE_BOOL )
-			return val_mgr->GetBool(a);
+			return val_mgr->Bool(a)->Ref();
 		return nullptr;
 		}
 
 	result_type operator()(uint64_t a)
 		{
 		if ( type->Tag() == TYPE_COUNT )
-			return val_mgr->GetCount(a);
+			return val_mgr->Count(a).release();
 		if ( type->Tag() == TYPE_COUNTER )
-			return val_mgr->GetCount(a);
+			return val_mgr->Count(a).release();
 		return nullptr;
 		}
 
 	result_type operator()(int64_t a)
 		{
 		if ( type->Tag() == TYPE_INT )
-			return val_mgr->GetInt(a);
+			return val_mgr->Int(a).release();
 		return nullptr;
 		}
 
@@ -161,7 +161,7 @@ struct val_converter {
 	result_type operator()(broker::port& a)
 		{
 		if ( type->Tag() == TYPE_PORT )
-			return val_mgr->GetPort(a.number(), bro_broker::to_bro_port_proto(a.type()));
+			return val_mgr->Port(a.number(), bro_broker::to_bro_port_proto(a.type()))->Ref();
 
 		return nullptr;
 		}
@@ -790,7 +790,7 @@ static bool data_type_check(const broker::data& d, BroType* t)
 IntrusivePtr<Val> bro_broker::data_to_val(broker::data d, BroType* type)
 	{
 	if ( type->Tag() == TYPE_ANY )
-		return {AdoptRef{}, bro_broker::make_data_val(move(d))};
+		return bro_broker::make_data_val(move(d));
 
 	return {AdoptRef{}, caf::visit(val_converter{type}, std::move(d))};
 	}
@@ -1018,9 +1018,9 @@ broker::expected<broker::data> bro_broker::val_to_data(const Val* v)
 	return broker::ec::invalid_data;
 	}
 
-RecordVal* bro_broker::make_data_val(Val* v)
+IntrusivePtr<RecordVal> bro_broker::make_data_val(Val* v)
 	{
-	auto rval = new RecordVal(BifType::Record::Broker::Data);
+	auto rval = make_intrusive<RecordVal>(BifType::Record::Broker::Data);
 	auto data = val_to_data(v);
 
 	if  ( data )
@@ -1031,84 +1031,84 @@ RecordVal* bro_broker::make_data_val(Val* v)
 	return rval;
 	}
 
-RecordVal* bro_broker::make_data_val(broker::data d)
+IntrusivePtr<RecordVal> bro_broker::make_data_val(broker::data d)
 	{
-	auto rval = new RecordVal(BifType::Record::Broker::Data);
+	auto rval = make_intrusive<RecordVal>(BifType::Record::Broker::Data);
 	rval->Assign(0, make_intrusive<DataVal>(move(d)));
 	return rval;
 	}
 
 struct data_type_getter {
-	using result_type = EnumVal*;
+	using result_type = IntrusivePtr<EnumVal>;
 
 	result_type operator()(broker::none)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::NONE).release();
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::NONE);
 		}
 
 	result_type operator()(bool)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::BOOL).release();
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::BOOL);
 		}
 
 	result_type operator()(uint64_t)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::COUNT).release();
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::COUNT);
 		}
 
 	result_type operator()(int64_t)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::INT).release();
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::INT);
 		}
 
 	result_type operator()(double)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::DOUBLE).release();
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::DOUBLE);
 		}
 
 	result_type operator()(const std::string&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::STRING).release();
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::STRING);
 		}
 
 	result_type operator()(const broker::address&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::ADDR).release();
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::ADDR);
 		}
 
 	result_type operator()(const broker::subnet&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::SUBNET).release();
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::SUBNET);
 		}
 
 	result_type operator()(const broker::port&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::PORT).release();
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::PORT);
 		}
 
 	result_type operator()(const broker::timestamp&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::TIME).release();
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::TIME);
 		}
 
 	result_type operator()(const broker::timespan&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::INTERVAL).release();
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::INTERVAL);
 		}
 
 	result_type operator()(const broker::enum_value&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::ENUM).release();
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::ENUM);
 		}
 
 	result_type operator()(const broker::set&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::SET).release();
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::SET);
 		}
 
 	result_type operator()(const broker::table&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::TABLE).release();
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::TABLE);
 		}
 
 	result_type operator()(const broker::vector&)
@@ -1116,11 +1116,11 @@ struct data_type_getter {
 		// Note that Broker uses vectors to store record data, so there's
 		// no actual way to tell if this data was originally associated
 		// with a Bro record.
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::VECTOR).release();
+		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::VECTOR);
 		}
 };
 
-EnumVal* bro_broker::get_data_type(RecordVal* v, Frame* frame)
+IntrusivePtr<EnumVal> bro_broker::get_data_type(RecordVal* v, Frame* frame)
 	{
 	return caf::visit(data_type_getter{}, opaque_field_to_data(v, frame));
 	}

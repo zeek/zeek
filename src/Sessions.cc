@@ -691,12 +691,14 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	if ( ipv6_ext_headers && ip_hdr->NumHeaders() > 1 )
 		{
 		pkt_hdr_val = ip_hdr->BuildPktHdrVal();
-		conn->Event(ipv6_ext_headers, nullptr, pkt_hdr_val);
+		conn->EnqueueEvent(ipv6_ext_headers, nullptr, conn->ConnVal(),
+		                   IntrusivePtr{AdoptRef{}, pkt_hdr_val});
 		}
 
 	if ( new_packet )
-		conn->Event(new_packet, nullptr,
-		        pkt_hdr_val ? pkt_hdr_val->Ref() : ip_hdr->BuildPktHdrVal());
+		conn->EnqueueEvent(new_packet, nullptr, conn->ConnVal(), pkt_hdr_val ?
+		                   IntrusivePtr{NewRef{}, pkt_hdr_val} :
+		                   IntrusivePtr{AdoptRef{}, ip_hdr->BuildPktHdrVal()});
 
 	conn->NextPacket(t, is_orig, ip_hdr, len, caplen, data,
 				record_packet, record_content, pkt);

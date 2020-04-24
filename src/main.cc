@@ -875,7 +875,7 @@ int main(int argc, char** argv)
 
 			mgr.Enqueue(zeek_script_loaded,
 				make_intrusive<StringVal>(i->name.c_str()),
-				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(i->include_level)}
+				val_mgr->Count(i->include_level)
 			);
 			}
 		}

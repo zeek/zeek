@@ -104,23 +104,23 @@ refine connection SMB_Conn += {
 		%{
 		RecordVal* r = new RecordVal(BifType::Record::SMB2::NegotiateContextValue);
 
-		r->Assign(0, val_mgr->GetCount(${ncv.context_type}));
-		r->Assign(1, val_mgr->GetCount(${ncv.data_length}));
+		r->Assign(0, val_mgr->Count(${ncv.context_type}));
+		r->Assign(1, val_mgr->Count(${ncv.data_length}));
 
 		switch ( ${ncv.context_type} ) {
 			case SMB2_PREAUTH_INTEGRITY_CAPABILITIES:
 				{
 				RecordVal* rpreauth = new RecordVal(BifType::Record::SMB2::PreAuthIntegrityCapabilities);
-				rpreauth->Assign(0, val_mgr->GetCount(${ncv.preauth_integrity_capabilities.hash_alg_count}));
-				rpreauth->Assign(1, val_mgr->GetCount(${ncv.preauth_integrity_capabilities.salt_length}));
+				rpreauth->Assign(0, val_mgr->Count(${ncv.preauth_integrity_capabilities.hash_alg_count}));
+				rpreauth->Assign(1, val_mgr->Count(${ncv.preauth_integrity_capabilities.salt_length}));
 
 				VectorVal* ha = new VectorVal(internal_type("index_vec")->AsVectorType());
 
 				for ( int i = 0; i < (${ncv.preauth_integrity_capabilities.hash_alg_count}); ++i )
-						ha->Assign(i, val_mgr->GetCount(${ncv.preauth_integrity_capabilities.hash_alg[i]}));
+						ha->Assign(i, val_mgr->Count(${ncv.preauth_integrity_capabilities.hash_alg[i]}));
 
 				rpreauth->Assign(2, ha);
-				rpreauth->Assign(3, bytestring_to_val(${ncv.preauth_integrity_capabilities.salt}));
+				rpreauth->Assign(3, to_stringval(${ncv.preauth_integrity_capabilities.salt}));
 				r->Assign(2, rpreauth);
 				}
 				break;
@@ -128,12 +128,12 @@ refine connection SMB_Conn += {
 			case SMB2_ENCRYPTION_CAPABILITIES:
 				{
 				RecordVal* rencr = new RecordVal(BifType::Record::SMB2::EncryptionCapabilities);
-				rencr->Assign(0, val_mgr->GetCount(${ncv.encryption_capabilities.cipher_count}));
+				rencr->Assign(0, val_mgr->Count(${ncv.encryption_capabilities.cipher_count}));
 
 				VectorVal* c = new VectorVal(internal_type("index_vec")->AsVectorType());
 
 				for ( int i = 0; i < (${ncv.encryption_capabilities.cipher_count}); ++i )
-						c->Assign(i, val_mgr->GetCount(${ncv.encryption_capabilities.ciphers[i]}));
+						c->Assign(i, val_mgr->Count(${ncv.encryption_capabilities.ciphers[i]}));
 
 				rencr->Assign(1, c);
 				r->Assign(3, rencr);
@@ -143,12 +143,12 @@ refine connection SMB_Conn += {
 			case SMB2_COMPRESSION_CAPABILITIES:
 				{
 				RecordVal* rcomp = new RecordVal(BifType::Record::SMB2::CompressionCapabilities);
-				rcomp->Assign(0, val_mgr->GetCount(${ncv.compression_capabilities.alg_count}));
+				rcomp->Assign(0, val_mgr->Count(${ncv.compression_capabilities.alg_count}));
 
 				VectorVal* c = new VectorVal(internal_type("index_vec")->AsVectorType());
 
 				for ( int i = 0; i < (${ncv.compression_capabilities.alg_count}); ++i )
-						c->Assign(i, val_mgr->GetCount(${ncv.compression_capabilities.algs[i]}));
+						c->Assign(i, val_mgr->Count(${ncv.compression_capabilities.algs[i]}));
 
 				rcomp->Assign(1, c);
 				r->Assign(4, rcomp);
@@ -157,7 +157,7 @@ refine connection SMB_Conn += {
 
 			case SMB2_NETNAME_NEGOTIATE_CONTEXT_ID:
 				{
-				r->Assign(5, bytestring_to_val(${ncv.netname_negotiate_context_id.net_name}));
+				r->Assign(5, to_stringval(${ncv.netname_negotiate_context_id.net_name}));
 				}
 				break;
 
@@ -172,16 +172,16 @@ refine connection SMB_Conn += {
 		%{
 		RecordVal* r = new RecordVal(BifType::Record::SMB2::Header);
 
-		r->Assign(0, val_mgr->GetCount(${hdr.credit_charge}));
-		r->Assign(1, val_mgr->GetCount(${hdr.status}));
-		r->Assign(2, val_mgr->GetCount(${hdr.command}));
-		r->Assign(3, val_mgr->GetCount(${hdr.credits}));
-		r->Assign(4, val_mgr->GetCount(${hdr.flags}));
-		r->Assign(5, val_mgr->GetCount(${hdr.message_id}));
-		r->Assign(6, val_mgr->GetCount(${hdr.process_id}));
-		r->Assign(7, val_mgr->GetCount(${hdr.tree_id}));
-		r->Assign(8, val_mgr->GetCount(${hdr.session_id}));
-		r->Assign(9, bytestring_to_val(${hdr.signature}));
+		r->Assign(0, val_mgr->Count(${hdr.credit_charge}));
+		r->Assign(1, val_mgr->Count(${hdr.status}));
+		r->Assign(2, val_mgr->Count(${hdr.command}));
+		r->Assign(3, val_mgr->Count(${hdr.credits}));
+		r->Assign(4, val_mgr->Count(${hdr.flags}));
+		r->Assign(5, val_mgr->Count(${hdr.message_id}));
+		r->Assign(6, val_mgr->Count(${hdr.process_id}));
+		r->Assign(7, val_mgr->Count(${hdr.tree_id}));
+		r->Assign(8, val_mgr->Count(${hdr.session_id}));
+		r->Assign(9, to_stringval(${hdr.signature}));
 
 		return r;
 		%}
@@ -190,8 +190,8 @@ refine connection SMB_Conn += {
 		%{
 		RecordVal* r = new RecordVal(BifType::Record::SMB2::GUID);
 
-		r->Assign(0, val_mgr->GetCount(${file_id.persistent}));
-		r->Assign(1, val_mgr->GetCount(${file_id._volatile}));
+		r->Assign(0, val_mgr->Count(${file_id.persistent}));
+		r->Assign(1, val_mgr->Count(${file_id._volatile}));
 
 		return r;
 		%}
@@ -215,9 +215,9 @@ refine connection SMB_Conn += {
 
 		if ( smb2_message )
 			{
-			BifEvent::generate_smb2_message(bro_analyzer(), bro_analyzer()->Conn(),
-			                                BuildSMB2HeaderVal(h),
-			                                is_orig);
+			BifEvent::enqueue_smb2_message(bro_analyzer(), bro_analyzer()->Conn(),
+			                               {AdoptRef{}, BuildSMB2HeaderVal(h)},
+			                               is_orig);
 			}
 		return true;
 		%}
@@ -238,21 +238,21 @@ function smb2_file_attrs_to_bro(val: SMB2_file_attributes): BroVal
 	%{
 	RecordVal* r = new RecordVal(BifType::Record::SMB2::FileAttrs);
 
-	r->Assign(0, val_mgr->GetBool(${val.read_only}));
-	r->Assign(1, val_mgr->GetBool(${val.hidden}));
-	r->Assign(2, val_mgr->GetBool(${val.system}));
-	r->Assign(3, val_mgr->GetBool(${val.directory}));
-	r->Assign(4, val_mgr->GetBool(${val.archive}));
-	r->Assign(5, val_mgr->GetBool(${val.normal}));
-	r->Assign(6, val_mgr->GetBool(${val.temporary}));
-	r->Assign(7, val_mgr->GetBool(${val.sparse_file}));
-	r->Assign(8, val_mgr->GetBool(${val.reparse_point}));
-	r->Assign(9, val_mgr->GetBool(${val.compressed}));
-	r->Assign(10, val_mgr->GetBool(${val.offline}));
-	r->Assign(11, val_mgr->GetBool(${val.not_content_indexed}));
-	r->Assign(12, val_mgr->GetBool(${val.encrypted}));
-	r->Assign(13, val_mgr->GetBool(${val.integrity_stream}));
-	r->Assign(14, val_mgr->GetBool(${val.no_scrub_data}));
+	r->Assign(0, val_mgr->Bool(${val.read_only}));
+	r->Assign(1, val_mgr->Bool(${val.hidden}));
+	r->Assign(2, val_mgr->Bool(${val.system}));
+	r->Assign(3, val_mgr->Bool(${val.directory}));
+	r->Assign(4, val_mgr->Bool(${val.archive}));
+	r->Assign(5, val_mgr->Bool(${val.normal}));
+	r->Assign(6, val_mgr->Bool(${val.temporary}));
+	r->Assign(7, val_mgr->Bool(${val.sparse_file}));
+	r->Assign(8, val_mgr->Bool(${val.reparse_point}));
+	r->Assign(9, val_mgr->Bool(${val.compressed}));
+	r->Assign(10, val_mgr->Bool(${val.offline}));
+	r->Assign(11, val_mgr->Bool(${val.not_content_indexed}));
+	r->Assign(12, val_mgr->Bool(${val.encrypted}));
+	r->Assign(13, val_mgr->Bool(${val.integrity_stream}));
+	r->Assign(14, val_mgr->Bool(${val.no_scrub_data}));
 
 	return r;
 	%}

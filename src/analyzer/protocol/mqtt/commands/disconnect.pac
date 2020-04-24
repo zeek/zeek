@@ -11,8 +11,8 @@ refine flow MQTT_Flow += {
 		%{
 		if ( mqtt_disconnect )
 			{
-			BifEvent::generate_mqtt_disconnect(connection()->bro_analyzer(),
-			                                   connection()->bro_analyzer()->Conn());
+			BifEvent::enqueue_mqtt_disconnect(connection()->bro_analyzer(),
+			                                  connection()->bro_analyzer()->Conn());
 			}
 
 		return true;

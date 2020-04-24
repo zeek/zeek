@@ -369,6 +369,52 @@ public:
 	int n;
 };
 
+// Helper functions, to translate NameExpr*'s to slots.  Some aren't
+// needed, but we provide a complete set mirroring those for AbstractStmt
+// for consistency.
+AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op)
+	{
+	return AbstractStmt(op);
+	}
+
+AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const NameExpr* v1)
+	{
+	return AbstractStmt(op, m->FrameSlot(v1));
+	}
+
+AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const NameExpr* v1,
+			const NameExpr* v2)
+	{
+	return AbstractStmt(op, m->FrameSlot(v1), m->FrameSlot(v2));
+	}
+AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const NameExpr* v1,
+			const NameExpr* v2, const NameExpr* v3)
+	{
+	return AbstractStmt(op, m->FrameSlot(v1), m->FrameSlot(v2),
+				m->FrameSlot(v3));
+	}
+AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const NameExpr* v1,
+			const NameExpr* v2, const NameExpr* v3,
+			const NameExpr* v4)
+	{
+	return AbstractStmt(op, m->FrameSlot(v1), m->FrameSlot(v2),
+				m->FrameSlot(v3), m->FrameSlot(v4));
+	}
+AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const ConstExpr* ce)
+	{
+	return AbstractStmt(op, ce);
+	}
+AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const NameExpr* v1,
+			const ConstExpr* ce)
+	{
+	return AbstractStmt(op, m->FrameSlot(v1), ce);
+	}
+AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const NameExpr* v1,
+			const NameExpr* v2, const ConstExpr* ce)
+	{
+	return AbstractStmt(op, m->FrameSlot(v1), m->FrameSlot(v2), ce);
+	}
+
 
 AbstractMachine::AbstractMachine(int _frame_size)
 	{
@@ -384,7 +430,6 @@ AbstractMachine::~AbstractMachine()
 void AbstractMachine::StmtDescribe(ODesc* d) const
 	{
 	}
-
 
 IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 	{
@@ -490,10 +535,7 @@ const CompiledStmt AbstractMachine::Print(OpaqueVals* v)
 const CompiledStmt AbstractMachine::ReturnV(const NameExpr* n)
 	{
 	SyncGlobals();
-
-	AbstractStmt s(OP_RET_V, FrameSlot(n->Id()));
-	s.t = n->Type().get();
-	return AddStmt(s);
+	return AddStmt(GenStmt(this, OP_RET_V, n));
 	}
 
 const CompiledStmt AbstractMachine::ReturnC(const ConstExpr* c)
@@ -511,9 +553,7 @@ const CompiledStmt AbstractMachine::ReturnX()
 const CompiledStmt AbstractMachine::AppendToVV(const NameExpr* n1,
 						const NameExpr* n2)
 	{
-	int s1 = FrameSlot(n1->Id());
-	int s2 = FrameSlot(n2->Id());
-	return AddStmt(AbstractStmt(OP_APPEND_TO_VV, s1, s2));
+	return AddStmt(GenStmt(this, OP_APPEND_TO_VV, n1, n2));
 	}
 
 const CompiledStmt AbstractMachine::AppendToVC(const NameExpr* n,
@@ -548,8 +588,8 @@ OpaqueVals* AbstractMachine::BuildVals(const IntrusivePtr<ListExpr>& l)
 
 		if ( e->Tag() == EXPR_NAME )
 			{
-			auto id = FrameSlot(e->AsNameExpr()->Id());
-			as = AbstractStmt(OP_SET_VAL_VEC_VV, tmp, id);
+			int v = FrameSlot(e);
+			as = AbstractStmt(OP_SET_VAL_VEC_VV, tmp, v);
 			}
 		else
 			{
@@ -588,6 +628,11 @@ int AbstractMachine::FrameSlot(const ID* id)
 	{
 	// ###
 	return 0;
+	}
+
+int AbstractMachine::FrameSlot(const Expr* e)
+	{
+	return FrameSlot(e->AsNameExpr()->Id());
 	}
 
 int AbstractMachine::RegisterSlot()

@@ -72,6 +72,8 @@ public:
 
 	OpaqueVals* BuildVals(const IntrusivePtr<ListExpr>&) override;
 
+	int FrameSlot(const Expr* id);
+
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	void StmtDescribe(ODesc* d) const override;
@@ -84,6 +86,7 @@ protected:
 	const CompiledStmt AddStmt(const AbstractStmt& stmt);
 
 	int FrameSlot(const ID* id);
+
 	int RegisterSlot();
 
 	vector<AbstractStmt> stmts;

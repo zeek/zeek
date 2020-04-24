@@ -6,7 +6,19 @@ if ( NOT ZEEK_ENABLE_FUZZERS )
 endif ()
 
 if ( NOT DEFINED ZEEK_FUZZING_ENGINE AND DEFINED ENV{LIB_FUZZING_ENGINE} )
-    set(ZEEK_FUZZING_ENGINE $ENV{LIB_FUZZING_ENGINE} CACHE INTERNAL "" FORCE)
+    if ( "$ENV{LIB_FUZZING_ENGINE}" STREQUAL "" )
+        # Empty LIB_FUZZING_ENGINE, assume libFuzzer
+        set(ZEEK_FUZZING_ENGINE "-fsanitize=fuzzer" CACHE INTERNAL "" FORCE)
+    else ()
+        STRING(SUBSTRING "$ENV{LIB_FUZZING_ENGINE}" 0 1 _first_char)
+
+        if ( "${_first_char}" STREQUAL "-" OR EXISTS "$ENV{LIB_FUZZING_ENGINE}" )
+            # Looks like a linker flag or valid file, use it
+            set(ZEEK_FUZZING_ENGINE "$ENV{LIB_FUZZING_ENGINE}" CACHE INTERNAL "" FORCE)
+        else ()
+            message(FATAL_ERROR "Invalid LIB_FUZZING_ENGINE: '$ENV{LIB_FUZZING_ENGINE}'")
+        endif ()
+    endif ()
 endif ()
 
 macro(ADD_FUZZ_TARGET _name)
@@ -24,8 +36,7 @@ macro(ADD_FUZZ_TARGET _name)
                           ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 
     if ( DEFINED ZEEK_FUZZING_ENGINE )
-        set_target_properties(${_fuzz_target} PROPERTIES LINK_FLAGS
-                              ${ZEEK_FUZZING_ENGINE})
+        target_link_libraries(${_fuzz_target} ${ZEEK_FUZZING_ENGINE})
     else ()
         target_link_libraries(${_fuzz_target}
                               $<TARGET_OBJECTS:zeek_fuzzer_standalone>)

@@ -10,13 +10,20 @@ Example Build: Initial Fuzzing and Seed Corpus
 
 First configure and build for fuzzing (with libFuzzer) and code coverage::
 
-    $ LIB_FUZZING_ENGINE="-fsanitize=fuzzer" CC=clang CXX=clang++ \
+    $ LIB_FUZZING_ENGINE="" CC=clang CXX=clang++ \
       CFLAGS="-fprofile-instr-generate -fcoverage-mapping" \
       CXXFLAGS="-fprofile-instr-generate -fcoverage-mapping" \
       ./configure --build-type=RelWithDebInfo --build-dir=./build-fuzz-cov \
       --sanitizers=fuzzer-no-link --enable-fuzzers
 
     $ cd build-fuzz-cov && make -j $(nproc)
+
+.. note::
+
+   The default assumption for empty value of ``LIB_FUZZING_ENGINE`` is to use
+   libFuzzer by linking with ``-fsanitize=fuzzer``, but that environment
+   variable may be changed to use another flag or direct path to fuzzing engine
+   library to link against.
 
 Now start fuzzing to generate an initial corpus (this uses the POP3 fuzzer as
 an example)::

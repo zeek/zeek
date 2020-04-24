@@ -56,9 +56,11 @@ public:
 
 	OpaqueVals* BuildVals(const IntrusivePtr<ListExpr>&) override;
 
+	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+
 	void StmtDescribe(ODesc* d) const override;
 
-	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+	void Dump();
 
 protected:
 	// Returns a new value constructed from the given value and

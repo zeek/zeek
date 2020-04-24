@@ -3,6 +3,7 @@
 #include "ScriptAnaly.h"
 #include "DefSetsMgr.h"
 #include "Reduce.h"
+#include "Compile.h"
 #include "UseDefs.h"
 #include "Desc.h"
 #include "Expr.h"
@@ -1506,6 +1507,10 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 		ud.Dump();
 
 	ud.RemoveUnused();
+
+	AbstractMachine am(0);
+	new_body->Compile(&am);
+	am.Dump();
 
 	if ( report_profile )
 		{

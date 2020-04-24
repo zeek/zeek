@@ -328,6 +328,7 @@ protected:
 	friend class ValManager;
 	friend class TableEntryVal;
 	friend class AbstractMachine;
+	friend union AS_ValUnion;
 
 	virtual void ValDescribe(ODesc* d) const;
 	virtual void ValDescribeReST(ODesc* d) const;

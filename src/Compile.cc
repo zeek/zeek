@@ -3,6 +3,7 @@
 #include "Compile.h"
 #include "Expr.h"
 #include "OpaqueVal.h"
+#include "Desc.h"
 #include "Reporter.h"
 #include "Traverse.h"
 
@@ -34,8 +35,8 @@ typedef enum {
 typedef enum {
 	OP_NOP,
 
-	OP_RET_V,
 	OP_RET_C,
+	OP_RET_V,
 	OP_RET_X,
 
 	OP_PRINT_V,
@@ -46,10 +47,28 @@ typedef enum {
 	OP_CREATE_VAL_VEC_VV,
 
 	// Appends an element to such a list.
-	OP_SET_VAL_VEC_VV,
 	OP_SET_VAL_VEC_VC,
+	OP_SET_VAL_VEC_VV,
 
 } AbstractOp;
+
+const char* abstract_op_name(AbstractOp op)
+	{
+	switch ( op ) {
+	case OP_NOP:	return "nop";
+
+	case OP_RET_C:	return "retc";
+	case OP_RET_V:	return "retv";
+	case OP_RET_X:	return "retx";
+
+	case OP_PRINT_V:	return "printv";
+
+	case OP_CREATE_VAL_VEC_VV:	return "create-val-vec-vv";
+
+	case OP_SET_VAL_VEC_VC:	return "set-val-vec-vc";
+	case OP_SET_VAL_VEC_VV:	return "set-val-vec-vv";
+	}
+	}
 
 
 typedef std::vector<IntrusivePtr<Val>> val_vec;
@@ -58,6 +77,8 @@ typedef std::vector<IntrusivePtr<Val>> val_vec;
 // representation whereas we aim to keep Val structure for
 // more complex Val's.
 union AS_ValUnion {
+	IntrusivePtr<Val> ToVal(BroType* t) const;
+
 	// Used for bool, int.
 	bro_int_t int_val;
 
@@ -88,23 +109,99 @@ union AS_ValUnion {
 	val_vec* vvec;
 };
 
+IntrusivePtr<Val> AS_ValUnion::ToVal(BroType* t) const
+	{
+	Val* v;
+
+	switch ( t->Tag() ) {
+	case TYPE_INT:		v = new Val(int_val, TYPE_INT); break;
+	case TYPE_BOOL:		v = Val::MakeBool(int_val); break;
+	case TYPE_COUNT:	v = new Val(uint_val, TYPE_COUNT); break;
+	case TYPE_COUNTER:	v = new Val(uint_val, TYPE_COUNTER); break;
+	case TYPE_DOUBLE:	v = new Val(double_val, TYPE_DOUBLE); break;
+	case TYPE_INTERVAL:	v = new IntervalVal(double_val, 1.0); break;
+	case TYPE_TIME:		v = new Val(double_val, TYPE_TIME); break;
+	case TYPE_FUNC:		v = new Val(func_val); break;
+	case TYPE_FILE:		v = new Val(file_val); break;
+
+	case TYPE_ANY:		v = new Val(any_val, t->Ref()); break;
+	case TYPE_TYPE:		v = new Val(type_val, true); break;
+
+	case TYPE_ADDR:		v = addr_val; v->Ref(); break;
+	case TYPE_ENUM:		v = enum_val; v->Ref(); break;
+	case TYPE_LIST:		v = list_val; v->Ref(); break;
+	case TYPE_OPAQUE:	v = opaque_val; v->Ref(); break;
+	case TYPE_PATTERN:	v = re_val; v->Ref(); break;
+	case TYPE_PORT:		v = port_val; v->Ref(); break;
+	case TYPE_RECORD:	v = record_val; v->Ref(); break;
+	case TYPE_STRING:	v = string_val; v->Ref(); break;
+	case TYPE_SUBNET:	v = subnet_val; v->Ref(); break;
+	case TYPE_TABLE:	v = table_val; v->Ref(); break;
+	case TYPE_VECTOR:	v = vector_val; v->Ref(); break;
+
+	case TYPE_ERROR:
+	case TYPE_TIMER:
+	case TYPE_UNION:
+	case TYPE_VOID:
+		reporter->InternalError("bad ret type return tag");
+	}
+
+	return {AdoptRef{}, v};
+	}
+
+// Possible types of statement operands in terms of which
+// fields they use.  Used for dumping statements.
+typedef enum {
+	OP_X, OP_V, OP_VV, OP_VVV, OP_VVVV, OP_C, OP_VC, OP_VVC,
+} AS_OpType;
+
 class AbstractStmt {
 public:
-	AbstractStmt(AbstractOp _op, int _v1 = 0, int _v2 = 0, int _v3 = 0,
-			int _v4 = 0)
+	AbstractStmt(AbstractOp _op)
+		{
+		op = _op;
+		op_type = OP_X;
+		}
+
+	AbstractStmt(AbstractOp _op, int _v1)
+		{
+		op = _op;
+		v1 = _v1;
+		op_type = OP_V;
+		}
+
+	AbstractStmt(AbstractOp _op, int _v1, int _v2)
+		{
+		op = _op;
+		v1 = _v1;
+		v2 = _v2;
+		op_type = OP_VV;
+		}
+
+	AbstractStmt(AbstractOp _op, int _v1, int _v2, int _v3)
+		{
+		op = _op;
+		v1 = _v1;
+		v2 = _v2;
+		v3 = _v3;
+		op_type = OP_VVV;
+		}
+
+	AbstractStmt(AbstractOp _op, int _v1, int _v2, int _v3, int _v4)
 		{
 		op = _op;
 		v1 = _v1;
 		v2 = _v2;
 		v3 = _v3;
 		v4 = _v4;
+		op_type = OP_VVVV;
 		}
 
 	AbstractStmt(AbstractOp _op, AS_ValUnion _c)
 		{
 		op = _op;
 		c = _c;
-		v1 = v2 = v3 = v4 = 0;
+		op_type = OP_C;
 		}
 
 	AbstractStmt(AbstractOp _op, int _v1, AS_ValUnion _c)
@@ -112,7 +209,7 @@ public:
 		op = _op;
 		v1 = _v1;
 		c = _c;
-		v2 = v3 = v4 = 0;
+		op_type = OP_VC;
 		}
 
 	AbstractStmt(AbstractOp _op, int _v1, int _v2, AS_ValUnion _c)
@@ -121,11 +218,14 @@ public:
 		v1 = _v1;
 		v2 = _v2;
 		c = _c;
-		v3 = v4 = 0;
+		op_type = OP_VVC;
 		}
 
 	// Constructor used when we're going to just copy in another AS.
 	AbstractStmt() { }
+
+	void Dump() const;
+	const char* ConstDump() const;
 
 	AbstractOp op;
 
@@ -134,8 +234,61 @@ public:
 	BroType* t = nullptr;
 
 	AS_ValUnion c;	// constant
+
+	AS_OpType op_type;
 };
 
+void AbstractStmt::Dump() const
+	{
+	printf("%s ", abstract_op_name(op));
+
+	switch ( op_type ) {
+	case OP_X:
+		break;
+
+	case OP_V:
+		printf("%d", v1);
+		break;
+
+	case OP_VV:
+		printf("%d, %d", v1, v2);
+		break;
+
+	case OP_VVV:
+		printf("%d, %d, %d", v1, v2, v3);
+		break;
+
+	case OP_VVVV:
+		printf("%d, %d, %d, %d", v1, v2, v3, v4);
+		break;
+
+	case OP_C:
+		printf("%s", ConstDump());
+		break;
+
+	case OP_VC:
+		printf("%d, %s", v1, ConstDump());
+		break;
+
+	case OP_VVC:
+		printf("%d, %d, %s", v1, v2, ConstDump());
+		break;
+	}
+
+	printf("\n");
+	}
+
+const char* AbstractStmt::ConstDump() const
+	{
+	auto v = c.ToVal(t);
+
+	static ODesc d;
+
+	d.Clear();
+	v->Describe(&d);
+
+	return d.Description();
+	}
 
 class OpaqueVals {
 public:
@@ -405,6 +558,15 @@ union AS_ValUnion AbstractMachine::ValToASVal(Val* v, BroType* t) const
 	}
 
 	return avu;
+	}
+
+void AbstractMachine::Dump()
+	{
+	for ( int i = 0; i < stmts.size(); ++i )
+		{
+		printf("%d: ", i);
+		stmts[i].Dump();
+		}
 	}
 
 void AbstractMachine::SyncGlobals()

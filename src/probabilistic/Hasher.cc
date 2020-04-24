@@ -54,7 +54,7 @@ broker::expected<broker::data> Hasher::Serialize() const
 	{
 	return {broker::vector{
 		static_cast<uint64_t>(Type()), static_cast<uint64_t>(k),
-		seed.h1, seed.h2 }};
+		seed.h[0], seed.h[1] }};
 	}
 
 std::unique_ptr<Hasher> Hasher::Unserialize(const broker::data& data)
@@ -107,23 +107,7 @@ UHF::UHF(Hasher::seed_t arg_seed)
 Hasher::digest UHF::hash(const void* x, size_t n) const
 	{
 	assert(sizeof(Hasher::seed_t) == 16); // siphash always needs a 128 bit seed
-
-	if ( n <= UHASH_KEY_SIZE )
-		return highwayhash::SipHash(*(reinterpret_cast<const highwayhash::SipHashState::Key*>(&seed)), reinterpret_cast<const char*>(x), n);
-
-	union {
-		unsigned char d[16];
-		Hasher::digest rval;
-	} u;
-
-	internal_md5(reinterpret_cast<const unsigned char*>(x), n, u.d);
-
-	const unsigned char* s = reinterpret_cast<const unsigned char*>(&seed);
-	for ( size_t i = 0; i < 16; ++i )
-		u.d[i] ^= s[i % sizeof(seed)];
-
-	internal_md5(u.d, 16, u.d);
-	return u.rval;
+	return highwayhash::SipHash(seed.h, reinterpret_cast<const char*>(x), n);
 	}
 
 DefaultHasher::DefaultHasher(size_t k, Hasher::seed_t seed)
@@ -132,7 +116,7 @@ DefaultHasher::DefaultHasher(size_t k, Hasher::seed_t seed)
 	for ( size_t i = 1; i <= k; ++i )
 		{
 		seed_t s = Seed();
-		s.h1 += bro_prng(i);
+		s.h[0] += bro_prng(i);
 		hash_functions.push_back(UHF(s));
 		}
 	}

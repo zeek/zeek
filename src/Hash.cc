@@ -156,15 +156,6 @@ void* HashKey::CopyKey(const void* k, int s) const
 
 hash_t HashKey::HashBytes(const void* bytes, int size)
 	{
-	if ( size <= UHASH_KEY_SIZE )
-		{
-		hash_t digest = highwayhash::SipHash(shared_siphash_key, reinterpret_cast<const char *>(bytes), size);
-		return digest;
-		}
-
-	// Fall back to HMAC/MD5 for longer data (which is usually rare).
-	assert(sizeof(hash_t) == 8);
-	hash_t digest[2]; // 2x hash_t (uint64_t) = 128 bits = 32 hex chars = sizeof md5
-	hmac_md5(size, (const unsigned char*) bytes, (unsigned char*) digest);
-	return digest[0];
+	hash_t digest = highwayhash::SipHash(shared_siphash_key, reinterpret_cast<const char *>(bytes), size);
+	return digest;
 	}

@@ -1001,7 +1001,7 @@ bool hmac_key_set = false;
 uint8_t shared_hmac_md5_key[16];
 
 bool siphash_key_set = false;
-highwayhash::SipHashState::Key shared_siphash_key;
+alignas(16) highwayhash::HH_U64 shared_siphash_key[2];
 
 void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
 	{

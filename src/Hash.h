@@ -6,8 +6,6 @@
 
 #include <stdlib.h>
 
-#define UHASH_KEY_SIZE 36
-
 class BroString;
 
 typedef uint64_t hash_t;

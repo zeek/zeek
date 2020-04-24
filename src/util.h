@@ -203,7 +203,7 @@ extern std::string strstrip(std::string s);
 extern bool hmac_key_set;
 extern uint8_t shared_hmac_md5_key[16];
 extern bool siphash_key_set;
-extern highwayhash::SipHashState::Key shared_siphash_key;
+extern highwayhash::HH_U64 shared_siphash_key[2];
 
 extern void hmac_md5(size_t size, const unsigned char* bytes,
 			unsigned char digest[16]);

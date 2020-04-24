@@ -370,6 +370,24 @@ include(GetArchitecture)
 include(RequireCXX17)
 include(FindKqueue)
 
+########################################################################
+## Highwayhash
+
+# Well, this is dirty - but it works. Copy highwayhash over to the build
+# directory and build it there using make.
+add_custom_target(
+	libhighwayhash
+	BYPRODUCTS ${CMAKE_BINARY_DIR}/aux/highwayhash/lib/libhighwayhash.a
+	DEPENDS ${CMAKE_BINARY_DIR}/aux/highwayhash
+	COMMAND make
+	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/aux/highwayhash
+)
+add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/aux/highwayhash
+                   COMMAND ${CMAKE_COMMAND} -E copy_directory
+                   ${CMAKE_SOURCE_DIR}/aux/highwayhash ${CMAKE_BINARY_DIR}/aux/highwayhash)
+include_directories(BEFORE ${CMAKE_BINARY_DIR}/aux/highwayhash)
+set(zeekdeps ${zeekdeps} ${CMAKE_BINARY_DIR}/aux/highwayhash/lib/libhighwayhash.a)
+
 if ( (OPENSSL_VERSION VERSION_EQUAL "1.1.0") OR (OPENSSL_VERSION VERSION_GREATER "1.1.0") )
   set(ZEEK_HAVE_OPENSSL_1_1 true CACHE INTERNAL "" FORCE)
 endif()

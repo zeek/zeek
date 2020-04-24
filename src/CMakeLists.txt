@@ -136,24 +136,6 @@ binpac_target(binpac_bro-lib.pac)
 list(APPEND BINPAC_OUTPUTS "${BINPAC_OUTPUT_CC}")
 
 ########################################################################
-## Highwayhash
-
-# Well, this is dirty - but it works. Copy highwayhash over to the build
-# directory and build it there using make.
-add_custom_target(
-	libhighwayhash
-	BYPRODUCTS ${CMAKE_BINARY_DIR}/aux/highwayhash/lib/libhighwayhash.a
-	DEPENDS ${CMAKE_BINARY_DIR}/aux/highwayhash
-	COMMAND make
-	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/aux/highwayhash
-)
-add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/aux/highwayhash
-                   COMMAND ${CMAKE_COMMAND} -E copy_directory
-                   ${CMAKE_SOURCE_DIR}/aux/highwayhash ${CMAKE_BINARY_DIR}/aux/highwayhash)
-include_directories(BEFORE ${CMAKE_BINARY_DIR}/aux/highwayhash)
-
-
-########################################################################
 ## Including subdirectories.
 ########################################################################
 
@@ -356,7 +338,7 @@ set(bro_SRCS
 collect_headers(bro_HEADERS ${bro_SRCS})
 
 add_executable(zeek ${bro_SRCS} ${bro_HEADERS} ${bro_SUBDIR_LIBS} ${bro_PLUGIN_LIBS})
-target_link_libraries(zeek ${zeekdeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS} ${CMAKE_BINARY_DIR}/aux/highwayhash/lib/libhighwayhash.a)
+target_link_libraries(zeek ${zeekdeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 
 if ( NOT "${bro_LINKER_FLAGS}" STREQUAL "" )
     set_target_properties(zeek PROPERTIES LINK_FLAGS "${bro_LINKER_FLAGS}")

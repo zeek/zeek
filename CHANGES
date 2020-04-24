@@ -1,4 +1,8 @@
 
+3.0.6-dev.7 | 2020-04-29 18:24:28 -0700
+
+  * Remove error message from empty bloomfilter lookups (Jon Siwek, Corelight)
+
 3.0.6-dev.6 | 2020-04-29 18:22:04 -0700
 
   * Fix buffer over-read in Ident analyzer (Max Kellermann)

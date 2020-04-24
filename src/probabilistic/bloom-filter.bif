@@ -174,7 +174,7 @@ function bloomfilter_lookup%(bf: opaque of bloomfilter, x: any%): count
 	const BloomFilterVal* bfv = static_cast<const BloomFilterVal*>(bf);
 
 	if ( ! bfv->Type() )
-		reporter->Error("cannot perform lookup on untyped Bloom filter");
+		return val_mgr->GetCount(0);
 
 	else if ( ! same_type(bfv->Type(), x->Type()) )
 		reporter->Error("incompatible Bloom filter types");

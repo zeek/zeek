@@ -127,7 +127,7 @@ AS_ValUnion::AS_ValUnion(Val* v, BroType* t)
 	union BroValUnion vu = v->val;
 
 	if ( v->Type()->Tag() != t->Tag() )
-		reporter->InternalError("type inconsistency in ValToASVal");
+		reporter->InternalError("type inconsistency in AS_ValUnion constructor");
 
 	switch ( t->Tag() ) {
 	case TYPE_BOOL:
@@ -306,7 +306,7 @@ protected:
 		auto v = ce->Value();
 		auto ct = ce->Type().get();
 		c = AS_ValUnion(v, ct);
-		t = ct;
+		t = ct->Ref();
 		}
 };
 
@@ -436,7 +436,7 @@ IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 		case OP_APPEND_TO_VC:
 			{ // Append c to v1.
 			auto vv = frame[s.v1].vector_val;
-			auto c = ASValToVal(s.c, s.t);
+			auto c = s.c.ToVal(s.t);
 			vv->Assign(vv->Size(), c);
 			break;
 			}
@@ -456,7 +456,7 @@ IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 		case OP_SET_VAL_VEC_VV:
 			{
 			// Appends v2 to the vector pointed to by v1.
-			auto v = ASValToVal(frame[s.v2], s.t);
+			auto v = frame[s.v2].ToVal(s.t);
 			frame[s.v1].vvec->push_back(v);
 			break;
 			}
@@ -464,7 +464,7 @@ IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 		case OP_SET_VAL_VEC_VC:
 			{
 			// Appends c to the vector pointed to by v1.
-			auto c = ASValToVal(s.c, s.t);
+			auto c = s.c.ToVal(s.t);
 			frame[s.v1].vvec->push_back(c);
 			break;
 			}
@@ -474,7 +474,7 @@ IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 		}
 
 	if ( ret_u )
-		return ASValToVal(*ret_u, ret_type);
+		return ret_u->ToVal(ret_type);
 	else
 		return nullptr;
 	}
@@ -568,47 +568,6 @@ const CompiledStmt AbstractMachine::AddStmt(const AbstractStmt& stmt)
 	{
 	stmts.push_back(stmt);
 	return CompiledStmt(stmts.size());
-	}
-
-IntrusivePtr<Val> AbstractMachine::ASValToVal(const AS_ValUnion& u,
-						BroType* t) const
-	{
-	Val* v;
-
-	switch ( t->Tag() ) {
-	case TYPE_INT:		v = new Val(u.int_val, TYPE_INT); break;
-	case TYPE_BOOL:		v = Val::MakeBool(u.int_val); break;
-	case TYPE_COUNT:	v = new Val(u.uint_val, TYPE_COUNT); break;
-	case TYPE_COUNTER:	v = new Val(u.uint_val, TYPE_COUNTER); break;
-	case TYPE_DOUBLE:	v = new Val(u.double_val, TYPE_DOUBLE); break;
-	case TYPE_INTERVAL:	v = new IntervalVal(u.double_val, 1.0); break;
-	case TYPE_TIME:		v = new Val(u.double_val, TYPE_TIME); break;
-	case TYPE_FUNC:		v = new Val(u.func_val); break;
-	case TYPE_FILE:		v = new Val(u.file_val); break;
-
-	case TYPE_ANY:		v = new Val(u.any_val, t->Ref()); break;
-	case TYPE_TYPE:		v = new Val(u.type_val, true); break;
-
-	case TYPE_ADDR:		v = u.addr_val; v->Ref(); break;
-	case TYPE_ENUM:		v = u.enum_val; v->Ref(); break;
-	case TYPE_LIST:		v = u.list_val; v->Ref(); break;
-	case TYPE_OPAQUE:	v = u.opaque_val; v->Ref(); break;
-	case TYPE_PATTERN:	v = u.re_val; v->Ref(); break;
-	case TYPE_PORT:		v = u.port_val; v->Ref(); break;
-	case TYPE_RECORD:	v = u.record_val; v->Ref(); break;
-	case TYPE_STRING:	v = u.string_val; v->Ref(); break;
-	case TYPE_SUBNET:	v = u.subnet_val; v->Ref(); break;
-	case TYPE_TABLE:	v = u.table_val; v->Ref(); break;
-	case TYPE_VECTOR:	v = u.vector_val; v->Ref(); break;
-
-	case TYPE_ERROR:
-	case TYPE_TIMER:
-	case TYPE_UNION:
-	case TYPE_VOID:
-		reporter->InternalError("bad ret type return tag");
-	}
-
-	return {NewRef{}, v};
 	}
 
 void AbstractMachine::Dump()

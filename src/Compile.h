@@ -32,6 +32,9 @@ public:
 	virtual const CompiledStmt ReturnC(const ConstExpr* c) = 0;
 	virtual const CompiledStmt ReturnX() = 0;
 
+	virtual const CompiledStmt StartingBlock() = 0;
+	virtual const CompiledStmt FinishBlock(const CompiledStmt start) = 0;
+
 	// Returns a handle to state associated with building
 	// up a list of values.
 	virtual OpaqueVals* BuildVals(const IntrusivePtr<ListExpr>&) = 0;
@@ -53,6 +56,9 @@ public:
 	const CompiledStmt ReturnV(const NameExpr* n) override;
 	const CompiledStmt ReturnC(const ConstExpr* c) override;
 	const CompiledStmt ReturnX() override;
+
+	const CompiledStmt StartingBlock() override;
+	const CompiledStmt FinishBlock(const CompiledStmt start) override;
 
 	OpaqueVals* BuildVals(const IntrusivePtr<ListExpr>&) override;
 

@@ -31,6 +31,7 @@ class Frame;
 
 class Reducer;
 class StmtCompiler;
+class CompiledStmt;
 
 class Stmt : public BroObj {
 public:
@@ -55,7 +56,10 @@ public:
 	Stmt* Reduce(Reducer* c);
 	virtual Stmt* DoReduce(Reducer* c)	{ return this->Ref(); }
 
-	virtual void Compile(StmtCompiler* c) const;
+	// Compile the statement and return its opaque handle.  (For
+	// statement blocks, this is whatever the compiler returns
+	// when asked.)
+	virtual CompiledStmt Compile(StmtCompiler* c) const;
 
 #undef ACCESSOR
 #define ACCESSOR(tag, ctype, name) \
@@ -186,7 +190,7 @@ protected:
 	Stmt* DoSubclassReduce(IntrusivePtr<ListExpr> singletons,
 			Reducer* c) override;
 
-	void Compile(StmtCompiler* c) const override;
+	CompiledStmt Compile(StmtCompiler* c) const override;
 };
 
 extern void do_print(const std::vector<IntrusivePtr<Val>>& vals);
@@ -469,7 +473,7 @@ public:
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	Stmt* DoReduce(Reducer* c) override;
-	void Compile(StmtCompiler* c) const override;
+	CompiledStmt Compile(StmtCompiler* c) const override;
 
 	void StmtDescribe(ODesc* d) const override;
 };
@@ -489,7 +493,7 @@ public:
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	Stmt* DoReduce(Reducer* c) override;
-	void Compile(StmtCompiler* c) const override;
+	CompiledStmt Compile(StmtCompiler* c) const override;
 
 	const stmt_list& Stmts() const	{ return *stmts; }
 	stmt_list& Stmts()		{ return *stmts; }

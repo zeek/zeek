@@ -427,6 +427,16 @@ const CompiledStmt AbstractMachine::ReturnX()
 	return AddStmt(AbstractStmt(OP_RET_X));
 	}
 
+const CompiledStmt AbstractMachine::StartingBlock()
+	{
+	return CompiledStmt(stmts.size());
+	}
+
+const CompiledStmt AbstractMachine::FinishBlock(const CompiledStmt /* start */)
+	{
+	return CompiledStmt(stmts.size());
+	}
+
 OpaqueVals* AbstractMachine::BuildVals(const IntrusivePtr<ListExpr>& l)
 	{
 	auto exprs = l->Exprs();

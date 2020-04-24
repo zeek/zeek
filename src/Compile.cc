@@ -39,6 +39,9 @@ typedef enum {
 	OP_RET_V,
 	OP_RET_X,
 
+	OP_APPEND_TO_VV,
+	OP_APPEND_TO_VC,
+
 	OP_PRINT_V,
 
 	// Internal operands.
@@ -61,6 +64,9 @@ const char* abstract_op_name(AbstractOp op)
 	case OP_RET_V:	return "retv";
 	case OP_RET_X:	return "retx";
 
+	case OP_APPEND_TO_VV:	return "append-to-vv";
+	case OP_APPEND_TO_VC:	return "append-to-vc";
+
 	case OP_PRINT_V:	return "printv";
 
 	case OP_CREATE_VAL_VEC_VV:	return "create-val-vec-vv";
@@ -77,6 +83,13 @@ typedef std::vector<IntrusivePtr<Val>> val_vec;
 // representation whereas we aim to keep Val structure for
 // more complex Val's.
 union AS_ValUnion {
+	// Constructor for hand-populating the values.
+	AS_ValUnion() {}
+
+	// Construct from a given Bro value with a given type.
+	AS_ValUnion(Val* v, BroType* t);
+
+	// Convert to a Bro value.
 	IntrusivePtr<Val> ToVal(BroType* t) const;
 
 	// Used for bool, int.
@@ -108,6 +121,56 @@ union AS_ValUnion {
 	// Used for the compiler to hold opaque items.
 	val_vec* vvec;
 };
+
+AS_ValUnion::AS_ValUnion(Val* v, BroType* t)
+	{
+	union BroValUnion vu = v->val;
+
+	if ( v->Type()->Tag() != t->Tag() )
+		reporter->InternalError("type inconsistency in ValToASVal");
+
+	switch ( t->Tag() ) {
+	case TYPE_BOOL:
+	case TYPE_INT:
+		int_val = vu.int_val;
+		break;
+
+	case TYPE_COUNT:
+	case TYPE_COUNTER:
+		uint_val = vu.uint_val;
+		break;
+
+	case TYPE_DOUBLE:
+	case TYPE_INTERVAL:
+	case TYPE_TIME:
+		double_val = vu.double_val;
+		break;
+
+	case TYPE_FUNC:		func_val = vu.func_val; break;
+	case TYPE_FILE:		file_val = vu.file_val; break;
+
+	case TYPE_ADDR:		addr_val = v->AsAddrVal(); break;
+	case TYPE_ENUM:		enum_val = v->AsEnumVal(); break;
+	case TYPE_LIST:		list_val = v->AsListVal(); break;
+	case TYPE_OPAQUE:	opaque_val = v->AsOpaqueVal(); break;
+	case TYPE_PATTERN:	re_val = v->AsPatternVal(); break;
+	case TYPE_PORT:		port_val = v->AsPortVal(); break;
+	case TYPE_RECORD:	record_val = v->AsRecordVal(); break;
+	case TYPE_STRING:	string_val = v->AsStringVal(); break;
+	case TYPE_SUBNET:	subnet_val = v->AsSubNetVal(); break;
+	case TYPE_TABLE:	table_val = v->AsTableVal(); break;
+	case TYPE_VECTOR:	vector_val = v->AsVectorVal(); break;
+
+	case TYPE_ANY:		any_val = vu; break;
+	case TYPE_TYPE:		type_val = t; break;
+
+	case TYPE_ERROR:
+	case TYPE_TIMER:
+	case TYPE_UNION:
+	case TYPE_VOID:
+		reporter->InternalError("bad type in AS_ValUnion constructor");
+	}
+	}
 
 IntrusivePtr<Val> AS_ValUnion::ToVal(BroType* t) const
 	{
@@ -197,28 +260,28 @@ public:
 		op_type = OP_VVVV;
 		}
 
-	AbstractStmt(AbstractOp _op, AS_ValUnion _c)
+	AbstractStmt(AbstractOp _op, const ConstExpr* ce)
 		{
 		op = _op;
-		c = _c;
 		op_type = OP_C;
+		InitConst(ce);
 		}
 
-	AbstractStmt(AbstractOp _op, int _v1, AS_ValUnion _c)
+	AbstractStmt(AbstractOp _op, int _v1, const ConstExpr* ce)
 		{
 		op = _op;
 		v1 = _v1;
-		c = _c;
 		op_type = OP_VC;
+		InitConst(ce);
 		}
 
-	AbstractStmt(AbstractOp _op, int _v1, int _v2, AS_ValUnion _c)
+	AbstractStmt(AbstractOp _op, int _v1, int _v2, const ConstExpr* ce)
 		{
 		op = _op;
 		v1 = _v1;
 		v2 = _v2;
-		c = _c;
 		op_type = OP_VVC;
+		InitConst(ce);
 		}
 
 	// Constructor used when we're going to just copy in another AS.
@@ -236,6 +299,15 @@ public:
 	AS_ValUnion c;	// constant
 
 	AS_OpType op_type;
+
+protected:
+	void InitConst(const ConstExpr* ce)
+		{
+		auto v = ce->Value();
+		auto ct = ce->Type().get();
+		c = AS_ValUnion(v, ct);
+		t = ct;
+		}
 };
 
 void AbstractStmt::Dump() const
@@ -354,6 +426,21 @@ IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 			break;
 			}
 
+		case OP_APPEND_TO_VV:
+			{ // Append v2 to v1.
+			auto vv = frame[s.v1].vector_val;
+			vv->Assign(vv->Size(), frame[s.v2].ToVal(s.t));
+			break;
+			}
+
+		case OP_APPEND_TO_VC:
+			{ // Append c to v1.
+			auto vv = frame[s.v1].vector_val;
+			auto c = ASValToVal(s.c, s.t);
+			vv->Assign(vv->Size(), c);
+			break;
+			}
+
 		case OP_CREATE_VAL_VEC_VV:
 			// Initializes a new value vector.  We now
 			// do this dynamically, but at same point
@@ -412,19 +499,27 @@ const CompiledStmt AbstractMachine::ReturnV(const NameExpr* n)
 const CompiledStmt AbstractMachine::ReturnC(const ConstExpr* c)
 	{
 	SyncGlobals();
-
-	auto v = c->Value();
-	AbstractStmt s(OP_RET_C, ValToASVal(v, c->Type().get()));
-	s.t = c->Type().get();
-	return AddStmt(s);
+	return AddStmt(AbstractStmt(OP_RET_C, c));
 	}
 
 const CompiledStmt AbstractMachine::ReturnX()
 	{
 	SyncGlobals();
-
-	AbstractStmt s(OP_RET_X);
 	return AddStmt(AbstractStmt(OP_RET_X));
+	}
+
+const CompiledStmt AbstractMachine::AppendToVV(const NameExpr* n1,
+						const NameExpr* n2)
+	{
+	int s1 = FrameSlot(n1->Id());
+	int s2 = FrameSlot(n2->Id());
+	return AddStmt(AbstractStmt(OP_APPEND_TO_VV, s1, s2));
+	}
+
+const CompiledStmt AbstractMachine::AppendToVC(const NameExpr* n,
+						const ConstExpr* c)
+	{
+	int s = FrameSlot(n->Id());
 	}
 
 const CompiledStmt AbstractMachine::StartingBlock()
@@ -458,9 +553,8 @@ OpaqueVals* AbstractMachine::BuildVals(const IntrusivePtr<ListExpr>& l)
 			}
 		else
 			{
-			auto c = e->AsConstExpr()->Value();
-			auto as_val = ValToASVal(c, e->Type().get());
-			as = AbstractStmt(OP_SET_VAL_VEC_VC, tmp, as_val);
+			auto c = e->AsConstExpr();
+			as = AbstractStmt(OP_SET_VAL_VEC_VC, tmp, c);
 			}
 
 		as.t = e->Type().get();
@@ -515,59 +609,6 @@ IntrusivePtr<Val> AbstractMachine::ASValToVal(const AS_ValUnion& u,
 	}
 
 	return {NewRef{}, v};
-	}
-
-union AS_ValUnion AbstractMachine::ValToASVal(Val* v, BroType* t) const
-	{
-	union BroValUnion vu = v->val;
-	union AS_ValUnion avu;
-
-	if ( v->Type()->Tag() != t->Tag() )
-		reporter->InternalError("type inconsistency in ValToASVal");
-
-	switch ( t->Tag() ) {
-	case TYPE_BOOL:
-	case TYPE_INT:
-		avu.int_val = vu.int_val;
-		break;
-
-	case TYPE_COUNT:
-	case TYPE_COUNTER:
-		avu.uint_val = vu.uint_val;
-		break;
-
-	case TYPE_DOUBLE:
-	case TYPE_INTERVAL:
-	case TYPE_TIME:
-		avu.double_val = vu.double_val;
-		break;
-
-	case TYPE_FUNC:		avu.func_val = vu.func_val; break;
-	case TYPE_FILE:		avu.file_val = vu.file_val; break;
-
-	case TYPE_ADDR:		avu.addr_val = v->AsAddrVal(); break;
-	case TYPE_ENUM:		avu.enum_val = v->AsEnumVal(); break;
-	case TYPE_LIST:		avu.list_val = v->AsListVal(); break;
-	case TYPE_OPAQUE:	avu.opaque_val = v->AsOpaqueVal(); break;
-	case TYPE_PATTERN:	avu.re_val = v->AsPatternVal(); break;
-	case TYPE_PORT:		avu.port_val = v->AsPortVal(); break;
-	case TYPE_RECORD:	avu.record_val = v->AsRecordVal(); break;
-	case TYPE_STRING:	avu.string_val = v->AsStringVal(); break;
-	case TYPE_SUBNET:	avu.subnet_val = v->AsSubNetVal(); break;
-	case TYPE_TABLE:	avu.table_val = v->AsTableVal(); break;
-	case TYPE_VECTOR:	avu.vector_val = v->AsVectorVal(); break;
-
-	case TYPE_ANY:		avu.any_val = vu; break;
-	case TYPE_TYPE:		avu.type_val = t; break;
-
-	case TYPE_ERROR:
-	case TYPE_TIMER:
-	case TYPE_UNION:
-	case TYPE_VOID:
-		reporter->InternalError("bad ret type return tag");
-	}
-
-	return avu;
 	}
 
 void AbstractMachine::Dump()

@@ -1851,6 +1851,12 @@ Expr* AppendToExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 
 CompiledStmt AppendToExpr::Compile(Compiler* c) const
 	{
+	auto n1 = op1->AsNameExpr();
+
+	if ( op2->Tag() == EXPR_NAME )
+		return c->AppendToVV(n1, op2->AsNameExpr());
+	else
+		return c->AppendToVC(n1, op2->AsConstExpr());
 	}
 
 

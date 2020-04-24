@@ -455,6 +455,11 @@ bool ExprStmt::IsReduced() const
 	return NonReduced(e.get());
 	}
 
+CompiledStmt ExprStmt::Compile(StmtCompiler* c) const
+	{
+	return e->Compile(c);
+	}
+
 Stmt* ExprStmt::DoReduce(Reducer* c)
 	{
 	if ( e )

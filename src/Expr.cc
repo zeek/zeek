@@ -9,6 +9,7 @@
 #include "Func.h"
 #include "RE.h"
 #include "Reduce.h"
+#include "Compile.h"
 #include "Scope.h"
 #include "Stmt.h"
 #include "EventRegistry.h"
@@ -251,6 +252,11 @@ IntrusivePtr<Stmt> Expr::ReduceToSingletons(Reducer* c)
 		SetOp3({AdoptRef{}, op3->ReduceToSingleton(c, red3_stmt)});
 
 	return MergeStmts(red1_stmt, red2_stmt, red3_stmt);
+	}
+
+CompiledStmt Expr::Compile(StmtCompiler* c) const
+	{
+	reporter->InternalError("confused in Expr::Compile");
 	}
 
 IntrusivePtr<Stmt> Expr::MergeStmts(IntrusivePtr<Stmt> s1,
@@ -1841,6 +1847,10 @@ Expr* AppendToExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		}
 
 	return this->Ref();
+	}
+
+CompiledStmt AppendToExpr::Compile(StmtCompiler* c) const
+	{
 	}
 
 

@@ -218,6 +218,8 @@ protected:
 	bool IsReduced() const override;
 	Stmt* DoReduce(Reducer* c) override;
 
+	CompiledStmt Compile(StmtCompiler* c) const override;
+
 	IntrusivePtr<Expr> e;
 };
 

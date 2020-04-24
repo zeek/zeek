@@ -2,6 +2,7 @@
 
 #include "Compile.h"
 #include "Expr.h"
+#include "OpaqueVal.h"
 #include "Reporter.h"
 #include "Traverse.h"
 
@@ -57,8 +58,6 @@ typedef std::vector<IntrusivePtr<Val>> val_vec;
 // representation whereas we aim to keep Val structure for
 // more complex Val's.
 union AS_ValUnion {
-	AS_ValUnion()	{ void_val = nullptr; }
-
 	// Used for bool, int.
 	bro_int_t int_val;
 
@@ -69,22 +68,24 @@ union AS_ValUnion {
 	// distinct, we can readily recover them given type information.
 	double double_val;
 
-	EnumVal* enum_val;
-	PortVal* port_val;
 	AddrVal* addr_val;
-	SubNetVal* subnet_val;
-	Func* func_val;
+	BroValUnion any_val;
+	EnumVal* enum_val;
 	BroFile* file_val;
-	StringVal* string_val;
-	PatternVal* re_val;
-	TableVal* table_val;
-	RecordVal* record_val;
+	Func* func_val;
 	ListVal* list_val;
+	OpaqueVal* opaque_val;
+	PortVal* port_val;
+	PatternVal* re_val;
+	RecordVal* record_val;
+	StringVal* string_val;
+	SubNetVal* subnet_val;
+	TableVal* table_val;
+	BroType* type_val;
 	VectorVal* vector_val;
 
 	// Used for the compiler to hold opaque items.
 	val_vec* vvec;
-	void* void_val;
 };
 
 class AbstractStmt {
@@ -130,7 +131,7 @@ public:
 
 	// Indices into frame.
 	int v1, v2, v3, v4;
-	const BroType* t = nullptr;
+	BroType* t = nullptr;
 
 	AS_ValUnion c;	// constant
 };
@@ -164,7 +165,7 @@ IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	const AS_ValUnion* ret_u;
 	Val* ret_v;
-	const BroType* ret_type;
+	BroType* ret_type;
 	int pc = 0;
 
 	auto loop = true;
@@ -313,42 +314,53 @@ const CompiledStmt AbstractMachine::AddStmt(const AbstractStmt& stmt)
 	}
 
 IntrusivePtr<Val> AbstractMachine::ASValToVal(const AS_ValUnion& u,
-						const BroType* t) const
+						BroType* t) const
 	{
 	Val* v;
 
 	switch ( t->Tag() ) {
 	case TYPE_INT:		v = new Val(u.int_val, TYPE_INT); break;
+	case TYPE_BOOL:		v = Val::MakeBool(u.int_val); break;
 	case TYPE_COUNT:	v = new Val(u.uint_val, TYPE_COUNT); break;
 	case TYPE_COUNTER:	v = new Val(u.uint_val, TYPE_COUNTER); break;
 	case TYPE_DOUBLE:	v = new Val(u.double_val, TYPE_DOUBLE); break;
+	case TYPE_INTERVAL:	v = new IntervalVal(u.double_val, 1.0); break;
 	case TYPE_TIME:		v = new Val(u.double_val, TYPE_TIME); break;
 	case TYPE_FUNC:		v = new Val(u.func_val); break;
 	case TYPE_FILE:		v = new Val(u.file_val); break;
-	case TYPE_INTERVAL:	v = new IntervalVal(u.double_val, 1.0); break;
-	case TYPE_BOOL:		v = Val::MakeBool(u.int_val); break;
 
-	case TYPE_PORT:		v = u.port_val; v->Ref(); break;
+	case TYPE_ANY:		v = new Val(u.any_val, t->Ref()); break;
+	case TYPE_TYPE:		v = new Val(u.type_val, true); break;
+
+	case TYPE_ADDR:		v = u.addr_val; v->Ref(); break;
 	case TYPE_ENUM:		v = u.enum_val; v->Ref(); break;
-	case TYPE_STRING:	v = u.string_val; v->Ref(); break;
+	case TYPE_LIST:		v = u.list_val; v->Ref(); break;
+	case TYPE_OPAQUE:	v = u.opaque_val; v->Ref(); break;
 	case TYPE_PATTERN:	v = u.re_val; v->Ref(); break;
+	case TYPE_PORT:		v = u.port_val; v->Ref(); break;
 	case TYPE_RECORD:	v = u.record_val; v->Ref(); break;
+	case TYPE_STRING:	v = u.string_val; v->Ref(); break;
+	case TYPE_SUBNET:	v = u.subnet_val; v->Ref(); break;
 	case TYPE_TABLE:	v = u.table_val; v->Ref(); break;
 	case TYPE_VECTOR:	v = u.vector_val; v->Ref(); break;
 
-#if 0
-	default:
+	case TYPE_ERROR:
+	case TYPE_TIMER:
+	case TYPE_UNION:
+	case TYPE_VOID:
 		reporter->InternalError("bad ret type return tag");
-#endif
 	}
 
 	return {NewRef{}, v};
 	}
 
-union AS_ValUnion AbstractMachine::ValToASVal(Val* v, const BroType* t) const
+union AS_ValUnion AbstractMachine::ValToASVal(Val* v, BroType* t) const
 	{
 	union BroValUnion vu = v->val;
 	union AS_ValUnion avu;
+
+	if ( v->Type()->Tag() != t->Tag() )
+		reporter->InternalError("type inconsistency in ValToASVal");
 
 	switch ( t->Tag() ) {
 	case TYPE_BOOL:
@@ -362,21 +374,34 @@ union AS_ValUnion AbstractMachine::ValToASVal(Val* v, const BroType* t) const
 		break;
 
 	case TYPE_DOUBLE:
-	case TYPE_TIME:
 	case TYPE_INTERVAL:
+	case TYPE_TIME:
 		avu.double_val = vu.double_val;
 		break;
 
 	case TYPE_FUNC:		avu.func_val = vu.func_val; break;
 	case TYPE_FILE:		avu.file_val = vu.file_val; break;
 
-	case TYPE_PORT:		avu.port_val = v->AsPortVal(); break;
+	case TYPE_ADDR:		avu.addr_val = v->AsAddrVal(); break;
 	case TYPE_ENUM:		avu.enum_val = v->AsEnumVal(); break;
-	case TYPE_STRING:	avu.string_val = v->AsStringVal(); break;
+	case TYPE_LIST:		avu.list_val = v->AsListVal(); break;
+	case TYPE_OPAQUE:	avu.opaque_val = v->AsOpaqueVal(); break;
 	case TYPE_PATTERN:	avu.re_val = v->AsPatternVal(); break;
+	case TYPE_PORT:		avu.port_val = v->AsPortVal(); break;
 	case TYPE_RECORD:	avu.record_val = v->AsRecordVal(); break;
+	case TYPE_STRING:	avu.string_val = v->AsStringVal(); break;
+	case TYPE_SUBNET:	avu.subnet_val = v->AsSubNetVal(); break;
 	case TYPE_TABLE:	avu.table_val = v->AsTableVal(); break;
 	case TYPE_VECTOR:	avu.vector_val = v->AsVectorVal(); break;
+
+	case TYPE_ANY:		avu.any_val = vu; break;
+	case TYPE_TYPE:		avu.type_val = t; break;
+
+	case TYPE_ERROR:
+	case TYPE_TIMER:
+	case TYPE_UNION:
+	case TYPE_VOID:
+		reporter->InternalError("bad ret type return tag");
 	}
 
 	return avu;

@@ -64,10 +64,9 @@ protected:
 	// Returns a new value constructed from the given value and
 	// accompanying type.  The value has the proper subclass if
 	// need be.
-	IntrusivePtr<Val> ASValToVal(const AS_ValUnion& u,
-					const BroType* t) const;
+	IntrusivePtr<Val> ASValToVal(const AS_ValUnion& u, BroType* t) const;
 
-	union AS_ValUnion ValToASVal(Val* v, const BroType* t) const;
+	union AS_ValUnion ValToASVal(Val* v, BroType* t) const;
 
 	void SyncGlobals();
 

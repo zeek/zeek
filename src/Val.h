@@ -364,6 +364,12 @@ protected:
 		{
 		}
 
+	Val(BroValUnion u, BroType* t)
+		{
+		val = u;
+		type = t;
+		}
+
 	ACCESSOR(TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsNonConstTable)
 	ACCESSOR(TYPE_RECORD, val_list*, val_list_val, AsNonConstRecord)
 

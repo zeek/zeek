@@ -37,19 +37,21 @@ typedef enum {
 	OP_RET_C,
 	OP_RET_X,
 
-	OP_PRINT,
+	OP_PRINT_V,
 
 	// Internal operands.
 
-	// Initializes a list of values.
-	OP_CREATE_LIST,
+	// Initializes a vector of values.
+	OP_CREATE_VAL_VEC_VV,
 
-	// Sets an element of that list.
-	OP_SET_LIST_V,
-	OP_SET_LIST_C,
+	// Appends an element to such a list.
+	OP_SET_VAL_VEC_VV,
+	OP_SET_VAL_VEC_VC,
 
 } AbstractOp;
 
+
+typedef std::vector<IntrusivePtr<Val>> val_vec;
 
 // A bit of this mirrors BroValUnion, but it captures low-level
 // representation whereas we aim to keep Val structure for
@@ -81,6 +83,7 @@ union AS_ValUnion {
 	VectorVal* vector_val;
 
 	// Used for the compiler to hold opaque items.
+	val_vec* vvec;
 	void* void_val;
 };
 
@@ -189,36 +192,39 @@ IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 			loop = false;
 			break;
 
-		case OP_PRINT:
+		case OP_PRINT_V:
 			{
-			auto list = (AS_ValUnion*) frame[s.v1].void_val;
-			
-			// We could do better by updating do_print()
-			// to take just a vector of BroValUnion's
-        // friend void do_print(std::vector<IntrusivePtr<Val>> vals);
-
+			auto vvec = frame[s.v1].vvec;
+			do_print(*vvec);
+			delete vvec;
+			break;
 			}
 
-		case OP_CREATE_LIST:
-			// Initializes a new list.  For now, we
+		case OP_CREATE_VAL_VEC_VV:
+			// Initializes a new value vector.  We now
 			// do this dynamically, but at same point
-			// we should switch it to a static region
+			// we could switch it to a static vector
 			// since we'll only have one of these at
 			// at time.
-			frame[s.v1].void_val = new Val*[s.v2];
+			//
+			// v1 is where to store the vector, v2 is
+			// its size (which we don't presently use).
+			frame[s.v1].vvec = new val_vec;
 			break;
 
-		case OP_SET_LIST_V:
+		case OP_SET_VAL_VEC_VV:
 			{
-			auto list = (Val**) frame[s.v1].void_val;
-			list[s.v2] = BuildVal(frame[s.v3], s.t).release();
+			// Appends v2 to the vector pointed to by v1.
+			auto v = ASValToVal(frame[s.v2], s.t);
+			frame[s.v1].vvec->push_back(v);
 			break;
 			}
 
-		case OP_SET_LIST_C:
+		case OP_SET_VAL_VEC_VC:
 			{
-			auto list = (Val**) frame[s.v1].void_val;
-			list[s.v2] = BuildVal(s.c, s.t).release();
+			// Appends c to the vector pointed to by v1.
+			auto c = ASValToVal(s.c, s.t);
+			frame[s.v1].vvec->push_back(c);
 			break;
 			}
 		}
@@ -227,7 +233,7 @@ IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 		}
 
 	if ( ret_u )
-		return BuildVal(*ret_u, ret_type);
+		return ASValToVal(*ret_u, ret_type);
 	else
 		return nullptr;
 	}
@@ -237,7 +243,7 @@ const CompiledStmt AbstractMachine::Print(OpaqueVals* v)
 	int reg = v->n;
 	delete v;
 
-	return AddStmt(AbstractStmt(OP_PRINT, reg));
+	return AddStmt(AbstractStmt(OP_PRINT_V, reg));
 	}
 
 const CompiledStmt AbstractMachine::ReturnV(const NameExpr* n)
@@ -254,7 +260,7 @@ const CompiledStmt AbstractMachine::ReturnC(const ConstExpr* c)
 	SyncGlobals();
 
 	auto v = c->Value();
-	AbstractStmt s(OP_RET_C, ValToASVal(v->val, c->Type().get()));
+	AbstractStmt s(OP_RET_C, ValToASVal(v, c->Type().get()));
 	s.t = c->Type().get();
 	return AddStmt(s);
 	}
@@ -273,7 +279,7 @@ OpaqueVals* AbstractMachine::BuildVals(const IntrusivePtr<ListExpr>& l)
 	int n = exprs.length();
 	auto tmp = RegisterSlot();
 
-	(void) AddStmt(AbstractStmt(OP_CREATE_LIST, tmp, n));
+	(void) AddStmt(AbstractStmt(OP_CREATE_VAL_VEC_VV, tmp, n));
 
 	for ( int i = 0; i < n; ++i )
 		{
@@ -284,13 +290,13 @@ OpaqueVals* AbstractMachine::BuildVals(const IntrusivePtr<ListExpr>& l)
 		if ( e->Tag() == EXPR_NAME )
 			{
 			auto id = FrameSlot(e->AsNameExpr()->Id());
-			as = AbstractStmt(OP_SET_LIST_V, tmp, i, id);
+			as = AbstractStmt(OP_SET_VAL_VEC_VV, tmp, id);
 			}
 		else
 			{
-			auto c = e->AsConstExpr()->Value()->val;
+			auto c = e->AsConstExpr()->Value();
 			auto as_val = ValToASVal(c, e->Type().get());
-			as = AbstractStmt(OP_SET_LIST_C, tmp, i, as_val);
+			as = AbstractStmt(OP_SET_VAL_VEC_VC, tmp, as_val);
 			}
 
 		as.t = e->Type().get();
@@ -306,7 +312,7 @@ const CompiledStmt AbstractMachine::AddStmt(const AbstractStmt& stmt)
 	return CompiledStmt(stmts.size());
 	}
 
-IntrusivePtr<Val> AbstractMachine::BuildVal(const AS_ValUnion& u,
+IntrusivePtr<Val> AbstractMachine::ASValToVal(const AS_ValUnion& u,
 						const BroType* t) const
 	{
 	Val* v;
@@ -321,13 +327,14 @@ IntrusivePtr<Val> AbstractMachine::BuildVal(const AS_ValUnion& u,
 	case TYPE_FILE:		v = new Val(u.file_val); break;
 	case TYPE_INTERVAL:	v = new IntervalVal(u.double_val, 1.0); break;
 	case TYPE_BOOL:		v = Val::MakeBool(u.int_val); break;
-	case TYPE_PORT:		v = u.port_val; break;
-	case TYPE_ENUM:		v = u.enum_val; break;
-	case TYPE_STRING:	v = u.string_val; break;
-	case TYPE_PATTERN:	v = u.re_val; break;
-	case TYPE_RECORD:	v = u.record_val; break;
-	case TYPE_TABLE:	v = u.table_val; break;
-	case TYPE_VECTOR:	v = u.vector_val; break;
+
+	case TYPE_PORT:		v = u.port_val; v->Ref(); break;
+	case TYPE_ENUM:		v = u.enum_val; v->Ref(); break;
+	case TYPE_STRING:	v = u.string_val; v->Ref(); break;
+	case TYPE_PATTERN:	v = u.re_val; v->Ref(); break;
+	case TYPE_RECORD:	v = u.record_val; v->Ref(); break;
+	case TYPE_TABLE:	v = u.table_val; v->Ref(); break;
+	case TYPE_VECTOR:	v = u.vector_val; v->Ref(); break;
 
 #if 0
 	default:
@@ -336,6 +343,43 @@ IntrusivePtr<Val> AbstractMachine::BuildVal(const AS_ValUnion& u,
 	}
 
 	return {NewRef{}, v};
+	}
+
+union AS_ValUnion AbstractMachine::ValToASVal(Val* v, const BroType* t) const
+	{
+	union BroValUnion vu = v->val;
+	union AS_ValUnion avu;
+
+	switch ( t->Tag() ) {
+	case TYPE_BOOL:
+	case TYPE_INT:
+		avu.int_val = vu.int_val;
+		break;
+
+	case TYPE_COUNT:
+	case TYPE_COUNTER:
+		avu.uint_val = vu.uint_val;
+		break;
+
+	case TYPE_DOUBLE:
+	case TYPE_TIME:
+	case TYPE_INTERVAL:
+		avu.double_val = vu.double_val;
+		break;
+
+	case TYPE_FUNC:		avu.func_val = vu.func_val; break;
+	case TYPE_FILE:		avu.file_val = vu.file_val; break;
+
+	case TYPE_PORT:		avu.port_val = v->AsPortVal(); break;
+	case TYPE_ENUM:		avu.enum_val = v->AsEnumVal(); break;
+	case TYPE_STRING:	avu.string_val = v->AsStringVal(); break;
+	case TYPE_PATTERN:	avu.re_val = v->AsPatternVal(); break;
+	case TYPE_RECORD:	avu.record_val = v->AsRecordVal(); break;
+	case TYPE_TABLE:	avu.table_val = v->AsTableVal(); break;
+	case TYPE_VECTOR:	avu.vector_val = v->AsVectorVal(); break;
+	}
+
+	return avu;
 	}
 
 void AbstractMachine::SyncGlobals()

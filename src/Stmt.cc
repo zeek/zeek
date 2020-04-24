@@ -206,7 +206,7 @@ IntrusivePtr<Val> ExprListStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	auto vals = eval_list(f, l.get());
 
 	if ( vals )
-		return DoExec(std::move(*vals), flow);
+		return DoExec(*vals, flow);
 
 	return nullptr;
 	}
@@ -319,7 +319,7 @@ static void print_log(const std::vector<IntrusivePtr<Val>>& vals)
 	}
 
 
-IntrusivePtr<Val> PrintStmt::DoExec(std::vector<IntrusivePtr<Val>> vals,
+IntrusivePtr<Val> PrintStmt::DoExec(const std::vector<IntrusivePtr<Val>>& vals,
                                     stmt_flow_type& /* flow */) const
 	{
 	RegisterAccess();
@@ -327,7 +327,7 @@ IntrusivePtr<Val> PrintStmt::DoExec(std::vector<IntrusivePtr<Val>> vals,
 	return nullptr;
 	}
 
-void do_print(std::vector<IntrusivePtr<Val>> vals)
+void do_print(const std::vector<IntrusivePtr<Val>>& vals)
 	{
 	if ( ! print_stdout )
 		print_stdout = new BroFile(stdout);

@@ -71,7 +71,7 @@ public:
 
 protected:
 
-	friend void do_print(std::vector<IntrusivePtr<Val>> vals);
+	friend void do_print(const std::vector<IntrusivePtr<Val>>& vals);
 
 	BroFile()	{ Init(); }
 	void Init();

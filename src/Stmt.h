@@ -158,7 +158,7 @@ protected:
 	~ExprListStmt() override;
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
-	virtual IntrusivePtr<Val> DoExec(std::vector<IntrusivePtr<Val>> vals,
+	virtual IntrusivePtr<Val> DoExec(const std::vector<IntrusivePtr<Val>>& vals,
 	                                 stmt_flow_type& flow) const = 0;
 
 	bool IsReduced() const override;
@@ -180,7 +180,7 @@ public:
 	explicit PrintStmt(L&& l) : ExprListStmt(STMT_PRINT, std::forward<L>(l)) { }
 
 protected:
-	IntrusivePtr<Val> DoExec(std::vector<IntrusivePtr<Val>> vals,
+	IntrusivePtr<Val> DoExec(const std::vector<IntrusivePtr<Val>>& vals,
 	                         stmt_flow_type& flow) const override;
 
 	Stmt* DoSubclassReduce(IntrusivePtr<ListExpr> singletons,
@@ -189,7 +189,7 @@ protected:
 	void Compile(StmtCompiler* c) const override;
 };
 
-extern void do_print(std::vector<IntrusivePtr<Val>> vals);
+extern void do_print(const std::vector<IntrusivePtr<Val>>& vals);
 
 
 class ExprStmt : public Stmt {

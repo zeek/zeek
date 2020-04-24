@@ -275,18 +275,6 @@ public:
 		return (ctype)(this); \
 		}
 
-	CONVERTER(TYPE_PATTERN, PatternVal*, AsPatternVal)
-	CONVERTER(TYPE_PORT, PortVal*, AsPortVal)
-	CONVERTER(TYPE_SUBNET, SubNetVal*, AsSubNetVal)
-	CONVERTER(TYPE_ADDR, AddrVal*, AsAddrVal)
-	CONVERTER(TYPE_TABLE, TableVal*, AsTableVal)
-	CONVERTER(TYPE_RECORD, RecordVal*, AsRecordVal)
-	CONVERTER(TYPE_LIST, ListVal*, AsListVal)
-	CONVERTER(TYPE_STRING, StringVal*, AsStringVal)
-	CONVERTER(TYPE_VECTOR, VectorVal*, AsVectorVal)
-	CONVERTER(TYPE_ENUM, EnumVal*, AsEnumVal)
-	CONVERTER(TYPE_OPAQUE, OpaqueVal*, AsOpaqueVal)
-
 #define CONST_CONVERTER(tag, ctype, name) \
 	const ctype name() const \
 		{ \
@@ -294,16 +282,21 @@ public:
 		return (const ctype)(this); \
 		}
 
-	CONST_CONVERTER(TYPE_PATTERN, PatternVal*, AsPatternVal)
-	CONST_CONVERTER(TYPE_PORT, PortVal*, AsPortVal)
-	CONST_CONVERTER(TYPE_SUBNET, SubNetVal*, AsSubNetVal)
-	CONST_CONVERTER(TYPE_ADDR, AddrVal*, AsAddrVal)
-	CONST_CONVERTER(TYPE_TABLE, TableVal*, AsTableVal)
-	CONST_CONVERTER(TYPE_RECORD, RecordVal*, AsRecordVal)
-	CONST_CONVERTER(TYPE_LIST, ListVal*, AsListVal)
-	CONST_CONVERTER(TYPE_STRING, StringVal*, AsStringVal)
-	CONST_CONVERTER(TYPE_VECTOR, VectorVal*, AsVectorVal)
-	CONST_CONVERTER(TYPE_OPAQUE, OpaqueVal*, AsOpaqueVal)
+#define CONVERTERS(tag, ctype, name) \
+	CONVERTER(tag, ctype, name) \
+	CONST_CONVERTER(tag, ctype, name)
+
+	CONVERTERS(TYPE_PATTERN, PatternVal*, AsPatternVal)
+	CONVERTERS(TYPE_PORT, PortVal*, AsPortVal)
+	CONVERTERS(TYPE_SUBNET, SubNetVal*, AsSubNetVal)
+	CONVERTERS(TYPE_ADDR, AddrVal*, AsAddrVal)
+	CONVERTERS(TYPE_TABLE, TableVal*, AsTableVal)
+	CONVERTERS(TYPE_RECORD, RecordVal*, AsRecordVal)
+	CONVERTERS(TYPE_LIST, ListVal*, AsListVal)
+	CONVERTERS(TYPE_STRING, StringVal*, AsStringVal)
+	CONVERTERS(TYPE_VECTOR, VectorVal*, AsVectorVal)
+	CONVERTERS(TYPE_ENUM, EnumVal*, AsEnumVal)
+	CONVERTERS(TYPE_OPAQUE, OpaqueVal*, AsOpaqueVal)
 
 	void Describe(ODesc* d) const override;
 	virtual void DescribeReST(ODesc* d) const;

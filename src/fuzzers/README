@@ -1,0 +1,79 @@
+Fuzz Testing
+============
+
+This directory contains fuzzing targets for various Zeek components.  The
+primary way to use these directly would be with a fuzzing engine such as
+libFuzzer: https://llvm.org/docs/LibFuzzer.html
+
+Example Build: Initial Fuzzing and Seed Corpus
+----------------------------------------------
+
+First configure and build for fuzzing (with libFuzzer) and code coverage::
+
+    $ LIB_FUZZING_ENGINE="-fsanitize=fuzzer" CC=clang CXX=clang++ \
+      CFLAGS="-fprofile-instr-generate -fcoverage-mapping" \
+      CXXFLAGS="-fprofile-instr-generate -fcoverage-mapping" \
+      ./configure --build-type=RelWithDebInfo --build-dir=./build-fuzz-cov \
+      --sanitizers=fuzzer-no-link --enable-fuzzing
+
+    $ cd build-fuzz-cov && make -j $(nproc)
+
+Now start fuzzing to generate an initial corpus (this uses the POP3 fuzzer as
+an example)::
+
+    $ mkdir corpus && ./src/fuzzers/zeek-pop3-fuzzer corpus \
+      -dict=../src/fuzzers/pop3.dict -max_total_time=300 -fork=$(($(nproc) - 1))
+
+You can set options, like the runtime and parallelism level, to taste.  For
+other fuzz targets, you'd also want to use a different dictionary or omit
+entirely.
+
+To minimize the size of the corpus::
+
+    $ mkdir min-corpus && ./src/fuzzers/zeek-pop3-fuzzer -merge=1 min-corpus corpus
+
+To check the code coverage of the corpus::
+
+    $ ./src/fuzzers/zeek-pop3-fuzzer min-corpus/*
+
+    $ llvm-profdata merge -sparse default.profraw -o zeek.profdata && \
+      llvm-cov report ./src/fuzzers/zeek-pop3-fuzzer -instr-profile=zeek.profdata \
+        ../src/analyzer/protocol/pop3/
+
+If the code coverage isn't satisfying, there may be something wrong with
+the fuzzer, it may need a better dictionary, or it may need to fuzz for longer.
+
+The corpus can be added to revision control for use in regression testing and
+as seed for OSS-Fuzz (check first that the zip file is a size that's sane to
+commit)::
+
+    zip -j ../src/fuzzers/pop3-corpus.zip min-corpus/*
+
+Example Build: Run Standalone Fuzz Targets
+------------------------------------------
+
+Fuzz targets can still be run without a fuzzing engine driving them.  In
+standalone mode, they'll process all input files provided as arguments
+(e.g. useful for regression testing).
+
+First configure and build::
+
+    $ CC=clang CXX=clang++ \
+      ./configure --build-type=debug --build-dir=./build-fuzz-check \
+      --sanitizers=address,fuzzer-no-link --enable-fuzzing
+
+    $ cd build-fuzz-cov && make -j $(nproc)
+
+Get a set of inputs to process (we're using the POP3 fuzzer/corpus as example)::
+
+    $ mkdir corpus && ( cd corpus && unzip ../../src/fuzzers/pop3-corpus.zip )
+
+Now run the standalone fuzzer on the input corpus::
+
+    $ ./src/fuzzers/zeek-pop3-fuzzer corpus/*
+
+Note that you can also configure this build for coverage reports to verify the
+code coverage (see the CFLAGS/CXXFLAGS from the first "Initial Fuzzing"
+section).  There's also the following ASan option which may need to be used::
+
+    $ export ASAN_OPTIONS=detect_odr_violation=0

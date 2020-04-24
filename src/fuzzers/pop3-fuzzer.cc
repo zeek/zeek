@@ -9,7 +9,7 @@
 #include "analyzer/protocol/tcp/TCP.h"
 
 #include "FuzzBuffer.h"
-#include "fuzz-setup.h"
+#include "fuzzer-setup.h"
 
 static constexpr auto ZEEK_FUZZ_ANALYZER = "pop3";
 

@@ -15,6 +15,7 @@
 #include "Desc.h"
 #include "Debug.h"
 #include "Reduce.h"
+#include "Compile.h"
 #include "Traverse.h"
 #include "Trigger.h"
 #include "IntrusivePtr.h"
@@ -114,6 +115,11 @@ Stmt* Stmt::Reduce(Reducer* c)
 
 		return DoReduce(c);
 		}
+	}
+
+void Stmt::Compile(StmtCompiler* c) const
+	{
+	// reporter->InternalError("no compile method");
 	}
 
 void Stmt::Describe(ODesc* d) const
@@ -317,7 +323,12 @@ IntrusivePtr<Val> PrintStmt::DoExec(std::vector<IntrusivePtr<Val>> vals,
                                     stmt_flow_type& /* flow */) const
 	{
 	RegisterAccess();
+	do_print(vals);
+	return nullptr;
+	}
 
+void do_print(std::vector<IntrusivePtr<Val>> vals)
+	{
 	if ( ! print_stdout )
 		print_stdout = new BroFile(stdout);
 
@@ -328,7 +339,7 @@ IntrusivePtr<Val> PrintStmt::DoExec(std::vector<IntrusivePtr<Val>> vals,
 		{
 		f = (vals)[0]->AsFile();
 		if ( ! f->IsOpen() )
-			return nullptr;
+			return;
 
 		++offset;
 		}
@@ -342,7 +353,7 @@ IntrusivePtr<Val> PrintStmt::DoExec(std::vector<IntrusivePtr<Val>> vals,
 	case BifEnum::Log::REDIRECT_ALL:
 		{
 		print_log(vals);
-		return nullptr;
+		return;
 		}
 	case BifEnum::Log::REDIRECT_STDOUT:
 		if ( f->File() == stdout )
@@ -350,7 +361,7 @@ IntrusivePtr<Val> PrintStmt::DoExec(std::vector<IntrusivePtr<Val>> vals,
 			// Should catch even printing to a "manually opened" stdout file,
 			// like "/dev/stdout" or "-".
 			print_log(vals);
-			return nullptr;
+			return;
 			}
 		break;
 	default:
@@ -380,7 +391,7 @@ IntrusivePtr<Val> PrintStmt::DoExec(std::vector<IntrusivePtr<Val>> vals,
 		f->Write("\n", 1);
 		}
 
-	return nullptr;
+	return;
 	}
 
 Stmt* PrintStmt::DoSubclassReduce(IntrusivePtr<ListExpr> singletons,
@@ -389,6 +400,12 @@ Stmt* PrintStmt::DoSubclassReduce(IntrusivePtr<ListExpr> singletons,
 	auto new_me = new PrintStmt(singletons);
 	new_me->SetOriginal(this);
 	return new_me;
+	}
+
+void PrintStmt::Compile(StmtCompiler* c) const
+	{
+	auto exprs = c->BuildVals(l);
+	c->Print(exprs);
 	}
 
 ExprStmt::ExprStmt(IntrusivePtr<Expr> arg_e) : Stmt(STMT_EXPR), e(std::move(arg_e))
@@ -1888,6 +1905,20 @@ Stmt* ReturnStmt::DoReduce(Reducer* c)
 		}
 
 	return this->Ref();
+	}
+
+void ReturnStmt::Compile(StmtCompiler* c) const
+	{
+	if ( e )
+		{
+		if ( e->Tag() == EXPR_NAME )
+			c->ReturnV(e->AsNameExpr());
+		else
+			c->ReturnC(e->AsConstExpr());
+		}
+
+	else
+		c->ReturnX();
 	}
 
 void ReturnStmt::StmtDescribe(ODesc* d) const

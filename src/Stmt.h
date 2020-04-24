@@ -30,6 +30,7 @@ class PrintStmt;
 class Frame;
 
 class Reducer;
+class StmtCompiler;
 
 class Stmt : public BroObj {
 public:
@@ -51,9 +52,10 @@ public:
 	// True if the statement is in reduced form.
 	virtual bool IsReduced() const;
 
-	// Should deal with being called if IsReduced() returns true.
 	Stmt* Reduce(Reducer* c);
 	virtual Stmt* DoReduce(Reducer* c)	{ return this->Ref(); }
+
+	virtual void Compile(StmtCompiler* c) const;
 
 #undef ACCESSOR
 #define ACCESSOR(tag, ctype, name) \
@@ -183,7 +185,12 @@ protected:
 
 	Stmt* DoSubclassReduce(IntrusivePtr<ListExpr> singletons,
 			Reducer* c) override;
+
+	void Compile(StmtCompiler* c) const override;
 };
+
+extern void do_print(std::vector<IntrusivePtr<Val>> vals);
+
 
 class ExprStmt : public Stmt {
 public:
@@ -462,6 +469,7 @@ public:
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	Stmt* DoReduce(Reducer* c) override;
+	void Compile(StmtCompiler* c) const override;
 
 	void StmtDescribe(ODesc* d) const override;
 };

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Obj.h"
+#include "Val.h"
 #include "IntrusivePtr.h"
 
 #include <list>
@@ -70,7 +71,7 @@ public:
 
 protected:
 
-	friend class PrintStmt;
+	friend void do_print(std::vector<IntrusivePtr<Val>> vals);
 
 	BroFile()	{ Init(); }
 	void Init();

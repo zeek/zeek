@@ -117,7 +117,7 @@ Stmt* Stmt::Reduce(Reducer* c)
 		}
 	}
 
-CompiledStmt Stmt::Compile(StmtCompiler* c) const
+CompiledStmt Stmt::Compile(Compiler* c) const
 	{
 	// reporter->InternalError("no compile method");
 	}
@@ -402,7 +402,7 @@ Stmt* PrintStmt::DoSubclassReduce(IntrusivePtr<ListExpr> singletons,
 	return new_me;
 	}
 
-CompiledStmt PrintStmt::Compile(StmtCompiler* c) const
+CompiledStmt PrintStmt::Compile(Compiler* c) const
 	{
 	auto exprs = c->BuildVals(l);
 	return c->Print(exprs);
@@ -455,7 +455,7 @@ bool ExprStmt::IsReduced() const
 	return NonReduced(e.get());
 	}
 
-CompiledStmt ExprStmt::Compile(StmtCompiler* c) const
+CompiledStmt ExprStmt::Compile(Compiler* c) const
 	{
 	return e->Compile(c);
 	}
@@ -1912,7 +1912,7 @@ Stmt* ReturnStmt::DoReduce(Reducer* c)
 	return this->Ref();
 	}
 
-CompiledStmt ReturnStmt::Compile(StmtCompiler* c) const
+CompiledStmt ReturnStmt::Compile(Compiler* c) const
 	{
 	if ( e )
 		{
@@ -2057,7 +2057,7 @@ Stmt* StmtList::DoReduce(Reducer* c)
 	return this->Ref();
 	}
 
-CompiledStmt StmtList::Compile(StmtCompiler* c) const
+CompiledStmt StmtList::Compile(Compiler* c) const
 	{
 	auto start = c->StartingBlock();
 

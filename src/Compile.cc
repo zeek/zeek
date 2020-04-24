@@ -596,7 +596,7 @@ int AbstractMachine::RegisterSlot()
 	}
 
 
-TraversalCode StmtCompiler::Traverse(TraversalCallback* cb) const
+TraversalCode Compiler::Traverse(TraversalCallback* cb) const
 	{
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);

@@ -92,7 +92,7 @@ struct function_ingredients;
 
 class Reducer;
 class CompiledStmt;
-class StmtCompiler;
+class Compiler;
 
 
 class Expr : public BroObj {
@@ -179,7 +179,7 @@ public:
 	// Returns a predecessor statement(list), if any.
 	virtual IntrusivePtr<Stmt> ReduceToSingletons(Reducer* c);
 
-	virtual CompiledStmt Compile(StmtCompiler* c) const;
+	virtual CompiledStmt Compile(Compiler* c) const;
 
 	// True if the expression can serve as an operand to a reduced
 	// expression.
@@ -577,7 +577,7 @@ public:
 
 	bool IsReduced() const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
-	CompiledStmt Compile(StmtCompiler* c) const override;
+	CompiledStmt Compile(Compiler* c) const override;
 };
 
 class RemoveFromExpr : public BinaryExpr {

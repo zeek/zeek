@@ -24,7 +24,7 @@ protected:
 
 class OpaqueVals;
 
-class StmtCompiler : public Stmt {
+class Compiler : public Stmt {
 public:
 	virtual const CompiledStmt Print(OpaqueVals* v) = 0;
 
@@ -46,7 +46,7 @@ public:
 class AbstractStmt;
 union AS_ValUnion;
 
-class AbstractMachine : public StmtCompiler {
+class AbstractMachine : public Compiler {
 public:
 	AbstractMachine(int frame_size);
 	~AbstractMachine() override;

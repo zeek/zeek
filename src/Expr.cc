@@ -254,7 +254,7 @@ IntrusivePtr<Stmt> Expr::ReduceToSingletons(Reducer* c)
 	return MergeStmts(red1_stmt, red2_stmt, red3_stmt);
 	}
 
-CompiledStmt Expr::Compile(StmtCompiler* c) const
+CompiledStmt Expr::Compile(Compiler* c) const
 	{
 	reporter->InternalError("confused in Expr::Compile");
 	}
@@ -1849,7 +1849,7 @@ Expr* AppendToExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	return this->Ref();
 	}
 
-CompiledStmt AppendToExpr::Compile(StmtCompiler* c) const
+CompiledStmt AppendToExpr::Compile(Compiler* c) const
 	{
 	}
 

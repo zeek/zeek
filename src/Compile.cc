@@ -35,6 +35,9 @@ typedef enum {
 typedef enum {
 	OP_NOP,
 
+	OP_ASSIGN_VC,
+	OP_ASSIGN_VV,
+
 	OP_RET_C,
 	OP_RET_V,
 	OP_RET_X,
@@ -59,6 +62,9 @@ const char* abstract_op_name(AbstractOp op)
 	{
 	switch ( op ) {
 	case OP_NOP:	return "nop";
+
+	case OP_ASSIGN_VC:	return "assignvc";
+	case OP_ASSIGN_VV:	return "assignvv";
 
 	case OP_RET_C:	return "retc";
 	case OP_RET_V:	return "retv";
@@ -444,6 +450,14 @@ IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 
 		switch ( stmts[pc].op ) {
 		case OP_NOP:
+			break;
+
+		case OP_ASSIGN_VC:
+			frame[s.v1] = s.c;
+			break;
+
+		case OP_ASSIGN_VV:
+			frame[s.v1] = frame[s.v2];
 			break;
 
 		case OP_RET_V:

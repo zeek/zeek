@@ -3533,6 +3533,59 @@ Expr* AssignExpr::ReduceToSingleton(Reducer* c,
 	return op1->AsRefExpr()->Op()->Ref();
 	}
 
+CompiledStmt AssignExpr::Compile(Compiler* c) const
+	{
+	auto lhs = op1->AsRefExpr()->GetOp1()->AsNameExpr();
+	auto rhs = op2.get();
+
+	switch ( rhs->Tag() ) {
+	case EXPR_NAME:	return c->AssignVV(lhs, rhs); break;
+	case EXPR_CONST:
+	case EXPR_CLONE:
+	case EXPR_NOT:
+	case EXPR_COMPLEMENT:
+	case EXPR_POSITIVE:
+	case EXPR_NEGATE:
+	case EXPR_ADD:
+	case EXPR_SUB:
+	case EXPR_APPEND_TO:
+	case EXPR_TIMES:
+	case EXPR_DIVIDE:
+	case EXPR_MOD:
+	case EXPR_AND:
+	case EXPR_OR:
+	case EXPR_XOR:
+	case EXPR_LT:
+	case EXPR_LE:
+	case EXPR_EQ:
+	case EXPR_NE:
+	case EXPR_GE:
+	case EXPR_GT:
+	case EXPR_COND:
+	case EXPR_INDEX:
+	case EXPR_ANY_INDEX:
+	case EXPR_FIELD:
+	case EXPR_HAS_FIELD:
+	case EXPR_RECORD_CONSTRUCTOR:
+	case EXPR_TABLE_CONSTRUCTOR:
+	case EXPR_SET_CONSTRUCTOR:
+	case EXPR_VECTOR_CONSTRUCTOR:
+	case EXPR_IN:
+	case EXPR_CALL:
+	case EXPR_LAMBDA:
+	case EXPR_ARITH_COERCE:
+	case EXPR_RECORD_COERCE:
+	case EXPR_TABLE_COERCE:
+	case EXPR_VECTOR_COERCE:
+	case EXPR_SIZE:
+	case EXPR_FLATTEN:
+	case EXPR_CAST:
+	case EXPR_IS:
+	default:
+		reporter->InternalError("inconsistency in AssignExpr::Compile");
+	}
+	}
+
 
 IndexAssignExpr::IndexAssignExpr(IntrusivePtr<Expr> arg_op1,
 					IntrusivePtr<Expr> arg_op2,

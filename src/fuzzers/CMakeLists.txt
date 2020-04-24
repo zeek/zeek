@@ -1,7 +1,7 @@
 ########################################################################
 ## Fuzzing targets
 
-if ( NOT ZEEK_ENABLE_FUZZING )
+if ( NOT ZEEK_ENABLE_FUZZERS )
     return()
 endif ()
 

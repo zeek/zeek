@@ -14,7 +14,7 @@ First configure and build for fuzzing (with libFuzzer) and code coverage::
       CFLAGS="-fprofile-instr-generate -fcoverage-mapping" \
       CXXFLAGS="-fprofile-instr-generate -fcoverage-mapping" \
       ./configure --build-type=RelWithDebInfo --build-dir=./build-fuzz-cov \
-      --sanitizers=fuzzer-no-link --enable-fuzzing
+      --sanitizers=fuzzer-no-link --enable-fuzzers
 
     $ cd build-fuzz-cov && make -j $(nproc)
 
@@ -60,9 +60,9 @@ First configure and build::
 
     $ CC=clang CXX=clang++ \
       ./configure --build-type=debug --build-dir=./build-fuzz-check \
-      --sanitizers=address,fuzzer-no-link --enable-fuzzing
+      --sanitizers=address --enable-fuzzers
 
-    $ cd build-fuzz-cov && make -j $(nproc)
+    $ cd build-fuzz-check && make -j $(nproc)
 
 Get a set of inputs to process (we're using the POP3 fuzzer/corpus as example)::
 

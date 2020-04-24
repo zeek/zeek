@@ -481,7 +481,7 @@ message(
     "\n       debugging:  ${USE_PERFTOOLS_DEBUG}"
     "\njemalloc:          ${ENABLE_JEMALLOC}"
     "\n"
-    "\nFuzz Targets:      ${ZEEK_ENABLE_FUZZING}"
+    "\nFuzz Targets:      ${ZEEK_ENABLE_FUZZERS}"
     "\nFuzz Engine:       ${ZEEK_FUZZING_ENGINE}"
     "\n"
     "\n================================================================\n"

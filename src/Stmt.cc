@@ -2052,6 +2052,12 @@ Stmt* StmtList::DoReduce(Reducer* c)
 	return this->Ref();
 	}
 
+void StmtList::Compile(StmtCompiler* c) const
+	{
+	for ( const auto& stmt : Stmts() )
+		stmt->Compile(c);
+	}
+
 bool StmtList::ReduceStmt(int& s_i, stmt_list* f_stmts, Reducer* c)
 	{
 	bool did_change = false;

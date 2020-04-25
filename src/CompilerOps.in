@@ -11,6 +11,18 @@ eval frame[s.v1] = frame[s.v2]
 
 ########################################
 
+expr-op Clone
+type VV
+eval auto v = frame[s.v2].ToVal(s.t)
+eval frame[s.v1] = AS_ValUnion(v->Clone().release(), s.t)
+
+expr-op Clone
+type VC
+eval auto c = s.c.ToVal(s.t)
+eval frame[s.v1] = AS_ValUnion(c->Clone().release(), s.t)
+
+########################################
+
 op AppendTo
 type VV
 eval auto vv = frame[s.v1].vector_val
@@ -79,3 +91,44 @@ internal-op Set-Val-Vec
 type VC
 eval auto c = s.c.ToVal(s.t)
 eval frame[s.v1].vvec->push_back(c)
+
+# EXPR_CLONE
+# EXPR_NOT
+# EXPR_COMPLEMENT
+# EXPR_POSITIVE
+# EXPR_NEGATE
+# EXPR_ADD
+# EXPR_SUB
+# EXPR_APPEND_TO
+# EXPR_TIMES
+# EXPR_DIVIDE
+# EXPR_MOD
+# EXPR_AND
+# EXPR_OR
+# EXPR_XOR
+# EXPR_LT
+# EXPR_LE
+# EXPR_EQ
+# EXPR_NE
+# EXPR_GE
+# EXPR_GT
+# EXPR_COND
+# EXPR_INDEX
+# EXPR_ANY_INDEX
+# EXPR_FIELD
+# EXPR_HAS_FIELD
+# EXPR_RECORD_CONSTRUCTOR
+# EXPR_TABLE_CONSTRUCTOR
+# EXPR_SET_CONSTRUCTOR
+# EXPR_VECTOR_CONSTRUCTOR
+# EXPR_IN
+# EXPR_CALL
+# EXPR_LAMBDA
+# EXPR_ARITH_COERCE
+# EXPR_RECORD_COERCE
+# EXPR_TABLE_COERCE
+# EXPR_VECTOR_COERCE
+# EXPR_SIZE
+# EXPR_FLATTEN
+# EXPR_CAST
+# EXPR_IS

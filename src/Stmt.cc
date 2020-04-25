@@ -120,6 +120,8 @@ Stmt* Stmt::Reduce(Reducer* c)
 const CompiledStmt Stmt::Compile(Compiler* c) const
 	{
 	// reporter->InternalError("no compile method");
+	// ###
+	return c->StartingBlock();
 	}
 
 void Stmt::Describe(ODesc* d) const

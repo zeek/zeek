@@ -1,4 +1,8 @@
 
+3.0.6-dev.5 | 2020-04-29 18:09:39 -0700
+
+  * Fix cloning of TypeType values (Vern Paxson, Corelight)
+
 3.0.6-dev.4 | 2020-04-29 17:42:18 -0700
 
   * Check for the existance of f?$conns in file_sniff event in

@@ -58,6 +58,8 @@ BEGIN	{
 
 $1 == "op"	{ dump_op(); op = $2; next }
 $1 == "expr-op"	{ dump_op(); op = $2; expr_op = 1; next }
+$1 == "unary-op"	{ dump_op(); op = $2; unary_op = 1; next }
+$1 == "unary-expr-op"	{ dump_op(); op = $2; expr_op = 1; unary_op = 1; next }
 $1 == "internal-op"	{ dump_op(); op = $2; internal_op = 1; next }
 
 $1 == "type"	{ type = $2; next }
@@ -119,6 +121,31 @@ function dump_op()
 	if ( ! op )
 		return
 
+	if ( unary_op )
+		{
+		build_op(op, "VV", expand_eval(eval, expr_op, 1))
+		build_op(op, "VC", expand_eval(eval, expr_op, 0))
+		}
+	else
+		build_op(op, type, eval)
+
+	clear_vars()
+	}
+
+function expand_eval(e, is_expr_op, is_var)
+	{
+	rep = is_var ? "frame[s.v2]" : "s.c"
+	e_copy = e
+	gsub(/\$1/, rep, e_copy)
+
+	if ( is_expr_op )
+		return "frame[s.v1] = " e_copy
+	else
+		return e_copy
+	}
+
+function build_op(op, type, eval)
+	{
 	if ( ! (type in args) )
 		{
 		print "bad type " type " for " op
@@ -200,9 +227,12 @@ function dump_op()
 
 		print ("\tcase " expr_case ":\treturn c->" op_type "(" eargs ");") >f
 		}
+	}
 
-	opaque = internal_op = expr_op = op = type = eval = method_pre = ""
-	eval_blank = multi_eval = ""
+function clear_vars()
+	{
+	opaque = type = eval = multi_eval = eval_blank = method_pre = ""
+	internal_op = unary_op = expr_op = op = ""
 	}
 
 function prep(f)

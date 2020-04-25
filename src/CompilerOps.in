@@ -1,38 +1,17 @@
 # Templates used to generate virtual functions, opcodes, and evaluation
 # code for compiled code.
 
-expr-op Assign
-type VC
-eval frame[s.v1] = s.c
+unary-expr-op Assign
+eval $1
 
-expr-op Assign
-type VV
-eval frame[s.v1] = frame[s.v2]
+unary-expr-op Clone
+eval AS_ValUnion($1.ToVal(s.t)->Clone().release(), s.t)
 
 ########################################
 
-expr-op Clone
-type VV
-eval auto v = frame[s.v2].ToVal(s.t)
-eval frame[s.v1] = AS_ValUnion(v->Clone().release(), s.t)
-
-expr-op Clone
-type VC
-eval auto c = s.c.ToVal(s.t)
-eval frame[s.v1] = AS_ValUnion(c->Clone().release(), s.t)
-
-########################################
-
-op AppendTo
-type VV
+unary-op AppendTo
 eval auto vv = frame[s.v1].vector_val
-eval vv->Assign(vv->Size(), frame[s.v2].ToVal(s.t))
-
-op AppendTo
-type VC
-eval auto vv = frame[s.v1].vector_val
-eval auto c = s.c.ToVal(s.t)
-eval vv->Assign(vv->Size(), c)
+eval vv->Assign(vv->Size(), $1.ToVal(s.t))
 
 ########################################
 
@@ -92,7 +71,6 @@ type VC
 eval auto c = s.c.ToVal(s.t)
 eval frame[s.v1].vvec->push_back(c)
 
-# EXPR_CLONE
 # EXPR_NOT
 # EXPR_COMPLEMENT
 # EXPR_POSITIVE

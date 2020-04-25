@@ -8,30 +8,6 @@
 #include "Traverse.h"
 
 
-#define TYPE_ENUM(prefix) \
-	prefix ## _INT,	\
-	prefix ## _UINT,	\
-	prefix ## _ADDR,	\
-	prefix ## _SUBNET,	\
-	prefix ## _DOUBLE,	\
-	prefix ## _STRING,	\
-	prefix ## _FUNC,	\
-	prefix ## _FILE,	\
-	prefix ## _RE,	\
-	prefix ## _TABLE,	\
-	prefix ## _VECTOR,	\
-	prefix ## _UNION_VAL_LIST,	\
-	prefix ## _VAL,	\
-	prefix ## _VAL_LIST,
-
-#define VAL_TYPES TYPE_ENUM(VAL_TYPE)
-
-typedef enum {
-	VAL_TYPES
-} ValType;
-
-#define OP_FAMILY(op) TYPE_ENUM(OP_ ## op)
-
 typedef enum {
 	OP_NOP,
 

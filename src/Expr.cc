@@ -3620,6 +3620,11 @@ Expr* IndexAssignExpr::ReduceToSingleton(Reducer* c,
 	return final_res;
 	}
 
+CompiledStmt IndexAssignExpr::Compile(Compiler* c) const
+	{
+	// ###
+	}
+
 void IndexAssignExpr::ExprDescribe(ODesc* d) const
 	{
 	op1->Describe(d);
@@ -3656,6 +3661,12 @@ IntrusivePtr<Val> IndexSliceAssignExpr::Eval(Frame* f) const
 
 	return nullptr;
 	}
+
+CompiledStmt IndexSliceAssignExpr::Compile(Compiler* c) const
+	{
+	// ###
+	}
+
 
 IndexExpr::IndexExpr(IntrusivePtr<Expr> arg_op1,
                      IntrusivePtr<ListExpr> arg_op2, bool arg_is_slice)
@@ -4075,6 +4086,11 @@ Expr* FieldLHSAssignExpr::ReduceToSingleton(Reducer* c,
 	red_stmt = MergeStmts(assign_stmt, red_stmt, field_res_stmt);
 
 	return res;
+	}
+
+CompiledStmt FieldLHSAssignExpr::Compile(Compiler* c) const
+	{
+	// ###
 	}
 
 void FieldLHSAssignExpr::ExprDescribe(ODesc* d) const
@@ -5363,6 +5379,11 @@ IntrusivePtr<Val> ScheduleExpr::Eval(Frame* f) const
 	return nullptr;
 	}
 
+CompiledStmt ScheduleExpr::Compile(Compiler* c) const
+	{
+	// ###
+	}
+
 IntrusivePtr<Expr> ScheduleExpr::GetOp1() const
 	{
 	return when;
@@ -5748,6 +5769,11 @@ IntrusivePtr<Val> CallExpr::Eval(Frame* f) const
 	return ret;
 	}
 
+CompiledStmt CallExpr::Compile(Compiler* c) const
+	{
+	// ###
+	}
+
 TraversalCode CallExpr::Traverse(TraversalCallback* cb) const
 	{
 	TraversalCode tc = cb->PreExpr(this);
@@ -5984,6 +6010,11 @@ Expr* EventExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 IntrusivePtr<Stmt> EventExpr::ReduceToSingletons(Reducer* c)
 	{
 	return args->ReduceToSingletons(c);
+	}
+
+CompiledStmt EventExpr::Compile(Compiler* c) const
+	{
+	// ###
 	}
 
 TraversalCode EventExpr::Traverse(TraversalCallback* cb) const

@@ -115,7 +115,7 @@ function dump_op()
 	print ("\tconst CompiledStmt " op_type args[type] " override;") >sub_class_f
 	print ("\t" full_op ",") >ops_f
 	print ("\tcase " full_op ":\treturn \"" op "_" type "\";") >ops_names_f
-	print ("\tcase " full_op ":\t" eval "; break;") >ops_eval_f
+	print ("\tcase " full_op ":\t{ " eval "; } break;") >ops_eval_f
 
 	print ("const CompiledStmt AbstractMachine::" op_type args[type]) >methods_f
 

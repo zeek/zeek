@@ -11,6 +11,16 @@ eval frame[s.v1] = frame[s.v2]
 
 ########################################
 
+op AppendTo
+type VV
+eval auto vv = frame[s.v1].vector_val; vv->Assign(vv->Size(), frame[s.v2].ToVal(s.t))
+
+op AppendTo
+type VC
+eval auto vv = frame[s.v1].vector_val; auto c = s.c.ToVal(s.t); vv->Assign(vv->Size(), c)
+
+########################################
+
 op Return
 type X
 eval ret_u = nullptr; loop = false

@@ -37,9 +37,6 @@ typedef enum {
 
 #include "CompilerOpsDefs.h"
 
-	OP_APPEND_TO_VV,
-	OP_APPEND_TO_VC,
-
 	// Internal operands.
 
 	// Initializes a vector of values.
@@ -57,9 +54,6 @@ const char* abstract_op_name(AbstractOp op)
 	case OP_NOP:	return "nop";
 
 #include "CompilerOpsNamesDefs.h"
-
-	case OP_APPEND_TO_VV:	return "append-to-vv";
-	case OP_APPEND_TO_VC:	return "append-to-vc";
 
 	case OP_CREATE_VAL_VEC_VV:	return "create-val-vec-vv";
 
@@ -440,21 +434,6 @@ IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 
 #include "CompilerOpsEvalDefs.h"
 
-		case OP_APPEND_TO_VV:
-			{ // Append v2 to v1.
-			auto vv = frame[s.v1].vector_val;
-			vv->Assign(vv->Size(), frame[s.v2].ToVal(s.t));
-			break;
-			}
-
-		case OP_APPEND_TO_VC:
-			{ // Append c to v1.
-			auto vv = frame[s.v1].vector_val;
-			auto c = s.c.ToVal(s.t);
-			vv->Assign(vv->Size(), c);
-			break;
-			}
-
 		case OP_CREATE_VAL_VEC_VV:
 			// Initializes a new value vector.  We now
 			// do this dynamically, but at same point
@@ -494,18 +473,6 @@ IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 	}
 
 #include "CompilerOpsMethodsDefs.h"
-
-const CompiledStmt AbstractMachine::AppendToVV(const NameExpr* n1,
-						const NameExpr* n2)
-	{
-	return AddStmt(GenStmt(this, OP_APPEND_TO_VV, n1, n2));
-	}
-
-const CompiledStmt AbstractMachine::AppendToVC(const NameExpr* n,
-						const ConstExpr* c)
-	{
-	return AddStmt(GenStmt(this, OP_APPEND_TO_VC, n, c));
-	}
 
 const CompiledStmt AbstractMachine::StartingBlock()
 	{

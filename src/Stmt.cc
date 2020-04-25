@@ -405,7 +405,7 @@ Stmt* PrintStmt::DoSubclassReduce(IntrusivePtr<ListExpr> singletons,
 CompiledStmt PrintStmt::Compile(Compiler* c) const
 	{
 	auto exprs = c->BuildVals(l);
-	return c->Print(exprs);
+	return c->PrintO(exprs);
 	}
 
 ExprStmt::ExprStmt(IntrusivePtr<Expr> arg_e) : Stmt(STMT_EXPR), e(std::move(arg_e))

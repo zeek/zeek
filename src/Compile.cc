@@ -40,8 +40,6 @@ typedef enum {
 	OP_APPEND_TO_VV,
 	OP_APPEND_TO_VC,
 
-	OP_PRINT_V,
-
 	// Internal operands.
 
 	// Initializes a vector of values.
@@ -62,8 +60,6 @@ const char* abstract_op_name(AbstractOp op)
 
 	case OP_APPEND_TO_VV:	return "append-to-vv";
 	case OP_APPEND_TO_VC:	return "append-to-vc";
-
-	case OP_PRINT_V:	return "printv";
 
 	case OP_CREATE_VAL_VEC_VV:	return "create-val-vec-vv";
 
@@ -444,14 +440,6 @@ IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 
 #include "CompilerOpsEvalDefs.h"
 
-		case OP_PRINT_V:
-			{
-			auto vvec = frame[s.v1].vvec;
-			do_print(*vvec);
-			delete vvec;
-			break;
-			}
-
 		case OP_APPEND_TO_VV:
 			{ // Append v2 to v1.
 			auto vv = frame[s.v1].vector_val;
@@ -506,14 +494,6 @@ IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 	}
 
 #include "CompilerOpsMethodsDefs.h"
-
-const CompiledStmt AbstractMachine::Print(OpaqueVals* v)
-	{
-	int reg = v->n;
-	delete v;
-
-	return AddStmt(AbstractStmt(OP_PRINT_V, reg));
-	}
 
 const CompiledStmt AbstractMachine::AppendToVV(const NameExpr* n1,
 						const NameExpr* n2)

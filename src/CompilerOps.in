@@ -9,6 +9,7 @@ expr-op Assign
 type VV
 eval frame[s.v1] = frame[s.v2]
 
+########################################
 
 op Return
 type X
@@ -24,3 +25,10 @@ op Return
 type C
 eval ret_u = &s.c; ret_type = s.t; loop = false
 method-pre	SyncGlobals()
+
+########################################
+
+op Print
+type O
+eval { auto vvec = frame[s.v1].vvec; do_print(*vvec); delete vvec; break; }
+method-pre int reg = v->n; delete v

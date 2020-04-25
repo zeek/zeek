@@ -33,8 +33,6 @@ public:
 	virtual const CompiledStmt AppendToVC(const NameExpr* n,
 						const ConstExpr* c) = 0;
 
-	virtual const CompiledStmt Print(OpaqueVals* v) = 0;
-
 	virtual const CompiledStmt StartingBlock() = 0;
 	virtual const CompiledStmt FinishBlock(const CompiledStmt start) = 0;
 
@@ -60,8 +58,6 @@ public:
 					const NameExpr* n2) override;
 	const CompiledStmt AppendToVC(const NameExpr* n,
 					const ConstExpr* c) override;
-
-	const CompiledStmt Print(OpaqueVals* v) override;
 
 	const CompiledStmt StartingBlock() override;
 	const CompiledStmt FinishBlock(const CompiledStmt start) override;

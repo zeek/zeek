@@ -19,6 +19,7 @@ BEGIN	{
 	prep(exprsV_f)
 
 	args["X"] = "()"
+	args["O"] = "(OpaqueVals* v)"
 	args["V"] = "(const NameExpr* n)"
 	args["VV"] = "(const NameExpr* n1, const NameExpr* n2)"
 	args["VVV"] = "(const NameExpr* n1, const NameExpr* n2, const NameExpr* n3)"
@@ -29,6 +30,7 @@ BEGIN	{
 	args["VCV"] = "(const NameExpr* n1, ConstExpr* c, const NameExpr* n2)"
 
 	args2["X"] = ""
+	args2["O"] = "reg"
 	args2["V"] = "n"
 	args2["VV"] = "n1, n2"
 	args2["VVV"] = "n1, n2, n3"
@@ -58,6 +60,7 @@ $1 == "op"	{ dump_op(); op = $2; expr_op = 0; next }
 $1 == "expr-op"	{ dump_op(); op = $2; expr_op = 1; next }
 
 $1 == "type"	{ type = $2; next }
+$1 == "opaque"	{ opaque = 1; next }
 $1 == "eval"	{ eval = all_but_first(); next }
 
 $1 == "method-pre"	{ method_pre = all_but_first(); next }
@@ -119,7 +122,9 @@ function dump_op()
 	print ("\t{") >methods_f
 	if ( method_pre )
 		print ("\t" method_pre ";") >methods_f
-	if ( args2[type] != "" )
+	if ( type == "O" )
+		print ("\treturn AddStmt(AbstractStmt(" full_op ", reg));") >methods_f
+	else if ( args2[type] != "" )
 		print ("\treturn AddStmt(GenStmt(this, " full_op ", " args2[type] "));") >methods_f
 	else
 		print ("\treturn AddStmt(GenStmt(this, " full_op"));") >methods_f
@@ -169,7 +174,7 @@ function dump_op()
 		print ("\tcase " expr_case ":\treturn c->" op_type "(" eargs ");") >f
 		}
 
-	op = type = eval = method_pre = ""
+	opaque = op = type = eval = method_pre = ""
 	}
 
 function prep(f)

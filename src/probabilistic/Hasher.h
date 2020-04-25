@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Hash.h"
+#include "highwayhash/sip_hash.h"
 
 #include <broker/expected.hh>
 
@@ -24,7 +25,8 @@ public:
 	typedef hash_t digest;
 	typedef std::vector<digest> digest_vector;
 	struct seed_t {
-		alignas(16) highwayhash::HH_U64 h[2];
+		// actually HH_U64, which has the same type
+		alignas(16) unsigned long long h[2];
 
 		friend seed_t operator+(seed_t lhs, const uint64_t rhs) {
 			lhs.h[0] += rhs;

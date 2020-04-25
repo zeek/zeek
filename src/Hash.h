@@ -1,5 +1,22 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+/***
+ * This file contains functions to generate hashes used keyed hash functions.
+ * Keyed hash functions make it difficult/impossible to find information about the
+ * output of a hash when the key is unknown to the attacker. This fact holds, even
+ * when the input value us known.
+ *
+ * We use these kinds of hashes heavily internally - e.g. for scriptland hash generation.
+ * It is important that these hashes are not easily guessable to prevent complexity attacks.
+ *
+ * The HashKey class is the actual class that is used to generate Hash keys that are used internally,
+ * e.g. for lookups in hash-tables; the Hashes are also used for connection ID generation.
+ *
+ * This means that the hashes created by most functions in this file will be different each run, unless
+ * a seed file is used. There are a few functions that create hashes that are static over runs
+ * and use an installation-wide seed value; these are specifically called out.
+ */
+
 #pragma once
 
 #include "util.h" // for bro_int_t
@@ -8,7 +25,43 @@
 
 class BroString;
 
+// to allow bro_md5_hmac access to the hmac seed
+#include "ZeekArgs.h"
+class Val;
+class Frame;
+namespace BifFunc {
+	extern Val* bro_md5_hmac(Frame* frame, const zeek::Args*);
+}
+
 typedef uint64_t hash_t;
+typedef uint64_t hash64_t;
+typedef uint64_t hash128_t[2];
+typedef uint64_t hash256_t[4];
+
+class KeyedHash {
+public:
+	constexpr static int SEED_INIT_SIZE = 20;
+	static void InitializeSeeds(const std::array<uint32_t, SEED_INIT_SIZE>& seed_data);
+	static bool IsInitialized() { return seeds_initialized; }
+
+	static hash64_t Hash64(const void* bytes, uint64_t size);
+	static void Hash128(const void* bytes, uint64_t size, hash128_t* result);
+	static void Hash256(const void* bytes, uint64_t size, hash256_t* result);
+
+	static hash64_t StaticHash64(const void* bytes, uint64_t size);
+	static void StaticHash128(const void* bytes, uint64_t size, hash128_t* result);
+	static void StaticHash256(const void* bytes, uint64_t size, hash256_t* result);
+private:
+	// actually HHKey
+	alignas(32) inline static uint64_t shared_highwayhash_key[4];
+	// actually HH_U64, which has the same type
+	alignas(16) inline static unsigned long long shared_siphash_key[2];
+	inline static uint8_t shared_hmac_md5_key[16];
+	inline static bool seeds_initialized = false;
+
+	friend void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16]);
+	friend Val* BifFunc::bro_md5_hmac(Frame* frame, const zeek::Args*);
+};
 
 typedef enum {
 	HASH_KEY_INT,

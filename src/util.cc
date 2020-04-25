@@ -55,6 +55,7 @@
 #include "iosource/Manager.h"
 #include "iosource/PktSrc.h"
 #include "ConvertUTF.h"
+#include "Hash.h"
 
 #include "3rdparty/doctest.h"
 
@@ -997,27 +998,21 @@ std::string strstrip(std::string s)
 	return s;
 	}
 
-bool hmac_key_set = false;
-uint8_t shared_hmac_md5_key[16];
-
-bool siphash_key_set = false;
-alignas(16) highwayhash::HH_U64 shared_siphash_key[2];
-
 void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
 	{
-	if ( ! hmac_key_set )
+	if ( ! KeyedHash::seeds_initialized )
 		reporter->InternalError("HMAC-MD5 invoked before the HMAC key is set");
 
 	internal_md5(bytes, size, digest);
 
 	for ( int i = 0; i < 16; ++i )
-		digest[i] ^= shared_hmac_md5_key[i];
+		digest[i] ^= KeyedHash::shared_hmac_md5_key[i];
 
 	internal_md5(digest, 16, digest);
 	}
 
 static bool read_random_seeds(const char* read_file, uint32_t* seed,
-				uint32_t* buf, int bufsiz)
+				std::array<uint32_t, KeyedHash::SEED_INIT_SIZE>& buf)
 	{
 	FILE* f = nullptr;
 
@@ -1035,8 +1030,8 @@ static bool read_random_seeds(const char* read_file, uint32_t* seed,
 		return false;
 		}
 
-	// Read seeds for MD5.
-	for ( int i = 0; i < bufsiz; ++i )
+	// Read seeds for hmac-md5/siphash/highwayhash.
+	for ( int i = 0; i < KeyedHash::SEED_INIT_SIZE; ++i )
 		{
 		int tmp;
 		if ( fscanf(f, "%u", &tmp) != 1 )
@@ -1053,7 +1048,7 @@ static bool read_random_seeds(const char* read_file, uint32_t* seed,
 	}
 
 static bool write_random_seeds(const char* write_file, uint32_t seed,
-				uint32_t* buf, int bufsiz)
+				std::array<uint32_t, KeyedHash::SEED_INIT_SIZE>& buf)
 	{
 	FILE* f = nullptr;
 
@@ -1066,7 +1061,7 @@ static bool write_random_seeds(const char* write_file, uint32_t seed,
 
 	fprintf(f, "%u\n", seed);
 
-	for ( int i = 0; i < bufsiz; ++i )
+	for ( int i = 0; i < KeyedHash::SEED_INIT_SIZE; ++i )
 		fprintf(f, "%u\n", buf[i]);
 
 	fclose(f);
@@ -1096,16 +1091,14 @@ void bro_srandom(unsigned int seed)
 
 void init_random_seed(const char* read_file, const char* write_file)
 	{
-	static const int bufsiz = 20;
-	uint32_t buf[bufsiz];
-	memset(buf, 0, sizeof(buf));
-	int pos = 0;	// accumulates entropy
+	std::array<uint32_t, KeyedHash::SEED_INIT_SIZE> buf = {};
+	size_t pos = 0;	// accumulates entropy
 	bool seeds_done = false;
 	uint32_t seed = 0;
 
 	if ( read_file )
 		{
-		if ( ! read_random_seeds(read_file, &seed, buf, bufsiz) )
+		if ( ! read_random_seeds(read_file, &seed, buf) )
 			reporter->FatalError("Could not load seeds from file '%s'.\n",
 					     read_file);
 		else
@@ -1115,7 +1108,7 @@ void init_random_seed(const char* read_file, const char* write_file)
 #ifdef HAVE_GETRANDOM
 	if ( ! seeds_done )
 		{
-		ssize_t nbytes = getrandom(buf, sizeof(buf), 0);
+		ssize_t nbytes = getrandom(buf.data(), sizeof(buf), 0);
 		seeds_done = nbytes == ssize_t(sizeof(buf));
 		}
 #endif
@@ -1123,7 +1116,7 @@ void init_random_seed(const char* read_file, const char* write_file)
 	if ( ! seeds_done )
 		{
 		// Gather up some entropy.
-		gettimeofday((struct timeval *)(buf + pos), 0);
+		gettimeofday((struct timeval *)(buf.data() + pos), 0);
 		pos += sizeof(struct timeval) / sizeof(uint32_t);
 
 		// use urandom. For reasons see e.g. http://www.2uo.de/myths-about-urandom/
@@ -1137,8 +1130,8 @@ void init_random_seed(const char* read_file, const char* write_file)
 
 		if ( fd >= 0 )
 			{
-			int amt = read(fd, buf + pos,
-					sizeof(uint32_t) * (bufsiz - pos));
+			int amt = read(fd, buf.data() + pos,
+					sizeof(uint32_t) * (KeyedHash::SEED_INIT_SIZE - pos));
 			safe_close(fd);
 
 			if ( amt > 0 )
@@ -1149,12 +1142,12 @@ void init_random_seed(const char* read_file, const char* write_file)
 				errno = 0;
 			}
 
-		if ( pos < bufsiz )
-			reporter->FatalError("Could not read enough random data from /dev/urandom. Wanted %d, got %d", bufsiz, pos);
+		if ( pos < KeyedHash::SEED_INIT_SIZE )
+			reporter->FatalError("Could not read enough random data from /dev/urandom. Wanted %d, got %lu", KeyedHash::SEED_INIT_SIZE, pos);
 
 		if ( ! seed )
 			{
-			for ( int i = 0; i < pos; ++i )
+			for ( size_t i = 0; i < pos; ++i )
 				{
 				seed ^= buf[i];
 				seed = (seed << 1) | (seed >> 31);
@@ -1172,22 +1165,10 @@ void init_random_seed(const char* read_file, const char* write_file)
 		first_seed_saved = true;
 		}
 
-	if ( ! hmac_key_set )
-		{
-		assert(sizeof(buf) - 16 == 64);
-		internal_md5((const u_char*) buf, sizeof(buf) - 16, shared_hmac_md5_key); // The last 128 bits of buf are for siphash
-		hmac_key_set = true;
-		}
+	if ( ! KeyedHash::IsInitialized() )
+		KeyedHash::InitializeSeeds(buf);
 
-	if ( ! siphash_key_set )
-		{
-		assert(sizeof(buf) - 64 == 16); // siphash key length is always 128 bytes, independent of implementation
-		assert(sizeof(shared_siphash_key) == 16);
-		memcpy(shared_siphash_key, reinterpret_cast<const char*>(buf) + 64, 16);
-		siphash_key_set = true;
-		}
-
-	if ( write_file && ! write_random_seeds(write_file, seed, buf, bufsiz) )
+	if ( write_file && ! write_random_seeds(write_file, seed, buf) )
 		reporter->Error("Could not write seeds to file '%s'.\n",
 				write_file);
 	}

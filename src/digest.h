@@ -22,6 +22,8 @@ inline void* EVP_MD_CTX_md_data(const EVP_MD_CTX* ctx)
 	}
 #endif
 
+// if you add something here, note that you might have to make sure that the
+// static_out member in calculate_digest is still long enough.
 enum HashAlgorithm { Hash_MD5, Hash_SHA1, Hash_SHA224, Hash_SHA256, Hash_SHA384, Hash_SHA512 };
 
 inline const char* digest_print(const u_char* digest, size_t n)
@@ -54,3 +56,13 @@ void hash_update(EVP_MD_CTX* c, const void* data, unsigned long len);
 void hash_final(EVP_MD_CTX* c, u_char* md);
 
 unsigned char* internal_md5(const unsigned char* data, unsigned long len, unsigned char* out);
+
+/**
+ * Calculates the selected digest.
+ * @param Alg Digest algorithm to use.
+ * @param data Data to hash.
+ * @param len Length of data to hash.
+ * @param out Buffer to write data to. If set to nullptr, a static buffer will be used
+ * @return Buffer that the hash was written to. Length is deoendent on the chosen hash function.
+ */
+unsigned char* calculate_digest(HashAlgorithm Alg, const unsigned char* data, uint64_t len, unsigned char* out);

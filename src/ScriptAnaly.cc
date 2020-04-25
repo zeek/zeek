@@ -1407,6 +1407,7 @@ bool activate = false;
 bool report_profile = false;
 bool ud_dump = false;
 bool optimize = false;
+bool compile = false;
 const char* only_func = 0;
 
 void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
@@ -1423,6 +1424,7 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 		report_profile = getenv("ZEEK_REPORT_PROFILE");
 		ud_dump = getenv("ZEEK_UD_DUMP");
 		optimize = getenv("ZEEK_OPTIMIZE");
+		compile = getenv("ZEEK_COMPILE");
 
 		if ( only_func )
 			activate = true;
@@ -1508,9 +1510,12 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 
 	ud.RemoveUnused();
 
-	AbstractMachine am(0);
-	new_body->Compile(&am);
-	am.Dump();
+	if ( compile )
+		{
+		AbstractMachine am(0);
+		new_body->Compile(&am);
+		am.Dump();
+		}
 
 	if ( report_profile )
 		{

@@ -50,6 +50,10 @@ union AS_ValUnion {
 	// distinct, we can readily recover them given type information.
 	double double_val;
 
+	// A note re memory management.  We do *not* ref these upon
+	// assigning to them.  If we use them in a context where ownership
+	// will be taken by some other entity, we ref them at that point.
+	// We also do not unref on reassignment/destruction.
 	AddrVal* addr_val;
 	BroValUnion any_val;
 	EnumVal* enum_val;
@@ -254,7 +258,7 @@ protected:
 		auto v = ce->Value();
 		auto ct = ce->Type().get();
 		c = AS_ValUnion(v, ct);
-		t = ct->Ref();
+		t = ct;
 		}
 };
 

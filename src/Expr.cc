@@ -5776,6 +5776,8 @@ IntrusivePtr<Val> CallExpr::Eval(Frame* f) const
 const CompiledStmt CallExpr::Compile(Compiler* c) const
 	{
 	// ###
+	// ### need to kill CSE across calls to non-stateless (vs pure) functions
+	// ### need to kill CSE for temps whose parent aggregate is reassigned
 	return c->StartingBlock();
 	}
 

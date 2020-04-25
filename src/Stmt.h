@@ -59,7 +59,7 @@ public:
 	// Compile the statement and return its opaque handle.  (For
 	// statement blocks, this is whatever the compiler returns
 	// when asked.)
-	virtual CompiledStmt Compile(Compiler* c) const;
+	virtual const CompiledStmt Compile(Compiler* c) const;
 
 #undef ACCESSOR
 #define ACCESSOR(tag, ctype, name) \
@@ -190,7 +190,7 @@ protected:
 	Stmt* DoSubclassReduce(IntrusivePtr<ListExpr> singletons,
 			Reducer* c) override;
 
-	CompiledStmt Compile(Compiler* c) const override;
+	const CompiledStmt Compile(Compiler* c) const override;
 };
 
 extern void do_print(const std::vector<IntrusivePtr<Val>>& vals);
@@ -218,7 +218,7 @@ protected:
 	bool IsReduced() const override;
 	Stmt* DoReduce(Reducer* c) override;
 
-	CompiledStmt Compile(Compiler* c) const override;
+	const CompiledStmt Compile(Compiler* c) const override;
 
 	IntrusivePtr<Expr> e;
 };
@@ -475,7 +475,7 @@ public:
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	Stmt* DoReduce(Reducer* c) override;
-	CompiledStmt Compile(Compiler* c) const override;
+	const CompiledStmt Compile(Compiler* c) const override;
 
 	void StmtDescribe(ODesc* d) const override;
 };
@@ -495,7 +495,7 @@ public:
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	Stmt* DoReduce(Reducer* c) override;
-	CompiledStmt Compile(Compiler* c) const override;
+	const CompiledStmt Compile(Compiler* c) const override;
 
 	const stmt_list& Stmts() const	{ return *stmts; }
 	stmt_list& Stmts()		{ return *stmts; }

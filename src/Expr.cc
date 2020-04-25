@@ -254,7 +254,7 @@ IntrusivePtr<Stmt> Expr::ReduceToSingletons(Reducer* c)
 	return MergeStmts(red1_stmt, red2_stmt, red3_stmt);
 	}
 
-CompiledStmt Expr::Compile(Compiler* c) const
+const CompiledStmt Expr::Compile(Compiler* c) const
 	{
 	reporter->InternalError("confused in Expr::Compile");
 	}
@@ -1849,7 +1849,7 @@ Expr* AppendToExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	return this->Ref();
 	}
 
-CompiledStmt AppendToExpr::Compile(Compiler* c) const
+const CompiledStmt AppendToExpr::Compile(Compiler* c) const
 	{
 	auto n1 = op1->AsNameExpr();
 
@@ -3533,7 +3533,7 @@ Expr* AssignExpr::ReduceToSingleton(Reducer* c,
 	return op1->AsRefExpr()->Op()->Ref();
 	}
 
-CompiledStmt AssignExpr::Compile(Compiler* c) const
+const CompiledStmt AssignExpr::Compile(Compiler* c) const
 	{
 	auto lhs = op1->AsRefExpr()->GetOp1()->AsNameExpr();
 	auto rhs = op2.get();
@@ -3620,9 +3620,10 @@ Expr* IndexAssignExpr::ReduceToSingleton(Reducer* c,
 	return final_res;
 	}
 
-CompiledStmt IndexAssignExpr::Compile(Compiler* c) const
+const CompiledStmt IndexAssignExpr::Compile(Compiler* c) const
 	{
 	// ###
+	return c->StartingBlock();
 	}
 
 void IndexAssignExpr::ExprDescribe(ODesc* d) const
@@ -3662,9 +3663,10 @@ IntrusivePtr<Val> IndexSliceAssignExpr::Eval(Frame* f) const
 	return nullptr;
 	}
 
-CompiledStmt IndexSliceAssignExpr::Compile(Compiler* c) const
+const CompiledStmt IndexSliceAssignExpr::Compile(Compiler* c) const
 	{
 	// ###
+	return c->StartingBlock();
 	}
 
 
@@ -4088,9 +4090,10 @@ Expr* FieldLHSAssignExpr::ReduceToSingleton(Reducer* c,
 	return res;
 	}
 
-CompiledStmt FieldLHSAssignExpr::Compile(Compiler* c) const
+const CompiledStmt FieldLHSAssignExpr::Compile(Compiler* c) const
 	{
 	// ###
+	return c->StartingBlock();
 	}
 
 void FieldLHSAssignExpr::ExprDescribe(ODesc* d) const
@@ -5379,9 +5382,10 @@ IntrusivePtr<Val> ScheduleExpr::Eval(Frame* f) const
 	return nullptr;
 	}
 
-CompiledStmt ScheduleExpr::Compile(Compiler* c) const
+const CompiledStmt ScheduleExpr::Compile(Compiler* c) const
 	{
 	// ###
+	return c->StartingBlock();
 	}
 
 IntrusivePtr<Expr> ScheduleExpr::GetOp1() const
@@ -5769,9 +5773,10 @@ IntrusivePtr<Val> CallExpr::Eval(Frame* f) const
 	return ret;
 	}
 
-CompiledStmt CallExpr::Compile(Compiler* c) const
+const CompiledStmt CallExpr::Compile(Compiler* c) const
 	{
 	// ###
+	return c->StartingBlock();
 	}
 
 TraversalCode CallExpr::Traverse(TraversalCallback* cb) const
@@ -6012,9 +6017,10 @@ IntrusivePtr<Stmt> EventExpr::ReduceToSingletons(Reducer* c)
 	return args->ReduceToSingletons(c);
 	}
 
-CompiledStmt EventExpr::Compile(Compiler* c) const
+const CompiledStmt EventExpr::Compile(Compiler* c) const
 	{
 	// ###
+	return c->StartingBlock();
 	}
 
 TraversalCode EventExpr::Traverse(TraversalCallback* cb) const

@@ -179,7 +179,7 @@ public:
 	// Returns a predecessor statement(list), if any.
 	virtual IntrusivePtr<Stmt> ReduceToSingletons(Reducer* c);
 
-	virtual CompiledStmt Compile(Compiler* c) const;
+	virtual const CompiledStmt Compile(Compiler* c) const;
 
 	// True if the expression can serve as an operand to a reduced
 	// expression.
@@ -577,7 +577,7 @@ public:
 
 	bool IsReduced() const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
-	CompiledStmt Compile(Compiler* c) const override;
+	const CompiledStmt Compile(Compiler* c) const override;
 };
 
 class RemoveFromExpr : public BinaryExpr {
@@ -722,7 +722,7 @@ public:
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	Expr* ReduceToSingleton(Reducer* c,
 				IntrusivePtr<Stmt>& red_stmt) override;
-	CompiledStmt Compile(Compiler* c) const override;
+	const CompiledStmt Compile(Compiler* c) const override;
 
 	// Whether this is an assignment to a temporary.
 	bool IsTemp() const	{ return is_temp; }
@@ -750,7 +750,7 @@ public:
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	Expr* ReduceToSingleton(Reducer* c,
 				IntrusivePtr<Stmt>& red_stmt) override;
-	CompiledStmt Compile(Compiler* c) const override;
+	const CompiledStmt Compile(Compiler* c) const override;
 
 	IntrusivePtr<Expr> GetOp3() const override final	{ return op3; }
 	void SetOp3(IntrusivePtr<Expr> _op) override final { op3 = _op; }
@@ -766,7 +766,7 @@ public:
 	IndexSliceAssignExpr(IntrusivePtr<Expr> op1,
 	                     IntrusivePtr<Expr> op2, bool is_init);
 	IntrusivePtr<Val> Eval(Frame* f) const override;
-	CompiledStmt Compile(Compiler* c) const override;
+	const CompiledStmt Compile(Compiler* c) const override;
 };
 
 class IndexExpr : public BinaryExpr {
@@ -832,7 +832,7 @@ public:
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	Expr* ReduceToSingleton(Reducer* c,
 				IntrusivePtr<Stmt>& red_stmt) override;
-	CompiledStmt Compile(Compiler* c) const override;
+	const CompiledStmt Compile(Compiler* c) const override;
 
 protected:
 	void ExprDescribe(ODesc* d) const override;
@@ -1050,7 +1050,7 @@ public:
 	bool IsReduced() const override;
 	bool HasReducedOps() const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
-	CompiledStmt Compile(Compiler* c) const override;
+	const CompiledStmt Compile(Compiler* c) const override;
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
@@ -1096,7 +1096,7 @@ public:
 	bool HasReducedOps() const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	IntrusivePtr<Stmt> ReduceToSingletons(Reducer* c) override;
-	CompiledStmt Compile(Compiler* c) const override;
+	const CompiledStmt Compile(Compiler* c) const override;
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
@@ -1187,7 +1187,7 @@ public:
 	bool IsReduced() const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	IntrusivePtr<Stmt> ReduceToSingletons(Reducer* c) override;
-	CompiledStmt Compile(Compiler* c) const override;
+	const CompiledStmt Compile(Compiler* c) const override;
 
 	IntrusivePtr<Expr> GetOp1() const override final	{ return args; }
 	void SetOp1(IntrusivePtr<Expr> _op) override final

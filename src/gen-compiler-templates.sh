@@ -56,8 +56,9 @@ BEGIN	{
 	exprV["VVVV"] = "lhs, r1->AsNameExpr(), r2->AsNameExpr(), r3->AsNameExpr()"
 	}
 
-$1 == "op"	{ dump_op(); op = $2; expr_op = 0; next }
+$1 == "op"	{ dump_op(); op = $2; next }
 $1 == "expr-op"	{ dump_op(); op = $2; expr_op = 1; next }
+$1 == "internal-op"	{ dump_op(); op = $2; internal_op = 1; next }
 
 $1 == "type"	{ type = $2; next }
 $1 == "opaque"	{ opaque = 1; next }
@@ -69,7 +70,7 @@ $1 == "method-pre"	{ method_pre = all_but_first(); next }
 /^[ \t]*$/	{ next }
 
 	{
-	print "unrecognized compiler template line:", $0
+	print "unrecognized compiler template line " NR ":", $0
 	exit(1)
 	}
 
@@ -98,7 +99,7 @@ function all_but_first()
 
 function dump_op()
 	{
-	if ( op == "" )
+	if ( ! op )
 		return
 
 	if ( ! (type in args) )
@@ -107,29 +108,38 @@ function dump_op()
 		exit(1)
 		}
 
+	orig_op = op
+	gsub(/-/, "_", op)
 	upper_op = toupper(op)
 	full_op = "OP_" upper_op "_" type
 	op_type = op type
 
-	print ("\tvirtual const CompiledStmt " op_type args[type] " = 0;") >base_class_f
-	print ("\tconst CompiledStmt " op_type args[type] " override;") >sub_class_f
+	if ( ! internal_op )
+		{
+		print ("\tvirtual const CompiledStmt " op_type args[type] " = 0;") >base_class_f
+		print ("\tconst CompiledStmt " op_type args[type] " override;") >sub_class_f
+		}
+
 	print ("\t" full_op ",") >ops_f
-	print ("\tcase " full_op ":\treturn \"" op "_" type "\";") >ops_names_f
+	print ("\tcase " full_op ":\treturn \"" tolower(orig_op) "-" type "\";") >ops_names_f
 	print ("\tcase " full_op ":\t{ " eval "; } break;") >ops_eval_f
 
-	print ("const CompiledStmt AbstractMachine::" op_type args[type]) >methods_f
+	if ( ! internal_op )
+		{
+		print ("const CompiledStmt AbstractMachine::" op_type args[type]) >methods_f
 
-	print ("\t{") >methods_f
-	if ( method_pre )
-		print ("\t" method_pre ";") >methods_f
-	if ( type == "O" )
-		print ("\treturn AddStmt(AbstractStmt(" full_op ", reg));") >methods_f
-	else if ( args2[type] != "" )
-		print ("\treturn AddStmt(GenStmt(this, " full_op ", " args2[type] "));") >methods_f
-	else
-		print ("\treturn AddStmt(GenStmt(this, " full_op"));") >methods_f
+		print ("\t{") >methods_f
+		if ( method_pre )
+			print ("\t" method_pre ";") >methods_f
+		if ( type == "O" )
+			print ("\treturn AddStmt(AbstractStmt(" full_op ", reg));") >methods_f
+		else if ( args2[type] != "" )
+			print ("\treturn AddStmt(GenStmt(this, " full_op ", " args2[type] "));") >methods_f
+		else
+			print ("\treturn AddStmt(GenStmt(this, " full_op"));") >methods_f
 
-	print ("\t}\n") >methods_f
+		print ("\t}\n") >methods_f
+		}
 
 	if ( expr_op )
 		{
@@ -174,7 +184,7 @@ function dump_op()
 		print ("\tcase " expr_case ":\treturn c->" op_type "(" eargs ");") >f
 		}
 
-	opaque = op = type = eval = method_pre = ""
+	opaque = internal_op = expr_op = op = type = eval = method_pre = ""
 	}
 
 function prep(f)

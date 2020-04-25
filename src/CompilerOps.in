@@ -42,3 +42,28 @@ op Print
 type O
 eval { auto vvec = frame[s.v1].vvec; do_print(*vvec); delete vvec; break; }
 method-pre int reg = v->n; delete v
+
+########################################
+# Internal
+########################################
+
+# Initializes a new value vector.  We now do this dynamically, but at same
+# point we could switch it to a static vector since we'll only have one of
+# these at at time.
+# 
+# v1 is where to store the vector, v2 is its size (which we don't presently
+# use).
+
+internal-op Create-Val-Vec
+type VV
+eval frame[s.v1].vvec = new val_vec
+
+# Appends v2 to the vector pointed to by v1.
+internal-op Set-Val-Vec
+type VV
+eval auto v = frame[s.v2].ToVal(s.t); frame[s.v1].vvec->push_back(v)
+
+# Appends c to the vector pointed to by v1.
+internal-op Set-Val-Vec
+type VC
+eval auto c = s.c.ToVal(s.t); frame[s.v1].vvec->push_back(c)

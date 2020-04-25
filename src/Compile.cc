@@ -37,15 +37,6 @@ typedef enum {
 
 #include "CompilerOpsDefs.h"
 
-	// Internal operands.
-
-	// Initializes a vector of values.
-	OP_CREATE_VAL_VEC_VV,
-
-	// Appends an element to such a list.
-	OP_SET_VAL_VEC_VC,
-	OP_SET_VAL_VEC_VV,
-
 } AbstractOp;
 
 const char* abstract_op_name(AbstractOp op)
@@ -54,11 +45,6 @@ const char* abstract_op_name(AbstractOp op)
 	case OP_NOP:	return "nop";
 
 #include "CompilerOpsNamesDefs.h"
-
-	case OP_CREATE_VAL_VEC_VV:	return "create-val-vec-vv";
-
-	case OP_SET_VAL_VEC_VC:	return "set-val-vec-vc";
-	case OP_SET_VAL_VEC_VV:	return "set-val-vec-vv";
 	}
 	}
 
@@ -433,34 +419,6 @@ IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 			break;
 
 #include "CompilerOpsEvalDefs.h"
-
-		case OP_CREATE_VAL_VEC_VV:
-			// Initializes a new value vector.  We now
-			// do this dynamically, but at same point
-			// we could switch it to a static vector
-			// since we'll only have one of these at
-			// at time.
-			//
-			// v1 is where to store the vector, v2 is
-			// its size (which we don't presently use).
-			frame[s.v1].vvec = new val_vec;
-			break;
-
-		case OP_SET_VAL_VEC_VV:
-			{
-			// Appends v2 to the vector pointed to by v1.
-			auto v = frame[s.v2].ToVal(s.t);
-			frame[s.v1].vvec->push_back(v);
-			break;
-			}
-
-		case OP_SET_VAL_VEC_VC:
-			{
-			// Appends c to the vector pointed to by v1.
-			auto c = s.c.ToVal(s.t);
-			frame[s.v1].vvec->push_back(c);
-			break;
-			}
 		}
 
 		++pc;

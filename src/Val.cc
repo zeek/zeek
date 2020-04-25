@@ -135,6 +135,10 @@ Val* Val::DoClone(CloneState* state)
 			return Ref();
 			}
 
+		if ( type->Tag() == TYPE_TYPE )
+			// These are immutable, essentially.
+			return Ref();
+
 		// Fall-through.
 
 	default:

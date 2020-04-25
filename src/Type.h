@@ -426,6 +426,7 @@ public:
 	~TypeType() override { Unref(type); }
 
 	BroType* Type()	{ return type; }
+	const BroType* Type() const	{ return type; }
 
 protected:
 	TypeType()	{}

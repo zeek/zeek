@@ -1694,7 +1694,12 @@ int same_type(const BroType* t1, const BroType* t2, int is_init, bool match_reco
 		}
 
 	case TYPE_TYPE:
-		return same_type(t1, t2, is_init, match_record_field_names);
+		{
+		auto tt1 = t1->AsTypeType();
+		auto tt2 = t2->AsTypeType();
+		return same_type(tt1->Type(), tt1->Type(),
+		                 is_init, match_record_field_names);
+		}
 
 	case TYPE_UNION:
 		reporter->Error("union type in same_type()");

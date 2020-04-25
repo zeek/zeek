@@ -35,8 +35,7 @@ typedef enum {
 typedef enum {
 	OP_NOP,
 
-	OP_ASSIGN_VC,
-	OP_ASSIGN_VV,
+#include "CompilerOpsDefs.h"
 
 	OP_RET_C,
 	OP_RET_V,
@@ -63,8 +62,7 @@ const char* abstract_op_name(AbstractOp op)
 	switch ( op ) {
 	case OP_NOP:	return "nop";
 
-	case OP_ASSIGN_VC:	return "assignvc";
-	case OP_ASSIGN_VV:	return "assignvv";
+#include "CompilerOpsNamesDefs.h"
 
 	case OP_RET_C:	return "retc";
 	case OP_RET_V:	return "retv";
@@ -452,13 +450,7 @@ IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 		case OP_NOP:
 			break;
 
-		case OP_ASSIGN_VC:
-			frame[s.v1] = s.c;
-			break;
-
-		case OP_ASSIGN_VV:
-			frame[s.v1] = frame[s.v2];
-			break;
+#include "CompilerOpsEvalDefs.h"
 
 		case OP_RET_V:
 			ret_u = &frame[s.v1];
@@ -537,6 +529,8 @@ IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 	else
 		return nullptr;
 	}
+
+#include "CompilerOpsMethodsDefs.h"
 
 const CompiledStmt AbstractMachine::Print(OpaqueVals* v)
 	{

@@ -263,6 +263,7 @@ public:
 
 	ACCESSORS(EXPR_LIST, ListExpr, AsListExpr);
 	ACCESSORS(EXPR_NAME, NameExpr, AsNameExpr);
+	ACCESSORS(EXPR_CONST, ConstExpr, AsConstExpr);
 	ACCESSORS(EXPR_ASSIGN, AssignExpr, AsAssignExpr);
 	ACCESSORS(EXPR_INDEX_ASSIGN, IndexAssignExpr, AsIndexAssignExpr);
 	ACCESSORS(EXPR_ANY_INDEX, AnyIndexExpr, AsAnyIndexExpr);
@@ -277,7 +278,6 @@ public:
 	CONST_ACCESSOR(EXPR_CALL, CallExpr, AsCallExpr);
 	CONST_ACCESSOR(EXPR_ADD_TO, AddToExpr, AsAddToExpr);
 	CONST_ACCESSOR(EXPR_APPEND_TO, AppendToExpr, AsAppendToExpr);
-	CONST_ACCESSOR(EXPR_CONST, ConstExpr, AsConstExpr);
 	CONST_ACCESSOR(EXPR_COND, CondExpr, AsCondExpr);
 	CONST_ACCESSOR(EXPR_IS, IsExpr, AsIsExpr);
 

@@ -26,10 +26,7 @@ class OpaqueVals;
 
 class Compiler : public Stmt {
 public:
-	virtual const CompiledStmt AssignVC(const NameExpr* n,
-						const ConstExpr* c) = 0;
-	virtual const CompiledStmt AssignVV(const NameExpr* n1,
-						const NameExpr* n2) = 0;
+#include "CompilerBaseDefs.h"
 
 	virtual const CompiledStmt ReturnV(const NameExpr* n) = 0;
 	virtual const CompiledStmt ReturnC(const ConstExpr* c) = 0;
@@ -61,10 +58,7 @@ public:
 	AbstractMachine(int frame_size);
 	~AbstractMachine() override;
 
-	const CompiledStmt AssignVC(const NameExpr* n,
-					const ConstExpr* c) override;
-	const CompiledStmt AssignVV(const NameExpr* n1,
-					const NameExpr* n2) override;
+#include "CompilerSubDefs.h"
 
 	const CompiledStmt ReturnV(const NameExpr* n) override;
 	const CompiledStmt ReturnC(const ConstExpr* c) override;

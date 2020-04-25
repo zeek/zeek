@@ -1,0 +1,10 @@
+# Templates used to generate virtual functions, opcodes, and evaluation
+# code for compiled code.
+
+expr-op Assign
+type VC
+eval frame[s.v1] = s.c
+
+expr-op Assign
+type VV
+eval frame[s.v1] = frame[s.v2]

@@ -4,13 +4,15 @@
 
 #pragma once
 
-#include "BroString.h"
-#include "EventHandler.h"
-#include "Val.h"
+#include <map>
 
 #include "Component.h"
+#include "EventHandler.h"
+#include "plugin/ComponentManager.h"
+#include "threading/SerialTypes.h"
+#include "Tag.h"
 
-#include <map>
+class RecordVal;
 
 namespace input {
 
@@ -79,7 +81,7 @@ public:
 	 * This method corresponds directly to the internal BiF defined in
 	 * input.bif, which just forwards here.
 	 */
-	bool ForceUpdate(const string &id);
+	bool ForceUpdate(const std::string &id);
 
 	/**
 	 * Deletes an existing input stream.
@@ -89,7 +91,7 @@ public:
 	 * This method corresponds directly to the internal BiF defined in
 	 * input.bif, which just forwards here.
 	 */
-	bool RemoveStream(const string &id);
+	bool RemoveStream(const std::string &id);
 
 	/**
 	 * Signals the manager to shutdown at Bro's termination.
@@ -143,7 +145,7 @@ protected:
 	// Allows readers to directly send Bro events. The num_vals and vals
 	// must be the same the named event expects. Takes ownership of
 	// threading::Value fields.
-	bool SendEvent(ReaderFrontend* reader, const string& name, const int num_vals, threading::Value* *vals) const;
+	bool SendEvent(ReaderFrontend* reader, const std::string& name, const int num_vals, threading::Value* *vals) const;
 
 	// Instantiates a new ReaderBackend of the given type (note that
 	// doing so creates a new thread!).
@@ -189,7 +191,7 @@ private:
 	// Check if the types of the error_ev event are correct. If table is
 	// true, check for tablestream type, otherwhise check for eventstream
 	// type.
-	bool CheckErrorEventTypes(std::string stream_name, const Func* error_event, bool table) const;
+	bool CheckErrorEventTypes(const std::string& stream_name, const Func* error_event, bool table) const;
 
 	// SendEntry implementation for Table stream.
 	int SendEntryTable(Stream* i, const threading::Value* const *vals);
@@ -203,11 +205,11 @@ private:
 	// Check if a record is made up of compatible types and return a list
 	// of all fields that are in the record in order. Recursively unrolls
 	// records
-	bool UnrollRecordType(vector<threading::Field*> *fields, const RecordType *rec, const string& nameprepend, bool allow_file_func) const;
+	bool UnrollRecordType(std::vector<threading::Field*> *fields, const RecordType *rec, const std::string& nameprepend, bool allow_file_func) const;
 
 	// Send events
 	void SendEvent(EventHandlerPtr ev, const int numvals, ...) const;
-	void SendEvent(EventHandlerPtr ev, list<Val*> events) const;
+	void SendEvent(EventHandlerPtr ev, std::list<Val*> events) const;
 
 	// Implementation of SendEndOfData (send end_of_data event).
 	void SendEndOfData(const Stream *i);
@@ -255,12 +257,12 @@ private:
 	void ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, ...) const __attribute__((format(printf, 5, 6)));
 	void ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, va_list ap) const __attribute__((format(printf, 5, 0)));
 
-	Stream* FindStream(const string &name) const;
+	Stream* FindStream(const std::string &name) const;
 	Stream* FindStream(ReaderFrontend* reader) const;
 
 	enum StreamType { TABLE_STREAM, EVENT_STREAM, ANALYSIS_STREAM };
 
-	map<ReaderFrontend*, Stream*> readers;
+	std::map<ReaderFrontend*, Stream*> readers;
 
 	EventHandlerPtr end_of_data;
 };
@@ -269,4 +271,3 @@ private:
 }
 
 extern input::Manager* input_mgr;
-

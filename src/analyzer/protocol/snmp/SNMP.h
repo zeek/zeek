@@ -6,7 +6,7 @@
 
 namespace analyzer { namespace snmp {
 
-class SNMP_Analyzer : public analyzer::Analyzer {
+class SNMP_Analyzer final : public analyzer::Analyzer {
 
 public:
 

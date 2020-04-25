@@ -65,7 +65,7 @@ refine flow SIP_Flow += {
 
 	function build_sip_headers_val(): BroVal
 		%{
-		TableVal* t = new TableVal(mime_header_list);
+		TableVal* t = new TableVal({NewRef{}, mime_header_list});
 
 		for ( unsigned int i = 0; i < headers.size(); ++i )
 			{ // index starting from 1

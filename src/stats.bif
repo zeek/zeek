@@ -44,13 +44,8 @@ function get_net_stats%(%): NetStats
 	uint64_t link = 0;
 	uint64_t bytes_recv = 0;
 
-	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
-
-	for ( iosource::Manager::PktSrcList::const_iterator i = pkt_srcs.begin();
-	      i != pkt_srcs.end(); i++ )
+	if ( iosource::PktSrc* ps = iosource_mgr->GetPktSrc() )
 		{
-		iosource::PktSrc* ps = *i;
-
 		struct iosource::PktSrc::Stats stat;
 		ps->Statistics(&stat);
 		recv += stat.received;
@@ -93,7 +88,6 @@ function get_conn_stats%(%): ConnStats
 
 	r->Assign(n++, val_mgr->GetCount(Connection::TotalConnections()));
 	r->Assign(n++, val_mgr->GetCount(Connection::CurrentConnections()));
-	r->Assign(n++, val_mgr->GetCount(Connection::CurrentExternalConnections()));
 	r->Assign(n++, val_mgr->GetCount(sessions->CurrentConnections()));
 
 	SessionStats s;
@@ -158,11 +152,11 @@ function get_proc_stats%(%): ProcStats
 	r->Assign(n++, val_mgr->GetCount(0));
 #endif
 
-	r->Assign(n++, new Val(bro_start_time, TYPE_TIME));
+	r->Assign(n++, make_intrusive<Val>(bro_start_time, TYPE_TIME));
 
-	r->Assign(n++, new IntervalVal(elapsed_time, Seconds));
-	r->Assign(n++, new IntervalVal(user_time, Seconds));
-	r->Assign(n++, new IntervalVal(system_time, Seconds));
+	r->Assign(n++, make_intrusive<IntervalVal>(elapsed_time, Seconds));
+	r->Assign(n++, make_intrusive<IntervalVal>(user_time, Seconds));
+	r->Assign(n++, make_intrusive<IntervalVal>(system_time, Seconds));
 
 	uint64_t total_mem;
 	get_memory_usage(&total_mem, NULL);
@@ -440,7 +434,7 @@ function get_broker_stats%(%): BrokerStats
 	%{
 	RecordVal* r = new RecordVal(BrokerStats);
 	int n = 0;
-	
+
 	auto cs = broker_mgr->GetStatistics();
 	r->Assign(n++, val_mgr->GetCount(static_cast<uint64_t>(cs.num_peers)));
 	r->Assign(n++, val_mgr->GetCount(static_cast<uint64_t>(cs.num_stores)));
@@ -476,7 +470,7 @@ function get_reporter_stats%(%): ReporterStats
 	RecordVal* r = new RecordVal(ReporterStats);
 	int n = 0;
 
-	TableVal* weirds_by_type = new TableVal(internal_type("table_string_of_count")->AsTableType());
+	TableVal* weirds_by_type = new TableVal({NewRef{}, internal_type("table_string_of_count")->AsTableType()});
 
 	for ( auto& kv : reporter->GetWeirdsByType() )
 		{

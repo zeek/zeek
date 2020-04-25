@@ -24,7 +24,7 @@ protected:
 
 private:
 	Properties props;
-	string packet;
+	std::string packet;
 };
 
 }

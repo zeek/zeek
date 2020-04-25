@@ -287,17 +287,23 @@ function is_enabled(): bool
 
 function local_node_type(): NodeType
 	{
-	return is_enabled() ? nodes[node]$node_type : NONE;
+	if ( ! is_enabled() )
+		return NONE;
+
+	if ( node !in nodes )
+		return NONE;
+
+	return nodes[node]$node_type;
 	}
 
 function node_topic(name: string): string
 	{
-	return node_topic_prefix + name;
+	return node_topic_prefix + name + "/";
 	}
 
 function nodeid_topic(id: string): string
 	{
-	return node_topic_prefix + id;
+	return nodeid_topic_prefix + id + "/";
 	}
 
 event Cluster::hello(name: string, id: string) &priority=10

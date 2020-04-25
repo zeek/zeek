@@ -2,15 +2,21 @@
 
 #pragma once
 
+#include <sys/types.h> // for u_char
+
 #include <list>
 #include <vector>
+#include <tuple>
+#include <type_traits>
 
 #include "Tag.h"
 
 #include "../Obj.h"
 #include "../EventHandler.h"
 #include "../Timer.h"
+#include "../IntrusivePtr.h"
 
+class BroFile;
 class Rule;
 class Connection;
 class IP_Hdr;
@@ -25,7 +31,7 @@ class AnalyzerTimer;
 class SupportAnalyzer;
 class OutputHandler;
 
-typedef list<Analyzer*> analyzer_list;
+using analyzer_list = std::list<Analyzer*>;
 typedef uint32_t ID;
 typedef void (Analyzer::*analyzer_timer_func)(double t);
 
@@ -143,7 +149,7 @@ public:
 	 * @param caplen The packet's capture length, if available.
 	 */
 	void NextPacket(int len, const u_char* data, bool is_orig,
-			uint64_t seq = -1, const IP_Hdr* ip = 0, int caplen = 0);
+			uint64_t seq = -1, const IP_Hdr* ip = nullptr, int caplen = 0);
 
 	/**
 	 * Passes stream input to the analyzer for processing. The analyzer
@@ -372,7 +378,7 @@ public:
 	 * @param tag The type of analyzer to add.
 	 * @return the new analyzer instance that was added.
 	 */
-	Analyzer* AddChildAnalyzer(Tag tag);
+	Analyzer* AddChildAnalyzer(const Tag& tag);
 
 	/**
 	 * Removes a child analyzer. It's ok for the analyzer to not to be a
@@ -519,7 +525,7 @@ public:
 	 * @param len If \a data is given, the length of it.
 	 */
 	virtual void ProtocolViolation(const char* reason,
-					const char* data = 0, int len = 0);
+					const char* data = nullptr, int len = 0);
 
 	/**
 	 * Returns true if ProtocolConfirmation() has been called at least
@@ -549,31 +555,50 @@ public:
 	 * Convenience function that forwards directly to the corresponding
 	 * Connection::Event().
 	 */
-	void Event(EventHandlerPtr f, const char* name = 0);
+	void Event(EventHandlerPtr f, const char* name = nullptr);
 
 	/**
 	 * Convenience function that forwards directly to the corresponding
 	 * Connection::Event().
 	 */
-	void Event(EventHandlerPtr f, Val* v1, Val* v2 = 0);
+	void Event(EventHandlerPtr f, Val* v1, Val* v2 = nullptr);
 
 	/**
 	 * Convenience function that forwards directly to
 	 * Connection::ConnectionEvent().
 	 */
+	[[deprecated("Remove in v4.1.  Use EnqueueConnEvent() instead.")]]
 	void ConnectionEvent(EventHandlerPtr f, val_list* vl);
 
 	/**
 	 * Convenience function that forwards directly to
 	 * Connection::ConnectionEvent().
 	 */
+	[[deprecated("Remove in v4.1.  Use EnqueueConnEvent() instead.")]]
 	void ConnectionEvent(EventHandlerPtr f, val_list vl);
 
 	/**
 	 * Convenience function that forwards directly to
 	 * Connection::ConnectionEventFast().
 	 */
+	[[deprecated("Remove in v4.1.  Use EnqueueConnEvent() instead.")]]
 	void ConnectionEventFast(EventHandlerPtr f, val_list vl);
+
+	/**
+	 * Convenience function that forwards directly to
+	 * Connection::EnqueueEvent().
+	 */
+	void EnqueueConnEvent(EventHandlerPtr f, zeek::Args args);
+
+	/**
+	 * A version of EnqueueConnEvent() taking a variable number of arguments.
+	 */
+	template <class... Args>
+	std::enable_if_t<
+	  std::is_convertible_v<
+	    std::tuple_element_t<0, std::tuple<Args...>>, IntrusivePtr<Val>>>
+	EnqueueConnEvent(EventHandlerPtr h, Args&&... args)
+		{ return EnqueueConnEvent(h, zeek::Args{std::forward<Args>(args)...}); }
 
 	/**
 	 * Convenience function that forwards directly to the corresponding
@@ -596,8 +621,8 @@ protected:
 	 * Return a string represantation of an analyzer, containing its name
 	 * and ID.
 	 */
-	static string fmt_analyzer(const Analyzer* a)
-		{ return string(a->GetAnalyzerName()) + fmt("[%d]", a->GetID()); }
+	static std::string fmt_analyzer(const Analyzer* a)
+		{ return std::string(a->GetAnalyzerName()) + fmt("[%d]", a->GetID()); }
 
 	/**
 	 * Associates a connection with this analyzer.  Must be called if
@@ -620,7 +645,7 @@ protected:
 	 *
 	 * @param type The timer's type.
 	 */
-	void AddTimer(analyzer_timer_func timer, double t, int do_expire,
+	void AddTimer(analyzer_timer_func timer, double t, bool do_expire,
 			TimerType type);
 
 	/**
@@ -641,7 +666,7 @@ protected:
 	 *
 	 * @param orig True if asking about the originator side.
 	 */
-	bool HasSupportAnalyzer(Tag tag, bool orig);
+	bool HasSupportAnalyzer(const Tag& tag, bool orig);
 
 	/**
 	 * Returns the first still active support analyzer for the given
@@ -768,7 +793,7 @@ public:
 	 * connection originator side, and otherwise for the responder side.
 	 */
 	SupportAnalyzer(const char* name, Connection* conn, bool arg_orig)
-		: Analyzer(name, conn)	{ orig = arg_orig; sibling = 0; }
+		: Analyzer(name, conn)	{ orig = arg_orig; sibling = nullptr; }
 
 	/**
 	 * Destructor.
@@ -851,7 +876,7 @@ public:
 	 * @param conn The connection the analyzer is associated with.
 	 */
 	TransportLayerAnalyzer(const char* name, Connection* conn)
-		: Analyzer(name, conn)	{ pia = 0; }
+		: Analyzer(name, conn)	{ pia = nullptr; }
 
 	/**
 	 * Overridden from parent class.

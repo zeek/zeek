@@ -27,8 +27,8 @@ protected:
 	static const int BUFFER_SIZE = 1024;
 	char buffer[BUFFER_SIZE];
 	int buffer_len;
-	string file_id_orig;
-	string file_id_resp;
+	std::string file_id_orig;
+	std::string file_id_resp;
 };
 
 class IRC_Data : public File_Analyzer {
@@ -51,4 +51,4 @@ public:
 		{ return new FTP_Data(conn); }
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

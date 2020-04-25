@@ -3,7 +3,6 @@
 #pragma once
 
 #include "analyzer/Analyzer.h"
-#include "PacketDumper.h"
 #include "IPAddr.h"
 #include "TCP_Endpoint.h"
 #include "TCP_Flags.h"
@@ -13,7 +12,7 @@
 // - TCP_Analyzer is the analyzer for the TCP protocol itself.
 // - TCP_ApplicationAnalyzer is an abstract base class for analyzers for a
 //   protocol running on top of TCP.
-// 
+//
 namespace analyzer { namespace pia { class PIA_TCP; } };
 
 namespace analyzer { namespace tcp {
@@ -22,7 +21,7 @@ class TCP_Endpoint;
 class TCP_ApplicationAnalyzer;
 class TCP_Reassembler;
 
-class TCP_Analyzer : public analyzer::TransportLayerAnalyzer {
+class TCP_Analyzer final : public analyzer::TransportLayerAnalyzer {
 public:
 	explicit TCP_Analyzer(Connection* conn);
 	~TCP_Analyzer() override;
@@ -38,10 +37,10 @@ public:
 	bool RemoveChildAnalyzer(ID id) override;
 
 	// True if the connection has closed in some sense, false otherwise.
-	int IsClosed() const	{ return orig->did_close || resp->did_close; }
-	int BothClosed() const	{ return orig->did_close && resp->did_close; }
+	bool IsClosed() const	{ return orig->did_close || resp->did_close; }
+	bool BothClosed() const	{ return orig->did_close && resp->did_close; }
 
-	int IsPartial() const	{ return is_partial; }
+	bool IsPartial() const	{ return is_partial; }
 
 	bool HadGap(bool orig) const;
 
@@ -59,7 +58,7 @@ public:
 	// which we have seen a FIN) - for it, data is pending unless
 	// everything's been delivered up to the FIN.  For its peer,
 	// the test is whether it has any outstanding, un-acked data.
-	int DataPending(TCP_Endpoint* closing_endp);
+	bool DataPending(TCP_Endpoint* closing_endp);
 
 	void SetContentsFile(unsigned int direction, BroFile* f) override;
 	BroFile* GetContentsFile(unsigned int direction) const override;
@@ -108,39 +107,39 @@ protected:
 	void UpdateStateMachine(double t,
 			TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 			uint32_t base_seq, uint32_t ack_seq,
-			int len, int32_t delta_last, int is_orig, TCP_Flags flags,
-			int& do_close, int& gen_event);
+			int len, int32_t delta_last, bool is_orig, TCP_Flags flags,
+			bool& do_close, bool& gen_event);
 
 	void UpdateInactiveState(double t,
 				TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 				uint32_t base_seq, uint32_t ack_seq,
-				int len, int is_orig, TCP_Flags flags,
-				int& do_close, int& gen_event);
+				int len, bool is_orig, TCP_Flags flags,
+				bool& do_close, bool& gen_event);
 
 	void UpdateSYN_SentState(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
-				 int len, int is_orig, TCP_Flags flags,
-				 int& do_close, int& gen_event);
+				 int len, bool is_orig, TCP_Flags flags,
+				 bool& do_close, bool& gen_event);
 
 	void UpdateEstablishedState(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
-				    TCP_Flags flags, int& do_close, int& gen_event);
+				    TCP_Flags flags, bool& do_close, bool& gen_event);
 
 	void UpdateClosedState(double t, TCP_Endpoint* endpoint,
 				int32_t delta_last, TCP_Flags flags,
-				int& do_close);
+				bool& do_close);
 
 	void UpdateResetState(int len, TCP_Flags flags);
 
 	void GeneratePacketEvent(uint64_t rel_seq, uint64_t rel_ack,
 				 const u_char* data, int len, int caplen,
-				 int is_orig, TCP_Flags flags);
+				 bool is_orig, TCP_Flags flags);
 
-	int DeliverData(double t, const u_char* data, int len, int caplen,
+	bool DeliverData(double t, const u_char* data, int len, int caplen,
 			const IP_Hdr* ip, const struct tcphdr* tp,
 			TCP_Endpoint* endpoint, uint64_t rel_data_seq,
-			int is_orig, TCP_Flags flags);
+			bool is_orig, TCP_Flags flags);
 
-	void CheckRecording(int need_contents, TCP_Flags flags);
-	void CheckPIA_FirstPacket(int is_orig, const IP_Hdr* ip);
+	void CheckRecording(bool need_contents, TCP_Flags flags);
+	void CheckPIA_FirstPacket(bool is_orig, const IP_Hdr* ip);
 
 	friend class ConnectionTimer;
 	void AttemptTimer(double t);
@@ -152,8 +151,8 @@ protected:
 
 	void EndpointEOF(TCP_Reassembler* endp);
 	void ConnectionClosed(TCP_Endpoint* endpoint,
-					TCP_Endpoint* peer, int gen_event);
-	void ConnectionFinished(int half_finished);
+					TCP_Endpoint* peer, bool gen_event);
+	void ConnectionFinished(bool half_finished);
 	void ConnectionReset();
 	void PacketWithRST();
 
@@ -162,7 +161,7 @@ protected:
 	// A couple utility functions that may also be useful to derived analyzers.
 	static uint64_t get_relative_seq(const TCP_Endpoint* endpoint,
 	                               uint32_t cur_base, uint32_t last,
-	                               uint32_t wraps, bool* underflow = 0);
+	                               uint32_t wraps, bool* underflow = nullptr);
 
 	static int get_segment_len(int payload_len, TCP_Flags flags);
 
@@ -170,7 +169,7 @@ private:
 	TCP_Endpoint* orig;
 	TCP_Endpoint* resp;
 
-	typedef list<analyzer::Analyzer*> analyzer_list;
+	using analyzer_list = std::list<analyzer::Analyzer*>;
 	analyzer_list packet_children;
 
 	unsigned int first_packet_seen: 2;
@@ -193,12 +192,10 @@ private:
 class TCP_ApplicationAnalyzer : public analyzer::Analyzer {
 public:
 	TCP_ApplicationAnalyzer(const char* name, Connection* conn)
-	: Analyzer(name, conn)
-		{ tcp = 0; }
+		: Analyzer(name, conn), tcp(nullptr) { }
 
 	explicit TCP_ApplicationAnalyzer(Connection* conn)
-	: Analyzer(conn)
-		{ tcp = 0; }
+		: Analyzer(conn), tcp(nullptr) { }
 
 	~TCP_ApplicationAnalyzer() override { }
 
@@ -221,8 +218,8 @@ public:
 	// is now fully closed, a connection_finished event will be
 	// generated; otherwise not.
 	virtual void ConnectionClosed(analyzer::tcp::TCP_Endpoint* endpoint,
-				      analyzer::tcp::TCP_Endpoint* peer, int gen_event);
-	virtual void ConnectionFinished(int half_finished);
+				      analyzer::tcp::TCP_Endpoint* peer, bool gen_event);
+	virtual void ConnectionFinished(bool half_finished);
 	virtual void ConnectionReset();
 
 	// Called whenever a RST packet is seen - sometimes the invocation
@@ -236,7 +233,7 @@ public:
 	// This suppresses violations if the TCP connection wasn't
 	// fully established.
 	void ProtocolViolation(const char* reason,
-					const char* data = 0, int len = 0) override;
+					const char* data = nullptr, int len = 0) override;
 
 	// "name" and "val" both now belong to this object, which needs to
 	//  delete them when done with them.
@@ -256,8 +253,8 @@ public:
 	// These are passed on from TCP_Analyzer.
 	virtual void EndpointEOF(bool is_orig)	{ }
 	virtual void ConnectionClosed(TCP_Endpoint* endpoint,
-					TCP_Endpoint* peer, int gen_event) 	{ }
-	virtual void ConnectionFinished(int half_finished)	{ }
+					TCP_Endpoint* peer, bool gen_event) 	{ }
+	virtual void ConnectionFinished(bool half_finished)	{ }
 	virtual void ConnectionReset()	{ }
 	virtual void PacketWithRST()	{ }
 };
@@ -267,7 +264,7 @@ class TCPStats_Endpoint {
 public:
 	explicit TCPStats_Endpoint(TCP_Endpoint* endp);
 
-	int DataSent(double t, uint64_t seq, int len, int caplen, const u_char* data,
+	bool DataSent(double t, uint64_t seq, int len, int caplen, const u_char* data,
 			const IP_Hdr* ip, const struct tcphdr* tp);
 
 	RecordVal* BuildStats();
@@ -304,4 +301,4 @@ protected:
 	TCPStats_Endpoint* resp_stats;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

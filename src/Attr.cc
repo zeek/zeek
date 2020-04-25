@@ -4,6 +4,9 @@
 
 #include "Attr.h"
 #include "Expr.h"
+#include "Desc.h"
+#include "Val.h"
+#include "IntrusivePtr.h"
 #include "threading/SerialTypes.h"
 
 const char* attr_name(attr_tag t)
@@ -14,23 +17,25 @@ const char* attr_name(attr_tag t)
 		"&read_expire", "&write_expire", "&create_expire",
 		"&raw_output", "&priority",
 		"&group", "&log", "&error_handler", "&type_column",
-		"(&tracked)", "&deprecated",
+		"(&tracked)", "&on_change", "&deprecated",
 	};
 
 	return attr_names[int(t)];
 	}
 
-Attr::Attr(attr_tag t, Expr* e)
+Attr::Attr(attr_tag t, IntrusivePtr<Expr> e)
+	: expr(std::move(e))
 	{
 	tag = t;
-	expr = e;
 	SetLocationInfo(&start_location, &end_location);
 	}
 
-Attr::~Attr()
+Attr::Attr(attr_tag t)
+	: Attr(t, nullptr)
 	{
-	Unref(expr);
 	}
+
+Attr::~Attr() = default;
 
 void Attr::Describe(ODesc* d) const
 	{
@@ -99,19 +104,17 @@ void Attr::DescribeReST(ODesc* d, bool shorten) const
 		else if ( expr->Tag() == EXPR_CONST )
 			{
 			ODesc dd;
-			dd.SetQuotes(1);
+			dd.SetQuotes(true);
 			expr->Describe(&dd);
-			string s = dd.Description();
+			std::string s = dd.Description();
 			add_long_expr_string(d, s, shorten);
 			}
 
 		else
 			{
-			Val* v = expr->Eval(0);
 			ODesc dd;
-			v->Describe(&dd);
-			Unref(v);
-			string s = dd.Description();
+			expr->Eval(nullptr)->Describe(&dd);
+			std::string s = dd.Description();
 
 			for ( size_t i = 0; i < s.size(); ++i )
 				if ( s[i] == '\n' )
@@ -130,10 +133,10 @@ void Attr::AddTag(ODesc* d) const
 		d->Add(attr_name(Tag()));
 	}
 
-Attributes::Attributes(attr_list* a, BroType* t, bool arg_in_record, bool is_global)
+Attributes::Attributes(attr_list* a, IntrusivePtr<BroType> t, bool arg_in_record, bool is_global)
+	: type(std::move(t))
 	{
 	attrs = new attr_list(a->length());
-	type = t->Ref();
 	in_record = arg_in_record;
 	global_var = is_global;
 
@@ -144,7 +147,7 @@ Attributes::Attributes(attr_list* a, BroType* t, bool arg_in_record, bool is_glo
 	// the necessary checking gets done.
 
 	for ( const auto& attr : *a )
-		AddAttr(attr);
+		AddAttr({NewRef{}, attr});
 
 	delete a;
 	}
@@ -155,23 +158,20 @@ Attributes::~Attributes()
 		Unref(attr);
 
 	delete attrs;
-
-	Unref(type);
 	}
 
-void Attributes::AddAttr(Attr* attr)
+void Attributes::AddAttr(IntrusivePtr<Attr> attr)
 	{
 	if ( ! attrs )
 		attrs = new attr_list(1);
 
 	// We overwrite old attributes by deleting them first.
 	RemoveAttr(attr->Tag());
-	attrs->push_back(attr);
-	Ref(attr);
+	attrs->push_back(IntrusivePtr{attr}.release());
 
 	// We only check the attribute after we've added it, to facilitate
 	// generating error messages via Attributes::Describe.
-	CheckAttr(attr);
+	CheckAttr(attr.get());
 
 	// For ADD_FUNC or DEL_FUNC, add in an implicit REDEF, since
 	// those attributes only have meaning for a redefinable value.
@@ -189,7 +189,7 @@ void Attributes::AddAttrs(Attributes* a)
 	{
 	attr_list* as = a->Attrs();
 	for ( const auto& attr : *as )
-		AddAttr(attr);
+		AddAttr({NewRef{}, attr});
 
 	Unref(a);
 	}
@@ -197,7 +197,7 @@ void Attributes::AddAttrs(Attributes* a)
 Attr* Attributes::FindAttr(attr_tag t) const
 	{
 	if ( ! attrs )
-		return 0;
+		return nullptr;
 
 	for ( const auto& a : *attrs )
 		{
@@ -205,7 +205,7 @@ Attr* Attributes::FindAttr(attr_tag t) const
 			return a;
 		}
 
-	return 0;
+	return nullptr;
 	}
 
 void Attributes::RemoveAttr(attr_tag t)
@@ -260,7 +260,7 @@ void Attributes::CheckAttr(Attr* a)
 	case ATTR_ADD_FUNC:
 	case ATTR_DEL_FUNC:
 		{
-		int is_add = a->Tag() == ATTR_ADD_FUNC;
+		bool is_add = a->Tag() == ATTR_ADD_FUNC;
 
 		BroType* at = a->AttrExpr()->Type();
 		if ( at->Tag() != TYPE_FUNC )
@@ -273,7 +273,7 @@ void Attributes::CheckAttr(Attr* a)
 			}
 
 		FuncType* aft = at->AsFuncType();
-		if ( ! same_type(aft->YieldType(), type) )
+		if ( ! same_type(aft->YieldType(), type.get()) )
 			{
 			a->AttrExpr()->Error(
 				is_add ?
@@ -298,7 +298,7 @@ void Attributes::CheckAttr(Attr* a)
 
 		if ( type->Tag() != TYPE_TABLE || (type->IsSet() && ! in_record) )
 			{
-			if ( same_type(atype, type) )
+			if ( same_type(atype, type.get()) )
 				// Ok.
 				break;
 
@@ -314,15 +314,16 @@ void Attributes::CheckAttr(Attr* a)
 				// Ok.
 				break;
 
-			Expr* e = a->AttrExpr();
-			if ( check_and_promote_expr(e, type) )
+			auto e = check_and_promote_expr(a->AttrExpr(), type.get());
+
+			if ( e )
 				{
-				a->SetAttrExpr(e);
+				a->SetAttrExpr(std::move(e));
 				// Ok.
 				break;
 				}
 
-			a->AttrExpr()->Error("&default value has inconsistent type", type);
+			a->AttrExpr()->Error("&default value has inconsistent type", type.get());
 			return;
 			}
 
@@ -353,10 +354,11 @@ void Attributes::CheckAttr(Attr* a)
 					// Ok.
 					break;
 
-				Expr* e = a->AttrExpr();
-				if ( check_and_promote_expr(e, ytype) )
+				auto e = check_and_promote_expr(a->AttrExpr(), ytype);
+
+				if ( e )
 					{
-					a->SetAttrExpr(e);
+					a->SetAttrExpr(std::move(e));
 					// Ok.
 					break;
 					}
@@ -372,17 +374,17 @@ void Attributes::CheckAttr(Attr* a)
 			{
 			// &default applies to record field.
 
-			if ( same_type(atype, type) )
+			if ( same_type(atype, type.get()) )
 				// Ok.
 				break;
 
 			if ( (atype->Tag() == TYPE_TABLE && atype->AsTableType()->IsUnspecifiedTable()) )
 				{
-				Expr* e = a->AttrExpr();
+				auto e = check_and_promote_expr(a->AttrExpr(), type.get());
 
-				if ( check_and_promote_expr(e, type) )
+				if ( e )
 					{
-					a->SetAttrExpr(e);
+					a->SetAttrExpr(std::move(e));
 					break;
 					}
 				}
@@ -405,7 +407,7 @@ void Attributes::CheckAttr(Attr* a)
 		{
 		if ( type->Tag() != TYPE_TABLE )
 			{
-			Error("expiration only applicable to tables");
+			Error("expiration only applicable to sets/tables");
 			break;
 			}
 
@@ -482,6 +484,71 @@ void Attributes::CheckAttr(Attr* a)
 		}
 		break;
 
+	case ATTR_ON_CHANGE:
+		{
+		if ( type->Tag() != TYPE_TABLE )
+			{
+			Error("&on_change only applicable to tables");
+			break;
+			}
+
+		const Expr* change_func = a->AttrExpr();
+
+		if ( change_func->Type()->Tag() != TYPE_FUNC || change_func->Type()->AsFuncType()->Flavor() != FUNC_FLAVOR_FUNCTION )
+			Error("&on_change attribute is not a function");
+
+		const FuncType* c_ft = change_func->Type()->AsFuncType();
+
+		if ( c_ft->YieldType()->Tag() != TYPE_VOID )
+			{
+			Error("&on_change must not return a value");
+			break;
+			}
+
+		const TableType* the_table = type->AsTableType();
+
+		if ( the_table->IsUnspecifiedTable() )
+			break;
+
+		const type_list* args = c_ft->ArgTypes()->Types();
+		const type_list* t_indexes = the_table->IndexTypes();
+		if ( args->length() != ( type->IsSet() ? 2 : 3 ) + t_indexes->length() )
+			{
+			Error("&on_change function has incorrect number of arguments");
+			break;
+			}
+
+		if ( ! same_type((*args)[0], the_table->AsTableType()) )
+			{
+			Error("&on_change: first argument must be of same type as table");
+			break;
+			}
+
+		// can't check exact type here yet - the data structures don't exist yet.
+		if ( (*args)[1]->Tag() != TYPE_ENUM )
+			{
+			Error("&on_change: second argument must be a TableChange enum");
+			break;
+			}
+
+		for ( int i = 0; i < t_indexes->length(); i++ )
+			{
+			if ( ! same_type((*args)[2+i], (*t_indexes)[i]) )
+				{
+				Error("&on_change: index types do not match table");
+				break;
+				}
+			}
+
+		if ( ! type->IsSet() )
+			if ( ! same_type((*args)[2+t_indexes->length()], the_table->YieldType()) )
+				{
+				Error("&on_change: value type does not match table");
+				break;
+				}
+		}
+		break;
+
 	case ATTR_TRACKED:
 		// FIXME: Check here for global ID?
 		break;
@@ -508,7 +575,7 @@ void Attributes::CheckAttr(Attr* a)
 		break;
 
 	case ATTR_LOG:
-		if ( ! threading::Value::IsCompatibleType(type) )
+		if ( ! threading::Value::IsCompatibleType(type.get()) )
 			Error("&log applied to a type that cannot be logged");
 		break;
 
@@ -568,4 +635,3 @@ bool Attributes::operator==(const Attributes& other) const
 
 	return true;
 	}
-

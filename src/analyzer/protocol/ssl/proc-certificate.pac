@@ -16,6 +16,12 @@
 			{
 			const bytestring& cert = (*certificates)[i];
 
+			if ( cert.length() <= 0 )
+				{
+				reporter->Weird(bro_analyzer()->Conn(), "zero_length_certificate");
+				continue;
+				}
+
 			ODesc file_handle;
 			file_handle.Add(common.Description());
 			file_handle.Add(i);

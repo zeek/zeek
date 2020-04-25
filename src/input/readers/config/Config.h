@@ -37,24 +37,17 @@ protected:
 	bool DoHeartbeat(double network_time, double current_time) override;
 
 private:
-	bool GetLine(string& str);
+	bool GetLine(std::string& str);
 	bool OpenFile();
-	// Call Warning or Error, depending on the is_error boolean.
-	// In case of a warning, setting suppress_future to true will suppress all future warnings
-	// (by setting suppress_warnings to true, until suppress_warnings is set back to false)
-	void FailWarn(bool is_error, const char *msg, bool suppress_future = false);
 
-	ifstream file;
+	std::ifstream file;
 	time_t mtime;
 	ino_t ino;
 
 	bool fail_on_file_problem;
-	// this is an internal indicator in case the read is currently in a failed state
-	// it's used to suppress duplicate error messages.
-	bool suppress_warnings;
 
-	string set_separator;
-	string empty_field;
+	std::string set_separator;
+	std::string empty_field;
 
 	std::unique_ptr<threading::formatter::Formatter> formatter;
 	std::unordered_map<std::string, std::tuple<TypeTag, TypeTag>> option_types;

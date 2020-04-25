@@ -2,17 +2,22 @@
 
 #pragma once
 
+#include "BroList.h" // for typedef val_list
+#include "Obj.h"
+#include "IntrusivePtr.h"
+#include "ZeekArgs.h"
+
 #include <unordered_map>
-#include <memory>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include <broker/data.hh>
 #include <broker/expected.hh>
 
-#include "Val.h"
-
-class Trigger;
+namespace trigger { class Trigger; }
 class CallExpr;
+class BroFunc;
 
 class Frame :  public BroObj {
 public:
@@ -24,7 +29,7 @@ public:
 	 * @param func the function that is creating this frame
 	 * @param fn_args the arguments being passed to that function.
 	 */
-	Frame(int size, const BroFunc* func, const val_list *fn_args);
+	Frame(int size, const BroFunc* func, const zeek::Args* fn_args);
 
 	/**
 	 * Deletes the frame. Unrefs its trigger, the values that it
@@ -44,8 +49,11 @@ public:
 	 *
 	 * @param n the index to set
 	 * @param v the value to set it to
+	 * @param weak_ref whether the frame owns the value and should unref
+	 * it upon destruction.  Used to break circular references between
+	 * lambda functions and closure frames.
 	 */
-	void SetElement(int n, Val* v);
+	void SetElement(int n, Val* v, bool weak_ref = false);
 
 	/**
 	 * Associates *id* and *v* in the frame. Future lookups of
@@ -93,7 +101,7 @@ public:
 	 * @return the arguments passed to the function that this frame
 	 * is associated with.
 	 */
-	const val_list* GetFuncArgs() const	{ return func_args; }
+	const zeek::Args* GetFuncArgs() const	{ return func_args; }
 
 	/**
 	 * Change the function that the frame is associated with.
@@ -149,7 +157,7 @@ public:
 	 * *selection* have been cloned. All other values are made to be
 	 * null.
 	 */
-	Frame* SelectiveClone(const id_list& selection) const;
+	Frame* SelectiveClone(const id_list& selection, BroFunc* func) const;
 
 	/**
 	 * Serializes the Frame into a Broker representation.
@@ -174,7 +182,7 @@ public:
 	 * @return the broker representaton, or an error if the serialization
 	 * failed.
 	 */
-	static broker::expected<broker::data> Serialize(const Frame* target, const id_list selection);
+	static broker::expected<broker::data> Serialize(const Frame* target, const id_list& selection);
 
 	/**
 	 * Instantiates a Frame from a serialized one.
@@ -183,7 +191,7 @@ public:
 	 * and the second is the unserialized frame with reference count +1, or
 	 * null if the serialization wasn't successful.
 	 */
-	static std::pair<bool, Frame*> Unserialize(const broker::vector& data);
+	static std::pair<bool, IntrusivePtr<Frame>> Unserialize(const broker::vector& data);
 
 	/**
 	 * Sets the IDs that the frame knows offsets for. These offsets will
@@ -204,25 +212,41 @@ public:
 
 	// If the frame is run in the context of a trigger condition evaluation,
 	// the trigger needs to be registered.
-	void SetTrigger(Trigger* arg_trigger);
+	void SetTrigger(IntrusivePtr<trigger::Trigger> arg_trigger);
 	void ClearTrigger();
-	Trigger* GetTrigger() const		{ return trigger; }
+	trigger::Trigger* GetTrigger() const		{ return trigger.get(); }
 
 	void SetCall(const CallExpr* arg_call)	{ call = arg_call; }
-	void ClearCall()			{ call = 0; }
+	void ClearCall()			{ call = nullptr; }
 	const CallExpr* GetCall() const		{ return call; }
 
 	void SetDelayed()	{ delayed = true; }
 	bool HasDelayed() const	{ return delayed; }
 
+	/**
+	 * Track a new function that refers to this frame for use as a closure.
+	 * This frame's destructor will then upgrade that functions reference
+	 * from weak to strong (by making a copy).  The initial use of
+	 * weak references prevents unbreakable circular references that
+	 * otherwise cause memory leaks.
+	 */
+	void AddFunctionWithClosureRef(BroFunc* func);
 
 private:
+
+	using OffsetMap = std::unordered_map<std::string, int>;
+
+	/**
+	 * Unrefs the value at offset 'n' frame unless it's a weak reference.
+	 */
+	void UnrefElement(int n);
+
 	/** Have we captured this id? */
 	bool IsOuterID(const ID* in) const;
 
 	/** Serializes an offset_map */
 	static broker::expected<broker::data>
-	SerializeOffsetMap(const std::unordered_map<std::string, int>& in);
+	SerializeOffsetMap(const OffsetMap& in);
 
 	/** Serializes an id_list */
 	static broker::expected<broker::data>
@@ -239,8 +263,17 @@ private:
 	/** The number of vals that can be stored in this frame. */
 	int size;
 
+	bool weak_closure_ref = false;
+	bool break_before_next_stmt;
+	bool break_on_return;
+	bool delayed;
+
 	/** Associates ID's offsets with values. */
 	Val** frame;
+
+	/** Values that are weakly referenced by the frame.  Used to
+	 * prevent circular reference memory leaks in lambda/closures */
+	bool* weak_refs = nullptr;
 
 	/** The enclosing frame of this frame. */
 	Frame* closure;
@@ -252,22 +285,20 @@ private:
 	 * Maps ID names to offsets. Used if this frame is  serialized
 	 * to maintain proper offsets after being sent elsewhere.
 	 */
-	std::unordered_map<std::string, int> offset_map;
+	std::unique_ptr<OffsetMap> offset_map;
 
 	/** The function this frame is associated with. */
 	const BroFunc* function;
 	/** The arguments to the function that this Frame is associated with. */
-	const val_list* func_args;
+	const zeek::Args* func_args;
 
 	/** The next statement to be evaluted in the context of this frame. */
 	Stmt* next_stmt;
 
-	bool break_before_next_stmt;
-	bool break_on_return;
-
-	Trigger* trigger;
+	IntrusivePtr<trigger::Trigger> trigger;
 	const CallExpr* call;
-	bool delayed;
+
+	std::unique_ptr<std::vector<BroFunc*>> functions_with_closure_frame_reference;
 };
 
 /**

@@ -1,23 +1,17 @@
 #pragma once
 
+#include <sys/types.h> // for u_char
 #include <limits.h>
+
 #include <vector>
 #include <map>
 #include <functional>
 #include <set>
 #include <string>
 
-#include "IPAddr.h"
-#include "BroString.h"
-#include "List.h"
-#include "RE.h"
-#include "Net.h"
-#include "Sessions.h"
-#include "IntSet.h"
-#include "util.h"
 #include "Rule.h"
-#include "RuleAction.h"
-#include "RuleCondition.h"
+#include "RE.h"
+#include "CCL.h"
 
 //#define MATCHER_PRINT_STATS
 
@@ -33,6 +27,13 @@ extern FILE* rules_in;
 extern int rules_line_number;
 extern const char* current_rule_file;
 
+class Val;
+class BroFile;
+class IntSet;
+class IP_Hdr;
+class IPPrefix;
+class RE_Match_State;
+class Specific_RE_Matcher;
 class RuleMatcher;
 extern RuleMatcher* rule_matcher;
 
@@ -61,7 +62,7 @@ typedef PList<BroString> bstr_list;
 
 // Get values from Bro's script-level variables.
 extern void id_to_maskedvallist(const char* id, maskedvalue_list* append_to,
-                                vector<IPPrefix>* prefix_vector = 0);
+                                std::vector<IPPrefix>* prefix_vector = nullptr);
 extern char* id_to_str(const char* id);
 extern uint32_t id_to_uint(const char* id);
 
@@ -73,7 +74,7 @@ public:
 
 	RuleHdrTest(Prot arg_prot, uint32_t arg_offset, uint32_t arg_size,
 			Comp arg_comp, maskedvalue_list* arg_vals);
-	RuleHdrTest(Prot arg_prot, Comp arg_comp, vector<IPPrefix> arg_v);
+	RuleHdrTest(Prot arg_prot, Comp arg_comp, std::vector<IPPrefix> arg_v);
 	~RuleHdrTest();
 
 	void PrintDebug();
@@ -90,12 +91,13 @@ private:
 	Prot prot;
 	Comp comp;
 	maskedvalue_list* vals;
-	vector<IPPrefix> prefix_vals; // for use with IPSrc/IPDst comparisons
+	std::vector<IPPrefix> prefix_vals; // for use with IPSrc/IPDst comparisons
 	uint32_t offset;
 	uint32_t size;
 
 	uint32_t id;	// For debugging, each HdrTest gets an unique ID
 	static uint32_t idcounter;
+	int32_t level;	// level within the tree
 
 	// The following are all set by RuleMatcher::BuildRulesTree().
 	friend class RuleMatcher;
@@ -126,8 +128,6 @@ private:
 
 	RuleHdrTest* sibling;	// linkage within HdrTest tree
 	RuleHdrTest* child;
-
-	int level;	// level within the tree
 };
 
 typedef PList<RuleHdrTest> rule_hdr_test_list;
@@ -167,7 +167,6 @@ private:
 
 	typedef PList<Matcher> matcher_list;
 
-	bool is_orig;
 	analyzer::Analyzer* analyzer;
 	RuleEndpointState* opposite;
 	analyzer::pia::PIA* pia;
@@ -182,6 +181,7 @@ private:
 	bstr_list matched_text;
 
 	int payload_size;
+	bool is_orig;
 
 	int_list matched_rules;		// Rules for which all conditions have matched
 };
@@ -221,7 +221,7 @@ public:
 	~RuleMatcher();
 
 	// Parse the given files and built up data structures.
-	bool ReadFiles(const name_list& files);
+	bool ReadFiles(const std::vector<std::string>& files);
 
 	/**
 	 * Inititialize a state object for matching file magic signatures.
@@ -235,7 +235,7 @@ public:
 	 * Ordered from greatest to least strength.  Matches of the same strength
 	 * will be in the set in lexicographic order of the MIME type string.
 	 */
-	typedef map<int, set<string>, std::greater<int> > MIME_Matches;
+	using MIME_Matches = std::map<int, std::set<std::string>, std::greater<int>>;
 
 	/**
 	 * Matches a chunk of data against file magic signatures.
@@ -250,7 +250,7 @@ public:
 	 * @return The results of the signature matching.
 	 */
 	MIME_Matches* Match(RuleFileMagicState* state, const u_char* data,
-	                   uint64_t len, MIME_Matches* matches = 0) const;
+	                   uint64_t len, MIME_Matches* matches = nullptr) const;
 
 
 	/**
@@ -307,7 +307,7 @@ public:
 	Val* BuildRuleStateValue(const Rule* rule,
 					const RuleEndpointState* state) const;
 
-	void GetStats(Stats* stats, RuleHdrTest* hdr_test = 0);
+	void GetStats(Stats* stats, RuleHdrTest* hdr_test = nullptr);
 	void DumpStats(BroFile* f);
 
 private:
@@ -367,13 +367,13 @@ private:
 // Keeps bi-directional matching-state.
 class RuleMatcherState {
 public:
-	RuleMatcherState()	{ orig_match_state = resp_match_state = 0; }
+	RuleMatcherState()	{ orig_match_state = resp_match_state = nullptr; }
 	~RuleMatcherState()
 		{ delete orig_match_state; delete resp_match_state; }
 
 	// ip may be nil.
 	void InitEndpointMatcher(analyzer::Analyzer* analyzer, const IP_Hdr* ip,
-				 int caplen, bool from_orig, analyzer::pia::PIA* pia = 0);
+				 int caplen, bool from_orig, analyzer::pia::PIA* pia = nullptr);
 
 	// bol/eol should be set to false for type Rule::PAYLOAD; they're
 	// deduced automatically.

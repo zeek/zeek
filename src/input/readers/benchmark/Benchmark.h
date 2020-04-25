@@ -25,7 +25,7 @@ protected:
 
 private:
 	double CurrTime();
-	string RandomString(const int len);
+	std::string RandomString(const int len);
 	threading::Value* EntryToVal(TypeTag Type, TypeTag subtype);
 
 	int num_lines;

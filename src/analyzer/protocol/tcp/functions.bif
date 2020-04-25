@@ -1,6 +1,8 @@
 
 %%{
 #include "File.h"
+#include "Sessions.h"
+#include "Reporter.h"
 #include "analyzer/protocol/tcp/TCP.h"
 %%}
 
@@ -97,10 +99,10 @@ function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
 	%{
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
-		return val_mgr->GetBool(0);
+		return val_mgr->GetFalse();
 
 	c->GetRootAnalyzer()->SetContentsFile(direction, f);
-	return val_mgr->GetBool(1);
+	return val_mgr->GetTrue();
 	%}
 
 ## Returns the file handle of the contents file of a connection.
@@ -119,7 +121,7 @@ function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
 function get_contents_file%(cid: conn_id, direction: count%): file
 	%{
 	Connection* c = sessions->FindConnection(cid);
-	BroFile* f = c ? c->GetRootAnalyzer()->GetContentsFile(direction) : 0;
+	BroFile* f = c ? c->GetRootAnalyzer()->GetContentsFile(direction) : nullptr;
 
 	if ( f )
 		{

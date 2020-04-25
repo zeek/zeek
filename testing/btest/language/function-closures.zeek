@@ -34,6 +34,22 @@ function dog_maker(name: string, weight: count) : function (action: string)
 	return dog;
 	}
 
+function make_lambda(start: count): function(): count
+	{
+	return function(): count
+		{
+		local dummy: string;
+		return 0;
+		};
+	}
+
+event zeek_init() &priority=10
+	{
+	# just checking use of unitialized locals "works" (doesn't crash)
+	local one = make_lambda(1);
+	local two = make_lambda(2);
+	}
+
 event zeek_init()
 	{
 	# basic

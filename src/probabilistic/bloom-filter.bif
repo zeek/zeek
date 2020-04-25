@@ -233,7 +233,7 @@ function bloomfilter_merge%(bf1: opaque of bloomfilter,
 		return 0;
 		}
 
-	return BloomFilterVal::Merge(bfv1, bfv2);
+	return BloomFilterVal::Merge(bfv1, bfv2).release();
 	%}
 
 ## Returns a string with a representation of a Bloom filter's internal

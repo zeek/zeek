@@ -209,7 +209,7 @@ event dce_rpc_response(c: connection, fid: count, ctx_id: count, opnum: count, s
 		}
 	}
 
-event connection_state_remove(c: connection)
+event successful_connection_remove(c: connection)
 	{
 	if ( ! c?$dce_rpc )
 		return;

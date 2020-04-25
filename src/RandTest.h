@@ -1,6 +1,6 @@
 #pragma once
 
-#include "util.h"
+#include <stdint.h>
 
 #define RT_MONTEN 6  /* Bytes used as Monte Carlo
                         co-ordinates. This should be no more

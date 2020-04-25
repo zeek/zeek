@@ -5,6 +5,7 @@
 # the separate file).
 @load base/frameworks/logging
 @load base/frameworks/broker
+@load base/frameworks/supervisor
 @load base/frameworks/input
 @load base/frameworks/analyzer
 @load base/frameworks/files

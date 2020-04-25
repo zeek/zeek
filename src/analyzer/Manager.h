@@ -90,7 +90,7 @@ public:
 	 *
 	 * @return True if successful.
 	 */
-	bool EnableAnalyzer(Tag tag);
+	bool EnableAnalyzer(const Tag& tag);
 
 	/**
 	 * Enables an analyzer type. Only enabled analyzers will be
@@ -111,7 +111,7 @@ public:
 	 *
 	 * @return True if successful.
 	 */
-	bool DisableAnalyzer(Tag tag);
+	bool DisableAnalyzer(const Tag& tag);
 
 	/**
 	 * Disables an analyzer type. Disabled analyzers will not be
@@ -142,7 +142,7 @@ public:
 	 *
 	 * @param tag The analyzer's tag.
 	 */
-	bool IsEnabled(Tag tag);
+	bool IsEnabled(const Tag& tag);
 
 	/**
 	 * Returns true if an analyzer is enabled.
@@ -179,7 +179,7 @@ public:
 	 *
 	 * @return True if successful.
 	 */
-	bool RegisterAnalyzerForPort(Tag tag, TransportProto proto, uint32_t port);
+	bool RegisterAnalyzerForPort(const Tag& tag, TransportProto proto, uint32_t port);
 
 	/**
 	 * Unregisters a well-known port for an anlyzers.
@@ -207,7 +207,7 @@ public:
 	 * @param tag The analyzer's tag as an enum of script type \c
 	 * Analyzer::Tag.
 	 */
-	bool UnregisterAnalyzerForPort(Tag tag, TransportProto proto, uint32_t port);
+	bool UnregisterAnalyzerForPort(const Tag& tag, TransportProto proto, uint32_t port);
 
 	/**
 	 * Instantiates a new analyzer instance for a connection.
@@ -221,7 +221,7 @@ public:
 	 * null if tag is invalid, the requested analyzer is disabled, or the
 	 * analyzer can't be instantiated.
 	 */
-	Analyzer* InstantiateAnalyzer(Tag tag, Connection* c);
+	Analyzer* InstantiateAnalyzer(const Tag& tag, Connection* c);
 
 	/**
 	 * Instantiates a new analyzer instance for a connection.
@@ -269,7 +269,7 @@ public:
 	 * schedule this analyzer. Must be non-zero.
 	 */
 	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, uint16_t resp_p,
-				TransportProto proto, Tag analyzer, double timeout);
+				TransportProto proto, const Tag& analyzer, double timeout);
 
 	/**
 	 * Schedules a particular analyzer for an upcoming connection. Once
@@ -311,7 +311,7 @@ public:
 	 *
 	 * @return True if at least one scheduled analyzer was found.
 	 */
-	bool ApplyScheduledAnalyzers(Connection* conn, bool init_and_event = true, TransportLayerAnalyzer* parent = 0);
+	bool ApplyScheduledAnalyzers(Connection* conn, bool init_and_event = true, TransportLayerAnalyzer* parent = nullptr);
 
 	/**
 	 * Schedules a particular analyzer for an upcoming connection. Once
@@ -342,8 +342,9 @@ public:
 		{ return vxlan_ports; }
 
 private:
-	typedef set<Tag> tag_set;
-	typedef map<uint32_t, tag_set*> analyzer_map_by_port;
+
+	using tag_set = std::set<Tag>;
+	using analyzer_map_by_port = std::map<uint32_t, tag_set*>;
 
 	tag_set* LookupPort(PortVal* val, bool add_if_not_found);
 	tag_set* LookupPort(TransportProto proto, uint32_t port, bool add_if_not_found);
@@ -387,10 +388,10 @@ private:
 		};
 	};
 
-	typedef std::multimap<ConnIndex, ScheduledAnalyzer*> conns_map;
-	typedef std::priority_queue<ScheduledAnalyzer*,
-				    vector<ScheduledAnalyzer*>,
-				    ScheduledAnalyzer::Comparator> conns_queue;
+	using conns_map = std::multimap<ConnIndex, ScheduledAnalyzer*>;
+	using conns_queue = std::priority_queue<ScheduledAnalyzer*,
+	                                        std::vector<ScheduledAnalyzer*>,
+	                                        ScheduledAnalyzer::Comparator>;
 
 	conns_map conns;
 	conns_queue conns_by_timeout;

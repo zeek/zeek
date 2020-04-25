@@ -33,8 +33,8 @@ template<typename T>
 class List {
 public:
 
-	const int DEFAULT_LIST_SIZE = 10;
-	const int LIST_GROWTH_FACTOR = 2;
+	constexpr static int DEFAULT_LIST_SIZE = 10;
+	constexpr static int LIST_GROWTH_FACTOR = 2;
 
 	~List()		{ free(entries); }
 	explicit List(int size = 0)
@@ -135,6 +135,9 @@ public:
 		num_entries = max_entries = 0;
 		}
 
+	bool empty() const noexcept { return num_entries == 0; }
+	size_t size() const noexcept { return num_entries; }
+
 	int length() const	{ return num_entries; }
 	int max() const		{ return max_entries; }
 	int resize(int new_size = 0)	// 0 => size to fit current number of entries
@@ -154,12 +157,6 @@ public:
 		return max_entries;
 		}
 
-	ZEEK_DEPRECATED("Remove in v3.1: Use std::sort instead")
-	void sort(list_cmp_func cmp_func)
-		{
-		qsort(entries, num_entries, sizeof(T), cmp_func);
-		}
-
 	int MemoryAllocation() const
 		{ return padded_sizeof(*this) + pad_size(max_entries * sizeof(T)); }
 
@@ -174,7 +171,7 @@ public:
 		++num_entries;
 		entries[0] = a;
 		}
-	
+
 	void push_back(const T& a)
 		{
 		if ( num_entries == max_entries )
@@ -182,18 +179,12 @@ public:
 
 		entries[num_entries++] = a;
 		}
-	
+
 	void pop_front()	{ remove_nth(0); }
 	void pop_back()	{ remove_nth(num_entries-1); }
 
 	T& front()	 { return entries[0]; }
 	T& back()	 { return entries[num_entries-1]; }
-
-	ZEEK_DEPRECATED("Remove in v3.1: Use push_front instead")
-	void insert(const T& a)	// add at head of list
-		{
-		push_front(a);
-		}
 
 	// The append method is maintained for historical/compatibility reasons.
 	// (It's commonly used in the event generation API)
@@ -228,16 +219,6 @@ public:
 
 		return old_ent;
 		}
-
-	ZEEK_DEPRECATED("Remove in v3.1: Use back()/pop_back() instead")
-	T get()		// return and remove ent at end of list
-		{
-		assert(num_entries > 0);
-		return entries[--num_entries];
-		}
-
-	ZEEK_DEPRECATED("Remove in v3.1: Use back() instead")
-	T& last()	{ return back(); }
 
 	// Return 0 if ent is not in the list, ent otherwise.
 	bool is_member(const T& a) const

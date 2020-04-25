@@ -5,15 +5,18 @@
 #include <sys/types.h>
 
 #include <string>
+#include <tuple>
+#include <type_traits>
 
 #include "Dict.h"
-#include "Val.h"
 #include "Timer.h"
-#include "RuleMatcher.h"
+#include "Rule.h"
 #include "IPAddr.h"
-#include "TunnelEncapsulation.h"
 #include "UID.h"
 #include "WeirdState.h"
+#include "ZeekArgs.h"
+#include "IntrusivePtr.h"
+#include "iosource/Packet.h"
 
 #include "analyzer/Tag.h"
 #include "analyzer/Analyzer.h"
@@ -25,6 +28,9 @@ class LoginConn;
 class RuleHdrTest;
 class Specific_RE_Matcher;
 class RuleEndpointState;
+class EncapsulationStack;
+class Val;
+class RecordVal;
 
 namespace analyzer { class TransportLayerAnalyzer; }
 
@@ -53,7 +59,7 @@ static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1,
 
 namespace analyzer { class Analyzer; }
 
-class Connection : public BroObj {
+class Connection final : public BroObj {
 public:
 	Connection(NetSessions* s, const ConnIDKey& k, double t, const ConnID* id,
 	           uint32_t flow, const Packet* pkt, const EncapsulationStack* arg_encap);
@@ -81,7 +87,7 @@ public:
 	// If record_content is true, then its entire contents should
 	// be recorded, otherwise just up through the transport header.
 	// Both are assumed set to true when called.
-	void NextPacket(double t, int is_orig,
+	void NextPacket(double t, bool is_orig,
 			const IP_Hdr* ip, int len, int caplen,
 			const u_char*& data,
 			int& record_packet, int& record_content,
@@ -109,35 +115,38 @@ public:
 	void FlipRoles();
 
 	analyzer::Analyzer* FindAnalyzer(analyzer::ID id);
-	analyzer::Analyzer* FindAnalyzer(analyzer::Tag tag);	// find first in tree.
+	analyzer::Analyzer* FindAnalyzer(const analyzer::Tag& tag);	// find first in tree.
 	analyzer::Analyzer* FindAnalyzer(const char* name);	// find first in tree.
 
 	TransportProto ConnTransport() const { return proto; }
 
+	bool IsSuccessful() const	{ return is_successful; };
+	void SetSuccessful()	{ is_successful = true; }
+
 	// True if we should record subsequent packets (either headers or
 	// in their entirety, depending on record_contents).  We still
 	// record subsequent SYN/FIN/RST, regardless of how this is set.
-	int RecordPackets() const		{ return record_packets; }
-	void SetRecordPackets(int do_record)	{ record_packets = do_record; }
+	bool RecordPackets() const		{ return record_packets; }
+	void SetRecordPackets(bool do_record)	{ record_packets = do_record ? 1 : 0; }
 
 	// True if we should record full packets for this connection,
 	// false if we should just record headers.
-	int RecordContents() const		{ return record_contents; }
-	void SetRecordContents(int do_record)	{ record_contents = do_record; }
+	bool RecordContents() const		{ return record_contents; }
+	void SetRecordContents(bool do_record)	{ record_contents = do_record ? 1 : 0; }
 
 	// Set whether to record *current* packet header/full.
-	void SetRecordCurrentPacket(int do_record)
-		{ record_current_packet = do_record; }
-	void SetRecordCurrentContent(int do_record)
-		{ record_current_content = do_record; }
+	void SetRecordCurrentPacket(bool do_record)
+		{ record_current_packet = do_record ? 1 : 0; }
+	void SetRecordCurrentContent(bool do_record)
+		{ record_current_content = do_record ? 1 : 0; }
 
 	// FIXME: Now this is in Analyzer and should eventually be removed here.
 	//
 	// If true, skip processing of remainder of connection.  Note
 	// that this does not in itself imply that record_packets is false;
 	// we might want instead to process the connection off-line.
-	void SetSkip(int do_skip)		{ skip = do_skip; }
-	int Skipping() const			{ return skip; }
+	void SetSkip(bool do_skip)		{ skip = do_skip ? 1 : 0; }
+	bool Skipping() const			{ return skip; }
 
 	// Arrange for the connection to expire after the given amount of time.
 	void SetLifetime(double lifetime);
@@ -162,21 +171,27 @@ public:
 	void Match(Rule::PatternType type, const u_char* data, int len,
 			bool is_orig, bool bol, bool eol, bool clear_state);
 
+	/**
+	 * Generates connection removal event(s).
+	 */
+	void RemovalEvent();
+
 	// If a handler exists for 'f', an event will be generated.  If 'name' is
 	// given that event's first argument will be it, and it's second will be
 	// the connection value.  If 'name' is null, then the event's first
 	// argument is the connection value.
-	void Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const char* name = 0);
+	void Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const char* name = nullptr);
 
 	// If a handler exists for 'f', an event will be generated.  In any case,
 	// 'v1' and 'v2' reference counts get decremented.  The event's first
 	// argument is the connection value, second argument is 'v1', and if 'v2'
 	// is given that will be it's third argument.
-	void Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1, Val* v2 = 0);
+	void Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1, Val* v2 = nullptr);
 
 	// If a handler exists for 'f', an event will be generated.  In any case,
 	// reference count for each element in the 'vl' list are decremented.  The
 	// arguments used for the event are whatevever is provided in 'vl'.
+	[[deprecated("Remove in v4.1.  Use EnqueueEvent() instead.")]]
 	void ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* analyzer,
 				val_list vl);
 
@@ -184,6 +199,7 @@ public:
 	// pointer instead of by value.  This function takes ownership of the
 	// memory pointed to by 'vl' and also for decrementing the reference count
 	// of each of its elements.
+	[[deprecated("Remove in v4.1.  Use EnqueueEvent() instead.")]]
 	void ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* analyzer,
 				val_list* vl);
 
@@ -195,8 +211,25 @@ public:
 	// the case where there's no handlers (one usually also does that because
 	// it would be a waste of effort to construct all the event arguments when
 	// there's no handlers to consume them).
+	[[deprecated("Remove in v4.1.  Use EnqueueEvent() instead.")]]
 	void ConnectionEventFast(EventHandlerPtr f, analyzer::Analyzer* analyzer,
 				val_list vl);
+
+	/**
+	 * Enqueues an event associated with this connection and given analyzer.
+	 */
+	void EnqueueEvent(EventHandlerPtr f, analyzer::Analyzer* analyzer,
+	                  zeek::Args args);
+
+	/**
+	 * A version of EnqueueEvent() taking a variable number of arguments.
+	 */
+	template <class... Args>
+	std::enable_if_t<
+	  std::is_convertible_v<
+	    std::tuple_element_t<0, std::tuple<Args...>>, IntrusivePtr<Val>>>
+	EnqueueEvent(EventHandlerPtr h, analyzer::Analyzer* analyzer, Args&&... args)
+		{ return EnqueueEvent(h, analyzer, zeek::Args{std::forward<Args>(args)...}); }
 
 	void Weird(const char* name, const char* addl = "");
 	bool DidWeird() const	{ return weird != 0; }
@@ -204,25 +237,20 @@ public:
 	// Cancel all associated timers.
 	void CancelTimers();
 
-	inline int FlagEvent(ConnEventToFlag e)
+	inline bool FlagEvent(ConnEventToFlag e)
 		{
 		if ( e >= 0 && e < NUM_EVENTS_TO_FLAG )
 			{
 			if ( suppress_event & (1 << e) )
-				return 0;
+				return false;
 			suppress_event |= 1 << e;
 			}
 
-		return 1;
+		return true;
 		}
 
 	void Describe(ODesc* d) const override;
 	void IDString(ODesc* d) const;
-
-	TimerMgr* GetTimerMgr() const;
-
-	// Returns true if connection has been received externally.
-	bool IsExternal() const	{ return conn_timer_mgr != 0; }
 
 	// Statistics.
 
@@ -234,11 +262,9 @@ public:
 		{ return total_connections; }
 	static uint64_t CurrentConnections()
 		{ return current_connections; }
-	static uint64_t CurrentExternalConnections()
-		{ return external_connections; }
 
 	// Returns true if the history was already seen, false otherwise.
-	int CheckHistory(uint32_t mask, char code)
+	bool CheckHistory(uint32_t mask, char code)
 		{
 		if ( (hist_seen & mask) == 0 )
 			{
@@ -295,7 +321,7 @@ protected:
 	// Add the given timer to expire at time t.  If do_expire
 	// is true, then the timer is also evaluated when Bro terminates,
 	// otherwise not.
-	void AddTimer(timer_func timer, double t, int do_expire,
+	void AddTimer(timer_func timer, double t, bool do_expire,
 			TimerType type);
 
 	void RemoveTimer(Timer* t);
@@ -311,8 +337,6 @@ protected:
 	ConnIDKey key;
 	bool key_valid;
 
-	// Timer manager to use for this conn (or nil).
-	TimerMgr::Tag* conn_timer_mgr;
 	timer_list timers;
 
 	IPAddr orig_addr;
@@ -339,13 +363,13 @@ protected:
 	unsigned int record_packets:1, record_contents:1;
 	unsigned int record_current_packet:1, record_current_content:1;
 	unsigned int saw_first_orig_packet:1, saw_first_resp_packet:1;
+	unsigned int is_successful:1;
 
 	// Count number of connections.
 	static uint64_t total_connections;
 	static uint64_t current_connections;
-	static uint64_t external_connections;
 
-	string history;
+	std::string history;
 	uint32_t hist_seen;
 
 	analyzer::TransportLayerAnalyzer* root_analyzer;
@@ -355,24 +379,24 @@ protected:
 	WeirdStateMap weird_state;
 };
 
-class ConnectionTimer : public Timer {
+class ConnectionTimer final : public Timer {
 public:
 	ConnectionTimer(Connection* arg_conn, timer_func arg_timer,
-			double arg_t, int arg_do_expire, TimerType arg_type)
+			double arg_t, bool arg_do_expire, TimerType arg_type)
 		: Timer(arg_t, arg_type)
 		{ Init(arg_conn, arg_timer, arg_do_expire); }
 	~ConnectionTimer() override;
 
-	void Dispatch(double t, int is_expire) override;
+	void Dispatch(double t, bool is_expire) override;
 
 protected:
 	ConnectionTimer()	{}
 
-	void Init(Connection* conn, timer_func timer, int do_expire);
+	void Init(Connection* conn, timer_func timer, bool do_expire);
 
 	Connection* conn;
 	timer_func timer;
-	int do_expire;
+	bool do_expire;
 };
 
 #define ADD_TIMER(timer, t, do_expire, type) \

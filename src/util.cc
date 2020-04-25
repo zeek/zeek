@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "util.h"
 #include "util-config.h"
 
 #ifdef TIME_WITH_SYS_TIME
@@ -42,16 +43,66 @@
 # include <malloc.h>
 #endif
 
+#include "Desc.h"
+#include "Dict.h"
 #include "digest.h"
 #include "input.h"
-#include "util.h"
 #include "Obj.h"
 #include "Val.h"
 #include "NetVar.h"
 #include "Net.h"
 #include "Reporter.h"
 #include "iosource/Manager.h"
+#include "iosource/PktSrc.h"
 #include "ConvertUTF.h"
+
+#include "3rdparty/doctest.h"
+
+#ifdef __linux__
+#if __has_include(<sys/random.h>)
+#define HAVE_GETRANDOM
+#include <sys/random.h>
+#endif
+#endif
+
+using namespace std;
+
+static bool starts_with(std::string_view s, std::string_view beginning)
+	{
+	if ( beginning.size() > s.size() )
+		return false;
+
+	return std::equal(beginning.begin(), beginning.end(), s.begin());
+	}
+
+TEST_CASE("util starts_with")
+	{
+	CHECK(starts_with("abcde", "ab") == true);
+	CHECK(starts_with("abcde", "de") == false);
+	CHECK(starts_with("abcde", "abcedf") == false);
+	}
+
+static bool ends_with(std::string_view s, std::string_view ending)
+	{
+	if ( ending.size() > s.size() )
+		return false;
+
+	return std::equal(ending.rbegin(), ending.rend(), s.rbegin());
+	}
+
+TEST_CASE("util ends_with")
+	{
+	CHECK(ends_with("abcde", "de") == true);
+	CHECK(ends_with("abcde", "fg") == false);
+	CHECK(ends_with("abcde", "abcedf") == false);
+	}
+
+TEST_CASE("util extract_ip")
+	{
+	CHECK(extract_ip("[1.2.3.4]") == "1.2.3.4");
+	CHECK(extract_ip("0x1.2.3.4") == "1.2.3.4");
+	CHECK(extract_ip("[]") == "");
+	}
 
 /**
  * Return IP address without enclosing brackets and any leading 0x.  Also
@@ -74,6 +125,25 @@ std::string extract_ip(const std::string& i)
 	return s;
 	}
 
+TEST_CASE("util extract_ip_and_len")
+	{
+	int len;
+	std::string out = extract_ip_and_len("[1.2.3.4/24]", &len);
+	CHECK(out == "1.2.3.4");
+	CHECK(len == 24);
+
+	out = extract_ip_and_len("0x1.2.3.4/32", &len);
+	CHECK(out == "1.2.3.4");
+	CHECK(len == 32);
+
+	out = extract_ip_and_len("[]/abcd", &len);
+	CHECK(out == "");
+	CHECK(len == 0);
+
+	out = extract_ip_and_len("[]/16", nullptr);
+	CHECK(out == "");
+	}
+
 /**
  * Given a subnet string, return IP address and subnet length separately.
  */
@@ -87,6 +157,12 @@ std::string extract_ip_and_len(const std::string& i, int* len)
 		*len = atoi(i.substr(pos + 1).c_str());
 
 	return extract_ip(i.substr(0, pos));
+	}
+
+TEST_CASE("util get_unescaped_string")
+	{
+	CHECK(get_unescaped_string("abcde") == "abcde");
+	CHECK(get_unescaped_string("\\x41BCD\\x45") == "ABCDE");
 	}
 
 /**
@@ -125,6 +201,32 @@ std::string get_unescaped_string(const std::string& arg_str)
 	delete [] buf;
 
 	return outstring;
+	}
+
+TEST_CASE("util get_escaped_string")
+	{
+	SUBCASE("returned ODesc")
+		{
+		ODesc* d = get_escaped_string(nullptr, "a bcd\n", 6, false);
+		CHECK(strcmp(d->Description(), "a\\x20bcd\\x0a") == 0);
+		delete d;
+		}
+
+	SUBCASE("provided ODesc")
+		{
+		ODesc d2;
+		get_escaped_string(&d2, "ab\\e", 4, true);
+		CHECK(strcmp(d2.Description(), "\\x61\\x62\\\\\\x65") == 0);
+		}
+
+	SUBCASE("std::string versions")
+		{
+		std::string s = get_escaped_string("a b c", 5, false);
+		CHECK(s == "a\\x20b\\x20c");
+
+		s = get_escaped_string("d e", false);
+		CHECK(s == "d\\x20e");
+		}
 	}
 
 /**
@@ -177,16 +279,42 @@ std::string get_escaped_string(const char* str, size_t len, bool escape_all)
 char* copy_string(const char* s)
 	{
 	if ( ! s )
-		return 0;
+		return nullptr;
 
 	char* c = new char[strlen(s)+1];
 	strcpy(c, s);
 	return c;
 	}
 
+TEST_CASE("util streq")
+	{
+	CHECK(streq("abcd", "abcd") == true);
+	CHECK(streq("abcd", "efgh") == false);
+	}
+
 int streq(const char* s1, const char* s2)
 	{
 	return ! strcmp(s1, s2);
+	}
+
+static constexpr int parse_octal_digit(char ch) noexcept
+	{
+	if ( ch >= '0' && ch <= '7' )
+		return ch - '0';
+	else
+		return -1;
+	}
+
+static constexpr int parse_hex_digit(char ch) noexcept
+	{
+	if ( ch >= '0' && ch <= '9' )
+		return ch - '0';
+	else if ( ch >= 'a' && ch <= 'f' )
+		return 10 + ch - 'a';
+	else if ( ch >= 'A' && ch <= 'F' )
+		return 10 + ch - 'A';
+	else
+		return -1;
 	}
 
 int expand_escape(const char*& s)
@@ -206,23 +334,32 @@ int expand_escape(const char*& s)
 		--s;	// put back the first octal digit
 		const char* start = s;
 
-		// Don't increment inside loop control
-		// because if isdigit() is a macro it might
-		// expand into multiple increments ...
+		// require at least one octal digit and parse at most three
 
-		// Here we define a maximum length for escape sequence
-		// to allow easy handling of string like: "^H0" as
-		// "\0100".
+		int result = parse_octal_digit(*s++);
 
-		for ( int len = 0; len < 3 && isascii(*s) && isdigit(*s);
-		      ++s, ++len)
-			;
-
-		int result;
-		if ( sscanf(start, "%3o", &result) != 1 )
+		if ( result < 0 )
 			{
-			reporter->Warning("bad octal escape: %s ", start);
-			result = 0;
+			reporter->Error("bad octal escape: %s", start);
+			return 0;
+			}
+
+		// second digit?
+		int digit = parse_octal_digit(*s);
+
+		if ( digit >= 0 )
+			{
+			result = (result << 3) | digit;
+			++s;
+
+			// third digit?
+			digit = parse_octal_digit(*s);
+
+			if ( digit >= 0 )
+				{
+				result = (result << 3) | digit;
+				++s;
+				}
 			}
 
 		return result;
@@ -233,15 +370,22 @@ int expand_escape(const char*& s)
 		const char* start = s;
 
 		// Look at most 2 characters, so that "\x0ddir" -> "^Mdir".
-		for ( int len = 0; len < 2 && isascii(*s) && isxdigit(*s);
-		      ++s, ++len)
-			;
 
-		int result;
-		if ( sscanf(start, "%2x", &result) != 1 )
+		int result = parse_hex_digit(*s++);
+
+		if ( result < 0 )
 			{
-			reporter->Warning("bad hexadecimal escape: %s", start);
-			result = 0;
+			reporter->Error("bad hexadecimal escape: %s", start);
+			return 0;
+			}
+
+		// second digit?
+		int digit = parse_hex_digit(*s);
+
+		if ( digit >= 0 )
+			{
+			result = (result << 4) | digit;
+			++s;
 			}
 
 		return result;
@@ -287,6 +431,30 @@ char* skip_digits(char* s)
 	return s;
 	}
 
+TEST_CASE("util get_word")
+	{
+	char orig[10];
+	strcpy(orig, "two words");
+
+	SUBCASE("get first word")
+		{
+		char* a = (char*)orig;
+		char* b = get_word(a);
+
+		CHECK(strcmp(a, "words") == 0);
+		CHECK(strcmp(b, "two") == 0);
+		}
+
+	SUBCASE("get length of first word")
+		{
+		int len = strlen(orig);
+		int len2;
+		const char* b = nullptr;
+		get_word(len, orig, len2, b);
+		CHECK(len2 == 3);
+		}
+	}
+
 char* get_word(char*& s)
 	{
 	char* w = s;
@@ -314,6 +482,17 @@ void get_word(int length, const char* s, int& pwlen, const char*& pw)
 		}
 
 	pwlen = len;
+	}
+
+TEST_CASE("util to_upper")
+	{
+	char a[10];
+	strcpy(a, "aBcD");
+	to_upper(a);
+	CHECK(strcmp(a, "ABCD") == 0);
+
+	std::string b = "aBcD";
+	CHECK(to_upper(b) == "ABCD");
 	}
 
 void to_upper(char* s)
@@ -363,6 +542,16 @@ unsigned char encode_hex(int h)
 	return hex[h];
 	}
 
+TEST_CASE("util strpbrk_n")
+	{
+	const char* s = "abcdef";
+	const char* o = strpbrk_n(5, s, "gc");
+	CHECK(strcmp(o, "cdef") == 0);
+
+	const char* f = strpbrk_n(5, s, "xyz");
+	CHECK(f == nullptr);
+	}
+
 // Same as strpbrk except that s is not NUL-terminated, but limited by
 // len. Note that '\0' is always implicitly contained in charset.
 const char* strpbrk_n(size_t len, const char* s, const char* charset)
@@ -371,10 +560,24 @@ const char* strpbrk_n(size_t len, const char* s, const char* charset)
 		if ( strchr(charset, *p) )
 			return p;
 
-	return 0;
+	return nullptr;
 	}
 
 #ifndef HAVE_STRCASESTR
+
+TEST_CASE("util strcasestr")
+	{
+	const char* s = "this is a string";
+	const char* out = strcasestr(s, "is");
+	CHECK(strcmp(out, "is a string") == 0);
+
+	const char* out2 = strcasestr(s, "IS");
+	CHECK(strcmp(out2, "is a string") == 0);
+
+	const char* out3 = strcasestr(s, "not there");
+	CHECK(strcmp(out2, s) == 0);
+	}
+
 // This code is derived from software contributed to BSD by Chris Torek.
 char* strcasestr(const char* s, const char* find)
 	{
@@ -400,6 +603,22 @@ char* strcasestr(const char* s, const char* find)
 	return (char*) s;
 	}
 #endif
+
+TEST_CASE("util atoi_n")
+	{
+	const char* dec = "12345";
+	int val;
+
+	CHECK(atoi_n(strlen(dec), dec, nullptr, 10, val) == 1);
+	CHECK(val == 12345);
+
+	const char* hex = "12AB";
+	CHECK(atoi_n(strlen(hex), hex, nullptr, 16, val) == 1);
+	CHECK(val == 0x12AB);
+
+	const char* fail = "XYZ";
+	CHECK(atoi_n(strlen(fail), fail, nullptr, 10, val) == 0);
+	}
 
 template<class T> int atoi_n(int len, const char* s, const char** end, int base, T& result)
 	{
@@ -453,9 +672,18 @@ template int atoi_n<uint32_t>(int len, const char* s, const char** end, int base
 template int atoi_n<int64_t>(int len, const char* s, const char** end, int base, int64_t& result);
 template int atoi_n<uint64_t>(int len, const char* s, const char** end, int base, uint64_t& result);
 
+TEST_CASE("util uitoa_n")
+	{
+	int val = 12345;
+	char str[20];
+	const char* result = uitoa_n(val, str, 20, 10, "pref: ");
+	// TODO: i'm not sure this is the correct output. was it supposed to reverse the digits?
+	CHECK(strcmp(str, "pref: 54321") == 0);
+	}
+
 char* uitoa_n(uint64_t value, char* str, int n, int base, const char* prefix)
 	{
-	static char dig[] = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	static constexpr char dig[] = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 	assert(n);
 
@@ -466,7 +694,7 @@ char* uitoa_n(uint64_t value, char* str, int n, int base, const char* prefix)
 
 	if ( prefix )
 		{
-		strncpy(str, prefix, n);
+		strncpy(str, prefix, n-1);
 		str[n-1] = '\0';
 		i += strlen(prefix);
 		}
@@ -486,6 +714,21 @@ char* uitoa_n(uint64_t value, char* str, int n, int base, const char* prefix)
 	return str;
 	}
 
+TEST_CASE("util strstr_n")
+	{
+	const u_char* s = reinterpret_cast<const u_char*>("this is a string");
+	int out = strstr_n(16, s, 3, reinterpret_cast<const u_char*>("str"));
+	CHECK(out == 10);
+
+	out = strstr_n(16, s, 17, reinterpret_cast<const u_char*>("is"));
+	CHECK(out == -1);
+
+	out = strstr_n(16, s, 2, reinterpret_cast<const u_char*>("IS"));
+	CHECK(out == -1);
+
+	out = strstr_n(16, s, 9, reinterpret_cast<const u_char*>("not there"));
+	CHECK(out == -1);
+	}
 
 int strstr_n(const int big_len, const u_char* big,
 		const int little_len, const u_char* little)
@@ -510,6 +753,12 @@ int fputs(int len, const char* s, FILE* fp)
 	return 0;
 	}
 
+TEST_CASE("util is_printable")
+	{
+	CHECK(is_printable("abcd", 4) == true);
+	CHECK(is_printable("ab\0d", 4) == false);
+	}
+
 bool is_printable(const char* s, int len)
 	{
 	while ( --len >= 0 )
@@ -518,11 +767,34 @@ bool is_printable(const char* s, int len)
 	return true;
 	}
 
+TEST_CASE("util strtolower")
+	{
+	const char* a = "aBcD";
+	CHECK(strtolower(a) == "abcd");
+
+	std::string b = "aBcD";
+	CHECK(strtolower(b) == "abcd");
+	}
+
 std::string strtolower(const std::string& s)
 	{
 	std::string t = s;
 	std::transform(t.begin(), t.end(), t.begin(), ::tolower);
 	return t;
+	}
+
+TEST_CASE("util fmt_bytes")
+	{
+	const char* a = "abcd";
+	const char* af = fmt_bytes(a, 4);
+	CHECK(strcmp(a, af) == 0);
+
+	const char* b = "abc\0abc";
+	const char* bf = fmt_bytes(b, 7);
+	CHECK(strcmp(bf, "abc\\x00abc") == 0);
+
+	const char* cf = fmt_bytes(a, 3);
+	CHECK(strcmp(cf, "abc") == 0);
 	}
 
 const char* fmt_bytes(const char* data, int len)
@@ -547,9 +819,9 @@ const char* fmt_bytes(const char* data, int len)
 	return buf;
 	}
 
-const char* fmt(const char* format, va_list al)
+const char* vfmt(const char* format, va_list al)
 	{
-	static char* buf = 0;
+	static char* buf = nullptr;
 	static unsigned int buf_len = 1024;
 
 	if ( ! buf )
@@ -557,14 +829,14 @@ const char* fmt(const char* format, va_list al)
 
 	va_list alc;
 	va_copy(alc, al);
-	int n = safe_vsnprintf(buf, buf_len, format, al);
+	int n = vsnprintf(buf, buf_len, format, al);
 
 	if ( (unsigned int) n >= buf_len )
 		{ // Not enough room, grow the buffer.
 		buf_len = n + 32;
 		buf = (char*) safe_realloc(buf, buf_len);
 
-		n = safe_vsnprintf(buf, buf_len, format, alc);
+		n = vsnprintf(buf, buf_len, format, alc);
 
 		if ( (unsigned int) n >= buf_len )
 			reporter->InternalError("confusion reformatting in fmt()");
@@ -578,7 +850,7 @@ const char* fmt(const char* format, ...)
 	{
 	va_list al;
 	va_start(al, format);
-	auto rval = fmt(format, al);
+	auto rval = vfmt(format, al);
 	va_end(al);
 	return rval;
 	}
@@ -606,8 +878,7 @@ bool ensure_intermediate_dirs(const char* dirname)
 	bool absolute = dirname[0] == '/';
 	string path = normalize_path(dirname);
 
-	vector<string> path_components;
-	tokenize_string(path, "/", &path_components);
+	const auto path_components = tokenize_string(path, '/');
 
 	string current_dir;
 
@@ -682,6 +953,13 @@ bool is_file(const std::string& path)
 	return S_ISREG(st.st_mode);
 	}
 
+TEST_CASE("util strreplace")
+	{
+	string s = "this is not a string";
+	CHECK(strreplace(s, "not", "really") == "this is really a string");
+	CHECK(strreplace(s, "not ", "") == "this is a string");
+	}
+
 string strreplace(const string& s, const string& o, const string& n)
 	{
 	string r = s;
@@ -698,6 +976,18 @@ string strreplace(const string& s, const string& o, const string& n)
 
 	return r;
 }
+
+TEST_CASE("util strstrip")
+	{
+	string s = "  abcd";
+	CHECK(strstrip(s) == "abcd");
+
+	s = "abcd  ";
+	CHECK(strstrip(s) == "abcd");
+
+	s = "  abcd  ";
+	CHECK(strstrip(s) == "abcd");
+	}
 
 std::string strstrip(std::string s)
 	{
@@ -729,7 +1019,7 @@ void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
 static bool read_random_seeds(const char* read_file, uint32_t* seed,
 				uint32_t* buf, int bufsiz)
 	{
-	FILE* f = 0;
+	FILE* f = nullptr;
 
 	if ( ! (f = fopen(read_file, "r")) )
 		{
@@ -765,7 +1055,7 @@ static bool read_random_seeds(const char* read_file, uint32_t* seed,
 static bool write_random_seeds(const char* write_file, uint32_t seed,
 				uint32_t* buf, int bufsiz)
 	{
-	FILE* f = 0;
+	FILE* f = nullptr;
 
 	if ( ! (f = fopen(write_file, "w+")) )
 		{
@@ -821,6 +1111,14 @@ void init_random_seed(const char* read_file, const char* write_file)
 		else
 			seeds_done = true;
 		}
+
+#ifdef HAVE_GETRANDOM
+	if ( ! seeds_done )
+		{
+		ssize_t nbytes = getrandom(buf, sizeof(buf), 0);
+		seeds_done = nbytes == ssize_t(sizeof(buf));
+		}
+#endif
 
 	if ( ! seeds_done )
 		{
@@ -1003,7 +1301,7 @@ string bro_prefixes()
 	{
 	string rval;
 
-	for ( const auto& prefix : prefixes )
+	for ( const auto& prefix : zeek_script_prefixes )
 		{
 		if ( ! rval.empty() )
 			rval.append(":");
@@ -1013,7 +1311,22 @@ string bro_prefixes()
 	return rval;
 	}
 
+TEST_CASE("util is_package_loader")
+	{
+	CHECK(is_package_loader("/some/path/__load__.zeek") == true);
+	CHECK(is_package_loader("/some/path/notload.zeek") == false);
+	}
+
 const array<string, 2> script_extensions = {".zeek", ".bro"};
+
+void warn_if_legacy_script(std::string_view filename)
+	{
+	if ( ends_with(filename, ".bro") )
+		{
+		std::string x(filename);
+		reporter->Warning("Loading script '%s' with legacy extension, support for '.bro' will be removed in Zeek v4.1", x.c_str());
+		}
+	}
 
 bool is_package_loader(const string& path)
 	{
@@ -1022,7 +1335,10 @@ bool is_package_loader(const string& path)
 	for ( const string& ext : script_extensions )
 		{
 		if ( filename == "__load__" + ext )
+			{
+			warn_if_legacy_script(filename);
 			return true;
+			}
 		}
 
 	return false;
@@ -1031,7 +1347,7 @@ bool is_package_loader(const string& path)
 FILE* open_file(const string& path, const string& mode)
 	{
 	if ( path.empty() )
-		return 0;
+		return nullptr;
 
 	FILE* rval = fopen(path.c_str(), mode.c_str());
 
@@ -1060,6 +1376,7 @@ FILE* open_package(string& path, const string& mode)
 		string p = path + ext;
 		if ( can_read(p) )
 			{
+			warn_if_legacy_script(path);
 			path.append(ext);
 			return open_file(path, mode);
 			}
@@ -1069,7 +1386,33 @@ FILE* open_package(string& path, const string& mode)
 	string package_loader = "__load__" + script_extensions[0];
 	reporter->Error("Failed to open package '%s': missing '%s' file",
 	                arg_path.c_str(), package_loader.c_str());
-	return 0;
+	return nullptr;
+	}
+
+TEST_CASE("util path ops")
+	{
+	SUBCASE("SafeDirname")
+		{
+		SafeDirname d("/this/is/a/path", false);
+		CHECK(d.result == "/this/is/a");
+
+		SafeDirname d2("invalid", false);
+		CHECK(d2.result == ".");
+
+		SafeDirname d3("./filename", false);
+		CHECK(d2.result == ".");
+		}
+
+	SUBCASE("SafeBasename")
+		{
+		SafeBasename b("/this/is/a/path", false);
+		CHECK(b.result == "path");
+		CHECK(! b.error);
+
+		SafeBasename b2("justafile", false);
+		CHECK(b2.result == "justafile");
+		CHECK(! b2.error);
+		}
 	}
 
 void SafePathOp::CheckValid(const char* op_result, const char* path,
@@ -1128,6 +1471,16 @@ void SafeBasename::DoFunc(const string& path, bool error_aborts)
 	delete [] tmp;
 	}
 
+TEST_CASE("util implode_string_vector")
+	{
+	std::vector<std::string> v = { "a", "b", "c" };
+	CHECK(implode_string_vector(v, ",") == "a,b,c");
+	CHECK(implode_string_vector(v, "") == "abc");
+
+	v.clear();
+	CHECK(implode_string_vector(v, ",") == "");
+	}
+
 string implode_string_vector(const std::vector<std::string>& v,
                              const std::string& delim)
 	{
@@ -1142,6 +1495,13 @@ string implode_string_vector(const std::vector<std::string>& v,
 		}
 
 	return rval;
+	}
+
+TEST_CASE("util flatten_script_name")
+	{
+	CHECK(flatten_script_name("script", "some/path") == "some.path.script");
+	CHECK(flatten_script_name("other/path/__load__.zeek", "some/path") == "some.path.other.path");
+	CHECK(flatten_script_name("path/to/script", "") == "path.to.script");
 	}
 
 string flatten_script_name(const string& name, const string& prefix)
@@ -1164,52 +1524,152 @@ string flatten_script_name(const string& name, const string& prefix)
 	return rval;
 	}
 
-vector<string>* tokenize_string(string input, const string& delim,
-                                vector<string>* rval)
+TEST_CASE("util tokenize_string")
+	{
+	auto v = tokenize_string("/this/is/a/path", "/", nullptr);
+	CHECK(v->size() == 5);
+	CHECK(*v == vector<string>({ "", "this", "is", "a", "path" }));
+	delete v;
+
+	std::vector<std::string> v2;
+	tokenize_string("/this/is/path/2", "/", &v2);
+	CHECK(v2.size() == 5);
+	CHECK(v2 == vector<string>({ "", "this", "is", "path", "2" }));
+
+	v2.clear();
+	tokenize_string("/wrong/delim", ",", &v2);
+	CHECK(v2.size() == 1);
+
+	auto svs = tokenize_string("one,two,three,four,", ',');
+	std::vector<std::string_view> expect{"one", "two", "three", "four", ""};
+	CHECK(svs == expect);
+	}
+
+vector<string>* tokenize_string(std::string_view input, std::string_view delim,
+                                vector<string>* rval, int limit)
 	{
 	if ( ! rval )
 		rval = new vector<string>();
 
+	size_t pos = 0;
 	size_t n;
+	auto found = 0;
 
-	while ( (n = input.find(delim)) != string::npos )
+	while ( (n = input.find(delim, pos)) != string::npos )
 		{
-		rval->push_back(input.substr(0, n));
-		input.erase(0, n + 1);
+		++found;
+		rval->emplace_back(input.substr(pos, n - pos));
+		pos = n + 1;
+
+		if ( limit && found == limit )
+			break;
 		}
 
-	rval->push_back(input);
+	rval->emplace_back(input.substr(pos));
 	return rval;
 	}
 
-
-string normalize_path(const string& path)
+vector<std::string_view> tokenize_string(std::string_view input, const char delim) noexcept
 	{
-	size_t n;
-	vector<string> components, final_components;
-	string new_path;
+	vector<std::string_view> rval;
 
-	if ( path[0] == '/' )
+	size_t pos = 0;
+	size_t n;
+
+	while ( (n = input.find(delim, pos)) != string::npos )
+		{
+		rval.emplace_back(input.substr(pos, n - pos));
+		pos = n + 1;
+		}
+
+	rval.emplace_back(input.substr(pos));
+	return rval;
+	}
+
+TEST_CASE("util normalize_path")
+	{
+	CHECK(normalize_path("/1/2/3") == "/1/2/3");
+	CHECK(normalize_path("/1/./2/3") == "/1/2/3");
+	CHECK(normalize_path("/1/2/../3") == "/1/3");
+	CHECK(normalize_path("1/2/3/") == "1/2/3");
+	CHECK(normalize_path("1/2//3///") == "1/2/3");
+	CHECK(normalize_path("~/zeek/testing") == "~/zeek/testing");
+	CHECK(normalize_path("~jon/zeek/testing") == "~jon/zeek/testing");
+	CHECK(normalize_path("~jon/./zeek/testing") == "~jon/zeek/testing");
+	CHECK(normalize_path("~/zeek/testing/../././.") == "~/zeek");
+	CHECK(normalize_path("./zeek") == "./zeek");
+	CHECK(normalize_path("../zeek") == "../zeek");
+	CHECK(normalize_path("../zeek/testing/..") == "../zeek");
+	CHECK(normalize_path("./zeek/..") == ".");
+	CHECK(normalize_path("./zeek/../..") == "..");
+	CHECK(normalize_path("./zeek/../../..") == "../..");
+	CHECK(normalize_path("./..") == "..");
+	CHECK(normalize_path("../..") == "../..");
+	CHECK(normalize_path("/..") == "/..");
+	CHECK(normalize_path("~/..") == "~/..");
+	CHECK(normalize_path("/../..") == "/../..");
+	CHECK(normalize_path("~/../..") == "~/../..");
+	CHECK(normalize_path("zeek/..") == "");
+	CHECK(normalize_path("zeek/../..") == "..");
+	}
+
+string normalize_path(std::string_view path)
+	{
+	if ( path.find("/.") == std::string_view::npos &&
+	     path.find("//") == std::string_view::npos )
+		{
+		// no need to normalize anything
+		if ( path.size() > 1 && path.back() == '/' )
+			path.remove_suffix(1);
+		return std::string(path);
+		}
+
+	size_t n;
+	vector<std::string_view> final_components;
+	string new_path;
+	new_path.reserve(path.size());
+
+	if ( ! path.empty() && path[0] == '/' )
 		new_path = "/";
 
-	tokenize_string(path, "/", &components);
+	const auto components = tokenize_string(path, '/');
+	final_components.reserve(components.size());
 
-	vector<string>::const_iterator it;
-	for ( it = components.begin(); it != components.end(); ++it )
+	for ( auto it = components.begin(); it != components.end(); ++it )
 		{
 		if ( *it == "" ) continue;
+		if ( *it == "." && it != components.begin() ) continue;
+
 		final_components.push_back(*it);
 
-		if ( *it == "." && it != components.begin() )
-			final_components.pop_back();
-		else if ( *it == ".." && final_components[0] != ".." )
+		if ( *it == ".." )
 			{
-			final_components.pop_back();
-			final_components.pop_back();
+			auto cur_idx = final_components.size() - 1;
+
+			if ( cur_idx != 0 )
+				{
+				auto last_idx = cur_idx - 1;
+				auto& last_component = final_components[last_idx];
+
+				if ( last_component == "/" || last_component == "~" ||
+				     last_component == ".." )
+					continue;
+
+				if ( last_component == "." )
+					{
+					last_component = "..";
+					final_components.pop_back();
+					}
+				else
+					{
+					final_components.pop_back();
+					final_components.pop_back();
+					}
+				}
 			}
 		}
 
-	for ( it = final_components.begin(); it != final_components.end(); ++it )
+	for ( auto it = final_components.begin(); it != final_components.end(); ++it )
 		{
 		new_path.append(*it);
 		new_path.append("/");
@@ -1221,12 +1681,11 @@ string normalize_path(const string& path)
 	return new_path;
 	}
 
-string without_bropath_component(const string& path)
+string without_bropath_component(std::string_view path)
 	{
 	string rval = normalize_path(path);
 
-	vector<string> paths;
-	tokenize_string(bro_path(), ":", &paths);
+	const auto paths = tokenize_string(bro_path(), ':');
 
 	for ( size_t i = 0; i < paths.size(); ++i )
 		{
@@ -1236,13 +1695,14 @@ string without_bropath_component(const string& path)
 			continue;
 
 		// Found the containing directory.
-		rval.erase(0, common.size());
+		std::string_view v(rval);
+		v.remove_prefix(common.size());
 
 		// Remove leading path separators.
-		while ( rval.size() && rval[0] == '/' )
-			rval.erase(0, 1);
+		while ( !v.empty() && v.front() == '/' )
+			v.remove_prefix(1);
 
-		return rval;
+		return std::string(v);
 		}
 
 	return rval;
@@ -1303,14 +1763,6 @@ string find_file(const string& filename, const string& path_set,
 	return string();
 	}
 
-static bool ends_with(const std::string& s, const std::string& ending)
-	{
-	if ( ending.size() > s.size() )
-		return false;
-
-	return std::equal(ending.rbegin(), ending.rend(), s.rbegin());
-	}
-
 string find_script_file(const string& filename, const string& path_set)
 	{
 	vector<string> paths;
@@ -1323,11 +1775,16 @@ string find_script_file(const string& filename, const string& path_set)
 		string f = find_file_in_path(filename, paths[n], ext);
 
 		if ( ! f.empty() )
+			{
+			warn_if_legacy_script(f);
 			return f;
+			}
 		}
 
 	if ( ends_with(filename, ".bro") )
 		{
+		warn_if_legacy_script(filename);
+
 		// We were looking for a file explicitly ending in .bro and didn't
 		// find it, so fall back to one ending in .zeek, if it exists.
 		auto fallback = string(filename.data(), filename.size() - 4) + ".zeek";
@@ -1342,9 +1799,12 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 	// Build file names.
 	const int buflen = strlen(name) + 128;
 
-	char newname[buflen], tmpname[buflen+4];
+	auto newname_buf = std::make_unique<char[]>(buflen);
+	auto tmpname_buf = std::make_unique<char[]>(buflen + 4);
+	auto newname = newname_buf.get();
+	auto tmpname = tmpname_buf.get();
 
-	safe_snprintf(newname, buflen, "%s.%d.%.06f.tmp",
+	snprintf(newname, buflen, "%s.%d.%.06f.tmp",
 			name, getpid(), network_time);
 	newname[buflen-1] = '\0';
 	strcpy(tmpname, newname);
@@ -1355,7 +1815,7 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 	if ( ! newf )
 		{
 		reporter->Error("rotate_file: can't open %s: %s", tmpname, strerror(errno));
-		return 0;
+		return nullptr;
 		}
 
 	// Then move old file to "<name>.<pid>.<timestamp>" and make sure
@@ -1367,7 +1827,7 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 		fclose(newf);
 		unlink(newname);
 		unlink(tmpname);
-		return 0;
+		return nullptr;
 		}
 
 	// Close current file, and move the tmp to its place.
@@ -1452,11 +1912,11 @@ RETSIGTYPE sig_handler(int signo);
 void terminate_processing()
 	{
 	if ( ! terminating )
-		sig_handler(SIGTERM);
+		raise(SIGTERM);
 	}
 
 extern const char* proc_status_file;
-void _set_processing_status(const char* status)
+void set_processing_status(const char* status, const char* reason)
 	{
 	if ( ! proc_status_file )
 		return;
@@ -1483,20 +1943,27 @@ void _set_processing_status(const char* status)
 		return;
 		}
 
-	int len = strlen(status);
-	while ( len )
+	auto write_str = [](int fd, const char* s)
 		{
-		int n = write(fd, status, len);
+		int len = strlen(s);
+		while ( len )
+			{
+			int n = write(fd, s, len);
 
-		if ( n < 0 && errno != EINTR && errno != EAGAIN )
-			// Ignore errors, as they're too difficult to
-			// safely report here.
-			break;
+			if ( n < 0 && errno != EINTR && errno != EAGAIN )
+				// Ignore errors, as they're too difficult to
+				// safely report here.
+				break;
 
-		status += n;
-		len -= n;
-		}
+			s += n;
+			len -= n;
+			}
+		};
 
+	write_str(fd, status);
+	write_str(fd, " [");
+	write_str(fd, reason);
+	write_str(fd, "]\n");
 	safe_close(fd);
 
 	errno = old_errno;
@@ -1510,11 +1977,11 @@ double current_time(bool real)
 
 	double t = double(tv.tv_sec) + double(tv.tv_usec) / 1e6;
 
-	if ( ! pseudo_realtime || real || ! iosource_mgr || iosource_mgr->GetPktSrcs().empty() )
+	if ( ! pseudo_realtime || real || ! iosource_mgr || ! iosource_mgr->GetPktSrc() )
 		return t;
 
 	// This obviously only works for a single source ...
-	iosource::PktSrc* src = iosource_mgr->GetPktSrcs().front();
+	iosource::PktSrc* src = iosource_mgr->GetPktSrc();
 
 	if ( net_is_processing_suspended() )
 		return src->CurrentPacketTimestamp();
@@ -1810,6 +2277,11 @@ void operator delete[](void* v)
 
 #endif
 
+TEST_CASE("util canonify_name")
+	{
+	CHECK(canonify_name("file name") == "FILE_NAME");
+	}
+
 std::string canonify_name(const std::string& name)
 	{
 	unsigned int len = name.size();
@@ -1873,7 +2345,12 @@ char* zeekenv(const char* name)
 	if ( it == legacy_vars.end() )
 		return rval;
 
-	return getenv(it->second);
+	auto val = getenv(it->second);
+
+	if ( val && starts_with(it->second, "BRO_") )
+		reporter->Warning("Using legacy environment variable %s, support will be removed in Zeek v4.1; use %s instead", it->second, name);
+
+	return val;
 	}
 
 static string json_escape_byte(char c)
@@ -1887,52 +2364,132 @@ static string json_escape_byte(char c)
 	return result;
 	}
 
+TEST_CASE("util json_escape_utf8")
+	{
+	CHECK(json_escape_utf8("string") == "string");
+	CHECK(json_escape_utf8("string\n") == "string\n");
+	CHECK(json_escape_utf8("string\x82") == "string\\x82");
+	CHECK(json_escape_utf8("\x07\xd4\xb7o") == "\\x07Էo");
+
+	// These strings are duplicated from the scripts.base.frameworks.logging.ascii-json-utf8 btest
+
+	// Valid ASCII and valid ASCII control characters
+	CHECK(json_escape_utf8("a") == "a");
+	CHECK(json_escape_utf8("\b\f\n\r\t\x00\x15") == "\b\f\n\r\t\x00\x15");
+
+	// Table 3-7 in https://www.unicode.org/versions/Unicode12.0.0/ch03.pdf describes what is
+	// valid and invalid for the tests below
+
+	// Valid 2 Octet Sequence
+	CHECK(json_escape_utf8("\xc3\xb1") == "\xc3\xb1");
+
+	// Invalid 2 Octet Sequence
+	CHECK(json_escape_utf8("\xc3\x28") == "\\xc3(");
+	CHECK(json_escape_utf8("\xc0\x81") == "\\xc0\\x81");
+	CHECK(json_escape_utf8("\xc1\x81") == "\\xc1\\x81");
+	CHECK(json_escape_utf8("\xc2\xcf") == "\\xc2\\xcf");
+
+	// Invalid Sequence Identifier
+	CHECK(json_escape_utf8("\xa0\xa1") == "\\xa0\\xa1");
+
+	// Valid 3 Octet Sequence
+	CHECK(json_escape_utf8("\xe2\x82\xa1") == "\xe2\x82\xa1");
+	CHECK(json_escape_utf8("\xe0\xa3\xa1") == "\xe0\xa3\xa1");
+
+	// Invalid 3 Octet Sequence (in 2nd Octet)
+	CHECK(json_escape_utf8("\xe0\x80\xa1") == "\\xe0\\x80\\xa1");
+	CHECK(json_escape_utf8("\xe2\x28\xa1") == "\\xe2(\\xa1");
+	CHECK(json_escape_utf8("\xed\xa0\xa1") == "\\xed\\xa0\\xa1");
+
+	// Invalid 3 Octet Sequence (in 3rd Octet)
+	CHECK(json_escape_utf8("\xe2\x82\x28") == "\\xe2\\x82(");
+
+	// Valid 4 Octet Sequence
+	CHECK(json_escape_utf8("\xf0\x90\x8c\xbc") == "\xf0\x90\x8c\xbc");
+	CHECK(json_escape_utf8("\xf1\x80\x8c\xbc") == "\xf1\x80\x8c\xbc");
+	CHECK(json_escape_utf8("\xf4\x80\x8c\xbc") == "\xf4\x80\x8c\xbc");
+
+	// Invalid 4 Octet Sequence (in 2nd Octet)
+	CHECK(json_escape_utf8("\xf0\x80\x8c\xbc") == "\\xf0\\x80\\x8c\\xbc");
+	CHECK(json_escape_utf8("\xf2\x28\x8c\xbc") == "\\xf2(\\x8c\\xbc");
+	CHECK(json_escape_utf8("\xf4\x90\x8c\xbc") == "\\xf4\\x90\\x8c\\xbc");
+
+	// Invalid 4 Octet Sequence (in 3rd Octet)
+	CHECK(json_escape_utf8("\xf0\x90\x28\xbc") == "\\xf0\\x90(\\xbc");
+
+	// Invalid 4 Octet Sequence (in 4th Octet)
+	CHECK(json_escape_utf8("\xf0\x28\x8c\x28") == "\\xf0(\\x8c(");
+
+	// Invalid 4 Octet Sequence (too short)
+	CHECK(json_escape_utf8("\xf4\x80\x8c") == "\\xf4\\x80\\x8c");
+	CHECK(json_escape_utf8("\xf0") == "\\xf0");
+	}
+
 string json_escape_utf8(const string& val)
 	{
-	string result;
-	result.reserve(val.length());
-
 	auto val_data = reinterpret_cast<const unsigned char*>(val.c_str());
+	auto val_size = val.length();
+
+	// Reserve at least the size of the existing string to avoid resizing the string in the best-case
+	// scenario where we don't have any multi-byte characters.
+	string result;
+	result.reserve(val_size);
 
 	size_t idx;
-	for ( idx = 0; idx < val.length(); )
+	for ( idx = 0; idx < val_size; )
 		{
-		// Normal ASCII characters plus a few of the control characters can be inserted directly. The rest of
-		// the control characters should be escaped as regular bytes.
-		if ( ( val[idx] >= 32 && val[idx] <= 127 ) ||
-		       val[idx] == '\b' || val[idx] == '\f' || val[idx] == '\n' || val[idx] == '\r' || val[idx] == '\t' )
+		const char ch = val[idx];
+
+		// Normal ASCII characters plus a few of the control characters can be inserted directly. The
+		// rest of the control characters should be escaped as regular bytes.
+		if ( ( ch >= 32 && ch <= 127 ) ||
+		       ch == '\b' || ch == '\f' || ch == '\n' || ch == '\r' || ch == '\t' )
 			{
-			result.push_back(val[idx]);
+			result.push_back(ch);
 			++idx;
 			continue;
 			}
-		else if ( val[idx] >= 0 && val[idx] < 32 )
+		else if ( ch >= 0 && ch < 32 )
 			{
-			result.append(json_escape_byte(val[idx]));
+			result.append(json_escape_byte(ch));
 			++idx;
 			continue;
 			}
 
 		// Find out how long the next character should be.
-		unsigned int char_size = getNumBytesForUTF8(val[idx]);
+		unsigned int char_size = getNumBytesForUTF8(ch);
 
-		// If it says that it's a single character or it's not an invalid string UTF8 sequence, insert the one
-		// escaped byte into the string, step forward one, and go to the next character.
-		if ( char_size == 0 || idx+char_size > val.length() || isLegalUTF8Sequence(val_data+idx, val_data+idx+char_size) == 0 )
+		// If it says that it's a single character or it's not an valid string UTF8 sequence, insert
+		// the one escaped byte into the string, step forward one, and go to the next character.
+		if ( char_size == 0 || idx+char_size > val_size || isLegalUTF8Sequence(val_data+idx, val_data+idx+char_size) == 0 )
 			{
-			result.append(json_escape_byte(val[idx]));
+			result.append(json_escape_byte(ch));
 			++idx;
 			continue;
 			}
 
-		for ( size_t step = 0; step < char_size; step++, idx++ )
-			result.push_back(val[idx]);
+		result.append(val, idx, char_size);
+		idx += char_size;
 		}
 
 	// Insert any of the remaining bytes into the string as escaped bytes
-	if ( idx != val.length() )
-		for ( ; idx < val.length(); ++idx )
-			result.append(json_escape_byte(val[idx]));
+	for ( ; idx < val_size; ++idx )
+		result.append(json_escape_byte(val[idx]));
 
 	return result;
+	}
+
+void zeek::set_thread_name(const char* name, pthread_t tid)
+	{
+#ifdef HAVE_LINUX
+	prctl(PR_SET_NAME, name, 0, 0, 0);
+#endif
+
+#ifdef __APPLE__
+	pthread_setname_np(name);
+#endif
+
+#ifdef __FreeBSD__
+	pthread_set_name_np(tid, name);
+#endif
 	}

@@ -5,7 +5,10 @@
 #include <map>
 
 #include "Obj.h"
-#include "IPAddr.h"
+
+#include <assert.h>
+#include <string.h>
+#include <sys/types.h> // for u_char
 
 // Whenever subclassing the Reassembler class
 // you should add to this for known subclasses.
@@ -262,7 +265,7 @@ public:
 	void ClearBlocks();
 	void ClearOldBlocks();
 
-	int HasBlocks() const
+	bool HasBlocks() const
 		{ return ! block_list.Empty(); }
 
 	uint64_t LastReassemSeq() const	{ return last_reassem_seq; }

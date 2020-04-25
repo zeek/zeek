@@ -145,7 +145,7 @@ event Known::host_found(info: HostsInfo)
 	event known_host_add(info);
 	}
 
-event zeek_init()
+event zeek_init() &priority=5
 	{
 	Log::create_stream(Known::HOSTS_LOG, [$columns=HostsInfo, $ev=log_known_hosts, $path="known_hosts"]);
 	}

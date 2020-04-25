@@ -19,6 +19,7 @@ python find_logs.py "${BROSCRIPTS}" | sort > out
 
 @TEST-START-FILE find_logs.py
 import os, sys
+import re
 
 scriptdir = sys.argv[1]
 
@@ -66,5 +67,6 @@ for fname in find_scripts():
         # Print the value of the "$path" field.
         idx = line.find("$path")
         if idx > 0:
-            print("%s" % line[idx:].split('"')[1])
+            m = re.match('.*\$path\s*=\s*"?(\w+)"?.*', line[idx:])
+            print(m.group(1))
 @TEST-END-FILE

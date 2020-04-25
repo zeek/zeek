@@ -5,7 +5,9 @@
 #include <vector>
 #include "IPAddr.h"
 #include "Reporter.h"
+#include "BroString.h"
 #include "Conn.h"
+#include "Hash.h"
 #include "bro_inet_ntop.h"
 
 #include "analyzer/Manager.h"
@@ -43,6 +45,16 @@ ConnIDKey BuildConnIDKey(const ConnID& id)
 		}
 
 	return key;
+	}
+
+IPAddr::IPAddr(const BroString& s)
+	{
+	Init(s.CheckString());
+	}
+
+HashKey* IPAddr::GetHashKey() const
+	{
+	return new HashKey((void*)in6.s6_addr, sizeof(in6.s6_addr));
 	}
 
 static inline uint32_t bit_mask32(int bottom_bits)
@@ -141,7 +153,7 @@ void IPAddr::Init(const char* s)
 		}
 	}
 
-string IPAddr::AsString() const
+std::string IPAddr::AsString() const
 	{
 	if ( GetFamily() == IPv4 )
 		{
@@ -163,7 +175,7 @@ string IPAddr::AsString() const
 		}
 	}
 
-string IPAddr::AsHexString() const
+std::string IPAddr::AsHexString() const
 	{
 	char buf[33];
 
@@ -183,7 +195,7 @@ string IPAddr::AsHexString() const
 	return buf;
 	}
 
-string IPAddr::PtrName() const
+std::string IPAddr::PtrName() const
 	{
 	if ( GetFamily() == IPv4 )
 		{
@@ -200,7 +212,7 @@ string IPAddr::PtrName() const
 	else
 		{
 		static const char hex_digit[] = "0123456789abcdef";
-		string ptr_name("ip6.arpa");
+		std::string ptr_name("ip6.arpa");
 		uint32_t* p = (uint32_t*) in6.s6_addr;
 
 		for ( unsigned int i = 0; i < 4; ++i )
@@ -278,7 +290,7 @@ IPPrefix::IPPrefix(const IPAddr& addr, uint8_t length, bool len_is_v6_relative)
 	prefix.Mask(this->length);
 	}
 
-string IPPrefix::AsString() const
+std::string IPPrefix::AsString() const
 	{
 	char l[16];
 
@@ -290,12 +302,25 @@ string IPPrefix::AsString() const
 	return prefix.AsString() +"/" + l;
 	}
 
+HashKey* IPPrefix::GetHashKey() const
+	{
+	struct {
+		in6_addr ip;
+		uint32_t len;
+	} key;
+
+	key.ip = prefix.in6;
+	key.len = Length();
+
+	return new HashKey(&key, sizeof(key));
+	}
+
 bool IPPrefix::ConvertString(const char* text, IPPrefix* result)
 	{
-	string s(text);
+	std::string s(text);
 	size_t slash_loc = s.find('/');
 
-	if ( slash_loc == string::npos )
+	if ( slash_loc == std::string::npos )
 		return false;
 
 	auto ip_str = s.substr(0, slash_loc);

@@ -25,7 +25,7 @@ refine flow File += {
 	function characteristics_to_bro(c: uint32, len: uint8): TableVal
 		%{
 		uint64 mask = (len==16) ? 0xFFFF : 0xFFFFFFFF;
-		TableVal* char_set = new TableVal(internal_type("count_set")->AsTableType());
+		TableVal* char_set = new TableVal({NewRef{}, internal_type("count_set")->AsTableType()});
 		for ( uint16 i=0; i < len; ++i )
 			{
 			if ( ((c >> i) & 0x1) == 1 )
@@ -42,8 +42,8 @@ refine flow File += {
 		%{
 		if ( pe_dos_header )
 			{
-			RecordVal* dh = new RecordVal(BifType::Record::PE::DOSHeader);
-			dh->Assign(0, new StringVal(${h.signature}.length(), (const char*) ${h.signature}.data()));
+			auto dh = make_intrusive<RecordVal>(BifType::Record::PE::DOSHeader);
+			dh->Assign(0, make_intrusive<StringVal>(${h.signature}.length(), (const char*) ${h.signature}.data()));
 			dh->Assign(1, val_mgr->GetCount(${h.UsedBytesInTheLastPage}));
 			dh->Assign(2, val_mgr->GetCount(${h.FileSizeInPages}));
 			dh->Assign(3, val_mgr->GetCount(${h.NumberOfRelocationItems}));
@@ -61,10 +61,9 @@ refine flow File += {
 			dh->Assign(15, val_mgr->GetCount(${h.OEMinfo}));
 			dh->Assign(16, val_mgr->GetCount(${h.AddressOfNewExeHeader}));
 
-			mgr.QueueEventFast(pe_dos_header, {
-			    connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
-			    dh
-			    });
+			mgr.Enqueue(pe_dos_header,
+			    IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+			    std::move(dh));
 			}
 		return true;
 		%}
@@ -72,12 +71,10 @@ refine flow File += {
 	function proc_dos_code(code: bytestring): bool
 		%{
 		if ( pe_dos_code )
-			{
-			mgr.QueueEventFast(pe_dos_code, {
-			    connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
-			    new StringVal(code.length(), (const char*) code.data())
-			    });
-			}
+			mgr.Enqueue(pe_dos_code,
+			    IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+			    make_intrusive<StringVal>(code.length(), (const char*) code.data())
+			    );
 		return true;
 		%}
 
@@ -95,18 +92,17 @@ refine flow File += {
 		%{
 		if ( pe_file_header )
 			{
-			RecordVal* fh = new RecordVal(BifType::Record::PE::FileHeader);
+			auto fh = make_intrusive<RecordVal>(BifType::Record::PE::FileHeader);
 			fh->Assign(0, val_mgr->GetCount(${h.Machine}));
-			fh->Assign(1, new Val(static_cast<double>(${h.TimeDateStamp}), TYPE_TIME));
+			fh->Assign(1, make_intrusive<Val>(static_cast<double>(${h.TimeDateStamp}), TYPE_TIME));
 			fh->Assign(2, val_mgr->GetCount(${h.PointerToSymbolTable}));
 			fh->Assign(3, val_mgr->GetCount(${h.NumberOfSymbols}));
 			fh->Assign(4, val_mgr->GetCount(${h.SizeOfOptionalHeader}));
 			fh->Assign(5, characteristics_to_bro(${h.Characteristics}, 16));
 
-			mgr.QueueEventFast(pe_file_header, {
-			    connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
-			    fh
-			    });
+			mgr.Enqueue(pe_file_header,
+			    IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+			    std::move(fh));
 			}
 
 		return true;
@@ -124,7 +120,7 @@ refine flow File += {
 
 		if ( pe_optional_header )
 			{
-			RecordVal* oh = new RecordVal(BifType::Record::PE::OptionalHeader);
+			auto oh = make_intrusive<RecordVal>(BifType::Record::PE::OptionalHeader);
 
 			oh->Assign(0, val_mgr->GetCount(${h.magic}));
 			oh->Assign(1, val_mgr->GetCount(${h.major_linker_version}));
@@ -155,10 +151,9 @@ refine flow File += {
 
 			oh->Assign(23, process_rvas(${h.rvas}));
 
-			mgr.QueueEventFast(pe_optional_header, {
-			    connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
-			    oh
-			    });
+			mgr.Enqueue(pe_optional_header,
+			    IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+			    std::move(oh));
 			}
 		return true;
 		%}
@@ -167,7 +162,7 @@ refine flow File += {
 		%{
 		if ( pe_section_header )
 			{
-			RecordVal* section_header = new RecordVal(BifType::Record::PE::SectionHeader);
+			auto section_header = make_intrusive<RecordVal>(BifType::Record::PE::SectionHeader);
 
 			// Strip null characters from the end of the section name.
 			u_char* first_null = (u_char*) memchr(${h.name}.data(), 0, ${h.name}.length());
@@ -176,7 +171,7 @@ refine flow File += {
 				name_len = ${h.name}.length();
 			else
 				name_len = first_null - ${h.name}.data();
-			section_header->Assign(0, new StringVal(name_len, (const char*) ${h.name}.data()));
+			section_header->Assign(0, make_intrusive<StringVal>(name_len, (const char*) ${h.name}.data()));
 
 			section_header->Assign(1, val_mgr->GetCount(${h.virtual_size}));
 			section_header->Assign(2, val_mgr->GetCount(${h.virtual_addr}));
@@ -188,10 +183,10 @@ refine flow File += {
 			section_header->Assign(8, val_mgr->GetCount(${h.non_used_num_of_line_nums}));
 			section_header->Assign(9, characteristics_to_bro(${h.characteristics}, 32));
 
-			mgr.QueueEventFast(pe_section_header, {
-			    connection()->bro_analyzer()->GetFile()->GetVal()->Ref(),
-			    section_header
-			    });
+			mgr.Enqueue(pe_section_header,
+			    IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+			    std::move(section_header)
+			    );
 			}
 		return true;
 		%}

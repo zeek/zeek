@@ -30,18 +30,18 @@ protected:
 private:
 	bool OpenInput();
 	bool CloseInput();
-	streamsize GetChunk(char** chunk);
+	std::streamsize GetChunk(char** chunk);
 	int UpdateModificationTime();
 
-	string fname;
-	ifstream* in;
+	std::string fname;
+	std::ifstream* in;
 	time_t mtime;
 	ino_t ino;
 	bool firstrun;
 
 	// options set from the script-level.
-	static streamsize chunk_size;
-	string path_prefix;
+	static std::streamsize chunk_size;
+	std::string path_prefix;
 };
 
 }

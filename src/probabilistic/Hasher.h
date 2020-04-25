@@ -2,12 +2,13 @@
 
 #pragma once
 
-#include <broker/data.hh>
+#include "Hash.h"
+
 #include <broker/expected.hh>
 
 #include <memory>
 
-#include "Hash.h"
+namespace broker { class data; }
 
 namespace probabilistic {
 

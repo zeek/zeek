@@ -4,6 +4,7 @@
 
 #include "Hash.h"
 #include "Val.h"
+#include "IntrusivePtr.h"
 
 #include "protocol/conn-size/ConnSize.h"
 #include "protocol/icmp/ICMP.h"
@@ -70,9 +71,6 @@ Manager::~Manager()
 	for ( analyzer_map_by_port::const_iterator i = analyzers_by_port_udp.begin(); i != analyzers_by_port_udp.end(); i++ )
 		delete i->second;
 
-	analyzers_by_port_udp.clear();
-	analyzers_by_port_tcp.clear();
-
 	// Clean up expected-connection table.
 	while ( conns_by_timeout.size() )
 		{
@@ -110,8 +108,8 @@ void Manager::DumpDebug()
 	{
 #ifdef DEBUG
 	DBG_LOG(DBG_ANALYZER, "Available analyzers after zeek_init():");
-	list<Component*> all_analyzers = GetComponents();
-	for ( list<Component*>::const_iterator i = all_analyzers.begin(); i != all_analyzers.end(); ++i )
+	std::list<Component*> all_analyzers = GetComponents();
+	for ( std::list<Component*>::const_iterator i = all_analyzers.begin(); i != all_analyzers.end(); ++i )
 		DBG_LOG(DBG_ANALYZER, "    %s (%s)", (*i)->Name().c_str(),
 			IsEnabled((*i)->Tag()) ? "enabled" : "disabled");
 
@@ -120,20 +118,20 @@ void Manager::DumpDebug()
 
 	for ( analyzer_map_by_port::const_iterator i = analyzers_by_port_tcp.begin(); i != analyzers_by_port_tcp.end(); i++ )
 		{
-		string s;
+		std::string s;
 
 		for ( tag_set::const_iterator j = i->second->begin(); j != i->second->end(); j++ )
-			s += string(GetComponentName(*j)) + " ";
+			s += std::string(GetComponentName(*j)) + " ";
 
 		DBG_LOG(DBG_ANALYZER, "    %d/tcp: %s", i->first, s.c_str());
 		}
 
 	for ( analyzer_map_by_port::const_iterator i = analyzers_by_port_udp.begin(); i != analyzers_by_port_udp.end(); i++ )
 		{
-		string s;
+		std::string s;
 
 		for ( tag_set::const_iterator j = i->second->begin(); j != i->second->end(); j++ )
-			s += string(GetComponentName(*j)) + " ";
+			s += std::string(GetComponentName(*j)) + " ";
 
 		DBG_LOG(DBG_ANALYZER, "    %d/udp: %s", i->first, s.c_str());
 		}
@@ -145,7 +143,7 @@ void Manager::Done()
 	{
 	}
 
-bool Manager::EnableAnalyzer(Tag tag)
+bool Manager::EnableAnalyzer(const Tag& tag)
 	{
 	Component* p = Lookup(tag);
 
@@ -171,7 +169,7 @@ bool Manager::EnableAnalyzer(EnumVal* val)
 	return true;
 	}
 
-bool Manager::DisableAnalyzer(Tag tag)
+bool Manager::DisableAnalyzer(const Tag& tag)
 	{
 	Component* p = Lookup(tag);
 
@@ -201,8 +199,8 @@ void Manager::DisableAllAnalyzers()
 	{
 	DBG_LOG(DBG_ANALYZER, "Disabling all analyzers");
 
-	list<Component*> all_analyzers = GetComponents();
-	for ( list<Component*>::const_iterator i = all_analyzers.begin(); i != all_analyzers.end(); ++i )
+	std::list<Component*> all_analyzers = GetComponents();
+	for ( std::list<Component*>::const_iterator i = all_analyzers.begin(); i != all_analyzers.end(); ++i )
 		(*i)->SetEnabled(false);
 	}
 
@@ -211,7 +209,7 @@ analyzer::Tag Manager::GetAnalyzerTag(const char* name)
 	return GetComponentTag(name);
 	}
 
-bool Manager::IsEnabled(Tag tag)
+bool Manager::IsEnabled(const Tag& tag)
 	{
 	if ( ! tag )
 		return false;
@@ -255,7 +253,7 @@ bool Manager::UnregisterAnalyzerForPort(EnumVal* val, PortVal* port)
 	return UnregisterAnalyzerForPort(p->Tag(), port->PortType(), port->Port());
 	}
 
-bool Manager::RegisterAnalyzerForPort(Tag tag, TransportProto proto, uint32_t port)
+bool Manager::RegisterAnalyzerForPort(const Tag& tag, TransportProto proto, uint32_t port)
 	{
 	tag_set* l = LookupPort(proto, port, true);
 
@@ -271,7 +269,7 @@ bool Manager::RegisterAnalyzerForPort(Tag tag, TransportProto proto, uint32_t po
 	return true;
 	}
 
-bool Manager::UnregisterAnalyzerForPort(Tag tag, TransportProto proto, uint32_t port)
+bool Manager::UnregisterAnalyzerForPort(const Tag& tag, TransportProto proto, uint32_t port)
 	{
 	tag_set* l = LookupPort(proto, port, true);
 
@@ -287,24 +285,24 @@ bool Manager::UnregisterAnalyzerForPort(Tag tag, TransportProto proto, uint32_t 
 	return true;
 	}
 
-Analyzer* Manager::InstantiateAnalyzer(Tag tag, Connection* conn)
+Analyzer* Manager::InstantiateAnalyzer(const Tag& tag, Connection* conn)
 	{
 	Component* c = Lookup(tag);
 
 	if ( ! c )
 		{
 		reporter->InternalWarning("request to instantiate unknown analyzer");
-		return 0;
+		return nullptr;
 		}
 
 	if ( ! c->Enabled() )
-		return 0;
+		return nullptr;
 
 	if ( ! c->Factory() )
 		{
 		reporter->InternalWarning("analyzer %s cannot be instantiated dynamically",
 					  GetComponentName(tag).c_str());
-		return 0;
+		return nullptr;
 		}
 
 	Analyzer* a = c->Factory()(conn);
@@ -312,7 +310,7 @@ Analyzer* Manager::InstantiateAnalyzer(Tag tag, Connection* conn)
 	if ( ! a )
 		{
 		reporter->InternalWarning("analyzer instantiation failed");
-		return 0;
+		return nullptr;
 		}
 
 	a->SetAnalyzerTag(tag);
@@ -323,12 +321,12 @@ Analyzer* Manager::InstantiateAnalyzer(Tag tag, Connection* conn)
 Analyzer* Manager::InstantiateAnalyzer(const char* name, Connection* conn)
 	{
 	Tag tag = GetComponentTag(name);
-	return tag ? InstantiateAnalyzer(tag, conn) : 0;
+	return tag ? InstantiateAnalyzer(tag, conn) : nullptr;
 	}
 
 Manager::tag_set* Manager::LookupPort(TransportProto proto, uint32_t port, bool add_if_not_found)
 	{
-	analyzer_map_by_port* m = 0;
+	analyzer_map_by_port* m = nullptr;
 
 	switch ( proto ) {
 	case TRANSPORT_TCP:
@@ -341,7 +339,7 @@ Manager::tag_set* Manager::LookupPort(TransportProto proto, uint32_t port, bool 
 
 	default:
 		reporter->InternalWarning("unsupported transport protocol in analyzer::Manager::LookupPort");
-		return 0;
+		return nullptr;
 	}
 
 	analyzer_map_by_port::const_iterator i = m->find(port);
@@ -350,7 +348,7 @@ Manager::tag_set* Manager::LookupPort(TransportProto proto, uint32_t port, bool 
 		return i->second;
 
 	if ( ! add_if_not_found )
-		return 0;
+		return nullptr;
 
 	tag_set* l = new tag_set;
 	m->insert(std::make_pair(port, l));
@@ -364,11 +362,11 @@ Manager::tag_set* Manager::LookupPort(PortVal* val, bool add_if_not_found)
 
 bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 	{
-	tcp::TCP_Analyzer* tcp = 0;
-	udp::UDP_Analyzer* udp = 0;
-	icmp::ICMP_Analyzer* icmp = 0;
-	TransportLayerAnalyzer* root = 0;
-	pia::PIA* pia = 0;
+	tcp::TCP_Analyzer* tcp = nullptr;
+	udp::UDP_Analyzer* udp = nullptr;
+	icmp::ICMP_Analyzer* icmp = nullptr;
+	TransportLayerAnalyzer* root = nullptr;
+	pia::PIA* pia = nullptr;
 	bool check_port = false;
 
 	switch ( conn->ConnTransport() ) {
@@ -443,13 +441,12 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 		if ( tcp_contents && ! reass )
 			{
 			auto dport = val_mgr->GetPort(ntohs(conn->RespPort()), TRANSPORT_TCP);
-			Val* result;
 
 			if ( ! reass )
-				reass = tcp_content_delivery_ports_orig->Lookup(dport);
+				reass = (bool)tcp_content_delivery_ports_orig->Lookup(dport);
 
 			if ( ! reass )
-				reass = tcp_content_delivery_ports_resp->Lookup(dport);
+				reass = (bool)tcp_content_delivery_ports_resp->Lookup(dport);
 
 			Unref(dport);
 			}
@@ -542,7 +539,7 @@ void Manager::ExpireScheduledAnalyzers()
 
 void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp,
 			uint16_t resp_p,
-			TransportProto proto, Tag analyzer,
+			TransportProto proto, const Tag& analyzer,
 			double timeout)
 	{
 	if ( ! network_time )
@@ -631,7 +628,7 @@ bool Manager::ApplyScheduledAnalyzers(Connection* conn, bool init, TransportLaye
 
 		EnumVal* tag = it->AsEnumVal();
 		Ref(tag);
-		conn->Event(scheduled_analyzer_applied, 0, tag);
+		conn->Event(scheduled_analyzer_applied, nullptr, tag);
 
 		DBG_ANALYZER_ARGS(conn, "activated %s analyzer as scheduled",
 		                  analyzer_mgr->GetComponentName(*it).c_str());

@@ -4,7 +4,7 @@
 
 #include <string>
 
-#include "util.h"
+#include <stdint.h>
 
 class IPAddr;
 class IPPrefix;
@@ -92,7 +92,7 @@ protected:
 	int bytes_read;
 };
 
-class BinarySerializationFormat : public SerializationFormat {
+class BinarySerializationFormat final : public SerializationFormat {
 public:
 	BinarySerializationFormat();
 	~BinarySerializationFormat() override;

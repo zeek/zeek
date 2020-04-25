@@ -3,15 +3,9 @@
 #pragma once
 
 #include "Configuration.h"
-#include "Info.h"
-#include "PackageInfo.h"
-#include "ScriptInfo.h"
-#include "IdentifierInfo.h"
 
 #include "Reporter.h"
 #include "ID.h"
-#include "Type.h"
-#include "Val.h"
 
 #include <string>
 #include <vector>
@@ -20,7 +14,13 @@
 #include <sys/stat.h>
 #include <errno.h>
 
+template <class T> class IntrusivePtr;
+class TypeDecl;
+
 namespace zeekygen {
+
+class PackageInfo;
+class ScriptInfo;
 
 /**
  * Map of info objects.  Just a wrapper around std::map to improve code
@@ -110,14 +110,14 @@ public:
 	 * Signal that a record or enum type is now being parsed.
 	 * @param id The record or enum type identifier.
 	 */
-	void StartType(ID* id);
+	void StartType(IntrusivePtr<ID> id);
 
 	/**
 	 * Register a script-level identifier for which information/documentation
 	 * will be gathered.
 	 * @param id The script-level identifier.
 	 */
-	void Identifier(ID* id);
+	void Identifier(IntrusivePtr<ID> id);
 
 	/**
 	 * Register a record-field for which information/documentation will be
@@ -139,7 +139,9 @@ public:
 	 * @param init_expr The intiialization expression that was used.
 	 */
 	void Redef(const ID* id, const std::string& path,
-			   init_class ic = INIT_NONE, Expr* init_expr = nullptr);
+	           init_class ic, IntrusivePtr<Expr> init_expr);
+	void Redef(const ID* id, const std::string& path,
+	           init_class ic = INIT_NONE);
 
 	/**
 	 * Register Zeekygen script summary content.
@@ -215,7 +217,7 @@ private:
 	typedef std::vector<std::string> comment_buffer_t;
 	typedef std::map<std::string, comment_buffer_t> comment_buffer_map_t;
 
-	IdentifierInfo* CreateIdentifierInfo(ID* id, ScriptInfo* script);
+	IdentifierInfo* CreateIdentifierInfo(IntrusivePtr<ID> id, ScriptInfo* script);
 
 	bool disabled;
 	comment_buffer_t comment_buffer; // For whatever next identifier comes in.
@@ -232,8 +234,8 @@ private:
 };
 
 template <class T>
-bool Manager::IsUpToDate(const string& target_file,
-                         const vector<T*>& dependencies) const
+bool Manager::IsUpToDate(const std::string& target_file,
+                         const std::vector<T*>& dependencies) const
 	{
 	struct stat s;
 

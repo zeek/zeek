@@ -3,12 +3,10 @@
 #pragma once
 
 #include "analyzer/Analyzer.h"
-#include "NetVar.h"
-#include "Reporter.h"
 
 namespace analyzer { namespace vxlan {
 
-class VXLAN_Analyzer : public analyzer::Analyzer {
+class VXLAN_Analyzer final : public analyzer::Analyzer {
 public:
 	explicit VXLAN_Analyzer(Connection* conn)
 	    : Analyzer("VXLAN", conn)

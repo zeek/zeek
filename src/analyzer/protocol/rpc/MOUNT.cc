@@ -1,27 +1,28 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek-config.h"
+#include "MOUNT.h"
+
 #include <algorithm>
 #include <vector>
 
-#include "zeek-config.h"
-
+#include "BroString.h"
 #include "NetVar.h"
 #include "XDR.h"
-#include "MOUNT.h"
 #include "Event.h"
 
 #include "events.bif.h"
 
 using namespace analyzer::rpc;
 
-int MOUNT_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
+bool MOUNT_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	{
 	if ( c->Program() != 100005 )
 		Weird("bad_RPC_program", fmt("%d", c->Program()));
 
 	uint32_t proc = c->Proc();
 	// The call arguments, depends on the call type obviously ...
-	Val *callarg = 0;
+	Val *callarg = nullptr;
 
 	switch ( proc ) {
 		case BifEnum::MOUNT3::PROC_NULL:
@@ -40,7 +41,7 @@ int MOUNT_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 		break;
 
 	default:
-		callarg = 0;
+		callarg = nullptr;
 		if ( proc < BifEnum::MOUNT3::PROC_END_OF_PROCS )
 			{
 			// We know the procedure but haven't implemented it.
@@ -53,7 +54,7 @@ int MOUNT_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 
 		// Return 1 so that replies to unprocessed calls will still
 		// be processed, and the return status extracted.
-		return 1;
+		return true;
 	}
 
 	if ( ! buf )
@@ -64,21 +65,21 @@ int MOUNT_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 		// RecordVal was allocated but we failed to fill it). So we
 		// Unref() the call arguments, and we are fine.
 		Unref(callarg);
-		callarg = 0;
-		return 0;
+		callarg = nullptr;
+		return false;
 		}
 
 	c->AddVal(callarg); // It's save to AddVal(0).
 
-	return 1;
+	return true;
 	}
 
-int MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
+bool MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 			       const u_char*& buf, int& n, double start_time,
 			       double last_time, int reply_len)
 	{
-	EventHandlerPtr event = 0;
-	Val* reply = 0;
+	EventHandlerPtr event = nullptr;
+	Val* reply = nullptr;
 	BifEnum::MOUNT3::status_t mount_status = BifEnum::MOUNT3::MNT3_OK;
 	bool rpc_success = ( rpc_status == BifEnum::RPC_SUCCESS );
 
@@ -95,7 +96,7 @@ int MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status
 		{
 		auto vl = event_common_vl(c, rpc_status, mount_status,
 					   start_time, last_time, reply_len, 0);
-		analyzer->ConnectionEventFast(mount_reply_status, std::move(vl));
+		analyzer->EnqueueConnEvent(mount_reply_status, std::move(vl));
 		}
 
 	if ( ! rpc_success )
@@ -103,7 +104,7 @@ int MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status
 		// We set the buffer to NULL, the function that extract the
 		// reply from the data stream will then return empty records.
 		//
-		buf = NULL;
+		buf = nullptr;
 		n = 0;
 		}
 
@@ -118,14 +119,14 @@ int MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status
 		break;
 
 	case BifEnum::MOUNT3::PROC_UMNT:
-		reply = 0;
+		reply = nullptr;
 		n = 0;
 		mount_status = BifEnum::MOUNT3::MNT3_OK;
 		event = mount_proc_umnt;
 		break;
 
 	case BifEnum::MOUNT3::PROC_UMNT_ALL:
-		reply = 0;
+		reply = nullptr;
 		n = 0;
 		mount_status = BifEnum::MOUNT3::MNT3_OK;
 		event = mount_proc_umnt;
@@ -138,11 +139,11 @@ int MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status
 			// Otherwise DeliverRPC would complain about
 			// excess_RPC.
 			n = 0;
-			reply = BifType::Enum::MOUNT3::proc_t->GetVal(c->Proc());
+			reply = BifType::Enum::MOUNT3::proc_t->GetVal(c->Proc()).release();
 			event = mount_proc_not_implemented;
 			}
 		else
-			return 0;
+			return false;
 	}
 
 	if ( rpc_success && ! buf )
@@ -150,8 +151,8 @@ int MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status
 		// There was a parse error. We have to unref the reply. (see
 		// also comments in RPC_BuildCall.
 		Unref(reply);
-		reply = 0;
-		return 0;
+		reply = nullptr;
+		return false;
 		}
 
 	// Note: if reply == 0, it won't be added to the val_list for the
@@ -168,58 +169,59 @@ int MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status
 					start_time, last_time, reply_len, (bool)request + (bool)reply);
 
 		if ( request )
-			vl.push_back(request);
+			vl.emplace_back(AdoptRef{}, request);
 
 		if ( reply )
-			vl.push_back(reply);
+			vl.emplace_back(AdoptRef{}, reply);
 
-		analyzer->ConnectionEventFast(event, std::move(vl));
+		analyzer->EnqueueConnEvent(event, std::move(vl));
 		}
 	else
 		Unref(reply);
-	return 1;
+	return true;
 	}
 
-val_list MOUNT_Interp::event_common_vl(RPC_CallInfo *c, 
-		      BifEnum::rpc_status rpc_status,
+zeek::Args MOUNT_Interp::event_common_vl(RPC_CallInfo *c,
+				      BifEnum::rpc_status rpc_status,
 				      BifEnum::MOUNT3::status_t mount_status,
 				      double rep_start_time,
 				      double rep_last_time, int reply_len, int extra_elements)
 	{
 	// Returns a new val_list that already has a conn_val, and mount3_info.
 	// These are the first parameters for each mount_* event ...
-	val_list vl(2 + extra_elements);
-	vl.push_back(analyzer->BuildConnVal());
-	VectorVal* auxgids = new VectorVal(internal_type("index_vec")->AsVectorType());
+	zeek::Args vl;
+	vl.reserve(2 + extra_elements);
+	vl.emplace_back(AdoptRef{}, analyzer->BuildConnVal());
+	auto auxgids = make_intrusive<VectorVal>(internal_type("index_vec")->AsVectorType());
 
 	for (size_t i = 0; i < c->AuxGIDs().size(); ++i)
 		{
 		auxgids->Assign(i, val_mgr->GetCount(c->AuxGIDs()[i]));
 		}
 
-	RecordVal* info = new RecordVal(BifType::Record::MOUNT3::info_t);
+	auto info = make_intrusive<RecordVal>(BifType::Record::MOUNT3::info_t);
 	info->Assign(0, BifType::Enum::rpc_status->GetVal(rpc_status));
 	info->Assign(1, BifType::Enum::MOUNT3::status_t->GetVal(mount_status));
-	info->Assign(2, new Val(c->StartTime(), TYPE_TIME));
-	info->Assign(3, new Val(c->LastTime() - c->StartTime(), TYPE_INTERVAL));
+	info->Assign(2, make_intrusive<Val>(c->StartTime(), TYPE_TIME));
+	info->Assign(3, make_intrusive<Val>(c->LastTime() - c->StartTime(), TYPE_INTERVAL));
 	info->Assign(4, val_mgr->GetCount(c->RPCLen()));
-	info->Assign(5, new Val(rep_start_time, TYPE_TIME));
-	info->Assign(6, new Val(rep_last_time - rep_start_time, TYPE_INTERVAL));
+	info->Assign(5, make_intrusive<Val>(rep_start_time, TYPE_TIME));
+	info->Assign(6, make_intrusive<Val>(rep_last_time - rep_start_time, TYPE_INTERVAL));
 	info->Assign(7, val_mgr->GetCount(reply_len));
 	info->Assign(8, val_mgr->GetCount(c->Uid()));
 	info->Assign(9, val_mgr->GetCount(c->Gid()));
 	info->Assign(10, val_mgr->GetCount(c->Stamp()));
-	info->Assign(11, new StringVal(c->MachineName()));
-	info->Assign(12, auxgids);
+	info->Assign(11, make_intrusive<StringVal>(c->MachineName()));
+	info->Assign(12, std::move(auxgids));
 
-	vl.push_back(info);
+	vl.emplace_back(std::move(info));
 	return vl;
 	}
 
 EnumVal* MOUNT_Interp::mount3_auth_flavor(const u_char*& buf, int& n)
     {
 	BifEnum::MOUNT3::auth_flavor_t t = (BifEnum::MOUNT3::auth_flavor_t)extract_XDR_uint32(buf, n);
-	return BifType::Enum::MOUNT3::auth_flavor_t->GetVal(t);
+	return BifType::Enum::MOUNT3::auth_flavor_t->GetVal(t).release();
     }
 
 StringVal* MOUNT_Interp::mount3_fh(const u_char*& buf, int& n)
@@ -228,9 +230,9 @@ StringVal* MOUNT_Interp::mount3_fh(const u_char*& buf, int& n)
 	const u_char* fh = extract_XDR_opaque(buf, n, fh_n, 64);
 
 	if ( ! fh )
-		return 0;
+		return nullptr;
 
-	return new StringVal(new BroString(fh, fh_n, 0));
+	return new StringVal(new BroString(fh, fh_n, false));
 	}
 
 StringVal* MOUNT_Interp::mount3_filename(const u_char*& buf, int& n)
@@ -239,9 +241,9 @@ StringVal* MOUNT_Interp::mount3_filename(const u_char*& buf, int& n)
 	const u_char* name = extract_XDR_opaque(buf, n, name_len);
 
 	if ( ! name )
-		return 0;
+		return nullptr;
 
-	return new StringVal(new BroString(name, name_len, 0));
+	return new StringVal(new BroString(name, name_len, false));
 	}
 
 RecordVal* MOUNT_Interp::mount3_dirmntargs(const u_char*& buf, int& n)
@@ -286,8 +288,8 @@ RecordVal* MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& n,
 		}
 	else
 		{
-		rep->Assign(0, 0);
-		rep->Assign(1, 0);
+		rep->Assign(0, nullptr);
+		rep->Assign(1, nullptr);
 		}
 
 	return rep;
@@ -296,7 +298,7 @@ RecordVal* MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& n,
 MOUNT_Analyzer::MOUNT_Analyzer(Connection* conn)
 	: RPC_Analyzer("MOUNT", conn, new MOUNT_Interp(this))
 	{
-	orig_rpc = resp_rpc = 0;
+	orig_rpc = resp_rpc = nullptr;
 	}
 
 void MOUNT_Analyzer::Init()

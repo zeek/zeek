@@ -8,10 +8,15 @@
 # @TEST-EXEC: bash $SCRIPTS/update-zeekygen-docs.sh ./doc
 # @TEST-EXEC: bash %INPUT
 
+# This test isn't run on Travis or Cirrus CI for pull-requests.  Instead,
+# the person merging to master will manually update zeek-docs.
+
+if [ -n "$CIRRUS_PR" ]; then
+    exit 0
+fi
+
 if [ -n "$TRAVIS_PULL_REQUEST" ]; then
     if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
-        # Don't run this test on Travis for pull-requests, just let someone
-        # manually update zeek-docs for things when merging to master.
         exit 0
     fi
 fi

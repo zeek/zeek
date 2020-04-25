@@ -45,12 +45,12 @@ refine flow MQTT_Flow += {
 		if ( mqtt_connect )
 			{
 			auto m = new RecordVal(BifType::Record::MQTT::ConnectMsg);
-			m->Assign(0, new StringVal(${msg.protocol_name.str}.length(),
+			m->Assign(0, make_intrusive<StringVal>(${msg.protocol_name.str}.length(),
 			                           reinterpret_cast<const char*>(${msg.protocol_name.str}.begin())));
 			m->Assign(1, val_mgr->GetCount(${msg.protocol_version}));
-			m->Assign(2, new StringVal(${msg.client_id.str}.length(),
+			m->Assign(2, make_intrusive<StringVal>(${msg.client_id.str}.length(),
 			                           reinterpret_cast<const char*>(${msg.client_id.str}.begin())));
-			m->Assign(3, new IntervalVal(double(${msg.keep_alive}), Seconds));
+			m->Assign(3, make_intrusive<IntervalVal>(double(${msg.keep_alive}), Seconds));
 
 			m->Assign(4, val_mgr->GetBool(${msg.clean_session}));
 			m->Assign(5, val_mgr->GetBool(${msg.will_retain}));
@@ -58,20 +58,20 @@ refine flow MQTT_Flow += {
 
 			if ( ${msg.will_flag} )
 				{
-				m->Assign(7, new StringVal(${msg.will.topic.str}.length(),
+				m->Assign(7, make_intrusive<StringVal>(${msg.will.topic.str}.length(),
 				                           reinterpret_cast<const char*>(${msg.will.topic.str}.begin())));
-				m->Assign(8, new StringVal(${msg.will.msg.str}.length(),
+				m->Assign(8, make_intrusive<StringVal>(${msg.will.msg.str}.length(),
 				                           reinterpret_cast<const char*>(${msg.will.msg.str}.begin())));
 				}
 
 			if ( ${msg.username} )
 				{
-				m->Assign(9, new StringVal(${msg.uname.str}.length(),
+				m->Assign(9, make_intrusive<StringVal>(${msg.uname.str}.length(),
 				                           reinterpret_cast<const char*>(${msg.uname.str}.begin())));
 				}
 			if ( ${msg.password} )
 				{
-				m->Assign(10, new StringVal(${msg.pass.str}.length(),
+				m->Assign(10, make_intrusive<StringVal>(${msg.pass.str}.length(),
 				                            reinterpret_cast<const char*>(${msg.pass.str}.begin())));
 				}
 

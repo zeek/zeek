@@ -2,7 +2,8 @@
 
 #pragma once
 
-#include "Debug.h"
+class BroObj;
+class Expr;
 
 class DbgWatch {
 public:

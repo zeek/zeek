@@ -1,4 +1,1919 @@
 
+3.2.0-dev.412 | 2020-04-22 10:43:39 -0700
+
+  * Fix buffer over-read in Ident analyzer (Max Kellermann)
+
+3.2.0-dev.410 | 2020-04-21 10:25:29 -0700
+
+  * Remove "connection_external" event (Johanna Amann, Corelight)
+
+    This event was forgotten in our broccoli cleanup. It cannot be
+    raised by anything anymore
+
+3.2.0-dev.405 | 2020-04-16 15:38:46 -0700
+
+  * Remove ineffective &default in netcontrol cluster event handler args (Jon Siwek, Corelight)
+
+3.2.0-dev.404 | 2020-04-16 14:12:20 -0700
+
+  * GH-895: Remove use of Variable-Length-Arrays (Jon Siwek, Corelight)
+
+3.2.0-dev.402 | 2020-04-16 13:00:59 -0700
+
+  * Add default function for Kerberos constant-lookup-tables (Jon Siwek, Corelight)
+
+  * check for the existance of f?$conns in file_sniff event in policy/protocols/ssl/log-hostcerts-only.zeek
+	  (SG)
+
+  * Update README.md to fix the logo and one of the links (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.396 | 2020-04-14 15:45:54 -0700
+
+  * A few minor cleanups in Dict (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.394 | 2020-04-14 15:29:00 -0700
+
+  * Fix a confusing variable name shadowing (Jon Siwek, Corelight)
+
+3.2.0-dev.392 | 2020-04-14 11:06:04 -0700
+
+  * Fix Stack Overflow in POP3_Analyzer::ProcessRequest. (Johanna Amann, Corelight)
+
+    The VLA can overflow given a large enough string. As a small fix, this
+    commit gets rid of the VLA and assigns the password directly to the
+    target string.
+
+    This was reported by Matteo Rizzo (Google).
+
+3.2.0-dev.391 | 2020-04-13 14:59:50 -0700
+
+  * Add warning for ineffective &default arguments in handlers
+
+    For event/hook handlers that had a previous declaration, any &default
+    arguments are ineffective.  Only &default uses in the initial
+    prototype's arguments have an effect (that includes if the handler
+    is actually the site at which the declaration occurs). (Jon Siwek, Corelight)
+
+  * Fix frame size allocation of alternate event/hook handlers
+
+    When the only existing handler doesn't use the full argument list, still
+    have to ensure the full frame is allocated because all arguments get set
+    regardless. (Jon Siwek, Corelight)
+
+  * Emit error for alternate event/hook prototype args with attributes
+
+    Argument attributes are only allowed in the canonical prototype. (Jon Siwek, Corelight)
+
+  * Improve alternate event/hook prototype matching
+
+    This fixes it to again allow the old behavior of matching a handler
+    against the canonical prototype as long as all argument types, but not
+    necessarily names, match. (Jon Siwek, Corelight)
+
+  * Allow alternate event/hook prototype declarations
+
+    The alternates must be some subset of the canonical prototype (the one
+    that's first declared) and allows users to define handlers for any
+    such prototype.  Example:
+
+        # Prototype declarations
+        global my_event: event(s: string, c: count);
+        global my_event: event(c: count);
+        global my_event: event();
+
+        # Handler definitions
+        event my_event(s: string, c: count) { print s, c; }
+        event my_event(c: count) { print c; }
+        event my_event() { }
+
+    This allows handlers to consume a subset of the arguments or even
+    re-order them.  This makes it easier to either extend an existing
+    event/hook's arguments and/or deprecate usages of certain prototypes. (Jon Siwek, Corelight)
+
+  * Fix Broker topics used to uniquely identify cluster nodes
+
+    Node-specific topic prefix subscriptions/publications now add a trailing
+    slash like "zeek/cluster/node/<name>/".  Without the trailing slash,
+    messages attempting to target "proxy-10" may also be sent to "proxy-1"
+    since subscription matching is prefix-based. (Jon Siwek, Corelight)
+
+  * Update submodule(s)
+
+     [nomail] (Jon Siwek, Corelight)
+
+  * Fix include in X509Common.h
+
+    Give full path to Analyzer.h, so that X509Common.h is include-able by
+    plugins. (Johanna Amann, Corelight)
+
+
+3.2.0-dev.382 | 2020-04-09 13:17:03 -0700
+
+  * Remove 'using namespace std' as well as other using statements from headers.
+
+    This unfortunately cuases a ton of flow-down changes because a lot of other
+    code was depending on that definition existing. This has a fairly large chance
+    to break builds of external plugins, considering how many internal ones it broke. (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.378 | 2020-04-09 08:47:44 -0700
+
+  * Replace most of the uses of 0 or NULL to indicate null pointers with nullptr.
+    This change does not change any calls to syscalls, in the interest of passing
+    what the API for those calls says to pass. (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.372 | 2020-04-08 14:00:28 -0700
+
+  * Lazy-initalize some of the fields in Frame to reduce size (Tim Wojtulewicz, Corelight)
+
+  * Set InternalHashTag to a uint16_t so CompositeHash doesn't have a gap in it.
+
+    Resizes CompositeHash from 32 bytes to 24 bytes. (Tim Wojtulewicz, Corelight)
+
+  * Mark constants in List constexpr so they don't actually take up space in created objects
+
+    This resizes List from 24 bytes to 16 bytes. (Tim Wojtulewicz, Corelight)
+
+  * Reorder some class variables to fill in gaps in structure packing (Tim Wojtulewicz, Corelight)
+
+  * Mark classes as final, where appropriate. (Tim Wojtulewicz, Corelight)
+
+    These classes were recommended by gcc's -Wsugggest-final-types as places where
+    large numbers of virtual functions could be optimized away.
+
+3.2.0-dev.360 | 2020-04-07 14:12:27 -0700
+
+  * Add "udp_content_ports" option
+
+    Any port in that set found as either source or destination port
+    of a UDP packet will cause the "udp_contents" event to be raised. (Jon Siwek, Corelight)
+
+  * Add new "udp_content_delivery_ports_use_resp" option
+
+    This controls whether ports given by "udp_content_delivery_ports_orig" and
+    "udp_content_delivery_ports_orig" are in terms of the UDP packet's
+    destination port or by the Connection's "responder" port (the former is
+    the unchanged default behavior). (Jon Siwek, Corelight)
+
+3.2.0-dev.357 | 2020-04-07 13:43:38 -0700
+
+  * Fix connection duration thresholding
+
+    Connection durations were being compared "less than" instead of "greater
+    than" the desired duration threshold as provided to
+    set_current_conn_bytes_threshold() or
+    ConnThreshold::set_duration_threshold() (Jon Siwek, Corelight)
+
+3.2.0-dev.355 | 2020-04-07 12:05:17 -0700
+
+  * Fix using patterns stored as table/set indices
+
+    Pattern values used as table/set indices are stored in serialized form
+    using just the pattern text, but re-creating the value from that didn't
+    fully initialize/compile the regex matcher after (re-)creating it from
+    that pattern text. (Jon Siwek, Corelight)
+
+3.2.0-dev.353 | 2020-04-06 17:27:35 -0700
+
+  * Improve parsing of RDPEUDP/RDPEUDP2 (Anthony Kasza, Corelight)
+
+3.2.0-dev.338 | 2020-04-02 18:29:23 -0700
+
+  * Add RDP over UDP analyzer (Anthony Kasza, Corelight)
+
+3.2.0-dev.336 | 2020-04-02 15:03:04 -0700
+
+  * Fix uses of GetBool in bifs to use GetTrue/GetFalse (Tim Wojtulewicz, Corelight)
+
+  * Change Sessions::dump_this_packet to a bool (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.332 | 2020-03-31 15:34:52 -0700
+
+  * GH-725: fix logic for finding a lambda's usage of outer IDs (Jon Siwek, Corelight)
+
+  * Change record field anonymous functions to use lambda expressions
+
+    There was an alternate syntax to assign anonymous functions to record
+    fields that was never migrated to use the new lambda expression
+    machinery (and so didn't allow referencing variables in outer scope):
+
+        type myrec: record {
+            foo: function(a: string);
+        };
+
+        local o = "o";
+        local mr = myrec($foo(a: string) = { print a + o; });
+
+    (Jon Siwek, Corelight)
+
+3.2.0-dev.329 | 2020-03-31 08:48:10 -0700
+
+  * Mark input/output message classes as final, since nothing should be inheriting from them (Tim Wojtulewicz, Corelight)
+
+  * Add missing override specifier to a number of methods, remove virtual from some as well (Tim Wojtulewicz, Corelight)
+
+  * Add override specifier to Configure() method in almost all of the internal plugins (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.325 | 2020-03-31 07:04:59 +0000
+
+  * Fix bug in intel framework letting deletes of mixed-cased entries
+    fail. (Antonio Nappa, Corelight)
+
+3.2.0-dev.322 | 2020-03-31 06:44:57 +0000
+
+  * A large number of functions had return values and/or arguments
+    changed to use ``bool`` types instead of ``int``. (Tim
+    Wojtulewicz, Corelight)
+
+3.2.0-dev.320 | 2020-03-30 14:09:23 -0700
+
+  * GH-887: improve GRE/ERSPAN parsing of non-IPv4/IPv6 inner payload
+
+    This changes the decapsulation logic for GRE/ERSPAN payloads to re-use
+    existing Layer 2 parsing logic that already handles things like 802.1Q
+    tags correctly before going on to process the inner IPv4/IPv6 payload. (Jon Siwek, Corelight)
+
+  * Fix ERSPAN III optional sub-header parsing (Jon Siwek, Corelight)
+
+  * Many small cleanups of Expr.cc (Tim Wojtulewicz, Corelight)
+
+  * Remove unused cq queue code (Tim Wojtulewicz, Corelight)
+
+  * Add a "reserved" field to tcp_hdr record
+
+    This record is available by handling either raw_packet or new_packet
+    events. (Jon Siwek, Corelight)
+
+  * GH-878: Make RocksDB usage opt-in and add --enable-rocksdb configure flag (Jon Siwek, Corelight)
+
+3.2.0-dev.300 | 2020-03-27 11:48:46 -0700
+
+  * Func::DescribeDebug: move a NumFields() call out of loop (Jon Siwek, Corelight)
+
+  * Use const-ref parameter for zeek::val_list_to_args()
+
+    It ended up being used a bit more than initially expected and this
+    is closer to the style we're generally aiming for. (Jon Siwek, Corelight)
+
+  * Fix missing IntrusivePtr.h include and ambiguous ODesc::Add call (Jon Siwek, Corelight)
+
+  * Remove TimerMgr arg from event queuing/scheduling methods
+
+    It's not useful for anything since there's only ever a single TimerMgr. (Jon Siwek, Corelight)
+
+  * Deprecate Analyzer::ConnectionEvent()
+
+    And update usages to Analyzer::EnqueueConnEvent() (Jon Siwek, Corelight)
+
+  * Deprecate file_analysis::File::FileEvent methods using val_list args
+
+    And update usages to the overload that takes a zeek::Args instead. (Jon Siwek, Corelight)
+
+  * Deprecate Connection::ConnectionEvent methods
+
+    And update usages to Connection::EnqueueEvent (Jon Siwek, Corelight)
+
+  * Deprecate EventMgr::QueueEventFast() and update usages to Enqueue() (Jon Siwek, Corelight)
+
+  * Deprecate EventMgr::QueueEvent() and update usages to Enqueue() (Jon Siwek, Corelight)
+
+  * Deprecate Func::Call(val_list*, ...)
+
+    The version taking a vector of intrusive pointers should be used
+    instead.  A variadic version is also added that forwards all arguments. (Jon Siwek, Corelight)
+
+  * Use vector<IntrusivePtr<Val>> for Func::Call and Event queuing args
+
+    This change may break BIFs that use @ARGS@, @ARG@, or @ARGC@ since their
+    types have changed. (Jon Siwek, Corelight)
+
+  * Fix memory leak in Zeek when-statement bodies with runtime errors (Jon Siwek, Corelight)
+
+  * Change TableVal::RecoverIndex() to return IntrusivePtr (Jon Siwek, Corelight)
+
+  * Use IntrusivePtr in TableVal::CallExpireFunc (Jon Siwek, Corelight)
+
+  * Fix memory leak when runtime error occurs in a Zeek for-loop (Jon Siwek, Corelight)
+
+  * Enable leak checks for btests that produce runtime exceptions
+
+    These were previously reporting leaks due to various allocations not
+    getting cleaned up during the stack unwind, but at the current state of
+    the transition toward IntrusivePtr usage, theses tests no longer leak. (Jon Siwek, Corelight)
+
+3.2.0-dev.280 | 2020-03-24 13:49:43 -0700
+
+  * Add test case for binpac flowbuffer frame length parsing bug (Jon Siwek, Corelight)
+
+3.2.0-dev.277 | 2020-03-20 11:29:36 -0700
+
+  * Initialize RecordVal default fields when redef'd (Jon Siwek, Corelight)
+
+    If a RecordVal had been created, but later its RecordType redef'd to
+    contain fields with &default, those fields were incorrectly left
+    uninitialized.
+
+  * GH-857: fix redefining record types used to index tables (Jon Siwek, Corelight)
+
+    This change tracks all TableVals created at parse-time whose index
+    depends on a given RecordType.  Should that RecordType be redef'd, those
+    TableVals are immediately rebuilt such that they are valid to
+    subsequently use in either parse-time initializations or eventually in
+    any arbitrary run-time expression.
+
+  * Change RecordVals to get resized at time of RecordType redef (Jon Siwek, Corelight)
+
+    Opposed to unconditionally checking all RecordVals whether they need to
+    be resized after parsing ends.
+
+3.2.0-dev.273 | 2020-03-20 10:05:21 -0700
+
+  * GH-865: fix parsing of SMB NegotiateContextList
+
+    * The compression capability was incorrectly set to 0x0004 instead of 0x0003
+
+    * The padding was 4-byte instead of 8-byte aligned and also the spec.
+      does not strictly require the padding for the last item in the list.
+
+    * Add a default case to handle parsing of unknown context types. (Jon Siwek, Corelight)
+
+3.2.0-dev.271 | 2020-03-17 22:52:40 -0700
+
+  * Scope: store IntrusivePtr in `local` (Max Kellermann)
+
+  * Scope: pass IntrusivePtr to AddInit() (Max Kellermann)
+
+  * DNS_Mgr: use class IntrusivePtr (Max Kellermann)
+
+  * Scope: use class IntrusivePtr (Max Kellermann)
+
+  * Attr: use class IntrusivePtr (Max Kellermann)
+
+  * Expr: check_and_promote_expr() returns IntrusivePtr (Max Kellermann)
+
+    Instead of returning a pseudo-boolean integer, it now returns a
+    referenced object or nullptr on error.  The old API was very error
+    prone because of its obscure reference counting semantics.
+
+  * Frame: use class IntrusivePtr (Max Kellermann)
+
+  * Val: RecordVal::LookupWithDefault() returns IntrusivePtr (Max Kellermann)
+
+  * Type: RecordType::FieldDefault() returns IntrusivePtr (Max Kellermann)
+
+    Fixes memory leak in EventHandler::NewEvent().
+
+  * Val: TableVal::Delete() returns IntrusivePtr (Max Kellermann)
+
+  * Type: base_type() returns IntrusivePtr (Max Kellermann)
+
+  * Type: init_type() returns IntrusivePtr (Max Kellermann)
+
+  * Type: merge_types() returns IntrusivePtr (Max Kellermann)
+
+  * Type: use class IntrusivePtr in VectorType (Max Kellermann)
+
+  * Type: use class IntrusivePtr in EnumType (Max Kellermann)
+
+  * Type: use class IntrusivePtr in FileType (Max Kellermann)
+
+  * Type: use class IntrusivePtr in TypeDecl (Max Kellermann)
+
+  * Type: make TypeDecl `final` and the dtor non-`virtual` (Max Kellermann)
+
+  * Type: use class IntrusivePtr in TypeType (Max Kellermann)
+
+  * Type: use class IntrusivePtr in FuncType (Max Kellermann)
+
+  * Type: use class IntrusivePtr in TypeList (Max Kellermann)
+
+  * Type: use class IntrusivePtr in IndexType (Max Kellermann)
+
+  * Val: use class IntrusivePtr in class TableVal (Max Kellermann)
+
+  * Val: use class IntrusivePtr in class TableEntryVal (Max Kellermann)
+
+  * CompHash: return IntrusivePtr (Max Kellermann)
+
+  * Type: return IntrusivePtr (Max Kellermann)
+
+  * Val: add TableVal::Assign() overload with IntrusivePtr (Max Kellermann)
+
+  * zeekygen/IdentifierInfo: use class IntrusivePtr more (Max Kellermann)
+
+  * Func: use class IntrusivePtr (Max Kellermann)
+
+  * GH-845: reference `id_list` before passing to new `BroFunc` (Max Kellermann)
+
+    Passing the `id_list` pointer to `BroFunc` transfers ownership of the
+    contained `ID` instances, because `~BroFunc()` unreferences them.
+    Therefore, we need to increase the reference counters for each
+    `BroFunc` instance to fix the use-after-free bug.
+
+  * input/Manager: fix three use-after-free bugs (Max Kellermann)
+
+3.2.0-dev.237 | 2020-03-17 16:54:35 -0700
+
+  * Cleanup in iosource/Packet (Tim Wojtulewicz, Corelight)
+
+  * Add ability for packet sources to flag a packet's l2 or l3 checksum as valid.
+
+    This lets packet source plugins implement handling of hardware checksum
+    offloading, if available. Setting the flags will skip the internal checksumming
+    for either layer 2 and/or layer 3. (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.234 | 2020-03-16 12:37:17 -0700
+
+  * Remove an unused smb2_negotiate_response event handler. (M.Shirk)
+
+3.2.0-dev.231 | 2020-03-13 13:41:23 -0700
+
+  * Add branch whitelist for CI notifications (Jon Siwek, Corelight)
+
+3.2.0-dev.230 | 2020-03-12 13:33:09 -0700
+
+  * Introduce X509 certificate caching.
+
+    This change introduces caching of X509 certificates. If a certificate is
+    encountered more than 10 times in a minute, it will be cached for the future
+    (until it is not seen for more than a minute). The caching means that the
+    base scripts cache the certificate information and use cached information
+    to raise events.
+
+    This means certificates do not have to be repeatedly parsed; furthermore
+    the events are passed "recycled" Vals (so data is not repeatedly copied around).
+
+    This new feature is highly configureable - see the x509 main.zeek for full
+    information. You can both change the timeouts, disable the feature, or
+    even stop X509 events from being raised (by hooking X509::x509_certificate_cache_replay).
+
+    (Johanna Amann, Corelight)
+
+3.2.0-dev.223 | 2020-03-12 12:03:48 -0700
+
+  * Update pointer to external test repo (Jon Siwek, Corelight)
+
+3.2.0-dev.222 | 2020-03-11 16:39:53 -0700
+
+  * Fix whitespace in connection record comments (Jon Siwek, Corelight)
+
+3.2.0-dev.221 | 2020-03-11 11:21:20 -0700
+
+  * Made additional MySQL fixes. (Vlad Grigorescu)
+
+    1) There are a couple more places where the new protocol uses and OK
+    packet instead of the deprecated EOF.
+
+    2) With > 255 results, we could end up in an situation where the uint8
+    sequence number would wrap, and we'd naively think it'd be a new
+    handshake.
+
+    Now, we track the previous sequence number, and assume overflow if it
+    was 255 previously and 0 now.
+
+    We also reset the previous sequence number to 0 in various packets
+    that we'd expect at the end of other commands.
+
+  * Add support to MySQL for deprecation of EOF packets. (Vlad Grigorescu)
+
+    From the docs: "As of MySQL 5.7.5, OK packes are also used to indicate
+    EOF, and EOF packets are deprecated."
+
+    The client sets a capability flag (CLIENT_DEPRECATE_EOF) to indicate
+    that it expects an OK instead of an EOF after the resultset rows.
+
+  * MySQL analyzer whitespace cleanup (Vlad Grigorescu)
+
+  * Fix EOF detection in the MySQL protocol analyzer. (Vlad Grigorescu)
+
+    The MySQL documentation
+    (https://dev.mysql.com/doc/dev/mysql-server/latest/page_protocol_basic_eof_packet.html)
+    warns us that "You must check whether the packet length is less than 9 to
+    make sure that it is a EOF_Packet packet."
+
+    While we were doing this in two places, we were comparing the total
+    packet length, which includes the 4-byte header. Changed to compare to
+    13 instead.
+
+3.2.0-dev.214 | 2020-03-09 13:35:26 -0700
+
+  * Stop running GitHub Actions in forked repos (Jon Siwek, Corelight)
+
+  * Remove Travis CI configuration (Jon Siwek, Corelight)
+
+  * Add GitHub Action for Coverity Scan (Jon Siwek, Corelight)
+
+3.2.0-dev.209 | 2020-03-06 16:27:29 -0800
+
+  * Add urgent flag to tcp_flags documentation (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.205 | 2020-03-06 07:59:08 -0800
+
+  * Move libkqueue submodule to the aux directory (Jon Siwek, Corelight)
+
+  * Move rapidjson submodule to aux directory
+
+    This also now installs the full rapidjson include/ tree in order to
+    allow external plugins to properly build if they include
+    threading/formatters/JSON.h (Jon Siwek, Corelight)
+
+  * GH-831: Fix the "bro" symlink for binary packaging mode. (Jon Siwek, Corelight)
+
+3.2.0-dev.198 | 2020-03-05 14:18:10 -0800
+
+  * Fix a btest to order zeek_init() events via &priority (Jon Siwek, Corelight)
+
+3.2.0-dev.192 | 2020-02-28 11:36:12 -0800
+
+  * threading::Queue::WakeUp(): lock mutex before notifying condition_variable (Max Kellermann)
+
+    Not locking the associated mutex can create race conditions and lockups.
+
+3.2.0-dev.190 | 2020-02-28 00:42:17 -0800
+
+  * Stmt: use class IntrusivePtr (Max Kellermann)
+
+  * Stmt: remove unused default constructors and `friend` declarations (Max Kellermann)
+
+  * Val: remove unimplemented prototype recover_val() (Max Kellermann)
+
+  * Val: cast_value_to_type() returns IntrusivePtr (Max Kellermann)
+
+  * Val: use IntrusivePtr in check_and_promote() (Max Kellermann)
+
+  * Val: use nullptr instead of 0 (Max Kellermann)
+
+  * zeekygen: use class IntrusivePtr (Max Kellermann)
+
+  * ID: use class IntrusivePtr (Max Kellermann)
+
+  * Expr: use class IntrusivePtr (Max Kellermann)
+
+  * Var: copy Location to stack, to fix use-after-free crash bug (Max Kellermann)
+
+  * Scope: lookup_ID() and install_ID() return IntrusivePtr<ID> (Max Kellermann)
+
+  * Scope: delete duplicate locals (Max Kellermann)
+
+  * EventRegistry: automatically delete EventHandlers (Max Kellermann)
+
+  * main: destroy event_registry after iosource_mgr (Max Kellermann)
+
+    Fixes use-after-free bugs because PcapSource::Close() queues an event.
+
+  * zeekygen/IdentifierInfo: delete duplicate fields (Max Kellermann)
+
+  * main: free the global scope in terminate_bro() (Max Kellermann)
+
+    Make valgrind a bit happier.
+
+  * Scope: pop_scope() returns IntrusivePtr<> (Max Kellermann)
+
+  * Scope: unref all inits in destructor (Max Kellermann)
+
+  * Var: pass IntrusivePtr to add_global(), add_local() etc. (Max Kellermann)
+
+  * plugin/ComponentManager: hold a reference to the EnumType (Max Kellermann)
+
+    Use class IntrusivePtr<>.
+
+  * Type: fix use-after-free bug in VectorType::ShallowClone() (Max Kellermann)
+
+    The new VectorType instance needs a new reference to the `yield_type`.
+
+  * Var: fix crash when redeclaring a function with different args (Max Kellermann)
+
+3.2.0-dev.167 | 2020-02-27 14:24:55 -0800
+
+  * Expr: use fmt instead of sprintf (Tim Wojtulewicz, Corelight)
+
+  * Expr: other minor initialization cleanup (Tim Wojtulewicz, Corelight)
+
+  * Expr: use List::empty() (Tim Wojtulewicz, Corelight)
+
+  * Expr: Convert a bunch of methods returning ints to return bools (Tim Wojtulewicz, Corelight)
+
+  * IPAddr: minor cleanup (Tim Wojtulewicz, Corelight)
+
+    - Mark empty constructors/destructors as default
+    - Initialization cleanup
+    - Remove unnecessary elses from before returns
+
+  * PriorityQueue: initialization cleanup (Tim Wojtulewicz, Corelight)
+
+  * IP: Cleanup initialization, make a few functions consistent (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.159 | 2020-02-26 19:51:24 -0800
+
+  * Pop global frame stack on exception. (Johanna Amann, Corelight)
+
+    When changing this code for 3.0.0, the code-flow changed significantly.
+    One of the changes lead to exception being re-thrown from Call - which
+    leads to the function cleanup not always being run. While the Unref of
+    the framepointer was (correctly) moved into the catch block, the global
+    frame stack was not cleaned up - and contains an invalid pointer after
+    encountering an interpreter exception.
+
+    This small commit pops the stack and removes the framepointer that was
+    pushed onto it before re-throwing the exception.
+
+    I also think that this change (re-throwing the exception) breaks the
+    Zeek debugger in significant ways (you cannot debug a script that causes
+    a Runtime error anymore).
+
+3.2.0-dev.157 | 2020-02-26 10:04:32 -0800
+
+  * IntrusivePtr: overload std::swap() (Max Kellermann)
+
+  * IntrusivePtr: eliminate setPtr() (Max Kellermann)
+
+    There are only two call sites, and those hard-code the `add_ref`
+    parameter.
+
+  * IntrusivePtr: optimize release() using std::exchange() (Max Kellermann)
+
+  * Expr: remove unused default constructors and `friend` declarations (Max Kellermann)
+
+  * Remove useless override: RecordAssignExpr::Eval() (Max Kellermann)
+
+  * Type: don't pass reference to pointer to MatchesIndex() (Max Kellermann)
+
+    No implementation modifies the pointer value.  To guard against this,
+    this commit changes `&` to `const`.
+
+  * Expr: don't pass reference to pointer to check_and_promote*() (Max Kellermann)
+
+    The function never modifies the pointer value.
+
+    check_and_promote_expr() is left untouched because it really does
+    modify the pointer.
+
+  * ID: remove unused default constructor (Max Kellermann)
+
+  * Scope: simplify PList access, use pop_back() and back() (Max Kellermann)
+
+  * List: add method empty() (Max Kellermann)
+
+3.2.0-dev.146 | 2020-02-26 09:40:18 -0800
+
+  * Type: fix double free bug in SetType::ShallowClone() (Max Kellermann)
+
+3.2.0-dev.144 | 2020-02-25 19:52:57 -0800
+
+  * Add a faster siphash24 implementation than the reference one (Tim Wojtulewicz, Corelight)
+
+    - Average of 10 runs of 2009-M57-day11-18.trace (release build at -O3):
+      - Master: 6.027s  93650 bytes max RSS
+      - Commit: 5.950s  93271 bytes max RSS
+
+    - Hashing a fixed 32-byte payload 10 million times with a fixed key:
+      - Master: 1.397411s
+      - Commit: 0.998211s
+
+3.2.0-dev.142 | 2020-02-25 19:27:28 -0800
+
+  * Updates to Broker to build CAF as sub-project (Dominik Charousset, Corelight)
+
+    The embedded CAF now builds directly as a CMake subdirectory rather
+    than an external project.
+
+3.2.0-dev.137 | 2020-02-24 20:41:43 -0800
+
+  * parse.y: fix memory leak in FieldAssignExpr call (Max Kellermann)
+
+  * parse.y: fix use-after-free bug in open-ended index_slice (Max Kellermann)
+
+  * Type: fix use-after-free bug in init_type() (Max Kellermann)
+
+  * Expr: fix potential memory leak in RecordCoerceExpr::Fold() (Max Kellermann)
+
+  * Expr: fix memory leak in RecordCoerceExpr::InitVal() (Max Kellermann)
+
+  * zeekygen/IdentifierInfo: fix memory leak in operator=() (Max Kellermann)
+
+  * Func: fix memory leaks in get_func_priority() (Max Kellermann)
+
+  * parse.y: fix several memory leaks after lookup_ID() (Max Kellermann)
+
+  * Func: fix memory leaks in check_built_in_call() (Max Kellermann)
+
+  * Var: fix memory leaks in add_global() and add_local() (Max Kellermann)
+
+  * Var: add missing references to `init` in add{,_and_assign}_local() (Max Kellermann)
+
+  * parse.y: hold reference on init_expr for zeekygen::Manager::Redef() (Max Kellermann)
+
+  * Expr: fix two memory leaks in AssignExpr::InitVal() (Max Kellermann)
+
+  * parse.y: fix memory leak after "&deprecated" without string (Max Kellermann)
+
+  * RuleMatcher: delete PatternSet instances in destructor (Max Kellermann)
+
+  * Fix reference counting in Option::set_change_handler() (Max Kellermann)
+
+3.2.0-dev.120 | 2020-02-24 18:13:04 -0800
+
+  * Update zeek-testing commit (Jon Siwek, Corelight)
+
+3.2.0-dev.119 | 2020-02-24 18:02:10 -0800
+
+  * Use IntrusivePtr in TableVal::ExpandAndInit() to clarify ownership (Max Kellermann)
+
+3.2.0-dev.117 | 2020-02-24 18:53:03 -0700
+
+  * Switch to using [[deprecated]] attribute (Jon Siwek, Corelight)
+
+3.2.0-dev.115 | 2020-02-24 18:48:50 -0700
+
+  * Improve formatting of doubles that are close to integers
+
+    Now checks for approximate floating point equality so that more doubles
+    get properly disambiguated from integers (Jon Siwek, Corelight)
+
+  * Improve HTTP version number comparisons
+
+    Previous use of floating point comparisons was not always stable. (Jon Siwek, Corelight)
+
+  * Add a 32-bit task to Cirrus CI config (Jon Siwek, Corelight)
+
+  * Replace va_list fmt() overload with vfmt()
+
+    Using an overload that takes a va_list argument potentially causes
+    accidental misuse on platforms (e.g. 32-bit) where va_list is
+    implemented as a type that may collide with commonly-used argument
+    types.
+
+    For example:
+
+        char* c = copy_string("hi");
+        fmt("%s", (const char*)c);
+        fmt("%s", c);
+
+    The first fmt() call correctly goes through fmt(const char*, ...) first,
+    but the second mistakenly goes through fmt(const char*, va_list) first
+    because variadic function overloads have lower priority during overload
+    resolution and va_list on a 32-bit system happens to be defined as a
+    pointer type that can match with "char*" but not "const char*". (Jon Siwek, Corelight)
+
+  * Format tables indexed by patterns consistently across 32-bit/64-bit
+
+    Uses a full 64 bit integer for length values regardless of actual size_t
+    to get consistent results between either 32-bit and 64-bit platforms. (Jon Siwek, Corelight)
+
+  * Format interval values consistently across 32-bit/64-bit platforms (Jon Siwek, Corelight)
+
+3.2.0-dev.108 | 2020-02-24 17:24:07 -0800
+
+  * Change OpaqueVal/HashVal APIs to use IntrusivePtr (Max Kellermann)
+
+3.2.0-dev.106 | 2020-02-24 17:07:10 -0800
+
+  * ScannedFile: Identify already scanned files by device and inode (Arne Welzel)
+
+    Zeek scripts located on separate filesystems, but sharing the same inode
+    number leads to scripts not being loaded. The reason is that a `ScannedFile`
+    is only identified by `st_ino` which is not enough to uniquely identify a
+    file in a system.
+
+  * GH-808: Add ZEEK_VERSION_NUMBER definition to zeek-config.h (Jon Siwek, Corelight)
+
+    This is the result of (major * 10000 + minor * 100 + patch), for example
+    3.1.2 becomes 30102.  This definition may be helpful for external code
+    that requires conditional compilation to support multiple Zeek
+    versions with differing APIs.
+
+  * Fix CI to checkout right commit of zeek-testing-private (Jon Siwek, Corelight)
+
+3.2.0-dev.99 | 2020-02-21 21:23:52 -0800
+
+  * Update a URL in CI README (Jon Siwek, Corelight)
+
+3.2.0-dev.98 | 2020-02-21 20:04:30 -0800
+
+  * Val: use C++ initializers (Max Kellermann)
+
+  * Val: add BroValUnion constructors (Max Kellermann)
+
+  * Val: reduce duplicate code by using delegating constructors (Max Kellermann)
+
+  * Val: remove unused default constructors and `friend` declarations (Max Kellermann)
+
+  * Val: remove the unnecessary BroValUnion typedef (Max Kellermann)
+
+  * Type: remove unnecessary enum typedefs (Max Kellermann)
+
+  * Type: use C++ initializers (Max Kellermann)
+
+  * Type: move code from BroType::BroType() to constexpr functions (Max Kellermann)
+
+    Prepare to inline the constructor, which will one day be `constexpr`
+    (requires moving the `std::string name` field somewhere else).
+
+  * Type: remove useless BroType destructor (Max Kellermann)
+
+  * Obj: disallow copying BroObj (Max Kellermann)
+
+    Copying a BroObj is dangerous, and should only be done with dedicated
+    (virtual) methods which are implemented by all derived classes.  This
+    commit avoids unintentional copies.
+
+  * Obj: use C++ initializers (Max Kellermann)
+
+  * Obj: make `no_location` constexpr (Max Kellermann)
+
+    This ensures that the variable is initialized at compile time and may
+    allow the compiler to apply more initializations.
+
+3.2.0-dev.85 | 2020-02-21 15:29:45 -0800
+
+  * threading/MsgThread: add [[noreturn]] to InternalError() (Max Kellermann)
+
+  * Flare: add [[noreturn]] to bad_pipe_op() (Max Kellermann)
+
+  * Obj: add [[noreturn]] attributes to Internal(),  bad_ref() (Max Kellermann)
+
+  * Reporter: add [[noreturn]] attribute to several methods (Max Kellermann)
+
+3.2.0-dev.80 | 2020-02-21 10:14:05 -0800
+
+  * OpaqueVal: remove misplaced `virtual` keywords (Max Kellermann)
+
+    These methods are not meant to be overridden.
+
+  * CompHash: use class IntrusivePtr for the `type` field (Max Kellermann)
+
+  * IntrusivePtr: replace the "add_ref" parameter with tag structs (Max Kellermann)
+
+    Using a runtime parameter is obscure and error-prone.  Avoiding
+    error-prone code and getting reference counting right is the whole
+    point of this class.
+
+  * IntrusivePtr: remove reset(), nobody uses it (Max Kellermann)
+
+    This method mimicks std::unique_ptr::reset(), but adds an obscure
+    "add_ref" parameter which is error prone.  Since nobody uses this
+    method, and this method is all about dealing with raw pointers which
+    we shouldn't be doing, let's remove it.
+
+  * IntrusivePtr: remove ordering operators (Max Kellermann)
+
+    These violate the C++ standard because comparing pointers to unrelated
+    objects is undefined behavior.
+
+  * IntrusivePtr: rename detach() to release() (Max Kellermann)
+
+    Follow the C++ standard library conventions (here: `std::unique_ptr`).
+
+  * IntrusivePtr: move nullptr initializer to field declaration (Max Kellermann)
+
+    This allows "defaulting" the default constructor, and guarantees that
+    all constructors really initialize the field to a legal value.
+
+3.2.0-dev.71 | 2020-02-20 14:57:58 -0800
+
+  * Fix missing reference count incrment in AssignExpr::InitVal() (Max Kellermann)
+
+3.2.0-dev.69 | 2020-02-19 18:40:58 -0800
+
+  * Fix various reference counting issues in Assign() implementations/callers (Jon Siwek, Corelight)
+
+  * Fix memory leak in Input stream creation when using &type_column (Max Kellermann)
+
+  * Fix two memory leaks in BloomFilterVal::Merge() (Max Kellermann)
+
+  * Fix memory leaks in script debugger (Max Kellermann)
+
+  * scan.l: fix missing Unref() in do_atif() (Max Kellermann)
+
+  * Fix parse-time memory leak in RecordConstructorExpr::InitVal() (Max Kellermann)
+
+  * Fix memory leaks in AssignExpr::EvalIntoAggregate() error conditions (Max Kellermann)
+
+  * Fix memory leaks in CondExpr::Eval() error conditions (Max Kellermann)
+
+    Also fixes reference counting issue for vector-based conditionals.
+
+  * Fix memory leaks in BoolExpr::Eval() error conditions (Max Kellermann)
+
+  * Fix various memory leaks in Assign() error conditions (Max Kellermann)
+
+  * Fix memory leaks in BinaryExpr::Eval() error conditions (Max Kellermann)
+
+  * Fix potential future memory leak in HTTP analyzer (Max Kellermann)
+
+    This isn't really a memory leak because ParseRequest() never fails,
+    but if it one day "learns" to fail, the `request_method` allocation
+    will leak.
+
+3.2.0-dev.53 | 2020-02-18 12:12:28 -0800
+
+  * Make DNS NSEC3 parsing more resilient to introducing a memory leak
+    when no dns_NSEC3 handler exists (Max Kellermann)
+
+  * analyzer/protocol/dns: change runtime check to assert() (Max Kellermann)
+
+    If it were legal to call SendReplyOrRejectEvent() without an
+    EventHandlerPtr, then this would leak the `question_name` object.  But
+    this method has just one caller, and it verifies the EventHandlerPtr.
+
+  * Fix memory leak when no dns_TSIG_addl event handler exists (Max Kellermann)
+
+3.2.0-dev.46 | 2020-02-14 22:02:50 -0800
+
+  * Fix code format of various reporter btests (Jon Siwek, Corelight)
+
+3.2.0-dev.45 | 2020-02-14 21:14:49 -0800
+
+  * Update libkqueue for a linux bugfix (Jon Siwek, Corelight)
+
+3.2.0-dev.44 | 2020-02-14 16:16:54 -0700
+
+  * RE: make the RE_Matcher destructor non-virtual (Max Kellermann)
+
+  * analyzer/protocol/smtp: remove unnecessary nullptr check (Max Kellermann)
+
+  * analyzer/Manager: remove unnecessary clear() calls from destructor (Max Kellermann)
+
+  * analyzer/protocol/http: remove unnecessary empty destructor (Max Kellermann)
+
+  * iosource/pcap/Source: remove unused fields `last_hdr`, `last_data` (Max Kellermann)
+
+  * iosource/Manager: eliminate two std::string copies (Max Kellermann)
+
+
+3.2.0-dev.37 | 2020-02-14 11:09:50 -0800
+
+  * Fix various format specifiers (Jon Siwek, Corelight)
+
+3.2.0-dev.36 | 2020-02-14 10:29:36 -0700
+
+  * broker: include cleanup (Max Kellermann)
+
+  * file_analysis: include cleanup (Max Kellermann)
+
+  * file_analysis/Analyzer: eliminate duplicate constructor (Max Kellermann)
+
+  * probabilistic/Topk: include cleanup (Max Kellermann)
+
+  * digest: eliminate the "Reporter.h" include (Max Kellermann)
+
+  * Val: eliminate the "RE.h" include (Max Kellermann)
+
+  * Val: eliminate the "BroString.h" include (Max Kellermann)
+
+  * Val: eliminate the "CompHash.h" include (Max Kellermann)
+
+  * Val: forward-declare class PDict, reduce includes (Max Kellermann)
+
+  * Val: eliminate the "Scope.h" include (Max Kellermann)
+
+
+3.2.0-dev.25 | 2020-02-13 19:05:56 -0800
+
+  * Reset the number of entries in a dict when calling Clear() (Tim Wojtulewicz, Corelight)
+
+  * Code cleanup in Dict.h (Tim Wojtulewicz, Corelight)
+
+  * Add unit testing for the public Dictionary API (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.21 | 2020-02-13 17:14:26 -0800
+
+  * Check for failure when registering event manager with iosource manager
+    (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.18 | 2020-02-12 00:04:40 -0800
+
+  * Fix SSH analyzer assertion/leak after duplicate KEX packet (Max Kellermann)
+
+3.2.0-dev.16 | 2020-02-11 23:44:06 -0800
+
+  * Add missing #includes (clang-diagnostic-error) (Tim Wojtulewicz, Corelight)
+
+  * Remove unnecessary const from a return value
+    (readability-const-return-type) (Tim Wojtulewicz, Corelight)
+
+  * Create SegmentProfiler objects with names (bugprone-unused-raii)
+    (Tim Wojtulewicz, Corelight)
+
+    The reason behind this one is that without a real variable name, the
+    profile objects are immediately desctructed and the profiling only happens
+    for the small window when they were valid. If the intention is to profile
+    the method where they were defined, this doesn't actually happen.
+
+  * Mark a few clang-tidy findings as false-positive (Tim Wojtulewicz, Corelight)
+
+  * Use std::move in a few places instead of copying argument
+    (performance-unnecessary-value-param) (Tim Wojtulewicz, Corelight)
+
+  * Use const-references in lots of places (preformance-unnecessary-value-param)
+    (Tim Wojtulewicz, Corelight)
+
+  * Use string_view for a couple of Dbg methods (Tim Wojtulewicz, Corelight)
+
+  * Use const references over copying variables
+    (performance-unnecessary-copy-initialization, performance-for-range-copy)
+    (Tim Wojtulewicz, Corelight)
+
+  * Use single-character version of string find() (performance-faster-string-find)
+    (Tim Wojtulewicz, Corelight)
+
+  * Move constructors/operators should be marked noexcept to avoid the compiler
+    picking the copy constructor instead (performance-noexcept-move-constructor)
+    (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.1 | 2020-02-08 16:20:20 -0800
+
+  * Update Broker submodule (Jon Siwek, Corelight)
+
+3.2.0-dev | 2020-02-08 16:01:42 -0800
+
+  * Update to start of 3.2.0 development (Jon Siwek, Corelight)
+
+3.1.0-dev.603 | 2020-02-08 15:47:48 -0800
+
+  * Fix broken links in documentation (Jon Siwek, Corelight)
+
+3.1.0-dev.602 | 2020-02-08 12:44:40 -0800
+
+  * Update submodules to release versions (Jon Siwek, Corelight)
+
+3.1.0-dev.601 | 2020-02-08 09:40:15 -0800
+
+  * Update embedded CAF to 0.17.4 (Jon Siwek, Corelight)
+
+3.1.0-dev.600 | 2020-02-07 21:10:00 -0800
+
+  * Note new CMake 3.0+ and C++17 requirements in NEWS (Jon Siwek, Corelight)
+
+3.1.0-dev.599 | 2020-02-07 19:58:35 -0800
+
+  * Improve an input framework test (Jon Siwek, Corelight)
+
+3.1.0-dev.598 | 2020-02-07 15:06:56 -0800
+
+  * Improve stability of a &expire_func btest (Jon Siwek, Corelight)
+
+3.1.0-dev.597 | 2020-02-07 15:25:56 -0700
+
+  * plugin/Manager: migrate to std::string_view (Max Kellermann)
+
+  * util: optimize the normal_path() common case
+
+    Speeds up Zeek startup by 2%. (Max Kellermann)
+
+  * util: pass string_view to without_bropath_component() (Max Kellermann)
+
+  * module_util: make GLOBAL_MODULE_NAME constexpr
+
+    This allows the compiler to hard-code pointers to the string without
+    looking up a global variable at runtime. (Max Kellermann)
+
+  * Scope: convert Scope::Lookup() and others to template
+
+    Allows passing rvalue references which eliminates unnecessary
+    std::string copies.
+
+    This speeds up Zeek startup by 1-2%. (Max Kellermann)
+
+  * Scope: Vars() returns const reference
+
+    No caller wants to modify the container. (Max Kellermann)
+
+  * Anon: remove unnecessary {map,vector}::clear() calls
+
+    The destructor will do this automatically. (Max Kellermann)
+
+  * Dict: make the destructor non-virtual (Max Kellermann)
+
+  * Obj: make the Location constructors `constexpr` (Max Kellermann)
+
+  * Obj: remove unused fields Location::{timestamp,text} (Max Kellermann)
+
+  * Obj: remove Location::delete_data, nobody ever sets it
+
+    This allows removing the destructor completely, making the class
+    trivially-destructible. (Max Kellermann)
+
+  * Obj: make the Location destructor non-virtual
+
+    Nobody ever derives from this class.  This removes an indirect call
+    and allows inlining the destructor.
+
+    This speeds up Zeek startup by 1-2%. (Max Kellermann)
+
+
+3.1.0-dev.584 | 2020-02-07 14:12:17 -0800
+
+  * Improve kerberos analyzer address and event handling
+
+    Adds a weird, "invalid_kerberos_addr_len", for invalid kerberos host
+    address lengths and also fixes a memory leak when processing KRB_KDC_REQ
+    and KRB_KDC_REP messages for message types that do not match a
+    known/expected type. (Jon Siwek, Corelight)
+
+3.1.0-dev.582 | 2020-02-07 09:46:00 -0800
+
+  * Add environment variable to disable supervisor SIGKILL
+
+    For use in btests since SIGKILL can otherwise bypass the usual
+    btest-bg-wait timeout mechanism and make reason for test failures less
+    obvious. (Jon Siwek, Corelight)
+
+  * Fix a btest's race condition by handling Pcap::file_done (Jon Siwek, Corelight)
+
+  * Add Pcap::file_done event
+
+    It signals when a pcap file is done being processed. (Jon Siwek, Corelight)
+
+  * Improve btest timeouts
+
+    * Generally increase timeouts for tests that have recent transient
+      failures
+
+    * Change any test that relied on `btest-bg-wait -k` since that's never
+      going to play with with CI systems.  Instead, we always need to have
+      a well-defined termination condition in the test itself (and most
+      already did, so didn't really need the `-k` flag anyway). (Jon Siwek, Corelight)
+
+3.1.0-dev.577 | 2020-02-07 09:43:48 -0800
+
+  * Use 2 btest retries for CI (Jon Siwek, Corelight)
+
+3.1.0-dev.575 | 2020-02-07 09:31:50 -0800
+
+  * GH-780: Prevent log batches from indefinite buffering
+
+    Logs that got sent sparsely or burstily would get buffered for long
+    periods of time since the logic to flush them only does so on the next
+    log write.  In the worst case, a subsequent log write could never happen
+    and cause a log entry to be indefinitely buffered.
+
+    This fix introduces a recurring event/timer to simply flush all pending
+    logs at frequency of Broker::log_batch_interval. (Jon Siwek, Corelight)
+
+3.1.0-dev.571 | 2020-02-07 10:33:16 +0000
+
+  * Update NEWS to point out Broker wireformat change. (Robin Sommer,
+    Corelight)
+
+3.1.0-dev.570 | 2020-02-06 14:58:34 -0800
+
+  * add &on_change attribute for sets/tables
+
+    The &on_change attribute allows users to specify a function that is
+    called when a set or table is changed via a direct insertion/delete/change
+    or element expiry.
+
+    Example:
+
+    function set_change(t: set[string], tpe: TableChange, idx: string)
+        {
+        print "set_change", idx, tpe;
+        }
+
+    global s: set[string] &on_change=set_change;
+
+    (Johanna Amann, Corelight)
+
+3.1.0-dev.554 | 2020-02-06 13:05:39 -0800
+
+  * Switch GitHub Action for CI emails to use zeek organization (Jon Siwek, Corelight)
+
+  * Restore accidentally reverted change to fix FreeBSD 11 build (Tim Wojtulewicz, Corelight)
+
+3.1.0-dev.552 | 2020-02-05 21:47:08 -0800
+
+  * Update CAF to current 0.17.4 release branch (Jon Siwek, Corelight)
+
+3.1.0-dev.551 | 2020-02-05 17:50:56 -0800
+
+  * Remove presumed ownership of HeartbeatTimer (Jon Siwek, Corelight)
+
+    threading::Manager is currently never deleted, but if that ever changes,
+    deleting the stored HeartbeatTimer pointer would be a double-free
+    since TimerMgr owns it.
+
+  * Set threading::Manager terminating state (Jon Siwek, Corelight)
+
+    Coverity CID 1417429
+
+  * Remove unused HeartbeatTimer member: do_expire (Jon Siwek, Corelight)
+
+    Coverity CID 1417434
+
+3.1.0-dev.548 | 2020-02-05 14:57:08 -0800
+
+  * GH-773: Make EventMgr an IOSource so that events interrupt kevent waits (Tim Wojtulewicz, Corelight)
+
+3.1.0-dev.546 | 2020-02-05 10:51:35 -0800
+
+  * Change threading formatter errors to warnings. (Johanna Amann, Corelight)
+
+    This change standardizes threading formatter error handling and moves
+    the remaining error calls to be warnings instead.
+
+    This is in line with already existing code - in most cases warnings were
+    raised, only a few cases raised errors. These cases do not differ
+    significantly from other cases in which warnings are raised.
+
+    This also fixes GH-692, in which misformatted lines prevent future file
+    parsing.
+
+    This commit also moves the FailWarn method that is used by both the
+    config and the ascii reader up to the ReaderBackend. Furthermore it
+    makes the Warning method of ReaderBackend respect the warning
+    suppression that is introduced by the FailWarn method.
+
+  * Update NEWS about plugin breakage from the include-file changes (Tim Wojtulewicz, Corelight)
+
+3.1.0-dev.542 | 2020-02-04 14:05:19 -0700
+
+  * UID, ..: un-inline methods to reduce header dependencies
+
+    Only 1% build time speedup, but still, it declutters the headers a bit.
+
+    Before this patch:
+
+     2565.17user 141.83system 2:25.46elapsed 1860%CPU (0avgtext+0avgdata 1489076maxresident)k
+     72576inputs+9130920outputs (1667major+49400430minor)pagefaults 0swaps
+
+    After this patch:
+
+     2537.19user 142.94system 2:26.90elapsed 1824%CPU (0avgtext+0avgdata 1434268maxresident)k
+     16240inputs+8887152outputs (1931major+48728888minor)pagefaults 0swaps (Max Kellermann)
+
+  * include cleanup
+
+    The Zeek code base has very inconsistent #includes.  Many sources
+    included a few headers, and those headers included other headers, and
+    in the end, nearly everything is included everywhere, so missing
+    #includes were never noticed.  Another side effect was a lot of header
+    bloat which slows down the build.
+
+    First step to fix it: in each source file, its own header should be
+    included first to verify that each header's includes are correct, and
+    none is missing.
+
+    After adding the missing #includes, I replaced lots of #includes
+    inside headers with class forward declarations.  In most headers,
+    object pointers are never referenced, so declaring the function
+    prototypes with forward-declared classes is just fine.
+
+    This patch speeds up the build by 19%, because each compilation unit
+    gets smaller.  Here are the "time" numbers for a fresh build (with a
+    warm page cache but without ccache):
+
+    Before this patch:
+
+     3144.94user 161.63system 3:02.87elapsed 1808%CPU (0avgtext+0avgdata 2168608maxresident)k
+     760inputs+12008400outputs (1511major+57747204minor)pagefaults 0swaps
+
+    After this patch:
+
+     2565.17user 141.83system 2:25.46elapsed 1860%CPU (0avgtext+0avgdata 1489076maxresident)k
+     72576inputs+9130920outputs (1667major+49400430minor)pagefaults 0swaps (Max Kellermann)
+
+  * Updating submodule(s).
+
+     [nomail] (Jon Siwek, Corelight)
+
+
+3.1.0-dev.538 | 2020-02-04 11:57:35 +0000
+
+  * Updating submodules.
+
+3.1.0-dev.536 | 2020-02-03 15:44:10 -0700
+
+  * Change various functions to by-value std::string_view args (Jon Siwek, Corelight)
+
+3.1.0-dev.534 | 2020-02-03 15:42:24 -0700
+
+  * Change packet source fields of Options to std::optional (Jon Siwek, Corelight)
+
+3.1.0-dev.531 | 2020-02-03 13:23:22 -0800
+
+  * Update sqlite to 3.31.1 (Johanna Amann, Corelight)
+
+	* Update certificate list to state of NSS 3.49.2. (Johanna Amann, Corelight)
+
+3.1.0-dev.530 | 2020-02-03 13:21:16 -0800
+
+  * Disable Travis leak test (Jon Siwek, Corelight)
+
+    Travis environment doesn't offer enough memory for running ASan very
+    well, but Cirrus has it covered anyway.
+
+3.1.0-dev.529 | 2020-02-03 13:04:30 -0800
+
+  * CMakeLists.txt: fix cross-compilation with binpac (Fabrice Fontaine)
+
+3.1.0-dev.527 | 2020-02-03 10:11:00 -0800
+
+  * Change requested memory in Cirrus CI config (Jon Siwek, Corelight)
+
+    The ASan build does require quite a bit more, but also the default
+    release builds should do ok with slightly less.
+
+3.1.0-dev.526 | 2020-02-03 10:04:00 -0800
+
+  * Increase timeout value for live interfaces without file descriptors (Tim Wojtulewicz, Corelight)
+
+  * Use ranged-for loops in a few places in iosource Manager (Tim Wojtulewicz, Corelight)
+
+  * Change order of includes in iosource Manager, fixes build on FreeBSD 11 (Tim Wojtulewicz, Corelight)
+
+3.1.0-dev.521 | 2020-01-31 14:18:17 -0800
+
+  * util: optimize expand_escape() by avoiding sscanf() (Max Kellermann)
+
+    sscanf() is notoriously slow, and the default scripts have lots of hex
+    escapes.  This patch can reduce Zeek's startup time by 3-9%.
+
+3.1.0-dev.519 | 2020-01-31 13:19:09 -0800
+
+  * util: optimize tokenize_string() and normalize_path() (Max Kellermann)
+
+    This patch can speed up Zeek startup by 10-25%.
+
+    Adds a new tokenize_string() overload which returns string_views and
+    changes existing tokenize_string() and normalize_path() to use string_view
+    arguments.
+
+3.1.0-dev.510 | 2020-01-31 11:20:28 -0800
+
+  * Remove extra fmt() in a reporter->Error() call (Jon Siwek, Corelight)
+
+  * parse.y: Properly set location info for functions (Arne Welzel)
+
+    When defining a function, remember the location where the function header
+    was and restore it before calling `end_func()`. Inside `end_func()`, a
+    `BroFunc` object is created using the current global location information.
+
+    This came up while experimenting with zeek script profiling and wondering
+    why the locations set for `BroFunc` were "somewhere" in the middle of
+    functions instead of spanning them.
+
+  * Desc: move realloc() call out of the loop (Max Kellermann)
+
+  * SerializationFormat: move realloc() call out of the loop (Max Kellermann)
+
+  * PacketDumper: remove unused types (Max Kellermann)
+
+3.1.0-dev.503 | 2020-01-31 11:00:32 -0800
+
+  * Show percentage of packets dropped in the final process output (Tim Wojtulewicz, Corelight)
+
+  * Remove concept of multiple timer managers (Tim Wojtulewicz, Corelight)
+
+    - All timers are now handled by a single global timer manager, which
+      simplifies how they handled by the IOSource manager.
+
+    - This change flows down a number of changes to other parts of the code.
+      The timer manager tag field is removed, which means that matching
+      connections to a timer manager is also removed. This removes the ability to
+      tag a connection as internal or external, since that's how the connections
+      where differentiated. This in turn removes the `current_conns_extern` field
+      from the `ConnStats` record type in the script layer.
+
+  * Have terminate_processing() raise SIGTERM instead of calling the signal handler directly (Tim Wojtulewicz, Corelight)
+
+  * PktSrc iosource changes to match the new IOSource API (Tim Wojtulewicz, Corelight)
+
+  * Broker manager changes to match the new IOSource API and loop architecture (Tim Wojtulewicz, Corelight)
+
+  * DNS_Mgr changes to match the new IOSource API and loop architecture (Tim Wojtulewicz, Corelight)
+
+  * Threading changes for the new loop architecture (Tim Wojtulewicz, Corelight)
+
+    - threading::Manager is no longer an IOSource.
+
+    - threading::MsgThread is now an IOSource. This allows threads themselves
+      to signal when they have data to process instead of continually checking
+      each of the threads on every loop pass.
+
+    - Make the thread heartbeat timer an actual timer and let it fire as
+      necessary instead of checking to see if it should fire
+
+  * Add Trigger manager for managing triggers created by things like 'when' statements
+
+    - Adds new trigger namespace (Tim Wojtulewicz, Corelight)
+
+    - Adds trigger::Manager class as a new IOSource for keeping track of
+      triggers and integrating them into the loop. Previously the loop relied on
+      the event manager Drain() method to process all triggers on every loop, but
+      now that the loop actively waits for events to occur, triggers would not
+      fire when they needed to. Adding them as part of the loop ensures they're
+      checked.
+
+  * Make TimerMgr an IOSource (Tim Wojtulewicz, Corelight)
+
+    - This allows the loop to check what the next timeout is and use that as
+      the basis for the timeout of the poll
+
+    - This commit also removes the TimerMgr::Tag type, since it causes a name
+      clash with other code in IOSource
+
+  * Modify IOSource Manager to implement new loop architecture (Tim Wojtulewicz, Corelight)
+
+    - Removes entire FindSoonest method that includes all of the calls to select() for checking for ready sources
+
+    - Removes FD_Set checking against IOSources
+
+    - Adds system for registering and unregistering file descriptors from
+      IOSources. This allows individual sources to mark themselves as ready to be
+      checked by the loop as they become available.
+
+    - Adds entirely new loop architecture based on checking the IOSources for
+      when their next timeout is, and then waiting for either that timeout or
+      when the next source is ready. This also implements the polling based on
+      what the OS supports, instead of just calling select() on all platforms.
+      Currently it supports kqueue, epoll, and plain poll.
+
+    - Adds system for pinging the loop to force it to wake up
+
+  * Minor amount of code cleanup in Pcap IO source (Tim Wojtulewicz, Corelight)
+
+  * IOSource API changes for new loop architecture (Tim Wojtulewicz, Corelight)
+
+    - Removed GetFD and NextTimestamp methods
+
+    - Removed concept of idle sources
+
+    - Renamed Init to InitSource to avoid a name clash with the thread code
+
+    - Added GetNextTimeout method
+
+    This commit also removes the FD_Set file since it's no longer used
+
+  * Type and variable usage cleanup in Net.h (Tim Wojtulewicz, Corelight)
+
+  * Remove #include of some iosource files from Net.h (Tim Wojtulewicz, Corelight)
+
+  * Only allow a single trace file (-r) or interface (-i) option on the command-line (Tim Wojtulewicz, Corelight)
+
+  * Remove CQ_TimerMgr in favor of PQ_TimerMgr (Tim Wojtulewicz, Corelight)
+
+3.1.0-dev.482 | 2020-01-30 19:16:03 -0800
+
+  * Update NEWS for naming changes. (Robin Sommer, Corelight)
+
+  * Remove test for legacy plugin. (Robin Sommer, Corelight)
+
+    We no longer support creating new plugins using the old naming
+    scheme.
+
+  * Remove legancy symlinks in aux/. (Robin Sommer, Corelight)
+
+    That's aux/bro-aux and aux/broctl.
+
+  * Add warnings when loading scripts ending in ".bro", or using legacy environment variables. (Robin Sommer, Corelight)
+
+  * Fix missing rename to .zeek-dns-cache. (Robin Sommer, Corelight)
+
+  * No longer symlink local.zeek to local.bro. (Robin Sommer, Corelight)
+
+  * Update notice user agent. (Robin Sommer, Corelight)
+
+  * Remove old_comm_usage_is_ok. (Robin Sommer, Corelight)
+
+  * Remove bro-config.h.in and bro-path-dev.in. (Robin Sommer, Corelight)
+
+  * Change Bro wrapper script to now abort when old executable names are still used. (Robin Sommer, Corelight)
+
+  * Remove APIs that were explicitly deprecated to be removed in 3.1. (Robin Sommer, Corelight)
+
+    Special handling for bro_{init,done,script_loaded} events: if still
+    used, they cause Zeek to abort at startup.
+
+3.1.0-dev.469 | 2020-01-30 08:44:15 -0700
+
+  * Fix leaked FDs in redirecting supervised node stdout/stderr (Jon Siwek, Corelight)
+
+  * Add checks for failed fcntl calls (Jon Siwek, Corelight)
+
+  * Set Pipe file descriptor flags correctly (Jon Siwek, Corelight)
+
+3.1.0-dev.465 | 2020-01-29 11:45:15 -0800
+
+  * Scope: fix memory leak by removing duplicate copy_string() call (Max Kellermann)
+
+    Note this is a parse-time memory leak, not a run-time leak.
+
+  * util, nb_dns: fix off-by-one bugs in strncpy() calls (Max Kellermann)
+
+    Fortunately, these bugs had no effect because the following lines
+    overwrote the last character with a null byte.
+
+  * Type, util: add `constexpr` to static variables (Max Kellermann)
+
+  * Net: remove unused variable (Max Kellermann)
+
+3.1.0-dev.460 | 2020-01-29 11:16:15 -0800
+
+  * Skip file analysis for zero-length SSL/TLS data (Jon Siwek, Corelight)
+
+3.1.0-dev.458 | 2020-01-29 12:53:32 +0000
+
+  * Add a new supervisor framework that enables Zeek to operate
+    clusters of processes itself without any external help. (Jon
+    Siwek, Corelight)
+
+    The Supervisor framework provides an entirely new deployment mode
+    for Zeek, one that supervises a set of Zeek processes that are
+    meant to be persistent. A Supervisor automatically revives any
+    process that dies or exits prematurely and also arranges for an
+    ordered shutdown of the entire process tree upon its own
+    termination. This Supervisor mode for Zeek provides the basic
+    foundation for process configuration/management that could be used
+    to deploy a Zeek cluster similar to what ZeekControl does, but is
+    also simpler to integrate as a standard system service.
+
+    This mode is still experimental and will evolve over time. The
+    command-line argument of ``-j`` toggles Zeek to run in "Supervisor
+    mode" to allow for creation and management of child processes. If
+    you're going to test this, please note that you will need some
+    custom script code to configure the processes you want Zeek to
+    run. See the documentation for more information:
+    https://docs.zeek.org/en/stable/frameworks/supervisor.html
+
+3.1.0-dev.408 | 2020-01-28 17:56:02 -0800
+
+  * Update Cirrus CI config to use macOS Catalina (Jon Siwek, Corelight)
+
+3.1.0-dev.406 | 2020-01-28 12:42:25 -0800
+
+  * util: use getrandom() on Linux if available (Max Kellermann)
+
+    Unlike /dev/urandom, getrandom() doesn't need a file descriptor and
+    works when there is no /dev.  It requires Linux 3.17 and glibc 2.25,
+    but there is a fallback to the old code.
+
+3.1.0-dev.403 | 2020-01-24 15:15:04 -0800
+
+  * Fixed decompose_uri() errors on URIs with empty port component (Frerich Raabe)
+
+3.1.0-dev.398 | 2020-01-23 18:08:43 -0800
+
+  * Skip check for outdated docs in Cirrus CI for PRs (Jon Siwek, Corelight)
+
+3.1.0-dev.397 | 2020-01-23 15:30:33 -0800
+
+  * Use consistent zeek_init priority for Log::create_stream calls
+
+    Typically in base scripts, Log::create_stream() is called in zeek_init()
+    handler with &priority=5 such that it will have already been created
+    in the default zeek_init() &priority=0. (Jon Siwek, Corelight)
+
+3.1.0-dev.395 | 2020-01-23 13:50:42 +0000
+
+  * Update Broker submodule.
+
+3.1.0-dev.394 | 2020-01-23 13:18:54 +0000
+
+  * Improve creation of SMB transaction data strings. (Jon Siwek,
+    Corelight)
+
+3.1.0-dev.392 | 2020-01-23 13:14:28 +0000
+
+  * Improve FTP word/whitespace handling. (Jon Siwek, Corelight)
+
+3.1.0-dev.389 | 2020-01-18 10:49:15 +0000
+
+  * GHI-595: Convert from nlohmann/json to RapidJSON for performance
+    reasons. (Tim Wojtulewicz, Corelight)
+
+  * Optimize json_escape_utf8() and expand its unit tests. (Tim
+    Wojtulewicz, Corelight)
+
+  * Convert type-checking macros to actual functions. (Tim
+    Wojtulewicz, Corelight)
+
+  * Use the list of files from clang-tidy when searching for unit
+    tests. (Tim Wojtulewicz, Corelight)
+
+3.1.0-dev.383 | 2020-01-17 11:51:01 +0000
+
+  * Various code modernization cleanup. (Tim Wojtulewicz, Corelight)
+
+3.1.0-dev.378 | 2020-01-16 13:18:13 +0000
+
+  * Handle invalid Base64 encodings in FTP ADAT analyzer (Jon Siwek,
+    Corelight)
+
+3.1.0-dev.376 | 2020-01-14 09:45:45 -0800
+
+  * Fix warning when reading files from non-network sources (Seth Hall, Corelight)
+
+    If files are being read from non-network sources, there was a warning in
+    the SSL base scripts about missing the f$conns field.
+
+3.1.0-dev.372 | 2020-01-13 12:10:42 +0000
+
+  * Fix method returning a reference to a temporary. Found by
+    cppcheck, via by Arthur Wong. (Robin Sommer, Corelight)
+
+3.1.0-dev.370 | 2020-01-09 19:04:59 -0800
+
+  * Update timeouts for a btest (Jon Siwek, Corelight)
+
+3.1.0-dev.368 | 2020-01-09 13:39:38 -0800
+
+  * Extend ASAN_OPTIONS in btests instead of overwrite (Jon Siwek, Corelight)
+
+3.1.0-dev.366 | 2020-01-09 12:28:32 -0800
+
+  * Update external test repo commit hash (Jon Siwek, Corelight)
+
+3.1.0-dev.365 | 2020-01-09 11:38:06 -0800
+
+  * Enable LeakSanitizer for unit tests run via doctest (Jon Siwek, Corelight)
+
+3.1.0-dev.363 | 2020-01-09 10:25:24 -0800
+
+  * fix NTLM field value access
+
+    The fields being checked for existence were not the same as the fields
+    being accessed. (Justin Azoff, Corelight)
+
+3.1.0-dev.361 | 2020-01-08 10:29:59 -0800
+
+  * Increase timeout for a few btests (Jon Siwek, Corelight)
+
+3.1.0-dev.360 | 2020-01-07 20:58:19 -0800
+
+  * Preserve optimization setting for sanitizer build (Jon Siwek, Corelight)
+
+3.1.0-dev.359 | 2020-01-06 16:40:55 -0800
+
+  * Fix build warning in X509 plugin (Tim Wojtulewicz, Corelight)
+
+3.1.0-dev.357 | 2020-01-06 14:10:54 -0800
+
+  * GH-412: Enable Patterns as Table index (Dev Bali, Corelight)
+
+3.1.0-dev.354 | 2020-01-06 14:16:29 -0700
+
+  * Fix snprintf compiler warning in hexdump BIF (Jon Siwek, Corelight)
+
+  * Updating submodule(s).
+
+     [nomail] (Jon Siwek, Corelight)
+
+
+3.1.0-dev.351 | 2020-01-06 11:20:09 -0800
+
+  * Increase a timeout for a btest (Jon Siwek, Corelight)
+
+3.1.0-dev.350 | 2020-01-06 10:51:07 -0800
+
+  * Fix Cirrus CI FreeBSD python dependencies installation (Jon Siwek, Corelight)
+
+3.1.0-dev.348 | 2020-01-06 11:19:36 -0700
+
+  * Increase timeout for a btest
+
+    May be more timing-sensitive with slower ASAN/LSAN configuration in
+    addition to already-slower CI environment. (Jon Siwek, Corelight)
+
+  * Switch CI scripts to use ASAN/LSAN instead of gperftools
+
+    Using AddressSanitizer/LeakSanitizer is better.  It covers the full
+    unit/baseline test suite by default without requiring one to write
+    specific memory leak tests.  It also covers other types of memory errors
+    besides just leaks. (Jon Siwek, Corelight)
+
+  * Remove redundant memory leak btests
+
+    Or otherwise convert into a regular btest if it didn't already seem to
+    be covered.
+
+    There's no need for a separate memory leak test group since compiling
+    with LeakSanitizer now covers leak checking for the full btest suite. (Jon Siwek, Corelight)
+
+  * Fix reference counting issues related to lambdas/closures
+
+    For example, circular references between a lambda function the frame
+    it's stored within and/or its closure could cause memory leaks.
+
+    This also fixes other various reference-count ownership issues that
+    could lead to memory errors.
+
+    There may still be some potential/undiscovered issues because the "outer
+    ID" finding logic doesn't look quite right as the AST traversal descends
+    within nested lambdas and considers their locals as "outer", but
+    possibly the other logic for locating values in closures or cloning
+    closures just works around that behavior. (Jon Siwek, Corelight)
+
+  * Disable LeakSanitizer for btests that have known leaks
+
+    E.g. ones that throw interpreter exceptions,  as those are currently
+    known to potentially cause leaks.  Fixing the underlying leaks involves
+    the larger task of more IntrusivePtr usage.
+
+    Reference cycles may also cause leaks. (Jon Siwek, Corelight)
+
+  * Rewrite the btest for when-statement timeouts
+
+    To avoid a memory leak in DNS lookups that's hard to work around and
+    does not otherwise effect typical operation when Zeek is allowed to
+    continue to run after zeek_init(). (Jon Siwek, Corelight)
+
+  * Fix memory leak when a logging plugin hook prevents a write (Jon Siwek, Corelight)
+
+  * Fix memory leaks in various input framework error-handling cases (Jon Siwek, Corelight)
+
+  * Fix memory leak in Reporter::get_weird_sampling_whitelist() BIF (Jon Siwek, Corelight)
+
+  * Fix reference counting of Log::Filter "config" field
+
+    Which can potentially be a minor memory leak if there's a lot of dynamic
+    adding/removing of logging filters. (Jon Siwek, Corelight)
+
+  * Fix memory leak in system_env() BIF (Jon Siwek, Corelight)
+
+  * Clean up triggers awaiting global state modification at shutdown
+
+    Otherwise they can be reported as memory leaks since no more global
+    state modifications will take place to notify the trigger to clean
+    itself up. (Jon Siwek, Corelight)
+
+  * Fix memory leak in initializing log writers with no local backend (Jon Siwek, Corelight)
+
+  * Fix packet filter memory leaks (Jon Siwek, Corelight)
+
+  * Skip sending thread heartbeat if it alread asked to be finished
+
+    Otherwise the heartbeat message may fail to be processed and show up as
+    leaked memory. (Jon Siwek, Corelight)
+
+  * Fix memory leak of sqlite input reader prepared statement (Jon Siwek, Corelight)
+
+  * Prevent duplicate "finish" threading messages
+
+    As they don't get processed and may show up as a memory leak. (Jon Siwek, Corelight)
+
+  * Fix memory leak when table-based input stream overwrites old entries (Jon Siwek, Corelight)
+
+  * Fix scripting error in a DHCP btest (Jon Siwek, Corelight)
+
+  * Fix memory leaks in Kerberos ticket decryption
+
+    Memory allocated to the decrypted ticket data as well as the server
+    principal were not freed.
+
+    Also fixed potential leaks in error cases that called
+    krb5_get_error_message() without freeing the returned value. (Jon Siwek, Corelight)
+
+  * Fix scripting error in an ftp btest (Jon Siwek, Corelight)
+
+  * Update paraglob submodule (Jon Siwek, Corelight)
+
+  * Fix malloc/delete mismatch in JSON formatting
+
+    ODesc allocated with malloc() and BroString deallocated with delete[],
+    but really the intermediate BroString wasn't even needed when copying
+    into std::string. (Jon Siwek, Corelight)
+
+  * Delete/timeout pending DNS requests during shutdown
+
+    Primarily, this change prevents the pending requests showing up as
+    memory leaks. (Jon Siwek, Corelight)
+
+  * Fix memory leak in OCSP parsing functions
+
+    Various OCSP parsing functions used in presence of OpenSSL 1.1 used
+    "d2i_ASN1_SEQUENCE_ANY" which returns a "STACK_OF(ASN1_TYPE)", but used
+    "sk_ASN1_TYPE_free" instead of "sk_ASN1_TYPE_pop_free" to free it.  The
+    former only frees the stack structure while the later frees both the
+    structure and the elements. (Jon Siwek, Corelight)
+
+  * Free the global X509 certificate root store on shutdown
+
+    Otherwise LeakSanitizer reports its contents as leaked. (Jon Siwek, Corelight)
+
+  * Add general LeakSanitizer macros/instrumentation (Jon Siwek, Corelight)
+
+  * Improve --sanitizers configure option
+
+    * Rename SANITIZERS CMake variable to ZEEK_SANITIZERS for clarity
+
+    * Use -O1 by default to improve speed (set NO_OPTIMIZATIONS env. var.
+      to override and use -O0).  Uses -fno-optimize-sibling-calls with -O1
+      to still get "perfect stack traces".
+
+    * Updates various sub-projects with sanitizer improvements:
+      binpac and bifcl, by default, now ignore leaks reported by LeakSanitizer
+      so that it doesn't interfere with the Zeek build (Jon Siwek, Corelight)
+
+
+3.1.0-dev.319 | 2020-01-06 09:44:11 -0800
+
+  * Mark safe_snprintf and safe_vsnprintf as deprecated, remove uses of them (Tim Wojtulewicz, Corelight)
+
+  * Add unit tests to util.cc and module_util.cc (Tim Wojtulewicz, Corelight)
+
+3.1.0-dev.314 | 2019-12-18 13:36:07 -0800
+
+  * Add GitHub Action for CI notification emails (Jon Siwek, Corelight)
+
+3.1.0-dev.313 | 2019-12-18 13:23:51 -0800
+
+  * Add Cirrus CI config (Jon Siwek, Corelight)
+
+3.1.0-dev.309 | 2019-12-16 09:40:01 -0800
+
+  * GHI-599: avoid memory leak with default pattern matching and json formatting (Tim Wojtulewicz, Corelight)
+
+3.1.0-dev.307 | 2019-12-16 08:20:58 -0800
+
+  * Update URL for Malware Hash Registry website (Jon Siwek, Corelight)
+
+3.1.0-dev.300 | 2019-12-05 12:34:41 -0700
+
+  * GH-700: add zeek_args() BIF
+
+    Provides access to all zeek command-line arguments ("argv"). (Jon Siwek, Corelight)
+
+3.1.0-dev.297 | 2019-12-05 11:57:12 -0700
+
+  * GH-700: add packet_sources() BIF
+
+    Provides access to properties of packet sources, like interface or pcap
+    file name. (Jon Siwek, Corelight)
+
+3.1.0-dev.295 | 2019-12-04 14:43:27 -0700
+
+  * Use new Zeek Logo instead of Bro Eyes on README.md (Dev Bali, Corelight)
+
+3.1.0-dev.292 | 2019-12-02 13:37:19 -0800
+
+  * GH-619: Allow "print" statements to be redirected to a Log (Dev Bali, Corelight)
+
+3.1.0-dev.286 | 2019-11-21 08:47:32 -0800
+
+  * GH-684: Fix parsing of RPC calls with non-AUTH_UNIX flavors
+
+    The parsing logic that should be specific to the AUTH_UNIX credential
+    flavor was previously applied unconditionally to other flavors. (Jon Siwek, Corelight)
+
+3.1.0-dev.284 | 2019-11-21 08:29:36 -0800
+
+  * Fix ZEEK_PROFILER_FILE file format/parsing
+
+    Some Zeek script statement descriptions were exceeding the hardcoded
+    maximum length and also could contain tab characters which were
+    supposed to be reserved for use as a delimiter in the file format. (Jon Siwek, Corelight)
+
+3.1.0-dev.282 | 2019-11-18 12:06:13 +0000
+
+  * GH-646: Add new "successful_connection_remove" event. (Jon Siwek, Corelight)
+
+    Includes:
+
+        - Switch Zeek's base scripts over to using it in place of
+          "connection_state_remove". The difference between the two is
+          that "connection_state_remove" is raised for all events
+          while "successful_connection_remove" excludes TCP
+          connections that were never established (just SYN packets).
+          There can be performance benefits to this change for some
+          use-cases.
+
+        - Add new event called ``connection_successful`` and a new
+          ``connection`` record field named "successful" to help
+          indicate this new property of connections.
+
+3.1.0-dev.280 | 2019-11-15 18:27:27 -0800
+
+  * Run doctest unit tests in Travis CI (Jon Siwek, Corelight)
+
+  * Fix indents/whitespace in Travis CI script (Jon Siwek, Corelight)
+
+  * Adjust btests for OpenBSD portability (Jon Siwek, Corelight)
+
+  * Convert pcapng test suite files to pcap format for OpenBSD compat (Jon Siwek, Corelight)
+
+  * Fix undefined symbols loading libbroker on OpenBSD (Jon Siwek, Corelight)
+
+  * Fix compile warnings on OpenBSD (Jon Siwek, Corelight)
+
+3.1.0-dev.271 | 2019-11-14 19:16:31 -0800
+
+  * Add initial scaffold for unit testing via doctest (Dominik Charousset, Corelight)
+
+3.1.0-dev.266 | 2019-11-14 17:29:00 -0800
+
+  * Add hint to run `make distclean` if configure fails (Simon Hardy-Francis, Corelight)
+
+3.1.0-dev.264 | 2019-11-14 16:57:13 -0800
+
+  * Install test-all-policy.zeek script (Jon Siwek, Corelight)
+
+    The zeekygen script, which is already installed, refers to it, and
+    could also generally be useful for "test everything" type scenarios.
+
+3.1.0-dev.263 | 2019-11-13 13:43:16 -0800
+
+  * Improve record_fields() BIF to recursively give full container type names (Henri DF)
+
 3.1.0-dev.257 | 2019-11-11 13:40:11 -0800
 
   * Update embedded CAF to 0.17.3 (Jon Siwek, Corelight)

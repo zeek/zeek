@@ -4,12 +4,12 @@
 # failing behavior.
 
 # @TEST-EXEC: btest-bg-run zeek zeek %INPUT
-# @TEST-EXEC: $SCRIPTS/wait-for-file zeek/init 5 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: $SCRIPTS/wait-for-file zeek/init 10 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: mv does-exist.dat does-not-exist.dat
-# @TEST-EXEC: $SCRIPTS/wait-for-file zeek/next 5 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: $SCRIPTS/wait-for-file zeek/next 10 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: mv does-not-exist.dat does-not-exist-again.dat
 # @TEST-EXEC: echo "3 streaming still works" >> does-not-exist-again.dat
-# @TEST-EXEC: btest-bg-wait 5
+# @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff zeek/.stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff zeek/.stderr
 

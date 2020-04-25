@@ -1,9 +1,10 @@
+#include "SerializationFormat.h"
+
 #include <ctype.h>
 
-#include "net_util.h"
-#include "SerializationFormat.h"
 #include "DebugLogger.h"
 #include "Reporter.h"
+#include "net_util.h"
 
 const float SerializationFormat::GROWTH_FACTOR = 2.5;
 
@@ -28,7 +29,7 @@ void SerializationFormat::StartRead(const char* data, uint32_t arg_len)
 
 void SerializationFormat::EndRead()
 	{
-	input = 0;
+	input = nullptr;
 	}
 
 void SerializationFormat::StartWrite()
@@ -36,7 +37,7 @@ void SerializationFormat::StartWrite()
 	if ( output && output_size > INITIAL_SIZE )
 		{
 		free(output);
-		output = 0;
+		output = nullptr;
 		}
 
 	if ( ! output )
@@ -53,7 +54,7 @@ uint32_t SerializationFormat::EndWrite(char** data)
 	{
 	uint32_t rval = output_pos;
 	*data = output;
-	output = 0;
+	output = nullptr;
 	output_size = 0;
 	output_pos = 0;
 	return rval;
@@ -79,10 +80,9 @@ bool SerializationFormat::WriteData(const void* b, size_t count)
 	{
 	// Increase buffer if necessary.
 	while ( output_pos + count > output_size )
-		{
 		output_size *= GROWTH_FACTOR;
-		output = (char*)safe_realloc(output, output_size);
-		}
+
+	output = (char*)safe_realloc(output, output_size);
 
 	memcpy(output + output_pos, b, count);
 	output_pos += count;
@@ -193,7 +193,7 @@ bool BinarySerializationFormat::Read(char** str, int* len, const char* tag)
 	if ( ! ReadData(s, l) )
 		{
 		delete [] s;
-		*str = 0;
+		*str = nullptr;
 		return false;
 		}
 
@@ -219,7 +219,7 @@ bool BinarySerializationFormat::Read(char** str, int* len, const char* tag)
 	return true;
 	}
 
-bool BinarySerializationFormat::Read(string* v, const char* tag)
+bool BinarySerializationFormat::Read(std::string* v, const char* tag)
 	{
 	char* buffer;
 	int len;
@@ -227,7 +227,7 @@ bool BinarySerializationFormat::Read(string* v, const char* tag)
 	if ( ! Read(&buffer, &len, tag) )
 		return false;
 
-	*v = string(buffer, len);
+	*v = std::string(buffer, len);
 
 	delete [] buffer;
 	return true;
@@ -362,7 +362,7 @@ bool BinarySerializationFormat::Write(const char* s, const char* tag)
 	return Write(s, strlen(s), tag);
 	}
 
-bool BinarySerializationFormat::Write(const string& s, const char* tag)
+bool BinarySerializationFormat::Write(const std::string& s, const char* tag)
 	{
 	return Write(s.data(), s.size(), tag);
 	}

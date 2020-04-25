@@ -3,15 +3,17 @@
 #pragma once
 
 #include "Info.h"
-#include "ScriptInfo.h"
-
+#include "IntrusivePtr.h"
 #include "ID.h"
-#include "Type.h"
 
 #include <string>
 #include <vector>
 #include <list>
 #include <map>
+
+#include <time.h> // for time_t
+
+class TypeDecl;
 
 namespace zeekygen {
 
@@ -30,7 +32,7 @@ public:
 	 * @param script The info object associated with the script in which \a id
 	 * is declared.
 	 */
-	IdentifierInfo(ID* id, ScriptInfo* script);
+	IdentifierInfo(IntrusivePtr<ID> id, ScriptInfo* script);
 
 	/**
 	 * Dtor.  Releases any references to script-level objects.
@@ -41,7 +43,7 @@ public:
 	 * Returns the initial value of the identifier.
 	 */
 	Val* InitialVal() const
-		{ return initial_val; }
+		{ return initial_val.get(); }
 
 	/**
 	 * Add a comment associated with the identifier.  If the identifier is a
@@ -69,7 +71,7 @@ public:
 	 * @param comments Comments associated with the redef statement.
 	 */
 	void AddRedef(const std::string& from_script, init_class ic,
-	              Expr* init_expr,
+	              IntrusivePtr<Expr> init_expr,
 	              const std::vector<std::string>& comments);
 
 	/**
@@ -89,13 +91,13 @@ public:
 	 * comments are correctly associated.
 	 */
 	void CompletedTypeDecl()
-		{ last_field_seen = 0; }
+		{ last_field_seen = nullptr; }
 
 	/**
 	 * @return the script-level ID tracked by this info object.
 	 */
 	ID* GetID() const
-		{ return id; }
+		{ return id.get(); }
 
 	/**
 	 * @return The script which declared the script-level identifier.
@@ -126,16 +128,12 @@ public:
 	struct Redefinition {
 		std::string from_script; /**< Name of script doing the redef. */
 		init_class ic;
-		Expr* init_expr;
+		IntrusivePtr<Expr> init_expr;
 		std::vector<std::string> comments; /**< Zeekygen comments on redef. */
 
 		Redefinition(std::string arg_script, init_class arg_ic,
-	                 Expr* arg_expr,
+		             IntrusivePtr<Expr> arg_expr,
 		             std::vector<std::string> arg_comments);
-
-		Redefinition(const Redefinition& other);
-
-		Redefinition& operator=(const Redefinition& other);
 
 		~Redefinition();
 	};
@@ -165,8 +163,7 @@ private:
 	std::string DoReStructuredText(bool roles_only) const override;
 
 	struct RecordField {
-		~RecordField()
-			{ delete field; }
+		~RecordField();
 
 		TypeDecl* field;
 		std::string from_script;
@@ -177,8 +174,8 @@ private:
 	typedef std::map<std::string, RecordField*> record_field_map;
 
 	std::vector<std::string> comments;
-	ID* id;
-	Val* initial_val;
+	IntrusivePtr<ID> id;
+	IntrusivePtr<Val> initial_val;
 	redef_list redefs;
 	record_field_map fields;
 	RecordField* last_field_seen;

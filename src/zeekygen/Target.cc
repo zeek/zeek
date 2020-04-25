@@ -2,6 +2,9 @@
 
 #include "Target.h"
 #include "Manager.h"
+#include "IdentifierInfo.h"
+#include "PackageInfo.h"
+#include "ScriptInfo.h"
 
 #include "util.h"
 #include "Reporter.h"
@@ -20,7 +23,7 @@ using namespace zeekygen;
 
 static void write_plugin_section_heading(FILE* f, const plugin::Plugin* p)
 	{
-	string name = p->Name();
+	const string& name = p->Name();
 
 	fprintf(f, "%s\n", name.c_str());
 	for ( size_t i = 0; i < name.size(); ++i )
@@ -435,7 +438,7 @@ vector<string> dir_contents_recursive(string dir)
 	char* dir_copy = copy_string(dir.c_str());
 	char** scan_path = new char*[2];
 	scan_path[0] = dir_copy;
-	scan_path[1] = 0;
+	scan_path[1] = NULL;
 
 	FTS* fts = fts_open(scan_path, FTS_NOCHDIR, 0);
 

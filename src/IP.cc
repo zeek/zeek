@@ -1,34 +1,38 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "IP.h"
+
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <netinet/icmp6.h>
 
-#include "IP.h"
+#include "IPAddr.h"
 #include "Type.h"
 #include "Val.h"
 #include "Var.h"
+#include "BroString.h"
+#include "Reporter.h"
 
-static RecordType* ip4_hdr_type = 0;
-static RecordType* ip6_hdr_type = 0;
-static RecordType* ip6_ext_hdr_type = 0;
-static RecordType* ip6_option_type = 0;
-static RecordType* ip6_hopopts_type = 0;
-static RecordType* ip6_dstopts_type = 0;
-static RecordType* ip6_routing_type = 0;
-static RecordType* ip6_fragment_type = 0;
-static RecordType* ip6_ah_type = 0;
-static RecordType* ip6_esp_type = 0;
-static RecordType* ip6_mob_type = 0;
-static RecordType* ip6_mob_msg_type = 0;
-static RecordType* ip6_mob_brr_type = 0;
-static RecordType* ip6_mob_hoti_type = 0;
-static RecordType* ip6_mob_coti_type = 0;
-static RecordType* ip6_mob_hot_type = 0;
-static RecordType* ip6_mob_cot_type = 0;
-static RecordType* ip6_mob_bu_type = 0;
-static RecordType* ip6_mob_back_type = 0;
-static RecordType* ip6_mob_be_type = 0;
+static RecordType* ip4_hdr_type = nullptr;
+static RecordType* ip6_hdr_type = nullptr;
+static RecordType* ip6_ext_hdr_type = nullptr;
+static RecordType* ip6_option_type = nullptr;
+static RecordType* ip6_hopopts_type = nullptr;
+static RecordType* ip6_dstopts_type = nullptr;
+static RecordType* ip6_routing_type = nullptr;
+static RecordType* ip6_fragment_type = nullptr;
+static RecordType* ip6_ah_type = nullptr;
+static RecordType* ip6_esp_type = nullptr;
+static RecordType* ip6_mob_type = nullptr;
+static RecordType* ip6_mob_msg_type = nullptr;
+static RecordType* ip6_mob_brr_type = nullptr;
+static RecordType* ip6_mob_hoti_type = nullptr;
+static RecordType* ip6_mob_coti_type = nullptr;
+static RecordType* ip6_mob_hot_type = nullptr;
+static RecordType* ip6_mob_cot_type = nullptr;
+static RecordType* ip6_mob_bu_type = nullptr;
+static RecordType* ip6_mob_back_type = nullptr;
+static RecordType* ip6_mob_be_type = nullptr;
 
 static inline RecordType* hdrType(RecordType*& type, const char* name)
 	{
@@ -61,8 +65,8 @@ static VectorVal* BuildOptionsVal(const u_char* data, int len)
 			// PadN or other option
 			uint16_t off = 2 * sizeof(uint8_t);
 			rv->Assign(1, val_mgr->GetCount(opt->ip6o_len));
-			rv->Assign(2, new StringVal(
-			        new BroString(data + off, opt->ip6o_len, 1)));
+			rv->Assign(2, make_intrusive<StringVal>(
+			        new BroString(data + off, opt->ip6o_len, true)));
 			data += opt->ip6o_len + off;
 			len -= opt->ip6o_len + off;
 			}
@@ -75,7 +79,7 @@ static VectorVal* BuildOptionsVal(const u_char* data, int len)
 
 RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 	{
-	RecordVal* rv = 0;
+	RecordVal* rv = nullptr;
 
 	switch ( type ) {
 	case IPPROTO_IPV6:
@@ -87,8 +91,8 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 		rv->Assign(2, val_mgr->GetCount(ntohs(ip6->ip6_plen)));
 		rv->Assign(3, val_mgr->GetCount(ip6->ip6_nxt));
 		rv->Assign(4, val_mgr->GetCount(ip6->ip6_hlim));
-		rv->Assign(5, new AddrVal(IPAddr(ip6->ip6_src)));
-		rv->Assign(6, new AddrVal(IPAddr(ip6->ip6_dst)));
+		rv->Assign(5, make_intrusive<AddrVal>(IPAddr(ip6->ip6_src)));
+		rv->Assign(6, make_intrusive<AddrVal>(IPAddr(ip6->ip6_dst)));
 		if ( ! chain )
 			chain = new VectorVal(
 			    internal_type("ip6_ext_hdr_chain")->AsVectorType());
@@ -128,7 +132,7 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 		rv->Assign(2, val_mgr->GetCount(rt->ip6r_type));
 		rv->Assign(3, val_mgr->GetCount(rt->ip6r_segleft));
 		uint16_t off = 4 * sizeof(uint8_t);
-		rv->Assign(4, new StringVal(new BroString(data + off, Length() - off, 1)));
+		rv->Assign(4, make_intrusive<StringVal>(new BroString(data + off, Length() - off, true)));
 		}
 		break;
 
@@ -159,7 +163,7 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 			// Payload Len was non-zero for this header.
 			rv->Assign(4, val_mgr->GetCount(ntohl(((uint32_t*)data)[2])));
 			uint16_t off = 3 * sizeof(uint32_t);
-			rv->Assign(5, new StringVal(new BroString(data + off, Length() - off, 1)));
+			rv->Assign(5, make_intrusive<StringVal>(new BroString(data + off, Length() - off, true)));
 			}
 		}
 		break;
@@ -280,7 +284,7 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 			RecordVal* m = new RecordVal(hdrType(ip6_mob_brr_type, "ip6_mobility_be"));
 			m->Assign(0, val_mgr->GetCount(*((uint8_t*)msg_data)));
 			const in6_addr* hoa = (const in6_addr*)(msg_data + sizeof(uint16_t));
-			m->Assign(1, new AddrVal(IPAddr(*hoa)));
+			m->Assign(1, make_intrusive<AddrVal>(IPAddr(*hoa)));
 			off += sizeof(uint16_t) + sizeof(in6_addr);
 			m->Assign(2, BuildOptionsVal(data + off, Length() - off));
 			msg->Assign(8, m);
@@ -304,9 +308,29 @@ RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 	return rv;
 	}
 
+IPAddr IP_Hdr::IPHeaderSrcAddr() const
+	{
+	return ip4 ? IPAddr(ip4->ip_src) : IPAddr(ip6->ip6_src);
+	}
+
+IPAddr IP_Hdr::IPHeaderDstAddr() const
+	{
+	return ip4 ? IPAddr(ip4->ip_dst) : IPAddr(ip6->ip6_dst);
+	}
+
+IPAddr IP_Hdr::SrcAddr() const
+	{
+	return ip4 ? IPAddr(ip4->ip_src) : ip6_hdrs->SrcAddr();
+	}
+
+IPAddr IP_Hdr::DstAddr() const
+	{
+	return ip4 ? IPAddr(ip4->ip_dst) : ip6_hdrs->DstAddr();
+	}
+
 RecordVal* IP_Hdr::BuildIPHdrVal() const
 	{
-	RecordVal* rval = 0;
+	RecordVal* rval = nullptr;
 
 	if ( ip4 )
 		{
@@ -317,8 +341,8 @@ RecordVal* IP_Hdr::BuildIPHdrVal() const
 		rval->Assign(3, val_mgr->GetCount(ntohs(ip4->ip_id)));
 		rval->Assign(4, val_mgr->GetCount(ip4->ip_ttl));
 		rval->Assign(5, val_mgr->GetCount(ip4->ip_p));
-		rval->Assign(6, new AddrVal(ip4->ip_src.s_addr));
-		rval->Assign(7, new AddrVal(ip4->ip_dst.s_addr));
+		rval->Assign(6, make_intrusive<AddrVal>(ip4->ip_src.s_addr));
+		rval->Assign(7, make_intrusive<AddrVal>(ip4->ip_dst.s_addr));
 		}
 	else
 		{
@@ -330,7 +354,7 @@ RecordVal* IP_Hdr::BuildIPHdrVal() const
 
 RecordVal* IP_Hdr::BuildPktHdrVal() const
 	{
-	static RecordType* pkt_hdr_type = 0;
+	static RecordType* pkt_hdr_type = nullptr;
 
 	if ( ! pkt_hdr_type )
 		pkt_hdr_type = internal_type("pkt_hdr")->AsRecordType();
@@ -341,9 +365,9 @@ RecordVal* IP_Hdr::BuildPktHdrVal() const
 
 RecordVal* IP_Hdr::BuildPktHdrVal(RecordVal* pkt_hdr, int sindex) const
 	{
-	static RecordType* tcp_hdr_type = 0;
-	static RecordType* udp_hdr_type = 0;
-	static RecordType* icmp_hdr_type = 0;
+	static RecordType* tcp_hdr_type = nullptr;
+	static RecordType* udp_hdr_type = nullptr;
+	static RecordType* icmp_hdr_type = nullptr;
 
 	if ( ! tcp_hdr_type )
 		{
@@ -376,8 +400,9 @@ RecordVal* IP_Hdr::BuildPktHdrVal(RecordVal* pkt_hdr, int sindex) const
 		tcp_hdr->Assign(3, val_mgr->GetCount(uint32_t(ntohl(tp->th_ack))));
 		tcp_hdr->Assign(4, val_mgr->GetCount(tcp_hdr_len));
 		tcp_hdr->Assign(5, val_mgr->GetCount(data_len));
-		tcp_hdr->Assign(6, val_mgr->GetCount(tp->th_flags));
-		tcp_hdr->Assign(7, val_mgr->GetCount(ntohs(tp->th_win)));
+		tcp_hdr->Assign(6, val_mgr->GetCount(tp->th_x2));
+		tcp_hdr->Assign(7, val_mgr->GetCount(tp->th_flags));
+		tcp_hdr->Assign(8, val_mgr->GetCount(ntohs(tp->th_win)));
 
 		pkt_hdr->Assign(sindex + 2, tcp_hdr);
 		break;
@@ -446,6 +471,15 @@ static inline bool isIPv6ExtHeader(uint8_t type)
 	}
 	}
 
+IPv6_Hdr_Chain::~IPv6_Hdr_Chain()
+	{
+	for ( size_t i = 0; i < chain.size(); ++i ) delete chain[i];
+#ifdef ENABLE_MOBILE_IPV6
+	delete homeAddr;
+#endif
+	delete finalDst;
+	}
+
 void IPv6_Hdr_Chain::Init(const struct ip6_hdr* ip6, int total_len,
                           bool set_next, uint16_t next)
 	{
@@ -508,6 +542,46 @@ void IPv6_Hdr_Chain::Init(const struct ip6_hdr* ip6, int total_len,
 				  current_type != IPPROTO_MOBILITY &&
 #endif
 				  isIPv6ExtHeader(next_type) );
+	}
+
+bool IPv6_Hdr_Chain::IsFragment() const
+	{
+	if ( chain.empty() )
+		{
+		reporter->InternalWarning("empty IPv6 header chain");
+		return false;
+		}
+
+	return chain[chain.size()-1]->Type() == IPPROTO_FRAGMENT;
+	}
+
+IPAddr IPv6_Hdr_Chain::SrcAddr() const
+	{
+#ifdef ENABLE_MOBILE_IPV6
+	if ( homeAddr )
+		return IPAddr(*homeAddr);
+#endif
+	if ( chain.empty() )
+		{
+		reporter->InternalWarning("empty IPv6 header chain");
+		return IPAddr();
+		}
+
+	return IPAddr(((const struct ip6_hdr*)(chain[0]->Data()))->ip6_src);
+	}
+
+IPAddr IPv6_Hdr_Chain::DstAddr() const
+	{
+	if ( finalDst )
+		return IPAddr(*finalDst);
+
+	if ( chain.empty() )
+		{
+		reporter->InternalWarning("empty IPv6 header chain");
+		return IPAddr();
+		}
+
+	return IPAddr(((const struct ip6_hdr*)(chain[0]->Data()))->ip6_dst);
 	}
 
 void IPv6_Hdr_Chain::ProcessRoutingHeader(const struct ip6_rthdr* r, uint16_t len)
@@ -693,7 +767,7 @@ IPv6_Hdr_Chain* IPv6_Hdr_Chain::Copy(const ip6_hdr* new_hdr) const
 		{
 		reporter->InternalWarning("empty IPv6 header chain");
 		delete rval;
-		return 0;
+		return nullptr;
 		}
 
 	const u_char* new_data = (const u_char*)new_hdr;

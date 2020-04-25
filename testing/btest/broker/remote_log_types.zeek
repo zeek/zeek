@@ -17,13 +17,11 @@
 redef exit_only_after_terminate = T;
 
 global quit_receiver: event();
-global quit_sender: event();
-
 
 module Test;
 
 export {
-        redef enum Log::ID += { LOG };
+	redef enum Log::ID += { LOG };
 
 	type Info: record {
 		b: bool;
@@ -48,9 +46,14 @@ export {
 }
 
 event zeek_init() &priority=5
-        {
-        Log::create_stream(Test::LOG, [$columns=Test::Info]);
-        }
+	{
+	Log::create_stream(Test::LOG, [$columns=Test::Info]);
+	}
+
+event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
+	{
+	terminate();
+	}
 
 @TEST-END-FILE
 
@@ -73,18 +76,11 @@ event quit_receiver()
 
 @TEST-START-FILE send.zeek
 
-
-
 @load ./common
 
 event zeek_init()
 	{
 	Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
-	}
-
-event quit_sender()
-	{
-	terminate();
 	}
 
 function foo(i : count) : string
@@ -95,13 +91,15 @@ function foo(i : count) : string
 		return "Bar";
 	}
 
+global done = F;
+
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	print "Broker::peer_added", endpoint$network$address;
 
 	local empty_set: set[string];
 	local empty_vector: vector of string;
-	
+
 	Log::write(Test::LOG, [
 		$b=T,
 		$i=-42,
@@ -122,10 +120,15 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 		$f=foo
 		]);
 
-	local e = Broker::make_event(quit_receiver);
-	Broker::publish("zeek/", e);
-	schedule 1sec { quit_sender() };
-        }
+	done = T;
+	}
 
+module Broker;
+
+event Broker::log_flush()
+	{
+	if ( done )
+		Broker::publish("zeek/", quit_receiver);
+	}
 
 @TEST-END-FILE

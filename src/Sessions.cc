@@ -2,17 +2,19 @@
 
 
 #include "zeek-config.h"
+#include "Sessions.h"
 
+#include <netinet/in.h>
 #include <arpa/inet.h>
 
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "Desc.h"
 #include "Net.h"
 #include "Event.h"
 #include "Timer.h"
 #include "NetVar.h"
-#include "Sessions.h"
 #include "Reporter.h"
 
 #include "analyzer/protocol/icmp/ICMP.h"
@@ -28,6 +30,8 @@
 #include "TunnelEncapsulation.h"
 
 #include "analyzer/Manager.h"
+#include "iosource/IOSource.h"
+#include "iosource/PktDumper.h"
 
 // These represent NetBIOS services on ephemeral ports.  They're numbered
 // so that we can use a single int to hold either an actual TCP/UDP server
@@ -39,33 +43,7 @@ enum NetBIOS_Service {
 
 NetSessions* sessions;
 
-void TimerMgrExpireTimer::Dispatch(double t, int is_expire)
-	{
-	if ( mgr->LastAdvance() + timer_mgr_inactivity_timeout < timer_mgr->Time() )
-		{
-		// Expired.
-		DBG_LOG(DBG_TM, "TimeMgr %p has timed out", mgr);
-		mgr->Expire();
-
-		// Make sure events are executed.  They depend on the TimerMgr.
-		::mgr.Drain();
-
-		sessions->timer_mgrs.erase(mgr->GetTag());
-		delete mgr;
-		}
-	else
-		{
-		// Reinstall timer.
-		if ( ! is_expire )
-			{
-			double n = mgr->LastAdvance() +
-					timer_mgr_inactivity_timeout;
-			timer_mgr->Add(new TimerMgrExpireTimer(n, mgr));
-			}
-		}
-	}
-
-void IPTunnelTimer::Dispatch(double t, int is_expire)
+void IPTunnelTimer::Dispatch(double t, bool is_expire)
 	{
 	NetSessions::IPTunnelMap::const_iterator it =
 			sessions->ip_tunnels.find(tunnel_idx);
@@ -90,30 +68,30 @@ NetSessions::NetSessions()
 	if ( stp_correlate_pair )
 		stp_manager = new analyzer::stepping_stone::SteppingStoneManager();
 	else
-		stp_manager = 0;
+		stp_manager = nullptr;
 
 	discarder = new Discarder();
 	if ( ! discarder->IsActive() )
 		{
 		delete discarder;
-		discarder = 0;
+		discarder = nullptr;
 		}
 
-	packet_filter = 0;
+	packet_filter = nullptr;
 
-	dump_this_packet = 0;
+	dump_this_packet = false;
 	num_packets_processed = 0;
 
 	if ( pkt_profile_mode && pkt_profile_freq > 0 && pkt_profile_file )
 		pkt_profiler = new PacketProfiler(pkt_profile_mode,
 				pkt_profile_freq, pkt_profile_file->AsFile());
 	else
-		pkt_profiler = 0;
+		pkt_profiler = nullptr;
 
 	if ( arp_request || arp_reply || bad_arp )
 		arp_analyzer = new analyzer::arp::ARP_Analyzer();
 	else
-		arp_analyzer = 0;
+		arp_analyzer = nullptr;
 
 	memset(&stats, 0, sizeof(SessionStats));
 	}
@@ -142,17 +120,17 @@ void NetSessions::Done()
 
 void NetSessions::NextPacket(double t, const Packet* pkt)
 	{
-	SegmentProfiler(segment_logger, "dispatching-packet");
+	SegmentProfiler prof(segment_logger, "dispatching-packet");
 
 	if ( raw_packet )
-		mgr.QueueEventFast(raw_packet, {pkt->BuildPktHdrVal()});
+		mgr.Enqueue(raw_packet, IntrusivePtr{AdoptRef{}, pkt->BuildPktHdrVal()});
 
 	if ( pkt_profiler )
 		pkt_profiler->ProfilePkt(t, pkt->cap_len);
 
 	++num_packets_processed;
 
-	dump_this_packet = 0;
+	dump_this_packet = false;
 
 	if ( record_all_packets )
 		DumpPacket(pkt);
@@ -175,7 +153,7 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 
 		const struct ip* ip = (const struct ip*) (pkt->data + pkt->hdr_size);
 		IP_Hdr ip_hdr(ip, false);
-		DoNextPacket(t, pkt, &ip_hdr, 0);
+		DoNextPacket(t, pkt, &ip_hdr, nullptr);
 		}
 
 	else if ( pkt->l3_proto == L3_IPV6 )
@@ -187,7 +165,7 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 			}
 
 		IP_Hdr ip_hdr((const struct ip6_hdr*) (pkt->data + pkt->hdr_size), false, caplen);
-		DoNextPacket(t, pkt, &ip_hdr, 0);
+		DoNextPacket(t, pkt, &ip_hdr, nullptr);
 		}
 
 	else if ( pkt->l3_proto == L3_ARP )
@@ -205,59 +183,6 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 
 	if ( dump_this_packet && ! record_all_packets )
 		DumpPacket(pkt);
-	}
-
-int NetSessions::CheckConnectionTag(Connection* conn)
-	{
-	if ( current_iosrc->GetCurrentTag() )
-		{
-		// Packet is tagged.
-		if ( conn->GetTimerMgr() == timer_mgr )
-			{
-			// Connection uses global timer queue.  But the
-			// packet has a tag that means we got it externally,
-			// probably from the Time Machine.
-			DBG_LOG(DBG_TM, "got packet with tag %s for already"
-					"known connection, reinstantiating",
-					current_iosrc->GetCurrentTag()->c_str());
-			return 0;
-			}
-		else
-			{
-			// Connection uses local timer queue.
-			TimerMgrMap::iterator i =
-				timer_mgrs.find(*current_iosrc->GetCurrentTag());
-			if ( i != timer_mgrs.end() &&
-			     conn->GetTimerMgr() != i->second )
-				{
-				// Connection uses different local queue
-				// than the tag for the current packet
-				// indicates.
-				//
-				// This can happen due to:
-				//     (1) getting same packets with
-				//		different tags
-				//     (2) timer mgr having already expired
-				DBG_LOG(DBG_TM, "packet ignored due old/inconsistent tag");
-				return -1;
-				}
-
-			return 1;
-			}
-		}
-
-	// Packet is not tagged.
-	if ( conn->GetTimerMgr() != timer_mgr )
-		{
-		// Connection does not use the global timer queue.  That
-		// means that this is a live packet belonging to a
-		// connection for which we have already switched to
-		// processing external input.
-		DBG_LOG(DBG_TM, "packet ignored due to processing it in external data");
-		return -1;
-		}
-
-	return 1;
 	}
 
 static unsigned int gre_header_len(uint16_t flags)
@@ -326,7 +251,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	if ( packet_filter && packet_filter->Match(ip_hdr, len, caplen) )
 		 return;
 
-	if ( ! ignore_checksums && ip4 &&
+	if ( ! pkt->l2_checksummed && ! ignore_checksums && ip4 &&
 	     ones_complement_checksum((void*) ip4, ip_hdr_len, 0) != 0xffff )
 		{
 		Weird("bad_IP_checksum", pkt, encapsulation);
@@ -336,11 +261,11 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	if ( discarder && discarder->NextPacket(ip_hdr, len, caplen) )
 		return;
 
-	FragReassembler* f = 0;
+	FragReassembler* f = nullptr;
 
 	if ( ip_hdr->IsFragment() )
 		{
-		dump_this_packet = 1;	// always record fragments
+		dump_this_packet = true;	// always record fragments
 
 		if ( caplen < len )
 			{
@@ -383,9 +308,9 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	// there, it's always the last.
 	if ( ip_hdr->LastHeader() == IPPROTO_ESP )
 		{
-		dump_this_packet = 1;
+		dump_this_packet = true;
 		if ( esp_packet )
-			mgr.QueueEventFast(esp_packet, {ip_hdr->BuildPktHdrVal()});
+			mgr.Enqueue(esp_packet, IntrusivePtr{AdoptRef{}, ip_hdr->BuildPktHdrVal()});
 
 		// Can't do more since upper-layer payloads are going to be encrypted.
 		return;
@@ -396,7 +321,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	// last if present.
 	if ( ip_hdr->LastHeader() == IPPROTO_MOBILITY )
 		{
-		dump_this_packet = 1;
+		dump_this_packet = true;
 
 		if ( ! ignore_checksums && mobility_header_checksum(ip_hdr) != 0xffff )
 			{
@@ -405,7 +330,8 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 			}
 
 		if ( mobile_ipv6_message )
-			mgr.QueueEvent(mobile_ipv6_message, {ip_hdr->BuildPktHdrVal()});
+			mgr.Enqueue(mobile_ipv6_message,
+			            IntrusivePtr{AdoptRef{}, ip_hdr->BuildPktHdrVal()});
 
 		if ( ip_hdr->NextProto() != IPPROTO_NONE )
 			Weird("mobility_piggyback", pkt, encapsulation);
@@ -425,6 +351,8 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	id.dst_addr = ip_hdr->DstAddr();
 	ConnectionMap* d = nullptr;
 	BifEnum::Tunnel::Type tunnel_type = BifEnum::Tunnel::IP;
+	int gre_version = -1;
+	int gre_link_type = DLT_RAW;
 
 	switch ( proto ) {
 	case IPPROTO_TCP:
@@ -432,7 +360,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		const struct tcphdr* tp = (const struct tcphdr *) data;
 		id.src_port = tp->th_sport;
 		id.dst_port = tp->th_dport;
-		id.is_one_way = 0;
+		id.is_one_way = false;
 		d = &tcp_conns;
 		break;
 		}
@@ -442,7 +370,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		const struct udphdr* up = (const struct udphdr *) data;
 		id.src_port = up->uh_sport;
 		id.dst_port = up->uh_dport;
-		id.is_one_way = 0;
+		id.is_one_way = false;
 		d = &udp_conns;
 		break;
 		}
@@ -489,9 +417,8 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 
 		uint16_t flags_ver = ntohs(*((uint16_t*)(data + 0)));
 		uint16_t proto_typ = ntohs(*((uint16_t*)(data + 2)));
-		int gre_version = flags_ver & 0x0007;
+		gre_version = flags_ver & 0x0007;
 
-		// If a carried packet has ethernet, this will help skip it.
 		unsigned int eth_len = 0;
 		unsigned int gre_len = gre_header_len(flags_ver);
 		unsigned int ppp_len = gre_version == 1 ? 4 : 0;
@@ -512,6 +439,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 				if ( len > gre_len + 14 )
 					{
 					eth_len = 14;
+					gre_link_type = DLT_EN10MB;
 					proto_typ = ntohs(*((uint16_t*)(data + gre_len + eth_len - 2)));
 					}
 				else
@@ -528,6 +456,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 					{
 					erspan_len = 8;
 					eth_len = 14;
+					gre_link_type = DLT_EN10MB;
 					proto_typ = ntohs(*((uint16_t*)(data + gre_len + erspan_len + eth_len - 2)));
 					}
 				else
@@ -544,8 +473,9 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 					{
 					erspan_len = 12;
 					eth_len = 14;
+					gre_link_type = DLT_EN10MB;
 
-					auto flags = data + erspan_len - 1;
+					auto flags = data + gre_len + erspan_len - 1;
 					bool have_opt_header = ((*flags & 0x01) == 0x01);
 
 					if ( have_opt_header  )
@@ -567,19 +497,6 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 					return;
 					}
 				}
-
-			if ( proto_typ == 0x0800 )
-				proto = IPPROTO_IPV4;
-			else if ( proto_typ == 0x86dd )
-				proto = IPPROTO_IPV6;
-			else
-				{
-				// Not IPv4/IPv6 payload.
-				Weird("unknown_gre_protocol", ip_hdr, encapsulation,
-				      fmt("%d", proto_typ));
-				return;
-				}
-
 			}
 
 		else // gre_version == 1
@@ -628,9 +545,12 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 			proto = (ppp_proto == 0x0021) ? IPPROTO_IPV4 : IPPROTO_IPV6;
 			}
 
-		data += gre_len + ppp_len + eth_len + erspan_len;
-		len -= gre_len + ppp_len + eth_len + erspan_len;
-		caplen -= gre_len + ppp_len + eth_len + erspan_len;
+		// If we know there's an Ethernet header here, it's not skipped yet.
+		// The Packet::init() that happens later will process all layer 2
+		// data, including things like vlan tags.
+		data += gre_len + ppp_len + erspan_len;
+		len -= gre_len + ppp_len + erspan_len;
+		caplen -= gre_len + ppp_len + erspan_len;
 
 		// Treat GRE tunnel like IP tunnels, fallthrough to logic below now
 		// that GRE header is stripped and only payload packet remains.
@@ -654,20 +574,24 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 			return;
 			}
 
-		// Check for a valid inner packet first.
-		IP_Hdr* inner = 0;
-		int result = ParseIPPacket(caplen, data, proto, inner);
-		if ( result == -2 )
-			Weird("invalid_inner_IP_version", ip_hdr, encapsulation);
-		else if ( result < 0 )
-			Weird("truncated_inner_IP", ip_hdr, encapsulation);
-		else if ( result > 0 )
-			Weird("inner_IP_payload_length_mismatch", ip_hdr, encapsulation);
+		IP_Hdr* inner = nullptr;
 
-		if ( result != 0 )
+		if ( gre_version != 0 )
 			{
-			delete inner;
-			return;
+			// Check for a valid inner packet first.
+			int result = ParseIPPacket(caplen, data, proto, inner);
+			if ( result == -2 )
+				Weird("invalid_inner_IP_version", ip_hdr, encapsulation);
+			else if ( result < 0 )
+				Weird("truncated_inner_IP", ip_hdr, encapsulation);
+			else if ( result > 0 )
+				Weird("inner_IP_payload_length_mismatch", ip_hdr, encapsulation);
+
+			if ( result != 0 )
+				{
+				delete inner;
+				return;
+				}
 			}
 
 		// Look up to see if we've already seen this IP tunnel, identified
@@ -691,8 +615,12 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		else
 			it->second.second = network_time;
 
-		DoNextInnerPacket(t, pkt, inner, encapsulation,
-		                  ip_tunnels[tunnel_idx].first);
+		if ( gre_version == 0 )
+			DoNextInnerPacket(t, pkt, caplen, len, data, gre_link_type,
+			                  encapsulation, ip_tunnels[tunnel_idx].first);
+		else
+			DoNextInnerPacket(t, pkt, inner, encapsulation,
+			                  ip_tunnels[tunnel_idx].first);
 
 		return;
 		}
@@ -732,14 +660,9 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	else
 		{
 		// We already know that connection.
-		int consistent = CheckConnectionTag(conn);
-		if ( consistent < 0 )
-			return;
-
-		if ( ! consistent || conn->IsReuse(t, data) )
+		if ( conn->IsReuse(t, data) )
 			{
-			if ( consistent )
-				conn->Event(connection_reused, 0);
+			conn->Event(connection_reused, nullptr);
 
 			Remove(conn);
 			conn = NewConn(key, t, &id, data, proto, ip_hdr->FlowLabel(), pkt, encapsulation);
@@ -758,21 +681,21 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	int record_packet = 1;	// whether to record the packet at all
 	int record_content = 1;	// whether to record its data
 
-	int is_orig = (id.src_addr == conn->OrigAddr()) &&
+	bool is_orig = (id.src_addr == conn->OrigAddr()) &&
 			(id.src_port == conn->OrigPort());
 
 	conn->CheckFlowLabel(is_orig, ip_hdr->FlowLabel());
 
-	Val* pkt_hdr_val = 0;
+	Val* pkt_hdr_val = nullptr;
 
 	if ( ipv6_ext_headers && ip_hdr->NumHeaders() > 1 )
 		{
 		pkt_hdr_val = ip_hdr->BuildPktHdrVal();
-		conn->Event(ipv6_ext_headers, 0, pkt_hdr_val);
+		conn->Event(ipv6_ext_headers, nullptr, pkt_hdr_val);
 		}
 
 	if ( new_packet )
-		conn->Event(new_packet, 0,
+		conn->Event(new_packet, nullptr,
 		        pkt_hdr_val ? pkt_hdr_val->Ref() : ip_hdr->BuildPktHdrVal());
 
 	conn->NextPacket(t, is_orig, ip_hdr, len, caplen, data,
@@ -787,7 +710,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	else if ( record_packet )
 		{
 		if ( record_content )
-			dump_this_packet = 1;	// save the whole thing
+			dump_this_packet = true;	// save the whole thing
 
 		else
 			{
@@ -806,7 +729,6 @@ void NetSessions::DoNextInnerPacket(double t, const Packet* pkt,
 
 	pkt_timeval ts;
 	int link_type;
-	Layer3Proto l3_proto;
 
 	if ( pkt )
 		ts = pkt->ts;
@@ -817,18 +739,12 @@ void NetSessions::DoNextInnerPacket(double t, const Packet* pkt,
 		    ((network_time - (double)ts.tv_sec) * 1000000);
 		}
 
-	const u_char* data = 0;
+	const u_char* data = nullptr;
 
 	if ( inner->IP4_Hdr() )
-		{
 		data = (const u_char*) inner->IP4_Hdr();
-		l3_proto = L3_IPV4;
-		}
 	else
-		{
 		data = (const u_char*) inner->IP6_Hdr();
-		l3_proto = L3_IPV6;
-		}
 
 	EncapsulationStack* outer = prev ?
 			new EncapsulationStack(*prev) : new EncapsulationStack();
@@ -841,6 +757,40 @@ void NetSessions::DoNextInnerPacket(double t, const Packet* pkt,
 	DoNextPacket(t, &p, inner, outer);
 
 	delete inner;
+	delete outer;
+	}
+
+void NetSessions::DoNextInnerPacket(double t, const Packet* pkt,
+                                    uint32_t caplen, uint32_t len,
+                                    const u_char* data, int link_type,
+                                    const EncapsulationStack* prev,
+                                    const EncapsulatingConn& ec)
+	{
+	pkt_timeval ts;
+
+	if ( pkt )
+		ts = pkt->ts;
+	else
+		{
+		ts.tv_sec = (time_t) network_time;
+		ts.tv_usec = (suseconds_t)
+		    ((network_time - (double)ts.tv_sec) * 1000000);
+		}
+
+	EncapsulationStack* outer = prev ?
+			new EncapsulationStack(*prev) : new EncapsulationStack();
+	outer->Add(ec);
+
+	// Construct fake packet for DoNextPacket
+	Packet p;
+	p.Init(link_type, &ts, caplen, len, data, false, "");
+
+	if ( p.Layer2Valid() && (p.l3_proto == L3_IPV4 || p.l3_proto == L3_IPV6) )
+		{
+		auto inner = p.IP();
+		DoNextPacket(t, &p, &inner, outer);
+		}
+
 	delete outer;
 	}
 
@@ -956,7 +906,7 @@ Connection* NetSessions::FindConnection(Val* v)
 	{
 	BroType* vt = v->Type();
 	if ( ! IsRecord(vt->Tag()) )
-		return 0;
+		return nullptr;
 
 	RecordType* vr = vt->AsRecordType();
 	const val_list* vl = v->AsRecord();
@@ -981,7 +931,7 @@ Connection* NetSessions::FindConnection(Val* v)
 		resp_p = vr->FieldOffset("resp_p");
 
 		if ( orig_h < 0 || resp_h < 0 || orig_p < 0 || resp_p < 0 )
-			return 0;
+			return nullptr;
 
 		// ### we ought to check that the fields have the right
 		// types, too.
@@ -1001,7 +951,7 @@ Connection* NetSessions::FindConnection(Val* v)
 	id.src_port = htons((unsigned short) orig_portv->Port());
 	id.dst_port = htons((unsigned short) resp_portv->Port());
 
-	id.is_one_way = 0;	// ### incorrect for ICMP connections
+	id.is_one_way = false;	// ### incorrect for ICMP connections
 
 	ConnIDKey key = BuildConnIDKey(id);
 	ConnectionMap* d;
@@ -1017,7 +967,7 @@ Connection* NetSessions::FindConnection(Val* v)
 		// This can happen due to pseudo-connections we
 		// construct, for example for packet headers embedded
 		// in ICMPs.
-		return 0;
+		return nullptr;
 		}
 
 	Connection* conn = nullptr;
@@ -1046,9 +996,7 @@ void NetSessions::Remove(Connection* c)
 			}
 
 		c->Done();
-
-		if ( connection_state_remove )
-			c->Event(connection_state_remove, 0);
+		c->RemovalEvent();
 
 		// Zero out c's copy of the key, so that if c has been Ref()'d
 		// up, we know on a future call to Remove() that it's no
@@ -1141,24 +1089,22 @@ void NetSessions::Drain()
 		{
 		Connection* tc = entry.second;
 		tc->Done();
-		tc->Event(connection_state_remove, 0);
+		tc->RemovalEvent();
 		}
 
 	for ( const auto& entry : udp_conns )
 		{
 		Connection* uc = entry.second;
 		uc->Done();
-		uc->Event(connection_state_remove, 0);
+		uc->RemovalEvent();
 		}
 
 	for ( const auto& entry : icmp_conns )
 		{
 		Connection* ic = entry.second;
 		ic->Done();
-		ic->Event(connection_state_remove, 0);
+		ic->RemovalEvent();
 		}
-
-	ExpireTimerMgrs();
 	}
 
 void NetSessions::GetStats(SessionStats& s) const
@@ -1205,7 +1151,7 @@ Connection* NetSessions::NewConn(const ConnIDKey& k, double t, const ConnID* id,
 			break;
 		default:
 			reporter->InternalWarning("unknown transport protocol");
-			return 0;
+			return nullptr;
 	};
 
 	if ( tproto == TRANSPORT_TCP )
@@ -1217,7 +1163,7 @@ Connection* NetSessions::NewConn(const ConnIDKey& k, double t, const ConnID* id,
 	bool flip = false;
 
 	if ( ! WantConnection(src_h, dst_h, tproto, flags, flip) )
-		return 0;
+		return nullptr;
 
 	Connection* conn = new Connection(this, k, t, id, flow_label, pkt, encapsulation);
 	conn->SetTransport(tproto);
@@ -1229,27 +1175,11 @@ Connection* NetSessions::NewConn(const ConnIDKey& k, double t, const ConnID* id,
 		{
 		conn->Done();
 		Unref(conn);
-		return 0;
+		return nullptr;
 		}
-
-	bool external = conn->IsExternal();
-
-	if ( external )
-		conn->AppendAddl(fmt("tag=%s",
-					conn->GetTimerMgr()->GetTag().c_str()));
 
 	if ( new_connection )
-		{
-		conn->Event(new_connection, 0);
-
-		if ( external && connection_external )
-			{
-			conn->ConnectionEventFast(connection_external, 0, {
-				conn->BuildConnVal(),
-				new StringVal(conn->GetTimerMgr()->GetTag().c_str()),
-			});
-			}
-		}
+		conn->Event(new_connection, nullptr);
 
 	return conn;
 	}
@@ -1266,7 +1196,7 @@ Connection* NetSessions::LookupConn(const ConnectionMap& conns, const ConnIDKey&
 bool NetSessions::IsLikelyServerPort(uint32_t port, TransportProto proto) const
 	{
 	// We keep a cached in-core version of the table to speed up the lookup.
-	static set<bro_uint_t> port_cache;
+	static std::set<bro_uint_t> port_cache;
 	static bool have_cache = false;
 
 	if ( ! have_cache )
@@ -1337,45 +1267,6 @@ bool NetSessions::WantConnection(uint16_t src_port, uint16_t dst_port,
 	return true;
 	}
 
-TimerMgr* NetSessions::LookupTimerMgr(const TimerMgr::Tag* tag, bool create)
-	{
-	if ( ! tag )
-		{
-		DBG_LOG(DBG_TM, "no tag, using global timer mgr %p", timer_mgr);
-		return timer_mgr;
-		}
-
-	TimerMgrMap::iterator i = timer_mgrs.find(*tag);
-	if ( i != timer_mgrs.end() )
-		{
-		DBG_LOG(DBG_TM, "tag %s, using non-global timer mgr %p", tag->c_str(), i->second);
-		return i->second;
-		}
-	else
-		{
-		if ( ! create )
-			return 0;
-
-		// Create new queue for tag.
-		TimerMgr* mgr = new CQ_TimerMgr(*tag);
-		DBG_LOG(DBG_TM, "tag %s, creating new non-global timer mgr %p", tag->c_str(), mgr);
-		timer_mgrs.insert(TimerMgrMap::value_type(*tag, mgr));
-		double t = timer_mgr->Time() + timer_mgr_inactivity_timeout;
-		timer_mgr->Add(new TimerMgrExpireTimer(t, mgr));
-		return mgr;
-		}
-	}
-
-void NetSessions::ExpireTimerMgrs()
-	{
-	for ( TimerMgrMap::iterator i = timer_mgrs.begin();
-	      i != timer_mgrs.end(); ++i )
-		{
-		i->second->Expire();
-		delete i->second;
-		}
-	}
-
 void NetSessions::DumpPacket(const Packet *pkt, int len)
 	{
 	if ( ! pkt_dumper )
@@ -1396,7 +1287,7 @@ void NetSessions::Weird(const char* name, const Packet* pkt,
                         const EncapsulationStack* encap, const char* addl)
 	{
 	if ( pkt )
-		dump_this_packet = 1;
+		dump_this_packet = true;
 
 	if ( encap && encap->LastType() != BifEnum::Tunnel::NONE )
 		reporter->Weird(fmt("%s_in_tunnel", name), addl);

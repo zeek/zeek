@@ -7,7 +7,7 @@
 
 namespace analyzer { namespace SIP {
 
-class SIP_Analyzer : public analyzer::Analyzer {
+class SIP_Analyzer final : public analyzer::Analyzer {
 public:
 	explicit SIP_Analyzer(Connection* conn);
 	~SIP_Analyzer() override;

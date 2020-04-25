@@ -3,33 +3,34 @@
 #pragma once
 
 #include <map>
+#include <memory>
 #include <string>
+#include <vector>
 
-#include "Func.h"
-#include "List.h"
-#include "Dict.h"
-#include "EventHandler.h"
+class EventHandler;
+class EventHandlerPtr;
+class RE_Matcher;
 
 // The registry keeps track of all events that we provide or handle.
 class EventRegistry {
 public:
-	EventRegistry()		{ }
-	~EventRegistry()	{ }
+	EventRegistry();
+	~EventRegistry() noexcept;
 
 	void Register(EventHandlerPtr handler);
 
 	// Return nil if unknown.
-	EventHandler* Lookup(const string& name);
+	EventHandler* Lookup(const std::string& name);
 
 	// Returns a list of all local handlers that match the given pattern.
 	// Passes ownership of list.
-	typedef vector<string> string_list;
+	using string_list = std::vector<std::string>;
 	string_list Match(RE_Matcher* pattern);
 
 	// Marks a handler as handling errors. Error handler will not be called
 	// recursively to avoid infinite loops in case they trigger an error
 	// themselves.
-	void SetErrorHandler(const string& name);
+	void SetErrorHandler(const std::string& name);
 
 	string_list UnusedHandlers();
 	string_list UsedHandlers();
@@ -38,7 +39,7 @@ public:
 	void PrintDebug();
 
 private:
-	std::map<std::string, EventHandler*> handlers;
+	std::map<std::string, std::unique_ptr<EventHandler>> handlers;
 };
 
 extern EventRegistry* event_registry;

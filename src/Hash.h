@@ -2,11 +2,13 @@
 
 #pragma once
 
+#include "util.h" // for bro_int_t
+
 #include <stdlib.h>
 
-#include "BroString.h"
-
 #define UHASH_KEY_SIZE 36
+
+class BroString;
 
 typedef uint64_t hash_t;
 
@@ -79,9 +81,9 @@ protected:
 	} key_u;
 
 	void* key;
-	int is_our_dynamic;
-	int size;
 	hash_t hash;
+	int size;
+	bool is_our_dynamic = false;
 };
 
 extern void init_hash_function();

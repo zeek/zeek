@@ -1,12 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "Hasher.h"
+
 #include <typeinfo>
+
 #include <openssl/evp.h>
 
-#include "Hasher.h"
 #include "NetVar.h"
 #include "digest.h"
 #include "siphash24.h"
+
+#include <broker/data.hh>
 
 using namespace probabilistic;
 

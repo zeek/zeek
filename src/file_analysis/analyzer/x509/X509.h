@@ -3,9 +3,11 @@
 #pragma once
 
 #include <string>
+#include <map>
 
 #include "OpaqueVal.h"
 #include "X509Common.h"
+#include "Func.h"
 
 #if ( OPENSSL_VERSION_NUMBER < 0x10002000L ) || defined(LIBRESSL_VERSION_NUMBER)
 
@@ -84,10 +86,44 @@ public:
 	 * @param Returns the new record value and passes ownership to
 	 * caller.
 	 */
-	static RecordVal* ParseCertificate(X509Val* cert_val, File* file = 0);
+	static RecordVal* ParseCertificate(X509Val* cert_val, File* file = nullptr);
 
 	static file_analysis::Analyzer* Instantiate(RecordVal* args, File* file)
 		{ return new X509(args, file); }
+
+	/**
+	 * Retrieves OpenSSL's representation of an X509 certificate store
+	 * associated with a script-layer certificate root table variable/value.
+	 * The underlying X509 store will be created if it has not been already,
+	 * else the previously allocated one for the same table will be returned.
+	 *
+	 * @param root_certs  The script-layer certificate root table value.
+	 *
+	 * @return OpenSSL's X509 store associated with the table value.
+	 */
+	static X509_STORE* GetRootStore(TableVal* root_certs);
+
+	/**
+	 * Frees memory obtained from OpenSSL that is associated with the global
+	 * X509 certificate store used by the Zeek scripting-layer.  This primarily
+	 * exists so leak checkers like LeakSanitizer don't count the
+	 * globally-allocated mapping as a leak.  Would be easy to suppress/ignore
+	 * it, but that could accidentally silence cases where some new code
+	 * mistakenly overwrites a table element without freeing it.
+	 */
+	static void FreeRootStore();
+
+	/**
+	 * Sets the table[string] that used as the certificate cache inside of Zeek.
+	 */
+	static void SetCertificateCache(IntrusivePtr<TableVal> cache)
+		{ certificate_cache = std::move(cache); }
+
+	/**
+	 * Sets the callback when a certificate cache hit is encountered
+	 */
+	static void SetCertificateCacheHitCallback(IntrusivePtr<Func> func)
+		{ cache_hit_callback = std::move(func); }
 
 protected:
 	X509(RecordVal* args, File* file);
@@ -102,6 +138,10 @@ private:
 	// Helpers for ParseCertificate.
 	static StringVal* KeyCurve(EVP_PKEY *key);
 	static unsigned int KeyLength(EVP_PKEY *key);
+	/** X509 stores associated with global script-layer values */
+	inline static std::map<Val*, X509_STORE*> x509_stores = std::map<Val*, X509_STORE*>();
+	inline static IntrusivePtr<TableVal> certificate_cache = nullptr;
+	inline static IntrusivePtr<Func> cache_hit_callback = nullptr;
 };
 
 /**
@@ -129,7 +169,7 @@ public:
 	 *
 	 * @return A cloned X509Val.
 	 */
-	Val* DoClone(CloneState* state) override;
+	IntrusivePtr<Val> DoClone(CloneState* state) override;
 
 	/**
 	 * Destructor.

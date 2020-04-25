@@ -136,9 +136,9 @@ const char* fmt_conn_id(const IPAddr& src_addr, uint32_t src_port,
 	{
 	static char buffer[512];
 
-	safe_snprintf(buffer, sizeof(buffer), "%s:%d > %s:%d",
-			string(src_addr).c_str(), src_port,
-			string(dst_addr).c_str(), dst_port);
+	snprintf(buffer, sizeof(buffer), "%s:%d > %s:%d",
+	         std::string(src_addr).c_str(), src_port,
+	         std::string(dst_addr).c_str(), dst_port);
 
 	return buffer;
 	}

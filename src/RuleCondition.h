@@ -1,10 +1,9 @@
 #pragma once
 
-#include "BroString.h"
-#include "Func.h"
-#include "List.h"
-#include "util.h"
+#include <stdint.h> // for u_char
+#include <sys/types.h> // for u_char
 
+class ID;
 class Rule;
 class RuleEndpointState;
 

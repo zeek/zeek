@@ -172,7 +172,7 @@ function hrw_topic(pool: Pool, key: any): string
 
 	local site = HashHRW::get_site(pool$hrw_pool, key);
 	local pn: PoolNode = site$user_data;
-	return node_topic_prefix + pn$name;
+	return Cluster::node_topic(pn$name);
 	}
 
 function rr_topic(pool: Pool, key: string): string
@@ -198,7 +198,7 @@ function rr_topic(pool: Pool, key: string): string
 
 		if ( pn$alive )
 			{
-			rval = node_topic_prefix + pn$name;
+			rval = Cluster::node_topic(pn$name);
 			break;
 			}
 

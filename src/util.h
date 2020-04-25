@@ -2,15 +2,6 @@
 
 #pragma once
 
-#ifdef __GNUC__
-    #define ZEEK_DEPRECATED(msg) __attribute__ ((deprecated(msg)))
-#elif defined(_MSC_VER)
-    #define ZEEK_DEPRECATED(msg) __declspec(deprecated(msg)) func
-#else
-	#pragma message("Warning: ZEEK_DEPRECATED macro not implemented")
-	#define ZEEK_DEPRECATED(msg)
-#endif
-
 // Expose C99 functionality from inttypes.h, which would otherwise not be
 // available in C++.
 #ifndef __STDC_FORMAT_MACROS
@@ -25,6 +16,7 @@
 #include <cstdint>
 
 #include <string>
+#include <string_view>
 #include <array>
 #include <vector>
 #include <stdio.h>
@@ -60,23 +52,32 @@ extern HeapLeakChecker* heap_checker;
 #endif
 
 #include <stdint.h>
+#include <pthread.h>
 
-ZEEK_DEPRECATED("Remove in v4.1. Use uint64_t instead.")
+#ifdef HAVE_LINUX
+#include <sys/prctl.h>
+#endif
+
+#ifdef __FreeBSD__
+#include <pthread_np.h>
+#endif
+
+[[deprecated("Remove in v4.1. Use uint64_t instead.")]]
 typedef uint64_t uint64;
-ZEEK_DEPRECATED("Remove in v4.1. Use uint32_t instead.")
+[[deprecated("Remove in v4.1. Use uint32_t instead.")]]
 typedef uint32_t uint32;
-ZEEK_DEPRECATED("Remove in v4.1. Use uint16_t instead.")
+[[deprecated("Remove in v4.1. Use uint16_t instead.")]]
 typedef uint16_t uint16;
-ZEEK_DEPRECATED("Remove in v4.1. Use uint8_t instead.")
+[[deprecated("Remove in v4.1. Use uint8_t instead.")]]
 typedef uint8_t uint8;
 
-ZEEK_DEPRECATED("Remove in v4.1. Use int64_t instead.")
+[[deprecated("Remove in v4.1. Use int64_t instead.")]]
 typedef int64_t int64;
-ZEEK_DEPRECATED("Remove in v4.1. Use int32_t instead.")
+[[deprecated("Remove in v4.1. Use int32_t instead.")]]
 typedef int32_t int32;
-ZEEK_DEPRECATED("Remove in v4.1. Use int16_t instead.")
+[[deprecated("Remove in v4.1. Use int16_t instead.")]]
 typedef int16_t int16;
-ZEEK_DEPRECATED("Remove in v4.1. Use int8_t instead.")
+[[deprecated("Remove in v4.1. Use int8_t instead.")]]
 typedef int8_t int8;
 
 typedef int64_t bro_int_t;
@@ -118,7 +119,7 @@ std::string extract_ip_and_len(const std::string& i, int* len);
 
 inline void bytetohex(unsigned char byte, char* hex_out)
 	{
-	static const char hex_chars[] = "0123456789abcdef";
+	static constexpr char hex_chars[] = "0123456789abcdef";
 	hex_out[0] = hex_chars[(byte & 0xf0) >> 4];
 	hex_out[1] = hex_chars[byte & 0x0f];
 	}
@@ -136,9 +137,11 @@ inline std::string get_escaped_string(const std::string& str, bool escape_all)
 	return get_escaped_string(str.data(), str.length(), escape_all);
 	}
 
-std::vector<std::string>* tokenize_string(std::string input,
-					  const std::string& delim,
-					  std::vector<std::string>* rval = 0);
+std::vector<std::string>* tokenize_string(std::string_view input,
+					  std::string_view delim,
+					  std::vector<std::string>* rval = nullptr, int limit = 0);
+
+std::vector<std::string_view> tokenize_string(std::string_view input, const char delim) noexcept;
 
 extern char* copy_string(const char* s);
 extern int streq(const char* s1, const char* s2);
@@ -164,7 +167,7 @@ extern char* strcasestr(const char* s, const char* find);
 #endif
 extern const char* strpbrk_n(size_t len, const char* s, const char* charset);
 template<class T> int atoi_n(int len, const char* s, const char** end, int base, T& result);
-extern char* uitoa_n(uint64_t value, char* str, int n, int base, const char* prefix=0);
+extern char* uitoa_n(uint64_t value, char* str, int n, int base, const char* prefix=nullptr);
 int strstr_n(const int big_len, const unsigned char* big,
 		const int little_len, const unsigned char* little);
 extern int fputs(int len, const char* s, FILE* fp);
@@ -176,7 +179,7 @@ extern std::string strtolower(const std::string& s);
 extern const char* fmt_bytes(const char* data, int len);
 
 // Note: returns a pointer into a shared buffer.
-extern const char* fmt(const char* format, va_list args);
+extern const char* vfmt(const char* format, va_list args);
 // Note: returns a pointer into a shared buffer.
 extern const char* fmt(const char* format, ...)
 	__attribute__((format (printf, 1, 2)));
@@ -265,6 +268,9 @@ extern std::string bro_prefixes();
 
 extern const std::array<std::string, 2> script_extensions;
 
+/** Prints a warning if the filename ends in .bro. */
+void warn_if_legacy_script(std::string_view filename);
+
 bool is_package_loader(const std::string& path);
 
 extern void add_to_bro_path(const std::string& dir);
@@ -331,14 +337,14 @@ std::string flatten_script_name(const std::string& name,
  * @param path A filesystem path.
  * @return A canonical/shortened version of \a path.
  */
-std::string normalize_path(const std::string& path);
+std::string normalize_path(std::string_view path);
 
 /**
  * Strip the ZEEKPATH component from a path.
  * @param path A file/directory path that may be within a ZEEKPATH component.
  * @return *path* minus the common ZEEKPATH component (if any) removed.
  */
-std::string without_bropath_component(const std::string& path);
+std::string without_bropath_component(std::string_view path);
 
 /**
  * Locate a file within a given search path.
@@ -402,9 +408,7 @@ void terminate_processing();
 // Sets the current status of the Bro process to the given string.
 // If the option --status-file has been set, this is written into
 // the the corresponding file.  Otherwise, the function is a no-op.
-#define set_processing_status(status, location) \
-	_set_processing_status(status " [" location "]\n");
-void _set_processing_status(const char* status);
+void set_processing_status(const char* status, const char* reason);
 
 // Current timestamp, from a networking perspective, not a wall-clock
 // perspective.  In particular, if we're reading from a savefile this
@@ -505,11 +509,12 @@ inline void* safe_malloc(size_t size)
 
 inline char* safe_strncpy(char* dest, const char* src, size_t n)
 	{
-	char* result = strncpy(dest, src, n);
+	char* result = strncpy(dest, src, n-1);
 	dest[n-1] = '\0';
 	return result;
 	}
 
+[[deprecated("Remove in v4.1: Use system snprintf instead")]]
 inline int safe_snprintf(char* str, size_t size, const char* format, ...)
 	{
 	va_list al;
@@ -521,6 +526,7 @@ inline int safe_snprintf(char* str, size_t size, const char* format, ...)
 	return result;
 	}
 
+[[deprecated("Remove in v4.1: Use system vsnprintf instead")]]
 inline int safe_vsnprintf(char* str, size_t size, const char* format, va_list al)
 	{
 	int result = vsnprintf(str, size, format, al);
@@ -570,3 +576,14 @@ char* zeekenv(const char* name);
  * @return the escaped string
  */
 std::string json_escape_utf8(const std::string& val);
+
+namespace zeek {
+/**
+ * Set the process/thread name.  May not be supported on all OSs.
+ * @param name  new name for the process/thread.  OS limitations typically
+ * truncate the name to 15 bytes maximum.
+ * @param tid  handle of thread whose name shall change
+ */
+void set_thread_name(const char* name, pthread_t tid = pthread_self());
+
+} // namespace zeek

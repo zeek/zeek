@@ -2,21 +2,26 @@
 
 #pragma once
 
+#include <list>
 #include <string>
 #include <utility>
-#include <vector>
 
-#include "FileReassembler.h"
-#include "Conn.h"
-#include "Val.h"
-#include "Tag.h"
+#include "analyzer/Tag.h"
 #include "AnalyzerSet.h"
 #include "BroString.h"
+#include "BroList.h" // for val_list
+#include "ZeekArgs.h"
 #include "WeirdState.h"
+
+class Connection;
+class RecordType;
+class RecordVal;
+class EventHandlerPtr;
 
 namespace file_analysis {
 
 class FileReassembler;
+class Tag;
 
 /**
  * Wrapper class around \c fa_file record values from script layer.
@@ -39,13 +44,13 @@ public:
 	 * @return the value of the "source" field from #val record or an empty
 	 * string if it's not initialized.
 	 */
-	string GetSource() const;
+	std::string GetSource() const;
 
 	/**
 	 * Set the "source" field from #val record to \a source.
 	 * @param source the new value of the "source" field.
 	 */
-	void SetSource(const string& source);
+	void SetSource(const std::string& source);
 
 	/**
 	 * @return value (seconds) of the "timeout_interval" field from #val record.
@@ -69,7 +74,7 @@ public:
 	/**
 	 * @return value of the "id" field from #val record.
 	 */
-	string GetID() const { return id; }
+	std::string GetID() const { return id; }
 
 	/**
 	 * @return value of "last_active" field in #val record;
@@ -169,6 +174,7 @@ public:
 	 * @param h pointer to an event handler.
 	 * @param vl list of argument values to pass to event call.
 	 */
+	[[deprecated("Remove in v4.1. Use zeek::Args overload instead.")]]
 	void FileEvent(EventHandlerPtr h, val_list* vl);
 
 	/**
@@ -176,7 +182,15 @@ public:
 	 * @param h pointer to an event handler.
 	 * @param vl list of argument values to pass to event call.
 	 */
+	[[deprecated("Remove in v4.1. Use zeek::Args overload instead.")]]
 	void FileEvent(EventHandlerPtr h, val_list vl);
+
+	/**
+	 * Raises an event related to the file's life-cycle.
+	 * @param h pointer to an event handler.
+	 * @param args list of argument values to pass to event call.
+	 */
+	void FileEvent(EventHandlerPtr h, zeek::Args args);
 
 	/**
 	 * Sets the MIME type for a file to a specific value.
@@ -196,7 +210,7 @@ public:
 	 * @return true if the mime type was set. False if it could not be set because
 	 *         a mime type was already set or inferred.
 	 */
-	bool SetMime(const string& mime_type);
+	bool SetMime(const std::string& mime_type);
 
 	/**
 	 * Whether to permit a weird to carry on through the full reporter/weird
@@ -220,7 +234,7 @@ protected:
 	 *        of the connection to the responder.  False indicates the other
 	 *        direction.
 	 */
-	File(const string& file_id, const string& source_name, Connection* conn = 0,
+	File(const std::string& file_id, const std::string& source_name, Connection* conn = nullptr,
 	     analyzer::Tag tag = analyzer::Tag::Error, bool is_orig = false);
 
 	/**
@@ -297,7 +311,7 @@ protected:
 	 */
 	void DeliverStream(const u_char* data, uint64_t len);
 
-	/** 
+	/**
 	 * Perform chunk-wise delivery for analyzers that need it.
 	 */
 	void DeliverChunk(const u_char* data, uint64_t len, uint64_t offset);
@@ -308,7 +322,7 @@ protected:
 	 * @param type the record type for which the field will be looked up.
 	 * @return the field offset in #val record corresponding to \a field_name.
 	 */
-	static int Idx(const string& field_name, const RecordType* type);
+	static int Idx(const std::string& field_name, const RecordType* type);
 
 	/**
 	 * Initializes static member.
@@ -316,7 +330,7 @@ protected:
 	static void StaticInit();
 
 protected:
-	string id;                 /**< A pretty hash that likely identifies file */
+	std::string id;                 /**< A pretty hash that likely identifies file */
 	RecordVal* val;            /**< \c fa_file from script layer. */
 	FileReassembler* file_reassembler; /**< A reassembler for the file if it's needed. */
 	uint64_t stream_offset;      /**< The offset of the file which has been forwarded. */

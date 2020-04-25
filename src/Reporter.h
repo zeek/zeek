@@ -11,8 +11,6 @@
 #include <unordered_set>
 #include <unordered_map>
 
-#include "util.h"
-#include "EventHandler.h"
 #include "IPAddr.h"
 
 namespace analyzer { class Analyzer; }
@@ -20,6 +18,7 @@ namespace file_analysis { class File; }
 class Connection;
 class Location;
 class Reporter;
+class EventHandlerPtr;
 
 // One cannot raise this exception directly, go through the
 // Reporter's methods instead.
@@ -67,19 +66,19 @@ public:
 
 	// Report a fatal error. Bro will terminate after the message has been
 	// reported.
-	void FatalError(const char* fmt, ...) FMT_ATTR;
+	[[noreturn]] void FatalError(const char* fmt, ...) FMT_ATTR;
 
 	// Report a fatal error. Bro will terminate after the message has been
 	// reported and always generate a core dump.
-	void FatalErrorWithCore(const char* fmt, ...) FMT_ATTR;
+	[[noreturn]] void FatalErrorWithCore(const char* fmt, ...) FMT_ATTR;
 
 	// Report a runtime error in evaluating a Bro script expression. This
 	// function will not return but raise an InterpreterException.
-	void ExprRuntimeError(const Expr* expr, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
+	[[noreturn]] void ExprRuntimeError(const Expr* expr, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
 
 	// Report a runtime error in evaluating a Bro script expression. This
 	// function will not return but raise an InterpreterException.
-	void RuntimeError(const Location* location, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
+	[[noreturn]] void RuntimeError(const Location* location, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
 
 	// Report a traffic weirdness, i.e., an unexpected protocol situation
 	// that may lead to incorrectly processing a connnection.
@@ -98,7 +97,7 @@ public:
 
 	// Report an internal program error. Bro will terminate with a core
 	// dump after the message has been reported.
-	void InternalError(const char* fmt, ...) FMT_ATTR;
+	[[noreturn]] void InternalError(const char* fmt, ...) FMT_ATTR;
 
 	// Report an analyzer error. That analyzer will be set to not process
 	// any further input, but Bro otherwise continues normally.

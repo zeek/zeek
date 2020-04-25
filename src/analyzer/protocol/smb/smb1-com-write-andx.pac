@@ -56,7 +56,7 @@ type SMB1_write_andx_request(header: SMB_Header, offset: uint16) = record {
 
 	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
 
-	andx_command    : SMB_andx_command(header, 1, offset+offsetof(andx_command), andx.command);
+	andx_command    : SMB_andx_command(header, true, offset+offsetof(andx_command), andx.command);
 } &let {
 	pipe_proc   : bool   = $context.connection.forward_dce_rpc(data, 0, true) &if(header.is_pipe);
 
@@ -78,7 +78,7 @@ type SMB1_write_andx_response(header: SMB_Header, offset: uint16) = record {
 
 	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
 
-	andx_command    : SMB_andx_command(header, 0, offset+offsetof(andx_command), andx.command);
+	andx_command    : SMB_andx_command(header, false, offset+offsetof(andx_command), andx.command);
 } &let {
 	written_bytes : uint32 = (written_high * 0x10000) + written_low;
 	proc          : bool   = $context.connection.proc_smb1_write_andx_response(header, this);

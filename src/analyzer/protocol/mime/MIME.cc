@@ -1,8 +1,8 @@
 #include "zeek-config.h"
 
-#include "NetVar.h"
 #include "MIME.h"
-#include "Event.h"
+#include "NetVar.h"
+#include "Base64.h"
 #include "Reporter.h"
 #include "digest.h"
 #include "file_analysis/Manager.h"
@@ -21,7 +21,7 @@
 
 namespace analyzer { namespace mime {
 
-static const data_chunk_t null_data_chunk = { 0, 0 };
+static const data_chunk_t null_data_chunk = { 0, nullptr };
 
 int mime_header_only = 0;
 int mime_decode_data = 1;
@@ -65,14 +65,14 @@ enum MIME_BOUNDARY_DELIMITER {
 static const char* MIMEHeaderName[] = {
 	"content-type",
 	"content-transfer-encoding",
-	0,
+	nullptr,
 };
 
 static const char* MIMEContentTypeName[] = {
 	"MULTIPART",
 	"MESSAGE",
 	"TEXT",
-	0,
+	nullptr,
 };
 
 static const char* MIMEContentSubtypeName[] = {
@@ -86,7 +86,7 @@ static const char* MIMEContentSubtypeName[] = {
 
 	"PLAIN",		// for text
 
-	0,			// other
+	nullptr,			// other
 };
 
 static const char* MIMEContentEncodingName[] = {
@@ -95,15 +95,15 @@ static const char* MIMEContentEncodingName[] = {
 	"BINARY",
 	"QUOTED-PRINTABLE",
 	"BASE64",
-	0,
+	nullptr,
 };
 
-int is_null_data_chunk(data_chunk_t b)
+bool is_null_data_chunk(data_chunk_t b)
 	{
-	return b.data == 0;
+	return b.data == nullptr;
 	}
 
-int is_lws(char ch)
+bool is_lws(char ch)
 	{
 	return ch == 9 || ch == 32;
 	}
@@ -250,7 +250,7 @@ int MIME_get_field_name(int len, const char* data, data_chunk_t* name)
 	}
 
 // See RFC 2045, page 12.
-int MIME_is_tspecial (char ch, bool is_boundary = false)
+static bool  MIME_is_tspecial (char ch, bool is_boundary = false)
 	{
 	if ( is_boundary )
 		return ch == '"';
@@ -260,12 +260,12 @@ int MIME_is_tspecial (char ch, bool is_boundary = false)
 		       ch == '/' || ch == '[' || ch == ']' || ch == '?' || ch == '=';
 	}
 
-int MIME_is_field_name_char (char ch)
+bool MIME_is_field_name_char (char ch)
 	{
 	return ch >= 33 && ch <= 126 && ch != ':';
 	}
 
-int MIME_is_token_char (char ch, bool is_boundary = false)
+static bool MIME_is_token_char (char ch, bool is_boundary = false)
 	{
 	return ch >= 33 && ch <= 126 && ! MIME_is_tspecial(ch, is_boundary);
 	}
@@ -399,7 +399,7 @@ int MIME_get_value(int len, const char* data, BroString*& buf, bool is_boundary)
 		if ( end < 0 )
 			return -1;
 
-		buf = new BroString((const u_char*)str.data, str.length, 1);
+		buf = new BroString((const u_char*)str.data, str.length, true);
 		return offset + end;
 		}
 	}
@@ -427,7 +427,7 @@ BroString* MIME_decode_quoted_pairs(data_chunk_t buf)
 			dest[j++] = data[i];
 	dest[j] = 0;
 
-	return new BroString(1, (byte_vec) dest, j);
+	return new BroString(true, (byte_vec) dest, j);
 	}
 
 
@@ -437,7 +437,7 @@ using namespace analyzer::mime;
 
 MIME_Multiline::MIME_Multiline()
 	{
-	line = 0;
+	line = nullptr;
 	}
 
 MIME_Multiline::~MIME_Multiline()
@@ -448,13 +448,13 @@ MIME_Multiline::~MIME_Multiline()
 
 void MIME_Multiline::append(int len, const char* data)
 	{
-	buffer.push_back(new BroString((const u_char*) data, len, 1));
+	buffer.push_back(new BroString((const u_char*) data, len, true));
 	}
 
 BroString* MIME_Multiline::get_concatenated_line()
 	{
-	if ( buffer.size() == 0 )
-		return 0;
+	if ( buffer.empty() )
+		return nullptr;
 
 	delete line;
 	line = concatenate(buffer);
@@ -546,7 +546,7 @@ void MIME_Entity::init()
 	in_header = 1;
 	end_of_data = 0;
 
-	current_header_line = 0;
+	current_header_line = nullptr;
 	current_field_type = MIME_FIELD_OTHER;
 
 	need_to_parse_parameters = 0;
@@ -554,22 +554,22 @@ void MIME_Entity::init()
 	content_type_str = new StringVal("TEXT");
 	content_subtype_str = new StringVal("PLAIN");
 
-	content_encoding_str = 0;
-	multipart_boundary = 0;
+	content_encoding_str = nullptr;
+	multipart_boundary = nullptr;
 	content_type = CONTENT_TYPE_TEXT;
 	content_subtype = CONTENT_SUBTYPE_PLAIN;
 	content_encoding = CONTENT_ENCODING_OTHER;
 
-	parent = 0;
-	current_child_entity = 0;
+	parent = nullptr;
+	current_child_entity = nullptr;
 
-	base64_decoder = 0;
+	base64_decoder = nullptr;
 
 	data_buf_length = 0;
-	data_buf_data = 0;
+	data_buf_data = nullptr;
 	data_buf_offset = -1;
 
-	message = 0;
+	message = nullptr;
 	delay_adding_implicit_CRLF = false;
 	want_all_headers = false;
 	}
@@ -577,7 +577,7 @@ void MIME_Entity::init()
 MIME_Entity::~MIME_Entity()
 	{
 	if ( ! end_of_data )
-		reporter->AnalyzerError(message ? message->GetAnalyzer() : 0,
+		reporter->AnalyzerError(message ? message->GetAnalyzer() : nullptr,
 		            "missing MIME_Entity::EndOfData() before ~MIME_Entity");
 
 	delete current_header_line;
@@ -593,7 +593,7 @@ MIME_Entity::~MIME_Entity()
 	delete base64_decoder;
 	}
 
-void MIME_Entity::Deliver(int len, const char* data, int trailing_CRLF)
+void MIME_Entity::Deliver(int len, const char* data, bool trailing_CRLF)
 	{
 	if ( in_header )
 		{
@@ -653,7 +653,7 @@ void MIME_Entity::EndOfData()
 
 	else
 		{
-		if ( current_child_entity != 0 )
+		if ( current_child_entity != nullptr )
 			{
 			if ( content_type == CONTENT_TYPE_MULTIPART )
 				IllegalFormat("multipart closing boundary delimiter missing");
@@ -669,19 +669,19 @@ void MIME_Entity::EndOfData()
 	message->EndEntity (this);
 	}
 
-void MIME_Entity::NewDataLine(int len, const char* data, int trailing_CRLF)
+void MIME_Entity::NewDataLine(int len, const char* data, bool trailing_CRLF)
 	{
 	if ( content_type == CONTENT_TYPE_MULTIPART )
 		{
 		switch ( CheckBoundaryDelimiter(len, data) ) {
 			case MULTIPART_BOUNDARY:
-				if ( current_child_entity != 0 )
+				if ( current_child_entity != nullptr )
 					EndChildEntity();
 				BeginChildEntity();
 				return;
 
 			case MULTIPART_CLOSING_BOUNDARY:
-				if ( current_child_entity != 0 )
+				if ( current_child_entity != nullptr )
 					EndChildEntity();
 				EndOfData();
 				return;
@@ -695,7 +695,7 @@ void MIME_Entity::NewDataLine(int len, const char* data, int trailing_CRLF)
 		// binary encoding, and thus do not need to decode
 		// before passing the data to child.
 
-		if ( current_child_entity != 0 )
+		if ( current_child_entity != nullptr )
 			// Data before the first or after the last
 			// boundary delimiter are ignored
 			current_child_entity->Deliver(len, data, trailing_CRLF);
@@ -722,7 +722,7 @@ void MIME_Entity::NewHeader(int len, const char* data)
 
 void MIME_Entity::ContHeader(int len, const char* data)
 	{
-	if ( current_header_line == 0 )
+	if ( current_header_line == nullptr )
 		{
 		IllegalFormat("first header line starts with linear whitespace");
 
@@ -737,11 +737,11 @@ void MIME_Entity::ContHeader(int len, const char* data)
 
 void MIME_Entity::FinishHeader()
 	{
-	if ( current_header_line == 0 )
+	if ( current_header_line == nullptr )
 		return;
 
 	MIME_Header* h = new MIME_Header(current_header_line);
-	current_header_line = 0;
+	current_header_line = nullptr;
 
 	if ( ! is_null_data_chunk(h->get_name()) )
 		{
@@ -762,7 +762,7 @@ int MIME_Entity::LookupMIMEHeaderName(data_chunk_t name)
 	// A linear lookup should be fine for now.
 	// header names are case-insensitive (RFC 822, 2822, 2045).
 
-	for ( int i = 0; MIMEHeaderName[i] != 0; ++i )
+	for ( int i = 0; MIMEHeaderName[i] != nullptr; ++i )
 		if ( istrequal(name, MIMEHeaderName[i]) )
 			return i;
 	return -1;
@@ -770,7 +770,7 @@ int MIME_Entity::LookupMIMEHeaderName(data_chunk_t name)
 
 void MIME_Entity::ParseMIMEHeader(MIME_Header* h)
 	{
-	if ( h == 0 )
+	if ( h == nullptr )
 		return;
 
 	current_field_type = LookupMIMEHeaderName(h->get_name());
@@ -786,7 +786,7 @@ void MIME_Entity::ParseMIMEHeader(MIME_Header* h)
 	}
 	}
 
-int MIME_Entity::ParseContentTypeField(MIME_Header* h)
+bool MIME_Entity::ParseContentTypeField(MIME_Header* h)
 	{
 	data_chunk_t val = h->get_value();
 	int len = val.length;
@@ -799,7 +799,7 @@ int MIME_Entity::ParseContentTypeField(MIME_Header* h)
 	if ( offset < 0 )
 		{
 		IllegalFormat("media type/subtype not found in content type");
-		return 0;
+		return false;
 		}
 	data += offset;
 	len -= offset;
@@ -822,10 +822,10 @@ int MIME_Entity::ParseContentTypeField(MIME_Header* h)
 		content_subtype = CONTENT_SUBTYPE_OTHER;
 		}
 
-	return 1;
+	return true;
 	}
 
-int MIME_Entity::ParseContentEncodingField(MIME_Header* h)
+bool MIME_Entity::ParseContentEncodingField(MIME_Header* h)
 	{
 	data_chunk_t enc;
 
@@ -833,10 +833,10 @@ int MIME_Entity::ParseContentEncodingField(MIME_Header* h)
 	if ( is_null_data_chunk(enc) )
 		{
 		IllegalFormat("encoding type not found in content encoding");
-		return 0;
+		return false;
 		}
 
-	content_encoding_str = new BroString((const u_char*)enc.data, enc.length, 1);
+	content_encoding_str = new BroString((const u_char*)enc.data, enc.length, true);
 	ParseContentEncoding(enc);
 
 	if ( need_to_parse_parameters )
@@ -846,14 +846,14 @@ int MIME_Entity::ParseContentEncodingField(MIME_Header* h)
 			ParseFieldParameters(val.length, val.data);
 		}
 
-	return 1;
+	return true;
 	}
 
-int MIME_Entity::ParseFieldParameters(int len, const char* data)
+bool MIME_Entity::ParseFieldParameters(int len, const char* data)
 	{
 	data_chunk_t attr;
 
-	while ( 1 )
+	while ( true )
 		{
 		int offset = MIME_skip_lws_comments(len, data);
 		if ( offset < 0 || offset >= len || data[offset] != ';' )
@@ -867,7 +867,7 @@ int MIME_Entity::ParseFieldParameters(int len, const char* data)
 		if ( offset < 0 )
 			{
 			IllegalFormat("attribute name not found in parameter specification");
-			return 0;
+			return false;
 			}
 
 		data += offset;
@@ -884,7 +884,7 @@ int MIME_Entity::ParseFieldParameters(int len, const char* data)
 		data += offset;
 		len -= offset;
 
-		BroString* val = 0;
+		BroString* val = nullptr;
 
 		if ( current_field_type == MIME_CONTENT_TYPE &&
 		     content_type == CONTENT_TYPE_MULTIPART &&
@@ -902,7 +902,7 @@ int MIME_Entity::ParseFieldParameters(int len, const char* data)
 
 			data_chunk_t vd = get_data_chunk(val);
 			multipart_boundary = new BroString((const u_char*)vd.data,
-			                                   vd.length, 1);
+			                                   vd.length, true);
 			}
 		else
 			// token or quoted-string
@@ -920,7 +920,7 @@ int MIME_Entity::ParseFieldParameters(int len, const char* data)
 		delete val;
 		}
 
-	return 1;
+	return true;
 	}
 
 void MIME_Entity::ParseContentType(data_chunk_t type, data_chunk_t sub_type)
@@ -1000,7 +1000,7 @@ int MIME_Entity::CheckBoundaryDelimiter(int len, const char* data)
 // trailing_CRLF indicates whether an implicit CRLF sequence follows data
 // (the CRLF sequence is not included in data).
 
-void MIME_Entity::DecodeDataLine(int len, const char* data, int trailing_CRLF)
+void MIME_Entity::DecodeDataLine(int len, const char* data, bool trailing_CRLF)
 	{
 	if ( ! mime_submit_data )
 		return;
@@ -1024,7 +1024,7 @@ void MIME_Entity::DecodeDataLine(int len, const char* data, int trailing_CRLF)
 	FlushData();
 	}
 
-void MIME_Entity::DecodeBinary(int len, const char* data, int trailing_CRLF)
+void MIME_Entity::DecodeBinary(int len, const char* data, bool trailing_CRLF)
 	{
 	if ( delay_adding_implicit_CRLF )
 		{
@@ -1172,20 +1172,20 @@ void MIME_Entity::FinishDecodeBase64()
 		}
 
 	delete base64_decoder;
-	base64_decoder = 0;
+	base64_decoder = nullptr;
 	}
 
-int MIME_Entity::GetDataBuffer()
+bool MIME_Entity::GetDataBuffer()
 	{
 	int ret = message->RequestBuffer(&data_buf_length, &data_buf_data);
-	if ( ! ret || data_buf_length == 0 || data_buf_data == 0 )
+	if ( ! ret || data_buf_length == 0 || data_buf_data == nullptr )
 		{
 		// reporter->InternalError("cannot get data buffer from MIME_Message", "");
-		return 0;
+		return false;
 		}
 
 	data_buf_offset = 0;
-	return 1;
+	return true;
 	}
 
 void MIME_Entity::DataOctet(char ch)
@@ -1215,7 +1215,7 @@ void MIME_Entity::DataOctets(int len, const char* data)
 		if ( data_buf_offset < 0 && ! GetDataBuffer() )
 			return;
 
-		int n = min(data_buf_length - data_buf_offset, len);
+		int n = std::min(data_buf_length - data_buf_offset, len);
 		memcpy(data_buf_data + data_buf_offset, data, n);
 		data += n;
 		data_buf_offset += n;
@@ -1250,18 +1250,18 @@ void MIME_Entity::SubmitAllHeaders()
 
 void MIME_Entity::BeginChildEntity()
 	{
-	ASSERT(current_child_entity == 0);
+	ASSERT(current_child_entity == nullptr);
 	current_child_entity = NewChildEntity();
 	message->BeginEntity(current_child_entity);
 	}
 
 void MIME_Entity::EndChildEntity()
 	{
-	ASSERT(current_child_entity != 0);
+	ASSERT(current_child_entity != nullptr);
 
 	current_child_entity->EndOfData();
 	delete current_child_entity;
-	current_child_entity = 0;
+	current_child_entity = nullptr;
 	}
 
 void MIME_Entity::IllegalFormat(const char* explanation)
@@ -1299,7 +1299,7 @@ RecordVal* MIME_Message::BuildHeaderVal(MIME_Header* h)
 
 TableVal* MIME_Message::BuildHeaderTable(MIME_HeaderList& hlist)
 	{
-	TableVal* t = new TableVal(mime_header_list);
+	TableVal* t = new TableVal({NewRef{}, mime_header_list});
 
 	for ( unsigned int i = 0; i < hlist.size(); ++i )
 		{
@@ -1337,7 +1337,7 @@ MIME_Mail::MIME_Mail(analyzer::Analyzer* mail_analyzer, bool orig, int buf_size)
 		length = max_chunk_length;
 
 	buffer_start = data_start = 0;
-	data_buffer = new BroString(1, new u_char[length+1], length);
+	data_buffer = new BroString(true, new u_char[length+1], length);
 
 	if ( mime_content_hash )
 		{
@@ -1349,7 +1349,7 @@ MIME_Mail::MIME_Mail(analyzer::Analyzer* mail_analyzer, bool orig, int buf_size)
 
 	content_hash_length = 0;
 
-	top_level = new MIME_Entity(this, 0);	// to be changed to MIME_Mail
+	top_level = new MIME_Entity(this, nullptr);	// to be changed to MIME_Mail
 	BeginEntity(top_level);
 	}
 
@@ -1365,11 +1365,11 @@ void MIME_Mail::Done()
 		hash_final(md5_hash, digest);
 		md5_hash = nullptr;
 
-		analyzer->ConnectionEventFast(mime_content_hash, {
-			analyzer->BuildConnVal(),
-			val_mgr->GetCount(content_hash_length),
-			new StringVal(new BroString(1, digest, 16)),
-		});
+		analyzer->EnqueueConnEvent(mime_content_hash,
+			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(content_hash_length)},
+			make_intrusive<StringVal>(new BroString(true, digest, 16))
+		);
 		}
 
 	MIME_Message::Done();
@@ -1393,7 +1393,7 @@ void MIME_Mail::BeginEntity(MIME_Entity* /* entity */)
 	cur_entity_id.clear();
 
 	if ( mime_begin_entity )
-		analyzer->ConnectionEventFast(mime_begin_entity, {analyzer->BuildConnVal()});
+		analyzer->EnqueueConnEvent(mime_begin_entity, IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()});
 
 	buffer_start = data_start = 0;
 	ASSERT(entity_content.size() == 0);
@@ -1405,11 +1405,11 @@ void MIME_Mail::EndEntity(MIME_Entity* /* entity */)
 		{
 		BroString* s = concatenate(entity_content);
 
-		analyzer->ConnectionEventFast(mime_entity_data, {
-			analyzer->BuildConnVal(),
-			val_mgr->GetCount(s->Len()),
-			new StringVal(s),
-		});
+		analyzer->EnqueueConnEvent(mime_entity_data,
+			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(s->Len())},
+			make_intrusive<StringVal>(s)
+		);
 
 		if ( ! mime_all_data )
 			delete_strings(entity_content);
@@ -1418,7 +1418,7 @@ void MIME_Mail::EndEntity(MIME_Entity* /* entity */)
 		}
 
 	if ( mime_end_entity )
-		analyzer->ConnectionEventFast(mime_end_entity, {analyzer->BuildConnVal()});
+		analyzer->EnqueueConnEvent(mime_end_entity, IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()});
 
 	file_mgr->EndOfFile(analyzer->GetAnalyzerTag(), analyzer->Conn());
 	cur_entity_id.clear();
@@ -1427,23 +1427,19 @@ void MIME_Mail::EndEntity(MIME_Entity* /* entity */)
 void MIME_Mail::SubmitHeader(MIME_Header* h)
 	{
 	if ( mime_one_header )
-		{
-		analyzer->ConnectionEventFast(mime_one_header, {
-			analyzer->BuildConnVal(),
-			BuildHeaderVal(h),
-		});
-		}
+		analyzer->EnqueueConnEvent(mime_one_header,
+			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, BuildHeaderVal(h)}
+		);
 	}
 
 void MIME_Mail::SubmitAllHeaders(MIME_HeaderList& hlist)
 	{
 	if ( mime_all_headers )
-		{
-		analyzer->ConnectionEventFast(mime_all_headers, {
-			analyzer->BuildConnVal(),
-			BuildHeaderTable(hlist),
-		});
-		}
+		analyzer->EnqueueConnEvent(mime_all_headers,
+			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, BuildHeaderTable(hlist)}
+		);
 	}
 
 void MIME_Mail::SubmitData(int len, const char* buf)
@@ -1463,7 +1459,7 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 
 	if ( mime_entity_data || mime_all_data )
 		{
-		BroString* s = new BroString((const u_char*) buf, len, 0);
+		BroString* s = new BroString((const u_char*) buf, len, false);
 
 		if ( mime_entity_data )
 			entity_content.push_back(s);
@@ -1476,11 +1472,11 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 		const char* data = (char*) data_buffer->Bytes() + data_start;
 		int data_len = (buf + len) - data;
 
-		analyzer->ConnectionEventFast(mime_segment_data, {
-			analyzer->BuildConnVal(),
-			val_mgr->GetCount(data_len),
-			new StringVal(data_len, data),
-		});
+		analyzer->EnqueueConnEvent(mime_segment_data,
+			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(data_len)},
+			make_intrusive<StringVal>(data_len, data)
+		);
 		}
 
 	cur_entity_id = file_mgr->DataIn(reinterpret_cast<const u_char*>(buf), len,
@@ -1491,7 +1487,7 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 	buffer_start = (buf + len) - (char*)data_buffer->Bytes();
 	}
 
-int MIME_Mail::RequestBuffer(int* plen, char** pbuf)
+bool MIME_Mail::RequestBuffer(int* plen, char** pbuf)
 	{
 	data_start = buffer_start - min_overlap_length;
 	if ( data_start < 0 )
@@ -1513,7 +1509,7 @@ int MIME_Mail::RequestBuffer(int* plen, char** pbuf)
 	*plen = max_chunk_length - overlap;
 	*pbuf = (char*) data_buffer->Bytes() + buffer_start;
 
-	return 1;
+	return true;
 	}
 
 void MIME_Mail::SubmitAllData()
@@ -1523,11 +1519,11 @@ void MIME_Mail::SubmitAllData()
 		BroString* s = concatenate(all_content);
 		delete_strings(all_content);
 
-		analyzer->ConnectionEventFast(mime_all_data, {
-			analyzer->BuildConnVal(),
-			val_mgr->GetCount(s->Len()),
-			new StringVal(s),
-		});
+		analyzer->EnqueueConnEvent(mime_all_data,
+			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(s->Len())},
+			make_intrusive<StringVal>(s)
+		);
 		}
 	}
 
@@ -1551,11 +1547,9 @@ void MIME_Mail::SubmitEvent(int event_type, const char* detail)
 	}
 
 	if ( mime_event )
-		{
-		analyzer->ConnectionEventFast(mime_event, {
-			analyzer->BuildConnVal(),
-			new StringVal(category),
-			new StringVal(detail),
-		});
-		}
+		analyzer->EnqueueConnEvent(mime_event,
+			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			make_intrusive<StringVal>(category),
+			make_intrusive<StringVal>(detail)
+		);
 	}

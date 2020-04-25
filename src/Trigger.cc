@@ -1,10 +1,26 @@
+#include "Trigger.h"
+
 #include <algorithm>
 
-#include "Trigger.h"
+#include <assert.h>
+
 #include "Traverse.h"
+#include "Expr.h"
+#include "Frame.h"
+#include "ID.h"
+#include "Val.h"
+#include "Stmt.h"
+#include "Reporter.h"
+#include "Desc.h"
+#include "DebugLogger.h"
+#include "iosource/Manager.h"
+
+using namespace trigger;
 
 // Callback class to traverse an expression, registering all relevant IDs and
 // Vals for change notifications.
+
+namespace trigger {
 
 class TriggerTraversalCallback : public TraversalCallback {
 public:
@@ -19,6 +35,8 @@ public:
 private:
 	Trigger* trigger;
 };
+
+}
 
 TraversalCode TriggerTraversalCallback::PreExpr(const Expr* expr)
 	{
@@ -45,13 +63,10 @@ TraversalCode TriggerTraversalCallback::PreExpr(const Expr* expr)
 
 		try
 			{
-			Val* v = e->Eval(trigger->frame);
+			auto v = e->Eval(trigger->frame);
 
 			if ( v )
-				{
-				trigger->Register(v);
-				Unref(v);
-				}
+				trigger->Register(v.get());
 			}
 		catch ( InterpreterException& )
 			{ /* Already reported */ }
@@ -67,7 +82,9 @@ TraversalCode TriggerTraversalCallback::PreExpr(const Expr* expr)
 	return TC_CONTINUE;
 	}
 
-class TriggerTimer : public Timer {
+namespace trigger {
+
+class TriggerTimer final : public Timer {
 public:
 	TriggerTimer(double arg_timeout, Trigger* arg_trigger)
 	: Timer(network_time + arg_timeout, TIMER_TRIGGER)
@@ -81,7 +98,7 @@ public:
 	~TriggerTimer()
 		{ Unref(trigger); }
 
-	void Dispatch(double t, int is_expire)
+	void Dispatch(double t, bool is_expire) override
 		{
 		// The network_time may still have been zero when the
 		// timer was instantiated.  In this case, it fires
@@ -102,27 +119,24 @@ protected:
 	double time;
 };
 
+}
+
 Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
 			Expr* arg_timeout, Frame* arg_frame,
 			bool arg_is_return, const Location* arg_location)
 	{
-	if ( ! pending )
-		pending = new list<Trigger*>;
-
 	cond = arg_cond;
 	body = arg_body;
 	timeout_stmts = arg_timeout_stmts;
 	timeout = arg_timeout;
 	frame = arg_frame->Clone();
-	timer = 0;
+	timer = nullptr;
 	delayed = false;
 	disabled = false;
-	attached = 0;
+	attached = nullptr;
 	is_return = arg_is_return;
 	location = arg_location;
 	timeout_value = -1;
-
-	++total_triggers;
 
 	DBG_LOG(DBG_NOTIFIERS, "%s: instantiating", Name());
 
@@ -140,7 +154,7 @@ Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
 		arg_frame->SetDelayed();
 		}
 
-	Val* timeout_val = nullptr;
+	IntrusivePtr<Val> timeout_val;
 
 	if ( arg_timeout )
 		{
@@ -155,7 +169,6 @@ Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
 	if ( timeout_val )
 		{
 		timeout_value = timeout_val->AsInterval();
-		Unref(timeout_val);
 		}
 
 	// Make sure we don't get deleted if somebody calls a method like
@@ -168,6 +181,27 @@ Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
 		timer_mgr->Add(timer);
 		}
 
+	Unref(this);
+	}
+
+void Trigger::Terminate()
+	{
+	if ( is_return )
+		{
+		auto parent = frame->GetTrigger();
+
+		if ( ! parent->Disabled() )
+			{
+			// If the trigger was already disabled due to interpreter
+			// exception, an Unref already happened at that point.
+			parent->Disable();
+			Unref(parent);
+			}
+
+		frame->ClearTrigger();
+		}
+
+	Disable();
 	Unref(this);
 	}
 
@@ -193,9 +227,6 @@ void Trigger::Init()
 	TriggerTraversalCallback cb(this);
 	cond->Traverse(&cb);
 	}
-
-Trigger::TriggerList* Trigger::pending = 0;
-unsigned long Trigger::total_triggers = 0;
 
 bool Trigger::Eval()
 	{
@@ -234,9 +265,9 @@ bool Trigger::Eval()
 		return false;
 		}
 
-	f->SetTrigger(this);
+	f->SetTrigger({NewRef{}, this});
 
-	Val* v = nullptr;
+	IntrusivePtr<Val> v;
 
 	try
 		{
@@ -259,7 +290,6 @@ bool Trigger::Eval()
 		{
 		// Not true. Perhaps next time...
 		DBG_LOG(DBG_NOTIFIERS, "%s: trigger condition is false", Name());
-		Unref(v);
 		Unref(f);
 		Init();
 		return false;
@@ -268,8 +298,7 @@ bool Trigger::Eval()
 	DBG_LOG(DBG_NOTIFIERS, "%s: trigger condition is true, executing",
 			Name());
 
-	Unref(v);
-	v = 0;
+	v = nullptr;
 	stmt_flow_type flow;
 
 	try
@@ -292,12 +321,16 @@ bool Trigger::Eval()
 		delete [] pname;
 #endif
 
-		trigger->Cache(frame->GetCall(), v);
+		auto queued = trigger->Cache(frame->GetCall(), v.get());
 		trigger->Release();
 		frame->ClearTrigger();
+
+		if ( ! queued && trigger->TimeoutValue() < 0 )
+			// Usually the parent-trigger would get unref'd either by
+			// its Eval() or its eventual Timeout(), but has neither
+			Unref(trigger);
 		}
 
-	Unref(v);
 	Unref(f);
 
 	if ( timer )
@@ -309,47 +342,6 @@ bool Trigger::Eval()
 	return true;
 	}
 
-void Trigger::QueueTrigger(Trigger* trigger)
-	{
-	assert(! trigger->disabled);
-	assert(pending);
-	if ( std::find(pending->begin(), pending->end(), trigger) == pending->end() )
-		{
-		Ref(trigger);
-		pending->push_back(trigger);
-		}
-	}
-
-void Trigger::EvaluatePending()
-	{
-	DBG_LOG(DBG_NOTIFIERS, "evaluating all pending triggers");
-
-	if ( ! pending )
-		return;
-
-	// While we iterate over the list, executing statements, we may
-	// in fact trigger new triggers and thereby modify the list.
-	// Therefore, we create a new temporary list which will receive
-	// triggers triggered during this time.
-	TriggerList* orig = pending;
-	TriggerList tmp;
-	pending = &tmp;
-
-	for ( TriggerList::iterator i = orig->begin(); i != orig->end(); ++i )
-		{
-		Trigger* t = *i;
-		(*i)->Eval();
-		Unref(t);
-		}
-
-	pending = orig;
-	orig->clear();
-
-	// Sigh... Is this really better than a for-loop?
-	std::copy(tmp.begin(), tmp.end(),
-		insert_iterator<TriggerList>(*pending, pending->begin()));
-	}
-
 void Trigger::Timeout()
 	{
 	if ( disabled )
@@ -359,12 +351,12 @@ void Trigger::Timeout()
 	if ( timeout_stmts )
 		{
 		stmt_flow_type flow;
-		Frame* f = frame->Clone();
-		Val* v = 0;
+		IntrusivePtr<Frame> f{AdoptRef{}, frame->Clone()};
+		IntrusivePtr<Val> v;
 
 		try
 			{
-			v = timeout_stmts->Exec(f, flow);
+			v = timeout_stmts->Exec(f.get(), flow);
 			}
 		catch ( InterpreterException& e )
 			{ /* Already reported. */ }
@@ -381,13 +373,15 @@ void Trigger::Timeout()
 			DBG_LOG(DBG_NOTIFIERS, "%s: trigger has parent %s, caching timeout result", Name(), pname);
 			delete [] pname;
 #endif
-			trigger->Cache(frame->GetCall(), v);
+			auto queued = trigger->Cache(frame->GetCall(), v.get());
 			trigger->Release();
 			frame->ClearTrigger();
-			}
 
-		Unref(v);
-		Unref(f);
+			if ( ! queued && trigger->TimeoutValue() < 0 )
+				// Usually the parent-trigger would get unref'd either by
+				// its Eval() or its eventual Timeout(), but has neither
+				Unref(trigger);
+			}
 		}
 
 	Disable();
@@ -445,10 +439,10 @@ void Trigger::Attach(Trigger *trigger)
 	Hold();
 	}
 
-void Trigger::Cache(const CallExpr* expr, Val* v)
+bool Trigger::Cache(const CallExpr* expr, Val* v)
 	{
 	if ( disabled || ! v )
-		return;
+		return false;
 
 	ValCache::iterator i = cache.find(expr);
 
@@ -463,7 +457,8 @@ void Trigger::Cache(const CallExpr* expr, Val* v)
 
 	Ref(v);
 
-	QueueTrigger(this);
+	trigger_mgr->Queue(this);
+	return true;
 	}
 
 
@@ -481,6 +476,16 @@ void Trigger::Disable()
 	disabled = true;
 	}
 
+void Trigger::Describe(ODesc* d) const
+	{
+	d->Add("<trigger>");
+	}
+
+void Trigger::Modified(notifier::Modifiable* m)
+	{
+	trigger_mgr->Queue(this);
+	}
+
 const char* Trigger::Name() const
 	{
 	assert(location);
@@ -488,8 +493,62 @@ const char* Trigger::Name() const
 			location->first_line, location->last_line);
 	}
 
-void Trigger::GetStats(Stats* stats)
+
+
+Manager::Manager() : IOSource()
+	{
+	pending = new TriggerList();
+	iosource_mgr->Register(this, true);
+	}
+
+Manager::~Manager()
+	{
+	delete pending;
+	}
+
+double Manager::GetNextTimeout()
+	{
+	return pending->empty() ? -1 : network_time + 0.100;
+	}
+
+void Manager::Process()
+	{
+	DBG_LOG(DBG_NOTIFIERS, "evaluating all pending triggers");
+
+	// While we iterate over the list, executing statements, we may
+	// in fact trigger new triggers and thereby modify the list.
+	// Therefore, we create a new temporary list which will receive
+	// triggers triggered during this time.
+	TriggerList* orig = pending;
+	TriggerList tmp;
+	pending = &tmp;
+
+	for ( TriggerList::iterator i = orig->begin(); i != orig->end(); ++i )
+		{
+		Trigger* t = *i;
+		(*i)->Eval();
+		Unref(t);
+		}
+
+	pending = orig;
+	orig->clear();
+
+	std::swap(tmp, *pending);
+	}
+
+void Manager::Queue(Trigger* trigger)
+	{
+	if ( std::find(pending->begin(), pending->end(), trigger) == pending->end() )
+		{
+		Ref(trigger);
+		pending->push_back(trigger);
+		total_triggers++;
+		iosource_mgr->Wakeup(Tag());
+		}
+	}
+
+void Manager::GetStats(Stats* stats)
 	{
 	stats->total = total_triggers;
-	stats->pending = pending ? pending->size() : 0;
+	stats->pending = pending->size();
 	}

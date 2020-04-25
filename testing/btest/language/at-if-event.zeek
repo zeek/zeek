@@ -12,7 +12,7 @@ lalala
 	}
 
 @if ( 1==1 )
-event zeek_init()
+event zeek_init() &priority=9
 @else
 lalala
 @endif
@@ -24,7 +24,7 @@ lalala
 @if ( 1==0 )
 lalala
 @else
-event zeek_init()
+event zeek_init() &priority=8
 @endif
 	{
 	print "3";
@@ -32,7 +32,7 @@ event zeek_init()
 
 @if ( 1==1 )
 @if ( 1==1 )
-event zeek_init()
+event zeek_init() &priority=7
 @endif
 @else
 lalala

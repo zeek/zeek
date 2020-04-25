@@ -1,20 +1,21 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "RE.h"
 
 #include <stdlib.h>
 #include <utility>
 
-#include "RE.h"
 #include "DFA.h"
 #include "CCL.h"
 #include "EquivClass.h"
 #include "Reporter.h"
+#include "BroString.h"
 
-CCL* curr_ccl = 0;
+CCL* curr_ccl = nullptr;
 
 Specific_RE_Matcher* rem;
-NFA_Machine* nfa = 0;
+NFA_Machine* nfa = nullptr;
 int case_insensitive = 0;
 
 extern int RE_parse(void);
@@ -26,10 +27,10 @@ Specific_RE_Matcher::Specific_RE_Matcher(match_type arg_mt, int arg_multiline)
 	{
 	mt = arg_mt;
 	multiline = arg_multiline;
-	any_ccl = 0;
-	pattern_text = 0;
-	dfa = 0;
-	ecs = 0;
+	any_ccl = nullptr;
+	pattern_text = nullptr;
+	dfa = nullptr;
+	ecs = nullptr;
 	accepted = new AcceptingSet();
 	}
 
@@ -109,16 +110,16 @@ void Specific_RE_Matcher::MakeCaseInsensitive()
 
 	char* s = new char[n + 5 /* slop */];
 
-	safe_snprintf(s, n + 5, fmt, pattern_text);
+	snprintf(s, n + 5, fmt, pattern_text);
 
 	delete [] pattern_text;
 	pattern_text = s;
 	}
 
-int Specific_RE_Matcher::Compile(int lazy)
+bool Specific_RE_Matcher::Compile(bool lazy)
 	{
 	if ( ! pattern_text )
-		return 0;
+		return false;
 
 	rem = this;
 	RE_set_input(pattern_text);
@@ -130,8 +131,8 @@ int Specific_RE_Matcher::Compile(int lazy)
 		{
 		reporter->Error("error compiling pattern /%s/", pattern_text);
 		Unref(nfa);
-		nfa = 0;
-		return 0;
+		nfa = nullptr;
+		return false;
 		}
 
 	EC()->BuildECs();
@@ -139,22 +140,22 @@ int Specific_RE_Matcher::Compile(int lazy)
 
 	dfa = new DFA_Machine(nfa, EC());
 
-	Unref(nfa); 
-	nfa = 0;
+	Unref(nfa);
+	nfa = nullptr;
 
 	ecs = EC()->EquivClasses();
 
-	return 1;
+	return true;
 	}
 
-int Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx)
+bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx)
 	{
 	if ( (size_t)set.length() != idx.size() )
 		reporter->InternalError("compileset: lengths of sets differ");
 
 	rem = this;
 
-	NFA_Machine* set_nfa = 0;
+	NFA_Machine* set_nfa = nullptr;
 
 	loop_over_list(set, i)
 		{
@@ -171,8 +172,8 @@ int Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx)
 			else
 				Unref(nfa);
 
-			nfa = 0;
-			return 0;
+			nfa = nullptr;
+			return false;
 			}
 
 		nfa->FinalState()->SetAccept(idx[i]);
@@ -191,24 +192,24 @@ int Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx)
 	dfa = new DFA_Machine(nfa, EC());
 	ecs = EC()->EquivClasses();
 
-	return 1;
+	return true;
 	}
 
-string Specific_RE_Matcher::LookupDef(const string& def)
+std::string Specific_RE_Matcher::LookupDef(const std::string& def)
 	{
 	const auto& iter = defs.find(def);
 	if ( iter != defs.end() )
 		return iter->second;
 
-	return string();
+	return std::string();
 	}
 
-int Specific_RE_Matcher::MatchAll(const char* s)
+bool Specific_RE_Matcher::MatchAll(const char* s)
 	{
 	return MatchAll((const u_char*)(s), strlen(s));
 	}
 
-int Specific_RE_Matcher::MatchAll(const BroString* s)
+bool Specific_RE_Matcher::MatchAll(const BroString* s)
 	{
 	// s->Len() does not include '\0'.
 	return MatchAll(s->Bytes(), s->Len());
@@ -234,7 +235,7 @@ int Specific_RE_Matcher::LongestMatch(const BroString* s)
 	return LongestMatch(s->Bytes(), s->Len());
 	}
 
-int Specific_RE_Matcher::MatchAll(const u_char* bv, int n)
+bool Specific_RE_Matcher::MatchAll(const u_char* bv, int n)
 	{
 	if ( ! dfa )
 		// An empty pattern matches "all" iff what's being
@@ -256,7 +257,7 @@ int Specific_RE_Matcher::MatchAll(const u_char* bv, int n)
 	if ( d )
 		d = d->Xtion(ecs[SYM_EOL], dfa);
 
-	return d && d->Accept() != 0;
+	return d && d->Accept() != nullptr;
 	}
 
 
@@ -353,7 +354,7 @@ bool RE_Match_State::Match(const u_char* bv, int n,
 
 		if ( ! next_state )
 			{
-			current_state = 0;
+			current_state = nullptr;
 			break;
 			}
 
@@ -435,7 +436,7 @@ unsigned int Specific_RE_Matcher::MemoryAllocation() const
 		+ equiv_class.Size() - padded_sizeof(EquivClass)
 		+ (dfa ? dfa->MemoryAllocation() : 0) // this is ref counted; consider the bytes here?
 		+ padded_sizeof(*any_ccl)
-		+ padded_sizeof(*accepted)
+		+ padded_sizeof(*accepted) // NOLINT(bugprone-sizeof-container)
 		+ accepted->size() * padded_sizeof(AcceptingSet::key_type);
 	}
 
@@ -479,7 +480,7 @@ void RE_Matcher::MakeCaseInsensitive()
 	re_exact->MakeCaseInsensitive();
 	}
 
-int RE_Matcher::Compile(int lazy)
+bool RE_Matcher::Compile(bool lazy)
 	{
 	return re_anywhere->Compile(lazy) && re_exact->Compile(lazy);
 	}
@@ -493,7 +494,7 @@ static RE_Matcher* matcher_merge(const RE_Matcher* re1, const RE_Matcher* re2,
 	int n = strlen(text1) + strlen(text2) + strlen(merge_op) + 32 /* slop */ ;
 
 	char* merge_text = new char[n];
-	safe_snprintf(merge_text, n, "(%s)%s(%s)", text1, merge_op, text2);
+	snprintf(merge_text, n, "(%s)%s(%s)", text1, merge_op, text2);
 
 	RE_Matcher* merge = new RE_Matcher(merge_text);
 	delete [] merge_text;

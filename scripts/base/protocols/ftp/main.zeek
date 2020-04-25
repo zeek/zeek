@@ -322,7 +322,7 @@ event connection_reused(c: connection) &priority=5
 		c$ftp_data_reuse = T;
 	}
 
-event connection_state_remove(c: connection) &priority=-5
+event successful_connection_remove(c: connection) &priority=-5
 	{
 	if ( c$ftp_data_reuse ) return;
 	if ( [c$id$resp_h, c$id$resp_p] in ftp_data_expected )
@@ -334,8 +334,8 @@ event connection_state_remove(c: connection) &priority=-5
 		}
 	}
 
-# Use state remove event to cover connections terminated by RST.
-event connection_state_remove(c: connection) &priority=-5
+# Use remove event to cover connections terminated by RST.
+event successful_connection_remove(c: connection) &priority=-5
 	{
 	if ( ! c?$ftp ) return;
 

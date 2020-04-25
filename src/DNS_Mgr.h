@@ -7,13 +7,12 @@
 #include <queue>
 #include <utility>
 
-#include "util.h"
 #include "List.h"
-#include "Dict.h"
 #include "EventHandler.h"
 #include "iosource/IOSource.h"
 #include "IPAddr.h"
 
+template <class T> class IntrusivePtr;
 class Val;
 class ListVal;
 class TableVal;
@@ -39,7 +38,7 @@ enum DNS_MgrMode {
 // Number of seconds we'll wait for a reply.
 #define DNS_TIMEOUT 5
 
-class DNS_Mgr : public iosource::IOSource {
+class DNS_Mgr final : public iosource::IOSource {
 public:
 	explicit DNS_Mgr(DNS_MgrMode mode);
 	~DNS_Mgr() override;
@@ -49,20 +48,20 @@ public:
 
 	// Looks up the address or addresses of the given host, and returns
 	// a set of addr.
-	TableVal* LookupHost(const char* host);
+	IntrusivePtr<TableVal> LookupHost(const char* host);
 
-	Val* LookupAddr(const IPAddr& addr);
+	IntrusivePtr<Val> LookupAddr(const IPAddr& addr);
 
 	// Define the directory where to store the data.
 	void SetDir(const char* arg_dir)	{ dir = copy_string(arg_dir); }
 
 	void Verify();
 	void Resolve();
-	int Save();
+	bool Save();
 
 	const char* LookupAddrInCache(const IPAddr& addr);
-	TableVal* LookupNameInCache(const string& name);
-	const char* LookupTextInCache(const string& name);
+	IntrusivePtr<TableVal> LookupNameInCache(const std::string& name);
+	const char* LookupTextInCache(const std::string& name);
 
 	// Support for async lookups.
 	class LookupCallback {
@@ -76,8 +75,8 @@ public:
 	};
 
 	void AsyncLookupAddr(const IPAddr& host, LookupCallback* callback);
-	void AsyncLookupName(const string& name, LookupCallback* callback);
-	void AsyncLookupNameText(const string& name, LookupCallback* callback);
+	void AsyncLookupName(const std::string& name, LookupCallback* callback);
+	void AsyncLookupNameText(const std::string& name, LookupCallback* callback);
 
 	struct Stats {
 		unsigned long requests;	// These count only async requests.
@@ -91,24 +90,27 @@ public:
 
 	void GetStats(Stats* stats);
 
+	void Terminate();
+
 protected:
 	friend class LookupCallback;
 	friend class DNS_Mgr_Request;
 
 	void Event(EventHandlerPtr e, DNS_Mapping* dm);
-	void Event(EventHandlerPtr e, DNS_Mapping* dm, ListVal* l1, ListVal* l2);
+	void Event(EventHandlerPtr e, DNS_Mapping* dm,
+	           IntrusivePtr<ListVal> l1, IntrusivePtr<ListVal> l2);
 	void Event(EventHandlerPtr e, DNS_Mapping* old_dm, DNS_Mapping* new_dm);
 
-	Val* BuildMappingVal(DNS_Mapping* dm);
+	IntrusivePtr<Val> BuildMappingVal(DNS_Mapping* dm);
 
 	void AddResult(DNS_Mgr_Request* dr, struct nb_dns_result* r);
 	void CompareMappings(DNS_Mapping* prev_dm, DNS_Mapping* new_dm);
-	ListVal* AddrListDelta(ListVal* al1, ListVal* al2);
+	IntrusivePtr<ListVal> AddrListDelta(ListVal* al1, ListVal* al2);
 	void DumpAddrList(FILE* f, ListVal* al);
 
-	typedef map<string, pair<DNS_Mapping*, DNS_Mapping*> > HostMap;
-	typedef map<IPAddr, DNS_Mapping*> AddrMap;
-	typedef map<string, DNS_Mapping*> TextMap;
+	typedef std::map<std::string, std::pair<DNS_Mapping*, DNS_Mapping*> > HostMap;
+	typedef std::map<IPAddr, DNS_Mapping*> AddrMap;
+	typedef std::map<std::string, DNS_Mapping*> TextMap;
 	void LoadCache(FILE* f);
 	void Save(FILE* f, const AddrMap& m);
 	void Save(FILE* f, const HostMap& m);
@@ -127,16 +129,11 @@ protected:
 	void CheckAsyncHostRequest(const char* host, bool timeout);
 	void CheckAsyncTextRequest(const char* host, bool timeout);
 
-	// Process outstanding requests.
-	void DoProcess();
-
 	// IOSource interface.
-	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
-	                    iosource::FD_Set* except) override;
-	double NextTimestamp(double* network_time) override;
 	void Process() override;
-	void Init() override;
-	const char* Tag() override { return "DNS_Mgr"; }
+	void InitSource() override;
+	const char* Tag() override	{ return "DNS_Mgr"; }
+	double GetNextTimeout() override;
 
 	DNS_MgrMode mode;
 
@@ -150,7 +147,7 @@ protected:
 	char* cache_name;
 	char* dir;	// directory in which cache_name resides
 
-	int did_init;
+	bool did_init;
 
 	// DNS-related events.
 	EventHandlerPtr dns_mapping_valid;
@@ -162,19 +159,19 @@ protected:
 
 	RecordType* dm_rec;
 
-	typedef list<LookupCallback*> CallbackList;
+	typedef std::list<LookupCallback*> CallbackList;
 
 	struct AsyncRequest {
 		double time;
+		IPAddr host;
+		std::string name;
+		CallbackList callbacks;
 		bool is_txt;
 		bool processed;
-		IPAddr host;
-		string name;
-		CallbackList callbacks;
 
 		AsyncRequest() : time(0.0), is_txt(false), processed(false) { }
 
-		bool IsAddrReq() const	{ return name.length() == 0; }
+		bool IsAddrReq() const	{ return name.empty(); }
 
 		void Resolved(const char* name)
 			{
@@ -214,16 +211,16 @@ protected:
 
 	};
 
-	typedef map<IPAddr, AsyncRequest*> AsyncRequestAddrMap;
+	typedef std::map<IPAddr, AsyncRequest*> AsyncRequestAddrMap;
 	AsyncRequestAddrMap asyncs_addrs;
 
-	typedef map<string, AsyncRequest*> AsyncRequestNameMap;
+	typedef std::map<std::string, AsyncRequest*> AsyncRequestNameMap;
 	AsyncRequestNameMap asyncs_names;
 
-	typedef map<string, AsyncRequest*> AsyncRequestTextMap;
+	typedef std::map<std::string, AsyncRequest*> AsyncRequestTextMap;
 	AsyncRequestTextMap asyncs_texts;
 
-	typedef list<AsyncRequest*> QueuedList;
+	typedef std::list<AsyncRequest*> QueuedList;
 	QueuedList asyncs_queued;
 
 	struct AsyncRequestCompare {
@@ -233,7 +230,7 @@ protected:
 			}
 	};
 
-	typedef priority_queue<AsyncRequest*, std::vector<AsyncRequest*>, AsyncRequestCompare> TimeoutQueue;
+	typedef std::priority_queue<AsyncRequest*, std::vector<AsyncRequest*>, AsyncRequestCompare> TimeoutQueue;
 	TimeoutQueue asyncs_timeouts;
 
 	int asyncs_pending;
@@ -241,7 +238,6 @@ protected:
 	unsigned long num_requests;
 	unsigned long successful;
 	unsigned long failed;
-	double next_timestamp;
 };
 
 extern DNS_Mgr* dns_mgr;

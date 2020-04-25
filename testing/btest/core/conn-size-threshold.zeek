@@ -23,7 +23,7 @@ event connection_established(c: connection)
 	print get_current_conn_bytes_threshold(c$id, F);
 	print get_current_conn_packets_threshold(c$id, T);
 	print get_current_conn_packets_threshold(c$id, F);
-	print get_current_conn_duration_threshold(c$id);
+	print get_current_conn_duration_threshold(c$id), c$duration;
 	}
 
 event conn_bytes_threshold_crossed(c: connection, threshold: count, is_orig: bool)
@@ -38,5 +38,5 @@ event conn_packets_threshold_crossed(c: connection, threshold: count, is_orig: b
 
 event conn_duration_threshold_crossed(c: connection, threshold: interval, is_orig: bool)
 	{
-	print "triggered duration", c$id, threshold, is_orig;
+	print "triggered duration", c$id, threshold, is_orig, c$duration;
 	}

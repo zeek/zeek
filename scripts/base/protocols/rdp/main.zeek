@@ -85,13 +85,15 @@ redef record connection += {
 	rdp: Info &optional;
 };
 
-const ports = { 3389/tcp };
-redef likely_server_ports += { ports };
+const rdp_ports = { 3389/tcp };
+const rdpeudp_ports = { 3389/udp };
+redef likely_server_ports += { rdp_ports, rdpeudp_ports };
 
 event zeek_init() &priority=5
 	{
 	Log::create_stream(RDP::LOG, [$columns=RDP::Info, $ev=log_rdp, $path="rdp"]);
-	Analyzer::register_for_ports(Analyzer::ANALYZER_RDP, ports);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_RDP, rdp_ports);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_RDPEUDP, rdpeudp_ports);
 	}
 
 function write_log(c: connection)
@@ -272,7 +274,7 @@ event protocol_violation(c: connection, atype: Analyzer::Tag, aid: count, reason
 		write_log(c);
 	}
 
-event connection_state_remove(c: connection) &priority=-5
+event successful_connection_remove(c: connection) &priority=-5
 	{
 	# If the connection is removed, then log the record immediately.
 	if ( c?$rdp )

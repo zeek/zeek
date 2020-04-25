@@ -2,9 +2,11 @@
 
 #pragma once
 
-#include "RE.h"
-#include "IntSet.h"
+#include "Obj.h"
+#include "List.h"
 
+class CCL;
+class Func;
 class NFA_State;
 class EquivClass;
 
@@ -76,12 +78,12 @@ protected:
 
 class EpsilonState : public NFA_State {
 public:
-	EpsilonState()	: NFA_State(SYM_EPSILON, 0)	{ }
+	EpsilonState()	: NFA_State(SYM_EPSILON, nullptr)	{ }
 };
 
 class NFA_Machine : public BroObj {
 public:
-	explicit NFA_Machine(NFA_State* first, NFA_State* final = 0);
+	explicit NFA_Machine(NFA_State* first, NFA_State* final = nullptr);
 	~NFA_Machine() override;
 
 	NFA_State* FirstState() const	{ return first_state; }

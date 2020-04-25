@@ -8,7 +8,7 @@
 
 namespace analyzer { namespace krb_tcp {
 
-class KRB_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class KRB_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 
 public:
 	explicit KRB_Analyzer(Connection* conn);

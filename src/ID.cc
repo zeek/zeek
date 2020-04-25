@@ -3,15 +3,21 @@
 #include "zeek-config.h"
 
 #include "ID.h"
+#include "Attr.h"
+#include "Desc.h"
 #include "Expr.h"
 #include "Dict.h"
 #include "EventRegistry.h"
 #include "Func.h"
 #include "Scope.h"
+#include "Type.h"
 #include "File.h"
-#include "Scope.h"
 #include "Traverse.h"
+#include "Val.h"
 #include "zeekygen/Manager.h"
+#include "zeekygen/IdentifierInfo.h"
+#include "zeekygen/ScriptInfo.h"
+#include "module_util.h"
 
 ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 	{
@@ -19,9 +25,7 @@ ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 	scope = arg_scope;
 	is_export = arg_is_export;
 	is_option = false;
-	type = 0;
-	val = 0;
-	attrs = 0;
+	val = nullptr;
 	is_const = false;
 	is_enum_const = false;
 	is_type = false;
@@ -36,19 +40,19 @@ ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 ID::~ID()
 	{
 	delete [] name;
-	Unref(type);
-	Unref(attrs);
-
-	for ( auto element : option_handlers )
-		Unref(element.second);
 
 	if ( ! weak_ref )
 		Unref(val);
 	}
 
-string ID::ModuleName() const
+std::string ID::ModuleName() const
 	{
 	return extract_module_name(name);
+	}
+
+void ID::SetType(IntrusivePtr<BroType> t)
+	{
+	type = std::move(t);
 	}
 
 void ID::ClearVal()
@@ -56,15 +60,15 @@ void ID::ClearVal()
 	if ( ! weak_ref )
 		Unref(val);
 
-	val = 0;
+	val = nullptr;
 	}
 
-void ID::SetVal(Val* v, bool arg_weak_ref)
+void ID::SetVal(IntrusivePtr<Val> v, bool arg_weak_ref)
 	{
 	if ( ! weak_ref )
 		Unref(val);
 
-	val = v;
+	val = v.release();
 	weak_ref = arg_weak_ref;
 	Modified();
 
@@ -92,11 +96,11 @@ void ID::SetVal(Val* v, bool arg_weak_ref)
 		}
 	}
 
-void ID::SetVal(Val* v, init_class c)
+void ID::SetVal(IntrusivePtr<Val> v, init_class c)
 	{
 	if ( c == INIT_NONE || c == INIT_FULL )
 		{
-		SetVal(v);
+		SetVal(std::move(v));
 		return;
 		}
 
@@ -105,9 +109,9 @@ void ID::SetVal(Val* v, init_class c)
 	     (type->Tag() != TYPE_VECTOR  || c == INIT_REMOVE) )
 		{
 		if ( c == INIT_EXTRA )
-			Error("+= initializer only applies to tables, sets, vectors and patterns", v);
+			Error("+= initializer only applies to tables, sets, vectors and patterns", v.get());
 		else
-			Error("-= initializer only applies to tables and sets", v);
+			Error("-= initializer only applies to tables and sets", v.get());
 		}
 
 	else
@@ -116,11 +120,11 @@ void ID::SetVal(Val* v, init_class c)
 			{
 			if ( ! val )
 				{
-				SetVal(v);
+				SetVal(std::move(v));
 				return;
 				}
 			else
-				v->AddTo(val, 0);
+				v->AddTo(val, false);
 			}
 		else
 			{
@@ -128,11 +132,9 @@ void ID::SetVal(Val* v, init_class c)
 				v->RemoveFrom(val);
 			}
 		}
-
-	Unref(v);
 	}
 
-void ID::SetVal(Expr* ev, init_class c)
+void ID::SetVal(IntrusivePtr<Expr> ev, init_class c)
 	{
 	Attr* a = attrs->FindAttr(c == INIT_EXTRA ?
 					ATTR_ADD_FUNC : ATTR_DEL_FUNC);
@@ -140,14 +142,18 @@ void ID::SetVal(Expr* ev, init_class c)
 	if ( ! a )
 		Internal("no add/delete function in ID::SetVal");
 
-	EvalFunc(a->AttrExpr(), ev);
+	EvalFunc({NewRef{}, a->AttrExpr()}, std::move(ev));
 	}
 
-void ID::SetAttrs(Attributes* a)
+bool ID::IsRedefinable() const
 	{
-	Unref(attrs);
-	attrs = 0;
-	AddAttrs(a);
+	return FindAttr(ATTR_REDEF) != nullptr;
+	}
+
+void ID::SetAttrs(IntrusivePtr<Attributes> a)
+	{
+	attrs = nullptr;
+	AddAttrs(std::move(a));
 	}
 
 void ID::UpdateValAttrs()
@@ -159,7 +165,7 @@ void ID::UpdateValAttrs()
 		val->AsTableVal()->SetAttrs(attrs);
 
 	if ( val && val->Type()->Tag() == TYPE_FILE )
-		val->AsFile()->SetAttrs(attrs);
+		val->AsFile()->SetAttrs(attrs.get());
 
 	if ( Type()->Tag() == TYPE_FUNC )
 		{
@@ -181,26 +187,36 @@ void ID::UpdateValAttrs()
 				TypeDecl* fd = rt->FieldDecl(i);
 
 				if ( ! fd->attrs )
-					fd->attrs = new Attributes(new attr_list, rt->FieldType(i), true, IsGlobal());
+					fd->attrs = make_intrusive<Attributes>(new attr_list, IntrusivePtr{NewRef{}, rt->FieldType(i)}, true, IsGlobal());
 
-				fd->attrs->AddAttr(new Attr(ATTR_LOG));
+				fd->attrs->AddAttr(make_intrusive<Attr>(ATTR_LOG));
 				}
 			}
 		}
 	}
 
-void ID::MakeDeprecated(Expr* deprecation)
+Attr* ID::FindAttr(attr_tag t) const
+	{
+	return attrs ? attrs->FindAttr(t) : nullptr;
+	}
+
+bool ID::IsDeprecated() const
+	{
+	return FindAttr(ATTR_DEPRECATED) != nullptr;
+	}
+
+void ID::MakeDeprecated(IntrusivePtr<Expr> deprecation)
 	{
 	if ( IsDeprecated() )
 		return;
 
-	attr_list* attr = new attr_list{new Attr(ATTR_DEPRECATED, deprecation)};
-	AddAttrs(new Attributes(attr, Type(), false, IsGlobal()));
+	attr_list* attr = new attr_list{new Attr(ATTR_DEPRECATED, std::move(deprecation))};
+	AddAttrs(make_intrusive<Attributes>(attr, IntrusivePtr{NewRef{}, Type()}, false, IsGlobal()));
 	}
 
-string ID::GetDeprecationWarning() const
+std::string ID::GetDeprecationWarning() const
 	{
-	string result;
+	std::string result;
 	Attr* depr_attr = FindAttr(ATTR_DEPRECATED);
 	if ( depr_attr )
 		{
@@ -218,12 +234,12 @@ string ID::GetDeprecationWarning() const
 		return fmt("deprecated (%s): %s", Name(), result.c_str());
 	}
 
-void ID::AddAttrs(Attributes* a)
+void ID::AddAttrs(IntrusivePtr<Attributes> a)
 	{
 	if ( attrs )
-		attrs->AddAttrs(a);
+		attrs->AddAttrs(a.release());
 	else
-		attrs = a;
+		attrs = std::move(a);
 
 	UpdateValAttrs();
 	}
@@ -245,54 +261,19 @@ void ID::SetOption()
 	if ( ! IsRedefinable() )
 		{
 		attr_list* attr = new attr_list{new Attr(ATTR_REDEF)};
-		AddAttrs(new Attributes(attr, Type(), false, IsGlobal()));
+		AddAttrs(make_intrusive<Attributes>(attr, IntrusivePtr{NewRef{}, Type()}, false, IsGlobal()));
 		}
 	}
 
-void ID::EvalFunc(Expr* ef, Expr* ev)
+void ID::EvalFunc(IntrusivePtr<Expr> ef, IntrusivePtr<Expr> ev)
 	{
-	Expr* arg1 = new ConstExpr(val->Ref());
-	ListExpr* args = new ListExpr();
-	args->Append(arg1);
-	args->Append(ev->Ref());
-
-	CallExpr* ce = new CallExpr(ef->Ref(), args);
-
-	SetVal(ce->Eval(0));
-	Unref(ce);
+	auto arg1 = make_intrusive<ConstExpr>(IntrusivePtr{NewRef{}, val});
+	auto args = make_intrusive<ListExpr>();
+	args->Append(std::move(arg1));
+	args->Append(std::move(ev));
+	auto ce = make_intrusive<CallExpr>(std::move(ef), std::move(args));
+	SetVal(ce->Eval(nullptr));
 	}
-
-#if 0
-void ID::CopyFrom(const ID* id)
-	{
-	is_export = id->is_export;
-	is_const = id->is_const;
-	is_enum_const = id->is_enum_const;
-	is_type = id->is_type;
-	offset = id->offset ;
-	infer_return_type = id->infer_return_type;
-
-	if ( id->type )
-		Ref(id->type);
-	if ( id->val && ! id->weak_ref )
-		Ref(id->val);
-	if ( id->attrs )
-		Ref(id->attrs);
-
-	Unref(type);
-	Unref(attrs);
-	if ( ! weak_ref )
-		Unref(val);
-
-	type = id->type;
-	val = id->val;
-	attrs = id->attrs;
-	weak_ref = id->weak_ref;
-
-#ifdef DEBUG
-	UpdateValID();
-#endif
-#endif
 
 TraversalCode ID::Traverse(TraversalCallback* cb) const
 	{
@@ -331,7 +312,7 @@ TraversalCode ID::Traverse(TraversalCallback* cb) const
 
 void ID::Error(const char* msg, const BroObj* o2)
 	{
-	BroObj::Error(msg, o2, 1);
+	BroObj::Error(msg, o2, true);
 	SetType(error_type());
 	}
 
@@ -450,7 +431,41 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const
 			d->Add("`");
 			}
 		else
+			{
 			type->DescribeReST(d, roles_only);
+
+			if ( IsFunc(type->Tag()) )
+				{
+				auto ft = type->AsFuncType();
+
+				if ( ft->Flavor() == FUNC_FLAVOR_EVENT ||
+				     ft->Flavor() == FUNC_FLAVOR_HOOK )
+					{
+					const auto& protos = ft->Prototypes();
+
+					if ( protos.size() > 1 )
+						{
+						auto first = true;
+
+						for ( const auto& proto : protos )
+							{
+							if ( first )
+								{
+								first = false;
+								continue;
+								}
+
+							d->NL();
+							d->Add(":Type: :zeek:type:`");
+							d->Add(ft->FlavorString());
+							d->Add("` (");
+							proto.args->DescribeFieldsReST(d, true);
+							d->Add(")");
+							}
+						}
+					}
+				}
+			}
 
 		d->NL();
 		}
@@ -555,18 +570,18 @@ void ID::UpdateValID()
 	}
 #endif
 
-void ID::AddOptionHandler(Func* callback, int priority)
+void ID::AddOptionHandler(IntrusivePtr<Func> callback, int priority)
 	{
-	option_handlers.insert({priority, callback});
+	option_handlers.emplace(priority, std::move(callback));
 	}
 
-vector<Func*> ID::GetOptionHandlers() const
+std::vector<Func*> ID::GetOptionHandlers() const
 	{
 	// multimap is sorted
 	// It might be worth caching this if we expect it to be called
 	// a lot...
-	vector<Func*> v;
+	std::vector<Func*> v;
 	for ( auto& element : option_handlers )
-		v.push_back(element.second);
+		v.push_back(element.second.get());
 	return v;
 	}

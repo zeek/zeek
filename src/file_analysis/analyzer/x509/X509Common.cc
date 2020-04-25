@@ -2,6 +2,7 @@
 
 #include "X509Common.h"
 #include "x509-extension_pac.h"
+#include "Reporter.h"
 
 #include "events.bif.h"
 #include "ocsp_events.bif.h"
@@ -15,7 +16,7 @@
 
 using namespace file_analysis;
 
-X509Common::X509Common(file_analysis::Tag arg_tag, RecordVal* arg_args, File* arg_file)
+X509Common::X509Common(const file_analysis::Tag& arg_tag, RecordVal* arg_args, File* arg_file)
 	: file_analysis::Analyzer(arg_tag, arg_args, arg_file)
 	{
 	}
@@ -229,7 +230,7 @@ void file_analysis::X509Common::ParseSignedCertificateTimestamps(X509_EXTENSION*
 	delete conn;
 	}
 
-void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, EventHandlerPtr h, bool global)
+void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, const EventHandlerPtr& h, bool global)
 	{
 	char name[256];
 	char oid[256];
@@ -256,18 +257,25 @@ void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, EventHandlerP
 			}
 		}
 
-	StringVal* ext_val = GetExtensionFromBIO(bio, GetFile());
+	auto ext_val = GetExtensionFromBIO(bio, GetFile());
+
+	if ( ! h )
+		{
+		// let individual analyzers parse more.
+		ParseExtensionsSpecific(ex, global, ext_asn, oid);
+		return;
+		}
 
 	if ( ! ext_val )
-		ext_val = new StringVal(0, "");
+		ext_val = make_intrusive<StringVal>(0, "");
 
-	RecordVal* pX509Ext = new RecordVal(BifType::Record::X509::Extension);
-	pX509Ext->Assign(0, new StringVal(name));
+	auto pX509Ext = make_intrusive<RecordVal>(BifType::Record::X509::Extension);
+	pX509Ext->Assign(0, make_intrusive<StringVal>(name));
 
 	if ( short_name and strlen(short_name) > 0 )
-		pX509Ext->Assign(1, new StringVal(short_name));
+		pX509Ext->Assign(1, make_intrusive<StringVal>(short_name));
 
-	pX509Ext->Assign(2, new StringVal(oid));
+	pX509Ext->Assign(2, make_intrusive<StringVal>(oid));
 	pX509Ext->Assign(3, val_mgr->GetBool(critical));
 	pX509Ext->Assign(4, ext_val);
 
@@ -279,22 +287,18 @@ void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, EventHandlerP
 	// but I am not sure if there is a better way to do it...
 
 	if ( h == ocsp_extension )
-		mgr.QueueEvent(h, {
-			GetFile()->GetVal()->Ref(),
-			pX509Ext,
-			val_mgr->GetBool(global ? 1 : 0),
-		});
+		mgr.Enqueue(h, IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+					std::move(pX509Ext),
+					IntrusivePtr{AdoptRef{}, val_mgr->GetBool(global)});
 	else
-		mgr.QueueEvent(h, {
-			GetFile()->GetVal()->Ref(),
-			pX509Ext,
-		});
+		mgr.Enqueue(h, IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+		            std::move(pX509Ext));
 
 	// let individual analyzers parse more.
 	ParseExtensionsSpecific(ex, global, ext_asn, oid);
 	}
 
-StringVal* file_analysis::X509Common::GetExtensionFromBIO(BIO* bio, File* f)
+IntrusivePtr<StringVal> file_analysis::X509Common::GetExtensionFromBIO(BIO* bio, File* f)
 	{
 	BIO_flush(bio);
 	ERR_clear_error();
@@ -306,13 +310,13 @@ StringVal* file_analysis::X509Common::GetExtensionFromBIO(BIO* bio, File* f)
 		ERR_error_string_n(ERR_get_error(), tmp, sizeof(tmp));
 		EmitWeird("x509_get_ext_from_bio", f, tmp);
 		BIO_free_all(bio);
-		return 0;
+		return nullptr;
 		}
 
 	if ( length == 0 )
 		{
 		BIO_free_all(bio);
-		return val_mgr->GetEmptyString();
+		return {AdoptRef{}, val_mgr->GetEmptyString()};
 		}
 
 	char* buffer = (char*) malloc(length);
@@ -323,11 +327,11 @@ StringVal* file_analysis::X509Common::GetExtensionFromBIO(BIO* bio, File* f)
 		// because it's unclear the length value is very reliable.
 		reporter->Error("X509::GetExtensionFromBIO malloc(%d) failed", length);
 		BIO_free_all(bio);
-		return 0;
+		return nullptr;
 		}
 
 	BIO_read(bio, (void*) buffer, length);
-	StringVal* ext_val = new StringVal(length, buffer);
+	auto ext_val = make_intrusive<StringVal>(length, buffer);
 
 	free(buffer);
 	BIO_free_all(bio);

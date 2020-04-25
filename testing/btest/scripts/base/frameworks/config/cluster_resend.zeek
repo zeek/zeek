@@ -3,11 +3,9 @@
 # @TEST-PORT: BROKER_PORT3
 #
 # @TEST-EXEC: btest-bg-run manager-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek %INPUT
-# @TEST-EXEC: sleep 1
 # @TEST-EXEC: btest-bg-run worker-1  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek %INPUT
-# @TEST-EXEC: sleep 15
 # @TEST-EXEC: btest-bg-run worker-2  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek %INPUT
-# @TEST-EXEC: btest-bg-wait 15
+# @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: btest-diff manager-1/.stdout
 # @TEST-EXEC: btest-diff worker-1/.stdout
 # @TEST-EXEC: btest-diff worker-2/.stdout
@@ -37,11 +35,6 @@ export {
 
 global n = 0;
 
-event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
-	{
-	terminate();
-	}
-
 global ready_for_data: event();
 
 event zeek_init()
@@ -64,23 +57,16 @@ event ready_for_data()
 	}
 @endif
 
-event die()
-	{
-	terminate();
-	}
-
-@if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
-event Cluster::node_up(name: string, id: string)
-	{
-		print "Node up", name;
-		if ( name == "worker-2" )
-		schedule 5sec { die() };
-	}
-@endif
+global option_changed_count = 0;
 
 function option_changed(ID: string, new_value: any, location: string): any
 	{
+	++option_changed_count;
 	print "option changed", ID, new_value, location;
+
+	if ( Cluster::node == "worker-2" && option_changed_count == 3 )
+		terminate();
+
 	return new_value;
 	}
 

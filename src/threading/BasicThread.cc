@@ -1,18 +1,11 @@
 
 #include <signal.h>
+#include <pthread.h>
 
 #include "zeek-config.h"
 #include "BasicThread.h"
 #include "Manager.h"
-#include "pthread.h"
-
-#ifdef HAVE_LINUX
-#include <sys/prctl.h>
-#endif
-
-#ifdef __FreeBSD__
-#include <pthread_np.h>
-#endif
+#include "util.h"
 
 using namespace threading;
 
@@ -29,7 +22,7 @@ BasicThread::BasicThread()
 	buf_len = STD_FMT_BUF_LEN;
 	buf = (char*) safe_malloc(buf_len);
 
-	strerr_buffer = 0;
+	strerr_buffer = nullptr;
 
 	name = copy_string(fmt("thread-%" PRIu64, ++thread_counter));
 
@@ -54,18 +47,7 @@ void BasicThread::SetName(const char* arg_name)
 void BasicThread::SetOSName(const char* arg_name)
 	{
 	static_assert(std::is_same<std::thread::native_handle_type, pthread_t>::value, "libstdc++ doesn't use pthread_t");
-
-#ifdef HAVE_LINUX
-	prctl(PR_SET_NAME, arg_name, 0, 0, 0);
-#endif
-
-#ifdef __APPLE__
-	pthread_setname_np(arg_name);
-#endif
-
-#ifdef __FreeBSD__
-	pthread_set_name_np(thread.native_handle(), arg_name);
-#endif
+	zeek::set_thread_name(arg_name, thread.native_handle());
 	}
 
 const char* BasicThread::Fmt(const char* format, ...)
@@ -79,7 +61,7 @@ const char* BasicThread::Fmt(const char* format, ...)
 
 	va_list al;
 	va_start(al, format);
-	int n = safe_vsnprintf(buf, buf_len, format, al);
+	int n = vsnprintf(buf, buf_len, format, al);
 	va_end(al);
 
 	if ( (unsigned int) n >= buf_len )
@@ -89,7 +71,7 @@ const char* BasicThread::Fmt(const char* format, ...)
 
 		// Is it portable to restart?
 		va_start(al, format);
-		n = safe_vsnprintf(buf, buf_len, format, al);
+		n = vsnprintf(buf, buf_len, format, al);
 		va_end(al);
 		}
 
@@ -209,5 +191,5 @@ void* BasicThread::launcher(void *arg)
 
 	thread->Done();
 
-	return 0;
+	return nullptr;
 	}

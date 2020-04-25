@@ -1,16 +1,15 @@
 // See the file  in the main distribution directory for copyright.
 
-
-#include "plugin/Plugin.h"
-
 #include "SteppingStone.h"
+#include "plugin/Plugin.h"
+#include "analyzer/Component.h"
 
 namespace plugin {
 namespace Zeek_SteppingStone {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("SteppingStone", ::analyzer::stepping_stone::SteppingStone_Analyzer::Instantiate));
 

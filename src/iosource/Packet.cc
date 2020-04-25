@@ -1,9 +1,11 @@
-
 #include "Packet.h"
 #include "Sessions.h"
+#include "Desc.h"
+#include "IP.h"
 #include "iosource/Manager.h"
 
 extern "C" {
+#include <pcap.h>
 #ifdef HAVE_NET_ETHERNET_H
 #include <net/ethernet.h>
 #elif defined(HAVE_SYS_ETHERNET_H)
@@ -17,7 +19,7 @@ extern "C" {
 }
 
 void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
-		  uint32_t arg_len, const u_char *arg_data, int arg_copy,
+		  uint32_t arg_len, const u_char *arg_data, bool arg_copy,
 		  std::string arg_tag)
 	{
 	if ( data && copy )
@@ -27,7 +29,7 @@ void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
 	ts = *arg_ts;
 	cap_len = arg_caplen;
 	len = arg_len;
-	tag = arg_tag;
+	tag = std::move(arg_tag);
 
 	copy = arg_copy;
 
@@ -41,14 +43,17 @@ void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
 
 	time = ts.tv_sec + double(ts.tv_usec) / 1e6;
 	hdr_size = GetLinkHeaderSize(arg_link_type);
-	l3_proto = L3_UNKNOWN;
 	eth_type = 0;
 	vlan = 0;
 	inner_vlan = 0;
-	l2_src = 0;
-	l2_dst = 0;
 
+	l2_src = nullptr;
+	l2_dst = nullptr;
 	l2_valid = false;
+	l2_checksummed = false;
+
+	l3_proto = L3_UNKNOWN;
+	l3_checksummed = false;
 
 	if ( data && cap_len < hdr_size )
 		{
@@ -58,6 +63,11 @@ void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
 
 	if ( data )
 		ProcessLayer2();
+	}
+
+const IP_Hdr Packet::IP() const
+	{
+	return IP_Hdr((struct ip *) (data + hdr_size), false);
 	}
 
 void Packet::Weird(const char* name)
@@ -585,7 +595,7 @@ RecordVal* Packet::BuildPktHdrVal() const
 	RecordVal* pkt_hdr = new RecordVal(raw_pkt_hdr_type);
 	RecordVal* l2_hdr = new RecordVal(l2_hdr_type);
 
-	int is_ethernet = (link_type == DLT_EN10MB) ? 1 : 0;
+	bool is_ethernet = link_type == DLT_EN10MB;
 
 	int l3 = BifEnum::L3_UNKNOWN;
 
@@ -670,4 +680,3 @@ void Packet::Describe(ODesc* d) const
 	d->Add("->");
 	d->Add(ip.DstAddr());
 	}
-

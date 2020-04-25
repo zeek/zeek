@@ -61,10 +61,10 @@ extern int recvfrom(int, void *, int, int, struct sockaddr *, int *);
 struct nb_dns_entry {
 	struct nb_dns_entry *next;
 	char name[NS_MAXDNAME + 1];
+	u_short id;
 	int qtype;			/* query type */
 	int atype;			/* address family */
 	int asize;			/* address size */
-	u_short id;
 	void *cookie;
 };
 
@@ -411,7 +411,7 @@ _nb_dns_mkquery(register struct nb_dns_info *nd, register const char *name,
 		return (-1);
 	}
 	memset(ne, 0, sizeof(*ne));
-	strncpy(ne->name, name, sizeof(ne->name));
+	strncpy(ne->name, name, sizeof(ne->name) - 1);
 	ne->name[sizeof(ne->name) - 1] = '\0';
 	ne->qtype = qtype;
 	ne->atype = atype;

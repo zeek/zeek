@@ -73,7 +73,7 @@ RecordVal* proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_an
 				break;
 			case 9:
 				if ( element->data()->addrs()->addresses()->size() )
-					rv->Assign(12, proc_host_address_list(element->data()->addrs()));
+					rv->Assign(12, proc_host_address_list(bro_analyzer, element->data()->addrs()));
 
 				break;
 			case 10:
@@ -172,19 +172,27 @@ refine connection KRB_Conn += {
 	function proc_krb_kdc_req_msg(msg: KRB_KDC_REQ): bool
 		%{
 		bro_analyzer()->ProtocolConfirmation();
-		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 10 ) && ! krb_as_request )
-			return false;
+		auto msg_type = binary_to_int64(${msg.msg_type.data.content});
 
-		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 12 ) && ! krb_tgs_request )
-			return false;
+		if ( msg_type == 10 )
+			{
+			if ( ! krb_as_request )
+				return false;
 
-		RecordVal* rv = proc_krb_kdc_req_arguments(${msg}, bro_analyzer());
-
-		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 10 ) )
+			RecordVal* rv = proc_krb_kdc_req_arguments(${msg}, bro_analyzer());
 			BifEvent::generate_krb_as_request(bro_analyzer(), bro_analyzer()->Conn(), rv);
+			return true;
+			}
 
-		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 12 ) )
+		if ( msg_type == 12 )
+			{
+			if ( ! krb_tgs_request )
+				return false;
+
+			RecordVal* rv = proc_krb_kdc_req_arguments(${msg}, bro_analyzer());
 			BifEvent::generate_krb_tgs_request(bro_analyzer(), bro_analyzer()->Conn(), rv);
+			return true;
+			}
 
 		return true;
 		%}
@@ -192,32 +200,41 @@ refine connection KRB_Conn += {
 	function proc_krb_kdc_rep_msg(msg: KRB_KDC_REP): bool
 		%{
 		bro_analyzer()->ProtocolConfirmation();
+		auto msg_type = binary_to_int64(${msg.msg_type.data.content});
+		auto make_arg = [this, msg]() -> RecordVal*
+			{
+			RecordVal* rv = new RecordVal(BifType::Record::KRB::KDC_Response);
 
-		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 11 ) && ! krb_as_response )
-			return false;
+			rv->Assign(0, asn1_integer_to_val(${msg.pvno.data}, TYPE_COUNT));
+			rv->Assign(1, asn1_integer_to_val(${msg.msg_type.data}, TYPE_COUNT));
 
-		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 13 ) && ! krb_tgs_response )
-			return false;
+			if ( ${msg.padata.has_padata} )
+				rv->Assign(2, proc_padata(${msg.padata.padata.padata}, bro_analyzer(), false));
 
+			rv->Assign(3, bytestring_to_val(${msg.client_realm.encoding.content}));
+			rv->Assign(4, GetStringFromPrincipalName(${msg.client_name}));
 
-		RecordVal* rv = new RecordVal(BifType::Record::KRB::KDC_Response);
+			rv->Assign(5, proc_ticket(${msg.ticket}));
+			return rv;
+			};
 
-		rv->Assign(0, asn1_integer_to_val(${msg.pvno.data}, TYPE_COUNT));
-		rv->Assign(1, asn1_integer_to_val(${msg.msg_type.data}, TYPE_COUNT));
+		if ( msg_type == 11 )
+			{
+			if ( ! krb_as_response )
+				return false;
 
-		if ( ${msg.padata.has_padata} )
-			rv->Assign(2, proc_padata(${msg.padata.padata.padata}, bro_analyzer(), false));
+			BifEvent::generate_krb_as_response(bro_analyzer(), bro_analyzer()->Conn(), make_arg());
+			return true;
+			}
 
-		rv->Assign(3, bytestring_to_val(${msg.client_realm.encoding.content}));
-		rv->Assign(4, GetStringFromPrincipalName(${msg.client_name}));
+		if ( msg_type == 13 )
+			{
+			if ( ! krb_tgs_response )
+				return false;
 
-		rv->Assign(5, proc_ticket(${msg.ticket}));
-
-		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 11 ) )
-			BifEvent::generate_krb_as_response(bro_analyzer(), bro_analyzer()->Conn(), rv);
-
-		if ( ( binary_to_int64(${msg.msg_type.data.content}) == 13 ) )
-			BifEvent::generate_krb_tgs_response(bro_analyzer(), bro_analyzer()->Conn(), rv);
+			BifEvent::generate_krb_tgs_response(bro_analyzer(), bro_analyzer()->Conn(), make_arg());
+			return true;
+			}
 
 		return true;
 		%}
@@ -309,10 +326,10 @@ refine connection KRB_Conn += {
 						rv->Assign(5, asn1_integer_to_val(${msg.safe_body.args[i].args.seq_number}, TYPE_COUNT));
 						break;
 					case 4:
-						rv->Assign(6, proc_host_address(${msg.safe_body.args[i].args.sender_addr}));
+						rv->Assign(6, proc_host_address(bro_analyzer(), ${msg.safe_body.args[i].args.sender_addr}));
 						break;
 					case 5:
-						rv->Assign(7, proc_host_address(${msg.safe_body.args[i].args.recp_addr}));
+						rv->Assign(7, proc_host_address(bro_analyzer(), ${msg.safe_body.args[i].args.recp_addr}));
 						break;
 					default:
 						break;

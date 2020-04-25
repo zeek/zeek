@@ -321,7 +321,7 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &
 		}
 	}
 
-event connection_state_remove(c: connection) &priority=-5
+event successful_connection_remove(c: connection) &priority=-5
 	{
 	# Flush all pending but incomplete request/response pairs.
 	if ( c?$http_state )

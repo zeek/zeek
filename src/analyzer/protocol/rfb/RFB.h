@@ -9,9 +9,7 @@
 
 namespace analyzer { namespace rfb {
 
-class RFB_Analyzer
-
-: public tcp::TCP_ApplicationAnalyzer {
+class RFB_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 
 public:
 	explicit RFB_Analyzer(Connection* conn);

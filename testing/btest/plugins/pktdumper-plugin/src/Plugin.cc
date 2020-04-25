@@ -2,6 +2,8 @@
 #include "Plugin.h"
 
 #include "Foo.h"
+#include "iosource/Component.h"
+
 
 namespace plugin { namespace Demo_Foo { Plugin plugin; } }
 

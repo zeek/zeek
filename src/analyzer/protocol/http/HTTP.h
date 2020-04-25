@@ -27,7 +27,7 @@ class HTTP_Entity;
 class HTTP_Message;
 class HTTP_Analyzer;
 
-class HTTP_Entity : public mime::MIME_Entity {
+class HTTP_Entity final : public mime::MIME_Entity {
 public:
 	HTTP_Entity(HTTP_Message* msg, MIME_Entity* parent_entity,
 			int expect_body);
@@ -38,8 +38,8 @@ public:
 		}
 
 	void EndOfData() override;
-	void Deliver(int len, const char* data, int trailing_CRLF) override;
-	int Undelivered(int64_t len);
+	void Deliver(int len, const char* data, bool trailing_CRLF) override;
+	bool Undelivered(int64_t len);
 	int64_t BodyLength() const 		{ return body_length; }
 	int64_t HeaderLength() const 	{ return header_length; }
 	void SkipBody() 		{ deliver_body = 0; }
@@ -57,9 +57,9 @@ protected:
 	int expect_body;
 	int64_t body_length;
 	int64_t header_length;
-	int deliver_body;
 	enum { IDENTITY, GZIP, COMPRESS, DEFLATE } encoding;
 	zip::ZIP_Analyzer* zip;
+	bool deliver_body;
 	bool is_partial_content;
 	uint64_t offset;
 	int64_t instance_length; // total length indicated by content-range
@@ -68,8 +68,8 @@ protected:
 
 	MIME_Entity* NewChildEntity() override { return new HTTP_Entity(http_message, this, 1); }
 
-	void DeliverBody(int len, const char* data, int trailing_CRLF);
-	void DeliverBodyClear(int len, const char* data, int trailing_CRLF);
+	void DeliverBody(int len, const char* data, bool trailing_CRLF);
+	void DeliverBodyClear(int len, const char* data, bool trailing_CRLF);
 
 	void SubmitData(int len, const char* buf) override;
 
@@ -96,24 +96,24 @@ enum {
 // HTTP_Message::EndEntity	-> Message::Done
 // HTTP_MessageDone	-> {Request,Reply}Made
 
-class HTTP_Message : public mime::MIME_Message {
+class HTTP_Message final : public mime::MIME_Message {
 friend class HTTP_Entity;
 
 public:
 	HTTP_Message(HTTP_Analyzer* analyzer, tcp::ContentLine_Analyzer* cl,
 			 bool is_orig, int expect_body, int64_t init_header_length);
 	~HTTP_Message() override;
-	void Done(const int interrupted, const char* msg);
-	void Done() override { Done(0, "message ends normally"); }
+	void Done(bool interrupted, const char* msg);
+	void Done() override { Done(false, "message ends normally"); }
 
-	int Undelivered(int64_t len);
+	bool Undelivered(int64_t len);
 
 	void BeginEntity(mime::MIME_Entity* /* entity */) override;
 	void EndEntity(mime::MIME_Entity* entity) override;
 	void SubmitHeader(mime::MIME_Header* h) override;
 	void SubmitAllHeaders(mime::MIME_HeaderList& /* hlist */) override;
 	void SubmitData(int len, const char* buf) override;
-	int RequestBuffer(int* plen, char** pbuf) override;
+	bool RequestBuffer(int* plen, char** pbuf) override;
 	void SubmitAllData();
 	void SubmitEvent(int event_type, const char* detail) override;
 
@@ -145,23 +145,23 @@ protected:
 
 	HTTP_Entity* current_entity;
 
-	Val* BuildMessageStat(const int interrupted, const char* msg);
+	Val* BuildMessageStat(bool interrupted, const char* msg);
 };
 
-class HTTP_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class HTTP_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
 	HTTP_Analyzer(Connection* conn);
 	~HTTP_Analyzer() override;
 
-	void HTTP_Header(int is_orig, mime::MIME_Header* h);
-	void HTTP_EntityData(int is_orig, BroString* entity_data);
-	void HTTP_MessageDone(int is_orig, HTTP_Message* message);
+	void HTTP_Header(bool is_orig, mime::MIME_Header* h);
+	void HTTP_EntityData(bool is_orig, BroString* entity_data);
+	void HTTP_MessageDone(bool is_orig, HTTP_Message* message);
 	void HTTP_Event(const char* category, const char* detail);
 	void HTTP_Event(const char* category, StringVal *detail);
 
-	void SkipEntityData(int is_orig);
+	void SkipEntityData(bool is_orig);
 
-	int IsConnectionClose()		{ return connection_close; }
+	bool IsConnectionClose()		{ return connection_close; }
 	int HTTP_ReplyCode() const { return reply_code; };
 
 	// Overriden from Analyzer.
@@ -171,12 +171,28 @@ public:
 
 	// Overriden from tcp::TCP_ApplicationAnalyzer
 	void EndpointEOF(bool is_orig) override;
-	void ConnectionFinished(int half_finished) override;
+	void ConnectionFinished(bool half_finished) override;
 	void ConnectionReset() override;
 	void PacketWithRST() override;
 
-	double GetRequestVersion() { return request_version; };
-	double GetReplyVersion() { return reply_version; };
+	struct HTTP_VersionNumber {
+		uint8_t major = 0;
+		uint8_t minor = 0;
+
+		bool operator==(const HTTP_VersionNumber& other) const
+			{ return minor == other.minor && major == other.major; }
+
+		bool operator!=(const HTTP_VersionNumber& other) const
+			{ return ! operator==(other); }
+
+		double ToDouble() const
+			{ return major + minor * 0.1; }
+	};
+
+	double GetRequestVersion() { return request_version.ToDouble(); };
+	double GetReplyVersion() { return reply_version.ToDouble(); };
+	HTTP_VersionNumber GetRequestVersionNumber() { return request_version; };
+	HTTP_VersionNumber GetReplyVersionNumber() { return reply_version; };
 	int GetRequestOngoing() { return request_ongoing; };
 	int GetReplyOngoing() { return reply_ongoing; };
 
@@ -203,18 +219,18 @@ protected:
 	const char* PrefixWordMatch(const char* line, const char* end_of_line,
 				const char* prefix);
 
-	int ParseRequest(const char* line, const char* end_of_line);
-	double HTTP_Version(int len, const char* data);
+	bool ParseRequest(const char* line, const char* end_of_line);
+	HTTP_VersionNumber HTTP_Version(int len, const char* data);
 
-	void SetVersion(double& version, double new_version);
+	void SetVersion(HTTP_VersionNumber* version, HTTP_VersionNumber new_version);
 
-	int RequestExpected() const { return num_requests == 0 || keep_alive; }
+	bool RequestExpected() const { return num_requests == 0 || keep_alive; }
 
 	void HTTP_Request();
 	void HTTP_Reply();
 
-	void RequestMade(const int interrupted, const char* msg);
-	void ReplyMade(const int interrupted, const char* msg);
+	void RequestMade(bool interrupted, const char* msg);
+	void ReplyMade(bool interrupted, const char* msg);
 	void RequestClash(Val* clash_val);
 
 	const BroString* UnansweredRequestMethod();
@@ -227,7 +243,7 @@ protected:
 	int request_state, reply_state;
 	int num_requests, num_replies;
 	int num_request_lines, num_reply_lines;
-	double request_version, reply_version;
+	HTTP_VersionNumber request_version, reply_version;
 	int keep_alive;
 	int connection_close;
 	int request_ongoing, reply_ongoing;
@@ -263,10 +279,10 @@ protected:
 	HTTP_Message* reply_message;
 };
 
-extern int is_reserved_URI_char(unsigned char ch);
-extern int is_unreserved_URI_char(unsigned char ch);
+extern bool is_reserved_URI_char(unsigned char ch);
+extern bool is_unreserved_URI_char(unsigned char ch);
 extern void escape_URI_char(unsigned char ch, unsigned char*& p);
 extern BroString* unescape_URI(const u_char* line, const u_char* line_end,
 				analyzer::Analyzer* analyzer);
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

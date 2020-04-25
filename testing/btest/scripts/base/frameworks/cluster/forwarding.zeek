@@ -9,7 +9,7 @@
 # @TEST-EXEC: btest-bg-run proxy-2   ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=proxy-2 zeek %INPUT
 # @TEST-EXEC: btest-bg-run worker-1  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek %INPUT
 # @TEST-EXEC: btest-bg-run worker-2  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek %INPUT
-# @TEST-EXEC: btest-bg-wait 30
+# @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff manager-1/.stdout
 # @TEST-EXEC: btest-diff proxy-1/.stdout
 # @TEST-EXEC: btest-diff proxy-2/.stdout

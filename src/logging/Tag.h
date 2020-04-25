@@ -3,12 +3,16 @@
 #pragma once
 
 #include "zeek-config.h"
-#include "util.h"
 #include "../Tag.h"
-#include "plugin/TaggedComponent.h"
-#include "plugin/ComponentManager.h"
 
 class EnumVal;
+
+namespace plugin {
+template <class T>
+class TaggedComponent;
+template <class T, class C>
+class ComponentManager;
+}
 
 namespace logging {
 
@@ -52,7 +56,7 @@ public:
 	/**
 	 * Move assignment operator.
 	 */
-	Tag& operator=(const Tag&& other);
+	Tag& operator=(const Tag&& other) noexcept;
 
 	/**
 	 * Compares two tags for equality.

@@ -2,14 +2,17 @@
 
 #pragma once
 
-#include <broker/data.hh>
-#include <broker/expected.hh>
-
+#include "IntrusivePtr.h"
 #include "RandTest.h"
 #include "Val.h"
 #include "digest.h"
 #include "paraglob/paraglob.h"
 
+#include <broker/expected.hh>
+
+#include <sys/types.h> // for u_char
+
+namespace broker { class data; }
 class OpaqueVal;
 
 /**
@@ -18,7 +21,7 @@ class OpaqueVal;
   */
 class OpaqueMgr {
 public:
-	using Factory = OpaqueVal* ();
+	using Factory = IntrusivePtr<OpaqueVal> ();
 
 	/**
 	 * Return's a unique ID for the type of an opaque value.
@@ -42,7 +45,7 @@ public:
 	 * is unknown, this will return null.
 	 *
 	 */
-	OpaqueVal* Instantiate(const std::string& id) const;
+	IntrusivePtr<OpaqueVal> Instantiate(const std::string& id) const;
 
 	/** Returns the global manager singleton object. */
 	static OpaqueMgr* mgr();
@@ -65,10 +68,11 @@ private:
 /** Macro to insert into an OpaqueVal-derived class's declaration. */
 #define DECLARE_OPAQUE_VALUE(T)                            \
     friend class OpaqueMgr::Register<T>;                   \
+    friend IntrusivePtr<T> make_intrusive<T>();            \
     broker::expected<broker::data> DoSerialize() const override;             \
     bool DoUnserialize(const broker::data& data) override; \
     const char* OpaqueName() const override { return #T; } \
-    static OpaqueVal* OpaqueInstantiate() { return new T(); }
+    static IntrusivePtr<OpaqueVal> OpaqueInstantiate() { return make_intrusive<T>(); }
 
 #define __OPAQUE_MERGE(a, b) a ## b
 #define __OPAQUE_ID(x) __OPAQUE_MERGE(_opaque, x)
@@ -100,7 +104,7 @@ public:
 	 * @param data Broker representation as returned by *Serialize()*.
 	 * @return unserialized instances with reference count at +1
 	 */
-	static OpaqueVal* Unserialize(const broker::data& data);
+	static IntrusivePtr<OpaqueVal> Unserialize(const broker::data& data);
 
 protected:
 	friend class Val;
@@ -136,7 +140,7 @@ protected:
 	 * may also override this with a more efficient custom clone
 	 * implementation of their own.
 	 */
-	Val* DoClone(CloneState* state) override;
+	IntrusivePtr<Val> DoClone(CloneState* state) override;
 
 	/**
 	 * Helper function for derived class that need to record a type
@@ -158,18 +162,32 @@ namespace probabilistic {
 
 class HashVal : public OpaqueVal {
 public:
-	virtual bool IsValid() const;
-	virtual bool Init();
-	virtual bool Feed(const void* data, size_t size);
-	virtual StringVal* Get();
+	template <class T>
+	static void digest_all(HashAlgorithm alg, const T& vlist, u_char* result)
+		{
+		auto h = hash_init(alg);
+
+		for ( const auto& v : vlist )
+			digest_one(h, v);
+
+		hash_final(h, result);
+		}
+
+	bool IsValid() const;
+	bool Init();
+	bool Feed(const void* data, size_t size);
+	IntrusivePtr<StringVal> Get();
 
 protected:
+	static void digest_one(EVP_MD_CTX* h, const Val* v);
+	static void digest_one(EVP_MD_CTX* h, const IntrusivePtr<Val>& v);
+
 	HashVal()	{ valid = false; }
 	explicit HashVal(OpaqueType* t);
 
 	virtual bool DoInit();
 	virtual bool DoFeed(const void* data, size_t size);
-	virtual StringVal* DoGet();
+	virtual IntrusivePtr<StringVal> DoGet();
 
 private:
 	// This flag exists because Get() can only be called once.
@@ -178,23 +196,34 @@ private:
 
 class MD5Val : public HashVal {
 public:
-	static void digest(val_list& vlist, u_char result[MD5_DIGEST_LENGTH]);
+	template <class T>
+	static void digest(const T& vlist, u_char result[MD5_DIGEST_LENGTH])
+		{ digest_all(Hash_MD5, vlist, result); }
 
-	static void hmac(val_list& vlist,
-			 u_char key[MD5_DIGEST_LENGTH],
-			 u_char result[MD5_DIGEST_LENGTH]);
+	template <class T>
+	static void hmac(const T& vlist,
+	                 u_char key[MD5_DIGEST_LENGTH],
+	                 u_char result[MD5_DIGEST_LENGTH])
+		{
+		digest(vlist, result);
+
+		for ( int i = 0; i < MD5_DIGEST_LENGTH; ++i )
+			result[i] ^= key[i];
+
+		internal_md5(result, MD5_DIGEST_LENGTH, result);
+		}
 
 	MD5Val();
 	~MD5Val();
 
-	Val* DoClone(CloneState* state) override;
+	IntrusivePtr<Val> DoClone(CloneState* state) override;
 
 protected:
 	friend class Val;
 
 	bool DoInit() override;
 	bool DoFeed(const void* data, size_t size) override;
-	StringVal* DoGet() override;
+	IntrusivePtr<StringVal> DoGet() override;
 
 	DECLARE_OPAQUE_VALUE(MD5Val)
 private:
@@ -203,19 +232,21 @@ private:
 
 class SHA1Val : public HashVal {
 public:
-	static void digest(val_list& vlist, u_char result[SHA_DIGEST_LENGTH]);
+	template <class T>
+	static void digest(const T& vlist, u_char result[SHA_DIGEST_LENGTH])
+		{ digest_all(Hash_SHA1, vlist, result); }
 
 	SHA1Val();
 	~SHA1Val();
 
-	Val* DoClone(CloneState* state) override;
+	IntrusivePtr<Val> DoClone(CloneState* state) override;
 
 protected:
 	friend class Val;
 
 	bool DoInit() override;
 	bool DoFeed(const void* data, size_t size) override;
-	StringVal* DoGet() override;
+	IntrusivePtr<StringVal> DoGet() override;
 
 	DECLARE_OPAQUE_VALUE(SHA1Val)
 private:
@@ -224,19 +255,21 @@ private:
 
 class SHA256Val : public HashVal {
 public:
-	static void digest(val_list& vlist, u_char result[SHA256_DIGEST_LENGTH]);
+	template <class T>
+	static void digest(const T& vlist, u_char result[SHA256_DIGEST_LENGTH])
+		{ digest_all(Hash_SHA256, vlist, result); }
 
 	SHA256Val();
 	~SHA256Val();
 
-	Val* DoClone(CloneState* state) override;
+	IntrusivePtr<Val> DoClone(CloneState* state) override;
 
 protected:
 	friend class Val;
 
 	bool DoInit() override;
 	bool DoFeed(const void* data, size_t size) override;
-	StringVal* DoGet() override;
+	IntrusivePtr<StringVal> DoGet() override;
 
 	DECLARE_OPAQUE_VALUE(SHA256Val)
 private:
@@ -264,7 +297,7 @@ public:
 	explicit BloomFilterVal(probabilistic::BloomFilter* bf);
 	~BloomFilterVal() override;
 
-	Val* DoClone(CloneState* state) override;
+	IntrusivePtr<Val> DoClone(CloneState* state) override;
 
 	BroType* Type() const;
 	bool Typify(BroType* type);
@@ -273,10 +306,10 @@ public:
 	size_t Count(const Val* val) const;
 	void Clear();
 	bool Empty() const;
-	string InternalState() const;
+	std::string InternalState() const;
 
-	static BloomFilterVal* Merge(const BloomFilterVal* x,
-				     const BloomFilterVal* y);
+	static IntrusivePtr<BloomFilterVal> Merge(const BloomFilterVal* x,
+	                                          const BloomFilterVal* y);
 
 protected:
 	friend class Val;
@@ -300,7 +333,7 @@ public:
 	explicit CardinalityVal(probabilistic::CardinalityCounter*);
 	~CardinalityVal() override;
 
-	Val* DoClone(CloneState* state) override;
+	IntrusivePtr<Val> DoClone(CloneState* state) override;
 
 	void Add(const Val* val);
 
@@ -322,8 +355,8 @@ private:
 class ParaglobVal : public OpaqueVal {
 public:
 	explicit ParaglobVal(std::unique_ptr<paraglob::Paraglob> p);
-	VectorVal* Get(StringVal* &pattern);
-	Val* DoClone(CloneState* state) override;
+	IntrusivePtr<VectorVal> Get(StringVal* &pattern);
+	IntrusivePtr<Val> DoClone(CloneState* state) override;
 	bool operator==(const ParaglobVal& other) const;
 
 protected:

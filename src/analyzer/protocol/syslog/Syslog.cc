@@ -12,7 +12,7 @@ Syslog_Analyzer::Syslog_Analyzer(Connection* conn)
 	interp = new binpac::Syslog::Syslog_Conn(this);
 	did_session_done = 0;
 	//ADD_ANALYZER_TIMER(&Syslog_Analyzer::ExpireTimer,
-	//		network_time + Syslog_session_timeout, 1, TIMER_Syslog_EXPIRE);
+	//		network_time + Syslog_session_timeout, true, TIMER_Syslog_EXPIRE);
 	}
 
 Syslog_Analyzer::~Syslog_Analyzer()
@@ -46,7 +46,7 @@ void Syslog_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint
 //		}
 //	else
 //		ADD_ANALYZER_TIMER(&Syslog_Analyzer::ExpireTimer,
-//				t + Syslog_session_timeout, 1, TIMER_Syslog_EXPIRE);
+//				t + Syslog_session_timeout, true, TIMER_Syslog_EXPIRE);
 //	}
 
 //Syslog_tcp::TCP_Analyzer::Syslog_tcp::TCP_Analyzer(Connection* conn)

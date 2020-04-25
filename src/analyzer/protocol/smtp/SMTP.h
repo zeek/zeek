@@ -3,7 +3,6 @@
 #pragma once
 
 #include <list>
-using namespace std;
 
 #include "analyzer/protocol/tcp/TCP.h"
 #include "analyzer/protocol/tcp/ContentLine.h"
@@ -36,14 +35,14 @@ typedef enum {
 } SMTP_State;
 
 
-class SMTP_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class SMTP_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit SMTP_Analyzer(Connection* conn);
 	~SMTP_Analyzer() override;
 
 	void Done() override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
-	void ConnectionFinished(int half_finished) override;
+	void ConnectionFinished(bool half_finished) override;
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 
 	void SkipData()	{ skip_data = 1; }	// skip delivery of data lines
@@ -56,12 +55,12 @@ public:
 protected:
 
 	void ProcessLine(int length, const char* line, bool orig);
-	void NewCmd(const int cmd_code);
-	void NewReply(const int reply_code, bool orig);
+	void NewCmd(int cmd_code);
+	void NewReply(int reply_code, bool orig);
 	void ProcessExtension(int ext_len, const char* ext);
 	void ProcessData(int length, const char* line);
 
-	void UpdateState(const int cmd_code, const int reply_code, bool orig);
+	void UpdateState(int cmd_code, int reply_code, bool orig);
 
 	void BeginData(bool orig);
 	void EndData();
@@ -70,21 +69,21 @@ protected:
 
 	void RequestEvent(int cmd_len, const char* cmd,
 				int arg_len, const char* arg);
-	void Unexpected(const int is_orig, const char* msg,
+	void Unexpected(bool is_sender, const char* msg,
 				int detail_len, const char* detail);
-	void UnexpectedCommand(const int cmd_code, const int reply_code);
-	void UnexpectedReply(const int cmd_code, const int reply_code);
+	void UnexpectedCommand(int cmd_code, int reply_code);
+	void UnexpectedReply(int cmd_code, int reply_code);
 	void StartTLS();
 
 	bool orig_is_sender;
-	int expect_sender, expect_recver;
+	bool expect_sender, expect_recver;
+	bool pipelining;			// whether pipelining is supported
 	int state;
 	int last_replied_cmd;
 	int first_cmd;			// first un-replied SMTP cmd, or -1
 	int pending_reply;		// code assoc. w/ multi-line reply, or 0
-	int pipelining;			// whether pipelining is supported
-	list<int> pending_cmd_q;	// to support pipelining
-	int skip_data;			// whether to skip message body
+	std::list<int> pending_cmd_q;	// to support pipelining
+	bool skip_data;			// whether to skip message body
 	BroString* line_after_gap;	// last line before the first reply
 					// after a gap
 
@@ -95,4 +94,4 @@ private:
 	tcp::ContentLine_Analyzer* cl_resp;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

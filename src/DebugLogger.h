@@ -29,6 +29,7 @@ enum DebugStream {
 	DBG_PKTIO,	// Packet sources and dumpers.
 	DBG_BROKER,	// Broker communication
 	DBG_SCRIPTS,	// Script initialization
+	DBG_SUPERVISOR,	// Process supervisor
 
 	NUM_DBGS // Has to be last
 };

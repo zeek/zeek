@@ -11,6 +11,7 @@
 #include "SQLite.h"
 #include "sqlite.bif.h"
 
+using namespace std;
 using namespace logging;
 using namespace writer;
 using threading::Value;

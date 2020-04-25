@@ -1,6 +1,6 @@
 # @TEST-EXEC: btest-bg-run zeek "zeek -b %INPUT >output 2>&1"
-# @TEST-EXEC: btest-bg-wait 15
-# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-remove-timestamps | $SCRIPTS/diff-sort" btest-diff zeek/output
+# @TEST-EXEC: btest-bg-wait 30
+# @TEST-EXEC: TEST_DIFF_CANONIFIER="grep -v 'already queued for removal' | $SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-remove-timestamps | $SCRIPTS/diff-sort" btest-diff zeek/output
 
 # interpreter exceptions in "when" blocks shouldn't cause termination
 

@@ -3,8 +3,14 @@
 
 #pragma once
 
-#include <assert.h>
+#include "RE.h" // for typedef AcceptingSet
+#include "Obj.h"
+
+#include <map>
 #include <string>
+
+#include <assert.h>
+#include <sys/types.h> // for u_char
 
 class DFA_State;
 

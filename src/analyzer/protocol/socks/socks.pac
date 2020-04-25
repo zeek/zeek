@@ -3,6 +3,7 @@
 
 %extern{
 #include "SOCKS.h"
+#include "Reporter.h"
 
 #include "events.bif.h"
 %}

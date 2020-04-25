@@ -1,6 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "utils.h"
+#include "ID.h"
+#include "Scope.h"
 
 #include "Reporter.h"
 

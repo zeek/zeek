@@ -247,7 +247,7 @@ event ssh_capabilities(c: connection, cookie: string, capabilities: Capabilities
 	                                 server_caps$server_host_key_algorithms);
 	}
 
-event connection_state_remove(c: connection)
+event successful_connection_remove(c: connection)
 	{
 	if ( c?$ssh && !c$ssh$logged )
 		{

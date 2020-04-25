@@ -12,7 +12,7 @@
 
 namespace analyzer { namespace krb {
 
-class KRB_Analyzer : public analyzer::Analyzer {
+class KRB_Analyzer final : public analyzer::Analyzer {
 
 public:
 	explicit KRB_Analyzer(Connection* conn);

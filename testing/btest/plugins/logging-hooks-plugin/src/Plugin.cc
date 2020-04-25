@@ -4,6 +4,7 @@
 #include <Func.h>
 #include <Event.h>
 #include <Conn.h>
+#include <Desc.h>
 #include <threading/Formatter.h>
 
 namespace plugin { namespace Log_Hooks { Plugin plugin; } }

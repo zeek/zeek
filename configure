@@ -2,6 +2,11 @@
 # Convenience wrapper for easily viewing/setting options that
 # the project's CMake scripts will recognize
 set -e
+
+trap '[ $? -eq 0 ] && exit 0 ||
+echo "Also, before re-running configure, consider cleaning the cache \
+(removing the build directory) via \`make distclean\`"' EXIT
+
 command="$0 $*"
 
 usage="\
@@ -22,6 +27,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
                            ccache installation and CMake 3.10+)
     --toolchain=PATH       path to a CMAKE_TOOLCHAIN_FILE
                            (useful for cross-compiling)
+    --sanitizers=LIST      comma-separated list of sanitizer names to enable
 
   Installation Directories:
     --prefix=PREFIX        installation directory [/usr/local/zeek]
@@ -47,11 +53,12 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-jemalloc      link against jemalloc
     --enable-static-broker build Broker statically (ignored if --with-broker is specified)
     --enable-static-binpac build binpac statically (ignored if --with-binpac is specified)
+    --enable-cpp-tests     build Zeek's C++ unit tests
+    --enable-rocksdb       try to find a RocksDB installation for use in Broker
     --disable-zeekctl      don't install ZeekControl
     --disable-auxtools     don't build or install auxiliary tools
     --disable-python       don't try to build python bindings for Broker
     --disable-broker-tests don't try to build Broker unit tests
-    --sanitizers=SANITIZERS comma-separated list of Clang sanitizers to enable
 
   Required Packages in Non-Standard Locations:
     --with-openssl=PATH    path to OpenSSL install root
@@ -68,6 +75,8 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
                            (Zeek uses an embedded version by default)
     --with-caf=PATH        path to C++ Actor Framework install root
                            (a Broker dependency that is embedded by default)
+    --with-libkqueue=PATH  path to libkqueue install root
+                           (Zeek uses an embedded version by default)
 
   Optional Packages in Non-Standard Locations:
     --with-geoip=PATH      path to the libmaxminddb install root
@@ -77,7 +86,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-python-lib=PATH path to libpython
     --with-python-inc=PATH path to Python headers
     --with-swig=PATH       path to SWIG executable
-    --with-rocksdb=PATH    path to RocksDB installation
+    --with-rocksdb=PATH    path to RocksDB installation, implies --enable-rocksdb
                            (an optional Broker dependency)
 
   Packaging Options (for developers):
@@ -148,7 +157,7 @@ append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
 append_cache_entry INSTALL_ZEEKCTL      BOOL   true
 append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
 append_cache_entry ENABLE_MOBILE_IPV6   BOOL   false
-append_cache_entry SANITIZERS           STRING ""
+append_cache_entry ZEEK_SANITIZERS      STRING ""
 
 # parse arguments
 while [ $# -ne 0 ]; do
@@ -234,7 +243,7 @@ while [ $# -ne 0 ]; do
             append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL   true
             ;;
         --sanitizers=*)
-            append_cache_entry SANITIZERS    STRING    $optarg
+            append_cache_entry ZEEK_SANITIZERS    STRING    $optarg
             ;;
         --enable-jemalloc)
             append_cache_entry ENABLE_JEMALLOC     BOOL   true
@@ -244,6 +253,9 @@ while [ $# -ne 0 ]; do
             ;;
         --enable-static-binpac)
             append_cache_entry BUILD_STATIC_BINPAC    BOOL    true
+            ;;
+        --enable-cpp-tests)
+            append_cache_entry ENABLE_ZEEK_UNIT_TESTS BOOL    true
             ;;
         --disable-zeekctl)
             append_cache_entry INSTALL_ZEEKCTL       BOOL   false
@@ -268,7 +280,6 @@ while [ $# -ne 0 ]; do
             ;;
         --with-binpac=*)
             append_cache_entry BINPAC_EXE_PATH     PATH $optarg
-            append_cache_entry BinPAC_ROOT_DIR     PATH "$(dirname $optarg)/.."
             ;;
         --with-bifcl=*)
             append_cache_entry BIFCL_EXE_PATH      PATH   $optarg
@@ -311,7 +322,14 @@ while [ $# -ne 0 ]; do
         --with-caf=*)
             append_cache_entry CAF_ROOT_DIR      PATH   $optarg
             ;;
+        --with-libkqueue=*)
+            append_cache_entry LIBKQUEUE_ROOT_DIR      PATH   $optarg
+            ;;
+        --enable-rocksdb)
+            append_cache_entry BROKER_ENABLE_ROCKSDB BOOL true
+            ;;
         --with-rocksdb=*)
+            append_cache_entry BROKER_ENABLE_ROCKSDB BOOL true
             append_cache_entry ROCKSDB_ROOT_DIR     PATH   $optarg
             ;;
         --binary-package)

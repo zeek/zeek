@@ -16,7 +16,7 @@ using threading::Field;
 
 namespace logging  {
 
-class RotationFinishedMessage : public threading::OutputMessage<WriterFrontend>
+class RotationFinishedMessage final : public threading::OutputMessage<WriterFrontend>
 {
 public:
 	RotationFinishedMessage(WriterFrontend* writer, const char* new_name, const char* old_name,
@@ -25,13 +25,13 @@ public:
 		new_name(copy_string(new_name)), old_name(copy_string(old_name)), open(open),
 		close(close), success(success), terminating(terminating)	{ }
 
-	virtual ~RotationFinishedMessage()
+	~RotationFinishedMessage() override
 		{
 		delete [] new_name;
 		delete [] old_name;
 		}
 
-	virtual bool Process()
+	bool Process() override
 		{
 		return log_mgr->FinishedRotation(Object(), new_name, old_name, open, close, success, terminating);
 		}
@@ -45,22 +45,22 @@ private:
         bool terminating;
 };
 
-class FlushWriteBufferMessage : public threading::OutputMessage<WriterFrontend>
+class FlushWriteBufferMessage final : public threading::OutputMessage<WriterFrontend>
 {
 public:
-        FlushWriteBufferMessage(WriterFrontend* writer)
+	FlushWriteBufferMessage(WriterFrontend* writer)
 		: threading::OutputMessage<WriterFrontend>("FlushWriteBuffer", writer)	{}
 
-	virtual bool Process()	{ Object()->FlushWriteBuffer(); return true; }
+	bool Process() override	{ Object()->FlushWriteBuffer(); return true; }
 };
 
-class DisableMessage : public threading::OutputMessage<WriterFrontend>
+class DisableMessage final : public threading::OutputMessage<WriterFrontend>
 {
 public:
-        DisableMessage(WriterFrontend* writer)
+	DisableMessage(WriterFrontend* writer)
 		: threading::OutputMessage<WriterFrontend>("Disable", writer)	{}
 
-	virtual bool Process()	{ Object()->SetDisable(); return true; }
+	bool Process() override	{ Object()->SetDisable(); return true; }
 };
 
 }
@@ -121,7 +121,7 @@ bool WriterBackend::WriterInfo::FromBroker(broker::data d)
 WriterBackend::WriterBackend(WriterFrontend* arg_frontend) : MsgThread()
 	{
 	num_fields = 0;
-	fields = 0;
+	fields = nullptr;
 	buffering = true;
 	frontend = arg_frontend;
 	info = new WriterInfo(frontend->Info());
@@ -168,7 +168,7 @@ bool WriterBackend::FinishedRotation(const char* new_name, const char* old_name,
 bool WriterBackend::FinishedRotation()
 	{
 	--rotation_counter;
-	SendOut(new RotationFinishedMessage(frontend, 0, 0, 0, 0, false, false));
+	SendOut(new RotationFinishedMessage(frontend, nullptr, nullptr, 0, 0, false, false));
 	return true;
 	}
 

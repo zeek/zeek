@@ -10,7 +10,7 @@ namespace binpac { namespace TLSHandshake { class Handshake_Conn; } }
 
 namespace analyzer { namespace dtls {
 
-class DTLS_Analyzer : public analyzer::Analyzer {
+class DTLS_Analyzer final : public analyzer::Analyzer {
 public:
 	explicit DTLS_Analyzer(Connection* conn);
 	~DTLS_Analyzer() override;

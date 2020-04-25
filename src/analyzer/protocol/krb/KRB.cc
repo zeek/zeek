@@ -1,8 +1,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "KRB.h"
+
 #include <unistd.h>
 
-#include "KRB.h"
 #include "types.bif.h"
 #include "events.bif.h"
 
@@ -25,6 +26,13 @@ KRB_Analyzer::KRB_Analyzer(Connection* conn)
 	}
 
 #ifdef USE_KRB5
+static void warn_krb(const char* msg, krb5_context ctx, krb5_error_code code)
+	{
+	auto err = krb5_get_error_message(ctx, code);
+	reporter->Warning("%s (%s)", msg, err);
+	krb5_free_error_message(ctx, err);
+	}
+
 void KRB_Analyzer::Initialize_Krb()
 	{
 	if ( BifConst::KRB::keytab->Len() == 0 )
@@ -40,14 +48,14 @@ void KRB_Analyzer::Initialize_Krb()
 	krb5_error_code retval = krb5_init_context(&krb_context);
 	if ( retval )
 		{
-		reporter->Warning("KRB: Couldn't initialize the context (%s)", krb5_get_error_message(krb_context, retval));
+		warn_krb("KRB: Couldn't initialize the context", krb_context, retval);
 		return;
 		}
 
 	retval = krb5_kt_resolve(krb_context, keytab_filename, &krb_keytab);
 	if ( retval )
 		{
-		reporter->Warning("KRB: Couldn't resolve keytab (%s)", krb5_get_error_message(krb_context, retval));
+		warn_krb("KRB: Couldn't resolve keytab", krb_context, retval);
 		return;
 		}
 	krb_available = true;
@@ -103,33 +111,44 @@ StringVal* KRB_Analyzer::GetAuthenticationInfo(const BroString* principal, const
 	krb5_error_code retval = krb5_sname_to_principal(krb_context, hostname->CheckString(), service->CheckString(), KRB5_NT_SRV_HST, &sprinc);
 	if ( retval )
 		{
-		reporter->Warning("KRB: Couldn't generate principal name (%s)", krb5_get_error_message(krb_context, retval));
+		warn_krb("KRB: Couldn't generate principal name", krb_context, retval);
 		return nullptr;
 		}
 
-	krb5_ticket tkt;
-	tkt.server = sprinc;
-	tkt.enc_part.enctype = enctype;
-	tkt.enc_part.ciphertext.data = reinterpret_cast<char*>(ciphertext->Bytes());
-	tkt.enc_part.ciphertext.length = ciphertext->Len();
+	auto tkt = static_cast<krb5_ticket*>(safe_malloc(sizeof(krb5_ticket)));
+	memset(tkt, 0, sizeof(krb5_ticket));
 
-	retval = krb5_server_decrypt_ticket_keytab(krb_context, krb_keytab, &tkt);
+	tkt->server = sprinc;
+	tkt->enc_part.enctype = enctype;
+
+	auto ctd = static_cast<char*>(safe_malloc(ciphertext->Len()));
+	memcpy(ctd, ciphertext->Bytes(), ciphertext->Len());
+	tkt->enc_part.ciphertext.data = ctd;
+	tkt->enc_part.ciphertext.length = ciphertext->Len();
+
+	retval = krb5_server_decrypt_ticket_keytab(krb_context, krb_keytab, tkt);
+
 	if ( retval )
 		{
-		reporter->Warning("KRB: Couldn't decrypt ticket (%s)", krb5_get_error_message(krb_context, retval));
+		krb5_free_ticket(krb_context, tkt);
+		warn_krb("KRB: Couldn't decrypt ticket", krb_context, retval);
 		return nullptr;
 		}
 
 	char* cp;
-	retval = krb5_unparse_name(krb_context, tkt.enc_part2->client, &cp);
+	retval = krb5_unparse_name(krb_context, tkt->enc_part2->client, &cp);
+
 	if ( retval )
 		{
-		reporter->Warning("KRB: Couldn't unparse name (%s)", krb5_get_error_message(krb_context, retval));
+		krb5_free_ticket(krb_context, tkt);
+		warn_krb("KRB: Couldn't unparse name", krb_context, retval);
 		return nullptr;
 		}
+
 	StringVal* ret = new StringVal(cp);
 
 	krb5_free_unparsed_name(krb_context, cp);
+	krb5_free_ticket(krb_context, tkt);
 
 	return ret;
 #else

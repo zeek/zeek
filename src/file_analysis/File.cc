@@ -1,9 +1,10 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <string>
-#include <algorithm>
-
 #include "File.h"
+
+#include <utility>
+
+#include "FileReassembler.h"
 #include "FileTimer.h"
 #include "Analyzer.h"
 #include "Manager.h"
@@ -22,20 +23,19 @@ using namespace file_analysis;
 
 static Val* empty_connection_table()
 	{
-	TypeList* tbl_index = new TypeList(conn_id);
-	tbl_index->Append(conn_id->Ref());
-	TableType* tbl_type = new TableType(tbl_index, connection_type->Ref());
-	Val* rval = new TableVal(tbl_type);
-	Unref(tbl_type);
-	return rval;
+	auto tbl_index = make_intrusive<TypeList>(IntrusivePtr{NewRef{}, conn_id});
+	tbl_index->Append({NewRef{}, conn_id});
+	auto tbl_type = make_intrusive<TableType>(std::move(tbl_index),
+	                                          IntrusivePtr{NewRef{}, connection_type});
+	return new TableVal(std::move(tbl_type));
 	}
 
 static RecordVal* get_conn_id_val(const Connection* conn)
 	{
 	RecordVal* v = new RecordVal(conn_id);
-	v->Assign(0, new AddrVal(conn->OrigAddr()));
+	v->Assign(0, make_intrusive<AddrVal>(conn->OrigAddr()));
 	v->Assign(1, val_mgr->GetPort(ntohs(conn->OrigPort()), conn->ConnTransport()));
-	v->Assign(2, new AddrVal(conn->RespAddr()));
+	v->Assign(2, make_intrusive<AddrVal>(conn->RespAddr()));
 	v->Assign(3, val_mgr->GetPort(ntohs(conn->RespPort()), conn->ConnTransport()));
 	return v;
 	}
@@ -80,9 +80,9 @@ void File::StaticInit()
 	meta_inferred_idx = Idx("inferred", fa_metadata_type);
 	}
 
-File::File(const string& file_id, const string& source_name, Connection* conn,
+File::File(const std::string& file_id, const std::string& source_name, Connection* conn,
            analyzer::Tag tag, bool is_orig)
-	: id(file_id), val(0), file_reassembler(0), stream_offset(0),
+	: id(file_id), val(nullptr), file_reassembler(nullptr), stream_offset(0),
 	  reassembly_max_buffer(0), did_metadata_inference(false),
 	  reassembly_enabled(false), postpone_timeout(false), done(false),
 	  analyzers(this)
@@ -92,7 +92,7 @@ File::File(const string& file_id, const string& source_name, Connection* conn,
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Creating new File object", file_id.c_str());
 
 	val = new RecordVal(fa_file_type);
-	val->Assign(id_idx, new StringVal(file_id.c_str()));
+	val->Assign(id_idx, make_intrusive<StringVal>(file_id.c_str()));
 	SetSource(source_name);
 
 	if ( conn )
@@ -116,7 +116,7 @@ File::~File()
 
 void File::UpdateLastActivityTime()
 	{
-	val->Assign(last_active_idx, new Val(network_time, TYPE_TIME));
+	val->Assign(last_active_idx, make_intrusive<Val>(network_time, TYPE_TIME));
 	}
 
 double File::GetLastActivityTime() const
@@ -155,30 +155,26 @@ void File::RaiseFileOverNewConnection(Connection* conn, bool is_orig)
 	if ( conn && FileEventAvailable(file_over_new_connection) )
 		{
 		FileEvent(file_over_new_connection, {
-			val->Ref(),
-			conn->BuildConnVal(),
-			val_mgr->GetBool(is_orig),
+			IntrusivePtr{NewRef{}, val},
+			IntrusivePtr{AdoptRef{}, conn->BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)},
 		});
 		}
 	}
 
 uint64_t File::LookupFieldDefaultCount(int idx) const
 	{
-	Val* v = val->LookupWithDefault(idx);
-	uint64_t rval = v->AsCount();
-	Unref(v);
-	return rval;
+	auto v = val->LookupWithDefault(idx);
+	return v->AsCount();
 	}
 
 double File::LookupFieldDefaultInterval(int idx) const
 	{
-	Val* v = val->LookupWithDefault(idx);
-	double rval = v->AsInterval();
-	Unref(v);
-	return rval;
+	auto v = val->LookupWithDefault(idx);
+	return v->AsInterval();
 	}
 
-int File::Idx(const string& field, const RecordType* type)
+int File::Idx(const std::string& field, const RecordType* type)
 	{
 	int rval = type->FieldOffset(field.c_str());
 
@@ -189,16 +185,16 @@ int File::Idx(const string& field, const RecordType* type)
 	return rval;
 	}
 
-string File::GetSource() const
+std::string File::GetSource() const
 	{
 	Val* v = val->Lookup(source_idx);
 
-	return v ? v->AsString()->CheckString() : string();
+	return v ? v->AsString()->CheckString() : std::string();
 	}
 
-void File::SetSource(const string& source)
+void File::SetSource(const std::string& source)
 	{
-	val->Assign(source_idx, new StringVal(source.c_str()));
+	val->Assign(source_idx, make_intrusive<StringVal>(source.c_str()));
 	}
 
 double File::GetTimeoutInterval() const
@@ -208,7 +204,7 @@ double File::GetTimeoutInterval() const
 
 void File::SetTimeoutInterval(double interval)
 	{
-	val->Assign(timeout_interval_idx, new Val(interval, TYPE_INTERVAL));
+	val->Assign(timeout_interval_idx, make_intrusive<Val>(interval, TYPE_INTERVAL));
 	}
 
 bool File::SetExtractionLimit(RecordVal* args, uint64_t bytes)
@@ -264,7 +260,7 @@ bool File::AddAnalyzer(file_analysis::Tag tag, RecordVal* args)
 	if ( done )
 		return false;
 
-	return analyzers.QueueAdd(tag, args) != 0;
+	return analyzers.QueueAdd(tag, args) != nullptr;
 	}
 
 bool File::RemoveAnalyzer(file_analysis::Tag tag, RecordVal* args)
@@ -284,7 +280,7 @@ void File::DisableReassembly()
 	{
 	reassembly_enabled = false;
 	delete file_reassembler;
-	file_reassembler = 0;
+	file_reassembler = nullptr;
 	}
 
 void File::SetReassemblyBuffer(uint64_t max)
@@ -292,7 +288,7 @@ void File::SetReassemblyBuffer(uint64_t max)
 	reassembly_max_buffer = max;
 	}
 
-bool File::SetMime(const string& mime_type)
+bool File::SetMime(const std::string& mime_type)
 	{
 	if ( mime_type.empty() || bof_buffer.size != 0 || did_metadata_inference )
 		return false;
@@ -303,11 +299,11 @@ bool File::SetMime(const string& mime_type)
 	if ( ! FileEventAvailable(file_sniff) )
 		return false;
 
-	RecordVal* meta = new RecordVal(fa_metadata_type);
-	meta->Assign(meta_mime_type_idx, new StringVal(mime_type));
-	meta->Assign(meta_inferred_idx, val_mgr->GetBool(0));
+	auto meta = make_intrusive<RecordVal>(fa_metadata_type);
+	meta->Assign(meta_mime_type_idx, make_intrusive<StringVal>(mime_type));
+	meta->Assign(meta_inferred_idx, val_mgr->GetFalse());
 
-	FileEvent(file_sniff, {val->Ref(), meta});
+	FileEvent(file_sniff, {IntrusivePtr{NewRef{}, val}, std::move(meta)});
 	return true;
 	}
 
@@ -333,10 +329,10 @@ void File::InferMetadata()
 	RuleMatcher::MIME_Matches matches;
 	const u_char* data = bof_buffer_val->AsString()->Bytes();
 	uint64_t len = bof_buffer_val->AsString()->Len();
-	len = min(len, LookupFieldDefaultCount(bof_buffer_size_idx));
+	len = std::min(len, LookupFieldDefaultCount(bof_buffer_size_idx));
 	file_mgr->DetectMIME(data, len, &matches);
 
-	RecordVal* meta = new RecordVal(fa_metadata_type);
+	auto meta = make_intrusive<RecordVal>(fa_metadata_type);
 
 	if ( ! matches.empty() )
 		{
@@ -346,8 +342,7 @@ void File::InferMetadata()
 		             file_analysis::GenMIMEMatchesVal(matches));
 		}
 
-	FileEvent(file_sniff, {val->Ref(), meta});
-	return;
+	FileEvent(file_sniff, {IntrusivePtr{NewRef{}, val}, std::move(meta)});
 	}
 
 bool File::BufferBOF(const u_char* data, uint64_t len)
@@ -357,7 +352,7 @@ bool File::BufferBOF(const u_char* data, uint64_t len)
 
 	uint64_t desired_size = LookupFieldDefaultCount(bof_buffer_size_idx);
 
-	bof_buffer.chunks.push_back(new BroString(data, len, 0));
+	bof_buffer.chunks.push_back(new BroString(data, len, false));
 	bof_buffer.size += len;
 
 	if ( bof_buffer.size < desired_size )
@@ -368,7 +363,7 @@ bool File::BufferBOF(const u_char* data, uint64_t len)
 	if ( bof_buffer.size > 0 )
 		{
 		BroString* bs = concatenate(bof_buffer.chunks);
-		val->Assign(bof_buffer_idx, new StringVal(bs));
+		val->Assign(bof_buffer_idx, make_intrusive<StringVal>(bs));
 		}
 
 	return false;
@@ -388,10 +383,10 @@ void File::DeliverStream(const u_char* data, uint64_t len)
 	        "[%s] %" PRIu64 " stream bytes in at offset %" PRIu64 "; %s [%s%s]",
 	        id.c_str(), len, stream_offset,
 	        IsComplete() ? "complete" : "incomplete",
-	        fmt_bytes((const char*) data, min((uint64_t)40, len)),
+	        fmt_bytes((const char*) data, std::min((uint64_t)40, len)),
 	        len > 40 ? "..." : "");
 
-	file_analysis::Analyzer* a = 0;
+	file_analysis::Analyzer* a = nullptr;
 	IterCookie* c = analyzers.InitForIteration();
 
 	while ( (a = analyzers.NextEntry(c)) )
@@ -459,9 +454,9 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 			if ( FileEventAvailable(file_reassembly_overflow) )
 				{
 				FileEvent(file_reassembly_overflow, {
-					val->Ref(),
-					val_mgr->GetCount(current_offset),
-					val_mgr->GetCount(gap_bytes),
+					IntrusivePtr{NewRef{}, val},
+					IntrusivePtr{AdoptRef{}, val_mgr->GetCount(current_offset)},
+					IntrusivePtr{AdoptRef{}, val_mgr->GetCount(gap_bytes)}
 				});
 				}
 			}
@@ -492,10 +487,10 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 	        "[%s] %" PRIu64 " chunk bytes in at offset %" PRIu64 "; %s [%s%s]",
 	        id.c_str(), len, offset,
 	        IsComplete() ? "complete" : "incomplete",
-	        fmt_bytes((const char*) data, min((uint64_t)40, len)),
+	        fmt_bytes((const char*) data, std::min((uint64_t)40, len)),
 	        len > 40 ? "..." : "");
 
-	file_analysis::Analyzer* a = 0;
+	file_analysis::Analyzer* a = nullptr;
 	IterCookie* c = analyzers.InitForIteration();
 
 	while ( (a = analyzers.NextEntry(c)) )
@@ -559,7 +554,7 @@ void File::EndOfFile()
 
 	done = true;
 
-	file_analysis::Analyzer* a = 0;
+	file_analysis::Analyzer* a = nullptr;
 	IterCookie* c = analyzers.InitForIteration();
 
 	while ( (a = analyzers.NextEntry(c)) )
@@ -592,7 +587,7 @@ void File::Gap(uint64_t offset, uint64_t len)
 		DeliverStream((const u_char*) "", 0);
 		}
 
-	file_analysis::Analyzer* a = 0;
+	file_analysis::Analyzer* a = nullptr;
 	IterCookie* c = analyzers.InitForIteration();
 
 	while ( (a = analyzers.NextEntry(c)) )
@@ -604,9 +599,9 @@ void File::Gap(uint64_t offset, uint64_t len)
 	if ( FileEventAvailable(file_gap) )
 		{
 		FileEvent(file_gap, {
-			val->Ref(),
-			val_mgr->GetCount(offset),
-			val_mgr->GetCount(len),
+			IntrusivePtr{NewRef{}, val},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(offset)},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(len)}
 		});
 		}
 
@@ -626,18 +621,23 @@ void File::FileEvent(EventHandlerPtr h)
 	if ( ! FileEventAvailable(h) )
 		return;
 
-	FileEvent(h, {val->Ref()});
+	FileEvent(h, zeek::Args{{NewRef{}, val}});
 	}
 
 void File::FileEvent(EventHandlerPtr h, val_list* vl)
 	{
-	FileEvent(h, std::move(*vl));
+	FileEvent(h, zeek::val_list_to_args(*vl));
 	delete vl;
 	}
 
 void File::FileEvent(EventHandlerPtr h, val_list vl)
 	{
-	mgr.QueueEventFast(h, std::move(vl));
+	FileEvent(h, zeek::val_list_to_args(vl));
+	}
+
+void File::FileEvent(EventHandlerPtr h, zeek::Args args)
+	{
+	mgr.Enqueue(h, std::move(args));
 
 	if ( h == file_new || h == file_over_new_connection ||
 	     h == file_sniff ||

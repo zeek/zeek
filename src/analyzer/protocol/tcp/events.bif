@@ -6,7 +6,7 @@
 ## c: The connection.
 ##
 ## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
-##    connection_established connection_external connection_finished
+##    connection_established connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
 ##    connection_state_remove connection_status_update connection_timeout
@@ -22,11 +22,12 @@ event new_connection_contents%(c: connection%);
 ## c: The connection.
 ##
 ## .. zeek:see:: connection_EOF connection_SYN_packet connection_established
-##    connection_external connection_finished connection_first_ACK
+##    connection_finished connection_first_ACK
 ##    connection_half_finished connection_partial_close connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
 ##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection
+##    connection_successful successful_connection_remove
 event connection_attempt%(c: connection%);
 
 ## Generated when seeing a SYN-ACK packet from the responder in a TCP
@@ -40,11 +41,12 @@ event connection_attempt%(c: connection%);
 ## c: The connection.
 ##
 ## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
-##    connection_external connection_finished connection_first_ACK
+##    connection_finished connection_first_ACK
 ##    connection_half_finished connection_partial_close connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
 ##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection
+##    connection_successful successful_connection_remove
 event connection_established%(c: connection%);
 
 ## Generated for a new active TCP connection if Zeek did not see the initial
@@ -55,7 +57,7 @@ event connection_established%(c: connection%);
 ## c: The connection.
 ##
 ## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
-##    connection_established connection_external connection_finished
+##    connection_established connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
 ##    connection_state_remove connection_status_update connection_timeout
@@ -72,7 +74,7 @@ event partial_connection%(c: connection%);
 ## c: The connection.
 ##
 ## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
-##    connection_established connection_external connection_finished
+##    connection_established connection_finished
 ##    connection_first_ACK connection_half_finished connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
 ##    connection_status_update connection_timeout scheduled_analyzer_applied
@@ -85,7 +87,7 @@ event connection_partial_close%(c: connection%);
 ## c: The connection.
 ##
 ## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
-##    connection_established connection_external connection_first_ACK
+##    connection_established connection_first_ACK
 ##    connection_half_finished connection_partial_close connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
 ##    connection_status_update connection_timeout scheduled_analyzer_applied
@@ -99,7 +101,7 @@ event connection_finished%(c: connection%);
 ## c: The connection.
 ##
 ## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
-##    connection_established connection_external connection_finished
+##    connection_established connection_finished
 ##    connection_first_ACK  connection_partial_close connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
 ##    connection_status_update connection_timeout scheduled_analyzer_applied
@@ -113,7 +115,7 @@ event connection_half_finished%(c: connection%);
 ## c: The connection.
 ##
 ## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
-##    connection_established connection_external connection_finished
+##    connection_established connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending  connection_reset connection_reused connection_state_remove
 ##    connection_status_update connection_timeout scheduled_analyzer_applied
@@ -134,7 +136,7 @@ event connection_rejected%(c: connection%);
 ## c: The connection.
 ##
 ## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
-##    connection_established connection_external connection_finished
+##    connection_established connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected  connection_reused
 ##    connection_state_remove connection_status_update connection_timeout
@@ -147,7 +149,7 @@ event connection_reset%(c: connection%);
 ## c: The connection.
 ##
 ## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
-##    connection_established connection_external connection_finished
+##    connection_established connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_rejected connection_reset connection_reused connection_state_remove
 ##    connection_status_update connection_timeout scheduled_analyzer_applied
@@ -162,7 +164,7 @@ event connection_pending%(c: connection%);
 ## pkt: Information extracted from the SYN packet.
 ##
 ## .. zeek:see:: connection_EOF  connection_attempt connection_established
-##    connection_external connection_finished connection_first_ACK
+##    connection_finished connection_first_ACK
 ##    connection_half_finished connection_partial_close connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
 ##    connection_status_update connection_timeout scheduled_analyzer_applied
@@ -183,7 +185,7 @@ event connection_SYN_packet%(c: connection, pkt: SYN_packet%);
 ## c: The connection.
 ##
 ## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
-##    connection_established connection_external connection_finished
+##    connection_established connection_finished
 ##    connection_half_finished connection_partial_close connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
 ##    connection_status_update connection_timeout scheduled_analyzer_applied
@@ -203,7 +205,7 @@ event connection_first_ACK%(c: connection%);
 ## is_orig: True if the event is raised for the originator side.
 ##
 ## .. zeek:see::  connection_SYN_packet connection_attempt connection_established
-##    connection_external connection_finished connection_first_ACK
+##    connection_finished connection_first_ACK
 ##    connection_half_finished connection_partial_close connection_pending
 ##    connection_rejected connection_reset connection_reused connection_state_remove
 ##    connection_status_update connection_timeout scheduled_analyzer_applied
@@ -223,7 +225,7 @@ event connection_EOF%(c: connection, is_orig: bool%);
 ##
 ## flags: A string with the packet's TCP flags. In the string, each character
 ##        corresponds to one set flag, as follows: ``S`` -> SYN; ``F`` -> FIN;
-##        ``R`` -> RST; ``A`` -> ACK; ``P`` -> PUSH.
+##        ``R`` -> RST; ``A`` -> ACK; ``P`` -> PUSH; ``U`` -> URGENT.
 ##
 ## seq: The packet's relative TCP sequence number.
 ##

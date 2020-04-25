@@ -13,7 +13,7 @@ refine connection XMPP_Conn += {
 		string token = std_str(name);
 		// Result will either be text after ":" or original string; this discards the namespace
 		string token_no_ns = std_str(name);
-		auto offset = token_no_ns.find(":");
+		auto offset = token_no_ns.find(':');
 		if ( offset != std::string::npos && token_no_ns.length() > offset + 1 )
 			token_no_ns = token_no_ns.substr(offset + 1);
 

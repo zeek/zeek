@@ -2,6 +2,7 @@
 
 #include "Tag.h"
 #include "Val.h"
+#include "IntrusivePtr.h"
 
 Tag::Tag(EnumType* etype, type_t arg_type, subtype_t arg_subtype)
 	{
@@ -11,7 +12,7 @@ Tag::Tag(EnumType* etype, type_t arg_type, subtype_t arg_subtype)
 	subtype = arg_subtype;
 	int64_t i = (int64_t)(type) | ((int64_t)subtype << 31);
 	Ref(etype);
-	val = etype->GetVal(i);
+	val = etype->GetVal(i).release();
 	}
 
 Tag::Tag(EnumVal* arg_val)
@@ -40,13 +41,13 @@ Tag::Tag()
 	{
 	type = 0;
 	subtype = 0;
-	val = 0;
+	val = nullptr;
 	}
 
 Tag::~Tag()
 	{
 	Unref(val);
-	val = 0;
+	val = nullptr;
 	}
 
 Tag& Tag::operator=(const Tag& other)
@@ -65,7 +66,7 @@ Tag& Tag::operator=(const Tag& other)
 	return *this;
 	}
 
-Tag& Tag::operator=(const Tag&& other)
+Tag& Tag::operator=(const Tag&& other) noexcept
 	{
 	if ( this != &other )
 		{
@@ -85,7 +86,7 @@ EnumVal* Tag::AsEnumVal(EnumType* etype) const
 		{
 		assert(type == 0 && subtype == 0);
 		Ref(etype);
-		val = etype->GetVal(0);
+		val = etype->GetVal(0).release();
 		}
 
 	return val;

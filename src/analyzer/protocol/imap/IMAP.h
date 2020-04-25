@@ -10,7 +10,7 @@
 
 namespace analyzer { namespace imap {
 
-class IMAP_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class IMAP_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit IMAP_Analyzer(Connection* conn);
 	~IMAP_Analyzer() override;

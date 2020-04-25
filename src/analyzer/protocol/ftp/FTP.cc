@@ -1,15 +1,17 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "FTP.h"
 
 #include <stdlib.h>
 
+#include "BroString.h"
 #include "NetVar.h"
-#include "FTP.h"
 #include "Event.h"
 #include "Base64.h"
 #include "analyzer/Manager.h"
 #include "analyzer/protocol/login/NVT.h"
+#include "RuleMatcher.h"
 
 #include "events.bif.h"
 
@@ -73,7 +75,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 		// Could emit "ftp empty request/reply" weird, but maybe not worth it.
 		return;
 
-	val_list vl;
+	zeek::Args vl;
 
 	EventHandlerPtr f;
 	if ( orig )
@@ -83,7 +85,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 		StringVal* cmd_str;
 
 		line = skip_whitespace(line, end_of_line);
-		get_word(length, line, cmd_len, cmd);
+		get_word(end_of_line - line, line, cmd_len, cmd);
 		line = skip_whitespace(line + cmd_len, end_of_line);
 
 		if ( cmd_len == 0 )
@@ -94,10 +96,10 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 		else
 			cmd_str = (new StringVal(cmd_len, cmd))->ToUpper();
 
-		vl = val_list{
-			BuildConnVal(),
-			cmd_str,
-			new StringVal(end_of_line - line, line),
+		vl = {
+			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, cmd_str},
+			make_intrusive<StringVal>(end_of_line - line, line),
 		};
 
 		f = ftp_request;
@@ -105,11 +107,11 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 
 		if ( strncmp((const char*) cmd_str->Bytes(),
 			     "AUTH", cmd_len) == 0 )
-			auth_requested = string(line, end_of_line - line);
+			auth_requested = std::string(line, end_of_line - line);
 
 		if ( rule_matcher )
 			Conn()->Match(Rule::FTP, (const u_char *) cmd,
-				end_of_line - cmd, true, true, 1, true);
+				end_of_line - cmd, true, true, true, true);
 		}
 	else
 		{
@@ -173,17 +175,17 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 				}
 			}
 
-		vl = val_list{
-			BuildConnVal(),
-			val_mgr->GetCount(reply_code),
-			new StringVal(end_of_line - line, line),
-			val_mgr->GetBool(cont_resp),
+		vl = {
+			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(reply_code)},
+			make_intrusive<StringVal>(end_of_line - line, line),
+			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(cont_resp)}
 		};
 
 		f = ftp_reply;
 		}
 
-	ConnectionEvent(f, std::move(vl));
+	EnqueueConnEvent(f, std::move(vl));
 
 	ForwardStream(length, data, orig);
 	}
@@ -202,7 +204,7 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	const char* line = (const char*) data;
 	const char* end_of_line = line + len;
 
-	BroString* decoded_adat = 0;
+	BroString* decoded_adat = nullptr;
 
 	if ( orig )
 		{
@@ -215,7 +217,7 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 			{
 			line = skip_whitespace(line + cmd_len, end_of_line);
 			StringVal encoded(end_of_line - line, line);
-			decoded_adat = decode_base64(encoded.AsString(), 0, Conn());
+			decoded_adat = decode_base64(encoded.AsString(), nullptr, Conn());
 
 			if ( first_token )
 				{
@@ -224,8 +226,16 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 				// framing is supposed to be required for the initial context
 				// token, but GSI doesn't do that and starts right in on a
 				// TLS/SSL handshake, so look for that to identify it.
-				const u_char* msg = decoded_adat->Bytes();
-				int msg_len = decoded_adat->Len();
+				const u_char* msg = nullptr;
+				int msg_len = 0;
+
+				if ( decoded_adat )
+					{
+					msg = decoded_adat->Bytes();
+					msg_len = decoded_adat->Len();
+					}
+				else
+					Weird("ftp_adat_bad_first_token_encoding");
 
 				// Just check that it looks like a viable TLS/SSL handshake
 				// record from the first byte (content type of 0x16) and
@@ -237,7 +247,7 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 					// Doesn't look like TLS/SSL, so done analyzing.
 					done = true;
 					delete decoded_adat;
-					decoded_adat = 0;
+					decoded_adat = nullptr;
 					}
 				}
 
@@ -282,7 +292,7 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 				{
 				line += 5;
 				StringVal encoded(end_of_line - line, line);
-				decoded_adat = decode_base64(encoded.AsString(), 0, Conn());
+				decoded_adat = decode_base64(encoded.AsString(), nullptr, Conn());
 				}
 
 			break;

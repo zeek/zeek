@@ -1,4 +1,5 @@
 %extern{
+#include "Desc.h"
 #include "file_analysis/Manager.h"
 #include "types.bif.h"
 %}

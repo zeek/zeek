@@ -41,11 +41,11 @@ type SMB1_tree_connect_andx_request(header: SMB_Header, offset: uint16) = record
 	byte_count      : uint16;
 	password        : uint8[password_length];
 	path            : SMB_string(header.unicode, offsetof(path));
-	service         : SMB_string(0, offsetof(service));
+	service         : SMB_string(false, offsetof(service));
 
 	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
 
-	andx_command    : SMB_andx_command(header, 1, offset+offsetof(andx_command), andx.command);
+	andx_command    : SMB_andx_command(header, true, offset+offsetof(andx_command), andx.command);
 } &let {
 	proc : bool = $context.connection.proc_smb1_tree_connect_andx_request(header, this);
 };
@@ -57,13 +57,12 @@ type SMB1_tree_connect_andx_response(header: SMB_Header, offset: uint16) = recor
 	pad                : padding[word_count<3 ? 0 : (word_count-3)*2];
 
 	byte_count         : uint16;
-	service            : SMB_string(0, offsetof(service));
+	service            : SMB_string(false, offsetof(service));
 	native_file_system : SMB_string(header.unicode, offsetof(native_file_system))[byte_count > sizeof(service) ? 1 : 0];
 
 	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
 
-	andx_command       : SMB_andx_command(header, 0, offset+offsetof(andx_command), andx.command);
+	andx_command       : SMB_andx_command(header, false, offset+offsetof(andx_command), andx.command);
 } &let {
 	proc : bool = $context.connection.proc_smb1_tree_connect_andx_response(header, this);
 };
-

@@ -1,11 +1,12 @@
+#include <unistd.h>
+#include <signal.h>
+#include <fcntl.h>
 
 #include "DebugLogger.h"
 
 #include "MsgThread.h"
 #include "Manager.h"
-
-#include <unistd.h>
-#include <signal.h>
+#include "iosource/Manager.h"
 
 using namespace threading;
 
@@ -14,13 +15,13 @@ namespace threading  {
 ////// Messages.
 
 // Signals child thread to shutdown operation.
-class FinishMessage : public InputMessage<MsgThread>
+class FinishMessage final : public InputMessage<MsgThread>
 {
 public:
 	FinishMessage(MsgThread* thread, double network_time) : InputMessage<MsgThread>("Finish", thread),
 		network_time(network_time) { }
 
-	virtual bool Process()	{
+	bool Process() override	{
 		if ( Object()->child_finished )
 			return true;
 		bool result = Object()->OnFinish(network_time);
@@ -33,28 +34,28 @@ private:
 };
 
 // Signals main thread that operations shut down.
-class FinishedMessage : public OutputMessage<MsgThread>
+class FinishedMessage final : public OutputMessage<MsgThread>
 {
 public:
 	FinishedMessage(MsgThread* thread)
 		: OutputMessage<MsgThread>("FinishedMessage", thread)
 		{ }
 
-	virtual bool Process() {
+	bool Process() override {
 		Object()->main_finished = true;
 		return true;
 	}
 };
 
 /// Sends a heartbeat to the child thread.
-class HeartbeatMessage : public InputMessage<MsgThread>
+class HeartbeatMessage final : public InputMessage<MsgThread>
 {
 public:
 	HeartbeatMessage(MsgThread* thread, double arg_network_time, double arg_current_time)
 		: InputMessage<MsgThread>("Heartbeat", thread)
 		{ network_time = arg_network_time; current_time = arg_current_time; }
 
-	virtual bool Process()	{
+	bool Process() override	{
 		return Object()->OnHeartbeat(network_time, current_time);
 	}
 
@@ -64,7 +65,7 @@ private:
 };
 
 // A message from the child to be passed on to the Reporter.
-class ReporterMessage : public OutputMessage<MsgThread>
+class ReporterMessage final : public OutputMessage<MsgThread>
 {
 public:
 	enum Type {
@@ -76,9 +77,9 @@ public:
 		: OutputMessage<MsgThread>("ReporterMessage", thread)
 		{ type = arg_type; msg = copy_string(arg_msg); }
 
-	~ReporterMessage() 	 { delete [] msg; }
+	~ReporterMessage() override 	 { delete [] msg; }
 
-	virtual bool Process();
+	bool Process() override;
 
 private:
 	const char* msg;
@@ -86,13 +87,13 @@ private:
 };
 
 // A message from the the child to the main process, requesting suicide.
-class KillMeMessage : public OutputMessage<MsgThread>
+class KillMeMessage final : public OutputMessage<MsgThread>
 {
 public:
 	KillMeMessage(MsgThread* thread)
 		: OutputMessage<MsgThread>("ReporterMessage", thread) 	{}
 
-	virtual bool Process()
+	bool Process() override
 		{
 		Object()->SignalStop();
 		Object()->WaitForStop();
@@ -103,16 +104,16 @@ public:
 
 #ifdef DEBUG
 // A debug message from the child to be passed on to the DebugLogger.
-class DebugMessage : public OutputMessage<MsgThread>
+class DebugMessage final : public OutputMessage<MsgThread>
 {
 public:
 	DebugMessage(DebugStream arg_stream, MsgThread* thread, const char* arg_msg)
 		: OutputMessage<MsgThread>("DebugMessage", thread)
 		{ stream = arg_stream; msg = copy_string(arg_msg); }
 
-	virtual ~DebugMessage()	{ delete [] msg; }
+	~DebugMessage() override	{ delete [] msg; }
 
-	virtual bool Process()
+	bool Process() override
 		{
 		debug_logger.Log(stream, "%s: %s", Object()->Name(), msg);
 		return true;
@@ -171,13 +172,26 @@ bool ReporterMessage::Process()
 	return true;
 	}
 
-MsgThread::MsgThread() : BasicThread(), queue_in(this, 0), queue_out(0, this)
+MsgThread::MsgThread() : BasicThread(), queue_in(this, nullptr), queue_out(nullptr, this)
 	{
 	cnt_sent_in = cnt_sent_out = 0;
 	main_finished = false;
 	child_finished = false;
+	child_sent_finish = false;
 	failed = false;
 	thread_mgr->AddMsgThread(this);
+
+	if ( ! iosource_mgr->RegisterFd(flare.FD(), this) )
+		reporter->FatalError("Failed to register MsgThread fd with iosource_mgr");
+
+	SetClosed(false);
+	}
+
+MsgThread::~MsgThread()
+	{
+	// Unregister this thread from the iosource manager so it doesn't wake
+	// up the main poll anymore.
+	iosource_mgr->UnregisterFd(flare.FD(), this);
 	}
 
 // Set by Bro's main signal handler.
@@ -185,9 +199,10 @@ extern int signal_val;
 
 void MsgThread::OnSignalStop()
 	{
-	if ( main_finished || Killed() )
+	if ( main_finished || Killed() || child_sent_finish )
 		return;
 
+	child_sent_finish = true;
 	// Signal thread to terminate.
 	SendIn(new FinishMessage(this, network_time), true);
 	}
@@ -250,6 +265,8 @@ void MsgThread::OnWaitForStop()
 
 void MsgThread::OnKill()
 	{
+	SetClosed(true);
+
 	// Send a message to unblock the reader if its currently waiting for
 	// input. This is just an optimization to make it terminate more
 	// quickly, even without the message it will eventually time out.
@@ -258,6 +275,9 @@ void MsgThread::OnKill()
 
 void MsgThread::Heartbeat()
 	{
+	if ( child_sent_finish )
+		return;
+
 	SendIn(new HeartbeatMessage(this, network_time, current_time()));
 	}
 
@@ -339,13 +359,15 @@ void MsgThread::SendOut(BasicOutputMessage* msg, bool force)
 	queue_out.Put(msg);
 
 	++cnt_sent_out;
+
+	flare.Fire();
 	}
 
 BasicOutputMessage* MsgThread::RetrieveOut()
 	{
 	BasicOutputMessage* msg = queue_out.Get();
 	if ( ! msg )
-		return 0;
+		return nullptr;
 
 	DBG_LOG(DBG_THREADING, "Retrieved '%s' from %s",  msg->Name(), Name());
 
@@ -357,10 +379,10 @@ BasicInputMessage* MsgThread::RetrieveIn()
 	BasicInputMessage* msg = queue_in.Get();
 
 	if ( ! msg )
-		return 0;
+		return nullptr;
 
 #ifdef DEBUG
-	string s = Fmt("Retrieved '%s' in %s",  msg->Name(), Name());
+	std::string s = Fmt("Retrieved '%s' in %s",  msg->Name(), Name());
 	Debug(DBG_THREADING, s.c_str());
 #endif
 
@@ -413,3 +435,21 @@ void MsgThread::GetStats(Stats* stats)
 	queue_out.GetStats(&stats->queue_out_stats);
 	}
 
+void MsgThread::Process()
+	{
+	flare.Extinguish();
+
+	while ( HasOut() )
+		{
+		Message* msg = RetrieveOut();
+		assert(msg);
+
+		if ( ! msg->Process() )
+			{
+			reporter->Error("%s failed, terminating thread", msg->Name());
+			SignalStop();
+			}
+
+		delete msg;
+		}
+	}

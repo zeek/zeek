@@ -1,0 +1,1 @@
+[zeek, -b, -r, /Users/jsiwek/pro/zeek/zeek/testing/btest/Traces/http/get.trace, -e, print zeek_args()]

@@ -247,7 +247,6 @@ event ping(msg: string, n: count)
 
         if ( n == events_to_recv )
                 {
-		print get_broker_stats();
                 terminate();
                 return;
                 }
@@ -255,5 +254,10 @@ event ping(msg: string, n: count)
         local e = Broker::make_event(pong, msg, n);
         Broker::publish("zeek/event/my_topic", e);
         }
+
+event zeek_done()
+	{
+	print get_broker_stats();
+	}
 
 @TEST-END-FILE

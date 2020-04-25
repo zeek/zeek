@@ -10,55 +10,17 @@
 #include <openssl/pem.h>
 #include <openssl/err.h>
 
-// This is the indexed map of X509 certificate stores.
-static map<Val*, X509_STORE*> x509_stores;
-
 // construct an error record
-RecordVal* x509_result_record(uint64_t num, const char* reason, Val* chainVector = 0)
+RecordVal* x509_result_record(uint64_t num, const char* reason, Val* chainVector = nullptr)
 	{
 	RecordVal* rrecord = new RecordVal(BifType::Record::X509::Result);
 
 	rrecord->Assign(0, val_mgr->GetInt(num));
-	rrecord->Assign(1, new StringVal(reason));
+	rrecord->Assign(1, make_intrusive<StringVal>(reason));
 	if ( chainVector )
 		rrecord->Assign(2, chainVector);
 
 	return rrecord;
-	}
-
-X509_STORE* x509_get_root_store(TableVal* root_certs)
-	{
-	// If this certificate store was built previously, just reuse the old one.
-	if ( x509_stores.count(root_certs) > 0 )
-		return x509_stores[root_certs];
-
-	X509_STORE* ctx = X509_STORE_new();
-	ListVal* idxs = root_certs->ConvertToPureList();
-
-	// Build the validation store
-	for ( int i = 0; i < idxs->Length(); ++i )
-		{
-		Val* key = idxs->Index(i);
-		StringVal *sv = root_certs->Lookup(key)->AsStringVal();
-		assert(sv);
-		const uint8_t* data = sv->Bytes();
-		X509* x = d2i_X509(NULL, &data, sv->Len());
-		if ( ! x )
-			{
-			builtin_error(fmt("Root CA error: %s", ERR_error_string(ERR_get_error(),NULL)));
-			return 0;
-			}
-
-		X509_STORE_add_cert(ctx, x);
-		X509_free(x);
-		}
-
-	delete idxs;
-
-	// Save the newly constructed certificate store into the cacheing map.
-	x509_stores[root_certs] = ctx;
-
-	return ctx;
 	}
 
 // get all cretificates starting at the second one (assuming the first one is the host certificate)
@@ -227,12 +189,12 @@ function x509_get_certificate_string%(cert: opaque of x509, pem: bool &default=F
 	else
 		i2d_X509_bio(bio, h->GetCertificate());
 
-	StringVal* ext_val = file_analysis::X509::GetExtensionFromBIO(bio);
+	auto ext_val = file_analysis::X509::GetExtensionFromBIO(bio);
 
 	if ( ! ext_val )
-		ext_val = val_mgr->GetEmptyString();
+		ext_val = {AdoptRef{}, val_mgr->GetEmptyString()};
 
-	return ext_val;
+	return ext_val.release();
 	%}
 
 ## Verifies an OCSP reply.
@@ -254,7 +216,7 @@ function x509_get_certificate_string%(cert: opaque of x509, pem: bool &default=F
 function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_certs: table_string_of_string, verify_time: time &default=network_time()%): X509::Result
 	%{
 	RecordVal* rval = 0;
-	X509_STORE* ctx = x509_get_root_store(root_certs->AsTableVal());
+	X509_STORE* ctx = ::file_analysis::X509::GetRootStore(root_certs->AsTableVal());
 	if ( ! ctx )
 		return x509_result_record(-1, "Problem initializing root store");
 
@@ -540,7 +502,7 @@ x509_ocsp_cleanup:
 ##              x509_get_certificate_string x509_ocsp_verify sct_verify
 function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_string, verify_time: time &default=network_time()%): X509::Result
 	%{
-	X509_STORE* ctx = x509_get_root_store(root_certs->AsTableVal());
+	X509_STORE* ctx = ::file_analysis::X509::GetRootStore(root_certs->AsTableVal());
 	if ( ! ctx )
 		return x509_result_record(-1, "Problem initializing root store");
 
@@ -580,7 +542,7 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 
 	int result = X509_verify_cert(csc);
 
-	VectorVal* chainVector = 0;
+	VectorVal* chainVector = nullptr;
 
 	if ( result == 1 ) // we have a valid chain. try to get it...
 		{
@@ -602,7 +564,7 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 
 			if ( currcert )
 				// X509Val takes ownership of currcert.
-				chainVector->Assign(i, new file_analysis::X509Val(currcert));
+				chainVector->Assign(i, make_intrusive<file_analysis::X509Val>(currcert));
 			else
 				{
 				reporter->InternalWarning("OpenSSL returned null certificate");
@@ -661,7 +623,7 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 	if ( precert && issuer_key_hash->Len() != 32)
 		{
 		reporter->Error("Invalid issuer_key_hash length");
-		return val_mgr->GetBool(0);
+		return val_mgr->GetFalse();
 		}
 
 	std::string data;
@@ -685,7 +647,7 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 		if ( pos < 0 )
 			{
 			reporter->Error("NID_ct_precert_scts not found");
-			return val_mgr->GetBool(0);
+			return val_mgr->GetFalse();
 			}
 #else
 		int num_ext = X509_get_ext_count(x);
@@ -741,7 +703,7 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 	EVP_MD_CTX *mdctx = EVP_MD_CTX_create();
 	assert(mdctx);
 
-	string errstr;
+	std::string errstr;
 	int success = 0;
 
 	const EVP_MD* hash = hash_to_evp(hash_algorithm);
@@ -789,7 +751,7 @@ sct_verify_err:
 		EVP_PKEY_free(key);
 
 	reporter->Error("%s", errstr.c_str());
-	return val_mgr->GetBool(0);
+	return val_mgr->GetFalse();
 	%}
 
 
@@ -918,4 +880,45 @@ function x509_spki_hash%(cert: opaque of x509, hash_alg: count%): string
 	file_analysis::X509Val *cert_handle = (file_analysis::X509Val *) cert;
 
 	return x509_entity_hash(cert_handle, hash_alg, 2);
+	%}
+
+## This function can be used to set up certificate caching. It has to be passed a table[string] which
+## can contain any type.
+##
+## After this is set up, for each certificate encountered, the X509 analyzer will check if the entry
+## tbl[sha256 of certificate] is set. If this is the case, the X509 analyzer will skip all further
+## processing, and instead just call the callback that is set with
+## zeek:id:`x509_set_certificate_cache_hit_callback`.
+##
+## tbl: Table to use as the certificate cache.
+##
+## Returns: Always returns true.
+##
+## .. note:: The base scripts use this function to set up certificate caching. You should only change the
+##           cache table if you are sure you will not conflict with the base scripts.
+##
+## .. zeek:see:: x509_set_certificate_cache_hit_callback
+function x509_set_certificate_cache%(tbl: string_any_table%) : bool
+	%{
+	file_analysis::X509::SetCertificateCache({NewRef{}, tbl->AsTableVal()});
+
+	return val_mgr->GetTrue();
+	%}
+
+## This function sets up the callback that is called when an entry is matched against the table set
+## by :zeek:id:`x509_set_certificate_cache`.
+##
+## f: The callback that will be called when encountering a certificate in the cache table.
+##
+## Returns: Always returns true.
+##
+## .. note:: The base scripts use this function to set up certificate caching. You should only change the
+##           callback function if you are sure you will not conflict with the base scripts.
+##
+## .. zeek:see:: x509_set_certificate_cache
+function x509_set_certificate_cache_hit_callback%(f: string_any_file_hook%) : bool
+	%{
+	file_analysis::X509::SetCertificateCacheHitCallback({NewRef{}, f->AsFunc()});
+
+	return val_mgr->GetTrue();
 	%}

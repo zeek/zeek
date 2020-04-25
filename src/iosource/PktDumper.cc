@@ -1,12 +1,10 @@
 
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <errno.h>
-#include <sys/stat.h>
-
 #include "zeek-config.h"
 
 #include "PktDumper.h"
+#include "DebugLogger.h"
 
 using namespace iosource;
 
@@ -47,12 +45,12 @@ double PktDumper::OpenTime() const
 
 bool PktDumper::IsError() const
 	{
-	return errmsg.size();
+	return ! errmsg.empty();
 	}
 
 const char* PktDumper::ErrorMsg() const
 	{
-	return errmsg.size() ? errmsg.c_str() : 0;
+	return errmsg.size() ? errmsg.c_str() : nullptr;
 	}
 
 int PktDumper::HdrSize() const

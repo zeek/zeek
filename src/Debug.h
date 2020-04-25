@@ -2,32 +2,31 @@
 
 #pragma once
 
+#include "Obj.h"
+#include "Queue.h"
+#include "StmtEnums.h"
+
 #include <vector>
 #include <map>
 #include <string>
 
+template <class T> class IntrusivePtr;
+class Val;
 class Stmt;
 
 // This needs to be defined before we do the includes that come after it.
 enum ParseLocationRecType { plrUnknown, plrFileAndLine, plrFunction };
 struct ParseLocationRec {
 	ParseLocationRecType type;
+	int32_t line;
 	Stmt* stmt;
 	const char* filename;
-	int line;
 };
-
-#include "Expr.h"
-#include "Var.h"
-#include "Frame.h"
-#include "Queue.h"
-#include "Dict.h"
-#include "StmtEnums.h"
-#include "DbgBreakpoint.h"
 
 class StmtLocMapping;
 typedef PQueue<StmtLocMapping> Filemap; // mapping for a single file
 
+class Frame;
 class DbgBreakpoint;
 class DbgWatch;
 class DbgDisplay;
@@ -150,7 +149,7 @@ bool post_execute_stmt(Stmt* stmt, Frame* f, Val* result, stmt_flow_type* flow);
 // Returns 1 if successful, 0 otherwise.
 // If cmdfile is non-nil, it contains the location of a file of commands
 // to be executed as debug commands.
-int dbg_init_debugger(const char* cmdfile = 0);
+int dbg_init_debugger(const char* cmdfile = nullptr);
 int dbg_shutdown_debugger();
 
 // Returns 1 if successful, 0 otherwise.
@@ -161,7 +160,7 @@ int dbg_handle_debug_input();	// read a line and then have it executed
 int dbg_execute_command(const char* cmd);
 
 // Interactive expression evaluation.
-Val* dbg_eval_expr(const char* expr);
+IntrusivePtr<Val> dbg_eval_expr(const char* expr);
 
 // Extra debugging facilities.
 // TODO: current connections, memory allocated, other internal data structures.

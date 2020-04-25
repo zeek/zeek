@@ -1,16 +1,15 @@
 // See the file  in the main distribution directory for copyright.
 
-
-#include "plugin/Plugin.h"
-
 #include "PIA.h"
+#include "plugin/Plugin.h"
+#include "analyzer/Component.h"
 
 namespace plugin {
 namespace Zeek_PIA {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("PIA_TCP", ::analyzer::pia::PIA_TCP::Instantiate));
 		AddComponent(new ::analyzer::Component("PIA_UDP", ::analyzer::pia::PIA_UDP::Instantiate));

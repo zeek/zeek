@@ -119,7 +119,10 @@ function decompose_uri(uri: string): URI
 		# Parse location and port.
 		parts = split_string1(s, /:/);
 		u$netlocation = parts[0];
-		u$portnum = to_count(parts[1]);
+		if ( parts[1] != "" )
+		    {
+		    u$portnum = to_count(parts[1]);
+		    }
 		}
 	else
 		{

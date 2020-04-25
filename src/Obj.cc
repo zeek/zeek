@@ -1,15 +1,15 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "Obj.h"
 
 #include <stdlib.h>
 
-#include "Obj.h"
+#include "Desc.h"
 #include "Func.h"
 #include "File.h"
 #include "plugin/Manager.h"
 
-Location no_location("<no location>", 0, 0, 0, 0);
 Location start_location("<start uninitialized>", 0, 0, 0, 0);
 Location end_location("<end uninitialized>", 0, 0, 0, 0);
 
@@ -58,7 +58,7 @@ BroObj::~BroObj()
 	delete location;
 	}
 
-void BroObj::Warn(const char* msg, const BroObj* obj2, int pinpoint_only, const Location* expr_location) const
+void BroObj::Warn(const char* msg, const BroObj* obj2, bool pinpoint_only, const Location* expr_location) const
 	{
 	ODesc d;
 	DoMsg(&d, msg, obj2, pinpoint_only, expr_location);
@@ -66,7 +66,7 @@ void BroObj::Warn(const char* msg, const BroObj* obj2, int pinpoint_only, const 
 	reporter->PopLocation();
 	}
 
-void BroObj::Error(const char* msg, const BroObj* obj2, int pinpoint_only, const Location* expr_location) const
+void BroObj::Error(const char* msg, const BroObj* obj2, bool pinpoint_only, const Location* expr_location) const
 	{
 	if ( suppress_errors )
 		return;
@@ -158,14 +158,14 @@ void BroObj::UpdateLocationEndInfo(const Location& end)
 	}
 
 void BroObj::DoMsg(ODesc* d, const char s1[], const BroObj* obj2,
-			int pinpoint_only, const Location* expr_location) const
+			bool pinpoint_only, const Location* expr_location) const
 	{
 	d->SetShort();
 
 	d->Add(s1);
 	PinPoint(d, obj2, pinpoint_only);
 
-	const Location* loc2 = 0;
+	const Location* loc2 = nullptr;
 	if ( obj2 && obj2->GetLocationInfo() != &no_location &&
 		 *obj2->GetLocationInfo() != *GetLocationInfo() )
 		loc2 = obj2->GetLocationInfo();
@@ -175,7 +175,7 @@ void BroObj::DoMsg(ODesc* d, const char s1[], const BroObj* obj2,
 	reporter->PushLocation(GetLocationInfo(), loc2);
 	}
 
-void BroObj::PinPoint(ODesc* d, const BroObj* obj2, int pinpoint_only) const
+void BroObj::PinPoint(ODesc* d, const BroObj* obj2, bool pinpoint_only) const
 	{
 	d->Add(" (");
 	Describe(d);

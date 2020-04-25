@@ -3,8 +3,9 @@
 #include <map>
 #include <utility>
 #include <list>
-#include <Stmt.h>
+#include <string>
 
+class Stmt;
 
 /**
  * A simple class for managing stats of Bro script coverage across Bro runs.
@@ -38,27 +39,19 @@ public:
 	void IncIgnoreDepth() { ignoring++; }
 	void DecIgnoreDepth() { ignoring--; }
 
-	void AddStmt(const Stmt* s) { if ( ignoring == 0 ) stmts.push_back(s); }
+	void AddStmt(Stmt* s);
 
 private:
 	/**
 	 * The current, global Brofiler instance creates this list at parse-time.
 	 */
-	list<const Stmt*> stmts;
+	std::list<Stmt*> stmts;
 
 	/**
 	 * Indicates whether new statments will not be considered as part of
 	 * coverage statistics because it was marked with the @no-test tag.
 	 */
-	unsigned int ignoring;
-
-	/**
-	 * This maps Stmt location-desc pairs to the total number of times that
-	 * Stmt has been executed.  The map can be initialized from a file at
-	 * startup time and modified at shutdown time before writing back
-	 * to a file.
-	 */
-	map<pair<string, string>, uint64_t> usage_map;
+	uint32_t ignoring;
 
 	/**
 	 * The character to use to delimit Brofiler output files.  Default is '\t'.
@@ -66,13 +59,24 @@ private:
 	char delim;
 
 	/**
+	 * This maps Stmt location-desc pairs to the total number of times that
+	 * Stmt has been executed.  The map can be initialized from a file at
+	 * startup time and modified at shutdown time before writing back
+	 * to a file.
+	 */
+	std::map<std::pair<std::string, std::string>, uint64_t> usage_map;
+
+	/**
 	 * A canonicalization routine for Stmt descriptions containing characters
 	 * that don't agree with the output format of Brofiler.
 	 */
 	struct canonicalize_desc {
+		char delim;
+
 		void operator() (char& c)
 			{
 			if ( c == '\n' ) c = ' ';
+			if ( c == delim ) c = ' ';
 			}
 	};
 };

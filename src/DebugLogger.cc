@@ -19,13 +19,14 @@ DebugLogger::Stream DebugLogger::streams[NUM_DBGS] = {
 	{ "threading", 0, false }, { "file_analysis", 0, false },
 	{ "plugins", 0, false }, { "zeekygen", 0, false },
 	{ "pktio", 0, false }, { "broker", 0, false },
-	{ "scripts", 0, false}
+	{ "scripts", 0, false},
+	{ "supervisor", 0, false}
 };
 
 DebugLogger::DebugLogger()
 	{
 	verbose = false;
-	file = 0;
+	file = nullptr;
 	}
 
 DebugLogger::~DebugLogger()
@@ -164,7 +165,7 @@ void DebugLogger::Log(DebugStream stream, const char* fmt, ...)
 
 void DebugLogger::Log(const plugin::Plugin& plugin, const char* fmt, ...)
 	{
-	string tok = string("plugin-") + plugin.Name();
+	std::string tok = std::string("plugin-") + plugin.Name();
 	tok = strreplace(tok, "::", "-");
 
 	if ( enabled_streams.find(tok) == enabled_streams.end() )

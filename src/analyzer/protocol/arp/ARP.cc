@@ -3,6 +3,7 @@
 #include "ARP.h"
 #include "Event.h"
 #include "Reporter.h"
+#include "Desc.h"
 
 #include "events.bif.h"
 
@@ -190,13 +191,13 @@ void ARP_Analyzer::BadARP(const struct arp_pkthdr* hdr, const char* msg)
 	if ( ! bad_arp )
 		return;
 
-	mgr.QueueEventFast(bad_arp, {
-		ConstructAddrVal(ar_spa(hdr)),
-		EthAddrToStr((const u_char*) ar_sha(hdr)),
-		ConstructAddrVal(ar_tpa(hdr)),
-		EthAddrToStr((const u_char*) ar_tha(hdr)),
-		new StringVal(msg),
-	});
+	mgr.Enqueue(bad_arp,
+		IntrusivePtr{AdoptRef{}, ConstructAddrVal(ar_spa(hdr))},
+		IntrusivePtr{AdoptRef{}, EthAddrToStr((const u_char*) ar_sha(hdr))},
+		IntrusivePtr{AdoptRef{}, ConstructAddrVal(ar_tpa(hdr))},
+		IntrusivePtr{AdoptRef{}, EthAddrToStr((const u_char*) ar_tha(hdr))},
+		make_intrusive<StringVal>(msg)
+	);
 	}
 
 void ARP_Analyzer::Corrupted(const char* msg)
@@ -212,14 +213,14 @@ void ARP_Analyzer::RREvent(EventHandlerPtr e,
 	if ( ! e )
 		return;
 
-	mgr.QueueEventFast(e, {
-		EthAddrToStr(src),
-		EthAddrToStr(dst),
-		ConstructAddrVal(spa),
-		EthAddrToStr((const u_char*) sha),
-		ConstructAddrVal(tpa),
-		EthAddrToStr((const u_char*) tha),
-	});
+	mgr.Enqueue(e,
+		IntrusivePtr{AdoptRef{}, EthAddrToStr(src)},
+		IntrusivePtr{AdoptRef{}, EthAddrToStr(dst)},
+		IntrusivePtr{AdoptRef{}, ConstructAddrVal(spa)},
+		IntrusivePtr{AdoptRef{}, EthAddrToStr((const u_char*) sha)},
+		IntrusivePtr{AdoptRef{}, ConstructAddrVal(tpa)},
+		IntrusivePtr{AdoptRef{}, EthAddrToStr((const u_char*) tha)}
+	);
 	}
 
 AddrVal* ARP_Analyzer::ConstructAddrVal(const void* addr)

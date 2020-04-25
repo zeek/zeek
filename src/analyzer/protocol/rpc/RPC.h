@@ -3,7 +3,7 @@
 #pragma once
 
 #include "analyzer/protocol/tcp/TCP.h"
-#include "analyzer/protocol/udp/UDP.h"
+#include "NetVar.h"
 
 namespace analyzer { namespace rpc {
 
@@ -54,9 +54,9 @@ public:
 
 	void AddVal(Val* arg_v)		{ Unref(v); v = arg_v; }
 	Val* RequestVal() const		{ return v; }
-	Val* TakeRequestVal()		{ Val* rv = v; v = 0; return rv; }
+	Val* TakeRequestVal()		{ Val* rv = v; v = nullptr; return rv; }
 
-	int CompareRexmit(const u_char* buf, int n) const;
+	bool CompareRexmit(const u_char* buf, int n) const;
 
 	uint32_t Program() const		{ return prog; }
 	uint32_t Version() const		{ return vers; }
@@ -106,13 +106,13 @@ public:
 	// Delivers the given RPC.  Returns true if "len" bytes were
 	// enough, false otherwise.  "is_orig" is true if the data is
 	// from the originator of the connection.
-	int DeliverRPC(const u_char* data, int len, int caplen, int is_orig, double start_time, double last_time);
+	int DeliverRPC(const u_char* data, int len, int caplen, bool is_orig, double start_time, double last_time);
 
 	void Timeout();
 
 protected:
-	virtual int RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n) = 0;
-	virtual int RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status success,
+	virtual bool RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n) = 0;
+	virtual bool RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status success,
 				   const u_char*& buf, int& n, double start_time, double last_time,
 				   int reply_len) = 0;
 
@@ -149,7 +149,7 @@ public:
 	RPC_Reasm_Buffer() {
 		maxsize = expected = 0;
 		fill = processed = 0;
-		buf = 0;
+		buf = nullptr;
 	};
 
 	~RPC_Reasm_Buffer() { if (buf) delete [] buf; }
@@ -184,7 +184,7 @@ protected:
 };
 
 /* Support Analyzer for reassembling RPC-over-TCP messages */
-class Contents_RPC : public tcp::TCP_SupportAnalyzer {
+class Contents_RPC final : public tcp::TCP_SupportAnalyzer {
 public:
 	Contents_RPC(Connection* conn, bool orig, RPC_Interpreter* interp);
 	~Contents_RPC() override;
@@ -250,4 +250,4 @@ protected:
 	Contents_RPC* resp_rpc;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

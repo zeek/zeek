@@ -66,11 +66,11 @@ protected:
 	 *        to which the contents of the file will be extracted/written.
 	 * @param arg_limit the maximum allowed file size.
 	 */
-	Extract(RecordVal* args, File* file, const string& arg_filename,
+	Extract(RecordVal* args, File* file, const std::string& arg_filename,
 	        uint64_t arg_limit);
 
 private:
-	string filename;
+	std::string filename;
 	int fd;
 	uint64_t limit;
 	uint64_t depth;

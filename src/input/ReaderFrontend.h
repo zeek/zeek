@@ -3,10 +3,9 @@
 #pragma once
 
 #include "ReaderBackend.h"
-#include "threading/MsgThread.h"
 #include "threading/SerialTypes.h"
 
-#include "Val.h"
+class EnumVal;
 
 namespace input {
 

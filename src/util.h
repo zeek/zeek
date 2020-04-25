@@ -347,6 +347,14 @@ std::string normalize_path(std::string_view path);
 std::string without_bropath_component(std::string_view path);
 
 /**
+ * Gets the full path used to invoke some executable.
+ * @param invocation  any possible string that may be seen in argv[0], such as
+ *                    absolute path, relative path, or name to lookup in PATH.
+ * @return the absolute path to the executable file
+ */
+std::string get_exe_path(const std::string& invocation);
+
+/**
  * Locate a file within a given search path.
  * @param filename Name of a file to find.
  * @param path_set Colon-delimited set of paths to search for the file.

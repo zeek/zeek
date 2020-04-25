@@ -1745,6 +1745,38 @@ static string find_file_in_path(const string& filename, const string& path,
 	return string();
 	}
 
+std::string get_exe_path(const std::string& invocation)
+	{
+	if ( invocation.empty() )
+		return "";
+
+	if ( invocation[0] == '/' || invocation[0] == '~' )
+		// Absolute path
+		return invocation;
+
+	if ( invocation.find('/') != std::string::npos )
+		{
+		// Relative path
+		char cwd[PATH_MAX];
+
+		if ( ! getcwd(cwd, sizeof(cwd)) )
+			{
+			fprintf(stderr, "failed to get current directory: %s\n",
+			        strerror(errno));
+			exit(1);
+			}
+
+		return std::string(cwd) + "/" + invocation;
+		}
+
+	auto path = getenv("PATH");
+
+	if ( ! path )
+		return "";
+
+	return find_file(invocation, path);
+	}
+
 string find_file(const string& filename, const string& path_set,
                  const string& opt_ext)
 	{

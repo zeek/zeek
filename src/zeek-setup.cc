@@ -374,38 +374,6 @@ static std::vector<std::string> get_script_signature_files()
 	return rval;
 	}
 
-static std::string get_exe_path(const std::string& invocation)
-	{
-	if ( invocation.empty() )
-		return "";
-
-	if ( invocation[0] == '/' || invocation[0] == '~' )
-		// Absolute path
-		return invocation;
-
-	if ( invocation.find('/') != std::string::npos )
-		{
-		// Relative path
-		char cwd[PATH_MAX];
-
-		if ( ! getcwd(cwd, sizeof(cwd)) )
-			{
-			fprintf(stderr, "failed to get current directory: %s\n",
-			        strerror(errno));
-			exit(1);
-			}
-
-		return std::string(cwd) + "/" + invocation;
-		}
-
-	auto path = getenv("PATH");
-
-	if ( ! path )
-		return "";
-
-	return find_file(invocation, path);
-	}
-
 zeek::SetupResult zeek::setup(int argc, char** argv, zeek::Options* zopts)
 	{
 	ZEEK_LSAN_DISABLE();

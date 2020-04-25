@@ -54,6 +54,10 @@ BEGIN	{
 	exprV["VV"] = "lhs, r1->AsNameExpr()"
 	exprV["VVV"] = "lhs, r1->AsNameExpr(), r2->AsNameExpr()"
 	exprV["VVVV"] = "lhs, r1->AsNameExpr(), r2->AsNameExpr(), r3->AsNameExpr()"
+
+	accessors["I"] = ".int_val"
+	accessors["U"] = ".uint_val"
+	accessors["D"] = ".double_val"
 	}
 
 $1 == "op"	{ dump_op(); op = $2; next }
@@ -63,11 +67,18 @@ $1 == "unary-expr-op"	{ dump_op(); op = $2; expr_op = 1; unary_op = 1; next }
 $1 == "internal-op"	{ dump_op(); op = $2; internal_op = 1; next }
 
 $1 == "type"	{ type = $2; next }
+$1 == "op-type"	{ operand_type = $2; next }
 $1 == "opaque"	{ opaque = 1; next }
 $1 == "eval"	{
-		new_eval = all_but_first() ";"
+		new_eval = all_but_first()
+		if ( operand_type == "" )
+			new_eval = new_eval ";"
+
 		if ( eval )
 			{
+			if ( operand_type )
+				gripe("cannot intermingle op-type and multi-line evals")
+
 			eval = eval "\n\t\t" new_eval
 
 			# The following variables are just to enable
@@ -88,10 +99,7 @@ $1 == "method-pre"	{ method_pre = all_but_first(); next }
 /^#/		{ next }
 /^[ \t]*$/	{ next }
 
-	{
-	print "unrecognized compiler template line " NR ":", $0
-	exit(1)
-	}
+	{ gripe("unrecognized compiler template line: " $0) }
 
 END	{
 	dump_op()
@@ -123,8 +131,12 @@ function dump_op()
 
 	if ( unary_op )
 		{
-		build_op(op, "VV", expand_eval(eval, expr_op, 1))
-		build_op(op, "VC", expand_eval(eval, expr_op, 0))
+		build_op(op, "VV", expand_eval(eval, expr_op, operand_type, 1))
+
+		# Note, for most operators the constant version would have
+		# already been folded, but for some like AppendTo, they
+		# cannot, so we account for that possibility here.
+		build_op(op, "VC", expand_eval(eval, expr_op, operand_type, 0))
 		}
 	else
 		build_op(op, type, eval)
@@ -132,25 +144,33 @@ function dump_op()
 	clear_vars()
 	}
 
-function expand_eval(e, is_expr_op, is_var)
+function expand_eval(e, is_expr_op, otype, is_var)
 	{
-	rep = is_var ? "frame[s.v2]" : "s.c"
+	accessor = laccessor = raccessor = ""
+	if ( otype )
+		{
+		if ( ! (otype in accessors) )
+			gripe("bad operand_type: " otype)
+
+		accessor = accessors[otype]
+		laccessor = accessor
+		raccessor = accessor ";"
+		}
+
+	rep = (is_var ? "frame[s.v2]" : "s.c")
 	e_copy = e
 	gsub(/\$1/, rep, e_copy)
 
 	if ( is_expr_op )
-		return "frame[s.v1] = " e_copy
+		return "frame[s.v1]" laccessor " = " e_copy raccessor
 	else
-		return e_copy
+		return e_copy accessor
 	}
 
 function build_op(op, type, eval)
 	{
 	if ( ! (type in args) )
-		{
-		print "bad type " type " for " op
-		exit(1)
-		}
+		gripe("bad type " type " for " op)
 
 	orig_op = op
 	gsub(/-/, "_", op)
@@ -188,10 +208,7 @@ function build_op(op, type, eval)
 	if ( expr_op )
 		{
 		if ( type == "C" )
-			{
-			print "bad type " type " for expr " op
-			exit(1)
-			}
+			gripe("bad type " type " for expr " op)
 
 		expr_case = "EXPR_" upper_op
 
@@ -220,10 +237,7 @@ function build_op(op, type, eval)
 			}
 
 		else
-			{
-			print "bad type " type " for expr " op
-			exit(1)
-			}
+			gripe("bad type " type " for expr " op)
 
 		print ("\tcase " expr_case ":\treturn c->" op_type "(" eargs ");") >f
 		}
@@ -233,6 +247,7 @@ function clear_vars()
 	{
 	opaque = type = eval = multi_eval = eval_blank = method_pre = ""
 	internal_op = unary_op = expr_op = op = ""
+	operand_type = ""
 	}
 
 function prep(f)
@@ -248,4 +263,9 @@ function finish(f, which)
 	print ("\t}\t}") >f
 	}
 
+function gripe(msg)
+	{
+	print "error at input line", NR ":", msg
+	exit(1)
+	}
 ' $*

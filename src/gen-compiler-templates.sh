@@ -62,7 +62,24 @@ $1 == "internal-op"	{ dump_op(); op = $2; internal_op = 1; next }
 
 $1 == "type"	{ type = $2; next }
 $1 == "opaque"	{ opaque = 1; next }
-$1 == "eval"	{ eval = all_but_first(); next }
+$1 == "eval"	{
+		new_eval = all_but_first() ";"
+		if ( eval )
+			{
+			eval = eval "\n\t\t" new_eval
+
+			# The following variables are just to enable
+			# us to produce tidy-looking switch blocks.
+			multi_eval = "\n\t\t"
+			eval_blank = ""
+			}
+		else
+			{
+			eval = new_eval
+			eval_blank = " "
+			}
+		next
+		}
 
 $1 == "method-pre"	{ method_pre = all_but_first(); next }
 
@@ -122,7 +139,7 @@ function dump_op()
 
 	print ("\t" full_op ",") >ops_f
 	print ("\tcase " full_op ":\treturn \"" tolower(orig_op) "-" type "\";") >ops_names_f
-	print ("\tcase " full_op ":\t{ " eval "; } break;") >ops_eval_f
+	print ("\tcase " full_op ":\n\t\t{ " multi_eval eval multi_eval eval_blank "}" multi_eval eval_blank "break;\n") >ops_eval_f
 
 	if ( ! internal_op )
 		{
@@ -185,6 +202,7 @@ function dump_op()
 		}
 
 	opaque = internal_op = expr_op = op = type = eval = method_pre = ""
+	eval_blank = multi_eval = ""
 	}
 
 function prep(f)

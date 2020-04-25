@@ -13,34 +13,44 @@ eval frame[s.v1] = frame[s.v2]
 
 op AppendTo
 type VV
-eval auto vv = frame[s.v1].vector_val; vv->Assign(vv->Size(), frame[s.v2].ToVal(s.t))
+eval auto vv = frame[s.v1].vector_val
+eval vv->Assign(vv->Size(), frame[s.v2].ToVal(s.t))
 
 op AppendTo
 type VC
-eval auto vv = frame[s.v1].vector_val; auto c = s.c.ToVal(s.t); vv->Assign(vv->Size(), c)
+eval auto vv = frame[s.v1].vector_val
+eval auto c = s.c.ToVal(s.t)
+eval vv->Assign(vv->Size(), c)
 
 ########################################
 
 op Return
 type X
-eval ret_u = nullptr; loop = false
+eval ret_u = nullptr
+eval loop = false
 method-pre	SyncGlobals()
 
 op Return
 type V
-eval ret_u = &frame[s.v1]; ret_type = s.t; loop = false
+eval ret_u = &frame[s.v1]
+eval ret_type = s.t
+eval loop = false
 method-pre	SyncGlobals()
 
 op Return
 type C
-eval ret_u = &s.c; ret_type = s.t; loop = false
+eval ret_u = &s.c
+eval ret_type = s.t
+eval loop = false
 method-pre	SyncGlobals()
 
 ########################################
 
 op Print
 type O
-eval { auto vvec = frame[s.v1].vvec; do_print(*vvec); delete vvec; break; }
+eval auto vvec = frame[s.v1].vvec
+eval do_print(*vvec)
+eval delete vvec
 method-pre int reg = v->n; delete v
 
 ########################################
@@ -61,9 +71,11 @@ eval frame[s.v1].vvec = new val_vec
 # Appends v2 to the vector pointed to by v1.
 internal-op Set-Val-Vec
 type VV
-eval auto v = frame[s.v2].ToVal(s.t); frame[s.v1].vvec->push_back(v)
+eval auto v = frame[s.v2].ToVal(s.t)
+eval frame[s.v1].vvec->push_back(v)
 
 # Appends c to the vector pointed to by v1.
 internal-op Set-Val-Vec
 type VC
-eval auto c = s.c.ToVal(s.t); frame[s.v1].vvec->push_back(c)
+eval auto c = s.c.ToVal(s.t)
+eval frame[s.v1].vvec->push_back(c)

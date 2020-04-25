@@ -8,3 +8,19 @@ eval frame[s.v1] = s.c
 expr-op Assign
 type VV
 eval frame[s.v1] = frame[s.v2]
+
+
+op Return
+type X
+eval ret_u = nullptr; loop = false
+method-pre	SyncGlobals()
+
+op Return
+type V
+eval ret_u = &frame[s.v1]; ret_type = s.t; loop = false
+method-pre	SyncGlobals()
+
+op Return
+type C
+eval ret_u = &s.c; ret_type = s.t; loop = false
+method-pre	SyncGlobals()

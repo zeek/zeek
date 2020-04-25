@@ -54,14 +54,21 @@ BEGIN	{
 	exprV["VVVV"] = "lhs, r1->AsNameExpr(), r2->AsNameExpr(), r3->AsNameExpr()"
 	}
 
-$1 == "op"	{ dump_op(); op = $2; expr_op = 0 }
-$1 == "expr-op"	{ dump_op(); op = $2; expr_op = 1 }
+$1 == "op"	{ dump_op(); op = $2; expr_op = 0; next }
+$1 == "expr-op"	{ dump_op(); op = $2; expr_op = 1; next }
 
-$1 == "type"	{ type = $2 }
-$1 == "eval"	{ eval = $0; sub(/eval[ \t]*/, "", eval) }
+$1 == "type"	{ type = $2; next }
+$1 == "eval"	{ eval = all_but_first(); next }
+
+$1 == "method-pre"	{ method_pre = all_but_first(); next }
 
 /^#/		{ next }
 /^[ \t]*$/	{ next }
+
+	{
+	print "unrecognized compiler template line:", $0
+	exit(1)
+	}
 
 END	{
 	dump_op()
@@ -70,6 +77,20 @@ END	{
 	finish(exprsC2_f, "C2")
 	finish(exprsC3_f, "C3")
 	finish(exprsV_f, "V")
+	}
+
+function all_but_first()
+	{
+	all = ""
+	for ( i = 2; i <= NF; ++i )
+		{
+		if ( i > 2 )
+			all = all " "
+
+		all = all $i
+		}
+
+	return all
 	}
 
 function dump_op()
@@ -94,8 +115,15 @@ function dump_op()
 	print ("\tcase " full_op ":\t" eval "; break;") >ops_eval_f
 
 	print ("const CompiledStmt AbstractMachine::" op_type args[type]) >methods_f
+
 	print ("\t{") >methods_f
-	print ("\treturn AddStmt(GenStmt(this, " full_op ", " args2[type], "));") >methods_f
+	if ( method_pre )
+		print ("\t" method_pre ";") >methods_f
+	if ( args2[type] != "" )
+		print ("\treturn AddStmt(GenStmt(this, " full_op ", " args2[type] "));") >methods_f
+	else
+		print ("\treturn AddStmt(GenStmt(this, " full_op"));") >methods_f
+
 	print ("\t}\n") >methods_f
 
 	if ( expr_op )
@@ -140,6 +168,8 @@ function dump_op()
 
 		print ("\tcase " expr_case ":\treturn c->" op_type "(" eargs ");") >f
 		}
+
+	op = type = eval = method_pre = ""
 	}
 
 function prep(f)

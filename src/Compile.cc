@@ -37,10 +37,6 @@ typedef enum {
 
 #include "CompilerOpsDefs.h"
 
-	OP_RET_C,
-	OP_RET_V,
-	OP_RET_X,
-
 	OP_APPEND_TO_VV,
 	OP_APPEND_TO_VC,
 
@@ -63,10 +59,6 @@ const char* abstract_op_name(AbstractOp op)
 	case OP_NOP:	return "nop";
 
 #include "CompilerOpsNamesDefs.h"
-
-	case OP_RET_C:	return "retc";
-	case OP_RET_V:	return "retv";
-	case OP_RET_X:	return "retx";
 
 	case OP_APPEND_TO_VV:	return "append-to-vv";
 	case OP_APPEND_TO_VC:	return "append-to-vc";
@@ -452,23 +444,6 @@ IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 
 #include "CompilerOpsEvalDefs.h"
 
-		case OP_RET_V:
-			ret_u = &frame[s.v1];
-			ret_type = s.t;
-			loop = false;
-			break;
-
-		case OP_RET_C:
-			ret_u = &s.c;
-			ret_type = s.t;
-			loop = false;
-			break;
-
-		case OP_RET_X:
-			ret_u = nullptr;
-			loop = false;
-			break;
-
 		case OP_PRINT_V:
 			{
 			auto vvec = frame[s.v1].vvec;
@@ -538,24 +513,6 @@ const CompiledStmt AbstractMachine::Print(OpaqueVals* v)
 	delete v;
 
 	return AddStmt(AbstractStmt(OP_PRINT_V, reg));
-	}
-
-const CompiledStmt AbstractMachine::ReturnV(const NameExpr* n)
-	{
-	SyncGlobals();
-	return AddStmt(GenStmt(this, OP_RET_V, n));
-	}
-
-const CompiledStmt AbstractMachine::ReturnC(const ConstExpr* c)
-	{
-	SyncGlobals();
-	return AddStmt(AbstractStmt(OP_RET_C, c));
-	}
-
-const CompiledStmt AbstractMachine::ReturnX()
-	{
-	SyncGlobals();
-	return AddStmt(AbstractStmt(OP_RET_X));
 	}
 
 const CompiledStmt AbstractMachine::AppendToVV(const NameExpr* n1,

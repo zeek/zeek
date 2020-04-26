@@ -7,6 +7,7 @@ BEGIN	{
 	ops_f = "CompilerOpsDefs.h"
 	ops_names_f = "CompilerOpsNamesDefs.h"
 	ops_eval_f = "CompilerOpsEvalDefs.h"
+	vec_eval_f = "CompilerVecEvalDefs.h"
 	methods_f = "CompilerOpsMethodsDefs.h"
 	exprsC1_f = "CompilerOpsExprsDefsC1.h"
 	exprsC2_f = "CompilerOpsExprsDefsC2.h"
@@ -160,21 +161,23 @@ function dump_op()
 			{
 			for ( i in op_types )
 				{
-				build_op(op, "VV", i,
-					expand_eval(eval, expr_op, i, 1))
-				build_op(op, "VC", i,
-					expand_eval(eval, expr_op, i, 0))
+				build_op(op, "VV", i, eval,
+					expand_eval(eval, expr_op, i, 1), 1)
+				build_op(op, "VC", i, eval,
+					expand_eval(eval, expr_op, i, 0), 0)
 				}
 			}
 
 		else
 			{
-			build_op(op, "VV", "", expand_eval(eval, expr_op, 0, 1))
-			build_op(op, "VC", "", expand_eval(eval, expr_op, 0, 0))
+			build_op(op, "VV", "", eval,
+					expand_eval(eval, expr_op, 0, 1), 1)
+			build_op(op, "VC", "", eval,
+					expand_eval(eval, expr_op, 0, 0), 0)
 			}
 		}
 	else
-		build_op(op, type, "", eval)
+		build_op(op, type, "", eval, eval)
 
 	clear_vars()
 	}
@@ -202,7 +205,7 @@ function expand_eval(e, is_expr_op, otype, is_var)
 		return e_copy accessor
 	}
 
-function build_op(op, type, sub_type, eval)
+function build_op(op, type, sub_type, orig_eval, eval, is_var)
 	{
 	if ( ! (type in args) )
 		gripe("bad type " type " for " op)
@@ -251,13 +254,30 @@ function build_op(op, type, sub_type, eval)
 	print ("\tcase " full_op ":\n\t\t{ " \
 		multi_eval eval multi_eval eval_blank \
 		"}" multi_eval eval_blank "break;\n") >ops_eval_f
+
 	if ( vector )
-		print ("\tcase " full_op vec ":\n\t\t{ " \
-			multi_eval eval multi_eval eval_blank \
-			"}" multi_eval eval_blank "break;\n") >ops_eval_f
+		{
+		print ("\tcase " full_op vec ": vec_exec(" full_op vec \
+			", frame[s.v1].raw_vector_val, " \
+			(is_var ? "frame[s.v2]" : "s.c") \
+			".raw_vector_val); break;") >ops_eval_f
+
+		# ### Here we know about the "accessor" global.
+		oe_copy = orig_eval
+		gsub(/\$1/, "(*v2)[i]" accessor, oe_copy)
+		print ("\tcase " full_op vec ": (*v1)[i]" accessor " = " \
+			oe_copy "; break;") >vec_eval_f
+		}
 
 	if ( ! internal_op && is_rep )
-		gen_method(full_op_no_sub, full_op, type, sub_type, method_pre)
+		{
+		gen_method(full_op_no_sub, full_op, type, sub_type,
+				0, method_pre)
+
+		if ( vector )
+			gen_method(full_op_no_sub, full_op, type, sub_type,
+					1, method_pre)
+		}
 
 	if ( expr_op && is_rep )
 		{
@@ -293,19 +313,34 @@ function build_op(op, type, sub_type, eval)
 		else
 			gripe("bad type " type " for expr " op)
 
-		print ("\tcase " expr_case ":\treturn c->" op_type "(" eargs ");") >f
+		if ( vector )
+			{
+			print ("\tcase " expr_case ":\n\t\t" \
+				"if ( rt->Tag() == TYPE_VECTOR )\n\t\t\t" \
+				"return c->" op_type vec "(" eargs ");\n" \
+				"\t\telse\n\t\t\t" \
+				"return c->" op_type "(" eargs ");") >f
+			}
+
+		else
+			print ("\tcase " expr_case ":\treturn c->" \
+				op_type "(" eargs ");") >f
 		}
 	}
 
-function gen_method(full_op_no_sub, full_op, type, sub_type, method_pre)
+function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 	{
-	print ("const CompiledStmt AbstractMachine::" op_type args[type]) >methods_f
+	print ("const CompiledStmt AbstractMachine::" \
+		(op_type (is_vec ? vec : "")) args[type]) >methods_f
 
 	print ("\t{") >methods_f
 	if ( method_pre )
 		print ("\t" method_pre ";") >methods_f
+
 	if ( type == "O" )
-		print ("\treturn AddStmt(AbstractStmt(" full_op ", reg));") >methods_f
+		print ("\treturn AddStmt(AbstractStmt(" \
+			full_op ", reg));") >methods_f
+
 	else if ( args2[type] != "" )
 		{
 		# This is the only scenario where sub_type should occur.
@@ -317,7 +352,8 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, method_pre)
 			# Only works for unary.
 			op1_is_const = type ~ /^VC/
 			test_var = op1_is_const ? "c" : "n2"
-			print ("\tauto t = " test_var "->Type()->InternalType();") >methods_f
+			print ("\tauto t = " test_var \
+				"->Type()->InternalType();") >methods_f
 
 			n = 0;
 			for ( i in op_types )
@@ -332,7 +368,10 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, method_pre)
 				else
 					gripe("bad subtype " i)
 
-				print ("\t" part1 (full_op_no_sub "_" i) part2) >methods_f
+				print ("\t" part1 \
+					(full_op_no_sub \
+					 "_" i (is_vec ? vec : "")) \
+					part2) >methods_f
 				}
 
 			print ("\telse\n\t\treporter->InternalError(\"bad internal type\");") >methods_f
@@ -341,7 +380,8 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, method_pre)
 			print (part1 full_op part2) >methods_f
 		}
 	else
-		print ("\treturn AddStmt(GenStmt(this, " full_op "));") >methods_f
+		print ("\treturn AddStmt(GenStmt(this, \
+			" full_op "));") >methods_f
 
 	print ("\t}\n") >methods_f
 	}

@@ -3537,6 +3537,7 @@ const CompiledStmt AssignExpr::Compile(Compiler* c) const
 	{
 	auto lhs = op1->AsRefExpr()->GetOp1()->AsNameExpr();
 	auto rhs = op2.get();
+	auto rt = rhs->Type();
 
 	auto r1 = rhs->GetOp1();
 	auto r2 = rhs->GetOp2();

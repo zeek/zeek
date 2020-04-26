@@ -63,10 +63,6 @@ public:
 	void Dump();
 
 protected:
-	// Unary vector operation of v1 <vec-op> v2.
-	void VecExec(vector<BroValUnion>* v1,
-			const vector<BroValUnion>* v2) const;
-
 	void SyncGlobals();
 
 	const CompiledStmt AddStmt(const AbstractStmt& stmt);

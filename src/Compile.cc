@@ -384,6 +384,9 @@ void AbstractMachine::StmtDescribe(ODesc* d) const
 	{
 	}
 
+static void vec_exec(AbstractOp op, vector<BroValUnion>* v1,
+			const vector<BroValUnion>* v2);
+
 IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	const AS_ValUnion* ret_u;
@@ -409,16 +412,6 @@ IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 		return ret_u->ToVal(ret_type);
 	else
 		return nullptr;
-	}
-
-void AbstractMachine::VecExec(vector<BroValUnion>* v1,
-				const vector<BroValUnion>* v2) const
-	{
-	for ( unsigned int i = 0; i < v2->size(); ++i )
-		{
-		// Val* v_i = v2->Lookup(i);
-		// v1->Assign(i, v_i ? Fold(v_i) : nullptr);
-		}
 	}
 
 #include "CompilerOpsMethodsDefs.h"
@@ -509,4 +502,25 @@ TraversalCode Compiler::Traverse(TraversalCallback* cb) const
 
 	tc = cb->PostStmt(this);
 	HANDLE_TC_STMT_POST(tc);
+	}
+
+
+// Unary vector operation of v1 <vec-op> v2.
+static void vec_exec(AbstractOp op, vector<BroValUnion>* v1,
+			const vector<BroValUnion>* v2)
+	{
+	// We could speed this up further still by gen'ing up an
+	// instance of the loop inside each switch case (in which
+	// case we might as well move the whole kit-and-caboodle
+	// into the Exec method).  But that seems like a lot of
+	// code bloat for only a very modest gain.
+
+	for ( unsigned int i = 0; i < v2->size(); ++i )
+		switch ( op ) {
+
+#include "CompilerVecEvalDefs.h"
+
+		default:
+			reporter->InternalError("bad invocation of VecExec");
+		}
 	}

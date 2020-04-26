@@ -207,6 +207,7 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/CompilerBaseDefs.h
                           ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsDefs.h
                           ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsNamesDefs.h
                           ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsEvalDefs.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/CompilerVecEvalDefs.h
                           ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsMethodsDefs.h
                           ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsExprsDefsC1.h
                           ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsExprsDefsC2.h

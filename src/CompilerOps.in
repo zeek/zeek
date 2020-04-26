@@ -15,6 +15,10 @@ unary-expr-op Complement
 op-type U
 eval ~ $1
 
+unary-expr-op Positive
+op-type I D
+eval $1
+
 ########################################
 
 unary-op AppendTo

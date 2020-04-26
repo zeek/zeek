@@ -213,7 +213,12 @@ function build_op(op, type, sub_type, eval)
 	if ( sub_type )
 		full_op = full_op "_" sub_type
 
-	if ( ! internal_op )
+	# Track whether this is the "representative" operand for
+	# operations with multiple types of operands.  This lets us
+	# avoid redundant declarations.
+	is_rep = ! sub_type || sub_type == op_type_rep
+
+	if ( ! internal_op && is_rep )
 		{
 		print ("\tvirtual const CompiledStmt " op_type args[type] " = 0;") >base_class_f
 		print ("\tconst CompiledStmt " op_type args[type] " override;") >sub_class_f
@@ -223,10 +228,10 @@ function build_op(op, type, sub_type, eval)
 	print ("\tcase " full_op ":\treturn \"" tolower(orig_op) "-" type "\";") >ops_names_f
 	print ("\tcase " full_op ":\n\t\t{ " multi_eval eval multi_eval eval_blank "}" multi_eval eval_blank "break;\n") >ops_eval_f
 
-	if ( ! internal_op )
+	if ( ! internal_op && is_rep )
 		gen_method(full_op_no_sub, full_op, type, sub_type, method_pre)
 
-	if ( expr_op )
+	if ( expr_op && is_rep )
 		{
 		if ( type == "C" )
 			gripe("bad type " type " for expr " op)
@@ -266,9 +271,6 @@ function build_op(op, type, sub_type, eval)
 
 function gen_method(full_op_no_sub, full_op, type, sub_type, method_pre)
 	{
-	if ( sub_type && sub_type != op_type_rep )
-		return
-
 	print ("const CompiledStmt AbstractMachine::" op_type args[type]) >methods_f
 
 	print ("\t{") >methods_f

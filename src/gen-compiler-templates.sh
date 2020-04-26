@@ -58,9 +58,6 @@ BEGIN	{
 	accessors["I"] = ".int_val"
 	accessors["U"] = ".uint_val"
 	accessors["D"] = ".double_val"
-
-	# Suffix used for vector operations.
-	vec = "_vec"
 	}
 
 $1 == "op"	{ dump_op(); op = $2; next }
@@ -228,33 +225,16 @@ function build_op(op, type, sub_type, eval)
 			op_type args[type] " = 0;") >base_class_f
 		print ("\tconst CompiledStmt " op_type args[type] \
 			" override;") >sub_class_f
-
-		if ( vector )
-			{
-			print ("\tvirtual const CompiledStmt " \
-				op_type vec args[type] " = 0;") >base_class_f
-			print ("\tconst CompiledStmt " op_type vec \
-				args[type] " override;") >sub_class_f
-			}
 		}
 
 	print ("\t" full_op ",") >ops_f
-	if ( vector )
-		print ("\t" full_op vec ",") >ops_f
 
 	print ("\tcase " full_op ":\treturn \"" tolower(orig_op) \
 		"-" type "\";") >ops_names_f
-	if ( vector )
-		print ("\tcase " full_op vec ":\treturn \"" tolower(orig_op) \
-			"-" type "-vec" "\";") >ops_names_f
 
 	print ("\tcase " full_op ":\n\t\t{ " \
 		multi_eval eval multi_eval eval_blank \
 		"}" multi_eval eval_blank "break;\n") >ops_eval_f
-	if ( vector )
-		print ("\tcase " full_op vec ":\n\t\t{ " \
-			multi_eval eval multi_eval eval_blank \
-			"}" multi_eval eval_blank "break;\n") >ops_eval_f
 
 	if ( ! internal_op && is_rep )
 		gen_method(full_op_no_sub, full_op, type, sub_type, method_pre)

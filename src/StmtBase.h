@@ -7,8 +7,12 @@
 // Expr.h to use IntrusivePtr<Stmt>.
 
 #include "Obj.h"
+#include "IntrusivePtr.h"
 #include "StmtEnums.h"
 #include "TraverseTypes.h"
+#include "util.h"
+
+class Val;
 
 class StmtList;
 class CompositeHash;

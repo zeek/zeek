@@ -69,6 +69,7 @@ union AS_ValUnion {
 	TableVal* table_val;
 	BroType* type_val;
 	VectorVal* vector_val;
+	vector<BroValUnion>* raw_vector_val;
 
 	// Used for the compiler to hold opaque items.
 	val_vec* vvec;
@@ -408,6 +409,16 @@ IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 		return ret_u->ToVal(ret_type);
 	else
 		return nullptr;
+	}
+
+void AbstractMachine::VecExec(vector<BroValUnion>* v1,
+				const vector<BroValUnion>* v2) const
+	{
+	for ( unsigned int i = 0; i < v2->size(); ++i )
+		{
+		// Val* v_i = v2->Lookup(i);
+		// v1->Assign(i, v_i ? Fold(v_i) : nullptr);
+		}
 	}
 
 #include "CompilerOpsMethodsDefs.h"

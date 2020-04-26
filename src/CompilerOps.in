@@ -17,6 +17,7 @@ eval ~ $1
 
 unary-expr-op Positive
 op-type I D
+vector
 eval $1
 
 ########################################
@@ -82,6 +83,15 @@ internal-op Set-Val-Vec
 type VC
 eval auto c = s.c.ToVal(s.t)
 eval frame[s.v1].vvec->push_back(c)
+
+# Executes a unary vector operation.
+internal-op Unary-Eval-Vec
+type VV
+eval VecExec(frame[s.v1].raw_vector_val, frame[s.v2].raw_vector_val)
+
+internal-op Unary-Eval-Vec
+type VC
+eval VecExec(frame[s.v1].raw_vector_val, s.c.raw_vector_val)
 
 # EXPR_POSITIVE
 # EXPR_NEGATE

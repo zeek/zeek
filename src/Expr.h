@@ -4,6 +4,7 @@
 
 #include "BroList.h"
 #include "IntrusivePtr.h"
+#include "StmtBase.h"
 #include "ID.h"
 #include "Timer.h"
 #include "Type.h"

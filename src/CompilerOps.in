@@ -20,6 +20,11 @@ op-type I D
 vector
 eval $1
 
+unary-expr-op Negate
+op-type I D
+vector
+eval -$1
+
 ########################################
 
 unary-op AppendTo
@@ -83,9 +88,6 @@ internal-op Set-Val-Vec
 type VC
 eval auto c = s.c.ToVal(s.t)
 eval frame[s.v1].vvec->push_back(c)
-
-# EXPR_POSITIVE
-# EXPR_NEGATE
 
 # EXPR_ADD
 # EXPR_SUB

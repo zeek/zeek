@@ -13,7 +13,7 @@ eval ! $1
 
 unary-expr-op Complement
 op-type U
-eval ~$1
+eval ~ $1
 
 ########################################
 

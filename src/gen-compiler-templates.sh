@@ -67,7 +67,7 @@ $1 == "unary-expr-op"	{ dump_op(); op = $2; expr_op = 1; unary_op = 1; next }
 $1 == "internal-op"	{ dump_op(); op = $2; internal_op = 1; next }
 
 $1 == "type"	{ type = $2; next }
-$1 == "op-type"	{ operand_type = $2; next }
+$1 ~ /^op-type(s?)$/	{ build_op_types(); next }
 $1 == "opaque"	{ opaque = 1; next }
 $1 == "eval"	{
 		new_eval = all_but_first()
@@ -110,6 +110,23 @@ END	{
 	finish(exprsV_f, "V")
 	}
 
+function build_op_types()
+	{
+	operand_type = 1
+
+	for ( i = 2; i <= NF; ++i )
+		{
+		if ( $i in accessors )
+			++op_types[$i]
+		else
+			gripe("bad op-type " $i)
+		}
+
+	# The "rep" is simply one of the listed types, which we use
+	# to generate the corresponding base method only once.
+	op_type_rep = $2
+	}
+
 function all_but_first()
 	{
 	all = ""
@@ -131,43 +148,57 @@ function dump_op()
 
 	if ( unary_op )
 		{
-		build_op(op, "VV", expand_eval(eval, expr_op, operand_type, 1))
-
 		# Note, for most operators the constant version would have
 		# already been folded, but for some like AppendTo, they
 		# cannot, so we account for that possibility here.
-		build_op(op, "VC", expand_eval(eval, expr_op, operand_type, 0))
+
+		if ( operand_type )
+			{
+			for ( i in op_types )
+				{
+				build_op(op, "VV", i,
+					expand_eval(eval, expr_op, i, 1))
+				build_op(op, "VC", i,
+					expand_eval(eval, expr_op, i, 0))
+				}
+			}
+
+		else
+			{
+			build_op(op, "VV", "", expand_eval(eval, expr_op, 0, 1))
+			build_op(op, "VC", "", expand_eval(eval, expr_op, 0, 0))
+			}
 		}
 	else
-		build_op(op, type, eval)
+		build_op(op, type, "", eval)
 
 	clear_vars()
 	}
 
 function expand_eval(e, is_expr_op, otype, is_var)
 	{
-	accessor = laccessor = raccessor = ""
+	accessor = ""
+	expr_app = ""
 	if ( otype )
 		{
 		if ( ! (otype in accessors) )
 			gripe("bad operand_type: " otype)
 
 		accessor = accessors[otype]
-		laccessor = accessor
-		raccessor = accessor ";"
+		expr_app = ";"
 		}
 
-	rep = (is_var ? "frame[s.v2]" : "s.c")
+	rep = "(" (is_var ? "frame[s.v2]" : "s.c") accessor ")"
 	e_copy = e
 	gsub(/\$1/, rep, e_copy)
 
 	if ( is_expr_op )
-		return "frame[s.v1]" laccessor " = " e_copy raccessor
+		return "frame[s.v1]" accessor " = " e_copy expr_app
 	else
 		return e_copy accessor
 	}
 
-function build_op(op, type, eval)
+function build_op(op, type, sub_type, eval)
 	{
 	if ( ! (type in args) )
 		gripe("bad type " type " for " op)
@@ -175,8 +206,12 @@ function build_op(op, type, eval)
 	orig_op = op
 	gsub(/-/, "_", op)
 	upper_op = toupper(op)
-	full_op = "OP_" upper_op "_" type
 	op_type = op type
+
+	full_op = "OP_" upper_op "_" type
+	full_op_no_sub = full_op
+	if ( sub_type )
+		full_op = full_op "_" sub_type
 
 	if ( ! internal_op )
 		{
@@ -189,21 +224,7 @@ function build_op(op, type, eval)
 	print ("\tcase " full_op ":\n\t\t{ " multi_eval eval multi_eval eval_blank "}" multi_eval eval_blank "break;\n") >ops_eval_f
 
 	if ( ! internal_op )
-		{
-		print ("const CompiledStmt AbstractMachine::" op_type args[type]) >methods_f
-
-		print ("\t{") >methods_f
-		if ( method_pre )
-			print ("\t" method_pre ";") >methods_f
-		if ( type == "O" )
-			print ("\treturn AddStmt(AbstractStmt(" full_op ", reg));") >methods_f
-		else if ( args2[type] != "" )
-			print ("\treturn AddStmt(GenStmt(this, " full_op ", " args2[type] "));") >methods_f
-		else
-			print ("\treturn AddStmt(GenStmt(this, " full_op"));") >methods_f
-
-		print ("\t}\n") >methods_f
-		}
+		gen_method(full_op_no_sub, full_op, type, sub_type, method_pre)
 
 	if ( expr_op )
 		{
@@ -243,11 +264,64 @@ function build_op(op, type, eval)
 		}
 	}
 
+function gen_method(full_op_no_sub, full_op, type, sub_type, method_pre)
+	{
+	if ( sub_type && sub_type != op_type_rep )
+		return
+
+	print ("const CompiledStmt AbstractMachine::" op_type args[type]) >methods_f
+
+	print ("\t{") >methods_f
+	if ( method_pre )
+		print ("\t" method_pre ";") >methods_f
+	if ( type == "O" )
+		print ("\treturn AddStmt(AbstractStmt(" full_op ", reg));") >methods_f
+	else if ( args2[type] != "" )
+		{
+		# This is the only scenario where sub_type should occur.
+		part1 = "\treturn AddStmt(GenStmt(this, "
+		part2 = ", " args2[type] "));"
+
+		if ( sub_type )
+			{
+			# Only works for unary.
+			op1_is_const = type ~ /^VC/
+			test_var = op1_is_const ? "c" : "n2"
+			print ("\tauto t = " test_var "->Type()->InternalType();") >methods_f
+
+			n = 0;
+			for ( i in op_types )
+				{
+				else_text = ((++n > 1) ? "else " : "");
+				if ( i == "I" || i == "U" )
+					{
+					print ("\t" else_text "if ( t == TYPE_INTERNAL_INT || t == TYPE_INTERNAL_UNSIGNED )") >methods_f
+					}
+				else if ( i == "D" )
+					print ("\t" else_text "if ( t == TYPE_INTERNAL_DOUBLE )") >methods_f
+				else
+					gripe("bad subtype " i)
+
+				print ("\t" part1 (full_op_no_sub "_" i) part2) >methods_f
+				}
+
+			print ("\telse\n\t\treporter->InternalError(\"bad internal type\");") >methods_f
+			}
+		else
+			print (part1 full_op part2) >methods_f
+		}
+	else
+		print ("\treturn AddStmt(GenStmt(this, " full_op "));") >methods_f
+
+	print ("\t}\n") >methods_f
+	}
+
 function clear_vars()
 	{
 	opaque = type = eval = multi_eval = eval_blank = method_pre = ""
 	internal_op = unary_op = expr_op = op = ""
 	operand_type = ""
+	delete op_types
 	}
 
 function prep(f)

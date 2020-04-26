@@ -28,7 +28,6 @@ function connect_peer(node_type: NodeType, node_name: string)
 
 function connect_peers_with_type(node_type: NodeType)
 	{
-	local rval: vector of NamedNode = vector();
 	local nn = nodes_with_type(node_type);
 
 	for ( i in nn )

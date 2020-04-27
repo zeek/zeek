@@ -68,6 +68,7 @@ $1 == "op"	{ dump_op(); op = $2; next }
 $1 == "expr-op"	{ dump_op(); op = $2; expr_op = 1; next }
 $1 == "unary-op"	{ dump_op(); op = $2; ary_op = 1; next }
 $1 == "unary-expr-op"	{ dump_op(); op = $2; expr_op = 1; ary_op = 1; next }
+$1 == "binary-expr-op"	{ dump_op(); op = $2; expr_op = 1; ary_op = 2; next }
 $1 == "internal-op"	{ dump_op(); op = $2; internal_op = 1; next }
 
 $1 == "type"	{ type = $2; next }
@@ -172,14 +173,29 @@ function dump_op()
 		for ( j = 0; j <= 1; ++j )
 			{
 			op1 = j ? "V" : "C"
-			build_op(op, "V" op1, i, eval,
-				expand_eval(eval, expr_op, i, j), j)
+
+			if ( ary_op == 1 )
+				{
+				ex = expand_eval(eval, expr_op, i, j, 0)
+				build_op(op, "V" op1, i, eval, ex, j)
+				continue;
+				}
+
+			for ( k = 0; k <= 1; ++k )
+				{
+				if ( ! j && ! k )
+					# Do not generate CC, should have
+					# been folded.
+					continue;
+
+				op2 = j ? "V" : "C"
+				}
 			}
 
 	clear_vars()
 	}
 
-function expand_eval(e, is_expr_op, otype, is_var)
+function expand_eval(e, is_expr_op, otype, is_var1, is_var2)
 	{
 	accessor = ""
 	expr_app = ""
@@ -192,9 +208,15 @@ function expand_eval(e, is_expr_op, otype, is_var)
 		expr_app = ";"
 		}
 
-	rep = "(" (is_var ? "frame[s.v2]" : "s.c") accessor ")"
 	e_copy = e
-	gsub(/\$1/, rep, e_copy)
+	rep1 = "(" (is_var1 ? "frame[s.v2]" : "s.c") accessor ")"
+	gsub(/\$1/, rep1, e_copy)
+
+	if ( ary_op == 2 )
+		{
+		rep2 = "(" (is_var2 ? "frame[s.v3]" : "s.c") accessor ")"
+		gsub(/\$2/, rep2, e_copy)
+		}
 
 	if ( is_expr_op )
 		return "frame[s.v1]" accessor " = " e_copy expr_app

@@ -334,7 +334,6 @@ AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const NameExpr* v1)
 	{
 	return AbstractStmt(op, m->FrameSlot(v1));
 	}
-
 AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const NameExpr* v1,
 			const NameExpr* v2)
 	{
@@ -363,6 +362,11 @@ AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const NameExpr* v1,
 	return AbstractStmt(op, m->FrameSlot(v1), ce);
 	}
 AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const NameExpr* v1,
+			const ConstExpr* ce, const NameExpr* v2)
+	{
+	return AbstractStmt(op, m->FrameSlot(v1), m->FrameSlot(v2), ce);
+	}
+AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const NameExpr* v1,
 			const NameExpr* v2, const ConstExpr* ce)
 	{
 	return AbstractStmt(op, m->FrameSlot(v1), m->FrameSlot(v2), ce);
@@ -386,6 +390,10 @@ void AbstractMachine::StmtDescribe(ODesc* d) const
 
 static void vec_exec(AbstractOp op, vector<BroValUnion>* v1,
 			const vector<BroValUnion>* v2);
+
+static void vec_exec(AbstractOp op, vector<BroValUnion>* v1,
+			const vector<BroValUnion>* v2,
+			const vector<BroValUnion>* v3);
 
 IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 	{
@@ -518,7 +526,28 @@ static void vec_exec(AbstractOp op, vector<BroValUnion>* v1,
 	for ( unsigned int i = 0; i < v2->size(); ++i )
 		switch ( op ) {
 
-#include "CompilerVecEvalDefs.h"
+#include "CompilerVec1EvalDefs.h"
+
+		default:
+			reporter->InternalError("bad invocation of VecExec");
+		}
+	}
+
+// Binary vector operation of v1 = v2 <vec-op> v3.
+static void vec_exec(AbstractOp op, vector<BroValUnion>* v1,
+			const vector<BroValUnion>* v2,
+			const vector<BroValUnion>* v3)
+	{
+	// We could speed this up further still by gen'ing up an
+	// instance of the loop inside each switch case (in which
+	// case we might as well move the whole kit-and-caboodle
+	// into the Exec method).  But that seems like a lot of
+	// code bloat for only a very modest gain.
+
+	for ( unsigned int i = 0; i < v2->size(); ++i )
+		switch ( op ) {
+
+#include "CompilerVec2EvalDefs.h"
 
 		default:
 			reporter->InternalError("bad invocation of VecExec");

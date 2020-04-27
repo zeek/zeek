@@ -7,7 +7,8 @@ BEGIN	{
 	ops_f = "CompilerOpsDefs.h"
 	ops_names_f = "CompilerOpsNamesDefs.h"
 	ops_eval_f = "CompilerOpsEvalDefs.h"
-	vec_eval_f = "CompilerVecEvalDefs.h"
+	vec1_eval_f = "CompilerVec1EvalDefs.h"
+	vec2_eval_f = "CompilerVec2EvalDefs.h"
 	methods_f = "CompilerOpsMethodsDefs.h"
 	exprsC1_f = "CompilerOpsExprsDefsC1.h"
 	exprsC2_f = "CompilerOpsExprsDefsC2.h"
@@ -154,7 +155,7 @@ function dump_op()
 
 	if ( ! ary_op )
 		{
-		build_op(op, type, "", eval, eval)
+		build_op(op, type, "", eval, eval, 0, 0)
 		clear_vars()
 		return
 		}
@@ -177,7 +178,7 @@ function dump_op()
 			if ( ary_op == 1 )
 				{
 				ex = expand_eval(eval, expr_op, i, j, 0)
-				build_op(op, "V" op1, i, eval, ex, j)
+				build_op(op, "V" op1, i, eval, ex, j, 0)
 				continue;
 				}
 
@@ -188,7 +189,9 @@ function dump_op()
 					# been folded.
 					continue;
 
-				op2 = j ? "V" : "C"
+				op2 = k ? "V" : "C"
+				ex = expand_eval(eval, expr_op, i, j, k)
+				build_op(op, "V" op1 op2, i, eval, ex, j, k)
 				}
 			}
 
@@ -224,7 +227,7 @@ function expand_eval(e, is_expr_op, otype, is_var1, is_var2)
 		return e_copy accessor
 	}
 
-function build_op(op, type, sub_type, orig_eval, eval, is_var)
+function build_op(op, type, sub_type, orig_eval, eval, is_var1, is_var2)
 	{
 	if ( ! (type in args) )
 		gripe("bad type " type " for " op)
@@ -276,17 +279,39 @@ function build_op(op, type, sub_type, orig_eval, eval, is_var)
 
 	if ( vector )
 		{
-		print ("\tcase " full_op vec ": vec_exec(" full_op vec \
-			", frame[s.v1].raw_vector_val, " \
-			(is_var ? "frame[s.v2]" : "s.c") \
-			".raw_vector_val); break;") >ops_eval_f
+		if ( ary_op == 1 )
+			{
+			print ("\tcase " full_op vec ": vec_exec(" full_op vec \
+				", frame[s.v1].raw_vector_val, " \
+				(is_var1 ? "frame[s.v2]" : "s.c") \
+				".raw_vector_val); break;") >ops_eval_f
 
-		# ### Here we know about the "accessor" global.
-		oe_copy = orig_eval
-		gsub(/\$1/, "(*v2)[i]" accessor, oe_copy)
-		print ("\tcase " full_op vec ": (*v1)[i]" accessor " = " \
-			oe_copy "; break;") >vec_eval_f
+			# ### Here we know about the "accessor" global.
+			oe_copy = orig_eval
+			gsub(/\$1/, "(*v2)[i]" accessor, oe_copy)
+
+			print ("\tcase " full_op vec ": (*v1)[i]" accessor " = " \
+				oe_copy "; break;") >vec1_eval_f
+			}
+
+		else
+			{
+			print ("\tcase " full_op vec ": vec_exec(" full_op vec \
+				", frame[s.v1].raw_vector_val, " \
+				(is_var1 ? "frame[s.v2]" : "s.c") \
+				".raw_vector_val, " \
+				(is_var2 ? "frame[s.v3]" : "s.c") \
+				".raw_vector_val); break;") >ops_eval_f
+
+			oe_copy = orig_eval
+			gsub(/\$1/, "(*v2)[i]" accessor, oe_copy)
+			gsub(/\$2/, "(*v3)[i]" accessor, oe_copy)
+
+			print ("\tcase " full_op vec ": (*v1)[i]" accessor " = " \
+				oe_copy "; break;") >vec2_eval_f
+			}
 		}
+
 
 	if ( ! internal_op && is_rep )
 		{
@@ -375,21 +400,21 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 				"->Type()->InternalType();") >methods_f
 
 			n = 0;
-			for ( i in op_types )
+			for ( o in op_types )
 				{
 				else_text = ((++n > 1) ? "else " : "");
-				if ( i == "I" || i == "U" )
+				if ( o == "I" || o == "U" )
 					{
 					print ("\t" else_text "if ( t == TYPE_INTERNAL_INT || t == TYPE_INTERNAL_UNSIGNED )") >methods_f
 					}
-				else if ( i == "D" )
+				else if ( o == "D" )
 					print ("\t" else_text "if ( t == TYPE_INTERNAL_DOUBLE )") >methods_f
 				else
-					gripe("bad subtype " i)
+					gripe("bad subtype " o)
 
 				print ("\t" part1 \
 					(full_op_no_sub \
-					 "_" i (is_vec ? vec : "")) \
+					 "_" o (is_vec ? vec : "")) \
 					part2) >methods_f
 				}
 

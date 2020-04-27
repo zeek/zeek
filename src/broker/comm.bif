@@ -94,7 +94,7 @@ function Broker::__unpeer%(a: string, p: port%): bool
 function Broker::__peers%(%): PeerInfos
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
-	VectorVal* rval = new VectorVal(internal_type("Broker::PeerInfos")->AsVectorType());
+	auto rval = make_intrusive<VectorVal>(internal_type("Broker::PeerInfos")->AsVectorType());
 	auto i = 0;
 
 	for ( auto& p : broker_mgr->Peers() )

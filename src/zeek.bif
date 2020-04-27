@@ -639,7 +639,7 @@ function md5_hmac%(...%): string
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
 function md5_hash_init%(%): opaque of md5
 	%{
-	HashVal* digest = new MD5Val();
+	auto digest = make_intrusive<MD5Val>();
 	digest->Init();
 	return digest;
 	%}
@@ -664,7 +664,7 @@ function md5_hash_init%(%): opaque of md5
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
 function sha1_hash_init%(%): opaque of sha1
 	%{
-	HashVal* digest = new SHA1Val();
+	auto digest = make_intrusive<SHA1Val>();
 	digest->Init();
 	return digest;
 	%}
@@ -689,7 +689,7 @@ function sha1_hash_init%(%): opaque of sha1
 ##    sha256_hash sha256_hash_update sha256_hash_finish
 function sha256_hash_init%(%): opaque of sha256
 	%{
-	HashVal* digest = new SHA256Val();
+	auto digest = make_intrusive<SHA256Val>();
 	digest->Init();
 	return digest;
 	%}
@@ -1050,7 +1050,7 @@ function find_entropy%(data: string%): entropy_test_result
 	e.Feed(data->Bytes(), data->Len());
 	e.Get(&ent, &chisq, &mean, &montepi, &scc);
 
-	RecordVal* ent_result = new RecordVal(entropy_test_result);
+	auto ent_result = make_intrusive<RecordVal>(entropy_test_result);
 	ent_result->Assign(0, make_intrusive<Val>(ent,     TYPE_DOUBLE));
 	ent_result->Assign(1, make_intrusive<Val>(chisq,   TYPE_DOUBLE));
 	ent_result->Assign(2, make_intrusive<Val>(mean,    TYPE_DOUBLE));
@@ -1101,7 +1101,7 @@ function entropy_test_finish%(handle: opaque of entropy%): entropy_test_result
 	montepi = scc = ent = mean = chisq = 0.0;
 	static_cast<EntropyVal*>(handle)->Get(&ent, &chisq, &mean, &montepi, &scc);
 
-	RecordVal* ent_result = new RecordVal(entropy_test_result);
+	auto ent_result = make_intrusive<RecordVal>(entropy_test_result);
 	ent_result->Assign(0, make_intrusive<Val>(ent,     TYPE_DOUBLE));
 	ent_result->Assign(1, make_intrusive<Val>(chisq,   TYPE_DOUBLE));
 	ent_result->Assign(2, make_intrusive<Val>(mean,    TYPE_DOUBLE));
@@ -1399,12 +1399,12 @@ bool indirect_unsigned_sort_function(size_t a, size_t b)
 ## .. zeek:see:: order
 function sort%(v: any, ...%) : any
 	%{
-	v->Ref();	// we always return v
+	IntrusivePtr<Val> rval{NewRef{}, v};
 
 	if ( v->Type()->Tag() != TYPE_VECTOR )
 		{
 		builtin_error("sort() requires vector");
-		return v;
+		return rval;
 		}
 
 	BroType* elt_type = v->Type()->YieldType();
@@ -1419,7 +1419,7 @@ function sort%(v: any, ...%) : any
 		if ( ! IsFunc(comp_val->Type()->Tag()) )
 			{
 			builtin_error("second argument to sort() needs to be comparison function");
-			return v;
+			return rval;
 			}
 
 		comp = comp_val->AsFunc();
@@ -1437,7 +1437,7 @@ function sort%(v: any, ...%) : any
 		     ! comp_type->ArgTypes()->AllMatch(elt_type, 0) )
 			{
 			builtin_error("invalid comparison function in call to sort()");
-			return v;
+			return rval;
 			}
 
 		sort_function_comp = comp;
@@ -1452,7 +1452,7 @@ function sort%(v: any, ...%) : any
 			sort(vv.begin(), vv.end(), signed_sort_function);
 		}
 
-	return v;
+	return rval;
 	%}
 
 ## Returns the order of the elements in a vector according to some
@@ -1468,7 +1468,7 @@ function sort%(v: any, ...%) : any
 ## .. zeek:see:: sort
 function order%(v: any, ...%) : index_vec
 	%{
-	VectorVal* result_v = new VectorVal(
+	auto result_v = make_intrusive<VectorVal>(
 	    internal_type("index_vec")->AsVectorType());
 
 	if ( v->Type()->Tag() != TYPE_VECTOR )
@@ -1489,7 +1489,7 @@ function order%(v: any, ...%) : index_vec
 		if ( ! IsFunc(comp_val->Type()->Tag()) )
 			{
 			builtin_error("second argument to order() needs to be comparison function");
-			return v;
+			return IntrusivePtr<Val>{NewRef{}, v};
 			}
 
 		comp = comp_val->AsFunc();
@@ -1519,7 +1519,7 @@ function order%(v: any, ...%) : index_vec
 		     ! comp_type->ArgTypes()->AllMatch(elt_type, 0) )
 			{
 			builtin_error("invalid comparison function in call to order()");
-			return v;
+			return IntrusivePtr<Val>{NewRef{}, v};
 			}
 
 		sort_function_comp = comp;
@@ -1822,8 +1822,8 @@ function zeek_version%(%): string
 ## Returns: A string vector with the field names of *rt*.
 function record_type_to_vector%(rt: string%): string_vec
 	%{
-	VectorVal* result =
-		new VectorVal(internal_type("string_vec")->AsVectorType());
+	auto result =
+		make_intrusive<VectorVal>(internal_type("string_vec")->AsVectorType());
 
 	RecordType *type = internal_type(rt->CheckString())->AsRecordType();
 
@@ -1916,7 +1916,7 @@ function packet_source%(%): PacketSource
 ## .. zeek:see:: global_ids
 function global_sizes%(%): var_sizes
 	%{
-	TableVal* sizes = new TableVal({NewRef{}, var_sizes});
+	auto sizes = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, var_sizes});
 	const auto& globals = global_scope()->Vars();
 
 	for ( const auto& global : globals )
@@ -1924,10 +1924,9 @@ function global_sizes%(%): var_sizes
 		ID* id = global.second.get();
 		if ( id->HasVal() )
 			{
-			Val* id_name = new StringVal(id->Name());
+			auto id_name = make_intrusive<StringVal>(id->Name());
 			auto id_size = val_mgr->Count(id->ID_Val()->MemoryAllocation());
-			sizes->Assign(id_name, std::move(id_size));
-			Unref(id_name);
+			sizes->Assign(id_name.get(), std::move(id_size));
 			}
 		}
 
@@ -1944,7 +1943,7 @@ function global_sizes%(%): var_sizes
 ## .. zeek:see:: global_sizes
 function global_ids%(%): id_table
 	%{
-	TableVal* ids = new TableVal({NewRef{}, id_table});
+	auto ids = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, id_table});
 	const auto& globals = global_scope()->Vars();
 
 	for ( const auto& global : globals )
@@ -2193,7 +2192,7 @@ function is_v6_subnet%(s: subnet%): bool
 ## Returns: The vector of addresses contained in the routing header data.
 function routing0_data_to_addrs%(s: string%): addr_vec
 	%{
-	VectorVal* rval = new VectorVal(internal_type("addr_vec")->AsVectorType());
+	auto rval = make_intrusive<VectorVal>(internal_type("addr_vec")->AsVectorType());
 
 	int len = s->Len();
 	const u_char* bytes = s->Bytes();
@@ -2224,7 +2223,7 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 ## .. zeek:see:: counts_to_addr
 function addr_to_counts%(a: addr%): index_vec
 	%{
-	VectorVal* rval = new VectorVal(internal_type("index_vec")->AsVectorType());
+	auto rval = make_intrusive<VectorVal>(internal_type("index_vec")->AsVectorType());
 	const uint32_t* bytes;
 	int len = a->AsAddr().GetBytes(&bytes);
 
@@ -2445,14 +2444,14 @@ function count_to_port%(num: count, proto: transport_proto%): port
 function to_addr%(ip: string%): addr
 	%{
 	char* s = ip->AsString()->Render();
-	Val* ret = nullptr;
+	IntrusivePtr<Val> ret;
 	in6_addr tmp;
 
 	if ( IPAddr::ConvertString(s, &tmp) )
-		ret = new AddrVal(IPAddr(tmp));
+		ret = make_intrusive<AddrVal>(IPAddr(tmp));
 	else
 		{
-		ret = new AddrVal(IPAddr());
+		ret = make_intrusive<AddrVal>(IPAddr());
 		builtin_error("failed converting string to IP address", ip);
 		}
 
@@ -2490,7 +2489,7 @@ function to_subnet%(sn: string%): subnet
 	if ( ! IPPrefix::ConvertString(s, &tmp) )
 		builtin_error("failed converting string to IP prefix", sn);
 
-	Val* ret = new SubNetVal(tmp);
+	auto ret = make_intrusive<SubNetVal>(tmp);
 	delete [] s;
 	return ret;
 	%}
@@ -3045,7 +3044,7 @@ char* to_pat_str(int sn, const char* ss)
 function convert_for_pattern%(s: string%): string
 	%{
 	char* t = to_pat_str(s->Len(), (const char*)(s->Bytes()));
-	StringVal* ret = new StringVal(t);
+	auto ret = make_intrusive<StringVal>(t);
 	delete [] t;
 	return ret;
 	%}
@@ -3390,7 +3389,7 @@ function dump_current_packet%(file_name: string%) : bool
 function get_current_packet%(%) : pcap_packet
 	%{
 	const Packet* p;
-	RecordVal* pkt = new RecordVal(pcap_packet);
+	auto pkt = make_intrusive<RecordVal>(pcap_packet);
 
 	if ( ! current_pktsrc ||
 	     ! current_pktsrc->GetCurrentPacket(&p) )
@@ -3976,7 +3975,7 @@ function mmdb_open_asn_db%(f: string%) : bool
 ## .. zeek:see:: lookup_asn
 function lookup_location%(a: addr%) : geo_location
 	%{
-	RecordVal* location = new RecordVal(geo_location);
+	auto location = make_intrusive<RecordVal>(geo_location);
 
 #ifdef USE_GEOIP
 	mmdb_check_loc();
@@ -4601,12 +4600,13 @@ function get_file_name%(f: file%): string
 ## .. zeek:see:: rotate_file_by_name calc_next_rotate
 function rotate_file%(f: file%): rotate_info
 	%{
-	RecordVal* info = f->Rotate();
+	IntrusivePtr<RecordVal> info{AdoptRef{}, f->Rotate()};
+
 	if ( info )
 		return info;
 
 	// Record indicating error.
-	info = new RecordVal(rotate_info);
+	info = make_intrusive<RecordVal>(rotate_info);
 	info->Assign(0, val_mgr->EmptyString());
 	info->Assign(1, val_mgr->EmptyString());
 	info->Assign(2, make_intrusive<Val>(0.0, TYPE_TIME));
@@ -4625,7 +4625,7 @@ function rotate_file%(f: file%): rotate_info
 ## .. zeek:see:: rotate_file calc_next_rotate
 function rotate_file_by_name%(f: string%): rotate_info
 	%{
-	RecordVal* info = new RecordVal(rotate_info);
+	auto info = make_intrusive<RecordVal>(rotate_info);
 
 	bool is_pkt_dumper = false;
 	bool is_addl_pkt_dumper = false;
@@ -4644,7 +4644,7 @@ function rotate_file_by_name%(f: string%): rotate_info
 		addl_pkt_dumper->Close();
 		}
 
-	FILE* file = rotate_file(f->CheckString(), info);
+	FILE* file = rotate_file(f->CheckString(), info.get());
 	if ( ! file )
 		{
 		// Record indicating error.

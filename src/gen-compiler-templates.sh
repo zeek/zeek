@@ -66,8 +66,8 @@ BEGIN	{
 
 $1 == "op"	{ dump_op(); op = $2; next }
 $1 == "expr-op"	{ dump_op(); op = $2; expr_op = 1; next }
-$1 == "unary-op"	{ dump_op(); op = $2; unary_op = 1; next }
-$1 == "unary-expr-op"	{ dump_op(); op = $2; expr_op = 1; unary_op = 1; next }
+$1 == "unary-op"	{ dump_op(); op = $2; ary_op = 1; next }
+$1 == "unary-expr-op"	{ dump_op(); op = $2; expr_op = 1; ary_op = 1; next }
 $1 == "internal-op"	{ dump_op(); op = $2; internal_op = 1; next }
 
 $1 == "type"	{ type = $2; next }
@@ -151,33 +151,30 @@ function dump_op()
 	if ( ! op )
 		return
 
-	if ( unary_op )
+	if ( ! ary_op )
 		{
-		# Note, for most operators the constant version would have
-		# already been folded, but for some like AppendTo, they
-		# cannot, so we account for that possibility here.
-
-		if ( operand_type )
-			{
-			for ( i in op_types )
-				{
-				build_op(op, "VV", i, eval,
-					expand_eval(eval, expr_op, i, 1), 1)
-				build_op(op, "VC", i, eval,
-					expand_eval(eval, expr_op, i, 0), 0)
-				}
-			}
-
-		else
-			{
-			build_op(op, "VV", "", eval,
-					expand_eval(eval, expr_op, 0, 1), 1)
-			build_op(op, "VC", "", eval,
-					expand_eval(eval, expr_op, 0, 0), 0)
-			}
-		}
-	else
 		build_op(op, type, "", eval, eval)
+		clear_vars()
+		return
+		}
+
+	if ( ! operand_type )
+		# This op does not have "flavors".  Give it one
+		# empty flavor to use in iterating.
+		++op_types[""]
+
+	# Note, for most operators the constant version would have
+	# already been folded, but for some like AppendTo, they
+	# cannot, so we account for that possibility here.
+
+	for ( i in op_types )
+		# Loop over constant, var
+		for ( j = 0; j <= 1; ++j )
+			{
+			op1 = j ? "V" : "C"
+			build_op(op, "V" op1, i, eval,
+				expand_eval(eval, expr_op, i, j), j)
+			}
 
 	clear_vars()
 	}
@@ -389,7 +386,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 function clear_vars()
 	{
 	opaque = type = eval = multi_eval = eval_blank = method_pre = ""
-	vector = internal_op = unary_op = expr_op = op = ""
+	vector = internal_op = ary_op = expr_op = op = ""
 	operand_type = ""
 	delete op_types
 	}

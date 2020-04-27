@@ -25,6 +25,11 @@ op-type I D
 vector
 eval -$1
 
+# binary-expr-op Add
+# op-type I U D
+# vector
+# eval $1+$2
+
 ########################################
 
 unary-op AppendTo

@@ -30,7 +30,7 @@ int main(int argc, char** argv)
 
 		auto input_buffer = std::make_unique<uint8_t[]>(input_length);
 		auto bytes_read = fread(input_buffer.get(), 1, input_length, f);
-		assert(bytes_read == input_length);
+		assert(bytes_read == static_cast<size_t>(input_length));
 
 		auto start = high_resolution_clock::now();
 		LLVMFuzzerTestOneInput(input_buffer.get(), input_length);

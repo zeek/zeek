@@ -14,7 +14,7 @@
 ##    topk_size topk_sum topk_merge topk_merge_prune
 function topk_init%(size: count%): opaque of topk
 	%{
-	probabilistic::TopkVal* v = new probabilistic::TopkVal(size);
+	auto v = make_intrusive<probabilistic::TopkVal>(size);
 	return v;
 	%}
 

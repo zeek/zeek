@@ -146,7 +146,7 @@ function Broker::__set_iterator_next%(it: opaque of Broker::SetIterator%): bool
 function Broker::__set_iterator_value%(it: opaque of Broker::SetIterator%): Broker::Data
 	%{
 	auto set_it = static_cast<bro_broker::SetIterator*>(it);
-	auto rval = new RecordVal(BifType::Record::Broker::Data);
+	auto rval = make_intrusive<RecordVal>(BifType::Record::Broker::Data);
 
 	if ( set_it->it == set_it->dat.end() )
 		{
@@ -300,7 +300,7 @@ function Broker::__table_iterator_next%(it: opaque of Broker::TableIterator%): b
 function Broker::__table_iterator_value%(it: opaque of Broker::TableIterator%): Broker::TableItem
 	%{
 	auto ti = static_cast<bro_broker::TableIterator*>(it);
-	auto rval = new RecordVal(BifType::Record::Broker::TableItem);
+	auto rval = make_intrusive<RecordVal>(BifType::Record::Broker::TableItem);
 	auto key_val = new RecordVal(BifType::Record::Broker::Data);
 	auto val_val = new RecordVal(BifType::Record::Broker::Data);
 	rval->Assign(0, key_val);
@@ -423,7 +423,7 @@ function Broker::__vector_iterator_next%(it: opaque of Broker::VectorIterator%):
 function Broker::__vector_iterator_value%(it: opaque of Broker::VectorIterator%): Broker::Data
 	%{
 	auto vi = static_cast<bro_broker::VectorIterator*>(it);
-	auto rval = new RecordVal(BifType::Record::Broker::Data);
+	auto rval = make_intrusive<RecordVal>(BifType::Record::Broker::Data);
 
 	if ( vi->it == vi->dat.end() )
 		{
@@ -502,7 +502,7 @@ function Broker::__record_iterator_next%(it: opaque of Broker::RecordIterator%):
 function Broker::__record_iterator_value%(it: opaque of Broker::RecordIterator%): Broker::Data
 	%{
 	auto ri = static_cast<bro_broker::RecordIterator*>(it);
-	auto rval = new RecordVal(BifType::Record::Broker::Data);
+	auto rval = make_intrusive<RecordVal>(BifType::Record::Broker::Data);
 
 	if ( ri->it == ri->dat.end() )
 		{

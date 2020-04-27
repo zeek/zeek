@@ -23,7 +23,7 @@ module GLOBAL;
 function hll_cardinality_init%(err: double, confidence: double%): opaque of cardinality
 	%{
 	CardinalityCounter* c = new CardinalityCounter(err, confidence);
-	CardinalityVal* cv = new CardinalityVal(c);
+	auto cv = make_intrusive<CardinalityVal>(c);
 
 	return cv;
 	%}
@@ -129,7 +129,7 @@ function hll_cardinality_copy%(handle: opaque of cardinality%): opaque of cardin
 	CardinalityVal* cv = static_cast<CardinalityVal*>(handle);
 	CardinalityCounter* h = cv->Get();
 	CardinalityCounter* h2 = new CardinalityCounter(*h);
-	CardinalityVal* out = new CardinalityVal(h2);
+	auto out = make_intrusive<CardinalityVal>(h2);
 
 	return out;
 	%}

@@ -42,16 +42,13 @@ function Broker::__create_master%(id: string, b: BackendType,
 	auto rval = broker_mgr->LookupStore(name);
 
 	if ( rval )
-		{
-		::Ref(rval);
-		return rval;
-		}
+		return IntrusivePtr<Val>{NewRef{}, rval};
 
 	auto e = static_cast<BifEnum::Broker::BackendType>(b->AsEnum());
 	auto type = bro_broker::to_backend_type(e);
 	auto opts = bro_broker::to_backend_options(type, options->AsRecordVal());
 
-	auto store = broker_mgr->MakeMaster(name, type, std::move(opts));
+	IntrusivePtr<Val> store{AdoptRef{}, broker_mgr->MakeMaster(name, type, std::move(opts))};
 
 	if ( ! store )
 		{
@@ -71,13 +68,13 @@ function Broker::__create_clone%(id: string, resync_interval: interval,
 	auto rval = broker_mgr->LookupStore(name);
 
 	if ( rval )
-		{
-		::Ref(rval);
-		return rval;
-		}
+		return IntrusivePtr<Val>{NewRef{}, rval};
 
-	auto store = broker_mgr->MakeClone(name, resync_interval, stale_interval,
-	                                   mutation_buffer_interval);
+	IntrusivePtr<Val> store {AdoptRef{},
+	                         broker_mgr->MakeClone(name, resync_interval,
+	                                               stale_interval,
+	                                               mutation_buffer_interval)};
+
 	if ( ! store )
 		{
 		builtin_error(fmt("Could not create clone of Broker store '%s'", name));

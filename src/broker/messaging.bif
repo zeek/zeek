@@ -89,8 +89,7 @@ function Broker::make_event%(...%): Broker::Event
 	for ( auto i = 0u; i < bif_args->size(); ++i )
 		args.push_back((*bif_args)[i].get());
 
-	auto rval = broker_mgr->MakeEvent(&args, frame);
-	return rval;
+	return IntrusivePtr<RecordVal>{AdoptRef{}, broker_mgr->MakeEvent(&args, frame)};
 	%}
 
 ## Publishes an event at a given topic.

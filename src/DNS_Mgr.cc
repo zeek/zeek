@@ -40,7 +40,7 @@
 #include "Reporter.h"
 #include "IntrusivePtr.h"
 #include "iosource/Manager.h"
-#include "digest.h"
+#include "Hash.h"
 
 extern "C" {
 extern int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);
@@ -475,11 +475,10 @@ void DNS_Mgr::InitPostScript()
 
 static IntrusivePtr<TableVal> fake_name_lookup_result(const char* name)
 	{
-	uint32_t hash[4];
-	internal_md5(reinterpret_cast<const u_char*>(name), strlen(name),
-	    reinterpret_cast<u_char*>(hash));
+	hash128_t hash;
+	KeyedHash::Hash128(name, strlen(name), &hash);
 	auto hv = make_intrusive<ListVal>(TYPE_ADDR);
-	hv->Append(new AddrVal(hash));
+	hv->Append(new AddrVal(reinterpret_cast<const uint32_t*>(&hash)));
 	return {AdoptRef{}, hv->ConvertToSet()};
 	}
 

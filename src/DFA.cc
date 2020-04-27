@@ -5,7 +5,7 @@
 #include "DFA.h"
 #include "EquivClass.h"
 #include "Desc.h"
-#include "digest.h"
+#include "Hash.h"
 
 unsigned int DFA_State::transition_counter = 0;
 
@@ -332,9 +332,9 @@ DFA_State* DFA_State_Cache::Lookup(const NFA_state_list& nfas, DigestStr* digest
 
 	// We use the short MD5 instead of the full string for the
 	// HashKey because the data is copied into the key.
-	u_char digest_bytes[16];
-	internal_md5(id_tag, p - id_tag, digest_bytes);
-	*digest = DigestStr(digest_bytes, 16);
+	hash128_t hash;
+	KeyedHash::Hash128(id_tag, p - id_tag, &hash);
+	*digest = DigestStr(reinterpret_cast<const unsigned char*>(hash), 16);
 
 	auto entry = states.find(*digest);
 	if ( entry == states.end() )

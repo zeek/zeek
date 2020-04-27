@@ -53,28 +53,22 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 	auto conn = add_connection();
 	auto a = add_analyzer(conn);
 
-	const unsigned char* chunk;
-	size_t chunk_size;
-	bool is_orig;
-
 	for ( ; ;  )
 		{
-		auto err = fb.Next(&chunk, &chunk_size, &is_orig);
+		auto chunk = fb.Next();
 
-		if ( err )
-			break;
-
-		if ( chunk_size == 0 )
+		if ( ! chunk )
 			break;
 
 		try
 			{
-			a->DeliverStream(chunk_size, chunk, is_orig);
+			a->DeliverStream(chunk->size, chunk->data.get(), chunk->is_orig);
 			}
 		catch ( const binpac::Exception& e )
 			{
 			}
 
+		chunk = {};
 		mgr.Drain();
 		}
 

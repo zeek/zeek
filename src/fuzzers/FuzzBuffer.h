@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstddef>
+#include <memory>
+#include <optional>
 
 namespace zeek {
 
@@ -15,6 +17,13 @@ namespace zeek {
  * send along to an analyzers Deliver method.
  */
 class FuzzBuffer {
+public:
+
+	struct Chunk {
+		std::unique_ptr<unsigned char[]> data;
+		size_t size;
+		bool is_orig;
+	};
 
 	static constexpr int PKT_MAGIC_LEN = 4;
 	static constexpr unsigned char PKT_MAGIC[PKT_MAGIC_LEN + 1] = "\1PKT";
@@ -35,13 +44,9 @@ class FuzzBuffer {
 	bool Valid() const;
 
 	/**
-	 * Finds the next chunk of data to pass along to an analyzer.
-	 * @param chunk  the data chunk to return
-	 * @param len  the size of the chunk returned in *chunk*
-	 * @param is_orig  whether returned chunk is from originator or responder
-	 * @return  a value less than zero if a chunk could not be extracted
+	 * @return  the next chunk to deliver, if one could be extracted
 	 */
-	int Next(const unsigned char** chunk, size_t* len, bool* is_orig);
+	std::optional<Chunk> Next();
 
 private:
 

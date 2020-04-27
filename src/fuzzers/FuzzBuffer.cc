@@ -17,31 +17,28 @@ bool zeek::FuzzBuffer::Valid() const
 	return true;
 	}
 
-int zeek::FuzzBuffer::Next(const unsigned char** chunk, size_t* len, bool* is_orig)
+std::optional<zeek::FuzzBuffer::Chunk> zeek::FuzzBuffer::Next()
 	{
 	if ( begin == end )
-		{
-		*chunk = nullptr;
-		*len = 0;
-		return 0;
-		}
+		return {};
 
 	auto pos = (const unsigned char*)memmem(begin, end - begin,
 	                                        PKT_MAGIC, PKT_MAGIC_LEN);
 
 	if ( ! pos )
-		return -1;
+		return {};
 
 	begin += PKT_MAGIC_LEN;
 	auto remaining = end - begin;
 
 	if ( remaining < 2 )
-		return -2;
+		return {};
 
-	*is_orig = begin[0] & 0x01;
+	Chunk rval;
+	rval.is_orig = begin[0] & 0x01;
 	begin += 1;
 
-	*chunk = begin;
+	auto chunk_begin = begin;
 
 	auto next = (const unsigned char*)memmem(begin, end - begin,
 	                                         PKT_MAGIC, PKT_MAGIC_LEN);
@@ -51,6 +48,19 @@ int zeek::FuzzBuffer::Next(const unsigned char** chunk, size_t* len, bool* is_or
 	else
 		begin = end;
 
-	*len = begin - *chunk;
-	return 0;
+	rval.size = begin - chunk_begin;
+
+	if ( rval.size )
+		{
+		// The point of allocating a new buffer here is to better detect
+		// analyzers that may over-read within a chunk  -- ASan wouldn't
+		// complain if that happens to land within the full input buffer
+		// provided by the fuzzing engine, but will if we allocate a new buffer
+		// for each chunk.
+		rval.data = std::make_unique<unsigned char[]>(rval.size);
+		memcpy(rval.data.get(), chunk_begin, rval.size);
+		return rval;
+		}
+
+	return {};
 	}

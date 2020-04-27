@@ -1670,8 +1670,9 @@ void HTTP_Analyzer::HTTP_Header(bool is_orig, mime::MIME_Header* h)
 			DEBUG_MSG("%.6f http_header\n", network_time);
 
 		EnqueueConnEvent(http_header,
-			ConnVal(),
-			val_mgr->Bool(is_orig),
+			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)},
+			IntrusivePtr{AdoptRef{}, mime::new_string_val(h->get_name())},
 			IntrusivePtr{AdoptRef{}, mime::new_string_val(h->get_name())->ToUpper()},
 			IntrusivePtr{AdoptRef{}, mime::new_string_val(h->get_value())}
 		);

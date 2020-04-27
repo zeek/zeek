@@ -1292,8 +1292,9 @@ void MIME_Entity::DebugPrintHeaders()
 RecordVal* MIME_Message::BuildHeaderVal(MIME_Header* h)
 	{
 	RecordVal* header_record = new RecordVal(mime_header_rec);
-	header_record->Assign(0, new_string_val(h->get_name())->ToUpper());
-	header_record->Assign(1, new_string_val(h->get_value()));
+	header_record->Assign(0, new_string_val(h->get_name()));
+	header_record->Assign(1, new_string_val(h->get_name())->ToUpper());
+	header_record->Assign(2, new_string_val(h->get_value()));
 	return header_record;
 	}
 

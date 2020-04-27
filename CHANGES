@@ -1,3 +1,25 @@
+
+3.2.0-dev.437 | 2020-04-27 19:30:24 +0000
+
+  * GH-854: provide access to original HTTP/MIME header names
+
+    The "http_header" event now has an "original_name" parameter that allows
+    access to the original header name (the "name" parameter reamins the
+    same as before: it's the uppercased header name).
+
+    The "mime_header_rec" record type now also includes an "original_name"
+    field to similarly provide access to original header name in the
+    following events: "http_all_headers", "mime_one_header", and
+    "mime_all_headers". (Jon Siwek, Corelight)
+
+  * Remove error message from empty bloomfilter lookups
+
+    If a bloomfilter doesn't have a type, that just means no
+    bloomfilter_add() has been called yet, so seems undesirable to emit an
+    error for a lookup against something that's known to be empty. (Jon Siwek, Corelight)
+
+  * unused variables found via use-def analysis (plus an indentation micro-nit) (Vern Paxson, Corelight)
+
 3.2.0-dev.431 | 2020-04-27 12:09:30 -0700
 
   * Update various BIFs to return IntrusivePtr (Jon Siwek, Corelight)

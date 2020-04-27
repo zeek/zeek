@@ -410,7 +410,7 @@ zeek::SetupResult zeek::setup(int argc, char** argv, zeek::Options* zopts)
 		auto dargs = to_cargs(options.doctest_args);
 		context.applyCommandLine(dargs.size(), dargs.data());
 		ZEEK_LSAN_ENABLE();
-		return {context.run(), std::move(options)};
+		exit(context.run());
 		}
 
 	auto stem_state = zeek::Supervisor::CreateStem(options.supervisor_mode);

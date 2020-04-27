@@ -3543,6 +3543,18 @@ const CompiledStmt AssignExpr::Compile(Compiler* c) const
 	auto r2 = rhs->GetOp2();
 	auto r3 = rhs->GetOp3();
 
+	if ( r1 && r2 )
+		{
+		auto v1 = IsVector(r1->Type()->Tag());
+		auto v2 = IsVector(r2->Type()->Tag());
+
+		if ( v1 != v2 )
+			{
+			Error("deprecated mixed vector/scalar operation not supported for compiling");
+			return c->ErrorStmt();
+			}
+		}
+
 	if ( r1 && r1->IsConst() )
 #include "CompilerOpsExprsDefsC1.h"
 

@@ -434,6 +434,12 @@ const CompiledStmt AbstractMachine::FinishBlock(const CompiledStmt /* start */)
 	return CompiledStmt(stmts.size());
 	}
 
+const CompiledStmt AbstractMachine::ErrorStmt()
+	{
+	error_seen = true;
+	return CompiledStmt(0);
+	}
+
 OpaqueVals* AbstractMachine::BuildVals(const IntrusivePtr<ListExpr>& l)
 	{
 	auto exprs = l->Exprs();

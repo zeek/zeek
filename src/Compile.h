@@ -30,6 +30,7 @@ public:
 
 	virtual const CompiledStmt StartingBlock() = 0;
 	virtual const CompiledStmt FinishBlock(const CompiledStmt start) = 0;
+	virtual const CompiledStmt ErrorStmt() = 0;
 
 	// Returns a handle to state associated with building
 	// up a list of values.
@@ -51,6 +52,7 @@ public:
 
 	const CompiledStmt StartingBlock() override;
 	const CompiledStmt FinishBlock(const CompiledStmt start) override;
+	const CompiledStmt ErrorStmt() override;
 
 	OpaqueVals* BuildVals(const IntrusivePtr<ListExpr>&) override;
 
@@ -74,4 +76,5 @@ protected:
 	vector<AbstractStmt> stmts;
 	AS_ValUnion* frame;
 	int frame_size;
+	bool error_seen = false;
 };

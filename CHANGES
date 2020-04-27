@@ -1,4 +1,10 @@
 
+3.2.0-dev.441 | 2020-04-27 13:34:22 -0700
+
+  * Fix a few more IntrusivePtr deprecation warnings (Tim Wojtulewicz, Corelight)
+
+  * Fix cloning of TypeType values (Vern Paxson, Corelight)
+
 3.2.0-dev.437 | 2020-04-27 19:30:24 +0000
 
   * GH-854: provide access to original HTTP/MIME header names

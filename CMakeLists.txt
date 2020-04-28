@@ -19,6 +19,10 @@ include(cmake/FindClangTidy.cmake)
 ########################################################################
 ## Project/Build Configuration
 
+if ( ZEEK_ENABLE_FUZZERS )
+    # Fuzzers use shared lib to save disk space, so need -fPIC on everything
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+endif ()
 
 if (ENABLE_ZEEK_UNIT_TESTS)
     enable_testing()

@@ -11,10 +11,8 @@ Example Build: Initial Fuzzing and Seed Corpus
 First configure and build for fuzzing (with libFuzzer) and code coverage::
 
     $ LIB_FUZZING_ENGINE="" CC=clang CXX=clang++ \
-      CFLAGS="-fprofile-instr-generate -fcoverage-mapping" \
-      CXXFLAGS="-fprofile-instr-generate -fcoverage-mapping" \
       ./configure --build-type=debug --build-dir=./build-fuzz-cov \
-      --sanitizers=fuzzer-no-link --enable-fuzzers
+      --sanitizers=fuzzer-no-link --enable-fuzzers --enable-coverage
 
     $ cd build-fuzz-cov && make -j $(nproc)
 
@@ -43,9 +41,9 @@ To check the code coverage of the corpus::
 
     $ ./src/fuzzers/zeek-pop3-fuzzer min-corpus/*
 
-    $ llvm-profdata merge -sparse default.profraw -o zeek.profdata && \
-      llvm-cov report ./src/fuzzers/zeek-pop3-fuzzer -instr-profile=zeek.profdata \
-        ../src/analyzer/protocol/pop3/
+    $ llvm-cov gcov $(find . -name POP3.cc.gcda) | grep -A1 POP3.cc
+
+    # Annotated source file is now output to POP3.cc.gcov
 
 If the code coverage isn't satisfying, there may be something wrong with
 the fuzzer, it may need a better dictionary, or it may need to fuzz for longer.

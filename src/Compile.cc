@@ -69,7 +69,7 @@ union AS_ValUnion {
 	PortVal* port_val;
 	PatternVal* re_val;
 	RecordVal* record_val;
-	SubNetVal* subnet_val;
+	IPPrefix* subnet_val;
 	TableVal* table_val;
 	BroType* type_val;
 	VectorVal* vector_val;
@@ -113,13 +113,15 @@ AS_ValUnion::AS_ValUnion(Val* v, BroType* t)
 	case TYPE_PATTERN:	re_val = v->AsPatternVal(); break;
 	case TYPE_PORT:		port_val = v->AsPortVal(); break;
 	case TYPE_RECORD:	record_val = v->AsRecordVal(); break;
-	case TYPE_SUBNET:	subnet_val = v->AsSubNetVal(); break;
 	case TYPE_TABLE:	table_val = v->AsTableVal(); break;
 	case TYPE_VECTOR:	vector_val = v->AsVectorVal(); break;
 
 	// ### Need to think about memory management strategy and
 	// whether we require the new BroString here.
 	case TYPE_STRING:	string_val = new BroString(*v->AsString());
+	case TYPE_SUBNET:
+		subnet_val = new IPPrefix(v->AsSubNetVal()->AsSubNet());
+		break;
 
 	case TYPE_ANY:		any_val = vu; break;
 	case TYPE_TYPE:		type_val = t; break;
@@ -147,6 +149,7 @@ IntrusivePtr<Val> AS_ValUnion::ToVal(BroType* t) const
 	case TYPE_FUNC:		v = new Val(func_val); break;
 	case TYPE_FILE:		v = new Val(file_val); break;
 	case TYPE_STRING:	v = new StringVal(new BroString(*string_val));
+	case TYPE_SUBNET:	v = new SubNetVal(*subnet_val); break;
 
 	case TYPE_ANY:		v = new Val(any_val, t->Ref()); break;
 	case TYPE_TYPE:		v = new Val(type_val, true); break;
@@ -158,7 +161,6 @@ IntrusivePtr<Val> AS_ValUnion::ToVal(BroType* t) const
 	case TYPE_PATTERN:	v = re_val; v->Ref(); break;
 	case TYPE_PORT:		v = port_val; v->Ref(); break;
 	case TYPE_RECORD:	v = record_val; v->Ref(); break;
-	case TYPE_SUBNET:	v = subnet_val; v->Ref(); break;
 	case TYPE_TABLE:	v = table_val; v->Ref(); break;
 	case TYPE_VECTOR:	v = vector_val; v->Ref(); break;
 

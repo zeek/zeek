@@ -62,6 +62,7 @@ BEGIN	{
 	accessors["D"] = ".double_val"
 
 	accessors["A"] = ".addr_val"
+	accessors["N"] = ".subnet_val"
 	accessors["P"] = ".re_val"
 	accessors["S"] = ".string_val"
 	accessors["T"] = ".table_val"
@@ -70,6 +71,7 @@ BEGIN	{
 	eval_selector["U"] = ""
 	eval_selector["D"] = ""
 	eval_selector["A"] = "A"
+	eval_selector["N"] = "N"
 	eval_selector["P"] = "P"
 	eval_selector["S"] = "S"
 	eval_selector["T"] = "T"
@@ -95,7 +97,7 @@ $1 == "type"	{ type = $2; next }
 $1 == "vector"	{ vector = 1; next }
 $1 ~ /^op-type(s?)$/	{ build_op_types(); next }
 $1 == "opaque"	{ opaque = 1; next }
-$1 ~ /^eval((_[APST])?)$/	{
+$1 ~ /^eval((_[ANPST])?)$/	{
 		if ( $1 != "eval" )
 			{
 			# Extract subtype specifier.
@@ -496,6 +498,8 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 					print ("\t" else_text "if ( i_t == TYPE_INTERNAL_ADDR )") >methods_f
 				else if ( o == "D" )
 					print ("\t" else_text "if ( i_t == TYPE_INTERNAL_DOUBLE )") >methods_f
+				else if ( o == "N" )
+					print ("\t" else_text "if ( i_t == TYPE_INTERNAL_SUBNET )") >methods_f
 				else if ( o == "P" )
 					print ("\t" else_text "if ( tag == TYPE_PATTERN )") >methods_f
 				else if ( o == "S" )

@@ -101,20 +101,24 @@ eval_T $$ = $1->IsSubsetOf($2)
 eval_A $$ = $1 < $2 || $1 == $2
 
 rel-expr-op EQ
-op-type I U D S T A
+op-type I U D S T A N
 vector
 eval $1 == $2
 eval_S $$ = Bstr_cmp($1, $2) == 0
 eval_T $$ = $1->EqualTo($2)
 eval_A $$ = $1 == $2
+eval_N $$ = *$1 == *$2
+# eval-mixed P S $$ = $1->MatchExactly($2)
 
 rel-expr-op NE
-op-type I U D S T A
+op-type I U D S T A N
 vector
 eval $1 != $2
 eval_S $$ = Bstr_cmp($1, $2) != 0
 eval_T $$ = ! $1->EqualTo($2)
 eval_A $$ = $1 != $2
+eval_N $$ = *$1 != *$2
+# eval-mixed P S $$ = ! $1->MatchExactly($2)
 
 # Note, canonicalization means that GE and GT shouldn't occur
 # for Sets (type T).
@@ -196,8 +200,6 @@ type VC
 eval auto c = s.c.ToVal(s.t)
 eval frame[s.v1].vvec->push_back(c)
 
-# EXPR_COND
-
 # EXPR_INDEX
 # EXPR_ANY_INDEX
 # EXPR_FIELD
@@ -213,6 +215,8 @@ eval frame[s.v1].vvec->push_back(c)
 # EXPR_RECORD_COERCE
 # EXPR_TABLE_COERCE
 # EXPR_VECTOR_COERCE
+
+# EXPR_COND
 
 # EXPR_SIZE
 

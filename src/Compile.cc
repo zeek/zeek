@@ -50,6 +50,10 @@ union AS_ValUnion {
 	// distinct, we can readily recover them given type information.
 	double double_val;
 
+	// For this we assume we have ownership of the value, so
+	// it gets delete'd prior to reassignment.
+	BroString* string_val;
+
 	// A note re memory management.  We do *not* ref these upon
 	// assigning to them.  If we use them in a context where ownership
 	// will be taken by some other entity, we ref them at that point.
@@ -64,7 +68,6 @@ union AS_ValUnion {
 	PortVal* port_val;
 	PatternVal* re_val;
 	RecordVal* record_val;
-	StringVal* string_val;
 	SubNetVal* subnet_val;
 	TableVal* table_val;
 	BroType* type_val;
@@ -109,10 +112,17 @@ AS_ValUnion::AS_ValUnion(Val* v, BroType* t)
 	case TYPE_PATTERN:	re_val = v->AsPatternVal(); break;
 	case TYPE_PORT:		port_val = v->AsPortVal(); break;
 	case TYPE_RECORD:	record_val = v->AsRecordVal(); break;
-	case TYPE_STRING:	string_val = v->AsStringVal(); break;
 	case TYPE_SUBNET:	subnet_val = v->AsSubNetVal(); break;
 	case TYPE_TABLE:	table_val = v->AsTableVal(); break;
 	case TYPE_VECTOR:	vector_val = v->AsVectorVal(); break;
+
+	case TYPE_STRING:
+		{
+		auto s = v->AsString();
+		auto n = s->Len();
+		string_val = s->GetSubstring(0, n);
+		break;
+		}
 
 	case TYPE_ANY:		any_val = vu; break;
 	case TYPE_TYPE:		type_val = t; break;
@@ -140,6 +150,18 @@ IntrusivePtr<Val> AS_ValUnion::ToVal(BroType* t) const
 	case TYPE_FUNC:		v = new Val(func_val); break;
 	case TYPE_FILE:		v = new Val(file_val); break;
 
+	case TYPE_STRING:
+		{
+		// This is clunky, because it turns out that BroString
+		// doesn't have a constructor that copies an existing
+		// BroString (even though one of its Set methods claims
+		// to do this, it doesn't actually copy the underlying
+		// byte vector).
+		auto n = string_val->Len();
+		v = new StringVal(string_val->GetSubstring(0, n));
+		break;
+		}
+
 	case TYPE_ANY:		v = new Val(any_val, t->Ref()); break;
 	case TYPE_TYPE:		v = new Val(type_val, true); break;
 
@@ -150,7 +172,6 @@ IntrusivePtr<Val> AS_ValUnion::ToVal(BroType* t) const
 	case TYPE_PATTERN:	v = re_val; v->Ref(); break;
 	case TYPE_PORT:		v = port_val; v->Ref(); break;
 	case TYPE_RECORD:	v = record_val; v->Ref(); break;
-	case TYPE_STRING:	v = string_val; v->Ref(); break;
 	case TYPE_SUBNET:	v = subnet_val; v->Ref(); break;
 	case TYPE_TABLE:	v = table_val; v->Ref(); break;
 	case TYPE_VECTOR:	v = vector_val; v->Ref(); break;
@@ -529,6 +550,8 @@ static void vec_exec(AbstractOp op, vector<BroValUnion>* v1,
 	// into the Exec method).  But that seems like a lot of
 	// code bloat for only a very modest gain.
 
+	// ### need to deal with constructing v1 if doesn't already exist.
+
 	for ( unsigned int i = 0; i < v2->size(); ++i )
 		switch ( op ) {
 
@@ -544,11 +567,9 @@ static void vec_exec(AbstractOp op, vector<BroValUnion>* v1,
 			const vector<BroValUnion>* v2,
 			const vector<BroValUnion>* v3)
 	{
-	// We could speed this up further still by gen'ing up an
-	// instance of the loop inside each switch case (in which
-	// case we might as well move the whole kit-and-caboodle
-	// into the Exec method).  But that seems like a lot of
-	// code bloat for only a very modest gain.
+	// See comment above re further speed-up.
+
+	// ### need to deal with constructing v1 if doesn't already exist.
 
 	for ( unsigned int i = 0; i < v2->size(); ++i )
 		switch ( op ) {

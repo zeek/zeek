@@ -60,6 +60,12 @@ BEGIN	{
 	accessors["I"] = ".int_val"
 	accessors["U"] = ".uint_val"
 	accessors["D"] = ".double_val"
+	accessors["S"] = ".string_val"
+
+	eval_selector["I"] = ""
+	eval_selector["U"] = ""
+	eval_selector["D"] = ""
+	eval_selector["S"] = "S"
 
 	# Suffix used for vector operations.
 	vec = "_vec"
@@ -76,17 +82,31 @@ $1 == "type"	{ type = $2; next }
 $1 == "vector"	{ vector = 1; next }
 $1 ~ /^op-type(s?)$/	{ build_op_types(); next }
 $1 == "opaque"	{ opaque = 1; next }
-$1 == "eval"	{
+$1 ~ /^eval([S]?)$/	{
+		if ( $1 != "eval" )
+			{
+			# Extract subtype specifier.
+			eval_sub = $1
+			sub(/eval/, "", eval_sub)
+
+			if ( ! (eval_sub in eval_selector) ||
+			     eval_selector[eval_sub] == "" )
+				gripe("bad eval subtype specifier")
+			}
+		else
+			eval_sub = ""
+
 		new_eval = all_but_first()
-		if ( operand_type == "" )
+		if ( ! operand_type || eval_sub )
+			# Add semicolons for potentially multi-line evals.
 			new_eval = new_eval ";"
 
-		if ( eval )
+		if ( eval[eval_sub] )
 			{
-			if ( operand_type )
+			if ( operand_type && ! eval_sub )
 				gripe("cannot intermingle op-type and multi-line evals")
 
-			eval = eval "\n\t\t" new_eval
+			eval[eval_sub] = eval[eval_sub] "\n\t\t" new_eval
 
 			# The following variables are just to enable
 			# us to produce tidy-looking switch blocks.
@@ -95,7 +115,7 @@ $1 == "eval"	{
 			}
 		else
 			{
-			eval = new_eval
+			eval[eval_sub] = new_eval
 			eval_blank = " "
 			}
 		next
@@ -155,7 +175,7 @@ function dump_op()
 
 	if ( ! ary_op )
 		{
-		build_op(op, type, "", eval, eval, 0, 0)
+		build_op(op, type, "", eval[""], eval[""], 0, 0)
 		clear_vars()
 		return
 		}
@@ -170,18 +190,22 @@ function dump_op()
 	# cannot, so we account for that possibility here.
 
 	for ( i in op_types )
-		# Loop over constant, var
+		{
+		sel = eval_selector[i]
+
+		# Loop over constant, var for first operand
 		for ( j = 0; j <= 1; ++j )
 			{
 			op1 = j ? "V" : "C"
 
 			if ( ary_op == 1 )
 				{
-				ex = expand_eval(eval, expr_op, i, j, 0)
-				build_op(op, "V" op1, i, eval, ex, j, 0)
+				ex = expand_eval(eval[sel], expr_op, i, j, 0)
+				build_op(op, "V" op1, i, eval[sel], ex, j, 0)
 				continue;
 				}
 
+			# Loop over constant, var for second operand
 			for ( k = 0; k <= 1; ++k )
 				{
 				if ( ! j && ! k )
@@ -190,10 +214,11 @@ function dump_op()
 					continue;
 
 				op2 = k ? "V" : "C"
-				ex = expand_eval(eval, expr_op, i, j, k)
-				build_op(op, "V" op1 op2, i, eval, ex, j, k)
+				ex = expand_eval(eval[sel], expr_op, i, j, k)
+				build_op(op, "V" op1 op2, i, eval[sel], ex, j, k)
 				}
 			}
+		}
 
 	clear_vars()
 	}
@@ -222,7 +247,17 @@ function expand_eval(e, is_expr_op, otype, is_var1, is_var2)
 		}
 
 	if ( is_expr_op )
-		return "frame[s.v1]" accessor " = " e_copy expr_app
+		{
+		if ( index(e_copy, "$$") > 0 )
+			{
+			e_copy = "delete frame[s.v1]" \
+				accessor ";\n\t\t" e_copy
+			gsub(/\$\$/, "frame[s.v1]" accessor, e_copy)
+			return e_copy expr_app
+			}
+		else
+			return "frame[s.v1]" accessor " = " e_copy expr_app
+		}
 	else
 		return e_copy accessor
 	}
@@ -281,10 +316,10 @@ function build_op(op, type, sub_type, orig_eval, eval, is_var1, is_var2)
 		{
 		if ( ary_op == 1 )
 			{
-			print ("\tcase " full_op vec ": vec_exec(" full_op vec \
-				", frame[s.v1].raw_vector_val, " \
+			print ("\tcase " full_op vec ":\n\t\tvec_exec(" full_op vec \
+				", frame[s.v1].raw_vector_val,\n\t\t\t" \
 				(is_var1 ? "frame[s.v2]" : "s.c") \
-				".raw_vector_val); break;") >ops_eval_f
+				".raw_vector_val);\n\t\tbreak;\n") >ops_eval_f
 
 			# ### Here we know about the "accessor" global.
 			oe_copy = orig_eval
@@ -296,19 +331,29 @@ function build_op(op, type, sub_type, orig_eval, eval, is_var1, is_var2)
 
 		else
 			{
-			print ("\tcase " full_op vec ": vec_exec(" full_op vec \
-				", frame[s.v1].raw_vector_val, " \
+			print ("\tcase " full_op vec ":\n\t\tvec_exec("  \
+				full_op vec \
+				",\n\t\t\tframe[s.v1].raw_vector_val,\n\t\t\t" \
 				(is_var1 ? "frame[s.v2]" : "s.c") \
 				".raw_vector_val, " \
 				(is_var2 ? "frame[s.v3]" : "s.c") \
-				".raw_vector_val); break;") >ops_eval_f
+				".raw_vector_val);\n\t\tbreak;\n") >ops_eval_f
 
 			oe_copy = orig_eval
 			gsub(/\$1/, "(*v2)[i]" accessor, oe_copy)
 			gsub(/\$2/, "(*v3)[i]" accessor, oe_copy)
 
-			print ("\tcase " full_op vec ": (*v1)[i]" accessor " = " \
-				oe_copy "; break;") >vec2_eval_f
+			if ( eval_selector[sub_type] != "" )
+				{
+				gsub(/\$\$/, "(*v1)[i]" accessor, oe_copy)
+				print ("\tcase " full_op vec ":\n\t\t{\n\t\t" \
+					oe_copy "\n\t\tbreak;\n\t\t}") >vec2_eval_f
+				}
+
+			else
+				print ("\tcase " full_op vec ":\n\t\t(*v1)[i]" \
+					accessor " = " \
+					oe_copy "; break;") >vec2_eval_f
 			}
 		}
 
@@ -409,6 +454,8 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 					}
 				else if ( o == "D" )
 					print ("\t" else_text "if ( t == TYPE_INTERNAL_DOUBLE )") >methods_f
+				else if ( o == "S" )
+					print ("\t" else_text "if ( t == TYPE_INTERNAL_STRING )") >methods_f
 				else
 					gripe("bad subtype " o)
 
@@ -432,9 +479,10 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 
 function clear_vars()
 	{
-	opaque = type = eval = multi_eval = eval_blank = method_pre = ""
+	opaque = type = multi_eval = eval_blank = method_pre = ""
 	vector = internal_op = ary_op = expr_op = op = ""
 	operand_type = ""
+	delete eval
 	delete op_types
 	}
 

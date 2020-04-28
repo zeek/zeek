@@ -289,6 +289,9 @@ BroString* BroString::GetSubstring(int start, int len) const
 	if ( len < 0 || len > n - start )
 		len = n - start;
 
+	// Strictly speaking, we could use false here if len == n
+	// and final_NUL is set.  That would save us from unnecessarily
+	// growing the string.
 	return new BroString(&b[start], len, true);
 	}
 

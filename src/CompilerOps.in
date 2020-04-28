@@ -26,9 +26,14 @@ vector
 eval -$1
 
 binary-expr-op Add
-op-type I U D
+op-type I U D S
 vector
 eval $1+$2
+evalS vector<const BroString*> strings
+evalS strings.push_back($1)
+evalS strings.push_back($2)
+evalS delete $$
+evalS $$ = concatenate(strings)
 
 ########################################
 

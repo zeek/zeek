@@ -34,6 +34,9 @@ public:
 	BroString(const u_char* str, int arg_n, bool add_NUL);
 	explicit BroString(const char* str);
 	explicit BroString(const std::string& str);
+
+	// Caution: the following does *not* duplicate the underlying byte_vec,
+	// but just points to it.  To get a complete copy, use GetSubstring().
 	BroString(const BroString& bs);
 
 	// Constructor that takes owernship of the vector passed in.

@@ -2,6 +2,7 @@
 
 #include "Compile.h"
 #include "Expr.h"
+#include "RE.h"
 #include "OpaqueVal.h"
 #include "Desc.h"
 #include "Reporter.h"

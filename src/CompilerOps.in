@@ -28,7 +28,7 @@ eval -$1
 binary-expr-op Add
 op-type I U D S
 vector
-eval $1+$2
+eval $1 + $2
 eval_S vector<const BroString*> strings
 eval_S strings.push_back($1)
 eval_S strings.push_back($2)
@@ -37,20 +37,53 @@ eval_S $$ = concatenate(strings)
 binary-expr-op Sub
 op-type I U D T
 vector
-eval $1-$2
+eval $1 - $2
 eval_T $$ = $1->Clone()->AsTableVal()
 eval_T $2->RemoveFrom($$)
 
 binary-expr-op Times
 op-type I U D
 vector
-eval $1*$2
+eval $1 * $2
 
 binary-expr-op Divide
 op-type I U D
 vector
 eval-pre if ( $2 == 0 ) run_time_error("division by zero")
-eval $1/$2
+eval $1 / $2
+
+binary-expr-op Mod
+op-type I U
+vector
+eval-pre if ( $2 == 0 ) run_time_error("modulo by zero")
+eval $1 % $2
+
+binary-expr-op And
+op-type U P T
+vector
+eval $1 & $2
+eval_P $$ = new PatternVal(RE_Matcher_conjunction($1->AsPattern(), $2->AsPattern()))
+eval_T $$ = $1->Intersect($2)
+
+binary-expr-op Or
+op-type U P T
+vector
+eval $1 | $2
+eval_P $$ = new PatternVal(RE_Matcher_disjunction($1->AsPattern(), $2->AsPattern()))
+eval_T $$ = $1->Clone()->AsTableVal()
+eval_T (void) $2->AddTo($$, false, false)
+
+binary-expr-op Xor
+op-type U
+vector
+eval $1 ^ $2
+
+# EXPR_LT
+# EXPR_LE
+# EXPR_EQ
+# EXPR_NE
+# EXPR_GE
+# EXPR_GT
 
 ########################################
 
@@ -115,17 +148,6 @@ internal-op Set-Val-Vec
 type VC
 eval auto c = s.c.ToVal(s.t)
 eval frame[s.v1].vvec->push_back(c)
-
-# EXPR_MOD
-# EXPR_AND
-# EXPR_OR
-# EXPR_XOR
-# EXPR_LT
-# EXPR_LE
-# EXPR_EQ
-# EXPR_NE
-# EXPR_GE
-# EXPR_GT
 
 # EXPR_COND
 

@@ -60,15 +60,19 @@ BEGIN	{
 	accessors["I"] = ".int_val"
 	accessors["U"] = ".uint_val"
 	accessors["D"] = ".double_val"
+
+	accessors["P"] = ".re_val"
 	accessors["S"] = ".string_val"
 	accessors["T"] = ".table_val"
 
 	eval_selector["I"] = ""
 	eval_selector["U"] = ""
 	eval_selector["D"] = ""
+	eval_selector["P"] = "P"
 	eval_selector["S"] = "S"
 	eval_selector["T"] = "T"
 
+	++no_vec["P"]
 	++no_vec["T"]
 
 	# Suffix used for vector operations.
@@ -86,7 +90,7 @@ $1 == "type"	{ type = $2; next }
 $1 == "vector"	{ vector = 1; next }
 $1 ~ /^op-type(s?)$/	{ build_op_types(); next }
 $1 == "opaque"	{ opaque = 1; next }
-$1 ~ /^eval((_[ST])?)$/	{
+$1 ~ /^eval((_[PST])?)$/	{
 		if ( $1 != "eval" )
 			{
 			# Extract subtype specifier.
@@ -477,6 +481,8 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 					}
 				else if ( o == "D" )
 					print ("\t" else_text "if ( i_t == TYPE_INTERNAL_DOUBLE )") >methods_f
+				else if ( o == "P" )
+					print ("\t" else_text "if ( tag == TYPE_PATTERN )") >methods_f
 				else if ( o == "S" )
 					print ("\t" else_text "if ( i_t == TYPE_INTERNAL_STRING )") >methods_f
 				else if ( o == "T" )

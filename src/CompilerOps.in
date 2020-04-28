@@ -41,6 +41,17 @@ eval $1-$2
 eval_T $$ = $1->Clone()->AsTableVal()
 eval_T $2->RemoveFrom($$)
 
+binary-expr-op Times
+op-type I U D
+vector
+eval $1*$2
+
+binary-expr-op Divide
+op-type I U D
+vector
+eval-pre if ( $2 == 0 ) run_time_error("division by zero")
+eval $1/$2
+
 ########################################
 
 unary-op AppendTo
@@ -105,9 +116,6 @@ type VC
 eval auto c = s.c.ToVal(s.t)
 eval frame[s.v1].vvec->push_back(c)
 
-# EXPR_APPEND_TO
-# EXPR_TIMES
-# EXPR_DIVIDE
 # EXPR_MOD
 # EXPR_AND
 # EXPR_OR

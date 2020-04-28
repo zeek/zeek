@@ -126,6 +126,7 @@ $1 ~ /^eval((_[ST])?)$/	{
 		}
 
 $1 == "method-pre"	{ method_pre = all_but_first(); next }
+$1 == "eval-pre"	{ eval_pre = all_but_first() ";"; next }
 
 /^#/		{ next }
 /^[ \t]*$/	{ next }
@@ -241,13 +242,16 @@ function expand_eval(e, is_expr_op, otype, is_var1, is_var2)
 		}
 
 	e_copy = e
+	pre_copy = eval_pre
 	rep1 = "(" (is_var1 ? "frame[s.v2]" : "s.c") accessor ")"
 	gsub(/\$1/, rep1, e_copy)
+	gsub(/\$1/, rep1, pre_copy)
 
 	if ( ary_op == 2 )
 		{
 		rep2 = "(" (is_var2 ? "frame[s.v3]" : "s.c") accessor ")"
 		gsub(/\$2/, rep2, e_copy)
+		gsub(/\$2/, rep2, pre_copy)
 		}
 
 	if ( is_expr_op )
@@ -257,10 +261,11 @@ function expand_eval(e, is_expr_op, otype, is_var1, is_var2)
 			e_copy = "delete frame[s.v1]" \
 				accessor ";\n\t\t" e_copy
 			gsub(/\$\$/, "frame[s.v1]" accessor, e_copy)
-			return e_copy expr_app
+			return pre_copy e_copy expr_app
 			}
 		else
-			return "frame[s.v1]" accessor " = " e_copy expr_app
+			return pre_copy \
+				"frame[s.v1]" accessor " = " e_copy expr_app
 		}
 	else
 		return e_copy accessor
@@ -499,7 +504,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 
 function clear_vars()
 	{
-	opaque = type = multi_eval = eval_blank = method_pre = ""
+	opaque = type = multi_eval = eval_blank = method_pre = eval_pre = ""
 	vector = internal_op = ary_op = expr_op = op = ""
 	operand_type = ""
 	delete eval

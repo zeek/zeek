@@ -416,6 +416,8 @@ static void vec_exec(AbstractOp op, vector<BroValUnion>* v1,
 			const vector<BroValUnion>* v2,
 			const vector<BroValUnion>* v3);
 
+static void run_time_error(const char* msg);
+
 IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	const AS_ValUnion* ret_u;
@@ -579,4 +581,10 @@ static void vec_exec(AbstractOp op, vector<BroValUnion>* v1,
 		default:
 			reporter->InternalError("bad invocation of VecExec");
 		}
+	}
+
+static void run_time_error(const char* msg)
+	{
+	// ### needs refinement
+	fprintf(stderr, "%s\n", msg);
 	}

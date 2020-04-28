@@ -82,12 +82,12 @@ $1 == "type"	{ type = $2; next }
 $1 == "vector"	{ vector = 1; next }
 $1 ~ /^op-type(s?)$/	{ build_op_types(); next }
 $1 == "opaque"	{ opaque = 1; next }
-$1 ~ /^eval([S]?)$/	{
+$1 ~ /^eval((_[S])?)$/	{
 		if ( $1 != "eval" )
 			{
 			# Extract subtype specifier.
 			eval_sub = $1
-			sub(/eval/, "", eval_sub)
+			sub(/eval_/, "", eval_sub)
 
 			if ( ! (eval_sub in eval_selector) ||
 			     eval_selector[eval_sub] == "" )

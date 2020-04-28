@@ -59,7 +59,7 @@ std::optional<zeek::FuzzBuffer::Chunk> zeek::FuzzBuffer::Next()
 		// for each chunk.
 		rval.data = std::make_unique<unsigned char[]>(rval.size);
 		memcpy(rval.data.get(), chunk_begin, rval.size);
-		return rval;
+		return {std::move(rval)};
 		}
 
 	return {};

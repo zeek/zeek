@@ -4,7 +4,7 @@ btest_retries: &BTEST_RETRIES 2
 memory: &MEMORY 6GB
 
 config: &CONFIG --build-type=release --enable-cpp-tests
-memcheck_config: &MEMCHECK_CONFIG --build-type=debug --enable-cpp-tests --sanitizers=address
+memcheck_config: &MEMCHECK_CONFIG --build-type=debug --enable-cpp-tests --sanitizers=address --enable-fuzzers
 
 resources_template: &RESOURCES_TEMPLATE
   cpu: *CPUS
@@ -133,5 +133,6 @@ memcheck_task:
     # AddressSanitizer uses a lot more memory than a typical config.
     memory: 16GB
   << : *CI_TEMPLATE
+  test_fuzzers_script: ./ci/test-fuzzers.sh
   env:
     ZEEK_CI_CONFIGURE_FLAGS: *MEMCHECK_CONFIG

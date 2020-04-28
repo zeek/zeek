@@ -20,6 +20,10 @@ int main(int argc, char** argv)
 		{
 		auto input_file_name = argv[i + 1];
 		printf("  %s:", input_file_name);
+		// If ASan ends up aborting, the previous stdout output may not
+		// be flushed, so make sure to that and make it easier to see
+		// what input caused the crash.
+		fflush(stdout);
 
 		auto f = fopen(input_file_name, "r");
 		assert(f);
@@ -44,4 +48,4 @@ int main(int argc, char** argv)
 	auto agg_stop = high_resolution_clock::now();
 	auto agg_dt = duration<double>(agg_stop - agg_start).count();
 	printf("Processed %d inputs in %fs\n", num_inputs, agg_dt);
-}
+	}

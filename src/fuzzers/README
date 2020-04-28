@@ -81,3 +81,22 @@ code coverage (see the CFLAGS/CXXFLAGS from the first "Initial Fuzzing"
 section).  There's also the following ASan option which may need to be used::
 
     $ export ASAN_OPTIONS=detect_odr_violation=0
+
+OSS-Fuzz Integration
+--------------------
+
+The OSS-Fuzz integration is all contained in the external OSS-Fuzz repo's
+Zeek project: https://github.com/google/oss-fuzz
+
+There's not much to it other than Dockerfile and build script, but a couple
+conventions to follow to support the OSS-Fuzz configuration:
+
+* Fuzz target names are all like ``zeek-*-fuzzer``.  The OSS-Fuzz build
+  scripts expects that and won't pick up any fuzzer that are named differently.
+
+* Fuzzers should expect to have to load Zeek scripts from a directory named
+  ``oss-fuzz-zeek-scripts`` that lives next to the fuzzer executable.  When
+  running fuzzers locally, the usual way of setting ``ZEEKPATH`` from the build
+  directory does still work, but fuzzers should additionally augment
+  ``ZEEKPATH`` with that special OSS-Fuzz scripts directory so they'll be able
+  to run in that environment.

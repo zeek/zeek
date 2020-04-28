@@ -61,11 +61,15 @@ BEGIN	{
 	accessors["U"] = ".uint_val"
 	accessors["D"] = ".double_val"
 	accessors["S"] = ".string_val"
+	accessors["T"] = ".table_val"
 
 	eval_selector["I"] = ""
 	eval_selector["U"] = ""
 	eval_selector["D"] = ""
 	eval_selector["S"] = "S"
+	eval_selector["T"] = "T"
+
+	++no_vec["T"]
 
 	# Suffix used for vector operations.
 	vec = "_vec"
@@ -82,7 +86,7 @@ $1 == "type"	{ type = $2; next }
 $1 == "vector"	{ vector = 1; next }
 $1 ~ /^op-type(s?)$/	{ build_op_types(); next }
 $1 == "opaque"	{ opaque = 1; next }
-$1 ~ /^eval((_[S])?)$/	{
+$1 ~ /^eval((_[ST])?)$/	{
 		if ( $1 != "eval" )
 			{
 			# Extract subtype specifier.
@@ -281,6 +285,7 @@ function build_op(op, type, sub_type, orig_eval, eval, is_var1, is_var2)
 	# operations with multiple types of operands.  This lets us
 	# avoid redundant declarations.
 	is_rep = ! sub_type || sub_type == op_type_rep
+	do_vec = vector && ! no_vec[sub_type]
 
 	if ( ! internal_op && is_rep )
 		{
@@ -289,7 +294,7 @@ function build_op(op, type, sub_type, orig_eval, eval, is_var1, is_var2)
 		print ("\tconst CompiledStmt " op_type args[type] \
 			" override;") >sub_class_f
 
-		if ( vector )
+		if ( do_vec )
 			{
 			print ("\tvirtual const CompiledStmt " \
 				op_type vec args[type] " = 0;") >base_class_f
@@ -299,12 +304,12 @@ function build_op(op, type, sub_type, orig_eval, eval, is_var1, is_var2)
 		}
 
 	print ("\t" full_op ",") >ops_f
-	if ( vector )
+	if ( do_vec )
 		print ("\t" full_op vec ",") >ops_f
 
 	print ("\tcase " full_op ":\treturn \"" tolower(orig_op) \
 		"-" type "\";") >ops_names_f
-	if ( vector )
+	if ( do_vec )
 		print ("\tcase " full_op vec ":\treturn \"" tolower(orig_op) \
 			"-" type "-vec" "\";") >ops_names_f
 
@@ -312,7 +317,7 @@ function build_op(op, type, sub_type, orig_eval, eval, is_var1, is_var2)
 		multi_eval eval multi_eval eval_blank \
 		"}" multi_eval eval_blank "break;\n") >ops_eval_f
 
-	if ( vector )
+	if ( do_vec )
 		{
 		if ( ary_op == 1 )
 			{
@@ -331,6 +336,13 @@ function build_op(op, type, sub_type, orig_eval, eval, is_var1, is_var2)
 
 		else
 			{
+			### Right now we wind up generating 3 identical
+			### case bodies for VCV, VVC, and VVV.  This gives
+			### us some latitude in case down the line we
+			### come up with a different vector scheme that
+			### varies for constant vectors, but we could
+			### consider compressing them down in the interest
+			### of smaller code size.
 			print ("\tcase " full_op vec ":\n\t\tvec_exec("  \
 				full_op vec \
 				",\n\t\t\tframe[s.v1].raw_vector_val,\n\t\t\t" \
@@ -345,6 +357,8 @@ function build_op(op, type, sub_type, orig_eval, eval, is_var1, is_var2)
 
 			if ( eval_selector[sub_type] != "" )
 				{
+				### Need to resolve whether to "delete"
+				### here.
 				gsub(/\$\$/, "(*v1)[i]" accessor, oe_copy)
 				print ("\tcase " full_op vec ":\n\t\t{\n\t\t" \
 					oe_copy "\n\t\tbreak;\n\t\t}") >vec2_eval_f
@@ -363,7 +377,7 @@ function build_op(op, type, sub_type, orig_eval, eval, is_var1, is_var2)
 		gen_method(full_op_no_sub, full_op, type, sub_type,
 				0, method_pre)
 
-		if ( vector )
+		if ( do_vec )
 			gen_method(full_op_no_sub, full_op, type, sub_type,
 					1, method_pre)
 		}
@@ -402,7 +416,7 @@ function build_op(op, type, sub_type, orig_eval, eval, is_var1, is_var2)
 		else
 			gripe("bad type " type " for expr " op)
 
-		if ( vector )
+		if ( do_vec )
 			{
 			print ("\tcase " expr_case ":\n\t\t" \
 				"if ( rt->Tag() == TYPE_VECTOR )\n\t\t\t" \
@@ -441,21 +455,27 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 			# Only works for unary.
 			op1_is_const = type ~ /^VC/
 			test_var = op1_is_const ? "c" : "n2"
-			print ("\tauto t = " test_var \
-				"->Type()->InternalType();") >methods_f
+			print ("\tauto t = " test_var "->Type();") >methods_f
+			print ("\tauto tag = t->Tag();") >methods_f
+			print ("\tauto i_t = t->InternalType();") >methods_f
 
 			n = 0;
 			for ( o in op_types )
 				{
+				if ( is_vec && no_vec[o] )
+					continue
+
 				else_text = ((++n > 1) ? "else " : "");
 				if ( o == "I" || o == "U" )
 					{
-					print ("\t" else_text "if ( t == TYPE_INTERNAL_INT || t == TYPE_INTERNAL_UNSIGNED )") >methods_f
+					print ("\t" else_text "if ( i_t == TYPE_INTERNAL_INT || i_t == TYPE_INTERNAL_UNSIGNED )") >methods_f
 					}
 				else if ( o == "D" )
-					print ("\t" else_text "if ( t == TYPE_INTERNAL_DOUBLE )") >methods_f
+					print ("\t" else_text "if ( i_t == TYPE_INTERNAL_DOUBLE )") >methods_f
 				else if ( o == "S" )
-					print ("\t" else_text "if ( t == TYPE_INTERNAL_STRING )") >methods_f
+					print ("\t" else_text "if ( i_t == TYPE_INTERNAL_STRING )") >methods_f
+				else if ( o == "T" )
+					print ("\t" else_text "if ( tag == TYPE_TABLE )") >methods_f
 				else
 					gripe("bad subtype " o)
 

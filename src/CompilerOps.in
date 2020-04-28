@@ -32,8 +32,14 @@ eval $1+$2
 eval_S vector<const BroString*> strings
 eval_S strings.push_back($1)
 eval_S strings.push_back($2)
-eval_S delete $$
 eval_S $$ = concatenate(strings)
+
+binary-expr-op Sub
+op-type I U D T
+vector
+eval $1-$2
+eval_T $$ = $1->Clone()->AsTableVal()
+eval_T $2->RemoveFrom($$)
 
 ########################################
 
@@ -99,7 +105,6 @@ type VC
 eval auto c = s.c.ToVal(s.t)
 eval frame[s.v1].vvec->push_back(c)
 
-# EXPR_SUB
 # EXPR_APPEND_TO
 # EXPR_TIMES
 # EXPR_DIVIDE

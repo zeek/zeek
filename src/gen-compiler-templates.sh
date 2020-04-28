@@ -61,6 +61,7 @@ BEGIN	{
 	accessors["U"] = ".uint_val"
 	accessors["D"] = ".double_val"
 
+	accessors["A"] = ".addr_val"
 	accessors["P"] = ".re_val"
 	accessors["S"] = ".string_val"
 	accessors["T"] = ".table_val"
@@ -68,9 +69,12 @@ BEGIN	{
 	eval_selector["I"] = ""
 	eval_selector["U"] = ""
 	eval_selector["D"] = ""
+	eval_selector["A"] = "A"
 	eval_selector["P"] = "P"
 	eval_selector["S"] = "S"
 	eval_selector["T"] = "T"
+
+	# Update eval(...) below
 
 	++no_vec["P"]
 	++no_vec["T"]
@@ -84,13 +88,14 @@ $1 == "expr-op"	{ dump_op(); op = $2; expr_op = 1; next }
 $1 == "unary-op"	{ dump_op(); op = $2; ary_op = 1; next }
 $1 == "unary-expr-op"	{ dump_op(); op = $2; expr_op = 1; ary_op = 1; next }
 $1 == "binary-expr-op"	{ dump_op(); op = $2; expr_op = 1; ary_op = 2; next }
+$1 == "rel-expr-op"	{ dump_op(); op = $2; expr_op = 1; ary_op = 2; rel_op = 1; next }
 $1 == "internal-op"	{ dump_op(); op = $2; internal_op = 1; next }
 
 $1 == "type"	{ type = $2; next }
 $1 == "vector"	{ vector = 1; next }
 $1 ~ /^op-type(s?)$/	{ build_op_types(); next }
 $1 == "opaque"	{ opaque = 1; next }
-$1 ~ /^eval((_[PST])?)$/	{
+$1 ~ /^eval((_[APST])?)$/	{
 		if ( $1 != "eval" )
 			{
 			# Extract subtype specifier.
@@ -234,26 +239,32 @@ function dump_op()
 
 function expand_eval(e, is_expr_op, otype, is_var1, is_var2)
 	{
-	accessor = ""
+	laccessor = raccessor = ""
 	expr_app = ""
 	if ( otype )
 		{
 		if ( ! (otype in accessors) )
 			gripe("bad operand_type: " otype)
 
-		accessor = accessors[otype]
+		raccessor = accessors[otype]
+
+		if ( rel_op )
+			laccessor = accessors["I"]
+		else
+			laccessor = raccessor
+
 		expr_app = ";"
 		}
 
 	e_copy = e
 	pre_copy = eval_pre
-	rep1 = "(" (is_var1 ? "frame[s.v2]" : "s.c") accessor ")"
+	rep1 = "(" (is_var1 ? "frame[s.v2]" : "s.c") raccessor ")"
 	gsub(/\$1/, rep1, e_copy)
 	gsub(/\$1/, rep1, pre_copy)
 
 	if ( ary_op == 2 )
 		{
-		rep2 = "(" (is_var2 ? "frame[s.v3]" : "s.c") accessor ")"
+		rep2 = "(" (is_var2 ? "frame[s.v3]" : "s.c") raccessor ")"
 		gsub(/\$2/, rep2, e_copy)
 		gsub(/\$2/, rep2, pre_copy)
 		}
@@ -262,17 +273,19 @@ function expand_eval(e, is_expr_op, otype, is_var1, is_var2)
 		{
 		if ( index(e_copy, "$$") > 0 )
 			{
-			e_copy = "delete frame[s.v1]" \
-				accessor ";\n\t\t" e_copy
-			gsub(/\$\$/, "frame[s.v1]" accessor, e_copy)
+			if ( ! rel_op )
+				e_copy = "delete frame[s.v1]" \
+					laccessor ";\n\t\t" e_copy
+
+			gsub(/\$\$/, "frame[s.v1]" laccessor, e_copy)
 			return pre_copy e_copy expr_app
 			}
 		else
 			return pre_copy \
-				"frame[s.v1]" accessor " = " e_copy expr_app
+				"frame[s.v1]" laccessor " = " e_copy expr_app
 		}
 	else
-		return e_copy accessor
+		return e_copy raccessor
 	}
 
 function build_op(op, type, sub_type, orig_eval, eval, is_var1, is_var2)
@@ -335,11 +348,10 @@ function build_op(op, type, sub_type, orig_eval, eval, is_var1, is_var2)
 				(is_var1 ? "frame[s.v2]" : "s.c") \
 				".raw_vector_val);\n\t\tbreak;\n") >ops_eval_f
 
-			# ### Here we know about the "accessor" global.
 			oe_copy = orig_eval
-			gsub(/\$1/, "(*v2)[i]" accessor, oe_copy)
+			gsub(/\$1/, "(*v2)[i]" raccessor, oe_copy)
 
-			print ("\tcase " full_op vec ": (*v1)[i]" accessor " = " \
+			print ("\tcase " full_op vec ": (*v1)[i]" laccessor " = " \
 				oe_copy "; break;") >vec1_eval_f
 			}
 
@@ -361,21 +373,21 @@ function build_op(op, type, sub_type, orig_eval, eval, is_var1, is_var2)
 				".raw_vector_val);\n\t\tbreak;\n") >ops_eval_f
 
 			oe_copy = orig_eval
-			gsub(/\$1/, "(*v2)[i]" accessor, oe_copy)
-			gsub(/\$2/, "(*v3)[i]" accessor, oe_copy)
+			gsub(/\$1/, "(*v2)[i]" raccessor, oe_copy)
+			gsub(/\$2/, "(*v3)[i]" raccessor, oe_copy)
 
 			if ( eval_selector[sub_type] != "" )
 				{
 				### Need to resolve whether to "delete"
 				### here.
-				gsub(/\$\$/, "(*v1)[i]" accessor, oe_copy)
+				gsub(/\$\$/, "(*v1)[i]" laccessor, oe_copy)
 				print ("\tcase " full_op vec ":\n\t\t{\n\t\t" \
 					oe_copy "\n\t\tbreak;\n\t\t}") >vec2_eval_f
 				}
 
 			else
 				print ("\tcase " full_op vec ":\n\t\t(*v1)[i]" \
-					accessor " = " \
+					laccessor " = " \
 					oe_copy "; break;") >vec2_eval_f
 			}
 		}
@@ -461,7 +473,8 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 
 		if ( sub_type )
 			{
-			# Only works for unary.
+			# Assumes if there are two operands, they have
+			# the same type.
 			op1_is_const = type ~ /^VC/
 			test_var = op1_is_const ? "c" : "n2"
 			print ("\tauto t = " test_var "->Type();") >methods_f
@@ -479,6 +492,8 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 					{
 					print ("\t" else_text "if ( i_t == TYPE_INTERNAL_INT || i_t == TYPE_INTERNAL_UNSIGNED )") >methods_f
 					}
+				else if ( o == "A" )
+					print ("\t" else_text "if ( i_t == TYPE_INTERNAL_ADDR )") >methods_f
 				else if ( o == "D" )
 					print ("\t" else_text "if ( i_t == TYPE_INTERNAL_DOUBLE )") >methods_f
 				else if ( o == "P" )
@@ -511,8 +526,8 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 function clear_vars()
 	{
 	opaque = type = multi_eval = eval_blank = method_pre = eval_pre = ""
-	vector = internal_op = ary_op = expr_op = op = ""
-	operand_type = ""
+	vector = internal_op = rel_op = ary_op = expr_op = op = ""
+	laccessor = raccessor = operand_type = ""
 	delete eval
 	delete op_types
 	}

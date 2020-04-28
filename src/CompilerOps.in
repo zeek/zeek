@@ -1,6 +1,8 @@
 # Templates used to generate virtual functions, opcodes, and evaluation
 # code for compiled code.
 
+########## Unary Ops ##########
+
 unary-expr-op Assign
 eval $1
 
@@ -24,6 +26,8 @@ unary-expr-op Negate
 op-type I D
 vector
 eval -$1
+
+########## Binary Ops ##########
 
 binary-expr-op Add
 op-type I U D S
@@ -78,12 +82,55 @@ op-type U
 vector
 eval $1 ^ $2
 
-# EXPR_LT
-# EXPR_LE
-# EXPR_EQ
-# EXPR_NE
-# EXPR_GE
-# EXPR_GT
+########## Relationals ##########
+
+rel-expr-op LT
+op-type I U D S T A
+vector
+eval $1 < $2
+eval_S $$ = Bstr_cmp($1, $2) < 0
+eval_T $$ = $1->IsSubsetOf($2) && $1->Size() < $2->Size()
+eval_A $$ = $1 < $2
+
+rel-expr-op LE
+op-type I U D S T A
+vector
+eval $1 <= $2
+eval_S $$ = Bstr_cmp($1, $2) <= 0
+eval_T $$ = $1->IsSubsetOf($2)
+eval_A $$ = $1 < $2 || $1 == $2
+
+rel-expr-op EQ
+op-type I U D S T A
+vector
+eval $1 == $2
+eval_S $$ = Bstr_cmp($1, $2) == 0
+eval_T $$ = $1->EqualTo($2)
+eval_A $$ = $1 == $2
+
+rel-expr-op NE
+op-type I U D S T A
+vector
+eval $1 != $2
+eval_S $$ = Bstr_cmp($1, $2) != 0
+eval_T $$ = ! $1->EqualTo($2)
+eval_A $$ = $1 != $2
+
+# Note, canonicalization means that GE and GT shouldn't occur
+# for Sets (type T).
+rel-expr-op GE
+op-type I U D S A
+vector
+eval $1 >= $2
+eval_S $$ = Bstr_cmp($1, $2) >= 0
+eval_A $$ = ! ($1 < $2)
+
+rel-expr-op GT
+op-type I U D S A
+vector
+eval $1 > $2
+eval_S $$ = Bstr_cmp($1, $2) > 0
+eval_A $$ = ! ($1 < $2) && $1 != $2
 
 ########################################
 

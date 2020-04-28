@@ -117,13 +117,9 @@ AS_ValUnion::AS_ValUnion(Val* v, BroType* t)
 	case TYPE_TABLE:	table_val = v->AsTableVal(); break;
 	case TYPE_VECTOR:	vector_val = v->AsVectorVal(); break;
 
-	case TYPE_STRING:
-		{
-		auto s = v->AsString();
-		auto n = s->Len();
-		string_val = s->GetSubstring(0, n);
-		break;
-		}
+	// ### Need to think about memory management strategy and
+	// whether we require the new BroString here.
+	case TYPE_STRING:	string_val = new BroString(*v->AsString());
 
 	case TYPE_ANY:		any_val = vu; break;
 	case TYPE_TYPE:		type_val = t; break;
@@ -150,18 +146,7 @@ IntrusivePtr<Val> AS_ValUnion::ToVal(BroType* t) const
 	case TYPE_TIME:		v = new Val(double_val, TYPE_TIME); break;
 	case TYPE_FUNC:		v = new Val(func_val); break;
 	case TYPE_FILE:		v = new Val(file_val); break;
-
-	case TYPE_STRING:
-		{
-		// This is clunky, because it turns out that BroString
-		// doesn't have a constructor that copies an existing
-		// BroString (even though one of its Set methods claims
-		// to do this, it doesn't actually copy the underlying
-		// byte vector).
-		auto n = string_val->Len();
-		v = new StringVal(string_val->GetSubstring(0, n));
-		break;
-		}
+	case TYPE_STRING:	v = new StringVal(new BroString(*string_val));
 
 	case TYPE_ANY:		v = new Val(any_val, t->Ref()); break;
 	case TYPE_TYPE:		v = new Val(type_val, true); break;

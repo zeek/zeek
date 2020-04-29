@@ -37,6 +37,10 @@ New Functionality
   and ``udp_content_delivery_ports_orig`` options is determined. The current value
   keeps behavior as it was in previous versions of Zeek.
 
+- Add a file signature to identify ISO9660 disk images (application/x-iso9660-image)
+
+- Slightly reorganize the file signatures to break them out into more groups.
+
 Changed Functionality
 ---------------------
 

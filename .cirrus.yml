@@ -135,7 +135,7 @@ freebsd_task:
     memory: 8GB
   prepare_script:
     - sysctl hw.model hw.machine hw.ncpu
-    - pkg install -y bash git cmake swig30 bison py-pip base64
+    - pkg install -y bash git cmake swig30 bison py37-pip base64
     - ln -s /usr/local/bin/python3{??} /usr/local/bin/python
     - pip install junit2html     
   << : *CI_TEMPLATE

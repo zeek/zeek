@@ -98,6 +98,8 @@ $1 == "vector"	{ vector = 1; next }
 $1 ~ /^op-type(s?)$/	{ build_op_types(); next }
 $1 == "opaque"	{ opaque = 1; next }
 
+$1 == "set-type"	{ set_type = $2; next }
+
 $1 ~ /^eval((_[ANPST])?)$/	{
 		if ( $1 != "eval" )
 			{
@@ -510,11 +512,43 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 	else if ( args2[type] != "" )
 		{
 		# This is the only scenario where sub_type should occur.
-		part1 = "\treturn AddStmt(GenStmt(this, "
-		part2 = ", " args2[type] "));"
+		part1 = "\tauto s = GenStmt(this, "
+
+		part2a = ", " args2[type] ");\n"
+		part2c = "\treturn AddStmt(s);"
 
 		if ( sub_type )
 			{
+			# The code will be indented due to if-else constructs.
+			part1 = "\t" part1
+			part2a = part2a
+			part2c = "\t" part2c
+			}
+
+		if ( set_type )
+			{
+			# Remove extraneous $, if present.
+			sub(/\$/, "", set_type)
+
+			# Extract the nth variable.
+			split(args2[type], vars, /, /)
+
+			part2b = "\ts.t = " vars[set_type] "->Type().get();\n"
+
+			if ( sub_type )
+				part2b = "\t" part2b
+			}
+		else
+			part2b = ""
+
+		part2 = part2a part2b part2c
+
+		if ( sub_type )
+			{
+			# Need braces for multi-line parts.
+			part1 = "\t\t{\n" part1
+			part2 = part2 "\n\t\t}"
+
 			# Assumes if there are two operands, they have
 			# the same type.
 			op1_is_const = type ~ /^VC/
@@ -549,7 +583,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 				else
 					gripe("bad subtype " o)
 
-				print ("\t" part1 \
+				print (part1 \
 					(full_op_no_sub \
 					 "_" o (is_vec ? vec : "")) \
 					part2) >methods_f
@@ -587,7 +621,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 
 function clear_vars()
 	{
-	opaque = type = operand_type = method_pre = eval_pre = ""
+	opaque = set_type = type = operand_type = method_pre = eval_pre = ""
 	mix_eval = multi_eval = eval_blank = ""
 	vector = internal_op = rel_op = ary_op = expr_op = op = ""
 	laccessor = raccessor1 = raccessor2 = ""

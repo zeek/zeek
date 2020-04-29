@@ -7,6 +7,7 @@ unary-expr-op Assign
 eval $1
 
 unary-expr-op Clone
+set-type $1
 eval AS_ValUnion($1.ToVal(s.t)->Clone().release(), s.t)
 
 unary-expr-op Not

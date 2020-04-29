@@ -61,54 +61,54 @@ env:
   # the zeek-testing-private repository.
   ZEEK_TESTING_PRIVATE_SSH_KEY: ENCRYPTED[6631d7bf11e6553c531222953fb6de4d4a48a86a5dbc21a97604d5ca1791845718c985d9086f125cead6908e1b5f2b23]
 
-# Linux EOL timelines: https://linuxlifecycle.com/
-# Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
-container_build_task:
-  container:
-    matrix: 
-      # Fedora 30 EOL: Around June 2020
-      dockerfile: ci/fedora-30/Dockerfile
-      # CentOS 7 EOL: June 30, 2024
-      dockerfile: ci/centos-7/Dockerfile
-      # Debian 9 EOL: June 2022
-      dockerfile: ci/debian-9/Dockerfile
-      # Ubuntu 18.04 EOL: April 2023
-      dockerfile: ci/ubuntu-18.04/Dockerfile
-      # Ubuntu 16.04 EOL: April 2021
-      dockerfile: ci/ubuntu-16.04/Dockerfile
-    << : *RESOURCES_TEMPLATE
+build_task:
+  matrix:       
+    - name: Linux
+      container:
+        << : *RESOURCES_TEMPLATE
+        matrix:
+          # Linux EOL timelines: https://linuxlifecycle.com/
+          # Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
+          - name: Fedora 30
+            # Fedora 30 EOL: Around June 2020
+            dockerfile: ci/fedora-30/Dockerfile
+          - name: CentOS 7
+            # CentOS 7 EOL: June 30, 2024
+            dockerfile: ci/centos-7/Dockerfile
+          - name: Debian 9
+            # Debian 9 EOL: June 2022
+            dockerfile: ci/debian-9/Dockerfile
+          - name: Ubuntu 16.04
+            # Ubuntu 16.04 EOL: April 2021
+            dockerfile: ci/ubuntu-16.04/Dockerfile
+          - name: Ubuntu 18.04
+            # Ubuntu 18.04 EOL: April 2023
+            dockerfile: ci/ubuntu-18.04/Dockerfile
+    - name: MacOSX Catalina
+      osx_instance:
+        image: catalina-base
+      # cpu/memory setting is implicitly 2 core / 4 thread and 8GB, and
+      # trying to set it explicitly results in an error.
+      env:
+        ZEEK_CI_CPUS: 4
+        ZEEK_CI_BTEST_JOBS: 4
+      prepare_script:
+        - sysctl hw.model hw.machine hw.ncpu hw.physicalcpu hw.logicalcpu
+        - brew install cmake swig openssl bison
+    - name: FreeBSD 12.1
+      freebsd_instance:
+        # FreeBSD 12 EOL: June 30, 2024
+        image_family: freebsd-12-1
+        <<: *RESOURCES_TEMPLATE
+        # Not allowed to request less than 8GB for an 8 CPU FreeBSD VM.
+        memory: 8GB
+      prepare_script:
+        - sysctl hw.model hw.machine hw.ncpu
+        - pkg install -y bash git cmake swig30 bison py37-pip base64
+        - ln -s /usr/local/bin/python3{??} /usr/local/bin/python
+        - pip install junit2html
   << : *CI_TEMPLATE
 
-# Apple doesn't publish official long-term support timelines, so easiest
-# option is to only support the latest macOS release or whatever latest
-# image is available.
-macos_task:
-  osx_instance:
-    image: catalina-base
-    # cpu/memory setting is implicitly 2 core / 4 thread and 8GB, and
-    # trying to set it explicitly results in an error.
-  env:
-    ZEEK_CI_CPUS: 4
-    ZEEK_CI_BTEST_JOBS: 4
-  prepare_script:
-    - sysctl hw.model hw.machine hw.ncpu hw.physicalcpu hw.logicalcpu
-    - brew install cmake swig openssl bison
-  <<: *CI_TEMPLATE
-
-# FreeBSD EOL timelines: https://www.freebsd.org/security/security.html#sup
-freebsd_task:
-  freebsd_instance:
-    # FreeBSD 12 EOL: June 30, 2024
-    image_family: freebsd-12-1
-    <<: *RESOURCES_TEMPLATE
-    # Not allowed to request less than 8GB for an 8 CPU FreeBSD VM.
-    memory: 8GB
-  prepare_script:
-    - sysctl hw.model hw.machine hw.ncpu
-    - pkg install -y bash git cmake swig30 bison py37-pip base64
-    - ln -s /usr/local/bin/python3{??} /usr/local/bin/python
-    - pip install junit2html     
-  <<: *CI_TEMPLATE
 
 memcheck_task:
   container:
@@ -129,5 +129,5 @@ build_tarball_task:
   tarball_artifacts:
     path: zeek*.tar.gz
   depends_on:
-    - container_build
+    - build
 

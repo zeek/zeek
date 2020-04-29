@@ -23,10 +23,10 @@ ci_template: &CI_TEMPLATE
 
   clone_script: |
     if [ -z "$CIRRUS_PR" ]; then
-      git clone --depth=1 --recursive --branch=$CIRRUS_BRANCH https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git .
+      git clone --depth=1 --recursive --branch=$CIRRUS_BRANCH https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git ${CIRRUS_WORKING_DIR}
       git reset --hard $CIRRUS_CHANGE_IN_REPO
     else
-      git clone --depth=1 --recursive https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git .
+      git clone --depth=1 --recursive https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git ${CIRRUS_WORKING_DIR}
       git fetch origin pull/$CIRRUS_PR/head:pull/$CIRRUS_PR
       git reset --hard $CIRRUS_CHANGE_IN_REPO
     fi
@@ -115,14 +115,15 @@ macos_task:
     image: catalina-base
     # cpu/memory setting is implicitly 2 core / 4 thread and 8GB, and
     # trying to set it explicitly results in an error.
-  pre_script: find . && set
-  prepare_script: ./ci/macos/prepare.sh
-  << : *CI_TEMPLATE
   env:
     ZEEK_CI_CPUS: 4
     ZEEK_CI_BTEST_JOBS: 4
     # No permission to write to default location of /zeek
     CIRRUS_WORKING_DIR: /tmp/zeek
+  prepare_script:
+    - sysctl hw.model hw.machine hw.ncpu hw.physicalcpu hw.logicalcpu
+    - brew install cmake swig openssl bison
+  << : *CI_TEMPLATE
 
 # FreeBSD EOL timelines: https://www.freebsd.org/security/security.html#sup
 freebsd_task:
@@ -132,8 +133,11 @@ freebsd_task:
     cpu: 8
     # Not allowed to request less than 8GB for an 8 CPU FreeBSD VM.
     memory: 8GB
-  pre_script: find . && set
-  prepare_script: ./ci/freebsd/prepare.sh
+  prepare_script:
+    - sysctl hw.model hw.machine hw.ncpu
+    - pkg install -y bash git cmake swig30 bison py-pip base64
+    - ln -s /usr/local/bin/python3{??} /usr/local/bin/python
+    - pip install junit2html     
   << : *CI_TEMPLATE
 
 memcheck_task:
@@ -143,6 +147,6 @@ memcheck_task:
     cpu: 8
     # AddressSanitizer uses a lot more memory than a typical config.
     memory: 16GB
-  << : *CI_TEMPLATE
   env:
     ZEEK_CI_CONFIGURE_FLAGS: *MEMCHECK_CONFIG
+  << : *CI_TEMPLATE

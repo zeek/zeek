@@ -37,6 +37,10 @@ New Functionality
   and ``udp_content_delivery_ports_orig`` options is determined. The current value
   keeps behavior as it was in previous versions of Zeek.
 
+- Add a file signature to identify ISO9660 disk images (application/x-iso9660-image)
+
+- Add file signature to identify Python bytecode (application/x-python-bytecode)
+
 Changed Functionality
 ---------------------
 
@@ -75,6 +79,9 @@ Changed Functionality
 - The ``connection_external`` event was removed. This functionality that could
   raise this event (injecting connections via broccoli) was removed a while ago;
   the event handler served no purpose anymore.
+
+- Reorganize the file signatures to break them out into more groups.  This may
+  break scripts that had been explicitly loading any signature files that moved.
 
 Removed Functionality
 ---------------------

@@ -1,4 +1,15 @@
 
+3.2.0-dev.451 | 2020-04-29 16:28:34 -0700
+
+  * Organized and added to the shipped file identification signatures. (Seth Hall, Corelight)
+
+     - Added ISO 9660 disk image
+
+     - Created new files for categorizing signatures better.
+       - executable.sig - Executable (and bytecode) files.
+       - java.sig - Java related files (class/jar, etc).
+       - programming.sig - Mostly scripting language identification
+
 3.2.0-dev.447 | 2020-04-29 15:55:03 -0700
 
   * GH-713: Fixed misc/stats.zeek skipping a log entry on termination (Brittany Donowho)

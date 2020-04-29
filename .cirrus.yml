@@ -63,7 +63,7 @@ env:
 
 # Linux EOL timelines: https://linuxlifecycle.com/
 # Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
-container_build_and_test_task:
+container_build_task:
   container:
     matrix: 
       # Fedora 30 EOL: Around June 2020
@@ -93,14 +93,14 @@ macos_task:
   prepare_script:
     - sysctl hw.model hw.machine hw.ncpu hw.physicalcpu hw.logicalcpu
     - brew install cmake swig openssl bison
-  << : *CI_TEMPLATE
+  <<: *CI_TEMPLATE
 
 # FreeBSD EOL timelines: https://www.freebsd.org/security/security.html#sup
 freebsd_task:
   freebsd_instance:
     # FreeBSD 12 EOL: June 30, 2024
     image_family: freebsd-12-1
-    cpu: 8
+    <<: *resources_template
     # Not allowed to request less than 8GB for an 8 CPU FreeBSD VM.
     memory: 8GB
   prepare_script:
@@ -108,15 +108,26 @@ freebsd_task:
     - pkg install -y bash git cmake swig30 bison py37-pip base64
     - ln -s /usr/local/bin/python3{??} /usr/local/bin/python
     - pip install junit2html     
-  << : *CI_TEMPLATE
+  <<: *CI_TEMPLATE
 
 memcheck_task:
   container:
     # Just uses a recent/common distro to run memory error/leak checks.
     dockerfile: ci/ubuntu-18.04/Dockerfile
-    cpu: 8
+    <<: *resources_template
     # AddressSanitizer uses a lot more memory than a typical config.
     memory: 16GB
   env:
     ZEEK_CI_CONFIGURE_FLAGS: *MEMCHECK_CONFIG
-  << : *CI_TEMPLATE
+  <<: *CI_TEMPLATE
+
+build_tarball_task:
+  container:
+    dockerfile: ci/ubuntu-18.04/Dockerfile
+  script:
+    - make dist
+  tarball_artifacts:
+    path: zeek*.tar.gz
+  depends_on:
+    - container_build
+

@@ -1,4 +1,8 @@
 
+3.2.0-dev.443 | 2020-04-28 17:10:38 -0700
+
+  * GH-941: Fix build when configured to use libmaxminddb (Jon Siwek, Corelight)
+
 3.2.0-dev.441 | 2020-04-27 13:34:22 -0700
 
   * Fix a few more IntrusivePtr deprecation warnings (Tim Wojtulewicz, Corelight)

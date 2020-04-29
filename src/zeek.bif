@@ -3860,7 +3860,7 @@ static Val* mmdb_getvalue(MMDB_entry_data_s* entry_data, int status,
 						break;
 
 					case MMDB_DATA_TYPE_UINT32:
-						return val_mgr->Count(entry_data->uint32);
+						return val_mgr->Count(entry_data->uint32).release();
 
 					default:
 						break;
@@ -4087,7 +4087,7 @@ function lookup_asn%(a: addr%) : count
 		status = MMDB_get_value(&result.entry, &entry_data,
 		                        "autonomous_system_number", nullptr);
 		Val* asn = mmdb_getvalue(&entry_data, status, MMDB_DATA_TYPE_UINT32);
-		return asn == nullptr ? val_mgr->Count(0) : asn;
+		return asn == nullptr ? val_mgr->Count(0) : IntrusivePtr<Val>{AdoptRef{}, asn};
 		}
 
 #else // not USE_GEOIP

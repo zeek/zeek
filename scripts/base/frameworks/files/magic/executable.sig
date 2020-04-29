@@ -62,7 +62,7 @@ signature file-pyc-3-0 {
 
 
 # Python 3.1 bytecode
-signature file-pyc-3-2 {
+signature file-pyc-3-1 {
 	file-magic /^[\x45\x4f]\x0c\x0d\x0a/
 	file-mime "application/x-python-bytecode", 80
 }

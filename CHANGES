@@ -1,4 +1,10 @@
 
+3.1.4-dev.6 | 2020-06-04 17:50:07 -0700
+
+  * Extend CI config to cover building with libmaxminddb support (Jon Siwek, Corelight)
+
+  * Limit rate at which MMDB error/status messages are emitted (Jon Siwek, Corelight)
+
 3.1.4-dev.4 | 2020-06-04 17:28:20 -0700
 
   * Unbreak build on Fedora 32 (gcc 10.0.1) (Johanna Amann, Corelight)

@@ -1,4 +1,13 @@
 
+3.2.0-dev.445 | 2020-04-29 15:25:03 -0700
+
+  * Add warning message for unknown Broker statuses (Jon Siwek, Corelight)
+
+    There's now a couple placeholder/unimplemented status values in Broker
+    related to upcoming routing features that we don't want to handle
+    explicitly for compatibility reasons, but also don't want the compiler
+    warning about unhandled values in the switch.
+
 3.2.0-dev.443 | 2020-04-28 17:10:38 -0700
 
   * GH-941: Fix build when configured to use libmaxminddb (Jon Siwek, Corelight)

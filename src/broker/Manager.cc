@@ -1229,6 +1229,10 @@ void Manager::ProcessStatus(broker::status stat)
 		--peer_count;
 		event = Broker::peer_lost;
 		break;
+
+	default:
+		reporter->Warning("Unhandled Broker status: %s", to_string(stat).data());
+		break;
 	}
 
 	if ( ! event )

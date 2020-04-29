@@ -163,7 +163,14 @@ public:
 	// Activate connection_status_update timer.
 	void EnableStatusUpdateTimer();
 
+	[[deprecated("Remove in v4.1.  Use ConnVal() instead.")]]
 	RecordVal* BuildConnVal();
+
+	/**
+	 * Returns the associated "connection" record.
+	 */
+	const IntrusivePtr<RecordVal>& ConnVal();
+
 	void AppendAddl(const char* str);
 
 	LoginConn* AsLoginConn()		{ return login_conn; }
@@ -186,6 +193,7 @@ public:
 	// 'v1' and 'v2' reference counts get decremented.  The event's first
 	// argument is the connection value, second argument is 'v1', and if 'v2'
 	// is given that will be it's third argument.
+	[[deprecated("Remove in v4.1.  Use EnqueueEvent() instead (note it doesn't automatically add the connection argument).")]]
 	void Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1, Val* v2 = nullptr);
 
 	// If a handler exists for 'f', an event will be generated.  In any case,
@@ -316,8 +324,6 @@ public:
 
 protected:
 
-	Connection()	{ }
-
 	// Add the given timer to expire at time t.  If do_expire
 	// is true, then the timer is also evaluated when Bro terminates,
 	// otherwise not.
@@ -349,7 +355,7 @@ protected:
 	u_char resp_l2_addr[Packet::l2_addr_len];	// Link-layer responder address, if available
 	double start_time, last_time;
 	double inactivity_timeout;
-	RecordVal* conn_val;
+	IntrusivePtr<RecordVal> conn_val;
 	LoginConn* login_conn;	// either nil, or this
 	const EncapsulationStack* encapsulation; // tunnels
 	int suppress_event;	// suppress certain events to once per conn.

@@ -97,7 +97,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 			cmd_str = (new StringVal(cmd_len, cmd))->ToUpper();
 
 		vl = {
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			ConnVal(),
 			IntrusivePtr{AdoptRef{}, cmd_str},
 			make_intrusive<StringVal>(end_of_line - line, line),
 		};
@@ -176,10 +176,10 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 			}
 
 		vl = {
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(reply_code)},
+			ConnVal(),
+			val_mgr->Count(reply_code),
 			make_intrusive<StringVal>(end_of_line - line, line),
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(cont_resp)}
+			val_mgr->Bool(cont_resp)
 		};
 
 		f = ftp_reply;

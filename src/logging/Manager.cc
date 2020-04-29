@@ -289,7 +289,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 		if ( ! same_type((*args)[0], columns) )
 			{
 			reporter->Error("stream event's argument type does not match column record type");
-			return val_mgr->GetFalse();
+			return false;
 			}
 		}
 
@@ -741,7 +741,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 			if ( filter->path_val )
 				path_arg = {NewRef{}, filter->path_val};
 			else
-				path_arg = {AdoptRef{}, val_mgr->GetEmptyString()};
+				path_arg = val_mgr->EmptyString();
 
 			IntrusivePtr<Val> rec_arg;
 			BroType* rt = filter->path_func->FType()->Args()->FieldType("rec");
@@ -1521,7 +1521,7 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 	info->Assign(2, make_intrusive<StringVal>(winfo->writer->Info().path));
 	info->Assign(3, make_intrusive<Val>(open, TYPE_TIME));
 	info->Assign(4, make_intrusive<Val>(close, TYPE_TIME));
-	info->Assign(5, val_mgr->GetBool(terminating));
+	info->Assign(5, val_mgr->Bool(terminating));
 
 	Func* func = winfo->postprocessor;
 	if ( ! func )

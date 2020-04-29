@@ -335,20 +335,9 @@ protected:
 	virtual void ValDescribe(ODesc* d) const;
 	virtual void ValDescribeReST(ODesc* d) const;
 
-	static Val* MakeBool(bool b)
-		{
-		return new Val(bro_int_t(b), TYPE_BOOL);
-		}
-
-	static Val* MakeInt(bro_int_t i)
-		{
-		return new Val(i, TYPE_INT);
-		}
-
-	static Val* MakeCount(bro_uint_t u)
-		{
-		return new Val(u, TYPE_COUNT);
-		}
+	static IntrusivePtr<Val> MakeBool(bool b);
+	static IntrusivePtr<Val> MakeInt(bro_int_t i);
+	static IntrusivePtr<Val> MakeCount(bro_uint_t u);
 
 	template<typename V>
 	Val(V &&v, TypeTag t) noexcept
@@ -406,44 +395,79 @@ public:
 
 	ValManager();
 
-	~ValManager();
-
+	[[deprecated("Remove in v4.1.  Use val_mgr->True() instead.")]]
 	inline Val* GetTrue() const
 		{ return b_true->Ref(); }
 
+	inline const IntrusivePtr<Val>& True() const
+		{ return b_true; }
+
+	[[deprecated("Remove in v4.1.  Use val_mgr->False() instead.")]]
 	inline Val* GetFalse() const
 		{ return b_false->Ref(); }
 
+	inline const IntrusivePtr<Val>& False() const
+		{ return b_false; }
+
+	[[deprecated("Remove in v4.1.  Use val_mgr->Bool() instead.")]]
 	inline Val* GetBool(bool b) const
 		{ return b ? b_true->Ref() : b_false->Ref(); }
 
+	inline const IntrusivePtr<Val>& Bool(bool b) const
+		{ return b ? b_true : b_false; }
+
+	[[deprecated("Remove in v4.1.  Use val_mgr->Int() instead.")]]
 	inline Val* GetInt(int64_t i) const
 		{
 		return i < PREALLOCATED_INT_LOWEST || i > PREALLOCATED_INT_HIGHEST ?
-		    Val::MakeInt(i) : ints[i - PREALLOCATED_INT_LOWEST]->Ref();
+		    Val::MakeInt(i).release() : ints[i - PREALLOCATED_INT_LOWEST]->Ref();
 		}
 
+	inline IntrusivePtr<Val> Int(int64_t i) const
+		{
+		return i < PREALLOCATED_INT_LOWEST || i > PREALLOCATED_INT_HIGHEST ?
+		    Val::MakeInt(i) : ints[i - PREALLOCATED_INT_LOWEST];
+		}
+
+	[[deprecated("Remove in v4.1.  Use val_mgr->Count() instead.")]]
 	inline Val* GetCount(uint64_t i) const
 		{
-		return i >= PREALLOCATED_COUNTS ? Val::MakeCount(i) : counts[i]->Ref();
+		return i >= PREALLOCATED_COUNTS ? Val::MakeCount(i).release() : counts[i]->Ref();
 		}
 
+	inline IntrusivePtr<Val> Count(uint64_t i) const
+		{
+		return i >= PREALLOCATED_COUNTS ? Val::MakeCount(i) : counts[i];
+		}
+
+	[[deprecated("Remove in v4.1.  Use val_mgr->EmptyString() instead.")]]
 	StringVal* GetEmptyString() const;
 
+	inline const IntrusivePtr<StringVal>& EmptyString() const
+		{ return empty_string; }
+
 	// Port number given in host order.
+	[[deprecated("Remove in v4.1.  Use val_mgr->Port() instead.")]]
 	PortVal* GetPort(uint32_t port_num, TransportProto port_type) const;
 
+	// Port number given in host order.
+	const IntrusivePtr<PortVal>& Port(uint32_t port_num, TransportProto port_type) const;
+
 	// Host-order port number already masked with port space protocol mask.
+	[[deprecated("Remove in v4.1.  Use val_mgr->Port() instead.")]]
 	PortVal* GetPort(uint32_t port_num) const;
+
+	// Host-order port number already masked with port space protocol mask.
+	const IntrusivePtr<PortVal>& Port(uint32_t port_num) const;
 
 private:
 
-	std::array<std::array<PortVal*, 65536>, NUM_PORT_SPACES> ports;
-	StringVal* empty_string;
-	Val* b_true;
-	Val* b_false;
-	Val** counts;
-	Val** ints;
+	std::array<std::array<IntrusivePtr<PortVal>, 65536>, NUM_PORT_SPACES> ports;
+	std::array<IntrusivePtr<Val>, PREALLOCATED_COUNTS> counts;
+	std::array<IntrusivePtr<Val>, PREALLOCATED_INTS> ints;
+	IntrusivePtr<StringVal> empty_string;
+	IntrusivePtr<Val> b_true;
+	IntrusivePtr<Val> b_false;
 };
 
 extern ValManager* val_mgr;
@@ -569,7 +593,7 @@ public:
 
 	unsigned int MemoryAllocation() const override;
 
-	Val* Substitute(RE_Matcher* re, StringVal* repl, bool do_all);
+	IntrusivePtr<StringVal> Substitute(RE_Matcher* re, StringVal* repl, bool do_all);
 
 protected:
 	void ValDescribe(ODesc* d) const override;

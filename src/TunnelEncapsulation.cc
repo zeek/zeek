@@ -22,9 +22,9 @@ RecordVal* EncapsulatingConn::GetRecordVal() const
 
 	auto id_val = make_intrusive<RecordVal>(conn_id);
 	id_val->Assign(0, make_intrusive<AddrVal>(src_addr));
-	id_val->Assign(1, val_mgr->GetPort(ntohs(src_port), proto));
+	id_val->Assign(1, val_mgr->Port(ntohs(src_port), proto));
 	id_val->Assign(2, make_intrusive<AddrVal>(dst_addr));
-	id_val->Assign(3, val_mgr->GetPort(ntohs(dst_port), proto));
+	id_val->Assign(3, val_mgr->Port(ntohs(dst_port), proto));
 	rv->Assign(0, std::move(id_val));
 	rv->Assign(1, BifType::Enum::Tunnel::Type->GetVal(type));
 

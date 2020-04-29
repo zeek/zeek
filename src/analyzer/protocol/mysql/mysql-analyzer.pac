@@ -6,13 +6,13 @@ refine flow MySQL_Flow += {
 		if ( mysql_server_version )
 			{
 			if ( ${msg.version} == 10 )
-				BifEvent::generate_mysql_server_version(connection()->bro_analyzer(),
-				                                        connection()->bro_analyzer()->Conn(),
-				                                        new StringVal(c_str(${msg.handshake10.server_version})));
+				BifEvent::enqueue_mysql_server_version(connection()->bro_analyzer(),
+				                                       connection()->bro_analyzer()->Conn(),
+				                                       make_intrusive<StringVal>(c_str(${msg.handshake10.server_version})));
 			if ( ${msg.version} == 9 )
-				BifEvent::generate_mysql_server_version(connection()->bro_analyzer(),
-				                                        connection()->bro_analyzer()->Conn(),
-				                                        new StringVal(c_str(${msg.handshake9.server_version})));
+				BifEvent::enqueue_mysql_server_version(connection()->bro_analyzer(),
+				                                       connection()->bro_analyzer()->Conn(),
+				                                       make_intrusive<StringVal>(c_str(${msg.handshake9.server_version})));
 			}
 		return true;
 		%}
@@ -25,13 +25,13 @@ refine flow MySQL_Flow += {
 		if ( mysql_handshake )
 			{
 			if ( ${msg.version} == 10 )
-				BifEvent::generate_mysql_handshake(connection()->bro_analyzer(),
-				                                   connection()->bro_analyzer()->Conn(),
-				                                   new StringVal(c_str(${msg.v10_response.username})));
+				BifEvent::enqueue_mysql_handshake(connection()->bro_analyzer(),
+				                                  connection()->bro_analyzer()->Conn(),
+				                                  make_intrusive<StringVal>(c_str(${msg.v10_response.username})));
 			if ( ${msg.version} == 9 )
-				BifEvent::generate_mysql_handshake(connection()->bro_analyzer(),
-				                                   connection()->bro_analyzer()->Conn(),
-				                                   new StringVal(c_str(${msg.v9_response.username})));
+				BifEvent::enqueue_mysql_handshake(connection()->bro_analyzer(),
+				                                  connection()->bro_analyzer()->Conn(),
+				                                  make_intrusive<StringVal>(c_str(${msg.v9_response.username})));
 			}
 		return true;
 		%}
@@ -39,29 +39,29 @@ refine flow MySQL_Flow += {
 	function proc_mysql_command_request_packet(msg: Command_Request_Packet): bool
 		%{
 		if ( mysql_command_request )
-			BifEvent::generate_mysql_command_request(connection()->bro_analyzer(),
-			                                         connection()->bro_analyzer()->Conn(),
-			                                         ${msg.command},
-			                                         bytestring_to_val(${msg.arg}));
+			BifEvent::enqueue_mysql_command_request(connection()->bro_analyzer(),
+			                                        connection()->bro_analyzer()->Conn(),
+			                                        ${msg.command},
+			                                        to_stringval(${msg.arg}));
 		return true;
 		%}
 
 	function proc_err_packet(msg: ERR_Packet): bool
 		%{
 		if ( mysql_error )
-			BifEvent::generate_mysql_error(connection()->bro_analyzer(),
-			                               connection()->bro_analyzer()->Conn(),
-			                               ${msg.code},
-			                               bytestring_to_val(${msg.msg}));
+			BifEvent::enqueue_mysql_error(connection()->bro_analyzer(),
+			                              connection()->bro_analyzer()->Conn(),
+			                              ${msg.code},
+			                              to_stringval(${msg.msg}));
 		return true;
 		%}
 
 	function proc_ok_packet(msg: OK_Packet): bool
 		%{
 		if ( mysql_ok )
-			BifEvent::generate_mysql_ok(connection()->bro_analyzer(),
-			                            connection()->bro_analyzer()->Conn(),
-			                            ${msg.rows});
+			BifEvent::enqueue_mysql_ok(connection()->bro_analyzer(),
+			                           connection()->bro_analyzer()->Conn(),
+			                           ${msg.rows});
 		return true;
 		%}
 
@@ -71,9 +71,9 @@ refine flow MySQL_Flow += {
 			{
 			// This is a bit fake...
 			if ( mysql_ok )
-				BifEvent::generate_mysql_ok(connection()->bro_analyzer(),
-				                            connection()->bro_analyzer()->Conn(),
-				                            0);
+				BifEvent::enqueue_mysql_ok(connection()->bro_analyzer(),
+				                           connection()->bro_analyzer()->Conn(),
+				                           0);
 			}
 
 		if ( ${msg.is_eof} )
@@ -83,7 +83,7 @@ refine flow MySQL_Flow += {
 			return true;
 
 		auto vt = internal_type("string_vec")->AsVectorType();
-		auto vv = new VectorVal(vt);
+		auto vv = make_intrusive<VectorVal>(vt);
 
 		auto& bstring = ${msg.row.first_field.val};
 		auto ptr = reinterpret_cast<const char*>(bstring.data());
@@ -98,9 +98,9 @@ refine flow MySQL_Flow += {
 			vv->Assign(vv->Size(), make_intrusive<StringVal>(bstring.length(), ptr));
 			}
 
-		BifEvent::generate_mysql_result_row(connection()->bro_analyzer(),
-		                                    connection()->bro_analyzer()->Conn(),
-		                                    vv);
+		BifEvent::enqueue_mysql_result_row(connection()->bro_analyzer(),
+		                                   connection()->bro_analyzer()->Conn(),
+		                                   std::move(vv));
 
 		return true;
 		%}

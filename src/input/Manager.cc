@@ -2259,14 +2259,14 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 
 	switch ( val->type ) {
 	case TYPE_BOOL:
-		return val_mgr->GetBool(val->val.int_val);
+		return val_mgr->Bool(val->val.int_val)->Ref();
 
 	case TYPE_INT:
-		return val_mgr->GetInt(val->val.int_val);
+		return val_mgr->Int(val->val.int_val).release();
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
-		return val_mgr->GetCount(val->val.int_val);
+		return val_mgr->Count(val->val.int_val).release();
 
 	case TYPE_DOUBLE:
 	case TYPE_TIME:
@@ -2280,7 +2280,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 		}
 
 	case TYPE_PORT:
-		return val_mgr->GetPort(val->val.port_val.port, val->val.port_val.proto);
+		return val_mgr->Port(val->val.port_val.port, val->val.port_val.proto)->Ref();
 
 	case TYPE_ADDR:
 		{
@@ -2407,14 +2407,14 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 
 	switch ( val->type ) {
 	case TYPE_BOOL:
-		return val_mgr->GetBool(val->val.int_val);
+		return val_mgr->Bool(val->val.int_val)->Ref();
 
 	case TYPE_INT:
-		return val_mgr->GetInt(val->val.int_val);
+		return val_mgr->Int(val->val.int_val).release();
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
-		return val_mgr->GetCount(val->val.int_val);
+		return val_mgr->Count(val->val.int_val).release();
 
 	case TYPE_DOUBLE:
 	case TYPE_TIME:
@@ -2428,7 +2428,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 		}
 
 	case TYPE_PORT:
-		return val_mgr->GetPort(val->val.port_val.port, val->val.port_val.proto);
+		return val_mgr->Port(val->val.port_val.port, val->val.port_val.proto)->Ref();
 
 	case TYPE_ADDR:
 		{

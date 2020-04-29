@@ -506,7 +506,8 @@ public:
 	explicit TypeType(IntrusivePtr<BroType> t) : BroType(TYPE_TYPE), type(std::move(t)) {}
 	TypeType* ShallowClone() override { return new TypeType(type); }
 
-	BroType* Type()	{ return type.get(); }
+	BroType* Type()			{ return type.get(); }
+	const BroType* Type() const	{ return type.get(); }
 
 protected:
 	IntrusivePtr<BroType> type;

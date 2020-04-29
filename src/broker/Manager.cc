@@ -753,26 +753,22 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 			return rval;
 			}
 
-		RecordVal* data_val;
+		IntrusivePtr<RecordVal> data_val;
 
 		if ( same_type(got_type, bro_broker::DataVal::ScriptDataType()) )
-			{
-			data_val = (*args)[i]->AsRecordVal();
-			Ref(data_val);
-			}
+			data_val = {NewRef{}, (*args)[i]->AsRecordVal()};
 		else
 			data_val = make_data_val((*args)[i]);
 
 		if ( ! data_val->Lookup(0) )
 			{
-			Unref(data_val);
 			rval->Assign(0, nullptr);
 			Error("failed to convert param #%d of type %s to broker data",
 				  i, type_name(got_type->Tag()));
 			return rval;
 			}
 
-		arg_vec->Assign(i - 1, data_val);
+		arg_vec->Assign(i - 1, std::move(data_val));
 		}
 
 	return rval;
@@ -1258,14 +1254,14 @@ void Manager::ProcessStatus(broker::status stat)
 		if ( ctx->network )
 			{
 			network_info->Assign(0, make_intrusive<StringVal>(ctx->network->address.data()));
-			network_info->Assign(1, val_mgr->GetPort(ctx->network->port, TRANSPORT_TCP));
+			network_info->Assign(1, val_mgr->Port(ctx->network->port, TRANSPORT_TCP));
 			}
 		else
 			{
 			// TODO: are there any status messages where the ctx->network
 			// is not set and actually could be?
 			network_info->Assign(0, make_intrusive<StringVal>("<unknown>"));
-			network_info->Assign(1, val_mgr->GetPort(0, TRANSPORT_TCP));
+			network_info->Assign(1, val_mgr->Port(0, TRANSPORT_TCP));
 			}
 
 		endpoint_info->Assign(1, std::move(network_info));

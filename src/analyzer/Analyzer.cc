@@ -690,9 +690,9 @@ void Analyzer::ProtocolConfirmation(Tag arg_tag)
 	EnumVal* tval = arg_tag ? arg_tag.AsEnumVal() : tag.AsEnumVal();
 
 	mgr.Enqueue(protocol_confirmation,
-		IntrusivePtr{AdoptRef{}, BuildConnVal()},
+		ConnVal(),
 		IntrusivePtr{NewRef{}, tval},
-		IntrusivePtr{AdoptRef{}, val_mgr->GetCount(id)}
+		val_mgr->Count(id)
 	);
 	}
 
@@ -717,9 +717,9 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 	EnumVal* tval = tag.AsEnumVal();
 
 	mgr.Enqueue(protocol_violation,
-		IntrusivePtr{AdoptRef{}, BuildConnVal()},
+		ConnVal(),
 		IntrusivePtr{NewRef{}, tval},
-		IntrusivePtr{AdoptRef{}, val_mgr->GetCount(id)},
+		val_mgr->Count(id),
 		IntrusivePtr{AdoptRef{}, r}
 	);
 	}
@@ -788,7 +788,12 @@ void Analyzer::UpdateConnVal(RecordVal *conn_val)
 
 RecordVal* Analyzer::BuildConnVal()
 	{
-	return conn->BuildConnVal();
+	return conn->ConnVal()->Ref()->AsRecordVal();
+	}
+
+const IntrusivePtr<RecordVal>& Analyzer::ConnVal()
+	{
+	return conn->ConnVal();
 	}
 
 void Analyzer::Event(EventHandlerPtr f, const char* name)
@@ -798,7 +803,11 @@ void Analyzer::Event(EventHandlerPtr f, const char* name)
 
 void Analyzer::Event(EventHandlerPtr f, Val* v1, Val* v2)
 	{
-	conn->Event(f, this, v1, v2);
+	IntrusivePtr val1{AdoptRef{}, v1};
+	IntrusivePtr val2{AdoptRef{}, v2};
+
+	if ( f )
+		conn->EnqueueEvent(f, this, conn->ConnVal(), std::move(val1), std::move(val2));
 	}
 
 void Analyzer::ConnectionEvent(EventHandlerPtr f, val_list* vl)
@@ -930,7 +939,7 @@ void TransportLayerAnalyzer::PacketContents(const u_char* data, int len)
 	if ( packet_contents && len > 0 )
 		{
 		BroString* cbs = new BroString(data, len, true);
-		Val* contents = new StringVal(cbs);
-		Event(packet_contents, contents);
+		auto contents = make_intrusive<StringVal>(cbs);
+		EnqueueConnEvent(packet_contents, ConnVal(), std::move(contents));
 		}
 	}

@@ -436,8 +436,8 @@ string Manager::GetFileID(const analyzer::Tag& tag, Connection* c, bool is_orig)
 
 	mgr.Enqueue(get_file_handle,
 		IntrusivePtr{NewRef{}, tagval},
-		IntrusivePtr{AdoptRef{}, c->BuildConnVal()},
-		IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)}
+		c->ConnVal(),
+		val_mgr->Bool(is_orig)
 	);
 	mgr.Drain(); // need file handle immediately so we don't have to buffer data
 	return current_file_id;
@@ -448,9 +448,8 @@ bool Manager::IsDisabled(const analyzer::Tag& tag)
 	if ( ! disabled )
 		disabled = internal_const_val("Files::disable")->AsTableVal();
 
-	Val* index = val_mgr->GetCount(bool(tag));
-	auto yield = disabled->Lookup(index);
-	Unref(index);
+	auto index = val_mgr->Count(bool(tag));
+	auto yield = disabled->Lookup(index.get());
 
 	if ( ! yield )
 		return false;
@@ -512,23 +511,23 @@ string Manager::DetectMIME(const u_char* data, uint64_t len) const
 	return *(matches.begin()->second.begin());
 	}
 
-VectorVal* file_analysis::GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m)
+IntrusivePtr<VectorVal> file_analysis::GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m)
 	{
-	VectorVal* rval = new VectorVal(mime_matches);
+	auto rval = make_intrusive<VectorVal>(mime_matches);
 
 	for ( RuleMatcher::MIME_Matches::const_iterator it = m.begin();
 	      it != m.end(); ++it )
 		{
-		RecordVal* element = new RecordVal(mime_match);
+		auto element = make_intrusive<RecordVal>(mime_match);
 
 		for ( set<string>::const_iterator it2 = it->second.begin();
 		      it2 != it->second.end(); ++it2 )
 			{
-			element->Assign(0, val_mgr->GetInt(it->first));
+			element->Assign(0, val_mgr->Int(it->first));
 			element->Assign(1, make_intrusive<StringVal>(*it2));
 			}
 
-		rval->Assign(rval->Size(), element);
+		rval->Assign(rval->Size(), std::move(element));
 		}
 
 	return rval;

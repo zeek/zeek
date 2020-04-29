@@ -85,9 +85,9 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 			}
 
 		EnqueueConnEvent(ident_request,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetPort(local_port, TRANSPORT_TCP)},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetPort(remote_port, TRANSPORT_TCP)}
+			ConnVal(),
+			val_mgr->Port(local_port, TRANSPORT_TCP),
+			val_mgr->Port(remote_port, TRANSPORT_TCP)
 		);
 
 		did_deliver = true;
@@ -146,9 +146,9 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 			{
 			if ( ident_error )
 				EnqueueConnEvent(ident_error,
-					IntrusivePtr{AdoptRef{}, BuildConnVal()},
-					IntrusivePtr{AdoptRef{}, val_mgr->GetPort(local_port, TRANSPORT_TCP)},
-					IntrusivePtr{AdoptRef{}, val_mgr->GetPort(remote_port, TRANSPORT_TCP)},
+					ConnVal(),
+					val_mgr->Port(local_port, TRANSPORT_TCP),
+					val_mgr->Port(remote_port, TRANSPORT_TCP),
 					make_intrusive<StringVal>(end_of_line - line, line)
 				);
 			}
@@ -179,9 +179,9 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 			line = skip_whitespace(colon + 1, end_of_line);
 
 			EnqueueConnEvent(ident_reply,
-				IntrusivePtr{AdoptRef{}, BuildConnVal()},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetPort(local_port, TRANSPORT_TCP)},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetPort(remote_port, TRANSPORT_TCP)},
+				ConnVal(),
+				val_mgr->Port(local_port, TRANSPORT_TCP),
+				val_mgr->Port(remote_port, TRANSPORT_TCP),
 				make_intrusive<StringVal>(end_of_line - line, line),
 				make_intrusive<StringVal>(sys_type_s)
 			);
@@ -215,7 +215,7 @@ const char* Ident_Analyzer::ParsePort(const char* line, const char* end_of_line,
 	int n = 0;
 
 	line = skip_whitespace(line, end_of_line);
-	if ( ! isdigit(*line) )
+	if ( line >= end_of_line || ! isdigit(*line) )
 		return nullptr;
 
 	const char* l = line;
@@ -225,7 +225,7 @@ const char* Ident_Analyzer::ParsePort(const char* line, const char* end_of_line,
 		n = n * 10 + (*line - '0');
 		++line;
 		}
-	while ( isdigit(*line) );
+	while ( line < end_of_line && isdigit(*line) );
 
 	line = skip_whitespace(line, end_of_line);
 

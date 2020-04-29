@@ -45,7 +45,7 @@ bool DataEvent::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 	mgr.Enqueue(chunk_event,
 		IntrusivePtr{NewRef{}, GetFile()->GetVal()},
 		make_intrusive<StringVal>(new BroString(data, len, false)),
-		IntrusivePtr{AdoptRef{}, val_mgr->GetCount(offset)}
+		val_mgr->Count(offset)
 	);
 
 	return true;

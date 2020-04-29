@@ -159,7 +159,7 @@ void PIA_UDP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 			EnumVal *tval = tag ? tag.AsEnumVal() : GetAnalyzerTag().AsEnumVal();
 
 			mgr.Enqueue(protocol_late_match,
-			    IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			    ConnVal(),
 			    IntrusivePtr{NewRef{}, tval}
 			);
 			}
@@ -307,7 +307,7 @@ void PIA_TCP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 			EnumVal *tval = tag ? tag.AsEnumVal() : GetAnalyzerTag().AsEnumVal();
 
 			mgr.Enqueue(protocol_late_match,
-			    IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			    ConnVal(),
 			    IntrusivePtr{NewRef{}, tval}
 			);
 			}

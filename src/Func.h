@@ -188,7 +188,32 @@ private:
 	bool weak_closure_ref = false;
 };
 
-using built_in_func = Val* (*)(Frame* frame, const zeek::Args* args);
+/**
+ * A simple wrapper class to use for the return value of BIFs so that
+ * they may return either a Val* or IntrusivePtr<Val> (the former could
+ * potentially be deprecated).
+ */
+class BifReturnVal {
+public:
+
+	template <typename T>
+	BifReturnVal(IntrusivePtr<T> v) noexcept
+		: rval(AdoptRef{}, v.release())
+		{ }
+
+	BifReturnVal(std::nullptr_t) noexcept;
+
+	[[deprecated("Remove in v4.1.  Return an IntrusivePtr instead.")]]
+	BifReturnVal(Val* v) noexcept;
+
+private:
+
+	friend class BuiltinFunc;
+
+	IntrusivePtr<Val> rval;
+};
+
+using built_in_func = BifReturnVal (*)(Frame* frame, const zeek::Args* args);
 
 class BuiltinFunc final : public Func {
 public:

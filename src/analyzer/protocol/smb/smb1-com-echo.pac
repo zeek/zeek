@@ -3,16 +3,16 @@ refine connection SMB_Conn += {
 	function proc_smb1_echo_request(header: SMB_Header, val: SMB1_echo_request): bool
 		%{
 		if ( smb1_echo_request )
-			BifEvent::generate_smb1_echo_request(bro_analyzer(), bro_analyzer()->Conn(),
-			                                     ${val.echo_count}, bytestring_to_val(${val.data}));
+			BifEvent::enqueue_smb1_echo_request(bro_analyzer(), bro_analyzer()->Conn(),
+			                                    ${val.echo_count}, to_stringval(${val.data}));
 		return true;
 		%}
 
 	function proc_smb1_echo_response(header: SMB_Header, val: SMB1_echo_response): bool
 		%{
 		if ( smb1_echo_response )
-			BifEvent::generate_smb1_echo_response(bro_analyzer(), bro_analyzer()->Conn(),
-			                                      ${val.seq_num}, bytestring_to_val(${val.data}));
+			BifEvent::enqueue_smb1_echo_response(bro_analyzer(), bro_analyzer()->Conn(),
+			                                     ${val.seq_num}, to_stringval(${val.data}));
 		return true;
 		%}
 

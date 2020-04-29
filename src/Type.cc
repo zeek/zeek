@@ -840,7 +840,7 @@ IntrusivePtr<TableVal> RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 
 		string s = container_type_name(ft);
 		nr->Assign(0, make_intrusive<StringVal>(s));
-		nr->Assign(1, val_mgr->GetBool(logged));
+		nr->Assign(1, val_mgr->Bool(logged));
 		nr->Assign(2, fv);
 		nr->Assign(3, FieldDefault(i));
 		Val* field_name = new StringVal(FieldName(i));
@@ -1615,7 +1615,12 @@ bool same_type(const BroType* t1, const BroType* t2, bool is_init, bool match_re
 		}
 
 	case TYPE_TYPE:
-		return same_type(t1, t2, is_init, match_record_field_names);
+		{
+		auto tt1 = t1->AsTypeType();
+		auto tt2 = t2->AsTypeType();
+		return same_type(tt1->Type(), tt1->Type(),
+		                 is_init, match_record_field_names);
+		}
 
 	case TYPE_UNION:
 		reporter->Error("union type in same_type()");

@@ -34,9 +34,9 @@ static RecordVal* get_conn_id_val(const Connection* conn)
 	{
 	RecordVal* v = new RecordVal(conn_id);
 	v->Assign(0, make_intrusive<AddrVal>(conn->OrigAddr()));
-	v->Assign(1, val_mgr->GetPort(ntohs(conn->OrigPort()), conn->ConnTransport()));
+	v->Assign(1, val_mgr->Port(ntohs(conn->OrigPort()), conn->ConnTransport()));
 	v->Assign(2, make_intrusive<AddrVal>(conn->RespAddr()));
-	v->Assign(3, val_mgr->GetPort(ntohs(conn->RespPort()), conn->ConnTransport()));
+	v->Assign(3, val_mgr->Port(ntohs(conn->RespPort()), conn->ConnTransport()));
 	return v;
 	}
 
@@ -97,7 +97,7 @@ File::File(const std::string& file_id, const std::string& source_name, Connectio
 
 	if ( conn )
 		{
-		val->Assign(is_orig_idx, val_mgr->GetBool(is_orig));
+		val->Assign(is_orig_idx, val_mgr->Bool(is_orig));
 		UpdateConnectionFields(conn, is_orig);
 		}
 
@@ -145,7 +145,7 @@ bool File::UpdateConnectionFields(Connection* conn, bool is_orig)
 		return false;
 		}
 
-	conns->AsTableVal()->Assign(idx, conn->BuildConnVal());
+	conns->AsTableVal()->Assign(idx, conn->ConnVal());
 	Unref(idx);
 	return true;
 	}
@@ -156,8 +156,8 @@ void File::RaiseFileOverNewConnection(Connection* conn, bool is_orig)
 		{
 		FileEvent(file_over_new_connection, {
 			IntrusivePtr{NewRef{}, val},
-			IntrusivePtr{AdoptRef{}, conn->BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)},
+			conn->ConnVal(),
+			val_mgr->Bool(is_orig),
 		});
 		}
 	}
@@ -226,13 +226,13 @@ bool File::SetExtractionLimit(RecordVal* args, uint64_t bytes)
 void File::IncrementByteCount(uint64_t size, int field_idx)
 	{
 	uint64_t old = LookupFieldDefaultCount(field_idx);
-	val->Assign(field_idx, val_mgr->GetCount(old + size));
+	val->Assign(field_idx, val_mgr->Count(old + size));
 	}
 
 void File::SetTotalBytes(uint64_t size)
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Total bytes %" PRIu64, id.c_str(), size);
-	val->Assign(total_bytes_idx, val_mgr->GetCount(size));
+	val->Assign(total_bytes_idx, val_mgr->Count(size));
 	}
 
 bool File::IsComplete() const
@@ -301,7 +301,7 @@ bool File::SetMime(const std::string& mime_type)
 
 	auto meta = make_intrusive<RecordVal>(fa_metadata_type);
 	meta->Assign(meta_mime_type_idx, make_intrusive<StringVal>(mime_type));
-	meta->Assign(meta_inferred_idx, val_mgr->GetFalse());
+	meta->Assign(meta_inferred_idx, val_mgr->False());
 
 	FileEvent(file_sniff, {IntrusivePtr{NewRef{}, val}, std::move(meta)});
 	return true;
@@ -455,8 +455,8 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 				{
 				FileEvent(file_reassembly_overflow, {
 					IntrusivePtr{NewRef{}, val},
-					IntrusivePtr{AdoptRef{}, val_mgr->GetCount(current_offset)},
-					IntrusivePtr{AdoptRef{}, val_mgr->GetCount(gap_bytes)}
+					val_mgr->Count(current_offset),
+					val_mgr->Count(gap_bytes)
 				});
 				}
 			}
@@ -600,8 +600,8 @@ void File::Gap(uint64_t offset, uint64_t len)
 		{
 		FileEvent(file_gap, {
 			IntrusivePtr{NewRef{}, val},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(offset)},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(len)}
+			val_mgr->Count(offset),
+			val_mgr->Count(len)
 		});
 		}
 

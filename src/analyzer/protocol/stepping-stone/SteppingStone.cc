@@ -135,10 +135,9 @@ void SteppingStoneEndpoint::Event(EventHandlerPtr f, int id1, int id2)
 		return;
 
 	if ( id2 >= 0 )
-		endp->TCP()->EnqueueConnEvent(f, IntrusivePtr{AdoptRef{}, val_mgr->GetInt(id1)},
-		                                 IntrusivePtr{AdoptRef{}, val_mgr->GetInt(id2)});
+		endp->TCP()->EnqueueConnEvent(f, val_mgr->Int(id1), val_mgr->Int(id2));
 	else
-		endp->TCP()->EnqueueConnEvent(f, IntrusivePtr{AdoptRef{}, val_mgr->GetInt(id1)});
+		endp->TCP()->EnqueueConnEvent(f, val_mgr->Int(id1));
 	}
 
 void SteppingStoneEndpoint::CreateEndpEvent(bool is_orig)
@@ -147,9 +146,9 @@ void SteppingStoneEndpoint::CreateEndpEvent(bool is_orig)
 		return;
 
 	endp->TCP()->EnqueueConnEvent(stp_create_endp,
-		IntrusivePtr{AdoptRef{}, endp->TCP()->BuildConnVal()},
-		IntrusivePtr{AdoptRef{}, val_mgr->GetInt(stp_id)},
-		IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)}
+		endp->TCP()->ConnVal(),
+		val_mgr->Int(stp_id),
+		val_mgr->Bool(is_orig)
 	);
 	}
 

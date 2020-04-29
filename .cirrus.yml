@@ -16,11 +16,19 @@ ci_template: &CI_TEMPLATE
     $CIRRUS_BRANCH == 'master' ||
     $CIRRUS_BRANCH =~ 'release/.*'
 
+  clone_script: |
+    if [ -z "$CIRRUS_PR" ]; then
+      git clone --depth=1 --recursive --branch=$CIRRUS_BRANCH https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
+      git reset --hard $CIRRUS_CHANGE_IN_REPO
+    else
+      git clone --depth=1 --recursive https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
+      git fetch origin pull/$CIRRUS_PR/head:pull/$CIRRUS_PR
+      git reset --hard $CIRRUS_CHANGE_IN_REPO
+    fi
+
   # Default timeout is 60 minutes, Cirrus hard limit is 120 minutes for free
   # tasks, so may as well ask for full time.
   timeout_in: 120m
-
-  sync_submodules_script: git submodule update --recursive --init
 
   get_external_pcaps_cache:
     folder: testing/external/zeek-testing-traces

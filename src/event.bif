@@ -35,7 +35,7 @@
 ## one-time initialization code at startup. At the time a handler runs, Zeek will
 ## have executed any global initializations and statements.
 ##
-## .. zeek:see:: zeek_done
+## .. zeek:see:: zeek_done, network_time_init
 ##
 ## .. note::
 ##
@@ -60,6 +60,14 @@ event zeek_init%(%);
 ##    If Zeek terminates due to an invocation of :zeek:id:`exit`, then this event
 ##    is not generated.
 event zeek_done%(%);
+
+## Generated when network time is initialized. The event engine generates this
+## event after the network time has been determined but before processing of
+## packets is started.
+##
+## .. zeek:see:: zeek_init, network_time
+##
+event network_time_init%(%);
 
 ## Generated for every new connection. This event is raised with the first
 ## packet of a previously unknown connection. Zeek uses a flow-based definition

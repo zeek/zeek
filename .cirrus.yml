@@ -100,7 +100,7 @@ freebsd_task:
   freebsd_instance:
     # FreeBSD 12 EOL: June 30, 2024
     image_family: freebsd-12-1
-    <<: *resources_template
+    <<: *RESOURCES_TEMPLATE
     # Not allowed to request less than 8GB for an 8 CPU FreeBSD VM.
     memory: 8GB
   prepare_script:
@@ -114,7 +114,7 @@ memcheck_task:
   container:
     # Just uses a recent/common distro to run memory error/leak checks.
     dockerfile: ci/ubuntu-18.04/Dockerfile
-    <<: *resources_template
+    <<: *RESOURCES_TEMPLATE
     # AddressSanitizer uses a lot more memory than a typical config.
     memory: 16GB
   env:

@@ -53,7 +53,6 @@ ci_template: &CI_TEMPLATE
       type: text/html
 
 env:
-  CIRRUS_WORKING_DIR: /zeek
   ZEEK_CI_CPUS: *CPUS
   ZEEK_CI_BTEST_JOBS: *BTEST_JOBS
   ZEEK_CI_BTEST_RETRIES: *BTEST_RETRIES
@@ -77,43 +76,8 @@ container_build_and_test_task:
       dockerfile: ci/ubuntu-18.04/Dockerfile
       # Ubuntu 16.04 EOL: April 2021
       dockerfile: ci/ubuntu-16.04/Dockerfile
-    << : *RESOURCES_TEMPLATE
+   << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
-
-#centos7_task:
-#  container:
-#    # CentOS 7 EOL: June 30, 2024
-#    dockerfile: ci/centos-7/Dockerfile
-#    << : *RESOURCES_TEMPLATE
-#  << : *CI_TEMPLATE
-#
-#debian9_task:
-#  container:
-#    # Debian 9 EOL: June 2022
-#    dockerfile: ci/debian-9/Dockerfile
-#    << : *RESOURCES_TEMPLATE
-#  << : *CI_TEMPLATE
-#
-#debian9_32bit_task:
-#  container:
-#    # Debian 9 EOL: June 2022
-#    dockerfile: ci/debian-9-32bit/Dockerfile
-#    << : *RESOURCES_TEMPLATE
-#  << : *CI_TEMPLATE
-#
-#ubuntu18_task:
-#  container:
-#    # Ubuntu 18.04 EOL: April 2023
-#    dockerfile: ci/ubuntu-18.04/Dockerfile
-#    << : *RESOURCES_TEMPLATE
-#  << : *CI_TEMPLATE
-#
-#ubuntu16_task:
-#  container:
-#    # Ubuntu 16.04 EOL: April 2021
-#    dockerfile: ci/ubuntu-16.04/Dockerfile
-#    << : *RESOURCES_TEMPLATE
-#  << : *CI_TEMPLATE
 
 # Apple doesn't publish official long-term support timelines, so easiest
 # option is to only support the latest macOS release or whatever latest
@@ -126,8 +90,6 @@ macos_task:
   env:
     ZEEK_CI_CPUS: 4
     ZEEK_CI_BTEST_JOBS: 4
-    # No permission to write to default location of /zeek
-    CIRRUS_WORKING_DIR: /tmp/zeek
   prepare_script:
     - sysctl hw.model hw.machine hw.ncpu hw.physicalcpu hw.logicalcpu
     - brew install cmake swig openssl bison

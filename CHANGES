@@ -1,4 +1,8 @@
 
+3.2.0-dev.447 | 2020-04-29 15:55:03 -0700
+
+  * GH-713: Fixed misc/stats.zeek skipping a log entry on termination (Brittany Donowho)
+
 3.2.0-dev.445 | 2020-04-29 15:25:03 -0700
 
   * Add warning message for unknown Broker statuses (Jon Siwek, Corelight)

@@ -218,43 +218,48 @@ function dump_op()
 	# already been folded, but for some like AppendTo, they
 	# cannot, so we account for that possibility here.
 
-	for ( i in op_types )
+	# Loop over constant, var for first operand
+	for ( j = 0; j <= 1; ++j )
 		{
-		sel = eval_selector[i]
+		op1 = j ? "V" : "C"
 
-		# Loop over constant, var for first operand
-		for ( j = 0; j <= 1; ++j )
+		if ( ary_op == 1 )
 			{
-			op1 = j ? "V" : "C"
-
-			if ( ary_op == 1 )
+			# Loop over operand types for unary operator.
+			for ( i in op_types )
 				{
 				ex = expand_eval(eval[sel], expr_op, i, i, j, 0)
 				build_op(op, "V" op1, i, i, eval[sel], ex, j, 0)
-				continue;
 				}
 
-			# Loop over constant, var for second operand
-			for ( k = 0; k <= 1; ++k )
-				{
-				if ( ! j && ! k )
-					# Do not generate CC, should have
-					# been folded.
-					continue;
+			continue;
+			}
 
-				op2 = k ? "V" : "C"
+		# Loop over constant, var for second operand
+		for ( k = 0; k <= 1; ++k )
+			{
+			if ( ! j && ! k )
+				# Do not generate CC, should have
+				# been folded.
+				continue;
+
+			op2 = k ? "V" : "C"
+
+			for ( i in op_types )
+				{
+				sel = eval_selector[i]
 				ex = expand_eval(eval[sel], expr_op, i, i, j, k)
 				build_op(op, "V" op1 op2, i, i,
 						eval[sel], ex, j, k)
+				}
 
-				if ( mix_eval )
-					{
-					ex = expand_eval(mix_eval, expr_op,
-							ev_mix1, ev_mix2, j, k)
-					build_op(op, "V" op1 op2,
-							ev_mix1, ev_mix2,
-							mix_eval, ex, j, k)
-					}
+			if ( mix_eval )
+				{
+				ex = expand_eval(mix_eval, expr_op,
+						ev_mix1, ev_mix2, j, k)
+				build_op(op, "V" op1 op2,
+						ev_mix1, ev_mix2,
+						mix_eval, ex, j, k)
 				}
 			}
 		}
@@ -561,9 +566,9 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 					gripe("unsupported eval-mixed")
 
 				op2_is_const = type ~ /^V.C/
-				op2 = op2_is_const ? "c" : "n2"
+				op2_param = op2_is_const ? "c" : "n2"
 
-				print ("\t" else_text "if ( tag == TYPE_PATTERN && " op2_is_const "->Type() == TYPE_STRING )") >methods_f
+				print ("\t" else_text "if ( tag == TYPE_PATTERN && " op2_param "->Type()->Tag() == TYPE_STRING )") >methods_f
 				print ("\t" part1 (full_op_no_sub "_PS") \
 					part2) >methods_f
 				}

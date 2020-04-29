@@ -67,7 +67,7 @@ union AS_ValUnion {
 	ListVal* list_val;
 	OpaqueVal* opaque_val;
 	PortVal* port_val;
-	PatternVal* re_val;
+	RE_Matcher* re_val;
 	RecordVal* record_val;
 	IPPrefix* subnet_val;
 	TableVal* table_val;
@@ -110,7 +110,7 @@ AS_ValUnion::AS_ValUnion(Val* v, BroType* t)
 	case TYPE_ENUM:		enum_val = v->AsEnumVal(); break;
 	case TYPE_LIST:		list_val = v->AsListVal(); break;
 	case TYPE_OPAQUE:	opaque_val = v->AsOpaqueVal(); break;
-	case TYPE_PATTERN:	re_val = v->AsPatternVal(); break;
+	case TYPE_PATTERN:	re_val = v->AsPattern(); break;
 	case TYPE_PORT:		port_val = v->AsPortVal(); break;
 	case TYPE_RECORD:	record_val = v->AsRecordVal(); break;
 	case TYPE_TABLE:	table_val = v->AsTableVal(); break;
@@ -150,6 +150,7 @@ IntrusivePtr<Val> AS_ValUnion::ToVal(BroType* t) const
 	case TYPE_FILE:		v = new Val(file_val); break;
 	case TYPE_STRING:	v = new StringVal(new BroString(*string_val));
 	case TYPE_SUBNET:	v = new SubNetVal(*subnet_val); break;
+	case TYPE_PATTERN:	v = new PatternVal(re_val); break;
 
 	case TYPE_ANY:		v = new Val(any_val, t->Ref()); break;
 	case TYPE_TYPE:		v = new Val(type_val, true); break;
@@ -158,7 +159,6 @@ IntrusivePtr<Val> AS_ValUnion::ToVal(BroType* t) const
 	case TYPE_ENUM:		v = enum_val; v->Ref(); break;
 	case TYPE_LIST:		v = list_val; v->Ref(); break;
 	case TYPE_OPAQUE:	v = opaque_val; v->Ref(); break;
-	case TYPE_PATTERN:	v = re_val; v->Ref(); break;
 	case TYPE_PORT:		v = port_val; v->Ref(); break;
 	case TYPE_RECORD:	v = record_val; v->Ref(); break;
 	case TYPE_TABLE:	v = table_val; v->Ref(); break;

@@ -10,6 +10,10 @@ unary-expr-op Clone
 set-type $1
 eval AS_ValUnion($1.ToVal(s.t)->Clone().release(), s.t)
 
+unary-expr-op Size
+set-type $1
+eval AS_ValUnion($1.ToVal(s.t)->SizeVal().release(), s.t)
+
 unary-expr-op Not
 op-type I
 eval ! $1
@@ -218,8 +222,6 @@ eval frame[s.v1].vvec->push_back(c)
 # EXPR_VECTOR_COERCE
 
 # EXPR_COND
-
-# EXPR_SIZE
 
 # EXPR_FLATTEN
 # EXPR_CAST

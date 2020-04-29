@@ -1,4 +1,8 @@
 
+3.0.6-dev.8 | 2020-04-29 18:35:36 -0700
+
+  * GH-713: Fixed misc/stats.zeek skipping a log entry on termination (Brittany Donowho)
+
 3.0.6-dev.7 | 2020-04-29 18:24:28 -0700
 
   * Remove error message from empty bloomfilter lookups (Jon Siwek, Corelight)

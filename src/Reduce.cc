@@ -539,6 +539,9 @@ Expr* Reducer::OptExpr(Expr* e)
 	if ( opt_e->Tag() == EXPR_NAME )
 		return UpdateExpr({AdoptRef{}, opt_e}).release();
 
+	// ### If this is an IndexAssignExpr or a FieldLHSAssignExpr,
+	// make sure any temporaries associated with the aggregate
+	// don't propagate across this statement for CSE.
 	return opt_e;
 	}
 

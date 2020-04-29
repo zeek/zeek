@@ -10,15 +10,6 @@ resources_template: &RESOURCES_TEMPLATE
   cpu: *CPUS
   memory: *MEMORY
 
-clone_script: |
-  if [ -z "$CIRRUS_PR" ]; then
-    git clone --depth=1 --recursive --branch=$CIRRUS_BRANCH https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git .
-    git reset --hard $CIRRUS_CHANGE_IN_REPO
-  else
-    git clone --depth=1 --recursive https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git .
-    git fetch origin pull/$CIRRUS_PR/head:pull/$CIRRUS_PR
-    git reset --hard $CIRRUS_CHANGE_IN_REPO
-  fi
 
 ci_template: &CI_TEMPLATE
   only_if: >
@@ -29,6 +20,16 @@ ci_template: &CI_TEMPLATE
   # Default timeout is 60 minutes, Cirrus hard limit is 120 minutes for free
   # tasks, so may as well ask for full time.
   timeout_in: 120m
+
+  clone_script: |
+    if [ -z "$CIRRUS_PR" ]; then
+      git clone --depth=1 --recursive --branch=$CIRRUS_BRANCH https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git .
+      git reset --hard $CIRRUS_CHANGE_IN_REPO
+    else
+      git clone --depth=1 --recursive https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git .
+      git fetch origin pull/$CIRRUS_PR/head:pull/$CIRRUS_PR
+      git reset --hard $CIRRUS_CHANGE_IN_REPO
+    fi
 
   get_external_pcaps_cache:
     folder: testing/external/zeek-testing-traces
@@ -114,6 +115,7 @@ macos_task:
     image: catalina-base
     # cpu/memory setting is implicitly 2 core / 4 thread and 8GB, and
     # trying to set it explicitly results in an error.
+  pre_script: find . && set
   prepare_script: ./ci/macos/prepare.sh
   << : *CI_TEMPLATE
   env:
@@ -130,6 +132,7 @@ freebsd_task:
     cpu: 8
     # Not allowed to request less than 8GB for an 8 CPU FreeBSD VM.
     memory: 8GB
+  pre_script: find . && set
   prepare_script: ./ci/freebsd/prepare.sh
   << : *CI_TEMPLATE
 

@@ -136,6 +136,8 @@ void Manager::FindReadySources(std::vector<IOSource*>* ready)
 		if ( iosource->IsOpen() )
 			{
 			double next = iosource->GetNextTimeout();
+			bool added = false;
+
 			if ( timeout == -1 || ( next >= 0.0 && next < timeout ) )
 				{
 				timeout = next;
@@ -146,13 +148,29 @@ void Manager::FindReadySources(std::vector<IOSource*>* ready)
 				// we don't want things in the vector passed into Poll() or it'll end
 				// up inserting duplicates.
 				if ( timeout == 0 && ! time_to_poll )
+					{
+					added = true;
 					ready->push_back(timeout_src);
+					}
 				}
 
-			// Avoid calling Poll() if we can help it since on very high-traffic
-			// networks, we spend too much time in Poll() and end up dropping packets.
-			if ( ! time_to_poll && iosource == pkt_src && pkt_src->IsLive() )
-				ready->push_back(pkt_src);
+			if ( iosource == pkt_src && ! added )
+				{
+				if ( pkt_src->IsLive() )
+					{
+					if ( ! time_to_poll )
+						// Avoid calling Poll() if we can help it since on very
+						// high-traffic networks, we spend too much time in
+						// Poll() and end up dropping packets.
+						ready->push_back(pkt_src);
+					}
+				else
+					{
+					if ( ! pseudo_realtime )
+						// A pcap file is always ready to process.
+						ready->push_back(pkt_src);
+					}
+				}
 			}
 		}
 

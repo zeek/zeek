@@ -123,6 +123,6 @@ build_tarball_task:
     - make dist
   tarball_artifacts:
     path: zeek*.tar.gz
-  depends_on:
-    - build_task
+  #depends_on:
+  #  - build
 

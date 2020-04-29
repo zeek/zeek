@@ -26,8 +26,8 @@ for i in `echo $files_cwd $files_baseline | sort | uniq`; do
 
         if [[ "$i" == "reporter.log" ]]; then
             # Do not diff the reporter.log if it only complains about missing
-            # GeoIP support.
-            if ! egrep -v "^#|Zeek was not configured for GeoIP support" $i; then
+            # GeoIP support or database.
+            if ! egrep -v "^#|Zeek was not configured for GeoIP support|Failed to open GeoIP" $i; then
                 continue
             fi
         fi

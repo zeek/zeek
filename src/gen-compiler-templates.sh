@@ -97,6 +97,7 @@ $1 == "type"	{ type = $2; next }
 $1 == "vector"	{ vector = 1; next }
 $1 ~ /^op-type(s?)$/	{ build_op_types(); next }
 $1 == "opaque"	{ opaque = 1; next }
+
 $1 ~ /^eval((_[ANPST])?)$/	{
 		if ( $1 != "eval" )
 			{
@@ -136,6 +137,13 @@ $1 ~ /^eval((_[ANPST])?)$/	{
 		next
 		}
 
+$1 == "eval-mixed"	{
+		ev_mix1 = $2
+		ev_mix2 = $3
+		mix_eval = all_but_first_n(3)
+		next
+		}
+
 $1 == "method-pre"	{ method_pre = all_but_first(); next }
 $1 == "eval-pre"	{ eval_pre = all_but_first() ";"; next }
 
@@ -172,10 +180,15 @@ function build_op_types()
 
 function all_but_first()
 	{
+	return all_but_first_n(1)
+	}
+
+function all_but_first_n(n)
+	{
 	all = ""
-	for ( i = 2; i <= NF; ++i )
+	for ( i = n+1; i <= NF; ++i )
 		{
-		if ( i > 2 )
+		if ( i > n+1 )
 			all = all " "
 
 		all = all $i
@@ -191,7 +204,7 @@ function dump_op()
 
 	if ( ! ary_op )
 		{
-		build_op(op, type, "", eval[""], eval[""], 0, 0)
+		build_op(op, type, "", "", eval[""], eval[""], 0, 0)
 		clear_vars()
 		return
 		}
@@ -216,8 +229,8 @@ function dump_op()
 
 			if ( ary_op == 1 )
 				{
-				ex = expand_eval(eval[sel], expr_op, i, j, 0)
-				build_op(op, "V" op1, i, eval[sel], ex, j, 0)
+				ex = expand_eval(eval[sel], expr_op, i, i, j, 0)
+				build_op(op, "V" op1, i, i, eval[sel], ex, j, 0)
 				continue;
 				}
 
@@ -230,8 +243,18 @@ function dump_op()
 					continue;
 
 				op2 = k ? "V" : "C"
-				ex = expand_eval(eval[sel], expr_op, i, j, k)
-				build_op(op, "V" op1 op2, i, eval[sel], ex, j, k)
+				ex = expand_eval(eval[sel], expr_op, i, i, j, k)
+				build_op(op, "V" op1 op2, i, i,
+						eval[sel], ex, j, k)
+
+				if ( mix_eval )
+					{
+					ex = expand_eval(mix_eval, expr_op,
+							ev_mix1, ev_mix2, j, k)
+					build_op(op, "V" op1 op2,
+							ev_mix1, ev_mix2,
+							mix_eval, ex, j, k)
+					}
 				}
 			}
 		}
@@ -239,34 +262,37 @@ function dump_op()
 	clear_vars()
 	}
 
-function expand_eval(e, is_expr_op, otype, is_var1, is_var2)
+function expand_eval(e, is_expr_op, otype1, otype2, is_var1, is_var2)
 	{
-	laccessor = raccessor = ""
+	laccessor = raccessor1 = raccessor2 = ""
 	expr_app = ""
-	if ( otype )
+	if ( otype1 )
 		{
-		if ( ! (otype in accessors) )
-			gripe("bad operand_type: " otype)
+		if ( ! (otype1 in accessors) )
+			gripe("bad operand_type: " otype1)
+		if ( ! (otype2 in accessors) )
+			gripe("bad operand_type: " otype2)
 
-		raccessor = accessors[otype]
+		raccessor1 = accessors[otype1]
+		raccessor2 = accessors[otype2]
 
 		if ( rel_op )
 			laccessor = accessors["I"]
 		else
-			laccessor = raccessor
+			laccessor = raccessor1
 
 		expr_app = ";"
 		}
 
 	e_copy = e
 	pre_copy = eval_pre
-	rep1 = "(" (is_var1 ? "frame[s.v2]" : "s.c") raccessor ")"
+	rep1 = "(" (is_var1 ? "frame[s.v2]" : "s.c") raccessor1 ")"
 	gsub(/\$1/, rep1, e_copy)
 	gsub(/\$1/, rep1, pre_copy)
 
 	if ( ary_op == 2 )
 		{
-		rep2 = "(" (is_var2 ? "frame[s.v3]" : "s.c") raccessor ")"
+		rep2 = "(" (is_var2 ? "frame[s.v3]" : "s.c") raccessor2 ")"
 		gsub(/\$2/, rep2, e_copy)
 		gsub(/\$2/, rep2, pre_copy)
 		}
@@ -287,10 +313,11 @@ function expand_eval(e, is_expr_op, otype, is_var1, is_var2)
 				"frame[s.v1]" laccessor " = " e_copy expr_app
 		}
 	else
-		return e_copy raccessor
+		return e_copy raccessor1
 	}
 
-function build_op(op, type, sub_type, orig_eval, eval, is_var1, is_var2)
+function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
+			is_var1, is_var2)
 	{
 	if ( ! (type in args) )
 		gripe("bad type " type " for " op)
@@ -302,14 +329,18 @@ function build_op(op, type, sub_type, orig_eval, eval, is_var1, is_var2)
 
 	full_op = "OP_" upper_op "_" type
 	full_op_no_sub = full_op
-	if ( sub_type )
-		full_op = full_op "_" sub_type
+	if ( sub_type1 )
+		{
+		full_op = full_op "_" sub_type1
+		if ( sub_type2 != sub_type1 )
+			full_op = full_op sub_type2
+		}
 
 	# Track whether this is the "representative" operand for
 	# operations with multiple types of operands.  This lets us
 	# avoid redundant declarations.
-	is_rep = ! sub_type || sub_type == op_type_rep
-	do_vec = vector && ! no_vec[sub_type]
+	is_rep = ! sub_type1 || sub_type1 == op_type_rep
+	do_vec = vector && ! no_vec[sub_type1]
 
 	if ( ! internal_op && is_rep )
 		{
@@ -351,7 +382,7 @@ function build_op(op, type, sub_type, orig_eval, eval, is_var1, is_var2)
 				".raw_vector_val);\n\t\tbreak;\n") >ops_eval_f
 
 			oe_copy = orig_eval
-			gsub(/\$1/, "(*v2)[i]" raccessor, oe_copy)
+			gsub(/\$1/, "(*v2)[i]" raccessor1, oe_copy)
 
 			print ("\tcase " full_op vec ": (*v1)[i]" laccessor " = " \
 				oe_copy "; break;") >vec1_eval_f
@@ -375,10 +406,14 @@ function build_op(op, type, sub_type, orig_eval, eval, is_var1, is_var2)
 				".raw_vector_val);\n\t\tbreak;\n") >ops_eval_f
 
 			oe_copy = orig_eval
-			gsub(/\$1/, "(*v2)[i]" raccessor, oe_copy)
-			gsub(/\$2/, "(*v3)[i]" raccessor, oe_copy)
+			gsub(/\$1/, "(*v2)[i]" raccessor1, oe_copy)
+			gsub(/\$2/, "(*v3)[i]" raccessor2, oe_copy)
 
-			if ( eval_selector[sub_type] != "" )
+			# Check for whether "$$" is meaningful, which
+			# occurs for types with non-atomic frame values,
+			# and also for any mixed evaluation.
+			if ( eval_selector[sub_type1] != "" ||
+			     sub_type1 != sub_type2 )
 				{
 				### Need to resolve whether to "delete"
 				### here.
@@ -397,11 +432,11 @@ function build_op(op, type, sub_type, orig_eval, eval, is_var1, is_var2)
 
 	if ( ! internal_op && is_rep )
 		{
-		gen_method(full_op_no_sub, full_op, type, sub_type,
+		gen_method(full_op_no_sub, full_op, type, sub_type1,
 				0, method_pre)
 
 		if ( do_vec )
-			gen_method(full_op_no_sub, full_op, type, sub_type,
+			gen_method(full_op_no_sub, full_op, type, sub_type1,
 					1, method_pre)
 		}
 
@@ -478,7 +513,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 			# Assumes if there are two operands, they have
 			# the same type.
 			op1_is_const = type ~ /^VC/
-			test_var = op1_is_const ? "c" : "n2"
+			test_var = op1_is_const ? "c" : "n1"
 			print ("\tauto t = " test_var "->Type();") >methods_f
 			print ("\tauto tag = t->Tag();") >methods_f
 			print ("\tauto i_t = t->InternalType();") >methods_f
@@ -515,6 +550,24 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 					part2) >methods_f
 				}
 
+			if ( mix_eval )
+				{
+				# To date, there are few of these, and only
+				# one per op, so we just do them by hand.
+				#
+				# We do not support vectors for these,
+				# even though the interpreter does.
+				if ( ev_mix1 != "P" || ev_mix2 != "S" )
+					gripe("unsupported eval-mixed")
+
+				op2_is_const = type ~ /^V.C/
+				op2 = op2_is_const ? "c" : "n2"
+
+				print ("\t" else_text "if ( tag == TYPE_PATTERN && " op2_is_const "->Type() == TYPE_STRING )") >methods_f
+				print ("\t" part1 (full_op_no_sub "_PS") \
+					part2) >methods_f
+				}
+
 			print ("\telse\n\t\treporter->InternalError(\"bad internal type\");") >methods_f
 			}
 		else
@@ -529,9 +582,11 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 
 function clear_vars()
 	{
-	opaque = type = multi_eval = eval_blank = method_pre = eval_pre = ""
+	opaque = type = operand_type = method_pre = eval_pre = ""
+	mix_eval = multi_eval = eval_blank = ""
 	vector = internal_op = rel_op = ary_op = expr_op = op = ""
-	laccessor = raccessor = operand_type = ""
+	laccessor = raccessor1 = raccessor2 = ""
+
 	delete eval
 	delete op_types
 	}

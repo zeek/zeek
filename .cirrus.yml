@@ -124,5 +124,5 @@ build_tarball_task:
   tarball_artifacts:
     path: zeek*.tar.gz
   depends_on:
-    - build
+    - build_task
 

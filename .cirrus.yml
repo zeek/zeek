@@ -76,7 +76,7 @@ container_build_and_test_task:
       dockerfile: ci/ubuntu-18.04/Dockerfile
       # Ubuntu 16.04 EOL: April 2021
       dockerfile: ci/ubuntu-16.04/Dockerfile
-  << : *RESOURCES_TEMPLATE
+    << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
 # Apple doesn't publish official long-term support timelines, so easiest

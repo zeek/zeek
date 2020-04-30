@@ -1,4 +1,10 @@
 
+3.0.6-dev.9 | 2020-04-30 10:20:39 -0700
+
+  * Update Broker submodule (Jon Siwek, Corelight)
+
+    Fixes unusable subscriber.poll() method in Broker Python bindings.
+
 3.0.6-dev.8 | 2020-04-29 18:35:36 -0700
 
   * GH-713: Fixed misc/stats.zeek skipping a log entry on termination (Brittany Donowho)

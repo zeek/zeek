@@ -32,6 +32,8 @@ BEGIN	{
 	args["VVC"] = "(const NameExpr* n1, const NameExpr* n2, ConstExpr* c)"
 	args["VCV"] = "(const NameExpr* n1, ConstExpr* c, const NameExpr* n2)"
 
+	args["VVL"] = "(const NameExpr* n1, const NameExpr* n2, const ListExpr* l)"
+
 	args2["X"] = ""
 	args2["O"] = "reg"
 	args2["R"] = "n1, n2, f->Field()"
@@ -151,6 +153,7 @@ $1 == "eval-mixed"	{
 		next
 		}
 
+$1 == "custom-method"	{ custom_method = all_but_first(); next }
 $1 == "method-pre"	{ method_pre = all_but_first(); next }
 $1 == "eval-pre"	{ eval_pre = all_but_first() ";"; next }
 
@@ -520,6 +523,14 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 		(op_type (is_vec ? vec : "")) args[type]) >methods_f
 
 	print ("\t{") >methods_f
+
+	if ( custom_method )
+		{
+		print ("\t" custom_method) >methods_f
+		print ("\t}\n") >methods_f
+		return
+		}
+
 	if ( method_pre )
 		print ("\t" method_pre ";") >methods_f
 
@@ -647,7 +658,8 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 
 function clear_vars()
 	{
-	opaque = set_type = type = operand_type = method_pre = eval_pre = ""
+	opaque = set_type = type = operand_type = ""
+	custom_method = method_pre = eval_pre = ""
 	mix_eval = multi_eval = eval_blank = ""
 	vector = internal_op = rel_op = ary_op = expr_op = op = ""
 	laccessor = raccessor1 = raccessor2 = ""

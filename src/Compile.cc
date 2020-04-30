@@ -458,6 +458,11 @@ const CompiledStmt AbstractMachine::ErrorStmt()
 
 OpaqueVals* AbstractMachine::BuildVals(const IntrusivePtr<ListExpr>& l)
 	{
+	return new OpaqueVals(InternalBuildVals(l.get()));
+	}
+
+int AbstractMachine::InternalBuildVals(const ListExpr* l)
+	{
 	auto exprs = l->Exprs();
 	int n = exprs.length();
 	auto tmp = RegisterSlot();
@@ -485,7 +490,7 @@ OpaqueVals* AbstractMachine::BuildVals(const IntrusivePtr<ListExpr>& l)
 		(void) AddStmt(as);
 		}
 
-	return new OpaqueVals(tmp);
+	return tmp;
 	}
 
 const CompiledStmt AbstractMachine::AddStmt(const AbstractStmt& stmt)
@@ -501,6 +506,100 @@ void AbstractMachine::Dump()
 		printf("%d: ", i);
 		stmts[i].Dump();
 		}
+	}
+
+const CompiledStmt AbstractMachine::CompileIndex(const NameExpr* n1,
+							const NameExpr* n2,
+							const ListExpr* l)
+	{
+	auto build_indices = InternalBuildVals(l);
+	auto indexes = l->Exprs();
+
+	switch ( n2->Type()->Tag() ) {
+	case TYPE_VECTOR:
+		{
+		if ( indexes.length() == 1 )
+			{
+			AbstractStmt s(OP_INDEX_VEC_VVL, FrameSlot(n1),
+					FrameSlot(n2), build_indices);
+			s.t = n1->Type().get();
+			return AddStmt(s);
+			}
+
+#if 0
+		VectorVal* vect = v1->AsVectorVal();
+		const ListVal* lv = v2->AsListVal();
+
+		if ( lv->Length() == 1 )
+			v = {NewRef{}, vect->Lookup(v2)};
+		else
+			{
+			size_t len = vect->Size();
+			auto result = make_intrusive<VectorVal>(vect->Type()->AsVectorType());
+
+			bro_int_t first = get_slice_index(lv->Index(0)->CoerceToInt(), len);
+			bro_int_t last = get_slice_index(lv->Index(1)->CoerceToInt(), len);
+			bro_int_t sub_length = last - first;
+
+			if ( sub_length >= 0 )
+				{
+				result->Resize(sub_length);
+
+				for ( int idx = first; idx < last; idx++ )
+					{
+					auto a = vect->Lookup(idx);
+					result->Assign(idx - first, a ? a->Ref() : nullptr);
+					}
+				}
+
+			return result;
+			}
+#endif
+		}
+		break;
+
+#if 0
+	case TYPE_TABLE:
+		v = v1->AsTableVal()->Lookup(v2); // Then, we jump into the TableVal here.
+		break;
+
+	case TYPE_STRING:
+		{
+		const ListVal* lv = v2->AsListVal();
+		const BroString* s = v1->AsString();
+		int len = s->Len();
+		BroString* substring = 0;
+
+		if ( lv->Length() == 1 )
+			{
+			bro_int_t idx = lv->Index(0)->AsInt();
+
+			if ( idx < 0 )
+				idx += len;
+
+			// Out-of-range index will return null pointer.
+			substring = s->GetSubstring(idx, 1);
+			}
+		else
+			{
+			bro_int_t first = get_slice_index(lv->Index(0)->AsInt(), len);
+			bro_int_t last = get_slice_index(lv->Index(1)->AsInt(), len);
+			bro_int_t substring_len = last - first;
+
+			if ( substring_len < 0 )
+				substring = 0;
+			else
+				substring = s->GetSubstring(first, substring_len);
+			}
+
+		return make_intrusive<StringVal>(substring ? substring : new BroString(""));
+		}
+#endif
+
+	default:
+		run_time_error("type cannot be indexed");
+		break;
+	}
 	}
 
 void AbstractMachine::SyncGlobals()

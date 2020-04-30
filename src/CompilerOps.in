@@ -176,6 +176,15 @@ eval auto vt = s.t->AsVectorType()
 eval auto v = vector_int_select(vt, frame[s.v2].vector_val, frame[s.v3].vector_val)
 eval frame[s.v1].vector_val = v->AsVectorVal()
 
+op Index
+type VVL
+custom-method return CompileIndex(n1, n2, l);
+
+internal-op Index-Vec
+type VVL
+eval auto v = frame[s.v2].vector_val->Lookup(frame[s.v3].list_val)
+eval frame[s.v1] = AS_ValUnion(v, s.t)
+
 ########################################
 
 unary-op AppendTo

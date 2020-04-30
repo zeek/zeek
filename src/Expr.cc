@@ -3577,7 +3577,8 @@ const CompiledStmt AssignExpr::CompileAssignToIndex(Compiler* c,
 						const IndexExpr* rhs) const
 	{
 	auto aggr_ptr = rhs->GetOp1();
-	auto indexes = rhs->GetOp2()->AsListExpr()->Exprs();
+	auto indexes_expr = rhs->GetOp2()->AsListExpr();
+	auto indexes = indexes_expr->Exprs();
 
 	if ( aggr_ptr->Tag() == EXPR_CONST )
 		{
@@ -3606,8 +3607,7 @@ const CompiledStmt AssignExpr::CompileAssignToIndex(Compiler* c,
 		}
 
 	else
-		{
-		}
+		return c->IndexVVL(lhs, aggr, indexes_expr);
 	}
 
 IndexAssignExpr::IndexAssignExpr(IntrusivePtr<Expr> arg_op1,

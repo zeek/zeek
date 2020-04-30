@@ -9,6 +9,7 @@
 class NameExpr;
 class ConstExpr;
 class FieldExpr;
+class ListExpr;
 
 // Class representing a single compiled statement.  Designed to
 // be fully opaque, but also effective without requiring pointer
@@ -67,6 +68,11 @@ public:
 	void Dump();
 
 protected:
+	int InternalBuildVals(const ListExpr*);
+
+	const CompiledStmt CompileIndex(const NameExpr* n1, const NameExpr* n2,
+					const ListExpr* l);
+
 	void SyncGlobals();
 
 	const CompiledStmt AddStmt(const AbstractStmt& stmt);

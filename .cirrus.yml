@@ -79,6 +79,7 @@ build_task:
           - dockerfile: ci/ubuntu-16.04/Dockerfile
           # Ubuntu 18.04 EOL: April 2023
           - dockerfile: ci/ubuntu-18.04/Dockerfile
+
     - name: MacOSX Catalina
       osx_instance:
         image: catalina-base
@@ -90,6 +91,7 @@ build_task:
       prepare_script:
         - sysctl hw.model hw.machine hw.ncpu hw.physicalcpu hw.logicalcpu
         - brew install cmake swig openssl bison
+
     - name: FreeBSD 12.1
       freebsd_instance:
         # FreeBSD 12 EOL: June 30, 2024
@@ -102,18 +104,15 @@ build_task:
         - pkg install -y bash git cmake swig30 bison py37-pip base64
         - ln -s /usr/local/bin/python3{??} /usr/bin/python
         - pip install junit2html
-  <<: *CI_TEMPLATE
 
-
-memcheck_task:
-  container:
-    # Just uses a recent/common distro to run memory error/leak checks.
-    dockerfile: ci/ubuntu-18.04/Dockerfile
-    <<: *RESOURCES_TEMPLATE
-    # AddressSanitizer uses a lot more memory than a typical config.
-    memory: 16GB
-  env:
-    ZEEK_CI_CONFIGURE_FLAGS: *MEMCHECK_CONFIG
+    - name: Memcheck
+      container:
+        # Just uses a recent/common distro to run memory error/leak checks.
+        dockerfile: ci/ubuntu-18.04/Dockerfile
+        <<: *RESOURCES_TEMPLATE
+        memory: 16GB
+      env:
+        ZEEK_CI_CONFIGURE_FLAGS: *MEMCHECK_CONFIG
   <<: *CI_TEMPLATE
 
 build_tarball_task:

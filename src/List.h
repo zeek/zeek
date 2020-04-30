@@ -240,16 +240,16 @@ public:
 	T replace(int ent_index, const T& new_ent)	// replace entry #i with a new value
 		{
 		if ( ent_index < 0 )
-			return 0;
+			return get_default_value();
 
-		T old_ent = nullptr;
+		T old_ent = get_default_value();
 
 		if ( ent_index > num_entries - 1 )
 			{ // replacement beyond the end of the list
 			resize(ent_index + 1);
 
 			for ( int i = num_entries; i < max_entries; ++i )
-				entries[i] = nullptr;
+				entries[i] = get_default_value();
 			num_entries = max_entries;
 			}
 		else
@@ -286,6 +286,20 @@ public:
 	const_reverse_iterator crend() const { return rend(); }
 
 protected:
+
+	T get_default_value()
+		{
+		if constexpr ( std::is_pointer_v<T> )
+			return nullptr;
+		else if constexpr ( std::is_integral_v<T> )
+			return 0;
+		else if constexpr ( std::is_floating_point_v<T> )
+			return 0.0;
+		else
+			// TODO: Should this return an error at compile time that we don't
+			// know what this type is?
+			return T();
+		}
 
 	// This could essentially be an std::vector if we wanted.  Some
 	// reasons to maybe not refactor to use std::vector ?

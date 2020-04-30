@@ -65,7 +65,7 @@ build_task:
   matrix:       
     - name: Linux
       container:
-        << : *RESOURCES_TEMPLATE
+        <<: *RESOURCES_TEMPLATE
         matrix:
           # Linux EOL timelines: https://linuxlifecycle.com/
           # Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
@@ -100,9 +100,9 @@ build_task:
       prepare_script:
         - sysctl hw.model hw.machine hw.ncpu
         - pkg install -y bash git cmake swig30 bison py37-pip base64
-        - ln -s /usr/local/bin/python3{??} /usr/local/bin/python
+        - ln -s /usr/local/bin/python3{??} /usr/bin/python
         - pip install junit2html
-  << : *CI_TEMPLATE
+  <<: *CI_TEMPLATE
 
 
 memcheck_task:

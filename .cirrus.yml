@@ -70,7 +70,8 @@ build_task:
           # Linux EOL timelines: https://linuxlifecycle.com/
           # Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
           # Fedora 30 EOL: Around June 2020
-          - dockerfile: ci/fedora-30/Dockerfile
+          - name: Fedora 30
+            dockerfile: ci/fedora-30/Dockerfile
           # CentOS 7 EOL: June 30, 2024
           - dockerfile: ci/centos-7/Dockerfile
           # Debian 9 EOL: June 2022

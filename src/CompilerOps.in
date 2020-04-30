@@ -155,6 +155,10 @@ eval_R	else run_time_error("field value missing")
 eval_R	}
 eval_R frame[s.v1] = AS_ValUnion(v, s.t)
 
+expr-op Has_Field
+type R
+eval_R frame[s.v1].int_val = (frame[s.v2].record_val->Lookup(s.v3) != nullptr)
+
 ########################################
 
 unary-op AppendTo
@@ -221,7 +225,6 @@ eval frame[s.v1].vvec->push_back(c)
 
 # EXPR_INDEX
 # EXPR_ANY_INDEX
-# EXPR_HAS_FIELD
 # EXPR_RECORD_CONSTRUCTOR
 # EXPR_TABLE_CONSTRUCTOR
 # EXPR_SET_CONSTRUCTOR

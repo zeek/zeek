@@ -3577,7 +3577,7 @@ const CompiledStmt AssignExpr::CompileAssignToIndex(Compiler* c,
 						const IndexExpr* rhs) const
 	{
 	auto aggr_ptr = rhs->GetOp1();
-	auto index_ptr = rhs->GetOp2();
+	auto indexes = rhs->GetOp2()->AsListExpr()->Exprs();
 
 	if ( aggr_ptr->Tag() == EXPR_CONST )
 		{
@@ -3587,15 +3587,16 @@ const CompiledStmt AssignExpr::CompileAssignToIndex(Compiler* c,
 
 	auto aggr = aggr_ptr->AsNameExpr();
 
-	if ( index_ptr->Type()->Tag() == TYPE_VECTOR )
+	if ( indexes.length() == 1 && indexes[0]->Type()->Tag() == TYPE_VECTOR )
 		{
-		if ( index_ptr->Tag() == EXPR_CONST )
+		auto index1 = indexes[0];
+		if ( index1->Tag() == EXPR_CONST )
 			{
 			Error("constant vector indexes not supported for compiling");
 			return c->ErrorStmt();
 			}
 
-		auto index = index_ptr->AsNameExpr();
+		auto index = index1->AsNameExpr();
 		auto ind_t = index->Type()->AsVectorType();
 
 		if ( IsBool(ind_t->YieldType()->Tag()) )

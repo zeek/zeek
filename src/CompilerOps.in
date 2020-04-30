@@ -185,6 +185,13 @@ type VVL
 eval auto v = frame[s.v2].vector_val->Lookup(frame[s.v3].list_val)
 eval frame[s.v1] = AS_ValUnion(v, s.t)
 
+internal-op Index-Vec-Slice
+type VVL
+eval auto vt = s.t->AsVectorType()
+eval auto v = vector_index(vt, frame[s.v2].vector_val, frame[s.v3].list_val)
+### memory
+eval frame[s.v1] = AS_ValUnion(v.get(), s.t)
+
 ########################################
 
 unary-op AppendTo

@@ -518,45 +518,13 @@ const CompiledStmt AbstractMachine::CompileIndex(const NameExpr* n1,
 	switch ( n2->Type()->Tag() ) {
 	case TYPE_VECTOR:
 		{
-		if ( indexes.length() == 1 )
-			{
-			AbstractStmt s(OP_INDEX_VEC_VVL, FrameSlot(n1),
-					FrameSlot(n2), build_indices);
-			s.t = n1->Type().get();
-			return AddStmt(s);
-			}
+		AbstractOp op = indexes.length() == 1 ?
+				OP_INDEX_VEC_VVL : OP_INDEX_VEC_SLICE_VVL;
 
-#if 0
-		VectorVal* vect = v1->AsVectorVal();
-		const ListVal* lv = v2->AsListVal();
-
-		if ( lv->Length() == 1 )
-			v = {NewRef{}, vect->Lookup(v2)};
-		else
-			{
-			size_t len = vect->Size();
-			auto result = make_intrusive<VectorVal>(vect->Type()->AsVectorType());
-
-			bro_int_t first = get_slice_index(lv->Index(0)->CoerceToInt(), len);
-			bro_int_t last = get_slice_index(lv->Index(1)->CoerceToInt(), len);
-			bro_int_t sub_length = last - first;
-
-			if ( sub_length >= 0 )
-				{
-				result->Resize(sub_length);
-
-				for ( int idx = first; idx < last; idx++ )
-					{
-					auto a = vect->Lookup(idx);
-					result->Assign(idx - first, a ? a->Ref() : nullptr);
-					}
-				}
-
-			return result;
-			}
-#endif
+		AbstractStmt s(op, FrameSlot(n1), FrameSlot(n2), build_indices);
+		s.t = n1->Type().get();
+		return AddStmt(s);
 		}
-		break;
 
 #if 0
 	case TYPE_TABLE:

@@ -814,6 +814,8 @@ extern IntrusivePtr<Val> vector_bool_select(VectorType* t, const VectorVal* v1,
 						const VectorVal* v2);
 extern IntrusivePtr<Val> vector_int_select(VectorType* t, const VectorVal* v1,
 						const VectorVal* v2);
+extern IntrusivePtr<Val> vector_index(VectorType* vt, const VectorVal* vect,
+						const ListVal* lv);
 
 // Any internal call used for [a, b, c, ...] = x assignments.
 class AnyIndexExpr : public UnaryExpr {

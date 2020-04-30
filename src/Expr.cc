@@ -3907,25 +3907,8 @@ IntrusivePtr<Val> IndexExpr::Fold(Val* v1, Val* v2) const
 			v = {NewRef{}, vect->Lookup(v2)};
 		else
 			{
-			size_t len = vect->Size();
-			auto result = make_intrusive<VectorVal>(vect->Type()->AsVectorType());
-
-			bro_int_t first = get_slice_index(lv->Index(0)->CoerceToInt(), len);
-			bro_int_t last = get_slice_index(lv->Index(1)->CoerceToInt(), len);
-			bro_int_t sub_length = last - first;
-
-			if ( sub_length >= 0 )
-				{
-				result->Resize(sub_length);
-
-				for ( int idx = first; idx < last; idx++ )
-					{
-					auto a = vect->Lookup(idx);
-					result->Assign(idx - first, a ? a->Ref() : nullptr);
-					}
-				}
-
-			return result;
+			auto vt = vect->Type()->AsVectorType();
+			v = vector_index(vt, vect, lv);
 			}
 		}
 		break;
@@ -4014,6 +3997,30 @@ IntrusivePtr<Val> vector_int_select(VectorType* vt, const VectorVal* v1,
 		}
 
 	return v_result;
+	}
+
+IntrusivePtr<Val> vector_index(VectorType* vt, const VectorVal* vect,
+				const ListVal* lv)
+	{
+	size_t len = vect->Size();
+	auto result = make_intrusive<VectorVal>(vt);
+
+	bro_int_t first = get_slice_index(lv->Index(0)->CoerceToInt(), len);
+	bro_int_t last = get_slice_index(lv->Index(1)->CoerceToInt(), len);
+	bro_int_t sub_length = last - first;
+
+	if ( sub_length >= 0 )
+		{
+		result->Resize(sub_length);
+
+		for ( int idx = first; idx < last; idx++ )
+			{
+			auto a = vect->Lookup(idx);
+			result->Assign(idx - first, a ? a->Ref() : nullptr);
+			}
+		}
+
+	return result;
 	}
 
 void IndexExpr::Assign(Frame* f, IntrusivePtr<Val> v)

@@ -578,6 +578,8 @@ static void vec_exec(AbstractOp op, vector<BroValUnion>* v1,
 
 static void run_time_error(const char* msg)
 	{
-	// ### needs refinement
+	// ### Needs refinement!  In particular, probably should
+	// lead to unwinding the entire current execution (up to
+	// the original event handler).
 	fprintf(stderr, "%s\n", msg);
 	}

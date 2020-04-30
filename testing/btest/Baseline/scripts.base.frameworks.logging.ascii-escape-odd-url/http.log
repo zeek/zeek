@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	http
-#open	2019-03-13-19-36-10
+#open	2020-04-30-00-46-57
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	method	host	uri	referrer	version	user_agent	origin	request_body_len	response_body_len	status_code	status_msg	info_code	info_msg	tags	username	password	proxied	orig_fuids	orig_filenames	orig_mime_types	resp_fuids	resp_filenames	resp_mime_types
 #types	time	string	addr	port	addr	port	count	string	string	string	string	string	string	string	count	count	count	string	count	string	set[enum]	string	string	set[string]	vector[string]	vector[string]	vector[string]	vector[string]	vector[string]	vector[string]
-1315799856.264750	CHhAvVGS1DHFjwGM9	10.0.1.104	64216	193.40.5.162	80	1	GET	lepo.it.da.ut.ee	/~cect/teoreetilised seminarid_2010/arheoloogia_uurimisr\xfchma_seminar/Joyce et al - The Languages of Archaeology ~ Dialogue, Narrative and Writing.pdf	-	1.1	Wget/1.12 (darwin10.8.0)	-	0	346	404	Not Found	-	-	(empty)	-	-	-	-	-	-	FGNm7b3eXjhJLfvOWl	-	text/html
-#close	2019-03-13-19-36-10
+1315799856.264750	CHhAvVGS1DHFjwGM9	10.0.1.104	64216	193.40.5.162	80	1	GET	lepo.it.da.ut.ee	/~cect/teoreetilised seminarid_2010/arheoloogia_uurimisr\xfchma_seminar/Joyce et al - The Languages of Archaeology ~ Dialogue, Narrative and Writing.pdf	-	1.1	Wget/1.12 (darwin10.8.0)	-	0	346	404	Not Found	-	-	(empty)	-	-	-	-	-	-	FfoGFn4kkphS7wMhbf	-	text/html
+#close	2020-04-30-00-46-57

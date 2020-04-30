@@ -3,7 +3,7 @@ warning: non-void function returning without a value: Files::lookup_file
 This should fail but not crash
 This should return F
 F
-lookup fid: FakNcS1Jfe01uljb3
-We should have found the file id: FakNcS1Jfe01uljb3
+lookup fid: FMnxxt3xjVcWNS2141
+We should have found the file id: FMnxxt3xjVcWNS2141
 This should return T
 T

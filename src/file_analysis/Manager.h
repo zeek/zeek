@@ -411,9 +411,8 @@ private:
 	RuleFileMagicState* magic_state;	/**< File magic signature match state. */
 	MIMEMap mime_types;/**< Mapping of MIME types to analyzers. */
 
-	static TableVal* disabled;	/**< Table of disabled analyzers. */
-	static TableType* tag_set_type;	/**< Type for set[tag]. */
-	static std::string salt; /**< A salt added to file handles before hashing. */
+	inline static TableVal* disabled = nullptr;	/**< Table of disabled analyzers. */
+	inline static TableType* tag_set_type = nullptr;	/**< Type for set[tag]. */
 
 	size_t cumulative_files;
 	size_t max_files;

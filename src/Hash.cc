@@ -6,6 +6,8 @@
 #include "digest.h"
 #include "Reporter.h"
 #include "BroString.h"
+#include "Val.h" // needed for const.bif
+#include "const.bif.netvar_h"
 
 #include "highwayhash/sip_hash.h"
 #include "highwayhash/highwayhash_target.h"
@@ -36,6 +38,11 @@ void KeyedHash::InitializeSeeds(const std::array<uint32_t, SEED_INIT_SIZE>& seed
 	seeds_initialized = true;
 	}
 
+void KeyedHash::InitOptions()
+	{
+	calculate_digest(Hash_SHA256, BifConst::digest_salt->Bytes(), BifConst::digest_salt->Len(), reinterpret_cast<unsigned char*>(cluster_highwayhash_key));
+	}
+
 hash64_t KeyedHash::Hash64(const void* bytes, uint64_t size)
 	{
 	return highwayhash::SipHash(shared_siphash_key, reinterpret_cast<const char *>(bytes), size);
@@ -49,6 +56,23 @@ void KeyedHash::Hash128(const void* bytes, uint64_t size, hash128_t* result)
 void KeyedHash::Hash256(const void* bytes, uint64_t size, hash256_t* result)
 	{
 	highwayhash::InstructionSets::Run<highwayhash::HighwayHash>(shared_highwayhash_key, reinterpret_cast<const char *>(bytes), size, result);
+	}
+
+hash64_t KeyedHash::StaticHash64(const void* bytes, uint64_t size)
+	{
+	hash64_t result;
+	highwayhash::InstructionSets::Run<highwayhash::HighwayHash>(cluster_highwayhash_key, reinterpret_cast<const char *>(bytes), size, &result);
+	return result;
+	}
+
+void KeyedHash::StaticHash128(const void* bytes, uint64_t size, hash128_t* result)
+	{
+	highwayhash::InstructionSets::Run<highwayhash::HighwayHash>(cluster_highwayhash_key, reinterpret_cast<const char *>(bytes), size, result);
+	}
+
+void KeyedHash::StaticHash256(const void* bytes, uint64_t size, hash256_t* result)
+	{
+	highwayhash::InstructionSets::Run<highwayhash::HighwayHash>(cluster_highwayhash_key, reinterpret_cast<const char *>(bytes), size, result);
 	}
 
 void init_hash_function()

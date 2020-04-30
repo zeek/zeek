@@ -110,5 +110,3 @@ function set_file_handle%(handle: string%): any
 	file_mgr->SetHandle(h);
 	return 0;
 	%}
-
-const Files::salt: string;

@@ -145,7 +145,15 @@ eval_A $$ = ! ($1 < $2) && $1 != $2
 
 expr-op Field
 type R
-eval_R frame[s.v1] = AS_ValUnion(frame[s.v2].record_val->Lookup(s.v3), s.t)
+eval_R auto v = frame[s.v2].record_val->Lookup(s.v3)
+eval_R if ( ! v ) { /* Check for &default */
+eval_R	auto rt = s.t->AsRecordType()
+eval_R	auto td = rt->FieldDecl(s.v3)
+eval_R	const Attr* def_attr = td ? td->FindAttr(ATTR_DEFAULT) : 0
+eval_R	if ( def_attr ) v = def_attr->AttrExpr()->Eval(nullptr).release()
+eval_R	else run_time_error("field value missing")
+eval_R	}
+eval_R frame[s.v1] = AS_ValUnion(v, s.t)
 
 ########################################
 

@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <cstdint>
-#include <cassert>
+#include <cstdlib>
+#include <cstring>
 #include <memory>
 #include <chrono>
 
@@ -26,7 +27,12 @@ int main(int argc, char** argv)
 		fflush(stdout);
 
 		auto f = fopen(input_file_name, "r");
-		assert(f);
+
+		if ( ! f )
+			{
+			printf(" failed to open file: %s\n", strerror(errno));
+			abort();
+			}
 
 		fseek(f, 0, SEEK_END);
 		auto input_length = ftell(f);
@@ -34,7 +40,13 @@ int main(int argc, char** argv)
 
 		auto input_buffer = std::make_unique<uint8_t[]>(input_length);
 		auto bytes_read = fread(input_buffer.get(), 1, input_length, f);
-		assert(bytes_read == static_cast<size_t>(input_length));
+
+		if ( bytes_read != static_cast<size_t>(input_length) )
+			{
+			printf(" failed to read full file: %zu/%ld\n",
+			       bytes_read, input_length);
+			abort();
+			}
 
 		auto start = high_resolution_clock::now();
 		LLVMFuzzerTestOneInput(input_buffer.get(), input_length);

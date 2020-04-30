@@ -23,4 +23,4 @@ class Attr;
 typedef PList<Attr> attr_list;
 
 class Timer;
-typedef PList<Timer> timer_list;
+typedef PList<Timer, LIST_UNORDERED> timer_list;

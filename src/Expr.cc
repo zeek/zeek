@@ -3537,6 +3537,10 @@ const CompiledStmt AssignExpr::Compile(Compiler* c) const
 	{
 	auto lhs = op1->AsRefExpr()->GetOp1()->AsNameExpr();
 	auto rhs = op2.get();
+
+	if ( rhs->Tag() == EXPR_INDEX )
+		return CompileAssignToIndex(c, lhs, rhs->AsIndexExpr());
+
 	auto rt = rhs->Type();
 
 	auto r1 = rhs->GetOp1();
@@ -3568,6 +3572,42 @@ const CompiledStmt AssignExpr::Compile(Compiler* c) const
 #include "CompilerOpsExprsDefsV.h"
 	}
 
+const CompiledStmt AssignExpr::CompileAssignToIndex(Compiler* c,
+						const NameExpr* lhs,
+						const IndexExpr* rhs) const
+	{
+	auto aggr_ptr = rhs->GetOp1();
+	auto index_ptr = rhs->GetOp2();
+
+	if ( aggr_ptr->Tag() == EXPR_CONST )
+		{
+		Error("constant aggregates not supported for compiling");
+		return c->ErrorStmt();
+		}
+
+	auto aggr = aggr_ptr->AsNameExpr();
+
+	if ( index_ptr->Type()->Tag() == TYPE_VECTOR )
+		{
+		if ( index_ptr->Tag() == EXPR_CONST )
+			{
+			Error("constant vector indexes not supported for compiling");
+			return c->ErrorStmt();
+			}
+
+		auto index = index_ptr->AsNameExpr();
+		auto ind_t = index->Type()->AsVectorType();
+
+		if ( IsBool(ind_t->YieldType()->Tag()) )
+			return c->IndexVecBoolSelectVVV(lhs, aggr, index);
+		else
+			return c->IndexVecIntSelectVVV(lhs, aggr, index);
+		}
+
+	else
+		{
+		}
+	}
 
 IndexAssignExpr::IndexAssignExpr(IntrusivePtr<Expr> arg_op1,
 					IntrusivePtr<Expr> arg_op2,
@@ -3817,7 +3857,7 @@ IntrusivePtr<Val> IndexExpr::Eval(Frame* f) const
 		{
 		VectorVal* v_v1 = v1->AsVectorVal();
 		VectorVal* v_v2 = indv->AsVectorVal();
-		auto v_result = make_intrusive<VectorVal>(Type()->AsVectorType());
+		auto vt = Type()->AsVectorType();
 
 		// Booleans select each element (or not).
 		if ( IsBool(v_v2->Type()->YieldType()->Tag()) )
@@ -3828,29 +3868,11 @@ IntrusivePtr<Val> IndexExpr::Eval(Frame* f) const
 				return nullptr;
 				}
 
-			for ( unsigned int i = 0; i < v_v2->Size(); ++i )
-				{
-				if ( v_v2->Lookup(i)->AsBool() )
-					{
-					auto a = v_v1->Lookup(i);
-					v_result->Assign(v_result->Size() + 1, a ? a->Ref() : nullptr);
-					}
-				}
+			return vector_bool_select(vt, v_v1, v_v2);
 			}
 		else
-			{ // The elements are indices.
-			// ### Should handle negative indices here like
-			// S does, i.e., by excluding those elements.
-			// Probably only do this if *all* are negative.
-			v_result->Resize(v_v2->Size());
-			for ( unsigned int i = 0; i < v_v2->Size(); ++i )
-				{
-				auto a = v_v1->Lookup(v_v2->Lookup(i)->CoerceToInt());
-				v_result->Assign(i, a ? a->Ref() : nullptr);
-				}
-			}
-
-		return v_result;
+			// Elements are indices.
+			return vector_int_select(vt, v_v1, v_v2);
 		}
 	else
 		return Fold(v1.get(), v2.get());
@@ -3953,6 +3975,44 @@ IntrusivePtr<Val> IndexExpr::Fold(Val* v1, Val* v2) const
 
 	RuntimeError("no such index");
 	return nullptr;
+	}
+
+IntrusivePtr<Val> vector_bool_select(VectorType* vt, const VectorVal* v1,
+					const VectorVal* v2)
+	{
+	auto v_result = make_intrusive<VectorVal>(vt);
+
+	for ( unsigned int i = 0; i < v2->Size(); ++i )
+		{
+		if ( v2->Lookup(i)->AsBool() )
+			{
+			auto a = v1->Lookup(i);
+			v_result->Assign(v_result->Size() + 1,
+						a ? a->Ref() : nullptr);
+			}
+		}
+
+	return v_result;
+	}
+
+IntrusivePtr<Val> vector_int_select(VectorType* vt, const VectorVal* v1,
+					const VectorVal* v2)
+	{
+	auto v_result = make_intrusive<VectorVal>(vt);
+
+	// The elements are indices.
+	//
+	// ### Should handle negative indices here like S does, i.e.,
+	// by excluding those elements.  Probably only do this if *all*
+	// are negative.
+	v_result->Resize(v2->Size());
+	for ( unsigned int i = 0; i < v2->Size(); ++i )
+		{
+		auto a = v1->Lookup(v2->Lookup(i)->CoerceToInt());
+		v_result->Assign(i, a ? a->Ref() : nullptr);
+		}
+
+	return v_result;
 	}
 
 void IndexExpr::Assign(Frame* f, IntrusivePtr<Val> v)

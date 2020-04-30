@@ -730,6 +730,10 @@ public:
 	void SetIsTemp()	{ is_temp = true; }
 
 protected:
+	const CompiledStmt CompileAssignToIndex(Compiler* c,
+						const NameExpr* lhs,
+						const IndexExpr* rhs) const;
+
 	bool TypeCheck(attr_list* attrs = 0);
 	bool TypeCheckArithmetics(TypeTag bt1, TypeTag bt2);
 
@@ -800,6 +804,16 @@ protected:
 
 	bool is_slice;
 };
+
+
+// Functions used by IndexExpr for evaluation.  Factored out so
+// that compiled statements can call them too.
+
+// Assumes that a length check has already been made.
+extern IntrusivePtr<Val> vector_bool_select(VectorType* t, const VectorVal* v1,
+						const VectorVal* v2);
+extern IntrusivePtr<Val> vector_int_select(VectorType* t, const VectorVal* v1,
+						const VectorVal* v2);
 
 // Any internal call used for [a, b, c, ...] = x assignments.
 class AnyIndexExpr : public UnaryExpr {

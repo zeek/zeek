@@ -159,6 +159,23 @@ expr-op Has_Field
 type R
 eval_R frame[s.v1].int_val = (frame[s.v2].record_val->Lookup(s.v3) != nullptr)
 
+op IndexVecBoolSelect
+type VVV
+set-type $1
+eval if ( frame[s.v2].vector_val->Size() != frame[s.v3].vector_val->Size() ) {
+eval	run_time_error("size mismatch, boolean index and vector"); }
+eval auto vt = s.t->AsVectorType()
+eval auto v = vector_bool_select(vt, frame[s.v2].vector_val, frame[s.v3].vector_val)
+### track memory
+eval frame[s.v1].vector_val = v->AsVectorVal()
+
+op IndexVecIntSelect
+type VVV
+set-type $1
+eval auto vt = s.t->AsVectorType()
+eval auto v = vector_int_select(vt, frame[s.v2].vector_val, frame[s.v3].vector_val)
+eval frame[s.v1].vector_val = v->AsVectorVal()
+
 ########################################
 
 unary-op AppendTo
@@ -223,7 +240,6 @@ type VC
 eval auto c = s.c.ToVal(s.t)
 eval frame[s.v1].vvec->push_back(c)
 
-# EXPR_INDEX
 # EXPR_ANY_INDEX
 # EXPR_RECORD_CONSTRUCTOR
 # EXPR_TABLE_CONSTRUCTOR

@@ -22,6 +22,7 @@ BEGIN	{
 
 	args["X"] = "()"
 	args["O"] = "(OpaqueVals* v)"
+	args["R"] = "(const NameExpr* n1, const NameExpr* n2, const FieldExpr* f)"
 	args["V"] = "(const NameExpr* n)"
 	args["VV"] = "(const NameExpr* n1, const NameExpr* n2)"
 	args["VVV"] = "(const NameExpr* n1, const NameExpr* n2, const NameExpr* n3)"
@@ -33,6 +34,7 @@ BEGIN	{
 
 	args2["X"] = ""
 	args2["O"] = "reg"
+	args2["R"] = "n1, n2, f->Field()"
 	args2["V"] = "n"
 	args2["VV"] = "n1, n2"
 	args2["VVV"] = "n1, n2, n3"
@@ -64,8 +66,11 @@ BEGIN	{
 	accessors["A"] = ".addr_val"
 	accessors["N"] = ".subnet_val"
 	accessors["P"] = ".re_val"
+	accessors["R"] = ""	# not ".record_val"
 	accessors["S"] = ".string_val"
 	accessors["T"] = ".table_val"
+
+	# Update eval(...) below
 
 	eval_selector["I"] = ""
 	eval_selector["U"] = ""
@@ -73,12 +78,12 @@ BEGIN	{
 	eval_selector["A"] = "A"
 	eval_selector["N"] = "N"
 	eval_selector["P"] = "P"
+	eval_selector["R"] = "R"
 	eval_selector["S"] = "S"
 	eval_selector["T"] = "T"
 
-	# Update eval(...) below
-
 	++no_vec["P"]
+	++no_vec["R"]
 	++no_vec["T"]
 
 	# Suffix used for vector operations.
@@ -100,7 +105,7 @@ $1 == "opaque"	{ opaque = 1; next }
 
 $1 == "set-type"	{ set_type = $2; next }
 
-$1 ~ /^eval((_[ANPST])?)$/	{
+$1 ~ /^eval((_[ANPRST])?)$/	{
 		if ( $1 != "eval" )
 			{
 			# Extract subtype specifier.
@@ -206,7 +211,13 @@ function dump_op()
 
 	if ( ! ary_op )
 		{
-		build_op(op, type, "", "", eval[""], eval[""], 0, 0)
+		if ( type == "R" )
+			# Special-case the 'R' unary op.
+			ex = expand_eval(eval["R"], 0, "R", "R", 1, 0)
+		else
+			ex = eval[""]
+
+		build_op(op, type, "", "", ex, ex, 0, 0)
 		clear_vars()
 		return
 		}
@@ -230,6 +241,7 @@ function dump_op()
 			# Loop over operand types for unary operator.
 			for ( i in op_types )
 				{
+				sel = eval_selector[i]
 				ex = expand_eval(eval[sel], expr_op, i, i, j, 0)
 				build_op(op, "V" op1, i, i, eval[sel], ex, j, 0)
 				}
@@ -283,7 +295,7 @@ function expand_eval(e, is_expr_op, otype1, otype2, is_var1, is_var2)
 		raccessor1 = accessors[otype1]
 		raccessor2 = accessors[otype2]
 
-		if ( rel_op )
+		if ( rel_op || otype1 == "R" )
 			laccessor = accessors["I"]
 		else
 			laccessor = raccessor1
@@ -308,7 +320,7 @@ function expand_eval(e, is_expr_op, otype1, otype2, is_var1, is_var2)
 		{
 		if ( index(e_copy, "$$") > 0 )
 			{
-			if ( ! rel_op )
+			if ( ! rel_op && otype1 != "R" )
 				e_copy = "delete frame[s.v1]" \
 					laccessor ";\n\t\t" e_copy
 
@@ -447,7 +459,13 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 					1, method_pre)
 		}
 
-	if ( expr_op && is_rep )
+	if ( type == "R" )
+		{
+		print ("\tcase EXPR_" upper_op ":\treturn c->" op_type \
+			"(lhs, r1->AsNameExpr(), rhs->AsFieldExpr());") >exprsV_f
+		}
+
+	else if ( expr_op && is_rep )
 		{
 		if ( type == "C" )
 			gripe("bad type " type " for expr " op)
@@ -508,6 +526,14 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 	if ( type == "O" )
 		print ("\treturn AddStmt(AbstractStmt(" \
 			full_op ", reg));") >methods_f
+
+	else if ( type == "R" )
+		{
+		print ("\tauto s = GenStmt(this, " full_op ", " \
+			args2[type] ");") >methods_f
+		print ("\ts.t = n1->Type().get();") >methods_f
+		print ("\treturn AddStmt(s);") >methods_f
+		}
 
 	else if ( args2[type] != "" )
 		{

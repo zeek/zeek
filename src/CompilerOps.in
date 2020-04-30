@@ -141,6 +141,12 @@ eval $1 > $2
 eval_S $$ = Bstr_cmp($1, $2) > 0
 eval_A $$ = ! ($1 < $2) && $1 != $2
 
+########## Nonuniform Expressions ##########
+
+expr-op Field
+type R
+eval_R frame[s.v1] = AS_ValUnion(frame[s.v2].record_val->Lookup(s.v3), s.t)
+
 ########################################
 
 unary-op AppendTo
@@ -207,7 +213,6 @@ eval frame[s.v1].vvec->push_back(c)
 
 # EXPR_INDEX
 # EXPR_ANY_INDEX
-# EXPR_FIELD
 # EXPR_HAS_FIELD
 # EXPR_RECORD_CONSTRUCTOR
 # EXPR_TABLE_CONSTRUCTOR

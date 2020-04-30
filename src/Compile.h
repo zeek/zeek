@@ -8,6 +8,7 @@
 
 class NameExpr;
 class ConstExpr;
+class FieldExpr;
 
 // Class representing a single compiled statement.  Designed to
 // be fully opaque, but also effective without requiring pointer

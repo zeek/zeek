@@ -114,3 +114,17 @@ TEST_CASE("plists")
 		delete v;
 	list.clear();
 	}
+
+TEST_CASE("unordered list operation")
+	{
+	List<int, LIST_UNORDERED> list({1, 2, 3, 4});
+	CHECK(list.size() == 4);
+
+	// An unordered list doesn't maintain the ordering of the elements when
+	// one is removed. It just swaps the last element into the hole.
+	list.remove(2);
+	CHECK(list.size() == 3);
+	CHECK(list[0] == 1);
+	CHECK(list[1] == 4);
+	CHECK(list[2] == 3);
+	}

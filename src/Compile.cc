@@ -26,8 +26,6 @@ const char* abstract_op_name(AbstractOp op)
 	}
 
 
-typedef std::vector<IntrusivePtr<Val>> val_vec;
-
 // A bit of this mirrors BroValUnion, but it captures low-level
 // representation whereas we aim to keep Val structure for
 // more complex Val's.
@@ -512,7 +510,14 @@ const CompiledStmt AbstractMachine::CompileIndex(const NameExpr* n1,
 							const NameExpr* n2,
 							const ListExpr* l)
 	{
+	AbstractStmt s;
+
+	int n = l->Exprs().length();
 	auto build_indices = InternalBuildVals(l);
+	s = AbstractStmt(OP_TRANSFORM_VAL_VEC_TO_LIST_VAL_VVV,
+				build_indices, build_indices, n);
+	AddStmt(s);
+
 	auto indexes = l->Exprs();
 
 	switch ( n2->Type()->Tag() ) {
@@ -521,10 +526,16 @@ const CompiledStmt AbstractMachine::CompileIndex(const NameExpr* n1,
 		AbstractOp op = indexes.length() == 1 ?
 				OP_INDEX_VEC_VVL : OP_INDEX_VEC_SLICE_VVL;
 
-		AbstractStmt s(op, FrameSlot(n1), FrameSlot(n2), build_indices);
-		s.t = n1->Type().get();
-		return AddStmt(s);
+		s = AbstractStmt(op, FrameSlot(n1), FrameSlot(n2),
+					build_indices);
+		break;
 		}
+
+	case TYPE_TABLE:
+		s = AbstractStmt(OP_TABLE_INDEX_VVV, FrameSlot(n1),
+					FrameSlot(n2), build_indices);
+		s.t = n1->Type().get();
+		break;
 
 #if 0
 	case TYPE_TABLE:
@@ -568,11 +579,26 @@ const CompiledStmt AbstractMachine::CompileIndex(const NameExpr* n1,
 		run_time_error("type cannot be indexed");
 		break;
 	}
+
+	s.t = n1->Type().get();
+	return AddStmt(s);
 	}
 
 void AbstractMachine::SyncGlobals()
 	{
 	// ###
+	}
+
+ListVal* AbstractMachine::ValVecToListVal(val_vec* v, int n) const
+	{
+	auto res = new ListVal(TYPE_ANY);
+
+	for ( int i = 0; i < n; ++i )
+		res->Append((*v)[i].release());
+
+	delete v;
+
+	return res;
 	}
 
 int AbstractMachine::FrameSlot(const ID* id)

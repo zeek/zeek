@@ -26,6 +26,8 @@ protected:
 
 class OpaqueVals;
 
+typedef std::vector<IntrusivePtr<Val>> val_vec;
+
 class Compiler : public Stmt {
 public:
 #include "CompilerBaseDefs.h"
@@ -72,6 +74,8 @@ protected:
 
 	const CompiledStmt CompileIndex(const NameExpr* n1, const NameExpr* n2,
 					const ListExpr* l);
+
+	ListVal* ValVecToListVal(val_vec* v, int n) const;
 
 	void SyncGlobals();
 

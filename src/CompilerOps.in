@@ -192,6 +192,13 @@ eval auto v = vector_index(vt, frame[s.v2].vector_val, frame[s.v3].list_val)
 ### memory
 eval frame[s.v1] = AS_ValUnion(v.get(), s.t)
 
+internal-op Table-Index
+type VVV
+eval auto v2 = frame[s.v3].list_val
+eval auto v = frame[s.v2].table_val->Lookup(v2)
+### memory
+eval frame[s.v1] = AS_ValUnion(v.get(), s.t)
+
 ########################################
 
 unary-op AppendTo
@@ -255,6 +262,12 @@ internal-op Set-Val-Vec
 type VC
 eval auto c = s.c.ToVal(s.t)
 eval frame[s.v1].vvec->push_back(c)
+
+# Turns the vector at v2 (with v3 items) into a list_val at v1.  Deletes
+# the original.
+internal-op Transform-Val-Vec-To-List-Val
+type VVV
+eval frame[s.v1].list_val = ValVecToListVal(frame[s.v2].vvec, s.v3)
 
 # EXPR_ANY_INDEX
 # EXPR_RECORD_CONSTRUCTOR

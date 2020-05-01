@@ -3541,6 +3541,10 @@ const CompiledStmt AssignExpr::Compile(Compiler* c) const
 	if ( rhs->Tag() == EXPR_INDEX )
 		return CompileAssignToIndex(c, lhs, rhs->AsIndexExpr());
 
+	switch ( rhs->Tag() ) {
+#include "CompilerOpsInterpretDefs.h"
+	}
+
 	auto rt = rhs->Type();
 
 	auto r1 = rhs->GetOp1();

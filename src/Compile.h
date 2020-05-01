@@ -32,6 +32,9 @@ class Compiler : public Stmt {
 public:
 #include "CompilerBaseDefs.h"
 
+	virtual const CompiledStmt InterpretExpr(const NameExpr* n,
+							const Expr* e) = 0;
+
 	virtual const CompiledStmt StartingBlock() = 0;
 	virtual const CompiledStmt FinishBlock(const CompiledStmt start) = 0;
 	virtual const CompiledStmt ErrorStmt() = 0;
@@ -54,6 +57,9 @@ public:
 	~AbstractMachine() override;
 
 #include "CompilerSubDefs.h"
+
+	const CompiledStmt InterpretExpr(const NameExpr* n,
+						const Expr* e) override;
 
 	const CompiledStmt StartingBlock() override;
 	const CompiledStmt FinishBlock(const CompiledStmt start) override;

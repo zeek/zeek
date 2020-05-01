@@ -177,7 +177,7 @@ IntrusivePtr<Val> AS_ValUnion::ToVal(BroType* t) const
 // Possible types of statement operands in terms of which
 // fields they use.  Used for dumping statements.
 typedef enum {
-	OP_X, OP_V, OP_VV, OP_VVV, OP_VVVV, OP_C, OP_VC, OP_VVC,
+	OP_X, OP_V, OP_VV, OP_VVV, OP_VVVV, OP_C, OP_VC, OP_VVC, OP_VE,
 } AS_OpType;
 
 class AbstractStmt {
@@ -246,6 +246,15 @@ public:
 		InitConst(ce);
 		}
 
+	AbstractStmt(AbstractOp _op, int _v1, const Expr* _e)
+		{
+		op = _op;
+		v1 = _v1;
+		e = _e;
+		t = e->Type().get();
+		op_type = OP_VE;
+		}
+
 	// Constructor used when we're going to just copy in another AS.
 	AbstractStmt() { }
 
@@ -257,6 +266,7 @@ public:
 	// Indices into frame.
 	int v1, v2, v3, v4;
 	BroType* t = nullptr;
+	const Expr* e = nullptr;
 
 	AS_ValUnion c;	// constant
 
@@ -306,6 +316,10 @@ void AbstractStmt::Dump() const
 
 	case OP_VVC:
 		printf("%d, %d, %s", v1, v2, ConstDump());
+		break;
+
+	case OP_VE:
+		printf("%d, %s", v1, obj_desc(e));
 		break;
 	}
 
@@ -439,6 +453,12 @@ IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 	}
 
 #include "CompilerOpsMethodsDefs.h"
+
+const CompiledStmt AbstractMachine::InterpretExpr(const NameExpr* n,
+							const Expr* e)
+	{
+	AbstractStmt s(OP_INTERPRET_EXPR_V, FrameSlot(n), e);
+	}
 
 const CompiledStmt AbstractMachine::StartingBlock()
 	{

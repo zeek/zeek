@@ -6,6 +6,7 @@ BEGIN	{
 	sub_class_f = "CompilerSubDefs.h"
 	ops_f = "CompilerOpsDefs.h"
 	ops_names_f = "CompilerOpsNamesDefs.h"
+	ops_interpret_f = "CompilerOpsInterpretDefs.h"
 	ops_eval_f = "CompilerOpsEvalDefs.h"
 	vec1_eval_f = "CompilerVec1EvalDefs.h"
 	vec2_eval_f = "CompilerVec2EvalDefs.h"
@@ -99,6 +100,7 @@ BEGIN	{
 $1 == "op"	{ dump_op(); op = $2; next }
 $1 == "expr-op"	{ dump_op(); op = $2; expr_op = 1; next }
 $1 == "unary-op"	{ dump_op(); op = $2; ary_op = 1; next }
+$1 == "interpreted-unary-op"	{ dump_op(); op = $2; interpreted_op = 1; next }
 $1 == "unary-expr-op"	{ dump_op(); op = $2; expr_op = 1; ary_op = 1; next }
 $1 == "binary-expr-op"	{ dump_op(); op = $2; expr_op = 1; ary_op = 2; next }
 $1 == "rel-expr-op"	{
@@ -184,6 +186,8 @@ END	{
 	finish(exprsC2_f, "C2")
 	finish(exprsC3_f, "C3")
 	finish(exprsV_f, "V")
+
+	finish_default_ok(ops_interpret_f)
 	}
 
 function build_op_types()
@@ -229,40 +233,14 @@ function dump_op()
 
 	if ( binary_op )
 		{
-		# Internal binary op.  Do not generate method stuff for it,
-		# but do generate eval stuff.
-		for ( j = 0; j <= 1; ++j )
-			{
-			op1 = j ? "V" : "C"
+		build_binary_op()
+		clear_vars()
+		return
+		}
 
-			# Loop over constant, var for second operand
-			for ( k = 0; k <= 1; ++k )
-				{
-				if ( ! j && ! k )
-					# Do not generate CC, should have
-					# been folded.
-					continue;
-
-				op2 = k ? "V" : "C"
-
-				a1 = ("auto op1 = " \
-				      (j ? "s.c" : "frame[s.v1]") \
-				      "." op1_accessor ";\n\t\t")
-
-				a2 = ("auto op2 = " \
-				      (j ? "s.c" : "frame[s.v2]") \
-				      "." op2_accessor ";\n\t\t")
-
-				assign = "frame[s.v3]" accessors[op_type_rep]
-
-				eval_copy = a1 a2 eval[""]
-				gsub(/\$\$/, assign, eval_copy)
-
-				build_op(op, "V" op1 op2, "", "",
-						eval_copy, eval_copy, j, k)
-				}
-			}
-
+	if ( interpreted_op )
+		{
+		build_interpreted_op()
 		clear_vars()
 		return
 		}
@@ -337,6 +315,56 @@ function dump_op()
 		}
 
 	clear_vars()
+	}
+
+function build_binary_op()
+	{
+	# Internal binary op.  Do not generate method stuff for it,
+	# but do generate eval stuff.
+	for ( j = 0; j <= 1; ++j )
+		{
+		op1 = j ? "V" : "C"
+
+		# Loop over constant, var for second operand
+		for ( k = 0; k <= 1; ++k )
+			{
+			if ( ! j && ! k )
+				# Do not generate CC, should have
+				# been folded.
+				continue;
+
+			op2 = k ? "V" : "C"
+
+			a1 = ("auto op1 = " \
+			      (j ? "s.c" : "frame[s.v1]") \
+			      "." op1_accessor ";\n\t\t")
+
+			a2 = ("auto op2 = " \
+			      (j ? "s.c" : "frame[s.v2]") \
+			      "." op2_accessor ";\n\t\t")
+
+			assign = "frame[s.v3]" accessors[op_type_rep]
+
+			eval_copy = a1 a2 eval[""]
+			gsub(/\$\$/, assign, eval_copy)
+
+			build_op(op, "V" op1 op2, "", "",
+					eval_copy, eval_copy, j, k)
+			}
+		}
+	}
+
+function build_interpreted_op()
+	{
+	# A unary Expr* (whose argument is a ListExpr*) that will be
+	# interpreted rather than compiled.
+
+	orig_op = op
+	gsub(/-/, "_", op)
+	upper_op = toupper(op)
+
+	print ("\tcase EXPR_" upper_op \
+		":\treturn c->InterpretExpr(lhs, rhs);") >ops_interpret_f
 	}
 
 function expand_eval(e, is_expr_op, otype1, otype2, is_var1, is_var2)
@@ -724,6 +752,7 @@ function clear_vars()
 	custom_method = method_pre = eval_pre = ""
 	no_eval = mix_eval = multi_eval = eval_blank = ""
 	vector = binary_op = internal_op = rel_op = ary_op = expr_op = op = ""
+	interpreted_op = ""
 	laccessor = raccessor1 = raccessor2 = ""
 	op1_accessor = op2_accessor = ""
 
@@ -742,6 +771,11 @@ function finish(f, which)
 	print ("\tdefault:") >f
 	print ("\t\treporter->InternalError(\"inconsistency in " which " AssignExpr::Compile\");") >f
 	print ("\t}\t}") >f
+	}
+
+function finish_default_ok(f)
+	{
+	print ("\tdefault:\tbreak;") >f
 	}
 
 function gripe(msg)

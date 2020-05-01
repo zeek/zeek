@@ -32,6 +32,10 @@ op-type I D
 vector
 eval -$1
 
+unary-op AppendTo
+eval auto vv = frame[s.v1].vector_val
+eval vv->Assign(vv->Size(), $1.ToVal(s.t))
+
 ########## Binary Ops ##########
 
 binary-expr-op Add
@@ -280,11 +284,18 @@ set-type $1
 eval auto lv = frame[s.v2].any_val.val_list_val
 eval frame[s.v1] = AS_ValUnion((*lv)[s.v3], s.t)
 
-########################################
+########## Constructors ##########
 
-unary-op AppendTo
-eval auto vv = frame[s.v1].vector_val
-eval vv->Assign(vv->Size(), $1.ToVal(s.t))
+# Table construction requires atypical evaluation of list elements
+# using information from their expression specifics.  We punt those
+# back to the interpreter.
+interpreted-unary-op Table-Constructor
+
+# In for a penny, in for a pount.  For now we just do all of them that
+# way, even though with some elbow grease we could do the others directly.
+interpreted-unary-op Set-Constructor
+interpreted-unary-op Record-Constructor
+interpreted-unary-op Vector-Constructor
 
 ########################################
 
@@ -350,11 +361,15 @@ internal-op Transform-Val-Vec-To-List-Val
 type VVV
 eval frame[s.v1].list_val = ValVecToListVal(frame[s.v2].vvec, s.v3)
 
+# Interprets the statement's expression and assigns the result to v1.
+internal-op Interpret-Expr
+type V
+eval frame[s.v1] = AS_ValUnion(s.e->Eval(f).get(), s.t)
+
 # EXPR_RECORD_CONSTRUCTOR
 # EXPR_TABLE_CONSTRUCTOR
 # EXPR_SET_CONSTRUCTOR
 # EXPR_VECTOR_CONSTRUCTOR
-# EXPR_IN
 # EXPR_CALL
 # EXPR_LAMBDA
 # EXPR_ARITH_COERCE

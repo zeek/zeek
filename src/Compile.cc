@@ -53,11 +53,13 @@ union AS_ValUnion {
 	// it gets delete'd prior to reassignment.
 	BroString* string_val;
 
+	IPAddr* addr_val;
+	IPPrefix* subnet_val;
+
 	// A note re memory management.  We do *not* ref these upon
 	// assigning to them.  If we use them in a context where ownership
 	// will be taken by some other entity, we ref them at that point.
 	// We also do not unref on reassignment/destruction.
-	AddrVal* addr_val;
 	BroValUnion any_val;
 	EnumVal* enum_val;
 	BroFile* file_val;
@@ -67,7 +69,6 @@ union AS_ValUnion {
 	PortVal* port_val;
 	RE_Matcher* re_val;
 	RecordVal* record_val;
-	IPPrefix* subnet_val;
 	TableVal* table_val;
 	BroType* type_val;
 	VectorVal* vector_val;
@@ -104,7 +105,6 @@ AS_ValUnion::AS_ValUnion(Val* v, BroType* t)
 	case TYPE_FUNC:		func_val = vu.func_val; break;
 	case TYPE_FILE:		file_val = vu.file_val; break;
 
-	case TYPE_ADDR:		addr_val = v->AsAddrVal(); break;
 	case TYPE_ENUM:		enum_val = v->AsEnumVal(); break;
 	case TYPE_LIST:		list_val = v->AsListVal(); break;
 	case TYPE_OPAQUE:	opaque_val = v->AsOpaqueVal(); break;
@@ -117,8 +117,10 @@ AS_ValUnion::AS_ValUnion(Val* v, BroType* t)
 	// ### Need to think about memory management strategy and
 	// whether we require the new BroString here.
 	case TYPE_STRING:	string_val = new BroString(*v->AsString());
+	case TYPE_ADDR:
+		addr_val = new IPAddr(*vu.addr_val);
 	case TYPE_SUBNET:
-		subnet_val = new IPPrefix(v->AsSubNetVal()->AsSubNet());
+		subnet_val = new IPPrefix(*vu.subnet_val);
 		break;
 
 	case TYPE_ANY:		any_val = vu; break;
@@ -147,13 +149,13 @@ IntrusivePtr<Val> AS_ValUnion::ToVal(BroType* t) const
 	case TYPE_FUNC:		v = new Val(func_val); break;
 	case TYPE_FILE:		v = new Val(file_val); break;
 	case TYPE_STRING:	v = new StringVal(new BroString(*string_val));
+	case TYPE_ADDR:		v = new AddrVal(*addr_val); break;
 	case TYPE_SUBNET:	v = new SubNetVal(*subnet_val); break;
 	case TYPE_PATTERN:	v = new PatternVal(re_val); break;
 
 	case TYPE_ANY:		v = new Val(any_val, t->Ref()); break;
 	case TYPE_TYPE:		v = new Val(type_val, true); break;
 
-	case TYPE_ADDR:		v = addr_val; v->Ref(); break;
 	case TYPE_ENUM:		v = enum_val; v->Ref(); break;
 	case TYPE_LIST:		v = list_val; v->Ref(); break;
 	case TYPE_OPAQUE:	v = opaque_val; v->Ref(); break;
@@ -504,6 +506,62 @@ void AbstractMachine::Dump()
 		printf("%d: ", i);
 		stmts[i].Dump();
 		}
+	}
+
+const CompiledStmt AbstractMachine::CompileInExpr(const NameExpr* n1,
+				const NameExpr* n2, const ConstExpr* c2,
+				const NameExpr* n3, const ConstExpr* c3)
+	{
+	auto op2 = n2 ? (Expr*) n2 : (Expr*) c2;
+	auto op3 = n3 ? (Expr*) n3 : (Expr*) c3;
+
+	AbstractOp a;
+
+	if ( op2->Type()->Tag() == TYPE_PATTERN )
+		a = n2 ? (n3 ? OP_P_IN_S_VVV : OP_P_IN_S_VVC) : OP_P_IN_S_VCV;
+
+	else if ( op2->Type()->Tag() == TYPE_STRING )
+		a = n2 ? (n3 ? OP_S_IN_S_VVV : OP_S_IN_S_VVC) : OP_S_IN_S_VCV;
+
+	else if ( op2->Type()->Tag() == TYPE_ADDR &&
+		  op3->Type()->Tag() == TYPE_SUBNET )
+		a = n2 ? (n3 ? OP_A_IN_S_VVV : OP_A_IN_S_VVC) : OP_A_IN_S_VCV;
+
+	else if ( op3->Type()->Tag() == TYPE_VECTOR )
+		a = n2 ? (n3 ? OP_U_IN_V_VVV : OP_U_IN_V_VVC) : OP_U_IN_V_VCV;
+
+	else
+		reporter->InternalError("bad types when compiling \"in\"");
+
+	auto s1 = FrameSlot(n1);
+	auto s2 = n2 ? FrameSlot(n2) : 0;
+	auto s3 = n3 ? FrameSlot(n3) : 0;
+
+	if ( n2 )
+		{
+		if ( n3 )
+			return AddStmt(AbstractStmt(a, s1, s2, s3));
+		else
+			return AddStmt(AbstractStmt(a, s1, s2, c3));
+		}
+	else
+		return AddStmt(AbstractStmt(a, s1, s3, c2));
+	}
+
+const CompiledStmt AbstractMachine::CompileInExpr(const NameExpr* n1,
+				const ListExpr* l, const NameExpr* n2)
+	{
+	int n = l->Exprs().length();
+	auto build_indices = InternalBuildVals(l);
+
+	auto s = AbstractStmt(OP_TRANSFORM_VAL_VEC_TO_LIST_VAL_VVV,
+				build_indices, build_indices, n);
+	AddStmt(s);
+
+	s = AbstractStmt(OP_IS_IN_TABLE_VVV, FrameSlot(n1), FrameSlot(n2),
+				build_indices);
+
+	return AddStmt(s);
 	}
 
 const CompiledStmt AbstractMachine::CompileIndex(const NameExpr* n1,

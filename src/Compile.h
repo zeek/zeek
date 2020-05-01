@@ -72,6 +72,26 @@ public:
 protected:
 	int InternalBuildVals(const ListExpr*);
 
+	const CompiledStmt CompileInExpr(const NameExpr* n1, const NameExpr* n2,
+						const NameExpr* n3)
+		{ return CompileInExpr(n1, n2, nullptr, n3, nullptr); }
+
+	const CompiledStmt CompileInExpr(const NameExpr* n1, const NameExpr* n2,
+						const ConstExpr* c)
+		{ return CompileInExpr(n1, n2, nullptr, nullptr, c); }
+
+	const CompiledStmt CompileInExpr(const NameExpr* n1, const ConstExpr* c,
+						const NameExpr* n3)
+		{ return CompileInExpr(n1, nullptr, c, n3, nullptr); }
+
+	const CompiledStmt CompileInExpr(const NameExpr* n1, const ListExpr* l,
+						const NameExpr* n2);
+
+	// In the following, one of n2 or c2 (likewise, n3/c3) will be nil.
+	const CompiledStmt CompileInExpr(const NameExpr* n1,
+				const NameExpr* n2, const ConstExpr* c2,
+				const NameExpr* n3, const ConstExpr* c3);
+
 	const CompiledStmt CompileIndex(const NameExpr* n1, const NameExpr* n2,
 					const ListExpr* l);
 

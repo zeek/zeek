@@ -33,6 +33,7 @@ BEGIN	{
 	args["VVi"] = "(const NameExpr* n1, const NameExpr* n2, int i)"
 	args["VCV"] = "(const NameExpr* n1, ConstExpr* c, const NameExpr* n2)"
 
+	args["VLV"] = "(const NameExpr* n1, const ListExpr* l, const NameExpr* n2)"
 	args["VVL"] = "(const NameExpr* n1, const NameExpr* n2, const ListExpr* l)"
 
 	args2["X"] = ""
@@ -100,8 +101,17 @@ $1 == "expr-op"	{ dump_op(); op = $2; expr_op = 1; next }
 $1 == "unary-op"	{ dump_op(); op = $2; ary_op = 1; next }
 $1 == "unary-expr-op"	{ dump_op(); op = $2; expr_op = 1; ary_op = 1; next }
 $1 == "binary-expr-op"	{ dump_op(); op = $2; expr_op = 1; ary_op = 2; next }
-$1 == "rel-expr-op"	{ dump_op(); op = $2; expr_op = 1; ary_op = 2; rel_op = 1; next }
+$1 == "rel-expr-op"	{
+	dump_op(); op = $2; expr_op = 1; ary_op = 2; rel_op = 1; next
+	}
 $1 == "internal-op"	{ dump_op(); op = $2; internal_op = 1; next }
+$1 == "internal-binary-op" {
+	dump_op(); op = $2; binary_op = internal_op = 1; next
+	}
+
+$1 == "op-accessor"	{ op1_accessor = op2_accessor = $2; next }
+$1 == "op1-accessor"	{ op1_accessor = $2; next }
+$1 == "op2-accessor"	{ op2_accessor = $2; next }
 
 $1 == "type"	{ type = $2; next }
 $1 == "vector"	{ vector = 1; next }
@@ -125,13 +135,13 @@ $1 ~ /^eval((_[ANPRST])?)$/	{
 			eval_sub = ""
 
 		new_eval = all_but_first()
-		if ( ! operand_type || eval_sub )
+		if ( ! operand_type || eval_sub || binary_op )
 			# Add semicolons for potentially multi-line evals.
 			new_eval = new_eval ";"
 
 		if ( eval[eval_sub] )
 			{
-			if ( operand_type && ! eval_sub )
+			if ( operand_type && ! eval_sub && ! binary_op )
 				gripe("cannot intermingle op-type and multi-line evals")
 
 			eval[eval_sub] = eval[eval_sub] "\n\t\t" new_eval
@@ -155,6 +165,8 @@ $1 == "eval-mixed"	{
 		mix_eval = all_but_first_n(3)
 		next
 		}
+
+$1 == "no-eval"	{ no_eval = 1; next }
 
 $1 == "custom-method"	{ custom_method = all_but_first(); next }
 $1 == "method-pre"	{ method_pre = all_but_first(); next }
@@ -214,6 +226,46 @@ function dump_op()
 	{
 	if ( ! op )
 		return
+
+	if ( binary_op )
+		{
+		# Internal binary op.  Do not generate method stuff for it,
+		# but do generate eval stuff.
+		for ( j = 0; j <= 1; ++j )
+			{
+			op1 = j ? "V" : "C"
+
+			# Loop over constant, var for second operand
+			for ( k = 0; k <= 1; ++k )
+				{
+				if ( ! j && ! k )
+					# Do not generate CC, should have
+					# been folded.
+					continue;
+
+				op2 = k ? "V" : "C"
+
+				a1 = ("auto op1 = " \
+				      (j ? "s.c" : "frame[s.v1]") \
+				      "." op1_accessor ";\n\t\t")
+
+				a2 = ("auto op2 = " \
+				      (j ? "s.c" : "frame[s.v2]") \
+				      "." op2_accessor ";\n\t\t")
+
+				assign = "frame[s.v3]" accessors[op_type_rep]
+
+				eval_copy = a1 a2 eval[""]
+				gsub(/\$\$/, assign, eval_copy)
+
+				build_op(op, "V" op1 op2, "", "",
+						eval_copy, eval_copy, j, k)
+				}
+			}
+
+		clear_vars()
+		return
+		}
 
 	if ( ! ary_op )
 		{
@@ -344,9 +396,6 @@ function expand_eval(e, is_expr_op, otype1, otype2, is_var1, is_var2)
 function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 			is_var1, is_var2)
 	{
-	if ( ! (type in args) )
-		gripe("bad type " type " for " op)
-
 	orig_op = op
 	gsub(/-/, "_", op)
 	upper_op = toupper(op)
@@ -369,6 +418,9 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 
 	if ( ! internal_op && is_rep )
 		{
+		if ( ! (type in args) )
+			gripe("bad op type " type " for " op)
+
 		print ("\tvirtual const CompiledStmt " \
 			op_type args[type] " = 0;") >base_class_f
 		print ("\tconst CompiledStmt " op_type args[type] \
@@ -393,11 +445,14 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 		print ("\tcase " full_op vec ":\treturn \"" tolower(orig_op) \
 			"-" type "-vec" "\";") >ops_names_f
 
-	print ("\tcase " full_op ":\n\t\t{ " \
-		multi_eval eval multi_eval eval_blank \
-		"}" multi_eval eval_blank "break;\n") >ops_eval_f
+	if ( no_eval )
+		print ("\tcase " full_op ":\tbreak;") >ops_eval_f
+	else
+		print ("\tcase " full_op ":\n\t\t{ " \
+			multi_eval eval multi_eval eval_blank \
+			"}" multi_eval eval_blank "break;\n") >ops_eval_f
 
-	if ( do_vec )
+	if ( do_vec && ! no_eval )
 		{
 		if ( ary_op == 1 )
 			{
@@ -529,7 +584,11 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 
 	if ( custom_method )
 		{
-		print ("\t" custom_method) >methods_f
+		cm_copy = custom_method
+		gsub(/\$\*/, args2[type], cm_copy)
+		print ("\t" cm_copy) >methods_f
+		# This { balances the following one so searches for matching
+		# braces are not thrown off.
 		print ("\t}\n") >methods_f
 		return
 		}
@@ -663,9 +722,10 @@ function clear_vars()
 	{
 	opaque = set_type = type = operand_type = ""
 	custom_method = method_pre = eval_pre = ""
-	mix_eval = multi_eval = eval_blank = ""
-	vector = internal_op = rel_op = ary_op = expr_op = op = ""
+	no_eval = mix_eval = multi_eval = eval_blank = ""
+	vector = binary_op = internal_op = rel_op = ary_op = expr_op = op = ""
 	laccessor = raccessor1 = raccessor2 = ""
+	op1_accessor = op2_accessor = ""
 
 	delete eval
 	delete op_types

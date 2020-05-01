@@ -95,7 +95,7 @@ vector
 eval $1 < $2
 eval_S $$ = Bstr_cmp($1, $2) < 0
 eval_T $$ = $1->IsSubsetOf($2) && $1->Size() < $2->Size()
-eval_A $$ = $1 < $2
+eval_A $$ = *$1 < *$2
 
 rel-expr-op LE
 op-type I U D S T A
@@ -103,7 +103,7 @@ vector
 eval $1 <= $2
 eval_S $$ = Bstr_cmp($1, $2) <= 0
 eval_T $$ = $1->IsSubsetOf($2)
-eval_A $$ = $1 < $2 || $1 == $2
+eval_A $$ = *$1 < *$2 || *$1 == *$2
 
 rel-expr-op EQ
 op-type I U D S T A N
@@ -111,7 +111,7 @@ vector
 eval $1 == $2
 eval_S $$ = Bstr_cmp($1, $2) == 0
 eval_T $$ = $1->EqualTo($2)
-eval_A $$ = $1 == $2
+eval_A $$ = *$1 == *$2
 eval_N $$ = *$1 == *$2
 eval-mixed P S $$ = $1->MatchExactly($2)
 
@@ -121,7 +121,7 @@ vector
 eval $1 != $2
 eval_S $$ = Bstr_cmp($1, $2) != 0
 eval_T $$ = ! $1->EqualTo($2)
-eval_A $$ = $1 != $2
+eval_A $$ = *$1 != *$2
 eval_N $$ = *$1 != *$2
 eval-mixed P S $$ = ! $1->MatchExactly($2)
 
@@ -132,14 +132,14 @@ op-type I U D S A
 vector
 eval $1 >= $2
 eval_S $$ = Bstr_cmp($1, $2) >= 0
-eval_A $$ = ! ($1 < $2)
+eval_A $$ = ! (*$1 < *$2)
 
 rel-expr-op GT
 op-type I U D S A
 vector
 eval $1 > $2
 eval_S $$ = Bstr_cmp($1, $2) > 0
-eval_A $$ = ! ($1 < $2) && $1 != $2
+eval_A $$ = ! (*$1 < *$2) && *$1 != *$2
 
 ########## Nonuniform Expressions ##########
 
@@ -159,16 +159,61 @@ expr-op Has_Field
 type R
 eval_R frame[s.v1].int_val = (frame[s.v2].record_val->Lookup(s.v3) != nullptr)
 
+binary-expr-op In
+custom-method return CompileInExpr($*);
+no-eval
+
+internal-op P-In-S
+type VVV
+eval frame[s.v1].int_val = frame[s.v2].re_val->MatchAnywhere(frame[s.v3].string_val) != 0
+
+internal-op P-In-S
+type VCV
+eval frame[s.v1].int_val = s.c.re_val->MatchAnywhere(frame[s.v2].string_val) != 0
+
+internal-op P-In-S
+type VVC
+eval frame[s.v1].int_val = frame[s.v2].re_val->MatchAnywhere(s.c.string_val) != 0
+
+internal-binary-op S-In-S
+op-accessor string_val
+op-type I
+eval auto sc = reinterpret_cast<const unsigned char*>(op1->CheckString())
+eval $$ = strstr_n(op2->Len(), op2->Bytes(), op1->Len(), sc) != -1
+
+internal-binary-op A-In-S
+op1-accessor addr_val
+op2-accessor subnet_val
+op-type I
+eval $$ = op2->Contains(*op1)
+
+internal-binary-op U-In-V
+op1-accessor uint_val
+op2-accessor vector_val
+op-type I
+eval $$ = op2->Lookup(op1) != nullptr
+
+# This one is handled differently because it has the unusual 2nd argument.
+op L-In-T
+type VLV
+custom-method return CompileInExpr(n1, l, n2);
+no-eval
+
+internal-op Is-In-Table
+type VVV
+eval auto op1 = frame[s.v3].list_val
+eval frame[s.v1].int_val = frame[s.v2].table_val->Lookup(op1) != nullptr
+
 ########## Index Expressions ##########
 
 op IndexVecBoolSelect
 type VVV
 set-type $1
+### track memory
 eval if ( frame[s.v2].vector_val->Size() != frame[s.v3].vector_val->Size() ) {
 eval	run_time_error("size mismatch, boolean index and vector"); }
 eval auto vt = s.t->AsVectorType()
 eval auto v = vector_bool_select(vt, frame[s.v2].vector_val, frame[s.v3].vector_val)
-### track memory
 eval frame[s.v1].vector_val = v->AsVectorVal()
 
 op IndexVecIntSelect
@@ -189,50 +234,50 @@ eval frame[s.v1] = AS_ValUnion(v, s.t)
 
 internal-op Index-Vec-Slice
 type VVL
+### memory
 eval auto vt = s.t->AsVectorType()
 eval auto v = vector_index(vt, frame[s.v2].vector_val, frame[s.v3].list_val)
-### memory
 eval frame[s.v1] = AS_ValUnion(v.get(), s.t)
 
 internal-op Table-Index
 type VVV
+### memory
 eval auto v2 = frame[s.v3].list_val
 eval auto v = frame[s.v2].table_val->Lookup(v2)
-### memory
 eval frame[s.v1] = AS_ValUnion(v.get(), s.t)
 
 # This version is for a variable v3.
 internal-op Index-String
 type VVV
+### memory
 eval auto str = frame[s.v2].string_val
 eval auto len = str->Len()
 eval auto idx = frame[s.v3].int_val
 eval if ( idx < 0 ) idx += len
-### memory
 eval frame[s.v1].string_val = str->GetSubstring(idx, 1)
 
 # This version is for a constant v3.
 internal-op Index-StringC
 type VVV
+### memory
 eval auto str = frame[s.v2].string_val
 eval auto len = str->Len()
 eval auto idx = s.v3
 eval if ( idx < 0 ) idx += len
-### memory
 eval frame[s.v1].string_val = str->GetSubstring(idx, 1)
 
 internal-op Index-String-Slice
 type VVL
+### memory
 eval auto str = frame[s.v2].string_val
 eval auto lv = frame[s.v3].list_val
-### memory
 eval frame[s.v1].string_val = index_string_slice(str, lv)
 
 op AnyIndex
 type VVi
 set-type $1
-eval auto lv = frame[s.v2].any_val.val_list_val
 ### memory
+eval auto lv = frame[s.v2].any_val.val_list_val
 eval frame[s.v1] = AS_ValUnion((*lv)[s.v3], s.t)
 
 ########################################
@@ -305,7 +350,6 @@ internal-op Transform-Val-Vec-To-List-Val
 type VVV
 eval frame[s.v1].list_val = ValVecToListVal(frame[s.v2].vvec, s.v3)
 
-# EXPR_ANY_INDEX
 # EXPR_RECORD_CONSTRUCTOR
 # EXPR_TABLE_CONSTRUCTOR
 # EXPR_SET_CONSTRUCTOR

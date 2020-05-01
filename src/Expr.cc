@@ -3547,6 +3547,10 @@ const CompiledStmt AssignExpr::Compile(Compiler* c) const
 	auto r2 = rhs->GetOp2();
 	auto r3 = rhs->GetOp3();
 
+	if ( rhs->Tag() == EXPR_ANY_INDEX )
+		return c->AnyIndexVVi(lhs, r1->AsNameExpr(),
+					r2->AsConstExpr()->Value()->AsInt());
+
 	if ( r1 && r2 )
 		{
 		auto v1 = IsVector(r1->Type()->Tag());

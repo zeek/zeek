@@ -159,6 +159,8 @@ expr-op Has_Field
 type R
 eval_R frame[s.v1].int_val = (frame[s.v2].record_val->Lookup(s.v3) != nullptr)
 
+########## Index Expressions ##########
+
 op IndexVecBoolSelect
 type VVV
 set-type $1
@@ -225,6 +227,13 @@ eval auto str = frame[s.v2].string_val
 eval auto lv = frame[s.v3].list_val
 ### memory
 eval frame[s.v1].string_val = index_string_slice(str, lv)
+
+op AnyIndex
+type VVi
+set-type $1
+eval auto lv = frame[s.v2].any_val.val_list_val
+### memory
+eval frame[s.v1] = AS_ValUnion((*lv)[s.v3], s.t)
 
 ########################################
 

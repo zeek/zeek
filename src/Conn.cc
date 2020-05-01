@@ -308,9 +308,10 @@ void Connection::RemoveConnectionTimer(double t)
 
 void Connection::SetInactivityTimeout(double timeout)
 	{
-	// We add a new inactivity timer even if there already is one.  When
-	// it fires, we always use the current value to check for inactivity.
-	if ( timeout )
+	// We add a new inactivity timer if there is no current timeout or if the
+	// new timeout is lower than the old one.  When it fires, we always use the
+	// current value to check for inactivity and re-schedule the next timer.
+	if ( timeout && (inactivity_timeout == 0 || timeout < inactivity_timeout) )
 		ADD_TIMER(&Connection::InactivityTimer,
 				last_time + timeout, 0, TIMER_CONN_INACTIVITY);
 

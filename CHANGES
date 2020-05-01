@@ -1,4 +1,8 @@
 
+3.2.0-dev.455 | 2020-05-01 09:44:30 -0700
+
+  * GH-938: fix IO loop iterations sometimes skipping offline pcap sources (Jon Siwek, Corelight)
+
 3.2.0-dev.451 | 2020-04-29 16:28:34 -0700
 
   * Organized and added to the shipped file identification signatures. (Seth Hall, Corelight)

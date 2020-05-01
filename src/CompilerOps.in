@@ -199,6 +199,33 @@ eval auto v = frame[s.v2].table_val->Lookup(v2)
 ### memory
 eval frame[s.v1] = AS_ValUnion(v.get(), s.t)
 
+# This version is for a variable v3.
+internal-op Index-String
+type VVV
+eval auto str = frame[s.v2].string_val
+eval auto len = str->Len()
+eval auto idx = frame[s.v3].int_val
+eval if ( idx < 0 ) idx += len
+### memory
+eval frame[s.v1].string_val = str->GetSubstring(idx, 1)
+
+# This version is for a constant v3.
+internal-op Index-StringC
+type VVV
+eval auto str = frame[s.v2].string_val
+eval auto len = str->Len()
+eval auto idx = s.v3
+eval if ( idx < 0 ) idx += len
+### memory
+eval frame[s.v1].string_val = str->GetSubstring(idx, 1)
+
+internal-op Index-String-Slice
+type VVL
+eval auto str = frame[s.v2].string_val
+eval auto lv = frame[s.v3].list_val
+### memory
+eval frame[s.v1].string_val = index_string_slice(str, lv)
+
 ########################################
 
 unary-op AppendTo

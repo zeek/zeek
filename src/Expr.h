@@ -809,13 +809,15 @@ protected:
 // Functions used by IndexExpr for evaluation.  Factored out so
 // that compiled statements can call them too.
 
-// Assumes that a length check has already been made.
+// This first one assumes that a length check has already been made.
 extern IntrusivePtr<Val> vector_bool_select(VectorType* t, const VectorVal* v1,
 						const VectorVal* v2);
 extern IntrusivePtr<Val> vector_int_select(VectorType* t, const VectorVal* v1,
 						const VectorVal* v2);
 extern IntrusivePtr<Val> vector_index(VectorType* vt, const VectorVal* vect,
 						const ListVal* lv);
+
+extern BroString* index_string_slice(const BroString* s, const ListVal* lv);
 
 // Any internal call used for [a, b, c, ...] = x assignments.
 class AnyIndexExpr : public UnaryExpr {

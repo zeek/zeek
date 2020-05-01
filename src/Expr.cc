@@ -3914,14 +3914,15 @@ IntrusivePtr<Val> IndexExpr::Fold(Val* v1, Val* v2) const
 		break;
 
 	case TYPE_TABLE:
-		v = v1->AsTableVal()->Lookup(v2); // Then, we jump into the TableVal here.
+		// I have no idea what this next comment refers to - VP:
+		// Then, we jump into the TableVal here.
+		v = v1->AsTableVal()->Lookup(v2);
 		break;
 
 	case TYPE_STRING:
 		{
 		const ListVal* lv = v2->AsListVal();
 		const BroString* s = v1->AsString();
-		int len = s->Len();
 		BroString* substring = 0;
 
 		if ( lv->Length() == 1 )
@@ -3929,22 +3930,13 @@ IntrusivePtr<Val> IndexExpr::Fold(Val* v1, Val* v2) const
 			bro_int_t idx = lv->Index(0)->AsInt();
 
 			if ( idx < 0 )
-				idx += len;
+				idx += s->Len();
 
 			// Out-of-range index will return null pointer.
 			substring = s->GetSubstring(idx, 1);
 			}
 		else
-			{
-			bro_int_t first = get_slice_index(lv->Index(0)->AsInt(), len);
-			bro_int_t last = get_slice_index(lv->Index(1)->AsInt(), len);
-			bro_int_t substring_len = last - first;
-
-			if ( substring_len < 0 )
-				substring = 0;
-			else
-				substring = s->GetSubstring(first, substring_len);
-			}
+			substring = index_string_slice(s, lv);
 
 		return make_intrusive<StringVal>(substring ? substring : new BroString(""));
 		}
@@ -4021,6 +4013,20 @@ IntrusivePtr<Val> vector_index(VectorType* vt, const VectorVal* vect,
 		}
 
 	return result;
+	}
+
+BroString* index_string_slice(const BroString* s, const ListVal* lv)
+	{
+	int len = s->Len();
+
+	bro_int_t first = get_slice_index(lv->Index(0)->AsInt(), len);
+	bro_int_t last = get_slice_index(lv->Index(1)->AsInt(), len);
+	bro_int_t substring_len = last - first;
+
+	if ( substring_len < 0 )
+		return 0;
+	else
+		return s->GetSubstring(first, substring_len);
 	}
 
 void IndexExpr::Assign(Frame* f, IntrusivePtr<Val> v)

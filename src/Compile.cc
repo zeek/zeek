@@ -513,6 +513,29 @@ const CompiledStmt AbstractMachine::CompileIndex(const NameExpr* n1,
 	AbstractStmt s;
 
 	int n = l->Exprs().length();
+	auto n2t = n2->Type()->Tag();
+
+	if ( n == 1 && n2t == TYPE_STRING )
+		{
+		auto ind = l->Exprs()[0];
+		if ( ind->Tag() == EXPR_NAME )
+			{
+			auto n3 = ind->AsNameExpr();
+			s = AbstractStmt(OP_INDEX_STRING_VVV, FrameSlot(n1),
+					FrameSlot(n2), FrameSlot(n3));
+			}
+
+		else
+			{
+			auto c = ind->AsConstExpr()->Value()->AsInt();
+			s = AbstractStmt(OP_INDEX_STRINGC_VVV, FrameSlot(n1),
+					FrameSlot(n2), c);
+			}
+
+		s.t = n1->Type().get();
+		return AddStmt(s);
+		}
+
 	auto build_indices = InternalBuildVals(l);
 	s = AbstractStmt(OP_TRANSFORM_VAL_VEC_TO_LIST_VAL_VVV,
 				build_indices, build_indices, n);
@@ -523,8 +546,8 @@ const CompiledStmt AbstractMachine::CompileIndex(const NameExpr* n1,
 	switch ( n2->Type()->Tag() ) {
 	case TYPE_VECTOR:
 		{
-		AbstractOp op = indexes.length() == 1 ?
-				OP_INDEX_VEC_VVL : OP_INDEX_VEC_SLICE_VVL;
+		AbstractOp op =
+			n == 1 ? OP_INDEX_VEC_VVL : OP_INDEX_VEC_SLICE_VVL;
 
 		s = AbstractStmt(op, FrameSlot(n1), FrameSlot(n2),
 					build_indices);
@@ -537,47 +560,13 @@ const CompiledStmt AbstractMachine::CompileIndex(const NameExpr* n1,
 		s.t = n1->Type().get();
 		break;
 
-#if 0
-	case TYPE_TABLE:
-		v = v1->AsTableVal()->Lookup(v2); // Then, we jump into the TableVal here.
-		break;
-
 	case TYPE_STRING:
-		{
-		const ListVal* lv = v2->AsListVal();
-		const BroString* s = v1->AsString();
-		int len = s->Len();
-		BroString* substring = 0;
-
-		if ( lv->Length() == 1 )
-			{
-			bro_int_t idx = lv->Index(0)->AsInt();
-
-			if ( idx < 0 )
-				idx += len;
-
-			// Out-of-range index will return null pointer.
-			substring = s->GetSubstring(idx, 1);
-			}
-		else
-			{
-			bro_int_t first = get_slice_index(lv->Index(0)->AsInt(), len);
-			bro_int_t last = get_slice_index(lv->Index(1)->AsInt(), len);
-			bro_int_t substring_len = last - first;
-
-			if ( substring_len < 0 )
-				substring = 0;
-			else
-				substring = s->GetSubstring(first, substring_len);
-			}
-
-		return make_intrusive<StringVal>(substring ? substring : new BroString(""));
-		}
-#endif
+		s = AbstractStmt(OP_INDEX_STRING_SLICE_VVL, FrameSlot(n1),
+					FrameSlot(n2), build_indices);
+		break;
 
 	default:
-		run_time_error("type cannot be indexed");
-		break;
+		reporter->InternalError("bad aggregate type when compiling index");
 	}
 
 	s.t = n1->Type().get();

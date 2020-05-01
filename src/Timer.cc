@@ -93,7 +93,7 @@ void TimerMgr::Process()
 	// pseudo-realtime), advance the timer here to the current time since otherwise it won't
 	// move forward and the timers won't fire correctly.
 	iosource::PktSrc* pkt_src = iosource_mgr->GetPktSrc();
-	if ( ! pkt_src || ! pkt_src->IsOpen() || reading_live )
+	if ( ! pkt_src || ! pkt_src->IsOpen() || reading_live || net_is_processing_suspended() )
 		net_update_time(current_time());
 
 	// Just advance the timer manager based on the current network time. This won't actually

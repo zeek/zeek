@@ -5521,8 +5521,17 @@ IntrusivePtr<Val> ScheduleExpr::Eval(Frame* f) const
 
 const CompiledStmt ScheduleExpr::Compile(Compiler* c) const
 	{
-	// ###
-	return c->StartingBlock();
+	IntrusivePtr<ListExpr> event_args = {NewRef{}, event->Args()};
+	auto handler = event->Handler();
+
+	bool is_interval = when->Type()->Tag() == TYPE_INTERVAL;
+
+	if ( when->Tag() == EXPR_NAME )
+		return c->ScheduleViHL(when->AsNameExpr(), is_interval,
+					handler, event_args.get());
+	else
+		return c->ScheduleCiHL(when->AsConstExpr(), is_interval,
+					handler, event_args.get());
 	}
 
 IntrusivePtr<Expr> ScheduleExpr::GetOp1() const

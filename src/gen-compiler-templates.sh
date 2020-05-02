@@ -39,6 +39,8 @@ BEGIN	{
 
 	args["VLV"] = "(const NameExpr* n1, const ListExpr* l, const NameExpr* n2)"
 	args["VVL"] = "(const NameExpr* n1, const NameExpr* n2, const ListExpr* l)"
+	args["ViHL"] = "(const NameExpr* n, int i, EventHandlerPtr h, const ListExpr* l)"
+	args["CiHL"] = "(const ConstExpr* c, int i, EventHandlerPtr h, const ListExpr* l)"
 
 	args2["X"] = ""
 	args2["O"] = "reg"

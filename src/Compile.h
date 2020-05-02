@@ -10,6 +10,7 @@ class NameExpr;
 class ConstExpr;
 class FieldExpr;
 class ListExpr;
+class EventHandlerPtr;
 
 // Class representing a single compiled statement.  Designed to
 // be fully opaque, but also effective without requiring pointer
@@ -120,6 +121,10 @@ protected:
 
 	const CompiledStmt CompileIndex(const NameExpr* n1, const NameExpr* n2,
 					const ListExpr* l);
+
+	const CompiledStmt CompileSchedule(const NameExpr* n,
+					const ConstExpr* c, int is_interval,
+					EventHandlerPtr h, const ListExpr* l);
 
 	ListVal* ValVecToListVal(val_vec* v, int n) const;
 

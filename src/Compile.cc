@@ -4,6 +4,7 @@
 #include "Expr.h"
 #include "RE.h"
 #include "OpaqueVal.h"
+#include "EventHandler.h"
 #include "Desc.h"
 #include "Reporter.h"
 #include "Traverse.h"
@@ -288,6 +289,7 @@ public:
 	BroType* t = nullptr;
 	const Expr* e = nullptr;
 	int* int_ptr = nullptr;
+	EventHandler* event_handler = nullptr;
 
 	AS_ValUnion c;	// constant
 
@@ -668,7 +670,7 @@ int AbstractMachine::InternalBuildVals(const ListExpr* l)
 	int n = exprs.length();
 	auto tmp = RegisterSlot();
 
-	(void) AddStmt(AbstractStmt(OP_CREATE_VAL_VEC_VV, tmp, n));
+	(void) AddStmt(AbstractStmt(OP_CREATE_VAL_VEC_V, tmp, n));
 
 	for ( int i = 0; i < n; ++i )
 		{
@@ -829,6 +831,28 @@ const CompiledStmt AbstractMachine::CompileIndex(const NameExpr* n1,
 	}
 
 	s.t = n1->Type().get();
+	return AddStmt(s);
+	}
+
+const CompiledStmt AbstractMachine::CompileSchedule(const NameExpr* n,
+					const ConstExpr* c, int is_interval,
+					EventHandlerPtr h, const ListExpr* l)
+	{
+	int len = l->Exprs().length();
+	auto build_indices = InternalBuildVals(l);
+
+	AddStmt(AbstractStmt(OP_TRANSFORM_VAL_VEC_TO_LIST_VAL_VVV,
+				build_indices, build_indices, len));
+
+	AbstractStmt s;
+
+	if ( n )
+		s = AbstractStmt(OP_SCHEDULE_ViHL, FrameSlot(n), build_indices);
+	else
+		s = AbstractStmt(OP_SCHEDULE_CiHL, build_indices, c);
+
+	s.event_handler = h.Ptr();
+
 	return AddStmt(s);
 	}
 

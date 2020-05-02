@@ -456,6 +456,26 @@ eval auto v = s.c.ToVal(s.t)
 eval frame[s.v1].record_val->Assign(s.v2, v)
 method-pre	SyncGlobals()
 
+op Schedule
+type ViHL
+custom-method return CompileSchedule(n, nullptr, i, h, l);
+eval double dt = frame[s.v1].double_val
+eval if ( s.v2 ) dt += network_time
+eval auto handler = EventHandlerPtr(s.event_handler)
+eval auto args = frame[s.v3].vvec
+eval auto timer = new ScheduleTimer(handler, *args, dt)
+eval timer_mgr->Add(timer)
+
+op Schedule
+type CiHL
+custom-method return CompileSchedule(nullptr, c, i, h, l);
+eval double dt = s.c.double_val
+eval if ( s.v2 ) dt += network_time
+eval auto hp = EventHandlerPtr(s.event_handler)
+eval auto args = frame[s.v3].vvec
+eval auto timer = new ScheduleTimer(hp, *args, dt)
+eval timer_mgr->Add(timer)
+
 op Return
 type X
 eval ret_u = nullptr
@@ -476,8 +496,6 @@ eval ret_type = s.t
 eval loop = false
 method-pre	SyncGlobals()
 
-########################################
-
 op Print
 type O
 eval auto vvec = frame[s.v1].vvec
@@ -497,7 +515,7 @@ method-pre int reg = v->n; delete v
 # use).
 
 internal-op Create-Val-Vec
-type VV
+type V
 eval frame[s.v1].vvec = new val_vec
 
 # Appends v2 to the vector pointed to by v1.

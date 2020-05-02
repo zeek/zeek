@@ -300,9 +300,6 @@ direct-unary-op Vector-Constructor InterpretExpr
 ########## Coercions ##########
 
 direct-unary-op Arith-Coerce ArithCoerce
-direct-unary-op Record-Coerce RecordCoerce
-direct-unary-op Table-Coerce TableCoerce
-direct-unary-op Vector-Coerce VectorCoerce
 
 internal-op Coerce-UI
 type VV
@@ -352,6 +349,20 @@ eval frame[s.v1].double_val = double(frame[s.v2].uint_val)
 internal-op Coerce-DU-Vec
 type VV
 eval frame[s.v1].raw_vector_val = vec_coerce_DU(frame[s.v2].raw_vector_val)
+
+direct-unary-op Record-Coerce RecordCoerce
+
+internal-op RecordCoerce
+type VVV
+### memory
+eval auto rt = s.t->AsRecordType()
+eval auto v = frame[s.v2].record_val
+eval auto map = s.int_ptr
+eval auto map_size = s.v3
+eval frame[s.v1].record_val = coerce_to_record(rt, v, map, map_size)->AsRecordVal()
+
+direct-unary-op Table-Coerce TableCoerce
+direct-unary-op Vector-Coerce VectorCoerce
 
 ########################################
 

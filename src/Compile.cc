@@ -267,6 +267,7 @@ public:
 	int v1, v2, v3, v4;
 	BroType* t = nullptr;
 	const Expr* e = nullptr;
+	int* int_ptr = nullptr;
 
 	AS_ValUnion c;	// constant
 
@@ -547,6 +548,18 @@ const CompiledStmt AbstractMachine::ArithCoerce(const NameExpr* n,
 const CompiledStmt AbstractMachine::RecordCoerce(const NameExpr* n,
 						const Expr* e)
 	{
+	auto r = e->AsRecordCoerceExpr();
+	auto op = r->GetOp1()->AsNameExpr();
+	auto map = r->Map();
+	auto map_size = r->MapSize();
+
+	AbstractStmt s(OP_RECORDCOERCE_VVV, FrameSlot(n), FrameSlot(op),
+			map_size);
+
+	s.t = e->Type().get();
+	s.int_ptr = map;
+
+	return AddStmt(s);
 	}
 
 const CompiledStmt AbstractMachine::TableCoerce(const NameExpr* n,

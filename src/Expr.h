@@ -88,6 +88,7 @@ class RemoveFromExpr;
 class NegExpr;
 class ConstExpr;
 class CondExpr;
+class RecordCoerceExpr;
 
 struct function_ingredients;
 
@@ -274,6 +275,7 @@ public:
 	ACCESSORS(EXPR_INDEX, IndexExpr, AsIndexExpr);
 	ACCESSORS(EXPR_REF, RefExpr, AsRefExpr);
 	ACCESSORS(EXPR_EVENT, EventExpr, AsEventExpr);
+	ACCESSORS(EXPR_RECORD_COERCE, RecordCoerceExpr, AsRecordCoerceExpr);
 
 	CONST_ACCESSOR(EXPR_HAS_FIELD, HasFieldExpr, AsHasFieldExpr);
 	CONST_ACCESSOR(EXPR_CALL, CallExpr, AsCallExpr);
@@ -1009,6 +1011,11 @@ public:
 	RecordCoerceExpr(IntrusivePtr<Expr> op, IntrusivePtr<RecordType> r);
 	~RecordCoerceExpr() override;
 
+	// These are only made available for the compiler.  Alternatively,
+	// we could make it a friend class.
+	int* Map() const	{ return map; }
+	int MapSize() const	{ return map_size; }
+
 protected:
 	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
 	IntrusivePtr<Val> Fold(Val* v) const override;
@@ -1018,6 +1025,9 @@ protected:
 	int* map;
 	int map_size;	// equivalent to Type()->AsRecordType()->NumFields()
 };
+
+extern IntrusivePtr<Val> coerce_to_record(RecordType* rt, Val* v,
+						int* map, int map_size);
 
 class TableCoerceExpr : public UnaryExpr {
 public:

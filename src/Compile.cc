@@ -507,7 +507,7 @@ const CompiledStmt AbstractMachine::InterpretExpr(const NameExpr* n,
 							const Expr* e)
 	{
 	// ### need to flush any variables used in e!
-	AbstractStmt s(OP_INTERPRET_EXPR_V, FrameSlot(n), e);
+	return AddStmt(AbstractStmt(OP_INTERPRET_EXPR_V, FrameSlot(n), e));
 	}
 
 const CompiledStmt AbstractMachine::ArithCoerce(const NameExpr* n,

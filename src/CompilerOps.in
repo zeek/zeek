@@ -509,6 +509,4 @@ internal-op Interpret-Expr
 type V
 eval frame[s.v1] = AS_ValUnion(s.e->Eval(f).get(), s.t)
 
-# EXPR_IS
-
 # EXPR_LAMBDA

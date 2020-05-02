@@ -177,7 +177,7 @@ IntrusivePtr<Val> AS_ValUnion::ToVal(BroType* t) const
 // Possible types of statement operands in terms of which
 // fields they use.  Used for dumping statements.
 typedef enum {
-	OP_X, OP_V, OP_VV, OP_VVV, OP_VVVV, OP_C, OP_VC, OP_VVC, OP_VE,
+	OP_X, OP_V, OP_VV, OP_VVV, OP_VVVV, OP_VVVC, OP_C, OP_VC, OP_VVC, OP_VE,
 } AS_OpType;
 
 class AbstractStmt {
@@ -246,6 +246,17 @@ public:
 		InitConst(ce);
 		}
 
+	AbstractStmt(AbstractOp _op, int _v1, int _v2, int _v3,
+			const ConstExpr* ce)
+		{
+		op = _op;
+		v1 = _v1;
+		v2 = _v2;
+		v3 = _v3;
+		op_type = OP_VVVC;
+		InitConst(ce);
+		}
+
 	AbstractStmt(AbstractOp _op, int _v1, const Expr* _e)
 		{
 		op = _op;
@@ -305,6 +316,10 @@ void AbstractStmt::Dump() const
 
 	case OP_VVVV:
 		printf("%d, %d, %d, %d", v1, v2, v3, v4);
+		break;
+
+	case OP_VVVC:
+		printf("%d, %d, %d, %s", v1, v2, v3, ConstDump());
 		break;
 
 	case OP_C:
@@ -394,6 +409,22 @@ AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const NameExpr* v1,
 			const NameExpr* v2, const ConstExpr* ce)
 	{
 	return AbstractStmt(op, m->FrameSlot(v1), m->FrameSlot(v2), ce);
+	}
+AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const NameExpr* v1,
+			const NameExpr* v2, const NameExpr* v3,
+			const ConstExpr* ce)
+	{
+	return AbstractStmt(op, m->FrameSlot(v1), m->FrameSlot(v2),
+				m->FrameSlot(v3), ce);
+	}
+AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const NameExpr* v1,
+			const NameExpr* v2, const ConstExpr* ce,
+			const NameExpr* v3)
+	{
+	// Note that here we reverse the order of the arguments; saves
+	// us from needing to implement a redundant constructor.
+	return AbstractStmt(op, m->FrameSlot(v1), m->FrameSlot(v2),
+				m->FrameSlot(v3), ce);
 	}
 AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const NameExpr* v1,
 			const NameExpr* v2, int i)

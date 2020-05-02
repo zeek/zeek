@@ -31,6 +31,8 @@ BEGIN	{
 	args["C"] = "(const ConstExpr* c)"
 	args["VC"] = "(const NameExpr* n, ConstExpr* c)"
 	args["VVC"] = "(const NameExpr* n1, const NameExpr* n2, ConstExpr* c)"
+	args["VVVC"] = "(const NameExpr* n1, const NameExpr* n2, const NameExpr* n3, ConstExpr* c)"
+	args["VVCV"] = "(const NameExpr* n1, const NameExpr* n2, ConstExpr*c, const NameExpr* n3)"
 	args["VVi"] = "(const NameExpr* n1, const NameExpr* n2, int i)"
 	args["VCV"] = "(const NameExpr* n1, ConstExpr* c, const NameExpr* n2)"
 
@@ -47,6 +49,8 @@ BEGIN	{
 	args2["C"] = "c"
 	args2["VC"] = "n, c"
 	args2["VVC"] = "n1, n2, c"
+	args2["VVVC"] = "n1, n2, n3, c"
+	args2["VVCV"] = "n1, n2, c, n3"
 	args2["VVi"] = "n1, n2, i"
 	args2["VCV"] = "n1, c, n2"
 
@@ -54,9 +58,8 @@ BEGIN	{
 	exprC1["VCV"] = "lhs, r1->AsConstExpr(), r2->AsNameExpr()"
 
 	exprC2["VVC"] = "lhs, r1->AsNameExpr(), r2->AsConstExpr()"
-	exprC2["VVi"] = "lhs, r1->AsNameExpr(), r2->AsConstExpr()->Value()->AsInt()"
-	exprC2["VVCC"] = "lhs, r1->AsNameExpr(), r2->AsConstExpr(), r3->AsConstExpr()"
 	exprC2["VVCV"] = "lhs, r1->AsNameExpr(), r2->AsConstExpr(), r3->AsNameExpr()"
+	exprC2["VVi"] = "lhs, r1->AsNameExpr(), r2->AsConstExpr()->Value()->AsInt()"
 
 	exprC3["VVVC"] = "lhs, r1->AsNameExpr(), r2->AsNameExpr(), r3->AsConstExpr()"
 

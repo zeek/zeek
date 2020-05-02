@@ -208,6 +208,18 @@ type VVV
 eval auto op1 = frame[s.v3].list_val
 eval frame[s.v1].int_val = frame[s.v2].table_val->Lookup(op1) != nullptr
 
+expr-op Cond
+type VVVV
+eval frame[s.v1] = frame[s.v2].int_val ? frame[s.v3] : frame[s.v4]
+
+expr-op Cond
+type VVVC
+eval frame[s.v1] = frame[s.v2].int_val ? frame[s.v3] : s.c
+
+expr-op Cond
+type VVCV
+eval frame[s.v1] = frame[s.v2].int_val ? s.c : frame[s.v3]
+
 ########## Index Expressions ##########
 
 op IndexVecBoolSelect
@@ -463,8 +475,6 @@ eval frame[s.v1].list_val = ValVecToListVal(frame[s.v2].vvec, s.v3)
 internal-op Interpret-Expr
 type V
 eval frame[s.v1] = AS_ValUnion(s.e->Eval(f).get(), s.t)
-
-# EXPR_COND
 
 # EXPR_FLATTEN
 # EXPR_CAST

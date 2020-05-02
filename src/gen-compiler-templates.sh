@@ -136,6 +136,7 @@ $1 ~ /^op-type(s?)$/	{ build_op_types(); next }
 $1 == "opaque"	{ opaque = 1; next }
 
 $1 == "set-type"	{ set_type = $2; next }
+$1 == "set-expr"	{ set_expr = $2; next }
 
 $1 ~ /^eval((_[ANPRST])?)$/	{
 		if ( $1 != "eval" )
@@ -674,13 +675,13 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 			part2c = "\t" part2c
 			}
 
+		# Provide access to the individual variables.
+		split(args2[type], vars, /, /)
+
 		if ( set_type )
 			{
 			# Remove extraneous $, if present.
 			sub(/\$/, "", set_type)
-
-			# Extract the nth variable.
-			split(args2[type], vars, /, /)
 
 			part2b = "\ts.t = " vars[set_type] "->Type().get();\n"
 
@@ -689,6 +690,17 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 			}
 		else
 			part2b = ""
+
+		if ( set_expr )
+			{
+			# Remove extraneous $, if present.
+			sub(/\$/, "", set_expr)
+
+			part2b = part2b "\ts.e = " vars[set_expr] ";\n"
+
+			if ( sub_type )
+				part2b = "\t" part2b
+			}
 
 		part2 = part2a part2b part2c
 
@@ -767,7 +779,7 @@ function build_method_conditional(o, n)
 
 function clear_vars()
 	{
-	opaque = set_type = type = operand_type = ""
+	opaque = set_expr = set_type = type = operand_type = ""
 	custom_method = method_pre = eval_pre = ""
 	no_eval = mix_eval = multi_eval = eval_blank = ""
 	vector = binary_op = internal_op = rel_op = ary_op = expr_op = op = ""

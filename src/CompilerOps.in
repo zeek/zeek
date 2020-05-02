@@ -40,8 +40,17 @@ unary-op Flatten
 op-type X
 eval const char* error;
 eval auto res = flatten_value(frame[s.v2].record_val, s.v3, error);
-eval frame[s.v1].record_val = res->AsRecordVal();
 eval if ( error ) run_time_error(error);
+eval frame[s.v1].record_val = res->AsRecordVal();
+
+unary-op Cast
+set-type $1
+set-expr $2
+eval const char* error
+eval auto rhs = frame[s.v2].ToVal(s.e->Type().get()).get()
+eval auto res = cast_value(rhs, s.t, error).get()
+eval if ( error ) run_time_error(error)
+eval frame[s.v1] = AS_ValUnion(res, s.t)
 
 ########## Binary Ops ##########
 
@@ -494,7 +503,6 @@ internal-op Interpret-Expr
 type V
 eval frame[s.v1] = AS_ValUnion(s.e->Eval(f).get(), s.t)
 
-# EXPR_CAST
 # EXPR_IS
 
 # EXPR_LAMBDA

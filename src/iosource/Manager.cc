@@ -167,7 +167,7 @@ void Manager::FindReadySources(std::vector<IOSource*>* ready)
 				else
 					{
 					if ( ! pseudo_realtime )
-						// A pcap file is always ready to process.
+						// A pcap file is always ready to process unless it's suspended
 						ready->push_back(pkt_src);
 					}
 				}

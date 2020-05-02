@@ -5366,6 +5366,17 @@ FlattenExpr::FlattenExpr(IntrusivePtr<Expr> arg_op)
 
 IntrusivePtr<Val> FlattenExpr::Fold(Val* v) const
 	{
+	const char* error;
+	auto res = flatten_value(v, num_fields, error);
+
+	if ( error )
+		RuntimeError(error);
+
+	return res;
+	}
+
+IntrusivePtr<Val> flatten_value(Val* v, int num_fields, const char*& error)
+	{
 	RecordVal* rv = v->AsRecordVal();
 	auto l = make_intrusive<ListVal>(TYPE_ANY);
 
@@ -5382,7 +5393,7 @@ IntrusivePtr<Val> FlattenExpr::Fold(Val* v) const
 			l->Append(fa->AttrExpr()->Eval(nullptr).release());
 
 		else
-			RuntimeError("missing field value");
+			error = "missing field value";
 		}
 
 	return l;

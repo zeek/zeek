@@ -36,6 +36,13 @@ unary-op AppendTo
 eval auto vv = frame[s.v1].vector_val
 eval vv->Assign(vv->Size(), $1.ToVal(s.t))
 
+unary-op Flatten
+op-type X
+eval const char* error;
+eval auto res = flatten_value(frame[s.v2].record_val, s.v3, error);
+eval frame[s.v1].record_val = res->AsRecordVal();
+eval if ( error ) run_time_error(error);
+
 ########## Binary Ops ##########
 
 binary-expr-op Add
@@ -476,7 +483,6 @@ internal-op Interpret-Expr
 type V
 eval frame[s.v1] = AS_ValUnion(s.e->Eval(f).get(), s.t)
 
-# EXPR_FLATTEN
 # EXPR_CAST
 # EXPR_IS
 

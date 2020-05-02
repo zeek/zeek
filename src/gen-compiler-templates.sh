@@ -79,6 +79,7 @@ BEGIN	{
 	accessors["R"] = ""	# not ".record_val"
 	accessors["S"] = ".string_val"
 	accessors["T"] = ".table_val"
+	accessors["X"] = "###"
 
 	# Update eval(...) below
 
@@ -157,7 +158,8 @@ $1 ~ /^eval((_[ANPRST])?)$/	{
 
 		if ( eval[eval_sub] )
 			{
-			if ( operand_type && ! eval_sub && ! binary_op )
+			if ( operand_type && ! eval_sub && ! binary_op &&
+			     op_type_rep != "X" )
 				gripe("cannot intermingle op-type and multi-line evals")
 
 			eval[eval_sub] = eval[eval_sub] "\n\t\t" new_eval
@@ -291,9 +293,21 @@ function dump_op()
 			# Loop over operand types for unary operator.
 			for ( i in op_types )
 				{
-				sel = eval_selector[i]
-				ex = expand_eval(eval[sel], expr_op, i, i, j, 0)
-				build_op(op, "V" op1, i, i, eval[sel], ex, j, 0)
+				if ( i == "X" )
+					{
+					# Just use the raw eval.
+					ex = eval[""]
+					esel = ""
+					}
+				else
+					{
+					sel = eval_selector[i]
+					esel = eval[sel]
+					ex = expand_eval(esel, expr_op,
+								i, i, j, 0)
+					}
+
+				build_op(op, "V" op1, i, i, esel, ex, j, 0)
 				}
 
 			continue;
@@ -652,7 +666,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 		part2a = ", " args2[type] ");\n"
 		part2c = "\treturn AddStmt(s);"
 
-		if ( sub_type )
+		if ( sub_type && sub_type != "X" )
 			{
 			# The code will be indented due to if-else constructs.
 			part1 = "\t" part1
@@ -678,7 +692,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 
 		part2 = part2a part2b part2c
 
-		if ( sub_type )
+		if ( sub_type && sub_type != "X" )
 			{
 			# Need braces for multi-line parts.
 			part1 = "\t\t{\n" part1

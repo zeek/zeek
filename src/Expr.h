@@ -1059,6 +1059,9 @@ protected:
 	int num_fields;
 };
 
+extern IntrusivePtr<Val> flatten_value(Val* v, int num_fields,
+					const char*& error);
+
 class ScheduleTimer : public Timer {
 public:
 	ScheduleTimer(const EventHandlerPtr& event, zeek::Args args, double t);

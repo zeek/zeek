@@ -1250,6 +1250,8 @@ protected:
 	void ExprDescribe(ODesc* d) const override;
 };
 
+extern IntrusivePtr<Val> cast_value(Val* v, BroType* t, const char*& error);
+
 class IsExpr : public UnaryExpr {
 public:
 	IsExpr(IntrusivePtr<Expr> op, IntrusivePtr<BroType> t);

@@ -5377,6 +5377,8 @@ IntrusivePtr<Val> FlattenExpr::Fold(Val* v) const
 
 IntrusivePtr<Val> flatten_value(Val* v, int num_fields, const char*& error)
 	{
+	error = nullptr;
+
 	RecordVal* rv = v->AsRecordVal();
 	auto l = make_intrusive<ListVal>(TYPE_ANY);
 
@@ -6678,27 +6680,39 @@ IntrusivePtr<Val> CastExpr::Eval(Frame* f) const
 
 	auto v = op->Eval(f);
 
-	if ( ! v )
-		return nullptr;
+	const char* error;
+	auto res = cast_value(v.get(), Type().get(), error);
 
-	auto nv = cast_value_to_type(v.get(), Type().get());
+	if ( error )
+		RuntimeError(error);
+
+	return res;
+	}
+
+IntrusivePtr<Val> cast_value(Val* v, BroType* t, const char*& error)
+	{
+	error = nullptr;
+
+	auto nv = cast_value_to_type(v, t);
 
 	if ( nv )
 		return nv;
 
-	ODesc d;
+	static ODesc d;
+	d.Clear();
+
 	d.Add("invalid cast of value with type '");
 	v->Type()->Describe(&d);
 	d.Add("' to type '");
-	Type()->Describe(&d);
+	t->Describe(&d);
 	d.Add("'");
 
 	if ( same_type(v->Type(), bro_broker::DataVal::ScriptDataType()) &&
 		 ! v->AsRecordVal()->Lookup(0) )
 		d.Add(" (nil $data field)");
 
-	RuntimeError(d.Description());
-	return nullptr;  // not reached.
+	error = d.Description();
+	return nullptr;
 	}
 
 void CastExpr::ExprDescribe(ODesc* d) const

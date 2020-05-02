@@ -3746,8 +3746,7 @@ IntrusivePtr<Val> IndexSliceAssignExpr::Eval(Frame* f) const
 
 const CompiledStmt IndexSliceAssignExpr::Compile(Compiler* c) const
 	{
-	// ###
-	return c->StartingBlock();
+	return c->InterpretExpr(this);
 	}
 
 
@@ -4206,8 +4205,13 @@ Expr* FieldLHSAssignExpr::ReduceToSingleton(Reducer* c,
 
 const CompiledStmt FieldLHSAssignExpr::Compile(Compiler* c) const
 	{
-	// ###
-	return c->StartingBlock();
+	auto lhs = Op1()->AsNameExpr();
+	auto rhs = Op2();
+
+	if ( rhs->Tag() == EXPR_NAME )
+		return c->Field_LHS_AssignVVi(lhs, rhs->AsNameExpr(), field);
+	else
+		return c->Field_LHS_AssignVCi(lhs, rhs->AsConstExpr(), field);
 	}
 
 void FieldLHSAssignExpr::ExprDescribe(ODesc* d) const

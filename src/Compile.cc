@@ -440,6 +440,11 @@ AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const NameExpr* v1,
 				m->FrameSlot(v3), ce);
 	}
 AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const NameExpr* v1,
+			const ConstExpr* c, int i)
+	{
+	return AbstractStmt(op, m->FrameSlot(v1), i, c);
+	}
+AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const NameExpr* v1,
 			const NameExpr* v2, int i)
 	{
 	return AbstractStmt(op, m->FrameSlot(v1), m->FrameSlot(v2), i);

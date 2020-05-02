@@ -442,6 +442,20 @@ eval frame[s.v1].vector_val = new VectorVal(t)
 
 ########################################
 
+op Field-LHS-Assign
+type VVi
+set-type $2
+eval auto v = frame[s.v2].ToVal(s.t)
+eval frame[s.v1].record_val->Assign(s.v3, v)
+method-pre	SyncGlobals()
+
+op Field-LHS-Assign
+type VCi
+set-type $2
+eval auto v = s.c.ToVal(s.t)
+eval frame[s.v1].record_val->Assign(s.v2, v)
+method-pre	SyncGlobals()
+
 op Return
 type X
 eval ret_u = nullptr

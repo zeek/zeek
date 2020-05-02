@@ -3551,6 +3551,12 @@ const CompiledStmt AssignExpr::Compile(Compiler* c) const
 	auto r2 = rhs->GetOp2();
 	auto r3 = rhs->GetOp3();
 
+	if ( rhs->Tag() == EXPR_LAMBDA )
+		{
+		Error("lambda expressions not supported for compiling");
+		return c->ErrorStmt();
+		}
+
 	if ( rhs->Tag() == EXPR_IN && r2->Type()->Tag() == TYPE_TABLE )
 		return c->L_In_TVLV(lhs, r1->AsListExpr(), r2->AsNameExpr());
 

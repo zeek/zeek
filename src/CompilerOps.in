@@ -508,5 +508,3 @@ eval frame[s.v1].list_val = ValVecToListVal(frame[s.v2].vvec, s.v3)
 internal-op Interpret-Expr
 type V
 eval frame[s.v1] = AS_ValUnion(s.e->Eval(f).get(), s.t)
-
-# EXPR_LAMBDA

@@ -352,7 +352,7 @@ eval frame[s.v1].raw_vector_val = vec_coerce_DU(frame[s.v2].raw_vector_val)
 
 direct-unary-op Record-Coerce RecordCoerce
 
-internal-op RecordCoerce
+internal-op Record-Coerce
 type VVV
 ### memory
 eval auto rt = s.t->AsRecordType()
@@ -362,6 +362,16 @@ eval auto map_size = s.v3
 eval frame[s.v1].record_val = coerce_to_record(rt, v, map, map_size)->AsRecordVal()
 
 direct-unary-op Table-Coerce TableCoerce
+
+internal-op Table-Coerce
+type VV
+### memory
+eval auto tv = frame[s.v2].table_val
+eval if ( tv->Size() > 0 ) run_time_error("coercion of non-empty table/set");
+eval IntrusivePtr<TableType> tt = {NewRef{}, s.t->AsTableType()}
+eval IntrusivePtr<Attributes> attrs = {NewRef{}, tv->Attrs()}
+eval frame[s.v1].table_val = new TableVal(tt, attrs)
+
 direct-unary-op Vector-Coerce VectorCoerce
 
 ########################################

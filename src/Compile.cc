@@ -553,7 +553,7 @@ const CompiledStmt AbstractMachine::RecordCoerce(const NameExpr* n,
 	auto map = r->Map();
 	auto map_size = r->MapSize();
 
-	AbstractStmt s(OP_RECORDCOERCE_VVV, FrameSlot(n), FrameSlot(op),
+	AbstractStmt s(OP_RECORD_COERCE_VVV, FrameSlot(n), FrameSlot(op),
 			map_size);
 
 	s.t = e->Type().get();
@@ -565,6 +565,12 @@ const CompiledStmt AbstractMachine::RecordCoerce(const NameExpr* n,
 const CompiledStmt AbstractMachine::TableCoerce(const NameExpr* n,
 						const Expr* e)
 	{
+	auto op = e->GetOp1()->AsNameExpr();
+
+	AbstractStmt s(OP_TABLE_COERCE_VV, FrameSlot(n), FrameSlot(op));
+	s.t = e->Type().get();
+
+	return AddStmt(s);
 	}
 
 const CompiledStmt AbstractMachine::VectorCoerce(const NameExpr* n,

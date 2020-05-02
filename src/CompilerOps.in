@@ -440,7 +440,7 @@ eval if ( vv->Size() > 0 ) run_time_error("coercion of non-empty vector");
 eval auto t = s.t->Ref()->AsVectorType();
 eval frame[s.v1].vector_val = new VectorVal(t)
 
-########################################
+########## Aggregate Assignments ##########
 
 op Field-LHS-Assign
 type VVi
@@ -455,6 +455,8 @@ set-type $2
 eval auto v = s.c.ToVal(s.t)
 eval frame[s.v1].record_val->Assign(s.v2, v)
 method-pre	SyncGlobals()
+
+########## General Statements ##########
 
 op Schedule
 type ViHL
@@ -507,6 +509,22 @@ eval auto vvec = frame[s.v1].vvec
 eval do_print(*vvec)
 eval delete vvec
 method-pre int reg = v->n; delete v
+
+internal-op If-Else
+type VV
+eval if ( ! frame[s.v1].int_val ) pc = s.v2
+
+internal-op If
+type VV
+eval if ( ! frame[s.v1].int_val ) pc = s.v2
+
+internal-op If-Not
+type VV
+eval if ( frame[s.v1].int_val ) pc = s.v2
+
+internal-op GoTo
+type V
+eval pc = s.v1
 
 ########################################
 # Internal

@@ -642,6 +642,43 @@ const CompiledStmt AbstractMachine::VectorCoerce(const NameExpr* n,
 	return AddStmt(s);
 	}
 
+const CompiledStmt AbstractMachine::IfElse(const NameExpr* n, const Stmt* s1,
+						const Stmt* s2)
+	{
+	AbstractOp op = (s1 && s2) ?
+		OP_IF_ELSE_VV : (s1 ? OP_IF_VV : OP_IF_NOT_VV);
+
+	AbstractStmt cond(op, FrameSlot(n), 0);
+	auto cond_stmt = AddStmt(cond);
+
+	if ( s1 )
+		{
+		auto s1_end = s1->Compile(this);
+		if ( s2 )
+			{
+			auto branch_after_s1 = GoTo();
+			auto s2_end = s2->Compile(this);
+			SetV2(cond_stmt, GoToTargetBeyond(branch_after_s1));
+			SetGoTo(branch_after_s1, GoToTargetBeyond(s2_end));
+
+			return s2_end;
+			}
+
+		else
+			{
+			SetV2(cond_stmt, GoToTargetBeyond(s1_end));
+			return s1_end;
+			}
+		}
+
+	else
+		{
+		auto s2_end = s2->Compile(this);
+		SetV2(cond_stmt, GoToTargetBeyond(s2_end));
+		return s2_end;
+		}
+	}
+
 
 const CompiledStmt AbstractMachine::StartingBlock()
 	{
@@ -875,6 +912,30 @@ void AbstractMachine::SyncGlobals()
 	{
 	// ###
 	}
+
+CompiledStmt AbstractMachine::GoTo()
+	{
+	AbstractStmt s(OP_GOTO_V, 0);
+	return AddStmt(s);
+	}
+
+CompiledStmt AbstractMachine::GoToTargetBeyond(const CompiledStmt s)
+	{
+	// We use a target one below the actual target due to the
+	// pc increment after the statement executes.
+	return s;
+	}
+
+void AbstractMachine::SetV1(CompiledStmt s, const CompiledStmt s1)
+	{
+	stmts[s.stmt_num].v1 = s1.stmt_num;
+	}
+
+void AbstractMachine::SetV2(CompiledStmt s, const CompiledStmt s2)
+	{
+	stmts[s.stmt_num].v2 = s2.stmt_num;
+	}
+
 
 ListVal* AbstractMachine::ValVecToListVal(val_vec* v, int n) const
 	{

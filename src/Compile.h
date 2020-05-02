@@ -12,6 +12,7 @@ class ConstExpr;
 class FieldExpr;
 class ListExpr;
 class EventHandler;
+class Stmt;
 
 // Class representing a single compiled statement.  Designed to
 // be fully opaque, but also effective without requiring pointer
@@ -46,6 +47,9 @@ public:
 							const Expr* e) = 0;
 	virtual const CompiledStmt VectorCoerce(const NameExpr* n,
 							const Expr* e) = 0;
+
+	virtual const CompiledStmt IfElse(const NameExpr* n, const Stmt* s1,
+						const Stmt* s2) = 0;
 
 	virtual const CompiledStmt StartingBlock() = 0;
 	virtual const CompiledStmt FinishBlock(const CompiledStmt start) = 0;
@@ -82,6 +86,9 @@ public:
 					const Expr* e) override;
 	const CompiledStmt VectorCoerce(const NameExpr* n,
 					const Expr* e) override;
+
+	const CompiledStmt IfElse(const NameExpr* n, const Stmt* s1,
+					const Stmt* s2) override;
 
 	const CompiledStmt StartingBlock() override;
 	const CompiledStmt FinishBlock(const CompiledStmt start) override;
@@ -132,6 +139,13 @@ protected:
 	ListVal* ValVecToListVal(val_vec* v, int n) const;
 
 	void SyncGlobals();
+
+	CompiledStmt GoTo();
+	CompiledStmt GoToTargetBeyond(const CompiledStmt s);
+	void SetV1(CompiledStmt s, const CompiledStmt s1);
+	void SetV2(CompiledStmt s, const CompiledStmt s2);
+	void SetGoTo(CompiledStmt s, const CompiledStmt targ)
+		{ SetV1(s, targ); }
 
 	const CompiledStmt AddStmt(const AbstractStmt& stmt);
 

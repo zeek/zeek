@@ -634,6 +634,20 @@ Stmt* IfStmt::DoReduce(Reducer* c)
 	return this->Ref();
 	}
 
+const CompiledStmt IfStmt::Compile(Compiler* c) const
+	{
+	auto block1 = s1;
+	auto block2 = s2;
+
+	if ( block1->Tag() == STMT_NULL )
+		block1 = nullptr;
+
+	if ( block2->Tag() == STMT_NULL )
+		block2 = nullptr;
+
+	c->IfElse(e->AsNameExpr(), block1.get(), block2.get());
+	}
+
 void IfStmt::StmtDescribe(ODesc* d) const
 	{
 	ExprStmt::StmtDescribe(d);

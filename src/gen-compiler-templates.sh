@@ -6,7 +6,7 @@ BEGIN	{
 	sub_class_f = "CompilerSubDefs.h"
 	ops_f = "CompilerOpsDefs.h"
 	ops_names_f = "CompilerOpsNamesDefs.h"
-	ops_interpret_f = "CompilerOpsInterpretDefs.h"
+	ops_direct_f = "CompilerOpsDirectDefs.h"
 	ops_eval_f = "CompilerOpsEvalDefs.h"
 	vec1_eval_f = "CompilerVec1EvalDefs.h"
 	vec2_eval_f = "CompilerVec2EvalDefs.h"
@@ -109,7 +109,9 @@ BEGIN	{
 $1 == "op"	{ dump_op(); op = $2; next }
 $1 == "expr-op"	{ dump_op(); op = $2; expr_op = 1; next }
 $1 == "unary-op"	{ dump_op(); op = $2; ary_op = 1; next }
-$1 == "interpreted-unary-op"	{ dump_op(); op = $2; interpreted_op = 1; next }
+$1 == "direct-unary-op" {
+	dump_op(); op = $2; direct_method = $3; direct_op = 1; next
+	}
 $1 == "unary-expr-op"	{ dump_op(); op = $2; expr_op = 1; ary_op = 1; next }
 $1 == "binary-expr-op"	{ dump_op(); op = $2; expr_op = 1; ary_op = 2; next }
 $1 == "rel-expr-op"	{
@@ -196,7 +198,7 @@ END	{
 	finish(exprsC3_f, "C3")
 	finish(exprsV_f, "V")
 
-	finish_default_ok(ops_interpret_f)
+	finish_default_ok(ops_direct_f)
 	}
 
 function build_op_types()
@@ -247,9 +249,9 @@ function dump_op()
 		return
 		}
 
-	if ( interpreted_op )
+	if ( direct_op )
 		{
-		build_interpreted_op()
+		build_direct_op(direct_method)
 		clear_vars()
 		return
 		}
@@ -361,17 +363,14 @@ function build_binary_op()
 		}
 	}
 
-function build_interpreted_op()
+function build_direct_op(method)
 	{
-	# A unary Expr* (whose argument is a ListExpr*) that will be
-	# interpreted rather than compiled.
-
 	orig_op = op
 	gsub(/-/, "_", op)
 	upper_op = toupper(op)
 
 	print ("\tcase EXPR_" upper_op \
-		":\treturn c->InterpretExpr(lhs, rhs);") >ops_interpret_f
+		":\treturn c->" method "(lhs, rhs);") >ops_direct_f
 	}
 
 function expand_eval(e, is_expr_op, otype1, otype2, is_var1, is_var2)
@@ -755,7 +754,7 @@ function clear_vars()
 	custom_method = method_pre = eval_pre = ""
 	no_eval = mix_eval = multi_eval = eval_blank = ""
 	vector = binary_op = internal_op = rel_op = ary_op = expr_op = op = ""
-	interpreted_op = ""
+	direct_method = direct_op = ""
 	laccessor = raccessor1 = raccessor2 = ""
 	op1_accessor = op2_accessor = ""
 

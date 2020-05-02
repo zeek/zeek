@@ -35,7 +35,7 @@
 ## one-time initialization code at startup. At the time a handler runs, Zeek will
 ## have executed any global initializations and statements.
 ##
-## .. zeek:see:: zeek_done, network_time_init
+## .. zeek:see:: zeek_done network_time_init
 ##
 ## .. note::
 ##
@@ -65,7 +65,7 @@ event zeek_done%(%);
 ## event after the network time has been determined but before processing of
 ## packets is started.
 ##
-## .. zeek:see:: zeek_init, network_time
+## .. zeek:see:: zeek_init network_time
 ##
 event network_time_init%(%);
 

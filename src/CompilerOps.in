@@ -227,6 +227,17 @@ expr-op Cond
 type VVCV
 eval frame[s.v1] = frame[s.v2].int_val ? s.c : frame[s.v3]
 
+# Our statement structure doesn't accommodate two constants, so for
+# the singular case of a V ? C1 : C2 conditional, we split it into
+# two operations, V ? C1 and !V ? C2.
+op CondC1
+type VVC
+eval if ( frame[s.v2].int_val ) frame[s.v1] = s.c
+
+op CondC2
+type VVC
+eval if ( ! frame[s.v2].int_val ) frame[s.v1] = s.c
+
 ########## Index Expressions ##########
 
 op IndexVecBoolSelect

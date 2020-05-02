@@ -3558,6 +3558,17 @@ const CompiledStmt AssignExpr::Compile(Compiler* c) const
 		return c->AnyIndexVVi(lhs, r1->AsNameExpr(),
 					r2->AsConstExpr()->Value()->AsInt());
 
+	if ( rhs->Tag() == EXPR_COND && r2->IsConst() && r3->IsConst() )
+		{
+		// Split into two statement, given we don't support
+		// two constants in a single statement.
+		auto n1 = r1->AsNameExpr();
+		auto c2 = r2->AsConstExpr();
+		auto c3 = r3->AsConstExpr();
+		(void) c->CondC1VVC(lhs, n1, c2);
+		return c->CondC2VVC(lhs, n1, c3);
+		}
+
 	if ( r1 && r2 )
 		{
 		auto v1 = IsVector(r1->Type()->Tag());

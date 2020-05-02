@@ -576,6 +576,12 @@ const CompiledStmt AbstractMachine::TableCoerce(const NameExpr* n,
 const CompiledStmt AbstractMachine::VectorCoerce(const NameExpr* n,
 						const Expr* e)
 	{
+	auto op = e->GetOp1()->AsNameExpr();
+
+	AbstractStmt s(OP_VECTOR_COERCE_VV, FrameSlot(n), FrameSlot(op));
+	s.t = e->Type().get();
+
+	return AddStmt(s);
 	}
 
 

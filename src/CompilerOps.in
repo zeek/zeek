@@ -374,6 +374,14 @@ eval frame[s.v1].table_val = new TableVal(tt, attrs)
 
 direct-unary-op Vector-Coerce VectorCoerce
 
+internal-op Vector-Coerce
+type VV
+### memory
+eval auto vv = frame[s.v2].vector_val
+eval if ( vv->Size() > 0 ) run_time_error("coercion of non-empty vector");
+eval auto t = s.t->Ref()->AsVectorType();
+eval frame[s.v1].vector_val = new VectorVal(t)
+
 ########################################
 
 op Return

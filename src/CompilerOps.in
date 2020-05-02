@@ -284,6 +284,19 @@ set-type $1
 eval auto lv = frame[s.v2].any_val.val_list_val
 eval frame[s.v1] = AS_ValUnion((*lv)[s.v3], s.t)
 
+########## Function Calls ##########
+
+# In principle, we could split these up into calls to other scripts
+# functions vs. BiF's.  However, before biting that off we need to
+# rework the Trigger framework so that it doesn't require CallExpr's
+# to associate delayed values with.  This can be done by introducing
+# an abstract TriggerCaller class that manages both CallExpr's and
+# internal statements (e.g., associated with the PC value at the call
+# site).  But for now, we just punt the whole problem to the interpreter.
+
+direct-unary-op Call InterpretExpr
+
+
 ########## Constructors ##########
 
 # Table construction requires atypical evaluation of list elements
@@ -291,7 +304,7 @@ eval frame[s.v1] = AS_ValUnion((*lv)[s.v3], s.t)
 # back to the interpreter.
 direct-unary-op Table-Constructor InterpretExpr
 
-# In for a penny, in for a pount.  For now we just do all of them that
+# In for a penny, in for a pound.  For now we just do all of them that
 # way, even though with some elbow grease we could do the others directly.
 direct-unary-op Set-Constructor InterpretExpr
 direct-unary-op Record-Constructor InterpretExpr
@@ -451,11 +464,10 @@ internal-op Interpret-Expr
 type V
 eval frame[s.v1] = AS_ValUnion(s.e->Eval(f).get(), s.t)
 
-# EXPR_CALL
-# EXPR_LAMBDA
-
 # EXPR_COND
 
 # EXPR_FLATTEN
 # EXPR_CAST
 # EXPR_IS
+
+# EXPR_LAMBDA

@@ -475,6 +475,7 @@ IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 const CompiledStmt AbstractMachine::InterpretExpr(const NameExpr* n,
 							const Expr* e)
 	{
+	// ### need to flush any variables used in e!
 	AbstractStmt s(OP_INTERPRET_EXPR_V, FrameSlot(n), e);
 	}
 

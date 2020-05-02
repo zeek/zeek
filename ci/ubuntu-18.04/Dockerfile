@@ -15,6 +15,7 @@ RUN apt-get update && apt-get -y install \
     python3-pip\
     swig \
     zlib1g-dev \
+    libmaxminddb-dev \
     libkrb5-dev \
     bsdmainutils \
     sqlite3 \

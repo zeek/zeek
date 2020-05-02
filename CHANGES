@@ -1,4 +1,10 @@
 
+3.2.0-dev.459 | 2020-05-01 17:46:20 -0700
+
+  * Extend CI config to cover building with libmaxminddb support (Jon Siwek, Corelight)
+
+  * Ensure time continues moving forward if a pcap source is suspended (Tim Wojtulewicz, Corelight)
+
 3.2.0-dev.455 | 2020-05-01 09:44:30 -0700
 
   * GH-938: fix IO loop iterations sometimes skipping offline pcap sources (Jon Siwek, Corelight)

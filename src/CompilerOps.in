@@ -504,6 +504,11 @@ internal-op Transform-Val-Vec-To-List-Val
 type VVV
 eval frame[s.v1].list_val = ValVecToListVal(frame[s.v2].vvec, s.v3)
 
+# Interprets the statement's expression as a stand-alone statement.
+internal-op Interpret-Expr
+type X
+eval (void) s.e->Eval(f)
+
 # Interprets the statement's expression and assigns the result to v1.
 internal-op Interpret-Expr
 type V

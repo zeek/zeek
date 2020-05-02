@@ -32,6 +32,7 @@ class Compiler : public Stmt {
 public:
 #include "CompilerBaseDefs.h"
 
+	virtual const CompiledStmt InterpretExpr(const Expr* e) = 0;
 	virtual const CompiledStmt InterpretExpr(const NameExpr* n,
 							const Expr* e) = 0;
 
@@ -67,6 +68,7 @@ public:
 
 #include "CompilerSubDefs.h"
 
+	const CompiledStmt InterpretExpr(const Expr* e) override;
 	const CompiledStmt InterpretExpr(const NameExpr* n,
 						const Expr* e) override;
 

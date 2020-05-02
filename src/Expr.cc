@@ -3704,8 +3704,7 @@ Expr* IndexAssignExpr::ReduceToSingleton(Reducer* c,
 
 const CompiledStmt IndexAssignExpr::Compile(Compiler* c) const
 	{
-	// ###
-	return c->StartingBlock();
+	return c->InterpretExpr(this);
 	}
 
 void IndexAssignExpr::ExprDescribe(ODesc* d) const

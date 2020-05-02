@@ -154,6 +154,8 @@ protected:
 	bool IsReduced() const override;
 	Stmt* DoReduce(Reducer* c) override;
 
+	const CompiledStmt Compile(Compiler* c) const override;
+
 	// Initialize composite hash and case label map.
 	void Init();
 
@@ -198,6 +200,8 @@ public:
 	explicit AddStmt(IntrusivePtr<Expr> e);
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+
+	const CompiledStmt Compile(Compiler* c) const override;
 };
 
 class DelStmt : public AddDelStmt {
@@ -205,6 +209,8 @@ public:
 	explicit DelStmt(IntrusivePtr<Expr> e);
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+
+	const CompiledStmt Compile(Compiler* c) const override;
 };
 
 class EventStmt : public ExprStmt {

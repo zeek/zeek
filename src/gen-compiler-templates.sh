@@ -25,6 +25,7 @@ BEGIN	{
 	args["O"] = "(OpaqueVals* v)"
 	args["R"] = "(const NameExpr* n1, const NameExpr* n2, const FieldExpr* f)"
 	args["V"] = "(const NameExpr* n)"
+	args["Vi"] = "(const NameExpr* n, int i)"
 	args["VV"] = "(const NameExpr* n1, const NameExpr* n2)"
 	args["HL"] = "(EventHandler* h, const ListExpr* l)"
 	args["VVV"] = "(const NameExpr* n1, const NameExpr* n2, const NameExpr* n3)"

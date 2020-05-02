@@ -645,7 +645,7 @@ const CompiledStmt IfStmt::Compile(Compiler* c) const
 	if ( block2->Tag() == STMT_NULL )
 		block2 = nullptr;
 
-	c->IfElse(e->AsNameExpr(), block1.get(), block2.get());
+	return c->IfElse(e->AsNameExpr(), block1.get(), block2.get());
 	}
 
 void IfStmt::StmtDescribe(ODesc* d) const
@@ -1082,6 +1082,11 @@ IntrusivePtr<Val> SwitchStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) con
 	return rval;
 	}
 
+const CompiledStmt SwitchStmt::Compile(Compiler* c) const
+	{
+	// ###
+	}
+
 bool SwitchStmt::IsPure() const
 	{
 	if ( ! e->IsPure() )
@@ -1258,6 +1263,17 @@ IntrusivePtr<Val> AddStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	return nullptr;
 	}
 
+const CompiledStmt AddStmt::Compile(Compiler* c) const
+	{
+	auto aggr = e->GetOp1()->AsNameExpr();
+	auto index = e->GetOp2();
+
+	if ( index->Tag() == EXPR_CONST )
+		return c->AddStmtVC(aggr, index->AsConstExpr());
+	else
+		return c->AddStmtVV(aggr, index->AsNameExpr());
+	}
+
 
 DelStmt::DelStmt(IntrusivePtr<Expr> arg_e) : AddDelStmt(STMT_DELETE, std::move(arg_e))
 	{
@@ -1274,6 +1290,27 @@ IntrusivePtr<Val> DelStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	flow = FLOW_NEXT;
 	e->Delete(f);
 	return nullptr;
+	}
+
+const CompiledStmt DelStmt::Compile(Compiler* c) const
+	{
+	auto aggr = e->GetOp1()->AsNameExpr();
+
+	if ( e->Tag() == EXPR_FIELD )
+		{
+		int field = e->AsFieldExpr()->Field();
+		return c->DelFieldVi(aggr, field);
+		}
+
+	else
+		{
+		auto index = e->GetOp2();
+
+		if ( index->Tag() == EXPR_CONST )
+			return c->DelTableVC(aggr, index->AsConstExpr());
+		else
+			return c->DelTableVV(aggr, index->AsNameExpr());
+		}
 	}
 
 

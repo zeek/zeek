@@ -93,6 +93,15 @@ BEGIN	{
 	++no_vec["R"]
 	++no_vec["T"]
 
+	method_map["I"] = "i_t == TYPE_INTERNAL_INT"
+	method_map["U"] = "i_t == TYPE_INTERNAL_UNSIGNED"
+	method_map["D"] = "i_t == TYPE_INTERNAL_DOUBLE"
+	method_map["A"] = "i_t == TYPE_INTERNAL_ADDR"
+	method_map["N"] = "i_t == TYPE_INTERNAL_SUBNET"
+	method_map["P"] = "tag == TYPE_PATTERN"
+	method_map["S"] = "i_t == TYPE_INTERNAL_STRING"
+	method_map["T"] = "tag == TYPE_TABLE"
+
 	# Suffix used for vector operations.
 	vec = "_vec"
 	}
@@ -287,34 +296,32 @@ function dump_op()
 
 		# Loop over constant, var for second operand
 		for ( k = 0; k <= 1; ++k )
-			{
-			if ( ! j && ! k )
-				# Do not generate CC, should have
-				# been folded.
-				continue;
-
-			op2 = k ? "V" : "C"
-
-			for ( i in op_types )
-				{
-				sel = eval_selector[i]
-				ex = expand_eval(eval[sel], expr_op, i, i, j, k)
-				build_op(op, "V" op1 op2, i, i,
-						eval[sel], ex, j, k)
-				}
-
-			if ( mix_eval )
-				{
-				ex = expand_eval(mix_eval, expr_op,
-						ev_mix1, ev_mix2, j, k)
-				build_op(op, "V" op1 op2,
-						ev_mix1, ev_mix2,
-						mix_eval, ex, j, k)
-				}
-			}
+			build_op_combo(op1, j, k)
 		}
 
 	clear_vars()
+	}
+
+function build_op_combo(op1, j, k)
+	{
+	if ( ! j && ! k )
+		# Do not generate CC, should have been folded.
+		return
+
+	op2 = k ? "V" : "C"
+
+	for ( i in op_types )
+		{
+		sel = eval_selector[i]
+		ex = expand_eval(eval[sel], expr_op, i, i, j, k)
+		build_op(op, "V" op1 op2, i, i, eval[sel], ex, j, k)
+		}
+
+	if ( mix_eval )
+		{
+		ex = expand_eval(mix_eval, expr_op, ev_mix1, ev_mix2, j, k)
+		build_op(op, "V" op1 op2, ev_mix1, ev_mix2, mix_eval, ex, j, k)
+		}
 	}
 
 function build_binary_op()
@@ -537,7 +544,6 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 			}
 		}
 
-
 	if ( ! internal_op && is_rep )
 		{
 		gen_method(full_op_no_sub, full_op, type, sub_type1,
@@ -684,36 +690,20 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 			print ("\tauto tag = t->Tag();") >methods_f
 			print ("\tauto i_t = t->InternalType();") >methods_f
 
+			op2_is_const = type ~ /^V.C/
+			op2_param = op2_is_const ? "c" : "n2"
+
 			n = 0;
 			for ( o in op_types )
 				{
 				if ( is_vec && no_vec[o] )
 					continue
 
-				else_text = ((++n > 1) ? "else " : "");
-				if ( o == "I" || o == "U" )
-					{
-					print ("\t" else_text "if ( i_t == TYPE_INTERNAL_INT || i_t == TYPE_INTERNAL_UNSIGNED )") >methods_f
-					}
-				else if ( o == "A" )
-					print ("\t" else_text "if ( i_t == TYPE_INTERNAL_ADDR )") >methods_f
-				else if ( o == "D" )
-					print ("\t" else_text "if ( i_t == TYPE_INTERNAL_DOUBLE )") >methods_f
-				else if ( o == "N" )
-					print ("\t" else_text "if ( i_t == TYPE_INTERNAL_SUBNET )") >methods_f
-				else if ( o == "P" )
-					print ("\t" else_text "if ( tag == TYPE_PATTERN )") >methods_f
-				else if ( o == "S" )
-					print ("\t" else_text "if ( i_t == TYPE_INTERNAL_STRING )") >methods_f
-				else if ( o == "T" )
-					print ("\t" else_text "if ( tag == TYPE_TABLE )") >methods_f
-				else
-					gripe("bad subtype " o)
+				invoke1 = (part1 full_op_no_sub "_")
+				invoke2 = ((is_vec ? vec : "") part2)
 
-				print (part1 \
-					(full_op_no_sub \
-					 "_" o (is_vec ? vec : "")) \
-					part2) >methods_f
+				build_method_conditional(o, ++n)
+				print (invoke1 o invoke2) >methods_f
 				}
 
 			if ( mix_eval )
@@ -725,9 +715,6 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 				# even though the interpreter does.
 				if ( ev_mix1 != "P" || ev_mix2 != "S" )
 					gripe("unsupported eval-mixed")
-
-				op2_is_const = type ~ /^V.C/
-				op2_param = op2_is_const ? "c" : "n2"
 
 				print ("\t" else_text "if ( tag == TYPE_PATTERN && " op2_param "->Type()->Tag() == TYPE_STRING )") >methods_f
 				print ("\t" part1 (full_op_no_sub "_PS") \
@@ -744,6 +731,22 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 			" full_op "));") >methods_f
 
 	print ("\t}\n") >methods_f
+	}
+
+function build_method_conditional(o, n)
+	{
+	else_text = (n > 1) ? "else " : "";
+
+	if ( o == "I" || o == "U" )
+		{
+		print ("\t" else_text "if ( i_t == TYPE_INTERNAL_INT || i_t == TYPE_INTERNAL_UNSIGNED )") >methods_f
+		}
+
+	else
+		{
+		test = method_map[o]
+		print ("\t" else_text "if ( " test " )") >methods_f
+		}
 	}
 
 function clear_vars()

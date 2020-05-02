@@ -6167,8 +6167,8 @@ IntrusivePtr<Stmt> EventExpr::ReduceToSingletons(Reducer* c)
 
 const CompiledStmt EventExpr::Compile(Compiler* c) const
 	{
-	// ###
-	return c->StartingBlock();
+	EventHandlerPtr p(handler);
+	return c->EventHL(p.Ptr(), args.get());
 	}
 
 TraversalCode EventExpr::Traverse(TraversalCallback* cb) const

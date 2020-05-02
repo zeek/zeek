@@ -3542,7 +3542,7 @@ const CompiledStmt AssignExpr::Compile(Compiler* c) const
 		return CompileAssignToIndex(c, lhs, rhs->AsIndexExpr());
 
 	switch ( rhs->Tag() ) {
-#include "CompilerOpsInterpretDefs.h"
+#include "CompilerOpsDirectDefs.h"
 	}
 
 	auto rt = rhs->Type();

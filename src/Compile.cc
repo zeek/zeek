@@ -423,6 +423,23 @@ static void vec_exec(AbstractOp op, vector<BroValUnion>* v1,
 			const vector<BroValUnion>* v2,
 			const vector<BroValUnion>* v3);
 
+// Vector coercion.
+#define VEC_COERCE(tag, lhs_accessor, cast, rhs_accessor) \
+	static vector<BroValUnion>*  vec_coerce_##tag(vector<BroValUnion>* v) \
+		{ \
+		vector<BroValUnion>* res = new vector<BroValUnion>; \
+		for ( unsigned int i = 0; i < v->size(); ++i ) \
+			(*res)[i].lhs_accessor = cast((*v)[i].rhs_accessor); \
+		return res; \
+		}
+
+VEC_COERCE(IU, int_val, bro_int_t, uint_val)
+VEC_COERCE(ID, int_val, bro_int_t, double_val)
+VEC_COERCE(UI, uint_val, bro_int_t, int_val)
+VEC_COERCE(UD, uint_val, bro_uint_t, double_val)
+VEC_COERCE(DI, double_val, double, int_val)
+VEC_COERCE(DU, double_val, double, uint_val)
+
 static void run_time_error(const char* msg);
 
 IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
@@ -459,6 +476,89 @@ const CompiledStmt AbstractMachine::InterpretExpr(const NameExpr* n,
 	{
 	AbstractStmt s(OP_INTERPRET_EXPR_V, FrameSlot(n), e);
 	}
+
+const CompiledStmt AbstractMachine::ArithCoerce(const NameExpr* n,
+						const Expr* e)
+	{
+	auto nt = n->Type();
+	auto nt_is_vec = nt->Tag() == TYPE_VECTOR;
+
+	auto op = e->GetOp1();
+	auto op_t = op->Type().get();
+	auto op_is_vec = op_t->Tag() == TYPE_VECTOR;
+
+	auto e_t = e->Type().get();
+	auto et_is_vec = e_t->Tag() == TYPE_VECTOR;
+
+	if ( nt_is_vec || op_is_vec || et_is_vec )
+		{
+		if ( ! (nt_is_vec && op_is_vec && et_is_vec) )
+			reporter->InternalError("vector confusion compiling coercion");
+
+		op_t = op_t->AsVectorType()->YieldType();
+		e_t = e_t->AsVectorType()->YieldType();
+		}
+
+	auto targ_it = e_t->InternalType();
+	auto op_it = op_t->InternalType();
+
+	if ( op_it == targ_it )
+		reporter->InternalError("coercion wasn't folded");
+
+	if ( op->Tag() != EXPR_NAME )
+		reporter->InternalError("coercion wasn't folded");
+
+	AbstractOp a;
+
+	switch ( targ_it ) {
+	case TYPE_INTERNAL_DOUBLE:
+		{
+		a = op_it == TYPE_INTERNAL_INT ?
+			(nt_is_vec ? OP_COERCE_DI_VEC_VV : OP_COERCE_DI_VV) :
+			(nt_is_vec ? OP_COERCE_DU_VEC_VV : OP_COERCE_DU_VV);
+		break;
+		}
+
+	case TYPE_INTERNAL_INT:
+		{
+		a = op_it == TYPE_INTERNAL_UNSIGNED ?
+			(nt_is_vec ? OP_COERCE_IU_VEC_VV : OP_COERCE_IU_VV) :
+			(nt_is_vec ? OP_COERCE_ID_VEC_VV : OP_COERCE_ID_VV);
+		break;
+		}
+
+	case TYPE_INTERNAL_UNSIGNED:
+		{
+		a = op_it == TYPE_INTERNAL_INT ?
+			(nt_is_vec ? OP_COERCE_UI_VEC_VV : OP_COERCE_UI_VV) :
+			(nt_is_vec ? OP_COERCE_UD_VEC_VV : OP_COERCE_UD_VV);
+		break;
+		}
+
+	default:
+		reporter->InternalError("bad target internal type in coercion");
+	}
+
+	auto n1 = FrameSlot(n);
+	auto n2 = FrameSlot(op->AsNameExpr());
+	return AddStmt(AbstractStmt(a, n1, n2));
+	}
+
+const CompiledStmt AbstractMachine::RecordCoerce(const NameExpr* n,
+						const Expr* e)
+	{
+	}
+
+const CompiledStmt AbstractMachine::TableCoerce(const NameExpr* n,
+						const Expr* e)
+	{
+	}
+
+const CompiledStmt AbstractMachine::VectorCoerce(const NameExpr* n,
+						const Expr* e)
+	{
+	}
+
 
 const CompiledStmt AbstractMachine::StartingBlock()
 	{

@@ -35,6 +35,15 @@ public:
 	virtual const CompiledStmt InterpretExpr(const NameExpr* n,
 							const Expr* e) = 0;
 
+	virtual const CompiledStmt ArithCoerce(const NameExpr* n,
+							const Expr* e) = 0;
+	virtual const CompiledStmt RecordCoerce(const NameExpr* n,
+							const Expr* e) = 0;
+	virtual const CompiledStmt TableCoerce(const NameExpr* n,
+							const Expr* e) = 0;
+	virtual const CompiledStmt VectorCoerce(const NameExpr* n,
+							const Expr* e) = 0;
+
 	virtual const CompiledStmt StartingBlock() = 0;
 	virtual const CompiledStmt FinishBlock(const CompiledStmt start) = 0;
 	virtual const CompiledStmt ErrorStmt() = 0;
@@ -60,6 +69,15 @@ public:
 
 	const CompiledStmt InterpretExpr(const NameExpr* n,
 						const Expr* e) override;
+
+	const CompiledStmt ArithCoerce(const NameExpr* n,
+					const Expr* e) override;
+	const CompiledStmt RecordCoerce(const NameExpr* n,
+					const Expr* e) override;
+	const CompiledStmt TableCoerce(const NameExpr* n,
+					const Expr* e) override;
+	const CompiledStmt VectorCoerce(const NameExpr* n,
+					const Expr* e) override;
 
 	const CompiledStmt StartingBlock() override;
 	const CompiledStmt FinishBlock(const CompiledStmt start) override;

@@ -289,13 +289,69 @@ eval frame[s.v1] = AS_ValUnion((*lv)[s.v3], s.t)
 # Table construction requires atypical evaluation of list elements
 # using information from their expression specifics.  We punt those
 # back to the interpreter.
-interpreted-unary-op Table-Constructor
+direct-unary-op Table-Constructor InterpretExpr
 
 # In for a penny, in for a pount.  For now we just do all of them that
 # way, even though with some elbow grease we could do the others directly.
-interpreted-unary-op Set-Constructor
-interpreted-unary-op Record-Constructor
-interpreted-unary-op Vector-Constructor
+direct-unary-op Set-Constructor InterpretExpr
+direct-unary-op Record-Constructor InterpretExpr
+direct-unary-op Vector-Constructor InterpretExpr
+
+########## Coercions ##########
+
+direct-unary-op Arith-Coerce ArithCoerce
+direct-unary-op Record-Coerce RecordCoerce
+direct-unary-op Table-Coerce TableCoerce
+direct-unary-op Vector-Coerce VectorCoerce
+
+internal-op Coerce-UI
+type VV
+eval frame[s.v1].uint_val = bro_uint_t(frame[s.v2].int_val)
+
+internal-op Coerce-UI-Vec
+type VV
+### memory
+eval frame[s.v1].raw_vector_val = vec_coerce_UI(frame[s.v2].raw_vector_val)
+
+internal-op Coerce-UD
+type VV
+eval frame[s.v1].uint_val = bro_uint_t(frame[s.v2].double_val)
+
+internal-op Coerce-UD-Vec
+type VV
+eval frame[s.v1].raw_vector_val = vec_coerce_UD(frame[s.v2].raw_vector_val)
+
+internal-op Coerce-IU
+type VV
+eval frame[s.v1].int_val = bro_int_t(frame[s.v2].uint_val)
+
+internal-op Coerce-IU-Vec
+type VV
+eval frame[s.v1].raw_vector_val = vec_coerce_IU(frame[s.v2].raw_vector_val)
+
+internal-op Coerce-ID
+type VV
+eval frame[s.v1].int_val = bro_int_t(frame[s.v2].double_val)
+
+internal-op Coerce-ID-Vec
+type VV
+eval frame[s.v1].raw_vector_val = vec_coerce_ID(frame[s.v2].raw_vector_val)
+
+internal-op Coerce-DI
+type VV
+eval frame[s.v1].double_val = double(frame[s.v2].int_val)
+
+internal-op Coerce-DI-Vec
+type VV
+eval frame[s.v1].raw_vector_val = vec_coerce_DI(frame[s.v2].raw_vector_val)
+
+internal-op Coerce-DU
+type VV
+eval frame[s.v1].double_val = double(frame[s.v2].uint_val)
+
+internal-op Coerce-DU-Vec
+type VV
+eval frame[s.v1].raw_vector_val = vec_coerce_DU(frame[s.v2].raw_vector_val)
 
 ########################################
 
@@ -366,16 +422,8 @@ internal-op Interpret-Expr
 type V
 eval frame[s.v1] = AS_ValUnion(s.e->Eval(f).get(), s.t)
 
-# EXPR_RECORD_CONSTRUCTOR
-# EXPR_TABLE_CONSTRUCTOR
-# EXPR_SET_CONSTRUCTOR
-# EXPR_VECTOR_CONSTRUCTOR
 # EXPR_CALL
 # EXPR_LAMBDA
-# EXPR_ARITH_COERCE
-# EXPR_RECORD_COERCE
-# EXPR_TABLE_COERCE
-# EXPR_VECTOR_COERCE
 
 # EXPR_COND
 

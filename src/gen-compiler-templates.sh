@@ -26,6 +26,7 @@ BEGIN	{
 	args["R"] = "(const NameExpr* n1, const NameExpr* n2, const FieldExpr* f)"
 	args["V"] = "(const NameExpr* n)"
 	args["VV"] = "(const NameExpr* n1, const NameExpr* n2)"
+	args["HL"] = "(EventHandler* h, const ListExpr* l)"
 	args["VVV"] = "(const NameExpr* n1, const NameExpr* n2, const NameExpr* n3)"
 	args["VVVV"] = "(const NameExpr* n1, const NameExpr* n2, const NameExpr* n3, const NameExpr* n4)"
 	args["C"] = "(const ConstExpr* c)"
@@ -39,8 +40,8 @@ BEGIN	{
 
 	args["VLV"] = "(const NameExpr* n1, const ListExpr* l, const NameExpr* n2)"
 	args["VVL"] = "(const NameExpr* n1, const NameExpr* n2, const ListExpr* l)"
-	args["ViHL"] = "(const NameExpr* n, int i, EventHandlerPtr h, const ListExpr* l)"
-	args["CiHL"] = "(const ConstExpr* c, int i, EventHandlerPtr h, const ListExpr* l)"
+	args["ViHL"] = "(const NameExpr* n, int i, EventHandler* h, const ListExpr* l)"
+	args["CiHL"] = "(const ConstExpr* c, int i, EventHandler* h, const ListExpr* l)"
 
 	args2["X"] = ""
 	args2["O"] = "reg"

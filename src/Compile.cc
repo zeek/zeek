@@ -836,7 +836,7 @@ const CompiledStmt AbstractMachine::CompileIndex(const NameExpr* n1,
 
 const CompiledStmt AbstractMachine::CompileSchedule(const NameExpr* n,
 					const ConstExpr* c, int is_interval,
-					EventHandlerPtr h, const ListExpr* l)
+					EventHandler* h, const ListExpr* l)
 	{
 	int len = l->Exprs().length();
 	auto build_indices = InternalBuildVals(l);
@@ -851,7 +851,22 @@ const CompiledStmt AbstractMachine::CompileSchedule(const NameExpr* n,
 	else
 		s = AbstractStmt(OP_SCHEDULE_CiHL, build_indices, c);
 
-	s.event_handler = h.Ptr();
+	s.event_handler = h;
+
+	return AddStmt(s);
+	}
+
+const CompiledStmt AbstractMachine::CompileEvent(EventHandler* h,
+							const ListExpr* l)
+	{
+	int len = l->Exprs().length();
+	auto build_indices = InternalBuildVals(l);
+
+	AddStmt(AbstractStmt(OP_TRANSFORM_VAL_VEC_TO_LIST_VAL_VVV,
+				build_indices, build_indices, len));
+
+	AbstractStmt s(OP_EVENT_HL, build_indices);
+	s.event_handler = h;
 
 	return AddStmt(s);
 	}

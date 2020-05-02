@@ -5528,10 +5528,10 @@ const CompiledStmt ScheduleExpr::Compile(Compiler* c) const
 
 	if ( when->Tag() == EXPR_NAME )
 		return c->ScheduleViHL(when->AsNameExpr(), is_interval,
-					handler, event_args.get());
+					handler.Ptr(), event_args.get());
 	else
 		return c->ScheduleCiHL(when->AsConstExpr(), is_interval,
-					handler, event_args.get());
+					handler.Ptr(), event_args.get());
 	}
 
 IntrusivePtr<Expr> ScheduleExpr::GetOp1() const
@@ -6130,7 +6130,7 @@ IntrusivePtr<Val> EventExpr::Eval(Frame* f) const
 
 	auto v = eval_list(f, args.get());
 
-	if ( handler )
+	if ( v )
 		mgr.Enqueue(handler, std::move(*v));
 
 	return nullptr;

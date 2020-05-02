@@ -4,13 +4,14 @@
 
 #include "Stmt.h"
 #include "Val.h"
+#include "Event.h"
 
 
 class NameExpr;
 class ConstExpr;
 class FieldExpr;
 class ListExpr;
-class EventHandlerPtr;
+class EventHandler;
 
 // Class representing a single compiled statement.  Designed to
 // be fully opaque, but also effective without requiring pointer
@@ -124,7 +125,9 @@ protected:
 
 	const CompiledStmt CompileSchedule(const NameExpr* n,
 					const ConstExpr* c, int is_interval,
-					EventHandlerPtr h, const ListExpr* l);
+					EventHandler* h, const ListExpr* l);
+
+	const CompiledStmt CompileEvent(EventHandler* h, const ListExpr* l);
 
 	ListVal* ValVecToListVal(val_vec* v, int n) const;
 

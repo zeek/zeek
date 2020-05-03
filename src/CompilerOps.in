@@ -478,10 +478,12 @@ eval auto args = frame[s.v3].vvec
 eval auto timer = new ScheduleTimer(s.event_handler, *args, dt)
 eval timer_mgr->Add(timer)
 
+
 op Event
 type HL
 custom-method return CompileEvent(h, l);
 eval mgr.Enqueue(s.event_handler, *frame[s.v1].vvec)
+
 
 op Return
 type X
@@ -503,12 +505,14 @@ eval ret_type = s.t
 eval loop = false
 method-pre	SyncGlobals()
 
+
 op Print
 type O
 eval auto vvec = frame[s.v1].vvec
 eval do_print(*vvec)
 eval delete vvec
 method-pre int reg = v->n; delete v
+
 
 internal-op If-Else
 type VV
@@ -522,9 +526,11 @@ internal-op If-Not
 type VV
 eval if ( frame[s.v1].int_val ) pc = s.v2
 
+
 internal-op GoTo
 type V
 eval pc = s.v1
+
 
 op AddStmt
 type VV
@@ -535,6 +541,7 @@ op AddStmt
 type VC
 set-type $2
 eval frame[s.v1].table_val->Assign(s.c.ToVal(s.t).get(), nullptr)
+
 
 op DelTable
 type VV
@@ -549,6 +556,21 @@ eval frame[s.v1].table_val->Delete(s.c.ToVal(s.t).get())
 op DelField
 type Vi
 eval frame[s.v1].record_val->Assign(s.v2, nullptr)
+
+
+internal-op Init-Record
+type V
+eval frame[s.v1].record_val = new RecordVal(s.t->AsRecordType())
+
+internal-op Init-Vector
+type V
+eval frame[s.v1].vector_val = new VectorVal(s.t->AsVectorType())
+
+internal-op Init-Table
+type V
+eval IntrusivePtr<TableType> tt = {NewRef{}, s.t->AsTableType()}
+eval IntrusivePtr<Attributes> attrs = {NewRef{}, s.attrs}
+eval frame[s.v1].table_val = new TableVal(tt, attrs)
 
 
 ########################################

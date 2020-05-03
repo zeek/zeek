@@ -411,6 +411,8 @@ public:
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
+	const CompiledStmt Compile(Compiler* c) const override;
+
 	const id_list* Inits() const	{ return inits; }
 
 	void StmtDescribe(ODesc* d) const override;

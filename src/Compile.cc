@@ -290,6 +290,7 @@ public:
 	const Expr* e = nullptr;
 	int* int_ptr = nullptr;
 	EventHandler* event_handler = nullptr;
+	Attributes* attrs = nullptr;
 
 	AS_ValUnion c;	// constant
 
@@ -710,6 +711,28 @@ const CompiledStmt AbstractMachine::Loop(const Stmt* body)
 	return tail;
 	}
 
+const CompiledStmt AbstractMachine::InitRecord(ID* id, RecordType* rt)
+	{
+	auto s = AbstractStmt(OP_INIT_RECORD_V, FrameSlot(id));
+	s.t = rt;
+	return AddStmt(s);
+	}
+
+const CompiledStmt AbstractMachine::InitVector(ID* id, VectorType* vt)
+	{
+	auto s = AbstractStmt(OP_INIT_VECTOR_V, FrameSlot(id));
+	s.t = vt;
+	return AddStmt(s);
+	}
+
+const CompiledStmt AbstractMachine::InitTable(ID* id, TableType* tt,
+						Attributes* attrs)
+	{
+	auto s = AbstractStmt(OP_INIT_TABLE_V, FrameSlot(id));
+	s.t = tt;
+	s.attrs = attrs;
+	return AddStmt(s);
+	}
 
 const CompiledStmt AbstractMachine::StartingBlock()
 {
@@ -753,7 +776,7 @@ int AbstractMachine::InternalBuildVals(const ListExpr* l)
 
 		if ( e->Tag() == EXPR_NAME )
 			{
-			int v = FrameSlot(e);
+			int v = FrameSlot(e->AsNameExpr());
 			as = AbstractStmt(OP_SET_VAL_VEC_VV, tmp, v);
 			}
 		else
@@ -1018,7 +1041,7 @@ int AbstractMachine::FrameSlot(const ID* id)
 	return 0;
 	}
 
-int AbstractMachine::FrameSlot(const Expr* e)
+int AbstractMachine::FrameSlot(const NameExpr* e)
 	{
 	return FrameSlot(e->AsNameExpr()->Id());
 	}

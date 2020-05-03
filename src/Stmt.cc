@@ -2340,6 +2340,32 @@ IntrusivePtr<Val> InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	return nullptr;
 	}
 
+const CompiledStmt InitStmt::Compile(Compiler* c) const
+	{
+	CompiledStmt last = c->EmptyStmt();
+
+	for ( const auto& aggr : *inits )
+		{
+		BroType* t = aggr->Type();
+		switch ( t->Tag() ) {
+		case TYPE_RECORD:
+			last = c->InitRecord(aggr, t->AsRecordType());
+			break;
+		case TYPE_VECTOR:
+			last = c->InitVector(aggr, t->AsVectorType());
+			break;
+		case TYPE_TABLE:
+			last = c->InitTable(aggr, t->AsTableType(),
+						aggr->Attrs());
+			break;
+		default:
+			break;
+		}
+		}
+
+	return last;
+	}
+
 void InitStmt::StmtDescribe(ODesc* d) const
 	{
 	AddTag(d);

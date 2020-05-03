@@ -55,6 +55,11 @@ public:
 				const NameExpr* cond, const Stmt* body) = 0;
 	virtual const CompiledStmt Loop(const Stmt* body) = 0;
 
+	virtual const CompiledStmt InitRecord(ID* id, RecordType* rt) = 0;
+	virtual const CompiledStmt InitVector(ID* id, VectorType* vt) = 0;
+	virtual const CompiledStmt InitTable(ID* id, TableType* tt,
+						Attributes* attrs) = 0;
+
 	virtual const CompiledStmt Next() = 0;
 	virtual const CompiledStmt Break() = 0;
 	virtual const CompiledStmt FallThrough() = 0;
@@ -104,6 +109,11 @@ public:
 					const Stmt* body) override;
 	const CompiledStmt Loop(const Stmt* body) override;
 
+	const CompiledStmt InitRecord(ID* id, RecordType* rt) override;
+	const CompiledStmt InitVector(ID* id, VectorType* vt) override;
+	const CompiledStmt InitTable(ID* id, TableType* tt, Attributes* attrs)
+		override;
+
 	const CompiledStmt Next() override	{ return GenGoTo(nexts); }
 	const CompiledStmt Break() override	{ return GenGoTo(breaks); }
 	const CompiledStmt FallThrough() override
@@ -117,7 +127,7 @@ public:
 
 	OpaqueVals* BuildVals(const IntrusivePtr<ListExpr>&) override;
 
-	int FrameSlot(const Expr* id);
+	int FrameSlot(const NameExpr* id);
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 

@@ -70,3 +70,4 @@ target_link_libraries(zeek_fuzzer_shared
                       ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 
 add_fuzz_target(pop3)
+add_fuzz_target(packet)

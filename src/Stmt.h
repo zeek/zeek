@@ -292,6 +292,8 @@ public:
 protected:
 	IntrusivePtr<Val> DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
 
+	const CompiledStmt Compile(Compiler* c) const override;
+
 	id_list* loop_vars;
 	IntrusivePtr<Stmt> body;
 	// Stores the value variable being used for a key value for loop.

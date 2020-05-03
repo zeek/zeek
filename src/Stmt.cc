@@ -1709,6 +1709,7 @@ IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 				break;
 			}
 		}
+
 	else if ( v->Type()->Tag() == TYPE_STRING )
 		{
 		StringVal* sval = v->AsStringVal();
@@ -1735,6 +1736,11 @@ IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 		flow = FLOW_NEXT;	// we've now finished the "break"
 
 	return ret;
+	}
+
+const CompiledStmt ForStmt::Compile(Compiler* c) const
+	{
+	// ###
 	}
 
 bool ForStmt::IsPure() const

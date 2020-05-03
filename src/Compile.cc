@@ -679,13 +679,40 @@ const CompiledStmt AbstractMachine::IfElse(const NameExpr* n, const Stmt* s1,
 		}
 	}
 
+const CompiledStmt AbstractMachine::While(const Stmt* cond_stmt,
+					const NameExpr* cond, const Stmt* body)
+	{
+	auto head = StartingBlock();
+	(void) cond_stmt->Compile(this);
+
+	auto cond_IF = AddStmt(AbstractStmt(OP_IF_VV, FrameSlot(cond), 0));
+	(void) body->Compile(this);
+	auto tail = GoTo(head);
+
+	SetV2(cond_IF, GoToTargetBeyond(tail));
+
+	return tail;
+	}
+
+const CompiledStmt AbstractMachine::Loop(const Stmt* body)
+	{
+	auto head = StartingBlock();
+	(void) body->Compile(this);
+	return GoTo(head);
+	}
+
 
 const CompiledStmt AbstractMachine::StartingBlock()
+{
+return CompiledStmt(stmts.size());
+}
+
+const CompiledStmt AbstractMachine::FinishBlock(const CompiledStmt /* start */)
 	{
 	return CompiledStmt(stmts.size());
 	}
 
-const CompiledStmt AbstractMachine::FinishBlock(const CompiledStmt /* start */)
+const CompiledStmt AbstractMachine::EmptyStmt()
 	{
 	return CompiledStmt(stmts.size());
 	}
@@ -917,6 +944,12 @@ CompiledStmt AbstractMachine::GoTo()
 	{
 	AbstractStmt s(OP_GOTO_V, 0);
 	return AddStmt(s);
+	}
+
+CompiledStmt AbstractMachine::GoTo(const CompiledStmt s)
+	{
+	AbstractStmt stmt(OP_GOTO_V, s.stmt_num - 1);
+	return AddStmt(stmt);
 	}
 
 CompiledStmt AbstractMachine::GoToTargetBeyond(const CompiledStmt s)

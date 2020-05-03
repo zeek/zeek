@@ -51,8 +51,14 @@ public:
 	virtual const CompiledStmt IfElse(const NameExpr* n, const Stmt* s1,
 						const Stmt* s2) = 0;
 
+	virtual const CompiledStmt While(const Stmt* cond_stmt,
+				const NameExpr* cond, const Stmt* body) = 0;
+	virtual const CompiledStmt Loop(const Stmt* body) = 0;
+
 	virtual const CompiledStmt StartingBlock() = 0;
 	virtual const CompiledStmt FinishBlock(const CompiledStmt start) = 0;
+
+	virtual const CompiledStmt EmptyStmt() = 0;
 	virtual const CompiledStmt ErrorStmt() = 0;
 
 	// Returns a handle to state associated with building
@@ -90,8 +96,14 @@ public:
 	const CompiledStmt IfElse(const NameExpr* n, const Stmt* s1,
 					const Stmt* s2) override;
 
+	const CompiledStmt While(const Stmt* cond_stmt, const NameExpr* cond,
+					const Stmt* body) override;
+	const CompiledStmt Loop(const Stmt* body) override;
+
 	const CompiledStmt StartingBlock() override;
 	const CompiledStmt FinishBlock(const CompiledStmt start) override;
+
+	const CompiledStmt EmptyStmt() override;
 	const CompiledStmt ErrorStmt() override;
 
 	OpaqueVals* BuildVals(const IntrusivePtr<ListExpr>&) override;
@@ -141,6 +153,7 @@ protected:
 	void SyncGlobals();
 
 	CompiledStmt GoTo();
+	CompiledStmt GoTo(const CompiledStmt s);
 	CompiledStmt GoToTargetBeyond(const CompiledStmt s);
 	void SetV1(CompiledStmt s, const CompiledStmt s1);
 	void SetV2(CompiledStmt s, const CompiledStmt s2);

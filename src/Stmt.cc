@@ -1359,6 +1359,11 @@ Stmt* EventStmt::DoReduce(Reducer* c)
 	return this->Ref();
 	}
 
+const CompiledStmt EventStmt::Compile(Compiler* c) const
+	{
+	return event_expr->Compile(c);
+	}
+
 TraversalCode EventStmt::Traverse(TraversalCallback* cb) const
 	{
 	TraversalCode tc = cb->PreStmt(this);
@@ -1426,6 +1431,23 @@ Stmt* WhileStmt::DoReduce(Reducer* c)
 		}
 
 	return this->Ref();
+	}
+
+const CompiledStmt WhileStmt::Compile(Compiler* c) const
+	{
+	if ( loop_condition->Tag() == EXPR_CONST )
+		{
+		if ( loop_condition->AsConstExpr()->IsZero() )
+			return c->EmptyStmt();
+		else
+			return c->Loop(body.get());
+		}
+
+	else
+		{
+		auto cond = loop_condition->AsNameExpr();
+		return c->While(loop_cond_stmt.get(), cond, body.get());
+		}
 	}
 
 void WhileStmt::StmtDescribe(ODesc* d) const

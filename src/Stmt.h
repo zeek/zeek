@@ -221,6 +221,8 @@ public:
 
 	Stmt* DoReduce(Reducer* c) override;
 
+	const CompiledStmt Compile(Compiler* c) const override;
+
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
@@ -256,6 +258,8 @@ public:
 
 protected:
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+
+	const CompiledStmt Compile(Compiler* c) const override;
 
 	IntrusivePtr<Expr> loop_condition;
 	IntrusivePtr<Stmt> stmt_loop_condition;

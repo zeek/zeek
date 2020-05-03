@@ -306,6 +306,9 @@ public:
 	NextStmt() : Stmt(STMT_NEXT)	{ }
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+
+	const CompiledStmt Compile(Compiler* c) const override;
+
 	bool IsPure() const override;
 
 	void StmtDescribe(ODesc* d) const override;
@@ -320,6 +323,9 @@ public:
 	BreakStmt() : Stmt(STMT_BREAK)	{ }
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+
+	const CompiledStmt Compile(Compiler* c) const override;
+
 	bool IsPure() const override;
 
 	void StmtDescribe(ODesc* d) const override;
@@ -334,6 +340,9 @@ public:
 	FallthroughStmt() : Stmt(STMT_FALLTHROUGH)	{ }
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+
+	const CompiledStmt Compile(Compiler* c) const override;
+
 	bool IsPure() const override;
 
 	void StmtDescribe(ODesc* d) const override;

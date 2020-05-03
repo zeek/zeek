@@ -55,6 +55,10 @@ public:
 				const NameExpr* cond, const Stmt* body) = 0;
 	virtual const CompiledStmt Loop(const Stmt* body) = 0;
 
+	virtual const CompiledStmt Next() = 0;
+	virtual const CompiledStmt Break() = 0;
+	virtual const CompiledStmt FallThrough() = 0;
+
 	virtual const CompiledStmt StartingBlock() = 0;
 	virtual const CompiledStmt FinishBlock(const CompiledStmt start) = 0;
 
@@ -99,6 +103,11 @@ public:
 	const CompiledStmt While(const Stmt* cond_stmt, const NameExpr* cond,
 					const Stmt* body) override;
 	const CompiledStmt Loop(const Stmt* body) override;
+
+	const CompiledStmt Next() override	{ return GenGoTo(nexts); }
+	const CompiledStmt Break() override	{ return GenGoTo(breaks); }
+	const CompiledStmt FallThrough() override
+		{ return GenGoTo(fallthroughs); }
 
 	const CompiledStmt StartingBlock() override;
 	const CompiledStmt FinishBlock(const CompiledStmt start) override;
@@ -152,9 +161,20 @@ protected:
 
 	void SyncGlobals();
 
+	void ResolveNexts(const CompiledStmt s)
+		{ ResolveGoTos(nexts, s); }
+	void ResolveBreaks(const CompiledStmt s)
+		{ ResolveGoTos(breaks, s); }
+	void ResolveFallThroughs(const CompiledStmt s)
+		{ ResolveGoTos(fallthroughs, s); }
+
+	void ResolveGoTos(vector<int>& gotos, const CompiledStmt s);
+
+	CompiledStmt GenGoTo(vector<int>& v);
 	CompiledStmt GoTo();
 	CompiledStmt GoTo(const CompiledStmt s);
 	CompiledStmt GoToTargetBeyond(const CompiledStmt s);
+	CompiledStmt PrevStmt(const CompiledStmt s);
 	void SetV1(CompiledStmt s, const CompiledStmt s1);
 	void SetV2(CompiledStmt s, const CompiledStmt s2);
 	void SetGoTo(CompiledStmt s, const CompiledStmt targ)
@@ -167,6 +187,13 @@ protected:
 	int RegisterSlot();
 
 	vector<AbstractStmt> stmts;
+
+	// Indices of break/next/fallthrough goto's, so they can be
+	// patched up post factor.
+	vector<int> breaks;
+	vector<int> nexts;
+	vector<int> fallthroughs;
+
 	AS_ValUnion* frame;
 	int frame_size;
 	bool error_seen = false;

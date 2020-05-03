@@ -1837,6 +1837,11 @@ IntrusivePtr<Val> NextStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
 	return nullptr;
 	}
 
+const CompiledStmt NextStmt::Compile(Compiler* c) const
+	{
+	return c->Next();
+	}
+
 bool NextStmt::IsPure() const
 	{
 	return true;
@@ -1864,6 +1869,11 @@ IntrusivePtr<Val> BreakStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
 	return nullptr;
 	}
 
+const CompiledStmt BreakStmt::Compile(Compiler* c) const
+	{
+	return c->Break();
+	}
+
 bool BreakStmt::IsPure() const
 	{
 	return true;
@@ -1889,6 +1899,11 @@ IntrusivePtr<Val> FallthroughStmt::Exec(Frame* /* f */, stmt_flow_type& flow) co
 	RegisterAccess();
 	flow = FLOW_FALLTHROUGH;
 	return nullptr;
+	}
+
+const CompiledStmt FallthroughStmt::Compile(Compiler* c) const
+	{
+	return c->FallThrough();
 	}
 
 bool FallthroughStmt::IsPure() const

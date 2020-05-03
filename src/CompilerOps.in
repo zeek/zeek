@@ -488,22 +488,40 @@ eval mgr.Enqueue(s.event_handler, *frame[s.v1].vvec)
 op Return
 type X
 eval ret_u = nullptr
-eval loop = false
+eval pc = end_pc
 method-pre	SyncGlobals()
 
 op Return
 type V
 eval ret_u = &frame[s.v1]
 eval ret_type = s.t
-eval loop = false
+eval pc = end_pc
 method-pre	SyncGlobals()
 
 op Return
 type C
 eval ret_u = &s.c
 eval ret_type = s.t
-eval loop = false
+eval pc = end_pc
 method-pre	SyncGlobals()
+
+
+op When
+type VVVV
+eval auto when_body = new ResumptionAM(this, s.v2)
+eval auto timeout_body = new ResumptionAM(this, s.v3)
+eval new trigger::Trigger(s.non_const_e, when_body, timeout_body, frame[s.v1].double_val, f, s.v4, s.loc)
+
+op When
+type VVVC
+eval auto when_body = new ResumptionAM(this, s.v2)
+eval auto timeout_body = new ResumptionAM(this, s.v3)
+eval new trigger::Trigger(s.non_const_e, when_body, timeout_body, s.c.double_val, f, s.v4, s.loc)
+
+op When
+type VV
+eval auto when_body = new ResumptionAM(this, s.v2)
+eval new trigger::Trigger(s.non_const_e, when_body, nullptr, -1.0, f, s.v4, s.loc)
 
 
 op Print

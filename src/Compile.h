@@ -55,6 +55,10 @@ public:
 				const NameExpr* cond, const Stmt* body) = 0;
 	virtual const CompiledStmt Loop(const Stmt* body) = 0;
 
+	virtual const CompiledStmt When(Expr* cond, const Stmt* body,
+				const Expr* timeout, const Stmt* timeout_body,
+				bool is_return, const Location* location) = 0;
+
 	virtual const CompiledStmt InitRecord(ID* id, RecordType* rt) = 0;
 	virtual const CompiledStmt InitVector(ID* id, VectorType* vt) = 0;
 	virtual const CompiledStmt InitTable(ID* id, TableType* tt,
@@ -109,6 +113,10 @@ public:
 					const Stmt* body) override;
 	const CompiledStmt Loop(const Stmt* body) override;
 
+	const CompiledStmt When(Expr* cond, const Stmt* body,
+			const Expr* timeout, const Stmt* timeout_body,
+			bool is_return, const Location* location) override;
+
 	const CompiledStmt InitRecord(ID* id, RecordType* rt) override;
 	const CompiledStmt InitVector(ID* id, VectorType* vt) override;
 	const CompiledStmt InitTable(ID* id, TableType* tt, Attributes* attrs)
@@ -136,6 +144,11 @@ public:
 	void Dump();
 
 protected:
+	friend class ResumptionAM;
+
+	IntrusivePtr<Val> DoExec(Frame* f, int start_pc,
+					stmt_flow_type& flow) const;
+
 	int InternalBuildVals(const ListExpr*);
 
 	const CompiledStmt CompileInExpr(const NameExpr* n1, const NameExpr* n2,
@@ -207,4 +220,25 @@ protected:
 	AS_ValUnion* frame;
 	int frame_size;
 	bool error_seen = false;
+};
+
+// This is a statement that resumes execution into a code block in an
+// AbstractMachine.  Used for deferred execution for "when" statements.
+class ResumptionAM : public Stmt {
+public:
+	ResumptionAM(const AbstractMachine* _am, int _xfer_pc)
+		{
+		am = _am;
+		xfer_pc = _xfer_pc;
+		}
+
+	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+
+	void StmtDescribe(ODesc* d) const override;
+
+protected:
+	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+	const AbstractMachine* am;
+	int xfer_pc = 0;
 };

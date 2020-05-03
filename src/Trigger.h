@@ -33,6 +33,8 @@ public:
 	// right away.
 	Trigger(Expr* cond, Stmt* body, Stmt* timeout_stmts, Expr* timeout,
 		Frame* f, bool is_return, const Location* loc);
+	Trigger(Expr* cond, Stmt* body, Stmt* timeout_stmts, double timeout,
+		Frame* f, bool is_return, const Location* loc);
 	~Trigger() override;
 
 	// Evaluates the condition. If true, executes the body and deletes
@@ -88,7 +90,10 @@ private:
 	friend class TriggerTraversalCallback;
 	friend class TriggerTimer;
 
-	void Init();
+	void Init(Expr* cond, Stmt* body, Stmt* timeout_stmts, Frame* frame,
+			bool is_return, const Location* location);
+
+	void ReInit();
 	void Register(ID* id);
 	void Register(Val* val);
 	void UnregisterAll();
@@ -96,7 +101,6 @@ private:
 	Expr* cond;
 	Stmt* body;
 	Stmt* timeout_stmts;
-	Expr* timeout;
 	double timeout_value;
 	Frame* frame;
 	bool is_return;

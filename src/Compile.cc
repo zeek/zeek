@@ -5,6 +5,7 @@
 #include "RE.h"
 #include "OpaqueVal.h"
 #include "EventHandler.h"
+#include "Trigger.h"
 #include "Desc.h"
 #include "Reporter.h"
 #include "Traverse.h"
@@ -288,9 +289,11 @@ public:
 	int v1, v2, v3, v4;
 	BroType* t = nullptr;
 	const Expr* e = nullptr;
+	Expr* non_const_e = nullptr;
 	int* int_ptr = nullptr;
 	EventHandler* event_handler = nullptr;
 	Attributes* attrs = nullptr;
+	const Location* loc = nullptr;
 
 	AS_ValUnion c;	// constant
 
@@ -467,6 +470,7 @@ AbstractMachine::~AbstractMachine()
 
 void AbstractMachine::StmtDescribe(ODesc* d) const
 	{
+	d->Add("compiled code");
 	}
 
 static void vec_exec(AbstractOp op, vector<BroValUnion>* v1,
@@ -497,13 +501,19 @@ static void run_time_error(const char* msg);
 
 IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 	{
+	return DoExec(f, 0, flow);
+	}
+
+IntrusivePtr<Val> AbstractMachine::DoExec(Frame* f, int start_pc,
+						stmt_flow_type& flow) const
+	{
 	const AS_ValUnion* ret_u;
 	Val* ret_v;
 	BroType* ret_type;
-	int pc = 0;
+	int pc = start_pc;
+	int end_pc = stmts.size();
 
-	auto loop = true;
-	while ( loop ) {
+	while ( pc < end_pc ) {
 		auto& s = stmts[pc];
 
 		switch ( stmts[pc].op ) {
@@ -709,6 +719,57 @@ const CompiledStmt AbstractMachine::Loop(const Stmt* body)
 	ResolveBreaks(GoToTargetBeyond(tail));
 
 	return tail;
+	}
+
+const CompiledStmt AbstractMachine::When(Expr* cond, const Stmt* body,
+				const Expr* timeout, const Stmt* timeout_body,
+				bool is_return, const Location* location)
+	{
+	AbstractStmt s;
+
+	if ( timeout )
+		{
+		// Note, we fill in is_return by hand since it's already
+		// an int_val, doesn't need translation.
+		if ( timeout->Tag() == EXPR_CONST )
+			s = GenStmt(this, OP_WHEN_VVVC, timeout->AsConstExpr());
+		else
+			s = GenStmt(this, OP_WHEN_VVVV, timeout->AsNameExpr());
+		}
+
+	else
+		s = GenStmt(this, OP_WHEN_VV);
+
+	s.v4 = is_return;
+	s.non_const_e = cond;
+	s.loc = location;
+
+	AddStmt(s);
+
+	auto branch_past_blocks = GoTo();
+
+	auto when_body = body->Compile(this);
+	auto when_done = ReturnX();
+
+	if ( timeout )
+		{
+		auto t_body = timeout_body->Compile(this);
+		auto t_done = ReturnX();
+
+		s.v2 = branch_past_blocks.stmt_num + 1;
+		s.v3 = when_done.stmt_num + 1;
+		SetGoTo(branch_past_blocks, GoToTargetBeyond(t_done));
+
+		return t_done;
+		}
+
+	else
+		{
+		s.v2 = branch_past_blocks.stmt_num + 1;
+		SetGoTo(branch_past_blocks, GoToTargetBeyond(when_done));
+
+		return when_done;
+		}
 	}
 
 const CompiledStmt AbstractMachine::InitRecord(ID* id, RecordType* rt)
@@ -1053,6 +1114,25 @@ int AbstractMachine::RegisterSlot()
 
 
 TraversalCode Compiler::Traverse(TraversalCallback* cb) const
+	{
+	TraversalCode tc = cb->PreStmt(this);
+	HANDLE_TC_STMT_PRE(tc);
+
+	tc = cb->PostStmt(this);
+	HANDLE_TC_STMT_POST(tc);
+	}
+
+IntrusivePtr<Val> ResumptionAM::Exec(Frame* f, stmt_flow_type& flow) const
+	{
+	return am->DoExec(f, xfer_pc, flow);
+	}
+
+void ResumptionAM::StmtDescribe(ODesc* d) const
+	{
+	d->Add("resumption of compiled code");
+	}
+
+TraversalCode ResumptionAM::Traverse(TraversalCallback* cb) const
 	{
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);

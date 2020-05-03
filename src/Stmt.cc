@@ -2419,6 +2419,12 @@ void NullStmt::StmtDescribe(ODesc* d) const
 		AddTag(d);
 	}
 
+const CompiledStmt NullStmt::Compile(Compiler* c) const
+	{
+	reporter->InternalError("null statement seen in reduced body");
+	return c->ErrorStmt();
+	}
+
 TraversalCode NullStmt::Traverse(TraversalCallback* cb) const
 	{
 	TraversalCode tc = cb->PreStmt(this);
@@ -2460,12 +2466,21 @@ IntrusivePtr<Val> WhenStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	flow = FLOW_NEXT;
 
 	// The new trigger object will take care of its own deletion.
+	//
+	// ### I don't see how these .release()'s can be right given the
+	// statement can execute multiple times. -VP
 	new trigger::Trigger(IntrusivePtr{cond}.release(),
 	                     IntrusivePtr{s1}.release(),
 	                     IntrusivePtr{s2}.release(),
 	                     IntrusivePtr{timeout}.release(),
 	                     f, is_return, location);
 	return nullptr;
+	}
+
+const CompiledStmt WhenStmt::Compile(Compiler* c) const
+	{
+	return c->When(cond.get(), s1.get(), timeout.get(), s2.get(),
+			is_return, location);
 	}
 
 bool WhenStmt::IsPure() const

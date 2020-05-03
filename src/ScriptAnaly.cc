@@ -214,7 +214,6 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		}
 
 	case STMT_LIST:
-	case STMT_EVENT_BODY_LIST:	// ###
 		{
 		auto sl = s->AsStmtList();
 		auto stmts = sl->Stmts();
@@ -880,7 +879,6 @@ bool RD_Decorate::ControlCouldReachEnd(const Stmt* s, bool ignore_break) const
 		}
 
 	case STMT_LIST:
-	case STMT_EVENT_BODY_LIST:	// ###
 		{
 		auto l = s->AsStmtList();
 

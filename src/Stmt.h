@@ -403,23 +403,6 @@ protected:
 	stmt_list* stmts;
 };
 
-class EventBodyList : public StmtList {
-public:
-	EventBodyList() : StmtList()
-		{ topmost = false; tag = STMT_EVENT_BODY_LIST; }
-
-	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
-
-	void StmtDescribe(ODesc* d) const override;
-
-	// "Topmost" means that this is the main body of a function or event.
-	// void SetTopmost(bool is_topmost)	{ topmost = is_topmost; }
-	// bool IsTopmost()	{ return topmost; }
-
-protected:
-	bool topmost;
-};
-
 class InitStmt : public Stmt {
 public:
 	explicit InitStmt(id_list* arg_inits);

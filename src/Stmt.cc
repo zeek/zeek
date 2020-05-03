@@ -28,7 +28,7 @@ const char* stmt_name(BroStmtTag t)
 		"alarm", // Does no longer exist, but kept for keeping enums consistent.
 		"print", "event", "expr", "if", "when", "switch",
 		"for", "next", "break", "return", "add", "delete",
-		"list", "bodylist",
+		"list",
 		"<init>", "fallthrough", "while",
 		"check-any-length",
 		"<compiled>",
@@ -2292,64 +2292,6 @@ TraversalCode StmtList::Traverse(TraversalCallback* cb) const
 
 	tc = cb->PostStmt(this);
 	HANDLE_TC_STMT_POST(tc);
-	}
-
-IntrusivePtr<Val> EventBodyList::Exec(Frame* f, stmt_flow_type& flow) const
-	{
-	RegisterAccess();
-	flow = FLOW_NEXT;
-
-	for ( const auto& stmt : Stmts() )
-		{
-		f->SetNextStmt(stmt);
-
-		// Ignore the return value, since there shouldn't be
-		// any; and ignore the flow, since we still execute
-		// all of the event bodies even if one of them does
-		// a FLOW_RETURN.
-		if ( ! pre_execute_stmt(stmt, f) )
-			{ // ### Abort or something
-			}
-
-		auto result = stmt->Exec(f, flow);
-
-		if ( ! post_execute_stmt(stmt, f, result.get(), &flow) )
-			{ // ### Abort or something
-			}
-		}
-
-	// Simulate a return so the hooks operate properly.
-	stmt_flow_type ft = FLOW_RETURN;
-	(void) post_execute_stmt(f->GetNextStmt(), f, 0, &ft);
-
-	return nullptr;
-	}
-
-void EventBodyList::StmtDescribe(ODesc* d) const
-	{
-	if ( d->IsReadable() && Stmts().length() > 0 )
-		{
-		for ( const auto& stmt : Stmts() )
-			{
-			if ( ! d->IsBinary() )
-				{
-				d->Add("{");
-				d->PushIndent();
-				stmt->AccessStats(d);
-				}
-
-			stmt->Describe(d);
-
-			if ( ! d->IsBinary() )
-				{
-				d->Add("}");
-				d->PopIndent();
-				}
-			}
-		}
-
-	else
-		StmtList::StmtDescribe(d);
 	}
 
 InitStmt::InitStmt(id_list* arg_inits) : Stmt(STMT_INIT)

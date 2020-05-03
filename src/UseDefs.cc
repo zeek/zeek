@@ -147,7 +147,6 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt,
 		stmts.push_back(s);
 
 	switch ( s->Tag() ) {
-	case STMT_EVENT_BODY_LIST:	// ###
 	case STMT_LIST:
 		{
 		auto sl = s->AsStmtList();

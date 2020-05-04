@@ -24,6 +24,7 @@ BEGIN	{
 	args["X"] = "()"
 	args["O"] = "(OpaqueVals* v)"
 	args["R"] = "(const NameExpr* n1, const NameExpr* n2, const FieldExpr* f)"
+	args["Ri"] = "(const NameExpr* n1, const NameExpr* n2, int field)"
 	args["V"] = "(const NameExpr* n)"
 	args["Vi"] = "(const NameExpr* n, int i)"
 	args["VV"] = "(const NameExpr* n1, const NameExpr* n2)"
@@ -48,6 +49,7 @@ BEGIN	{
 	args2["X"] = ""
 	args2["O"] = "reg"
 	args2["R"] = "n1, n2, f->Field()"
+	args2["Ri"] = "n1, n2, field"
 	args2["V"] = "n"
 	args2["VV"] = "n1, n2"
 	args2["VO"] = "n, reg"
@@ -86,7 +88,6 @@ BEGIN	{
 	accessors["A"] = ".addr_val"
 	accessors["N"] = ".subnet_val"
 	accessors["P"] = ".re_val"
-	accessors["R"] = ""	# not ".record_val"
 	accessors["S"] = ".string_val"
 	accessors["T"] = ".table_val"
 	accessors["X"] = "###"
@@ -99,12 +100,10 @@ BEGIN	{
 	eval_selector["A"] = "A"
 	eval_selector["N"] = "N"
 	eval_selector["P"] = "P"
-	eval_selector["R"] = "R"
 	eval_selector["S"] = "S"
 	eval_selector["T"] = "T"
 
 	++no_vec["P"]
-	++no_vec["R"]
 	++no_vec["T"]
 
 	method_map["I"] = "i_t == TYPE_INTERNAL_INT"
@@ -148,7 +147,7 @@ $1 == "opaque"	{ opaque = 1; next }
 $1 == "set-type"	{ set_type = $2; next }
 $1 == "set-expr"	{ set_expr = $2; next }
 
-$1 ~ /^eval((_[ANPRST])?)$/	{
+$1 ~ /^eval((_[ANPST])?)$/	{
 		if ( $1 != "eval" )
 			{
 			# Extract subtype specifier.
@@ -274,12 +273,7 @@ function dump_op()
 
 	if ( ! ary_op )
 		{
-		if ( type == "R" )
-			# Special-case the 'R' unary op.
-			ex = expand_eval(eval["R"], 0, "R", "R", 1, 0)
-		else
-			ex = eval[""]
-
+		ex = eval[""]
 		build_op(op, type, "", "", ex, ex, 0, 0)
 		clear_vars()
 		return
@@ -415,7 +409,7 @@ function expand_eval(e, is_expr_op, otype1, otype2, is_var1, is_var2)
 		raccessor1 = accessors[otype1]
 		raccessor2 = accessors[otype2]
 
-		if ( rel_op || otype1 == "R" )
+		if ( rel_op )
 			laccessor = accessors["I"]
 		else
 			laccessor = raccessor1
@@ -440,7 +434,7 @@ function expand_eval(e, is_expr_op, otype1, otype2, is_var1, is_var2)
 		{
 		if ( index(e_copy, "$$") > 0 )
 			{
-			if ( ! rel_op && otype1 != "R" )
+			if ( ! rel_op )
 				e_copy = "delete frame[s.v1]" \
 					laccessor ";\n\t\t" e_copy
 
@@ -585,6 +579,12 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 		{
 		print ("\tcase EXPR_" upper_op ":\treturn c->" op_type \
 			"(lhs, r1->AsNameExpr(), rhs->AsFieldExpr());") >exprsV_f
+		}
+
+	else if ( type == "Ri" )
+		{
+		print ("\tcase EXPR_" upper_op ":\treturn c->" op_type \
+			"(lhs, r1->AsNameExpr(), rhs->AsHasFieldExpr()->Field());") >exprsV_f
 		}
 
 	else if ( expr_op && is_rep )

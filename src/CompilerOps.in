@@ -171,19 +171,19 @@ eval_A $$ = ! (*$1 < *$2) && *$1 != *$2
 
 expr-op Field
 type R
-eval_R auto v = frame[s.v2].record_val->Lookup(s.v3)
-eval_R if ( ! v ) { /* Check for &default */
-eval_R	auto rt = s.t->AsRecordType()
-eval_R	auto td = rt->FieldDecl(s.v3)
-eval_R	const Attr* def_attr = td ? td->FindAttr(ATTR_DEFAULT) : 0
-eval_R	if ( def_attr ) v = def_attr->AttrExpr()->Eval(nullptr).release()
-eval_R	else run_time_error("field value missing")
-eval_R	}
-eval_R frame[s.v1] = AS_ValUnion(v, s.t)
+eval auto v = frame[s.v2].record_val->Lookup(s.v3)
+eval if ( ! v ) { /* Check for &default */
+eval	auto rt = s.t->AsRecordType()
+eval	auto td = rt->FieldDecl(s.v3)
+eval	const Attr* def_attr = td ? td->FindAttr(ATTR_DEFAULT) : 0
+eval	if ( def_attr ) v = def_attr->AttrExpr()->Eval(nullptr).release()
+eval	else run_time_error("field value missing")
+eval	}
+eval frame[s.v1] = AS_ValUnion(v, s.t)
 
 expr-op Has_Field
-type R
-eval_R frame[s.v1].int_val = (frame[s.v2].record_val->Lookup(s.v3) != nullptr)
+type Ri
+eval frame[s.v1].int_val = (frame[s.v2].record_val->Lookup(s.v3) != nullptr)
 
 expr-op In
 type VLV

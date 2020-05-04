@@ -125,7 +125,6 @@ export {
 		["d2d79df7-3400-11d0-b40b-00aa005ff586"] = "IDMNotify",
 		["3a410f21-553f-11d1-8e5e-00a0c92c9d5d"] = "IDMRemoteServer",
 		["00020404-0000-0000-c000-000000000046"] = "IEnumVARIANT",
-		["027947e1-d731-11ce-a357-000000000001"] = "IEnumWbemClassObject",
 		["f6beaff7-1e19-4fbb-9f8f-b89e2018337c"] = "IEventService",
 		["03837543-098b-11d8-9414-505054503030"] = "IFolderAction",
 		["03837544-098b-11d8-9414-505054503030"] = "IFolderActionCollection",

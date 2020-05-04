@@ -36,6 +36,9 @@ struct IterInfo {
 	BroType* value_var_type;
 	vector<int> loop_vars;
 	vector<BroType*> loop_var_types;
+
+	VectorVal* vv;
+	bro_uint_t iter;
 };
 
 // A bit of this mirrors BroValUnion, but it captures low-level
@@ -975,6 +978,9 @@ const CompiledStmt AbstractMachine::For(const ForStmt* f)
 
 	if ( et == TYPE_TABLE )
 		return LoopOverTable(f, val);
+
+	else if ( et == TYPE_VECTOR )
+		return LoopOverVector(f, val);
 	}
 
 const CompiledStmt AbstractMachine::LoopOverTable(const ForStmt* f,
@@ -998,15 +1004,40 @@ const CompiledStmt AbstractMachine::LoopOverTable(const ForStmt* f,
 		}
 
 	s = AbstractStmt(OP_NEXT_TABLE_ITER_VVV, info, 0, value_var_slot);
-	auto loop_iter = AddStmt(s);
 
-	auto body_end = f->LoopBody()->Compile(this);
-	auto body_beyond = GoToTargetBeyond(body_end);
+	return FinishLoop(s, f->LoopBody(), info);
+	}
 
-	SetV2(loop_iter, body_beyond);
+const CompiledStmt AbstractMachine::LoopOverVector(const ForStmt* f,
+							const NameExpr* val)
+	{
+	auto loop_vars = f->LoopVars();
+	auto loop_var = (*loop_vars)[0];
+
+	auto info = NewSlot();
+	auto s = AbstractStmt(OP_INIT_VECTOR_LOOP_VV, info, FrameSlot(val));
+	auto init_end = AddStmt(s);
+
+	s = AbstractStmt(OP_NEXT_VECTOR_ITER_VVV, info, 0, FrameSlot(loop_var));
+
+	return FinishLoop(s, f->LoopBody(), info);
+	}
+
+const CompiledStmt AbstractMachine::FinishLoop(AbstractStmt iter_stmt,
+						const Stmt* body,
+						int info_slot)
+	{
+	auto loop_iter = AddStmt(iter_stmt);
+
+	auto body_end = body->Compile(this);
+
+	auto s = AbstractStmt(OP_END_LOOP_V, info_slot);
+	auto loop_end = AddStmt(s);
+
+	SetV2(loop_iter, loop_end);
 
 	ResolveNexts(loop_iter);
-	ResolveBreaks(body_beyond);
+	ResolveBreaks(loop_end);
 
 	return body_end;
 	}

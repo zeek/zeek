@@ -1691,6 +1691,8 @@ IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 		{
 		VectorVal* vv = v->AsVectorVal();
 
+		// ### VP: Seems this should be <, not <=, but the Lookup
+		// test at the beginning saves it.
 		for ( auto i = 0u; i <= vv->Size(); ++i )
 			{
 			// Skip unassigned vector indices.

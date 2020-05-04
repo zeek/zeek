@@ -127,6 +127,10 @@ public:
 	const CompiledStmt For(const ForStmt* f) override;
 
 	const CompiledStmt LoopOverTable(const ForStmt* f, const NameExpr* val);
+	const CompiledStmt LoopOverVector(const ForStmt* f, const NameExpr* val);
+
+	const CompiledStmt FinishLoop(AbstractStmt iter_stmt, const Stmt* body,
+					int info_slot);
 
 	const CompiledStmt InitRecord(ID* id, RecordType* rt) override;
 	const CompiledStmt InitVector(ID* id, VectorType* vt) override;

@@ -551,10 +551,10 @@ eval auto ii = frame[s.v1].iter_info
 eval ii->loop_vars.push_back(s.v2)
 eval ii->loop_var_types.push_back(s.t)
 
+internal-op Next-Table-Iter
 # v1 = iteration info
 # v2 = branch target if loop done
 # v3 = if >= 0, slot of the "ValueVar"
-internal-op Next-Table-Iter
 type VVV
 eval HashKey* k
 eval auto ii = frame[s.v1].iter_info
@@ -564,6 +564,22 @@ eval auto ind_lv = ii->tv->RecoverIndex(k);
 eval delete k
 eval if ( s.v3 >= 0 ) frame[s.v3] = AS_ValUnion(current_tev->Value()->Ref(), ii->value_var_type)
 eval for ( int i = 0; i < ind_lv->Length(); i++ ) frame[ii->loop_vars[i]] = AS_ValUnion(ind_lv->Index(i)->Ref(), ii->loop_var_types[i])
+
+internal-op Init-Vector-Loop
+type VV
+eval auto ii = new IterInfo
+eval ii->vv = frame[s.v2].vector_val
+eval ii->iter = 0
+eval ii->c = 0;	// because End-Loop will check it
+eval frame[s.v1].iter_info = ii
+
+internal-op Next-Vector-Iter
+type VVV
+eval auto ii = frame[s.v1].iter_info
+eval auto vv = ii->vv
+eval if ( ii->iter >= vv->Size() ) { pc = s.v2; break; }
+eval frame[s.v3].uint_val = ii->iter
+eval ++ii->iter
 
 internal-op End-Loop
 type V

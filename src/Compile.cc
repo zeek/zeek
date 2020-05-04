@@ -38,7 +38,10 @@ struct IterInfo {
 	vector<BroType*> loop_var_types;
 
 	VectorVal* vv;
+	BroString* s;
+
 	bro_uint_t iter;
+	bro_uint_t n;	// we loop from 0 ... n-1
 };
 
 // A bit of this mirrors BroValUnion, but it captures low-level
@@ -981,6 +984,12 @@ const CompiledStmt AbstractMachine::For(const ForStmt* f)
 
 	else if ( et == TYPE_VECTOR )
 		return LoopOverVector(f, val);
+
+	else if ( et == TYPE_STRING )
+		return LoopOverString(f, val);
+
+	else
+		reporter->InternalError("bad \"for\" loop-over value when compiling");
 	}
 
 const CompiledStmt AbstractMachine::LoopOverTable(const ForStmt* f,
@@ -1018,7 +1027,23 @@ const CompiledStmt AbstractMachine::LoopOverVector(const ForStmt* f,
 	auto s = AbstractStmt(OP_INIT_VECTOR_LOOP_VV, info, FrameSlot(val));
 	auto init_end = AddStmt(s);
 
-	s = AbstractStmt(OP_NEXT_VECTOR_ITER_VVV, info, 0, FrameSlot(loop_var));
+	s = AbstractStmt(OP_NEXT_VECTOR_ITER_VVV, info, 0,
+				FrameSlot(loop_var), 0);
+
+	return FinishLoop(s, f->LoopBody(), info);
+	}
+
+const CompiledStmt AbstractMachine::LoopOverString(const ForStmt* f,
+							const NameExpr* val)
+	{
+	auto loop_vars = f->LoopVars();
+	auto loop_var = (*loop_vars)[0];
+
+	auto info = NewSlot();
+	auto s = AbstractStmt(OP_INIT_STRING_LOOP_VV, info, FrameSlot(val));
+	auto init_end = AddStmt(s);
+
+	s = AbstractStmt(OP_NEXT_STRING_ITER_VVV, info, 0, FrameSlot(loop_var));
 
 	return FinishLoop(s, f->LoopBody(), info);
 	}

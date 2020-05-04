@@ -570,15 +570,38 @@ type VV
 eval auto ii = new IterInfo
 eval ii->vv = frame[s.v2].vector_val
 eval ii->iter = 0
+eval ii->n = ii->vv->Size()
 eval ii->c = 0;	// because End-Loop will check it
 eval frame[s.v1].iter_info = ii
 
 internal-op Next-Vector-Iter
 type VVV
 eval auto ii = frame[s.v1].iter_info
+eval if ( ii->iter >= ii->n ) { pc = s.v2; break; }
 eval auto vv = ii->vv
-eval if ( ii->iter >= vv->Size() ) { pc = s.v2; break; }
+eval if ( ! vv->Lookup(ii->iter) ) { ++ii->iter; --pc; break; }
 eval frame[s.v3].uint_val = ii->iter
+eval ++ii->iter
+
+internal-op Init-String-Loop
+type VV
+eval auto ii = new IterInfo
+eval ii->s = frame[s.v2].string_val
+eval ii->iter = 0
+eval ii->n = ii->s->Len()
+eval ii->c = 0;	// because End-Loop will check it
+eval frame[s.v1].iter_info = ii
+
+internal-op Next-String-Iter
+type VVV
+eval auto ii = frame[s.v1].iter_info
+eval auto sval = ii->s
+eval if ( ii->iter >= ii->n ) { pc = s.v2; break; }
+eval auto bytes = (const char*) sval->Bytes() + ii->iter
+eval auto sv = new StringVal(1, bytes)
+### memory
+eval frame[s.v3].string_val = new BroString(*sv->AsString())
+eval delete sv
 eval ++ii->iter
 
 internal-op End-Loop

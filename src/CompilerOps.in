@@ -185,7 +185,13 @@ expr-op Has_Field
 type R
 eval_R frame[s.v1].int_val = (frame[s.v2].record_val->Lookup(s.v3) != nullptr)
 
-binary-expr-op In
+expr-op In
+type VLV
+custom-method return CompileInExpr($*);
+no-eval
+
+expr-op In
+type VCV
 custom-method return CompileInExpr($*);
 no-eval
 

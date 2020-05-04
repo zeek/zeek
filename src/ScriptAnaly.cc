@@ -1512,7 +1512,7 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 		{
 		AbstractMachine am(0);
 		new_body->Compile(&am);
-		am.Dump();
+		// am.Dump();
 		}
 
 	if ( report_profile )

@@ -50,6 +50,7 @@ BEGIN	{
 	args2["V"] = "n"
 	args2["VV"] = "n1, n2"
 	args2["VVV"] = "n1, n2, n3"
+	args2["VLV"] = "n1, l, n2"
 	args2["VVVV"] = "n1, n2, n3, n4"
 	args2["C"] = "c"
 	args2["VC"] = "n, c"
@@ -73,6 +74,7 @@ BEGIN	{
 	exprV["V"] = "lhs"
 	exprV["VV"] = "lhs, r1->AsNameExpr()"
 	exprV["VVV"] = "lhs, r1->AsNameExpr(), r2->AsNameExpr()"
+	exprV["VLV"] = "lhs, r1->AsListExpr(), r2->AsNameExpr()"
 	exprV["VVVV"] = "lhs, r1->AsNameExpr(), r2->AsNameExpr(), r3->AsNameExpr()"
 
 	accessors["I"] = ".int_val"
@@ -806,7 +808,7 @@ function prep(f)
 function finish(f, which)
 	{
 	print ("\tdefault:") >f
-	print ("\t\treporter->InternalError(\"inconsistency in " which " AssignExpr::Compile\");") >f
+	print ("\t\treporter->InternalError(\"inconsistency in " which " AssignExpr::Compile:%s\", obj_desc(rhs));") >f
 	print ("\t}\t}") >f
 	}
 

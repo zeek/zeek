@@ -3557,6 +3557,12 @@ const CompiledStmt AssignExpr::Compile(Compiler* c) const
 		return c->ErrorStmt();
 		}
 
+	if ( rhs->Tag() == EXPR_NAME )
+		return c->AssignVV(lhs, rhs->AsNameExpr());
+
+	if ( rhs->Tag() == EXPR_CONST )
+		return c->AssignVC(lhs, rhs->AsConstExpr());
+
 	if ( rhs->Tag() == EXPR_IN && r2->Type()->Tag() == TYPE_TABLE )
 		return c->L_In_TVLV(lhs, r1->AsListExpr(), r2->AsNameExpr());
 
@@ -3580,7 +3586,7 @@ const CompiledStmt AssignExpr::Compile(Compiler* c) const
 		auto v1 = IsVector(r1->Type()->Tag());
 		auto v2 = IsVector(r2->Type()->Tag());
 
-		if ( v1 != v2 )
+		if ( v1 != v2 && rhs->Tag() != EXPR_IN )
 			{
 			Error("deprecated mixed vector/scalar operation not supported for compiling");
 			return c->ErrorStmt();

@@ -1027,8 +1027,7 @@ const CompiledStmt AbstractMachine::LoopOverVector(const ForStmt* f,
 	auto s = AbstractStmt(OP_INIT_VECTOR_LOOP_VV, info, FrameSlot(val));
 	auto init_end = AddStmt(s);
 
-	s = AbstractStmt(OP_NEXT_VECTOR_ITER_VVV, info, 0,
-				FrameSlot(loop_var), 0);
+	s = AbstractStmt(OP_NEXT_VECTOR_ITER_VVV, info, 0, FrameSlot(loop_var));
 
 	return FinishLoop(s, f->LoopBody(), info);
 	}

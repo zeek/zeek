@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "Compile.h"
+#include "CompHash.h"
 #include "Expr.h"
 #include "RE.h"
 #include "OpaqueVal.h"
@@ -62,7 +63,7 @@ union AS_ValUnion {
 	// assigning to them.  If we use them in a context where ownership
 	// will be taken by some other entity, we ref them at that point.
 	// We also do not unref on reassignment/destruction.
-	BroValUnion any_val;
+	Val* any_val;
 	EnumVal* enum_val;
 	BroFile* file_val;
 	Func* func_val;
@@ -125,7 +126,8 @@ AS_ValUnion::AS_ValUnion(Val* v, BroType* t)
 		subnet_val = new IPPrefix(*vu.subnet_val);
 		break;
 
-	case TYPE_ANY:		any_val = vu; break;
+	// ### Memory management.
+	case TYPE_ANY:		any_val = v; break;
 	case TYPE_TYPE:		type_val = t; break;
 
 	case TYPE_ERROR:
@@ -155,7 +157,9 @@ IntrusivePtr<Val> AS_ValUnion::ToVal(BroType* t) const
 	case TYPE_SUBNET:	v = new SubNetVal(*subnet_val); break;
 	case TYPE_PATTERN:	v = new PatternVal(re_val); break;
 
-	case TYPE_ANY:		v = new Val(any_val, t->Ref()); break;
+	// ### memory management
+	case TYPE_ANY:		return {NewRef{}, any_val};
+
 	case TYPE_TYPE:		v = new Val(type_val, true); break;
 
 	case TYPE_ENUM:		v = enum_val; v->Ref(); break;
@@ -770,6 +774,184 @@ const CompiledStmt AbstractMachine::When(Expr* cond, const Stmt* body,
 
 		return when_done;
 		}
+	}
+
+const CompiledStmt AbstractMachine::Switch(const SwitchStmt* sw)
+	{
+	auto e = sw->StmtExpr();
+
+	if ( e->Tag() == EXPR_CONST )
+		return ConstantSwitch(sw, e->AsConstExpr());
+
+	auto var = e->AsNameExpr();
+	auto val_map = sw->ValueMap();
+
+	if ( val_map->Length() > 0 )
+		return ValueSwitch(sw, var);
+	else
+		return TypeSwitch(sw, var);
+	}
+
+const CompiledStmt AbstractMachine::ConstantSwitch(const SwitchStmt* sw,
+							const ConstExpr* ce)
+	{
+	auto cases = sw->Cases();
+	auto val_map = sw->ValueMap();
+	auto type_map = sw->TypeMap();
+
+	auto v = ce->Value();
+
+	if ( val_map->Length() > 0 )
+		{
+		auto h = sw->CompHash();
+		HashKey* hk = h->ComputeHash(v, false);
+		auto idx_ptr = val_map->Lookup(hk);
+		delete hk;
+
+		if ( idx_ptr )
+			return (*cases)[*idx_ptr]->Body()->Compile(this);
+
+		return EmptyStmt();
+		}
+
+	for ( auto i : *type_map )
+		{
+		auto id = i.first;
+		auto type = id->Type();
+
+		if ( ! can_cast_value_to_type(v, type) )
+			continue;
+
+		auto tmp = RegisterSlot();
+		int idx = i.second;
+
+		AddStmt(AbstractStmt(OP_ASSIGN_VC, tmp, ce));
+		AddStmt(AbstractStmt(OP_CAST_VV, FrameSlot(id), tmp));
+
+		return (*cases)[idx]->Body()->Compile(this);
+		}
+
+	return EmptyStmt();
+	}
+
+const CompiledStmt AbstractMachine::ValueSwitch(const SwitchStmt* sw,
+						const NameExpr* var)
+	{
+	auto cases = sw->Cases();
+	auto val_map = sw->ValueMap();
+
+	// For compiled statements, it doesn't seem worth it (at least
+	// for now) to use the hashed lookup to do a branch table,
+	// as likely the number of cases doesn't get large enough to
+	// merit the overhead.  So we just generate if-else cascades.
+
+	auto body_end = EmptyStmt();
+
+	auto ch = sw->CompHash();
+
+	HashKey* k;
+	int* index;
+	IterCookie* c = val_map->InitForIteration();
+	while ( (index = val_map->NextEntry(k, c)) )
+		{
+		auto case_val_list = ch->RecoverVals(k);
+		delete k;
+
+		auto case_vals = case_val_list->Vals();
+
+		if ( case_vals->length() != 1 )
+			reporter->InternalError("bad recovered value when compiling switch");
+
+		IntrusivePtr<Val> case_val = {NewRef{}, (*case_vals)[0]};
+
+		AbstractOp op;
+
+		switch ( case_val->Type()->InternalType() ) {
+		case TYPE_INTERNAL_INT:
+			op = OP_BRANCH_IF_NOT_INT_VVC;
+			break;
+
+		case TYPE_INTERNAL_UNSIGNED:
+			op = OP_BRANCH_IF_NOT_UINT_VVC;
+			break;
+
+		case TYPE_INTERNAL_ADDR:
+			op = OP_BRANCH_IF_NOT_ADDR_VVC;
+			break;
+
+		case TYPE_INTERNAL_SUBNET:
+			op = OP_BRANCH_IF_NOT_SUBNET_VVC;
+			break;
+
+		case TYPE_INTERNAL_DOUBLE:
+			op = OP_BRANCH_IF_NOT_DOUBLE_VVC;
+			break;
+
+		case TYPE_INTERNAL_STRING:
+			op = OP_BRANCH_IF_NOT_STRING_VVC;
+			break;
+
+		default:
+			reporter->InternalError("bad recovered type when compiling switch");
+		}
+
+		ConstExpr ce(case_val);
+
+		AbstractStmt s(op, FrameSlot(var), 0, &ce);
+		s.t = case_val->Type();
+
+		body_end = BuildCase(s, (*cases)[*index]->Body());
+		}
+
+	return BuildDefault(sw, body_end);
+	}
+
+const CompiledStmt AbstractMachine::TypeSwitch(const SwitchStmt* sw,
+						const NameExpr* var)
+	{
+	auto cases = sw->Cases();
+	auto type_map = sw->TypeMap();
+
+	auto body_end = EmptyStmt();
+
+	for ( auto i : *type_map )
+		{
+		auto id = i.first;
+		auto type = id->Type();
+
+		AbstractStmt s(OP_BRANCH_IF_NOT_TYPE_VV, FrameSlot(var), 0);
+		s.t = type;
+
+		body_end = BuildCase(s, (*cases)[i.second]->Body());
+		}
+
+	return BuildDefault(sw, body_end);
+	}
+
+const CompiledStmt AbstractMachine::BuildCase(AbstractStmt s, const Stmt* body)
+	{
+	auto case_test = AddStmt(s);
+	ResolveFallThroughs(GoToTargetBeyond(case_test));
+	auto body_end = body->Compile(this);
+	SetV2(case_test, GoToTargetBeyond(body_end));
+
+	return body_end;
+	}
+
+const CompiledStmt AbstractMachine::BuildDefault(const SwitchStmt* sw,
+							CompiledStmt body_end)
+	{
+	int def_ind = sw->DefaultCaseIndex();
+
+	if ( def_ind >= 0 )
+		{
+		ResolveFallThroughs(GoToTargetBeyond(body_end));
+		body_end = (*sw->Cases())[def_ind]->Body()->Compile(this);
+		}
+
+	ResolveBreaks(GoToTargetBeyond(body_end));
+
+	return body_end;
 	}
 
 const CompiledStmt AbstractMachine::InitRecord(ID* id, RecordType* rt)

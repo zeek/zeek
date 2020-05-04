@@ -119,9 +119,8 @@ Stmt* Stmt::Reduce(Reducer* c)
 
 const CompiledStmt Stmt::Compile(Compiler* c) const
 	{
-	// reporter->InternalError("no compile method");
-	// ###
-	return c->StartingBlock();
+	reporter->InternalError("no compile method");
+	return c->ErrorStmt();
 	}
 
 void Stmt::Describe(ODesc* d) const
@@ -1084,7 +1083,7 @@ IntrusivePtr<Val> SwitchStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) con
 
 const CompiledStmt SwitchStmt::Compile(Compiler* c) const
 	{
-	// ###
+	return c->Switch(this);
 	}
 
 bool SwitchStmt::IsPure() const

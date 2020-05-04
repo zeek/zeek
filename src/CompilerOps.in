@@ -326,7 +326,7 @@ op AnyIndex
 type VVi
 set-type $1
 ### memory
-eval auto lv = frame[s.v2].any_val.val_list_val
+eval auto lv = frame[s.v2].any_val->val.val_list_val
 eval frame[s.v1] = AS_ValUnion((*lv)[s.v3], s.t)
 
 ########## Function Calls ##########
@@ -504,6 +504,36 @@ eval ret_u = &s.c
 eval ret_type = s.t
 eval pc = end_pc
 method-pre	SyncGlobals()
+
+
+internal-op Branch-If-Not-Type
+type VV
+eval auto v = frame[s.v1].any_val
+eval if ( ! can_cast_value_to_type(v, s.t) ) pc = s.v2;
+
+internal-op Branch-If-Not-Int
+type VVC
+eval if ( frame[s.v1].int_val != s.c.int_val ) pc = s.v2
+
+internal-op Branch-If-Not-UInt
+type VVC
+eval if ( frame[s.v1].uint_val != s.c.uint_val ) pc = s.v2
+
+internal-op Branch-If-Not-Addr
+type VVC
+eval if ( *frame[s.v1].addr_val != *s.c.addr_val ) pc = s.v2
+
+internal-op Branch-If-Not-Subnet
+type VVC
+eval if ( *frame[s.v1].subnet_val != *s.c.subnet_val ) pc = s.v2
+
+internal-op Branch-If-Not-Double
+type VVC
+eval if ( frame[s.v1].double_val != s.c.double_val ) pc = s.v2
+
+internal-op Branch-If-Not-String
+type VVC
+eval if ( frame[s.v1].double_val != s.c.double_val ) pc = s.v2
 
 
 op When

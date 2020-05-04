@@ -13,6 +13,7 @@ class FieldExpr;
 class ListExpr;
 class EventHandler;
 class Stmt;
+class SwitchStmt;
 
 // Class representing a single compiled statement.  Designed to
 // be fully opaque, but also effective without requiring pointer
@@ -58,6 +59,8 @@ public:
 	virtual const CompiledStmt When(Expr* cond, const Stmt* body,
 				const Expr* timeout, const Stmt* timeout_body,
 				bool is_return, const Location* location) = 0;
+
+	virtual const CompiledStmt Switch(const SwitchStmt* sw) = 0;
 
 	virtual const CompiledStmt InitRecord(ID* id, RecordType* rt) = 0;
 	virtual const CompiledStmt InitVector(ID* id, VectorType* vt) = 0;
@@ -116,6 +119,8 @@ public:
 	const CompiledStmt When(Expr* cond, const Stmt* body,
 			const Expr* timeout, const Stmt* timeout_body,
 			bool is_return, const Location* location) override;
+
+	const CompiledStmt Switch(const SwitchStmt* sw) override;
 
 	const CompiledStmt InitRecord(ID* id, RecordType* rt) override;
 	const CompiledStmt InitVector(ID* id, VectorType* vt) override;
@@ -179,6 +184,14 @@ protected:
 					EventHandler* h, const ListExpr* l);
 
 	const CompiledStmt CompileEvent(EventHandler* h, const ListExpr* l);
+
+	const CompiledStmt ConstantSwitch(const SwitchStmt* sw,
+						const ConstExpr* ce);
+	const CompiledStmt ValueSwitch(const SwitchStmt* sw, const NameExpr* v);
+	const CompiledStmt TypeSwitch(const SwitchStmt* sw, const NameExpr* v);
+	const CompiledStmt BuildCase(AbstractStmt s, const Stmt* body);
+	const CompiledStmt BuildDefault(const SwitchStmt* sw,
+					CompiledStmt body_end);
 
 	ListVal* ValVecToListVal(val_vec* v, int n) const;
 

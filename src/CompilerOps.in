@@ -523,6 +523,10 @@ type VV
 eval auto when_body = new ResumptionAM(this, s.v2)
 eval new trigger::Trigger(s.non_const_e, when_body, nullptr, -1.0, f, s.v4, s.loc)
 
+op CheckAnyLen
+type Vi
+eval auto v = frame[s.v1].list_val
+eval if ( v->Vals()->length() != s.v2 ) run_time_error("mismatch in list lengths")
 
 op Print
 type O

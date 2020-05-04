@@ -2575,6 +2575,11 @@ IntrusivePtr<Val> CheckAnyLenStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	return nullptr;
 	}
 
+const CompiledStmt CheckAnyLenStmt::Compile(Compiler* c) const
+	{
+	return c->CheckAnyLenVi(e->AsNameExpr(), expected_len);
+	}
+
 bool CheckAnyLenStmt::IsReduced() const
 	{
 	return true;

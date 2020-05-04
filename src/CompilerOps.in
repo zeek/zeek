@@ -666,25 +666,23 @@ eval pc = s.v1
 
 
 op AddStmt
-type VV
-set-type $2
-eval frame[s.v1].table_val->Assign(frame[s.v2].ToVal(s.t).get(), nullptr)
+type VO
+eval auto vvec = frame[s.v2].vvec
+eval auto lval = ValVecToListVal(vvec, vvec->size())
+eval delete vvec
+eval frame[s.v1].table_val->Assign(lval, nullptr)
+eval delete lval
+method-pre int reg = v->n; delete v
 
-op AddStmt
-type VC
-set-type $2
-eval frame[s.v1].table_val->Assign(s.c.ToVal(s.t).get(), nullptr)
-
-
-op DelTable
-type VV
-set-type $2
-eval frame[s.v1].table_val->Delete(frame[s.v2].ToVal(s.t).get())
 
 op DelTable
-type VC
-set-type $2
-eval frame[s.v1].table_val->Delete(s.c.ToVal(s.t).get())
+type VO
+eval auto vvec = frame[s.v2].vvec
+eval auto lval = ValVecToListVal(vvec, vvec->size())
+eval delete vvec
+eval frame[s.v1].table_val->Delete(lval)
+eval delete lval
+method-pre int reg = v->n; delete v
 
 op DelField
 type Vi

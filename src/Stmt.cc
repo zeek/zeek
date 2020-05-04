@@ -1267,10 +1267,14 @@ const CompiledStmt AddStmt::Compile(Compiler* c) const
 	auto aggr = e->GetOp1()->AsNameExpr();
 	auto index = e->GetOp2();
 
-	if ( index->Tag() == EXPR_CONST )
-		return c->AddStmtVC(aggr, index->AsConstExpr());
-	else
-		return c->AddStmtVV(aggr, index->AsNameExpr());
+	if ( index->Tag() != EXPR_LIST )
+		reporter->InternalError("non-list in \"add\"");
+
+	IntrusivePtr<ListExpr> index_ptr = {NewRef{}, index->AsListExpr()};
+
+	auto internal_ind = c->BuildVals(index_ptr);
+
+	return c->AddStmtVO(aggr, internal_ind);
 	}
 
 
@@ -1305,10 +1309,15 @@ const CompiledStmt DelStmt::Compile(Compiler* c) const
 		{
 		auto index = e->GetOp2();
 
-		if ( index->Tag() == EXPR_CONST )
-			return c->DelTableVC(aggr, index->AsConstExpr());
-		else
-			return c->DelTableVV(aggr, index->AsNameExpr());
+		if ( index->Tag() != EXPR_LIST )
+			reporter->InternalError("non-list in \"delete\"");
+
+		IntrusivePtr<ListExpr> index_ptr =
+			{NewRef{}, index->AsListExpr()};
+
+		auto internal_ind = c->BuildVals(index_ptr);
+
+		return c->DelTableVO(aggr, internal_ind);
 		}
 	}
 

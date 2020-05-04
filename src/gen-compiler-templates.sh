@@ -27,6 +27,7 @@ BEGIN	{
 	args["V"] = "(const NameExpr* n)"
 	args["Vi"] = "(const NameExpr* n, int i)"
 	args["VV"] = "(const NameExpr* n1, const NameExpr* n2)"
+	args["VO"] = "(const NameExpr* n, OpaqueVals* v)"
 	args["HL"] = "(EventHandler* h, const ListExpr* l)"
 	args["VVV"] = "(const NameExpr* n1, const NameExpr* n2, const NameExpr* n3)"
 	args["VVVV"] = "(const NameExpr* n1, const NameExpr* n2, const NameExpr* n3, const NameExpr* n4)"
@@ -49,6 +50,7 @@ BEGIN	{
 	args2["R"] = "n1, n2, f->Field()"
 	args2["V"] = "n"
 	args2["VV"] = "n1, n2"
+	args2["VO"] = "n, reg"
 	args2["VVV"] = "n1, n2, n3"
 	args2["VLV"] = "n1, l, n2"
 	args2["VVVV"] = "n1, n2, n3, n4"
@@ -655,9 +657,12 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 	if ( method_pre )
 		print ("\t" method_pre ";") >methods_f
 
-	if ( type == "O" )
+	if ( type == "O" || type == "VO" )
+		{
+		pre_arg = type == "O" ? "" : ", FrameSlot(n)"
 		print ("\treturn AddStmt(AbstractStmt(" \
-			full_op ", reg));") >methods_f
+			full_op pre_arg ", reg));") >methods_f
+		}
 
 	else if ( type == "R" )
 		{

@@ -297,7 +297,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		{
 		auto f = s->AsForStmt();
 
-		auto ids = f->LoopVar();
+		auto ids = f->LoopVars();
 		auto e = f->LoopExpr();
 		auto body = f->LoopBody();
 		auto val_var = f->ValueVar();

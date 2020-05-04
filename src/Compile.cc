@@ -29,6 +29,15 @@ const char* abstract_op_name(AbstractOp op)
 	}
 
 
+struct IterInfo {
+	TableVal* tv;
+	const PDict<TableEntryVal>* loop_vals;
+	IterCookie* c;
+	BroType* value_var_type;
+	vector<int> loop_vars;
+	vector<BroType*> loop_var_types;
+};
+
 // A bit of this mirrors BroValUnion, but it captures low-level
 // representation whereas we aim to keep Val structure for
 // more complex Val's.
@@ -79,6 +88,9 @@ union AS_ValUnion {
 
 	// Used for the compiler to hold opaque items.
 	val_vec* vvec;
+
+	// Used for managing "for" loops.
+	IterInfo* iter_info;
 };
 
 AS_ValUnion::AS_ValUnion(Val* v, BroType* t)
@@ -729,6 +741,7 @@ const CompiledStmt AbstractMachine::When(Expr* cond, const Stmt* body,
 				const Expr* timeout, const Stmt* timeout_body,
 				bool is_return, const Location* location)
 	{
+	// ### Flush locals on eval, and also on exit
 	AbstractStmt s;
 
 	if ( timeout )
@@ -950,6 +963,50 @@ const CompiledStmt AbstractMachine::BuildDefault(const SwitchStmt* sw,
 		}
 
 	ResolveBreaks(GoToTargetBeyond(body_end));
+
+	return body_end;
+	}
+
+const CompiledStmt AbstractMachine::For(const ForStmt* f)
+	{
+	auto e = f->LoopExpr();
+	auto val = e->AsNameExpr();
+	auto et = e->Type()->Tag();
+
+	if ( et == TYPE_TABLE )
+		return LoopOverTable(f, val);
+	}
+
+const CompiledStmt AbstractMachine::LoopOverTable(const ForStmt* f,
+							const NameExpr* val)
+	{
+	auto value_var = f->ValueVar();
+	auto value_var_slot = value_var ? FrameSlot(value_var) : -1;
+	auto loop_vars = f->LoopVars();
+
+	auto info = NewSlot();
+	auto s = AbstractStmt(OP_INIT_TABLE_LOOP_VV, info, FrameSlot(val));
+	s.t = value_var ? value_var->Type() : nullptr;
+	auto init_end = AddStmt(s);
+
+	for ( int i = 0; i < loop_vars->length(); ++i )
+		{
+		auto id = (*loop_vars)[i];
+		s = AbstractStmt(OP_ADD_VAR_TO_INIT_VV, info, FrameSlot(id));
+		s.t = id->Type();
+		init_end = AddStmt(s);
+		}
+
+	s = AbstractStmt(OP_NEXT_TABLE_ITER_VVV, info, 0, value_var_slot);
+	auto loop_iter = AddStmt(s);
+
+	auto body_end = f->LoopBody()->Compile(this);
+	auto body_beyond = GoToTargetBeyond(body_end);
+
+	SetV2(loop_iter, body_beyond);
+
+	ResolveNexts(loop_iter);
+	ResolveBreaks(body_beyond);
 
 	return body_end;
 	}
@@ -1289,8 +1346,15 @@ int AbstractMachine::FrameSlot(const NameExpr* e)
 	return FrameSlot(e->AsNameExpr()->Id());
 	}
 
+int AbstractMachine::NewSlot()
+	{
+	// ###
+	return 0;
+	}
+
 int AbstractMachine::RegisterSlot()
 	{
+	// ###
 	return 0;
 	}
 

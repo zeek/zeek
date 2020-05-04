@@ -1127,7 +1127,7 @@ Stmt* SwitchStmt::DoReduce(Reducer* rc)
 	else
 		e = {AdoptRef{}, e->Reduce(rc, red_e_stmt)};
 
-	// ### Could check for constant switch expression.
+	// Note, the compiler checks for constant switch expressions.
 
 	if ( red_e_stmt )
 		s->Stmts().push_back(red_e_stmt.release());
@@ -1739,7 +1739,7 @@ IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 
 const CompiledStmt ForStmt::Compile(Compiler* c) const
 	{
-	// ###
+	return c->For(this);
 	}
 
 bool ForStmt::IsPure() const

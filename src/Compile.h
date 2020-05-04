@@ -62,6 +62,8 @@ public:
 
 	virtual const CompiledStmt Switch(const SwitchStmt* sw) = 0;
 
+	virtual const CompiledStmt For(const ForStmt* f) = 0;
+
 	virtual const CompiledStmt InitRecord(ID* id, RecordType* rt) = 0;
 	virtual const CompiledStmt InitVector(ID* id, VectorType* vt) = 0;
 	virtual const CompiledStmt InitTable(ID* id, TableType* tt,
@@ -121,6 +123,10 @@ public:
 			bool is_return, const Location* location) override;
 
 	const CompiledStmt Switch(const SwitchStmt* sw) override;
+
+	const CompiledStmt For(const ForStmt* f) override;
+
+	const CompiledStmt LoopOverTable(const ForStmt* f, const NameExpr* val);
 
 	const CompiledStmt InitRecord(ID* id, RecordType* rt) override;
 	const CompiledStmt InitVector(ID* id, VectorType* vt) override;
@@ -220,6 +226,7 @@ protected:
 
 	int FrameSlot(const ID* id);
 
+	int NewSlot();
 	int RegisterSlot();
 
 	vector<AbstractStmt> stmts;

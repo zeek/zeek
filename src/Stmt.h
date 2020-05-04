@@ -286,8 +286,8 @@ public:
 
 	void AddBody(IntrusivePtr<Stmt> arg_body)	{ body = std::move(arg_body); }
 
-	const id_list* LoopVar() const	{ return loop_vars; }
-	const ID* ValueVar() const	{ return value_var.get(); }
+	id_list* LoopVars() const	{ return loop_vars; }
+	ID* ValueVar() const		{ return value_var.get(); }
 	const Expr* LoopExpr() const	{ return e.get(); }
 	const Stmt* LoopBody() const	{ return body.get(); }
 

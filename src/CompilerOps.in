@@ -533,7 +533,43 @@ eval if ( frame[s.v1].double_val != s.c.double_val ) pc = s.v2
 
 internal-op Branch-If-Not-String
 type VVC
-eval if ( frame[s.v1].double_val != s.c.double_val ) pc = s.v2
+eval if ( ! ((*frame[s.v1].string_val) == (*s.c.string_val)) ) pc = s.v2
+
+
+internal-op Init-Table-Loop
+type VV
+eval auto ii = new IterInfo
+eval ii->tv = frame[s.v2].table_val
+eval ii->loop_vals = ii->tv->AsTable()
+eval ii->c = ii->loop_vals->InitForIteration()
+eval ii->value_var_type = s.t
+eval frame[s.v1].iter_info = ii
+
+internal-op Add-Var-To-Init
+type VV
+eval auto ii = frame[s.v1].iter_info
+eval ii->loop_vars.push_back(s.v2)
+eval ii->loop_var_types.push_back(s.t)
+
+# v1 = iteration info
+# v2 = branch target if loop done
+# v3 = if >= 0, slot of the "ValueVar"
+internal-op Next-Table-Iter
+type VVV
+eval HashKey* k
+eval auto ii = frame[s.v1].iter_info
+eval TableEntryVal* current_tev = ii->loop_vals->NextEntry(k, ii->c)
+eval if ( ! current_tev ) { pc = s.v2; break; }
+eval auto ind_lv = ii->tv->RecoverIndex(k);
+eval delete k
+eval if ( s.v3 >= 0 ) frame[s.v3] = AS_ValUnion(current_tev->Value()->Ref(), ii->value_var_type)
+eval for ( int i = 0; i < ind_lv->Length(); i++ ) frame[ii->loop_vars[i]] = AS_ValUnion(ind_lv->Index(i)->Ref(), ii->loop_var_types[i])
+
+internal-op End-Loop
+type V
+eval auto ii = frame[s.v1].iter_info
+eval if ( ii->c ) ii->loop_vals->StopIteration(ii->c)
+eval delete ii
 
 
 op When

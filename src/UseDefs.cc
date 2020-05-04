@@ -304,7 +304,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt,
 			(void) PropagateUDs(body, bottom_UDs, body, true);
 			}
 
-		auto ids = f->LoopVar();
+		auto ids = f->LoopVars();
 		for ( auto& id : *ids )
 			RemoveUDFrom(f_UDs, id);
 

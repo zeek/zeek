@@ -1168,6 +1168,7 @@ const CompiledStmt AbstractMachine::CompileInExpr(const NameExpr* n1,
 	{
 	auto op2 = n2 ? (Expr*) n2 : (Expr*) c2;
 	auto op3 = n3 ? (Expr*) n3 : (Expr*) c3;
+	BroType* stmt_type = nullptr;
 
 	AbstractOp a;
 
@@ -1184,6 +1185,12 @@ const CompiledStmt AbstractMachine::CompileInExpr(const NameExpr* n1,
 	else if ( op3->Type()->Tag() == TYPE_VECTOR )
 		a = n2 ? (n3 ? OP_U_IN_V_VVV : OP_U_IN_V_VVC) : OP_U_IN_V_VCV;
 
+	else if ( op3->Type()->Tag() == TYPE_TABLE )
+		{
+		a = n2 ? OP_VAL_IS_IN_TABLE_VVV : OP_CONST_IS_IN_TABLE_VCV;
+		stmt_type = n2 ? n2->Type().get() : c2->Type().get();
+		}
+
 	else
 		reporter->InternalError("bad types when compiling \"in\"");
 
@@ -1191,15 +1198,21 @@ const CompiledStmt AbstractMachine::CompileInExpr(const NameExpr* n1,
 	auto s2 = n2 ? FrameSlot(n2) : 0;
 	auto s3 = n3 ? FrameSlot(n3) : 0;
 
+	AbstractStmt s;
+
 	if ( n2 )
 		{
 		if ( n3 )
-			return AddStmt(AbstractStmt(a, s1, s2, s3));
+			s = AbstractStmt(a, s1, s2, s3);
 		else
-			return AddStmt(AbstractStmt(a, s1, s2, c3));
+			s = AbstractStmt(a, s1, s2, c3);
 		}
 	else
-		return AddStmt(AbstractStmt(a, s1, s3, c2));
+		s = AbstractStmt(a, s1, s3, c2);
+
+	s.t = stmt_type;
+
+	return AddStmt(s);
 	}
 
 const CompiledStmt AbstractMachine::CompileInExpr(const NameExpr* n1,
@@ -1212,7 +1225,7 @@ const CompiledStmt AbstractMachine::CompileInExpr(const NameExpr* n1,
 				build_indices, build_indices, n);
 	AddStmt(s);
 
-	s = AbstractStmt(OP_IS_IN_TABLE_VVV, FrameSlot(n1), FrameSlot(n2),
+	s = AbstractStmt(OP_LIST_IS_IN_TABLE_VVV, FrameSlot(n1), FrameSlot(n2),
 				build_indices);
 
 	return AddStmt(s);

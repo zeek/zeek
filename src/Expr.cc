@@ -3564,7 +3564,18 @@ const CompiledStmt AssignExpr::Compile(Compiler* c) const
 		return c->AssignVC(lhs, rhs->AsConstExpr());
 
 	if ( rhs->Tag() == EXPR_IN && r2->Type()->Tag() == TYPE_TABLE )
-		return c->L_In_TVLV(lhs, r1->AsListExpr(), r2->AsNameExpr());
+		{
+		auto r2n = r2->AsNameExpr();
+
+		if ( r1->Tag() == EXPR_LIST )
+			return c->L_In_TVLV(lhs, r1->AsListExpr(), r2n);
+
+		else if ( r1->Tag() == EXPR_NAME )
+			return c->V_In_TVVV(lhs, r1->AsNameExpr(), r2n);
+
+		else
+			return c->V_In_TVCV(lhs, r1->AsConstExpr(), r2n);
+		}
 
 	if ( rhs->Tag() == EXPR_ANY_INDEX )
 		return c->AnyIndexVVi(lhs, r1->AsNameExpr(),

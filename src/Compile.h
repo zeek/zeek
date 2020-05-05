@@ -76,6 +76,8 @@ public:
 	virtual const CompiledStmt StartingBlock() = 0;
 	virtual const CompiledStmt FinishBlock(const CompiledStmt start) = 0;
 
+	virtual bool NullStmtOK() const = 0;
+
 	virtual const CompiledStmt EmptyStmt() = 0;
 	virtual const CompiledStmt ErrorStmt() = 0;
 
@@ -145,6 +147,8 @@ public:
 
 	const CompiledStmt StartingBlock() override;
 	const CompiledStmt FinishBlock(const CompiledStmt start) override;
+
+	bool NullStmtOK() const override;
 
 	const CompiledStmt EmptyStmt() override;
 	const CompiledStmt ErrorStmt() override;

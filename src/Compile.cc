@@ -1101,6 +1101,12 @@ const CompiledStmt AbstractMachine::FinishBlock(const CompiledStmt /* start */)
 	return CompiledStmt(stmts.size());
 	}
 
+bool AbstractMachine::NullStmtOK() const
+	{
+	// They're okay iff they're the entire statement body.
+	return stmts.size() == 0;
+	}
+
 const CompiledStmt AbstractMachine::EmptyStmt()
 	{
 	return CompiledStmt(stmts.size());

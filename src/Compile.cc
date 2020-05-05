@@ -1092,9 +1092,9 @@ const CompiledStmt AbstractMachine::InitTable(ID* id, TableType* tt,
 	}
 
 const CompiledStmt AbstractMachine::StartingBlock()
-{
-return CompiledStmt(stmts.size());
-}
+	{
+	return CompiledStmt(stmts.size());
+	}
 
 const CompiledStmt AbstractMachine::FinishBlock(const CompiledStmt /* start */)
 	{
@@ -1176,7 +1176,9 @@ const CompiledStmt AbstractMachine::CompileInExpr(const NameExpr* n1,
 	{
 	auto op2 = n2 ? (Expr*) n2 : (Expr*) c2;
 	auto op3 = n3 ? (Expr*) n3 : (Expr*) c3;
-	BroType* stmt_type = nullptr;
+
+	BroType* stmt_type =
+		c2 ? c2->Type().get() : (c3 ? c3->Type().get() : nullptr);
 
 	AbstractOp a;
 
@@ -1194,10 +1196,7 @@ const CompiledStmt AbstractMachine::CompileInExpr(const NameExpr* n1,
 		a = n2 ? (n3 ? OP_U_IN_V_VVV : OP_U_IN_V_VVC) : OP_U_IN_V_VCV;
 
 	else if ( op3->Type()->Tag() == TYPE_TABLE )
-		{
 		a = n2 ? OP_VAL_IS_IN_TABLE_VVV : OP_CONST_IS_IN_TABLE_VCV;
-		stmt_type = n2 ? n2->Type().get() : c2->Type().get();
-		}
 
 	else
 		reporter->InternalError("bad types when compiling \"in\"");

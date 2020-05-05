@@ -16,9 +16,9 @@ EncapsulatingConn::EncapsulatingConn(Connection* c, BifEnum::Tunnel::Type t)
 		}
 	}
 
-RecordVal* EncapsulatingConn::GetRecordVal() const
+IntrusivePtr<RecordVal> EncapsulatingConn::ToVal() const
 	{
-	RecordVal *rv = new RecordVal(BifType::Record::Tunnel::EncapsulatingConn);
+	auto rv = make_intrusive<RecordVal>(BifType::Record::Tunnel::EncapsulatingConn);
 
 	auto id_val = make_intrusive<RecordVal>(conn_id);
 	id_val->Assign(0, make_intrusive<AddrVal>(src_addr));

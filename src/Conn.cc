@@ -146,7 +146,7 @@ void Connection::CheckEncapsulation(const EncapsulationStack* arg_encap)
 			{
 			if ( tunnel_changed )
 				EnqueueEvent(tunnel_changed, nullptr, ConnVal(),
-				             IntrusivePtr{AdoptRef{}, arg_encap->GetVectorVal()});
+				             arg_encap->ToVal());
 
 			delete encapsulation;
 			encapsulation = new EncapsulationStack(*arg_encap);
@@ -158,8 +158,7 @@ void Connection::CheckEncapsulation(const EncapsulationStack* arg_encap)
 		if ( tunnel_changed )
 			{
 			EncapsulationStack empty;
-			EnqueueEvent(tunnel_changed, nullptr, ConnVal(),
-			             IntrusivePtr{AdoptRef{}, empty.GetVectorVal()});
+			EnqueueEvent(tunnel_changed, nullptr, ConnVal(), empty.ToVal());
 			}
 
 		delete encapsulation;
@@ -169,8 +168,7 @@ void Connection::CheckEncapsulation(const EncapsulationStack* arg_encap)
 	else if ( arg_encap )
 		{
 		if ( tunnel_changed )
-			EnqueueEvent(tunnel_changed, nullptr, ConnVal(),
-			             IntrusivePtr{AdoptRef{}, arg_encap->GetVectorVal()});
+			EnqueueEvent(tunnel_changed, nullptr, ConnVal(), arg_encap->ToVal());
 
 		encapsulation = new EncapsulationStack(*arg_encap);
 		}
@@ -390,7 +388,7 @@ const IntrusivePtr<RecordVal>& Connection::ConnVal()
 		conn_val->Assign(7, make_intrusive<StringVal>(uid.Base62("C").c_str()));
 
 		if ( encapsulation && encapsulation->Depth() > 0 )
-			conn_val->Assign(8, encapsulation->GetVectorVal());
+			conn_val->Assign(8, encapsulation->ToVal());
 
 		if ( vlan != 0 )
 			conn_val->Assign(9, val_mgr->Int(vlan));

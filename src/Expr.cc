@@ -3582,7 +3582,7 @@ const CompiledStmt AssignExpr::Compile(Compiler* c) const
 
 	if ( rhs->Tag() == EXPR_ANY_INDEX )
 		return c->AnyIndexVVi(lhs, r1->AsNameExpr(),
-					r2->AsConstExpr()->Value()->AsInt());
+					rhs->AsAnyIndexExpr()->Index());
 
 	if ( rhs->Tag() == EXPR_COND && r2->IsConst() && r3->IsConst() )
 		{

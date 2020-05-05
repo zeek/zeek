@@ -2,10 +2,15 @@
 
 #include "Compile.h"
 #include "CompHash.h"
+#include "Func.h"
 #include "Expr.h"
 #include "RE.h"
 #include "OpaqueVal.h"
 #include "EventHandler.h"
+#include "Reduce.h"
+#include "UseDefs.h"
+#include "Scope.h"
+#include "ProfileFunc.h"
 #include "Trigger.h"
 #include "Desc.h"
 #include "Reporter.h"
@@ -479,13 +484,16 @@ AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const NameExpr* v1,
 	}
 
 
-AbstractMachine::AbstractMachine(const UseDefs* _ud, const Reducer* _rd,
-					const ProfileFunc* _pf)
+AbstractMachine::AbstractMachine(const BroFunc* _func, const UseDefs* _ud,
+				const Reducer* _rd, const ProfileFunc* _pf)
 	{
+	func = _func;
 	ud = _ud;
 	reducer = _rd;
 	pf = _pf;
 	frame_size = 0;
+
+	Init();
 	}
 
 AbstractMachine::~AbstractMachine()
@@ -494,6 +502,13 @@ AbstractMachine::~AbstractMachine()
 
 void AbstractMachine::FinishCompile()
 	{
+	}
+
+void AbstractMachine::Init()
+	{
+	auto scope_vars = reducer->FuncScope()->Vars();
+	for ( auto& v : scope_vars )
+		printf("var name: %s\n", v.first.c_str());
 	}
 
 void AbstractMachine::StmtDescribe(ODesc* d) const

@@ -55,7 +55,7 @@ public:
 	BroType* ReturnType() const	{ return return_type.get(); }
 
 	size_t Length() const		{ return local.size(); }
-	const auto& Vars()	{ return local; }
+	const auto& Vars() const	{ return local; }
 
 	ID* GenerateTemporary(const char* name);
 

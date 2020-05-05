@@ -59,6 +59,8 @@ public:
 
 	IntrusivePtr<Expr> UpdateExpr(IntrusivePtr<Expr> e);
 
+	const Scope* FuncScope() const	{ return scope; }
+
 protected:
 	bool SameDPs(const DefPoints* dp1, const DefPoints* dp2) const;
 	bool SameVal(const Val* v1, const Val* v2) const;

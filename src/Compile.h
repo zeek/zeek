@@ -90,6 +90,7 @@ protected:
 };
 
 
+class Func;
 class UseDefs;
 class ProfileFunc;
 class AbstractStmt;
@@ -97,8 +98,8 @@ union AS_ValUnion;
 
 class AbstractMachine : public Compiler {
 public:
-	AbstractMachine(const UseDefs* ud, const Reducer* rd,
-			const ProfileFunc* pf);
+	AbstractMachine(const BroFunc* func, const UseDefs* ud,
+			const Reducer* rd, const ProfileFunc* pf);
 	~AbstractMachine() override;
 
 	void FinishCompile();
@@ -169,6 +170,8 @@ public:
 	void Dump();
 
 protected:
+	void Init();
+
 	friend class ResumptionAM;
 
 	IntrusivePtr<Val> DoExec(Frame* f, int start_pc,
@@ -251,6 +254,7 @@ protected:
 	vector<int> nexts;
 	vector<int> fallthroughs;
 
+	const BroFunc* func;
 	const UseDefs* ud;
 	const Reducer* reducer;
 	const ProfileFunc* pf;

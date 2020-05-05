@@ -1474,7 +1474,7 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 
 	if ( compile )
 		{
-		AbstractMachine am(&ud, &rc, pf_opt ? pf_opt : pf_red);
+		AbstractMachine am(f, &ud, &rc, pf_opt ? pf_opt : pf_red);
 		new_body->Compile(&am);
 		am.Dump();
 		}

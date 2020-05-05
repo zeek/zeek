@@ -284,7 +284,7 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 		while ( (v = info->config->AsTable()->NextEntry(k, c)) )
 			{
 			auto index = info->config->RecoverIndex(k);
-			string key = index->Index(0)->AsString()->CheckString();
+			string key = index->Idx(0)->AsString()->CheckString();
 			string value = v->Value()->AsString()->CheckString();
 			rinfo.config.insert(std::make_pair(copy_string(key.c_str()), copy_string(value.c_str())));
 			delete k;
@@ -1919,7 +1919,7 @@ RecordVal* Manager::ListValToRecordVal(ListVal* list, RecordType *request_type, 
 			fieldVal = ListValToRecordVal(list, request_type->FieldType(i)->AsRecordType(), position);
 		else
 			{
-			fieldVal = list->Index(*position);
+			fieldVal = list->Idx(*position).get();
 			(*position)++;
 			}
 

@@ -1026,7 +1026,7 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 		{
 		auto key = cluster_table_val->RecoverIndex(k);
 		delete k;
-		auto name = key->Index(0)->AsStringVal()->ToStdString();
+		auto name = key->Idx(0)->AsStringVal()->ToStdString();
 		auto rv = v->Value()->AsRecordVal();
 
 		Supervisor::ClusterEndpoint ep;

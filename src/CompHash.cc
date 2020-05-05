@@ -238,7 +238,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 			for ( auto& kv : hashkeys )
 				{
 				auto idx = kv.second;
-				Val* key = lv->Index(idx);
+				Val* key = lv->Idx(idx).get();
 
 				if ( ! (kp1 = SingleValHash(type_check, kp1, key->Type(), key,
 				                            false)) )
@@ -292,7 +292,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 			kp1 = reinterpret_cast<char*>(kp+1);
 			for ( int i = 0; i < lv->Length(); ++i )
 				{
-				Val* v = lv->Index(i);
+				Val* v = lv->Idx(i).get();
 				if ( ! (kp1 = SingleValHash(type_check, kp1, v->Type(), v,
 				                            false)) )
 					return nullptr;
@@ -371,14 +371,15 @@ HashKey* CompositeHash::ComputeHash(const Val* v, bool type_check) const
 	if ( type_check && v->Type()->Tag() != TYPE_LIST )
 		return nullptr;
 
-	const val_list* vl = v->AsListVal()->Vals();
-	if ( type_check && vl->length() != tl->length() )
+	auto lv = v->AsListVal();
+
+	if ( type_check && lv->Length() != tl->length() )
 		return nullptr;
 
 	char* kp = k;
 	loop_over_list(*tl, i)
 		{
-		kp = SingleValHash(type_check, kp, (*tl)[i], (*vl)[i], false);
+		kp = SingleValHash(type_check, kp, (*tl)[i], lv->Idx(i).get(), false);
 		if ( ! kp )
 			return nullptr;
 		}
@@ -390,11 +391,12 @@ HashKey* CompositeHash::ComputeSingletonHash(const Val* v, bool type_check) cons
 	{
 	if ( v->Type()->Tag() == TYPE_LIST )
 		{
-		const val_list* vl = v->AsListVal()->Vals();
-		if ( type_check && vl->length() != 1 )
+		auto lv = v->AsListVal();
+
+		if ( type_check && lv->Length() != 1 )
 			return nullptr;
 
-		v = (*vl)[0];
+		v = lv->Idx(0).get();
 		}
 
 	if ( type_check && v->Type()->InternalType() != singleton_tag )
@@ -536,7 +538,7 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 			ListVal* lv = tv->ConvertToList();
 			for ( int i = 0; i < tv->Size(); ++i )
 				{
-				Val* key = lv->Index(i);
+				Val* key = lv->Idx(i).get();
 				sz = SingleTypeKeySize(key->Type(), key, type_check, sz, false,
 				                       calc_static_size);
 				if ( ! sz )
@@ -594,7 +596,7 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 			ListVal* lv = const_cast<ListVal*>(v->AsListVal());
 			for ( int i = 0; i < lv->Length(); ++i )
 				{
-				sz = SingleTypeKeySize(lv->Index(i)->Type(), lv->Index(i),
+				sz = SingleTypeKeySize(lv->Idx(i)->Type(), lv->Idx(i).get(),
 				                       type_check, sz, false, calc_static_size);
 				if ( ! sz) return 0;
 				}
@@ -631,21 +633,22 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 int CompositeHash::ComputeKeySize(const Val* v, bool type_check, bool calc_static_size) const
 	{
 	const type_list* tl = type->Types();
-	const val_list* vl = nullptr;
+
 	if ( v )
 		{
 		if ( type_check && v->Type()->Tag() != TYPE_LIST )
 			return 0;
 
-		vl = v->AsListVal()->Vals();
-		if ( type_check && vl->length() != tl->length() )
+		auto lv = v->AsListVal();
+
+		if ( type_check && lv->Length() != tl->length() )
 			return 0;
 		}
 
 	int sz = 0;
 	loop_over_list(*tl, i)
 		{
-		sz = SingleTypeKeySize((*tl)[i], v ? v->AsListVal()->Index(i) : nullptr,
+		sz = SingleTypeKeySize((*tl)[i], v ? v->AsListVal()->Idx(i).get() : nullptr,
 				       type_check, sz, false, calc_static_size);
 		if ( ! sz )
 			return 0;

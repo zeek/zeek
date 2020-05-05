@@ -249,8 +249,8 @@ X509_STORE* file_analysis::X509::GetRootStore(TableVal* root_certs)
 	// Build the validation store
 	for ( int i = 0; i < idxs->Length(); ++i )
 		{
-		Val* key = idxs->Index(i);
-		StringVal *sv = root_certs->Lookup(key)->AsStringVal();
+		const auto& key = idxs->Idx(i);
+		StringVal *sv = root_certs->Lookup(key.get())->AsStringVal();
 		assert(sv);
 		const uint8_t* data = sv->Bytes();
 		::X509* x = d2i_X509(NULL, &data, sv->Len());

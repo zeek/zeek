@@ -99,7 +99,7 @@ void Manager::InitPostScript()
 	auto port_list = table_val->ConvertToPureList();
 
 	for ( auto i = 0; i < port_list->Length(); ++i )
-		vxlan_ports.emplace_back(port_list->Index(i)->AsPortVal()->Port());
+		vxlan_ports.emplace_back(port_list->Idx(i)->AsPortVal()->Port());
 
 	Unref(port_list);
 	}

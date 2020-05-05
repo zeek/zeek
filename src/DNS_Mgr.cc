@@ -888,19 +888,19 @@ IntrusivePtr<ListVal> DNS_Mgr::AddrListDelta(ListVal* al1, ListVal* al2)
 
 	for ( int i = 0; i < al1->Length(); ++i )
 		{
-		const IPAddr& al1_i = al1->Index(i)->AsAddr();
+		const IPAddr& al1_i = al1->Idx(i)->AsAddr();
 
 		int j;
 		for ( j = 0; j < al2->Length(); ++j )
 			{
-			const IPAddr& al2_j = al2->Index(j)->AsAddr();
+			const IPAddr& al2_j = al2->Idx(j)->AsAddr();
 			if ( al1_i == al2_j )
 				break;
 			}
 
 		if ( j >= al2->Length() )
 			// Didn't find it.
-			delta->Append({NewRef{}, al1->Index(i)});
+			delta->Append(al1->Idx(i));
 		}
 
 	return delta;
@@ -910,7 +910,7 @@ void DNS_Mgr::DumpAddrList(FILE* f, ListVal* al)
 	{
 	for ( int i = 0; i < al->Length(); ++i )
 		{
-		const IPAddr& al_i = al->Index(i)->AsAddr();
+		const IPAddr& al_i = al->Idx(i)->AsAddr();
 		fprintf(f, "%s%s", i > 0 ? "," : "", al_i.AsString().c_str());
 		}
 	}

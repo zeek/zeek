@@ -912,7 +912,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const Val* v)
 
 			for ( auto k = 0; k < vl->Length(); ++k )
 				{
-				auto key_part = val_to_data((*vl->Vals())[k]);
+				auto key_part = val_to_data(vl->Idx(k).get());
 
 				if ( ! key_part )
 					return broker::ec::invalid_data;

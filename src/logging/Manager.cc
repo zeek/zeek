@@ -870,7 +870,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 			while ( (v = filter->config->AsTable()->NextEntry(k, c)) )
 				{
 				auto index = filter->config->RecoverIndex(k);
-				string key = index->Index(0)->AsString()->CheckString();
+				string key = index->Idx(0)->AsString()->CheckString();
 				string value = v->Value()->AsString()->CheckString();
 				info->config.insert(std::make_pair(copy_string(key.c_str()), copy_string(value.c_str())));
 				delete k;
@@ -1022,7 +1022,7 @@ threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
 		lval->val.set_val.vals = new threading::Value* [lval->val.set_val.size];
 
 		for ( int i = 0; i < lval->val.set_val.size; i++ )
-			lval->val.set_val.vals[i] = ValToLogVal(set->Index(i));
+			lval->val.set_val.vals[i] = ValToLogVal(set->Idx(i).get());
 
 		Unref(set);
 		break;

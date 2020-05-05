@@ -311,7 +311,7 @@ ConstExpr::ConstExpr(IntrusivePtr<Val> arg_val)
 	: Expr(EXPR_CONST), val(std::move(arg_val))
 	{
 	if ( val->Type()->Tag() == TYPE_LIST && val->AsListVal()->Length() == 1 )
-		val = {NewRef{}, val->AsListVal()->Index(0)};
+		val = val->AsListVal()->Idx(0);
 
 	SetType({NewRef{}, val->Type()});
 	}
@@ -2587,7 +2587,7 @@ IntrusivePtr<Val> IndexExpr::Eval(Frame* f) const
 	if ( ! v2 )
 		return nullptr;
 
-	Val* indv = v2->AsListVal()->Index(0);
+	Val* indv = v2->AsListVal()->Idx(0).get();
 
 	if ( is_vector(indv) )
 		{
@@ -2662,8 +2662,8 @@ IntrusivePtr<Val> IndexExpr::Fold(Val* v1, Val* v2) const
 			size_t len = vect->Size();
 			auto result = make_intrusive<VectorVal>(vect->Type()->AsVectorType());
 
-			bro_int_t first = get_slice_index(lv->Index(0)->CoerceToInt(), len);
-			bro_int_t last = get_slice_index(lv->Index(1)->CoerceToInt(), len);
+			bro_int_t first = get_slice_index(lv->Idx(0)->CoerceToInt(), len);
+			bro_int_t last = get_slice_index(lv->Idx(1)->CoerceToInt(), len);
 			bro_int_t sub_length = last - first;
 
 			if ( sub_length >= 0 )
@@ -2695,7 +2695,7 @@ IntrusivePtr<Val> IndexExpr::Fold(Val* v1, Val* v2) const
 
 		if ( lv->Length() == 1 )
 			{
-			bro_int_t idx = lv->Index(0)->AsInt();
+			bro_int_t idx = lv->Idx(0)->AsInt();
 
 			if ( idx < 0 )
 				idx += len;
@@ -2705,8 +2705,8 @@ IntrusivePtr<Val> IndexExpr::Fold(Val* v1, Val* v2) const
 			}
 		else
 			{
-			bro_int_t first = get_slice_index(lv->Index(0)->AsInt(), len);
-			bro_int_t last = get_slice_index(lv->Index(1)->AsInt(), len);
+			bro_int_t first = get_slice_index(lv->Idx(0)->AsInt(), len);
+			bro_int_t last = get_slice_index(lv->Idx(1)->AsInt(), len);
 			bro_int_t substring_len = last - first;
 
 			if ( substring_len < 0 )
@@ -2759,8 +2759,8 @@ void IndexExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 		if ( lv->Length() > 1 )
 			{
 			auto len = v1_vect->Size();
-			bro_int_t first = get_slice_index(lv->Index(0)->CoerceToInt(), len);
-			bro_int_t last = get_slice_index(lv->Index(1)->CoerceToInt(), len);
+			bro_int_t first = get_slice_index(lv->Idx(0)->CoerceToInt(), len);
+			bro_int_t last = get_slice_index(lv->Idx(1)->CoerceToInt(), len);
 
 			// Remove the elements from the vector within the slice
 			for ( auto idx = first; idx < last; idx++ )
@@ -3053,7 +3053,7 @@ IntrusivePtr<Val> RecordConstructorExpr::Fold(Val* v) const
 	auto rv = make_intrusive<RecordVal>(rt);
 
 	for ( int i = 0; i < lv->Length(); ++i )
-		rv->Assign(i, lv->Index(i)->Ref());
+		rv->Assign(i, lv->Idx(i));
 
 	return rv;
 	}
@@ -4764,11 +4764,11 @@ void ListExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 	{
 	ListVal* lv = v->AsListVal();
 
-	if ( exprs.length() != lv->Vals()->length() )
+	if ( exprs.length() != lv->Length() )
 		RuntimeError("mismatch in list lengths");
 
 	loop_over_list(exprs, i)
-		exprs[i]->Assign(f, {NewRef{}, (*lv->Vals())[i]});
+		exprs[i]->Assign(f, lv->Idx(i));
 	}
 
 TraversalCode ListExpr::Traverse(TraversalCallback* cb) const

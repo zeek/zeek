@@ -180,7 +180,7 @@ function Reporter::set_weird_sampling_whitelist%(weird_sampling_whitelist: strin
 	while ( (v = wl_table->NextEntry(k, c)) )
 		{
 		auto index = wl_val->RecoverIndex(k);
-		string key = index->Index(0)->AsString()->CheckString();
+		string key = index->Idx(0)->AsString()->CheckString();
 		whitelist_set.emplace(move(key));
 		delete k;
 		}

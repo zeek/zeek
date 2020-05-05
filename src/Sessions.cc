@@ -1220,7 +1220,7 @@ bool NetSessions::IsLikelyServerPort(uint32_t port, TransportProto proto) const
 		{
 		ListVal* lv = likely_server_ports->ConvertToPureList();
 		for ( int i = 0; i < lv->Length(); i++ )
-			port_cache.insert(lv->Index(i)->InternalUnsigned());
+			port_cache.insert(lv->Idx(i)->InternalUnsigned());
 		have_cache = true;
 		Unref(lv);
 		}

@@ -45,7 +45,7 @@ void* PrefixTable::Insert(const Val* value, void* data)
 	// [elem] -> elem
 	if ( value->Type()->Tag() == TYPE_LIST &&
 	     value->AsListVal()->Length() == 1 )
-		value = value->AsListVal()->Index(0);
+		value = value->AsListVal()->Idx(0).get();
 
 	switch ( value->Type()->Tag() ) {
 	case TYPE_ADDR:
@@ -105,7 +105,7 @@ void* PrefixTable::Lookup(const Val* value, bool exact) const
 	// [elem] -> elem
 	if ( value->Type()->Tag() == TYPE_LIST &&
 	     value->AsListVal()->Length() == 1 )
-		value = value->AsListVal()->Index(0);
+		value = value->AsListVal()->Idx(0).get();
 
 	switch ( value->Type()->Tag() ) {
 	case TYPE_ADDR:
@@ -144,7 +144,7 @@ void* PrefixTable::Remove(const Val* value)
 	// [elem] -> elem
 	if ( value->Type()->Tag() == TYPE_LIST &&
 	     value->AsListVal()->Length() == 1 )
-		value = value->AsListVal()->Index(0);
+		value = value->AsListVal()->Idx(0).get();
 
 	switch ( value->Type()->Tag() ) {
 	case TYPE_ADDR:

@@ -538,7 +538,7 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 				{
 				auto lv = tval->RecoverIndex(k);
 				delete k;
-				Val* entry_key = lv->Length() == 1 ? lv->Index(0) : lv.get();
+				Val* entry_key = lv->Length() == 1 ? lv->Idx(0).get() : lv.get();
 
 				if ( tval->Type()->IsSet() )
 					BuildJSON(writer, entry_key, only_loggable, re);
@@ -608,7 +608,7 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 			auto* lval = val->AsListVal();
 			size_t size = lval->Length();
 			for (size_t i = 0; i < size; i++)
-				BuildJSON(writer, lval->Index(i), only_loggable, re);
+				BuildJSON(writer, lval->Idx(i).get(), only_loggable, re);
 
 			writer.EndArray();
 			break;
@@ -1189,14 +1189,12 @@ ListVal::ListVal(TypeTag t)
 
 ListVal::~ListVal()
 	{
-	for ( const auto& val : vals )
-		Unref(val);
 	Unref(type);
 	}
 
 IntrusivePtr<Val> ListVal::SizeVal() const
 	{
-	return val_mgr->Count(vals.length());
+	return val_mgr->Count(vals.size());
 	}
 
 RE_Matcher* ListVal::BuildRE() const
@@ -1223,7 +1221,7 @@ void ListVal::Append(IntrusivePtr<Val> v)
 		}
 
 	auto vt = v->Type();
-	vals.push_back(v.release());
+	vals.emplace_back(std::move(v));
 	type->AsTypeList()->Append({NewRef{}, vt});
 	}
 
@@ -1244,7 +1242,7 @@ IntrusivePtr<TableVal> ListVal::ToSetVal() const
 	auto t = make_intrusive<TableVal>(std::move(s));
 
 	for ( const auto& val : vals )
-		t->Assign(val, nullptr);
+		t->Assign(val.get(), nullptr);
 
 	return t;
 	}
@@ -1260,13 +1258,13 @@ void ListVal::Describe(ODesc* d) const
 		{
 		type->Describe(d);
 		d->SP();
-		d->Add(vals.length());
+		d->Add(static_cast<uint64_t>(vals.size()));
 		d->SP();
 		}
 
-	loop_over_list(vals, i)
+	for ( auto i = 0u; i < vals.size(); ++i )
 		{
-		if ( i > 0 )
+		if ( i > 0u )
 			{
 			if ( d->IsReadable() || d->IsPortable() )
 				{
@@ -1282,7 +1280,7 @@ void ListVal::Describe(ODesc* d) const
 IntrusivePtr<Val> ListVal::DoClone(CloneState* state)
 	{
 	auto lv = make_intrusive<ListVal>(tag);
-	lv->vals.resize(vals.length());
+	lv->vals.reserve(vals.size());
 	state->NewClone(this, lv);
 
 	for ( const auto& val : vals )
@@ -1297,8 +1295,8 @@ unsigned int ListVal::MemoryAllocation() const
 	for ( const auto& val : vals )
 		size += val->MemoryAllocation();
 
-	return size + padded_sizeof(*this) + vals.MemoryAllocation() - padded_sizeof(vals)
-		+ type->MemoryAllocation();
+	size += pad_size(vals.capacity() * sizeof(decltype(vals)::value_type));
+	return size + padded_sizeof(*this) + type->MemoryAllocation();
 	}
 
 TableEntryVal* TableEntryVal::Clone(Val::CloneState* state)
@@ -1772,7 +1770,7 @@ bool TableVal::ExpandAndInit(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val)
 			reporter->InternalError("bad singleton list index");
 
 		for ( int i = 0; i < iv->Length(); ++i )
-			if ( ! ExpandAndInit({NewRef{}, iv->Index(i)}, new_val) )
+			if ( ! ExpandAndInit(iv->Idx(i), new_val) )
 				return false;
 
 		return true;
@@ -1780,22 +1778,25 @@ bool TableVal::ExpandAndInit(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val)
 
 	else
 		{ // Compound table.
-		val_list* vl = iv->Vals();
-		loop_over_list(*vl, i)
+		int i;
+
+		for ( i = 0; i < iv->Length(); ++i )
 			{
+			const auto& v = iv->Idx(i);
 			// ### if CompositeHash::ComputeHash did flattening
 			// of 1-element lists (like ComputeSingletonHash does),
 			// then we could optimize here.
-			BroType* t = (*vl)[i]->Type();
+			BroType* t = v->Type();
+
 			if ( t->IsSet() || t->Tag() == TYPE_LIST )
 				break;
 			}
 
-		if ( i >= vl->length() )
+		if ( i >= iv->Length() )
 			// Nothing to expand.
 			return CheckAndAssign(index.get(), std::move(new_val));
 		else
-			return ExpandCompoundAndInit(vl, i, std::move(new_val));
+			return ExpandCompoundAndInit(iv, i, std::move(new_val));
 		}
 	}
 
@@ -1855,11 +1856,11 @@ IntrusivePtr<Val> TableVal::Default(Val* index)
 
 	if ( index->Type()->Tag() == TYPE_LIST )
 		{
-		const val_list* vl0 = index->AsListVal()->Vals();
-		vl.reserve(vl0->length());
+		auto lv = index->AsListVal();
+		vl.reserve(lv->Length());
 
-		for ( const auto& v : *vl0 )
-			vl.emplace_back(NewRef{}, v);
+		for ( const auto& v : lv->Vals() )
+			vl.emplace_back(v);
 		}
 	else
 		vl.emplace_back(NewRef{}, index);
@@ -2026,10 +2027,10 @@ void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe
 			}
 
 		const Func* f = thefunc->AsFunc();
-		const auto& index_list = *index->AsListVal()->Vals();
+		auto lv = index->AsListVal();
 
 		zeek::Args vl;
-		vl.reserve(2 + index_list.length() + table_type->IsTable());
+		vl.reserve(2 + lv->Length() + table_type->IsTable());
 		vl.emplace_back(NewRef{}, this);
 
 		switch ( tpe )
@@ -2047,8 +2048,8 @@ void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe
 				vl.emplace_back(BifType::Enum::TableChange->GetVal(BifEnum::TableChange::TABLE_ELEMENT_EXPIRED));
 			}
 
-		for ( const auto& v : *index->AsListVal()->Vals() )
-			vl.emplace_back(NewRef{}, v);
+		for ( const auto& v : lv->Vals() )
+			vl.emplace_back(v);
 
 		if ( table_type->IsTable() )
 			vl.emplace_back(NewRef{}, old_value);
@@ -2129,7 +2130,7 @@ ListVal* TableVal::ConvertToList(TypeTag t) const
 			if ( index->Length() != 1 )
 				InternalWarning("bad index in TableVal::ConvertToList");
 
-			l->Append({NewRef{}, index->Index(0)});
+			l->Append(index->Idx(0));
 			}
 
 		delete k;
@@ -2241,23 +2242,26 @@ void TableVal::Describe(ODesc* d) const
 		}
 	}
 
-bool TableVal::ExpandCompoundAndInit(val_list* vl, int k, IntrusivePtr<Val> new_val)
+bool TableVal::ExpandCompoundAndInit(ListVal* lv, int k, IntrusivePtr<Val> new_val)
 	{
-	Val* ind_k_v = (*vl)[k];
+	Val* ind_k_v = lv->Idx(k).get();
 	auto ind_k = ind_k_v->Type()->IsSet() ?
 	      IntrusivePtr<ListVal>{AdoptRef{}, ind_k_v->AsTableVal()->ConvertToList()} :
 	      IntrusivePtr<ListVal>{NewRef{}, ind_k_v->AsListVal()};
 
 	for ( int i = 0; i < ind_k->Length(); ++i )
 		{
-		Val* ind_k_i = ind_k->Index(i);
+		const auto& ind_k_i = ind_k->Idx(i);
 		auto expd = make_intrusive<ListVal>(TYPE_ANY);
-		loop_over_list(*vl, j)
+
+		for ( auto j = 0; j < lv->Length(); ++j )
 			{
+			const auto& v = lv->Idx(j);
+
 			if ( j == k )
-				expd->Append({NewRef{}, ind_k_i});
+				expd->Append(ind_k_i);
 			else
-				expd->Append({NewRef{}, (*vl)[j]});
+				expd->Append(v);
 			}
 
 		if ( ! ExpandAndInit(std::move(expd), new_val) )
@@ -2474,12 +2478,12 @@ double TableVal::CallExpireFunc(IntrusivePtr<ListVal> idx)
 
 		if ( ! any_idiom )
 			{
-			const auto& index_list = *idx->AsListVal()->Vals();
-			vl.reserve(1 + index_list.length());
+			auto lv = idx->AsListVal();
+			vl.reserve(1 + lv->Length());
 			vl.emplace_back(NewRef{}, this);
 
-			for ( const auto& v : index_list )
-				vl.emplace_back(NewRef{}, v);
+			for ( const auto& v : lv->Vals() )
+				vl.emplace_back(v);
 			}
 		else
 			{
@@ -2489,7 +2493,7 @@ double TableVal::CallExpireFunc(IntrusivePtr<ListVal> idx)
 			ListVal* idx_list = idx->AsListVal();
 			// Flatten if only one element
 			if ( idx_list->Length() == 1 )
-				vl.emplace_back(NewRef{}, idx_list->Index(0));
+				vl.emplace_back(idx_list->Idx(0));
 			else
 				vl.emplace_back(std::move(idx));
 			}

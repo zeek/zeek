@@ -627,9 +627,14 @@ public:
 
 	IntrusivePtr<Val> SizeVal() const override;
 
-	int Length() const		{ return vals.length(); }
-	Val* Index(const int n)		{ return vals[n]; }
-	const Val* Index(const int n) const	{ return vals[n]; }
+	int Length() const		{ return vals.size(); }
+
+	const IntrusivePtr<Val>& Idx(size_t i) const	{ return vals[i]; }
+
+	[[deprecated("Remove in v4.1.  Use Idx() instead")]]
+	Val* Index(const int n)		{ return vals[n].get(); }
+	[[deprecated("Remove in v4.1.  Use Idx() instead")]]
+	const Val* Index(const int n) const	{ return vals[n].get(); }
 
 	// Returns an RE_Matcher() that will match any string that
 	// includes embedded within it one of the patterns listed
@@ -656,8 +661,7 @@ public:
 	[[deprecated("Remove in v4.1.  Use ToSetVal() instead.")]]
 	TableVal* ConvertToSet() const;
 
-	const val_list* Vals() const	{ return &vals; }
-	val_list* Vals()		{ return &vals; }
+	const std::vector<IntrusivePtr<Val>>& Vals() const	{ return vals; }
 
 	void Describe(ODesc* d) const override;
 
@@ -666,7 +670,7 @@ public:
 protected:
 	IntrusivePtr<Val> DoClone(CloneState* state) override;
 
-	val_list vals;
+	std::vector<IntrusivePtr<Val>> vals;
 	TypeTag tag;
 };
 
@@ -867,7 +871,7 @@ protected:
 	void RebuildTable(ParseTimeTableState ptts);
 
 	void CheckExpireAttr(attr_tag at);
-	bool ExpandCompoundAndInit(val_list* vl, int k, IntrusivePtr<Val> new_val);
+	bool ExpandCompoundAndInit(ListVal* lv, int k, IntrusivePtr<Val> new_val);
 	bool CheckAndAssign(Val* index, IntrusivePtr<Val> new_val);
 
 	// Calculates default value for index.  Returns 0 if none.
@@ -1014,7 +1018,7 @@ public:
 	template<typename E>
 	bool Assign(Val* index, E&& element)
 		{
-		return Assign(index->AsListVal()->Index(0)->CoerceToUnsigned(),
+		return Assign(index->AsListVal()->Idx(0)->CoerceToUnsigned(),
 		              std::forward<E>(element));
 		}
 
@@ -1032,7 +1036,7 @@ public:
 	Val* Lookup(unsigned int index) const;
 	Val* Lookup(Val* index)
 		{
-		bro_uint_t i = index->AsListVal()->Index(0)->CoerceToUnsigned();
+		bro_uint_t i = index->AsListVal()->Idx(0)->CoerceToUnsigned();
 		return Lookup(static_cast<unsigned int>(i));
 		}
 

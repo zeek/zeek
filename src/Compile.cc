@@ -484,10 +484,11 @@ AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const NameExpr* v1,
 	}
 
 
-AbstractMachine::AbstractMachine(const BroFunc* _func, const UseDefs* _ud,
+AbstractMachine::AbstractMachine(function_ingredients& i, const UseDefs* _ud,
 				const Reducer* _rd, const ProfileFunc* _pf)
+: ingredients(i)
 	{
-	func = _func;
+	func = ingredients.id->ID_Val()->AsFunc()->AsBroFunc();
 	ud = _ud;
 	reducer = _rd;
 	pf = _pf;
@@ -508,7 +509,10 @@ void AbstractMachine::Init()
 	{
 	auto scope_vars = reducer->FuncScope()->Vars();
 	for ( auto& v : scope_vars )
-		printf("var name: %s\n", v.first.c_str());
+		{
+		auto id = v.second;
+		printf("var name: %s, offset %d\n", id->Name(), id->Offset());
+		}
 	}
 
 void AbstractMachine::StmtDescribe(ODesc* d) const

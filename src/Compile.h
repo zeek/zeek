@@ -90,6 +90,7 @@ protected:
 };
 
 
+struct function_ingredients;
 class Func;
 class UseDefs;
 class ProfileFunc;
@@ -98,7 +99,7 @@ union AS_ValUnion;
 
 class AbstractMachine : public Compiler {
 public:
-	AbstractMachine(const BroFunc* func, const UseDefs* ud,
+	AbstractMachine(function_ingredients& i, const UseDefs* ud,
 			const Reducer* rd, const ProfileFunc* pf);
 	~AbstractMachine() override;
 
@@ -254,6 +255,7 @@ protected:
 	vector<int> nexts;
 	vector<int> fallthroughs;
 
+	function_ingredients& ingredients;
 	const BroFunc* func;
 	const UseDefs* ud;
 	const Reducer* reducer;

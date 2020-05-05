@@ -1371,8 +1371,12 @@ bool optimize = false;
 bool compile = false;
 const char* only_func = 0;
 
-void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
+void analyze_func(function_ingredients& ingredients)
 	{
+	auto id = ingredients.id;
+	auto inits = ingredients.inits;
+	auto body = ingredients.body.get();
+
 	if ( reporter->Errors() > 0 )
 		return;
 
@@ -1474,7 +1478,8 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 
 	if ( compile )
 		{
-		AbstractMachine am(f, &ud, &rc, pf_opt ? pf_opt : pf_red);
+		auto pf = pf_opt ? pf_opt : pf_red;
+		AbstractMachine am(ingredients, &ud, &rc, pf);
 		new_body->Compile(&am);
 		am.Dump();
 		}

@@ -1226,7 +1226,7 @@ void ListVal::Append(Val* v)
 	type->AsTypeList()->Append({NewRef{}, v->Type()});
 	}
 
-TableVal* ListVal::ConvertToSet() const
+IntrusivePtr<TableVal> ListVal::ToSetVal() const
 	{
 	if ( tag == TYPE_ANY )
 		Internal("conversion of heterogeneous list to set");
@@ -1235,12 +1235,17 @@ TableVal* ListVal::ConvertToSet() const
 	        IntrusivePtr{NewRef{}, type->AsTypeList()->PureType()});
 	set_index->Append(base_type(tag));
 	auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
-	TableVal* t = new TableVal(std::move(s));
+	auto t = make_intrusive<TableVal>(std::move(s));
 
 	for ( const auto& val : vals )
 		t->Assign(val, nullptr);
 
 	return t;
+	}
+
+TableVal* ListVal::ConvertToSet() const
+	{
+	return ToSetVal().release();
 	}
 
 void ListVal::Describe(ODesc* d) const

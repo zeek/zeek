@@ -297,7 +297,7 @@ IntrusivePtr<TableVal> DNS_Mapping::AddrsSet() {
 	if ( ! l )
 		return empty_addr_set();
 
-	return {AdoptRef{}, l->ConvertToSet()};
+	return l->ToSetVal();
 	}
 
 IntrusivePtr<StringVal> DNS_Mapping::Host()
@@ -479,7 +479,7 @@ static IntrusivePtr<TableVal> fake_name_lookup_result(const char* name)
 	KeyedHash::StaticHash128(name, strlen(name), &hash);
 	auto hv = make_intrusive<ListVal>(TYPE_ADDR);
 	hv->Append(new AddrVal(reinterpret_cast<const uint32_t*>(&hash)));
-	return {AdoptRef{}, hv->ConvertToSet()};
+	return hv->ToSetVal();
 	}
 
 static const char* fake_text_lookup_result(const char* name)
@@ -715,11 +715,7 @@ void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* dm,
 	if ( ! e )
 		return;
 
-	mgr.Enqueue(e,
-		BuildMappingVal(dm),
-		IntrusivePtr{AdoptRef{}, l1->ConvertToSet()},
-		IntrusivePtr{AdoptRef{}, l2->ConvertToSet()}
-	);
+	mgr.Enqueue(e, BuildMappingVal(dm), l1->ToSetVal(), l2->ToSetVal());
 	}
 
 void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* old_dm, DNS_Mapping* new_dm)

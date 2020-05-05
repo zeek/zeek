@@ -644,6 +644,9 @@ public:
 	void Append(Val* v);
 
 	// Returns a Set representation of the list (which must be homogeneous).
+	IntrusivePtr<TableVal> ToSetVal() const;
+
+	[[deprecated("Remove in v4.1.  Use ToSetVal() instead.")]]
 	TableVal* ConvertToSet() const;
 
 	const val_list* Vals() const	{ return &vals; }

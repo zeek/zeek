@@ -3525,9 +3525,8 @@ public:
 			{
 			ListVal* lv = new ListVal(TYPE_ADDR);
 			lv->Append(new AddrVal("0.0.0.0"));
-			Val* result = lv->ConvertToSet();
-			trigger->Cache(call, result);
-			Unref(result);
+			auto result = lv->ToSetVal();
+			trigger->Cache(call, result.get());
 			Unref(lv);
 			}
 

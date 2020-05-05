@@ -1,4 +1,11 @@
 
+3.2.0-dev.461 | 2020-05-04 17:08:46 -0700
+
+  * Avoid scheduling multiple inactivity timers (Justin Azoff and Jon Siwek, Corelight)
+
+    Also updated language.expire_subnet btest which is unduly sensitive to
+    timer-related changes
+
 3.2.0-dev.459 | 2020-05-01 17:46:20 -0700
 
   * Extend CI config to cover building with libmaxminddb support (Jon Siwek, Corelight)

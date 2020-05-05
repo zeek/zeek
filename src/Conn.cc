@@ -283,21 +283,15 @@ void Connection::DeleteTimer(double /* t */)
 
 void Connection::InactivityTimer(double t)
 	{
-	// If the inactivity_timeout is zero, there has been an active
-	// timeout once, but it's disabled now. We do nothing then.
-	if ( inactivity_timeout )
+	if ( last_time + inactivity_timeout <= t )
 		{
-		if ( last_time + inactivity_timeout <= t )
-			{
-			Event(connection_timeout, nullptr);
-			sessions->Remove(this);
-			++killed_by_inactivity;
-			}
-		else
-			ADD_TIMER(&Connection::InactivityTimer,
-					last_time + inactivity_timeout, 0,
-					TIMER_CONN_INACTIVITY);
+		Event(connection_timeout, nullptr);
+		sessions->Remove(this);
+		++killed_by_inactivity;
 		}
+	else
+		ADD_TIMER(&Connection::InactivityTimer,
+		          last_time + inactivity_timeout, 0, TIMER_CONN_INACTIVITY);
 	}
 
 void Connection::RemoveConnectionTimer(double t)
@@ -308,8 +302,17 @@ void Connection::RemoveConnectionTimer(double t)
 
 void Connection::SetInactivityTimeout(double timeout)
 	{
-	// We add a new inactivity timer even if there already is one.  When
-	// it fires, we always use the current value to check for inactivity.
+	if ( timeout == inactivity_timeout )
+		return;
+
+	// First cancel and remove any existing inactivity timer.
+	for ( const auto& timer : timers )
+		if ( timer->Type() == TIMER_CONN_INACTIVITY )
+			{
+			timer_mgr->Cancel(timer);
+			break;
+			}
+
 	if ( timeout )
 		ADD_TIMER(&Connection::InactivityTimer,
 				last_time + timeout, 0, TIMER_CONN_INACTIVITY);

@@ -33,24 +33,25 @@ vector
 eval -$1
 
 unary-op AppendTo
-eval auto vv = frame[s.v1].vector_val
-eval vv->Assign(vv->Size(), $1.ToVal(s.t))
+eval auto vv = frame[s.v1].vector_val;
+eval vv->Assign(vv->Size(), $1.ToVal(s.t));
 
-unary-op Flatten
+unary-expr-op Flatten
 op-type X
 eval const char* error;
 eval auto res = flatten_value(frame[s.v2].record_val, s.v3, error);
 eval if ( error ) run_time_error(error);
 eval frame[s.v1].record_val = res->AsRecordVal();
 
-unary-op Cast
+unary-expr-op Cast
+op-type X
 set-type $1
 set-expr $2
-eval const char* error
-eval auto rhs = frame[s.v2].ToVal(s.e->Type().get()).get()
-eval auto res = cast_value(rhs, s.t, error).get()
-eval if ( error ) run_time_error(error)
-eval frame[s.v1] = AS_ValUnion(res, s.t)
+eval const char* error;
+eval auto rhs = frame[s.v2].ToVal(s.e->Type().get()).get();
+eval auto res = cast_value(rhs, s.t, error).get();
+eval if ( error ) run_time_error(error);
+eval frame[s.v1] = AS_ValUnion(res, s.t);
 
 unary-op Is
 set-type $1

@@ -459,7 +459,7 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 
 	full_op = "OP_" upper_op "_" type
 	full_op_no_sub = full_op
-	if ( sub_type1 )
+	if ( sub_type1 && sub_type1 != "X" )
 		{
 		full_op = full_op "_" sub_type1
 		if ( sub_type2 != sub_type1 )

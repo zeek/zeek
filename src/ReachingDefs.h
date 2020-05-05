@@ -15,7 +15,7 @@
 // as reaching.
 
 typedef List<DefinitionPoint> DefPoints;
-typedef std::map<const DefinitionItem*, DefPoints*> ReachingDefsMap;
+typedef std::unordered_map<const DefinitionItem*, DefPoints*> ReachingDefsMap;
 
 class ReachingDefs;
 typedef IntrusivePtr<ReachingDefs> RD_ptr;
@@ -99,7 +99,7 @@ protected:
 
 // Maps script locations (which are represented by their underlying BroObj
 // pointers) to the reaching definitions for that particular point.
-typedef std::map<const BroObj*, RD_ptr> AnalyInfo;
+typedef std::unordered_map<const BroObj*, RD_ptr> AnalyInfo;
 
 // Reaching definitions associated with a collection of BroObj's.
 class ReachingDefSet : public BroObj {

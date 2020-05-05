@@ -103,14 +103,14 @@ protected:
 
 	// Let's us go from an identifier to an associated temporary
 	// variable, if it corresponds to one.
-	std::map<const ID*, TempVar*> ids_to_temps;
+	std::unordered_map<const ID*, TempVar*> ids_to_temps;
 
 	// For a given usage of a variable's value, return the definition
 	// points associated with its use at that point.  We use this
 	// both as a cache (populating it every time we do a more
 	// laborious lookup), and proactively when creating new
 	// references to variables.
-	std::map<const NameExpr*, const DefPoints*> var_usage_to_DPs;
+	std::unordered_map<const NameExpr*, const DefPoints*> var_usage_to_DPs;
 
 	// Tracks which (non-temporary) variables had constant
 	// values used for constant propagation.
@@ -119,7 +119,7 @@ protected:
 	// For a new expression we've created, map it to the expression
 	// it's replacing.  This allows us to locate the RDs associated
 	// with the usage.
-	std::map<const Expr*, const Expr*> new_expr_to_orig;
+	std::unordered_map<const Expr*, const Expr*> new_expr_to_orig;
 
 	std::unordered_set<const Stmt*> omitted_stmts;
 

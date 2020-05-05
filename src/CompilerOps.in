@@ -186,7 +186,7 @@ type Ri
 eval frame[s.v1].int_val = (frame[s.v2].record_val->Lookup(s.v3) != nullptr)
 
 expr-op In
-type VLV
+type VVV
 custom-method return CompileInExpr($*);
 no-eval
 
@@ -226,20 +226,15 @@ op-type I
 eval $$ = op2->Lookup(op1) != nullptr
 
 
-# These are handled differently because the first has the unusual 2nd argument.
+# Handled differently because of the unusual middle argument.
 op L-In-T
 type VLV
 custom-method return CompileInExpr(n1, l, n2);
 no-eval
 
-op V-In-T
-type VVV
-custom-method return CompileInExpr(n1, n2, n3);
-no-eval
-
-op V-In-T
-type VCV
-custom-method return CompileInExpr(n1, c, n2);
+op L-In-Vec
+type VLV
+custom-method return CompileInExpr(n1, l, n2);
 no-eval
 
 

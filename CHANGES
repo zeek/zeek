@@ -1,4 +1,10 @@
 
+3.2.0-dev.466 | 2020-05-04 17:50:14 -0700
+
+  * Add network_time_init() event. (Jan Grashoefer)
+
+    This event is generated upon first initialization of network_time.
+
 3.2.0-dev.461 | 2020-05-04 17:08:46 -0700
 
   * Avoid scheduling multiple inactivity timers (Justin Azoff and Jon Siwek, Corelight)

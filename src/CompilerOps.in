@@ -251,8 +251,8 @@ no-eval
 
 internal-op Val-Is-In-Table
 type VVV
-eval auto op1 = frame[s.v3].ToVal(s.t)
-eval frame[s.v1].int_val = frame[s.v2].table_val->Lookup(op1.get()) != nullptr
+eval auto op1 = frame[s.v2].ToVal(s.t)
+eval frame[s.v1].int_val = frame[s.v3].table_val->Lookup(op1.get()) != nullptr
 
 internal-op Const-Is-In-Table
 type VCV

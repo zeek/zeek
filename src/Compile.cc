@@ -716,7 +716,9 @@ const CompiledStmt AbstractMachine::While(const Stmt* cond_stmt,
 					const NameExpr* cond, const Stmt* body)
 	{
 	auto head = StartingBlock();
-	(void) cond_stmt->Compile(this);
+
+	if ( cond_stmt )
+		(void) cond_stmt->Compile(this);
 
 	auto cond_IF = AddStmt(AbstractStmt(OP_IF_VV, FrameSlot(cond), 0));
 	(void) body->Compile(this);

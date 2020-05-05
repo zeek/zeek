@@ -49,6 +49,7 @@ public:
 
 	int num_stmts = 0;
 	int num_when_stmts = 0;
+	int num_lambdas = 0;
 	int num_exprs = 0;
 };
 
@@ -71,6 +72,9 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 		if ( id->IsGlobal() )
 			globals.insert(id);
 		}
+
+	else if ( e->Tag() == EXPR_LAMBDA )
+		++num_lambdas;
 
 	++num_exprs;
 
@@ -1444,10 +1448,10 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 	ProfileFunc* pf_orig = new ProfileFunc;
 	f->Traverse(pf_orig);
 
-	if ( pf_orig->num_when_stmts > 0 )
+	if ( pf_orig->num_when_stmts > 0 || pf_orig->num_lambdas > 0 )
 		{
 		if ( only_func )
-			printf("Skipping analysis due to \"when\" statement\n");
+			printf("Skipping analysis due to \"when\" statement or use of lambdas\n");
 		return;
 		}
 

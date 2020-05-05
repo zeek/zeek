@@ -137,7 +137,7 @@ IntrusivePtr<RecordVal> TeredoEncapsulation::BuildVal(const IP_Hdr* inner) const
 		teredo_hdr->Assign(1, teredo_origin);
 		}
 
-	teredo_hdr->Assign(2, inner->BuildPktHdrVal());
+	teredo_hdr->Assign(2, inner->ToPktHdrVal());
 	return teredo_hdr;
 	}
 

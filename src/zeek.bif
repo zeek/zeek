@@ -3427,7 +3427,7 @@ function get_current_packet_header%(%) : raw_pkt_hdr
 	if ( current_pktsrc &&
 	     current_pktsrc->GetCurrentPacket(&p) )
 		{
-		return IntrusivePtr{AdoptRef{}, p->BuildPktHdrVal()};
+		return p->ToRawPktHdrVal();
 		}
 
 	auto hdr = make_intrusive<RecordVal>(raw_pkt_hdr_type);

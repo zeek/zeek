@@ -123,7 +123,7 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 	SegmentProfiler prof(segment_logger, "dispatching-packet");
 
 	if ( raw_packet )
-		mgr.Enqueue(raw_packet, IntrusivePtr{AdoptRef{}, pkt->BuildPktHdrVal()});
+		mgr.Enqueue(raw_packet, pkt->ToRawPktHdrVal());
 
 	if ( pkt_profiler )
 		pkt_profiler->ProfilePkt(t, pkt->cap_len);
@@ -310,7 +310,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		{
 		dump_this_packet = true;
 		if ( esp_packet )
-			mgr.Enqueue(esp_packet, IntrusivePtr{AdoptRef{}, ip_hdr->BuildPktHdrVal()});
+			mgr.Enqueue(esp_packet, ip_hdr->ToPktHdrVal());
 
 		// Can't do more since upper-layer payloads are going to be encrypted.
 		return;
@@ -330,8 +330,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 			}
 
 		if ( mobile_ipv6_message )
-			mgr.Enqueue(mobile_ipv6_message,
-			            IntrusivePtr{AdoptRef{}, ip_hdr->BuildPktHdrVal()});
+			mgr.Enqueue(mobile_ipv6_message, ip_hdr->ToPktHdrVal());
 
 		if ( ip_hdr->NextProto() != IPPROTO_NONE )
 			Weird("mobility_piggyback", pkt, encapsulation);
@@ -686,19 +685,18 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 
 	conn->CheckFlowLabel(is_orig, ip_hdr->FlowLabel());
 
-	Val* pkt_hdr_val = nullptr;
+	IntrusivePtr<Val> pkt_hdr_val;
 
 	if ( ipv6_ext_headers && ip_hdr->NumHeaders() > 1 )
 		{
-		pkt_hdr_val = ip_hdr->BuildPktHdrVal();
+		pkt_hdr_val = ip_hdr->ToPktHdrVal();
 		conn->EnqueueEvent(ipv6_ext_headers, nullptr, conn->ConnVal(),
-		                   IntrusivePtr{AdoptRef{}, pkt_hdr_val});
+		                   pkt_hdr_val);
 		}
 
 	if ( new_packet )
 		conn->EnqueueEvent(new_packet, nullptr, conn->ConnVal(), pkt_hdr_val ?
-		                   IntrusivePtr{NewRef{}, pkt_hdr_val} :
-		                   IntrusivePtr{AdoptRef{}, ip_hdr->BuildPktHdrVal()});
+		                   std::move(pkt_hdr_val) : ip_hdr->ToPktHdrVal());
 
 	conn->NextPacket(t, is_orig, ip_hdr, len, caplen, data,
 				record_packet, record_content, pkt);

@@ -16,6 +16,7 @@ class Val;
 class ODesc;
 class IP_Hdr;
 class RecordVal;
+template <class T> class IntrusivePtr;
 
 /**
  * The Layer 3 type of a packet, as determined by the parsing code in Packet.
@@ -127,6 +128,9 @@ public:
 	 * Returns a \c raw_pkt_hdr RecordVal, which includes layer 2 and
 	 * also everything in IP_Hdr (i.e., IP4/6 + TCP/UDP/ICMP).
 	 */
+	IntrusivePtr<RecordVal> ToRawPktHdrVal() const;
+
+	[[deprecated("Remove in v4.1.  Use ToRawPktHdrval() instead.")]]
 	RecordVal* BuildPktHdrVal() const;
 
 	/**

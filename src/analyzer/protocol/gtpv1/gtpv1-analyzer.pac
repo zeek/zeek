@@ -760,7 +760,7 @@ flow GTPv1_Flow(is_orig: bool)
 
 		if ( ::gtpv1_g_pdu_packet )
 			BifEvent::enqueue_gtpv1_g_pdu_packet(a, c, BuildGTPv1Hdr(pdu),
-			                                     {AdoptRef{}, inner->BuildPktHdrVal()});
+			                                     inner->ToPktHdrVal());
 
 		EncapsulatingConn ec(c, BifEnum::Tunnel::GTPv1);
 

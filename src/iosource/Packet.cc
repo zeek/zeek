@@ -2,6 +2,7 @@
 #include "Sessions.h"
 #include "Desc.h"
 #include "IP.h"
+#include "IntrusivePtr.h"
 #include "iosource/Manager.h"
 
 extern "C" {
@@ -590,9 +591,9 @@ void Packet::ProcessLayer2()
 	hdr_size = (pdata - data);
 }
 
-RecordVal* Packet::BuildPktHdrVal() const
+IntrusivePtr<RecordVal> Packet::ToRawPktHdrVal() const
 	{
-	RecordVal* pkt_hdr = new RecordVal(raw_pkt_hdr_type);
+	auto pkt_hdr = make_intrusive<RecordVal>(raw_pkt_hdr_type);
 	RecordVal* l2_hdr = new RecordVal(l2_hdr_type);
 
 	bool is_ethernet = link_type == DLT_EN10MB;
@@ -652,17 +653,22 @@ RecordVal* Packet::BuildPktHdrVal() const
 	if ( l3_proto == L3_IPV4 )
 		{
 		IP_Hdr ip_hdr((const struct ip*)(data + hdr_size), false);
-		return ip_hdr.BuildPktHdrVal(pkt_hdr, 1);
+		return ip_hdr.ToPktHdrVal(std::move(pkt_hdr), 1);
 		}
 
 	else if ( l3_proto == L3_IPV6 )
 		{
 		IP_Hdr ip6_hdr((const struct ip6_hdr*)(data + hdr_size), false, cap_len);
-		return ip6_hdr.BuildPktHdrVal(pkt_hdr, 1);
+		return ip6_hdr.ToPktHdrVal(std::move(pkt_hdr), 1);
 		}
 
 	else
 		return pkt_hdr;
+	}
+
+RecordVal* Packet::BuildPktHdrVal() const
+	{
+	return ToRawPktHdrVal().release();
 	}
 
 Val *Packet::FmtEUI48(const u_char *mac) const

@@ -14,6 +14,8 @@
 
 #include <vector>
 
+#include "IntrusivePtr.h"
+
 class IPAddr;
 class RecordVal;
 class VectorVal;
@@ -134,6 +136,9 @@ public:
 	/**
 	 * Returns the script-layer record representation of the header.
 	 */
+	IntrusivePtr<RecordVal> ToVal(IntrusivePtr<VectorVal> chain = nullptr) const;
+
+	[[deprecated("Remove in v4.1.  Use ToVal() instead.")]]
 	RecordVal* BuildRecordVal(VectorVal* chain = nullptr) const;
 
 protected:
@@ -223,6 +228,9 @@ public:
 	 * Returns a vector of ip6_ext_hdr RecordVals that includes script-layer
 	 * representation of all extension headers in the chain.
 	 */
+	IntrusivePtr<VectorVal> ToVal() const;
+
+	[[deprecated("Remove in v4.1.  Use ToVal() instead.")]]
 	VectorVal* BuildVal() const;
 
 protected:
@@ -517,18 +525,27 @@ public:
 	/**
 	 * Returns an ip_hdr or ip6_hdr_chain RecordVal.
 	 */
+	IntrusivePtr<RecordVal> ToIPHdrVal() const;
+
+	[[deprecated("Remove in v4.1.  Use ToIPHdrVal() instead.")]]
 	RecordVal* BuildIPHdrVal() const;
 
 	/**
 	 * Returns a pkt_hdr RecordVal, which includes not only the IP header, but
 	 * also upper-layer (tcp/udp/icmp) headers.
 	 */
+	IntrusivePtr<RecordVal> ToPktHdrVal() const;
+
+	[[deprecated("Remove in v4.1.  Use ToPktHdrVal() instead.")]]
 	RecordVal* BuildPktHdrVal() const;
 
 	/**
 	 * Same as above, but simply add our values into the record at the
 	 * specified starting index.
 	 */
+	IntrusivePtr<RecordVal> ToPktHdrVal(IntrusivePtr<RecordVal> pkt_hdr, int sindex) const;
+
+	[[deprecated("Remove in v4.1.  Use ToPktHdrVal() instead.")]]
 	RecordVal* BuildPktHdrVal(RecordVal* pkt_hdr, int sindex) const;
 
 private:

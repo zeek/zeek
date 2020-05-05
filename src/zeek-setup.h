@@ -4,7 +4,7 @@
 
 #include "Options.h"
 
-namespace zeek {
+namespace zeek { namespace detail {
 
 struct SetupResult {
 	int code = 0;
@@ -28,4 +28,4 @@ SetupResult setup(int argc, char** argv, zeek::Options* options = nullptr);
  */
 int cleanup(bool did_net_run);
 
-}
+}} // namespace zeek::detail

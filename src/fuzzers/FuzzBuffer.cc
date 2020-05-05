@@ -6,7 +6,7 @@
 
 #include "FuzzBuffer.h"
 
-bool zeek::FuzzBuffer::Valid() const
+bool zeek::detail::FuzzBuffer::Valid() const
 	{
 	if ( end - begin < PKT_MAGIC_LEN + 2 )
 		return false;
@@ -17,7 +17,7 @@ bool zeek::FuzzBuffer::Valid() const
 	return true;
 	}
 
-std::optional<zeek::FuzzBuffer::Chunk> zeek::FuzzBuffer::Next()
+std::optional<zeek::detail::FuzzBuffer::Chunk> zeek::detail::FuzzBuffer::Next()
 	{
 	if ( begin == end )
 		return {};

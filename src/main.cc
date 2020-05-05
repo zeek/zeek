@@ -10,7 +10,7 @@
 int main(int argc, char** argv)
 	{
 	auto time_start = current_time(true);
-	auto setup_result = zeek::setup(argc, argv);
+	auto setup_result = zeek::detail::setup(argc, argv);
 
 	if ( setup_result.code )
 		return setup_result.code;
@@ -78,5 +78,5 @@ int main(int argc, char** argv)
 			}
 		}
 
-	return zeek::cleanup(do_net_run);
+	return zeek::detail::cleanup(do_net_run);
 	}

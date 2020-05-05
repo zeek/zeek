@@ -374,7 +374,8 @@ static std::vector<std::string> get_script_signature_files()
 	return rval;
 	}
 
-zeek::SetupResult zeek::setup(int argc, char** argv, zeek::Options* zopts)
+zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
+                                              zeek::Options* zopts)
 	{
 	ZEEK_LSAN_DISABLE();
 	std::set_new_handler(bro_new_handler);
@@ -866,7 +867,7 @@ zeek::SetupResult zeek::setup(int argc, char** argv, zeek::Options* zopts)
 	return {0, std::move(options)};
 	}
 
-int zeek::cleanup(bool did_net_run)
+int zeek::detail::cleanup(bool did_net_run)
 	{
 	if ( did_net_run )
 		done_with_network();

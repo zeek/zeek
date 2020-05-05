@@ -36,15 +36,15 @@ extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 	options.ignore_checksums = true;
 	options.abort_on_scripting_errors = true;
 
-	if ( zeek::setup(*argc, *argv, &options).code )
+	if ( zeek::detail::setup(*argc, *argv, &options).code )
 		abort();
 
 	return 0;
 	}
 
-namespace zeek {
+namespace zeek { namespace detail {
 
-void fuzz_cleanup_one_input()
+void fuzzer_cleanup_one_input()
 	{
 	terminating = true;
 	broker_mgr->ClearStores();
@@ -58,4 +58,4 @@ void fuzz_cleanup_one_input()
 	terminating = false;
 	}
 
-} // namespace zeek
+}} // namespace zeek::detail

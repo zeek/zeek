@@ -191,6 +191,14 @@ public:
 	// True if the expression is a constant, false otherwise.
 	bool IsConst() const	{ return tag == EXPR_CONST; }
 
+	bool HasConstantOps() const
+		{
+		return GetOp1() && GetOp1()->IsConst() &&
+			(! GetOp2() ||
+			 (GetOp2()->IsConst() &&
+			  (! GetOp3() || GetOp3()->IsConst())));
+		}
+
 	// True if the expression is in error (to alleviate error propagation).
 	bool IsError() const;
 

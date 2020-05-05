@@ -401,7 +401,7 @@ function terminate%(%): bool
 // is false).
 static bool prepare_environment(TableVal* tbl, bool set)
 	{
-	IntrusivePtr<ListVal> idxs{AdoptRef{}, tbl->ConvertToPureList()};
+	auto idxs = tbl->ToPureListVal();
 
 	for ( int i = 0; i < idxs->Length(); ++i )
 		{

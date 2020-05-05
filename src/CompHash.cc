@@ -535,17 +535,14 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 
 			sz = SizeAlign(sz, sizeof(int));
 			TableVal* tv = const_cast<TableVal*>(v->AsTableVal());
-			ListVal* lv = tv->ConvertToList();
+			auto lv = tv->ToListVal();
 			for ( int i = 0; i < tv->Size(); ++i )
 				{
 				Val* key = lv->Idx(i).get();
 				sz = SingleTypeKeySize(key->Type(), key, type_check, sz, false,
 				                       calc_static_size);
 				if ( ! sz )
-					{
-					Unref(lv);
 					return 0;
-					}
 
 				if ( ! bt->IsSet() )
 					{
@@ -553,14 +550,9 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 					sz = SingleTypeKeySize(val->Type(), val.get(), type_check, sz,
 					                       false, calc_static_size);
 					if ( ! sz )
-						{
-						Unref(lv);
 						return 0;
-						}
 					}
 				}
-
-			Unref(lv);
 
 			break;
 			}

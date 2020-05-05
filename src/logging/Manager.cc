@@ -1012,11 +1012,11 @@ threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
 
 	case TYPE_TABLE:
 		{
-		ListVal* set = val->AsTableVal()->ConvertToPureList();
+		auto set = val->AsTableVal()->ToPureListVal();
 		if ( ! set )
-			// ConvertToPureList has reported an internal warning
+			// ToPureListVal has reported an internal warning
 			// already. Just keep going by making something up.
-			set = new ListVal(TYPE_INT);
+			set = make_intrusive<ListVal>(TYPE_INT);
 
 		lval->val.set_val.size = set->Length();
 		lval->val.set_val.vals = new threading::Value* [lval->val.set_val.size];
@@ -1024,7 +1024,6 @@ threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
 		for ( int i = 0; i < lval->val.set_val.size; i++ )
 			lval->val.set_val.vals[i] = ValToLogVal(set->Idx(i).get());
 
-		Unref(set);
 		break;
 		}
 

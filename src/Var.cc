@@ -749,8 +749,8 @@ ListVal* internal_list_val(const char* name)
 		else if ( v->Type()->IsSet() )
 			{
 			TableVal* tv = v->AsTableVal();
-			ListVal* lv = tv->ConvertToPureList();
-			return lv;
+			auto lv = tv->ToPureListVal();
+			return lv.release();
 			}
 
 		else

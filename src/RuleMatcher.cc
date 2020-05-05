@@ -1361,16 +1361,11 @@ void id_to_maskedvallist(const char* id, maskedvalue_list* append_to,
 
 	if ( v->Type()->Tag() == TYPE_TABLE )
 		{
-		ListVal* lv = v->AsTableVal()->ConvertToPureList();
+		auto lv = v->AsTableVal()->ToPureListVal();
 
 		for ( const auto& val : lv->Vals() )
 			if ( ! val_to_maskedval(val.get(), append_to, prefix_vector) )
-				{
-				Unref(lv);
 				return;
-				}
-
-		Unref(lv);
 		}
 
 	else

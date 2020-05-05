@@ -96,12 +96,10 @@ void Manager::InitPostScript()
 		reporter->FatalError("Tunnel::vxlan_ports not defined");
 
 	auto table_val = id->ID_Val()->AsTableVal();
-	auto port_list = table_val->ConvertToPureList();
+	auto port_list = table_val->ToPureListVal();
 
 	for ( auto i = 0; i < port_list->Length(); ++i )
 		vxlan_ports.emplace_back(port_list->Idx(i)->AsPortVal()->Port());
-
-	Unref(port_list);
 	}
 
 void Manager::DumpDebug()

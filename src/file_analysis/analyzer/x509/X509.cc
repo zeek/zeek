@@ -244,7 +244,7 @@ X509_STORE* file_analysis::X509::GetRootStore(TableVal* root_certs)
 		return x509_stores[root_certs];
 
 	X509_STORE* ctx = X509_STORE_new();
-	ListVal* idxs = root_certs->ConvertToPureList();
+	auto idxs = root_certs->ToPureListVal();
 
 	// Build the validation store
 	for ( int i = 0; i < idxs->Length(); ++i )
@@ -263,8 +263,6 @@ X509_STORE* file_analysis::X509::GetRootStore(TableVal* root_certs)
 		X509_STORE_add_cert(ctx, x);
 		X509_free(x);
 		}
-
-	delete idxs;
 
 	// Save the newly constructed certificate store into the cacheing map.
 	x509_stores[root_certs] = ctx;

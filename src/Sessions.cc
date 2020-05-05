@@ -1218,11 +1218,10 @@ bool NetSessions::IsLikelyServerPort(uint32_t port, TransportProto proto) const
 
 	if ( ! have_cache )
 		{
-		ListVal* lv = likely_server_ports->ConvertToPureList();
+		auto lv = likely_server_ports->ToPureListVal();
 		for ( int i = 0; i < lv->Length(); i++ )
 			port_cache.insert(lv->Idx(i)->InternalUnsigned());
 		have_cache = true;
-		Unref(lv);
 		}
 
 	// We exploit our knowledge of PortVal's internal storage mechanism

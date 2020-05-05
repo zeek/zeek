@@ -1755,7 +1755,7 @@ bool TableVal::ExpandAndInit(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val)
 
 	if ( index_type->IsSet() )
 		{
-		index = {AdoptRef{}, index->AsTableVal()->ConvertToList()};
+		index = index->AsTableVal()->ToListVal();
 		return ExpandAndInit(std::move(index), std::move(new_val));
 		}
 
@@ -2110,9 +2110,9 @@ IntrusivePtr<Val> TableVal::Delete(const HashKey* k)
 	return va;
 	}
 
-ListVal* TableVal::ConvertToList(TypeTag t) const
+IntrusivePtr<ListVal> TableVal::ToListVal(TypeTag t) const
 	{
-	ListVal* l = new ListVal(t);
+	auto l = make_intrusive<ListVal>(t);
 
 	const PDict<TableEntryVal>* tbl = AsTable();
 	IterCookie* c = tbl->InitForIteration();
@@ -2128,7 +2128,7 @@ ListVal* TableVal::ConvertToList(TypeTag t) const
 			{
 			// We're expecting a pure list, flatten the ListVal.
 			if ( index->Length() != 1 )
-				InternalWarning("bad index in TableVal::ConvertToList");
+				InternalWarning("bad index in TableVal::ToListVal");
 
 			l->Append(index->Idx(0));
 			}
@@ -2139,16 +2139,26 @@ ListVal* TableVal::ConvertToList(TypeTag t) const
 	return l;
 	}
 
-ListVal* TableVal::ConvertToPureList() const
+ListVal* TableVal::ConvertToList(TypeTag t) const
+	{
+	return ToListVal().release();
+	}
+
+IntrusivePtr<ListVal> TableVal::ToPureListVal() const
 	{
 	type_list* tl = table_type->Indices()->Types();
 	if ( tl->length() != 1 )
 		{
-		InternalWarning("bad index type in TableVal::ConvertToPureList");
+		InternalWarning("bad index type in TableVal::ToPureListVal");
 		return nullptr;
 		}
 
-	return ConvertToList((*tl)[0]->Tag());
+	return ToListVal((*tl)[0]->Tag());
+	}
+
+ListVal* TableVal::ConvertToPureList() const
+	{
+	return ToPureListVal().release();
 	}
 
 Attr* TableVal::FindAttr(attr_tag t) const
@@ -2246,7 +2256,7 @@ bool TableVal::ExpandCompoundAndInit(ListVal* lv, int k, IntrusivePtr<Val> new_v
 	{
 	Val* ind_k_v = lv->Idx(k).get();
 	auto ind_k = ind_k_v->Type()->IsSet() ?
-	      IntrusivePtr<ListVal>{AdoptRef{}, ind_k_v->AsTableVal()->ConvertToList()} :
+	      ind_k_v->AsTableVal()->ToListVal() :
 	      IntrusivePtr<ListVal>{NewRef{}, ind_k_v->AsListVal()};
 
 	for ( int i = 0; i < ind_k->Length(); ++i )

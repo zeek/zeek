@@ -808,7 +808,15 @@ public:
 	IntrusivePtr<Val> Delete(const HashKey* k);
 
 	// Returns a ListVal representation of the table (which must be a set).
+	IntrusivePtr<ListVal> ToListVal(TypeTag t = TYPE_ANY) const;
+
+	// Returns a ListVal representation of the table (which must be a set
+	// with non-composite index type).
+	IntrusivePtr<ListVal> ToPureListVal() const;
+
+	[[deprecated("Remove in v4.1.  Use ToListVal() instead.")]]
 	ListVal* ConvertToList(TypeTag t=TYPE_ANY) const;
+	[[deprecated("Remove in v4.1.  Use ToPureListVal() instead.")]]
 	ListVal* ConvertToPureList() const;	// must be single index type
 
 	void SetAttrs(IntrusivePtr<Attributes> attrs);

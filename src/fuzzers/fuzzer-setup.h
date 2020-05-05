@@ -46,6 +46,7 @@ namespace zeek {
 
 void fuzz_cleanup_one_input()
 	{
+	terminating = true;
 	broker_mgr->ClearStores();
 	file_mgr->Terminate();
 	timer_mgr->Expire();
@@ -54,6 +55,7 @@ void fuzz_cleanup_one_input()
 	sessions->Drain();
 	mgr.Drain();
 	sessions->Clear();
+	terminating = false;
 	}
 
 } // namespace zeek

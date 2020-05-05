@@ -83,6 +83,9 @@ Changed Functionality
 - Reorganize the file signatures to break them out into more groups.  This may
   break scripts that had been explicitly loading any signature files that moved.
 
+- The DCE/RPC operation string of "NetrLogonSamLogonWithFlags" has been
+  corrected from "NetrLogonSameLogonWithFlags".
+
 Removed Functionality
 ---------------------
 

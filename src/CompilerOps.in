@@ -94,6 +94,16 @@ vector
 eval-pre if ( $2 == 0 ) run_time_error("modulo by zero")
 eval $1 % $2
 
+binary-expr-op And-And
+op-type I
+vector
+eval $1 && $2
+
+binary-expr-op Or-Or
+op-type I
+vector
+eval $1 || $2
+
 binary-expr-op And
 op-type U P T
 vector

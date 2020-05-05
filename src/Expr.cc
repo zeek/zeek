@@ -3560,7 +3560,8 @@ const CompiledStmt AssignExpr::Compile(Compiler* c) const
 
 	if ( rhs->Tag() == EXPR_LAMBDA )
 		{
-		Error("lambda expressions not supported for compiling");
+		// ###
+		// Error("lambda expressions not supported for compiling");
 		return c->ErrorStmt();
 		}
 

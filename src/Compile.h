@@ -90,13 +90,18 @@ protected:
 };
 
 
+class UseDefs;
+class ProfileFunc;
 class AbstractStmt;
 union AS_ValUnion;
 
 class AbstractMachine : public Compiler {
 public:
-	AbstractMachine(int frame_size);
+	AbstractMachine(const UseDefs* ud, const Reducer* rd,
+			const ProfileFunc* pf);
 	~AbstractMachine() override;
+
+	void FinishCompile();
 
 #include "CompilerSubDefs.h"
 
@@ -246,7 +251,10 @@ protected:
 	vector<int> nexts;
 	vector<int> fallthroughs;
 
-	AS_ValUnion* frame;
+	const UseDefs* ud;
+	const Reducer* reducer;
+	const ProfileFunc* pf;
+
 	int frame_size;
 	bool error_seen = false;
 };

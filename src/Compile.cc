@@ -479,15 +479,21 @@ AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const NameExpr* v1,
 	}
 
 
-AbstractMachine::AbstractMachine(int _frame_size)
+AbstractMachine::AbstractMachine(const UseDefs* _ud, const Reducer* _rd,
+					const ProfileFunc* _pf)
 	{
-	frame_size = _frame_size;
-	frame = new AS_ValUnion[frame_size];
+	ud = _ud;
+	reducer = _rd;
+	pf = _pf;
+	frame_size = 0;
 	}
 
 AbstractMachine::~AbstractMachine()
 	{
-	delete frame;
+	}
+
+void AbstractMachine::FinishCompile()
+	{
 	}
 
 void AbstractMachine::StmtDescribe(ODesc* d) const
@@ -529,6 +535,7 @@ IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 IntrusivePtr<Val> AbstractMachine::DoExec(Frame* f, int start_pc,
 						stmt_flow_type& flow) const
 	{
+	auto frame = new AS_ValUnion[frame_size];
 	const AS_ValUnion* ret_u;
 	Val* ret_v;
 	BroType* ret_type;
@@ -547,6 +554,8 @@ IntrusivePtr<Val> AbstractMachine::DoExec(Frame* f, int start_pc,
 
 		++pc;
 		}
+
+	delete [] frame;
 
 	if ( ret_u )
 		return ret_u->ToVal(ret_type);

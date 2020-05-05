@@ -2,6 +2,7 @@
 
 #include "ScriptAnaly.h"
 #include "DefSetsMgr.h"
+#include "ProfileFunc.h"
 #include "Reduce.h"
 #include "Compile.h"
 #include "UseDefs.h"
@@ -38,48 +39,6 @@ struct BlockDefs {
 	// it's for a loop body.
 	bool is_case;
 };
-
-class ProfileFunc : public TraversalCallback {
-public:
-	TraversalCode PreStmt(const Stmt*) override;
-	TraversalCode PreExpr(const Expr*) override;
-
-	// Globals seen in the function.
-	std::unordered_set<const ID*> globals;
-
-	int num_stmts = 0;
-	int num_when_stmts = 0;
-	int num_lambdas = 0;
-	int num_exprs = 0;
-};
-
-TraversalCode ProfileFunc::PreStmt(const Stmt* s)
-	{
-	++num_stmts;
-
-	if ( s->Tag() == STMT_WHEN )
-		++num_when_stmts;
-
-	return TC_CONTINUE;
-	}
-
-TraversalCode ProfileFunc::PreExpr(const Expr* e)
-	{
-	if ( e->Tag() == EXPR_NAME )
-		{
-		auto n = e->AsNameExpr();
-		auto id = n->Id();
-		if ( id->IsGlobal() )
-			globals.insert(id);
-		}
-
-	else if ( e->Tag() == EXPR_LAMBDA )
-		++num_lambdas;
-
-	++num_exprs;
-
-	return TC_CONTINUE;
-	}
 
 class RD_Decorate : public TraversalCallback {
 public:
@@ -1482,12 +1441,13 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 
 	ProfileFunc* pf_opt = nullptr;
 
+	RD_Decorate cb(pf_red);
+	f->Traverse(&cb);
+
+	rc.SetDefSetsMgr(cb.GetDefSetsMgr());
+
 	if ( optimize )
 		{
-		RD_Decorate cb(pf_red);
-		f->Traverse(&cb);
-
-		rc.SetDefSetsMgr(cb.GetDefSetsMgr());
 		body_ptr = new_body_ptr;
 		new_body = new_body->Reduce(&rc);
 		new_body_ptr = {AdoptRef{}, new_body};
@@ -1514,9 +1474,9 @@ void analyze_func(const IntrusivePtr<ID>& id, const id_list* inits, Stmt* body)
 
 	if ( compile )
 		{
-		AbstractMachine am(0);
+		AbstractMachine am(&ud, &rc, pf_opt ? pf_opt : pf_red);
 		new_body->Compile(&am);
-		// am.Dump();
+		am.Dump();
 		}
 
 	if ( report_profile )

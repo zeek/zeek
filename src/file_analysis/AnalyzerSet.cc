@@ -164,8 +164,8 @@ bool AnalyzerSet::RemoveMod::Perform(AnalyzerSet* set)
 HashKey* AnalyzerSet::GetKey(const file_analysis::Tag& t, RecordVal* args) const
 	{
 	ListVal* lv = new ListVal(TYPE_ANY);
-	lv->Append(t.AsEnumVal()->Ref());
-	lv->Append(args->Ref());
+	lv->Append({NewRef{}, t.AsEnumVal()});
+	lv->Append({NewRef{}, args});
 	HashKey* key = analyzer_hash->ComputeHash(lv, true);
 	Unref(lv);
 	if ( ! key )

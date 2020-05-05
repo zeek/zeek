@@ -1010,7 +1010,7 @@ Val* Manager::RecordValToIndexVal(RecordVal *r) const
 		{
 		auto l = make_intrusive<ListVal>(TYPE_ANY);
 		for ( int j = 0 ; j < num_fields; j++ )
-			l->Append(r->LookupWithDefault(j).release());
+			l->Append(r->LookupWithDefault(j));
 
 		idxval = std::move(l);
 		}
@@ -1037,11 +1037,11 @@ Val* Manager::ValueToIndexVal(const Stream* i, int num_fields, const RecordType 
 		for ( int j = 0 ; j < type->NumFields(); j++ )
 			{
 			if ( type->FieldType(j)->Tag() == TYPE_RECORD )
-				l->Append(ValueToRecordVal(i, vals,
-				          type->FieldType(j)->AsRecordType(), &position, have_error));
+				l->Append({AdoptRef{}, ValueToRecordVal(i, vals,
+				          type->FieldType(j)->AsRecordType(), &position, have_error)});
 			else
 				{
-				l->Append(ValueToVal(i, vals[position], type->FieldType(j), have_error));
+				l->Append({AdoptRef{}, ValueToVal(i, vals[position], type->FieldType(j), have_error)});
 				position++;
 				}
 			}

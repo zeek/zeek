@@ -3830,13 +3830,13 @@ IntrusivePtr<Val> FlattenExpr::Fold(Val* v) const
 		{
 		if ( Val* fv = rv->Lookup(i) )
 			{
-			l->Append(fv->Ref());
+			l->Append({NewRef{}, fv});
 			continue;
 			}
 
 		const RecordType* rv_t = rv->Type()->AsRecordType();
 		if ( const Attr* fa = rv_t->FieldDecl(i)->FindAttr(ATTR_DEFAULT) )
-			l->Append(fa->AttrExpr()->Eval(nullptr).release());
+			l->Append(fa->AttrExpr()->Eval(nullptr));
 
 		else
 			RuntimeError("missing field value");
@@ -4478,7 +4478,7 @@ IntrusivePtr<Val> ListExpr::Eval(Frame* f) const
 			return nullptr;
 			}
 
-		v->Append(ev.release());
+		v->Append(std::move(ev));
 		}
 
 	return v;
@@ -4570,7 +4570,7 @@ IntrusivePtr<Val> ListExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) co
 			if ( ! vi )
 				return nullptr;
 
-			v->Append(vi.release());
+			v->Append(std::move(vi));
 			}
 
 		return v;
@@ -4601,7 +4601,7 @@ IntrusivePtr<Val> ListExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) co
 			if ( ! vi )
 				return nullptr;
 
-			v->Append(vi.release());
+			v->Append(std::move(vi));
 			}
 
 		return v;

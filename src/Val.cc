@@ -1214,7 +1214,7 @@ RE_Matcher* ListVal::BuildRE() const
 	return re;
 	}
 
-void ListVal::Append(Val* v)
+void ListVal::Append(IntrusivePtr<Val> v)
 	{
 	if ( type->AsTypeList()->IsPure() )
 		{
@@ -1222,8 +1222,14 @@ void ListVal::Append(Val* v)
 			Internal("heterogeneous list in ListVal::Append");
 		}
 
-	vals.push_back(v);
-	type->AsTypeList()->Append({NewRef{}, v->Type()});
+	auto vt = v->Type();
+	vals.push_back(v.release());
+	type->AsTypeList()->Append({NewRef{}, vt});
+	}
+
+void ListVal::Append(Val* v)
+	{
+	Append({AdoptRef{}, v});
 	}
 
 IntrusivePtr<TableVal> ListVal::ToSetVal() const
@@ -1280,7 +1286,7 @@ IntrusivePtr<Val> ListVal::DoClone(CloneState* state)
 	state->NewClone(this, lv);
 
 	for ( const auto& val : vals )
-		lv->Append(val->Clone(state).release());
+		lv->Append(val->Clone(state));
 
 	return lv;
 	}
@@ -2116,14 +2122,14 @@ ListVal* TableVal::ConvertToList(TypeTag t) const
 		auto index = table_hash->RecoverVals(k);
 
 		if ( t == TYPE_ANY )
-			l->Append(index.release());
+			l->Append(std::move(index));
 		else
 			{
 			// We're expecting a pure list, flatten the ListVal.
 			if ( index->Length() != 1 )
 				InternalWarning("bad index in TableVal::ConvertToList");
 
-			l->Append(index->Index(0)->Ref());
+			l->Append({NewRef{}, index->Index(0)});
 			}
 
 		delete k;
@@ -2249,9 +2255,9 @@ bool TableVal::ExpandCompoundAndInit(val_list* vl, int k, IntrusivePtr<Val> new_
 		loop_over_list(*vl, j)
 			{
 			if ( j == k )
-				expd->Append(ind_k_i->Ref());
+				expd->Append({NewRef{}, ind_k_i});
 			else
-				expd->Append((*vl)[j]->Ref());
+				expd->Append({NewRef{}, (*vl)[j]});
 			}
 
 		if ( ! ExpandAndInit(std::move(expd), new_val) )

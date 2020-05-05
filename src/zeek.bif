@@ -3524,7 +3524,7 @@ public:
 		else
 			{
 			ListVal* lv = new ListVal(TYPE_ADDR);
-			lv->Append(new AddrVal("0.0.0.0"));
+			lv->Append(make_intrusive<AddrVal>("0.0.0.0"));
 			auto result = lv->ToSetVal();
 			trigger->Cache(call, result.get());
 			Unref(lv);

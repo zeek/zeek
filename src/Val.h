@@ -641,6 +641,13 @@ public:
 	// The return RE_Matcher has not yet been compiled.
 	RE_Matcher* BuildRE() const;
 
+	/**
+	 * Appends a value to the list.
+	 * @param v  the value to append.
+	 */
+	void Append(IntrusivePtr<Val> v);
+
+	[[deprecated("Remove in v4.1.  Use Append(IntrusivePtr) instead.")]]
 	void Append(Val* v);
 
 	// Returns a Set representation of the list (which must be homogeneous).

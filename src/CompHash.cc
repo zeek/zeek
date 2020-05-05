@@ -229,7 +229,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 			while ( tbl->NextEntry(k, it) )
 				{
 				hashkeys[k] = idx++;
-				lv->Append(tv->RecoverIndex(k).release());
+				lv->Append(tv->RecoverIndex(k));
 				}
 
 			for ( auto& kv : hashkeys )
@@ -349,9 +349,8 @@ HashKey* CompositeHash::ComputeHash(const Val* v, bool type_check) const
 		// re-introduce const on the recursive call, it should
 		// be okay; the only thing is that the ListVal unref's it.
 		Val* ncv = (Val*) v;
-		ncv->Ref();
-		lv.Append(ncv);
-	        HashKey* hk = ComputeHash(&lv, type_check);
+		lv.Append({NewRef{}, ncv});
+		HashKey* hk = ComputeHash(&lv, type_check);
 		return hk;
 		}
 
@@ -726,7 +725,7 @@ IntrusivePtr<ListVal> CompositeHash::RecoverVals(const HashKey* k) const
 		IntrusivePtr<Val> v;
 		kp = RecoverOneVal(k, kp, k_end, type, &v, false);
 		ASSERT(v);
-		l->Append(v.release());
+		l->Append(std::move(v));
 		}
 
 	if ( kp != k_end )
@@ -1016,7 +1015,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 				IntrusivePtr<Val> v;
 				BroType* it = (*tl->Types())[i];
 				kp1 = RecoverOneVal(k, kp1, k_end, it, &v, false);
-				lv->Append(v.release());
+				lv->Append(std::move(v));
 				}
 
 			*pval = std::move(lv);

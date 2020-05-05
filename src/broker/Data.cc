@@ -252,7 +252,7 @@ struct val_converter {
 				if ( ! index_val )
 					return nullptr;
 
-				list_val->Append(index_val.release());
+				list_val->Append(std::move(index_val));
 				}
 
 
@@ -312,7 +312,7 @@ struct val_converter {
 				if ( ! index_val )
 					return nullptr;
 
-				list_val->Append(index_val.release());
+				list_val->Append(std::move(index_val));
 				}
 
 			auto value_val = bro_broker::data_to_val(move(item.second),

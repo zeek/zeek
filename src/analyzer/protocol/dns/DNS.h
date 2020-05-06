@@ -165,7 +165,7 @@ struct NSEC3_DATA {
 	BroString* nsec_salt;
 	unsigned short nsec_hlen;
 	BroString* nsec_hash;
-	VectorVal* bitmaps;
+	IntrusivePtr<VectorVal> bitmaps;
 };
 
 struct DS_DATA {
@@ -178,16 +178,15 @@ struct DS_DATA {
 class DNS_MsgInfo {
 public:
 	DNS_MsgInfo(DNS_RawMsgHdr* hdr, int is_query);
-	~DNS_MsgInfo();
 
-	Val* BuildHdrVal();
-	Val* BuildAnswerVal();
-	Val* BuildEDNS_Val();
-	Val* BuildTSIG_Val(struct TSIG_DATA*);
-	Val* BuildRRSIG_Val(struct RRSIG_DATA*);
-	Val* BuildDNSKEY_Val(struct DNSKEY_DATA*);
-	Val* BuildNSEC3_Val(struct NSEC3_DATA*);
-	Val* BuildDS_Val(struct DS_DATA*);
+	IntrusivePtr<RecordVal> BuildHdrVal();
+	IntrusivePtr<RecordVal> BuildAnswerVal();
+	IntrusivePtr<RecordVal> BuildEDNS_Val();
+	IntrusivePtr<RecordVal> BuildTSIG_Val(struct TSIG_DATA*);
+	IntrusivePtr<RecordVal> BuildRRSIG_Val(struct RRSIG_DATA*);
+	IntrusivePtr<RecordVal> BuildDNSKEY_Val(struct DNSKEY_DATA*);
+	IntrusivePtr<RecordVal> BuildNSEC3_Val(struct NSEC3_DATA*);
+	IntrusivePtr<RecordVal> BuildDS_Val(struct DS_DATA*);
 
 	int id;
 	int opcode;	///< query type, see DNS_Opcode
@@ -204,7 +203,7 @@ public:
 	int arcount;	///< number of additional RRs
 	int is_query;	///< whether it came from the session initiator
 
-	StringVal* query_name;
+	IntrusivePtr<StringVal> query_name;
 	RR_Type atype;
 	int aclass;	///< normally = 1, inet
 	uint32_t ttl;

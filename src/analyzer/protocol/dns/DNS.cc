@@ -51,7 +51,7 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
 		analyzer->EnqueueConnEvent(dns_message,
 			analyzer->ConnVal(),
 			val_mgr->Bool(is_query),
-			IntrusivePtr{AdoptRef{}, msg.BuildHdrVal()},
+			msg.BuildHdrVal(),
 			val_mgr->Count(len)
 		);
 
@@ -135,7 +135,7 @@ void DNS_Interpreter::EndMessage(DNS_MsgInfo* msg)
 	if ( dns_end )
 		analyzer->EnqueueConnEvent(dns_end,
 			analyzer->ConnVal(),
-			IntrusivePtr{AdoptRef{}, msg->BuildHdrVal()}
+			msg->BuildHdrVal()
 		);
 	}
 
@@ -229,8 +229,7 @@ bool DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
 	// Note that the exact meaning of some of these fields will be
 	// re-interpreted by other, more adventurous RR types.
 
-	Unref(msg->query_name);
-	msg->query_name = new StringVal(new BroString(name, name_end - name, true));
+	msg->query_name = make_intrusive<StringVal>(new BroString(name, name_end - name, true));
 	msg->atype = RR_Type(ExtractShort(data, len));
 	msg->aclass = ExtractShort(data, len);
 	msg->ttl = ExtractLong(data, len);
@@ -338,8 +337,8 @@ bool DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
 			if ( dns_unknown_reply && ! msg->skip_event )
 				analyzer->EnqueueConnEvent(dns_unknown_reply,
 					analyzer->ConnVal(),
-					IntrusivePtr{AdoptRef{}, msg->BuildHdrVal()},
-					IntrusivePtr{AdoptRef{}, msg->BuildAnswerVal()}
+					msg->BuildHdrVal(),
+					msg->BuildAnswerVal()
 				);
 
 			analyzer->Weird("DNS_RR_unknown_type", fmt("%d", msg->atype));
@@ -551,8 +550,8 @@ bool DNS_Interpreter::ParseRR_Name(DNS_MsgInfo* msg,
 	if ( reply_event && ! msg->skip_event )
 		analyzer->EnqueueConnEvent(reply_event,
 			analyzer->ConnVal(),
-			IntrusivePtr{AdoptRef{}, msg->BuildHdrVal()},
-			IntrusivePtr{AdoptRef{}, msg->BuildAnswerVal()},
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
 			make_intrusive<StringVal>(new BroString(name, name_end - name, true))
 		);
 
@@ -604,8 +603,8 @@ bool DNS_Interpreter::ParseRR_SOA(DNS_MsgInfo* msg,
 
 		analyzer->EnqueueConnEvent(dns_SOA_reply,
 			analyzer->ConnVal(),
-			IntrusivePtr{AdoptRef{}, msg->BuildHdrVal()},
-			IntrusivePtr{AdoptRef{}, msg->BuildAnswerVal()},
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
 			std::move(r)
 		);
 		}
@@ -634,8 +633,8 @@ bool DNS_Interpreter::ParseRR_MX(DNS_MsgInfo* msg,
 	if ( dns_MX_reply && ! msg->skip_event )
 		analyzer->EnqueueConnEvent(dns_MX_reply,
 			analyzer->ConnVal(),
-			IntrusivePtr{AdoptRef{}, msg->BuildHdrVal()},
-			IntrusivePtr{AdoptRef{}, msg->BuildAnswerVal()},
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
 			make_intrusive<StringVal>(new BroString(name, name_end - name, true)),
 			val_mgr->Count(preference)
 		);
@@ -675,8 +674,8 @@ bool DNS_Interpreter::ParseRR_SRV(DNS_MsgInfo* msg,
 	if ( dns_SRV_reply && ! msg->skip_event )
 		analyzer->EnqueueConnEvent(dns_SRV_reply,
 			analyzer->ConnVal(),
-			IntrusivePtr{AdoptRef{}, msg->BuildHdrVal()},
-			IntrusivePtr{AdoptRef{}, msg->BuildAnswerVal()},
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
 			make_intrusive<StringVal>(new BroString(name, name_end - name, true)),
 			val_mgr->Count(priority),
 			val_mgr->Count(weight),
@@ -696,8 +695,8 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 	if ( dns_EDNS_addl && ! msg->skip_event )
 		analyzer->EnqueueConnEvent(dns_EDNS_addl,
 			analyzer->ConnVal(),
-			IntrusivePtr{AdoptRef{}, msg->BuildHdrVal()},
-			IntrusivePtr{AdoptRef{}, msg->BuildEDNS_Val()}
+			msg->BuildHdrVal(),
+			msg->BuildEDNS_Val()
 		);
 
 	// Currently EDNS supports the movement of type:data pairs
@@ -773,8 +772,8 @@ bool DNS_Interpreter::ParseRR_TSIG(DNS_MsgInfo* msg,
 
 		analyzer->EnqueueConnEvent(dns_TSIG_addl,
 			analyzer->ConnVal(),
-			IntrusivePtr{AdoptRef{}, msg->BuildHdrVal()},
-			IntrusivePtr{AdoptRef{}, msg->BuildTSIG_Val(&tsig)}
+			msg->BuildHdrVal(),
+			msg->BuildTSIG_Val(&tsig)
 		);
 		}
 
@@ -874,9 +873,9 @@ bool DNS_Interpreter::ParseRR_RRSIG(DNS_MsgInfo* msg,
 
 		analyzer->EnqueueConnEvent(dns_RRSIG,
 			analyzer->ConnVal(),
-			IntrusivePtr{AdoptRef{}, msg->BuildHdrVal()},
-			IntrusivePtr{AdoptRef{}, msg->BuildAnswerVal()},
-			IntrusivePtr{AdoptRef{}, msg->BuildRRSIG_Val(&rrsig)}
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
+			msg->BuildRRSIG_Val(&rrsig)
 		);
 		}
 
@@ -969,9 +968,9 @@ bool DNS_Interpreter::ParseRR_DNSKEY(DNS_MsgInfo* msg,
 
 		analyzer->EnqueueConnEvent(dns_DNSKEY,
 			analyzer->ConnVal(),
-			IntrusivePtr{AdoptRef{}, msg->BuildHdrVal()},
-			IntrusivePtr{AdoptRef{}, msg->BuildAnswerVal()},
-			IntrusivePtr{AdoptRef{}, msg->BuildDNSKEY_Val(&dnskey)}
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
+			msg->BuildDNSKEY_Val(&dnskey)
 		);
 		}
 
@@ -1021,8 +1020,8 @@ bool DNS_Interpreter::ParseRR_NSEC(DNS_MsgInfo* msg,
 	if ( dns_NSEC )
 		analyzer->EnqueueConnEvent(dns_NSEC,
 			analyzer->ConnVal(),
-			IntrusivePtr{AdoptRef{}, msg->BuildHdrVal()},
-			IntrusivePtr{AdoptRef{}, msg->BuildAnswerVal()},
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
 			make_intrusive<StringVal>(new BroString(name, name_end - name, true)),
 			std::move(char_strings)
 		);
@@ -1074,7 +1073,7 @@ bool DNS_Interpreter::ParseRR_NSEC3(DNS_MsgInfo* msg,
 
 	int typebitmaps_len = rdlength - (data - data_start);
 
-	VectorVal* char_strings = new VectorVal(string_vec);
+	auto char_strings = make_intrusive<VectorVal>(string_vec);
 
 	while ( typebitmaps_len > 0 && len > 0 )
 		{
@@ -1103,17 +1102,15 @@ bool DNS_Interpreter::ParseRR_NSEC3(DNS_MsgInfo* msg,
 		nsec3.nsec_salt = salt_val;
 		nsec3.nsec_hlen = hash_len;
 		nsec3.nsec_hash = hash_val;
-		nsec3.bitmaps = char_strings;
+		nsec3.bitmaps = std::move(char_strings);
 
 		analyzer->EnqueueConnEvent(dns_NSEC3,
 			analyzer->ConnVal(),
-			IntrusivePtr{AdoptRef{}, msg->BuildHdrVal()},
-			IntrusivePtr{AdoptRef{}, msg->BuildAnswerVal()},
-			IntrusivePtr{AdoptRef{}, msg->BuildNSEC3_Val(&nsec3)}
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
+			msg->BuildNSEC3_Val(&nsec3)
 		);
 		}
-	else
-		Unref(char_strings);
 
 	return true;
 	}
@@ -1167,9 +1164,9 @@ bool DNS_Interpreter::ParseRR_DS(DNS_MsgInfo* msg,
 
 		analyzer->EnqueueConnEvent(dns_DS,
 			analyzer->ConnVal(),
-			IntrusivePtr{AdoptRef{}, msg->BuildHdrVal()},
-			IntrusivePtr{AdoptRef{}, msg->BuildAnswerVal()},
-			IntrusivePtr{AdoptRef{}, msg->BuildDS_Val(&ds)}
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
+			msg->BuildDS_Val(&ds)
 		);
 		}
 
@@ -1190,8 +1187,8 @@ bool DNS_Interpreter::ParseRR_A(DNS_MsgInfo* msg,
 	if ( dns_A_reply && ! msg->skip_event )
 		analyzer->EnqueueConnEvent(dns_A_reply,
 			analyzer->ConnVal(),
-			IntrusivePtr{AdoptRef{}, msg->BuildHdrVal()},
-			IntrusivePtr{AdoptRef{}, msg->BuildAnswerVal()},
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
 			make_intrusive<AddrVal>(htonl(addr))
 		);
 
@@ -1226,8 +1223,8 @@ bool DNS_Interpreter::ParseRR_AAAA(DNS_MsgInfo* msg,
 	if ( event && ! msg->skip_event )
 		analyzer->EnqueueConnEvent(event,
 			analyzer->ConnVal(),
-			IntrusivePtr{AdoptRef{}, msg->BuildHdrVal()},
-			IntrusivePtr{AdoptRef{}, msg->BuildAnswerVal()},
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
 			make_intrusive<AddrVal>(addr)
 		);
 
@@ -1252,8 +1249,9 @@ bool DNS_Interpreter::ParseRR_HINFO(DNS_MsgInfo* msg,
 	return true;
 	}
 
-static StringVal* extract_char_string(analyzer::Analyzer* analyzer,
-                                      const u_char*& data, int& len, int& rdlen)
+static IntrusivePtr<StringVal>
+extract_char_string(analyzer::Analyzer* analyzer,
+                    const u_char*& data, int& len, int& rdlen)
 	{
 	if ( rdlen <= 0 )
 		return nullptr;
@@ -1270,8 +1268,7 @@ static StringVal* extract_char_string(analyzer::Analyzer* analyzer,
 		return nullptr;
 		}
 
-	StringVal* rval = new StringVal(str_size,
-	                                reinterpret_cast<const char*>(data));
+	auto rval = make_intrusive<StringVal>(str_size, reinterpret_cast<const char*>(data));
 
 	rdlen -= str_size;
 	len -= str_size;
@@ -1292,16 +1289,16 @@ bool DNS_Interpreter::ParseRR_TXT(DNS_MsgInfo* msg,
 		}
 
 	auto char_strings = make_intrusive<VectorVal>(string_vec);
-	StringVal* char_string;
+	IntrusivePtr<StringVal> char_string;
 
 	while ( (char_string = extract_char_string(analyzer, data, len, rdlength)) )
-		char_strings->Assign(char_strings->Size(), char_string);
+		char_strings->Assign(char_strings->Size(), std::move(char_string));
 
 	if ( dns_TXT_reply )
 		analyzer->EnqueueConnEvent(dns_TXT_reply,
 			analyzer->ConnVal(),
-			IntrusivePtr{AdoptRef{}, msg->BuildHdrVal()},
-			IntrusivePtr{AdoptRef{}, msg->BuildAnswerVal()},
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
 			std::move(char_strings)
 		);
 
@@ -1320,16 +1317,16 @@ bool DNS_Interpreter::ParseRR_SPF(DNS_MsgInfo* msg,
 		}
 
 	auto char_strings = make_intrusive<VectorVal>(string_vec);
-	StringVal* char_string;
+	IntrusivePtr<StringVal> char_string;
 
 	while ( (char_string = extract_char_string(analyzer, data, len, rdlength)) )
-		char_strings->Assign(char_strings->Size(), char_string);
+		char_strings->Assign(char_strings->Size(), std::move(char_string));
 
 	if ( dns_SPF_reply )
 		analyzer->EnqueueConnEvent(dns_SPF_reply,
 			analyzer->ConnVal(),
-			IntrusivePtr{AdoptRef{}, msg->BuildHdrVal()},
-			IntrusivePtr{AdoptRef{}, msg->BuildAnswerVal()},
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
 			std::move(char_strings)
 		);
 
@@ -1369,8 +1366,8 @@ bool DNS_Interpreter::ParseRR_CAA(DNS_MsgInfo* msg,
 	if ( dns_CAA_reply )
 		analyzer->EnqueueConnEvent(dns_CAA_reply,
 			analyzer->ConnVal(),
-			IntrusivePtr{AdoptRef{}, msg->BuildHdrVal()},
-			IntrusivePtr{AdoptRef{}, msg->BuildAnswerVal()},
+			msg->BuildHdrVal(),
+			msg->BuildAnswerVal(),
 			val_mgr->Count(flags),
 			make_intrusive<StringVal>(tag),
 			make_intrusive<StringVal>(value)
@@ -1397,7 +1394,7 @@ void DNS_Interpreter::SendReplyOrRejectEvent(DNS_MsgInfo* msg,
 
 	analyzer->EnqueueConnEvent(event,
 		analyzer->ConnVal(),
-		IntrusivePtr{AdoptRef{}, msg->BuildHdrVal()},
+		msg->BuildHdrVal(),
 		make_intrusive<StringVal>(question_name),
 		val_mgr->Count(qtype),
 		val_mgr->Count(qclass)
@@ -1428,7 +1425,6 @@ DNS_MsgInfo::DNS_MsgInfo(DNS_RawMsgHdr* hdr, int arg_is_query)
 	id = ntohs(hdr->id);
 	is_query = arg_is_query;
 
-	query_name = nullptr;
 	atype = TYPE_ALL;
 	aclass = 0;
 	ttl = 0;
@@ -1437,14 +1433,9 @@ DNS_MsgInfo::DNS_MsgInfo(DNS_RawMsgHdr* hdr, int arg_is_query)
 	skip_event = 0;
 	}
 
-DNS_MsgInfo::~DNS_MsgInfo()
+IntrusivePtr<RecordVal> DNS_MsgInfo::BuildHdrVal()
 	{
-	Unref(query_name);
-	}
-
-Val* DNS_MsgInfo::BuildHdrVal()
-	{
-	RecordVal* r = new RecordVal(dns_msg);
+	auto r = make_intrusive<RecordVal>(dns_msg);
 
 	r->Assign(0, val_mgr->Count(id));
 	r->Assign(1, val_mgr->Count(opcode));
@@ -1463,11 +1454,10 @@ Val* DNS_MsgInfo::BuildHdrVal()
 	return r;
 	}
 
-Val* DNS_MsgInfo::BuildAnswerVal()
+IntrusivePtr<RecordVal> DNS_MsgInfo::BuildAnswerVal()
 	{
-	RecordVal* r = new RecordVal(dns_answer);
+	auto r = make_intrusive<RecordVal>(dns_answer);
 
-	Ref(query_name);
 	r->Assign(0, val_mgr->Count(int(answer_type)));
 	r->Assign(1, query_name);
 	r->Assign(2, val_mgr->Count(atype));
@@ -1477,13 +1467,12 @@ Val* DNS_MsgInfo::BuildAnswerVal()
 	return r;
 	}
 
-Val* DNS_MsgInfo::BuildEDNS_Val()
+IntrusivePtr<RecordVal> DNS_MsgInfo::BuildEDNS_Val()
 	{
 	// We have to treat the additional record type in EDNS differently
 	// than a regular resource record.
-	RecordVal* r = new RecordVal(dns_edns_additional);
+	auto r = make_intrusive<RecordVal>(dns_edns_additional);
 
-	Ref(query_name);
 	r->Assign(0, val_mgr->Count(int(answer_type)));
 	r->Assign(1, query_name);
 
@@ -1513,12 +1502,11 @@ Val* DNS_MsgInfo::BuildEDNS_Val()
 	return r;
 	}
 
-Val* DNS_MsgInfo::BuildTSIG_Val(struct TSIG_DATA* tsig)
+IntrusivePtr<RecordVal> DNS_MsgInfo::BuildTSIG_Val(struct TSIG_DATA* tsig)
 	{
-	RecordVal* r = new RecordVal(dns_tsig_additional);
+	auto r = make_intrusive<RecordVal>(dns_tsig_additional);
 	double rtime = tsig->time_s + tsig->time_ms / 1000.0;
 
-	Ref(query_name);
 	// r->Assign(0, val_mgr->Count(int(answer_type)));
 	r->Assign(0, query_name);
 	r->Assign(1, val_mgr->Count(int(answer_type)));
@@ -1533,11 +1521,10 @@ Val* DNS_MsgInfo::BuildTSIG_Val(struct TSIG_DATA* tsig)
 	return r;
 	}
 
-Val* DNS_MsgInfo::BuildRRSIG_Val(RRSIG_DATA* rrsig)
+IntrusivePtr<RecordVal> DNS_MsgInfo::BuildRRSIG_Val(RRSIG_DATA* rrsig)
 	{
-	RecordVal* r = new RecordVal(dns_rrsig_rr);
+	auto r = make_intrusive<RecordVal>(dns_rrsig_rr);
 
-	Ref(query_name);
 	r->Assign(0, query_name);
 	r->Assign(1, val_mgr->Count(int(answer_type)));
 	r->Assign(2, val_mgr->Count(rrsig->type_covered));
@@ -1554,11 +1541,10 @@ Val* DNS_MsgInfo::BuildRRSIG_Val(RRSIG_DATA* rrsig)
 	return r;
 	}
 
-Val* DNS_MsgInfo::BuildDNSKEY_Val(DNSKEY_DATA* dnskey)
+IntrusivePtr<RecordVal> DNS_MsgInfo::BuildDNSKEY_Val(DNSKEY_DATA* dnskey)
 	{
-	RecordVal* r = new RecordVal(dns_dnskey_rr);
+	auto r = make_intrusive<RecordVal>(dns_dnskey_rr);
 
-	Ref(query_name);
 	r->Assign(0, query_name);
 	r->Assign(1, val_mgr->Count(int(answer_type)));
 	r->Assign(2, val_mgr->Count(dnskey->dflags));
@@ -1570,11 +1556,10 @@ Val* DNS_MsgInfo::BuildDNSKEY_Val(DNSKEY_DATA* dnskey)
 	return r;
 	}
 
-Val* DNS_MsgInfo::BuildNSEC3_Val(NSEC3_DATA* nsec3)
+IntrusivePtr<RecordVal> DNS_MsgInfo::BuildNSEC3_Val(NSEC3_DATA* nsec3)
 	{
-	RecordVal* r = new RecordVal(dns_nsec3_rr);
+	auto r = make_intrusive<RecordVal>(dns_nsec3_rr);
 
-	Ref(query_name);
 	r->Assign(0, query_name);
 	r->Assign(1, val_mgr->Count(int(answer_type)));
 	r->Assign(2, val_mgr->Count(nsec3->nsec_flags));
@@ -1584,17 +1569,16 @@ Val* DNS_MsgInfo::BuildNSEC3_Val(NSEC3_DATA* nsec3)
 	r->Assign(6, make_intrusive<StringVal>(nsec3->nsec_salt));
 	r->Assign(7, val_mgr->Count(nsec3->nsec_hlen));
 	r->Assign(8, make_intrusive<StringVal>(nsec3->nsec_hash));
-	r->Assign(9, nsec3->bitmaps);
+	r->Assign(9, std::move(nsec3->bitmaps));
 	r->Assign(10, val_mgr->Count(is_query));
 
 	return r;
 	}
 
-Val* DNS_MsgInfo::BuildDS_Val(DS_DATA* ds)
+IntrusivePtr<RecordVal> DNS_MsgInfo::BuildDS_Val(DS_DATA* ds)
 	{
-	RecordVal* r = new RecordVal(dns_ds_rr);
+	auto r = make_intrusive<RecordVal>(dns_ds_rr);
 
-	Ref(query_name);
 	r->Assign(0, query_name);
 	r->Assign(1, val_mgr->Count(int(answer_type)));
 	r->Assign(2, val_mgr->Count(ds->key_tag));

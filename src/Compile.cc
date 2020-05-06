@@ -541,6 +541,10 @@ void AbstractMachine::Init()
 
 	for ( auto g : pf->globals )
 		LoadGlobal(g);
+
+	// Assign slots for locals (which includes temporaries).
+	for ( auto l : pf->locals )
+		(void) AddToFrame(l);
 	}
 
 void AbstractMachine::StmtDescribe(ODesc* d) const

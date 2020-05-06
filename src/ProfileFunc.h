@@ -14,6 +14,9 @@ public:
 	// this could all be IntrusivePtr-ified with enough elbow grease.
 	std::unordered_set<ID*> globals;
 
+	// Same for locals.
+	std::unordered_set<ID*> locals;
+
 	int num_stmts = 0;
 	int num_when_stmts = 0;
 	int num_lambdas = 0;

@@ -363,7 +363,7 @@ void add_type(ID* id, IntrusivePtr<BroType> t, attr_list* attr)
 		tnew = std::move(t);
 	else
 		// Clone the type to preserve type name aliasing.
-		tnew = {AdoptRef{}, t->ShallowClone()};
+		tnew = t->ShallowClone();
 
 	BroType::AddAlias(new_type_name, tnew.get());
 

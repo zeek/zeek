@@ -151,7 +151,7 @@ public:
 	// Clone operations will mostly be implemented in the derived classes;
 	// in addition cloning will be limited to classes that can be reached by
 	// the script-level.
-	virtual BroType* ShallowClone();
+	virtual IntrusivePtr<BroType> ShallowClone();
 
 	TypeTag Tag() const		{ return tag; }
 	InternalTypeTag InternalType() const	{ return internal_tag; }
@@ -415,7 +415,7 @@ class TableType : public IndexType {
 public:
 	TableType(IntrusivePtr<TypeList> ind, IntrusivePtr<BroType> yield);
 
-	TableType* ShallowClone() override;
+	IntrusivePtr<BroType> ShallowClone() override;
 
 	// Returns true if this table type is "unspecified", which is
 	// what one gets using an empty "set()" or "table()" constructor.
@@ -430,7 +430,7 @@ public:
 	SetType(IntrusivePtr<TypeList> ind, IntrusivePtr<ListExpr> arg_elements);
 	~SetType() override;
 
-	SetType* ShallowClone() override;
+	IntrusivePtr<BroType> ShallowClone() override;
 
 	ListExpr* SetElements() const	{ return elements.get(); }
 
@@ -453,7 +453,7 @@ public:
 
 	FuncType(IntrusivePtr<RecordType> args, IntrusivePtr<BroType> yield,
 	         function_flavor f);
-	FuncType* ShallowClone() override;
+	IntrusivePtr<BroType> ShallowClone() override;
 
 	~FuncType() override;
 
@@ -493,6 +493,8 @@ public:
 		{ return prototypes; }
 
 protected:
+	friend IntrusivePtr<FuncType> make_intrusive<FuncType>();
+
 	FuncType() : BroType(TYPE_FUNC) { flavor = FUNC_FLAVOR_FUNCTION; }
 	IntrusivePtr<RecordType> args;
 	IntrusivePtr<TypeList> arg_types;
@@ -504,7 +506,7 @@ protected:
 class TypeType final : public BroType {
 public:
 	explicit TypeType(IntrusivePtr<BroType> t) : BroType(TYPE_TYPE), type(std::move(t)) {}
-	TypeType* ShallowClone() override { return new TypeType(type); }
+	IntrusivePtr<BroType> ShallowClone() override { return make_intrusive<TypeType>(type); }
 
 	BroType* Type()			{ return type.get(); }
 	const BroType* Type() const	{ return type.get(); }
@@ -534,7 +536,7 @@ typedef PList<TypeDecl> type_decl_list;
 class RecordType final : public BroType {
 public:
 	explicit RecordType(type_decl_list* types);
-	RecordType* ShallowClone() override;
+	IntrusivePtr<BroType> ShallowClone() override;
 
 	~RecordType() override;
 
@@ -604,7 +606,7 @@ public:
 class FileType final : public BroType {
 public:
 	explicit FileType(IntrusivePtr<BroType> yield_type);
-	FileType* ShallowClone() override { return new FileType(yield); }
+	IntrusivePtr<BroType> ShallowClone() override { return make_intrusive<FileType>(yield); }
 	~FileType() override;
 
 	BroType* YieldType() override;
@@ -618,7 +620,7 @@ protected:
 class OpaqueType final : public BroType {
 public:
 	explicit OpaqueType(const std::string& name);
-	OpaqueType* ShallowClone() override { return new OpaqueType(name); }
+	IntrusivePtr<BroType> ShallowClone() override { return make_intrusive<OpaqueType>(name); }
 	~OpaqueType() override { };
 
 	const std::string& Name() const { return name; }
@@ -638,7 +640,7 @@ public:
 
 	explicit EnumType(const EnumType* e);
 	explicit EnumType(const std::string& arg_name);
-	EnumType* ShallowClone() override;
+	IntrusivePtr<BroType> ShallowClone() override;
 	~EnumType() override;
 
 	// The value of this name is next internal counter value, starting
@@ -688,7 +690,7 @@ protected:
 class VectorType final : public BroType {
 public:
 	explicit VectorType(IntrusivePtr<BroType> t);
-	VectorType* ShallowClone() override;
+	IntrusivePtr<BroType> ShallowClone() override;
 	~VectorType() override;
 	BroType* YieldType() override;
 	const BroType* YieldType() const override;

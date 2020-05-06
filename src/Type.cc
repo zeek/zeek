@@ -69,7 +69,7 @@ BroType::BroType(TypeTag t, bool arg_base_type)
 	{
 	}
 
-BroType* BroType::ShallowClone()
+IntrusivePtr<BroType> BroType::ShallowClone()
 	{
 	switch ( tag ) {
 		case TYPE_VOID:
@@ -87,7 +87,7 @@ BroType* BroType::ShallowClone()
 		case TYPE_ADDR:
 		case TYPE_SUBNET:
 		case TYPE_ANY:
-			return new BroType(tag, base_type);
+			return make_intrusive<BroType>(tag, base_type);
 
 		default:
 			reporter->InternalError("cloning illegal base BroType");
@@ -346,9 +346,9 @@ TableType::TableType(IntrusivePtr<TypeList> ind, IntrusivePtr<BroType> yield)
 		}
 	}
 
-TableType* TableType::ShallowClone()
+IntrusivePtr<BroType> TableType::ShallowClone()
 	{
-	return new TableType(indices, yield_type);
+	return make_intrusive<TableType>(indices, yield_type);
 	}
 
 bool TableType::IsUnspecifiedTable() const
@@ -419,9 +419,9 @@ SetType::SetType(IntrusivePtr<TypeList> ind, IntrusivePtr<ListExpr> arg_elements
 		}
 	}
 
-SetType* SetType::ShallowClone()
+IntrusivePtr<BroType> SetType::ShallowClone()
 	{
-	return new SetType(indices, elements);
+	return make_intrusive<SetType>(indices, elements);
 	}
 
 SetType::~SetType() = default;
@@ -457,9 +457,9 @@ FuncType::FuncType(IntrusivePtr<RecordType> arg_args,
 	prototypes.emplace_back(Prototype{false, args, std::move(offsets)});
 	}
 
-FuncType* FuncType::ShallowClone()
+IntrusivePtr<BroType> FuncType::ShallowClone()
 	{
-	auto f = new FuncType();
+	auto f = make_intrusive<FuncType>();
 	f->args = {NewRef{}, args->AsRecordType()};
 	f->arg_types = {NewRef{}, arg_types->AsTypeList()};
 	f->yield = yield;
@@ -672,12 +672,12 @@ RecordType::RecordType(type_decl_list* arg_types) : BroType(TYPE_RECORD)
 
 // in this case the clone is actually not so shallow, since
 // it gets modified by everyone.
-RecordType* RecordType::ShallowClone()
+IntrusivePtr<BroType> RecordType::ShallowClone()
 	{
 	auto pass = new type_decl_list();
 	for ( const auto& type : *types )
 		pass->push_back(new TypeDecl(*type));
-	return new RecordType(pass);
+	return make_intrusive<RecordType>(pass);
 	}
 
 RecordType::~RecordType()
@@ -1128,12 +1128,12 @@ EnumType::EnumType(const EnumType* e)
 	SetName(e->GetName());
 	}
 
-EnumType* EnumType::ShallowClone()
+IntrusivePtr<BroType> EnumType::ShallowClone()
 	{
 	if ( counter == 0 )
-		return new EnumType(GetName());
+		return make_intrusive<EnumType>(GetName());
 
-	return new EnumType(this);
+	return make_intrusive<EnumType>(this);
 	}
 
 EnumType::~EnumType() = default;
@@ -1356,9 +1356,9 @@ VectorType::VectorType(IntrusivePtr<BroType> element_type)
 	{
 	}
 
-VectorType* VectorType::ShallowClone()
+IntrusivePtr<BroType> VectorType::ShallowClone()
 	{
-	return new VectorType(yield_type);
+	return make_intrusive<VectorType>(yield_type);
 	}
 
 VectorType::~VectorType() = default;

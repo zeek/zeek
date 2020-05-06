@@ -50,6 +50,12 @@ struct IterInfo {
 	bro_uint_t n;	// we loop from 0 ... n-1
 };
 
+static void run_time_error(bool& error_flag, const char* msg)
+	{
+	error_flag = true;
+	fprintf(stderr, "%s\n", msg);
+	}
+
 // A bit of this mirrors BroValUnion, but it captures low-level
 // representation whereas we aim to keep Val structure for
 // more complex Val's.
@@ -58,7 +64,7 @@ union AS_ValUnion {
 	AS_ValUnion() {}
 
 	// Construct from a given Bro value with a given type.
-	AS_ValUnion(Val* v, BroType* t);
+	AS_ValUnion(Val* v, BroType* t, bool& error_flag);
 
 	// Convert to a Bro value.
 	IntrusivePtr<Val> ToVal(BroType* t) const;
@@ -108,9 +114,16 @@ union AS_ValUnion {
 	ID* id_val;
 };
 
-AS_ValUnion::AS_ValUnion(Val* v, BroType* t)
+AS_ValUnion::AS_ValUnion(Val* v, BroType* t, bool& error)
 	{
-	union BroValUnion vu = v->val;
+	if ( ! v )
+		{
+		run_time_error(error, "uninitialized value in compiled code");
+		int_val = 0;
+		return;
+		}
+
+	auto vu = v->val;
 
 	if ( v->Type()->Tag() != t->Tag() )
 		reporter->InternalError("type inconsistency in AS_ValUnion constructor");
@@ -338,8 +351,12 @@ protected:
 		{
 		auto v = ce->Value();
 		auto ct = ce->Type().get();
-		c = AS_ValUnion(v, ct);
+		bool error = false;
+		c = AS_ValUnion(v, ct, error);
 		t = ct;
+
+		if ( error )
+			reporter->InternalError("bad value compiling code");
 		}
 };
 
@@ -663,8 +680,6 @@ VEC_COERCE(UD, uint_val, bro_uint_t, double_val)
 VEC_COERCE(DI, double_val, double, int_val)
 VEC_COERCE(DU, double_val, double, uint_val)
 
-static void run_time_error(const char* msg);
-
 IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	return DoExec(f, 0, flow);
@@ -678,9 +693,10 @@ IntrusivePtr<Val> AbstractMachine::DoExec(Frame* f, int start_pc,
 	Val* ret_v;
 	BroType* ret_type;
 	int pc = start_pc;
+	bool error_flag = false;
 	int end_pc = stmts.size();
 
-	while ( pc < end_pc ) {
+	while ( pc < end_pc && ! error_flag ) {
 		auto& s = stmts[pc];
 
 		switch ( stmts[pc].op ) {
@@ -695,7 +711,7 @@ IntrusivePtr<Val> AbstractMachine::DoExec(Frame* f, int start_pc,
 
 	delete [] frame;
 
-	if ( ret_u )
+	if ( ret_u && ! error_flag )
 		return ret_u->ToVal(ret_type);
 	else
 		return nullptr;
@@ -1721,12 +1737,4 @@ static void vec_exec(AbstractOp op, vector<BroValUnion>* v1,
 		default:
 			reporter->InternalError("bad invocation of VecExec");
 		}
-	}
-
-static void run_time_error(const char* msg)
-	{
-	// ### Needs refinement!  In particular, probably should
-	// lead to unwinding the entire current execution (up to
-	// the original event handler).
-	fprintf(stderr, "%s\n", msg);
 	}

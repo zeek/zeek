@@ -8,11 +8,11 @@ eval $1
 
 unary-expr-op Clone
 set-type $1
-eval AS_ValUnion($1.ToVal(s.t)->Clone().release(), s.t)
+eval AS_ValUnion($1.ToVal(s.t)->Clone().release(), s.t, error_flag)
 
 unary-expr-op Size
 set-type $1
-eval AS_ValUnion($1.ToVal(s.t)->SizeVal().release(), s.t)
+eval AS_ValUnion($1.ToVal(s.t)->SizeVal().release(), s.t, error_flag)
 
 unary-expr-op Not
 op-type I
@@ -40,8 +40,8 @@ unary-expr-op Flatten
 op-type X
 eval const char* error;
 eval auto res = flatten_value(frame[s.v2].record_val, s.v3, error);
-eval if ( error ) run_time_error(error);
-eval frame[s.v1].record_val = res->AsRecordVal();
+eval if ( error ) run_time_error(error_flag, error);
+eval else frame[s.v1].record_val = res->AsRecordVal();
 
 unary-expr-op Cast
 op-type X
@@ -50,8 +50,8 @@ set-expr $2
 eval const char* error;
 eval auto rhs = frame[s.v2].ToVal(s.e->Type().get()).get();
 eval auto res = cast_value(rhs, s.t, error).get();
-eval if ( error ) run_time_error(error);
-eval frame[s.v1] = AS_ValUnion(res, s.t);
+eval if ( error ) run_time_error(error_flag, error);
+eval else frame[s.v1] = AS_ValUnion(res, s.t, error_flag);
 
 unary-op Is
 set-type $1
@@ -85,13 +85,13 @@ eval $1 * $2
 binary-expr-op Divide
 op-type I U D
 vector
-eval-pre if ( $2 == 0 ) run_time_error("division by zero")
+eval-pre if ( $2 == 0 ) run_time_error(error_flag, "division by zero")
 eval $1 / $2
 
 binary-expr-op Mod
 op-type I U
 vector
-eval-pre if ( $2 == 0 ) run_time_error("modulo by zero")
+eval-pre if ( $2 == 0 ) run_time_error(error_flag, "modulo by zero")
 eval $1 % $2
 
 binary-expr-op And-And
@@ -188,9 +188,9 @@ eval	auto rt = s.t->AsRecordType()
 eval	auto td = rt->FieldDecl(s.v3)
 eval	const Attr* def_attr = td ? td->FindAttr(ATTR_DEFAULT) : 0
 eval	if ( def_attr ) v = def_attr->AttrExpr()->Eval(nullptr).release()
-eval	else run_time_error("field value missing")
+eval	else { run_time_error(error_flag, "field value missing"); break; }
 eval	}
-eval frame[s.v1] = AS_ValUnion(v, s.t)
+eval frame[s.v1] = AS_ValUnion(v, s.t, error_flag)
 
 expr-op Has_Field
 type Ri
@@ -294,7 +294,8 @@ type VVV
 set-type $1
 ### track memory
 eval if ( frame[s.v2].vector_val->Size() != frame[s.v3].vector_val->Size() ) {
-eval	run_time_error("size mismatch, boolean index and vector"); }
+eval	run_time_error(error_flag, "size mismatch, boolean index and vector")
+eval	break; }
 eval auto vt = s.t->AsVectorType()
 eval auto v = vector_bool_select(vt, frame[s.v2].vector_val, frame[s.v3].vector_val)
 eval frame[s.v1].vector_val = v->AsVectorVal()
@@ -313,21 +314,21 @@ custom-method return CompileIndex(n1, n2, l);
 internal-op Index-Vec
 type VVL
 eval auto v = frame[s.v2].vector_val->Lookup(frame[s.v3].list_val)
-eval frame[s.v1] = AS_ValUnion(v, s.t)
+eval frame[s.v1] = AS_ValUnion(v, s.t, error_flag)
 
 internal-op Index-Vec-Slice
 type VVL
 ### memory
 eval auto vt = s.t->AsVectorType()
 eval auto v = vector_index(vt, frame[s.v2].vector_val, frame[s.v3].list_val)
-eval frame[s.v1] = AS_ValUnion(v.get(), s.t)
+eval frame[s.v1] = AS_ValUnion(v.get(), s.t, error_flag)
 
 internal-op Table-Index
 type VVV
 ### memory
 eval auto v2 = frame[s.v3].list_val
 eval auto v = frame[s.v2].table_val->Lookup(v2)
-eval frame[s.v1] = AS_ValUnion(v.get(), s.t)
+eval frame[s.v1] = AS_ValUnion(v.get(), s.t, error_flag)
 
 # This version is for a variable v3.
 internal-op Index-String
@@ -361,7 +362,7 @@ type VVi
 set-type $1
 ### memory
 eval auto lv = frame[s.v2].any_val->val.val_list_val
-eval frame[s.v1] = AS_ValUnion((*lv)[s.v3], s.t)
+eval frame[s.v1] = AS_ValUnion((*lv)[s.v3], s.t, error_flag)
 
 ########## Function Calls ##########
 
@@ -459,7 +460,7 @@ internal-op Table-Coerce
 type VV
 ### memory
 eval auto tv = frame[s.v2].table_val
-eval if ( tv->Size() > 0 ) run_time_error("coercion of non-empty table/set");
+eval if ( tv->Size() > 0 ) { run_time_error(error_flag, "coercion of non-empty table/set"); break; }
 eval IntrusivePtr<TableType> tt = {NewRef{}, s.t->AsTableType()}
 eval IntrusivePtr<Attributes> attrs = {NewRef{}, tv->Attrs()}
 eval frame[s.v1].table_val = new TableVal(tt, attrs)
@@ -470,7 +471,7 @@ internal-op Vector-Coerce
 type VV
 ### memory
 eval auto vv = frame[s.v2].vector_val
-eval if ( vv->Size() > 0 ) run_time_error("coercion of non-empty vector");
+eval if ( vv->Size() > 0 ) { run_time_error(error_flag, "coercion of non-empty vector"); break; }
 eval auto t = s.t->Ref()->AsVectorType();
 eval frame[s.v1].vector_val = new VectorVal(t)
 
@@ -595,7 +596,7 @@ eval TableEntryVal* current_tev = ii->loop_vals->NextEntry(k, ii->c)
 eval if ( ! current_tev ) { pc = s.v2; break; }
 eval auto ind_lv = ii->tv->RecoverIndex(k);
 eval delete k
-eval for ( int i = 0; i < ind_lv->Length(); i++ ) frame[ii->loop_vars[i]] = AS_ValUnion(ind_lv->Index(i)->Ref(), ii->loop_var_types[i])
+eval for ( int i = 0; i < ind_lv->Length(); i++ ) frame[ii->loop_vars[i]] = AS_ValUnion(ind_lv->Index(i)->Ref(), ii->loop_var_types[i], error_flag)
 
 internal-op Next-Table-Iter-Val-Var
 # v1 = iteration info
@@ -608,8 +609,8 @@ eval TableEntryVal* current_tev = ii->loop_vals->NextEntry(k, ii->c)
 eval if ( ! current_tev ) { pc = s.v3; break; }
 eval auto ind_lv = ii->tv->RecoverIndex(k);
 eval delete k
-eval frame[s.v2] = AS_ValUnion(current_tev->Value()->Ref(), ii->value_var_type)
-eval for ( int i = 0; i < ind_lv->Length(); i++ ) frame[ii->loop_vars[i]] = AS_ValUnion(ind_lv->Index(i)->Ref(), ii->loop_var_types[i])
+eval frame[s.v2] = AS_ValUnion(current_tev->Value()->Ref(), ii->value_var_type, error_flag)
+eval for ( int i = 0; i < ind_lv->Length(); i++ ) frame[ii->loop_vars[i]] = AS_ValUnion(ind_lv->Index(i)->Ref(), ii->loop_var_types[i], error_flag)
 
 internal-op Init-Vector-Loop
 type VV
@@ -677,7 +678,7 @@ eval new trigger::Trigger(s.non_const_e, when_body, nullptr, -1.0, f, s.v4, s.lo
 op CheckAnyLen
 type Vi
 eval auto v = frame[s.v1].list_val
-eval if ( v->Vals()->length() != s.v2 ) run_time_error("mismatch in list lengths")
+eval if ( v->Vals()->length() != s.v2 ) run_time_error(error_flag, "mismatch in list lengths")
 
 op Print
 type O
@@ -750,11 +751,11 @@ eval frame[s.v1].table_val = new TableVal(tt, attrs)
 
 internal-op Load-Val
 type VV
-eval frame[s.v1] = AS_ValUnion(f->NthElement(s.v2), s.t)
+eval frame[s.v1] = AS_ValUnion(f->NthElement(s.v2), s.t, error_flag)
 
 internal-op Load-Global
 type VC
-eval frame[s.v1] = AS_ValUnion(s.c.id_val->ID_Val(), s.t)
+eval frame[s.v1] = AS_ValUnion(s.c.id_val->ID_Val(), s.t, error_flag)
 
 internal-op Set-Val
 type VV
@@ -804,4 +805,4 @@ eval (void) s.e->Eval(f)
 # Interprets the statement's expression and assigns the result to v1.
 internal-op Interpret-Expr
 type V
-eval frame[s.v1] = AS_ValUnion(s.e->Eval(f).get(), s.t)
+eval frame[s.v1] = AS_ValUnion(s.e->Eval(f).get(), s.t, error_flag)

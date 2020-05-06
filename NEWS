@@ -6,7 +6,49 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 3.0.6
 ==========
 
-TODO: no changes/release yet
+This release fixes the following security issues:
+
+* Fix buffer over-read in Ident analyzer
+  https://github.com/zeek/zeek/pull/925
+
+  Thanks to Max Kellermann for reporting and patching.
+
+* Fix SSL scripting error leading to uninitialized field access and memory leak
+  https://github.com/zeek/zeek/commit/b749dda5205f1b01aeee03c5874acae7c543f0c5
+
+  Thanks to Justin Azoff for reporting.
+
+* Fix POP3 analyzer global buffer over-read
+  https://github.com/zeek/zeek/commit/280bf567865d8ff6353f85d8863a6bc85dd9afd1
+
+  Thanks to Justin Azoff for reporting and patching.
+
+* Fix potential stack overflows due to use of Variable-Length-Arrays
+  Parts of https://github.com/zeek/zeek/pull/912:
+    * BIFs `bytestring_to_hexstr()` and `hexstr_to_bytestring()`
+    * `socks-analyzer.pac`: `array_to_string()`
+    * SMB, NTLM, and RDP analyzers use of `utf16_bytestring_to_utf8_val()`
+    * `smb-strings.pac`: `uint8s_to_stringval()` and `extract_string()`
+
+Also fixed are the following bugs:
+
+* Fix unusable `subscriber.poll()` method in Broker Python bindings
+  https://github.com/zeek/broker/pull/110
+
+* Fix uninitialized field access in `ssl/log-hostcerts-only.zeek`
+  https://github.com/zeek/zeek/pull/916
+
+* Fix missing default function for Kerberos constant-lookup-tables
+  https://github.com/zeek/zeek/pull/918
+
+* Fix cloning of `TypeType` values
+  https://github.com/zeek/zeek/pull/933
+
+* Remove misleading error message on empty bloomfilter lookup
+  https://github.com/zeek/zeek/pull/930
+
+* Fix `misc/stats.zeek` skipping log entry on termination
+  https://github.com/zeek/zeek/commit/ccdaf5f111936d9c7e6c23995eab1e5f41872894
 
 Zeek 3.0.5
 ==========

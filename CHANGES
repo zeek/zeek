@@ -1,4 +1,16 @@
 
+3.0.6 | 2020-05-06 11:52:51 -0700
+
+  * Release 3.0.6.
+
+3.0.6-dev.13 | 2020-05-06 11:50:09 -0700
+
+  * Fix potential stack overflow from Variable-Length-Array usages (Jon Siwek, Corelight)
+
+  * Fix global buffer over-read in POP3 analyzer (Justin Azoff, Corelight)
+
+  * Fix SSL scripting error leading to access of unitialized field (Jon Siwek, Corelight)
+
 3.0.6-dev.9 | 2020-04-30 10:20:39 -0700
 
   * Update Broker submodule (Jon Siwek, Corelight)

@@ -45,10 +45,10 @@ public:
 			const char* tpa, const char* tha);
 
 protected:
-	AddrVal* ConstructAddrVal(const void* addr);
-	StringVal* EthAddrToStr(const u_char* addr);
+	IntrusivePtr<AddrVal> ConstructAddrVal(const void* addr);
+	IntrusivePtr<StringVal> EthAddrToStr(const u_char* addr);
 	void BadARP(const struct arp_pkthdr* hdr, const char* string);
 	void Corrupted(const char* string);
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

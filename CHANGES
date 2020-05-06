@@ -1,4 +1,150 @@
 
+3.2.0-dev.473 | 2020-05-06 10:40:09 -0700
+
+  * Revert addition of final modifier to JSON formatter (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.471 | 2020-05-06 10:00:58 -0700
+
+  * Fix global buffer over-read in POP3 analyzer (Justin Azoff, Corelight)
+
+  * Fix SSL scripting error leading to access of unitialized field (Jon Siwek, Corelight)
+
+    Reported by Justin Azoff
+
+  * Remove outdated comment on set_to_regex. (Johanna Amann, Corelight)
+
+    We can add patterns at runtime since 2.6.
+
+3.2.0-dev.467 | 2020-05-04 18:00:35 -0700
+
+  * GH-952: Correct spelling of DCE/RPC operation string NetrLogonSameLogonWithFlags
+    (Jon Siwek, Corelight)
+
+3.2.0-dev.466 | 2020-05-04 17:50:14 -0700
+
+  * Add network_time_init() event. (Jan Grashoefer)
+
+    This event is generated upon first initialization of network_time.
+
+3.2.0-dev.461 | 2020-05-04 17:08:46 -0700
+
+  * Avoid scheduling multiple inactivity timers (Justin Azoff and Jon Siwek, Corelight)
+
+    Also updated language.expire_subnet btest which is unduly sensitive to
+    timer-related changes
+
+3.2.0-dev.459 | 2020-05-01 17:46:20 -0700
+
+  * Extend CI config to cover building with libmaxminddb support (Jon Siwek, Corelight)
+
+  * Ensure time continues moving forward if a pcap source is suspended (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.455 | 2020-05-01 09:44:30 -0700
+
+  * GH-938: fix IO loop iterations sometimes skipping offline pcap sources (Jon Siwek, Corelight)
+
+3.2.0-dev.451 | 2020-04-29 16:28:34 -0700
+
+  * Organized and added to the shipped file identification signatures. (Seth Hall, Corelight)
+
+     - Added ISO 9660 disk image
+
+     - Created new files for categorizing signatures better.
+       - executable.sig - Executable (and bytecode) files.
+       - java.sig - Java related files (class/jar, etc).
+       - programming.sig - Mostly scripting language identification
+
+3.2.0-dev.447 | 2020-04-29 15:55:03 -0700
+
+  * GH-713: Fixed misc/stats.zeek skipping a log entry on termination (Brittany Donowho)
+
+3.2.0-dev.445 | 2020-04-29 15:25:03 -0700
+
+  * Add warning message for unknown Broker statuses (Jon Siwek, Corelight)
+
+    There's now a couple placeholder/unimplemented status values in Broker
+    related to upcoming routing features that we don't want to handle
+    explicitly for compatibility reasons, but also don't want the compiler
+    warning about unhandled values in the switch.
+
+3.2.0-dev.443 | 2020-04-28 17:10:38 -0700
+
+  * GH-941: Fix build when configured to use libmaxminddb (Jon Siwek, Corelight)
+
+3.2.0-dev.441 | 2020-04-27 13:34:22 -0700
+
+  * Fix a few more IntrusivePtr deprecation warnings (Tim Wojtulewicz, Corelight)
+
+  * Fix cloning of TypeType values (Vern Paxson, Corelight)
+
+3.2.0-dev.437 | 2020-04-27 19:30:24 +0000
+
+  * GH-854: provide access to original HTTP/MIME header names
+
+    The "http_header" event now has an "original_name" parameter that allows
+    access to the original header name (the "name" parameter reamins the
+    same as before: it's the uppercased header name).
+
+    The "mime_header_rec" record type now also includes an "original_name"
+    field to similarly provide access to original header name in the
+    following events: "http_all_headers", "mime_one_header", and
+    "mime_all_headers". (Jon Siwek, Corelight)
+
+  * Remove error message from empty bloomfilter lookups
+
+    If a bloomfilter doesn't have a type, that just means no
+    bloomfilter_add() has been called yet, so seems undesirable to emit an
+    error for a lookup against something that's known to be empty. (Jon Siwek, Corelight)
+
+  * unused variables found via use-def analysis (plus an indentation micro-nit) (Vern Paxson, Corelight)
+
+3.2.0-dev.431 | 2020-04-27 12:09:30 -0700
+
+  * Update various BIFs to return IntrusivePtr (Jon Siwek, Corelight)
+
+3.2.0-dev.428 | 2020-04-24 16:19:45 -0700
+
+  * Deprecate returning Val* from BIFs (Jon Siwek, Corelight)
+
+  * Deprecate binpac::string_to_val (Jon Siwek, Corelight)
+
+  * Deprecate binpac::bytestring_to_val, replace with binpac::to_stringval (Jon Siwek, Corelight)
+
+  * Update deprecated BifEvent::generate_* usages (Jon Siwek, Corelight)
+
+  * Deprecate Connection::Event and Analyzer::Event methods
+
+    And update usages to the "EnqueueEvent" methods. (Jon Siwek, Corelight)
+
+  * Deprecate BuildConnVal() methods and update usages to ConnVal()
+
+    The later being a new method that returns IntrusivePtr (Jon Siwek, Corelight)
+
+  * Update all BIFs to return IntrusivePtr instead of Val* (Jon Siwek, Corelight)
+
+  * Update deprecated ValManager::GetPort usages (Jon Siwek, Corelight)
+
+  * Update deprecated ValManager::GetEmptyString usages (Jon Siwek, Corelight)
+
+  * Update deprecated ValManager::GetCount usages (Jon Siwek, Corelight)
+
+  * Update deprecated ValManager::GetInt usages (Jon Siwek, Corelight)
+
+  * Update deprecated ValManager::GetBool usages (Jon Siwek, Corelight)
+
+  * Update deprecated ValManager GetTrue/GetFalse usages (Jon Siwek, Corelight)
+
+  * Deprecate all ValManager "Get" methods
+
+    Alternate methods that return IntrusivePtr are available in similarly
+    named methods that omit the "Get" prefix. (Jon Siwek, Corelight)
+
+  * Change BIFs to return a wrapper object
+
+    That allows returning either Val* or IntrusivePtr<T>.  The former could
+    eventually be deprecated, but it's used extensively at the moment. (Jon Siwek, Corelight)
+
+
 3.2.0-dev.412 | 2020-04-22 10:43:39 -0700
 
   * Fix buffer over-read in Ident analyzer (Max Kellermann)

@@ -14,28 +14,28 @@ type AnalyzerArgs: record;
 function Files::__set_timeout_interval%(file_id: string, t: interval%): bool
 	%{
 	bool result = file_mgr->SetTimeoutInterval(file_id->CheckString(), t);
-	return val_mgr->GetBool(result);
+	return val_mgr->Bool(result);
 	%}
 
 ## :zeek:see:`Files::enable_reassembly`.
 function Files::__enable_reassembly%(file_id: string%): bool
 	%{
 	bool result = file_mgr->EnableReassembly(file_id->CheckString());
-	return val_mgr->GetBool(result);
+	return val_mgr->Bool(result);
 	%}
 
 ## :zeek:see:`Files::disable_reassembly`.
 function Files::__disable_reassembly%(file_id: string%): bool
 	%{
 	bool result = file_mgr->DisableReassembly(file_id->CheckString());
-	return val_mgr->GetBool(result);
+	return val_mgr->Bool(result);
 	%}
 
 ## :zeek:see:`Files::set_reassembly_buffer_size`.
 function Files::__set_reassembly_buffer%(file_id: string, max: count%): bool
 	%{
 	bool result = file_mgr->SetReassemblyBuffer(file_id->CheckString(), max);
-	return val_mgr->GetBool(result);
+	return val_mgr->Bool(result);
 	%}
 
 ## :zeek:see:`Files::add_analyzer`.
@@ -45,7 +45,7 @@ function Files::__add_analyzer%(file_id: string, tag: Files::Tag, args: any%): b
 	auto rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
 	bool result = file_mgr->AddAnalyzer(file_id->CheckString(),
 	                                    file_mgr->GetComponentTag(tag), rv.get());
-	return val_mgr->GetBool(result);
+	return val_mgr->Bool(result);
 	%}
 
 ## :zeek:see:`Files::remove_analyzer`.
@@ -55,29 +55,29 @@ function Files::__remove_analyzer%(file_id: string, tag: Files::Tag, args: any%)
 	auto rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
 	bool result = file_mgr->RemoveAnalyzer(file_id->CheckString(),
 	                                       file_mgr->GetComponentTag(tag) , rv.get());
-	return val_mgr->GetBool(result);
+	return val_mgr->Bool(result);
 	%}
 
 ## :zeek:see:`Files::stop`.
 function Files::__stop%(file_id: string%): bool
 	%{
 	bool result = file_mgr->IgnoreFile(file_id->CheckString());
-	return val_mgr->GetBool(result);
+	return val_mgr->Bool(result);
 	%}
 
 ## :zeek:see:`Files::analyzer_name`.
 function Files::__analyzer_name%(tag: Files::Tag%) : string
 	%{
-	return new StringVal(file_mgr->GetComponentName(tag));
+	return make_intrusive<StringVal>(file_mgr->GetComponentName(tag));
 	%}
 
 ## :zeek:see:`Files::file_exists`.
 function Files::__file_exists%(fuid: string%): bool
 	%{
 	if ( file_mgr->LookupFile(fuid->CheckString()) != nullptr )
-		return val_mgr->GetTrue();
+		return val_mgr->True();
 	else
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 	%}
 
 ## :zeek:see:`Files::lookup_file`.
@@ -86,11 +86,11 @@ function Files::__lookup_file%(fuid: string%): fa_file
 	auto f = file_mgr->LookupFile(fuid->CheckString());
 	if ( f != nullptr )
 		{
-		return f->GetVal()->Ref();
+		return IntrusivePtr{NewRef{}, f->GetVal()};
 		}
 	
 	reporter->Error("file ID %s not a known file", fuid->CheckString());
-	return 0;
+	return nullptr;
 	%}
 
 module GLOBAL;
@@ -108,5 +108,5 @@ function set_file_handle%(handle: string%): any
 	auto bytes = reinterpret_cast<const char*>(handle->Bytes());
 	auto h = std::string(bytes, handle->Len());
 	file_mgr->SetHandle(h);
-	return 0;
+	return nullptr;
 	%}

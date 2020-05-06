@@ -223,7 +223,12 @@ void expire_timers(iosource::PktSrc* src_ps)
 void net_packet_dispatch(double t, const Packet* pkt, iosource::PktSrc* src_ps)
 	{
 	if ( ! bro_start_network_time )
+		{
 		bro_start_network_time = t;
+
+		if ( network_time_init )
+			mgr.Enqueue(network_time_init, zeek::Args{});
+		}
 
 	// network_time never goes back.
 	net_update_time(timer_mgr->Time() < t ? t : timer_mgr->Time());

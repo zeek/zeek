@@ -131,16 +131,6 @@ signature file-afpinfo {
 	file-magic /^AFP/
 }
 
-signature file-jar {
-	file-mime "application/java-archive", 100
-	file-magic /^PK\x03\x04.{1,200}\x14\x00..META-INF\/MANIFEST\.MF/
-}
-
-signature file-java-applet {
-	file-mime "application/x-java-applet", 71
-	file-magic /^\xca\xfe\xba\xbe...[\x2d-\x34]/
-}
-
 # OCSP requests over HTTP.
 signature file-ocsp-request {
 	file-magic /^.{11,19}\x06\x05\x2b\x0e\x03\x02\x1a/
@@ -165,18 +155,6 @@ signature file-tnef {
 	file-mime "application/vnd.ms-tnef", 100
 }
 
-# Mac OS X Mach-O executable
-signature file-mach-o {
-	file-magic /^[\xce\xcf]\xfa\xed\xfe/
-	file-mime "application/x-mach-o-executable", 100
-}
-
-# Mac OS X Universal Mach-O executable
-signature file-mach-o-universal {
-	file-magic /^\xca\xfe\xba\xbe..\x00[\x01-\x14]/
-	file-mime "application/x-mach-o-executable", 100
-}
-
 signature file-pkcs7 {
 	file-magic /^MIME-Version:.*protocol=\"application\/pkcs7-signature\"/
 	file-mime "application/pkcs7-signature", 100
@@ -188,12 +166,6 @@ signature file-pem {
 	file-mime "application/x-pem"
 }
 
-# Java Web Start file.
-signature file-jnlp {
-	file-magic /^\<jnlp\x20/
-	file-mime "application/x-java-jnlp-file", 100
-}
-
 signature file-pcap {
 	file-magic /^(\xa1\xb2\xc3\xd4|\xd4\xc3\xb2\xa1)/
 	file-mime "application/vnd.tcpdump.pcap", 70
@@ -202,82 +174,6 @@ signature file-pcap {
 signature file-pcap-ng {
 	file-magic /^\x0a\x0d\x0d\x0a.{4}(\x1a\x2b\x3c\x4d|\x4d\x3c\x2b\x1a)/
 	file-mime "application/vnd.tcpdump.pcap", 100
-}
-
-signature file-shellscript {
-	file-mime "text/x-shellscript", 250
-	file-magic /^\x23\x21[^\n]{1,15}bin\/(env[[:space:]]+)?(ba|tc|c|z|fa|ae|k)?sh/
-}
-
-signature file-perl {
-	file-magic /^\x23\x21[^\n]{1,15}bin\/(env[[:space:]]+)?perl/
-	file-mime "text/x-perl", 60
-}
-
-signature file-ruby {
-	file-magic /^\x23\x21[^\n]{1,15}bin\/(env[[:space:]]+)?ruby/
-	file-mime "text/x-ruby", 60
-}
-
-signature file-python {
-	file-magic /^\x23\x21[^\n]{1,15}bin\/(env[[:space:]]+)?python/
-	file-mime "text/x-python", 60
-}
-
-signature file-awk {
-	file-mime "text/x-awk", 60
-	file-magic /^\x23\x21[^\n]{1,15}bin\/(env[[:space:]]+)?(g|n)?awk/
-}
-
-signature file-tcl {
-	file-mime "text/x-tcl", 60
-	file-magic /^\x23\x21[^\n]{1,15}bin\/(env[[:space:]]+)?(wish|tcl)/
-}
-
-signature file-lua {
-	file-mime "text/x-lua", 49
-	file-magic /^\x23\x21[^\n]{1,15}bin\/(env[[:space:]]+)?lua/
-}
-
-signature file-javascript {
-	file-mime "application/javascript", 60
-	file-magic /^\x23\x21[^\n]{1,15}bin\/(env[[:space:]]+)?node(js)?/
-}
-
-signature file-javascript2 {
-	file-mime "application/javascript", 60
-	file-magic /^[\x0d\x0a[:blank:]]*<[sS][cC][rR][iI][pP][tT][[:blank:]]+([tT][yY][pP][eE]|[lL][aA][nN][gG][uU][aA][gG][eE])=['"]?([tT][eE][xX][tT]\/)?[jJ][aA][vV][aA][sS][cC][rR][iI][pP][tT]/
-}
-
-signature file-javascript3 {
-	file-mime "application/javascript", 60
-	# This seems to be a somewhat common idiom in javascript.
-	file-magic /^[\x0d\x0a[:blank:]]*for \(;;\);/
-}
-
-signature file-javascript4 {
-	file-mime "application/javascript", 60
-	file-magic /^[\x0d\x0a[:blank:]]*document\.write(ln)?[:blank:]?\(/
-}
-
-signature file-javascript5 {
-	file-mime "application/javascript", 60
-	file-magic /^\(function\(\)[[:blank:]\n]*\{/
-}
-
-signature file-javascript6 {
-	file-mime "application/javascript", 60
-	file-magic /^[\x0d\x0a[:blank:]]*<script>[\x0d\x0a[:blank:]]*(var|function) /
-}
-
-signature file-php {
-	file-mime "text/x-php", 60
-	file-magic /^\x23\x21[^\n]{1,15}bin\/(env[[:space:]]+)?php/
-}
-
-signature file-php2 {
-	file-magic /^.*<\?php/
-	file-mime "text/x-php", 40
 }
 
 # Stereolithography ASCII format
@@ -390,26 +286,6 @@ signature file-msqm {
 	file-magic /^MSQM/
 }
 
-signature file-elf-object {
-	file-mime "application/x-object", 50
-	file-magic /\x7fELF[\x01\x02](\x01.{10}\x01\x00|\x02.{10}\x00\x01)/
-}
-
-signature file-elf {
-	file-mime "application/x-executable", 50
-	file-magic /\x7fELF[\x01\x02](\x01.{10}\x02\x00|\x02.{10}\x00\x02)/
-}
-
-signature file-elf-sharedlib {
-	file-mime "application/x-sharedlib", 50
-	file-magic /\x7fELF[\x01\x02](\x01.{10}\x03\x00|\x02.{10}\x00\x03)/
-}
-
-signature file-elf-coredump {
-	file-mime "application/x-coredump", 50
-	file-magic /\x7fELF[\x01\x02](\x01.{10}\x04\x00|\x02.{10}\x00\x04)/
-}
-
 signature file-vim-tmp {
 	file-mime "application/x-vim-tmp", 100
 	file-magic /^b0VIM/
@@ -420,3 +296,10 @@ signature file-windows-minidump {
     file-mime "application/x-windows-minidump", 50
     file-magic /^MDMP/
 }
+
+# ISO 9660 disk image
+signature file-iso9660 {
+        file-mime "application/x-iso9660-image", 99
+        file-magic /CD001/
+}
+

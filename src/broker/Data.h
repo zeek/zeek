@@ -29,14 +29,14 @@ TransportProto to_bro_port_proto(broker::port::protocol tp);
  * @return a Broker::Data value, where the optional field is set if the conversion
  * was possible, else it is unset.
  */
-RecordVal* make_data_val(Val* v);
+IntrusivePtr<RecordVal> make_data_val(Val* v);
 
 /**
  * Create a Broker::Data value from a Broker data value.
  * @param d the Broker value to wrap in an opaque type.
  * @return a Broker::Data value that wraps the Broker value.
  */
-RecordVal* make_data_val(broker::data d);
+IntrusivePtr<RecordVal> make_data_val(broker::data d);
 
 /**
  * Get the type of Broker data that Broker::Data wraps.
@@ -44,7 +44,7 @@ RecordVal* make_data_val(broker::data d);
  * @param frame used to get location info upon error.
  * @return a Broker::DataType value.
  */
-EnumVal* get_data_type(RecordVal* v, Frame* frame);
+IntrusivePtr<EnumVal> get_data_type(RecordVal* v, Frame* frame);
 
 /**
  * Convert a Bro value to a Broker data value.

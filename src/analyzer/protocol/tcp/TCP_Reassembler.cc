@@ -42,19 +42,17 @@ TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 
 	if ( ::tcp_contents )
 		{
-		auto dst_port_val = val_mgr->GetPort(ntohs(tcp_analyzer->Conn()->RespPort()),
-					TRANSPORT_TCP);
+		const auto& dst_port_val = val_mgr->Port(ntohs(tcp_analyzer->Conn()->RespPort()),
+		                                         TRANSPORT_TCP);
 		TableVal* ports = IsOrig() ?
 			tcp_content_delivery_ports_orig :
 			tcp_content_delivery_ports_resp;
-		auto result = ports->Lookup(dst_port_val);
+		auto result = ports->Lookup(dst_port_val.get());
 
 		if ( (IsOrig() && tcp_content_deliver_all_orig) ||
 		     (! IsOrig() && tcp_content_deliver_all_resp) ||
 		     (result && result->AsBool()) )
 			deliver_tcp_contents = true;
-
-		Unref(dst_port_val);
 		}
 	}
 
@@ -152,10 +150,10 @@ void TCP_Reassembler::Gap(uint64_t seq, uint64_t len)
 
 	if ( report_gap(endp, endp->peer) )
 		dst_analyzer->EnqueueConnEvent(content_gap,
-			IntrusivePtr{AdoptRef{}, dst_analyzer->BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(IsOrig())},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(seq)},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(len)}
+			dst_analyzer->ConnVal(),
+			val_mgr->Bool(IsOrig()),
+			val_mgr->Count(seq),
+			val_mgr->Count(len)
 		);
 
 	if ( type == Direct )
@@ -362,8 +360,8 @@ void TCP_Reassembler::RecordBlock(const DataBlock& b, BroFile* f)
 
 	if ( contents_file_write_failure )
 		tcp_analyzer->EnqueueConnEvent(contents_file_write_failure,
-			IntrusivePtr{AdoptRef{}, Endpoint()->Conn()->BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(IsOrig())},
+			Endpoint()->Conn()->ConnVal(),
+			val_mgr->Bool(IsOrig()),
 			make_intrusive<StringVal>("TCP reassembler content write failure")
 		);
 	}
@@ -377,8 +375,8 @@ void TCP_Reassembler::RecordGap(uint64_t start_seq, uint64_t upper_seq, BroFile*
 
 	if ( contents_file_write_failure )
 		tcp_analyzer->EnqueueConnEvent(contents_file_write_failure,
-			IntrusivePtr{AdoptRef{}, Endpoint()->Conn()->BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(IsOrig())},
+			Endpoint()->Conn()->ConnVal(),
+			val_mgr->Bool(IsOrig()),
 			make_intrusive<StringVal>("TCP reassembler gap write failure")
 		);
 	}
@@ -457,7 +455,7 @@ void TCP_Reassembler::Overlap(const u_char* b1, const u_char* b2, uint64_t n)
 		BroString* b2_s = new BroString((const u_char*) b2, n, false);
 
 		tcp_analyzer->EnqueueConnEvent(rexmit_inconsistency,
-			IntrusivePtr{AdoptRef{}, tcp_analyzer->BuildConnVal()},
+			tcp_analyzer->ConnVal(),
 			make_intrusive<StringVal>(b1_s),
 			make_intrusive<StringVal>(b2_s),
 			make_intrusive<StringVal>(flags.AsString())
@@ -613,9 +611,9 @@ void TCP_Reassembler::DeliverBlock(uint64_t seq, int len, const u_char* data)
 
 	if ( deliver_tcp_contents )
 		tcp_analyzer->EnqueueConnEvent(tcp_contents,
-			IntrusivePtr{AdoptRef{}, tcp_analyzer->BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(IsOrig())},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(seq)},
+			tcp_analyzer->ConnVal(),
+			val_mgr->Bool(IsOrig()),
+			val_mgr->Count(seq),
 			make_intrusive<StringVal>(len, (const char*) data)
 		);
 

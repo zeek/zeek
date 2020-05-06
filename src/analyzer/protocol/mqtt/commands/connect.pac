@@ -44,17 +44,17 @@ refine flow MQTT_Flow += {
 		%{
 		if ( mqtt_connect )
 			{
-			auto m = new RecordVal(BifType::Record::MQTT::ConnectMsg);
+			auto m = make_intrusive<RecordVal>(BifType::Record::MQTT::ConnectMsg);
 			m->Assign(0, make_intrusive<StringVal>(${msg.protocol_name.str}.length(),
 			                           reinterpret_cast<const char*>(${msg.protocol_name.str}.begin())));
-			m->Assign(1, val_mgr->GetCount(${msg.protocol_version}));
+			m->Assign(1, val_mgr->Count(${msg.protocol_version}));
 			m->Assign(2, make_intrusive<StringVal>(${msg.client_id.str}.length(),
 			                           reinterpret_cast<const char*>(${msg.client_id.str}.begin())));
 			m->Assign(3, make_intrusive<IntervalVal>(double(${msg.keep_alive}), Seconds));
 
-			m->Assign(4, val_mgr->GetBool(${msg.clean_session}));
-			m->Assign(5, val_mgr->GetBool(${msg.will_retain}));
-			m->Assign(6, val_mgr->GetCount(${msg.will_qos}));
+			m->Assign(4, val_mgr->Bool(${msg.clean_session}));
+			m->Assign(5, val_mgr->Bool(${msg.will_retain}));
+			m->Assign(6, val_mgr->Count(${msg.will_qos}));
 
 			if ( ${msg.will_flag} )
 				{
@@ -75,9 +75,9 @@ refine flow MQTT_Flow += {
 				                            reinterpret_cast<const char*>(${msg.pass.str}.begin())));
 				}
 
-			BifEvent::generate_mqtt_connect(connection()->bro_analyzer(),
-			                                connection()->bro_analyzer()->Conn(),
-			                                m);
+			BifEvent::enqueue_mqtt_connect(connection()->bro_analyzer(),
+			                               connection()->bro_analyzer()->Conn(),
+			                               std::move(m));
 			}
 
 		// If a connect message was seen, let's say that confirms it.

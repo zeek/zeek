@@ -628,12 +628,12 @@ RecordVal* Packet::BuildPktHdrVal() const
 		l2_hdr->Assign(4, FmtEUI48(data));  	// dst
 
 		if ( vlan )
-			l2_hdr->Assign(5, val_mgr->GetCount(vlan));
+			l2_hdr->Assign(5, val_mgr->Count(vlan));
 
 		if ( inner_vlan )
-			l2_hdr->Assign(6, val_mgr->GetCount(inner_vlan));
+			l2_hdr->Assign(6, val_mgr->Count(inner_vlan));
 
-		l2_hdr->Assign(7, val_mgr->GetCount(eth_type));
+		l2_hdr->Assign(7, val_mgr->Count(eth_type));
 
 		if ( eth_type == ETHERTYPE_ARP || eth_type == ETHERTYPE_REVARP )
 			// We also identify ARP for L3 over ethernet
@@ -642,8 +642,8 @@ RecordVal* Packet::BuildPktHdrVal() const
 	else
 		l2_hdr->Assign(0, BifType::Enum::link_encap->GetVal(BifEnum::LINK_UNKNOWN));
 
-	l2_hdr->Assign(1, val_mgr->GetCount(len));
-	l2_hdr->Assign(2, val_mgr->GetCount(cap_len));
+	l2_hdr->Assign(1, val_mgr->Count(len));
+	l2_hdr->Assign(2, val_mgr->Count(cap_len));
 
 	l2_hdr->Assign(8, BifType::Enum::layer3_proto->GetVal(l3));
 

@@ -90,7 +90,6 @@ Connection::Connection(NetSessions* s, const ConnIDKey& k, double t, const ConnI
 	vlan = pkt->vlan;
 	inner_vlan = pkt->inner_vlan;
 
-	conn_val = nullptr;
 	login_conn = nullptr;
 
 	is_active = 1;
@@ -131,10 +130,7 @@ Connection::~Connection()
 	CancelTimers();
 
 	if ( conn_val )
-		{
 		conn_val->SetOrigin(nullptr);
-		Unref(conn_val);
-		}
 
 	delete root_analyzer;
 	delete encapsulation;
@@ -148,7 +144,10 @@ void Connection::CheckEncapsulation(const EncapsulationStack* arg_encap)
 		{
 		if ( *encapsulation != *arg_encap )
 			{
-			Event(tunnel_changed, nullptr, arg_encap->GetVectorVal());
+			if ( tunnel_changed )
+				EnqueueEvent(tunnel_changed, nullptr, ConnVal(),
+				             IntrusivePtr{AdoptRef{}, arg_encap->GetVectorVal()});
+
 			delete encapsulation;
 			encapsulation = new EncapsulationStack(*arg_encap);
 			}
@@ -156,15 +155,23 @@ void Connection::CheckEncapsulation(const EncapsulationStack* arg_encap)
 
 	else if ( encapsulation )
 		{
-		EncapsulationStack empty;
-		Event(tunnel_changed, nullptr, empty.GetVectorVal());
+		if ( tunnel_changed )
+			{
+			EncapsulationStack empty;
+			EnqueueEvent(tunnel_changed, nullptr, ConnVal(),
+			             IntrusivePtr{AdoptRef{}, empty.GetVectorVal()});
+			}
+
 		delete encapsulation;
 		encapsulation = nullptr;
 		}
 
 	else if ( arg_encap )
 		{
-		Event(tunnel_changed, nullptr, arg_encap->GetVectorVal());
+		if ( tunnel_changed )
+			EnqueueEvent(tunnel_changed, nullptr, ConnVal(),
+			             IntrusivePtr{AdoptRef{}, arg_encap->GetVectorVal()});
+
 		encapsulation = new EncapsulationStack(*arg_encap);
 		}
 	}
@@ -203,7 +210,7 @@ void Connection::NextPacket(double t, bool is_orig,
 			is_successful = true;
 
 		if ( ! was_successful && is_successful && connection_successful )
-			EnqueueEvent(connection_successful, nullptr, IntrusivePtr{AdoptRef{}, BuildConnVal()});
+			EnqueueEvent(connection_successful, nullptr, ConnVal());
 		}
 	else
 		last_time = t;
@@ -260,9 +267,9 @@ void Connection::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig,
 		return;
 
 	EnqueueEvent(e, nullptr,
-		IntrusivePtr{AdoptRef{}, BuildConnVal()},
-		IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)},
-		IntrusivePtr{AdoptRef{}, val_mgr->GetCount(threshold)}
+		ConnVal(),
+		val_mgr->Bool(is_orig),
+		val_mgr->Count(threshold)
 	);
 	}
 
@@ -276,21 +283,15 @@ void Connection::DeleteTimer(double /* t */)
 
 void Connection::InactivityTimer(double t)
 	{
-	// If the inactivity_timeout is zero, there has been an active
-	// timeout once, but it's disabled now. We do nothing then.
-	if ( inactivity_timeout )
+	if ( last_time + inactivity_timeout <= t )
 		{
-		if ( last_time + inactivity_timeout <= t )
-			{
-			Event(connection_timeout, nullptr);
-			sessions->Remove(this);
-			++killed_by_inactivity;
-			}
-		else
-			ADD_TIMER(&Connection::InactivityTimer,
-					last_time + inactivity_timeout, 0,
-					TIMER_CONN_INACTIVITY);
+		Event(connection_timeout, nullptr);
+		sessions->Remove(this);
+		++killed_by_inactivity;
 		}
+	else
+		ADD_TIMER(&Connection::InactivityTimer,
+		          last_time + inactivity_timeout, 0, TIMER_CONN_INACTIVITY);
 	}
 
 void Connection::RemoveConnectionTimer(double t)
@@ -301,8 +302,17 @@ void Connection::RemoveConnectionTimer(double t)
 
 void Connection::SetInactivityTimeout(double timeout)
 	{
-	// We add a new inactivity timer even if there already is one.  When
-	// it fires, we always use the current value to check for inactivity.
+	if ( timeout == inactivity_timeout )
+		return;
+
+	// First cancel and remove any existing inactivity timer.
+	for ( const auto& timer : timers )
+		if ( timer->Type() == TIMER_CONN_INACTIVITY )
+			{
+			timer_mgr->Cancel(timer);
+			break;
+			}
+
 	if ( timeout )
 		ADD_TIMER(&Connection::InactivityTimer,
 				last_time + timeout, 0, TIMER_CONN_INACTIVITY);
@@ -323,7 +333,7 @@ void Connection::EnableStatusUpdateTimer()
 
 void Connection::StatusUpdateTimer(double t)
 	{
-	EnqueueEvent(connection_status_update, nullptr, IntrusivePtr{AdoptRef{}, BuildConnVal()});
+	EnqueueEvent(connection_status_update, nullptr, ConnVal());
 	ADD_TIMER(&Connection::StatusUpdateTimer,
 			network_time + connection_status_update_interval, 0,
 			TIMER_CONN_STATUS_UPDATE);
@@ -331,22 +341,27 @@ void Connection::StatusUpdateTimer(double t)
 
 RecordVal* Connection::BuildConnVal()
 	{
+	return ConnVal()->Ref()->AsRecordVal();
+	}
+
+const IntrusivePtr<RecordVal>& Connection::ConnVal()
+	{
 	if ( ! conn_val )
 		{
-		conn_val = new RecordVal(connection_type);
+		conn_val = make_intrusive<RecordVal>(connection_type);
 
 		TransportProto prot_type = ConnTransport();
 
 		auto id_val = make_intrusive<RecordVal>(conn_id);
 		id_val->Assign(0, make_intrusive<AddrVal>(orig_addr));
-		id_val->Assign(1, val_mgr->GetPort(ntohs(orig_port), prot_type));
+		id_val->Assign(1, val_mgr->Port(ntohs(orig_port), prot_type));
 		id_val->Assign(2, make_intrusive<AddrVal>(resp_addr));
-		id_val->Assign(3, val_mgr->GetPort(ntohs(resp_port), prot_type));
+		id_val->Assign(3, val_mgr->Port(ntohs(resp_port), prot_type));
 
 		auto orig_endp = make_intrusive<RecordVal>(endpoint);
-		orig_endp->Assign(0, val_mgr->GetCount(0));
-		orig_endp->Assign(1, val_mgr->GetCount(0));
-		orig_endp->Assign(4, val_mgr->GetCount(orig_flow_label));
+		orig_endp->Assign(0, val_mgr->Count(0));
+		orig_endp->Assign(1, val_mgr->Count(0));
+		orig_endp->Assign(4, val_mgr->Count(orig_flow_label));
 
 		const int l2_len = sizeof(orig_l2_addr);
 		char null[l2_len]{};
@@ -355,9 +370,9 @@ RecordVal* Connection::BuildConnVal()
 			orig_endp->Assign(5, make_intrusive<StringVal>(fmt_mac(orig_l2_addr, l2_len)));
 
 		auto resp_endp = make_intrusive<RecordVal>(endpoint);
-		resp_endp->Assign(0, val_mgr->GetCount(0));
-		resp_endp->Assign(1, val_mgr->GetCount(0));
-		resp_endp->Assign(4, val_mgr->GetCount(resp_flow_label));
+		resp_endp->Assign(0, val_mgr->Count(0));
+		resp_endp->Assign(1, val_mgr->Count(0));
+		resp_endp->Assign(4, val_mgr->Count(resp_flow_label));
 
 		if ( memcmp(&resp_l2_addr, &null, l2_len) != 0 )
 			resp_endp->Assign(5, make_intrusive<StringVal>(fmt_mac(resp_l2_addr, l2_len)));
@@ -367,7 +382,7 @@ RecordVal* Connection::BuildConnVal()
 		conn_val->Assign(2, std::move(resp_endp));
 		// 3 and 4 are set below.
 		conn_val->Assign(5, make_intrusive<TableVal>(IntrusivePtr{NewRef{}, string_set}));	// service
-		conn_val->Assign(6, val_mgr->GetEmptyString());	// history
+		conn_val->Assign(6, val_mgr->EmptyString());	// history
 
 		if ( ! uid )
 			uid.Set(bits_per_uid);
@@ -378,24 +393,22 @@ RecordVal* Connection::BuildConnVal()
 			conn_val->Assign(8, encapsulation->GetVectorVal());
 
 		if ( vlan != 0 )
-			conn_val->Assign(9, val_mgr->GetInt(vlan));
+			conn_val->Assign(9, val_mgr->Int(vlan));
 
 		if ( inner_vlan != 0 )
-			conn_val->Assign(10, val_mgr->GetInt(inner_vlan));
+			conn_val->Assign(10, val_mgr->Int(inner_vlan));
 
 		}
 
 	if ( root_analyzer )
-		root_analyzer->UpdateConnVal(conn_val);
+		root_analyzer->UpdateConnVal(conn_val.get());
 
 	conn_val->Assign(3, make_intrusive<Val>(start_time, TYPE_TIME));	// ###
 	conn_val->Assign(4, make_intrusive<Val>(last_time - start_time, TYPE_INTERVAL));
 	conn_val->Assign(6, make_intrusive<StringVal>(history.c_str()));
-	conn_val->Assign(11, val_mgr->GetBool(is_successful));
+	conn_val->Assign(11, val_mgr->Bool(is_successful));
 
 	conn_val->SetOrigin(this);
-
-	Ref(conn_val);
 
 	return conn_val;
 	}
@@ -417,12 +430,12 @@ analyzer::Analyzer* Connection::FindAnalyzer(const char* name)
 
 void Connection::AppendAddl(const char* str)
 	{
-	Unref(BuildConnVal());
+	const auto& cv = ConnVal();
 
-	const char* old = conn_val->Lookup(6)->AsString()->CheckString();
+	const char* old = cv->Lookup(6)->AsString()->CheckString();
 	const char* format = *old ? "%s %s" : "%s%s";
 
-	conn_val->Assign(6, make_intrusive<StringVal>(fmt(format, old, str)));
+	cv->Assign(6, make_intrusive<StringVal>(fmt(format, old, str)));
 	}
 
 // Returns true if the character at s separates a version number.
@@ -446,7 +459,7 @@ void Connection::Match(Rule::PatternType type, const u_char* data, int len, bool
 
 void Connection::RemovalEvent()
 	{
-	auto cv = IntrusivePtr{AdoptRef{}, BuildConnVal()};
+	auto cv = ConnVal();
 
 	if ( connection_state_remove )
 		EnqueueEvent(connection_state_remove, nullptr, cv);
@@ -461,9 +474,9 @@ void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const ch
 		return;
 
 	if ( name )
-		EnqueueEvent(f, analyzer, make_intrusive<StringVal>(name), IntrusivePtr{AdoptRef{}, BuildConnVal()});
+		EnqueueEvent(f, analyzer, make_intrusive<StringVal>(name), ConnVal());
 	else
-		EnqueueEvent(f, analyzer, IntrusivePtr{AdoptRef{}, BuildConnVal()});
+		EnqueueEvent(f, analyzer, ConnVal());
 	}
 
 void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1, Val* v2)
@@ -477,12 +490,12 @@ void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1,
 
 	if ( v2 )
 		EnqueueEvent(f, analyzer,
-		             IntrusivePtr{AdoptRef{}, BuildConnVal()},
+		             ConnVal(),
 		             IntrusivePtr{AdoptRef{}, v1},
 		             IntrusivePtr{AdoptRef{}, v2});
 	else
 		EnqueueEvent(f, analyzer,
-		             IntrusivePtr{AdoptRef{}, BuildConnVal()},
+		             ConnVal(),
 		             IntrusivePtr{AdoptRef{}, v1});
 	}
 
@@ -590,7 +603,6 @@ void Connection::FlipRoles()
 	resp_flow_label = orig_flow_label;
 	orig_flow_label = tmp_flow;
 
-	Unref(conn_val);
 	conn_val = nullptr;
 
 	if ( root_analyzer )
@@ -690,17 +702,17 @@ void Connection::CheckFlowLabel(bool is_orig, uint32_t flow_label)
 		if ( conn_val )
 			{
 			RecordVal *endp = conn_val->Lookup(is_orig ? 1 : 2)->AsRecordVal();
-			endp->Assign(4, val_mgr->GetCount(flow_label));
+			endp->Assign(4, val_mgr->Count(flow_label));
 			}
 
 		if ( connection_flow_label_changed &&
 		     (is_orig ? saw_first_orig_packet : saw_first_resp_packet) )
 			{
 			EnqueueEvent(connection_flow_label_changed, nullptr,
-				IntrusivePtr{AdoptRef{}, BuildConnVal()},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(my_flow_label)},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetCount(flow_label)}
+				ConnVal(),
+				val_mgr->Bool(is_orig),
+				val_mgr->Count(my_flow_label),
+				val_mgr->Count(flow_label)
 			);
 			}
 

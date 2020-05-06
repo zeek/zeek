@@ -220,8 +220,8 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 			if ( smtp_data && ! skip_data )
 				{
 				EnqueueConnEvent(smtp_data,
-					IntrusivePtr{AdoptRef{}, BuildConnVal()},
-					IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+					ConnVal(),
+					val_mgr->Bool(orig),
 					make_intrusive<StringVal>(data_len, line)
 				);
 				}
@@ -350,12 +350,12 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 				}
 
 				EnqueueConnEvent(smtp_reply,
-					IntrusivePtr{AdoptRef{}, BuildConnVal()},
-					IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
-					IntrusivePtr{AdoptRef{}, val_mgr->GetCount(reply_code)},
+					ConnVal(),
+					val_mgr->Bool(orig),
+					val_mgr->Count(reply_code),
 					make_intrusive<StringVal>(cmd),
 					make_intrusive<StringVal>(end_of_line - line, line),
-					IntrusivePtr{AdoptRef{}, val_mgr->GetBool((pending_reply > 0))}
+					val_mgr->Bool((pending_reply > 0))
 				);
 				}
 			}
@@ -410,7 +410,7 @@ void SMTP_Analyzer::StartTLS()
 		AddChildAnalyzer(ssl);
 
 	if ( smtp_starttls )
-		EnqueueConnEvent(smtp_starttls, IntrusivePtr{AdoptRef{}, BuildConnVal()});
+		EnqueueConnEvent(smtp_starttls, ConnVal());
 	}
 
 
@@ -859,8 +859,8 @@ void SMTP_Analyzer::RequestEvent(int cmd_len, const char* cmd,
 		cmd_arg->ToUpper();
 
 		EnqueueConnEvent(smtp_request,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig_is_sender)},
+			ConnVal(),
+			val_mgr->Bool(orig_is_sender),
 			std::move(cmd_arg),
 			make_intrusive<StringVal>(arg_len, arg)
 		);
@@ -880,8 +880,8 @@ void SMTP_Analyzer::Unexpected(bool is_sender, const char* msg,
 			is_orig = ! is_orig;
 
 		EnqueueConnEvent(smtp_unexpected,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)},
+			ConnVal(),
+			val_mgr->Bool(is_orig),
 			make_intrusive<StringVal>(msg),
 			make_intrusive<StringVal>(detail_len, detail)
 		);

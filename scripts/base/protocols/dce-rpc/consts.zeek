@@ -267,7 +267,7 @@ export {
 		["12345678-1234-abcd-ef00-01234567cffb",0x2a] = "NetrServerTrustPasswordsGet",
 		["12345678-1234-abcd-ef00-01234567cffb",0x2b] = "DsrGetForestTrustInformation",
 		["12345678-1234-abcd-ef00-01234567cffb",0x2c] = "NetrGetForestTrustInformation",
-		["12345678-1234-abcd-ef00-01234567cffb",0x2d] = "NetrLogonSameLogonWithFlags",
+		["12345678-1234-abcd-ef00-01234567cffb",0x2d] = "NetrLogonSamLogonWithFlags",
 		["12345678-1234-abcd-ef00-01234567cffb",0x2e] = "NetrServerGetTrustInfo",
 		["12345678-1234-abcd-ef00-01234567cffb",0x2f] = "unused",
 		["12345678-1234-abcd-ef00-01234567cffb",0x30] = "DsrUpdateReadOnlyServerDnsRecords",

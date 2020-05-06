@@ -136,6 +136,10 @@ IntrusivePtr<Val> Val::DoClone(CloneState* state)
 			return {NewRef{}, this};
 			}
 
+		if ( type->Tag() == TYPE_TYPE )
+			// These are immutable, essentially.
+			return {NewRef{}, this};
+
 		// Fall-through.
 
 	default:
@@ -250,19 +254,19 @@ IntrusivePtr<Val> Val::SizeVal() const
 		// Return abs value. However abs() only works on ints and llabs
 		// doesn't work on Mac OS X 10.5. So we do it by hand
 		if ( val.int_val < 0 )
-			return {AdoptRef{}, val_mgr->GetCount(-val.int_val)};
+			return val_mgr->Count(-val.int_val);
 		else
-			return {AdoptRef{}, val_mgr->GetCount(val.int_val)};
+			return val_mgr->Count(val.int_val);
 
 	case TYPE_INTERNAL_UNSIGNED:
-		return {AdoptRef{}, val_mgr->GetCount(val.uint_val)};
+		return val_mgr->Count(val.uint_val);
 
 	case TYPE_INTERNAL_DOUBLE:
 		return make_intrusive<Val>(fabs(val.double_val), TYPE_DOUBLE);
 
 	case TYPE_INTERNAL_OTHER:
 		if ( type->Tag() == TYPE_FUNC )
-			return {AdoptRef{}, val_mgr->GetCount(val.func_val->FType()->ArgTypes()->Types()->length())};
+			return val_mgr->Count(val.func_val->FType()->ArgTypes()->Types()->length());
 
 		if ( type->Tag() == TYPE_FILE )
 			return make_intrusive<Val>(val.file_val->Size(), TYPE_DOUBLE);
@@ -272,7 +276,7 @@ IntrusivePtr<Val> Val::SizeVal() const
 		break;
 	}
 
-	return {AdoptRef{}, val_mgr->GetCount(0)};
+	return val_mgr->Count(0);
 	}
 
 unsigned int Val::MemoryAllocation() const
@@ -583,9 +587,8 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 						{
 						auto blank = make_intrusive<StringVal>("");
 						auto fn_val = make_intrusive<StringVal>(field_name);
-						auto key_val = fn_val->Substitute(re, blank.get(), false)->AsStringVal();
+						auto key_val = fn_val->Substitute(re, blank.get(), false);
 						key_str = key_val->ToStdString();
-						Unref(key_val);
 						}
 					else
 						key_str = field_name;
@@ -732,7 +735,7 @@ void IntervalVal::ValDescribe(ODesc* d) const
 
 IntrusivePtr<Val> PortVal::SizeVal() const
 	{
-	return {AdoptRef{}, val_mgr->GetInt(val.uint_val)};
+	return val_mgr->Int(val.uint_val);
 	}
 
 uint32_t PortVal::Mask(uint32_t port_num, TransportProto port_type)
@@ -851,9 +854,9 @@ unsigned int AddrVal::MemoryAllocation() const
 IntrusivePtr<Val> AddrVal::SizeVal() const
 	{
 	if ( val.addr_val->GetFamily() == IPv4 )
-		return {AdoptRef{}, val_mgr->GetCount(32)};
+		return val_mgr->Count(32);
 	else
-		return {AdoptRef{}, val_mgr->GetCount(128)};
+		return val_mgr->Count(128);
 	}
 
 IntrusivePtr<Val> AddrVal::DoClone(CloneState* state)
@@ -979,7 +982,7 @@ StringVal::StringVal(const string& s) : StringVal(s.length(), s.data())
 
 IntrusivePtr<Val> StringVal::SizeVal() const
 	{
-	return {AdoptRef{}, val_mgr->GetCount(val.string_val->Len())};
+	return val_mgr->Count(val.string_val->Len());
 	}
 
 int StringVal::Len()
@@ -1024,7 +1027,7 @@ unsigned int StringVal::MemoryAllocation() const
 	return padded_sizeof(*this) + val.string_val->MemoryAllocation();
 	}
 
-Val* StringVal::Substitute(RE_Matcher* re, StringVal* repl, bool do_all)
+IntrusivePtr<StringVal> StringVal::Substitute(RE_Matcher* re, StringVal* repl, bool do_all)
 	{
 	const u_char* s = Bytes();
 	int offset = 0;
@@ -1105,7 +1108,7 @@ Val* StringVal::Substitute(RE_Matcher* re, StringVal* repl, bool do_all)
 	// the NUL.
 	r[0] = '\0';
 
-	return new StringVal(new BroString(true, result, r - result));
+	return make_intrusive<StringVal>(new BroString(true, result, r - result));
 	}
 
 IntrusivePtr<Val> StringVal::DoClone(CloneState* state)
@@ -1193,7 +1196,7 @@ ListVal::~ListVal()
 
 IntrusivePtr<Val> ListVal::SizeVal() const
 	{
-	return {AdoptRef{}, val_mgr->GetCount(vals.length())};
+	return val_mgr->Count(vals.length());
 	}
 
 RE_Matcher* ListVal::BuildRE() const
@@ -1564,7 +1567,7 @@ bool TableVal::Assign(Val* index, HashKey* k, Val* new_val)
 
 IntrusivePtr<Val> TableVal::SizeVal() const
 	{
-	return {AdoptRef{}, val_mgr->GetCount(Size())};
+	return val_mgr->Count(Size());
 	}
 
 bool TableVal::AddTo(Val* val, bool is_first_init) const
@@ -2683,7 +2686,7 @@ RecordVal::~RecordVal()
 
 IntrusivePtr<Val> RecordVal::SizeVal() const
 	{
-	return {AdoptRef{}, val_mgr->GetCount(Type()->AsRecordType()->NumFields())};
+	return val_mgr->Count(Type()->AsRecordType()->NumFields());
 	}
 
 void RecordVal::Assign(int field, IntrusivePtr<Val> new_val)
@@ -2931,7 +2934,7 @@ unsigned int RecordVal::MemoryAllocation() const
 
 IntrusivePtr<Val> EnumVal::SizeVal() const
 	{
-	return {AdoptRef{}, val_mgr->GetInt(val.int_val)};
+	return val_mgr->Int(val.int_val);
 	}
 
 void EnumVal::ValDescribe(ODesc* d) const
@@ -2968,7 +2971,7 @@ VectorVal::~VectorVal()
 
 IntrusivePtr<Val> VectorVal::SizeVal() const
 	{
-	return {AdoptRef{}, val_mgr->GetCount(uint32_t(val.vector_val->size()))};
+	return val_mgr->Count(uint32_t(val.vector_val->size()));
 	}
 
 bool VectorVal::Assign(unsigned int index, IntrusivePtr<Val> element)
@@ -3205,7 +3208,7 @@ IntrusivePtr<Val> check_and_promote(IntrusivePtr<Val> v, const BroType* t,
 			return nullptr;
 			}
 		else if ( t_tag == TYPE_INT )
-			promoted_v = {AdoptRef{}, val_mgr->GetInt(v->CoerceToInt())};
+			promoted_v = val_mgr->Int(v->CoerceToInt());
 		else // enum
 			{
 			reporter->InternalError("bad internal type in check_and_promote()");
@@ -3221,7 +3224,7 @@ IntrusivePtr<Val> check_and_promote(IntrusivePtr<Val> v, const BroType* t,
 			return nullptr;
 			}
 		else if ( t_tag == TYPE_COUNT || t_tag == TYPE_COUNTER )
-			promoted_v = {AdoptRef{}, val_mgr->GetCount(v->CoerceToUnsigned())};
+			promoted_v = val_mgr->Count(v->CoerceToUnsigned());
 		else // port
 			{
 			reporter->InternalError("bad internal type in check_and_promote()");
@@ -3398,13 +3401,26 @@ bool can_cast_value_to_type(const BroType* s, BroType* t)
 	return false;
 	}
 
+IntrusivePtr<Val> Val::MakeBool(bool b)
+	{
+	return IntrusivePtr{AdoptRef{}, new Val(bro_int_t(b), TYPE_BOOL)};
+	}
+
+IntrusivePtr<Val> Val::MakeInt(bro_int_t i)
+	{
+	return IntrusivePtr{AdoptRef{}, new Val(i, TYPE_INT)};
+	}
+
+IntrusivePtr<Val> Val::MakeCount(bro_uint_t u)
+	{
+	return IntrusivePtr{AdoptRef{}, new Val(u, TYPE_COUNT)};
+	}
+
 ValManager::ValManager()
 	{
-	empty_string = new StringVal("");
+	empty_string = make_intrusive<StringVal>("");
 	b_false = Val::MakeBool(false);
 	b_true = Val::MakeBool(true);
-	counts = new Val*[PREALLOCATED_COUNTS];
-	ints = new Val*[PREALLOCATED_INTS];
 
 	for ( auto i = 0u; i < PREALLOCATED_COUNTS; ++i )
 		counts[i] = Val::MakeCount(i);
@@ -3418,37 +3434,16 @@ ValManager::ValManager()
 		auto port_type = (TransportProto)i;
 
 		for ( auto j = 0u; j < arr.size(); ++j )
-			arr[j] = new PortVal(PortVal::Mask(j, port_type));
+			arr[j] = IntrusivePtr{AdoptRef{}, new PortVal(PortVal::Mask(j, port_type))};
 		}
-	}
-
-ValManager::~ValManager()
-	{
-	Unref(empty_string);
-	Unref(b_true);
-	Unref(b_false);
-
-	for ( auto i = 0u; i < PREALLOCATED_COUNTS; ++i )
-		Unref(counts[i]);
-
-	for ( auto i = 0u; i < PREALLOCATED_INTS; ++i )
-		Unref(ints[i]);
-
-	delete [] counts;
-	delete [] ints;
-
-	for ( auto& arr : ports )
-		for ( auto& pv : arr )
-			Unref(pv);
 	}
 
 StringVal* ValManager::GetEmptyString() const
 	{
-	::Ref(empty_string);
-	return empty_string;
+	return empty_string->Ref()->AsStringVal();
 	}
 
-PortVal* ValManager::GetPort(uint32_t port_num, TransportProto port_type) const
+const IntrusivePtr<PortVal>& ValManager::Port(uint32_t port_num, TransportProto port_type) const
 	{
 	if ( port_num >= 65536 )
 		{
@@ -3456,22 +3451,30 @@ PortVal* ValManager::GetPort(uint32_t port_num, TransportProto port_type) const
 		port_num = 0;
 		}
 
-	auto rval = ports[port_type][port_num];
-	::Ref(rval);
-	return rval;
+	return ports[port_type][port_num];
 	}
 
-PortVal* ValManager::GetPort(uint32_t port_num) const
+PortVal* ValManager::GetPort(uint32_t port_num, TransportProto port_type) const
+	{
+	return Port(port_num, port_type)->Ref()->AsPortVal();
+	}
+
+const IntrusivePtr<PortVal>& ValManager::Port(uint32_t port_num) const
 	{
 	auto mask = port_num & PORT_SPACE_MASK;
 	port_num &= ~PORT_SPACE_MASK;
 
 	if ( mask == TCP_PORT_MASK )
-		return GetPort(port_num, TRANSPORT_TCP);
+		return Port(port_num, TRANSPORT_TCP);
 	else if ( mask == UDP_PORT_MASK )
-		return GetPort(port_num, TRANSPORT_UDP);
+		return Port(port_num, TRANSPORT_UDP);
 	else if ( mask == ICMP_PORT_MASK )
-		return GetPort(port_num, TRANSPORT_ICMP);
+		return Port(port_num, TRANSPORT_ICMP);
 	else
-		return GetPort(port_num, TRANSPORT_UNKNOWN);
+		return Port(port_num, TRANSPORT_UNKNOWN);
+	}
+
+PortVal* ValManager::GetPort(uint32_t port_num) const
+	{
+	return Port(port_num)->Ref()->AsPortVal();
 	}

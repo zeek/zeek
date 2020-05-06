@@ -37,6 +37,10 @@ New Functionality
   and ``udp_content_delivery_ports_orig`` options is determined. The current value
   keeps behavior as it was in previous versions of Zeek.
 
+- Add a file signature to identify ISO9660 disk images (application/x-iso9660-image)
+
+- Add file signature to identify Python bytecode (application/x-python-bytecode)
+
 Changed Functionality
 ---------------------
 
@@ -76,6 +80,12 @@ Changed Functionality
   raise this event (injecting connections via broccoli) was removed a while ago;
   the event handler served no purpose anymore.
 
+- Reorganize the file signatures to break them out into more groups.  This may
+  break scripts that had been explicitly loading any signature files that moved.
+
+- The DCE/RPC operation string of "NetrLogonSamLogonWithFlags" has been
+  corrected from "NetrLogonSameLogonWithFlags".
+
 Removed Functionality
 ---------------------
 
@@ -96,7 +106,7 @@ Deprecated Functionality
 - The ``EventMgr::QueueEvent()`` and EventMgr::QueueEventFast()`` methods
   are now deprecated, use ``EventMgr::Enqueue()`` instead.
 
-- The ``Connection::ConnectionEvent()`` and
+- The ``Connection::ConnectionEvent()``, ``Connection::Event()``, and
   ``Connection::ConnectionEventFast()`` methods are now deprecated, use
   ``Connection::EnqueueEvent()`` instead.
 
@@ -104,9 +114,24 @@ Deprecated Functionality
   arguments are now deprecated, use the overload that takes a ``zeek::Args``
   instead.
 
-- The ``analyzer::Analyzer::ConnectionEvent()`` and
-  ``analyzer::Analyzer::ConectionEventFast()`` methods are deprecated, use
+- The ``analyzer::Analyzer::ConnectionEvent()``, ``analyzer::Analyzer::Event``,
+  and ``analyzer::Analyzer::ConectionEventFast()`` methods are deprecated, use
   ``analyzer::Analyzer::EnqueueConnEvent()`` instead.
+
+- All ``val_mgr`` methods starting with "Get" are deprecated, use the new
+  ``val_mgr`` methods that return ``IntrusivePtr``.
+
+- ``Connection::BuildConnVal()`` is deprecated, use ``Connection::ConnVal()``.
+
+- ``Analyzer::BuildConnVal()`` is deprecated, use ``Analyzer::ConnVal()``.
+
+- ``BifEvent::generate_`` functions are deprecated, use ``BifEvent::enqueue_``.
+
+- ``binpac::bytestring_to_val()`` is deprecated, use ``binpac::to_stringval()``.
+
+- ``binpac::string_to_val()`` is deprecated, use ``StringVal`` constructor.
+
+- Returning ``Val*`` from BIFs is deprecated, return ``IntrusivePtr`` instead.
 
 Zeek 3.1.0
 ==========

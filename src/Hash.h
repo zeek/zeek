@@ -29,8 +29,9 @@ class BroString;
 #include "ZeekArgs.h"
 class Val;
 class Frame;
+class BifReturnVal;
 namespace BifFunc {
-	extern Val* bro_md5_hmac(Frame* frame, const zeek::Args*);
+	extern BifReturnVal bro_md5_hmac(Frame* frame, const zeek::Args*);
 }
 
 typedef uint64_t hash_t;
@@ -195,7 +196,7 @@ private:
 	inline static bool seeds_initialized = false;
 
 	friend void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16]);
-	friend Val* BifFunc::bro_md5_hmac(Frame* frame, const zeek::Args*);
+	friend BifReturnVal BifFunc::bro_md5_hmac(Frame* frame, const zeek::Args*);
 };
 
 typedef enum {

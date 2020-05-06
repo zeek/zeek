@@ -113,15 +113,15 @@ Val* asn1_integer_to_val(const ASN1Encoding* i, TypeTag t)
 
 	switch ( t ) {
 	case TYPE_BOOL:
-		return val_mgr->GetBool(v);
+		return val_mgr->Bool(v)->Ref();
 	case TYPE_INT:
-		return val_mgr->GetInt(v);
+		return val_mgr->Int(v).release();
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
-		return val_mgr->GetCount(v);
+		return val_mgr->Count(v).release();
 	default:
 		reporter->Error("bad asn1_integer_to_val tag: %s", type_name(t));
-		return val_mgr->GetCount(v);
+		return val_mgr->Count(v).release();
 	}
 	}
 
@@ -152,7 +152,7 @@ StringVal* asn1_oid_to_val(const ASN1Encoding* oid)
 
 	if ( ! subidentifier.empty() || subidentifiers.size() < 1 )
 		// Underflow.
-		return val_mgr->GetEmptyString();
+		return val_mgr->EmptyString()->Ref()->AsStringVal();
 
 	for ( size_t i = 0; i < subidentifiers.size(); ++i )
 		{

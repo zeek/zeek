@@ -321,7 +321,7 @@ IntrusivePtr<Val> BroFunc::Call(const zeek::Args& args, Frame* parent) const
 		{
 		// Can only happen for events and hooks.
 		assert(Flavor() == FUNC_FLAVOR_EVENT || Flavor() == FUNC_FLAVOR_HOOK);
-		return Flavor() == FUNC_FLAVOR_HOOK ? IntrusivePtr{AdoptRef{}, val_mgr->GetTrue()} : nullptr;
+		return Flavor() == FUNC_FLAVOR_HOOK ? val_mgr->True() : nullptr;
 		}
 
 	auto f = make_intrusive<Frame>(frame_size, this, &args);
@@ -407,7 +407,7 @@ IntrusivePtr<Val> BroFunc::Call(const zeek::Args& args, Frame* parent) const
 			if ( flow == FLOW_BREAK )
 				{
 				// Short-circuit execution of remaining hook handler bodies.
-				result = {AdoptRef{}, val_mgr->GetFalse()};
+				result = val_mgr->False();
 				break;
 				}
 			}
@@ -418,7 +418,7 @@ IntrusivePtr<Val> BroFunc::Call(const zeek::Args& args, Frame* parent) const
 	if ( Flavor() == FUNC_FLAVOR_HOOK )
 		{
 		if ( ! result )
-			result = {AdoptRef{}, val_mgr->GetTrue()};
+			result = val_mgr->True();
 		}
 
 	// Warn if the function returns something, but we returned from
@@ -633,7 +633,7 @@ IntrusivePtr<Val> BuiltinFunc::Call(const zeek::Args& args, Frame* parent) const
 
 	const CallExpr* call_expr = parent ? parent->GetCall() : nullptr;
 	call_stack.emplace_back(CallInfo{call_expr, this, args});
-	IntrusivePtr<Val> result{AdoptRef{}, func(parent, &args)};
+	auto result = std::move(func(parent, &args).rval);
 	call_stack.pop_back();
 
 	if ( result && g_trace_state.DoTrace() )
@@ -890,3 +890,10 @@ function_ingredients::~function_ingredients()
 
 	delete inits;
 	}
+
+BifReturnVal::BifReturnVal(std::nullptr_t) noexcept
+	{ }
+
+BifReturnVal::BifReturnVal(Val* v) noexcept
+	: rval(AdoptRef{}, v)
+	{ }

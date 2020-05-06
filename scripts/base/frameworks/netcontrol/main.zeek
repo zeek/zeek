@@ -731,7 +731,7 @@ function find_rules_subnet(sn: subnet) : vector of Rule
 		{
 		local sn_entry = matches[m];
 		local rule_ids = rules_by_subnets[sn_entry];
-		for ( rule_id in rules_by_subnets[sn_entry] )
+		for ( rule_id in rule_ids )
 			{
 			if ( rule_id in rules )
 				ret += rules[rule_id];

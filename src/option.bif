@@ -63,20 +63,20 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 	if ( ! i )
 		{
 		builtin_error(fmt("Could not find ID named '%s'", ID->CheckString()));
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 		}
 
 	if ( ! i->HasVal() )
 		{
 		// should be impossible because initialization is enforced
 		builtin_error(fmt("ID '%s' has no value", ID->CheckString()));
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 		}
 
 	if ( ! i->IsOption() )
 		{
 		builtin_error(fmt("ID '%s' is not an option", ID->CheckString()));
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 		}
 
 	if ( same_type(val->Type(), bro_broker::DataVal::ScriptDataType()) )
@@ -88,11 +88,11 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 			{
 			builtin_error(fmt("Incompatible type for set of ID '%s': got broker data '%s', need '%s'",
 				ID->CheckString(), dv->data.get_type_name(), type_name(i->Type()->Tag())));
-			return val_mgr->GetFalse();
+			return val_mgr->False();
 			}
 
 		auto rval = call_option_handlers_and_set_value(ID, i, std::move(val_from_data), location);
-		return val_mgr->GetBool(rval);
+		return val_mgr->Bool(rval);
 		}
 
 	if ( ! same_type(i->Type(), val->Type()) )
@@ -106,16 +106,16 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 			        IntrusivePtr{NewRef{}, i->Type()->AsTableType()},
 			        IntrusivePtr{NewRef{}, i->ID_Val()->AsTableVal()->Attrs()});
 			auto rval = call_option_handlers_and_set_value(ID, i, std::move(tv), location);
-			return val_mgr->GetBool(rval);
+			return val_mgr->Bool(rval);
 			}
 
 		builtin_error(fmt("Incompatible type for set of ID '%s': got '%s', need '%s'",
 			ID->CheckString(), type_name(val->Type()->Tag()), type_name(i->Type()->Tag())));
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 		}
 
 	auto rval = call_option_handlers_and_set_value(ID, i, {NewRef{}, val}, location);
-	return val_mgr->GetBool(rval);
+	return val_mgr->Bool(rval);
 	%}
 
 ## Set a change handler for an option. The change handler will be
@@ -148,26 +148,26 @@ function Option::set_change_handler%(ID: string, on_change: any, priority: int &
 	if ( ! i )
 		{
 		builtin_error(fmt("Could not find ID named '%s'", ID->CheckString()));
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 		}
 
 	if ( ! i->IsOption() )
 		{
 		builtin_error(fmt("ID '%s' is not an option", ID->CheckString()));
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 		}
 
 	if ( on_change->Type()->Tag() != TYPE_FUNC )
 		{
 		builtin_error(fmt("Option::on_change needs function argument; got '%s' for ID '%s'",
 			type_name(on_change->Type()->Tag()), ID->CheckString()));
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 		}
 
 	if ( on_change->Type()->AsFuncType()->Flavor() != FUNC_FLAVOR_FUNCTION )
 		{
 		builtin_error("Option::on_change needs function argument; not hook or event");
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 		}
 
 	const type_list* args = on_change->Type()->AsFuncType()->ArgTypes()->Types();
@@ -175,38 +175,38 @@ function Option::set_change_handler%(ID: string, on_change: any, priority: int &
 		{
 		builtin_error(fmt("Wrong number of arguments for passed function in Option::on_change for ID '%s'; expected 2 or 3, got %d",
 			ID->CheckString(), args->length()));
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 		}
 
 	if ( (*args)[0]->Tag() != TYPE_STRING )
 		{
 		builtin_error(fmt("First argument of passed function has to be string in Option::on_change for ID '%s'; got '%s'",
 			ID->CheckString(), type_name((*args)[0]->Tag())));
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 		}
 
 	if ( ! same_type((*args)[1], i->Type()) )
 		{
 		builtin_error(fmt("Second argument of passed function has to be %s in Option::on_change for ID '%s'; got '%s'",
 			type_name(i->Type()->Tag()), ID->CheckString(), type_name((*args)[1]->Tag())));
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 		}
 
 	if ( args->length() == 3 && (*args)[2]->Tag() != TYPE_STRING )
 		{
 		builtin_error(fmt("Third argument of passed function has to be string in Option::on_change for ID '%s'; got '%s'",
 			ID->CheckString(), type_name((*args)[2]->Tag())));
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 		}
 
 	if ( ! same_type(on_change->Type()->AsFuncType()->YieldType(), i->Type()) )
 		{
 		builtin_error(fmt("Passed function needs to return type '%s' for ID '%s'; got '%s'",
 			type_name(i->Type()->Tag()), ID->CheckString(), type_name(on_change->Type()->AsFuncType()->YieldType()->Tag())));
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 		}
 
 	auto* func = on_change->AsFunc();
 	i->AddOptionHandler({NewRef{}, func}, -priority);
-	return val_mgr->GetTrue();
+	return val_mgr->True();
 	%}

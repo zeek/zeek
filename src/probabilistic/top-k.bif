@@ -14,7 +14,7 @@
 ##    topk_size topk_sum topk_merge topk_merge_prune
 function topk_init%(size: count%): opaque of topk
 	%{
-	probabilistic::TopkVal* v = new probabilistic::TopkVal(size);
+	auto v = make_intrusive<probabilistic::TopkVal>(size);
 	return v;
 	%}
 
@@ -36,7 +36,7 @@ function topk_add%(handle: opaque of topk, value: any%): any
 	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
 	h->Encountered(value);
 
-	return 0;
+	return nullptr;
 	%}
 
 ## Get the first *k* elements of the top-k data structure.
@@ -53,7 +53,7 @@ function topk_get_top%(handle: opaque of topk, k: count%): any_vec
 	%{
 	assert(handle);
 	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
-	return h->GetTopK(k);
+	return IntrusivePtr{AdoptRef{}, h->GetTopK(k)};
 	%}
 
 ## Get an overestimated count of how often a value has been encountered.
@@ -74,7 +74,7 @@ function topk_count%(handle: opaque of topk, value: any%): count
 	%{
 	assert(handle);
 	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
-	return val_mgr->GetCount(h->GetCount(value));
+	return val_mgr->Count(h->GetCount(value));
 	%}
 
 ## Get the maximal overestimation for count.
@@ -94,7 +94,7 @@ function topk_epsilon%(handle: opaque of topk, value: any%): count
 	%{
 	assert(handle);
 	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
-	return val_mgr->GetCount(h->GetEpsilon(value));
+	return val_mgr->Count(h->GetEpsilon(value));
 	%}
 
 ## Get the number of elements this data structure is supposed to track (given
@@ -113,7 +113,7 @@ function topk_size%(handle: opaque of topk%): count
 	%{
 	assert(handle);
 	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
-	return val_mgr->GetCount(h->GetSize());
+	return val_mgr->Count(h->GetSize());
 	%}
 
 ## Get the sum of all counts of all elements in the data structure.
@@ -133,7 +133,7 @@ function topk_sum%(handle: opaque of topk%): count
 	%{
 	assert(handle);
 	probabilistic::TopkVal* h = (probabilistic::TopkVal*) handle;
-	return val_mgr->GetCount(h->GetSum());
+	return val_mgr->Count(h->GetSum());
 	%}
 
 ## Merge the second top-k data structure into the first.
@@ -157,7 +157,7 @@ function topk_merge%(handle1: opaque of topk, handle2: opaque of topk%): any
 
 	h1->Merge(h2);
 
-	return 0;
+	return nullptr;
 	%}
 
 ## Merge the second top-k data structure into the first and prunes the final
@@ -183,5 +183,5 @@ function topk_merge_prune%(handle1: opaque of topk, handle2: opaque of topk%): a
 
 	h1->Merge(h2, true);
 
-	return 0;
+	return nullptr;
 	%}

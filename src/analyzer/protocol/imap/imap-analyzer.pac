@@ -45,7 +45,7 @@ refine connection IMAP_Conn += {
 				bro_analyzer()->StartTLS();
 
 				if ( imap_starttls )
-					BifEvent::generate_imap_starttls(bro_analyzer(), bro_analyzer()->Conn());
+					BifEvent::enqueue_imap_starttls(bro_analyzer(), bro_analyzer()->Conn());
 				}
 			else
 				reporter->Weird(bro_analyzer()->Conn(), "IMAP: server refused StartTLS");
@@ -59,14 +59,15 @@ refine connection IMAP_Conn += {
 		if ( ! imap_capabilities )
 			return true;
 
-		VectorVal* capv = new VectorVal(internal_type("string_vec")->AsVectorType());
+		auto capv = make_intrusive<VectorVal>(internal_type("string_vec")->AsVectorType());
+
 		for ( unsigned int i = 0; i< capabilities->size(); i++ )
 			{
 			const bytestring& capability = (*capabilities)[i]->cap();
 			capv->Assign(i, make_intrusive<StringVal>(capability.length(), (const char*)capability.data()));
 			}
 
-		BifEvent::generate_imap_capabilities(bro_analyzer(), bro_analyzer()->Conn(), capv);
+		BifEvent::enqueue_imap_capabilities(bro_analyzer(), bro_analyzer()->Conn(), std::move(capv));
 		return true;
 		%}
 

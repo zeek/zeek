@@ -1,0 +1,8 @@
+zeek_init:               1970-01-01-00:00:00.000000000
+scheduled_event:         2011-03-18-19:06:07.096534967
+network_time_init:       2011-03-18-19:06:07.096534967
+Processing packet  25 at 2011-03-18-19:06:08.858649015
+Processing packet  50 at 2011-03-18-19:06:08.915958881
+Processing packet  75 at 2011-03-18-19:06:08.976326942
+Processing packet  100 at 2011-03-18-19:06:09.073806047
+scheduled_delayed_event: 2011-03-18-19:06:09.073806047

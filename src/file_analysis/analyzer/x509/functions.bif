@@ -11,11 +11,11 @@
 #include <openssl/err.h>
 
 // construct an error record
-RecordVal* x509_result_record(uint64_t num, const char* reason, Val* chainVector = nullptr)
+IntrusivePtr<RecordVal> x509_result_record(uint64_t num, const char* reason, Val* chainVector = nullptr)
 	{
-	RecordVal* rrecord = new RecordVal(BifType::Record::X509::Result);
+	auto rrecord = make_intrusive<RecordVal>(BifType::Record::X509::Result);
 
-	rrecord->Assign(0, val_mgr->GetInt(num));
+	rrecord->Assign(0, val_mgr->Int(num));
 	rrecord->Assign(1, make_intrusive<StringVal>(reason));
 	if ( chainVector )
 		rrecord->Assign(2, chainVector);
@@ -161,7 +161,7 @@ function x509_parse%(cert: opaque of x509%): X509::Certificate
 function x509_from_der%(der: string%): opaque of x509
     %{
     const u_char* data = der->Bytes();
-    return new file_analysis::X509Val(d2i_X509(nullptr, &data, der->Len()));
+    return make_intrusive<file_analysis::X509Val>(d2i_X509(nullptr, &data, der->Len()));
     %}
 
 ## Returns the string form of a certificate.
@@ -192,9 +192,9 @@ function x509_get_certificate_string%(cert: opaque of x509, pem: bool &default=F
 	auto ext_val = file_analysis::X509::GetExtensionFromBIO(bio);
 
 	if ( ! ext_val )
-		ext_val = {AdoptRef{}, val_mgr->GetEmptyString()};
+		ext_val = val_mgr->EmptyString();
 
-	return ext_val.release();
+	return ext_val;
 	%}
 
 ## Verifies an OCSP reply.
@@ -215,7 +215,7 @@ function x509_get_certificate_string%(cert: opaque of x509, pem: bool &default=F
 ##              x509_get_certificate_string x509_verify
 function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_certs: table_string_of_string, verify_time: time &default=network_time()%): X509::Result
 	%{
-	RecordVal* rval = 0;
+	IntrusivePtr<RecordVal> rval;
 	X509_STORE* ctx = ::file_analysis::X509::GetRootStore(root_certs->AsTableVal());
 	if ( ! ctx )
 		return x509_result_record(-1, "Problem initializing root store");
@@ -578,7 +578,7 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 
 x509_verify_chainerror:
 
-	RecordVal* rrecord = x509_result_record(X509_STORE_CTX_get_error(csc), X509_verify_cert_error_string(X509_STORE_CTX_get_error(csc)), chainVector);
+	auto rrecord = x509_result_record(X509_STORE_CTX_get_error(csc), X509_verify_cert_error_string(X509_STORE_CTX_get_error(csc)), chainVector);
 
 	X509_STORE_CTX_cleanup(csc);
 	X509_STORE_CTX_free(csc);
@@ -623,7 +623,7 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 	if ( precert && issuer_key_hash->Len() != 32)
 		{
 		reporter->Error("Invalid issuer_key_hash length");
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 		}
 
 	std::string data;
@@ -647,7 +647,7 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 		if ( pos < 0 )
 			{
 			reporter->Error("NID_ct_precert_scts not found");
-			return val_mgr->GetFalse();
+			return val_mgr->False();
 			}
 #else
 		int num_ext = X509_get_ext_count(x);
@@ -742,7 +742,7 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 	EVP_MD_CTX_destroy(mdctx);
 	EVP_PKEY_free(key);
 
-	return val_mgr->GetBool(success);
+	return val_mgr->Bool(success);
 
 sct_verify_err:
 	if (mdctx)
@@ -751,7 +751,7 @@ sct_verify_err:
 		EVP_PKEY_free(key);
 
 	reporter->Error("%s", errstr.c_str());
-	return val_mgr->GetFalse();
+	return val_mgr->False();
 	%}
 
 
@@ -761,7 +761,7 @@ sct_verify_err:
  * 1 -> issuer name
  * 2 -> pubkey
  */
-StringVal* x509_entity_hash(file_analysis::X509Val *cert_handle, unsigned int hash_alg, unsigned int type)
+IntrusivePtr<StringVal> x509_entity_hash(file_analysis::X509Val *cert_handle, unsigned int hash_alg, unsigned int type)
 	{
 	assert(cert_handle);
 
@@ -824,7 +824,7 @@ StringVal* x509_entity_hash(file_analysis::X509Val *cert_handle, unsigned int ha
 
 	assert( len <= sizeof(md) );
 
-	return new StringVal(len, reinterpret_cast<const char*>(md));
+	return make_intrusive<StringVal>(len, reinterpret_cast<const char*>(md));
 	}
 %%}
 
@@ -902,7 +902,7 @@ function x509_set_certificate_cache%(tbl: string_any_table%) : bool
 	%{
 	file_analysis::X509::SetCertificateCache({NewRef{}, tbl->AsTableVal()});
 
-	return val_mgr->GetTrue();
+	return val_mgr->True();
 	%}
 
 ## This function sets up the callback that is called when an entry is matched against the table set
@@ -920,5 +920,5 @@ function x509_set_certificate_cache_hit_callback%(f: string_any_file_hook%) : bo
 	%{
 	file_analysis::X509::SetCertificateCacheHitCallback({NewRef{}, f->AsFunc()});
 
-	return val_mgr->GetTrue();
+	return val_mgr->True();
 	%}

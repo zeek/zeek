@@ -11,41 +11,41 @@ module Analyzer;
 function Analyzer::__enable_analyzer%(id: Analyzer::Tag%) : bool
 	%{
 	bool result = analyzer_mgr->EnableAnalyzer(id->AsEnumVal());
-	return val_mgr->GetBool(result);
+	return val_mgr->Bool(result);
 	%}
 
 function Analyzer::__disable_analyzer%(id: Analyzer::Tag%) : bool
 	%{
 	bool result = analyzer_mgr->DisableAnalyzer(id->AsEnumVal());
-	return val_mgr->GetBool(result);
+	return val_mgr->Bool(result);
 	%}
 
 function Analyzer::__disable_all_analyzers%(%) : any
 	%{
 	analyzer_mgr->DisableAllAnalyzers();
-	return 0;
+	return nullptr;
 	%}
 
 function Analyzer::__register_for_port%(id: Analyzer::Tag, p: port%) : bool
 	%{
 	bool result = analyzer_mgr->RegisterAnalyzerForPort(id->AsEnumVal(), p);
-	return val_mgr->GetBool(result);
+	return val_mgr->Bool(result);
 	%}
 
 function Analyzer::__schedule_analyzer%(orig: addr, resp: addr, resp_p: port,
 					analyzer: Analyzer::Tag, tout: interval%) : bool
 	%{
 	analyzer_mgr->ScheduleAnalyzer(orig->AsAddr(), resp->AsAddr(), resp_p, analyzer->AsEnumVal(), tout);
-	return val_mgr->GetTrue();
+	return val_mgr->True();
 	%}
 
 function __name%(atype: Analyzer::Tag%) : string
 	%{
-	return new StringVal(analyzer_mgr->GetComponentName(atype));
+	return make_intrusive<StringVal>(analyzer_mgr->GetComponentName(atype));
 	%}
 
 function __tag%(name: string%) : Analyzer::Tag
 	%{
 	analyzer::Tag t = analyzer_mgr->GetComponentTag(name->CheckString());
-	return t.AsEnumVal()->Ref();
+	return IntrusivePtr{NewRef{}, t.AsEnumVal()};
 	%}

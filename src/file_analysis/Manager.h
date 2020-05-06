@@ -422,7 +422,7 @@ private:
  * Returns a script-layer value corresponding to the \c mime_matches type.
  * @param m The MIME match information with which to populate the value.
  */
-VectorVal* GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m);
+IntrusivePtr<VectorVal> GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m);
 
 } // namespace file_analysis
 

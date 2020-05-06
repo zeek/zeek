@@ -21,7 +21,7 @@ function utf16_bytestring_to_utf8_val(conn: Connection, utf16: bytestring): Stri
 		{
 		reporter->Info("utf16 too long in utf16_bytestring_to_utf8_val");
 		// If the conversion didn't go well, return the original data.
-		return bytestring_to_val(utf16);
+		return to_stringval(utf16).release();
 		}
 
 	resultstring.resize(utf8size, '\0');
@@ -49,7 +49,7 @@ function utf16_bytestring_to_utf8_val(conn: Connection, utf16: bytestring): Stri
 		{
 		reporter->Weird(conn, "utf16_conversion_failed", "utf16 conversion failed in utf16_bytestring_to_utf8_val");
 		// If the conversion didn't go well, return the original data.
-		return bytestring_to_val(utf16);
+		return to_stringval(utf16).release();
 		}
 
 	*targetstart = 0;

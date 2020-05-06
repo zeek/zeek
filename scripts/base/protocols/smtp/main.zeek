@@ -336,5 +336,6 @@ function describe(rec: Info): string
 			(|rec$rcptto|>1 ? fmt(" (plus %d others)", |rec$rcptto|-1) : ""),
 			(abbrev_subject != "" ? fmt(": %s", abbrev_subject) : ""));
 		}
-		return "";
+
+	return "";
 	}

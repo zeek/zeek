@@ -51,9 +51,9 @@ void ConnSize_Analyzer::ThresholdEvent(EventHandlerPtr f, uint64_t threshold, bo
 		return;
 
 	EnqueueConnEvent(f,
-		IntrusivePtr{AdoptRef{}, BuildConnVal()},
-		IntrusivePtr{AdoptRef{}, val_mgr->GetCount(threshold)},
-		IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)}
+		ConnVal(),
+		val_mgr->Count(threshold),
+		val_mgr->Bool(is_orig)
 	);
 	}
 
@@ -93,9 +93,9 @@ void ConnSize_Analyzer::CheckThresholds(bool is_orig)
 		if ( ( network_time - start_time ) > duration_thresh && conn_duration_threshold_crossed )
 			{
 			EnqueueConnEvent(conn_duration_threshold_crossed,
-					IntrusivePtr{AdoptRef{}, BuildConnVal()},
+					ConnVal(),
 					make_intrusive<Val>(duration_thresh, TYPE_INTERVAL),
-					IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)}
+					val_mgr->Bool(is_orig)
 			);
 			duration_thresh = 0;
 			}
@@ -183,10 +183,10 @@ void ConnSize_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	if ( bytesidx < 0 )
 		reporter->InternalError("'endpoint' record missing 'num_bytes_ip' field");
 
-	orig_endp->Assign(pktidx, val_mgr->GetCount(orig_pkts));
-	orig_endp->Assign(bytesidx, val_mgr->GetCount(orig_bytes));
-	resp_endp->Assign(pktidx, val_mgr->GetCount(resp_pkts));
-	resp_endp->Assign(bytesidx, val_mgr->GetCount(resp_bytes));
+	orig_endp->Assign(pktidx, val_mgr->Count(orig_pkts));
+	orig_endp->Assign(bytesidx, val_mgr->Count(orig_bytes));
+	resp_endp->Assign(pktidx, val_mgr->Count(resp_pkts));
+	resp_endp->Assign(bytesidx, val_mgr->Count(resp_bytes));
 
 	Analyzer::UpdateConnVal(conn_val);
 	}

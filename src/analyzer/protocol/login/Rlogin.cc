@@ -245,7 +245,7 @@ void Rlogin_Analyzer::TerminalType(const char* s)
 	{
 	if ( login_terminal )
 		EnqueueConnEvent(login_terminal,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			ConnVal(),
 			make_intrusive<StringVal>(s)
 		);
 	}

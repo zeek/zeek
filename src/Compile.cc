@@ -585,8 +585,10 @@ AbstractMachine::~AbstractMachine()
 	{
 	}
 
-void AbstractMachine::FinishCompile()
+Stmt* AbstractMachine::CompileBody()
 	{
+	(void) body->Compile(this);
+	return this;
 	}
 
 void AbstractMachine::Init()

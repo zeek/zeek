@@ -1479,9 +1479,14 @@ void analyze_func(function_ingredients& ingredients)
 	if ( compile )
 		{
 		auto pf = pf_opt ? pf_opt : pf_red;
-		AbstractMachine am(ingredients, new_body, &ud, &rc, pf);
-		new_body->Compile(&am);
-		am.Dump();
+		body_ptr = new_body_ptr;
+		auto am = new AbstractMachine(ingredients, new_body,
+						&ud, &rc, pf);
+		new_body = am->CompileBody();
+		am->Dump();
+
+		new_body_ptr = {AdoptRef{}, new_body};
+		f->ReplaceBody(body_ptr, new_body_ptr);
 		}
 
 	if ( report_profile )

@@ -108,7 +108,7 @@ public:
 			const ProfileFunc* pf);
 	~AbstractMachine() override;
 
-	void FinishCompile();
+	Stmt* CompileBody();
 
 #include "CompilerSubDefs.h"
 

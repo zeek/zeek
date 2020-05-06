@@ -1,4 +1,8 @@
 
+3.2.0-dev.473 | 2020-05-06 10:40:09 -0700
+
+  * Revert addition of final modifier to JSON formatter (Tim Wojtulewicz, Corelight)
+
 3.2.0-dev.471 | 2020-05-06 10:00:58 -0700
 
   * Fix global buffer over-read in POP3 analyzer (Justin Azoff, Corelight)

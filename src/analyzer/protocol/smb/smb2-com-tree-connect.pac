@@ -5,8 +5,8 @@ refine connection SMB_Conn += {
 		if ( smb2_tree_connect_request )
 			BifEvent::enqueue_smb2_tree_connect_request(bro_analyzer(),
 			                                            bro_analyzer()->Conn(),
-			                                            {AdoptRef{}, BuildSMB2HeaderVal(header)},
-			                                            {AdoptRef{}, smb2_string2stringval(${val.path})});
+			                                            BuildSMB2HeaderVal(header),
+			                                            smb2_string2stringval(${val.path}));
 
 		return true;
 		%}
@@ -23,7 +23,7 @@ refine connection SMB_Conn += {
 
 			BifEvent::enqueue_smb2_tree_connect_response(bro_analyzer(),
 			                                             bro_analyzer()->Conn(),
-			                                             {AdoptRef{}, BuildSMB2HeaderVal(header)},
+			                                             BuildSMB2HeaderVal(header),
 														 std::move(resp));
 			}
 

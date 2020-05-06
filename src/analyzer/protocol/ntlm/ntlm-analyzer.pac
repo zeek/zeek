@@ -45,19 +45,19 @@ refine connection NTLM_Conn += {
 				case 0:
 					return result;
 				case 1:
-					result->Assign(0, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].nb_computer_name.data}));
+					result->Assign(0, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].nb_computer_name.data}));
 					break;
 				case 2:
-					result->Assign(1, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].nb_domain_name.data}));
+					result->Assign(1, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].nb_domain_name.data}));
 					break;
 				case 3:
-					result->Assign(2, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].dns_computer_name.data}));
+					result->Assign(2, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].dns_computer_name.data}));
 					break;
 				case 4:
-					result->Assign(3, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].dns_domain_name.data}));
+					result->Assign(3, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].dns_domain_name.data}));
 					break;
 				case 5:
-					result->Assign(4, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].dns_tree_name.data}));
+					result->Assign(4, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].dns_tree_name.data}));
 					break;
 				case 6:
 					result->Assign(5, val_mgr->Bool(${val.pairs[i].constrained_auth}));
@@ -69,7 +69,7 @@ refine connection NTLM_Conn += {
 					result->Assign(7, val_mgr->Count(${val.pairs[i].single_host.machine_id}));
 					break;
 				case 9:
-					result->Assign(8, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].target_name.data}));
+					result->Assign(8, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].target_name.data}));
 					break;
 				}
 			}
@@ -114,10 +114,10 @@ refine connection NTLM_Conn += {
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
 		if ( ${val}->has_domain_name() )
-		        result->Assign(1, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.domain_name.string.data}));
+		        result->Assign(1, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.domain_name.string.data}));
 
 		if ( ${val}->has_workstation() )
-		        result->Assign(2, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.workstation.string.data}));
+		        result->Assign(2, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.workstation.string.data}));
 
 		if ( ${val}->has_version() )
 		        result->Assign(3, build_version_record(${val.version}));
@@ -138,7 +138,7 @@ refine connection NTLM_Conn += {
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
 		if ( ${val}->has_target_name() )
-			result->Assign(1, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.target_name.string.data}));
+			result->Assign(1, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.target_name.string.data}));
 
 		if ( ${val}->has_version() )
 			result->Assign(2, build_version_record(${val.version}));
@@ -162,13 +162,13 @@ refine connection NTLM_Conn += {
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
 		if ( ${val}->has_domain_name() > 0 )
-			result->Assign(1, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.domain_name.string.data}));
+			result->Assign(1, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.domain_name.string.data}));
 
 		if ( ${val}->has_user_name() > 0 )
-			result->Assign(2, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.user_name.string.data}));
+			result->Assign(2, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.user_name.string.data}));
 
 		if ( ${val}->has_workstation() > 0 )
-			result->Assign(3, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.workstation.string.data}));
+			result->Assign(3, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.workstation.string.data}));
 
 		if ( ${val}->has_encrypted_session_key() > 0 )
 			result->Assign(4, to_stringval(${val.encrypted_session_key.string.data}));

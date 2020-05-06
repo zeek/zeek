@@ -65,7 +65,7 @@ refine connection SMB_Conn += {
 		BifEvent::enqueue_smb1_transaction_request(bro_analyzer(),
 		                                           bro_analyzer()->Conn(),
 		                                           SMBHeaderVal(header),
-		                                           {AdoptRef{}, smb_string2stringval(${val.name})},
+		                                           smb_string2stringval(${val.name}),
 		                                           ${val.sub_cmd},
 		                                           std::move(parameters),
 		                                           std::move(payload_str));

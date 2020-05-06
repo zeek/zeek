@@ -6,7 +6,7 @@ refine connection SMB_Conn += {
 			BifEvent::enqueue_smb1_check_directory_request(bro_analyzer(),
 			                                               bro_analyzer()->Conn(),
 			                                               SMBHeaderVal(header),
-			                                               {AdoptRef{}, smb_string2stringval(${val.directory_name})});
+			                                               smb_string2stringval(${val.directory_name}));
 		return true;
 		%}
 

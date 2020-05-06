@@ -5,7 +5,7 @@ refine connection SMB_Conn += {
 		if ( smb1_create_directory_request )
 			BifEvent::enqueue_smb1_create_directory_request(bro_analyzer(), bro_analyzer()->Conn(),
 			                                                SMBHeaderVal(header),
-			                                                {AdoptRef{}, smb_string2stringval(${val.directory_name})});
+			                                                smb_string2stringval(${val.directory_name}));
 		return true;
 		%}
 	function proc_smb1_create_directory_response(header: SMB_Header, val: SMB1_create_directory_response): bool

@@ -6,8 +6,8 @@ refine connection SMB_Conn += {
 			{
 			BifEvent::enqueue_smb2_close_request(bro_analyzer(),
 			                                     bro_analyzer()->Conn(),
-			                                     {AdoptRef{}, BuildSMB2HeaderVal(h)},
-			                                     {AdoptRef{}, BuildSMB2GUID(${val.file_id})});
+			                                     BuildSMB2HeaderVal(h),
+			                                     BuildSMB2GUID(${val.file_id}));
 			}
 
 		file_mgr->EndOfFile(bro_analyzer()->GetAnalyzerTag(),
@@ -32,7 +32,7 @@ refine connection SMB_Conn += {
 
 			BifEvent::enqueue_smb2_close_response(bro_analyzer(),
 			                                      bro_analyzer()->Conn(),
-			                                      {AdoptRef{}, BuildSMB2HeaderVal(h)},
+			                                      BuildSMB2HeaderVal(h),
 			                                      std::move(resp));
 			}
 

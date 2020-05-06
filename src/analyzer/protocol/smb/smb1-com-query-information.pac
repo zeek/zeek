@@ -6,7 +6,7 @@ refine connection SMB_Conn += {
 			BifEvent::enqueue_smb1_query_information_request(bro_analyzer(),
 			                                                 bro_analyzer()->Conn(),
 			                                                 SMBHeaderVal(header),
-			                                                 {AdoptRef{}, smb_string2stringval(${val.filename})});
+			                                                 smb_string2stringval(${val.filename}));
 		return true;
 		%}
 

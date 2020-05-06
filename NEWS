@@ -140,6 +140,9 @@ Deprecated Functionality
 - Various methods of ``Tag`` classes are deprecated with the warning
   message advising what new method to use instead.
 
+- The ``utf16_bytestring_to_utf8_val()`` function is deprecated, use
+  ``utf16_to_utf8_val()`` instead.
+
 Zeek 3.1.0
 ==========
 

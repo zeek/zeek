@@ -220,7 +220,7 @@ refine connection SMB_Conn += {
 			BifEvent::enqueue_smb1_trans2_query_path_info_request(bro_analyzer(),
 			                                                      bro_analyzer()->Conn(),
 																  SMBHeaderVal(header),
-																  {AdoptRef{}, smb_string2stringval(${val.file_name})});
+																  smb_string2stringval(${val.file_name}));
 
 			}
 		return true;
@@ -325,7 +325,7 @@ refine connection SMB_Conn += {
 			BifEvent::enqueue_smb1_trans2_get_dfs_referral_request(bro_analyzer(),
 			                                                       bro_analyzer()->Conn(),
 			                                                       SMBHeaderVal(header),
-			                                                       {AdoptRef{}, smb_string2stringval(${val.file_name})});
+			                                                       smb_string2stringval(${val.file_name}));
 			}
 		return true;
 		%}

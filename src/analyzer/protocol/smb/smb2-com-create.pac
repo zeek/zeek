@@ -2,7 +2,8 @@ refine connection SMB_Conn += {
 
 	function proc_smb2_create_request(h: SMB2_Header, val: SMB2_create_request): bool
 		%{
-		StringVal *filename = smb2_string2stringval(${val.filename});
+		auto filename = smb2_string2stringval(${val.filename});
+
 		if ( ! ${h.is_pipe} &&
 		     BifConst::SMB::pipe_filenames->AsTable()->Lookup(filename->CheckString()) )
 			{
@@ -16,17 +17,13 @@ refine connection SMB_Conn += {
 		if ( smb2_create_request )
 			{
 			auto requestinfo = make_intrusive<RecordVal>(BifType::Record::SMB2::CreateRequest);
-			requestinfo->Assign(0, filename);
+			requestinfo->Assign(0, std::move(filename));
 			requestinfo->Assign(1, val_mgr->Count(${val.disposition}));
 			requestinfo->Assign(2, val_mgr->Count(${val.create_options}));
 			BifEvent::enqueue_smb2_create_request(bro_analyzer(),
 			                                      bro_analyzer()->Conn(),
-			                                      {AdoptRef{}, BuildSMB2HeaderVal(h)},
+			                                      BuildSMB2HeaderVal(h),
 			                                      std::move(requestinfo));
-			}
-		else
-			{
-			delete filename;
 			}
 
 		return true;
@@ -47,7 +44,7 @@ refine connection SMB_Conn += {
 			responseinfo->Assign(4, val_mgr->Count(${val.create_action}));
 			BifEvent::enqueue_smb2_create_response(bro_analyzer(),
 			                                       bro_analyzer()->Conn(),
-			                                       {AdoptRef{}, BuildSMB2HeaderVal(h)},
+			                                       BuildSMB2HeaderVal(h),
 												   std::move(responseinfo));
 			}
 

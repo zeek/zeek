@@ -1,7 +1,7 @@
 refine connection SMB_Conn += {
 	function proc_smb1_nt_create_andx_request(header: SMB_Header, val: SMB1_nt_create_andx_request): bool
 		%{
-		auto filename = IntrusivePtr<StringVal>{AdoptRef{}, smb_string2stringval(${val.filename})};
+		auto filename = smb_string2stringval(${val.filename});
 
 		if ( ! ${header.is_pipe} &&
 		     BifConst::SMB::pipe_filenames->AsTable()->Lookup(filename->CheckString()) )
@@ -33,10 +33,10 @@ refine connection SMB_Conn += {
 			                                               SMBHeaderVal(header),
 			                                               ${val.file_id},
 			                                               ${val.end_of_file},
-			                                               {AdoptRef{}, SMB_BuildMACTimes(${val.last_write_time},
+			                                               SMB_BuildMACTimes(${val.last_write_time},
 			                                                                 ${val.last_access_time},
 			                                                                 ${val.create_time},
-			                                                                 ${val.last_change_time})});
+			                                                                 ${val.last_change_time}));
 			}
 
 		return true;

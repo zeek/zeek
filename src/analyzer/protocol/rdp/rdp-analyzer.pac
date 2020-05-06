@@ -81,18 +81,18 @@ refine flow RDP_Flow += {
 			ccd->Assign(5, val_mgr->Count(${ccore.sas_sequence}));
 			ccd->Assign(6, val_mgr->Count(${ccore.keyboard_layout}));
 			ccd->Assign(7, val_mgr->Count(${ccore.client_build}));
-			ccd->Assign(8, utf16_bytestring_to_utf8_val(connection()->bro_analyzer()->Conn(), ${ccore.client_name}));
+			ccd->Assign(8, utf16_to_utf8_val(connection()->bro_analyzer()->Conn(), ${ccore.client_name}));
 			ccd->Assign(9, val_mgr->Count(${ccore.keyboard_type}));
 			ccd->Assign(10, val_mgr->Count(${ccore.keyboard_sub}));
 			ccd->Assign(11, val_mgr->Count(${ccore.keyboard_function_key}));
-			ccd->Assign(12, utf16_bytestring_to_utf8_val(connection()->bro_analyzer()->Conn(), ${ccore.ime_file_name}));
+			ccd->Assign(12, utf16_to_utf8_val(connection()->bro_analyzer()->Conn(), ${ccore.ime_file_name}));
 			ccd->Assign(13, val_mgr->Count(${ccore.post_beta2_color_depth}));
 			ccd->Assign(14, val_mgr->Count(${ccore.client_product_id}));
 			ccd->Assign(15, val_mgr->Count(${ccore.serial_number}));
 			ccd->Assign(16, val_mgr->Count(${ccore.high_color_depth}));
 			ccd->Assign(17, val_mgr->Count(${ccore.supported_color_depths}));
 			ccd->Assign(18, std::move(ec_flags));
-			ccd->Assign(19, utf16_bytestring_to_utf8_val(connection()->bro_analyzer()->Conn(), ${ccore.dig_product_id}));
+			ccd->Assign(19, utf16_to_utf8_val(connection()->bro_analyzer()->Conn(), ${ccore.dig_product_id}));
 
 			BifEvent::enqueue_rdp_client_core_data(connection()->bro_analyzer(),
 			                                       connection()->bro_analyzer()->Conn(),

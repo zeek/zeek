@@ -28,7 +28,7 @@ refine connection SMB_Conn += {
 				dialects->Assign(i, val_mgr->Count((*${val.dialects})[i]));
 
 			BifEvent::enqueue_smb2_negotiate_request(bro_analyzer(), bro_analyzer()->Conn(),
-			                                         {AdoptRef{}, BuildSMB2HeaderVal(h)},
+			                                         BuildSMB2HeaderVal(h),
 			                                         std::move(dialects));
 			}
 
@@ -48,7 +48,7 @@ refine connection SMB_Conn += {
 			nr->Assign(4, filetime2brotime(${val.server_start_time}));
 			nr->Assign(5, val_mgr->Count(${val.negotiate_context_count}));
 
-			VectorVal* cv = new VectorVal(BifType::Vector::SMB2::NegotiateContextValues);
+			auto cv = make_intrusive<VectorVal>(BifType::Vector::SMB2::NegotiateContextValues);
 
 			if ( ${val.dialect_revision} == 0x0311 && ${val.negotiate_context_count} > 0 )
 				{
@@ -58,10 +58,10 @@ refine connection SMB_Conn += {
 				cv->Assign(${val.smb3_ncl.list.vals}->size(), BuildSMB2ContextVal(${val.smb3_ncl.list.last_val}));
 				}
 
-			nr->Assign(6, cv);
+			nr->Assign(6, std::move(cv));
 
 			BifEvent::enqueue_smb2_negotiate_response(bro_analyzer(), bro_analyzer()->Conn(),
-			                                          {AdoptRef{}, BuildSMB2HeaderVal(h)},
+			                                          BuildSMB2HeaderVal(h),
 													  std::move(nr));
 			}
 

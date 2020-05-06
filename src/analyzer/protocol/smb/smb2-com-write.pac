@@ -6,8 +6,8 @@ refine connection SMB_Conn += {
 			{
 			BifEvent::enqueue_smb2_write_request(bro_analyzer(),
 			                                     bro_analyzer()->Conn(),
-			                                     {AdoptRef{}, BuildSMB2HeaderVal(h)},
-			                                     {AdoptRef{}, BuildSMB2GUID(${val.file_id})},
+			                                     BuildSMB2HeaderVal(h),
+			                                     BuildSMB2GUID(${val.file_id}),
 			                                     ${val.offset},
 			                                     ${val.data_len});
 			}
@@ -29,7 +29,7 @@ refine connection SMB_Conn += {
 			{
 			BifEvent::enqueue_smb2_write_response(bro_analyzer(),
 			                                      bro_analyzer()->Conn(),
-			                                      {AdoptRef{}, BuildSMB2HeaderVal(h)},
+			                                      BuildSMB2HeaderVal(h),
 			                                      ${val.write_count});
 			}
 

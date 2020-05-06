@@ -9,7 +9,7 @@ refine connection SMB_Conn += {
 
 			BifEvent::enqueue_smb2_session_setup_request(bro_analyzer(),
 			                                             bro_analyzer()->Conn(),
-			                                             {AdoptRef{}, BuildSMB2HeaderVal(h)},
+			                                             BuildSMB2HeaderVal(h),
 														 std::move(req));
 			}
 
@@ -30,7 +30,7 @@ refine connection SMB_Conn += {
 
 			BifEvent::enqueue_smb2_session_setup_response(bro_analyzer(),
 			                                              bro_analyzer()->Conn(),
-			                                              {AdoptRef{}, BuildSMB2HeaderVal(h)},
+			                                              BuildSMB2HeaderVal(h),
 			                                              std::move(resp));
 			}
 

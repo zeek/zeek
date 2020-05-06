@@ -98,6 +98,9 @@ class ProfileFunc;
 class AbstractStmt;
 union AS_ValUnion;
 
+// Maps frame slots to associated identifiers.
+typedef std::vector<const ID*> frame_map;
+
 class AbstractMachine : public Compiler {
 public:
 	AbstractMachine(function_ingredients& i, const Stmt* body,
@@ -142,7 +145,7 @@ public:
 	const CompiledStmt LoopOverString(const ForStmt* f, const NameExpr* val);
 
 	const CompiledStmt FinishLoop(AbstractStmt iter_stmt, const Stmt* body,
-					int info_slot);
+					int info_slot, bool branch_slot_3);
 
 	const CompiledStmt InitRecord(ID* id, RecordType* rt) override;
 	const CompiledStmt InitVector(ID* id, VectorType* vt) override;
@@ -239,10 +242,12 @@ protected:
 	CompiledStmt PrevStmt(const CompiledStmt s);
 	void SetV1(CompiledStmt s, const CompiledStmt s1);
 	void SetV2(CompiledStmt s, const CompiledStmt s2);
+	void SetV3(CompiledStmt s, const CompiledStmt s2);
 	void SetGoTo(CompiledStmt s, const CompiledStmt targ)
 		{ SetV1(s, targ); }
 
 	const CompiledStmt AddStmt(const AbstractStmt& stmt);
+	AbstractStmt& TopStmt();
 
 	void LoadParam(ID* id);
 	void LoadGlobal(ID* id);
@@ -272,6 +277,10 @@ protected:
 
 	// Maps identifiers to their frame location.
 	std::unordered_map<const ID*, int> frame_layout;
+
+	// Inverse mapping, used for dumping statements.
+	frame_map frame_denizens;
+
 	int frame_size;
 	int register_slot;
 	bool error_seen = false;

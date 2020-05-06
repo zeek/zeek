@@ -211,7 +211,8 @@ IntrusivePtr<Val> AS_ValUnion::ToVal(BroType* t) const
 // fields they use.  Used for dumping statements.
 typedef enum {
 	OP_X, OP_V, OP_VV, OP_VVV, OP_VVVV, OP_VVVC, OP_C, OP_VC, OP_VVC,
-	OP_E, OP_VE,
+	OP_E, OP_VE, OP_VV_FRAME, OP_VC_ID,
+	OP_V_I1, OP_VV_I2, OP_VVC_I2, OP_VVV_I3,
 } AS_OpType;
 
 class AbstractStmt {
@@ -311,7 +312,9 @@ public:
 	// Constructor used when we're going to just copy in another AS.
 	AbstractStmt() { }
 
-	void Dump() const;
+	const char* VName(int max_n, int n, const frame_map& frame_ids) const;
+	int NumFrameSlots() const;
+	void Dump(const frame_map& frame_ids) const;
 	const char* ConstDump() const;
 
 	AbstractOp op;
@@ -340,32 +343,79 @@ protected:
 		}
 };
 
-void AbstractStmt::Dump() const
+int AbstractStmt::NumFrameSlots() const
+	{
+	switch ( op_type ) {
+	case OP_X:	return 0;
+	case OP_V:	return 1;
+	case OP_VV:	return 2;
+	case OP_VVV:	return 3;
+	case OP_VVVV:	return 4;
+	case OP_VVVC:	return 3;
+	case OP_C:	return 0;
+	case OP_VC:	return 1;
+	case OP_VVC:	return 2;
+	case OP_E:	return 0;
+	case OP_VE:	return 1;
+
+	case OP_V_I1:	return 0;
+	case OP_VV_FRAME:	return 1;
+	case OP_VC_ID:	return 1;
+	case OP_VV_I2:	return 1;
+	case OP_VVC_I2:	return 1;
+	case OP_VVV_I3:	return 2;
+	}
+	}
+
+const char* AbstractStmt::VName(int max_n, int n, const frame_map& frame_ids) const
+	{
+	if ( n > max_n )
+		return nullptr;
+
+	int slot = n == 1 ? v1 : (n == 2 ? v2 : (n == 3 ? v3 : v4));
+
+	if ( slot == 0 )
+		return "<reg0>";
+
+	if ( slot > frame_ids.size() )
+		return "extra-slot";
+
+	return frame_ids[slot]->Name();
+	}
+
+void AbstractStmt::Dump(const frame_map& frame_ids) const
 	{
 	printf("%s ", abstract_op_name(op));
+
+	int n = NumFrameSlots();
+
+	auto id1 = VName(n, 1, frame_ids);
+	auto id2 = VName(n, 2, frame_ids);
+	auto id3 = VName(n, 3, frame_ids);
+	auto id4 = VName(n, 4, frame_ids);
 
 	switch ( op_type ) {
 	case OP_X:
 		break;
 
 	case OP_V:
-		printf("%d", v1);
+		printf("%s", id1);
 		break;
 
 	case OP_VV:
-		printf("%d, %d", v1, v2);
+		printf("%s, %s", id1, id2);
 		break;
 
 	case OP_VVV:
-		printf("%d, %d, %d", v1, v2, v3);
+		printf("%s, %s, %s", id1, id2, id3);
 		break;
 
 	case OP_VVVV:
-		printf("%d, %d, %d, %d", v1, v2, v3, v4);
+		printf("%s, %s, %s, %s", id1, id2, id3, id4);
 		break;
 
 	case OP_VVVC:
-		printf("%d, %d, %d, %s", v1, v2, v3, ConstDump());
+		printf("%s, %s, %s, %s", id1, id2, id3, ConstDump());
 		break;
 
 	case OP_C:
@@ -373,11 +423,11 @@ void AbstractStmt::Dump() const
 		break;
 
 	case OP_VC:
-		printf("%d, %s", v1, ConstDump());
+		printf("%s, %s", id1, ConstDump());
 		break;
 
 	case OP_VVC:
-		printf("%d, %d, %s", v1, v2, ConstDump());
+		printf("%s, %s, %s", id1, id2, ConstDump());
 		break;
 
 	case OP_E:
@@ -385,7 +435,31 @@ void AbstractStmt::Dump() const
 		break;
 
 	case OP_VE:
-		printf("%d, %s", v1, obj_desc(e));
+		printf("%s, %s", id1, obj_desc(e));
+		break;
+
+	case OP_V_I1:
+		printf("%d", v1);
+		break;
+
+	case OP_VV_FRAME:
+		printf("%s, interpreter frame[%d]", id1, v2);
+		break;
+
+	case OP_VC_ID:
+		printf("%s, ID %s", id1, obj_desc(c.any_val));
+		break;
+
+	case OP_VV_I2:
+		printf("%s, %d", id1, v2);
+		break;
+
+	case OP_VVC_I2:
+		printf("%s, %d, %s", id1, v2, ConstDump());
+		break;
+
+	case OP_VVV_I3:
+		printf("%s, %s, %d", id1, id2, v3);
 		break;
 	}
 
@@ -479,12 +553,16 @@ AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const NameExpr* v1,
 AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const NameExpr* v1,
 			const ConstExpr* c, int i)
 	{
-	return AbstractStmt(op, m->FrameSlot(v1), i, c);
+	auto s = AbstractStmt(op, m->FrameSlot(v1), i, c);
+	s.op_type = OP_VVC_I2;
+	return s;
 	}
 AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const NameExpr* v1,
 			const NameExpr* v2, int i)
 	{
-	return AbstractStmt(op, m->FrameSlot(v1), m->FrameSlot(v2), i);
+	auto s = AbstractStmt(op, m->FrameSlot(v1), m->FrameSlot(v2), i);
+	s.op_type = OP_VVV_I3;
+	return s;
 	}
 
 
@@ -520,6 +598,7 @@ void AbstractMachine::Init()
 
 	// Use slot 0 for the temporary register.
 	register_slot = frame_size++;
+	frame_denizens.push_back(nullptr);
 
 	::Ref(scope);
 	push_existing_scope(scope);
@@ -714,6 +793,7 @@ const CompiledStmt AbstractMachine::RecordCoerce(const NameExpr* n,
 			map_size);
 
 	s.t = e->Type().get();
+	s.op_type = OP_VVV_I3;
 	s.int_ptr = map;
 
 	return AddStmt(s);
@@ -787,6 +867,7 @@ const CompiledStmt AbstractMachine::While(const Stmt* cond_stmt,
 		(void) cond_stmt->Compile(this);
 
 	auto cond_IF = AddStmt(AbstractStmt(OP_IF_VV, FrameSlot(cond), 0));
+	TopStmt().op_type = OP_VV_I2;
 	(void) body->Compile(this);
 	auto tail = GoTo(head);
 
@@ -1008,6 +1089,7 @@ const CompiledStmt AbstractMachine::TypeSwitch(const SwitchStmt* sw,
 
 		AbstractStmt s(OP_BRANCH_IF_NOT_TYPE_VV, FrameSlot(var), 0);
 		s.t = type;
+		s.op_type = OP_VV_I2;
 
 		body_end = BuildCase(s, (*cases)[i.second]->Body());
 		}
@@ -1063,9 +1145,8 @@ const CompiledStmt AbstractMachine::For(const ForStmt* f)
 const CompiledStmt AbstractMachine::LoopOverTable(const ForStmt* f,
 							const NameExpr* val)
 	{
-	auto value_var = f->ValueVar();
-	auto value_var_slot = value_var ? FrameSlot(value_var) : -1;
 	auto loop_vars = f->LoopVars();
+	auto value_var = f->ValueVar();
 
 	auto info = NewSlot();
 	auto s = AbstractStmt(OP_INIT_TABLE_LOOP_VV, info, FrameSlot(val));
@@ -1080,9 +1161,19 @@ const CompiledStmt AbstractMachine::LoopOverTable(const ForStmt* f,
 		init_end = AddStmt(s);
 		}
 
-	s = AbstractStmt(OP_NEXT_TABLE_ITER_VVV, info, 0, value_var_slot);
+	if ( value_var )
+		{
+		s = AbstractStmt(OP_NEXT_TABLE_ITER_VAL_VAR_VVV, info,
+					FrameSlot(value_var), 0);
+		s.op_type = OP_VVV_I3;
+		}
+	else
+		{
+		s = AbstractStmt(OP_NEXT_TABLE_ITER_VV, info, 0);
+		s.op_type = OP_VV_I2;
+		}
 
-	return FinishLoop(s, f->LoopBody(), info);
+	return FinishLoop(s, f->LoopBody(), info, value_var != nullptr);
 	}
 
 const CompiledStmt AbstractMachine::LoopOverVector(const ForStmt* f,
@@ -1095,9 +1186,10 @@ const CompiledStmt AbstractMachine::LoopOverVector(const ForStmt* f,
 	auto s = AbstractStmt(OP_INIT_VECTOR_LOOP_VV, info, FrameSlot(val));
 	auto init_end = AddStmt(s);
 
-	s = AbstractStmt(OP_NEXT_VECTOR_ITER_VVV, info, 0, FrameSlot(loop_var));
+	s = AbstractStmt(OP_NEXT_VECTOR_ITER_VVV, info, FrameSlot(loop_var), 0);
+	s.op_type = OP_VVV_I3;
 
-	return FinishLoop(s, f->LoopBody(), info);
+	return FinishLoop(s, f->LoopBody(), info, false);
 	}
 
 const CompiledStmt AbstractMachine::LoopOverString(const ForStmt* f,
@@ -1110,14 +1202,16 @@ const CompiledStmt AbstractMachine::LoopOverString(const ForStmt* f,
 	auto s = AbstractStmt(OP_INIT_STRING_LOOP_VV, info, FrameSlot(val));
 	auto init_end = AddStmt(s);
 
-	s = AbstractStmt(OP_NEXT_STRING_ITER_VVV, info, 0, FrameSlot(loop_var));
+	s = AbstractStmt(OP_NEXT_STRING_ITER_VVV, info, FrameSlot(loop_var), 0);
+	s.op_type = OP_VVV_I3;
 
-	return FinishLoop(s, f->LoopBody(), info);
+	return FinishLoop(s, f->LoopBody(), info, false);
 	}
 
 const CompiledStmt AbstractMachine::FinishLoop(AbstractStmt iter_stmt,
 						const Stmt* body,
-						int info_slot)
+						int info_slot,
+						bool branch_slot_3)
 	{
 	auto loop_iter = AddStmt(iter_stmt);
 
@@ -1126,7 +1220,10 @@ const CompiledStmt AbstractMachine::FinishLoop(AbstractStmt iter_stmt,
 	auto s = AbstractStmt(OP_END_LOOP_V, info_slot);
 	auto loop_end = AddStmt(s);
 
-	SetV2(loop_iter, loop_end);
+	if ( branch_slot_3 )
+		SetV3(loop_iter, loop_end);
+	else
+		SetV2(loop_iter, loop_end);
 
 	ResolveNexts(loop_iter);
 	ResolveBreaks(loop_end);
@@ -1195,7 +1292,9 @@ int AbstractMachine::InternalBuildVals(const ListExpr* l)
 	int n = exprs.length();
 	auto tmp = RegisterSlot();
 
-	(void) AddStmt(AbstractStmt(OP_CREATE_VAL_VEC_V, tmp, n));
+	auto s = AbstractStmt(OP_CREATE_VAL_VEC_V, tmp, n);
+	s.op_type = OP_VV_I2;
+	(void) AddStmt(s);
 
 	for ( int i = 0; i < n; ++i )
 		{
@@ -1227,11 +1326,17 @@ const CompiledStmt AbstractMachine::AddStmt(const AbstractStmt& stmt)
 	return CompiledStmt(stmts.size());
 	}
 
+AbstractStmt& AbstractMachine::TopStmt()
+	{
+	return stmts.back();
+	}
+
 void AbstractMachine::LoadParam(ID* id)
 	{
 	int slot = AddToFrame(id);
 	AbstractStmt s(OP_LOAD_VAL_VV, slot, id->Offset());
 	s.t = id->Type();
+	s.op_type = OP_VV_FRAME;
 	(void) AddStmt(s);
 	}
 
@@ -1241,12 +1346,14 @@ void AbstractMachine::LoadGlobal(ID* id)
 	AbstractStmt s(OP_LOAD_GLOBAL_VC, slot);
 	s.c.id_val = id;
 	s.t = id->Type();
+	s.op_type = OP_VC_ID;
 	(void) AddStmt(s);
 	}
 
 int AbstractMachine::AddToFrame(const ID* id)
 	{
 	frame_layout[id] = frame_size;
+	frame_denizens.push_back(id);
 	return frame_size++;
 	}
 
@@ -1258,7 +1365,7 @@ void AbstractMachine::Dump()
 	for ( int i = 0; i < stmts.size(); ++i )
 		{
 		printf("%d: ", i);
-		stmts[i].Dump();
+		stmts[i].Dump(frame_denizens);
 		}
 	}
 
@@ -1322,6 +1429,7 @@ const CompiledStmt AbstractMachine::CompileInExpr(const NameExpr* n1,
 
 	auto s = AbstractStmt(OP_TRANSFORM_VAL_VEC_TO_LIST_VAL_VVV,
 				build_indices, build_indices, n);
+	s.op_type = OP_VVV_I3;
 	AddStmt(s);
 
 	s = AbstractStmt(OP_LIST_IS_IN_TABLE_VVV, FrameSlot(n1), FrameSlot(n2),
@@ -1363,6 +1471,7 @@ const CompiledStmt AbstractMachine::CompileIndex(const NameExpr* n1,
 	auto build_indices = InternalBuildVals(l);
 	s = AbstractStmt(OP_TRANSFORM_VAL_VEC_TO_LIST_VAL_VVV,
 				build_indices, build_indices, n);
+	s.op_type = OP_VVV_I3;
 	AddStmt(s);
 
 	auto indexes = l->Exprs();
@@ -1406,6 +1515,7 @@ const CompiledStmt AbstractMachine::CompileSchedule(const NameExpr* n,
 
 	AddStmt(AbstractStmt(OP_TRANSFORM_VAL_VEC_TO_LIST_VAL_VVV,
 				build_indices, build_indices, len));
+	TopStmt().op_type = OP_VVV_I3;
 
 	AbstractStmt s;
 
@@ -1427,6 +1537,7 @@ const CompiledStmt AbstractMachine::CompileEvent(EventHandler* h,
 
 	AddStmt(AbstractStmt(OP_TRANSFORM_VAL_VEC_TO_LIST_VAL_VVV,
 				build_indices, build_indices, len));
+	TopStmt().op_type = OP_VVV_I3;
 
 	AbstractStmt s(OP_EVENT_HL, build_indices);
 	s.event_handler = h;
@@ -1458,12 +1569,14 @@ CompiledStmt AbstractMachine::GenGoTo(vector<int>& v)
 CompiledStmt AbstractMachine::GoTo()
 	{
 	AbstractStmt s(OP_GOTO_V, 0);
+	s.op_type = OP_V_I1;
 	return AddStmt(s);
 	}
 
 CompiledStmt AbstractMachine::GoTo(const CompiledStmt s)
 	{
 	AbstractStmt stmt(OP_GOTO_V, s.stmt_num - 1);
+	stmt.op_type = OP_V_I1;
 	return AddStmt(stmt);
 	}
 
@@ -1487,6 +1600,11 @@ void AbstractMachine::SetV1(CompiledStmt s, const CompiledStmt s1)
 void AbstractMachine::SetV2(CompiledStmt s, const CompiledStmt s2)
 	{
 	stmts[s.stmt_num].v2 = s2.stmt_num;
+	}
+
+void AbstractMachine::SetV3(CompiledStmt s, const CompiledStmt s2)
+	{
+	stmts[s.stmt_num].v3 = s2.stmt_num;
 	}
 
 

@@ -588,15 +588,27 @@ eval ii->loop_var_types.push_back(s.t)
 internal-op Next-Table-Iter
 # v1 = iteration info
 # v2 = branch target if loop done
-# v3 = if >= 0, slot of the "ValueVar"
-type VVV
+type VV
 eval HashKey* k
 eval auto ii = frame[s.v1].iter_info
 eval TableEntryVal* current_tev = ii->loop_vals->NextEntry(k, ii->c)
 eval if ( ! current_tev ) { pc = s.v2; break; }
 eval auto ind_lv = ii->tv->RecoverIndex(k);
 eval delete k
-eval if ( s.v3 >= 0 ) frame[s.v3] = AS_ValUnion(current_tev->Value()->Ref(), ii->value_var_type)
+eval for ( int i = 0; i < ind_lv->Length(); i++ ) frame[ii->loop_vars[i]] = AS_ValUnion(ind_lv->Index(i)->Ref(), ii->loop_var_types[i])
+
+internal-op Next-Table-Iter-Val-Var
+# v1 = iteration info
+# v2 = slot of the "ValueVar"
+# v3 = branch target if loop done
+type VVV
+eval HashKey* k
+eval auto ii = frame[s.v1].iter_info
+eval TableEntryVal* current_tev = ii->loop_vals->NextEntry(k, ii->c)
+eval if ( ! current_tev ) { pc = s.v3; break; }
+eval auto ind_lv = ii->tv->RecoverIndex(k);
+eval delete k
+eval frame[s.v2] = AS_ValUnion(current_tev->Value()->Ref(), ii->value_var_type)
 eval for ( int i = 0; i < ind_lv->Length(); i++ ) frame[ii->loop_vars[i]] = AS_ValUnion(ind_lv->Index(i)->Ref(), ii->loop_var_types[i])
 
 internal-op Init-Vector-Loop
@@ -611,10 +623,10 @@ eval frame[s.v1].iter_info = ii
 internal-op Next-Vector-Iter
 type VVV
 eval auto ii = frame[s.v1].iter_info
-eval if ( ii->iter >= ii->n ) { pc = s.v2; break; }
+eval if ( ii->iter >= ii->n ) { pc = s.v3; break; }
 eval auto vv = ii->vv
 eval if ( ! vv->Lookup(ii->iter) ) { ++ii->iter; --pc; break; }
-eval frame[s.v3].uint_val = ii->iter
+eval frame[s.v2].uint_val = ii->iter
 eval ++ii->iter
 
 internal-op Init-String-Loop
@@ -630,11 +642,11 @@ internal-op Next-String-Iter
 type VVV
 eval auto ii = frame[s.v1].iter_info
 eval auto sval = ii->s
-eval if ( ii->iter >= ii->n ) { pc = s.v2; break; }
+eval if ( ii->iter >= ii->n ) { pc = s.v3; break; }
 eval auto bytes = (const char*) sval->Bytes() + ii->iter
 eval auto sv = new StringVal(1, bytes)
 ### memory
-eval frame[s.v3].string_val = new BroString(*sv->AsString())
+eval frame[s.v2].string_val = new BroString(*sv->AsString())
 eval delete sv
 eval ++ii->iter
 

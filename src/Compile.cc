@@ -544,7 +544,13 @@ void AbstractMachine::Init()
 
 	// Assign slots for locals (which includes temporaries).
 	for ( auto l : pf->locals )
-		(void) AddToFrame(l);
+		{
+		// ### should check for unused variables.
+		// Don't add locals that were already added because they're
+		// parameters.
+		if ( ! HasFrameSlot(l) )
+			(void) AddToFrame(l);
+		}
 	}
 
 void AbstractMachine::StmtDescribe(ODesc* d) const
@@ -1246,6 +1252,9 @@ int AbstractMachine::AddToFrame(const ID* id)
 
 void AbstractMachine::Dump()
 	{
+	for ( auto frame_elem : frame_layout )
+		printf("frame[%d] = %s\n", frame_elem.second, frame_elem.first->Name());
+
 	for ( int i = 0; i < stmts.size(); ++i )
 		{
 		printf("%d: ", i);
@@ -1501,6 +1510,11 @@ int AbstractMachine::FrameSlot(const ID* id)
 		reporter->InternalError("ID %s missing from frame layout", id->Name());
 
 	return id_slot->second;
+	}
+
+bool AbstractMachine::HasFrameSlot(const ID* id) const
+	{
+	return frame_layout.find(id) != frame_layout.end();
 	}
 
 int AbstractMachine::FrameSlot(const NameExpr* e)

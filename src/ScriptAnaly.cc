@@ -1481,7 +1481,7 @@ void analyze_func(function_ingredients& ingredients)
 		auto pf = pf_opt ? pf_opt : pf_red;
 		AbstractMachine am(ingredients, new_body, &ud, &rc, pf);
 		new_body->Compile(&am);
-		// am.Dump();
+		am.Dump();
 		}
 
 	if ( report_profile )

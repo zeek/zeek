@@ -250,6 +250,7 @@ protected:
 	int AddToFrame(const ID*);
 
 	int FrameSlot(const ID* id);
+	bool HasFrameSlot(const ID* id) const;
 
 	int NewSlot();
 	int RegisterSlot();

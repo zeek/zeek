@@ -27,12 +27,12 @@ refine connection SMB_Conn += {
 	function uint8s_to_stringval(data: uint8[]): StringVal
 		%{
 		int length = data->size();
-		uint8 buf[length];
+		std::unique_ptr<uint8[]> buf{new uint8[length]};
 
 		for ( int i = 0; i < length; ++i)
 			buf[i] = (*data)[i];
 
-		const bytestring bs = bytestring(buf, length);
+		const bytestring bs = bytestring(buf.get(), length);
 		return utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), bs);
 		%}
 
@@ -41,7 +41,7 @@ refine connection SMB_Conn += {
 		if ( s->unicode() == false )
 			{
 			int length = s->a()->size();
-			char buf[length];
+			std::unique_ptr<char[]> buf{new char[length]};
 
 			for ( int i = 0; i < length; i++)
 				{
@@ -52,7 +52,7 @@ refine connection SMB_Conn += {
 			if ( length > 0 && buf[length-1] == 0x00 )
 				length--;
 
-			return new StringVal(length, buf);
+			return new StringVal(length, buf.get());
 			}
 		else
 			{

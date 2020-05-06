@@ -453,6 +453,7 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 			is_var1, is_var2)
 	{
 	orig_op = op
+	orig_suffix = ""
 	gsub(/-/, "_", op)
 	upper_op = toupper(op)
 	op_type = op type
@@ -462,8 +463,13 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 	if ( sub_type1 && sub_type1 != "X" )
 		{
 		full_op = full_op "_" sub_type1
+		orig_suffix = "-" sub_type1
+
 		if ( sub_type2 != sub_type1 )
+			{
 			full_op = full_op sub_type2
+			orig_suffix = orig_suffix sub_type2
+			}
 		}
 
 	# Track whether this is the "representative" operand for
@@ -496,10 +502,10 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 		print ("\t" full_op vec ",") >ops_f
 
 	print ("\tcase " full_op ":\treturn \"" tolower(orig_op) \
-		"-" type "\";") >ops_names_f
+		"-" type orig_suffix "\";") >ops_names_f
 	if ( do_vec )
 		print ("\tcase " full_op vec ":\treturn \"" tolower(orig_op) \
-			"-" type "-vec" "\";") >ops_names_f
+			"-" type orig_suffix "-vec" "\";") >ops_names_f
 
 	if ( no_eval )
 		print ("\tcase " full_op ":\tbreak;") >ops_eval_f
@@ -777,17 +783,8 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 function build_method_conditional(o, n)
 	{
 	else_text = (n > 1) ? "else " : "";
-
-	if ( o == "I" || o == "U" )
-		{
-		print ("\t" else_text "if ( i_t == TYPE_INTERNAL_INT || i_t == TYPE_INTERNAL_UNSIGNED )") >methods_f
-		}
-
-	else
-		{
-		test = method_map[o]
-		print ("\t" else_text "if ( " test " )") >methods_f
-		}
+	test = method_map[o]
+	print ("\t" else_text "if ( " test " )") >methods_f
 	}
 
 function clear_vars()

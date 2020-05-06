@@ -460,8 +460,8 @@ FuncType::FuncType(IntrusivePtr<RecordType> arg_args,
 IntrusivePtr<BroType> FuncType::ShallowClone()
 	{
 	auto f = make_intrusive<FuncType>();
-	f->args = {NewRef{}, args->AsRecordType()};
-	f->arg_types = {NewRef{}, arg_types->AsTypeList()};
+	f->args = args;
+	f->arg_types = arg_types;
 	f->yield = yield;
 	f->flavor = flavor;
 	f->prototypes = prototypes;

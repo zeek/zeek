@@ -21,7 +21,7 @@ static void analyzer_del_func(void* v)
 AnalyzerSet::AnalyzerSet(File* arg_file) : file(arg_file)
 	{
 	auto t = make_intrusive<TypeList>();
-	t->Append({NewRef{}, file_mgr->GetTagEnumType()});
+	t->Append(file_mgr->GetTagType());
 	t->Append({NewRef{}, BifType::Record::Files::AnalyzerArgs});
 	analyzer_hash = new CompositeHash(std::move(t));
 	analyzer_map.SetDeleteFunc(analyzer_del_func);
@@ -164,7 +164,7 @@ bool AnalyzerSet::RemoveMod::Perform(AnalyzerSet* set)
 HashKey* AnalyzerSet::GetKey(const file_analysis::Tag& t, RecordVal* args) const
 	{
 	ListVal* lv = new ListVal(TYPE_ANY);
-	lv->Append({NewRef{}, t.AsEnumVal()});
+	lv->Append(t.AsVal());
 	lv->Append({NewRef{}, args});
 	HashKey* key = analyzer_hash->ComputeHash(lv, true);
 	Unref(lv);

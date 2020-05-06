@@ -137,6 +137,9 @@ Deprecated Functionality
   to associated ``Val`` type are now deprecated, the deprecation warning
   message will advice what new method to use instead.
 
+- Various methods of ``Tag`` classes are deprecated with the warning
+  message advising what new method to use instead.
+
 Zeek 3.1.0
 ==========
 

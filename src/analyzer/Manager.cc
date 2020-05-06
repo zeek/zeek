@@ -572,8 +572,9 @@ void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp,
 void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, PortVal* resp_p,
 			       Val* analyzer, double timeout)
 	{
-	EnumVal* ev = analyzer->AsEnumVal();
-	return ScheduleAnalyzer(orig, resp, resp_p->Port(), resp_p->PortType(), Tag(ev), timeout);
+	IntrusivePtr<EnumVal> ev{NewRef{}, analyzer->AsEnumVal()};
+	return ScheduleAnalyzer(orig, resp, resp_p->Port(), resp_p->PortType(),
+	                        Tag(std::move(ev)), timeout);
 	}
 
 Manager::tag_set Manager::GetScheduled(const Connection* conn)
@@ -624,8 +625,7 @@ bool Manager::ApplyScheduledAnalyzers(Connection* conn, bool init, TransportLaye
 
 		if ( scheduled_analyzer_applied )
 			conn->EnqueueEvent(scheduled_analyzer_applied, nullptr,
-			                   conn->ConnVal(),
-			                   IntrusivePtr{NewRef{}, it->AsEnumVal()});
+			                   conn->ConnVal(), it->AsVal());
 
 		DBG_ANALYZER_ARGS(conn, "activated %s analyzer as scheduled",
 		                  analyzer_mgr->GetComponentName(*it).c_str());

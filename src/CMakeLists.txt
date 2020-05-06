@@ -272,9 +272,6 @@ set(MAIN_SRCS
     IntSet.cc
     IP.cc
     IPAddr.cc
-    ReachingDefs.cc
-    Reporter.cc
-    Reduce.cc
     NFA.cc
     Net.cc
     NetVar.cc
@@ -289,7 +286,10 @@ set(MAIN_SRCS
     ProfileFunc.cc
     RandTest.cc
     RE.cc
+    ReachingDefs.cc
     Reassem.cc
+    Reporter.cc
+    Reduce.cc
     Rule.cc
     RuleAction.cc
     RuleCondition.cc
@@ -303,6 +303,7 @@ set(MAIN_SRCS
     Stats.cc
     Stmt.cc
     Tag.cc
+    TempVar.cc
     Timer.cc
     Traverse.cc
     Trigger.cc

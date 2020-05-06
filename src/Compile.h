@@ -92,6 +92,7 @@ protected:
 
 struct function_ingredients;
 class Func;
+class Body;
 class UseDefs;
 class ProfileFunc;
 class AbstractStmt;
@@ -99,8 +100,9 @@ union AS_ValUnion;
 
 class AbstractMachine : public Compiler {
 public:
-	AbstractMachine(function_ingredients& i, const UseDefs* ud,
-			const Reducer* rd, const ProfileFunc* pf);
+	AbstractMachine(function_ingredients& i, const Stmt* body,
+			const UseDefs* ud, const Reducer* rd,
+			const ProfileFunc* pf);
 	~AbstractMachine() override;
 
 	void FinishCompile();
@@ -162,9 +164,9 @@ public:
 
 	OpaqueVals* BuildVals(const IntrusivePtr<ListExpr>&) override;
 
-	int FrameSlot(const NameExpr* id);
-
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+
+	int FrameSlot(const NameExpr* id);
 
 	void StmtDescribe(ODesc* d) const override;
 
@@ -242,6 +244,11 @@ protected:
 
 	const CompiledStmt AddStmt(const AbstractStmt& stmt);
 
+	void LoadParam(ID* id);
+	void LoadGlobal(ID* id);
+
+	int AddToFrame(const ID*);
+
 	int FrameSlot(const ID* id);
 
 	int NewSlot();
@@ -257,11 +264,15 @@ protected:
 
 	function_ingredients& ingredients;
 	const BroFunc* func;
+	const Stmt* body;
 	const UseDefs* ud;
 	const Reducer* reducer;
 	const ProfileFunc* pf;
 
+	// Maps identifiers to their frame location.
+	std::unordered_map<const ID*, int> frame_layout;
 	int frame_size;
+	int register_slot;
 	bool error_seen = false;
 };
 

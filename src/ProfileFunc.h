@@ -9,8 +9,10 @@ public:
 	TraversalCode PreStmt(const Stmt*) override;
 	TraversalCode PreExpr(const Expr*) override;
 
-	// Globals seen in the function.
-	std::unordered_set<const ID*> globals;
+	// Globals seen in the function.  Non-const solely to support
+	// methods returning non-const values that can be Ref'd.  I.e.,
+	// this could all be IntrusivePtr-ified with enough elbow grease.
+	std::unordered_set<ID*> globals;
 
 	int num_stmts = 0;
 	int num_when_stmts = 0;

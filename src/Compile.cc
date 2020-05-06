@@ -6,6 +6,7 @@
 #include "Expr.h"
 #include "RE.h"
 #include "OpaqueVal.h"
+#include "Frame.h"
 #include "EventHandler.h"
 #include "Reduce.h"
 #include "UseDefs.h"
@@ -102,6 +103,9 @@ union AS_ValUnion {
 
 	// Used for managing "for" loops.
 	IterInfo* iter_info;
+
+	// Used for loading/spilling globals.
+	ID* id_val;
 };
 
 AS_ValUnion::AS_ValUnion(Val* v, BroType* t)
@@ -484,11 +488,13 @@ AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const NameExpr* v1,
 	}
 
 
-AbstractMachine::AbstractMachine(function_ingredients& i, const UseDefs* _ud,
-				const Reducer* _rd, const ProfileFunc* _pf)
+AbstractMachine::AbstractMachine(function_ingredients& i, const Stmt* _body,
+				const UseDefs* _ud, const Reducer* _rd,
+				const ProfileFunc* _pf)
 : ingredients(i)
 	{
 	func = ingredients.id->ID_Val()->AsFunc()->AsBroFunc();
+	body = _body;
 	ud = _ud;
 	reducer = _rd;
 	pf = _pf;
@@ -507,12 +513,34 @@ void AbstractMachine::FinishCompile()
 
 void AbstractMachine::Init()
 	{
-	auto scope_vars = reducer->FuncScope()->Vars();
-	for ( auto& v : scope_vars )
+	auto uds = ud->GetUsage(body);
+	auto args = func->FType()->Args();
+	auto nargs = args->NumFields();
+	auto scope = ingredients.scope.get();
+
+	// Use slot 0 for the temporary register.
+	register_slot = frame_size++;
+
+	::Ref(scope);
+	push_existing_scope(scope);
+
+	for ( int i = 0; i < nargs; ++i )
 		{
-		auto id = v.second;
-		printf("var name: %s, offset %d\n", id->Name(), id->Offset());
+		auto arg_name = args->FieldName(i);
+		auto mod = current_module.c_str();
+		auto arg_id = lookup_ID(arg_name, mod).get();
+		if ( uds && uds->HasID(arg_id) )
+			LoadParam(arg_id);
+		else
+			{
+			// printf("param %s unused\n", obj_desc(arg_id.get()));
+			}
 		}
+
+	pop_scope();
+
+	for ( auto g : pf->globals )
+		LoadGlobal(g);
 	}
 
 void AbstractMachine::StmtDescribe(ODesc* d) const
@@ -1189,6 +1217,29 @@ const CompiledStmt AbstractMachine::AddStmt(const AbstractStmt& stmt)
 	return CompiledStmt(stmts.size());
 	}
 
+void AbstractMachine::LoadParam(ID* id)
+	{
+	int slot = AddToFrame(id);
+	AbstractStmt s(OP_LOAD_VAL_VV, slot, id->Offset());
+	s.t = id->Type();
+	(void) AddStmt(s);
+	}
+
+void AbstractMachine::LoadGlobal(ID* id)
+	{
+	int slot = AddToFrame(id);
+	AbstractStmt s(OP_LOAD_GLOBAL_VC, slot);
+	s.c.id_val = id;
+	s.t = id->Type();
+	(void) AddStmt(s);
+	}
+
+int AbstractMachine::AddToFrame(const ID* id)
+	{
+	frame_layout[id] = frame_size;
+	return frame_size++;
+	}
+
 void AbstractMachine::Dump()
 	{
 	for ( int i = 0; i < stmts.size(); ++i )
@@ -1440,8 +1491,12 @@ ListVal* AbstractMachine::ValVecToListVal(val_vec* v, int n) const
 
 int AbstractMachine::FrameSlot(const ID* id)
 	{
-	// ###
-	return 0;
+	auto id_slot = frame_layout.find(id);
+
+	if ( id_slot == frame_layout.end() )
+		reporter->InternalError("ID %s missing from frame layout", id->Name());
+
+	return id_slot->second;
 	}
 
 int AbstractMachine::FrameSlot(const NameExpr* e)
@@ -1451,14 +1506,12 @@ int AbstractMachine::FrameSlot(const NameExpr* e)
 
 int AbstractMachine::NewSlot()
 	{
-	// ###
-	return 0;
+	return frame_size++;
 	}
 
 int AbstractMachine::RegisterSlot()
 	{
-	// ###
-	return 0;
+	return register_slot;
 	}
 
 

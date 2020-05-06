@@ -49,9 +49,9 @@ public:
 	 *
 	 * @param n the index to set
 	 * @param v the value to set it to
-	 * @param weak_ref whether the frame owns the value and should unref
-	 * it upon destruction.  Used to break circular references between
-	 * lambda functions and closure frames.
+	 * @param weak_ref if false, the frame owns the value and should unref
+	 * it upon destruction.  If true, it does not unref it.  Used to break
+	 * circular references between lambda functions and closure frames.
 	 */
 	void SetElement(int n, Val* v, bool weak_ref = false);
 

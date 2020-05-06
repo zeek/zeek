@@ -736,6 +736,25 @@ eval frame[s.v1].table_val = new TableVal(tt, attrs)
 # Internal
 ########################################
 
+internal-op Load-Val
+type VV
+eval frame[s.v1] = AS_ValUnion(f->NthElement(s.v2), s.t)
+
+internal-op Load-Global
+type VC
+eval frame[s.v1] = AS_ValUnion(s.c.id_val->ID_Val(), s.t)
+
+internal-op Set-Val
+type VV
+eval auto v = frame[s.v1].ToVal(s.t)
+eval f->SetElement(s.v2, v.release())
+
+internal-op Set-Global
+type VC
+### memory
+eval IntrusivePtr<Val> v = frame[s.v1].ToVal(s.t)
+eval s.c.id_val->SetVal(v)
+
 # Initializes a new value vector.  We now do this dynamically, but at same
 # point we could switch it to a static vector since we'll only have one of
 # these at at time.

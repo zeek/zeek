@@ -189,8 +189,6 @@ private:
 	alignas(32) inline static uint64_t shared_highwayhash_key[4];
 	// actually HHKey. This key is installation specific and sourced from the digest_salt script-level const.
 	alignas(32) inline static uint64_t cluster_highwayhash_key[4];
-	// actually HH_U64, which has the same type. This key changes each start (unless a seed is specified)
-	alignas(16) inline static unsigned long long shared_siphash_key[2];
 	// This key changes each start (unless a seed is specified)
 	inline static uint8_t shared_hmac_md5_key[16];
 	inline static bool seeds_initialized = false;

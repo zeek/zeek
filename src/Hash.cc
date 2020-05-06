@@ -9,7 +9,6 @@
 #include "Val.h" // needed for const.bif
 #include "const.bif.netvar_h"
 
-#include "highwayhash/sip_hash.h"
 #include "highwayhash/highwayhash_target.h"
 #include "highwayhash/instruction_sets.h"
 
@@ -20,7 +19,6 @@ static_assert(std::is_same<hash256_t, highwayhash::HHResult256>::value, "Highway
 
 void KeyedHash::InitializeSeeds(const std::array<uint32_t, SEED_INIT_SIZE>& seed_data)
 	{
-	static_assert(std::is_same<decltype(KeyedHash::shared_siphash_key), highwayhash::SipHashState::Key>::value, "Highwayhash Key is not unsigned long long[2]");
 	static_assert(std::is_same<decltype(KeyedHash::shared_highwayhash_key), highwayhash::HHKey>::value, "Highwayhash HHKey is not uint64_t[4]");
 	if ( seeds_initialized )
 		return;
@@ -33,7 +31,10 @@ void KeyedHash::InitializeSeeds(const std::array<uint32_t, SEED_INIT_SIZE>& seed
 	// should not reveal any information about their initialization vector.
 	static_assert(sizeof(shared_highwayhash_key) == SHA256_DIGEST_LENGTH);
 	calculate_digest(Hash_SHA256, (const u_char*) seed_data.data(), sizeof(seed_data) - 16, reinterpret_cast<unsigned char*>(shared_highwayhash_key));
-	memcpy(shared_siphash_key, reinterpret_cast<const char*>(seed_data.data()) + 64, 16);
+
+	// The last 16 bytes were used for siphash in the past. We are not using siphash anymore - so they are
+	// unused for now.
+	//memcpy(shared_siphash_key, reinterpret_cast<const char*>(seed_data.data()) + 64, 16);
 
 	seeds_initialized = true;
 	}
@@ -45,7 +46,9 @@ void KeyedHash::InitOptions()
 
 hash64_t KeyedHash::Hash64(const void* bytes, uint64_t size)
 	{
-	return highwayhash::SipHash(shared_siphash_key, reinterpret_cast<const char *>(bytes), size);
+	hash64_t result;
+	highwayhash::InstructionSets::Run<highwayhash::HighwayHash>(shared_highwayhash_key, reinterpret_cast<const char *>(bytes), size, &result);
+	return result;
 	}
 
 void KeyedHash::Hash128(const void* bytes, uint64_t size, hash128_t* result)

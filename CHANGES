@@ -1,4 +1,22 @@
 
+3.1.3 | 2020-05-06 11:51:47 -0700
+
+  * Release 3.1.3.
+
+3.1.3-dev.14 | 2020-05-06 11:49:58 -0700
+
+  * Ensure time continues moving forward if a pcap source is suspended
+    (Tim Wojtulewicz, Corelight)
+
+  * GH-938: fix IO loop iterations sometimes skipping offline pcap sources
+    (Jon Siwek, Corelight)
+
+  * Fix potential stack overflow from Variable-Length-Array usages (Jon Siwek, Corelight)
+
+  * Fix global buffer over-read in POP3 analyzer (Justin Azoff, Corelight)
+
+  * Fix SSL scripting error leading to access of unitialized field (Jon Siwek, Corelight)
+
 3.1.3-dev.8 | 2020-04-30 10:18:59 -0700
 
   * Update Broker submodule (Jon Siwek, Corelight)

@@ -613,9 +613,9 @@ HTTP_Message::~HTTP_Message()
 	delete [] entity_data_buffer;
 	}
 
-Val* HTTP_Message::BuildMessageStat(bool interrupted, const char* msg)
+IntrusivePtr<RecordVal> HTTP_Message::BuildMessageStat(bool interrupted, const char* msg)
 	{
-	RecordVal* stat = new RecordVal(http_message_stat);
+	auto stat = make_intrusive<RecordVal>(http_message_stat);
 	int field = 0;
 	stat->Assign(field++, make_intrusive<Val>(start_time, TYPE_TIME));
 	stat->Assign(field++, val_mgr->Bool(interrupted));
@@ -652,7 +652,7 @@ void HTTP_Message::Done(bool interrupted, const char* detail)
 		GetAnalyzer()->EnqueueConnEvent(http_message_done,
 			analyzer->ConnVal(),
 			val_mgr->Bool(is_orig),
-			IntrusivePtr{AdoptRef{}, BuildMessageStat(interrupted, detail)}
+			BuildMessageStat(interrupted, detail)
 		);
 
 	MyHTTP_Analyzer()->HTTP_MessageDone(is_orig, this);
@@ -737,21 +737,16 @@ void HTTP_Message::SubmitAllHeaders(mime::MIME_HeaderList& hlist)
 		analyzer->EnqueueConnEvent(http_all_headers,
 			analyzer->ConnVal(),
 			val_mgr->Bool(is_orig),
-			IntrusivePtr{AdoptRef{}, BuildHeaderTable(hlist)}
+			BuildHeaderTable(hlist)
 		);
 
 	if ( http_content_type )
-		{
-		StringVal* ty = current_entity->ContentType();
-		StringVal* subty = current_entity->ContentSubType();
-
 		analyzer->EnqueueConnEvent(http_content_type,
 			analyzer->ConnVal(),
 			val_mgr->Bool(is_orig),
-			IntrusivePtr{NewRef{}, ty},
-			IntrusivePtr{NewRef{}, subty}
+			current_entity->ContentType(),
+			current_entity->ContentSubType()
 		);
-		}
 	}
 
 void HTTP_Message::SubmitTrailingHeaders(mime::MIME_HeaderList& /* hlist */)
@@ -842,12 +837,9 @@ HTTP_Analyzer::HTTP_Analyzer(Connection* conn)
 	reply_state = EXPECT_REPLY_LINE;
 
 	request_ongoing = 0;
-	request_method = request_URI = nullptr;
-	unescaped_URI = nullptr;
 
 	reply_ongoing = 0;
 	reply_code = 0;
-	reply_reason_phrase = nullptr;
 
 	connect_request = false;
 	pia = nullptr;
@@ -861,14 +853,6 @@ HTTP_Analyzer::HTTP_Analyzer(Connection* conn)
 	content_line_resp = new tcp::ContentLine_Analyzer(conn, false);
 	content_line_resp->SetSkipPartial(true);
 	AddSupportAnalyzer(content_line_resp);
-	}
-
-HTTP_Analyzer::~HTTP_Analyzer()
-	{
-	Unref(request_method);
-	Unref(request_URI);
-	Unref(unescaped_URI);
-	Unref(reply_reason_phrase);
 	}
 
 void HTTP_Analyzer::Done()
@@ -889,11 +873,7 @@ void HTTP_Analyzer::Done()
 
 	GenStats();
 
-	while ( ! unanswered_requests.empty() )
-		{
-		Unref(unanswered_requests.front());
-		unanswered_requests.pop();
-		}
+	unanswered_requests = {};
 
 	file_mgr->EndOfFile(GetAnalyzerTag(), Conn(), true);
 
@@ -970,7 +950,7 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 
 				request_state = EXPECT_REQUEST_MESSAGE;
 				request_ongoing = 1;
-				unanswered_requests.push(request_method->Ref());
+				unanswered_requests.push(request_method);
 				HTTP_Request();
 				InitHTTPMessage(content_line, request_message,
 						is_orig, HTTP_BODY_MAYBE, len);
@@ -1260,7 +1240,7 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 		return -1;
 		}
 
-	request_method = new StringVal(end_of_method - line, line);
+	request_method = make_intrusive<StringVal>(end_of_method - line, line);
 
 	Conn()->Match(Rule::HTTP_REQUEST,
 			(const u_char*) unescaped_URI->AsString()->Bytes(),
@@ -1330,9 +1310,9 @@ bool HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line)
 
 	// NormalizeURI(line, end_of_uri);
 
-	request_URI = new StringVal(end_of_uri - line, line);
-	unescaped_URI = new StringVal(unescape_URI((const u_char*) line,
-					(const u_char*) end_of_uri, this));
+	request_URI = make_intrusive<StringVal>(end_of_uri - line, line);
+	unescaped_URI = make_intrusive<StringVal>(
+	    unescape_URI((const u_char*) line, (const u_char*) end_of_uri, this));
 
 	return true;
 	}
@@ -1351,7 +1331,7 @@ HTTP_Analyzer::HTTP_VersionNumber HTTP_Analyzer::HTTP_Version(int len, const cha
 		}
 	else
 		{
-	        HTTP_Event("bad_HTTP_version", mime::new_string_val(len, data));
+		HTTP_Event("bad_HTTP_version", mime::new_string_val(len, data));
 		return {};
 		}
 	}
@@ -1370,23 +1350,21 @@ void HTTP_Analyzer::SetVersion(HTTP_VersionNumber* version, HTTP_VersionNumber n
 
 void HTTP_Analyzer::HTTP_Event(const char* category, const char* detail)
 	{
-	HTTP_Event(category, new StringVal(detail));
+	HTTP_Event(category, make_intrusive<StringVal>(detail));
 	}
 
-void HTTP_Analyzer::HTTP_Event(const char* category, StringVal* detail)
+void HTTP_Analyzer::HTTP_Event(const char* category, IntrusivePtr<StringVal> detail)
 	{
 	if ( http_event )
 		// DEBUG_MSG("%.6f http_event\n", network_time);
 		EnqueueConnEvent(http_event,
 			ConnVal(),
 			make_intrusive<StringVal>(category),
-			IntrusivePtr{AdoptRef{}, detail}
-		);
-	else
-		Unref(detail);
+			std::move(detail));
 	}
 
-StringVal* HTTP_Analyzer::TruncateURI(StringVal* uri)
+IntrusivePtr<StringVal>
+HTTP_Analyzer::TruncateURI(const IntrusivePtr<StringVal>& uri)
 	{
 	const BroString* str = uri->AsString();
 
@@ -1395,13 +1373,10 @@ StringVal* HTTP_Analyzer::TruncateURI(StringVal* uri)
 		u_char* s = new u_char[truncate_http_URI + 4];
 		memcpy(s, str->Bytes(), truncate_http_URI);
 		memcpy(s + truncate_http_URI, "...", 4);
-		return new StringVal(new BroString(true, s, truncate_http_URI+3));
+		return make_intrusive<StringVal>(new BroString(true, s, truncate_http_URI+3));
 		}
 	else
-		{
-		Ref(uri);
 		return uri;
-		}
 	}
 
 void HTTP_Analyzer::HTTP_Request()
@@ -1418,9 +1393,9 @@ void HTTP_Analyzer::HTTP_Request()
 		// DEBUG_MSG("%.6f http_request\n", network_time);
 		EnqueueConnEvent(http_request,
 			ConnVal(),
-			IntrusivePtr{NewRef{}, request_method},
-			IntrusivePtr{AdoptRef{}, TruncateURI(request_URI->AsStringVal())},
-			IntrusivePtr{AdoptRef{}, TruncateURI(unescaped_URI->AsStringVal())},
+			request_method,
+			TruncateURI(request_URI),
+			TruncateURI(unescaped_URI),
 			make_intrusive<StringVal>(fmt("%.1f", request_version.ToDouble()))
 		);
 	}
@@ -1433,14 +1408,11 @@ void HTTP_Analyzer::HTTP_Reply()
 			make_intrusive<StringVal>(fmt("%.1f", reply_version.ToDouble())),
 			val_mgr->Count(reply_code),
 			reply_reason_phrase ?
-				IntrusivePtr{NewRef{}, reply_reason_phrase} :
+				reply_reason_phrase :
 				make_intrusive<StringVal>("<empty>")
 		);
 	else
-		{
-		Unref(reply_reason_phrase);
 		reply_reason_phrase = nullptr;
-		}
 	}
 
 void HTTP_Analyzer::RequestMade(bool interrupted, const char* msg)
@@ -1455,11 +1427,9 @@ void HTTP_Analyzer::RequestMade(bool interrupted, const char* msg)
 
 	// DEBUG_MSG("%.6f request made\n", network_time);
 
-	Unref(request_method);
-	Unref(unescaped_URI);
-	Unref(request_URI);
-
-	request_method = request_URI = unescaped_URI = nullptr;
+	request_method = nullptr;
+	unescaped_URI = nullptr;
+	request_URI = nullptr;
 
 	num_request_lines = 0;
 
@@ -1484,16 +1454,10 @@ void HTTP_Analyzer::ReplyMade(bool interrupted, const char* msg)
 	// 1xx replies do not indicate the final response to a request,
 	// so don't pop an unanswered request in that case.
 	if ( (reply_code < 100 || reply_code >= 200) && ! unanswered_requests.empty() )
-		{
-		Unref(unanswered_requests.front());
 		unanswered_requests.pop();
-		}
 
 	if ( reply_reason_phrase )
-		{
-		Unref(reply_reason_phrase);
 		reply_reason_phrase = nullptr;
-		}
 
 	// unanswered requests = 1 because there is no pop after 101.
 	if ( reply_code == 101 && unanswered_requests.size() == 1 && upgrade_connection &&
@@ -1585,7 +1549,7 @@ int HTTP_Analyzer::HTTP_ReplyLine(const char* line, const char* end_of_line)
 
 	rest = skip_whitespace(rest, end_of_line);
 	reply_reason_phrase =
-		new StringVal(end_of_line - rest, (const char *) rest);
+	    make_intrusive<StringVal>(end_of_line - rest, (const char *) rest);
 
 	return 1;
 	}
@@ -1669,12 +1633,15 @@ void HTTP_Analyzer::HTTP_Header(bool is_orig, mime::MIME_Header* h)
 		if ( DEBUG_http )
 			DEBUG_MSG("%.6f http_header\n", network_time);
 
+		auto upper_hn = mime::new_string_val(h->get_name());
+		upper_hn->ToUpper();
+
 		EnqueueConnEvent(http_header,
 			ConnVal(),
 			val_mgr->Bool(is_orig),
-			IntrusivePtr{AdoptRef{}, mime::new_string_val(h->get_name())},
-			IntrusivePtr{AdoptRef{}, mime::new_string_val(h->get_name())->ToUpper()},
-			IntrusivePtr{AdoptRef{}, mime::new_string_val(h->get_value())}
+			mime::new_string_val(h->get_name()),
+			std::move(upper_hn),
+			mime::new_string_val(h->get_value())
 		);
 		}
 	}

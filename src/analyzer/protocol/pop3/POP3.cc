@@ -868,7 +868,7 @@ int POP3_Analyzer::ParseCmd(string cmd)
 	if ( cmd.size() == 0 )
 		return -1;
 
-	for ( int code = POP3_CMD_OK; code <= POP3_CMD_END; ++code )
+	for ( int code = POP3_CMD_OK; code < POP3_CMD_END; ++code )
 		{
 		char c = cmd.c_str()[0];
 		if ( c == '+' || c == '-' )

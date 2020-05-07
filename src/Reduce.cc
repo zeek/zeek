@@ -29,26 +29,6 @@ IntrusivePtr<Expr> Reducer::GenTemporaryExpr(const IntrusivePtr<BroType>& t,
 	return {AdoptRef{}, new NameExpr(GenTemporary(t, rhs))};
 	}
 
-bool Reducer::SameDPs(const DefPoints* dp1, const DefPoints* dp2) const
-	{
-	if ( dp1 == dp2 )
-		return true;
-
-	if ( ! dp1 || ! dp2 )
-		return false;
-
-	// Given how we construct DPs, they should be element-by-element
-	// equivalent; we don't have to worry about reordering.
-	if ( dp1->length() != dp2->length() )
-		return false;
-
-	for ( auto i = 0; i < dp1->length(); ++i )
-		if ( ! (*dp1)[i].SameAs((*dp2)[i]) )
-			return false;
-
-	return true;
-	}
-
 bool Reducer::SameVal(const Val* v1, const Val* v2) const
 	{
 	if ( is_atomic_val(v1) )
@@ -125,7 +105,7 @@ bool Reducer::SameOp(const Expr* op1, const Expr* op2)
 		auto op1_dps = GetDefPoints(op1_n);
 		auto op2_dps = GetDefPoints(op2_n);
 
-		return SameDPs(op1_dps, op2_dps);
+		return same_DPs(op1_dps, op2_dps);
 		}
 
 	else if ( op1->Tag() == EXPR_CONST )
@@ -379,7 +359,7 @@ bool Reducer::IsCSE(const AssignExpr* a,
 		// Track where we define the temporary.
 		auto lhs_di = mgr->GetConstID_DI(lhs_id);
 		auto dps = a_max_rds->GetDefPoints(lhs_di);
-		if ( lhs_tmp->DPs() && ! SameDPs(lhs_tmp->DPs(), dps) )
+		if ( lhs_tmp->DPs() && ! same_DPs(lhs_tmp->DPs(), dps) )
 			reporter->InternalError("double DPs for temporary");
 
 		lhs_tmp->SetDPs(dps);
@@ -547,7 +527,7 @@ IntrusivePtr<Expr> Reducer::UpdateExpr(IntrusivePtr<Expr> e)
 		auto alias_di = mgr->GetConstID_DI(alias.get());
 		auto alias_dps = e_max_rds->GetDefPoints(alias_di);
 
-		if ( SameDPs(alias_dps, tmp_var->DPs()) )
+		if ( same_DPs(alias_dps, tmp_var->DPs()) )
 			return NewVarUsage(alias, alias_dps, e.get());
 		else
 			{
@@ -650,6 +630,27 @@ TempVar* Reducer::FindTemporary(const ID* id) const
 		return nullptr;
 	else
 		return tmp->second;
+	}
+
+
+bool same_DPs(const DefPoints* dp1, const DefPoints* dp2)
+	{
+	if ( dp1 == dp2 )
+		return true;
+
+	if ( ! dp1 || ! dp2 )
+		return false;
+
+	// Given how we construct DPs, they should be element-by-element
+	// equivalent; we don't have to worry about reordering.
+	if ( dp1->length() != dp2->length() )
+		return false;
+
+	for ( auto i = 0; i < dp1->length(); ++i )
+		if ( ! (*dp1)[i].SameAs((*dp2)[i]) )
+			return false;
+
+	return true;
 	}
 
 

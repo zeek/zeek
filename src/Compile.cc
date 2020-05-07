@@ -396,12 +396,12 @@ const char* AbstractStmt::VName(int max_n, int n, const frame_map& frame_ids) co
 	int slot = n == 1 ? v1 : (n == 2 ? v2 : (n == 3 ? v3 : v4));
 
 	if ( slot == 0 )
-		return "<reg0>";
+		return copy_string("<reg0>");
 
 	if ( slot > frame_ids.size() )
-		return "extra-slot";
+		return copy_string(fmt("extra-slot %d", slot));
 
-	return frame_ids[slot]->Name();
+	return copy_string(fmt("%d (%s)", slot, frame_ids[slot]->Name()));
 	}
 
 void AbstractStmt::Dump(const frame_map& frame_ids) const
@@ -485,6 +485,11 @@ void AbstractStmt::Dump(const frame_map& frame_ids) const
 	}
 
 	printf("\n");
+
+	delete id1;
+	delete id2;
+	delete id3;
+	delete id4;
 	}
 
 const char* AbstractStmt::ConstDump() const
@@ -587,13 +592,13 @@ AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const NameExpr* v1,
 	}
 
 
-AbstractMachine::AbstractMachine(function_ingredients& i, const Stmt* _body,
-				const UseDefs* _ud, const Reducer* _rd,
-				const ProfileFunc* _pf)
+AbstractMachine::AbstractMachine(function_ingredients& i, Stmt* _body,
+				UseDefs* _ud, Reducer* _rd, ProfileFunc* _pf)
 : ingredients(i)
 	{
 	func = ingredients.id->ID_Val()->AsFunc()->AsBroFunc();
 	body = _body;
+	body->Ref();
 	ud = _ud;
 	reducer = _rd;
 	pf = _pf;
@@ -604,12 +609,20 @@ AbstractMachine::AbstractMachine(function_ingredients& i, const Stmt* _body,
 
 AbstractMachine::~AbstractMachine()
 	{
+	Unref(body);
+	delete ud;
+	delete reducer;
+	delete pf;
 	}
 
 Stmt* AbstractMachine::CompileBody()
 	{
 	curr_stmt = nullptr;
 	(void) body->Compile(this);
+
+	if ( LastStmt()->Tag() != STMT_RETURN )
+		SyncGlobals(nullptr);
+
 	return this;
 	}
 
@@ -694,12 +707,15 @@ IntrusivePtr<Val> AbstractMachine::DoExec(Frame* f, int start_pc,
 						stmt_flow_type& flow) const
 	{
 	auto frame = new AS_ValUnion[frame_size];
-	const AS_ValUnion* ret_u;
-	Val* ret_v;
-	BroType* ret_type;
 	int pc = start_pc;
 	bool error_flag = false;
 	int end_pc = stmts.size();
+
+	// Return value, or nil if none.
+	const AS_ValUnion* ret_u;
+
+	// Type of the return value.  Only needed if ret_u is set.
+	BroType* ret_type;
 
 	while ( pc < end_pc && ! error_flag ) {
 		auto& s = stmts[pc];
@@ -1353,19 +1369,33 @@ AbstractStmt& AbstractMachine::TopStmt()
 	return stmts.back();
 	}
 
-void AbstractMachine::LoadParam(ID* id)
+const Stmt* AbstractMachine::LastStmt() const
 	{
-	int slot = AddToFrame(id);
-	AbstractStmt s(OP_LOAD_VAL_VV, slot, id->Offset());
+	if ( body->Tag() == STMT_LIST )
+		{
+		auto sl = body->AsStmtList()->Stmts();
+		return sl[sl.length() - 1];
+		}
+
+	else
+		return body;
+	}
+
+void AbstractMachine::LoadOrStoreParam(ID* id, bool is_load)
+	{
+	auto op = is_load ? OP_LOAD_VAL_VV : OP_STORE_VAL_VV;
+	int slot = is_load ? AddToFrame(id) : FrameSlot(id);
+	AbstractStmt s(op, slot, id->Offset());
 	s.t = id->Type();
 	s.op_type = OP_VV_FRAME;
 	(void) AddStmt(s);
 	}
 
-void AbstractMachine::LoadGlobal(ID* id)
+void AbstractMachine::LoadOrStoreGlobal(ID* id, bool is_load)
 	{
-	int slot = AddToFrame(id);
-	AbstractStmt s(OP_LOAD_GLOBAL_VC, slot);
+	auto op = is_load ? OP_LOAD_GLOBAL_VC : OP_STORE_GLOBAL_VC;
+	int slot = is_load ? AddToFrame(id) : FrameSlot(id);
+	AbstractStmt s(op, slot);
 	s.c.id_val = id;
 	s.t = id->Type();
 	s.op_type = OP_VC_ID;
@@ -1567,9 +1597,34 @@ const CompiledStmt AbstractMachine::CompileEvent(EventHandler* h,
 	return AddStmt(s);
 	}
 
-void AbstractMachine::SyncGlobals()
+void AbstractMachine::SyncGlobals(const Stmt* stmt)
 	{
-	// ###
+	auto mgr = reducer->GetDefSetsMgr();
+
+	RD_ptr rds;
+
+	if ( stmt )
+		rds = mgr->GetPreMaxRDs(stmt);
+	else
+		// Use the *post* RDs from the last statement in the
+		// function body.
+		rds = mgr->GetPostMaxRDs(LastStmt());
+
+	// (Could cache the upon-entry DPs for globals for a modest
+	// speed gain.)
+	auto entry_rds = mgr->GetPreMaxRDs(body);
+
+	for ( auto g : pf->globals )
+		{
+		printf("sync for global %s: ", g->Name());
+
+		auto di = mgr->GetConstID_DI(g);
+		auto entry_dps = entry_rds->GetDefPoints(di);
+		auto stmt_dps = rds->GetDefPoints(di);
+
+		if ( ! same_DPs(entry_dps, stmt_dps) )
+			StoreGlobal(g);
+		}
 	}
 
 void AbstractMachine::ResolveGoTos(vector<int>& gotos, const CompiledStmt s)

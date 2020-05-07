@@ -2037,6 +2037,7 @@ Stmt* ReturnStmt::DoReduce(Reducer* c)
 const CompiledStmt ReturnStmt::Compile(Compiler* c) const
 	{
 	c->SetCurrStmt(this);
+	c->SyncGlobals(this);
 
 	if ( e )
 		{

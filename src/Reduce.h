@@ -14,6 +14,7 @@ public:
 	Reducer(Scope* s);
 	~Reducer();
 
+	const DefSetsMgr* GetDefSetsMgr() const	{ return mgr; }
 	void SetDefSetsMgr(const DefSetsMgr* _mgr)	{ mgr = _mgr; }
 
 	IntrusivePtr<Expr> GenTemporaryExpr(const IntrusivePtr<BroType>& t,
@@ -64,7 +65,6 @@ public:
 	const Scope* FuncScope() const	{ return scope; }
 
 protected:
-	bool SameDPs(const DefPoints* dp1, const DefPoints* dp2) const;
 	bool SameVal(const Val* v1, const Val* v2) const;
 
 	IntrusivePtr<Expr> NewVarUsage(IntrusivePtr<ID> var,
@@ -129,6 +129,8 @@ protected:
 
 	const DefSetsMgr* mgr;
 };
+
+extern bool same_DPs(const DefPoints* dp1, const DefPoints* dp2);
 
 // Used for debugging, to communicate which expression wasn't
 // reduced when we expected them all to be.

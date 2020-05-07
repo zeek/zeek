@@ -482,14 +482,12 @@ type VVi
 set-type $2
 eval auto v = frame[s.v2].ToVal(s.t)
 eval frame[s.v1].record_val->Assign(s.v3, v)
-method-pre	SyncGlobals()
 
 op Field-LHS-Assign
 type VCi
 set-type $2
 eval auto v = s.c.ToVal(s.t)
 eval frame[s.v1].record_val->Assign(s.v2, v)
-method-pre	SyncGlobals()
 
 ########## General Statements ##########
 
@@ -524,21 +522,18 @@ op Return
 type X
 eval ret_u = nullptr
 eval pc = end_pc
-method-pre	SyncGlobals()
 
 op Return
 type V
 eval ret_u = &frame[s.v1]
 eval ret_type = s.t
 eval pc = end_pc
-method-pre	SyncGlobals()
 
 op Return
 type C
 eval ret_u = &s.c
 eval ret_type = s.t
 eval pc = end_pc
-method-pre	SyncGlobals()
 
 
 internal-op Branch-If-Not-Type
@@ -759,12 +754,12 @@ internal-op Load-Global
 type VC
 eval frame[s.v1] = AS_ValUnion(s.c.id_val->ID_Val(), s.t, s.c.id_val, error_flag)
 
-internal-op Set-Val
+internal-op Store-Val
 type VV
 eval auto v = frame[s.v1].ToVal(s.t)
 eval f->SetElement(s.v2, v.release())
 
-internal-op Set-Global
+internal-op Store-Global
 type VC
 ### memory
 eval IntrusivePtr<Val> v = frame[s.v1].ToVal(s.t)

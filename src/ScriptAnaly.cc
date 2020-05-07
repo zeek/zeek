@@ -1408,10 +1408,10 @@ void analyze_func(function_ingredients& ingredients)
 	if ( only_func )
 		printf("Original: %s\n", obj_desc(body));
 
-	ProfileFunc* pf_orig = new ProfileFunc;
-	f->Traverse(pf_orig);
+	ProfileFunc pf_orig;
+	f->Traverse(&pf_orig);
 
-	if ( pf_orig->num_when_stmts > 0 || pf_orig->num_lambdas > 0 )
+	if ( pf_orig.num_when_stmts > 0 || pf_orig.num_lambdas > 0 )
 		{
 		if ( only_func )
 			printf("Skipping analysis due to \"when\" statement or use of lambdas\n");
@@ -1420,9 +1420,9 @@ void analyze_func(function_ingredients& ingredients)
 
 	push_scope(id, nullptr);
 
-	Reducer rc(f->GetScope());
+	auto rc = new Reducer(f->GetScope());
 
-	auto new_body = body->Reduce(&rc);
+	auto new_body = body->Reduce(rc);
 
 	non_reduced_perp = nullptr;
 	checking_reduction = true;
@@ -1438,75 +1438,58 @@ void analyze_func(function_ingredients& ingredients)
 	IntrusivePtr<Stmt> new_body_ptr = {AdoptRef{}, new_body};
 
 	f->ReplaceBody(body_ptr, new_body_ptr);
-	f->GrowFrameSize(rc.NumTemps());
+	f->GrowFrameSize(rc->NumTemps());
 
 	ProfileFunc* pf_red = new ProfileFunc;
 	f->Traverse(pf_red);
 
-	ProfileFunc* pf_opt = nullptr;
+	auto cb = new RD_Decorate(pf_red);
+	f->Traverse(cb);
 
-	RD_Decorate cb(pf_red);
-	f->Traverse(&cb);
-
-	rc.SetDefSetsMgr(cb.GetDefSetsMgr());
+	rc->SetDefSetsMgr(cb->GetDefSetsMgr());
 
 	if ( optimize )
 		{
+		// ### update RDs, profile
 		body_ptr = new_body_ptr;
-		new_body = new_body->Reduce(&rc);
+		new_body = new_body->Reduce(rc);
 		new_body_ptr = {AdoptRef{}, new_body};
 
 		if ( only_func )
 			printf("Optimized: %s\n", obj_desc(new_body));
 
 		f->ReplaceBody(body_ptr, new_body_ptr);
-
-		if ( report_profile )
-			{
-			pf_opt = new ProfileFunc;
-			f->Traverse(pf_opt);
-			}
 		}
 
-	UseDefs ud(new_body, &rc);
-	ud.Analyze();
+	auto ud = new UseDefs(new_body, rc);
+	ud->Analyze();
 
 	if ( ud_dump )
-		ud.Dump();
+		ud->Dump();
 
-	ud.RemoveUnused();
+	ud->RemoveUnused();
 
 	if ( compile )
 		{
-		auto pf = pf_opt ? pf_opt : pf_red;
 		body_ptr = new_body_ptr;
 		auto am = new AbstractMachine(ingredients, new_body,
-						&ud, &rc, pf);
+						ud, rc, pf_red);
 		new_body = am->CompileBody();
 		am->Dump();
 
 		new_body_ptr = {AdoptRef{}, new_body};
 		f->ReplaceBody(body_ptr, new_body_ptr);
+
+		// ### For now, we leak cb.
 		}
 
-	if ( report_profile )
+	else
 		{
-		if ( optimize )
-			printf("Orig/Xform/Opt %s: %d/%d, %d/%d, %d/%d\n",
-				f->Name(),
-				pf_orig->num_stmts, pf_orig->num_exprs,
-				pf_red->num_stmts, pf_red->num_exprs,
-				pf_opt->num_stmts, pf_opt->num_exprs);
-		else
-			printf("Orig/Xform %s: %d/%d, %d/%d\n",
-				f->Name(),
-				pf_orig->num_stmts, pf_orig->num_exprs,
-				pf_red->num_stmts, pf_red->num_exprs);
+		delete cb;
+		delete ud;
+		delete rc;
+		delete pf_red;
 		}
-
-	delete pf_orig;
-	delete pf_red;
-	delete pf_opt;
 
 	pop_scope();
 	}

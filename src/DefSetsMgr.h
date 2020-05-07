@@ -106,17 +106,17 @@ public:
 
 
 	bool HasPreMinRDs(const BroObj* o) const
-		{ return pre_min_defs->HasRDs(o); }
+		{ return pre_min_defs && pre_min_defs->HasRDs(o); }
 	bool HasPreMaxRDs(const BroObj* o) const
-		{ return pre_max_defs->HasRDs(o); }
+		{ return pre_max_defs && pre_max_defs->HasRDs(o); }
 
 	bool HasPreMinRD(const BroObj* o, const ID* id) const
-		{ return pre_min_defs->HasRD(o, id); }
+		{ return pre_min_defs && pre_min_defs->HasRD(o, id); }
 
 	bool HasPostMinRDs(const BroObj* o) const
-		{ return post_min_defs->HasRDs(o); }
+		{ return post_min_defs && post_min_defs->HasRDs(o); }
 	bool HasPostMaxRDs(const BroObj* o) const
-		{ return post_max_defs->HasRDs(o); }
+		{ return post_max_defs && post_max_defs->HasRDs(o); }
 
 	void CreatePreDef(DefinitionItem* di, DefinitionPoint dp, bool min_only)
 		{ CreateDef(di, dp, true, min_only); }

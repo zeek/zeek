@@ -86,6 +86,12 @@ public:
 	virtual const CompiledStmt EmptyStmt() = 0;
 	virtual const CompiledStmt ErrorStmt() = 0;
 
+	// Called to synchronize any globals that have been modified
+	// prior to switching to execution out of the current function
+	// body (for a call or a return).  A nil value corresponds to
+	// "running off the end" (no explicit return).
+	virtual void SyncGlobals(const Stmt* stmt) = 0;
+
 	// Returns a handle to state associated with building
 	// up a list of values.
 	virtual OpaqueVals* BuildVals(const IntrusivePtr<ListExpr>&) = 0;
@@ -108,9 +114,8 @@ typedef std::vector<const ID*> frame_map;
 
 class AbstractMachine : public Compiler {
 public:
-	AbstractMachine(function_ingredients& i, const Stmt* body,
-			const UseDefs* ud, const Reducer* rd,
-			const ProfileFunc* pf);
+	AbstractMachine(function_ingredients& i, Stmt* body,
+			UseDefs* ud, Reducer* rd, ProfileFunc* pf);
 	~AbstractMachine() override;
 
 	Stmt* CompileBody();
@@ -169,6 +174,8 @@ public:
 
 	const CompiledStmt EmptyStmt() override;
 	const CompiledStmt ErrorStmt() override;
+
+	void SyncGlobals(const Stmt* stmt) override;
 
 	OpaqueVals* BuildVals(const IntrusivePtr<ListExpr>&) override;
 
@@ -229,8 +236,6 @@ protected:
 
 	ListVal* ValVecToListVal(val_vec* v, int n) const;
 
-	void SyncGlobals();
-
 	void ResolveNexts(const CompiledStmt s)
 		{ ResolveGoTos(nexts, s); }
 	void ResolveBreaks(const CompiledStmt s)
@@ -254,8 +259,17 @@ protected:
 	const CompiledStmt AddStmt(const AbstractStmt& stmt);
 	AbstractStmt& TopStmt();
 
-	void LoadParam(ID* id);
-	void LoadGlobal(ID* id);
+	// Returns the last (interpreter) statement in the body.
+	const Stmt* LastStmt() const;
+
+	void LoadParam(ID* id)		{ LoadOrStoreParam(id, true); }
+	void LoadGlobal(ID* id)		{ LoadOrStoreGlobal(id, true); }
+
+	void StoreParam(ID* id)		{ LoadOrStoreParam(id, false); }
+	void StoreGlobal(ID* id)	{ LoadOrStoreGlobal(id, false); }
+
+	void LoadOrStoreParam(ID* id, bool is_load);
+	void LoadOrStoreGlobal(ID* id, bool is_load);
 
 	int AddToFrame(const ID*);
 
@@ -275,10 +289,10 @@ protected:
 
 	function_ingredients& ingredients;
 	const BroFunc* func;
-	const Stmt* body;
-	const UseDefs* ud;
-	const Reducer* reducer;
-	const ProfileFunc* pf;
+	Stmt* body;
+	UseDefs* ud;
+	Reducer* reducer;
+	ProfileFunc* pf;
 
 	// Maps identifiers to their frame location.
 	std::unordered_map<const ID*, int> frame_layout;

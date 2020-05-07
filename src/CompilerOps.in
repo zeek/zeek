@@ -230,7 +230,8 @@ internal-binary-op S-In-S
 op-accessor string_val
 op-type I
 eval auto sc = reinterpret_cast<const unsigned char*>(op1->CheckString())
-eval $$ = strstr_n(op2->Len(), op2->Bytes(), op1->Len(), sc) != -1
+eval auto cmp = strstr_n(op2->Len(), op2->Bytes(), op1->Len(), sc)
+eval $$ = cmp != -1
 
 internal-binary-op A-In-S
 op1-accessor addr_val

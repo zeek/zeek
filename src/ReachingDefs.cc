@@ -189,8 +189,8 @@ RD_ptr& ReachingDefSet::FindRDs(const BroObj* o) const
 	auto rd = a_i->find(o);
 	if ( rd == a_i->end() )
 		{
-		printf("miscall object: %s (%x)\n", obj_desc(o), o);
-		Internal("miscall of ReachingDefSet::FindRDs");
+		static RD_ptr empty_rds;
+		return empty_rds;
 		}
 
 	return rd->second;

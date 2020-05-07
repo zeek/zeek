@@ -259,7 +259,7 @@ function dump_op()
 
 	if ( binary_op )
 		{
-		build_binary_op()
+		build_internal_binary_op()
 		clear_vars()
 		return
 		}
@@ -348,7 +348,7 @@ function build_op_combo(op1, j, k)
 		}
 	}
 
-function build_binary_op()
+function build_internal_binary_op()
 	{
 	# Internal binary op.  Do not generate method stuff for it,
 	# but do generate eval stuff.
@@ -366,18 +366,18 @@ function build_binary_op()
 
 			op2 = k ? "V" : "C"
 
-			a1 = ("auto op1 = " \
-			      (j ? "s.c" : "frame[s.v1]") \
-			      "." op1_accessor ";\n\t\t")
-
-			a2 = ("auto op2 = " \
-			      (j ? "s.c" : "frame[s.v2]") \
-			      "." op2_accessor ";\n\t\t")
-
 			# See comment below for the role of op3.
 			op3 = (j && k) ? "v3" : "v2"
 
-			assign = "frame[s." op3 "]" accessors[op_type_rep]
+			a1 = ("auto op1 = " \
+			      (j ? "frame[s.v2]" : "s.c") \
+			      "." op1_accessor ";\n\t\t")
+
+			a2 = ("auto op2 = " \
+			      (k ? "frame[s." op3 "]": "s.c") \
+			      "." op2_accessor ";\n\t\t")
+
+			assign = "frame[s.v1]" accessors[op_type_rep]
 
 			eval_copy = a1 a2 eval[""]
 			gsub(/\$\$/, assign, eval_copy)

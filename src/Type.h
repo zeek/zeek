@@ -177,9 +177,11 @@ public:
 
 	// Returns true if this type is a record and contains the
 	// given field, false otherwise.
+	[[deprecated("Remove in v4.1.  Use RecordType::HasField() directly.")]]
 	virtual bool HasField(const char* field) const;
 
 	// Returns the type of the given field, or nil if no such field.
+	[[deprecated("Remove in v4.1.  Use RecordType::GetFieldType() directly.")]]
 	virtual BroType* FieldType(const char* field) const;
 
 #define CHECK_TYPE_TAG(tag_type, func_name) \

@@ -357,20 +357,6 @@ bool TableType::IsUnspecifiedTable() const
 	return indices->Types()->length() == 0;
 	}
 
-TypeList* TableType::ExpandRecordIndex(RecordType* rt) const
-	{
-	TypeList* tl = new TypeList();
-
-	int n = rt->NumFields();
-	for ( int i = 0; i < n; ++i )
-		{
-		TypeDecl* td = rt->FieldDecl(i);
-		tl->Append(td->type);
-		}
-
-	return tl;
-	}
-
 SetType::SetType(IntrusivePtr<TypeList> ind, IntrusivePtr<ListExpr> arg_elements)
 	: TableType(std::move(ind), nullptr), elements(std::move(arg_elements))
 	{

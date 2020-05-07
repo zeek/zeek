@@ -420,9 +420,6 @@ public:
 	// Returns true if this table type is "unspecified", which is
 	// what one gets using an empty "set()" or "table()" constructor.
 	bool IsUnspecifiedTable() const;
-
-protected:
-	TypeList* ExpandRecordIndex(RecordType* rt) const;
 };
 
 class SetType final : public TableType {

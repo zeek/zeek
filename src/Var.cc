@@ -17,7 +17,7 @@
 #include "module_util.h"
 #include "ID.h"
 
-static IntrusivePtr<Val> init_val(Expr* init, const BroType* t,
+static IntrusivePtr<Val> init_val(zeek::detail::Expr* init, const BroType* t,
                                   IntrusivePtr<Val> aggr)
 	{
 	try
@@ -32,7 +32,7 @@ static IntrusivePtr<Val> init_val(Expr* init, const BroType* t,
 
 static bool add_prototype(const IntrusivePtr<ID>& id, BroType* t,
                           std::vector<IntrusivePtr<Attr>>* attrs,
-                          const IntrusivePtr<Expr>& init)
+                          const IntrusivePtr<zeek::detail::Expr>& init)
 	{
 	if ( ! IsFunc(id->GetType()->Tag()) )
 		return false;
@@ -109,7 +109,7 @@ static bool add_prototype(const IntrusivePtr<ID>& id, BroType* t,
 	}
 
 static void make_var(const IntrusivePtr<ID>& id, IntrusivePtr<BroType> t, init_class c,
-                     IntrusivePtr<Expr> init,
+                     IntrusivePtr<zeek::detail::Expr> init,
                      std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr,
                      decl_type dt,
                      bool do_init)
@@ -204,17 +204,17 @@ static void make_var(const IntrusivePtr<ID>& id, IntrusivePtr<BroType> t, init_c
 	if ( init )
 		{
 		switch ( init->Tag() ) {
-		case EXPR_TABLE_CONSTRUCTOR:
+		case zeek::detail::EXPR_TABLE_CONSTRUCTOR:
 			{
-			TableConstructorExpr* ctor = (TableConstructorExpr*) init.get();
+			auto* ctor = static_cast<zeek::detail::TableConstructorExpr*>(init.get());
 			if ( ctor->GetAttrs() )
 				id->AddAttrs(ctor->GetAttrs());
 			}
 			break;
 
-		case EXPR_SET_CONSTRUCTOR:
+		case zeek::detail::EXPR_SET_CONSTRUCTOR:
 			{
-			SetConstructorExpr* ctor = (SetConstructorExpr*) init.get();
+			auto* ctor = static_cast<zeek::detail::SetConstructorExpr*>(init.get());
 			if ( ctor->GetAttrs() )
 				id->AddAttrs(ctor->GetAttrs());
 			}
@@ -228,7 +228,7 @@ static void make_var(const IntrusivePtr<ID>& id, IntrusivePtr<BroType> t, init_c
 	if ( do_init )
 		{
 		if ( c == INIT_NONE && dt == VAR_REDEF && t->IsTable() &&
-		     init && init->Tag() == EXPR_ASSIGN )
+		     init && init->Tag() == zeek::detail::EXPR_ASSIGN )
 			// e.g. 'redef foo["x"] = 1' is missing an init class, but the
 			// intention clearly isn't to overwrite entire existing table val.
 			c = INIT_EXTRA;
@@ -248,7 +248,7 @@ static void make_var(const IntrusivePtr<ID>& id, IntrusivePtr<BroType> t, init_c
 
 				if ( init && t )
 					// Have an initialization and type is not deduced.
-					init = make_intrusive<RecordCoerceExpr>(std::move(init),
+					init = make_intrusive<zeek::detail::RecordCoerceExpr>(std::move(init),
 					        IntrusivePtr{NewRef{}, t->AsRecordType()});
 				}
 
@@ -307,9 +307,8 @@ static void make_var(const IntrusivePtr<ID>& id, IntrusivePtr<BroType> t, init_c
 		}
 	}
 
-
 void add_global(const IntrusivePtr<ID>& id, IntrusivePtr<BroType> t,
-                init_class c, IntrusivePtr<Expr> init,
+                init_class c, IntrusivePtr<zeek::detail::Expr> init,
                 std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr,
                 decl_type dt)
 	{
@@ -317,7 +316,7 @@ void add_global(const IntrusivePtr<ID>& id, IntrusivePtr<BroType> t,
 	}
 
 IntrusivePtr<zeek::detail::Stmt> add_local(IntrusivePtr<ID> id, IntrusivePtr<BroType> t,
-                             init_class c, IntrusivePtr<Expr> init,
+                             init_class c, IntrusivePtr<zeek::detail::Expr> init,
                              std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr,
                              decl_type dt)
 	{
@@ -332,10 +331,10 @@ IntrusivePtr<zeek::detail::Stmt> add_local(IntrusivePtr<ID> id, IntrusivePtr<Bro
 		const Location location = init->GetLocationInfo() ?
 		        *init->GetLocationInfo() : no_location;
 
-		auto name_expr = make_intrusive<NameExpr>(id, dt == VAR_CONST);
-		auto assign_expr = make_intrusive<AssignExpr>(std::move(name_expr),
-		                                              std::move(init), 0,
-		                                              nullptr, id->GetAttrs());
+		auto name_expr = make_intrusive<zeek::detail::NameExpr>(id, dt == VAR_CONST);
+		auto assign_expr = make_intrusive<zeek::detail::AssignExpr>(std::move(name_expr),
+		                                                            std::move(init), 0,
+		                                                            nullptr, id->GetAttrs());
 		auto stmt = make_intrusive<zeek::detail::ExprStmt>(std::move(assign_expr));
 		stmt->SetLocationInfo(&location);
 		return stmt;
@@ -348,14 +347,14 @@ IntrusivePtr<zeek::detail::Stmt> add_local(IntrusivePtr<ID> id, IntrusivePtr<Bro
 		}
 	}
 
-extern IntrusivePtr<Expr> add_and_assign_local(IntrusivePtr<ID> id,
-                                               IntrusivePtr<Expr> init,
+extern IntrusivePtr<zeek::detail::Expr> add_and_assign_local(IntrusivePtr<ID> id,
+                                               IntrusivePtr<zeek::detail::Expr> init,
                                                IntrusivePtr<Val> val)
 	{
 	make_var(id, nullptr, INIT_FULL, init, nullptr, VAR_REGULAR, false);
-	auto name_expr = make_intrusive<NameExpr>(std::move(id));
-	return make_intrusive<AssignExpr>(std::move(name_expr), std::move(init),
-	                                  false, std::move(val));
+	auto name_expr = make_intrusive<zeek::detail::NameExpr>(std::move(id));
+	return make_intrusive<zeek::detail::AssignExpr>(std::move(name_expr), std::move(init),
+	                                                false, std::move(val));
 	}
 
 void add_type(ID* id, IntrusivePtr<BroType> t,
@@ -591,26 +590,26 @@ public:
 		scopes.emplace_back(s);
 		}
 
-	TraversalCode PreExpr(const Expr*) override;
-	TraversalCode PostExpr(const Expr*) override;
+	TraversalCode PreExpr(const zeek::detail::Expr*) override;
+	TraversalCode PostExpr(const zeek::detail::Expr*) override;
 
 	std::vector<Scope*> scopes;
-	std::vector<const NameExpr*> outer_id_references;
+	std::vector<const zeek::detail::NameExpr*> outer_id_references;
 };
 
-TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
+TraversalCode OuterIDBindingFinder::PreExpr(const zeek::detail::Expr* expr)
 	{
-	if ( expr->Tag() == EXPR_LAMBDA )
+	if ( expr->Tag() == zeek::detail::EXPR_LAMBDA )
 		{
-		auto le = static_cast<const LambdaExpr*>(expr);
+		auto le = static_cast<const zeek::detail::LambdaExpr*>(expr);
 		scopes.emplace_back(le->GetScope());
 		return TC_CONTINUE;
 		}
 
-	if ( expr->Tag() != EXPR_NAME )
+	if ( expr->Tag() != zeek::detail::EXPR_NAME )
 		return TC_CONTINUE;
 
-	const NameExpr* e = static_cast<const NameExpr*>(expr);
+	auto* e = static_cast<const zeek::detail::NameExpr*>(expr);
 
 	if ( e->Id()->IsGlobal() )
 		return TC_CONTINUE;
@@ -625,9 +624,9 @@ TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
 	return TC_CONTINUE;
 	}
 
-TraversalCode OuterIDBindingFinder::PostExpr(const Expr* expr)
+TraversalCode OuterIDBindingFinder::PostExpr(const zeek::detail::Expr* expr)
 	{
-	if ( expr->Tag() == EXPR_LAMBDA )
+	if ( expr->Tag() == zeek::detail::EXPR_LAMBDA )
 		scopes.pop_back();
 
 	return TC_CONTINUE;

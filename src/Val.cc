@@ -1824,8 +1824,9 @@ IntrusivePtr<Val> TableVal::Default(const IntrusivePtr<Val>& index)
 						 ytype->AsRecordType()) )
 			{
 			auto rt = cast_intrusive<RecordType>(ytype);
-			auto coerce = make_intrusive<RecordCoerceExpr>(def_attr->GetExpr(),
-			                                               std::move(rt));
+			auto coerce = make_intrusive<zeek::detail::RecordCoerceExpr>(
+				def_attr->GetExpr(), std::move(rt));
+
 			def_val = coerce->Eval(nullptr);
 			}
 
@@ -2865,9 +2866,9 @@ IntrusivePtr<RecordVal> RecordVal::CoerceTo(IntrusivePtr<RecordType> t,
 
 		if ( ft->Tag() == TYPE_RECORD && ! same_type(ft, v->GetType()) )
 			{
-			auto rhs = make_intrusive<ConstExpr>(v);
-			auto e = make_intrusive<RecordCoerceExpr>(std::move(rhs),
-			                                          cast_intrusive<RecordType>(ft));
+			auto rhs = make_intrusive<zeek::detail::ConstExpr>(v);
+			auto e = make_intrusive<zeek::detail::RecordCoerceExpr>(std::move(rhs),
+			                                                        cast_intrusive<RecordType>(ft));
 			aggr->Assign(t_i, e->Eval(nullptr));
 			continue;
 			}

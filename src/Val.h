@@ -1050,13 +1050,13 @@ protected:
 	IntrusivePtr<TableType> table_type;
 	CompositeHash* table_hash;
 	IntrusivePtr<Attributes> attrs;
-	IntrusivePtr<Expr> expire_time;
-	IntrusivePtr<Expr> expire_func;
+	IntrusivePtr<zeek::detail::Expr> expire_time;
+	IntrusivePtr<zeek::detail::Expr> expire_func;
 	TableValTimer* timer;
 	IterCookie* expire_cookie;
 	PrefixTable* subnets;
 	IntrusivePtr<Val> def_val;
-	IntrusivePtr<Expr> change_func;
+	IntrusivePtr<zeek::detail::Expr> change_func;
 	// prevent recursion of change functions
 	bool in_change_func = false;
 

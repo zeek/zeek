@@ -20,14 +20,13 @@
 #include "ZeekArgs.h"
 
 class Val;
-class ListExpr;
 class FuncType;
 class Frame;
 class ID;
-class CallExpr;
 class Scope;
 
 FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
+FORWARD_DECLARE_NAMESPACED(CallExpr, zeek::detail);
 
 class Func : public BroObj {
 public:
@@ -254,10 +253,10 @@ extern void builtin_error(const char* msg, BroObj* arg);
 extern void init_builtin_funcs();
 extern void init_builtin_funcs_subdirs();
 
-extern bool check_built_in_call(BuiltinFunc* f, CallExpr* call);
+extern bool check_built_in_call(BuiltinFunc* f, zeek::detail::CallExpr* call);
 
 struct CallInfo {
-	const CallExpr* call;
+	const zeek::detail::CallExpr* call;
 	const Func* func;
 	const zeek::Args& args;
 };

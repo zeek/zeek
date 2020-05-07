@@ -935,7 +935,7 @@ bool post_execute_stmt(zeek::detail::Stmt* stmt, Frame* f, Val* result, stmt_flo
 
 // Evaluates the given expression in the context of the currently selected
 // frame.  Returns the resulting value, or nil if none (or there was an error).
-Expr* g_curr_debug_expr = nullptr;
+zeek::detail::Expr* g_curr_debug_expr = nullptr;
 const char* g_curr_debug_error = nullptr;
 bool in_debug = false;
 

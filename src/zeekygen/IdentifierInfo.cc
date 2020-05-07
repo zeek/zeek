@@ -32,7 +32,7 @@ IdentifierInfo::~IdentifierInfo()
 	}
 
 void IdentifierInfo::AddRedef(const string& script, init_class ic,
-                              IntrusivePtr<Expr> init_expr, const vector<string>& comments)
+                              IntrusivePtr<zeek::detail::Expr> init_expr, const vector<string>& comments)
 	{
 	Redefinition* redef = new Redefinition(script, ic, std::move(init_expr), comments);
 	redefs.push_back(redef);
@@ -142,7 +142,7 @@ time_t IdentifierInfo::DoGetModificationTime() const
 IdentifierInfo::Redefinition::Redefinition(
                        std::string arg_script,
                        init_class arg_ic,
-                       IntrusivePtr<Expr> arg_expr,
+                       IntrusivePtr<zeek::detail::Expr> arg_expr,
                        std::vector<std::string> arg_comments)
 			: from_script(std::move(arg_script)),
 			  ic(arg_ic),

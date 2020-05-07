@@ -14,7 +14,6 @@
 #include <vector>
 
 class Val;
-class Expr;
 class Func;
 class BroType;
 class RecordType;
@@ -22,6 +21,8 @@ class TableType;
 class VectorType;
 class EnumType;
 class Attributes;
+
+FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 
 typedef enum { INIT_NONE, INIT_FULL, INIT_EXTRA, INIT_REMOVE, } init_class;
 typedef enum { SCOPE_FUNCTION, SCOPE_MODULE, SCOPE_GLOBAL } IDScope;
@@ -70,7 +71,7 @@ public:
 	void SetVal(IntrusivePtr<Val> v);
 
 	void SetVal(IntrusivePtr<Val> v, init_class c);
-	void SetVal(IntrusivePtr<Expr> ev, init_class c);
+	void SetVal(IntrusivePtr<zeek::detail::Expr> ev, init_class c);
 
 	bool HasVal() const		{ return val != nullptr; }
 
@@ -117,7 +118,7 @@ public:
 
 	bool IsDeprecated() const;
 
-	void MakeDeprecated(IntrusivePtr<Expr> deprecation);
+	void MakeDeprecated(IntrusivePtr<zeek::detail::Expr> deprecation);
 
 	std::string GetDeprecationWarning() const;
 
@@ -144,7 +145,7 @@ public:
 	std::vector<Func*> GetOptionHandlers() const;
 
 protected:
-	void EvalFunc(IntrusivePtr<Expr> ef, IntrusivePtr<Expr> ev);
+	void EvalFunc(IntrusivePtr<zeek::detail::Expr> ef, IntrusivePtr<zeek::detail::Expr> ev);
 
 #ifdef DEBUG
 	void UpdateValID();

@@ -119,7 +119,6 @@ constexpr InternalTypeTag to_internal_type_tag(TypeTag tag) noexcept
 // Returns the name of the type.
 extern const char* type_name(TypeTag t);
 
-class Expr;
 class Attributes;
 class TypeList;
 class TableType;
@@ -127,13 +126,15 @@ class SetType;
 class RecordType;
 class SubNetType;
 class FuncType;
-class ListExpr;
 class EnumType;
 class VectorType;
 class TypeType;
 class OpaqueType;
 class EnumVal;
 class TableVal;
+
+FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
+FORWARD_DECLARE_NAMESPACED(ListExpr, zeek::detail);
 
 const int DOES_NOT_MATCH_INDEX = 0;
 const int MATCHES_INDEX_SCALAR = 1;
@@ -168,7 +169,7 @@ public:
 	// if it matches and produces a vector result; and
 	// DOES_NOT_MATCH_INDEX = 0 if it can't match (or the type
 	// is not an indexable type).
-	virtual int MatchesIndex(ListExpr* index) const;
+	virtual int MatchesIndex(zeek::detail::ListExpr* index) const;
 
 	// Returns the type yielded by this type.  For example, if
 	// this type is a table[string] of port, then returns the "port"
@@ -398,7 +399,7 @@ protected:
 
 class IndexType : public BroType {
 public:
-	int MatchesIndex(ListExpr* index) const override;
+	int MatchesIndex(zeek::detail::ListExpr* index) const override;
 
 	const IntrusivePtr<TypeList>& GetIndices() const
 		{ return indices; }
@@ -445,19 +446,19 @@ public:
 
 class SetType final : public TableType {
 public:
-	SetType(IntrusivePtr<TypeList> ind, IntrusivePtr<ListExpr> arg_elements);
+	SetType(IntrusivePtr<TypeList> ind, IntrusivePtr<zeek::detail::ListExpr> arg_elements);
 	~SetType() override;
 
 	IntrusivePtr<BroType> ShallowClone() override;
 
 	[[deprecated("Remove in v4.1.  Use Elements() isntead.")]]
-	ListExpr* SetElements() const	{ return elements.get(); }
+	zeek::detail::ListExpr* SetElements() const	{ return elements.get(); }
 
-	const IntrusivePtr<ListExpr>& Elements() const
+	const IntrusivePtr<zeek::detail::ListExpr>& Elements() const
 		{ return elements; }
 
 protected:
-	IntrusivePtr<ListExpr> elements;
+	IntrusivePtr<zeek::detail::ListExpr> elements;
 };
 
 class FuncType final : public BroType {
@@ -498,7 +499,7 @@ public:
 	void ClearYieldType(function_flavor arg_flav)
 		{ yield = nullptr; flavor = arg_flav; }
 
-	int MatchesIndex(ListExpr* index) const override;
+	int MatchesIndex(zeek::detail::ListExpr* index) const override;
 	bool CheckArgs(const type_list* args, bool is_init = false) const;
 	bool CheckArgs(const std::vector<IntrusivePtr<BroType>>& args,
 	               bool is_init = false) const;
@@ -736,12 +737,12 @@ public:
 
 	// The value of this name is next internal counter value, starting
 	// with zero. The internal counter is incremented.
-	void AddName(const std::string& module_name, const char* name, bool is_export, Expr* deprecation = nullptr);
+	void AddName(const std::string& module_name, const char* name, bool is_export, zeek::detail::Expr* deprecation = nullptr);
 
 	// The value of this name is set to val. Once a value has been
 	// explicitly assigned using this method, no further names can be
 	// added that aren't likewise explicitly initalized.
-	void AddName(const std::string& module_name, const char* name, bro_int_t val, bool is_export, Expr* deprecation = nullptr);
+	void AddName(const std::string& module_name, const char* name, bro_int_t val, bool is_export, zeek::detail::Expr* deprecation = nullptr);
 
 	// -1 indicates not found.
 	bro_int_t Lookup(const std::string& module_name, const char* name) const;
@@ -761,7 +762,7 @@ protected:
 
 	void CheckAndAddName(const std::string& module_name,
 	                     const char* name, bro_int_t val, bool is_export,
-	                     Expr* deprecation = nullptr);
+	                     zeek::detail::Expr* deprecation = nullptr);
 
 	typedef std::map<std::string, bro_int_t> NameMap;
 	NameMap names;
@@ -786,7 +787,7 @@ public:
 
 	const IntrusivePtr<BroType>& Yield() const override;
 
-	int MatchesIndex(ListExpr* index) const override;
+	int MatchesIndex(zeek::detail::ListExpr* index) const override;
 
 	// Returns true if this table type is "unspecified", which is what one
 	// gets using an empty "vector()" constructor.
@@ -865,10 +866,10 @@ IntrusivePtr<BroType> merge_types(const IntrusivePtr<BroType>& t1,
 // Given a list of expressions, returns a (ref'd) type reflecting
 // a merged type consistent across all of them, or nil if this
 // cannot be done.
-IntrusivePtr<BroType> merge_type_list(ListExpr* elements);
+IntrusivePtr<BroType> merge_type_list(zeek::detail::ListExpr* elements);
 
 // Given an expression, infer its type when used for an initialization.
-IntrusivePtr<BroType> init_type(Expr* init);
+IntrusivePtr<BroType> init_type(zeek::detail::Expr* init);
 
 // Returns true if argument is an atomic type.
 bool is_atomic_type(const BroType& t);

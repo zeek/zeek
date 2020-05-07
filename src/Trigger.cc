@@ -16,6 +16,7 @@
 #include "iosource/Manager.h"
 
 using namespace trigger;
+using namespace zeek::detail;
 
 // Callback class to traverse an expression, registering all relevant IDs and
 // Vals for change notifications.
@@ -30,7 +31,7 @@ public:
 	~TriggerTraversalCallback()
 		{ Unref(trigger); }
 
-	virtual TraversalCode PreExpr(const Expr*);
+	virtual TraversalCode PreExpr(const zeek::detail::Expr*);
 
 private:
 	Trigger* trigger;
@@ -38,7 +39,7 @@ private:
 
 }
 
-TraversalCode TriggerTraversalCallback::PreExpr(const Expr* expr)
+TraversalCode TriggerTraversalCallback::PreExpr(const zeek::detail::Expr* expr)
 	{
 	// We catch all expressions here which in some way reference global
 	// state.
@@ -46,7 +47,7 @@ TraversalCode TriggerTraversalCallback::PreExpr(const Expr* expr)
 	switch ( expr->Tag() ) {
 	case EXPR_NAME:
 		{
-		const NameExpr* e = static_cast<const NameExpr*>(expr);
+		const auto* e = static_cast<const zeek::detail::NameExpr*>(expr);
 		if ( e->Id()->IsGlobal() )
 			trigger->Register(e->Id());
 
@@ -59,7 +60,7 @@ TraversalCode TriggerTraversalCallback::PreExpr(const Expr* expr)
 
 	case EXPR_INDEX:
 		{
-		const IndexExpr* e = static_cast<const IndexExpr*>(expr);
+		const auto* e = static_cast<const zeek::detail::IndexExpr*>(expr);
 		BroObj::SuppressErrors no_errors;
 
 		try
@@ -122,9 +123,9 @@ protected:
 
 }
 
-Trigger::Trigger(Expr* arg_cond, zeek::detail::Stmt* arg_body,
+Trigger::Trigger(zeek::detail::Expr* arg_cond, zeek::detail::Stmt* arg_body,
 			zeek::detail::Stmt* arg_timeout_stmts,
-			Expr* arg_timeout, Frame* arg_frame,
+			zeek::detail::Expr* arg_timeout, Frame* arg_frame,
 			bool arg_is_return, const Location* arg_location)
 	{
 	cond = arg_cond;
@@ -441,7 +442,7 @@ void Trigger::Attach(Trigger *trigger)
 	Hold();
 	}
 
-bool Trigger::Cache(const CallExpr* expr, Val* v)
+bool Trigger::Cache(const zeek::detail::CallExpr* expr, Val* v)
 	{
 	if ( disabled || ! v )
 		return false;
@@ -464,7 +465,7 @@ bool Trigger::Cache(const CallExpr* expr, Val* v)
 	}
 
 
-Val* Trigger::Lookup(const CallExpr* expr)
+Val* Trigger::Lookup(const zeek::detail::CallExpr* expr)
 	{
 	assert(! disabled);
 

@@ -6,7 +6,6 @@
 #include "ID.h"
 #include "Type.h"
 
-class Expr;
 class FuncType;
 class Scope;
 class EventHandlerPtr;
@@ -15,25 +14,26 @@ class TableVal;
 class ListVal;
 
 FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
+FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 
 typedef enum { VAR_REGULAR, VAR_CONST, VAR_REDEF, VAR_OPTION, } decl_type;
 
 extern void add_global(const IntrusivePtr<ID>& id,
                        IntrusivePtr<BroType> t,
                        init_class c,
-                       IntrusivePtr<Expr> init,
+                       IntrusivePtr<zeek::detail::Expr> init,
                        std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr,
                        decl_type dt);
 
 extern IntrusivePtr<zeek::detail::Stmt> add_local(IntrusivePtr<ID> id,
                                                   IntrusivePtr<BroType> t,
                                                   init_class c,
-                                                  IntrusivePtr<Expr> init,
+                                                  IntrusivePtr<zeek::detail::Expr> init,
                                                   std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr,
                                                   decl_type dt);
 
-extern IntrusivePtr<Expr> add_and_assign_local(IntrusivePtr<ID> id,
-                                               IntrusivePtr<Expr> init,
+extern IntrusivePtr<zeek::detail::Expr> add_and_assign_local(IntrusivePtr<ID> id,
+                                               IntrusivePtr<zeek::detail::Expr> init,
                                                IntrusivePtr<Val> val = nullptr);
 
 extern void add_type(ID* id, IntrusivePtr<BroType> t,

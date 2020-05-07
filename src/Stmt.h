@@ -14,14 +14,14 @@
 #include "TraverseTypes.h"
 
 class CompositeHash;
-class EventExpr;
-class ListExpr;
 class Frame;
 
 namespace zeek::detail {
 
 class StmtList;
 class ForStmt;
+class EventExpr;
+class ListExpr;
 
 class Stmt : public BroObj {
 public:

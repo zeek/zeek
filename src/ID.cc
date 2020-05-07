@@ -205,7 +205,7 @@ void ID::SetVal(IntrusivePtr<Val> v, init_class c)
 		}
 	}
 
-void ID::SetVal(IntrusivePtr<Expr> ev, init_class c)
+void ID::SetVal(IntrusivePtr<zeek::detail::Expr> ev, init_class c)
 	{
 	const auto& a = attrs->Find(c == INIT_EXTRA ? ATTR_ADD_FUNC : ATTR_DEL_FUNC);
 
@@ -276,7 +276,7 @@ bool ID::IsDeprecated() const
 	return GetAttr(ATTR_DEPRECATED) != nullptr;
 	}
 
-void ID::MakeDeprecated(IntrusivePtr<Expr> deprecation)
+void ID::MakeDeprecated(IntrusivePtr<zeek::detail::Expr> deprecation)
 	{
 	if ( IsDeprecated() )
 		return;
@@ -292,7 +292,7 @@ std::string ID::GetDeprecationWarning() const
 
 	if ( depr_attr )
 		{
-		auto expr = static_cast<ConstExpr*>(depr_attr->GetExpr().get());
+		auto expr = static_cast<zeek::detail::ConstExpr*>(depr_attr->GetExpr().get());
 		if ( expr )
 			{
 			StringVal* text = expr->Value()->AsStringVal();
@@ -337,13 +337,13 @@ void ID::SetOption()
 		}
 	}
 
-void ID::EvalFunc(IntrusivePtr<Expr> ef, IntrusivePtr<Expr> ev)
+void ID::EvalFunc(IntrusivePtr<zeek::detail::Expr> ef, IntrusivePtr<zeek::detail::Expr> ev)
 	{
-	auto arg1 = make_intrusive<ConstExpr>(val);
-	auto args = make_intrusive<ListExpr>();
+	auto arg1 = make_intrusive<zeek::detail::ConstExpr>(val);
+	auto args = make_intrusive<zeek::detail::ListExpr>();
 	args->Append(std::move(arg1));
 	args->Append(std::move(ev));
-	auto ce = make_intrusive<CallExpr>(std::move(ef), std::move(args));
+	auto ce = make_intrusive<zeek::detail::CallExpr>(std::move(ef), std::move(args));
 	SetVal(ce->Eval(nullptr));
 	}
 

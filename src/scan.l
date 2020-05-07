@@ -37,6 +37,8 @@
 
 #include "plugin/Manager.h"
 
+using namespace zeek::detail;
+
 namespace {
 struct ZeekINode {
 	dev_t dev;
@@ -724,12 +726,12 @@ public:
 	LocalNameFinder()
 		{}
 
-	virtual TraversalCode PreExpr(const Expr* expr)
+	virtual TraversalCode PreExpr(const zeek::detail::Expr* expr)
 		{
 		if ( expr->Tag() != EXPR_NAME )
 			return TC_CONTINUE;
 
-		const NameExpr* name_expr = static_cast<const NameExpr*>(expr);
+		const zeek::detail::NameExpr* name_expr = static_cast<const zeek::detail::NameExpr*>(expr);
 
 		if ( name_expr->Id()->IsGlobal() )
 			return TC_CONTINUE;
@@ -738,10 +740,10 @@ public:
 		return TC_CONTINUE;
 		}
 
-	std::vector<const NameExpr*> local_names;
+	std::vector<const zeek::detail::NameExpr*> local_names;
 };
 
-void do_atif(Expr* expr)
+void do_atif(zeek::detail::Expr* expr)
 	{
 	++current_depth;
 

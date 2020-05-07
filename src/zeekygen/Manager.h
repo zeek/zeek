@@ -139,7 +139,7 @@ public:
 	 * @param init_expr The intiialization expression that was used.
 	 */
 	void Redef(const ID* id, const std::string& path,
-	           init_class ic, IntrusivePtr<Expr> init_expr);
+		init_class ic, IntrusivePtr<zeek::detail::Expr> init_expr);
 	void Redef(const ID* id, const std::string& path,
 	           init_class ic = INIT_NONE);
 

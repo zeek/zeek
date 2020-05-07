@@ -50,7 +50,7 @@ inline IntrusivePtr<RecordVal> query_result(IntrusivePtr<RecordVal> data)
  */
 class StoreQueryCallback {
 public:
-	StoreQueryCallback(trigger::Trigger* arg_trigger, const CallExpr* arg_call,
+	StoreQueryCallback(trigger::Trigger* arg_trigger, const zeek::detail::CallExpr* arg_call,
 			   broker::store store)
 		: trigger(arg_trigger), call(arg_call), store(std::move(store))
 		{
@@ -84,7 +84,7 @@ public:
 private:
 
 	trigger::Trigger* trigger;
-	const CallExpr* call;
+	const zeek::detail::CallExpr* call;
 	broker::store store;
 };
 

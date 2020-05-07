@@ -8,7 +8,7 @@
 #include "BroList.h"
 #include "IntrusivePtr.h"
 
-class Expr;
+FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 
 // Note that there are two kinds of attributes: the kind (here) which
 // modify expressions or supply metadata on types, and the kind that
@@ -40,19 +40,19 @@ class Attr final : public BroObj {
 public:
 	static inline const IntrusivePtr<Attr> nil;
 
-	Attr(attr_tag t, IntrusivePtr<Expr> e);
+	Attr(attr_tag t, IntrusivePtr<zeek::detail::Expr> e);
 	explicit Attr(attr_tag t);
 	~Attr() override;
 
 	attr_tag Tag() const	{ return tag; }
 
 	[[deprecated("Remove in v4.1.  Use GetExpr().")]]
-	Expr* AttrExpr() const	{ return expr.get(); }
+	zeek::detail::Expr* AttrExpr() const	{ return expr.get(); }
 
-	const IntrusivePtr<Expr>& GetExpr() const
+	const IntrusivePtr<zeek::detail::Expr>& GetExpr() const
 		{ return expr; }
 
-	void SetAttrExpr(IntrusivePtr<Expr> e);
+	void SetAttrExpr(IntrusivePtr<zeek::detail::Expr> e);
 
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool shorten = false) const;
@@ -75,7 +75,7 @@ protected:
 	void AddTag(ODesc* d) const;
 
 	attr_tag tag;
-	IntrusivePtr<Expr> expr;
+	IntrusivePtr<zeek::detail::Expr> expr;
 };
 
 // Manages a collection of attributes.

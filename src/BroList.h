@@ -4,8 +4,8 @@
 
 #include "List.h"
 
-class Expr;
-typedef PList<Expr> expr_list;
+FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
+typedef PList<zeek::detail::Expr> expr_list;
 
 class ID;
 typedef PList<ID> id_list;

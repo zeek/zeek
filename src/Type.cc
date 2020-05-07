@@ -95,7 +95,7 @@ IntrusivePtr<BroType> BroType::ShallowClone()
 	return nullptr;
 	}
 
-int BroType::MatchesIndex(ListExpr* const index) const
+int BroType::MatchesIndex(zeek::detail::ListExpr* const index) const
 	{
 	if ( Tag() == TYPE_STRING )
 		{
@@ -220,7 +220,7 @@ unsigned int TypeList::MemoryAllocation() const
 
 IndexType::~IndexType() = default;
 
-int IndexType::MatchesIndex(ListExpr* const index) const
+int IndexType::MatchesIndex(zeek::detail::ListExpr* const index) const
 	{
 	// If we have a type indexed by subnets, addresses are ok.
 	const auto& types = indices->Types();
@@ -353,7 +353,7 @@ bool TableType::IsUnspecifiedTable() const
 	return indices->Types().empty();
 	}
 
-SetType::SetType(IntrusivePtr<TypeList> ind, IntrusivePtr<ListExpr> arg_elements)
+SetType::SetType(IntrusivePtr<TypeList> ind, IntrusivePtr<zeek::detail::ListExpr> arg_elements)
 	: TableType(std::move(ind), nullptr), elements(std::move(arg_elements))
 	{
 	if ( elements )
@@ -471,7 +471,7 @@ string FuncType::FlavorString() const
 
 FuncType::~FuncType() = default;
 
-int FuncType::MatchesIndex(ListExpr* const index) const
+int FuncType::MatchesIndex(zeek::detail::ListExpr* const index) const
 	{
 	return check_and_promote_args(index, args.get()) ?
 			MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
@@ -995,7 +995,7 @@ string RecordType::GetFieldDeprecationWarning(int field, bool has_check) const
 		string result;
 		if ( const auto& deprecation = decl->GetAttr(ATTR_DEPRECATED) )
 			{
-			auto expr = static_cast<ConstExpr*>(deprecation->GetExpr().get());
+			auto expr = static_cast<zeek::detail::ConstExpr*>(deprecation->GetExpr().get());
 			if ( expr )
 				{
 				StringVal* text = expr->Value()->AsStringVal();
@@ -1094,7 +1094,7 @@ EnumType::~EnumType() = default;
 // Note, we use reporter->Error() here (not Error()) to include the current script
 // location in the error message, rather than the one where the type was
 // originally defined.
-void EnumType::AddName(const string& module_name, const char* name, bool is_export, Expr* deprecation)
+void EnumType::AddName(const string& module_name, const char* name, bool is_export, zeek::detail::Expr* deprecation)
 	{
 	/* implicit, auto-increment */
 	if ( counter < 0)
@@ -1107,7 +1107,7 @@ void EnumType::AddName(const string& module_name, const char* name, bool is_expo
 	counter++;
 	}
 
-void EnumType::AddName(const string& module_name, const char* name, bro_int_t val, bool is_export, Expr* deprecation)
+void EnumType::AddName(const string& module_name, const char* name, bro_int_t val, bool is_export, zeek::detail::Expr* deprecation)
 	{
 	/* explicit value specified */
 	if ( counter > 0 )
@@ -1121,7 +1121,7 @@ void EnumType::AddName(const string& module_name, const char* name, bro_int_t va
 	}
 
 void EnumType::CheckAndAddName(const string& module_name, const char* name,
-                               bro_int_t val, bool is_export, Expr* deprecation)
+                               bro_int_t val, bool is_export, zeek::detail::Expr* deprecation)
 	{
 	if ( Lookup(val) )
 		{
@@ -1325,7 +1325,7 @@ const IntrusivePtr<BroType>& VectorType::Yield() const
 	return yield_type;
 	}
 
-int VectorType::MatchesIndex(ListExpr* const index) const
+int VectorType::MatchesIndex(zeek::detail::ListExpr* const index) const
 	{
 	expr_list& el = index->Exprs();
 
@@ -1938,7 +1938,7 @@ IntrusivePtr<BroType> merge_types(const IntrusivePtr<BroType>& arg_t1,
 	}
 	}
 
-IntrusivePtr<BroType> merge_type_list(ListExpr* elements)
+IntrusivePtr<BroType> merge_type_list(zeek::detail::ListExpr* elements)
 	{
 	TypeList* tl_type = elements->GetType()->AsTypeList();
 	const auto& tl = tl_type->Types();
@@ -1983,9 +1983,9 @@ static BroType* reduce_type(BroType* t)
 		return t;
 	}
 
-IntrusivePtr<BroType> init_type(Expr* init)
+IntrusivePtr<BroType> init_type(zeek::detail::Expr* init)
 	{
-	if ( init->Tag() != EXPR_LIST )
+	if ( init->Tag() != zeek::detail::EXPR_LIST )
 		{
 		auto t = init->InitType();
 
@@ -2002,7 +2002,7 @@ IntrusivePtr<BroType> init_type(Expr* init)
 		return t;
 		}
 
-	ListExpr* init_list = init->AsListExpr();
+	zeek::detail::ListExpr* init_list = init->AsListExpr();
 	const expr_list& el = init_list->Exprs();
 
 	if ( el.length() == 0 )
@@ -2012,7 +2012,7 @@ IntrusivePtr<BroType> init_type(Expr* init)
 		}
 
 	// Could be a record, a set, or a list of table elements.
-	Expr* e0 = el[0];
+	zeek::detail::Expr* e0 = el[0];
 
 	if ( e0->IsRecordElement(nullptr) )
 		// ListExpr's know how to build a record from their

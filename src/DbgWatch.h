@@ -2,16 +2,19 @@
 
 #pragma once
 
+#include "util.h"
+
 class BroObj;
-class Expr;
+
+FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 
 class DbgWatch {
 public:
 	explicit DbgWatch(BroObj* var_to_watch);
-	explicit DbgWatch(Expr* expr_to_watch);
+	explicit DbgWatch(zeek::detail::Expr* expr_to_watch);
 	~DbgWatch();
 
 protected:
 	BroObj* var;
-	Expr* expr;
+	zeek::detail::Expr* expr;
 };

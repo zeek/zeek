@@ -9,14 +9,14 @@
 #include "iosource/IOSource.h"
 #include "util.h"
 
-class CallExpr;
-class Expr;
 class Frame;
 class Val;
 class ID;
 class ODesc;
 
 FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
+FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
+FORWARD_DECLARE_NAMESPACED(CallExpr, zeek::detail);
 
 namespace trigger {
 // Triggers are the heart of "when" statements: expressions that when
@@ -31,7 +31,7 @@ public:
 	// instantiation.  Note that if the condition is already true, the
 	// statements are executed immediately and the object is deleted
 	// right away.
-	Trigger(Expr* cond, zeek::detail::Stmt* body, zeek::detail::Stmt* timeout_stmts, Expr* timeout,
+	Trigger(zeek::detail::Expr* cond, zeek::detail::Stmt* body, zeek::detail::Stmt* timeout_stmts, zeek::detail::Expr* timeout,
 		Frame* f, bool is_return, const Location* loc);
 	~Trigger() override;
 
@@ -62,8 +62,8 @@ public:
 	// Cache for return values of delayed function calls.  Returns whether
 	// the trigger is queued for later evaluation -- it may not be queued
 	// if the Val is null or it's disabled.
-	bool Cache(const CallExpr* expr, Val* val);
-	Val* Lookup(const CallExpr*);
+	bool Cache(const zeek::detail::CallExpr* expr, Val* val);
+	Val* Lookup(const zeek::detail::CallExpr*);
 
 	// Disable this trigger completely. Needed because Unref'ing the trigger
 	// may not immediately delete it as other references may still exist.
@@ -93,10 +93,10 @@ private:
 	void Register(Val* val);
 	void UnregisterAll();
 
-	Expr* cond;
+	zeek::detail::Expr* cond;
 	zeek::detail::Stmt* body;
 	zeek::detail::Stmt* timeout_stmts;
-	Expr* timeout;
+	zeek::detail::Expr* timeout;
 	double timeout_value;
 	Frame* frame;
 	bool is_return;
@@ -110,7 +110,7 @@ private:
 
 	std::vector<std::pair<BroObj *, notifier::Modifiable*>> objs;
 
-	using ValCache = std::map<const CallExpr*, Val*>;
+	using ValCache = std::map<const zeek::detail::CallExpr*, Val*>;
 	ValCache cache;
 };
 

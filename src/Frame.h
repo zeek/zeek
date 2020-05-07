@@ -17,8 +17,9 @@
 #include <broker/expected.hh>
 
 namespace trigger { class Trigger; }
-class CallExpr;
 class BroFunc;
+
+FORWARD_DECLARE_NAMESPACED(CallExpr, zeek::detail);
 
 class Frame :  public BroObj {
 public:
@@ -219,9 +220,9 @@ public:
 	void ClearTrigger();
 	trigger::Trigger* GetTrigger() const		{ return trigger.get(); }
 
-	void SetCall(const CallExpr* arg_call)	{ call = arg_call; }
+	void SetCall(const zeek::detail::CallExpr* arg_call)	{ call = arg_call; }
 	void ClearCall()			{ call = nullptr; }
-	const CallExpr* GetCall() const		{ return call; }
+	const zeek::detail::CallExpr* GetCall() const		{ return call; }
 
 	void SetDelayed()	{ delayed = true; }
 	bool HasDelayed() const	{ return delayed; }
@@ -322,7 +323,7 @@ private:
 	zeek::detail::Stmt* next_stmt;
 
 	IntrusivePtr<trigger::Trigger> trigger;
-	const CallExpr* call;
+	const zeek::detail::CallExpr* call;
 
 	std::unique_ptr<std::vector<BroFunc*>> functions_with_closure_frame_reference;
 };

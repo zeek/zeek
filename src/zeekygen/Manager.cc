@@ -54,7 +54,7 @@ static string RemoveLeadingSpace(const string& s)
 // use for indexing.
 static string NormalizeScriptPath(const string& path)
 	{
-	if ( auto p = plugin_mgr->LookupPluginByPath(path) ) 
+	if ( auto p = plugin_mgr->LookupPluginByPath(path) )
 		{
 		auto rval = normalize_path(path);
 		auto prefix = SafeBasename(p->PluginDirectory()).result;
@@ -361,7 +361,7 @@ void Manager::RecordField(const ID* id, const TypeDecl* field,
 	}
 
 void Manager::Redef(const ID* id, const string& path,
-                    init_class ic, IntrusivePtr<Expr> init_expr)
+	init_class ic, IntrusivePtr<zeek::detail::Expr> init_expr)
 	{
 	if ( disabled )
 		return;

@@ -3479,7 +3479,7 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 
 class LookupHostCallback : public DNS_Mgr::LookupCallback {
 public:
-	LookupHostCallback(trigger::Trigger* arg_trigger, const CallExpr* arg_call,
+	LookupHostCallback(trigger::Trigger* arg_trigger, const zeek::detail::CallExpr* arg_call,
 				bool arg_lookup_name)
 		{
 		Ref(arg_trigger);
@@ -3532,7 +3532,7 @@ public:
 
 private:
 	trigger::Trigger* trigger;
-	const CallExpr* call;
+	const zeek::detail::CallExpr* call;
 	bool lookup_name;
 };
 %%}

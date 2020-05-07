@@ -29,11 +29,16 @@ protected:
 
 
 class OpaqueVals;
-
 typedef std::vector<IntrusivePtr<Val>> val_vec;
+
+// The (reduced) statement currently being compiled.  Used for both
+// tracking "use" and "reaching" definitions, and for error messages.
+extern const Stmt* curr_stmt;
 
 class Compiler : public Stmt {
 public:
+	void SetCurrStmt(const Stmt* stmt)	{ curr_stmt = stmt; }
+
 #include "CompilerBaseDefs.h"
 
 	virtual const CompiledStmt InterpretExpr(const Expr* e) = 0;
@@ -58,7 +63,7 @@ public:
 
 	virtual const CompiledStmt When(Expr* cond, const Stmt* body,
 				const Expr* timeout, const Stmt* timeout_body,
-				bool is_return, const Location* location) = 0;
+				bool is_return) = 0;
 
 	virtual const CompiledStmt Switch(const SwitchStmt* sw) = 0;
 
@@ -134,7 +139,7 @@ public:
 
 	const CompiledStmt When(Expr* cond, const Stmt* body,
 			const Expr* timeout, const Stmt* timeout_body,
-			bool is_return, const Location* location) override;
+			bool is_return) override;
 
 	const CompiledStmt Switch(const SwitchStmt* sw) override;
 

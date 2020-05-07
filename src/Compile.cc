@@ -18,6 +18,9 @@
 #include "Traverse.h"
 
 
+const Stmt* curr_stmt;
+
+
 typedef enum {
 	OP_NOP,
 
@@ -50,10 +53,10 @@ struct IterInfo {
 	bro_uint_t n;	// we loop from 0 ... n-1
 };
 
-static void run_time_error(bool& error_flag, const char* msg)
+static void run_time_error(bool& error_flag, const BroObj* o, const char* msg)
 	{
+	fprintf(stderr, "%s: %s\n", msg, obj_desc(o));
 	error_flag = true;
-	fprintf(stderr, "%s\n", msg);
 	}
 
 // A bit of this mirrors BroValUnion, but it captures low-level
@@ -64,7 +67,7 @@ union AS_ValUnion {
 	AS_ValUnion() {}
 
 	// Construct from a given Bro value with a given type.
-	AS_ValUnion(Val* v, BroType* t, bool& error_flag);
+	AS_ValUnion(Val* v, BroType* t, const BroObj* o, bool& error_flag);
 
 	// Convert to a Bro value.
 	IntrusivePtr<Val> ToVal(BroType* t) const;
@@ -114,11 +117,11 @@ union AS_ValUnion {
 	ID* id_val;
 };
 
-AS_ValUnion::AS_ValUnion(Val* v, BroType* t, bool& error)
+AS_ValUnion::AS_ValUnion(Val* v, BroType* t, const BroObj* o, bool& error)
 	{
 	if ( ! v )
 		{
-		run_time_error(error, "uninitialized value in compiled code");
+		run_time_error(error, o, "uninitialized value in compiled code");
 		int_val = 0;
 		return;
 		}
@@ -340,7 +343,7 @@ public:
 	int* int_ptr = nullptr;
 	EventHandler* event_handler = nullptr;
 	Attributes* attrs = nullptr;
-	const Location* loc = nullptr;
+	const Stmt* stmt = curr_stmt;
 
 	AS_ValUnion c;	// constant
 
@@ -351,9 +354,10 @@ protected:
 		{
 		auto v = ce->Value();
 		auto ct = ce->Type().get();
-		bool error = false;
-		c = AS_ValUnion(v, ct, error);
 		t = ct;
+
+		bool error = false;
+		c = AS_ValUnion(v, t, ce, error);
 
 		if ( error )
 			reporter->InternalError("bad value compiling code");
@@ -604,6 +608,7 @@ AbstractMachine::~AbstractMachine()
 
 Stmt* AbstractMachine::CompileBody()
 	{
+	curr_stmt = nullptr;
 	(void) body->Compile(this);
 	return this;
 	}
@@ -912,7 +917,7 @@ const CompiledStmt AbstractMachine::Loop(const Stmt* body)
 
 const CompiledStmt AbstractMachine::When(Expr* cond, const Stmt* body,
 				const Expr* timeout, const Stmt* timeout_body,
-				bool is_return, const Location* location)
+				bool is_return)
 	{
 	// ### Flush locals on eval, and also on exit
 	AbstractStmt s;
@@ -932,7 +937,6 @@ const CompiledStmt AbstractMachine::When(Expr* cond, const Stmt* body,
 
 	s.v4 = is_return;
 	s.non_const_e = cond;
-	s.loc = location;
 
 	AddStmt(s);
 
@@ -1696,7 +1700,6 @@ TraversalCode ResumptionAM::Traverse(TraversalCallback* cb) const
 	tc = cb->PostStmt(this);
 	HANDLE_TC_STMT_POST(tc);
 	}
-
 
 // Unary vector operation of v1 <vec-op> v2.
 static void vec_exec(AbstractOp op, vector<BroValUnion>* v1,

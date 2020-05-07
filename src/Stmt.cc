@@ -405,6 +405,7 @@ Stmt* PrintStmt::DoSubclassReduce(IntrusivePtr<ListExpr> singletons,
 
 const CompiledStmt PrintStmt::Compile(Compiler* c) const
 	{
+	c->SetCurrStmt(this);
 	auto exprs = c->BuildVals(l);
 	return c->PrintO(exprs);
 	}
@@ -458,6 +459,7 @@ bool ExprStmt::IsReduced() const
 
 const CompiledStmt ExprStmt::Compile(Compiler* c) const
 	{
+	c->SetCurrStmt(this);
 	return e->Compile(c);
 	}
 
@@ -635,6 +637,8 @@ Stmt* IfStmt::DoReduce(Reducer* c)
 
 const CompiledStmt IfStmt::Compile(Compiler* c) const
 	{
+	c->SetCurrStmt(this);
+
 	auto block1 = s1;
 	auto block2 = s2;
 
@@ -1083,6 +1087,7 @@ IntrusivePtr<Val> SwitchStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) con
 
 const CompiledStmt SwitchStmt::Compile(Compiler* c) const
 	{
+	c->SetCurrStmt(this);
 	return c->Switch(this);
 	}
 
@@ -1264,6 +1269,8 @@ IntrusivePtr<Val> AddStmt::Exec(Frame* f, stmt_flow_type& flow) const
 
 const CompiledStmt AddStmt::Compile(Compiler* c) const
 	{
+	c->SetCurrStmt(this);
+
 	auto aggr = e->GetOp1()->AsNameExpr();
 	auto index = e->GetOp2();
 
@@ -1297,6 +1304,8 @@ IntrusivePtr<Val> DelStmt::Exec(Frame* f, stmt_flow_type& flow) const
 
 const CompiledStmt DelStmt::Compile(Compiler* c) const
 	{
+	c->SetCurrStmt(this);
+
 	auto aggr = e->GetOp1()->AsNameExpr();
 
 	if ( e->Tag() == EXPR_FIELD )
@@ -1369,6 +1378,7 @@ Stmt* EventStmt::DoReduce(Reducer* c)
 
 const CompiledStmt EventStmt::Compile(Compiler* c) const
 	{
+	c->SetCurrStmt(this);
 	return event_expr->Compile(c);
 	}
 
@@ -1443,6 +1453,8 @@ Stmt* WhileStmt::DoReduce(Reducer* c)
 
 const CompiledStmt WhileStmt::Compile(Compiler* c) const
 	{
+	c->SetCurrStmt(this);
+
 	if ( loop_condition->Tag() == EXPR_CONST )
 		{
 		if ( loop_condition->AsConstExpr()->IsZero() )
@@ -1750,6 +1762,7 @@ IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 
 const CompiledStmt ForStmt::Compile(Compiler* c) const
 	{
+	c->SetCurrStmt(this);
 	return c->For(this);
 	}
 
@@ -1849,6 +1862,7 @@ IntrusivePtr<Val> NextStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
 
 const CompiledStmt NextStmt::Compile(Compiler* c) const
 	{
+	c->SetCurrStmt(this);
 	return c->Next();
 	}
 
@@ -1881,6 +1895,7 @@ IntrusivePtr<Val> BreakStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
 
 const CompiledStmt BreakStmt::Compile(Compiler* c) const
 	{
+	c->SetCurrStmt(this);
 	return c->Break();
 	}
 
@@ -1913,6 +1928,7 @@ IntrusivePtr<Val> FallthroughStmt::Exec(Frame* /* f */, stmt_flow_type& flow) co
 
 const CompiledStmt FallthroughStmt::Compile(Compiler* c) const
 	{
+	c->SetCurrStmt(this);
 	return c->FallThrough();
 	}
 
@@ -2020,6 +2036,8 @@ Stmt* ReturnStmt::DoReduce(Reducer* c)
 
 const CompiledStmt ReturnStmt::Compile(Compiler* c) const
 	{
+	c->SetCurrStmt(this);
+
 	if ( e )
 		{
 		if ( e->Tag() == EXPR_NAME )
@@ -2165,6 +2183,7 @@ Stmt* StmtList::DoReduce(Reducer* c)
 
 const CompiledStmt StmtList::Compile(Compiler* c) const
 	{
+	c->SetCurrStmt(this);
 	auto start = c->StartingBlock();
 
 	for ( const auto& stmt : Stmts() )
@@ -2352,6 +2371,8 @@ IntrusivePtr<Val> InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
 
 const CompiledStmt InitStmt::Compile(Compiler* c) const
 	{
+	c->SetCurrStmt(this);
+
 	CompiledStmt last = c->EmptyStmt();
 
 	for ( const auto& aggr : *inits )
@@ -2431,6 +2452,8 @@ void NullStmt::StmtDescribe(ODesc* d) const
 
 const CompiledStmt NullStmt::Compile(Compiler* c) const
 	{
+	c->SetCurrStmt(this);
+
 	if ( c->NullStmtOK() )
 		return c->EmptyStmt();
 	else
@@ -2494,8 +2517,9 @@ IntrusivePtr<Val> WhenStmt::Exec(Frame* f, stmt_flow_type& flow) const
 
 const CompiledStmt WhenStmt::Compile(Compiler* c) const
 	{
+	c->SetCurrStmt(this);
 	return c->When(cond.get(), s1.get(), timeout.get(), s2.get(),
-			is_return, location);
+			is_return);
 	}
 
 bool WhenStmt::IsPure() const
@@ -2592,6 +2616,7 @@ IntrusivePtr<Val> CheckAnyLenStmt::Exec(Frame* f, stmt_flow_type& flow) const
 
 const CompiledStmt CheckAnyLenStmt::Compile(Compiler* c) const
 	{
+	c->SetCurrStmt(this);
 	return c->CheckAnyLenVi(e->AsNameExpr(), expected_len);
 	}
 

@@ -244,12 +244,6 @@ op2-accessor subnet_val
 op-type I
 eval $$ = op2->Contains(*op1)
 
-internal-binary-op U-In-V
-op1-accessor uint_val
-op2-accessor vector_val
-op-type I
-eval $$ = op2->Lookup(op1) != nullptr
-
 
 # Handled differently because of the unusual middle argument.
 op L-In-T
@@ -277,6 +271,12 @@ internal-op List-Is-In-Table
 type VVV
 eval auto op1 = frame[s.v3].list_val
 eval frame[s.v1].int_val = frame[s.v2].table_val->Lookup(op1) != nullptr
+
+internal-op Index-Is-In-Vector
+type VVV
+eval auto op1 = frame[s.v3].list_val
+eval auto op2 = frame[s.v2].vector_val
+eval frame[s.v1].int_val = op2->Lookup(op1) != nullptr
 
 expr-op Cond
 type VVVV

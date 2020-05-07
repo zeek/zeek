@@ -1507,9 +1507,6 @@ const CompiledStmt AbstractMachine::CompileInExpr(const NameExpr* n1,
 		  op3->Type()->Tag() == TYPE_SUBNET )
 		a = n2 ? (n3 ? OP_A_IN_S_VVV : OP_A_IN_S_VVC) : OP_A_IN_S_VCV;
 
-	else if ( op3->Type()->Tag() == TYPE_VECTOR )
-		a = n2 ? (n3 ? OP_U_IN_V_VVV : OP_U_IN_V_VVC) : OP_U_IN_V_VCV;
-
 	else if ( op3->Type()->Tag() == TYPE_TABLE )
 		a = n2 ? OP_VAL_IS_IN_TABLE_VVV : OP_CONST_IS_IN_TABLE_VCV;
 
@@ -1548,8 +1545,11 @@ const CompiledStmt AbstractMachine::CompileInExpr(const NameExpr* n1,
 	s.op_type = OP_VVV_I3;
 	AddStmt(s);
 
-	s = AbstractStmt(OP_LIST_IS_IN_TABLE_VVV, FrameSlot(n1), FrameSlot(n2),
-				build_indices);
+	AbstractOp op =
+		n2->Type()->Tag() == TYPE_VECTOR ?
+			OP_INDEX_IS_IN_VECTOR_VVV : OP_LIST_IS_IN_TABLE_VVV;
+
+	s = AbstractStmt(op, FrameSlot(n1), FrameSlot(n2), build_indices);
 
 	return AddStmt(s);
 	}

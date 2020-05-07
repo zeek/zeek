@@ -1069,28 +1069,29 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 
 	if ( e->Type()->Tag() == TYPE_TABLE )
 		{
-		const type_list* indices = e->Type()->AsTableType()->IndexTypes();
-		if ( indices->length() != loop_vars->length() )
+		const auto& indices = e->Type()->AsTableType()->IndexTypes();
+
+		if ( static_cast<int>(indices.size()) != loop_vars->length() )
 			{
 			e->Error("wrong index size");
 			return;
 			}
 
-		for ( int i = 0; i < indices->length(); i++ )
+		for ( auto i = 0u; i < indices.size(); i++ )
 			{
-			BroType* ind_type = (*indices)[i]->Ref();
+			const auto& ind_type = indices[i];
 
 			if ( (*loop_vars)[i]->Type() )
 				{
-				if ( ! same_type((*loop_vars)[i]->Type(), ind_type) )
-					(*loop_vars)[i]->Type()->Error("type clash in iteration", ind_type);
+				if ( ! same_type((*loop_vars)[i]->Type(), ind_type.get()) )
+					(*loop_vars)[i]->Type()->Error("type clash in iteration",
+					                               ind_type.get());
 				}
 
 			else
 				{
-				add_local({NewRef{}, (*loop_vars)[i]},
-						{NewRef{}, ind_type}, INIT_NONE,
-						nullptr, nullptr, VAR_REGULAR);
+				add_local({NewRef{}, (*loop_vars)[i]}, ind_type, INIT_NONE,
+				          nullptr, nullptr, VAR_REGULAR);
 				}
 			}
 		}

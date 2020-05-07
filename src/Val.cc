@@ -266,7 +266,7 @@ IntrusivePtr<Val> Val::SizeVal() const
 
 	case TYPE_INTERNAL_OTHER:
 		if ( type->Tag() == TYPE_FUNC )
-			return val_mgr->Count(val.func_val->FType()->ArgTypes()->Types()->length());
+			return val_mgr->Count(val.func_val->FType()->ArgTypes()->Types().size());
 
 		if ( type->Tag() == TYPE_FILE )
 			return make_intrusive<Val>(val.file_val->Size(), TYPE_DOUBLE);
@@ -1353,8 +1353,8 @@ static void find_nested_record_types(BroType* t, std::set<RecordType*>* found)
 		return;
 	case TYPE_LIST:
 		{
-		for ( auto& type : *t->AsTypeList()->Types() )
-			find_nested_record_types(type, found);
+		for ( const auto& type : t->AsTypeList()->Types() )
+			find_nested_record_types(type.get(), found);
 		}
 		return;
 	case TYPE_FUNC:
@@ -1380,12 +1380,12 @@ TableVal::TableVal(IntrusivePtr<TableType> t, IntrusivePtr<Attributes> a) : Val(
 	if ( ! is_parsing )
 		return;
 
-	for ( const auto& t : *table_type->IndexTypes() )
+	for ( const auto& t : table_type->IndexTypes() )
 		{
 		std::set<RecordType*> found;
 		// TODO: this likely doesn't have to be repeated for each new TableVal,
 		//       can remember the resulting dependencies per TableType
-		find_nested_record_types(t, &found);
+		find_nested_record_types(t.get(), &found);
 
 		for ( auto rt : found )
 			parse_time_table_record_dependencies[rt].emplace_back(NewRef{}, this);
@@ -1766,7 +1766,7 @@ bool TableVal::ExpandAndInit(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val)
 	ListVal* iv = index->AsListVal();
 	if ( iv->BaseTag() != TYPE_ANY )
 		{
-		if ( table_type->Indices()->Types()->length() != 1 )
+		if ( table_type->Indices()->Types().size() != 1 )
 			reporter->InternalError("bad singleton list index");
 
 		for ( int i = 0; i < iv->Length(); ++i )
@@ -2146,14 +2146,14 @@ ListVal* TableVal::ConvertToList(TypeTag t) const
 
 IntrusivePtr<ListVal> TableVal::ToPureListVal() const
 	{
-	type_list* tl = table_type->Indices()->Types();
-	if ( tl->length() != 1 )
+	const auto& tl = table_type->Indices()->Types();
+	if ( tl.size() != 1 )
 		{
 		InternalWarning("bad index type in TableVal::ToPureListVal");
 		return nullptr;
 		}
 
-	return ToListVal((*tl)[0]->Tag());
+	return ToListVal(tl[0]->Tag());
 	}
 
 ListVal* TableVal::ConvertToPureList() const
@@ -2481,10 +2481,9 @@ double TableVal::CallExpireFunc(IntrusivePtr<ListVal> idx)
 		const Func* f = vf->AsFunc();
 		zeek::Args vl;
 
-		const auto func_args = f->FType()->ArgTypes()->Types();
-
+		const auto& func_args = f->FType()->ArgTypes()->Types();
 		// backwards compatibility with idx: any idiom
-		bool any_idiom = func_args->length() == 2 && func_args->back()->Tag() == TYPE_ANY;
+		bool any_idiom = func_args.size() == 2 && func_args.back()->Tag() == TYPE_ANY;
 
 		if ( ! any_idiom )
 			{

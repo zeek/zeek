@@ -464,20 +464,21 @@ void Attributes::CheckAttr(Attr* a)
 		if (the_table->IsUnspecifiedTable())
 			break;
 
-		const type_list* func_index_types = e_ft->ArgTypes()->Types();
+		const auto& func_index_types = e_ft->ArgTypes()->Types();
 		// Keep backwards compatibility with idx: any idiom.
-		if ( func_index_types->length() == 2 )
+		if ( func_index_types.size() == 2 )
 			{
-			if ((*func_index_types)[1]->Tag() == TYPE_ANY)
+			if (func_index_types[1]->Tag() == TYPE_ANY)
 				break;
 			}
 
-		const type_list* table_index_types = the_table->IndexTypes();
+		const auto& table_index_types = the_table->IndexTypes();
 
-		type_list expected_args;
+		type_list expected_args(1 + static_cast<int>(table_index_types.size()));
 		expected_args.push_back(type->AsTableType());
-		for (const auto& t : *table_index_types)
-			expected_args.push_back(t);
+
+		for ( const auto& t : table_index_types )
+			expected_args.push_back(t.get());
 
 		if ( ! e_ft->CheckArgs(&expected_args) )
 			Error("&expire_func argument type clash");
@@ -510,30 +511,30 @@ void Attributes::CheckAttr(Attr* a)
 		if ( the_table->IsUnspecifiedTable() )
 			break;
 
-		const type_list* args = c_ft->ArgTypes()->Types();
-		const type_list* t_indexes = the_table->IndexTypes();
-		if ( args->length() != ( type->IsSet() ? 2 : 3 ) + t_indexes->length() )
+		const auto& args = c_ft->ArgTypes()->Types();
+		const auto& t_indexes = the_table->IndexTypes();
+		if ( args.size() != ( type->IsSet() ? 2 : 3 ) + t_indexes.size() )
 			{
 			Error("&on_change function has incorrect number of arguments");
 			break;
 			}
 
-		if ( ! same_type((*args)[0], the_table->AsTableType()) )
+		if ( ! same_type(args[0].get(), the_table->AsTableType()) )
 			{
 			Error("&on_change: first argument must be of same type as table");
 			break;
 			}
 
 		// can't check exact type here yet - the data structures don't exist yet.
-		if ( (*args)[1]->Tag() != TYPE_ENUM )
+		if ( args[1]->Tag() != TYPE_ENUM )
 			{
 			Error("&on_change: second argument must be a TableChange enum");
 			break;
 			}
 
-		for ( int i = 0; i < t_indexes->length(); i++ )
+		for ( size_t i = 0; i < t_indexes.size(); i++ )
 			{
-			if ( ! same_type((*args)[2+i], (*t_indexes)[i]) )
+			if ( ! same_type(args[2+i].get(), t_indexes[i].get()) )
 				{
 				Error("&on_change: index types do not match table");
 				break;
@@ -541,7 +542,7 @@ void Attributes::CheckAttr(Attr* a)
 			}
 
 		if ( ! type->IsSet() )
-			if ( ! same_type((*args)[2+t_indexes->length()], the_table->YieldType()) )
+			if ( ! same_type(args[2+t_indexes.size()].get(), the_table->YieldType()) )
 				{
 				Error("&on_change: value type does not match table");
 				break;

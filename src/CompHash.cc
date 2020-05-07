@@ -21,9 +21,9 @@ CompositeHash::CompositeHash(IntrusivePtr<TypeList> composite_type)
 	// If the only element is a record, don't treat it as a
 	// singleton, since it needs to be evaluated specially.
 
-	if ( type->Types()->length() == 1 )
+	if ( type->Types().size() == 1 )
 		{
-		if ( (*type->Types())[0]->Tag() == TYPE_RECORD )
+		if ( type->Types()[0]->Tag() == TYPE_RECORD )
 			{
 			is_complex_type = true;
 			is_singleton = false;
@@ -45,7 +45,7 @@ CompositeHash::CompositeHash(IntrusivePtr<TypeList> composite_type)
 		{
 		// Don't do any further key computations - we'll do them
 		// via the singleton later.
-		singleton_tag = (*type->Types())[0]->InternalType();
+		singleton_tag = type->Types()[0]->InternalType();
 		size = 0;
 		key = nullptr;
 		}
@@ -366,20 +366,20 @@ HashKey* CompositeHash::ComputeHash(const Val* v, bool type_check) const
 		type_check = false;	// no need to type-check again.
 		}
 
-	const type_list* tl = type->Types();
+	const auto& tl = type->Types();
 
 	if ( type_check && v->Type()->Tag() != TYPE_LIST )
 		return nullptr;
 
 	auto lv = v->AsListVal();
 
-	if ( type_check && lv->Length() != tl->length() )
+	if ( type_check && lv->Length() != static_cast<int>(tl.size()) )
 		return nullptr;
 
 	char* kp = k;
-	loop_over_list(*tl, i)
+	for ( auto i = 0u; i < tl.size(); ++i )
 		{
-		kp = SingleValHash(type_check, kp, (*tl)[i], lv->Idx(i).get(), false);
+		kp = SingleValHash(type_check, kp, tl[i].get(), lv->Idx(i).get(), false);
 		if ( ! kp )
 			return nullptr;
 		}
@@ -624,7 +624,7 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 
 int CompositeHash::ComputeKeySize(const Val* v, bool type_check, bool calc_static_size) const
 	{
-	const type_list* tl = type->Types();
+	const auto& tl = type->Types();
 
 	if ( v )
 		{
@@ -633,14 +633,14 @@ int CompositeHash::ComputeKeySize(const Val* v, bool type_check, bool calc_stati
 
 		auto lv = v->AsListVal();
 
-		if ( type_check && lv->Length() != tl->length() )
+		if ( type_check && lv->Length() != static_cast<int>(tl.size()) )
 			return 0;
 		}
 
 	int sz = 0;
-	loop_over_list(*tl, i)
+	for ( auto i = 0u; i < tl.size(); ++i )
 		{
-		sz = SingleTypeKeySize((*tl)[i], v ? v->AsListVal()->Idx(i).get() : nullptr,
+		sz = SingleTypeKeySize(tl[i].get(), v ? v->AsListVal()->Idx(i).get() : nullptr,
 				       type_check, sz, false, calc_static_size);
 		if ( ! sz )
 			return 0;
@@ -711,14 +711,14 @@ int CompositeHash::SizeAlign(int offset, unsigned int size) const
 IntrusivePtr<ListVal> CompositeHash::RecoverVals(const HashKey* k) const
 	{
 	auto l = make_intrusive<ListVal>(TYPE_ANY);
-	const type_list* tl = type->Types();
+	const auto& tl = type->Types();
 	const char* kp = (const char*) k->Key();
 	const char* const k_end = kp + k->Size();
 
-	for ( const auto& type : *tl )
+	for ( const auto& type : tl )
 		{
 		IntrusivePtr<Val> v;
-		kp = RecoverOneVal(k, kp, k_end, type, &v, false);
+		kp = RecoverOneVal(k, kp, k_end, type.get(), &v, false);
 		ASSERT(v);
 		l->Append(std::move(v));
 		}
@@ -1008,7 +1008,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 			for ( int i = 0; i < n; ++i )
 				{
 				IntrusivePtr<Val> v;
-				BroType* it = (*tl->Types())[i];
+				BroType* it = tl->Types()[i].get();
 				kp1 = RecoverOneVal(k, kp1, k_end, it, &v, false);
 				lv->Append(std::move(v));
 				}

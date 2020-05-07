@@ -86,6 +86,9 @@ Changed Functionality
 - The DCE/RPC operation string of "NetrLogonSamLogonWithFlags" has been
   corrected from "NetrLogonSameLogonWithFlags".
 
+- ``TypeList::Types()`` and ``IndexType::IndexTypes()`` now return an
+  ``std::vector`` instead of ``type_list*``
+
 Removed Functionality
 ---------------------
 

@@ -336,21 +336,21 @@ bool Manager::CreateEventStream(RecordVal* fval)
 		return false;
 		}
 
-	const type_list* args = etype->ArgTypes()->Types();
+	const auto& args = etype->ArgTypes()->Types();
 
-	if ( args->length() < 2 )
+	if ( args.size() < 2 )
 		{
 		reporter->Error("Input stream %s: Event does not take enough arguments", stream_name.c_str());
 		return false;
 		}
 
-	if ( ! same_type((*args)[1], BifType::Enum::Input::Event, false) )
+	if ( ! same_type(args[1].get(), BifType::Enum::Input::Event, false) )
 		{
 		reporter->Error("Input stream %s: Event's second attribute must be of type Input::Event", stream_name.c_str());
 		return false;
 		}
 
-	if ( ! same_type((*args)[0], BifType::Record::Input::EventDescription, false) )
+	if ( ! same_type(args[0].get(), BifType::Record::Input::EventDescription, false) )
 		{
 		reporter->Error("Input stream %s: Event's first attribute must be of type Input::EventDescription", stream_name.c_str());
 		return false;
@@ -358,7 +358,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 
 	if ( want_record->InternalInt() == 0 )
 		{
-		if ( args->length() != fields->NumFields() + 2 )
+		if ( static_cast<int>(args.size()) != fields->NumFields() + 2 )
 			{
 			reporter->Error("Input stream %s: Event has wrong number of arguments", stream_name.c_str());
 			return false;
@@ -366,17 +366,17 @@ bool Manager::CreateEventStream(RecordVal* fval)
 
 		for ( int i = 0; i < fields->NumFields(); i++ )
 			{
-			if ( ! same_type((*args)[i + 2], fields->FieldType(i) ) )
+			if ( ! same_type(args[i + 2].get(), fields->FieldType(i) ) )
 				{
 				ODesc desc1;
 				ODesc desc2;
-				(*args)[i + 2]->Describe(&desc1);
+				args[i + 2]->Describe(&desc1);
 				fields->FieldType(i)->Describe(&desc2);
 
 				reporter->Error("Input stream %s: Incompatible type for event in field %d. Need type '%s':%s, got '%s':%s",
 						stream_name.c_str(), i + 3,
 						type_name(fields->FieldType(i)->Tag()), desc2.Description(),
-						type_name((*args)[i + 2]->Tag()), desc1.Description());
+						type_name(args[i + 2]->Tag()), desc1.Description());
 
 				return false;
 				}
@@ -386,21 +386,21 @@ bool Manager::CreateEventStream(RecordVal* fval)
 
 	else if ( want_record->InternalInt() == 1 )
 		{
-		if ( args->length() != 3 )
+		if ( args.size() != 3 )
 			{
 			reporter->Error("Input stream %s: Event has wrong number of arguments", stream_name.c_str());
 			return false;
 			}
 
-		if ( ! same_type((*args)[2], fields ) )
+		if ( ! same_type(args[2].get(), fields ) )
 			{
 			ODesc desc1;
 			ODesc desc2;
-			(*args)[2]->Describe(&desc1);
+			args[2]->Describe(&desc1);
 			fields->Describe(&desc2);
 			reporter->Error("Input stream %s: Incompatible type '%s':%s for event, which needs type '%s':%s\n",
 					stream_name.c_str(),
-					type_name((*args)[2]->Tag()), desc1.Description(),
+					type_name(args[2]->Tag()), desc1.Description(),
 					type_name(fields->Tag()), desc2.Description());
 			return false;
 			}
@@ -486,9 +486,10 @@ bool Manager::CreateTableStream(RecordVal* fval)
 
 	// check if index fields match table description
 	int num = idx->NumFields();
-	const type_list* tl = dst->Type()->AsTableType()->IndexTypes();
+	const auto& tl = dst->Type()->AsTableType()->IndexTypes();
+	int j;
 
-	loop_over_list(*tl, j)
+	for ( j = 0; j < static_cast<int>(tl.size()); ++j )
 		{
 		if ( j >= num )
 			{
@@ -496,16 +497,16 @@ bool Manager::CreateTableStream(RecordVal* fval)
 			return false;
 			}
 
-		if ( ! same_type(idx->FieldType(j), (*tl)[j]) )
+		if ( ! same_type(idx->FieldType(j), tl[j].get()) )
 			{
 			ODesc desc1;
 			ODesc desc2;
 			idx->FieldType(j)->Describe(&desc1);
-			(*tl)[j]->Describe(&desc2);
+			tl[j]->Describe(&desc2);
 
 			reporter->Error("Input stream %s: Table type does not match index type. Need type '%s':%s, got '%s':%s", stream_name.c_str(),
 					type_name(idx->FieldType(j)->Tag()), desc1.Description(),
-					type_name((*tl)[j]->Tag()), desc2.Description());
+					type_name(tl[j]->Tag()), desc2.Description());
 
 			return false;
 			}
@@ -563,54 +564,54 @@ bool Manager::CreateTableStream(RecordVal* fval)
 			return false;
 			}
 
-		const type_list* args = etype->ArgTypes()->Types();
+		const auto& args = etype->ArgTypes()->Types();
 
-		if ( args->length() != 4 )
+		if ( args.size() != 4 )
 			{
 			reporter->Error("Input stream %s: Table event must take 4 arguments", stream_name.c_str());
 			return false;
 			}
 
-		if ( ! same_type((*args)[0], BifType::Record::Input::TableDescription, false) )
+		if ( ! same_type(args[0].get(), BifType::Record::Input::TableDescription, false) )
 			{
 			reporter->Error("Input stream %s: Table event's first attribute must be of type Input::TableDescription", stream_name.c_str());
 			return false;
 			}
 
-		if ( ! same_type((*args)[1], BifType::Enum::Input::Event, false) )
+		if ( ! same_type(args[1].get(), BifType::Enum::Input::Event, false) )
 			{
 			reporter->Error("Input stream %s: Table event's second attribute must be of type Input::Event", stream_name.c_str());
 			return false;
 			}
 
-		if ( ! same_type((*args)[2], idx) )
+		if ( ! same_type(args[2].get(), idx) )
 			{
 			ODesc desc1;
 			ODesc desc2;
 			idx->Describe(&desc1);
-			(*args)[2]->Describe(&desc2);
+			args[2]->Describe(&desc2);
 			reporter->Error("Input stream %s: Table event's index attributes do not match. Need '%s', got '%s'", stream_name.c_str(),
 					desc1.Description(), desc2.Description());
 			return false;
 			}
 
-		if ( want_record->InternalInt() == 1 && val && ! same_type((*args)[3], val.get()) )
+		if ( want_record->InternalInt() == 1 && val && ! same_type(args[3].get(), val.get()) )
 			{
 			ODesc desc1;
 			ODesc desc2;
 			val->Describe(&desc1);
-			(*args)[3]->Describe(&desc2);
+			args[3]->Describe(&desc2);
 			reporter->Error("Input stream %s: Table event's value attributes do not match. Need '%s', got '%s'", stream_name.c_str(),
 					desc1.Description(), desc2.Description());
 			return false;
 			}
 		else if (  want_record->InternalInt() == 0
-		           && val && !same_type((*args)[3], val->FieldType(0) ) )
+		           && val && !same_type(args[3].get(), val->FieldType(0) ) )
 			{
 			ODesc desc1;
 			ODesc desc2;
 			val->FieldType(0)->Describe(&desc1);
-			(*args)[3]->Describe(&desc2);
+			args[3]->Describe(&desc2);
 			reporter->Error("Input stream %s: Table event's value attribute does not match. Need '%s', got '%s'", stream_name.c_str(),
 					desc1.Description(), desc2.Description());
 			return false;
@@ -710,33 +711,33 @@ bool Manager::CheckErrorEventTypes(const std::string& stream_name, const Func* e
 		return false;
 		}
 
-	const type_list* args = etype->ArgTypes()->Types();
+	const auto& args = etype->ArgTypes()->Types();
 
-	if ( args->length() != 3 )
+	if ( args.size() != 3 )
 		{
 		reporter->Error("Input stream %s: Error event must take 3 arguments", stream_name.c_str());
 		return false;
 		}
 
-	if ( table && ! same_type((*args)[0], BifType::Record::Input::TableDescription, false) )
+	if ( table && ! same_type(args[0].get(), BifType::Record::Input::TableDescription, false) )
 		{
 		reporter->Error("Input stream %s: Error event's first attribute must be of type Input::TableDescription", stream_name.c_str());
 		return false;
 		}
 
-	if ( ! table && ! same_type((*args)[0], BifType::Record::Input::EventDescription, false) )
+	if ( ! table && ! same_type(args[0].get(), BifType::Record::Input::EventDescription, false) )
 		{
 		reporter->Error("Input stream %s: Error event's first attribute must be of type Input::EventDescription", stream_name.c_str());
 		return false;
 		}
 
-	if ( (*args)[1]->Tag() != TYPE_STRING )
+	if ( args[1]->Tag() != TYPE_STRING )
 		{
 		reporter->Error("Input stream %s: Error event's second attribute must be of type string", stream_name.c_str());
 		return false;
 		}
 
-	if ( ! same_type((*args)[2], BifType::Enum::Reporter::Level, false) )
+	if ( ! same_type(args[2].get(), BifType::Enum::Reporter::Level, false) )
 		{
 		reporter->Error("Input stream %s: Error event's third attribute must be of type Reporter::Level", stream_name.c_str());
 		return false;

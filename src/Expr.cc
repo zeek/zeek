@@ -3103,7 +3103,7 @@ TableConstructorExpr::TableConstructorExpr(IntrusivePtr<ListExpr> constructor_li
 
 	attrs = arg_attrs ? new Attributes(arg_attrs, type, false, false) : nullptr;
 
-	type_list* indices = type->AsTableType()->Indices()->Types();
+	const auto& indices = type->AsTableType()->Indices()->Types();
 	const expr_list& cle = op->AsListExpr()->Exprs();
 
 	// check and promote all index expressions in ctor list
@@ -3119,14 +3119,14 @@ TableConstructorExpr::TableConstructorExpr(IntrusivePtr<ListExpr> constructor_li
 
 		expr_list& idx_exprs = idx_expr->AsListExpr()->Exprs();
 
-		if ( idx_exprs.length() != indices->length() )
+		if ( idx_exprs.length() != static_cast<int>(indices.size()) )
 			continue;
 
 		loop_over_list(idx_exprs, j)
 			{
 			Expr* idx = idx_exprs[j];
 
-			auto promoted_idx = check_and_promote_expr(idx, (*indices)[j]);
+			auto promoted_idx = check_and_promote_expr(idx, indices[j].get());
 
 			if ( promoted_idx )
 				{
@@ -3221,17 +3221,17 @@ SetConstructorExpr::SetConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
 
 	attrs = arg_attrs ? new Attributes(arg_attrs, type, false, false) : nullptr;
 
-	type_list* indices = type->AsTableType()->Indices()->Types();
+	const auto& indices = type->AsTableType()->Indices()->Types();
 	expr_list& cle = op->AsListExpr()->Exprs();
 
-	if ( indices->length() == 1 )
+	if ( indices.size() == 1 )
 		{
 		if ( ! check_and_promote_exprs_to_type(op->AsListExpr(),
-		                                       (*indices)[0]) )
+		                                       indices[0].get()) )
 			ExprError("inconsistent type in set constructor");
 		}
 
-	else if ( indices->length() > 1 )
+	else if ( indices.size() > 1 )
 		{
 		// Check/promote each expression in composite index.
 		loop_over_list(cle, i)
@@ -4555,9 +4555,9 @@ IntrusivePtr<Val> ListExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) co
 	if ( ! aggr && type->AsTypeList()->AllMatch(t, true) )
 		{
 		auto v = make_intrusive<ListVal>(TYPE_ANY);
-		const type_list* tl = type->AsTypeList()->Types();
+		const auto& tl = type->AsTypeList()->Types();
 
-		if ( exprs.length() != tl->length() )
+		if ( exprs.length() != static_cast<int>(tl.size()) )
 			{
 			Error("index mismatch", t);
 			return nullptr;
@@ -4565,7 +4565,7 @@ IntrusivePtr<Val> ListExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) co
 
 		loop_over_list(exprs, i)
 			{
-			auto vi = exprs[i]->InitVal((*tl)[i], nullptr);
+			auto vi = exprs[i]->InitVal(tl[i].get(), nullptr);
 			if ( ! vi )
 				return nullptr;
 
@@ -4583,9 +4583,9 @@ IntrusivePtr<Val> ListExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) co
 			return nullptr;
 			}
 
-		const type_list* tl = t->AsTypeList()->Types();
+		const auto& tl = t->AsTypeList()->Types();
 
-		if ( exprs.length() != tl->length() )
+		if ( exprs.length() != static_cast<int>(tl.size()) )
 			{
 			Error("index mismatch", t);
 			return nullptr;
@@ -4595,7 +4595,7 @@ IntrusivePtr<Val> ListExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) co
 
 		loop_over_list(exprs, i)
 			{
-			auto vi = exprs[i]->InitVal((*tl)[i], nullptr);
+			auto vi = exprs[i]->InitVal(tl[i].get(), nullptr);
 
 			if ( ! vi )
 				return nullptr;
@@ -4703,7 +4703,7 @@ IntrusivePtr<Val> ListExpr::AddSetInit(const BroType* t, IntrusivePtr<Val> aggr)
 		else if ( expr->Type()->Tag() == TYPE_LIST )
 			element = expr->InitVal(it, nullptr);
 		else
-			element = expr->InitVal((*it->Types())[0], nullptr);
+			element = expr->InitVal(it->Types()[0].get(), nullptr);
 
 		if ( ! element )
 			return nullptr;
@@ -4725,7 +4725,7 @@ IntrusivePtr<Val> ListExpr::AddSetInit(const BroType* t, IntrusivePtr<Val> aggr)
 		if ( expr->Type()->Tag() == TYPE_LIST )
 			element = check_and_promote(std::move(element), it, true);
 		else
-			element = check_and_promote(std::move(element), (*it->Types())[0], true);
+			element = check_and_promote(std::move(element), it->Types()[0].get(), true);
 
 		if ( ! element )
 			return nullptr;
@@ -5013,12 +5013,12 @@ IntrusivePtr<Expr> check_and_promote_expr(Expr* const e, BroType* t)
 bool check_and_promote_exprs(ListExpr* const elements, TypeList* types)
 	{
 	expr_list& el = elements->Exprs();
-	const type_list* tl = types->Types();
+	const auto& tl = types->Types();
 
-	if ( tl->length() == 1 && (*tl)[0]->Tag() == TYPE_ANY )
+	if ( tl.size() == 1 && tl[0]->Tag() == TYPE_ANY )
 		return true;
 
-	if ( el.length() != tl->length() )
+	if ( el.length() != static_cast<int>(tl.size()) )
 		{
 		types->Error("indexing mismatch", elements);
 		return false;
@@ -5027,11 +5027,11 @@ bool check_and_promote_exprs(ListExpr* const elements, TypeList* types)
 	loop_over_list(el, i)
 		{
 		Expr* e = el[i];
-		auto promoted_e = check_and_promote_expr(e, (*tl)[i]);
+		auto promoted_e = check_and_promote_expr(e, tl[i].get());
 
 		if ( ! promoted_e )
 			{
-			e->Error("type mismatch", (*tl)[i]);
+			e->Error("type mismatch", tl[i].get());
 			return false;
 			}
 

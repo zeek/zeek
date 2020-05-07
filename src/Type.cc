@@ -153,16 +153,10 @@ unsigned int BroType::MemoryAllocation() const
 	return padded_sizeof(*this);
 	}
 
-TypeList::~TypeList()
-	{
-	for ( const auto& type : types )
-		Unref(type);
-	}
-
 bool TypeList::AllMatch(const BroType* t, bool is_init) const
 	{
 	for ( const auto& type : types )
-		if ( ! same_type(type, t, is_init) )
+		if ( ! same_type(type.get(), t, is_init) )
 			return false;
 	return true;
 	}
@@ -172,7 +166,7 @@ void TypeList::Append(IntrusivePtr<BroType> t)
 	if ( pure_type && ! same_type(t.get(), pure_type.get()) )
 		reporter->InternalError("pure type-list violation");
 
-	types.push_back(t.release());
+	types.emplace_back(std::move(t));
 	}
 
 void TypeList::AppendEvenIfNotPure(IntrusivePtr<BroType> t)
@@ -180,7 +174,7 @@ void TypeList::AppendEvenIfNotPure(IntrusivePtr<BroType> t)
 	if ( pure_type && ! same_type(t.get(), pure_type.get()) )
 		pure_type = nullptr;
 
-	types.push_back(t.release());
+	types.emplace_back(std::move(t));
 	}
 
 void TypeList::Describe(ODesc* d) const
@@ -193,14 +187,14 @@ void TypeList::Describe(ODesc* d) const
 		d->Add(IsPure());
 		if ( IsPure() )
 			pure_type->Describe(d);
-		d->Add(types.length());
+		d->Add(static_cast<uint64_t>(types.size()));
 		}
 
 	if ( IsPure() )
 		pure_type->Describe(d);
 	else
 		{
-		loop_over_list(types, i)
+		for ( size_t i = 0; i < types.size(); ++i )
 			{
 			if ( i > 0 && ! d->IsBinary() )
 				d->Add(",");
@@ -212,9 +206,16 @@ void TypeList::Describe(ODesc* d) const
 
 unsigned int TypeList::MemoryAllocation() const
 	{
+	unsigned int size = 0;
+
+	for ( const auto& t : types )
+		size += t->MemoryAllocation();
+
+	size += pad_size(types.capacity() * sizeof(decltype(types)::value_type));
+
 	return BroType::MemoryAllocation()
 		+ padded_sizeof(*this) - padded_sizeof(BroType)
-		+ types.MemoryAllocation() - padded_sizeof(types);
+		+ size;
 	}
 
 IndexType::~IndexType() = default;
@@ -222,10 +223,10 @@ IndexType::~IndexType() = default;
 int IndexType::MatchesIndex(ListExpr* const index) const
 	{
 	// If we have a type indexed by subnets, addresses are ok.
-	const type_list* types = indices->Types();
+	const auto& types = indices->Types();
 	const expr_list& exprs = index->Exprs();
 
-	if ( types->length() == 1 && (*types)[0]->Tag() == TYPE_SUBNET &&
+	if ( types.size() == 1 && types[0]->Tag() == TYPE_SUBNET &&
 	     exprs.length() == 1 && exprs[0]->Type()->Tag() == TYPE_ADDR )
 		return MATCHES_INDEX_SCALAR;
 
@@ -248,11 +249,14 @@ void IndexType::Describe(ODesc* d) const
 	BroType::Describe(d);
 	if ( ! d->IsBinary() )
 		d->Add("[");
-	loop_over_list(*IndexTypes(), i)
+
+	const auto& its = IndexTypes();
+
+	for ( auto i = 0u; i < its.size(); ++i )
 		{
 		if ( ! d->IsBinary() && i > 0 )
 			d->Add(",");
-		(*IndexTypes())[i]->Describe(d);
+		its[i]->Describe(d);
 		}
 	if ( ! d->IsBinary() )
 		d->Add("]");
@@ -277,12 +281,14 @@ void IndexType::DescribeReST(ODesc* d, bool roles_only) const
 	d->Add("` ");
 	d->Add("[");
 
-	loop_over_list(*IndexTypes(), i)
+	const auto& its = IndexTypes();
+
+	for ( auto i = 0u; i < its.size(); ++i )
 		{
 		if ( i > 0 )
 			d->Add(", ");
 
-		const BroType* t = (*IndexTypes())[i];
+		const auto& t = its[i];
 
 		if ( ! t->GetName().empty() )
 			{
@@ -313,8 +319,8 @@ void IndexType::DescribeReST(ODesc* d, bool roles_only) const
 
 bool IndexType::IsSubNetIndex() const
 	{
-	const type_list* types = indices->Types();
-	if ( types->length() == 1 && (*types)[0]->Tag() == TYPE_SUBNET )
+	const auto& types = indices->Types();
+	if ( types.size() == 1 && types[0]->Tag() == TYPE_SUBNET )
 		return true;
 	return false;
 	}
@@ -325,9 +331,9 @@ TableType::TableType(IntrusivePtr<TypeList> ind, IntrusivePtr<BroType> yield)
 	if ( ! indices )
 		return;
 
-	type_list* tl = indices->Types();
+	const auto& tl = indices->Types();
 
-	for ( const auto& tli : *tl )
+	for ( const auto& tli : tl )
 		{
 		InternalTypeTag t = tli->InternalType();
 
@@ -354,7 +360,7 @@ IntrusivePtr<BroType> TableType::ShallowClone()
 bool TableType::IsUnspecifiedTable() const
 	{
 	// Unspecified types have an empty list of indices.
-	return indices->Types()->length() == 0;
+	return indices->Types().empty();
 	}
 
 SetType::SetType(IntrusivePtr<TypeList> ind, IntrusivePtr<ListExpr> arg_elements)
@@ -370,27 +376,27 @@ SetType::SetType(IntrusivePtr<TypeList> ind, IntrusivePtr<ListExpr> arg_elements
 		else
 			{
 			TypeList* tl_type = elements->Type()->AsTypeList();
-			type_list* tl = tl_type->Types();
+			const auto& tl = tl_type->Types();
 
-			if ( tl->length() < 1 )
+			if ( tl.size() < 1 )
 				{
 				Error("no type given for set");
 				SetError();
 				}
 
-			else if ( tl->length() == 1 )
+			else if ( tl.size() == 1 )
 				{
-				IntrusivePtr<BroType> ft{NewRef{}, flatten_type((*tl)[0])};
+				IntrusivePtr<BroType> ft{NewRef{}, flatten_type(tl[0].get())};
 				indices = make_intrusive<TypeList>(ft);
 				indices->Append(std::move(ft));
 				}
 
 			else
 				{
-				auto t = merge_types((*tl)[0], (*tl)[1]);
+				auto t = merge_types(tl[0].get(), tl[1].get());
 
-				for ( int i = 2; t && i < tl->length(); ++i )
-					t = merge_types(t.get(), (*tl)[i]);
+				for ( size_t i = 2; t && i < tl.size(); ++i )
+					t = merge_types(t.get(), tl[i].get());
 
 				if ( ! t )
 					{
@@ -493,22 +499,34 @@ int FuncType::MatchesIndex(ListExpr* const index) const
 
 bool FuncType::CheckArgs(const type_list* args, bool is_init) const
 	{
-	const type_list* my_args = arg_types->Types();
+	std::vector<IntrusivePtr<BroType>> as;
+	as.reserve(args->length());
 
-	if ( my_args->length() != args->length() )
+	for ( auto a : *args )
+		as.emplace_back(NewRef{}, a);
+
+	return CheckArgs(as, is_init);
+	}
+
+bool FuncType::CheckArgs(const std::vector<IntrusivePtr<BroType>>& args,
+                         bool is_init) const
+	{
+	const auto& my_args = arg_types->Types();
+
+	if ( my_args.size() != args.size() )
 		{
-		Warn(fmt("Wrong number of arguments for function. Expected %d, got %d.",
-			args->length(), my_args->length()));
+		Warn(fmt("Wrong number of arguments for function. Expected %zu, got %zu.",
+		         args.size(), my_args.size()));
 		return false;
 		}
 
 	bool success = true;
 
-	for ( int i = 0; i < my_args->length(); ++i )
-		if ( ! same_type((*args)[i], (*my_args)[i], is_init) )
+	for ( size_t i = 0; i < my_args.size(); ++i )
+		if ( ! same_type(args[i].get(), my_args[i].get(), is_init) )
 			{
-			Warn(fmt("Type mismatch in function argument #%d. Expected %s, got %s.",
-				i, type_name((*args)[i]->Tag()), type_name((*my_args)[i]->Tag())));
+			Warn(fmt("Type mismatch in function argument #%zu. Expected %s, got %s.",
+				i, type_name(args[i]->Tag()), type_name(my_args[i]->Tag())));
 			success = false;
 			}
 
@@ -785,12 +803,14 @@ static string container_type_name(const BroType* ft)
 			s = "set[";
 		else
 			s = "table[";
-		const type_list* tl = ((const IndexType*) ft)->IndexTypes();
-		loop_over_list(*tl, i)
+
+		const auto& tl = ((const IndexType*) ft)->IndexTypes();
+
+		for ( auto i = 0u; i < tl.size(); ++i )
 			{
 			if ( i > 0 )
 				s += ",";
-			s += container_type_name((*tl)[i]);
+			s += container_type_name(tl[i].get());
 			}
 		s += "]";
 		if ( ft->YieldType() )
@@ -1576,14 +1596,14 @@ bool same_type(const BroType* t1, const BroType* t2, bool is_init, bool match_re
 
 	case TYPE_LIST:
 		{
-		const type_list* tl1 = t1->AsTypeList()->Types();
-		const type_list* tl2 = t2->AsTypeList()->Types();
+		const auto& tl1 = t1->AsTypeList()->Types();
+		const auto& tl2 = t2->AsTypeList()->Types();
 
-		if ( tl1->length() != tl2->length() )
+		if ( tl1.size() != tl2.size() )
 			return false;
 
-		loop_over_list(*tl1, i)
-			if ( ! same_type((*tl1)[i], (*tl2)[i], is_init, match_record_field_names) )
+		for ( auto i = 0u; i < tl1.size(); ++i )
+			if ( ! same_type(tl1[i].get(), tl2[i].get(), is_init, match_record_field_names) )
 				return false;
 
 		return true;
@@ -1666,14 +1686,15 @@ const BroType* flatten_type(const BroType* t)
 	if ( tl->IsPure() )
 		return tl->GetPureType().get();
 
-	const type_list* types = tl->Types();
+	const auto& types = tl->Types();
 
-	if ( types->length() == 0 )
+	if ( types.size() == 0 )
 		reporter->InternalError("empty type list in flatten_type");
 
-	const BroType* ft = (*types)[0];
-	if ( types->length() == 1 || tl->AllMatch(ft, false) )
-		return ft;
+	const auto& ft = types[0];
+
+	if ( types.size() == 1 || tl->AllMatch(ft, false) )
+		return ft.get();
 
 	return t;
 	}
@@ -1821,28 +1842,25 @@ IntrusivePtr<BroType> merge_types(const BroType* t1, const BroType* t2)
 		const IndexType* it1 = (const IndexType*) t1;
 		const IndexType* it2 = (const IndexType*) t2;
 
-		const type_list* tl1 = it1->IndexTypes();
-		const type_list* tl2 = it2->IndexTypes();
+		const auto& tl1 = it1->IndexTypes();
+		const auto& tl2 = it2->IndexTypes();
 		IntrusivePtr<TypeList> tl3;
 
-		if ( tl1 || tl2 )
+		if ( tl1.size() != tl2.size() )
 			{
-			if ( ! tl1 || ! tl2 || tl1->length() != tl2->length() )
-				{
-				t1->Error("incompatible types", t2);
+			t1->Error("incompatible types", t2);
+			return nullptr;
+			}
+
+		tl3 = make_intrusive<TypeList>();
+
+		for ( auto i = 0u; i < tl1.size(); ++i )
+			{
+			auto tl3_i = merge_types(tl1[i].get(), tl2[i].get());
+			if ( ! tl3_i )
 				return nullptr;
-				}
 
-			tl3 = make_intrusive<TypeList>();
-
-			loop_over_list(*tl1, i)
-				{
-				auto tl3_i = merge_types((*tl1)[i], (*tl2)[i]);
-				if ( ! tl3_i )
-					return nullptr;
-
-				tl3->Append(std::move(tl3_i));
-				}
+			tl3->Append(std::move(tl3_i));
 			}
 
 		const BroType* y1 = t1->YieldType();
@@ -1926,12 +1944,12 @@ IntrusivePtr<BroType> merge_types(const BroType* t1, const BroType* t2)
 			return nullptr;
 			}
 
-		const type_list* l1 = tl1->Types();
-		const type_list* l2 = tl2->Types();
+		const auto& l1 = tl1->Types();
+		const auto& l2 = tl2->Types();
 
-		if ( l1->length() == 0 || l2->length() == 0 )
+		if ( l1.size() == 0 || l2.size() == 0 )
 			{
-			if ( l1->length() == 0 )
+			if ( l1.size() == 0 )
 				tl1->Error("empty list");
 			else
 				tl2->Error("empty list");
@@ -1944,20 +1962,21 @@ IntrusivePtr<BroType> merge_types(const BroType* t1, const BroType* t2)
 			// the initialization expression into a set of values.
 			// So the merge type of the list is the type of one
 			// of the elements, providing they're consistent.
-			return merge_types((*l1)[0], (*l2)[0]);
+			return merge_types(l1[0].get(), l2[0].get());
 			}
 
 		// Impure lists - must have the same size and match element
 		// by element.
-		if ( l1->length() != l2->length() )
+		if ( l1.size() != l2.size() )
 			{
 			tl1->Error("different number of indices", tl2);
 			return nullptr;
 			}
 
 		auto tl3 = make_intrusive<TypeList>();
-		loop_over_list(*l1, i)
-			tl3->Append(merge_types((*l1)[i], (*l2)[i]));
+
+		for ( auto i = 0u; i < l1.size(); ++i )
+			tl3->Append(merge_types(l1[i].get(), l2[i].get()));
 
 		return tl3;
 		}
@@ -1993,21 +2012,21 @@ IntrusivePtr<BroType> merge_types(const BroType* t1, const BroType* t2)
 IntrusivePtr<BroType> merge_type_list(ListExpr* elements)
 	{
 	TypeList* tl_type = elements->Type()->AsTypeList();
-	type_list* tl = tl_type->Types();
+	const auto& tl = tl_type->Types();
 
-	if ( tl->length() < 1 )
+	if ( tl.size() < 1 )
 		{
 		reporter->Error("no type can be inferred for empty list");
 		return nullptr;
 		}
 
-	IntrusivePtr<BroType> t{NewRef{}, (*tl)[0]};
+	auto t = tl[0];
 
-	if ( tl->length() == 1 )
+	if ( tl.size() == 1 )
 		return t;
 
-	for ( int i = 1; t && i < tl->length(); ++i )
-		t = merge_types(t.get(), (*tl)[i]);
+	for ( size_t i = 1; t && i < tl.size(); ++i )
+		t = merge_types(t.get(), tl[i].get());
 
 	if ( ! t )
 		reporter->Error("inconsistent types in list");
@@ -2024,8 +2043,8 @@ static BroType* reduce_type(BroType* t)
 	else if ( t->IsSet() )
 		{
 		TypeList* tl = t->AsTableType()->Indices();
-		if ( tl->Types()->length() == 1 )
-			return (*tl->Types())[0];
+		if ( tl->Types().size() == 1 )
+			return tl->Types()[0].get();
 		else
 			return tl;
 		}
@@ -2044,7 +2063,7 @@ IntrusivePtr<BroType> init_type(Expr* init)
 			return nullptr;
 
 		if ( t->Tag() == TYPE_LIST &&
-		     t->AsTypeList()->Types()->length() != 1 )
+		     t->AsTypeList()->Types().size() != 1 )
 			{
 			init->Error("list used in scalar initialization");
 			return nullptr;

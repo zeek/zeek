@@ -278,15 +278,15 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 			return false;
 			}
 
-		const type_list* args = etype->ArgTypes()->Types();
+		const auto& args = etype->ArgTypes()->Types();
 
-		if ( args->length() != 1 )
+		if ( args.size() != 1 )
 			{
 			reporter->Error("stream event must take a single argument");
 			return false;
 			}
 
-		if ( ! same_type((*args)[0], columns) )
+		if ( ! same_type(args[0].get(), columns) )
 			{
 			reporter->Error("stream event's argument type does not match column record type");
 			return false;

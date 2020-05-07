@@ -212,17 +212,17 @@ struct val_converter {
 
 		for ( auto& item : a )
 			{
-			auto expected_index_types = tt->Indices()->Types();
+			const auto& expected_index_types = tt->Indices()->Types();
 			broker::vector composite_key;
 			auto indices = caf::get_if<broker::vector>(&item);
 
 			if ( indices )
 				{
-				if ( expected_index_types->length() == 1 )
+				if ( expected_index_types.size() == 1 )
 					{
 					auto index_is_vector_or_record =
-					     (*expected_index_types)[0]->Tag() == TYPE_RECORD ||
-					     (*expected_index_types)[0]->Tag() == TYPE_VECTOR;
+					     expected_index_types[0]->Tag() == TYPE_RECORD ||
+					     expected_index_types[0]->Tag() == TYPE_VECTOR;
 
 					if ( index_is_vector_or_record )
 						{
@@ -238,8 +238,7 @@ struct val_converter {
 				indices = &composite_key;
 				}
 
-			if ( static_cast<size_t>(expected_index_types->length()) !=
-			     indices->size() )
+			if ( expected_index_types.size() != indices->size() )
 				return nullptr;
 
 			auto list_val = make_intrusive<ListVal>(TYPE_ANY);
@@ -247,7 +246,7 @@ struct val_converter {
 			for ( auto i = 0u; i < indices->size(); ++i )
 				{
 				auto index_val = bro_broker::data_to_val(move((*indices)[i]),
-				                                         (*expected_index_types)[i]);
+				                                         expected_index_types[i].get());
 
 				if ( ! index_val )
 					return nullptr;
@@ -272,17 +271,17 @@ struct val_converter {
 
 		for ( auto& item : a )
 			{
-			auto expected_index_types = tt->Indices()->Types();
+			const auto& expected_index_types = tt->Indices()->Types();
 			broker::vector composite_key;
 			auto indices = caf::get_if<broker::vector>(&item.first);
 
 			if ( indices )
 				{
-				if ( expected_index_types->length() == 1 )
+				if ( expected_index_types.size() == 1 )
 					{
 					auto index_is_vector_or_record =
-					     (*expected_index_types)[0]->Tag() == TYPE_RECORD ||
-					     (*expected_index_types)[0]->Tag() == TYPE_VECTOR;
+					     expected_index_types[0]->Tag() == TYPE_RECORD ||
+					     expected_index_types[0]->Tag() == TYPE_VECTOR;
 
 					if ( index_is_vector_or_record )
 						{
@@ -298,8 +297,7 @@ struct val_converter {
 				indices = &composite_key;
 				}
 
-			if ( static_cast<size_t>(expected_index_types->length()) !=
-			     indices->size() )
+			if ( expected_index_types.size() != indices->size() )
 				return nullptr;
 
 			auto list_val = make_intrusive<ListVal>(TYPE_ANY);
@@ -307,7 +305,7 @@ struct val_converter {
 			for ( auto i = 0u; i < indices->size(); ++i )
 				{
 				auto index_val = bro_broker::data_to_val(move((*indices)[i]),
-				                                         (*expected_index_types)[i]);
+				                                         expected_index_types[i].get());
 
 				if ( ! index_val )
 					return nullptr;
@@ -561,17 +559,17 @@ struct type_checker {
 
 		for ( const auto& item : a )
 			{
-			auto expected_index_types = tt->Indices()->Types();
+			const auto& expected_index_types = tt->Indices()->Types();
 			auto indices = caf::get_if<broker::vector>(&item);
 			vector<const broker::data*> indices_to_check;
 
 			if ( indices )
 				{
-				if ( expected_index_types->length() == 1 )
+				if ( expected_index_types.size() == 1 )
 					{
 					auto index_is_vector_or_record =
-					     (*expected_index_types)[0]->Tag() == TYPE_RECORD ||
-					     (*expected_index_types)[0]->Tag() == TYPE_VECTOR;
+					     expected_index_types[0]->Tag() == TYPE_RECORD ||
+					     expected_index_types[0]->Tag() == TYPE_VECTOR;
 
 					if ( index_is_vector_or_record )
 						// Disambiguate from composite key w/ multiple vals.
@@ -595,13 +593,12 @@ struct type_checker {
 			else
 				indices_to_check.emplace_back(&item);
 
-			if ( static_cast<size_t>(expected_index_types->length()) !=
-			     indices_to_check.size() )
+			if ( expected_index_types.size() != indices_to_check.size() )
 				return false;
 
 			for ( auto i = 0u; i < indices_to_check.size(); ++i )
 				{
-				auto expect = (*expected_index_types)[i];
+				auto expect = expected_index_types[i].get();
 				auto& index_to_check = *(indices_to_check)[i];
 
 				if ( ! data_type_check(index_to_check, expect) )
@@ -621,17 +618,17 @@ struct type_checker {
 
 		for ( auto& item : a )
 			{
-			auto expected_index_types = tt->Indices()->Types();
+			const auto& expected_index_types = tt->Indices()->Types();
 			auto indices = caf::get_if<broker::vector>(&item.first);
 			vector<const broker::data*> indices_to_check;
 
 			if ( indices )
 				{
-				if ( expected_index_types->length() == 1 )
+				if ( expected_index_types.size() == 1 )
 					{
 					auto index_is_vector_or_record =
-					     (*expected_index_types)[0]->Tag() == TYPE_RECORD ||
-					     (*expected_index_types)[0]->Tag() == TYPE_VECTOR;
+					     expected_index_types[0]->Tag() == TYPE_RECORD ||
+					     expected_index_types[0]->Tag() == TYPE_VECTOR;
 
 					if ( index_is_vector_or_record )
 						// Disambiguate from composite key w/ multiple vals.
@@ -656,15 +653,14 @@ struct type_checker {
 				indices_to_check.emplace_back(&item.first);
 
 
-			if ( static_cast<size_t>(expected_index_types->length()) !=
-			     indices_to_check.size() )
+			if ( expected_index_types.size() != indices_to_check.size() )
 				{
 				return false;
 				}
 
 			for ( auto i = 0u; i < indices_to_check.size(); ++i )
 				{
-				auto expect = (*expected_index_types)[i];
+				auto expect = expected_index_types[i].get();
 				auto& index_to_check = *(indices_to_check)[i];
 
 				if ( ! data_type_check(index_to_check, expect) )

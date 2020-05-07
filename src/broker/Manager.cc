@@ -742,9 +742,9 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 			}
 
 		auto got_type = (*args)[i]->Type();
-		auto expected_type = (*func->FType()->ArgTypes()->Types())[i - 1];
+		const auto& expected_type = func->FType()->ArgTypes()->Types()[i - 1];
 
-		if ( ! same_type(got_type, expected_type) )
+		if ( ! same_type(got_type, expected_type.get()) )
 			{
 			rval->Assign(0, nullptr);
 			Error("event parameter #%d type mismatch, got %s, expect %s", i,
@@ -978,13 +978,13 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 		return;
 		}
 
-	auto arg_types = handler->FType(false)->ArgTypes()->Types();
+	const auto& arg_types = handler->FType(false)->ArgTypes()->Types();
 
-	if ( static_cast<size_t>(arg_types->length()) != args.size() )
+	if ( arg_types.size() != args.size() )
 		{
 		reporter->Warning("got event message '%s' with invalid # of args,"
-				  " got %zd, expected %d", name.data(), args.size(),
-				  arg_types->length());
+		                  " got %zd, expected %zu", name.data(), args.size(),
+		                  arg_types.size());
 		return;
 		}
 
@@ -994,8 +994,8 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 	for ( auto i = 0u; i < args.size(); ++i )
 		{
 		auto got_type = args[i].get_type_name();
-		auto expected_type = (*arg_types)[i];
-		auto val = data_to_val(std::move(args[i]), expected_type);
+		const auto& expected_type = arg_types[i];
+		auto val = data_to_val(std::move(args[i]), expected_type.get());
 
 		if ( val )
 			vl.emplace_back(std::move(val));

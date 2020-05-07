@@ -353,10 +353,8 @@ public:
 		{
 		}
 
-	~TypeList() override;
-
-	const type_list* Types() const	{ return &types; }
-	type_list* Types()		{ return &types; }
+	const std::vector<IntrusivePtr<BroType>>& Types() const
+		{ return types; }
 
 	bool IsPure() const		{ return pure_type != nullptr; }
 
@@ -386,7 +384,7 @@ public:
 
 protected:
 	IntrusivePtr<BroType> pure_type;
-	type_list types;
+	std::vector<IntrusivePtr<BroType>> types;
 };
 
 class IndexType : public BroType {
@@ -394,7 +392,10 @@ public:
 	int MatchesIndex(ListExpr* index) const override;
 
 	TypeList* Indices() const		{ return indices.get(); }
-	const type_list* IndexTypes() const	{ return indices->Types(); }
+
+	const std::vector<IntrusivePtr<BroType>>& IndexTypes() const
+		{ return indices->Types(); }
+
 	BroType* YieldType() override;
 	const BroType* YieldType() const override;
 
@@ -478,6 +479,8 @@ public:
 
 	int MatchesIndex(ListExpr* index) const override;
 	bool CheckArgs(const type_list* args, bool is_init = false) const;
+	bool CheckArgs(const std::vector<IntrusivePtr<BroType>>& args,
+	               bool is_init = false) const;
 
 	TypeList* ArgTypes() const	{ return arg_types.get(); }
 

@@ -205,9 +205,11 @@ IntrusivePtr<Val> AS_ValUnion::ToVal(BroType* t) const
 	case TYPE_TIME:		v = new Val(double_val, TYPE_TIME); break;
 	case TYPE_FUNC:		v = new Val(func_val); break;
 	case TYPE_FILE:		v = new Val(file_val); break;
-	case TYPE_STRING:	v = new StringVal(new BroString(*string_val));
 	case TYPE_ADDR:		v = new AddrVal(*addr_val); break;
 	case TYPE_SUBNET:	v = new SubNetVal(*subnet_val); break;
+	case TYPE_STRING:
+		v = new StringVal(new BroString(*string_val));
+		break;
 
 	case TYPE_ANY:		return {NewRef{}, any_val};
 
@@ -416,6 +418,8 @@ const char* AbstractStmt::VName(int max_n, int n, const frame_map& frame_ids) co
 void AbstractStmt::Dump(const frame_map& frame_ids) const
 	{
 	printf("%s ", abstract_op_name(op));
+	if ( t )
+		printf("(%s) ", type_name(t->Tag()));
 
 	int n = NumFrameSlots();
 
@@ -765,13 +769,17 @@ IntrusivePtr<Val> AbstractMachine::DoExec(Frame* f, int start_pc,
 
 	// Free those slots for which we do explicit memory management.
 	for ( auto i = 0; i < managed_slots.size(); ++i )
+		{
+		int s = managed_slots[i];
+
 		switch ( managed_slot_types[i] ) {
-		case TYPE_ADDR:		delete frame[i].addr_val; break;
-		case TYPE_SUBNET:	delete frame[i].subnet_val; break;
-		case TYPE_STRING:	delete frame[i].string_val; break;
+		case TYPE_ADDR:		delete frame[s].addr_val; break;
+		case TYPE_SUBNET:	delete frame[s].subnet_val; break;
+		case TYPE_STRING:	delete frame[s].string_val; break;
 
 		default:
 			reporter->InternalError("bad type tag for managed slots");
+		}
 		}
 
 	delete [] frame;

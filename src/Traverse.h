@@ -6,9 +6,10 @@
 
 class Func;
 class Scope;
-class Stmt;
 class Expr;
 class ID;
+
+FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
 
 class TraversalCallback {
 public:
@@ -18,8 +19,8 @@ public:
 	virtual TraversalCode PreFunction(const Func*) { return TC_CONTINUE; }
 	virtual TraversalCode PostFunction(const Func*) { return TC_CONTINUE; }
 
-	virtual TraversalCode PreStmt(const Stmt*) { return TC_CONTINUE; }
-	virtual TraversalCode PostStmt(const Stmt*) { return TC_CONTINUE; }
+	virtual TraversalCode PreStmt(const zeek::detail::Stmt*) { return TC_CONTINUE; }
+	virtual TraversalCode PostStmt(const zeek::detail::Stmt*) { return TC_CONTINUE; }
 
 	virtual TraversalCode PreExpr(const Expr*) { return TC_CONTINUE; }
 	virtual TraversalCode PostExpr(const Expr*) { return TC_CONTINUE; }

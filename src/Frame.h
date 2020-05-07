@@ -118,12 +118,12 @@ public:
 	 *
 	 * @param stmt the statement to set it to.
 	 */
-	void SetNextStmt(Stmt* stmt)	{ next_stmt = stmt; }
+	void SetNextStmt(zeek::detail::Stmt* stmt)	{ next_stmt = stmt; }
 
 	/**
 	 * @return the next statement to be executed in the context of the frame.
 	 */
-	Stmt* GetNextStmt() const	{ return next_stmt; }
+	zeek::detail::Stmt* GetNextStmt() const	{ return next_stmt; }
 
 	/** Used to implement "next" command in debugger. */
 	void BreakBeforeNextStmt(bool should_break)
@@ -319,7 +319,7 @@ private:
 	const zeek::Args* func_args;
 
 	/** The next statement to be evaluted in the context of this frame. */
-	Stmt* next_stmt;
+	zeek::detail::Stmt* next_stmt;
 
 	IntrusivePtr<trigger::Trigger> trigger;
 	const CallExpr* call;

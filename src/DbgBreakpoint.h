@@ -3,9 +3,11 @@
 #pragma once
 
 #include <string>
+#include "util.h"
 
 struct ParseLocationRec;
-class Stmt;
+
+FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
 
 enum BreakCode { bcNoHit, bcHit, bcHitAndDelete };
 class DbgBreakpoint {
@@ -20,7 +22,7 @@ public:
 
 	// True if breakpoint could be set; false otherwise
 	bool SetLocation(ParseLocationRec plr, std::string_view loc_str);
-	bool SetLocation(Stmt* stmt);
+	bool SetLocation(zeek::detail::Stmt* stmt);
 	bool SetLocation(double time);
 
 	bool Reset();	// cancel and re-apply bpt when restarting execution
@@ -35,7 +37,7 @@ public:
 	//
 	// NOTE: If it returns a hit, the DbgBreakpoint object will take
 	// appropriate action (e.g., resetting counters).
-	BreakCode ShouldBreak(Stmt* s);
+	BreakCode ShouldBreak(zeek::detail::Stmt* s);
 	BreakCode ShouldBreak(double t);
 
 	const std::string& GetCondition() const	{ return condition; }
@@ -70,7 +72,7 @@ protected:
 	bool enabled;	// ### comment this and next
 	bool temporary;
 
-	Stmt* at_stmt;
+	zeek::detail::Stmt* at_stmt;
 	double at_time;	// break when the virtual time is this
 
 	// Support for conditional and N'th time breakpoints.

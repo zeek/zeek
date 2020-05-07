@@ -22,11 +22,12 @@
 class Val;
 class ListExpr;
 class FuncType;
-class Stmt;
 class Frame;
 class ID;
 class CallExpr;
 class Scope;
+
+FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
 
 class Func : public BroObj {
 public:
@@ -42,7 +43,7 @@ public:
 	function_flavor Flavor() const	{ return GetType()->Flavor(); }
 
 	struct Body {
-		IntrusivePtr<Stmt> stmts;
+		IntrusivePtr<zeek::detail::Stmt> stmts;
 		int priority;
 		bool operator<(const Body& other) const
 			{ return priority > other.priority; } // reverse sort
@@ -78,7 +79,7 @@ public:
 		}
 
 	// Add a new event handler to an existing function (event).
-	virtual void AddBody(IntrusivePtr<Stmt> new_body,
+	virtual void AddBody(IntrusivePtr<zeek::detail::Stmt> new_body,
 	                     const std::vector<IntrusivePtr<ID>>& new_inits,
 	                     size_t new_frame_size, int priority = 0);
 
@@ -129,7 +130,7 @@ protected:
 
 class BroFunc final : public Func {
 public:
-	BroFunc(const IntrusivePtr<ID>& id, IntrusivePtr<Stmt> body,
+	BroFunc(const IntrusivePtr<ID>& id, IntrusivePtr<zeek::detail::Stmt> body,
 	        const std::vector<IntrusivePtr<ID>>& inits,
 	        size_t frame_size, int priority);
 
@@ -167,7 +168,7 @@ public:
 	 */
 	broker::expected<broker::data> SerializeClosure() const;
 
-	void AddBody(IntrusivePtr<Stmt> new_body,
+	void AddBody(IntrusivePtr<zeek::detail::Stmt> new_body,
 	             const std::vector<IntrusivePtr<ID>>& new_inits,
 	             size_t new_frame_size, int priority) override;
 
@@ -179,8 +180,8 @@ public:
 
 protected:
 	BroFunc() : Func(BRO_FUNC)	{}
-	IntrusivePtr<Stmt> AddInits(IntrusivePtr<Stmt> body,
-	                            const std::vector<IntrusivePtr<ID>>& inits);
+	IntrusivePtr<zeek::detail::Stmt> AddInits(IntrusivePtr<zeek::detail::Stmt> body,
+	                                          const std::vector<IntrusivePtr<ID>>& inits);
 
 	/**
 	 * Clones this function along with its closures.
@@ -267,10 +268,10 @@ struct function_ingredients {
 
 	// Gathers all of the information from a scope and a function body needed
 	// to build a function.
-	function_ingredients(IntrusivePtr<Scope> scope, IntrusivePtr<Stmt> body);
+	function_ingredients(IntrusivePtr<Scope> scope, IntrusivePtr<zeek::detail::Stmt> body);
 
 	IntrusivePtr<ID> id;
-	IntrusivePtr<Stmt> body;
+	IntrusivePtr<zeek::detail::Stmt> body;
 	std::vector<IntrusivePtr<ID>> inits;
 	int frame_size;
 	int priority;

@@ -8,12 +8,13 @@
 
 class Expr;
 class FuncType;
-class Stmt;
 class Scope;
 class EventHandlerPtr;
 class StringVal;
 class TableVal;
 class ListVal;
+
+FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
 
 typedef enum { VAR_REGULAR, VAR_CONST, VAR_REDEF, VAR_OPTION, } decl_type;
 
@@ -24,12 +25,12 @@ extern void add_global(const IntrusivePtr<ID>& id,
                        std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr,
                        decl_type dt);
 
-extern IntrusivePtr<Stmt> add_local(IntrusivePtr<ID> id,
-                                    IntrusivePtr<BroType> t,
-                                    init_class c,
-                                    IntrusivePtr<Expr> init,
-                                    std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr,
-                                    decl_type dt);
+extern IntrusivePtr<zeek::detail::Stmt> add_local(IntrusivePtr<ID> id,
+                                                  IntrusivePtr<BroType> t,
+                                                  init_class c,
+                                                  IntrusivePtr<Expr> init,
+                                                  std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr,
+                                                  decl_type dt);
 
 extern IntrusivePtr<Expr> add_and_assign_local(IntrusivePtr<ID> id,
                                                IntrusivePtr<Expr> init,
@@ -43,10 +44,10 @@ extern void begin_func(IntrusivePtr<ID> id, const char* module_name,
                        IntrusivePtr<FuncType> t,
                        std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs = nullptr);
 
-extern void end_func(IntrusivePtr<Stmt> body);
+extern void end_func(IntrusivePtr<zeek::detail::Stmt> body);
 
 // Gather all IDs referenced inside a body that aren't part of a given scope.
-extern id_list gather_outer_ids(Scope* scope, Stmt* body);
+extern id_list gather_outer_ids(Scope* scope, zeek::detail::Stmt* body);
 
 [[deprecated("Remove in v4.1.  Use zeek::id::find_val().")]]
 extern Val* internal_val(const char* name);

@@ -13,8 +13,8 @@ typedef PList<ID> id_list;
 class Val;
 typedef PList<Val> val_list;
 
-class Stmt;
-typedef PList<Stmt> stmt_list;
+FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
+typedef PList<zeek::detail::Stmt> stmt_list;
 
 class BroType;
 typedef PList<BroType> type_list;

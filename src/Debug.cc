@@ -135,7 +135,7 @@ int TraceState::LogTrace(const char* fmt, ...)
 	// Prefix includes timestamp and file/line info.
 	fprintf(trace_file, "%.6f ", network_time);
 
-	const Stmt* stmt;
+	const zeek::detail::Stmt* stmt;
 	Location loc;
 	loc.filename = nullptr;
 
@@ -174,7 +174,7 @@ int TraceState::LogTrace(const char* fmt, ...)
 
 
 // Helper functions.
-void get_first_statement(Stmt* list, Stmt*& first, Location& loc)
+void get_first_statement(zeek::detail::Stmt* list, zeek::detail::Stmt*& first, Location& loc)
 	{
 	if ( ! list )
 		{
@@ -231,7 +231,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 		return;
 		}
 
-	Stmt* body = nullptr;	// the particular body we care about; 0 = all
+	zeek::detail::Stmt* body = nullptr;	// the particular body we care about; 0 = all
 
 	if ( bodies.size() == 1 )
 		body = bodies[0].stmts.get();
@@ -243,7 +243,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 				 "Please choose one of the following options:\n");
 			for ( unsigned int i = 0; i < bodies.size(); ++i )
 				{
-				Stmt* first;
+				zeek::detail::Stmt* first;
 				Location stmt_loc;
 				get_first_statement(bodies[i].stmts.get(), first, stmt_loc);
 				debug_msg("[%d] %s:%d\n", i+1, stmt_loc.filename, stmt_loc.first_line);
@@ -286,7 +286,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 	plr.type = plrFunction;
 
 	// Find first atomic (non-STMT_LIST) statement
-	Stmt* first;
+	zeek::detail::Stmt* first;
 	Location stmt_loc;
 
 	if ( body )
@@ -728,7 +728,7 @@ static char* get_prompt(bool reset_counter = false)
 	return prompt;
 	}
 
-string get_context_description(const Stmt* stmt, const Frame* frame)
+string get_context_description(const zeek::detail::Stmt* stmt, const Frame* frame)
 	{
 	ODesc d;
 	const BroFunc* func = frame ? frame->GetFunction() : nullptr;
@@ -776,7 +776,7 @@ int dbg_handle_debug_input()
 	else
 		current_module = GLOBAL_MODULE_NAME;
 
-	const Stmt* stmt = curr_frame->GetNextStmt();
+	const zeek::detail::Stmt* stmt = curr_frame->GetNextStmt();
 	if ( ! stmt )
 		reporter->InternalError("Assertion failed: stmt != 0");
 
@@ -840,7 +840,7 @@ int dbg_handle_debug_input()
 
 
 // Return true to continue execution, false to abort.
-bool pre_execute_stmt(Stmt* stmt, Frame* f)
+bool pre_execute_stmt(zeek::detail::Stmt* stmt, Frame* f)
 	{
 	if ( ! g_policy_debug ||
 	     stmt->Tag() == STMT_LIST || stmt->Tag() == STMT_NULL )
@@ -905,7 +905,7 @@ bool pre_execute_stmt(Stmt* stmt, Frame* f)
 	return true;
 	}
 
-bool post_execute_stmt(Stmt* stmt, Frame* f, Val* result, stmt_flow_type* flow)
+bool post_execute_stmt(zeek::detail::Stmt* stmt, Frame* f, Val* result, stmt_flow_type* flow)
 	{
 	// Handle the case where someone issues a "next" debugger command,
 	// but we're at a return statement, so the next statement is in

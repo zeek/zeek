@@ -216,7 +216,7 @@ static int dbg_backtrace_internal(int start, int end)
 	for ( int i = start; i >= end; --i )
 		{
 		const Frame* f = g_frame_stack[i];
-		const Stmt* stmt = f ? f->GetNextStmt() : nullptr;
+		const zeek::detail::Stmt* stmt = f ? f->GetNextStmt() : nullptr;
 
 		string context = get_context_description(stmt, f);
 		debug_msg("#%d  %s\n",
@@ -333,7 +333,7 @@ int dbg_cmd_frame(DebugCmd cmd, const vector<string>& args)
 
 	// Set the current location to the new frame being looked at
 	// for 'list', 'break', etc.
-	const Stmt* stmt = g_frame_stack[user_frame_number]->GetNextStmt();
+	const zeek::detail::Stmt* stmt = g_frame_stack[user_frame_number]->GetNextStmt();
 	if ( ! stmt )
 		reporter->InternalError("Assertion failed: %s", "stmt != 0");
 
@@ -373,7 +373,7 @@ int dbg_cmd_break(DebugCmd cmd, const vector<string>& args)
 			g_frame_stack.size() - 1 -
 				g_debugger_state.curr_frame_idx;
 
-		Stmt* stmt = g_frame_stack[user_frame_number]->GetNextStmt();
+		zeek::detail::Stmt* stmt = g_frame_stack[user_frame_number]->GetNextStmt();
 		if ( ! stmt )
 			reporter->InternalError("Assertion failed: %s", "stmt != 0");
 

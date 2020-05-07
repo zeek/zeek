@@ -316,7 +316,7 @@ void add_global(const IntrusivePtr<ID>& id, IntrusivePtr<BroType> t,
 	make_var(id, std::move(t), c, std::move(init), std::move(attr), dt, true);
 	}
 
-IntrusivePtr<Stmt> add_local(IntrusivePtr<ID> id, IntrusivePtr<BroType> t,
+IntrusivePtr<zeek::detail::Stmt> add_local(IntrusivePtr<ID> id, IntrusivePtr<BroType> t,
                              init_class c, IntrusivePtr<Expr> init,
                              std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr,
                              decl_type dt)
@@ -336,7 +336,7 @@ IntrusivePtr<Stmt> add_local(IntrusivePtr<ID> id, IntrusivePtr<BroType> t,
 		auto assign_expr = make_intrusive<AssignExpr>(std::move(name_expr),
 		                                              std::move(init), 0,
 		                                              nullptr, id->GetAttrs());
-		auto stmt = make_intrusive<ExprStmt>(std::move(assign_expr));
+		auto stmt = make_intrusive<zeek::detail::ExprStmt>(std::move(assign_expr));
 		stmt->SetLocationInfo(&location);
 		return stmt;
 		}
@@ -344,7 +344,7 @@ IntrusivePtr<Stmt> add_local(IntrusivePtr<ID> id, IntrusivePtr<BroType> t,
 	else
 		{
 		current_scope()->AddInit(std::move(id));
-		return make_intrusive<NullStmt>();
+		return make_intrusive<zeek::detail::NullStmt>();
 		}
 	}
 
@@ -633,7 +633,7 @@ TraversalCode OuterIDBindingFinder::PostExpr(const Expr* expr)
 	return TC_CONTINUE;
 	}
 
-void end_func(IntrusivePtr<Stmt> body)
+void end_func(IntrusivePtr<zeek::detail::Stmt> body)
 	{
 	auto ingredients = std::make_unique<function_ingredients>(pop_scope(), std::move(body));
 
@@ -668,7 +668,7 @@ Val* internal_val(const char* name)
 	return zeek::id::find_val(name).get();
 	}
 
-id_list gather_outer_ids(Scope* scope, Stmt* body)
+id_list gather_outer_ids(Scope* scope, zeek::detail::Stmt* body)
 	{
 	OuterIDBindingFinder cb(scope);
 	body->Traverse(&cb);

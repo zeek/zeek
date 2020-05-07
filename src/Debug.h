@@ -5,6 +5,7 @@
 #include "Obj.h"
 #include "Queue.h"
 #include "StmtEnums.h"
+#include "util.h"
 
 #include <vector>
 #include <map>
@@ -12,14 +13,15 @@
 
 template <class T> class IntrusivePtr;
 class Val;
-class Stmt;
+
+FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
 
 // This needs to be defined before we do the includes that come after it.
 enum ParseLocationRecType { plrUnknown, plrFileAndLine, plrFunction };
 struct ParseLocationRec {
 	ParseLocationRecType type;
 	int32_t line;
-	Stmt* stmt;
+	zeek::detail::Stmt* stmt;
 	const char* filename;
 };
 
@@ -33,7 +35,7 @@ class DbgDisplay;
 class StmtHashFn;
 
 typedef std::map<int, DbgBreakpoint*> BPIDMapType;
-typedef std::multimap<const Stmt*, DbgBreakpoint*> BPMapType;
+typedef std::multimap<const zeek::detail::Stmt*, DbgBreakpoint*> BPMapType;
 
 extern std::string current_module;
 
@@ -104,15 +106,15 @@ private:
 class StmtLocMapping {
 public:
 	StmtLocMapping()	{ }
-	StmtLocMapping(const Location* l, Stmt* s)	{ loc = *l; stmt = s; }
+	StmtLocMapping(const Location* l, zeek::detail::Stmt* s)	{ loc = *l; stmt = s; }
 
 	bool StartsAfter(const StmtLocMapping* m2);
 	const Location& Loc() const	{ return loc; }
-	Stmt* Statement() const		{ return stmt; }
+	zeek::detail::Stmt* Statement() const		{ return stmt; }
 
 protected:
 	Location loc;
-	Stmt* stmt;
+	zeek::detail::Stmt* stmt;
 };
 
 
@@ -143,8 +145,8 @@ std::vector<ParseLocationRec> parse_location_string(const std::string& s);
 // Debugging hooks.
 
 // Return true to continue execution, false to abort.
-bool pre_execute_stmt(Stmt* stmt, Frame* f);
-bool post_execute_stmt(Stmt* stmt, Frame* f, Val* result, stmt_flow_type* flow);
+bool pre_execute_stmt(zeek::detail::Stmt* stmt, Frame* f);
+bool post_execute_stmt(zeek::detail::Stmt* stmt, Frame* f, Val* result, stmt_flow_type* flow);
 
 // Returns 1 if successful, 0 otherwise.
 // If cmdfile is non-nil, it contains the location of a file of commands
@@ -168,7 +170,7 @@ IntrusivePtr<Val> dbg_eval_expr(const char* expr);
 int dbg_read_internal_state();
 
 // Get line that looks like "In FnFoo(arg = val) at File:Line".
-std::string get_context_description(const Stmt* stmt, const Frame* frame);
+std::string get_context_description(const zeek::detail::Stmt* stmt, const Frame* frame);
 
 extern Frame* g_dbg_locals;	// variables created within debugger context
 

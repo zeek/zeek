@@ -122,7 +122,8 @@ protected:
 
 }
 
-Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
+Trigger::Trigger(Expr* arg_cond, zeek::detail::Stmt* arg_body,
+			zeek::detail::Stmt* arg_timeout_stmts,
 			Expr* arg_timeout, Frame* arg_frame,
 			bool arg_is_return, const Location* arg_location)
 	{

@@ -166,7 +166,7 @@ bool DbgBreakpoint::SetLocation(ParseLocationRec plr, std::string_view loc_str)
 	return true;
 	}
 
-bool DbgBreakpoint::SetLocation(Stmt* stmt)
+bool DbgBreakpoint::SetLocation(zeek::detail::Stmt* stmt)
 	{
 	if ( ! stmt )
 		return false;
@@ -290,7 +290,7 @@ BreakCode DbgBreakpoint::HasHit()
 	return bcHit;
 	}
 
-BreakCode DbgBreakpoint::ShouldBreak(Stmt* s)
+BreakCode DbgBreakpoint::ShouldBreak(zeek::detail::Stmt* s)
 	{
 	if ( ! IsEnabled() )
 		return bcNoHit;

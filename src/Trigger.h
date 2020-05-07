@@ -1,20 +1,22 @@
 #pragma once
 
-#include "Obj.h"
-#include "Notifier.h"
-#include "iosource/IOSource.h"
-
 #include <list>
 #include <vector>
 #include <map>
 
+#include "Obj.h"
+#include "Notifier.h"
+#include "iosource/IOSource.h"
+#include "util.h"
+
 class CallExpr;
 class Expr;
-class Stmt;
 class Frame;
 class Val;
 class ID;
 class ODesc;
+
+FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
 
 namespace trigger {
 // Triggers are the heart of "when" statements: expressions that when
@@ -29,7 +31,7 @@ public:
 	// instantiation.  Note that if the condition is already true, the
 	// statements are executed immediately and the object is deleted
 	// right away.
-	Trigger(Expr* cond, Stmt* body, Stmt* timeout_stmts, Expr* timeout,
+	Trigger(Expr* cond, zeek::detail::Stmt* body, zeek::detail::Stmt* timeout_stmts, Expr* timeout,
 		Frame* f, bool is_return, const Location* loc);
 	~Trigger() override;
 
@@ -92,8 +94,8 @@ private:
 	void UnregisterAll();
 
 	Expr* cond;
-	Stmt* body;
-	Stmt* timeout_stmts;
+	zeek::detail::Stmt* body;
+	zeek::detail::Stmt* timeout_stmts;
 	Expr* timeout;
 	double timeout_value;
 	Frame* frame;

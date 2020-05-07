@@ -121,7 +121,7 @@ Func::Func(Kind arg_kind) : kind(arg_kind)
 
 Func::~Func() = default;
 
-void Func::AddBody(IntrusivePtr<Stmt> /* new_body */,
+void Func::AddBody(IntrusivePtr<zeek::detail::Stmt> /* new_body */,
                    const std::vector<IntrusivePtr<ID>>& /* new_inits */,
                    size_t /* new_frame_size */, int /* priority */)
 	{
@@ -268,7 +268,7 @@ void Func::CheckPluginResult(bool handled, const IntrusivePtr<Val>& hook_result,
 	}
 	}
 
-BroFunc::BroFunc(const IntrusivePtr<ID>& arg_id, IntrusivePtr<Stmt> arg_body,
+BroFunc::BroFunc(const IntrusivePtr<ID>& arg_id, IntrusivePtr<zeek::detail::Stmt> arg_body,
                  const std::vector<IntrusivePtr<ID>>& aggr_inits,
                  size_t arg_frame_size, int priority)
 	: Func(BRO_FUNC)
@@ -449,7 +449,7 @@ IntrusivePtr<Val> BroFunc::Invoke(zeek::Args* args, Frame* parent) const
 	return result;
 	}
 
-void BroFunc::AddBody(IntrusivePtr<Stmt> new_body,
+void BroFunc::AddBody(IntrusivePtr<zeek::detail::Stmt> new_body,
                       const std::vector<IntrusivePtr<ID>>& new_inits,
                       size_t new_frame_size, int priority)
 	{
@@ -574,14 +574,14 @@ void BroFunc::Describe(ODesc* d) const
 		}
 	}
 
-IntrusivePtr<Stmt> BroFunc::AddInits(IntrusivePtr<Stmt> body,
-                                     const std::vector<IntrusivePtr<ID>>& inits)
+IntrusivePtr<zeek::detail::Stmt> BroFunc::AddInits(IntrusivePtr<zeek::detail::Stmt> body,
+                                                   const std::vector<IntrusivePtr<ID>>& inits)
 	{
 	if ( inits.empty() )
 		return body;
 
-	auto stmt_series = make_intrusive<StmtList>();
-	stmt_series->Stmts().push_back(new InitStmt(inits));
+	auto stmt_series = make_intrusive<zeek::detail::StmtList>();
+	stmt_series->Stmts().push_back(new zeek::detail::InitStmt(inits));
 	stmt_series->Stmts().push_back(body.release());
 
 	return stmt_series;
@@ -879,7 +879,7 @@ static int get_func_priority(const std::vector<IntrusivePtr<Attr>>& attrs)
 	return priority;
 	}
 
-function_ingredients::function_ingredients(IntrusivePtr<Scope> scope, IntrusivePtr<Stmt> body)
+function_ingredients::function_ingredients(IntrusivePtr<Scope> scope, IntrusivePtr<zeek::detail::Stmt> body)
 	{
 	frame_size = scope->Length();
 	inits = scope->GetInits();

@@ -59,7 +59,6 @@ enum BroExprTag : int {
 extern const char* expr_name(BroExprTag t);
 
 template <class T> class IntrusivePtr;
-class Stmt;
 class Frame;
 class Scope;
 class ListExpr;
@@ -71,6 +70,7 @@ class EventExpr;
 
 struct function_ingredients;
 
+FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
 
 class Expr : public BroObj {
 public:

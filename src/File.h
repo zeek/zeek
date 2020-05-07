@@ -2,22 +2,25 @@
 
 #pragma once
 
-#include "Obj.h"
-#include "IntrusivePtr.h"
-
 #include <list>
 #include <string>
 #include <utility>
 
 #include <fcntl.h>
 
-# ifdef NEED_KRB5_H
-#  include <krb5.h>
-# endif // NEED_KRB5_H
+#ifdef NEED_KRB5_H
+#include <krb5.h>
+#endif // NEED_KRB5_H
+
+#include "Obj.h"
+#include "IntrusivePtr.h"
+#include "util.h"
 
 class Attributes;
 class BroType;
 class RecordVal;
+
+FORWARD_DECLARE_NAMESPACED(PrintStmt, zeek::detail);
 
 class BroFile final : public BroObj {
 public:
@@ -77,7 +80,7 @@ public:
 
 protected:
 
-	friend class PrintStmt;
+	friend class zeek::detail::PrintStmt;
 
 	BroFile()	{ Init(); }
 	void Init();

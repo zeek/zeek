@@ -41,5 +41,5 @@ extern std::vector<std::string> zeek_script_prefixes;	// -p flag
 extern const char* command_line_policy;	// -e flag
 extern std::vector<std::string> params;
 
-class Stmt;
-extern Stmt* stmts;	// global statements
+FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
+extern zeek::detail::Stmt* stmts;	// global statements

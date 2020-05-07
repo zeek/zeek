@@ -5,7 +5,8 @@
 #include <list>
 #include <string>
 
-class Stmt;
+#include "util.h"
+FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
 
 /**
  * A simple class for managing stats of Bro script coverage across Bro runs.
@@ -39,13 +40,13 @@ public:
 	void IncIgnoreDepth() { ignoring++; }
 	void DecIgnoreDepth() { ignoring--; }
 
-	void AddStmt(Stmt* s);
+	void AddStmt(zeek::detail::Stmt* s);
 
 private:
 	/**
 	 * The current, global Brofiler instance creates this list at parse-time.
 	 */
-	std::list<Stmt*> stmts;
+	std::list<zeek::detail::Stmt*> stmts;
 
 	/**
 	 * Indicates whether new statments will not be considered as part of

@@ -4,16 +4,16 @@
 /^?(four)$?/
 -----------------
 /^?(two|oob)$?/
+/^?(three|oob)$?/
 /^?(four)$?/
 /^?(one|foo|bar)$?/
-/^?(three|oob)$?/
 -----------------
 /^?(two|oob)$?/, 1
+/^?(three|oob)$?/, 2
 /^?(four)$?/, 3
 /^?(one|foo|bar)$?/, 0
-/^?(three|oob)$?/, 2
 -----------------
-/^?(one|foo|bar)$?/, 2, 0
-/^?(four)$?/, 5, 6
-/^?(two|oob)$?/, 3, 2
 /^?(three|oob)$?/, 4, 4
+/^?(one|foo|bar)$?/, 2, 0
+/^?(two|oob)$?/, 3, 2
+/^?(four)$?/, 5, 6

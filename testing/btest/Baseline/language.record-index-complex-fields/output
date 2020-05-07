@@ -1,27 +1,27 @@
 {
 [1.2.3.4] = {
 [a=4, tags_v=[0, 1], tags_t={
-[two] = 2,
-[one] = 1
+[one] = 1,
+[two] = 2
 }, tags_s={
-b,
-a
+a,
+b
 }]
 }
 }
 {
+[a=4, tags_v=[0, 1], tags_t={
+[one] = 1,
+[two] = 2
+}, tags_s={
+a,
+b
+}],
 [a=13, tags_v=[, , 2, 3], tags_t={
 [five] = 5,
 [four] = 4
 }, tags_s={
-c,
-d
-}],
-[a=4, tags_v=[0, 1], tags_t={
-[two] = 2,
-[one] = 1
-}, tags_s={
-b,
-a
+d,
+c
 }]
 }

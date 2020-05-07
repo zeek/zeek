@@ -1,7 +1,7 @@
-[Content-type] =  text/plain
-[Content-type] =  text/plain
-[Date] =  July 22, 2013,
-[Date] =  July 22, 2013,
+[Content-type] =  text/plain,
+[Content-type] =  text/plain,
+[Date] =  July 22, 2013
+[Date] =  July 22, 2013
 [Server] =  1.0,
 [Server] =  1.0,
 test1, [code=200, msg=OK\x0d, body=It works!, headers={

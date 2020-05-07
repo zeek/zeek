@@ -3,11 +3,11 @@
 #empty_field	(empty)
 #unset_field	-
 #path	files
-#open	2020-04-30-00-47-31
+#open	2020-05-07-00-29-50
 #fields	ts	fuid	tx_hosts	rx_hosts	conn_uids	source	depth	analyzers	mime_type	filename	duration	local_orig	is_orig	seen_bytes	total_bytes	missing_bytes	overflow_bytes	timedout	parent_fuid
 #types	time	string	set[addr]	set[addr]	set[string]	string	count	set[string]	string	string	interval	bool	bool	count	count	count	count	bool	string
-1254722770.692743	FmFp351N5nhsMmAfQg	10.10.1.4	74.53.140.153	CHhAvVGS1DHFjwGM9	SMTP	3	(empty)	text/plain	-	0.000000	-	T	77	-	0	0	F	-
-1254722770.692743	Fqrb1K5DWEfgy4WU2	10.10.1.4	74.53.140.153	CHhAvVGS1DHFjwGM9	SMTP	4	(empty)	text/html	-	0.000061	-	T	1868	-	0	0	F	-
-1254722770.692804	FEFYSd1s8Onn9LynKj	10.10.1.4	74.53.140.153	CHhAvVGS1DHFjwGM9	SMTP	5	(empty)	text/plain	NEWS.txt	1.165512	-	T	10809	-	0	0	F	-
-1437831787.905375	Fc5KpS3kUYqDLwWSMf	192.168.133.100	192.168.133.102	CUM0KZ3MLUfNB0cl11	SMTP	1	(empty)	text/plain	-	0.000000	-	T	204	-	0	0	F	-
-#close	2020-04-30-00-47-31
+1254722770.692743	FmFp351N5nhsMmAfQg	10.10.1.4	74.53.140.153	CACtSi4vYZ71yvzdc	SMTP	3	(empty)	text/plain	-	0.000000	-	T	77	-	0	0	F	-
+1254722770.692743	Fqrb1K5DWEfgy4WU2	10.10.1.4	74.53.140.153	CACtSi4vYZ71yvzdc	SMTP	4	(empty)	text/html	-	0.000061	-	T	1868	-	0	0	F	-
+1254722770.692804	FEFYSd1s8Onn9LynKj	10.10.1.4	74.53.140.153	CACtSi4vYZ71yvzdc	SMTP	5	(empty)	text/plain	NEWS.txt	1.165512	-	T	10809	-	0	0	F	-
+1437831787.905375	Fc5KpS3kUYqDLwWSMf	192.168.133.100	192.168.133.102	CBaq726UEcHjzJwPi	SMTP	1	(empty)	text/plain	-	0.000000	-	T	204	-	0	0	F	-
+#close	2020-05-07-00-29-50

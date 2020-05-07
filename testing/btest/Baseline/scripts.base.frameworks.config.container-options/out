@@ -8,9 +8,9 @@ RED
 BLUE
 }
 {
-BLUE,
+RED,
 GREEN,
-RED
+BLUE
 }
 {
 
@@ -32,9 +32,9 @@ RED
 [BLUE] = blue
 }
 {
-[BLUE] = blue,
+[RED] = red,
 [GREEN] = green,
-[RED] = red
+[BLUE] = blue
 }
 {
 

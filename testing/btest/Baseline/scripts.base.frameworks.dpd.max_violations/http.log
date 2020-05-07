@@ -3,49 +3,49 @@
 #empty_field	(empty)
 #unset_field	-
 #path	http
-#open	2020-04-30-00-46-48
+#open	2020-05-07-00-27-19
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	method	host	uri	referrer	version	user_agent	origin	request_body_len	response_body_len	status_code	status_msg	info_code	info_msg	tags	username	password	proxied	orig_fuids	orig_filenames	orig_mime_types	resp_fuids	resp_filenames	resp_mime_types
 #types	time	string	addr	port	addr	port	count	string	string	string	string	string	string	string	count	count	count	string	count	string	set[enum]	string	string	set[string]	vector[string]	vector[string]	vector[string]	vector[string]	vector[string]	vector[string]
-1354328870.191989	CHhAvVGS1DHFjwGM9	128.2.6.136	46562	173.194.75.103	80	1	OPTIONS	www.google.com	*	-	1.1	-	-	0	962	405	Method Not Allowed	-	-	(empty)	-	-	-	-	-	-	FNHaqE4UoY2x5hHRul	-	text/html
-1354328874.237327	ClEkJM2Vm5giqnMf4h	128.2.6.136	46563	173.194.75.103	80	1	OPTIONS	www.google.com	(empty)	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FIjZZf3Ury40XInO0c	-	text/html
-1354328874.299063	C4J4Th3PJpwUYZZ6gc	128.2.6.136	46564	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FLPH1tMRkWnW3pU2c	-	text/html
-1354328874.342591	CtPZjS20MLrsMUOJi2	128.2.6.136	46565	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	F9dgu92yX4m0pznJVh	-	text/html
-1354328874.364020	CUM0KZ3MLUfNB0cl11	128.2.6.136	46566	173.194.75.103	80	1	GET	www.google.com	/	-	1.1	-	-	0	43911	200	OK	-	-	(empty)	-	-	-	-	-	-	FlYnY41dh1lfca0Oo4	-	text/html
-1354328878.470424	CmES5u32sYpV7JYN	128.2.6.136	46567	173.194.75.103	80	1	GET	www.google.com	/	-	1.1	-	-	0	43983	200	OK	-	-	(empty)	-	-	-	-	-	-	FXZ0rI33nlTX0OLWj	-	text/html
-1354328882.575456	CP5puj4I8PtEU4qzYg	128.2.6.136	46568	173.194.75.103	80	1	GET	www.google.com	/HTTP/1.1	-	1.0	-	-	0	1207	403	Forbidden	-	-	(empty)	-	-	-	-	-	-	F5MVj11Zn2uU55Er2i	-	text/html
-1354328882.928027	C37jN32gN3y3AZzyf6	128.2.6.136	46569	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	Fv4CUw2OVTa5d90Fh5	-	text/html
-1354328882.968948	C3eiCBGOLw3VtHfOj	128.2.6.136	46570	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FpKdCS1VswPP57cOE9	-	text/html
-1354328882.990373	CwjjYJ2WqgTbAqiHl6	128.2.6.136	46571	173.194.75.103	80	1	GET	www.google.com	/	-	1.1	-	-	0	43913	200	OK	-	-	(empty)	-	-	-	-	-	-	FKce9H2mSI6H6yHKzg	-	text/html
-1354328891.309065	CNnMIj2QSd84NKf7U3	128.2.6.136	46577	173.194.75.103	80	1	CCM_POST	www.google.com	/	-	1.1	-	-	0	963	405	Method Not Allowed	-	-	(empty)	-	-	-	-	-	-	FsrHvh4vRpg5AYSB8	-	text/html
-1354328895.355012	C7fIlMZDuRiqjpYbb	128.2.6.136	46578	173.194.75.103	80	1	CCM_POST	www.google.com	/HTTP/1.1	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FTq0Uy1Ug7VB8q6CY7	-	text/html
-1354328895.480865	CpmdRlaUoJLN3uIRa	128.2.6.136	46581	173.194.75.103	80	1	CCM_POST	www.google.com	/	-	1.1	-	-	0	963	405	Method Not Allowed	-	-	(empty)	-	-	-	-	-	-	FnYYzruLUTCbaQpR9	-	text/html
-1354328899.526682	C1Xkzz2MaGtLrc1Tla	128.2.6.136	46582	173.194.75.103	80	1	CONNECT	www.google.com	/	-	1.1	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FG8LG51VfiVSWb3jJ4	-	text/html
-1354328903.572533	CqlVyW1YwZ15RhTBc4	128.2.6.136	46583	173.194.75.103	80	1	CONNECT	www.google.com	/HTTP/1.1	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FmY2JP1uFMzpih2T5k	-	text/html
-1354328903.634196	CLNN1k2QMum1aexUK7	128.2.6.136	46584	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	Ft6x4f1gLwufsDMk3b	-	text/html
-1354328903.676395	CBA8792iHmnhPLksKa	128.2.6.136	46585	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FcrCgs1l6XUe3m3G3	-	text/html
-1354328903.697693	CGLPPc35OzDQij1XX8	128.2.6.136	46586	173.194.75.103	80	1	CONNECT	www.google.com	/	-	1.1	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FV6ptz2ZZc1KZ85CW9	-	text/html
-1354328907.743696	CiyBAq1bBLNaTiTAc	128.2.6.136	46587	173.194.75.103	80	1	TRACE	www.google.com	/	-	1.1	-	-	0	960	405	Method Not Allowed	-	-	(empty)	-	-	-	-	-	-	F3kZmH1qEoqQDbCvv3	-	text/html
-1354328911.790590	CFSwNi4CNGxcuffo49	128.2.6.136	46588	173.194.75.103	80	1	TRACE	www.google.com	/HTTP/1.1	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FnzjhN1kiTIpTAXpZc	-	text/html
-1354328911.853464	Cipfzj1BEnhejw8cGf	128.2.6.136	46589	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	F0fcfg2UiGETutfuO3	-	text/html
-1354328911.897044	CV5WJ42jPYbNW9JNWf	128.2.6.136	46590	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	Frwjhm4pAuj96jhxg3	-	text/html
-1354328911.918511	CPhDKt12KQPUVbQz06	128.2.6.136	46591	173.194.75.103	80	1	TRACE	www.google.com	/	-	1.1	-	-	0	960	405	Method Not Allowed	-	-	(empty)	-	-	-	-	-	-	FDs4QT2vxiz0jaRSD3	-	text/html
-1354328915.964678	CAnFrb2Cvxr5T7quOc	128.2.6.136	46592	173.194.75.103	80	1	DELETE	www.google.com	/	-	1.1	-	-	0	961	405	Method Not Allowed	-	-	(empty)	-	-	-	-	-	-	FgwVMf4DhoPAR4Oxn6	-	text/html
-1354328920.010458	C8rquZ3DjgNW06JGLl	128.2.6.136	46593	173.194.75.103	80	1	DELETE	www.google.com	/HTTP/1.1	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FhEHRYDqJ3q9Pu9w9	-	text/html
-1354328920.072101	CzrZOtXqhwwndQva3	128.2.6.136	46594	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	F0ckug3XAVKLrstJ	-	text/html
-1354328920.114526	CaGCc13FffXe6RkQl9	128.2.6.136	46595	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FQi9JS2Ea13Q3hvJpl	-	text/html
-1354328920.136714	CNdne23ox8SQTgPoy3	128.2.6.136	46596	173.194.75.103	80	1	DELETE	www.google.com	/	-	1.1	-	-	0	961	405	Method Not Allowed	-	-	(empty)	-	-	-	-	-	-	FSPT252QEvoM8wm9Ub	-	text/html
-1354328924.183211	CeGt004UBsXLoZSeCg	128.2.6.136	46597	173.194.75.103	80	1	PUT	www.google.com	/	-	1.0	-	-	0	934	411	Length Required	-	-	(empty)	-	-	-	-	-	-	FIJCfY2WEfzINSweEh	-	text/html
-1354328924.224567	CTrywc2ra7tcWn2af	128.2.6.136	46598	173.194.75.103	80	1	PUT	www.google.com	/HTTP/1.1	-	1.0	-	-	0	934	411	Length Required	-	-	(empty)	-	-	-	-	-	-	FTrfNi1KZnG6fLB5K	-	text/html
-1354328924.287402	CzmEfj4RValNyLfT58	128.2.6.136	46599	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FwbpdH2ugoStqqEn63	-	text/html
-1354328924.328257	CCk2V03QgWwIurU3f	128.2.6.136	46600	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	Fbekc63DN5cEfYAuP	-	text/html
-1354328924.350343	Cgc67J2CpHIVN7HAw4	128.2.6.136	46601	173.194.75.103	80	1	PUT	www.google.com	/	-	1.0	-	-	0	934	411	Length Required	-	-	(empty)	-	-	-	-	-	-	FWP5H743gMt6ziess1	-	text/html
-1354328924.391728	CgwPkWkJfuBIJsNi4	128.2.6.136	46602	173.194.75.103	80	1	POST	www.google.com	/	-	1.0	-	-	0	934	411	Length Required	-	-	(empty)	-	-	-	-	-	-	FODewZ3keWe7Sf6mMl	-	text/html
-1354328924.433150	CImWJ03GsvPvA0P67i	128.2.6.136	46603	173.194.75.103	80	1	POST	www.google.com	/HTTP/1.1	-	1.0	-	-	0	934	411	Length Required	-	-	(empty)	-	-	-	-	-	-	FAdPMc1c0vSfGK3Yk8	-	text/html
-1354328924.496732	CKJVAj1rNx0nolFFc4	128.2.6.136	46604	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	F4g02SfNlTYyq1Cpj	-	text/html
-1354328924.537671	CD7vfu1qu4YJKe1nGi	128.2.6.136	46605	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FwyUaU3IrIxkmERs3	-	text/html
-1354328924.559704	CWhRtK3eXodviHmbo7	128.2.6.136	46606	173.194.75.103	80	1	HEAD	www.google.com	/	-	1.1	-	-	0	0	200	OK	-	-	(empty)	-	-	-	-	-	-	-	-	-
-1354328928.625437	CqVUM4vyqCacqFiud	128.2.6.136	46607	173.194.75.103	80	1	HEAD	www.google.com	/	-	1.1	-	-	0	0	200	OK	-	-	(empty)	-	-	-	-	-	-	-	-	-
-1354328932.692706	CudMuD3jKHCaCU5CE	128.2.6.136	46608	173.194.75.103	80	1	HEAD	www.google.com	/HTTP/1.1	-	1.0	-	-	0	0	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	-	-	-
-1354328932.754657	CRJ9x54IaE7bkVEpad	128.2.6.136	46609	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FXonC02oI6E6ZT4pi4	-	text/html
-1354328932.796568	CAvUKGaEgLlR4i6t2	128.2.6.136	46610	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	F8h50j2nZJ3Oloni53	-	text/html
-#close	2020-04-30-00-46-49
+1354328870.191989	CACtSi4vYZ71yvzdc	128.2.6.136	46562	173.194.75.103	80	1	OPTIONS	www.google.com	*	-	1.1	-	-	0	962	405	Method Not Allowed	-	-	(empty)	-	-	-	-	-	-	FNHaqE4UoY2x5hHRul	-	text/html
+1354328874.237327	CuUtPP2DsnqBBvXAY9	128.2.6.136	46563	173.194.75.103	80	1	OPTIONS	www.google.com	(empty)	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FIjZZf3Ury40XInO0c	-	text/html
+1354328874.299063	CcppMLmuwFLtA75ni	128.2.6.136	46564	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FLPH1tMRkWnW3pU2c	-	text/html
+1354328874.342591	CVml8q3m2gD6P6zpc6	128.2.6.136	46565	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	F9dgu92yX4m0pznJVh	-	text/html
+1354328874.364020	CBaq726UEcHjzJwPi	128.2.6.136	46566	173.194.75.103	80	1	GET	www.google.com	/	-	1.1	-	-	0	43911	200	OK	-	-	(empty)	-	-	-	-	-	-	FlYnY41dh1lfca0Oo4	-	text/html
+1354328878.470424	CxJQ2R36TUSGc9wPc4	128.2.6.136	46567	173.194.75.103	80	1	GET	www.google.com	/	-	1.1	-	-	0	43983	200	OK	-	-	(empty)	-	-	-	-	-	-	FXZ0rI33nlTX0OLWj	-	text/html
+1354328882.575456	CoU2Zb3oiRSPCKAmId	128.2.6.136	46568	173.194.75.103	80	1	GET	www.google.com	/HTTP/1.1	-	1.0	-	-	0	1207	403	Forbidden	-	-	(empty)	-	-	-	-	-	-	F5MVj11Zn2uU55Er2i	-	text/html
+1354328882.928027	Cu6RCk2B5pb74V6Ie4	128.2.6.136	46569	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	Fv4CUw2OVTa5d90Fh5	-	text/html
+1354328882.968948	CTBoOQ1pL7zdCGZCuf	128.2.6.136	46570	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FpKdCS1VswPP57cOE9	-	text/html
+1354328882.990373	CI14nH2xaHTc7fd9Ue	128.2.6.136	46571	173.194.75.103	80	1	GET	www.google.com	/	-	1.1	-	-	0	43913	200	OK	-	-	(empty)	-	-	-	-	-	-	FKce9H2mSI6H6yHKzg	-	text/html
+1354328891.309065	CzlKB1D4hhCVG6Hce	128.2.6.136	46577	173.194.75.103	80	1	CCM_POST	www.google.com	/	-	1.1	-	-	0	963	405	Method Not Allowed	-	-	(empty)	-	-	-	-	-	-	FsrHvh4vRpg5AYSB8	-	text/html
+1354328895.355012	CneUMd4HwXhit7Q5w9	128.2.6.136	46578	173.194.75.103	80	1	CCM_POST	www.google.com	/HTTP/1.1	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FTq0Uy1Ug7VB8q6CY7	-	text/html
+1354328895.480865	Ctl6jR1ycbB7SfpJPi	128.2.6.136	46581	173.194.75.103	80	1	CCM_POST	www.google.com	/	-	1.1	-	-	0	963	405	Method Not Allowed	-	-	(empty)	-	-	-	-	-	-	FnYYzruLUTCbaQpR9	-	text/html
+1354328899.526682	CYjftM3BqHkrYk3JHc	128.2.6.136	46582	173.194.75.103	80	1	CONNECT	www.google.com	/	-	1.1	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FG8LG51VfiVSWb3jJ4	-	text/html
+1354328903.572533	CUjVi91pRF5clfSXW6	128.2.6.136	46583	173.194.75.103	80	1	CONNECT	www.google.com	/HTTP/1.1	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FmY2JP1uFMzpih2T5k	-	text/html
+1354328903.634196	CGw2IC35WhCFWDUTXh	128.2.6.136	46584	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	Ft6x4f1gLwufsDMk3b	-	text/html
+1354328903.676395	CPfEPu2c94d1zp6evc	128.2.6.136	46585	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FcrCgs1l6XUe3m3G3	-	text/html
+1354328903.697693	CD6v102RP4IejGx1tk	128.2.6.136	46586	173.194.75.103	80	1	CONNECT	www.google.com	/	-	1.1	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FV6ptz2ZZc1KZ85CW9	-	text/html
+1354328907.743696	ChUszL2xnm9CXILfTd	128.2.6.136	46587	173.194.75.103	80	1	TRACE	www.google.com	/	-	1.1	-	-	0	960	405	Method Not Allowed	-	-	(empty)	-	-	-	-	-	-	F3kZmH1qEoqQDbCvv3	-	text/html
+1354328911.790590	C817XF1MrFYmcLJRX1	128.2.6.136	46588	173.194.75.103	80	1	TRACE	www.google.com	/HTTP/1.1	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FnzjhN1kiTIpTAXpZc	-	text/html
+1354328911.853464	Cf0E4pgP2lH6JXfAi	128.2.6.136	46589	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	F0fcfg2UiGETutfuO3	-	text/html
+1354328911.897044	CquTQN1WCviZOW8R5l	128.2.6.136	46590	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	Frwjhm4pAuj96jhxg3	-	text/html
+1354328911.918511	C1WB801ZCMkMoNYlPj	128.2.6.136	46591	173.194.75.103	80	1	TRACE	www.google.com	/	-	1.1	-	-	0	960	405	Method Not Allowed	-	-	(empty)	-	-	-	-	-	-	FDs4QT2vxiz0jaRSD3	-	text/html
+1354328915.964678	C4tmEX2xrlfAA6Xvhi	128.2.6.136	46592	173.194.75.103	80	1	DELETE	www.google.com	/	-	1.1	-	-	0	961	405	Method Not Allowed	-	-	(empty)	-	-	-	-	-	-	FgwVMf4DhoPAR4Oxn6	-	text/html
+1354328920.010458	CHeQtx2E6N4OnGOIQd	128.2.6.136	46593	173.194.75.103	80	1	DELETE	www.google.com	/HTTP/1.1	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FhEHRYDqJ3q9Pu9w9	-	text/html
+1354328920.072101	CGsQH3pVN9Kc7vYsh	128.2.6.136	46594	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	F0ckug3XAVKLrstJ	-	text/html
+1354328920.114526	CYSL661jJ2S6ZgLMvl	128.2.6.136	46595	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FQi9JS2Ea13Q3hvJpl	-	text/html
+1354328920.136714	ChJMvj4CiTe5CdYf01	128.2.6.136	46596	173.194.75.103	80	1	DELETE	www.google.com	/	-	1.1	-	-	0	961	405	Method Not Allowed	-	-	(empty)	-	-	-	-	-	-	FSPT252QEvoM8wm9Ub	-	text/html
+1354328924.183211	C8CEWu15Xopgn58634	128.2.6.136	46597	173.194.75.103	80	1	PUT	www.google.com	/	-	1.0	-	-	0	934	411	Length Required	-	-	(empty)	-	-	-	-	-	-	FIJCfY2WEfzINSweEh	-	text/html
+1354328924.224567	C8ydLJ3JMHZMGQDT9b	128.2.6.136	46598	173.194.75.103	80	1	PUT	www.google.com	/HTTP/1.1	-	1.0	-	-	0	934	411	Length Required	-	-	(empty)	-	-	-	-	-	-	FTrfNi1KZnG6fLB5K	-	text/html
+1354328924.287402	CBJfYj4yn49hGSJZv6	128.2.6.136	46599	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FwbpdH2ugoStqqEn63	-	text/html
+1354328924.328257	CGnvy9HlNtGfRBS76	128.2.6.136	46600	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	Fbekc63DN5cEfYAuP	-	text/html
+1354328924.350343	CzR5ZM3dtKf39qZkz1	128.2.6.136	46601	173.194.75.103	80	1	PUT	www.google.com	/	-	1.0	-	-	0	934	411	Length Required	-	-	(empty)	-	-	-	-	-	-	FWP5H743gMt6ziess1	-	text/html
+1354328924.391728	CnSDQFGMtW59TX2g1	128.2.6.136	46602	173.194.75.103	80	1	POST	www.google.com	/	-	1.0	-	-	0	934	411	Length Required	-	-	(empty)	-	-	-	-	-	-	FODewZ3keWe7Sf6mMl	-	text/html
+1354328924.433150	CzXEC54ChWtvDshD76	128.2.6.136	46603	173.194.75.103	80	1	POST	www.google.com	/HTTP/1.1	-	1.0	-	-	0	934	411	Length Required	-	-	(empty)	-	-	-	-	-	-	FAdPMc1c0vSfGK3Yk8	-	text/html
+1354328924.496732	CuUTsE2GU5huTkGN2	128.2.6.136	46604	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	F4g02SfNlTYyq1Cpj	-	text/html
+1354328924.537671	CAbWZafPSsx2PQMkj	128.2.6.136	46605	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FwyUaU3IrIxkmERs3	-	text/html
+1354328924.559704	CWNcqE2eic1auLLui9	128.2.6.136	46606	173.194.75.103	80	1	HEAD	www.google.com	/	-	1.1	-	-	0	0	200	OK	-	-	(empty)	-	-	-	-	-	-	-	-	-
+1354328928.625437	CfbY601EZ8tCT9Fns9	128.2.6.136	46607	173.194.75.103	80	1	HEAD	www.google.com	/	-	1.1	-	-	0	0	200	OK	-	-	(empty)	-	-	-	-	-	-	-	-	-
+1354328932.692706	C9VcnT34erAi2OMEb8	128.2.6.136	46608	173.194.75.103	80	1	HEAD	www.google.com	/HTTP/1.1	-	1.0	-	-	0	0	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	-	-	-
+1354328932.754657	CfbnsT2iXuPPYk5ep9	128.2.6.136	46609	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	FXonC02oI6E6ZT4pi4	-	text/html
+1354328932.796568	CX6iKm4SFiBvP7k1le	128.2.6.136	46610	173.194.75.103	80	1	-	-	-	-	1.0	-	-	0	925	400	Bad Request	-	-	(empty)	-	-	-	-	-	-	F8h50j2nZJ3Oloni53	-	text/html
+#close	2020-05-07-00-27-19

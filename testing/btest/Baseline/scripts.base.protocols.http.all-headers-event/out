@@ -1,19 +1,19 @@
 http_all_headers
 {
-[2] = [original_name=Accept, name=ACCEPT, value=*/*],
-[4] = [original_name=Connection, name=CONNECTION, value=Keep-Alive],
+[3] = [original_name=Host, name=HOST, value=bro.org],
 [1] = [original_name=User-Agent, name=USER-AGENT, value=Wget/1.14 (darwin12.2.0)],
-[3] = [original_name=Host, name=HOST, value=bro.org]
+[2] = [original_name=Accept, name=ACCEPT, value=*/*],
+[4] = [original_name=Connection, name=CONNECTION, value=Keep-Alive]
 }
 http_all_headers
 {
-[2] = [original_name=Server, name=SERVER, value=Apache/2.4.3 (Fedora)],
 [9] = [original_name=Content-Type, name=CONTENT-TYPE, value=text/plain; charset=UTF-8],
-[6] = [original_name=Content-Length, name=CONTENT-LENGTH, value=4705],
-[4] = [original_name=ETag, name=ETAG, value="1261-4c870358a6fc0"],
-[1] = [original_name=Date, name=DATE, value=Thu, 07 Mar 2013 21:43:07 GMT],
 [8] = [original_name=Connection, name=CONNECTION, value=Keep-Alive],
-[7] = [original_name=Keep-Alive, name=KEEP-ALIVE, value=timeout=5, max=100],
+[3] = [original_name=Last-Modified, name=LAST-MODIFIED, value=Wed, 29 Aug 2012 23:49:27 GMT],
+[1] = [original_name=Date, name=DATE, value=Thu, 07 Mar 2013 21:43:07 GMT],
+[2] = [original_name=Server, name=SERVER, value=Apache/2.4.3 (Fedora)],
+[4] = [original_name=ETag, name=ETAG, value="1261-4c870358a6fc0"],
 [5] = [original_name=Accept-Ranges, name=ACCEPT-RANGES, value=bytes],
-[3] = [original_name=Last-Modified, name=LAST-MODIFIED, value=Wed, 29 Aug 2012 23:49:27 GMT]
+[7] = [original_name=Keep-Alive, name=KEEP-ALIVE, value=timeout=5, max=100],
+[6] = [original_name=Content-Length, name=CONTENT-LENGTH, value=4705]
 }

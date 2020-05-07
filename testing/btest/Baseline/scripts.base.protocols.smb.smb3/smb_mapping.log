@@ -3,9 +3,9 @@
 #empty_field	(empty)
 #unset_field	-
 #path	smb_mapping
-#open	2019-02-21-09-15-32
+#open	2020-05-07-00-29-49
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	path	service	native_file_system	share_type
 #types	time	string	addr	port	addr	port	string	string	string	string
-1495015336.544229	CHhAvVGS1DHFjwGM9	10.160.64.139	38166	10.160.65.202	445	\\\\WS2016\\encrypted	-	-	DISK
-1495015336.569009	CHhAvVGS1DHFjwGM9	10.160.64.139	38166	10.160.65.202	445	\\\\10.160.65.202\\IPC$	-	-	PIPE
-#close	2019-02-21-09-15-32
+1495015336.544229	CACtSi4vYZ71yvzdc	10.160.64.139	38166	10.160.65.202	445	\\\\WS2016\\encrypted	-	-	DISK
+1495015336.569009	CACtSi4vYZ71yvzdc	10.160.64.139	38166	10.160.65.202	445	\\\\10.160.65.202\\IPC$	-	-	PIPE
+#close	2020-05-07-00-29-50

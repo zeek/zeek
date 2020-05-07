@@ -3,10 +3,10 @@
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2019-06-07-01-59-08
+#open	2020-05-07-00-25-33
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
-1254722767.875996	ClEkJM2Vm5giqnMf4h	10.10.1.4	1470	74.53.140.153	25	base64_illegal_encoding	incomplete base64 group, padding with 12 bits of 0	F	zeek
-1437831787.861602	CmES5u32sYpV7JYN	192.168.133.100	49648	192.168.133.102	25	base64_illegal_encoding	incomplete base64 group, padding with 12 bits of 0	F	zeek
-1437831799.610433	C3eiCBGOLw3VtHfOj	192.168.133.100	49655	17.167.150.73	443	base64_illegal_encoding	incomplete base64 group, padding with 12 bits of 0	F	zeek
-#close	2019-06-07-01-59-08
+1254722767.875996	CuUtPP2DsnqBBvXAY9	10.10.1.4	1470	74.53.140.153	25	base64_illegal_encoding	incomplete base64 group, padding with 12 bits of 0	F	zeek
+1437831787.861602	CxJQ2R36TUSGc9wPc4	192.168.133.100	49648	192.168.133.102	25	base64_illegal_encoding	incomplete base64 group, padding with 12 bits of 0	F	zeek
+1437831799.610433	CTBoOQ1pL7zdCGZCuf	192.168.133.100	49655	17.167.150.73	443	base64_illegal_encoding	incomplete base64 group, padding with 12 bits of 0	F	zeek
+#close	2020-05-07-00-25-33

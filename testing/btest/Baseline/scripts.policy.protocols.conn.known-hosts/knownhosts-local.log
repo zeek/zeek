@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	known_hosts
-#open	2016-07-13-16-17-22
+#open	2020-05-07-00-30-42
 #fields	ts	host
 #types	time	addr
 1300475168.783842	141.142.220.118
-#close	2016-07-13-16-17-22
+#close	2020-05-07-00-30-42

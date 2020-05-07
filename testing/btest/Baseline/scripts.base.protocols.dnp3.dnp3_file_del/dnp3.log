@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	dnp3
-#open	2016-07-13-16-16-01
+#open	2020-05-07-00-28-51
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fc_request	fc_reply	iin
 #types	time	string	addr	port	addr	port	string	string	count
-1325044377.992570	CHhAvVGS1DHFjwGM9	130.126.142.250	50301	130.126.140.229	20000	DELETE_FILE	RESPONSE	0
-#close	2016-07-13-16-16-01
+1325044377.992570	CACtSi4vYZ71yvzdc	130.126.142.250	50301	130.126.140.229	20000	DELETE_FILE	RESPONSE	0
+#close	2020-05-07-00-28-51

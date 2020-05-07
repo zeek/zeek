@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	syslog
-#open	2019-03-15-01-41-39
+#open	2020-05-07-00-30-13
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	facility	severity	message
 #types	time	string	addr	port	addr	port	enum	string	string	string
-1552584410.781231	CHhAvVGS1DHFjwGM9	192.168.2.118	60786	192.168.2.21	514	udp	UNSPECIFIED	UNSPECIFIED	This is not really a syslog message #173538 1552584410.781186
-#close	2019-03-15-01-41-39
+1552584410.781231	CACtSi4vYZ71yvzdc	192.168.2.118	60786	192.168.2.21	514	udp	UNSPECIFIED	UNSPECIFIED	This is not really a syslog message #173538 1552584410.781186
+#close	2020-05-07-00-30-13

@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	tunnel
-#open	2019-01-24-13-51-56
+#open	2020-05-07-00-25-52
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	tunnel_type	action
 #types	time	string	addr	port	addr	port	enum	enum
-1547208014.232092	CHhAvVGS1DHFjwGM9	10.0.0.1	0	10.0.0.2	0	Tunnel::GRE	Tunnel::DISCOVER
-#close	2019-01-24-13-51-56
+1547208014.232092	CACtSi4vYZ71yvzdc	10.0.0.1	0	10.0.0.2	0	Tunnel::GRE	Tunnel::DISCOVER
+#close	2020-05-07-00-25-52

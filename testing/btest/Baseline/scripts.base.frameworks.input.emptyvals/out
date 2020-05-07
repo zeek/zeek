@@ -1,4 +1,4 @@
 {
-[2] = [b=<uninitialized>],
-[1] = [b=T]
+[1] = [b=T],
+[2] = [b=<uninitialized>]
 }

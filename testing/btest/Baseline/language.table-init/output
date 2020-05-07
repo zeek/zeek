@@ -1,10 +1,10 @@
 {
-[2] = two,
-[1] = one
+[1] = one,
+[2] = two
 }
 global table default
 {
-[4] = four,
-[3] = three
+[3] = three,
+[4] = four
 }
 local table default

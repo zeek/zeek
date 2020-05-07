@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	known_modbus
-#open	2016-07-13-16-16-40
+#open	2020-05-07-00-29-31
 #fields	ts	host	device_type
 #types	time	addr	enum
 1093521694.211940	10.0.0.57	Known::MODBUS_MASTER
@@ -14,4 +14,4 @@
 1153491892.212845	166.161.16.230	Known::MODBUS_SLAVE
 1342774499.589057	10.1.1.234	Known::MODBUS_MASTER
 1342774499.589057	10.10.5.85	Known::MODBUS_SLAVE
-#close	2016-07-13-16-16-44
+#close	2020-05-07-00-29-35

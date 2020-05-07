@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	syslog
-#open	2016-07-13-16-17-06
+#open	2020-05-07-00-30-13
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	facility	severity	message
 #types	time	string	addr	port	addr	port	enum	string	string	string
-1365191811.424495	CHhAvVGS1DHFjwGM9	127.0.0.1	57067	127.0.0.1	514	udp	LOCAL0	NOTICE	Apr  5 12:56:51 robin: Hello, syslog!\x00
-#close	2016-07-13-16-17-06
+1365191811.424495	CACtSi4vYZ71yvzdc	127.0.0.1	57067	127.0.0.1	514	udp	LOCAL0	NOTICE	Apr  5 12:56:51 robin: Hello, syslog!\x00
+#close	2020-05-07-00-30-13

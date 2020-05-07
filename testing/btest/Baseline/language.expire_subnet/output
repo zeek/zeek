@@ -1,14 +1,14 @@
 All:
-2 --> two
-4 --> four
-1 --> one
 0 --> zero
 3 --> three
+1 --> one
+2 --> two
+4 --> four
 192.168.0.0/16 --> zero
-192.168.3.0/24 --> three
 192.168.2.0/24 --> two
-192.168.4.0/24 --> four
+192.168.3.0/24 --> three
 192.168.1.0/24 --> one
+192.168.4.0/24 --> four
 Time: 0 secs
 
 Accessed table nums: two; three

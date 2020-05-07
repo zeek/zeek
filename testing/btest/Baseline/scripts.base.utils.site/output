@@ -1,2 +1,2 @@
-site-admin@example.com, other-site-admin@example.com
-site-admin@example.com, net-admin@example.com, other-site-admin@example.com
+other-site-admin@example.com, site-admin@example.com
+net-admin@example.com, other-site-admin@example.com, site-admin@example.com

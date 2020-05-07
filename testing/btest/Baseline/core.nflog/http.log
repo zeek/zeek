@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	http
-#open	2020-04-30-00-45-45
+#open	2020-05-07-00-25-54
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	method	host	uri	referrer	version	user_agent	origin	request_body_len	response_body_len	status_code	status_msg	info_code	info_msg	tags	username	password	proxied	orig_fuids	orig_filenames	orig_mime_types	resp_fuids	resp_filenames	resp_mime_types
 #types	time	string	addr	port	addr	port	count	string	string	string	string	string	string	string	count	count	count	string	count	string	set[enum]	string	string	set[string]	vector[string]	vector[string]	vector[string]	vector[string]	vector[string]	vector[string]
-1470574779.148133	CHhAvVGS1DHFjwGM9	10.0.2.15	49762	93.184.216.34	80	1	GET	www.example.net	/	-	1.1	curl/7.50.1	-	0	1270	200	OK	-	-	(empty)	-	-	-	-	-	-	FKi7Pk47Xmw8dswjRh	-	text/html
-#close	2020-04-30-00-45-46
+1470574779.148133	CACtSi4vYZ71yvzdc	10.0.2.15	49762	93.184.216.34	80	1	GET	www.example.net	/	-	1.1	curl/7.50.1	-	0	1270	200	OK	-	-	(empty)	-	-	-	-	-	-	FKi7Pk47Xmw8dswjRh	-	text/html
+#close	2020-05-07-00-25-54

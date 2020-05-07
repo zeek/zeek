@@ -1,5 +1,5 @@
 echo request, 43, 4
 echo reply, 43, 4
 [orig_h=172.31.10.31, orig_p=8/icmp, resp_h=172.31.10.2, resp_p=0/icmp]
-[[cid=[orig_h=172.31.1.23, orig_p=0/unknown, resp_h=172.31.1.135, resp_p=0/unknown], tunnel_type=Tunnel::GRE, uid=CHhAvVGS1DHFjwGM9]]
+[[cid=[orig_h=172.31.1.23, orig_p=0/unknown, resp_h=172.31.1.135, resp_p=0/unknown], tunnel_type=Tunnel::GRE, uid=CACtSi4vYZ71yvzdc]]
 vlans 10, nil

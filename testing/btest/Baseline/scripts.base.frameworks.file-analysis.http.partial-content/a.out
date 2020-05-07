@@ -4,8 +4,8 @@ FILE_OVER_NEW_CONNECTION
 FILE_OVER_NEW_CONNECTION
 FILE_STATE_REMOVE
 file #0, 555523, 0
-[orig_h=10.101.84.70, orig_p=10977/tcp, resp_h=129.174.93.161, resp_p=80/tcp]
 [orig_h=10.101.84.70, orig_p=10978/tcp, resp_h=129.174.93.161, resp_p=80/tcp]
+[orig_h=10.101.84.70, orig_p=10977/tcp, resp_h=129.174.93.161, resp_p=80/tcp]
 FILE_BOF_BUFFER
 %PDF-1.4\x0a%\xd0
 MIME_TYPE

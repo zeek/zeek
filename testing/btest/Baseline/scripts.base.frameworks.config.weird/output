@@ -1,7 +1,7 @@
 Config values set
 {
-whitelisted_net_weird,
 whitelisted_flow_weird,
+whitelisted_net_weird,
 whitelisted_conn_weird
 }
 10

@@ -1,12 +1,12 @@
 {
-[a=1, b=<uninitialized>],
 [a=3, b=<uninitialized>],
-[a=4, b=5]
+[a=4, b=5],
+[a=1, b=<uninitialized>]
 }
 
-[a=1, b=<uninitialized>]
 [a=3, b=<uninitialized>]
 [a=4, b=5]
+[a=1, b=<uninitialized>]
 
 T
 F

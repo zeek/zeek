@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	mqtt_subscribe
-#open	2019-08-02-20-39-45
+#open	2020-05-07-00-29-36
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	action	topics	qos_levels	granted_qos_level	ack
 #types	time	string	addr	port	addr	port	enum	vector[string]	vector[count]	count	bool
-1461170590.745647	CHhAvVGS1DHFjwGM9	10.0.1.4	49327	198.41.30.241	1883	MQTT::SUBSCRIBE	SampleTopic	0	0	T
-#close	2019-08-02-20-39-45
+1461170590.745647	CACtSi4vYZ71yvzdc	10.0.1.4	49327	198.41.30.241	1883	MQTT::SUBSCRIBE	SampleTopic	0	0	T
+#close	2020-05-07-00-29-36

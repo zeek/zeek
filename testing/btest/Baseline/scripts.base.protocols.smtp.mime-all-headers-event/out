@@ -1,17 +1,17 @@
 mime_all_headers
 {
-[2] = [original_name=To, name=TO, value=<raj_deol2002in@yahoo.co.in>],
-[9] = [original_name=Thread-Index, name=THREAD-INDEX, value=AcpFgem9BvjjZEDeR1Kh8i+hUyVo0A==],
-[6] = [original_name=MIME-Version, name=MIME-VERSION, value=1.0],
-[11] = [original_name=x-cr-hashedpuzzle, name=X-CR-HASHEDPUZZLE, value=SeA= AAR2 ADaH BpiO C4G1 D1gW FNB1 FPkR Fn+W HFCP HnYJ JO7s Kum6 KytW LFcI LjUt;1;cgBhAGoAXwBkAGUAbwBsADIAMAAwADIAaQBuAEAAeQBhAGgAbwBvAC4AYwBvAC4AaQBuAA==;Sosha1_v1;7;{CAA37F59-1850-45C7-8540-AA27696B5398};ZwB1AHIAcABhAHIAdABhAHAAQABwAGEAdAByAGkAbwB0AHMALgBpAG4A;Mon, 05 Oct 2009 06:06:01 GMT;UwBNAFQAUAA=],
-[4] = [original_name=Date, name=DATE, value=Mon, 5 Oct 2009 11:36:07 +0530],
-[1] = [original_name=From, name=FROM, value="Gurpartap Singh" <gurpartap@patriots.in>],
-[8] = [original_name=X-Mailer, name=X-MAILER, value=Microsoft Office Outlook 12.0],
-[7] = [original_name=Content-Type, name=CONTENT-TYPE, value=multipart/mixed;\x09boundary="----=_NextPart_000_0004_01CA45B0.095693F0"],
-[5] = [original_name=Message-ID, name=MESSAGE-ID, value=<000301ca4581$ef9e57f0$cedb07d0$@in>],
 [10] = [original_name=Content-Language, name=CONTENT-LANGUAGE, value=en-us],
+[9] = [original_name=Thread-Index, name=THREAD-INDEX, value=AcpFgem9BvjjZEDeR1Kh8i+hUyVo0A==],
+[12] = [original_name=x-cr-puzzleid, name=X-CR-PUZZLEID, value={CAA37F59-1850-45C7-8540-AA27696B5398}],
+[11] = [original_name=x-cr-hashedpuzzle, name=X-CR-HASHEDPUZZLE, value=SeA= AAR2 ADaH BpiO C4G1 D1gW FNB1 FPkR Fn+W HFCP HnYJ JO7s Kum6 KytW LFcI LjUt;1;cgBhAGoAXwBkAGUAbwBsADIAMAAwADIAaQBuAEAAeQBhAGgAbwBvAC4AYwBvAC4AaQBuAA==;Sosha1_v1;7;{CAA37F59-1850-45C7-8540-AA27696B5398};ZwB1AHIAcABhAHIAdABhAHAAQABwAGEAdAByAGkAbwB0AHMALgBpAG4A;Mon, 05 Oct 2009 06:06:01 GMT;UwBNAFQAUAA=],
+[8] = [original_name=X-Mailer, name=X-MAILER, value=Microsoft Office Outlook 12.0],
 [3] = [original_name=Subject, name=SUBJECT, value=SMTP],
-[12] = [original_name=x-cr-puzzleid, name=X-CR-PUZZLEID, value={CAA37F59-1850-45C7-8540-AA27696B5398}]
+[1] = [original_name=From, name=FROM, value="Gurpartap Singh" <gurpartap@patriots.in>],
+[2] = [original_name=To, name=TO, value=<raj_deol2002in@yahoo.co.in>],
+[4] = [original_name=Date, name=DATE, value=Mon, 5 Oct 2009 11:36:07 +0530],
+[5] = [original_name=Message-ID, name=MESSAGE-ID, value=<000301ca4581$ef9e57f0$cedb07d0$@in>],
+[7] = [original_name=Content-Type, name=CONTENT-TYPE, value=multipart/mixed;\x09boundary="----=_NextPart_000_0004_01CA45B0.095693F0"],
+[6] = [original_name=MIME-Version, name=MIME-VERSION, value=1.0]
 }
 mime_all_headers
 {
@@ -19,32 +19,32 @@ mime_all_headers
 }
 mime_all_headers
 {
-[2] = [original_name=Content-Transfer-Encoding, name=CONTENT-TRANSFER-ENCODING, value=7bit],
-[1] = [original_name=Content-Type, name=CONTENT-TYPE, value=text/plain;\x09charset="us-ascii"]
+[1] = [original_name=Content-Type, name=CONTENT-TYPE, value=text/plain;\x09charset="us-ascii"],
+[2] = [original_name=Content-Transfer-Encoding, name=CONTENT-TRANSFER-ENCODING, value=7bit]
 }
 mime_all_headers
 {
-[2] = [original_name=Content-Transfer-Encoding, name=CONTENT-TRANSFER-ENCODING, value=quoted-printable],
-[1] = [original_name=Content-Type, name=CONTENT-TYPE, value=text/html;\x09charset="us-ascii"]
+[1] = [original_name=Content-Type, name=CONTENT-TYPE, value=text/html;\x09charset="us-ascii"],
+[2] = [original_name=Content-Transfer-Encoding, name=CONTENT-TRANSFER-ENCODING, value=quoted-printable]
 }
 mime_all_headers
 {
-[2] = [original_name=Content-Transfer-Encoding, name=CONTENT-TRANSFER-ENCODING, value=quoted-printable],
+[3] = [original_name=Content-Disposition, name=CONTENT-DISPOSITION, value=attachment;\x09filename="NEWS.txt"],
 [1] = [original_name=Content-Type, name=CONTENT-TYPE, value=text/plain;\x09name="NEWS.txt"],
-[3] = [original_name=Content-Disposition, name=CONTENT-DISPOSITION, value=attachment;\x09filename="NEWS.txt"]
+[2] = [original_name=Content-Transfer-Encoding, name=CONTENT-TRANSFER-ENCODING, value=quoted-printable]
 }
 mime_all_headers
 {
-[2] = [original_name=Mime-Version, name=MIME-VERSION, value=1.0 (Mac OS X Mail 8.2 \(2102\))],
-[9] = [original_name=Message-Id, name=MESSAGE-ID, value=<A6202DF2-8E58-4E41-BE0B-C8D3989A4AEE@example.com>],
-[6] = [original_name=Date, name=DATE, value=Sat, 25 Jul 2015 16:43:07 +0300],
-[11] = [original_name=To, name=TO, value=ericlim220@yahoo.com],
-[4] = [original_name=From, name=FROM, value=Albert Zaharovits <albert@example.com>],
-[1] = [original_name=Content-Type, name=CONTENT-TYPE, value=text/plain; charset=us-ascii],
-[8] = [original_name=Content-Transfer-Encoding, name=CONTENT-TRANSFER-ENCODING, value=7bit],
-[7] = [original_name=Cc, name=CC, value=felica4uu@hotmail.com, davis_mark1@outlook.com],
-[5] = [original_name=In-Reply-To, name=IN-REPLY-TO, value=<9ACEE03C-AB98-4046-AEC1-BF4910C61E96@example.com>],
 [10] = [original_name=References, name=REFERENCES, value=<FA60128E-63CF-4C4E-8241-C5805EA0F66E@example.com> <9ACEE03C-AB98-4046-AEC1-BF4910C61E96@example.com>],
+[9] = [original_name=Message-Id, name=MESSAGE-ID, value=<A6202DF2-8E58-4E41-BE0B-C8D3989A4AEE@example.com>],
+[12] = [original_name=X-Mailer, name=X-MAILER, value=Apple Mail (2.2102)],
+[11] = [original_name=To, name=TO, value=ericlim220@yahoo.com],
+[8] = [original_name=Content-Transfer-Encoding, name=CONTENT-TRANSFER-ENCODING, value=7bit],
 [3] = [original_name=Subject, name=SUBJECT, value=Re: Bro SMTP CC Header],
-[12] = [original_name=X-Mailer, name=X-MAILER, value=Apple Mail (2.2102)]
+[1] = [original_name=Content-Type, name=CONTENT-TYPE, value=text/plain; charset=us-ascii],
+[2] = [original_name=Mime-Version, name=MIME-VERSION, value=1.0 (Mac OS X Mail 8.2 \(2102\))],
+[4] = [original_name=From, name=FROM, value=Albert Zaharovits <albert@example.com>],
+[5] = [original_name=In-Reply-To, name=IN-REPLY-TO, value=<9ACEE03C-AB98-4046-AEC1-BF4910C61E96@example.com>],
+[7] = [original_name=Cc, name=CC, value=felica4uu@hotmail.com, davis_mark1@outlook.com],
+[6] = [original_name=Date, name=DATE, value=Sat, 25 Jul 2015 16:43:07 +0300]
 }

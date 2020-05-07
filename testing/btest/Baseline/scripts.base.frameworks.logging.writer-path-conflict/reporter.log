@@ -3,10 +3,10 @@
 #empty_field	(empty)
 #unset_field	-
 #path	reporter
-#open	2016-07-13-16-15-30
+#open	2020-05-07-00-28-17
 #fields	ts	level	message	location
 #types	time	enum	string	string
 1300475168.843894	Reporter::WARNING	Write using filter 'host-only' on path 'http' changed to use new path 'http-2' to avoid conflict with filter 'default'	(empty)
 1300475168.843894	Reporter::WARNING	Write using filter 'uri-only' on path 'http' changed to use new path 'http-3' to avoid conflict with filter 'default'	(empty)
 1300475168.843894	Reporter::WARNING	Write using filter 'status-only' on path 'http-2' changed to use new path 'http-2-2' to avoid conflict with filter 'host-only'	(empty)
-#close	2016-07-13-16-15-30
+#close	2020-05-07-00-28-17

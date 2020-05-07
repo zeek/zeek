@@ -8,11 +8,13 @@ eval $1
 
 unary-expr-op Clone
 set-type $1
-eval AS_ValUnion($1.ToVal(s.t)->Clone().release(), s.t, s.stmt, error_flag)
+set-expr $2
+eval AS_ValUnion($1.ToVal(s.e->Type().get())->Clone().release(), s.t, s.stmt, error_flag)
 
 unary-expr-op Size
 set-type $1
-eval AS_ValUnion($1.ToVal(s.t)->SizeVal().release(), s.t, s.stmt, error_flag)
+set-expr $2
+eval AS_ValUnion($1.ToVal(s.e->Type().get())->SizeVal().release(), s.t, s.stmt, error_flag)
 
 unary-expr-op Not
 op-type I

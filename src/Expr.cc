@@ -4528,10 +4528,10 @@ IntrusivePtr<BroType> ListExpr::InitType() const
 					ti->AsTypeList();
 
 				if ( ! til->IsPure() ||
-				     ! til->AllMatch(til->PureType(), true) )
+				     ! til->AllMatch(til->GetPureType(), true) )
 					tl->Append({NewRef{}, til});
 				else
-					tl->Append({NewRef{}, til->PureType()});
+					tl->Append(til->GetPureType());
 				}
 			else
 				tl->Append({NewRef{}, ti});

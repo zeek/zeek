@@ -812,7 +812,7 @@ bool Manager::IsCompatibleType(BroType* t, bool atomic_only)
 		if ( ! t->IsSet() )
 			return false;
 
-		return IsCompatibleType(t->AsSetType()->Indices()->PureType(), true);
+		return IsCompatibleType(t->AsSetType()->Indices()->GetPureType().get(), true);
 		}
 
 	case TYPE_VECTOR:
@@ -941,7 +941,7 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
 			bool optional = false;
 
 			if ( ty == TYPE_TABLE )
-				st = rec->FieldType(i)->AsSetType()->Indices()->PureType()->Tag();
+				st = rec->FieldType(i)->AsSetType()->Indices()->GetPureType()->Tag();
 
 			else if ( ty == TYPE_VECTOR )
 				st = rec->FieldType(i)->AsVectorType()->YieldType()->Tag();
@@ -2334,14 +2334,14 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 	case TYPE_TABLE:
 		{
 		// all entries have to have the same type...
-		BroType* type = request_type->AsTableType()->Indices()->PureType();
-		auto set_index = make_intrusive<TypeList>(IntrusivePtr{NewRef{}, type});
-		set_index->Append({NewRef{}, type});
+		const auto& type = request_type->AsTableType()->Indices()->GetPureType();
+		auto set_index = make_intrusive<TypeList>(type);
+		set_index->Append(type);
 		auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
 		TableVal* t = new TableVal(std::move(s));
 		for ( int j = 0; j < val->val.set_val.size; j++ )
 			{
-			Val* assignval = ValueToVal(i, val->val.set_val.vals[j], type, have_error);
+			Val* assignval = ValueToVal(i, val->val.set_val.vals[j], type.get(), have_error);
 
 			t->Assign(assignval, nullptr);
 			Unref(assignval); // index is not consumed by assign.

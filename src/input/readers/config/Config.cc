@@ -45,7 +45,7 @@ Config::Config(ReaderFrontend *frontend) : ReaderBackend(frontend)
 		TypeTag primary = id->Type()->Tag();
 		TypeTag secondary = TYPE_VOID;
 		if ( primary == TYPE_TABLE )
-			secondary = id->Type()->AsSetType()->Indices()->PureType()->Tag();
+			secondary = id->Type()->AsSetType()->Indices()->GetPureType()->Tag();
 		else if ( primary == TYPE_VECTOR )
 			secondary = id->Type()->AsVectorType()->YieldType()->Tag();
 

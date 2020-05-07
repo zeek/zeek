@@ -362,13 +362,20 @@ public:
 
 	// Returns the underlying pure type, or nil if the list
 	// is not pure or is empty.
+	const IntrusivePtr<BroType>& GetPureType() const
+		{ return pure_type; }
+
+	[[deprecated("Remove in v4.1.  Use GetPureType() instead.")]]
 	BroType* PureType()		{ return pure_type.get(); }
+	[[deprecated("Remove in v4.1.  Use GetPureType() instead.")]]
 	const BroType* PureType() const	{ return pure_type.get(); }
 
 	// True if all of the types match t, false otherwise.  If
 	// is_init is true, then the matching is done in the context
 	// of an initialization.
 	bool AllMatch(const BroType* t, bool is_init) const;
+	bool AllMatch(const IntrusivePtr<BroType>& t, bool is_init) const
+		{ return AllMatch(t.get(), is_init); }
 
 	void Append(IntrusivePtr<BroType> t);
 	void AppendEvenIfNotPure(IntrusivePtr<BroType> t);

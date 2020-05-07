@@ -1664,7 +1664,7 @@ const BroType* flatten_type(const BroType* t)
 	const TypeList* tl = t->AsTypeList();
 
 	if ( tl->IsPure() )
-		return tl->PureType();
+		return tl->GetPureType().get();
 
 	const type_list* types = tl->Types();
 

@@ -146,7 +146,7 @@ bool Value::IsCompatibleType(BroType* t, bool atomic_only)
 		if ( ! t->IsSet() )
 			return false;
 
-		return IsCompatibleType(t->AsSetType()->Indices()->PureType(), true);
+		return IsCompatibleType(t->AsSetType()->Indices()->GetPureType().get(), true);
 		}
 
 	case TYPE_VECTOR:

@@ -517,7 +517,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 		TypeTag st = TYPE_VOID;
 
 		if ( t->Tag() == TYPE_TABLE )
-			st = t->AsSetType()->Indices()->PureType()->Tag();
+			st = t->AsSetType()->Indices()->GetPureType()->Tag();
 
 		else if ( t->Tag() == TYPE_VECTOR )
 			st = t->AsVectorType()->YieldType()->Tag();

@@ -434,10 +434,6 @@ function expand_eval(e, is_expr_op, otype1, otype2, is_var1, is_var2)
 		{
 		if ( index(e_copy, "$$") > 0 )
 			{
-			if ( ! rel_op )
-				e_copy = "delete frame[s.v1]" \
-					laccessor ";\n\t\t" e_copy
-
 			gsub(/\$\$/, "frame[s.v1]" laccessor, e_copy)
 			return pre_copy e_copy expr_app
 			}

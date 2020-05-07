@@ -1365,7 +1365,7 @@ BroType* VectorType::YieldType()
 	// return any as that's what other code historically expects for type
 	// comparisions.
 	if ( IsUnspecifiedVector() )
-		return base_type_no_ref(TYPE_ANY);
+		return ::base_type(TYPE_ANY).get();
 
 	return yield_type.get();
 	}
@@ -1431,25 +1431,21 @@ void VectorType::DescribeReST(ODesc* d, bool roles_only) const
 		d->Add(fmt(":zeek:type:`%s`", yield_type->GetName().c_str()));
 	}
 
-BroType* base_type_no_ref(TypeTag tag)
+const IntrusivePtr<BroType>& base_type(TypeTag tag)
 	{
-	static BroType* base_types[NUM_TYPES];
+	static IntrusivePtr<BroType> base_types[NUM_TYPES];
 
-	// We could check here that "tag" actually corresponds to a BRO
-	// basic type.
-
-	int t = int(tag);
-	if ( ! base_types[t] )
+	// We could check here that "tag" actually corresponds to a basic type.
+	if ( ! base_types[tag] )
 		{
-		base_types[t] = new BroType(tag, true);
+		base_types[tag] = make_intrusive<BroType>(tag, true);
 		// Give the base types a pseudo-location for easier identification.
 		Location l(type_name(tag), 0, 0, 0, 0);
-		base_types[t]->SetLocationInfo(&l);
+		base_types[tag]->SetLocationInfo(&l);
 		}
 
-	return base_types[t];
+	return base_types[tag];
 	}
-
 
 // Returns true if t1 is initialization-compatible with t2 (i.e., if an
 // initializer with type t1 can be used to initialize a value with type t2),

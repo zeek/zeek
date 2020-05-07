@@ -141,7 +141,7 @@ BroType* OpaqueVal::UnserializeType(const broker::data& data)
 	if ( ! tag )
 		return nullptr;
 
-	return base_type(static_cast<TypeTag>(*tag)).release();
+	return base_type(static_cast<TypeTag>(*tag))->Ref();
 	}
 
 IntrusivePtr<Val> OpaqueVal::DoClone(CloneState* state)

@@ -1122,7 +1122,7 @@ IntrusivePtr<Val> StringVal::DoClone(CloneState* state)
 	}
 
 PatternVal::PatternVal(RE_Matcher* re)
-	: Val(base_type_no_ref(TYPE_PATTERN))
+	: Val(base_type(TYPE_PATTERN).get())
 	{
 	val.re_val = re;
 	}
@@ -1130,7 +1130,6 @@ PatternVal::PatternVal(RE_Matcher* re)
 PatternVal::~PatternVal()
 	{
 	delete AsPattern();
-	Unref(type);	// base_type() ref'd it, so did our base constructor
 	}
 
 bool PatternVal::AddTo(Val* v, bool /* is_first_init */) const

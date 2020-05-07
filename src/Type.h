@@ -757,16 +757,16 @@ extern OpaqueType* ocsp_resp_opaque_type;
 extern OpaqueType* paraglob_type;
 
 // Returns the basic (non-parameterized) type with the given type.
-// The reference count of the type is not increased.
-BroType* base_type_no_ref(TypeTag tag);
+const IntrusivePtr<BroType>& base_type(TypeTag tag);
 
 // Returns the basic (non-parameterized) type with the given type.
-// The caller assumes responsibility for a reference to the type.
-inline IntrusivePtr<BroType> base_type(TypeTag tag)
-	{ return {NewRef{}, base_type_no_ref(tag)}; }
+// The reference count of the type is not increased.
+[[deprecated("Remove in v4.1.  Use ::base_type() instead")]]
+inline BroType* base_type_no_ref(TypeTag tag)
+	{ return base_type(tag).get(); }
 
 // Returns the basic error type.
-inline IntrusivePtr<BroType> error_type()	{ return base_type(TYPE_ERROR); }
+inline const IntrusivePtr<BroType>& error_type()	{ return base_type(TYPE_ERROR); }
 
 // True if the two types are equivalent.  If is_init is true then the test is
 // done in the context of an initialization. If match_record_field_names is

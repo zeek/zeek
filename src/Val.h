@@ -126,7 +126,7 @@ union BroValUnion {
 class Val : public BroObj {
 public:
 	Val(double d, TypeTag t)
-		: val(d), type(base_type(t).release())
+		: val(d), type(base_type(t)->Ref())
 		{
 		}
 
@@ -143,7 +143,7 @@ public:
 		}
 
 	Val()
-		: val(bro_int_t(0)), type(base_type(TYPE_ERROR).release())
+		: val(bro_int_t(0)), type(base_type(TYPE_ERROR)->Ref())
 		{
 		}
 
@@ -341,7 +341,7 @@ protected:
 
 	template<typename V>
 	Val(V &&v, TypeTag t) noexcept
-		: val(std::forward<V>(v)), type(base_type(t).release())
+		: val(std::forward<V>(v)), type(base_type(t)->Ref())
 		{
 		}
 

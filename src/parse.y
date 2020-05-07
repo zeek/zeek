@@ -843,72 +843,72 @@ enum_body_elem:
 type:
 		TOK_BOOL	{
 				set_location(@1);
-				$$ = base_type(TYPE_BOOL).release();
+				$$ = base_type(TYPE_BOOL)->Ref();
 				}
 
 	|	TOK_INT		{
 				set_location(@1);
-				$$ = base_type(TYPE_INT).release();
+				$$ = base_type(TYPE_INT)->Ref();
 				}
 
 	|	TOK_COUNT	{
 				set_location(@1);
-				$$ = base_type(TYPE_COUNT).release();
+				$$ = base_type(TYPE_COUNT)->Ref();
 				}
 
 	|	TOK_COUNTER	{
 				set_location(@1);
-				$$ = base_type(TYPE_COUNTER).release();
+				$$ = base_type(TYPE_COUNTER)->Ref();
 				}
 
 	|	TOK_DOUBLE	{
 				set_location(@1);
-				$$ = base_type(TYPE_DOUBLE).release();
+				$$ = base_type(TYPE_DOUBLE)->Ref();
 				}
 
 	|	TOK_TIME	{
 				set_location(@1);
-				$$ = base_type(TYPE_TIME).release();
+				$$ = base_type(TYPE_TIME)->Ref();
 				}
 
 	|	TOK_INTERVAL	{
 				set_location(@1);
-				$$ = base_type(TYPE_INTERVAL).release();
+				$$ = base_type(TYPE_INTERVAL)->Ref();
 				}
 
 	|	TOK_STRING	{
 				set_location(@1);
-				$$ = base_type(TYPE_STRING).release();
+				$$ = base_type(TYPE_STRING)->Ref();
 				}
 
 	|	TOK_PATTERN	{
 				set_location(@1);
-				$$ = base_type(TYPE_PATTERN).release();
+				$$ = base_type(TYPE_PATTERN)->Ref();
 				}
 
 	|	TOK_TIMER	{
 				set_location(@1);
-				$$ = base_type(TYPE_TIMER).release();
+				$$ = base_type(TYPE_TIMER)->Ref();
 				}
 
 	|	TOK_PORT	{
 				set_location(@1);
-				$$ = base_type(TYPE_PORT).release();
+				$$ = base_type(TYPE_PORT)->Ref();
 				}
 
 	|	TOK_ADDR	{
 				set_location(@1);
-				$$ = base_type(TYPE_ADDR).release();
+				$$ = base_type(TYPE_ADDR)->Ref();
 				}
 
 	|	TOK_SUBNET	{
 				set_location(@1);
-				$$ = base_type(TYPE_SUBNET).release();
+				$$ = base_type(TYPE_SUBNET)->Ref();
 				}
 
 	|	TOK_ANY		{
 				set_location(@1);
-				$$ = base_type(TYPE_ANY).release();
+				$$ = base_type(TYPE_ANY)->Ref();
 				}
 
 	|	TOK_TABLE '[' type_list ']' TOK_OF type
@@ -1012,7 +1012,7 @@ type:
 				NullStmt here;
 				if ( $1 )
 					$1->Error("not a Zeek type", &here);
-				$$ = error_type().release();
+				$$ = error_type()->Ref();
 				}
 			else
 				{

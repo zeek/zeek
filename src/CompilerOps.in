@@ -214,6 +214,11 @@ type VCV
 custom-method return CompileInExpr($*);
 no-eval
 
+expr-op In
+type VVC
+custom-method return CompileInExpr($*);
+no-eval
+
 internal-op P-In-S
 type VVV
 eval frame[s.v1].int_val = frame[s.v2].re_val->AsPattern()->MatchAnywhere(frame[s.v3].string_val) != 0

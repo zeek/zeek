@@ -816,7 +816,7 @@ function prep(f)
 function finish(f, which)
 	{
 	print ("\tdefault:") >f
-	print ("\t\treporter->InternalError(\"inconsistency in " which " AssignExpr::Compile:%s\", obj_desc(rhs));") >f
+	print ("\t\treporter->InternalError(\"inconsistency in " which " AssignExpr::Compile: %s\", obj_desc(rhs));") >f
 	print ("\t}\t}") >f
 	}
 

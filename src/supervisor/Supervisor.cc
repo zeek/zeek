@@ -1123,14 +1123,14 @@ IntrusivePtr<RecordVal> Supervisor::NodeConfig::ToRecord() const
 	if ( cpu_affinity )
 		rval->Assign(rt->FieldOffset("cpu_affinity"), val_mgr->Int(*cpu_affinity));
 
-	auto st = BifType::Record::Supervisor::NodeConfig->FieldType("scripts");
+	const auto& st = rt->GetFieldType("scripts");
 	auto scripts_val = new VectorVal(st->AsVectorType());
 	rval->Assign(rt->FieldOffset("scripts"), scripts_val);
 
 	for ( const auto& s : scripts )
 		scripts_val->Assign(scripts_val->Size(), make_intrusive<StringVal>(s));
 
-	auto tt = BifType::Record::Supervisor::NodeConfig->FieldType("cluster");
+	const auto& tt = rt->GetFieldType("cluster");
 	auto cluster_val = new TableVal({NewRef{}, tt->AsTableType()});
 	rval->Assign(rt->FieldOffset("cluster"), cluster_val);
 
@@ -1314,8 +1314,8 @@ void Supervisor::SupervisedNode::Init(zeek::Options* options) const
 IntrusivePtr<RecordVal> Supervisor::Status(std::string_view node_name)
 	{
 	auto rval = make_intrusive<RecordVal>(BifType::Record::Supervisor::Status);
-	auto tt = BifType::Record::Supervisor::Status->FieldType("nodes");
-	auto node_table_val = new TableVal({NewRef{}, tt->AsTableType()});
+	const auto& tt = BifType::Record::Supervisor::Status->GetFieldType("nodes");
+	auto node_table_val = new TableVal(cast_intrusive<TableType>(tt));
 	rval->Assign(0, node_table_val);
 
 	if ( node_name.empty() )

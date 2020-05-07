@@ -146,6 +146,8 @@ Deprecated Functionality
 - The ``utf16_bytestring_to_utf8_val()`` function is deprecated, use
   ``utf16_to_utf8_val()`` instead.
 
+- ``RecordType::FieldType()`` is deprecated, use ``RecordType::GetFieldType()``
+
 Zeek 3.1.0
 ==========
 

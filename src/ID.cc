@@ -187,7 +187,7 @@ void ID::UpdateValAttrs()
 				TypeDecl* fd = rt->FieldDecl(i);
 
 				if ( ! fd->attrs )
-					fd->attrs = make_intrusive<Attributes>(new attr_list, IntrusivePtr{NewRef{}, rt->FieldType(i)}, true, IsGlobal());
+					fd->attrs = make_intrusive<Attributes>(new attr_list, rt->GetFieldType(i), true, IsGlobal());
 
 				fd->attrs->AddAttr(make_intrusive<Attr>(ATTR_LOG));
 				}

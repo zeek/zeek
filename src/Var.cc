@@ -448,7 +448,7 @@ static bool canonical_arg_types_match(const FuncType* decl, const FuncType* impl
 		return false;
 
 	for ( auto i = 0; i < canon_args->NumFields(); ++i )
-		if ( ! same_type(canon_args->FieldType(i), impl_args->FieldType(i)) )
+		if ( ! same_type(canon_args->GetFieldType(i).get(), impl_args->GetFieldType(i).get()) )
 			return false;
 
 	return true;

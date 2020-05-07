@@ -366,16 +366,16 @@ bool Manager::CreateEventStream(RecordVal* fval)
 
 		for ( int i = 0; i < fields->NumFields(); i++ )
 			{
-			if ( ! same_type(args[i + 2].get(), fields->FieldType(i) ) )
+			if ( ! same_type(args[i + 2].get(), fields->GetFieldType(i).get() ) )
 				{
 				ODesc desc1;
 				ODesc desc2;
 				args[i + 2]->Describe(&desc1);
-				fields->FieldType(i)->Describe(&desc2);
+				fields->GetFieldType(i)->Describe(&desc2);
 
 				reporter->Error("Input stream %s: Incompatible type for event in field %d. Need type '%s':%s, got '%s':%s",
 						stream_name.c_str(), i + 3,
-						type_name(fields->FieldType(i)->Tag()), desc2.Description(),
+						type_name(fields->GetFieldType(i)->Tag()), desc2.Description(),
 						type_name(args[i + 2]->Tag()), desc1.Description());
 
 				return false;
@@ -497,15 +497,15 @@ bool Manager::CreateTableStream(RecordVal* fval)
 			return false;
 			}
 
-		if ( ! same_type(idx->FieldType(j), tl[j].get()) )
+		if ( ! same_type(idx->GetFieldType(j).get(), tl[j].get()) )
 			{
 			ODesc desc1;
 			ODesc desc2;
-			idx->FieldType(j)->Describe(&desc1);
+			idx->GetFieldType(j)->Describe(&desc1);
 			tl[j]->Describe(&desc2);
 
 			reporter->Error("Input stream %s: Table type does not match index type. Need type '%s':%s, got '%s':%s", stream_name.c_str(),
-					type_name(idx->FieldType(j)->Tag()), desc1.Description(),
+					type_name(idx->GetFieldType(j)->Tag()), desc1.Description(),
 					type_name(tl[j]->Tag()), desc2.Description());
 
 			return false;
@@ -526,7 +526,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 		const BroType* compare_type = val.get();
 
 		if ( want_record->InternalInt() == 0 )
-			compare_type = val->FieldType(0);
+			compare_type = val->GetFieldType(0).get();
 
 		if ( ! same_type(table_yield, compare_type) )
 			{
@@ -606,11 +606,11 @@ bool Manager::CreateTableStream(RecordVal* fval)
 			return false;
 			}
 		else if (  want_record->InternalInt() == 0
-		           && val && !same_type(args[3].get(), val->FieldType(0) ) )
+		           && val && !same_type(args[3].get(), val->GetFieldType(0).get() ) )
 			{
 			ODesc desc1;
 			ODesc desc2;
-			val->FieldType(0)->Describe(&desc1);
+			val->GetFieldType(0)->Describe(&desc1);
 			args[3]->Describe(&desc2);
 			reporter->Error("Input stream %s: Table event's value attribute does not match. Need '%s', got '%s'", stream_name.c_str(),
 					desc1.Description(), desc2.Description());
@@ -892,7 +892,7 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
 	for ( int i = 0; i < rec->NumFields(); i++ )
 		{
 
-		if ( ! IsCompatibleType(rec->FieldType(i)) )
+		if ( ! IsCompatibleType(rec->GetFieldType(i).get()) )
 			{
 			string name = nameprepend + rec->FieldName(i);
 			// If the field is a file, function, or opaque
@@ -901,21 +901,21 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
 			// stuff that we actually cannot read :)
 			if ( allow_file_func )
 				{
-				if ( ( rec->FieldType(i)->Tag() == TYPE_FILE ||
-				       rec->FieldType(i)->Tag() == TYPE_FUNC ||
-				       rec->FieldType(i)->Tag() == TYPE_OPAQUE ) &&
+				if ( ( rec->GetFieldType(i)->Tag() == TYPE_FILE ||
+				       rec->GetFieldType(i)->Tag() == TYPE_FUNC ||
+				       rec->GetFieldType(i)->Tag() == TYPE_OPAQUE ) &&
 				       rec->FieldDecl(i)->FindAttr(ATTR_OPTIONAL) )
 					{
-					reporter->Info("Encountered incompatible type \"%s\" in type definition for field \"%s\" in ReaderFrontend. Ignoring optional field.", type_name(rec->FieldType(i)->Tag()), name.c_str());
+					reporter->Info("Encountered incompatible type \"%s\" in type definition for field \"%s\" in ReaderFrontend. Ignoring optional field.", type_name(rec->GetFieldType(i)->Tag()), name.c_str());
 					continue;
 					}
 				}
 
-			reporter->Error("Incompatible type \"%s\" in type definition for for field \"%s\" in ReaderFrontend", type_name(rec->FieldType(i)->Tag()), name.c_str());
+			reporter->Error("Incompatible type \"%s\" in type definition for for field \"%s\" in ReaderFrontend", type_name(rec->GetFieldType(i)->Tag()), name.c_str());
 			return false;
 			}
 
-		if ( rec->FieldType(i)->Tag() == TYPE_RECORD )
+		if ( rec->GetFieldType(i)->Tag() == TYPE_RECORD )
 			{
 			string prep = nameprepend + rec->FieldName(i) + ".";
 
@@ -925,7 +925,7 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
 				return false;
 				}
 
-			if ( !UnrollRecordType(fields, rec->FieldType(i)->AsRecordType(), prep, allow_file_func) )
+			if ( !UnrollRecordType(fields, rec->GetFieldType(i)->AsRecordType(), prep, allow_file_func) )
 				{
 				return false;
 				}
@@ -937,15 +937,15 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
 			string name = nameprepend + rec->FieldName(i);
 			const char* secondary = nullptr;
 			IntrusivePtr<Val> c;
-			TypeTag ty = rec->FieldType(i)->Tag();
+			TypeTag ty = rec->GetFieldType(i)->Tag();
 			TypeTag st = TYPE_VOID;
 			bool optional = false;
 
 			if ( ty == TYPE_TABLE )
-				st = rec->FieldType(i)->AsSetType()->Indices()->GetPureType()->Tag();
+				st = rec->GetFieldType(i)->AsSetType()->Indices()->GetPureType()->Tag();
 
 			else if ( ty == TYPE_VECTOR )
-				st = rec->FieldType(i)->AsVectorType()->YieldType()->Tag();
+				st = rec->GetFieldType(i)->AsVectorType()->YieldType()->Tag();
 
 			else if ( ty == TYPE_PORT &&
 				  rec->FieldDecl(i)->FindAttr(ATTR_TYPE_COLUMN) )
@@ -1027,9 +1027,9 @@ Val* Manager::ValueToIndexVal(const Stream* i, int num_fields, const RecordType 
 	int position = 0;
 
 
-	if ( num_fields == 1 && type->FieldType(0)->Tag() != TYPE_RECORD  )
+	if ( num_fields == 1 && type->GetFieldType(0)->Tag() != TYPE_RECORD  )
 		{
-		idxval = ValueToVal(i, vals[0], type->FieldType(0), have_error);
+		idxval = ValueToVal(i, vals[0], type->GetFieldType(0).get(), have_error);
 		position = 1;
 		}
 	else
@@ -1037,12 +1037,12 @@ Val* Manager::ValueToIndexVal(const Stream* i, int num_fields, const RecordType 
 		ListVal *l = new ListVal(TYPE_ANY);
 		for ( int j = 0 ; j < type->NumFields(); j++ )
 			{
-			if ( type->FieldType(j)->Tag() == TYPE_RECORD )
+			if ( type->GetFieldType(j)->Tag() == TYPE_RECORD )
 				l->Append({AdoptRef{}, ValueToRecordVal(i, vals,
-				          type->FieldType(j)->AsRecordType(), &position, have_error)});
+				          type->GetFieldType(j)->AsRecordType(), &position, have_error)});
 			else
 				{
-				l->Append({AdoptRef{}, ValueToVal(i, vals[position], type->FieldType(j), have_error)});
+				l->Append({AdoptRef{}, ValueToVal(i, vals[position], type->GetFieldType(j).get(), have_error)});
 				position++;
 				}
 			}
@@ -1158,7 +1158,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 		valval = nullptr;
 
 	else if ( stream->num_val_fields == 1 && !stream->want_record )
-		valval = ValueToVal(i, vals[position], stream->rtype->FieldType(0), convert_error);
+		valval = ValueToVal(i, vals[position], stream->rtype->GetFieldType(0).get(), convert_error);
 
 	else
 		valval = ValueToRecordVal(i, vals, stream->rtype, &position, convert_error);
@@ -1502,14 +1502,14 @@ int Manager::SendEventStreamEvent(Stream* i, EnumVal* type, const Value* const *
 			{
 			Val* val = nullptr;
 
-			if ( stream->fields->FieldType(j)->Tag() == TYPE_RECORD )
+			if ( stream->fields->GetFieldType(j)->Tag() == TYPE_RECORD )
 				val = ValueToRecordVal(i, vals,
-						stream->fields->FieldType(j)->AsRecordType(),
+						stream->fields->GetFieldType(j)->AsRecordType(),
 						&position, convert_error);
 
 			else
 				{
-				val = ValueToVal(i, vals[position], stream->fields->FieldType(j), convert_error);
+				val = ValueToVal(i, vals[position], stream->fields->GetFieldType(j).get(), convert_error);
 				position++;
 				}
 
@@ -1547,7 +1547,7 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 		valval = nullptr;
 
 	else if ( stream->num_val_fields == 1 && stream->want_record == 0 )
-		valval = ValueToVal(i, vals[position], stream->rtype->FieldType(0), convert_error);
+		valval = ValueToVal(i, vals[position], stream->rtype->GetFieldType(0).get(), convert_error);
 	else
 		valval = ValueToRecordVal(i, vals, stream->rtype, &position, convert_error);
 
@@ -1845,10 +1845,10 @@ bool Manager::SendEvent(ReaderFrontend* reader, const string& name, const int nu
 		Val* v = ValueToVal(i, vals[j], convert_error);
 		vl.emplace_back(AdoptRef{}, v);
 
-		if ( v && ! convert_error && ! same_type(type->FieldType(j), v->Type()) )
+		if ( v && ! convert_error && ! same_type(type->GetFieldType(j).get(), v->Type()) )
 			{
 			convert_error = true;
-			type->FieldType(j)->Error("SendEvent types do not match", v->Type());
+			type->GetFieldType(j)->Error("SendEvent types do not match", v->Type());
 			}
 		}
 
@@ -1916,8 +1916,8 @@ RecordVal* Manager::ListValToRecordVal(ListVal* list, RecordType *request_type, 
 		assert ( (*position) <= maxpos );
 
 		Val* fieldVal = nullptr;
-		if ( request_type->FieldType(i)->Tag() == TYPE_RECORD )
-			fieldVal = ListValToRecordVal(list, request_type->FieldType(i)->AsRecordType(), position);
+		if ( request_type->GetFieldType(i)->Tag() == TYPE_RECORD )
+			fieldVal = ListValToRecordVal(list, request_type->GetFieldType(i)->AsRecordType(), position);
 		else
 			{
 			fieldVal = list->Idx(*position).get();
@@ -1940,10 +1940,10 @@ RecordVal* Manager::ValueToRecordVal(const Stream* stream, const Value* const *v
 	for ( int i = 0; i < request_type->NumFields(); i++ )
 		{
 		Val* fieldVal = nullptr;
-		if ( request_type->FieldType(i)->Tag() == TYPE_RECORD )
-			fieldVal = ValueToRecordVal(stream, vals, request_type->FieldType(i)->AsRecordType(), position, have_error);
-		else if ( request_type->FieldType(i)->Tag() == TYPE_FILE ||
-			  request_type->FieldType(i)->Tag() == TYPE_FUNC )
+		if ( request_type->GetFieldType(i)->Tag() == TYPE_RECORD )
+			fieldVal = ValueToRecordVal(stream, vals, request_type->GetFieldType(i)->AsRecordType(), position, have_error);
+		else if ( request_type->GetFieldType(i)->Tag() == TYPE_FILE ||
+			  request_type->GetFieldType(i)->Tag() == TYPE_FUNC )
 			{
 			// If those two unsupported types are encountered here, they have
 			// been let through by the type checking.
@@ -1956,7 +1956,7 @@ RecordVal* Manager::ValueToRecordVal(const Stream* stream, const Value* const *v
 			}
 		else
 			{
-			fieldVal = ValueToVal(stream, vals[*position], request_type->FieldType(i), have_error);
+			fieldVal = ValueToVal(stream, vals[*position], request_type->GetFieldType(i).get(), have_error);
 			(*position)++;
 			}
 

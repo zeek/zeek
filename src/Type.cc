@@ -442,7 +442,7 @@ FuncType::FuncType(IntrusivePtr<RecordType> arg_args,
 			args->Error(err_str);
 			}
 
-		arg_types->Append({NewRef{}, args->FieldType(i)});
+		arg_types->Append(args->GetFieldType(i));
 		offsets[i] = i;
 		}
 
@@ -609,10 +609,10 @@ std::optional<FuncType::Prototype> FuncType::FindPrototype(const RecordType& arg
 
 		for ( auto i = 0; i < args.NumFields(); ++i )
 			{
-			auto ptype = p.args->FieldType(i);
-			auto desired_type = args.FieldType(i);
+			const auto& ptype = p.args->GetFieldType(i);
+			const auto& desired_type = args.GetFieldType(i);
 
-			if ( ! same_type(ptype, desired_type) ||
+			if ( ! same_type(ptype.get(), desired_type.get()) ||
 			     ! streq(args.FieldName(i), p.args->FieldName(i)) )
 				{
 				matched = false;
@@ -698,17 +698,6 @@ RecordType::~RecordType()
 bool RecordType::HasField(const char* field) const
 	{
 	return FieldOffset(field) >= 0;
-	}
-
-BroType* RecordType::FieldType(const char* field) const
-	{
-	int offset = FieldOffset(field);
-	return offset >= 0 ? FieldType(offset) : nullptr;
-	}
-
-BroType* RecordType::FieldType(int field) const
-	{
-	return (*types)[field]->type.get();
 	}
 
 IntrusivePtr<Val> RecordType::FieldDefault(int field) const
@@ -830,7 +819,7 @@ IntrusivePtr<TableVal> RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 
 	for ( int i = 0; i < NumFields(); ++i )
 		{
-		const BroType* ft = FieldType(i);
+		const auto& ft = GetFieldType(i);
 		const TypeDecl* fd = FieldDecl(i);
 		Val* fv = nullptr;
 
@@ -844,7 +833,7 @@ IntrusivePtr<TableVal> RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 
 		auto nr = make_intrusive<RecordVal>(internal_type("record_field")->AsRecordType());
 
-		string s = container_type_name(ft);
+		string s = container_type_name(ft.get());
 		nr->Assign(0, make_intrusive<StringVal>(s));
 		nr->Assign(1, val_mgr->Bool(logged));
 		nr->Assign(2, fv);
@@ -1656,10 +1645,10 @@ bool record_promotion_compatible(const RecordType* super_rec,
 			// Orphaned field.
 			continue;
 
-		BroType* sub_field_type = sub_rec->FieldType(i);
-		BroType* super_field_type = super_rec->FieldType(o);
+		const auto& sub_field_type = sub_rec->GetFieldType(i);
+		const auto& super_field_type = super_rec->GetFieldType(o);
 
-		if ( same_type(sub_field_type, super_field_type) )
+		if ( same_type(sub_field_type.get(), super_field_type.get()) )
 			continue;
 
 		if ( sub_field_type->Tag() != TYPE_RECORD )

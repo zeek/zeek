@@ -247,7 +247,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 		if ( ! (columns->FieldDecl(i)->FindAttr(ATTR_LOG)) )
 		    continue;
 
-		if ( ! threading::Value::IsCompatibleType(columns->FieldType(i)) )
+		if ( ! threading::Value::IsCompatibleType(columns->GetFieldType(i).get()) )
 			{
 			reporter->Error("type of field '%s' is not support for logging output",
 				 columns->FieldName(i));
@@ -409,7 +409,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 			rtype = rt;
 			}
 
-		BroType* t = rtype->FieldType(i);
+		const auto& t = rtype->GetFieldType(i);
 
 		// Ignore if &log not specified.
 		if ( ! rtype->FieldDecl(i)->FindAttr(ATTR_LOG) )
@@ -744,7 +744,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 				path_arg = val_mgr->EmptyString();
 
 			IntrusivePtr<Val> rec_arg;
-			BroType* rt = filter->path_func->FType()->Args()->FieldType("rec");
+			const auto& rt = filter->path_func->FType()->Args()->GetFieldType("rec");
 
 			if ( rt->Tag() == TYPE_RECORD )
 				rec_arg = columns->CoerceTo(rt->AsRecordType(), true);

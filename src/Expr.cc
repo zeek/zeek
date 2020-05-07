@@ -2373,7 +2373,7 @@ IntrusivePtr<Val> AssignExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) 
 
 		RecordVal* aggr_r = aggr->AsRecordVal();
 
-		auto v = op2->InitVal(rt->FieldType(td.id), nullptr);
+		auto v = op2->InitVal(rt->GetFieldType(td.id).get(), nullptr);
 
 		if ( ! v )
 			return nullptr;
@@ -2867,7 +2867,7 @@ FieldExpr::FieldExpr(IntrusivePtr<Expr> arg_op, const char* arg_field_name)
 			ExprError("no such field in record");
 		else
 			{
-			SetType({NewRef{}, rt->FieldType(field)});
+			SetType(rt->GetFieldType(field));
 			td = rt->FieldDecl(field);
 
 			if ( rt->IsFieldDeprecated(field) )
@@ -3565,8 +3565,8 @@ RecordCoerceExpr::RecordCoerceExpr(IntrusivePtr<Expr> arg_op,
 				break;
 				}
 
-			BroType* sub_t_i = sub_r->FieldType(i);
-			BroType* sup_t_i = t_r->FieldType(t_i);
+			BroType* sub_t_i = sub_r->GetFieldType(i).get();
+			BroType* sup_t_i = t_r->GetFieldType(t_i).get();
 
 			if ( ! same_type(sup_t_i, sub_t_i) )
 				{
@@ -3685,7 +3685,7 @@ IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 				}
 
 			BroType* rhs_type = rhs->Type();
-			BroType* field_type = val_type->FieldType(i);
+			BroType* field_type = val_type->GetFieldType(i).get();
 
 			if ( rhs_type->Tag() == TYPE_RECORD &&
 			     field_type->Tag() == TYPE_RECORD &&
@@ -3711,11 +3711,11 @@ IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 				{
 				auto def_val = def->AttrExpr()->Eval(nullptr);
 				BroType* def_type = def_val->Type();
-				BroType* field_type = Type()->AsRecordType()->FieldType(i);
+				const auto& field_type = Type()->AsRecordType()->GetFieldType(i);
 
 				if ( def_type->Tag() == TYPE_RECORD &&
 				     field_type->Tag() == TYPE_RECORD &&
-				     ! same_type(def_type, field_type) )
+				     ! same_type(def_type, field_type.get()) )
 					{
 					auto tmp = def_val->AsRecordVal()->CoerceTo(
 					        field_type->AsRecordType());
@@ -3814,7 +3814,7 @@ FlattenExpr::FlattenExpr(IntrusivePtr<Expr> arg_op)
 	auto tl = make_intrusive<TypeList>();
 
 	for ( int i = 0; i < num_fields; ++i )
-		tl->Append({NewRef{}, rt->FieldType(i)});
+		tl->Append(rt->GetFieldType(i));
 
 	Unref(rt);
 	SetType(std::move(tl));
@@ -4809,7 +4809,7 @@ RecordAssignExpr::RecordAssignExpr(const IntrusivePtr<Expr>& record,
 				int field = lhs->FieldOffset(field_name);
 
 				if ( field >= 0 &&
-				     same_type(lhs->FieldType(field), t->FieldType(j)) )
+				     same_type(lhs->GetFieldType(field).get(), t->GetFieldType(j).get()) )
 					{
 					auto fe_lhs = make_intrusive<FieldExpr>(record, field_name);
 					auto fe_rhs = make_intrusive<FieldExpr>(IntrusivePtr{NewRef{}, init}, field_name);
@@ -5081,7 +5081,7 @@ bool check_and_promote_args(ListExpr* const args, RecordType* types)
 	TypeList* tl = new TypeList();
 
 	for ( int i = 0; i < types->NumFields(); ++i )
-		tl->Append({NewRef{}, types->FieldType(i)});
+		tl->Append(types->GetFieldType(i));
 
 	int rval = check_and_promote_exprs(args, tl);
 	Unref(tl);

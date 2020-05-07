@@ -132,7 +132,7 @@ void EventHandler::NewEvent(const zeek::Args& vl)
 	for ( int i = 0; i < args->NumFields(); i++ )
 		{
 		const char* fname = args->FieldName(i);
-		BroType* ftype = args->FieldType(i);
+		const auto& ftype = args->GetFieldType(i);
 		auto fdefault = args->FieldDefault(i);
 
 		auto rec = make_intrusive<RecordVal>(call_argument);

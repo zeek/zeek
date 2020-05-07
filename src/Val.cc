@@ -2817,12 +2817,13 @@ IntrusivePtr<RecordVal> RecordVal::CoerceTo(const RecordType* t, Val* aggr, bool
 			// Check for allowable optional fields is outside the loop, below.
 			continue;
 
-		if ( ar_t->FieldType(t_i)->Tag() == TYPE_RECORD &&
-		     ! same_type(ar_t->FieldType(t_i), v->Type()) )
+		const auto& ft = ar_t->GetFieldType(t_i);
+
+		if ( ft->Tag() == TYPE_RECORD && ! same_type(ft.get(), v->Type()) )
 			{
 			auto rhs = make_intrusive<ConstExpr>(IntrusivePtr{NewRef{}, v});
 			auto e = make_intrusive<RecordCoerceExpr>(std::move(rhs),
-			        IntrusivePtr{NewRef{}, ar_t->FieldType(t_i)->AsRecordType()});
+			                                          cast_intrusive<RecordType>(ft));
 			ar->Assign(t_i, e->Eval(nullptr));
 			continue;
 			}

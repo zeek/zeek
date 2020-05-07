@@ -403,7 +403,7 @@ struct val_converter {
 					}
 
 				auto item_val = bro_broker::data_to_val(move(a[idx]),
-				                                        rt->FieldType(i));
+				                                        rt->GetFieldType(i).get());
 
 				if ( ! item_val )
 					return nullptr;
@@ -730,7 +730,7 @@ struct type_checker {
 					continue;
 					}
 
-				if ( ! data_type_check(a[idx], rt->FieldType(i)) )
+				if ( ! data_type_check(a[idx], rt->GetFieldType(i).get()) )
 					return false;
 
 				++idx;

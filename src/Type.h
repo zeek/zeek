@@ -552,8 +552,32 @@ public:
 	~RecordType() override;
 
 	bool HasField(const char* field) const override;
-	BroType* FieldType(const char* field) const override;
-	BroType* FieldType(int field) const;
+
+	[[deprecated("Remove in v4.1.  Use GetFieldType() instead (note it doesn't check for invalid names).")]]
+	BroType* FieldType(const char* field) const override
+		{
+		auto offset = FieldOffset(field);
+		return offset >= 0 ? GetFieldType(offset).get() : nullptr;
+		}
+
+	[[deprecated("Remove in v4.1.  Use GetFieldType() instead.")]]
+	BroType* FieldType(int field) const
+		{ return GetFieldType(field).get(); }
+
+	/**
+	 * Looks up a field by name and returns its type.  No check for invalid
+	 * field name is performed.
+	 */
+	const IntrusivePtr<BroType>& GetFieldType(const char* field_name) const
+		{ return GetFieldType(FieldOffset(field_name)); }
+
+	/**
+	 * Looks up a field by its index and returns its type.  No check for
+	 * invalid field offset is performed.
+	 */
+	const IntrusivePtr<BroType>& GetFieldType(int field_index) const
+		{ return (*types)[field_index]->type; }
+
 	IntrusivePtr<Val> FieldDefault(int field) const;
 
 	// A field's offset is its position in the type_decl_list,

@@ -189,7 +189,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 					return nullptr;
 
 				if ( ! (kp = SingleValHash(type_check, kp,
-							   rt->FieldType(i),
+							   rt->GetFieldType(i).get(),
 							   rv_i, optional)) )
 					return nullptr;
 				}
@@ -517,7 +517,7 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 				Attributes* a = rt->FieldDecl(i)->attrs.get();
 				bool optional = (a && a->FindAttr(ATTR_OPTIONAL));
 
-				sz = SingleTypeKeySize(rt->FieldType(i),
+				sz = SingleTypeKeySize(rt->GetFieldType(i).get(),
 						       rv ? rv->Lookup(i) : nullptr,
 						       type_check, sz, optional,
 						       calc_static_size);
@@ -910,7 +910,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 				bool optional = (a && a->FindAttr(ATTR_OPTIONAL));
 
 				kp = RecoverOneVal(k, kp, k_end,
-				                   rt->FieldType(i), &v, optional);
+				                   rt->GetFieldType(i).get(), &v, optional);
 
 				// An earlier call to reporter->InternalError would have called abort() and broken the
 				// call tree that clang-tidy is relying on to get the error described.

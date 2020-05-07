@@ -59,11 +59,12 @@ eval auto res = cast_value(rhs, s.t, error);
 eval if ( error ) run_time_error(error_flag, s.stmt, error);
 eval else frame[s.v1] = BuildVal(res, s.t, s.stmt);
 
-unary-op Is
+unary-expr-op Is
+op-type X
 set-type $1
 set-expr $2
-eval auto rhs = frame[s.v2].ToVal(s.e->Type().get()).get()
-eval frame[s.v1].int_val = can_cast_value_to_type(rhs, s.t)
+eval auto rhs = frame[s.v2].ToVal(s.e->Type().get()).get();
+eval frame[s.v1].int_val = can_cast_value_to_type(rhs, s.t);
 
 ########## Binary Ops ##########
 

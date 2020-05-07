@@ -88,7 +88,7 @@ union AS_ValUnion {
 	double double_val;
 
 	// For these types, we assume we have ownership of the value, so
-	// we delete them prior to reassignment.
+	// they need to be explicitly deleted prior to reassignment.
 	BroString* string_val;
 	IPAddr* addr_val;
 	IPPrefix* subnet_val;
@@ -168,17 +168,14 @@ AS_ValUnion::AS_ValUnion(Val* v, BroType* t, const BroObj* o, bool& error)
 	case TYPE_VECTOR:	vector_val = v->AsVectorVal(); break;
 
 	case TYPE_STRING:
-		delete string_val;
 		string_val = new BroString(*v->AsString());
 		break;
 
 	case TYPE_ADDR:
-		delete addr_val;
 		addr_val = new IPAddr(*vu.addr_val);
 		break;
 
 	case TYPE_SUBNET:
-		delete subnet_val;
 		subnet_val = new IPPrefix(*vu.subnet_val);
 		break;
 

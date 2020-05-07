@@ -11,6 +11,8 @@ export {
 	const enable_hw_timestamping = F &redef;
 	## Toggle whether to use PACKET_FANOUT.
 	const enable_fanout = T &redef;
+	## Toggle defragmentation of IP packets using PACKET_FANOUT_FLAG_DEFRAG.
+	const enable_defrag = F &redef;
 	## Fanout Mode.
 	const fanout_mode = FANOUT_HASH &redef;
 	## Fanout ID.

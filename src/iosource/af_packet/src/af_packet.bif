@@ -12,5 +12,6 @@ enum FanoutMode %{
 const buffer_size: count;
 const enable_hw_timestamping: bool;
 const enable_fanout: bool;
+const enable_defrag: bool;
 const fanout_mode: FanoutMode;
 const fanout_id: count;

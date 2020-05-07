@@ -28,6 +28,7 @@ void AF_PacketSource::Open()
 	uint64_t buffer_size = BifConst::AF_Packet::buffer_size;
 	bool enable_hw_timestamping = BifConst::AF_Packet::enable_hw_timestamping;
 	bool enable_fanout = BifConst::AF_Packet::enable_fanout;
+	bool enable_defrag = BifConst::AF_Packet::enable_defrag;
 
 	socket_fd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
 
@@ -129,7 +130,7 @@ inline bool AF_PacketSource::EnablePromiscMode()
 	return (ret >= 0);
 	}
 
-inline bool AF_PacketSource::ConfigureFanoutGroup(bool enabled)
+inline bool AF_PacketSource::ConfigureFanoutGroup(bool enabled, bool defrag)
 	{
 	if ( enabled )
 		{
@@ -137,7 +138,7 @@ inline bool AF_PacketSource::ConfigureFanoutGroup(bool enabled)
 		int ret;
 
 		fanout_id = BifConst::AF_Packet::fanout_id;
-		fanout_arg = ((fanout_id & 0xffff) | (GetFanoutMode() << 16));
+		fanout_arg = ((fanout_id & 0xffff) | (GetFanoutMode(defrag) << 16));
 
 		ret = setsockopt(socket_fd, SOL_PACKET, PACKET_FANOUT,
 			&fanout_arg, sizeof(fanout_arg));
@@ -176,15 +177,22 @@ inline bool AF_PacketSource::ConfigureHWTimestamping(bool enabled)
 	return true;
 	}
 
-inline uint32_t AF_PacketSource::GetFanoutMode()
+inline uint32_t AF_PacketSource::GetFanoutMode(bool defrag)
 	{
+	uint32_t fanout_mode;
+
 	switch ( BifConst::AF_Packet::fanout_mode->AsEnum() ) {
-		case BifEnum::AF_Packet::FANOUT_CPU: return PACKET_FANOUT_CPU;
+		case BifEnum::AF_Packet::FANOUT_CPU: fanout_mode = PACKET_FANOUT_CPU;
 	#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,14,0)
-		case BifEnum::AF_Packet::FANOUT_QM: return PACKET_FANOUT_QM;
+		case BifEnum::AF_Packet::FANOUT_QM: fanout_mode = PACKET_FANOUT_QM;
 	#endif
-		default: return PACKET_FANOUT_HASH;
+		default: fanout_mode = PACKET_FANOUT_HASH;
 	}
+
+	if ( defrag )
+		fanout_mode |= PACKET_FANOUT_FLAG_DEFRAG;
+
+	return fanout_mode;
 	}
 
 void AF_PacketSource::Close()

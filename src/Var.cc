@@ -162,7 +162,7 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 	if ( t && t->IsSet() )
 		{ // Check for set with explicit elements.
 		SetType* st = t->AsTableType()->AsSetType();
-		ListExpr* elements = st->SetElements();
+		const auto& elements = st->Elements();
 
 		if ( elements )
 			{
@@ -172,7 +172,7 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 				return;
 				}
 
-			init = {NewRef{}, elements};
+			init = elements;
 			}
 		}
 

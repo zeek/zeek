@@ -429,7 +429,11 @@ public:
 
 	IntrusivePtr<BroType> ShallowClone() override;
 
+	[[deprecated("Remove in v4.1.  Use Elements() isntead.")]]
 	ListExpr* SetElements() const	{ return elements.get(); }
+
+	const IntrusivePtr<ListExpr>& Elements() const
+		{ return elements; }
 
 protected:
 	IntrusivePtr<ListExpr> elements;

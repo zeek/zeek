@@ -374,7 +374,10 @@ function build_binary_op()
 			      (j ? "s.c" : "frame[s.v2]") \
 			      "." op2_accessor ";\n\t\t")
 
-			assign = "frame[s.v3]" accessors[op_type_rep]
+			# See comment below for the role of op3.
+			op3 = (j && k) ? "v3" : "v2"
+
+			assign = "frame[s." op3 "]" accessors[op_type_rep]
 
 			eval_copy = a1 a2 eval[""]
 			gsub(/\$\$/, assign, eval_copy)
@@ -425,7 +428,10 @@ function expand_eval(e, is_expr_op, otype1, otype2, is_var1, is_var2)
 
 	if ( ary_op == 2 )
 		{
-		rep2 = "(" (is_var2 ? "frame[s.v3]" : "s.c") raccessor2 ")"
+		# If one of the operands is a constant, then we use
+		# v2 and not v3 to hold the other (non-constant) operand.
+		op3 = (is_var1 && is_var2) ? "v3" : "v2"
+		rep2 = "(" (is_var2 ? "frame[s." op3 "]" : "s.c") raccessor2 ")"
 		gsub(/\$2/, rep2, e_copy)
 		gsub(/\$2/, rep2, pre_copy)
 		}
@@ -535,17 +541,21 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 			### varies for constant vectors, but we could
 			### consider compressing them down in the interest
 			### of smaller code size.
+
+			# See comment above for the role of op3.
+			op3 = (is_var1 && is_var2) ? "v3" : "v2"
+
 			print ("\tcase " full_op vec ":\n\t\tvec_exec("  \
 				full_op vec \
 				",\n\t\t\tframe[s.v1].raw_vector_val,\n\t\t\t" \
 				(is_var1 ? "frame[s.v2]" : "s.c") \
 				".raw_vector_val, " \
-				(is_var2 ? "frame[s.v3]" : "s.c") \
+				(is_var2 ? "frame[s." op3 "]" : "s.c") \
 				".raw_vector_val);\n\t\tbreak;\n") >ops_eval_f
 
 			oe_copy = orig_eval
 			gsub(/\$1/, "(*v2)[i]" raccessor1, oe_copy)
-			gsub(/\$2/, "(*v3)[i]" raccessor2, oe_copy)
+			gsub(/\$2/, "(*" op3 ")[i]" raccessor2, oe_copy)
 
 			# Check for whether "$$" is meaningful, which
 			# occurs for types with non-atomic frame values,

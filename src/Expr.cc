@@ -2393,8 +2393,7 @@ IntrusivePtr<Val> AssignExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) 
 		if ( aggr->Type()->Tag() != TYPE_TABLE )
 			Internal("bad aggregate in AssignExpr::InitVal");
 
-		 // TODO: implement safer IntrusivePtr casts
-		IntrusivePtr<TableVal> tv{NewRef{}, aggr->AsTableVal()};
+		auto tv = cast_intrusive<TableVal>(std::move(aggr));
 		const TableType* tt = tv->Type()->AsTableType();
 		const BroType* yt = tv->Type()->YieldType();
 

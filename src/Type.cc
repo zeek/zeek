@@ -1892,12 +1892,12 @@ IntrusivePtr<BroType> merge_types(const BroType* t1, const BroType* t2)
 
 		const FuncType* ft1 = (const FuncType*) t1;
 		const FuncType* ft2 = (const FuncType*) t1;
-		auto args = merge_types(ft1->Args(), ft2->Args());
+		auto args = cast_intrusive<RecordType>(merge_types(ft1->Args(), ft2->Args()));
 		auto yield = t1->YieldType() ?
 			merge_types(t1->YieldType(), t2->YieldType()) : nullptr;
 
-		return make_intrusive<FuncType>(IntrusivePtr{AdoptRef{}, args.release()->AsRecordType()},
-		                                std::move(yield), ft1->Flavor());
+		return make_intrusive<FuncType>(std::move(args), std::move(yield),
+		                                ft1->Flavor());
 		}
 
 	case TYPE_RECORD:
@@ -2125,7 +2125,8 @@ IntrusivePtr<BroType> init_type(Expr* init)
 		t = std::move(tl);
 		}
 
-	return make_intrusive<SetType>(IntrusivePtr{AdoptRef{}, t.release()->AsTypeList()}, nullptr);
+	return make_intrusive<SetType>(cast_intrusive<TypeList>(std::move(t)),
+	                               nullptr);
 	}
 
 bool is_atomic_type(const BroType* t)

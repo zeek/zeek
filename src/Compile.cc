@@ -59,9 +59,14 @@ static void run_time_error(bool& error_flag, const BroObj* o, const char* msg)
 	error_flag = true;
 	}
 
-// A bit of this mirrors BroValUnion, but it captures low-level
-// representation whereas we aim to keep Val structure for
-// more complex Val's.
+// A bit of this mirrors BroValUnion, but BroValUnion captures low-level
+// representation whereas we aim to keep Val structure for more complex
+// Val's.
+//
+// Ideally we'd use IntrusivePtr's for memory management, but we can't
+// given we have a union and thus on destruction C++ doesn't know which
+// member flavor to destruct.  See the comment below re shadowing in
+// the AbstractMachine frame.
 union AS_ValUnion {
 	// Constructor for hand-populating the values.
 	AS_ValUnion() {}
@@ -82,17 +87,16 @@ union AS_ValUnion {
 	// distinct, we can readily recover them given type information.
 	double double_val;
 
-	// For this we assume we have ownership of the value, so
-	// it gets delete'd prior to reassignment.
+	// For these types, we assume we have ownership of the value, so
+	// we delete them prior to reassignment.
 	BroString* string_val;
-
 	IPAddr* addr_val;
 	IPPrefix* subnet_val;
+	vector<BroValUnion>* raw_vector_val;
 
-	// A note re memory management.  We do *not* ref these upon
-	// assigning to them.  If we use them in a context where ownership
-	// will be taken by some other entity, we ref them at that point.
-	// We also do not unref on reassignment/destruction.
+	// The types are all variants of Val (or BroType).  For memory
+	// management, in the AM frame we shadow these with IntrusivePtr's.
+	// Thus we do not unref these on reassignment.
 	Val* any_val;
 	EnumVal* enum_val;
 	BroFile* file_val;
@@ -105,16 +109,19 @@ union AS_ValUnion {
 	TableVal* table_val;
 	BroType* type_val;
 	VectorVal* vector_val;
-	vector<BroValUnion>* raw_vector_val;
 
-	// Used for the compiler to hold opaque items.
+	// Used for the compiler to hold opaque items.  Memory management
+	// is explicit in the operations accessing it.
 	val_vec* vvec;
 
-	// Used for managing "for" loops.
+	// Used for managing "for" loops.  Explicit memory management.
 	IterInfo* iter_info;
 
 	// Used for loading/spilling globals.
 	ID* id_val;
+
+	// Only used when we want to clear any pointer via OP_CLEAR_V.
+	void* void_val;
 };
 
 AS_ValUnion::AS_ValUnion(Val* v, BroType* t, const BroObj* o, bool& error)
@@ -160,12 +167,18 @@ AS_ValUnion::AS_ValUnion(Val* v, BroType* t, const BroObj* o, bool& error)
 	case TYPE_TABLE:	table_val = v->AsTableVal(); break;
 	case TYPE_VECTOR:	vector_val = v->AsVectorVal(); break;
 
-	// ### Need to think about memory management strategy and
-	// whether we require the new BroString here.
-	case TYPE_STRING:	string_val = new BroString(*v->AsString());
+	case TYPE_STRING:
+		delete string_val;
+		string_val = new BroString(*v->AsString());
+		break;
+
 	case TYPE_ADDR:
+		delete addr_val;
 		addr_val = new IPAddr(*vu.addr_val);
+		break;
+
 	case TYPE_SUBNET:
+		delete subnet_val;
 		subnet_val = new IPPrefix(*vu.subnet_val);
 		break;
 
@@ -199,7 +212,6 @@ IntrusivePtr<Val> AS_ValUnion::ToVal(BroType* t) const
 	case TYPE_ADDR:		v = new AddrVal(*addr_val); break;
 	case TYPE_SUBNET:	v = new SubNetVal(*subnet_val); break;
 
-	// ### memory management
 	case TYPE_ANY:		return {NewRef{}, any_val};
 
 	case TYPE_TYPE:		v = new Val(type_val, true); break;
@@ -665,7 +677,19 @@ void AbstractMachine::Init()
 		// Don't add locals that were already added because they're
 		// parameters.
 		if ( ! HasFrameSlot(l) )
-			(void) AddToFrame(l);
+			{
+			auto slot = AddToFrame(l);
+
+			// Look for locals with values of types for which
+			// we do explicit memory management on (re)assignment.
+			auto t = l->Type()->Tag();
+			if ( t == TYPE_ADDR || t == TYPE_SUBNET || 
+			     t == TYPE_STRING )
+				{
+				managed_slots.push_back(slot);
+				managed_slot_types.push_back(t);
+				}
+			}
 		}
 	}
 
@@ -711,11 +735,23 @@ IntrusivePtr<Val> AbstractMachine::DoExec(Frame* f, int start_pc,
 	bool error_flag = false;
 	int end_pc = stmts.size();
 
+	// Memory management: all of the BroObj's that we have used
+	// in interior values.  By managing them here rather than
+	// per-frame-slot, we don't need to add frame state about
+	// whether an object should be delete'd or not on reassignment.
+	std::vector<IntrusivePtr<BroObj>> vals;
+
+#define BuildVal(v, t, s) (vals.push_back(v), AS_ValUnion(v.get(), t, s, error_flag))
+
 	// Return value, or nil if none.
 	const AS_ValUnion* ret_u;
 
 	// Type of the return value.  Only needed if ret_u is set.
 	BroType* ret_type;
+
+	// Clear slots for which we do explicit memory management.
+	for ( auto s : managed_slots )
+		frame[s].void_val = nullptr;
 
 	while ( pc < end_pc && ! error_flag ) {
 		auto& s = stmts[pc];
@@ -730,6 +766,17 @@ IntrusivePtr<Val> AbstractMachine::DoExec(Frame* f, int start_pc,
 		++pc;
 		}
 
+	// Free those slots for which we do explicit memory management.
+	for ( auto i = 0; i < managed_slots.size(); ++i )
+		switch ( managed_slot_types[i] ) {
+		case TYPE_ADDR:		delete frame[i].addr_val; break;
+		case TYPE_SUBNET:	delete frame[i].subnet_val; break;
+		case TYPE_STRING:	delete frame[i].string_val; break;
+
+		default:
+			reporter->InternalError("bad type tag for managed slots");
+		}
+
 	delete [] frame;
 
 	if ( ret_u && ! error_flag )
@@ -742,15 +789,27 @@ IntrusivePtr<Val> AbstractMachine::DoExec(Frame* f, int start_pc,
 
 const CompiledStmt AbstractMachine::InterpretExpr(const Expr* e)
 	{
-	// ### need to flush any variables used in e!
+	FlushVars(e);
 	return AddStmt(AbstractStmt(OP_INTERPRET_EXPR_X, e));
 	}
 
 const CompiledStmt AbstractMachine::InterpretExpr(const NameExpr* n,
 							const Expr* e)
 	{
-	// ### need to flush any variables used in e!
+	FlushVars(e);
 	return AddStmt(AbstractStmt(OP_INTERPRET_EXPR_V, FrameSlot(n), e));
+	}
+
+void AbstractMachine::FlushVars(const Expr* e)
+	{
+	ProfileFunc pf;
+	e->Traverse(&pf);
+
+	for ( auto g : pf.globals )
+		StoreGlobal(g);
+
+	for ( auto l : pf.locals )
+		StoreLocal(l);
 	}
 
 const CompiledStmt AbstractMachine::ArithCoerce(const NameExpr* n,
@@ -1381,7 +1440,7 @@ const Stmt* AbstractMachine::LastStmt() const
 		return body;
 	}
 
-void AbstractMachine::LoadOrStoreParam(ID* id, bool is_load)
+void AbstractMachine::LoadOrStoreLocal(ID* id, bool is_load)
 	{
 	auto op = is_load ? OP_LOAD_VAL_VV : OP_STORE_VAL_VV;
 	int slot = is_load ? AddToFrame(id) : FrameSlot(id);

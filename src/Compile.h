@@ -262,13 +262,15 @@ protected:
 	// Returns the last (interpreter) statement in the body.
 	const Stmt* LastStmt() const;
 
-	void LoadParam(ID* id)		{ LoadOrStoreParam(id, true); }
+	void FlushVars(const Expr* e);
+
+	void LoadParam(ID* id)		{ LoadOrStoreLocal(id, true); }
 	void LoadGlobal(ID* id)		{ LoadOrStoreGlobal(id, true); }
 
-	void StoreParam(ID* id)		{ LoadOrStoreParam(id, false); }
+	void StoreLocal(ID* id)		{ LoadOrStoreLocal(id, false); }
 	void StoreGlobal(ID* id)	{ LoadOrStoreGlobal(id, false); }
 
-	void LoadOrStoreParam(ID* id, bool is_load);
+	void LoadOrStoreLocal(ID* id, bool is_load);
 	void LoadOrStoreGlobal(ID* id, bool is_load);
 
 	int AddToFrame(const ID*);
@@ -299,6 +301,11 @@ protected:
 
 	// Inverse mapping, used for dumping statements.
 	frame_map frame_denizens;
+
+	// Which frame slots need clearing/deleting on entry/exit,
+	// and their corresponding type tags.
+	std::vector<int> managed_slots;
+	std::vector<TypeTag> managed_slot_types;
 
 	int frame_size;
 	int register_slot;

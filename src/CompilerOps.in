@@ -7,14 +7,18 @@ unary-expr-op Assign
 eval $1
 
 unary-expr-op Clone
+op-type X
 set-type $1
 set-expr $2
-eval AS_ValUnion($1.ToVal(s.e->Type().get())->Clone().release(), s.t, s.stmt, error_flag)
+eval auto v = frame[s.v2].ToVal(s.e->Type().get())->Clone();
+eval frame[s.v1] = BuildVal(v, s.t, s.stmt);
 
 unary-expr-op Size
+op-type X
 set-type $1
 set-expr $2
-eval AS_ValUnion($1.ToVal(s.e->Type().get())->SizeVal().release(), s.t, s.stmt, error_flag)
+eval auto v = frame[s.v2].ToVal(s.e->Type().get())->SizeVal();
+eval frame[s.v1] = BuildVal(v, s.t, s.stmt);
 
 unary-expr-op Not
 op-type I
@@ -35,8 +39,8 @@ vector
 eval -$1
 
 unary-op AppendTo
-eval auto vv = frame[s.v1].vector_val;
-eval vv->Assign(vv->Size(), $1.ToVal(s.t));
+eval auto vv = frame[s.v1].vector_val
+eval vv->Assign(vv->Size(), $1.ToVal(s.t))
 
 unary-expr-op Flatten
 op-type X
@@ -51,9 +55,9 @@ set-type $1
 set-expr $2
 eval const char* error;
 eval auto rhs = frame[s.v2].ToVal(s.e->Type().get()).get();
-eval auto res = cast_value(rhs, s.t, error).get();
+eval auto res = cast_value(rhs, s.t, error);
 eval if ( error ) run_time_error(error_flag, s.stmt, error);
-eval else frame[s.v1] = AS_ValUnion(res, s.t, s.stmt, error_flag);
+eval else frame[s.v1] = BuildVal(res, s.t, s.stmt);
 
 unary-op Is
 set-type $1
@@ -184,15 +188,8 @@ eval_A $$ = ! (*$1 < *$2) && *$1 != *$2
 
 expr-op Field
 type R
-eval auto v = frame[s.v2].record_val->Lookup(s.v3)
-eval if ( ! v ) { /* Check for &default */
-eval	auto rt = s.t->AsRecordType()
-eval	auto td = rt->FieldDecl(s.v3)
-eval	const Attr* def_attr = td ? td->FindAttr(ATTR_DEFAULT) : 0
-eval	if ( def_attr ) v = def_attr->AttrExpr()->Eval(nullptr).release()
-eval	else { run_time_error(error_flag, s.stmt, "field value missing"); break; }
-eval	}
-eval frame[s.v1] = AS_ValUnion(v, s.t, s.stmt, error_flag)
+eval auto v = frame[s.v2].record_val->LookupWithDefault(s.v3)
+eval frame[s.v1] = BuildVal(v, s.t, s.stmt)
 
 expr-op Has_Field
 type Ri
@@ -294,12 +291,12 @@ eval if ( ! frame[s.v2].int_val ) frame[s.v1] = s.c
 op IndexVecBoolSelect
 type VVV
 set-type $1
-### track memory
 eval if ( frame[s.v2].vector_val->Size() != frame[s.v3].vector_val->Size() ) {
 eval	run_time_error(error_flag, s.stmt, "size mismatch, boolean index and vector")
 eval	break; }
 eval auto vt = s.t->AsVectorType()
 eval auto v = vector_bool_select(vt, frame[s.v2].vector_val, frame[s.v3].vector_val)
+eval vals.push_back(v)
 eval frame[s.v1].vector_val = v->AsVectorVal()
 
 op IndexVecIntSelect
@@ -307,6 +304,7 @@ type VVV
 set-type $1
 eval auto vt = s.t->AsVectorType()
 eval auto v = vector_int_select(vt, frame[s.v2].vector_val, frame[s.v3].vector_val)
+eval vals.push_back(v)
 eval frame[s.v1].vector_val = v->AsVectorVal()
 
 op Index
@@ -316,55 +314,55 @@ custom-method return CompileIndex(n1, n2, l);
 internal-op Index-Vec
 type VVL
 eval auto v = frame[s.v2].vector_val->Lookup(frame[s.v3].list_val)
-eval frame[s.v1] = AS_ValUnion(v, s.t, s.stmt, error_flag)
+eval IntrusivePtr<Val> v_p = {NewRef{}, v}
+eval frame[s.v1] = BuildVal(v_p, s.t, s.stmt)
 
 internal-op Index-Vec-Slice
 type VVL
-### memory
 eval auto vt = s.t->AsVectorType()
 eval auto v = vector_index(vt, frame[s.v2].vector_val, frame[s.v3].list_val)
-eval frame[s.v1] = AS_ValUnion(v.get(), s.t, s.stmt, error_flag)
+eval frame[s.v1] = BuildVal(v, s.t, s.stmt)
 
 internal-op Table-Index
 type VVV
-### memory
 eval auto v2 = frame[s.v3].list_val
 eval auto v = frame[s.v2].table_val->Lookup(v2)
-eval frame[s.v1] = AS_ValUnion(v.get(), s.t, s.stmt, error_flag)
+eval frame[s.v1] = BuildVal(v, s.t, s.stmt)
 
 # This version is for a variable v3.
 internal-op Index-String
 type VVV
-### memory
 eval auto str = frame[s.v2].string_val
 eval auto len = str->Len()
 eval auto idx = frame[s.v3].int_val
 eval if ( idx < 0 ) idx += len
+eval delete frame[s.v1].string_val
 eval frame[s.v1].string_val = str->GetSubstring(idx, 1)
 
 # This version is for a constant v3.
 internal-op Index-StringC
 type VVV
-### memory
 eval auto str = frame[s.v2].string_val
 eval auto len = str->Len()
 eval auto idx = s.v3
 eval if ( idx < 0 ) idx += len
+eval delete frame[s.v1].string_val
 eval frame[s.v1].string_val = str->GetSubstring(idx, 1)
 
 internal-op Index-String-Slice
 type VVL
-### memory
 eval auto str = frame[s.v2].string_val
 eval auto lv = frame[s.v3].list_val
+eval delete frame[s.v1].string_val
 eval frame[s.v1].string_val = index_string_slice(str, lv)
 
 op AnyIndex
 type VVi
 set-type $1
-### memory
 eval auto lv = frame[s.v2].any_val->val.val_list_val
-eval frame[s.v1] = AS_ValUnion((*lv)[s.v3], s.t, s.stmt, error_flag)
+eval auto elem = (*lv)[s.v3]
+eval IntrusivePtr elem_p = {NewRef{}, elem}
+eval frame[s.v1] = BuildVal(elem_p, s.t, s.stmt)
 
 ########## Function Calls ##########
 
@@ -449,33 +447,36 @@ direct-unary-op Record-Coerce RecordCoerce
 
 internal-op Record-Coerce
 type VVV
-### memory
 eval auto rt = s.t->AsRecordType()
 eval auto v = frame[s.v2].record_val
 eval auto map = s.int_ptr
 eval auto map_size = s.v3
-eval frame[s.v1].record_val = coerce_to_record(rt, v, map, map_size)->AsRecordVal()
+eval auto to_r = coerce_to_record(rt, v, map, map_size)
+eval vals.push_back(to_r)
+eval frame[s.v1].record_val = to_r->AsRecordVal()
 
 direct-unary-op Table-Coerce TableCoerce
 
 internal-op Table-Coerce
 type VV
-### memory
 eval auto tv = frame[s.v2].table_val
 eval if ( tv->Size() > 0 ) { run_time_error(error_flag, s.stmt, "coercion of non-empty table/set"); break; }
 eval IntrusivePtr<TableType> tt = {NewRef{}, s.t->AsTableType()}
 eval IntrusivePtr<Attributes> attrs = {NewRef{}, tv->Attrs()}
-eval frame[s.v1].table_val = new TableVal(tt, attrs)
+eval auto t = make_intrusive<TableVal>(tt, attrs)
+eval vals.push_back(t)
+eval frame[s.v1].table_val = t.get()
 
 direct-unary-op Vector-Coerce VectorCoerce
 
 internal-op Vector-Coerce
 type VV
-### memory
 eval auto vv = frame[s.v2].vector_val
 eval if ( vv->Size() > 0 ) { run_time_error(error_flag, s.stmt, "coercion of non-empty vector"); break; }
 eval auto t = s.t->Ref()->AsVectorType();
-eval frame[s.v1].vector_val = new VectorVal(t)
+eval auto vv_p = make_intrusive<VectorVal>(t)
+eval vals.push_back(vv_p)
+eval frame[s.v1].vector_val = vv_p.get()
 
 ########## Aggregate Assignments ##########
 
@@ -593,7 +594,10 @@ eval TableEntryVal* current_tev = ii->loop_vals->NextEntry(k, ii->c)
 eval if ( ! current_tev ) { pc = s.v2; break; }
 eval auto ind_lv = ii->tv->RecoverIndex(k);
 eval delete k
-eval for ( int i = 0; i < ind_lv->Length(); i++ ) frame[ii->loop_vars[i]] = AS_ValUnion(ind_lv->Index(i)->Ref(), ii->loop_var_types[i], s.stmt, error_flag)
+eval for ( int i = 0; i < ind_lv->Length(); i++ ) {
+eval	IntrusivePtr<Val> ind_lv_p = {NewRef{}, ind_lv->Index(i)}
+eval	frame[ii->loop_vars[i]] = BuildVal(ind_lv_p, ii->loop_var_types[i], s.stmt)
+eval }
 
 internal-op Next-Table-Iter-Val-Var
 # v1 = iteration info
@@ -606,8 +610,12 @@ eval TableEntryVal* current_tev = ii->loop_vals->NextEntry(k, ii->c)
 eval if ( ! current_tev ) { pc = s.v3; break; }
 eval auto ind_lv = ii->tv->RecoverIndex(k);
 eval delete k
-eval frame[s.v2] = AS_ValUnion(current_tev->Value()->Ref(), ii->value_var_type, s.stmt, error_flag)
-eval for ( int i = 0; i < ind_lv->Length(); i++ ) frame[ii->loop_vars[i]] = AS_ValUnion(ind_lv->Index(i)->Ref(), ii->loop_var_types[i], s.stmt, error_flag)
+eval IntrusivePtr<Val> tev_p = {NewRef{}, current_tev->Value()}
+eval frame[s.v2] = BuildVal(tev_p, ii->value_var_type, s.stmt)
+eval for ( int i = 0; i < ind_lv->Length(); i++ ) {
+eval	IntrusivePtr<Val> ind_lv_p = {NewRef{}, ind_lv->Index(i)}
+eval	frame[ii->loop_vars[i]] = BuildVal(ind_lv_p, ii->loop_var_types[i], s.stmt)
+eval }
 
 internal-op Init-Vector-Loop
 type VV
@@ -643,7 +651,7 @@ eval auto sval = ii->s
 eval if ( ii->iter >= ii->n ) { pc = s.v3; break; }
 eval auto bytes = (const char*) sval->Bytes() + ii->iter
 eval auto sv = new StringVal(1, bytes)
-### memory
+eval delete frame[s.v2].string_val
 eval frame[s.v2].string_val = new BroString(*sv->AsString())
 eval delete sv
 eval ++ii->iter
@@ -750,11 +758,13 @@ internal-op Load-Val
 type VV
 eval auto v = f->NthElement(s.v2)
 eval if ( ! v ) reporter->InternalError("failure to load frame element");
-eval frame[s.v1] = AS_ValUnion(v, s.t, v, error_flag)
+eval IntrusivePtr<Val> v_p = {NewRef{}, v}
+eval frame[s.v1] = BuildVal(v_p, s.t, v)
 
 internal-op Load-Global
 type VC
-eval frame[s.v1] = AS_ValUnion(s.c.id_val->ID_Val(), s.t, s.c.id_val, error_flag)
+eval IntrusivePtr<Val> v = {NewRef{}, s.c.id_val->ID_Val()}
+eval frame[s.v1] = BuildVal(v, s.t, s.c.id_val)
 
 internal-op Store-Val
 type VV
@@ -763,8 +773,7 @@ eval f->SetElement(s.v2, v.release())
 
 internal-op Store-Global
 type VC
-### memory
-eval IntrusivePtr<Val> v = frame[s.v1].ToVal(s.t)
+eval auto v = frame[s.v1].ToVal(s.t)
 eval s.c.id_val->SetVal(v)
 
 # Initializes a new value vector.  We now do this dynamically, but at same
@@ -804,4 +813,5 @@ eval (void) s.e->Eval(f)
 # Interprets the statement's expression and assigns the result to v1.
 internal-op Interpret-Expr
 type V
-eval frame[s.v1] = AS_ValUnion(s.e->Eval(f).get(), s.t, s.e, error_flag)
+eval auto v = s.e->Eval(f)
+eval frame[s.v1] = BuildVal(v, s.t, s.e)

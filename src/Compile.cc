@@ -815,6 +815,16 @@ const CompiledStmt AbstractMachine::InterpretCall(const CallExpr* c,
 	{
 	SyncGlobals(c);
 
+	// Look for any locals that are used in the argument list.
+	// We do this separately form FlushVars because we have to
+	// sync *all* the globals, whereas it only sync's those
+	// that are explicitly present in the expression.
+	ProfileFunc call_pf;
+	c->Traverse(&call_pf);
+
+	for ( auto l : call_pf.locals )
+		StoreLocal(l);
+
 	auto a_s = n ? AbstractStmt(OP_INTERPRET_EXPR_V, FrameSlot(n), c) :
 			AbstractStmt(OP_INTERPRET_EXPR_X, c);
 

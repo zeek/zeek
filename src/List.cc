@@ -117,7 +117,7 @@ TEST_CASE("plists")
 
 TEST_CASE("unordered list operation")
 	{
-	List<int, LIST_UNORDERED> list({1, 2, 3, 4});
+	List<int, ListOrder::UNORDERED> list({1, 2, 3, 4});
 	CHECK(list.size() == 4);
 
 	// An unordered list doesn't maintain the ordering of the elements when

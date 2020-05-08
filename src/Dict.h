@@ -1,9 +1,4 @@
 // See the file "COPYING" in the main distribution directory for copyright.
-#ifdef USE_OPEN_DICT
-
-#include "OpenDict.h"
-
-#else//USE_OPEN_DICT
 
 #pragma once
 
@@ -310,14 +305,14 @@ private:
 
 	//Iteration
 	IterCookie* InitForIterationNonConst();
-	void* NextEntryNonConst(zeek::detail::HashKey*& h, IterCookie*& cookie, bool return_hash);
+	void* NextEntryNonConst(HashKey*& h, IterCookie*& cookie, bool return_hash);
 	void StopIterationNonConst(IterCookie* cookie);
 
 	//Lookup
-	int LinearLookupIndex(const void* key, int key_size, zeek::detail::hash_t hash) const;
-	int LookupIndex(const void* key, int key_size, zeek::detail::hash_t hash, int* insert_position = nullptr,
+	int LinearLookupIndex(const void* key, int key_size, hash_t hash) const;
+	int LookupIndex(const void* key, int key_size, hash_t hash, int* insert_position = nullptr,
 		int* insert_distance = nullptr);
-	int LookupIndex(const void* key, int key_size, zeek::detail::hash_t hash, int begin, int end,
+	int LookupIndex(const void* key, int key_size, hash_t hash, int begin, int end,
 		int* insert_position = nullptr, int* insert_distance  = nullptr);
 
 	/// Insert entry, Adjust cookies when necessary.
@@ -424,5 +419,3 @@ public:
 
 using Dictionary [[deprecated("Remove in v4.1. Use zeek::Dictionary instead.")]] = zeek::Dictionary;
 template<typename T> using PDict [[deprecated("Remove in v4.1. Use zeek::PDict instead.")]] = zeek::PDict<T>;
-
-#endif//USE_OPEN_DICT

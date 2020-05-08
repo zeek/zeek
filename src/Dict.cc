@@ -1,10 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifdef USE_OPEN_DICT
-
-#include "OpenDict.cc"
-
-#else//USE_OPEN_DICT
+#include "Dict.h"
 
 #include "zeek-config.h"
 
@@ -1136,7 +1132,3 @@ void Dictionary::StopIteration(IterCookie* cookie) const
 	}
 
 } // namespace zeek
-
-TEST_SUITE_END();
-
-#endif//USE_OPEN_DICT

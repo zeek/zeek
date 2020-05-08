@@ -732,7 +732,6 @@ op AddStmt
 type VO
 eval auto vvec = frame[s.v2].vvec
 eval auto lval = ValVecToListVal(vvec, vvec->size())
-eval delete vvec
 eval frame[s.v1].table_val->Assign(lval, nullptr)
 eval delete lval
 method-pre int reg = v->n; delete v
@@ -742,7 +741,6 @@ op DelTable
 type VO
 eval auto vvec = frame[s.v2].vvec
 eval auto lval = ValVecToListVal(vvec, vvec->size())
-eval delete vvec
 eval frame[s.v1].table_val->Delete(lval)
 eval delete lval
 method-pre int reg = v->n; delete v

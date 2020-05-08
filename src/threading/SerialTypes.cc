@@ -154,7 +154,7 @@ bool Value::IsCompatibleType(BroType* t, bool atomic_only)
 		if ( atomic_only )
 			return false;
 
-		return IsCompatibleType(t->AsVectorType()->YieldType(), true);
+		return IsCompatibleType(t->AsVectorType()->Yield().get(), true);
 		}
 
 	default:

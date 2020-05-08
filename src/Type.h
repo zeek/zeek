@@ -171,9 +171,14 @@ public:
 	// Returns the type yielded by this type.  For example, if
 	// this type is a table[string] of port, then returns the "port"
 	// type.  Returns nil if this is not an index type.
-	virtual BroType* YieldType();
+	virtual const IntrusivePtr<BroType>& Yield() const;
+
+	[[deprecated("Remove in v4.1.  Use Yield() instead.")]]
+	virtual BroType* YieldType()
+		{ return Yield().get(); }
+	[[deprecated("Remove in v4.1.  Use Yield() instead.")]]
 	virtual const BroType* YieldType() const
-		{ return ((BroType*) this)->YieldType(); }
+		{ return Yield().get(); }
 
 	// Returns true if this type is a record and contains the
 	// given field, false otherwise.
@@ -307,12 +312,12 @@ public:
 
 	bool IsSet() const
 		{
-		return tag == TYPE_TABLE && (YieldType() == nullptr);
+		return tag == TYPE_TABLE && ! Yield();
 		}
 
 	bool IsTable() const
 		{
-		return tag == TYPE_TABLE && (YieldType() != nullptr);
+		return tag == TYPE_TABLE && Yield();
 		}
 
 	BroType* Ref()		{ ::Ref(this); return this; }
@@ -398,8 +403,8 @@ public:
 	const std::vector<IntrusivePtr<BroType>>& IndexTypes() const
 		{ return indices->Types(); }
 
-	BroType* YieldType() override;
-	const BroType* YieldType() const override;
+	const IntrusivePtr<BroType>& Yield() const override
+		{ return yield_type; }
 
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
@@ -469,8 +474,10 @@ public:
 	~FuncType() override;
 
 	RecordType* Args() const	{ return args.get(); }
-	BroType* YieldType() override;
-	const BroType* YieldType() const override;
+
+	const IntrusivePtr<BroType>& Yield() const override
+		{ return yield; }
+
 	void SetYieldType(IntrusivePtr<BroType> arg_yield)	{ yield = std::move(arg_yield); }
 	function_flavor Flavor() const { return flavor; }
 	std::string FlavorString() const;
@@ -646,7 +653,8 @@ public:
 	IntrusivePtr<BroType> ShallowClone() override { return make_intrusive<FileType>(yield); }
 	~FileType() override;
 
-	BroType* YieldType() override;
+	const IntrusivePtr<BroType>& Yield() const override
+		{ return yield; }
 
 	void Describe(ODesc* d) const override;
 
@@ -729,8 +737,8 @@ public:
 	explicit VectorType(IntrusivePtr<BroType> t);
 	IntrusivePtr<BroType> ShallowClone() override;
 	~VectorType() override;
-	BroType* YieldType() override;
-	const BroType* YieldType() const override;
+
+	const IntrusivePtr<BroType>& Yield() const override;
 
 	int MatchesIndex(ListExpr* index) const override;
 

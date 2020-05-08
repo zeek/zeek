@@ -1148,18 +1148,17 @@ ForStmt::ForStmt(id_list* arg_loop_vars,
 
 	if ( e->Type()->IsTable() )
 		{
-		BroType* yield_type = e->Type()->AsTableType()->YieldType();
+		const auto& yield_type = e->Type()->AsTableType()->Yield();
 
 		// Verify value_vars type if its already been defined
 		if ( value_var->Type() )
 			{
-			if ( ! same_type(value_var->Type(), yield_type) )
-				value_var->Type()->Error("type clash in iteration", yield_type);
+			if ( ! same_type(value_var->Type(), yield_type.get()) )
+				value_var->Type()->Error("type clash in iteration", yield_type.get());
 			}
 		else
 			{
-			add_local(value_var, {NewRef{}, yield_type}, INIT_NONE,
-			                 nullptr, nullptr, VAR_REGULAR);
+			add_local(value_var, yield_type, INIT_NONE, nullptr, nullptr, VAR_REGULAR);
 			}
 		}
 	else
@@ -1424,7 +1423,7 @@ ReturnStmt::ReturnStmt(IntrusivePtr<Expr> arg_e)
 		}
 
 	FuncType* ft = s->ScopeID()->Type()->AsFuncType();
-	BroType* yt = ft->YieldType();
+	const auto& yt = ft->Yield();
 
 	if ( s->ScopeID()->DoInferReturnType() )
 		{
@@ -1449,7 +1448,7 @@ ReturnStmt::ReturnStmt(IntrusivePtr<Expr> arg_e)
 
 	else
 		{
-		auto promoted_e = check_and_promote_expr(e.get(), yt);
+		auto promoted_e = check_and_promote_expr(e.get(), yt.get());
 
 		if ( promoted_e )
 			e = std::move(promoted_e);

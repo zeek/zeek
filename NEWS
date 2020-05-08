@@ -151,6 +151,8 @@ Deprecated Functionality
 - ``BroType::HasField()`` and ``BroType::FieldType()`` are deprecated, use
   the methods of ``RecordType`` directly.
 
+- ``BroType::YieldType()`` is deprecated, use ``BroType::Yield()``.
+
 Zeek 3.1.0
 ==========
 

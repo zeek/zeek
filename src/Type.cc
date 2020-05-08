@@ -109,9 +109,10 @@ int BroType::MatchesIndex(ListExpr* const index) const
 	return DOES_NOT_MATCH_INDEX;
 	}
 
-BroType* BroType::YieldType()
+const IntrusivePtr<BroType>& BroType::Yield() const
 	{
-	return nullptr;
+	static IntrusivePtr<BroType> nil;
+	return nil;
 	}
 
 bool BroType::HasField(const char* /* field */) const
@@ -232,16 +233,6 @@ int IndexType::MatchesIndex(ListExpr* const index) const
 
 	return check_and_promote_exprs(index, Indices()) ?
 			MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
-	}
-
-BroType* IndexType::YieldType()
-	{
-	return yield_type.get();
-	}
-
-const BroType* IndexType::YieldType() const
-	{
-	return yield_type.get();
 	}
 
 void IndexType::Describe(ODesc* d) const
@@ -480,16 +471,6 @@ string FuncType::FlavorString() const
 	}
 
 FuncType::~FuncType() = default;
-
-BroType* FuncType::YieldType()
-	{
-	return yield.get();
-	}
-
-const BroType* FuncType::YieldType() const
-	{
-	return yield.get();
-	}
 
 int FuncType::MatchesIndex(ListExpr* const index) const
 	{
@@ -785,7 +766,7 @@ static string container_type_name(const BroType* ft)
 	if ( ft->Tag() == TYPE_RECORD )
 		s = "record " + ft->GetName();
 	else if ( ft->Tag() == TYPE_VECTOR )
-		s = "vector of " + container_type_name(ft->YieldType());
+		s = "vector of " + container_type_name(ft->Yield().get());
 	else if ( ft->Tag() == TYPE_TABLE )
 		{
 		if ( ft->IsSet() )
@@ -802,10 +783,10 @@ static string container_type_name(const BroType* ft)
 			s += container_type_name(tl[i].get());
 			}
 		s += "]";
-		if ( ft->YieldType() )
+		if ( ft->Yield() )
 			{
 			s += " of ";
-			s += container_type_name(ft->YieldType());
+			s += container_type_name(ft->Yield().get());
 			}
 		}
 	else
@@ -1069,11 +1050,6 @@ FileType::FileType(IntrusivePtr<BroType> yield_type)
 	}
 
 FileType::~FileType() = default;
-
-BroType* FileType::YieldType()
-	{
-	return yield.get();
-	}
 
 void FileType::Describe(ODesc* d) const
 	{
@@ -1358,33 +1334,16 @@ IntrusivePtr<BroType> VectorType::ShallowClone()
 
 VectorType::~VectorType() = default;
 
-BroType* VectorType::YieldType()
+const IntrusivePtr<BroType>& VectorType::Yield() const
 	{
 	// Work around the fact that we use void internally to mark a vector
 	// as being unspecified. When looking at its yield type, we need to
 	// return any as that's what other code historically expects for type
 	// comparisions.
 	if ( IsUnspecifiedVector() )
-		return ::base_type(TYPE_ANY).get();
+		return ::base_type(TYPE_ANY);
 
-	return yield_type.get();
-	}
-
-const BroType* VectorType::YieldType() const
-	{
-	// Work around the fact that we use void internally to mark a vector
-	// as being unspecified. When looking at its yield type, we need to
-	// return any as that's what other code historically expects for type
-	// comparisions.
-	if ( IsUnspecifiedVector() )
-		{
-		auto ret = ::base_type(TYPE_ANY);
-		assert(ret);
-		// release, because this won't be held by anyone.
-		return ret.release();
-		}
-
-	return yield_type.get();
+	return yield_type;
 	}
 
 int VectorType::MatchesIndex(ListExpr* const index) const
@@ -1397,8 +1356,8 @@ int VectorType::MatchesIndex(ListExpr* const index) const
 	if ( el.length() == 2 )
 		return MATCHES_INDEX_VECTOR;
 	else if ( el[0]->Type()->Tag() == TYPE_VECTOR )
-		return (IsIntegral(el[0]->Type()->YieldType()->Tag()) ||
-			 IsBool(el[0]->Type()->YieldType()->Tag())) ?
+		return (IsIntegral(el[0]->Type()->Yield()->Tag()) ||
+			 IsBool(el[0]->Type()->Yield()->Tag())) ?
 				MATCHES_INDEX_VECTOR : DOES_NOT_MATCH_INDEX;
 	else
 		return (IsIntegral(el[0]->Type()->Tag()) ||
@@ -1528,8 +1487,8 @@ bool same_type(const BroType* t1, const BroType* t2, bool is_init, bool match_re
 				return false;
 			}
 
-		const BroType* y1 = t1->YieldType();
-		const BroType* y2 = t2->YieldType();
+		const BroType* y1 = t1->Yield().get();
+		const BroType* y2 = t2->Yield().get();
 
 		if ( y1 || y2 )
 			{
@@ -1548,10 +1507,10 @@ bool same_type(const BroType* t1, const BroType* t2, bool is_init, bool match_re
 		if ( ft1->Flavor() != ft2->Flavor() )
 			return false;
 
-		if ( t1->YieldType() || t2->YieldType() )
+		if ( t1->Yield() || t2->Yield() )
 			{
-			if ( ! t1->YieldType() || ! t2->YieldType() ||
-			     ! same_type(t1->YieldType(), t2->YieldType(), is_init, match_record_field_names) )
+			if ( ! t1->Yield() || ! t2->Yield() ||
+			     ! same_type(t1->Yield().get(), t2->Yield().get(), is_init, match_record_field_names) )
 				return false;
 			}
 
@@ -1596,7 +1555,7 @@ bool same_type(const BroType* t1, const BroType* t2, bool is_init, bool match_re
 
 	case TYPE_VECTOR:
 	case TYPE_FILE:
-		return same_type(t1->YieldType(), t2->YieldType(), is_init, match_record_field_names);
+		return same_type(t1->Yield().get(), t2->Yield().get(), is_init, match_record_field_names);
 
 	case TYPE_OPAQUE:
 		{
@@ -1848,8 +1807,8 @@ IntrusivePtr<BroType> merge_types(const BroType* t1, const BroType* t2)
 			tl3->Append(std::move(tl3_i));
 			}
 
-		const BroType* y1 = t1->YieldType();
-		const BroType* y2 = t2->YieldType();
+		const BroType* y1 = t1->Yield().get();
+		const BroType* y2 = t2->Yield().get();
 		IntrusivePtr<BroType> y3;
 
 		if ( y1 || y2 )
@@ -1882,8 +1841,8 @@ IntrusivePtr<BroType> merge_types(const BroType* t1, const BroType* t2)
 		const FuncType* ft1 = (const FuncType*) t1;
 		const FuncType* ft2 = (const FuncType*) t1;
 		auto args = cast_intrusive<RecordType>(merge_types(ft1->Args(), ft2->Args()));
-		auto yield = t1->YieldType() ?
-			merge_types(t1->YieldType(), t2->YieldType()) : nullptr;
+		auto yield = t1->Yield() ?
+			merge_types(t1->Yield().get(), t2->Yield().get()) : nullptr;
 
 		return make_intrusive<FuncType>(std::move(args), std::move(yield),
 		                                ft1->Flavor());
@@ -1967,22 +1926,22 @@ IntrusivePtr<BroType> merge_types(const BroType* t1, const BroType* t2)
 		}
 
 	case TYPE_VECTOR:
-		if ( ! same_type(t1->YieldType(), t2->YieldType()) )
+		if ( ! same_type(t1->Yield().get(), t2->Yield().get()) )
 			{
 			t1->Error("incompatible types", t2);
 			return nullptr;
 			}
 
-		return make_intrusive<VectorType>(merge_types(t1->YieldType(), t2->YieldType()));
+		return make_intrusive<VectorType>(merge_types(t1->Yield().get(), t2->Yield().get()));
 
 	case TYPE_FILE:
-		if ( ! same_type(t1->YieldType(), t2->YieldType()) )
+		if ( ! same_type(t1->Yield().get(), t2->Yield().get()) )
 			{
 			t1->Error("incompatible types", t2);
 			return nullptr;
 			}
 
-		return make_intrusive<FileType>(merge_types(t1->YieldType(), t2->YieldType()));
+		return make_intrusive<FileType>(merge_types(t1->Yield().get(), t2->Yield().get()));
 
 	case TYPE_UNION:
 		reporter->InternalError("union type in merge_types()");

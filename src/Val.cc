@@ -1348,7 +1348,7 @@ static void find_nested_record_types(BroType* t, std::set<RecordType*>* found)
 		return;
 	case TYPE_TABLE:
 		find_nested_record_types(t->AsTableType()->Indices(), found);
-		find_nested_record_types(t->AsTableType()->YieldType(), found);
+		find_nested_record_types(t->AsTableType()->Yield().get(), found);
 		return;
 	case TYPE_LIST:
 		{
@@ -1358,10 +1358,10 @@ static void find_nested_record_types(BroType* t, std::set<RecordType*>* found)
 		return;
 	case TYPE_FUNC:
 		find_nested_record_types(t->AsFuncType()->Args(), found);
-		find_nested_record_types(t->AsFuncType()->YieldType(), found);
+		find_nested_record_types(t->AsFuncType()->Yield().get(), found);
 		return;
 	case TYPE_VECTOR:
-		find_nested_record_types(t->AsVectorType()->YieldType(), found);
+		find_nested_record_types(t->AsVectorType()->Yield().get(), found);
 		return;
 	case TYPE_TYPE:
 		find_nested_record_types(t->AsTypeType()->Type(), found);
@@ -1439,7 +1439,7 @@ int TableVal::RecursiveSize() const
 	int n = AsTable()->Length();
 
 	if ( Type()->IsSet() ||
-	     const_cast<TableType*>(Type()->AsTableType())->YieldType()->Tag()
+	     const_cast<TableType*>(Type()->AsTableType())->Yield()->Tag()
 			!= TYPE_TABLE )
 		return n;
 
@@ -1809,11 +1809,11 @@ IntrusivePtr<Val> TableVal::Default(Val* index)
 
 	if ( ! def_val )
 		{
-		BroType* ytype = Type()->YieldType();
+		const auto& ytype = Type()->Yield();
 		BroType* dtype = def_attr->AttrExpr()->Type();
 
 		if ( dtype->Tag() == TYPE_RECORD && ytype->Tag() == TYPE_RECORD &&
-		     ! same_type(dtype, ytype) &&
+		     ! same_type(dtype, ytype.get()) &&
 		     record_promotion_compatible(dtype->AsRecordType(),
 						 ytype->AsRecordType()) )
 			{
@@ -1834,7 +1834,7 @@ IntrusivePtr<Val> TableVal::Default(Val* index)
 		}
 
 	if ( def_val->Type()->Tag() != TYPE_FUNC ||
-	     same_type(def_val->Type(), Type()->YieldType()) )
+	     same_type(def_val->Type(), Type()->Yield().get()) )
 		{
 		if ( def_attr->AttrExpr()->IsConst() )
 			return def_val;
@@ -2305,11 +2305,11 @@ void TableVal::InitDefaultFunc(Frame* f)
 	if ( ! def_attr )
 		return;
 
-	BroType* ytype = Type()->YieldType();
+	const auto& ytype = Type()->Yield();
 	BroType* dtype = def_attr->AttrExpr()->Type();
 
 	if ( dtype->Tag() == TYPE_RECORD && ytype->Tag() == TYPE_RECORD &&
-	     ! same_type(dtype, ytype) &&
+	     ! same_type(dtype, ytype.get()) &&
 	     record_promotion_compatible(dtype->AsRecordType(),
 					 ytype->AsRecordType()) )
 		return; // TableVal::Default will handle this.
@@ -3001,7 +3001,7 @@ IntrusivePtr<Val> VectorVal::SizeVal() const
 bool VectorVal::Assign(unsigned int index, IntrusivePtr<Val> element)
 	{
 	if ( element &&
-	     ! same_type(element->Type(), vector_type->YieldType(), false) )
+	     ! same_type(element->Type(), vector_type->Yield().get(), false) )
 		return false;
 
 	Val* val_at_index = nullptr;
@@ -3042,7 +3042,7 @@ bool VectorVal::AssignRepeat(unsigned int index, unsigned int how_many,
 bool VectorVal::Insert(unsigned int index, Val* element)
 	{
 	if ( element &&
-	     ! same_type(element->Type(), vector_type->YieldType(), false) )
+	     ! same_type(element->Type(), vector_type->Yield().get(), false) )
 		{
 		Unref(element);
 		return false;

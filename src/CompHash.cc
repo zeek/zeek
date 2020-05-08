@@ -277,7 +277,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 				if ( val )
 					{
 					if ( ! (kp1 = SingleValHash(type_check, kp1,
-					                            vt->YieldType(), val, false)) )
+					                            vt->Yield().get(), val, false)) )
 						return nullptr;
 					}
 				}
@@ -570,7 +570,7 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 				sz = SizeAlign(sz, sizeof(unsigned int));
 				sz = SizeAlign(sz, sizeof(unsigned int));
 				if ( val )
-					sz = SingleTypeKeySize(bt->AsVectorType()->YieldType(),
+					sz = SingleTypeKeySize(bt->AsVectorType()->Yield().get(),
 					                       val, type_check, sz, false,
 					                       calc_static_size);
 				if ( ! sz ) return 0;
@@ -956,7 +956,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 				else
 					{
 					IntrusivePtr<Val> value;
-					kp1 = RecoverOneVal(k, kp1, k_end, tt->YieldType(), &value,
+					kp1 = RecoverOneVal(k, kp1, k_end, tt->Yield().get(), &value,
 					                    false);
 					tv->Assign(key.get(), std::move(value));
 					}
@@ -986,7 +986,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 				IntrusivePtr<Val> value;
 
 				if ( have_val )
-					kp1 = RecoverOneVal(k, kp1, k_end, vt->YieldType(), &value,
+					kp1 = RecoverOneVal(k, kp1, k_end, vt->Yield().get(), &value,
 					                    false);
 
 				vv->Assign(index, std::move(value));

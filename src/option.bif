@@ -199,10 +199,10 @@ function Option::set_change_handler%(ID: string, on_change: any, priority: int &
 		return val_mgr->False();
 		}
 
-	if ( ! same_type(on_change->Type()->AsFuncType()->YieldType(), i->Type()) )
+	if ( ! same_type(on_change->Type()->AsFuncType()->Yield().get(), i->Type()) )
 		{
 		builtin_error(fmt("Passed function needs to return type '%s' for ID '%s'; got '%s'",
-			type_name(i->Type()->Tag()), ID->CheckString(), type_name(on_change->Type()->AsFuncType()->YieldType()->Tag())));
+			type_name(i->Type()->Tag()), ID->CheckString(), type_name(on_change->Type()->AsFuncType()->Yield()->Tag())));
 		return val_mgr->False();
 		}
 

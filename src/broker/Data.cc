@@ -314,7 +314,7 @@ struct val_converter {
 				}
 
 			auto value_val = bro_broker::data_to_val(move(item.second),
-			                                         tt->YieldType());
+			                                         tt->Yield().get());
 
 			if ( ! value_val )
 				return nullptr;
@@ -334,7 +334,7 @@ struct val_converter {
 
 			for ( auto& item : a )
 				{
-				auto item_val = bro_broker::data_to_val(move(item), vt->YieldType());
+				auto item_val = bro_broker::data_to_val(move(item), vt->Yield().get());
 
 				if ( ! item_val )
 					return nullptr;
@@ -667,7 +667,7 @@ struct type_checker {
 					return false;
 				}
 
-			if ( ! data_type_check(item.second, tt->YieldType()) )
+			if ( ! data_type_check(item.second, tt->Yield().get()) )
 				return false;
 			}
 
@@ -682,7 +682,7 @@ struct type_checker {
 
 			for ( auto& item : a )
 				{
-				if ( ! data_type_check(item, vt->YieldType()) )
+				if ( ! data_type_check(item, vt->Yield().get()) )
 					return false;
 				}
 

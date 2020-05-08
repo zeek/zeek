@@ -34,7 +34,7 @@ Scope::Scope(IntrusivePtr<ID> id, attr_list* al)
 			reporter->InternalError("bad scope id");
 
 		FuncType* ft = id->Type()->AsFuncType();
-		return_type = {NewRef{}, ft->YieldType()};
+		return_type = ft->Yield();
 		}
 	}
 

@@ -401,7 +401,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 		if ( j < num_ext_fields )
 			{
 			i = j;
-			rtype = filter->ext_func->FType()->YieldType()->AsRecordType();
+			rtype = filter->ext_func->FType()->Yield()->AsRecordType();
 			}
 		else
 			{
@@ -520,7 +520,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 			st = t->AsSetType()->Indices()->GetPureType()->Tag();
 
 		else if ( t->Tag() == TYPE_VECTOR )
-			st = t->AsVectorType()->YieldType()->Tag();
+			st = t->AsVectorType()->Yield()->Tag();
 
 		bool optional = rtype->FieldDecl(i)->FindAttr(ATTR_OPTIONAL);
 
@@ -587,18 +587,18 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	filter->num_ext_fields = 0;
 	if ( filter->ext_func )
 		{
-		if ( filter->ext_func->FType()->YieldType()->Tag() == TYPE_RECORD )
+		if ( filter->ext_func->FType()->Yield()->Tag() == TYPE_RECORD )
 			{
-			filter->num_ext_fields = filter->ext_func->FType()->YieldType()->AsRecordType()->NumFields();
+			filter->num_ext_fields = filter->ext_func->FType()->Yield()->AsRecordType()->NumFields();
 			}
-		else if ( filter->ext_func->FType()->YieldType()->Tag() == TYPE_VOID )
+		else if ( filter->ext_func->FType()->Yield()->Tag() == TYPE_VOID )
 			{
 			// This is a special marker for the default no-implementation
 			// of the ext_func and we'll allow it to slide.
 			}
 		else
 			{
-			reporter->Error("Return value of log_ext is not a record (got %s)", type_name(filter->ext_func->FType()->YieldType()->Tag()));
+			reporter->Error("Return value of log_ext is not a record (got %s)", type_name(filter->ext_func->FType()->Yield()->Tag()));
 			delete filter;
 			return false;
 			}
@@ -1038,7 +1038,7 @@ threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
 			{
 			lval->val.vector_val.vals[i] =
 				ValToLogVal(vec->Lookup(i),
-					    vec->Type()->YieldType());
+					    vec->Type()->Yield().get());
 			}
 
 		break;

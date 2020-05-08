@@ -804,7 +804,7 @@ function sha256_hash_finish%(handle: opaque of sha256%): string
 function paraglob_init%(v: any%) : opaque of paraglob
 	%{
 	if ( v->Type()->Tag() != TYPE_VECTOR ||
-	     v->Type()->YieldType()->Tag() != TYPE_STRING )
+	     v->Type()->Yield()->Tag() != TYPE_STRING )
 		{
 		// reporter->Error will throw an exception.
 		reporter->Error("paraglob requires a vector of strings for initialization.");
@@ -1281,7 +1281,7 @@ function resize%(aggr: any, newsize: count%) : count
 function any_set%(v: any%) : bool
 	%{
 	if ( v->Type()->Tag() != TYPE_VECTOR ||
-	     v->Type()->YieldType()->Tag() != TYPE_BOOL )
+	     v->Type()->Yield()->Tag() != TYPE_BOOL )
 		{
 		builtin_error("any_set() requires vector of bool");
 		return val_mgr->False();
@@ -1310,7 +1310,7 @@ function any_set%(v: any%) : bool
 function all_set%(v: any%) : bool
 	%{
 	if ( v->Type()->Tag() != TYPE_VECTOR ||
-	     v->Type()->YieldType()->Tag() != TYPE_BOOL )
+	     v->Type()->Yield()->Tag() != TYPE_BOOL )
 		{
 		builtin_error("all_set() requires vector of bool");
 		return val_mgr->False();
@@ -1408,7 +1408,7 @@ function sort%(v: any, ...%) : any
 		return rval;
 		}
 
-	BroType* elt_type = v->Type()->YieldType();
+	const auto& elt_type = v->Type()->Yield();
 	Func* comp = 0;
 
 	if ( @ARG@.size() > 2 )
@@ -1434,7 +1434,7 @@ function sort%(v: any, ...%) : any
 	if ( comp )
 		{
 		FuncType* comp_type = comp->FType()->AsFuncType();
-		if ( comp_type->YieldType()->Tag() != TYPE_INT ||
+		if ( comp_type->Yield()->Tag() != TYPE_INT ||
 		     ! comp_type->ArgTypes()->AllMatch(elt_type, 0) )
 			{
 			builtin_error("invalid comparison function in call to sort()");
@@ -1478,7 +1478,7 @@ function order%(v: any, ...%) : index_vec
 		return result_v;
 		}
 
-	BroType* elt_type = v->Type()->YieldType();
+	const auto& elt_type = v->Type()->Yield();
 	Func* comp = 0;
 
 	if ( @ARG@.size() > 2 )
@@ -1516,7 +1516,7 @@ function order%(v: any, ...%) : index_vec
 	if ( comp )
 		{
 		FuncType* comp_type = comp->FType()->AsFuncType();
-		if ( comp_type->YieldType()->Tag() != TYPE_INT ||
+		if ( comp_type->Yield()->Tag() != TYPE_INT ||
 		     ! comp_type->ArgTypes()->AllMatch(elt_type, 0) )
 			{
 			builtin_error("invalid comparison function in call to order()");

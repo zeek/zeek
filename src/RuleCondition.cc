@@ -141,7 +141,7 @@ RuleConditionEval::RuleConditionEval(const char* func)
 		// Validate argument quantity and type.
 		FuncType* f = id->Type()->AsFuncType();
 
-		if ( f->YieldType()->Tag() != TYPE_BOOL )
+		if ( f->Yield()->Tag() != TYPE_BOOL )
 			rules_error("eval function type must yield a 'bool'", func);
 
 		TypeList tl;

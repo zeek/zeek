@@ -245,7 +245,7 @@ std::pair<bool, Val*> Func::HandlePluginResult(std::pair<bool, Val*> plugin_resu
 
 	case FUNC_FLAVOR_FUNCTION:
 		{
-		BroType* yt = FType()->YieldType();
+		const auto& yt = FType()->Yield();
 
 		if ( (! yt) || yt->Tag() == TYPE_VOID )
 			{
@@ -423,7 +423,7 @@ IntrusivePtr<Val> BroFunc::Call(const zeek::Args& args, Frame* parent) const
 
 	// Warn if the function returns something, but we returned from
 	// the function without an explicit return, or without a value.
-	else if ( FType()->YieldType() && FType()->YieldType()->Tag() != TYPE_VOID &&
+	else if ( FType()->Yield() && FType()->Yield()->Tag() != TYPE_VOID &&
 		 (flow != FLOW_RETURN /* we fell off the end */ ||
 		  ! result /* explicit return with no result */) &&
 		 ! f->HasDelayed() )

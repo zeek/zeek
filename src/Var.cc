@@ -459,7 +459,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 	{
 	if ( flavor == FUNC_FLAVOR_EVENT )
 		{
-		const BroType* yt = t->YieldType();
+		const auto& yt = t->Yield();
 
 		if ( yt && yt->Tag() != TYPE_VOID )
 			id->Error("event cannot yield a value", t.get());

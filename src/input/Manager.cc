@@ -522,13 +522,13 @@ bool Manager::CreateTableStream(RecordVal* fval)
 
 	if ( val )
 		{
-		const BroType* table_yield = dst->Type()->AsTableType()->YieldType();
+		const auto& table_yield = dst->Type()->AsTableType()->Yield();
 		const BroType* compare_type = val.get();
 
 		if ( want_record->InternalInt() == 0 )
 			compare_type = val->GetFieldType(0).get();
 
-		if ( ! same_type(table_yield, compare_type) )
+		if ( ! same_type(table_yield.get(), compare_type) )
 			{
 			ODesc desc1;
 			ODesc desc2;
@@ -821,7 +821,7 @@ bool Manager::IsCompatibleType(BroType* t, bool atomic_only)
 		if ( atomic_only )
 			return false;
 
-		return IsCompatibleType(t->AsVectorType()->YieldType(), true);
+		return IsCompatibleType(t->AsVectorType()->Yield().get(), true);
 		}
 
 	default:
@@ -945,7 +945,7 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
 				st = rec->GetFieldType(i)->AsSetType()->Indices()->GetPureType()->Tag();
 
 			else if ( ty == TYPE_VECTOR )
-				st = rec->GetFieldType(i)->AsVectorType()->YieldType()->Tag();
+				st = rec->GetFieldType(i)->AsVectorType()->Yield()->Tag();
 
 			else if ( ty == TYPE_PORT &&
 				  rec->FieldDecl(i)->FindAttr(ATTR_TYPE_COLUMN) )
@@ -2354,16 +2354,14 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 	case TYPE_VECTOR:
 		{
 		// all entries have to have the same type...
-		BroType* type = request_type->AsVectorType()->YieldType();
-		VectorType* vt = new VectorType({NewRef{}, type});
-		VectorVal* v = new VectorVal(vt);
-		for ( int j = 0; j < val->val.vector_val.size; j++ )
-			{
-			v->Assign(j, ValueToVal(i, val->val.vector_val.vals[j], type, have_error));
-			}
+		const auto& type = request_type->AsVectorType()->Yield();
+		auto vt = make_intrusive<VectorType>(type);
+		auto v = make_intrusive<VectorVal>(vt.get());
 
-		Unref(vt);
-		return v;
+		for ( int j = 0; j < val->val.vector_val.size; j++ )
+			v->Assign(j, ValueToVal(i, val->val.vector_val.vals[j], type.get(), have_error));
+
+		return v.release();
 		}
 
 	case TYPE_ENUM: {

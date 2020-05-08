@@ -273,7 +273,7 @@ void Attributes::CheckAttr(Attr* a)
 			}
 
 		FuncType* aft = at->AsFuncType();
-		if ( ! same_type(aft->YieldType(), type.get()) )
+		if ( ! same_type(aft->Yield().get(), type.get()) )
 			{
 			a->AttrExpr()->Error(
 				is_add ?
@@ -328,7 +328,7 @@ void Attributes::CheckAttr(Attr* a)
 			}
 
 		TableType* tt = type->AsTableType();
-		BroType* ytype = tt->YieldType();
+		BroType* ytype = tt->Yield().get();
 
 		if ( ! in_record )
 			{
@@ -340,7 +340,7 @@ void Attributes::CheckAttr(Attr* a)
 					{
 					FuncType* f = atype->AsFuncType();
 					if ( ! f->CheckArgs(tt->IndexTypes()) ||
-					     ! same_type(f->YieldType(), ytype) )
+					     ! same_type(f->Yield().get(), ytype) )
 						Error("&default function type clash");
 
 					// Ok.
@@ -453,7 +453,7 @@ void Attributes::CheckAttr(Attr* a)
 
 		const FuncType* e_ft = expire_func->Type()->AsFuncType();
 
-		if ( e_ft->YieldType()->Tag() != TYPE_INTERVAL )
+		if ( e_ft->Yield()->Tag() != TYPE_INTERVAL )
 			{
 			Error("&expire_func must yield a value of type interval");
 			break;
@@ -500,7 +500,7 @@ void Attributes::CheckAttr(Attr* a)
 
 		const FuncType* c_ft = change_func->Type()->AsFuncType();
 
-		if ( c_ft->YieldType()->Tag() != TYPE_VOID )
+		if ( c_ft->Yield()->Tag() != TYPE_VOID )
 			{
 			Error("&on_change must not return a value");
 			break;
@@ -542,7 +542,7 @@ void Attributes::CheckAttr(Attr* a)
 			}
 
 		if ( ! type->IsSet() )
-			if ( ! same_type(args[2+t_indexes.size()].get(), the_table->YieldType()) )
+			if ( ! same_type(args[2+t_indexes.size()].get(), the_table->Yield().get()) )
 				{
 				Error("&on_change: value type does not match table");
 				break;

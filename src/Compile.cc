@@ -409,7 +409,7 @@ const char* AbstractStmt::VName(int max_n, int n, const frame_map& frame_ids) co
 	if ( slot == 0 )
 		return copy_string("<reg0>");
 
-	if ( slot > frame_ids.size() )
+	if ( slot >= frame_ids.size() )
 		return copy_string(fmt("extra-slot %d", slot));
 
 	return copy_string(fmt("%d (%s)", slot, frame_ids[slot]->Name()));
@@ -1425,7 +1425,7 @@ int AbstractMachine::InternalBuildVals(const ListExpr* l)
 const CompiledStmt AbstractMachine::AddStmt(const AbstractStmt& stmt)
 	{
 	stmts.push_back(stmt);
-	return CompiledStmt(stmts.size());
+	return CompiledStmt(stmts.size() - 1);
 	}
 
 AbstractStmt& AbstractMachine::TopStmt()

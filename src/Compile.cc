@@ -766,6 +766,9 @@ IntrusivePtr<Val> AbstractMachine::DoExec(Frame* f, int start_pc,
 		++pc;
 		}
 
+	auto result =
+		(ret_u && ! error_flag) ? ret_u->ToVal(ret_type) : nullptr;
+
 	// Free those slots for which we do explicit memory management.
 	for ( auto i = 0; i < managed_slots.size(); ++i )
 		{
@@ -783,10 +786,9 @@ IntrusivePtr<Val> AbstractMachine::DoExec(Frame* f, int start_pc,
 
 	delete [] frame;
 
-	if ( ret_u && ! error_flag )
-		return ret_u->ToVal(ret_type);
-	else
-		return nullptr;
+	flow = FLOW_RETURN;
+
+	return result;
 	}
 
 #include "CompilerOpsMethodsDefs.h"

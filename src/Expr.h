@@ -770,6 +770,8 @@ public:
 	IntrusivePtr<Expr> GetOp3() const override final	{ return op3; }
 	void SetOp3(IntrusivePtr<Expr> _op) override final { op3 = _op; }
 
+	TraversalCode Traverse(TraversalCallback* cb) const override;
+
 protected:
 	void ExprDescribe(ODesc* d) const override;
 

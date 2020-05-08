@@ -351,8 +351,9 @@ eval auto str = frame[s.v2].string_val
 eval auto len = str->Len()
 eval auto idx = frame[s.v3].int_val
 eval if ( idx < 0 ) idx += len
+eval auto v = str->GetSubstring(idx, 1)
 eval delete frame[s.v1].string_val
-eval frame[s.v1].string_val = str->GetSubstring(idx, 1)
+eval frame[s.v1].string_val = v ? v : new BroString("")
 
 # This version is for a constant v3.
 internal-op Index-StringC
@@ -361,8 +362,9 @@ eval auto str = frame[s.v2].string_val
 eval auto len = str->Len()
 eval auto idx = s.v3
 eval if ( idx < 0 ) idx += len
+eval auto v = str->GetSubstring(idx, 1)
 eval delete frame[s.v1].string_val
-eval frame[s.v1].string_val = str->GetSubstring(idx, 1)
+eval frame[s.v1].string_val = v ? v : new BroString("")
 
 internal-op Index-String-Slice
 type VVL

@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "ProfileFunc.h"
+#include "Desc.h"
 #include "Stmt.h"
 
 

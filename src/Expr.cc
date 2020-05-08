@@ -3728,6 +3728,24 @@ const CompiledStmt IndexAssignExpr::Compile(Compiler* c) const
 	return c->InterpretExpr(this);
 	}
 
+TraversalCode IndexAssignExpr::Traverse(TraversalCallback* cb) const
+	{
+	TraversalCode tc = cb->PreExpr(this, Op1());
+	HANDLE_TC_EXPR_PRE(tc);
+
+	tc = op1->Traverse(cb);
+	HANDLE_TC_EXPR_PRE(tc);
+
+	tc = op2->Traverse(cb);
+	HANDLE_TC_EXPR_PRE(tc);
+
+	tc = op3->Traverse(cb);
+	HANDLE_TC_EXPR_PRE(tc);
+
+	tc = cb->PostExpr(this);
+	HANDLE_TC_EXPR_POST(tc);
+	}
+
 void IndexAssignExpr::ExprDescribe(ODesc* d) const
 	{
 	op1->Describe(d);

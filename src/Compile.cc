@@ -418,7 +418,7 @@ const char* AbstractStmt::VName(int max_n, int n, const frame_map& frame_ids) co
 void AbstractStmt::Dump(const frame_map& frame_ids) const
 	{
 	printf("%s ", abstract_op_name(op));
-	if ( t )
+	if ( t && 0 )
 		printf("(%s) ", type_name(t->Tag()));
 
 	int n = NumFrameSlots();
@@ -1578,6 +1578,7 @@ const CompiledStmt AbstractMachine::CompileIndex(const NameExpr* n1,
 			auto c = ind->AsConstExpr()->Value()->AsInt();
 			s = AbstractStmt(OP_INDEX_STRINGC_VVV, FrameSlot(n1),
 					FrameSlot(n2), c);
+			s.op_type = OP_VVV_I3;
 			}
 
 		s.t = n1->Type().get();
@@ -1680,8 +1681,6 @@ void AbstractMachine::SyncGlobals(const Stmt* stmt)
 
 	for ( auto g : pf->globals )
 		{
-		printf("sync for global %s: ", g->Name());
-
 		auto di = mgr->GetConstID_DI(g);
 		auto entry_dps = entry_rds->GetDefPoints(di);
 		auto stmt_dps = rds->GetDefPoints(di);

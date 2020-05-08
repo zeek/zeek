@@ -88,9 +88,10 @@ public:
 
 	// Called to synchronize any globals that have been modified
 	// prior to switching to execution out of the current function
-	// body (for a call or a return).  A nil value corresponds to
-	// "running off the end" (no explicit return).
-	virtual void SyncGlobals(const Stmt* stmt) = 0;
+	// body (for a call or a return).  The argument is a statement
+	// or expression, used to find reaching-defs.  A nil value
+	// corresponds to "running off the end" (no explicit return).
+	virtual void SyncGlobals(const BroObj* o) = 0;
 
 	// Returns a handle to state associated with building
 	// up a list of values.
@@ -102,6 +103,7 @@ protected:
 
 
 struct function_ingredients;
+class CallExpr;
 class Func;
 class Body;
 class UseDefs;
@@ -175,7 +177,7 @@ public:
 	const CompiledStmt EmptyStmt() override;
 	const CompiledStmt ErrorStmt() override;
 
-	void SyncGlobals(const Stmt* stmt) override;
+	void SyncGlobals(const BroObj* o) override;
 
 	OpaqueVals* BuildVals(const IntrusivePtr<ListExpr>&) override;
 
@@ -219,6 +221,8 @@ protected:
 
 	const CompiledStmt CompileIndex(const NameExpr* n1, const NameExpr* n2,
 					const ListExpr* l);
+
+	const CompiledStmt InterpretCall(const CallExpr* c, const NameExpr* n);
 
 	const CompiledStmt CompileSchedule(const NameExpr* n,
 					const ConstExpr* c, int is_interval,
@@ -264,14 +268,14 @@ protected:
 
 	void FlushVars(const Expr* e);
 
-	void LoadParam(ID* id)		{ LoadOrStoreLocal(id, true); }
-	void LoadGlobal(ID* id)		{ LoadOrStoreGlobal(id, true); }
+	void LoadParam(ID* id)		{ LoadOrStoreLocal(id, true, true); }
+	void LoadGlobal(ID* id)		{ LoadOrStoreGlobal(id, true, true); }
 
-	void StoreLocal(ID* id)		{ LoadOrStoreLocal(id, false); }
-	void StoreGlobal(ID* id)	{ LoadOrStoreGlobal(id, false); }
+	void StoreLocal(ID* id)		{ LoadOrStoreLocal(id, false, false); }
+	void StoreGlobal(ID* id)	{ LoadOrStoreGlobal(id, false, false); }
 
-	void LoadOrStoreLocal(ID* id, bool is_load);
-	void LoadOrStoreGlobal(ID* id, bool is_load);
+	const CompiledStmt LoadOrStoreLocal(ID* id, bool is_load, bool add);
+	const CompiledStmt LoadOrStoreGlobal(ID* id, bool is_load, bool add);
 
 	int AddToFrame(const ID*);
 

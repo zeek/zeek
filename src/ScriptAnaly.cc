@@ -1156,7 +1156,8 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		// possibly be altered, but for now we just assume they
 		// call could.
 		for ( const auto& g : pf->globals )
-			mgr.CreatePostDef(g, DefinitionPoint(c), false);
+			if ( ! g->IsConst() )
+				mgr.CreatePostDef(g, DefinitionPoint(c), false);
 
 		return TC_ABORTSTMT;
 		}

@@ -179,7 +179,6 @@ AS_ValUnion::AS_ValUnion(Val* v, BroType* t, const BroObj* o, bool& error)
 		subnet_val = new IPPrefix(*vu.subnet_val);
 		break;
 
-	// ### Memory management.
 	case TYPE_ANY:		any_val = v; break;
 	case TYPE_TYPE:		type_val = t; break;
 
@@ -794,6 +793,9 @@ IntrusivePtr<Val> AbstractMachine::DoExec(Frame* f, int start_pc,
 
 const CompiledStmt AbstractMachine::InterpretExpr(const Expr* e)
 	{
+	if ( e->Tag() == EXPR_CALL )
+		return InterpretCall(e->AsCallExpr(), nullptr);
+
 	FlushVars(e);
 	return AddStmt(AbstractStmt(OP_INTERPRET_EXPR_X, e));
 	}
@@ -801,19 +803,41 @@ const CompiledStmt AbstractMachine::InterpretExpr(const Expr* e)
 const CompiledStmt AbstractMachine::InterpretExpr(const NameExpr* n,
 							const Expr* e)
 	{
+	if ( e->Tag() == EXPR_CALL )
+		return InterpretCall(e->AsCallExpr(), n);
+
 	FlushVars(e);
 	return AddStmt(AbstractStmt(OP_INTERPRET_EXPR_V, FrameSlot(n), e));
 	}
 
+const CompiledStmt AbstractMachine::InterpretCall(const CallExpr* c,
+							const NameExpr* n)
+	{
+	SyncGlobals(c);
+
+	auto a_s = n ? AbstractStmt(OP_INTERPRET_EXPR_V, FrameSlot(n), c) :
+			AbstractStmt(OP_INTERPRET_EXPR_X, c);
+
+	auto s = AddStmt(a_s);
+
+	for ( auto g : pf->globals )
+		// Should be smarter here and only restore those that are
+		// still relevant.
+		if ( ! g->IsConst() )
+			s = LoadOrStoreGlobal(g, true, false);
+
+	return s;
+	}
+
 void AbstractMachine::FlushVars(const Expr* e)
 	{
-	ProfileFunc pf;
-	e->Traverse(&pf);
+	ProfileFunc expr_pf;
+	e->Traverse(&expr_pf);
 
-	for ( auto g : pf.globals )
+	for ( auto g : expr_pf.globals )
 		StoreGlobal(g);
 
-	for ( auto l : pf.locals )
+	for ( auto l : expr_pf.locals )
 		StoreLocal(l);
 	}
 
@@ -1445,25 +1469,27 @@ const Stmt* AbstractMachine::LastStmt() const
 		return body;
 	}
 
-void AbstractMachine::LoadOrStoreLocal(ID* id, bool is_load)
+const CompiledStmt AbstractMachine::LoadOrStoreLocal(ID* id, bool is_load,
+							bool add)
 	{
 	auto op = is_load ? OP_LOAD_VAL_VV : OP_STORE_VAL_VV;
-	int slot = is_load ? AddToFrame(id) : FrameSlot(id);
+	int slot = (is_load && add) ? AddToFrame(id) : FrameSlot(id);
 	AbstractStmt s(op, slot, id->Offset());
 	s.t = id->Type();
 	s.op_type = OP_VV_FRAME;
-	(void) AddStmt(s);
+	return AddStmt(s);
 	}
 
-void AbstractMachine::LoadOrStoreGlobal(ID* id, bool is_load)
+const CompiledStmt AbstractMachine::LoadOrStoreGlobal(ID* id, bool is_load,
+							bool add)
 	{
 	auto op = is_load ? OP_LOAD_GLOBAL_VC : OP_STORE_GLOBAL_VC;
-	int slot = is_load ? AddToFrame(id) : FrameSlot(id);
+	int slot = (is_load && add) ? AddToFrame(id) : FrameSlot(id);
 	AbstractStmt s(op, slot);
 	s.c.id_val = id;
 	s.t = id->Type();
 	s.op_type = OP_VC_ID;
-	(void) AddStmt(s);
+	return AddStmt(s);
 	}
 
 int AbstractMachine::AddToFrame(const ID* id)
@@ -1656,14 +1682,14 @@ const CompiledStmt AbstractMachine::CompileEvent(EventHandler* h,
 	return AddStmt(s);
 	}
 
-void AbstractMachine::SyncGlobals(const Stmt* stmt)
+void AbstractMachine::SyncGlobals(const BroObj* o)
 	{
 	auto mgr = reducer->GetDefSetsMgr();
 
 	RD_ptr rds;
 
-	if ( stmt )
-		rds = mgr->GetPreMaxRDs(stmt);
+	if ( o )
+		rds = mgr->GetPreMaxRDs(o);
 	else
 		// Use the *post* RDs from the last statement in the
 		// function body.

@@ -482,6 +482,13 @@ Stmt* ExprStmt::DoReduce(Reducer* c)
 			// No point evaluating.
 			return TransformMe(new NullStmt, c);
 
+		// ### If optimizing, we should flag for the Reducer if
+		// there's a call here, so it can deactivate any temporaries
+		// who have reaching definitions to the call site, to
+		// keep them from being used for CSE across the call
+		// (since it's too difficult to tell whether they might
+		// depend on a global or aggregate modified by the call).
+
 		if ( (t == EXPR_ASSIGN || t == EXPR_CALL ||
 		      t == EXPR_INDEX_ASSIGN || t == EXPR_FIELD_LHS_ASSIGN ||
 		      t == EXPR_APPEND_TO) &&

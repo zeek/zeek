@@ -1,5 +1,7 @@
 optimize for common case of global that's a function/event name
 
+use usedef's to only restore globals that matter after a call
+
 versions of operators that take listval's that inline the values
 	rather than building val-vec's if a small number (including 0)
 
@@ -11,3 +13,5 @@ don't consider modifying a global's element as a reaching-def for
 when flushing globals, no need to do so if they've already been flushed
 	(but may be tricky to be sure that code path reaches location)
 	and their reaching-defs haven't changed
+
+don't bother loading unused function parameters

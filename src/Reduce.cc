@@ -306,8 +306,7 @@ IntrusivePtr<ID> Reducer::FindExprTmp(const Expr* rhs,
 	return nullptr;
 	}
 
-bool Reducer::IsCSE(const AssignExpr* a,
-				const NameExpr* lhs, const Expr* rhs)
+bool Reducer::IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs)
 	{
 	auto a_max_rds = mgr->GetPostMaxRDs(GetRDLookupObj(a));
 

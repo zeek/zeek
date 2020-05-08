@@ -841,7 +841,8 @@ const CompiledStmt AbstractMachine::InterpretCall(const CallExpr* c,
 
 	for ( auto g : pf->globals )
 		// Should be smarter here and only restore those that are
-		// still relevant.
+		// still relevant ... and analyze the function to see whether
+		// it directly-or-indirectly can affect particular globals.
 		if ( ! g->IsConst() )
 			s = LoadOrStoreGlobal(g, true, false);
 
@@ -853,8 +854,11 @@ void AbstractMachine::FlushVars(const Expr* e)
 	ProfileFunc expr_pf;
 	e->Traverse(&expr_pf);
 
+	auto mgr = reducer->GetDefSetsMgr();
+	auto entry_rds = mgr->GetPreMaxRDs(body);
+
 	for ( auto g : expr_pf.globals )
-		StoreGlobal(g);
+		SyncGlobal(g, e, entry_rds);
 
 	for ( auto l : expr_pf.locals )
 		StoreLocal(l);
@@ -1702,6 +1706,18 @@ const CompiledStmt AbstractMachine::CompileEvent(EventHandler* h,
 
 void AbstractMachine::SyncGlobals(const BroObj* o)
 	{
+	// (Could cache the upon-entry DPs for globals for a modest
+	// speed gain.)
+	auto mgr = reducer->GetDefSetsMgr();
+	auto entry_rds = mgr->GetPreMaxRDs(body);
+
+	for ( auto g : pf->globals )
+		SyncGlobal(g, o, entry_rds);
+	}
+
+void AbstractMachine::SyncGlobal(ID* g, const BroObj* o,
+					const RD_ptr& entry_rds)
+	{
 	auto mgr = reducer->GetDefSetsMgr();
 
 	RD_ptr rds;
@@ -1713,19 +1729,12 @@ void AbstractMachine::SyncGlobals(const BroObj* o)
 		// function body.
 		rds = mgr->GetPostMaxRDs(LastStmt());
 
-	// (Could cache the upon-entry DPs for globals for a modest
-	// speed gain.)
-	auto entry_rds = mgr->GetPreMaxRDs(body);
+	auto di = mgr->GetConstID_DI(g);
+	auto entry_dps = entry_rds->GetDefPoints(di);
+	auto stmt_dps = rds->GetDefPoints(di);
 
-	for ( auto g : pf->globals )
-		{
-		auto di = mgr->GetConstID_DI(g);
-		auto entry_dps = entry_rds->GetDefPoints(di);
-		auto stmt_dps = rds->GetDefPoints(di);
-
-		if ( ! same_DPs(entry_dps, stmt_dps) )
-			StoreGlobal(g);
-		}
+	if ( ! same_DPs(entry_dps, stmt_dps) )
+		StoreGlobal(g);
 	}
 
 void AbstractMachine::ResolveGoTos(vector<int>& gotos, const CompiledStmt s)

@@ -5,6 +5,7 @@
 #include "Stmt.h"
 #include "Val.h"
 #include "Event.h"
+#include "ReachingDefs.h"
 
 
 class NameExpr;
@@ -178,6 +179,10 @@ public:
 	const CompiledStmt ErrorStmt() override;
 
 	void SyncGlobals(const BroObj* o) override;
+
+	// Sync's the given global at the given location 'o'.  Third argument
+	// provides the RDs at entry to the body.
+	void SyncGlobal(ID* g, const BroObj* o, const RD_ptr& entry_rds);
 
 	OpaqueVals* BuildVals(const IntrusivePtr<ListExpr>&) override;
 

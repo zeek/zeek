@@ -992,13 +992,10 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		mgr.SetPreFromPre(rhs, a);
 
 		if ( aggr->Tag() == EXPR_NAME )
-			{ // Same as corresponding CheckLHS code.
-			// Count this as an initialization of the aggregate.
-			auto id = aggr->AsNameExpr()->Id();
-			mgr.CreatePostDef(id, DefinitionPoint(e), false);
-
-			// Don't recurse into assessing the aggregate,
-			// since it's okay in this context.
+			{
+			// Don't treat this as an initialization of the
+			// aggregate, since what's changing is instead
+			// an element of it.
 			}
 		else
 			aggr->Traverse(this);
@@ -1020,12 +1017,11 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 
 		if ( aggr->Tag() == EXPR_NAME )
 			{
-			// Count this as an initialization of the aggregate.
-			auto id = aggr->AsNameExpr()->Id();
-			mgr.CreatePostDef(id, DefinitionPoint(e), false);
+			// Don't treat as an initialization of the aggregate.
 			}
+		else
+			aggr->Traverse(this);
 
-		aggr->Traverse(this);
 		r->Traverse(this);
 
 		auto r_def = mgr.GetExprDI(aggr);

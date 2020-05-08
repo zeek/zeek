@@ -39,6 +39,7 @@ vector
 eval -$1
 
 unary-op AppendTo
+set-type $2
 eval auto vv = frame[s.v1].vector_val
 eval vv->Assign(vv->Size(), $1.ToVal(s.t))
 

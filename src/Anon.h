@@ -12,6 +12,7 @@
 
 #include <vector>
 #include <map>
+#include <cstdint>
 
 using std::map;
 

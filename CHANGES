@@ -1,4 +1,22 @@
 
+3.2.0-dev.484 | 2020-05-08 11:50:54 -0700
+
+  * Change timer_list in BroList to be an unordered list. (Tim Wojtulewicz, Corelight)
+
+    This type is used by Conn and Analyzer to hold onto timers being added and
+    removed. We don't expect the elements in those lists to maintain an order
+    as the list is being modified.
+
+  * Add ability for List to be ordered/unordered (Tim Wojtulewicz, Corelight)
+
+    This fixes a "bug" with List where remove_nth() can be an O(n) operation
+    when it doesn't need to be. remove_nth for lists that don't necessarily
+    need to keep an order can be an O(1) operation instead.
+
+  * Add unit testing for List (Tim Wojtulewicz, Corelight)
+
+  * Fix bug with List where replace() doesn't work with non-pointer types (Tim Wojtulewicz, Corelight)
+
 3.2.0-dev.478 | 2020-05-08 11:47:38 -0700
 
   * Added examples to set_to_regex comments (James Lagermann, Corelight)

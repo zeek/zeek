@@ -735,16 +735,27 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 			part1 = "\t\t{\n" part1
 			part2 = part2 "\n\t\t}"
 
-			# Assumes if there are two operands, they have
-			# the same type.
+			# Figure out the type to use to select which
+			# flavor of the operation to generate.  For
+			# operations with three operands, select the
+			# second operand, not the first, in order to
+			# generate correct typing for relationals (where
+			# the first operand has a type of bool regardless
+			# of the types of the other operands).
 			op1_is_const = type ~ /^VC/
-			test_var = op1_is_const ? "c" : "n1"
+			op2_is_const = type ~ /^V.C/
+
+			op2_param = op2_is_const ? "c" : "n2"
+
+			if ( type ~ /^.../ )
+				# Has three operands, choose second.
+				test_var = op2_param
+			else
+				test_var = op1_is_const ? "c" : "n1"
+
 			print ("\tauto t = " test_var "->Type();") >methods_f
 			print ("\tauto tag = t->Tag();") >methods_f
 			print ("\tauto i_t = t->InternalType();") >methods_f
-
-			op2_is_const = type ~ /^V.C/
-			op2_param = op2_is_const ? "c" : "n2"
 
 			n = 0;
 			for ( o in op_types )

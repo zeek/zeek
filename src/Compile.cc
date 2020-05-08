@@ -1734,17 +1734,33 @@ CompiledStmt AbstractMachine::PrevStmt(const CompiledStmt s)
 
 void AbstractMachine::SetV1(CompiledStmt s, const CompiledStmt s1)
 	{
-	stmts[s.stmt_num].v1 = s1.stmt_num;
+	auto& stmt = stmts[s.stmt_num];
+	stmt.v1 = s1.stmt_num;
+	ASSERT(stmt.op_type == OP_V);
+	stmt.op_type = OP_V_I1;
 	}
 
 void AbstractMachine::SetV2(CompiledStmt s, const CompiledStmt s2)
 	{
-	stmts[s.stmt_num].v2 = s2.stmt_num;
+	auto& stmt = stmts[s.stmt_num];
+	stmt.v2 = s2.stmt_num;
+
+	if ( stmt.op_type == OP_VV )
+		stmt.op_type = OP_VV_I2;
+
+	else if ( stmt.op_type == OP_VVC )
+		stmt.op_type = OP_VVC_I2;
+
+	else
+		ASSERT(false);
 	}
 
 void AbstractMachine::SetV3(CompiledStmt s, const CompiledStmt s2)
 	{
-	stmts[s.stmt_num].v3 = s2.stmt_num;
+	auto& stmt = stmts[s.stmt_num];
+	stmt.v3 = s2.stmt_num;
+	ASSERT(stmt.op_type == OP_VVV);
+	stmt.op_type = OP_VVV_I3;
 	}
 
 

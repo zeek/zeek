@@ -13,6 +13,13 @@ module GLOBAL;
 ##      string parsing reducing it to a single backslash upon rendering.
 ##
 ## Returns: the input pattern with "~~" replaced by OR'd elements of input set.
+##
+## Examples:
+## global r1 = set_to_regex(set("a", "b", "c"), "~~");
+## results: r1 = /^?(a|b|c)$?/
+##
+## global r2 = set_to_regex(set("a.com", "b.com", "c.com"), "\\.(~~)");
+## results: r2 = /^?(\.(a\.com|b\.com|c\.com))$?/
 function set_to_regex(ss: set[string], pat: string): pattern
 	{
 	local i: count = 0;

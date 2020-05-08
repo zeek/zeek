@@ -598,6 +598,7 @@ BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
 
 	type = {NewRef{}, id->Type()};
 	id->SetVal(make_intrusive<Val>(this));
+	id->SetConst();
 	}
 
 BuiltinFunc::~BuiltinFunc()

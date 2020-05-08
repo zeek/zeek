@@ -742,16 +742,15 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 			# generate correct typing for relationals (where
 			# the first operand has a type of bool regardless
 			# of the types of the other operands).
-			op1_is_const = type ~ /^VC/
-			op2_is_const = type ~ /^V.C/
-
-			op2_param = op2_is_const ? "c" : "n2"
+			op2_is_const = type ~ /^VC/
 
 			if ( type ~ /^.../ )
 				# Has three operands, choose second.
-				test_var = op2_param
+				test_var = op2_is_const ? "c" : "n2"
+			else if ( op2_is_const )
+				test_var = "c"
 			else
-				test_var = op1_is_const ? "c" : "n1"
+				test_var = op1_is_const ? "n" : "n1"
 
 			print ("\tauto t = " test_var "->Type();") >methods_f
 			print ("\tauto tag = t->Tag();") >methods_f
@@ -777,10 +776,13 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 				#
 				# We do not support vectors for these,
 				# even though the interpreter does.
+				op3_is_const = type ~ /^V.C/
+				op3_param = op2_is_const ? "n2" : (op3_is_const ? "c" : "n3")
+
 				if ( ev_mix1 != "P" || ev_mix2 != "S" )
 					gripe("unsupported eval-mixed")
 
-				print ("\t" else_text "if ( tag == TYPE_PATTERN && " op2_param "->Type()->Tag() == TYPE_STRING )") >methods_f
+				print ("\t" else_text "if ( tag == TYPE_PATTERN && " op3_param "->Type()->Tag() == TYPE_STRING )") >methods_f
 				print ("\t" part1 (full_op_no_sub "_PS") \
 					part2) >methods_f
 				}

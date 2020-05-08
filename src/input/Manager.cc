@@ -2509,7 +2509,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 					return nullptr;
 					}
 
-				index_type = {NewRef{}, enum_id->Type()->AsEnumType()};
+				index_type = enum_id->GetType();
 				}
 			else
 				index_type = base_type(stag);
@@ -2572,7 +2572,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 			return nullptr;
 			}
 
-		EnumType* t = id->Type()->AsEnumType();
+		EnumType* t = id->GetType()->AsEnumType();
 		int intval = t->Lookup(id->ModuleName(), id->Name());
 		if ( intval < 0 )
 			{

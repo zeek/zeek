@@ -191,9 +191,9 @@ void ScriptInfo::DoInitPostScript()
 			continue;
 			}
 
-		if ( IsFunc(id->Type()->Tag()) )
+		if ( IsFunc(id->GetType()->Tag()) )
 			{
-			switch ( id->Type()->AsFuncType()->Flavor() ) {
+			switch ( id->GetType()->AsFuncType()->Flavor() ) {
 			case FUNC_FLAVOR_HOOK:
 				DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a hook",
 				        id->Name(), name.c_str());
@@ -243,7 +243,7 @@ void ScriptInfo::DoInitPostScript()
 			continue;
 			}
 
-		if ( id->Type()->Tag() == TYPE_ENUM )
+		if ( id->GetType()->Tag() == TYPE_ENUM )
 			// Enums are always referenced/documented from the type's
 			// documentation.
 			continue;

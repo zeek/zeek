@@ -1196,12 +1196,12 @@ bool Manager::ProcessIdentifierUpdate(broker::zeek::IdentifierUpdate iu)
 		return false;
 		}
 
-	auto val = data_to_val(std::move(id_value), id->Type());
+	auto val = data_to_val(std::move(id_value), id->GetType().get());
 
 	if ( ! val )
 		{
 		reporter->Error("Failed to receive ID with unsupported type: %s (%s)",
-		                id_name.c_str(), type_name(id->Type()->Tag()));
+		                id_name.c_str(), type_name(id->GetType()->Tag()));
 		return false;
 		}
 

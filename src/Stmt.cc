@@ -190,7 +190,7 @@ static IntrusivePtr<EnumVal> lookup_enum_val(const char* module_name, const char
 	assert(id);
 	assert(id->IsEnumConst());
 
-	EnumType* et = id->Type()->AsEnumType();
+	EnumType* et = id->GetType()->AsEnumType();
 
 	int index = et->Lookup(module_name, name);
 	assert(index >= 0);
@@ -530,7 +530,7 @@ void Case::Describe(ODesc* d) const
 			d->SP();
 			d->Add("type");
 			d->SP();
-			t[i]->Type()->Describe(d);
+			t[i]->GetType()->Describe(d);
 
 			if ( t[i]->Name() )
 				{
@@ -677,9 +677,9 @@ SwitchStmt::SwitchStmt(IntrusivePtr<Expr> index, case_list* arg_cases)
 
 			for ( const auto& t : *tl )
 				{
-				BroType* ct = t->Type();
+				const auto& ct = t->GetType();
 
-	   			if ( ! can_cast_value_to_type(e->Type(), ct) )
+	   			if ( ! can_cast_value_to_type(e->Type(), ct.get()) )
 					{
 					c->Error("cannot cast switch expression to case type");
 					continue;
@@ -744,7 +744,7 @@ bool SwitchStmt::AddCaseLabelTypeMapping(ID* t, int idx)
 	{
 	for ( auto i : case_label_type_list )
 		{
-		if ( same_type(i.first->Type(), t->Type()) )
+		if ( same_type(i.first->GetType().get(), t->GetType().get()) )
 			return false;
 		}
 
@@ -782,9 +782,9 @@ std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const
 	for ( auto i : case_label_type_list )
 		{
 		auto id = i.first;
-		auto type = id->Type();
+		const auto& type = id->GetType();
 
-		if ( can_cast_value_to_type(v, type) )
+		if ( can_cast_value_to_type(v, type.get()) )
 			{
 			label_idx = i.second;
 			label_id = id;
@@ -815,7 +815,7 @@ IntrusivePtr<Val> SwitchStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) con
 
 		if ( matching_id )
 			{
-			auto cv = cast_value_to_type(v, matching_id->Type());
+			auto cv = cast_value_to_type(v, matching_id->GetType().get());
 			f->SetElement(matching_id, cv.release());
 			}
 
@@ -1080,17 +1080,18 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 		for ( auto i = 0u; i < indices.size(); i++ )
 			{
 			const auto& ind_type = indices[i];
+			const auto& lv = (*loop_vars)[i];
+			const auto& lvt = lv->GetType();
 
-			if ( (*loop_vars)[i]->Type() )
+			if ( lvt )
 				{
-				if ( ! same_type((*loop_vars)[i]->Type(), ind_type.get()) )
-					(*loop_vars)[i]->Type()->Error("type clash in iteration",
-					                               ind_type.get());
+				if ( ! same_type(lvt.get(), ind_type.get()) )
+					lvt->Error("type clash in iteration", ind_type.get());
 				}
 
 			else
 				{
-				add_local({NewRef{}, (*loop_vars)[i]}, ind_type, INIT_NONE,
+				add_local({NewRef{}, lv}, ind_type, INIT_NONE,
 				          nullptr, nullptr, VAR_REGULAR);
 				}
 			}
@@ -1104,7 +1105,8 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 			return;
 			}
 
-		BroType* t = (*loop_vars)[0]->Type();
+		const auto& t = (*loop_vars)[0]->GetType();
+
 		if ( ! t )
 			add_local({NewRef{}, (*loop_vars)[0]}, base_type(TYPE_COUNT),
 						INIT_NONE, nullptr, nullptr, VAR_REGULAR);
@@ -1124,7 +1126,8 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 			return;
 			}
 
-		BroType* t = (*loop_vars)[0]->Type();
+		const auto& t = (*loop_vars)[0]->GetType();
+
 		if ( ! t )
 			add_local({NewRef{}, (*loop_vars)[0]},
 					base_type(TYPE_STRING),
@@ -1151,10 +1154,10 @@ ForStmt::ForStmt(id_list* arg_loop_vars,
 		const auto& yield_type = e->Type()->AsTableType()->Yield();
 
 		// Verify value_vars type if its already been defined
-		if ( value_var->Type() )
+		if ( value_var->GetType() )
 			{
-			if ( ! same_type(value_var->Type(), yield_type.get()) )
-				value_var->Type()->Error("type clash in iteration", yield_type.get());
+			if ( ! same_type(value_var->GetType().get(), yield_type.get()) )
+				value_var->GetType()->Error("type clash in iteration", yield_type.get());
 			}
 		else
 			{
@@ -1422,7 +1425,7 @@ ReturnStmt::ReturnStmt(IntrusivePtr<Expr> arg_e)
 		return;
 		}
 
-	FuncType* ft = s->ScopeID()->Type()->AsFuncType();
+	FuncType* ft = s->ScopeID()->GetType()->AsFuncType();
 	const auto& yt = ft->Yield();
 
 	if ( s->ScopeID()->DoInferReturnType() )
@@ -1653,7 +1656,7 @@ IntrusivePtr<Val> InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
 
 	for ( const auto& aggr : *inits )
 		{
-		BroType* t = aggr->Type();
+		const auto& t = aggr->GetType();
 
 		Val* v = nullptr;
 
@@ -1665,7 +1668,7 @@ IntrusivePtr<Val> InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
 			v = new VectorVal(t->AsVectorType());
 			break;
 		case TYPE_TABLE:
-			v = new TableVal({NewRef{}, t->AsTableType()}, {NewRef{}, aggr->Attrs()});
+			v = new TableVal(cast_intrusive<TableType>(t), {NewRef{}, aggr->Attrs()});
 			break;
 		default:
 			break;

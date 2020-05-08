@@ -35,19 +35,19 @@ Config::Config(ReaderFrontend *frontend) : ReaderBackend(frontend)
 		if ( ! id->IsOption() )
 			continue;
 
-		if ( id->Type()->Tag() == TYPE_RECORD ||
-			 ! input::Manager::IsCompatibleType(id->Type()) )
+		if ( id->GetType()->Tag() == TYPE_RECORD ||
+			 ! input::Manager::IsCompatibleType(id->GetType().get()) )
 			{
-			option_types[id->Name()] = std::make_tuple(TYPE_ERROR, id->Type()->Tag());
+			option_types[id->Name()] = std::make_tuple(TYPE_ERROR, id->GetType()->Tag());
 			continue;
 			}
 
-		TypeTag primary = id->Type()->Tag();
+		TypeTag primary = id->GetType()->Tag();
 		TypeTag secondary = TYPE_VOID;
 		if ( primary == TYPE_TABLE )
-			secondary = id->Type()->AsSetType()->Indices()->GetPureType()->Tag();
+			secondary = id->GetType()->AsSetType()->Indices()->GetPureType()->Tag();
 		else if ( primary == TYPE_VECTOR )
-			secondary = id->Type()->AsVectorType()->Yield()->Tag();
+			secondary = id->GetType()->AsVectorType()->Yield()->Tag();
 
 		option_types[id->Name()] = std::make_tuple(primary, secondary);
 		}

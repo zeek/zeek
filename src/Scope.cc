@@ -26,14 +26,14 @@ Scope::Scope(IntrusivePtr<ID> id, attr_list* al)
 
 	if ( id )
 		{
-		BroType* id_type = scope_id->Type();
+		const auto& id_type = scope_id->GetType();
 
 		if ( id_type->Tag() == TYPE_ERROR )
 			return;
 		else if ( id_type->Tag() != TYPE_FUNC )
 			reporter->InternalError("bad scope id");
 
-		FuncType* ft = id->Type()->AsFuncType();
+		FuncType* ft = id->GetType()->AsFuncType();
 		return_type = ft->Yield();
 		}
 	}

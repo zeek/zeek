@@ -38,16 +38,18 @@ public:
 
 	void SetType(IntrusivePtr<BroType> t);
 
+	[[deprecated("Remove in v4.1.  Use GetType().")]]
 	BroType* Type()			{ return type.get(); }
+	[[deprecated("Remove in v4.1.  Use GetType().")]]
 	const BroType* Type() const	{ return type.get(); }
 
 	const IntrusivePtr<BroType>& GetType() const
 		{ return type; }
 
 	[[deprecated("Remove in v4.1.  Use IsType() and GetType().")]]
-	BroType* AsType()		{ return is_type ? Type() : nullptr; }
+	BroType* AsType()		{ return is_type ? GetType().get() : nullptr; }
 	[[deprecated("Remove in v4.1.  Use IsType() and GetType().")]]
-	const BroType* AsType() const	{ return is_type ? Type() : nullptr; }
+	const BroType* AsType() const	{ return is_type ? GetType().get() : nullptr; }
 
 	bool IsType() const
 		{ return is_type; }

@@ -167,7 +167,7 @@ void ID::UpdateValAttrs()
 	if ( val && val->Type()->Tag() == TYPE_FILE )
 		val->AsFile()->SetAttrs(attrs.get());
 
-	if ( Type()->Tag() == TYPE_FUNC )
+	if ( GetType()->Tag() == TYPE_FUNC )
 		{
 		Attr* attr = attrs->FindAttr(ATTR_ERROR_HANDLER);
 
@@ -175,13 +175,13 @@ void ID::UpdateValAttrs()
 			event_registry->SetErrorHandler(Name());
 		}
 
-	if ( Type()->Tag() == TYPE_RECORD )
+	if ( GetType()->Tag() == TYPE_RECORD )
 		{
 		Attr* attr = attrs->FindAttr(ATTR_LOG);
 		if ( attr )
 			{
 			// Apply &log to all record fields.
-			RecordType* rt = Type()->AsRecordType();
+			RecordType* rt = GetType()->AsRecordType();
 			for ( int i = 0; i < rt->NumFields(); ++i )
 				{
 				TypeDecl* fd = rt->FieldDecl(i);
@@ -211,7 +211,7 @@ void ID::MakeDeprecated(IntrusivePtr<Expr> deprecation)
 		return;
 
 	attr_list* attr = new attr_list{new Attr(ATTR_DEPRECATED, std::move(deprecation))};
-	AddAttrs(make_intrusive<Attributes>(attr, IntrusivePtr{NewRef{}, Type()}, false, IsGlobal()));
+	AddAttrs(make_intrusive<Attributes>(attr, GetType(), false, IsGlobal()));
 	}
 
 std::string ID::GetDeprecationWarning() const
@@ -261,7 +261,7 @@ void ID::SetOption()
 	if ( ! IsRedefinable() )
 		{
 		attr_list* attr = new attr_list{new Attr(ATTR_REDEF)};
-		AddAttrs(make_intrusive<Attributes>(attr, IntrusivePtr{NewRef{}, Type()}, false, IsGlobal()));
+		AddAttrs(make_intrusive<Attributes>(attr, GetType(), false, IsGlobal()));
 		}
 	}
 

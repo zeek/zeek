@@ -219,9 +219,9 @@ NameExpr::NameExpr(IntrusivePtr<ID> arg_id, bool const_init)
 	in_const_init = const_init;
 
 	if ( id->IsType() )
-		SetType(make_intrusive<TypeType>(IntrusivePtr{NewRef{}, id->Type()}));
+		SetType(make_intrusive<TypeType>(id->GetType()));
 	else
-		SetType({NewRef{}, id->Type()});
+		SetType(id->GetType());
 
 	EventHandler* h = event_registry->Lookup(id->Name());
 	if ( h )
@@ -233,7 +233,7 @@ IntrusivePtr<Val> NameExpr::Eval(Frame* f) const
 	IntrusivePtr<Val> v;
 
 	if ( id->IsType() )
-		return make_intrusive<Val>(id->Type(), true);
+		return make_intrusive<Val>(id->GetType().get(), true);
 
 	if ( id->IsGlobal() )
 		v = {NewRef{}, id->ID_Val()};
@@ -4262,7 +4262,7 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 	ingredients = std::move(arg_ing);
 	outer_ids = std::move(arg_outer_ids);
 
-	SetType({NewRef{}, ingredients->id->Type()});
+	SetType(ingredients->id->GetType());
 
 	// Install a dummy version of the function globally for use only
 	// when broker provides a closure.
@@ -4307,7 +4307,7 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 	auto v = make_intrusive<Val>(dummy_func);
 	Unref(dummy_func);
 	id->SetVal(std::move(v));
-	id->SetType({NewRef{}, ingredients->id->Type()});
+	id->SetType(ingredients->id->GetType());
 	id->SetConst();
 	}
 

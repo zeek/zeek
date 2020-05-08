@@ -44,10 +44,10 @@ FuncType* EventHandler::FType(bool check_export)
 	if ( ! id )
 		return nullptr;
 
-	if ( id->Type()->Tag() != TYPE_FUNC )
+	if ( id->GetType()->Tag() != TYPE_FUNC )
 		return nullptr;
 
-	type = id->Type()->AsFuncType();
+	type = id->GetType()->AsFuncType();
 	return type;
 	}
 

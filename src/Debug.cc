@@ -207,7 +207,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 		return;
 		}
 
-	if ( ! id->Type()->AsFuncType() )
+	if ( ! id->GetType()->AsFuncType() )
 		{
 		debug_msg("Function %s not declared.\n", id->Name());
 		plr.type = plrUnknown;

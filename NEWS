@@ -155,6 +155,8 @@ Deprecated Functionality
 
 - ``ID::AsType()`` is deprecated, use ``ID::IsType()`` and ``ID::GetType()``.
 
+- ``ID::Type()`` is deprecated, use ``ID::GetType()``.
+
 Zeek 3.1.0
 ==========
 

@@ -274,7 +274,7 @@ void Manager::StartType(IntrusivePtr<ID> id)
 
 static bool IsEnumType(ID* id)
 	{
-	return id->IsType() ? id->Type()->Tag() == TYPE_ENUM : false;
+	return id->IsType() ? id->GetType()->Tag() == TYPE_ENUM : false;
 	}
 
 void Manager::Identifier(IntrusivePtr<ID> id)
@@ -300,7 +300,7 @@ void Manager::Identifier(IntrusivePtr<ID> id)
 
 	if ( id_info )
 		{
-		if ( IsFunc(id_info->GetID()->Type()->Tag()) )
+		if ( IsFunc(id_info->GetID()->GetType()->Tag()) )
 			{
 			// Function may already been seen (declaration versus body).
 			id_info->AddComments(comment_buffer);

@@ -116,7 +116,7 @@ string IdentifierInfo::DoReStructuredText(bool roles_only) const
 		if ( i > 0 )
 			d.NL();
 
-		if ( IsFunc(id->Type()->Tag()) )
+		if ( IsFunc(id->GetType()->Tag()) )
 			{
 			string s = comments[i];
 

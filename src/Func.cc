@@ -271,7 +271,7 @@ BroFunc::BroFunc(ID* arg_id, IntrusivePtr<Stmt> arg_body, id_list* aggr_inits,
 	: Func(BRO_FUNC)
 	{
 	name = arg_id->Name();
-	type = {NewRef{}, arg_id->Type()};
+	type = arg_id->GetType();
 	frame_size = arg_frame_size;
 
 	if ( arg_body )
@@ -593,7 +593,7 @@ BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
 	if ( id->HasVal() )
 		reporter->InternalError("built-in function %s multiply defined", Name());
 
-	type = {NewRef{}, id->Type()};
+	type = id->GetType();
 	id->SetVal(make_intrusive<Val>(this));
 	}
 

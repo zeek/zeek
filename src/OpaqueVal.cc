@@ -133,7 +133,7 @@ BroType* OpaqueVal::UnserializeType(const broker::data& data)
 		if ( ! id->IsType() )
 			return nullptr;
 
-		return id->Type()->Ref();
+		return id->GetType()->Ref();
 		}
 
 	auto tag = caf::get_if<uint64_t>(&(*v)[1]);

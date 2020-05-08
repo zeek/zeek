@@ -136,10 +136,10 @@ RuleConditionEval::RuleConditionEval(const char* func)
 		return;
 		}
 
-	if ( id->Type()->Tag() == TYPE_FUNC )
+	if ( id->GetType()->Tag() == TYPE_FUNC )
 		{
 		// Validate argument quantity and type.
-		FuncType* f = id->Type()->AsFuncType();
+		FuncType* f = id->GetType()->AsFuncType();
 
 		if ( f->Yield()->Tag() != TYPE_BOOL )
 			rules_error("eval function type must yield a 'bool'", func);
@@ -163,7 +163,7 @@ bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state,
 		return false;
 		}
 
-	if ( id->Type()->Tag() != TYPE_FUNC )
+	if ( id->GetType()->Tag() != TYPE_FUNC )
 		return id->ID_Val()->AsBool();
 
 	// Call function with a signature_state value as argument.

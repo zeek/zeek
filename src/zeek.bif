@@ -1951,7 +1951,7 @@ function global_ids%(%): id_table
 		{
 		ID* id = global.second.get();
 		auto rec = make_intrusive<RecordVal>(script_id);
-		rec->Assign(0, make_intrusive<StringVal>(type_name(id->Type()->Tag())));
+		rec->Assign(0, make_intrusive<StringVal>(type_name(id->GetType()->Tag())));
 		rec->Assign(1, val_mgr->Bool(id->IsExport()));
 		rec->Assign(2, val_mgr->Bool(id->IsConst()));
 		rec->Assign(3, val_mgr->Bool(id->IsEnumConst()));
@@ -2003,14 +2003,14 @@ function record_fields%(rec: any%): record_field_table
 		{
 		auto id = global_scope()->Lookup(rec->AsStringVal()->ToStdString());
 
-		if ( ! id || ! id->IsType() || id->Type()->Tag() != TYPE_RECORD )
+		if ( ! id || ! id->IsType() || id->GetType()->Tag() != TYPE_RECORD )
 			{
 			reporter->Error("record_fields string argument does not name a record type");
 			IntrusivePtr<TableType> tt{NewRef{}, internal_type("record_field_table")->AsTableType()};
 			return make_intrusive<TableVal>(std::move(tt));
 			}
 
-		return id->Type()->AsRecordType()->GetRecordFieldsVal();
+		return id->GetType()->AsRecordType()->GetRecordFieldsVal();
 		}
 
 	return rec->GetRecordFields();

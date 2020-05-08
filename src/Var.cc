@@ -32,7 +32,7 @@ static IntrusivePtr<Val> init_val(Expr* init, const BroType* t,
 static bool add_prototype(ID* id, BroType* t, attr_list* attrs,
                           const IntrusivePtr<Expr>& init)
 	{
-	if ( ! IsFunc(id->Type()->Tag()) )
+	if ( ! IsFunc(id->GetType()->Tag()) )
 		return false;
 
 	if ( ! IsFunc(t->Tag()) )
@@ -41,7 +41,7 @@ static bool add_prototype(ID* id, BroType* t, attr_list* attrs,
 		return false;
 		}
 
-	auto canon_ft = id->Type()->AsFuncType();
+	auto canon_ft = id->GetType()->AsFuncType();
 	auto alt_ft = t->AsFuncType();
 
 	if ( canon_ft->Flavor() != alt_ft->Flavor() )
@@ -110,9 +110,9 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
                      IntrusivePtr<Expr> init, attr_list* attr, decl_type dt,
                      bool do_init)
 	{
-	if ( id->Type() )
+	if ( id->GetType() )
 		{
-		if ( id->IsRedefinable() || (! init && attr && ! IsFunc(id->Type()->Tag())) )
+		if ( id->IsRedefinable() || (! init && attr && ! IsFunc(id->GetType()->Tag())) )
 			{
 			BroObj* redef_obj = init ? (BroObj*) init.get() : (BroObj*) t.get();
 			if ( dt != VAR_REDEF )
@@ -121,7 +121,7 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 
 		else if ( dt != VAR_REDEF || init || ! attr )
 			{
-			if ( IsFunc(id->Type()->Tag()) )
+			if ( IsFunc(id->GetType()->Tag()) )
 				add_prototype(id, t.get(), attr, init);
 			else
 				id->Error("already defined", init.get());
@@ -132,17 +132,17 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 
 	if ( dt == VAR_REDEF )
 		{
-		if ( ! id->Type() )
+		if ( ! id->GetType() )
 			{
 			id->Error("\"redef\" used but not previously defined");
 			return;
 			}
 
 		if ( ! t )
-			t = {NewRef{}, id->Type()};
+			t = id->GetType();
 		}
 
-	if ( id->Type() && id->Type()->Tag() != TYPE_ERROR )
+	if ( id->GetType() && id->GetType()->Tag() != TYPE_ERROR )
 		{
 		if ( dt != VAR_REDEF &&
 		     (! init || ! do_init || (! t && ! (t = init_type(init.get())))) )
@@ -152,7 +152,7 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 			}
 
 		// Allow redeclaration in order to initialize.
-		if ( ! same_type(t.get(), id->Type()) )
+		if ( ! same_type(t.get(), id->GetType().get()) )
 			{
 			id->Error("redefinition changes type", init.get());
 			return;
@@ -469,9 +469,9 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 
 	std::optional<FuncType::Prototype> prototype;
 
-	if ( id->Type() )
+	if ( id->GetType() )
 		{
-		auto decl = id->Type()->AsFuncType();
+		auto decl = id->GetType()->AsFuncType();
 		prototype = func_type_check(decl, t.get());
 
 		if ( prototype )
@@ -766,7 +766,7 @@ BroType* internal_type(const char* name)
 	if ( ! id )
 		reporter->InternalError("internal type %s missing", name);
 
-	return id->Type();
+	return id->GetType().get();
 	}
 
 Func* internal_func(const char* name)

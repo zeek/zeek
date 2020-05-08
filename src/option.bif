@@ -82,12 +82,12 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 	if ( same_type(val->Type(), bro_broker::DataVal::ScriptDataType()) )
 		{
 		auto dv = static_cast<bro_broker::DataVal*>(val->AsRecordVal()->Lookup(0));
-		auto val_from_data = dv->castTo(i->Type());
+		auto val_from_data = dv->castTo(i->GetType().get());
 
 		if ( ! val_from_data )
 			{
 			builtin_error(fmt("Incompatible type for set of ID '%s': got broker data '%s', need '%s'",
-				ID->CheckString(), dv->data.get_type_name(), type_name(i->Type()->Tag())));
+				ID->CheckString(), dv->data.get_type_name(), type_name(i->GetType()->Tag())));
 			return val_mgr->False();
 			}
 
@@ -95,22 +95,22 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 		return val_mgr->Bool(rval);
 		}
 
-	if ( ! same_type(i->Type(), val->Type()) )
+	if ( ! same_type(i->GetType().get(), val->Type()) )
 		{
-		if ( i->Type()->Tag() == TYPE_TABLE &&
+		if ( i->GetType()->Tag() == TYPE_TABLE &&
 		     val->Type()->Tag() == TYPE_TABLE &&
 		     val->Type()->AsTableType()->IsUnspecifiedTable() )
 			{
 			// Just coerce an empty/unspecified table to the right type.
 			auto tv = make_intrusive<TableVal>(
-			        IntrusivePtr{NewRef{}, i->Type()->AsTableType()},
+			        cast_intrusive<TableType>(i->GetType()),
 			        IntrusivePtr{NewRef{}, i->ID_Val()->AsTableVal()->Attrs()});
 			auto rval = call_option_handlers_and_set_value(ID, i, std::move(tv), location);
 			return val_mgr->Bool(rval);
 			}
 
 		builtin_error(fmt("Incompatible type for set of ID '%s': got '%s', need '%s'",
-			ID->CheckString(), type_name(val->Type()->Tag()), type_name(i->Type()->Tag())));
+			ID->CheckString(), type_name(val->Type()->Tag()), type_name(i->GetType()->Tag())));
 		return val_mgr->False();
 		}
 
@@ -185,10 +185,10 @@ function Option::set_change_handler%(ID: string, on_change: any, priority: int &
 		return val_mgr->False();
 		}
 
-	if ( ! same_type(args[1].get(), i->Type()) )
+	if ( ! same_type(args[1].get(), i->GetType().get()) )
 		{
 		builtin_error(fmt("Second argument of passed function has to be %s in Option::on_change for ID '%s'; got '%s'",
-			type_name(i->Type()->Tag()), ID->CheckString(), type_name(args[1]->Tag())));
+			type_name(i->GetType()->Tag()), ID->CheckString(), type_name(args[1]->Tag())));
 		return val_mgr->False();
 		}
 
@@ -199,10 +199,10 @@ function Option::set_change_handler%(ID: string, on_change: any, priority: int &
 		return val_mgr->False();
 		}
 
-	if ( ! same_type(on_change->Type()->AsFuncType()->Yield().get(), i->Type()) )
+	if ( ! same_type(on_change->Type()->AsFuncType()->Yield().get(), i->GetType().get()) )
 		{
 		builtin_error(fmt("Passed function needs to return type '%s' for ID '%s'; got '%s'",
-			type_name(i->Type()->Tag()), ID->CheckString(), type_name(on_change->Type()->AsFuncType()->Yield()->Tag())));
+			type_name(i->GetType()->Tag()), ID->CheckString(), type_name(on_change->Type()->AsFuncType()->Yield()->Tag())));
 		return val_mgr->False();
 		}
 

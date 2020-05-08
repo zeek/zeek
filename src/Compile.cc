@@ -746,8 +746,8 @@ IntrusivePtr<Val> AbstractMachine::DoExec(Frame* f, int start_pc,
 	// Return value, or nil if none.
 	const AS_ValUnion* ret_u;
 
-	// Type of the return value.  Only needed if ret_u is set.
-	BroType* ret_type;
+	// Type of the return value.  If nil, then we don't have a value.
+	BroType* ret_type = nullptr;
 
 	// Clear slots for which we do explicit memory management.
 	for ( auto s : managed_slots )
@@ -756,7 +756,13 @@ IntrusivePtr<Val> AbstractMachine::DoExec(Frame* f, int start_pc,
 	while ( pc < end_pc && ! error_flag ) {
 		auto& s = stmts[pc];
 
-		switch ( stmts[pc].op ) {
+		if ( 0 )
+			{
+			printf("executing %d: ", pc);
+			s.Dump(frame_denizens);
+			}
+
+		switch ( s.op ) {
 		case OP_NOP:
 			break;
 
@@ -766,8 +772,7 @@ IntrusivePtr<Val> AbstractMachine::DoExec(Frame* f, int start_pc,
 		++pc;
 		}
 
-	auto result =
-		(ret_u && ! error_flag) ? ret_u->ToVal(ret_type) : nullptr;
+	auto result = ret_type ? ret_u->ToVal(ret_type) : nullptr;
 
 	// Free those slots for which we do explicit memory management.
 	for ( auto i = 0; i < managed_slots.size(); ++i )
@@ -785,6 +790,8 @@ IntrusivePtr<Val> AbstractMachine::DoExec(Frame* f, int start_pc,
 		}
 
 	delete [] frame;
+
+	// ### should propagate error.
 
 	flow = FLOW_RETURN;
 
@@ -1398,7 +1405,7 @@ const CompiledStmt AbstractMachine::StartingBlock()
 
 const CompiledStmt AbstractMachine::FinishBlock(const CompiledStmt /* start */)
 	{
-	return CompiledStmt(stmts.size());
+	return CompiledStmt(stmts.size() - 1);
 	}
 
 bool AbstractMachine::NullStmtOK() const

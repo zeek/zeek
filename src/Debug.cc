@@ -221,7 +221,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 		return;
 		}
 
-	const Func* func = id->ID_Val()->AsFunc();
+	const Func* func = id->GetVal()->AsFunc();
 	const vector<Func::Body>& bodies = func->GetBodies();
 
 	if ( bodies.size() == 0 )

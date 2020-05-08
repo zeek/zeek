@@ -631,11 +631,11 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	// initialization).
 	binpac::FlowBuffer::Policy flowbuffer_policy;
 	flowbuffer_policy.max_capacity = global_scope()->Lookup(
-		"BinPAC::flowbuffer_capacity_max")->ID_Val()->AsCount();
+		"BinPAC::flowbuffer_capacity_max")->GetVal()->AsCount();
 	flowbuffer_policy.min_capacity = global_scope()->Lookup(
-		"BinPAC::flowbuffer_capacity_min")->ID_Val()->AsCount();
+		"BinPAC::flowbuffer_capacity_min")->GetVal()->AsCount();
 	flowbuffer_policy.contract_threshold = global_scope()->Lookup(
-		"BinPAC::flowbuffer_contract_threshold")->ID_Val()->AsCount();
+		"BinPAC::flowbuffer_contract_threshold")->GetVal()->AsCount();
 	binpac::init(&flowbuffer_policy);
 
 	plugin_mgr->InitBifs();

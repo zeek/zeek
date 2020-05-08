@@ -1184,7 +1184,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 		{
 		ID* id = global_scope()->Lookup("Log::default_rotation_interval");
 		assert(id);
-		winfo->interval = id->ID_Val()->AsInterval();
+		winfo->interval = id->GetVal()->AsInterval();
 		}
 
 	stream->writers.insert(
@@ -1527,7 +1527,7 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 		{
 		ID* id = global_scope()->Lookup("Log::__default_rotation_postprocessor");
 		assert(id);
-		func = id->ID_Val()->AsFunc();
+		func = id->GetVal()->AsFunc();
 		}
 
 	assert(func);

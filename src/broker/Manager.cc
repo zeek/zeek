@@ -31,10 +31,10 @@ static inline Val* get_option(const char* option)
 	{
 	auto id = global_scope()->Lookup(option);
 
-	if ( ! (id && id->ID_Val()) )
+	if ( ! (id && id->GetVal()) )
 		reporter->FatalError("Unknown Broker option %s", option);
 
-	return id->ID_Val();
+	return id->GetVal().get();
 	}
 
 class BrokerConfig : public broker::configuration {
@@ -418,14 +418,14 @@ bool Manager::PublishIdentifier(std::string topic, std::string id)
 	if ( ! i )
 		return false;
 
-	auto val = i->ID_Val();
+	const auto& val = i->GetVal();
 
 	if ( ! val )
 		// Probably could have a special case to also unset the value on the
 		// receiving side, but not sure what use that would be.
 		return false;
 
-	auto data = val_to_data(val);
+	auto data = val_to_data(val.get());
 
 	if ( ! data )
 		{

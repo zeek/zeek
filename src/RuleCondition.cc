@@ -164,7 +164,7 @@ bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state,
 		}
 
 	if ( id->GetType()->Tag() != TYPE_FUNC )
-		return id->ID_Val()->AsBool();
+		return id->GetVal()->AsBool();
 
 	// Call function with a signature_state value as argument.
 	zeek::Args args;
@@ -180,7 +180,7 @@ bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state,
 
 	try
 		{
-		auto val = id->ID_Val()->AsFunc()->Call(args);
+		auto val = id->GetVal()->AsFunc()->Call(args);
 		result = val && val->AsBool();
 		}
 

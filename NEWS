@@ -157,6 +157,8 @@ Deprecated Functionality
 
 - ``ID::Type()`` is deprecated, use ``ID::GetType()``.
 
+- ``ID::ID_Val()`` is deprecated, use ``ID::GetVal()``.
+
 Zeek 3.1.0
 ==========
 

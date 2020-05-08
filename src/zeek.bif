@@ -1926,7 +1926,7 @@ function global_sizes%(%): var_sizes
 		if ( id->HasVal() )
 			{
 			auto id_name = make_intrusive<StringVal>(id->Name());
-			auto id_size = val_mgr->Count(id->ID_Val()->MemoryAllocation());
+			auto id_size = val_mgr->Count(id->GetVal()->MemoryAllocation());
 			sizes->Assign(id_name.get(), std::move(id_size));
 			}
 		}
@@ -1959,11 +1959,7 @@ function global_ids%(%): id_table
 		rec->Assign(5, val_mgr->Bool(id->IsRedefinable()));
 
 		if ( id->HasVal() )
-			{
-			Val* val = id->ID_Val();
-			Ref(val);
-			rec->Assign(6, val);
-			}
+			rec->Assign(6, id->GetVal());
 
 		auto id_name = make_intrusive<StringVal>(id->Name());
 		ids->Assign(id_name.get(), std::move(rec));
@@ -1984,10 +1980,10 @@ function lookup_ID%(id: string%) : any
 	if ( ! i )
 		return make_intrusive<StringVal>("<unknown id>");
 
-	if ( ! i->ID_Val() )
+	if ( ! i->GetVal() )
 		return make_intrusive<StringVal>("<no ID value>");
 
-	return IntrusivePtr{NewRef{}, i->ID_Val()};
+	return i->GetVal();
 	%}
 
 ## Generates metadata about a record's fields. The returned information
@@ -3908,7 +3904,7 @@ static Val* mmdb_getvalue(MMDB_entry_data_s* entry_data, int status,
 static bool mmdb_try_open_loc ()
 	{
 	// City database is always preferred over Country database.
-	auto mmdb_dir_val = global_scope()->Lookup("mmdb_dir")->ID_Val();
+	const auto& mmdb_dir_val = global_scope()->Lookup("mmdb_dir")->GetVal();
 	std::string mmdb_dir = mmdb_dir_val->AsString()->CheckString();
 
 	if ( ! mmdb_dir.empty() )
@@ -3936,7 +3932,7 @@ static bool mmdb_try_open_loc ()
 
 static bool mmdb_try_open_asn ()
 	{
-	auto mmdb_dir_val = global_scope()->Lookup("mmdb_dir")->ID_Val();
+	const auto& mmdb_dir_val = global_scope()->Lookup("mmdb_dir")->GetVal();
 	std::string mmdb_dir = mmdb_dir_val->AsString()->CheckString();
 
 	if ( ! mmdb_dir.empty() )

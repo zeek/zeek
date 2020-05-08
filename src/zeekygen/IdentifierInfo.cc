@@ -16,8 +16,8 @@ IdentifierInfo::IdentifierInfo(IntrusivePtr<ID> arg_id, ScriptInfo* script)
 	  comments(), id(std::move(arg_id)), initial_val(), redefs(), fields(),
 	  last_field_seen(), declaring_script(script)
 	{
-	if ( id->ID_Val() && (id->IsOption() || id->IsRedefinable()) )
-		initial_val = id->ID_Val()->Clone();
+	if ( id->GetVal() && (id->IsOption() || id->IsRedefinable()) )
+		initial_val = id->GetVal()->Clone();
 	}
 
 IdentifierInfo::~IdentifierInfo()

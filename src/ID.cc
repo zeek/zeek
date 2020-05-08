@@ -25,7 +25,6 @@ ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 	scope = arg_scope;
 	is_export = arg_is_export;
 	is_option = false;
-	val = nullptr;
 	is_const = false;
 	is_enum_const = false;
 	is_type = false;
@@ -41,8 +40,8 @@ ID::~ID()
 	{
 	delete [] name;
 
-	if ( ! weak_ref )
-		Unref(val);
+	if ( weak_ref )
+		val.release();
 	}
 
 std::string ID::ModuleName() const
@@ -57,18 +56,16 @@ void ID::SetType(IntrusivePtr<BroType> t)
 
 void ID::ClearVal()
 	{
-	if ( ! weak_ref )
-		Unref(val);
-
-	val = nullptr;
+	if ( weak_ref )
+		val.release();
 	}
 
 void ID::SetVal(IntrusivePtr<Val> v, bool arg_weak_ref)
 	{
-	if ( ! weak_ref )
-		Unref(val);
+	if ( weak_ref )
+		val.release();
 
-	val = v.release();
+	val = std::move(v);
 	weak_ref = arg_weak_ref;
 	Modified();
 
@@ -124,12 +121,12 @@ void ID::SetVal(IntrusivePtr<Val> v, init_class c)
 				return;
 				}
 			else
-				v->AddTo(val, false);
+				v->AddTo(val.get(), false);
 			}
 		else
 			{
 			if ( val )
-				v->RemoveFrom(val);
+				v->RemoveFrom(val.get());
 			}
 		}
 	}
@@ -267,7 +264,7 @@ void ID::SetOption()
 
 void ID::EvalFunc(IntrusivePtr<Expr> ef, IntrusivePtr<Expr> ev)
 	{
-	auto arg1 = make_intrusive<ConstExpr>(IntrusivePtr{NewRef{}, val});
+	auto arg1 = make_intrusive<ConstExpr>(val);
 	auto args = make_intrusive<ListExpr>();
 	args->Append(std::move(arg1));
 	args->Append(std::move(ev));
@@ -488,10 +485,8 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const
 		d->Add(":Default:");
 		auto ii = zeekygen_mgr->GetIdentifierInfo(Name());
 		auto redefs = ii->GetRedefs();
-		auto iv = val;
-
-		if ( ! redefs.empty() && ii->InitialVal() )
-			iv = ii->InitialVal();
+		const auto& iv = ! redefs.empty() && ii->InitialVal() ? ii->InitialVal()
+			                                                  : val;
 
 		if ( type->InternalType() == TYPE_INTERNAL_OTHER )
 			{

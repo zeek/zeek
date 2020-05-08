@@ -1168,7 +1168,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 		// cyclic dependencies.
 		string fullname = make_full_var_name(module_name.c_str(), name);
 		if ( id->Name() != fullname
-		     || (id->HasVal() && val != id->ID_Val()->AsEnum())
+		     || (id->HasVal() && val != id->GetVal()->AsEnum())
 		     || (names.find(fullname) != names.end() && names[fullname] != val) )
 			{
 			reporter->Error("identifier or enumerator value in enumerated type definition already exists");

@@ -357,7 +357,7 @@ struct val_converter {
 			if ( ! id )
 				return nullptr;
 
-			auto rval = id->ID_Val();
+			const auto& rval = id->GetVal();
 			if ( ! rval )
 				return nullptr;
 
@@ -701,7 +701,7 @@ struct type_checker {
 			if ( ! id )
 				return false;
 
-			auto rval = id->ID_Val();
+			const auto& rval = id->GetVal();
 			if ( ! rval )
 				return false;
 

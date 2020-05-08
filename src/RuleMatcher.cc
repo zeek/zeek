@@ -1278,7 +1278,7 @@ static Val* get_bro_val(const char* label)
 		return nullptr;
 		}
 
-	return id->ID_Val();
+	return id->GetVal().get();
 	}
 
 

@@ -1195,7 +1195,7 @@ bool Supervisor::SupervisedNode::InitCluster() const
 	auto cluster_node_type = global_scope()->Lookup("Cluster::Node")->GetType()->AsRecordType();
 	auto cluster_nodes_id = global_scope()->Lookup("Cluster::nodes");
 	auto cluster_manager_is_logger_id = global_scope()->Lookup("Cluster::manager_is_logger");
-	auto cluster_nodes = cluster_nodes_id->ID_Val()->AsTableVal();
+	auto cluster_nodes = cluster_nodes_id->GetVal()->AsTableVal();
 	auto has_logger = false;
 	std::optional<std::string> manager_name;
 

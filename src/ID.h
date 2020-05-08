@@ -70,8 +70,15 @@ public:
 	void SetVal(IntrusivePtr<Expr> ev, init_class c);
 
 	bool HasVal() const		{ return val != nullptr; }
-	Val* ID_Val()			{ return val; }
-	const Val* ID_Val() const	{ return val; }
+
+	[[deprecated("Remove in v4.1.  Use GetVal().")]]
+	Val* ID_Val()			{ return val.get(); }
+	[[deprecated("Remove in v4.1.  Use GetVal().")]]
+	const Val* ID_Val() const	{ return val.get(); }
+
+	const IntrusivePtr<Val>& GetVal() const
+		{ return val; }
+
 	void ClearVal();
 
 	void SetConst()			{ is_const = true; }
@@ -139,7 +146,7 @@ protected:
 	IntrusivePtr<BroType> type;
 	bool is_const, is_enum_const, is_type, is_option;
 	int offset;
-	Val* val;
+	IntrusivePtr<Val> val;
 	IntrusivePtr<Attributes> attrs;
 	// contains list of functions that are called when an option changes
 	std::multimap<int, IntrusivePtr<Func>> option_handlers;

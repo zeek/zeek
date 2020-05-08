@@ -525,7 +525,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 
 	if ( id->HasVal() )
 		{
-		function_flavor id_flavor = id->ID_Val()->AsFunc()->Flavor();
+		function_flavor id_flavor = id->GetVal()->AsFunc()->Flavor();
 
 		if ( id_flavor != flavor )
 			id->Error("inconsistent function flavor", t.get());
@@ -630,7 +630,7 @@ void end_func(IntrusivePtr<Stmt> body)
 	auto ingredients = std::make_unique<function_ingredients>(pop_scope(), std::move(body));
 
 	if ( ingredients->id->HasVal() )
-		ingredients->id->ID_Val()->AsFunc()->AddBody(
+		ingredients->id->GetVal()->AsFunc()->AddBody(
 			ingredients->body,
 			ingredients->inits,
 			ingredients->frame_size,
@@ -648,7 +648,7 @@ void end_func(IntrusivePtr<Stmt> body)
 		ingredients->id->SetConst();
 		}
 
-	ingredients->id->ID_Val()->AsFunc()->SetScope(ingredients->scope);
+	ingredients->id->GetVal()->AsFunc()->SetScope(ingredients->scope);
 	// Note: ideally, something would take ownership of this memory until the
 	// end of script execution, but that's essentially the same as the
 	// lifetime of the process at the moment, so ok to "leak" it.
@@ -662,7 +662,7 @@ Val* internal_val(const char* name)
 	if ( ! id )
 		reporter->InternalError("internal variable %s missing", name);
 
-	return id->ID_Val();
+	return id->GetVal().get();
 	}
 
 id_list gather_outer_ids(Scope* scope, Stmt* body)
@@ -694,13 +694,13 @@ Val* internal_const_val(const char* name)
 	if ( ! id->IsConst() )
 		reporter->InternalError("internal variable %s is not constant", name);
 
-	return id->ID_Val();
+	return id->GetVal().get();
 	}
 
 Val* opt_internal_val(const char* name)
 	{
 	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
-	return id ? id->ID_Val() : nullptr;
+	return id ? id->GetVal().get() : nullptr;
 	}
 
 double opt_internal_double(const char* name)
@@ -739,7 +739,7 @@ ListVal* internal_list_val(const char* name)
 	if ( ! id )
 		return nullptr;
 
-	Val* v = id->ID_Val();
+	Val* v = id->GetVal().get();
 
 	if ( v )
 		{

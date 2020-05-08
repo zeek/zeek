@@ -257,9 +257,9 @@ void ProfileLogger::Log()
 			// contained in some other global user-visible container.
 			if ( id->HasVal() )
 				{
-				Val* v = id->ID_Val();
+				const auto& v = id->GetVal();
 
-				size = id->ID_Val()->MemoryAllocation();
+				size = v->MemoryAllocation();
 				mem += size;
 
 				bool print = false;

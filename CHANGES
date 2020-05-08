@@ -1,4 +1,12 @@
 
+3.2.0-dev.478 | 2020-05-08 11:47:38 -0700
+
+  * Added examples to set_to_regex comments (James Lagermann, Corelight)
+
+  * Unbreak build on Fedora 32 (gcc 10.0.1) (Johanna Amann, Corelight)
+
+    It requires cstdint in a few more headers.
+
 3.2.0-dev.475 | 2020-05-07 17:15:23 -0700
 
   * GH-958: Fix crash when trying to redef non-existing enum (Johanna Amann, Corelight)

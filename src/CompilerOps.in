@@ -545,6 +545,7 @@ eval pc = end_pc
 
 op Return
 type V
+set-type $1
 eval ret_u = &frame[s.v1]
 eval ret_type = s.t
 eval pc = end_pc

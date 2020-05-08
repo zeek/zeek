@@ -157,7 +157,7 @@ public:
 	const CompiledStmt LoopOverString(const ForStmt* f, const NameExpr* val);
 
 	const CompiledStmt FinishLoop(AbstractStmt iter_stmt, const Stmt* body,
-					int info_slot, bool branch_slot_3);
+					int info_slot);
 
 	const CompiledStmt InitRecord(ID* id, RecordType* rt) override;
 	const CompiledStmt InitVector(ID* id, VectorType* vt) override;

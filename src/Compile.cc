@@ -1299,7 +1299,7 @@ const CompiledStmt AbstractMachine::LoopOverTable(const ForStmt* f,
 		s.op_type = OP_VV_I2;
 		}
 
-	return FinishLoop(s, f->LoopBody(), info, value_var != nullptr);
+	return FinishLoop(s, f->LoopBody(), info);
 	}
 
 const CompiledStmt AbstractMachine::LoopOverVector(const ForStmt* f,
@@ -1315,7 +1315,7 @@ const CompiledStmt AbstractMachine::LoopOverVector(const ForStmt* f,
 	s = AbstractStmt(OP_NEXT_VECTOR_ITER_VVV, info, FrameSlot(loop_var), 0);
 	s.op_type = OP_VVV_I3;
 
-	return FinishLoop(s, f->LoopBody(), info, false);
+	return FinishLoop(s, f->LoopBody(), info);
 	}
 
 const CompiledStmt AbstractMachine::LoopOverString(const ForStmt* f,
@@ -1331,13 +1331,12 @@ const CompiledStmt AbstractMachine::LoopOverString(const ForStmt* f,
 	s = AbstractStmt(OP_NEXT_STRING_ITER_VVV, info, FrameSlot(loop_var), 0);
 	s.op_type = OP_VVV_I3;
 
-	return FinishLoop(s, f->LoopBody(), info, false);
+	return FinishLoop(s, f->LoopBody(), info);
 	}
 
 const CompiledStmt AbstractMachine::FinishLoop(AbstractStmt iter_stmt,
 						const Stmt* body,
-						int info_slot,
-						bool branch_slot_3)
+						int info_slot)
 	{
 	auto loop_iter = AddStmt(iter_stmt);
 
@@ -1346,7 +1345,7 @@ const CompiledStmt AbstractMachine::FinishLoop(AbstractStmt iter_stmt,
 	auto s = AbstractStmt(OP_END_LOOP_V, info_slot);
 	auto loop_end = AddStmt(s);
 
-	if ( branch_slot_3 )
+	if ( iter_stmt.op_type == OP_VVV_I3 )
 		SetV3(loop_iter, loop_end);
 	else
 		SetV2(loop_iter, loop_end);
@@ -1756,7 +1755,7 @@ void AbstractMachine::SetV1(CompiledStmt s, const CompiledStmt s1)
 	{
 	auto& stmt = stmts[s.stmt_num];
 	stmt.v1 = s1.stmt_num;
-	ASSERT(stmt.op_type == OP_V);
+	ASSERT(stmt.op_type == OP_V || stmt.op_type == OP_V_I1);
 	stmt.op_type = OP_V_I1;
 	}
 
@@ -1772,14 +1771,14 @@ void AbstractMachine::SetV2(CompiledStmt s, const CompiledStmt s2)
 		stmt.op_type = OP_VVC_I2;
 
 	else
-		ASSERT(false);
+		ASSERT(stmt.op_type == OP_VV_I2 || stmt.op_type == OP_VVC_I2);
 	}
 
 void AbstractMachine::SetV3(CompiledStmt s, const CompiledStmt s2)
 	{
 	auto& stmt = stmts[s.stmt_num];
 	stmt.v3 = s2.stmt_num;
-	ASSERT(stmt.op_type == OP_VVV);
+	ASSERT(stmt.op_type == OP_VVV || stmt.op_type == OP_VVV_I3);
 	stmt.op_type = OP_VVV_I3;
 	}
 

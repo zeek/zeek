@@ -606,11 +606,10 @@ expr:
 			{
 			set_location(@1, @6);
 
-			BroType* ctor_type = 0;
-
-			if ( $1->Tag() == EXPR_NAME &&
-			     (ctor_type = $1->AsNameExpr()->Id()->AsType()) )
+			if ( $1->Tag() == EXPR_NAME && $1->AsNameExpr()->Id()->IsType() )
 				{
+				auto ctor_type = $1->AsNameExpr()->Id()->Type();
+
 				switch ( ctor_type->Tag() ) {
 				case TYPE_RECORD:
 					{
@@ -1007,7 +1006,7 @@ type:
 
 	|	resolve_id
 			{
-			if ( ! $1 || ! ($$ = $1->AsType()) )
+			if ( ! $1 || ! ($$ = $1->IsType() ? $1->Type() : nullptr) )
 				{
 				NullStmt here;
 				if ( $1 )

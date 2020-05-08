@@ -274,7 +274,7 @@ void Manager::StartType(IntrusivePtr<ID> id)
 
 static bool IsEnumType(ID* id)
 	{
-	return id->AsType() ? id->AsType()->Tag() == TYPE_ENUM : false;
+	return id->IsType() ? id->Type()->Tag() == TYPE_ENUM : false;
 	}
 
 void Manager::Identifier(IntrusivePtr<ID> id)

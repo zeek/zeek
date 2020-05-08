@@ -37,12 +37,22 @@ public:
 	std::string ModuleName() const;
 
 	void SetType(IntrusivePtr<BroType> t);
+
 	BroType* Type()			{ return type.get(); }
 	const BroType* Type() const	{ return type.get(); }
 
-	void MakeType()			{ is_type = true; }
+	const IntrusivePtr<BroType>& GetType() const
+		{ return type; }
+
+	[[deprecated("Remove in v4.1.  Use IsType() and GetType().")]]
 	BroType* AsType()		{ return is_type ? Type() : nullptr; }
+	[[deprecated("Remove in v4.1.  Use IsType() and GetType().")]]
 	const BroType* AsType() const	{ return is_type ? Type() : nullptr; }
+
+	bool IsType() const
+		{ return is_type; }
+
+	void MakeType()			{ is_type = true; }
 
 	// If weak_ref is false, the Val is assumed to be already ref'ed
 	// and will be deref'ed when the ID is deleted.

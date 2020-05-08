@@ -2003,14 +2003,14 @@ function record_fields%(rec: any%): record_field_table
 		{
 		auto id = global_scope()->Lookup(rec->AsStringVal()->ToStdString());
 
-		if ( ! id || ! id->AsType() || id->AsType()->Tag() != TYPE_RECORD )
+		if ( ! id || ! id->IsType() || id->Type()->Tag() != TYPE_RECORD )
 			{
 			reporter->Error("record_fields string argument does not name a record type");
 			IntrusivePtr<TableType> tt{NewRef{}, internal_type("record_field_table")->AsTableType()};
 			return make_intrusive<TableVal>(std::move(tt));
 			}
 
-		return id->AsType()->AsRecordType()->GetRecordFieldsVal();
+		return id->Type()->AsRecordType()->GetRecordFieldsVal();
 		}
 
 	return rec->GetRecordFields();

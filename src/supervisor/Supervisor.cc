@@ -1171,7 +1171,7 @@ IntrusivePtr<RecordVal> Supervisor::Node::ToRecord() const
 
 static IntrusivePtr<Val> supervisor_role_to_cluster_node_type(BifEnum::Supervisor::ClusterRole role)
 	{
-	static auto node_type = global_scope()->Lookup("Cluster::NodeType")->AsType()->AsEnumType();
+	static auto node_type = global_scope()->Lookup("Cluster::NodeType")->Type()->AsEnumType();
 
 	switch ( role ) {
 	case BifEnum::Supervisor::LOGGER:
@@ -1192,7 +1192,7 @@ bool Supervisor::SupervisedNode::InitCluster() const
 	if ( config.cluster.empty() )
 		return false;
 
-	auto cluster_node_type = global_scope()->Lookup("Cluster::Node")->AsType()->AsRecordType();
+	auto cluster_node_type = global_scope()->Lookup("Cluster::Node")->Type()->AsRecordType();
 	auto cluster_nodes_id = global_scope()->Lookup("Cluster::nodes");
 	auto cluster_manager_is_logger_id = global_scope()->Lookup("Cluster::manager_is_logger");
 	auto cluster_nodes = cluster_nodes_id->ID_Val()->AsTableVal();

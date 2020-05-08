@@ -1766,12 +1766,12 @@ IntrusivePtr<BroType> merge_types(const BroType* t1, const BroType* t2)
 		// (potentially) avoiding a pitfall mentioned earlier about clones.
 		auto id = global_scope()->Lookup(t1->GetName());
 
-		if ( id && id->AsType() && id->AsType()->Tag() == TYPE_ENUM )
+		if ( id && id->IsType() && id->Type()->Tag() == TYPE_ENUM )
 			// It should make most sense to return the real type here rather
 			// than a copy since it may be redef'd later in parsing.  If we
 			// return a copy, then whoever is using this return value won't
 			// actually see those changes from the redef.
-			return {NewRef{}, id->AsType()};
+			return {NewRef{}, id->Type()};
 
 		std::string msg = fmt("incompatible enum types: '%s' and '%s'"
 		                      " ('%s' enum type ID is invalid)",

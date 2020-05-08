@@ -183,7 +183,7 @@ void ScriptInfo::DoInitPostScript()
 		if ( ! zeekygen::is_public_api(id) )
 			continue;
 
-		if ( id->AsType() )
+		if ( id->IsType() )
 			{
 			types.push_back(info);
 			DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a type",

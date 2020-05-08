@@ -218,8 +218,8 @@ NameExpr::NameExpr(IntrusivePtr<ID> arg_id, bool const_init)
 	{
 	in_const_init = const_init;
 
-	if ( id->AsType() )
-		SetType(make_intrusive<TypeType>(IntrusivePtr{NewRef{}, id->AsType()}));
+	if ( id->IsType() )
+		SetType(make_intrusive<TypeType>(IntrusivePtr{NewRef{}, id->Type()}));
 	else
 		SetType({NewRef{}, id->Type()});
 
@@ -232,8 +232,8 @@ IntrusivePtr<Val> NameExpr::Eval(Frame* f) const
 	{
 	IntrusivePtr<Val> v;
 
-	if ( id->AsType() )
-		return make_intrusive<Val>(id->AsType(), true);
+	if ( id->IsType() )
+		return make_intrusive<Val>(id->Type(), true);
 
 	if ( id->IsGlobal() )
 		v = {NewRef{}, id->ID_Val()};
@@ -256,7 +256,7 @@ IntrusivePtr<Val> NameExpr::Eval(Frame* f) const
 
 IntrusivePtr<Expr> NameExpr::MakeLvalue()
 	{
-	if ( id->AsType() )
+	if ( id->IsType() )
 		ExprError("Type name is not an lvalue");
 
 	if ( id->IsConst() && ! in_const_init )

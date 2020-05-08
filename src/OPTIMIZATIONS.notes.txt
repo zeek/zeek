@@ -1,0 +1,7 @@
+versions of operators that take listval's that inline the values
+	rather than building val-vec's
+
+single val-vec maximally sized
+
+don't consider modifying a global's element as a reaching-def for
+	the global itself (glb[5] = 3)

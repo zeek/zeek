@@ -137,8 +137,12 @@ public:
 	explicit Val(BroFile* f);
 
 	// Extra arg to differentiate from protected version.
-	Val(BroType* t, bool type_type)
-		: type(new TypeType({NewRef{}, t}))
+	Val(IntrusivePtr<BroType> t, bool type_type)
+		: type(new TypeType(std::move(t)))
+		{ }
+
+	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
+	Val(BroType* t, bool type_type) : Val({NewRef{}, t}, type_type)
 		{
 		}
 

@@ -233,7 +233,7 @@ IntrusivePtr<Val> NameExpr::Eval(Frame* f) const
 	IntrusivePtr<Val> v;
 
 	if ( id->IsType() )
-		return make_intrusive<Val>(id->GetType().get(), true);
+		return make_intrusive<Val>(id->GetType(), true);
 
 	if ( id->IsGlobal() )
 		v = {NewRef{}, id->ID_Val()};

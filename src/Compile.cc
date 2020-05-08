@@ -1650,10 +1650,6 @@ const CompiledStmt AbstractMachine::CompileEvent(EventHandler* h,
 	int len = l->Exprs().length();
 	auto build_indices = InternalBuildVals(l);
 
-	AddStmt(AbstractStmt(OP_TRANSFORM_VAL_VEC_TO_LIST_VAL_VVV,
-				build_indices, build_indices, len));
-	TopStmt().op_type = OP_VVV_I3;
-
 	AbstractStmt s(OP_EVENT_HL, build_indices);
 	s.event_handler = h;
 

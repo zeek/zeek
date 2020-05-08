@@ -535,7 +535,7 @@ eval timer_mgr->Add(timer)
 op Event
 type HL
 custom-method return CompileEvent(h, l);
-eval mgr.Enqueue(s.event_handler, *frame[s.v1].vvec)
+eval mgr.Enqueue(s.event_handler, std::move(*frame[s.v1].vvec))
 
 
 op Return

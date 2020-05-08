@@ -1,7 +1,7 @@
 optimize for common case of global that's a function/event name
 
 versions of operators that take listval's that inline the values
-	rather than building val-vec's
+	rather than building val-vec's if a small number (including 0)
 
 single val-vec maximally sized
 

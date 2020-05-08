@@ -1630,16 +1630,14 @@ const CompiledStmt AbstractMachine::CompileSchedule(const NameExpr* n,
 	int len = l->Exprs().length();
 	auto build_indices = InternalBuildVals(l);
 
-	AddStmt(AbstractStmt(OP_TRANSFORM_VAL_VEC_TO_LIST_VAL_VVV,
-				build_indices, build_indices, len));
-	TopStmt().op_type = OP_VVV_I3;
-
 	AbstractStmt s;
 
 	if ( n )
-		s = AbstractStmt(OP_SCHEDULE_ViHL, FrameSlot(n), build_indices);
+		s = AbstractStmt(OP_SCHEDULE_ViHL, FrameSlot(n),
+					is_interval, build_indices);
 	else
-		s = AbstractStmt(OP_SCHEDULE_CiHL, build_indices, c);
+		s = AbstractStmt(OP_SCHEDULE_CiHL, is_interval,
+					build_indices, c);
 
 	s.event_handler = h;
 

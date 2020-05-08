@@ -518,17 +518,17 @@ eval double dt = frame[s.v1].double_val
 eval if ( s.v2 ) dt += network_time
 eval auto handler = EventHandlerPtr(s.event_handler)
 eval auto args = frame[s.v3].vvec
-eval auto timer = new ScheduleTimer(s.event_handler, *args, dt)
+eval auto timer = new ScheduleTimer(s.event_handler, std::move(*args), dt)
 eval timer_mgr->Add(timer)
 
 op Schedule
 type CiHL
 custom-method return CompileSchedule(nullptr, c, i, h, l);
 eval double dt = s.c.double_val
-eval if ( s.v2 ) dt += network_time
+eval if ( s.v1 ) dt += network_time
 eval auto hp = EventHandlerPtr(s.event_handler)
-eval auto args = frame[s.v3].vvec
-eval auto timer = new ScheduleTimer(s.event_handler, *args, dt)
+eval auto args = frame[s.v2].vvec
+eval auto timer = new ScheduleTimer(s.event_handler, std::move(*args), dt)
 eval timer_mgr->Add(timer)
 
 

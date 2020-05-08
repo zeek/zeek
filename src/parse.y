@@ -155,13 +155,14 @@ static void parser_redef_enum (ID *id)
 	/* Redef an enum. id points to the enum to be redefined.
 	   Let cur_enum_type point to it. */
 	assert(cur_enum_type == NULL);
+	// abort on errors; enums need to be accessible to continue parsing
 	if ( ! id->Type() )
-		id->Error("unknown identifier");
+		reporter->FatalError("unknown enum identifier \"%s\"", id->Name());
 	else
 		{
+		if ( ! id->Type() || id->Type()->Tag() != TYPE_ENUM )
+			reporter->FatalError("identifier \"%s\" is not an enum", id->Name());
 		cur_enum_type = id->Type()->AsEnumType();
-		if ( ! cur_enum_type )
-			id->Error("not an enum");
 		}
 	}
 

@@ -1,4 +1,8 @@
 
+3.2.0-dev.475 | 2020-05-07 17:15:23 -0700
+
+  * GH-958: Fix crash when trying to redef non-existing enum (Johanna Amann, Corelight)
+
 3.2.0-dev.473 | 2020-05-06 10:40:09 -0700
 
   * Revert addition of final modifier to JSON formatter (Tim Wojtulewicz, Corelight)

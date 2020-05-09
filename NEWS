@@ -164,6 +164,8 @@ Deprecated Functionality
 - ``internal_val()`` and ``internal_const_val()`` are deprecated, use
   ``zeek::lookup_val()`` or ``zeek::lookup_const()``.
 
+- ``internal_func()`` is deprecated, use ``zeek::lookup_func()``.
+
 Zeek 3.1.0
 ==========
 

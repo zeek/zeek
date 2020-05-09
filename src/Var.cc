@@ -795,6 +795,19 @@ Func* internal_func(const char* name)
 		return nullptr;
 	}
 
+IntrusivePtr<Func> zeek::lookup_func(const char* name)
+	{
+	const auto& v = zeek::lookup_val(name);
+
+	if ( ! v )
+		return nullptr;
+
+	if ( ! IsFunc(v->Type()->Tag()) )
+		reporter->InternalError("Expected variable '%s' to be a function", name);
+
+	return {NewRef{}, v->AsFunc()};
+	}
+
 EventHandlerPtr internal_handler(const char* name)
 	{
 	// If there already is an entry in the registry, we have a

@@ -57,6 +57,7 @@ extern ListVal* internal_list_val(const char* name);
 [[deprecated("Remove in v4.1.  Use zeek::lookup_type().")]]
 extern BroType* internal_type(const char* name);
 
+[[deprecated("Remove in v4.1.  Use zeek::lookup_func().")]]
 extern Func* internal_func(const char* name);
 
 extern EventHandlerPtr internal_handler(const char* name);
@@ -98,5 +99,13 @@ const IntrusivePtr<Val>& lookup_val(const char* name);
  * @return  The current value of the identifier
  */
 const IntrusivePtr<Val>& lookup_const(const char* name);
+
+/**
+ * Lookup an ID by its name and return the function it references.
+ * A fatal occurs if the ID does not exist or if it is not a function.
+ * @param name  The identifier name to lookup
+ * @return  The current function value the identifier references.
+ */
+IntrusivePtr<Func> lookup_func(const char* name);
 
 } // namespace zeek

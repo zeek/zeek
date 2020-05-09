@@ -604,11 +604,10 @@ AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const NameExpr* v1,
 	}
 
 
-AbstractMachine::AbstractMachine(function_ingredients& i, Stmt* _body,
-				UseDefs* _ud, Reducer* _rd, ProfileFunc* _pf)
-: ingredients(i)
+AbstractMachine::AbstractMachine(const BroFunc* f, Stmt* _body, UseDefs* _ud,
+					Reducer* _rd, ProfileFunc* _pf)
 	{
-	func = ingredients.id->ID_Val()->AsFunc()->AsBroFunc();
+	func = f;
 	body = _body;
 	body->Ref();
 	ud = _ud;
@@ -660,9 +659,9 @@ Stmt* AbstractMachine::CompileBody()
 void AbstractMachine::Init()
 	{
 	auto uds = ud->GetUsage(body);
-	auto args = func->FType()->Args();
-	auto nargs = args->NumFields();
-	auto scope = ingredients.scope.get();
+	auto scope = func->GetScope();
+	auto args = scope->OrderedVars();
+	auto nparam = func->FType()->Args()->NumFields();
 
 	// Use slot 0 for the temporary register.
 	register_slot = frame_size++;
@@ -671,11 +670,12 @@ void AbstractMachine::Init()
 	::Ref(scope);
 	push_existing_scope(scope);
 
-	for ( int i = 0; i < nargs; ++i )
+	for ( auto a : args )
 		{
-		auto arg_name = args->FieldName(i);
-		auto mod = current_module.c_str();
-		auto arg_id = lookup_ID(arg_name, mod).get();
+		if ( --nparam < 0 )
+			break;
+
+		auto arg_id = a.get();
 		if ( uds && uds->HasID(arg_id) )
 			LoadParam(arg_id);
 		else

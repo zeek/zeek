@@ -101,23 +101,18 @@ RD_Decorate::RD_Decorate(const ProfileFunc* _pf) : pf(_pf)
 
 TraversalCode RD_Decorate::PreFunction(const Func* f)
 	{
-	auto ft = f->FType();
-	auto args = ft->Args();
 	auto scope = f->GetScope();
-
-	int n = args->NumFields();
+	auto args = scope->OrderedVars();
+        auto nparam = f->FType()->Args()->NumFields();
 
 	mgr.SetEmptyPre(f);
 
-	for ( int i = 0; i < n; ++i )
+	for ( auto a : args )
 		{
-		auto arg_i = args->FieldName(i);
-		auto arg_i_id = scope->Lookup(arg_i);
+		if ( --nparam < 0 )
+			break;
 
-		if ( ! arg_i_id )
-			arg_i_id = scope->Lookup(make_full_var_name(current_module.c_str(), arg_i).c_str());
-
-		CreateInitPostDef(arg_i_id, DefinitionPoint(f), true, nullptr);
+		CreateInitPostDef(a.get(), DefinitionPoint(f), true, nullptr);
 		}
 
 	for ( const auto& g : pf->globals )
@@ -1415,9 +1410,12 @@ void analyze_func(function_ingredients& ingredients)
 		return;
 		}
 
-	push_scope(id, nullptr);
+	auto scope = f->GetScope();
 
-	auto rc = new Reducer(f->GetScope());
+	::Ref(scope);
+	push_existing_scope(scope);
+
+	auto rc = new Reducer(scope);
 
 	auto new_body = body->Reduce(rc);
 
@@ -1469,8 +1467,7 @@ void analyze_func(function_ingredients& ingredients)
 	if ( compile )
 		{
 		body_ptr = new_body_ptr;
-		auto am = new AbstractMachine(ingredients, new_body,
-						ud, rc, pf_red);
+		auto am = new AbstractMachine(f, new_body, ud, rc, pf_red);
 		new_body = am->CompileBody();
 
 		if ( only_func )

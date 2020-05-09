@@ -33,22 +33,15 @@ public:
 		}
 
 	template<typename N, typename I>
-	void Insert(N&& name, I&& id) { local[std::forward<N>(name)] = std::forward<I>(id); }
-
-	template<typename N>
-	IntrusivePtr<ID> Remove(N&& name)
+	void Insert(N&& name, I&& id)
 		{
-		const auto& entry = local.find(std::forward<N>(name));
-
-		if ( entry != local.end() )
-			{
-			auto id = std::move(entry->second);
-			local.erase(entry);
-			return id;
-			}
-
-		return nullptr;
+		local[std::forward<N>(name)] = std::forward<I>(id);
+		ordered_vars.push_back(std::forward<I>(id));
 		}
+
+	// VP: there used to be a Remove method here too, but it's
+	// not clear why it would make sense to remove something from
+	// a scope, and indeed nothing actually made use of it.
 
 	ID* ScopeID() const		{ return scope_id.get(); }
 	attr_list* Attrs() const	{ return attrs; }
@@ -56,6 +49,7 @@ public:
 
 	size_t Length() const		{ return local.size(); }
 	const auto& Vars() const	{ return local; }
+	const auto& OrderedVars() const	{ return ordered_vars; }
 
 	ID* GenerateTemporary(const char* name);
 
@@ -76,6 +70,13 @@ protected:
 	IntrusivePtr<BroType> return_type;
 	std::map<std::string, IntrusivePtr<ID>> local;
 	id_list* inits;
+
+	// We keep track of identifiers in the order that they're added.
+	// This is necessary for the compiler to be able to find event/hook
+	// parameters for instances where the declaration of an additional
+	// handler uses different names for the parameters than the original
+	// declaration.
+	std::vector<IntrusivePtr<ID>> ordered_vars;
 };
 
 

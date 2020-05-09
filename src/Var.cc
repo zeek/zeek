@@ -358,9 +358,10 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 			id->Type()->Error("incompatible types", t.get());
 
 		else
-			// If a previous declaration of the function had &default params,
-			// automatically transfer any that are missing (convenience so that
-			// implementations don't need to specify the &default expression again).
+			// If a previous declaration of the function had
+			// &default params, automatically transfer any that
+			// are missing (convenience so that implementations
+			// don't need to specify the &default expression again).
 			transfer_arg_defaults(id->Type()->AsFuncType()->Args(), t->Args());
 		}
 
@@ -495,8 +496,7 @@ void end_func(IntrusivePtr<Stmt> body)
 
 	ingredients->id->ID_Val()->AsFunc()->SetScope(ingredients->scope);
 
-	if ( ! is_addition )
-		analyze_func(*ingredients);
+	analyze_func(*ingredients);
 
 	// Note: ideally, something would take ownership of this memory until the
 	// end of script execution, but that's essentially the same as the

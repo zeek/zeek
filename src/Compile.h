@@ -117,7 +117,7 @@ typedef std::vector<const ID*> frame_map;
 
 class AbstractMachine : public Compiler {
 public:
-	AbstractMachine(function_ingredients& i, Stmt* body,
+	AbstractMachine(const BroFunc* f, Stmt* body,
 			UseDefs* ud, Reducer* rd, ProfileFunc* pf);
 	~AbstractMachine() override;
 
@@ -298,7 +298,6 @@ protected:
 	vector<int> nexts;
 	vector<int> fallthroughs;
 
-	function_ingredients& ingredients;
 	const BroFunc* func;
 	Stmt* body;
 	UseDefs* ud;

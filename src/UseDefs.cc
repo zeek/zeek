@@ -129,8 +129,14 @@ bool UseDefs::RemoveUnused(int iter)
 			{
 			if ( iter == 1 && ! rc->IsTemporary(id) &&
 			     ! rc->IsConstantVar(id) )
-				printf("%s has no use-def at %s\n", id->Name(),
+				{
+				printf("%s (%x/%x) has no use-def at %s\n",
+					id->Name(), succ, uds.get(),
 					obj_desc(s));
+
+				if ( succ )
+					printf("successor: %s\n", obj_desc(succ));
+				}
 
 			rc->AddStmtToOmit(s);
 			did_omission = true;
@@ -297,7 +303,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt,
 		auto f_UDs = ExprUDs(e);
 		FoldInUDs(f_UDs, body_UDs);
 
-		// Confluence: loop the top FDs back around to the bottom.
+		// Confluence: loop the top UDs back around to the bottom.
 		if ( ! second_pass )
 			{
 			auto bottom_UDs = UD_Union(f_UDs, succ_UDs);
@@ -346,7 +352,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt,
 						second_pass);
 			}
 
-		// Confluence: loop the top FDs back around to the bottom.
+		// Confluence: loop the top UDs back around to the bottom.
 		if ( ! second_pass )
 			{
 			auto bottom_UDs = UD_Union(w_UDs, succ_UDs);

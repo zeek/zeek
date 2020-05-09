@@ -762,11 +762,16 @@ ListVal* internal_list_val(const char* name)
 
 BroType* internal_type(const char* name)
 	{
+	return zeek::lookup_type(name).get();
+	}
+
+const IntrusivePtr<BroType>& zeek::lookup_type(const char* name)
+	{
 	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
 	if ( ! id )
-		reporter->InternalError("internal type %s missing", name);
+		reporter->InternalError("Failed to find type named: %s", name);
 
-	return id->GetType().get();
+	return id->GetType();
 	}
 
 Func* internal_func(const char* name)

@@ -726,13 +726,13 @@ IntrusivePtr<VectorVal> ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_cha
 
 	if ( ! icmp6_nd_option_type )
 		{
-		icmp6_nd_option_type = internal_type("icmp6_nd_option")->AsRecordType();
+		icmp6_nd_option_type = zeek::lookup_type("icmp6_nd_option")->AsRecordType();
 		icmp6_nd_prefix_info_type =
-		        internal_type("icmp6_nd_prefix_info")->AsRecordType();
+		        zeek::lookup_type("icmp6_nd_prefix_info")->AsRecordType();
 		}
 
 	auto vv = make_intrusive<VectorVal>(
-	        internal_type("icmp6_nd_options")->AsVectorType());
+	        zeek::lookup_type("icmp6_nd_options")->AsVectorType());
 
 	while ( caplen > 0 )
 		{

@@ -470,7 +470,7 @@ function get_reporter_stats%(%): ReporterStats
 	auto r = make_intrusive<RecordVal>(ReporterStats);
 	int n = 0;
 
-	TableVal* weirds_by_type = new TableVal({NewRef{}, internal_type("table_string_of_count")->AsTableType()});
+	auto weirds_by_type = make_intrusive<TableVal>(zeek::lookup_type<TableType>("table_string_of_count"));
 
 	for ( auto& kv : reporter->GetWeirdsByType() )
 		{
@@ -479,7 +479,7 @@ function get_reporter_stats%(%): ReporterStats
 		}
 
 	r->Assign(n++, val_mgr->Count(reporter->GetWeirdCount()));
-	r->Assign(n++, weirds_by_type);
+	r->Assign(n++, std::move(weirds_by_type));
 
 	return r;
 	%}

@@ -49,8 +49,33 @@ extern bro_uint_t opt_internal_unsigned(const char* name);
 extern StringVal* opt_internal_string(const char* name);
 extern TableVal* opt_internal_table(const char* name);	// nil if not defined
 extern ListVal* internal_list_val(const char* name);
+
+[[deprecated("Remove in v4.1.  Use zeek::lookup_type().")]]
 extern BroType* internal_type(const char* name);
+
 extern Func* internal_func(const char* name);
 extern EventHandlerPtr internal_handler(const char* name);
 
 extern int signal_val;	// 0 if no signal pending
+
+namespace zeek {
+
+/**
+ * Lookup an ID by its name and return its type.  A fatal occurs if the ID
+ * does not exist.
+ * @param name  The identifier name to lookup
+ * @return  The type of the identifier.
+ */
+const IntrusivePtr<BroType>& lookup_type(const char* name);
+
+/**
+ * Lookup an ID by its name and return its type (as cast to @c T).
+ * A fatal occurs if the ID does not exist.
+ * @param name  The identifier name to lookup
+ * @return  The type of the identifier.
+ */
+template<class T>
+IntrusivePtr<T> lookup_type(const char* name)
+	{ return cast_intrusive<T>(lookup_type(name)); }
+
+} // namespace zeek

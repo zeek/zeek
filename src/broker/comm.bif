@@ -94,14 +94,14 @@ function Broker::__unpeer%(a: string, p: port%): bool
 function Broker::__peers%(%): PeerInfos
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
-	auto rval = make_intrusive<VectorVal>(internal_type("Broker::PeerInfos")->AsVectorType());
+	auto rval = make_intrusive<VectorVal>(zeek::lookup_type("Broker::PeerInfos")->AsVectorType());
 	auto i = 0;
 
 	for ( auto& p : broker_mgr->Peers() )
 		{
-		auto pi = internal_type("Broker::PeerInfo")->AsRecordType();
-		auto ei = internal_type("Broker::EndpointInfo")->AsRecordType();
-		auto ni = internal_type("Broker::NetworkInfo")->AsRecordType();
+		auto pi = zeek::lookup_type("Broker::PeerInfo")->AsRecordType();
+		auto ei = zeek::lookup_type("Broker::EndpointInfo")->AsRecordType();
+		auto ni = zeek::lookup_type("Broker::NetworkInfo")->AsRecordType();
 		auto peer_info = new RecordVal(pi);
 		auto endpoint_info = new RecordVal(ei);
 		auto network_info = new RecordVal(ni);

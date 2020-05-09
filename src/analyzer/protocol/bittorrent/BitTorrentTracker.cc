@@ -27,15 +27,15 @@ BitTorrentTracker_Analyzer::BitTorrentTracker_Analyzer(Connection* c)
 	if ( ! bt_tracker_headers )
 		{
 		bt_tracker_headers =
-			internal_type("bt_tracker_headers")->AsTableType();
+			zeek::lookup_type("bt_tracker_headers")->AsTableType();
 		bittorrent_peer =
-			internal_type("bittorrent_peer")->AsRecordType();
+			zeek::lookup_type("bittorrent_peer")->AsRecordType();
 		bittorrent_peer_set =
-			internal_type("bittorrent_peer_set")->AsTableType();
+			zeek::lookup_type("bittorrent_peer_set")->AsTableType();
 		bittorrent_benc_value =
-			internal_type("bittorrent_benc_value")->AsRecordType();
+			zeek::lookup_type("bittorrent_benc_value")->AsRecordType();
 		bittorrent_benc_dir =
-			internal_type("bittorrent_benc_dir")->AsTableType();
+			zeek::lookup_type("bittorrent_benc_dir")->AsTableType();
 		}
 
 	keep_alive = false;

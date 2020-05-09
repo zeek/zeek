@@ -30,6 +30,7 @@
 #include "Hash.h"
 
 using namespace std;
+using namespace zeek;
 
 TableType* var_sizes;
 
@@ -1470,7 +1471,7 @@ function sort%(v: any, ...%) : any
 function order%(v: any, ...%) : index_vec
 	%{
 	auto result_v = make_intrusive<VectorVal>(
-	    internal_type("index_vec")->AsVectorType());
+	    lookup_type("index_vec")->AsVectorType());
 
 	if ( v->Type()->Tag() != TYPE_VECTOR )
 		{
@@ -1824,15 +1825,12 @@ function zeek_version%(%): string
 function record_type_to_vector%(rt: string%): string_vec
 	%{
 	auto result =
-		make_intrusive<VectorVal>(internal_type("string_vec")->AsVectorType());
+		make_intrusive<VectorVal>(lookup_type("string_vec")->AsVectorType());
 
-	RecordType *type = internal_type(rt->CheckString())->AsRecordType();
+	RecordType* type = lookup_type(rt->CheckString())->AsRecordType();
 
-	if ( type )
-		{
-		for ( int i = 0; i < type->NumFields(); ++i )
-			result->Assign(i+1, make_intrusive<StringVal>(type->FieldName(i)));
-		}
+	for ( int i = 0; i < type->NumFields(); ++i )
+		result->Assign(i+1, make_intrusive<StringVal>(type->FieldName(i)));
 
 	return result;
 	%}
@@ -1856,7 +1854,7 @@ function type_name%(t: any%): string
 ## Returns: list of command-line arguments (``argv``) used to run Zeek.
 function zeek_args%(%): string_vec
 	%{
-	auto sv = internal_type("string_vec")->AsVectorType();
+	auto sv = lookup_type("string_vec")->AsVectorType();
 	auto rval = make_intrusive<VectorVal>(sv);
 
 	for ( auto i = 0; i < bro_argc; ++i )
@@ -1894,7 +1892,7 @@ function reading_traces%(%): bool
 ## .. zeek:see:: reading_live_traffic reading_traces
 function packet_source%(%): PacketSource
 	%{
-	auto ps_type = internal_type("PacketSource")->AsRecordType();
+	auto ps_type = lookup_type("PacketSource")->AsRecordType();
 	auto ps = iosource_mgr->GetPktSrc();
 	auto r = make_intrusive<RecordVal>(ps_type);
 
@@ -2002,7 +2000,7 @@ function record_fields%(rec: any%): record_field_table
 		if ( ! id || ! id->IsType() || id->GetType()->Tag() != TYPE_RECORD )
 			{
 			reporter->Error("record_fields string argument does not name a record type");
-			IntrusivePtr<TableType> tt{NewRef{}, internal_type("record_field_table")->AsTableType()};
+			auto tt = lookup_type<TableType>("record_field_table");
 			return make_intrusive<TableVal>(std::move(tt));
 			}
 
@@ -2189,7 +2187,7 @@ function is_v6_subnet%(s: subnet%): bool
 ## Returns: The vector of addresses contained in the routing header data.
 function routing0_data_to_addrs%(s: string%): addr_vec
 	%{
-	auto rval = make_intrusive<VectorVal>(internal_type("addr_vec")->AsVectorType());
+	auto rval = make_intrusive<VectorVal>(lookup_type("addr_vec")->AsVectorType());
 
 	int len = s->Len();
 	const u_char* bytes = s->Bytes();
@@ -2220,7 +2218,7 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 ## .. zeek:see:: counts_to_addr
 function addr_to_counts%(a: addr%): index_vec
 	%{
-	auto rval = make_intrusive<VectorVal>(internal_type("index_vec")->AsVectorType());
+	auto rval = make_intrusive<VectorVal>(lookup_type("index_vec")->AsVectorType());
 	const uint32_t* bytes;
 	int len = a->AsAddr().GetBytes(&bytes);
 

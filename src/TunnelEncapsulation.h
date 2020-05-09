@@ -6,7 +6,7 @@
 #include "IntrusivePtr.h"
 #include "NetVar.h"
 #include "IPAddr.h"
-#include "Var.h" // for internal_type()
+#include "Var.h"
 #include "UID.h"
 
 #include <vector>
@@ -198,7 +198,7 @@ public:
 	IntrusivePtr<VectorVal> ToVal() const
 		{
 		auto vv = make_intrusive<VectorVal>(
-		    internal_type("EncapsulatingConnVector")->AsVectorType());
+		    zeek::lookup_type("EncapsulatingConnVector")->AsVectorType());
 
 		if ( conns )
 			{

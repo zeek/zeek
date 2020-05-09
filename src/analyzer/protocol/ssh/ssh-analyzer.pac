@@ -12,7 +12,7 @@ VectorVal* name_list_to_vector(const bytestring& nl);
 // Copied from IRC_Analyzer::SplitWords
 VectorVal* name_list_to_vector(const bytestring& nl)
 	{
-	VectorVal* vv = new VectorVal(internal_type("string_vec")->AsVectorType());
+	VectorVal* vv = new VectorVal(zeek::lookup_type("string_vec")->AsVectorType());
 
 	string name_list = std_str(nl);
 	if ( name_list.size() < 1 )

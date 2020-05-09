@@ -341,7 +341,7 @@ BroString::Vec* BroString::Split(const BroString::IdxVec& indices) const
 VectorVal* BroString:: VecToPolicy(Vec* vec)
 	{
 	VectorVal* result =
-		new VectorVal(internal_type("string_vec")->AsVectorType());
+		new VectorVal(zeek::lookup_type("string_vec")->AsVectorType());
 	if ( ! result )
 		return nullptr;
 

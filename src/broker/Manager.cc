@@ -149,8 +149,8 @@ void Manager::InitPostScript()
 	default_log_topic_prefix =
 	    get_option("Broker::default_log_topic_prefix")->AsString()->CheckString();
 	log_topic_func = get_option("Broker::log_topic")->AsFunc();
-	log_id_type = internal_type("Log::ID")->AsEnumType();
-	writer_id_type = internal_type("Log::Writer")->AsEnumType();
+	log_id_type = zeek::lookup_type("Log::ID")->AsEnumType();
+	writer_id_type = zeek::lookup_type("Log::Writer")->AsEnumType();
 
 	opaque_of_data_type = new OpaqueType("Broker::Data");
 	opaque_of_set_iterator = new OpaqueType("Broker::SetIterator");
@@ -158,7 +158,7 @@ void Manager::InitPostScript()
 	opaque_of_vector_iterator = new OpaqueType("Broker::VectorIterator");
 	opaque_of_record_iterator = new OpaqueType("Broker::RecordIterator");
 	opaque_of_store_handle = new OpaqueType("Broker::Store");
-	vector_of_data_type = new VectorType({NewRef{}, internal_type("Broker::Data")});
+	vector_of_data_type = new VectorType(zeek::lookup_type("Broker::Data"));
 
 	// Register as a "dont-count" source first, we may change that later.
 	iosource_mgr->Register(this, true);
@@ -1246,13 +1246,13 @@ void Manager::ProcessStatus(broker::status stat)
 	if ( ! event )
 		return;
 
-	auto ei = internal_type("Broker::EndpointInfo")->AsRecordType();
+	auto ei = zeek::lookup_type("Broker::EndpointInfo")->AsRecordType();
 	auto endpoint_info = make_intrusive<RecordVal>(ei);
 
 	if ( ctx )
 		{
 		endpoint_info->Assign(0, make_intrusive<StringVal>(to_string(ctx->node)));
-		auto ni = internal_type("Broker::NetworkInfo")->AsRecordType();
+		auto ni = zeek::lookup_type("Broker::NetworkInfo")->AsRecordType();
 		auto network_info = make_intrusive<RecordVal>(ni);
 
 		if ( ctx->network )

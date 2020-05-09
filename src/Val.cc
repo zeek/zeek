@@ -34,7 +34,7 @@
 #include "Conn.h"
 #include "Reporter.h"
 #include "IPAddr.h"
-#include "Var.h" // for internal_type()
+#include "Var.h"
 
 #include "broker/Data.h"
 
@@ -417,7 +417,7 @@ IntrusivePtr<TableVal> Val::GetRecordFields()
 	if ( t->Tag() != TYPE_RECORD && t->Tag() != TYPE_TYPE )
 		{
 		reporter->Error("non-record value/type passed to record_fields");
-		return make_intrusive<TableVal>(IntrusivePtr{NewRef{}, internal_type("record_field_table")->AsTableType()});
+		return make_intrusive<TableVal>(zeek::lookup_type<TableType>("record_field_table"));
 		}
 
 	RecordType* rt = nullptr;
@@ -435,7 +435,7 @@ IntrusivePtr<TableVal> Val::GetRecordFields()
 		if ( t->Tag() != TYPE_RECORD )
 			{
 			reporter->Error("non-record value/type passed to record_fields");
-			return make_intrusive<TableVal>(IntrusivePtr{NewRef{}, internal_type("record_field_table")->AsTableType()});
+			return make_intrusive<TableVal>(zeek::lookup_type<TableType>("record_field_table"));
 			}
 
 		rt = t->AsRecordType();
@@ -1933,7 +1933,7 @@ IntrusivePtr<VectorVal> TableVal::LookupSubnets(const SubNetVal* search)
 	if ( ! subnets )
 		reporter->InternalError("LookupSubnets called on wrong table type");
 
-	auto result = make_intrusive<VectorVal>(internal_type("subnet_vec")->AsVectorType());
+	auto result = make_intrusive<VectorVal>(zeek::lookup_type("subnet_vec")->AsVectorType());
 
 	auto matches = subnets->FindAll(search);
 	for ( auto element : matches )

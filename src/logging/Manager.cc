@@ -1276,7 +1276,7 @@ bool Manager::WriteFromRemote(EnumVal* id, EnumVal* writer, const string& path, 
 
 void Manager::SendAllWritersTo(const broker::endpoint_info& ei)
 	{
-	auto et = internal_type("Log::Writer")->AsEnumType();
+	auto et = zeek::lookup_type("Log::Writer")->AsEnumType();
 
 	for ( vector<Stream *>::iterator s = streams.begin(); s != streams.end(); ++s )
 		{

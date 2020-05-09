@@ -634,7 +634,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 	//ocsp_resp_record->Assign(7, make_intrusive<StringVal>(len, buf));
 	//BIO_reset(bio);
 
-	certs_vector = new VectorVal(internal_type("x509_opaque_vector")->AsVectorType());
+	certs_vector = new VectorVal(zeek::lookup_type("x509_opaque_vector")->AsVectorType());
 	vl.emplace_back(AdoptRef{}, certs_vector);
 
 #if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)

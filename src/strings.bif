@@ -204,7 +204,7 @@ static IntrusivePtr<VectorVal> do_split_string(StringVal* str_val,
                                                int max_num_sep)
 	{
 	// string_vec is used early in the version script - do not use the NetVar.
-	auto rval = make_intrusive<VectorVal>(internal_type("string_vec")->AsVectorType());
+	auto rval = make_intrusive<VectorVal>(zeek::lookup_type("string_vec")->AsVectorType());
 	const u_char* s = str_val->Bytes();
 	int n = str_val->Len();
 	const u_char* end_of_s = s + n;
@@ -714,7 +714,7 @@ function str_split%(s: string, idx: index_vec%): string_vec
 
 	BroString::Vec* result = s->AsString()->Split(indices);
 	auto result_v = make_intrusive<VectorVal>(
-	    internal_type("string_vec")->AsVectorType());
+	    zeek::lookup_type("string_vec")->AsVectorType());
 
 	if ( result )
 		{

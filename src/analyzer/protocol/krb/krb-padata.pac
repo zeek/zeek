@@ -13,7 +13,7 @@ VectorVal* proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_a
 %code{
 VectorVal* proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_analyzer, bool is_error)
 {
-	VectorVal* vv = new VectorVal(internal_type("KRB::Type_Value_Vector")->AsVectorType());
+	VectorVal* vv = new VectorVal(zeek::lookup_type("KRB::Type_Value_Vector")->AsVectorType());
 
 	if ( ! data->data()->has_padata() )
 		return vv;

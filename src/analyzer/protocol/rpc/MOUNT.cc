@@ -192,7 +192,7 @@ zeek::Args MOUNT_Interp::event_common_vl(RPC_CallInfo *c,
 	zeek::Args vl;
 	vl.reserve(2 + extra_elements);
 	vl.emplace_back(analyzer->ConnVal());
-	auto auxgids = make_intrusive<VectorVal>(internal_type("index_vec")->AsVectorType());
+	auto auxgids = make_intrusive<VectorVal>(zeek::lookup_type("index_vec")->AsVectorType());
 
 	for (size_t i = 0; i < c->AuxGIDs().size(); ++i)
 		{

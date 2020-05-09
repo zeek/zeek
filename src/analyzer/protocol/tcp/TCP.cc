@@ -1421,7 +1421,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 					{
 					auto p = reinterpret_cast<const uint32_t*>(o + 2);
 					auto num_pointers = (length - 2) / 4;
-					auto vt = internal_type("index_vec")->AsVectorType();
+					auto vt = zeek::lookup_type("index_vec")->AsVectorType();
 					auto sack = new VectorVal(vt);
 
 					for ( auto i = 0; i < num_pointers; ++i )

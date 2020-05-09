@@ -556,7 +556,7 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 			}
 
 		int num_certs = sk_X509_num(chain);
-		chainVector = new VectorVal(internal_type("x509_opaque_vector")->AsVectorType());
+		chainVector = new VectorVal(zeek::lookup_type("x509_opaque_vector")->AsVectorType());
 
 		for ( int i = 0; i < num_certs; i++ )
 			{

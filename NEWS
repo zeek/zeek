@@ -159,6 +159,8 @@ Deprecated Functionality
 
 - ``ID::ID_Val()`` is deprecated, use ``ID::GetVal()``.
 
+- ``internal_type()`` is deprecated, use ``zeek::lookup_type()``.
+
 Zeek 3.1.0
 ==========
 

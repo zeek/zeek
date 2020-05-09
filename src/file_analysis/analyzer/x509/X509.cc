@@ -367,21 +367,21 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 				{
 				case GEN_DNS:
 					if ( names == nullptr )
-						names = new VectorVal(internal_type("string_vec")->AsVectorType());
+						names = new VectorVal(zeek::lookup_type("string_vec")->AsVectorType());
 
 					names->Assign(names->Size(), bs);
 					break;
 
 				case GEN_URI:
 					if ( uris == nullptr )
-						uris = new VectorVal(internal_type("string_vec")->AsVectorType());
+						uris = new VectorVal(zeek::lookup_type("string_vec")->AsVectorType());
 
 					uris->Assign(uris->Size(), bs);
 					break;
 
 				case GEN_EMAIL:
 					if ( emails == nullptr )
-						emails = new VectorVal(internal_type("string_vec")->AsVectorType());
+						emails = new VectorVal(zeek::lookup_type("string_vec")->AsVectorType());
 
 					emails->Assign(emails->Size(), bs);
 					break;
@@ -391,7 +391,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 		else if ( gen->type == GEN_IPADD )
 			{
 				if ( ips == nullptr )
-					ips = new VectorVal(internal_type("addr_vec")->AsVectorType());
+					ips = new VectorVal(zeek::lookup_type("addr_vec")->AsVectorType());
 
 				uint32_t* addr = (uint32_t*) gen->d.ip->data;
 

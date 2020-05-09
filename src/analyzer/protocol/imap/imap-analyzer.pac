@@ -59,7 +59,7 @@ refine connection IMAP_Conn += {
 		if ( ! imap_capabilities )
 			return true;
 
-		auto capv = make_intrusive<VectorVal>(internal_type("string_vec")->AsVectorType());
+		auto capv = make_intrusive<VectorVal>(zeek::lookup_type("string_vec")->AsVectorType());
 
 		for ( unsigned int i = 0; i< capabilities->size(); i++ )
 			{

@@ -3,7 +3,7 @@
 #include "Desc.h"
 #include "IntrusivePtr.h"
 #include "RE.h"
-#include "Var.h" // for internal_type()
+#include "Var.h"
 #include "Scope.h"
 #include "module_util.h"
 #include "3rdparty/doctest.h"
@@ -1154,7 +1154,7 @@ IntrusivePtr<Val> bro_broker::DataVal::castTo(BroType* t)
 BroType* bro_broker::DataVal::ScriptDataType()
 	{
 	if ( ! script_data_type )
-		script_data_type = internal_type("Broker::Data");
+		script_data_type = zeek::lookup_type("Broker::Data").get();
 
 	return script_data_type;
 	}

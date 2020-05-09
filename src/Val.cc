@@ -2982,7 +2982,6 @@ VectorVal::VectorVal(VectorType* t) : VectorVal({NewRef{}, t})
 
 VectorVal::VectorVal(IntrusivePtr<VectorType> t) : Val(t.get())
 	{
-	vector_type = std::move(t);
 	val.vector_val = new vector<Val*>();
 	}
 
@@ -3002,7 +3001,7 @@ IntrusivePtr<Val> VectorVal::SizeVal() const
 bool VectorVal::Assign(unsigned int index, IntrusivePtr<Val> element)
 	{
 	if ( element &&
-	     ! same_type(element->Type(), vector_type->Yield().get(), false) )
+	     ! same_type(element->Type(), Type()->AsVectorType()->Yield().get(), false) )
 		return false;
 
 	Val* val_at_index = nullptr;
@@ -3043,7 +3042,7 @@ bool VectorVal::AssignRepeat(unsigned int index, unsigned int how_many,
 bool VectorVal::Insert(unsigned int index, Val* element)
 	{
 	if ( element &&
-	     ! same_type(element->Type(), vector_type->Yield().get(), false) )
+	     ! same_type(element->Type(), Type()->AsVectorType()->Yield().get(), false) )
 		{
 		Unref(element);
 		return false;
@@ -3130,7 +3129,7 @@ unsigned int VectorVal::ResizeAtLeast(unsigned int new_num_elements)
 
 IntrusivePtr<Val> VectorVal::DoClone(CloneState* state)
 	{
-	auto vv = make_intrusive<VectorVal>(vector_type);
+	auto vv = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, Type()->AsVectorType()});
 	vv->val.vector_val->reserve(val.vector_val->size());
 	state->NewClone(this, vv);
 

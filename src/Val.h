@@ -1077,8 +1077,6 @@ public:
 protected:
 	void ValDescribe(ODesc* d) const override;
 	IntrusivePtr<Val> DoClone(CloneState* state) override;
-
-	IntrusivePtr<VectorType> vector_type;
 };
 
 // Checks the given value for consistency with the given type.  If an

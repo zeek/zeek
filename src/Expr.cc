@@ -534,7 +534,26 @@ void NameExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 
 bool NameExpr::IsPure() const
 	{
-	return id->IsConst();
+	if ( ! id->IsConst() )
+		return false;
+
+	if ( id->Type()->Tag() != TYPE_FUNC )
+		return true;
+
+	if ( ! id->IsGlobal() )
+		return false;
+
+	auto v = id->ID_Val();
+	if ( ! v )
+		return false;
+
+	auto f = v->AsFunc();
+
+	if ( ! f->HasBodies() )
+		// We don't know how it might change.
+		return false;
+
+	return f->IsPure();
 	}
 
 TraversalCode NameExpr::Traverse(TraversalCallback* cb) const

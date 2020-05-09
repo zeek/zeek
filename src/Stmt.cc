@@ -1803,6 +1803,9 @@ Stmt* ForStmt::DoReduce(Reducer* c)
 
 	body = {AdoptRef{}, body->Reduce(c)};
 
+	if ( body->Tag() == STMT_NULL )
+		Error("empty \"for\" body leaves loop variables in indeterminant state");
+
 	if ( red_e_stmt )
 		return TransformMe(new StmtList(red_e_stmt, this), c);
 
@@ -2174,8 +2177,13 @@ Stmt* StmtList::DoReduce(Reducer* c)
 	bool did_change = false;
 
 	for ( auto i = 0; i < Stmts().length(); ++i )
+		{
 		if ( ReduceStmt(i, f_stmts, c) )
 			did_change = true;
+
+		if ( reporter->Errors() > 0 )
+			return this->Ref();
+		}
 
 	if ( f_stmts->length() == 0 )
 		return TransformMe(new NullStmt, c);

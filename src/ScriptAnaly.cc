@@ -1416,6 +1416,13 @@ void analyze_func(BroFunc* f)
 
 	auto new_body = body->Reduce(rc);
 
+	if ( reporter->Errors() > 0 )
+		{
+		pop_scope();
+		delete rc;
+		return;
+		}
+
 	non_reduced_perp = nullptr;
 	checking_reduction = true;
 	if ( ! new_body->IsReduced() )

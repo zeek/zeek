@@ -1000,7 +1000,8 @@ int yywrap()
 			// string type.)  If no type is found, the value
 			// is left unchanged.
 			std::string opt_quote;	// no optional quote by default
-			Val* v = opt_internal_val(param);
+			auto param_id = lookup_ID(param, GLOBAL_MODULE_NAME);
+			Val* v = param_id ? param_id->GetVal().get() : nullptr;
 
 			if ( v && v->Type() && v->Type()->Tag() == TYPE_STRING )
 				opt_quote = "\"";	// use quotes

@@ -46,7 +46,9 @@ extern Val* internal_val(const char* name);
 [[deprecated("Remove in v4.1.  Use zeek::lookup_const().")]]
 extern Val* internal_const_val(const char* name); // internal error if not const
 
+[[deprecated("Remove in v4.1.  Use lookup_ID() or zeek::lookup_val().")]]
 extern Val* opt_internal_val(const char* name);	// returns nil if not defined
+
 extern double opt_internal_double(const char* name);
 extern bro_int_t opt_internal_int(const char* name);
 extern bro_uint_t opt_internal_unsigned(const char* name);

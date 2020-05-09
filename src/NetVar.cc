@@ -406,7 +406,7 @@ void init_net_var()
 
 	pkt_profile_mode = opt_internal_int("pkt_profile_mode");
 	pkt_profile_freq = opt_internal_double("pkt_profile_freq");
-	pkt_profile_file = opt_internal_val("pkt_profile_file");
+	pkt_profile_file = zeek::lookup_val("pkt_profile_file").get();
 
 	load_sample_freq = opt_internal_int("load_sample_freq");
 

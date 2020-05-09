@@ -693,31 +693,41 @@ Val* opt_internal_val(const char* name)
 
 double opt_internal_double(const char* name)
 	{
-	Val* v = opt_internal_val(name);
+	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	if ( ! id ) return 0.0;
+	const auto& v = id->GetVal();
 	return v ? v->InternalDouble() : 0.0;
 	}
 
 bro_int_t opt_internal_int(const char* name)
 	{
-	Val* v = opt_internal_val(name);
+	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	if ( ! id ) return 0;
+	const auto& v = id->GetVal();
 	return v ? v->InternalInt() : 0;
 	}
 
 bro_uint_t opt_internal_unsigned(const char* name)
 	{
-	Val* v = opt_internal_val(name);
+	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	if ( ! id ) return 0;
+	const auto& v = id->GetVal();
 	return v ? v->InternalUnsigned() : 0;
 	}
 
 StringVal* opt_internal_string(const char* name)
 	{
-	Val* v = opt_internal_val(name);
+	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	if ( ! id ) return nullptr;
+	const auto& v = id->GetVal();
 	return v ? v->AsStringVal() : nullptr;
 	}
 
 TableVal* opt_internal_table(const char* name)
 	{
-	Val* v = opt_internal_val(name);
+	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	if ( ! id ) return nullptr;
+	const auto& v = id->GetVal();
 	return v ? v->AsTableVal() : nullptr;
 	}
 

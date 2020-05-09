@@ -219,7 +219,7 @@ void init_general_global_var()
 	log_rotate_base_time = opt_internal_string("log_rotate_base_time");
 
 	peer_description =
-		internal_val("peer_description")->AsStringVal();
+		zeek::lookup_val("peer_description")->AsStringVal();
 
 	packet_filter_default = opt_internal_int("packet_filter_default");
 
@@ -230,12 +230,12 @@ void init_general_global_var()
 
 	suppress_local_output = opt_internal_int("suppress_local_output");
 
-	trace_output_file = internal_val("trace_output_file")->AsStringVal();
+	trace_output_file = zeek::lookup_val("trace_output_file")->AsStringVal();
 
 	record_all_packets = opt_internal_int("record_all_packets");
 
 	cmd_line_bpf_filter =
-		internal_val("cmd_line_bpf_filter")->AsStringVal();
+		zeek::lookup_val("cmd_line_bpf_filter")->AsStringVal();
 
 	global_hash_seed = opt_internal_string("global_hash_seed");
 
@@ -306,31 +306,31 @@ void init_net_var()
 		opt_internal_double("tcp_storm_interarrival_thresh");
 
 	tcp_reassembler_ports_orig =
-		internal_val("tcp_reassembler_ports_orig")->AsTableVal();
+		zeek::lookup_val("tcp_reassembler_ports_orig")->AsTableVal();
 	tcp_reassembler_ports_resp =
-		internal_val("tcp_reassembler_ports_resp")->AsTableVal();
+		zeek::lookup_val("tcp_reassembler_ports_resp")->AsTableVal();
 
 	tcp_content_delivery_ports_orig =
-		internal_val("tcp_content_delivery_ports_orig")->AsTableVal();
+		zeek::lookup_val("tcp_content_delivery_ports_orig")->AsTableVal();
 	tcp_content_delivery_ports_resp =
-		internal_val("tcp_content_delivery_ports_resp")->AsTableVal();
+		zeek::lookup_val("tcp_content_delivery_ports_resp")->AsTableVal();
 	tcp_content_deliver_all_orig =
-		bool(internal_val("tcp_content_deliver_all_orig")->AsBool());
+		bool(zeek::lookup_val("tcp_content_deliver_all_orig")->AsBool());
 	tcp_content_deliver_all_resp =
-		bool(internal_val("tcp_content_deliver_all_resp")->AsBool());
+		bool(zeek::lookup_val("tcp_content_deliver_all_resp")->AsBool());
 
 	udp_content_delivery_ports_orig =
-		internal_val("udp_content_delivery_ports_orig")->AsTableVal();
+		zeek::lookup_val("udp_content_delivery_ports_orig")->AsTableVal();
 	udp_content_delivery_ports_resp =
-		internal_val("udp_content_delivery_ports_resp")->AsTableVal();
+		zeek::lookup_val("udp_content_delivery_ports_resp")->AsTableVal();
 	udp_content_ports =
-		internal_val("udp_content_ports")->AsTableVal();
+		zeek::lookup_val("udp_content_ports")->AsTableVal();
 	udp_content_deliver_all_orig =
-		bool(internal_val("udp_content_deliver_all_orig")->AsBool());
+		bool(zeek::lookup_val("udp_content_deliver_all_orig")->AsBool());
 	udp_content_deliver_all_resp =
-		bool(internal_val("udp_content_deliver_all_resp")->AsBool());
+		bool(zeek::lookup_val("udp_content_deliver_all_resp")->AsBool());
 	udp_content_delivery_ports_use_resp =
-		bool(internal_val("udp_content_delivery_ports_use_resp")->AsBool());
+		bool(zeek::lookup_val("udp_content_delivery_ports_use_resp")->AsBool());
 
 	dns_session_timeout = opt_internal_double("dns_session_timeout");
 	rpc_timeout = opt_internal_double("rpc_timeout");
@@ -377,15 +377,15 @@ void init_net_var()
 	dns_dnskey_rr = lookup_type("dns_dnskey_rr")->AsRecordType();
 	dns_nsec3_rr = lookup_type("dns_nsec3_rr")->AsRecordType();
 	dns_ds_rr = lookup_type("dns_ds_rr")->AsRecordType();
-	dns_skip_auth = internal_val("dns_skip_auth")->AsTableVal();
-	dns_skip_addl = internal_val("dns_skip_addl")->AsTableVal();
+	dns_skip_auth = zeek::lookup_val("dns_skip_auth")->AsTableVal();
+	dns_skip_addl = zeek::lookup_val("dns_skip_addl")->AsTableVal();
 	dns_skip_all_auth = opt_internal_int("dns_skip_all_auth");
 	dns_skip_all_addl = opt_internal_int("dns_skip_all_addl");
 	dns_max_queries = opt_internal_int("dns_max_queries");
 
 	stp_delta = opt_internal_double("stp_delta");
 	stp_idle_min = opt_internal_double("stp_idle_min");
-	stp_skip_src = internal_val("stp_skip_src")->AsTableVal();
+	stp_skip_src = zeek::lookup_val("stp_skip_src")->AsTableVal();
 
 	orig_addr_anonymization = opt_internal_int("orig_addr_anonymization");
 	resp_addr_anonymization = opt_internal_int("resp_addr_anonymization");
@@ -398,7 +398,7 @@ void init_net_var()
 	connection_status_update_interval =
 		opt_internal_double("connection_status_update_interval");
 
-	profiling_file = internal_val("profiling_file");
+	profiling_file = zeek::lookup_val("profiling_file").get();
 	expensive_profiling_multiple =
 		opt_internal_int("expensive_profiling_multiple");
 	profiling_interval = opt_internal_double("profiling_interval");
@@ -422,7 +422,7 @@ void init_net_var()
 	dpd_late_match_stop = opt_internal_int("dpd_late_match_stop");
 	dpd_ignore_ports = opt_internal_int("dpd_ignore_ports");
 
-	likely_server_ports = internal_val("likely_server_ports")->AsTableVal();
+	likely_server_ports = zeek::lookup_val("likely_server_ports")->AsTableVal();
 
 	timer_mgr_inactivity_timeout =
 		opt_internal_double("timer_mgr_inactivity_timeout");

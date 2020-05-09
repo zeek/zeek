@@ -313,7 +313,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 	streams[idx]->event = event ? event_registry->Lookup(event->Name()) : nullptr;
 	streams[idx]->columns = columns->Ref()->AsRecordType();
 
-	streams[idx]->enable_remote = internal_val("Log::enable_remote_logging")->AsBool();
+	streams[idx]->enable_remote = zeek::lookup_val("Log::enable_remote_logging")->AsBool();
 
 	DBG_LOG(DBG_LOGGING, "Created new logging stream '%s', raising event %s",
 		streams[idx]->name.c_str(), event ? streams[idx]->event->Name() : "<none>");

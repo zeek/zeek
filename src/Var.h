@@ -40,8 +40,12 @@ extern void end_func(IntrusivePtr<Stmt> body);
 // Gather all IDs referenced inside a body that aren't part of a given scope.
 extern id_list gather_outer_ids(Scope* scope, Stmt* body);
 
+[[deprecated("Remove in v4.1.  Use zeek::lookup_val().")]]
 extern Val* internal_val(const char* name);
+
+[[deprecated("Remove in v4.1.  Use zeek::lookup_const().")]]
 extern Val* internal_const_val(const char* name); // internal error if not const
+
 extern Val* opt_internal_val(const char* name);	// returns nil if not defined
 extern double opt_internal_double(const char* name);
 extern bro_int_t opt_internal_int(const char* name);
@@ -54,6 +58,7 @@ extern ListVal* internal_list_val(const char* name);
 extern BroType* internal_type(const char* name);
 
 extern Func* internal_func(const char* name);
+
 extern EventHandlerPtr internal_handler(const char* name);
 
 extern int signal_val;	// 0 if no signal pending
@@ -77,5 +82,21 @@ const IntrusivePtr<BroType>& lookup_type(const char* name);
 template<class T>
 IntrusivePtr<T> lookup_type(const char* name)
 	{ return cast_intrusive<T>(lookup_type(name)); }
+
+/**
+ * Lookup an ID by its name and return its value.  A fatal occurs if the ID
+ * does not exist.
+ * @param name  The identifier name to lookup
+ * @return  The current value of the identifier
+ */
+const IntrusivePtr<Val>& lookup_val(const char* name);
+
+/**
+ * Lookup an ID by its name and return its value.  A fatal occurs if the ID
+ * does not exist or if it is not "const".
+ * @param name  The identifier name to lookup
+ * @return  The current value of the identifier
+ */
+const IntrusivePtr<Val>& lookup_const(const char* name);
 
 } // namespace zeek

@@ -432,7 +432,7 @@ string Manager::GetFileID(const analyzer::Tag& tag, Connection* c, bool is_orig)
 bool Manager::IsDisabled(const analyzer::Tag& tag)
 	{
 	if ( ! disabled )
-		disabled = internal_const_val("Files::disable")->AsTableVal();
+		disabled = zeek::lookup_const("Files::disable")->AsTableVal();
 
 	auto index = val_mgr->Count(bool(tag));
 	auto yield = disabled->Lookup(index.get());

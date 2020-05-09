@@ -129,11 +129,12 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 		mgr.GetPostMaxRDs(f)->Dump();
 		}
 
-	auto bodies = f->GetBodies();
-	for ( const auto& body : bodies )
-		mgr.SetPreFromPost(body.stmts.get(), f);
+	auto body = f->AsBroFunc()->CurrentBody().get();
 
-	return TC_CONTINUE;
+	mgr.SetPreFromPost(body, f);
+	body->Traverse(this);
+
+	return TC_ABORTSTMT;
 	}
 
 TraversalCode RD_Decorate::PreStmt(const Stmt* s)
@@ -1365,7 +1366,7 @@ const char* only_func = 0;
 
 void analyze_func(BroFunc* f)
 	{
-	auto body = f->GetBodies().back().stmts.get();
+	auto body = f->CurrentBody().get();
 
 	if ( reporter->Errors() > 0 )
 		return;

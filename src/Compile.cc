@@ -607,6 +607,7 @@ AbstractStmt GenStmt(AbstractMachine* m, AbstractOp op, const NameExpr* v1,
 AbstractMachine::AbstractMachine(const BroFunc* f, Stmt* _body, UseDefs* _ud,
 					Reducer* _rd, ProfileFunc* _pf)
 	{
+	tag = STMT_COMPILED;
 	func = f;
 	body = _body;
 	body->Ref();

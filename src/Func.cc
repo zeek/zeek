@@ -278,6 +278,7 @@ BroFunc::BroFunc(ID* arg_id, IntrusivePtr<Stmt> arg_body, id_list* aggr_inits,
 		{
 		Body b;
 		b.stmts = AddInits(std::move(arg_body), aggr_inits);
+		current_body = b.stmts;
 		b.priority = priority;
 		bodies.push_back(b);
 		}
@@ -462,6 +463,8 @@ void BroFunc::AddBody(IntrusivePtr<Stmt> new_body, id_list* new_inits,
 	b.stmts = new_body;
 	b.priority = priority;
 
+	current_body = new_body;
+
 	bodies.push_back(b);
 	sort(bodies.begin(), bodies.end());
 	}
@@ -472,6 +475,8 @@ void BroFunc::ReplaceBody(const IntrusivePtr<Stmt>& old_body,
 	for ( auto& body : bodies )
 		if ( body.stmts == old_body )
 			body.stmts = new_body;
+
+	current_body = new_body;
 	}
 
 void BroFunc::AddClosure(id_list ids, Frame* f)

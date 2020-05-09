@@ -5,6 +5,7 @@
 #include "BroList.h"
 #include "Obj.h"
 #include "IntrusivePtr.h"
+#include "StmtBase.h"
 #include "Type.h" /* for function_flavor */
 #include "TraverseTypes.h"
 #include "ZeekArgs.h"
@@ -25,7 +26,6 @@ using std::vector;
 class Val;
 class ListExpr;
 class FuncType;
-class Stmt;
 class Frame;
 class ID;
 class CallExpr;
@@ -41,12 +41,10 @@ public:
 	~Func() override;
 
         BroFunc* AsBroFunc()
-                {
-		if ( Kind() == BRO_FUNC )
-			return (BroFunc*) this;
-		else
-			return nullptr;
-                }
+                { return Kind() == BRO_FUNC ? (BroFunc*) this : nullptr; }
+
+        const BroFunc* AsBroFunc() const
+                { return Kind() == BRO_FUNC ? (BroFunc*) this : nullptr; }
 
 	virtual bool IsPure() const = 0;
 	function_flavor Flavor() const	{ return FType()->Flavor(); }
@@ -170,6 +168,9 @@ public:
 	void ReplaceBody(const IntrusivePtr<Stmt>& old_body,
 				IntrusivePtr<Stmt> new_body);
 
+	IntrusivePtr<Stmt> CurrentBody()		{ return current_body; }
+	const IntrusivePtr<Stmt> CurrentBody() const	{ return current_body; }
+
 	void GrowFrameSize(int size_incr)	{ frame_size += size_incr; }
 
 	/** Sets this function's outer_id list. */
@@ -203,6 +204,9 @@ private:
 	// The frame the BroFunc was initialized in.
 	Frame* closure = nullptr;
 	bool weak_closure_ref = false;
+
+	// The most recently added/updated body.
+	IntrusivePtr<Stmt> current_body;
 };
 
 using built_in_func = Val* (*)(Frame* frame, const zeek::Args* args);

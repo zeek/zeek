@@ -307,11 +307,8 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt,
 		FoldInUDs(f_UDs, body_UDs);
 
 		// Confluence: loop the top UDs back around to the bottom.
-		if ( ! second_pass )
-			{
-			auto bottom_UDs = UD_Union(f_UDs, succ_UDs);
-			(void) PropagateUDs(body, bottom_UDs, body, true);
-			}
+		auto bottom_UDs = UD_Union(f_UDs, succ_UDs);
+		(void) PropagateUDs(body, bottom_UDs, body, true);
 
 		auto ids = f->LoopVars();
 		for ( auto& id : *ids )
@@ -356,11 +353,8 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt,
 			}
 
 		// Confluence: loop the top UDs back around to the bottom.
-		if ( ! second_pass )
-			{
-			auto bottom_UDs = UD_Union(w_UDs, succ_UDs);
-			(void) PropagateUDs(body, bottom_UDs, succ, true);
-			}
+		auto bottom_UDs = UD_Union(w_UDs, succ_UDs);
+		(void) PropagateUDs(body, bottom_UDs, succ, true);
 
 		// The loop might not execute at all.
 		FoldInUDs(w_UDs, succ_UDs);

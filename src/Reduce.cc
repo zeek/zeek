@@ -611,8 +611,6 @@ IntrusivePtr<ID> Reducer::GenTemporary(const IntrusivePtr<BroType>& t,
 	IntrusivePtr<ID> temp_id =
 		install_ID(temp->Name(), "<internal>", false, false);
 
-	temp_id->SetOffset(temp_id->Offset() + scope->Length());
-
 	temp->SetID(temp_id);
 	temp_id->SetType(t);
 

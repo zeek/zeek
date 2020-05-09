@@ -742,6 +742,7 @@ IntrusivePtr<Val> AbstractMachine::DoExec(Frame* f, int start_pc,
 	std::vector<IntrusivePtr<BroObj>> vals;
 
 #define BuildVal(v, t, s) (vals.push_back(v), AS_ValUnion(v.get(), t, s, error_flag))
+#define CopyVal(v) ((s.t->Tag() == TYPE_ADDR || s.t->Tag() == TYPE_SUBNET || s.t->Tag() == TYPE_STRING) ? BuildVal(v.ToVal(s.t), s.t, s.stmt) : v)
 
 	// Return value, or nil if none.
 	const AS_ValUnion* ret_u;
@@ -756,7 +757,7 @@ IntrusivePtr<Val> AbstractMachine::DoExec(Frame* f, int start_pc,
 	while ( pc < end_pc && ! error_flag ) {
 		auto& s = stmts[pc];
 
-		if ( 0 )
+		if ( 1 )
 			{
 			printf("executing %d: ", pc);
 			s.Dump(frame_denizens);
@@ -1142,7 +1143,7 @@ const CompiledStmt AbstractMachine::ConstantSwitch(const SwitchStmt* sw,
 		auto tmp = RegisterSlot();
 		int idx = i.second;
 
-		AddStmt(AbstractStmt(OP_ASSIGN_VC, tmp, ce));
+		AddStmt(AbstractStmt(OP_COPY_TO_VC, tmp, ce));
 		AddStmt(AbstractStmt(OP_CAST_VV, FrameSlot(id), tmp));
 
 		return (*cases)[idx]->Body()->Compile(this);

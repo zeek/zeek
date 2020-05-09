@@ -222,7 +222,7 @@ function build_op_types()
 
 	for ( i = 2; i <= NF; ++i )
 		{
-		if ( $i in accessors )
+		if ( $i in accessors || $i == "*" )
 			++op_types[$i]
 		else
 			gripe("bad op-type " $i)
@@ -402,7 +402,7 @@ function expand_eval(e, is_expr_op, otype1, otype2, is_var1, is_var2)
 	{
 	laccessor = raccessor1 = raccessor2 = ""
 	expr_app = ""
-	if ( otype1 )
+	if ( otype1 && otype1 != "*" )
 		{
 		if ( ! (otype1 in accessors) )
 			gripe("bad operand_type: " otype1)
@@ -462,7 +462,7 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 
 	full_op = "OP_" upper_op "_" type
 	full_op_no_sub = full_op
-	if ( sub_type1 && sub_type1 != "X" )
+	if ( sub_type1 && sub_type1 != "X" && sub_type1 != "*" )
 		{
 		full_op = full_op "_" sub_type1
 		orig_suffix = "-" sub_type1
@@ -756,11 +756,21 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 			print ("\tauto tag = t->Tag();") >methods_f
 			print ("\tauto i_t = t->InternalType();") >methods_f
 
-			n = 0;
+			n = 0
+			default_seen = 0
 			for ( o in op_types )
 				{
 				if ( is_vec && no_vec[o] )
 					continue
+
+				if ( o == "*" )
+					{
+					++default_seen
+
+					build_method_conditional(o, ++n)
+					print (part1 full_op_no_sub part2) >methods_f
+					continue
+					}
 
 				invoke1 = (part1 full_op_no_sub "_")
 				invoke2 = ((is_vec ? vec : "") part2)
@@ -787,7 +797,8 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 					part2) >methods_f
 				}
 
-			print ("\telse\n\t\treporter->InternalError(\"bad internal type\");") >methods_f
+			if ( ! default_seen )
+				print ("\telse\n\t\treporter->InternalError(\"bad internal type\");") >methods_f
 			}
 		else
 			print (part1 full_op part2) >methods_f
@@ -802,8 +813,13 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 function build_method_conditional(o, n)
 	{
 	else_text = (n > 1) ? "else " : "";
-	test = method_map[o]
-	print ("\t" else_text "if ( " test " )") >methods_f
+	if ( o == "*" )
+		print ("\t" else_text ) >methods_f
+	else
+		{
+		test = method_map[o]
+		print ("\t" else_text "if ( " test " )") >methods_f
+		}
 	}
 
 function clear_vars()

@@ -1472,7 +1472,9 @@ void analyze_func(function_ingredients& ingredients)
 		auto am = new AbstractMachine(ingredients, new_body,
 						ud, rc, pf_red);
 		new_body = am->CompileBody();
-		am->Dump();
+
+		if ( only_func )
+			am->Dump();
 
 		new_body_ptr = {AdoptRef{}, new_body};
 		f->ReplaceBody(body_ptr, new_body_ptr);

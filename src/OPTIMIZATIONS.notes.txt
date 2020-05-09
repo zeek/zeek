@@ -15,3 +15,7 @@ when flushing globals, no need to do so if they've already been flushed
 	and their reaching-defs haven't changed
 
 don't bother loading unused function parameters
+
+don't sync variables to the frame if they haven't changed since the
+	last time they were sync'd to the frame (or since we loaded
+	them initially, if parameters)

@@ -4,7 +4,15 @@
 ########## Unary Ops ##########
 
 unary-expr-op Assign
-eval $1
+op-type A N S *
+set-type $2
+eval_A delete $$
+eval_A $$ = new IPAddr(*$1)
+eval_N delete $$
+eval_N $$ = new IPPrefix(*$1)
+eval_S delete $$
+eval_S $$ = new BroString(*$1)
+eval $1;
 
 unary-expr-op Clone
 op-type X
@@ -281,26 +289,31 @@ eval frame[s.v1].int_val = op2->Lookup(op1) != nullptr
 
 expr-op Cond
 type VVVV
-eval frame[s.v1] = frame[s.v2].int_val ? frame[s.v3] : frame[s.v4]
+set-type $3
+eval frame[s.v1] = frame[s.v2].int_val ? CopyVal(frame[s.v3]) : CopyVal(frame[s.v4])
 
 expr-op Cond
 type VVVC
-eval frame[s.v1] = frame[s.v2].int_val ? frame[s.v3] : s.c
+set-type $3
+eval frame[s.v1] = frame[s.v2].int_val ? CopyVal(frame[s.v3]) : CopyVal(s.c)
 
 expr-op Cond
 type VVCV
-eval frame[s.v1] = frame[s.v2].int_val ? s.c : frame[s.v3]
+set-type $3
+eval frame[s.v1] = frame[s.v2].int_val ? CopyVal(s.c) : CopyVal(frame[s.v3])
 
 # Our statement structure doesn't accommodate two constants, so for
 # the singular case of a V ? C1 : C2 conditional, we split it into
 # two operations, V ? C1 and !V ? C2.
 op CondC1
 type VVC
-eval if ( frame[s.v2].int_val ) frame[s.v1] = s.c
+set-type $1
+eval if ( frame[s.v2].int_val ) frame[s.v1] = CopyVal(s.c)
 
 op CondC2
+set-type $1
 type VVC
-eval if ( ! frame[s.v2].int_val ) frame[s.v1] = s.c
+eval if ( ! frame[s.v2].int_val ) frame[s.v1] = CopyVal(s.c)
 
 ########## Index Expressions ##########
 
@@ -792,6 +805,11 @@ internal-op Store-Global
 type VC
 eval auto v = frame[s.v1].ToVal(s.t)
 eval s.c.id_val->SetVal(v)
+
+internal-op Copy-To
+type VC
+set-type $2
+eval frame[s.v1] = CopyVal(s.c)
 
 # Initializes a new value vector.  We now do this dynamically, but at same
 # point we could switch it to a static vector since we'll only have one of

@@ -581,11 +581,27 @@ public:
 		{ return GetFieldType(FieldOffset(field_name)); }
 
 	/**
+	 * Looks up a field by name and returns its type as cast to @c T.
+	 * No check for invalid field name is performed.
+	 */
+	template <class T>
+	IntrusivePtr<T> GetFieldType(const char* field_name) const
+		{ return cast_intrusive<T>(GetFieldType(field_name)); }
+
+	/**
 	 * Looks up a field by its index and returns its type.  No check for
 	 * invalid field offset is performed.
 	 */
 	const IntrusivePtr<BroType>& GetFieldType(int field_index) const
 		{ return (*types)[field_index]->type; }
+
+	/**
+	 * Looks up a field by its index and returns its type as cast to @c T.
+	 * No check for invalid field offset is performed.
+	 */
+	template <class T>
+	IntrusivePtr<T> GetFieldType(int field_index) const
+		{ return cast_intrusive<T>((*types)[field_index]->type); }
 
 	IntrusivePtr<Val> FieldDefault(int field) const;
 

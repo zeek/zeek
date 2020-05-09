@@ -340,10 +340,8 @@ BroString::Vec* BroString::Split(const BroString::IdxVec& indices) const
 
 VectorVal* BroString:: VecToPolicy(Vec* vec)
 	{
-	VectorVal* result =
-		new VectorVal(zeek::lookup_type("string_vec")->AsVectorType());
-	if ( ! result )
-		return nullptr;
+	auto result =
+		make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("string_vec"));
 
 	for ( unsigned int i = 0; i < vec->size(); ++i )
 		{
@@ -353,7 +351,7 @@ VectorVal* BroString:: VecToPolicy(Vec* vec)
 		result->Assign(i+1, val);
 		}
 
-	return result;
+	return result.release();
 	}
 
 BroString::Vec* BroString::VecFromPolicy(VectorVal* vec)

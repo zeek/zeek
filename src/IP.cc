@@ -46,7 +46,7 @@ static inline RecordType* hdrType(RecordType*& type, const char* name)
 
 static IntrusivePtr<VectorVal> BuildOptionsVal(const u_char* data, int len)
 	{
-	auto vv = make_intrusive<VectorVal>(lookup_type("ip6_options")->AsVectorType());
+	auto vv = make_intrusive<VectorVal>(lookup_type<VectorType>("ip6_options"));
 
 	while ( len > 0 )
 		{
@@ -97,7 +97,7 @@ IntrusivePtr<RecordVal> IPv6_Hdr::ToVal(IntrusivePtr<VectorVal> chain) const
 		rv->Assign(6, make_intrusive<AddrVal>(IPAddr(ip6->ip6_dst)));
 		if ( ! chain )
 			chain = make_intrusive<VectorVal>(
-			    lookup_type("ip6_ext_hdr_chain")->AsVectorType());
+			    lookup_type<VectorType>("ip6_ext_hdr_chain"));
 		rv->Assign(7, std::move(chain));
 		}
 		break;
@@ -710,7 +710,7 @@ IntrusivePtr<VectorVal> IPv6_Hdr_Chain::ToVal() const
 		}
 
 	auto rval = make_intrusive<VectorVal>(
-	    lookup_type("ip6_ext_hdr_chain")->AsVectorType());
+	    lookup_type<VectorType>("ip6_ext_hdr_chain"));
 
 	for ( size_t i = 1; i < chain.size(); ++i )
 		{

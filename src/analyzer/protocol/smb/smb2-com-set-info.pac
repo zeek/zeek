@@ -93,7 +93,7 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_file_fullea )
 			{
-			auto eas = make_intrusive<VectorVal>(BifType::Vector::SMB2::FileEAs);
+			auto eas = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::SMB2::FileEAs});
 
 			for ( auto i = 0u; i < ${val.ea_vector}->size(); ++i )
 				{

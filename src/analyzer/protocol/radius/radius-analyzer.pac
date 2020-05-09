@@ -32,9 +32,9 @@ refine flow RADIUS_Flow += {
 
 				else
 					{
-					VectorVal* attribute_list = new VectorVal(BifType::Vector::RADIUS::AttributeList);
+					auto attribute_list = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::RADIUS::AttributeList});
 					attribute_list->Assign((unsigned int)0, std::move(val));
-					attributes->Assign(index.get(), attribute_list);
+					attributes->Assign(index.get(), std::move(attribute_list));
 					}
 				}
 

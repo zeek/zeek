@@ -732,7 +732,7 @@ IntrusivePtr<VectorVal> ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_cha
 		}
 
 	auto vv = make_intrusive<VectorVal>(
-	        zeek::lookup_type("icmp6_nd_options")->AsVectorType());
+	        zeek::lookup_type<VectorType>("icmp6_nd_options"));
 
 	while ( caplen > 0 )
 		{

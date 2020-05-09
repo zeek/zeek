@@ -68,15 +68,10 @@ VectorVal* BroSubstring::VecToPolicy(Vec* vec)
 	if ( ! sw_align_type )
 		return nullptr;
 
-	VectorType* sw_align_vec_type =
-		zeek::lookup_type("sw_align_vec")->AsVectorType();
-	if ( ! sw_align_vec_type )
-		return nullptr;
+	auto sw_align_vec_type = zeek::lookup_type<VectorType>("sw_align_vec");
 
-	VectorVal* result =
-		new VectorVal(zeek::lookup_type("sw_substring_vec")->AsVectorType());
-	if ( ! result )
-		return nullptr;
+	auto result =
+		make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("sw_substring_vec"));
 
 	if ( vec )
 		{
@@ -106,7 +101,7 @@ VectorVal* BroSubstring::VecToPolicy(Vec* vec)
 			}
 		}
 
-	return result;
+	return result.release();
 	}
 
 BroSubstring::Vec* BroSubstring::VecFromPolicy(VectorVal* vec)

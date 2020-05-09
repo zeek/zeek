@@ -201,8 +201,8 @@ VectorVal* TopkVal::GetTopK(int k) const // returns vector
 
 	auto vector_index = make_intrusive<TypeList>(IntrusivePtr{NewRef{}, type});
 	vector_index->Append({NewRef{}, type});
-	VectorType* v = new VectorType(std::move(vector_index));
-	VectorVal* t = new VectorVal(v);
+	auto v = make_intrusive<VectorType>(std::move(vector_index));
+	auto t = make_intrusive<VectorVal>(std::move(v));
 
 	// this does no estimation if the results is correct!
 	// in any case - just to make this future-proof (and I am lazy) - this can return more than k.
@@ -228,8 +228,7 @@ VectorVal* TopkVal::GetTopK(int k) const // returns vector
 		it--;
 		}
 
-	Unref(v);
-	return t;
+	return t.release();
 	}
 
 uint64_t TopkVal::GetCount(Val* value) const

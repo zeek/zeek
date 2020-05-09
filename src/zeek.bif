@@ -1470,8 +1470,7 @@ function sort%(v: any, ...%) : any
 ## .. zeek:see:: sort
 function order%(v: any, ...%) : index_vec
 	%{
-	auto result_v = make_intrusive<VectorVal>(
-	    lookup_type("index_vec")->AsVectorType());
+	auto result_v = make_intrusive<VectorVal>(lookup_type<VectorType>("index_vec"));
 
 	if ( v->Type()->Tag() != TYPE_VECTOR )
 		{
@@ -1825,7 +1824,7 @@ function zeek_version%(%): string
 function record_type_to_vector%(rt: string%): string_vec
 	%{
 	auto result =
-		make_intrusive<VectorVal>(lookup_type("string_vec")->AsVectorType());
+		make_intrusive<VectorVal>(lookup_type<VectorType>("string_vec"));
 
 	RecordType* type = lookup_type(rt->CheckString())->AsRecordType();
 
@@ -1854,8 +1853,8 @@ function type_name%(t: any%): string
 ## Returns: list of command-line arguments (``argv``) used to run Zeek.
 function zeek_args%(%): string_vec
 	%{
-	auto sv = lookup_type("string_vec")->AsVectorType();
-	auto rval = make_intrusive<VectorVal>(sv);
+	auto sv = lookup_type<VectorType>("string_vec");
+	auto rval = make_intrusive<VectorVal>(std::move(sv));
 
 	for ( auto i = 0; i < bro_argc; ++i )
 		rval->Assign(rval->Size(), make_intrusive<StringVal>(bro_argv[i]));
@@ -2187,7 +2186,7 @@ function is_v6_subnet%(s: subnet%): bool
 ## Returns: The vector of addresses contained in the routing header data.
 function routing0_data_to_addrs%(s: string%): addr_vec
 	%{
-	auto rval = make_intrusive<VectorVal>(lookup_type("addr_vec")->AsVectorType());
+	auto rval = make_intrusive<VectorVal>(lookup_type<VectorType>("addr_vec"));
 
 	int len = s->Len();
 	const u_char* bytes = s->Bytes();
@@ -2218,7 +2217,7 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 ## .. zeek:see:: counts_to_addr
 function addr_to_counts%(a: addr%): index_vec
 	%{
-	auto rval = make_intrusive<VectorVal>(lookup_type("index_vec")->AsVectorType());
+	auto rval = make_intrusive<VectorVal>(lookup_type<VectorType>("index_vec"));
 	const uint32_t* bytes;
 	int len = a->AsAddr().GetBytes(&bytes);
 

@@ -253,7 +253,7 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 				                                IntrusivePtr{NewRef{}, id->Attrs()});
 
 			else if ( t->Tag() == TYPE_VECTOR )
-				aggr = make_intrusive<VectorVal>(t->AsVectorType());
+				aggr = make_intrusive<VectorVal>(cast_intrusive<VectorType>(t));
 
 			IntrusivePtr<Val> v;
 

@@ -124,7 +124,7 @@ refine flow RDP_Flow += {
 
 		if ( ${cnetwork.channel_def_array}->size() )
 			{
-			auto channels = make_intrusive<VectorVal>(BifType::Vector::RDP::ClientChannelList);
+			auto channels = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::RDP::ClientChannelList});
 
 			for ( uint i = 0; i < ${cnetwork.channel_def_array}->size(); ++i )
 				{

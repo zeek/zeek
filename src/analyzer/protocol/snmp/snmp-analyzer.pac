@@ -155,7 +155,7 @@ RecordVal* build_hdrV3(const Header* header)
 
 VectorVal* build_bindings(const VarBindList* vbl)
 	{
-	VectorVal* vv = new VectorVal(BifType::Vector::SNMP::Bindings);
+	auto vv = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::SNMP::Bindings});
 
 	for ( size_t i = 0; i < vbl->bindings()->size(); ++i )
 		{
@@ -166,7 +166,7 @@ VectorVal* build_bindings(const VarBindList* vbl)
 		vv->Assign(i, binding);
 		}
 
-	return vv;
+	return vv.release();
 	}
 
 IntrusivePtr<RecordVal> build_pdu(const CommonPDU* pdu)

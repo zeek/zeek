@@ -192,7 +192,7 @@ zeek::Args MOUNT_Interp::event_common_vl(RPC_CallInfo *c,
 	zeek::Args vl;
 	vl.reserve(2 + extra_elements);
 	vl.emplace_back(analyzer->ConnVal());
-	auto auxgids = make_intrusive<VectorVal>(zeek::lookup_type("index_vec")->AsVectorType());
+	auto auxgids = make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("index_vec"));
 
 	for (size_t i = 0; i < c->AuxGIDs().size(); ++i)
 		{
@@ -272,9 +272,8 @@ RecordVal* MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& n,
 			auth_flavors_count = max_auth_flavors;
 			}
 
-		VectorType* enum_vector = new VectorType(base_type(TYPE_ENUM));
-		VectorVal* auth_flavors = new VectorVal(enum_vector);
-		Unref(enum_vector);
+		auto enum_vector = make_intrusive<VectorType>(base_type(TYPE_ENUM));
+		auto auth_flavors = make_intrusive<VectorVal>(std::move(enum_vector));
 
 		for ( auto i = 0u; i < auth_flavors_count; ++i )
 			auth_flavors->Assign(auth_flavors->Size(),
@@ -284,7 +283,7 @@ RecordVal* MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& n,
 			// Prevent further "excess RPC" weirds
 			n = 0;
 
-		rep->Assign(1, auth_flavors);
+		rep->Assign(1, std::move(auth_flavors));
 		}
 	else
 		{

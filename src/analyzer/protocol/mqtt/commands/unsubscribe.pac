@@ -14,7 +14,7 @@ refine flow MQTT_Flow += {
 		%{
 		if ( mqtt_unsubscribe )
 			{
-			auto topics = make_intrusive<VectorVal>(string_vec);
+			auto topics = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, string_vec});
 
 			for ( auto topic: *${msg.topics} )
 				{

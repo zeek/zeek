@@ -499,7 +499,7 @@ string Manager::DetectMIME(const u_char* data, uint64_t len) const
 
 IntrusivePtr<VectorVal> file_analysis::GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m)
 	{
-	auto rval = make_intrusive<VectorVal>(mime_matches);
+	auto rval = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, mime_matches});
 
 	for ( RuleMatcher::MIME_Matches::const_iterator it = m.begin();
 	      it != m.end(); ++it )

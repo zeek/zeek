@@ -2356,7 +2356,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 		// all entries have to have the same type...
 		const auto& type = request_type->AsVectorType()->Yield();
 		auto vt = make_intrusive<VectorType>(type);
-		auto v = make_intrusive<VectorVal>(vt.get());
+		auto v = make_intrusive<VectorVal>(std::move(vt));
 
 		for ( int j = 0; j < val->val.vector_val.size; j++ )
 			v->Assign(j, ValueToVal(i, val->val.vector_val.vals[j], type.get(), have_error));
@@ -2548,12 +2548,12 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 			}
 
 		auto vt = make_intrusive<VectorType>(std::move(type));
-		VectorVal* v = new VectorVal(vt.get());
+		auto v = make_intrusive<VectorVal>(std::move(vt));
 
 		for ( int j = 0; j < val->val.vector_val.size; j++ )
 			v->Assign(j, ValueToVal(i, val->val.vector_val.vals[j], have_error));
 
-		return v;
+		return v.release();
 		}
 
 	case TYPE_ENUM: {

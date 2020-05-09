@@ -16,7 +16,7 @@
 %code{
 	IntrusivePtr<VectorVal> bytestring_to_coils(const bytestring& coils, uint quantity)
 		{
-		auto modbus_coils = make_intrusive<VectorVal>(BifType::Vector::ModbusCoils);
+		auto modbus_coils = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::ModbusCoils});
 
 		for ( uint i = 0; i < quantity; i++ )
 			{
@@ -40,7 +40,7 @@
 	IntrusivePtr<VectorVal> create_vector_of_count()
 		{
 		auto vt = make_intrusive<VectorType>(base_type(TYPE_COUNT));
-		auto vv = make_intrusive<VectorVal>(vt.get());
+		auto vv = make_intrusive<VectorVal>(std::move(vt));
 		return vv;
 		}
 
@@ -209,7 +209,7 @@ refine flow ModbusTCP_Flow += {
 
 		if ( ::modbus_read_holding_registers_response )
 			{
-			auto t = make_intrusive<VectorVal>(BifType::Vector::ModbusRegisters);
+			auto t = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::ModbusRegisters});
 
 			for ( unsigned int i=0; i < ${message.registers}->size(); ++i )
 				{
@@ -253,7 +253,7 @@ refine flow ModbusTCP_Flow += {
 
 		if ( ::modbus_read_input_registers_response )
 			{
-			auto t = make_intrusive<VectorVal>(BifType::Vector::ModbusRegisters);
+			auto t = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::ModbusRegisters});
 
 			for ( unsigned int i=0; i < (${message.registers})->size(); ++i )
 				{
@@ -397,7 +397,7 @@ refine flow ModbusTCP_Flow += {
 
 		if ( ::modbus_write_multiple_registers_request )
 			{
-			auto t = make_intrusive<VectorVal>(BifType::Vector::ModbusRegisters);
+			auto t = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::ModbusRegisters});
 
 			for ( unsigned int i = 0; i < (${message.registers}->size()); ++i )
 				{
@@ -582,7 +582,7 @@ refine flow ModbusTCP_Flow += {
 
 		if ( ::modbus_read_write_multiple_registers_request )
 			{
-			auto t = make_intrusive<VectorVal>(BifType::Vector::ModbusRegisters);
+			auto t = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::ModbusRegisters});
 
 			for ( unsigned int i = 0; i < ${message.write_register_values}->size(); ++i )
 				{
@@ -614,7 +614,7 @@ refine flow ModbusTCP_Flow += {
 
 		if ( ::modbus_read_write_multiple_registers_response )
 			{
-			auto t = make_intrusive<VectorVal>(BifType::Vector::ModbusRegisters);
+			auto t = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::ModbusRegisters});
 
 			for ( unsigned int i = 0; i < ${message.registers}->size(); ++i )
 				{

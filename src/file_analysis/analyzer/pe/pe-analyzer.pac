@@ -11,11 +11,12 @@ VectorVal* process_rvas(const RVAS* rvas);
 %code{
 VectorVal* process_rvas(const RVAS* rva_table)
 	{
-	VectorVal* rvas = new VectorVal(zeek::lookup_type("index_vec")->AsVectorType());
+	auto rvas = make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("index_vec"));
+
 	for ( uint16 i=0; i < rva_table->rvas()->size(); ++i )
 		rvas->Assign(i, val_mgr->Count((*rva_table->rvas())[i]->size()));
 
-	return rvas;
+	return rvas.release();
 	}
 %}
 

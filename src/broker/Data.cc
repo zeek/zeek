@@ -330,7 +330,7 @@ struct val_converter {
 		if ( type->Tag() == TYPE_VECTOR )
 			{
 			auto vt = type->AsVectorType();
-			auto rval = make_intrusive<VectorVal>(vt);
+			auto rval = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, vt});
 
 			for ( auto& item : a )
 				{

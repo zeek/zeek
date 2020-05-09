@@ -132,7 +132,6 @@ Manager::Manager(bool arg_use_real_time)
 	peer_count = 0;
 	log_batch_size = 0;
 	log_topic_func = nullptr;
-	vector_of_data_type = nullptr;
 	log_id_type = nullptr;
 	writer_id_type = nullptr;
 	}
@@ -158,7 +157,7 @@ void Manager::InitPostScript()
 	opaque_of_vector_iterator = new OpaqueType("Broker::VectorIterator");
 	opaque_of_record_iterator = new OpaqueType("Broker::RecordIterator");
 	opaque_of_store_handle = new OpaqueType("Broker::Store");
-	vector_of_data_type = new VectorType(zeek::lookup_type("Broker::Data"));
+	vector_of_data_type = make_intrusive<VectorType>(zeek::lookup_type("Broker::Data"));
 
 	// Register as a "dont-count" source first, we may change that later.
 	iosource_mgr->Register(this, true);
@@ -701,7 +700,7 @@ bool Manager::AutoUnpublishEvent(const string& topic, Val* event)
 RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 	{
 	auto rval = new RecordVal(BifType::Record::Broker::Event);
-	auto arg_vec = new VectorVal(vector_of_data_type);
+	auto arg_vec = make_intrusive<VectorVal>(vector_of_data_type);
 	rval->Assign(1, arg_vec);
 	Func* func = nullptr;
 	scoped_reporter_location srl{frame};

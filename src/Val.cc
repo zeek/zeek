@@ -1933,7 +1933,7 @@ IntrusivePtr<VectorVal> TableVal::LookupSubnets(const SubNetVal* search)
 	if ( ! subnets )
 		reporter->InternalError("LookupSubnets called on wrong table type");
 
-	auto result = make_intrusive<VectorVal>(zeek::lookup_type("subnet_vec")->AsVectorType());
+	auto result = make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("subnet_vec"));
 
 	auto matches = subnets->FindAll(search);
 	for ( auto element : matches )
@@ -2671,11 +2671,11 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(t)
 		Attributes* a = t->FieldDecl(i)->attrs.get();
 		Attr* def_attr = a ? a->FindAttr(ATTR_DEFAULT) : nullptr;
 		auto def = def_attr ? def_attr->AttrExpr()->Eval(nullptr) : nullptr;
-		BroType* type = t->FieldDecl(i)->type.get();
+		const auto& type = t->FieldDecl(i)->type;
 
 		if ( def && type->Tag() == TYPE_RECORD &&
 		     def->Type()->Tag() == TYPE_RECORD &&
-		     ! same_type(def->Type(), type) )
+		     ! same_type(def->Type(), type.get()) )
 			{
 			auto tmp = def->AsRecordVal()->CoerceTo(type->AsRecordType());
 
@@ -2695,7 +2695,7 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(t)
 				                               IntrusivePtr{NewRef{}, a});
 
 			else if ( tag == TYPE_VECTOR )
-				def = make_intrusive<VectorVal>(type->AsVectorType());
+				def = make_intrusive<VectorVal>(cast_intrusive<VectorType>(type));
 			}
 
 		vl->push_back(def.release());
@@ -2977,9 +2977,12 @@ IntrusivePtr<Val> EnumVal::DoClone(CloneState* state)
 	return {NewRef{}, this};
 	}
 
-VectorVal::VectorVal(VectorType* t) : Val(t)
+VectorVal::VectorVal(VectorType* t) : VectorVal({NewRef{}, t})
+	{ }
+
+VectorVal::VectorVal(IntrusivePtr<VectorType> t) : Val(t.get())
 	{
-	vector_type = t->Ref()->AsVectorType();
+	vector_type = std::move(t);
 	val.vector_val = new vector<Val*>();
 	}
 
@@ -2987,8 +2990,6 @@ VectorVal::~VectorVal()
 	{
 	for ( unsigned int i = 0; i < val.vector_val->size(); ++i )
 		Unref((*val.vector_val)[i]);
-
-	Unref(vector_type);
 
 	delete val.vector_val;
 	}

@@ -82,8 +82,8 @@ refine flow MySQL_Flow += {
 		if ( ! mysql_result_row )
 			return true;
 
-		auto vt = zeek::lookup_type("string_vec")->AsVectorType();
-		auto vv = make_intrusive<VectorVal>(vt);
+		auto vt = zeek::lookup_type<VectorType>("string_vec");
+		auto vv = make_intrusive<VectorVal>(std::move(vt));
 
 		auto& bstring = ${msg.row.first_field.val};
 		auto ptr = reinterpret_cast<const char*>(bstring.data());

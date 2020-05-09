@@ -127,7 +127,7 @@ void EventHandler::NewEvent(const zeek::Args& vl)
 		return;
 
 	RecordType* args = FType()->Args();
-	auto vargs = make_intrusive<VectorVal>(call_argument_vector);
+	auto vargs = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, call_argument_vector});
 
 	for ( int i = 0; i < args->NumFields(); i++ )
 		{

@@ -198,7 +198,7 @@ public:
 	IntrusivePtr<VectorVal> ToVal() const
 		{
 		auto vv = make_intrusive<VectorVal>(
-		    zeek::lookup_type("EncapsulatingConnVector")->AsVectorType());
+		    zeek::lookup_type<VectorType>("EncapsulatingConnVector"));
 
 		if ( conns )
 			{

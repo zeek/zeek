@@ -22,7 +22,7 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_negotiate_request )
 			{
-			auto dialects = make_intrusive<VectorVal>(index_vec);
+			auto dialects = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, index_vec});
 
 			for ( unsigned int i = 0; i < ${val.dialects}->size(); ++i )
 				dialects->Assign(i, val_mgr->Count((*${val.dialects})[i]));
@@ -48,7 +48,7 @@ refine connection SMB_Conn += {
 			nr->Assign(4, filetime2brotime(${val.server_start_time}));
 			nr->Assign(5, val_mgr->Count(${val.negotiate_context_count}));
 
-			auto cv = make_intrusive<VectorVal>(BifType::Vector::SMB2::NegotiateContextValues);
+			auto cv = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::SMB2::NegotiateContextValues});
 
 			if ( ${val.dialect_revision} == 0x0311 && ${val.negotiate_context_count} > 0 )
 				{

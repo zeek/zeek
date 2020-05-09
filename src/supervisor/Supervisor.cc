@@ -1123,12 +1123,13 @@ IntrusivePtr<RecordVal> Supervisor::NodeConfig::ToRecord() const
 	if ( cpu_affinity )
 		rval->Assign(rt->FieldOffset("cpu_affinity"), val_mgr->Int(*cpu_affinity));
 
-	const auto& st = rt->GetFieldType("scripts");
-	auto scripts_val = new VectorVal(st->AsVectorType());
-	rval->Assign(rt->FieldOffset("scripts"), scripts_val);
+	auto st = rt->GetFieldType<VectorType>("scripts");
+	auto scripts_val = make_intrusive<VectorVal>(std::move(st));
 
 	for ( const auto& s : scripts )
 		scripts_val->Assign(scripts_val->Size(), make_intrusive<StringVal>(s));
+
+	rval->Assign(rt->FieldOffset("scripts"), std::move(scripts_val));
 
 	const auto& tt = rt->GetFieldType("cluster");
 	auto cluster_val = new TableVal({NewRef{}, tt->AsTableType()});

@@ -1355,7 +1355,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 
 	if ( tcp_options )
 		{
-		auto option_list = make_intrusive<VectorVal>(BifType::Vector::TCP::OptionList);
+		auto option_list = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::TCP::OptionList});
 
 		auto add_option_data = [](RecordVal* rv, const u_char* odata, int olen)
 			{
@@ -1421,8 +1421,8 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 					{
 					auto p = reinterpret_cast<const uint32_t*>(o + 2);
 					auto num_pointers = (length - 2) / 4;
-					auto vt = zeek::lookup_type("index_vec")->AsVectorType();
-					auto sack = new VectorVal(vt);
+					auto vt = zeek::lookup_type<VectorType>("index_vec");
+					auto sack = make_intrusive<VectorVal>(std::move(vt));
 
 					for ( auto i = 0; i < num_pointers; ++i )
 						sack->Assign(sack->Size(), val_mgr->Count(ntohl(p[i])));

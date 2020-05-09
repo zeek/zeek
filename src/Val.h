@@ -1016,7 +1016,9 @@ protected:
 
 class VectorVal final : public Val, public notifier::Modifiable {
 public:
+	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
 	explicit VectorVal(VectorType* t);
+	explicit VectorVal(IntrusivePtr<VectorType> t);
 	~VectorVal() override;
 
 	IntrusivePtr<Val> SizeVal() const override;
@@ -1076,7 +1078,7 @@ protected:
 	void ValDescribe(ODesc* d) const override;
 	IntrusivePtr<Val> DoClone(CloneState* state) override;
 
-	VectorType* vector_type;
+	IntrusivePtr<VectorType> vector_type;
 };
 
 // Checks the given value for consistency with the given type.  If an

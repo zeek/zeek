@@ -973,7 +973,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 			n = *kp;
 			kp1 = reinterpret_cast<const char*>(kp+1);
 			VectorType* vt = t->AsVectorType();
-			auto vv = make_intrusive<VectorVal>(vt);
+			auto vv = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, vt});
 
 			for ( unsigned int i = 0; i < n; ++i )
 				{

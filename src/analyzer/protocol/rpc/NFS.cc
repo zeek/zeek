@@ -328,7 +328,7 @@ zeek::Args NFS_Interp::event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_
 	zeek::Args vl;
 	vl.reserve(2 + extra_elements);
 	vl.emplace_back(analyzer->ConnVal());
-	auto auxgids = make_intrusive<VectorVal>(zeek::lookup_type("index_vec")->AsVectorType());
+	auto auxgids = make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("index_vec"));
 
 	for ( size_t i = 0; i < c->AuxGIDs().size(); ++i )
 		auxgids->Assign(i, val_mgr->Count(c->AuxGIDs()[i]));
@@ -769,7 +769,7 @@ RecordVal* NFS_Interp::nfs3_readdir_reply(bool isplus, const u_char*& buf,
 	if ( status == BifEnum::NFS3::NFS3ERR_OK )
 		{
 		unsigned pos;
-		VectorVal *entries = new VectorVal(BifType::Vector::NFS3::direntry_vec_t);
+		auto entries = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::NFS3::direntry_vec_t});
 
 		rep->Assign(1, nfs3_post_op_attr(buf,n));   // dir_attr
 		rep->Assign(2, ExtractUint64(buf,n));  // cookieverf

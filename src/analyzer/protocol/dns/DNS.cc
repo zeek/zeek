@@ -998,7 +998,7 @@ bool DNS_Interpreter::ParseRR_NSEC(DNS_MsgInfo* msg,
 
 	int typebitmaps_len = rdlength - (data - data_start);
 
-	auto char_strings = make_intrusive<VectorVal>(string_vec);
+	auto char_strings = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, string_vec});
 
 	while ( typebitmaps_len > 0 && len > 0 )
 		{
@@ -1073,7 +1073,7 @@ bool DNS_Interpreter::ParseRR_NSEC3(DNS_MsgInfo* msg,
 
 	int typebitmaps_len = rdlength - (data - data_start);
 
-	auto char_strings = make_intrusive<VectorVal>(string_vec);
+	auto char_strings = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, string_vec});
 
 	while ( typebitmaps_len > 0 && len > 0 )
 		{
@@ -1288,7 +1288,7 @@ bool DNS_Interpreter::ParseRR_TXT(DNS_MsgInfo* msg,
 		return true;
 		}
 
-	auto char_strings = make_intrusive<VectorVal>(string_vec);
+	auto char_strings = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, string_vec});
 	IntrusivePtr<StringVal> char_string;
 
 	while ( (char_string = extract_char_string(analyzer, data, len, rdlength)) )
@@ -1316,7 +1316,7 @@ bool DNS_Interpreter::ParseRR_SPF(DNS_MsgInfo* msg,
 		return true;
 		}
 
-	auto char_strings = make_intrusive<VectorVal>(string_vec);
+	auto char_strings = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, string_vec});
 	IntrusivePtr<StringVal> char_string;
 
 	while ( (char_string = extract_char_string(analyzer, data, len, rdlength)) )

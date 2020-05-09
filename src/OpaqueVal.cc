@@ -37,7 +37,7 @@ OpaqueMgr* OpaqueMgr::mgr()
 	return &mgr;
 	}
 
-OpaqueVal::OpaqueVal(OpaqueType* t) : Val(t)
+OpaqueVal::OpaqueVal(OpaqueType* t) : Val(IntrusivePtr{NewRef{}, t})
 	{
 	}
 

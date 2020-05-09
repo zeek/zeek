@@ -43,21 +43,21 @@
 using namespace std;
 
 Val::Val(Func* f)
-	: val(f), type(f->FType()->Ref())
+	: val(f), type({NewRef{}, f->FType()})
 	{
 	::Ref(val.func_val);
 	}
 
-static FileType* GetStringFileType() noexcept
+static const IntrusivePtr<FileType>& GetStringFileType() noexcept
 	{
-	static FileType* string_file_type = nullptr;
-	if ( ! string_file_type )
-		string_file_type = new FileType(base_type(TYPE_STRING));
+	static IntrusivePtr<FileType> string_file_type
+		= make_intrusive<FileType>(base_type(TYPE_STRING));
+
 	return string_file_type;
 	}
 
 Val::Val(BroFile* f)
-	: val(f), type(GetStringFileType()->Ref())
+	: val(f), type(GetStringFileType())
 	{
 	assert(f->FType()->Tag() == TYPE_STRING);
 	}
@@ -73,7 +73,6 @@ Val::~Val()
 	else if ( type->Tag() == TYPE_FILE )
 		Unref(val.file_val);
 
-	Unref(type);
 #ifdef DEBUG
 	delete [] bound_id;
 #endif
@@ -1122,7 +1121,7 @@ IntrusivePtr<Val> StringVal::DoClone(CloneState* state)
 	}
 
 PatternVal::PatternVal(RE_Matcher* re)
-	: Val(base_type(TYPE_PATTERN).get())
+	: Val(base_type(TYPE_PATTERN))
 	{
 	val.re_val = re;
 	}
@@ -1181,14 +1180,13 @@ IntrusivePtr<Val> PatternVal::DoClone(CloneState* state)
 	}
 
 ListVal::ListVal(TypeTag t)
-	: Val(new TypeList(t == TYPE_ANY ? nullptr : base_type(t)))
+	: Val(make_intrusive<TypeList>(t == TYPE_ANY ? nullptr : base_type(t)))
 	{
 	tag = t;
 	}
 
 ListVal::~ListVal()
 	{
-	Unref(type);
 	}
 
 IntrusivePtr<Val> ListVal::SizeVal() const
@@ -1371,7 +1369,7 @@ static void find_nested_record_types(BroType* t, std::set<RecordType*>* found)
 	}
 	}
 
-TableVal::TableVal(IntrusivePtr<TableType> t, IntrusivePtr<Attributes> a) : Val(t.get())
+TableVal::TableVal(IntrusivePtr<TableType> t, IntrusivePtr<Attributes> a) : Val(t)
 	{
 	Init(std::move(t));
 	SetAttrs(std::move(a));
@@ -1593,7 +1591,7 @@ bool TableVal::AddTo(Val* val, bool is_first_init, bool propagate_ops) const
 
 	TableVal* t = val->AsTableVal();
 
-	if ( ! same_type(type, t->Type()) )
+	if ( ! same_type(type.get(), t->Type()) )
 		{
 		type->Error("table type clash", t->Type());
 		return false;
@@ -1639,7 +1637,7 @@ bool TableVal::RemoveFrom(Val* val) const
 
 	TableVal* t = val->AsTableVal();
 
-	if ( ! same_type(type, t->Type()) )
+	if ( ! same_type(type.get(), t->Type()) )
 		{
 		type->Error("table type clash", t->Type());
 		return false;
@@ -2652,7 +2650,7 @@ TableVal::TableRecordDependencies TableVal::parse_time_table_record_dependencies
 
 RecordVal::RecordTypeValMap RecordVal::parse_time_records;
 
-RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(t)
+RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(IntrusivePtr{NewRef{}, t})
 	{
 	origin = nullptr;
 	int n = t->NumFields();
@@ -2980,7 +2978,7 @@ IntrusivePtr<Val> EnumVal::DoClone(CloneState* state)
 VectorVal::VectorVal(VectorType* t) : VectorVal({NewRef{}, t})
 	{ }
 
-VectorVal::VectorVal(IntrusivePtr<VectorType> t) : Val(t.get())
+VectorVal::VectorVal(IntrusivePtr<VectorType> t) : Val(std::move(t))
 	{
 	val.vector_val = new vector<Val*>();
 	}
@@ -3088,7 +3086,7 @@ bool VectorVal::AddTo(Val* val, bool /* is_first_init */) const
 
 	VectorVal* v = val->AsVectorVal();
 
-	if ( ! same_type(type, v->Type()) )
+	if ( ! same_type(type.get(), v->Type()) )
 		{
 		type->Error("vector type clash", v->Type());
 		return false;

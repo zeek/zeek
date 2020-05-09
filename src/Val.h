@@ -126,9 +126,8 @@ union BroValUnion {
 class Val : public BroObj {
 public:
 	Val(double d, TypeTag t)
-		: val(d), type(base_type(t)->Ref())
-		{
-		}
+		: val(d), type(base_type(t))
+		{}
 
 	explicit Val(Func* f);
 
@@ -138,18 +137,16 @@ public:
 
 	// Extra arg to differentiate from protected version.
 	Val(IntrusivePtr<BroType> t, bool type_type)
-		: type(new TypeType(std::move(t)))
-		{ }
+		: type(make_intrusive<TypeType>(std::move(t)))
+		{}
 
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
 	Val(BroType* t, bool type_type) : Val({NewRef{}, t}, type_type)
-		{
-		}
+		{}
 
 	Val()
-		: val(bro_int_t(0)), type(base_type(TYPE_ERROR)->Ref())
-		{
-		}
+		: val(bro_int_t(0)), type(base_type(TYPE_ERROR))
+		{}
 
 	~Val() override;
 
@@ -183,8 +180,8 @@ public:
 	// Remove this value from the given value (if appropriate).
 	virtual bool RemoveFrom(Val* v) const;
 
-	BroType* Type()			{ return type; }
-	const BroType* Type() const	{ return type; }
+	BroType* Type()			{ return type.get(); }
+	const BroType* Type() const	{ return type.get(); }
 
 #define CONST_ACCESSOR(tag, ctype, accessor, name) \
 	const ctype name() const \
@@ -226,7 +223,7 @@ public:
 	BroType* AsType() const
 		{
 		CHECK_TAG(type->Tag(), TYPE_TYPE, "Val::Type", type_name)
-		return type;
+		return type.get();
 		}
 
 	const IPAddr& AsAddr() const
@@ -344,21 +341,18 @@ protected:
 	static IntrusivePtr<Val> MakeCount(bro_uint_t u);
 
 	template<typename V>
-	Val(V &&v, TypeTag t) noexcept
-		: val(std::forward<V>(v)), type(base_type(t)->Ref())
-		{
-		}
+	Val(V&& v, TypeTag t) noexcept
+		: val(std::forward<V>(v)), type(base_type(t))
+		{}
 
 	template<typename V>
-	Val(V &&v, BroType* t) noexcept
-		: val(std::forward<V>(v)), type(t->Ref())
-		{
-		}
+	Val(V&& v, IntrusivePtr<BroType> t) noexcept
+		: val(std::forward<V>(v)), type(std::move(t))
+		{}
 
-	explicit Val(BroType* t)
-		: type(t->Ref())
-		{
-		}
+	explicit Val(IntrusivePtr<BroType> t) noexcept
+		: type(std::move(t))
+		{}
 
 	ACCESSOR(TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsNonConstTable)
 	ACCESSOR(TYPE_RECORD, val_list*, val_list_val, AsNonConstRecord)
@@ -377,7 +371,7 @@ protected:
 	virtual IntrusivePtr<Val> DoClone(CloneState* state);
 
 	BroValUnion val;
-	BroType* type;
+	IntrusivePtr<BroType> type;
 
 #ifdef DEBUG
 	// For debugging, we keep the name of the ID to which a Val is bound.
@@ -1005,7 +999,7 @@ protected:
 	template<class T, class... Ts>
 	friend IntrusivePtr<T> make_intrusive(Ts&&... args);
 
-	EnumVal(EnumType* t, int i) : Val(bro_int_t(i), t)
+	EnumVal(EnumType* t, int i) : Val(bro_int_t(i), {NewRef{}, t})
 		{
 		}
 

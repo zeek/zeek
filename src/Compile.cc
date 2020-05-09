@@ -635,6 +635,25 @@ Stmt* AbstractMachine::CompileBody()
 	if ( LastStmt()->Tag() != STMT_RETURN )
 		SyncGlobals(nullptr);
 
+	if ( breaks.size() > 0 )
+		{
+		if ( func->Flavor() == FUNC_FLAVOR_HOOK )
+			{
+			// Rewrite the breaks.
+			for ( auto b : breaks )
+				stmts[b] = AbstractStmt(OP_HOOK_BREAK_X);
+			}
+
+		else
+			reporter->Error("\"break\" used without an enclosing \"for\" or \"switch\"");
+		}
+
+	if ( nexts.size() > 0 )
+		reporter->Error("\"next\" used without an enclosing \"for\"");
+
+	if ( fallthroughs.size() > 0 )
+		reporter->Error("\"fallthrough\" used without an enclosing \"switch\"");
+
 	return this;
 	}
 
@@ -754,10 +773,12 @@ IntrusivePtr<Val> AbstractMachine::DoExec(Frame* f, int start_pc,
 	for ( auto s : managed_slots )
 		frame[s].void_val = nullptr;
 
+	flow = FLOW_RETURN;	// can be over-written by a Hook-Break
+
 	while ( pc < end_pc && ! error_flag ) {
 		auto& s = stmts[pc];
 
-		if ( 1 )
+		if ( 0 )
 			{
 			printf("executing %d: ", pc);
 			s.Dump(frame_denizens);

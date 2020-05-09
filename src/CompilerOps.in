@@ -738,11 +738,6 @@ type VV
 eval if ( frame[s.v1].int_val ) pc = s.v2
 
 
-internal-op GoTo
-type V
-eval pc = s.v1
-
-
 op AddStmt
 type VO
 eval auto vvec = frame[s.v2].vvec
@@ -850,3 +845,12 @@ internal-op Interpret-Expr
 type V
 eval auto v = s.e->Eval(f)
 eval frame[s.v1] = BuildVal(v, s.t, s.e)
+
+internal-op GoTo
+type V
+eval pc = s.v1
+
+internal-op Hook-Break
+type X
+eval flow = FLOW_BREAK
+eval pc = end_pc

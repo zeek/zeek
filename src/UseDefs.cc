@@ -173,11 +173,7 @@ bool UseDefs::CheckIfUnused(const Stmt* s, const ID* id, bool report)
 		{
 		if ( report && ! rc->IsTemporary(id) &&
 		     ! rc->IsConstantVar(id) )
-			{
-			printf("%s (%x/%x) has no use-def at %s\n",
-				id->Name(), succ, uds.get(),
-				obj_desc(s));
-			}
+			reporter->Warning("%s unused", id->Name());
 
 		return true;
 		}

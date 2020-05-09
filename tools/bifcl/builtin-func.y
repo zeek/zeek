@@ -387,7 +387,7 @@ type_def:	TOK_TYPE opt_ws TOK_ID opt_ws ':' opt_ws type_def_types opt_ws ';'
 				decl.c_namespace_start.c_str(), type_name.c_str(),
 				decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 			fprintf(fp_netvar_init,
-				"\t%s = internal_type(\"%s\")->As%sType();\n",
+				"\t%s = zeek::lookup_type(\"%s\")->As%sType();\n",
 				decl.c_fullname.c_str(), decl.bro_fullname.c_str(),
 				type_name.c_str());
 
@@ -447,7 +447,7 @@ enum_def:	enum_def_1 enum_list TOK_RPB opt_attr_list
 			fprintf(fp_netvar_def, "%s EnumType * %s; %s\n",
 				decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 			fprintf(fp_netvar_init,
-				"\t%s = internal_type(\"%s\")->AsEnumType();\n",
+				"\t%s = zeek::lookup_type(\"%s\")->AsEnumType();\n",
 				decl.c_fullname.c_str(), decl.bro_fullname.c_str());
 
 			record_bif_item(decl.bro_fullname.c_str(), "TYPE");

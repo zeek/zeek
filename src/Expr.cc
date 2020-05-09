@@ -3402,6 +3402,10 @@ bool AssignExpr::HasNoSideEffects() const
 
 bool AssignExpr::IsReduced() const
 	{
+	if ( op2->Tag() == EXPR_ASSIGN )
+		// Cascaded assignments are never reduced.
+		return false;
+
 	if ( IsTemp() )
 		return true;
 
@@ -3440,6 +3444,15 @@ Expr* AssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 
 	if ( IsTemp() )
 		return this->Ref();
+
+	if ( op2->Tag() == EXPR_ASSIGN )
+		{ // Cascaded assignment.
+		IntrusivePtr<Stmt> cascade_stmt;
+		op2 = {AdoptRef{}, op2->ReduceToSingleton(c, cascade_stmt)};
+		auto new_me = Reduce(c, red_stmt);
+		red_stmt = MergeStmts(cascade_stmt, red_stmt);
+		return new_me;
+		}
 
 	auto lhs_ref = op1->AsRefExpr();
 	auto lhs_expr = lhs_ref->Op();

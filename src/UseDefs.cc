@@ -69,13 +69,45 @@ void UseDefs::Dump()
 
 bool UseDefs::RemoveUnused(int iter)
 	{
-	rc->ResetOmittedStmts();
+	rc->ResetAlteredStmts();
 
 	bool did_omission = false;
 
 	for ( int i = 0; i < stmts.size(); ++i )
 		{
 		auto& s = stmts[i];
+
+		if ( s->Tag() == STMT_INIT )
+			{
+			auto init = s->AsInitStmt();
+			auto inits = init->Inits();
+			auto used_ids = new id_list;
+			for ( auto id : *inits )
+				if ( is_atomic_type(id->Type()) ||
+				     ! CheckIfUnused(s, id, false) )
+					used_ids->append(id);
+
+			if ( used_ids->length() < inits->length() )
+				{
+				if ( used_ids->length() == 0 )
+					{
+					rc->AddStmtToOmit(s);
+					continue;
+					}
+
+				for ( auto id : *used_ids )
+					Ref(id);
+
+				auto new_init = new InitStmt(used_ids);
+				rc->AddStmtToReplace(s, new_init);
+				}
+
+			else
+				delete used_ids;
+
+			continue;
+			}
+
 		if ( s->Tag() != STMT_EXPR )
 			continue;
 
@@ -96,9 +128,6 @@ bool UseDefs::RemoveUnused(int iter)
 
 		auto id = n->AsNameExpr()->Id();
 
-		if ( id->IsGlobal() )
-			continue;
-
 		auto rhs = a->GetOp2();
 		auto rt = rhs->Tag();
 		if ( rt == EXPR_CALL && ! rhs->IsPure() )
@@ -112,38 +141,48 @@ bool UseDefs::RemoveUnused(int iter)
 			// These always have side effects.
 			continue;
 
-		auto succ = successor[s];
-		auto uds = succ ? FindUsage(succ) : nullptr;
-		auto unused = false;
-
-		if ( ! uds || ! uds->HasID(id) )
+		if ( CheckIfUnused(s, id, iter == 1) )
 			{
-			auto succ2 = successor2[s];
-			uds = succ2 ? FindUsage(succ2) : nullptr;
-
-			if ( ! uds || ! uds->HasID(id) )
-				unused = true;
-			}
-
-		if ( unused )
-			{
-			if ( iter == 1 && ! rc->IsTemporary(id) &&
-			     ! rc->IsConstantVar(id) )
-				{
-				printf("%s (%x/%x) has no use-def at %s\n",
-					id->Name(), succ, uds.get(),
-					obj_desc(s));
-
-				if ( succ )
-					printf("successor: %s\n", obj_desc(succ));
-				}
-
 			rc->AddStmtToOmit(s);
 			did_omission = true;
 			}
 		}
 
 	return did_omission;
+	}
+
+bool UseDefs::CheckIfUnused(const Stmt* s, const ID* id, bool report)
+	{
+	if ( id->IsGlobal() )
+		return false;
+
+	auto succ = successor[s];
+	auto uds = succ ? FindUsage(succ) : nullptr;
+	auto unused = false;
+
+	if ( ! uds || ! uds->HasID(id) )
+		{
+		auto succ2 = successor2[s];
+		uds = succ2 ? FindUsage(succ2) : nullptr;
+
+		if ( ! uds || ! uds->HasID(id) )
+			unused = true;
+		}
+
+	if ( unused )
+		{
+		if ( report && ! rc->IsTemporary(id) &&
+		     ! rc->IsConstantVar(id) )
+			{
+			printf("%s (%x/%x) has no use-def at %s\n",
+				id->Name(), succ, uds.get(),
+				obj_desc(s));
+			}
+
+		return true;
+		}
+
+	return false;
 	}
 
 UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt,

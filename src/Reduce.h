@@ -33,13 +33,31 @@ public:
 	bool ShouldOmitStmt(const Stmt* s) const
 		{ return omitted_stmts.find(s) != omitted_stmts.end(); }
 
+	Stmt* ReplacementStmt(const Stmt* s) const
+		{
+		auto repl = replaced_stmts.find(s);
+		if ( repl == replaced_stmts.end() )
+			return nullptr;
+		else
+			return repl->second;
+		}
+
 	// Tells the reducer to prune the given statement during the
 	// next reduction pass.
 	void AddStmtToOmit(const Stmt* s)	{ omitted_stmts.insert(s); }
 
+	// Tells the reducer to replace the given statement during the
+	// next reduction pass.
+	void AddStmtToReplace(const Stmt* s_old, Stmt* s_new)
+		{ replaced_stmts[s_old] = s_new; }
+
 	// Tells the reducer that it can reclaim the storage associated
 	// with the omitted statements.
-	void ResetOmittedStmts()		{ omitted_stmts.clear(); }
+	void ResetAlteredStmts()	
+		{
+		omitted_stmts.clear();
+		replaced_stmts.clear();
+		}
 
 	// Given the LHS and RHS of an assignment, returns true
 	// if the RHS is a common subexpression (meaning that the
@@ -126,6 +144,7 @@ protected:
 	std::unordered_map<const Expr*, const Expr*> new_expr_to_orig;
 
 	std::unordered_set<const Stmt*> omitted_stmts;
+	std::unordered_map<const Stmt*, Stmt*> replaced_stmts;
 
 	const DefSetsMgr* mgr;
 };

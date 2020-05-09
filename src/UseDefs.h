@@ -76,6 +76,11 @@ protected:
 	// Returns true if something was removed, false if not.
 	bool RemoveUnused(int iter);
 
+	// For a given identifier defined at a given statement, returns
+	// whether it is unused.  If "report" is true, also reports
+	// this fact.
+	bool CheckIfUnused(const Stmt* s, const ID* id, bool report);
+
 	// Propagates use-defs (backward) across statement s,
 	// given its successor's UDs.
 	//

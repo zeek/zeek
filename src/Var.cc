@@ -145,8 +145,9 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 		{
 		if ( c == INIT_NONE && dt == VAR_REDEF && t->IsTable() &&
 		     init && init->Tag() == EXPR_ASSIGN )
-			// e.g. 'redef foo["x"] = 1' is missing an init class, but the
-			// intention clearly isn't to overwrite entire existing table val.
+			// e.g. 'redef foo["x"] = 1' is missing an init class,
+			// but the intention clearly isn't to overwrite entire
+			// existing table val.
 			c = INIT_EXTRA;
 
 		if ( init && ((c == INIT_EXTRA && id->FindAttr(ATTR_ADD_FUNC)) ||
@@ -256,7 +257,9 @@ IntrusivePtr<Stmt> add_local(IntrusivePtr<ID> id, IntrusivePtr<BroType> t,
 
 	else
 		{
-		current_scope()->AddInit(std::move(id));
+		if ( c != INIT_TEMP )
+			current_scope()->AddInit(std::move(id));
+
 		return make_intrusive<NullStmt>();
 		}
 	}

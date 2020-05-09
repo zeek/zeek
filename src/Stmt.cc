@@ -101,8 +101,14 @@ bool Stmt::IsReduced() const
 
 Stmt* Stmt::Reduce(Reducer* c)
 	{
-	if ( c->ShouldOmitStmt(this) )
+	auto repl = c->ReplacementStmt(this);
+
+	if ( repl )
+		return repl;
+
+	else if ( c->ShouldOmitStmt(this) )
 		return new NullStmt;
+
 	else
 		{
 		if ( c->Optimizing() )
@@ -1584,7 +1590,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 			else
 				{
 				add_local({NewRef{}, (*loop_vars)[i]},
-						{NewRef{}, ind_type}, INIT_NONE,
+						{NewRef{}, ind_type}, INIT_TEMP,
 						0, 0, VAR_REGULAR);
 				}
 			}
@@ -1601,7 +1607,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 		BroType* t = (*loop_vars)[0]->Type();
 		if ( ! t )
 			add_local({NewRef{}, (*loop_vars)[0]}, base_type(TYPE_COUNT),
-						INIT_NONE, 0, 0, VAR_REGULAR);
+						INIT_TEMP, 0, 0, VAR_REGULAR);
 
 		else if ( ! IsIntegral(t->Tag()) )
 			{
@@ -1622,7 +1628,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 		if ( ! t )
 			add_local({NewRef{}, (*loop_vars)[0]},
 					base_type(TYPE_STRING),
-					INIT_NONE, 0, 0, VAR_REGULAR);
+					INIT_TEMP, 0, 0, VAR_REGULAR);
 
 		else if ( t->Tag() != TYPE_STRING )
 			{
@@ -1652,7 +1658,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars,
 			}
 		else
 			{
-			add_local(value_var, {NewRef{}, yield_type}, INIT_NONE,
+			add_local(value_var, {NewRef{}, yield_type}, INIT_TEMP,
 			                 0, 0, VAR_REGULAR);
 			}
 		}

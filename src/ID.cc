@@ -98,7 +98,7 @@ void ID::SetVal(IntrusivePtr<Val> v, bool arg_weak_ref)
 
 void ID::SetVal(IntrusivePtr<Val> v, init_class c)
 	{
-	if ( c == INIT_NONE || c == INIT_FULL )
+	if ( c == INIT_NONE || c == INIT_TEMP || c == INIT_FULL )
 		{
 		SetVal(std::move(v));
 		return;
@@ -495,7 +495,7 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const
 			if ( ! ir->init_expr )
 				continue;
 
-			if ( ir->ic == INIT_NONE )
+			if ( ir->ic == INIT_NONE || ir->ic == INIT_TEMP )
 				continue;
 
 			std::string redef_str;

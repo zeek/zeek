@@ -85,14 +85,6 @@ bool udp_content_delivery_ports_use_resp;
 double dns_session_timeout;
 double rpc_timeout;
 
-ListVal* skip_authentication;
-ListVal* direct_login_prompts;
-ListVal* login_prompts;
-ListVal* login_non_failure_msgs;
-ListVal* login_failure_msgs;
-ListVal* login_success_msgs;
-ListVal* login_timeouts;
-
 int mime_segment_length;
 int mime_segment_overlap_length;
 RecordType* mime_header_rec;
@@ -338,14 +330,6 @@ void init_net_var()
 	watchdog_interval = int(opt_internal_double("watchdog_interval"));
 
 	max_timer_expires = opt_internal_int("max_timer_expires");
-
-	skip_authentication = internal_list_val("skip_authentication");
-	direct_login_prompts = internal_list_val("direct_login_prompts");
-	login_prompts = internal_list_val("login_prompts");
-	login_non_failure_msgs = internal_list_val("login_non_failure_msgs");
-	login_failure_msgs = internal_list_val("login_failure_msgs");
-	login_success_msgs = internal_list_val("login_success_msgs");
-	login_timeouts = internal_list_val("login_timeouts");
 
 	mime_segment_length = opt_internal_int("mime_segment_length");
 	mime_segment_overlap_length = opt_internal_int("mime_segment_overlap_length");

@@ -54,6 +54,8 @@ extern bro_int_t opt_internal_int(const char* name);
 extern bro_uint_t opt_internal_unsigned(const char* name);
 extern StringVal* opt_internal_string(const char* name);
 extern TableVal* opt_internal_table(const char* name);	// nil if not defined
+
+[[deprecated("Remove in v4.1.  Use lookup_ID(), zeek::lookup_val(), and/or TableVal::ToPureListVal().")]]
 extern ListVal* internal_list_val(const char* name);
 
 [[deprecated("Remove in v4.1.  Use zeek::lookup_type().")]]

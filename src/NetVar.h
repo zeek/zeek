@@ -83,14 +83,6 @@ extern bool udp_content_delivery_ports_use_resp;
 extern double dns_session_timeout;
 extern double rpc_timeout;
 
-extern ListVal* skip_authentication;
-extern ListVal* direct_login_prompts;
-extern ListVal* login_prompts;
-extern ListVal* login_non_failure_msgs;
-extern ListVal* login_failure_msgs;
-extern ListVal* login_success_msgs;
-extern ListVal* login_timeouts;
-
 extern int mime_segment_length;
 extern int mime_segment_overlap_length;
 extern RecordType* mime_header_rec;

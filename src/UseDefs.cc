@@ -246,6 +246,9 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt,
 		return uds;
 		}
 
+	case STMT_INIT:
+		return UseUDs(s, succ_UDs);
+
 	case STMT_WHEN:
 		// ###
 		return UseUDs(s, succ_UDs);

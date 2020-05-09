@@ -7,4 +7,4 @@
 #include "Expr.h"
 
 
-extern void analyze_func(function_ingredients& ingredients);
+extern void analyze_func(BroFunc* f);

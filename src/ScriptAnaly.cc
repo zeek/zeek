@@ -1363,11 +1363,9 @@ bool optimize = false;
 bool compile = false;
 const char* only_func = 0;
 
-void analyze_func(function_ingredients& ingredients)
+void analyze_func(BroFunc* f)
 	{
-	auto id = ingredients.id;
-	auto inits = ingredients.inits;
-	auto body = ingredients.body.get();
+	auto body = f->GetBodies().back().stmts.get();
 
 	if ( reporter->Errors() > 0 )
 		return;
@@ -1391,8 +1389,6 @@ void analyze_func(function_ingredients& ingredients)
 
 	if ( ! activate )
 		return;
-
-	auto f = id->ID_Val()->AsFunc()->AsBroFunc();
 
 	if ( only_func && ! streq(f->Name(), only_func) )
 		return;
@@ -1422,7 +1418,7 @@ void analyze_func(function_ingredients& ingredients)
 	non_reduced_perp = nullptr;
 	checking_reduction = true;
 	if ( ! new_body->IsReduced() )
-		printf("Reduction inconsistency for %s: %s\n", id->Name(),
+		printf("Reduction inconsistency for %s: %s\n", f->Name(),
 			obj_desc(non_reduced_perp));
 	checking_reduction = false;
 

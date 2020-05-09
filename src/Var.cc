@@ -494,9 +494,10 @@ void end_func(IntrusivePtr<Stmt> body)
 		ingredients->id->SetConst();
 		}
 
-	ingredients->id->ID_Val()->AsFunc()->SetScope(ingredients->scope);
+	auto func = ingredients->id->ID_Val()->AsFunc()->AsBroFunc();
+	func->SetScope(ingredients->scope);
 
-	analyze_func(*ingredients);
+	analyze_func(func);
 
 	// Note: ideally, something would take ownership of this memory until the
 	// end of script execution, but that's essentially the same as the

@@ -90,26 +90,8 @@ event zeek_init() &priority=5
 	                          $describe        = SSL::describe_file]);
 	}
 
-event file_sniff(f: fa_file, meta: fa_metadata) &priority=5
+function do_sniff(f: fa_file, c: connection)
 	{
-	if ( ! f?$conns || |f$conns| != 1 )
-		return;
-
-	if ( ! f?$info || ! f$info?$mime_type )
-		return;
-
-	if ( ! ( f$info$mime_type == "application/x-x509-ca-cert" || f$info$mime_type == "application/x-x509-user-cert"
-	         || f$info$mime_type == "application/pkix-cert" ) )
-		return;
-
-	local c: connection;
-
-	for ( cid, c in f$conns )
-		{
-		if ( ! c?$ssl )
-			return;
-		}
-
 	if ( ! c$ssl?$cert_chain )
 		{
 		c$ssl$cert_chain = vector();
@@ -127,6 +109,28 @@ event file_sniff(f: fa_file, meta: fa_metadata) &priority=5
 		{
 		c$ssl$cert_chain += f$info;
 		c$ssl$cert_chain_fuids += f$id;
+		}
+	}
+
+event file_sniff(f: fa_file, meta: fa_metadata) &priority=5
+	{
+	if ( ! f?$conns || |f$conns| != 1 )
+		return;
+
+	if ( ! f?$info || ! f$info?$mime_type )
+		return;
+
+	if ( ! ( f$info$mime_type == "application/x-x509-ca-cert" || f$info$mime_type == "application/x-x509-user-cert"
+	         || f$info$mime_type == "application/pkix-cert" ) )
+		return;
+
+	local c: connection;
+
+	for ( cid, c in f$conns )
+		{
+		if ( c?$ssl )
+			do_sniff(f, c);
+		return;
 		}
 	}
 

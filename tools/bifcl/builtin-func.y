@@ -502,7 +502,7 @@ const_def:	TOK_CONST opt_ws TOK_ID opt_ws ':' opt_ws TOK_ID opt_ws ';'
 					decl.c_namespace_start.c_str(),
 					builtin_types[typeidx].c_type, decl.bare_name.c_str(),
 					decl.c_namespace_end.c_str());
-			fprintf(fp_netvar_init, "\t%s = internal_const_val(\"%s\")%s;\n",
+			fprintf(fp_netvar_init, "\t%s = zeek::lookup_const(\"%s\").get()%s;\n",
 				decl.c_fullname.c_str(), decl.bro_fullname.c_str(),
 				accessor);
 

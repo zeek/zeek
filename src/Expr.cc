@@ -5176,15 +5176,27 @@ IntrusivePtr<Val> ArithCoerceExpr::Fold(Val* v) const
 
 Expr* ArithCoerceExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
-	auto t = type->InternalType();
-	auto bt = op->Type()->InternalType();
-
 	red_stmt = nullptr;
 
+	auto t = type->InternalType();
+
+	if ( ! op->IsReduced() )
+		op = {AdoptRef{}, op->ReduceToSingleton(c, red_stmt)};
+
+	if ( op->Tag() == EXPR_CONST )
+		{
+		auto c = op->AsConstExpr()->Value();
+
+		if ( IsArithmetic(c->Type()->Tag()) )
+			return new ConstExpr(FoldSingleVal(c, t));
+		}
+
+	auto bt = op->Type()->InternalType();
+
 	if ( t == bt )
-		return op->Reduce(c, red_stmt);
-	else
-		return AssignToTemporary(c, red_stmt);
+		return op->Ref();
+
+	return AssignToTemporary(c, red_stmt);
 	}
 
 RecordCoerceExpr::RecordCoerceExpr(IntrusivePtr<Expr> arg_op,

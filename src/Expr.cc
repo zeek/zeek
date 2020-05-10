@@ -3425,6 +3425,9 @@ bool AssignExpr::IsReduced() const
 		// Cascaded assignments are never reduced.
 		return false;
 
+	if ( op1->Tag() == EXPR_NAME && op1->Type()->Tag() == TYPE_ANY )
+		return op2->IsSingleton();
+
 	if ( IsTemp() )
 		return true;
 
@@ -3464,17 +3467,22 @@ Expr* AssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	if ( IsTemp() )
 		return this->Ref();
 
-	if ( op2->Tag() == EXPR_ASSIGN )
-		{ // Cascaded assignment.
+	auto lhs_ref = op1->AsRefExpr();
+	auto lhs_expr = lhs_ref->Op();
+
+	bool cascaded_assignment = op2->Tag() == EXPR_ASSIGN;
+	bool is_any_assign =
+		lhs_expr->Tag() == EXPR_NAME &&
+		lhs_expr->Type()->Tag() == TYPE_ANY;
+
+	if ( cascaded_assignment || is_any_assign )
+		{ // RHS must be a singleton.
 		IntrusivePtr<Stmt> cascade_stmt;
 		op2 = {AdoptRef{}, op2->ReduceToSingleton(c, cascade_stmt)};
 		auto new_me = Reduce(c, red_stmt);
 		red_stmt = MergeStmts(cascade_stmt, red_stmt);
 		return new_me;
 		}
-
-	auto lhs_ref = op1->AsRefExpr();
-	auto lhs_expr = lhs_ref->Op();
 
 	if ( lhs_expr->Tag() == EXPR_INDEX )
 		{
@@ -3598,10 +3606,20 @@ const CompiledStmt AssignExpr::Compile(Compiler* c) const
 		}
 
 	if ( rhs->Tag() == EXPR_NAME )
-		return c->AssignVV(lhs, rhs->AsNameExpr());
+		{
+		if ( lhs->Type()->Tag() == TYPE_ANY )
+			return c->AssignAnyVV(lhs, rhs->AsNameExpr());
+		else
+			return c->AssignVV(lhs, rhs->AsNameExpr());
+		}
 
 	if ( rhs->Tag() == EXPR_CONST )
-		return c->AssignVC(lhs, rhs->AsConstExpr());
+		{
+		if ( lhs->Type()->Tag() == TYPE_ANY )
+			return c->AssignAnyVC(lhs, rhs->AsConstExpr());
+		else
+			return c->AssignVC(lhs, rhs->AsConstExpr());
+		}
 
 	if ( rhs->Tag() == EXPR_IN && r1->Tag() == EXPR_LIST )
 		{

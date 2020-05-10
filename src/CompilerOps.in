@@ -779,6 +779,20 @@ eval frame[s.v1].table_val = new TableVal(tt, attrs)
 # Internal
 ########################################
 
+op AssignAny
+type VV
+set-type $2
+eval auto v = frame[s.v2].ToVal(s.t)
+eval vals.push_back(v)
+eval frame[s.v1].any_val = v.get()
+
+op AssignAny
+type VC
+set-type $2
+eval auto v = s.c.ToVal(s.t)
+eval vals.push_back(v)
+eval frame[s.v1].any_val = v.get()
+
 internal-op Load-Val
 type VV
 eval auto v = f->NthElement(s.v2)
@@ -786,19 +800,41 @@ eval if ( ! v ) reporter->InternalError("failure to load frame element");
 eval IntrusivePtr<Val> v_p = {NewRef{}, v}
 eval frame[s.v1] = BuildVal(v_p, s.t, v)
 
+internal-op Load-Any-Val
+type VV
+eval IntrusivePtr<Val> v = {NewRef{}, f->NthElement(s.v2)}
+eval vals.push_back(v)
+eval frame[s.v1].any_val = v.get()
+
 internal-op Load-Global
 type VC
 eval IntrusivePtr<Val> v = {NewRef{}, s.c.id_val->ID_Val()}
 eval frame[s.v1] = BuildVal(v, s.t, s.c.id_val)
+
+internal-op Load-Any-Global
+type VC
+eval IntrusivePtr<Val> v = {NewRef{}, s.c.id_val->ID_Val()}
+eval vals.push_back(v)
+eval frame[s.v1].any_val = v.get()
 
 internal-op Store-Val
 type VV
 eval auto v = frame[s.v1].ToVal(s.t)
 eval f->SetElement(s.v2, v.release())
 
+internal-op Store-Any-Val
+type VV
+eval auto v = frame[s.v1].any_val->Ref()
+eval f->SetElement(s.v2, v)
+
 internal-op Store-Global
 type VC
 eval auto v = frame[s.v1].ToVal(s.t)
+eval s.c.id_val->SetVal(v)
+
+internal-op Store-Any-Global
+type VC
+eval IntrusivePtr<Val> v = {NewRef{}, frame[s.v1].any_val}
 eval s.c.id_val->SetVal(v)
 
 internal-op Copy-To

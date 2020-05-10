@@ -135,7 +135,7 @@ AS_ValUnion::AS_ValUnion(Val* v, BroType* t, const BroObj* o, bool& error)
 
 	auto vu = v->val;
 
-	if ( v->Type()->Tag() != t->Tag() )
+	if ( v->Type()->Tag() != t->Tag() && t->Tag() != TYPE_ANY )
 		reporter->InternalError("type inconsistency in AS_ValUnion constructor");
 
 	switch ( t->Tag() ) {
@@ -1517,23 +1517,43 @@ const Stmt* AbstractMachine::LastStmt() const
 const CompiledStmt AbstractMachine::LoadOrStoreLocal(ID* id, bool is_load,
 							bool add)
 	{
-	auto op = is_load ? OP_LOAD_VAL_VV : OP_STORE_VAL_VV;
+	bool is_any = id->Type()->Tag() == TYPE_ANY;
+
+	AbstractOp op;
+
+	if ( is_any )
+		op = is_load ? OP_LOAD_ANY_VAL_VV : OP_STORE_ANY_VAL_VV;
+	else
+		op = is_load ? OP_LOAD_VAL_VV : OP_STORE_VAL_VV;
+
 	int slot = (is_load && add) ? AddToFrame(id) : FrameSlot(id);
+
 	AbstractStmt s(op, slot, id->Offset());
 	s.t = id->Type();
 	s.op_type = OP_VV_FRAME;
+
 	return AddStmt(s);
 	}
 
 const CompiledStmt AbstractMachine::LoadOrStoreGlobal(ID* id, bool is_load,
 							bool add)
 	{
-	auto op = is_load ? OP_LOAD_GLOBAL_VC : OP_STORE_GLOBAL_VC;
+	bool is_any = id->Type()->Tag() == TYPE_ANY;
+
+	AbstractOp op;
+
+	if ( is_any )
+		op = is_load ? OP_LOAD_ANY_GLOBAL_VC : OP_STORE_ANY_GLOBAL_VC;
+	else
+		op = is_load ? OP_LOAD_GLOBAL_VC : OP_STORE_GLOBAL_VC;
+
 	int slot = (is_load && add) ? AddToFrame(id) : FrameSlot(id);
+
 	AbstractStmt s(op, slot);
 	s.c.id_val = id;
 	s.t = id->Type();
 	s.op_type = OP_VC_ID;
+
 	return AddStmt(s);
 	}
 

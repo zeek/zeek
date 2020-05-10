@@ -857,7 +857,7 @@ const CompiledStmt AbstractMachine::InterpretCall(const CallExpr* c,
 	SyncGlobals(c);
 
 	// Look for any locals that are used in the argument list.
-	// We do this separately form FlushVars because we have to
+	// We do this separately from FlushVars because we have to
 	// sync *all* the globals, whereas it only sync's those
 	// that are explicitly present in the expression.
 	ProfileFunc call_pf;
@@ -871,12 +871,21 @@ const CompiledStmt AbstractMachine::InterpretCall(const CallExpr* c,
 
 	auto s = AddStmt(a_s);
 
-	for ( auto g : pf->globals )
-		// Should be smarter here and only restore those that are
-		// still relevant ... and analyze the function to see whether
-		// it directly-or-indirectly can affect particular globals.
-		if ( ! g->IsConst() )
-			s = LoadOrStoreGlobal(g, true, false);
+	// Restore globals that are relevant after the call.
+	//
+	// Ideally, we'd also analyze the function to see whether it
+	// directly-or-indirectly can affect particular globals.
+	auto uds = ud->GetUsageAfter(c);
+
+	if ( uds )
+		for ( auto g : pf->globals )
+			{
+			if ( g->IsConst() )
+				continue;
+
+			if ( uds->HasID(g) )
+				s = LoadOrStoreGlobal(g, true, false);
+			}
 
 	return s;
 	}

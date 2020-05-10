@@ -36,6 +36,7 @@ void UseDefs::Analyze()
 	(void) PropagateUDs(body, nullptr, nullptr, false);
 	}
 
+
 void UseDefs::RemoveUnused()
 	{
 	int iter = 0;
@@ -156,20 +157,8 @@ bool UseDefs::CheckIfUnused(const Stmt* s, const ID* id, bool report)
 	if ( id->IsGlobal() )
 		return false;
 
-	auto succ = successor[s];
-	auto uds = succ ? FindUsage(succ) : nullptr;
-	auto unused = false;
-
+	auto uds = FindUsageAfter(s);
 	if ( ! uds || ! uds->HasID(id) )
-		{
-		auto succ2 = successor2[s];
-		uds = succ2 ? FindUsage(succ2) : nullptr;
-
-		if ( ! uds || ! uds->HasID(id) )
-			unused = true;
-		}
-
-	if ( unused )
 		{
 		if ( report && ! rc->IsTemporary(id) &&
 		     ! rc->IsConstantVar(id) )
@@ -220,7 +209,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt,
 	case STMT_FALLTHROUGH:
 		// ### For most of these this isn't right, but Oh Well,
 		// doesn't actually do any harm.  Also, we don't note
-		// their successor
+		// their successor.
 		return UseUDs(s, succ_UDs);
 
 	case STMT_PRINT:
@@ -410,6 +399,24 @@ UDs UseDefs::FindUsage(const Stmt* s) const
 		reporter->InternalError("missing use-defs");
 
 	return s_map->second;
+	}
+
+UDs UseDefs::FindSuccUsage(const Stmt* s) const
+	{
+	auto succ = successor[s];
+	auto uds = succ ? FindUsage(succ) : nullptr;
+
+	auto succ2 = successor2[s];
+	auto uds2 = succ2 ? FindUsage(succ2) : nullptr;
+
+	if ( uds && uds2 )
+		return UD_Union(uds, uds2);
+
+	else if ( uds )
+		return uds;
+
+	else
+		return uds2;
 	}
 
 UDs UseDefs::ExprUDs(const Expr* e)

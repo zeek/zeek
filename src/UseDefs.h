@@ -59,6 +59,7 @@ public:
 
 	// Note, can return nullptr if there are no usages at all.
 	UDs GetUsage(const Stmt* s) const	{ return FindUsage(s); }
+	UDs GetUsageAfter(const Stmt* s) const	{ return FindSuccUsage(s); }
 
 	// Removes assignments corresponding to unused temporaries.
 	// In the process, reports on locals that are assigned
@@ -95,6 +96,7 @@ protected:
 				bool second_pass);
 
 	UDs FindUsage(const Stmt* s) const;
+	UDs FindSuccUsage(const Stmt* s) const;
 
 	// Returns a new use-def corresponding to the variables
 	// referenced in e.
@@ -146,7 +148,7 @@ protected:
 	// things out in order, even though the main map is unordered.
 	std::vector<const Stmt*> stmts;
 
-	// For a given assignment statement, maps it to its successor
+	// For a given expression statement, maps it to its successor
 	// (the statement that will execute after it).  We need this
 	// because we track UDs present at the *beginning* of
 	// a statement, not at its end; those at the end are

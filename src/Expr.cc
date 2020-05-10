@@ -5174,6 +5174,19 @@ IntrusivePtr<Val> ArithCoerceExpr::Fold(Val* v) const
 	return result;
 	}
 
+Expr* ArithCoerceExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	auto t = type->InternalType();
+	auto bt = op->Type()->InternalType();
+
+	red_stmt = nullptr;
+
+	if ( t == bt )
+		return op->Reduce(c, red_stmt);
+	else
+		return AssignToTemporary(c, red_stmt);
+	}
+
 RecordCoerceExpr::RecordCoerceExpr(IntrusivePtr<Expr> arg_op,
                                    IntrusivePtr<RecordType> r)
 	: UnaryExpr(EXPR_RECORD_COERCE, std::move(arg_op)),

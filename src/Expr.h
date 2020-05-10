@@ -1014,6 +1014,8 @@ public:
 protected:
 	IntrusivePtr<Val> FoldSingleVal(Val* v, InternalTypeTag t) const;
 	IntrusivePtr<Val> Fold(Val* v) const override;
+
+	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
 class RecordCoerceExpr : public UnaryExpr {

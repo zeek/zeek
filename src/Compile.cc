@@ -1060,7 +1060,10 @@ const CompiledStmt AbstractMachine::While(const Stmt* cond_stmt,
 
 	auto cond_IF = AddStmt(AbstractStmt(OP_IF_VV, FrameSlot(cond), 0));
 	TopStmt().op_type = OP_VV_I2;
-	(void) body->Compile(this);
+
+	if ( body && body->Tag() != STMT_NULL )
+		(void) body->Compile(this);
+
 	auto tail = GoTo(head);
 
 	auto beyond_tail = GoToTargetBeyond(tail);

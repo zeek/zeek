@@ -396,18 +396,6 @@ eval auto elem = (*lv)[s.v3]
 eval IntrusivePtr elem_p = {NewRef{}, elem}
 eval frame[s.v1] = BuildVal(elem_p, s.t, s.stmt)
 
-########## Function Calls ##########
-
-# In principle, we could split these up into calls to other scripts
-# functions vs. BiF's.  However, before biting that off we need to
-# rework the Trigger framework so that it doesn't require CallExpr's
-# to associate delayed values with.  This can be done by introducing
-# an abstract TriggerCaller class that manages both CallExpr's and
-# internal statements (e.g., associated with the PC value at the call
-# site).  But for now, we just punt the whole problem to the interpreter.
-
-direct-unary-op Call InterpretExpr
-
 
 ########## Constructors ##########
 

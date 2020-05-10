@@ -1,5 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#pragma once
+
 #include "IntrusivePtr.h"
 #include "Obj.h"
 
@@ -107,7 +109,7 @@ protected:
 	void AddInExprUDs(UDs uds, const Expr* e);
 
 	// Add an ID into an existing set of UDs.
-	void AddID(UDs uds, const ID* id);
+	void AddID(UDs uds, const ID* id) const;
 
 	// Returns a new use-def corresonding to given one but
 	// with the definition of "id" removed.
@@ -124,7 +126,8 @@ protected:
 	void UpdateUDs(const Stmt* s, const UDs& uds);
 
 	// Returns a new use-def corresponding to the union of 2 or 3 UDs.
-	UDs UD_Union(const UDs& u1, const UDs& u2, const UDs& u3 = nullptr);
+	UDs UD_Union(const UDs& u1, const UDs& u2,
+			const UDs& u3 = nullptr) const;
 
 	// The given statement uses a (shallow) copy of the given UDs.
 	UDs UseUDs(const Stmt* s, UDs uds);

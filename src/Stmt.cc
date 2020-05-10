@@ -466,7 +466,15 @@ bool ExprStmt::IsReduced() const
 const CompiledStmt ExprStmt::Compile(Compiler* c) const
 	{
 	c->SetCurrStmt(this);
-	return e->Compile(c);
+
+	if ( e->Tag() == EXPR_CALL )
+		return c->Call(this);
+
+	else if ( e->Tag() == EXPR_ASSIGN && e->GetOp2()->Tag() == EXPR_CALL )
+		return c->AssignToCall(this);
+
+	else
+		return e->Compile(c);
 	}
 
 Stmt* ExprStmt::DoReduce(Reducer* c)

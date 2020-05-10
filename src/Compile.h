@@ -6,6 +6,7 @@
 #include "Val.h"
 #include "Event.h"
 #include "ReachingDefs.h"
+#include "UseDefs.h"
 
 
 class NameExpr;
@@ -69,6 +70,9 @@ public:
 	virtual const CompiledStmt Switch(const SwitchStmt* sw) = 0;
 
 	virtual const CompiledStmt For(const ForStmt* f) = 0;
+
+	virtual const CompiledStmt Call(const ExprStmt* e) = 0;
+	virtual const CompiledStmt AssignToCall(const ExprStmt* e) = 0;
 
 	virtual const CompiledStmt InitRecord(ID* id, RecordType* rt) = 0;
 	virtual const CompiledStmt InitVector(ID* id, VectorType* vt) = 0;
@@ -153,6 +157,9 @@ public:
 
 	const CompiledStmt For(const ForStmt* f) override;
 
+	const CompiledStmt Call(const ExprStmt* e) override;
+	const CompiledStmt AssignToCall(const ExprStmt* e) override;
+
 	const CompiledStmt LoopOverTable(const ForStmt* f, const NameExpr* val);
 	const CompiledStmt LoopOverVector(const ForStmt* f, const NameExpr* val);
 	const CompiledStmt LoopOverString(const ForStmt* f, const NameExpr* val);
@@ -227,7 +234,7 @@ protected:
 	const CompiledStmt CompileIndex(const NameExpr* n1, const NameExpr* n2,
 					const ListExpr* l);
 
-	const CompiledStmt InterpretCall(const CallExpr* c, const NameExpr* n);
+	const CompiledStmt DoCall(const CallExpr* c, const NameExpr* n, UDs uds);
 
 	const CompiledStmt CompileSchedule(const NameExpr* n,
 					const ConstExpr* c, int is_interval,

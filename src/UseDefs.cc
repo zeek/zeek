@@ -157,7 +157,7 @@ bool UseDefs::CheckIfUnused(const Stmt* s, const ID* id, bool report)
 	if ( id->IsGlobal() )
 		return false;
 
-	auto uds = FindUsageAfter(s);
+	auto uds = FindSuccUsage(s);
 	if ( ! uds || ! uds->HasID(id) )
 		{
 		if ( report && ! rc->IsTemporary(id) &&
@@ -403,11 +403,13 @@ UDs UseDefs::FindUsage(const Stmt* s) const
 
 UDs UseDefs::FindSuccUsage(const Stmt* s) const
 	{
-	auto succ = successor[s];
-	auto uds = succ ? FindUsage(succ) : nullptr;
+	auto succ = successor.find(s);
+	auto no_succ = (succ == successor.end() || ! succ->second);
+	auto uds = no_succ ? nullptr : FindUsage(succ->second);
 
-	auto succ2 = successor2[s];
-	auto uds2 = succ2 ? FindUsage(succ2) : nullptr;
+	auto succ2 = successor2.find(s);
+	auto no_succ2 = (succ2 == successor.end() || ! succ2->second);
+	auto uds2 = no_succ2 ? nullptr : FindUsage(succ2->second);
 
 	if ( uds && uds2 )
 		return UD_Union(uds, uds2);
@@ -502,7 +504,7 @@ void UseDefs::AddInExprUDs(UDs uds, const Expr* e)
 		reporter->InternalError("list expression not reduced");
 	}
 
-void UseDefs::AddID(UDs uds, const ID* id)
+void UseDefs::AddID(UDs uds, const ID* id) const
 	{
 	uds->Add(id);
 	}
@@ -567,7 +569,7 @@ void UseDefs::UpdateUDs(const Stmt* s, const UDs& uds)
 		}
 	}
 
-UDs UseDefs::UD_Union(const UDs& u1, const UDs& u2, const UDs& u3)
+UDs UseDefs::UD_Union(const UDs& u1, const UDs& u2, const UDs& u3) const
 	{
 	auto new_uds = make_intrusive<UseDefSet>();
 

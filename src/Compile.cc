@@ -834,9 +834,6 @@ IntrusivePtr<Val> AbstractMachine::DoExec(Frame* f, int start_pc,
 
 const CompiledStmt AbstractMachine::InterpretExpr(const Expr* e)
 	{
-	if ( e->Tag() == EXPR_CALL )
-		return InterpretCall(e->AsCallExpr(), nullptr);
-
 	FlushVars(e);
 	return AddStmt(AbstractStmt(OP_INTERPRET_EXPR_X, e));
 	}
@@ -844,17 +841,23 @@ const CompiledStmt AbstractMachine::InterpretExpr(const Expr* e)
 const CompiledStmt AbstractMachine::InterpretExpr(const NameExpr* n,
 							const Expr* e)
 	{
-	if ( e->Tag() == EXPR_CALL )
-		return InterpretCall(e->AsCallExpr(), n);
-
 	FlushVars(e);
 	return AddStmt(AbstractStmt(OP_INTERPRET_EXPR_V, FrameSlot(n), e));
 	}
 
-const CompiledStmt AbstractMachine::InterpretCall(const CallExpr* c,
-							const NameExpr* n)
+const CompiledStmt AbstractMachine::DoCall(const CallExpr* c,
+						const NameExpr* n, UDs uds)
 	{
 	SyncGlobals(c);
+
+	// In principle, we could split these up into calls to other script
+	// functions vs. BiF's.  However, before biting that off we need to
+	// rework the Trigger framework so that it doesn't require CallExpr's
+	// to associate delayed values with.  This can be done by introducing
+	// an abstract TriggerCaller class that manages both CallExpr's and
+	// internal statements (e.g., associated with the PC value at the call
+	// site).  But for now, we just punt the whole problem to the
+	// interpreter.
 
 	// Look for any locals that are used in the argument list.
 	// We do this separately from FlushVars because we have to
@@ -875,8 +878,6 @@ const CompiledStmt AbstractMachine::InterpretCall(const CallExpr* c,
 	//
 	// Ideally, we'd also analyze the function to see whether it
 	// directly-or-indirectly can affect particular globals.
-	auto uds = ud->GetUsageAfter(c);
-
 	if ( uds )
 		for ( auto g : pf->globals )
 			{
@@ -1330,6 +1331,33 @@ const CompiledStmt AbstractMachine::For(const ForStmt* f)
 
 	else
 		reporter->InternalError("bad \"for\" loop-over value when compiling");
+	}
+
+const CompiledStmt AbstractMachine::Call(const ExprStmt* e)
+	{
+	auto uds = ud->GetUsageAfter(e);
+	auto call = e->StmtExpr()->AsCallExpr();
+	return DoCall(call, nullptr, uds);
+	}
+
+const CompiledStmt AbstractMachine::AssignToCall(const ExprStmt* e)
+	{
+	// This is a bit subtle.  Normally, we'd get the UDs *after* the
+	// statement, since UDs reflect use-defs prior to statement execution.
+	// However, this could be an assignment of the form "global = func()",
+	// in which case whether there are UDs for "global" *after* the 
+	// assignment aren't what's relevant - we still need to load
+	// the global in order to do the assignment.  OTOH, the UDs *before*
+	// this assignment statement will correctly capture the UDs after
+	// it with the sole exception of what's being assigned.  Given
+	// if what's being assigned is a globa, it doesn't need to be loaded,
+	// we therefore use the UDs before this statement.
+	auto uds = ud->GetUsage(e);
+	auto assign = e->StmtExpr()->AsAssignExpr();
+	auto n = assign->GetOp1()->AsRefExpr()->GetOp1()->AsNameExpr();
+	auto call = assign->GetOp2()->AsCallExpr();
+
+	return DoCall(call, n, uds);
 	}
 
 const CompiledStmt AbstractMachine::LoopOverTable(const ForStmt* f,

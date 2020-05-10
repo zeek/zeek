@@ -207,9 +207,10 @@ eval_A $$ = ! (*$1 < *$2) && *$1 != *$2
 expr-op Field
 type R
 eval auto v = frame[s.v2].record_val->LookupWithDefault(s.v3)
-eval frame[s.v1] = BuildVal(v, s.t, s.stmt)
+eval if ( ! v ) s.e->RuntimeError("field value missing")
+eval else frame[s.v1] = BuildVal(v, s.t, s.stmt)
 
-expr-op Has_Field
+expr-op Has-Field
 type Ri
 eval frame[s.v1].int_val = (frame[s.v2].record_val->Lookup(s.v3) != nullptr)
 

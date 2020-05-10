@@ -680,6 +680,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 		{
 		print ("\tauto s = GenStmt(this, " full_op ", " \
 			args2[type] ");") >methods_f
+		print ("\ts.e = n1;") >methods_f
 		print ("\ts.t = n1->Type().get();") >methods_f
 		print ("\treturn AddStmt(s);") >methods_f
 		}

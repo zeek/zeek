@@ -82,6 +82,7 @@ class CallExpr;
 class EventExpr;
 class RefExpr;
 class IsExpr;
+class IncrExpr;
 class AddToExpr;
 class AppendToExpr;
 class RemoveFromExpr;
@@ -289,6 +290,7 @@ public:
 	CONST_ACCESSOR(EXPR_HAS_FIELD, HasFieldExpr, AsHasFieldExpr);
 	CONST_ACCESSOR(EXPR_CALL, CallExpr, AsCallExpr);
 	CONST_ACCESSOR(EXPR_ADD_TO, AddToExpr, AsAddToExpr);
+	CONST_ACCESSOR(EXPR_INCR, IncrExpr, AsIncrExpr);
 	CONST_ACCESSOR(EXPR_APPEND_TO, AppendToExpr, AsAppendToExpr);
 	CONST_ACCESSOR(EXPR_COND, CondExpr, AsCondExpr);
 	CONST_ACCESSOR(EXPR_IS, IsExpr, AsIsExpr);
@@ -516,7 +518,14 @@ public:
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 	IntrusivePtr<Val> DoSingleEval(Frame* f, Val* v) const;
+
+	bool IsReduced() const override;
+	bool HasReducedOps() const override	{ return false; }
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
+	Expr* ReduceToSingleton(Reducer* c,
+				IntrusivePtr<Stmt>& red_stmt) override;
+	const CompiledStmt Compile(Compiler* c) const override;
+
 	bool IsPure() const override;
 	bool HasNoSideEffects() const override;
 };

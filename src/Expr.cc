@@ -1376,6 +1376,17 @@ IntrusivePtr<Val> IncrExpr::Eval(Frame* f) const
 		}
 	}
 
+bool IncrExpr::IsReduced() const
+	{
+	auto ref_op = op->AsRefExpr();
+	auto target = ref_op->GetOp1();
+
+	if ( target->Tag() != EXPR_NAME || ! IsIntegral(target->Type()->Tag()) )
+		return NonReduced(this);
+
+	return ref_op->IsReduced();
+	}
+
 Expr* IncrExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( op->Tag() != EXPR_REF )
@@ -1383,6 +1394,16 @@ Expr* IncrExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 
 	auto ref_op = op->AsRefExpr();
 	auto target = ref_op->GetOp1();
+
+	if ( target->Tag() == EXPR_NAME && IsIntegral(target->Type()->Tag()) )
+		{
+		if ( c->Optimizing() )
+			op = c->UpdateExpr(op);
+		else
+			op = {AdoptRef{}, op->Reduce(c, red_stmt)};
+
+		return this->Ref();
+		}
 
 	IntrusivePtr<Stmt> target_stmt;
 	auto orig_target = target;
@@ -1449,6 +1470,35 @@ Expr* IncrExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 				red_stmt);
 
 	return res;
+	}
+
+Expr* IncrExpr::ReduceToSingleton(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	IntrusivePtr<Expr> incr_expr{NewRef{}, this};
+	red_stmt = make_intrusive<ExprStmt>(incr_expr);
+	red_stmt = {AdoptRef{}, red_stmt->Reduce(c)};
+
+	return op->AsRefExpr()->Op()->Ref();
+	}
+
+const CompiledStmt IncrExpr::Compile(Compiler* c) const
+	{
+	auto target = op->AsRefExpr()->GetOp1()->AsNameExpr();
+
+	if ( target->Type()->Tag() == TYPE_INT )
+		{
+		if ( Tag() == EXPR_INCR )
+			return c->IncrIV(target);
+		else
+			return c->DecrIV(target);
+		}
+	else
+		{
+		if ( Tag() == EXPR_INCR )
+			return c->IncrUV(target);
+		else
+			return c->DecrUV(target);
+		}
 	}
 
 bool IncrExpr::IsPure() const
@@ -6712,7 +6762,7 @@ Expr* ListExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 			continue;
 
 		IntrusivePtr<Stmt> e_stmt;
-		exprs.replace(i, exprs[i]->Reduce(c, e_stmt));
+		exprs.replace(i, exprs[i]->ReduceToSingleton(c, e_stmt));
 
 		if ( e_stmt )
 			red_stmt = MergeStmts(red_stmt, e_stmt);

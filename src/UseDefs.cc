@@ -430,6 +430,10 @@ UDs UseDefs::ExprUDs(const Expr* e)
 		AddInExprUDs(uds, e);
 		break;
 
+	case EXPR_INCR:
+		AddInExprUDs(uds, e->GetOp1()->AsRefExpr()->GetOp1().get());
+		break;
+
 	case EXPR_CONST:
 		break;
 
@@ -487,6 +491,9 @@ void UseDefs::AddInExprUDs(UDs uds, const Expr* e)
 	else if ( e->Tag() == EXPR_EVENT )
 		AddInExprUDs(uds, e->GetOp1().get());
 
+	else if ( e->Tag() == EXPR_INCR )
+		AddInExprUDs(uds, e->GetOp1()->AsRefExpr()->GetOp1().get());
+
 	else if ( e->Tag() == EXPR_ASSIGN )
 		{
 		// These occur inside of table constructors.
@@ -501,7 +508,7 @@ void UseDefs::AddInExprUDs(UDs uds, const Expr* e)
 		}
 
 	else if ( e->Tag() != EXPR_CONST )
-		reporter->InternalError("list expression not reduced");
+		reporter->InternalError("bad tag in UseDefs::AddInExprUDs");
 	}
 
 void UseDefs::AddID(UDs uds, const ID* id) const

@@ -46,6 +46,22 @@ op-type I D
 vector
 eval -$1
 
+op IncrI
+type V
+eval ++frame[s.v1].int_val
+
+op IncrU
+type V
+eval ++frame[s.v1].uint_val
+
+op DecrI
+type V
+eval --frame[s.v1].int_val
+
+op DecrU
+type V
+eval --frame[s.v1].uint_val
+
 unary-op AppendTo
 set-type $2
 eval auto vv = frame[s.v1].vector_val

@@ -917,6 +917,18 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		break;
 		}
 
+        case EXPR_INCR:
+		{
+		auto incr = e->AsIncrExpr();
+		auto lhs = incr->Op()->AsRefExpr()->Op();
+
+		mgr.SetPreFromPre(incr->Op(), e);
+
+		if ( lhs->Tag() == EXPR_NAME )
+			(void) CheckLHS(lhs, e);
+		break;
+		}
+
         case EXPR_ADD_TO:
 		{
 		auto a_t = e->AsAddToExpr();

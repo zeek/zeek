@@ -1443,7 +1443,7 @@ bool AbstractMachine::NullStmtOK() const
 
 const CompiledStmt AbstractMachine::EmptyStmt()
 	{
-	return CompiledStmt(stmts.size());
+	return CompiledStmt(stmts.size() - 1);
 	}
 
 const CompiledStmt AbstractMachine::ErrorStmt()
@@ -1517,6 +1517,9 @@ const Stmt* AbstractMachine::LastStmt() const
 const CompiledStmt AbstractMachine::LoadOrStoreLocal(ID* id, bool is_load,
 							bool add)
 	{
+	if ( id->AsType() )
+		reporter->InternalError("don't know how to compile local variable that's a type not a value");
+
 	bool is_any = id->Type()->Tag() == TYPE_ANY;
 
 	AbstractOp op;
@@ -1538,6 +1541,11 @@ const CompiledStmt AbstractMachine::LoadOrStoreLocal(ID* id, bool is_load,
 const CompiledStmt AbstractMachine::LoadOrStoreGlobal(ID* id, bool is_load,
 							bool add)
 	{
+	if ( id->AsType() )
+		// We never operate on these directly, so don't bother
+		// storing or loading them.
+		return EmptyStmt();
+
 	bool is_any = id->Type()->Tag() == TYPE_ANY;
 
 	AbstractOp op;

@@ -688,7 +688,16 @@ void AbstractMachine::Init()
 	pop_scope();
 
 	for ( auto g : pf->globals )
-		LoadGlobal(g);
+		{
+		// Only load a global if it has a use-def.  If it doesn't,
+		// that can be because it's uninitialized on entry and
+		// it's this function body that initializes it.
+		if ( uds && uds->HasID(g) )
+			LoadGlobal(g);
+		else
+			// But still make sure it's in the frame layout.
+			(void) AddToFrame(g);
+		}
 
 	// Assign slots for locals (which includes temporaries).
 	for ( auto l : pf->locals )

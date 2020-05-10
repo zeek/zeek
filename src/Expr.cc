@@ -2809,7 +2809,8 @@ bool CondExpr::IsReduced() const
 
 bool CondExpr::HasReducedOps() const
 	{
-	return op1->IsSingleton() && op2->IsSingleton() && op3->IsSingleton();
+	return op1->IsSingleton() && op2->IsSingleton() && op3->IsSingleton() &&
+		! op1->IsConst();
 	}
 
 Expr* CondExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
@@ -3556,6 +3557,18 @@ Expr* AssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 
 	if ( op2->HasConstantOps() )
 		op2 = make_intrusive<ConstExpr>(op2->Eval(nullptr));
+
+	// Any RHS operator now can be assigned to now if its
+	// operands are singletons ... except for CondExpr, since if
+	// its first operand is constant it can transform into a
+	// different kind of statement.  Since there's just the one,
+	// we simply check for it here directly rather than virtualizing
+	// the decision.
+	if ( op2->Tag() == EXPR_COND && op2->GetOp1()->IsConst() )
+		{
+		op2 = {AdoptRef{}, op2->ReduceToSingleton(c, red_stmt)};
+		return this->Ref();
+		}
 
 	IntrusivePtr<Stmt> lhs_stmt = lhs_ref->ReduceToLHS(c);
 	IntrusivePtr<Stmt> rhs_stmt = op2->ReduceToSingletons(c);

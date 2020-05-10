@@ -257,6 +257,7 @@ protected:
 	CompiledStmt GenGoTo(vector<int>& v);
 	CompiledStmt GoTo();
 	CompiledStmt GoTo(const CompiledStmt s);
+	CompiledStmt GoToTarget(const CompiledStmt s);
 	CompiledStmt GoToTargetBeyond(const CompiledStmt s);
 	CompiledStmt PrevStmt(const CompiledStmt s);
 	void SetV1(CompiledStmt s, const CompiledStmt s1);

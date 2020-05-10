@@ -1047,7 +1047,7 @@ const CompiledStmt AbstractMachine::While(const Stmt* cond_stmt,
 	auto beyond_tail = GoToTargetBeyond(tail);
 	SetV2(cond_IF, beyond_tail);
 
-	ResolveNexts(head);
+	ResolveNexts(GoToTarget(head));
 	ResolveBreaks(beyond_tail);
 
 	return tail;
@@ -1059,7 +1059,7 @@ const CompiledStmt AbstractMachine::Loop(const Stmt* body)
 	(void) body->Compile(this);
 	auto tail = GoTo(head);
 
-	ResolveNexts(head);
+	ResolveNexts(GoToTarget(head));
 	ResolveBreaks(GoToTargetBeyond(tail));
 
 	return tail;
@@ -1396,8 +1396,8 @@ const CompiledStmt AbstractMachine::FinishLoop(AbstractStmt iter_stmt,
 	else
 		SetV2(loop_iter, loop_end);
 
-	ResolveNexts(loop_iter);
-	ResolveBreaks(loop_end);
+	ResolveNexts(GoToTarget(loop_iter));
+	ResolveBreaks(GoToTarget(loop_end));
 
 	return body_end;
 	}
@@ -1791,7 +1791,7 @@ void AbstractMachine::SyncGlobal(ID* g, const BroObj* o,
 void AbstractMachine::ResolveGoTos(vector<int>& gotos, const CompiledStmt s)
 	{
 	for ( int i = 0; i < gotos.size(); ++i )
-		SetGoTo(gotos[i], PrevStmt(s));
+		SetGoTo(gotos[i], s);
 
 	gotos.clear();
 	}
@@ -1818,10 +1818,16 @@ CompiledStmt AbstractMachine::GoTo(const CompiledStmt s)
 	return AddStmt(stmt);
 	}
 
+CompiledStmt AbstractMachine::GoToTarget(const CompiledStmt s)
+	{
+	// We use one before the actual target due to pc increment
+	// after the statement executes.
+	return PrevStmt(s);
+	}
+
 CompiledStmt AbstractMachine::GoToTargetBeyond(const CompiledStmt s)
 	{
-	// We use a target one below the actual target due to the
-	// pc increment after the statement executes.
+	// See above.
 	return s;
 	}
 

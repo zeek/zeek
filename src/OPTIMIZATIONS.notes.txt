@@ -19,3 +19,5 @@ don't bother loading unused function parameters
 don't sync variables to the frame if they haven't changed since the
 	last time they were sync'd to the frame (or since we loaded
 	them initially, if parameters)
+
+collapse go-to's that branch to go-to's

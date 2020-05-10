@@ -1813,8 +1813,7 @@ Expr* AddToExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		{
 		// We could do an ASSERT that op1 is an EXPR_REF, but
 		// the following is basically equivalent.
-		auto op1_ref = op1->AsRefExpr()->Op();
-		auto do_incr = new AddExpr({NewRef{}, op1_ref}, op2);
+		auto do_incr = new AddExpr(op1->AsRefExpr()->GetOp1(), op2);
 		IntrusivePtr<Expr> do_incr_ptr = {AdoptRef{}, do_incr};
 		auto assign = new AssignExpr(op1, do_incr_ptr, false, nullptr,
 						nullptr, false);
@@ -1962,7 +1961,7 @@ Expr* SubExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	}
 
 RemoveFromExpr::RemoveFromExpr(IntrusivePtr<Expr> arg_op1,
-							   IntrusivePtr<Expr> arg_op2)
+				IntrusivePtr<Expr> arg_op2)
 	: BinaryExpr(EXPR_REMOVE_FROM, arg_op1->MakeLvalue(), std::move(arg_op2))
 	{
 	if ( IsError() )
@@ -2002,7 +2001,7 @@ IntrusivePtr<Val> RemoveFromExpr::Eval(Frame* f) const
 
 Expr* RemoveFromExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
-	auto do_decr = new SubExpr(op1, op2);
+	auto do_decr = new SubExpr(op1->AsRefExpr()->GetOp1(), op2);
 	IntrusivePtr<Expr> do_decr_ptr = {AdoptRef{}, do_decr};
 	auto assign = new AssignExpr(op1, do_decr_ptr, false, nullptr,
 					nullptr, false);
@@ -3473,7 +3472,8 @@ Expr* AssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	bool cascaded_assignment = op2->Tag() == EXPR_ASSIGN;
 	bool is_any_assign =
 		lhs_expr->Tag() == EXPR_NAME &&
-		lhs_expr->Type()->Tag() == TYPE_ANY;
+		lhs_expr->Type()->Tag() == TYPE_ANY &&
+		! op2->IsSingleton();
 
 	if ( cascaded_assignment || is_any_assign )
 		{ // RHS must be a singleton.

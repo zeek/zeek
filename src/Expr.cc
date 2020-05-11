@@ -37,7 +37,7 @@ const char* expr_name(BroExprTag t)
 		"$=", "in", "<<>>",
 		"()", "function()", "event", "schedule",
 		"coerce", "record_coerce", "table_coerce", "vector_coerce",
-		"sizeof", "flatten", "cast", "is", "[:]="
+		"sizeof", "cast", "is", "[:]="
 	};
 
 	if ( int(t) >= NUM_EXPRS )
@@ -410,8 +410,6 @@ void UnaryExpr::ExprDescribe(ODesc* d) const
 		{
 		if ( is_coerce )
 			d->Add("(coerce ");
-		else if ( Tag() == EXPR_FLATTEN )
-			d->Add("flatten ");
 		else if ( Tag() != EXPR_REF )
 			d->Add(expr_name(Tag()));
 		}
@@ -3785,53 +3783,6 @@ IntrusivePtr<Val> VectorCoerceExpr::Fold(Val* v) const
 		RuntimeErrorWithCallStack("coercion of non-empty vector");
 
 	return make_intrusive<VectorVal>(GetType<VectorType>());
-	}
-
-FlattenExpr::FlattenExpr(IntrusivePtr<Expr> arg_op)
-	: UnaryExpr(EXPR_FLATTEN, std::move(arg_op))
-	{
-	if ( IsError() )
-		return;
-
-	const auto& t = op->GetType();
-
-	if ( t->Tag() != TYPE_RECORD )
-		Internal("bad type in FlattenExpr::FlattenExpr");
-
-	RecordType* rt = t->AsRecordType();
-	num_fields = rt->NumFields();
-
-	auto tl = make_intrusive<TypeList>();
-
-	for ( int i = 0; i < num_fields; ++i )
-		tl->Append(rt->GetFieldType(i));
-
-	Unref(rt);
-	SetType(std::move(tl));
-	}
-
-IntrusivePtr<Val> FlattenExpr::Fold(Val* v) const
-	{
-	RecordVal* rv = v->AsRecordVal();
-	auto l = make_intrusive<ListVal>(TYPE_ANY);
-
-	for ( int i = 0; i < num_fields; ++i )
-		{
-		if ( Val* fv = rv->Lookup(i) )
-			{
-			l->Append({NewRef{}, fv});
-			continue;
-			}
-
-		const RecordType* rv_t = rv->GetType()->AsRecordType();
-		if ( const Attr* fa = rv_t->FieldDecl(i)->FindAttr(ATTR_DEFAULT) )
-			l->Append(fa->AttrExpr()->Eval(nullptr));
-
-		else
-			RuntimeError("missing field value");
-		}
-
-	return l;
 	}
 
 ScheduleTimer::ScheduleTimer(const EventHandlerPtr& arg_event, zeek::Args arg_args,

@@ -50,7 +50,6 @@ enum BroExprTag : int {
 	EXPR_TABLE_COERCE,
 	EXPR_VECTOR_COERCE,
 	EXPR_SIZE,
-	EXPR_FLATTEN,
 	EXPR_CAST,
 	EXPR_IS,
 	EXPR_INDEX_SLICE_ASSIGN,
@@ -733,18 +732,6 @@ public:
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
-};
-
-// An internal operator for flattening array indices that are records
-// into a list of individual values.
-class FlattenExpr final : public UnaryExpr {
-public:
-	explicit FlattenExpr(IntrusivePtr<Expr> op);
-
-protected:
-	IntrusivePtr<Val> Fold(Val* v) const override;
-
-	int num_fields;
 };
 
 class ScheduleTimer final : public Timer {

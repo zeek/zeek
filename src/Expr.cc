@@ -1868,7 +1868,7 @@ Expr* AddToExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		auto assign = new AssignExpr(op1, do_incr_ptr, false, nullptr,
 						nullptr, false);
 
-		return assign->Reduce(c, red_stmt);
+		return assign->ReduceToSingleton(c, red_stmt);
 		}
 	}
 

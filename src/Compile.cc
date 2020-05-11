@@ -1640,9 +1640,6 @@ const CompiledStmt AbstractMachine::CompileInExpr(const NameExpr* n1,
 	auto op2 = n2 ? (Expr*) n2 : (Expr*) c2;
 	auto op3 = n3 ? (Expr*) n3 : (Expr*) c3;
 
-	BroType* stmt_type =
-		c2 ? c2->Type().get() : (c3 ? c3->Type().get() : nullptr);
-
 	AbstractOp a;
 
 	if ( op2->Type()->Tag() == TYPE_PATTERN )
@@ -1677,7 +1674,19 @@ const CompiledStmt AbstractMachine::CompileInExpr(const NameExpr* n1,
 	else
 		s = AbstractStmt(a, s1, s3, c2);
 
-	s.t = stmt_type;
+	BroType* stmt_type =
+		c2 ? c2->Type().get() : (c3 ? c3->Type().get() : nullptr);
+
+	if ( c2 )
+		s.t = c2->Type().get();
+	else if ( c3 )
+		s.t = c3->Type().get();
+	else if ( n3 )
+		s.t = n3->Type().get();
+	else
+		{
+		ASSERT(op3->Type()->Tag() != TYPE_TABLE);
+		}
 
 	return AddStmt(s);
 	}

@@ -1405,8 +1405,14 @@ Expr* IncrExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		return this->Ref();
 		}
 
-	IntrusivePtr<Stmt> target_stmt;
+	// First reduce the target's operands to singletons, so that when
+	// we re-use it in the assignment below, it has reduced operands.
+	auto init_red_stmt = target->ReduceToSingletons(c);
+
+	// Now reduce it all the way to a single value, to use for the
+	// increment.
 	auto orig_target = target;
+	IntrusivePtr<Stmt> target_stmt;
 	target = {AdoptRef{}, target->ReduceToSingleton(c, target_stmt)};
 
 	auto incr_const = new ConstExpr({AdoptRef{}, val_mgr->GetCount(1)});
@@ -1465,7 +1471,7 @@ Expr* IncrExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	IntrusivePtr<Stmt> assign_stmt2;
 	auto res = assign->Reduce(c, assign_stmt2);
 	res = res->ReduceToSingleton(c, red_stmt);
-	red_stmt = MergeStmts(target_stmt,
+	red_stmt = MergeStmts(MergeStmts(init_red_stmt, target_stmt),
 			MergeStmts(incr_stmt, assign_stmt, assign_stmt2),
 				red_stmt);
 
@@ -1474,11 +1480,20 @@ Expr* IncrExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 
 Expr* IncrExpr::ReduceToSingleton(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
-	IntrusivePtr<Expr> incr_expr{NewRef{}, this};
-	red_stmt = make_intrusive<ExprStmt>(incr_expr);
-	red_stmt = {AdoptRef{}, red_stmt->Reduce(c)};
+	auto ref_op = op->AsRefExpr();
+	auto target = ref_op->GetOp1();
 
-	return op->AsRefExpr()->Op()->Ref();
+	if ( target->Tag() == EXPR_NAME && IsIntegral(target->Type()->Tag()) )
+		{
+		IntrusivePtr<Expr> incr_expr{NewRef{}, this};
+		red_stmt = make_intrusive<ExprStmt>(incr_expr);
+		red_stmt = {AdoptRef{}, red_stmt->Reduce(c)};
+
+		return op->AsRefExpr()->Op()->Ref();
+		}
+
+	else
+		return UnaryExpr::ReduceToSingleton(c, red_stmt);
 	}
 
 const CompiledStmt IncrExpr::Compile(Compiler* c) const
@@ -3641,7 +3656,7 @@ Expr* AssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		IntrusivePtr<Expr> lhs_e =
 			{AdoptRef{}, field_e->Op()->Reduce(c, lhs_stmt)};
 		IntrusivePtr<Expr> rhs_e =
-			{AdoptRef{}, op2->Reduce(c, rhs_stmt)};
+			{AdoptRef{}, op2->ReduceToSingleton(c, rhs_stmt)};
 
 		red_stmt = MergeStmts(lhs_stmt, rhs_stmt);
 

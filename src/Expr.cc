@@ -5024,8 +5024,7 @@ bool SetConstructorExpr::HasReducedOps() const
 	return op->IsReduced();
 	}
 
-Expr* SetConstructorExpr::Reduce(Reducer* c,
-					IntrusivePtr<Stmt>& red_stmt)
+Expr* SetConstructorExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	// We rely on the fact that ListExpr's don't change into
 	// temporaries.
@@ -6500,7 +6499,10 @@ bool ListExpr::IsReduced() const
 	{
 	for ( const auto& expr : exprs )
 		if ( ! expr->IsSingleton() )
-			return NonReduced(expr);
+			{
+			if ( expr->Tag() != EXPR_LIST || ! expr->IsReduced() )
+				return NonReduced(expr);
+			}
 
 	return true;
 	}

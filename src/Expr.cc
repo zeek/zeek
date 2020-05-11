@@ -36,7 +36,7 @@ const char* expr_name(BroExprTag t)
 		"table()", "set()", "vector()",
 		"$=", "in", "<<>>",
 		"()", "function()", "event", "schedule",
-		"coerce", "record_coerce", "table_coerce",
+		"coerce", "record_coerce", "table_coerce", "vector_coerce",
 		"sizeof", "flatten", "cast", "is", "[:]="
 	};
 

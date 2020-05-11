@@ -1437,18 +1437,18 @@ const CompiledStmt AbstractMachine::FinishLoop(AbstractStmt iter_stmt,
 
 	auto body_end = body->Compile(this);
 
-	auto s = AbstractStmt(OP_END_LOOP_V, info_slot);
-	auto loop_end = AddStmt(s);
+	auto loop_end = GoTo(loop_iter);
+	auto final_stmt = AddStmt(AbstractStmt(OP_END_LOOP_V, info_slot));
 
 	if ( iter_stmt.op_type == OP_VVV_I3 )
-		SetV3(loop_iter, loop_end);
+		SetV3(loop_iter, final_stmt);
 	else
-		SetV2(loop_iter, loop_end);
+		SetV2(loop_iter, final_stmt);
 
 	ResolveNexts(GoToTarget(loop_iter));
-	ResolveBreaks(GoToTarget(loop_end));
+	ResolveBreaks(GoToTarget(final_stmt));
 
-	return body_end;
+	return loop_end;
 	}
 
 const CompiledStmt AbstractMachine::InitRecord(ID* id, RecordType* rt)

@@ -21,3 +21,5 @@ don't sync variables to the frame if they haven't changed since the
 	them initially, if parameters)
 
 collapse go-to's that branch to go-to's
+
+could explicitly support +=/-= for integral types

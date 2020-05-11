@@ -1,4 +1,17 @@
 
+3.2.0-dev.486 | 2020-05-11 11:11:51 -0700
+
+  * Limit rate at which MMDB error/status messages are emitted
+
+    If there's some bad state we can be in where MMDB lookup/open operations
+    consistently fail, then the volume of associated reporter messages can
+    get overwhelmingly large especially if a lookup operation is being done
+    for each network connection.
+
+    This adds a limit of an arbitrary 20 messages every 5 minutes, which
+    should be enough information to understand the overall
+    open/close/lookup-failure pattern. (Jon Siwek, Corelight)
+
 3.2.0-dev.484 | 2020-05-08 11:50:54 -0700
 
   * Change timer_list in BroList to be an unordered list. (Tim Wojtulewicz, Corelight)

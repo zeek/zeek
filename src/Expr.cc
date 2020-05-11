@@ -3680,10 +3680,23 @@ Expr* AssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		return TransformMe(nop, c, red_stmt);
 		}
 
+	if ( op2->WillTransform() )
+		{
+		IntrusivePtr<Stmt> xform_stmt;
+		op2 = {AdoptRef{}, op2->ReduceToSingleton(c, xform_stmt)};
+		red_stmt = MergeStmts(red_stmt, xform_stmt);
+		return this->Ref();
+		}
+
 	red_stmt = op2->ReduceToSingletons(c);
 
 	if ( op2->HasConstantOps() )
 		op2 = make_intrusive<ConstExpr>(op2->Eval(nullptr));
+
+	// Check once again for transformation, this time made possible
+	// because the operands have been reduced.  We don't simply
+	// always first reduce the operands, because for expressions
+	// like && and ||, that's incorrect.
 
 	if ( op2->WillTransform() )
 		{

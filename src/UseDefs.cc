@@ -142,7 +142,10 @@ bool UseDefs::RemoveUnused(int iter)
 			// These always have side effects.
 			continue;
 
-		if ( CheckIfUnused(s, id, iter == 1) )
+		// Check for degenerate assignment.
+		bool degen = rt == EXPR_NAME && id == rhs->AsNameExpr()->Id();
+
+		if ( CheckIfUnused(s, id, iter == 1) || degen )
 			{
 			rc->AddStmtToOmit(s);
 			did_omission = true;
@@ -431,6 +434,7 @@ UDs UseDefs::ExprUDs(const Expr* e)
 		break;
 
 	case EXPR_INCR:
+	case EXPR_DECR:
 		AddInExprUDs(uds, e->GetOp1()->AsRefExpr()->GetOp1().get());
 		break;
 
@@ -491,7 +495,7 @@ void UseDefs::AddInExprUDs(UDs uds, const Expr* e)
 	else if ( e->Tag() == EXPR_EVENT )
 		AddInExprUDs(uds, e->GetOp1().get());
 
-	else if ( e->Tag() == EXPR_INCR )
+	else if ( e->Tag() == EXPR_INCR || e->Tag() == EXPR_DECR )
 		AddInExprUDs(uds, e->GetOp1()->AsRefExpr()->GetOp1().get());
 
 	else if ( e->Tag() == EXPR_ASSIGN )

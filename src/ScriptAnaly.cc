@@ -918,11 +918,12 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		}
 
         case EXPR_INCR:
+        case EXPR_DECR:
 		{
-		auto incr = e->AsIncrExpr();
-		auto lhs = incr->Op()->AsRefExpr()->Op();
+		auto lval = e->GetOp1();
+		auto lhs = lval->AsRefExpr()->Op();
 
-		mgr.SetPreFromPre(incr->Op(), e);
+		mgr.SetPreFromPre(lval.get(), e);
 
 		if ( lhs->Tag() == EXPR_NAME )
 			(void) CheckLHS(lhs, e);

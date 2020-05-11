@@ -659,7 +659,7 @@ Stmt* AbstractMachine::CompileBody()
 
 void AbstractMachine::Init()
 	{
-	auto uds = ud->GetUsage(body);
+	auto uds = ud->HasUsage(body) ? ud->GetUsage(body) : nullptr;
 	auto scope = func->GetScope();
 	auto args = scope->OrderedVars();
 	auto nparam = func->FType()->Args()->NumFields();

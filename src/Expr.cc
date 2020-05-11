@@ -1531,6 +1531,11 @@ IntrusivePtr<Val> ComplementExpr::Fold(Val* v) const
 	return {AdoptRef{}, val_mgr->GetCount(~ v->InternalUnsigned())};
 	}
 
+bool ComplementExpr::WillTransform() const
+	{
+	return op->Tag() == EXPR_COMPLEMENT;
+	}
+
 Expr* ComplementExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( op->Tag() == EXPR_COMPLEMENT )
@@ -1556,6 +1561,11 @@ NotExpr::NotExpr(IntrusivePtr<Expr> arg_op)
 IntrusivePtr<Val> NotExpr::Fold(Val* v) const
 	{
 	return {AdoptRef{}, val_mgr->GetBool(! v->InternalInt())};
+	}
+
+bool NotExpr::WillTransform() const
+	{
+	return op->Tag() == EXPR_NOT && Op()->Type()->Tag() == TYPE_BOOL;
 	}
 
 Expr* NotExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
@@ -1602,6 +1612,11 @@ IntrusivePtr<Val> PosExpr::Fold(Val* v) const
 		return {NewRef{}, v};
 	else
 		return {AdoptRef{}, val_mgr->GetInt(v->CoerceToInt())};
+	}
+
+bool PosExpr::WillTransform() const
+	{
+	return op->Type()->Tag() != TYPE_COUNT;
 	}
 
 Expr* PosExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
@@ -1651,6 +1666,11 @@ IntrusivePtr<Val> NegExpr::Fold(Val* v) const
 		return make_intrusive<IntervalVal>(- v->InternalDouble(), 1.0);
 	else
 		return {AdoptRef{}, val_mgr->GetInt(- v->CoerceToInt())};
+	}
+
+bool NegExpr::WillTransform() const
+	{
+	return op->Tag() == EXPR_NEGATE;
 	}
 
 Expr* NegExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
@@ -1733,6 +1753,12 @@ void AddExpr::Canonicize()
 	      op2->Type()->Tag() == TYPE_TIME) ||
 	     (op2->IsConst() && ! is_vector(op2->ExprVal()) && ! op1->IsConst()))
 		SwapOps();
+	}
+
+bool AddExpr::WillTransform() const
+	{
+	return op1->IsZero() || op2->IsZero() ||
+		op1->Tag() == EXPR_NEGATE || op2->Tag() == EXPR_NEGATE;
 	}
 
 Expr* AddExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
@@ -2105,6 +2131,11 @@ void TimesExpr::Canonicize()
 		SwapOps();
 	}
 
+bool TimesExpr::WillTransform() const
+	{
+	return op1->IsZero() || op2->IsZero() || op1->IsOne() || op2->IsOne();
+	}
+
 Expr* TimesExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( op1->IsOne() )
@@ -2168,6 +2199,11 @@ DivideExpr::DivideExpr(IntrusivePtr<Expr> arg_op1,
 
 	else
 		ExprError("requires arithmetic operands");
+	}
+
+bool DivideExpr::WillTransform() const
+	{
+	return Type()->Tag() != TYPE_SUBNET && op2->IsOne();
 	}
 
 Expr* DivideExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
@@ -2502,6 +2538,13 @@ BitExpr::BitExpr(BroExprTag arg_tag,
 		ExprError("requires \"count\" or compatible \"set\" operands");
 	}
 
+bool BitExpr::WillTransform() const
+	{
+	return Type()->Tag() == TYPE_COUNT &&
+		(op1->IsZero() || op2->IsZero() ||
+		 (same_singletons(op1, op2) && op1->Tag() == EXPR_NAME));
+	}
+
 Expr* BitExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( Type()->Tag() != TYPE_COUNT )
@@ -2647,6 +2690,11 @@ IntrusivePtr<Val> EqExpr::Fold(Val* v1, Val* v2) const
 		return BinaryExpr::Fold(v1, v2);
 	}
 
+bool EqExpr::WillTransform() const
+	{
+	return Type()->Tag() == TYPE_BOOL && same_singletons(op1, op2);
+	}
+
 Expr* EqExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( Type()->Tag() == TYPE_BOOL && same_singletons(op1, op2) )
@@ -2716,6 +2764,11 @@ void RelExpr::Canonicize()
 		SwapOps();
 		tag = EXPR_LE;
 		}
+	}
+
+bool RelExpr::WillTransform() const
+	{
+	return Type()->Tag() == TYPE_BOOL && same_singletons(op1, op2);
 	}
 
 Expr* RelExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
@@ -3026,6 +3079,11 @@ bool RefExpr::HasReducedOps() const
 		Internal("bad operand in RefExpr::IsReduced");
 		return true;
 	}
+	}
+
+bool RefExpr::WillTransform() const
+	{
+	return op->Tag() != EXPR_NAME;
 	}
 
 Expr* RefExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
@@ -3622,19 +3680,23 @@ Expr* AssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		return TransformMe(nop, c, red_stmt);
 		}
 
+	red_stmt = op2->ReduceToSingletons(c);
+
 	if ( op2->HasConstantOps() )
 		op2 = make_intrusive<ConstExpr>(op2->Eval(nullptr));
 
 	if ( op2->WillTransform() )
 		{
-		op2 = {AdoptRef{}, op2->ReduceToSingleton(c, red_stmt)};
+		IntrusivePtr<Stmt> xform_stmt;
+		op2 = {AdoptRef{}, op2->ReduceToSingleton(c, xform_stmt)};
+		red_stmt = MergeStmts(red_stmt, xform_stmt);
 		return this->Ref();
 		}
 
 	IntrusivePtr<Stmt> lhs_stmt = lhs_ref->ReduceToLHS(c);
 	IntrusivePtr<Stmt> rhs_stmt = op2->ReduceToSingletons(c);
 
-	red_stmt = MergeStmts(lhs_stmt, rhs_stmt);
+	red_stmt = MergeStmts(red_stmt, lhs_stmt, rhs_stmt);
 
 	return this->Ref();
 	}
@@ -5246,6 +5308,12 @@ IntrusivePtr<Val> ArithCoerceExpr::Fold(Val* v) const
 		}
 
 	return result;
+	}
+
+bool ArithCoerceExpr::WillTransform() const
+	{
+	return op->Tag() == EXPR_CONST &&
+		IsArithmetic(op->AsConstExpr()->Value()->Type()->Tag());
 	}
 
 Expr* ArithCoerceExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)

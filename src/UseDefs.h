@@ -59,7 +59,9 @@ public:
 
 	void Analyze();
 
-	// Note, can return nullptr if there are no usages at all.
+	bool HasUsage(const Stmt* s) const
+		{ return use_defs_map.find(s) != use_defs_map.end(); }
+
 	UDs GetUsage(const Stmt* s) const	{ return FindUsage(s); }
 	UDs GetUsageAfter(const Stmt* s) const	{ return FindSuccUsage(s); }
 

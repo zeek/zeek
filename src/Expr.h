@@ -202,7 +202,8 @@ public:
 		}
 
 	// True if the expression will transform to one of another type
-	// upon reduction, for non-constant operands.  Necessary so that
+	// upon reduction, for non-constant operands.  "Transform" means
+	// something beyond assignment to a temporary.  Necessary so that
 	// we know to fully reduce such expressions if they're the RHS
 	// of an assignment.
 	virtual bool WillTransform() const	{ return false; }
@@ -527,6 +528,7 @@ public:
 
 	bool IsReduced() const override;
 	bool HasReducedOps() const override	{ return false; }
+	bool WillTransform() const override	{ return true; }
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	Expr* ReduceToSingleton(Reducer* c,
 				IntrusivePtr<Stmt>& red_stmt) override;
@@ -542,6 +544,7 @@ public:
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
+	bool WillTransform() const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
@@ -551,6 +554,7 @@ public:
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
+	bool WillTransform() const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
@@ -560,6 +564,7 @@ public:
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
+	bool WillTransform() const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
@@ -569,6 +574,7 @@ public:
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
+	bool WillTransform() const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
@@ -586,6 +592,7 @@ public:
 	AddExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	void Canonicize() override;
 
+	bool WillTransform() const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	Expr* BuildSub(const IntrusivePtr<Expr>& op1,
 			const IntrusivePtr<Expr>& op2);
@@ -596,6 +603,7 @@ public:
 	AddToExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
+	bool WillTransform() const override	{ return true; }
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
@@ -614,6 +622,7 @@ public:
 	RemoveFromExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
+	bool WillTransform() const override	{ return true; }
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
@@ -621,8 +630,8 @@ class SubExpr : public BinaryExpr {
 public:
 	SubExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 
-	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	bool WillTransform() const override;
+	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
 class TimesExpr : public BinaryExpr {
@@ -630,6 +639,7 @@ public:
 	TimesExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	void Canonicize() override;
 
+	bool WillTransform() const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
@@ -640,6 +650,7 @@ public:
 protected:
 	IntrusivePtr<Val> AddrFold(Val* v1, Val* v2) const override;
 
+	bool WillTransform() const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
@@ -665,6 +676,7 @@ class BitExpr : public BinaryExpr {
 public:
 	BitExpr(BroExprTag tag, IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 
+	bool WillTransform() const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
@@ -675,6 +687,7 @@ public:
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v1, Val* v2) const override;
+	bool WillTransform() const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
@@ -682,6 +695,7 @@ class RelExpr : public BinaryExpr {
 public:
 	RelExpr(BroExprTag tag, IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	void Canonicize() override;
+	bool WillTransform() const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
@@ -728,6 +742,7 @@ public:
 
 	bool IsReduced() const override;
 	bool HasReducedOps() const override;
+	bool WillTransform() const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 
 	// Reduce to simplifed LHS form, i.e., a reference to only a name.
@@ -1019,6 +1034,7 @@ public:
 	const char* FieldName() const	{ return field_name.c_str(); }
 
 	void EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const override;
+	bool WillTransform() const override	{ return true; }
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 
 	bool IsRecordElement(TypeDecl* td) const override;
@@ -1037,6 +1053,7 @@ protected:
 	IntrusivePtr<Val> FoldSingleVal(Val* v, InternalTypeTag t) const;
 	IntrusivePtr<Val> Fold(Val* v) const override;
 
+	bool WillTransform() const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 

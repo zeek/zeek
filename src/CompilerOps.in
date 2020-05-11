@@ -106,7 +106,10 @@ binary-expr-op Sub
 op-type I U D T
 vector
 eval $1 - $2
-eval_T $$ = $1->Clone()->AsTableVal()
+#
+eval_T auto v = $1->Clone()
+eval_T vals.push_back(v)
+eval_T $$ = v->AsTableVal()
 eval_T $2->RemoveFrom($$)
 
 binary-expr-op Times
@@ -168,7 +171,9 @@ eval_P auto p = make_intrusive<PatternVal>(RE_Matcher_disjunction($1->AsPattern(
 eval_P vals.push_back(p)
 eval_P $$ = p.get()
 #
-eval_T $$ = $1->Clone()->AsTableVal()
+eval_T auto v = $1->Clone()
+eval_T vals.push_back(v)
+eval_T $$ = v->AsTableVal()
 eval_T (void) $2->AddTo($$, false, false)
 
 binary-expr-op Xor

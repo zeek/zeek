@@ -274,6 +274,9 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt,
 		}
 
 	case STMT_INIT:
+		if ( ! second_pass )
+			successor[s] = succ_stmt;
+
 		return UseUDs(s, succ_UDs);
 
 	case STMT_WHEN:

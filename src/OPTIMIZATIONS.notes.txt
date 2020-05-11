@@ -28,3 +28,5 @@ could save grief/complexity by splitting out early (in the parser)
 	operands with weird mixed types, like DivideExpr supporting
 	address masking, or InExpr supporting patterns/strings.
 	This would allow simplifications for gen-compiler-templates.sh.
+
+do global analysis for unused/ungenerated event handlers

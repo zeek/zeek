@@ -94,10 +94,10 @@ void Attr::DescribeReST(ODesc* d, bool shorten) const
 			d->Add("`");
 			}
 
-		else if ( expr->Type()->Tag() == TYPE_FUNC )
+		else if ( expr->GetType()->Tag() == TYPE_FUNC )
 			{
 			d->Add(":zeek:type:`");
-			d->Add(expr->Type()->AsFuncType()->FlavorString());
+			d->Add(expr->GetType()->AsFuncType()->FlavorString());
 			d->Add("`");
 			}
 
@@ -262,7 +262,7 @@ void Attributes::CheckAttr(Attr* a)
 		{
 		bool is_add = a->Tag() == ATTR_ADD_FUNC;
 
-		BroType* at = a->AttrExpr()->Type();
+		const auto& at = a->AttrExpr()->GetType();
 		if ( at->Tag() != TYPE_FUNC )
 			{
 			a->AttrExpr()->Error(
@@ -294,7 +294,7 @@ void Attributes::CheckAttr(Attr* a)
 			break;
 			}
 
-		BroType* atype = a->AttrExpr()->Type();
+		BroType* atype = a->AttrExpr()->GetType().get();
 
 		if ( type->Tag() != TYPE_TABLE || (type->IsSet() && ! in_record) )
 			{
@@ -448,10 +448,10 @@ void Attributes::CheckAttr(Attr* a)
 
 		const Expr* expire_func = a->AttrExpr();
 
-		if ( expire_func->Type()->Tag() != TYPE_FUNC )
+		if ( expire_func->GetType()->Tag() != TYPE_FUNC )
 			Error("&expire_func attribute is not a function");
 
-		const FuncType* e_ft = expire_func->Type()->AsFuncType();
+		const FuncType* e_ft = expire_func->GetType()->AsFuncType();
 
 		if ( e_ft->Yield()->Tag() != TYPE_INTERVAL )
 			{
@@ -495,10 +495,10 @@ void Attributes::CheckAttr(Attr* a)
 
 		const Expr* change_func = a->AttrExpr();
 
-		if ( change_func->Type()->Tag() != TYPE_FUNC || change_func->Type()->AsFuncType()->Flavor() != FUNC_FLAVOR_FUNCTION )
+		if ( change_func->GetType()->Tag() != TYPE_FUNC || change_func->GetType()->AsFuncType()->Flavor() != FUNC_FLAVOR_FUNCTION )
 			Error("&on_change attribute is not a function");
 
-		const FuncType* c_ft = change_func->Type()->AsFuncType();
+		const FuncType* c_ft = change_func->GetType()->AsFuncType();
 
 		if ( c_ft->Yield()->Tag() != TYPE_VOID )
 			{
@@ -588,7 +588,7 @@ void Attributes::CheckAttr(Attr* a)
 			break;
 			}
 
-		BroType* atype = a->AttrExpr()->Type();
+		const auto& atype = a->AttrExpr()->GetType();
 
 		if ( atype->Tag() != TYPE_STRING ) {
 			Error("type column needs to have a string argument");

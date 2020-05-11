@@ -795,7 +795,7 @@ bool check_built_in_call(BuiltinFunc* f, CallExpr* call)
 		}
 
 	const Expr* fmt_str_arg = args[0];
-	if ( fmt_str_arg->Type()->Tag() != TYPE_STRING )
+	if ( fmt_str_arg->GetType()->Tag() != TYPE_STRING )
 		{
 		call->Error("first argument to fmt() needs to be a format string");
 		return false;

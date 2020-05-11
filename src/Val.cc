@@ -1483,7 +1483,7 @@ void TableVal::CheckExpireAttr(attr_tag at)
 		{
 		expire_time = {NewRef{}, a->AttrExpr()};
 
-		if ( expire_time->Type()->Tag() != TYPE_INTERVAL )
+		if ( expire_time->GetType()->Tag() != TYPE_INTERVAL )
 			{
 			if ( ! expire_time->IsError() )
 				expire_time->SetError("expiration interval has wrong type");
@@ -1807,10 +1807,10 @@ IntrusivePtr<Val> TableVal::Default(Val* index)
 	if ( ! def_val )
 		{
 		const auto& ytype = GetType()->Yield();
-		BroType* dtype = def_attr->AttrExpr()->Type();
+		const auto& dtype = def_attr->AttrExpr()->GetType();
 
 		if ( dtype->Tag() == TYPE_RECORD && ytype->Tag() == TYPE_RECORD &&
-		     ! same_type(dtype, ytype.get()) &&
+		     ! same_type(dtype.get(), ytype.get()) &&
 		     record_promotion_compatible(dtype->AsRecordType(),
 						 ytype->AsRecordType()) )
 			{
@@ -2303,10 +2303,10 @@ void TableVal::InitDefaultFunc(Frame* f)
 		return;
 
 	const auto& ytype = GetType()->Yield();
-	BroType* dtype = def_attr->AttrExpr()->Type();
+	const auto& dtype = def_attr->AttrExpr()->GetType();
 
 	if ( dtype->Tag() == TYPE_RECORD && ytype->Tag() == TYPE_RECORD &&
-	     ! same_type(dtype, ytype.get()) &&
+	     ! same_type(dtype.get(), ytype.get()) &&
 	     record_promotion_compatible(dtype->AsRecordType(),
 					 ytype->AsRecordType()) )
 		return; // TableVal::Default will handle this.

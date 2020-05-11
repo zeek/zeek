@@ -136,7 +136,7 @@ ExprListStmt::ExprListStmt(BroStmtTag t, IntrusivePtr<ListExpr> arg_l)
 	const expr_list& e = l->Exprs();
 	for ( const auto& expr : e )
 		{
-		const BroType* t = expr->Type();
+		const auto& t = expr->GetType();
 		if ( ! t || t->Tag() == TYPE_VOID )
 			Error("value of type void illegal");
 		}
@@ -366,7 +366,7 @@ IfStmt::IfStmt(IntrusivePtr<Expr> test,
 	: ExprStmt(STMT_IF, std::move(test)),
 	  s1(std::move(arg_s1)), s2(std::move(arg_s2))
 	{
-	if ( ! e->IsError() && ! IsBool(e->Type()->Tag()) )
+	if ( ! e->IsError() && ! IsBool(e->GetType()->Tag()) )
 		e->Error("conditional in test must be boolean");
 
 	const Location* loc1 = s1->GetLocationInfo();
@@ -580,7 +580,7 @@ static void int_del_func(void* v)
 void SwitchStmt::Init()
 	{
 	auto t = make_intrusive<TypeList>();
-	t->Append({NewRef{}, e->Type()});
+	t->Append(e->GetType());
 	comp_hash = new CompositeHash(std::move(t));
 
 	case_label_value_map.SetDeleteFunc(int_del_func);
@@ -605,10 +605,10 @@ SwitchStmt::SwitchStmt(IntrusivePtr<Expr> index, case_list* arg_cases)
 			{
 			have_exprs = true;
 
-			if ( ! is_atomic_type(e->Type()) )
+			if ( ! is_atomic_type(e->GetType().get()) )
 				e->Error("switch expression must be of an atomic type when cases are expressions");
 
-			if ( ! le->Type()->AsTypeList()->AllMatch(e->Type(), false) )
+			if ( ! le->GetType()->AsTypeList()->AllMatch(e->GetType().get(), false) )
 				{
 				le->Error("case expression type differs from switch type", e.get());
 				continue;
@@ -679,7 +679,7 @@ SwitchStmt::SwitchStmt(IntrusivePtr<Expr> index, case_list* arg_cases)
 				{
 				const auto& ct = t->GetType();
 
-	   			if ( ! can_cast_value_to_type(e->Type(), ct.get()) )
+	   			if ( ! can_cast_value_to_type(e->GetType().get(), ct.get()) )
 					{
 					c->Error("cannot cast switch expression to case type");
 					continue;
@@ -724,7 +724,7 @@ bool SwitchStmt::AddCaseLabelValueMapping(const Val* v, int idx)
 		{
 		reporter->PushLocation(e->GetLocationInfo());
 		reporter->InternalError("switch expression type mismatch (%s/%s)",
-		    type_name(v->GetType()->Tag()), type_name(e->Type()->Tag()));
+		    type_name(v->GetType()->Tag()), type_name(e->GetType()->Tag()));
 		}
 
 	int* label_idx = case_label_value_map.Lookup(hk);
@@ -768,7 +768,7 @@ std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const
 			{
 			reporter->PushLocation(e->GetLocationInfo());
 			reporter->Error("switch expression type mismatch (%s/%s)",
-					type_name(v->GetType()->Tag()), type_name(e->Type()->Tag()));
+					type_name(v->GetType()->Tag()), type_name(e->GetType()->Tag()));
 			return std::make_pair(-1, nullptr);
 			}
 
@@ -987,7 +987,7 @@ WhileStmt::WhileStmt(IntrusivePtr<Expr> arg_loop_condition,
 	: loop_condition(std::move(arg_loop_condition)), body(std::move(arg_body))
 	{
 	if ( ! loop_condition->IsError() &&
-	     ! IsBool(loop_condition->Type()->Tag()) )
+	     ! IsBool(loop_condition->GetType()->Tag()) )
 		loop_condition->Error("while conditional must be boolean");
 	}
 
@@ -1067,9 +1067,9 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 	loop_vars = arg_loop_vars;
 	body = nullptr;
 
-	if ( e->Type()->Tag() == TYPE_TABLE )
+	if ( e->GetType()->Tag() == TYPE_TABLE )
 		{
-		const auto& indices = e->Type()->AsTableType()->IndexTypes();
+		const auto& indices = e->GetType()->AsTableType()->IndexTypes();
 
 		if ( static_cast<int>(indices.size()) != loop_vars->length() )
 			{
@@ -1097,7 +1097,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 			}
 		}
 
-	else if ( e->Type()->Tag() == TYPE_VECTOR )
+	else if ( e->GetType()->Tag() == TYPE_VECTOR )
 		{
 		if ( loop_vars->length() != 1 )
 			{
@@ -1118,7 +1118,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 			}
 		}
 
-	else if ( e->Type()->Tag() == TYPE_STRING )
+	else if ( e->GetType()->Tag() == TYPE_STRING )
 		{
 		if ( loop_vars->length() != 1 )
 			{
@@ -1149,9 +1149,9 @@ ForStmt::ForStmt(id_list* arg_loop_vars,
 	{
 	value_var = std::move(val_var);
 
-	if ( e->Type()->IsTable() )
+	if ( e->GetType()->IsTable() )
 		{
-		const auto& yield_type = e->Type()->AsTableType()->Yield();
+		const auto& yield_type = e->GetType()->AsTableType()->Yield();
 
 		// Verify value_vars type if its already been defined
 		if ( value_var->GetType() )
@@ -1432,7 +1432,7 @@ ReturnStmt::ReturnStmt(IntrusivePtr<Expr> arg_e)
 		{
 		if ( e )
 			{
-			ft->SetYieldType({NewRef{}, e->Type()});
+			ft->SetYieldType(e->GetType());
 			s->ScopeID()->SetInferReturnType(false);
 			}
 		}
@@ -1752,7 +1752,7 @@ WhenStmt::WhenStmt(IntrusivePtr<Expr> arg_cond,
 	assert(cond);
 	assert(s1);
 
-	if ( ! cond->IsError() && ! IsBool(cond->Type()->Tag()) )
+	if ( ! cond->IsError() && ! IsBool(cond->GetType()->Tag()) )
 		cond->Error("conditional in test must be boolean");
 
 	if ( timeout )
@@ -1760,7 +1760,7 @@ WhenStmt::WhenStmt(IntrusivePtr<Expr> arg_cond,
 		if ( timeout->IsError() )
 			return;
 
-		TypeTag bt = timeout->Type()->Tag();
+		TypeTag bt = timeout->GetType()->Tag();
 		if ( bt != TYPE_TIME && bt != TYPE_INTERVAL )
 			cond->Error("when timeout requires a time or time interval");
 		}

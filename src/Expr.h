@@ -75,7 +75,16 @@ struct function_ingredients;
 
 class Expr : public BroObj {
 public:
+	[[deprecated("Remove in v4.1.  Use GetType().")]]
 	BroType* Type() const		{ return type.get(); }
+
+	const IntrusivePtr<BroType>& GetType() const
+		{ return type; }
+
+	template <class T>
+	IntrusivePtr<T> GetType() const
+		{ return cast_intrusive<T>(type); }
+
 	BroExprTag Tag() const	{ return tag; }
 
 	Expr* Ref()			{ ::Ref(this); return this; }
@@ -946,4 +955,4 @@ std::optional<std::vector<IntrusivePtr<Val>>> eval_list(Frame* f, const ListExpr
 extern bool expr_greater(const Expr* e1, const Expr* e2);
 
 // True if the given Val* has a vector type
-inline bool is_vector(Expr* e)	{ return e->Type()->Tag() == TYPE_VECTOR; }
+inline bool is_vector(Expr* e)	{ return e->GetType()->Tag() == TYPE_VECTOR; }

@@ -231,7 +231,7 @@ static bool expr_is_table_type_name(const Expr* expr)
 	if ( expr->Tag() != EXPR_NAME )
 		return false;
 
-	BroType* type = expr->Type();
+	const auto& type = expr->GetType();
 
 	if ( type->IsTable() )
 		return true;
@@ -743,7 +743,7 @@ expr:
 			set_location(@1, @3);
 			IntrusivePtr<Expr> e{AdoptRef{}, $2};
 
-			if ( IsIntegral(e->Type()->Tag()) )
+			if ( IsIntegral(e->GetType()->Tag()) )
 				e = make_intrusive<ArithCoerceExpr>(std::move(e), TYPE_INT);
 
 			$$ = new SizeExpr(std::move(e));
@@ -1323,7 +1323,7 @@ index_slice:
 			                 make_intrusive<SizeExpr>(
 			                     IntrusivePtr<Expr>{NewRef{}, $1});
 
-			if ( ! IsIntegral(low->Type()->Tag()) || ! IsIntegral(high->Type()->Tag()) )
+			if ( ! IsIntegral(low->GetType()->Tag()) || ! IsIntegral(high->GetType()->Tag()) )
 				reporter->Error("slice notation must have integral values as indexes");
 
 			auto le = make_intrusive<ListExpr>(std::move(low));

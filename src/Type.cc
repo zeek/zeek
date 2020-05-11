@@ -228,7 +228,7 @@ int IndexType::MatchesIndex(ListExpr* const index) const
 	const expr_list& exprs = index->Exprs();
 
 	if ( types.size() == 1 && types[0]->Tag() == TYPE_SUBNET &&
-	     exprs.length() == 1 && exprs[0]->Type()->Tag() == TYPE_ADDR )
+	     exprs.length() == 1 && exprs[0]->GetType()->Tag() == TYPE_ADDR )
 		return MATCHES_INDEX_SCALAR;
 
 	return check_and_promote_exprs(index, Indices()) ?
@@ -366,7 +366,7 @@ SetType::SetType(IntrusivePtr<TypeList> ind, IntrusivePtr<ListExpr> arg_elements
 			}
 		else
 			{
-			TypeList* tl_type = elements->Type()->AsTypeList();
+			TypeList* tl_type = elements->GetType()->AsTypeList();
 			const auto& tl = tl_type->Types();
 
 			if ( tl.size() < 1 )
@@ -1355,13 +1355,13 @@ int VectorType::MatchesIndex(ListExpr* const index) const
 
 	if ( el.length() == 2 )
 		return MATCHES_INDEX_VECTOR;
-	else if ( el[0]->Type()->Tag() == TYPE_VECTOR )
-		return (IsIntegral(el[0]->Type()->Yield()->Tag()) ||
-			 IsBool(el[0]->Type()->Yield()->Tag())) ?
+	else if ( el[0]->GetType()->Tag() == TYPE_VECTOR )
+		return (IsIntegral(el[0]->GetType()->Yield()->Tag()) ||
+			 IsBool(el[0]->GetType()->Yield()->Tag())) ?
 				MATCHES_INDEX_VECTOR : DOES_NOT_MATCH_INDEX;
 	else
-		return (IsIntegral(el[0]->Type()->Tag()) ||
-			 IsBool(el[0]->Type()->Tag())) ?
+		return (IsIntegral(el[0]->GetType()->Tag()) ||
+			 IsBool(el[0]->GetType()->Tag())) ?
 				MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
 	}
 
@@ -1955,7 +1955,7 @@ IntrusivePtr<BroType> merge_types(const BroType* t1, const BroType* t2)
 
 IntrusivePtr<BroType> merge_type_list(ListExpr* elements)
 	{
-	TypeList* tl_type = elements->Type()->AsTypeList();
+	TypeList* tl_type = elements->GetType()->AsTypeList();
 	const auto& tl = tl_type->Types();
 
 	if ( tl.size() < 1 )

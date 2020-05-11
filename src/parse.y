@@ -813,7 +813,7 @@ enum_body_elem:
 			set_location(@1, @3);
 			assert(cur_enum_type);
 
-			if ( $3->Type()->Tag() != TYPE_COUNT )
+			if ( $3->GetType()->Tag() != TYPE_COUNT )
 				reporter->Error("enumerator is not a count constant");
 			else
 				cur_enum_type->AddName(current_module, $1,
@@ -1382,7 +1382,7 @@ attr:
 			{ $$ = new Attr(ATTR_DEPRECATED); }
 	|	TOK_ATTR_DEPRECATED '=' TOK_CONSTANT
 			{
-			if ( IsString($3->Type()->Tag()) )
+			if ( IsString($3->GetType()->Tag()) )
 				$$ = new Attr(ATTR_DEPRECATED, make_intrusive<ConstExpr>(IntrusivePtr{AdoptRef{}, $3}));
 			else
 				{
@@ -1869,7 +1869,7 @@ opt_deprecated:
 	|
 		TOK_ATTR_DEPRECATED '=' TOK_CONSTANT
 			{
-			if ( IsString($3->Type()->Tag()) )
+			if ( IsString($3->GetType()->Tag()) )
 				$$ = new ConstExpr({AdoptRef{}, $3});
 			else
 				{

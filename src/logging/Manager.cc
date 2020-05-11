@@ -229,7 +229,7 @@ void Manager::RemoveDisabledWriters(Stream* stream)
 
 bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 	{
-	RecordType* rtype = sval->Type()->AsRecordType();
+	RecordType* rtype = sval->GetType()->AsRecordType();
 
 	if ( ! same_type(rtype, BifType::Record::Log::Stream, false) )
 		{
@@ -309,7 +309,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 	streams[idx] = new Stream;
 	streams[idx]->id = id->Ref()->AsEnumVal();
 	streams[idx]->enabled = true;
-	streams[idx]->name = id->Type()->AsEnumType()->Lookup(idx);
+	streams[idx]->name = id->GetType()->AsEnumType()->Lookup(idx);
 	streams[idx]->event = event ? event_registry->Lookup(event->Name()) : nullptr;
 	streams[idx]->columns = columns->Ref()->AsRecordType();
 
@@ -532,7 +532,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 
 bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	{
-	RecordType* rtype = fval->Type()->AsRecordType();
+	RecordType* rtype = fval->GetType()->AsRecordType();
 
 	if ( ! same_type(rtype, BifType::Record::Log::Filter, false) )
 		{
@@ -759,7 +759,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 			if ( ! v )
 				return false;
 
-			if ( v->Type()->Tag() != TYPE_STRING )
+			if ( v->GetType()->Tag() != TYPE_STRING )
 				{
 				reporter->Error("path_func did not return string");
 				return false;
@@ -826,7 +826,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 				auto wi = w->second;
 				wi->hook_initialized = true;
 				PLUGIN_HOOK_VOID(HOOK_LOG_INIT,
-				                 HookLogInit(filter->writer->Type()->AsEnumType()->Lookup(filter->writer->InternalInt()),
+				                 HookLogInit(filter->writer->GetType()->AsEnumType()->Lookup(filter->writer->InternalInt()),
 				                             wi->instantiating_filter, filter->local,
 				                             filter->remote, *wi->info,
 				                             filter->num_fields,
@@ -891,7 +891,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 		threading::Value** vals = RecordToFilterVals(stream, filter, columns.get());
 
 		if ( ! PLUGIN_HOOK_WITH_RESULT(HOOK_LOG_WRITE,
-		                               HookLogWrite(filter->writer->Type()->AsEnumType()->Lookup(filter->writer->InternalInt()),
+		                               HookLogWrite(filter->writer->GetType()->AsEnumType()->Lookup(filter->writer->InternalInt()),
 		                                            filter->name, *info,
 		                                            filter->num_fields,
 		                                            filter->fields, vals),
@@ -922,7 +922,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
 	{
 	if ( ! ty )
-		ty = val->Type();
+		ty = val->GetType().get();
 
 	if ( ! val )
 		return new threading::Value(ty->Tag(), false);
@@ -938,7 +938,7 @@ threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
 	case TYPE_ENUM:
 		{
 		const char* s =
-			val->Type()->AsEnumType()->Lookup(val->InternalInt());
+			val->GetType()->AsEnumType()->Lookup(val->InternalInt());
 
 		if ( s )
 			{
@@ -948,7 +948,7 @@ threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
 
 		else
 			{
-			val->Type()->Error("enum type does not contain value", val);
+			val->GetType()->Error("enum type does not contain value", val);
 			lval->val.string_val.data = copy_string("");
 			lval->val.string_val.length = 0;
 			}
@@ -1038,7 +1038,7 @@ threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
 			{
 			lval->val.vector_val.vals[i] =
 				ValToLogVal(vec->Lookup(i),
-					    vec->Type()->Yield().get());
+					    vec->GetType()->Yield().get());
 			}
 
 		break;
@@ -1206,7 +1206,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 		{
 		winfo->hook_initialized = true;
 		PLUGIN_HOOK_VOID(HOOK_LOG_INIT,
-		                 HookLogInit(writer->Type()->AsEnumType()->Lookup(writer->InternalInt()),
+		                 HookLogInit(writer->GetType()->AsEnumType()->Lookup(writer->InternalInt()),
 		                             instantiating_filter, local, remote,
 		                             *winfo->info, num_fields, fields));
 		}

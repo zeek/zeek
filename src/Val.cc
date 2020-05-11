@@ -411,7 +411,7 @@ bool Val::WouldOverflow(const BroType* from_type, const BroType* to_type, const 
 
 IntrusivePtr<TableVal> Val::GetRecordFields()
 	{
-	auto t = Type();
+	auto t = GetType().get();
 
 	if ( t->Tag() != TYPE_RECORD && t->Tag() != TYPE_TYPE )
 		{
@@ -457,8 +457,8 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 		}
 
 	rapidjson::Value j;
-	BroType* type = val->Type();
-	switch ( type->Tag() )
+
+	switch ( val->GetType()->Tag() )
 		{
 		case TYPE_BOOL:
 			writer.Bool(val->AsBool());
@@ -525,7 +525,7 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 			auto* table = val->AsTable();
 			auto* tval = val->AsTableVal();
 
-			if ( tval->Type()->IsSet() )
+			if ( tval->GetType()->IsSet() )
 				writer.StartArray();
 			else
 				writer.StartObject();
@@ -539,7 +539,7 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 				delete k;
 				Val* entry_key = lv->Length() == 1 ? lv->Idx(0).get() : lv.get();
 
-				if ( tval->Type()->IsSet() )
+				if ( tval->GetType()->IsSet() )
 					BuildJSON(writer, entry_key, only_loggable, re);
 				else
 					{
@@ -558,7 +558,7 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 					}
 				}
 
-			if ( tval->Type()->IsSet() )
+			if ( tval->GetType()->IsSet() )
 				writer.EndArray();
 			else
 				writer.EndObject();
@@ -571,7 +571,7 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 			writer.StartObject();
 
 			auto* rval = val->AsRecordVal();
-			auto rt = rval->Type()->AsRecordType();
+			auto rt = rval->GetType()->AsRecordType();
 
 			for ( auto i = 0; i < rt->NumFields(); ++i )
 				{
@@ -1133,7 +1133,7 @@ PatternVal::~PatternVal()
 
 bool PatternVal::AddTo(Val* v, bool /* is_first_init */) const
 	{
-	if ( v->Type()->Tag() != TYPE_PATTERN )
+	if ( v->GetType()->Tag() != TYPE_PATTERN )
 		{
 		v->Error("not a pattern");
 		return false;
@@ -1213,13 +1213,13 @@ void ListVal::Append(IntrusivePtr<Val> v)
 	{
 	if ( type->AsTypeList()->IsPure() )
 		{
-		if ( v->Type()->Tag() != tag )
+		if ( v->GetType()->Tag() != tag )
 			Internal("heterogeneous list in ListVal::Append");
 		}
 
-	auto vt = v->Type();
+	const auto& vt = v->GetType();
 	vals.emplace_back(std::move(v));
-	type->AsTypeList()->Append({NewRef{}, vt});
+	type->AsTypeList()->Append(vt);
 	}
 
 void ListVal::Append(Val* v)
@@ -1436,9 +1436,8 @@ int TableVal::RecursiveSize() const
 	{
 	int n = AsTable()->Length();
 
-	if ( Type()->IsSet() ||
-	     const_cast<TableType*>(Type()->AsTableType())->Yield()->Tag()
-			!= TYPE_TABLE )
+	if ( GetType()->IsSet() ||
+	     GetType()->AsTableType()->Yield()->Tag() != TYPE_TABLE )
 		return n;
 
 	PDict<TableEntryVal>* v = val.table_val;
@@ -1583,7 +1582,7 @@ bool TableVal::AddTo(Val* val, bool is_first_init) const
 
 bool TableVal::AddTo(Val* val, bool is_first_init, bool propagate_ops) const
 	{
-	if ( val->Type()->Tag() != TYPE_TABLE )
+	if ( val->GetType()->Tag() != TYPE_TABLE )
 		{
 		val->Error("not a table");
 		return false;
@@ -1591,9 +1590,9 @@ bool TableVal::AddTo(Val* val, bool is_first_init, bool propagate_ops) const
 
 	TableVal* t = val->AsTableVal();
 
-	if ( ! same_type(type.get(), t->Type()) )
+	if ( ! same_type(type.get(), t->GetType().get()) )
 		{
-		type->Error("table type clash", t->Type());
+		type->Error("table type clash", t->GetType().get());
 		return false;
 		}
 
@@ -1629,7 +1628,7 @@ bool TableVal::AddTo(Val* val, bool is_first_init, bool propagate_ops) const
 
 bool TableVal::RemoveFrom(Val* val) const
 	{
-	if ( val->Type()->Tag() != TYPE_TABLE )
+	if ( val->GetType()->Tag() != TYPE_TABLE )
 		{
 		val->Error("not a table");
 		return false;
@@ -1637,9 +1636,9 @@ bool TableVal::RemoveFrom(Val* val) const
 
 	TableVal* t = val->AsTableVal();
 
-	if ( ! same_type(type.get(), t->Type()) )
+	if ( ! same_type(type.get(), t->GetType().get()) )
 		{
-		type->Error("table type clash", t->Type());
+		type->Error("table type clash", t->GetType().get());
 		return false;
 		}
 
@@ -1748,7 +1747,7 @@ bool TableVal::IsSubsetOf(const TableVal* tv) const
 
 bool TableVal::ExpandAndInit(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val)
 	{
-	BroType* index_type = index->Type();
+	const auto& index_type = index->GetType();
 
 	if ( index_type->IsSet() )
 		{
@@ -1783,7 +1782,7 @@ bool TableVal::ExpandAndInit(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val)
 			// ### if CompositeHash::ComputeHash did flattening
 			// of 1-element lists (like ComputeSingletonHash does),
 			// then we could optimize here.
-			BroType* t = v->Type();
+			const auto& t = v->GetType();
 
 			if ( t->IsSet() || t->Tag() == TYPE_LIST )
 				break;
@@ -1807,7 +1806,7 @@ IntrusivePtr<Val> TableVal::Default(Val* index)
 
 	if ( ! def_val )
 		{
-		const auto& ytype = Type()->Yield();
+		const auto& ytype = GetType()->Yield();
 		BroType* dtype = def_attr->AttrExpr()->Type();
 
 		if ( dtype->Tag() == TYPE_RECORD && ytype->Tag() == TYPE_RECORD &&
@@ -1831,8 +1830,8 @@ IntrusivePtr<Val> TableVal::Default(Val* index)
 		return nullptr;
 		}
 
-	if ( def_val->Type()->Tag() != TYPE_FUNC ||
-	     same_type(def_val->Type(), Type()->Yield().get()) )
+	if ( def_val->GetType()->Tag() != TYPE_FUNC ||
+	     same_type(def_val->GetType().get(), GetType()->Yield().get()) )
 		{
 		if ( def_attr->AttrExpr()->IsConst() )
 			return def_val;
@@ -1851,7 +1850,7 @@ IntrusivePtr<Val> TableVal::Default(Val* index)
 	const Func* f = def_val->AsFunc();
 	zeek::Args vl;
 
-	if ( index->Type()->Tag() == TYPE_LIST )
+	if ( index->GetType()->Tag() == TYPE_LIST )
 		{
 		auto lv = index->AsListVal();
 		vl.reserve(lv->Length());
@@ -1945,7 +1944,7 @@ IntrusivePtr<TableVal> TableVal::LookupSubnetValues(const SubNetVal* search)
 	if ( ! subnets )
 		reporter->InternalError("LookupSubnetValues called on wrong table type");
 
-	auto nt = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, this->Type()->AsTableType()});
+	auto nt = make_intrusive<TableVal>(this->GetType<TableType>());
 
 	auto matches = subnets->FindAll(search);
 	for ( auto element : matches )
@@ -2017,7 +2016,7 @@ void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe
 			return;
 			}
 
-		if ( thefunc->Type()->Tag() != TYPE_FUNC )
+		if ( thefunc->GetType()->Tag() != TYPE_FUNC )
 			{
 			thefunc->Error("not a function");
 			return;
@@ -2252,7 +2251,7 @@ void TableVal::Describe(ODesc* d) const
 bool TableVal::ExpandCompoundAndInit(ListVal* lv, int k, IntrusivePtr<Val> new_val)
 	{
 	Val* ind_k_v = lv->Idx(k).get();
-	auto ind_k = ind_k_v->Type()->IsSet() ?
+	auto ind_k = ind_k_v->GetType()->IsSet() ?
 	      ind_k_v->AsTableVal()->ToListVal() :
 	      IntrusivePtr<ListVal>{NewRef{}, ind_k_v->AsListVal()};
 
@@ -2303,7 +2302,7 @@ void TableVal::InitDefaultFunc(Frame* f)
 	if ( ! def_attr )
 		return;
 
-	const auto& ytype = Type()->Yield();
+	const auto& ytype = GetType()->Yield();
 	BroType* dtype = def_attr->AttrExpr()->Type();
 
 	if ( dtype->Tag() == TYPE_RECORD && ytype->Tag() == TYPE_RECORD &&
@@ -2469,7 +2468,7 @@ double TableVal::CallExpireFunc(IntrusivePtr<ListVal> idx)
 			// Will have been reported already.
 			return 0;
 
-		if ( vf->Type()->Tag() != TYPE_FUNC )
+		if ( vf->GetType()->Tag() != TYPE_FUNC )
 			{
 			vf->Error("not a function");
 			return 0;
@@ -2672,8 +2671,8 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(IntrusivePtr{NewRef{
 		const auto& type = t->FieldDecl(i)->type;
 
 		if ( def && type->Tag() == TYPE_RECORD &&
-		     def->Type()->Tag() == TYPE_RECORD &&
-		     ! same_type(def->Type(), type.get()) )
+		     def->GetType()->Tag() == TYPE_RECORD &&
+		     ! same_type(def->GetType().get(), type.get()) )
 			{
 			auto tmp = def->AsRecordVal()->CoerceTo(type->AsRecordType());
 
@@ -2707,7 +2706,7 @@ RecordVal::~RecordVal()
 
 IntrusivePtr<Val> RecordVal::SizeVal() const
 	{
-	return val_mgr->Count(Type()->AsRecordType()->NumFields());
+	return val_mgr->Count(GetType()->AsRecordType()->NumFields());
 	}
 
 void RecordVal::Assign(int field, IntrusivePtr<Val> new_val)
@@ -2734,7 +2733,7 @@ IntrusivePtr<Val> RecordVal::LookupWithDefault(int field) const
 	if ( val )
 		return {NewRef{}, val};
 
-	return Type()->AsRecordType()->FieldDefault(field);
+	return GetType()->AsRecordType()->FieldDefault(field);
 	}
 
 void RecordVal::ResizeParseTimeRecords(RecordType* rt)
@@ -2769,7 +2768,7 @@ void RecordVal::DoneParsing()
 
 IntrusivePtr<Val> RecordVal::Lookup(const char* field, bool with_default) const
 	{
-	int idx = Type()->AsRecordType()->FieldOffset(field);
+	int idx = GetType()->AsRecordType()->FieldOffset(field);
 
 	if ( idx < 0 )
 		reporter->InternalError("missing record field: %s", field);
@@ -2779,16 +2778,16 @@ IntrusivePtr<Val> RecordVal::Lookup(const char* field, bool with_default) const
 
 IntrusivePtr<RecordVal> RecordVal::CoerceTo(const RecordType* t, Val* aggr, bool allow_orphaning) const
 	{
-	if ( ! record_promotion_compatible(t->AsRecordType(), Type()->AsRecordType()) )
+	if ( ! record_promotion_compatible(t->AsRecordType(), GetType()->AsRecordType()) )
 		return nullptr;
 
 	if ( ! aggr )
 		aggr = new RecordVal(const_cast<RecordType*>(t->AsRecordType()));
 
 	RecordVal* ar = aggr->AsRecordVal();
-	RecordType* ar_t = aggr->Type()->AsRecordType();
+	RecordType* ar_t = aggr->GetType()->AsRecordType();
 
-	const RecordType* rv_t = Type()->AsRecordType();
+	const RecordType* rv_t = GetType()->AsRecordType();
 
 	int i;
 	for ( i = 0; i < rv_t->NumFields(); ++i )
@@ -2816,7 +2815,7 @@ IntrusivePtr<RecordVal> RecordVal::CoerceTo(const RecordType* t, Val* aggr, bool
 
 		const auto& ft = ar_t->GetFieldType(t_i);
 
-		if ( ft->Tag() == TYPE_RECORD && ! same_type(ft.get(), v->Type()) )
+		if ( ft->Tag() == TYPE_RECORD && ! same_type(ft.get(), v->GetType().get()) )
 			{
 			auto rhs = make_intrusive<ConstExpr>(IntrusivePtr{NewRef{}, v});
 			auto e = make_intrusive<RecordCoerceExpr>(std::move(rhs),
@@ -2843,7 +2842,7 @@ IntrusivePtr<RecordVal> RecordVal::CoerceTo(const RecordType* t, Val* aggr, bool
 
 IntrusivePtr<RecordVal> RecordVal::CoerceTo(RecordType* t, bool allow_orphaning)
 	{
-	if ( same_type(Type(), t) )
+	if ( same_type(GetType().get(), t) )
 		return {NewRef{}, this};
 
 	return CoerceTo(t, nullptr, allow_orphaning);
@@ -2851,14 +2850,14 @@ IntrusivePtr<RecordVal> RecordVal::CoerceTo(RecordType* t, bool allow_orphaning)
 
 IntrusivePtr<TableVal> RecordVal::GetRecordFieldsVal() const
 	{
-	return Type()->AsRecordType()->GetRecordFieldsVal(this);
+	return GetType()->AsRecordType()->GetRecordFieldsVal(this);
 	}
 
 void RecordVal::Describe(ODesc* d) const
 	{
 	const val_list* vl = AsRecord();
 	int n = vl->length();
-	auto record_type = Type()->AsRecordType();
+	auto record_type = GetType()->AsRecordType();
 
 	if ( d->IsBinary() || d->IsPortable() )
 		{
@@ -2895,7 +2894,7 @@ void RecordVal::DescribeReST(ODesc* d) const
 	{
 	const val_list* vl = AsRecord();
 	int n = vl->length();
-	auto record_type = Type()->AsRecordType();
+	auto record_type = GetType()->AsRecordType();
 
 	d->Add("{");
 	d->PushIndent();
@@ -2927,7 +2926,7 @@ IntrusivePtr<Val> RecordVal::DoClone(CloneState* state)
 	// record. As we cannot guarantee that it will ber zeroed out at the
 	// approproate time (as it seems to be guaranteed for the original record)
 	// we don't touch it.
-	auto rv = make_intrusive<RecordVal>(Type()->AsRecordType(), false);
+	auto rv = make_intrusive<RecordVal>(GetType()->AsRecordType(), false);
 	rv->origin = nullptr;
 	state->NewClone(this, rv);
 
@@ -2999,7 +2998,7 @@ IntrusivePtr<Val> VectorVal::SizeVal() const
 bool VectorVal::Assign(unsigned int index, IntrusivePtr<Val> element)
 	{
 	if ( element &&
-	     ! same_type(element->Type(), Type()->AsVectorType()->Yield().get(), false) )
+	     ! same_type(element->GetType().get(), GetType()->AsVectorType()->Yield().get(), false) )
 		return false;
 
 	Val* val_at_index = nullptr;
@@ -3040,7 +3039,7 @@ bool VectorVal::AssignRepeat(unsigned int index, unsigned int how_many,
 bool VectorVal::Insert(unsigned int index, Val* element)
 	{
 	if ( element &&
-	     ! same_type(element->Type(), Type()->AsVectorType()->Yield().get(), false) )
+	     ! same_type(element->GetType().get(), GetType()->AsVectorType()->Yield().get(), false) )
 		{
 		Unref(element);
 		return false;
@@ -3078,7 +3077,7 @@ bool VectorVal::Remove(unsigned int index)
 
 bool VectorVal::AddTo(Val* val, bool /* is_first_init */) const
 	{
-	if ( val->Type()->Tag() != TYPE_VECTOR )
+	if ( val->GetType()->Tag() != TYPE_VECTOR )
 		{
 		val->Error("not a vector");
 		return false;
@@ -3086,9 +3085,9 @@ bool VectorVal::AddTo(Val* val, bool /* is_first_init */) const
 
 	VectorVal* v = val->AsVectorVal();
 
-	if ( ! same_type(type.get(), v->Type()) )
+	if ( ! same_type(type.get(), v->GetType().get()) )
 		{
-		type->Error("vector type clash", v->Type());
+		type->Error("vector type clash", v->GetType().get());
 		return false;
 		}
 
@@ -3127,7 +3126,7 @@ unsigned int VectorVal::ResizeAtLeast(unsigned int new_num_elements)
 
 IntrusivePtr<Val> VectorVal::DoClone(CloneState* state)
 	{
-	auto vv = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, Type()->AsVectorType()});
+	auto vv = make_intrusive<VectorVal>(GetType<VectorType>());
 	vv->val.vector_val->reserve(val.vector_val->size());
 	state->NewClone(this, vv);
 
@@ -3166,7 +3165,7 @@ IntrusivePtr<Val> check_and_promote(IntrusivePtr<Val> v, const BroType* t,
 	if ( ! v )
 		return nullptr;
 
-	BroType* vt = v->Type();
+	BroType* vt = v->GetType().get();
 
 	vt = flatten_type(vt);
 	t = flatten_type(t);
@@ -3275,17 +3274,17 @@ bool same_val(const Val* /* v1 */, const Val* /* v2 */)
 
 bool is_atomic_val(const Val* v)
 	{
-	return is_atomic_type(v->Type());
+	return is_atomic_type(v->GetType().get());
 	}
 
 bool same_atomic_val(const Val* v1, const Val* v2)
 	{
 	// This is a very preliminary implementation of same_val(),
 	// true only for equal, simple atomic values of same type.
-	if ( v1->Type()->Tag() != v2->Type()->Tag() )
+	if ( v1->GetType()->Tag() != v2->GetType()->Tag() )
 		return false;
 
-	switch ( v1->Type()->InternalType() ) {
+	switch ( v1->GetType()->InternalType() ) {
 	case TYPE_INTERNAL_INT:
 		return v1->InternalInt() == v2->InternalInt();
 	case TYPE_INTERNAL_UNSIGNED:
@@ -3362,10 +3361,10 @@ IntrusivePtr<Val> cast_value_to_type(Val* v, BroType* t)
 
 	// Always allow casting to same type. This also covers casting 'any'
 	// to the actual type.
-	if ( same_type(v->Type(), t) )
+	if ( same_type(v->GetType().get(), t) )
 		return {NewRef{}, v};
 
-	if ( same_type(v->Type(), bro_broker::DataVal::ScriptDataType()) )
+	if ( same_type(v->GetType().get(), bro_broker::DataVal::ScriptDataType()) )
 		{
 		auto dv = v->AsRecordVal()->Lookup(0);
 
@@ -3388,10 +3387,10 @@ bool can_cast_value_to_type(const Val* v, BroType* t)
 
 	// Always allow casting to same type. This also covers casting 'any'
 	// to the actual type.
-	if ( same_type(v->Type(), t) )
+	if ( same_type(v->GetType().get(), t) )
 		return true;
 
-	if ( same_type(v->Type(), bro_broker::DataVal::ScriptDataType()) )
+	if ( same_type(v->GetType().get(), bro_broker::DataVal::ScriptDataType()) )
 		{
 		auto dv = v->AsRecordVal()->Lookup(0);
 

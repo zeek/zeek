@@ -69,8 +69,8 @@ static int check_fmt_type(TypeTag t, TypeTag ok[])
 
 static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 	{
-	TypeTag t = v->Type()->Tag();
-	InternalTypeTag it = v->Type()->InternalType();
+	TypeTag t = v->GetType()->Tag();
+	InternalTypeTag it = v->GetType()->InternalType();
 
 	bool zero_pad = false;
 	bool left_just = false;
@@ -199,9 +199,9 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 			{
 			bro_uint_t u = v->CoerceToUnsigned();
 
-			if ( v->Type()->IsNetworkOrder() )
+			if ( v->GetType()->IsNetworkOrder() )
 				{
-				if ( v->Type()->Tag() == TYPE_PORT )
+				if ( v->GetType()->Tag() == TYPE_PORT )
 					u = v->AsPortVal()->Port();
 				else
 					u = ntohl(uint32_t(u));
@@ -409,8 +409,8 @@ static bool prepare_environment(TableVal* tbl, bool set)
 		const auto& key = idxs->Idx(i);
 		auto val = tbl->Lookup(key.get(), false);
 
-		if ( key->Type()->Tag() != TYPE_STRING ||
-		     val->Type()->Tag() != TYPE_STRING )
+		if ( key->GetType()->Tag() != TYPE_STRING ||
+		     val->GetType()->Tag() != TYPE_STRING )
 			{
 			builtin_error("system_env() needs a table[string] of string");
 			return false;
@@ -488,7 +488,7 @@ function system%(str: string%): int
 ## .. zeek:see:: system safe_shell_quote piped_exec
 function system_env%(str: string, env: table_string_of_string%): int
 	%{
-	if ( env->Type()->Tag() != TYPE_TABLE )
+	if ( env->GetType()->Tag() != TYPE_TABLE )
 		{
 		builtin_error("system_env() requires a table argument");
 		return val_mgr->Int(-1);
@@ -804,8 +804,8 @@ function sha256_hash_finish%(handle: opaque of sha256%): string
 ## .. zeek:see::paraglob_match paraglob_equals paraglob_add
 function paraglob_init%(v: any%) : opaque of paraglob
 	%{
-	if ( v->Type()->Tag() != TYPE_VECTOR ||
-	     v->Type()->Yield()->Tag() != TYPE_STRING )
+	if ( v->GetType()->Tag() != TYPE_VECTOR ||
+	     v->GetType()->Yield()->Tag() != TYPE_STRING )
 		{
 		// reporter->Error will throw an exception.
 		reporter->Error("paraglob requires a vector of strings for initialization.");
@@ -1155,7 +1155,7 @@ function unique_id_from%(pool: int, prefix: string%) : string
 ## v: The set or table
 function clear_table%(v: any%): any
 	%{
-	if ( v->Type()->Tag() == TYPE_TABLE )
+	if ( v->GetType()->Tag() == TYPE_TABLE )
 		v->AsTableVal()->RemoveAll();
 	else
 		builtin_error("clear_table() requires a table/set argument");
@@ -1172,7 +1172,7 @@ function clear_table%(v: any%): any
 ## Returns: All the keys of the set or table that cover the subnet searched for.
 function matching_subnets%(search: subnet, t: any%): subnet_vec
 	%{
-	if ( t->Type()->Tag() != TYPE_TABLE || ! t->Type()->AsTableType()->IsSubNetIndex() )
+	if ( t->GetType()->Tag() != TYPE_TABLE || ! t->GetType()->AsTableType()->IsSubNetIndex() )
 		{
 		reporter->Error("matching_subnets needs to be called on a set[subnet]/table[subnet].");
 		return nullptr;
@@ -1191,7 +1191,7 @@ function matching_subnets%(search: subnet, t: any%): subnet_vec
 ## Returns: A new table that contains all the entries that cover the subnet searched for.
 function filter_subnet_table%(search: subnet, t: any%): any
 	%{
-	if ( t->Type()->Tag() != TYPE_TABLE || ! t->Type()->AsTableType()->IsSubNetIndex() )
+	if ( t->GetType()->Tag() != TYPE_TABLE || ! t->GetType()->AsTableType()->IsSubNetIndex() )
 		{
 		reporter->Error("filter_subnet_table needs to be called on a set[subnet]/table[subnet].");
 		return nullptr;
@@ -1211,7 +1211,7 @@ function filter_subnet_table%(search: subnet, t: any%): any
 ## Returns: True if the exact subnet is a member, false otherwise.
 function check_subnet%(search: subnet, t: any%): bool
 	%{
-	if ( t->Type()->Tag() != TYPE_TABLE || ! t->Type()->AsTableType()->IsSubNetIndex() )
+	if ( t->GetType()->Tag() != TYPE_TABLE || ! t->GetType()->AsTableType()->IsSubNetIndex() )
 		{
 		reporter->Error("check_subnet needs to be called on a set[subnet]/table[subnet].");
 		return nullptr;
@@ -1262,7 +1262,7 @@ function val_size%(v: any%): count
 ## Returns: The old size of *aggr*, or 0 if *aggr* is not a :zeek:type:`vector`.
 function resize%(aggr: any, newsize: count%) : count
 	%{
-	if ( aggr->Type()->Tag() != TYPE_VECTOR )
+	if ( aggr->GetType()->Tag() != TYPE_VECTOR )
 		{
 		builtin_error("resize() operates on vectors");
 		return nullptr;
@@ -1281,8 +1281,8 @@ function resize%(aggr: any, newsize: count%) : count
 ## .. zeek:see:: all_set
 function any_set%(v: any%) : bool
 	%{
-	if ( v->Type()->Tag() != TYPE_VECTOR ||
-	     v->Type()->Yield()->Tag() != TYPE_BOOL )
+	if ( v->GetType()->Tag() != TYPE_VECTOR ||
+	     v->GetType()->Yield()->Tag() != TYPE_BOOL )
 		{
 		builtin_error("any_set() requires vector of bool");
 		return val_mgr->False();
@@ -1310,8 +1310,8 @@ function any_set%(v: any%) : bool
 ##      Missing elements count as false.
 function all_set%(v: any%) : bool
 	%{
-	if ( v->Type()->Tag() != TYPE_VECTOR ||
-	     v->Type()->Yield()->Tag() != TYPE_BOOL )
+	if ( v->GetType()->Tag() != TYPE_VECTOR ||
+	     v->GetType()->Yield()->Tag() != TYPE_BOOL )
 		{
 		builtin_error("all_set() requires vector of bool");
 		return val_mgr->False();
@@ -1403,13 +1403,13 @@ function sort%(v: any, ...%) : any
 	%{
 	IntrusivePtr<Val> rval{NewRef{}, v};
 
-	if ( v->Type()->Tag() != TYPE_VECTOR )
+	if ( v->GetType()->Tag() != TYPE_VECTOR )
 		{
 		builtin_error("sort() requires vector");
 		return rval;
 		}
 
-	const auto& elt_type = v->Type()->Yield();
+	const auto& elt_type = v->GetType()->Yield();
 	Func* comp = 0;
 
 	if ( @ARG@.size() > 2 )
@@ -1418,7 +1418,7 @@ function sort%(v: any, ...%) : any
 	if ( @ARG@.size() == 2 )
 		{
 		Val* comp_val = @ARG@[1].get();
-		if ( ! IsFunc(comp_val->Type()->Tag()) )
+		if ( ! IsFunc(comp_val->GetType()->Tag()) )
 			{
 			builtin_error("second argument to sort() needs to be comparison function");
 			return rval;
@@ -1472,13 +1472,13 @@ function order%(v: any, ...%) : index_vec
 	%{
 	auto result_v = make_intrusive<VectorVal>(lookup_type<VectorType>("index_vec"));
 
-	if ( v->Type()->Tag() != TYPE_VECTOR )
+	if ( v->GetType()->Tag() != TYPE_VECTOR )
 		{
 		builtin_error("order() requires vector");
 		return result_v;
 		}
 
-	const auto& elt_type = v->Type()->Yield();
+	const auto& elt_type = v->GetType()->Yield();
 	Func* comp = 0;
 
 	if ( @ARG@.size() > 2 )
@@ -1487,7 +1487,7 @@ function order%(v: any, ...%) : index_vec
 	if ( @ARG@.size() == 2 )
 		{
 		Val* comp_val = @ARG@[1].get();
-		if ( ! IsFunc(comp_val->Type()->Tag()) )
+		if ( ! IsFunc(comp_val->GetType()->Tag()) )
 			{
 			builtin_error("second argument to order() needs to be comparison function");
 			return IntrusivePtr<Val>{NewRef{}, v};
@@ -1603,7 +1603,7 @@ function cat_sep%(sep: string, def: string, ...%): string
 			d.Add(sep->CheckString(), 0);
 
 		Val* v = @ARG@[i].get();
-		if ( v->Type()->Tag() == TYPE_STRING && ! v->AsString()->Len() )
+		if ( v->GetType()->Tag() == TYPE_STRING && ! v->AsString()->Len() )
 			v = def;
 
 		v->Describe(&d);
@@ -1842,7 +1842,7 @@ function record_type_to_vector%(rt: string%): string_vec
 function type_name%(t: any%): string
 	%{
 	ODesc d;
-	t->Type()->Describe(&d);
+	t->GetType()->Describe(&d);
 
 	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
 	s->SetUseFreeToDelete(true);
@@ -1992,7 +1992,7 @@ function lookup_ID%(id: string%) : any
 ## Returns: A table that describes the fields of a record.
 function record_fields%(rec: any%): record_field_table
 	%{
-	if ( rec->Type()->Tag() == TYPE_STRING )
+	if ( rec->GetType()->Tag() == TYPE_STRING )
 		{
 		auto id = global_scope()->Lookup(rec->AsStringVal()->ToStdString());
 
@@ -2264,7 +2264,7 @@ function counts_to_addr%(v: index_vec%): addr
 ## Returns: The :zeek:type:`int` value that corresponds to the :zeek:type:`enum`.
 function enum_to_int%(e: any%): int
 	%{
-	if ( e->Type()->Tag() != TYPE_ENUM )
+	if ( e->GetType()->Tag() != TYPE_ENUM )
 		{
 		builtin_error("enum_to_int() requires enum value");
 		return val_mgr->Int(-1);

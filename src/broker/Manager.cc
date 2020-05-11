@@ -429,7 +429,7 @@ bool Manager::PublishIdentifier(std::string topic, std::string id)
 	if ( ! data )
 		{
 		Error("Failed to publish ID with unsupported type: %s (%s)",
-		      id.c_str(), type_name(val->Type()->Tag()));
+		      id.c_str(), type_name(val->GetType()->Tag()));
 		return false;
 		}
 
@@ -452,7 +452,7 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 	if ( peer_count == 0 )
 		return true;
 
-	auto stream_id = stream->Type()->AsEnumType()->Lookup(stream->AsEnum());
+	auto stream_id = stream->GetType()->AsEnumType()->Lookup(stream->AsEnum());
 
 	if ( ! stream_id )
 		{
@@ -461,7 +461,7 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 		return false;
 		}
 
-	auto writer_id = writer->Type()->AsEnumType()->Lookup(writer->AsEnum());
+	auto writer_id = writer->GetType()->AsEnumType()->Lookup(writer->AsEnum());
 
 	if ( ! writer_id )
 		{
@@ -507,7 +507,7 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 		return true;
 
 	auto stream_id_num = stream->AsEnum();
-	auto stream_id = stream->Type()->AsEnumType()->Lookup(stream_id_num);
+	auto stream_id = stream->GetType()->AsEnumType()->Lookup(stream_id_num);
 
 	if ( ! stream_id )
 		{
@@ -516,7 +516,7 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 		return false;
 		}
 
-	auto writer_id = writer->Type()->AsEnumType()->Lookup(writer->AsEnum());
+	auto writer_id = writer->GetType()->AsEnumType()->Lookup(writer->AsEnum());
 
 	if ( ! writer_id )
 		{
@@ -638,7 +638,7 @@ void Manager::Error(const char* format, ...)
 
 bool Manager::AutoPublishEvent(string topic, Val* event)
 	{
-	if ( event->Type()->Tag() != TYPE_FUNC )
+	if ( event->GetType()->Tag() != TYPE_FUNC )
 		{
 		Error("Broker::auto_publish must operate on an event");
 		return false;
@@ -667,7 +667,7 @@ bool Manager::AutoPublishEvent(string topic, Val* event)
 
 bool Manager::AutoUnpublishEvent(const string& topic, Val* event)
 	{
-	if ( event->Type()->Tag() != TYPE_FUNC )
+	if ( event->GetType()->Tag() != TYPE_FUNC )
 		{
 		Error("Broker::auto_event_stop must operate on an event");
 		return false;
@@ -713,7 +713,7 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 			{
 			// Event val must come first.
 
-			if ( arg_val->Type()->Tag() != TYPE_FUNC )
+			if ( arg_val->GetType()->Tag() != TYPE_FUNC )
 				{
 				Error("attempt to convert non-event into an event type");
 				return rval;
@@ -740,10 +740,10 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 			continue;
 			}
 
-		auto got_type = (*args)[i]->Type();
+		const auto& got_type = (*args)[i]->GetType();
 		const auto& expected_type = func->FType()->ArgTypes()->Types()[i - 1];
 
-		if ( ! same_type(got_type, expected_type.get()) )
+		if ( ! same_type(got_type.get(), expected_type.get()) )
 			{
 			rval->Assign(0, nullptr);
 			Error("event parameter #%d type mismatch, got %s, expect %s", i,
@@ -754,7 +754,7 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 
 		IntrusivePtr<RecordVal> data_val;
 
-		if ( same_type(got_type, bro_broker::DataVal::ScriptDataType()) )
+		if ( same_type(got_type.get(), bro_broker::DataVal::ScriptDataType()) )
 			data_val = {NewRef{}, (*args)[i]->AsRecordVal()};
 		else
 			data_val = make_data_val((*args)[i]);

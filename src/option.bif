@@ -79,7 +79,7 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 		return val_mgr->False();
 		}
 
-	if ( same_type(val->Type(), bro_broker::DataVal::ScriptDataType()) )
+	if ( same_type(val->GetType().get(), bro_broker::DataVal::ScriptDataType()) )
 		{
 		auto dv = static_cast<bro_broker::DataVal*>(val->AsRecordVal()->Lookup(0));
 		auto val_from_data = dv->castTo(i->GetType().get());
@@ -95,11 +95,11 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 		return val_mgr->Bool(rval);
 		}
 
-	if ( ! same_type(i->GetType().get(), val->Type()) )
+	if ( ! same_type(i->GetType().get(), val->GetType().get()) )
 		{
 		if ( i->GetType()->Tag() == TYPE_TABLE &&
-		     val->Type()->Tag() == TYPE_TABLE &&
-		     val->Type()->AsTableType()->IsUnspecifiedTable() )
+		     val->GetType()->Tag() == TYPE_TABLE &&
+		     val->GetType()->AsTableType()->IsUnspecifiedTable() )
 			{
 			// Just coerce an empty/unspecified table to the right type.
 			auto tv = make_intrusive<TableVal>(
@@ -110,7 +110,7 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 			}
 
 		builtin_error(fmt("Incompatible type for set of ID '%s': got '%s', need '%s'",
-			ID->CheckString(), type_name(val->Type()->Tag()), type_name(i->GetType()->Tag())));
+			ID->CheckString(), type_name(val->GetType()->Tag()), type_name(i->GetType()->Tag())));
 		return val_mgr->False();
 		}
 
@@ -157,20 +157,20 @@ function Option::set_change_handler%(ID: string, on_change: any, priority: int &
 		return val_mgr->False();
 		}
 
-	if ( on_change->Type()->Tag() != TYPE_FUNC )
+	if ( on_change->GetType()->Tag() != TYPE_FUNC )
 		{
 		builtin_error(fmt("Option::on_change needs function argument; got '%s' for ID '%s'",
-			type_name(on_change->Type()->Tag()), ID->CheckString()));
+			type_name(on_change->GetType()->Tag()), ID->CheckString()));
 		return val_mgr->False();
 		}
 
-	if ( on_change->Type()->AsFuncType()->Flavor() != FUNC_FLAVOR_FUNCTION )
+	if ( on_change->GetType()->AsFuncType()->Flavor() != FUNC_FLAVOR_FUNCTION )
 		{
 		builtin_error("Option::on_change needs function argument; not hook or event");
 		return val_mgr->False();
 		}
 
-	const auto& args = on_change->Type()->AsFuncType()->ArgTypes()->Types();
+	const auto& args = on_change->GetType()->AsFuncType()->ArgTypes()->Types();
 	if ( args.size() < 2 || args.size() > 3 )
 		{
 		builtin_error(fmt("Wrong number of arguments for passed function in Option::on_change for ID '%s'; expected 2 or 3, got %zu",
@@ -199,10 +199,10 @@ function Option::set_change_handler%(ID: string, on_change: any, priority: int &
 		return val_mgr->False();
 		}
 
-	if ( ! same_type(on_change->Type()->AsFuncType()->Yield().get(), i->GetType().get()) )
+	if ( ! same_type(on_change->GetType()->AsFuncType()->Yield().get(), i->GetType().get()) )
 		{
 		builtin_error(fmt("Passed function needs to return type '%s' for ID '%s'; got '%s'",
-			type_name(i->GetType()->Tag()), ID->CheckString(), type_name(on_change->Type()->AsFuncType()->Yield()->Tag())));
+			type_name(i->GetType()->Tag()), ID->CheckString(), type_name(on_change->GetType()->AsFuncType()->Yield()->Tag())));
 		return val_mgr->False();
 		}
 

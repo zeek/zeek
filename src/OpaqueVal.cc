@@ -221,7 +221,7 @@ MD5Val::~MD5Val()
 
 void HashVal::digest_one(EVP_MD_CTX* h, const Val* v)
 	{
-	if ( v->Type()->Tag() == TYPE_STRING )
+	if ( v->GetType()->Tag() == TYPE_STRING )
 		{
 		const BroString* str = v->AsString();
 		hash_update(h, str->Bytes(), str->Len());

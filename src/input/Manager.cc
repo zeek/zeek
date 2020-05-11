@@ -224,7 +224,7 @@ ReaderBackend* Manager::CreateBackend(ReaderFrontend* frontend, EnumVal* tag)
 // Create a new input reader object to be used at whomevers leisure later on.
 bool Manager::CreateStream(Stream* info, RecordVal* description)
 	{
-	RecordType* rtype = description->Type()->AsRecordType();
+	RecordType* rtype = description->GetType()->AsRecordType();
 	if ( ! ( same_type(rtype, BifType::Record::Input::TableDescription, false)
 		|| same_type(rtype, BifType::Record::Input::EventDescription, false)
 		|| same_type(rtype, BifType::Record::Input::AnalysisDescription, false) ) )
@@ -310,7 +310,7 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 
 bool Manager::CreateEventStream(RecordVal* fval)
 	{
-	RecordType* rtype = fval->Type()->AsRecordType();
+	RecordType* rtype = fval->GetType()->AsRecordType();
 	if ( ! same_type(rtype, BifType::Record::Input::EventDescription, false) )
 		{
 		reporter->Error("EventDescription argument not of right type");
@@ -463,7 +463,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 
 bool Manager::CreateTableStream(RecordVal* fval)
 	{
-	RecordType* rtype = fval->Type()->AsRecordType();
+	RecordType* rtype = fval->GetType()->AsRecordType();
 	if ( ! same_type(rtype, BifType::Record::Input::TableDescription, false) )
 		{
 		reporter->Error("TableDescription argument not of right type");
@@ -486,7 +486,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 
 	// check if index fields match table description
 	int num = idx->NumFields();
-	const auto& tl = dst->Type()->AsTableType()->IndexTypes();
+	const auto& tl = dst->GetType()->AsTableType()->IndexTypes();
 	int j;
 
 	for ( j = 0; j < static_cast<int>(tl.size()); ++j )
@@ -522,7 +522,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 
 	if ( val )
 		{
-		const auto& table_yield = dst->Type()->AsTableType()->Yield();
+		const auto& table_yield = dst->GetType()->AsTableType()->Yield();
 		const BroType* compare_type = val.get();
 
 		if ( want_record->InternalInt() == 0 )
@@ -541,7 +541,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 		}
 	else
 		{
-		if ( ! dst->Type()->IsSet() )
+		if ( ! dst->GetType()->IsSet() )
 			{
 			reporter->Error("Input stream %s: 'destination' field is a table,"
 			                " but 'val' field is not provided"
@@ -748,7 +748,7 @@ bool Manager::CheckErrorEventTypes(const std::string& stream_name, const Func* e
 
 bool Manager::CreateAnalysisStream(RecordVal* fval)
 	{
-	RecordType* rtype = fval->Type()->AsRecordType();
+	RecordType* rtype = fval->GetType()->AsRecordType();
 
 	if ( ! same_type(rtype, BifType::Record::Input::AnalysisDescription, false) )
 		{
@@ -955,7 +955,7 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
 				c = rec->FieldDecl(i)->FindAttr(ATTR_TYPE_COLUMN)->AttrExpr()->Eval(nullptr);
 
 				assert(c);
-				assert(c->Type()->Tag() == TYPE_STRING);
+				assert(c->GetType()->Tag() == TYPE_STRING);
 
 				secondary = c->AsStringVal()->AsString()->CheckString();
 				}
@@ -1000,7 +1000,7 @@ Val* Manager::RecordValToIndexVal(RecordVal *r) const
 	{
 	IntrusivePtr<Val> idxval;
 
-	RecordType *type = r->Type()->AsRecordType();
+	RecordType *type = r->GetType()->AsRecordType();
 
 	int num_fields = type->NumFields();
 
@@ -1845,10 +1845,10 @@ bool Manager::SendEvent(ReaderFrontend* reader, const string& name, const int nu
 		Val* v = ValueToVal(i, vals[j], convert_error);
 		vl.emplace_back(AdoptRef{}, v);
 
-		if ( v && ! convert_error && ! same_type(type->GetFieldType(j).get(), v->Type()) )
+		if ( v && ! convert_error && ! same_type(type->GetFieldType(j).get(), v->GetType().get()) )
 			{
 			convert_error = true;
-			type->GetFieldType(j)->Error("SendEvent types do not match", v->Type());
+			type->GetFieldType(j)->Error("SendEvent types do not match", v->GetType().get());
 			}
 		}
 

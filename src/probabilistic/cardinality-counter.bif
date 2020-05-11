@@ -42,13 +42,13 @@ function hll_cardinality_add%(handle: opaque of cardinality, elem: any%): bool
 	%{
 	CardinalityVal* cv = static_cast<CardinalityVal*>(handle);
 
-	if ( ! cv->Type() && ! cv->Typify(elem->Type()) )
+	if ( ! cv->Type() && ! cv->Typify(elem->GetType().get()) )
 		{
 		reporter->Error("failed to set HLL type");
 		return val_mgr->False();
 		}
 
-	else if ( ! same_type(cv->Type(), elem->Type()) )
+	else if ( ! same_type(cv->Type(), elem->GetType().get()) )
 		{
 		reporter->Error("incompatible HLL data type");
 		return val_mgr->False();

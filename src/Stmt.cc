@@ -227,7 +227,7 @@ IntrusivePtr<Val> PrintStmt::DoExec(std::vector<IntrusivePtr<Val>> vals,
 	BroFile* f = print_stdout;
 	int offset = 0;
 
-	if ( vals.size() > 0 && (vals)[0]->Type()->Tag() == TYPE_FILE )
+	if ( vals.size() > 0 && (vals)[0]->GetType()->Tag() == TYPE_FILE )
 		{
 		f = (vals)[0]->AsFile();
 		if ( ! f->IsOpen() )
@@ -724,7 +724,7 @@ bool SwitchStmt::AddCaseLabelValueMapping(const Val* v, int idx)
 		{
 		reporter->PushLocation(e->GetLocationInfo());
 		reporter->InternalError("switch expression type mismatch (%s/%s)",
-		    type_name(v->Type()->Tag()), type_name(e->Type()->Tag()));
+		    type_name(v->GetType()->Tag()), type_name(e->Type()->Tag()));
 		}
 
 	int* label_idx = case_label_value_map.Lookup(hk);
@@ -768,7 +768,7 @@ std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const
 			{
 			reporter->PushLocation(e->GetLocationInfo());
 			reporter->Error("switch expression type mismatch (%s/%s)",
-					type_name(v->Type()->Tag()), type_name(e->Type()->Tag()));
+					type_name(v->GetType()->Tag()), type_name(e->Type()->Tag()));
 			return std::make_pair(-1, nullptr);
 			}
 
@@ -1179,7 +1179,7 @@ IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 	{
 	IntrusivePtr<Val> ret;
 
-	if ( v->Type()->Tag() == TYPE_TABLE )
+	if ( v->GetType()->Tag() == TYPE_TABLE )
 		{
 		TableVal* tv = v->AsTableVal();
 		const PDict<TableEntryVal>* loop_vals = tv->AsTable();
@@ -1223,7 +1223,7 @@ IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 			}
 		}
 
-	else if ( v->Type()->Tag() == TYPE_VECTOR )
+	else if ( v->GetType()->Tag() == TYPE_VECTOR )
 		{
 		VectorVal* vv = v->AsVectorVal();
 
@@ -1243,7 +1243,7 @@ IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 				break;
 			}
 		}
-	else if ( v->Type()->Tag() == TYPE_STRING )
+	else if ( v->GetType()->Tag() == TYPE_STRING )
 		{
 		StringVal* sval = v->AsStringVal();
 

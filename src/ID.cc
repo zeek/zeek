@@ -158,10 +158,10 @@ void ID::UpdateValAttrs()
 	if ( ! attrs )
 		return;
 
-	if ( val && val->Type()->Tag() == TYPE_TABLE )
+	if ( val && val->GetType()->Tag() == TYPE_TABLE )
 		val->AsTableVal()->SetAttrs(attrs);
 
-	if ( val && val->Type()->Tag() == TYPE_FILE )
+	if ( val && val->GetType()->Tag() == TYPE_FILE )
 		val->AsFile()->SetAttrs(attrs.get());
 
 	if ( GetType()->Tag() == TYPE_FUNC )
@@ -287,7 +287,7 @@ TraversalCode ID::Traverse(TraversalCallback* cb) const
 		}
 
 	// FIXME: Perhaps we should be checking at other than global scope.
-	else if ( val && IsFunc(val->Type()->Tag()) &&
+	else if ( val && IsFunc(val->GetType()->Tag()) &&
 		  cb->current_scope == global_scope() )
 		{
 		tc = val->AsFunc()->Traverse(cb);

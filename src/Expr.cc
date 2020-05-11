@@ -310,10 +310,10 @@ void NameExpr::ExprDescribe(ODesc* d) const
 ConstExpr::ConstExpr(IntrusivePtr<Val> arg_val)
 	: Expr(EXPR_CONST), val(std::move(arg_val))
 	{
-	if ( val->Type()->Tag() == TYPE_LIST && val->AsListVal()->Length() == 1 )
+	if ( val->GetType()->Tag() == TYPE_LIST && val->AsListVal()->Length() == 1 )
 		val = val->AsListVal()->Idx(0);
 
-	SetType({NewRef{}, val->Type()});
+	SetType(val->GetType());
 	}
 
 void ConstExpr::ExprDescribe(ODesc* d) const
@@ -355,13 +355,14 @@ IntrusivePtr<Val> UnaryExpr::Eval(Frame* f) const
 	if ( is_vector(v.get()) && Tag() != EXPR_IS && Tag() != EXPR_CAST )
 		{
 		VectorVal* v_op = v->AsVectorVal();
-		VectorType* out_t;
-		if ( Type()->Tag() == TYPE_ANY )
-			out_t = v->Type()->AsVectorType();
-		else
-			out_t = Type()->AsVectorType();
+		IntrusivePtr<VectorType> out_t;
 
-		auto result = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, out_t});
+		if ( Type()->Tag() == TYPE_ANY )
+			out_t = v->GetType<VectorType>();
+		else
+			out_t = {NewRef{}, Type()->AsVectorType()};
+
+		auto result = make_intrusive<VectorVal>(std::move(out_t));
 
 		for ( unsigned int i = 0; i < v_op->Size(); ++i )
 			{
@@ -524,15 +525,15 @@ void BinaryExpr::ExprDescribe(ODesc* d) const
 
 IntrusivePtr<Val> BinaryExpr::Fold(Val* v1, Val* v2) const
 	{
-	InternalTypeTag it = v1->Type()->InternalType();
+	InternalTypeTag it = v1->GetType()->InternalType();
 
 	if ( it == TYPE_INTERNAL_STRING )
 		return StringFold(v1, v2);
 
-	if ( v1->Type()->Tag() == TYPE_PATTERN )
+	if ( v1->GetType()->Tag() == TYPE_PATTERN )
 		return PatternFold(v1, v2);
 
-	if ( v1->Type()->IsSet() )
+	if ( v1->GetType()->IsSet() )
 		return SetFold(v1, v2);
 
 	if ( it == TYPE_INTERNAL_ADDR )
@@ -950,7 +951,7 @@ IntrusivePtr<Val> IncrExpr::DoSingleEval(Frame* f, Val* v) const
 		--k;
 
 		if ( k < 0 &&
-		     v->Type()->InternalType() == TYPE_INTERNAL_UNSIGNED )
+		     v->GetType()->InternalType() == TYPE_INTERNAL_UNSIGNED )
 			RuntimeError("count underflow");
 		}
 
@@ -1071,7 +1072,7 @@ PosExpr::PosExpr(IntrusivePtr<Expr> arg_op)
 
 IntrusivePtr<Val> PosExpr::Fold(Val* v) const
 	{
-	TypeTag t = v->Type()->Tag();
+	TypeTag t = v->GetType()->Tag();
 
 	if ( t == TYPE_DOUBLE || t == TYPE_INTERVAL || t == TYPE_INT )
 		return {NewRef{}, v};
@@ -1109,9 +1110,9 @@ NegExpr::NegExpr(IntrusivePtr<Expr> arg_op)
 
 IntrusivePtr<Val> NegExpr::Fold(Val* v) const
 	{
-	if ( v->Type()->Tag() == TYPE_DOUBLE )
-		return make_intrusive<Val>(- v->InternalDouble(), v->Type()->Tag());
-	else if ( v->Type()->Tag() == TYPE_INTERVAL )
+	if ( v->GetType()->Tag() == TYPE_DOUBLE )
+		return make_intrusive<Val>(- v->InternalDouble(), v->GetType()->Tag());
+	else if ( v->GetType()->Tag() == TYPE_INTERVAL )
 		return make_intrusive<IntervalVal>(- v->InternalDouble(), 1.0);
 	else
 		return val_mgr->Int(- v->CoerceToInt());
@@ -1440,7 +1441,7 @@ IntrusivePtr<Val> DivideExpr::AddrFold(Val* v1, Val* v2) const
 	{
 	uint32_t mask;
 
-	if ( v2->Type()->Tag() == TYPE_COUNT )
+	if ( v2->GetType()->Tag() == TYPE_COUNT )
 		mask = static_cast<uint32_t>(v2->InternalUnsigned());
 	else
 		mask = static_cast<uint32_t>(v2->InternalInt());
@@ -2026,7 +2027,10 @@ AssignExpr::AssignExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2,
 	if ( IsError() )
 		return;
 
-	SetType({NewRef{}, arg_val ? arg_val->Type() : op1->Type()});
+	if ( arg_val )
+		SetType(arg_val->GetType());
+	else
+		SetType({NewRef{}, op1->Type()});
 
 	if ( is_init )
 		{
@@ -2368,7 +2372,7 @@ IntrusivePtr<Val> AssignExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) 
 			return nullptr;
 			}
 
-		if ( aggr->Type()->Tag() != TYPE_RECORD )
+		if ( aggr->GetType()->Tag() != TYPE_RECORD )
 			Internal("bad aggregate in AssignExpr::InitVal");
 
 		RecordVal* aggr_r = aggr->AsRecordVal();
@@ -2390,12 +2394,12 @@ IntrusivePtr<Val> AssignExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) 
 			return nullptr;
 			}
 
-		if ( aggr->Type()->Tag() != TYPE_TABLE )
+		if ( aggr->GetType()->Tag() != TYPE_TABLE )
 			Internal("bad aggregate in AssignExpr::InitVal");
 
 		auto tv = cast_intrusive<TableVal>(std::move(aggr));
-		const TableType* tt = tv->Type()->AsTableType();
-		const auto& yt = tv->Type()->Yield();
+		const TableType* tt = tv->GetType()->AsTableType();
+		const auto& yt = tv->GetType()->Yield();
 
 		auto index = op1->InitVal(tt->Indices(), nullptr);
 		auto v = op2->InitVal(yt.get(), nullptr);
@@ -2595,7 +2599,7 @@ IntrusivePtr<Val> IndexExpr::Eval(Frame* f) const
 		auto v_result = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, Type()->AsVectorType()});
 
 		// Booleans select each element (or not).
-		if ( IsBool(v_v2->Type()->Yield()->Tag()) )
+		if ( IsBool(v_v2->GetType()->Yield()->Tag()) )
 			{
 			if ( v_v1->Size() != v_v2->Size() )
 				{
@@ -2648,7 +2652,7 @@ IntrusivePtr<Val> IndexExpr::Fold(Val* v1, Val* v2) const
 
 	IntrusivePtr<Val> v;
 
-	switch ( v1->Type()->Tag() ) {
+	switch ( v1->GetType()->Tag() ) {
 	case TYPE_VECTOR:
 		{
 		VectorVal* vect = v1->AsVectorVal();
@@ -2659,7 +2663,7 @@ IntrusivePtr<Val> IndexExpr::Fold(Val* v1, Val* v2) const
 		else
 			{
 			size_t len = vect->Size();
-			auto result = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, vect->Type()->AsVectorType()});
+			auto result = make_intrusive<VectorVal>(vect->GetType<VectorType>());
 
 			bro_int_t first = get_slice_index(lv->Idx(0)->CoerceToInt(), len);
 			bro_int_t last = get_slice_index(lv->Idx(1)->CoerceToInt(), len);
@@ -2749,7 +2753,7 @@ void IndexExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 	// from the original value after the assignment already unref'd.
 	auto v_extra = v;
 
-	switch ( v1->Type()->Tag() ) {
+	switch ( v1->GetType()->Tag() ) {
 	case TYPE_VECTOR:
 		{
 		const ListVal* lv = v2->AsListVal();
@@ -2779,7 +2783,7 @@ void IndexExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 				{
 				ODesc d;
 				v->Describe(&d);
-				auto vt = v->Type();
+				const auto& vt = v->GetType();
 				auto vtt = vt->Tag();
 				std::string tn = vtt == TYPE_RECORD ? vt->GetName() : type_name(vtt);
 				RuntimeErrorWithCallStack(fmt(
@@ -2801,7 +2805,7 @@ void IndexExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 				{
 				ODesc d;
 				v->Describe(&d);
-				auto vt = v->Type();
+				const auto& vt = v->GetType();
 				auto vtt = vt->Tag();
 				std::string tn = vtt == TYPE_RECORD ? vt->GetName() : type_name(vtt);
 				RuntimeErrorWithCallStack(fmt(
@@ -3656,7 +3660,7 @@ IntrusivePtr<Val> RecordCoerceExpr::InitVal(const BroType* t, IntrusivePtr<Val> 
 IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 	{
 	auto val = make_intrusive<RecordVal>(Type()->AsRecordType());
-	RecordType* val_type = val->Type()->AsRecordType();
+	RecordType* val_type = val->GetType()->AsRecordType();
 
 	RecordVal* rv = v->AsRecordVal();
 
@@ -3668,7 +3672,7 @@ IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 
 			if ( ! rhs )
 				{
-				const Attr* def = rv->Type()->AsRecordType()->FieldDecl(
+				const Attr* def = rv->GetType()->AsRecordType()->FieldDecl(
 					map[i])->FindAttr(ATTR_DEFAULT);
 
 				if ( def )
@@ -3684,7 +3688,7 @@ IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 				continue;
 				}
 
-			BroType* rhs_type = rhs->Type();
+			BroType* rhs_type = rhs->GetType().get();
 			BroType* field_type = val_type->GetFieldType(i).get();
 
 			if ( rhs_type->Tag() == TYPE_RECORD &&
@@ -3710,12 +3714,12 @@ IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 			if ( const Attr* def = Type()->AsRecordType()->FieldDecl(i)->FindAttr(ATTR_DEFAULT) )
 				{
 				auto def_val = def->AttrExpr()->Eval(nullptr);
-				BroType* def_type = def_val->Type();
+				const auto& def_type = def_val->GetType();
 				const auto& field_type = Type()->AsRecordType()->GetFieldType(i);
 
 				if ( def_type->Tag() == TYPE_RECORD &&
 				     field_type->Tag() == TYPE_RECORD &&
-				     ! same_type(def_type, field_type.get()) )
+				     ! same_type(def_type.get(), field_type.get()) )
 					{
 					auto tmp = def_val->AsRecordVal()->CoerceTo(
 					        field_type->AsRecordType());
@@ -3833,7 +3837,7 @@ IntrusivePtr<Val> FlattenExpr::Fold(Val* v) const
 			continue;
 			}
 
-		const RecordType* rv_t = rv->Type()->AsRecordType();
+		const RecordType* rv_t = rv->GetType()->AsRecordType();
 		if ( const Attr* fa = rv_t->FieldDecl(i)->FindAttr(ATTR_DEFAULT) )
 			l->Append(fa->AttrExpr()->Eval(nullptr));
 
@@ -4020,14 +4024,14 @@ InExpr::InExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 
 IntrusivePtr<Val> InExpr::Fold(Val* v1, Val* v2) const
 	{
-	if ( v1->Type()->Tag() == TYPE_PATTERN )
+	if ( v1->GetType()->Tag() == TYPE_PATTERN )
 		{
 		RE_Matcher* re = v1->AsPattern();
 		const BroString* s = v2->AsString();
 		return val_mgr->Bool(re->MatchAnywhere(s) != 0);
 		}
 
-	if ( v2->Type()->Tag() == TYPE_STRING )
+	if ( v2->GetType()->Tag() == TYPE_STRING )
 		{
 		const BroString* s1 = v1->AsString();
 		const BroString* s2 = v2->AsString();
@@ -4038,8 +4042,8 @@ IntrusivePtr<Val> InExpr::Fold(Val* v1, Val* v2) const
 		return val_mgr->Bool(res);
 		}
 
-	if ( v1->Type()->Tag() == TYPE_ADDR &&
-	     v2->Type()->Tag() == TYPE_SUBNET )
+	if ( v1->GetType()->Tag() == TYPE_ADDR &&
+	     v2->GetType()->Tag() == TYPE_SUBNET )
 		return val_mgr->Bool(v2->AsSubNetVal()->Contains(v1->AsAddr()));
 
 	bool res;
@@ -4633,7 +4637,8 @@ IntrusivePtr<Val> ListExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) co
 		loop_over_list(exprs, i)
 			{
 			Expr* e = exprs[i];
-			auto promoted_e = check_and_promote_expr(e, vec->Type()->AsVectorType()->Yield().get());
+			const auto& vyt = vec->GetType()->AsVectorType()->Yield();
+			auto promoted_e = check_and_promote_expr(e, vyt.get());
 
 			if ( promoted_e )
 				e = promoted_e.get();
@@ -4670,9 +4675,9 @@ IntrusivePtr<Val> ListExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) co
 
 			auto v = e->Eval(nullptr);
 
-			if ( ! same_type(v->Type(), t) )
+			if ( ! same_type(v->GetType().get(), t) )
 				{
-				v->Type()->Error("type clash in table initializer", t);
+				v->GetType()->Error("type clash in table initializer", t);
 				return nullptr;
 				}
 
@@ -4686,11 +4691,11 @@ IntrusivePtr<Val> ListExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) co
 
 IntrusivePtr<Val> ListExpr::AddSetInit(const BroType* t, IntrusivePtr<Val> aggr) const
 	{
-	if ( aggr->Type()->Tag() != TYPE_TABLE )
+	if ( aggr->GetType()->Tag() != TYPE_TABLE )
 		Internal("bad aggregate in ListExpr::InitVal");
 
 	TableVal* tv = aggr->AsTableVal();
-	const TableType* tt = tv->Type()->AsTableType();
+	const TableType* tt = tv->GetType()->AsTableType();
 	const TypeList* it = tt->Indices();
 
 	for ( const auto& expr : exprs )
@@ -4708,9 +4713,9 @@ IntrusivePtr<Val> ListExpr::AddSetInit(const BroType* t, IntrusivePtr<Val> aggr)
 		if ( ! element )
 			return nullptr;
 
-		if ( element->Type()->IsSet() )
+		if ( element->GetType()->IsSet() )
 			{
-			if ( ! same_type(element->Type(), t) )
+			if ( ! same_type(element->GetType().get(), t) )
 				{
 				element->Error("type clash in set initializer", t);
 				return nullptr;
@@ -4875,12 +4880,12 @@ IntrusivePtr<Val> CastExpr::Eval(Frame* f) const
 
 	ODesc d;
 	d.Add("invalid cast of value with type '");
-	v->Type()->Describe(&d);
+	v->GetType()->Describe(&d);
 	d.Add("' to type '");
 	Type()->Describe(&d);
 	d.Add("'");
 
-	if ( same_type(v->Type(), bro_broker::DataVal::ScriptDataType()) &&
+	if ( same_type(v->GetType().get(), bro_broker::DataVal::ScriptDataType()) &&
 		 ! v->AsRecordVal()->Lookup(0) )
 		d.Add(" (nil $data field)");
 

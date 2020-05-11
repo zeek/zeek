@@ -904,7 +904,7 @@ FragReassembler* NetSessions::NextFragment(double t, const IP_Hdr* ip,
 
 Connection* NetSessions::FindConnection(Val* v)
 	{
-	BroType* vt = v->Type();
+	const auto& vt = v->GetType();
 	if ( ! IsRecord(vt->Tag()) )
 		return nullptr;
 

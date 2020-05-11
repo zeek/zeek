@@ -24,7 +24,7 @@ std::set<std::string> val_to_topic_set(Val* val)
 	{
 	std::set<std::string> rval;
 
-	if ( val->Type()->Tag() == TYPE_STRING )
+	if ( val->GetType()->Tag() == TYPE_STRING )
 		rval.emplace(val->AsString()->CheckString());
 	else
 		{
@@ -53,7 +53,7 @@ static bool publish_event_args(val_list& args, const BroString* topic,
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = false;
 
-	if ( args[0]->Type()->Tag() == TYPE_RECORD )
+	if ( args[0]->GetType()->Tag() == TYPE_RECORD )
 		rval = broker_mgr->PublishEvent(topic->CheckString(),
 		                                args[0]->AsRecordVal());
 	else

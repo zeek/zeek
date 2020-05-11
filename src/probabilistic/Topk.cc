@@ -284,9 +284,9 @@ void TopkVal::Encountered(Val* encountered)
 	// ok, let's see if we already know this one.
 
 	if ( numElements == 0 )
-		Typify(encountered->Type());
+		Typify(encountered->GetType().get());
 	else
-		if ( ! same_type(type, encountered->Type()) )
+		if ( ! same_type(type, encountered->GetType().get()) )
 			{
 			reporter->Error("Trying to add element to topk with differing type from other elements");
 			return;

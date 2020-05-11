@@ -43,11 +43,11 @@ void* PrefixTable::Insert(const IPAddr& addr, int width, void* data)
 void* PrefixTable::Insert(const Val* value, void* data)
 	{
 	// [elem] -> elem
-	if ( value->Type()->Tag() == TYPE_LIST &&
+	if ( value->GetType()->Tag() == TYPE_LIST &&
 	     value->AsListVal()->Length() == 1 )
 		value = value->AsListVal()->Idx(0).get();
 
-	switch ( value->Type()->Tag() ) {
+	switch ( value->GetType()->Tag() ) {
 	case TYPE_ADDR:
 		return Insert(value->AsAddr(), 128, data);
 		break;
@@ -103,11 +103,11 @@ void* PrefixTable::Lookup(const IPAddr& addr, int width, bool exact) const
 void* PrefixTable::Lookup(const Val* value, bool exact) const
 	{
 	// [elem] -> elem
-	if ( value->Type()->Tag() == TYPE_LIST &&
+	if ( value->GetType()->Tag() == TYPE_LIST &&
 	     value->AsListVal()->Length() == 1 )
 		value = value->AsListVal()->Idx(0).get();
 
-	switch ( value->Type()->Tag() ) {
+	switch ( value->GetType()->Tag() ) {
 	case TYPE_ADDR:
 		return Lookup(value->AsAddr(), 128, exact);
 		break;
@@ -119,7 +119,7 @@ void* PrefixTable::Lookup(const Val* value, bool exact) const
 
 	default:
 		reporter->InternalWarning("Wrong index type %d for PrefixTable",
-		                          value->Type()->Tag());
+		                          value->GetType()->Tag());
 		return nullptr;
 	}
 	}
@@ -142,11 +142,11 @@ void* PrefixTable::Remove(const IPAddr& addr, int width)
 void* PrefixTable::Remove(const Val* value)
 	{
 	// [elem] -> elem
-	if ( value->Type()->Tag() == TYPE_LIST &&
+	if ( value->GetType()->Tag() == TYPE_LIST &&
 	     value->AsListVal()->Length() == 1 )
 		value = value->AsListVal()->Idx(0).get();
 
-	switch ( value->Type()->Tag() ) {
+	switch ( value->GetType()->Tag() ) {
 	case TYPE_ADDR:
 		return Remove(value->AsAddr(), 128);
 		break;

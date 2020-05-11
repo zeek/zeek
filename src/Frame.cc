@@ -198,7 +198,7 @@ Frame* Frame::Clone() const
 
 static bool val_is_func(Val* v, BroFunc* func)
 	{
-	if ( v->Type()->Tag() != TYPE_FUNC )
+	if ( v->GetType()->Tag() != TYPE_FUNC )
 		return false;
 
 	return v->AsFunc() == func;
@@ -357,7 +357,7 @@ broker::expected<broker::data> Frame::Serialize(const Frame* target, const id_li
 
 		Val* val = target->frame[location];
 
-		TypeTag tag = val->Type()->Tag();
+		TypeTag tag = val->GetType()->Tag();
 
 		auto expected = bro_broker::val_to_data(val);
 		if ( ! expected )

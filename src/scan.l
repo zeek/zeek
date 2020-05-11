@@ -1003,7 +1003,7 @@ int yywrap()
 			auto param_id = lookup_ID(param, GLOBAL_MODULE_NAME);
 			Val* v = param_id ? param_id->GetVal().get() : nullptr;
 
-			if ( v && v->Type() && v->Type()->Tag() == TYPE_STRING )
+			if ( v && v->GetType() && v->GetType()->Tag() == TYPE_STRING )
 				opt_quote = "\"";	// use quotes
 
 			policy += std::string("redef ") + param + "="

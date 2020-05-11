@@ -180,8 +180,17 @@ public:
 	// Remove this value from the given value (if appropriate).
 	virtual bool RemoveFrom(Val* v) const;
 
+	[[deprecated("Remove in v4.1.  Use GetType().")]]
 	BroType* Type()			{ return type.get(); }
+	[[deprecated("Remove in v4.1.  Use GetType().")]]
 	const BroType* Type() const	{ return type.get(); }
+
+	const IntrusivePtr<BroType>& GetType() const
+		{ return type; }
+
+	template <class T>
+	IntrusivePtr<T> GetType() const
+		{ return cast_intrusive<T>(type); }
 
 #define CONST_ACCESSOR(tag, ctype, accessor, name) \
 	const ctype name() const \
@@ -1091,7 +1100,7 @@ extern void describe_vals(const std::vector<IntrusivePtr<Val>>& vals,
 extern void delete_vals(val_list* vals);
 
 // True if the given Val* has a vector type.
-inline bool is_vector(Val* v)	{ return  v->Type()->Tag() == TYPE_VECTOR; }
+inline bool is_vector(Val* v)	{ return  v->GetType()->Tag() == TYPE_VECTOR; }
 
 // Returns v casted to type T if the type supports that. Returns null if not.
 //

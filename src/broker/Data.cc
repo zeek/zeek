@@ -361,7 +361,7 @@ struct val_converter {
 			if ( ! rval )
 				return nullptr;
 
-			auto t = rval->Type();
+			const auto& t = rval->GetType();
 			if ( ! t )
 				return nullptr;
 
@@ -705,7 +705,7 @@ struct type_checker {
 			if ( ! rval )
 				return false;
 
-			auto t = rval->Type();
+			const auto& t = rval->GetType();
 			if ( ! t )
 				return false;
 
@@ -793,7 +793,7 @@ IntrusivePtr<Val> bro_broker::data_to_val(broker::data d, BroType* type)
 
 broker::expected<broker::data> bro_broker::val_to_data(const Val* v)
 	{
-	switch ( v->Type()->Tag() ) {
+	switch ( v->GetType()->Tag() ) {
 	case TYPE_BOOL:
 		return {v->AsBool()};
 	case TYPE_INT:
@@ -843,7 +843,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const Val* v)
 		}
 	case TYPE_ENUM:
 		{
-		auto enum_type = v->Type()->AsEnumType();
+		auto enum_type = v->GetType()->AsEnumType();
 		auto enum_name = enum_type->Lookup(v->AsEnum());
 		return {broker::enum_value(enum_name ? enum_name : "<unknown enum>")};
 		}
@@ -884,7 +884,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const Val* v)
 		}
 	case TYPE_TABLE:
 		{
-		auto is_set = v->Type()->IsSet();
+		auto is_set = v->GetType()->IsSet();
 		auto table = v->AsTable();
 		auto table_val = v->AsTableVal();
 		broker::data rval;
@@ -965,7 +965,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const Val* v)
 		{
 		auto rec = v->AsRecordVal();
 		broker::vector rval;
-		size_t num_fields = v->Type()->AsRecordType()->NumFields();
+		size_t num_fields = v->GetType()->AsRecordType()->NumFields();
 		rval.reserve(num_fields);
 
 		for ( auto i = 0u; i < num_fields; ++i )
@@ -1007,7 +1007,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const Val* v)
 		}
 	default:
 		reporter->Error("unsupported Broker::Data type: %s",
-		                type_name(v->Type()->Tag()));
+		                type_name(v->GetType()->Tag()));
 		break;
 	}
 

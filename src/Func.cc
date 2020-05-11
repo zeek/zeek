@@ -240,7 +240,7 @@ std::pair<bool, Val*> Func::HandlePluginResult(std::pair<bool, Val*> plugin_resu
 		break;
 
 	case FUNC_FLAVOR_HOOK:
-		if ( plugin_result.second->Type()->Tag() != TYPE_BOOL )
+		if ( plugin_result.second->GetType()->Tag() != TYPE_BOOL )
 			reporter->InternalError("plugin returned non-bool for hook %s", this->Name());
 
 		break;
@@ -255,10 +255,10 @@ std::pair<bool, Val*> Func::HandlePluginResult(std::pair<bool, Val*> plugin_resu
 				reporter->InternalError("plugin returned non-void result for void method %s", this->Name());
 			}
 
-		else if ( plugin_result.second && plugin_result.second->Type()->Tag() != yt->Tag() && yt->Tag() != TYPE_ANY)
+		else if ( plugin_result.second && plugin_result.second->GetType()->Tag() != yt->Tag() && yt->Tag() != TYPE_ANY)
 			{
 			reporter->InternalError("plugin returned wrong type (got %d, expecting %d) for %s",
-						plugin_result.second->Type()->Tag(), yt->Tag(), this->Name());
+						plugin_result.second->GetType()->Tag(), yt->Tag(), this->Name());
 			}
 
 		break;
@@ -859,7 +859,7 @@ static int get_func_priority(const attr_list& attrs)
 			continue;
 			}
 
-		if ( ! IsIntegral(v->Type()->Tag()) )
+		if ( ! IsIntegral(v->GetType()->Tag()) )
 			{
 			a->Error("expression is not of integral type");
 			continue;

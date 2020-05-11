@@ -88,7 +88,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 
 	if ( type_check )
 		{
-		InternalTypeTag vt = v->Type()->InternalType();
+		InternalTypeTag vt = v->GetType()->InternalType();
 		if ( vt != t )
 			return nullptr;
 		}
@@ -138,7 +138,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 	case TYPE_INTERNAL_VOID:
 	case TYPE_INTERNAL_OTHER:
 		{
-		switch ( v->Type()->Tag() ) {
+		switch ( v->GetType()->Tag() ) {
 		case TYPE_FUNC:
 			{
 			uint32_t* kp = AlignAndPadType<uint32_t>(kp0);
@@ -240,15 +240,15 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 				auto idx = kv.second;
 				Val* key = lv->Idx(idx).get();
 
-				if ( ! (kp1 = SingleValHash(type_check, kp1, key->Type(), key,
+				if ( ! (kp1 = SingleValHash(type_check, kp1, key->GetType().get(), key,
 				                            false)) )
 					return nullptr;
 
-				if ( ! v->Type()->IsSet() )
+				if ( ! v->GetType()->IsSet() )
 					{
 					auto val = tv->Lookup(key);
 
-					if ( ! (kp1 = SingleValHash(type_check, kp1, val->Type(),
+					if ( ! (kp1 = SingleValHash(type_check, kp1, val->GetType().get(),
 								    val.get(), false)) )
 						return nullptr;
 					}
@@ -261,7 +261,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 			{
 			unsigned int* kp = AlignAndPadType<unsigned int>(kp0);
 			VectorVal* vv = v->AsVectorVal();
-			VectorType* vt = v->Type()->AsVectorType();
+			VectorType* vt = v->GetType()->AsVectorType();
 			*kp = vv->Size();
 			kp1 = reinterpret_cast<char*>(kp+1);
 			for ( unsigned int i = 0; i < vv->Size(); ++i )
@@ -293,7 +293,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 			for ( int i = 0; i < lv->Length(); ++i )
 				{
 				Val* v = lv->Idx(i).get();
-				if ( ! (kp1 = SingleValHash(type_check, kp1, v->Type(), v,
+				if ( ! (kp1 = SingleValHash(type_check, kp1, v->GetType().get(), v,
 				                            false)) )
 					return nullptr;
 				}
@@ -341,7 +341,7 @@ HashKey* CompositeHash::ComputeHash(const Val* v, bool type_check) const
 	if ( is_singleton )
 		return ComputeSingletonHash(v, type_check);
 
-	if ( is_complex_type && v->Type()->Tag() != TYPE_LIST )
+	if ( is_complex_type && v->GetType()->Tag() != TYPE_LIST )
 		{
 		ListVal lv(TYPE_ANY);
 
@@ -368,7 +368,7 @@ HashKey* CompositeHash::ComputeHash(const Val* v, bool type_check) const
 
 	const auto& tl = type->Types();
 
-	if ( type_check && v->Type()->Tag() != TYPE_LIST )
+	if ( type_check && v->GetType()->Tag() != TYPE_LIST )
 		return nullptr;
 
 	auto lv = v->AsListVal();
@@ -389,7 +389,7 @@ HashKey* CompositeHash::ComputeHash(const Val* v, bool type_check) const
 
 HashKey* CompositeHash::ComputeSingletonHash(const Val* v, bool type_check) const
 	{
-	if ( v->Type()->Tag() == TYPE_LIST )
+	if ( v->GetType()->Tag() == TYPE_LIST )
 		{
 		auto lv = v->AsListVal();
 
@@ -399,7 +399,7 @@ HashKey* CompositeHash::ComputeSingletonHash(const Val* v, bool type_check) cons
 		v = lv->Idx(0).get();
 		}
 
-	if ( type_check && v->Type()->InternalType() != singleton_tag )
+	if ( type_check && v->GetType()->InternalType() != singleton_tag )
 		return nullptr;
 
 	switch ( singleton_tag ) {
@@ -418,10 +418,10 @@ HashKey* CompositeHash::ComputeSingletonHash(const Val* v, bool type_check) cons
 
 	case TYPE_INTERNAL_VOID:
 	case TYPE_INTERNAL_OTHER:
-		if ( v->Type()->Tag() == TYPE_FUNC )
+		if ( v->GetType()->Tag() == TYPE_FUNC )
 			return new HashKey(v->AsFunc()->GetUniqueFuncID());
 
-		if ( v->Type()->Tag() == TYPE_PATTERN )
+		if ( v->GetType()->Tag() == TYPE_PATTERN )
 			{
 			const char* texts[2] = {
 				v->AsPattern()->PatternText(),
@@ -460,7 +460,7 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 
 	if ( type_check && v )
 		{
-		InternalTypeTag vt = v->Type()->InternalType();
+		InternalTypeTag vt = v->GetType()->InternalType();
 		if ( vt != t )
 			return 0;
 		}
@@ -539,7 +539,7 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 			for ( int i = 0; i < tv->Size(); ++i )
 				{
 				Val* key = lv->Idx(i).get();
-				sz = SingleTypeKeySize(key->Type(), key, type_check, sz, false,
+				sz = SingleTypeKeySize(key->GetType().get(), key, type_check, sz, false,
 				                       calc_static_size);
 				if ( ! sz )
 					return 0;
@@ -547,7 +547,7 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 				if ( ! bt->IsSet() )
 					{
 					auto val = tv->Lookup(key);
-					sz = SingleTypeKeySize(val->Type(), val.get(), type_check, sz,
+					sz = SingleTypeKeySize(val->GetType().get(), val.get(), type_check, sz,
 					                       false, calc_static_size);
 					if ( ! sz )
 						return 0;
@@ -588,7 +588,7 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 			ListVal* lv = const_cast<ListVal*>(v->AsListVal());
 			for ( int i = 0; i < lv->Length(); ++i )
 				{
-				sz = SingleTypeKeySize(lv->Idx(i)->Type(), lv->Idx(i).get(),
+				sz = SingleTypeKeySize(lv->Idx(i)->GetType().get(), lv->Idx(i).get(),
 				                       type_check, sz, false, calc_static_size);
 				if ( ! sz) return 0;
 				}
@@ -628,7 +628,7 @@ int CompositeHash::ComputeKeySize(const Val* v, bool type_check, bool calc_stati
 
 	if ( v )
 		{
-		if ( type_check && v->Type()->Tag() != TYPE_LIST )
+		if ( type_check && v->GetType()->Tag() != TYPE_LIST )
 			return 0;
 
 		auto lv = v->AsListVal();
@@ -851,12 +851,12 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 				reporter->InternalError("failed to look up unique function id %" PRIu32 " in CompositeHash::RecoverOneVal()", *kp);
 
 			*pval = make_intrusive<Val>(f);
-			auto pvt = (*pval)->Type();
+			const auto& pvt = (*pval)->GetType();
 
 			if ( ! pvt )
 				reporter->InternalError("bad aggregate Val in CompositeHash::RecoverOneVal()");
 
-			else if ( t->Tag() != TYPE_FUNC && ! same_type(pvt, t) )
+			else if ( t->Tag() != TYPE_FUNC && ! same_type(pvt.get(), t) )
 				// ### Maybe fix later, but may be fundamentally
 				// un-checkable --US
 				reporter->InternalError("inconsistent aggregate Val in CompositeHash::RecoverOneVal()");

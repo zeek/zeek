@@ -146,10 +146,10 @@ function bloomfilter_add%(bf: opaque of bloomfilter, x: any%): any
 	%{
 	BloomFilterVal* bfv = static_cast<BloomFilterVal*>(bf);
 
-	if ( ! bfv->Type() && ! bfv->Typify(x->Type()) )
+	if ( ! bfv->Type() && ! bfv->Typify(x->GetType().get()) )
 		reporter->Error("failed to set Bloom filter type");
 
-	else if ( ! same_type(bfv->Type(), x->Type()) )
+	else if ( ! same_type(bfv->Type(), x->GetType().get()) )
 		reporter->Error("incompatible Bloom filter types");
 
 	else
@@ -176,7 +176,7 @@ function bloomfilter_lookup%(bf: opaque of bloomfilter, x: any%): count
 	if ( ! bfv->Type() )
 		return val_mgr->Count(0);
 
-	else if ( ! same_type(bfv->Type(), x->Type()) )
+	else if ( ! same_type(bfv->Type(), x->GetType().get()) )
 		reporter->Error("incompatible Bloom filter types");
 
 	else

@@ -169,6 +169,8 @@ Deprecated Functionality
 - ``opt_internal_val()`` is deprecated, use ``lookup_ID()`` or
   ``zeek::lookup_val()``.
 
+- ``Val::Type()`` is deprecated, use ``Val::GetType``.
+
 Zeek 3.1.0
 ==========
 

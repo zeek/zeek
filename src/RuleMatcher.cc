@@ -1290,7 +1290,7 @@ static bool val_to_maskedval(Val* v, maskedvalue_list* append_to,
 	{
 	MaskedValue* mval = new MaskedValue;
 
-	switch ( v->Type()->Tag() ) {
+	switch ( v->GetType()->Tag() ) {
 		case TYPE_PORT:
 			mval->val = v->AsPortVal()->Port();
 			mval->mask = 0xffffffff;
@@ -1359,7 +1359,7 @@ void id_to_maskedvallist(const char* id, maskedvalue_list* append_to,
 	if ( ! v )
 		return;
 
-	if ( v->Type()->Tag() == TYPE_TABLE )
+	if ( v->GetType()->Tag() == TYPE_TABLE )
 		{
 		auto lv = v->AsTableVal()->ToPureListVal();
 
@@ -1381,7 +1381,7 @@ char* id_to_str(const char* id)
 	if ( ! v )
 		goto error;
 
-	if ( v->Type()->Tag() != TYPE_STRING )
+	if ( v->GetType()->Tag() != TYPE_STRING )
 		{
 		rules_error("Identifier must refer to string");
 		goto error;
@@ -1404,7 +1404,7 @@ uint32_t id_to_uint(const char* id)
 	if ( ! v )
 		return 0;
 
-	TypeTag t = v->Type()->Tag();
+	TypeTag t = v->GetType()->Tag();
 
 	if ( t == TYPE_BOOL || t == TYPE_COUNT || t == TYPE_ENUM ||
 	     t == TYPE_INT || t == TYPE_PORT )

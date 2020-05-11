@@ -269,7 +269,7 @@ void ProfileLogger::Log()
 				if ( size > 100 * 1024 )
 					print = true;
 
-				if ( v->Type()->Tag() == TYPE_TABLE )
+				if ( v->GetType()->Tag() == TYPE_TABLE )
 					{
 					entries = v->AsTable()->Length();
 					total_table_entries += entries;

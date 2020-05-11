@@ -741,10 +741,10 @@ ListVal* internal_list_val(const char* name)
 
 	if ( v )
 		{
-		if ( v->Type()->Tag() == TYPE_LIST )
+		if ( v->GetType()->Tag() == TYPE_LIST )
 			return (ListVal*) v;
 
-		else if ( v->Type()->IsSet() )
+		else if ( v->GetType()->IsSet() )
 			{
 			TableVal* tv = v->AsTableVal();
 			auto lv = tv->ToPureListVal();
@@ -812,7 +812,7 @@ IntrusivePtr<Func> zeek::lookup_func(const char* name)
 	if ( ! v )
 		return nullptr;
 
-	if ( ! IsFunc(v->Type()->Tag()) )
+	if ( ! IsFunc(v->GetType()->Tag()) )
 		reporter->InternalError("Expected variable '%s' to be a function", name);
 
 	return {NewRef{}, v->AsFunc()};

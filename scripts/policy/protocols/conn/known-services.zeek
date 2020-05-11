@@ -238,9 +238,11 @@ function known_services_done(c: connection)
 
 	# If no protocol was detected, wait a short time before attempting to log
 	# in case a protocol is detected on another connection.
-	if ( |c$service| == 0 )
+	if ( |c$service| == 0 ){
+		# Add an empty service so the service loops will work later 
+		add info$service[""];
 		schedule 5min { service_info_commit(info) };
-	else 
+	}else 
 		event service_info_commit(info);
 	}
 	
@@ -255,11 +257,11 @@ event successful_connection_remove(c: connection) &priority=-5
 	if ( c$known_services_done )
 		return;
 
-	if ( c$resp$state != TCP_ESTABLISHED && c$resp$state != UDP_ACTIVE )
-		return;
-
-	if ( |c$service| == 0 )
-		return;
+	# For backporting to 3.0.x I think we  want to keep this check and add TCP_CLOSED
+# -	if ( c$resp$state != TCP_ESTABLISHED && c$resp$state != UDP_ACTIVE )
+# -		return;
+# +	if ( c$resp$state != TCP_CLOSED && c$resp$state != TCP_ESTABLISHED && c$resp$state != UDP_ACTIVE )
+# +		return;
 
 	known_services_done(c);
 	}

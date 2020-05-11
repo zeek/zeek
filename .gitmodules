@@ -37,6 +37,3 @@
 [submodule "aux/libkqueue"]
 	path = aux/libkqueue
 	url = https://github.com/zeek/libkqueue
-[submodule "aux/highwayhash"]
-	path = aux/highwayhash
-	url = https://github.com/google/highwayhash

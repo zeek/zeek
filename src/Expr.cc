@@ -1976,6 +1976,14 @@ SubExpr::SubExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 		}
 	}
 
+bool SubExpr::WillTransform() const
+	{
+	return op2->IsZero() || op2->Tag() == EXPR_NEGATE || 
+		(type->Tag() != TYPE_VECTOR && type->Tag() != TYPE_TABLE &&
+	         op1->Tag() == EXPR_NAME && op2->Tag() == EXPR_NAME &&
+		 op1->AsNameExpr()->Id() == op2->AsNameExpr()->Id());
+	}
+
 Expr* SubExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( op2->IsZero() )
@@ -2867,6 +2875,11 @@ bool CondExpr::HasReducedOps() const
 		! op1->IsConst();
 	}
 
+bool CondExpr::WillTransform() const
+	{
+	return ! HasReducedOps();
+	}
+
 Expr* CondExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	if ( c->Optimizing() )
@@ -3519,18 +3532,18 @@ Expr* AssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		}
 
 	if ( IsTemp() )
+		// These are generated for reduced expressions.
 		return this->Ref();
 
 	auto lhs_ref = op1->AsRefExpr();
 	auto lhs_expr = lhs_ref->Op();
 
-	bool cascaded_assignment = op2->Tag() == EXPR_ASSIGN;
 	bool is_any_assign =
 		lhs_expr->Tag() == EXPR_NAME &&
 		lhs_expr->Type()->Tag() == TYPE_ANY &&
 		! op2->IsSingleton();
 
-	if ( cascaded_assignment || is_any_assign )
+	if ( is_any_assign )
 		{ // RHS must be a singleton.
 		IntrusivePtr<Stmt> cascade_stmt;
 		op2 = {AdoptRef{}, op2->ReduceToSingleton(c, cascade_stmt)};
@@ -3612,13 +3625,7 @@ Expr* AssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	if ( op2->HasConstantOps() )
 		op2 = make_intrusive<ConstExpr>(op2->Eval(nullptr));
 
-	// Any RHS operator now can be assigned to now if its
-	// operands are singletons ... except for CondExpr, since if
-	// its first operand is constant it can transform into a
-	// different kind of statement.  Since there's just the one,
-	// we simply check for it here directly rather than virtualizing
-	// the decision.
-	if ( op2->Tag() == EXPR_COND && op2->GetOp1()->IsConst() )
+	if ( op2->WillTransform() )
 		{
 		op2 = {AdoptRef{}, op2->ReduceToSingleton(c, red_stmt)};
 		return this->Ref();

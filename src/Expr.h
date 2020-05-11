@@ -201,6 +201,12 @@ public:
 			  (! GetOp3() || GetOp3()->IsConst())));
 		}
 
+	// True if the expression will transform to one of another type
+	// upon reduction, for non-constant operands.  Necessary so that
+	// we know to fully reduce such expressions if they're the RHS
+	// of an assignment.
+	virtual bool WillTransform() const	{ return false; }
+
 	// True if the expression is in error (to alleviate error propagation).
 	bool IsError() const;
 
@@ -616,6 +622,7 @@ public:
 	SubExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
+	bool WillTransform() const override;
 };
 
 class TimesExpr : public BinaryExpr {
@@ -648,6 +655,7 @@ public:
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 	IntrusivePtr<Val> DoSingleEval(Frame* f, IntrusivePtr<Val> v1, Expr* op2) const;
 
+	bool WillTransform() const override	{ return true; }
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	bool IsTrue(const IntrusivePtr<Expr>& e) const;
 	bool IsFalse(const IntrusivePtr<Expr>& e) const;
@@ -697,6 +705,7 @@ public:
 	bool IsPure() const override;
 	bool IsReduced() const override;
 	bool HasReducedOps() const override;
+	bool WillTransform() const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	IntrusivePtr<Stmt> ReduceToSingletons(Reducer* c) override;
 
@@ -742,6 +751,7 @@ public:
 	bool HasNoSideEffects() const override;
 	bool IsReduced() const override;
 	bool HasReducedOps() const override;
+	bool WillTransform() const override	{ return true; }
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	Expr* ReduceToSingleton(Reducer* c,
 				IntrusivePtr<Stmt>& red_stmt) override;

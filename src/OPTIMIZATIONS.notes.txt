@@ -23,3 +23,8 @@ don't sync variables to the frame if they haven't changed since the
 collapse go-to's that branch to go-to's
 
 could explicitly support +=/-= for integral types
+
+could save grief/complexity by splitting out early (in the parser)
+	operands with weird mixed types, like DivideExpr supporting
+	address masking, or InExpr supporting patterns/strings.
+	This would allow simplifications for gen-compiler-templates.sh.

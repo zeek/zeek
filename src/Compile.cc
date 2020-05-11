@@ -136,7 +136,11 @@ AS_ValUnion::AS_ValUnion(Val* v, BroType* t, const BroObj* o, bool& error)
 	auto vu = v->val;
 
 	if ( v->Type()->Tag() != t->Tag() && t->Tag() != TYPE_ANY )
-		reporter->InternalError("type inconsistency in AS_ValUnion constructor");
+		{
+		if ( t->InternalType() == TYPE_INTERNAL_OTHER ||
+		     t->InternalType() != v->Type()->InternalType() )
+			reporter->InternalError("type inconsistency in AS_ValUnion constructor");
+		}
 
 	switch ( t->Tag() ) {
 	case TYPE_BOOL:

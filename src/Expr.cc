@@ -2152,7 +2152,11 @@ DivideExpr::DivideExpr(IntrusivePtr<Expr> arg_op1,
 
 	else if ( bt1 == TYPE_ADDR && ! is_vector(op2.get()) &&
 		  (bt2 == TYPE_COUNT || bt2 == TYPE_INT) )
+		{
+		if ( bt2 != TYPE_INT )
+			op2 = make_intrusive<ArithCoerceExpr>(std::move(op2), TYPE_INT);
 		SetType(base_type(TYPE_SUBNET));
+		}
 
 	else
 		ExprError("requires arithmetic operands");

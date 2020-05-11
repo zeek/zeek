@@ -105,6 +105,7 @@ BEGIN	{
 
 	++no_vec["P"]
 	++no_vec["T"]
+	++no_vec["A", "I"]
 
 	method_map["I"] = "i_t == TYPE_INTERNAL_INT"
 	method_map["U"] = "i_t == TYPE_INTERNAL_UNSIGNED"
@@ -114,6 +115,9 @@ BEGIN	{
 	method_map["P"] = "tag == TYPE_PATTERN"
 	method_map["S"] = "i_t == TYPE_INTERNAL_STRING"
 	method_map["T"] = "tag == TYPE_TABLE"
+
+	mixed_type_supported["P", "S"]
+	mixed_type_supported["A", "I"]
 
 	# Suffix used for vector operations.
 	vec = "_vec"
@@ -190,7 +194,11 @@ $1 ~ /^eval((_[ANPST])?)$/	{
 $1 == "eval-mixed"	{
 		ev_mix1 = $2
 		ev_mix2 = $3
-		mix_eval = all_but_first_n(3)
+		mix = all_but_first_n(3)
+		if ( mix_eval )
+			mix_eval = mix_eval ";\n\t" mix
+		else
+			mix_eval = mix
 		next
 		}
 
@@ -308,8 +316,9 @@ function dump_op()
 					{
 					sel = eval_selector[i]
 					esel = eval[sel]
-					ex = expand_eval(esel, expr_op,
-								i, i, j, 0)
+					ex = expand_eval(esel,
+							eval_pre, expr_op,
+							i, i, j, 0)
 					}
 
 				build_op(op, "V" op1, i, i, esel, ex, j, 0)
@@ -337,13 +346,13 @@ function build_op_combo(op1, j, k)
 	for ( i in op_types )
 		{
 		sel = eval_selector[i]
-		ex = expand_eval(eval[sel], expr_op, i, i, j, k)
+		ex = expand_eval(eval[sel], "", expr_op, i, i, j, k)
 		build_op(op, "V" op1 op2, i, i, eval[sel], ex, j, k)
 		}
 
 	if ( mix_eval )
 		{
-		ex = expand_eval(mix_eval, expr_op, ev_mix1, ev_mix2, j, k)
+		ex = expand_eval(mix_eval, "", expr_op, ev_mix1, ev_mix2, j, k)
 		build_op(op, "V" op1 op2, ev_mix1, ev_mix2, mix_eval, ex, j, k)
 		}
 	}
@@ -398,7 +407,7 @@ function build_direct_op(method)
 		":\treturn c->" method "(lhs, rhs);") >ops_direct_f
 	}
 
-function expand_eval(e, is_expr_op, otype1, otype2, is_var1, is_var2)
+function expand_eval(e, pre_eval, is_expr_op, otype1, otype2, is_var1, is_var2)
 	{
 	laccessor = raccessor1 = raccessor2 = ""
 	expr_app = ""
@@ -421,7 +430,7 @@ function expand_eval(e, is_expr_op, otype1, otype2, is_var1, is_var2)
 		}
 
 	e_copy = e
-	pre_copy = eval_pre
+	pre_copy = pre_eval
 	rep1 = "(" (is_var1 ? "frame[s.v2]" : "s.c") raccessor1 ")"
 	gsub(/\$1/, rep1, e_copy)
 	gsub(/\$1/, rep1, pre_copy)
@@ -478,7 +487,7 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 	# operations with multiple types of operands.  This lets us
 	# avoid redundant declarations.
 	is_rep = ! sub_type1 || sub_type1 == op_type_rep
-	do_vec = vector && ! no_vec[sub_type1]
+	do_vec = vector && ! no_vec[sub_type1] && ! no_vec[sub_type1, sub_type2]
 
 	if ( ! internal_op && is_rep )
 		{
@@ -787,14 +796,23 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 				#
 				# We do not support vectors for these,
 				# even though the interpreter does.
+				op2_param = op2_is_const ? "c" : "n2";
 				op3_is_const = type ~ /^V.C/
 				op3_param = op2_is_const ? "n2" : (op3_is_const ? "c" : "n3")
 
-				if ( ev_mix1 != "P" || ev_mix2 != "S" )
+				op2_tag = op2_param "->Type()->Tag()"
+				op3_tag = op3_param "->Type()->Tag()"
+
+				if ( ! ((ev_mix1 SUBSEP ev_mix2) in mixed_type_supported) )
 					gripe("unsupported eval-mixed")
 
-				print ("\t" else_text "if ( tag == TYPE_PATTERN && " op3_param "->Type()->Tag() == TYPE_STRING )") >methods_f
-				print ("\t" part1 (full_op_no_sub "_PS") \
+				if ( ev_mix1 == "P" )
+					print ("\t" else_text "if ( " op2_tag " == TYPE_PATTERN && " op3_tag " == TYPE_STRING )") >methods_f
+				else
+					print ("\t" else_text "if ( " op2_tag " == TYPE_ADDR && " op3_tag " == TYPE_INT )") >methods_f
+
+				mix_suffix = "_" ev_mix1 ev_mix2
+				print ("\t" part1 (full_op_no_sub mix_suffix) \
 					part2) >methods_f
 				}
 
@@ -832,6 +850,7 @@ function clear_vars()
 	direct_method = direct_op = ""
 	laccessor = raccessor1 = raccessor2 = ""
 	op1_accessor = op2_accessor = ""
+	ev_mix1 = ev_mix2 = ""
 
 	delete eval
 	delete op_types

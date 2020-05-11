@@ -116,9 +116,21 @@ eval $1 * $2
 
 binary-expr-op Divide
 op-type I U D
+set-expr $1
 vector
+#
 eval-pre if ( $2 == 0 ) run_time_error(error_flag, s.stmt, "division by zero")
 eval $1 / $2
+#
+eval-mixed A I auto mask = static_cast<uint32_t>($2)
+eval-mixed A I auto a = $1
+eval-mixed A I if ( a->GetFamily() == IPv4 && mask > 32 ) s.e->RuntimeError(fmt("bad IPv4 subnet prefix length: %" PRIu32, mask))
+eval-mixed A I if ( a->GetFamily() == IPv6 && mask > 128 ) s.e->RuntimeError(fmt("bad IPv6 subnet prefix length: %" PRIu32, mask))
+eval-mixed A I auto v = make_intrusive<SubNetVal>(*a, mask)
+eval-mixed A I vals.push_back(v)
+eval-mixed A I delete frame[s.v1].subnet_val
+eval-mixed A I frame[s.v1].subnet_val = new IPPrefix(*v->val.subnet_val)
+eval-mixed A I /* Note, $$ is ignored but mentioned here so templator backs off */
 
 binary-expr-op Mod
 op-type I U

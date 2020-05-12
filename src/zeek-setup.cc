@@ -784,6 +784,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 
 	if ( profiling_interval > 0 )
 		{
+		const auto& profiling_file = zeek::lookup_val("profiling_file");
 		profiling_logger = new ProfileLogger(profiling_file->AsFile(),
 			profiling_interval);
 

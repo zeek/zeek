@@ -91,6 +91,9 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
 	int skip_addl = dns_skip_all_addl;
 	if ( msg.ancount > 0 )
 		{ // We did an answer, so can potentially skip auth/addl.
+		static auto dns_skip_auth = zeek::lookup_val<TableVal>("dns_skip_auth");
+		static auto dns_skip_addl = zeek::lookup_val<TableVal>("dns_skip_addl");
+
 		skip_auth = skip_auth || msg.nscount == 0 ||
 				dns_skip_auth->Lookup(&server);
 		skip_addl = skip_addl || msg.arcount == 0 ||

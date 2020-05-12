@@ -1193,8 +1193,8 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 
 	// Still need to set the WriterInfo's rotation parameters, which we
 	// computed above.
-	const char* base_time = log_rotate_base_time ?
-		log_rotate_base_time->AsString()->CheckString() : nullptr;
+	static auto log_rotate_base_time = zeek::lookup_val<StringVal>("log_rotate_base_time");
+	static auto base_time = log_rotate_base_time->AsString()->CheckString();
 
 	winfo->info->rotation_interval = winfo->interval;
 	winfo->info->rotation_base = parse_rotate_base_time(base_time);
@@ -1453,8 +1453,8 @@ void Manager::InstallRotationTimer(WriterInfo* winfo)
 			if ( ! winfo->open_time )
 				winfo->open_time = network_time;
 
-			const char* base_time = log_rotate_base_time ?
-				log_rotate_base_time->AsString()->CheckString() : nullptr;
+			static auto log_rotate_base_time = zeek::lookup_val<StringVal>("log_rotate_base_time");
+			static auto base_time = log_rotate_base_time->AsString()->CheckString();
 
 			double base = parse_rotate_base_time(base_time);
 			double delta_t =

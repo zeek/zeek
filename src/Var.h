@@ -52,7 +52,9 @@ extern Val* opt_internal_val(const char* name);	// returns nil if not defined
 extern double opt_internal_double(const char* name);
 extern bro_int_t opt_internal_int(const char* name);
 extern bro_uint_t opt_internal_unsigned(const char* name);
+[[deprecated("Remove in v4.1.  Use lookup_ID() or zeek::lookup_val().")]]
 extern StringVal* opt_internal_string(const char* name);
+[[deprecated("Remove in v4.1.  Use lookup_ID() or zeek::lookup_val().")]]
 extern TableVal* opt_internal_table(const char* name);	// nil if not defined
 
 [[deprecated("Remove in v4.1.  Use lookup_ID(), zeek::lookup_val(), and/or TableVal::ToPureListVal().")]]
@@ -95,6 +97,16 @@ IntrusivePtr<T> lookup_type(const char* name)
  * @return  The current value of the identifier
  */
 const IntrusivePtr<Val>& lookup_val(const char* name);
+
+/**
+ * Lookup an ID by its name and return its value (as cast to @c T).
+ * A fatal occurs if the ID does not exist.
+ * @param name  The identifier name to lookup
+ * @return  The current value of the identifier.
+ */
+template<class T>
+IntrusivePtr<T> lookup_val(const char* name)
+	{ return cast_intrusive<T>(lookup_val(name)); }
 
 /**
  * Lookup an ID by its name and return its value.  A fatal occurs if the ID

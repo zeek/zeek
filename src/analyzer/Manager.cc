@@ -438,6 +438,8 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 
 		if ( tcp_contents && ! reass )
 			{
+			static auto tcp_content_delivery_ports_orig = zeek::lookup_val<TableVal>("tcp_content_delivery_ports_orig");
+			static auto tcp_content_delivery_ports_resp = zeek::lookup_val<TableVal>("tcp_content_delivery_ports_resp");
 			const auto& dport = val_mgr->Port(ntohs(conn->RespPort()), TRANSPORT_TCP);
 
 			if ( ! reass )
@@ -460,6 +462,8 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 			uint16_t resp_port = ntohs(conn->RespPort());
 			if ( resp_port == 22 || resp_port == 23 || resp_port == 513 )
 				{
+				static auto stp_skip_src = zeek::lookup_val<TableVal>("stp_skip_src");
+
 				AddrVal src(conn->OrigAddr());
 				if ( ! stp_skip_src->Lookup(&src) )
 					tcp->AddChildAnalyzer(new stepping_stone::SteppingStone_Analyzer(conn), false);

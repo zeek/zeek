@@ -88,16 +88,23 @@ extern double icmp_inactivity_timeout;
 extern int tcp_storm_thresh;
 extern double tcp_storm_interarrival_thresh;
 
+[[deprecated("Remove in v4.1.")]]
 extern TableVal* tcp_reassembler_ports_orig;
+[[deprecated("Remove in v4.1.")]]
 extern TableVal* tcp_reassembler_ports_resp;
 
+[[deprecated("Remove in v4.1.")]]
 extern TableVal* tcp_content_delivery_ports_orig;
+[[deprecated("Remove in v4.1.")]]
 extern TableVal* tcp_content_delivery_ports_resp;
 extern bool tcp_content_deliver_all_orig;
 extern bool tcp_content_deliver_all_resp;
 
+[[deprecated("Remove in v4.1.")]]
 extern TableVal* udp_content_delivery_ports_orig;
+[[deprecated("Remove in v4.1.")]]
 extern TableVal* udp_content_delivery_ports_resp;
+[[deprecated("Remove in v4.1.")]]
 extern TableVal* udp_content_ports;
 extern bool udp_content_deliver_all_orig;
 extern bool udp_content_deliver_all_resp;
@@ -153,7 +160,9 @@ extern RecordType* dns_dnskey_rr;
 extern RecordType* dns_nsec3_rr;
 [[deprecated("Remove in v4.1.  Use zeek::vars::dns_ds_rr.")]]
 extern RecordType* dns_ds_rr;
+[[deprecated("Remove in v4.1.")]]
 extern TableVal* dns_skip_auth;
+[[deprecated("Remove in v4.1.")]]
 extern TableVal* dns_skip_addl;
 extern int dns_skip_all_auth;
 extern int dns_skip_all_addl;
@@ -161,6 +170,7 @@ extern int dns_max_queries;
 
 extern double stp_delta;
 extern double stp_idle_min;
+[[deprecated("Remove in v4.1.")]]
 extern TableVal* stp_skip_src;
 
 extern double table_expire_interval;
@@ -169,18 +179,24 @@ extern int table_incremental_step;
 
 extern int orig_addr_anonymization, resp_addr_anonymization;
 extern int other_addr_anonymization;
+[[deprecated("Remove in v4.1.")]]
 extern TableVal* preserve_orig_addr;
+[[deprecated("Remove in v4.1.")]]
 extern TableVal* preserve_resp_addr;
+[[deprecated("Remove in v4.1.")]]
 extern TableVal* preserve_other_addr;
 
 extern double connection_status_update_interval;
 
 [[deprecated("Remove in v4.1.  Use zeek::vars::rotate_info.")]]
 extern RecordType* rotate_info;
+[[deprecated("Remove in v4.1.")]]
 extern StringVal* log_rotate_base_time;
 
+[[deprecated("Remove in v4.1.")]]
 extern StringVal* peer_description;
 
+[[deprecated("Remove in v4.1.")]]
 extern Val* profiling_file;
 extern double profiling_interval;
 extern int expensive_profiling_multiple;
@@ -188,6 +204,7 @@ extern int expensive_profiling_multiple;
 extern int segment_profiling;
 extern int pkt_profile_mode;
 extern double pkt_profile_freq;
+[[deprecated("Remove in v4.1.")]]
 extern Val* pkt_profile_file;
 
 extern int load_sample_freq;
@@ -207,6 +224,7 @@ extern int dpd_match_only_beginning;
 extern int dpd_late_match_stop;
 extern int dpd_ignore_ports;
 
+[[deprecated("Remove in v4.1.")]]
 extern TableVal* likely_server_ports;
 
 extern int check_for_unused_event_handlers;
@@ -215,6 +233,7 @@ extern int suppress_local_output;
 
 extern double timer_mgr_inactivity_timeout;
 
+[[deprecated("Remove in v4.1.")]]
 extern StringVal* trace_output_file;
 
 extern int record_all_packets;
@@ -232,8 +251,10 @@ extern RecordType* call_argument;
 [[deprecated("Remove in v4.1.  Use zeek::vars::call_argument_vector.")]]
 extern VectorType* call_argument_vector;
 
+[[deprecated("Remove in v4.1.")]]
 extern StringVal* cmd_line_bpf_filter;
 
+[[deprecated("Remove in v4.1.")]]
 extern StringVal* global_hash_seed;
 
 extern bro_uint_t bits_per_uid;

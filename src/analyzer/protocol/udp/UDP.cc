@@ -134,6 +134,9 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 	if ( udp_contents )
 		{
+		static auto udp_content_ports = zeek::lookup_val<TableVal>("udp_content_ports");
+		static auto udp_content_delivery_ports_orig = zeek::lookup_val<TableVal>("udp_content_delivery_ports_orig");
+		static auto udp_content_delivery_ports_resp = zeek::lookup_val<TableVal>("udp_content_delivery_ports_resp");
 		bool do_udp_contents = false;
 		const auto& sport_val = val_mgr->Port(ntohs(up->uh_sport), TRANSPORT_UDP);
 		const auto& dport_val = val_mgr->Port(ntohs(up->uh_dport), TRANSPORT_UDP);

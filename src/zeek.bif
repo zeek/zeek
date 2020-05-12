@@ -4694,8 +4694,8 @@ function rotate_file_by_name%(f: string%): rotate_info
 ## .. zeek:see:: rotate_file rotate_file_by_name
 function calc_next_rotate%(i: interval%) : interval
 	%{
-	const char* base_time = log_rotate_base_time ?
-		log_rotate_base_time->AsString()->CheckString() : 0;
+	static auto log_rotate_base_time = zeek::lookup_val<StringVal>("log_rotate_base_time");
+	static auto base_time = log_rotate_base_time->AsString()->CheckString();
 
 	double base = parse_rotate_base_time(base_time);
 	return make_intrusive<Val>(calc_next_rotate(network_time, i, base), TYPE_INTERVAL);

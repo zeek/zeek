@@ -10,6 +10,8 @@
 #include "Val.h"
 #include "NetVar.h"
 #include "Reporter.h"
+#include "Scope.h"
+#include "ID.h"
 
 
 AnonymizeIPAddr* ip_anonymizer[NUM_ADDR_ANONYMIZATION_METHODS] = {nullptr};
@@ -354,6 +356,10 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::find_node(ipaddr32_t a)
 	return nullptr;
 	}
 
+static IntrusivePtr<TableVal> anon_preserve_orig_addr;
+static IntrusivePtr<TableVal> anon_preserve_resp_addr;
+static IntrusivePtr<TableVal> anon_preserve_other_addr;
+
 void init_ip_addr_anonymizers()
 	{
 	ip_anonymizer[KEEP_ORIG_ADDR] = nullptr;
@@ -361,6 +367,21 @@ void init_ip_addr_anonymizers()
 	ip_anonymizer[RANDOM_MD5] = new AnonymizeIPAddr_RandomMD5();
 	ip_anonymizer[PREFIX_PRESERVING_A50] = new AnonymizeIPAddr_A50();
 	ip_anonymizer[PREFIX_PRESERVING_MD5] = new AnonymizeIPAddr_PrefixMD5();
+
+	auto id = global_scope()->Lookup("preserve_orig_addr");
+
+	if ( id )
+		anon_preserve_orig_addr = cast_intrusive<TableVal>(id->GetVal());
+
+	id = global_scope()->Lookup("preserve_resp_addr");
+
+	if ( id )
+		anon_preserve_resp_addr = cast_intrusive<TableVal>(id->GetVal());
+
+	id = global_scope()->Lookup("preserve_other_addr");
+
+	if ( id )
+		anon_preserve_other_addr = cast_intrusive<TableVal>(id->GetVal());
 	}
 
 ipaddr32_t anonymize_ip(ipaddr32_t ip, enum ip_addr_anonymization_class_t cl)
@@ -372,17 +393,17 @@ ipaddr32_t anonymize_ip(ipaddr32_t ip, enum ip_addr_anonymization_class_t cl)
 
 	switch ( cl ) {
 	case ORIG_ADDR: // client address
-		preserve_addr = preserve_orig_addr;
+		preserve_addr = anon_preserve_orig_addr.get();
 		method = orig_addr_anonymization;
 		break;
 
 	case RESP_ADDR: // server address
-		preserve_addr = preserve_resp_addr;
+		preserve_addr = anon_preserve_resp_addr.get();
 		method = resp_addr_anonymization;
 		break;
 
 	default:
-		preserve_addr = preserve_other_addr;
+		preserve_addr = anon_preserve_other_addr.get();
 		method = other_addr_anonymization;
 		break;
 	}

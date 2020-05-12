@@ -7,6 +7,7 @@
 #include <openssl/evp.h>
 
 #include "NetVar.h"
+#include "Var.h"
 #include "digest.h"
 #include "highwayhash/sip_hash.h"
 
@@ -22,10 +23,12 @@ Hasher::seed_t Hasher::MakeSeed(const void* data, size_t size)
 
 	assert(sizeof(tmpseed) == 16);
 
+	static auto global_hash_seed = zeek::lookup_val<StringVal>("global_hash_seed");
+
 	if ( data )
 		hash_update(ctx, data, size);
 
-	else if ( global_hash_seed && global_hash_seed->Len() > 0 )
+	else if ( global_hash_seed->Len() > 0 )
 		hash_update(ctx, global_hash_seed->Bytes(), global_hash_seed->Len());
 
 	else

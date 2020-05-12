@@ -205,11 +205,6 @@ void init_general_global_var()
 	table_expire_delay = opt_internal_double("table_expire_delay");
 	table_incremental_step = opt_internal_int("table_incremental_step");
 
-	log_rotate_base_time = opt_internal_string("log_rotate_base_time");
-
-	peer_description =
-		zeek::lookup_val("peer_description")->AsStringVal();
-
 	packet_filter_default = opt_internal_int("packet_filter_default");
 
 	sig_max_group_size = opt_internal_int("sig_max_group_size");
@@ -219,14 +214,7 @@ void init_general_global_var()
 
 	suppress_local_output = opt_internal_int("suppress_local_output");
 
-	trace_output_file = zeek::lookup_val("trace_output_file")->AsStringVal();
-
 	record_all_packets = opt_internal_int("record_all_packets");
-
-	cmd_line_bpf_filter =
-		zeek::lookup_val("cmd_line_bpf_filter")->AsStringVal();
-
-	global_hash_seed = opt_internal_string("global_hash_seed");
 
 	bits_per_uid = opt_internal_unsigned("bits_per_uid");
 	}
@@ -273,26 +261,11 @@ void init_net_var()
 	tcp_storm_interarrival_thresh =
 		opt_internal_double("tcp_storm_interarrival_thresh");
 
-	tcp_reassembler_ports_orig =
-		zeek::lookup_val("tcp_reassembler_ports_orig")->AsTableVal();
-	tcp_reassembler_ports_resp =
-		zeek::lookup_val("tcp_reassembler_ports_resp")->AsTableVal();
-
-	tcp_content_delivery_ports_orig =
-		zeek::lookup_val("tcp_content_delivery_ports_orig")->AsTableVal();
-	tcp_content_delivery_ports_resp =
-		zeek::lookup_val("tcp_content_delivery_ports_resp")->AsTableVal();
 	tcp_content_deliver_all_orig =
 		bool(zeek::lookup_val("tcp_content_deliver_all_orig")->AsBool());
 	tcp_content_deliver_all_resp =
 		bool(zeek::lookup_val("tcp_content_deliver_all_resp")->AsBool());
 
-	udp_content_delivery_ports_orig =
-		zeek::lookup_val("udp_content_delivery_ports_orig")->AsTableVal();
-	udp_content_delivery_ports_resp =
-		zeek::lookup_val("udp_content_delivery_ports_resp")->AsTableVal();
-	udp_content_ports =
-		zeek::lookup_val("udp_content_ports")->AsTableVal();
 	udp_content_deliver_all_orig =
 		bool(zeek::lookup_val("udp_content_deliver_all_orig")->AsBool());
 	udp_content_deliver_all_resp =
@@ -313,28 +286,20 @@ void init_net_var()
 	http_entity_data_delivery_size = opt_internal_int("http_entity_data_delivery_size");
 	truncate_http_URI = opt_internal_int("truncate_http_URI");
 
-	dns_skip_auth = zeek::lookup_val("dns_skip_auth")->AsTableVal();
-	dns_skip_addl = zeek::lookup_val("dns_skip_addl")->AsTableVal();
 	dns_skip_all_auth = opt_internal_int("dns_skip_all_auth");
 	dns_skip_all_addl = opt_internal_int("dns_skip_all_addl");
 	dns_max_queries = opt_internal_int("dns_max_queries");
 
 	stp_delta = opt_internal_double("stp_delta");
 	stp_idle_min = opt_internal_double("stp_idle_min");
-	stp_skip_src = zeek::lookup_val("stp_skip_src")->AsTableVal();
 
 	orig_addr_anonymization = opt_internal_int("orig_addr_anonymization");
 	resp_addr_anonymization = opt_internal_int("resp_addr_anonymization");
 	other_addr_anonymization = opt_internal_int("other_addr_anonymization");
 
-	preserve_orig_addr = opt_internal_table("preserve_orig_addr");
-	preserve_resp_addr = opt_internal_table("preserve_resp_addr");
-	preserve_other_addr = opt_internal_table("preserve_other_addr");
-
 	connection_status_update_interval =
 		opt_internal_double("connection_status_update_interval");
 
-	profiling_file = zeek::lookup_val("profiling_file").get();
 	expensive_profiling_multiple =
 		opt_internal_int("expensive_profiling_multiple");
 	profiling_interval = opt_internal_double("profiling_interval");
@@ -342,7 +307,6 @@ void init_net_var()
 
 	pkt_profile_mode = opt_internal_int("pkt_profile_mode");
 	pkt_profile_freq = opt_internal_double("pkt_profile_freq");
-	pkt_profile_file = zeek::lookup_val("pkt_profile_file").get();
 
 	load_sample_freq = opt_internal_int("load_sample_freq");
 
@@ -354,8 +318,6 @@ void init_net_var()
 	dpd_match_only_beginning = opt_internal_int("dpd_match_only_beginning");
 	dpd_late_match_stop = opt_internal_int("dpd_late_match_stop");
 	dpd_ignore_ports = opt_internal_int("dpd_ignore_ports");
-
-	likely_server_ports = zeek::lookup_val("likely_server_ports")->AsTableVal();
 
 	timer_mgr_inactivity_timeout =
 		opt_internal_double("timer_mgr_inactivity_timeout");

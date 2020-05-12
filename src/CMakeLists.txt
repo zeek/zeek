@@ -315,6 +315,47 @@ set(THIRD_PARTY_SRCS
     3rdparty/sqlite3.c
 )
 
+# Highwayhash. Highwayhash is a bit special since it has architecture dependent code...
+
+set(HH_SRCS
+    3rdparty/highwayhash/highwayhash/sip_hash.cc
+    3rdparty/highwayhash/highwayhash/sip_tree_hash.cc
+    3rdparty/highwayhash/highwayhash/scalar_sip_tree_hash.cc
+    3rdparty/highwayhash/highwayhash/arch_specific.cc
+    3rdparty/highwayhash/highwayhash/instruction_sets.cc
+    3rdparty/highwayhash/highwayhash/nanobenchmark.cc
+    3rdparty/highwayhash/highwayhash/os_specific.cc
+    3rdparty/highwayhash/highwayhash/hh_portable.cc
+)
+
+if (CMAKE_SYSTEM_PROCESSOR MATCHES "^arm")
+  set_source_files_properties(${HH_SRCS} PROPERTIES COMPILE_FLAGS
+                              -mfloat-abi=hard -march=armv7-a -mfpu=neon)
+  list(APPEND HH_SRCS
+       3rdparty/highwayhash/highwayhash/hh_neon.cc
+  )
+elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "^aarch64")
+  list(APPEND HH_SRCS
+       3rdparty/highwayhash/highwayhash/hh_neon.cc
+  )
+elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "^(powerpc|ppc)")
+  set_source_files_properties(3rdparty/highwayhash/highwayhash/hh_avx2.cc PROPERTIES COMPILE_FLAGS
+                              -mvsx)
+  list(APPEND HH_SRCS
+       3rdparty/highwayhash/highwayhash/hh_vsc.cc
+  )
+else () # assume x64 - the google makefile does that too...
+  set_source_files_properties(3rdparty/highwayhash/highwayhash/hh_avx2.cc PROPERTIES COMPILE_FLAGS
+                              -mavx2)
+  set_source_files_properties(3rdparty/highwayhash/highwayhash/hh_sse41.cc PROPERTIES COMPILE_FLAGS
+                              -msse4.1)
+
+  list(APPEND HH_SRCS
+      3rdparty/highwayhash/highwayhash/hh_avx2.cc
+      3rdparty/highwayhash/highwayhash/hh_sse41.cc
+  )
+endif ()
+
 set(bro_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/version.c
     ${BIF_SRCS}
@@ -332,6 +373,7 @@ set(bro_SRCS
     ${BISON_Parser_INPUT}
     ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
     ${THIRD_PARTY_SRCS}
+    ${HH_SRCS}
     ${MAIN_SRCS}
 )
 

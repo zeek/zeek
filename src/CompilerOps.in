@@ -823,14 +823,14 @@ eval frame[s.v1].table_val = new TableVal(tt, attrs)
 # Internal
 ########################################
 
-op AssignAny
+op Assign-Any
 type VV
 set-type $2
 eval auto v = frame[s.v2].ToVal(s.t)
 eval vals.push_back(v)
 eval frame[s.v1].any_val = v.get()
 
-op AssignAny
+op Assign-Any
 type VC
 set-type $2
 eval auto v = s.c.ToVal(s.t)

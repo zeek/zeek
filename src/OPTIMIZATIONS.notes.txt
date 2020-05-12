@@ -22,6 +22,8 @@ don't sync variables to the frame if they haven't changed since the
 
 collapse go-to's that branch to go-to's
 
+remove go-to's that branch to the next statement
+
 could explicitly support +=/-= for integral types
 
 could save grief/complexity by splitting out early (in the parser)

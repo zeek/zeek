@@ -3772,7 +3772,7 @@ const CompiledStmt AssignExpr::Compile(Compiler* c) const
 	if ( rhs->Tag() == EXPR_NAME )
 		{
 		if ( lhs->Type()->Tag() == TYPE_ANY )
-			return c->AssignAnyVV(lhs, rhs->AsNameExpr());
+			return c->Assign_AnyVV(lhs, rhs->AsNameExpr());
 		else
 			return c->AssignVV(lhs, rhs->AsNameExpr());
 		}
@@ -3780,7 +3780,7 @@ const CompiledStmt AssignExpr::Compile(Compiler* c) const
 	if ( rhs->Tag() == EXPR_CONST )
 		{
 		if ( lhs->Type()->Tag() == TYPE_ANY )
-			return c->AssignAnyVC(lhs, rhs->AsConstExpr());
+			return c->Assign_AnyVC(lhs, rhs->AsConstExpr());
 		else
 			return c->AssignVC(lhs, rhs->AsConstExpr());
 		}

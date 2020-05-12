@@ -459,6 +459,7 @@ void RD_Decorate::TraverseSwitch(const SwitchStmt* sw)
 	sw_post_min_rds.release();
 	sw_post_max_rds.release();
 
+	block_defs.pop_back();
 	delete bd;
 	}
 

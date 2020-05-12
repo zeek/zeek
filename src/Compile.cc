@@ -768,7 +768,7 @@ IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 IntrusivePtr<Val> AbstractMachine::DoExec(Frame* f, int start_pc,
 						stmt_flow_type& flow) const
 	{
-	auto frame = new AS_ValUnion[frame_size];
+	auto frame = new AS_ValUnion[frame_size + 1];	// +1 for "extra slot"
 	int pc = start_pc;
 	bool error_flag = false;
 	int end_pc = stmts.size();
@@ -1365,14 +1365,14 @@ const CompiledStmt AbstractMachine::TypeSwitch(const SwitchStmt* sw,
 
 	if ( v && v->Type()->Tag() != TYPE_ANY )
 		{
-		auto s = AbstractStmt(OP_ASSIGNANY_VV, tmp, slot);
+		auto s = AbstractStmt(OP_ASSIGN_ANY_VV, tmp, slot);
 		body_end = AddStmt(s);
 		slot = tmp;
 		}
 
 	if ( c )
 		{
-		auto s = AbstractStmt(OP_ASSIGNANY_VC, tmp, c);
+		auto s = AbstractStmt(OP_ASSIGN_ANY_VC, tmp, c);
 		body_end = AddStmt(s);
 		slot = tmp;
 		}

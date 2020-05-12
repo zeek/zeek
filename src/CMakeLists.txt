@@ -345,7 +345,7 @@ elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "^(powerpc|ppc)")
   list(APPEND HH_SRCS
        3rdparty/highwayhash/highwayhash/hh_vsc.cc
   )
-else () # assume x64 - the google makefile does that too...
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "(x86_64)|(AMD64|amd64)")
   set_source_files_properties(3rdparty/highwayhash/highwayhash/hh_avx2.cc PROPERTIES COMPILE_FLAGS
                               -mavx2)
   set_source_files_properties(3rdparty/highwayhash/highwayhash/hh_sse41.cc PROPERTIES COMPILE_FLAGS

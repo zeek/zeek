@@ -762,7 +762,11 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 			else
 				test_var = op1_is_const ? "n" : "n1"
 
-			print ("\tauto t = " test_var "->Type();") >methods_f
+			print ("\tauto t = " test_var "->Type().get();") >methods_f
+
+			if ( is_vec )
+				print ("\tt = t->AsVectorType()->YieldType();") >methods_f
+
 			print ("\tauto tag = t->Tag();") >methods_f
 			print ("\tauto i_t = t->InternalType();") >methods_f
 

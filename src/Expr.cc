@@ -6105,7 +6105,7 @@ bool CallExpr::IsPure() const
 
 bool CallExpr::IsReduced() const
 	{
-	return func->IsReduced() && args->IsReduced();
+	return func->IsSingleton() && args->IsReduced();
 	}
 
 bool CallExpr::HasReducedOps() const
@@ -6129,7 +6129,7 @@ Expr* CallExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 
 	red_stmt = nullptr;
 
-	if ( ! func->IsReduced() )
+	if ( ! func->IsSingleton() )
 		func = {AdoptRef{}, func->ReduceToSingleton(c, red_stmt)};
 
 	IntrusivePtr<Stmt> red2_stmt;

@@ -3,7 +3,6 @@
 #pragma once
 
 #include "Hash.h"
-#include "highwayhash/sip_hash.h"
 
 #include <broker/expected.hh>
 

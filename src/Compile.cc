@@ -1150,13 +1150,14 @@ const CompiledStmt AbstractMachine::When(Expr* cond, const Stmt* body,
 const CompiledStmt AbstractMachine::Switch(const SwitchStmt* sw)
 	{
 	auto e = sw->StmtExpr();
+	auto t = e->Type()->Tag();
 
 	const NameExpr* n = e->Tag() == EXPR_NAME ? e->AsNameExpr() : nullptr;
 	const ConstExpr* c = e->Tag() == EXPR_CONST ? e->AsConstExpr() : nullptr;
 
 	auto val_map = sw->ValueMap();
 
-	if ( val_map->Length() > 0 )
+	if ( val_map->Length() > 0 || (t != TYPE_ANY && t != TYPE_TYPE) )
 		return ValueSwitch(sw, n, c);
 	else
 		return TypeSwitch(sw, n, c);

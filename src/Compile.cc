@@ -242,7 +242,7 @@ IntrusivePtr<Val> AS_ValUnion::ToVal(BroType* t) const
 typedef enum {
 	OP_X, OP_V, OP_VV, OP_VVV, OP_VVVV, OP_VVVC, OP_C, OP_VC, OP_VVC,
 	OP_E, OP_VE, OP_VV_FRAME, OP_VC_ID,
-	OP_V_I1, OP_VV_I2, OP_VVC_I2, OP_VVV_I3,
+	OP_V_I1, OP_VV_I2, OP_VVC_I2, OP_VVV_I3, OP_VVV_I2_I3,
 } AS_OpType;
 
 class AbstractStmt {
@@ -399,6 +399,7 @@ int AbstractStmt::NumFrameSlots() const
 	case OP_VV_I2:	return 1;
 	case OP_VVC_I2:	return 1;
 	case OP_VVV_I3:	return 2;
+	case OP_VVV_I2_I3:	return 1;
 	}
 	}
 
@@ -497,6 +498,10 @@ void AbstractStmt::Dump(const frame_map& frame_ids) const
 
 	case OP_VVV_I3:
 		printf("%s, %s, %d", id1, id2, v3);
+		break;
+
+	case OP_VVV_I2_I3:
+		printf("%s, %d, %d", id1, v2, v3);
 		break;
 	}
 
@@ -1146,79 +1151,122 @@ const CompiledStmt AbstractMachine::Switch(const SwitchStmt* sw)
 	{
 	auto e = sw->StmtExpr();
 
-	if ( e->Tag() == EXPR_CONST )
-		return ConstantSwitch(sw, e->AsConstExpr());
+	const NameExpr* n = e->Tag() == EXPR_NAME ? e->AsNameExpr() : nullptr;
+	const ConstExpr* c = e->Tag() == EXPR_CONST ? e->AsConstExpr() : nullptr;
 
-	auto var = e->AsNameExpr();
 	auto val_map = sw->ValueMap();
 
 	if ( val_map->Length() > 0 )
-		return ValueSwitch(sw, var);
+		return ValueSwitch(sw, n, c);
 	else
-		return TypeSwitch(sw, var);
-	}
-
-const CompiledStmt AbstractMachine::ConstantSwitch(const SwitchStmt* sw,
-							const ConstExpr* ce)
-	{
-	auto cases = sw->Cases();
-	auto val_map = sw->ValueMap();
-	auto type_map = sw->TypeMap();
-
-	auto v = ce->Value();
-
-	if ( val_map->Length() > 0 )
-		{
-		auto h = sw->CompHash();
-		HashKey* hk = h->ComputeHash(v, false);
-		auto idx_ptr = val_map->Lookup(hk);
-		delete hk;
-
-		if ( idx_ptr )
-			return (*cases)[*idx_ptr]->Body()->Compile(this);
-
-		return EmptyStmt();
-		}
-
-	for ( auto i : *type_map )
-		{
-		auto id = i.first;
-		auto type = id->Type();
-
-		if ( ! can_cast_value_to_type(v, type) )
-			continue;
-
-		auto tmp = RegisterSlot();
-		int idx = i.second;
-
-		AddStmt(AbstractStmt(OP_COPY_TO_VC, tmp, ce));
-		AddStmt(AbstractStmt(OP_CAST_VV, FrameSlot(id), tmp));
-
-		return (*cases)[idx]->Body()->Compile(this);
-		}
-
-	return EmptyStmt();
+		return TypeSwitch(sw, n, c);
 	}
 
 const CompiledStmt AbstractMachine::ValueSwitch(const SwitchStmt* sw,
-						const NameExpr* var)
+						const NameExpr* v,
+						const ConstExpr* c)
 	{
-	auto cases = sw->Cases();
-	auto val_map = sw->ValueMap();
-
-	// For compiled statements, it doesn't seem worth it (at least
-	// for now) to use the hashed lookup to do a branch table,
-	// as likely the number of cases doesn't get large enough to
-	// merit the overhead.  So we just generate if-else cascades.
-
 	auto body_end = EmptyStmt();
 
+	int slot = v ? FrameSlot(v) : 0;
+
+	if ( c )
+		{
+		// Weird to have a constant switch expression, enough
+		// so that it doesn't seem worth optimizing.
+		slot = RegisterSlot();
+		auto s = AbstractStmt(OP_ASSIGN_CONST_VC, slot, c);
+		body_end = AddStmt(s);
+		}
+
+	// Figure out which jump table we're using.
+	auto t = v ? v->Type() : c->Type();
+	int tbl = 0;
+	AbstractOp op;
+
+	switch ( t->InternalType() ) {
+	case TYPE_INTERNAL_INT:
+		op = OP_SWITCHI_VVV;
+		tbl = int_cases.size();
+		break;
+
+	case TYPE_INTERNAL_UNSIGNED:
+		op = OP_SWITCHU_VVV;
+		tbl = uint_cases.size();
+		break;
+
+	case TYPE_INTERNAL_DOUBLE:
+		op = OP_SWITCHD_VVV;
+		tbl = double_cases.size();
+		break;
+
+	case TYPE_INTERNAL_STRING:
+		op = OP_SWITCHS_VVV;
+		tbl = str_cases.size();
+		break;
+
+	case TYPE_INTERNAL_ADDR:
+		op = OP_SWITCHA_VVV;
+		tbl = str_cases.size();
+		break;
+
+	case TYPE_INTERNAL_SUBNET:
+		op = OP_SWITCHN_VVV;
+		tbl = str_cases.size();
+		break;
+
+	default:
+		reporter->InternalError("bad switch type");
+	}
+
+	// Add the "head", i.e., the execution of the jump table.
+	auto sw_head_op = AbstractStmt(op, slot, tbl, 0);
+	sw_head_op.op_type = OP_VVV_I2_I3;
+
+	auto sw_head = AddStmt(sw_head_op);
+	body_end = sw_head;
+
+	// Generate each of the cases.
+	auto cases = sw->Cases();
+	std::vector<CompiledStmt> case_start;
+
+	for ( auto c : *cases )
+		{
+		auto start = GoToTargetBeyond(body_end);
+		ResolveFallThroughs(start);
+		case_start.push_back(start);
+		body_end = c->Body()->Compile(this);
+		}
+
+	auto sw_end = GoToTargetBeyond(body_end);
+	ResolveFallThroughs(sw_end);
+	ResolveBreaks(sw_end);
+
+	int def_ind = sw->DefaultCaseIndex();
+	if ( def_ind >= 0 )
+		SetV3(sw_head, case_start[def_ind]);
+	else
+		SetV3(sw_head, sw_end);
+
+	// Now fill out the corresponding jump table.
+	//
+	// We will only use one of these.
+	CaseMap<bro_int_t> new_int_cases;
+	CaseMap<bro_uint_t> new_uint_cases;
+	CaseMap<double> new_double_cases;
+	CaseMap<std::string> new_str_cases;
+
+	auto val_map = sw->ValueMap();
+
+	// Ugh: the switch statement data structures don't store
+	// the values directly, so we have to back-scrape them from
+	// the interpreted jump table.
 	auto ch = sw->CompHash();
 
 	HashKey* k;
 	int* index;
-	IterCookie* c = val_map->InitForIteration();
-	while ( (index = val_map->NextEntry(k, c)) )
+	IterCookie* cookie = val_map->InitForIteration();
+	while ( (index = val_map->NextEntry(k, cookie)) )
 		{
 		auto case_val_list = ch->RecoverVals(k);
 		delete k;
@@ -1228,92 +1276,145 @@ const CompiledStmt AbstractMachine::ValueSwitch(const SwitchStmt* sw,
 		if ( case_vals->length() != 1 )
 			reporter->InternalError("bad recovered value when compiling switch");
 
-		IntrusivePtr<Val> case_val = {NewRef{}, (*case_vals)[0]};
+		auto cv = (*case_vals)[0];
+		auto case_body_start = case_start[*index].stmt_num;
 
-		AbstractOp op;
-
-		switch ( case_val->Type()->InternalType() ) {
+		switch ( cv->Type()->InternalType() ) {
 		case TYPE_INTERNAL_INT:
-			op = OP_BRANCH_IF_NOT_INT_VVC;
+			new_int_cases[cv->InternalInt()] = case_body_start;
 			break;
 
 		case TYPE_INTERNAL_UNSIGNED:
-			op = OP_BRANCH_IF_NOT_UINT_VVC;
-			break;
-
-		case TYPE_INTERNAL_ADDR:
-			op = OP_BRANCH_IF_NOT_ADDR_VVC;
-			break;
-
-		case TYPE_INTERNAL_SUBNET:
-			op = OP_BRANCH_IF_NOT_SUBNET_VVC;
+			new_uint_cases[cv->InternalUnsigned()] = case_body_start;
 			break;
 
 		case TYPE_INTERNAL_DOUBLE:
-			op = OP_BRANCH_IF_NOT_DOUBLE_VVC;
+			new_double_cases[cv->InternalDouble()] = case_body_start;
 			break;
 
 		case TYPE_INTERNAL_STRING:
-			op = OP_BRANCH_IF_NOT_STRING_VVC;
+			{
+			// This leaks, but only statically so not worth
+			// tracking the value for ultimate deletion.
+			auto sv = cv->AsString()->Render();
+			std::string s(sv);
+			new_str_cases[s] = case_body_start;
 			break;
+			}
+
+		case TYPE_INTERNAL_ADDR:
+			{
+			auto a = cv->AsAddr().AsString();
+			new_str_cases[a] = case_body_start;
+			break;
+			}
+
+		case TYPE_INTERNAL_SUBNET:
+			{
+			auto n = cv->AsSubNet().AsString();
+			new_str_cases[n] = case_body_start;
+			break;
+			}
 
 		default:
 			reporter->InternalError("bad recovered type when compiling switch");
 		}
-
-		ConstExpr ce(case_val);
-
-		AbstractStmt s(op, FrameSlot(var), 0, &ce);
-		s.t = case_val->Type();
-
-		body_end = BuildCase(s, (*cases)[*index]->Body());
 		}
 
-	return BuildDefault(sw, body_end);
+	// Now add the jump table to the set we're keeping for the
+	// corresponding type.
+
+	switch ( t->InternalType() ) {
+	case TYPE_INTERNAL_INT:
+		int_cases.push_back(new_int_cases);
+		break;
+
+	case TYPE_INTERNAL_UNSIGNED:
+		uint_cases.push_back(new_uint_cases);
+		break;
+
+	case TYPE_INTERNAL_DOUBLE:
+		double_cases.push_back(new_double_cases);
+		break;
+
+	case TYPE_INTERNAL_STRING:
+	case TYPE_INTERNAL_ADDR:
+	case TYPE_INTERNAL_SUBNET:
+		str_cases.push_back(new_str_cases);
+		break;
+
+	default:
+		reporter->InternalError("bad switch type");
+	}
+
+	return body_end;
 	}
 
 const CompiledStmt AbstractMachine::TypeSwitch(const SwitchStmt* sw,
-						const NameExpr* var)
+						const NameExpr* v,
+						const ConstExpr* c)
 	{
 	auto cases = sw->Cases();
 	auto type_map = sw->TypeMap();
 
 	auto body_end = EmptyStmt();
 
-	for ( auto i : *type_map )
+	auto tmp = RegisterSlot();
+
+	int slot = v ? FrameSlot(v) : 0;
+
+	if ( v && v->Type()->Tag() != TYPE_ANY )
+		{
+		auto s = AbstractStmt(OP_ASSIGNANY_VV, tmp, slot);
+		body_end = AddStmt(s);
+		slot = tmp;
+		}
+
+	if ( c )
+		{
+		auto s = AbstractStmt(OP_ASSIGNANY_VC, tmp, c);
+		body_end = AddStmt(s);
+		slot = tmp;
+		}
+
+	int def_ind = sw->DefaultCaseIndex();
+	CompiledStmt def_succ(0);	// successor to default, if any
+	bool saw_def_succ = false;	// whether def_succ is meaningful
+
+	for ( auto& i : *type_map )
 		{
 		auto id = i.first;
 		auto type = id->Type();
 
-		AbstractStmt s(OP_BRANCH_IF_NOT_TYPE_VV, FrameSlot(var), 0);
+		AbstractStmt s;
+
+		s = AbstractStmt(OP_BRANCH_IF_NOT_TYPE_VV, slot, 0);
 		s.t = type;
 		s.op_type = OP_VV_I2;
+		auto case_test = AddStmt(s);
 
-		body_end = BuildCase(s, (*cases)[i.second]->Body());
+		ResolveFallThroughs(GoToTargetBeyond(case_test));
+		body_end = (*cases)[i.second]->Body()->Compile(this);
+		SetV2(case_test, GoToTargetBeyond(body_end));
+
+		if ( def_ind >= 0 && i.second == def_ind + 1 )
+			{
+			def_succ = case_test;
+			saw_def_succ = true;
+			}
 		}
 
-	return BuildDefault(sw, body_end);
-	}
-
-const CompiledStmt AbstractMachine::BuildCase(AbstractStmt s, const Stmt* body)
-	{
-	auto case_test = AddStmt(s);
-	ResolveFallThroughs(GoToTargetBeyond(case_test));
-	auto body_end = body->Compile(this);
-	SetV2(case_test, GoToTargetBeyond(body_end));
-
-	return body_end;
-	}
-
-const CompiledStmt AbstractMachine::BuildDefault(const SwitchStmt* sw,
-							CompiledStmt body_end)
-	{
-	int def_ind = sw->DefaultCaseIndex();
+	ResolveFallThroughs(GoToTargetBeyond(body_end));
 
 	if ( def_ind >= 0 )
 		{
-		ResolveFallThroughs(GoToTargetBeyond(body_end));
 		body_end = (*sw->Cases())[def_ind]->Body()->Compile(this);
+
+		// Now resolve any fallthrough's in the default.
+		if ( saw_def_succ )
+			ResolveFallThroughs(GoToTargetBeyond(def_succ));
+		else
+			ResolveFallThroughs(GoToTargetBeyond(body_end));
 		}
 
 	ResolveBreaks(GoToTargetBeyond(body_end));
@@ -1630,11 +1731,52 @@ void AbstractMachine::Dump()
 	for ( auto frame_elem : frame_layout )
 		printf("frame[%d] = %s\n", frame_elem.second, frame_elem.first->Name());
 
+	for ( int i = 0; i < int_cases.size(); ++i )
+		DumpIntCases(i);
+	for ( int i = 0; i < uint_cases.size(); ++i )
+		DumpUIntCases(i);
+	for ( int i = 0; i < double_cases.size(); ++i )
+		DumpDoubleCases(i);
+	for ( int i = 0; i < str_cases.size(); ++i )
+		DumpStrCases(i);
+
 	for ( int i = 0; i < stmts.size(); ++i )
 		{
 		printf("%d: ", i);
 		stmts[i].Dump(frame_denizens);
 		}
+	}
+
+void AbstractMachine::DumpIntCases(int i) const
+	{
+	printf("int switch table #%d:", i);
+	for ( auto& m : int_cases[i] )
+		printf(" %lld->%d", m.first, m.second);
+	printf("\n");
+	}
+
+void AbstractMachine::DumpUIntCases(int i) const
+	{
+	printf("uint switch table #%d:", i);
+	for ( auto& m : uint_cases[i] )
+		printf(" %llu->%d", m.first, m.second);
+	printf("\n");
+	}
+
+void AbstractMachine::DumpDoubleCases(int i) const
+	{
+	printf("double switch table #%d:", i);
+	for ( auto& m : double_cases[i] )
+		printf(" %lf->%d", m.first, m.second);
+	printf("\n");
+	}
+
+void AbstractMachine::DumpStrCases(int i) const
+	{
+	printf("str switch table #%d:", i);
+	for ( auto& m : str_cases[i] )
+		printf(" %s->%d", m.first.c_str(), m.second);
+	printf("\n");
 	}
 
 const CompiledStmt AbstractMachine::CompileInExpr(const NameExpr* n1,
@@ -1925,8 +2067,10 @@ void AbstractMachine::SetV3(CompiledStmt s, const CompiledStmt s2)
 	{
 	auto& stmt = stmts[s.stmt_num];
 	stmt.v3 = s2.stmt_num;
-	ASSERT(stmt.op_type == OP_VVV || stmt.op_type == OP_VVV_I3);
-	stmt.op_type = OP_VVV_I3;
+	ASSERT(stmt.op_type == OP_VVV || stmt.op_type == OP_VVV_I3 ||
+		stmt.op_type == OP_VVV_I2_I3);
+	if ( stmt.op_type != OP_VVV_I2_I3 )
+		stmt.op_type = OP_VVV_I3;
 	}
 
 

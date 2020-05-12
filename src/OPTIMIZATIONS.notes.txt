@@ -30,3 +30,5 @@ could save grief/complexity by splitting out early (in the parser)
 	This would allow simplifications for gen-compiler-templates.sh.
 
 do global analysis for unused/ungenerated event handlers
+
+could consider introducing unordered_map's for high numbers of "switch" cases

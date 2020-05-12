@@ -593,34 +593,56 @@ eval ret_type = s.t
 eval pc = end_pc
 
 
+# Branch on the value of v1 using switch table v2, with default branch to v3
+internal-op SwitchI
+type VVV
+eval auto v = frame[s.v1].int_val
+eval auto t = int_cases[s.v2]
+eval if ( t.find(v) == t.end() ) pc = s.v3
+eval else pc = t[v]
+
+internal-op SwitchU
+type VVV
+eval auto v = frame[s.v1].uint_val
+eval auto t = uint_cases[s.v2]
+eval if ( t.find(v) == t.end() ) pc = s.v3
+eval else pc = t[v]
+
+internal-op SwitchD
+type VVV
+eval auto v = frame[s.v1].double_val
+eval auto t = double_cases[s.v2]
+eval if ( t.find(v) == t.end() ) pc = s.v3
+eval else pc = t[v]
+
+internal-op SwitchS
+type VVV
+eval auto vs = frame[s.v1].string_val->Render()
+eval std::string v(vs)
+eval auto t = str_cases[s.v2]
+eval if ( t.find(v) == t.end() ) pc = s.v3
+eval else pc = t[v]
+eval delete[] vs
+
+internal-op SwitchA
+type VVV
+eval auto v = frame[s.v1].addr_val->AsString()
+eval auto t = str_cases[s.v2]
+eval if ( t.find(v) == t.end() ) pc = s.v3
+eval else pc = t[v]
+
+internal-op SwitchN
+type VVV
+eval auto v = frame[s.v1].subnet_val->AsString()
+eval auto t = str_cases[s.v2]
+eval if ( t.find(v) == t.end() ) pc = s.v3
+eval else pc = t[v]
+
+
 internal-op Branch-If-Not-Type
 type VV
 eval auto v = frame[s.v1].any_val
 eval if ( ! can_cast_value_to_type(v, s.t) ) pc = s.v2;
-
-internal-op Branch-If-Not-Int
-type VVC
-eval if ( frame[s.v1].int_val != s.c.int_val ) pc = s.v2
-
-internal-op Branch-If-Not-UInt
-type VVC
-eval if ( frame[s.v1].uint_val != s.c.uint_val ) pc = s.v2
-
-internal-op Branch-If-Not-Addr
-type VVC
-eval if ( *frame[s.v1].addr_val != *s.c.addr_val ) pc = s.v2
-
-internal-op Branch-If-Not-Subnet
-type VVC
-eval if ( *frame[s.v1].subnet_val != *s.c.subnet_val ) pc = s.v2
-
-internal-op Branch-If-Not-Double
-type VVC
-eval if ( frame[s.v1].double_val != s.c.double_val ) pc = s.v2
-
-internal-op Branch-If-Not-String
-type VVC
-eval if ( ! ((*frame[s.v1].string_val) == (*s.c.string_val)) ) pc = s.v2
 
 
 internal-op Init-Table-Loop
@@ -814,6 +836,12 @@ set-type $2
 eval auto v = s.c.ToVal(s.t)
 eval vals.push_back(v)
 eval frame[s.v1].any_val = v.get()
+
+# Lazy way to assign without having to track the specific type of
+# a constant.
+internal-op Assign-Const
+type VC
+eval frame[s.v1] = BuildVal(s.c.ToVal(s.t), s.t, nullptr)
 
 internal-op Load-Val
 type VV

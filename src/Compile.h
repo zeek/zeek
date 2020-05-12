@@ -242,13 +242,10 @@ protected:
 
 	const CompiledStmt CompileEvent(EventHandler* h, const ListExpr* l);
 
-	const CompiledStmt ConstantSwitch(const SwitchStmt* sw,
-						const ConstExpr* ce);
-	const CompiledStmt ValueSwitch(const SwitchStmt* sw, const NameExpr* v);
-	const CompiledStmt TypeSwitch(const SwitchStmt* sw, const NameExpr* v);
-	const CompiledStmt BuildCase(AbstractStmt s, const Stmt* body);
-	const CompiledStmt BuildDefault(const SwitchStmt* sw,
-					CompiledStmt body_end);
+	const CompiledStmt ValueSwitch(const SwitchStmt* sw, const NameExpr* v,
+					const ConstExpr* c);
+	const CompiledStmt TypeSwitch(const SwitchStmt* sw, const NameExpr* v,
+					const ConstExpr* c);
 
 	ListVal* ValVecToListVal(val_vec* v, int n) const;
 
@@ -322,6 +319,26 @@ protected:
 	// and their corresponding type tags.
 	std::vector<int> managed_slots;
 	std::vector<TypeTag> managed_slot_types;
+
+	// The following are used for switch statements, mapping the
+	// switch value (which can be any atomic type) to a branch target.
+	// We have vectors of them because functions can contain multiple
+	// switches.
+	template<class T> using CaseMap = std::map<T, int>;
+	template<class T> using CaseMaps = std::vector<CaseMap<T>>;
+
+	CaseMaps<bro_int_t> int_cases;
+	CaseMaps<bro_uint_t> uint_cases;
+	CaseMaps<double> double_cases;
+
+	// Note, we use this not only for strings but for addresses
+	// and prefixes.
+	CaseMaps<std::string> str_cases;
+
+	void DumpIntCases(int i) const;
+	void DumpUIntCases(int i) const;
+	void DumpDoubleCases(int i) const;
+	void DumpStrCases(int i) const;
 
 	int frame_size;
 	int register_slot;

@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <string.h>
 #include <sys/types.h> // for u_char
+#include <cstdint>
 
 // Whenever subclassing the Reassembler class
 // you should add to this for known subclasses.

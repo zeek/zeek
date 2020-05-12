@@ -1,4 +1,47 @@
 
+3.2.0-dev.486 | 2020-05-11 11:11:51 -0700
+
+  * Limit rate at which MMDB error/status messages are emitted
+
+    If there's some bad state we can be in where MMDB lookup/open operations
+    consistently fail, then the volume of associated reporter messages can
+    get overwhelmingly large especially if a lookup operation is being done
+    for each network connection.
+
+    This adds a limit of an arbitrary 20 messages every 5 minutes, which
+    should be enough information to understand the overall
+    open/close/lookup-failure pattern. (Jon Siwek, Corelight)
+
+3.2.0-dev.484 | 2020-05-08 11:50:54 -0700
+
+  * Change timer_list in BroList to be an unordered list. (Tim Wojtulewicz, Corelight)
+
+    This type is used by Conn and Analyzer to hold onto timers being added and
+    removed. We don't expect the elements in those lists to maintain an order
+    as the list is being modified.
+
+  * Add ability for List to be ordered/unordered (Tim Wojtulewicz, Corelight)
+
+    This fixes a "bug" with List where remove_nth() can be an O(n) operation
+    when it doesn't need to be. remove_nth for lists that don't necessarily
+    need to keep an order can be an O(1) operation instead.
+
+  * Add unit testing for List (Tim Wojtulewicz, Corelight)
+
+  * Fix bug with List where replace() doesn't work with non-pointer types (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.478 | 2020-05-08 11:47:38 -0700
+
+  * Added examples to set_to_regex comments (James Lagermann, Corelight)
+
+  * Unbreak build on Fedora 32 (gcc 10.0.1) (Johanna Amann, Corelight)
+
+    It requires cstdint in a few more headers.
+
+3.2.0-dev.475 | 2020-05-07 17:15:23 -0700
+
+  * GH-958: Fix crash when trying to redef non-existing enum (Johanna Amann, Corelight)
+
 3.2.0-dev.473 | 2020-05-06 10:40:09 -0700
 
   * Revert addition of final modifier to JSON formatter (Tim Wojtulewicz, Corelight)

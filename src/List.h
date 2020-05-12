@@ -29,7 +29,9 @@
 // TODO: this can be removed in v3.1 when List::sort() is removed
 typedef int (*list_cmp_func)(const void* v1, const void* v2);
 
-template<typename T>
+enum class ListOrder : int { ORDERED, UNORDERED };
+
+template<typename T, ListOrder Order = ListOrder::ORDERED>
 class List {
 public:
 
@@ -195,13 +197,11 @@ public:
 
 	bool remove(const T& a)	// delete entry from list
 		{
-		for ( int i = 0; i < num_entries; ++i )
+		int pos = member_pos(a);
+		if ( pos != -1 )
 			{
-			if ( a == entries[i] )
-				{
-				remove_nth(i);
-				return true;
-				}
+			remove_nth(pos);
+			return true;
 			}
 
 		return false;
@@ -212,10 +212,22 @@ public:
 		assert(n >=0 && n < num_entries);
 
 		T old_ent = entries[n];
-		--num_entries;
 
-		for ( ; n < num_entries; ++n )
-			entries[n] = entries[n+1];
+		// For data where we don't care about ordering, we don't care about keeping
+		// the list in the same order when removing an element. Just swap the last
+		// element with the element being removed.
+		if constexpr ( Order == ListOrder::ORDERED )
+			{
+			--num_entries;
+
+			for ( ; n < num_entries; ++n )
+				entries[n] = entries[n+1];
+			}
+		else
+			{
+			entries[n] = entries[num_entries - 1];
+			--num_entries;
+			}
 
 		return old_ent;
 		}
@@ -240,16 +252,16 @@ public:
 	T replace(int ent_index, const T& new_ent)	// replace entry #i with a new value
 		{
 		if ( ent_index < 0 )
-			return 0;
+			return T{};
 
-		T old_ent = nullptr;
+		T old_ent{};
 
 		if ( ent_index > num_entries - 1 )
 			{ // replacement beyond the end of the list
 			resize(ent_index + 1);
 
 			for ( int i = num_entries; i < max_entries; ++i )
-				entries[i] = nullptr;
+				entries[i] = T{};
 			num_entries = max_entries;
 			}
 		else
@@ -318,8 +330,8 @@ protected:
 
 
 // Specialization of the List class to store pointers of a type.
-template<typename T>
-using PList = List<T*>;
+template<typename T, ListOrder Order = ListOrder::ORDERED>
+using PList = List<T*, Order>;
 
 // Popular type of list: list of strings.
 typedef PList<char> name_list;

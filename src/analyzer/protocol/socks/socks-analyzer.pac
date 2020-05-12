@@ -24,7 +24,8 @@ refine connection SOCKS_Conn += {
 		%{
 		if ( socks_request )
 			{
-			auto sa = make_intrusive<RecordVal>(zeek::vars::socks_address);
+			static auto socks_address = zeek::lookup_type<RecordType>("SOCKS::Address");
+			auto sa = make_intrusive<RecordVal>(socks_address);
 			sa->Assign(0, make_intrusive<AddrVal>(htonl(${request.addr})));
 
 			if ( ${request.v4a} )
@@ -48,7 +49,8 @@ refine connection SOCKS_Conn += {
 		%{
 		if ( socks_reply )
 			{
-			auto sa = make_intrusive<RecordVal>(zeek::vars::socks_address);
+			static auto socks_address = zeek::lookup_type<RecordType>("SOCKS::Address");
+			auto sa = make_intrusive<RecordVal>(socks_address);
 			sa->Assign(0, make_intrusive<AddrVal>(htonl(${reply.addr})));
 
 			BifEvent::enqueue_socks_reply(bro_analyzer(),
@@ -80,7 +82,8 @@ refine connection SOCKS_Conn += {
 			return false;
 			}
 
-		auto sa = make_intrusive<RecordVal>(zeek::vars::socks_address);
+		static auto socks_address = zeek::lookup_type<RecordType>("SOCKS::Address");
+		auto sa = make_intrusive<RecordVal>(socks_address);
 
 		// This is dumb and there must be a better way (checking for presence of a field)...
 		switch ( ${request.remote_name.addr_type} )
@@ -119,7 +122,8 @@ refine connection SOCKS_Conn += {
 
 	function socks5_reply(reply: SOCKS5_Reply): bool
 		%{
-		auto sa = make_intrusive<RecordVal>(zeek::vars::socks_address);
+		static auto socks_address = zeek::lookup_type<RecordType>("SOCKS::Address");
+		auto sa = make_intrusive<RecordVal>(socks_address);
 
 		// This is dumb and there must be a better way (checking for presence of a field)...
 		switch ( ${reply.bound.addr_type} )

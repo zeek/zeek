@@ -171,8 +171,8 @@ Deprecated Functionality
 
 - ``Val::Type()`` is deprecated, use ``Val::GetType``.
 
-- Most global type/value pointers in NetVar.h are deprecated, but there's
-  analogous ``IntrusivePtr`` in ``zeek::vars``.
+- Most global type/value pointers in NetVar.h are deprecated, but one can
+  still always perform the lookup themselves.
 
 Zeek 3.1.0
 ==========

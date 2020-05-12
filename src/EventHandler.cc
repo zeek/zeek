@@ -5,6 +5,7 @@
 #include "Scope.h"
 #include "NetVar.h"
 #include "ID.h"
+#include "Var.h"
 
 #include "broker/Manager.h"
 #include "broker/Data.h"
@@ -127,7 +128,8 @@ void EventHandler::NewEvent(const zeek::Args& vl)
 		return;
 
 	RecordType* args = FType()->Args();
-	auto vargs = make_intrusive<VectorVal>(zeek::vars::call_argument_vector);
+	static auto call_argument_vector = zeek::lookup_type<VectorType>("call_argument_vector");
+	auto vargs = make_intrusive<VectorVal>(call_argument_vector);
 
 	for ( int i = 0; i < args->NumFields(); i++ )
 		{
@@ -135,7 +137,8 @@ void EventHandler::NewEvent(const zeek::Args& vl)
 		const auto& ftype = args->GetFieldType(i);
 		auto fdefault = args->FieldDefault(i);
 
-		auto rec = make_intrusive<RecordVal>(zeek::vars::call_argument);
+		static auto call_argument = zeek::lookup_type<RecordType>("call_argument");
+		auto rec = make_intrusive<RecordVal>(call_argument);
 		rec->Assign(0, make_intrusive<StringVal>(fname));
 
 		ODesc d;

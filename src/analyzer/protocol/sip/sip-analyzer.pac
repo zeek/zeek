@@ -67,7 +67,8 @@ refine flow SIP_Flow += {
 
 	function build_sip_headers_val(): BroVal
 		%{
-		TableVal* t = new TableVal(zeek::vars::mime_header_list);
+		static auto mime_header_list = zeek::lookup_type<TableType>("mime_header_list");
+		TableVal* t = new TableVal(mime_header_list);
 
 		for ( unsigned int i = 0; i < headers.size(); ++i )
 			{ // index starting from 1
@@ -101,7 +102,8 @@ refine flow SIP_Flow += {
 
 	function build_sip_header_val(name: const_bytestring, value: const_bytestring): BroVal
 		%{
-		RecordVal* header_record = new RecordVal(zeek::vars::mime_header_rec);
+		static auto mime_header_rec = zeek::lookup_type<RecordType>("mime_header_rec");
+		RecordVal* header_record = new RecordVal(mime_header_rec);
 		IntrusivePtr<StringVal> name_val;
 
 		if ( name.length() > 0 )

@@ -1051,7 +1051,8 @@ function find_entropy%(data: string%): entropy_test_result
 	e.Feed(data->Bytes(), data->Len());
 	e.Get(&ent, &chisq, &mean, &montepi, &scc);
 
-	auto ent_result = make_intrusive<RecordVal>(zeek::vars::entropy_test_result);
+	static auto entropy_test_result = zeek::lookup_type<RecordType>("entropy_test_result");
+	auto ent_result = make_intrusive<RecordVal>(entropy_test_result);
 	ent_result->Assign(0, make_intrusive<Val>(ent,     TYPE_DOUBLE));
 	ent_result->Assign(1, make_intrusive<Val>(chisq,   TYPE_DOUBLE));
 	ent_result->Assign(2, make_intrusive<Val>(mean,    TYPE_DOUBLE));
@@ -1102,7 +1103,8 @@ function entropy_test_finish%(handle: opaque of entropy%): entropy_test_result
 	montepi = scc = ent = mean = chisq = 0.0;
 	static_cast<EntropyVal*>(handle)->Get(&ent, &chisq, &mean, &montepi, &scc);
 
-	auto ent_result = make_intrusive<RecordVal>(zeek::vars::entropy_test_result);
+	static auto entropy_test_result = zeek::lookup_type<RecordType>("entropy_test_result");
+	auto ent_result = make_intrusive<RecordVal>(entropy_test_result);
 	ent_result->Assign(0, make_intrusive<Val>(ent,     TYPE_DOUBLE));
 	ent_result->Assign(1, make_intrusive<Val>(chisq,   TYPE_DOUBLE));
 	ent_result->Assign(2, make_intrusive<Val>(mean,    TYPE_DOUBLE));
@@ -1939,13 +1941,15 @@ function global_sizes%(%): var_sizes
 ## .. zeek:see:: global_sizes
 function global_ids%(%): id_table
 	%{
-	auto ids = make_intrusive<TableVal>(zeek::vars::id_table);
+	static auto id_table = zeek::lookup_type<TableType>("id_table");
+	auto ids = make_intrusive<TableVal>(id_table);
 	const auto& globals = global_scope()->Vars();
 
 	for ( const auto& global : globals )
 		{
 		ID* id = global.second.get();
-		auto rec = make_intrusive<RecordVal>(zeek::vars::script_id);
+		static auto script_id = zeek::lookup_type<RecordType>("script_id");
+		auto rec = make_intrusive<RecordVal>(script_id);
 		rec->Assign(0, make_intrusive<StringVal>(type_name(id->GetType()->Tag())));
 		rec->Assign(1, val_mgr->Bool(id->IsExport()));
 		rec->Assign(2, val_mgr->Bool(id->IsConst()));
@@ -1990,6 +1994,8 @@ function lookup_ID%(id: string%) : any
 ## Returns: A table that describes the fields of a record.
 function record_fields%(rec: any%): record_field_table
 	%{
+	static auto record_field_table = zeek::lookup_type<TableType>("record_field_table");
+
 	if ( rec->GetType()->Tag() == TYPE_STRING )
 		{
 		auto id = global_scope()->Lookup(rec->AsStringVal()->ToStdString());
@@ -1997,7 +2003,7 @@ function record_fields%(rec: any%): record_field_table
 		if ( ! id || ! id->IsType() || id->GetType()->Tag() != TYPE_RECORD )
 			{
 			reporter->Error("record_fields string argument does not name a record type");
-			return make_intrusive<TableVal>(zeek::vars::record_field_table);
+			return make_intrusive<TableVal>(record_field_table);
 			}
 
 		return id->GetType()->AsRecordType()->GetRecordFieldsVal();
@@ -3295,7 +3301,7 @@ function lookup_connection%(cid: conn_id%): connection
 	builtin_error("connection ID not a known connection", cid);
 
 	// Return a dummy connection record.
-	auto c = make_intrusive<RecordVal>(zeek::vars::connection_type);
+	auto c = make_intrusive<RecordVal>(zeek::vars::connection);
 
 	auto id_val = make_intrusive<RecordVal>(zeek::vars::conn_id);
 	id_val->Assign(0, make_intrusive<AddrVal>((unsigned int) 0));
@@ -3379,8 +3385,9 @@ function dump_current_packet%(file_name: string%) : bool
 ## .. zeek:see:: dump_current_packet dump_packet
 function get_current_packet%(%) : pcap_packet
 	%{
+	static auto pcap_packet = zeek::lookup_type<RecordType>("pcap_packet");
 	const Packet* p;
-	auto pkt = make_intrusive<RecordVal>(zeek::vars::pcap_packet);
+	auto pkt = make_intrusive<RecordVal>(pcap_packet);
 
 	if ( ! current_pktsrc ||
 	     ! current_pktsrc->GetCurrentPacket(&p) )
@@ -3420,7 +3427,8 @@ function get_current_packet_header%(%) : raw_pkt_hdr
 		return p->ToRawPktHdrVal();
 		}
 
-	auto hdr = make_intrusive<RecordVal>(zeek::vars::raw_pkt_hdr_type);
+	static auto raw_pkt_hdr_type = zeek::lookup_type<RecordType>("raw_pkt_hdr");
+	auto hdr = make_intrusive<RecordVal>(raw_pkt_hdr_type);
 	return hdr;
 	%}
 
@@ -3990,7 +3998,8 @@ function mmdb_open_asn_db%(f: string%) : bool
 ## .. zeek:see:: lookup_asn
 function lookup_location%(a: addr%) : geo_location
 	%{
-	auto location = make_intrusive<RecordVal>(zeek::vars::geo_location);
+	static auto geo_location = zeek::lookup_type<RecordType>("geo_location");
+	auto location = make_intrusive<RecordVal>(geo_location);
 
 #ifdef USE_GEOIP
 	mmdb_check_loc();
@@ -4621,7 +4630,8 @@ function rotate_file%(f: file%): rotate_info
 		return info;
 
 	// Record indicating error.
-	info = make_intrusive<RecordVal>(zeek::vars::rotate_info);
+	static auto rotate_info = zeek::lookup_type<RecordType>("rotate_info");
+	info = make_intrusive<RecordVal>(rotate_info);
 	info->Assign(0, val_mgr->EmptyString());
 	info->Assign(1, val_mgr->EmptyString());
 	info->Assign(2, make_intrusive<Val>(0.0, TYPE_TIME));
@@ -4640,7 +4650,8 @@ function rotate_file%(f: file%): rotate_info
 ## .. zeek:see:: rotate_file calc_next_rotate
 function rotate_file_by_name%(f: string%): rotate_info
 	%{
-	auto info = make_intrusive<RecordVal>(zeek::vars::rotate_info);
+	static auto rotate_info = zeek::lookup_type<RecordType>("rotate_info");
+	auto info = make_intrusive<RecordVal>(rotate_info);
 
 	bool is_pkt_dumper = false;
 	bool is_addl_pkt_dumper = false;

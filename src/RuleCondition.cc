@@ -145,8 +145,9 @@ RuleConditionEval::RuleConditionEval(const char* func)
 		if ( f->Yield()->Tag() != TYPE_BOOL )
 			rules_error("eval function type must yield a 'bool'", func);
 
+		static auto signature_state = zeek::lookup_type<RecordType>("signature_state");
 		TypeList tl;
-		tl.Append(zeek::vars::signature_state);
+		tl.Append(signature_state);
 		tl.Append(base_type(TYPE_STRING));
 
 		if ( ! f->CheckArgs(tl.Types()) )

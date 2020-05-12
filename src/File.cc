@@ -29,6 +29,7 @@
 #include "Event.h"
 #include "Reporter.h"
 #include "Desc.h"
+#include "Var.h"
 
 std::list<std::pair<std::string, BroFile*>> BroFile::open_files;
 
@@ -277,7 +278,8 @@ RecordVal* BroFile::Rotate()
 	if ( f == stdin || f == stdout || f == stderr )
 		return nullptr;
 
-	RecordVal* info = new RecordVal(zeek::vars::rotate_info);
+	static auto rotate_info = zeek::lookup_type<RecordType>("rotate_info");
+	RecordVal* info = new RecordVal(rotate_info);
 	FILE* newf = rotate_file(name, info);
 
 	if ( ! newf )

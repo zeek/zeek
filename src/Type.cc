@@ -796,7 +796,9 @@ static string container_type_name(const BroType* ft)
 
 IntrusivePtr<TableVal> RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 	{
-	auto rval = make_intrusive<TableVal>(zeek::lookup_type<TableType>("record_field_table"));
+	static auto record_field = zeek::lookup_type<RecordType>("record_field");
+	static auto record_field_table = zeek::lookup_type<TableType>("record_field_table");
+	auto rval = make_intrusive<TableVal>(record_field_table);
 
 	for ( int i = 0; i < NumFields(); ++i )
 		{
@@ -812,7 +814,7 @@ IntrusivePtr<TableVal> RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 
 		bool logged = (fd->attrs && fd->FindAttr(ATTR_LOG) != nullptr);
 
-		auto nr = make_intrusive<RecordVal>(zeek::lookup_type("record_field")->AsRecordType());
+		auto nr = make_intrusive<RecordVal>(record_field);
 
 		string s = container_type_name(ft.get());
 		nr->Assign(0, make_intrusive<StringVal>(s));

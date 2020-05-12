@@ -44,6 +44,8 @@ inline void IRC_Analyzer::SkipLeadingWhitespace(string& str)
 
 void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	{
+	static auto irc_join_list = zeek::lookup_type<TableType>("irc_join_list");
+	static auto irc_join_info = zeek::lookup_type<RecordType>("irc_join_info");
 	tcp::TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
 
 	if ( starttls )
@@ -836,7 +838,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				nickname = prefix.substr(0, pos);
 			}
 
-		auto list = make_intrusive<TableVal>(zeek::vars::irc_join_list);
+		auto list = make_intrusive<TableVal>(irc_join_list);
 
 		vector<string> channels = SplitWords(parts[0], ',');
 		vector<string> passwords;
@@ -847,7 +849,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		string empty_string = "";
 		for ( unsigned int i = 0; i < channels.size(); ++i )
 			{
-			RecordVal* info = new RecordVal(zeek::vars::irc_join_info);
+			RecordVal* info = new RecordVal(irc_join_info);
 			info->Assign(0, make_intrusive<StringVal>(nickname.c_str()));
 			info->Assign(1, make_intrusive<StringVal>(channels[i].c_str()));
 			if ( i < passwords.size() )
@@ -881,13 +883,13 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			parts[1] = parts[1].substr(1);
 
 		vector<string> users = SplitWords(parts[1], ',');
-		auto list = make_intrusive<TableVal>(zeek::vars::irc_join_list);
+		auto list = make_intrusive<TableVal>(irc_join_list);
 
 		string empty_string = "";
 
 		for ( unsigned int i = 0; i < users.size(); ++i )
 			{
-			auto info = make_intrusive<RecordVal>(zeek::vars::irc_join_info);
+			auto info = make_intrusive<RecordVal>(irc_join_info);
 			string nick = users[i];
 			string mode = "none";
 

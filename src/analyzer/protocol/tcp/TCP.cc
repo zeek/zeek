@@ -107,7 +107,8 @@ static RecordVal* build_syn_packet_val(bool is_orig, const IP_Hdr* ip,
 		options += opt_len;
 		}
 
-	RecordVal* v = new RecordVal(zeek::vars::SYN_packet);
+	static auto SYN_packet = zeek::lookup_type<RecordType>("SYN_packet");
+	RecordVal* v = new RecordVal(SYN_packet);
 
 	v->Assign(0, val_mgr->Bool(is_orig));
 	v->Assign(1, val_mgr->Bool(int(ip->DF())));
@@ -2077,7 +2078,8 @@ bool TCPStats_Endpoint::DataSent(double /* t */, uint64_t seq, int len, int capl
 
 RecordVal* TCPStats_Endpoint::BuildStats()
 	{
-	RecordVal* stats = new RecordVal(zeek::vars::endpoint_stats);
+	static auto endpoint_stats = zeek::lookup_type<RecordType>("endpoint_stats");
+	RecordVal* stats = new RecordVal(endpoint_stats);
 
 	stats->Assign(0, val_mgr->Count(num_pkts));
 	stats->Assign(1, val_mgr->Count(num_rxmit));

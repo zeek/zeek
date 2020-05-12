@@ -411,12 +411,13 @@ bool Val::WouldOverflow(const BroType* from_type, const BroType* to_type, const 
 
 IntrusivePtr<TableVal> Val::GetRecordFields()
 	{
+	static auto record_field_table = zeek::lookup_type<TableType>("record_field_table");
 	auto t = GetType().get();
 
 	if ( t->Tag() != TYPE_RECORD && t->Tag() != TYPE_TYPE )
 		{
 		reporter->Error("non-record value/type passed to record_fields");
-		return make_intrusive<TableVal>(zeek::lookup_type<TableType>("record_field_table"));
+		return make_intrusive<TableVal>(record_field_table);
 		}
 
 	RecordType* rt = nullptr;
@@ -434,7 +435,7 @@ IntrusivePtr<TableVal> Val::GetRecordFields()
 		if ( t->Tag() != TYPE_RECORD )
 			{
 			reporter->Error("non-record value/type passed to record_fields");
-			return make_intrusive<TableVal>(zeek::lookup_type<TableType>("record_field_table"));
+			return make_intrusive<TableVal>(record_field_table);
 			}
 
 		rt = t->AsRecordType();

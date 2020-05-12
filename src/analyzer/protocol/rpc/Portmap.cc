@@ -138,7 +138,8 @@ bool PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status statu
 		event = success ? pm_request_dump : pm_attempt_dump;
 		if ( success )
 			{
-			TableVal* mappings = new TableVal(zeek::vars::pm_mappings);
+			static auto pm_mappings = zeek::lookup_type<TableType>("pm_mappings");
+			TableVal* mappings = new TableVal(pm_mappings);
 			uint32_t nmap = 0;
 
 			// Each call in the loop test pulls the next "opted"
@@ -193,7 +194,8 @@ bool PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status statu
 
 Val* PortmapperInterp::ExtractMapping(const u_char*& buf, int& len)
 	{
-	RecordVal* mapping = new RecordVal(zeek::vars::pm_mapping);
+	static auto pm_mapping = zeek::lookup_type<RecordType>("pm_mapping");
+	RecordVal* mapping = new RecordVal(pm_mapping);
 
 	mapping->Assign(0, val_mgr->Count(extract_XDR_uint32(buf, len)));
 	mapping->Assign(1, val_mgr->Count(extract_XDR_uint32(buf, len)));
@@ -213,7 +215,8 @@ Val* PortmapperInterp::ExtractMapping(const u_char*& buf, int& len)
 
 Val* PortmapperInterp::ExtractPortRequest(const u_char*& buf, int& len)
 	{
-	RecordVal* pr = new RecordVal(zeek::vars::pm_port_request);
+	static auto pm_port_request = zeek::lookup_type<RecordType>("pm_port_request");
+	RecordVal* pr = new RecordVal(pm_port_request);
 
 	pr->Assign(0, val_mgr->Count(extract_XDR_uint32(buf, len)));
 	pr->Assign(1, val_mgr->Count(extract_XDR_uint32(buf, len)));
@@ -233,7 +236,8 @@ Val* PortmapperInterp::ExtractPortRequest(const u_char*& buf, int& len)
 
 Val* PortmapperInterp::ExtractCallItRequest(const u_char*& buf, int& len)
 	{
-	RecordVal* c = new RecordVal(zeek::vars::pm_callit_request);
+	static auto pm_callit_request = zeek::lookup_type<RecordType>("pm_callit_request");
+	RecordVal* c = new RecordVal(pm_callit_request);
 
 	c->Assign(0, val_mgr->Count(extract_XDR_uint32(buf, len)));
 	c->Assign(1, val_mgr->Count(extract_XDR_uint32(buf, len)));

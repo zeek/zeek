@@ -26,7 +26,7 @@ static Val* empty_connection_table()
 	auto tbl_index = make_intrusive<TypeList>(zeek::vars::conn_id);
 	tbl_index->Append(zeek::vars::conn_id);
 	auto tbl_type = make_intrusive<TableType>(std::move(tbl_index),
-	                                          zeek::vars::connection_type);
+	                                          zeek::vars::connection);
 	return new TableVal(std::move(tbl_type));
 	}
 
@@ -62,22 +62,22 @@ void File::StaticInit()
 	if ( id_idx != -1 )
 		return;
 
-	id_idx = Idx("id", zeek::vars::fa_file_type);
-	parent_id_idx = Idx("parent_id", zeek::vars::fa_file_type);
-	source_idx = Idx("source", zeek::vars::fa_file_type);
-	is_orig_idx = Idx("is_orig", zeek::vars::fa_file_type);
-	conns_idx = Idx("conns", zeek::vars::fa_file_type);
-	last_active_idx = Idx("last_active", zeek::vars::fa_file_type);
-	seen_bytes_idx = Idx("seen_bytes", zeek::vars::fa_file_type);
-	total_bytes_idx = Idx("total_bytes", zeek::vars::fa_file_type);
-	missing_bytes_idx = Idx("missing_bytes", zeek::vars::fa_file_type);
-	overflow_bytes_idx = Idx("overflow_bytes", zeek::vars::fa_file_type);
-	timeout_interval_idx = Idx("timeout_interval", zeek::vars::fa_file_type);
-	bof_buffer_size_idx = Idx("bof_buffer_size", zeek::vars::fa_file_type);
-	bof_buffer_idx = Idx("bof_buffer", zeek::vars::fa_file_type);
-	meta_mime_type_idx = Idx("mime_type", zeek::vars::fa_metadata_type);
-	meta_mime_types_idx = Idx("mime_types", zeek::vars::fa_metadata_type);
-	meta_inferred_idx = Idx("inferred", zeek::vars::fa_metadata_type);
+	id_idx = Idx("id", zeek::vars::fa_file);
+	parent_id_idx = Idx("parent_id", zeek::vars::fa_file);
+	source_idx = Idx("source", zeek::vars::fa_file);
+	is_orig_idx = Idx("is_orig", zeek::vars::fa_file);
+	conns_idx = Idx("conns", zeek::vars::fa_file);
+	last_active_idx = Idx("last_active", zeek::vars::fa_file);
+	seen_bytes_idx = Idx("seen_bytes", zeek::vars::fa_file);
+	total_bytes_idx = Idx("total_bytes", zeek::vars::fa_file);
+	missing_bytes_idx = Idx("missing_bytes", zeek::vars::fa_file);
+	overflow_bytes_idx = Idx("overflow_bytes", zeek::vars::fa_file);
+	timeout_interval_idx = Idx("timeout_interval", zeek::vars::fa_file);
+	bof_buffer_size_idx = Idx("bof_buffer_size", zeek::vars::fa_file);
+	bof_buffer_idx = Idx("bof_buffer", zeek::vars::fa_file);
+	meta_mime_type_idx = Idx("mime_type", zeek::vars::fa_metadata);
+	meta_mime_types_idx = Idx("mime_types", zeek::vars::fa_metadata);
+	meta_inferred_idx = Idx("inferred", zeek::vars::fa_metadata);
 	}
 
 File::File(const std::string& file_id, const std::string& source_name, Connection* conn,
@@ -91,7 +91,7 @@ File::File(const std::string& file_id, const std::string& source_name, Connectio
 
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Creating new File object", file_id.c_str());
 
-	val = new RecordVal(zeek::vars::fa_file_type);
+	val = new RecordVal(zeek::vars::fa_file);
 	val->Assign(id_idx, make_intrusive<StringVal>(file_id.c_str()));
 	SetSource(source_name);
 
@@ -295,7 +295,7 @@ bool File::SetMime(const std::string& mime_type)
 	if ( ! FileEventAvailable(file_sniff) )
 		return false;
 
-	auto meta = make_intrusive<RecordVal>(zeek::vars::fa_metadata_type);
+	auto meta = make_intrusive<RecordVal>(zeek::vars::fa_metadata);
 	meta->Assign(meta_mime_type_idx, make_intrusive<StringVal>(mime_type));
 	meta->Assign(meta_inferred_idx, val_mgr->False());
 
@@ -328,7 +328,7 @@ void File::InferMetadata()
 	len = std::min(len, LookupFieldDefaultCount(bof_buffer_size_idx));
 	file_mgr->DetectMIME(data, len, &matches);
 
-	auto meta = make_intrusive<RecordVal>(zeek::vars::fa_metadata_type);
+	auto meta = make_intrusive<RecordVal>(zeek::vars::fa_metadata);
 
 	if ( ! matches.empty() )
 		{

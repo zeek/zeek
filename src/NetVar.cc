@@ -226,7 +226,7 @@ void init_net_var()
 #include "reporter.bif.netvar_init"
 #include "supervisor.bif.netvar_init"
 
-	zeek::vars::detail::Init();
+	zeek::vars::detail::init();
 
 	ignore_checksums = opt_internal_int("ignore_checksums");
 	partial_connection_ok = opt_internal_int("partial_connection_ok");

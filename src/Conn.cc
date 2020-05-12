@@ -346,7 +346,7 @@ const IntrusivePtr<RecordVal>& Connection::ConnVal()
 	{
 	if ( ! conn_val )
 		{
-		conn_val = make_intrusive<RecordVal>(zeek::vars::connection_type);
+		conn_val = make_intrusive<RecordVal>(zeek::vars::connection);
 
 		TransportProto prot_type = ConnTransport();
 

@@ -931,6 +931,8 @@ protected:
 class RecordVal final : public Val, public notifier::Modifiable {
 public:
 	explicit RecordVal(RecordType* t, bool init_fields = true);
+	explicit RecordVal(IntrusivePtr<RecordType> t, bool init_fields = true);
+
 	~RecordVal() override;
 
 	IntrusivePtr<Val> SizeVal() const override;

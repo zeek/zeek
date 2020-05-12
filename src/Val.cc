@@ -2649,14 +2649,19 @@ TableVal::TableRecordDependencies TableVal::parse_time_table_record_dependencies
 
 RecordVal::RecordTypeValMap RecordVal::parse_time_records;
 
-RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(IntrusivePtr{NewRef{}, t})
+RecordVal::RecordVal(RecordType* t, bool init_fields)
+	: RecordVal({NewRef{}, t}, init_fields)
+	{}
+
+RecordVal::RecordVal(IntrusivePtr<RecordType> t, bool init_fields) : Val(std::move(t))
 	{
 	origin = nullptr;
-	int n = t->NumFields();
+	auto rt = GetType()->AsRecordType();
+	int n = rt->NumFields();
 	val_list* vl = val.val_list_val = new val_list(n);
 
 	if ( is_parsing )
-		parse_time_records[t].emplace_back(NewRef{}, this);
+		parse_time_records[rt].emplace_back(NewRef{}, this);
 
 	if ( ! init_fields )
 		return;
@@ -2665,10 +2670,10 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(IntrusivePtr{NewRef{
 	// by default).
 	for ( int i = 0; i < n; ++i )
 		{
-		Attributes* a = t->FieldDecl(i)->attrs.get();
+		Attributes* a = rt->FieldDecl(i)->attrs.get();
 		Attr* def_attr = a ? a->FindAttr(ATTR_DEFAULT) : nullptr;
 		auto def = def_attr ? def_attr->AttrExpr()->Eval(nullptr) : nullptr;
-		const auto& type = t->FieldDecl(i)->type;
+		const auto& type = rt->FieldDecl(i)->type;
 
 		if ( def && type->Tag() == TYPE_RECORD &&
 		     def->GetType()->Tag() == TYPE_RECORD &&

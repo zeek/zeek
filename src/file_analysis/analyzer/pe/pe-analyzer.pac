@@ -11,7 +11,7 @@ VectorVal* process_rvas(const RVAS* rvas);
 %code{
 VectorVal* process_rvas(const RVAS* rva_table)
 	{
-	auto rvas = make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("index_vec"));
+	auto rvas = make_intrusive<VectorVal>(zeek::vars::index_vec);
 
 	for ( uint16 i=0; i < rva_table->rvas()->size(); ++i )
 		rvas->Assign(i, val_mgr->Count((*rva_table->rvas())[i]->size()));
@@ -26,7 +26,7 @@ refine flow File += {
 	function characteristics_to_bro(c: uint32, len: uint8): TableVal
 		%{
 		uint64 mask = (len==16) ? 0xFFFF : 0xFFFFFFFF;
-		TableVal* char_set = new TableVal(zeek::lookup_type<TableType>("count_set"));
+		TableVal* char_set = new TableVal(zeek::vars::count_set);
 		for ( uint16 i=0; i < len; ++i )
 			{
 			if ( ((c >> i) & 0x1) == 1 )

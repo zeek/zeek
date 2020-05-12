@@ -328,7 +328,7 @@ zeek::Args NFS_Interp::event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_
 	zeek::Args vl;
 	vl.reserve(2 + extra_elements);
 	vl.emplace_back(analyzer->ConnVal());
-	auto auxgids = make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("index_vec"));
+	auto auxgids = make_intrusive<VectorVal>(zeek::vars::index_vec);
 
 	for ( size_t i = 0; i < c->AuxGIDs().size(); ++i )
 		auxgids->Assign(i, val_mgr->Count(c->AuxGIDs()[i]));

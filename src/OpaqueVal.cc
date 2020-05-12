@@ -981,7 +981,7 @@ ParaglobVal::ParaglobVal(std::unique_ptr<paraglob::Paraglob> p)
 
 IntrusivePtr<VectorVal> ParaglobVal::Get(StringVal* &pattern)
 	{
-	auto rval = make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("string_vec"));
+	auto rval = make_intrusive<VectorVal>(zeek::vars::string_vec);
 	std::string string_pattern (reinterpret_cast<const char*>(pattern->Bytes()), pattern->Len());
 
 	std::vector<std::string> matches = this->internal_paraglob->get(string_pattern);

@@ -593,8 +593,8 @@ void Packet::ProcessLayer2()
 
 IntrusivePtr<RecordVal> Packet::ToRawPktHdrVal() const
 	{
-	auto pkt_hdr = make_intrusive<RecordVal>(raw_pkt_hdr_type);
-	RecordVal* l2_hdr = new RecordVal(l2_hdr_type);
+	auto pkt_hdr = make_intrusive<RecordVal>(zeek::vars::raw_pkt_hdr_type);
+	RecordVal* l2_hdr = new RecordVal(zeek::vars::l2_hdr_type);
 
 	bool is_ethernet = link_type == DLT_EN10MB;
 

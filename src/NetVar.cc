@@ -7,8 +7,6 @@
 #include "EventHandler.h"
 #include "Val.h"
 
-using namespace zeek;
-
 RecordType* conn_id;
 RecordType* endpoint;
 RecordType* endpoint_stats;
@@ -207,7 +205,6 @@ void init_general_global_var()
 	table_expire_delay = opt_internal_double("table_expire_delay");
 	table_incremental_step = opt_internal_int("table_incremental_step");
 
-	rotate_info = lookup_type("rotate_info")->AsRecordType();
 	log_rotate_base_time = opt_internal_string("log_rotate_base_time");
 
 	peer_description =
@@ -241,26 +238,7 @@ void init_net_var()
 #include "reporter.bif.netvar_init"
 #include "supervisor.bif.netvar_init"
 
-	conn_id = lookup_type("conn_id")->AsRecordType();
-	endpoint = lookup_type("endpoint")->AsRecordType();
-	endpoint_stats = lookup_type("endpoint_stats")->AsRecordType();
-	connection_type = lookup_type("connection")->AsRecordType();
-	fa_file_type = lookup_type("fa_file")->AsRecordType();
-	fa_metadata_type = lookup_type("fa_metadata")->AsRecordType();
-	icmp_conn = lookup_type("icmp_conn")->AsRecordType();
-	icmp_context = lookup_type("icmp_context")->AsRecordType();
-	signature_state = lookup_type("signature_state")->AsRecordType();
-	SYN_packet = lookup_type("SYN_packet")->AsRecordType();
-	pcap_packet = lookup_type("pcap_packet")->AsRecordType();
-	raw_pkt_hdr_type = lookup_type("raw_pkt_hdr")->AsRecordType();
-	l2_hdr_type = lookup_type("l2_hdr")->AsRecordType();
-	transport_proto = lookup_type("transport_proto")->AsEnumType();
-	string_set = lookup_type("string_set")->AsTableType();
-	string_array = lookup_type("string_array")->AsTableType();
-	string_vec = lookup_type("string_vec")->AsVectorType();
-	index_vec = lookup_type("index_vec")->AsVectorType();
-	mime_match = lookup_type("mime_match")->AsRecordType();
-	mime_matches = lookup_type("mime_matches")->AsVectorType();
+	zeek::vars::detail::Init();
 
 	ignore_checksums = opt_internal_int("ignore_checksums");
 	partial_connection_ok = opt_internal_int("partial_connection_ok");
@@ -285,8 +263,6 @@ void init_net_var()
 	tcp_excessive_data_without_further_acks =
 		opt_internal_int("tcp_excessive_data_without_further_acks");
 	tcp_max_old_segments = opt_internal_int("tcp_max_old_segments");
-
-	socks_address = lookup_type("SOCKS::Address")->AsRecordType();
 
 	non_analyzed_lifetime = opt_internal_double("non_analyzed_lifetime");
 	tcp_inactivity_timeout = opt_internal_double("tcp_inactivity_timeout");
@@ -333,34 +309,10 @@ void init_net_var()
 
 	mime_segment_length = opt_internal_int("mime_segment_length");
 	mime_segment_overlap_length = opt_internal_int("mime_segment_overlap_length");
-	mime_header_rec = lookup_type("mime_header_rec")->AsRecordType();
-	mime_header_list = lookup_type("mime_header_list")->AsTableType();
 
 	http_entity_data_delivery_size = opt_internal_int("http_entity_data_delivery_size");
-	http_stats_rec = lookup_type("http_stats_rec")->AsRecordType();
-	http_message_stat = lookup_type("http_message_stat")->AsRecordType();
 	truncate_http_URI = opt_internal_int("truncate_http_URI");
 
-	pm_mapping = lookup_type("pm_mapping")->AsRecordType();
-	pm_mappings = lookup_type("pm_mappings")->AsTableType();
-	pm_port_request = lookup_type("pm_port_request")->AsRecordType();
-	pm_callit_request = lookup_type("pm_callit_request")->AsRecordType();
-
-	geo_location = lookup_type("geo_location")->AsRecordType();
-
-	entropy_test_result = lookup_type("entropy_test_result")->AsRecordType();
-
-	dns_msg = lookup_type("dns_msg")->AsRecordType();
-	dns_answer = lookup_type("dns_answer")->AsRecordType();
-	dns_soa = lookup_type("dns_soa")->AsRecordType();
-	dns_edns_additional =
-		lookup_type("dns_edns_additional")->AsRecordType();
-	dns_tsig_additional =
-		lookup_type("dns_tsig_additional")->AsRecordType();
-	dns_rrsig_rr = lookup_type("dns_rrsig_rr")->AsRecordType();
-	dns_dnskey_rr = lookup_type("dns_dnskey_rr")->AsRecordType();
-	dns_nsec3_rr = lookup_type("dns_nsec3_rr")->AsRecordType();
-	dns_ds_rr = lookup_type("dns_ds_rr")->AsRecordType();
 	dns_skip_auth = zeek::lookup_val("dns_skip_auth")->AsTableVal();
 	dns_skip_addl = zeek::lookup_val("dns_skip_addl")->AsTableVal();
 	dns_skip_all_auth = opt_internal_int("dns_skip_all_auth");
@@ -396,9 +348,6 @@ void init_net_var()
 
 	gap_report_freq = opt_internal_double("gap_report_freq");
 
-	irc_join_info = lookup_type("irc_join_info")->AsRecordType();
-	irc_join_list = lookup_type("irc_join_list")->AsTableType();
-
 	dpd_reassemble_first_packets =
 		opt_internal_int("dpd_reassemble_first_packets");
 	dpd_buffer_size = opt_internal_int("dpd_buffer_size");
@@ -410,11 +359,4 @@ void init_net_var()
 
 	timer_mgr_inactivity_timeout =
 		opt_internal_double("timer_mgr_inactivity_timeout");
-
-	script_id = lookup_type("script_id")->AsRecordType();
-	id_table = lookup_type("id_table")->AsTableType();
-	record_field = lookup_type("record_field")->AsRecordType();
-	record_field_table = lookup_type("record_field_table")->AsTableType();
-	call_argument_vector = lookup_type("call_argument_vector")->AsVectorType();
-	call_argument = lookup_type("call_argument")->AsRecordType();
 	}

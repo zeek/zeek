@@ -1,0 +1,165 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
+#include "ZeekVars.h"
+#include "Var.h"
+#include "NetVar.h"
+
+IntrusivePtr<RecordType> zeek::vars::conn_id;
+IntrusivePtr<RecordType> zeek::vars::endpoint;
+IntrusivePtr<RecordType> zeek::vars::endpoint_stats;
+IntrusivePtr<RecordType> zeek::vars::connection_type;
+IntrusivePtr<RecordType> zeek::vars::fa_file_type;
+IntrusivePtr<RecordType> zeek::vars::fa_metadata_type;
+IntrusivePtr<RecordType> zeek::vars::icmp_conn;
+IntrusivePtr<RecordType> zeek::vars::icmp_context;
+IntrusivePtr<RecordType> zeek::vars::signature_state;
+IntrusivePtr<RecordType> zeek::vars::SYN_packet;
+IntrusivePtr<RecordType> zeek::vars::pcap_packet;
+IntrusivePtr<RecordType> zeek::vars::raw_pkt_hdr_type;
+IntrusivePtr<RecordType> zeek::vars::l2_hdr_type;
+IntrusivePtr<EnumType> zeek::vars::transport_proto;
+IntrusivePtr<TableType> zeek::vars::string_set;
+IntrusivePtr<TableType> zeek::vars::string_array;
+IntrusivePtr<TableType> zeek::vars::count_set;
+IntrusivePtr<VectorType> zeek::vars::string_vec;
+IntrusivePtr<VectorType> zeek::vars::index_vec;
+IntrusivePtr<VectorType> zeek::vars::mime_matches;
+IntrusivePtr<RecordType> zeek::vars::mime_match;
+IntrusivePtr<RecordType> zeek::vars::socks_address;
+IntrusivePtr<RecordType> zeek::vars::mime_header_rec;
+IntrusivePtr<TableType> zeek::vars::mime_header_list;
+IntrusivePtr<RecordType> zeek::vars::http_stats_rec;
+IntrusivePtr<RecordType> zeek::vars::http_message_stat;
+IntrusivePtr<RecordType> zeek::vars::pm_mapping;
+IntrusivePtr<TableType> zeek::vars::pm_mappings;
+IntrusivePtr<RecordType> zeek::vars::pm_port_request;
+IntrusivePtr<RecordType> zeek::vars::pm_callit_request;
+IntrusivePtr<RecordType> zeek::vars::geo_location;
+IntrusivePtr<RecordType> zeek::vars::entropy_test_result;
+IntrusivePtr<RecordType> zeek::vars::dns_msg;
+IntrusivePtr<RecordType> zeek::vars::dns_answer;
+IntrusivePtr<RecordType> zeek::vars::dns_soa;
+IntrusivePtr<RecordType> zeek::vars::dns_edns_additional;
+IntrusivePtr<RecordType> zeek::vars::dns_tsig_additional;
+IntrusivePtr<RecordType> zeek::vars::dns_rrsig_rr;
+IntrusivePtr<RecordType> zeek::vars::dns_dnskey_rr;
+IntrusivePtr<RecordType> zeek::vars::dns_nsec3_rr;
+IntrusivePtr<RecordType> zeek::vars::dns_ds_rr;
+IntrusivePtr<RecordType> zeek::vars::rotate_info;
+IntrusivePtr<TableType> zeek::vars::irc_join_list;
+IntrusivePtr<RecordType> zeek::vars::irc_join_info;
+IntrusivePtr<RecordType> zeek::vars::script_id;
+IntrusivePtr<TableType> zeek::vars::id_table;
+IntrusivePtr<RecordType> zeek::vars::record_field;
+IntrusivePtr<TableType> zeek::vars::record_field_table;
+IntrusivePtr<RecordType> zeek::vars::call_argument;
+IntrusivePtr<VectorType> zeek::vars::call_argument_vector;
+
+void zeek::vars::detail::Init()
+	{
+	// Types
+	conn_id = zeek::lookup_type<RecordType>("conn_id");
+	endpoint = zeek::lookup_type<RecordType>("endpoint");
+	endpoint_stats = zeek::lookup_type<RecordType>("endpoint_stats");
+	connection_type = zeek::lookup_type<RecordType>("connection");
+	fa_file_type = zeek::lookup_type<RecordType>("fa_file");
+	fa_metadata_type = zeek::lookup_type<RecordType>("fa_metadata");
+	icmp_conn = zeek::lookup_type<RecordType>("icmp_conn");
+	icmp_context = zeek::lookup_type<RecordType>("icmp_context");
+	signature_state = zeek::lookup_type<RecordType>("signature_state");
+	SYN_packet = zeek::lookup_type<RecordType>("SYN_packet");
+	pcap_packet = zeek::lookup_type<RecordType>("pcap_packet");
+	raw_pkt_hdr_type = zeek::lookup_type<RecordType>("raw_pkt_hdr");
+	l2_hdr_type = zeek::lookup_type<RecordType>("l2_hdr");
+	transport_proto = zeek::lookup_type<EnumType>("transport_proto");
+	string_set = zeek::lookup_type<TableType>("string_set");
+	string_array = zeek::lookup_type<TableType>("string_array");
+	count_set = zeek::lookup_type<TableType>("count_set");
+	string_vec = zeek::lookup_type<VectorType>("string_vec");
+	index_vec = zeek::lookup_type<VectorType>("index_vec");
+	mime_matches = zeek::lookup_type<VectorType>("mime_matches");
+	mime_match = zeek::lookup_type<RecordType>("mime_match");
+	socks_address = zeek::lookup_type<RecordType>("SOCKS::Address");
+	mime_header_rec = zeek::lookup_type<RecordType>("mime_header_rec");
+	mime_header_list = zeek::lookup_type<TableType>("mime_header_list");
+	http_stats_rec = zeek::lookup_type<RecordType>("http_stats_rec");
+	http_message_stat = zeek::lookup_type<RecordType>("http_message_stat");
+	pm_mapping = zeek::lookup_type<RecordType>("pm_mapping");
+	pm_mappings = zeek::lookup_type<TableType>("pm_mappings");
+	pm_port_request = zeek::lookup_type<RecordType>("pm_port_request");
+	pm_callit_request = zeek::lookup_type<RecordType>("pm_callit_request");
+	geo_location = zeek::lookup_type<RecordType>("geo_location");
+	entropy_test_result = zeek::lookup_type<RecordType>("entropy_test_result");
+	dns_msg = zeek::lookup_type<RecordType>("dns_msg");
+	dns_answer = zeek::lookup_type<RecordType>("dns_answer");
+	dns_soa = zeek::lookup_type<RecordType>("dns_soa");
+	dns_edns_additional = zeek::lookup_type<RecordType>("dns_edns_additional");
+	dns_tsig_additional = zeek::lookup_type<RecordType>("dns_tsig_additional");
+	dns_rrsig_rr = zeek::lookup_type<RecordType>("dns_rrsig_rr");
+	dns_dnskey_rr = zeek::lookup_type<RecordType>("dns_dnskey_rr");
+	dns_nsec3_rr = zeek::lookup_type<RecordType>("dns_nsec3_rr");
+	dns_ds_rr = zeek::lookup_type<RecordType>("dns_ds_rr");
+	rotate_info = zeek::lookup_type<RecordType>("rotate_info");
+	irc_join_list = zeek::lookup_type<TableType>("irc_join_list");
+	irc_join_info = zeek::lookup_type<RecordType>("irc_join_info");
+	script_id = zeek::lookup_type<RecordType>("script_id");
+	id_table = zeek::lookup_type<TableType>("id_table");
+	record_field = zeek::lookup_type<RecordType>("record_field");
+	record_field_table = zeek::lookup_type<TableType>("record_field_table");
+	call_argument = zeek::lookup_type<RecordType>("call_argument");
+	call_argument_vector = zeek::lookup_type<VectorType>("call_argument_vector");
+
+	// Note: to bypass deprecation warnings on setting the legacy globals,
+	// CMake was told to compile this file with -Wno-deprecated-declarations.
+	// Once the legacy globals are removed, that compile flag can go also.
+	::conn_id = conn_id.get();
+	::endpoint = endpoint.get();
+	::endpoint_stats = endpoint_stats.get();
+	::connection_type = connection_type.get();
+	::fa_file_type = fa_file_type.get();
+	::fa_metadata_type = fa_metadata_type.get();
+	::icmp_conn = icmp_conn.get();
+	::icmp_context = icmp_context.get();
+	::signature_state = signature_state.get();
+	::SYN_packet = SYN_packet.get();
+	::pcap_packet = pcap_packet.get();
+	::raw_pkt_hdr_type = raw_pkt_hdr_type.get();
+	::l2_hdr_type = l2_hdr_type.get();
+	::transport_proto = transport_proto.get();
+	::string_set = string_set.get();
+	::string_array = string_array.get();
+	::count_set = count_set.get();
+	::string_vec = string_vec.get();
+	::index_vec = index_vec.get();
+	::mime_matches = mime_matches.get();
+	::mime_match = mime_match.get();
+	::socks_address = socks_address.get();
+	::mime_header_rec = mime_header_rec.get();
+	::mime_header_list = mime_header_list.get();
+	::http_stats_rec = http_stats_rec.get();
+	::http_message_stat = http_message_stat.get();
+	::pm_mapping = pm_mapping.get();
+	::pm_mappings = pm_mappings.get();
+	::pm_port_request = pm_port_request.get();
+	::pm_callit_request = pm_callit_request.get();
+	::geo_location = geo_location.get();
+	::entropy_test_result = entropy_test_result.get();
+	::dns_msg = dns_msg.get();
+	::dns_answer = dns_answer.get();
+	::dns_soa = dns_soa.get();
+	::dns_edns_additional = dns_edns_additional.get();
+	::dns_tsig_additional = dns_tsig_additional.get();
+	::dns_rrsig_rr = dns_rrsig_rr.get();
+	::dns_dnskey_rr = dns_dnskey_rr.get();
+	::dns_nsec3_rr = dns_nsec3_rr.get();
+	::dns_ds_rr = dns_ds_rr.get();
+	::rotate_info = rotate_info.get();
+	::irc_join_list = irc_join_list.get();
+	::irc_join_info = irc_join_info.get();
+	::script_id = script_id.get();
+	::id_table = id_table.get();
+	::record_field = record_field.get();
+	::record_field_table = record_field_table.get();
+	::call_argument = call_argument.get();
+	::call_argument_vector = call_argument_vector.get();
+	}

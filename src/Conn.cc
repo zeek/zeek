@@ -346,17 +346,17 @@ const IntrusivePtr<RecordVal>& Connection::ConnVal()
 	{
 	if ( ! conn_val )
 		{
-		conn_val = make_intrusive<RecordVal>(connection_type);
+		conn_val = make_intrusive<RecordVal>(zeek::vars::connection_type);
 
 		TransportProto prot_type = ConnTransport();
 
-		auto id_val = make_intrusive<RecordVal>(conn_id);
+		auto id_val = make_intrusive<RecordVal>(zeek::vars::conn_id);
 		id_val->Assign(0, make_intrusive<AddrVal>(orig_addr));
 		id_val->Assign(1, val_mgr->Port(ntohs(orig_port), prot_type));
 		id_val->Assign(2, make_intrusive<AddrVal>(resp_addr));
 		id_val->Assign(3, val_mgr->Port(ntohs(resp_port), prot_type));
 
-		auto orig_endp = make_intrusive<RecordVal>(endpoint);
+		auto orig_endp = make_intrusive<RecordVal>(zeek::vars::endpoint);
 		orig_endp->Assign(0, val_mgr->Count(0));
 		orig_endp->Assign(1, val_mgr->Count(0));
 		orig_endp->Assign(4, val_mgr->Count(orig_flow_label));
@@ -367,7 +367,7 @@ const IntrusivePtr<RecordVal>& Connection::ConnVal()
 		if ( memcmp(&orig_l2_addr, &null, l2_len) != 0 )
 			orig_endp->Assign(5, make_intrusive<StringVal>(fmt_mac(orig_l2_addr, l2_len)));
 
-		auto resp_endp = make_intrusive<RecordVal>(endpoint);
+		auto resp_endp = make_intrusive<RecordVal>(zeek::vars::endpoint);
 		resp_endp->Assign(0, val_mgr->Count(0));
 		resp_endp->Assign(1, val_mgr->Count(0));
 		resp_endp->Assign(4, val_mgr->Count(resp_flow_label));
@@ -379,7 +379,7 @@ const IntrusivePtr<RecordVal>& Connection::ConnVal()
 		conn_val->Assign(1, std::move(orig_endp));
 		conn_val->Assign(2, std::move(resp_endp));
 		// 3 and 4 are set below.
-		conn_val->Assign(5, make_intrusive<TableVal>(IntrusivePtr{NewRef{}, string_set}));	// service
+		conn_val->Assign(5, make_intrusive<TableVal>(zeek::vars::string_set));	// service
 		conn_val->Assign(6, val_mgr->EmptyString());	// history
 
 		if ( ! uid )

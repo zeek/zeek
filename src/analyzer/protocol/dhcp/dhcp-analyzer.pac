@@ -20,7 +20,7 @@ refine flow DHCP_Flow += {
 		if ( ! options )
 			{
 			options = make_intrusive<RecordVal>(BifType::Record::DHCP::Options);
-			all_options = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, index_vec});
+			all_options = make_intrusive<VectorVal>(zeek::vars::index_vec);
 			options->Assign(0, all_options);
 			}
 

@@ -462,7 +462,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_par_req_list_option(v: OptionValue): bool
 		%{
-		auto params = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, index_vec});
+		auto params = make_intrusive<VectorVal>(zeek::vars::index_vec);
 		int num_parms = ${v.par_req_list}->size();
 		vector<uint8>* plist = ${v.par_req_list};
 

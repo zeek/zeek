@@ -23,7 +23,7 @@
 			else
 				std::transform(cipher_suites24->begin(), cipher_suites24->end(), std::back_inserter(cipher_suites), to_int());
 
-			auto cipher_vec = make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("index_vec"));
+			auto cipher_vec = make_intrusive<VectorVal>(zeek::vars::index_vec);
 
 			for ( unsigned int i = 0; i < cipher_suites.size(); ++i )
 				{
@@ -31,7 +31,7 @@
 				cipher_vec->Assign(i, ciph);
 				}
 
-			auto comp_vec = make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("index_vec"));
+			auto comp_vec = make_intrusive<VectorVal>(zeek::vars::index_vec);
 
 			if ( compression_methods )
 				{

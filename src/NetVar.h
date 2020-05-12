@@ -6,27 +6,49 @@
 #include "Func.h"
 #include "EventRegistry.h"
 #include "Stats.h"
+#include "ZeekVars.h"
 
+[[deprecated("Remove in v4.1.  Use zeek::vars::conn_id.")]]
 extern RecordType* conn_id;
+[[deprecated("Remove in v4.1.  Use zeek::vars::endpoint.")]]
 extern RecordType* endpoint;
+[[deprecated("Remove in v4.1.  Use zeek::vars::endpoint_stats.")]]
 extern RecordType* endpoint_stats;
+[[deprecated("Remove in v4.1.  Use zeek::vars::connection_type.")]]
 extern RecordType* connection_type;
+[[deprecated("Remove in v4.1.  Use zeek::vars::fa_file_type.")]]
 extern RecordType* fa_file_type;
+[[deprecated("Remove in v4.1.  Use zeek::vars::fa_metadata_type.")]]
 extern RecordType* fa_metadata_type;
+[[deprecated("Remove in v4.1.  Use zeek::vars::icmp_conn.")]]
 extern RecordType* icmp_conn;
+[[deprecated("Remove in v4.1.  Use zeek::vars::icmp_context.")]]
 extern RecordType* icmp_context;
+[[deprecated("Remove in v4.1.  Use zeek::vars::signature_state.")]]
 extern RecordType* signature_state;
+[[deprecated("Remove in v4.1.  Use zeek::vars::SYN_packet.")]]
 extern RecordType* SYN_packet;
+[[deprecated("Remove in v4.1.  Use zeek::vars::pcap_packet.")]]
 extern RecordType* pcap_packet;
+[[deprecated("Remove in v4.1.  Use zeek::vars::raw_pkt_hdr_type.")]]
 extern RecordType* raw_pkt_hdr_type;
+[[deprecated("Remove in v4.1.  Use zeek::vars::l2_hdr_type.")]]
 extern RecordType* l2_hdr_type;
+[[deprecated("Remove in v4.1.  Use zeek::vars::transport_proto.")]]
 extern EnumType* transport_proto;
+[[deprecated("Remove in v4.1.  Use zeek::vars::string_set.")]]
 extern TableType* string_set;
+[[deprecated("Remove in v4.1.  Use zeek::vars::string_array.")]]
 extern TableType* string_array;
+[[deprecated("Remove in v4.1.  Use zeek::vars::count_set.")]]
 extern TableType* count_set;
+[[deprecated("Remove in v4.1.  Use zeek::vars::string_vec.")]]
 extern VectorType* string_vec;
+[[deprecated("Remove in v4.1.  Use zeek::vars::index_vec.")]]
 extern VectorType* index_vec;
+[[deprecated("Remove in v4.1.  Use zeek::vars::mime_matches.")]]
 extern VectorType* mime_matches;
+[[deprecated("Remove in v4.1.  Use zeek::vars::mime_match.")]]
 extern RecordType* mime_match;
 
 extern int watchdog_interval;
@@ -55,6 +77,7 @@ extern int tcp_max_above_hole_without_any_acks;
 extern int tcp_excessive_data_without_further_acks;
 extern int tcp_max_old_segments;
 
+[[deprecated("Remove in v4.1.  Use zeek::vars::socks_address.")]]
 extern RecordType* socks_address;
 
 extern double non_analyzed_lifetime;
@@ -85,31 +108,50 @@ extern double rpc_timeout;
 
 extern int mime_segment_length;
 extern int mime_segment_overlap_length;
+[[deprecated("Remove in v4.1.  Use zeek::vars::mime_header_rec.")]]
 extern RecordType* mime_header_rec;
+[[deprecated("Remove in v4.1.  Use zeek::vars::mime_header_list.")]]
 extern TableType* mime_header_list;
 
 extern int http_entity_data_delivery_size;
+[[deprecated("Remove in v4.1.  Use zeek::vars::http_stats_rec.")]]
 extern RecordType* http_stats_rec;
+[[deprecated("Remove in v4.1.  Use zeek::vars::http_message_stat.")]]
 extern RecordType* http_message_stat;
 extern int truncate_http_URI;
 
+[[deprecated("Remove in v4.1.  Use zeek::vars::pm_mapping.")]]
 extern RecordType* pm_mapping;
+[[deprecated("Remove in v4.1.  Use zeek::vars::pm_mappings.")]]
 extern TableType* pm_mappings;
+[[deprecated("Remove in v4.1.  Use zeek::vars::pm_port_request.")]]
 extern RecordType* pm_port_request;
+[[deprecated("Remove in v4.1.  Use zeek::vars::pm_callit_request.")]]
 extern RecordType* pm_callit_request;
 
+[[deprecated("Remove in v4.1.  Use zeek::vars::geo_location.")]]
 extern RecordType* geo_location;
 
+[[deprecated("Remove in v4.1.  Use zeek::vars::entropy_test_result.")]]
 extern RecordType* entropy_test_result;
 
+[[deprecated("Remove in v4.1.  Use zeek::vars::dns_msg.")]]
 extern RecordType* dns_msg;
+[[deprecated("Remove in v4.1.  Use zeek::vars::dns_answer.")]]
 extern RecordType* dns_answer;
+[[deprecated("Remove in v4.1.  Use zeek::vars::dns_soa.")]]
 extern RecordType* dns_soa;
+[[deprecated("Remove in v4.1.  Use zeek::vars::dns_edns_additional.")]]
 extern RecordType* dns_edns_additional;
+[[deprecated("Remove in v4.1.  Use zeek::vars::dns_tsig_additional.")]]
 extern RecordType* dns_tsig_additional;
+[[deprecated("Remove in v4.1.  Use zeek::vars::dns_rrsig_rr.")]]
 extern RecordType* dns_rrsig_rr;
+[[deprecated("Remove in v4.1.  Use zeek::vars::dns_dnskey_rr.")]]
 extern RecordType* dns_dnskey_rr;
+[[deprecated("Remove in v4.1.  Use zeek::vars::dns_nsec3_rr.")]]
 extern RecordType* dns_nsec3_rr;
+[[deprecated("Remove in v4.1.  Use zeek::vars::dns_ds_rr.")]]
 extern RecordType* dns_ds_rr;
 extern TableVal* dns_skip_auth;
 extern TableVal* dns_skip_addl;
@@ -133,6 +175,7 @@ extern TableVal* preserve_other_addr;
 
 extern double connection_status_update_interval;
 
+[[deprecated("Remove in v4.1.  Use zeek::vars::rotate_info.")]]
 extern RecordType* rotate_info;
 extern StringVal* log_rotate_base_time;
 
@@ -153,7 +196,9 @@ extern int packet_filter_default;
 
 extern int sig_max_group_size;
 
+[[deprecated("Remove in v4.1.  Use zeek::vars::irc_join_list.")]]
 extern TableType* irc_join_list;
+[[deprecated("Remove in v4.1.  Use zeek::vars::irc_join_info.")]]
 extern RecordType* irc_join_info;
 
 extern int dpd_reassemble_first_packets;
@@ -174,11 +219,17 @@ extern StringVal* trace_output_file;
 
 extern int record_all_packets;
 
+[[deprecated("Remove in v4.1.  Use zeek::vars::script_id.")]]
 extern RecordType* script_id;
+[[deprecated("Remove in v4.1.  Use zeek::vars::id_table.")]]
 extern TableType* id_table;
+[[deprecated("Remove in v4.1.  Use zeek::vars::record_field.")]]
 extern RecordType* record_field;
+[[deprecated("Remove in v4.1.  Use zeek::vars::record_field_table.")]]
 extern TableType* record_field_table;
+[[deprecated("Remove in v4.1.  Use zeek::vars::call_argument.")]]
 extern RecordType* call_argument;
+[[deprecated("Remove in v4.1.  Use zeek::vars::call_argument_vector.")]]
 extern VectorType* call_argument_vector;
 
 extern StringVal* cmd_line_bpf_filter;

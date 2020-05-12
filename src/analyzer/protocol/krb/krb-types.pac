@@ -27,7 +27,7 @@ IntrusivePtr<Val> GetStringFromPrincipalName(const KRB_Principal_Name* pname)
 
 VectorVal* proc_cipher_list(const Array* list)
 {
-	auto ciphers = make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("index_vec"));
+	auto ciphers = make_intrusive<VectorVal>(zeek::vars::index_vec);
 	for ( uint i = 0; i < list->data()->size(); ++i )
 		ciphers->Assign(ciphers->Size(), asn1_integer_to_val((*list->data())[i], TYPE_COUNT));
 	return ciphers.release();

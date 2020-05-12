@@ -68,7 +68,7 @@ IntrusivePtr<RecordVal> BuildSMB2ContextVal(SMB3_negotiate_context_value* ncv)
 		rpreauth->Assign(0, val_mgr->Count(${ncv.preauth_integrity_capabilities.hash_alg_count}));
 		rpreauth->Assign(1, val_mgr->Count(${ncv.preauth_integrity_capabilities.salt_length}));
 
-		auto ha = make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("index_vec"));
+		auto ha = make_intrusive<VectorVal>(zeek::vars::index_vec);
 
 		for ( int i = 0; i < ${ncv.preauth_integrity_capabilities.hash_alg_count}; ++i )
 			{
@@ -87,7 +87,7 @@ IntrusivePtr<RecordVal> BuildSMB2ContextVal(SMB3_negotiate_context_value* ncv)
 		auto rencr = make_intrusive<RecordVal>(BifType::Record::SMB2::EncryptionCapabilities);
 		rencr->Assign(0, val_mgr->Count(${ncv.encryption_capabilities.cipher_count}));
 
-		auto c = make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("index_vec"));
+		auto c = make_intrusive<VectorVal>(zeek::vars::index_vec);
 
 		for ( int i = 0; i < ${ncv.encryption_capabilities.cipher_count}; ++i )
 			{
@@ -105,7 +105,7 @@ IntrusivePtr<RecordVal> BuildSMB2ContextVal(SMB3_negotiate_context_value* ncv)
 		auto rcomp = make_intrusive<RecordVal>(BifType::Record::SMB2::CompressionCapabilities);
 		rcomp->Assign(0, val_mgr->Count(${ncv.compression_capabilities.alg_count}));
 
-		auto c = make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("index_vec"));
+		auto c = make_intrusive<VectorVal>(zeek::vars::index_vec);
 
 		for ( int i = 0; i < ${ncv.compression_capabilities.alg_count}; ++i )
 			{

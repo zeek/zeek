@@ -8,6 +8,7 @@
 #include "Func.h"
 #include "Val.h"
 #include "Var.h"
+#include "ZeekVars.h"
 
 static inline bool is_established(const analyzer::tcp::TCP_Endpoint* e)
 	{
@@ -145,7 +146,7 @@ RuleConditionEval::RuleConditionEval(const char* func)
 			rules_error("eval function type must yield a 'bool'", func);
 
 		TypeList tl;
-		tl.Append(zeek::lookup_type("signature_state"));
+		tl.Append(zeek::vars::signature_state);
 		tl.Append(base_type(TYPE_STRING));
 
 		if ( ! f->CheckArgs(tl.Types()) )

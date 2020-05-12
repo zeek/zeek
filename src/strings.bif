@@ -259,7 +259,7 @@ static IntrusivePtr<VectorVal> do_split_string(StringVal* str_val,
 
 Val* do_split(StringVal* str_val, RE_Matcher* re, int incl_sep, int max_num_sep)
 	{
-	TableVal* a = new TableVal({NewRef{}, string_array});
+	TableVal* a = new TableVal(zeek::vars::string_array);
 	const u_char* s = str_val->Bytes();
 	int n = str_val->Len();
 	const u_char* end_of_s = s + n;
@@ -713,8 +713,7 @@ function str_split%(s: string, idx: index_vec%): string_vec
 		indices[i] = (*idx_v)[i]->AsCount();
 
 	BroString::Vec* result = s->AsString()->Split(indices);
-	auto result_v = make_intrusive<VectorVal>(
-	    zeek::lookup_type<VectorType>("string_vec"));
+	auto result_v = make_intrusive<VectorVal>(zeek::vars::string_vec);
 
 	if ( result )
 		{
@@ -909,7 +908,7 @@ function safe_shell_quote%(source: string%): string
 ## .. zeek:see: find_last strstr
 function find_all%(str: string, re: pattern%) : string_set
 	%{
-	auto a = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, string_set});
+	auto a = make_intrusive<TableVal>(zeek::vars::string_set);
 
 	const u_char* s = str->Bytes();
 	const u_char* e = s + str->Len();

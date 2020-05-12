@@ -914,7 +914,7 @@ Connection* NetSessions::FindConnection(Val* v)
 	int orig_h, orig_p;	// indices into record's value list
 	int resp_h, resp_p;
 
-	if ( vr == conn_id )
+	if ( vr == zeek::vars::conn_id )
 		{
 		orig_h = 0;
 		orig_p = 1;

@@ -30,7 +30,6 @@
 #include "Hash.h"
 
 using namespace std;
-using namespace zeek;
 
 TableType* var_sizes;
 
@@ -1052,7 +1051,7 @@ function find_entropy%(data: string%): entropy_test_result
 	e.Feed(data->Bytes(), data->Len());
 	e.Get(&ent, &chisq, &mean, &montepi, &scc);
 
-	auto ent_result = make_intrusive<RecordVal>(entropy_test_result);
+	auto ent_result = make_intrusive<RecordVal>(zeek::vars::entropy_test_result);
 	ent_result->Assign(0, make_intrusive<Val>(ent,     TYPE_DOUBLE));
 	ent_result->Assign(1, make_intrusive<Val>(chisq,   TYPE_DOUBLE));
 	ent_result->Assign(2, make_intrusive<Val>(mean,    TYPE_DOUBLE));
@@ -1103,7 +1102,7 @@ function entropy_test_finish%(handle: opaque of entropy%): entropy_test_result
 	montepi = scc = ent = mean = chisq = 0.0;
 	static_cast<EntropyVal*>(handle)->Get(&ent, &chisq, &mean, &montepi, &scc);
 
-	auto ent_result = make_intrusive<RecordVal>(entropy_test_result);
+	auto ent_result = make_intrusive<RecordVal>(zeek::vars::entropy_test_result);
 	ent_result->Assign(0, make_intrusive<Val>(ent,     TYPE_DOUBLE));
 	ent_result->Assign(1, make_intrusive<Val>(chisq,   TYPE_DOUBLE));
 	ent_result->Assign(2, make_intrusive<Val>(mean,    TYPE_DOUBLE));
@@ -1470,7 +1469,7 @@ function sort%(v: any, ...%) : any
 ## .. zeek:see:: sort
 function order%(v: any, ...%) : index_vec
 	%{
-	auto result_v = make_intrusive<VectorVal>(lookup_type<VectorType>("index_vec"));
+	auto result_v = make_intrusive<VectorVal>(zeek::vars::index_vec);
 
 	if ( v->GetType()->Tag() != TYPE_VECTOR )
 		{
@@ -1823,10 +1822,9 @@ function zeek_version%(%): string
 ## Returns: A string vector with the field names of *rt*.
 function record_type_to_vector%(rt: string%): string_vec
 	%{
-	auto result =
-		make_intrusive<VectorVal>(lookup_type<VectorType>("string_vec"));
+	auto result = make_intrusive<VectorVal>(zeek::vars::string_vec);
 
-	RecordType* type = lookup_type(rt->CheckString())->AsRecordType();
+	RecordType* type = zeek::lookup_type(rt->CheckString())->AsRecordType();
 
 	for ( int i = 0; i < type->NumFields(); ++i )
 		result->Assign(i+1, make_intrusive<StringVal>(type->FieldName(i)));
@@ -1853,7 +1851,7 @@ function type_name%(t: any%): string
 ## Returns: list of command-line arguments (``argv``) used to run Zeek.
 function zeek_args%(%): string_vec
 	%{
-	auto sv = lookup_type<VectorType>("string_vec");
+	auto sv = zeek::vars::string_vec;
 	auto rval = make_intrusive<VectorVal>(std::move(sv));
 
 	for ( auto i = 0; i < bro_argc; ++i )
@@ -1891,7 +1889,7 @@ function reading_traces%(%): bool
 ## .. zeek:see:: reading_live_traffic reading_traces
 function packet_source%(%): PacketSource
 	%{
-	auto ps_type = lookup_type("PacketSource")->AsRecordType();
+	auto ps_type = zeek::lookup_type("PacketSource")->AsRecordType();
 	auto ps = iosource_mgr->GetPktSrc();
 	auto r = make_intrusive<RecordVal>(ps_type);
 
@@ -1941,13 +1939,13 @@ function global_sizes%(%): var_sizes
 ## .. zeek:see:: global_sizes
 function global_ids%(%): id_table
 	%{
-	auto ids = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, id_table});
+	auto ids = make_intrusive<TableVal>(zeek::vars::id_table);
 	const auto& globals = global_scope()->Vars();
 
 	for ( const auto& global : globals )
 		{
 		ID* id = global.second.get();
-		auto rec = make_intrusive<RecordVal>(script_id);
+		auto rec = make_intrusive<RecordVal>(zeek::vars::script_id);
 		rec->Assign(0, make_intrusive<StringVal>(type_name(id->GetType()->Tag())));
 		rec->Assign(1, val_mgr->Bool(id->IsExport()));
 		rec->Assign(2, val_mgr->Bool(id->IsConst()));
@@ -1999,8 +1997,7 @@ function record_fields%(rec: any%): record_field_table
 		if ( ! id || ! id->IsType() || id->GetType()->Tag() != TYPE_RECORD )
 			{
 			reporter->Error("record_fields string argument does not name a record type");
-			auto tt = lookup_type<TableType>("record_field_table");
-			return make_intrusive<TableVal>(std::move(tt));
+			return make_intrusive<TableVal>(zeek::vars::record_field_table);
 			}
 
 		return id->GetType()->AsRecordType()->GetRecordFieldsVal();
@@ -2186,7 +2183,7 @@ function is_v6_subnet%(s: subnet%): bool
 ## Returns: The vector of addresses contained in the routing header data.
 function routing0_data_to_addrs%(s: string%): addr_vec
 	%{
-	auto rval = make_intrusive<VectorVal>(lookup_type<VectorType>("addr_vec"));
+	auto rval = make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("addr_vec"));
 
 	int len = s->Len();
 	const u_char* bytes = s->Bytes();
@@ -2217,7 +2214,7 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 ## .. zeek:see:: counts_to_addr
 function addr_to_counts%(a: addr%): index_vec
 	%{
-	auto rval = make_intrusive<VectorVal>(lookup_type<VectorType>("index_vec"));
+	auto rval = make_intrusive<VectorVal>(zeek::vars::index_vec);
 	const uint32_t* bytes;
 	int len = a->AsAddr().GetBytes(&bytes);
 
@@ -3211,16 +3208,16 @@ static IntrusivePtr<EnumVal> map_conn_type(TransportProto tp)
 	{
 	switch ( tp ) {
 	case TRANSPORT_UNKNOWN:
-		return transport_proto->GetVal(0);
+		return zeek::vars::transport_proto->GetVal(0);
 
 	case TRANSPORT_TCP:
-		return transport_proto->GetVal(1);
+		return zeek::vars::transport_proto->GetVal(1);
 
 	case TRANSPORT_UDP:
-		return transport_proto->GetVal(2);
+		return zeek::vars::transport_proto->GetVal(2);
 
 	case TRANSPORT_ICMP:
-		return transport_proto->GetVal(3);
+		return zeek::vars::transport_proto->GetVal(3);
 
 	default:
 		reporter->InternalError("bad connection type in map_conn_type()");
@@ -3246,7 +3243,7 @@ function get_conn_transport_proto%(cid: conn_id%): transport_proto
 	if ( ! c )
 		{
 		builtin_error("unknown connection id in get_conn_transport_proto()", cid);
-		return transport_proto->GetVal(0);
+		return zeek::vars::transport_proto->GetVal(0);
 		}
 
 	return map_conn_type(c->ConnTransport());
@@ -3298,20 +3295,20 @@ function lookup_connection%(cid: conn_id%): connection
 	builtin_error("connection ID not a known connection", cid);
 
 	// Return a dummy connection record.
-	auto c = make_intrusive<RecordVal>(connection_type);
+	auto c = make_intrusive<RecordVal>(zeek::vars::connection_type);
 
-	auto id_val = make_intrusive<RecordVal>(conn_id);
+	auto id_val = make_intrusive<RecordVal>(zeek::vars::conn_id);
 	id_val->Assign(0, make_intrusive<AddrVal>((unsigned int) 0));
 	id_val->Assign(1, val_mgr->Port(ntohs(0), TRANSPORT_UDP));
 	id_val->Assign(2, make_intrusive<AddrVal>((unsigned int) 0));
 	id_val->Assign(3, val_mgr->Port(ntohs(0), TRANSPORT_UDP));
 	c->Assign(0, std::move(id_val));
 
-	auto orig_endp = make_intrusive<RecordVal>(endpoint);
+	auto orig_endp = make_intrusive<RecordVal>(zeek::vars::endpoint);
 	orig_endp->Assign(0, val_mgr->Count(0));
 	orig_endp->Assign(1, val_mgr->Count(int(0)));
 
-	auto resp_endp = make_intrusive<RecordVal>(endpoint);
+	auto resp_endp = make_intrusive<RecordVal>(zeek::vars::endpoint);
 	resp_endp->Assign(0, val_mgr->Count(0));
 	resp_endp->Assign(1, val_mgr->Count(int(0)));
 
@@ -3320,7 +3317,7 @@ function lookup_connection%(cid: conn_id%): connection
 
 	c->Assign(3, make_intrusive<Val>(network_time, TYPE_TIME));
 	c->Assign(4, make_intrusive<Val>(0.0, TYPE_INTERVAL));
-	c->Assign(5, make_intrusive<TableVal>(IntrusivePtr{NewRef{}, string_set}));	// service
+	c->Assign(5, make_intrusive<TableVal>(zeek::vars::string_set));	// service
 	c->Assign(6, val_mgr->EmptyString());	// history
 
 	return c;
@@ -3383,7 +3380,7 @@ function dump_current_packet%(file_name: string%) : bool
 function get_current_packet%(%) : pcap_packet
 	%{
 	const Packet* p;
-	auto pkt = make_intrusive<RecordVal>(pcap_packet);
+	auto pkt = make_intrusive<RecordVal>(zeek::vars::pcap_packet);
 
 	if ( ! current_pktsrc ||
 	     ! current_pktsrc->GetCurrentPacket(&p) )
@@ -3423,7 +3420,7 @@ function get_current_packet_header%(%) : raw_pkt_hdr
 		return p->ToRawPktHdrVal();
 		}
 
-	auto hdr = make_intrusive<RecordVal>(raw_pkt_hdr_type);
+	auto hdr = make_intrusive<RecordVal>(zeek::vars::raw_pkt_hdr_type);
 	return hdr;
 	%}
 
@@ -3993,7 +3990,7 @@ function mmdb_open_asn_db%(f: string%) : bool
 ## .. zeek:see:: lookup_asn
 function lookup_location%(a: addr%) : geo_location
 	%{
-	auto location = make_intrusive<RecordVal>(geo_location);
+	auto location = make_intrusive<RecordVal>(zeek::vars::geo_location);
 
 #ifdef USE_GEOIP
 	mmdb_check_loc();
@@ -4624,7 +4621,7 @@ function rotate_file%(f: file%): rotate_info
 		return info;
 
 	// Record indicating error.
-	info = make_intrusive<RecordVal>(rotate_info);
+	info = make_intrusive<RecordVal>(zeek::vars::rotate_info);
 	info->Assign(0, val_mgr->EmptyString());
 	info->Assign(1, val_mgr->EmptyString());
 	info->Assign(2, make_intrusive<Val>(0.0, TYPE_TIME));
@@ -4643,7 +4640,7 @@ function rotate_file%(f: file%): rotate_info
 ## .. zeek:see:: rotate_file calc_next_rotate
 function rotate_file_by_name%(f: string%): rotate_info
 	%{
-	auto info = make_intrusive<RecordVal>(rotate_info);
+	auto info = make_intrusive<RecordVal>(zeek::vars::rotate_info);
 
 	bool is_pkt_dumper = false;
 	bool is_addl_pkt_dumper = false;

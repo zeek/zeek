@@ -23,16 +23,16 @@ using namespace file_analysis;
 
 static Val* empty_connection_table()
 	{
-	auto tbl_index = make_intrusive<TypeList>(IntrusivePtr{NewRef{}, conn_id});
-	tbl_index->Append({NewRef{}, conn_id});
+	auto tbl_index = make_intrusive<TypeList>(zeek::vars::conn_id);
+	tbl_index->Append(zeek::vars::conn_id);
 	auto tbl_type = make_intrusive<TableType>(std::move(tbl_index),
-	                                          IntrusivePtr{NewRef{}, connection_type});
+	                                          zeek::vars::connection_type);
 	return new TableVal(std::move(tbl_type));
 	}
 
-static RecordVal* get_conn_id_val(const Connection* conn)
+static IntrusivePtr<RecordVal> get_conn_id_val(const Connection* conn)
 	{
-	RecordVal* v = new RecordVal(conn_id);
+	auto v = make_intrusive<RecordVal>(zeek::vars::conn_id);
 	v->Assign(0, make_intrusive<AddrVal>(conn->OrigAddr()));
 	v->Assign(1, val_mgr->Port(ntohs(conn->OrigPort()), conn->ConnTransport()));
 	v->Assign(2, make_intrusive<AddrVal>(conn->RespAddr()));
@@ -62,22 +62,22 @@ void File::StaticInit()
 	if ( id_idx != -1 )
 		return;
 
-	id_idx = Idx("id", fa_file_type);
-	parent_id_idx = Idx("parent_id", fa_file_type);
-	source_idx = Idx("source", fa_file_type);
-	is_orig_idx = Idx("is_orig", fa_file_type);
-	conns_idx = Idx("conns", fa_file_type);
-	last_active_idx = Idx("last_active", fa_file_type);
-	seen_bytes_idx = Idx("seen_bytes", fa_file_type);
-	total_bytes_idx = Idx("total_bytes", fa_file_type);
-	missing_bytes_idx = Idx("missing_bytes", fa_file_type);
-	overflow_bytes_idx = Idx("overflow_bytes", fa_file_type);
-	timeout_interval_idx = Idx("timeout_interval", fa_file_type);
-	bof_buffer_size_idx = Idx("bof_buffer_size", fa_file_type);
-	bof_buffer_idx = Idx("bof_buffer", fa_file_type);
-	meta_mime_type_idx = Idx("mime_type", fa_metadata_type);
-	meta_mime_types_idx = Idx("mime_types", fa_metadata_type);
-	meta_inferred_idx = Idx("inferred", fa_metadata_type);
+	id_idx = Idx("id", zeek::vars::fa_file_type);
+	parent_id_idx = Idx("parent_id", zeek::vars::fa_file_type);
+	source_idx = Idx("source", zeek::vars::fa_file_type);
+	is_orig_idx = Idx("is_orig", zeek::vars::fa_file_type);
+	conns_idx = Idx("conns", zeek::vars::fa_file_type);
+	last_active_idx = Idx("last_active", zeek::vars::fa_file_type);
+	seen_bytes_idx = Idx("seen_bytes", zeek::vars::fa_file_type);
+	total_bytes_idx = Idx("total_bytes", zeek::vars::fa_file_type);
+	missing_bytes_idx = Idx("missing_bytes", zeek::vars::fa_file_type);
+	overflow_bytes_idx = Idx("overflow_bytes", zeek::vars::fa_file_type);
+	timeout_interval_idx = Idx("timeout_interval", zeek::vars::fa_file_type);
+	bof_buffer_size_idx = Idx("bof_buffer_size", zeek::vars::fa_file_type);
+	bof_buffer_idx = Idx("bof_buffer", zeek::vars::fa_file_type);
+	meta_mime_type_idx = Idx("mime_type", zeek::vars::fa_metadata_type);
+	meta_mime_types_idx = Idx("mime_types", zeek::vars::fa_metadata_type);
+	meta_inferred_idx = Idx("inferred", zeek::vars::fa_metadata_type);
 	}
 
 File::File(const std::string& file_id, const std::string& source_name, Connection* conn,
@@ -91,7 +91,7 @@ File::File(const std::string& file_id, const std::string& source_name, Connectio
 
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Creating new File object", file_id.c_str());
 
-	val = new RecordVal(fa_file_type);
+	val = new RecordVal(zeek::vars::fa_file_type);
 	val->Assign(id_idx, make_intrusive<StringVal>(file_id.c_str()));
 	SetSource(source_name);
 
@@ -137,16 +137,12 @@ bool File::UpdateConnectionFields(Connection* conn, bool is_orig)
 		val->Assign(conns_idx, conns);
 		}
 
-	Val* idx = get_conn_id_val(conn);
+	auto idx = get_conn_id_val(conn);
 
-	if ( conns->AsTableVal()->Lookup(idx) )
-		{
-		Unref(idx);
+	if ( conns->AsTableVal()->Lookup(idx.get()) )
 		return false;
-		}
 
-	conns->AsTableVal()->Assign(idx, conn->ConnVal());
-	Unref(idx);
+	conns->AsTableVal()->Assign(idx.get(), conn->ConnVal());
 	return true;
 	}
 
@@ -299,7 +295,7 @@ bool File::SetMime(const std::string& mime_type)
 	if ( ! FileEventAvailable(file_sniff) )
 		return false;
 
-	auto meta = make_intrusive<RecordVal>(fa_metadata_type);
+	auto meta = make_intrusive<RecordVal>(zeek::vars::fa_metadata_type);
 	meta->Assign(meta_mime_type_idx, make_intrusive<StringVal>(mime_type));
 	meta->Assign(meta_inferred_idx, val_mgr->False());
 
@@ -332,7 +328,7 @@ void File::InferMetadata()
 	len = std::min(len, LookupFieldDefaultCount(bof_buffer_size_idx));
 	file_mgr->DetectMIME(data, len, &matches);
 
-	auto meta = make_intrusive<RecordVal>(fa_metadata_type);
+	auto meta = make_intrusive<RecordVal>(zeek::vars::fa_metadata_type);
 
 	if ( ! matches.empty() )
 		{

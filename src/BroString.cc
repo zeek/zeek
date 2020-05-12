@@ -11,6 +11,7 @@
 #include "Var.h"
 #include "Reporter.h"
 #include "util.h"
+#include "ZeekVars.h"
 
 #ifdef DEBUG
 #define DEBUG_STR(msg) DBG_LOG(DBG_STRING, msg)
@@ -340,8 +341,7 @@ BroString::Vec* BroString::Split(const BroString::IdxVec& indices) const
 
 VectorVal* BroString:: VecToPolicy(Vec* vec)
 	{
-	auto result =
-		make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("string_vec"));
+	auto result = make_intrusive<VectorVal>(zeek::vars::string_vec);
 
 	for ( unsigned int i = 0; i < vec->size(); ++i )
 		{

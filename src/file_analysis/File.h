@@ -323,6 +323,8 @@ protected:
 	 * @return the field offset in #val record corresponding to \a field_name.
 	 */
 	static int Idx(const std::string& field_name, const RecordType* type);
+	static int Idx(const std::string& field_name, const IntrusivePtr<RecordType>& type)
+		{ return Idx(field_name, type.get()); }
 
 	/**
 	 * Initializes static member.

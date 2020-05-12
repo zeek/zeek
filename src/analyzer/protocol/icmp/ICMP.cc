@@ -225,7 +225,7 @@ ICMP_Analyzer::BuildICMPVal(const struct icmp* icmpp, int len,
 	{
 	if ( ! icmp_conn_val )
 		{
-		icmp_conn_val = make_intrusive<RecordVal>(icmp_conn);
+		icmp_conn_val = make_intrusive<RecordVal>(zeek::vars::icmp_conn);
 
 		icmp_conn_val->Assign(0, make_intrusive<AddrVal>(Conn()->OrigAddr()));
 		icmp_conn_val->Assign(1, make_intrusive<AddrVal>(Conn()->RespAddr()));
@@ -350,8 +350,8 @@ IntrusivePtr<RecordVal> ICMP_Analyzer::ExtractICMP4Context(int len, const u_char
 			}
 		}
 
-	auto iprec = make_intrusive<RecordVal>(icmp_context);
-	auto id_val = make_intrusive<RecordVal>(conn_id);
+	auto iprec = make_intrusive<RecordVal>(zeek::vars::icmp_context);
+	auto id_val = make_intrusive<RecordVal>(zeek::vars::conn_id);
 
 	id_val->Assign(0, make_intrusive<AddrVal>(src_addr));
 	id_val->Assign(1, val_mgr->Port(src_port, proto));
@@ -409,8 +409,8 @@ IntrusivePtr<RecordVal> ICMP_Analyzer::ExtractICMP6Context(int len, const u_char
 			}
 		}
 
-	auto iprec = make_intrusive<RecordVal>(icmp_context);
-	auto id_val = make_intrusive<RecordVal>(conn_id);
+	auto iprec = make_intrusive<RecordVal>(zeek::vars::icmp_context);
+	auto id_val = make_intrusive<RecordVal>(zeek::vars::conn_id);
 
 	id_val->Assign(0, make_intrusive<AddrVal>(src_addr));
 	id_val->Assign(1, val_mgr->Port(src_port, proto));

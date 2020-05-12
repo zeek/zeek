@@ -277,7 +277,7 @@ RecordVal* BroFile::Rotate()
 	if ( f == stdin || f == stdout || f == stderr )
 		return nullptr;
 
-	RecordVal* info = new RecordVal(rotate_info);
+	RecordVal* info = new RecordVal(zeek::vars::rotate_info);
 	FILE* newf = rotate_file(name, info);
 
 	if ( ! newf )

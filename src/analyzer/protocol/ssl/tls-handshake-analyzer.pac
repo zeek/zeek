@@ -75,7 +75,7 @@ refine connection Handshake_Conn += {
 		if ( ! ssl_extension_ec_point_formats )
 			return true;
 
-		auto points = make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("index_vec"));
+		auto points = make_intrusive<VectorVal>(zeek::vars::index_vec);
 
 		if ( point_format_list )
 			{
@@ -94,7 +94,7 @@ refine connection Handshake_Conn += {
 		if ( ! ssl_extension_elliptic_curves )
 			return true;
 
-		auto curves = make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("index_vec"));
+		auto curves = make_intrusive<VectorVal>(zeek::vars::index_vec);
 
 		if ( list )
 			{
@@ -113,7 +113,7 @@ refine connection Handshake_Conn += {
 		if ( ! ssl_extension_key_share )
 			return true;
 
-		auto nglist = make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("index_vec"));
+		auto nglist = make_intrusive<VectorVal>(zeek::vars::index_vec);
 
 		if ( keyshare )
 			{
@@ -131,7 +131,7 @@ refine connection Handshake_Conn += {
 		if ( ! ssl_extension_key_share )
 			return true;
 
-		auto nglist = make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("index_vec"));
+		auto nglist = make_intrusive<VectorVal>(zeek::vars::index_vec);
 
 		nglist->Assign(0u, val_mgr->Count(keyshare->namedgroup()));
 		BifEvent::enqueue_ssl_extension_key_share(bro_analyzer(), bro_analyzer()->Conn(), ${rec.is_orig}, std::move(nglist));
@@ -143,7 +143,7 @@ refine connection Handshake_Conn += {
 		if ( ! ssl_extension_key_share )
 			return true;
 
-		auto nglist = make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("index_vec"));
+		auto nglist = make_intrusive<VectorVal>(zeek::vars::index_vec);
 
 		nglist->Assign(0u, val_mgr->Count(namedgroup));
 		BifEvent::enqueue_ssl_extension_key_share(bro_analyzer(), bro_analyzer()->Conn(), ${rec.is_orig}, std::move(nglist));
@@ -178,7 +178,7 @@ refine connection Handshake_Conn += {
 		if ( ! ssl_extension_application_layer_protocol_negotiation )
 			return true;
 
-		auto plist = make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("string_vec"));
+		auto plist = make_intrusive<VectorVal>(zeek::vars::string_vec);
 
 		if ( protocols )
 			{
@@ -194,7 +194,7 @@ refine connection Handshake_Conn += {
 
 	function proc_server_name(rec: HandshakeRecord, list: ServerName[]) : bool
 		%{
-		auto servers = make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("string_vec"));
+		auto servers = make_intrusive<VectorVal>(zeek::vars::string_vec);
 
 		if ( list )
 			{
@@ -226,7 +226,7 @@ refine connection Handshake_Conn += {
 		if ( ! ssl_extension_supported_versions )
 			return true;
 
-		auto versions = make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("index_vec"));
+		auto versions = make_intrusive<VectorVal>(zeek::vars::index_vec);
 
 		if ( versions_list )
 			{
@@ -245,7 +245,7 @@ refine connection Handshake_Conn += {
 		if ( ! ssl_extension_supported_versions )
 			return true;
 
-		auto versions = make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("index_vec"));
+		auto versions = make_intrusive<VectorVal>(zeek::vars::index_vec);
 		versions->Assign(0u, val_mgr->Count(version));
 
 		BifEvent::enqueue_ssl_extension_supported_versions(bro_analyzer(), bro_analyzer()->Conn(),
@@ -259,7 +259,7 @@ refine connection Handshake_Conn += {
 		if ( ! ssl_extension_psk_key_exchange_modes )
 			return true;
 
-		auto modes = make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("index_vec"));
+		auto modes = make_intrusive<VectorVal>(zeek::vars::index_vec);
 
 		if ( mode_list )
 			{
@@ -505,7 +505,7 @@ refine connection Handshake_Conn += {
 				}
 			}
 
-		auto blist = make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("string_vec"));
+		auto blist = make_intrusive<VectorVal>(zeek::vars::string_vec);
 
 		if ( binders && binders->binders() )
 			{

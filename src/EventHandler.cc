@@ -127,7 +127,7 @@ void EventHandler::NewEvent(const zeek::Args& vl)
 		return;
 
 	RecordType* args = FType()->Args();
-	auto vargs = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, call_argument_vector});
+	auto vargs = make_intrusive<VectorVal>(zeek::vars::call_argument_vector);
 
 	for ( int i = 0; i < args->NumFields(); i++ )
 		{
@@ -135,7 +135,7 @@ void EventHandler::NewEvent(const zeek::Args& vl)
 		const auto& ftype = args->GetFieldType(i);
 		auto fdefault = args->FieldDefault(i);
 
-		auto rec = make_intrusive<RecordVal>(call_argument);
+		auto rec = make_intrusive<RecordVal>(zeek::vars::call_argument);
 		rec->Assign(0, make_intrusive<StringVal>(fname));
 
 		ODesc d;

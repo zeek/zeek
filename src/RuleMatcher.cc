@@ -79,7 +79,7 @@ RuleHdrTest::RuleHdrTest(Prot arg_prot, Comp arg_comp, vector<IPPrefix> arg_v)
 Val* RuleMatcher::BuildRuleStateValue(const Rule* rule,
 					const RuleEndpointState* state) const
 	{
-	RecordVal* val = new RecordVal(signature_state);
+	RecordVal* val = new RecordVal(zeek::vars::signature_state);
 	val->Assign(0, make_intrusive<StringVal>(rule->ID()));
 	val->Assign(1, state->GetAnalyzer()->ConnVal());
 	val->Assign(2, val_mgr->Bool(state->is_orig));

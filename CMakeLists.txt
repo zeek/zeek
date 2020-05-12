@@ -15,6 +15,7 @@ endif ()
 
 include(cmake/CommonCMakeConfig.cmake)
 include(cmake/FindClangTidy.cmake)
+include(cmake/CheckCompilerArch.cmake)
 
 ########################################################################
 ## Project/Build Configuration

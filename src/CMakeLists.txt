@@ -329,23 +329,23 @@ set(HH_SRCS
     3rdparty/highwayhash/highwayhash/hh_portable.cc
 )
 
-if (CMAKE_SYSTEM_PROCESSOR MATCHES "^arm")
+if (${COMPILER_ARCHITECTURE} STREQUAL "arm")
   set_source_files_properties(${HH_SRCS} PROPERTIES COMPILE_FLAGS
                               -mfloat-abi=hard -march=armv7-a -mfpu=neon)
   list(APPEND HH_SRCS
        3rdparty/highwayhash/highwayhash/hh_neon.cc
   )
-elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "^aarch64")
+elseif (${COMPILER_ARCHITECTURE} STREQUAL "aarch64")
   list(APPEND HH_SRCS
        3rdparty/highwayhash/highwayhash/hh_neon.cc
   )
-elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "^(powerpc|ppc)")
+elseif (${COMPILER_ARCHITECTURE} STREQUAL "power")
   set_source_files_properties(3rdparty/highwayhash/highwayhash/hh_avx2.cc PROPERTIES COMPILE_FLAGS
                               -mvsx)
   list(APPEND HH_SRCS
        3rdparty/highwayhash/highwayhash/hh_vsc.cc
   )
-elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "(x86_64)|(AMD64|amd64)")
+elseif(${COMPILER_ARCHITECTURE} STREQUAL "x86_64")
   set_source_files_properties(3rdparty/highwayhash/highwayhash/hh_avx2.cc PROPERTIES COMPILE_FLAGS
                               -mavx2)
   set_source_files_properties(3rdparty/highwayhash/highwayhash/hh_sse41.cc PROPERTIES COMPILE_FLAGS

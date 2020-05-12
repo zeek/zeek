@@ -11,6 +11,7 @@
 #include <openssl/evp.h>
 
 #include <sys/types.h> // for u_char
+#include <cstdint>
 
 #if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 #define EVP_MD_CTX_new EVP_MD_CTX_create

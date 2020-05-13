@@ -31,45 +31,49 @@ IntrusivePtr<TableType> zeek::id::count_set;
 IntrusivePtr<VectorType> zeek::id::string_vec;
 IntrusivePtr<VectorType> zeek::id::index_vec;
 
-const IntrusivePtr<ID>& zeek::id::lookup(const char* name)
+const IntrusivePtr<ID>& zeek::id::lookup(std::string_view name)
 	{
 	return global_scope()->Find(name);
 	}
 
-const IntrusivePtr<BroType>& zeek::id::lookup_type(const char* name)
+const IntrusivePtr<BroType>& zeek::id::lookup_type(std::string_view name)
 	{
 	auto id = global_scope()->Find(name);
 
 	if ( ! id )
-		reporter->InternalError("Failed to find type named: %s", name);
+		reporter->InternalError("Failed to find type named: %s",
+		                        std::string(name).data());
 
 	return id->GetType();
 	}
 
-const IntrusivePtr<Val>& zeek::id::lookup_val(const char* name)
+const IntrusivePtr<Val>& zeek::id::lookup_val(std::string_view name)
 	{
 	auto id = global_scope()->Find(name);
 
 	if ( ! id )
-		reporter->InternalError("Failed to find variable named: %s", name);
+		reporter->InternalError("Failed to find variable named: %s",
+		                        std::string(name).data());
 
 	return id->GetVal();
 	}
 
-const IntrusivePtr<Val>& zeek::id::lookup_const(const char* name)
+const IntrusivePtr<Val>& zeek::id::lookup_const(std::string_view name)
 	{
 	auto id = global_scope()->Find(name);
 
 	if ( ! id )
-		reporter->InternalError("Failed to find variable named: %s", name);
+		reporter->InternalError("Failed to find variable named: %s",
+		                        std::string(name).data());
 
 	if ( ! id->IsConst() )
-		reporter->InternalError("Variable is not 'const', but expected to be: %s", name);
+		reporter->InternalError("Variable is not 'const', but expected to be: %s",
+		                        std::string(name).data());
 
 	return id->GetVal();
 	}
 
-IntrusivePtr<Func> zeek::id::lookup_func(const char* name)
+IntrusivePtr<Func> zeek::id::lookup_func(std::string_view name)
 	{
 	const auto& v = zeek::id::lookup_val(name);
 
@@ -77,7 +81,8 @@ IntrusivePtr<Func> zeek::id::lookup_func(const char* name)
 		return nullptr;
 
 	if ( ! IsFunc(v->GetType()->Tag()) )
-		reporter->InternalError("Expected variable '%s' to be a function", name);
+		reporter->InternalError("Expected variable '%s' to be a function",
+		                        std::string(name).data());
 
 	return {NewRef{}, v->AsFunc()};
 	}

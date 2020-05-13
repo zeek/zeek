@@ -4,7 +4,7 @@
  * This file contains functions to generate hashes used keyed hash functions.
  * Keyed hash functions make it difficult/impossible to find information about the
  * output of a hash when the key is unknown to the attacker. This fact holds, even
- * when the input value us known.
+ * when the input value is known.
  *
  * We use these kinds of hashes heavily internally - e.g. for scriptland hash generation.
  * It is important that these hashes are not easily guessable to prevent complexity attacks.
@@ -102,7 +102,7 @@ public:
 	 * or a restart.
 	 *
 	 * To be more exact - the seed value for this hash is generated from the script-level
-	 * :seek:see:`digest_salt` constant. The seeds are stable as long as this value
+	 * :zeek:see:`digest_salt` constant. The seeds are stable as long as this value
 	 * is not changed.
 	 *
 	 * This should be used for hashes that have to remain stable over the entire
@@ -123,7 +123,7 @@ public:
 	 * or a restart.
 	 *
 	 * To be more exact - the seed value for this hash is generated from the script-level
-	 * :seek:see:`digest_salt` constant. The seeds are stable as long as this value
+	 * :zeek:see:`digest_salt` constant. The seeds are stable as long as this value
 	 * is not changed.
 	 *
 	 * This should be used for hashes that have to remain stable over the entire
@@ -144,7 +144,7 @@ public:
 	 * or a restart.
 	 *
 	 * To be more exact - the seed value for this hash is generated from the script-level
-	 * :seek:see:`digest_salt` constant. The seeds are stable as long as this value
+	 * :zeek:see:`digest_salt` constant. The seeds are stable as long as this value
 	 * is not changed.
 	 *
 	 * This should be used for hashes that have to remain stable over the entire
@@ -180,7 +180,7 @@ public:
 
 	/**
 	 * Initializes the static hash seeds using the script-level
-	 * :seek:see:`digest_salt` constant.
+	 * :zeek:see:`digest_salt` constant.
 	 */
 	static void InitOptions();
 

@@ -66,7 +66,7 @@ unsigned char* internal_md5(const unsigned char* data, unsigned long len, unsign
 	return calculate_digest(Hash_MD5, data, len, out);
 	}
 
-unsigned char* calculate_digest(HashAlgorithm Alg, const unsigned char* data, uint64_t len, unsigned char* out)
+unsigned char* calculate_digest(HashAlgorithm alg, const unsigned char* data, uint64_t len, unsigned char* out)
 	{
 	// maximum possible length for supported hashes
 	static unsigned char static_out[SHA512_DIGEST_LENGTH];
@@ -74,7 +74,7 @@ unsigned char* calculate_digest(HashAlgorithm Alg, const unsigned char* data, ui
 	if ( ! out )
 		out = static_out; // use static array for return, see OpenSSL man page
 
-	EVP_MD_CTX* c = hash_init(Alg);
+	EVP_MD_CTX* c = hash_init(alg);
 	hash_update(c, data, len);
 	hash_final(c, out);
 	return out;

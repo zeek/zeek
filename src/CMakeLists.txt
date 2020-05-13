@@ -319,41 +319,41 @@ set(THIRD_PARTY_SRCS
 # Highwayhash. Highwayhash is a bit special since it has architecture dependent code...
 
 set(HH_SRCS
-    3rdparty/highwayhash/highwayhash/sip_hash.cc
-    3rdparty/highwayhash/highwayhash/sip_tree_hash.cc
-    3rdparty/highwayhash/highwayhash/scalar_sip_tree_hash.cc
-    3rdparty/highwayhash/highwayhash/arch_specific.cc
-    3rdparty/highwayhash/highwayhash/instruction_sets.cc
-    3rdparty/highwayhash/highwayhash/nanobenchmark.cc
-    3rdparty/highwayhash/highwayhash/os_specific.cc
-    3rdparty/highwayhash/highwayhash/hh_portable.cc
+    ../aux/highwayhash/highwayhash/sip_hash.cc
+    ../aux/highwayhash/highwayhash/sip_tree_hash.cc
+    ../aux/highwayhash/highwayhash/scalar_sip_tree_hash.cc
+    ../aux/highwayhash/highwayhash/arch_specific.cc
+    ../aux/highwayhash/highwayhash/instruction_sets.cc
+    ../aux/highwayhash/highwayhash/nanobenchmark.cc
+    ../aux/highwayhash/highwayhash/os_specific.cc
+    ../aux/highwayhash/highwayhash/hh_portable.cc
 )
 
 if (${COMPILER_ARCHITECTURE} STREQUAL "arm")
   set_source_files_properties(${HH_SRCS} PROPERTIES COMPILE_FLAGS
                               -mfloat-abi=hard -march=armv7-a -mfpu=neon)
   list(APPEND HH_SRCS
-       3rdparty/highwayhash/highwayhash/hh_neon.cc
+       ../aux/highwayhash/highwayhash/hh_neon.cc
   )
 elseif (${COMPILER_ARCHITECTURE} STREQUAL "aarch64")
   list(APPEND HH_SRCS
-       3rdparty/highwayhash/highwayhash/hh_neon.cc
+       ../aux/highwayhash/highwayhash/hh_neon.cc
   )
 elseif (${COMPILER_ARCHITECTURE} STREQUAL "power")
-  set_source_files_properties(3rdparty/highwayhash/highwayhash/hh_avx2.cc PROPERTIES COMPILE_FLAGS
+  set_source_files_properties(../aux/highwayhash/highwayhash/hh_avx2.cc PROPERTIES COMPILE_FLAGS
                               -mvsx)
   list(APPEND HH_SRCS
-       3rdparty/highwayhash/highwayhash/hh_vsc.cc
+       ../aux/highwayhash/highwayhash/hh_vsc.cc
   )
 elseif(${COMPILER_ARCHITECTURE} STREQUAL "x86_64")
-  set_source_files_properties(3rdparty/highwayhash/highwayhash/hh_avx2.cc PROPERTIES COMPILE_FLAGS
+  set_source_files_properties(../aux/highwayhash/highwayhash/hh_avx2.cc PROPERTIES COMPILE_FLAGS
                               -mavx2)
-  set_source_files_properties(3rdparty/highwayhash/highwayhash/hh_sse41.cc PROPERTIES COMPILE_FLAGS
+  set_source_files_properties(../aux/highwayhash/highwayhash/hh_sse41.cc PROPERTIES COMPILE_FLAGS
                               -msse4.1)
 
   list(APPEND HH_SRCS
-      3rdparty/highwayhash/highwayhash/hh_avx2.cc
-      3rdparty/highwayhash/highwayhash/hh_sse41.cc
+      ../aux/highwayhash/highwayhash/hh_avx2.cc
+      ../aux/highwayhash/highwayhash/hh_sse41.cc
   )
 endif ()
 

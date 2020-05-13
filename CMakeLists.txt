@@ -328,7 +328,7 @@ endif ()
 include_directories(BEFORE ${OPENSSL_INCLUDE_DIR})
 
 # Make everyone find the highwayhash includes
-include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/src/3rdparty/highwayhash)
+include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/highwayhash)
 
 # Alpine support
 if ( ${CMAKE_SYSTEM_NAME} MATCHES Linux AND EXISTS /etc/os-release )

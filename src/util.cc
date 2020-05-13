@@ -1031,7 +1031,7 @@ static bool read_random_seeds(const char* read_file, uint32_t* seed,
 		}
 
 	// Read seeds for hmac-md5/siphash/highwayhash.
-	for ( int i = 0; i < KeyedHash::SEED_INIT_SIZE; ++i )
+	for ( auto &v : buf )
 		{
 		int tmp;
 		if ( fscanf(f, "%u", &tmp) != 1 )
@@ -1040,7 +1040,7 @@ static bool read_random_seeds(const char* read_file, uint32_t* seed,
 			return false;
 			}
 
-		buf[i] = tmp;
+		v = tmp;
 		}
 
 	fclose(f);
@@ -1061,8 +1061,8 @@ static bool write_random_seeds(const char* write_file, uint32_t seed,
 
 	fprintf(f, "%u\n", seed);
 
-	for ( int i = 0; i < KeyedHash::SEED_INIT_SIZE; ++i )
-		fprintf(f, "%u\n", buf[i]);
+	for ( const auto &v: buf )
+		fprintf(f, "%u\n", v);
 
 	fclose(f);
 	return true;

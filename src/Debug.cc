@@ -197,7 +197,7 @@ void get_first_statement(Stmt* list, Stmt*& first, Location& loc)
 static void parse_function_name(vector<ParseLocationRec>& result,
 				ParseLocationRec& plr, const string& s)
 	{ // function name
-	auto id = lookup_ID(s.c_str(), current_module.c_str());
+	const auto& id = lookup_ID(s.c_str(), current_module.c_str());
 
 	if ( ! id )
 		{

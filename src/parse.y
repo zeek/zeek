@@ -1599,7 +1599,7 @@ event:
 		TOK_ID '(' opt_expr_list ')'
 			{
 			set_location(@1, @4);
-			auto id = lookup_ID($1, current_module.c_str());
+			const auto& id = lookup_ID($1, current_module.c_str());
 
 			if ( id )
 				{
@@ -1769,7 +1769,8 @@ local_id:
 		TOK_ID
 			{
 			set_location(@1);
-			$$ = lookup_ID($1, current_module.c_str()).release();
+			auto id = lookup_ID($1, current_module.c_str());
+			$$ = id.release();
 
 			if ( $$ )
 				{
@@ -1805,8 +1806,9 @@ global_or_event_id:
 		TOK_ID
 			{
 			set_location(@1);
-			$$ = lookup_ID($1, current_module.c_str(), false,
-			               defining_global_ID).release();
+			auto id = lookup_ID($1, current_module.c_str(), false,
+			                    defining_global_ID);
+			$$ = id.release();
 
 			if ( $$ )
 				{
@@ -1842,7 +1844,8 @@ resolve_id:
 		TOK_ID
 			{
 			set_location(@1);
-			$$ = lookup_ID($1, current_module.c_str()).release();
+			auto id = lookup_ID($1, current_module.c_str());
+			$$ = id.release();
 
 			if ( ! $$ )
 				reporter->Error("identifier not defined: %s", $1);

@@ -186,7 +186,7 @@ static BroFile* print_stdout = nullptr;
 
 static IntrusivePtr<EnumVal> lookup_enum_val(const char* module_name, const char* name)
 	{
-	auto id = lookup_ID(name, module_name);
+	const auto& id = lookup_ID(name, module_name);
 	assert(id);
 	assert(id->IsEnumConst());
 

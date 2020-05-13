@@ -774,7 +774,7 @@ void do_atifdef(const char* id)
 	{
 	++current_depth;
 
-	auto i = lookup_ID(id, current_module.c_str());
+	const auto& i = lookup_ID(id, current_module.c_str());
 
 	if ( ! i )
 		{
@@ -787,7 +787,7 @@ void do_atifndef(const char *id)
 	{
 	++current_depth;
 
-	auto i = lookup_ID(id, current_module.c_str());
+	const auto& i = lookup_ID(id, current_module.c_str());
 
 	if ( i )
 		{
@@ -1000,7 +1000,7 @@ int yywrap()
 			// string type.)  If no type is found, the value
 			// is left unchanged.
 			std::string opt_quote;	// no optional quote by default
-			auto param_id = lookup_ID(param, GLOBAL_MODULE_NAME);
+			const auto& param_id = lookup_ID(param, GLOBAL_MODULE_NAME);
 			Val* v = param_id ? param_id->GetVal().get() : nullptr;
 
 			if ( v && v->GetType() && v->GetType()->Tag() == TYPE_STRING )

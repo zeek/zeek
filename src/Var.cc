@@ -688,13 +688,13 @@ Val* internal_const_val(const char* name)
 
 Val* opt_internal_val(const char* name)
 	{
-	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	const auto& id = lookup_ID(name, GLOBAL_MODULE_NAME);
 	return id ? id->GetVal().get() : nullptr;
 	}
 
 double opt_internal_double(const char* name)
 	{
-	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	const auto& id = lookup_ID(name, GLOBAL_MODULE_NAME);
 	if ( ! id ) return 0.0;
 	const auto& v = id->GetVal();
 	return v ? v->InternalDouble() : 0.0;
@@ -702,7 +702,7 @@ double opt_internal_double(const char* name)
 
 bro_int_t opt_internal_int(const char* name)
 	{
-	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	const auto& id = lookup_ID(name, GLOBAL_MODULE_NAME);
 	if ( ! id ) return 0;
 	const auto& v = id->GetVal();
 	return v ? v->InternalInt() : 0;
@@ -710,7 +710,7 @@ bro_int_t opt_internal_int(const char* name)
 
 bro_uint_t opt_internal_unsigned(const char* name)
 	{
-	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	const auto& id = lookup_ID(name, GLOBAL_MODULE_NAME);
 	if ( ! id ) return 0;
 	const auto& v = id->GetVal();
 	return v ? v->InternalUnsigned() : 0;
@@ -718,7 +718,7 @@ bro_uint_t opt_internal_unsigned(const char* name)
 
 StringVal* opt_internal_string(const char* name)
 	{
-	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	const auto& id = lookup_ID(name, GLOBAL_MODULE_NAME);
 	if ( ! id ) return nullptr;
 	const auto& v = id->GetVal();
 	return v ? v->AsStringVal() : nullptr;
@@ -726,7 +726,7 @@ StringVal* opt_internal_string(const char* name)
 
 TableVal* opt_internal_table(const char* name)
 	{
-	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	const auto& id = lookup_ID(name, GLOBAL_MODULE_NAME);
 	if ( ! id ) return nullptr;
 	const auto& v = id->GetVal();
 	return v ? v->AsTableVal() : nullptr;
@@ -734,7 +734,7 @@ TableVal* opt_internal_table(const char* name)
 
 ListVal* internal_list_val(const char* name)
 	{
-	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	const auto& id = lookup_ID(name, GLOBAL_MODULE_NAME);
 	if ( ! id )
 		return nullptr;
 

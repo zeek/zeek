@@ -39,8 +39,8 @@ FuncType* EventHandler::FType(bool check_export)
 	if ( type )
 		return type;
 
-	auto id = lookup_ID(name, current_module.c_str(), false, false,
-	                    check_export);
+	const auto& id = lookup_ID(name, current_module.c_str(), false, false,
+	                           check_export);
 
 	if ( ! id )
 		return nullptr;

@@ -117,9 +117,9 @@ TraversalCode Scope::Traverse(TraversalCallback* cb) const
 	}
 
 
-IntrusivePtr<ID> lookup_ID(const char* name, const char* curr_module,
-                           bool no_global, bool same_module_only,
-                           bool check_export)
+const IntrusivePtr<ID>& lookup_ID(const char* name, const char* curr_module,
+                                  bool no_global, bool same_module_only,
+                                  bool check_export)
 	{
 	std::string fullname = make_full_var_name(curr_module, name);
 
@@ -148,7 +148,8 @@ IntrusivePtr<ID> lookup_ID(const char* name, const char* curr_module,
 		return global_scope()->Find(globalname);
 		}
 
-	return nullptr;
+	static IntrusivePtr<ID> nil;
+	return nil;
 	}
 
 IntrusivePtr<ID> install_ID(const char* name, const char* module_name,

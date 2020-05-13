@@ -4,6 +4,7 @@
 
 #include <utility>
 #include <string>
+#include <string_view>
 #include <map>
 
 #include "Obj.h"
@@ -21,42 +22,17 @@ public:
 	explicit Scope(IntrusivePtr<ID> id, attr_list* al);
 	~Scope() override;
 
-	template<typename N>
-	const IntrusivePtr<ID>& Find(N&& name) const
-		{
-		static IntrusivePtr<ID> nil;
-		const auto& entry = local.find(std::forward<N>(name));
-
-		if ( entry != local.end() )
-			return entry->second;
-
-		return nil;
-		}
+	const IntrusivePtr<ID>& Find(std::string_view name) const;
 
 	template<typename N>
 	[[deprecated("Remove in v4.1.  Use Find().")]]
 	ID* Lookup(N&& name) const
-		{
-		return Find(name).get();
-		}
+		{ return Find(name).get(); }
 
 	template<typename N, typename I>
 	void Insert(N&& name, I&& id) { local[std::forward<N>(name)] = std::forward<I>(id); }
 
-	template<typename N>
-	IntrusivePtr<ID> Remove(N&& name)
-		{
-		const auto& entry = local.find(std::forward<N>(name));
-
-		if ( entry != local.end() )
-			{
-			auto id = std::move(entry->second);
-			local.erase(entry);
-			return id;
-			}
-
-		return nullptr;
-		}
+	IntrusivePtr<ID> Remove(std::string_view name);
 
 	ID* ScopeID() const		{ return scope_id.get(); }
 	attr_list* Attrs() const	{ return attrs; }
@@ -82,7 +58,7 @@ protected:
 	IntrusivePtr<ID> scope_id;
 	attr_list* attrs;
 	IntrusivePtr<BroType> return_type;
-	std::map<std::string, IntrusivePtr<ID>> local;
+	std::map<std::string, IntrusivePtr<ID>, std::less<>> local;
 	id_list* inits;
 };
 

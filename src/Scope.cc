@@ -14,7 +14,7 @@ typedef PList<Scope> scope_list;
 
 static scope_list scopes;
 static Scope* top_scope;
-
+static IntrusivePtr<ID> nil_id;
 
 Scope::Scope(IntrusivePtr<ID> id, attr_list* al)
 	: scope_id(std::move(id))
@@ -55,6 +55,30 @@ Scope::~Scope()
 
 		delete inits;
 		}
+	}
+
+const IntrusivePtr<ID>& Scope::Find(std::string_view name) const
+	{
+	auto entry = local.find(name);
+
+	if ( entry != local.end() )
+		return entry->second;
+
+	return nil_id;
+	}
+
+IntrusivePtr<ID> Scope::Remove(std::string_view name)
+	{
+	auto entry = local.find(name);
+
+	if ( entry != local.end() )
+		{
+		auto id = std::move(entry->second);
+		local.erase(entry);
+		return id;
+		}
+
+	return nullptr;
 	}
 
 ID* Scope::GenerateTemporary(const char* name)
@@ -148,8 +172,7 @@ const IntrusivePtr<ID>& lookup_ID(const char* name, const char* curr_module,
 		return global_scope()->Find(globalname);
 		}
 
-	static IntrusivePtr<ID> nil;
-	return nil;
+	return nil_id;
 	}
 
 IntrusivePtr<ID> install_ID(const char* name, const char* module_name,

@@ -28,7 +28,7 @@ extern "C" {
 #include "Sessions.h"
 #include "Event.h"
 #include "Timer.h"
-#include "Var.h"
+#include "ID.h"
 #include "Reporter.h"
 #include "Scope.h"
 #include "Anon.h"
@@ -330,6 +330,8 @@ void net_run()
 		processing_start_time = 0.0;	// = "we're not processing now"
 		current_dispatched = 0;
 		current_iosrc = nullptr;
+
+		extern int signal_val;
 
 		if ( signal_val == SIGTERM || signal_val == SIGINT )
 			// We received a signal while processing the

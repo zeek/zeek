@@ -67,5 +67,3 @@ extern BroType* internal_type(const char* name);
 extern Func* internal_func(const char* name);
 
 extern EventHandlerPtr internal_handler(const char* name);
-
-extern int signal_val;	// 0 if no signal pending

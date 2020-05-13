@@ -49,11 +49,18 @@ extern Val* internal_const_val(const char* name); // internal error if not const
 [[deprecated("Remove in v4.1.  Use zeek::id::lookup() or zeek::id::lookup_val().")]]
 extern Val* opt_internal_val(const char* name);	// returns nil if not defined
 
+[[deprecated("Remove in v4.1.  Use zeek::id::lookup() or zeek::id::lookup_val().")]]
 extern double opt_internal_double(const char* name);
+
+[[deprecated("Remove in v4.1.  Use zeek::id::lookup() or zeek::id::lookup_val().")]]
 extern bro_int_t opt_internal_int(const char* name);
+
+[[deprecated("Remove in v4.1.  Use zeek::id::lookup() or zeek::id::lookup_val().")]]
 extern bro_uint_t opt_internal_unsigned(const char* name);
+
 [[deprecated("Remove in v4.1.  Use zeek::id::lookup() or zeek::id::lookup_val().")]]
 extern StringVal* opt_internal_string(const char* name);
+
 [[deprecated("Remove in v4.1.  Use zeek::id::lookup() or zeek::id::lookup_val().")]]
 extern TableVal* opt_internal_table(const char* name);	// nil if not defined
 

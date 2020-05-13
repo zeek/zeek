@@ -228,8 +228,6 @@ extern TableVal* likely_server_ports;
 
 extern int check_for_unused_event_handlers;
 
-extern int suppress_local_output;
-
 extern double timer_mgr_inactivity_timeout;
 
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]

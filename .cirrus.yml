@@ -3,8 +3,8 @@ btest_jobs: &BTEST_JOBS 8
 btest_retries: &BTEST_RETRIES 2
 memory: &MEMORY 6GB
 
-config: &CONFIG --build-type=release --enable-cpp-tests
-memcheck_config: &MEMCHECK_CONFIG --build-type=debug --enable-cpp-tests --sanitizers=address --enable-fuzzers
+config: &CONFIG --build-type=release --enable-cpp-tests  --disable-broker-tests
+memcheck_config: &MEMCHECK_CONFIG --build-type=debug --enable-cpp-tests --disable-broker-tests --sanitizers=address --enable-fuzzers
 
 resources_template: &RESOURCES_TEMPLATE
   cpu: *CPUS

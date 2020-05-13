@@ -271,7 +271,8 @@ while [ $# -ne 0 ]; do
             append_cache_entry DISABLE_PYTHON_BINDINGS     BOOL   true
             ;;
         --disable-broker-tests)
-            append_cache_entry BROKER_DISABLE_TESTS     BOOL   true
+            append_cache_entry BROKER_DISABLE_TESTS        BOOL true
+            append_cache_entry BROKER_DISABLE_DOC_EXAMPLES BOOL true
             ;;
         --with-openssl=*)
             append_cache_entry OPENSSL_ROOT_DIR PATH $optarg

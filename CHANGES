@@ -1,4 +1,12 @@
 
+3.2.0-dev.508 | 2020-05-13 11:16:05 -0700
+
+  * Disable broker tests from building on the CI (Tim Wojtulewicz, Corelight)
+
+    This results in a ~10% reduction in build time.
+
+  * Disable broker documentation examples if disabling broker tests (Tim Wojtulewicz, Corelight)
+
 3.2.0-dev.505 | 2020-05-12 18:52:19 -0700
 
   * Use zeek::detail namespace for fuzzer utils (Jon Siwek, Corelight)

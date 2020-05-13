@@ -25,7 +25,7 @@ hook myhook(r: rec)
 	{
 	# This handler shouldn't execute ever because of the handler at priority=5
 	# exiting the body from a "break" statement.
-	print "myhook, &priority=0", rec;
+	print "myhook, &priority=0", r;
 	}
 
 hook myhook(r: rec) &priority=10

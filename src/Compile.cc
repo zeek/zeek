@@ -832,10 +832,6 @@ IntrusivePtr<Val> AbstractMachine::DoExec(Frame* f, int start_pc,
 
 	delete [] frame;
 
-	// ### should propagate error.
-
-	flow = FLOW_RETURN;
-
 	return result;
 	}
 

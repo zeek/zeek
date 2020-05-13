@@ -10,3 +10,11 @@
 [scheme=<uninitialized>, netlocation=dfasjdfasdfasdf, portnum=<uninitialized>, path=/, file_name=<uninitialized>, file_base=<uninitialized>, file_ext=<uninitialized>, params={
 
 }]
+{
+https://example1.com,
+https://example2.com
+}
+{
+https://example2.com/?test=2,
+https://example1.com/?test=1
+}

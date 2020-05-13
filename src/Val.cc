@@ -34,7 +34,7 @@
 #include "Conn.h"
 #include "Reporter.h"
 #include "IPAddr.h"
-#include "Var.h"
+#include "ID.h"
 
 #include "broker/Data.h"
 
@@ -411,7 +411,7 @@ bool Val::WouldOverflow(const BroType* from_type, const BroType* to_type, const 
 
 IntrusivePtr<TableVal> Val::GetRecordFields()
 	{
-	static auto record_field_table = zeek::lookup_type<TableType>("record_field_table");
+	static auto record_field_table = zeek::id::lookup_type<TableType>("record_field_table");
 	auto t = GetType().get();
 
 	if ( t->Tag() != TYPE_RECORD && t->Tag() != TYPE_TYPE )
@@ -1931,7 +1931,7 @@ IntrusivePtr<VectorVal> TableVal::LookupSubnets(const SubNetVal* search)
 	if ( ! subnets )
 		reporter->InternalError("LookupSubnets called on wrong table type");
 
-	auto result = make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("subnet_vec"));
+	auto result = make_intrusive<VectorVal>(zeek::id::lookup_type<VectorType>("subnet_vec"));
 
 	auto matches = subnets->FindAll(search);
 	for ( auto element : matches )

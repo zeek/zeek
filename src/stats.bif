@@ -470,7 +470,7 @@ function get_reporter_stats%(%): ReporterStats
 	auto r = make_intrusive<RecordVal>(ReporterStats);
 	int n = 0;
 
-	auto weirds_by_type = make_intrusive<TableVal>(zeek::lookup_type<TableType>("table_string_of_count"));
+	auto weirds_by_type = make_intrusive<TableVal>(zeek::id::lookup_type<TableType>("table_string_of_count"));
 
 	for ( auto& kv : reporter->GetWeirdsByType() )
 		{

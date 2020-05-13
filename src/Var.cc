@@ -15,6 +15,7 @@
 #include "EventRegistry.h"
 #include "Traverse.h"
 #include "module_util.h"
+#include "ID.h"
 
 static IntrusivePtr<Val> init_val(Expr* init, const BroType* t,
                                   IntrusivePtr<Val> aggr)
@@ -657,7 +658,7 @@ void end_func(IntrusivePtr<Stmt> body)
 
 Val* internal_val(const char* name)
 	{
-	return zeek::lookup_val(name).get();
+	return zeek::id::lookup_val(name).get();
 	}
 
 id_list gather_outer_ids(Scope* scope, Stmt* body)
@@ -682,7 +683,7 @@ id_list gather_outer_ids(Scope* scope, Stmt* body)
 
 Val* internal_const_val(const char* name)
 	{
-	return zeek::lookup_const(name).get();
+	return zeek::id::lookup_const(name).get();
 	}
 
 Val* opt_internal_val(const char* name)
@@ -760,62 +761,17 @@ ListVal* internal_list_val(const char* name)
 
 BroType* internal_type(const char* name)
 	{
-	return zeek::lookup_type(name).get();
-	}
-
-const IntrusivePtr<Val>& zeek::lookup_val(const char* name)
-	{
-	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
-
-	if ( ! id )
-		reporter->InternalError("Failed to find variable named: %s", name);
-
-	return id->GetVal();
-	}
-
-const IntrusivePtr<Val>& zeek::lookup_const(const char* name)
-	{
-	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
-
-	if ( ! id )
-		reporter->InternalError("Failed to find variable named: %s", name);
-
-	if ( ! id->IsConst() )
-		reporter->InternalError("Variable is not 'const', but expected to be: %s", name);
-
-	return id->GetVal();
-	}
-
-const IntrusivePtr<BroType>& zeek::lookup_type(const char* name)
-	{
-	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
-	if ( ! id )
-		reporter->InternalError("Failed to find type named: %s", name);
-
-	return id->GetType();
+	return zeek::id::lookup_type(name).get();
 	}
 
 Func* internal_func(const char* name)
 	{
-	const auto& v = zeek::lookup_val(name);
+	const auto& v = zeek::id::lookup_val(name);
 
 	if ( v )
 		return v->AsFunc();
 	else
 		return nullptr;
-	}
-
-IntrusivePtr<Func> zeek::lookup_func(const char* name)
-	{
-	const auto& v = zeek::lookup_val(name);
-
-	if ( ! v )
-		return nullptr;
-
-	if ( ! IsFunc(v->GetType()->Tag()) )
-		reporter->InternalError("Expected variable '%s' to be a function", name);
-
-	return {NewRef{}, v->AsFunc()};
 	}
 
 EventHandlerPtr internal_handler(const char* name)

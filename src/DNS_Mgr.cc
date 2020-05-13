@@ -462,7 +462,7 @@ void DNS_Mgr::InitPostScript()
 	dns_mapping_name_changed = internal_handler("dns_mapping_name_changed");
 	dns_mapping_altered = internal_handler("dns_mapping_altered");
 
-	dm_rec = zeek::lookup_type("dns_mapping")->AsRecordType();
+	dm_rec = zeek::id::lookup_type("dns_mapping")->AsRecordType();
 
 	// Registering will call Init()
 	iosource_mgr->Register(this, true);

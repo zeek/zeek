@@ -363,7 +363,7 @@ static std::vector<std::string> get_script_signature_files()
 
 	// Parse rule files defined on the script level.
 	char* script_signature_files =
-		copy_string(zeek::lookup_val("signature_files")->AsString()->CheckString());
+		copy_string(zeek::id::lookup_val("signature_files")->AsString()->CheckString());
 
 	char* tmp = script_signature_files;
 	char* s;
@@ -724,7 +724,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 
 	if ( ! options.pcap_file && ! options.interface )
 		{
-		const auto& interfaces_val = zeek::lookup_val("interfaces");
+		const auto& interfaces_val = zeek::id::lookup_val("interfaces");
 		if ( interfaces_val )
 			{
 			char* interfaces_str =
@@ -784,7 +784,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 
 	if ( profiling_interval > 0 )
 		{
-		const auto& profiling_file = zeek::lookup_val("profiling_file");
+		const auto& profiling_file = zeek::id::lookup_val("profiling_file");
 		profiling_logger = new ProfileLogger(profiling_file->AsFile(),
 			profiling_interval);
 

@@ -1,6 +1,6 @@
 #include "Store.h"
 #include "Desc.h"
-#include "Var.h"
+#include "ID.h"
 #include "broker/Manager.h"
 
 namespace bro_broker {
@@ -15,7 +15,7 @@ EnumVal* query_status(bool success)
 
 	if ( ! store_query_status )
 		{
-		store_query_status = zeek::lookup_type("Broker::QueryStatus")->AsEnumType();
+		store_query_status = zeek::id::lookup_type("Broker::QueryStatus")->AsEnumType();
 		success_val = store_query_status->Lookup("Broker", "SUCCESS");
 		failure_val = store_query_status->Lookup("Broker", "FAILURE");
 		}

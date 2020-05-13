@@ -81,7 +81,7 @@ NetSessions::NetSessions()
 
 	dump_this_packet = false;
 	num_packets_processed = 0;
-	static auto pkt_profile_file = zeek::lookup_val("pkt_profile_file");
+	static auto pkt_profile_file = zeek::id::lookup_val("pkt_profile_file");
 
 	if ( pkt_profile_mode && pkt_profile_freq > 0 && pkt_profile_file )
 		pkt_profiler = new PacketProfiler(pkt_profile_mode,
@@ -915,7 +915,7 @@ Connection* NetSessions::FindConnection(Val* v)
 	int orig_h, orig_p;	// indices into record's value list
 	int resp_h, resp_p;
 
-	if ( vr == zeek::vars::conn_id )
+	if ( vr == zeek::id::conn_id )
 		{
 		orig_h = 0;
 		orig_p = 1;
@@ -1219,7 +1219,7 @@ bool NetSessions::IsLikelyServerPort(uint32_t port, TransportProto proto) const
 
 	if ( ! have_cache )
 		{
-		auto likely_server_ports = zeek::lookup_val<TableVal>("likely_server_ports");
+		auto likely_server_ports = zeek::id::lookup_val<TableVal>("likely_server_ports");
 		auto lv = likely_server_ports->ToPureListVal();
 		for ( int i = 0; i < lv->Length(); i++ )
 			port_cache.insert(lv->Idx(i)->InternalUnsigned());

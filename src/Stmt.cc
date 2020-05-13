@@ -201,8 +201,8 @@ static IntrusivePtr<EnumVal> lookup_enum_val(const char* module_name, const char
 static void print_log(const std::vector<IntrusivePtr<Val>>& vals)
 	{
 	auto plval = lookup_enum_val("Log", "PRINTLOG");
-	auto record = make_intrusive<RecordVal>(zeek::lookup_type("Log::PrintLogInfo")->AsRecordType());
-	auto vec = make_intrusive<VectorVal>(zeek::vars::string_vec);
+	auto record = make_intrusive<RecordVal>(zeek::id::lookup_type("Log::PrintLogInfo")->AsRecordType());
+	auto vec = make_intrusive<VectorVal>(zeek::id::string_vec);
 
 	for ( const auto& val : vals )
 		{
@@ -237,7 +237,7 @@ IntrusivePtr<Val> PrintStmt::DoExec(std::vector<IntrusivePtr<Val>> vals,
 		}
 
 	static auto print_log_type = static_cast<BifEnum::Log::PrintLogType>(
-	        zeek::lookup_val("Log::print_to_log")->AsEnum());
+	        zeek::id::lookup_val("Log::print_to_log")->AsEnum());
 
 	switch ( print_log_type ) {
 	case BifEnum::Log::REDIRECT_NONE:

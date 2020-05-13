@@ -42,8 +42,8 @@ TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 
 	if ( ::tcp_contents )
 		{
-		static auto tcp_content_delivery_ports_orig = zeek::lookup_val<TableVal>("tcp_content_delivery_ports_orig");
-		static auto tcp_content_delivery_ports_resp = zeek::lookup_val<TableVal>("tcp_content_delivery_ports_resp");
+		static auto tcp_content_delivery_ports_orig = zeek::id::lookup_val<TableVal>("tcp_content_delivery_ports_orig");
+		static auto tcp_content_delivery_ports_resp = zeek::id::lookup_val<TableVal>("tcp_content_delivery_ports_resp");
 		const auto& dst_port_val = val_mgr->Port(ntohs(tcp_analyzer->Conn()->RespPort()),
 		                                         TRANSPORT_TCP);
 		const auto& ports = IsOrig() ?

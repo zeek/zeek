@@ -14,7 +14,7 @@ refine flow MQTT_Flow += {
 		%{
 		if ( mqtt_unsubscribe )
 			{
-			auto topics = make_intrusive<VectorVal>(zeek::vars::string_vec);
+			auto topics = make_intrusive<VectorVal>(zeek::id::string_vec);
 
 			for ( auto topic: *${msg.topics} )
 				{

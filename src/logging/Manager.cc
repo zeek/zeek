@@ -313,7 +313,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 	streams[idx]->event = event ? event_registry->Lookup(event->Name()) : nullptr;
 	streams[idx]->columns = columns->Ref()->AsRecordType();
 
-	streams[idx]->enable_remote = zeek::lookup_val("Log::enable_remote_logging")->AsBool();
+	streams[idx]->enable_remote = zeek::id::lookup_val("Log::enable_remote_logging")->AsBool();
 
 	DBG_LOG(DBG_LOGGING, "Created new logging stream '%s', raising event %s",
 		streams[idx]->name.c_str(), event ? streams[idx]->event->Name() : "<none>");
@@ -1193,7 +1193,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 
 	// Still need to set the WriterInfo's rotation parameters, which we
 	// computed above.
-	static auto log_rotate_base_time = zeek::lookup_val<StringVal>("log_rotate_base_time");
+	static auto log_rotate_base_time = zeek::id::lookup_val<StringVal>("log_rotate_base_time");
 	static auto base_time = log_rotate_base_time->AsString()->CheckString();
 
 	winfo->info->rotation_interval = winfo->interval;
@@ -1276,7 +1276,7 @@ bool Manager::WriteFromRemote(EnumVal* id, EnumVal* writer, const string& path, 
 
 void Manager::SendAllWritersTo(const broker::endpoint_info& ei)
 	{
-	auto et = zeek::lookup_type("Log::Writer")->AsEnumType();
+	auto et = zeek::id::lookup_type("Log::Writer")->AsEnumType();
 
 	for ( vector<Stream *>::iterator s = streams.begin(); s != streams.end(); ++s )
 		{
@@ -1453,7 +1453,7 @@ void Manager::InstallRotationTimer(WriterInfo* winfo)
 			if ( ! winfo->open_time )
 				winfo->open_time = network_time;
 
-			static auto log_rotate_base_time = zeek::lookup_val<StringVal>("log_rotate_base_time");
+			static auto log_rotate_base_time = zeek::id::lookup_val<StringVal>("log_rotate_base_time");
 			static auto base_time = log_rotate_base_time->AsString()->CheckString();
 
 			double base = parse_rotate_base_time(base_time);

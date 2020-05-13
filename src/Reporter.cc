@@ -15,7 +15,7 @@
 #include "Net.h"
 #include "Conn.h"
 #include "Timer.h"
-#include "Var.h"
+#include "ID.h"
 #include "EventHandler.h"
 #include "plugin/Plugin.h"
 #include "plugin/Manager.h"
@@ -63,13 +63,13 @@ Reporter::~Reporter()
 
 void Reporter::InitOptions()
 	{
-	info_to_stderr = zeek::lookup_val("Reporter::info_to_stderr")->AsBool();
-	warnings_to_stderr = zeek::lookup_val("Reporter::warnings_to_stderr")->AsBool();
-	errors_to_stderr = zeek::lookup_val("Reporter::errors_to_stderr")->AsBool();
-	weird_sampling_rate = zeek::lookup_val("Weird::sampling_rate")->AsCount();
-	weird_sampling_threshold = zeek::lookup_val("Weird::sampling_threshold")->AsCount();
-	weird_sampling_duration = zeek::lookup_val("Weird::sampling_duration")->AsInterval();
-	auto wl_val = zeek::lookup_val("Weird::sampling_whitelist")->AsTableVal();
+	info_to_stderr = zeek::id::lookup_val("Reporter::info_to_stderr")->AsBool();
+	warnings_to_stderr = zeek::id::lookup_val("Reporter::warnings_to_stderr")->AsBool();
+	errors_to_stderr = zeek::id::lookup_val("Reporter::errors_to_stderr")->AsBool();
+	weird_sampling_rate = zeek::id::lookup_val("Weird::sampling_rate")->AsCount();
+	weird_sampling_threshold = zeek::id::lookup_val("Weird::sampling_threshold")->AsCount();
+	weird_sampling_duration = zeek::id::lookup_val("Weird::sampling_duration")->AsInterval();
+	auto wl_val = zeek::id::lookup_val("Weird::sampling_whitelist")->AsTableVal();
 	auto wl_table = wl_val->AsTable();
 
 	HashKey* k;

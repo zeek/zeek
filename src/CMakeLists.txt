@@ -205,7 +205,7 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
 set_source_files_properties(nb_dns.c PROPERTIES COMPILE_FLAGS
                             -fno-strict-aliasing)
 
-set_source_files_properties(ZeekVars.cc PROPERTIES COMPILE_FLAGS
+set_source_files_properties(legacy-netvar-init.cc PROPERTIES COMPILE_FLAGS
                             -Wno-deprecated-declarations)
 
 set(MAIN_SRCS
@@ -289,7 +289,7 @@ set(MAIN_SRCS
     Var.cc
     WeirdState.cc
     ZeekArgs.cc
-    ZeekVars.cc
+    legacy-netvar-init.cc
     bsd-getopt-long.c
     bro_inet_ntop.c
     patricia.c

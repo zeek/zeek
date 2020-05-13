@@ -23,7 +23,7 @@ Hasher::seed_t Hasher::MakeSeed(const void* data, size_t size)
 
 	assert(sizeof(tmpseed) == 16);
 
-	static auto global_hash_seed = zeek::lookup_val<StringVal>("global_hash_seed");
+	static auto global_hash_seed = zeek::id::lookup_val<StringVal>("global_hash_seed");
 
 	if ( data )
 		hash_update(ctx, data, size);

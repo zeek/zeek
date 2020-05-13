@@ -19,6 +19,89 @@
 #include "zeekygen/ScriptInfo.h"
 #include "module_util.h"
 
+IntrusivePtr<RecordType> zeek::id::conn_id;
+IntrusivePtr<RecordType> zeek::id::endpoint;
+IntrusivePtr<RecordType> zeek::id::connection;
+IntrusivePtr<RecordType> zeek::id::fa_file;
+IntrusivePtr<RecordType> zeek::id::fa_metadata;
+IntrusivePtr<EnumType> zeek::id::transport_proto;
+IntrusivePtr<TableType> zeek::id::string_set;
+IntrusivePtr<TableType> zeek::id::string_array;
+IntrusivePtr<TableType> zeek::id::count_set;
+IntrusivePtr<VectorType> zeek::id::string_vec;
+IntrusivePtr<VectorType> zeek::id::index_vec;
+
+IntrusivePtr<ID> zeek::id::lookup(const char* name)
+	{
+	auto id = global_scope()->Lookup(name);
+
+	if ( ! id )
+		return nullptr;
+
+	return {NewRef{}, id};
+	}
+
+const IntrusivePtr<BroType>& zeek::id::lookup_type(const char* name)
+	{
+	auto id = zeek::id::lookup(name);
+
+	if ( ! id )
+		reporter->InternalError("Failed to find type named: %s", name);
+
+	return id->GetType();
+	}
+
+const IntrusivePtr<Val>& zeek::id::lookup_val(const char* name)
+	{
+	auto id = zeek::id::lookup(name);
+
+	if ( ! id )
+		reporter->InternalError("Failed to find variable named: %s", name);
+
+	return id->GetVal();
+	}
+
+const IntrusivePtr<Val>& zeek::id::lookup_const(const char* name)
+	{
+	auto id = zeek::id::lookup(name);
+
+	if ( ! id )
+		reporter->InternalError("Failed to find variable named: %s", name);
+
+	if ( ! id->IsConst() )
+		reporter->InternalError("Variable is not 'const', but expected to be: %s", name);
+
+	return id->GetVal();
+	}
+
+IntrusivePtr<Func> zeek::id::lookup_func(const char* name)
+	{
+	const auto& v = zeek::id::lookup_val(name);
+
+	if ( ! v )
+		return nullptr;
+
+	if ( ! IsFunc(v->GetType()->Tag()) )
+		reporter->InternalError("Expected variable '%s' to be a function", name);
+
+	return {NewRef{}, v->AsFunc()};
+	}
+
+void zeek::id::detail::init()
+	{
+	conn_id = lookup_type<RecordType>("conn_id");
+	endpoint = lookup_type<RecordType>("endpoint");
+	connection = lookup_type<RecordType>("connection");
+	fa_file = lookup_type<RecordType>("fa_file");
+	fa_metadata = lookup_type<RecordType>("fa_metadata");
+	transport_proto = lookup_type<EnumType>("transport_proto");
+	string_set = lookup_type<TableType>("string_set");
+	string_array = lookup_type<TableType>("string_array");
+	count_set = lookup_type<TableType>("count_set");
+	string_vec = lookup_type<VectorType>("string_vec");
+	index_vec = lookup_type<VectorType>("index_vec");
+	}
+
 ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 	{
 	name = copy_string(arg_name);

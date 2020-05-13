@@ -128,7 +128,7 @@ void EventHandler::NewEvent(const zeek::Args& vl)
 		return;
 
 	RecordType* args = FType()->Args();
-	static auto call_argument_vector = zeek::lookup_type<VectorType>("call_argument_vector");
+	static auto call_argument_vector = zeek::id::lookup_type<VectorType>("call_argument_vector");
 	auto vargs = make_intrusive<VectorVal>(call_argument_vector);
 
 	for ( int i = 0; i < args->NumFields(); i++ )
@@ -137,7 +137,7 @@ void EventHandler::NewEvent(const zeek::Args& vl)
 		const auto& ftype = args->GetFieldType(i);
 		auto fdefault = args->FieldDefault(i);
 
-		static auto call_argument = zeek::lookup_type<RecordType>("call_argument");
+		static auto call_argument = zeek::id::lookup_type<RecordType>("call_argument");
 		auto rec = make_intrusive<RecordVal>(call_argument);
 		rec->Assign(0, make_intrusive<StringVal>(fname));
 

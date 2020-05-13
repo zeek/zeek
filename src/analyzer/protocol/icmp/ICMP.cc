@@ -225,7 +225,7 @@ ICMP_Analyzer::BuildICMPVal(const struct icmp* icmpp, int len,
 	{
 	if ( ! icmp_conn_val )
 		{
-		static auto icmp_conn = zeek::lookup_type<RecordType>("icmp_conn");
+		static auto icmp_conn = zeek::id::lookup_type<RecordType>("icmp_conn");
 		icmp_conn_val = make_intrusive<RecordVal>(icmp_conn);
 
 		icmp_conn_val->Assign(0, make_intrusive<AddrVal>(Conn()->OrigAddr()));
@@ -351,9 +351,9 @@ IntrusivePtr<RecordVal> ICMP_Analyzer::ExtractICMP4Context(int len, const u_char
 			}
 		}
 
-	static auto icmp_context = zeek::lookup_type<RecordType>("icmp_context");
+	static auto icmp_context = zeek::id::lookup_type<RecordType>("icmp_context");
 	auto iprec = make_intrusive<RecordVal>(icmp_context);
-	auto id_val = make_intrusive<RecordVal>(zeek::vars::conn_id);
+	auto id_val = make_intrusive<RecordVal>(zeek::id::conn_id);
 
 	id_val->Assign(0, make_intrusive<AddrVal>(src_addr));
 	id_val->Assign(1, val_mgr->Port(src_port, proto));
@@ -411,9 +411,9 @@ IntrusivePtr<RecordVal> ICMP_Analyzer::ExtractICMP6Context(int len, const u_char
 			}
 		}
 
-	static auto icmp_context = zeek::lookup_type<RecordType>("icmp_context");
+	static auto icmp_context = zeek::id::lookup_type<RecordType>("icmp_context");
 	auto iprec = make_intrusive<RecordVal>(icmp_context);
-	auto id_val = make_intrusive<RecordVal>(zeek::vars::conn_id);
+	auto id_val = make_intrusive<RecordVal>(zeek::id::conn_id);
 
 	id_val->Assign(0, make_intrusive<AddrVal>(src_addr));
 	id_val->Assign(1, val_mgr->Port(src_port, proto));
@@ -729,13 +729,13 @@ IntrusivePtr<VectorVal> ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_cha
 
 	if ( ! icmp6_nd_option_type )
 		{
-		icmp6_nd_option_type = zeek::lookup_type("icmp6_nd_option")->AsRecordType();
+		icmp6_nd_option_type = zeek::id::lookup_type("icmp6_nd_option")->AsRecordType();
 		icmp6_nd_prefix_info_type =
-		        zeek::lookup_type("icmp6_nd_prefix_info")->AsRecordType();
+		        zeek::id::lookup_type("icmp6_nd_prefix_info")->AsRecordType();
 		}
 
 	auto vv = make_intrusive<VectorVal>(
-	        zeek::lookup_type<VectorType>("icmp6_nd_options"));
+	        zeek::id::lookup_type<VectorType>("icmp6_nd_options"));
 
 	while ( caplen > 0 )
 		{

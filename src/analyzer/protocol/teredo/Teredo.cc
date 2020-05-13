@@ -104,9 +104,9 @@ IntrusivePtr<RecordVal> TeredoEncapsulation::BuildVal(const IP_Hdr* inner) const
 
 	if ( ! teredo_hdr_type )
 		{
-		teredo_hdr_type = zeek::lookup_type("teredo_hdr")->AsRecordType();
-		teredo_auth_type = zeek::lookup_type("teredo_auth")->AsRecordType();
-		teredo_origin_type = zeek::lookup_type("teredo_origin")->AsRecordType();
+		teredo_hdr_type = zeek::id::lookup_type("teredo_hdr")->AsRecordType();
+		teredo_auth_type = zeek::id::lookup_type("teredo_auth")->AsRecordType();
+		teredo_origin_type = zeek::id::lookup_type("teredo_origin")->AsRecordType();
 		}
 
 	auto teredo_hdr = make_intrusive<RecordVal>(teredo_hdr_type);

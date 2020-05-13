@@ -615,7 +615,7 @@ HTTP_Message::~HTTP_Message()
 
 IntrusivePtr<RecordVal> HTTP_Message::BuildMessageStat(bool interrupted, const char* msg)
 	{
-	static auto http_message_stat = zeek::lookup_type<RecordType>("http_message_stat");
+	static auto http_message_stat = zeek::id::lookup_type<RecordType>("http_message_stat");
 	auto stat = make_intrusive<RecordVal>(http_message_stat);
 	int field = 0;
 	stat->Assign(field++, make_intrusive<Val>(start_time, TYPE_TIME));
@@ -1152,7 +1152,7 @@ void HTTP_Analyzer::GenStats()
 	{
 	if ( http_stats )
 		{
-		static auto http_stats_rec = zeek::lookup_type<RecordType>("http_stats_rec");
+		static auto http_stats_rec = zeek::id::lookup_type<RecordType>("http_stats_rec");
 		auto r = make_intrusive<RecordVal>(http_stats_rec);
 		r->Assign(0, val_mgr->Count(num_requests));
 		r->Assign(1, val_mgr->Count(num_replies));

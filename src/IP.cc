@@ -13,8 +13,6 @@
 #include "BroString.h"
 #include "Reporter.h"
 
-using namespace zeek;
-
 static RecordType* ip4_hdr_type = nullptr;
 static RecordType* ip6_hdr_type = nullptr;
 static RecordType* ip6_ext_hdr_type = nullptr;
@@ -39,14 +37,14 @@ static RecordType* ip6_mob_be_type = nullptr;
 static inline RecordType* hdrType(RecordType*& type, const char* name)
 	{
 	if ( ! type )
-		type = lookup_type(name)->AsRecordType();
+		type = zeek::id::lookup_type(name)->AsRecordType();
 
 	return type;
 	}
 
 static IntrusivePtr<VectorVal> BuildOptionsVal(const u_char* data, int len)
 	{
-	auto vv = make_intrusive<VectorVal>(lookup_type<VectorType>("ip6_options"));
+	auto vv = make_intrusive<VectorVal>(zeek::id::lookup_type<VectorType>("ip6_options"));
 
 	while ( len > 0 )
 		{
@@ -97,7 +95,7 @@ IntrusivePtr<RecordVal> IPv6_Hdr::ToVal(IntrusivePtr<VectorVal> chain) const
 		rv->Assign(6, make_intrusive<AddrVal>(IPAddr(ip6->ip6_dst)));
 		if ( ! chain )
 			chain = make_intrusive<VectorVal>(
-			    lookup_type<VectorType>("ip6_ext_hdr_chain"));
+			    zeek::id::lookup_type<VectorType>("ip6_ext_hdr_chain"));
 		rv->Assign(7, std::move(chain));
 		}
 		break;
@@ -369,7 +367,7 @@ IntrusivePtr<RecordVal> IP_Hdr::ToPktHdrVal() const
 	static RecordType* pkt_hdr_type = nullptr;
 
 	if ( ! pkt_hdr_type )
-		pkt_hdr_type = lookup_type("pkt_hdr")->AsRecordType();
+		pkt_hdr_type = zeek::id::lookup_type("pkt_hdr")->AsRecordType();
 
 	return ToPktHdrVal(make_intrusive<RecordVal>(pkt_hdr_type), 0);
 	}
@@ -387,9 +385,9 @@ IntrusivePtr<RecordVal> IP_Hdr::ToPktHdrVal(IntrusivePtr<RecordVal> pkt_hdr, int
 
 	if ( ! tcp_hdr_type )
 		{
-		tcp_hdr_type = lookup_type("tcp_hdr")->AsRecordType();
-		udp_hdr_type = lookup_type("udp_hdr")->AsRecordType();
-		icmp_hdr_type = lookup_type("icmp_hdr")->AsRecordType();
+		tcp_hdr_type = zeek::id::lookup_type("tcp_hdr")->AsRecordType();
+		udp_hdr_type = zeek::id::lookup_type("udp_hdr")->AsRecordType();
+		icmp_hdr_type = zeek::id::lookup_type("icmp_hdr")->AsRecordType();
 		}
 
 	if ( ip4 )
@@ -699,18 +697,18 @@ IntrusivePtr<VectorVal> IPv6_Hdr_Chain::ToVal() const
 	{
 	if ( ! ip6_ext_hdr_type )
 		{
-		ip6_ext_hdr_type = lookup_type("ip6_ext_hdr")->AsRecordType();
-		ip6_hopopts_type = lookup_type("ip6_hopopts")->AsRecordType();
-		ip6_dstopts_type = lookup_type("ip6_dstopts")->AsRecordType();
-		ip6_routing_type = lookup_type("ip6_routing")->AsRecordType();
-		ip6_fragment_type = lookup_type("ip6_fragment")->AsRecordType();
-		ip6_ah_type = lookup_type("ip6_ah")->AsRecordType();
-		ip6_esp_type = lookup_type("ip6_esp")->AsRecordType();
-		ip6_mob_type = lookup_type("ip6_mobility_hdr")->AsRecordType();
+		ip6_ext_hdr_type = zeek::id::lookup_type("ip6_ext_hdr")->AsRecordType();
+		ip6_hopopts_type = zeek::id::lookup_type("ip6_hopopts")->AsRecordType();
+		ip6_dstopts_type = zeek::id::lookup_type("ip6_dstopts")->AsRecordType();
+		ip6_routing_type = zeek::id::lookup_type("ip6_routing")->AsRecordType();
+		ip6_fragment_type = zeek::id::lookup_type("ip6_fragment")->AsRecordType();
+		ip6_ah_type = zeek::id::lookup_type("ip6_ah")->AsRecordType();
+		ip6_esp_type = zeek::id::lookup_type("ip6_esp")->AsRecordType();
+		ip6_mob_type = zeek::id::lookup_type("ip6_mobility_hdr")->AsRecordType();
 		}
 
 	auto rval = make_intrusive<VectorVal>(
-	    lookup_type<VectorType>("ip6_ext_hdr_chain"));
+	    zeek::id::lookup_type<VectorType>("ip6_ext_hdr_chain"));
 
 	for ( size_t i = 1; i < chain.size(); ++i )
 		{

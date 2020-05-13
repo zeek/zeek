@@ -59,19 +59,19 @@ bool BroSubstring::DoesCover(const BroSubstring* bst) const
 VectorVal* BroSubstring::VecToPolicy(Vec* vec)
 	{
 	RecordType* sw_substring_type =
-		zeek::lookup_type("sw_substring")->AsRecordType();
+		zeek::id::lookup_type("sw_substring")->AsRecordType();
 	if ( ! sw_substring_type )
 		return nullptr;
 
 	RecordType* sw_align_type =
-		zeek::lookup_type("sw_align")->AsRecordType();
+		zeek::id::lookup_type("sw_align")->AsRecordType();
 	if ( ! sw_align_type )
 		return nullptr;
 
-	auto sw_align_vec_type = zeek::lookup_type<VectorType>("sw_align_vec");
+	auto sw_align_vec_type = zeek::id::lookup_type<VectorType>("sw_align_vec");
 
 	auto result =
-		make_intrusive<VectorVal>(zeek::lookup_type<VectorType>("sw_substring_vec"));
+		make_intrusive<VectorVal>(zeek::id::lookup_type<VectorType>("sw_substring_vec"));
 
 	if ( vec )
 		{

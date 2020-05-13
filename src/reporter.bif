@@ -153,7 +153,7 @@ function Reporter::file_weird%(name: string, f: fa_file, addl: string &default="
 ## Returns: Current weird sampling whitelist
 function Reporter::get_weird_sampling_whitelist%(%): string_set
 	%{
-	auto set = make_intrusive<TableVal>(zeek::vars::string_set);
+	auto set = make_intrusive<TableVal>(zeek::id::string_set);
 	for ( auto el : reporter->GetWeirdSamplingWhitelist() )
 		{
 		auto idx = make_intrusive<StringVal>(el);

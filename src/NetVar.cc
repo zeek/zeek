@@ -6,6 +6,7 @@
 #include "Var.h"
 #include "EventHandler.h"
 #include "Val.h"
+#include "ID.h"
 
 RecordType* conn_id;
 RecordType* endpoint;
@@ -219,6 +220,8 @@ void init_general_global_var()
 	bits_per_uid = opt_internal_unsigned("bits_per_uid");
 	}
 
+extern void zeek_legacy_netvar_init();
+
 void init_net_var()
 	{
 #include "const.bif.netvar_init"
@@ -226,7 +229,8 @@ void init_net_var()
 #include "reporter.bif.netvar_init"
 #include "supervisor.bif.netvar_init"
 
-	zeek::vars::detail::init();
+	zeek::id::detail::init();
+	zeek_legacy_netvar_init();
 
 	ignore_checksums = opt_internal_int("ignore_checksums");
 	partial_connection_ok = opt_internal_int("partial_connection_ok");
@@ -262,16 +266,16 @@ void init_net_var()
 		opt_internal_double("tcp_storm_interarrival_thresh");
 
 	tcp_content_deliver_all_orig =
-		bool(zeek::lookup_val("tcp_content_deliver_all_orig")->AsBool());
+		bool(zeek::id::lookup_val("tcp_content_deliver_all_orig")->AsBool());
 	tcp_content_deliver_all_resp =
-		bool(zeek::lookup_val("tcp_content_deliver_all_resp")->AsBool());
+		bool(zeek::id::lookup_val("tcp_content_deliver_all_resp")->AsBool());
 
 	udp_content_deliver_all_orig =
-		bool(zeek::lookup_val("udp_content_deliver_all_orig")->AsBool());
+		bool(zeek::id::lookup_val("udp_content_deliver_all_orig")->AsBool());
 	udp_content_deliver_all_resp =
-		bool(zeek::lookup_val("udp_content_deliver_all_resp")->AsBool());
+		bool(zeek::id::lookup_val("udp_content_deliver_all_resp")->AsBool());
 	udp_content_delivery_ports_use_resp =
-		bool(zeek::lookup_val("udp_content_delivery_ports_use_resp")->AsBool());
+		bool(zeek::id::lookup_val("udp_content_delivery_ports_use_resp")->AsBool());
 
 	dns_session_timeout = opt_internal_double("dns_session_timeout");
 	rpc_timeout = opt_internal_double("rpc_timeout");

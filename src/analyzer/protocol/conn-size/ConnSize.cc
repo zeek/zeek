@@ -174,8 +174,8 @@ void ConnSize_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	RecordVal *resp_endp = conn_val->Lookup("resp")->AsRecordVal();
 
 	// endpoint is the RecordType from NetVar.h
-	int pktidx = zeek::vars::endpoint->FieldOffset("num_pkts");
-	int bytesidx = zeek::vars::endpoint->FieldOffset("num_bytes_ip");
+	int pktidx = zeek::id::endpoint->FieldOffset("num_pkts");
+	int bytesidx = zeek::id::endpoint->FieldOffset("num_bytes_ip");
 
 	if ( pktidx < 0 )
 		reporter->InternalError("'endpoint' record missing 'num_pkts' field");

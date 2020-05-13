@@ -22,7 +22,7 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_negotiate_request )
 			{
-			auto dialects = make_intrusive<VectorVal>(zeek::vars::index_vec);
+			auto dialects = make_intrusive<VectorVal>(zeek::id::index_vec);
 
 			for ( unsigned int i = 0; i < ${val.dialects}->size(); ++i )
 				dialects->Assign(i, val_mgr->Count((*${val.dialects})[i]));

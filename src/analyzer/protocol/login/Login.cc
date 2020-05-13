@@ -45,13 +45,13 @@ Login_Analyzer::Login_Analyzer(const char* name, Connection* conn)
 
 	if ( ! re_skip_authentication )
 		{
-		IntrusivePtr<ListVal> skip_authentication = zeek::lookup_val("skip_authentication")->AsTableVal()->ToPureListVal();
-		IntrusivePtr<ListVal> direct_login_prompts = zeek::lookup_val("direct_login_prompts")->AsTableVal()->ToPureListVal();
-		IntrusivePtr<ListVal> login_prompts = zeek::lookup_val("login_prompts")->AsTableVal()->ToPureListVal();
-		IntrusivePtr<ListVal> login_non_failure_msgs = zeek::lookup_val("login_non_failure_msgs")->AsTableVal()->ToPureListVal();
-		IntrusivePtr<ListVal> login_failure_msgs = zeek::lookup_val("login_failure_msgs")->AsTableVal()->ToPureListVal();
-		IntrusivePtr<ListVal> login_success_msgs = zeek::lookup_val("login_success_msgs")->AsTableVal()->ToPureListVal();
-		IntrusivePtr<ListVal> login_timeouts = zeek::lookup_val("login_timeouts")->AsTableVal()->ToPureListVal();
+		IntrusivePtr<ListVal> skip_authentication = zeek::id::lookup_val("skip_authentication")->AsTableVal()->ToPureListVal();
+		IntrusivePtr<ListVal> direct_login_prompts = zeek::id::lookup_val("direct_login_prompts")->AsTableVal()->ToPureListVal();
+		IntrusivePtr<ListVal> login_prompts = zeek::id::lookup_val("login_prompts")->AsTableVal()->ToPureListVal();
+		IntrusivePtr<ListVal> login_non_failure_msgs = zeek::id::lookup_val("login_non_failure_msgs")->AsTableVal()->ToPureListVal();
+		IntrusivePtr<ListVal> login_failure_msgs = zeek::id::lookup_val("login_failure_msgs")->AsTableVal()->ToPureListVal();
+		IntrusivePtr<ListVal> login_success_msgs = zeek::id::lookup_val("login_success_msgs")->AsTableVal()->ToPureListVal();
+		IntrusivePtr<ListVal> login_timeouts = zeek::id::lookup_val("login_timeouts")->AsTableVal()->ToPureListVal();
 
 #ifdef USE_PERFTOOLS_DEBUG
 		HeapLeakChecker::Disabler disabler;

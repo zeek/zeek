@@ -16,6 +16,10 @@ class Val;
 class Expr;
 class Func;
 class BroType;
+class RecordType;
+class TableType;
+class VectorType;
+class EnumType;
 class Attributes;
 
 typedef enum { INIT_NONE, INIT_FULL, INIT_EXTRA, INIT_REMOVE, } init_class;
@@ -152,3 +156,85 @@ protected:
 	std::multimap<int, IntrusivePtr<Func>> option_handlers;
 
 };
+
+namespace zeek { namespace id {
+
+/**
+ * Lookup an ID in the global module and return it, if one exists;
+ * @param name  The identifier name to lookup.
+ * @return  The identifier, which may reference a nil object if no such
+ * name exists.
+ */
+IntrusivePtr<ID> lookup(const char* name);
+
+/**
+ * Lookup an ID by its name and return its type.  A fatal occurs if the ID
+ * does not exist.
+ * @param name  The identifier name to lookup
+ * @return  The type of the identifier.
+ */
+const IntrusivePtr<BroType>& lookup_type(const char* name);
+
+/**
+ * Lookup an ID by its name and return its type (as cast to @c T).
+ * A fatal occurs if the ID does not exist.
+ * @param name  The identifier name to lookup
+ * @return  The type of the identifier.
+ */
+template<class T>
+IntrusivePtr<T> lookup_type(const char* name)
+	{ return cast_intrusive<T>(lookup_type(name)); }
+
+/**
+ * Lookup an ID by its name and return its value.  A fatal occurs if the ID
+ * does not exist.
+ * @param name  The identifier name to lookup
+ * @return  The current value of the identifier
+ */
+const IntrusivePtr<Val>& lookup_val(const char* name);
+
+/**
+ * Lookup an ID by its name and return its value (as cast to @c T).
+ * A fatal occurs if the ID does not exist.
+ * @param name  The identifier name to lookup
+ * @return  The current value of the identifier.
+ */
+template<class T>
+IntrusivePtr<T> lookup_val(const char* name)
+	{ return cast_intrusive<T>(lookup_val(name)); }
+
+/**
+ * Lookup an ID by its name and return its value.  A fatal occurs if the ID
+ * does not exist or if it is not "const".
+ * @param name  The identifier name to lookup
+ * @return  The current value of the identifier
+ */
+const IntrusivePtr<Val>& lookup_const(const char* name);
+
+/**
+ * Lookup an ID by its name and return the function it references.
+ * A fatal occurs if the ID does not exist or if it is not a function.
+ * @param name  The identifier name to lookup
+ * @return  The current function value the identifier references.
+ */
+IntrusivePtr<Func> lookup_func(const char* name);
+
+extern IntrusivePtr<RecordType> conn_id;
+extern IntrusivePtr<RecordType> endpoint;
+extern IntrusivePtr<RecordType> connection;
+extern IntrusivePtr<RecordType> fa_file;
+extern IntrusivePtr<RecordType> fa_metadata;
+extern IntrusivePtr<EnumType> transport_proto;
+extern IntrusivePtr<TableType> string_set;
+extern IntrusivePtr<TableType> string_array;
+extern IntrusivePtr<TableType> count_set;
+extern IntrusivePtr<VectorType> string_vec;
+extern IntrusivePtr<VectorType> index_vec;
+
+namespace detail {
+
+void init();
+
+} // namespace zeek::id::detail
+
+}} // namespace zeek::id

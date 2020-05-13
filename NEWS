@@ -159,15 +159,15 @@ Deprecated Functionality
 
 - ``ID::ID_Val()`` is deprecated, use ``ID::GetVal()``.
 
-- ``internal_type()`` is deprecated, use ``zeek::lookup_type()``.
+- ``internal_type()`` is deprecated, use ``zeek::id::lookup_type()``.
 
 - ``internal_val()`` and ``internal_const_val()`` are deprecated, use
-  ``zeek::lookup_val()`` or ``zeek::lookup_const()``.
+  ``zeek::id::lookup_val()`` or ``zeek::id::lookup_const()``.
 
-- ``internal_func()`` is deprecated, use ``zeek::lookup_func()``.
+- ``internal_func()`` is deprecated, use ``zeek::id::lookup_func()``.
 
 - ``opt_internal_val()`` is deprecated, use ``lookup_ID()`` or
-  ``zeek::lookup_val()``.
+  ``zeek::id::lookup_val()``.
 
 - ``Val::Type()`` is deprecated, use ``Val::GetType``.
 

@@ -54,8 +54,6 @@
 #include "iosource/PktSrc.h"
 #include "iosource/PktDumper.h"
 
-using namespace zeek;
-
 extern	RETSIGTYPE sig_handler(int signo);
 
 std::vector<CallInfo> call_stack;
@@ -750,21 +748,21 @@ void builtin_error(const char* msg, BroObj* arg)
 
 void init_builtin_funcs()
 	{
-	ProcStats = lookup_type("ProcStats")->AsRecordType();
-	NetStats = lookup_type("NetStats")->AsRecordType();
-	MatcherStats = lookup_type("MatcherStats")->AsRecordType();
-	ConnStats = lookup_type("ConnStats")->AsRecordType();
-	ReassemblerStats = lookup_type("ReassemblerStats")->AsRecordType();
-	DNSStats = lookup_type("DNSStats")->AsRecordType();
-	GapStats = lookup_type("GapStats")->AsRecordType();
-	EventStats = lookup_type("EventStats")->AsRecordType();
-	TimerStats = lookup_type("TimerStats")->AsRecordType();
-	FileAnalysisStats = lookup_type("FileAnalysisStats")->AsRecordType();
-	ThreadStats = lookup_type("ThreadStats")->AsRecordType();
-	BrokerStats = lookup_type("BrokerStats")->AsRecordType();
-	ReporterStats = lookup_type("ReporterStats")->AsRecordType();
+	ProcStats = zeek::id::lookup_type("ProcStats")->AsRecordType();
+	NetStats = zeek::id::lookup_type("NetStats")->AsRecordType();
+	MatcherStats = zeek::id::lookup_type("MatcherStats")->AsRecordType();
+	ConnStats = zeek::id::lookup_type("ConnStats")->AsRecordType();
+	ReassemblerStats = zeek::id::lookup_type("ReassemblerStats")->AsRecordType();
+	DNSStats = zeek::id::lookup_type("DNSStats")->AsRecordType();
+	GapStats = zeek::id::lookup_type("GapStats")->AsRecordType();
+	EventStats = zeek::id::lookup_type("EventStats")->AsRecordType();
+	TimerStats = zeek::id::lookup_type("TimerStats")->AsRecordType();
+	FileAnalysisStats = zeek::id::lookup_type("FileAnalysisStats")->AsRecordType();
+	ThreadStats = zeek::id::lookup_type("ThreadStats")->AsRecordType();
+	BrokerStats = zeek::id::lookup_type("BrokerStats")->AsRecordType();
+	ReporterStats = zeek::id::lookup_type("ReporterStats")->AsRecordType();
 
-	var_sizes = lookup_type("var_sizes")->AsTableType();
+	var_sizes = zeek::id::lookup_type("var_sizes")->AsTableType();
 
 #include "zeek.bif.func_init"
 #include "stats.bif.func_init"

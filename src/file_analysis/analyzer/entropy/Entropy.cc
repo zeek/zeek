@@ -60,7 +60,7 @@ void Entropy::Finalize()
 	montepi = scc = ent = mean = chisq = 0.0;
 	entropy->Get(&ent, &chisq, &mean, &montepi, &scc);
 
-	static auto entropy_test_result = zeek::lookup_type<RecordType>("entropy_test_result");
+	static auto entropy_test_result = zeek::id::lookup_type<RecordType>("entropy_test_result");
 	auto ent_result = make_intrusive<RecordVal>(entropy_test_result);
 	ent_result->Assign(0, make_intrusive<Val>(ent,     TYPE_DOUBLE));
 	ent_result->Assign(1, make_intrusive<Val>(chisq,   TYPE_DOUBLE));

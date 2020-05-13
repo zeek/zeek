@@ -6,19 +6,18 @@
 #include "Func.h"
 #include "EventRegistry.h"
 #include "Stats.h"
-#include "ZeekVars.h"
 
-[[deprecated("Remove in v4.1.  Use zeek::vars::conn_id.")]]
+[[deprecated("Remove in v4.1.  Use zeek::id::conn_id.")]]
 extern RecordType* conn_id;
-[[deprecated("Remove in v4.1.  Use zeek::vars::endpoint.")]]
+[[deprecated("Remove in v4.1.  Use zeek::id::endpoint.")]]
 extern RecordType* endpoint;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
 extern RecordType* endpoint_stats;
-[[deprecated("Remove in v4.1.  Use zeek::vars::connection.")]]
+[[deprecated("Remove in v4.1.  Use zeek::id::connection.")]]
 extern RecordType* connection_type;
-[[deprecated("Remove in v4.1.  Use zeek::vars::fa_file.")]]
+[[deprecated("Remove in v4.1.  Use zeek::id::fa_file.")]]
 extern RecordType* fa_file_type;
-[[deprecated("Remove in v4.1.  Use zeek::vars::fa_metadata.")]]
+[[deprecated("Remove in v4.1.  Use zeek::id::fa_metadata.")]]
 extern RecordType* fa_metadata_type;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
 extern RecordType* icmp_conn;
@@ -34,17 +33,17 @@ extern RecordType* pcap_packet;
 extern RecordType* raw_pkt_hdr_type;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
 extern RecordType* l2_hdr_type;
-[[deprecated("Remove in v4.1.  Use zeek::vars::transport_proto.")]]
+[[deprecated("Remove in v4.1.  Use zeek::id::transport_proto.")]]
 extern EnumType* transport_proto;
-[[deprecated("Remove in v4.1.  Use zeek::vars::string_set.")]]
+[[deprecated("Remove in v4.1.  Use zeek::id::string_set.")]]
 extern TableType* string_set;
-[[deprecated("Remove in v4.1.  Use zeek::vars::string_array.")]]
+[[deprecated("Remove in v4.1.  Use zeek::id::string_array.")]]
 extern TableType* string_array;
-[[deprecated("Remove in v4.1.  Use zeek::vars::count_set.")]]
+[[deprecated("Remove in v4.1.  Use zeek::id::count_set.")]]
 extern TableType* count_set;
-[[deprecated("Remove in v4.1.  Use zeek::vars::string_vec.")]]
+[[deprecated("Remove in v4.1.  Use zeek::id::string_vec.")]]
 extern VectorType* string_vec;
-[[deprecated("Remove in v4.1.  Use zeek::vars::index_vec.")]]
+[[deprecated("Remove in v4.1.  Use zeek::id::index_vec.")]]
 extern VectorType* index_vec;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
 extern VectorType* mime_matches;

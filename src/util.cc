@@ -1089,7 +1089,8 @@ void bro_srandom(unsigned int seed)
 		srandom(seed);
 	}
 
-void init_random_seed(const char* read_file, const char* write_file)
+void init_random_seed(const char* read_file, const char* write_file,
+                      bool use_empty_seeds)
 	{
 	std::array<uint32_t, KeyedHash::SEED_INIT_SIZE> buf = {};
 	size_t pos = 0;	// accumulates entropy
@@ -1104,6 +1105,8 @@ void init_random_seed(const char* read_file, const char* write_file)
 		else
 			seeds_done = true;
 		}
+	else if ( use_empty_seeds )
+		seeds_done = true;
 
 #ifdef HAVE_GETRANDOM
 	if ( ! seeds_done )
@@ -1722,6 +1725,38 @@ static string find_file_in_path(const string& filename, const string& path,
 		return abs_path;
 
 	return string();
+	}
+
+std::string get_exe_path(const std::string& invocation)
+	{
+	if ( invocation.empty() )
+		return "";
+
+	if ( invocation[0] == '/' || invocation[0] == '~' )
+		// Absolute path
+		return invocation;
+
+	if ( invocation.find('/') != std::string::npos )
+		{
+		// Relative path
+		char cwd[PATH_MAX];
+
+		if ( ! getcwd(cwd, sizeof(cwd)) )
+			{
+			fprintf(stderr, "failed to get current directory: %s\n",
+			        strerror(errno));
+			exit(1);
+			}
+
+		return std::string(cwd) + "/" + invocation;
+		}
+
+	auto path = getenv("PATH");
+
+	if ( ! path )
+		return "";
+
+	return find_file(invocation, path);
 	}
 
 string find_file(const string& filename, const string& path_set,

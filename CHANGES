@@ -1,4 +1,69 @@
 
+3.2.0-dev.505 | 2020-05-12 18:52:19 -0700
+
+  * Use zeek::detail namespace for fuzzer utils (Jon Siwek, Corelight)
+
+  * Set terminating flag during fuzzer cleanup (Jon Siwek, Corelight)
+
+  * Add missing include to standalone fuzzer driver (Jon Siwek, Corelight)
+
+  * Improve standalone fuzzer driver error messages (Jon Siwek, Corelight)
+
+  * Merge branch 'master' into topic/jsiwek/fuzzing (Jon Siwek, Corelight)
+
+  * Test fuzzers against seed corpus under CI ASan build (Jon Siwek, Corelight)
+
+  * Update fuzzing README with OSS-Fuzz integration notes (Jon Siwek, Corelight)
+
+  * Link fuzzers against shared library to reduce executable sizes (Jon Siwek, Corelight)
+
+  * Improve FuzzBuffer chunking
+
+    Now allocates a new buffer for each chunk to better detect over-reads (Jon Siwek, Corelight)
+
+  * Fix compiler warning in standalone fuzzer driver (Jon Siwek, Corelight)
+
+  * Adjust minor fuzzing documentation (Jon Siwek, Corelight)
+
+  * Exit immediately after running unit tests (Jon Siwek, Corelight)
+
+  * Add OSS-Fuzz Zeek script search path to fuzzers (Jon Siwek, Corelight)
+
+  * Assume libFuzzer when LIB_FUZZING_ENGINE file doesn't exist
+
+    i.e. environment variable may be set, but not point to existing file (Jon Siwek, Corelight)
+
+  * Change handling of LIB_FUZZING_ENGINE
+
+    Should better support OSS-Fuzz, which may set it to either
+    be path to library to link against or linker flag like
+    "-fsanitize=fuzzer" (Jon Siwek, Corelight)
+
+  * Change --enable-fuzzing to --enable-fuzzers
+
+    Since it controls whether to build the fuzzer targets, not whether those
+    fuzzer targets actually use a fuzzing engine. (Jon Siwek, Corelight)
+
+  * Add standalone driver for fuzz targets
+
+    Useful for cases that don't need to use a fuzzing engine, but just run
+    the fuzz targets over some set of inputs, like for regression/CI tests.
+
+    Also added a POP3 fuzzer dictionary, seed corpus, and README with
+    examples. (Jon Siwek, Corelight)
+
+  * Add basic structure for fuzzing targets
+
+    General changes:
+
+    * Add -D/--deterministic command line option as
+      convenience/alternative to -G/--load-seeds (i.e. no file needed, it just
+      uses zero-initialized random seeds).  It also changes Broker data
+      stores over to using deterministic timing rather than real time.
+
+    * Add option to make Reporter abort on runtime scripting errors (Jon Siwek, Corelight)
+
+
 3.2.0-dev.486 | 2020-05-11 11:11:51 -0700
 
   * Limit rate at which MMDB error/status messages are emitted

@@ -72,6 +72,9 @@ public:
 	// that are still active.
 	void Drain();
 
+	// Clears the session maps.
+	void Clear();
+
 	void GetStats(SessionStats& s) const;
 
 	void Weird(const char* name, const Packet* pkt,

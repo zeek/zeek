@@ -153,6 +153,8 @@ add_subdirectory(iosource)
 add_subdirectory(logging)
 add_subdirectory(probabilistic)
 
+add_subdirectory(fuzzers)
+
 ########################################################################
 ## bro target
 
@@ -204,12 +206,12 @@ set_source_files_properties(nb_dns.c PROPERTIES COMPILE_FLAGS
                             -fno-strict-aliasing)
 
 set(MAIN_SRCS
-    main.cc
     digest.cc
     net_util.cc
     util.cc
     module_util.cc
     zeek-affinity.cc
+    zeek-setup.cc
     Anon.cc
     Attr.cc
     Base64.cc
@@ -357,7 +359,7 @@ elseif(${COMPILER_ARCHITECTURE} STREQUAL "x86_64")
   )
 endif ()
 
-set(bro_SRCS
+set(zeek_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/version.c
     ${BIF_SRCS}
     ${BINPAC_AUXSRC}
@@ -378,9 +380,16 @@ set(bro_SRCS
     ${MAIN_SRCS}
 )
 
-collect_headers(bro_HEADERS ${bro_SRCS})
+collect_headers(zeek_HEADERS ${zeek_SRCS})
 
-add_executable(zeek ${bro_SRCS} ${bro_HEADERS} ${bro_SUBDIR_LIBS} ${bro_PLUGIN_LIBS})
+add_library(zeek_objs OBJECT ${zeek_SRCS})
+
+add_executable(zeek main.cc
+               $<TARGET_OBJECTS:zeek_objs>
+               ${zeek_HEADERS}
+               ${bro_SUBDIR_LIBS}
+               ${bro_PLUGIN_LIBS}
+)
 target_link_libraries(zeek ${zeekdeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 
 if ( NOT "${bro_LINKER_FLAGS}" STREQUAL "" )
@@ -423,12 +432,12 @@ add_dependencies(generate_outputs generate_outputs_stage2a generate_outputs_stag
 # Build __load__.zeek files for standard *.bif.zeek.
 bro_bif_create_loader(bif_loader "${bro_BASE_BIF_SCRIPTS}")
 add_dependencies(bif_loader ${bro_PLUGIN_DEPS} ${bro_SUBDIR_DEPS})
-add_dependencies(zeek bif_loader)
+add_dependencies(zeek_objs bif_loader)
 
 # Build __load__.zeek files for plugins/*.bif.zeek.
 bro_bif_create_loader(bif_loader_plugins "${bro_PLUGIN_BIF_SCRIPTS}")
 add_dependencies(bif_loader_plugins ${bro_PLUGIN_DEPS} ${bro_SUBDIR_DEPS})
-add_dependencies(zeek bif_loader_plugins)
+add_dependencies(zeek_objs bif_loader_plugins)
 
 # Install *.bif.zeek.
 install(DIRECTORY ${CMAKE_BINARY_DIR}/scripts/base/bif DESTINATION ${ZEEK_SCRIPT_INSTALL_PATH}/base)

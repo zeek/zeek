@@ -1109,6 +1109,23 @@ void NetSessions::Drain()
 		}
 	}
 
+void NetSessions::Clear()
+	{
+	for ( const auto& entry : tcp_conns )
+		Unref(entry.second);
+	for ( const auto& entry : udp_conns )
+		Unref(entry.second);
+	for ( const auto& entry : icmp_conns )
+		Unref(entry.second);
+	for ( const auto& entry : fragments )
+		Unref(entry.second);
+
+	tcp_conns.clear();
+	udp_conns.clear();
+	icmp_conns.clear();
+	fragments.clear();
+	}
+
 void NetSessions::GetStats(SessionStats& s) const
 	{
 	s.num_TCP_conns = tcp_conns.size();

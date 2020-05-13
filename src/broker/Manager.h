@@ -64,7 +64,7 @@ public:
 	/**
 	 * Constructor.
 	 */
-	Manager(bool reading_pcaps);
+	Manager(bool use_real_time);
 
 	/**
 	 * Destructor.
@@ -317,6 +317,11 @@ public:
 	size_t FlushLogBuffers();
 
 	/**
+	 * Flushes all pending data store queries and also clears all contents.
+	 */
+	void ClearStores();
+
+	/**
 	 * @return communication statistics.
 	 */
 	const Stats& GetStatistics();
@@ -383,7 +388,7 @@ private:
 	Stats statistics;
 
 	uint16_t bound_port;
-	bool reading_pcaps;
+	bool use_real_time;
 	bool after_zeek_init;
 	int peer_count;
 

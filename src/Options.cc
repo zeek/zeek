@@ -41,6 +41,8 @@ void zeek::Options::filter_supervised_node_options()
 	bare_mode = og.bare_mode;
 	perftools_check_leaks = og.perftools_check_leaks;
 	perftools_profile = og.perftools_profile;
+	deterministic_mode = og.deterministic_mode;
+	abort_on_scripting_errors = og.abort_on_scripting_errors;
 
 	pcap_filter = og.pcap_filter;
 	signature_files = og.signature_files;
@@ -93,6 +95,7 @@ void zeek::usage(const char* prog, int code)
 	fprintf(stderr, "    -B|--debug <dbgstreams>        | Enable debugging output for selected streams ('-B help' for help)\n");
 #endif
 	fprintf(stderr, "    -C|--no-checksums              | ignore checksums\n");
+	fprintf(stderr, "    -D|--deterministic             | initialize random seeds to zero\n");
 	fprintf(stderr, "    -F|--force-dns                 | force DNS\n");
 	fprintf(stderr, "    -G|--load-seeds <file>         | load seeds from given file\n");
 	fprintf(stderr, "    -H|--save-seeds <file>         | save seeds to given file\n");
@@ -202,6 +205,7 @@ zeek::Options zeek::parse_cmdline(int argc, char** argv)
 		{"version",		no_argument,		nullptr,	'v'},
 		{"no-checksums",	no_argument,		nullptr,	'C'},
 		{"force-dns",		no_argument,		nullptr,	'F'},
+		{"deterministic",		no_argument,	nullptr,	'D'},
 		{"load-seeds",		required_argument,	nullptr,	'G'},
 		{"save-seeds",		required_argument,	nullptr,	'H'},
 		{"print-plugins",	no_argument,		nullptr,	'N'},
@@ -232,7 +236,7 @@ zeek::Options zeek::parse_cmdline(int argc, char** argv)
 	};
 
 	char opts[256];
-	safe_strncpy(opts, "B:e:f:G:H:I:i:j::n:p:r:s:T:t:U:w:X:CFNPQSWabdhv",
+	safe_strncpy(opts, "B:e:f:G:H:I:i:j::n:p:r:s:T:t:U:w:X:CDFNPQSWabdhv",
 	             sizeof(opts));
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -329,6 +333,9 @@ zeek::Options zeek::parse_cmdline(int argc, char** argv)
 		case 'C':
 			rval.ignore_checksums = true;
 			break;
+		case 'D':
+		    rval.deterministic_mode = true;
+		    break;
 		case 'E':
 			rval.pseudo_realtime = 1.0;
 			if ( optarg )

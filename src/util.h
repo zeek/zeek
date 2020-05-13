@@ -208,13 +208,13 @@ extern uint8_t shared_siphash_key[SIPHASH_KEYLEN];
 extern void hmac_md5(size_t size, const unsigned char* bytes,
 			unsigned char digest[16]);
 
-// Initializes RNGs for bro_random() and MD5 usage.  If seed is given, then
-// it is used (to provide determinism).  If load_file is given, the seeds
-// (both random & MD5) are loaded from that file.  This takes precedence
-// over the "seed" argument.  If write_file is given, the seeds are written
-// to that file.
-//
-extern void init_random_seed(const char* load_file, const char* write_file);
+// Initializes RNGs for bro_random() and MD5 usage.  If load_file is given,
+// the seeds (both random & MD5) are loaded from that file.  This takes
+// precedence over the "use_empty_seeds" argument, which just
+// zero-initializes all seed values.  If write_file is given, the seeds are
+// written to that file.
+extern void init_random_seed(const char* load_file, const char* write_file,
+                             bool use_empty_seeds);
 
 // Retrieves the initial seed computed after the very first call to
 // init_random_seed(). Repeated calls to init_random_seed() will not affect
@@ -345,6 +345,14 @@ std::string normalize_path(std::string_view path);
  * @return *path* minus the common ZEEKPATH component (if any) removed.
  */
 std::string without_bropath_component(std::string_view path);
+
+/**
+ * Gets the full path used to invoke some executable.
+ * @param invocation  any possible string that may be seen in argv[0], such as
+ *                    absolute path, relative path, or name to lookup in PATH.
+ * @return the absolute path to the executable file
+ */
+std::string get_exe_path(const std::string& invocation);
 
 /**
  * Locate a file within a given search path.

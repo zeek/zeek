@@ -53,6 +53,8 @@ struct Options {
 	bool debug_scripts = false;
 	bool perftools_check_leaks = false;
 	bool perftools_profile = false;
+	bool deterministic_mode = false;
+	bool abort_on_scripting_errors = false;
 
 	bool run_unit_tests = false;
 	std::vector<std::string> doctest_args;

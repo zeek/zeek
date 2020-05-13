@@ -15,6 +15,7 @@ endif ()
 
 include(cmake/CommonCMakeConfig.cmake)
 include(cmake/FindClangTidy.cmake)
+include(cmake/CheckCompilerArch.cmake)
 
 ########################################################################
 ## Project/Build Configuration
@@ -329,6 +330,9 @@ endif ()
 # and thus cause the system OpenSSL headers to still be picked up even
 # if one specifies --with-openssl (which may be common).
 include_directories(BEFORE ${OPENSSL_INCLUDE_DIR})
+
+# Make everyone find the highwayhash includes
+include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/highwayhash)
 
 # Alpine support
 if ( ${CMAKE_SYSTEM_NAME} MATCHES Linux AND EXISTS /etc/os-release )

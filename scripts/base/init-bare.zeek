@@ -5263,3 +5263,12 @@ const global_hash_seed: string = "" &redef;
 ## files.  The larger the value, the more confidence in UID uniqueness.
 ## The maximum is currently 128 bits.
 const bits_per_uid: count = 96 &redef;
+
+## This salt value is used for several message digests in Zeek. We
+## use a salt to help mitigate the possibility of an attacker
+## manipulating source data to, e.g., mount complexity attacks or
+## cause ID collisions.
+## This salt is, for example, used by :zeek:see:`get_file_handle`
+## to generate installation-unique file IDs (the *id* field of :zeek:see:`fa_file`).
+const digest_salt = "Please change this value." &redef;
+

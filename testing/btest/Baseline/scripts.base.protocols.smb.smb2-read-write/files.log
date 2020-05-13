@@ -3,9 +3,9 @@
 #empty_field	(empty)
 #unset_field	-
 #path	files
-#open	2019-02-14-15-17-09
+#open	2020-04-30-00-47-31
 #fields	ts	fuid	tx_hosts	rx_hosts	conn_uids	source	depth	analyzers	mime_type	filename	duration	local_orig	is_orig	seen_bytes	total_bytes	missing_bytes	overflow_bytes	timedout	parent_fuid	md5	sha1	sha256	extracted	extracted_cutoff	extracted_size
 #types	time	string	set[addr]	set[addr]	set[string]	string	count	set[string]	string	string	interval	bool	bool	count	count	count	count	bool	string	string	string	string	string	bool	count
-1549644186.691869	FG403EpKSkh5CwCre	169.254.128.15	169.254.128.18	CHhAvVGS1DHFjwGM9	SMB	0	(empty)	text/plain	pythonfile	0.000000	-	F	16	16	0	0	F	-	-	-	-	-	-	-
-1549644186.699376	FLCGB5TxPTWKKeQf4	169.254.128.18	169.254.128.15	CHhAvVGS1DHFjwGM9	SMB	0	(empty)	text/plain	pythonfile2	0.000000	-	T	7000	-	0	0	F	-	-	-	-	-	-	-
-#close	2019-02-14-15-17-09
+1549644186.691869	FvOchP1DvxPt75ql7b	169.254.128.15	169.254.128.18	CHhAvVGS1DHFjwGM9	SMB	0	(empty)	text/plain	pythonfile	0.000000	-	F	16	16	0	0	F	-	-	-	-	-	-	-
+1549644186.699376	FRCqNs3XdP1aPvzhvf	169.254.128.18	169.254.128.15	CHhAvVGS1DHFjwGM9	SMB	0	(empty)	text/plain	pythonfile2	0.000000	-	T	7000	-	0	0	F	-	-	-	-	-	-	-
+#close	2020-04-30-00-47-31

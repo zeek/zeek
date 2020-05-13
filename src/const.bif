@@ -8,6 +8,7 @@ const use_conn_size_analyzer: bool;
 const detect_filtered_trace: bool;
 const report_gaps_for_partial: bool;
 const exit_only_after_terminate: bool;
+const digest_salt: string;
 
 const NFS3::return_data: bool;
 const NFS3::return_data_max: count;

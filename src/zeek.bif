@@ -27,6 +27,7 @@
 #include "iosource/PktDumper.h"
 #include "IntrusivePtr.h"
 #include "input.h"
+#include "Hash.h"
 
 using namespace std;
 
@@ -615,7 +616,7 @@ function sha256_hash%(...%): string
 function md5_hmac%(...%): string
 	%{
 	unsigned char hmac[MD5_DIGEST_LENGTH];
-	MD5Val::hmac(@ARG@, shared_hmac_md5_key, hmac);
+	MD5Val::hmac(@ARG@, KeyedHash::shared_hmac_md5_key, hmac);
 	return make_intrusive<StringVal>(md5_digest_print(hmac));
 	%}
 

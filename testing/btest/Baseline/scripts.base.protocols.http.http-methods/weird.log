@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	weird
-#open	2019-06-07-02-00-45
+#open	2020-04-30-00-47-11
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer
 #types	time	string	addr	port	addr	port	string	string	bool	string
 1354328874.237327	ClEkJM2Vm5giqnMf4h	128.2.6.136	46563	173.194.75.103	80	missing_HTTP_uri	-	F	zeek
@@ -33,4 +33,4 @@
 1354328924.518204	CD7vfu1qu4YJKe1nGi	128.2.6.136	46605	173.194.75.103	80	bad_HTTP_request	-	F	zeek
 1354328932.734579	CRJ9x54IaE7bkVEpad	128.2.6.136	46609	173.194.75.103	80	bad_HTTP_request	-	F	zeek
 1354328932.776609	CAvUKGaEgLlR4i6t2	128.2.6.136	46610	173.194.75.103	80	bad_HTTP_request	-	F	zeek
-#close	2019-06-07-02-00-45
+#close	2020-04-30-00-47-11

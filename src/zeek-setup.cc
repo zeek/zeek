@@ -44,6 +44,7 @@ extern "C" {
 #include "Brofiler.h"
 #include "Traverse.h"
 #include "Trigger.h"
+#include "Hash.h"
 
 #include "supervisor/Supervisor.h"
 #include "threading/Manager.h"
@@ -679,6 +680,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		}
 
 	reporter->InitOptions();
+	KeyedHash::InitOptions();
 	zeekygen_mgr->GenerateDocs();
 
 	if ( options.pcap_filter )

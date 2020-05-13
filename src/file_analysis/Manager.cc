@@ -17,10 +17,6 @@
 using namespace file_analysis;
 using namespace std;
 
-TableVal* Manager::disabled = nullptr;
-TableType* Manager::tag_set_type = nullptr;
-string Manager::salt;
-
 Manager::Manager()
 	: plugin::ComponentManager<file_analysis::Tag,
 	                           file_analysis::Component>("Files", "Tag"),
@@ -71,14 +67,8 @@ void Manager::Terminate()
 
 string Manager::HashHandle(const string& handle) const
 	{
-	if ( salt.empty() )
-		salt = BifConst::Files::salt->CheckString();
-
-	uint64_t hash[2];
-	string msg(handle + salt);
-
-	internal_md5(reinterpret_cast<const u_char*>(msg.data()), msg.size(),
-	    reinterpret_cast<u_char*>(hash));
+	hash128_t hash;
+	KeyedHash::StaticHash128(handle.data(), handle.size(), &hash);
 
 	return Bro::UID(bits_per_uid, hash, 2).Base62("F");
 	}

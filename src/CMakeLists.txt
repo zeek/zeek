@@ -293,7 +293,6 @@ set(MAIN_SRCS
     PacketDumper.cc
     strsep.c
     modp_numtoa.c
-    siphash24.c
 
     supervisor/Supervisor.cc
 
@@ -319,6 +318,47 @@ set(THIRD_PARTY_SRCS
     3rdparty/sqlite3.c
 )
 
+# Highwayhash. Highwayhash is a bit special since it has architecture dependent code...
+
+set(HH_SRCS
+    ../aux/highwayhash/highwayhash/sip_hash.cc
+    ../aux/highwayhash/highwayhash/sip_tree_hash.cc
+    ../aux/highwayhash/highwayhash/scalar_sip_tree_hash.cc
+    ../aux/highwayhash/highwayhash/arch_specific.cc
+    ../aux/highwayhash/highwayhash/instruction_sets.cc
+    ../aux/highwayhash/highwayhash/nanobenchmark.cc
+    ../aux/highwayhash/highwayhash/os_specific.cc
+    ../aux/highwayhash/highwayhash/hh_portable.cc
+)
+
+if (${COMPILER_ARCHITECTURE} STREQUAL "arm")
+  set_source_files_properties(${HH_SRCS} PROPERTIES COMPILE_FLAGS
+                              -mfloat-abi=hard -march=armv7-a -mfpu=neon)
+  list(APPEND HH_SRCS
+       ../aux/highwayhash/highwayhash/hh_neon.cc
+  )
+elseif (${COMPILER_ARCHITECTURE} STREQUAL "aarch64")
+  list(APPEND HH_SRCS
+       ../aux/highwayhash/highwayhash/hh_neon.cc
+  )
+elseif (${COMPILER_ARCHITECTURE} STREQUAL "power")
+  set_source_files_properties(../aux/highwayhash/highwayhash/hh_avx2.cc PROPERTIES COMPILE_FLAGS
+                              -mvsx)
+  list(APPEND HH_SRCS
+       ../aux/highwayhash/highwayhash/hh_vsc.cc
+  )
+elseif(${COMPILER_ARCHITECTURE} STREQUAL "x86_64")
+  set_source_files_properties(../aux/highwayhash/highwayhash/hh_avx2.cc PROPERTIES COMPILE_FLAGS
+                              -mavx2)
+  set_source_files_properties(../aux/highwayhash/highwayhash/hh_sse41.cc PROPERTIES COMPILE_FLAGS
+                              -msse4.1)
+
+  list(APPEND HH_SRCS
+      ../aux/highwayhash/highwayhash/hh_avx2.cc
+      ../aux/highwayhash/highwayhash/hh_sse41.cc
+  )
+endif ()
+
 set(zeek_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/version.c
     ${BIF_SRCS}
@@ -336,6 +376,7 @@ set(zeek_SRCS
     ${BISON_Parser_INPUT}
     ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
     ${THIRD_PARTY_SRCS}
+    ${HH_SRCS}
     ${MAIN_SRCS}
 )
 

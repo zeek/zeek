@@ -1,4 +1,135 @@
 
+3.2.0-dev.526 | 2020-05-13 13:49:29 -0700
+
+  * Hash unification: address PR feedback (Johanna Amann, Corelight)
+
+  * Update architecture checks for highwayhash
+
+    Now we use cmake to determine which compiler flags are set to
+    determine which implementation of highwayhash to compile. This should
+    be much more robust.
+
+    Also - fix missing include on old ubuntus. (Johanna Amann, Corelight)
+
+  * Highwayhas: unbreak 32 bit compiles (Johanna Amann, Corelight)
+
+  * Update external test suites for hash changes. (Johanna Amann, Corelight)
+
+  * Hashing: Remove unnecessary include (Johanna Amann, Corelight)
+
+  * Merge remote-tracking branch 'origin/master' into topic/johanna/hash-unification (Johanna Amann, Corelight)
+
+  * Add highwayhash in a more cmake-y way (Johanna Amann, Corelight)
+
+  * Remove highwayhash submodule.
+
+    It is moving to 3rdparty... (Johanna Amann, Corelight)
+
+  * Merge remote-tracking branch 'origin/master' into topic/johanna/hash-unification (Johanna Amann, Corelight)
+
+  * Switch file UID hashing from md5 to highwayhash.
+
+    This commit switches UID hashing from md5 to a highway hash. It also
+    moves the salt value out of the file plugin - and makes it
+    installation-specific instead - it is moved to the global namespace.
+
+    There now are digest hash functions to make "static"
+    installation-specific hashes that are stable over workers available to
+    everyone; hashes can be 64, 128 or 256 bits in size.
+
+    Due to the fact that we switch the file hashing algorithm, all file
+    hashes change.
+
+    The underlyigng algorithm that is used for hashing is highwayhash-128,
+    which is significantly faster than md5. (Johanna Amann, Corelight)
+
+  * Switch most internal md5 calls to digest calls.
+
+    The places that used md5 basically already used it as a digest
+    algorithm. Switching to a digest just means that the internal values
+    used to not change between runs - which is actually wanted in these
+    cases.
+
+    This commit also removes our special cmake subdirectory. We don't expose
+    highwayhash in headers anymore - so we can just treat it as an internal
+    implementation choice that is not directly exposed to plugins. (Johanna Amann, Corelight)
+
+  * Start refactoring hashing.
+
+    This commit moves some of the hash datastructures and code from
+    util.cc into Hash.cc - where it seems more appropriate.
+
+    It also starts to make more Keyed hash functions available - still
+    using siphash as the default 64 bit keyed hash, but also making
+    128 and 256 bit highway hashes available.
+
+    There already are a few other functions that are defined but not
+    yet implemented - these will be "static" keyed hashes - which use
+    an installation specific key. These will be used to, e.g., get
+    rid of md5 hashing for the generation of file UIDs. (Johanna Amann, Corelight)
+
+  * Introduce calculate_digest convenience function
+
+    This function just calculates the chosen digest and returns the result
+    in either the passed buffer, or in a static buffer. Basically a superset
+    to the surprisingly popular internal_md5. (Johanna Amann, Corelight)
+
+  * Remove the siphash->hmac-md5 switch after 36 bytes.
+
+    Currently, siphash is used for strings up to 36 bytes. hmac-md5 is used
+    for longer strings.
+
+    This switch-over is a remnant of the previous hash-function that was
+    used, which apparently was slower with longer input strings.
+
+    This change serves no purpose anymore. I performed a few performance tests
+    on strings of varying sizes:
+
+    For a 40 byte string with 10 million iterations:
+
+    siphash: 0.31 seconds
+    hmac-md5: 3.8 seconds
+
+    For a 1080 byte string with 10 million iterations:
+
+    siphash: 4.2 seconds
+    hmac-md5: 17 seconds
+
+    For a 18360 byte string with 10 million iterations:
+
+    siphash: 69 seconds
+    hmac-md5: 240 seconds
+
+    Hence, this commit removes the use of hmac-md5.
+
+    This change causes reordering of lines in a few logs.
+
+    This commit also changes the datastructure for the seed in probabilistic/Hasher
+    to get rid of a type-punning warning. (Johanna Amann, Corelight)
+
+  * Fix plugin compile problems with highwayhash
+
+    The way this is included is still hacky as hell - but now all tests pass. (Johanna Amann, Corelight)
+
+  * Replace siphash with Google implementation
+
+    This adds the entirety of the highwayhash implementation of Google.
+    This includes siphash as well as severl highwayhash variants - which
+    are faster.
+
+    This first commit only switches out the siphash implementation. All
+    hashes that are generated are exactly the same as before. However, this
+    does make all other hashes available to be used by us.
+
+    I did some performance tests vs the previous siphash implementation by
+    running the 2009-M57-day11-18 trace 100x through both cases. The average
+    runtime was virtually the same (within 0.014 seconds of each other).
+
+    Note that the way that I included the highwayhash implementation in our
+    cmake setup is... well, let's say hacky. This definitely needs to be
+    changed a bit before including this in a real build. (Johanna Amann, Corelight)
+
+
 3.2.0-dev.508 | 2020-05-13 11:16:05 -0700
 
   * Disable broker tests from building on the CI (Tim Wojtulewicz, Corelight)

@@ -39,7 +39,7 @@ print A::outfile, Left;
 print A::outfile, A::left;
 print A::outfile, Right;
 print A::outfile, A::right;
-}, pred=lambda_<10906653936191056190>
+}, pred=lambda_<8259878504945965908>
 { 
 print A::outfile, ============PREDICATE============;
 print A::outfile, A::typ;
@@ -134,7 +134,7 @@ print A::outfile, Left;
 print A::outfile, A::left;
 print A::outfile, Right;
 print A::outfile, A::right;
-}, pred=lambda_<10906653936191056190>
+}, pred=lambda_<8259878504945965908>
 { 
 print A::outfile, ============PREDICATE============;
 print A::outfile, A::typ;
@@ -241,7 +241,7 @@ print A::outfile, Left;
 print A::outfile, A::left;
 print A::outfile, Right;
 print A::outfile, A::right;
-}, pred=lambda_<10906653936191056190>
+}, pred=lambda_<8259878504945965908>
 { 
 print A::outfile, ============PREDICATE============;
 print A::outfile, A::typ;
@@ -468,7 +468,7 @@ print A::outfile, Left;
 print A::outfile, A::left;
 print A::outfile, Right;
 print A::outfile, A::right;
-}, pred=lambda_<10906653936191056190>
+}, pred=lambda_<8259878504945965908>
 { 
 print A::outfile, ============PREDICATE============;
 print A::outfile, A::typ;
@@ -593,7 +593,7 @@ print A::outfile, Left;
 print A::outfile, A::left;
 print A::outfile, Right;
 print A::outfile, A::right;
-}, pred=lambda_<10906653936191056190>
+}, pred=lambda_<8259878504945965908>
 { 
 print A::outfile, ============PREDICATE============;
 print A::outfile, A::typ;
@@ -718,7 +718,7 @@ print A::outfile, Left;
 print A::outfile, A::left;
 print A::outfile, Right;
 print A::outfile, A::right;
-}, pred=lambda_<10906653936191056190>
+}, pred=lambda_<8259878504945965908>
 { 
 print A::outfile, ============PREDICATE============;
 print A::outfile, A::typ;
@@ -843,7 +843,7 @@ print A::outfile, Left;
 print A::outfile, A::left;
 print A::outfile, Right;
 print A::outfile, A::right;
-}, pred=lambda_<10906653936191056190>
+}, pred=lambda_<8259878504945965908>
 { 
 print A::outfile, ============PREDICATE============;
 print A::outfile, A::typ;
@@ -968,7 +968,7 @@ print A::outfile, Left;
 print A::outfile, A::left;
 print A::outfile, Right;
 print A::outfile, A::right;
-}, pred=lambda_<10906653936191056190>
+}, pred=lambda_<8259878504945965908>
 { 
 print A::outfile, ============PREDICATE============;
 print A::outfile, A::typ;
@@ -1198,7 +1198,7 @@ print A::outfile, Left;
 print A::outfile, A::left;
 print A::outfile, Right;
 print A::outfile, A::right;
-}, pred=lambda_<10906653936191056190>
+}, pred=lambda_<8259878504945965908>
 { 
 print A::outfile, ============PREDICATE============;
 print A::outfile, A::typ;
@@ -1251,7 +1251,7 @@ print A::outfile, Left;
 print A::outfile, A::left;
 print A::outfile, Right;
 print A::outfile, A::right;
-}, pred=lambda_<10906653936191056190>
+}, pred=lambda_<8259878504945965908>
 { 
 print A::outfile, ============PREDICATE============;
 print A::outfile, A::typ;
@@ -1304,7 +1304,7 @@ print A::outfile, Left;
 print A::outfile, A::left;
 print A::outfile, Right;
 print A::outfile, A::right;
-}, pred=lambda_<10906653936191056190>
+}, pred=lambda_<8259878504945965908>
 { 
 print A::outfile, ============PREDICATE============;
 print A::outfile, A::typ;
@@ -1357,7 +1357,7 @@ print A::outfile, Left;
 print A::outfile, A::left;
 print A::outfile, Right;
 print A::outfile, A::right;
-}, pred=lambda_<10906653936191056190>
+}, pred=lambda_<8259878504945965908>
 { 
 print A::outfile, ============PREDICATE============;
 print A::outfile, A::typ;
@@ -1410,7 +1410,7 @@ print A::outfile, Left;
 print A::outfile, A::left;
 print A::outfile, Right;
 print A::outfile, A::right;
-}, pred=lambda_<10906653936191056190>
+}, pred=lambda_<8259878504945965908>
 { 
 print A::outfile, ============PREDICATE============;
 print A::outfile, A::typ;
@@ -1463,7 +1463,7 @@ print A::outfile, Left;
 print A::outfile, A::left;
 print A::outfile, Right;
 print A::outfile, A::right;
-}, pred=lambda_<10906653936191056190>
+}, pred=lambda_<8259878504945965908>
 { 
 print A::outfile, ============PREDICATE============;
 print A::outfile, A::typ;

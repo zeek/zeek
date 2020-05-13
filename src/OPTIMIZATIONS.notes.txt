@@ -1,9 +1,14 @@
 optimize for common case of global that's a function/event name
 
+speed up vector operations that currently punt to converting to VectorVal's
+
 use usedef's to only restore globals that matter after a call
 
 versions of operators that take listval's that inline the values
 	rather than building val-vec's if a small number (including 0)
+
+	also, multi-operand version of Set-Val-Vec to set values
+	more quickly
 
 single val-vec maximally sized
 

@@ -46,7 +46,9 @@ struct IterInfo {
 	vector<int> loop_vars;
 	vector<BroType*> loop_var_types;
 
-	VectorVal* vv;
+	vector<AS_ValUnion>* vv;
+	VectorType* vec_type;
+
 	BroString* s;
 
 	bro_uint_t iter;
@@ -74,8 +76,15 @@ union AS_ValUnion {
 	// Construct from a given Bro value with a given type.
 	AS_ValUnion(Val* v, BroType* t, const BroObj* o, bool& error_flag);
 
+	// True if when interpreting the value as having the given type,
+	// it's a nil pointer.
+	bool IsNil(const BroType* t) const;
+
 	// Convert to a Bro value.
 	IntrusivePtr<Val> ToVal(BroType* t) const;
+
+	// Conversion between raw and interpreted forms of vectors.
+	IntrusivePtr<VectorVal> ToVector(BroType* t) const;
 
 	// Used for bool, int.
 	bro_int_t int_val;
@@ -92,7 +101,7 @@ union AS_ValUnion {
 	BroString* string_val;
 	IPAddr* addr_val;
 	IPPrefix* subnet_val;
-	vector<BroValUnion>* raw_vector_val;
+	vector<AS_ValUnion>* raw_vector_val;
 
 	// The types are all variants of Val (or BroType).  For memory
 	// management, in the AM frame we shadow these with IntrusivePtr's.
@@ -106,7 +115,7 @@ union AS_ValUnion {
 	RecordVal* record_val;
 	TableVal* table_val;
 	BroType* type_val;
-	VectorVal* vector_val;
+VectorVal* vector_val;
 
 	// Used for the compiler to hold opaque items.  Memory management
 	// is explicit in the operations accessing it.
@@ -121,6 +130,8 @@ union AS_ValUnion {
 	// Only used when we want to clear any pointer via OP_CLEAR_V.
 	void* void_val;
 };
+
+static vector<AS_ValUnion>* to_raw_vector(Val* vec);
 
 AS_ValUnion::AS_ValUnion(Val* v, BroType* t, const BroObj* o, bool& error)
 	{
@@ -167,7 +178,7 @@ AS_ValUnion::AS_ValUnion(Val* v, BroType* t, const BroObj* o, bool& error)
 	case TYPE_PATTERN:	re_val = v->AsPatternVal(); break;
 	case TYPE_RECORD:	record_val = v->AsRecordVal(); break;
 	case TYPE_TABLE:	table_val = v->AsTableVal(); break;
-	case TYPE_VECTOR:	vector_val = v->AsVectorVal(); break;
+	case TYPE_VECTOR:	raw_vector_val = to_raw_vector(v); break;
 
 	case TYPE_STRING:
 		string_val = new BroString(*v->AsString());
@@ -189,6 +200,26 @@ AS_ValUnion::AS_ValUnion(Val* v, BroType* t, const BroObj* o, bool& error)
 	case TYPE_UNION:
 	case TYPE_VOID:
 		reporter->InternalError("bad type in AS_ValUnion constructor");
+	}
+	}
+
+bool AS_ValUnion::IsNil(const BroType* t) const
+	{
+	switch ( t->Tag() ) {
+	case TYPE_ADDR:		return ! addr_val;
+	case TYPE_ANY:		return ! any_val;
+	case TYPE_FILE:		return ! file_val;
+	case TYPE_FUNC:		return ! func_val;
+	case TYPE_LIST:		return ! list_val;
+	case TYPE_OPAQUE:	return ! opaque_val;
+	case TYPE_PATTERN:	return ! re_val;
+	case TYPE_RECORD:	return ! record_val;
+	case TYPE_STRING:	return ! string_val;
+	case TYPE_SUBNET:	return ! subnet_val;
+	case TYPE_TABLE:	return ! table_val;
+	case TYPE_TYPE:		return ! type_val;
+
+	default:	return false;
 	}
 	}
 
@@ -216,6 +247,8 @@ IntrusivePtr<Val> AS_ValUnion::ToVal(BroType* t) const
 
 	case TYPE_PORT:		v = val_mgr->GetPort(uint_val); break;
 
+	case TYPE_VECTOR:	return ToVector(t);
+
 	case TYPE_ANY:		return {NewRef{}, any_val};
 
 	case TYPE_TYPE:		v = new Val(type_val, true); break;
@@ -224,7 +257,6 @@ IntrusivePtr<Val> AS_ValUnion::ToVal(BroType* t) const
 	case TYPE_OPAQUE:	v = opaque_val; v->Ref(); break;
 	case TYPE_RECORD:	v = record_val; v->Ref(); break;
 	case TYPE_TABLE:	v = table_val; v->Ref(); break;
-	case TYPE_VECTOR:	v = vector_val; v->Ref(); break;
 	case TYPE_PATTERN:	v = re_val; v->Ref(); break;
 
 	case TYPE_ERROR:
@@ -235,6 +267,46 @@ IntrusivePtr<Val> AS_ValUnion::ToVal(BroType* t) const
 	}
 
 	return {AdoptRef{}, v};
+	}
+
+IntrusivePtr<VectorVal> AS_ValUnion::ToVector(BroType* t) const
+	{
+	auto vt = t->AsVectorType();
+	auto yt = vt->YieldType();
+	auto& raw = *raw_vector_val;
+	int n = raw_vector_val->size();
+
+	auto v = make_intrusive<VectorVal>(vt);
+	for ( int i = 0; i < n; ++i )
+		{
+		auto& vr = raw[i];
+
+		if ( vr.IsNil(vt) )
+			continue;
+
+		v->Assign(i, vr.ToVal(yt));
+		}
+
+	return v;
+	}
+
+vector<AS_ValUnion>* to_raw_vector(Val* vec)
+	{
+	auto v = vec->AsVector();
+	auto t = vec->Type()->AsVectorType();
+	auto yt = t->YieldType();
+
+	auto raw = new vector<AS_ValUnion>;
+	bool error;
+
+	for ( auto elem : *v )
+		if ( ! elem )
+			// Zeek vectors can have holes.
+			raw->push_back(AS_ValUnion());
+		else
+			raw->push_back(AS_ValUnion(elem, yt, vec, error));
+
+	return raw;
 	}
 
 // Possible types of statement operands in terms of which
@@ -722,7 +794,7 @@ void AbstractMachine::Init()
 			// we do explicit memory management on (re)assignment.
 			auto t = l->Type()->Tag();
 			if ( t == TYPE_ADDR || t == TYPE_SUBNET || 
-			     t == TYPE_STRING )
+			     t == TYPE_STRING || t == TYPE_VECTOR )
 				{
 				managed_slots.push_back(slot);
 				managed_slot_types.push_back(t);
@@ -736,18 +808,18 @@ void AbstractMachine::StmtDescribe(ODesc* d) const
 	d->Add("compiled code");
 	}
 
-static void vec_exec(AbstractOp op, vector<BroValUnion>* v1,
-			const vector<BroValUnion>* v2);
+static void vec_exec(AbstractOp op, vector<AS_ValUnion>*& v1,
+			const vector<AS_ValUnion>* v2);
 
-static void vec_exec(AbstractOp op, vector<BroValUnion>* v1,
-			const vector<BroValUnion>* v2,
-			const vector<BroValUnion>* v3);
+static void vec_exec(AbstractOp op, vector<AS_ValUnion>*& v1,
+			const vector<AS_ValUnion>* v2,
+			const vector<AS_ValUnion>* v3);
 
 // Vector coercion.
 #define VEC_COERCE(tag, lhs_accessor, cast, rhs_accessor) \
-	static vector<BroValUnion>*  vec_coerce_##tag(vector<BroValUnion>* v) \
+	static vector<AS_ValUnion>*  vec_coerce_##tag(vector<AS_ValUnion>* v) \
 		{ \
-		vector<BroValUnion>* res = new vector<BroValUnion>; \
+		vector<AS_ValUnion>* res = new vector<AS_ValUnion>; \
 		for ( unsigned int i = 0; i < v->size(); ++i ) \
 			(*res)[i].lhs_accessor = cast((*v)[i].rhs_accessor); \
 		return res; \
@@ -780,7 +852,7 @@ IntrusivePtr<Val> AbstractMachine::DoExec(Frame* f, int start_pc,
 	std::vector<IntrusivePtr<BroObj>> vals;
 
 #define BuildVal(v, t, s) (vals.push_back(v), AS_ValUnion(v.get(), t, s, error_flag))
-#define CopyVal(v) ((s.t->Tag() == TYPE_ADDR || s.t->Tag() == TYPE_SUBNET || s.t->Tag() == TYPE_STRING) ? BuildVal(v.ToVal(s.t), s.t, s.stmt) : v)
+#define CopyVal(v) ((s.t->Tag() == TYPE_ADDR || s.t->Tag() == TYPE_SUBNET || s.t->Tag() == TYPE_STRING || s.t->Tag() == TYPE_VECTOR) ? BuildVal(v.ToVal(s.t), s.t, s.stmt) : v)
 
 	// Return value, or nil if none.
 	const AS_ValUnion* ret_u;
@@ -824,6 +896,7 @@ IntrusivePtr<Val> AbstractMachine::DoExec(Frame* f, int start_pc,
 		case TYPE_ADDR:		delete frame[s].addr_val; break;
 		case TYPE_SUBNET:	delete frame[s].subnet_val; break;
 		case TYPE_STRING:	delete frame[s].string_val; break;
+		case TYPE_VECTOR:	delete frame[s].raw_vector_val; break;
 
 		default:
 			reporter->InternalError("bad type tag for managed slots");
@@ -1506,6 +1579,7 @@ const CompiledStmt AbstractMachine::LoopOverVector(const ForStmt* f,
 
 	auto info = NewSlot();
 	auto s = AbstractStmt(OP_INIT_VECTOR_LOOP_VV, info, FrameSlot(val));
+	s.t = val->Type().get();
 	auto init_end = AddStmt(s);
 
 	s = AbstractStmt(OP_NEXT_VECTOR_ITER_VVV, info, FrameSlot(loop_var), 0);
@@ -1900,6 +1974,7 @@ const CompiledStmt AbstractMachine::CompileIndex(const NameExpr* n1,
 
 		s = AbstractStmt(op, FrameSlot(n1), FrameSlot(n2),
 					build_indices);
+		s.t = n2->Type().get();
 		break;
 		}
 
@@ -1912,13 +1987,13 @@ const CompiledStmt AbstractMachine::CompileIndex(const NameExpr* n1,
 	case TYPE_STRING:
 		s = AbstractStmt(OP_INDEX_STRING_SLICE_VVL, FrameSlot(n1),
 					FrameSlot(n2), build_indices);
+		s.t = n1->Type().get();
 		break;
 
 	default:
 		reporter->InternalError("bad aggregate type when compiling index");
 	}
 
-	s.t = n1->Type().get();
 	return AddStmt(s);
 	}
 
@@ -2142,8 +2217,8 @@ TraversalCode ResumptionAM::Traverse(TraversalCallback* cb) const
 	}
 
 // Unary vector operation of v1 <vec-op> v2.
-static void vec_exec(AbstractOp op, vector<BroValUnion>* v1,
-			const vector<BroValUnion>* v2)
+static void vec_exec(AbstractOp op, vector<AS_ValUnion>*& v1,
+			const vector<AS_ValUnion>* v2)
 	{
 	// We could speed this up further still by gen'ing up an
 	// instance of the loop inside each switch case (in which
@@ -2151,7 +2226,10 @@ static void vec_exec(AbstractOp op, vector<BroValUnion>* v1,
 	// into the Exec method).  But that seems like a lot of
 	// code bloat for only a very modest gain.
 
-	// ### need to deal with constructing v1 if doesn't already exist.
+	if ( v1 )
+		v1->resize(v2->size());
+	else
+		v1 = new vector<AS_ValUnion>(v2->size());
 
 	for ( unsigned int i = 0; i < v2->size(); ++i )
 		switch ( op ) {
@@ -2164,13 +2242,16 @@ static void vec_exec(AbstractOp op, vector<BroValUnion>* v1,
 	}
 
 // Binary vector operation of v1 = v2 <vec-op> v3.
-static void vec_exec(AbstractOp op, vector<BroValUnion>* v1,
-			const vector<BroValUnion>* v2,
-			const vector<BroValUnion>* v3)
+static void vec_exec(AbstractOp op, vector<AS_ValUnion>*& v1,
+			const vector<AS_ValUnion>* v2,
+			const vector<AS_ValUnion>* v3)
 	{
 	// See comment above re further speed-up.
 
-	// ### need to deal with constructing v1 if doesn't already exist.
+	if ( v1 )
+		v1->resize(v2->size());
+	else
+		v1 = new vector<AS_ValUnion>(v2->size());
 
 	for ( unsigned int i = 0; i < v2->size(); ++i )
 		switch ( op ) {

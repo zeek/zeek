@@ -98,12 +98,10 @@ union AS_ValUnion {
 	// management, in the AM frame we shadow these with IntrusivePtr's.
 	// Thus we do not unref these on reassignment.
 	Val* any_val;
-	EnumVal* enum_val;
 	BroFile* file_val;
 	Func* func_val;
 	ListVal* list_val;
 	OpaqueVal* opaque_val;
-	PortVal* port_val;
 	PatternVal* re_val;
 	RecordVal* record_val;
 	TableVal* table_val;
@@ -145,11 +143,13 @@ AS_ValUnion::AS_ValUnion(Val* v, BroType* t, const BroObj* o, bool& error)
 	switch ( t->Tag() ) {
 	case TYPE_BOOL:
 	case TYPE_INT:
+	case TYPE_ENUM:
 		int_val = vu.int_val;
 		break;
 
 	case TYPE_COUNT:
 	case TYPE_COUNTER:
+	case TYPE_PORT:
 		uint_val = vu.uint_val;
 		break;
 
@@ -162,11 +162,9 @@ AS_ValUnion::AS_ValUnion(Val* v, BroType* t, const BroObj* o, bool& error)
 	case TYPE_FUNC:		func_val = vu.func_val; break;
 	case TYPE_FILE:		file_val = vu.file_val; break;
 
-	case TYPE_ENUM:		enum_val = v->AsEnumVal(); break;
 	case TYPE_LIST:		list_val = v->AsListVal(); break;
 	case TYPE_OPAQUE:	opaque_val = v->AsOpaqueVal(); break;
 	case TYPE_PATTERN:	re_val = v->AsPatternVal(); break;
-	case TYPE_PORT:		port_val = v->AsPortVal(); break;
 	case TYPE_RECORD:	record_val = v->AsRecordVal(); break;
 	case TYPE_TABLE:	table_val = v->AsTableVal(); break;
 	case TYPE_VECTOR:	vector_val = v->AsVectorVal(); break;
@@ -214,14 +212,16 @@ IntrusivePtr<Val> AS_ValUnion::ToVal(BroType* t) const
 		v = new StringVal(new BroString(*string_val));
 		break;
 
+	case TYPE_ENUM:		return t->AsEnumType()->GetVal(int_val);
+
+	case TYPE_PORT:		v = val_mgr->GetPort(uint_val); break;
+
 	case TYPE_ANY:		return {NewRef{}, any_val};
 
 	case TYPE_TYPE:		v = new Val(type_val, true); break;
 
-	case TYPE_ENUM:		v = enum_val; v->Ref(); break;
 	case TYPE_LIST:		v = list_val; v->Ref(); break;
 	case TYPE_OPAQUE:	v = opaque_val; v->Ref(); break;
-	case TYPE_PORT:		v = port_val; v->Ref(); break;
 	case TYPE_RECORD:	v = record_val; v->Ref(); break;
 	case TYPE_TABLE:	v = table_val; v->Ref(); break;
 	case TYPE_VECTOR:	v = vector_val; v->Ref(); break;
@@ -1150,14 +1150,13 @@ const CompiledStmt AbstractMachine::When(Expr* cond, const Stmt* body,
 const CompiledStmt AbstractMachine::Switch(const SwitchStmt* sw)
 	{
 	auto e = sw->StmtExpr();
-	auto t = e->Type()->Tag();
 
 	const NameExpr* n = e->Tag() == EXPR_NAME ? e->AsNameExpr() : nullptr;
 	const ConstExpr* c = e->Tag() == EXPR_CONST ? e->AsConstExpr() : nullptr;
 
-	auto val_map = sw->ValueMap();
+	auto t = e->Type()->Tag();
 
-	if ( val_map->Length() > 0 || (t != TYPE_ANY && t != TYPE_TYPE) )
+	if ( t != TYPE_ANY && t != TYPE_TYPE )
 		return ValueSwitch(sw, n, c);
 	else
 		return TypeSwitch(sw, n, c);

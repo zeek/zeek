@@ -31,19 +31,14 @@ IntrusivePtr<TableType> zeek::id::count_set;
 IntrusivePtr<VectorType> zeek::id::string_vec;
 IntrusivePtr<VectorType> zeek::id::index_vec;
 
-IntrusivePtr<ID> zeek::id::lookup(const char* name)
+const IntrusivePtr<ID>& zeek::id::lookup(const char* name)
 	{
-	auto id = global_scope()->Lookup(name);
-
-	if ( ! id )
-		return nullptr;
-
-	return {NewRef{}, id};
+	return global_scope()->Find(name);
 	}
 
 const IntrusivePtr<BroType>& zeek::id::lookup_type(const char* name)
 	{
-	auto id = zeek::id::lookup(name);
+	auto id = global_scope()->Find(name);
 
 	if ( ! id )
 		reporter->InternalError("Failed to find type named: %s", name);
@@ -53,7 +48,7 @@ const IntrusivePtr<BroType>& zeek::id::lookup_type(const char* name)
 
 const IntrusivePtr<Val>& zeek::id::lookup_val(const char* name)
 	{
-	auto id = zeek::id::lookup(name);
+	auto id = global_scope()->Find(name);
 
 	if ( ! id )
 		reporter->InternalError("Failed to find variable named: %s", name);
@@ -63,7 +58,7 @@ const IntrusivePtr<Val>& zeek::id::lookup_val(const char* name)
 
 const IntrusivePtr<Val>& zeek::id::lookup_const(const char* name)
 	{
-	auto id = zeek::id::lookup(name);
+	auto id = global_scope()->Find(name);
 
 	if ( ! id )
 		reporter->InternalError("Failed to find variable named: %s", name);

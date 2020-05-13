@@ -165,7 +165,7 @@ namespace zeek { namespace id {
  * @return  The identifier, which may reference a nil object if no such
  * name exists.
  */
-IntrusivePtr<ID> lookup(const char* name);
+const IntrusivePtr<ID>& lookup(const char* name);
 
 /**
  * Lookup an ID by its name and return its type.  A fatal occurs if the ID

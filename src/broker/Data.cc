@@ -353,7 +353,7 @@ struct val_converter {
 			if ( ! name )
 				return nullptr;
 
-			auto id = global_scope()->Lookup(*name);
+			const auto& id = global_scope()->Find(*name);
 			if ( ! id )
 				return nullptr;
 
@@ -697,7 +697,7 @@ struct type_checker {
 			if ( ! name )
 				return false;
 
-			auto id = global_scope()->Lookup(*name);
+			const auto& id = global_scope()->Find(*name);
 			if ( ! id )
 				return false;
 

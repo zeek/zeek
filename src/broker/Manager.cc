@@ -29,7 +29,7 @@ namespace bro_broker {
 
 static inline Val* get_option(const char* option)
 	{
-	auto id = global_scope()->Lookup(option);
+	const auto& id = global_scope()->Find(option);
 
 	if ( ! (id && id->GetVal()) )
 		reporter->FatalError("Unknown Broker option %s", option);
@@ -412,7 +412,7 @@ bool Manager::PublishIdentifier(std::string topic, std::string id)
 	if ( peer_count == 0 )
 		return true;
 
-	ID* i = global_scope()->Lookup(id);
+	const auto& i = global_scope()->Find(id);
 
 	if ( ! i )
 		return false;
@@ -1186,7 +1186,7 @@ bool Manager::ProcessIdentifierUpdate(broker::zeek::IdentifierUpdate iu)
 	++statistics.num_ids_incoming;
 	auto id_name = std::move(iu.id_name());
 	auto id_value = std::move(iu.id_value());
-	auto id = global_scope()->Lookup(id_name);
+	const auto& id = global_scope()->Find(id_name);
 
 	if ( ! id )
 		{

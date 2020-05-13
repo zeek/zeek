@@ -609,7 +609,7 @@ TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
 		return TC_CONTINUE;
 
 	for ( const auto& scope : scopes )
-		if ( scope->Lookup(e->Id()->Name()) )
+		if ( scope->Find(e->Id()->Name()) )
 			// Shadowing is not allowed, so if it's found at inner scope, it's
 			// not something we have to worry about also being at outer scope.
 			return TC_CONTINUE;

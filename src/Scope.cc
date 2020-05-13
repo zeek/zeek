@@ -129,24 +129,23 @@ IntrusivePtr<ID> lookup_ID(const char* name, const char* curr_module,
 
 	for ( int i = scopes.length() - 1; i >= 0; --i )
 		{
-		ID* id = scopes[i]->Lookup(fullname);
+		const auto& id = scopes[i]->Find(fullname);
+
 		if ( id )
 			{
 			if ( need_export && ! id->IsExport() && ! in_debug )
 				reporter->Error("identifier is not exported: %s",
 				      fullname.c_str());
 
-			return {NewRef{}, id};
+			return id;
 			}
 		}
 
 	if ( ! no_global && (strcmp(GLOBAL_MODULE_NAME, curr_module) == 0 ||
-			     ! same_module_only) )
+	     ! same_module_only) )
 		{
 		std::string globalname = make_full_var_name(GLOBAL_MODULE_NAME, name);
-		ID* id = global_scope()->Lookup(globalname);
-		if ( id )
-			return {NewRef{}, id};
+		return global_scope()->Find(globalname);
 		}
 
 	return nullptr;

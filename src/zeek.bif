@@ -1975,7 +1975,7 @@ function global_ids%(%): id_table
 ##          the string ``"<unknown id>"`` or ``"<no ID value>"`` is returned.
 function lookup_ID%(id: string%) : any
 	%{
-	ID* i = global_scope()->Lookup(id->CheckString());
+	const auto& i = global_scope()->Find(id->CheckString());
 	if ( ! i )
 		return make_intrusive<StringVal>("<unknown id>");
 
@@ -1998,7 +1998,7 @@ function record_fields%(rec: any%): record_field_table
 
 	if ( rec->GetType()->Tag() == TYPE_STRING )
 		{
-		auto id = global_scope()->Lookup(rec->AsStringVal()->ToStdString());
+		const auto& id = global_scope()->Find(rec->AsStringVal()->ToStdString());
 
 		if ( ! id || ! id->IsType() || id->GetType()->Tag() != TYPE_RECORD )
 			{

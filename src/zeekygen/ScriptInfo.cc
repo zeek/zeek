@@ -257,13 +257,13 @@ void ScriptInfo::DoInitPostScript()
 	// so just manually associating them with scripts for now.
 	if ( name == "base/frameworks/input/main.zeek" )
 		{
-		auto id = global_scope()->Lookup("Input::Reader");
-		types.push_back(new IdentifierInfo({NewRef{}, id}, this));
+		const auto& id = global_scope()->Find("Input::Reader");
+		types.push_back(new IdentifierInfo(id, this));
 		}
 	else if ( name == "base/frameworks/logging/main.zeek" )
 		{
-		auto id = global_scope()->Lookup("Log::Writer");
-		types.push_back(new IdentifierInfo({NewRef{}, id}, this));
+		const auto& id = global_scope()->Find("Log::Writer");
+		types.push_back(new IdentifierInfo(id, this));
 		}
 	}
 

@@ -22,14 +22,22 @@ public:
 	~Scope() override;
 
 	template<typename N>
-	ID* Lookup(N&& name) const
+	const IntrusivePtr<ID>& Find(N&& name) const
 		{
+		static IntrusivePtr<ID> nil;
 		const auto& entry = local.find(std::forward<N>(name));
 
 		if ( entry != local.end() )
-			return entry->second.get();
+			return entry->second;
 
-		return nullptr;
+		return nil;
+		}
+
+	template<typename N>
+	[[deprecated("Remove in v4.1.  Use Find().")]]
+	ID* Lookup(N&& name) const
+		{
+		return Find(name).get();
 		}
 
 	template<typename N, typename I>

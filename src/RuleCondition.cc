@@ -129,7 +129,7 @@ bool RuleConditionPayloadSize::DoMatch(Rule* rule, RuleEndpointState* state,
 
 RuleConditionEval::RuleConditionEval(const char* func)
 	{
-	id = global_scope()->Lookup(func);
+	id = global_scope()->Find(func).get();
 	if ( ! id )
 		{
 		rules_error("unknown identifier", func);

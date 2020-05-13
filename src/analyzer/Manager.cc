@@ -90,7 +90,7 @@ void Manager::InitPreScript()
 
 void Manager::InitPostScript()
 	{
-	auto id = global_scope()->Lookup("Tunnel::vxlan_ports");
+	const auto& id = global_scope()->Find("Tunnel::vxlan_ports");
 
 	if ( ! (id && id->GetVal()) )
 		reporter->FatalError("Tunnel::vxlan_ports not defined");

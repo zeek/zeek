@@ -371,7 +371,7 @@ void Val::ValDescribeReST(ODesc* d) const
 #ifdef DEBUG
 ID* Val::GetID() const
 	{
-	return bound_id ? global_scope()->Lookup(bound_id) : nullptr;
+	return bound_id ? global_scope()->Find(bound_id).get() : nullptr;
 	}
 
 void Val::SetID(ID* id)

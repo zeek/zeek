@@ -368,17 +368,17 @@ void init_ip_addr_anonymizers()
 	ip_anonymizer[PREFIX_PRESERVING_A50] = new AnonymizeIPAddr_A50();
 	ip_anonymizer[PREFIX_PRESERVING_MD5] = new AnonymizeIPAddr_PrefixMD5();
 
-	auto id = global_scope()->Lookup("preserve_orig_addr");
+	auto id = global_scope()->Find("preserve_orig_addr");
 
 	if ( id )
 		anon_preserve_orig_addr = cast_intrusive<TableVal>(id->GetVal());
 
-	id = global_scope()->Lookup("preserve_resp_addr");
+	id = global_scope()->Find("preserve_resp_addr");
 
 	if ( id )
 		anon_preserve_resp_addr = cast_intrusive<TableVal>(id->GetVal());
 
-	id = global_scope()->Lookup("preserve_other_addr");
+	id = global_scope()->Find("preserve_other_addr");
 
 	if ( id )
 		anon_preserve_other_addr = cast_intrusive<TableVal>(id->GetVal());

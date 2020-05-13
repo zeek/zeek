@@ -7,7 +7,7 @@ module Option;
 #include "NetVar.h"
 #include "broker/Data.h"
 
-static bool call_option_handlers_and_set_value(StringVal* name, ID* i,
+static bool call_option_handlers_and_set_value(StringVal* name, const IntrusivePtr<ID>& i,
                                                IntrusivePtr<Val> val,
                                                StringVal* location)
 	{
@@ -59,7 +59,7 @@ static bool call_option_handlers_and_set_value(StringVal* name, ID* i,
 ##           lower-level function.
 function Option::set%(ID: string, val: any, location: string &default=""%): bool
 	%{
-	auto i = global_scope()->Lookup(ID->CheckString());
+	const auto& i = global_scope()->Find(ID->CheckString());
 	if ( ! i )
 		{
 		builtin_error(fmt("Could not find ID named '%s'", ID->CheckString()));
@@ -144,7 +144,7 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 ## .. zeek:see:: Option::set
 function Option::set_change_handler%(ID: string, on_change: any, priority: int &default=0%): bool
 	%{
-	auto i = global_scope()->Lookup(ID->CheckString());
+	const auto& i = global_scope()->Find(ID->CheckString());
 	if ( ! i )
 		{
 		builtin_error(fmt("Could not find ID named '%s'", ID->CheckString()));

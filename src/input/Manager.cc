@@ -2498,7 +2498,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 				// Enums are not a base-type, so need to look it up.
 				const auto& sv = val->val.set_val.vals[0]->val.string_val;
 				std::string enum_name(sv.data, sv.length);
-				auto enum_id = global_scope()->Lookup(enum_name);
+				const auto& enum_id = global_scope()->Find(enum_name);
 
 				if ( ! enum_id )
 					{

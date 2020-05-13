@@ -9,20 +9,10 @@
 
 using namespace analyzer::MQTT;
 
-const ::ID* MQTT_Analyzer::max_payload_size = nullptr;
-
 MQTT_Analyzer::MQTT_Analyzer(Connection* c)
 	: tcp::TCP_ApplicationAnalyzer("MQTT", c)
 	{
 	interp = new binpac::MQTT::MQTT_Conn(this);
-
-	if ( ! max_payload_size )
-		{
-		max_payload_size = global_scope()->Lookup("MQTT::max_payload_size");
-
-		if ( ! max_payload_size )
-			reporter->FatalError("option not defined: 'MQTT::max_payload_size'");
-		}
 	}
 
 MQTT_Analyzer::~MQTT_Analyzer()

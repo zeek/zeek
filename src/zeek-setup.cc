@@ -630,11 +630,11 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	// Must come after plugin activation (and also after hash
 	// initialization).
 	binpac::FlowBuffer::Policy flowbuffer_policy;
-	flowbuffer_policy.max_capacity = global_scope()->Lookup(
+	flowbuffer_policy.max_capacity = global_scope()->Find(
 		"BinPAC::flowbuffer_capacity_max")->GetVal()->AsCount();
-	flowbuffer_policy.min_capacity = global_scope()->Lookup(
+	flowbuffer_policy.min_capacity = global_scope()->Find(
 		"BinPAC::flowbuffer_capacity_min")->GetVal()->AsCount();
-	flowbuffer_policy.contract_threshold = global_scope()->Lookup(
+	flowbuffer_policy.contract_threshold = global_scope()->Find(
 		"BinPAC::flowbuffer_contract_threshold")->GetVal()->AsCount();
 	binpac::init(&flowbuffer_policy);
 
@@ -685,7 +685,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 
 	if ( options.pcap_filter )
 		{
-		ID* id = global_scope()->Lookup("cmd_line_bpf_filter");
+		const auto& id = global_scope()->Find("cmd_line_bpf_filter");
 
 		if ( ! id )
 			reporter->InternalError("global cmd_line_bpf_filter not defined");
@@ -769,7 +769,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	// Print the ID.
 	if ( options.identifier_to_print )
 		{
-		ID* id = global_scope()->Lookup(*options.identifier_to_print);
+		const auto& id = global_scope()->Find(*options.identifier_to_print);
 		if ( ! id )
 			reporter->FatalError("No such ID: %s\n", options.identifier_to_print->data());
 

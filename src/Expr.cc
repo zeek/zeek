@@ -4227,7 +4227,7 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 
 		my_name = "lambda_<" + std::to_string(h[0]) + ">";
 		auto fullname = make_full_var_name(current_module.data(), my_name.data());
-		auto id = global_scope()->Lookup(fullname);
+		const auto& id = global_scope()->Find(fullname);
 
 		if ( id )
 			// Just try again to make a unique lambda name.  If two peer

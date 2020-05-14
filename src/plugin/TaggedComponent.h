@@ -2,7 +2,7 @@
 
 #include <assert.h>
 
-namespace plugin {
+namespace zeek::plugin {
 
 /**
  * A class which has a tag of a given type associated with it.
@@ -71,3 +71,9 @@ T TaggedComponent<T>::Tag() const
 template <class T> typename T::type_t TaggedComponent<T>::type_counter(0);
 
 } // namespace plugin
+
+namespace plugin {
+	template <class T>
+	using TaggedComponent [[deprecated("Remove in v4.1. Use zeek::plugin::TaggedComponent instead.")]] =
+		zeek::plugin::TaggedComponent<T>;
+}

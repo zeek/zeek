@@ -91,7 +91,7 @@ ValManager* val_mgr = nullptr;
 logging::Manager* log_mgr = nullptr;
 threading::Manager* thread_mgr = nullptr;
 input::Manager* input_mgr = nullptr;
-plugin::Manager* plugin_mgr = nullptr;
+zeek::plugin::Manager* plugin_mgr = nullptr;
 analyzer::Manager* analyzer_mgr = nullptr;
 file_analysis::Manager* file_mgr = nullptr;
 zeekygen::Manager* zeekygen_mgr = nullptr;
@@ -160,7 +160,7 @@ static std::vector<const char*> to_cargs(const std::vector<std::string>& args)
 
 bool show_plugins(int level)
 	{
-	plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
+	zeek::plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
 
 	if ( ! plugins.size() )
 		{
@@ -175,7 +175,7 @@ bool show_plugins(int level)
 
 	int count = 0;
 
-	for ( plugin::Manager::plugin_list::const_iterator i = plugins.begin(); i != plugins.end(); i++ )
+	for ( zeek::plugin::Manager::plugin_list::const_iterator i = plugins.begin(); i != plugins.end(); i++ )
 		{
 		if ( requested_plugins.size()
 		     && requested_plugins.find((*i)->Name()) == requested_plugins.end() )
@@ -191,13 +191,13 @@ bool show_plugins(int level)
 
 	printf("%s", d.Description());
 
-	plugin::Manager::inactive_plugin_list inactives = plugin_mgr->InactivePlugins();
+	zeek::plugin::Manager::inactive_plugin_list inactives = plugin_mgr->InactivePlugins();
 
 	if ( inactives.size() && ! requested_plugins.size() )
 		{
 		printf("\nInactive dynamic plugins:\n");
 
-		for ( plugin::Manager::inactive_plugin_list::const_iterator i = inactives.begin(); i != inactives.end(); i++ )
+		for ( zeek::plugin::Manager::inactive_plugin_list::const_iterator i = inactives.begin(); i != inactives.end(); i++ )
 			{
 			string name = (*i).first;
 			string path = (*i).second;
@@ -467,7 +467,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	val_mgr = new ValManager();
 	reporter = new Reporter(options.abort_on_scripting_errors);
 	thread_mgr = new threading::Manager();
-	plugin_mgr = new plugin::Manager();
+	plugin_mgr = new zeek::plugin::Manager();
 
 #ifdef DEBUG
 	if ( options.debug_log_streams )

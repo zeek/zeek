@@ -6,7 +6,21 @@
 
 class ODesc;
 
-namespace plugin {
+namespace plugin::component {
+
+enum [[deprecated("Remove in v4.1. Use zeek::plugin::component::Type instead.")]] Type {
+	READER,	/// An input reader (not currently used).
+	WRITER,	/// A logging writer (not currenly used).
+	ANALYZER,	/// A protocol analyzer.
+	FILE_ANALYZER,	/// A file analyzer.
+	IOSOURCE,	/// An I/O source, excluding packet sources.
+	PKTSRC,	/// A packet source.
+	PKTDUMPER	/// A packet dumper.
+	};
+
+}
+
+namespace zeek::plugin {
 
 namespace component {
 
@@ -22,6 +36,7 @@ enum Type {
 	PKTSRC,	/// A packet source.
 	PKTDUMPER	/// A packet dumper.
 	};
+
 }
 
 /**
@@ -41,6 +56,17 @@ public:
 	 * be unique across all components of the same type.
 	 */
 	Component(component::Type type, const std::string& name);
+
+	/**
+	 * Constructor.
+	 *
+	 * @param type The type of the compoment.
+	 *
+	 * @param name A descriptive name for the component.  This name must
+	 * be unique across all components of the same type.
+	 */
+	[[deprecated("Remove in v4.1. Use the version that takes zeek::plugin::component::Type instead")]]
+	Component(::plugin::component::Type type, const std::string& name);
 
 	/**
 	 * Destructor.
@@ -104,3 +130,8 @@ private:
 };
 
 }
+
+namespace plugin
+	{
+	using Component [[deprecated("Remove in v4.1. Use zeek::plugin::Component instead.")]] = zeek::plugin::Component;
+	}

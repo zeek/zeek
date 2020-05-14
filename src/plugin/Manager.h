@@ -12,7 +12,7 @@
 #include "../Reporter.h"
 #include "../ZeekArgs.h"
 
-namespace plugin {
+namespace zeek::plugin {
 
 // Macros that trigger plugin hooks. We put this into macros to short-cut the
 // code for the most common case that no plugin defines the hook.
@@ -25,7 +25,7 @@ namespace plugin {
  * @param method_call The \a Manager method corresponding to the hook.
  */
 #define PLUGIN_HOOK_VOID(hook, method_call) \
-	{ if ( plugin_mgr->HavePluginForHook(plugin::hook) ) plugin_mgr->method_call; }
+	{ if ( plugin_mgr->HavePluginForHook(zeek::plugin::hook) ) plugin_mgr->method_call; }
 
 /**
  * Macro to trigger hooks that return a result.
@@ -38,7 +38,7 @@ namespace plugin {
  * the hook.
  */
 #define PLUGIN_HOOK_WITH_RESULT(hook, method_call, default_result) \
-	(plugin_mgr->HavePluginForHook(::plugin::hook) ? plugin_mgr->method_call : (default_result))
+	(plugin_mgr->HavePluginForHook(zeek::plugin::hook) ? plugin_mgr->method_call : (default_result))
 
 /**
  * A singleton object managing all plugins.
@@ -47,9 +47,9 @@ class Manager
 {
 public:
 	typedef void (*bif_init_func)(Plugin *);
-	typedef std::list<Plugin*> plugin_list;
-	typedef Plugin::component_list component_list;
-	typedef std::list<std::pair<std::string, std::string> > inactive_plugin_list;
+	using plugin_list = std::list<Plugin*>;
+	using component_list = Plugin::component_list;
+	using inactive_plugin_list = std::list<std::pair<std::string, std::string>>;
 
 	/**
 	 * Constructor.
@@ -165,10 +165,17 @@ public:
 	 *
 	 * @return True if there's a plugin for that hook.
 	 */
-	bool HavePluginForHook(HookType hook) const
+	bool HavePluginForHook(zeek::plugin::HookType hook) const
 		{
 		// Inline to avoid the function call.
 		return hooks[hook] != nullptr;
+		}
+
+	[[deprecated("Remove in v4.1. Use the version that takes zeek::plugin::HookType")]]
+	bool HavePluginForHook(::plugin::HookType hook) const
+		{
+		// Inline to avoid the function call.
+		return HavePluginForHook(static_cast<zeek::plugin::HookType>(hook));
 		}
 
 	/**
@@ -177,7 +184,7 @@ public:
 	 *
 	 * @param plugin The plugin to return the hooks for.
 	 */
-	std::list<std::pair<HookType, int> > HooksEnabledForPlugin(const Plugin* plugin) const;
+	std::list<std::pair<zeek::plugin::HookType, int> > HooksEnabledForPlugin(const Plugin* plugin) const;
 
 	/**
 	 * Enables a hook for a given plugin.
@@ -188,7 +195,9 @@ public:
 	 *
 	 * prio: The priority to associate with the plugin for this hook.
 	 */
-	void EnableHook(HookType hook, Plugin* plugin, int prio);
+	[[deprecated("Remove in v4.1. Use the version that takes zeek::plugin::HookType")]]
+	void EnableHook(::plugin::HookType hook, Plugin* plugin, int prio);
+	void EnableHook(::zeek::plugin::HookType hook, Plugin* plugin, int prio);
 
 	/**
 	 * Disables a hook for a given plugin.
@@ -197,7 +206,9 @@ public:
 	 *
 	 * plugin: The plugin that used to define the hook.
 	 */
-	void DisableHook(HookType hook, Plugin* plugin);
+	[[deprecated("Remove in v4.1. Use the version that takes zeek::plugin::HookType")]]
+	void DisableHook(::plugin::HookType hook, Plugin* plugin);
+	void DisableHook(::zeek::plugin::HookType hook, Plugin* plugin);
 
 	/**
 	 * Registers interest in an event by a plugin, even if there's no handler
@@ -415,23 +426,23 @@ public:
 private:
 	bool ActivateDynamicPluginInternal(const std::string& name, bool ok_if_not_found = false);
 	void UpdateInputFiles();
-	void MetaHookPre(HookType hook, const HookArgumentList& args) const;
-	void MetaHookPost(HookType hook, const HookArgumentList& args, HookArgument result) const;
+	void MetaHookPre(zeek::plugin::HookType hook, const HookArgumentList& args) const;
+	void MetaHookPost(zeek::plugin::HookType hook, const HookArgumentList& args, HookArgument result) const;
 
 	 // All found dynamic plugins, mapping their names to base directory.
-	typedef std::map<std::string, std::string> dynamic_plugin_map;
+	using dynamic_plugin_map = std::map<std::string, std::string>;
 	dynamic_plugin_map dynamic_plugins;
 
 	// We temporarliy buffer scripts to load to get them to load in the
 	// right order.
-	typedef std::list<std::string> file_list;
+	using file_list = std::list<std::string>;
 	file_list scripts_to_load;
 
 	bool init;	// Flag indicating whether InitPreScript() has run yet.
 
 	// A hook list keeps pairs of plugin and priority interested in a
 	// given hook.
-	typedef std::list<std::pair<int, Plugin*> > hook_list;
+	using hook_list = std::list<std::pair<int, Plugin*>>;
 
 	// An array indexed by HookType. An entry is null if there's no hook
 	// of that type enabled.
@@ -450,8 +461,8 @@ private:
 	// even before the manager exists.
 	static plugin_list* ActivePluginsInternal();
 
-	typedef std::list<bif_init_func> bif_init_func_list;
-	typedef std::map<std::string, bif_init_func_list*> bif_init_func_map;
+	using bif_init_func_list = std::list<bif_init_func>;
+	using bif_init_func_map = std::map<std::string, bif_init_func_list*>;
 
 	// Returns a modifiable map of all bif files. This is a static method
 	// so that plugins can register their bifs even before the manager
@@ -480,20 +491,29 @@ std::list<T *> Manager::Components() const
 	return result;
 	}
 
+}
+
+// TOOD: should this just be zeek::detail?
+namespace zeek::detail::plugin {
+
 /**
  * Internal class used by bifcl-generated code to register its init functions at runtime.
  */
 class __RegisterBif {
 public:
-	__RegisterBif(const char* plugin, Manager::bif_init_func init)
+	__RegisterBif(const char* plugin, zeek::plugin::Manager::bif_init_func init)
 		{
-		Manager::RegisterBifFile(plugin, init);
+		zeek::plugin::Manager::RegisterBifFile(plugin, init);
 		}
 };
 
 }
 
+namespace plugin {
+	using Manager [[deprecated("Remove in v4.1. Use zeek::plugin::Manager instead.")]] = zeek::plugin::Manager;
+}
+
 /**
  * The global plugin manager singleton.
  */
-extern plugin::Manager* plugin_mgr;
+extern zeek::plugin::Manager* plugin_mgr;

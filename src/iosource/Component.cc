@@ -8,12 +8,17 @@
 using namespace iosource;
 
 Component::Component(const std::string& name)
-	: plugin::Component(plugin::component::IOSOURCE, name)
+	: zeek::plugin::Component(zeek::plugin::component::IOSOURCE, name)
+	{
+	}
+
+Component::Component(zeek::plugin::component::Type type, const std::string& name)
+	: plugin::Component(type, name)
 	{
 	}
 
 Component::Component(plugin::component::Type type, const std::string& name)
-	: plugin::Component(type, name)
+	: plugin::Component(static_cast<zeek::plugin::component::Type>(type), name)
 	{
 	}
 
@@ -22,7 +27,7 @@ Component::~Component()
 	}
 
 PktSrcComponent::PktSrcComponent(const std::string& arg_name, const std::string& arg_prefix, InputType arg_type, factory_callback arg_factory)
-	: iosource::Component(plugin::component::PKTSRC, arg_name)
+	: iosource::Component(zeek::plugin::component::PKTSRC, arg_name)
 	{
 	tokenize_string(arg_prefix, ":", &prefixes);
 	type = arg_type;
@@ -108,7 +113,7 @@ void PktSrcComponent::DoDescribe(ODesc* d) const
 	}
 
 PktDumperComponent::PktDumperComponent(const std::string& name, const std::string& arg_prefix, factory_callback arg_factory)
-	: plugin::Component(plugin::component::PKTDUMPER, name)
+	: zeek::plugin::Component(zeek::plugin::component::PKTDUMPER, name)
 	{
 	tokenize_string(arg_prefix, ":", &prefixes);
 	factory = arg_factory;
@@ -142,7 +147,7 @@ bool PktDumperComponent::HandlesPrefix(const std::string& prefix) const
 
 void PktDumperComponent::DoDescribe(ODesc* d) const
 	{
-	plugin::Component::DoDescribe(d);
+	zeek::plugin::Component::DoDescribe(d);
 
 	std::string prefs;
 

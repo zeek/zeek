@@ -37,7 +37,7 @@ Attr::Attr(attr_tag t)
 
 Attr::~Attr() = default;
 
-void Attr::SetAttrExpr(IntrusivePtr<Expr> e)
+void Attr::SetAttrExpr(IntrusivePtr<zeek::detail::Expr> e)
 	{ expr = std::move(e); }
 
 void Attr::Describe(ODesc* d) const

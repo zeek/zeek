@@ -26,7 +26,42 @@ namespace threading {
 struct Field;
 }
 
-namespace plugin  {
+namespace plugin {
+
+/**
+ * Hook types that a plugin may define. Each label maps to the corresponding
+ * virtual method in \a Plugin.
+ */
+enum [[deprecated("Remove in v4.1. Use the zeek::plugin::HookType instead.")]] HookType {
+	// Note: when changing this table, update hook_name() in Plugin.cc.
+	HOOK_LOAD_FILE,			//< Activates Plugin::HookLoadFile().
+	HOOK_CALL_FUNCTION,		//< Activates Plugin::HookCallFunction().
+	HOOK_QUEUE_EVENT,		//< Activates Plugin::HookQueueEvent().
+	HOOK_DRAIN_EVENTS,		//< Activates Plugin::HookDrainEvents()
+	HOOK_UPDATE_NETWORK_TIME,	//< Activates Plugin::HookUpdateNetworkTime.
+	HOOK_BRO_OBJ_DTOR,		//< Activates Plugin::HookBroObjDtor.
+	HOOK_SETUP_ANALYZER_TREE,	//< Activates Plugin::HookAddToAnalyzerTree
+	HOOK_LOG_INIT,			//< Activates Plugin::HookLogInit
+	HOOK_LOG_WRITE,			//< Activates Plugin::HookLogWrite
+	HOOK_REPORTER,			//< Activates Plugin::HookReporter
+
+	// Meta hooks.
+	META_HOOK_PRE,			//< Activates Plugin::MetaHookPre().
+	META_HOOK_POST,			//< Activates Plugin::MetaHookPost().
+
+	// End marker.
+	NUM_HOOKS,
+};
+
+/**
+ * Converts a hook type into a readable hook name.
+ */
+[[deprecated("Remove in v4.1. Use the version that takes zeek::plugin:HookType instead.")]]
+extern const char* hook_name(::plugin::HookType h);
+
+}
+
+namespace zeek::plugin  {
 
 class Manager;
 class Component;
@@ -60,25 +95,15 @@ enum HookType {
 /**
  * Converts a hook type into a readable hook name.
  */
-extern const char* hook_name(HookType h);
+extern const char* hook_name(::zeek::plugin::HookType h);
 
 /**
  * Helper class to capture a plugin's version.
  * */
 struct VersionNumber {
-	int major; //< Major version number.
-	int minor; //< Minor version number.
-	int patch; //< Patch version number (available since Zeek 3.0).
-
-	/**
-	 *  Constructor.
-	 */
-	VersionNumber()	{
-		// Major and minor versions are required.
-		major = minor = -1;
-		// Patch version is optional, and set to 0 if not manually set.
-		patch = 0;
-	}
+	int major = -1; //< Major version number.
+	int minor = -1; //< Minor version number.
+	int patch = 0;  //< Patch version number (available since Zeek 3.0).
 
 	/**
 	 *  Returns true if the version is set to a non-negative value.
@@ -91,14 +116,17 @@ struct VersionNumber {
  */
 class Configuration {
 public:
-	std::string name;		//< The plugin's name, including a namespace. Mandatory.
-	std::string description;	//< A short textual description of the plugin. Mandatory.
-	VersionNumber version;		//< THe plugin's version. Optional.
+	std::string name = "";			//< The plugin's name, including a namespace. Mandatory.
+	std::string description= "";	//< A short textual description of the plugin. Mandatory.
+	VersionNumber version;			//< THe plugin's version. Optional.
 
 	// We force this to inline so that the API version gets hardcoded
 	// into the external plugin. (Technically, it's not a "force", just a
 	// strong hint.). The attribute seems generally available.
-	inline Configuration() __attribute__((always_inline));
+	inline Configuration() __attribute__((always_inline))
+		{
+		bro_version = BRO_PLUGIN_BRO_VERSION;
+		}
 
         /**
          * One can assign BRO_PLUGIN_BRO_VERSION to this to catch
@@ -109,13 +137,6 @@ public:
 private:
 	friend class Plugin;
 };
-
-inline Configuration::Configuration()
-		{
-		name = "";
-		description = "";
-		bro_version = BRO_PLUGIN_BRO_VERSION;
-		}
 
 /**
  * A class describing an item defined in \c *.bif file.
@@ -392,7 +413,7 @@ private:
 	std::string arg_string;
 };
 
-typedef std::list<HookArgument> HookArgumentList;
+using HookArgumentList = std::list<HookArgument>;
 
 /**
  * Base class for all plugins.
@@ -423,7 +444,7 @@ typedef std::list<HookArgument> HookArgumentList;
  */
 class Plugin {
 public:
-	typedef std::list<Component *> component_list;
+	typedef std::list<zeek::plugin::Component *> component_list;
 	typedef std::list<BifItem> bif_item_list;
 	typedef std::list<std::pair<HookType, int> > hook_list;
 
@@ -538,7 +559,7 @@ public:
 	bool LoadBroFile(const std::string& file);
 
 protected:
-	friend class Manager;
+	friend class zeek::plugin::Manager;
 
 	/**
 	 * First-stage initialization of the plugin called early during Bro's
@@ -568,7 +589,7 @@ protected:
 	 *
 	 * @param c The component. The method takes ownership.
 	 */
-	void AddComponent(Component* c);
+	void AddComponent(zeek::plugin::Component* c);
 
 	/**
 	 * Calls the Initialize() function of all components.
@@ -594,7 +615,9 @@ protected:
 	 * highest to lowest. If two plugins specify the same priority, order
 	 * is undefined.
 	 */
-	void EnableHook(HookType hook, int priority = 0);
+	[[deprecated("Remove in v4.1. Use the version that takes zeek::plugin:HookType instead.")]]
+	void EnableHook(::plugin::HookType hook, int priority = 0);
+	void EnableHook(zeek::plugin::HookType hook, int priority = 0);
 
 	/**
 	 * Disables a hook. Bro will no longer call the corresponding virtual
@@ -602,7 +625,9 @@ protected:
 	 *
 	 * @param hook The hook to disable.
 	 */
-	void DisableHook(HookType hook);
+	[[deprecated("Remove in v4.1. Use the version that takes zeek::plugin:HookType instead.")]]
+	void DisableHook(::plugin::HookType hook);
+	void DisableHook(zeek::plugin::HookType hook);
 
 	/**
 	 * Returns a list of hooks that are currently enabled for the plugin,
@@ -855,7 +880,10 @@ protected:
 	 *
 	 * args: A list of the hooks arguments.
 	 */
-	virtual void MetaHookPre(HookType hook, const HookArgumentList& args);
+	// TODO: unfortunately deprecated virtual methods don't flag when you override them
+	[[deprecated("Remove in v4.1. Use the version that takes zeek::plugin:HookType instead.")]]
+	virtual void MetaHookPre(::plugin::HookType hook, const HookArgumentList& args);
+	virtual void MetaHookPre(::zeek::plugin::HookType hook, const HookArgumentList& args);
 
 	/**
 	 * A meta hook called just after another hook got to execute. This
@@ -870,7 +898,9 @@ protected:
 	 * implementation for the hook, this will be the default result. If
 	 * the hook doesn't yield a result, this will be of type VOID.
 	 */
-	virtual void MetaHookPost(HookType hook, const HookArgumentList& args, HookArgument result);
+	[[deprecated("Remove in v4.1. Use the version that takes zeek::plugin:HookType instead.")]]
+	virtual void MetaHookPost(::plugin::HookType hook, const HookArgumentList& args, HookArgument result);
+	virtual void MetaHookPost(::zeek::plugin::HookType hook, const HookArgumentList& args, HookArgument result);
 
 private:
 
@@ -924,4 +954,13 @@ private:
 	bif_item_list bif_items;	// BiF items the plugin provides.
 };
 
+}
+
+namespace plugin {
+	using VersionNumber = zeek::plugin::VersionNumber;
+	using Configuration = zeek::plugin::Configuration;
+	using BifItem = zeek::plugin::BifItem;
+	using HookArgument = zeek::plugin::HookArgument;
+	using HookArgumentList = zeek::plugin::HookArgumentList;
+	using Plugin = zeek::plugin::Plugin;
 }

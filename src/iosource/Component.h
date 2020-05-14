@@ -16,7 +16,7 @@ class PktDumper;
 /**
  * Component description for plugins providing IOSources.
  */
-class Component : public plugin::Component {
+class Component : public zeek::plugin::Component {
 public:
 	typedef IOSource* (*factory_callback)();
 
@@ -34,6 +34,7 @@ public:
 	~Component() override;
 
 protected:
+
 	/**
 	 * Constructor to use by derived classes.
 	 *
@@ -42,6 +43,17 @@ protected:
 	 * @param name A descriptive name for the component.  This name must
 	 * be unique across all components of this type.
 	 */
+	Component(zeek::plugin::component::Type type, const std::string& name);
+
+	/**
+	 * Constructor to use by derived classes.
+	 *
+	 * @param type The type of the componnent.
+	 *
+	 * @param name A descriptive name for the component.  This name must
+	 * be unique across all components of this type.
+	 */
+	[[deprecated("Remove in v4.1. Use the version that takes zeek::plugin::component::Type instead")]]
 	Component(plugin::component::Type type, const std::string& name);
 };
 
@@ -126,7 +138,7 @@ private:
  * PktDumpers aren't IOSurces but we locate them here to keep them along with
  * the PktSrc.
  */
-class PktDumperComponent : public plugin::Component  {
+class PktDumperComponent : public zeek::plugin::Component  {
 public:
 	typedef PktDumper* (*factory_callback)(const std::string& path, bool append);
 

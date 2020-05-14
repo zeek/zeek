@@ -22,7 +22,7 @@ class Manager;
  * A plugin can provide a specific file analyzer by registering this
  * analyzer component, describing the analyzer.
  */
-class Component : public plugin::Component,
+class Component : public zeek::plugin::Component,
                   public plugin::TaggedComponent<file_analysis::Tag> {
 public:
 	typedef Analyzer* (*factory_callback)(RecordVal* args, File* file);

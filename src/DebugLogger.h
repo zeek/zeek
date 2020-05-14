@@ -45,7 +45,7 @@ enum DebugStream {
 
 #define PLUGIN_DBG_LOG(plugin, args...) debug_logger.Log(plugin, args)
 
-namespace plugin { class Plugin; }
+namespace zeek::plugin { class Plugin; }
 
 class DebugLogger {
 public:
@@ -56,7 +56,7 @@ public:
 	void OpenDebugLog(const char* filename = 0);
 
 	void Log(DebugStream stream, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
-	void Log(const plugin::Plugin& plugin, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
+	void Log(const zeek::plugin::Plugin& plugin, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
 
 	void PushIndent(DebugStream stream)
 		{ ++streams[int(stream)].indent; }

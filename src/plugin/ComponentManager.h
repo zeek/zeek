@@ -13,7 +13,7 @@
 #include "zeekygen/Manager.h"
 #include "DebugLogger.h"
 
-namespace plugin {
+namespace zeek::plugin {
 
 /**
  * A class that manages tracking of plugin components (e.g. analyzers) and
@@ -267,3 +267,9 @@ void ComponentManager<T, C>::RegisterComponent(C* component,
 	}
 
 } // namespace plugin
+
+namespace plugin {
+	template <class T, class C>
+	using ComponentManager [[deprecated("Remove in v4.1. Use zeek::plugin::ComponentManager instead.")]] =
+		zeek::plugin::ComponentManager<T, C>;
+}

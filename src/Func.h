@@ -206,10 +206,6 @@ public:
 	[[deprecated("Remove in v4.1.  Return an IntrusivePtr instead.")]]
 	BifReturnVal(Val* v) noexcept;
 
-private:
-
-	friend class BuiltinFunc;
-
 	IntrusivePtr<Val> rval;
 };
 

@@ -781,7 +781,7 @@ void init_builtin_funcs_subdirs()
 
 bool check_built_in_call(BuiltinFunc* f, CallExpr* call)
 	{
-	if ( f->TheFunc() != BifFunc::bro_fmt )
+	if ( f->TheFunc() != zeek::BifFunc::fmt_bif)
 		return true;
 
 	const expr_list& args = call->Args()->Exprs();

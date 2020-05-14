@@ -90,6 +90,7 @@ BEGIN	{
 	accessors["P"] = ".re_val"
 	accessors["S"] = ".string_val"
 	accessors["T"] = ".table_val"
+	accessors["V"] = ".vector_val"
 	accessors["X"] = "###"
 
 	# Update eval(...) below
@@ -102,9 +103,11 @@ BEGIN	{
 	eval_selector["P"] = "P"
 	eval_selector["S"] = "S"
 	eval_selector["T"] = "T"
+	eval_selector["V"] = "V"
 
 	++no_vec["P"]
 	++no_vec["T"]
+	++no_vec["V"]
 	++no_vec["A", "I"]
 
 	method_map["I"] = "i_t == TYPE_INTERNAL_INT"
@@ -115,6 +118,7 @@ BEGIN	{
 	method_map["P"] = "tag == TYPE_PATTERN"
 	method_map["S"] = "i_t == TYPE_INTERNAL_STRING"
 	method_map["T"] = "tag == TYPE_TABLE"
+	method_map["V"] = "tag == TYPE_VECTOR"
 
 	mixed_type_supported["P", "S"]
 	mixed_type_supported["A", "I"]
@@ -151,7 +155,7 @@ $1 == "opaque"	{ opaque = 1; next }
 $1 == "set-type"	{ set_type = $2; next }
 $1 == "set-expr"	{ set_expr = $2; next }
 
-$1 ~ /^eval((_[ANPST])?)$/	{
+$1 ~ /^eval((_[ANPSTV])?)$/	{
 		if ( $1 != "eval" )
 			{
 			# Extract subtype specifier.

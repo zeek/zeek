@@ -53,7 +53,7 @@ struct IterInfo {
 	vector<int> loop_vars;
 	vector<BroType*> loop_var_types;
 
-	const AS_vector* vv;
+	std::shared_ptr<AS_vector> vv;
 	VectorType* vec_type;
 
 	BroString* s;
@@ -278,7 +278,7 @@ IntrusivePtr<Val> AS_ValUnion::ToVal(BroType* t) const
 
 class AS_VectorMgr {
 public:
-	AS_VectorMgr(AS_vector* _vec, VectorVal* _v)
+	AS_VectorMgr(std::shared_ptr<AS_vector> _vec, VectorVal* _v)
 		{
 		vec = _vec;
 		v = _v;
@@ -289,18 +289,23 @@ public:
 
 	~AS_VectorMgr()
 		{
-		delete vec;
 		if ( v )
 			Unref(v);
 		}
 
-	const AS_vector* ConstVec() const	{ return vec; }
-	AS_vector* ModVec()	{ is_clean = false; return vec; }
+	AS_VectorMgr* ShallowCopy()
+		{
+		return new AS_VectorMgr(vec, v);
+		}
+
+	std::shared_ptr<AS_vector> ConstVec() const	{ return vec; }
+	std::shared_ptr<AS_vector> ModVec()
+		{ is_clean = false; return vec; }
 
 	bool IsClean() const	{ return is_clean || ! v; }
 
 protected:
-	AS_vector* vec;
+	std::shared_ptr<AS_vector> vec;
 	VectorVal* v;
 	bool is_clean;
 };
@@ -332,15 +337,15 @@ AS_VectorMgr* to_AS_vector(Val* vec, bool track_val)
 	auto t = vec->Type()->AsVectorType();
 	auto yt = t->YieldType();
 
-	auto raw = new AS_vector;
+	auto raw = make_shared<AS_vector>();
 	bool error;
 
 	for ( auto elem : *v )
 		if ( ! elem )
 			// Zeek vectors can have holes.
-			raw->push_back(AS_ValUnion());
+			raw.get()->push_back(AS_ValUnion());
 		else
-			raw->push_back(AS_ValUnion(elem, yt, vec, error));
+			raw.get()->push_back(AS_ValUnion(elem, yt, vec, error));
 
 	return new AS_VectorMgr(raw, track_val ? vec->AsVectorVal() : nullptr);
 	}
@@ -854,7 +859,7 @@ static void vec_exec(AbstractOp op, AS_VectorMgr*& v1, const AS_VectorMgr* v2,
 	static AS_VectorMgr* vec_coerce_##tag(AS_VectorMgr* vec) \
 		{ \
 		auto v = vec->ConstVec(); \
-		auto res = new AS_vector; \
+		auto res = make_shared<AS_vector>(); \
 		for ( unsigned int i = 0; i < v->size(); ++i ) \
 			(*res)[i].lhs_accessor = cast((*v)[i].rhs_accessor); \
 		return new AS_VectorMgr(res, nullptr); \
@@ -2300,7 +2305,7 @@ static void vec_exec(AbstractOp op, AS_VectorMgr*& v1, const AS_VectorMgr* v2)
 	if ( v1 )
 		v1->ModVec()->resize(vec2.size());
 	else
-		v1 = new AS_VectorMgr(new AS_vector(vec2.size()), nullptr);
+		v1 = new AS_VectorMgr(make_shared<AS_vector>(vec2.size()), nullptr);
 
 	auto& vec1 = *v1->ModVec();
 
@@ -2326,7 +2331,7 @@ static void vec_exec(AbstractOp op, AS_VectorMgr*& v1, const AS_VectorMgr* v2,
 	if ( v1 )
 		v1->ModVec()->resize(vec2.size());
 	else
-		v1 = new AS_VectorMgr(new AS_vector(vec2.size()), nullptr);
+		v1 = new AS_VectorMgr(make_shared<AS_vector>(vec2.size()), nullptr);
 
 	auto& vec1 = *v1->ModVec();
 

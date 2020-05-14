@@ -4,14 +4,21 @@
 ########## Unary Ops ##########
 
 unary-expr-op Assign
-op-type A N S *
+op-type A N S V *
 set-type $2
+#
 eval_A delete $$
 eval_A $$ = new IPAddr(*$1)
+#
 eval_N delete $$
 eval_N $$ = new IPPrefix(*$1)
+#
 eval_S delete $$
 eval_S $$ = new BroString(*$1)
+#
+eval_V delete $$
+eval_V $$ = $1->ShallowCopy()
+#
 eval $1;
 
 unary-expr-op Clone
@@ -846,7 +853,7 @@ eval frame[s.v1].record_val = new RecordVal(s.t->AsRecordType())
 internal-op Init-Vector
 type V
 eval delete frame[s.v1].vector_val
-eval frame[s.v1].vector_val = new AS_VectorMgr(new AS_vector, nullptr);
+eval frame[s.v1].vector_val = new AS_VectorMgr(make_shared<AS_vector>(), nullptr);
 
 internal-op Init-Table
 type V

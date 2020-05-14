@@ -165,11 +165,13 @@ static struct {
 	const char* c_type;
 	const char* c_type_smart;
 	const char* accessor;
+	const char* accessor_smart;
+	const char* cast_smart;
 	const char* constructor;
 	const char* ctor_smatr;
 } builtin_types[] = {
-#define DEFINE_BIF_TYPE(id, bif_type, bro_type, c_type, c_type_smart, accessor, constructor, ctor_smart) \
-	{bif_type, bro_type, c_type, c_type_smart, accessor, constructor, ctor_smart},
+#define DEFINE_BIF_TYPE(id, bif_type, bro_type, c_type, c_type_smart, accessor, accessor_smart, cast_smart, constructor, ctor_smart) \
+	{bif_type, bro_type, c_type, c_type_smart, accessor, accessor_smart, cast_smart, constructor, ctor_smart},
 #include "bif_type.def"
 #undef DEFINE_BIF_TYPE
 };
@@ -512,21 +514,38 @@ const_def:	TOK_CONST opt_ws TOK_ID opt_ws ':' opt_ws TOK_ID opt_ws ';'
 			set_decl_name($3);
 			int typeidx = get_type_index($7);
 			char accessor[1024];
+			char accessor_smart[1024];
 
 			snprintf(accessor, sizeof(accessor), builtin_types[typeidx].accessor, "");
+			snprintf(accessor_smart, sizeof(accessor_smart), builtin_types[typeidx].accessor_smart, "");
 
 
-			fprintf(fp_netvar_h, "%s extern %s %s; %s\n",
+			fprintf(fp_netvar_h, "namespace zeek { %s extern %s %s; %s }\n",
 					decl.c_namespace_start.c_str(),
+					builtin_types[typeidx].c_type_smart, decl.bare_name.c_str(),
+					decl.c_namespace_end.c_str());
+			fprintf(fp_netvar_h, "%s [[deprecated(\"Remove in v4.1.  Use zeek::%s.\")]] extern %s %s; %s\n",
+					decl.c_namespace_start.c_str(), decl.c_fullname.c_str(),
 					builtin_types[typeidx].c_type, decl.bare_name.c_str(),
+					decl.c_namespace_end.c_str());
+
+			fprintf(fp_netvar_def, "namespace zeek { %s %s %s; %s }\n",
+					decl.c_namespace_start.c_str(),
+					builtin_types[typeidx].c_type_smart, decl.bare_name.c_str(),
 					decl.c_namespace_end.c_str());
 			fprintf(fp_netvar_def, "%s %s %s; %s\n",
 					decl.c_namespace_start.c_str(),
 					builtin_types[typeidx].c_type, decl.bare_name.c_str(),
 					decl.c_namespace_end.c_str());
-			fprintf(fp_netvar_init, "\t%s = zeek::id::lookup_const(\"%s\").get()%s;\n",
-				decl.c_fullname.c_str(), decl.bro_fullname.c_str(),
-				accessor);
+
+			fprintf(fp_netvar_init, "\t{\n");
+			fprintf(fp_netvar_init, "\tconst auto& v = zeek::id::lookup_const%s(\"%s\");\n",
+					builtin_types[typeidx].cast_smart, decl.bro_fullname.c_str());
+			fprintf(fp_netvar_init, "\tzeek::%s = v%s;\n",
+					decl.c_fullname.c_str(), accessor_smart);
+			fprintf(fp_netvar_init, "\t%s = v.get()%s;\n",
+					decl.c_fullname.c_str(), accessor);
+			fprintf(fp_netvar_init, "\t}\n");
 
 			record_bif_item(decl.bro_fullname.c_str(), "CONSTANT");
 			}

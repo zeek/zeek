@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 enum builtin_func_arg_type {
-#define DEFINE_BIF_TYPE(id, bif_type, bro_type, c_type, c_type_smart, accessor, constructor, ctor_smart) \
+#define DEFINE_BIF_TYPE(id, bif_type, bro_type, c_type, c_type_smart, accessor, accessor_smart, cast_smart, constructor, ctor_smart) \
 	id,
 #include "bif_type.def"
 #undef DEFINE_BIF_TYPE

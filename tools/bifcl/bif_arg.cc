@@ -13,11 +13,13 @@ static struct {
 	const char* c_type;
 	const char* c_type_smart;
 	const char* accessor;
+	const char* accessor_smart;
+	const char* cast_smart;
 	const char* constructor;
 	const char* ctor_smart;
 } builtin_func_arg_type[] = {
-#define DEFINE_BIF_TYPE(id, bif_type, bro_type, c_type, c_type_smart, accessor, constructor, ctor_smart) \
-	{bif_type, bro_type, c_type, c_type_smart, accessor, constructor, ctor_smart},
+#define DEFINE_BIF_TYPE(id, bif_type, bro_type, c_type, c_type_smart, accessor, accessor_smart, cast_smart, constructor, ctor_smart) \
+	{bif_type, bro_type, c_type, c_type_smart, accessor, accessor_smart, cast_smart, constructor, ctor_smart},
 #include "bif_type.def"
 #undef DEFINE_BIF_TYPE
 };

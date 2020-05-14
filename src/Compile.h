@@ -118,10 +118,14 @@ class Body;
 class UseDefs;
 class ProfileFunc;
 class AbstractStmt;
+class AS_VectorMgr;
 union AS_ValUnion;
 
 // Maps frame slots to associated identifiers.
 typedef std::vector<const ID*> frame_map;
+
+// Tracks the managers of internal/Val* vector pairings.
+typedef std::unordered_set<AS_VectorMgr*> ASVM_tracker_type;
 
 class AbstractMachine : public Compiler {
 public:
@@ -302,6 +306,9 @@ protected:
 
 	int NewSlot();
 	int RegisterSlot();
+
+	void SpillVectors(ASVM_tracker_type* tracker) const;
+	void LoadVectors(ASVM_tracker_type* tracker) const;
 
 	vector<AbstractStmt> stmts;
 

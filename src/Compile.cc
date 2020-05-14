@@ -42,6 +42,15 @@ const char* abstract_op_name(AbstractOp op)
 // with Val*'s.
 class AS_VectorMgr;
 
+// For the currently executing function, tracks the active AS_VectorMgr's
+// that are associated with Val*'s.  We define this in a global so that
+// AS_VectorMgr objects can access it without having to pass it all the
+// way down in the myriad AS_ValUnion constructor invocations.  OTOH,
+// this means we have to be careful to keep it consistent whenever
+// control flow potentially goes into another AbstractMachine, which
+// currently means we need to restore it any time we invoke the interpreter.
+static ASVM_tracker_type* curr_ASVM_Tracker;
+
 // The underlying "raw" vector.
 typedef vector<AS_ValUnion> AS_vector;
 
@@ -139,6 +148,7 @@ union AS_ValUnion {
 };
 
 static AS_VectorMgr* to_AS_vector(Val* vec, bool track_val);
+static std::shared_ptr<AS_vector> to_raw_AS_vector(Val* vec);
 
 AS_ValUnion::AS_ValUnion(Val* v, BroType* t, const BroObj* o, bool& error)
 	{
@@ -295,14 +305,25 @@ public:
 		vec = _vec;
 		v = _v;
 		if ( v )
+			{
 			Ref(v);
+			curr_ASVM_Tracker->insert(this);
+			}
+
 		is_clean = true;
 		}
 
 	~AS_VectorMgr()
 		{
-		if ( v && ! is_clean && v->RefCnt() > 1 )
-			Spill();
+		if ( v )
+			{
+			if ( v->RefCnt() > 1 )
+				// No sense spilling if the value is about
+				// to go away.
+				Spill();
+
+			curr_ASVM_Tracker->erase(this);
+			}
 
 		if ( v )
 			Unref(v);
@@ -314,7 +335,7 @@ public:
 		}
 
 	std::shared_ptr<AS_vector> ConstVec() const	{ return vec; }
-	std::shared_ptr<AS_vector> ModVec()
+	std::shared_ptr<AS_vector> ModVec()	
 		{ is_clean = false; return vec; }
 
 	bool IsClean() const	{ return is_clean || ! v; }
@@ -328,12 +349,14 @@ public:
 protected:
 	std::shared_ptr<AS_vector> vec;
 	VectorVal* v;
+
+	// Whether the local vector is unmodified since we created it.
 	bool is_clean;
 };
 
 void AS_VectorMgr::Spill()
 	{
-	if ( ! v )
+	if ( ! v || is_clean )
 		return;
 
 	auto vt = v->Type()->AsVectorType();
@@ -348,6 +371,13 @@ void AS_VectorMgr::Spill()
 
 	is_clean = true;
 	}
+
+void AS_VectorMgr::Freshen()
+	{
+	ASSERT(is_clean);
+	vec = to_raw_AS_vector(v);
+	}
+
 
 IntrusivePtr<VectorVal> AS_ValUnion::ToVector(BroType* t) const
 	{
@@ -372,6 +402,12 @@ IntrusivePtr<VectorVal> AS_ValUnion::ToVector(BroType* t) const
 
 AS_VectorMgr* to_AS_vector(Val* vec, bool track_val)
 	{
+	auto raw = to_raw_AS_vector(vec);
+	return new AS_VectorMgr(raw, track_val ? vec->AsVectorVal() : nullptr);
+	}
+
+std::shared_ptr<AS_vector> to_raw_AS_vector(Val* vec)
+	{
 	auto v = vec->AsVector();
 	auto t = vec->Type()->AsVectorType();
 	auto yt = t->YieldType();
@@ -386,7 +422,7 @@ AS_VectorMgr* to_AS_vector(Val* vec, bool track_val)
 		else
 			raw.get()->push_back(AS_ValUnion(elem, yt, vec, error));
 
-	return new AS_VectorMgr(raw, track_val ? vec->AsVectorVal() : nullptr);
+	return raw;
 	}
 
 // Possible types of statement operands in terms of which
@@ -933,6 +969,9 @@ IntrusivePtr<Val> AbstractMachine::DoExec(Frame* f, int start_pc,
 
 #define BuildVal(v, t, s) (vals.push_back(v), AS_ValUnion(v.get(), t, s, error_flag))
 #define CopyVal(v) ((s.t->Tag() == TYPE_ADDR || s.t->Tag() == TYPE_SUBNET || s.t->Tag() == TYPE_STRING || s.t->Tag() == TYPE_VECTOR) ? BuildVal(v.ToVal(s.t), s.t, s.stmt) : v)
+
+	ASVM_tracker_type ASVM_Tracker;
+	curr_ASVM_Tracker = &ASVM_Tracker;
 
 	// Return value, or nil if none.
 	const AS_ValUnion* ret_u;
@@ -2310,6 +2349,18 @@ int AbstractMachine::NewSlot()
 int AbstractMachine::RegisterSlot()
 	{
 	return register_slot;
+	}
+
+void AbstractMachine::SpillVectors(ASVM_tracker_type* tracker) const
+	{
+	for ( auto vm : *tracker )
+		vm->Spill();
+	}
+
+void AbstractMachine::LoadVectors(ASVM_tracker_type* tracker) const
+	{
+	for ( auto vm : *tracker )
+		vm->Freshen();
 	}
 
 

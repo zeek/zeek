@@ -2408,10 +2408,7 @@ const CompiledStmt InitStmt::Compile(Compiler* c) const
 	for ( const auto& aggr : *inits )
 		{
 		if ( c->IsUnused(aggr, this) )
-			{
-			Warn("local variable unused", aggr);
 			continue;
-			}
 
 		BroType* t = aggr->Type();
 		switch ( t->Tag() ) {

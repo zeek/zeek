@@ -317,11 +317,7 @@ public:
 		{
 		if ( v )
 			{
-			if ( v->RefCnt() > 1 )
-				// No sense spilling if the value is about
-				// to go away.
-				Spill();
-
+			Spill();
 			curr_ASVM_Tracker->erase(this);
 			}
 
@@ -357,6 +353,11 @@ protected:
 void AS_VectorMgr::Spill()
 	{
 	if ( ! v || is_clean )
+		return;
+
+	if ( v->RefCnt() == 1 )
+		// No sense spilling if we're the only entity that
+		// still cares about the Val*.
 		return;
 
 	auto vt = v->Type()->AsVectorType();
@@ -904,6 +905,13 @@ void AbstractMachine::Init()
 		// parameters.
 		if ( ! HasFrameSlot(l) )
 			(void) AddToFrame(l);
+		}
+
+	// Complain about unused aggregates.
+	for ( auto a : pf->inits )
+		{
+		if ( pf->locals.find(a) == pf->locals.end() )
+			reporter->Warning("%s unused", a->Name());
 		}
 
 	for ( auto& slot : frame_layout )

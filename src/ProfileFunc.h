@@ -17,6 +17,10 @@ public:
 	// Same for locals.
 	std::unordered_set<ID*> locals;
 
+	// Same for locals seen in initializations, so we can find
+	// unused aggregates.
+	std::unordered_set<ID*> inits;
+
 	int num_stmts = 0;
 	int num_when_stmts = 0;
 	int num_lambdas = 0;

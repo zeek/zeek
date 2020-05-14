@@ -9,6 +9,17 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s)
 	{
 	++num_stmts;
 
+	if ( s->Tag() == STMT_INIT )
+		{
+		// Don't recurse into these, as we don't want to
+		// consider a local that only appears in one of these
+		// as a relevant local.
+		for ( auto id : *s->AsInitStmt()->Inits() )
+			inits.insert(id);
+
+		return TC_ABORTSTMT;
+		}
+
 	if ( s->Tag() == STMT_WHEN )
 		++num_when_stmts;
 

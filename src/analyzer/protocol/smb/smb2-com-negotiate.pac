@@ -27,7 +27,7 @@ refine connection SMB_Conn += {
 			for ( unsigned int i = 0; i < ${val.dialects}->size(); ++i )
 				dialects->Assign(i, val_mgr->Count((*${val.dialects})[i]));
 
-			BifEvent::enqueue_smb2_negotiate_request(bro_analyzer(), bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb2_negotiate_request(bro_analyzer(), bro_analyzer()->Conn(),
 			                                         BuildSMB2HeaderVal(h),
 			                                         std::move(dialects));
 			}
@@ -60,7 +60,7 @@ refine connection SMB_Conn += {
 
 			nr->Assign(6, std::move(cv));
 
-			BifEvent::enqueue_smb2_negotiate_response(bro_analyzer(), bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb2_negotiate_response(bro_analyzer(), bro_analyzer()->Conn(),
 			                                          BuildSMB2HeaderVal(h),
 													  std::move(nr));
 			}

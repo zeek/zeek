@@ -42,7 +42,7 @@
 					}
 				}
 
-			BifEvent::enqueue_ssl_client_hello(bro_analyzer(), bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_ssl_client_hello(bro_analyzer(), bro_analyzer()->Conn(),
 							version, record_version(), ts,
 							make_intrusive<StringVal>(client_random.length(),
 							                          (const char*) client_random.data()),

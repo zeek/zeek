@@ -180,7 +180,7 @@ refine connection KRB_Conn += {
 				return false;
 
 			RecordVal* rv = proc_krb_kdc_req_arguments(${msg}, bro_analyzer());
-			BifEvent::enqueue_krb_as_request(bro_analyzer(), bro_analyzer()->Conn(), {AdoptRef{}, rv});
+			zeek::BifEvent::enqueue_krb_as_request(bro_analyzer(), bro_analyzer()->Conn(), {AdoptRef{}, rv});
 			return true;
 			}
 
@@ -190,7 +190,7 @@ refine connection KRB_Conn += {
 				return false;
 
 			RecordVal* rv = proc_krb_kdc_req_arguments(${msg}, bro_analyzer());
-			BifEvent::enqueue_krb_tgs_request(bro_analyzer(), bro_analyzer()->Conn(), {AdoptRef{}, rv});
+			zeek::BifEvent::enqueue_krb_tgs_request(bro_analyzer(), bro_analyzer()->Conn(), {AdoptRef{}, rv});
 			return true;
 			}
 
@@ -223,7 +223,7 @@ refine connection KRB_Conn += {
 			if ( ! krb_as_response )
 				return false;
 
-			BifEvent::enqueue_krb_as_response(bro_analyzer(), bro_analyzer()->Conn(), make_arg());
+			zeek::BifEvent::enqueue_krb_as_response(bro_analyzer(), bro_analyzer()->Conn(), make_arg());
 			return true;
 			}
 
@@ -232,7 +232,7 @@ refine connection KRB_Conn += {
 			if ( ! krb_tgs_response )
 				return false;
 
-			BifEvent::enqueue_krb_tgs_response(bro_analyzer(), bro_analyzer()->Conn(), make_arg());
+			zeek::BifEvent::enqueue_krb_tgs_response(bro_analyzer(), bro_analyzer()->Conn(), make_arg());
 			return true;
 			}
 
@@ -248,7 +248,7 @@ refine connection KRB_Conn += {
 			proc_error_arguments(rv.get(), ${msg.args1}, 0);
 			rv->Assign(4, asn1_integer_to_val(${msg.error_code}, TYPE_COUNT));
 			proc_error_arguments(rv.get(), ${msg.args2}, binary_to_int64(${msg.error_code.encoding.content}));
-			BifEvent::enqueue_krb_error(bro_analyzer(), bro_analyzer()->Conn(), std::move(rv));
+			zeek::BifEvent::enqueue_krb_error(bro_analyzer(), bro_analyzer()->Conn(), std::move(rv));
 			}
 		return true;
 		%}
@@ -268,7 +268,7 @@ refine connection KRB_Conn += {
 			if ( authenticationinfo )
 				rvticket->Assign(5, authenticationinfo);
 
-			BifEvent::enqueue_krb_ap_request(bro_analyzer(), bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_krb_ap_request(bro_analyzer(), bro_analyzer()->Conn(),
 						      std::move(rvticket), std::move(rv));
 			}
 		return true;
@@ -279,7 +279,7 @@ refine connection KRB_Conn += {
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_ap_response )
 			{
-			BifEvent::enqueue_krb_ap_response(bro_analyzer(), bro_analyzer()->Conn());
+			zeek::BifEvent::enqueue_krb_ap_response(bro_analyzer(), bro_analyzer()->Conn());
 			}
 		return true;
 		%}
@@ -337,7 +337,7 @@ refine connection KRB_Conn += {
 						break;
 					}
 				}
-			BifEvent::enqueue_krb_safe(bro_analyzer(), bro_analyzer()->Conn(), ${msg.is_orig}, std::move(rv));
+			zeek::BifEvent::enqueue_krb_safe(bro_analyzer(), bro_analyzer()->Conn(), ${msg.is_orig}, std::move(rv));
 			}
 		return true;
 		%}
@@ -347,7 +347,7 @@ refine connection KRB_Conn += {
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_priv )
 			{
-			BifEvent::enqueue_krb_priv(bro_analyzer(), bro_analyzer()->Conn(), ${msg.is_orig});
+			zeek::BifEvent::enqueue_krb_priv(bro_analyzer(), bro_analyzer()->Conn(), ${msg.is_orig});
 			}
 		return true;
 		%}
@@ -357,7 +357,7 @@ refine connection KRB_Conn += {
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_cred )
 			{
-			BifEvent::enqueue_krb_cred(bro_analyzer(), bro_analyzer()->Conn(), ${msg.is_orig},
+			zeek::BifEvent::enqueue_krb_cred(bro_analyzer(), bro_analyzer()->Conn(), ${msg.is_orig},
 						    		   proc_tickets(${msg.tickets}));
 			}
 		return true;

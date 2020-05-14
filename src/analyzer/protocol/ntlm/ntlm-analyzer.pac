@@ -122,7 +122,7 @@ refine connection NTLM_Conn += {
 		if ( ${val}->has_version() )
 		        result->Assign(3, build_version_record(${val.version}));
 
-		BifEvent::enqueue_ntlm_negotiate(bro_analyzer(),
+		zeek::BifEvent::enqueue_ntlm_negotiate(bro_analyzer(),
 		                                 bro_analyzer()->Conn(),
 		                                 std::move(result));
 
@@ -146,7 +146,7 @@ refine connection NTLM_Conn += {
 		if ( ${val}->has_target_info() )
 			result->Assign(3, build_av_record(${val.target_info},  ${val.target_info_fields.length}));
 
-		BifEvent::enqueue_ntlm_challenge(bro_analyzer(),
+		zeek::BifEvent::enqueue_ntlm_challenge(bro_analyzer(),
 		                                 bro_analyzer()->Conn(),
 		                                 std::move(result));
 
@@ -176,7 +176,7 @@ refine connection NTLM_Conn += {
 		if ( ${val}->has_version() )
 			result->Assign(5, build_version_record(${val.version}));
 
-		BifEvent::enqueue_ntlm_authenticate(bro_analyzer(),
+		zeek::BifEvent::enqueue_ntlm_authenticate(bro_analyzer(),
 		                                    bro_analyzer()->Conn(),
 		                                    std::move(result));
 		return true;

@@ -19,7 +19,7 @@ refine connection SMB_Conn += {
 	auto parameters = make_intrusive<StringVal>(${val.parameters}.length(), (const char*)${val.parameters}.data());
 	auto payload = make_intrusive<StringVal>(${val.data}.length(), (const char*)${val.data}.data());
 
-	BifEvent::enqueue_smb1_transaction2_secondary_request(bro_analyzer(),
+	zeek::BifEvent::enqueue_smb1_transaction2_secondary_request(bro_analyzer(),
 	                                                      bro_analyzer()->Conn(),
 	                                                      SMBHeaderVal(header),
 	                                                      std::move(args),

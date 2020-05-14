@@ -45,7 +45,7 @@ refine connection SMB_Conn += {
 		payload_str = val_mgr->EmptyString();
 		}
 
-	BifEvent::enqueue_smb1_transaction_secondary_request(bro_analyzer(),
+	zeek::BifEvent::enqueue_smb1_transaction_secondary_request(bro_analyzer(),
 	                                                     bro_analyzer()->Conn(),
 	                                                     SMBHeaderVal(header),
 	                                                     std::move(args),

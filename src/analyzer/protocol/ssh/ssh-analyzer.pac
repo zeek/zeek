@@ -52,13 +52,13 @@ refine flow SSH_Flow += {
 		%{
 		if ( ssh_client_version && ${msg.is_orig } )
 			{
-			BifEvent::enqueue_ssh_client_version(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_ssh_client_version(connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				to_stringval(${msg.version}));
 			}
 		else if ( ssh_server_version )
 			{
-			BifEvent::enqueue_ssh_server_version(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_ssh_server_version(connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				to_stringval(${msg.version}));
 			}
@@ -103,7 +103,7 @@ refine flow SSH_Flow += {
 
 		result->Assign(6, val_mgr->Bool(!${msg.is_orig}));
 
-		BifEvent::enqueue_ssh_capabilities(connection()->bro_analyzer(),
+		zeek::BifEvent::enqueue_ssh_capabilities(connection()->bro_analyzer(),
 			connection()->bro_analyzer()->Conn(), to_stringval(${msg.cookie}),
 			result);
 
@@ -115,7 +115,7 @@ refine flow SSH_Flow += {
 		%{
 		if ( ssh2_dh_server_params )
 			{
-			BifEvent::enqueue_ssh2_dh_server_params(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_ssh2_dh_server_params(connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				to_stringval(${msg.p.val}), to_stringval(${msg.g.val}));
 			}
@@ -126,7 +126,7 @@ refine flow SSH_Flow += {
 		%{
 		if ( ssh2_ecc_key )
 			{
-			BifEvent::enqueue_ssh2_ecc_key(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_ssh2_ecc_key(connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig, to_stringval(q));
 			}
@@ -137,7 +137,7 @@ refine flow SSH_Flow += {
 		%{
 		if ( ssh2_gss_error )
 			{
-			BifEvent::enqueue_ssh2_gss_error(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_ssh2_gss_error(connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				${msg.major_status}, ${msg.minor_status},
 				to_stringval(${msg.message.val}));
@@ -149,7 +149,7 @@ refine flow SSH_Flow += {
 		%{
 		if ( ssh2_server_host_key )
 			{
-			BifEvent::enqueue_ssh2_server_host_key(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_ssh2_server_host_key(connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				to_stringval(${key}));
 			}
@@ -160,7 +160,7 @@ refine flow SSH_Flow += {
 		%{
 		if ( ssh1_server_host_key )
 			{
-			BifEvent::enqueue_ssh1_server_host_key(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_ssh1_server_host_key(connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				to_stringval(${p}),
 				to_stringval(${e}));

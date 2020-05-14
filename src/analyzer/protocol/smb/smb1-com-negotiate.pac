@@ -23,7 +23,7 @@ refine connection SMB_Conn += {
 				dialects->Assign(i, std::move(dia));
 				}
 
-			BifEvent::enqueue_smb1_negotiate_request(bro_analyzer(), bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb1_negotiate_request(bro_analyzer(), bro_analyzer()->Conn(),
 			                                         SMBHeaderVal(header),
 			                                         std::move(dialects));
 			}
@@ -135,7 +135,7 @@ refine connection SMB_Conn += {
 					}
 					break;
 				}
-			BifEvent::enqueue_smb1_negotiate_response(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb1_negotiate_response(bro_analyzer(),
 			                                          bro_analyzer()->Conn(),
 			                                          SMBHeaderVal(header),
 			                                          std::move(response));

@@ -328,7 +328,7 @@ void CreatePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
 		}
 		}
 
-	BifEvent::enqueue_gtpv1_create_pdp_ctx_request(a, a->Conn(),
+	zeek::BifEvent::enqueue_gtpv1_create_pdp_ctx_request(a, a->Conn(),
 	                                               BuildGTPv1Hdr(pdu), std::move(rv));
 	}
 
@@ -397,7 +397,7 @@ void CreatePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
 		}
 		}
 
-	BifEvent::enqueue_gtpv1_create_pdp_ctx_response(a, a->Conn(),
+	zeek::BifEvent::enqueue_gtpv1_create_pdp_ctx_response(a, a->Conn(),
 	                                                BuildGTPv1Hdr(pdu), std::move(rv));
 	}
 
@@ -475,7 +475,7 @@ void UpdatePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
 		}
 		}
 
-	BifEvent::enqueue_gtpv1_update_pdp_ctx_request(a, a->Conn(),
+	zeek::BifEvent::enqueue_gtpv1_update_pdp_ctx_request(a, a->Conn(),
 	                                               BuildGTPv1Hdr(pdu), std::move(rv));
 	}
 
@@ -535,7 +535,7 @@ void UpdatePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
 		}
 		}
 
-	BifEvent::enqueue_gtpv1_update_pdp_ctx_response(a, a->Conn(),
+	zeek::BifEvent::enqueue_gtpv1_update_pdp_ctx_response(a, a->Conn(),
 	                                                BuildGTPv1Hdr(pdu), std::move(rv));
 	}
 
@@ -569,7 +569,7 @@ void DeletePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
 		}
 		}
 
-	BifEvent::enqueue_gtpv1_delete_pdp_ctx_request(a, a->Conn(),
+	zeek::BifEvent::enqueue_gtpv1_delete_pdp_ctx_request(a, a->Conn(),
 	                                               BuildGTPv1Hdr(pdu), std::move(rv));
 	}
 
@@ -600,7 +600,7 @@ void DeletePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
 		}
 		}
 
-	BifEvent::enqueue_gtpv1_delete_pdp_ctx_response(a, a->Conn(),
+	zeek::BifEvent::enqueue_gtpv1_delete_pdp_ctx_response(a, a->Conn(),
 	                                                BuildGTPv1Hdr(pdu), std::move(rv));
 	}
 %}
@@ -679,7 +679,7 @@ flow GTPv1_Flow(is_orig: bool)
 			}
 
 		if ( ::gtpv1_message )
-			BifEvent::enqueue_gtpv1_message(a, c, BuildGTPv1Hdr(pdu));
+			zeek::BifEvent::enqueue_gtpv1_message(a, c, BuildGTPv1Hdr(pdu));
 
 		switch ( ${pdu.msg_type} ) {
 		case 16:
@@ -759,7 +759,7 @@ flow GTPv1_Flow(is_orig: bool)
 			}
 
 		if ( ::gtpv1_g_pdu_packet )
-			BifEvent::enqueue_gtpv1_g_pdu_packet(a, c, BuildGTPv1Hdr(pdu),
+			zeek::BifEvent::enqueue_gtpv1_g_pdu_packet(a, c, BuildGTPv1Hdr(pdu),
 			                                     inner->ToPktHdrVal());
 
 		EncapsulatingConn ec(c, BifEnum::Tunnel::GTPv1);

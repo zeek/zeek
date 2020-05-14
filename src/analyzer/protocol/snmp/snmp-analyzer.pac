@@ -209,7 +209,7 @@ refine connection SNMP_Conn += {
 		if ( ! snmp_get_request )
 			return false;
 
-		BifEvent::enqueue_snmp_get_request(bro_analyzer(),
+		zeek::BifEvent::enqueue_snmp_get_request(bro_analyzer(),
 		                                   bro_analyzer()->Conn(),
 		                                   ${pdu.header.is_orig},
 		                                   build_hdr(${pdu.header}),
@@ -222,7 +222,7 @@ refine connection SNMP_Conn += {
 		if ( ! snmp_get_next_request )
 			return false;
 
-		BifEvent::enqueue_snmp_get_next_request(bro_analyzer(),
+		zeek::BifEvent::enqueue_snmp_get_next_request(bro_analyzer(),
 		                                        bro_analyzer()->Conn(),
 		                                        ${pdu.header.is_orig},
 		                                        build_hdr(${pdu.header}),
@@ -235,7 +235,7 @@ refine connection SNMP_Conn += {
 		if ( ! snmp_response )
 			return false;
 
-		BifEvent::enqueue_snmp_response(bro_analyzer(),
+		zeek::BifEvent::enqueue_snmp_response(bro_analyzer(),
 		                                bro_analyzer()->Conn(),
 		                                ${pdu.header.is_orig},
 		                                build_hdr(${pdu.header}),
@@ -248,7 +248,7 @@ refine connection SNMP_Conn += {
 		if ( ! snmp_set_request )
 			return false;
 
-		BifEvent::enqueue_snmp_set_request(bro_analyzer(),
+		zeek::BifEvent::enqueue_snmp_set_request(bro_analyzer(),
 		                                   bro_analyzer()->Conn(),
 		                                   ${pdu.header.is_orig},
 		                                   build_hdr(${pdu.header}),
@@ -261,7 +261,7 @@ refine connection SNMP_Conn += {
 		if ( ! snmp_trap )
 			return false;
 
-		BifEvent::enqueue_snmp_trap(bro_analyzer(),
+		zeek::BifEvent::enqueue_snmp_trap(bro_analyzer(),
 		                            bro_analyzer()->Conn(),
 		                            ${pdu.header.is_orig},
 		                            build_hdr(${pdu.header}),
@@ -274,7 +274,7 @@ refine connection SNMP_Conn += {
 		if ( ! snmp_get_bulk_request )
 			return false;
 
-		BifEvent::enqueue_snmp_get_bulk_request(bro_analyzer(),
+		zeek::BifEvent::enqueue_snmp_get_bulk_request(bro_analyzer(),
 		                                        bro_analyzer()->Conn(),
 		                                        ${pdu.header.is_orig},
 		                                        build_hdr(${pdu.header}),
@@ -287,7 +287,7 @@ refine connection SNMP_Conn += {
 		if ( ! snmp_inform_request )
 			return false;
 
-		BifEvent::enqueue_snmp_inform_request(bro_analyzer(),
+		zeek::BifEvent::enqueue_snmp_inform_request(bro_analyzer(),
 		                                      bro_analyzer()->Conn(),
 		                                      ${pdu.header.is_orig},
 		                                      build_hdr(${pdu.header}),
@@ -300,7 +300,7 @@ refine connection SNMP_Conn += {
 		if ( ! snmp_trapV2 )
 			return false;
 
-		BifEvent::enqueue_snmp_trapV2(bro_analyzer(),
+		zeek::BifEvent::enqueue_snmp_trapV2(bro_analyzer(),
 		                              bro_analyzer()->Conn(),
 		                              ${pdu.header.is_orig},
 		                              build_hdr(${pdu.header}),
@@ -313,7 +313,7 @@ refine connection SNMP_Conn += {
 		if ( ! snmp_report )
 			return false;
 
-		BifEvent::enqueue_snmp_report(bro_analyzer(),
+		zeek::BifEvent::enqueue_snmp_report(bro_analyzer(),
 		                              bro_analyzer()->Conn(),
 		                              ${pdu.header.is_orig},
 		                              build_hdr(${pdu.header}),
@@ -326,7 +326,7 @@ refine connection SNMP_Conn += {
 		if ( ! snmp_unknown_header_version )
 			return false;
 
-		BifEvent::enqueue_snmp_unknown_header_version(bro_analyzer(),
+		zeek::BifEvent::enqueue_snmp_unknown_header_version(bro_analyzer(),
 		                                              bro_analyzer()->Conn(),
 		                                              ${rec.header.is_orig},
 		                                              ${rec.header.version});
@@ -338,7 +338,7 @@ refine connection SNMP_Conn += {
 		if ( ! snmp_unknown_pdu )
 			return false;
 
-		BifEvent::enqueue_snmp_unknown_pdu(bro_analyzer(),
+		zeek::BifEvent::enqueue_snmp_unknown_pdu(bro_analyzer(),
 		                                   bro_analyzer()->Conn(),
 		                                   ${rec.header.is_orig},
 		                                   build_hdr(${rec.header}),
@@ -351,7 +351,7 @@ refine connection SNMP_Conn += {
 		if ( ! snmp_unknown_scoped_pdu )
 			return false;
 
-		BifEvent::enqueue_snmp_unknown_scoped_pdu(bro_analyzer(),
+		zeek::BifEvent::enqueue_snmp_unknown_scoped_pdu(bro_analyzer(),
 		                                          bro_analyzer()->Conn(),
 		                                          ${rec.header.is_orig},
 		                                          build_hdr(${rec.header}),
@@ -364,7 +364,7 @@ refine connection SNMP_Conn += {
 		if ( ! snmp_encrypted_pdu )
 			return false;
 
-		BifEvent::enqueue_snmp_encrypted_pdu(bro_analyzer(),
+		zeek::BifEvent::enqueue_snmp_encrypted_pdu(bro_analyzer(),
 		                                     bro_analyzer()->Conn(),
 		                                     ${rec.header.is_orig},
 		                                     build_hdr(${rec.header}));

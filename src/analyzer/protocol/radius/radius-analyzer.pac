@@ -41,7 +41,7 @@ refine flow RADIUS_Flow += {
 			result->Assign(3, attributes);
 		}
 
-		BifEvent::enqueue_radius_message(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), std::move(result));
+		zeek::BifEvent::enqueue_radius_message(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), std::move(result));
 		return true;
 		%}
 
@@ -50,7 +50,7 @@ refine flow RADIUS_Flow += {
 		if ( ! radius_attribute )
 			return false;
 
-		BifEvent::enqueue_radius_attribute(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
+		zeek::BifEvent::enqueue_radius_attribute(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
 		                                    ${attr.code}, to_stringval(${attr.value}));
 		return true;
 		%}

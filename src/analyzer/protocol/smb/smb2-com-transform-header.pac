@@ -11,7 +11,7 @@ refine connection SMB_Conn += {
 			r->Assign(3, val_mgr->Count(${hdr.flags}));
 			r->Assign(4, val_mgr->Count(${hdr.session_id}));
 
-			BifEvent::enqueue_smb2_transform_header(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb2_transform_header(bro_analyzer(),
 			                                        bro_analyzer()->Conn(),
 			                                        std::move(r));
 			}

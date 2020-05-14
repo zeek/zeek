@@ -37,7 +37,7 @@ refine connection DCE_RPC_Conn += {
 		%{
 		if ( dce_rpc_message )
 			{
-			BifEvent::enqueue_dce_rpc_message(bro_analyzer(),
+			zeek::BifEvent::enqueue_dce_rpc_message(bro_analyzer(),
 			                                  bro_analyzer()->Conn(),
 			                                  ${header.is_orig},
 			                                  fid,
@@ -51,7 +51,7 @@ refine connection DCE_RPC_Conn += {
 		%{
 		if ( dce_rpc_bind )
 			{
-			BifEvent::enqueue_dce_rpc_bind(bro_analyzer(),
+			zeek::BifEvent::enqueue_dce_rpc_bind(bro_analyzer(),
 			                               bro_analyzer()->Conn(),
 			                               fid,
 			                               ${req.id},
@@ -67,7 +67,7 @@ refine connection DCE_RPC_Conn += {
 		%{
 		if ( dce_rpc_alter_context )
 			{
-			BifEvent::enqueue_dce_rpc_alter_context(bro_analyzer(),
+			zeek::BifEvent::enqueue_dce_rpc_alter_context(bro_analyzer(),
 			                                        bro_analyzer()->Conn(),
 			                                        fid,
 			                                        ${req.id},
@@ -92,7 +92,7 @@ refine connection DCE_RPC_Conn += {
 			else
 				sec_addr = make_intrusive<StringVal>(${bind.sec_addr}.length(), (const char*) ${bind.sec_addr}.begin());
 
-			BifEvent::enqueue_dce_rpc_bind_ack(bro_analyzer(),
+			zeek::BifEvent::enqueue_dce_rpc_bind_ack(bro_analyzer(),
 			                                   bro_analyzer()->Conn(),
 			                                   fid,
 			                                   std::move(sec_addr));
@@ -104,7 +104,7 @@ refine connection DCE_RPC_Conn += {
 		%{
 		if ( dce_rpc_alter_context_resp )
 			{
-			BifEvent::enqueue_dce_rpc_alter_context_resp(bro_analyzer(),
+			zeek::BifEvent::enqueue_dce_rpc_alter_context_resp(bro_analyzer(),
 			                                             bro_analyzer()->Conn(),
 			                                             fid);
 			}
@@ -115,7 +115,7 @@ refine connection DCE_RPC_Conn += {
 		%{
 		if ( dce_rpc_request )
 			{
-			BifEvent::enqueue_dce_rpc_request(bro_analyzer(),
+			zeek::BifEvent::enqueue_dce_rpc_request(bro_analyzer(),
 			                                  bro_analyzer()->Conn(),
 			                                  fid,
 			                                  ${req.context_id},
@@ -132,7 +132,7 @@ refine connection DCE_RPC_Conn += {
 		%{
 		if ( dce_rpc_response )
 			{
-			BifEvent::enqueue_dce_rpc_response(bro_analyzer(),
+			zeek::BifEvent::enqueue_dce_rpc_response(bro_analyzer(),
 			                                   bro_analyzer()->Conn(),
 			                                   fid,
 			                                   ${resp.context_id},

@@ -9,13 +9,13 @@ refine connection SMB_Conn += {
 			set_tree_is_pipe(${header.tid});
 
 			if ( smb_pipe_connect_heuristic )
-				BifEvent::enqueue_smb_pipe_connect_heuristic(bro_analyzer(),
+				zeek::BifEvent::enqueue_smb_pipe_connect_heuristic(bro_analyzer(),
 				                                             bro_analyzer()->Conn());
 			}
 
 		if ( smb1_nt_create_andx_request )
 			{
-			BifEvent::enqueue_smb1_nt_create_andx_request(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb1_nt_create_andx_request(bro_analyzer(),
 			                                              bro_analyzer()->Conn(),
 			                                              SMBHeaderVal(header),
 			                                              std::move(filename));
@@ -28,7 +28,7 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb1_nt_create_andx_response )
 			{
-			BifEvent::enqueue_smb1_nt_create_andx_response(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb1_nt_create_andx_response(bro_analyzer(),
 			                                               bro_analyzer()->Conn(),
 			                                               SMBHeaderVal(header),
 			                                               ${val.file_id},

@@ -61,7 +61,7 @@ flow BitTorrent_Flow(is_orig: bool) {
 		handshake_ok = true;
 		if ( ::bittorrent_peer_handshake )
 			{
-			BifEvent::enqueue_bittorrent_peer_handshake(
+			zeek::BifEvent::enqueue_bittorrent_peer_handshake(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(),
@@ -79,7 +79,7 @@ flow BitTorrent_Flow(is_orig: bool) {
 		%{
 		if ( ::bittorrent_peer_keep_alive )
 			{
-			BifEvent::enqueue_bittorrent_peer_keep_alive(
+			zeek::BifEvent::enqueue_bittorrent_peer_keep_alive(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig());
@@ -92,7 +92,7 @@ flow BitTorrent_Flow(is_orig: bool) {
 		%{
 		if ( ::bittorrent_peer_choke )
 			{
-			BifEvent::enqueue_bittorrent_peer_choke(
+			zeek::BifEvent::enqueue_bittorrent_peer_choke(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig());
@@ -105,7 +105,7 @@ flow BitTorrent_Flow(is_orig: bool) {
 		%{
 		if ( ::bittorrent_peer_unchoke )
 			{
-			BifEvent::enqueue_bittorrent_peer_unchoke(
+			zeek::BifEvent::enqueue_bittorrent_peer_unchoke(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig());
@@ -118,7 +118,7 @@ flow BitTorrent_Flow(is_orig: bool) {
 		%{
 		if ( ::bittorrent_peer_interested )
 			{
-			BifEvent::enqueue_bittorrent_peer_interested(
+			zeek::BifEvent::enqueue_bittorrent_peer_interested(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig());
@@ -131,7 +131,7 @@ flow BitTorrent_Flow(is_orig: bool) {
 		%{
 		if ( ::bittorrent_peer_not_interested )
 			{
-			BifEvent::enqueue_bittorrent_peer_not_interested(
+			zeek::BifEvent::enqueue_bittorrent_peer_not_interested(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig());
@@ -144,7 +144,7 @@ flow BitTorrent_Flow(is_orig: bool) {
 		%{
 		if ( ::bittorrent_peer_have )
 			{
-			BifEvent::enqueue_bittorrent_peer_have(
+			zeek::BifEvent::enqueue_bittorrent_peer_have(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(),
@@ -158,7 +158,7 @@ flow BitTorrent_Flow(is_orig: bool) {
 		%{
 		if ( ::bittorrent_peer_bitfield )
 			{
-			BifEvent::enqueue_bittorrent_peer_bitfield(
+			zeek::BifEvent::enqueue_bittorrent_peer_bitfield(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(),
@@ -173,7 +173,7 @@ flow BitTorrent_Flow(is_orig: bool) {
 		%{
 		if ( ::bittorrent_peer_request )
 			{
-			BifEvent::enqueue_bittorrent_peer_request(
+			zeek::BifEvent::enqueue_bittorrent_peer_request(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(),
@@ -188,7 +188,7 @@ flow BitTorrent_Flow(is_orig: bool) {
 		%{
 		if ( ::bittorrent_peer_piece )
 			{
-			BifEvent::enqueue_bittorrent_peer_piece(
+			zeek::BifEvent::enqueue_bittorrent_peer_piece(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(),
@@ -203,7 +203,7 @@ flow BitTorrent_Flow(is_orig: bool) {
 		%{
 		if ( ::bittorrent_peer_cancel )
 			{
-			BifEvent::enqueue_bittorrent_peer_cancel(
+			zeek::BifEvent::enqueue_bittorrent_peer_cancel(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(),
@@ -217,7 +217,7 @@ flow BitTorrent_Flow(is_orig: bool) {
 		%{
 		if ( ::bittorrent_peer_port )
 			{
-			BifEvent::enqueue_bittorrent_peer_port(
+			zeek::BifEvent::enqueue_bittorrent_peer_port(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(),
@@ -231,7 +231,7 @@ flow BitTorrent_Flow(is_orig: bool) {
 		%{
 		if ( ::bittorrent_peer_unknown )
 			{
-			BifEvent::enqueue_bittorrent_peer_unknown(
+			zeek::BifEvent::enqueue_bittorrent_peer_unknown(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(),

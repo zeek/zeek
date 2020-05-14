@@ -20,7 +20,7 @@ refine flow SIP_Flow += {
 		%{
 		if ( sip_request )
 			{
-			BifEvent::enqueue_sip_request(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_sip_request(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
 						       to_stringval(method), to_stringval(uri),
 						       to_stringval(${vers.vers_str}));
 			}
@@ -35,7 +35,7 @@ refine flow SIP_Flow += {
 		connection()->bro_analyzer()->ProtocolConfirmation();
 		if ( sip_reply )
 			{
-			BifEvent::enqueue_sip_reply(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_sip_reply(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
 						     to_stringval(${vers.vers_str}), code, to_stringval(reason));
 			}
 
@@ -53,7 +53,7 @@ refine flow SIP_Flow += {
 			{
 			auto nameval = to_stringval(name);
 			nameval->ToUpper();
-			BifEvent::enqueue_sip_header(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_sip_header(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
 						      is_orig(), std::move(nameval), to_stringval(value));
 			}
 
@@ -83,7 +83,7 @@ refine flow SIP_Flow += {
 		%{
 		if ( sip_all_headers )
 			{
-			BifEvent::enqueue_sip_all_headers(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_sip_all_headers(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
 							   is_orig(), {AdoptRef{}, build_sip_headers_val()});
 			}
 
@@ -127,7 +127,7 @@ refine flow SIP_Flow += {
 		%{
 		if ( sip_begin_entity )
 			{
-			BifEvent::enqueue_sip_begin_entity(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), is_orig());
+			zeek::BifEvent::enqueue_sip_begin_entity(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), is_orig());
 			}
 		%}
 
@@ -135,7 +135,7 @@ refine flow SIP_Flow += {
 		%{
 		if ( sip_end_entity )
 			{
-			BifEvent::enqueue_sip_end_entity(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), is_orig());
+			zeek::BifEvent::enqueue_sip_end_entity(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), is_orig());
 			}
 
 		return true;

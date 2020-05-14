@@ -3,7 +3,7 @@ refine connection SMB_Conn += {
 	function proc_smb1_query_information_request(header: SMB_Header, val: SMB1_query_information_request): bool
 		%{
 		if ( smb1_query_information_request )
-			BifEvent::enqueue_smb1_query_information_request(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb1_query_information_request(bro_analyzer(),
 			                                                 bro_analyzer()->Conn(),
 			                                                 SMBHeaderVal(header),
 			                                                 smb_string2stringval(${val.filename}));

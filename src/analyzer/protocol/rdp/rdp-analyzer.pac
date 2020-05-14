@@ -9,7 +9,7 @@ refine flow RDP_Flow += {
 		%{
 		if ( rdp_connect_request )
 			{
-			BifEvent::enqueue_rdp_connect_request(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_rdp_connect_request(connection()->bro_analyzer(),
 			                                      connection()->bro_analyzer()->Conn(),
 			                                      to_stringval(${cr.cookie_value}));
 			}
@@ -21,7 +21,7 @@ refine flow RDP_Flow += {
 		%{
 		if ( rdp_negotiation_response )
 			{
-			BifEvent::enqueue_rdp_negotiation_response(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_rdp_negotiation_response(connection()->bro_analyzer(),
 			                                           connection()->bro_analyzer()->Conn(),
 			                                           ${nr.selected_protocol});
 			}
@@ -33,7 +33,7 @@ refine flow RDP_Flow += {
 		%{
 		if ( rdp_negotiation_failure )
 			{
-			BifEvent::enqueue_rdp_negotiation_failure(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_rdp_negotiation_failure(connection()->bro_analyzer(),
 			                                          connection()->bro_analyzer()->Conn(),
 			                                          ${nf.failure_code});
 			}
@@ -47,7 +47,7 @@ refine flow RDP_Flow += {
 		connection()->bro_analyzer()->ProtocolConfirmation();
 
 		if ( rdp_gcc_server_create_response )
-			BifEvent::enqueue_rdp_gcc_server_create_response(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_rdp_gcc_server_create_response(connection()->bro_analyzer(),
 			                                                 connection()->bro_analyzer()->Conn(),
 			                                                 ${gcc_response.result});
 
@@ -94,7 +94,7 @@ refine flow RDP_Flow += {
 			ccd->Assign(18, std::move(ec_flags));
 			ccd->Assign(19, utf16_to_utf8_val(connection()->bro_analyzer()->Conn(), ${ccore.dig_product_id}));
 
-			BifEvent::enqueue_rdp_client_core_data(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_rdp_client_core_data(connection()->bro_analyzer(),
 			                                       connection()->bro_analyzer()->Conn(),
 			                                       std::move(ccd));
 			}
@@ -111,7 +111,7 @@ refine flow RDP_Flow += {
 		csd->Assign(0, val_mgr->Count(${csec.encryption_methods}));
 		csd->Assign(1, val_mgr->Count(${csec.ext_encryption_methods}));
 
-		BifEvent::enqueue_rdp_client_security_data(connection()->bro_analyzer(),
+		zeek::BifEvent::enqueue_rdp_client_security_data(connection()->bro_analyzer(),
 		                                           connection()->bro_analyzer()->Conn(),
 		                                           std::move(csd));
 		return true;
@@ -148,7 +148,7 @@ refine flow RDP_Flow += {
 				channels->Assign(channels->Size(), std::move(channel_def));
 				}
 
-			BifEvent::enqueue_rdp_client_network_data(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_rdp_client_network_data(connection()->bro_analyzer(),
 			                                          connection()->bro_analyzer()->Conn(),
 			                                          std::move(channels));
 			}
@@ -169,7 +169,7 @@ refine flow RDP_Flow += {
 		ccld->Assign(4, val_mgr->Bool(${ccluster.REDIRECTED_SESSIONID_FIELD_VALID}));
 		ccld->Assign(5, val_mgr->Bool(${ccluster.REDIRECTED_SMARTCARD}));
 
-		BifEvent::enqueue_rdp_client_cluster_data(connection()->bro_analyzer(),
+		zeek::BifEvent::enqueue_rdp_client_cluster_data(connection()->bro_analyzer(),
 		                                          connection()->bro_analyzer()->Conn(),
 		                                          std::move(ccld));
 		return true;
@@ -180,7 +180,7 @@ refine flow RDP_Flow += {
 		connection()->bro_analyzer()->ProtocolConfirmation();
 
 		if ( rdp_server_security )
-			BifEvent::enqueue_rdp_server_security(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_rdp_server_security(connection()->bro_analyzer(),
 			                                       connection()->bro_analyzer()->Conn(),
 			                                       ${ssd.encryption_method},
 			                                       ${ssd.encryption_level});
@@ -192,7 +192,7 @@ refine flow RDP_Flow += {
 		%{
 		if ( rdp_server_certificate )
 			{
-			BifEvent::enqueue_rdp_server_certificate(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_rdp_server_certificate(connection()->bro_analyzer(),
 			                                          connection()->bro_analyzer()->Conn(),
 			                                          ${cert.cert_type},
 			                                          ${cert.permanently_issued});

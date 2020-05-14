@@ -128,7 +128,7 @@ Deprecated Functionality
 
 - ``Analyzer::BuildConnVal()`` is deprecated, use ``Analyzer::ConnVal()``.
 
-- ``BifEvent::generate_`` functions are deprecated, use ``BifEvent::enqueue_``.
+- ``BifEvent::generate_`` functions are deprecated, use ``zeek::BifEvent::enqueue_``.
 
 - ``binpac::bytestring_to_val()`` is deprecated, use ``binpac::to_stringval()``.
 

@@ -4,7 +4,7 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_write_request )
 			{
-			BifEvent::enqueue_smb2_write_request(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb2_write_request(bro_analyzer(),
 			                                     bro_analyzer()->Conn(),
 			                                     BuildSMB2HeaderVal(h),
 			                                     BuildSMB2GUID(${val.file_id}),
@@ -27,7 +27,7 @@ refine connection SMB_Conn += {
 
 		if ( smb2_write_response )
 			{
-			BifEvent::enqueue_smb2_write_response(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb2_write_response(bro_analyzer(),
 			                                      bro_analyzer()->Conn(),
 			                                      BuildSMB2HeaderVal(h),
 			                                      ${val.write_count});

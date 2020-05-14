@@ -91,7 +91,7 @@ refine flow DHCP_Flow += {
 
 			init_options();
 
-			BifEvent::enqueue_dhcp_message(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_dhcp_message(connection()->bro_analyzer(),
 			                               connection()->bro_analyzer()->Conn(),
 			                               ${msg.is_orig},
 			                               std::move(dhcp_msg_val),

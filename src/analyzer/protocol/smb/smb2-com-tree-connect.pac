@@ -3,7 +3,7 @@ refine connection SMB_Conn += {
 	function proc_smb2_tree_connect_request(header: SMB2_Header, val: SMB2_tree_connect_request): bool
 		%{
 		if ( smb2_tree_connect_request )
-			BifEvent::enqueue_smb2_tree_connect_request(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb2_tree_connect_request(bro_analyzer(),
 			                                            bro_analyzer()->Conn(),
 			                                            BuildSMB2HeaderVal(header),
 			                                            smb2_string2stringval(${val.path}));
@@ -21,7 +21,7 @@ refine connection SMB_Conn += {
 			auto resp = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::TreeConnectResponse);
 			resp->Assign(0, val_mgr->Count(${val.share_type}));
 
-			BifEvent::enqueue_smb2_tree_connect_response(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb2_tree_connect_response(bro_analyzer(),
 			                                             bro_analyzer()->Conn(),
 			                                             BuildSMB2HeaderVal(header),
 														 std::move(resp));

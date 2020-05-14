@@ -3,7 +3,7 @@ refine connection SMB_Conn += {
 	function proc_smb1_nt_cancel_request(header: SMB_Header, val: SMB1_nt_cancel_request): bool
 		%{
 		if ( smb1_nt_cancel_request )
-			BifEvent::enqueue_smb1_nt_cancel_request(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb1_nt_cancel_request(bro_analyzer(),
 			                                         bro_analyzer()->Conn(),
 			                                         SMBHeaderVal(header));
 		return true;

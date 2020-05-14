@@ -88,7 +88,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_message )
 			{
-			BifEvent::enqueue_modbus_message(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_modbus_message(connection()->bro_analyzer(),
 			                                 connection()->bro_analyzer()->Conn(),
 			                                 HeaderToVal(header),
 			                                 is_orig());
@@ -117,7 +117,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_exception )
 			{
-			BifEvent::enqueue_modbus_exception(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_modbus_exception(connection()->bro_analyzer(),
 			                                   connection()->bro_analyzer()->Conn(),
 			                                   HeaderToVal(header),
 			                                   ${message.code});
@@ -131,7 +131,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_read_coils_request )
 			{
-			BifEvent::enqueue_modbus_read_coils_request(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_modbus_read_coils_request(connection()->bro_analyzer(),
 			                                            connection()->bro_analyzer()->Conn(),
 			                                            HeaderToVal(header),
 			                                            ${message.start_address},
@@ -146,7 +146,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_read_coils_response )
 			{
-			BifEvent::enqueue_modbus_read_coils_response(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_modbus_read_coils_response(connection()->bro_analyzer(),
 			                                             connection()->bro_analyzer()->Conn(),
 			                                             HeaderToVal(header),
 			                                             bytestring_to_coils(${message.bits}, ${message.bits}.length()*8));
@@ -159,7 +159,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_read_discrete_inputs_request )
 			{
-			BifEvent::enqueue_modbus_read_discrete_inputs_request(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_modbus_read_discrete_inputs_request(connection()->bro_analyzer(),
 			                                                      connection()->bro_analyzer()->Conn(),
 			                                                      HeaderToVal(header),
 			                                                      ${message.start_address}, ${message.quantity});
@@ -173,7 +173,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_read_discrete_inputs_response )
 			{
-			BifEvent::enqueue_modbus_read_discrete_inputs_response(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_modbus_read_discrete_inputs_response(connection()->bro_analyzer(),
 			                                                       connection()->bro_analyzer()->Conn(),
 			                                                       HeaderToVal(header),
 			                                                       bytestring_to_coils(${message.bits}, ${message.bits}.length()*8));
@@ -188,7 +188,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_read_holding_registers_request )
 			{
-			BifEvent::enqueue_modbus_read_holding_registers_request(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_modbus_read_holding_registers_request(connection()->bro_analyzer(),
 			                                                        connection()->bro_analyzer()->Conn(),
 			                                                        HeaderToVal(header),
 			                                                        ${message.start_address}, ${message.quantity});
@@ -217,7 +217,7 @@ refine flow ModbusTCP_Flow += {
 				t->Assign(i, r);
 				}
 
-			BifEvent::enqueue_modbus_read_holding_registers_response(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_modbus_read_holding_registers_response(connection()->bro_analyzer(),
 			                                                         connection()->bro_analyzer()->Conn(),
 			                                                         HeaderToVal(header),
 			                                                         std::move(t));
@@ -232,7 +232,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_read_input_registers_request )
 			{
-			BifEvent::enqueue_modbus_read_input_registers_request(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_modbus_read_input_registers_request(connection()->bro_analyzer(),
 			                                                      connection()->bro_analyzer()->Conn(),
 			                                                      HeaderToVal(header),
 			                                                      ${message.start_address}, ${message.quantity});
@@ -261,7 +261,7 @@ refine flow ModbusTCP_Flow += {
 				t->Assign(i, r);
 				}
 
-			BifEvent::enqueue_modbus_read_input_registers_response(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_modbus_read_input_registers_response(connection()->bro_analyzer(),
 			                                                       connection()->bro_analyzer()->Conn(),
 			                                                       HeaderToVal(header),
 			                                                       std::move(t));
@@ -288,7 +288,7 @@ refine flow ModbusTCP_Flow += {
 				return false;
 				}
 
-			BifEvent::enqueue_modbus_write_single_coil_request(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_modbus_write_single_coil_request(connection()->bro_analyzer(),
 			                                                   connection()->bro_analyzer()->Conn(),
 			                                                   HeaderToVal(header),
 			                                                   ${message.address},
@@ -315,7 +315,7 @@ refine flow ModbusTCP_Flow += {
 				return false;
 				}
 
-			BifEvent::enqueue_modbus_write_single_coil_response(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_modbus_write_single_coil_response(connection()->bro_analyzer(),
 			                                                    connection()->bro_analyzer()->Conn(),
 			                                                    HeaderToVal(header),
 			                                                    ${message.address},
@@ -331,7 +331,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_write_single_register_request )
 			{
-			BifEvent::enqueue_modbus_write_single_register_request(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_modbus_write_single_register_request(connection()->bro_analyzer(),
 			                                                       connection()->bro_analyzer()->Conn(),
 			                                                       HeaderToVal(header),
 			                                                       ${message.address}, ${message.value});
@@ -345,7 +345,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_write_single_register_response )
 			{
-			BifEvent::enqueue_modbus_write_single_register_response(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_modbus_write_single_register_response(connection()->bro_analyzer(),
 			                                                        connection()->bro_analyzer()->Conn(),
 			                                                        HeaderToVal(header),
 			                                                        ${message.address}, ${message.value});
@@ -360,7 +360,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_write_multiple_coils_request )
 			{
-			BifEvent::enqueue_modbus_write_multiple_coils_request(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_modbus_write_multiple_coils_request(connection()->bro_analyzer(),
 			                                                      connection()->bro_analyzer()->Conn(),
 			                                                      HeaderToVal(header),
 			                                                      ${message.start_address},
@@ -375,7 +375,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_write_multiple_coils_response )
 			{
-			BifEvent::enqueue_modbus_write_multiple_coils_response(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_modbus_write_multiple_coils_response(connection()->bro_analyzer(),
 			                                                       connection()->bro_analyzer()->Conn(),
 			                                                       HeaderToVal(header),
 			                                                       ${message.start_address}, ${message.quantity});
@@ -405,7 +405,7 @@ refine flow ModbusTCP_Flow += {
 				t->Assign(i, r);
 				}
 
-				BifEvent::enqueue_modbus_write_multiple_registers_request(connection()->bro_analyzer(),
+				zeek::BifEvent::enqueue_modbus_write_multiple_registers_request(connection()->bro_analyzer(),
 				                                                          connection()->bro_analyzer()->Conn(),
 				                                                          HeaderToVal(header),
 				                                                          ${message.start_address}, std::move(t));
@@ -419,7 +419,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_write_multiple_registers_response )
 			{
-			BifEvent::enqueue_modbus_write_multiple_registers_response(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_modbus_write_multiple_registers_response(connection()->bro_analyzer(),
 			                                                           connection()->bro_analyzer()->Conn(),
 			                                                           HeaderToVal(header),
 			                                                           ${message.start_address}, ${message.quantity});
@@ -447,7 +447,7 @@ refine flow ModbusTCP_Flow += {
 			//	t->Assign(i, l);
 			//	}
 
-			BifEvent::enqueue_modbus_read_file_record_request(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_modbus_read_file_record_request(connection()->bro_analyzer(),
 			                                                  connection()->bro_analyzer()->Conn(),
 			                                                  HeaderToVal(header));
 			}
@@ -468,7 +468,7 @@ refine flow ModbusTCP_Flow += {
 			//	t->Assign(i, r);
 			//	}
 
-			BifEvent::enqueue_modbus_read_file_record_response(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_modbus_read_file_record_response(connection()->bro_analyzer(),
 			                                                   connection()->bro_analyzer()->Conn(),
 			                                                   HeaderToVal(header));
 			}
@@ -500,7 +500,7 @@ refine flow ModbusTCP_Flow += {
 			//		}
 			//	}
 
-			BifEvent::enqueue_modbus_write_file_record_request(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_modbus_write_file_record_request(connection()->bro_analyzer(),
 			                                                   connection()->bro_analyzer()->Conn(),
 			                                                   HeaderToVal(header));
 			}
@@ -532,7 +532,7 @@ refine flow ModbusTCP_Flow += {
 			//		t->Assign(i, k);
 			//		}
 
-			BifEvent::enqueue_modbus_write_file_record_response(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_modbus_write_file_record_response(connection()->bro_analyzer(),
 			                                                    connection()->bro_analyzer()->Conn(),
 			                                                    HeaderToVal(header));
 			}
@@ -545,7 +545,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_mask_write_register_request )
 			{
-			BifEvent::enqueue_modbus_mask_write_register_request(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_modbus_mask_write_register_request(connection()->bro_analyzer(),
 			                                                     connection()->bro_analyzer()->Conn(),
 			                                                     HeaderToVal(header),
 			                                                     ${message.address},
@@ -560,7 +560,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_mask_write_register_response )
 			{
-			BifEvent::enqueue_modbus_mask_write_register_response(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_modbus_mask_write_register_response(connection()->bro_analyzer(),
 			                                                      connection()->bro_analyzer()->Conn(),
 			                                                      HeaderToVal(header),
 			                                                      ${message.address},
@@ -590,7 +590,7 @@ refine flow ModbusTCP_Flow += {
 				t->Assign(i, r);
 				}
 
-			BifEvent::enqueue_modbus_read_write_multiple_registers_request(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_modbus_read_write_multiple_registers_request(connection()->bro_analyzer(),
 			                                                               connection()->bro_analyzer()->Conn(),
 			                                                               HeaderToVal(header),
 			                                                               ${message.read_start_address},
@@ -622,7 +622,7 @@ refine flow ModbusTCP_Flow += {
 				t->Assign(i, r);
 				}
 
-			BifEvent::enqueue_modbus_read_write_multiple_registers_response(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_modbus_read_write_multiple_registers_response(connection()->bro_analyzer(),
 			                                                                connection()->bro_analyzer()->Conn(),
 			                                                                HeaderToVal(header),
 			                                                                std::move(t));
@@ -636,7 +636,7 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_read_fifo_queue_request )
 			{
-			BifEvent::enqueue_modbus_read_fifo_queue_request(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_modbus_read_fifo_queue_request(connection()->bro_analyzer(),
 			                                                 connection()->bro_analyzer()->Conn(),
 			                                                 HeaderToVal(header),
 			                                                 ${message.start_address});
@@ -666,7 +666,7 @@ refine flow ModbusTCP_Flow += {
 				t->Assign(i, r);
 				}
 
-			BifEvent::enqueue_modbus_read_fifo_queue_response(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_modbus_read_fifo_queue_response(connection()->bro_analyzer(),
 			                                                  connection()->bro_analyzer()->Conn(),
 			                                                  HeaderToVal(header),
 			                                                  std::move(t));

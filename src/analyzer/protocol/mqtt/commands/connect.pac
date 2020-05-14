@@ -75,7 +75,7 @@ refine flow MQTT_Flow += {
 				                            reinterpret_cast<const char*>(${msg.pass.str}.begin())));
 				}
 
-			BifEvent::enqueue_mqtt_connect(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_mqtt_connect(connection()->bro_analyzer(),
 			                               connection()->bro_analyzer()->Conn(),
 			                               std::move(m));
 			}

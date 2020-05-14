@@ -147,7 +147,7 @@ refine flow NTP_Flow += {
 		else if ( ${msg.mode} == 7 )
 			rv->Assign(4, BuildNTPMode7Msg(${msg.mode7}));
 
-		BifEvent::enqueue_ntp_message(connection()->bro_analyzer(),
+		zeek::BifEvent::enqueue_ntp_message(connection()->bro_analyzer(),
 		                              connection()->bro_analyzer()->Conn(),
 		                              is_orig(), std::move(rv));
 		return true;

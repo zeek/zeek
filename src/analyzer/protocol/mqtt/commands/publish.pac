@@ -42,7 +42,7 @@ refine flow MQTT_Flow += {
 
 			m->Assign(5, val_mgr->Count(${msg.payload}.length()));
 
-			BifEvent::enqueue_mqtt_publish(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_mqtt_publish(connection()->bro_analyzer(),
 			                               connection()->bro_analyzer()->Conn(),
 			                               ${pdu.is_orig},
 			                               ${msg.qos} == 0 ? 0 : ${msg.msg_id},

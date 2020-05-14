@@ -4,7 +4,7 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_close_request )
 			{
-			BifEvent::enqueue_smb2_close_request(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb2_close_request(bro_analyzer(),
 			                                     bro_analyzer()->Conn(),
 			                                     BuildSMB2HeaderVal(h),
 			                                     BuildSMB2GUID(${val.file_id}));
@@ -30,7 +30,7 @@ refine connection SMB_Conn += {
 			                                  ${val.change_time}));
 			resp->Assign(3, smb2_file_attrs_to_bro(${val.file_attrs}));
 
-			BifEvent::enqueue_smb2_close_response(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb2_close_response(bro_analyzer(),
 			                                      bro_analyzer()->Conn(),
 			                                      BuildSMB2HeaderVal(h),
 			                                      std::move(resp));

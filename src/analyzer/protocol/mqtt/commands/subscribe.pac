@@ -31,7 +31,7 @@ refine flow MQTT_Flow += {
 				qos_levels->Assign(qos_levels->Size(), qos);
 				}
 
-			BifEvent::enqueue_mqtt_subscribe(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_mqtt_subscribe(connection()->bro_analyzer(),
 			                                 connection()->bro_analyzer()->Conn(),
 			                                 ${msg.msg_id},
 			                                 std::move(topics),

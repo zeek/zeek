@@ -3,7 +3,7 @@ refine connection SMB_Conn += {
 	function proc_smb1_tree_connect_andx_request(header: SMB_Header, val: SMB1_tree_connect_andx_request): bool
 		%{
 		if ( smb1_tree_connect_andx_request )
-			BifEvent::enqueue_smb1_tree_connect_andx_request(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb1_tree_connect_andx_request(bro_analyzer(),
 			                                                 bro_analyzer()->Conn(),
 			                                                 SMBHeaderVal(header),
 			                                                 smb_string2stringval(${val.path}),
@@ -20,7 +20,7 @@ refine connection SMB_Conn += {
 			set_tree_is_pipe(${header.tid});
 
 		if ( smb1_tree_connect_andx_response )
-			BifEvent::enqueue_smb1_tree_connect_andx_response(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb1_tree_connect_andx_response(bro_analyzer(),
 			                                                  bro_analyzer()->Conn(),
 			                                                  SMBHeaderVal(header),
 			                                                  std::move(service_string),

@@ -116,7 +116,6 @@ function find_all_emails(ip: addr): set[string]
 	local output_values: set[string] = set();
 	local tmp_subnet: subnet;
 	local i: count;
-	local emails: string;
 	for ( i in one_to_32 )
 		{
 		tmp_subnet = mask_addr(ip, one_to_32[i]);

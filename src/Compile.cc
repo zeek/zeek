@@ -276,6 +276,18 @@ IntrusivePtr<Val> AS_ValUnion::ToVal(BroType* t) const
 	return {AdoptRef{}, v};
 	}
 
+static void grow_vector(AS_vector& vec, int new_size)
+	{
+	int old_size = vec.size();
+	vec.resize(new_size);
+
+	for ( int i = old_size; i < new_size; ++i )
+		// Strictly speaking, we should know the particular type of
+		// vector and zero it accordingly.  We could get that
+		// from the original vector_val's Val but geez.
+		vec[i].void_val = nullptr;
+	}
+
 class AS_VectorMgr {
 public:
 	AS_VectorMgr(std::shared_ptr<AS_vector> _vec, VectorVal* _v)
@@ -1608,7 +1620,9 @@ const CompiledStmt AbstractMachine::AssignVecElems(const Expr* e)
 		auto s = AbstractStmt(OP_ASSIGN_VC, tmp, c3);
 		s.t = c3->Type().get();
 
-		return Vector_Elem_AssignVCi(lhs, op3->AsConstExpr(), tmp);
+		AddStmt(s);
+
+		return Vector_Elem_AssignVCi(lhs, op2->AsConstExpr(), tmp);
 		}
 	}
 
@@ -1749,6 +1763,14 @@ const CompiledStmt AbstractMachine::ErrorStmt()
 	{
 	error_seen = true;
 	return CompiledStmt(0);
+	}
+
+bool AbstractMachine::IsUnused(const ID* id, const Stmt* where) const
+	{
+	if ( ! ud->HasUsage(where) )
+		return true;
+
+	return ! ud->GetUsage(where)->HasID(id);
 	}
 
 OpaqueVals* AbstractMachine::BuildVals(const IntrusivePtr<ListExpr>& l)

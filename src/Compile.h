@@ -93,6 +93,8 @@ public:
 	virtual const CompiledStmt EmptyStmt() = 0;
 	virtual const CompiledStmt ErrorStmt() = 0;
 
+	virtual bool IsUnused(const ID* id, const Stmt* where) const = 0;
+
 	// Called to synchronize any globals that have been modified
 	// prior to switching to execution out of the current function
 	// body (for a call or a return).  The argument is a statement
@@ -188,6 +190,8 @@ public:
 
 	const CompiledStmt EmptyStmt() override;
 	const CompiledStmt ErrorStmt() override;
+
+	bool IsUnused(const ID* id, const Stmt* where) const override;
 
 	void SyncGlobals(const BroObj* o) override;
 

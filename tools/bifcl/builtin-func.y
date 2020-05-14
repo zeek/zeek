@@ -124,7 +124,7 @@ void set_decl_name(const char *name)
 		decl.generate_c_namespace_start = "namespace BifEvent { ";
 		decl.generate_c_namespace_end = " } ";
 		decl.generate_c_fullname = "BifEvent::";
-		decl.enqueue_c_fullname = "BifEvent::";
+		decl.enqueue_c_fullname = "zeek::BifEvent::";
 		break;
 
 	default:
@@ -220,12 +220,12 @@ static void print_event_c_prototype_args(FILE* fp, bool smart)
 static void print_event_c_prototype_header(FILE* fp, bool smart)
 	{
 	if ( smart )
-		fprintf(fp, "%s void %s(analyzer::Analyzer* analyzer%s",
+		fprintf(fp, "namespace zeek { %s void %s(analyzer::Analyzer* analyzer%s",
 		        decl.generate_c_namespace_start.c_str(),
 		        decl.enqueue_c_barename.c_str(),
 		        args.size() ? ", " : "" );
 	else
-		fprintf(fp, "%s [[deprecated(\"Remove in 4.1. Use %s instead.\")]] void %s(analyzer::Analyzer* analyzer%s",
+		fprintf(fp, "%s [[deprecated(\"Remove in 4.1. Use %s.\")]] void %s(analyzer::Analyzer* analyzer%s",
 		        decl.generate_c_namespace_start.c_str(),
 		        decl.enqueue_c_fullname.c_str(),
 		        decl.generate_bare_name.c_str(),
@@ -234,7 +234,7 @@ static void print_event_c_prototype_header(FILE* fp, bool smart)
 
 	print_event_c_prototype_args(fp, smart);
 	fprintf(fp, ")");
-	fprintf(fp, "; %s\n", decl.generate_c_namespace_end.c_str());
+	fprintf(fp, "; %s%s\n", decl.generate_c_namespace_end.c_str(), smart ? " }" : "");
 	}
 
 static void print_event_c_prototype_impl(FILE* fp, bool smart)

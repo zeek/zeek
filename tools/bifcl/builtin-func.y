@@ -145,9 +145,6 @@ void set_decl_name(const char *name)
 		}
 
 	decl.bro_fullname += decl.bare_name;
-	if ( definition_type == FUNC_DEF )
-		decl.bare_name = string("bro_") + decl.bare_name;
-
 	decl.c_fullname += decl.bare_name;
 	decl.bro_name += name;
 	decl.generate_c_fullname += decl.generate_bare_name;
@@ -624,15 +621,30 @@ head_1:		TOK_ID opt_ws arg_begin
 			if ( definition_type == FUNC_DEF )
 				{
 				fprintf(fp_func_init,
-					"\t(void) new BuiltinFunc(%s, \"%s\", 0);\n",
+					"\t(void) new BuiltinFunc(zeek::%s_bif, \"%s\", 0);\n",
 					decl.c_fullname.c_str(), decl.bro_fullname.c_str());
 
+				// This is the "canonical" version, with argument type and order
+				// mostly for historical reasons.  There's also no "bro_" prefix
+				// in the function name itself, but does have a "_bif" suffix
+				// to potentially help differentiate from other functions
+				// (e.g. ones at global scope that may be used to implement
+				// the BIF itself).
 				fprintf(fp_func_h,
-					"%sextern BifReturnVal %s(Frame* frame, const zeek::Args*);%s\n",
+					"namespace zeek { %sextern BifReturnVal %s_bif(Frame* frame, const zeek::Args*);%s }\n",
 					decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 
+				// This is the deprecated, legacy, version of the BIF that
+				// forwards to the "canonical" version.  It also does have
+				// a "bro_" prefix in the name itself, but no "_bif" suffix.
+				fprintf(fp_func_h,
+					"%s [[deprecated(\"Remove in v4.1.  Use zeek::%s_bif.\")]] inline BifReturnVal bro_%s(Frame* frame, const zeek::Args* args)",
+					decl.c_namespace_start.c_str(), decl.c_fullname.c_str(), decl.bare_name.c_str());
+				fprintf(fp_func_h, " { return zeek::%s_bif(frame, args); } %s\n",
+					decl.c_fullname.c_str(), decl.c_namespace_end.c_str());
+
 				fprintf(fp_func_def,
-					"BifReturnVal %s(Frame* frame, const zeek::Args* %s)",
+					"BifReturnVal zeek::%s_bif(Frame* frame, const zeek::Args* %s)",
 					decl.c_fullname.c_str(), arg_list_name);
 
 				record_bif_item(decl.bro_fullname.c_str(), "FUNCTION");

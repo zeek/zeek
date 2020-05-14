@@ -652,7 +652,7 @@ flow GTPv1_Flow(is_orig: bool)
 
 		connection()->set_valid(is_orig(), false);
 
-		if ( e && e->Depth() >= BifConst::Tunnel::max_depth )
+		if ( e && e->Depth() >= zeek::BifConst::Tunnel::max_depth )
 			{
 			reporter->Weird(c, "tunnel_depth");
 			return false;
@@ -738,7 +738,7 @@ flow GTPv1_Flow(is_orig: bool)
 			{
 			connection()->set_valid(is_orig(), true);
 
-			if ( (! BifConst::Tunnel::delay_gtp_confirmation) ||
+			if ( (! zeek::BifConst::Tunnel::delay_gtp_confirmation) ||
 			     (connection()->valid(true) && connection()->valid(false)) )
 				a->ProtocolConfirmation();
 			}

@@ -4,7 +4,7 @@ refine connection SMB_Conn += {
 		auto filename = smb_string2stringval(${val.filename});
 
 		if ( ! ${header.is_pipe} &&
-		     BifConst::SMB::pipe_filenames->AsTable()->Lookup(filename->CheckString()) )
+		     zeek::BifConst::SMB::pipe_filenames->AsTable()->Lookup(filename->CheckString()) )
 			{
 			set_tree_is_pipe(${header.tid});
 

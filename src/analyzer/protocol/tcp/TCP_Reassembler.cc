@@ -135,7 +135,7 @@ static inline bool established_or_cleanly_closing(const TCP_Endpoint* a,
 static inline bool report_gap(const TCP_Endpoint* a, const TCP_Endpoint* b)
 	{
 	return content_gap &&
-	       ( BifConst::report_gaps_for_partial ||
+	       ( zeek::BifConst::report_gaps_for_partial ||
 	         established_or_cleanly_closing(a, b) );
 	}
 
@@ -210,7 +210,7 @@ void TCP_Reassembler::Undelivered(uint64_t up_to_seq)
 		// to this method and only if this condition is not true).
 		reporter->InternalError("Calling Undelivered for data that has already been delivered (or has already been marked as undelivered");
 
-	if ( BifConst::detect_filtered_trace && last_reassem_seq == 1 &&
+	if ( zeek::BifConst::detect_filtered_trace && last_reassem_seq == 1 &&
 	     (endpoint->FIN_cnt > 0 || endpoint->RST_cnt > 0 ||
 	      peer->FIN_cnt > 0 || peer->RST_cnt > 0) )
 		{
@@ -539,7 +539,7 @@ void TCP_Reassembler::AckReceived(uint64_t seq)
 		return;
 
 	bool test_active = ! skip_deliveries && ! tcp_analyzer->Skipping() &&
-		( BifConst::report_gaps_for_partial ||
+		( zeek::BifConst::report_gaps_for_partial ||
 			(endp->state == TCP_ENDPOINT_ESTABLISHED &&
 				endp->peer->state == TCP_ENDPOINT_ESTABLISHED ) );
 

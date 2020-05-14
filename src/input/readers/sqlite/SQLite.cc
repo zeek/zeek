@@ -24,18 +24,18 @@ SQLite::SQLite(ReaderFrontend *frontend)
 	  fields(), num_fields(), mode(), started(), query(), db(), st()
 	{
 	set_separator.assign(
-			(const char*) BifConst::LogSQLite::set_separator->Bytes(),
-			BifConst::InputSQLite::set_separator->Len()
+			(const char*) zeek::BifConst::LogSQLite::set_separator->Bytes(),
+			zeek::BifConst::InputSQLite::set_separator->Len()
 			);
 
 	unset_field.assign(
-			(const char*) BifConst::LogSQLite::unset_field->Bytes(),
-			BifConst::InputSQLite::unset_field->Len()
+			(const char*) zeek::BifConst::LogSQLite::unset_field->Bytes(),
+			zeek::BifConst::InputSQLite::unset_field->Len()
 			);
 
 	empty_field.assign(
-			(const char*) BifConst::LogAscii::empty_field->Bytes(),
-			BifConst::InputSQLite::empty_field->Len()
+			(const char*) zeek::BifConst::LogAscii::empty_field->Bytes(),
+			zeek::BifConst::InputSQLite::empty_field->Len()
 			);
 
 	io = new threading::formatter::Ascii(this, threading::formatter::Ascii::SeparatorInfo(std::string(), set_separator, unset_field, empty_field));

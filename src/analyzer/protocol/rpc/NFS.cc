@@ -302,15 +302,15 @@ StringVal* NFS_Interp::nfs3_file_data(const u_char*& buf, int& n, uint64_t offse
 	const u_char *data = extract_XDR_opaque(buf, n, data_n, 1 << 30, true);
 
 	// check whether we have to deliver data to the event
-	if ( ! BifConst::NFS3::return_data )
+	if ( ! zeek::BifConst::NFS3::return_data )
 		return nullptr;
 
-	if ( BifConst::NFS3::return_data_first_only && offset != 0 )
+	if ( zeek::BifConst::NFS3::return_data_first_only && offset != 0 )
 		return nullptr;
 
 	// Ok, so we want to return some data
 	data_n = std::min(data_n, size);
-	data_n = std::min(data_n, int(BifConst::NFS3::return_data_max));
+	data_n = std::min(data_n, int(zeek::BifConst::NFS3::return_data_max));
 
 	if ( data && data_n > 0 )
 		return new StringVal(new BroString(data, data_n, false));

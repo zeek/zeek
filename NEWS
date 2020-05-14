@@ -180,6 +180,10 @@ Deprecated Functionality
   deprecated, but there's an equivalent name in ``zeek::BifType::`` of
   ``IntrusivePtr`` type to use instead.
 
+- All generated ``BifConst::`` names are deprecated, but there's an
+  equivalent name now in ``zeek::BifCont::``, and changed to ``IntrusivePtr``
+  if the old name was some ``Val*`` type.
+
 Zeek 3.1.0
 ==========
 

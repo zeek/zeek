@@ -81,7 +81,7 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 			if ( chksum == 0 )
 				validate_checksum = false;
 			else
-				validate_checksum = BifConst::Tunnel::validate_vxlan_checksums;
+				validate_checksum = zeek::BifConst::Tunnel::validate_vxlan_checksums;
 			}
 		}
 

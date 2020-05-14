@@ -63,13 +63,13 @@ void Config::DoClose()
 
 bool Config::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fields)
 	{
-	fail_on_file_problem = BifConst::InputConfig::fail_on_file_problem;
+	fail_on_file_problem = zeek::BifConst::InputConfig::fail_on_file_problem;
 
-	set_separator.assign( (const char*) BifConst::InputConfig::set_separator->Bytes(),
-	                     BifConst::InputConfig::set_separator->Len());
+	set_separator.assign( (const char*) zeek::BifConst::InputConfig::set_separator->Bytes(),
+	                     zeek::BifConst::InputConfig::set_separator->Len());
 
-	empty_field.assign( (const char*) BifConst::InputConfig::empty_field->Bytes(),
-	                   BifConst::InputConfig::empty_field->Len());
+	empty_field.assign( (const char*) zeek::BifConst::InputConfig::empty_field->Bytes(),
+	                   zeek::BifConst::InputConfig::empty_field->Len());
 
 	formatter::Ascii::SeparatorInfo sep_info("\t", set_separator, "", empty_field);
 	formatter = std::unique_ptr<threading::formatter::Formatter>(new formatter::Ascii(this, sep_info));

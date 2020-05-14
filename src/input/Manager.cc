@@ -405,7 +405,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 			return false;
 			}
 
-		allow_file_func = BifConst::Input::accept_unsupported_types;
+		allow_file_func = zeek::BifConst::Input::accept_unsupported_types;
 
 		}
 
@@ -637,7 +637,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 	int idxfields = fieldsV.size();
 
 	if ( val ) // if we are not a set
-		status = status || ! UnrollRecordType(&fieldsV, val.get(), "", BifConst::Input::accept_unsupported_types);
+		status = status || ! UnrollRecordType(&fieldsV, val.get(), "", zeek::BifConst::Input::accept_unsupported_types);
 
 	int valfields = fieldsV.size() - idxfields;
 

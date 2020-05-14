@@ -243,7 +243,7 @@ protected:
 class IPTunnelTimer final : public Timer {
 public:
 	IPTunnelTimer(double t, NetSessions::IPPair p)
-	: Timer(t + BifConst::Tunnel::ip_tunnel_timeout,
+	: Timer(t + zeek::BifConst::Tunnel::ip_tunnel_timeout,
 			TIMER_IP_TUNNEL_INACTIVITY), tunnel_idx(p) {}
 
 	~IPTunnelTimer() override {}

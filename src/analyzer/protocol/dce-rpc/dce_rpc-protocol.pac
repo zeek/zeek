@@ -210,14 +210,14 @@ flow DCE_RPC_Flow(is_orig: bool) {
 				flowbuf->NewFrame(0, true);
 				flowbuf->BufferData(frag.begin(), frag.end());
 
-				if ( fb.size() > BifConst::DCE_RPC::max_cmd_reassembly )
+				if ( fb.size() > zeek::BifConst::DCE_RPC::max_cmd_reassembly )
 					{
 					reporter->Weird(connection()->bro_analyzer()->Conn(),
 					                "too_many_dce_rpc_msgs_in_reassembly");
 					connection()->bro_analyzer()->SetSkip(true);
 					}
 
-				if ( flowbuf->data_length() > (int)BifConst::DCE_RPC::max_frag_data )
+				if ( flowbuf->data_length() > (int)zeek::BifConst::DCE_RPC::max_frag_data )
 					{
 					reporter->Weird(connection()->bro_analyzer()->Conn(),
 					                "too_much_dce_rpc_fragment_data");
@@ -233,7 +233,7 @@ flow DCE_RPC_Flow(is_orig: bool) {
 			auto& flowbuf = it->second;
 			flowbuf->BufferData(frag.begin(), frag.end());
 
-			if ( flowbuf->data_length() > (int)BifConst::DCE_RPC::max_frag_data )
+			if ( flowbuf->data_length() > (int)zeek::BifConst::DCE_RPC::max_frag_data )
 				{
 				reporter->Weird(connection()->bro_analyzer()->Conn(),
 				                "too_much_dce_rpc_fragment_data");

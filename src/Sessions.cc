@@ -54,7 +54,7 @@ void IPTunnelTimer::Dispatch(double t, bool is_expire)
 	double last_active = it->second.second;
 	double inactive_time = t > last_active ? t - last_active : 0;
 
-	if ( inactive_time >= BifConst::Tunnel::ip_tunnel_timeout )
+	if ( inactive_time >= zeek::BifConst::Tunnel::ip_tunnel_timeout )
 		// tunnel activity timed out, delete it from map
 		sessions->ip_tunnels.erase(tunnel_idx);
 
@@ -409,7 +409,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 
 	case IPPROTO_GRE:
 		{
-		if ( ! BifConst::Tunnel::enable_gre )
+		if ( ! zeek::BifConst::Tunnel::enable_gre )
 			{
 			Weird("GRE_tunnel", ip_hdr, encapsulation);
 			return;
@@ -561,14 +561,14 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	case IPPROTO_IPV4:
 	case IPPROTO_IPV6:
 		{
-		if ( ! BifConst::Tunnel::enable_ip )
+		if ( ! zeek::BifConst::Tunnel::enable_ip )
 			{
 			Weird("IP_tunnel", ip_hdr, encapsulation);
 			return;
 			}
 
 		if ( encapsulation &&
-		     encapsulation->Depth() >= BifConst::Tunnel::max_depth )
+		     encapsulation->Depth() >= zeek::BifConst::Tunnel::max_depth )
 			{
 			Weird("exceeded_tunnel_max_depth", ip_hdr, encapsulation);
 			return;

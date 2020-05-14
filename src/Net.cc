@@ -283,7 +283,7 @@ void net_run()
 	ready.reserve(iosource_mgr->TotalSize());
 
 	while ( iosource_mgr->Size() ||
-		(BifConst::exit_only_after_terminate && ! terminating) )
+		(zeek::BifConst::exit_only_after_terminate && ! terminating) )
 		{
 		iosource_mgr->FindReadySources(&ready);
 
@@ -314,8 +314,8 @@ void net_run()
 				}
 			}
 		else if ( (have_pending_timers || communication_enabled ||
-		           BifConst::exit_only_after_terminate) &&
-			  ! pseudo_realtime )
+		           zeek::BifConst::exit_only_after_terminate) &&
+		          ! pseudo_realtime )
 			{
 			// Take advantage of the lull to get up to
 			// date on timers and events.  Because we only

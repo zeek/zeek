@@ -111,7 +111,7 @@ void PcapSource::OpenLive()
 		return;
 		}
 
-	if ( pcap_set_snaplen(pd, BifConst::Pcap::snaplen) )
+	if ( pcap_set_snaplen(pd, zeek::BifConst::Pcap::snaplen) )
 		{
 		PcapError("pcap_set_snaplen");
 		return;
@@ -137,7 +137,7 @@ void PcapSource::OpenLive()
 		return;
 		}
 
-	if ( pcap_set_buffer_size(pd, BifConst::Pcap::bufsize * 1024 * 1024) )
+	if ( pcap_set_buffer_size(pd, zeek::BifConst::Pcap::bufsize * 1024 * 1024) )
 		{
 		PcapError("pcap_set_buffer_size");
 		return;

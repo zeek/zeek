@@ -19,7 +19,7 @@ Binary::Binary(ReaderFrontend *frontend)
 	{
 	if ( ! chunk_size )
 		{
-		chunk_size = BifConst::InputBinary::chunk_size;
+		chunk_size = zeek::BifConst::InputBinary::chunk_size;
 
 		if ( ! chunk_size )
 			chunk_size = 1024;
@@ -82,8 +82,8 @@ bool Binary::DoInit(const ReaderInfo& info, int num_fields,
 	ino = 0;
 	firstrun = true;
 
-	path_prefix.assign((const char*) BifConst::InputBinary::path_prefix->Bytes(),
-	                   BifConst::InputBinary::path_prefix->Len());
+	path_prefix.assign((const char*) zeek::BifConst::InputBinary::path_prefix->Bytes(),
+	                   zeek::BifConst::InputBinary::path_prefix->Len());
 
 	if ( ! info.source || strlen(info.source) == 0 )
 		{

@@ -161,7 +161,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 
 	const EncapsulationStack* e = Conn()->GetEncapsulation();
 
-	if ( e && e->Depth() >= BifConst::Tunnel::max_depth )
+	if ( e && e->Depth() >= zeek::BifConst::Tunnel::max_depth )
 		{
 		Weird("tunnel_depth", true);
 		return;

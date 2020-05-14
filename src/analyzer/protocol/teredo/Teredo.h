@@ -42,7 +42,7 @@ public:
 	 */
 	void Confirm()
 		{
-		if ( ! BifConst::Tunnel::delay_teredo_confirmation ||
+		if ( ! zeek::BifConst::Tunnel::delay_teredo_confirmation ||
 		     ( valid_orig && valid_resp ) )
 			ProtocolConfirmation();
 		}

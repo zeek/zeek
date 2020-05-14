@@ -115,7 +115,7 @@ void Manager::FindReadySources(std::vector<IOSource*>* ready)
 
 	// If there aren't any sources and exit_only_after_terminate is false, just
 	// return an empty set of sources. We want the main loop to end.
-	if ( Size() == 0 && ( ! BifConst::exit_only_after_terminate || terminating ) )
+	if ( Size() == 0 && ( ! zeek::BifConst::exit_only_after_terminate || terminating ) )
 		return;
 
 	double timeout = -1;

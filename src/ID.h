@@ -213,6 +213,16 @@ IntrusivePtr<T> lookup_val(std::string_view name)
 const IntrusivePtr<Val>& lookup_const(std::string_view name);
 
 /**
+ * Lookup an ID by its name and return its value (as cast to @c T).
+ * A fatal occurs if the ID does not exist.
+ * @param name  The identifier name to lookup
+ * @return  The current value of the identifier.
+ */
+template<class T>
+IntrusivePtr<T> lookup_const(std::string_view name)
+	{ return cast_intrusive<T>(lookup_const(name)); }
+
+/**
  * Lookup an ID by its name and return the function it references.
  * A fatal occurs if the ID does not exist or if it is not a function.
  * @param name  The identifier name to lookup

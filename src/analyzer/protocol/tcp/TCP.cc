@@ -2051,7 +2051,7 @@ bool TCPStats_Endpoint::DataSent(double /* t */, uint64_t seq, int len, int capl
 	int64_t sequence_delta = top_seq - max_top_seq;
 	if ( sequence_delta <= 0 )
 		{
-		if ( ! BifConst::ignore_keep_alive_rexmit || len > 1 || data_in_flight > 0 )
+		if ( ! zeek::BifConst::ignore_keep_alive_rexmit || len > 1 || data_in_flight > 0 )
 			{
 			++num_rxmit;
 			num_rxmit_bytes += len;

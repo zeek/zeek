@@ -18,15 +18,15 @@ using threading::Field;
 Benchmark::Benchmark(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	{
 	num_lines = 0;
-	multiplication_factor = double(BifConst::InputBenchmark::factor);
-	autospread = double(BifConst::InputBenchmark::autospread);
-	spread = int(BifConst::InputBenchmark::spread);
-	add = int(BifConst::InputBenchmark::addfactor);
+	multiplication_factor = double(zeek::BifConst::InputBenchmark::factor);
+	autospread = double(zeek::BifConst::InputBenchmark::autospread);
+	spread = int(zeek::BifConst::InputBenchmark::spread);
+	add = int(zeek::BifConst::InputBenchmark::addfactor);
 	autospread_time = 0;
-	stopspreadat = int(BifConst::InputBenchmark::stopspreadat);
-	timedspread = double(BifConst::InputBenchmark::timedspread);
+	stopspreadat = int(zeek::BifConst::InputBenchmark::stopspreadat);
+	timedspread = double(zeek::BifConst::InputBenchmark::timedspread);
 	heartbeatstarttime = 0;
-	heartbeat_interval = double(BifConst::Threading::heartbeat_interval);
+	heartbeat_interval = double(zeek::BifConst::Threading::heartbeat_interval);
 
 	ascii = new threading::formatter::Ascii(this, threading::formatter::Ascii::SeparatorInfo());
 	}

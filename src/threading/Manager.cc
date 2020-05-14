@@ -125,7 +125,7 @@ void Manager::SendHeartbeats()
 void Manager::StartHeartbeatTimer()
 	{
 	heartbeat_timer_running = true;
-	timer_mgr->Add(new HeartbeatTimer(network_time + BifConst::Threading::heartbeat_interval));
+	timer_mgr->Add(new HeartbeatTimer(network_time + zeek::BifConst::Threading::heartbeat_interval));
 	}
 
 void Manager::Flush()
@@ -135,7 +135,7 @@ void Manager::Flush()
 	if ( network_time && (network_time > next_beat || ! next_beat) )
 		{
 		do_beat = true;
-		next_beat = ::network_time + BifConst::Threading::heartbeat_interval;
+		next_beat = ::network_time + zeek::BifConst::Threading::heartbeat_interval;
 		}
 
 	did_process = false;

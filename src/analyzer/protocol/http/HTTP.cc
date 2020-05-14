@@ -810,7 +810,7 @@ void HTTP_Message::SetPlainDelivery(int64_t length)
 	{
 	content_line->SetPlainDelivery(length);
 
-	if ( length > 0 && BifConst::skip_http_data )
+	if ( length > 0 && zeek::BifConst::skip_http_data )
 		content_line->SkipBytesAfterThisLine(length);
 	}
 

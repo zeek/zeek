@@ -1,0 +1,3 @@
+two different vector representations lead to (1) the need to synchronize
+	vectors, and (2) possible syncing inconsistencies due to
+	quasi-deep-copy semantics

@@ -530,14 +530,14 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 		if ( ary_op == 1 )
 			{
 			print ("\tcase " full_op vec ":\n\t\tvec_exec(" full_op vec \
-				", frame[s.v1].raw_vector_val,\n\t\t\t" \
+				", frame[s.v1].vector_val,\n\t\t\t" \
 				(is_var1 ? "frame[s.v2]" : "s.c") \
-				".raw_vector_val);\n\t\tbreak;\n") >ops_eval_f
+				".vector_val);\n\t\tbreak;\n") >ops_eval_f
 
 			oe_copy = orig_eval
-			gsub(/\$1/, "(*v2)[i]" raccessor1, oe_copy)
+			gsub(/\$1/, "vec2[i]" raccessor1, oe_copy)
 
-			print ("\tcase " full_op vec ": (*v1)[i]" laccessor " = " \
+			print ("\tcase " full_op vec ": vec1[i]" laccessor " = " \
 				oe_copy "; break;") >vec1_eval_f
 			}
 
@@ -552,19 +552,19 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 			### of smaller code size.
 
 			# See comment above for the role of op3.
-			op3 = (is_var1 && is_var2) ? "v3" : "v2"
+			op3 = (is_var1 && is_var2) ? "v1" : "v2"
 
 			print ("\tcase " full_op vec ":\n\t\tvec_exec("  \
 				full_op vec \
-				",\n\t\t\tframe[s.v1].raw_vector_val,\n\t\t\t" \
+				",\n\t\t\tframe[s.v1].vector_val,\n\t\t\t" \
 				(is_var1 ? "frame[s.v2]" : "s.c") \
-				".raw_vector_val, " \
+				".vector_val, " \
 				(is_var2 ? "frame[s." op3 "]" : "s.c") \
-				".raw_vector_val);\n\t\tbreak;\n") >ops_eval_f
+				".vector_val);\n\t\tbreak;\n") >ops_eval_f
 
 			oe_copy = orig_eval
-			gsub(/\$1/, "(*v2)[i]" raccessor1, oe_copy)
-			gsub(/\$2/, "(*" op3 ")[i]" raccessor2, oe_copy)
+			gsub(/\$1/, "vec2[i]" raccessor1, oe_copy)
+			gsub(/\$2/, "vec3[i]" raccessor2, oe_copy)
 
 			# Check for whether "$$" is meaningful, which
 			# occurs for types with non-atomic frame values,
@@ -572,15 +572,13 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 			if ( eval_selector[sub_type1] != "" ||
 			     sub_type1 != sub_type2 )
 				{
-				### Need to resolve whether to "delete"
-				### here.
-				gsub(/\$\$/, "(*v1)[i]" laccessor, oe_copy)
+				gsub(/\$\$/, "vec1[i]" laccessor, oe_copy)
 				print ("\tcase " full_op vec ":\n\t\t{\n\t\t" \
 					oe_copy "\n\t\tbreak;\n\t\t}") >vec2_eval_f
 				}
 
 			else
-				print ("\tcase " full_op vec ":\n\t\t(*v1)[i]" \
+				print ("\tcase " full_op vec ":\n\t\tvec1[i]" \
 					laccessor " = " \
 					oe_copy "; break;") >vec2_eval_f
 			}

@@ -63,7 +63,7 @@ type V
 eval --frame[s.v1].uint_val
 
 unary-op AppendTo
-eval frame[s.v1].raw_vector_val->push_back($1)
+eval frame[s.v1].vector_val->ModVec()->push_back($1)
 
 unary-expr-op Flatten
 op-type X
@@ -353,15 +353,15 @@ eval if ( ! frame[s.v2].int_val ) frame[s.v1] = CopyVal(s.c)
 op IndexVecBoolSelect
 type VVV
 set-type $1
-eval if ( frame[s.v2].raw_vector_val->size() != frame[s.v3].raw_vector_val->size() ) {
+eval if ( frame[s.v2].vector_val->ConstVec()->size() != frame[s.v3].vector_val->ConstVec()->size() ) {
 eval	run_time_error(error_flag, s.stmt, "size mismatch, boolean index and vector")
 eval	break; }
 eval auto vt = s.t->AsVectorType()
 eval auto v2 = frame[s.v2].ToVector(vt)
 eval auto v3 = frame[s.v3].ToVector(vt)
 eval auto v = vector_bool_select(vt, v2.get(), v3.get())
-eval delete frame[s.v1].raw_vector_val
-eval frame[s.v1].raw_vector_val = to_raw_vector(v.get())
+eval delete frame[s.v1].vector_val
+eval frame[s.v1].vector_val = to_AS_vector(v.get(), false)
 
 op IndexVecIntSelect
 type VVV
@@ -370,8 +370,8 @@ eval auto vt = s.t->AsVectorType()
 eval auto v2 = frame[s.v2].ToVector(vt)
 eval auto v3 = frame[s.v3].ToVector(vt)
 eval auto v = vector_int_select(vt, v2.get(), v3.get())
-eval delete frame[s.v1].raw_vector_val
-eval frame[s.v1].raw_vector_val = to_raw_vector(v.get())
+eval delete frame[s.v1].vector_val
+eval frame[s.v1].vector_val = to_AS_vector(v.get(), false)
 
 op Index
 type VVL
@@ -390,8 +390,8 @@ type VVL
 eval auto vt = s.t->AsVectorType()
 eval auto vec = frame[s.v2].ToVector(s.t)
 eval auto v = vector_index(vt, vec.get(), frame[s.v3].list_val)
-eval delete frame[s.v1].raw_vector_val
-eval frame[s.v1].raw_vector_val = to_raw_vector(v.get())
+eval delete frame[s.v1].vector_val
+eval frame[s.v1].vector_val = to_AS_vector(v.get(), false)
 
 internal-op Table-Index
 type VVV
@@ -460,8 +460,8 @@ eval frame[s.v1].uint_val = bro_uint_t(frame[s.v2].int_val)
 
 internal-op Coerce-UI-Vec
 type VV
-eval delete frame[s.v1].raw_vector_val
-eval frame[s.v1].raw_vector_val = vec_coerce_UI(frame[s.v2].raw_vector_val)
+eval delete frame[s.v1].vector_val
+eval frame[s.v1].vector_val = vec_coerce_UI(frame[s.v2].vector_val)
 
 internal-op Coerce-UD
 type VV
@@ -469,8 +469,8 @@ eval frame[s.v1].uint_val = bro_uint_t(frame[s.v2].double_val)
 
 internal-op Coerce-UD-Vec
 type VV
-eval delete frame[s.v1].raw_vector_val
-eval frame[s.v1].raw_vector_val = vec_coerce_UD(frame[s.v2].raw_vector_val)
+eval delete frame[s.v1].vector_val
+eval frame[s.v1].vector_val = vec_coerce_UD(frame[s.v2].vector_val)
 
 internal-op Coerce-IU
 type VV
@@ -478,8 +478,8 @@ eval frame[s.v1].int_val = bro_int_t(frame[s.v2].uint_val)
 
 internal-op Coerce-IU-Vec
 type VV
-eval delete frame[s.v1].raw_vector_val
-eval frame[s.v1].raw_vector_val = vec_coerce_IU(frame[s.v2].raw_vector_val)
+eval delete frame[s.v1].vector_val
+eval frame[s.v1].vector_val = vec_coerce_IU(frame[s.v2].vector_val)
 
 internal-op Coerce-ID
 type VV
@@ -487,8 +487,8 @@ eval frame[s.v1].int_val = bro_int_t(frame[s.v2].double_val)
 
 internal-op Coerce-ID-Vec
 type VV
-eval delete frame[s.v1].raw_vector_val
-eval frame[s.v1].raw_vector_val = vec_coerce_ID(frame[s.v2].raw_vector_val)
+eval delete frame[s.v1].vector_val
+eval frame[s.v1].vector_val = vec_coerce_ID(frame[s.v2].vector_val)
 
 internal-op Coerce-DI
 type VV
@@ -496,8 +496,8 @@ eval frame[s.v1].double_val = double(frame[s.v2].int_val)
 
 internal-op Coerce-DI-Vec
 type VV
-eval delete frame[s.v1].raw_vector_val
-eval frame[s.v1].raw_vector_val = vec_coerce_DI(frame[s.v2].raw_vector_val)
+eval delete frame[s.v1].vector_val
+eval frame[s.v1].vector_val = vec_coerce_DI(frame[s.v2].vector_val)
 
 internal-op Coerce-DU
 type VV
@@ -505,8 +505,8 @@ eval frame[s.v1].double_val = double(frame[s.v2].uint_val)
 
 internal-op Coerce-DU-Vec
 type VV
-eval delete frame[s.v1].raw_vector_val
-eval frame[s.v1].raw_vector_val = vec_coerce_DU(frame[s.v2].raw_vector_val)
+eval delete frame[s.v1].vector_val
+eval frame[s.v1].vector_val = vec_coerce_DU(frame[s.v2].vector_val)
 
 direct-unary-op Record-Coerce RecordCoerce
 
@@ -536,35 +536,35 @@ direct-unary-op Vector-Coerce VectorCoerce
 
 internal-op Vector-Coerce
 type VV
-eval auto raw = frame[s.v2].raw_vector_val
-eval if ( raw->size() > 0 ) { run_time_error(error_flag, s.stmt, "coercion of non-empty vector"); break; }
+eval auto vec = *frame[s.v2].vector_val->ConstVec()
+eval if ( vec.size() > 0 ) { run_time_error(error_flag, s.stmt, "coercion of non-empty vector"); break; }
 eval auto t = s.t->Ref()->AsVectorType();
 eval auto vv_p = make_intrusive<VectorVal>(t)
-eval delete frame[s.v1].raw_vector_val
-eval frame[s.v1].raw_vector_val = to_raw_vector(vv_p.get())
+eval delete frame[s.v1].vector_val
+eval frame[s.v1].vector_val = to_AS_vector(vv_p.get(), false)
 
 ########## Aggregate Assignments ##########
 
 op Vector-Elem-Assign
 type VVV
-eval auto& vec = (*frame[s.v1].raw_vector_val)
+eval auto& vec = *frame[s.v1].vector_val->ModVec()
 eval vec[frame[s.v2].int_val] = frame[s.v3]
 
 op Vector-Elem-Assign
 type VVC
-eval auto& vec = (*frame[s.v1].raw_vector_val)
+eval auto& vec = *frame[s.v1].vector_val->ModVec()
 eval vec[frame[s.v2].int_val] = s.c
 
 # This version is used when the constant is the index, not the new value.
 op Vector-Elem-Assign2
 type VVC
-eval auto& vec = (*frame[s.v1].raw_vector_val)
+eval auto& vec = *frame[s.v1].vector_val->ModVec()
 eval vec[s.c.int_val] = frame[s.v3]
 
 # ... and when both are, and we've assigned the value to a temporary.
 op Vector-Elem-Assign
 type VCi
-eval auto& vec = (*frame[s.v1].raw_vector_val)
+eval auto& vec = *frame[s.v1].vector_val->ModVec()
 eval vec[s.c.int_val] = frame[s.v2]
 
 op Field-LHS-Assign
@@ -730,7 +730,7 @@ eval }
 internal-op Init-Vector-Loop
 type VV
 eval auto ii = new IterInfo
-eval ii->vv = frame[s.v2].raw_vector_val
+eval ii->vv = frame[s.v2].vector_val->ConstVec()
 eval ii->vec_type = s.t->AsVectorType()
 eval ii->iter = 0
 eval ii->n = ii->vv->size()
@@ -845,8 +845,8 @@ eval frame[s.v1].record_val = new RecordVal(s.t->AsRecordType())
 
 internal-op Init-Vector
 type V
-eval delete frame[s.v1].raw_vector_val
-eval frame[s.v1].raw_vector_val = new AS_vector;
+eval delete frame[s.v1].vector_val
+eval frame[s.v1].vector_val = new AS_VectorMgr(new AS_vector, nullptr);
 
 internal-op Init-Table
 type V

@@ -38,6 +38,11 @@ const char* abstract_op_name(AbstractOp op)
 	}
 
 
+// Class used to manage vectors - only needed to support sync'ing them
+// with Val*'s.
+class AS_VectorMgr;
+
+// The underlying "raw" vector.
 typedef vector<AS_ValUnion> AS_vector;
 
 struct IterInfo {
@@ -48,7 +53,7 @@ struct IterInfo {
 	vector<int> loop_vars;
 	vector<BroType*> loop_var_types;
 
-	AS_vector* vv;
+	const AS_vector* vv;
 	VectorType* vec_type;
 
 	BroString* s;
@@ -85,7 +90,7 @@ union AS_ValUnion {
 	// Convert to a Bro value.
 	IntrusivePtr<Val> ToVal(BroType* t) const;
 
-	// Conversion between raw and interpreted forms of vectors.
+	// Conversion between AS and interpreted forms of vectors.
 	IntrusivePtr<VectorVal> ToVector(BroType* t) const;
 
 	// Used for bool, int.
@@ -103,7 +108,7 @@ union AS_ValUnion {
 	BroString* string_val;
 	IPAddr* addr_val;
 	IPPrefix* subnet_val;
-	AS_vector* raw_vector_val;
+	AS_VectorMgr* vector_val;
 
 	// The types are all variants of Val (or BroType).  For memory
 	// management, in the AM frame we shadow these with IntrusivePtr's.
@@ -128,11 +133,12 @@ union AS_ValUnion {
 	// Used for loading/spilling globals.
 	ID* id_val;
 
-	// Only used when we want to clear any pointer via OP_CLEAR_V.
+	// Only used when we clear pointers on entry, and that's just
+	// to lazily avoid doing a switch like IsNil() does.
 	void* void_val;
 };
 
-static AS_vector* to_raw_vector(Val* vec);
+static AS_VectorMgr* to_AS_vector(Val* vec, bool track_val);
 
 AS_ValUnion::AS_ValUnion(Val* v, BroType* t, const BroObj* o, bool& error)
 	{
@@ -179,7 +185,7 @@ AS_ValUnion::AS_ValUnion(Val* v, BroType* t, const BroObj* o, bool& error)
 	case TYPE_PATTERN:	re_val = v->AsPatternVal(); break;
 	case TYPE_RECORD:	record_val = v->AsRecordVal(); break;
 	case TYPE_TABLE:	table_val = v->AsTableVal(); break;
-	case TYPE_VECTOR:	raw_vector_val = to_raw_vector(v); break;
+	case TYPE_VECTOR:	vector_val = to_AS_vector(v, true); break;
 
 	case TYPE_STRING:
 		string_val = new BroString(*v->AsString());
@@ -270,17 +276,46 @@ IntrusivePtr<Val> AS_ValUnion::ToVal(BroType* t) const
 	return {AdoptRef{}, v};
 	}
 
+class AS_VectorMgr {
+public:
+	AS_VectorMgr(AS_vector* _vec, VectorVal* _v)
+		{
+		vec = _vec;
+		v = _v;
+		if ( v )
+			Ref(v);
+		is_clean = true;
+		}
+
+	~AS_VectorMgr()
+		{
+		delete vec;
+		if ( v )
+			Unref(v);
+		}
+
+	const AS_vector* ConstVec() const	{ return vec; }
+	AS_vector* ModVec()	{ is_clean = false; return vec; }
+
+	bool IsClean() const	{ return is_clean || ! v; }
+
+protected:
+	AS_vector* vec;
+	VectorVal* v;
+	bool is_clean;
+};
+
 IntrusivePtr<VectorVal> AS_ValUnion::ToVector(BroType* t) const
 	{
 	auto vt = t->AsVectorType();
 	auto yt = vt->YieldType();
-	auto& raw = *raw_vector_val;
-	int n = raw_vector_val->size();
+	auto& vec = *vector_val->ConstVec();
+	int n = vec.size();
 
 	auto v = make_intrusive<VectorVal>(vt);
 	for ( int i = 0; i < n; ++i )
 		{
-		auto& vr = raw[i];
+		auto& vr = vec[i];
 
 		if ( vr.IsNil(vt) )
 			continue;
@@ -291,7 +326,7 @@ IntrusivePtr<VectorVal> AS_ValUnion::ToVector(BroType* t) const
 	return v;
 	}
 
-AS_vector* to_raw_vector(Val* vec)
+AS_VectorMgr* to_AS_vector(Val* vec, bool track_val)
 	{
 	auto v = vec->AsVector();
 	auto t = vec->Type()->AsVectorType();
@@ -307,7 +342,7 @@ AS_vector* to_raw_vector(Val* vec)
 		else
 			raw->push_back(AS_ValUnion(elem, yt, vec, error));
 
-	return raw;
+	return new AS_VectorMgr(raw, track_val ? vec->AsVectorVal() : nullptr);
 	}
 
 // Possible types of statement operands in terms of which
@@ -809,19 +844,20 @@ void AbstractMachine::StmtDescribe(ODesc* d) const
 	d->Add("compiled code");
 	}
 
-static void vec_exec(AbstractOp op, AS_vector*& v1, const AS_vector* v2);
+static void vec_exec(AbstractOp op, AS_VectorMgr*& v1, const AS_VectorMgr* v2);
 
-static void vec_exec(AbstractOp op, AS_vector*& v1, const AS_vector* v2,
-			const AS_vector* v3);
+static void vec_exec(AbstractOp op, AS_VectorMgr*& v1, const AS_VectorMgr* v2,
+			const AS_VectorMgr* v3);
 
 // Vector coercion.
 #define VEC_COERCE(tag, lhs_accessor, cast, rhs_accessor) \
-	static AS_vector* vec_coerce_##tag(AS_vector* v) \
+	static AS_VectorMgr* vec_coerce_##tag(AS_VectorMgr* vec) \
 		{ \
+		auto v = vec->ConstVec(); \
 		auto res = new AS_vector; \
 		for ( unsigned int i = 0; i < v->size(); ++i ) \
 			(*res)[i].lhs_accessor = cast((*v)[i].rhs_accessor); \
-		return res; \
+		return new AS_VectorMgr(res, nullptr); \
 		}
 
 VEC_COERCE(IU, int_val, bro_int_t, uint_val)
@@ -895,7 +931,7 @@ IntrusivePtr<Val> AbstractMachine::DoExec(Frame* f, int start_pc,
 		case TYPE_ADDR:		delete frame[s].addr_val; break;
 		case TYPE_SUBNET:	delete frame[s].subnet_val; break;
 		case TYPE_STRING:	delete frame[s].string_val; break;
-		case TYPE_VECTOR:	delete frame[s].raw_vector_val; break;
+		case TYPE_VECTOR:	delete frame[s].vector_val; break;
 
 		default:
 			reporter->InternalError("bad type tag for managed slots");
@@ -2251,7 +2287,7 @@ TraversalCode ResumptionAM::Traverse(TraversalCallback* cb) const
 	}
 
 // Unary vector operation of v1 <vec-op> v2.
-static void vec_exec(AbstractOp op, AS_vector*& v1, const AS_vector* v2)
+static void vec_exec(AbstractOp op, AS_VectorMgr*& v1, const AS_VectorMgr* v2)
 	{
 	// We could speed this up further still by gen'ing up an
 	// instance of the loop inside each switch case (in which
@@ -2259,12 +2295,16 @@ static void vec_exec(AbstractOp op, AS_vector*& v1, const AS_vector* v2)
 	// into the Exec method).  But that seems like a lot of
 	// code bloat for only a very modest gain.
 
-	if ( v1 )
-		v1->resize(v2->size());
-	else
-		v1 = new AS_vector(v2->size());
+	auto& vec2 = *v2->ConstVec();
 
-	for ( unsigned int i = 0; i < v2->size(); ++i )
+	if ( v1 )
+		v1->ModVec()->resize(vec2.size());
+	else
+		v1 = new AS_VectorMgr(new AS_vector(vec2.size()), nullptr);
+
+	auto& vec1 = *v1->ModVec();
+
+	for ( unsigned int i = 0; i < vec2.size(); ++i )
 		switch ( op ) {
 
 #include "CompilerVec1EvalDefs.h"
@@ -2275,17 +2315,22 @@ static void vec_exec(AbstractOp op, AS_vector*& v1, const AS_vector* v2)
 	}
 
 // Binary vector operation of v1 = v2 <vec-op> v3.
-static void vec_exec(AbstractOp op, AS_vector*& v1, const AS_vector* v2,
-			const AS_vector* v3)
+static void vec_exec(AbstractOp op, AS_VectorMgr*& v1, const AS_VectorMgr* v2,
+			const AS_VectorMgr* v3)
 	{
 	// See comment above re further speed-up.
 
-	if ( v1 )
-		v1->resize(v2->size());
-	else
-		v1 = new AS_vector(v2->size());
+	auto& vec2 = *v2->ConstVec();
+	auto& vec3 = *v3->ConstVec();
 
-	for ( unsigned int i = 0; i < v2->size(); ++i )
+	if ( v1 )
+		v1->ModVec()->resize(vec2.size());
+	else
+		v1 = new AS_VectorMgr(new AS_vector(vec2.size()), nullptr);
+
+	auto& vec1 = *v1->ModVec();
+
+	for ( unsigned int i = 0; i < vec2.size(); ++i )
 		switch ( op ) {
 
 #include "CompilerVec2EvalDefs.h"

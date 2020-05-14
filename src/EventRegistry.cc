@@ -6,7 +6,7 @@
 EventRegistry::EventRegistry() = default;
 EventRegistry::~EventRegistry() noexcept = default;
 
-EventHandlerPtr EventRegistry::Register(const char* name)
+EventHandlerPtr EventRegistry::Register(std::string_view name)
 	{
 	// If there already is an entry in the registry, we have a
 	// local handler on the script layer.
@@ -18,7 +18,7 @@ EventHandlerPtr EventRegistry::Register(const char* name)
 		return h;
 		}
 
-	h = new EventHandler(name);
+	h = new EventHandler(std::string(name));
 	event_registry->Register(h);
 
 	h->SetUsed();
@@ -31,7 +31,7 @@ void EventRegistry::Register(EventHandlerPtr handler)
 	handlers[std::string(handler->Name())] = std::unique_ptr<EventHandler>(handler.Ptr());
 	}
 
-EventHandler* EventRegistry::Lookup(const std::string& name)
+EventHandler* EventRegistry::Lookup(std::string_view name)
 	{
 	auto it = handlers.find(name);
 	if ( it != handlers.end() )
@@ -106,7 +106,7 @@ void EventRegistry::PrintDebug()
 		}
 	}
 
-void EventRegistry::SetErrorHandler(const std::string& name)
+void EventRegistry::SetErrorHandler(std::string_view name)
 	{
 	EventHandler* eh = Lookup(name);
 
@@ -117,6 +117,6 @@ void EventRegistry::SetErrorHandler(const std::string& name)
 		}
 
 	reporter->InternalWarning("unknown event handler '%s' in SetErrorHandler()",
-	                          name.c_str());
+	                          std::string(name).c_str());
 	}
 

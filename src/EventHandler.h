@@ -13,10 +13,10 @@ class FuncType;
 
 class EventHandler {
 public:
-	explicit EventHandler(const char* name);
+	explicit EventHandler(std::string name);
 	~EventHandler();
 
-	const char* Name()	{ return name; }
+	const char* Name()	{ return name.data(); }
 	Func* LocalHandler()	{ return local; }
 	FuncType* FType(bool check_export = true);
 
@@ -55,7 +55,7 @@ public:
 private:
 	void NewEvent(const zeek::Args& vl);	// Raise new_event() meta event.
 
-	const char* name;
+	std::string name;
 	Func* local;
 	FuncType* type;
 	bool used;		// this handler is indeed used somewhere

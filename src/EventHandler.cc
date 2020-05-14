@@ -10,9 +10,9 @@
 #include "broker/Manager.h"
 #include "broker/Data.h"
 
-EventHandler::EventHandler(const char* arg_name)
+EventHandler::EventHandler(std::string arg_name)
 	{
-	name = copy_string(arg_name);
+	name = std::move(arg_name);
 	used = false;
 	local = nullptr;
 	type = nullptr;
@@ -24,7 +24,6 @@ EventHandler::EventHandler(const char* arg_name)
 EventHandler::~EventHandler()
 	{
 	Unref(local);
-	delete [] name;
 	}
 
 EventHandler::operator bool() const
@@ -39,7 +38,7 @@ FuncType* EventHandler::FType(bool check_export)
 	if ( type )
 		return type;
 
-	const auto& id = lookup_ID(name, current_module.c_str(), false, false,
+	const auto& id = lookup_ID(name.data(), current_module.c_str(), false, false,
 	                           check_export);
 
 	if ( ! id )

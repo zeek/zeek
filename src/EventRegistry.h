@@ -5,6 +5,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 class EventHandler;
@@ -23,12 +24,12 @@ public:
 	 * @param name  The name of the event handler to lookup/register.
 	 * @return  The event handler.
 	 */
-	EventHandlerPtr Register(const char* name);
+	EventHandlerPtr Register(std::string_view name);
 
 	void Register(EventHandlerPtr handler);
 
 	// Return nil if unknown.
-	EventHandler* Lookup(const std::string& name);
+	EventHandler* Lookup(std::string_view name);
 
 	// Returns a list of all local handlers that match the given pattern.
 	// Passes ownership of list.
@@ -38,7 +39,7 @@ public:
 	// Marks a handler as handling errors. Error handler will not be called
 	// recursively to avoid infinite loops in case they trigger an error
 	// themselves.
-	void SetErrorHandler(const std::string& name);
+	void SetErrorHandler(std::string_view name);
 
 	string_list UnusedHandlers();
 	string_list UsedHandlers();
@@ -47,7 +48,7 @@ public:
 	void PrintDebug();
 
 private:
-	std::map<std::string, std::unique_ptr<EventHandler>> handlers;
+	std::map<std::string, std::unique_ptr<EventHandler>, std::less<>> handlers;
 };
 
 extern EventRegistry* event_registry;

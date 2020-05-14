@@ -225,9 +225,9 @@ ReaderBackend* Manager::CreateBackend(ReaderFrontend* frontend, EnumVal* tag)
 bool Manager::CreateStream(Stream* info, RecordVal* description)
 	{
 	RecordType* rtype = description->GetType()->AsRecordType();
-	if ( ! ( same_type(rtype, BifType::Record::Input::TableDescription, false)
-		|| same_type(rtype, BifType::Record::Input::EventDescription, false)
-		|| same_type(rtype, BifType::Record::Input::AnalysisDescription, false) ) )
+	if ( ! ( same_type(rtype, zeek::BifType::Record::Input::TableDescription.get(), false)
+		|| same_type(rtype, zeek::BifType::Record::Input::EventDescription.get(), false)
+		|| same_type(rtype, zeek::BifType::Record::Input::AnalysisDescription.get(), false) ) )
 		{
 		reporter->Error("Stream description argument not of right type for new input stream");
 		return false;
@@ -311,7 +311,7 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 bool Manager::CreateEventStream(RecordVal* fval)
 	{
 	RecordType* rtype = fval->GetType()->AsRecordType();
-	if ( ! same_type(rtype, BifType::Record::Input::EventDescription, false) )
+	if ( ! same_type(rtype, zeek::BifType::Record::Input::EventDescription.get(), false) )
 		{
 		reporter->Error("EventDescription argument not of right type");
 		return false;
@@ -344,13 +344,13 @@ bool Manager::CreateEventStream(RecordVal* fval)
 		return false;
 		}
 
-	if ( ! same_type(args[1].get(), BifType::Enum::Input::Event, false) )
+	if ( ! same_type(args[1].get(), zeek::BifType::Enum::Input::Event.get(), false) )
 		{
 		reporter->Error("Input stream %s: Event's second attribute must be of type Input::Event", stream_name.c_str());
 		return false;
 		}
 
-	if ( ! same_type(args[0].get(), BifType::Record::Input::EventDescription, false) )
+	if ( ! same_type(args[0].get(), zeek::BifType::Record::Input::EventDescription.get(), false) )
 		{
 		reporter->Error("Input stream %s: Event's first attribute must be of type Input::EventDescription", stream_name.c_str());
 		return false;
@@ -464,7 +464,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 bool Manager::CreateTableStream(RecordVal* fval)
 	{
 	RecordType* rtype = fval->GetType()->AsRecordType();
-	if ( ! same_type(rtype, BifType::Record::Input::TableDescription, false) )
+	if ( ! same_type(rtype, zeek::BifType::Record::Input::TableDescription.get(), false) )
 		{
 		reporter->Error("TableDescription argument not of right type");
 		return false;
@@ -572,13 +572,13 @@ bool Manager::CreateTableStream(RecordVal* fval)
 			return false;
 			}
 
-		if ( ! same_type(args[0].get(), BifType::Record::Input::TableDescription, false) )
+		if ( ! same_type(args[0].get(), zeek::BifType::Record::Input::TableDescription.get(), false) )
 			{
 			reporter->Error("Input stream %s: Table event's first attribute must be of type Input::TableDescription", stream_name.c_str());
 			return false;
 			}
 
-		if ( ! same_type(args[1].get(), BifType::Enum::Input::Event, false) )
+		if ( ! same_type(args[1].get(), zeek::BifType::Enum::Input::Event.get(), false) )
 			{
 			reporter->Error("Input stream %s: Table event's second attribute must be of type Input::Event", stream_name.c_str());
 			return false;
@@ -719,13 +719,13 @@ bool Manager::CheckErrorEventTypes(const std::string& stream_name, const Func* e
 		return false;
 		}
 
-	if ( table && ! same_type(args[0].get(), BifType::Record::Input::TableDescription, false) )
+	if ( table && ! same_type(args[0].get(), zeek::BifType::Record::Input::TableDescription.get(), false) )
 		{
 		reporter->Error("Input stream %s: Error event's first attribute must be of type Input::TableDescription", stream_name.c_str());
 		return false;
 		}
 
-	if ( ! table && ! same_type(args[0].get(), BifType::Record::Input::EventDescription, false) )
+	if ( ! table && ! same_type(args[0].get(), zeek::BifType::Record::Input::EventDescription.get(), false) )
 		{
 		reporter->Error("Input stream %s: Error event's first attribute must be of type Input::EventDescription", stream_name.c_str());
 		return false;
@@ -737,7 +737,7 @@ bool Manager::CheckErrorEventTypes(const std::string& stream_name, const Func* e
 		return false;
 		}
 
-	if ( ! same_type(args[2].get(), BifType::Enum::Reporter::Level, false) )
+	if ( ! same_type(args[2].get(), zeek::BifType::Enum::Reporter::Level.get(), false) )
 		{
 		reporter->Error("Input stream %s: Error event's third attribute must be of type Reporter::Level", stream_name.c_str());
 		return false;
@@ -750,7 +750,7 @@ bool Manager::CreateAnalysisStream(RecordVal* fval)
 	{
 	RecordType* rtype = fval->GetType()->AsRecordType();
 
-	if ( ! same_type(rtype, BifType::Record::Input::AnalysisDescription, false) )
+	if ( ! same_type(rtype, zeek::BifType::Record::Input::AnalysisDescription.get(), false) )
 		{
 		reporter->Error("AnalysisDescription argument not of right type");
 		return false;
@@ -1072,7 +1072,7 @@ void Manager::SendEntry(ReaderFrontend* reader, Value* *vals)
 
 	else if ( i->stream_type == EVENT_STREAM )
 		{
-		EnumVal* type = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW).release();
+		EnumVal* type = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW).release();
 		readFields = SendEventStreamEvent(i, type, vals);
 		}
 
@@ -1177,9 +1177,9 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 		if ( ! pred_convert_error )
 			{
 			if ( updated )
-				ev = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_CHANGED).release();
+				ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_CHANGED).release();
 			else
-				ev = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW).release();
+				ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW).release();
 
 			bool result;
 			if ( stream->num_val_fields > 0 ) // we have values
@@ -1278,13 +1278,13 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 		else if ( updated )
 			{ // in case of update send back the old value.
 			assert ( stream->num_val_fields > 0 );
-			ev = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_CHANGED).release();
+			ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_CHANGED).release();
 			assert ( oldval != nullptr );
 			SendEvent(stream->event, 4, stream->description->Ref(), ev, predidx, oldval.release());
 			}
 		else
 			{
-			ev = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW).release();
+			ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW).release();
 			if ( stream->num_val_fields == 0 )
 				{
 				Ref(stream->description);
@@ -1347,7 +1347,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 			val = stream->tab->Lookup(idx.get());
 			assert(val != nullptr);
 			predidx = ListValToRecordVal(idx.get(), stream->itype, &startpos);
-			ev = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED).release();
+			ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED).release();
 			}
 
 		if ( stream->pred )
@@ -1454,7 +1454,7 @@ void Manager::Put(ReaderFrontend* reader, Value* *vals)
 
 	else if ( i->stream_type == EVENT_STREAM )
 		{
-		EnumVal* type = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW).release();
+		EnumVal* type = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW).release();
 		readFields = SendEventStreamEvent(i, type, vals);
 		}
 
@@ -1591,9 +1591,9 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 			else
 				{
 				if ( updated )
-					ev = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_CHANGED).release();
+					ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_CHANGED).release();
 				else
-					ev = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW).release();
+					ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW).release();
 
 				bool result;
 				if ( stream->num_val_fields > 0 ) // we have values
@@ -1632,14 +1632,14 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 					{
 					// in case of update send back the old value.
 					assert ( stream->num_val_fields > 0 );
-					ev = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_CHANGED).release();
+					ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_CHANGED).release();
 					assert ( oldval != nullptr );
 					SendEvent(stream->event, 4, stream->description->Ref(),
 					          ev, predidx, oldval.release());
 					}
 				else
 					{
-					ev = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW).release();
+					ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW).release();
 					if ( stream->num_val_fields == 0 )
 						SendEvent(stream->event, 4, stream->description->Ref(),
 								ev, predidx);
@@ -1724,7 +1724,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 					Unref(predidx);
 				else
 					{
-					EnumVal* ev = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED).release();
+					EnumVal* ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED).release();
 
 					streamresult = CallPred(stream->pred, 3, ev, predidx, IntrusivePtr{val}.release());
 
@@ -1743,7 +1743,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 				{
 				Ref(idxval);
 				assert(val != nullptr);
-				EnumVal* ev = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED).release();
+				EnumVal* ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED).release();
 				SendEvent(stream->event, 4, stream->description->Ref(), ev, idxval, IntrusivePtr{val}.release());
 				}
 			}
@@ -1758,7 +1758,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 
 	else if ( i->stream_type == EVENT_STREAM  )
 		{
-		EnumVal* type = BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED).release();
+		EnumVal* type = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED).release();
 		readVals = SendEventStreamEvent(i, type, vals);
 		success = true;
 		}
@@ -2715,15 +2715,15 @@ void Manager::ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, co
 		switch (et)
 			{
 			case ErrorType::INFO:
-				ev = BifType::Enum::Reporter::Level->GetVal(BifEnum::Reporter::INFO).release();
+				ev = zeek::BifType::Enum::Reporter::Level->GetVal(BifEnum::Reporter::INFO).release();
 				break;
 
 			case ErrorType::WARNING:
-				ev = BifType::Enum::Reporter::Level->GetVal(BifEnum::Reporter::WARNING).release();
+				ev = zeek::BifType::Enum::Reporter::Level->GetVal(BifEnum::Reporter::WARNING).release();
 				break;
 
 			case ErrorType::ERROR:
-				ev = BifType::Enum::Reporter::Level->GetVal(BifEnum::Reporter::ERROR).release();
+				ev = zeek::BifType::Enum::Reporter::Level->GetVal(BifEnum::Reporter::ERROR).release();
 				break;
 
 			default:

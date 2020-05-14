@@ -47,7 +47,7 @@ VectorVal* proc_host_address_list(const BroAnalyzer a, const KRB_Host_Addresses*
 
 RecordVal* proc_host_address(const BroAnalyzer a, const KRB_Host_Address* addr)
 {
-	RecordVal* rv = new RecordVal(BifType::Record::KRB::Host_Address);
+	RecordVal* rv = new RecordVal(zeek::BifType::Record::KRB::Host_Address);
 	const auto& addr_bytes = addr->address()->data()->content();
 
 	switch ( binary_to_int64(addr->addr_type()->encoding()->content()) )
@@ -85,7 +85,7 @@ RecordVal* proc_host_address(const BroAnalyzer a, const KRB_Host_Address* addr)
 			break;
 		}
 
-	RecordVal* unk = new RecordVal(BifType::Record::KRB::Type_Value);
+	RecordVal* unk = new RecordVal(zeek::BifType::Record::KRB::Type_Value);
 	unk->Assign(0, asn1_integer_to_val(addr->addr_type(), TYPE_COUNT));
 	unk->Assign(1, to_stringval(addr_bytes));
 	rv->Assign(2, unk);
@@ -107,7 +107,7 @@ IntrusivePtr<VectorVal> proc_tickets(const KRB_Ticket_Sequence* list)
 
 IntrusivePtr<RecordVal> proc_ticket(const KRB_Ticket* ticket)
 	{
-	auto rv = make_intrusive<RecordVal>(BifType::Record::KRB::Ticket);
+	auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::KRB::Ticket);
 
 	rv->Assign(0, asn1_integer_to_val(ticket->tkt_vno()->data(), TYPE_COUNT));
 	rv->Assign(1, to_stringval(ticket->realm()->data()->content()));

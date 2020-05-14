@@ -57,7 +57,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_router_option(v: OptionValue): bool
 		%{
-		auto router_list = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::DHCP::Addrs});
+		auto router_list = make_intrusive<VectorVal>(zeek::BifType::Vector::DHCP::Addrs);
 		int num_routers = ${v.router_list}->size();
 		vector<uint32>* rlist = ${v.router_list};
 
@@ -91,7 +91,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_timeserver_option(v: OptionValue): bool
 		%{
-		auto timeserver_list = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::DHCP::Addrs});
+		auto timeserver_list = make_intrusive<VectorVal>(zeek::BifType::Vector::DHCP::Addrs);
 		int num_servers = ${v.timeserver_list}->size();
 		vector<uint32>* rlist = ${v.timeserver_list};
 
@@ -125,7 +125,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_nameserver_option(v: OptionValue): bool
 		%{
-		auto nameserver_list = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::DHCP::Addrs});
+		auto nameserver_list = make_intrusive<VectorVal>(zeek::BifType::Vector::DHCP::Addrs);
 		int num_servers = ${v.nameserver_list}->size();
 		vector<uint32>* rlist = ${v.nameserver_list};
 
@@ -159,7 +159,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_dns_server_option(v: OptionValue): bool
 		%{
-		auto server_list = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::DHCP::Addrs});
+		auto server_list = make_intrusive<VectorVal>(zeek::BifType::Vector::DHCP::Addrs);
 		int num_servers = ${v.dns_server_list}->size();
 		vector<uint32>* rlist = ${v.dns_server_list};
 
@@ -298,7 +298,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_ntpserver_option(v: OptionValue): bool
 		%{
-		auto ntpserver_list = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::DHCP::Addrs});
+		auto ntpserver_list = make_intrusive<VectorVal>(zeek::BifType::Vector::DHCP::Addrs);
 		int num_servers = ${v.ntpserver_list}->size();
 		vector<uint32>* rlist = ${v.ntpserver_list};
 
@@ -356,7 +356,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_nbns_option(v: OptionValue): bool
 		%{
-		auto server_list = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::DHCP::Addrs});
+		auto server_list = make_intrusive<VectorVal>(zeek::BifType::Vector::DHCP::Addrs);
 		int num_servers = ${v.nbns}->size();
 		vector<uint32>* rlist = ${v.nbns};
 
@@ -625,7 +625,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_client_id_option(v: OptionValue): bool
 		%{
-		RecordVal* client_id = new RecordVal(BifType::Record::DHCP::ClientID);
+		RecordVal* client_id = new RecordVal(zeek::BifType::Record::DHCP::ClientID);
 		client_id->Assign(0, val_mgr->Count(${v.client_id.hwtype}));
 		client_id->Assign(1, make_intrusive<StringVal>(fmt_mac(${v.client_id.hwaddr}.begin(), ${v.client_id.hwaddr}.length())));
 
@@ -685,7 +685,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_client_fqdn_option(v: OptionValue): bool
 		%{
-		RecordVal* client_fqdn = new RecordVal(BifType::Record::DHCP::ClientFQDN);
+		RecordVal* client_fqdn = new RecordVal(zeek::BifType::Record::DHCP::ClientFQDN);
 		client_fqdn->Assign(0, val_mgr->Count(${v.client_fqdn.flags}));
 		client_fqdn->Assign(1, val_mgr->Count(${v.client_fqdn.rcode1}));
 		client_fqdn->Assign(2, val_mgr->Count(${v.client_fqdn.rcode2}));
@@ -743,14 +743,14 @@ refine flow DHCP_Flow += {
 
 	function process_relay_agent_inf_option(v: OptionValue): bool
 		%{
-		auto relay_agent_sub_opt = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::DHCP::SubOpts});
+		auto relay_agent_sub_opt = make_intrusive<VectorVal>(zeek::BifType::Vector::DHCP::SubOpts);
 
 		uint16 i = 0;
 
 		for ( auto ptrsubopt = ${v.relay_agent_inf}->begin();
 		      ptrsubopt != ${v.relay_agent_inf}->end(); ++ptrsubopt )
 			{
-			auto r = new RecordVal(BifType::Record::DHCP::SubOpt);
+			auto r = new RecordVal(zeek::BifType::Record::DHCP::SubOpt);
 			r->Assign(0, val_mgr->Count((*ptrsubopt)->code()));
 			r->Assign(1, to_stringval((*ptrsubopt)->value()));
 

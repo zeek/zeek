@@ -41,8 +41,8 @@ function Files::__set_reassembly_buffer%(file_id: string, max: count%): bool
 ## :zeek:see:`Files::add_analyzer`.
 function Files::__add_analyzer%(file_id: string, tag: Files::Tag, args: any%): bool
 	%{
-	using BifType::Record::Files::AnalyzerArgs;
-	auto rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
+	using zeek::BifType::Record::Files::AnalyzerArgs;
+	auto rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs.get());
 	bool result = file_mgr->AddAnalyzer(file_id->CheckString(),
 	                                    file_mgr->GetComponentTag(tag), rv.get());
 	return val_mgr->Bool(result);
@@ -51,8 +51,8 @@ function Files::__add_analyzer%(file_id: string, tag: Files::Tag, args: any%): b
 ## :zeek:see:`Files::remove_analyzer`.
 function Files::__remove_analyzer%(file_id: string, tag: Files::Tag, args: any%): bool
 	%{
-	using BifType::Record::Files::AnalyzerArgs;
-	auto rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
+	using zeek::BifType::Record::Files::AnalyzerArgs;
+	auto rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs.get());
 	bool result = file_mgr->RemoveAnalyzer(file_id->CheckString(),
 	                                       file_mgr->GetComponentTag(tag) , rv.get());
 	return val_mgr->Bool(result);

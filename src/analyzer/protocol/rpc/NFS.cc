@@ -251,7 +251,7 @@ bool NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 			// Otherwise DeliverRPC would complain about
 			// excess_RPC.
 			n = 0;
-			reply = BifType::Enum::NFS3::proc_t->GetVal(c->Proc()).release();
+			reply = zeek::BifType::Enum::NFS3::proc_t->GetVal(c->Proc()).release();
 			event = nfs_proc_not_implemented;
 			}
 		else
@@ -333,9 +333,9 @@ zeek::Args NFS_Interp::event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_
 	for ( size_t i = 0; i < c->AuxGIDs().size(); ++i )
 		auxgids->Assign(i, val_mgr->Count(c->AuxGIDs()[i]));
 
-	auto info = make_intrusive<RecordVal>(BifType::Record::NFS3::info_t);
-	info->Assign(0, BifType::Enum::rpc_status->GetVal(rpc_status));
-	info->Assign(1, BifType::Enum::NFS3::status_t->GetVal(nfs_status));
+	auto info = make_intrusive<RecordVal>(zeek::BifType::Record::NFS3::info_t);
+	info->Assign(0, zeek::BifType::Enum::rpc_status->GetVal(rpc_status));
+	info->Assign(1, zeek::BifType::Enum::NFS3::status_t->GetVal(nfs_status));
 	info->Assign(2, make_intrusive<Val>(c->StartTime(), TYPE_TIME));
 	info->Assign(3, make_intrusive<Val>(c->LastTime()-c->StartTime(), TYPE_INTERVAL));
 	info->Assign(4, val_mgr->Count(c->RPCLen()));
@@ -366,7 +366,7 @@ StringVal* NFS_Interp::nfs3_fh(const u_char*& buf, int& n)
 
 RecordVal* NFS_Interp::nfs3_sattr(const u_char*& buf, int& n)
 	{
-	RecordVal* attrs = new RecordVal(BifType::Record::NFS3::sattr_t);
+	RecordVal* attrs = new RecordVal(zeek::BifType::Record::NFS3::sattr_t);
 
 	attrs->Assign(0, nullptr); // mode
 	int mode_set_it =  extract_XDR_uint32(buf, n);
@@ -397,7 +397,7 @@ RecordVal* NFS_Interp::nfs3_sattr(const u_char*& buf, int& n)
 
 RecordVal* NFS_Interp::nfs3_sattr_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status)
 	{
-	RecordVal* rep = new RecordVal(BifType::Record::NFS3::sattr_reply_t);
+	RecordVal* rep = new RecordVal(zeek::BifType::Record::NFS3::sattr_reply_t);
 
 	if ( status == BifEnum::NFS3::NFS3ERR_OK )
 		{
@@ -415,7 +415,7 @@ RecordVal* NFS_Interp::nfs3_sattr_reply(const u_char*& buf, int& n, BifEnum::NFS
 
 RecordVal* NFS_Interp::nfs3_fattr(const u_char*& buf, int& n)
 	{
-	RecordVal* attrs = new RecordVal(BifType::Record::NFS3::fattr_t);
+	RecordVal* attrs = new RecordVal(zeek::BifType::Record::NFS3::fattr_t);
 
 	attrs->Assign(0, nfs3_ftype(buf, n));	// file type
 	attrs->Assign(1, ExtractUint32(buf, n));	// mode
@@ -438,18 +438,18 @@ RecordVal* NFS_Interp::nfs3_fattr(const u_char*& buf, int& n)
 EnumVal* NFS_Interp::nfs3_time_how(const u_char*& buf, int& n)
 	{
 	BifEnum::NFS3::time_how_t t = (BifEnum::NFS3::time_how_t)extract_XDR_uint32(buf, n);
-	return BifType::Enum::NFS3::time_how_t->GetVal(t).release();
+	return zeek::BifType::Enum::NFS3::time_how_t->GetVal(t).release();
 	}
 
 EnumVal* NFS_Interp::nfs3_ftype(const u_char*& buf, int& n)
 	{
 	BifEnum::NFS3::file_type_t t = (BifEnum::NFS3::file_type_t)extract_XDR_uint32(buf, n);
-	return BifType::Enum::NFS3::file_type_t->GetVal(t).release();
+	return zeek::BifType::Enum::NFS3::file_type_t->GetVal(t).release();
 	}
 
 RecordVal* NFS_Interp::nfs3_wcc_attr(const u_char*& buf, int& n)
 	{
-	RecordVal* attrs = new RecordVal(BifType::Record::NFS3::wcc_attr_t);
+	RecordVal* attrs = new RecordVal(zeek::BifType::Record::NFS3::wcc_attr_t);
 
 	attrs->Assign(0, ExtractUint64(buf, n));	// size
 	attrs->Assign(1, ExtractTime(buf, n));	// mtime
@@ -471,7 +471,7 @@ StringVal *NFS_Interp::nfs3_filename(const u_char*& buf, int& n)
 
 RecordVal *NFS_Interp::nfs3_diropargs(const u_char*& buf, int& n)
 	{
-	RecordVal *diropargs = new RecordVal(BifType::Record::NFS3::diropargs_t);
+	RecordVal *diropargs = new RecordVal(zeek::BifType::Record::NFS3::diropargs_t);
 
 	diropargs->Assign(0, nfs3_fh(buf, n));
 	diropargs->Assign(1, nfs3_filename(buf, n));
@@ -481,7 +481,7 @@ RecordVal *NFS_Interp::nfs3_diropargs(const u_char*& buf, int& n)
 
 RecordVal* NFS_Interp::nfs3_symlinkdata(const u_char*& buf, int& n)
 	{
-	RecordVal* symlinkdata = new RecordVal(BifType::Record::NFS3::symlinkdata_t);
+	RecordVal* symlinkdata = new RecordVal(zeek::BifType::Record::NFS3::symlinkdata_t);
 
 	symlinkdata->Assign(0, nfs3_sattr(buf, n));
 	symlinkdata->Assign(1, nfs3_nfspath(buf, n));
@@ -491,7 +491,7 @@ RecordVal* NFS_Interp::nfs3_symlinkdata(const u_char*& buf, int& n)
 
 RecordVal *NFS_Interp::nfs3_renameopargs(const u_char*& buf, int& n)
 	{
-	RecordVal *renameopargs = new RecordVal(BifType::Record::NFS3::renameopargs_t);
+	RecordVal *renameopargs = new RecordVal(zeek::BifType::Record::NFS3::renameopargs_t);
 
 	renameopargs->Assign(0, nfs3_fh(buf, n));
 	renameopargs->Assign(1, nfs3_filename(buf, n));
@@ -533,12 +533,12 @@ RecordVal* NFS_Interp::nfs3_pre_op_attr(const u_char*& buf, int& n)
 EnumVal *NFS_Interp::nfs3_stable_how(const u_char*& buf, int& n)
 	{
 	BifEnum::NFS3::stable_how_t stable = (BifEnum::NFS3::stable_how_t)extract_XDR_uint32(buf, n);
-	return BifType::Enum::NFS3::stable_how_t->GetVal(stable).release();
+	return zeek::BifType::Enum::NFS3::stable_how_t->GetVal(stable).release();
 	}
 
 RecordVal* NFS_Interp::nfs3_lookup_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status)
 	{
-	RecordVal *rep = new RecordVal(BifType::Record::NFS3::lookup_reply_t);
+	RecordVal *rep = new RecordVal(zeek::BifType::Record::NFS3::lookup_reply_t);
 
 	if ( status == BifEnum::NFS3::NFS3ERR_OK )
 		{
@@ -557,7 +557,7 @@ RecordVal* NFS_Interp::nfs3_lookup_reply(const u_char*& buf, int& n, BifEnum::NF
 
 RecordVal *NFS_Interp::nfs3_readargs(const u_char*& buf, int& n)
 	{
-	RecordVal *readargs = new RecordVal(BifType::Record::NFS3::readargs_t);
+	RecordVal *readargs = new RecordVal(zeek::BifType::Record::NFS3::readargs_t);
 
 	readargs->Assign(0, nfs3_fh(buf, n));
 	readargs->Assign(1, ExtractUint64(buf, n));  // offset
@@ -569,7 +569,7 @@ RecordVal *NFS_Interp::nfs3_readargs(const u_char*& buf, int& n)
 RecordVal* NFS_Interp::nfs3_read_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status,
 		bro_uint_t offset)
 	{
-	RecordVal *rep = new RecordVal(BifType::Record::NFS3::read_reply_t);
+	RecordVal *rep = new RecordVal(zeek::BifType::Record::NFS3::read_reply_t);
 
 	if (status == BifEnum::NFS3::NFS3ERR_OK)
 		{
@@ -591,7 +591,7 @@ RecordVal* NFS_Interp::nfs3_read_reply(const u_char*& buf, int& n, BifEnum::NFS3
 
 RecordVal* NFS_Interp::nfs3_readlink_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status)
 	{
-	RecordVal *rep = new RecordVal(BifType::Record::NFS3::readlink_reply_t);
+	RecordVal *rep = new RecordVal(zeek::BifType::Record::NFS3::readlink_reply_t);
 
 	if (status == BifEnum::NFS3::NFS3ERR_OK)
 		{
@@ -608,7 +608,7 @@ RecordVal* NFS_Interp::nfs3_readlink_reply(const u_char*& buf, int& n, BifEnum::
 
 RecordVal* NFS_Interp::nfs3_link_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status)
 	{
-	RecordVal* rep = new RecordVal(BifType::Record::NFS3::link_reply_t);
+	RecordVal* rep = new RecordVal(zeek::BifType::Record::NFS3::link_reply_t);
 
 	if ( status == BifEnum::NFS3::NFS3ERR_OK )
 		{
@@ -624,7 +624,7 @@ RecordVal* NFS_Interp::nfs3_link_reply(const u_char*& buf, int& n, BifEnum::NFS3
 
 RecordVal* NFS_Interp::nfs3_symlinkargs(const u_char*& buf, int& n)
 	{
-	RecordVal* symlinkargs = new RecordVal(BifType::Record::NFS3::symlinkargs_t);
+	RecordVal* symlinkargs = new RecordVal(zeek::BifType::Record::NFS3::symlinkargs_t);
 
 	symlinkargs->Assign(0, nfs3_diropargs(buf, n));
 	symlinkargs->Assign(1, nfs3_symlinkdata(buf, n));
@@ -634,7 +634,7 @@ RecordVal* NFS_Interp::nfs3_symlinkargs(const u_char*& buf, int& n)
 
 RecordVal* NFS_Interp::nfs3_sattrargs(const u_char*& buf, int& n)
 	{
-	RecordVal* sattrargs = new RecordVal(BifType::Record::NFS3::sattrargs_t);
+	RecordVal* sattrargs = new RecordVal(zeek::BifType::Record::NFS3::sattrargs_t);
 
 	sattrargs->Assign(0, nfs3_fh(buf, n));
 	sattrargs->Assign(1, nfs3_sattr(buf, n));
@@ -644,7 +644,7 @@ RecordVal* NFS_Interp::nfs3_sattrargs(const u_char*& buf, int& n)
 
 RecordVal* NFS_Interp::nfs3_linkargs(const u_char*& buf, int& n)
 	{
-	RecordVal* linkargs = new RecordVal(BifType::Record::NFS3::linkargs_t);
+	RecordVal* linkargs = new RecordVal(zeek::BifType::Record::NFS3::linkargs_t);
 
 	linkargs->Assign(0, nfs3_fh(buf, n));
 	linkargs->Assign(1, nfs3_diropargs(buf, n));
@@ -656,7 +656,7 @@ RecordVal *NFS_Interp::nfs3_writeargs(const u_char*& buf, int& n)
 	{
 	uint32_t bytes;
 	uint64_t offset;
-	RecordVal *writeargs = new RecordVal(BifType::Record::NFS3::writeargs_t);
+	RecordVal *writeargs = new RecordVal(zeek::BifType::Record::NFS3::writeargs_t);
 
 	writeargs->Assign(0, nfs3_fh(buf, n));
 	offset = extract_XDR_uint64(buf, n);
@@ -672,7 +672,7 @@ RecordVal *NFS_Interp::nfs3_writeargs(const u_char*& buf, int& n)
 
 RecordVal *NFS_Interp::nfs3_write_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status)
 	{
-	RecordVal *rep = new RecordVal(BifType::Record::NFS3::write_reply_t);
+	RecordVal *rep = new RecordVal(zeek::BifType::Record::NFS3::write_reply_t);
 
 	if ( status == BifEnum::NFS3::NFS3ERR_OK )
 		{
@@ -697,7 +697,7 @@ RecordVal *NFS_Interp::nfs3_write_reply(const u_char*& buf, int& n, BifEnum::NFS
 
 RecordVal* NFS_Interp::nfs3_newobj_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status)
 	{
-	RecordVal *rep = new RecordVal(BifType::Record::NFS3::newobj_reply_t);
+	RecordVal *rep = new RecordVal(zeek::BifType::Record::NFS3::newobj_reply_t);
 
 	if (status == BifEnum::NFS3::NFS3ERR_OK)
 		{
@@ -721,7 +721,7 @@ RecordVal* NFS_Interp::nfs3_newobj_reply(const u_char*& buf, int& n, BifEnum::NF
 
 RecordVal* NFS_Interp::nfs3_delobj_reply(const u_char*& buf, int& n)
 	{
-	RecordVal *rep = new RecordVal(BifType::Record::NFS3::delobj_reply_t);
+	RecordVal *rep = new RecordVal(zeek::BifType::Record::NFS3::delobj_reply_t);
 
 	// wcc_data
 	rep->Assign(0, nfs3_pre_op_attr(buf, n));
@@ -732,7 +732,7 @@ RecordVal* NFS_Interp::nfs3_delobj_reply(const u_char*& buf, int& n)
 
 RecordVal* NFS_Interp::nfs3_renameobj_reply(const u_char*& buf, int& n)
 	{
-	RecordVal *rep = new RecordVal(BifType::Record::NFS3::renameobj_reply_t);
+	RecordVal *rep = new RecordVal(zeek::BifType::Record::NFS3::renameobj_reply_t);
 
 	// wcc_data
 	rep->Assign(0, nfs3_pre_op_attr(buf, n));
@@ -745,7 +745,7 @@ RecordVal* NFS_Interp::nfs3_renameobj_reply(const u_char*& buf, int& n)
 
 RecordVal* NFS_Interp::nfs3_readdirargs(bool isplus, const u_char*& buf, int&n)
 	{
-	RecordVal *args = new RecordVal(BifType::Record::NFS3::readdirargs_t);
+	RecordVal *args = new RecordVal(zeek::BifType::Record::NFS3::readdirargs_t);
 
 	args->Assign(0, val_mgr->Bool(isplus));
 	args->Assign(1, nfs3_fh(buf, n));
@@ -762,14 +762,14 @@ RecordVal* NFS_Interp::nfs3_readdirargs(bool isplus, const u_char*& buf, int&n)
 RecordVal* NFS_Interp::nfs3_readdir_reply(bool isplus, const u_char*& buf,
 		int&n, BifEnum::NFS3::status_t status)
 	{
-	RecordVal *rep = new RecordVal(BifType::Record::NFS3::readdir_reply_t);
+	RecordVal *rep = new RecordVal(zeek::BifType::Record::NFS3::readdir_reply_t);
 
 	rep->Assign(0, val_mgr->Bool(isplus));
 
 	if ( status == BifEnum::NFS3::NFS3ERR_OK )
 		{
 		unsigned pos;
-		auto entries = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::NFS3::direntry_vec_t});
+		auto entries = make_intrusive<VectorVal>(zeek::BifType::Vector::NFS3::direntry_vec_t);
 
 		rep->Assign(1, nfs3_post_op_attr(buf,n));   // dir_attr
 		rep->Assign(2, ExtractUint64(buf,n));  // cookieverf
@@ -778,7 +778,7 @@ RecordVal* NFS_Interp::nfs3_readdir_reply(bool isplus, const u_char*& buf,
 
 		while ( extract_XDR_uint32(buf,n) )
 			{
-			RecordVal *entry = new RecordVal(BifType::Record::NFS3::direntry_t);
+			RecordVal *entry = new RecordVal(zeek::BifType::Record::NFS3::direntry_t);
 			entry->Assign(0, ExtractUint64(buf,n)); // fileid
 			entry->Assign(1, nfs3_filename(buf,n)); // fname
 			entry->Assign(2, ExtractUint64(buf,n)); // cookie

@@ -36,7 +36,7 @@ VectorVal* proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_a
 				break;
 			case PA_PW_SALT:
 				{
-				RecordVal * type_val = new RecordVal(BifType::Record::KRB::Type_Value);
+				RecordVal * type_val = new RecordVal(zeek::BifType::Record::KRB::Type_Value);
 				type_val->Assign(0, val_mgr->Count(element->data_type()));
 				type_val->Assign(1, to_stringval(element->pa_data_element()->pa_pw_salt()->encoding()->content()));
 				vv->Assign(vv->Size(), type_val);
@@ -44,7 +44,7 @@ VectorVal* proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_a
 				}
 			case PA_ENCTYPE_INFO:
 				{
-				RecordVal * type_val = new RecordVal(BifType::Record::KRB::Type_Value);
+				RecordVal * type_val = new RecordVal(zeek::BifType::Record::KRB::Type_Value);
 				type_val->Assign(0, val_mgr->Count(element->data_type()));
 				type_val->Assign(1, to_stringval(element->pa_data_element()->pf_enctype_info()->salt()));
 				vv->Assign(vv->Size(), type_val);
@@ -52,7 +52,7 @@ VectorVal* proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_a
 				}
 			case PA_ENCTYPE_INFO2:
 				{
-				RecordVal * type_val = new RecordVal(BifType::Record::KRB::Type_Value);
+				RecordVal * type_val = new RecordVal(zeek::BifType::Record::KRB::Type_Value);
 				type_val->Assign(0, val_mgr->Count(element->data_type()));
 				type_val->Assign(1, to_stringval(element->pa_data_element()->pf_enctype_info2()->salt()));
 				vv->Assign(vv->Size(), type_val);
@@ -110,7 +110,7 @@ VectorVal* proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_a
 				{
 				if ( ! is_error && element->pa_data_element()->unknown()->meta()->length() > 0 )
 					{
-					RecordVal * type_val = new RecordVal(BifType::Record::KRB::Type_Value);
+					RecordVal * type_val = new RecordVal(zeek::BifType::Record::KRB::Type_Value);
 					type_val->Assign(0, val_mgr->Count(element->data_type()));
 					type_val->Assign(1, to_stringval(element->pa_data_element()->unknown()->content()));
 					vv->Assign(vv->Size(), type_val);

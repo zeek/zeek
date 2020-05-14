@@ -18,7 +18,7 @@ EncapsulatingConn::EncapsulatingConn(Connection* c, BifEnum::Tunnel::Type t)
 
 IntrusivePtr<RecordVal> EncapsulatingConn::ToVal() const
 	{
-	auto rv = make_intrusive<RecordVal>(BifType::Record::Tunnel::EncapsulatingConn);
+	auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::Tunnel::EncapsulatingConn);
 
 	auto id_val = make_intrusive<RecordVal>(zeek::id::conn_id);
 	id_val->Assign(0, make_intrusive<AddrVal>(src_addr));
@@ -26,7 +26,7 @@ IntrusivePtr<RecordVal> EncapsulatingConn::ToVal() const
 	id_val->Assign(2, make_intrusive<AddrVal>(dst_addr));
 	id_val->Assign(3, val_mgr->Port(ntohs(dst_port), proto));
 	rv->Assign(0, std::move(id_val));
-	rv->Assign(1, BifType::Enum::Tunnel::Type->GetVal(type));
+	rv->Assign(1, zeek::BifType::Enum::Tunnel::Type->GetVal(type));
 
 	rv->Assign(2, make_intrusive<StringVal>(uid.Base62("C").c_str()));
 

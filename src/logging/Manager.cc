@@ -231,7 +231,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 	{
 	RecordType* rtype = sval->GetType()->AsRecordType();
 
-	if ( ! same_type(rtype, BifType::Record::Log::Stream, false) )
+	if ( ! same_type(rtype, zeek::BifType::Record::Log::Stream.get(), false) )
 		{
 		reporter->Error("sval argument not of right type");
 		return false;
@@ -534,7 +534,7 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	{
 	RecordType* rtype = fval->GetType()->AsRecordType();
 
-	if ( ! same_type(rtype, BifType::Record::Log::Filter, false) )
+	if ( ! same_type(rtype, zeek::BifType::Record::Log::Filter.get(), false) )
 		{
 		reporter->Error("filter argument not of right type");
 		return false;
@@ -1514,7 +1514,7 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 		return true;
 
 	// Create the RotationInfo record.
-	auto info = make_intrusive<RecordVal>(BifType::Record::Log::RotationInfo);
+	auto info = make_intrusive<RecordVal>(zeek::BifType::Record::Log::RotationInfo);
 	info->Assign(0, winfo->type->Ref());
 	info->Assign(1, make_intrusive<StringVal>(new_name));
 	info->Assign(2, make_intrusive<StringVal>(winfo->writer->Info().path));

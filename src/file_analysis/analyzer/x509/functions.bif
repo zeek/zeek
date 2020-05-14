@@ -13,7 +13,7 @@
 // construct an error record
 IntrusivePtr<RecordVal> x509_result_record(uint64_t num, const char* reason, Val* chainVector = nullptr)
 	{
-	auto rrecord = make_intrusive<RecordVal>(BifType::Record::X509::Result);
+	auto rrecord = make_intrusive<RecordVal>(zeek::BifType::Record::X509::Result);
 
 	rrecord->Assign(0, val_mgr->Int(num));
 	rrecord->Assign(1, make_intrusive<StringVal>(reason));

@@ -20,7 +20,7 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_close_response )
 			{
-			auto resp = make_intrusive<RecordVal>(BifType::Record::SMB2::CloseResponse);
+			auto resp = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::CloseResponse);
 
 			resp->Assign(0, val_mgr->Count(${val.alloc_size}));
 			resp->Assign(1, val_mgr->Count(${val.eof}));

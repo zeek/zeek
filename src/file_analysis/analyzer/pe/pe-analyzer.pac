@@ -42,7 +42,7 @@ refine flow File += {
 		%{
 		if ( pe_dos_header )
 			{
-			auto dh = make_intrusive<RecordVal>(BifType::Record::PE::DOSHeader);
+			auto dh = make_intrusive<RecordVal>(zeek::BifType::Record::PE::DOSHeader);
 			dh->Assign(0, make_intrusive<StringVal>(${h.signature}.length(), (const char*) ${h.signature}.data()));
 			dh->Assign(1, val_mgr->Count(${h.UsedBytesInTheLastPage}));
 			dh->Assign(2, val_mgr->Count(${h.FileSizeInPages}));
@@ -92,7 +92,7 @@ refine flow File += {
 		%{
 		if ( pe_file_header )
 			{
-			auto fh = make_intrusive<RecordVal>(BifType::Record::PE::FileHeader);
+			auto fh = make_intrusive<RecordVal>(zeek::BifType::Record::PE::FileHeader);
 			fh->Assign(0, val_mgr->Count(${h.Machine}));
 			fh->Assign(1, make_intrusive<Val>(static_cast<double>(${h.TimeDateStamp}), TYPE_TIME));
 			fh->Assign(2, val_mgr->Count(${h.PointerToSymbolTable}));
@@ -120,7 +120,7 @@ refine flow File += {
 
 		if ( pe_optional_header )
 			{
-			auto oh = make_intrusive<RecordVal>(BifType::Record::PE::OptionalHeader);
+			auto oh = make_intrusive<RecordVal>(zeek::BifType::Record::PE::OptionalHeader);
 
 			oh->Assign(0, val_mgr->Count(${h.magic}));
 			oh->Assign(1, val_mgr->Count(${h.major_linker_version}));
@@ -162,7 +162,7 @@ refine flow File += {
 		%{
 		if ( pe_section_header )
 			{
-			auto section_header = make_intrusive<RecordVal>(BifType::Record::PE::SectionHeader);
+			auto section_header = make_intrusive<RecordVal>(zeek::BifType::Record::PE::SectionHeader);
 
 			// Strip null characters from the end of the section name.
 			u_char* first_null = (u_char*) memchr(${h.name}.data(), 0, ${h.name}.length());

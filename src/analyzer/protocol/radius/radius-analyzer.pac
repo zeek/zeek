@@ -7,14 +7,14 @@ refine flow RADIUS_Flow += {
 		if ( ! radius_message )
 			return false;
 
-		auto result = make_intrusive<RecordVal>(BifType::Record::RADIUS::Message);
+		auto result = make_intrusive<RecordVal>(zeek::BifType::Record::RADIUS::Message);
 		result->Assign(0, val_mgr->Count(${msg.code}));
 		result->Assign(1, val_mgr->Count(${msg.trans_id}));
 		result->Assign(2, to_stringval(${msg.authenticator}));
 
 		if ( ${msg.attributes}->size() )
 			{
-			TableVal* attributes = new TableVal({NewRef{}, BifType::Table::RADIUS::Attributes});
+			TableVal* attributes = new TableVal(zeek::BifType::Table::RADIUS::Attributes);
 
 			for ( uint i = 0; i < ${msg.attributes}->size(); ++i )
 				{
@@ -32,7 +32,7 @@ refine flow RADIUS_Flow += {
 
 				else
 					{
-					auto attribute_list = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::RADIUS::AttributeList});
+					auto attribute_list = make_intrusive<VectorVal>(zeek::BifType::Vector::RADIUS::AttributeList);
 					attribute_list->Assign((unsigned int)0, std::move(val));
 					attributes->Assign(index.get(), std::move(attribute_list));
 					}

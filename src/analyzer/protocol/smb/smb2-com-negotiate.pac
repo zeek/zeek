@@ -39,7 +39,7 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_negotiate_response )
 			{
-			auto nr = make_intrusive<RecordVal>(BifType::Record::SMB2::NegotiateResponse);
+			auto nr = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::NegotiateResponse);
 
 			nr->Assign(0, val_mgr->Count(${val.dialect_revision}));
 			nr->Assign(1, val_mgr->Count(${val.security_mode}));
@@ -48,7 +48,7 @@ refine connection SMB_Conn += {
 			nr->Assign(4, filetime2brotime(${val.server_start_time}));
 			nr->Assign(5, val_mgr->Count(${val.negotiate_context_count}));
 
-			auto cv = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::SMB2::NegotiateContextValues});
+			auto cv = make_intrusive<VectorVal>(zeek::BifType::Vector::SMB2::NegotiateContextValues);
 
 			if ( ${val.dialect_revision} == 0x0311 && ${val.negotiate_context_count} > 0 )
 				{

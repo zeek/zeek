@@ -66,7 +66,7 @@ refine flow Flow += {
 		%{
 		if ( ::unified2_event )
 			{
-			auto ids_event = make_intrusive<RecordVal>(BifType::Record::Unified2::IDSEvent);
+			auto ids_event = make_intrusive<RecordVal>(zeek::BifType::Record::Unified2::IDSEvent);
 			ids_event->Assign(0, val_mgr->Count(${ev.sensor_id}));
 			ids_event->Assign(1, val_mgr->Count(${ev.event_id}));
 			ids_event->Assign(2, make_intrusive<Val>(ts_to_double(${ev.ts}), TYPE_TIME));
@@ -92,7 +92,7 @@ refine flow Flow += {
 		%{
 		if ( ::unified2_event )
 			{
-			auto ids_event = make_intrusive<RecordVal>(BifType::Record::Unified2::IDSEvent);
+			auto ids_event = make_intrusive<RecordVal>(zeek::BifType::Record::Unified2::IDSEvent);
 			ids_event->Assign(0, val_mgr->Count(${ev.sensor_id}));
 			ids_event->Assign(1, val_mgr->Count(${ev.event_id}));
 			ids_event->Assign(2, make_intrusive<Val>(ts_to_double(${ev.ts}), TYPE_TIME));
@@ -123,7 +123,7 @@ refine flow Flow += {
 		%{
 		if ( ::unified2_packet )
 			{
-			auto packet = make_intrusive<RecordVal>(BifType::Record::Unified2::Packet);
+			auto packet = make_intrusive<RecordVal>(zeek::BifType::Record::Unified2::Packet);
 			packet->Assign(0, val_mgr->Count(${pkt.sensor_id}));
 			packet->Assign(1, val_mgr->Count(${pkt.event_id}));
 			packet->Assign(2, val_mgr->Count(${pkt.event_second}));

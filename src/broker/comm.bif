@@ -123,7 +123,7 @@ function Broker::__peers%(%): PeerInfos
 
 		auto ps = (BifEnum::Broker::PeerStatus)p.status;
 		peer_info->Assign(0, endpoint_info);
-		peer_info->Assign(1, BifType::Enum::Broker::PeerStatus->GetVal(ps));
+		peer_info->Assign(1, zeek::BifType::Enum::Broker::PeerStatus->GetVal(ps));
 
 		rval->Assign(i, peer_info);
 		++i;

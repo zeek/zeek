@@ -296,7 +296,7 @@ void PortmapperInterp::Event(EventHandlerPtr f, Val* request, BifEnum::rpc_statu
 		}
 	else
 		{
-		vl.emplace_back(BifType::Enum::rpc_status->GetVal(status));
+		vl.emplace_back(zeek::BifType::Enum::rpc_status->GetVal(status));
 
 		if ( request )
 			vl.emplace_back(AdoptRef{}, request);

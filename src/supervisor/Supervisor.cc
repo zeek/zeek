@@ -1104,7 +1104,7 @@ std::string Supervisor::NodeConfig::ToJSON() const
 
 IntrusivePtr<RecordVal> Supervisor::NodeConfig::ToRecord() const
 	{
-	auto rt = BifType::Record::Supervisor::NodeConfig;
+	const auto& rt = zeek::BifType::Record::Supervisor::NodeConfig;
 	auto rval = make_intrusive<RecordVal>(rt);
 	rval->Assign(rt->FieldOffset("name"), make_intrusive<StringVal>(name));
 
@@ -1140,10 +1140,10 @@ IntrusivePtr<RecordVal> Supervisor::NodeConfig::ToRecord() const
 		auto& name = e.first;
 		auto& ep = e.second;
 		auto key = make_intrusive<StringVal>(name);
-		auto ept = BifType::Record::Supervisor::ClusterEndpoint;
+		const auto& ept = zeek::BifType::Record::Supervisor::ClusterEndpoint;
 		auto val = make_intrusive<RecordVal>(ept);
 
-		val->Assign(ept->FieldOffset("role"), BifType::Enum::Supervisor::ClusterRole->GetVal(ep.role));
+		val->Assign(ept->FieldOffset("role"), zeek::BifType::Enum::Supervisor::ClusterRole->GetVal(ep.role));
 		val->Assign(ept->FieldOffset("host"), make_intrusive<AddrVal>(ep.host));
 		val->Assign(ept->FieldOffset("p"), val_mgr->Port(ep.port, TRANSPORT_TCP));
 
@@ -1158,7 +1158,7 @@ IntrusivePtr<RecordVal> Supervisor::NodeConfig::ToRecord() const
 
 IntrusivePtr<RecordVal> Supervisor::Node::ToRecord() const
 	{
-	auto rt = BifType::Record::Supervisor::NodeStatus;
+	const auto& rt = zeek::BifType::Record::Supervisor::NodeStatus;
 	auto rval = make_intrusive<RecordVal>(rt);
 
 	rval->Assign(rt->FieldOffset("node"), config.ToRecord());
@@ -1314,8 +1314,8 @@ void Supervisor::SupervisedNode::Init(zeek::Options* options) const
 
 IntrusivePtr<RecordVal> Supervisor::Status(std::string_view node_name)
 	{
-	auto rval = make_intrusive<RecordVal>(BifType::Record::Supervisor::Status);
-	const auto& tt = BifType::Record::Supervisor::Status->GetFieldType("nodes");
+	auto rval = make_intrusive<RecordVal>(zeek::BifType::Record::Supervisor::Status);
+	const auto& tt = zeek::BifType::Record::Supervisor::Status->GetFieldType("nodes");
 	auto node_table_val = new TableVal(cast_intrusive<TableType>(tt));
 	rval->Assign(0, node_table_val);
 

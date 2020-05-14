@@ -699,7 +699,7 @@ bool Manager::AutoUnpublishEvent(const string& topic, Val* event)
 
 RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 	{
-	auto rval = new RecordVal(BifType::Record::Broker::Event);
+	auto rval = new RecordVal(zeek::BifType::Record::Broker::Event);
 	auto arg_vec = make_intrusive<VectorVal>(vector_of_data_type);
 	rval->Assign(1, arg_vec);
 	Func* func = nullptr;
@@ -1351,7 +1351,7 @@ void Manager::ProcessError(broker::error err)
 		}
 
 	mgr.Enqueue(Broker::error,
-		BifType::Enum::Broker::ErrorCode->GetVal(ec),
+		zeek::BifType::Enum::Broker::ErrorCode->GetVal(ec),
 		make_intrusive<StringVal>(msg)
 	);
 	}

@@ -35,7 +35,7 @@ refine flow NTP_Flow += {
 	# This builds the standard msg record
 	function BuildNTPStdMsg(nsm: NTP_std_msg): BroVal
 		%{
-		RecordVal* rv = new RecordVal(BifType::Record::NTP::StandardMessage);
+		RecordVal* rv = new RecordVal(zeek::BifType::Record::NTP::StandardMessage);
 
 		rv->Assign(0, val_mgr->Count(${nsm.stratum}));
 		rv->Assign(1, make_intrusive<Val>(pow(2, ${nsm.poll}), TYPE_INTERVAL));
@@ -88,7 +88,7 @@ refine flow NTP_Flow += {
 	# This builds the control msg record
 	function BuildNTPControlMsg(ncm: NTP_control_msg): BroVal
 		%{
-		RecordVal* rv = new RecordVal(BifType::Record::NTP::ControlMessage);
+		RecordVal* rv = new RecordVal(zeek::BifType::Record::NTP::ControlMessage);
 
 		rv->Assign(0, val_mgr->Count(${ncm.OpCode}));
 		rv->Assign(1, val_mgr->Bool(${ncm.R}));
@@ -113,7 +113,7 @@ refine flow NTP_Flow += {
 	# This builds the mode7 msg record
 	function BuildNTPMode7Msg(m7: NTP_mode7_msg): BroVal
 		%{
-		RecordVal* rv = new RecordVal(BifType::Record::NTP::Mode7Message);
+		RecordVal* rv = new RecordVal(zeek::BifType::Record::NTP::Mode7Message);
 
 		rv->Assign(0, val_mgr->Count(${m7.request_code}));
 		rv->Assign(1, val_mgr->Bool(${m7.auth_bit}));
@@ -135,7 +135,7 @@ refine flow NTP_Flow += {
 		if ( ! ntp_message )
 			return false;
 
-		auto rv = make_intrusive<RecordVal>(BifType::Record::NTP::Message);
+		auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::NTP::Message);
 		rv->Assign(0, val_mgr->Count(${msg.version}));
 		rv->Assign(1, val_mgr->Count(${msg.mode}));
 

@@ -19,7 +19,7 @@ refine flow DHCP_Flow += {
 		%{
 		if ( ! options )
 			{
-			options = make_intrusive<RecordVal>(BifType::Record::DHCP::Options);
+			options = make_intrusive<RecordVal>(zeek::BifType::Record::DHCP::Options);
 			all_options = make_intrusive<VectorVal>(zeek::id::index_vec);
 			options->Assign(0, all_options);
 			}
@@ -53,7 +53,7 @@ refine flow DHCP_Flow += {
 			std::string mac_str = fmt_mac(${msg.chaddr}.data(), ${msg.chaddr}.length());
 			double secs = static_cast<double>(${msg.secs});
 
-			auto dhcp_msg_val = make_intrusive<RecordVal>(BifType::Record::DHCP::Msg);
+			auto dhcp_msg_val = make_intrusive<RecordVal>(zeek::BifType::Record::DHCP::Msg);
 			dhcp_msg_val->Assign(0, val_mgr->Count(${msg.op}));
 			dhcp_msg_val->Assign(1, val_mgr->Count(${msg.type}));
 			dhcp_msg_val->Assign(2, val_mgr->Count(${msg.xid}));

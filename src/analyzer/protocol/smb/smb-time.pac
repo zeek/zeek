@@ -32,7 +32,7 @@ IntrusivePtr<Val> time_from_lanman(SMB_time* t, SMB_date* d, uint16_t tz)
 IntrusivePtr<RecordVal> SMB_BuildMACTimes(uint64_t modify, uint64_t access,
                                           uint64_t create, uint64_t change)
 	{
-	auto r = make_intrusive<RecordVal>(BifType::Record::SMB::MACTimes);
+	auto r = make_intrusive<RecordVal>(zeek::BifType::Record::SMB::MACTimes);
 	r->Assign(0, filetime2brotime(modify));
 	r->Assign(1, filetime2brotime(access));
 	r->Assign(2, filetime2brotime(create));

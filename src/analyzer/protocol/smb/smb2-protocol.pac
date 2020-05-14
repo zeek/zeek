@@ -11,7 +11,7 @@ IntrusivePtr<RecordVal> BuildSMB2ContextVal(SMB3_negotiate_context_value* ncv);
 %code{
 IntrusivePtr<RecordVal> BuildSMB2HeaderVal(SMB2_Header* hdr)
 	{
-	auto r = make_intrusive<RecordVal>(BifType::Record::SMB2::Header);
+	auto r = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::Header);
 	r->Assign(0, val_mgr->Count(${hdr.credit_charge}));
 	r->Assign(1, val_mgr->Count(${hdr.status}));
 	r->Assign(2, val_mgr->Count(${hdr.command}));
@@ -27,7 +27,7 @@ IntrusivePtr<RecordVal> BuildSMB2HeaderVal(SMB2_Header* hdr)
 
 IntrusivePtr<RecordVal> BuildSMB2GUID(SMB2_guid* file_id)
 	{
-	auto r = make_intrusive<RecordVal>(BifType::Record::SMB2::GUID);
+	auto r = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::GUID);
 	r->Assign(0, val_mgr->Count(${file_id.persistent}));
 	r->Assign(1, val_mgr->Count(${file_id._volatile}));
 	return r;
@@ -35,7 +35,7 @@ IntrusivePtr<RecordVal> BuildSMB2GUID(SMB2_guid* file_id)
 
 IntrusivePtr<RecordVal> smb2_file_attrs_to_bro(SMB2_file_attributes* val)
 	{
-	auto r = make_intrusive<RecordVal>(BifType::Record::SMB2::FileAttrs);
+	auto r = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::FileAttrs);
 	r->Assign(0, val_mgr->Bool(${val.read_only}));
 	r->Assign(1, val_mgr->Bool(${val.hidden}));
 	r->Assign(2, val_mgr->Bool(${val.system}));
@@ -56,7 +56,7 @@ IntrusivePtr<RecordVal> smb2_file_attrs_to_bro(SMB2_file_attributes* val)
 
 IntrusivePtr<RecordVal> BuildSMB2ContextVal(SMB3_negotiate_context_value* ncv)
 	{
-	auto r = make_intrusive<RecordVal>(BifType::Record::SMB2::NegotiateContextValue);
+	auto r = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::NegotiateContextValue);
 
 	r->Assign(0, val_mgr->Count(${ncv.context_type}));
 	r->Assign(1, val_mgr->Count(${ncv.data_length}));
@@ -64,7 +64,7 @@ IntrusivePtr<RecordVal> BuildSMB2ContextVal(SMB3_negotiate_context_value* ncv)
 	switch ( ${ncv.context_type} ) {
 	case SMB2_PREAUTH_INTEGRITY_CAPABILITIES:
 		{
-		auto rpreauth = make_intrusive<RecordVal>(BifType::Record::SMB2::PreAuthIntegrityCapabilities);
+		auto rpreauth = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::PreAuthIntegrityCapabilities);
 		rpreauth->Assign(0, val_mgr->Count(${ncv.preauth_integrity_capabilities.hash_alg_count}));
 		rpreauth->Assign(1, val_mgr->Count(${ncv.preauth_integrity_capabilities.salt_length}));
 
@@ -84,7 +84,7 @@ IntrusivePtr<RecordVal> BuildSMB2ContextVal(SMB3_negotiate_context_value* ncv)
 
 	case SMB2_ENCRYPTION_CAPABILITIES:
 		{
-		auto rencr = make_intrusive<RecordVal>(BifType::Record::SMB2::EncryptionCapabilities);
+		auto rencr = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::EncryptionCapabilities);
 		rencr->Assign(0, val_mgr->Count(${ncv.encryption_capabilities.cipher_count}));
 
 		auto c = make_intrusive<VectorVal>(zeek::id::index_vec);
@@ -102,7 +102,7 @@ IntrusivePtr<RecordVal> BuildSMB2ContextVal(SMB3_negotiate_context_value* ncv)
 
 	case SMB2_COMPRESSION_CAPABILITIES:
 		{
-		auto rcomp = make_intrusive<RecordVal>(BifType::Record::SMB2::CompressionCapabilities);
+		auto rcomp = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::CompressionCapabilities);
 		rcomp->Assign(0, val_mgr->Count(${ncv.compression_capabilities.alg_count}));
 
 		auto c = make_intrusive<VectorVal>(zeek::id::index_vec);

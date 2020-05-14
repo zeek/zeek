@@ -35,13 +35,13 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb1_negotiate_response )
 			{
-			auto response = make_intrusive<RecordVal>(BifType::Record::SMB1::NegotiateResponse);
+			auto response = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::NegotiateResponse);
 
 			switch ( ${val.word_count} )
 				{
 				case 0x01:
 					{
-					auto core = make_intrusive<RecordVal>(BifType::Record::SMB1::NegotiateResponseCore);
+					auto core = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::NegotiateResponseCore);
 					core->Assign(0, val_mgr->Count(${val.dialect_index}));
 
 					response->Assign(0, std::move(core));
@@ -50,15 +50,15 @@ refine connection SMB_Conn += {
 
 				case 0x0d:
 					{
-					auto security = make_intrusive<RecordVal>(BifType::Record::SMB1::NegotiateResponseSecurity);
+					auto security = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::NegotiateResponseSecurity);
 					security->Assign(0, val_mgr->Bool(${val.lanman.security_user_level}));
 					security->Assign(1, val_mgr->Bool(${val.lanman.security_challenge_response}));
 
-					auto raw = make_intrusive<RecordVal>(BifType::Record::SMB1::NegotiateRawMode);
+					auto raw = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::NegotiateRawMode);
 					raw->Assign(0, val_mgr->Bool(${val.lanman.raw_read_supported}));
 					raw->Assign(1, val_mgr->Bool(${val.lanman.raw_write_supported}));
 
-					auto lanman = make_intrusive<RecordVal>(BifType::Record::SMB1::NegotiateResponseLANMAN);
+					auto lanman = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::NegotiateResponseLANMAN);
 					lanman->Assign(0, val_mgr->Count(${val.word_count}));
 					lanman->Assign(1, val_mgr->Count(${val.dialect_index}));
 					lanman->Assign(2, std::move(security));
@@ -79,13 +79,13 @@ refine connection SMB_Conn += {
 
 				case 0x11:
 					{
-					auto security = make_intrusive<RecordVal>(BifType::Record::SMB1::NegotiateResponseSecurity);
+					auto security = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::NegotiateResponseSecurity);
 					security->Assign(0, val_mgr->Bool(${val.ntlm.security_user_level}));
 					security->Assign(1, val_mgr->Bool(${val.ntlm.security_challenge_response}));
 					security->Assign(2, val_mgr->Bool(${val.ntlm.security_signatures_enabled}));
 					security->Assign(3, val_mgr->Bool(${val.ntlm.security_signatures_required}));
 
-					auto capabilities = make_intrusive<RecordVal>(BifType::Record::SMB1::NegotiateCapabilities);
+					auto capabilities = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::NegotiateCapabilities);
 					capabilities->Assign(0, val_mgr->Bool(${val.ntlm.capabilities_raw_mode}));
 					capabilities->Assign(1, val_mgr->Bool(${val.ntlm.capabilities_mpx_mode}));
 					capabilities->Assign(2, val_mgr->Bool(${val.ntlm.capabilities_unicode}));
@@ -108,7 +108,7 @@ refine connection SMB_Conn += {
 					capabilities->Assign(16, val_mgr->Bool(${val.ntlm.capabilities_compressed_data}));
 					capabilities->Assign(17, val_mgr->Bool(${val.ntlm.capabilities_extended_security}));
 
-					auto ntlm = make_intrusive<RecordVal>(BifType::Record::SMB1::NegotiateResponseNTLM);
+					auto ntlm = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::NegotiateResponseNTLM);
 					ntlm->Assign(0, val_mgr->Count(${val.word_count}));
 					ntlm->Assign(1, val_mgr->Count(${val.dialect_index}));
 					ntlm->Assign(2, std::move(security));

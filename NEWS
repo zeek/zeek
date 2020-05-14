@@ -176,6 +176,10 @@ Deprecated Functionality
 
 - ``Scope::Lookup()`` is deprecated, use ``Scope::Find()``.
 
+- All generated ``BroType*`` names in the ``BifType::`` namespaces are
+  deprecated, but there's an equivalent name in ``zeek::BifType::`` of
+  ``IntrusivePtr`` type to use instead.
+
 Zeek 3.1.0
 ==========
 

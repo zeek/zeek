@@ -15,7 +15,7 @@ refine connection NTLM_Conn += {
 
 	function build_version_record(val: NTLM_Version): BroVal
 		%{
-		RecordVal* result = new RecordVal(BifType::Record::NTLM::Version);
+		RecordVal* result = new RecordVal(zeek::BifType::Record::NTLM::Version);
 		result->Assign(0, val_mgr->Count(${val.major_version}));
 		result->Assign(1, val_mgr->Count(${val.minor_version}));
 		result->Assign(2, val_mgr->Count(${val.build_number}));
@@ -26,7 +26,7 @@ refine connection NTLM_Conn += {
 
 	function build_av_record(val: NTLM_AV_Pair_Sequence, len: uint16): BroVal
 		%{
-		RecordVal* result = new RecordVal(BifType::Record::NTLM::AVs);
+		RecordVal* result = new RecordVal(zeek::BifType::Record::NTLM::AVs);
 		for ( uint i = 0; ; i++ )
 			{
 			if ( i >= ${val.pairs}->size() )
@@ -78,7 +78,7 @@ refine connection NTLM_Conn += {
 
 	function build_negotiate_flag_record(val: NTLM_Negotiate_Flags): BroVal
 		%{
-		RecordVal* flags = new RecordVal(BifType::Record::NTLM::NegotiateFlags);
+		RecordVal* flags = new RecordVal(zeek::BifType::Record::NTLM::NegotiateFlags);
 		flags->Assign(0, val_mgr->Bool(${val.negotiate_56}));
 		flags->Assign(1, val_mgr->Bool(${val.negotiate_key_exch}));
 		flags->Assign(2, val_mgr->Bool(${val.negotiate_128}));
@@ -110,7 +110,7 @@ refine connection NTLM_Conn += {
 		if ( ! ntlm_negotiate )
 			return true;
 
-		auto result = make_intrusive<RecordVal>(BifType::Record::NTLM::Negotiate);
+		auto result = make_intrusive<RecordVal>(zeek::BifType::Record::NTLM::Negotiate);
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
 		if ( ${val}->has_domain_name() )
@@ -134,7 +134,7 @@ refine connection NTLM_Conn += {
 		if ( ! ntlm_challenge )
 			return true;
 
-		auto result = make_intrusive<RecordVal>(BifType::Record::NTLM::Challenge);
+		auto result = make_intrusive<RecordVal>(zeek::BifType::Record::NTLM::Challenge);
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
 		if ( ${val}->has_target_name() )
@@ -158,7 +158,7 @@ refine connection NTLM_Conn += {
 		if ( ! ntlm_authenticate )
 			return true;
 
-		auto result = make_intrusive<RecordVal>(BifType::Record::NTLM::Authenticate);
+		auto result = make_intrusive<RecordVal>(zeek::BifType::Record::NTLM::Authenticate);
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
 		if ( ${val}->has_domain_name() > 0 )

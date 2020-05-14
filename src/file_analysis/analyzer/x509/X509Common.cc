@@ -269,7 +269,7 @@ void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, const EventHa
 	if ( ! ext_val )
 		ext_val = make_intrusive<StringVal>(0, "");
 
-	auto pX509Ext = make_intrusive<RecordVal>(BifType::Record::X509::Extension);
+	auto pX509Ext = make_intrusive<RecordVal>(zeek::BifType::Record::X509::Extension);
 	pX509Ext->Assign(0, make_intrusive<StringVal>(name));
 
 	if ( short_name and strlen(short_name) > 0 )

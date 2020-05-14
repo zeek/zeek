@@ -627,7 +627,7 @@ IntrusivePtr<RecordVal> Packet::ToRawPktHdrVal() const
 		{
 		// Ethernet header layout is:
 		//    dst[6bytes] src[6bytes] ethertype[2bytes]...
-		l2_hdr->Assign(0, BifType::Enum::link_encap->GetVal(BifEnum::LINK_ETHERNET));
+		l2_hdr->Assign(0, zeek::BifType::Enum::link_encap->GetVal(BifEnum::LINK_ETHERNET));
 		l2_hdr->Assign(3, FmtEUI48(data + 6));	// src
 		l2_hdr->Assign(4, FmtEUI48(data));  	// dst
 
@@ -644,12 +644,12 @@ IntrusivePtr<RecordVal> Packet::ToRawPktHdrVal() const
 			l3 = BifEnum::L3_ARP;
 		}
 	else
-		l2_hdr->Assign(0, BifType::Enum::link_encap->GetVal(BifEnum::LINK_UNKNOWN));
+		l2_hdr->Assign(0, zeek::BifType::Enum::link_encap->GetVal(BifEnum::LINK_UNKNOWN));
 
 	l2_hdr->Assign(1, val_mgr->Count(len));
 	l2_hdr->Assign(2, val_mgr->Count(cap_len));
 
-	l2_hdr->Assign(8, BifType::Enum::layer3_proto->GetVal(l3));
+	l2_hdr->Assign(8, zeek::BifType::Enum::layer3_proto->GetVal(l3));
 
 	pkt_hdr->Assign(0, l2_hdr);
 

@@ -15,7 +15,7 @@ refine flow MQTT_Flow += {
 		%{
 		if ( mqtt_connack )
 			{
-			auto m = make_intrusive<RecordVal>(BifType::Record::MQTT::ConnectAckMsg);
+			auto m = make_intrusive<RecordVal>(zeek::BifType::Record::MQTT::ConnectAckMsg);
 			m->Assign(0, val_mgr->Count(${msg.return_code}));
 			m->Assign(1, val_mgr->Bool(${msg.session_present}));
 			BifEvent::enqueue_mqtt_connack(connection()->bro_analyzer(),

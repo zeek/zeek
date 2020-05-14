@@ -18,7 +18,7 @@ refine connection SMB_Conn += {
 
 		if ( smb2_tree_connect_response )
 			{
-			auto resp = make_intrusive<RecordVal>(BifType::Record::SMB2::TreeConnectResponse);
+			auto resp = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::TreeConnectResponse);
 			resp->Assign(0, val_mgr->Count(${val.share_type}));
 
 			BifEvent::enqueue_smb2_tree_connect_response(bro_analyzer(),

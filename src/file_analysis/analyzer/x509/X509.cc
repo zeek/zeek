@@ -117,7 +117,7 @@ IntrusivePtr<RecordVal> file_analysis::X509::ParseCertificate(X509Val* cert_val,
 	char buf[2048]; // we need a buffer for some of the openssl functions
 	memset(buf, 0, sizeof(buf));
 
-	auto pX509Cert = make_intrusive<RecordVal>(BifType::Record::X509::Certificate);
+	auto pX509Cert = make_intrusive<RecordVal>(zeek::BifType::Record::X509::Certificate);
 	BIO *bio = BIO_new(BIO_s_mem());
 
 	pX509Cert->Assign(0, val_mgr->Count((uint64_t) X509_get_version(ssl_cert) + 1));
@@ -286,7 +286,7 @@ void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex)
 		{
 		if ( x509_ext_basic_constraints )
 			{
-			auto pBasicConstraint = make_intrusive<RecordVal>(BifType::Record::X509::BasicConstraints);
+			auto pBasicConstraint = make_intrusive<RecordVal>(zeek::BifType::Record::X509::BasicConstraints);
 			pBasicConstraint->Assign(0, val_mgr->Bool(constr->ca));
 
 			if ( constr->pathlen )
@@ -417,7 +417,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 			}
 		}
 
-		auto sanExt = make_intrusive<RecordVal>(BifType::Record::X509::SubjectAlternativeName);
+		auto sanExt = make_intrusive<RecordVal>(zeek::BifType::Record::X509::SubjectAlternativeName);
 
 		if ( names != nullptr )
 			sanExt->Assign(0, names);

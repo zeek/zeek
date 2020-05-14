@@ -161,7 +161,7 @@ refine connection Handshake_Conn += {
 			{
 			for ( unsigned int i = 0; i < supported_signature_algorithms->size(); ++i )
 				{
-				RecordVal* el = new RecordVal(BifType::Record::SSL::SignatureAndHashAlgorithm);
+				RecordVal* el = new RecordVal(zeek::BifType::Record::SSL::SignatureAndHashAlgorithm);
 				el->Assign(0, val_mgr->Count((*supported_signature_algorithms)[i]->HashAlgorithm()));
 				el->Assign(1, val_mgr->Count((*supported_signature_algorithms)[i]->SignatureAlgorithm()));
 				slist->Assign(i, el);
@@ -342,7 +342,7 @@ refine connection Handshake_Conn += {
 
 		if ( ssl_server_signature )
 			{
-			auto ha = make_intrusive<RecordVal>(BifType::Record::SSL::SignatureAndHashAlgorithm);
+			auto ha = make_intrusive<RecordVal>(zeek::BifType::Record::SSL::SignatureAndHashAlgorithm);
 
 			if ( ${kex.signed_params.uses_signature_and_hashalgorithm} )
 				{
@@ -414,7 +414,7 @@ refine connection Handshake_Conn += {
 		if ( ! ssl_extension_signed_certificate_timestamp )
 			return true;
 
-		auto ha = make_intrusive<RecordVal>(BifType::Record::SSL::SignatureAndHashAlgorithm);
+		auto ha = make_intrusive<RecordVal>(zeek::BifType::Record::SSL::SignatureAndHashAlgorithm);
 		ha->Assign(0, val_mgr->Count(digitally_signed_algorithms->HashAlgorithm()));
 		ha->Assign(1, val_mgr->Count(digitally_signed_algorithms->SignatureAlgorithm()));
 
@@ -442,7 +442,7 @@ refine connection Handshake_Conn += {
 
 		if ( ssl_server_signature )
 			{
-			auto ha = make_intrusive<RecordVal>(BifType::Record::SSL::SignatureAndHashAlgorithm);
+			auto ha = make_intrusive<RecordVal>(zeek::BifType::Record::SSL::SignatureAndHashAlgorithm);
 
 			if ( ${signed_params.uses_signature_and_hashalgorithm} )
 				{
@@ -498,7 +498,7 @@ refine connection Handshake_Conn += {
 			{
 			for ( auto&& identity : *(identities->identities()) )
 				{
-				RecordVal* el = new RecordVal(BifType::Record::SSL::PSKIdentity);
+				RecordVal* el = new RecordVal(zeek::BifType::Record::SSL::PSKIdentity);
 				el->Assign(0, make_intrusive<StringVal>(identity->identity().length(), (const char*) identity->identity().data()));
 				el->Assign(1, val_mgr->Count(identity->obfuscated_ticket_age()));
 				slist->Assign(slist->Size(), el);

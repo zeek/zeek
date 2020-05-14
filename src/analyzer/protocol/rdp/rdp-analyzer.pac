@@ -61,7 +61,7 @@ refine flow RDP_Flow += {
 
 		if ( rdp_client_core_data )
 			{
-			auto ec_flags = make_intrusive<RecordVal>(BifType::Record::RDP::EarlyCapabilityFlags);
+			auto ec_flags = make_intrusive<RecordVal>(zeek::BifType::Record::RDP::EarlyCapabilityFlags);
 			ec_flags->Assign(0, val_mgr->Bool(${ccore.SUPPORT_ERRINFO_PDU}));
 			ec_flags->Assign(1, val_mgr->Bool(${ccore.WANT_32BPP_SESSION}));
 			ec_flags->Assign(2, val_mgr->Bool(${ccore.SUPPORT_STATUSINFO_PDU}));
@@ -72,7 +72,7 @@ refine flow RDP_Flow += {
 			ec_flags->Assign(7, val_mgr->Bool(${ccore.SUPPORT_DYNAMIC_TIME_ZONE}));
 			ec_flags->Assign(8, val_mgr->Bool(${ccore.SUPPORT_HEARTBEAT_PDU}));
 
-			auto ccd = make_intrusive<RecordVal>(BifType::Record::RDP::ClientCoreData);
+			auto ccd = make_intrusive<RecordVal>(zeek::BifType::Record::RDP::ClientCoreData);
 			ccd->Assign(0, val_mgr->Count(${ccore.version_major}));
 			ccd->Assign(1, val_mgr->Count(${ccore.version_minor}));
 			ccd->Assign(2, val_mgr->Count(${ccore.desktop_width}));
@@ -107,7 +107,7 @@ refine flow RDP_Flow += {
 		if ( ! rdp_client_security_data )
 			return false;
 
-		auto csd = make_intrusive<RecordVal>(BifType::Record::RDP::ClientSecurityData);
+		auto csd = make_intrusive<RecordVal>(zeek::BifType::Record::RDP::ClientSecurityData);
 		csd->Assign(0, val_mgr->Count(${csec.encryption_methods}));
 		csd->Assign(1, val_mgr->Count(${csec.ext_encryption_methods}));
 
@@ -124,11 +124,11 @@ refine flow RDP_Flow += {
 
 		if ( ${cnetwork.channel_def_array}->size() )
 			{
-			auto channels = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::RDP::ClientChannelList});
+			auto channels = make_intrusive<VectorVal>(zeek::BifType::Vector::RDP::ClientChannelList);
 
 			for ( uint i = 0; i < ${cnetwork.channel_def_array}->size(); ++i )
 				{
-				auto channel_def = make_intrusive<RecordVal>(BifType::Record::RDP::ClientChannelDef);
+				auto channel_def = make_intrusive<RecordVal>(zeek::BifType::Record::RDP::ClientChannelDef);
 
 				channel_def->Assign(0, to_stringval(${cnetwork.channel_def_array[i].name}));
 				channel_def->Assign(1, val_mgr->Count(${cnetwork.channel_def_array[i].options}));
@@ -161,7 +161,7 @@ refine flow RDP_Flow += {
 		if ( ! rdp_client_cluster_data )
 			return false;
 
-		auto ccld = make_intrusive<RecordVal>(BifType::Record::RDP::ClientClusterData);
+		auto ccld = make_intrusive<RecordVal>(zeek::BifType::Record::RDP::ClientClusterData);
 		ccld->Assign(0, val_mgr->Count(${ccluster.flags}));
 		ccld->Assign(1, val_mgr->Count(${ccluster.redir_session_id}));
 		ccld->Assign(2, val_mgr->Bool(${ccluster.REDIRECTION_SUPPORTED}));

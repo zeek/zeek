@@ -139,7 +139,7 @@ bool MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_statu
 			// Otherwise DeliverRPC would complain about
 			// excess_RPC.
 			n = 0;
-			reply = BifType::Enum::MOUNT3::proc_t->GetVal(c->Proc()).release();
+			reply = zeek::BifType::Enum::MOUNT3::proc_t->GetVal(c->Proc()).release();
 			event = mount_proc_not_implemented;
 			}
 		else
@@ -199,9 +199,9 @@ zeek::Args MOUNT_Interp::event_common_vl(RPC_CallInfo *c,
 		auxgids->Assign(i, val_mgr->Count(c->AuxGIDs()[i]));
 		}
 
-	auto info = make_intrusive<RecordVal>(BifType::Record::MOUNT3::info_t);
-	info->Assign(0, BifType::Enum::rpc_status->GetVal(rpc_status));
-	info->Assign(1, BifType::Enum::MOUNT3::status_t->GetVal(mount_status));
+	auto info = make_intrusive<RecordVal>(zeek::BifType::Record::MOUNT3::info_t);
+	info->Assign(0, zeek::BifType::Enum::rpc_status->GetVal(rpc_status));
+	info->Assign(1, zeek::BifType::Enum::MOUNT3::status_t->GetVal(mount_status));
 	info->Assign(2, make_intrusive<Val>(c->StartTime(), TYPE_TIME));
 	info->Assign(3, make_intrusive<Val>(c->LastTime() - c->StartTime(), TYPE_INTERVAL));
 	info->Assign(4, val_mgr->Count(c->RPCLen()));
@@ -221,7 +221,7 @@ zeek::Args MOUNT_Interp::event_common_vl(RPC_CallInfo *c,
 EnumVal* MOUNT_Interp::mount3_auth_flavor(const u_char*& buf, int& n)
     {
 	BifEnum::MOUNT3::auth_flavor_t t = (BifEnum::MOUNT3::auth_flavor_t)extract_XDR_uint32(buf, n);
-	return BifType::Enum::MOUNT3::auth_flavor_t->GetVal(t).release();
+	return zeek::BifType::Enum::MOUNT3::auth_flavor_t->GetVal(t).release();
     }
 
 StringVal* MOUNT_Interp::mount3_fh(const u_char*& buf, int& n)
@@ -248,7 +248,7 @@ StringVal* MOUNT_Interp::mount3_filename(const u_char*& buf, int& n)
 
 RecordVal* MOUNT_Interp::mount3_dirmntargs(const u_char*& buf, int& n)
 	{
-	RecordVal* dirmntargs = new RecordVal(BifType::Record::MOUNT3::dirmntargs_t);
+	RecordVal* dirmntargs = new RecordVal(zeek::BifType::Record::MOUNT3::dirmntargs_t);
 	dirmntargs->Assign(0, mount3_filename(buf, n));
 	return dirmntargs;
 	}
@@ -256,7 +256,7 @@ RecordVal* MOUNT_Interp::mount3_dirmntargs(const u_char*& buf, int& n)
 RecordVal* MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& n,
 		     BifEnum::MOUNT3::status_t status)
 	{
-	RecordVal* rep = new RecordVal(BifType::Record::MOUNT3::mnt_reply_t);
+	RecordVal* rep = new RecordVal(zeek::BifType::Record::MOUNT3::mnt_reply_t);
 
 	if ( status == BifEnum::MOUNT3::MNT3_OK )
 		{

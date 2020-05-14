@@ -70,28 +70,28 @@ refine flow SSH_Flow += {
 		if ( ! ssh_capabilities )
 			return false;
 
-		auto result = make_intrusive<RecordVal>(BifType::Record::SSH::Capabilities);
+		auto result = make_intrusive<RecordVal>(zeek::BifType::Record::SSH::Capabilities);
 		result->Assign(0, name_list_to_vector(${msg.kex_algorithms.val}));
 		result->Assign(1, name_list_to_vector(${msg.server_host_key_algorithms.val}));
 
-		RecordVal* encryption_algs = new RecordVal(BifType::Record::SSH::Algorithm_Prefs);
+		RecordVal* encryption_algs = new RecordVal(zeek::BifType::Record::SSH::Algorithm_Prefs);
 		encryption_algs->Assign(0, name_list_to_vector(${msg.encryption_algorithms_client_to_server.val}));
 		encryption_algs->Assign(1, name_list_to_vector(${msg.encryption_algorithms_server_to_client.val}));
 		result->Assign(2, encryption_algs);
 
-		RecordVal* mac_algs = new RecordVal(BifType::Record::SSH::Algorithm_Prefs);
+		RecordVal* mac_algs = new RecordVal(zeek::BifType::Record::SSH::Algorithm_Prefs);
 		mac_algs->Assign(0, name_list_to_vector(${msg.mac_algorithms_client_to_server.val}));
 		mac_algs->Assign(1, name_list_to_vector(${msg.mac_algorithms_server_to_client.val}));
 		result->Assign(3, mac_algs);
 
-		RecordVal* compression_algs = new RecordVal(BifType::Record::SSH::Algorithm_Prefs);
+		RecordVal* compression_algs = new RecordVal(zeek::BifType::Record::SSH::Algorithm_Prefs);
 		compression_algs->Assign(0, name_list_to_vector(${msg.compression_algorithms_client_to_server.val}));
 		compression_algs->Assign(1, name_list_to_vector(${msg.compression_algorithms_server_to_client.val}));
 		result->Assign(4, compression_algs);
 
 		if ( ${msg.languages_client_to_server.len} || ${msg.languages_server_to_client.len} )
 			{
-			RecordVal* languages = new RecordVal(BifType::Record::SSH::Algorithm_Prefs);
+			RecordVal* languages = new RecordVal(zeek::BifType::Record::SSH::Algorithm_Prefs);
 			if ( ${msg.languages_client_to_server.len} )
 				languages->Assign(0, name_list_to_vector(${msg.languages_client_to_server.val}));
 			if ( ${msg.languages_server_to_client.len} )

@@ -6,7 +6,7 @@
 %code{
 IntrusivePtr<RecordVal> BuildGTPv1Hdr(const GTPv1_Header* pdu)
 	{
-	auto rv = make_intrusive<RecordVal>(BifType::Record::gtpv1_hdr);
+	auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::gtpv1_hdr);
 
 	rv->Assign(0, val_mgr->Count(pdu->version()));
 	rv->Assign(1, val_mgr->Bool(pdu->pt_flag()));
@@ -35,7 +35,7 @@ static IntrusivePtr<Val> BuildIMSI(const InformationElement* ie)
 
 static IntrusivePtr<Val> BuildRAI(const InformationElement* ie)
 	{
-	auto ev = make_intrusive<RecordVal>(BifType::Record::gtp_rai);
+	auto ev = make_intrusive<RecordVal>(zeek::BifType::Record::gtp_rai);
 	ev->Assign(0, val_mgr->Count(ie->rai()->mcc()));
 	ev->Assign(1, val_mgr->Count(ie->rai()->mnc()));
 	ev->Assign(2, val_mgr->Count(ie->rai()->lac()));
@@ -85,7 +85,7 @@ static IntrusivePtr<Val> BuildTraceType(const InformationElement* ie)
 
 Val* BuildEndUserAddr(const InformationElement* ie)
 	{
-	RecordVal* ev = new RecordVal(BifType::Record::gtp_end_user_addr);
+	RecordVal* ev = new RecordVal(zeek::BifType::Record::gtp_end_user_addr);
 	ev->Assign(0, val_mgr->Count(ie->end_user_addr()->pdp_type_org()));
 	ev->Assign(1, val_mgr->Count(ie->end_user_addr()->pdp_type_num()));
 
@@ -130,7 +130,7 @@ Val* BuildProtoConfigOptions(const InformationElement* ie)
 
 Val* BuildGSN_Addr(const InformationElement* ie)
 	{
-	RecordVal* ev = new RecordVal(BifType::Record::gtp_gsn_addr);
+	RecordVal* ev = new RecordVal(zeek::BifType::Record::gtp_gsn_addr);
 
 	int len = ie->gsn_addr()->value().length();
 	const uint8* d = ie->gsn_addr()->value().data();
@@ -156,7 +156,7 @@ Val* BuildMSISDN(const InformationElement* ie)
 
 Val* BuildQoS_Profile(const InformationElement* ie)
 	{
-	RecordVal* ev = new RecordVal(BifType::Record::gtp_qos_profile);
+	RecordVal* ev = new RecordVal(zeek::BifType::Record::gtp_qos_profile);
 
 	const u_char* d = (const u_char*) ie->qos_profile()->data().data();
 	int len = ie->qos_profile()->data().length();
@@ -190,7 +190,7 @@ Val* BuildOMC_ID(const InformationElement* ie)
 
 Val* BuildPrivateExt(const InformationElement* ie)
 	{
-	RecordVal* ev = new RecordVal(BifType::Record::gtp_private_extension);
+	RecordVal* ev = new RecordVal(zeek::BifType::Record::gtp_private_extension);
 
 	const uint8* d = ie->private_ext()->value().data();
 	int len = ie->private_ext()->value().length();
@@ -238,7 +238,7 @@ void CreatePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
 	if ( ! ::gtpv1_create_pdp_ctx_request ) return;
 
 	auto rv = make_intrusive<RecordVal>(
-	  BifType::Record::gtp_create_pdp_ctx_request_elements);
+	  zeek::BifType::Record::gtp_create_pdp_ctx_request_elements);
 
 	const vector<InformationElement *> * v = pdu->create_pdp_ctx_request();
 
@@ -338,7 +338,7 @@ void CreatePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
 	    return;
 
 	auto rv = make_intrusive<RecordVal>(
-	  BifType::Record::gtp_create_pdp_ctx_response_elements);
+	  zeek::BifType::Record::gtp_create_pdp_ctx_response_elements);
 
 	const vector<InformationElement *> * v = pdu->create_pdp_ctx_response();
 
@@ -407,7 +407,7 @@ void UpdatePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
 	    return;
 
 	auto rv = make_intrusive<RecordVal>(
-	  BifType::Record::gtp_update_pdp_ctx_request_elements);
+	  zeek::BifType::Record::gtp_update_pdp_ctx_request_elements);
 
 	const vector<InformationElement *> * v = pdu->update_pdp_ctx_request();
 
@@ -485,7 +485,7 @@ void UpdatePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
 	    return;
 
 	auto rv = make_intrusive<RecordVal>(
-	  BifType::Record::gtp_update_pdp_ctx_response_elements);
+	  zeek::BifType::Record::gtp_update_pdp_ctx_response_elements);
 
 	const vector<InformationElement *> * v = pdu->update_pdp_ctx_response();
 
@@ -545,7 +545,7 @@ void DeletePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
 	    return;
 
 	auto rv = make_intrusive<RecordVal>(
-	  BifType::Record::gtp_delete_pdp_ctx_request_elements);
+	  zeek::BifType::Record::gtp_delete_pdp_ctx_request_elements);
 
 	const vector<InformationElement *> * v = pdu->delete_pdp_ctx_request();
 
@@ -579,7 +579,7 @@ void DeletePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
 	    return;
 
 	auto rv = make_intrusive<RecordVal>(
-	  BifType::Record::gtp_delete_pdp_ctx_response_elements);
+	  zeek::BifType::Record::gtp_delete_pdp_ctx_response_elements);
 
 	const vector<InformationElement *> * v = pdu->delete_pdp_ctx_response();
 

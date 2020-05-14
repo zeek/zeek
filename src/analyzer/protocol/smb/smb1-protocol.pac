@@ -9,7 +9,7 @@
 %code{
 	IntrusivePtr<RecordVal> SMBHeaderVal(SMB_Header* hdr)
 		{
-		auto r = make_intrusive<RecordVal>(BifType::Record::SMB1::Header);
+		auto r = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::Header);
 
 		//unsigned int status = 0;
 		//

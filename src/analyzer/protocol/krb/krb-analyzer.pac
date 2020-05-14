@@ -8,7 +8,7 @@ bool proc_error_arguments(RecordVal* rv, const std::vector<KRB_ERROR_Arg*>* args
 %code{
 RecordVal* proc_krb_kdc_options(const KRB_KDC_Options* opts)
 {
-	RecordVal* rv = new RecordVal(BifType::Record::KRB::KDC_Options);
+	RecordVal* rv = new RecordVal(zeek::BifType::Record::KRB::KDC_Options);
 
 	rv->Assign(0, val_mgr->Bool(opts->forwardable()));
 	rv->Assign(1, val_mgr->Bool(opts->forwarded()));
@@ -29,7 +29,7 @@ RecordVal* proc_krb_kdc_options(const KRB_KDC_Options* opts)
 
 RecordVal* proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_analyzer)
 {
-	RecordVal* rv = new RecordVal(BifType::Record::KRB::KDC_Request);
+	RecordVal* rv = new RecordVal(zeek::BifType::Record::KRB::KDC_Request);
 
 	rv->Assign(0, asn1_integer_to_val(msg->pvno()->data(), TYPE_COUNT));
 	rv->Assign(1, asn1_integer_to_val(msg->msg_type()->data(), TYPE_COUNT));
@@ -203,7 +203,7 @@ refine connection KRB_Conn += {
 		auto msg_type = binary_to_int64(${msg.msg_type.data.content});
 		auto make_arg = [this, msg]() -> IntrusivePtr<RecordVal>
 			{
-			auto rv = make_intrusive<RecordVal>(BifType::Record::KRB::KDC_Response);
+			auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::KRB::KDC_Response);
 
 			rv->Assign(0, asn1_integer_to_val(${msg.pvno.data}, TYPE_COUNT));
 			rv->Assign(1, asn1_integer_to_val(${msg.msg_type.data}, TYPE_COUNT));
@@ -244,7 +244,7 @@ refine connection KRB_Conn += {
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_error )
 			{
-			auto rv = make_intrusive<RecordVal>(BifType::Record::KRB::Error_Msg);
+			auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::KRB::Error_Msg);
 			proc_error_arguments(rv.get(), ${msg.args1}, 0);
 			rv->Assign(4, asn1_integer_to_val(${msg.error_code}, TYPE_COUNT));
 			proc_error_arguments(rv.get(), ${msg.args2}, binary_to_int64(${msg.error_code.encoding.content}));
@@ -258,7 +258,7 @@ refine connection KRB_Conn += {
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_ap_request )
 			{
-			auto rv = make_intrusive<RecordVal>(BifType::Record::KRB::AP_Options);
+			auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::KRB::AP_Options);
 			rv->Assign(0, val_mgr->Bool(${msg.ap_options.use_session_key}));
 			rv->Assign(1, val_mgr->Bool(${msg.ap_options.mutual_required}));
 
@@ -289,7 +289,7 @@ refine connection KRB_Conn += {
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_safe )
 			{
-			auto rv = make_intrusive<RecordVal>(BifType::Record::KRB::SAFE_Msg);
+			auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::KRB::SAFE_Msg);
 
 			rv->Assign(0, asn1_integer_to_val(${msg.pvno.data}, TYPE_COUNT));
 			rv->Assign(1, asn1_integer_to_val(${msg.msg_type.data}, TYPE_COUNT));

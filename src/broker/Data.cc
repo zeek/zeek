@@ -1016,7 +1016,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const Val* v)
 
 IntrusivePtr<RecordVal> bro_broker::make_data_val(Val* v)
 	{
-	auto rval = make_intrusive<RecordVal>(BifType::Record::Broker::Data);
+	auto rval = make_intrusive<RecordVal>(zeek::BifType::Record::Broker::Data);
 	auto data = val_to_data(v);
 
 	if  ( data )
@@ -1029,7 +1029,7 @@ IntrusivePtr<RecordVal> bro_broker::make_data_val(Val* v)
 
 IntrusivePtr<RecordVal> bro_broker::make_data_val(broker::data d)
 	{
-	auto rval = make_intrusive<RecordVal>(BifType::Record::Broker::Data);
+	auto rval = make_intrusive<RecordVal>(zeek::BifType::Record::Broker::Data);
 	rval->Assign(0, make_intrusive<DataVal>(move(d)));
 	return rval;
 	}
@@ -1039,72 +1039,72 @@ struct data_type_getter {
 
 	result_type operator()(broker::none)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::NONE);
+		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::NONE);
 		}
 
 	result_type operator()(bool)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::BOOL);
+		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::BOOL);
 		}
 
 	result_type operator()(uint64_t)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::COUNT);
+		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::COUNT);
 		}
 
 	result_type operator()(int64_t)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::INT);
+		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::INT);
 		}
 
 	result_type operator()(double)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::DOUBLE);
+		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::DOUBLE);
 		}
 
 	result_type operator()(const std::string&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::STRING);
+		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::STRING);
 		}
 
 	result_type operator()(const broker::address&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::ADDR);
+		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::ADDR);
 		}
 
 	result_type operator()(const broker::subnet&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::SUBNET);
+		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::SUBNET);
 		}
 
 	result_type operator()(const broker::port&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::PORT);
+		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::PORT);
 		}
 
 	result_type operator()(const broker::timestamp&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::TIME);
+		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::TIME);
 		}
 
 	result_type operator()(const broker::timespan&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::INTERVAL);
+		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::INTERVAL);
 		}
 
 	result_type operator()(const broker::enum_value&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::ENUM);
+		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::ENUM);
 		}
 
 	result_type operator()(const broker::set&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::SET);
+		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::SET);
 		}
 
 	result_type operator()(const broker::table&)
 		{
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::TABLE);
+		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::TABLE);
 		}
 
 	result_type operator()(const broker::vector&)
@@ -1112,7 +1112,7 @@ struct data_type_getter {
 		// Note that Broker uses vectors to store record data, so there's
 		// no actual way to tell if this data was originally associated
 		// with a Bro record.
-		return BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::VECTOR);
+		return zeek::BifType::Enum::Broker::DataType->GetVal(BifEnum::Broker::VECTOR);
 		}
 };
 

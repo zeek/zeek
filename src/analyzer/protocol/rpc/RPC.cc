@@ -343,7 +343,7 @@ void RPC_Interpreter::Event_RPC_Dialogue(RPC_CallInfo* c, BifEnum::rpc_status st
 			val_mgr->Count(c->Program()),
 			val_mgr->Count(c->Version()),
 			val_mgr->Count(c->Proc()),
-			BifType::Enum::rpc_status->GetVal(status),
+			zeek::BifType::Enum::rpc_status->GetVal(status),
 			make_intrusive<Val>(c->StartTime(), TYPE_TIME),
 			val_mgr->Count(c->CallLen()),
 			val_mgr->Count(reply_len)
@@ -369,7 +369,7 @@ void RPC_Interpreter::Event_RPC_Reply(uint32_t xid, BifEnum::rpc_status status, 
 		analyzer->EnqueueConnEvent(rpc_reply,
 			analyzer->ConnVal(),
 			val_mgr->Count(xid),
-			BifType::Enum::rpc_status->GetVal(status),
+			zeek::BifType::Enum::rpc_status->GetVal(status),
 			val_mgr->Count(reply_len)
 		);
 	}

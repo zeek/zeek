@@ -22,7 +22,7 @@ AnalyzerSet::AnalyzerSet(File* arg_file) : file(arg_file)
 	{
 	auto t = make_intrusive<TypeList>();
 	t->Append(file_mgr->GetTagType());
-	t->Append({NewRef{}, BifType::Record::Files::AnalyzerArgs});
+	t->Append(zeek::BifType::Record::Files::AnalyzerArgs);
 	analyzer_hash = new CompositeHash(std::move(t));
 	analyzer_map.SetDeleteFunc(analyzer_del_func);
 	}

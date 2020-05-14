@@ -16,7 +16,7 @@
 %code{
 	IntrusivePtr<VectorVal> bytestring_to_coils(const bytestring& coils, uint quantity)
 		{
-		auto modbus_coils = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::ModbusCoils});
+		auto modbus_coils = make_intrusive<VectorVal>(zeek::BifType::Vector::ModbusCoils);
 
 		for ( uint i = 0; i < quantity; i++ )
 			{
@@ -29,7 +29,7 @@
 
 	IntrusivePtr<RecordVal> HeaderToVal(ModbusTCP_TransportHeader* header)
 		{
-		auto modbus_header = make_intrusive<RecordVal>(BifType::Record::ModbusHeaders);
+		auto modbus_header = make_intrusive<RecordVal>(zeek::BifType::Record::ModbusHeaders);
 		modbus_header->Assign(0, val_mgr->Count(header->tid()));
 		modbus_header->Assign(1, val_mgr->Count(header->pid()));
 		modbus_header->Assign(2, val_mgr->Count(header->uid()));
@@ -209,7 +209,7 @@ refine flow ModbusTCP_Flow += {
 
 		if ( ::modbus_read_holding_registers_response )
 			{
-			auto t = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::ModbusRegisters});
+			auto t = make_intrusive<VectorVal>(zeek::BifType::Vector::ModbusRegisters);
 
 			for ( unsigned int i=0; i < ${message.registers}->size(); ++i )
 				{
@@ -253,7 +253,7 @@ refine flow ModbusTCP_Flow += {
 
 		if ( ::modbus_read_input_registers_response )
 			{
-			auto t = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::ModbusRegisters});
+			auto t = make_intrusive<VectorVal>(zeek::BifType::Vector::ModbusRegisters);
 
 			for ( unsigned int i=0; i < (${message.registers})->size(); ++i )
 				{
@@ -397,7 +397,7 @@ refine flow ModbusTCP_Flow += {
 
 		if ( ::modbus_write_multiple_registers_request )
 			{
-			auto t = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::ModbusRegisters});
+			auto t = make_intrusive<VectorVal>(zeek::BifType::Vector::ModbusRegisters);
 
 			for ( unsigned int i = 0; i < (${message.registers}->size()); ++i )
 				{
@@ -582,7 +582,7 @@ refine flow ModbusTCP_Flow += {
 
 		if ( ::modbus_read_write_multiple_registers_request )
 			{
-			auto t = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::ModbusRegisters});
+			auto t = make_intrusive<VectorVal>(zeek::BifType::Vector::ModbusRegisters);
 
 			for ( unsigned int i = 0; i < ${message.write_register_values}->size(); ++i )
 				{
@@ -614,7 +614,7 @@ refine flow ModbusTCP_Flow += {
 
 		if ( ::modbus_read_write_multiple_registers_response )
 			{
-			auto t = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, BifType::Vector::ModbusRegisters});
+			auto t = make_intrusive<VectorVal>(zeek::BifType::Vector::ModbusRegisters);
 
 			for ( unsigned int i = 0; i < ${message.registers}->size(); ++i )
 				{

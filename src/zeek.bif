@@ -3397,7 +3397,7 @@ function get_current_packet%(%) : pcap_packet
 		pkt->Assign(2, val_mgr->Count(0));
 		pkt->Assign(3, val_mgr->Count(0));
 		pkt->Assign(4, val_mgr->EmptyString());
-		pkt->Assign(5, BifType::Enum::link_encap->GetVal(BifEnum::LINK_UNKNOWN));
+		pkt->Assign(5, zeek::BifType::Enum::link_encap->GetVal(BifEnum::LINK_UNKNOWN));
 		return pkt;
 		}
 
@@ -3406,7 +3406,7 @@ function get_current_packet%(%) : pcap_packet
 	pkt->Assign(2, val_mgr->Count(p->cap_len));
 	pkt->Assign(3, val_mgr->Count(p->len));
 	pkt->Assign(4, make_intrusive<StringVal>(p->cap_len, (const char*)p->data));
-	pkt->Assign(5, BifType::Enum::link_encap->GetVal(p->link_type));
+	pkt->Assign(5, zeek::BifType::Enum::link_encap->GetVal(p->link_type));
 
 	return pkt;
 	%}

@@ -610,7 +610,7 @@ head_1:		TOK_ID opt_ws arg_begin
 						decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 
 					fprintf(fp_netvar_init,
-						"\t%s = internal_handler(\"%s\");\n",
+						"\t%s = event_registry->Register(\"%s\");\n",
 						decl.c_fullname.c_str(), decl.bro_fullname.c_str());
 
 					record_bif_item(decl.bro_fullname.c_str(), "EVENT");

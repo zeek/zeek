@@ -78,7 +78,7 @@ static void run_time_error(bool& error_flag, const BroObj* o, const char* msg)
 // the AbstractMachine frame.
 union AS_ValUnion {
 	// Constructor for hand-populating the values.
-	AS_ValUnion() {}
+	AS_ValUnion() { void_val = nullptr; }
 
 	// Construct from a given Bro value with a given type.
 	AS_ValUnion(Val* v, BroType* t, const BroObj* o, bool& error_flag);
@@ -301,6 +301,9 @@ public:
 
 	~AS_VectorMgr()
 		{
+		if ( v && ! is_clean && v->RefCnt() > 1 )
+			Spill();
+
 		if ( v )
 			Unref(v);
 		}
@@ -316,11 +319,35 @@ public:
 
 	bool IsClean() const	{ return is_clean || ! v; }
 
+	// Copy back the internal vector the associated value.
+	void Spill();
+
+	// Reload the internal vector from the associated value.
+	void Freshen();
+
 protected:
 	std::shared_ptr<AS_vector> vec;
 	VectorVal* v;
 	bool is_clean;
 };
+
+void AS_VectorMgr::Spill()
+	{
+	if ( ! v )
+		return;
+
+	auto vt = v->Type()->AsVectorType();
+	auto yt = vt->YieldType();
+	auto val_vec = new vector<Val*>();
+
+	for ( auto elem : *vec )
+		val_vec->push_back(elem.ToVal(yt).release());
+
+	delete v->val.vector_val;
+	v->val.vector_val = val_vec;
+
+	is_clean = true;
+	}
 
 IntrusivePtr<VectorVal> AS_ValUnion::ToVector(BroType* t) const
 	{
@@ -840,18 +867,19 @@ void AbstractMachine::Init()
 		// Don't add locals that were already added because they're
 		// parameters.
 		if ( ! HasFrameSlot(l) )
-			{
-			auto slot = AddToFrame(l);
+			(void) AddToFrame(l);
+		}
 
-			// Look for locals with values of types for which
-			// we do explicit memory management on (re)assignment.
-			auto t = l->Type()->Tag();
-			if ( t == TYPE_ADDR || t == TYPE_SUBNET || 
-			     t == TYPE_STRING || t == TYPE_VECTOR )
-				{
-				managed_slots.push_back(slot);
-				managed_slot_types.push_back(t);
-				}
+	for ( auto& slot : frame_layout )
+		{
+		// Look for locals with values of types for which
+		// we do explicit memory management on (re)assignment.
+		auto t = slot.first->Type()->Tag();
+		if ( t == TYPE_ADDR || t == TYPE_SUBNET || 
+		     t == TYPE_STRING || t == TYPE_VECTOR )
+			{
+			managed_slots.push_back(slot.second);
+			managed_slot_types.push_back(t);
 			}
 		}
 	}

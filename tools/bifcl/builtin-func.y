@@ -380,16 +380,28 @@ type_def:	TOK_TYPE opt_ws TOK_ID opt_ws ':' opt_ws type_def_types opt_ws ';'
 			{
 			set_decl_name($3);
 
-			fprintf(fp_netvar_h, "%s extern %sType * %s; %s\n",
+			fprintf(fp_netvar_h, "namespace zeek { %s extern IntrusivePtr<%sType> %s; %s}\n",
+				decl.c_namespace_start.c_str(), type_name.c_str(),
+				decl.bare_name.c_str(), decl.c_namespace_end.c_str());
+			fprintf(fp_netvar_h, "%s [[deprecated(\"Remove in v4.1.  Use zeek::%s.\")]] extern %sType * %s; %s\n",
+				decl.c_namespace_start.c_str(), decl.c_fullname.c_str(), type_name.c_str(),
+				decl.bare_name.c_str(), decl.c_namespace_end.c_str());
+
+
+			fprintf(fp_netvar_def, "namespace zeek { %s IntrusivePtr<%sType> %s; %s}\n",
 				decl.c_namespace_start.c_str(), type_name.c_str(),
 				decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 			fprintf(fp_netvar_def, "%s %sType * %s; %s\n",
 				decl.c_namespace_start.c_str(), type_name.c_str(),
 				decl.bare_name.c_str(), decl.c_namespace_end.c_str());
+
 			fprintf(fp_netvar_init,
-				"\t%s = zeek::id::lookup_type(\"%s\")->As%sType();\n",
-				decl.c_fullname.c_str(), decl.bro_fullname.c_str(),
-				type_name.c_str());
+				"\tzeek::%s = zeek::id::lookup_type<%sType>(\"%s\");\n",
+				decl.c_fullname.c_str(), type_name.c_str(),
+				decl.bro_fullname.c_str());
+			fprintf(fp_netvar_init,
+				"\t%s = zeek::%s.get();\n",
+				decl.c_fullname.c_str(), decl.c_fullname.c_str());
 
 			record_bif_item(decl.bro_fullname.c_str(), "TYPE");
 			}
@@ -442,13 +454,23 @@ enum_def:	enum_def_1 enum_list TOK_RPB opt_attr_list
 				fprintf(fp_netvar_h, "}; }\n");
 
 			// Now generate the netvar's.
-			fprintf(fp_netvar_h, "%s extern EnumType * %s; %s\n",
+			fprintf(fp_netvar_h, "namespace zeek { %s extern IntrusivePtr<EnumType> %s; %s}\n",
+				decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
+			fprintf(fp_netvar_h, "%s [[deprecated(\"Remove in v4.1.  Use zeek::%s.\")]] extern EnumType * %s; %s\n",
+				decl.c_namespace_start.c_str(), decl.c_fullname.c_str(),
+				decl.bare_name.c_str(), decl.c_namespace_end.c_str());
+
+			fprintf(fp_netvar_def, "namespace zeek { %s IntrusivePtr<EnumType> %s; %s}\n",
 				decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 			fprintf(fp_netvar_def, "%s EnumType * %s; %s\n",
 				decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
+
 			fprintf(fp_netvar_init,
-				"\t%s = zeek::id::lookup_type(\"%s\")->AsEnumType();\n",
+				"\tzeek::%s = zeek::id::lookup_type<EnumType>(\"%s\");\n",
 				decl.c_fullname.c_str(), decl.bro_fullname.c_str());
+			fprintf(fp_netvar_init,
+				"\t%s = zeek::%s.get();\n",
+				decl.c_fullname.c_str(), decl.c_fullname.c_str());
 
 			record_bif_item(decl.bro_fullname.c_str(), "TYPE");
 			}

@@ -386,8 +386,13 @@ int main(int argc, char* argv[])
 		else
 			init_alternative_mode();
 
+		fprintf(fp_netvar_init, "#pragma GCC diagnostic push\n");
+		fprintf(fp_netvar_init, "#pragma GCC diagnostic ignored \"-Wdeprecated-declarations\"\n\n");
+
 		yy_switch_to_buffer(yy_create_buffer(fp_input, YY_BUF_SIZE));
 		yyparse();
+
+		fprintf(fp_netvar_init, "\n\n#pragma GCC diagnostic pop\n");
 
 		if ( alternative_mode )
 			finish_alternative_mode();

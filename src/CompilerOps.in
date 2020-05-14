@@ -545,6 +545,28 @@ eval frame[s.v1].raw_vector_val = to_raw_vector(vv_p.get())
 
 ########## Aggregate Assignments ##########
 
+op Vector-Elem-Assign
+type VVV
+eval auto& vec = (*frame[s.v1].raw_vector_val)
+eval vec[frame[s.v2].int_val] = frame[s.v3]
+
+op Vector-Elem-Assign
+type VVC
+eval auto& vec = (*frame[s.v1].raw_vector_val)
+eval vec[frame[s.v2].int_val] = s.c
+
+# This version is used when the constant is the index, not the new value.
+op Vector-Elem-Assign2
+type VVC
+eval auto& vec = (*frame[s.v1].raw_vector_val)
+eval vec[s.c.int_val] = frame[s.v3]
+
+# ... and when both are, and we've assigned the value to a temporary.
+op Vector-Elem-Assign
+type VCi
+eval auto& vec = (*frame[s.v1].raw_vector_val)
+eval vec[s.c.int_val] = frame[s.v2]
+
 op Field-LHS-Assign
 type VVi
 set-type $2
@@ -824,7 +846,7 @@ eval frame[s.v1].record_val = new RecordVal(s.t->AsRecordType())
 internal-op Init-Vector
 type V
 eval delete frame[s.v1].raw_vector_val
-eval frame[s.v1].raw_vector_val = new vector<AS_ValUnion>;
+eval frame[s.v1].raw_vector_val = new AS_vector;
 
 internal-op Init-Table
 type V

@@ -3939,7 +3939,11 @@ Expr* IndexAssignExpr::ReduceToSingleton(Reducer* c,
 
 const CompiledStmt IndexAssignExpr::Compile(Compiler* c) const
 	{
-	return c->InterpretExpr(this);
+	if ( op1->Type()->Tag() == TYPE_VECTOR )
+		return c->AssignVecElems(this);
+
+	else
+		return c->InterpretExpr(this);
 	}
 
 TraversalCode IndexAssignExpr::Traverse(TraversalCallback* cb) const

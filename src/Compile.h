@@ -74,6 +74,8 @@ public:
 	virtual const CompiledStmt Call(const ExprStmt* e) = 0;
 	virtual const CompiledStmt AssignToCall(const ExprStmt* e) = 0;
 
+	virtual const CompiledStmt AssignVecElems(const Expr* e) = 0;
+
 	virtual const CompiledStmt InitRecord(ID* id, RecordType* rt) = 0;
 	virtual const CompiledStmt InitVector(ID* id, VectorType* vt) = 0;
 	virtual const CompiledStmt InitTable(ID* id, TableType* tt,
@@ -159,6 +161,8 @@ public:
 
 	const CompiledStmt Call(const ExprStmt* e) override;
 	const CompiledStmt AssignToCall(const ExprStmt* e) override;
+
+	const CompiledStmt AssignVecElems(const Expr* e) override;
 
 	const CompiledStmt LoopOverTable(const ForStmt* f, const NameExpr* val);
 	const CompiledStmt LoopOverVector(const ForStmt* f, const NameExpr* val);

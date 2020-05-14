@@ -38,6 +38,8 @@ const char* abstract_op_name(AbstractOp op)
 	}
 
 
+typedef vector<AS_ValUnion> AS_vector;
+
 struct IterInfo {
 	TableVal* tv;
 	const PDict<TableEntryVal>* loop_vals;
@@ -46,7 +48,7 @@ struct IterInfo {
 	vector<int> loop_vars;
 	vector<BroType*> loop_var_types;
 
-	vector<AS_ValUnion>* vv;
+	AS_vector* vv;
 	VectorType* vec_type;
 
 	BroString* s;
@@ -101,7 +103,7 @@ union AS_ValUnion {
 	BroString* string_val;
 	IPAddr* addr_val;
 	IPPrefix* subnet_val;
-	vector<AS_ValUnion>* raw_vector_val;
+	AS_vector* raw_vector_val;
 
 	// The types are all variants of Val (or BroType).  For memory
 	// management, in the AM frame we shadow these with IntrusivePtr's.
@@ -115,7 +117,6 @@ union AS_ValUnion {
 	RecordVal* record_val;
 	TableVal* table_val;
 	BroType* type_val;
-VectorVal* vector_val;
 
 	// Used for the compiler to hold opaque items.  Memory management
 	// is explicit in the operations accessing it.
@@ -131,7 +132,7 @@ VectorVal* vector_val;
 	void* void_val;
 };
 
-static vector<AS_ValUnion>* to_raw_vector(Val* vec);
+static AS_vector* to_raw_vector(Val* vec);
 
 AS_ValUnion::AS_ValUnion(Val* v, BroType* t, const BroObj* o, bool& error)
 	{
@@ -290,13 +291,13 @@ IntrusivePtr<VectorVal> AS_ValUnion::ToVector(BroType* t) const
 	return v;
 	}
 
-vector<AS_ValUnion>* to_raw_vector(Val* vec)
+AS_vector* to_raw_vector(Val* vec)
 	{
 	auto v = vec->AsVector();
 	auto t = vec->Type()->AsVectorType();
 	auto yt = t->YieldType();
 
-	auto raw = new vector<AS_ValUnion>;
+	auto raw = new AS_vector;
 	bool error;
 
 	for ( auto elem : *v )
@@ -808,18 +809,16 @@ void AbstractMachine::StmtDescribe(ODesc* d) const
 	d->Add("compiled code");
 	}
 
-static void vec_exec(AbstractOp op, vector<AS_ValUnion>*& v1,
-			const vector<AS_ValUnion>* v2);
+static void vec_exec(AbstractOp op, AS_vector*& v1, const AS_vector* v2);
 
-static void vec_exec(AbstractOp op, vector<AS_ValUnion>*& v1,
-			const vector<AS_ValUnion>* v2,
-			const vector<AS_ValUnion>* v3);
+static void vec_exec(AbstractOp op, AS_vector*& v1, const AS_vector* v2,
+			const AS_vector* v3);
 
 // Vector coercion.
 #define VEC_COERCE(tag, lhs_accessor, cast, rhs_accessor) \
-	static vector<AS_ValUnion>*  vec_coerce_##tag(vector<AS_ValUnion>* v) \
+	static AS_vector* vec_coerce_##tag(AS_vector* v) \
 		{ \
-		vector<AS_ValUnion>* res = new vector<AS_ValUnion>; \
+		auto res = new AS_vector; \
 		for ( unsigned int i = 0; i < v->size(); ++i ) \
 			(*res)[i].lhs_accessor = cast((*v)[i].rhs_accessor); \
 		return res; \
@@ -1537,6 +1536,41 @@ const CompiledStmt AbstractMachine::AssignToCall(const ExprStmt* e)
 	return DoCall(call, n, uds);
 	}
 
+const CompiledStmt AbstractMachine::AssignVecElems(const Expr* e)
+	{
+	auto index_assign = e->AsIndexAssignExpr();
+
+	auto op1 = index_assign->GetOp1();
+	auto op2 = index_assign->GetOp2()->AsListExpr()->Exprs()[0];
+	auto op3 = index_assign->GetOp3();
+
+	auto lhs = op1->AsNameExpr();
+	if ( op2->Tag() == EXPR_NAME )
+		{
+		if ( op3->Tag() == EXPR_NAME )
+			return Vector_Elem_AssignVVV(lhs, op2->AsNameExpr(),
+							op3->AsNameExpr());
+		else
+			return Vector_Elem_AssignVVC(lhs, op2->AsNameExpr(),
+							op3->AsConstExpr());
+		}
+
+	else
+		{
+		auto c = op2->AsConstExpr();
+		if ( op3->Tag() == EXPR_NAME )
+			return Vector_Elem_Assign2VVC(lhs, op3->AsNameExpr(), c);
+
+		// A pain - two constants.
+		auto c3 = op3->AsConstExpr();
+		auto tmp = RegisterSlot();
+		auto s = AbstractStmt(OP_ASSIGN_VC, tmp, c3);
+		s.t = c3->Type().get();
+
+		return Vector_Elem_AssignVCi(lhs, op3->AsConstExpr(), tmp);
+		}
+	}
+
 const CompiledStmt AbstractMachine::LoopOverTable(const ForStmt* f,
 							const NameExpr* val)
 	{
@@ -2217,8 +2251,7 @@ TraversalCode ResumptionAM::Traverse(TraversalCallback* cb) const
 	}
 
 // Unary vector operation of v1 <vec-op> v2.
-static void vec_exec(AbstractOp op, vector<AS_ValUnion>*& v1,
-			const vector<AS_ValUnion>* v2)
+static void vec_exec(AbstractOp op, AS_vector*& v1, const AS_vector* v2)
 	{
 	// We could speed this up further still by gen'ing up an
 	// instance of the loop inside each switch case (in which
@@ -2229,7 +2262,7 @@ static void vec_exec(AbstractOp op, vector<AS_ValUnion>*& v1,
 	if ( v1 )
 		v1->resize(v2->size());
 	else
-		v1 = new vector<AS_ValUnion>(v2->size());
+		v1 = new AS_vector(v2->size());
 
 	for ( unsigned int i = 0; i < v2->size(); ++i )
 		switch ( op ) {
@@ -2242,16 +2275,15 @@ static void vec_exec(AbstractOp op, vector<AS_ValUnion>*& v1,
 	}
 
 // Binary vector operation of v1 = v2 <vec-op> v3.
-static void vec_exec(AbstractOp op, vector<AS_ValUnion>*& v1,
-			const vector<AS_ValUnion>* v2,
-			const vector<AS_ValUnion>* v3)
+static void vec_exec(AbstractOp op, AS_vector*& v1, const AS_vector* v2,
+			const AS_vector* v3)
 	{
 	// See comment above re further speed-up.
 
 	if ( v1 )
 		v1->resize(v2->size());
 	else
-		v1 = new vector<AS_ValUnion>(v2->size());
+		v1 = new AS_vector(v2->size());
 
 	for ( unsigned int i = 0; i < v2->size(); ++i )
 		switch ( op ) {

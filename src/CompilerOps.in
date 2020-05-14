@@ -858,10 +858,14 @@ internal-op Init-Record
 type V
 eval frame[s.v1].record_val = new RecordVal(s.t->AsRecordType())
 
+# v1 is the frame element being initialized
+# v2 is its slot in the interpreted frame
 internal-op Init-Vector
-type V
+type VV
+eval auto vec = new VectorVal(s.t->AsVectorType())
+eval f->SetElement(s.v2, vec)
 eval delete frame[s.v1].vector_val
-eval frame[s.v1].vector_val = new AS_VectorMgr(make_shared<AS_vector>(), nullptr);
+eval frame[s.v1].vector_val = new AS_VectorMgr(make_shared<AS_vector>(), vec)
 
 internal-op Init-Table
 type V

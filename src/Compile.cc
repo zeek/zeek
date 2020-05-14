@@ -139,7 +139,7 @@ union AS_ValUnion {
 	// Used for managing "for" loops.  Explicit memory management.
 	IterInfo* iter_info;
 
-	// Used for loading/spilling globals.
+	// Used for loading/spilling globals; also, local vectors.
 	ID* id_val;
 
 	// Only used when we clear pointers on entry, and that's just
@@ -1072,7 +1072,11 @@ const CompiledStmt AbstractMachine::DoCall(const CallExpr* c,
 	c->Traverse(&call_pf);
 
 	for ( auto l : call_pf.locals )
-		StoreLocal(l);
+		// Do not sync vectors, they'll be taken care of by
+		// spilling, and need to preserve the VectorVal they're
+		// already using.
+		if ( l->Type()->Tag() != TYPE_VECTOR )
+			StoreLocal(l);
 
 	auto a_s = n ? AbstractStmt(OP_INTERPRET_EXPR_V, FrameSlot(n), c) :
 			AbstractStmt(OP_INTERPRET_EXPR_X, c);
@@ -1799,8 +1803,9 @@ const CompiledStmt AbstractMachine::InitRecord(ID* id, RecordType* rt)
 
 const CompiledStmt AbstractMachine::InitVector(ID* id, VectorType* vt)
 	{
-	auto s = AbstractStmt(OP_INIT_VECTOR_V, FrameSlot(id));
+	auto s = AbstractStmt(OP_INIT_VECTOR_VV, FrameSlot(id), id->Offset());
 	s.t = vt;
+	s.op_type = OP_VV_FRAME;
 	return AddStmt(s);
 	}
 

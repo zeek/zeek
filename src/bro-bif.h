@@ -8,4 +8,4 @@
 #include "Event.h"
 #include "Reporter.h"
 #include "ID.h"
-#include "Var.h" // for internal_handler()
+#include "EventRegistry.h"

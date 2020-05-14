@@ -36,7 +36,8 @@
 #include "Event.h"
 #include "Net.h"
 #include "Val.h"
-#include "Var.h"
+#include "NetVar.h"
+#include "ID.h"
 #include "Reporter.h"
 #include "IntrusivePtr.h"
 #include "iosource/Manager.h"
@@ -380,10 +381,6 @@ DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode)
 
 	mode = arg_mode;
 
-	dns_mapping_valid = dns_mapping_unverified = dns_mapping_new_name =
-		dns_mapping_lost_name = dns_mapping_name_changed =
-			dns_mapping_altered =  nullptr;
-
 	dm_rec = nullptr;
 
 	cache_name = dir = nullptr;
@@ -455,13 +452,6 @@ void DNS_Mgr::InitSource()
 
 void DNS_Mgr::InitPostScript()
 	{
-	dns_mapping_valid = internal_handler("dns_mapping_valid");
-	dns_mapping_unverified = internal_handler("dns_mapping_unverified");
-	dns_mapping_new_name = internal_handler("dns_mapping_new_name");
-	dns_mapping_lost_name = internal_handler("dns_mapping_lost_name");
-	dns_mapping_name_changed = internal_handler("dns_mapping_name_changed");
-	dns_mapping_altered = internal_handler("dns_mapping_altered");
-
 	dm_rec = zeek::id::lookup_type("dns_mapping")->AsRecordType();
 
 	// Registering will call Init()

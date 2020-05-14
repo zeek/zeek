@@ -776,19 +776,5 @@ Func* internal_func(const char* name)
 
 EventHandlerPtr internal_handler(const char* name)
 	{
-	// If there already is an entry in the registry, we have a
-	// local handler on the script layer.
-	EventHandler* h = event_registry->Lookup(name);
-	if ( h )
-		{
-		h->SetUsed();
-		return h;
-		}
-
-	h = new EventHandler(name);
-	event_registry->Register(h);
-
-	h->SetUsed();
-
-	return h;
+	return event_registry->Register(name);
 	}

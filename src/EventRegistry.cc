@@ -6,6 +6,26 @@
 EventRegistry::EventRegistry() = default;
 EventRegistry::~EventRegistry() noexcept = default;
 
+EventHandlerPtr EventRegistry::Register(const char* name)
+	{
+	// If there already is an entry in the registry, we have a
+	// local handler on the script layer.
+	EventHandler* h = event_registry->Lookup(name);
+
+	if ( h )
+		{
+		h->SetUsed();
+		return h;
+		}
+
+	h = new EventHandler(name);
+	event_registry->Register(h);
+
+	h->SetUsed();
+
+	return h;
+	}
+
 void EventRegistry::Register(EventHandlerPtr handler)
 	{
 	handlers[std::string(handler->Name())] = std::unique_ptr<EventHandler>(handler.Ptr());

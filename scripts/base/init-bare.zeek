@@ -1870,9 +1870,6 @@ type gtp_delete_pdp_ctx_response_elements: record {
 @load base/frameworks/supervisor/api
 @load base/bif/supervisor.bif
 
-global done_with_network = F;
-event net_done(t: time) { done_with_network = T; }
-
 ## Internal function.
 function add_interface(iold: string, inew: string): string
 	{
@@ -5272,3 +5269,6 @@ const bits_per_uid: count = 96 &redef;
 ## to generate installation-unique file IDs (the *id* field of :zeek:see:`fa_file`).
 const digest_salt = "Please change this value." &redef;
 
+global done_with_network = F;
+event net_done(t: time)
+	{ done_with_network = T; }

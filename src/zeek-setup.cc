@@ -101,7 +101,6 @@ trigger::Manager* trigger_mgr = nullptr;
 
 std::vector<std::string> zeek_script_prefixes;
 Stmt* stmts;
-EventHandlerPtr net_done = nullptr;
 RuleMatcher* rule_matcher = nullptr;
 EventRegistry* event_registry = nullptr;
 ProfileLogger* profiling_logger = nullptr;
@@ -269,7 +268,6 @@ void terminate_bro()
 
 	brofiler.WriteStats();
 
-	EventHandlerPtr zeek_done = internal_handler("zeek_done");
 	if ( zeek_done )
 		mgr.Enqueue(zeek_done, zeek::Args{});
 
@@ -740,8 +738,6 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	if ( dns_type != DNS_PRIME )
 		net_init(options.interface, options.pcap_file, options.pcap_output_file, options.use_watchdog);
 
-	net_done = internal_handler("net_done");
-
 	if ( ! g_policy_debug )
 		{
 		(void) setsignal(SIGTERM, sig_handler);
@@ -797,8 +793,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		// we don't have any other source for it.
 		net_update_time(current_time());
 
-	EventHandlerPtr zeek_init = internal_handler("zeek_init");
-	if ( zeek_init )	//### this should be a function
+	if ( zeek_init )
 		mgr.Enqueue(zeek_init, zeek::Args{});
 
 	EventRegistry::string_list dead_handlers =

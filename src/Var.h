@@ -73,4 +73,5 @@ extern BroType* internal_type(const char* name);
 [[deprecated("Remove in v4.1.  Use zeek::id::lookup_func().")]]
 extern Func* internal_func(const char* name);
 
+[[deprecated("Remove in v4.1.  Use event_registry->Register().")]]
 extern EventHandlerPtr internal_handler(const char* name);

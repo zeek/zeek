@@ -17,6 +17,14 @@ public:
 	EventRegistry();
 	~EventRegistry() noexcept;
 
+	/**
+	 * Performs a lookup for an existing event handler and returns it
+	 * if one exists, or else creates one, registers it, and returns it.
+	 * @param name  The name of the event handler to lookup/register.
+	 * @return  The event handler.
+	 */
+	EventHandlerPtr Register(const char* name);
+
 	void Register(EventHandlerPtr handler);
 
 	// Return nil if unknown.

@@ -149,14 +149,6 @@ protected:
 
 	bool did_init;
 
-	// DNS-related events.
-	EventHandlerPtr dns_mapping_valid;
-	EventHandlerPtr dns_mapping_unverified;
-	EventHandlerPtr dns_mapping_new_name;
-	EventHandlerPtr dns_mapping_lost_name;
-	EventHandlerPtr dns_mapping_name_changed;
-	EventHandlerPtr dns_mapping_altered;
-
 	RecordType* dm_rec;
 
 	typedef std::list<LookupCallback*> CallbackList;

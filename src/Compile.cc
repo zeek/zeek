@@ -392,7 +392,12 @@ void AS_VectorMgr::Spill()
 	auto val_vec = new vector<Val*>();
 
 	for ( auto elem : *vec )
-		val_vec->push_back(elem.ToVal(yt).release());
+		{
+		if ( elem.IsNil(yt) )
+			val_vec->push_back(nullptr);
+		else
+			val_vec->push_back(elem.ToVal(yt).release());
+		}
 
 	delete v->val.vector_val;
 	v->val.vector_val = val_vec;
@@ -1730,8 +1735,9 @@ const CompiledStmt AbstractMachine::AssignVecElems(const Expr* e)
 		auto c = op2->AsConstExpr();
 		if ( op3->Tag() == EXPR_NAME )
 			{
-			auto stmt = Vector_Elem_Assign2VVC(lhs,
-							op3->AsNameExpr(), c);
+			auto index = c->Value()->AsCount();
+			auto stmt = Vector_Elem_AssignVVi(lhs,
+						op3->AsNameExpr(), index);
 			TopStmt().t = op3->Type().get();
 			return stmt;
 			}

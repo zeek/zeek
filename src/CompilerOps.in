@@ -589,14 +589,14 @@ eval if ( vec.size() <= ind ) grow_vector(vec, ind + 1)
 eval vec[ind] = s.c
 
 # This version is used when the constant is the index, not the new value.
-op Vector-Elem-Assign2
-type VVC
+op Vector-Elem-Assign
+type VVi
 eval auto vmgr = frame[s.v1].vector_val
 eval vmgr->SetYieldType(s.t)
 eval auto& vec = *vmgr->ModVec()
-eval auto ind = s.c.int_val
+eval auto ind = s.v3
 eval if ( vec.size() <= ind ) grow_vector(vec, ind + 1)
-eval vec[ind] = frame[s.v3]
+eval vec[ind] = frame[s.v2]
 
 # ... and when both are, and we've assigned the value to a temporary.
 op Vector-Elem-Assign

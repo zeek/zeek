@@ -166,7 +166,7 @@ namespace zeek { namespace id {
  * @return  The identifier, which may reference a nil object if no such
  * name exists.
  */
-const IntrusivePtr<ID>& lookup(std::string_view name);
+const IntrusivePtr<ID>& find(std::string_view name);
 
 /**
  * Lookup an ID by its name and return its type.  A fatal occurs if the ID
@@ -174,7 +174,7 @@ const IntrusivePtr<ID>& lookup(std::string_view name);
  * @param name  The identifier name to lookup
  * @return  The type of the identifier.
  */
-const IntrusivePtr<BroType>& lookup_type(std::string_view name);
+const IntrusivePtr<BroType>& find_type(std::string_view name);
 
 /**
  * Lookup an ID by its name and return its type (as cast to @c T).
@@ -183,8 +183,8 @@ const IntrusivePtr<BroType>& lookup_type(std::string_view name);
  * @return  The type of the identifier.
  */
 template<class T>
-IntrusivePtr<T> lookup_type(std::string_view name)
-	{ return cast_intrusive<T>(lookup_type(name)); }
+IntrusivePtr<T> find_type(std::string_view name)
+	{ return cast_intrusive<T>(find_type(name)); }
 
 /**
  * Lookup an ID by its name and return its value.  A fatal occurs if the ID
@@ -192,7 +192,7 @@ IntrusivePtr<T> lookup_type(std::string_view name)
  * @param name  The identifier name to lookup
  * @return  The current value of the identifier
  */
-const IntrusivePtr<Val>& lookup_val(std::string_view name);
+const IntrusivePtr<Val>& find_val(std::string_view name);
 
 /**
  * Lookup an ID by its name and return its value (as cast to @c T).
@@ -201,8 +201,8 @@ const IntrusivePtr<Val>& lookup_val(std::string_view name);
  * @return  The current value of the identifier.
  */
 template<class T>
-IntrusivePtr<T> lookup_val(std::string_view name)
-	{ return cast_intrusive<T>(lookup_val(name)); }
+IntrusivePtr<T> find_val(std::string_view name)
+	{ return cast_intrusive<T>(find_val(name)); }
 
 /**
  * Lookup an ID by its name and return its value.  A fatal occurs if the ID
@@ -210,7 +210,7 @@ IntrusivePtr<T> lookup_val(std::string_view name)
  * @param name  The identifier name to lookup
  * @return  The current value of the identifier
  */
-const IntrusivePtr<Val>& lookup_const(std::string_view name);
+const IntrusivePtr<Val>& find_const(std::string_view name);
 
 /**
  * Lookup an ID by its name and return its value (as cast to @c T).
@@ -219,8 +219,8 @@ const IntrusivePtr<Val>& lookup_const(std::string_view name);
  * @return  The current value of the identifier.
  */
 template<class T>
-IntrusivePtr<T> lookup_const(std::string_view name)
-	{ return cast_intrusive<T>(lookup_const(name)); }
+IntrusivePtr<T> find_const(std::string_view name)
+	{ return cast_intrusive<T>(find_const(name)); }
 
 /**
  * Lookup an ID by its name and return the function it references.
@@ -228,7 +228,7 @@ IntrusivePtr<T> lookup_const(std::string_view name)
  * @param name  The identifier name to lookup
  * @return  The current function value the identifier references.
  */
-IntrusivePtr<Func> lookup_func(std::string_view name);
+IntrusivePtr<Func> find_func(std::string_view name);
 
 extern IntrusivePtr<RecordType> conn_id;
 extern IntrusivePtr<RecordType> endpoint;

@@ -1154,7 +1154,7 @@ IntrusivePtr<Val> bro_broker::DataVal::castTo(BroType* t)
 BroType* bro_broker::DataVal::ScriptDataType()
 	{
 	if ( ! script_data_type )
-		script_data_type = zeek::id::lookup_type("Broker::Data").get();
+		script_data_type = zeek::id::find_type("Broker::Data").get();
 
 	return script_data_type;
 	}

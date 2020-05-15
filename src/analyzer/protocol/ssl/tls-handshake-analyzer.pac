@@ -155,7 +155,7 @@ refine connection Handshake_Conn += {
 		if ( ! ssl_extension_signature_algorithm )
 			return true;
 
-		auto slist = make_intrusive<VectorVal>(zeek::id::lookup_type<VectorType>("signature_and_hashalgorithm_vec"));
+		auto slist = make_intrusive<VectorVal>(zeek::id::find_type<VectorType>("signature_and_hashalgorithm_vec"));
 
 		if ( supported_signature_algorithms )
 			{
@@ -492,7 +492,7 @@ refine connection Handshake_Conn += {
 		if ( ! ssl_extension_pre_shared_key_server_hello )
 			return true;
 
-		auto slist = make_intrusive<VectorVal>(zeek::id::lookup_type<VectorType>("psk_identity_vec"));
+		auto slist = make_intrusive<VectorVal>(zeek::id::find_type<VectorType>("psk_identity_vec"));
 
 		if ( identities && identities->identities() )
 			{

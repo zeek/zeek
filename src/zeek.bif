@@ -1051,7 +1051,7 @@ function find_entropy%(data: string%): entropy_test_result
 	e.Feed(data->Bytes(), data->Len());
 	e.Get(&ent, &chisq, &mean, &montepi, &scc);
 
-	static auto entropy_test_result = zeek::id::lookup_type<RecordType>("entropy_test_result");
+	static auto entropy_test_result = zeek::id::find_type<RecordType>("entropy_test_result");
 	auto ent_result = make_intrusive<RecordVal>(entropy_test_result);
 	ent_result->Assign(0, make_intrusive<Val>(ent,     TYPE_DOUBLE));
 	ent_result->Assign(1, make_intrusive<Val>(chisq,   TYPE_DOUBLE));
@@ -1103,7 +1103,7 @@ function entropy_test_finish%(handle: opaque of entropy%): entropy_test_result
 	montepi = scc = ent = mean = chisq = 0.0;
 	static_cast<EntropyVal*>(handle)->Get(&ent, &chisq, &mean, &montepi, &scc);
 
-	static auto entropy_test_result = zeek::id::lookup_type<RecordType>("entropy_test_result");
+	static auto entropy_test_result = zeek::id::find_type<RecordType>("entropy_test_result");
 	auto ent_result = make_intrusive<RecordVal>(entropy_test_result);
 	ent_result->Assign(0, make_intrusive<Val>(ent,     TYPE_DOUBLE));
 	ent_result->Assign(1, make_intrusive<Val>(chisq,   TYPE_DOUBLE));
@@ -1826,7 +1826,7 @@ function record_type_to_vector%(rt: string%): string_vec
 	%{
 	auto result = make_intrusive<VectorVal>(zeek::id::string_vec);
 
-	RecordType* type = zeek::id::lookup_type(rt->CheckString())->AsRecordType();
+	RecordType* type = zeek::id::find_type(rt->CheckString())->AsRecordType();
 
 	for ( int i = 0; i < type->NumFields(); ++i )
 		result->Assign(i+1, make_intrusive<StringVal>(type->FieldName(i)));
@@ -1891,7 +1891,7 @@ function reading_traces%(%): bool
 ## .. zeek:see:: reading_live_traffic reading_traces
 function packet_source%(%): PacketSource
 	%{
-	auto ps_type = zeek::id::lookup_type("PacketSource")->AsRecordType();
+	auto ps_type = zeek::id::find_type("PacketSource")->AsRecordType();
 	auto ps = iosource_mgr->GetPktSrc();
 	auto r = make_intrusive<RecordVal>(ps_type);
 
@@ -1941,14 +1941,14 @@ function global_sizes%(%): var_sizes
 ## .. zeek:see:: global_sizes
 function global_ids%(%): id_table
 	%{
-	static auto id_table = zeek::id::lookup_type<TableType>("id_table");
+	static auto id_table = zeek::id::find_type<TableType>("id_table");
 	auto ids = make_intrusive<TableVal>(id_table);
 	const auto& globals = global_scope()->Vars();
 
 	for ( const auto& global : globals )
 		{
 		ID* id = global.second.get();
-		static auto script_id = zeek::id::lookup_type<RecordType>("script_id");
+		static auto script_id = zeek::id::find_type<RecordType>("script_id");
 		auto rec = make_intrusive<RecordVal>(script_id);
 		rec->Assign(0, make_intrusive<StringVal>(type_name(id->GetType()->Tag())));
 		rec->Assign(1, val_mgr->Bool(id->IsExport()));
@@ -1994,7 +1994,7 @@ function lookup_ID%(id: string%) : any
 ## Returns: A table that describes the fields of a record.
 function record_fields%(rec: any%): record_field_table
 	%{
-	static auto record_field_table = zeek::id::lookup_type<TableType>("record_field_table");
+	static auto record_field_table = zeek::id::find_type<TableType>("record_field_table");
 
 	if ( rec->GetType()->Tag() == TYPE_STRING )
 		{
@@ -2189,7 +2189,7 @@ function is_v6_subnet%(s: subnet%): bool
 ## Returns: The vector of addresses contained in the routing header data.
 function routing0_data_to_addrs%(s: string%): addr_vec
 	%{
-	auto rval = make_intrusive<VectorVal>(zeek::id::lookup_type<VectorType>("addr_vec"));
+	auto rval = make_intrusive<VectorVal>(zeek::id::find_type<VectorType>("addr_vec"));
 
 	int len = s->Len();
 	const u_char* bytes = s->Bytes();
@@ -3385,7 +3385,7 @@ function dump_current_packet%(file_name: string%) : bool
 ## .. zeek:see:: dump_current_packet dump_packet
 function get_current_packet%(%) : pcap_packet
 	%{
-	static auto pcap_packet = zeek::id::lookup_type<RecordType>("pcap_packet");
+	static auto pcap_packet = zeek::id::find_type<RecordType>("pcap_packet");
 	const Packet* p;
 	auto pkt = make_intrusive<RecordVal>(pcap_packet);
 
@@ -3427,7 +3427,7 @@ function get_current_packet_header%(%) : raw_pkt_hdr
 		return p->ToRawPktHdrVal();
 		}
 
-	static auto raw_pkt_hdr_type = zeek::id::lookup_type<RecordType>("raw_pkt_hdr");
+	static auto raw_pkt_hdr_type = zeek::id::find_type<RecordType>("raw_pkt_hdr");
 	auto hdr = make_intrusive<RecordVal>(raw_pkt_hdr_type);
 	return hdr;
 	%}
@@ -3998,7 +3998,7 @@ function mmdb_open_asn_db%(f: string%) : bool
 ## .. zeek:see:: lookup_asn
 function lookup_location%(a: addr%) : geo_location
 	%{
-	static auto geo_location = zeek::id::lookup_type<RecordType>("geo_location");
+	static auto geo_location = zeek::id::find_type<RecordType>("geo_location");
 	auto location = make_intrusive<RecordVal>(geo_location);
 
 #ifdef USE_GEOIP
@@ -4630,7 +4630,7 @@ function rotate_file%(f: file%): rotate_info
 		return info;
 
 	// Record indicating error.
-	static auto rotate_info = zeek::id::lookup_type<RecordType>("rotate_info");
+	static auto rotate_info = zeek::id::find_type<RecordType>("rotate_info");
 	info = make_intrusive<RecordVal>(rotate_info);
 	info->Assign(0, val_mgr->EmptyString());
 	info->Assign(1, val_mgr->EmptyString());
@@ -4650,7 +4650,7 @@ function rotate_file%(f: file%): rotate_info
 ## .. zeek:see:: rotate_file calc_next_rotate
 function rotate_file_by_name%(f: string%): rotate_info
 	%{
-	static auto rotate_info = zeek::id::lookup_type<RecordType>("rotate_info");
+	static auto rotate_info = zeek::id::find_type<RecordType>("rotate_info");
 	auto info = make_intrusive<RecordVal>(rotate_info);
 
 	bool is_pkt_dumper = false;
@@ -4705,7 +4705,7 @@ function rotate_file_by_name%(f: string%): rotate_info
 ## .. zeek:see:: rotate_file rotate_file_by_name
 function calc_next_rotate%(i: interval%) : interval
 	%{
-	static auto log_rotate_base_time = zeek::id::lookup_val<StringVal>("log_rotate_base_time");
+	static auto log_rotate_base_time = zeek::id::find_val<StringVal>("log_rotate_base_time");
 	static auto base_time = log_rotate_base_time->AsString()->CheckString();
 
 	double base = parse_rotate_base_time(base_time);

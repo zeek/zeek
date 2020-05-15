@@ -748,21 +748,21 @@ void builtin_error(const char* msg, BroObj* arg)
 
 void init_builtin_funcs()
 	{
-	ProcStats = zeek::id::lookup_type("ProcStats")->AsRecordType();
-	NetStats = zeek::id::lookup_type("NetStats")->AsRecordType();
-	MatcherStats = zeek::id::lookup_type("MatcherStats")->AsRecordType();
-	ConnStats = zeek::id::lookup_type("ConnStats")->AsRecordType();
-	ReassemblerStats = zeek::id::lookup_type("ReassemblerStats")->AsRecordType();
-	DNSStats = zeek::id::lookup_type("DNSStats")->AsRecordType();
-	GapStats = zeek::id::lookup_type("GapStats")->AsRecordType();
-	EventStats = zeek::id::lookup_type("EventStats")->AsRecordType();
-	TimerStats = zeek::id::lookup_type("TimerStats")->AsRecordType();
-	FileAnalysisStats = zeek::id::lookup_type("FileAnalysisStats")->AsRecordType();
-	ThreadStats = zeek::id::lookup_type("ThreadStats")->AsRecordType();
-	BrokerStats = zeek::id::lookup_type("BrokerStats")->AsRecordType();
-	ReporterStats = zeek::id::lookup_type("ReporterStats")->AsRecordType();
+	ProcStats = zeek::id::find_type("ProcStats")->AsRecordType();
+	NetStats = zeek::id::find_type("NetStats")->AsRecordType();
+	MatcherStats = zeek::id::find_type("MatcherStats")->AsRecordType();
+	ConnStats = zeek::id::find_type("ConnStats")->AsRecordType();
+	ReassemblerStats = zeek::id::find_type("ReassemblerStats")->AsRecordType();
+	DNSStats = zeek::id::find_type("DNSStats")->AsRecordType();
+	GapStats = zeek::id::find_type("GapStats")->AsRecordType();
+	EventStats = zeek::id::find_type("EventStats")->AsRecordType();
+	TimerStats = zeek::id::find_type("TimerStats")->AsRecordType();
+	FileAnalysisStats = zeek::id::find_type("FileAnalysisStats")->AsRecordType();
+	ThreadStats = zeek::id::find_type("ThreadStats")->AsRecordType();
+	BrokerStats = zeek::id::find_type("BrokerStats")->AsRecordType();
+	ReporterStats = zeek::id::find_type("ReporterStats")->AsRecordType();
 
-	var_sizes = zeek::id::lookup_type("var_sizes")->AsTableType();
+	var_sizes = zeek::id::find_type("var_sizes")->AsTableType();
 
 #include "zeek.bif.func_init"
 #include "stats.bif.func_init"

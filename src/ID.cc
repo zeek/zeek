@@ -31,12 +31,12 @@ IntrusivePtr<TableType> zeek::id::count_set;
 IntrusivePtr<VectorType> zeek::id::string_vec;
 IntrusivePtr<VectorType> zeek::id::index_vec;
 
-const IntrusivePtr<ID>& zeek::id::lookup(std::string_view name)
+const IntrusivePtr<ID>& zeek::id::find(std::string_view name)
 	{
 	return global_scope()->Find(name);
 	}
 
-const IntrusivePtr<BroType>& zeek::id::lookup_type(std::string_view name)
+const IntrusivePtr<BroType>& zeek::id::find_type(std::string_view name)
 	{
 	auto id = global_scope()->Find(name);
 
@@ -47,7 +47,7 @@ const IntrusivePtr<BroType>& zeek::id::lookup_type(std::string_view name)
 	return id->GetType();
 	}
 
-const IntrusivePtr<Val>& zeek::id::lookup_val(std::string_view name)
+const IntrusivePtr<Val>& zeek::id::find_val(std::string_view name)
 	{
 	auto id = global_scope()->Find(name);
 
@@ -58,7 +58,7 @@ const IntrusivePtr<Val>& zeek::id::lookup_val(std::string_view name)
 	return id->GetVal();
 	}
 
-const IntrusivePtr<Val>& zeek::id::lookup_const(std::string_view name)
+const IntrusivePtr<Val>& zeek::id::find_const(std::string_view name)
 	{
 	auto id = global_scope()->Find(name);
 
@@ -73,9 +73,9 @@ const IntrusivePtr<Val>& zeek::id::lookup_const(std::string_view name)
 	return id->GetVal();
 	}
 
-IntrusivePtr<Func> zeek::id::lookup_func(std::string_view name)
+IntrusivePtr<Func> zeek::id::find_func(std::string_view name)
 	{
-	const auto& v = zeek::id::lookup_val(name);
+	const auto& v = zeek::id::find_val(name);
 
 	if ( ! v )
 		return nullptr;
@@ -89,17 +89,17 @@ IntrusivePtr<Func> zeek::id::lookup_func(std::string_view name)
 
 void zeek::id::detail::init()
 	{
-	conn_id = lookup_type<RecordType>("conn_id");
-	endpoint = lookup_type<RecordType>("endpoint");
-	connection = lookup_type<RecordType>("connection");
-	fa_file = lookup_type<RecordType>("fa_file");
-	fa_metadata = lookup_type<RecordType>("fa_metadata");
-	transport_proto = lookup_type<EnumType>("transport_proto");
-	string_set = lookup_type<TableType>("string_set");
-	string_array = lookup_type<TableType>("string_array");
-	count_set = lookup_type<TableType>("count_set");
-	string_vec = lookup_type<VectorType>("string_vec");
-	index_vec = lookup_type<VectorType>("index_vec");
+	conn_id = zeek::id::find_type<RecordType>("conn_id");
+	endpoint = zeek::id::find_type<RecordType>("endpoint");
+	connection = zeek::id::find_type<RecordType>("connection");
+	fa_file = zeek::id::find_type<RecordType>("fa_file");
+	fa_metadata = zeek::id::find_type<RecordType>("fa_metadata");
+	transport_proto = zeek::id::find_type<EnumType>("transport_proto");
+	string_set = zeek::id::find_type<TableType>("string_set");
+	string_array = zeek::id::find_type<TableType>("string_array");
+	count_set = zeek::id::find_type<TableType>("count_set");
+	string_vec = zeek::id::find_type<VectorType>("string_vec");
+	index_vec = zeek::id::find_type<VectorType>("index_vec");
 	}
 
 ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)

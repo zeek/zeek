@@ -40,37 +40,37 @@ extern void end_func(IntrusivePtr<Stmt> body);
 // Gather all IDs referenced inside a body that aren't part of a given scope.
 extern id_list gather_outer_ids(Scope* scope, Stmt* body);
 
-[[deprecated("Remove in v4.1.  Use zeek::id::lookup_val().")]]
+[[deprecated("Remove in v4.1.  Use zeek::id::find_val().")]]
 extern Val* internal_val(const char* name);
 
-[[deprecated("Remove in v4.1.  Use zeek::id::lookup_const().")]]
+[[deprecated("Remove in v4.1.  Use zeek::id::find_const().")]]
 extern Val* internal_const_val(const char* name); // internal error if not const
 
-[[deprecated("Remove in v4.1.  Use zeek::id::lookup() or zeek::id::lookup_val().")]]
+[[deprecated("Remove in v4.1.  Use zeek::id::find() or zeek::id::find_val().")]]
 extern Val* opt_internal_val(const char* name);	// returns nil if not defined
 
-[[deprecated("Remove in v4.1.  Use zeek::id::lookup() or zeek::id::lookup_val().")]]
+[[deprecated("Remove in v4.1.  Use zeek::id::find() or zeek::id::find_val().")]]
 extern double opt_internal_double(const char* name);
 
-[[deprecated("Remove in v4.1.  Use zeek::id::lookup() or zeek::id::lookup_val().")]]
+[[deprecated("Remove in v4.1.  Use zeek::id::find() or zeek::id::find_val().")]]
 extern bro_int_t opt_internal_int(const char* name);
 
-[[deprecated("Remove in v4.1.  Use zeek::id::lookup() or zeek::id::lookup_val().")]]
+[[deprecated("Remove in v4.1.  Use zeek::id::find() or zeek::id::find_val().")]]
 extern bro_uint_t opt_internal_unsigned(const char* name);
 
-[[deprecated("Remove in v4.1.  Use zeek::id::lookup() or zeek::id::lookup_val().")]]
+[[deprecated("Remove in v4.1.  Use zeek::id::find() or zeek::id::find_val().")]]
 extern StringVal* opt_internal_string(const char* name);
 
-[[deprecated("Remove in v4.1.  Use zeek::id::lookup() or zeek::id::lookup_val().")]]
+[[deprecated("Remove in v4.1.  Use zeek::id::find() or zeek::id::find_val().")]]
 extern TableVal* opt_internal_table(const char* name);	// nil if not defined
 
-[[deprecated("Remove in v4.1.  Use zeek::id::lookup(), zeek::id::lookup_val(), and/or TableVal::ToPureListVal().")]]
+[[deprecated("Remove in v4.1.  Use zeek::id::find(), zeek::id::find_val(), and/or TableVal::ToPureListVal().")]]
 extern ListVal* internal_list_val(const char* name);
 
-[[deprecated("Remove in v4.1.  Use zeek::id::lookup_type().")]]
+[[deprecated("Remove in v4.1.  Use zeek::id::find_type().")]]
 extern BroType* internal_type(const char* name);
 
-[[deprecated("Remove in v4.1.  Use zeek::id::lookup_func().")]]
+[[deprecated("Remove in v4.1.  Use zeek::id::find_func().")]]
 extern Func* internal_func(const char* name);
 
 [[deprecated("Remove in v4.1.  Use event_registry->Register().")]]

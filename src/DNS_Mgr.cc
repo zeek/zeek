@@ -452,7 +452,7 @@ void DNS_Mgr::InitSource()
 
 void DNS_Mgr::InitPostScript()
 	{
-	dm_rec = zeek::id::lookup_type("dns_mapping")->AsRecordType();
+	dm_rec = zeek::id::find_type("dns_mapping")->AsRecordType();
 
 	// Registering will call Init()
 	iosource_mgr->Register(this, true);

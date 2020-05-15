@@ -342,7 +342,7 @@ SampleLogger::SampleLogger()
 	static TableType* load_sample_info = nullptr;
 
 	if ( ! load_sample_info )
-		load_sample_info = zeek::id::lookup_type("load_sample_info")->AsTableType();
+		load_sample_info = zeek::id::find_type("load_sample_info")->AsTableType();
 
 	load_samples = new TableVal({NewRef{}, load_sample_info});
 	}

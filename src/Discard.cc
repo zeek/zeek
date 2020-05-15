@@ -16,12 +16,12 @@
 
 Discarder::Discarder()
 	{
-	check_ip = zeek::id::lookup_func("discarder_check_ip");
-	check_tcp = zeek::id::lookup_func("discarder_check_tcp");
-	check_udp = zeek::id::lookup_func("discarder_check_udp");
-	check_icmp = zeek::id::lookup_func("discarder_check_icmp");
+	check_ip = zeek::id::find_func("discarder_check_ip");
+	check_tcp = zeek::id::find_func("discarder_check_tcp");
+	check_udp = zeek::id::find_func("discarder_check_udp");
+	check_icmp = zeek::id::find_func("discarder_check_icmp");
 
-	discarder_maxlen = static_cast<int>(zeek::id::lookup_val("discarder_maxlen")->AsCount());
+	discarder_maxlen = static_cast<int>(zeek::id::find_val("discarder_maxlen")->AsCount());
 	}
 
 Discarder::~Discarder()

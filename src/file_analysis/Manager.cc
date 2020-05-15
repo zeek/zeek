@@ -431,7 +431,7 @@ string Manager::GetFileID(const analyzer::Tag& tag, Connection* c, bool is_orig)
 bool Manager::IsDisabled(const analyzer::Tag& tag)
 	{
 	if ( ! disabled )
-		disabled = zeek::id::lookup_const("Files::disable")->AsTableVal();
+		disabled = zeek::id::find_const("Files::disable")->AsTableVal();
 
 	auto index = val_mgr->Count(bool(tag));
 	auto yield = disabled->Lookup(index.get());
@@ -498,8 +498,8 @@ string Manager::DetectMIME(const u_char* data, uint64_t len) const
 
 IntrusivePtr<VectorVal> file_analysis::GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m)
 	{
-	static auto mime_matches = zeek::id::lookup_type<VectorType>("mime_matches");
-	static auto mime_match = zeek::id::lookup_type<RecordType>("mime_match");
+	static auto mime_matches = zeek::id::find_type<VectorType>("mime_matches");
+	static auto mime_match = zeek::id::find_type<RecordType>("mime_match");
 	auto rval = make_intrusive<VectorVal>(mime_matches);
 
 	for ( RuleMatcher::MIME_Matches::const_iterator it = m.begin();

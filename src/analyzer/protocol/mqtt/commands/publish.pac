@@ -31,7 +31,7 @@ refine flow MQTT_Flow += {
 			                           reinterpret_cast<const char*>(${msg.topic.str}.begin())));
 
 			auto len = ${msg.payload}.length();
-			static auto max_payload_size = zeek::id::lookup("MQTT::max_payload_size");
+			static auto max_payload_size = zeek::id::find("MQTT::max_payload_size");
 			auto max = max_payload_size->GetVal()->AsCount();
 
 			if ( len > static_cast<int>(max) )

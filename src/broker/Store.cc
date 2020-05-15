@@ -15,7 +15,7 @@ EnumVal* query_status(bool success)
 
 	if ( ! store_query_status )
 		{
-		store_query_status = zeek::id::lookup_type("Broker::QueryStatus")->AsEnumType();
+		store_query_status = zeek::id::find_type("Broker::QueryStatus")->AsEnumType();
 		success_val = store_query_status->Lookup("Broker", "SUCCESS");
 		failure_val = store_query_status->Lookup("Broker", "FAILURE");
 		}

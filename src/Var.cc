@@ -658,7 +658,7 @@ void end_func(IntrusivePtr<Stmt> body)
 
 Val* internal_val(const char* name)
 	{
-	return zeek::id::lookup_val(name).get();
+	return zeek::id::find_val(name).get();
 	}
 
 id_list gather_outer_ids(Scope* scope, Stmt* body)
@@ -683,7 +683,7 @@ id_list gather_outer_ids(Scope* scope, Stmt* body)
 
 Val* internal_const_val(const char* name)
 	{
-	return zeek::id::lookup_const(name).get();
+	return zeek::id::find_const(name).get();
 	}
 
 Val* opt_internal_val(const char* name)
@@ -761,12 +761,12 @@ ListVal* internal_list_val(const char* name)
 
 BroType* internal_type(const char* name)
 	{
-	return zeek::id::lookup_type(name).get();
+	return zeek::id::find_type(name).get();
 	}
 
 Func* internal_func(const char* name)
 	{
-	const auto& v = zeek::id::lookup_val(name);
+	const auto& v = zeek::id::find_val(name);
 
 	if ( v )
 		return v->AsFunc();

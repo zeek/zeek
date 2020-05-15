@@ -3906,7 +3906,7 @@ static Val* mmdb_getvalue(MMDB_entry_data_s* entry_data, int status,
 static bool mmdb_try_open_loc ()
 	{
 	// City database is always preferred over Country database.
-	const auto& mmdb_dir_val = global_scope()->Lookup("mmdb_dir")->GetVal();
+	const auto& mmdb_dir_val = global_scope()->Find("mmdb_dir")->GetVal();
 	std::string mmdb_dir = mmdb_dir_val->AsString()->CheckString();
 
 	if ( ! mmdb_dir.empty() )
@@ -3934,7 +3934,7 @@ static bool mmdb_try_open_loc ()
 
 static bool mmdb_try_open_asn ()
 	{
-	const auto& mmdb_dir_val = global_scope()->Lookup("mmdb_dir")->GetVal();
+	const auto& mmdb_dir_val = global_scope()->Find("mmdb_dir")->GetVal();
 	std::string mmdb_dir = mmdb_dir_val->AsString()->CheckString();
 
 	if ( ! mmdb_dir.empty() )

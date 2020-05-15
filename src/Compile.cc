@@ -316,6 +316,8 @@ public:
 	BroType* YieldType() const	{ return yield_type; }
 	void SetYieldType(BroType* yt)	{ yield_type = yt; }
 
+	IntrusivePtr<VectorVal> VecVal()	{ return {NewRef{}, v}; }
+
 	bool IsClean() const	{ return is_clean || ! v; }
 
 	// Copy back the internal vector the associated value.
@@ -1109,11 +1111,7 @@ const CompiledStmt AbstractMachine::DoCall(const CallExpr* c,
 	c->Traverse(&call_pf);
 
 	for ( auto l : call_pf.locals )
-		// Do not sync vectors, they'll be taken care of by
-		// spilling, and need to preserve the VectorVal they're
-		// already using.
-		if ( l->Type()->Tag() != TYPE_VECTOR )
-			StoreLocal(l);
+		StoreLocal(l);
 
 	auto a_s = n ? AbstractStmt(OP_INTERPRET_EXPR_V, FrameSlot(n), c) :
 			AbstractStmt(OP_INTERPRET_EXPR_X, c);

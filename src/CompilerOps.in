@@ -951,8 +951,10 @@ eval frame[s.v1].any_val = v.get()
 
 internal-op Store-Val
 type VV
-eval auto v = frame[s.v1].ToVal(s.t)
-eval f->SetElement(s.v2, v.release())
+eval auto is_vec = s.t->Tag() == TYPE_VECTOR
+eval auto vv = is_vec ? frame[s.v1].vector_val->VecVal() : nullptr
+eval auto val = vv ? vv : frame[s.v1].ToVal(s.t)
+eval f->SetElement(s.v2, val.release())
 
 internal-op Store-Any-Val
 type VV
@@ -961,8 +963,10 @@ eval f->SetElement(s.v2, v)
 
 internal-op Store-Global
 type VC
-eval auto v = frame[s.v1].ToVal(s.t)
-eval s.c.id_val->SetVal(v)
+eval auto is_vec = s.t->Tag() == TYPE_VECTOR
+eval auto vv = is_vec ? frame[s.v1].vector_val->VecVal() : nullptr
+eval auto val = vv ? vv : frame[s.v1].ToVal(s.t)
+eval s.c.id_val->SetVal(val)
 
 internal-op Store-Any-Global
 type VC

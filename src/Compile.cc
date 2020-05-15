@@ -423,7 +423,7 @@ IntrusivePtr<VectorVal> AS_ValUnion::ToVector(BroType* t) const
 		{
 		auto& vr = vec[i];
 
-		if ( vr.IsNil(vt) )
+		if ( vr.IsNil(actual_yt) )
 			continue;
 
 		v->Assign(i, vr.ToVal(actual_yt));

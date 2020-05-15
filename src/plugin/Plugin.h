@@ -957,10 +957,10 @@ private:
 }
 
 namespace plugin {
-	using VersionNumber = zeek::plugin::VersionNumber;
-	using Configuration = zeek::plugin::Configuration;
-	using BifItem = zeek::plugin::BifItem;
-	using HookArgument = zeek::plugin::HookArgument;
-	using HookArgumentList = zeek::plugin::HookArgumentList;
-	using Plugin = zeek::plugin::Plugin;
+	using VersionNumber [[deprecated("Remove in v4.1. Use zeek::plugin::VersionNumber instead")]] = zeek::plugin::VersionNumber;
+	using Configuration [[deprecated("Remove in v4.1. Use zeek::plugin::Configuration instead")]] = zeek::plugin::Configuration;
+	using BifItem [[deprecated("Remove in v4.1. Use zeek::plugin::BifItem instead")]] = zeek::plugin::BifItem;
+	using HookArgument [[deprecated("Remove in v4.1. Use zeek::plugin::HookArgument instead")]] = zeek::plugin::HookArgument;
+	using HookArgumentList [[deprecated("Remove in v4.1. Use zeek::plugin::HookArgumentList instead")]] = zeek::plugin::HookArgumentList;
+	using Plugin [[deprecated("Remove in v4.1. Use zeek::plugin::Plugin instead")]] = zeek::plugin::Plugin;
 }

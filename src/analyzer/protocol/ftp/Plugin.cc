@@ -7,14 +7,14 @@
 namespace plugin {
 namespace Zeek_FTP {
 
-class Plugin : public plugin::Plugin {
+class Plugin : public zeek::plugin::Plugin {
 public:
-	plugin::Configuration Configure() override
+	zeek::plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("FTP", ::analyzer::ftp::FTP_Analyzer::Instantiate));
 		AddComponent(new ::analyzer::Component("FTP_ADAT", nullptr));
 
-		plugin::Configuration config;
+		zeek::plugin::Configuration config;
 		config.name = "Zeek::FTP";
 		config.description = "FTP analyzer";
 		return config;

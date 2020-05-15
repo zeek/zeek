@@ -10,9 +10,9 @@
 namespace plugin {
 namespace Zeek_Login {
 
-class Plugin : public plugin::Plugin {
+class Plugin : public zeek::plugin::Plugin {
 public:
-	plugin::Configuration Configure() override
+	zeek::plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("Telnet", ::analyzer::login::Telnet_Analyzer::Instantiate));
 		AddComponent(new ::analyzer::Component("Rsh", ::analyzer::login::Rsh_Analyzer::Instantiate));
@@ -22,7 +22,7 @@ public:
 		AddComponent(new ::analyzer::Component("Contents_Rsh", nullptr));
 		AddComponent(new ::analyzer::Component("Contents_Rlogin", nullptr));
 
-		plugin::Configuration config;
+		zeek::plugin::Configuration config;
 		config.name = "Zeek::Login";
 		config.description = "Telnet/Rsh/Rlogin analyzers";
 		return config;

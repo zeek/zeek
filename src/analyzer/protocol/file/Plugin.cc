@@ -7,14 +7,14 @@
 namespace plugin {
 namespace Zeek_File {
 
-class Plugin : public plugin::Plugin {
+class Plugin : public zeek::plugin::Plugin {
 public:
-	plugin::Configuration Configure() override
+	zeek::plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("FTP_Data", ::analyzer::file::FTP_Data::Instantiate));
 		AddComponent(new ::analyzer::Component("IRC_Data", ::analyzer::file::IRC_Data::Instantiate));
 
-		plugin::Configuration config;
+		zeek::plugin::Configuration config;
 		config.name = "Zeek::File";
 		config.description = "Generic file analyzer";
 		return config;

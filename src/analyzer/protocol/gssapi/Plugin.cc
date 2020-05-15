@@ -7,13 +7,13 @@
 namespace plugin {
 namespace Zeek_GSSAPI {
 
-class Plugin : public plugin::Plugin {
+class Plugin : public zeek::plugin::Plugin {
 public:
-	plugin::Configuration Configure() override
+	zeek::plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("GSSAPI", ::analyzer::gssapi::GSSAPI_Analyzer::Instantiate));
 
-		plugin::Configuration config;
+		zeek::plugin::Configuration config;
 		config.name = "Zeek::GSSAPI";
 		config.description = "GSSAPI analyzer";
 		return config;

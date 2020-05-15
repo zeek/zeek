@@ -7,14 +7,14 @@
 namespace plugin {
 namespace Zeek_SMB {
 
-class Plugin : public plugin::Plugin {
+class Plugin : public zeek::plugin::Plugin {
 public:
-	plugin::Configuration Configure() override
+	zeek::plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("SMB", ::analyzer::smb::SMB_Analyzer::Instantiate));
 		AddComponent(new ::analyzer::Component("Contents_SMB", nullptr));
 
-		plugin::Configuration config;
+		zeek::plugin::Configuration config;
 		config.name = "Zeek::SMB";
 		config.description = "SMB analyzer";
 		return config;

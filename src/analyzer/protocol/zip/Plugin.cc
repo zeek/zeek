@@ -7,13 +7,13 @@
 namespace plugin {
 namespace Zeek_ZIP {
 
-class Plugin : public plugin::Plugin {
+class Plugin : public zeek::plugin::Plugin {
 public:
-	plugin::Configuration Configure() override
+	zeek::plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("ZIP", nullptr));
 
-		plugin::Configuration config;
+		zeek::plugin::Configuration config;
 		config.name = "Zeek::ZIP";
 		config.description = "Generic ZIP support analyzer";
 		return config;

@@ -7,13 +7,13 @@
 namespace plugin {
 namespace Zeek_DHCP {
 
-class Plugin : public plugin::Plugin {
+class Plugin : public zeek::plugin::Plugin {
 public:
-	plugin::Configuration Configure() override
+	zeek::plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("DHCP", ::analyzer::dhcp::DHCP_Analyzer::Instantiate));
 
-		plugin::Configuration config;
+		zeek::plugin::Configuration config;
 		config.name = "Zeek::DHCP";
 		config.description = "DHCP analyzer";
 		return config;

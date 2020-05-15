@@ -163,7 +163,7 @@ void DebugLogger::Log(DebugStream stream, const char* fmt, ...)
 	fflush(file);
 	}
 
-void DebugLogger::Log(const plugin::Plugin& plugin, const char* fmt, ...)
+void DebugLogger::Log(const zeek::plugin::Plugin& plugin, const char* fmt, ...)
 	{
 	std::string tok = std::string("plugin-") + plugin.Name();
 	tok = strreplace(tok, "::", "-");

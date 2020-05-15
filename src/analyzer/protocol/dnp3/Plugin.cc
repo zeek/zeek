@@ -7,14 +7,14 @@
 namespace plugin {
 namespace Zeek_DNP3 {
 
-class Plugin : public plugin::Plugin {
+class Plugin : public zeek::plugin::Plugin {
 public:
-	plugin::Configuration Configure() override
+	zeek::plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("DNP3_TCP", ::analyzer::dnp3::DNP3_TCP_Analyzer::Instantiate));
 		AddComponent(new ::analyzer::Component("DNP3_UDP", ::analyzer::dnp3::DNP3_UDP_Analyzer::Instantiate));
 
-		plugin::Configuration config;
+		zeek::plugin::Configuration config;
 		config.name = "Zeek::DNP3";
 		config.description = "DNP3 UDP/TCP analyzers";
 		return config;

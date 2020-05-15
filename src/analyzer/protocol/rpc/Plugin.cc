@@ -10,9 +10,9 @@
 namespace plugin {
 namespace Zeek_RPC {
 
-class Plugin : public plugin::Plugin {
+class Plugin : public zeek::plugin::Plugin {
 public:
-	plugin::Configuration Configure() override
+	zeek::plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("NFS", ::analyzer::rpc::NFS_Analyzer::Instantiate));
 		AddComponent(new ::analyzer::Component("MOUNT", ::analyzer::rpc::MOUNT_Analyzer::Instantiate));
@@ -20,7 +20,7 @@ public:
 		AddComponent(new ::analyzer::Component("Contents_RPC", nullptr));
 		AddComponent(new ::analyzer::Component("Contents_NFS", nullptr));
 
-		plugin::Configuration config;
+		zeek::plugin::Configuration config;
 		config.name = "Zeek::RPC";
 		config.description = "Analyzers for RPC-based protocols";
 		return config;

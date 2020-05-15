@@ -25,8 +25,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 			break;
 
 		Packet pkt;
-		auto timestamp = current_time(true);
-		pkt_timeval ts = {long(timestamp), 0};
+		auto timestamp = 42;
+		pkt_timeval ts = {timestamp, 0};
 		pkt.Init(DLT_RAW, &ts, chunk->size, chunk->size, chunk->data.get(), false, "");
 
 		try

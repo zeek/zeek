@@ -5024,7 +5024,7 @@ function match_signatures%(c: connection, pattern_type: int, s: string,
 ## .. todo:: Currently dysfunctional.
 function preserve_prefix%(a: addr, width: count%): any
 	%{
-	AnonymizeIPAddr* ip_anon = ip_anonymizer[PREFIX_PRESERVING_A50];
+	zeek::detail::AnonymizeIPAddr* ip_anon = zeek::detail::ip_anonymizer[zeek::detail::PREFIX_PRESERVING_A50];
 	if ( ip_anon )
 		{
 		if ( a->AsAddr().GetFamily() == IPv6 )
@@ -5036,7 +5036,6 @@ function preserve_prefix%(a: addr, width: count%): any
 			ip_anon->PreservePrefix(*bytes, width);
 			}
 		}
-
 
 	return nullptr;
 	%}
@@ -5051,7 +5050,7 @@ function preserve_prefix%(a: addr, width: count%): any
 function preserve_subnet%(a: subnet%): any
 	%{
 	DEBUG_MSG("%s/%d\n", a->Prefix().AsString().c_str(), a->Width());
-	AnonymizeIPAddr* ip_anon = ip_anonymizer[PREFIX_PRESERVING_A50];
+	zeek::detail::AnonymizeIPAddr* ip_anon = zeek::detail::ip_anonymizer[zeek::detail::PREFIX_PRESERVING_A50];
 	if ( ip_anon )
 		{
 		if ( a->AsSubNet().Prefix().GetFamily() == IPv6 )
@@ -5087,7 +5086,7 @@ function preserve_subnet%(a: subnet%): any
 function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 	%{
 	int anon_class = cl->InternalInt();
-	if ( anon_class < 0 || anon_class >= NUM_ADDR_ANONYMIZATION_CLASSES )
+	if ( anon_class < 0 || anon_class >= zeek::detail::NUM_ADDR_ANONYMIZATION_CLASSES )
 		builtin_error("anonymize_addr(): invalid ip addr anonymization class");
 
 	if ( a->AsAddr().GetFamily() == IPv6 )
@@ -5099,8 +5098,8 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 		{
 		const uint32_t* bytes;
 		a->AsAddr().GetBytes(&bytes);
-		return make_intrusive<AddrVal>(anonymize_ip(*bytes,
-			(enum ip_addr_anonymization_class_t) anon_class));
+		return make_intrusive<AddrVal>(zeek::detail::anonymize_ip(*bytes,
+		        static_cast<zeek::detail::ip_addr_anonymization_class_t>(anon_class)));
 		}
 	%}
 

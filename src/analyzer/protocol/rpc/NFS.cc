@@ -251,7 +251,8 @@ bool NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 			// Otherwise DeliverRPC would complain about
 			// excess_RPC.
 			n = 0;
-			reply = zeek::BifType::Enum::NFS3::proc_t->GetVal(c->Proc()).release();
+			auto ev = zeek::BifType::Enum::NFS3::proc_t->GetVal(c->Proc());
+			reply = ev.release();
 			event = nfs_proc_not_implemented;
 			}
 		else
@@ -438,13 +439,15 @@ RecordVal* NFS_Interp::nfs3_fattr(const u_char*& buf, int& n)
 EnumVal* NFS_Interp::nfs3_time_how(const u_char*& buf, int& n)
 	{
 	BifEnum::NFS3::time_how_t t = (BifEnum::NFS3::time_how_t)extract_XDR_uint32(buf, n);
-	return zeek::BifType::Enum::NFS3::time_how_t->GetVal(t).release();
+	auto rval = zeek::BifType::Enum::NFS3::time_how_t->GetVal(t);
+	return rval.release();
 	}
 
 EnumVal* NFS_Interp::nfs3_ftype(const u_char*& buf, int& n)
 	{
 	BifEnum::NFS3::file_type_t t = (BifEnum::NFS3::file_type_t)extract_XDR_uint32(buf, n);
-	return zeek::BifType::Enum::NFS3::file_type_t->GetVal(t).release();
+	auto rval = zeek::BifType::Enum::NFS3::file_type_t->GetVal(t);
+	return rval.release();
 	}
 
 RecordVal* NFS_Interp::nfs3_wcc_attr(const u_char*& buf, int& n)
@@ -533,7 +536,8 @@ RecordVal* NFS_Interp::nfs3_pre_op_attr(const u_char*& buf, int& n)
 EnumVal *NFS_Interp::nfs3_stable_how(const u_char*& buf, int& n)
 	{
 	BifEnum::NFS3::stable_how_t stable = (BifEnum::NFS3::stable_how_t)extract_XDR_uint32(buf, n);
-	return zeek::BifType::Enum::NFS3::stable_how_t->GetVal(stable).release();
+	auto rval = zeek::BifType::Enum::NFS3::stable_how_t->GetVal(stable);
+	return rval.release();
 	}
 
 RecordVal* NFS_Interp::nfs3_lookup_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status)

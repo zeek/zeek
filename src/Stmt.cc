@@ -200,8 +200,9 @@ static IntrusivePtr<EnumVal> lookup_enum_val(const char* module_name, const char
 
 static void print_log(const std::vector<IntrusivePtr<Val>>& vals)
 	{
-	auto plval = lookup_enum_val("Log", "PRINTLOG");
-	auto record = make_intrusive<RecordVal>(zeek::id::find_type<RecordType>("Log::PrintLogInfo"));
+	static auto plval = lookup_enum_val("Log", "PRINTLOG");
+	static auto lpli = zeek::id::find_type<RecordType>("Log::PrintLogInfo");
+	auto record = make_intrusive<RecordVal>(lpli);
 	auto vec = make_intrusive<VectorVal>(zeek::id::string_vec);
 
 	for ( const auto& val : vals )

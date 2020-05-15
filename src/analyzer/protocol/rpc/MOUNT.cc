@@ -79,7 +79,7 @@ bool MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_statu
 			       double last_time, int reply_len)
 	{
 	EventHandlerPtr event = nullptr;
-	Val* reply = nullptr;
+	IntrusivePtr<Val> reply;
 	BifEnum::MOUNT3::status_t mount_status = BifEnum::MOUNT3::MNT3_OK;
 	bool rpc_success = ( rpc_status == BifEnum::RPC_SUCCESS );
 
@@ -114,19 +114,17 @@ bool MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_statu
 		break;
 
 	case BifEnum::MOUNT3::PROC_MNT:
-		reply = mount3_mnt_reply(buf, n, mount_status);
+		reply = {AdoptRef{}, mount3_mnt_reply(buf, n, mount_status)};
 		event = mount_proc_mnt;
 		break;
 
 	case BifEnum::MOUNT3::PROC_UMNT:
-		reply = nullptr;
 		n = 0;
 		mount_status = BifEnum::MOUNT3::MNT3_OK;
 		event = mount_proc_umnt;
 		break;
 
 	case BifEnum::MOUNT3::PROC_UMNT_ALL:
-		reply = nullptr;
 		n = 0;
 		mount_status = BifEnum::MOUNT3::MNT3_OK;
 		event = mount_proc_umnt;
@@ -139,7 +137,7 @@ bool MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_statu
 			// Otherwise DeliverRPC would complain about
 			// excess_RPC.
 			n = 0;
-			reply = zeek::BifType::Enum::MOUNT3::proc_t->GetVal(c->Proc()).release();
+			reply = zeek::BifType::Enum::MOUNT3::proc_t->GetVal(c->Proc());
 			event = mount_proc_not_implemented;
 			}
 		else
@@ -148,9 +146,7 @@ bool MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_statu
 
 	if ( rpc_success && ! buf )
 		{
-		// There was a parse error. We have to unref the reply. (see
-		// also comments in RPC_BuildCall.
-		Unref(reply);
+		// There was a parse error.
 		reply = nullptr;
 		return false;
 		}
@@ -172,12 +168,11 @@ bool MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_statu
 			vl.emplace_back(AdoptRef{}, request);
 
 		if ( reply )
-			vl.emplace_back(AdoptRef{}, reply);
+			vl.emplace_back(reply);
 
 		analyzer->EnqueueConnEvent(event, std::move(vl));
 		}
-	else
-		Unref(reply);
+
 	return true;
 	}
 
@@ -221,7 +216,8 @@ zeek::Args MOUNT_Interp::event_common_vl(RPC_CallInfo *c,
 EnumVal* MOUNT_Interp::mount3_auth_flavor(const u_char*& buf, int& n)
     {
 	BifEnum::MOUNT3::auth_flavor_t t = (BifEnum::MOUNT3::auth_flavor_t)extract_XDR_uint32(buf, n);
-	return zeek::BifType::Enum::MOUNT3::auth_flavor_t->GetVal(t).release();
+	auto rval = zeek::BifType::Enum::MOUNT3::auth_flavor_t->GetVal(t);
+	return rval.release();
     }
 
 StringVal* MOUNT_Interp::mount3_fh(const u_char*& buf, int& n)

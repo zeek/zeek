@@ -1231,20 +1231,17 @@ EnumType::enum_name_list EnumType::Names() const
 	return n;
 	}
 
-IntrusivePtr<EnumVal> EnumType::GetVal(bro_int_t i)
+const IntrusivePtr<EnumVal>& EnumType::GetVal(bro_int_t i)
 	{
 	auto it = vals.find(i);
-	IntrusivePtr<EnumVal> rval;
 
 	if ( it == vals.end() )
 		{
-		rval = make_intrusive<EnumVal>(IntrusivePtr{NewRef{}, this}, i);
-		vals[i] = rval;
+		auto ev = make_intrusive<EnumVal>(IntrusivePtr{NewRef{}, this}, i);
+		return vals.emplace(i, std::move(ev)).first->second;
 		}
-	else
-		rval = it->second;
 
-	return rval;
+	return it->second;
 	}
 
 void EnumType::DescribeReST(ODesc* d, bool roles_only) const

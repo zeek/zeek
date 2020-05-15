@@ -196,7 +196,8 @@ struct val_converter {
 			if ( i == -1 )
 				return nullptr;
 
-			return etype->GetVal(i).release();
+			auto rval = etype->GetVal(i);
+			return rval.release();
 			}
 
 		return nullptr;

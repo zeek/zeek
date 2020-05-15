@@ -723,7 +723,7 @@ public:
 
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
-	IntrusivePtr<EnumVal> GetVal(bro_int_t i);
+	const IntrusivePtr<EnumVal>& GetVal(bro_int_t i);
 
 protected:
 	void AddNameInternal(const std::string& module_name,

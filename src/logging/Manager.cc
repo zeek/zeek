@@ -1290,7 +1290,7 @@ void Manager::SendAllWritersTo(const broker::endpoint_info& ei)
 		      i != stream->writers.end(); i++ )
 			{
 			WriterFrontend* writer = i->second->writer;
-			auto writer_val = et->GetVal(i->first.first);
+			const auto& writer_val = et->GetVal(i->first.first);
 			broker_mgr->PublishLogCreate((*s)->id,
 						     writer_val.get(),
 						     *i->second->info,

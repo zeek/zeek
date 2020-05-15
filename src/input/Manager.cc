@@ -1072,8 +1072,8 @@ void Manager::SendEntry(ReaderFrontend* reader, Value* *vals)
 
 	else if ( i->stream_type == EVENT_STREAM )
 		{
-		EnumVal* type = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW).release();
-		readFields = SendEventStreamEvent(i, type, vals);
+		auto type = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW);
+		readFields = SendEventStreamEvent(i, type.release(), vals);
 		}
 
 	else if ( i->stream_type == ANALYSIS_STREAM )
@@ -1166,7 +1166,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 	// call stream first to determine if we really add / change the entry
 	if ( stream->pred && ! convert_error )
 		{
-		EnumVal* ev;
+		IntrusivePtr<EnumVal> ev;
 		int startpos = 0;
 		bool pred_convert_error = false;
 		predidx = ValueToRecordVal(i, vals, stream->itype, &startpos, pred_convert_error);
@@ -1177,15 +1177,15 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 		if ( ! pred_convert_error )
 			{
 			if ( updated )
-				ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_CHANGED).release();
+				ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_CHANGED);
 			else
-				ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW).release();
+				ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW);
 
 			bool result;
 			if ( stream->num_val_fields > 0 ) // we have values
-				result = CallPred(stream->pred, 3, ev, predidx->Ref(), valval->Ref());
+				result = CallPred(stream->pred, 3, ev.release(), predidx->Ref(), valval->Ref());
 			else // no values
-				result = CallPred(stream->pred, 2, ev, predidx->Ref());
+				result = CallPred(stream->pred, 2, ev.release(), predidx->Ref());
 
 			if ( result == false )
 				{
@@ -1265,7 +1265,6 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 
 	if ( stream->event )
 		{
-		EnumVal* ev;
 		int startpos = 0;
 		Val* predidx = ValueToRecordVal(i, vals, stream->itype, &startpos, convert_error);
 
@@ -1278,20 +1277,20 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 		else if ( updated )
 			{ // in case of update send back the old value.
 			assert ( stream->num_val_fields > 0 );
-			ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_CHANGED).release();
+			auto ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_CHANGED);
 			assert ( oldval != nullptr );
-			SendEvent(stream->event, 4, stream->description->Ref(), ev, predidx, oldval.release());
+			SendEvent(stream->event, 4, stream->description->Ref(), ev.release(), predidx, oldval.release());
 			}
 		else
 			{
-			ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW).release();
+			auto ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW);
 			if ( stream->num_val_fields == 0 )
 				{
 				Ref(stream->description);
-				SendEvent(stream->event, 3, stream->description->Ref(), ev, predidx);
+				SendEvent(stream->event, 3, stream->description->Ref(), ev.release(), predidx);
 				}
 			else
-				SendEvent(stream->event, 4, stream->description->Ref(), ev, predidx, valval->Ref());
+				SendEvent(stream->event, 4, stream->description->Ref(), ev.release(), predidx, valval->Ref());
 			}
 		}
 
@@ -1335,9 +1334,8 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 	while ( ( ih = stream->lastDict->NextEntry(lastDictIdxKey, c) ) )
 		{
 		IntrusivePtr<Val> val;
-
-		Val* predidx = nullptr;
-		EnumVal* ev = nullptr;
+		IntrusivePtr<Val> predidx;
+		IntrusivePtr<EnumVal> ev;
 		int startpos = 0;
 
 		if ( stream->pred || stream->event )
@@ -1346,25 +1344,21 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 			assert(idx != nullptr);
 			val = stream->tab->Lookup(idx.get());
 			assert(val != nullptr);
-			predidx = ListValToRecordVal(idx.get(), stream->itype, &startpos);
-			ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED).release();
+			predidx = {AdoptRef{}, ListValToRecordVal(idx.get(), stream->itype, &startpos)};
+			ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED);
 			}
 
 		if ( stream->pred )
 			{
 			// ask predicate, if we want to expire this element...
 
-			Ref(ev);
-			Ref(predidx);
-
-			bool result = CallPred(stream->pred, 3, ev, predidx, IntrusivePtr{val}.release());
+			bool result = CallPred(stream->pred, 3, ev->Ref(), predidx->Ref(),
+			                       val->Ref());
 
 			if ( result == false )
 				{
 				// Keep it. Hence - we quit and simply go to the next entry of lastDict
 				// ah well - and we have to add the entry to currDict...
-				Unref(predidx);
-				Unref(ev);
 				stream->currDict->Insert(lastDictIdxKey, stream->lastDict->RemoveEntry(lastDictIdxKey));
 				delete lastDictIdxKey;
 				continue;
@@ -1372,17 +1366,8 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 			}
 
 		if ( stream->event )
-			{
-			Ref(predidx);
-			Ref(ev);
-			SendEvent(stream->event, 4, stream->description->Ref(), ev, predidx, IntrusivePtr{val}.release());
-			}
-
-		if ( predidx )  // if we have a stream or an event...
-			Unref(predidx);
-
-		if ( ev )
-			Unref(ev);
+			SendEvent(stream->event, 4, stream->description->Ref(), ev->Ref(),
+			          predidx->Ref(), val->Ref());
 
 		stream->tab->Delete(ih->idxkey);
 		stream->lastDict->Remove(lastDictIdxKey); // delete in next line
@@ -1454,8 +1439,8 @@ void Manager::Put(ReaderFrontend* reader, Value* *vals)
 
 	else if ( i->stream_type == EVENT_STREAM )
 		{
-		EnumVal* type = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW).release();
-		readFields = SendEventStreamEvent(i, type, vals);
+		auto type = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW);
+		readFields = SendEventStreamEvent(i, type.release(), vals);
 		}
 
 	else if ( i->stream_type == ANALYSIS_STREAM )
@@ -1581,7 +1566,7 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 		// predicate if we want the update or not
 		if ( stream->pred )
 			{
-			EnumVal* ev;
+			IntrusivePtr<EnumVal> ev;
 			int startpos = 0;
 			bool pred_convert_error = false;
 			Val* predidx = ValueToRecordVal(i, vals, stream->itype, &startpos, pred_convert_error);
@@ -1591,18 +1576,18 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 			else
 				{
 				if ( updated )
-					ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_CHANGED).release();
+					ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_CHANGED);
 				else
-					ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW).release();
+					ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW);
 
 				bool result;
 				if ( stream->num_val_fields > 0 ) // we have values
 					{
 					Ref(valval);
-					result = CallPred(stream->pred, 3, ev, predidx, valval);
+					result = CallPred(stream->pred, 3, ev.release(), predidx, valval);
 					}
 				else // no values
-					result = CallPred(stream->pred, 2, ev, predidx);
+					result = CallPred(stream->pred, 2, ev.release(), predidx);
 
 				if ( result == false )
 					{
@@ -1619,7 +1604,6 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 
 		if ( stream->event )
 			{
-			EnumVal* ev;
 			int startpos = 0;
 			bool event_convert_error = false;
 			Val* predidx = ValueToRecordVal(i, vals, stream->itype, &startpos, event_convert_error);
@@ -1632,20 +1616,20 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 					{
 					// in case of update send back the old value.
 					assert ( stream->num_val_fields > 0 );
-					ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_CHANGED).release();
+					auto ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_CHANGED);
 					assert ( oldval != nullptr );
 					SendEvent(stream->event, 4, stream->description->Ref(),
-					          ev, predidx, oldval.release());
+					          ev.release(), predidx, oldval.release());
 					}
 				else
 					{
-					ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW).release();
+					auto ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_NEW);
 					if ( stream->num_val_fields == 0 )
 						SendEvent(stream->event, 4, stream->description->Ref(),
-								ev, predidx);
+								ev.release(), predidx);
 					else
 						SendEvent(stream->event, 4, stream->description->Ref(),
-								ev, predidx, valval->Ref());
+								ev.release(), predidx, valval->Ref());
 					}
 				}
 
@@ -1724,9 +1708,9 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 					Unref(predidx);
 				else
 					{
-					EnumVal* ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED).release();
+					auto ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED);
 
-					streamresult = CallPred(stream->pred, 3, ev, predidx, IntrusivePtr{val}.release());
+					streamresult = CallPred(stream->pred, 3, ev.release(), predidx, IntrusivePtr{val}.release());
 
 					if ( streamresult == false )
 						{
@@ -1743,8 +1727,8 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 				{
 				Ref(idxval);
 				assert(val != nullptr);
-				EnumVal* ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED).release();
-				SendEvent(stream->event, 4, stream->description->Ref(), ev, idxval, IntrusivePtr{val}.release());
+				auto ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED);
+				SendEvent(stream->event, 4, stream->description->Ref(), ev.release(), idxval, IntrusivePtr{val}.release());
 				}
 			}
 
@@ -1758,8 +1742,8 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 
 	else if ( i->stream_type == EVENT_STREAM  )
 		{
-		EnumVal* type = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED).release();
-		readVals = SendEventStreamEvent(i, type, vals);
+		auto type = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED);
+		readVals = SendEventStreamEvent(i, type.release(), vals);
 		success = true;
 		}
 
@@ -2385,7 +2369,8 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 			return nullptr;
 			}
 
-		return request_type->AsEnumType()->GetVal(index).release();
+		auto rval = request_type->AsEnumType()->GetVal(index);
+		return rval.release();
 		}
 
 	default:
@@ -2583,7 +2568,8 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 			return nullptr;
 			}
 
-		return t->GetVal(intval).release();
+		auto rval = t->GetVal(intval);
+		return rval.release();
 		}
 
 	default:
@@ -2711,19 +2697,19 @@ void Manager::ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, co
 	// send our script level error event
 	if ( i->error_event )
 		{
-		EnumVal* ev;
+		IntrusivePtr<EnumVal> ev;
 		switch (et)
 			{
 			case ErrorType::INFO:
-				ev = zeek::BifType::Enum::Reporter::Level->GetVal(BifEnum::Reporter::INFO).release();
+				ev = zeek::BifType::Enum::Reporter::Level->GetVal(BifEnum::Reporter::INFO);
 				break;
 
 			case ErrorType::WARNING:
-				ev = zeek::BifType::Enum::Reporter::Level->GetVal(BifEnum::Reporter::WARNING).release();
+				ev = zeek::BifType::Enum::Reporter::Level->GetVal(BifEnum::Reporter::WARNING);
 				break;
 
 			case ErrorType::ERROR:
-				ev = zeek::BifType::Enum::Reporter::Level->GetVal(BifEnum::Reporter::ERROR).release();
+				ev = zeek::BifType::Enum::Reporter::Level->GetVal(BifEnum::Reporter::ERROR);
 				break;
 
 			default:
@@ -2732,7 +2718,7 @@ void Manager::ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, co
 			}
 
 		StringVal* message = new StringVal(buf);
-		SendEvent(i->error_event, 3, i->description->Ref(), message, ev);
+		SendEvent(i->error_event, 3, i->description->Ref(), message, ev.release());
 		}
 
 	if ( reporter_send )

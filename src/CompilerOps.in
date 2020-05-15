@@ -773,6 +773,7 @@ type VV
 eval auto ii = new IterInfo
 eval ii->vv = frame[s.v2].vector_val->ConstVec()
 eval ii->vec_type = s.t->AsVectorType()
+eval ii->yield_type = ii->vec_type->YieldType()
 eval ii->iter = 0
 eval ii->n = ii->vv->size()
 eval ii->c = 0;	// because End-Loop will check it
@@ -783,7 +784,7 @@ type VVV
 eval auto ii = frame[s.v1].iter_info
 eval if ( ii->iter >= ii->n ) { pc = s.v3; break; }
 eval auto& vv = *ii->vv
-eval if ( vv[ii->iter].IsNil(ii->vec_type) ) { ++ii->iter; --pc; break; }
+eval if ( vv[ii->iter].IsNil(ii->yield_type) ) { ++ii->iter; --pc; break; }
 eval frame[s.v2].uint_val = ii->iter
 eval ++ii->iter
 

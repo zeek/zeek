@@ -64,6 +64,7 @@ struct IterInfo {
 
 	std::shared_ptr<AS_vector> vv;
 	VectorType* vec_type;
+	BroType* yield_type;
 
 	BroString* s;
 

@@ -395,7 +395,7 @@ type_def:	TOK_TYPE opt_ws TOK_ID opt_ws ':' opt_ws type_def_types opt_ws ';'
 				decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 
 			fprintf(fp_netvar_init,
-				"\tzeek::%s = zeek::id::lookup_type<%sType>(\"%s\");\n",
+				"\tzeek::%s = zeek::id::find_type<%sType>(\"%s\");\n",
 				decl.c_fullname.c_str(), type_name.c_str(),
 				decl.bro_fullname.c_str());
 			fprintf(fp_netvar_init,
@@ -465,7 +465,7 @@ enum_def:	enum_def_1 enum_list TOK_RPB opt_attr_list
 				decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 
 			fprintf(fp_netvar_init,
-				"\tzeek::%s = zeek::id::lookup_type<EnumType>(\"%s\");\n",
+				"\tzeek::%s = zeek::id::find_type<EnumType>(\"%s\");\n",
 				decl.c_fullname.c_str(), decl.bro_fullname.c_str());
 			fprintf(fp_netvar_init,
 				"\t%s = zeek::%s.get();\n",
@@ -536,7 +536,7 @@ const_def:	TOK_CONST opt_ws TOK_ID opt_ws ':' opt_ws TOK_ID opt_ws ';'
 					decl.c_namespace_end.c_str());
 
 			fprintf(fp_netvar_init, "\t{\n");
-			fprintf(fp_netvar_init, "\tconst auto& v = zeek::id::lookup_const%s(\"%s\");\n",
+			fprintf(fp_netvar_init, "\tconst auto& v = zeek::id::find_const%s(\"%s\");\n",
 					builtin_types[typeidx].cast_smart, decl.bro_fullname.c_str());
 			fprintf(fp_netvar_init, "\tzeek::%s = v%s;\n",
 					decl.c_fullname.c_str(), accessor_smart);

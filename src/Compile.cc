@@ -1003,7 +1003,7 @@ IntrusivePtr<Val> AbstractMachine::Exec(Frame* f, stmt_flow_type& flow) const
 IntrusivePtr<Val> AbstractMachine::DoExec(Frame* f, int start_pc,
 						stmt_flow_type& flow) const
 	{
-	auto frame = new AS_ValUnion[frame_size + 1];	// +1 for "extra slot"
+	auto frame = new AS_ValUnion[frame_size];
 	int pc = start_pc;
 	bool error_flag = false;
 	int end_pc = stmts.size();

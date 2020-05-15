@@ -31,24 +31,25 @@ eval frame[s.v1] = BuildVal(v, s.t, s.stmt);
 unary-expr-op Size
 no-const
 op-type i u d A N S T V *
+type-selector 2
 set-type $1
 set-expr $2
 #
-eval_i $1 < 0 ? -$1 : $1
+eval_i $$.uint_val = $1 < 0 ? -$1 : $1
 #
-eval_u $1
+eval_u $$.uint_val = $1
 #
-eval_d $1 < 0 ? -$1 : $1
+eval_d $$.double_val = $1 < 0 ? -$1 : $1
 #
-eval_A frame[s.v1].uint_val = $1->GetFamily() == IPv4 ? 32 : 128
+eval_A $$.uint_val = $1->GetFamily() == IPv4 ? 32 : 128
 #
-eval_N frame[s.v1].double_val = pow(2.0, double(128 - $1->LengthIPv6()))
+eval_N $$.double_val = pow(2.0, double(128 - $1->LengthIPv6()))
 #
-eval_S frame[s.v1].uint_val = $1->Len()
+eval_S $$.uint_val = $1->Len()
 #
-eval_T frame[s.v1].uint_val = $1->Size()
+eval_T $$.uint_val = $1->Size()
 #
-eval_V frame[s.v1].uint_val = $1->ConstVec()->size()
+eval_V $$.uint_val = $1->ConstVec()->size()
 #
 eval auto v = frame[s.v2].ToVal(s.e->Type().get())->SizeVal(); frame[s.v1] = BuildVal(v, s.t, s.stmt);
 

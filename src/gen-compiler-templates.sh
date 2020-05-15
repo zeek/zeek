@@ -152,6 +152,7 @@ $1 == "op2-accessor"	{ op2_accessor = $2; next }
 
 $1 == "no-const"	{ no_const = 1; next }
 $1 == "type"	{ type = $2; next }
+$1 == "type-selector"	{ type_selector = $2; next }
 $1 == "vector"	{ vector = 1; next }
 $1 ~ /^op-type(s?)$/	{ build_op_types(); next }
 $1 == "opaque"	{ opaque = 1; next }
@@ -771,7 +772,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 			# of the types of the other operands).
 			op2_is_const = type ~ /^VC/
 
-			if ( type ~ /^.../ )
+			if ( type ~ /^.../ || type_selector == 2 )
 				# Has three operands, choose second.
 				test_var = op2_is_const ? "c" : "n2"
 			else if ( op2_is_const )
@@ -864,7 +865,7 @@ function build_method_conditional(o, n)
 
 function clear_vars()
 	{
-	opaque = set_expr = set_type = type = operand_type = ""
+	opaque = set_expr = set_type = type = type_selector = operand_type = ""
 	custom_method = method_pre = eval_pre = ""
 	no_const = no_eval = mix_eval = multi_eval = eval_blank = ""
 	vector = binary_op = internal_op = rel_op = ary_op = expr_op = op = ""

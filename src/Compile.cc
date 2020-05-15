@@ -300,31 +300,8 @@ static void grow_vector(AS_vector& vec, int new_size)
 
 class AS_VectorMgr {
 public:
-	AS_VectorMgr(std::shared_ptr<AS_vector> _vec, VectorVal* _v)
-		{
-		vec = _vec;
-		v = _v;
-		if ( v )
-			{
-			Ref(v);
-			curr_ASVM_Tracker->insert(this);
-			}
-
-		yield_type = nullptr;
-		is_clean = true;
-		}
-
-	~AS_VectorMgr()
-		{
-		if ( v )
-			{
-			Spill();
-			curr_ASVM_Tracker->erase(this);
-			}
-
-		if ( v )
-			Unref(v);
-		}
+	AS_VectorMgr(std::shared_ptr<AS_vector> _vec, VectorVal* _v);
+	~AS_VectorMgr();
 
 	AS_VectorMgr* ShallowCopy()
 		{
@@ -357,6 +334,47 @@ protected:
 	// Whether the local vector is unmodified since we created it.
 	bool is_clean;
 };
+
+AS_VectorMgr::AS_VectorMgr(std::shared_ptr<AS_vector> _vec, VectorVal* _v)
+	{
+	vec = _vec;
+	v = _v;
+	if ( v )
+		{
+		Ref(v);
+		curr_ASVM_Tracker->insert(this);
+		}
+
+	auto vt = v->Type()->AsVectorType();
+	auto yt = vt->YieldType();
+
+	if ( yt->Tag() == TYPE_ANY )
+		{
+		if ( v->Size() > 0 )
+			{
+			auto elem0 = v->Lookup(0);
+			yt = elem0->Type();
+			}
+		else
+			yt = nullptr;
+		}
+	else
+		yield_type = yt;
+
+	is_clean = true;
+	}
+
+AS_VectorMgr::~AS_VectorMgr()
+	{
+	if ( v )
+		{
+		Spill();
+		curr_ASVM_Tracker->erase(this);
+		}
+
+	if ( v )
+		Unref(v);
+	}
 
 void AS_VectorMgr::Spill()
 	{

@@ -81,9 +81,9 @@ BEGIN	{
 	exprV["VLV"] = "lhs, r1->AsListExpr(), r2->AsNameExpr()"
 	exprV["VVVV"] = "lhs, r1->AsNameExpr(), r2->AsNameExpr(), r3->AsNameExpr()"
 
-	accessors["I"] = ".int_val"
-	accessors["U"] = ".uint_val"
-	accessors["D"] = ".double_val"
+	accessors["i"] = accessors["I"] = ".int_val"
+	accessors["u"] = accessors["U"] = ".uint_val"
+	accessors["d"] = accessors["D"] = ".double_val"
 
 	accessors["A"] = ".addr_val"
 	accessors["N"] = ".subnet_val"
@@ -96,8 +96,11 @@ BEGIN	{
 	# Update eval(...) below
 
 	eval_selector["I"] = ""
+	eval_selector["i"] = "i"
 	eval_selector["U"] = ""
+	eval_selector["u"] = "u"
 	eval_selector["D"] = ""
+	eval_selector["d"] = "d"
 	eval_selector["A"] = "A"
 	eval_selector["N"] = "N"
 	eval_selector["P"] = "P"
@@ -110,9 +113,9 @@ BEGIN	{
 	++no_vec["V"]
 	++no_vec["A", "I"]
 
-	method_map["I"] = "i_t == TYPE_INTERNAL_INT"
-	method_map["U"] = "i_t == TYPE_INTERNAL_UNSIGNED"
-	method_map["D"] = "i_t == TYPE_INTERNAL_DOUBLE"
+	method_map["i"] = method_map["I"] = "i_t == TYPE_INTERNAL_INT"
+	method_map["u"] = method_map["U"] = "i_t == TYPE_INTERNAL_UNSIGNED"
+	method_map["d"] = method_map["D"] = "i_t == TYPE_INTERNAL_DOUBLE"
 	method_map["A"] = "i_t == TYPE_INTERNAL_ADDR"
 	method_map["N"] = "i_t == TYPE_INTERNAL_SUBNET"
 	method_map["P"] = "tag == TYPE_PATTERN"
@@ -147,6 +150,7 @@ $1 == "op-accessor"	{ op1_accessor = op2_accessor = $2; next }
 $1 == "op1-accessor"	{ op1_accessor = $2; next }
 $1 == "op2-accessor"	{ op2_accessor = $2; next }
 
+$1 == "no-const"	{ no_const = 1; next }
 $1 == "type"	{ type = $2; next }
 $1 == "vector"	{ vector = 1; next }
 $1 ~ /^op-type(s?)$/	{ build_op_types(); next }
@@ -155,7 +159,7 @@ $1 == "opaque"	{ opaque = 1; next }
 $1 == "set-type"	{ set_type = $2; next }
 $1 == "set-expr"	{ set_expr = $2; next }
 
-$1 ~ /^eval((_[ANPSTV])?)$/	{
+$1 ~ /^eval((_[iudANPSTV])?)$/	{
 		if ( $1 != "eval" )
 			{
 			# Extract subtype specifier.
@@ -303,6 +307,9 @@ function dump_op()
 	# Loop over constant, var for first operand
 	for ( j = 0; j <= 1; ++j )
 		{
+		if ( no_const && j == 0 )
+			continue;
+
 		op1 = j ? "V" : "C"
 
 		if ( ary_op == 1 )
@@ -331,7 +338,8 @@ function dump_op()
 			continue;
 			}
 
-		# Loop over constant, var for second operand
+		# Loop over constant, var for second operand.  We do not
+		# currently worry about "no-const" here.
 		for ( k = 0; k <= 1; ++k )
 			build_op_combo(op1, j, k)
 		}
@@ -451,11 +459,18 @@ function expand_eval(e, pre_eval, is_expr_op, otype1, otype2, is_var1, is_var2)
 
 	if ( is_expr_op )
 		{
-		if ( index(e_copy, "$$") > 0 )
+		if ( "*" in op_types )
+			{
+			gsub(/\$\$/, "frame[s.v1]", e_copy)
+			return pre_copy e_copy expr_app
+			}
+
+		else if ( index(e_copy, "$$") > 0 )
 			{
 			gsub(/\$\$/, "frame[s.v1]" laccessor, e_copy)
 			return pre_copy e_copy expr_app
 			}
+
 		else
 			return pre_copy \
 				"frame[s.v1]" laccessor " = " e_copy expr_app
@@ -720,7 +735,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 			# Remove extraneous $, if present.
 			sub(/\$/, "", set_type)
 
-			part2b = "\ts.t = " vars[set_type] "->Type().get();\n"
+			part2b = "s.t = " vars[set_type] "->Type().get();\n"
 
 			if ( sub_type )
 				part2b = "\t" part2b
@@ -733,7 +748,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 			# Remove extraneous $, if present.
 			sub(/\$/, "", set_expr)
 
-			part2b = part2b "\ts.e = " vars[set_expr] ";\n"
+			part2b = part2b "\t\ts.e = " vars[set_expr] ";\n"
 
 			if ( sub_type )
 				part2b = "\t" part2b
@@ -851,7 +866,7 @@ function clear_vars()
 	{
 	opaque = set_expr = set_type = type = operand_type = ""
 	custom_method = method_pre = eval_pre = ""
-	no_eval = mix_eval = multi_eval = eval_blank = ""
+	no_const = no_eval = mix_eval = multi_eval = eval_blank = ""
 	vector = binary_op = internal_op = rel_op = ary_op = expr_op = op = ""
 	direct_method = direct_op = ""
 	laccessor = raccessor1 = raccessor2 = ""

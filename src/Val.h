@@ -1011,9 +1011,8 @@ protected:
 	template<class T, class... Ts>
 	friend IntrusivePtr<T> make_intrusive(Ts&&... args);
 
-	EnumVal(EnumType* t, int i) : Val(bro_int_t(i), {NewRef{}, t})
-		{
-		}
+	EnumVal(IntrusivePtr<EnumType> t, int i) : Val(bro_int_t(i), std::move(t))
+		{}
 
 	void ValDescribe(ODesc* d) const override;
 	IntrusivePtr<Val> DoClone(CloneState* state) override;

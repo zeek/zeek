@@ -1182,7 +1182,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 	AddNameInternal(module_name, name, val, is_export);
 
 	if ( vals.find(val) == vals.end() )
-		vals[val] = make_intrusive<EnumVal>(this, val);
+		vals[val] = make_intrusive<EnumVal>(IntrusivePtr{NewRef{}, this}, val);
 
 	set<BroType*> types = BroType::GetAliases(GetName());
 	set<BroType*>::const_iterator it;
@@ -1238,7 +1238,7 @@ IntrusivePtr<EnumVal> EnumType::GetVal(bro_int_t i)
 
 	if ( it == vals.end() )
 		{
-		rval = make_intrusive<EnumVal>(this, i);
+		rval = make_intrusive<EnumVal>(IntrusivePtr{NewRef{}, this}, i);
 		vals[i] = rval;
 		}
 	else

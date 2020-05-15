@@ -93,8 +93,11 @@ public:
 	virtual TraversalCode Traverse(TraversalCallback* cb) const;
 
 	uint32_t GetUniqueFuncID() const { return unique_id; }
-	static Func* GetFuncPtrByID(uint32_t id)
-		{ return id >= unique_ids.size() ? nullptr : unique_ids[id]; }
+	static const IntrusivePtr<Func>& GetFuncPtrByID(uint32_t id)
+		{
+		static IntrusivePtr<Func> nil;
+		return id >= unique_ids.size() ? nil : unique_ids[id];
+		}
 
 protected:
 	Func();
@@ -111,7 +114,7 @@ protected:
 	uint32_t unique_id;
 	IntrusivePtr<BroType> type;
 	std::string name;
-	static std::vector<Func*> unique_ids;
+	static inline std::vector<IntrusivePtr<Func>> unique_ids;
 };
 
 

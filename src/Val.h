@@ -129,7 +129,9 @@ public:
 		: val(d), type(base_type(t))
 		{}
 
+	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
 	explicit Val(Func* f);
+	explicit Val(IntrusivePtr<Func> f);
 
 	// Note, will unref 'f' when it's done, closing it unless
 	// class has ref'd it.

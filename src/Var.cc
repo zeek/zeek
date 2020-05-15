@@ -298,8 +298,8 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 		// For events, add a function value (without any body) here so that
 		// we can later access the ID even if no implementations have been
 		// defined.
-		Func* f = new BroFunc(id, nullptr, nullptr, 0, 0);
-		id->SetVal(make_intrusive<Val>(f));
+		auto f = make_intrusive<BroFunc>(id, nullptr, nullptr, 0, 0);
+		id->SetVal(make_intrusive<Val>(std::move(f)));
 		}
 	}
 
@@ -638,14 +638,14 @@ void end_func(IntrusivePtr<Stmt> body)
 			ingredients->priority);
 	else
 		{
-		Func* f = new BroFunc(
+		auto f = make_intrusive<BroFunc>(
 			ingredients->id.get(),
 			ingredients->body,
 			ingredients->inits,
 			ingredients->frame_size,
 			ingredients->priority);
 
-		ingredients->id->SetVal(make_intrusive<Val>(f));
+		ingredients->id->SetVal(make_intrusive<Val>(std::move(f)));
 		ingredients->id->SetConst();
 		}
 

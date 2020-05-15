@@ -59,7 +59,6 @@ extern	RETSIGTYPE sig_handler(int signo);
 std::vector<CallInfo> call_stack;
 bool did_builtin_init = false;
 
-std::vector<Func*> Func::unique_ids;
 static const std::pair<bool, Val*> empty_hook_result(false, NULL);
 
 std::string render_call_stack()
@@ -111,13 +110,13 @@ std::string render_call_stack()
 Func::Func()
 	{
 	unique_id = unique_ids.size();
-	unique_ids.push_back(this);
+	unique_ids.push_back({NewRef{}, this});
 	}
 
 Func::Func(Kind arg_kind) : kind(arg_kind)
 	{
 	unique_id = unique_ids.size();
-	unique_ids.push_back(this);
+	unique_ids.push_back({NewRef{}, this});
 	}
 
 Func::~Func() = default;
@@ -594,7 +593,7 @@ BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
 		reporter->InternalError("built-in function %s multiply defined", Name());
 
 	type = id->GetType();
-	id->SetVal(make_intrusive<Val>(this));
+	id->SetVal(make_intrusive<Val>(IntrusivePtr{NewRef{}, this}));
 	}
 
 BuiltinFunc::~BuiltinFunc()

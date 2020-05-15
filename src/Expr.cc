@@ -4207,7 +4207,7 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 
 	// Install a dummy version of the function globally for use only
 	// when broker provides a closure.
-	BroFunc* dummy_func = new BroFunc(
+	auto dummy_func = make_intrusive<BroFunc>(
 		ingredients->id.get(),
 		ingredients->body,
 		shallow_copy_func_inits(ingredients->body, ingredients->inits).release(),
@@ -4245,8 +4245,7 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 	// Update lamb's name
 	dummy_func->SetName(my_name.c_str());
 
-	auto v = make_intrusive<Val>(dummy_func);
-	Unref(dummy_func);
+	auto v = make_intrusive<Val>(std::move(dummy_func));
 	id->SetVal(std::move(v));
 	id->SetType(ingredients->id->GetType());
 	id->SetConst();
@@ -4272,7 +4271,7 @@ IntrusivePtr<Val> LambdaExpr::Eval(Frame* f) const
 	// Allows for lookups by the receiver.
 	lamb->SetName(my_name.c_str());
 
-	return make_intrusive<Val>(lamb.get());
+	return make_intrusive<Val>(std::move(lamb));
 	}
 
 void LambdaExpr::ExprDescribe(ODesc* d) const

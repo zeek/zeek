@@ -845,7 +845,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 			const uint32_t* const kp = AlignType<uint32_t>(kp0);
 			kp1 = reinterpret_cast<const char*>(kp+1);
 
-			Func* f = Func::GetFuncPtrByID(*kp);
+			const auto& f = Func::GetFuncPtrByID(*kp);
 
 			if ( ! f )
 				reporter->InternalError("failed to look up unique function id %" PRIu32 " in CompositeHash::RecoverOneVal()", *kp);

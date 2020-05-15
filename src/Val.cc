@@ -42,11 +42,12 @@
 
 using namespace std;
 
-Val::Val(Func* f)
-	: val(f), type({NewRef{}, f->FType()})
-	{
-	::Ref(val.func_val);
-	}
+Val::Val(Func* f) : Val({NewRef{}, f})
+	{}
+
+Val::Val(IntrusivePtr<Func> f)
+	: val(f.release()), type({NewRef{}, val.func_val->FType()})
+	{}
 
 static const IntrusivePtr<FileType>& GetStringFileType() noexcept
 	{
@@ -118,7 +119,7 @@ IntrusivePtr<Val> Val::DoClone(CloneState* state)
 		// Derived classes are responsible for this. Exception:
 		// Functions and files. There aren't any derived classes.
 		if ( type->Tag() == TYPE_FUNC )
-			return make_intrusive<Val>(AsFunc()->DoClone().get());
+			return make_intrusive<Val>(AsFunc()->DoClone());
 
 		if ( type->Tag() == TYPE_FILE )
 			{

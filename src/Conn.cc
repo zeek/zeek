@@ -80,12 +80,12 @@ Connection::Connection(NetSessions* s, const ConnIDKey& k, double t, const ConnI
 	if ( pkt->l2_src )
 		memcpy(orig_l2_addr, pkt->l2_src, sizeof(orig_l2_addr));
 	else
-		bzero(orig_l2_addr, sizeof(orig_l2_addr));
+		memset(orig_l2_addr, 0, sizeof(orig_l2_addr));
 
 	if ( pkt->l2_dst )
 		memcpy(resp_l2_addr, pkt->l2_dst, sizeof(resp_l2_addr));
 	else
-		bzero(resp_l2_addr, sizeof(resp_l2_addr));
+		memset(resp_l2_addr, 0, sizeof(resp_l2_addr));
 
 	vlan = pkt->vlan;
 	inner_vlan = pkt->inner_vlan;

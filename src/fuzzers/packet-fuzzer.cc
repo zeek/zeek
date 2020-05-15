@@ -1,12 +1,8 @@
 #include "binpac.h"
 
-#include "Net.h"
-#include "Conn.h"
+#include "iosource/Packet.h"
+#include "Event.h"
 #include "Sessions.h"
-#include "analyzer/Analyzer.h"
-#include "analyzer/Manager.h"
-#include "analyzer/protocol/pia/PIA.h"
-#include "analyzer/protocol/tcp/TCP.h"
 
 #include "FuzzBuffer.h"
 #include "fuzzer-setup.h"

@@ -310,6 +310,7 @@ public:
 			curr_ASVM_Tracker->insert(this);
 			}
 
+		yield_type = nullptr;
 		is_clean = true;
 		}
 
@@ -334,6 +335,9 @@ public:
 	std::shared_ptr<AS_vector> ModVec()	
 		{ is_clean = false; return vec; }
 
+	BroType* YieldType() const	{ return yield_type; }
+	void SetYieldType(BroType* yt)	{ yield_type = yt; }
+
 	bool IsClean() const	{ return is_clean || ! v; }
 
 	// Copy back the internal vector the associated value.
@@ -345,6 +349,10 @@ public:
 protected:
 	std::shared_ptr<AS_vector> vec;
 	VectorVal* v;
+
+	// The actual yield type of the vector, if we've had a chance to
+	// observe it.  Necessary for "vector of any".
+	BroType* yield_type;
 
 	// Whether the local vector is unmodified since we created it.
 	bool is_clean;
@@ -384,8 +392,13 @@ IntrusivePtr<VectorVal> AS_ValUnion::ToVector(BroType* t) const
 	{
 	auto vt = t->AsVectorType();
 	auto yt = vt->YieldType();
+
 	auto& vec = *vector_val->ConstVec();
 	int n = vec.size();
+
+	auto actual_yt = vector_val->YieldType();
+	if ( ! actual_yt )
+		actual_yt = yt;
 
 	auto v = make_intrusive<VectorVal>(vt);
 	for ( int i = 0; i < n; ++i )
@@ -395,7 +408,7 @@ IntrusivePtr<VectorVal> AS_ValUnion::ToVector(BroType* t) const
 		if ( vr.IsNil(vt) )
 			continue;
 
-		v->Assign(i, vr.ToVal(yt));
+		v->Assign(i, vr.ToVal(actual_yt));
 		}
 
 	return v;
@@ -1677,21 +1690,32 @@ const CompiledStmt AbstractMachine::AssignVecElems(const Expr* e)
 	auto op3 = index_assign->GetOp3();
 
 	auto lhs = op1->AsNameExpr();
+
 	if ( op2->Tag() == EXPR_NAME )
 		{
+		CompiledStmt stmt(0);
+
 		if ( op3->Tag() == EXPR_NAME )
-			return Vector_Elem_AssignVVV(lhs, op2->AsNameExpr(),
+			stmt = Vector_Elem_AssignVVV(lhs, op2->AsNameExpr(),
 							op3->AsNameExpr());
 		else
-			return Vector_Elem_AssignVVC(lhs, op2->AsNameExpr(),
+			stmt = Vector_Elem_AssignVVC(lhs, op2->AsNameExpr(),
 							op3->AsConstExpr());
+
+		TopStmt().t = op3->Type().get();
+		return stmt;
 		}
 
 	else
 		{
 		auto c = op2->AsConstExpr();
 		if ( op3->Tag() == EXPR_NAME )
-			return Vector_Elem_Assign2VVC(lhs, op3->AsNameExpr(), c);
+			{
+			auto stmt = Vector_Elem_Assign2VVC(lhs,
+							op3->AsNameExpr(), c);
+			TopStmt().t = op3->Type().get();
+			return stmt;
+			}
 
 		// A pain - two constants.
 		auto c3 = op3->AsConstExpr();

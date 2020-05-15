@@ -571,14 +571,18 @@ eval frame[s.v1].vector_val = to_AS_vector(vv_p.get(), false)
 
 op Vector-Elem-Assign
 type VVV
-eval auto& vec = *frame[s.v1].vector_val->ModVec()
+eval auto vmgr = frame[s.v1].vector_val
+eval vmgr->SetYieldType(s.t)
+eval auto& vec = *vmgr->ModVec()
 eval auto ind = frame[s.v2].int_val
 eval if ( vec.size() <= ind ) grow_vector(vec, ind + 1)
 eval vec[ind] = frame[s.v3]
 
 op Vector-Elem-Assign
 type VVC
-eval auto& vec = *frame[s.v1].vector_val->ModVec()
+eval auto vmgr = frame[s.v1].vector_val
+eval vmgr->SetYieldType(s.t)
+eval auto& vec = *vmgr->ModVec()
 eval auto ind = frame[s.v2].int_val
 eval if ( vec.size() <= ind ) grow_vector(vec, ind + 1)
 eval vec[ind] = s.c
@@ -586,7 +590,9 @@ eval vec[ind] = s.c
 # This version is used when the constant is the index, not the new value.
 op Vector-Elem-Assign2
 type VVC
-eval auto& vec = *frame[s.v1].vector_val->ModVec()
+eval auto vmgr = frame[s.v1].vector_val
+eval vmgr->SetYieldType(s.t)
+eval auto& vec = *vmgr->ModVec()
 eval auto ind = s.c.int_val
 eval if ( vec.size() <= ind ) grow_vector(vec, ind + 1)
 eval vec[ind] = frame[s.v3]
@@ -594,7 +600,9 @@ eval vec[ind] = frame[s.v3]
 # ... and when both are, and we've assigned the value to a temporary.
 op Vector-Elem-Assign
 type VCi
-eval auto& vec = *frame[s.v1].vector_val->ModVec()
+eval auto vmgr = frame[s.v1].vector_val
+eval vmgr->SetYieldType(s.t)
+eval auto& vec = *vmgr->ModVec()
 eval auto ind = s.c.int_val
 eval if ( vec.size() <= ind ) grow_vector(vec, ind + 1)
 eval vec[ind] = frame[s.v2]

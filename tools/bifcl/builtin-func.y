@@ -304,7 +304,7 @@ void record_bif_item(const char* id, const char* type)
 	if ( ! plugin )
 		return;
 
-	fprintf(fp_func_init, "\tplugin->AddBifItem(\"%s\", plugin::BifItem::%s);\n", id, type);
+	fprintf(fp_func_init, "\tplugin->AddBifItem(\"%s\", zeek::plugin::BifItem::%s);\n", id, type);
 	}
 
 %}

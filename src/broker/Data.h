@@ -12,11 +12,11 @@ class ODesc;
 
 namespace bro_broker {
 
-extern OpaqueType* opaque_of_data_type;
-extern OpaqueType* opaque_of_set_iterator;
-extern OpaqueType* opaque_of_table_iterator;
-extern OpaqueType* opaque_of_vector_iterator;
-extern OpaqueType* opaque_of_record_iterator;
+extern IntrusivePtr<OpaqueType> opaque_of_data_type;
+extern IntrusivePtr<OpaqueType> opaque_of_set_iterator;
+extern IntrusivePtr<OpaqueType> opaque_of_table_iterator;
+extern IntrusivePtr<OpaqueType> opaque_of_vector_iterator;
+extern IntrusivePtr<OpaqueType> opaque_of_record_iterator;
 
 /**
  * Convert a broker port protocol to a bro port protocol.

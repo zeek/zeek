@@ -151,12 +151,12 @@ void Manager::InitPostScript()
 	log_id_type = zeek::id::find_type("Log::ID")->AsEnumType();
 	writer_id_type = zeek::id::find_type("Log::Writer")->AsEnumType();
 
-	opaque_of_data_type = new OpaqueType("Broker::Data");
-	opaque_of_set_iterator = new OpaqueType("Broker::SetIterator");
-	opaque_of_table_iterator = new OpaqueType("Broker::TableIterator");
-	opaque_of_vector_iterator = new OpaqueType("Broker::VectorIterator");
-	opaque_of_record_iterator = new OpaqueType("Broker::RecordIterator");
-	opaque_of_store_handle = new OpaqueType("Broker::Store");
+	opaque_of_data_type = make_intrusive<OpaqueType>("Broker::Data");
+	opaque_of_set_iterator = make_intrusive<OpaqueType>("Broker::SetIterator");
+	opaque_of_table_iterator = make_intrusive<OpaqueType>("Broker::TableIterator");
+	opaque_of_vector_iterator = make_intrusive<OpaqueType>("Broker::VectorIterator");
+	opaque_of_record_iterator = make_intrusive<OpaqueType>("Broker::RecordIterator");
+	opaque_of_store_handle = make_intrusive<OpaqueType>("Broker::Store");
 	vector_of_data_type = make_intrusive<VectorType>(zeek::id::find_type("Broker::Data"));
 
 	// Register as a "dont-count" source first, we may change that later.

@@ -5,7 +5,7 @@
 
 namespace bro_broker {
 
-OpaqueType* opaque_of_store_handle;
+IntrusivePtr<OpaqueType> opaque_of_store_handle;
 
 EnumVal* query_status(bool success)
 	{

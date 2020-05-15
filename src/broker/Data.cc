@@ -17,11 +17,11 @@
 
 using namespace std;
 
-OpaqueType* bro_broker::opaque_of_data_type;
-OpaqueType* bro_broker::opaque_of_set_iterator;
-OpaqueType* bro_broker::opaque_of_table_iterator;
-OpaqueType* bro_broker::opaque_of_vector_iterator;
-OpaqueType* bro_broker::opaque_of_record_iterator;
+IntrusivePtr<OpaqueType> bro_broker::opaque_of_data_type;
+IntrusivePtr<OpaqueType> bro_broker::opaque_of_set_iterator;
+IntrusivePtr<OpaqueType> bro_broker::opaque_of_table_iterator;
+IntrusivePtr<OpaqueType> bro_broker::opaque_of_vector_iterator;
+IntrusivePtr<OpaqueType> bro_broker::opaque_of_record_iterator;
 
 BroType* bro_broker::DataVal::script_data_type = nullptr;
 

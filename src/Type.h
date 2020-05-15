@@ -769,16 +769,16 @@ protected:
 	IntrusivePtr<BroType> yield_type;
 };
 
-extern OpaqueType* md5_type;
-extern OpaqueType* sha1_type;
-extern OpaqueType* sha256_type;
-extern OpaqueType* entropy_type;
-extern OpaqueType* cardinality_type;
-extern OpaqueType* topk_type;
-extern OpaqueType* bloomfilter_type;
-extern OpaqueType* x509_opaque_type;
-extern OpaqueType* ocsp_resp_opaque_type;
-extern OpaqueType* paraglob_type;
+extern IntrusivePtr<OpaqueType> md5_type;
+extern IntrusivePtr<OpaqueType> sha1_type;
+extern IntrusivePtr<OpaqueType> sha256_type;
+extern IntrusivePtr<OpaqueType> entropy_type;
+extern IntrusivePtr<OpaqueType> cardinality_type;
+extern IntrusivePtr<OpaqueType> topk_type;
+extern IntrusivePtr<OpaqueType> bloomfilter_type;
+extern IntrusivePtr<OpaqueType> x509_opaque_type;
+extern IntrusivePtr<OpaqueType> ocsp_resp_opaque_type;
+extern IntrusivePtr<OpaqueType> paraglob_type;
 
 // Returns the basic (non-parameterized) type with the given type.
 const IntrusivePtr<BroType>& base_type(TypeTag tag);

@@ -113,16 +113,16 @@ vector<string> params;
 set<string> requested_plugins;
 const char* proc_status_file = nullptr;
 
-OpaqueType* md5_type = nullptr;
-OpaqueType* sha1_type = nullptr;
-OpaqueType* sha256_type = nullptr;
-OpaqueType* entropy_type = nullptr;
-OpaqueType* cardinality_type = nullptr;
-OpaqueType* topk_type = nullptr;
-OpaqueType* bloomfilter_type = nullptr;
-OpaqueType* x509_opaque_type = nullptr;
-OpaqueType* ocsp_resp_opaque_type = nullptr;
-OpaqueType* paraglob_type = nullptr;
+IntrusivePtr<OpaqueType> md5_type;
+IntrusivePtr<OpaqueType> sha1_type;
+IntrusivePtr<OpaqueType> sha256_type;
+IntrusivePtr<OpaqueType> entropy_type;
+IntrusivePtr<OpaqueType> cardinality_type;
+IntrusivePtr<OpaqueType> topk_type;
+IntrusivePtr<OpaqueType> bloomfilter_type;
+IntrusivePtr<OpaqueType> x509_opaque_type;
+IntrusivePtr<OpaqueType> ocsp_resp_opaque_type;
+IntrusivePtr<OpaqueType> paraglob_type;
 
 // Keep copy of command line
 int bro_argc;
@@ -592,16 +592,16 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 
 	init_event_handlers();
 
-	md5_type = new OpaqueType("md5");
-	sha1_type = new OpaqueType("sha1");
-	sha256_type = new OpaqueType("sha256");
-	entropy_type = new OpaqueType("entropy");
-	cardinality_type = new OpaqueType("cardinality");
-	topk_type = new OpaqueType("topk");
-	bloomfilter_type = new OpaqueType("bloomfilter");
-	x509_opaque_type = new OpaqueType("x509");
-	ocsp_resp_opaque_type = new OpaqueType("ocsp_resp");
-	paraglob_type = new OpaqueType("paraglob");
+	md5_type = make_intrusive<OpaqueType>("md5");
+	sha1_type = make_intrusive<OpaqueType>("sha1");
+	sha256_type = make_intrusive<OpaqueType>("sha256");
+	entropy_type = make_intrusive<OpaqueType>("entropy");
+	cardinality_type = make_intrusive<OpaqueType>("cardinality");
+	topk_type = make_intrusive<OpaqueType>("topk");
+	bloomfilter_type = make_intrusive<OpaqueType>("bloomfilter");
+	x509_opaque_type = make_intrusive<OpaqueType>("x509");
+	ocsp_resp_opaque_type = make_intrusive<OpaqueType>("ocsp_resp");
+	paraglob_type = make_intrusive<OpaqueType>("paraglob");
 
 	// The leak-checker tends to produce some false
 	// positives (memory which had already been

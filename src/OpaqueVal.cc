@@ -37,9 +37,11 @@ OpaqueMgr* OpaqueMgr::mgr()
 	return &mgr;
 	}
 
-OpaqueVal::OpaqueVal(OpaqueType* t) : Val(IntrusivePtr{NewRef{}, t})
-	{
-	}
+OpaqueVal::OpaqueVal(OpaqueType* t) : OpaqueVal({NewRef{}, t})
+	{}
+
+OpaqueVal::OpaqueVal(IntrusivePtr<OpaqueType> t) : Val(std::move(t))
+	{}
 
 OpaqueVal::~OpaqueVal()
 	{
@@ -204,10 +206,13 @@ IntrusivePtr<StringVal> HashVal::DoGet()
 	return val_mgr->EmptyString();
 	}
 
-HashVal::HashVal(OpaqueType* t) : OpaqueVal(t)
+HashVal::HashVal(IntrusivePtr<OpaqueType> t) : OpaqueVal(std::move(t))
 	{
 	valid = false;
 	}
+
+HashVal::HashVal(OpaqueType* t) : HashVal({NewRef{}, t})
+	{}
 
 MD5Val::MD5Val() : HashVal(md5_type)
 	{
@@ -694,14 +699,6 @@ bool EntropyVal::DoUnserialize(const broker::data& data)
 
 BloomFilterVal::BloomFilterVal()
 	: OpaqueVal(bloomfilter_type)
-	{
-	type = nullptr;
-	hash = nullptr;
-	bloom_filter = nullptr;
-	}
-
-BloomFilterVal::BloomFilterVal(OpaqueType* t)
-	: OpaqueVal(t)
 	{
 	type = nullptr;
 	hash = nullptr;

@@ -87,7 +87,9 @@ private:
  */
 class OpaqueVal : public Val {
 public:
+	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
 	explicit OpaqueVal(OpaqueType* t);
+	explicit OpaqueVal(IntrusivePtr<OpaqueType> t);
 	~OpaqueVal() override;
 
 	/**
@@ -183,7 +185,10 @@ protected:
 	static void digest_one(EVP_MD_CTX* h, const IntrusivePtr<Val>& v);
 
 	HashVal()	{ valid = false; }
+
+	[[deprecated("Remove in v4.1. Construct from IntrusivePtr instead.")]]
 	explicit HashVal(OpaqueType* t);
+	explicit HashVal(IntrusivePtr<OpaqueType> t);
 
 	virtual bool DoInit();
 	virtual bool DoFeed(const void* data, size_t size);
@@ -314,7 +319,6 @@ public:
 protected:
 	friend class Val;
 	BloomFilterVal();
-	explicit BloomFilterVal(OpaqueType* t);
 
 	DECLARE_OPAQUE_VALUE(BloomFilterVal)
 private:

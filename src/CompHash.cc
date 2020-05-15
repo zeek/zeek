@@ -927,7 +927,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 
 			ASSERT(int(values.size()) == num_fields);
 
-			auto rv = make_intrusive<RecordVal>(rt);
+			auto rv = make_intrusive<RecordVal>(IntrusivePtr{NewRef{}, rt});
 
 			for ( int i = 0; i < num_fields; ++i )
 				rv->Assign(i, values[i]);

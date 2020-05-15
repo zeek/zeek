@@ -3031,12 +3031,12 @@ IntrusivePtr<Val> RecordConstructorExpr::InitVal(const BroType* t, IntrusivePtr<
 IntrusivePtr<Val> RecordConstructorExpr::Fold(Val* v) const
 	{
 	ListVal* lv = v->AsListVal();
-	RecordType* rt = type->AsRecordType();
+	auto rt = cast_intrusive<RecordType>(type);
 
 	if ( lv->Length() != rt->NumFields() )
 		RuntimeErrorWithCallStack("inconsistency evaluating record constructor");
 
-	auto rv = make_intrusive<RecordVal>(rt);
+	auto rv = make_intrusive<RecordVal>(std::move(rt));
 
 	for ( int i = 0; i < lv->Length(); ++i )
 		rv->Assign(i, lv->Idx(i));
@@ -3643,7 +3643,7 @@ IntrusivePtr<Val> RecordCoerceExpr::InitVal(const BroType* t, IntrusivePtr<Val> 
 
 IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 	{
-	auto val = make_intrusive<RecordVal>(GetType()->AsRecordType());
+	auto val = make_intrusive<RecordVal>(GetType<RecordType>());
 	RecordType* val_type = val->GetType()->AsRecordType();
 
 	RecordVal* rv = v->AsRecordVal();

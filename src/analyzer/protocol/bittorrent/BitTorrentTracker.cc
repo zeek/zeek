@@ -15,11 +15,11 @@
 
 using namespace analyzer::bittorrent;
 
-static TableType* bt_tracker_headers = nullptr;
-static RecordType* bittorrent_peer;
-static TableType* bittorrent_peer_set;
-static RecordType* bittorrent_benc_value;
-static TableType* bittorrent_benc_dir;
+static IntrusivePtr<TableType> bt_tracker_headers;
+static IntrusivePtr<RecordType> bittorrent_peer;
+static IntrusivePtr<TableType> bittorrent_peer_set;
+static IntrusivePtr<RecordType> bittorrent_benc_value;
+static IntrusivePtr<TableType> bittorrent_benc_dir;
 
 BitTorrentTracker_Analyzer::BitTorrentTracker_Analyzer(Connection* c)
 : tcp::TCP_ApplicationAnalyzer("BITTORRENTTRACKER", c)
@@ -27,15 +27,15 @@ BitTorrentTracker_Analyzer::BitTorrentTracker_Analyzer(Connection* c)
 	if ( ! bt_tracker_headers )
 		{
 		bt_tracker_headers =
-			zeek::id::find_type("bt_tracker_headers")->AsTableType();
+			zeek::id::find_type<TableType>("bt_tracker_headers");
 		bittorrent_peer =
-			zeek::id::find_type("bittorrent_peer")->AsRecordType();
+			zeek::id::find_type<RecordType>("bittorrent_peer");
 		bittorrent_peer_set =
-			zeek::id::find_type("bittorrent_peer_set")->AsTableType();
+			zeek::id::find_type<TableType>("bittorrent_peer_set");
 		bittorrent_benc_value =
-			zeek::id::find_type("bittorrent_benc_value")->AsRecordType();
+			zeek::id::find_type<RecordType>("bittorrent_benc_value");
 		bittorrent_benc_dir =
-			zeek::id::find_type("bittorrent_benc_dir")->AsTableType();
+			zeek::id::find_type<TableType>("bittorrent_benc_dir");
 		}
 
 	keep_alive = false;
@@ -45,7 +45,7 @@ BitTorrentTracker_Analyzer::BitTorrentTracker_Analyzer(Connection* c)
 	req_buf_pos = req_buf;
 	req_buf_len = 0;
 	req_val_uri = nullptr;
-	req_val_headers = new TableVal({NewRef{}, bt_tracker_headers});
+	req_val_headers = new TableVal(bt_tracker_headers);
 
 	res_state = BTT_RES_STATUS;
 	res_allow_blank_line = false;
@@ -53,9 +53,9 @@ BitTorrentTracker_Analyzer::BitTorrentTracker_Analyzer(Connection* c)
 	res_buf_pos = res_buf;
 	res_buf_len = 0;
 	res_status = 0;
-	res_val_headers = new TableVal({NewRef{}, bt_tracker_headers});
-	res_val_peers = new TableVal({NewRef{}, bittorrent_peer_set});
-	res_val_benc = new TableVal({NewRef{}, bittorrent_benc_dir});
+	res_val_headers = new TableVal(bt_tracker_headers);
+	res_val_peers = new TableVal(bittorrent_peer_set);
+	res_val_benc = new TableVal(bittorrent_benc_dir);
 
 	InitBencParser();
 
@@ -136,8 +136,7 @@ void BitTorrentTracker_Analyzer::ClientRequest(int len, const u_char* data)
 			req_buf_len -= (req_buf_pos - req_buf);
 			memmove(req_buf, req_buf_pos, req_buf_len);
 			req_buf_pos = req_buf;
-			req_val_headers =
-				new TableVal({NewRef{}, bt_tracker_headers});
+			req_val_headers = new TableVal(bt_tracker_headers);
 			}
 		}
 	}
@@ -199,9 +198,9 @@ void BitTorrentTracker_Analyzer::ServerReply(int len, const u_char* data)
 		res_buf_pos = res_buf;
 		res_status = 0;
 
-		res_val_headers = new TableVal({NewRef{}, bt_tracker_headers});
-		res_val_peers = new TableVal({NewRef{}, bittorrent_peer_set});
-		res_val_benc = new TableVal({NewRef{}, bittorrent_benc_dir});
+		res_val_headers = new TableVal(bt_tracker_headers);
+		res_val_peers = new TableVal(bittorrent_peer_set);
+		res_val_benc = new TableVal(bittorrent_benc_dir);
 
 		InitBencParser();
 		}

@@ -748,19 +748,19 @@ void builtin_error(const char* msg, BroObj* arg)
 
 void init_builtin_funcs()
 	{
-	ProcStats = zeek::id::find_type("ProcStats")->AsRecordType();
-	NetStats = zeek::id::find_type("NetStats")->AsRecordType();
-	MatcherStats = zeek::id::find_type("MatcherStats")->AsRecordType();
-	ConnStats = zeek::id::find_type("ConnStats")->AsRecordType();
-	ReassemblerStats = zeek::id::find_type("ReassemblerStats")->AsRecordType();
-	DNSStats = zeek::id::find_type("DNSStats")->AsRecordType();
-	GapStats = zeek::id::find_type("GapStats")->AsRecordType();
-	EventStats = zeek::id::find_type("EventStats")->AsRecordType();
-	TimerStats = zeek::id::find_type("TimerStats")->AsRecordType();
-	FileAnalysisStats = zeek::id::find_type("FileAnalysisStats")->AsRecordType();
-	ThreadStats = zeek::id::find_type("ThreadStats")->AsRecordType();
-	BrokerStats = zeek::id::find_type("BrokerStats")->AsRecordType();
-	ReporterStats = zeek::id::find_type("ReporterStats")->AsRecordType();
+	ProcStats = zeek::id::find_type<RecordType>("ProcStats");
+	NetStats = zeek::id::find_type<RecordType>("NetStats");
+	MatcherStats = zeek::id::find_type<RecordType>("MatcherStats");
+	ConnStats = zeek::id::find_type<RecordType>("ConnStats");
+	ReassemblerStats = zeek::id::find_type<RecordType>("ReassemblerStats");
+	DNSStats = zeek::id::find_type<RecordType>("DNSStats");
+	GapStats = zeek::id::find_type<RecordType>("GapStats");
+	EventStats = zeek::id::find_type<RecordType>("EventStats");
+	TimerStats = zeek::id::find_type<RecordType>("TimerStats");
+	FileAnalysisStats = zeek::id::find_type<RecordType>("FileAnalysisStats");
+	ThreadStats = zeek::id::find_type<RecordType>("ThreadStats");
+	BrokerStats = zeek::id::find_type<RecordType>("BrokerStats");
+	ReporterStats = zeek::id::find_type<RecordType>("ReporterStats");
 
 	var_sizes = zeek::id::find_type("var_sizes")->AsTableType();
 

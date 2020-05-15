@@ -1906,7 +1906,7 @@ RecordVal* Manager::ListValToRecordVal(ListVal* list, RecordType *request_type, 
 	{
 	assert(position != nullptr); // we need the pointer to point to data;
 
-	RecordVal* rec = new RecordVal(request_type->AsRecordType());
+	RecordVal* rec = new RecordVal({NewRef{}, request_type});
 
 	assert(list != nullptr);
 	int maxpos = list->Length();
@@ -1936,7 +1936,7 @@ RecordVal* Manager::ValueToRecordVal(const Stream* stream, const Value* const *v
 	{
 	assert(position != nullptr); // we need the pointer to point to data.
 
-	RecordVal* rec = new RecordVal(request_type->AsRecordType());
+	RecordVal* rec = new RecordVal({NewRef{}, request_type});
 	for ( int i = 0; i < request_type->NumFields(); i++ )
 		{
 		Val* fieldVal = nullptr;

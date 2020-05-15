@@ -930,6 +930,7 @@ protected:
 
 class RecordVal final : public Val, public notifier::Modifiable {
 public:
+	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
 	explicit RecordVal(RecordType* t, bool init_fields = true);
 	explicit RecordVal(IntrusivePtr<RecordType> t, bool init_fields = true);
 

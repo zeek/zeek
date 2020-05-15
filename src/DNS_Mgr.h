@@ -149,7 +149,7 @@ protected:
 
 	bool did_init;
 
-	RecordType* dm_rec;
+	IntrusivePtr<RecordType> dm_rec;
 
 	typedef std::list<LookupCallback*> CallbackList;
 

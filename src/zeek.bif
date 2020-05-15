@@ -1891,7 +1891,7 @@ function reading_traces%(%): bool
 ## .. zeek:see:: reading_live_traffic reading_traces
 function packet_source%(%): PacketSource
 	%{
-	auto ps_type = zeek::id::find_type("PacketSource")->AsRecordType();
+	static auto ps_type = zeek::id::find_type<RecordType>("PacketSource");
 	auto ps = iosource_mgr->GetPktSrc();
 	auto r = make_intrusive<RecordVal>(ps_type);
 

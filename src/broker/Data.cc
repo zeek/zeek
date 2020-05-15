@@ -387,7 +387,7 @@ struct val_converter {
 		else if ( type->Tag() == TYPE_RECORD )
 			{
 			auto rt = type->AsRecordType();
-			auto rval = make_intrusive<RecordVal>(rt);
+			auto rval = make_intrusive<RecordVal>(IntrusivePtr{NewRef{}, rt});
 			auto idx = 0u;
 
 			for ( auto i = 0u; i < static_cast<size_t>(rt->NumFields()); ++i )

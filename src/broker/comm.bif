@@ -99,9 +99,9 @@ function Broker::__peers%(%): PeerInfos
 
 	for ( auto& p : broker_mgr->Peers() )
 		{
-		auto pi = zeek::id::find_type("Broker::PeerInfo")->AsRecordType();
-		auto ei = zeek::id::find_type("Broker::EndpointInfo")->AsRecordType();
-		auto ni = zeek::id::find_type("Broker::NetworkInfo")->AsRecordType();
+		const auto& pi = zeek::id::find_type<RecordType>("Broker::PeerInfo");
+		const auto& ei = zeek::id::find_type<RecordType>("Broker::EndpointInfo");
+		const auto& ni = zeek::id::find_type<RecordType>("Broker::NetworkInfo");
 		auto peer_info = new RecordVal(pi);
 		auto endpoint_info = new RecordVal(ei);
 		auto network_info = new RecordVal(ni);

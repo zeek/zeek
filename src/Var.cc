@@ -241,7 +241,7 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 
 			if ( t->Tag() == TYPE_RECORD )
 				{
-				aggr = make_intrusive<RecordVal>(t->AsRecordType());
+				aggr = make_intrusive<RecordVal>(cast_intrusive<RecordType>(t));
 
 				if ( init && t )
 					// Have an initialization and type is not deduced.

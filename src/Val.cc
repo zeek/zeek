@@ -2691,7 +2691,7 @@ RecordVal::RecordVal(IntrusivePtr<RecordType> t, bool init_fields) : Val(std::mo
 			TypeTag tag = type->Tag();
 
 			if ( tag == TYPE_RECORD )
-				def = make_intrusive<RecordVal>(type->AsRecordType());
+				def = make_intrusive<RecordVal>(cast_intrusive<RecordType>(type));
 
 			else if ( tag == TYPE_TABLE )
 				def = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, type->AsTableType()},
@@ -2788,7 +2788,7 @@ IntrusivePtr<RecordVal> RecordVal::CoerceTo(const RecordType* t, Val* aggr, bool
 		return nullptr;
 
 	if ( ! aggr )
-		aggr = new RecordVal(const_cast<RecordType*>(t->AsRecordType()));
+		aggr = new RecordVal({NewRef{}, const_cast<RecordType*>(t)});
 
 	RecordVal* ar = aggr->AsRecordVal();
 	RecordType* ar_t = aggr->GetType()->AsRecordType();
@@ -2932,7 +2932,7 @@ IntrusivePtr<Val> RecordVal::DoClone(CloneState* state)
 	// record. As we cannot guarantee that it will ber zeroed out at the
 	// approproate time (as it seems to be guaranteed for the original record)
 	// we don't touch it.
-	auto rv = make_intrusive<RecordVal>(GetType()->AsRecordType(), false);
+	auto rv = make_intrusive<RecordVal>(GetType<RecordType>(), false);
 	rv->origin = nullptr;
 	state->NewClone(this, rv);
 

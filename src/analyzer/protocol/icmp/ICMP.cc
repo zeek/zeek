@@ -724,15 +724,8 @@ void ICMP_Analyzer::Context6(double t, const struct icmp* icmpp,
 
 IntrusivePtr<VectorVal> ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* data)
 	{
-	static RecordType* icmp6_nd_option_type = nullptr;
-	static RecordType* icmp6_nd_prefix_info_type = nullptr;
-
-	if ( ! icmp6_nd_option_type )
-		{
-		icmp6_nd_option_type = zeek::id::find_type("icmp6_nd_option")->AsRecordType();
-		icmp6_nd_prefix_info_type =
-		        zeek::id::find_type("icmp6_nd_prefix_info")->AsRecordType();
-		}
+	static auto icmp6_nd_option_type = zeek::id::find_type<RecordType>("icmp6_nd_option");
+	static auto icmp6_nd_prefix_info_type = zeek::id::find_type<RecordType>("icmp6_nd_prefix_info");
 
 	auto vv = make_intrusive<VectorVal>(
 	        zeek::id::find_type<VectorType>("icmp6_nd_options"));

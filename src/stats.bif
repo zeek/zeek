@@ -4,19 +4,19 @@
 #include "threading/Manager.h"
 #include "broker/Manager.h"
 
-RecordType* ProcStats;
-RecordType* NetStats;
-RecordType* MatcherStats;
-RecordType* ReassemblerStats;
-RecordType* DNSStats;
-RecordType* ConnStats;
-RecordType* GapStats;
-RecordType* EventStats;
-RecordType* ThreadStats;
-RecordType* TimerStats;
-RecordType* FileAnalysisStats;
-RecordType* BrokerStats;
-RecordType* ReporterStats;
+IntrusivePtr<RecordType> ProcStats;
+IntrusivePtr<RecordType> NetStats;
+IntrusivePtr<RecordType> MatcherStats;
+IntrusivePtr<RecordType> ReassemblerStats;
+IntrusivePtr<RecordType> DNSStats;
+IntrusivePtr<RecordType> ConnStats;
+IntrusivePtr<RecordType> GapStats;
+IntrusivePtr<RecordType> EventStats;
+IntrusivePtr<RecordType> ThreadStats;
+IntrusivePtr<RecordType> TimerStats;
+IntrusivePtr<RecordType> FileAnalysisStats;
+IntrusivePtr<RecordType> BrokerStats;
+IntrusivePtr<RecordType> ReporterStats;
 %%}
 
 ## Returns packet capture statistics. Statistics include the number of

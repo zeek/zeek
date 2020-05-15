@@ -381,8 +381,6 @@ DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode)
 
 	mode = arg_mode;
 
-	dm_rec = nullptr;
-
 	cache_name = dir = nullptr;
 
 	asyncs_pending = 0;
@@ -452,7 +450,7 @@ void DNS_Mgr::InitSource()
 
 void DNS_Mgr::InitPostScript()
 	{
-	dm_rec = zeek::id::find_type("dns_mapping")->AsRecordType();
+	dm_rec = zeek::id::find_type<RecordType>("dns_mapping");
 
 	// Registering will call Init()
 	iosource_mgr->Register(this, true);

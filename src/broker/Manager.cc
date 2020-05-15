@@ -1245,13 +1245,13 @@ void Manager::ProcessStatus(broker::status stat)
 	if ( ! event )
 		return;
 
-	auto ei = zeek::id::find_type("Broker::EndpointInfo")->AsRecordType();
+	static auto ei = zeek::id::find_type<RecordType>("Broker::EndpointInfo");
 	auto endpoint_info = make_intrusive<RecordVal>(ei);
 
 	if ( ctx )
 		{
 		endpoint_info->Assign(0, make_intrusive<StringVal>(to_string(ctx->node)));
-		auto ni = zeek::id::find_type("Broker::NetworkInfo")->AsRecordType();
+		static auto ni = zeek::id::find_type<RecordType>("Broker::NetworkInfo");
 		auto network_info = make_intrusive<RecordVal>(ni);
 
 		if ( ctx->network )

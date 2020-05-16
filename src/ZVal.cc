@@ -150,6 +150,14 @@ IntrusivePtr<Val> ZAMValUnion::ToVal(BroType* t) const
 
 IntrusivePtr<VectorVal> ZAMValUnion::ToVector(BroType* t) const
 	{
+	vector_val->Spill();
+
+	auto v = vector_val->VecVal();
+
+	if ( v )
+		return v;
+
+	// Need to create the vector.
 	auto vt = t->AsVectorType();
 	auto yt = vt->YieldType();
 
@@ -160,7 +168,7 @@ IntrusivePtr<VectorVal> ZAMValUnion::ToVector(BroType* t) const
 	if ( ! actual_yt )
 		actual_yt = yt;
 
-	auto v = make_intrusive<VectorVal>(vt);
+	v = make_intrusive<VectorVal>(vt);
 	for ( int i = 0; i < n; ++i )
 		{
 		auto& vr = vec[i];
@@ -170,6 +178,8 @@ IntrusivePtr<VectorVal> ZAMValUnion::ToVector(BroType* t) const
 
 		v->Assign(i, vr.ToVal(actual_yt));
 		}
+
+	vector_val->SetVecVal(v.get());
 
 	return v;
 	}

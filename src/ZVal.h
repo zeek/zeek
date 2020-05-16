@@ -108,6 +108,7 @@ public:
 	void SetYieldType(BroType* yt)	{ yield_type = yt; }
 
 	IntrusivePtr<VectorVal> VecVal()	{ return {NewRef{}, v}; }
+	void SetVecVal(VectorVal* vv)	 	{ v = vv; v->Ref(); }
 
 	bool IsClean() const	{ return is_clean || ! v; }
 

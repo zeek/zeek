@@ -62,6 +62,10 @@ class TableEntryVal;
 
 class RE_Matcher;
 
+class ZAM;
+class ZAMVectorMgr;
+union ZAMValUnion;
+
 union BroValUnion {
 	// Used for bool, int, enum.
 	bro_int_t int_val;
@@ -327,9 +331,9 @@ protected:
 	friend class VectorVal;
 	friend class ValManager;
 	friend class TableEntryVal;
-	friend class AbstractMachine;
-	friend class AS_VectorMgr;
-	friend union AS_ValUnion;
+	friend class ZAM;
+	friend class ZAMVectorMgr;
+	friend union ZAMValUnion;
 
 	virtual void ValDescribe(ODesc* d) const;
 	virtual void ValDescribeReST(ODesc* d) const;

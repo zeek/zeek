@@ -677,7 +677,7 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 
 function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 	{
-	print ("const CompiledStmt AbstractMachine::" \
+	print ("const CompiledStmt ZAM::" \
 		(op_type (is_vec ? vec : "")) args[type]) >methods_f
 
 	print ("\t{") >methods_f
@@ -699,7 +699,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 	if ( type == "O" || type == "VO" )
 		{
 		pre_arg = type == "O" ? "" : ", FrameSlot(n)"
-		print ("\treturn AddStmt(AbstractStmt(" \
+		print ("\treturn AddStmt(ZInst(" \
 			full_op pre_arg ", reg));") >methods_f
 		}
 

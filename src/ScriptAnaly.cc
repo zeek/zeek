@@ -4,8 +4,7 @@
 #include "DefSetsMgr.h"
 #include "ProfileFunc.h"
 #include "Reduce.h"
-#include "Compile.h"
-#include "UseDefs.h"
+#include "ZAM.h"
 #include "Desc.h"
 #include "Expr.h"
 #include "Stmt.h"
@@ -1485,11 +1484,11 @@ void analyze_func(BroFunc* f)
 	if ( compile )
 		{
 		body_ptr = new_body_ptr;
-		auto am = new AbstractMachine(f, new_body, ud, rc, pf_red);
-		new_body = am->CompileBody();
+		auto zam = new ZAM(f, new_body, ud, rc, pf_red);
+		new_body = zam->CompileBody();
 
 		if ( only_func )
-			am->Dump();
+			zam->Dump();
 
 		new_body_ptr = {AdoptRef{}, new_body};
 		f->ReplaceBody(body_ptr, new_body_ptr);

@@ -96,7 +96,7 @@ struct function_ingredients;
 class Reducer;
 class CompiledStmt;
 class Compiler;
-class AbstractMachine;
+class ZAM;
 
 
 class Expr : public BroObj {
@@ -317,7 +317,7 @@ public:
 	virtual TraversalCode Traverse(TraversalCallback* cb) const = 0;
 
 protected:
-	friend AbstractMachine;
+	friend ZAM;
 
 	// The following doesn't appear to be used.
 	// Expr() = default;

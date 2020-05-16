@@ -386,7 +386,7 @@ eval auto v2 = frame[s.v2].ToVector(vt)
 eval auto v3 = frame[s.v3].ToVector(vt)
 eval auto v = vector_bool_select(vt, v2.get(), v3.get())
 eval delete frame[s.v1].vector_val
-eval frame[s.v1].vector_val = to_AS_vector(v.get(), false)
+eval frame[s.v1].vector_val = to_ZAM_vector(v.get(), false)
 
 op IndexVecIntSelect
 type VVV
@@ -396,7 +396,7 @@ eval auto v2 = frame[s.v2].ToVector(vt)
 eval auto v3 = frame[s.v3].ToVector(vt)
 eval auto v = vector_int_select(vt, v2.get(), v3.get())
 eval delete frame[s.v1].vector_val
-eval frame[s.v1].vector_val = to_AS_vector(v.get(), false)
+eval frame[s.v1].vector_val = to_ZAM_vector(v.get(), false)
 
 op Index
 type VVL
@@ -416,7 +416,7 @@ eval auto vt = s.t->AsVectorType()
 eval auto vec = frame[s.v2].ToVector(s.t)
 eval auto v = vector_index(vt, vec.get(), frame[s.v3].list_val)
 eval delete frame[s.v1].vector_val
-eval frame[s.v1].vector_val = to_AS_vector(v.get(), false)
+eval frame[s.v1].vector_val = to_ZAM_vector(v.get(), false)
 
 internal-op Table-Index
 type VVV
@@ -566,7 +566,7 @@ eval if ( vec.size() > 0 ) { run_time_error(error_flag, s.stmt, "coercion of non
 eval auto t = s.t->Ref()->AsVectorType();
 eval auto vv_p = make_intrusive<VectorVal>(t)
 eval delete frame[s.v1].vector_val
-eval frame[s.v1].vector_val = to_AS_vector(vv_p.get(), false)
+eval frame[s.v1].vector_val = to_ZAM_vector(vv_p.get(), false)
 
 ########## Aggregate Assignments ##########
 
@@ -892,7 +892,7 @@ type VV
 eval auto vec = new VectorVal(s.t->AsVectorType())
 eval f->SetElement(s.v2, vec)
 eval delete frame[s.v1].vector_val
-eval frame[s.v1].vector_val = new AS_VectorMgr(make_shared<AS_vector>(), vec)
+eval frame[s.v1].vector_val = new ZAMVectorMgr(make_shared<ZAM_vector>(), vec)
 
 internal-op Init-Table
 type V
@@ -1011,18 +1011,18 @@ eval frame[s.v1].list_val = ValVecToListVal(frame[s.v2].vvec, s.v3)
 # Interprets the statement's expression as a stand-alone statement.
 internal-op Interpret-Expr
 type X
-eval SpillVectors(curr_ASVM_Tracker)
+eval SpillVectors(curr_ZAM_VM_Tracker)
 eval (void) s.e->Eval(f) /* this could invoke us recursively */
-eval curr_ASVM_Tracker = &ASVM_Tracker
-eval LoadVectors(curr_ASVM_Tracker)
+eval curr_ZAM_VM_Tracker = &ZAM_VM_Tracker
+eval LoadVectors(curr_ZAM_VM_Tracker)
 
 # Interprets the statement's expression and assigns the result to v1.
 internal-op Interpret-Expr
 type V
-eval SpillVectors(curr_ASVM_Tracker)
+eval SpillVectors(curr_ZAM_VM_Tracker)
 eval auto v = s.e->Eval(f) /* this could invoke us recursively */
-eval curr_ASVM_Tracker = &ASVM_Tracker
-eval LoadVectors(curr_ASVM_Tracker)
+eval curr_ZAM_VM_Tracker = &ZAM_VM_Tracker
+eval LoadVectors(curr_ZAM_VM_Tracker)
 eval frame[s.v1] = BuildVal(v, s.t, s.e)
 
 

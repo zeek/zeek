@@ -146,7 +146,7 @@ void Func::DescribeDebug(ODesc* d, const zeek::Args* args) const
 	if ( args )
 		{
 		d->Add("(");
-		RecordType* func_args = FType()->Args();
+		RecordType* func_args = GetType()->Args();
 		auto num_fields = static_cast<size_t>(func_args->NumFields());
 
 		for ( auto i = 0u; i < args->size(); ++i )
@@ -244,7 +244,7 @@ std::pair<bool, Val*> Func::HandlePluginResult(std::pair<bool, Val*> plugin_resu
 
 	case FUNC_FLAVOR_FUNCTION:
 		{
-		const auto& yt = FType()->Yield();
+		const auto& yt = GetType()->Yield();
 
 		if ( (! yt) || yt->Tag() == TYPE_VOID )
 			{
@@ -270,7 +270,7 @@ BroFunc::BroFunc(ID* arg_id, IntrusivePtr<Stmt> arg_body, id_list* aggr_inits,
 	: Func(BRO_FUNC)
 	{
 	name = arg_id->Name();
-	type = arg_id->GetType();
+	type = arg_id->GetType<FuncType>();
 	frame_size = arg_frame_size;
 
 	if ( arg_body )
@@ -345,7 +345,7 @@ IntrusivePtr<Val> BroFunc::Call(const zeek::Args& args, Frame* parent) const
 		DescribeDebug(&d, &args);
 
 		g_trace_state.LogTrace("%s called: %s\n",
-			FType()->FlavorString().c_str(), d.Description());
+			GetType()->FlavorString().c_str(), d.Description());
 		}
 
 	stmt_flow_type flow = FLOW_NEXT;
@@ -422,7 +422,7 @@ IntrusivePtr<Val> BroFunc::Call(const zeek::Args& args, Frame* parent) const
 
 	// Warn if the function returns something, but we returned from
 	// the function without an explicit return, or without a value.
-	else if ( FType()->Yield() && FType()->Yield()->Tag() != TYPE_VOID &&
+	else if ( GetType()->Yield() && GetType()->Yield()->Tag() != TYPE_VOID &&
 		 (flow != FLOW_RETURN /* we fell off the end */ ||
 		  ! result /* explicit return with no result */) &&
 		 ! f->HasDelayed() )
@@ -448,7 +448,7 @@ void BroFunc::AddBody(IntrusivePtr<Stmt> new_body, id_list* new_inits,
 	if ( new_frame_size > frame_size )
 		frame_size = new_frame_size;
 
-	auto num_args = FType()->Args()->NumFields();
+	auto num_args = GetType()->Args()->NumFields();
 
 	if ( num_args > static_cast<int>(frame_size) )
 		frame_size = num_args;
@@ -592,7 +592,7 @@ BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
 	if ( id->HasVal() )
 		reporter->InternalError("built-in function %s multiply defined", Name());
 
-	type = id->GetType();
+	type = id->GetType<FuncType>();
 	id->SetVal(make_intrusive<Val>(IntrusivePtr{NewRef{}, this}));
 	}
 

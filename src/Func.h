@@ -37,7 +37,7 @@ public:
 	~Func() override;
 
 	virtual bool IsPure() const = 0;
-	function_flavor Flavor() const	{ return FType()->Flavor(); }
+	function_flavor Flavor() const	{ return GetType()->Flavor(); }
 
 	struct Body {
 		IntrusivePtr<Stmt> stmts;
@@ -78,7 +78,11 @@ public:
 	virtual void SetScope(IntrusivePtr<Scope> newscope);
 	virtual Scope* GetScope() const		{ return scope.get(); }
 
-	virtual FuncType* FType() const { return type->AsFuncType(); }
+	[[deprecated("Remove in v4.1.  Use GetType().")]]
+	virtual FuncType* FType() const { return type.get(); }
+
+	const IntrusivePtr<FuncType>& GetType() const
+		{ return type; }
 
 	Kind GetKind() const	{ return kind; }
 
@@ -112,7 +116,7 @@ protected:
 	IntrusivePtr<Scope> scope;
 	Kind kind;
 	uint32_t unique_id;
-	IntrusivePtr<BroType> type;
+	IntrusivePtr<FuncType> type;
 	std::string name;
 	static inline std::vector<IntrusivePtr<Func>> unique_ids;
 };

@@ -51,6 +51,10 @@ public:
 	const IntrusivePtr<BroType>& GetType() const
 		{ return type; }
 
+	template <class T>
+	IntrusivePtr<T> GetType() const
+		{ return cast_intrusive<T>(type); }
+
 	[[deprecated("Remove in v4.1.  Use IsType() and GetType().")]]
 	BroType* AsType()		{ return is_type ? GetType().get() : nullptr; }
 	[[deprecated("Remove in v4.1.  Use IsType() and GetType().")]]

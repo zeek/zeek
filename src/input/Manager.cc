@@ -326,7 +326,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 
 	Func* event = fval->Lookup("ev", true)->AsFunc();
 
-	FuncType* etype = event->FType()->AsFuncType();
+	const auto& etype = event->GetType();
 
 	bool allow_file_func = false;
 
@@ -556,7 +556,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 
 	if ( event )
 		{
-		FuncType* etype = event->FType()->AsFuncType();
+		const auto& etype = event->GetType();
 
 		if ( etype->Flavor() != FUNC_FLAVOR_EVENT )
 			{
@@ -703,7 +703,7 @@ bool Manager::CheckErrorEventTypes(const std::string& stream_name, const Func* e
 	if ( ev == nullptr )
 		return true;
 
-	FuncType* etype = ev->FType()->AsFuncType();
+	const auto& etype = ev->GetType();
 
 	if ( etype->Flavor() != FUNC_FLAVOR_EVENT )
 		{

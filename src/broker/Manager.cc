@@ -727,7 +727,7 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 				return rval;
 				}
 
-			auto num_args = func->FType()->Args()->NumFields();
+			auto num_args = func->GetType()->Args()->NumFields();
 
 			if ( num_args != args->length() - 1 )
 				{
@@ -741,7 +741,7 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 			}
 
 		const auto& got_type = (*args)[i]->GetType();
-		const auto& expected_type = func->FType()->ArgTypes()->Types()[i - 1];
+		const auto& expected_type = func->GetType()->ArgTypes()->Types()[i - 1];
 
 		if ( ! same_type(got_type.get(), expected_type.get()) )
 			{

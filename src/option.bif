@@ -15,7 +15,7 @@ static bool call_option_handlers_and_set_value(StringVal* name, const IntrusiveP
 		{
 		for ( auto handler_function : i->GetOptionHandlers() )
 			{
-			bool add_loc = handler_function->FType()->AsFuncType()->ArgTypes()->Types().size() == 3;
+			bool add_loc = handler_function->GetType()->ArgTypes()->Types().size() == 3;
 			zeek::Args vl;
 			vl.reserve(2 + add_loc);
 			vl.emplace_back(NewRef{}, name);

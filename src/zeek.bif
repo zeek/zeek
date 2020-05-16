@@ -1435,7 +1435,8 @@ function sort%(v: any, ...%) : any
 
 	if ( comp )
 		{
-		FuncType* comp_type = comp->FType()->AsFuncType();
+		const auto& comp_type = comp->GetType();
+
 		if ( comp_type->Yield()->Tag() != TYPE_INT ||
 		     ! comp_type->ArgTypes()->AllMatch(elt_type, 0) )
 			{
@@ -1516,7 +1517,7 @@ function order%(v: any, ...%) : index_vec
 
 	if ( comp )
 		{
-		FuncType* comp_type = comp->FType()->AsFuncType();
+		const auto& comp_type = comp->GetType()->AsFuncType();
 		if ( comp_type->Yield()->Tag() != TYPE_INT ||
 		     ! comp_type->ArgTypes()->AllMatch(elt_type, 0) )
 			{

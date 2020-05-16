@@ -270,7 +270,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 	if ( event )
 		{
 		// Make sure the event is prototyped as expected.
-		FuncType* etype = event->FType()->AsFuncType();
+		const auto& etype = event->GetType();
 
 		if ( etype->Flavor() != FUNC_FLAVOR_EVENT )
 			{
@@ -401,7 +401,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 		if ( j < num_ext_fields )
 			{
 			i = j;
-			rtype = filter->ext_func->FType()->Yield()->AsRecordType();
+			rtype = filter->ext_func->GetType()->Yield()->AsRecordType();
 			}
 		else
 			{
@@ -587,18 +587,18 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	filter->num_ext_fields = 0;
 	if ( filter->ext_func )
 		{
-		if ( filter->ext_func->FType()->Yield()->Tag() == TYPE_RECORD )
+		if ( filter->ext_func->GetType()->Yield()->Tag() == TYPE_RECORD )
 			{
-			filter->num_ext_fields = filter->ext_func->FType()->Yield()->AsRecordType()->NumFields();
+			filter->num_ext_fields = filter->ext_func->GetType()->Yield()->AsRecordType()->NumFields();
 			}
-		else if ( filter->ext_func->FType()->Yield()->Tag() == TYPE_VOID )
+		else if ( filter->ext_func->GetType()->Yield()->Tag() == TYPE_VOID )
 			{
 			// This is a special marker for the default no-implementation
 			// of the ext_func and we'll allow it to slide.
 			}
 		else
 			{
-			reporter->Error("Return value of log_ext is not a record (got %s)", type_name(filter->ext_func->FType()->Yield()->Tag()));
+			reporter->Error("Return value of log_ext is not a record (got %s)", type_name(filter->ext_func->GetType()->Yield()->Tag()));
 			delete filter;
 			return false;
 			}
@@ -744,7 +744,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 				path_arg = val_mgr->EmptyString();
 
 			IntrusivePtr<Val> rec_arg;
-			const auto& rt = filter->path_func->FType()->Args()->GetFieldType("rec");
+			const auto& rt = filter->path_func->GetType()->Args()->GetFieldType("rec");
 
 			if ( rt->Tag() == TYPE_RECORD )
 				rec_arg = columns->CoerceTo(rt->AsRecordType(), true);

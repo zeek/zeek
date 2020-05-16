@@ -33,7 +33,6 @@ protected:
 
 
 class OpaqueVals;
-typedef std::vector<IntrusivePtr<Val>> val_vec;
 
 // The (reduced) statement currently being compiled.  Used for both
 // tracking "use" and "reaching" definitions, and for error messages.

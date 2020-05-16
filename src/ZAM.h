@@ -8,6 +8,7 @@
 #include "Event.h"
 #include "ReachingDefs.h"
 #include "UseDefs.h"
+#include "ZOP.h"
 
 
 struct function_ingredients;
@@ -17,14 +18,6 @@ class Body;
 class UseDefs;
 class ProfileFunc;
 class ZInst;
-class ZAMVectorMgr;
-union ZAMValUnion;
-
-// Maps frame slots to associated identifiers.
-typedef std::vector<const ID*> frame_map;
-
-// Tracks the managers of internal/Val* vector pairings.
-typedef std::unordered_set<ZAMVectorMgr*> ZAM_tracker_type;
 
 class ZAM : public Compiler {
 public:
@@ -279,3 +272,6 @@ protected:
 	const ZAM* am;
 	int xfer_pc = 0;
 };
+
+extern void ZAM_run_time_error(bool& error_flag, const BroObj* o,
+				const char* msg);

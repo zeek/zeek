@@ -94,7 +94,7 @@ unary-expr-op Flatten
 op-type X
 eval const char* error;
 eval auto res = flatten_value(frame[s.v2].record_val, s.v3, error);
-eval if ( error ) run_time_error(error_flag, s.stmt, error);
+eval if ( error ) ZAM_run_time_error(error_flag, s.stmt, error);
 eval else frame[s.v1].record_val = res->AsRecordVal();
 
 unary-expr-op Cast
@@ -104,7 +104,7 @@ set-expr $2
 eval const char* error;
 eval auto rhs = frame[s.v2].ToVal(s.e->Type().get()).get();
 eval auto res = cast_value(rhs, s.t, error);
-eval if ( error ) run_time_error(error_flag, s.stmt, error);
+eval if ( error ) ZAM_run_time_error(error_flag, s.stmt, error);
 eval else frame[s.v1] = BuildVal(res, s.t, s.stmt);
 
 unary-expr-op Is
@@ -145,7 +145,7 @@ op-type I U D
 set-expr $1
 vector
 #
-eval-pre if ( $2 == 0 ) run_time_error(error_flag, s.stmt, "division by zero")
+eval-pre if ( $2 == 0 ) ZAM_run_time_error(error_flag, s.stmt, "division by zero")
 eval $1 / $2
 #
 eval-mixed A I auto mask = static_cast<uint32_t>($2)
@@ -161,7 +161,7 @@ eval-mixed A I /* Note, $$ is ignored but mentioned here so templator backs off 
 binary-expr-op Mod
 op-type I U
 vector
-eval-pre if ( $2 == 0 ) run_time_error(error_flag, s.stmt, "modulo by zero")
+eval-pre if ( $2 == 0 ) ZAM_run_time_error(error_flag, s.stmt, "modulo by zero")
 eval $1 % $2
 
 binary-expr-op And-And
@@ -379,7 +379,7 @@ op IndexVecBoolSelect
 type VVV
 set-type $1
 eval if ( frame[s.v2].vector_val->ConstVec()->size() != frame[s.v3].vector_val->ConstVec()->size() ) {
-eval	run_time_error(error_flag, s.stmt, "size mismatch, boolean index and vector")
+eval	ZAM_run_time_error(error_flag, s.stmt, "size mismatch, boolean index and vector")
 eval	break; }
 eval auto vt = s.t->AsVectorType()
 eval auto v2 = frame[s.v2].ToVector(vt)
@@ -550,7 +550,7 @@ direct-unary-op Table-Coerce TableCoerce
 internal-op Table-Coerce
 type VV
 eval auto tv = frame[s.v2].table_val
-eval if ( tv->Size() > 0 ) { run_time_error(error_flag, s.stmt, "coercion of non-empty table/set"); break; }
+eval if ( tv->Size() > 0 ) { ZAM_run_time_error(error_flag, s.stmt, "coercion of non-empty table/set"); break; }
 eval IntrusivePtr<TableType> tt = {NewRef{}, s.t->AsTableType()}
 eval IntrusivePtr<Attributes> attrs = {NewRef{}, tv->Attrs()}
 eval auto t = make_intrusive<TableVal>(tt, attrs)
@@ -562,7 +562,7 @@ direct-unary-op Vector-Coerce VectorCoerce
 internal-op Vector-Coerce
 type VV
 eval auto vec = *frame[s.v2].vector_val->ConstVec()
-eval if ( vec.size() > 0 ) { run_time_error(error_flag, s.stmt, "coercion of non-empty vector"); break; }
+eval if ( vec.size() > 0 ) { ZAM_run_time_error(error_flag, s.stmt, "coercion of non-empty vector"); break; }
 eval auto t = s.t->Ref()->AsVectorType();
 eval auto vv_p = make_intrusive<VectorVal>(t)
 eval delete frame[s.v1].vector_val
@@ -836,7 +836,7 @@ eval new trigger::Trigger(s.non_const_e, when_body, nullptr, -1.0, f, s.v4, s.st
 op CheckAnyLen
 type Vi
 eval auto v = frame[s.v1].list_val
-eval if ( v->Vals()->length() != s.v2 ) run_time_error(error_flag, s.stmt, "mismatch in list lengths")
+eval if ( v->Vals()->length() != s.v2 ) ZAM_run_time_error(error_flag, s.stmt, "mismatch in list lengths")
 
 op Print
 type O

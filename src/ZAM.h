@@ -28,8 +28,8 @@ typedef std::unordered_set<ZAMVectorMgr*> ZAM_tracker_type;
 
 class ZAM : public Compiler {
 public:
-	ZAM(const BroFunc* f, Stmt* body,
-			UseDefs* ud, Reducer* rd, ProfileFunc* pf);
+	ZAM(const BroFunc* f, Stmt* body, UseDefs* ud, Reducer* rd,
+		ProfileFunc* pf);
 	~ZAM() override;
 
 	Stmt* CompileBody();
@@ -57,8 +57,8 @@ public:
 	const CompiledStmt Loop(const Stmt* body) override;
 
 	const CompiledStmt When(Expr* cond, const Stmt* body,
-			const Expr* timeout, const Stmt* timeout_body,
-			bool is_return) override;
+				const Expr* timeout, const Stmt* timeout_body,
+				bool is_return) override;
 
 	const CompiledStmt Switch(const SwitchStmt* sw) override;
 

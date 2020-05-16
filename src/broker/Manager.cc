@@ -977,7 +977,7 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 		return;
 		}
 
-	const auto& arg_types = handler->FType(false)->ArgTypes()->Types();
+	const auto& arg_types = handler->GetType(false)->ArgTypes()->Types();
 
 	if ( arg_types.size() != args.size() )
 		{

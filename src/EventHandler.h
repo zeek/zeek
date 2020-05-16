@@ -4,12 +4,12 @@
 
 #include "BroList.h"
 #include "ZeekArgs.h"
+#include "Type.h"
 
 #include <unordered_set>
 #include <string>
 
 class Func;
-class FuncType;
 
 class EventHandler {
 public:
@@ -18,7 +18,12 @@ public:
 
 	const char* Name()	{ return name.data(); }
 	Func* LocalHandler()	{ return local; }
-	FuncType* FType(bool check_export = true);
+
+	const IntrusivePtr<FuncType>& GetType(bool check_export = true);
+
+	[[deprecated("Remove in v4.1.  Use GetType().")]]
+	FuncType* FType(bool check_export = true)
+		{ return GetType().get(); }
 
 	void SetLocalHandler(Func* f);
 
@@ -57,7 +62,7 @@ private:
 
 	std::string name;
 	Func* local;
-	FuncType* type;
+	IntrusivePtr<FuncType> type;
 	bool used;		// this handler is indeed used somewhere
 	bool enabled;
 	bool error_handler;	// this handler reports error messages.

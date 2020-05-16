@@ -4313,7 +4313,8 @@ EventExpr::EventExpr(const char* arg_name, IntrusivePtr<ListExpr> arg_args)
 		return;
 		}
 
-	FuncType* func_type = h->FType();
+	const auto& func_type = h->GetType();
+
 	if ( ! func_type )
 		{
 		Error("not an event");

@@ -1810,7 +1810,7 @@ bool Manager::SendEvent(ReaderFrontend* reader, const string& name, const int nu
 		name.c_str(), num_vals);
 #endif
 
-	RecordType *type = handler->FType()->Args();
+	RecordType* type = handler->GetType()->Args();
 	int num_event_vals = type->NumFields();
 	if ( num_vals != num_event_vals )
 		{

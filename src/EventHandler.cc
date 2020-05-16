@@ -15,7 +15,6 @@ EventHandler::EventHandler(std::string arg_name)
 	name = std::move(arg_name);
 	used = false;
 	local = nullptr;
-	type = nullptr;
 	error_handler = false;
 	enabled = true;
 	generate_always = false;
@@ -33,8 +32,10 @@ EventHandler::operator bool() const
 			   || ! auto_publish.empty());
 	}
 
-FuncType* EventHandler::FType(bool check_export)
+const IntrusivePtr<FuncType>& EventHandler::GetType(bool check_export)
 	{
+	static IntrusivePtr<FuncType> nil;
+
 	if ( type )
 		return type;
 
@@ -42,12 +43,12 @@ FuncType* EventHandler::FType(bool check_export)
 	                           check_export);
 
 	if ( ! id )
-		return nullptr;
+		return nil;
 
 	if ( id->GetType()->Tag() != TYPE_FUNC )
-		return nullptr;
+		return nil;
 
-	type = id->GetType()->AsFuncType();
+	type = id->GetType<FuncType>();
 	return type;
 	}
 
@@ -126,7 +127,7 @@ void EventHandler::NewEvent(const zeek::Args& vl)
 		// new_event() is the one event we don't want to report.
 		return;
 
-	RecordType* args = FType()->Args();
+	RecordType* args = GetType()->Args();
 	static auto call_argument_vector = zeek::id::find_type<VectorType>("call_argument_vector");
 	auto vargs = make_intrusive<VectorVal>(call_argument_vector);
 

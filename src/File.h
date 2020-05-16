@@ -37,7 +37,11 @@ public:
 
 	void SetBuf(bool buffered);	// false=line buffered, true=fully buffered
 
+	[[deprecated("Remove in v4.1.  Use GetType().")]]
 	BroType* FType() const	{ return t.get(); }
+
+	const IntrusivePtr<BroType>& GetType() const
+		{ return t; }
 
 	// Whether the file is open in a general sense; it might
 	// not be open as a Unix file due to our management of

@@ -63,7 +63,7 @@ Val::Val(BroFile* f) : Val({AdoptRef{}, f})
 Val::Val(IntrusivePtr<BroFile> f)
 	: val(f.release()), type(GetStringFileType())
 	{
-	assert(val.file_val->FType()->Tag() == TYPE_STRING);
+	assert(val.file_val->GetType()->Tag() == TYPE_STRING);
 	}
 
 Val::~Val()

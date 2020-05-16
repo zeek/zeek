@@ -346,16 +346,11 @@ double BroFile::Size()
 	return s.st_size;
 	}
 
-BroFile* BroFile::GetFile(const char* name)
+IntrusivePtr<BroFile> BroFile::Get(const char* name)
 	{
 	for ( const auto &el : open_files )
-		{
 		if ( el.first == name )
-			{
-			Ref(el.second);
-			return el.second;
-			}
-		}
+			return {NewRef{}, el.second};
 
-	return new BroFile(name, "w");
+	return make_intrusive<BroFile>(name, "w");
 	}

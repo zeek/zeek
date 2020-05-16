@@ -124,10 +124,10 @@ struct val_converter {
 			return new StringVal(a.size(), a.data());
 		case TYPE_FILE:
 			{
-			auto file = BroFile::GetFile(a.data());
+			auto file = BroFile::Get(a.data());
 
 			if ( file )
-				return new Val({AdoptRef{}, file});
+				return new Val(std::move(file));
 
 			return nullptr;
 			}

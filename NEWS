@@ -187,6 +187,8 @@ Deprecated Functionality
 - Constructors for ``Val`` types that take a ``BroType*`` are all generally
   deprecated, with alternatives that instead take an ``IntrusivePtr`` argument.
 
+- ``FuncType::Args()`` is deprecated, use ``FuncType::Params()``.
+
 Zeek 3.1.0
 ==========
 

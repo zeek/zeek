@@ -146,7 +146,7 @@ void Func::DescribeDebug(ODesc* d, const zeek::Args* args) const
 	if ( args )
 		{
 		d->Add("(");
-		RecordType* func_args = GetType()->Args();
+		const auto& func_args = GetType()->Params();
 		auto num_fields = static_cast<size_t>(func_args->NumFields());
 
 		for ( auto i = 0u; i < args->size(); ++i )
@@ -448,7 +448,7 @@ void BroFunc::AddBody(IntrusivePtr<Stmt> new_body, id_list* new_inits,
 	if ( new_frame_size > frame_size )
 		frame_size = new_frame_size;
 
-	auto num_args = GetType()->Args()->NumFields();
+	auto num_args = GetType()->Params()->NumFields();
 
 	if ( num_args > static_cast<int>(frame_size) )
 		frame_size = num_args;

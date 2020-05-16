@@ -473,7 +473,11 @@ public:
 
 	~FuncType() override;
 
+	[[deprecated("Remove in v4.1.  Use Params().")]]
 	RecordType* Args() const	{ return args.get(); }
+
+	const IntrusivePtr<RecordType>& Params() const
+		{ return args; }
 
 	const IntrusivePtr<BroType>& Yield() const override
 		{ return yield; }

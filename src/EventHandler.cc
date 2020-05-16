@@ -127,7 +127,7 @@ void EventHandler::NewEvent(const zeek::Args& vl)
 		// new_event() is the one event we don't want to report.
 		return;
 
-	RecordType* args = GetType()->Args();
+	const auto& args = GetType()->Params();
 	static auto call_argument_vector = zeek::id::find_type<VectorType>("call_argument_vector");
 	auto vargs = make_intrusive<VectorVal>(call_argument_vector);
 

@@ -1839,7 +1839,8 @@ IntrusivePtr<BroType> merge_types(const BroType* t1, const BroType* t2)
 
 		const FuncType* ft1 = (const FuncType*) t1;
 		const FuncType* ft2 = (const FuncType*) t1;
-		auto args = cast_intrusive<RecordType>(merge_types(ft1->Args(), ft2->Args()));
+		auto args = cast_intrusive<RecordType>(merge_types(ft1->Params().get(),
+		                                                   ft2->Params().get()));
 		auto yield = t1->Yield() ?
 			merge_types(t1->Yield().get(), t2->Yield().get()) : nullptr;
 

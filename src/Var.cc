@@ -63,8 +63,8 @@ static bool add_prototype(ID* id, BroType* t, attr_list* attrs,
 		return false;
 		}
 
-	auto canon_args = canon_ft->Args();
-	auto alt_args = alt_ft->Args();
+	const auto& canon_args = canon_ft->Params();
+	const auto& alt_args = alt_ft->Params();
 
 	if ( auto p = canon_ft->FindPrototype(*alt_args); p )
 		{
@@ -102,7 +102,7 @@ static bool add_prototype(ID* id, BroType* t, attr_list* attrs,
 			if ( a->Tag() == ATTR_DEPRECATED )
 				deprecated = true;
 
-	FuncType::Prototype p{deprecated, {NewRef{}, alt_args}, std::move(offsets)};
+	FuncType::Prototype p{deprecated, alt_args, std::move(offsets)};
 	canon_ft->AddPrototype(std::move(p));
 	return true;
 	}
@@ -437,13 +437,13 @@ static std::optional<FuncType::Prototype> func_type_check(const FuncType* decl, 
 		return {};
 		}
 
-	return decl->FindPrototype(*impl->Args());
+	return decl->FindPrototype(*impl->Params());
 	}
 
 static bool canonical_arg_types_match(const FuncType* decl, const FuncType* impl)
 	{
-	auto canon_args = decl->Args();
-	auto impl_args = impl->Args();
+	const auto& canon_args = decl->Params();
+	const auto& impl_args = impl->Params();
 
 	if ( canon_args->NumFields() != impl_args->NumFields() )
 		return false;
@@ -483,14 +483,14 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 				// params, automatically transfer any that are missing
 				// (convenience so that implementations don't need to specify
 				// the &default expression again).
-				transfer_arg_defaults(prototype->args.get(), t->Args());
+				transfer_arg_defaults(prototype->args.get(), t->Params().get());
 				}
 			else
 				{
 				// Warn for trying to use &default parameters in hook/event
 				// handler body when it already has a declaration since only
 				// &default in the declaration has any effect.
-				auto args = t->Args();
+				const auto& args = t->Params();
 
 				for ( int i = 0; i < args->NumFields(); ++i )
 					{
@@ -555,7 +555,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 
 	push_scope({NewRef{}, id}, attrs);
 
-	RecordType* args = t->Args();
+	const auto& args = t->Params();
 	int num_args = args->NumFields();
 
 	for ( int i = 0; i < num_args; ++i )

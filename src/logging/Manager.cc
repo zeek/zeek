@@ -744,7 +744,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 				path_arg = val_mgr->EmptyString();
 
 			IntrusivePtr<Val> rec_arg;
-			const auto& rt = filter->path_func->GetType()->Args()->GetFieldType("rec");
+			const auto& rt = filter->path_func->GetType()->Params()->GetFieldType("rec");
 
 			if ( rt->Tag() == TYPE_RECORD )
 				rec_arg = columns->CoerceTo(rt->AsRecordType(), true);

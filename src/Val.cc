@@ -1360,7 +1360,7 @@ static void find_nested_record_types(BroType* t, std::set<RecordType*>* found)
 		}
 		return;
 	case TYPE_FUNC:
-		find_nested_record_types(t->AsFuncType()->Args(), found);
+		find_nested_record_types(t->AsFuncType()->Params().get(), found);
 		find_nested_record_types(t->AsFuncType()->Yield().get(), found);
 		return;
 	case TYPE_VECTOR:

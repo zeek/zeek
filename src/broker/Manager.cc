@@ -727,7 +727,7 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 				return rval;
 				}
 
-			auto num_args = func->GetType()->Args()->NumFields();
+			auto num_args = func->GetType()->Params()->NumFields();
 
 			if ( num_args != args->length() - 1 )
 				{

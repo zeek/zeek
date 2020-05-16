@@ -203,22 +203,23 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
 # define a command that's used to run the gen-compiler-templates.sh script
 # building the bro binary depends on the outputs of this script
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/CompilerBaseDefs.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/CompilerSubDefs.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsDefs.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsNamesDefs.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsEvalDefs.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/CompilerVec1EvalDefs.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/CompilerVec2EvalDefs.h
-                          ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsMethodsDefs.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsDirectDefs.h
                           ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsExprsDefsC1.h
                           ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsExprsDefsC2.h
                           ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsExprsDefsC3.h
                           ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsExprsDefsV.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-SubDefs.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpsDefs.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpsNamesDefs.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpsEvalDefs.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-Vec1EvalDefs.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-Vec2EvalDefs.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpsMethodsDefs.h
                    COMMAND sh
                    ARGS ${CMAKE_CURRENT_SOURCE_DIR}/gen-compiler-templates.sh
-                        ${CMAKE_CURRENT_SOURCE_DIR}/CompilerOps.in
+                        ${CMAKE_CURRENT_SOURCE_DIR}/ZAM-Ops.in
                    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/gen-compiler-templates.sh
-                           ${CMAKE_CURRENT_SOURCE_DIR}/CompilerOps.in
+                           ${CMAKE_CURRENT_SOURCE_DIR}/ZAM-Ops.in
                    COMMENT "[sh] Generating compiler templates"
                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )

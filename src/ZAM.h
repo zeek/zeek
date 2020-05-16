@@ -27,7 +27,7 @@ public:
 
 	Stmt* CompileBody();
 
-#include "CompilerSubDefs.h"
+#include "ZAM-SubDefs.h"
 
 	const CompiledStmt InterpretExpr(const Expr* e) override;
 	const CompiledStmt InterpretExpr(const NameExpr* n,

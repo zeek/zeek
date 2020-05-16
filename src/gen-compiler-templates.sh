@@ -3,18 +3,19 @@
 awk '
 BEGIN	{
 	base_class_f = "CompilerBaseDefs.h"
-	sub_class_f = "CompilerSubDefs.h"
-	ops_f = "CompilerOpsDefs.h"
-	ops_names_f = "CompilerOpsNamesDefs.h"
-	ops_direct_f = "CompilerOpsDirectDefs.h"
-	ops_eval_f = "CompilerOpsEvalDefs.h"
-	vec1_eval_f = "CompilerVec1EvalDefs.h"
-	vec2_eval_f = "CompilerVec2EvalDefs.h"
-	methods_f = "CompilerOpsMethodsDefs.h"
 	exprsC1_f = "CompilerOpsExprsDefsC1.h"
 	exprsC2_f = "CompilerOpsExprsDefsC2.h"
 	exprsC3_f = "CompilerOpsExprsDefsC3.h"
 	exprsV_f = "CompilerOpsExprsDefsV.h"
+
+	sub_class_f = "ZAM-SubDefs.h"
+	ops_f = "ZAM-OpsDefs.h"
+	ops_names_f = "ZAM-OpsNamesDefs.h"
+	ops_direct_f = "CompilerOpsDirectDefs.h"
+	ops_eval_f = "ZAM-OpsEvalDefs.h"
+	vec1_eval_f = "ZAM-Vec1EvalDefs.h"
+	vec2_eval_f = "ZAM-Vec2EvalDefs.h"
+	methods_f = "ZAM-OpsMethodsDefs.h"
 
 	prep(exprsC1_f)
 	prep(exprsC2_f)

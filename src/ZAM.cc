@@ -305,7 +305,7 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 		case OP_NOP:
 			break;
 
-#include "CompilerOpsEvalDefs.h"
+#include "ZAM-OpsEvalDefs.h"
 		}
 
 		++pc;
@@ -334,7 +334,7 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 	return result;
 	}
 
-#include "CompilerOpsMethodsDefs.h"
+#include "ZAM-OpsMethodsDefs.h"
 
 const CompiledStmt ZAM::InterpretExpr(const Expr* e)
 	{
@@ -1705,7 +1705,7 @@ static void vec_exec(ZOp op, ZAMVectorMgr*& v1, const ZAMVectorMgr* v2)
 	for ( unsigned int i = 0; i < vec2.size(); ++i )
 		switch ( op ) {
 
-#include "CompilerVec1EvalDefs.h"
+#include "ZAM-Vec1EvalDefs.h"
 
 		default:
 			reporter->InternalError("bad invocation of VecExec");
@@ -1731,7 +1731,7 @@ static void vec_exec(ZOp op, ZAMVectorMgr*& v1, const ZAMVectorMgr* v2,
 	for ( unsigned int i = 0; i < vec2.size(); ++i )
 		switch ( op ) {
 
-#include "CompilerVec2EvalDefs.h"
+#include "ZAM-Vec2EvalDefs.h"
 
 		default:
 			reporter->InternalError("bad invocation of VecExec");

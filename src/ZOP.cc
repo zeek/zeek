@@ -10,7 +10,7 @@ static const char* abstract_op_name(ZOp op)
 	{
 	switch ( op ) {
 	case OP_NOP:	return "nop";
-#include "CompilerOpsNamesDefs.h"
+#include "ZAM-OpsNamesDefs.h"
 	}
 	}
 

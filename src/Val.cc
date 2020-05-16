@@ -57,10 +57,13 @@ static const IntrusivePtr<FileType>& GetStringFileType() noexcept
 	return string_file_type;
 	}
 
-Val::Val(BroFile* f)
-	: val(f), type(GetStringFileType())
+Val::Val(BroFile* f) : Val({AdoptRef{}, f})
+	{}
+
+Val::Val(IntrusivePtr<BroFile> f)
+	: val(f.release()), type(GetStringFileType())
 	{
-	assert(f->FType()->Tag() == TYPE_STRING);
+	assert(val.file_val->FType()->Tag() == TYPE_STRING);
 	}
 
 Val::~Val()

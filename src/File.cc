@@ -328,8 +328,8 @@ void BroFile::RaiseOpenEvent()
 	if ( ! ::file_opened )
 		return;
 
-	Ref(this);
-	Event* event = new ::Event(::file_opened, {make_intrusive<Val>(this)});
+	IntrusivePtr<BroFile> bf{NewRef{}, this};
+	Event* event = new ::Event(::file_opened, {make_intrusive<Val>(std::move(bf))});
 	mgr.Dispatch(event, true);
 	}
 

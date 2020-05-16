@@ -121,12 +121,13 @@ function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
 function get_contents_file%(cid: conn_id, direction: count%): file
 	%{
 	Connection* c = sessions->FindConnection(cid);
-	BroFile* f = c ? c->GetRootAnalyzer()->GetContentsFile(direction) : nullptr;
 
-	if ( f )
+	if ( c )
 		{
-		Ref(f);
-		return make_intrusive<Val>(f);
+		auto cf = c->GetRootAnalyzer()->GetContentsFile(direction);
+
+		if ( cf )
+			return make_intrusive<Val>(IntrusivePtr{NewRef{}, cf});
 		}
 
 	// Return some sort of error value.
@@ -135,5 +136,5 @@ function get_contents_file%(cid: conn_id, direction: count%): file
 	else
 		builtin_error("no contents file for given direction");
 
-	return make_intrusive<Val>(new BroFile(stderr, "-", "w"));
+	return make_intrusive<Val>(make_intrusive<BroFile>(stderr, "-", "w"));
 	%}

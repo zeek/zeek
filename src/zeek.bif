@@ -4398,9 +4398,9 @@ function open%(f: string%): file
 	const char* file = f->CheckString();
 
 	if ( streq(file, "-") )
-		return make_intrusive<Val>(new BroFile(stdout, "-", "w"));
+		return make_intrusive<Val>(make_intrusive<BroFile>(stdout, "-", "w"));
 	else
-		return make_intrusive<Val>(new BroFile(file, "w"));
+		return make_intrusive<Val>(make_intrusive<BroFile>(file, "w"));
 	%}
 
 ## Opens a file for writing or appending. If a file with the same name already
@@ -4415,7 +4415,7 @@ function open%(f: string%): file
 ##              rmdir unlink rename
 function open_for_append%(f: string%): file
 	%{
-	return make_intrusive<Val>(new BroFile(f->CheckString(), "a"));
+	return make_intrusive<Val>(make_intrusive<BroFile>(f->CheckString(), "a"));
 	%}
 
 ## Closes an open file and flushes any buffered content.

@@ -127,7 +127,7 @@ struct val_converter {
 			auto file = BroFile::GetFile(a.data());
 
 			if ( file )
-				return new Val(file);
+				return new Val({AdoptRef{}, file});
 
 			return nullptr;
 			}

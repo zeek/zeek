@@ -311,9 +311,8 @@ void ProfileLogger::Log()
 	// (and for consistency we dispatch it *now*)
 	if ( profiling_update )
 		{
-		Ref(file);
 		mgr.Dispatch(new Event(profiling_update, {
-			make_intrusive<Val>(file),
+			make_intrusive<Val>(IntrusivePtr{NewRef{}, file}),
 			val_mgr->Bool(expensive),
 		}));
 		}

@@ -133,9 +133,11 @@ public:
 	explicit Val(Func* f);
 	explicit Val(IntrusivePtr<Func> f);
 
-	// Note, will unref 'f' when it's done, closing it unless
-	// class has ref'd it.
+	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
 	explicit Val(BroFile* f);
+	// Note, the file will be closed after this Val is destructed if there's
+	// no other remaining references.
+	explicit Val(IntrusivePtr<BroFile> f);
 
 	// Extra arg to differentiate from protected version.
 	Val(IntrusivePtr<BroType> t, bool type_type)

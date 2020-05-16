@@ -181,8 +181,8 @@ protected:
 	void SetGoTo(CompiledStmt s, const CompiledStmt targ)
 		{ SetV1(s, targ); }
 
-	const CompiledStmt AddStmt(const ZInst& stmt);
-	ZInst& TopStmt();
+	const CompiledStmt AddInst(const ZInst& stmt);
+	ZInst& TopInst();
 
 	// Returns the last (interpreter) statement in the body.
 	const Stmt* LastStmt() const;

@@ -699,26 +699,26 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 	if ( type == "O" || type == "VO" )
 		{
 		pre_arg = type == "O" ? "" : ", FrameSlot(n)"
-		print ("\treturn AddStmt(ZInst(" \
+		print ("\treturn AddInst(ZInst(" \
 			full_op pre_arg ", reg));") >methods_f
 		}
 
 	else if ( type == "R" )
 		{
-		print ("\tauto s = GenStmt(this, " full_op ", " \
+		print ("\tauto s = GenInst(this, " full_op ", " \
 			args2[type] ");") >methods_f
 		print ("\ts.e = n1;") >methods_f
 		print ("\ts.t = n1->Type().get();") >methods_f
-		print ("\treturn AddStmt(s);") >methods_f
+		print ("\treturn AddInst(s);") >methods_f
 		}
 
 	else if ( args2[type] != "" )
 		{
 		# This is the only scenario where sub_type should occur.
-		part1 = "\tauto s = GenStmt(this, "
+		part1 = "\tauto s = GenInst(this, "
 
 		part2a = ", " args2[type] ");\n"
-		part2c = "\treturn AddStmt(s);"
+		part2c = "\treturn AddInst(s);"
 
 		if ( sub_type && sub_type != "X" )
 			{
@@ -845,7 +845,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 			print (part1 full_op part2) >methods_f
 		}
 	else
-		print ("\treturn AddStmt(GenStmt(this, \
+		print ("\treturn AddInst(GenInst(this, \
 			" full_op "));") >methods_f
 
 	print ("\t}\n") >methods_f

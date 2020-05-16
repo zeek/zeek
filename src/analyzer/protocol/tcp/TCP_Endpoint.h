@@ -3,8 +3,8 @@
 #pragma once
 
 #include "IPAddr.h"
+#include "File.h"
 
-class BroFile;
 class Connection;
 class IP_Hdr;
 
@@ -187,8 +187,8 @@ public:
 
 	void AckReceived(uint64_t seq);
 
-	void SetContentsFile(BroFile* f);
-	BroFile* GetContentsFile() const	{ return contents_file; }
+	void SetContentsFile(IntrusivePtr<BroFile> f);
+	const IntrusivePtr<BroFile>& GetContentsFile() const	{ return contents_file; }
 
 	// Codes used for tracking history.  For responders, we shift these
 	// over by 16 bits in order to fit both originator and responder
@@ -211,7 +211,7 @@ public:
 	TCP_Endpoint* peer;
 	TCP_Reassembler* contents_processor;
 	TCP_Analyzer* tcp_analyzer;
-	BroFile* contents_file;
+	IntrusivePtr<BroFile> contents_file;
 	uint32_t checksum_base;
 
 	double start_time, last_time;

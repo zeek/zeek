@@ -30,7 +30,6 @@ TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 	type = arg_type;
 	endp = arg_endp;
 	had_gap = false;
-	record_contents_file = nullptr;
 	deliver_tcp_contents = false;
 	skip_deliveries = false;
 	did_EOF = false;
@@ -56,11 +55,6 @@ TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 		     (result && result->AsBool()) )
 			deliver_tcp_contents = true;
 		}
-	}
-
-TCP_Reassembler::~TCP_Reassembler()
-	{
-	Unref(record_contents_file);
 	}
 
 void TCP_Reassembler::Done()
@@ -98,7 +92,7 @@ uint64_t TCP_Reassembler::NumUndeliveredBytes() const
 	return last_block.upper - last_reassem_seq;
 	}
 
-void TCP_Reassembler::SetContentsFile(BroFile* f)
+void TCP_Reassembler::SetContentsFile(IntrusivePtr<BroFile> f)
 	{
 	if ( ! f->IsOpen() )
 		{
@@ -107,16 +101,17 @@ void TCP_Reassembler::SetContentsFile(BroFile* f)
 		}
 
 	if ( record_contents_file )
+		{
 		// We were already recording, no need to catch up.
-		Unref(record_contents_file);
+		record_contents_file = nullptr;
+		}
 	else
 		{
 		if ( ! block_list.Empty() )
 			RecordToSeq(block_list.Begin()->second.seq, last_reassem_seq, f);
 		}
 
-	Ref(f);
-	record_contents_file = f;
+	record_contents_file = std::move(f);
 	}
 
 static inline bool is_clean(const TCP_Endpoint* a)
@@ -322,7 +317,7 @@ void TCP_Reassembler::MatchUndelivered(uint64_t up_to_seq, bool use_last_upper)
 		}
 	}
 
-void TCP_Reassembler::RecordToSeq(uint64_t start_seq, uint64_t stop_seq, BroFile* f)
+void TCP_Reassembler::RecordToSeq(uint64_t start_seq, uint64_t stop_seq, const IntrusivePtr<BroFile>& f)
 	{
 	auto it = block_list.Begin();
 
@@ -353,7 +348,7 @@ void TCP_Reassembler::RecordToSeq(uint64_t start_seq, uint64_t stop_seq, BroFile
 			RecordGap(last_seq, stop_seq, f);
 	}
 
-void TCP_Reassembler::RecordBlock(const DataBlock& b, BroFile* f)
+void TCP_Reassembler::RecordBlock(const DataBlock& b, const IntrusivePtr<BroFile>& f)
 	{
 	if ( f->Write((const char*) b.block, b.Size()) )
 		return;
@@ -368,7 +363,7 @@ void TCP_Reassembler::RecordBlock(const DataBlock& b, BroFile* f)
 		);
 	}
 
-void TCP_Reassembler::RecordGap(uint64_t start_seq, uint64_t upper_seq, BroFile* f)
+void TCP_Reassembler::RecordGap(uint64_t start_seq, uint64_t upper_seq, const IntrusivePtr<BroFile>& f)
 	{
 	if ( f->Write(fmt("\n<<gap %" PRIu64">>\n", upper_seq - start_seq)) )
 		return;

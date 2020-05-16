@@ -1584,7 +1584,7 @@ void TCP_Analyzer::ConnDeleteTimer(double t)
 	Conn()->DeleteTimer(t);
 	}
 
-void TCP_Analyzer::SetContentsFile(unsigned int direction, BroFile* f)
+void TCP_Analyzer::SetContentsFile(unsigned int direction, IntrusivePtr<BroFile> f)
 	{
 	if ( direction == CONTENTS_NONE )
 		{
@@ -1601,7 +1601,7 @@ void TCP_Analyzer::SetContentsFile(unsigned int direction, BroFile* f)
 		}
 	}
 
-BroFile* TCP_Analyzer::GetContentsFile(unsigned int direction) const
+IntrusivePtr<BroFile> TCP_Analyzer::GetContentsFile(unsigned int direction) const
 	{
 	switch ( direction ) {
 	case CONTENTS_NONE:

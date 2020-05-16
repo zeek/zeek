@@ -3,8 +3,8 @@
 #include "Reassem.h"
 #include "TCP_Endpoint.h"
 #include "TCP_Flags.h"
+#include "File.h"
 
-class BroFile;
 class Connection;
 
 namespace analyzer {
@@ -24,8 +24,6 @@ public:
 
 	TCP_Reassembler(Analyzer* arg_dst_analyzer, TCP_Analyzer* arg_tcp_analyzer,
 	                Type arg_type, TCP_Endpoint* arg_endp);
-
-	~TCP_Reassembler() override;
 
 	void Done();
 
@@ -51,8 +49,8 @@ public:
 	// from waiting_on_hole above; and is computed in a different fashion).
 	uint64_t NumUndeliveredBytes() const;
 
-	void SetContentsFile(BroFile* f);
-	BroFile* GetContentsFile() const	{ return record_contents_file; }
+	void SetContentsFile(IntrusivePtr<BroFile> f);
+	const IntrusivePtr<BroFile>& GetContentsFile() const	{ return record_contents_file; }
 
 	void MatchUndelivered(uint64_t up_to_seq, bool use_last_upper);
 
@@ -91,9 +89,9 @@ private:
 	void Undelivered(uint64_t up_to_seq) override;
 	void Gap(uint64_t seq, uint64_t len);
 
-	void RecordToSeq(uint64_t start_seq, uint64_t stop_seq, BroFile* f);
-	void RecordBlock(const DataBlock& b, BroFile* f);
-	void RecordGap(uint64_t start_seq, uint64_t upper_seq, BroFile* f);
+	void RecordToSeq(uint64_t start_seq, uint64_t stop_seq, const IntrusivePtr<BroFile>& f);
+	void RecordBlock(const DataBlock& b, const IntrusivePtr<BroFile>& f);
+	void RecordGap(uint64_t start_seq, uint64_t upper_seq, const IntrusivePtr<BroFile>& f);
 
 	void BlockInserted(DataBlockMap::const_iterator it) override;
 	void Overlap(const u_char* b1, const u_char* b2, uint64_t n) override;
@@ -110,7 +108,7 @@ private:
 	bool in_delivery;
 	analyzer::tcp::TCP_Flags flags;
 
-	BroFile* record_contents_file;	// file on which to reassemble contents
+	IntrusivePtr<BroFile> record_contents_file;	// file on which to reassemble contents
 
 	Analyzer* dst_analyzer;
 	TCP_Analyzer* tcp_analyzer;

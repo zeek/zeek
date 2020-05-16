@@ -101,7 +101,7 @@ function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
 	if ( ! c )
 		return val_mgr->False();
 
-	c->GetRootAnalyzer()->SetContentsFile(direction, f);
+	c->GetRootAnalyzer()->SetContentsFile(direction, {NewRef{}, f});
 	return val_mgr->True();
 	%}
 
@@ -127,7 +127,7 @@ function get_contents_file%(cid: conn_id, direction: count%): file
 		auto cf = c->GetRootAnalyzer()->GetContentsFile(direction);
 
 		if ( cf )
-			return make_intrusive<Val>(IntrusivePtr{NewRef{}, cf});
+			return make_intrusive<Val>(std::move(cf));
 		}
 
 	// Return some sort of error value.

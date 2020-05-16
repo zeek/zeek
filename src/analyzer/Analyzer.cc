@@ -912,12 +912,12 @@ void TransportLayerAnalyzer::Done()
 	}
 
 void TransportLayerAnalyzer::SetContentsFile(unsigned int /* direction */,
-						BroFile* /* f */)
+						IntrusivePtr<BroFile> /* f */)
 	{
 	reporter->Error("analyzer type does not support writing to a contents file");
 	}
 
-BroFile* TransportLayerAnalyzer::GetContentsFile(unsigned int /* direction */) const
+IntrusivePtr<BroFile> TransportLayerAnalyzer::GetContentsFile(unsigned int /* direction */) const
 	{
 	reporter->Error("analyzer type does not support writing to a contents file");
 	return nullptr;

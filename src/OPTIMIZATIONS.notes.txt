@@ -1,3 +1,5 @@
+function inliner/collapser
+
 optimize for common case of global that's a function/event name
 
 speed up vector operations that currently punt to converting to VectorVal's

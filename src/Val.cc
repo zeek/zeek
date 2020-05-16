@@ -269,7 +269,7 @@ IntrusivePtr<Val> Val::SizeVal() const
 
 	case TYPE_INTERNAL_OTHER:
 		if ( type->Tag() == TYPE_FUNC )
-			return val_mgr->Count(val.func_val->GetType()->ArgTypes()->Types().size());
+			return val_mgr->Count(val.func_val->GetType()->ParamList()->Types().size());
 
 		if ( type->Tag() == TYPE_FILE )
 			return make_intrusive<Val>(val.file_val->Size(), TYPE_DOUBLE);
@@ -2482,7 +2482,7 @@ double TableVal::CallExpireFunc(IntrusivePtr<ListVal> idx)
 		const Func* f = vf->AsFunc();
 		zeek::Args vl;
 
-		const auto& func_args = f->GetType()->ArgTypes()->Types();
+		const auto& func_args = f->GetType()->ParamList()->Types();
 		// backwards compatibility with idx: any idiom
 		bool any_idiom = func_args.size() == 2 && func_args.back()->Tag() == TYPE_ANY;
 

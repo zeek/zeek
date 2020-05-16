@@ -495,7 +495,11 @@ public:
 	bool CheckArgs(const std::vector<IntrusivePtr<BroType>>& args,
 	               bool is_init = false) const;
 
+	[[deprecated("Remove in v4.1.  Use ParamList().")]]
 	TypeList* ArgTypes() const	{ return arg_types.get(); }
+
+	const IntrusivePtr<TypeList>& ParamList() const
+		{ return arg_types; }
 
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;

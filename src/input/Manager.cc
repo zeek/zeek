@@ -336,7 +336,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 		return false;
 		}
 
-	const auto& args = etype->ArgTypes()->Types();
+	const auto& args = etype->ParamList()->Types();
 
 	if ( args.size() < 2 )
 		{
@@ -564,7 +564,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 			return false;
 			}
 
-		const auto& args = etype->ArgTypes()->Types();
+		const auto& args = etype->ParamList()->Types();
 
 		if ( args.size() != 4 )
 			{
@@ -711,7 +711,7 @@ bool Manager::CheckErrorEventTypes(const std::string& stream_name, const Func* e
 		return false;
 		}
 
-	const auto& args = etype->ArgTypes()->Types();
+	const auto& args = etype->ParamList()->Types();
 
 	if ( args.size() != 3 )
 		{

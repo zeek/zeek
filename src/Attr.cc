@@ -464,7 +464,7 @@ void Attributes::CheckAttr(Attr* a)
 		if (the_table->IsUnspecifiedTable())
 			break;
 
-		const auto& func_index_types = e_ft->ArgTypes()->Types();
+		const auto& func_index_types = e_ft->ParamList()->Types();
 		// Keep backwards compatibility with idx: any idiom.
 		if ( func_index_types.size() == 2 )
 			{
@@ -511,7 +511,7 @@ void Attributes::CheckAttr(Attr* a)
 		if ( the_table->IsUnspecifiedTable() )
 			break;
 
-		const auto& args = c_ft->ArgTypes()->Types();
+		const auto& args = c_ft->ParamList()->Types();
 		const auto& t_indexes = the_table->IndexTypes();
 		if ( args.size() != ( type->IsSet() ? 2 : 3 ) + t_indexes.size() )
 			{

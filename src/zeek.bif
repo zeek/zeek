@@ -1438,7 +1438,7 @@ function sort%(v: any, ...%) : any
 		const auto& comp_type = comp->GetType();
 
 		if ( comp_type->Yield()->Tag() != TYPE_INT ||
-		     ! comp_type->ArgTypes()->AllMatch(elt_type, 0) )
+		     ! comp_type->ParamList()->AllMatch(elt_type, 0) )
 			{
 			builtin_error("invalid comparison function in call to sort()");
 			return rval;
@@ -1519,7 +1519,7 @@ function order%(v: any, ...%) : index_vec
 		{
 		const auto& comp_type = comp->GetType()->AsFuncType();
 		if ( comp_type->Yield()->Tag() != TYPE_INT ||
-		     ! comp_type->ArgTypes()->AllMatch(elt_type, 0) )
+		     ! comp_type->ParamList()->AllMatch(elt_type, 0) )
 			{
 			builtin_error("invalid comparison function in call to order()");
 			return IntrusivePtr<Val>{NewRef{}, v};

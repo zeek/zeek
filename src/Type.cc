@@ -1513,7 +1513,7 @@ bool same_type(const BroType* t1, const BroType* t2, bool is_init, bool match_re
 				return false;
 			}
 
-		return ft1->CheckArgs(ft2->ArgTypes()->Types(), is_init);
+		return ft1->CheckArgs(ft2->ParamList()->Types(), is_init);
 		}
 
 	case TYPE_RECORD:

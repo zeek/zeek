@@ -400,14 +400,14 @@ function build_internal_binary_op()
 			op3 = (j && k) ? "v3" : "v2"
 
 			a1 = ("auto op1 = " \
-			      (j ? "frame[s.v2]" : "s.c") \
+			      (j ? "frame[z.v2]" : "z.c") \
 			      "." op1_accessor ";\n\t\t")
 
 			a2 = ("auto op2 = " \
-			      (k ? "frame[s." op3 "]": "s.c") \
+			      (k ? "frame[z." op3 "]": "z.c") \
 			      "." op2_accessor ";\n\t\t")
 
-			assign = "frame[s.v1]" accessors[op_type_rep]
+			assign = "frame[z.v1]" accessors[op_type_rep]
 
 			eval_copy = a1 a2 eval[""]
 			gsub(/\$\$/, assign, eval_copy)
@@ -452,7 +452,7 @@ function expand_eval(e, pre_eval, is_expr_op, otype1, otype2, is_var1, is_var2)
 
 	e_copy = e
 	pre_copy = pre_eval
-	rep1 = "(" (is_var1 ? "frame[s.v2]" : "s.c") raccessor1 ")"
+	rep1 = "(" (is_var1 ? "frame[z.v2]" : "z.c") raccessor1 ")"
 	gsub(/\$1/, rep1, e_copy)
 	gsub(/\$1/, rep1, pre_copy)
 
@@ -461,7 +461,7 @@ function expand_eval(e, pre_eval, is_expr_op, otype1, otype2, is_var1, is_var2)
 		# If one of the operands is a constant, then we use
 		# v2 and not v3 to hold the other (non-constant) operand.
 		op3 = (is_var1 && is_var2) ? "v3" : "v2"
-		rep2 = "(" (is_var2 ? "frame[s." op3 "]" : "s.c") raccessor2 ")"
+		rep2 = "(" (is_var2 ? "frame[z." op3 "]" : "z.c") raccessor2 ")"
 		gsub(/\$2/, rep2, e_copy)
 		gsub(/\$2/, rep2, pre_copy)
 		}
@@ -470,19 +470,19 @@ function expand_eval(e, pre_eval, is_expr_op, otype1, otype2, is_var1, is_var2)
 		{
 		if ( "*" in op_types )
 			{
-			gsub(/\$\$/, "frame[s.v1]", e_copy)
+			gsub(/\$\$/, "frame[z.v1]", e_copy)
 			return pre_copy e_copy expr_app
 			}
 
 		else if ( index(e_copy, "$$") > 0 )
 			{
-			gsub(/\$\$/, "frame[s.v1]" laccessor, e_copy)
+			gsub(/\$\$/, "frame[z.v1]" laccessor, e_copy)
 			return pre_copy e_copy expr_app
 			}
 
 		else
 			return pre_copy \
-				"frame[s.v1]" laccessor " = " e_copy expr_app
+				"frame[z.v1]" laccessor " = " e_copy expr_app
 		}
 	else
 		return e_copy raccessor1
@@ -558,8 +558,8 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 		if ( ary_op == 1 )
 			{
 			print ("\tcase " full_op vec ":\n\t\tvec_exec(" full_op vec \
-				", frame[s.v1].vector_val,\n\t\t\t" \
-				(is_var1 ? "frame[s.v2]" : "s.c") \
+				", frame[z.v1].vector_val,\n\t\t\t" \
+				(is_var1 ? "frame[z.v2]" : "z.c") \
 				".vector_val);\n\t\tbreak;\n") >ops_eval_f
 
 			oe_copy = orig_eval
@@ -584,10 +584,10 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 
 			print ("\tcase " full_op vec ":\n\t\tvec_exec("  \
 				full_op vec \
-				",\n\t\t\tframe[s.v1].vector_val,\n\t\t\t" \
-				(is_var1 ? "frame[s.v2]" : "s.c") \
+				",\n\t\t\tframe[z.v1].vector_val,\n\t\t\t" \
+				(is_var1 ? "frame[z.v2]" : "z.c") \
 				".vector_val, " \
-				(is_var2 ? "frame[s." op3 "]" : "s.c") \
+				(is_var2 ? "frame[z." op3 "]" : "z.c") \
 				".vector_val);\n\t\tbreak;\n") >ops_eval_f
 
 			oe_copy = orig_eval

@@ -162,7 +162,7 @@ Stmt* ZAM::CompileBody()
 			{
 			// Rewrite the breaks.
 			for ( auto b : breaks )
-				stmts[b] = ZInst(OP_HOOK_BREAK_X);
+				insts[b] = ZInst(OP_HOOK_BREAK_X);
 			}
 
 		else
@@ -291,7 +291,7 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 	auto frame = new ZAMValUnion[frame_size];
 	int pc = start_pc;
 	bool error_flag = false;
-	int end_pc = stmts.size();
+	int end_pc = insts.size();
 
 	// Memory management: all of the BroObj's that we have used
 	// in interior values.  By managing them here rather than
@@ -300,7 +300,7 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 	std::vector<IntrusivePtr<BroObj>> vals;
 
 #define BuildVal(v, t, s) (vals.push_back(v), ZAMValUnion(v.get(), t, s, error_flag))
-#define CopyVal(v) ((s.t->Tag() == TYPE_ADDR || s.t->Tag() == TYPE_SUBNET || s.t->Tag() == TYPE_STRING || (s.t->Tag() == TYPE_VECTOR && ! IsAny(s.t))) ? BuildVal(v.ToVal(s.t), s.t, s.stmt) : v)
+#define CopyVal(v) ((z.t->Tag() == TYPE_ADDR || z.t->Tag() == TYPE_SUBNET || z.t->Tag() == TYPE_STRING || (z.t->Tag() == TYPE_VECTOR && ! IsAny(z.t))) ? BuildVal(v.ToVal(z.t), z.t, z.stmt) : v)
 
 	ZAM_tracker_type ZAM_VM_Tracker;
 	curr_ZAM_VM_Tracker = &ZAM_VM_Tracker;
@@ -318,15 +318,15 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 	flow = FLOW_RETURN;	// can be over-written by a Hook-Break
 
 	while ( pc < end_pc && ! error_flag ) {
-		auto& s = stmts[pc];
+		auto& z = insts[pc];
 
 		if ( 0 )
 			{
 			printf("executing %d: ", pc);
-			s.Dump(frame_denizens);
+			z.Dump(frame_denizens);
 			}
 
-		switch ( s.op ) {
+		switch ( z.op ) {
 		case OP_NOP:
 			break;
 
@@ -993,10 +993,10 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 
 	if ( op2->Tag() == EXPR_NAME )
 		{
-		CompiledStmt stmt(0);
+		CompiledStmt inst(0);
 
 		if ( op3->Tag() == EXPR_NAME )
-			stmt = is_any ?
+			inst = is_any ?
 					Any_Vector_Elem_AssignVVV(lhs,
 							op2->AsNameExpr(),
 							op3->AsNameExpr()) :
@@ -1004,7 +1004,7 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 							op2->AsNameExpr(),
 							op3->AsNameExpr());
 		else
-			stmt = is_any ?
+			inst = is_any ?
 					Any_Vector_Elem_AssignVVC(lhs,
 							op2->AsNameExpr(),
 							op3->AsConstExpr()) :
@@ -1013,7 +1013,7 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 							op3->AsConstExpr());
 
 		TopInst().t = op3->Type().get();
-		return stmt;
+		return inst;
 		}
 
 	else
@@ -1023,14 +1023,14 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 			{
 			auto index = c->Value()->AsCount();
 
-			auto stmt = is_any ?
+			auto inst = is_any ?
 					Any_Vector_Elem_AssignVVi(lhs,
 						op3->AsNameExpr(), index) :
 					Vector_Elem_AssignVVi(lhs,
 						op3->AsNameExpr(), index);
 
 			TopInst().t = op3->Type().get();
-			return stmt;
+			return inst;
 			}
 
 		// A pain - two constants.
@@ -1165,23 +1165,23 @@ const CompiledStmt ZAM::InitTable(ID* id, TableType* tt, Attributes* attrs)
 
 const CompiledStmt ZAM::StartingBlock()
 	{
-	return CompiledStmt(stmts.size());
+	return CompiledStmt(insts.size());
 	}
 
 const CompiledStmt ZAM::FinishBlock(const CompiledStmt /* start */)
 	{
-	return CompiledStmt(stmts.size() - 1);
+	return CompiledStmt(insts.size() - 1);
 	}
 
 bool ZAM::NullStmtOK() const
 	{
 	// They're okay iff they're the entire statement body.
-	return stmts.size() == 0;
+	return insts.size() == 0;
 	}
 
 const CompiledStmt ZAM::EmptyStmt()
 	{
-	return CompiledStmt(stmts.size() - 1);
+	return CompiledStmt(insts.size() - 1);
 	}
 
 const CompiledStmt ZAM::ErrorStmt()
@@ -1237,15 +1237,15 @@ int ZAM::InternalBuildVals(const ListExpr* l)
 	return tmp;
 	}
 
-const CompiledStmt ZAM::AddInst(const ZInst& stmt)
+const CompiledStmt ZAM::AddInst(const ZInst& inst)
 	{
-	stmts.push_back(stmt);
-	return CompiledStmt(stmts.size() - 1);
+	insts.push_back(inst);
+	return CompiledStmt(insts.size() - 1);
 	}
 
 ZInst& ZAM::TopInst()
 	{
-	return stmts.back();
+	return insts.back();
 	}
 
 const Stmt* ZAM::LastStmt() const
@@ -1329,10 +1329,10 @@ void ZAM::Dump()
 	for ( int i = 0; i < str_cases.size(); ++i )
 		DumpStrCases(i);
 
-	for ( int i = 0; i < stmts.size(); ++i )
+	for ( int i = 0; i < insts.size(); ++i )
 		{
 		printf("%d: ", i);
-		stmts[i].Dump(frame_denizens);
+		insts[i].Dump(frame_denizens);
 		}
 	}
 
@@ -1605,9 +1605,9 @@ CompiledStmt ZAM::GoTo()
 
 CompiledStmt ZAM::GoTo(const CompiledStmt s)
 	{
-	ZInst stmt(OP_GOTO_V, s.stmt_num - 1);
-	stmt.op_type = OP_V_I1;
-	return AddInst(stmt);
+	ZInst inst(OP_GOTO_V, s.stmt_num - 1);
+	inst.op_type = OP_V_I1;
+	return AddInst(inst);
 	}
 
 CompiledStmt ZAM::GoToTarget(const CompiledStmt s)
@@ -1630,35 +1630,35 @@ CompiledStmt ZAM::PrevStmt(const CompiledStmt s)
 
 void ZAM::SetV1(CompiledStmt s, const CompiledStmt s1)
 	{
-	auto& stmt = stmts[s.stmt_num];
-	stmt.v1 = s1.stmt_num;
-	ASSERT(stmt.op_type == OP_V || stmt.op_type == OP_V_I1);
-	stmt.op_type = OP_V_I1;
+	auto& inst = insts[s.stmt_num];
+	inst.v1 = s1.stmt_num;
+	ASSERT(inst.op_type == OP_V || inst.op_type == OP_V_I1);
+	inst.op_type = OP_V_I1;
 	}
 
 void ZAM::SetV2(CompiledStmt s, const CompiledStmt s2)
 	{
-	auto& stmt = stmts[s.stmt_num];
-	stmt.v2 = s2.stmt_num;
+	auto& inst = insts[s.stmt_num];
+	inst.v2 = s2.stmt_num;
 
-	if ( stmt.op_type == OP_VV )
-		stmt.op_type = OP_VV_I2;
+	if ( inst.op_type == OP_VV )
+		inst.op_type = OP_VV_I2;
 
-	else if ( stmt.op_type == OP_VVC )
-		stmt.op_type = OP_VVC_I2;
+	else if ( inst.op_type == OP_VVC )
+		inst.op_type = OP_VVC_I2;
 
 	else
-		ASSERT(stmt.op_type == OP_VV_I2 || stmt.op_type == OP_VVC_I2);
+		ASSERT(inst.op_type == OP_VV_I2 || inst.op_type == OP_VVC_I2);
 	}
 
 void ZAM::SetV3(CompiledStmt s, const CompiledStmt s2)
 	{
-	auto& stmt = stmts[s.stmt_num];
-	stmt.v3 = s2.stmt_num;
-	ASSERT(stmt.op_type == OP_VVV || stmt.op_type == OP_VVV_I3 ||
-		stmt.op_type == OP_VVV_I2_I3);
-	if ( stmt.op_type != OP_VVV_I2_I3 )
-		stmt.op_type = OP_VVV_I3;
+	auto& inst = insts[s.stmt_num];
+	inst.v3 = s2.stmt_num;
+	ASSERT(inst.op_type == OP_VVV || inst.op_type == OP_VVV_I3 ||
+		inst.op_type == OP_VVV_I2_I3);
+	if ( inst.op_type != OP_VVV_I2_I3 )
+		inst.op_type = OP_VVV_I3;
 	}
 
 

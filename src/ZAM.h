@@ -174,7 +174,7 @@ protected:
 	void SetGoTo(CompiledStmt s, const CompiledStmt targ)
 		{ SetV1(s, targ); }
 
-	const CompiledStmt AddInst(const ZInst& stmt);
+	const CompiledStmt AddInst(const ZInst& inst);
 	ZInst& TopInst();
 
 	// Returns the last (interpreter) statement in the body.
@@ -202,7 +202,7 @@ protected:
 	void SpillVectors(ZAM_tracker_type* tracker) const;
 	void LoadVectors(ZAM_tracker_type* tracker) const;
 
-	vector<ZInst> stmts;
+	vector<ZInst> insts;
 
 	// Indices of break/next/fallthrough goto's, so they can be
 	// patched up post factor.

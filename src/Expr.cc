@@ -1961,11 +1961,14 @@ Expr* AppendToExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 const CompiledStmt AppendToExpr::Compile(Compiler* c) const
 	{
 	auto n1 = op1->AsNameExpr();
+	bool is_any = n1->Type()->AsVectorType()->YieldType()->Tag() == TYPE_ANY;
 
 	if ( op2->Tag() == EXPR_NAME )
-		return c->AppendToVV(n1, op2->AsNameExpr());
+		return is_any ? c->AppendToAnyVV(n1, op2->AsNameExpr()) :
+				c->AppendToVV(n1, op2->AsNameExpr());
 	else
-		return c->AppendToVC(n1, op2->AsConstExpr());
+		return is_any ? c->AppendToAnyVC(n1, op2->AsConstExpr()) :
+				c->AppendToVC(n1, op2->AsConstExpr());
 	}
 
 

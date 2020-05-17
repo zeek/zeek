@@ -57,7 +57,13 @@ ZAMValUnion::ZAMValUnion(Val* v, BroType* t, const BroObj* o, bool& error)
 	case TYPE_PATTERN:	re_val = v->AsPatternVal(); break;
 	case TYPE_RECORD:	record_val = v->AsRecordVal(); break;
 	case TYPE_TABLE:	table_val = v->AsTableVal(); break;
-	case TYPE_VECTOR:	vector_val = to_ZAM_vector(v, true); break;
+
+	case TYPE_VECTOR:
+		if ( t->AsVectorType()->YieldType()->Tag() == TYPE_ANY )
+			any_val = v->Ref();
+		else
+			vector_val = to_ZAM_vector(v, true);
+		break;
 
 	case TYPE_STRING:
 		string_val = new BroString(*v->AsString());
@@ -126,7 +132,11 @@ IntrusivePtr<Val> ZAMValUnion::ToVal(BroType* t) const
 
 	case TYPE_PORT:		v = val_mgr->GetPort(uint_val); break;
 
-	case TYPE_VECTOR:	return ToVector(t);
+	case TYPE_VECTOR:
+		if ( t->AsVectorType()->YieldType()->Tag() == TYPE_ANY )
+			return {NewRef{}, any_val};
+		else
+			return ToVector(t);
 
 	case TYPE_ANY:		return {NewRef{}, any_val};
 

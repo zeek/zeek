@@ -4,7 +4,7 @@
 ########## Unary Ops ##########
 
 unary-expr-op Assign
-op-type A N S V *
+op-type A N S VA V *
 set-type $2
 #
 eval_A delete $$.addr_val
@@ -15,6 +15,8 @@ eval_N $$.subnet_val = new IPPrefix(*$1)
 #
 eval_S delete $$.string_val
 eval_S $$.string_val = new BroString(*$1)
+#
+eval_VA $$.any_val = $1
 #
 eval_V delete $$.vector_val
 eval_V $$.vector_val = $1->ShallowCopy()
@@ -90,6 +92,11 @@ eval --frame[s.v1].uint_val
 unary-op AppendTo
 eval frame[s.v1].vector_val->ModVec()->push_back($1)
 
+unary-op AppendToAny
+set-type $2
+eval auto vv = frame[s.v1].any_val->AsVectorVal()
+eval vv->Assign(vv->Size(), $1.ToVal(s.t))
+
 unary-expr-op Flatten
 op-type X
 eval const char* error;
@@ -109,8 +116,8 @@ eval else frame[s.v1] = BuildVal(res, s.t, s.stmt);
 
 unary-expr-op Is
 op-type X
-set-type $1
-set-expr $2
+set-type $2
+set-expr $1
 eval auto rhs = frame[s.v2].ToVal(s.e->Type().get()).get();
 eval frame[s.v1].int_val = can_cast_value_to_type(rhs, s.t);
 
@@ -568,6 +575,12 @@ eval auto vv_p = make_intrusive<VectorVal>(t)
 eval delete frame[s.v1].vector_val
 eval frame[s.v1].vector_val = to_ZAM_vector(vv_p.get(), false)
 
+internal-op Any-Vector-Coerce
+type VV
+eval auto vec = *frame[s.v2].vector_val->ConstVec()
+eval if ( vec.size() > 0 ) { ZAM_run_time_error(error_flag, s.stmt, "coercion of non-empty vector"); break; }
+eval frame[s.v1].any_val = frame[s.v2].ToVal(s.t).get()
+
 ########## Aggregate Assignments ##########
 
 op Vector-Elem-Assign
@@ -579,6 +592,13 @@ eval auto ind = frame[s.v2].int_val
 eval if ( vec.size() <= ind ) grow_vector(vec, ind + 1)
 eval vec[ind] = frame[s.v3]
 
+op Any-Vector-Elem-Assign
+type VVV
+eval auto& vec = *frame[s.v1].any_val->AsVector()
+eval auto ind = frame[s.v2].int_val
+eval Unref(vec[ind])
+eval vec[ind] = frame[s.v3].ToVal(s.t).get()
+
 op Vector-Elem-Assign
 type VVC
 eval auto vmgr = frame[s.v1].vector_val
@@ -588,7 +608,14 @@ eval auto ind = frame[s.v2].int_val
 eval if ( vec.size() <= ind ) grow_vector(vec, ind + 1)
 eval vec[ind] = s.c
 
-# This version is used when the constant is the index, not the new value.
+op Any-Vector-Elem-Assign
+type VVC
+eval auto& vec = *frame[s.v1].any_val->AsVector()
+eval auto ind = frame[s.v2].int_val
+eval Unref(vec[ind])
+eval vec[ind] = s.c.ToVal(s.t).get()
+
+# These versions are used when the constant is the index, not the new value.
 op Vector-Elem-Assign
 type VVi
 eval auto vmgr = frame[s.v1].vector_val
@@ -597,6 +624,13 @@ eval auto& vec = *vmgr->ModVec()
 eval auto ind = s.v3
 eval if ( vec.size() <= ind ) grow_vector(vec, ind + 1)
 eval vec[ind] = frame[s.v2]
+
+op Any-Vector-Elem-Assign
+type VVi
+eval auto& vec = *frame[s.v1].any_val->AsVector()
+eval auto ind = s.v3
+eval Unref(vec[ind])
+eval vec[ind] = frame[s.v2].ToVal(s.t).get()
 
 # ... and when both are, and we've assigned the value to a temporary.
 op Vector-Elem-Assign
@@ -607,6 +641,14 @@ eval auto& vec = *vmgr->ModVec()
 eval auto ind = s.c.int_val
 eval if ( vec.size() <= ind ) grow_vector(vec, ind + 1)
 eval vec[ind] = frame[s.v2]
+
+op Any-Vector-Elem-Assign
+type VCi
+eval auto& vec = *frame[s.v1].any_val->AsVector()
+eval auto ind = s.c.int_val
+eval Unref(vec[ind])
+eval vec[ind] = s.c.ToVal(s.t).get()
+
 
 op Field-LHS-Assign
 type VVi
@@ -779,12 +821,30 @@ eval ii->n = ii->vv->size()
 eval ii->c = 0;	// because End-Loop will check it
 eval frame[s.v1].iter_info = ii
 
+internal-op Init-Any-Vector-Loop
+type VV
+eval auto ii = new IterInfo
+eval ii->any_vv = frame[s.v2].any_val->AsVector()
+eval ii->iter = 0
+eval ii->n = ii->vv->size()
+eval ii->c = 0;	// because End-Loop will check it
+eval frame[s.v1].iter_info = ii
+
 internal-op Next-Vector-Iter
 type VVV
 eval auto ii = frame[s.v1].iter_info
 eval if ( ii->iter >= ii->n ) { pc = s.v3; break; }
 eval auto& vv = *ii->vv
 eval if ( vv[ii->iter].IsNil(ii->yield_type) ) { ++ii->iter; --pc; break; }
+eval frame[s.v2].uint_val = ii->iter
+eval ++ii->iter
+
+internal-op Next-Any-Vector-Iter
+type VVV
+eval auto ii = frame[s.v1].iter_info
+eval if ( ii->iter >= ii->n ) { pc = s.v3; break; }
+eval auto& vv = (*ii->any_vv)[ii->iter]
+eval if ( ! vv ) { ++ii->iter; --pc; break; }
 eval frame[s.v2].uint_val = ii->iter
 eval ++ii->iter
 
@@ -893,6 +953,15 @@ eval auto vec = new VectorVal(s.t->AsVectorType())
 eval f->SetElement(s.v2, vec)
 eval delete frame[s.v1].vector_val
 eval frame[s.v1].vector_val = new ZAMVectorMgr(make_shared<ZAM_vector>(), vec)
+
+# v1 is the frame element being initialized
+# v2 is its slot in the interpreted frame
+internal-op Init-Any-Vector
+type VV
+eval auto vec = make_intrusive<VectorVal>(s.t->AsVectorType())
+eval f->SetElement(s.v2, vec->Ref())
+eval vals.push_back(vec)
+eval frame[s.v1].any_val = vec.get()
 
 internal-op Init-Table
 type V

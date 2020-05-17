@@ -101,6 +101,30 @@ ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const NameExpr* v2, int i)
 	}
 
 
+bool IsAny(const BroType* t)
+	{
+	if ( t->Tag() == TYPE_ANY )
+		return true;
+
+	if ( t->Tag() != TYPE_VECTOR )
+		return false;
+
+	auto vt = t->AsVectorType();
+	auto yt = vt->YieldType();
+
+	return yt->Tag() == TYPE_ANY;
+	}
+
+bool IsAny(const IntrusivePtr<BroType>& t)
+	{
+	return IsAny(t.get());
+	}
+
+bool IsAny(const Expr* e)
+	{
+	return IsAny(e->Type());
+	}
+
 ZAM::ZAM(const BroFunc* f, Stmt* _body, UseDefs* _ud, Reducer* _rd,
 		ProfileFunc* _pf)
 	{
@@ -219,7 +243,8 @@ void ZAM::Init()
 		// we do explicit memory management on (re)assignment.
 		auto t = slot.first->Type()->Tag();
 		if ( t == TYPE_ADDR || t == TYPE_SUBNET || 
-		     t == TYPE_STRING || t == TYPE_VECTOR )
+		     t == TYPE_STRING ||
+		     (t == TYPE_VECTOR && ! IsAny(slot.first->Type())) )
 			{
 			managed_slots.push_back(slot.second);
 			managed_slot_types.push_back(t);
@@ -275,7 +300,7 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 	std::vector<IntrusivePtr<BroObj>> vals;
 
 #define BuildVal(v, t, s) (vals.push_back(v), ZAMValUnion(v.get(), t, s, error_flag))
-#define CopyVal(v) ((s.t->Tag() == TYPE_ADDR || s.t->Tag() == TYPE_SUBNET || s.t->Tag() == TYPE_STRING || s.t->Tag() == TYPE_VECTOR) ? BuildVal(v.ToVal(s.t), s.t, s.stmt) : v)
+#define CopyVal(v) ((s.t->Tag() == TYPE_ADDR || s.t->Tag() == TYPE_SUBNET || s.t->Tag() == TYPE_STRING || (s.t->Tag() == TYPE_VECTOR && ! IsAny(s.t))) ? BuildVal(v.ToVal(s.t), s.t, s.stmt) : v)
 
 	ZAM_tracker_type ZAM_VM_Tracker;
 	curr_ZAM_VM_Tracker = &ZAM_VM_Tracker;
@@ -505,7 +530,8 @@ const CompiledStmt ZAM::VectorCoerce(const NameExpr* n, const Expr* e)
 	{
 	auto op = e->GetOp1()->AsNameExpr();
 
-	ZInst s(OP_VECTOR_COERCE_VV, FrameSlot(n), FrameSlot(op));
+	ZInst s(IsAny(n) ? OP_ANY_VECTOR_COERCE_VV : OP_VECTOR_COERCE_VV,
+		FrameSlot(n), FrameSlot(op));
 	s.t = e->Type().get();
 
 	return AddInst(s);
@@ -963,16 +989,27 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 	auto op3 = index_assign->GetOp3();
 
 	auto lhs = op1->AsNameExpr();
+	auto is_any = IsAny(lhs);
 
 	if ( op2->Tag() == EXPR_NAME )
 		{
 		CompiledStmt stmt(0);
 
 		if ( op3->Tag() == EXPR_NAME )
-			stmt = Vector_Elem_AssignVVV(lhs, op2->AsNameExpr(),
+			stmt = is_any ?
+					Any_Vector_Elem_AssignVVV(lhs,
+							op2->AsNameExpr(),
+							op3->AsNameExpr()) :
+					Vector_Elem_AssignVVV(lhs,
+							op2->AsNameExpr(),
 							op3->AsNameExpr());
 		else
-			stmt = Vector_Elem_AssignVVC(lhs, op2->AsNameExpr(),
+			stmt = is_any ?
+					Any_Vector_Elem_AssignVVC(lhs,
+							op2->AsNameExpr(),
+							op3->AsConstExpr()) :
+					Vector_Elem_AssignVVC(lhs,
+							op2->AsNameExpr(),
 							op3->AsConstExpr());
 
 		TopInst().t = op3->Type().get();
@@ -985,8 +1022,13 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 		if ( op3->Tag() == EXPR_NAME )
 			{
 			auto index = c->Value()->AsCount();
-			auto stmt = Vector_Elem_AssignVVi(lhs,
+
+			auto stmt = is_any ?
+					Any_Vector_Elem_AssignVVi(lhs,
+						op3->AsNameExpr(), index) :
+					Vector_Elem_AssignVVi(lhs,
 						op3->AsNameExpr(), index);
+
 			TopInst().t = op3->Type().get();
 			return stmt;
 			}
@@ -999,7 +1041,9 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 
 		AddInst(s);
 
-		return Vector_Elem_AssignVCi(lhs, op2->AsConstExpr(), tmp);
+		return is_any ? Any_Vector_Elem_AssignVCi(lhs,
+						op2->AsConstExpr(), tmp) :
+			Vector_Elem_AssignVCi(lhs, op2->AsConstExpr(), tmp);
 		}
 	}
 
@@ -1041,12 +1085,16 @@ const CompiledStmt ZAM::LoopOverVector(const ForStmt* f, const NameExpr* val)
 	auto loop_vars = f->LoopVars();
 	auto loop_var = (*loop_vars)[0];
 
+	bool is_any = IsAny(val);
+
 	auto info = NewSlot();
-	auto s = ZInst(OP_INIT_VECTOR_LOOP_VV, info, FrameSlot(val));
+	auto s = ZInst(is_any ? OP_INIT_ANY_VECTOR_LOOP_VV :
+				OP_INIT_VECTOR_LOOP_VV, info, FrameSlot(val));
 	s.t = val->Type().get();
 	auto init_end = AddInst(s);
 
-	s = ZInst(OP_NEXT_VECTOR_ITER_VVV, info, FrameSlot(loop_var), 0);
+	s = ZInst(is_any ? OP_NEXT_ANY_VECTOR_ITER_VVV :
+			OP_NEXT_VECTOR_ITER_VVV, info, FrameSlot(loop_var), 0);
 	s.op_type = OP_VVV_I3;
 
 	return FinishLoop(s, f->LoopBody(), info);
@@ -1097,7 +1145,11 @@ const CompiledStmt ZAM::InitRecord(ID* id, RecordType* rt)
 
 const CompiledStmt ZAM::InitVector(ID* id, VectorType* vt)
 	{
-	auto s = ZInst(OP_INIT_VECTOR_VV, FrameSlot(id), id->Offset());
+	auto op = vt->YieldType()->Tag() == TYPE_ANY ?
+			OP_INIT_ANY_VECTOR_VV :
+			OP_INIT_VECTOR_VV;
+
+	auto s = ZInst(op, FrameSlot(id), id->Offset());
 	s.t = vt;
 	s.op_type = OP_VV_FRAME;
 	return AddInst(s);
@@ -1213,7 +1265,7 @@ const CompiledStmt ZAM::LoadOrStoreLocal(ID* id, bool is_load, bool add)
 	if ( id->AsType() )
 		reporter->InternalError("don't know how to compile local variable that's a type not a value");
 
-	bool is_any = id->Type()->Tag() == TYPE_ANY;
+	bool is_any = IsAny(id->Type());
 
 	ZOp op;
 
@@ -1238,9 +1290,8 @@ const CompiledStmt ZAM::LoadOrStoreGlobal(ID* id, bool is_load, bool add)
 		// storing or loading them.
 		return EmptyStmt();
 
-	bool is_any = id->Type()->Tag() == TYPE_ANY;
-
 	ZOp op;
+	bool is_any = IsAny(id->Type());
 
 	if ( is_any )
 		op = is_load ? OP_LOAD_ANY_GLOBAL_VC : OP_STORE_ANY_GLOBAL_VC;

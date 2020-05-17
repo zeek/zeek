@@ -58,7 +58,6 @@ union ZAMValUnion {
 	// The types are all variants of Val (or BroType).  For memory
 	// management, in the AM frame we shadow these with IntrusivePtr's.
 	// Thus we do not unref these on reassignment.
-	Val* any_val;
 	BroFile* file_val;
 	Func* func_val;
 	ListVal* list_val;
@@ -67,6 +66,9 @@ union ZAMValUnion {
 	RecordVal* record_val;
 	TableVal* table_val;
 	BroType* type_val;
+
+	// Used both for direct "any" values and for "vector of any".
+	Val* any_val;
 
 	// Used for the compiler to hold opaque items.  Memory management
 	// is explicit in the operations accessing it.
@@ -155,8 +157,11 @@ struct IterInfo {
 	// iteration.
 	BroType* value_var_type;
 
-	// If we're iterating over vectors, points to the raw vector.
+	// If we're iterating over vectors, points to the raw vector ...
 	std::shared_ptr<ZAM_vector> vv;
+
+	// ... unless it's a vector of any (sigh):
+	vector<Val*>* any_vv;
 
 	// The vector's type & yield.
 	VectorType* vec_type;

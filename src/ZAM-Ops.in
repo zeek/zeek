@@ -90,7 +90,10 @@ type V
 eval --frame[z.v1].uint_val
 
 unary-op AppendTo
-eval frame[z.v1].vector_val->ModVec()->push_back($1)
+set-type $2
+eval auto copy = CopyVal($1)
+eval auto& vv = *frame[z.v1].vector_val->ModVec()
+eval vv.push_back(copy)
 
 unary-op AppendToAny
 set-type $2

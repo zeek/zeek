@@ -1453,6 +1453,7 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1, const ListExpr* l,
 			OP_INDEX_IS_IN_VECTOR_VVV : OP_LIST_IS_IN_TABLE_VVV;
 
 	z = ZInst(op, FrameSlot(n1), FrameSlot(n2), build_indices);
+	z.t = n2->Type().get();
 
 	return AddInst(z);
 	}

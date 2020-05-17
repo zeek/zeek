@@ -289,11 +289,6 @@ void ZAMVectorMgr::Spill()
 	if ( ! v || is_clean )
 		return;
 
-	if ( v->RefCnt() == 1 )
-		// No sense spilling if we're the only entity that
-		// still cares about the Val*.
-		return;
-
 	auto vt = v->Type()->AsVectorType();
 	auto yt = vt->YieldType();
 	auto val_vec = new vector<Val*>();

@@ -39,30 +39,41 @@ ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1)
 	{
 	return ZInst(op, m->FrameSlot(v1));
 	}
+
+ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, int i)
+	{
+	return ZInst(op, m->FrameSlot(v1), i);
+	}
+
 ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const NameExpr* v2)
 	{
 	return ZInst(op, m->FrameSlot(v1), m->FrameSlot(v2));
 	}
+
 ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const NameExpr* v2,
 		const NameExpr* v3)
 	{
 	return ZInst(op, m->FrameSlot(v1), m->FrameSlot(v2),
 				m->FrameSlot(v3));
 	}
+
 ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const NameExpr* v2,
 		const NameExpr* v3, const NameExpr* v4)
 	{
 	return ZInst(op, m->FrameSlot(v1), m->FrameSlot(v2),
 				m->FrameSlot(v3), m->FrameSlot(v4));
 	}
+
 ZInst GenInst(ZAM* m, ZOp op, const ConstExpr* ce)
 	{
 	return ZInst(op, ce);
 	}
+
 ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const ConstExpr* ce)
 	{
 	return ZInst(op, m->FrameSlot(v1), ce);
 	}
+
 ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const ConstExpr* ce,
 		const NameExpr* v2)
 	{
@@ -73,6 +84,7 @@ ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const NameExpr* v2,
 	{
 	return ZInst(op, m->FrameSlot(v1), m->FrameSlot(v2), ce);
 	}
+
 ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const NameExpr* v2,
 		const NameExpr* v3, const ConstExpr* ce)
 	{
@@ -87,6 +99,7 @@ ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const NameExpr* v2,
 	return ZInst(op, m->FrameSlot(v1), m->FrameSlot(v2),
 				m->FrameSlot(v3), ce);
 	}
+
 ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const ConstExpr* c, int i)
 	{
 	auto s = ZInst(op, m->FrameSlot(v1), i, c);
@@ -1416,12 +1429,8 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1,
 		s.t = c2->Type().get();
 	else if ( c3 )
 		s.t = c3->Type().get();
-	else if ( n3 )
-		s.t = n3->Type().get();
 	else
-		{
-		ASSERT(op3->Type()->Tag() != TYPE_TABLE);
-		}
+		s.t = n2->Type().get();
 
 	return AddInst(s);
 	}

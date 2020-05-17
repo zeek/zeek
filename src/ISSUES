@@ -4,4 +4,4 @@ two different vector representations lead to (1) the need to synchronize
 
 vectors don't support ++/--, nor mixed operations w/ scalars
 
-vector of any
+vector of mixed-any

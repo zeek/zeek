@@ -52,6 +52,7 @@ BEGIN	{
 	args2["R"] = "n1, n2, f->Field()"
 	args2["Ri"] = "n1, n2, field"
 	args2["V"] = "n"
+	args2["Vi"] = "n, i"
 	args2["VV"] = "n1, n2"
 	args2["VO"] = "n, reg"
 	args2["VVV"] = "n1, n2, n3"

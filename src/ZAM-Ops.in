@@ -332,6 +332,7 @@ no-eval
 
 internal-op Val-Is-In-Table
 type VVV
+# No set-type as these are internal ops.
 eval auto op1 = frame[z.v2].ToVal(z.t)
 eval frame[z.v1].int_val = frame[z.v3].table_val->Lookup(op1.get()) != nullptr
 
@@ -347,7 +348,6 @@ eval frame[z.v1].int_val = frame[z.v2].table_val->Lookup(op1) != nullptr
 
 internal-op Index-Is-In-Vector
 type VVV
-set-type $2
 eval auto op1 = frame[z.v3].list_val
 eval auto op2 = frame[z.v2].ToVector(z.t)
 eval frame[z.v1].int_val = op2->Lookup(op1) != nullptr
@@ -596,7 +596,7 @@ op Any-Vector-Elem-Assign
 type VVV
 eval auto& vec = *frame[z.v1].any_val->AsVector()
 eval auto ind = frame[z.v2].int_val
-eval Unref(vec[ind])
+eval if ( ind < vec.size() ) Unref(vec[ind]); else vec.resize(ind+1)
 eval vec[ind] = frame[z.v3].ToVal(z.t).get()
 
 op Vector-Elem-Assign
@@ -612,7 +612,7 @@ op Any-Vector-Elem-Assign
 type VVC
 eval auto& vec = *frame[z.v1].any_val->AsVector()
 eval auto ind = frame[z.v2].int_val
-eval Unref(vec[ind])
+eval if ( ind < vec.size() ) Unref(vec[ind]); else vec.resize(ind+1)
 eval vec[ind] = z.c.ToVal(z.t).get()
 
 # These versions are used when the constant is the index, not the new value.
@@ -629,7 +629,7 @@ op Any-Vector-Elem-Assign
 type VVi
 eval auto& vec = *frame[z.v1].any_val->AsVector()
 eval auto ind = z.v3
-eval Unref(vec[ind])
+eval if ( ind < vec.size() ) Unref(vec[ind]); else vec.resize(ind+1)
 eval vec[ind] = frame[z.v2].ToVal(z.t).get()
 
 # ... and when both are, and we've assigned the value to a temporary.
@@ -646,7 +646,7 @@ op Any-Vector-Elem-Assign
 type VCi
 eval auto& vec = *frame[z.v1].any_val->AsVector()
 eval auto ind = z.c.int_val
-eval Unref(vec[ind])
+eval if ( ind < vec.size() ) Unref(vec[ind]); else vec.resize(ind+1)
 eval vec[ind] = z.c.ToVal(z.t).get()
 
 

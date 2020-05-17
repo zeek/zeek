@@ -581,7 +581,7 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 			### of smaller code size.
 
 			# See comment above for the role of op3.
-			op3 = (is_var1 && is_var2) ? "v1" : "v2"
+			op3 = (is_var1 && is_var2) ? "v3" : "v2"
 
 			print ("\tcase " full_op vec ":\n\t\tvec_exec("  \
 				full_op vec \

@@ -103,7 +103,7 @@ module GLOBAL;
 ## handle: A string that uniquely identifies a file.
 ##
 ## .. zeek:see:: get_file_handle
-function set_file_handle%(handle: string%): void
+function set_file_handle%(handle: string%): any
 	%{
 	auto bytes = reinterpret_cast<const char*>(handle->Bytes());
 	auto h = std::string(bytes, handle->Len());

@@ -896,10 +896,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		auto id = n->Id();
 
 		if ( ! mgr.HasPreMinRD(e, id) )
-			{
-			printf("%s has no pre at %s\n", id->Name(), obj_desc(e));
-			exit(1);
-			}
+			e->Warn("unreachable");
 
 		if ( id->Type()->Tag() == TYPE_RECORD )
 			CreateRecordRDs(mgr.GetID_DI(id), DefinitionPoint(n),

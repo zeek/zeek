@@ -59,7 +59,8 @@ ZAMValUnion::ZAMValUnion(Val* v, BroType* t, const BroObj* o, bool& error)
 	case TYPE_TABLE:	table_val = v->AsTableVal(); break;
 
 	case TYPE_VECTOR:
-		if ( t->AsVectorType()->YieldType()->Tag() == TYPE_ANY )
+		if ( t->AsVectorType()->YieldType()->Tag() == TYPE_ANY &&
+		     v->AsVector()->size() > 0 )
 			any_val = v->Ref();
 		else
 			vector_val = to_ZAM_vector(v, true);
@@ -199,11 +200,16 @@ ZAMVectorMgr::ZAMVectorMgr(std::shared_ptr<ZAM_vector> _vec, VectorVal* _v)
 	{
 	vec = _vec;
 	v = _v;
-	if ( v )
+	is_clean = true;
+
+	if ( ! v )
 		{
-		Ref(v);
-		curr_ZAM_VM_Tracker->insert(this);
+		yield_type = nullptr;
+		return;
 		}
+
+	Ref(v);
+	curr_ZAM_VM_Tracker->insert(this);
 
 	auto vt = v->Type()->AsVectorType();
 	auto yt = vt->YieldType();
@@ -218,10 +224,8 @@ ZAMVectorMgr::ZAMVectorMgr(std::shared_ptr<ZAM_vector> _vec, VectorVal* _v)
 		else
 			yt = nullptr;
 		}
-	else
-		yield_type = yt;
 
-	is_clean = true;
+	yield_type = yt;
 	}
 
 ZAMVectorMgr::~ZAMVectorMgr()

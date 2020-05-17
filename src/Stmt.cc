@@ -511,7 +511,13 @@ Stmt* ExprStmt::DoReduce(Reducer* c)
 
 		IntrusivePtr<Stmt> red_e_stmt;
 
-		e = {AdoptRef{}, e->Reduce(c, red_e_stmt)};
+		if ( t == EXPR_CALL )
+			// A bare call.  If we reduce it regularly, if
+			// it has a non-void type it'll generate an
+			// assignment to a temporary.
+			red_e_stmt = e->ReduceToSingletons(c);
+		else
+			e = {AdoptRef{}, e->Reduce(c, red_e_stmt)};
 
 		if ( red_e_stmt )
 			{

@@ -5,6 +5,8 @@
 
 #include "OpaqueVal.h"
 #include "BroString.h"
+#include "File.h"
+#include "Func.h"
 #include "Reporter.h"
 
 
@@ -165,8 +167,8 @@ IntrusivePtr<Val> ZAMValUnion::ToVal(BroType* t) const
 	case TYPE_DOUBLE:	v = new Val(double_val, TYPE_DOUBLE); break;
 	case TYPE_INTERVAL:	v = new IntervalVal(double_val, 1.0); break;
 	case TYPE_TIME:		v = new Val(double_val, TYPE_TIME); break;
-	case TYPE_FUNC:		v = new Val(func_val); break;
-	case TYPE_FILE:		v = new Val(file_val); break;
+	case TYPE_FUNC:		Ref(func_val); v = new Val(func_val); break;
+	case TYPE_FILE:		Ref(file_val); v = new Val(file_val); break;
 	case TYPE_ADDR:		v = new AddrVal(*addr_val); break;
 	case TYPE_SUBNET:	v = new SubNetVal(*subnet_val); break;
 	case TYPE_STRING:

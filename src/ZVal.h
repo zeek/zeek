@@ -99,6 +99,9 @@ inline bool IsManagedType(const IntrusivePtr<BroType>& t)
 	{ return IsManagedType(t.get()); }
 inline bool IsManagedType(const Expr* e) { return IsManagedType(e->Type()); }
 
+// Deletes a managed value.
+void DeleteManagedType(ZAMValUnion& v, const BroType* t);
+
 
 // Class used to manage vectors - only needed to support sync'ing them
 // with Val*'s.

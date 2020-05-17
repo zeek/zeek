@@ -7,3 +7,5 @@ vectors don't support ++/--, nor mixed operations w/ scalars
 vector of mixed-any
 
 same_object() on attomic types
+
+need to track NewSlot() denizens in case they require memory management

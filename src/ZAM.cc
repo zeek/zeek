@@ -50,6 +50,13 @@ ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, int i)
 	return z;
 	}
 
+ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const Expr* e)
+	{
+	auto z = ZInst(op, m->FrameSlot(v1), e);
+	z.CheckIfManaged(v1);
+	return z;
+	}
+
 ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const NameExpr* v2)
 	{
 	auto z = ZInst(op, m->FrameSlot(v1), m->FrameSlot(v2));
@@ -257,7 +264,7 @@ void ZAM::Init()
 		if ( IsManagedType(t) )
 			{
 			managed_slots.push_back(slot.second);
-			managed_slot_types.push_back(t->Tag());
+			managed_slot_types.push_back(t);
 			}
 		}
 	}
@@ -312,6 +319,10 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 #define BuildVal(v, t, s) (vals.push_back(v), ZAMValUnion(v.get(), t, s, error_flag))
 #define CopyVal(v) (IsManagedType(z.t) ? BuildVal(v.ToVal(z.t), z.t, z.stmt) : v)
 
+// Managed assignments to frame[s.v1].
+#define AssignV1(v) AssignV1T(v, z.t)
+#define AssignV1T(v, t) { if ( z.is_managed ) DeleteManagedType(frame[z.v1], t); frame[z.v1] = v; }
+
 	ZAM_tracker_type ZAM_VM_Tracker;
 	curr_ZAM_VM_Tracker = &ZAM_VM_Tracker;
 
@@ -351,17 +362,8 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 	// Free those slots for which we do explicit memory management.
 	for ( auto i = 0; i < managed_slots.size(); ++i )
 		{
-		int s = managed_slots[i];
-
-		switch ( managed_slot_types[i] ) {
-		case TYPE_ADDR:		delete frame[s].addr_val; break;
-		case TYPE_SUBNET:	delete frame[s].subnet_val; break;
-		case TYPE_STRING:	delete frame[s].string_val; break;
-		case TYPE_VECTOR:	delete frame[s].vector_val; break;
-
-		default:
-			reporter->InternalError("bad type tag for managed slots");
-		}
+		auto& v = frame[managed_slots[i]];
+		DeleteManagedType(v, managed_slot_types[i]);
 		}
 
 	delete [] frame;
@@ -380,7 +382,7 @@ const CompiledStmt ZAM::InterpretExpr(const Expr* e)
 const CompiledStmt ZAM::InterpretExpr(const NameExpr* n, const Expr* e)
 	{
 	FlushVars(e);
-	return AddInst(ZInst(OP_INTERPRET_EXPR_V, FrameSlot(n), e));
+	return AddInst(GenInst(this, OP_INTERPRET_EXPR_V, n, e));
 	}
 
 const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n, UDs uds)
@@ -406,7 +408,7 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n, UDs uds)
 	for ( auto l : call_pf.locals )
 		StoreLocal(l);
 
-	auto a_s = n ? ZInst(OP_INTERPRET_EXPR_V, FrameSlot(n), c) :
+	auto a_s = n ? GenInst(this, OP_INTERPRET_EXPR_V, n, c) :
 			ZInst(OP_INTERPRET_EXPR_X, c);
 
 	auto z = AddInst(a_s);
@@ -504,9 +506,7 @@ const CompiledStmt ZAM::ArithCoerce(const NameExpr* n, const Expr* e)
 		reporter->InternalError("bad target internal type in coercion");
 	}
 
-	auto n1 = FrameSlot(n);
-	auto n2 = FrameSlot(op->AsNameExpr());
-	return AddInst(ZInst(a, n1, n2));
+	return AddInst(GenInst(this, a, n, op->AsNameExpr()));
 	}
 
 const CompiledStmt ZAM::RecordCoerce(const NameExpr* n, const Expr* e)
@@ -516,8 +516,7 @@ const CompiledStmt ZAM::RecordCoerce(const NameExpr* n, const Expr* e)
 	auto map = r->Map();
 	auto map_size = r->MapSize();
 
-	ZInst z(OP_RECORD_COERCE_VVV, FrameSlot(n), FrameSlot(op),
-			map_size);
+	ZInst z(OP_RECORD_COERCE_VVV, FrameSlot(n), FrameSlot(op), map_size);
 
 	z.t = e->Type().get();
 	z.op_type = OP_VVV_I3;
@@ -699,6 +698,7 @@ const CompiledStmt ZAM::ValueSwitch(const SwitchStmt* sw, const NameExpr* v,
 		// so that it doesn't seem worth optimizing.
 		slot = RegisterSlot();
 		auto z = ZInst(OP_ASSIGN_CONST_VC, slot, c);
+		z.CheckIfManaged(c);
 		body_end = AddInst(z);
 		}
 
@@ -1047,6 +1047,7 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 		auto c3 = op3->AsConstExpr();
 		auto tmp = RegisterSlot();
 		auto z = ZInst(OP_ASSIGN_VC, tmp, c3);
+		z.CheckIfManaged(c3);
 		z.t = c3->Type().get();
 
 		AddInst(z);
@@ -1071,6 +1072,7 @@ const CompiledStmt ZAM::LoopOverTable(const ForStmt* f, const NameExpr* val)
 		{
 		auto id = (*loop_vars)[i];
 		z = ZInst(OP_ADD_VAR_TO_INIT_VV, info, FrameSlot(id));
+		z.CheckIfManaged(id->Type());
 		z.t = id->Type();
 		init_end = AddInst(z);
 		}
@@ -1079,6 +1081,7 @@ const CompiledStmt ZAM::LoopOverTable(const ForStmt* f, const NameExpr* val)
 		{
 		z = ZInst(OP_NEXT_TABLE_ITER_VAL_VAR_VVV, info,
 					FrameSlot(value_var), 0);
+		z.CheckIfManaged(value_var->Type());
 		z.op_type = OP_VVV_I3;
 		}
 	else
@@ -1117,9 +1120,11 @@ const CompiledStmt ZAM::LoopOverString(const ForStmt* f, const NameExpr* val)
 
 	auto info = NewSlot();
 	auto z = ZInst(OP_INIT_STRING_LOOP_VV, info, FrameSlot(val));
+	z.CheckIfManaged(val);
 	auto init_end = AddInst(z);
 
 	z = ZInst(OP_NEXT_STRING_ITER_VVV, info, FrameSlot(loop_var), 0);
+	z.CheckIfManaged(loop_var->Type());
 	z.op_type = OP_VVV_I3;
 
 	return FinishLoop(z, f->LoopBody(), info);
@@ -1479,6 +1484,7 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
 			}
 
 		z.t = n1->Type().get();
+		z.CheckIfManaged(n1);
 		return AddInst(z);
 		}
 
@@ -1518,6 +1524,7 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
 		reporter->InternalError("bad aggregate type when compiling index");
 	}
 
+	z.CheckIfManaged(n1);
 	return AddInst(z);
 	}
 

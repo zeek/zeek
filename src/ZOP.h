@@ -151,10 +151,10 @@ public:
 	// explicitly manage the memory.
 	bool is_managed = false;
 	void CheckIfManaged(const Expr* e)
-		{
-		if ( IsManagedType(e) )
-			is_managed = true;
-		}
+		{ if ( IsManagedType(e) ) is_managed = true; }
+
+	void CheckIfManaged(const BroType* t)
+		{ if ( IsManagedType(t) ) is_managed = true; }
 
 	ZAMOpType op_type;
 

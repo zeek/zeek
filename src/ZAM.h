@@ -225,7 +225,7 @@ protected:
 	// Which frame slots need clearing/deleting on entry/exit,
 	// and their corresponding type tags.
 	std::vector<int> managed_slots;
-	std::vector<TypeTag> managed_slot_types;
+	std::vector<const BroType*> managed_slot_types;
 
 	// The following are used for switch statements, mapping the
 	// switch value (which can be any atomic type) to a branch target.

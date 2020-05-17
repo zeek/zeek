@@ -41,6 +41,19 @@ bool IsManagedType(const BroType* t)
 	}
 	}
 
+void DeleteManagedType(ZAMValUnion& v, const BroType* t)
+	{
+	switch ( t->Tag() ) {
+	case TYPE_ADDR:		delete v.addr_val; break;
+	case TYPE_SUBNET:	delete v.subnet_val; break;
+	case TYPE_STRING:	delete v.string_val; break;
+	case TYPE_VECTOR:	delete v.vector_val; break;
+
+	default:
+		reporter->InternalError("type inconsistency in DeleteManagedType");
+	}
+	}
+
 
 ZAMValUnion::ZAMValUnion(Val* v, BroType* t, const BroObj* o, bool& error)
 	{

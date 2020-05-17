@@ -28,7 +28,7 @@ op-type X
 set-type $1
 set-expr $2
 eval auto v = frame[z.v2].ToVal(z.e->Type().get())->Clone();
-eval frame[z.v1] = BuildVal(v, z.t, z.stmt);
+eval AssignV1(BuildVal(v, z.t, z.stmt));
 
 unary-expr-op Size
 no-const
@@ -112,7 +112,7 @@ eval const char* error;
 eval auto rhs = frame[z.v2].ToVal(z.e->Type().get()).get();
 eval auto res = cast_value(rhs, z.t, error);
 eval if ( error ) ZAM_run_time_error(error_flag, z.stmt, error);
-eval else frame[z.v1] = BuildVal(res, z.t, z.stmt);
+eval else AssignV1(BuildVal(res, z.t, z.stmt));
 
 unary-expr-op Is
 op-type X
@@ -271,7 +271,7 @@ expr-op Field
 type R
 eval auto v = frame[z.v2].record_val->LookupWithDefault(z.v3)
 eval if ( ! v ) z.e->RuntimeError("field value missing")
-eval else frame[z.v1] = BuildVal(v, z.t, z.stmt)
+eval else AssignV1(BuildVal(v, z.t, z.stmt))
 
 expr-op Has-Field
 type Ri
@@ -355,17 +355,17 @@ eval frame[z.v1].int_val = op2->Lookup(op1) != nullptr
 expr-op Cond
 type VVVV
 set-type $3
-eval frame[z.v1] = frame[z.v2].int_val ? CopyVal(frame[z.v3]) : CopyVal(frame[z.v4])
+eval AssignV1(frame[z.v2].int_val ? CopyVal(frame[z.v3]) : CopyVal(frame[z.v4]))
 
 expr-op Cond
 type VVVC
 set-type $3
-eval frame[z.v1] = frame[z.v2].int_val ? CopyVal(frame[z.v3]) : CopyVal(z.c)
+eval AssignV1(frame[z.v2].int_val ? CopyVal(frame[z.v3]) : CopyVal(z.c))
 
 expr-op Cond
 type VVCV
 set-type $3
-eval frame[z.v1] = frame[z.v2].int_val ? CopyVal(z.c) : CopyVal(frame[z.v3])
+eval AssignV1(frame[z.v2].int_val ? CopyVal(z.c) : CopyVal(frame[z.v3]))
 
 # Our statement structure doesn't accommodate two constants, so for
 # the singular case of a V ? C1 : C2 conditional, we split it into
@@ -373,12 +373,12 @@ eval frame[z.v1] = frame[z.v2].int_val ? CopyVal(z.c) : CopyVal(frame[z.v3])
 op CondC1
 type VVC
 set-type $1
-eval if ( frame[z.v2].int_val ) frame[z.v1] = CopyVal(z.c)
+eval if ( frame[z.v2].int_val ) AssignV1(CopyVal(z.c))
 
 op CondC2
 set-type $1
 type VVC
-eval if ( ! frame[z.v2].int_val ) frame[z.v1] = CopyVal(z.c)
+eval if ( ! frame[z.v2].int_val ) AssignV1(CopyVal(z.c))
 
 ########## Index Expressions ##########
 
@@ -415,7 +415,7 @@ eval auto yt = z.t->AsVectorType()->YieldType()
 eval auto vec = frame[z.v2].ToVector(z.t)
 eval auto v = vec->Lookup(frame[z.v3].list_val)
 eval IntrusivePtr<Val> v_p = {NewRef{}, v}
-eval frame[z.v1] = BuildVal(v_p, yt, z.stmt)
+eval AssignV1T(BuildVal(v_p, yt, z.stmt), yt)
 
 internal-op Index-Vec-Slice
 type VVL
@@ -429,7 +429,7 @@ internal-op Table-Index
 type VVV
 eval auto v2 = frame[z.v3].list_val
 eval auto v = frame[z.v2].table_val->Lookup(v2)
-eval frame[z.v1] = BuildVal(v, z.t, z.stmt)
+eval AssignV1(BuildVal(v, z.t, z.stmt))
 
 # This version is for a variable v3.
 internal-op Index-String
@@ -466,7 +466,7 @@ set-type $1
 eval auto lv = frame[z.v2].any_val->val.val_list_val
 eval auto elem = (*lv)[z.v3]
 eval IntrusivePtr elem_p = {NewRef{}, elem}
-eval frame[z.v1] = BuildVal(elem_p, z.t, z.stmt)
+eval AssignV1(BuildVal(elem_p, z.t, z.stmt))
 
 
 ########## Constructors ##########
@@ -789,7 +789,10 @@ eval auto ind_lv = ii->tv->RecoverIndex(k);
 eval delete k
 eval for ( int i = 0; i < ind_lv->Length(); i++ ) {
 eval	IntrusivePtr<Val> ind_lv_p = {NewRef{}, ind_lv->Index(i)}
-eval	frame[ii->loop_vars[i]] = BuildVal(ind_lv_p, ii->loop_var_types[i], z.stmt)
+eval	auto t = ii->loop_var_types[i]
+eval	auto& var = frame[ii->loop_vars[i]]
+eval	if ( IsManagedType(t) ) DeleteManagedType(var, t)
+eval	var = BuildVal(ind_lv_p, ii->loop_var_types[i], z.stmt)
 eval }
 
 internal-op Next-Table-Iter-Val-Var
@@ -804,10 +807,15 @@ eval if ( ! current_tev ) { pc = z.v3; break; }
 eval auto ind_lv = ii->tv->RecoverIndex(k);
 eval delete k
 eval IntrusivePtr<Val> tev_p = {NewRef{}, current_tev->Value()}
-eval frame[z.v2] = BuildVal(tev_p, ii->value_var_type, z.stmt)
+eval auto val_var_t = ii->value_var_type
+eval if ( IsManagedType(val_var_t) ) DeleteManagedType(frame[z.v2], val_var_t)
+eval frame[z.v2] = BuildVal(tev_p, val_var_t, z.stmt)
 eval for ( int i = 0; i < ind_lv->Length(); i++ ) {
 eval	IntrusivePtr<Val> ind_lv_p = {NewRef{}, ind_lv->Index(i)}
-eval	frame[ii->loop_vars[i]] = BuildVal(ind_lv_p, ii->loop_var_types[i], z.stmt)
+eval	auto ind = ii->loop_vars[i]
+eval	auto loop_var_t = ii->loop_var_types[i]
+eval	if ( IsManagedType(loop_var_t) ) DeleteManagedType(frame[ind], loop_var_t)
+eval	frame[ind] = BuildVal(ind_lv_p, loop_var_t, z.stmt)
 eval }
 
 internal-op Init-Vector-Loop
@@ -992,14 +1000,14 @@ eval frame[z.v1].any_val = v.get()
 # a constant.
 internal-op Assign-Const
 type VC
-eval frame[z.v1] = BuildVal(z.c.ToVal(z.t), z.t, nullptr)
+eval AssignV1(BuildVal(z.c.ToVal(z.t), z.t, nullptr))
 
 internal-op Load-Val
 type VV
 eval auto v = f->NthElement(z.v2)
 eval if ( ! v ) reporter->InternalError("failure to load frame element");
 eval IntrusivePtr<Val> v_p = {NewRef{}, v}
-eval frame[z.v1] = BuildVal(v_p, z.t, v)
+eval AssignV1(BuildVal(v_p, z.t, v))
 
 internal-op Load-Any-Val
 type VV
@@ -1010,7 +1018,7 @@ eval frame[z.v1].any_val = v.get()
 internal-op Load-Global
 type VC
 eval IntrusivePtr<Val> v = {NewRef{}, z.c.id_val->ID_Val()}
-eval frame[z.v1] = BuildVal(v, z.t, z.c.id_val)
+eval AssignV1(BuildVal(v, z.t, z.c.id_val))
 
 internal-op Load-Any-Global
 type VC
@@ -1045,7 +1053,7 @@ eval z.c.id_val->SetVal(v)
 internal-op Copy-To
 type VC
 set-type $2
-eval frame[z.v1] = CopyVal(z.c)
+eval AssignV1(CopyVal(z.c))
 
 # Initializes a new value vector.  We now do this dynamically, but at same
 # point we could switch it to a static vector since we'll only have one of
@@ -1092,7 +1100,7 @@ eval SpillVectors(curr_ZAM_VM_Tracker)
 eval auto v = z.e->Eval(f) /* this could invoke us recursively */
 eval curr_ZAM_VM_Tracker = &ZAM_VM_Tracker
 eval LoadVectors(curr_ZAM_VM_Tracker)
-eval frame[z.v1] = BuildVal(v, z.t, z.e)
+eval AssignV1(BuildVal(v, z.t, z.e))
 
 
 internal-op GoTo

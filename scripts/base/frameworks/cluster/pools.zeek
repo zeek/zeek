@@ -374,7 +374,6 @@ event zeek_init() &priority=-5
 
 	local pool: Pool;
 	local pet: PoolEligibilityTracking;
-	local en: vector of NamedNode;
 
 	for ( i in registered_pools )
 		{

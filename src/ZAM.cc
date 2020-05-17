@@ -1464,29 +1464,47 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
 	ZInst z;
 
 	int n = l->Exprs().length();
-	auto n2t = n2->Type()->Tag();
+	auto n2t = n2->Type();
+	auto n2tag = n2t->Tag();
 
-	if ( n == 1 && n2t == TYPE_STRING )
+	if ( n == 1 )
 		{
 		auto ind = l->Exprs()[0];
-		if ( ind->Tag() == EXPR_NAME )
+		auto var_ind = ind->Tag() == EXPR_NAME;
+		auto n3 = var_ind ? ind->AsNameExpr() : nullptr;
+		auto c = var_ind ? 0 : ind->AsConstExpr()->Value()->AsCount();
+
+		if ( n2tag == TYPE_STRING )
 			{
-			auto n3 = ind->AsNameExpr();
-			z = ZInst(OP_INDEX_STRING_VVV, FrameSlot(n1),
-					FrameSlot(n2), FrameSlot(n3));
+			if ( n3 )
+				z = ZInst(OP_INDEX_STRING_VVV, FrameSlot(n1),
+						FrameSlot(n2), FrameSlot(n3));
+			else
+				{
+				z = ZInst(OP_INDEX_STRINGC_VVV, FrameSlot(n1),
+						FrameSlot(n2), c);
+				z.op_type = OP_VVV_I3;
+				}
+
+			return AddInst(z);
 			}
 
-		else
+		if ( n2tag == TYPE_VECTOR && ! IsAny(n2) )
 			{
-			auto c = ind->AsConstExpr()->Value()->AsInt();
-			z = ZInst(OP_INDEX_STRINGC_VVV, FrameSlot(n1),
-					FrameSlot(n2), c);
-			z.op_type = OP_VVV_I3;
-			}
+			if ( n3 )
+				z = ZInst(OP_INDEX_VEC_VVV, FrameSlot(n1),
+						FrameSlot(n2), FrameSlot(n3));
+			else
+				{
+				z = ZInst(OP_INDEX_VECC_VVV, FrameSlot(n1),
+						FrameSlot(n2), c);
+				z.op_type = OP_VVV_I3;
+				}
 
-		z.t = n1->Type().get();
-		z.CheckIfManaged(n1);
-		return AddInst(z);
+			z.t = n2t.get();
+			z.e = n2;
+			return AddInst(z);
+			}
 		}
 
 	auto build_indices = InternalBuildVals(l);
@@ -1497,7 +1515,7 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
 
 	auto indexes = l->Exprs();
 
-	switch ( n2->Type()->Tag() ) {
+	switch ( n2tag ) {
 	case TYPE_VECTOR:
 		{
 		ZOp op =

@@ -278,7 +278,11 @@ ZAMVectorMgr::~ZAMVectorMgr()
 	{
 	if ( v )
 		{
-		Spill();
+		if ( v->RefCnt() > 1 )
+			// Don't bother spilling for a value we're about
+			// to delete.
+			Spill();
+
 		curr_ZAM_VM_Tracker->erase(this);
 		}
 

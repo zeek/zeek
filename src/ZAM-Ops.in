@@ -92,8 +92,8 @@ eval --frame[z.v1].uint_val
 unary-op AppendTo
 set-type $2
 eval auto copy = CopyVal($1)
-eval auto& vv = *frame[z.v1].vector_val->ModVec()
-eval vv.push_back(copy)
+eval auto& vv = frame[z.v1].vector_val->ModVec()
+eval vv->push_back(copy)
 
 unary-op AppendToAny
 set-type $2
@@ -413,6 +413,20 @@ type VVL
 custom-method return CompileIndex(n1, n2, l);
 
 internal-op Index-Vec
+type VVV
+eval auto& vec = *frame[z.v2].vector_val->ConstVec()
+eval auto ind = frame[z.v3].uint_val
+eval if ( ind >= vec.size() ) ZAM_run_time_error(error_flag, z.stmt, "no such index")
+eval AssignV1(vec[ind])
+
+internal-op Index-VecC
+type VVV
+eval auto& vec = *frame[z.v2].vector_val->ConstVec()
+eval auto ind = z.v3
+eval if ( ind >= vec.size() ) ZAM_run_time_error(error_flag, z.stmt, "no such index")
+eval AssignV1(vec[ind])
+
+internal-op Index-Vec
 type VVL
 eval auto yt = z.t->AsVectorType()->YieldType()
 eval auto vec = frame[z.v2].ToVector(z.t)
@@ -571,7 +585,7 @@ direct-unary-op Vector-Coerce VectorCoerce
 
 internal-op Vector-Coerce
 type VV
-eval auto vec = *frame[z.v2].vector_val->ConstVec()
+eval auto& vec = *frame[z.v2].vector_val->ConstVec()
 eval if ( vec.size() > 0 ) { ZAM_run_time_error(error_flag, z.stmt, "coercion of non-empty vector"); break; }
 eval auto t = z.t->Ref()->AsVectorType();
 eval auto vv_p = make_intrusive<VectorVal>(t)
@@ -580,7 +594,7 @@ eval frame[z.v1].vector_val = to_ZAM_vector(vv_p.get(), false)
 
 internal-op Any-Vector-Coerce
 type VV
-eval auto vec = *frame[z.v2].vector_val->ConstVec()
+eval auto& vec = *frame[z.v2].vector_val->ConstVec()
 eval if ( vec.size() > 0 ) { ZAM_run_time_error(error_flag, z.stmt, "coercion of non-empty vector"); break; }
 eval frame[z.v1].any_val = frame[z.v2].ToVal(z.t).get()
 

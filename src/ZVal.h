@@ -119,8 +119,8 @@ public:
 		return new ZAMVectorMgr(vec, v);
 		}
 
-	std::shared_ptr<ZAM_vector> ConstVec() const	{ return vec; }
-	std::shared_ptr<ZAM_vector> ModVec()	
+	const std::shared_ptr<ZAM_vector>& ConstVec() const	{ return vec; }
+	std::shared_ptr<ZAM_vector>& ModVec()	
 		{ is_clean = false; return vec; }
 
 	BroType* YieldType() const	{ return yield_type; }

@@ -2,10 +2,14 @@ two different vector representations lead to (1) the need to synchronize
 	vectors, and (2) possible syncing inconsistencies due to
 	quasi-deep-copy semantics
 
+missing vector elements due to assign-past-end
+
 vectors don't support ++/--, nor mixed operations w/ scalars
 
 vector of mixed-any
+	e.g. language.index-assignment-invalid (expects it to fail)
+		vs. language.type-check-vector
 
-same_object() on attomic types
+same_object() on atomic types
 
 need to track NewSlot() denizens in case they require memory management

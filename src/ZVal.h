@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Val.h"
+#include "Expr.h"
 #include <unordered_set>
 
 
@@ -84,6 +84,20 @@ union ZAMValUnion {
 	// to lazily avoid doing a switch like IsNil() does.
 	void* void_val;
 };
+
+// True if a given type is one that we treat internally as an "any" type.
+extern bool IsAny(const BroType* t);
+
+// Convenience functions for getting to this.
+inline bool IsAny(const IntrusivePtr<BroType>& t) { return IsAny(t.get()); }
+inline bool IsAny(const Expr* e) { return IsAny(e->Type()); }
+
+// True if a given type is one for which we manage the associated
+// memory internally.
+bool IsManagedType(const BroType* t);
+inline bool IsManagedType(const IntrusivePtr<BroType>& t)
+	{ return IsManagedType(t.get()); }
+inline bool IsManagedType(const Expr* e) { return IsManagedType(e->Type()); }
 
 
 // Class used to manage vectors - only needed to support sync'ing them

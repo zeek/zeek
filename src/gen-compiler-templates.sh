@@ -714,20 +714,20 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 
 	else if ( type == "R" )
 		{
-		print ("\tauto s = GenInst(this, " full_op ", " \
+		print ("\tauto z = GenInst(this, " full_op ", " \
 			args2[type] ");") >methods_f
-		print ("\ts.e = n1;") >methods_f
-		print ("\ts.t = n1->Type().get();") >methods_f
-		print ("\treturn AddInst(s);") >methods_f
+		print ("\tz.e = n1;") >methods_f
+		print ("\tz.t = n1->Type().get();") >methods_f
+		print ("\treturn AddInst(z);") >methods_f
 		}
 
 	else if ( args2[type] != "" )
 		{
 		# This is the only scenario where sub_type should occur.
-		part1 = "\tauto s = GenInst(this, "
+		part1 = "\tauto z = GenInst(this, "
 
 		part2a = ", " args2[type] ");\n"
-		part2c = "\treturn AddInst(s);"
+		part2c = "\treturn AddInst(z);"
 
 		if ( sub_type && sub_type != "X" )
 			{
@@ -745,7 +745,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 			# Remove extraneous $, if present.
 			sub(/\$/, "", set_type)
 
-			part2b = "\ts.t = " vars[set_type] "->Type().get();\n"
+			part2b = "\tz.t = " vars[set_type] "->Type().get();\n"
 
 			if ( sub_type )
 				part2b = "\t" part2b
@@ -758,7 +758,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 			# Remove extraneous $, if present.
 			sub(/\$/, "", set_expr)
 
-			part2b = part2b "\t\ts.e = " vars[set_expr] ";\n"
+			part2b = part2b "\t\tz.e = " vars[set_expr] ";\n"
 
 			if ( sub_type )
 				part2b = "\t" part2b

@@ -11,6 +11,37 @@
 ZAM_tracker_type* curr_ZAM_VM_Tracker;
 
 
+bool IsAny(const BroType* t)
+	{
+	if ( t->Tag() == TYPE_ANY )
+		return true;
+
+	if ( t->Tag() != TYPE_VECTOR )
+		return false;
+
+	auto vt = t->AsVectorType();
+	auto yt = vt->YieldType();
+
+	return yt->Tag() == TYPE_ANY;
+	}
+
+bool IsManagedType(const BroType* t)
+	{
+	switch ( t->Tag() ) {
+	case TYPE_ADDR:
+	case TYPE_SUBNET:
+	case TYPE_STRING:
+		return true;
+
+	case TYPE_VECTOR:
+		return ! IsAny(t);
+
+	default:
+		return false;
+	}
+	}
+
+
 ZAMValUnion::ZAMValUnion(Val* v, BroType* t, const BroObj* o, bool& error)
 	{
 	if ( ! v )

@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "ZOP.h"
-#include "Expr.h"
 #include "Desc.h"
 #include "Reporter.h"
 

@@ -147,6 +147,15 @@ public:
 
 	ZAMValUnion c;	// constant associated with instruction
 
+	// Whether v1 represents a frame slot type for which we
+	// explicitly manage the memory.
+	bool is_managed = false;
+	void CheckIfManaged(const Expr* e)
+		{
+		if ( IsManagedType(e) )
+			is_managed = true;
+		}
+
 	ZAMOpType op_type;
 
 protected:

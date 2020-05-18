@@ -1025,6 +1025,23 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 	auto lhs = op1->AsNameExpr();
 	auto is_any = IsAny(lhs);
 
+	if ( op2->Tag() == EXPR_CONST && op3->Tag() == EXPR_CONST )
+		{
+		// Turn into a VVC assignment by assigning the index to
+		// a temporary.
+		auto tmp = RegisterSlot();
+		AddInst(ZInst(OP_ASSIGN_VC, tmp, op2->AsConstExpr()));
+
+		if ( is_any )
+			return AddInst(ZInst(OP_ANY_VECTOR_ELEM_ASSIGN_VVC,
+						FrameSlot(lhs), tmp,
+						op3->AsConstExpr()));
+		else
+			return AddInst(ZInst(OP_VECTOR_ELEM_ASSIGN_VVC,
+						FrameSlot(lhs), tmp,
+						op3->AsConstExpr()));
+		}
+
 	if ( op2->Tag() == EXPR_NAME )
 		{
 		CompiledStmt inst(0);
@@ -1053,32 +1070,16 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 	else
 		{
 		auto c = op2->AsConstExpr();
-		if ( op3->Tag() == EXPR_NAME )
-			{
-			auto index = c->Value()->AsCount();
+		auto index = c->Value()->AsCount();
 
-			auto inst = is_any ?
-					Any_Vector_Elem_AssignVVi(lhs,
-						op3->AsNameExpr(), index) :
-					Vector_Elem_AssignVVi(lhs,
-						op3->AsNameExpr(), index);
+		auto inst = is_any ?
+				Any_Vector_Elem_AssignVVi(lhs,
+					op3->AsNameExpr(), index) :
+				Vector_Elem_AssignVVi(lhs,
+					op3->AsNameExpr(), index);
 
-			TopInst().t = op3->Type().get();
-			return inst;
-			}
-
-		// A pain - two constants.
-		auto c3 = op3->AsConstExpr();
-		auto tmp = RegisterSlot();
-		auto z = ZInst(OP_ASSIGN_VC, tmp, c3);
-		z.CheckIfManaged(c3);
-		z.t = c3->Type().get();
-
-		AddInst(z);
-
-		return is_any ? Any_Vector_Elem_AssignVCi(lhs,
-						op2->AsConstExpr(), tmp) :
-			Vector_Elem_AssignVCi(lhs, op2->AsConstExpr(), tmp);
+		TopInst().t = op3->Type().get();
+		return inst;
 		}
 	}
 

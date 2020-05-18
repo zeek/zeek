@@ -422,17 +422,17 @@ custom-method return CompileIndex(n1, n2, l);
 
 internal-op Index-Vec
 type VVV
-eval auto& vec = *frame[z.v2].vector_val->ConstVec()
+eval auto& vec = frame[z.v2].vector_val->ConstVec()
 eval auto ind = frame[z.v3].uint_val
-eval if ( ind >= vec.size() ) ZAM_run_time_error(error_flag, z.stmt, "no such index")
-eval AssignV1(CopyVal(vec[ind]))
+eval if ( ind >= vec->size() ) ZAM_run_time_error(error_flag, z.stmt, "no such index")
+eval AssignV1(CopyVal((*vec)[ind]))
 
 internal-op Index-VecC
 type VVV
-eval auto& vec = *frame[z.v2].vector_val->ConstVec()
+eval auto& vec = frame[z.v2].vector_val->ConstVec()
 eval auto ind = z.v3
-eval if ( ind >= vec.size() ) ZAM_run_time_error(error_flag, z.stmt, "no such index")
-eval AssignV1(CopyVal(vec[ind]))
+eval if ( ind >= vec->size() ) ZAM_run_time_error(error_flag, z.stmt, "no such index")
+eval AssignV1(CopyVal((*vec)[ind]))
 
 internal-op Index-Vec
 type VVL
@@ -593,8 +593,8 @@ direct-unary-op Vector-Coerce VectorCoerce
 
 internal-op Vector-Coerce
 type VV
-eval auto& vec = *frame[z.v2].vector_val->ConstVec()
-eval if ( vec.size() > 0 ) { ZAM_run_time_error(error_flag, z.stmt, "coercion of non-empty vector"); break; }
+eval auto& vec = frame[z.v2].vector_val->ConstVec()
+eval if ( vec->size() > 0 ) { ZAM_run_time_error(error_flag, z.stmt, "coercion of non-empty vector"); break; }
 eval auto t = z.t->Ref()->AsVectorType();
 eval auto vv_p = make_intrusive<VectorVal>(t)
 eval delete frame[z.v1].vector_val
@@ -602,9 +602,9 @@ eval frame[z.v1].vector_val = to_ZAM_vector(vv_p.get(), false)
 
 internal-op Any-Vector-Coerce
 type VV
-eval auto& vec = *frame[z.v2].vector_val->ConstVec()
-eval if ( vec.size() > 0 ) { ZAM_run_time_error(error_flag, z.stmt, "coercion of non-empty vector"); break; }
-eval frame[z.v1].any_val = frame[z.v2].ToVal(z.t).get()
+eval auto& vec = frame[z.v2].vector_val->ConstVec()
+eval if ( vec->size() > 0 ) { ZAM_run_time_error(error_flag, z.stmt, "coercion of non-empty vector"); break; }
+eval frame[z.v1].any_val = frame[z.v2].ToVal(z.t).release()
 
 ########## Aggregate Assignments ##########
 
@@ -612,67 +612,50 @@ op Vector-Elem-Assign
 type VVV
 eval auto vmgr = frame[z.v1].vector_val
 eval vmgr->SetYieldType(z.t)
-eval auto& vec = *vmgr->ModVec()
-eval auto ind = frame[z.v2].int_val
-eval if ( vec.size() <= ind ) grow_vector(vec, ind + 1)
-eval vec[ind] = frame[z.v3]
+eval auto& vec = vmgr->ModVec()
+eval auto ind = frame[z.v2].uint_val
+eval if ( vec->size() <= ind ) grow_vector(*vec, ind + 1)
+eval (*vec)[ind] = frame[z.v3]
 
 op Any-Vector-Elem-Assign
 type VVV
-eval auto& vec = *frame[z.v1].any_val->AsVector()
-eval auto ind = frame[z.v2].int_val
-eval if ( ind < vec.size() ) Unref(vec[ind]); else vec.resize(ind+1)
-eval vec[ind] = frame[z.v3].ToVal(z.t).get()
+eval auto vec = frame[z.v1].any_val->AsVector()
+eval auto ind = frame[z.v2].uint_val
+eval if ( ind < vec->size() ) Unref((*vec)[ind]); else vec->resize(ind+1)
+eval (*vec)[ind] = frame[z.v3].ToVal(z.t).release()
 
 op Vector-Elem-Assign
 type VVC
 eval auto vmgr = frame[z.v1].vector_val
 eval vmgr->SetYieldType(z.t)
-eval auto& vec = *vmgr->ModVec()
-eval auto ind = frame[z.v2].int_val
-eval if ( vec.size() <= ind ) grow_vector(vec, ind + 1)
-eval vec[ind] = z.c
+eval auto& vec = vmgr->ModVec()
+eval auto ind = frame[z.v2].uint_val
+eval if ( vec->size() <= ind ) grow_vector(*vec, ind + 1)
+eval (*vec)[ind] = z.c
 
 op Any-Vector-Elem-Assign
 type VVC
-eval auto& vec = *frame[z.v1].any_val->AsVector()
-eval auto ind = frame[z.v2].int_val
-eval if ( ind < vec.size() ) Unref(vec[ind]); else vec.resize(ind+1)
-eval vec[ind] = z.c.ToVal(z.t).get()
+eval auto vec = frame[z.v1].any_val->AsVector()
+eval auto ind = frame[z.v2].uint_val
+eval if ( ind < vec->size() ) Unref((*vec)[ind]); else vec->resize(ind+1)
+eval (*vec)[ind] = z.c.ToVal(z.t).release()
 
 # These versions are used when the constant is the index, not the new value.
 op Vector-Elem-Assign
 type VVi
 eval auto vmgr = frame[z.v1].vector_val
 eval vmgr->SetYieldType(z.t)
-eval auto& vec = *vmgr->ModVec()
+eval auto& vec = vmgr->ModVec()
 eval auto ind = z.v3
-eval if ( vec.size() <= ind ) grow_vector(vec, ind + 1)
-eval vec[ind] = frame[z.v2]
+eval if ( vec->size() <= ind ) grow_vector(*vec, ind + 1)
+eval (*vec)[ind] = frame[z.v2]
 
 op Any-Vector-Elem-Assign
 type VVi
-eval auto& vec = *frame[z.v1].any_val->AsVector()
+eval auto vec = frame[z.v1].any_val->AsVector()
 eval auto ind = z.v3
-eval if ( ind < vec.size() ) Unref(vec[ind]); else vec.resize(ind+1)
-eval vec[ind] = frame[z.v2].ToVal(z.t).get()
-
-# ... and when both are, and we've assigned the value to a temporary.
-op Vector-Elem-Assign
-type VCi
-eval auto vmgr = frame[z.v1].vector_val
-eval vmgr->SetYieldType(z.t)
-eval auto& vec = *vmgr->ModVec()
-eval auto ind = z.c.int_val
-eval if ( vec.size() <= ind ) grow_vector(vec, ind + 1)
-eval vec[ind] = frame[z.v2]
-
-op Any-Vector-Elem-Assign
-type VCi
-eval auto& vec = *frame[z.v1].any_val->AsVector()
-eval auto ind = z.c.int_val
-eval if ( ind < vec.size() ) Unref(vec[ind]); else vec.resize(ind+1)
-eval vec[ind] = z.c.ToVal(z.t).get()
+eval if ( ind < vec->size() ) Unref((*vec)[ind]); else vec->resize(ind+1)
+eval (*vec)[ind] = frame[z.v2].ToVal(z.t).release()
 
 
 op Field-LHS-Assign

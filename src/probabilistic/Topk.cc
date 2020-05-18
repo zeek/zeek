@@ -23,12 +23,12 @@ Element::~Element()
 	Unref(value);
 	}
 
-void TopkVal::Typify(BroType* t)
+void TopkVal::Typify(IntrusivePtr<BroType> t)
 	{
 	assert(!hash && !type);
-	type = t->Ref();
-	auto tl = make_intrusive<TypeList>(IntrusivePtr{NewRef{}, t});
-	tl->Append({NewRef{}, t});
+	type = std::move(t);
+	auto tl = make_intrusive<TypeList>(type);
+	tl->Append(type);
 	hash = new CompositeHash(std::move(tl));
 	}
 
@@ -44,7 +44,6 @@ TopkVal::TopkVal(uint64_t arg_size) : OpaqueVal(topk_type)
 	elementDict = new PDict<Element>;
 	elementDict->SetDeleteFunc(topk_element_hash_delete_func);
 	size = arg_size;
-	type = nullptr;
 	numElements = 0;
 	pruned = false;
 	hash = nullptr;
@@ -55,7 +54,6 @@ TopkVal::TopkVal() : OpaqueVal(topk_type)
 	elementDict = new PDict<Element>;
 	elementDict->SetDeleteFunc(topk_element_hash_delete_func);
 	size = 0;
-	type = nullptr;
 	numElements = 0;
 	hash = nullptr;
 	}
@@ -73,7 +71,6 @@ TopkVal::~TopkVal()
 		bi++;
 		}
 
-	Unref(type);
 	delete hash;
 	}
 
@@ -94,7 +91,7 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune)
 
 	else
 		{
-		if ( ! same_type(type, value->type) )
+		if ( ! same_type(type.get(), value->type.get()) )
 			{
 			reporter->Error("Cannot merge top-k elements of differing types.");
 			return;
@@ -199,8 +196,8 @@ VectorVal* TopkVal::GetTopK(int k) const // returns vector
 		return nullptr;
 		}
 
-	auto vector_index = make_intrusive<TypeList>(IntrusivePtr{NewRef{}, type});
-	vector_index->Append({NewRef{}, type});
+	auto vector_index = make_intrusive<TypeList>(type);
+	vector_index->Append(type);
 	auto v = make_intrusive<VectorType>(std::move(vector_index));
 	auto t = make_intrusive<VectorVal>(std::move(v));
 
@@ -284,9 +281,9 @@ void TopkVal::Encountered(Val* encountered)
 	// ok, let's see if we already know this one.
 
 	if ( numElements == 0 )
-		Typify(encountered->GetType().get());
+		Typify(encountered->GetType());
 	else
-		if ( ! same_type(type, encountered->GetType().get()) )
+		if ( ! same_type(type.get(), encountered->GetType().get()) )
 			{
 			reporter->Error("Trying to add element to topk with differing type from other elements");
 			return;
@@ -416,7 +413,7 @@ broker::expected<broker::data> TopkVal::DoSerialize() const
 
 	if ( type )
 		{
-		auto t = SerializeType(type);
+		auto t = SerializeType(type.get());
 		if ( ! t )
 			return broker::ec::invalid_data;
 
@@ -484,7 +481,7 @@ bool TopkVal::DoUnserialize(const broker::data& data)
 		if ( ! t )
 			return false;
 
-		Typify(t.get());
+		Typify(t);
 		}
 
 	uint64_t i = 0;
@@ -505,7 +502,7 @@ bool TopkVal::DoUnserialize(const broker::data& data)
 		for ( uint64_t j = 0; j < *elements_count; j++ )
 			{
 			auto epsilon = caf::get_if<uint64_t>(&(*v)[idx++]);
-			auto val = bro_broker::data_to_val((*v)[idx++], type);
+			auto val = bro_broker::data_to_val((*v)[idx++], type.get());
 
 			if ( ! (epsilon && val) )
 				return false;

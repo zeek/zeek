@@ -546,6 +546,18 @@ const CompiledStmt ZAM::VectorCoerce(const NameExpr* n, const Expr* e)
 	return AddInst(z);
 	}
 
+const CompiledStmt ZAM::Is(const NameExpr* n, const Expr* e)
+	{
+	auto is = e->AsIsExpr();
+	auto op = e->GetOp1()->AsNameExpr();
+
+	ZInst z(OP_IS_VV, FrameSlot(n), FrameSlot(op));
+	z.e = op;
+	z.t = is->TestType().get();
+
+	return AddInst(z);
+	}
+
 const CompiledStmt ZAM::IfElse(const NameExpr* n, const Stmt* s1, const Stmt* s2)
 	{
 	ZOp op = (s1 && s2) ?
@@ -915,7 +927,19 @@ const CompiledStmt ZAM::TypeSwitch(const SwitchStmt* sw, const NameExpr* v,
 		z.op_type = OP_VV_I2;
 		auto case_test = AddInst(z);
 
-		ResolveFallThroughs(GoToTargetBeyond(case_test));
+		// Type cases that don't use "as" create a placeholder
+		// ID with a null name.
+		if ( id->Name() )
+			{
+			int id_slot = FrameSlot(id);
+			z = ZInst(OP_CAST_ANY_VV, id_slot, slot);
+			z.t = type;
+			body_end = AddInst(z);
+			}
+		else
+			body_end = case_test;
+
+		ResolveFallThroughs(GoToTargetBeyond(body_end));
 		body_end = (*cases)[i.second]->Body()->Compile(this);
 		SetV2(case_test, GoToTargetBeyond(body_end));
 

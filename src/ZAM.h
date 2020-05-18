@@ -42,6 +42,8 @@ public:
 	const CompiledStmt VectorCoerce(const NameExpr* n,
 					const Expr* e) override;
 
+	const CompiledStmt Is(const NameExpr* n, const Expr* e) override;
+
 	const CompiledStmt IfElse(const NameExpr* n, const Stmt* s1,
 					const Stmt* s2) override;
 

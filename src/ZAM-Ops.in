@@ -117,10 +117,18 @@ eval auto res = cast_value(rhs, z.t, error);
 eval if ( error ) ZAM_run_time_error(error_flag, z.stmt, error);
 eval else AssignV1(BuildVal(res, z.t, z.stmt));
 
-unary-expr-op Is
-op-type X
-set-type $2
-set-expr $1
+# Cast an "any" type to the given type.
+internal-op Cast-Any
+type VV
+eval const char* error;
+eval auto res = cast_value(frame[z.v2].any_val, z.t, error);
+eval if ( error ) ZAM_run_time_error(error_flag, z.stmt, error)
+eval else AssignV1(BuildVal(res, z.t, z.stmt));
+
+direct-unary-op Is Is
+
+internal-op Is
+type VV
 eval auto rhs = frame[z.v2].ToVal(z.e->Type().get()).get();
 eval frame[z.v1].int_val = can_cast_value_to_type(rhs, z.t);
 

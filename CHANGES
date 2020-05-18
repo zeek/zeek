@@ -1,4 +1,15 @@
 
+3.2.0-dev.547 | 2020-05-18 10:47:54 -0700
+
+  * add packet fuzzer (Justin Azoff)
+
+  * Fix building fuzz targets on macOS (Jon Siwek, Corelight)
+
+  * Highwayhash: small build fix (Johanna Amann, Corelight)
+
+    Turns out that hh_neon should not be compiled on generic arm CPUs.
+    That one is only for aarch64.
+
 3.2.0-dev.539 | 2020-05-15 19:47:55 +0000
 
   * Replace bzero() with memset() (Noah Treuhaft)

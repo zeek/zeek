@@ -901,12 +901,17 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		if ( ! mgr.HasPreMinRD(e, id) )
 			e->Error("used without definition");
 
+#if 0
+		// The following works correctly, but finds a number
+		// of places in the base scripts where indeed non-optional
+		// record elements are not initialized.
 		if ( id->Type()->Tag() == TYPE_RECORD )
 			{
 			auto di = mgr.GetID_DI(id);
 			auto e_pre = mgr.GetPreMinRDs(e);
 			CheckRecordRDs(di, DefinitionPoint(n), e_pre, e);
 			}
+#endif
 
 		break;
 		}

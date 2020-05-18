@@ -479,12 +479,12 @@ bool TopkVal::DoUnserialize(const broker::data& data)
 	auto no_type = caf::get_if<broker::none>(&(*v)[3]);
 	if ( ! no_type )
 		{
-		BroType* t = UnserializeType((*v)[3]);
+		auto t = UnserializeType((*v)[3]);
+
 		if ( ! t )
 			return false;
 
-		Typify(t);
-		Unref(t);
+		Typify(t.get());
 		}
 
 	uint64_t i = 0;

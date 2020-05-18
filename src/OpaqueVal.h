@@ -154,7 +154,7 @@ protected:
 	 * Helper function for derived class that need to restore a type
 	 * during unserialization. Returns the type at reference count +1.
 	 */
-	static BroType* UnserializeType(const broker::data& data);
+	static IntrusivePtr<BroType> UnserializeType(const broker::data& data);
 };
 
 namespace probabilistic {

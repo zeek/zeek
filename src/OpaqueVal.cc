@@ -112,7 +112,7 @@ broker::expected<broker::data> OpaqueVal::SerializeType(BroType* t)
 	return {broker::vector{false, static_cast<uint64_t>(t->Tag())}};
 	}
 
-BroType* OpaqueVal::UnserializeType(const broker::data& data)
+IntrusivePtr<BroType> OpaqueVal::UnserializeType(const broker::data& data)
 	{
 	auto v = caf::get_if<broker::vector>(&data);
 	if ( ! (v && v->size() == 2) )
@@ -135,14 +135,14 @@ BroType* OpaqueVal::UnserializeType(const broker::data& data)
 		if ( ! id->IsType() )
 			return nullptr;
 
-		return id->GetType()->Ref();
+		return id->GetType();
 		}
 
 	auto tag = caf::get_if<uint64_t>(&(*v)[1]);
 	if ( ! tag )
 		return nullptr;
 
-	return base_type(static_cast<TypeTag>(*tag))->Ref();
+	return base_type(static_cast<TypeTag>(*tag));
 	}
 
 IntrusivePtr<Val> OpaqueVal::DoClone(CloneState* state)
@@ -854,8 +854,9 @@ bool BloomFilterVal::DoUnserialize(const broker::data& data)
 	auto no_type = caf::get_if<broker::none>(&(*v)[0]);
 	if ( ! no_type )
 		{
-		BroType* t = UnserializeType((*v)[0]);
-		if ( ! (t && Typify(t)) )
+		auto t = UnserializeType((*v)[0]);
+
+		if ( ! (t && Typify(t.get())) )
 			return false;
 		}
 
@@ -957,8 +958,9 @@ bool CardinalityVal::DoUnserialize(const broker::data& data)
 	auto no_type = caf::get_if<broker::none>(&(*v)[0]);
 	if ( ! no_type )
 		{
-		BroType* t = UnserializeType((*v)[0]);
-                if ( ! (t && Typify(t)) )
+		auto t = UnserializeType((*v)[0]);
+
+		if ( ! (t && Typify(t.get())) )
 			return false;
 		}
 

@@ -18,11 +18,6 @@ static void topk_element_hash_delete_func(void* val)
 	delete e;
 	}
 
-Element::~Element()
-	{
-	Unref(value);
-	}
-
 void TopkVal::Typify(IntrusivePtr<BroType> t)
 	{
 	assert(!hash && !type);
@@ -116,7 +111,7 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune)
 				{
 				olde = new Element();
 				olde->epsilon = 0;
-				olde->value = e->value->Ref();
+				olde->value = e->value;
 				// insert at bucket position 0
 				if ( buckets.size() > 0 )
 					{
@@ -188,7 +183,7 @@ IntrusivePtr<Val> TopkVal::DoClone(CloneState* state)
 	return state->NewClone(this, std::move(clone));
 	}
 
-VectorVal* TopkVal::GetTopK(int k) const // returns vector
+IntrusivePtr<VectorVal> TopkVal::GetTopK(int k) const // returns vector
 	{
 	if ( numElements == 0 )
 		{
@@ -225,7 +220,7 @@ VectorVal* TopkVal::GetTopK(int k) const // returns vector
 		it--;
 		}
 
-	return t.release();
+	return t;
 	}
 
 uint64_t TopkVal::GetCount(Val* value) const
@@ -276,7 +271,7 @@ uint64_t TopkVal::GetSum() const
 	return sum;
 	}
 
-void TopkVal::Encountered(Val* encountered)
+void TopkVal::Encountered(IntrusivePtr<Val> encountered)
 	{
 	// ok, let's see if we already know this one.
 
@@ -297,7 +292,7 @@ void TopkVal::Encountered(Val* encountered)
 		{
 		e = new Element();
 		e->epsilon = 0;
-		e->value = encountered->Ref(); // or no ref?
+		e->value = std::move(encountered);
 
 		// well, we do not know this one yet...
 		if ( numElements < size )
@@ -437,7 +432,7 @@ broker::expected<broker::data> TopkVal::DoSerialize() const
 			{
 			Element* element = *eit;
 			d.emplace_back(element->epsilon);
-			auto v = bro_broker::val_to_data(element->value);
+			auto v = bro_broker::val_to_data(element->value.get());
 			if ( ! v )
 				return broker::ec::invalid_data;
 
@@ -509,7 +504,7 @@ bool TopkVal::DoUnserialize(const broker::data& data)
 
 			Element* e = new Element();
 			e->epsilon = *epsilon;
-			e->value = val.release();
+			e->value = std::move(val);
 			e->parent = b;
 
 			b->elements.insert(b->elements.end(), e);

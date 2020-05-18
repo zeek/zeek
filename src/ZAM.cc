@@ -1528,7 +1528,7 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
 				z.op_type = OP_VVV_I3;
 				}
 
-			z.t = n2t.get();
+			z.t = n1->Type().get();
 			z.e = n2;
 			return AddInst(z);
 			}

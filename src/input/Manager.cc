@@ -26,14 +26,6 @@ using namespace std;
 using threading::Value;
 using threading::Field;
 
-static void delete_value_ptr_array(Value** vals, int num_fields)
-	{
-	for ( int i = 0; i < num_fields; ++i )
-		delete vals[i];
-
-	delete [] vals;
-	}
-
 /**
  * InputHashes are used as Dictionaries to store the value and index hashes
  * for all lines currently stored in a table. Index hash is stored as
@@ -1087,7 +1079,7 @@ void Manager::SendEntry(ReaderFrontend* reader, Value* *vals)
 	else
 		assert(false);
 
-	delete_value_ptr_array(vals, readFields);
+	Value::delete_value_ptr_array(vals, readFields);
 	}
 
 int Manager::SendEntryTable(Stream* i, const Value* const *vals)
@@ -1469,7 +1461,7 @@ void Manager::Put(ReaderFrontend* reader, Value* *vals)
 	else
 		assert(false);
 
-	delete_value_ptr_array(vals, readFields);
+	Value::delete_value_ptr_array(vals, readFields);
 	}
 
 int Manager::SendEventStreamEvent(Stream* i, EnumVal* type, const Value* const *vals)
@@ -1774,7 +1766,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 		return false;
 		}
 
-	delete_value_ptr_array(vals, readVals);
+	Value::delete_value_ptr_array(vals, readVals);
 	return success;
 	}
 
@@ -1798,68 +1790,6 @@ bool Manager::CallPred(Func* pred_func, const int numvals, ...) const
 
 	return result;
 	}
-
-// Raise everything in here as warnings so it is passed to scriptland without
-// looking "fatal". In addition to these warnings, ReaderBackend will queue
-// one reporter message.
-bool Manager::SendEvent(ReaderFrontend* reader, const string& name, const int num_vals, Value* *vals) const
-	{
-	Stream *i = FindStream(reader);
-	if ( i == nullptr )
-		{
-		reporter->InternalWarning("Unknown reader %s in SendEvent for event %s", reader->Name(), name.c_str());
-		delete_value_ptr_array(vals, num_vals);
-		return false;
-		}
-
-	EventHandler* handler = event_registry->Lookup(name);
-	if ( handler == nullptr )
-		{
-		Warning(i, "Event %s not found", name.c_str());
-		delete_value_ptr_array(vals, num_vals);
-		return false;
-		}
-
-#ifdef DEBUG
-	DBG_LOG(DBG_INPUT, "SendEvent for event %s with %d vals",
-		name.c_str(), num_vals);
-#endif
-
-	RecordType *type = handler->FType()->Args();
-	int num_event_vals = type->NumFields();
-	if ( num_vals != num_event_vals )
-		{
-		Warning(i, "Wrong number of values for event %s", name.c_str());
-		delete_value_ptr_array(vals, num_vals);
-		return false;
-		}
-
-	bool convert_error = false;
-
-	zeek::Args vl;
-	vl.reserve(num_vals);
-
-	for ( int j = 0; j < num_vals; j++)
-		{
-		Val* v = ValueToVal(i, vals[j], convert_error);
-		vl.emplace_back(AdoptRef{}, v);
-
-		if ( v && ! convert_error && ! same_type(type->FieldType(j), v->Type()) )
-			{
-			convert_error = true;
-			type->FieldType(j)->Error("SendEvent types do not match", v->Type());
-			}
-		}
-
-	delete_value_ptr_array(vals, num_vals);
-
-	if ( convert_error )
-		return false;
-	else if ( handler )
-		mgr.Enqueue(handler, std::move(vl), SOURCE_LOCAL);
-
-	return true;
-}
 
 void Manager::SendEvent(EventHandlerPtr ev, const int numvals, ...) const
 	{
@@ -2240,9 +2170,9 @@ HashKey* Manager::HashValues(const int num_elements, const Value* const *vals) c
 	}
 
 // convert threading value to Bro value
-// have_error is a reference to a boolean which is set to true as soon as an error occured.
+// have_error is a reference to a boolean which is set to true as soon as an error occurs.
 // When have_error is set to true at the beginning of the function, it is assumed that
-// an error already occured in the past and processing is aborted.
+// an error already occurred in the past and processing is aborted.
 Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_type, bool& have_error) const
 	{
 	if ( have_error )
@@ -2387,204 +2317,6 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 			}
 
 		return request_type->AsEnumType()->GetVal(index).release();
-		}
-
-	default:
-		reporter->InternalError("Unsupported type for input_read in stream %s", i->name.c_str());
-	}
-
-	assert(false);
-	return nullptr;
-	}
-
-Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) const
-	{
-	if ( have_error )
-		return nullptr;
-
-	if ( ! val->present )
-		return nullptr; // unset field
-
-	switch ( val->type ) {
-	case TYPE_BOOL:
-		return val_mgr->Bool(val->val.int_val)->Ref();
-
-	case TYPE_INT:
-		return val_mgr->Int(val->val.int_val).release();
-
-	case TYPE_COUNT:
-	case TYPE_COUNTER:
-		return val_mgr->Count(val->val.int_val).release();
-
-	case TYPE_DOUBLE:
-	case TYPE_TIME:
-	case TYPE_INTERVAL:
-		return new Val(val->val.double_val, val->type);
-
-	case TYPE_STRING:
-		{
-		BroString *s = new BroString((const u_char*)val->val.string_val.data, val->val.string_val.length, true);
-		return new StringVal(s);
-		}
-
-	case TYPE_PORT:
-		return val_mgr->Port(val->val.port_val.port, val->val.port_val.proto)->Ref();
-
-	case TYPE_ADDR:
-		{
-		IPAddr* addr = nullptr;
-		switch ( val->val.addr_val.family ) {
-		case IPv4:
-			addr = new IPAddr(val->val.addr_val.in.in4);
-			break;
-
-		case IPv6:
-			addr = new IPAddr(val->val.addr_val.in.in6);
-			break;
-
-		default:
-			assert(false);
-		}
-
-		AddrVal* addrval = new AddrVal(*addr);
-		delete addr;
-		return addrval;
-		}
-
-	case TYPE_SUBNET:
-		{
-		IPAddr* addr = nullptr;
-		switch ( val->val.subnet_val.prefix.family ) {
-		case IPv4:
-			addr = new IPAddr(val->val.subnet_val.prefix.in.in4);
-			break;
-
-		case IPv6:
-			addr = new IPAddr(val->val.subnet_val.prefix.in.in6);
-			break;
-
-		default:
-			assert(false);
-		}
-
-		SubNetVal* subnetval = new SubNetVal(*addr, val->val.subnet_val.length);
-		delete addr;
-		return subnetval;
-		}
-
-	case TYPE_PATTERN:
-		{
-		RE_Matcher* re = new RE_Matcher(val->val.pattern_text_val);
-		re->Compile();
-		return new PatternVal(re);
-		}
-
-	case TYPE_TABLE:
-		{
-		IntrusivePtr<TypeList> set_index;
-		if ( val->val.set_val.size == 0 && val->subtype == TYPE_VOID )
-			// don't know type - unspecified table.
-			set_index = make_intrusive<TypeList>();
-		else
-			{
-			// all entries have to have the same type...
-			TypeTag stag = val->subtype;
-			if ( stag == TYPE_VOID )
-				TypeTag stag = val->val.set_val.vals[0]->type;
-
-			IntrusivePtr<BroType> index_type;
-
-			if ( stag == TYPE_ENUM )
-				{
-				// Enums are not a base-type, so need to look it up.
-				const auto& sv = val->val.set_val.vals[0]->val.string_val;
-				std::string enum_name(sv.data, sv.length);
-				auto enum_id = global_scope()->Lookup(enum_name);
-
-				if ( ! enum_id )
-					{
-					Warning(i, "Value '%s' for stream '%s' is not a valid enum.",
-					        enum_name.data(), i->name.c_str());
-
-					have_error = true;
-					return nullptr;
-					}
-
-				index_type = {NewRef{}, enum_id->Type()->AsEnumType()};
-				}
-			else
-				index_type = base_type(stag);
-
-			set_index = make_intrusive<TypeList>(index_type);
-			set_index->Append(std::move(index_type));
-			}
-
-		auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
-		TableVal* t = new TableVal(std::move(s));
-		for ( int j = 0; j < val->val.set_val.size; j++ )
-			{
-			Val* assignval = ValueToVal(i, val->val.set_val.vals[j], have_error);
-
-			t->Assign(assignval, nullptr);
-			Unref(assignval); // index is not consumed by assign.
-			}
-
-		return t;
-		}
-
-	case TYPE_VECTOR:
-		{
-		IntrusivePtr<BroType> type;
-
-		if ( val->val.vector_val.size == 0  && val->subtype == TYPE_VOID )
-			// don't know type - unspecified table.
-			type = base_type(TYPE_ANY);
-		else
-			{
-			// all entries have to have the same type...
-			if ( val->subtype == TYPE_VOID )
-				type = base_type(val->val.vector_val.vals[0]->type);
-			else
-				type = base_type(val->subtype);
-			}
-
-		auto vt = make_intrusive<VectorType>(std::move(type));
-		VectorVal* v = new VectorVal(vt.get());
-
-		for ( int j = 0; j < val->val.vector_val.size; j++ )
-			v->Assign(j, ValueToVal(i, val->val.vector_val.vals[j], have_error));
-
-		return v;
-		}
-
-	case TYPE_ENUM: {
-		// Convert to string first to not have to deal with missing
-		// \0's...
-		string enum_string(val->val.string_val.data, val->val.string_val.length);
-
-		// let's try looking it up by global ID.
-		auto id = lookup_ID(enum_string.c_str(), GLOBAL_MODULE_NAME);
-		if ( ! id || ! id->IsEnumConst() )
-			{
-			Warning(i, "Value '%s' for stream '%s' is not a valid enum.",
-			                        enum_string.c_str(), i->name.c_str());
-
-			have_error = true;
-			return nullptr;
-			}
-
-		EnumType* t = id->Type()->AsEnumType();
-		int intval = t->Lookup(id->ModuleName(), id->Name());
-		if ( intval < 0 )
-			{
-			Warning(i, "Enum value '%s' for stream '%s' not found.",
-			                        enum_string.c_str(), i->name.c_str());
-
-			have_error = true;
-			return nullptr;
-			}
-
-		return t->GetVal(intval).release();
 		}
 
 	default:

@@ -61,6 +61,18 @@ public:
 	void SendOut(BasicOutputMessage* msg)	{ return SendOut(msg, false); }
 
 	/**
+	 * Allows the child thread to send a specified Zeek event. The given Vals
+	 * must match the values expected by the event.
+	 *
+	 * @param name name of the bro event to send
+	 *
+	 * @param num_vals number of entries in \a vals
+	 *
+	 * @param vals the values to be given to the event
+	 */
+	void SendEvent(const char* name, const int num_vals, threading::Value* *vals);
+
+	/**
 	 * Reports an informational message from the child thread. The main
 	 * thread will pass this to the Reporter once received.
 	 *
@@ -393,7 +405,7 @@ protected:
 };
 
 /**
- * A paremeterized InputMessage that stores a pointer to an argument object.
+ * A parameterized InputMessage that stores a pointer to an argument object.
  * Normally, the objects will be used from the Process() callback.
  */
 template<typename O>

@@ -700,7 +700,6 @@ bool EntropyVal::DoUnserialize(const broker::data& data)
 BloomFilterVal::BloomFilterVal()
 	: OpaqueVal(bloomfilter_type)
 	{
-	type = nullptr;
 	hash = nullptr;
 	bloom_filter = nullptr;
 	}
@@ -708,7 +707,6 @@ BloomFilterVal::BloomFilterVal()
 BloomFilterVal::BloomFilterVal(probabilistic::BloomFilter* bf)
 	: OpaqueVal(bloomfilter_type)
 	{
-	type = nullptr;
 	hash = nullptr;
 	bloom_filter = bf;
 	}
@@ -725,24 +723,18 @@ IntrusivePtr<Val> BloomFilterVal::DoClone(CloneState* state)
 	return state->NewClone(this, make_intrusive<BloomFilterVal>());
 	}
 
-bool BloomFilterVal::Typify(BroType* arg_type)
+bool BloomFilterVal::Typify(IntrusivePtr<BroType> arg_type)
 	{
 	if ( type )
 		return false;
 
-	type = arg_type;
-	type->Ref();
+	type = std::move(arg_type);
 
-	auto tl = make_intrusive<TypeList>(IntrusivePtr{NewRef{}, type});
-	tl->Append({NewRef{}, type});
+	auto tl = make_intrusive<TypeList>(type);
+	tl->Append(type);
 	hash = new CompositeHash(std::move(tl));
 
 	return true;
-	}
-
-BroType* BloomFilterVal::Type() const
-	{
-	return type;
 	}
 
 void BloomFilterVal::Add(const Val* val)
@@ -780,7 +772,7 @@ IntrusivePtr<BloomFilterVal> BloomFilterVal::Merge(const BloomFilterVal* x,
 	{
 	if ( x->Type() && // any one 0 is ok here
 	     y->Type() &&
-	     ! same_type(x->Type(), y->Type()) )
+	     ! same_type(x->Type().get(), y->Type().get()) )
 		{
 		reporter->Error("cannot merge Bloom filters with different types");
 		return nullptr;
@@ -814,7 +806,6 @@ IntrusivePtr<BloomFilterVal> BloomFilterVal::Merge(const BloomFilterVal* x,
 
 BloomFilterVal::~BloomFilterVal()
 	{
-	Unref(type);
 	delete hash;
 	delete bloom_filter;
 	}
@@ -827,7 +818,7 @@ broker::expected<broker::data> BloomFilterVal::DoSerialize() const
 
 	if ( type )
 		{
-		auto t = SerializeType(type);
+		auto t = SerializeType(type.get());
 		if ( ! t )
 			return broker::ec::invalid_data;
 
@@ -856,7 +847,7 @@ bool BloomFilterVal::DoUnserialize(const broker::data& data)
 		{
 		auto t = UnserializeType((*v)[0]);
 
-		if ( ! (t && Typify(t.get())) )
+		if ( ! (t && Typify(std::move(t))) )
 			return false;
 		}
 
@@ -871,7 +862,6 @@ bool BloomFilterVal::DoUnserialize(const broker::data& data)
 CardinalityVal::CardinalityVal() : OpaqueVal(cardinality_type)
 	{
 	c = nullptr;
-	type = nullptr;
 	hash = nullptr;
 	}
 
@@ -879,13 +869,11 @@ CardinalityVal::CardinalityVal(probabilistic::CardinalityCounter* arg_c)
 	: OpaqueVal(cardinality_type)
 	{
 	c = arg_c;
-	type = nullptr;
 	hash = nullptr;
 	}
 
 CardinalityVal::~CardinalityVal()
 	{
-	Unref(type);
 	delete c;
 	delete hash;
 	}
@@ -896,24 +884,18 @@ IntrusivePtr<Val> CardinalityVal::DoClone(CloneState* state)
 			       make_intrusive<CardinalityVal>(new probabilistic::CardinalityCounter(*c)));
 	}
 
-bool CardinalityVal::Typify(BroType* arg_type)
+bool CardinalityVal::Typify(IntrusivePtr<BroType> arg_type)
 	{
 	if ( type )
 		return false;
 
-	type = arg_type;
-	type->Ref();
+	type = std::move(arg_type);
 
-	auto tl = make_intrusive<TypeList>(IntrusivePtr{NewRef{}, type});
-	tl->Append({NewRef{}, type});
+	auto tl = make_intrusive<TypeList>(type);
+	tl->Append(type);
 	hash = new CompositeHash(std::move(tl));
 
 	return true;
-	}
-
-BroType* CardinalityVal::Type() const
-	{
-	return type;
 	}
 
 void CardinalityVal::Add(const Val* val)
@@ -931,7 +913,7 @@ broker::expected<broker::data> CardinalityVal::DoSerialize() const
 
 	if ( type )
 		{
-		auto t = SerializeType(type);
+		auto t = SerializeType(type.get());
 		if ( ! t )
 			return broker::ec::invalid_data;
 
@@ -960,7 +942,7 @@ bool CardinalityVal::DoUnserialize(const broker::data& data)
 		{
 		auto t = UnserializeType((*v)[0]);
 
-		if ( ! (t && Typify(t.get())) )
+		if ( ! (t && Typify(std::move(t))) )
 			return false;
 		}
 

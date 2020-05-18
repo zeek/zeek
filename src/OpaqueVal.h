@@ -304,8 +304,10 @@ public:
 
 	IntrusivePtr<Val> DoClone(CloneState* state) override;
 
-	BroType* Type() const;
-	bool Typify(BroType* type);
+	const IntrusivePtr<BroType>& Type() const
+		{ return type; }
+
+	bool Typify(IntrusivePtr<BroType> type);
 
 	void Add(const Val* val);
 	size_t Count(const Val* val) const;
@@ -326,7 +328,7 @@ private:
 	BloomFilterVal(const BloomFilterVal&);
 	BloomFilterVal& operator=(const BloomFilterVal&);
 
-	BroType* type;
+	IntrusivePtr<BroType> type;
 	CompositeHash* hash;
 	probabilistic::BloomFilter* bloom_filter;
 };
@@ -341,8 +343,10 @@ public:
 
 	void Add(const Val* val);
 
-	BroType* Type() const;
-	bool Typify(BroType* type);
+	const IntrusivePtr<BroType>& Type() const
+		{ return type; }
+
+	bool Typify(IntrusivePtr<BroType> type);
 
 	probabilistic::CardinalityCounter* Get()	{ return c; };
 
@@ -351,7 +355,7 @@ protected:
 
 	DECLARE_OPAQUE_VALUE(CardinalityVal)
 private:
-	BroType* type;
+	IntrusivePtr<BroType> type;
 	CompositeHash* hash;
 	probabilistic::CardinalityCounter* c;
 };

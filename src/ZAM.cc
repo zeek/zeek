@@ -1472,7 +1472,10 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
 		auto ind = l->Exprs()[0];
 		auto var_ind = ind->Tag() == EXPR_NAME;
 		auto n3 = var_ind ? ind->AsNameExpr() : nullptr;
-		auto c = var_ind ? 0 : ind->AsConstExpr()->Value()->AsCount();
+		bro_uint_t c = 0;
+
+		if ( ! var_ind && ind->Type()->Tag() == TYPE_COUNT )
+			c = ind->AsConstExpr()->Value()->AsCount();
 
 		if ( n2tag == TYPE_STRING )
 			{

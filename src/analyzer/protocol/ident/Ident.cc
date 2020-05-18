@@ -4,6 +4,7 @@
 
 #include <ctype.h>
 
+#include "BroString.h"
 #include "NetVar.h"
 #include "Ident.h"
 #include "Event.h"
@@ -51,7 +52,7 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 	const char* orig_line = line;
 	const char* end_of_line = line + length;
 
-	tcp::TCP_Endpoint* s = 0;
+	tcp::TCP_Endpoint* s = nullptr;
 
 	if ( TCP() )
 		s = is_orig ? TCP()->Orig() : TCP()->Resp();
@@ -83,11 +84,11 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 			Weird("ident_request_addendum", s.CheckString());
 			}
 
-		ConnectionEventFast(ident_request, {
-			BuildConnVal(),
-			val_mgr->GetPort(local_port, TRANSPORT_TCP),
-			val_mgr->GetPort(remote_port, TRANSPORT_TCP),
-		});
+		EnqueueConnEvent(ident_request,
+			ConnVal(),
+			val_mgr->Port(local_port, TRANSPORT_TCP),
+			val_mgr->Port(remote_port, TRANSPORT_TCP)
+		);
 
 		did_deliver = true;
 		}
@@ -144,12 +145,12 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 		if ( is_error )
 			{
 			if ( ident_error )
-				ConnectionEventFast(ident_error, {
-					BuildConnVal(),
-					val_mgr->GetPort(local_port, TRANSPORT_TCP),
-					val_mgr->GetPort(remote_port, TRANSPORT_TCP),
-					new StringVal(end_of_line - line, line),
-				});
+				EnqueueConnEvent(ident_error,
+					ConnVal(),
+					val_mgr->Port(local_port, TRANSPORT_TCP),
+					val_mgr->Port(remote_port, TRANSPORT_TCP),
+					make_intrusive<StringVal>(end_of_line - line, line)
+				);
 			}
 
 		else
@@ -173,17 +174,17 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 
 			BroString* sys_type_s =
 				new BroString((const u_char*) sys_type,
-						sys_end - sys_type + 1, 1);
+						sys_end - sys_type + 1, true);
 
 			line = skip_whitespace(colon + 1, end_of_line);
 
-			ConnectionEventFast(ident_reply, {
-				BuildConnVal(),
-				val_mgr->GetPort(local_port, TRANSPORT_TCP),
-				val_mgr->GetPort(remote_port, TRANSPORT_TCP),
-				new StringVal(end_of_line - line, line),
-				new StringVal(sys_type_s),
-			});
+			EnqueueConnEvent(ident_reply,
+				ConnVal(),
+				val_mgr->Port(local_port, TRANSPORT_TCP),
+				val_mgr->Port(remote_port, TRANSPORT_TCP),
+				make_intrusive<StringVal>(end_of_line - line, line),
+				make_intrusive<StringVal>(sys_type_s)
+			);
 			}
 		}
 	}
@@ -193,17 +194,17 @@ const char* Ident_Analyzer::ParsePair(const char* line, const char* end_of_line,
 	line = ParsePort(line, end_of_line, p1);
 	if ( ! line )
 		{
-		return 0;
+		return nullptr;
 		}
 
 	if ( line >= end_of_line || line[0] != ',' )
-		return 0;
+		return nullptr;
 
 	++line;
 
 	line = ParsePort(line, end_of_line, p2);
 	if ( ! line )
-		return 0;
+		return nullptr;
 
 	return line;
 	}
@@ -214,8 +215,8 @@ const char* Ident_Analyzer::ParsePort(const char* line, const char* end_of_line,
 	int n = 0;
 
 	line = skip_whitespace(line, end_of_line);
-	if ( ! isdigit(*line) )
-		return 0;
+	if ( line >= end_of_line || ! isdigit(*line) )
+		return nullptr;
 
 	const char* l = line;
 
@@ -224,7 +225,7 @@ const char* Ident_Analyzer::ParsePort(const char* line, const char* end_of_line,
 		n = n * 10 + (*line - '0');
 		++line;
 		}
-	while ( isdigit(*line) );
+	while ( line < end_of_line && isdigit(*line) );
 
 	line = skip_whitespace(line, end_of_line);
 

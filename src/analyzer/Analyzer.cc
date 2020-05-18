@@ -7,18 +7,19 @@
 #include "binpac.h"
 
 #include "analyzer/protocol/pia/PIA.h"
+#include "../BroString.h"
 #include "../Event.h"
 
 namespace analyzer {
 
-class AnalyzerTimer : public Timer {
+class AnalyzerTimer final : public Timer {
 public:
 	AnalyzerTimer(Analyzer* arg_analyzer, analyzer_timer_func arg_timer,
 			double arg_t, int arg_do_expire, TimerType arg_type);
 
 	virtual ~AnalyzerTimer();
 
-	void Dispatch(double t, int is_expire);
+	void Dispatch(double t, bool is_expire) override;
 
 protected:
 	AnalyzerTimer() : analyzer(), timer(), do_expire()	{}
@@ -47,7 +48,7 @@ AnalyzerTimer::~AnalyzerTimer()
 	Unref(analyzer->Conn());
 	}
 
-void AnalyzerTimer::Dispatch(double t, int is_expire)
+void AnalyzerTimer::Dispatch(double t, bool is_expire)
 	{
 	if ( is_expire && ! do_expire )
 		return;
@@ -123,11 +124,11 @@ void Analyzer::CtorInit(const Tag& arg_tag, Connection* arg_conn)
 	skip = false;
 	finished = false;
 	removing = false;
-	parent = 0;
-	orig_supporters = 0;
-	resp_supporters = 0;
-	signature = 0;
-	output_handler = 0;
+	parent = nullptr;
+	orig_supporters = nullptr;
+	resp_supporters = nullptr;
+	signature = nullptr;
+	output_handler = nullptr;
 	}
 
 Analyzer::~Analyzer()
@@ -137,7 +138,7 @@ Analyzer::~Analyzer()
 	LOOP_OVER_CHILDREN(i)
 		delete *i;
 
-	SupportAnalyzer* next = 0;
+	SupportAnalyzer* next = nullptr;
 
 	for ( SupportAnalyzer* a = orig_supporters; a; a = next )
 		{
@@ -403,7 +404,7 @@ bool Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init)
 	return true;
 	}
 
-Analyzer* Analyzer::AddChildAnalyzer(Tag analyzer)
+Analyzer* Analyzer::AddChildAnalyzer(const Tag& analyzer)
 	{
 	if ( HasChildAnalyzer(analyzer) )
 		return nullptr;
@@ -500,7 +501,7 @@ Analyzer* Analyzer::FindChild(ID arg_id)
 			return child;
 		}
 
-	return 0;
+	return nullptr;
 	}
 
 Analyzer* Analyzer::FindChild(Tag arg_tag)
@@ -522,13 +523,13 @@ Analyzer* Analyzer::FindChild(Tag arg_tag)
 			return child;
 		}
 
-	return 0;
+	return nullptr;
 	}
 
 Analyzer* Analyzer::FindChild(const char* name)
 	{
 	Tag tag = analyzer_mgr->GetComponentTag(name);
-	return tag ? FindChild(tag) : 0;
+	return tag ? FindChild(tag) : nullptr;
 	}
 
 void Analyzer::DeleteChild(analyzer_list::iterator i)
@@ -569,7 +570,7 @@ void Analyzer::AddSupportAnalyzer(SupportAnalyzer* analyzer)
 		analyzer->IsOrig() ? &orig_supporters : &resp_supporters;
 
 	// Find end of the list.
-	SupportAnalyzer* prev = 0;
+	SupportAnalyzer* prev = nullptr;
 	SupportAnalyzer* s;
 	for ( s = *head; s; prev = s, s = s->sibling )
 		;
@@ -605,7 +606,7 @@ void Analyzer::RemoveSupportAnalyzer(SupportAnalyzer* analyzer)
 	return;
 	}
 
-bool Analyzer::HasSupportAnalyzer(Tag tag, bool orig)
+bool Analyzer::HasSupportAnalyzer(const Tag& tag, bool orig)
 	{
 	SupportAnalyzer* s = orig ? orig_supporters : resp_supporters;
 	for ( ; s; s = s->sibling )
@@ -620,7 +621,7 @@ SupportAnalyzer* Analyzer::FirstSupportAnalyzer(bool orig)
 	SupportAnalyzer* sa = orig ? orig_supporters : resp_supporters;
 
 	if ( ! sa )
-		return 0;
+		return nullptr;
 
 	if ( ! sa->Removing() )
 		return sa;
@@ -687,13 +688,12 @@ void Analyzer::ProtocolConfirmation(Tag arg_tag)
 		return;
 
 	EnumVal* tval = arg_tag ? arg_tag.AsEnumVal() : tag.AsEnumVal();
-	Ref(tval);
 
-	mgr.QueueEventFast(protocol_confirmation, {
-		BuildConnVal(),
-		tval,
-		val_mgr->GetCount(id),
-	});
+	mgr.Enqueue(protocol_confirmation,
+		ConnVal(),
+		IntrusivePtr{NewRef{}, tval},
+		val_mgr->Count(id)
+	);
 	}
 
 void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
@@ -715,23 +715,22 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 		r = new StringVal(reason);
 
 	EnumVal* tval = tag.AsEnumVal();
-	Ref(tval);
 
-	mgr.QueueEventFast(protocol_violation, {
-		BuildConnVal(),
-		tval,
-		val_mgr->GetCount(id),
-		r,
-	});
+	mgr.Enqueue(protocol_violation,
+		ConnVal(),
+		IntrusivePtr{NewRef{}, tval},
+		val_mgr->Count(id),
+		IntrusivePtr{AdoptRef{}, r}
+	);
 	}
 
 void Analyzer::AddTimer(analyzer_timer_func timer, double t,
-			int do_expire, TimerType type)
+			bool do_expire, TimerType type)
 	{
 	Timer* analyzer_timer = new
 		AnalyzerTimer(this, timer, t, do_expire, type);
 
-	Conn()->GetTimerMgr()->Add(analyzer_timer);
+	timer_mgr->Add(analyzer_timer);
 	timers.push_back(analyzer_timer);
 	}
 
@@ -751,9 +750,9 @@ void Analyzer::CancelTimers()
 
 	// TODO: could be a for_each
 	for ( auto timer : tmp )
-		Conn()->GetTimerMgr()->Cancel(timer);
+		timer_mgr->Cancel(timer);
 
-	timers_canceled = 1;
+	timers_canceled = true;
 	timers.clear();
 	}
 
@@ -789,7 +788,12 @@ void Analyzer::UpdateConnVal(RecordVal *conn_val)
 
 RecordVal* Analyzer::BuildConnVal()
 	{
-	return conn->BuildConnVal();
+	return conn->ConnVal()->Ref()->AsRecordVal();
+	}
+
+const IntrusivePtr<RecordVal>& Analyzer::ConnVal()
+	{
+	return conn->ConnVal();
 	}
 
 void Analyzer::Event(EventHandlerPtr f, const char* name)
@@ -799,22 +803,38 @@ void Analyzer::Event(EventHandlerPtr f, const char* name)
 
 void Analyzer::Event(EventHandlerPtr f, Val* v1, Val* v2)
 	{
-	conn->Event(f, this, v1, v2);
+	IntrusivePtr val1{AdoptRef{}, v1};
+	IntrusivePtr val2{AdoptRef{}, v2};
+
+	if ( f )
+		conn->EnqueueEvent(f, this, conn->ConnVal(), std::move(val1), std::move(val2));
 	}
 
 void Analyzer::ConnectionEvent(EventHandlerPtr f, val_list* vl)
 	{
-	conn->ConnectionEvent(f, this, vl);
+	auto args = zeek::val_list_to_args(*vl);
+
+	if ( f )
+		conn->EnqueueEvent(f, this, std::move(args));
 	}
 
 void Analyzer::ConnectionEvent(EventHandlerPtr f, val_list vl)
 	{
-	conn->ConnectionEvent(f, this, std::move(vl));
+	auto args = zeek::val_list_to_args(vl);
+
+	if ( f )
+		conn->EnqueueEvent(f, this, std::move(args));
 	}
 
 void Analyzer::ConnectionEventFast(EventHandlerPtr f, val_list vl)
 	{
-	conn->ConnectionEventFast(f, this, std::move(vl));
+	auto args = zeek::val_list_to_args(vl);
+	conn->EnqueueEvent(f, this, std::move(args));
+	}
+
+void Analyzer::EnqueueConnEvent(EventHandlerPtr f, zeek::Args args)
+	{
+	conn->EnqueueEvent(f, this, std::move(args));
 	}
 
 void Analyzer::Weird(const char* name, const char* addl)
@@ -911,16 +931,15 @@ void TransportLayerAnalyzer::SetContentsFile(unsigned int /* direction */,
 BroFile* TransportLayerAnalyzer::GetContentsFile(unsigned int /* direction */) const
 	{
 	reporter->Error("analyzer type does not support writing to a contents file");
-	return 0;
+	return nullptr;
 	}
 
 void TransportLayerAnalyzer::PacketContents(const u_char* data, int len)
 	{
 	if ( packet_contents && len > 0 )
 		{
-		BroString* cbs = new BroString(data, len, 1);
-		Val* contents = new StringVal(cbs);
-		Event(packet_contents, contents);
+		BroString* cbs = new BroString(data, len, true);
+		auto contents = make_intrusive<StringVal>(cbs);
+		EnqueueConnEvent(packet_contents, ConnVal(), std::move(contents));
 		}
 	}
-

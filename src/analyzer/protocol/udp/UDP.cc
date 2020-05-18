@@ -58,11 +58,11 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	// We need the min() here because Ethernet frame padding can lead to
 	// caplen > len.
 	if ( packet_contents )
-		PacketContents(data, min(len, caplen) - sizeof(struct udphdr));
+		PacketContents(data, std::min(len, caplen) - sizeof(struct udphdr));
 
 	int chksum = up->uh_sum;
 
-	auto validate_checksum = ! ignore_checksums && caplen >=len;
+	auto validate_checksum = ! current_pkt->l3_checksummed && ! ignore_checksums && caplen >=len;
 	constexpr auto vxlan_len = 8;
 	constexpr auto eth_len = 14;
 
@@ -134,37 +134,41 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 	if ( udp_contents )
 		{
-		auto port_val = val_mgr->GetPort(ntohs(up->uh_dport), TRANSPORT_UDP);
-		Val* result = 0;
 		bool do_udp_contents = false;
+		const auto& sport_val = val_mgr->Port(ntohs(up->uh_sport), TRANSPORT_UDP);
+		const auto& dport_val = val_mgr->Port(ntohs(up->uh_dport), TRANSPORT_UDP);
 
-		if ( is_orig )
-			{
-			result = udp_content_delivery_ports_orig->Lookup(
-								port_val);
-			if ( udp_content_deliver_all_orig ||
-			     (result && result->AsBool()) )
-				do_udp_contents = true;
-			}
+		if ( udp_content_ports->Lookup(dport_val.get()) ||
+		     udp_content_ports->Lookup(sport_val.get()) )
+			do_udp_contents = true;
 		else
 			{
-			result = udp_content_delivery_ports_resp->Lookup(
-								port_val);
-			if ( udp_content_deliver_all_resp ||
-			     (result && result->AsBool()) )
-				do_udp_contents = true;
+			uint16_t p = udp_content_delivery_ports_use_resp ? Conn()->RespPort()
+			                                                 : up->uh_dport;
+			const auto& port_val = val_mgr->Port(ntohs(p), TRANSPORT_UDP);
+
+			if ( is_orig )
+				{
+				auto result = udp_content_delivery_ports_orig->Lookup(port_val.get());
+
+				if ( udp_content_deliver_all_orig || (result && result->AsBool()) )
+					do_udp_contents = true;
+				}
+			else
+				{
+				auto result = udp_content_delivery_ports_resp->Lookup(port_val.get());
+
+				if ( udp_content_deliver_all_resp || (result && result->AsBool()) )
+					do_udp_contents = true;
+				}
 			}
 
 		if ( do_udp_contents )
-			{
-			ConnectionEventFast(udp_contents, {
-				BuildConnVal(),
-				val_mgr->GetBool(is_orig),
-				new StringVal(len, (const char*) data),
-			});
-			}
-
-		Unref(port_val);
+			EnqueueConnEvent(udp_contents,
+				ConnVal(),
+				val_mgr->Bool(is_orig),
+				make_intrusive<StringVal>(len, (const char*) data)
+			);
 		}
 
 	if ( is_orig )
@@ -212,32 +216,32 @@ void UDP_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	RecordVal *orig_endp = conn_val->Lookup("orig")->AsRecordVal();
 	RecordVal *resp_endp = conn_val->Lookup("resp")->AsRecordVal();
 
-	UpdateEndpointVal(orig_endp, 1);
-	UpdateEndpointVal(resp_endp, 0);
+	UpdateEndpointVal(orig_endp, true);
+	UpdateEndpointVal(resp_endp, false);
 
 	// Call children's UpdateConnVal
 	Analyzer::UpdateConnVal(conn_val);
 	}
 
-void UDP_Analyzer::UpdateEndpointVal(RecordVal* endp, int is_orig)
+void UDP_Analyzer::UpdateEndpointVal(RecordVal* endp, bool is_orig)
 	{
 	bro_int_t size = is_orig ? request_len : reply_len;
 	if ( size < 0 )
 		{
-		endp->Assign(0, val_mgr->GetCount(0));
-		endp->Assign(1, val_mgr->GetCount(int(UDP_INACTIVE)));
+		endp->Assign(0, val_mgr->Count(0));
+		endp->Assign(1, val_mgr->Count(int(UDP_INACTIVE)));
 		}
 
 	else
 		{
-		endp->Assign(0, val_mgr->GetCount(size));
-		endp->Assign(1, val_mgr->GetCount(int(UDP_ACTIVE)));
+		endp->Assign(0, val_mgr->Count(size));
+		endp->Assign(1, val_mgr->Count(int(UDP_ACTIVE)));
 		}
 	}
 
 bool UDP_Analyzer::IsReuse(double /* t */, const u_char* /* pkt */)
 	{
-	return 0;
+	return false;
 	}
 
 unsigned int UDP_Analyzer::MemoryAllocation() const

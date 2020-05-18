@@ -4,11 +4,13 @@
 
 #include <utility>
 #include <map>
+#include <string_view>
 
 #include "Plugin.h"
 #include "Component.h"
 
 #include "../Reporter.h"
+#include "../ZeekArgs.h"
 
 namespace plugin {
 
@@ -153,7 +155,7 @@ public:
 	 * path. The path can be the plugin directory itself, or any path
 	 * inside it.
 	 */
-	Plugin* LookupPluginByPath(std::string path);
+	Plugin* LookupPluginByPath(std::string_view path);
 
 	/**
 	 * Returns true if there's at least one plugin interested in a given
@@ -166,7 +168,7 @@ public:
 	bool HavePluginForHook(HookType hook) const
 		{
 		// Inline to avoid the function call.
-		return hooks[hook] != 0;
+		return hooks[hook] != nullptr;
 		}
 
 	/**
@@ -236,7 +238,7 @@ public:
 	 * if a plugin took over the file but had trouble loading it; and -1 if
 	 * no plugin was interested in the file at all.
 	 */
-	virtual int HookLoadFile(const Plugin::LoadType type, const string& file, const string& resolved);
+	virtual int HookLoadFile(const Plugin::LoadType type, const std::string& file, const std::string& resolved);
 
 	/**
 	 * Hook that filters calls to a script function/event/hook.
@@ -251,7 +253,7 @@ public:
 	 * functions and events, it may be any Val and must be ignored). If no
 	 * plugin handled the call, the method returns null.
 	 */
-	std::pair<bool, Val*> HookCallFunction(const Func* func, Frame *parent, val_list* args) const;
+	std::pair<bool, Val*> HookCallFunction(const Func* func, Frame* parent, const zeek::Args& args) const;
 
 	/**
 	 * Hook that filters the queuing of an event.

@@ -1,15 +1,27 @@
+
+#include "zeek-config.h"
+#include "RuleMatcher.h"
+
 #include <algorithm>
 #include <functional>
 
-#include "zeek-config.h"
-
+#include "RuleAction.h"
+#include "RuleCondition.h"
+#include "BroString.h"
+#include "ID.h"
+#include "IntrusivePtr.h"
+#include "IntSet.h"
+#include "IP.h"
 #include "analyzer/Analyzer.h"
-#include "RuleMatcher.h"
 #include "DFA.h"
+#include "DebugLogger.h"
 #include "NetVar.h"
 #include "Scope.h"
 #include "File.h"
 #include "Reporter.h"
+#include "module_util.h"
+
+using namespace std;
 
 // FIXME: Things that are not fully implemented/working yet:
 //
@@ -38,10 +50,10 @@ RuleHdrTest::RuleHdrTest(Prot arg_prot, uint32_t arg_offset, uint32_t arg_size,
 	size = arg_size;
 	comp = arg_comp;
 	vals = arg_vals;
-	sibling = 0;
-	child = 0;
-	pattern_rules = 0;
-	pure_rules = 0;
+	sibling = nullptr;
+	child = nullptr;
+	pattern_rules = nullptr;
+	pure_rules = nullptr;
 	ruleset = new IntSet;
 	id = ++idcounter;
 	level = 0;
@@ -54,11 +66,11 @@ RuleHdrTest::RuleHdrTest(Prot arg_prot, Comp arg_comp, vector<IPPrefix> arg_v)
 	size = 0;
 	comp = arg_comp;
 	vals = new maskedvalue_list;
-	prefix_vals = arg_v;
-	sibling = 0;
-	child = 0;
-	pattern_rules = 0;
-	pure_rules = 0;
+	prefix_vals = std::move(arg_v);
+	sibling = nullptr;
+	child = nullptr;
+	pattern_rules = nullptr;
+	pure_rules = nullptr;
 	ruleset = new IntSet;
 	id = ++idcounter;
 	level = 0;
@@ -68,10 +80,10 @@ Val* RuleMatcher::BuildRuleStateValue(const Rule* rule,
 					const RuleEndpointState* state) const
 	{
 	RecordVal* val = new RecordVal(signature_state);
-	val->Assign(0, new StringVal(rule->ID()));
-	val->Assign(1, state->GetAnalyzer()->BuildConnVal());
-	val->Assign(2, val_mgr->GetBool(state->is_orig));
-	val->Assign(3, val_mgr->GetCount(state->payload_size));
+	val->Assign(0, make_intrusive<StringVal>(rule->ID()));
+	val->Assign(1, state->GetAnalyzer()->ConnVal());
+	val->Assign(2, val_mgr->Bool(state->is_orig));
+	val->Assign(3, val_mgr->Count(state->payload_size));
 	return val;
 	}
 
@@ -93,7 +105,7 @@ RuleHdrTest::RuleHdrTest(RuleHdrTest& h)
 		for ( PatternSet* orig_set : h.psets[j] )
 			{
 			PatternSet* copied_set = new PatternSet;
-			copied_set->re = 0;
+			copied_set->re = nullptr;
 			copied_set->ids = orig_set->ids;
 			for ( const auto& pattern : orig_set->patterns )
 				copied_set->patterns.push_back(copy_string(pattern));
@@ -103,10 +115,10 @@ RuleHdrTest::RuleHdrTest(RuleHdrTest& h)
 			}
 		}
 
-	sibling = 0;
-	child = 0;
-	pattern_rules = 0;
-	pure_rules = 0;
+	sibling = nullptr;
+	child = nullptr;
+	pattern_rules = nullptr;
+	pure_rules = nullptr;
 	ruleset = new IntSet;
 	id = ++idcounter;
 	level = 0;
@@ -121,7 +133,10 @@ RuleHdrTest::~RuleHdrTest()
 	for ( int i = 0; i < Rule::TYPES; ++i )
 		{
 		for ( auto pset : psets[i] )
+			{
 			delete pset->re;
+			delete pset;
+			}
 		}
 
 	delete ruleset;
@@ -745,8 +760,8 @@ RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer,
 		// Evaluate all rules on this node which don't contain
 		// any patterns.
 		for ( Rule* r = hdr_test->pure_rules; r; r = r->next )
-			if ( EvalRuleConditions(r, state, 0, 0, 0) )
-				ExecRuleActions(r, state, 0, 0, 0);
+			if ( EvalRuleConditions(r, state, nullptr, 0, false) )
+				ExecRuleActions(r, state, nullptr, 0, false);
 
 		// If we're on or above the RE_level, we may have some
 		// pattern matching to do.
@@ -940,17 +955,17 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type,
 			if ( ! state->matched_by_patterns.is_member(r) )
 				{
 				state->matched_by_patterns.push_back(r);
-				BroString* s = new BroString(data, data_len, 0);
+				BroString* s = new BroString(data, data_len, false);
 				state->matched_text.push_back(s);
 				}
 
 			DBG_LOG(DBG_RULES, "And has not already fired");
 			// Eval additional conditions.
-			if ( ! EvalRuleConditions(r, state, data, data_len, 0) )
+			if ( ! EvalRuleConditions(r, state, data, data_len, false) )
 				continue;
 
 			// Found a match.
-			ExecRuleActions(r, state, data, data_len, 0);
+			ExecRuleActions(r, state, data, data_len, false);
 			}
 		}
 	}
@@ -964,11 +979,11 @@ void RuleMatcher::FinishEndpoint(RuleEndpointState* state)
 	// although they have not matched at the beginning. So, we have
 	// to test the candidates here.
 
-	ExecPureRules(state, 1);
+	ExecPureRules(state, true);
 
 	loop_over_list(state->matched_by_patterns, i)
 		ExecRulePurely(state->matched_by_patterns[i],
-				state->matched_text[i], state, 1);
+				state->matched_text[i], state, true);
 	}
 
 void RuleMatcher::ExecPureRules(RuleEndpointState* state, bool eos)
@@ -976,7 +991,7 @@ void RuleMatcher::ExecPureRules(RuleEndpointState* state, bool eos)
 	for ( const auto& hdr_test : state->hdr_tests )
 		{
 		for ( Rule* r = hdr_test->pure_rules; r; r = r->next )
-			ExecRulePurely(r, 0, state, eos);
+			ExecRulePurely(r, nullptr, state, eos);
 		}
 	}
 
@@ -988,14 +1003,14 @@ bool RuleMatcher::ExecRulePurely(Rule* r, BroString* s,
 
 	DBG_LOG(DBG_RULES, "Checking rule %s purely", r->ID());
 
-	if ( EvalRuleConditions(r, state, 0, 0, eos) )
+	if ( EvalRuleConditions(r, state, nullptr, 0, eos) )
 		{
 		DBG_LOG(DBG_RULES, "MATCH!");
 
 		if ( s )
 			ExecRuleActions(r, state, s->Bytes(), s->Len(), eos);
 		else
-			ExecRuleActions(r, state, 0, 0, eos);
+			ExecRuleActions(r, state, nullptr, 0, eos);
 
 		return true;
 		}
@@ -1085,7 +1100,7 @@ void RuleMatcher::ExecRule(Rule* rule, RuleEndpointState* state, bool eos)
 		for ( Rule* r = h->pure_rules; r; r = r->next )
 			if ( r == rule )
 				{ // found, so let's evaluate it
-				ExecRulePurely(rule, 0, state, eos);
+				ExecRulePurely(rule, nullptr, state, eos);
 				return;
 				}
 
@@ -1102,7 +1117,7 @@ void RuleMatcher::ExecRule(Rule* rule, RuleEndpointState* state, bool eos)
 
 void RuleMatcher::ClearEndpointState(RuleEndpointState* state)
 	{
-	ExecPureRules(state, 1);
+	ExecPureRules(state, true);
 
 	state->payload_size = -1;
 
@@ -1256,17 +1271,14 @@ void RuleMatcher::DumpStateStats(BroFile* f, RuleHdrTest* hdr_test)
 
 static Val* get_bro_val(const char* label)
 	{
-	ID* id = lookup_ID(label, GLOBAL_MODULE_NAME, false);
+	auto id = lookup_ID(label, GLOBAL_MODULE_NAME, false);
 	if ( ! id )
 		{
 		rules_error("unknown script-level identifier", label);
-		return 0;
+		return nullptr;
 		}
 
-	Val* rval = id->ID_Val();
-	Unref(id);
-
-	return rval;
+	return id->ID_Val();
 	}
 
 
@@ -1454,7 +1466,7 @@ void RuleMatcherState::FinishEndpointMatcher()
 	delete orig_match_state;
 	delete resp_match_state;
 
-	orig_match_state = resp_match_state = 0;
+	orig_match_state = resp_match_state = nullptr;
 	}
 
 void RuleMatcherState::Match(Rule::PatternType type, const u_char* data,

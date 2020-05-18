@@ -1,13 +1,14 @@
 #pragma once
 
-#include <broker/data.hh>
-#include <broker/expected.hh>
-
 #include "OpaqueVal.h"
 #include "Reporter.h"
 #include "Frame.h"
 #include "Expr.h"
-#include "IntrusivePtr.h"
+
+template <class T>
+class IntrusivePtr;
+
+class ODesc;
 
 namespace bro_broker {
 
@@ -28,14 +29,14 @@ TransportProto to_bro_port_proto(broker::port::protocol tp);
  * @return a Broker::Data value, where the optional field is set if the conversion
  * was possible, else it is unset.
  */
-RecordVal* make_data_val(Val* v);
+IntrusivePtr<RecordVal> make_data_val(Val* v);
 
 /**
  * Create a Broker::Data value from a Broker data value.
  * @param d the Broker value to wrap in an opaque type.
  * @return a Broker::Data value that wraps the Broker value.
  */
-RecordVal* make_data_val(broker::data d);
+IntrusivePtr<RecordVal> make_data_val(broker::data d);
 
 /**
  * Get the type of Broker data that Broker::Data wraps.
@@ -43,7 +44,7 @@ RecordVal* make_data_val(broker::data d);
  * @param frame used to get location info upon error.
  * @return a Broker::DataType value.
  */
-EnumVal* get_data_type(RecordVal* v, Frame* frame);
+IntrusivePtr<EnumVal> get_data_type(RecordVal* v, Frame* frame);
 
 /**
  * Convert a Bro value to a Broker data value.
@@ -101,12 +102,7 @@ public:
 		: OpaqueVal(bro_broker::opaque_of_data_type), data(std::move(arg_data))
 		{}
 
-	void ValDescribe(ODesc* d) const override
-		{
-		d->Add("broker::data{");
-		d->Add(broker::to_string(data));
-		d->Add("}");
-		}
+	void ValDescribe(ODesc* d) const override;
 
 	IntrusivePtr<Val> castTo(BroType* t);
 	bool canCastTo(BroType* t) const;
@@ -114,13 +110,7 @@ public:
 	// Returns the Bro type that scripts use to represent a Broker data
 	// instance. This may be wrapping the opaque value inside another
 	// type.
-	static BroType* ScriptDataType()
-		{
-		if ( ! script_data_type )
-			script_data_type = internal_type("Broker::Data");
-
-		return script_data_type;
-		}
+	static BroType* ScriptDataType();
 
 	broker::data data;
 

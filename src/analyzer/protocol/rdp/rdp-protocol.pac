@@ -383,9 +383,9 @@ refine connection RDP_Conn += {
 
 		if ( rdp_begin_encryption )
 			{
-			BifEvent::generate_rdp_begin_encryption(bro_analyzer(),
-			                                        bro_analyzer()->Conn(),
-			                                        ${method});
+			BifEvent::enqueue_rdp_begin_encryption(bro_analyzer(),
+			                                       bro_analyzer()->Conn(),
+			                                       ${method});
 			}
 
 		return is_encrypted_;

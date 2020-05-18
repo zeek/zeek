@@ -21,7 +21,7 @@ void File_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
-	int n = min(len, BUFFER_SIZE - buffer_len);
+	int n = std::min(len, BUFFER_SIZE - buffer_len);
 
 	if ( n )
 		{
@@ -75,14 +75,14 @@ void File_Analyzer::Identify()
 	RuleMatcher::MIME_Matches matches;
 	file_mgr->DetectMIME(reinterpret_cast<const u_char*>(buffer), buffer_len,
 	                     &matches);
-	string match = matches.empty() ? "<unknown>"
+	std::string match = matches.empty() ? "<unknown>"
 	                               : *(matches.begin()->second.begin());
 
 	if ( file_transferred )
-		ConnectionEventFast(file_transferred, {
-			BuildConnVal(),
-			new StringVal(buffer_len, buffer),
-			new StringVal("<unknown>"),
-			new StringVal(match),
-		});
+		EnqueueConnEvent(file_transferred,
+			ConnVal(),
+			make_intrusive<StringVal>(buffer_len, buffer),
+			make_intrusive<StringVal>("<unknown>"),
+			make_intrusive<StringVal>(match)
+		);
 	}

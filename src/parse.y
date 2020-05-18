@@ -57,7 +57,7 @@
 %type <ic> init_class
 %type <expr> opt_init
 %type <val> TOK_CONSTANT
-%type <expr> expr opt_expr init anonymous_function index_slice opt_deprecated
+%type <expr> expr opt_expr init anonymous_function lambda_body index_slice opt_deprecated
 %type <event_expr> event
 %type <stmt> stmt stmt_list func_body for_head
 %type <type> type opt_type enum_body
@@ -78,8 +78,13 @@
 #include <assert.h>
 
 #include "input.h"
+#include "BroList.h"
+#include "Desc.h"
 #include "Expr.h"
+#include "Func.h"
+#include "IntrusivePtr.h"
 #include "Stmt.h"
+#include "Val.h"
 #include "Var.h"
 /* #include "analyzer/protocol/dns/DNS.h" */
 #include "RE.h"
@@ -87,6 +92,8 @@
 #include "Reporter.h"
 #include "Brofiler.h"
 #include "zeekygen/Manager.h"
+#include "module_util.h"
+#include "IntrusivePtr.h"
 
 #include <set>
 #include <string>
@@ -107,7 +114,7 @@ extern int brolex();
  * Part of the module facility: while parsing, keep track of which
  * module to put things in.
  */
-string current_module = GLOBAL_MODULE_NAME;
+std::string current_module = GLOBAL_MODULE_NAME;
 bool is_export = false; // true if in an export {} block
 
 /*
@@ -128,6 +135,7 @@ bool defining_global_ID = false;
 std::vector<int> saved_in_init;
 
 ID* func_id = 0;
+static Location func_hdr_location;
 EnumType *cur_enum_type = 0;
 static ID* cur_decl_type_id = 0;
 
@@ -147,13 +155,14 @@ static void parser_redef_enum (ID *id)
 	/* Redef an enum. id points to the enum to be redefined.
 	   Let cur_enum_type point to it. */
 	assert(cur_enum_type == NULL);
+	// abort on errors; enums need to be accessible to continue parsing
 	if ( ! id->Type() )
-		id->Error("unknown identifier");
+		reporter->FatalError("unknown enum identifier \"%s\"", id->Name());
 	else
 		{
+		if ( ! id->Type() || id->Type()->Tag() != TYPE_ENUM )
+			reporter->FatalError("identifier \"%s\" is not an enum", id->Name());
 		cur_enum_type = id->Type()->AsEnumType();
-		if ( ! cur_enum_type )
-			id->Error("not an enum");
 		}
 	}
 
@@ -188,7 +197,7 @@ static attr_list* copy_attr_list(attr_list* al)
 
 static void extend_record(ID* id, type_decl_list* fields, attr_list* attrs)
 	{
-	set<BroType*> types = BroType::GetAliases(id->Name());
+	std::set<BroType*> types = BroType::GetAliases(id->Name());
 
 	if ( types.empty() )
 		{
@@ -196,7 +205,7 @@ static void extend_record(ID* id, type_decl_list* fields, attr_list* attrs)
 		return;
 		}
 
-	for ( set<BroType*>::const_iterator it = types.begin(); it != types.end(); )
+	for ( std::set<BroType*>::const_iterator it = types.begin(); it != types.end(); )
 		{
 		RecordType* add_to = (*it)->AsRecordType();
 		const char* error = 0;
@@ -304,157 +313,157 @@ expr:
 	|	TOK_COPY '(' expr ')'
 			{
 			set_location(@1, @4);
-			$$ = new CloneExpr($3);
+			$$ = new CloneExpr({AdoptRef{}, $3});
 			}
 
 	|	TOK_INCR expr
 			{
 			set_location(@1, @2);
-			$$ = new IncrExpr(EXPR_INCR, $2);
+			$$ = new IncrExpr(EXPR_INCR, {AdoptRef{}, $2});
 			}
 
 	|	TOK_DECR expr
 			{
 			set_location(@1, @2);
-			$$ = new IncrExpr(EXPR_DECR, $2);
+			$$ = new IncrExpr(EXPR_DECR, {AdoptRef{}, $2});
 			}
 
 	|	'!' expr
 			{
 			set_location(@1, @2);
-			$$ = new NotExpr($2);
+			$$ = new NotExpr({AdoptRef{}, $2});
 			}
 
 	|	'~' expr
 			{
 			set_location(@1, @2);
-			$$ = new ComplementExpr($2);
+			$$ = new ComplementExpr({AdoptRef{}, $2});
 			}
 
 	|	'-' expr	%prec '!'
 			{
 			set_location(@1, @2);
-			$$ = new NegExpr($2);
+			$$ = new NegExpr({AdoptRef{}, $2});
 			}
 
 	|	'+' expr	%prec '!'
 			{
 			set_location(@1, @2);
-			$$ = new PosExpr($2);
+			$$ = new PosExpr({AdoptRef{}, $2});
 			}
 
 	|	expr '+' expr
 			{
 			set_location(@1, @3);
-			$$ = new AddExpr($1, $3);
+			$$ = new AddExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
 	|	expr TOK_ADD_TO expr
 			{
 			set_location(@1, @3);
-			$$ = new AddToExpr($1, $3);
+			$$ = new AddToExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
 	|	expr '-' expr
 			{
 			set_location(@1, @3);
-			$$ = new SubExpr($1, $3);
+			$$ = new SubExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
 	|	expr TOK_REMOVE_FROM expr
 			{
 			set_location(@1, @3);
-			$$ = new RemoveFromExpr($1, $3);
+			$$ = new RemoveFromExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
 	|	expr '*' expr
 			{
 			set_location(@1, @3);
-			$$ = new TimesExpr($1, $3);
+			$$ = new TimesExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
 	|	expr '/' expr
 			{
 			set_location(@1, @3);
-			$$ = new DivideExpr($1, $3);
+			$$ = new DivideExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
 	|	expr '%' expr
 			{
 			set_location(@1, @3);
-			$$ = new ModExpr($1, $3);
+			$$ = new ModExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
 	|	expr '&' expr
 			{
 			set_location(@1, @3);
-			$$ = new BitExpr(EXPR_AND, $1, $3);
+			$$ = new BitExpr(EXPR_AND, {AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
 	|	expr '|' expr
 			{
 			set_location(@1, @3);
-			$$ = new BitExpr(EXPR_OR, $1, $3);
+			$$ = new BitExpr(EXPR_OR, {AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
 	|	expr '^' expr
 			{
 			set_location(@1, @3);
-			$$ = new BitExpr(EXPR_XOR, $1, $3);
+			$$ = new BitExpr(EXPR_XOR, {AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
 	|	expr TOK_AND_AND expr
 			{
 			set_location(@1, @3);
-			$$ = new BoolExpr(EXPR_AND_AND, $1, $3);
+			$$ = new BoolExpr(EXPR_AND_AND, {AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
 	|	expr TOK_OR_OR expr
 			{
 			set_location(@1, @3);
-			$$ = new BoolExpr(EXPR_OR_OR, $1, $3);
+			$$ = new BoolExpr(EXPR_OR_OR, {AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
 	|	expr TOK_EQ expr
 			{
 			set_location(@1, @3);
-			$$ = new EqExpr(EXPR_EQ, $1, $3);
+			$$ = new EqExpr(EXPR_EQ, {AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
 	|	expr TOK_NE expr
 			{
 			set_location(@1, @3);
-			$$ = new EqExpr(EXPR_NE, $1, $3);
+			$$ = new EqExpr(EXPR_NE, {AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
 	|	expr '<' expr
 			{
 			set_location(@1, @3);
-			$$ = new RelExpr(EXPR_LT, $1, $3);
+			$$ = new RelExpr(EXPR_LT, {AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
 	|	expr TOK_LE expr
 			{
 			set_location(@1, @3);
-			$$ = new RelExpr(EXPR_LE, $1, $3);
+			$$ = new RelExpr(EXPR_LE, {AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
 	|	expr '>' expr
 			{
 			set_location(@1, @3);
-			$$ = new RelExpr(EXPR_GT, $1, $3);
+			$$ = new RelExpr(EXPR_GT, {AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
 	|	expr TOK_GE expr
 			{
 			set_location(@1, @3);
-			$$ = new RelExpr(EXPR_GE, $1, $3);
+			$$ = new RelExpr(EXPR_GE, {AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
 	|	expr '?' expr ':' expr
 			{
 			set_location(@1, @5);
-			$$ = new CondExpr($1, $3, $5);
+			$$ = new CondExpr({AdoptRef{}, $1}, {AdoptRef{}, $3}, {AdoptRef{}, $5});
 			}
 
 	|	expr '=' expr
@@ -466,19 +475,20 @@ expr:
 				                " in arbitrary expression contexts, only"
 				                " as a statement");
 
-			$$ = get_assign_expr($1, $3, in_init);
+			$$ = get_assign_expr({AdoptRef{}, $1}, {AdoptRef{}, $3}, in_init).release();
 			}
 
 	|	TOK_LOCAL local_id '=' expr
 			{
 			set_location(@2, @4);
-			$$ = add_and_assign_local($2, $4, val_mgr->GetBool(1));
+			$$ = add_and_assign_local({AdoptRef{}, $2}, {AdoptRef{}, $4},
+			                          val_mgr->True()).release();
 			}
 
 	|	expr '[' expr_list ']'
 			{
 			set_location(@1, @4);
-			$$ = new IndexExpr($1, $3);
+			$$ = new IndexExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
 	|	index_slice
@@ -486,40 +496,41 @@ expr:
 	|	expr '$' TOK_ID
 			{
 			set_location(@1, @3);
-			$$ = new FieldExpr($1, $3);
+			$$ = new FieldExpr({AdoptRef{}, $1}, $3);
 			}
 
 	|	'$' TOK_ID '=' expr
 			{
 			set_location(@1, @4);
-			$$ = new FieldAssignExpr($2, $4);
+			$$ = new FieldAssignExpr($2, {AdoptRef{}, $4});
 			}
 
-	|       '$' TOK_ID func_params '='
+	|	'$' TOK_ID func_params '='
 			{
+			func_hdr_location = @1;
 			func_id = current_scope()->GenerateTemporary("anonymous-function");
 			func_id->SetInferReturnType(true);
-			begin_func(func_id,
-				   current_module.c_str(),
-				   FUNC_FLAVOR_FUNCTION,
-				   0,
-				   $3);
+			begin_func(func_id, current_module.c_str(), FUNC_FLAVOR_FUNCTION,
+			           0, {AdoptRef{}, $3});
 			}
-		 func_body
+		 lambda_body
 			{
-			$$ = new FieldAssignExpr($2, new ConstExpr(func_id->ID_Val()));
+			$$ = new FieldAssignExpr($2, IntrusivePtr{AdoptRef{}, $6});
+			Unref(func_id);
 			}
 
 	|	expr TOK_IN expr
 			{
 			set_location(@1, @3);
-			$$ = new InExpr($1, $3);
+			$$ = new InExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
 	|	expr TOK_NOT_IN expr
 			{
 			set_location(@1, @3);
-			$$ = new NotExpr(new InExpr($1, $3));
+			$$ = new NotExpr(make_intrusive<InExpr>(
+			        IntrusivePtr<Expr>{AdoptRef{}, $1},
+			        IntrusivePtr<Expr>{AdoptRef{}, $3}));
 			}
 
 	|	'[' expr_list ']'
@@ -542,7 +553,7 @@ expr:
 				}
 
 			if ( is_record_ctor )
-				$$ = new RecordConstructorExpr($2);
+				$$ = new RecordConstructorExpr({AdoptRef{}, $2});
 			else
 				$$ = $2;
 			}
@@ -550,33 +561,33 @@ expr:
 	|	'[' ']'
 			{
 			// We interpret this as an empty record constructor.
-			$$ = new RecordConstructorExpr(new ListExpr);
+			$$ = new RecordConstructorExpr(make_intrusive<ListExpr>());
 			}
 
 
 	|	TOK_RECORD '(' expr_list ')'
 			{
 			set_location(@1, @4);
-			$$ = new RecordConstructorExpr($3);
+			$$ = new RecordConstructorExpr({AdoptRef{}, $3});
 			}
 
 	|	TOK_TABLE '(' { ++in_init; } opt_expr_list ')' { --in_init; }
 		opt_attr
 			{ // the ++in_init fixes up the parsing of "[x] = y"
 			set_location(@1, @5);
-			$$ = new TableConstructorExpr($4, $7);
+			$$ = new TableConstructorExpr({AdoptRef{}, $4}, $7);
 			}
 
 	|	TOK_SET '(' opt_expr_list ')' opt_attr
 			{
 			set_location(@1, @4);
-			$$ = new SetConstructorExpr($3, $5);
+			$$ = new SetConstructorExpr({AdoptRef{}, $3}, $5);
 			}
 
 	|	TOK_VECTOR '(' opt_expr_list ')'
 			{
 			set_location(@1, @4);
-			$$ = new VectorConstructorExpr($3);
+			$$ = new VectorConstructorExpr({AdoptRef{}, $3});
 			}
 
 	|	expr '('
@@ -602,20 +613,27 @@ expr:
 				{
 				switch ( ctor_type->Tag() ) {
 				case TYPE_RECORD:
-					$$ = new RecordCoerceExpr(new RecordConstructorExpr($4),
-					                          ctor_type->AsRecordType());
+					{
+					auto rce = make_intrusive<RecordConstructorExpr>(
+					            IntrusivePtr<ListExpr>{AdoptRef{}, $4});
+					IntrusivePtr<RecordType> rt{NewRef{}, ctor_type->AsRecordType()};
+					$$ = new RecordCoerceExpr(std::move(rce), std::move(rt));
+					}
 					break;
 
 				case TYPE_TABLE:
 					if ( ctor_type->IsTable() )
-						$$ = new TableConstructorExpr($4, 0, ctor_type);
+						$$ = new TableConstructorExpr({AdoptRef{}, $4}, 0,
+						                              {NewRef{}, ctor_type});
 					else
-						$$ = new SetConstructorExpr($4, 0, ctor_type);
+						$$ = new SetConstructorExpr({AdoptRef{}, $4}, 0,
+						                            {NewRef{}, ctor_type});
 
 					break;
 
 				case TYPE_VECTOR:
-					$$ = new VectorConstructorExpr($4, ctor_type);
+					$$ = new VectorConstructorExpr({AdoptRef{}, $4},
+					                               {NewRef{}, ctor_type});
 					break;
 
 				default:
@@ -625,7 +643,7 @@ expr:
 				}
 
 			else
-				$$ = new CallExpr($1, $4, in_hook > 0);
+				$$ = new CallExpr({AdoptRef{}, $1}, {AdoptRef{}, $4}, in_hook > 0);
 			}
 
 	|	TOK_HOOK { ++in_hook; } expr
@@ -640,7 +658,7 @@ expr:
 	|	expr TOK_HAS_FIELD TOK_ID
 			{
 			set_location(@1, @3);
-			$$ = new HasFieldExpr($1, $3);
+			$$ = new HasFieldExpr({AdoptRef{}, $1}, $3);
 			}
 
 	|	anonymous_function
@@ -649,14 +667,14 @@ expr:
 	|	TOK_SCHEDULE expr '{' event '}'
 			{
 			set_location(@1, @5);
-			$$ = new ScheduleExpr($2, $4);
+			$$ = new ScheduleExpr({AdoptRef{}, $2}, {AdoptRef{}, $4});
 			}
 
 	|	TOK_ID
 			{
 			set_location(@1);
+			auto id = lookup_ID($1, current_module.c_str());
 
-			ID* id = lookup_ID($1, current_module.c_str());
 			if ( ! id )
 				{
 				if ( ! in_debug )
@@ -677,11 +695,14 @@ expr:
 				}
 			else
 				{
+				if ( id->IsDeprecated() )
+					reporter->Warning("%s", id->GetDeprecationWarning().c_str());
+
 				if ( ! id->Type() )
 					{
 					id->Error("undeclared variable");
 					id->SetType(error_type());
-					$$ = new NameExpr(id);
+					$$ = new NameExpr(std::move(id));
 					}
 
 				else if ( id->IsEnumConst() )
@@ -694,17 +715,16 @@ expr:
 					$$ = new ConstExpr(t->GetVal(intval));
 					}
 				else
-					$$ = new NameExpr(id);
-
-				if ( id->IsDeprecated() )
-					reporter->Warning("%s", id->GetDeprecationWarning().c_str());
+					{
+					$$ = new NameExpr(std::move(id));
+					}
 				}
 			}
 
 	|	TOK_CONSTANT
 			{
 			set_location(@1);
-			$$ = new ConstExpr($1);
+			$$ = new ConstExpr({AdoptRef{}, $1});
 			}
 
 	|	'/' { begin_RE(); } TOK_PATTERN_TEXT TOK_PATTERN_END
@@ -718,30 +738,30 @@ expr:
 				re->MakeCaseInsensitive();
 
 			re->Compile();
-			$$ = new ConstExpr(new PatternVal(re));
+			$$ = new ConstExpr(make_intrusive<PatternVal>(re));
 			}
 
 	|       '|' expr '|'	%prec '('
 			{
 			set_location(@1, @3);
-			auto e = $2;
+			IntrusivePtr<Expr> e{AdoptRef{}, $2};
 
 			if ( IsIntegral(e->Type()->Tag()) )
-				e = new ArithCoerceExpr(e, TYPE_INT);
+				e = make_intrusive<ArithCoerceExpr>(std::move(e), TYPE_INT);
 
-			$$ = new SizeExpr(e);
+			$$ = new SizeExpr(std::move(e));
 			}
 
 	|       expr TOK_AS type
 			{
 			set_location(@1, @3);
-			$$ = new CastExpr($1, $3);
+			$$ = new CastExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
 	|       expr TOK_IS type
 			{
 			set_location(@1, @3);
-			$$ = new IsExpr($1, $3);
+			$$ = new IsExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 	;
 
@@ -749,13 +769,13 @@ expr_list:
 		expr_list ',' expr
 			{
 			set_location(@1, @3);
-			$1->Append($3);
+			$1->Append({AdoptRef{}, $3});
 			}
 
 	|	expr
 			{
 			set_location(@1);
-			$$ = new ListExpr($1);
+			$$ = new ListExpr({AdoptRef{}, $1});
 			}
 	;
 
@@ -823,84 +843,84 @@ enum_body_elem:
 type:
 		TOK_BOOL	{
 				set_location(@1);
-				$$ = base_type(TYPE_BOOL);
+				$$ = base_type(TYPE_BOOL).release();
 				}
 
 	|	TOK_INT		{
 				set_location(@1);
-				$$ = base_type(TYPE_INT);
+				$$ = base_type(TYPE_INT).release();
 				}
 
 	|	TOK_COUNT	{
 				set_location(@1);
-				$$ = base_type(TYPE_COUNT);
+				$$ = base_type(TYPE_COUNT).release();
 				}
 
 	|	TOK_COUNTER	{
 				set_location(@1);
-				$$ = base_type(TYPE_COUNTER);
+				$$ = base_type(TYPE_COUNTER).release();
 				}
 
 	|	TOK_DOUBLE	{
 				set_location(@1);
-				$$ = base_type(TYPE_DOUBLE);
+				$$ = base_type(TYPE_DOUBLE).release();
 				}
 
 	|	TOK_TIME	{
 				set_location(@1);
-				$$ = base_type(TYPE_TIME);
+				$$ = base_type(TYPE_TIME).release();
 				}
 
 	|	TOK_INTERVAL	{
 				set_location(@1);
-				$$ = base_type(TYPE_INTERVAL);
+				$$ = base_type(TYPE_INTERVAL).release();
 				}
 
 	|	TOK_STRING	{
 				set_location(@1);
-				$$ = base_type(TYPE_STRING);
+				$$ = base_type(TYPE_STRING).release();
 				}
 
 	|	TOK_PATTERN	{
 				set_location(@1);
-				$$ = base_type(TYPE_PATTERN);
+				$$ = base_type(TYPE_PATTERN).release();
 				}
 
 	|	TOK_TIMER	{
 				set_location(@1);
-				$$ = base_type(TYPE_TIMER);
+				$$ = base_type(TYPE_TIMER).release();
 				}
 
 	|	TOK_PORT	{
 				set_location(@1);
-				$$ = base_type(TYPE_PORT);
+				$$ = base_type(TYPE_PORT).release();
 				}
 
 	|	TOK_ADDR	{
 				set_location(@1);
-				$$ = base_type(TYPE_ADDR);
+				$$ = base_type(TYPE_ADDR).release();
 				}
 
 	|	TOK_SUBNET	{
 				set_location(@1);
-				$$ = base_type(TYPE_SUBNET);
+				$$ = base_type(TYPE_SUBNET).release();
 				}
 
 	|	TOK_ANY		{
 				set_location(@1);
-				$$ = base_type(TYPE_ANY);
+				$$ = base_type(TYPE_ANY).release();
 				}
 
 	|	TOK_TABLE '[' type_list ']' TOK_OF type
 				{
 				set_location(@1, @6);
-				$$ = new TableType($3, $6);
+				$$ = new TableType({AdoptRef{}, $3}, {AdoptRef{}, $6});
 				}
 
 	|	TOK_SET '[' type_list ']'
 				{
 				set_location(@1, @4);
-				$$ = new SetType($3, 0);
+				$$ = new SetType({AdoptRef{}, $3}, nullptr);
 				}
 
 	|	TOK_RECORD '{'
@@ -946,7 +966,7 @@ type:
 	|	TOK_VECTOR TOK_OF type
 				{
 				set_location(@1, @3);
-				$$ = new VectorType($3);
+				$$ = new VectorType({AdoptRef{}, $3});
 				}
 
 	|	TOK_FUNCTION func_params
@@ -958,19 +978,19 @@ type:
 	|	TOK_EVENT '(' formal_args ')'
 				{
 				set_location(@1, @3);
-				$$ = new FuncType($3, 0, FUNC_FLAVOR_EVENT);
+				$$ = new FuncType({AdoptRef{}, $3}, nullptr, FUNC_FLAVOR_EVENT);
 				}
 
 	|	TOK_HOOK '(' formal_args ')'
 				{
 				set_location(@1, @3);
-				$$ = new FuncType($3, base_type(TYPE_BOOL), FUNC_FLAVOR_HOOK);
+				$$ = new FuncType({AdoptRef{}, $3}, base_type(TYPE_BOOL), FUNC_FLAVOR_HOOK);
 				}
 
 	|	TOK_FILE TOK_OF type
 				{
 				set_location(@1, @3);
-				$$ = new FileType($3);
+				$$ = new FileType({AdoptRef{}, $3});
 				}
 
 	|	TOK_FILE
@@ -992,7 +1012,7 @@ type:
 				NullStmt here;
 				if ( $1 )
 					$1->Error("not a Zeek type", &here);
-				$$ = error_type();
+				$$ = error_type().release();
 				}
 			else
 				{
@@ -1006,11 +1026,11 @@ type:
 
 type_list:
 		type_list ',' type
-			{ $1->AppendEvenIfNotPure($3); }
+			{ $1->AppendEvenIfNotPure({AdoptRef{}, $3}); }
 	|	type
 			{
-			$$ = new TypeList($1);
-			$$->Append($1);
+			$$ = new TypeList({NewRef{}, $1});
+			$$->Append({AdoptRef{}, $1});
 			}
 	;
 
@@ -1029,7 +1049,7 @@ type_decl:
 		TOK_ID ':' type opt_attr ';'
 			{
 			set_location(@1, @4);
-			$$ = new TypeDecl($3, $1, $4, (in_record > 0));
+			$$ = new TypeDecl({AdoptRef{}, $3}, $1, $4, (in_record > 0));
 
 			if ( in_record > 0 && cur_decl_type_id )
 				zeekygen_mgr->RecordField(cur_decl_type_id, $$, ::filename);
@@ -1058,7 +1078,7 @@ formal_args_decl:
 		TOK_ID ':' type opt_attr
 			{
 			set_location(@1, @4);
-			$$ = new TypeDecl($3, $1, $4, true);
+			$$ = new TypeDecl({AdoptRef{}, $3}, $1, $4, true);
 			}
 	;
 
@@ -1074,26 +1094,31 @@ decl:
 
 	|	TOK_GLOBAL def_global_id opt_type init_class opt_init opt_attr ';'
 			{
-			add_global($2, $3, $4, $5, $6, VAR_REGULAR);
-			zeekygen_mgr->Identifier($2);
+			IntrusivePtr id{AdoptRef{}, $2};
+			add_global(id.get(), {AdoptRef{}, $3}, $4, {AdoptRef{}, $5}, $6, VAR_REGULAR);
+			zeekygen_mgr->Identifier(std::move(id));
 			}
 
 	|	TOK_OPTION def_global_id opt_type init_class opt_init opt_attr ';'
 			{
-			add_global($2, $3, $4, $5, $6, VAR_OPTION);
-			zeekygen_mgr->Identifier($2);
+			IntrusivePtr id{AdoptRef{}, $2};
+			add_global(id.get(), {AdoptRef{}, $3}, $4, {AdoptRef{}, $5}, $6, VAR_OPTION);
+			zeekygen_mgr->Identifier(std::move(id));
 			}
 
 	|	TOK_CONST def_global_id opt_type init_class opt_init opt_attr ';'
 			{
-			add_global($2, $3, $4, $5, $6, VAR_CONST);
-			zeekygen_mgr->Identifier($2);
+			IntrusivePtr id{AdoptRef{}, $2};
+			add_global(id.get(), {AdoptRef{}, $3}, $4, {AdoptRef{}, $5}, $6, VAR_CONST);
+			zeekygen_mgr->Identifier(std::move(id));
 			}
 
 	|	TOK_REDEF global_id opt_type init_class opt_init opt_attr ';'
 			{
-			add_global($2, $3, $4, $5, $6, VAR_REDEF);
-			zeekygen_mgr->Redef($2, ::filename, $4, $5);
+			IntrusivePtr id{AdoptRef{}, $2};
+			IntrusivePtr<Expr> init{AdoptRef{}, $5};
+			add_global(id.get(), {AdoptRef{}, $3}, $4, init, $6, VAR_REDEF);
+			zeekygen_mgr->Redef(id.get(), ::filename, $4, std::move(init));
 			}
 
 	|	TOK_REDEF TOK_ENUM global_id TOK_ADD_TO '{'
@@ -1120,19 +1145,18 @@ decl:
 			}
 
 	|	TOK_TYPE global_id ':'
-			{ cur_decl_type_id = $2; zeekygen_mgr->StartType($2);  }
+			{ cur_decl_type_id = $2; zeekygen_mgr->StartType({NewRef{}, $2});  }
 		type opt_attr ';'
 			{
 			cur_decl_type_id = 0;
-			add_type($2, $5, $6);
-			zeekygen_mgr->Identifier($2);
+			IntrusivePtr id{AdoptRef{}, $2};
+			add_type(id.get(), {AdoptRef{}, $5}, $6);
+			zeekygen_mgr->Identifier(std::move(id));
 			}
 
-	|	func_hdr func_body
-			{ }
+	|	func_hdr { func_hdr_location = @1; } func_body
 
-	|	func_hdr conditional_list func_body
-			{ }
+	|	func_hdr { func_hdr_location = @1; } conditional_list func_body
 
 	|	conditional
 	;
@@ -1157,10 +1181,11 @@ conditional:
 func_hdr:
 		TOK_FUNCTION def_global_id func_params opt_attr
 			{
-			begin_func($2, current_module.c_str(),
-				FUNC_FLAVOR_FUNCTION, 0, $3, $4);
+			IntrusivePtr id{AdoptRef{}, $2};
+			begin_func(id.get(), current_module.c_str(),
+				FUNC_FLAVOR_FUNCTION, 0, {NewRef{}, $3}, $4);
 			$$ = $3;
-			zeekygen_mgr->Identifier($2);
+			zeekygen_mgr->Identifier(std::move(id));
 			}
 	|	TOK_EVENT event_id func_params opt_attr
 			{
@@ -1168,11 +1193,11 @@ func_hdr:
 			if ( streq("bro_init", name) || streq("bro_done", name) || streq("bro_script_loaded", name) )
 				{
 				auto base = std::string(name).substr(4);
-				reporter->Error(fmt("event %s() is no longer available, use zeek_%s() instead", name, base.c_str()));
+				reporter->Error("event %s() is no longer available, use zeek_%s() instead", name, base.c_str());
 				}
 
 			begin_func($2, current_module.c_str(),
-				   FUNC_FLAVOR_EVENT, 0, $3, $4);
+				   FUNC_FLAVOR_EVENT, 0, {NewRef{}, $3}, $4);
 			$$ = $3;
 			}
 	|	TOK_HOOK def_global_id func_params opt_attr
@@ -1180,13 +1205,13 @@ func_hdr:
 			$3->ClearYieldType(FUNC_FLAVOR_HOOK);
 			$3->SetYieldType(base_type(TYPE_BOOL));
 			begin_func($2, current_module.c_str(),
-				   FUNC_FLAVOR_HOOK, 0, $3, $4);
+				   FUNC_FLAVOR_HOOK, 0, {NewRef{}, $3}, $4);
 			$$ = $3;
 			}
 	|	TOK_REDEF TOK_EVENT event_id func_params opt_attr
 			{
 			begin_func($3, current_module.c_str(),
-				   FUNC_FLAVOR_EVENT, 1, $4, $5);
+				   FUNC_FLAVOR_EVENT, 1, {NewRef{}, $4}, $5);
 			$$ = $4;
 			}
 	;
@@ -1206,13 +1231,12 @@ func_body:
 
 		'}'
 			{
-			end_func($3);
+			set_location(func_hdr_location, @5);
+			end_func({AdoptRef{}, $3});
 			}
 	;
 
-anonymous_function:
-		TOK_FUNCTION begin_func
-
+lambda_body:
 		'{'
 			{
 			saved_in_init.push_back(in_init);
@@ -1227,31 +1251,38 @@ anonymous_function:
 
 		'}'
 			{
+			set_location(@1, @5);
+
 			// Code duplication here is sad but needed. end_func actually instantiates the function
 			// and associates it with an ID. We perform that association later and need to return
 			// a lambda expression.
 
 			// Gather the ingredients for a BroFunc from the current scope
-			auto ingredients = std::make_unique<function_ingredients>(current_scope(), $5);
-			id_list outer_ids = gather_outer_ids(pop_scope(), $5);
+			auto ingredients = std::make_unique<function_ingredients>(IntrusivePtr{NewRef{}, current_scope()}, IntrusivePtr{AdoptRef{}, $3});
+			id_list outer_ids = gather_outer_ids(pop_scope().get(), ingredients->body.get());
 
 			$$ = new LambdaExpr(std::move(ingredients), std::move(outer_ids));
 			}
+	;
+
+anonymous_function:
+		TOK_FUNCTION begin_func lambda_body
+			{ $$ = $3; }
 	;
 
 begin_func:
 		func_params
 			{
 			$$ = current_scope()->GenerateTemporary("anonymous-function");
-			begin_func($$, current_module.c_str(), FUNC_FLAVOR_FUNCTION, 0, $1);
+			begin_func($$, current_module.c_str(), FUNC_FLAVOR_FUNCTION, 0, {AdoptRef{}, $1});
 			}
 	;
 
 func_params:
 		'(' formal_args ')' ':' type
-			{ $$ = new FuncType($2, $5, FUNC_FLAVOR_FUNCTION); }
+			{ $$ = new FuncType({AdoptRef{}, $2}, {AdoptRef{}, $5}, FUNC_FLAVOR_FUNCTION); }
 	|	'(' formal_args ')'
-			{ $$ = new FuncType($2, base_type(TYPE_VOID), FUNC_FLAVOR_FUNCTION); }
+			{ $$ = new FuncType({AdoptRef{}, $2}, base_type(TYPE_VOID), FUNC_FLAVOR_FUNCTION); }
 	;
 
 opt_type:
@@ -1287,15 +1318,20 @@ index_slice:
 		expr '[' opt_expr ':' opt_expr ']'
 			{
 			set_location(@1, @6);
-			Expr* low = $3 ? $3 : new ConstExpr(val_mgr->GetCount(0));
-			Expr* high = $5 ? $5 : new SizeExpr($1);
+
+			auto low = $3 ? IntrusivePtr<Expr>{AdoptRef{}, $3} :
+			                make_intrusive<ConstExpr>(val_mgr->Count(0));
+
+			auto high = $5 ? IntrusivePtr<Expr>{AdoptRef{}, $5} :
+			                 make_intrusive<SizeExpr>(
+			                     IntrusivePtr<Expr>{NewRef{}, $1});
 
 			if ( ! IsIntegral(low->Type()->Tag()) || ! IsIntegral(high->Type()->Tag()) )
 				reporter->Error("slice notation must have integral values as indexes");
 
-			ListExpr* le = new ListExpr(low);
-			le->Append(high);
-			$$ = new IndexExpr($1, le, true);
+			auto le = make_intrusive<ListExpr>(std::move(low));
+			le->Append(std::move(high));
+			$$ = new IndexExpr({AdoptRef{}, $1}, std::move(le), true);
 			}
 
 opt_attr:
@@ -1316,33 +1352,33 @@ attr_list:
 
 attr:
 		TOK_ATTR_DEFAULT '=' expr
-		        { $$ = new Attr(ATTR_DEFAULT, $3); }
+		        { $$ = new Attr(ATTR_DEFAULT, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_OPTIONAL
 			{ $$ = new Attr(ATTR_OPTIONAL); }
 	|	TOK_ATTR_REDEF
 			{ $$ = new Attr(ATTR_REDEF); }
 	|	TOK_ATTR_ADD_FUNC '=' expr
-			{ $$ = new Attr(ATTR_ADD_FUNC, $3); }
+			{ $$ = new Attr(ATTR_ADD_FUNC, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_DEL_FUNC '=' expr
-			{ $$ = new Attr(ATTR_DEL_FUNC, $3); }
+			{ $$ = new Attr(ATTR_DEL_FUNC, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_ON_CHANGE '=' expr
-			{ $$ = new Attr(ATTR_ON_CHANGE, $3); }
+			{ $$ = new Attr(ATTR_ON_CHANGE, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_BROKER_STORE '=' expr
-			{ $$ = new Attr(ATTR_BROKER_STORE, $3); }
+			{ $$ = new Attr(ATTR_BROKER_STORE, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_EXPIRE_FUNC '=' expr
-			{ $$ = new Attr(ATTR_EXPIRE_FUNC, $3); }
+			{ $$ = new Attr(ATTR_EXPIRE_FUNC, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_EXPIRE_CREATE '=' expr
-			{ $$ = new Attr(ATTR_EXPIRE_CREATE, $3); }
+			{ $$ = new Attr(ATTR_EXPIRE_CREATE, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_EXPIRE_READ '=' expr
-			{ $$ = new Attr(ATTR_EXPIRE_READ, $3); }
+			{ $$ = new Attr(ATTR_EXPIRE_READ, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_EXPIRE_WRITE '=' expr
-			{ $$ = new Attr(ATTR_EXPIRE_WRITE, $3); }
+			{ $$ = new Attr(ATTR_EXPIRE_WRITE, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_RAW_OUTPUT
 			{ $$ = new Attr(ATTR_RAW_OUTPUT); }
 	|	TOK_ATTR_PRIORITY '=' expr
-			{ $$ = new Attr(ATTR_PRIORITY, $3); }
+			{ $$ = new Attr(ATTR_PRIORITY, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_TYPE_COLUMN '=' expr
-			{ $$ = new Attr(ATTR_TYPE_COLUMN, $3); }
+			{ $$ = new Attr(ATTR_TYPE_COLUMN, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_LOG
 			{ $$ = new Attr(ATTR_LOG); }
 	|	TOK_ATTR_ERROR_HANDLER
@@ -1352,11 +1388,12 @@ attr:
 	|	TOK_ATTR_DEPRECATED '=' TOK_CONSTANT
 			{
 			if ( IsString($3->Type()->Tag()) )
-				$$ = new Attr(ATTR_DEPRECATED, new ConstExpr($3));
+				$$ = new Attr(ATTR_DEPRECATED, make_intrusive<ConstExpr>(IntrusivePtr{AdoptRef{}, $3}));
 			else
 				{
 				ODesc d;
 				$3->Describe(&d);
+				Unref($3);
 				reporter->Error("'&deprecated=%s' must use a string literal",
 				                d.Description());
 				$$ = new Attr(ATTR_DEPRECATED);
@@ -1376,7 +1413,7 @@ stmt:
 	|	TOK_PRINT expr_list ';' opt_no_test
 			{
 			set_location(@1, @3);
-			$$ = new PrintStmt($2);
+			$$ = new PrintStmt(IntrusivePtr{AdoptRef{}, $2});
 			if ( ! $4 )
 			    brofiler.AddStmt($$);
 			}
@@ -1384,7 +1421,7 @@ stmt:
 	|	TOK_EVENT event ';' opt_no_test
 			{
 			set_location(@1, @3);
-			$$ = new EventStmt($2);
+			$$ = new EventStmt({AdoptRef{}, $2});
 			if ( ! $4 )
 			    brofiler.AddStmt($$);
 			}
@@ -1392,29 +1429,29 @@ stmt:
 	|	TOK_IF '(' expr ')' stmt
 			{
 			set_location(@1, @4);
-			$$ = new IfStmt($3, $5, new NullStmt());
+			$$ = new IfStmt({AdoptRef{}, $3}, {AdoptRef{}, $5}, make_intrusive<NullStmt>());
 			}
 
 	|	TOK_IF '(' expr ')' stmt TOK_ELSE stmt
 			{
 			set_location(@1, @4);
-			$$ = new IfStmt($3, $5, $7);
+			$$ = new IfStmt({AdoptRef{}, $3}, {AdoptRef{}, $5}, {AdoptRef{}, $7});
 			}
 
 	|	TOK_SWITCH expr '{' case_list '}'
 			{
 			set_location(@1, @2);
-			$$ = new SwitchStmt($2, $4);
+			$$ = new SwitchStmt({AdoptRef{}, $2}, $4);
 			}
 
 	|	for_head stmt
 			{
-			$1->AsForStmt()->AddBody($2);
+			$1->AsForStmt()->AddBody({AdoptRef{}, $2});
 			}
 
 	|	TOK_WHILE '(' expr ')' stmt
 			{
-			$$ = new WhileStmt($3, $5);
+			$$ = new WhileStmt({AdoptRef{}, $3}, {AdoptRef{}, $5});
 			}
 
 	|	TOK_NEXT ';' opt_no_test
@@ -1452,7 +1489,7 @@ stmt:
 	|	TOK_RETURN expr ';' opt_no_test
 			{
 			set_location(@1, @2);
-			$$ = new ReturnStmt($2);
+			$$ = new ReturnStmt({AdoptRef{}, $2});
 			if ( ! $4 )
 			    brofiler.AddStmt($$);
 			}
@@ -1460,7 +1497,7 @@ stmt:
 	|	TOK_ADD expr ';' opt_no_test
 			{
 			set_location(@1, @3);
-			$$ = new AddStmt($2);
+			$$ = new AddStmt({AdoptRef{}, $2});
 			if ( ! $4 )
 			    brofiler.AddStmt($$);
 			}
@@ -1468,7 +1505,7 @@ stmt:
 	|	TOK_DELETE expr ';' opt_no_test
 			{
 			set_location(@1, @3);
-			$$ = new DelStmt($2);
+			$$ = new DelStmt({AdoptRef{}, $2});
 			if ( ! $4 )
 			    brofiler.AddStmt($$);
 			}
@@ -1476,7 +1513,8 @@ stmt:
 	|	TOK_LOCAL local_id opt_type init_class opt_init opt_attr ';' opt_no_test
 			{
 			set_location(@1, @7);
-			$$ = add_local($2, $3, $4, $5, $6, VAR_REGULAR);
+			$$ = add_local({AdoptRef{}, $2}, {AdoptRef{}, $3}, $4,
+			               {AdoptRef{}, $5}, $6, VAR_REGULAR).release();
 			if ( ! $8 )
 			    brofiler.AddStmt($$);
 			}
@@ -1484,7 +1522,8 @@ stmt:
 	|	TOK_CONST local_id opt_type init_class opt_init opt_attr ';' opt_no_test
 			{
 			set_location(@1, @6);
-			$$ = add_local($2, $3, $4, $5, $6, VAR_CONST);
+			$$ = add_local({AdoptRef{}, $2}, {AdoptRef{}, $3}, $4,
+			               {AdoptRef{}, $5}, $6, VAR_CONST).release();
 			if ( ! $8 )
 			    brofiler.AddStmt($$);
 			}
@@ -1492,13 +1531,15 @@ stmt:
 	|	TOK_WHEN '(' expr ')' stmt
 			{
 			set_location(@3, @5);
-			$$ = new WhenStmt($3, $5, 0, 0, false);
+			$$ = new WhenStmt({AdoptRef{}, $3}, {AdoptRef{}, $5},
+			                  nullptr, nullptr, false);
 			}
 
 	|	TOK_WHEN '(' expr ')' stmt TOK_TIMEOUT expr '{' opt_no_test_block stmt_list '}'
 			{
 			set_location(@3, @9);
-			$$ = new WhenStmt($3, $5, $10, $7, false);
+			$$ = new WhenStmt({AdoptRef{}, $3}, {AdoptRef{}, $5},
+			                  {AdoptRef{}, $10}, {AdoptRef{}, $7}, false);
 			if ( $9 )
 			    brofiler.DecIgnoreDepth();
 			}
@@ -1507,13 +1548,15 @@ stmt:
 	|	TOK_RETURN TOK_WHEN '(' expr ')' stmt
 			{
 			set_location(@4, @6);
-			$$ = new WhenStmt($4, $6, 0, 0, true);
+			$$ = new WhenStmt({AdoptRef{}, $4}, {AdoptRef{}, $6}, nullptr,
+			                  nullptr, true);
 			}
 
 	|	TOK_RETURN TOK_WHEN '(' expr ')' stmt TOK_TIMEOUT expr '{' opt_no_test_block stmt_list '}'
 			{
 			set_location(@4, @10);
-			$$ = new WhenStmt($4, $6, $11, $8, true);
+			$$ = new WhenStmt({AdoptRef{}, $4}, {AdoptRef{}, $6},
+			                  {AdoptRef{}, $11}, {AdoptRef{}, $8}, true);
 			if ( $10 )
 			    brofiler.DecIgnoreDepth();
 			}
@@ -1521,7 +1564,8 @@ stmt:
 	|	index_slice '=' expr ';' opt_no_test
 			{
 			set_location(@1, @4);
-			$$ = new ExprStmt(get_assign_expr($1, $3, in_init));
+			$$ = new ExprStmt(get_assign_expr({AdoptRef{}, $1},
+			                                  {AdoptRef{}, $3}, in_init));
 
 			if ( ! $5 )
 				brofiler.AddStmt($$);
@@ -1530,7 +1574,7 @@ stmt:
 	|	expr ';' opt_no_test
 			{
 			set_location(@1, @2);
-			$$ = new ExprStmt($1);
+			$$ = new ExprStmt({AdoptRef{}, $1});
 			if ( ! $3 )
 			    brofiler.AddStmt($$);
 			}
@@ -1560,8 +1604,8 @@ event:
 		TOK_ID '(' opt_expr_list ')'
 			{
 			set_location(@1, @4);
+			auto id = lookup_ID($1, current_module.c_str());
 
-			ID* id = lookup_ID($1, current_module.c_str());
 			if ( id )
 				{
 				if ( ! id->IsGlobal() )
@@ -1569,11 +1613,12 @@ event:
 					yyerror(fmt("local identifier \"%s\" cannot be used to reference an event", $1));
 					YYERROR;
 					}
+
 				if ( id->IsDeprecated() )
 					reporter->Warning("%s", id->GetDeprecationWarning().c_str());
 				}
 
-			$$ = new EventExpr($1, $3);
+			$$ = new EventExpr($1, {AdoptRef{}, $3});
 			}
 	;
 
@@ -1586,13 +1631,13 @@ case_list:
 
 case:
 		TOK_CASE expr_list ':' stmt_list
-			{ $$ = new Case($2, 0, $4); }
+			{ $$ = new Case({AdoptRef{}, $2}, 0, {AdoptRef{}, $4}); }
 	|
 		TOK_CASE case_type_list ':' stmt_list
-			{ $$ = new Case(0, $2, $4); }
+			{ $$ = new Case(nullptr, $2, {AdoptRef{}, $4}); }
 	|
 		TOK_DEFAULT ':' stmt_list
-			{ $$ = new Case(0, 0, $3); }
+			{ $$ = new Case(nullptr, 0, {AdoptRef{}, $3}); }
 	;
 
 case_type_list:
@@ -1610,22 +1655,22 @@ case_type:
 		TOK_TYPE type
 			{
 			$$ = new ID(0, SCOPE_FUNCTION, 0);
-			$$->SetType($2);
+			$$->SetType({AdoptRef{}, $2});
 			}
 
 	|	TOK_TYPE type TOK_AS TOK_ID
 			{
 			const char* name = $4;
-			BroType* type = $2;
-			ID* case_var = lookup_ID(name, current_module.c_str());
+			IntrusivePtr<BroType> type{AdoptRef{}, $2};
+			auto case_var = lookup_ID(name, current_module.c_str());
 
 			if ( case_var && case_var->IsGlobal() )
 				case_var->Error("already a global identifier");
 			else
 				case_var = install_ID(name, current_module.c_str(), false, false);
 
-			add_local(case_var, type, INIT_NONE, 0, 0, VAR_REGULAR);
-			$$ = case_var;
+			add_local(case_var, std::move(type), INIT_NONE, 0, 0, VAR_REGULAR);
+			$$ = case_var.release();
 			}
 
 for_head:
@@ -1637,7 +1682,7 @@ for_head:
 			// body so that we execute these actions - defining
 			// the local variable - prior to parsing the body,
 			// which might refer to the variable.
-			ID* loop_var = lookup_ID($3, current_module.c_str());
+			auto loop_var = lookup_ID($3, current_module.c_str());
 
 			if ( loop_var )
 				{
@@ -1646,18 +1691,20 @@ for_head:
 				}
 
 			else
+				{
 				loop_var = install_ID($3, current_module.c_str(),
 						      false, false);
+				}
 
 			id_list* loop_vars = new id_list;
-			loop_vars->push_back(loop_var);
+			loop_vars->push_back(loop_var.release());
 
-			$$ = new ForStmt(loop_vars, $5);
+			$$ = new ForStmt(loop_vars, {AdoptRef{}, $5});
 			}
 	|
 		TOK_FOR '(' '[' local_id_list ']' TOK_IN expr ')'
 			{
-			$$ = new ForStmt($4, $7);
+			$$ = new ForStmt($4, {AdoptRef{}, $7});
 			}
 	|
 		TOK_FOR '(' TOK_ID ',' TOK_ID TOK_IN expr ')'
@@ -1667,8 +1714,8 @@ for_head:
 
 			// Check for previous definitions of key and
 			// value variables.
-			ID* key_var = lookup_ID($3, module);
-			ID* val_var = lookup_ID($5, module);
+			auto key_var = lookup_ID($3, module);
+			auto val_var = lookup_ID($5, module);
 
 			// Validate previous definitions as needed.
 			if ( key_var )
@@ -1688,9 +1735,9 @@ for_head:
 				val_var = install_ID($5, module, false, false);
 
 			id_list* loop_vars = new id_list;
-			loop_vars->push_back(key_var);
+			loop_vars->push_back(key_var.release());
 
-			$$ = new ForStmt(loop_vars, $7, val_var);
+			$$ = new ForStmt(loop_vars, {AdoptRef{}, $7}, std::move(val_var));
 			}
 	|
 		TOK_FOR '(' '[' local_id_list ']' ',' TOK_ID TOK_IN expr ')'
@@ -1699,7 +1746,7 @@ for_head:
 			const char* module = current_module.c_str();
 
 			// Validate value variable
-			ID* val_var = lookup_ID($7, module);
+			auto val_var = lookup_ID($7, module);
 
 			if ( val_var )
 				{
@@ -1709,7 +1756,7 @@ for_head:
 			else
 				val_var = install_ID($7, module, false, false);
 
-			$$ = new ForStmt($4, $9, val_var);
+			$$ = new ForStmt($4, {AdoptRef{}, $9}, std::move(val_var));
 			}
 	;
 
@@ -1727,8 +1774,8 @@ local_id:
 		TOK_ID
 			{
 			set_location(@1);
+			$$ = lookup_ID($1, current_module.c_str()).release();
 
-			$$ = lookup_ID($1, current_module.c_str());
 			if ( $$ )
 				{
 				if ( $$->IsGlobal() )
@@ -1739,7 +1786,7 @@ local_id:
 			else
 				{
 				$$ = install_ID($1, current_module.c_str(),
-						false, is_export);
+						false, is_export).release();
 				}
 			}
 	;
@@ -1763,8 +1810,9 @@ global_or_event_id:
 		TOK_ID
 			{
 			set_location(@1);
+			$$ = lookup_ID($1, current_module.c_str(), false,
+			               defining_global_ID).release();
 
-			$$ = lookup_ID($1, current_module.c_str(), false, defining_global_ID);
 			if ( $$ )
 				{
 				if ( ! $$->IsGlobal() )
@@ -1789,7 +1837,7 @@ global_or_event_id:
 						current_module.c_str() : 0;
 
 				$$ = install_ID($1, module_name,
-						true, is_export);
+						true, is_export).release();
 				}
 			}
 	;
@@ -1799,7 +1847,7 @@ resolve_id:
 		TOK_ID
 			{
 			set_location(@1);
-			$$ = lookup_ID($1, current_module.c_str());
+			$$ = lookup_ID($1, current_module.c_str()).release();
 
 			if ( ! $$ )
 				reporter->Error("identifier not defined: %s", $1);
@@ -1822,19 +1870,19 @@ opt_no_test_block:
 
 opt_deprecated:
 		TOK_ATTR_DEPRECATED
-			{ $$ = new ConstExpr(new StringVal("")); }
+			{ $$ = new ConstExpr(make_intrusive<StringVal>("")); }
 	|
 		TOK_ATTR_DEPRECATED '=' TOK_CONSTANT
 			{
 			if ( IsString($3->Type()->Tag()) )
-				$$ = new ConstExpr($3);
+				$$ = new ConstExpr({AdoptRef{}, $3});
 			else
 				{
 				ODesc d;
 				$3->Describe(&d);
 				reporter->Error("'&deprecated=%s' must use a string literal",
 				                d.Description());
-				$$ = new ConstExpr(new StringVal(""));
+				$$ = new ConstExpr(make_intrusive<StringVal>(""));
 				}
 			}
 	|

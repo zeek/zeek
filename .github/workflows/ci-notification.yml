@@ -4,12 +4,14 @@ on:
     types: [completed]
 jobs:
   notify:
+    if: github.repository == 'zeek/zeek'
     runs-on: ubuntu-latest
     steps:
       - name: Send CI Email Notification
-        uses: jsiwek/ci-email-action@master
+        uses: zeek/ci-email-action@master
         env:
           CI_APP_NAME: "Cirrus CI"
+          BRANCH_WHITELIST: "master|release/.*"
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USER: ${{ secrets.SMTP_USER }}

@@ -1,0 +1,1 @@
+fatal error in /path/to/zeek/testing/infrastructure/.tmp/language.enum-nonexisting/enum-nonexisting.zeek, line 4: unknown enum identifier "notexisting"

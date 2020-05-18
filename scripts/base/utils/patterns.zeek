@@ -4,7 +4,14 @@ module GLOBAL;
 
 ## Given a pattern as a string with two tildes (~~) contained in it, it will
 ## return a pattern with string set's elements OR'd together where the
-## double-tilde was given (this function only works at or before init time).
+## double-tilde was given.  Examples:
+##
+##   .. sourcecode:: zeek
+##
+##     global r1 = set_to_regex(set("a", "b", "c"), "~~");
+##     # r1 = /^?(a|b|c)$?/
+##     global r2 = set_to_regex(set("a.com", "b.com", "c.com"), "\\.(~~)");
+##     # r2 = /^?(\.(a\.com|b\.com|c\.com))$?/
 ##
 ## ss: a set of strings to OR together.
 ##

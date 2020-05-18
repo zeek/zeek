@@ -4,11 +4,9 @@
 #include "ReaderFrontend.h"
 #include "ReaderBackend.h"
 
-#include "threading/MsgThread.h"
-
 namespace input {
 
-class InitMessage : public threading::InputMessage<ReaderBackend>
+class InitMessage final : public threading::InputMessage<ReaderBackend>
 {
 public:
 	InitMessage(ReaderBackend* backend,
@@ -16,7 +14,7 @@ public:
 		: threading::InputMessage<ReaderBackend>("Init", backend),
 		num_fields(num_fields), fields(fields) { }
 
-	virtual bool Process()
+	bool Process() override
 		{
 		return Object()->Init(num_fields, fields);
 		}
@@ -26,14 +24,14 @@ private:
 	const threading::Field* const* fields;
 };
 
-class UpdateMessage : public threading::InputMessage<ReaderBackend>
+class UpdateMessage final : public threading::InputMessage<ReaderBackend>
 {
 public:
 	UpdateMessage(ReaderBackend* backend)
 		: threading::InputMessage<ReaderBackend>("Update", backend)
 		 { }
 
-	virtual bool Process() { return Object()->Update(); }
+	bool Process() override { return Object()->Update(); }
 };
 
 ReaderFrontend::ReaderFrontend(const ReaderBackend::ReaderInfo& arg_info, EnumVal* type)
@@ -54,7 +52,7 @@ void ReaderFrontend::Stop()
 	if ( backend )
 		{
 		backend->SignalStop();
-		backend = 0; // Thread manager will clean it up once it finishes.
+		backend = nullptr; // Thread manager will clean it up once it finishes.
 		}
 	}
 
@@ -100,4 +98,3 @@ const char* ReaderFrontend::Name() const
 	}
 
 }
-

@@ -5,7 +5,11 @@
 #include "util.h"
 #include "Timer.h"
 #include "Desc.h"
+#include "Net.h"
+#include "NetVar.h"
 #include "broker/Manager.h"
+#include "iosource/Manager.h"
+#include "iosource/PktSrc.h"
 
 // Names of timers in same order than in TimerType.
 const char* TimerNames[] = {
@@ -39,6 +43,7 @@ const char* TimerNames[] = {
 	"TriggerTimer",
 	"ParentProcessIDCheck",
 	"TimerMgrExpireTimer",
+	"ThreadHeartbeat",
 };
 
 const char* timer_type_to_string(TimerType type)
@@ -55,15 +60,23 @@ void Timer::Describe(ODesc* d) const
 
 unsigned int TimerMgr::current_timers[NUM_TIMER_TYPES];
 
+TimerMgr::TimerMgr()
+	{
+	t = 0.0;
+	num_expired = 0;
+	last_advance = last_timestamp = 0;
+
+	if ( iosource_mgr )
+		iosource_mgr->Register(this, true);
+	}
+
 TimerMgr::~TimerMgr()
 	{
-	DBG_LOG(DBG_TM, "deleting timer mgr %p", this);
 	}
 
 int TimerMgr::Advance(double arg_t, int max_expire)
 	{
-	DBG_LOG(DBG_TM, "advancing %stimer mgr %p to %.6f",
-		this == timer_mgr ? "global " : "", this, arg_t);
+	DBG_LOG(DBG_TM, "advancing timer mgr to %.6f", arg_t);
 
 	t = arg_t;
 	last_timestamp = 0;
@@ -74,8 +87,28 @@ int TimerMgr::Advance(double arg_t, int max_expire)
 	return DoAdvance(t, max_expire);
 	}
 
+void TimerMgr::Process()
+	{
+	// If we don't have a source, or the source is closed, or we're reading live (which includes
+	// pseudo-realtime), advance the timer here to the current time since otherwise it won't
+	// move forward and the timers won't fire correctly.
+	iosource::PktSrc* pkt_src = iosource_mgr->GetPktSrc();
+	if ( ! pkt_src || ! pkt_src->IsOpen() || reading_live || net_is_processing_suspended() )
+		net_update_time(current_time());
 
-PQ_TimerMgr::PQ_TimerMgr(const Tag& tag) : TimerMgr(tag)
+	// Just advance the timer manager based on the current network time. This won't actually
+	// change the time, but will dispatch any timers that need dispatching.
+	current_dispatched += Advance(network_time, max_timer_expires - current_dispatched);
+	}
+
+void TimerMgr::InitPostScript()
+	{
+	if ( iosource_mgr )
+		iosource_mgr->Register(this, true);
+	}
+
+
+PQ_TimerMgr::PQ_TimerMgr() : TimerMgr()
 	{
 	q = new PriorityQueue;
 	}
@@ -87,8 +120,8 @@ PQ_TimerMgr::~PQ_TimerMgr()
 
 void PQ_TimerMgr::Add(Timer* timer)
 	{
-	DBG_LOG(DBG_TM, "Adding timer %s to TimeMgr %p",
-			timer_type_to_string(timer->Type()), this);
+	DBG_LOG(DBG_TM, "Adding timer %s (%p) at %.6f",
+	        timer_type_to_string(timer->Type()), timer, timer->Time());
 
 	// Add the timer even if it's already expired - that way, if
 	// multiple already-added timers are added, they'll still
@@ -104,9 +137,9 @@ void PQ_TimerMgr::Expire()
 	Timer* timer;
 	while ( (timer = Remove()) )
 		{
-		DBG_LOG(DBG_TM, "Dispatching timer %s in TimeMgr %p",
-				timer_type_to_string(timer->Type()), this);
-		timer->Dispatch(t, 1);
+		DBG_LOG(DBG_TM, "Dispatching timer %s (%p)",
+		        timer_type_to_string(timer->Type()), timer);
+		timer->Dispatch(t, true);
 		--current_timers[timer->Type()];
 		delete timer;
 		}
@@ -126,9 +159,9 @@ int PQ_TimerMgr::DoAdvance(double new_t, int max_expire)
 		// whether we should delete it too.
 		(void) Remove();
 
-		DBG_LOG(DBG_TM, "Dispatching timer %s in TimeMgr %p",
-				timer_type_to_string(timer->Type()), this);
-		timer->Dispatch(new_t, 0);
+		DBG_LOG(DBG_TM, "Dispatching timer %s (%p)",
+		        timer_type_to_string(timer->Type()), timer);
+		timer->Dispatch(new_t, false);
 		delete timer;
 
 		timer = Top();
@@ -146,85 +179,11 @@ void PQ_TimerMgr::Remove(Timer* timer)
 	delete timer;
 	}
 
-CQ_TimerMgr::CQ_TimerMgr(const Tag& tag) : TimerMgr(tag)
+double PQ_TimerMgr::GetNextTimeout()
 	{
-	cq = cq_init(60.0, 1.0);
-	if ( ! cq )
-		reporter->InternalError("could not initialize calendar queue");
-	}
+	Timer* top = Top();
+	if ( top )
+		return std::max(0.0, top->Time() - ::network_time);
 
-CQ_TimerMgr::~CQ_TimerMgr()
-	{
-	cq_destroy(cq);
-	}
-
-void CQ_TimerMgr::Add(Timer* timer)
-	{
-	DBG_LOG(DBG_TM, "Adding timer %s to TimeMgr %p",
-			timer_type_to_string(timer->Type()), this);
-
-	// Add the timer even if it's already expired - that way, if
-	// multiple already-added timers are added, they'll still
-	// execute in sorted order.
-	double t = timer->Time();
-
-	if ( t <= 0.0 )
-		// Illegal time, which cq_enqueue won't like.  For our
-		// purposes, just treat it as an old time that's already
-		// expired.
-		t = network_time;
-
-	if ( cq_enqueue(cq, t, timer) < 0 )
-		reporter->InternalError("problem queueing timer");
-
-	++current_timers[timer->Type()];
-	}
-
-void CQ_TimerMgr::Expire()
-	{
-	double huge_t = 1e20;	// larger than any Unix timestamp
-	for ( Timer* timer = (Timer*) cq_dequeue(cq, huge_t);
-	      timer; timer = (Timer*) cq_dequeue(cq, huge_t) )
-		{
-		DBG_LOG(DBG_TM, "Dispatching timer %s in TimeMgr %p",
-				timer_type_to_string(timer->Type()), this);
-		timer->Dispatch(huge_t, 1);
-		--current_timers[timer->Type()];
-		delete timer;
-		}
-	}
-
-int CQ_TimerMgr::DoAdvance(double new_t, int max_expire)
-	{
-	Timer* timer;
-	while ( (num_expired < max_expire || max_expire == 0) &&
-		(timer = (Timer*) cq_dequeue(cq, new_t)) )
-		{
-		last_timestamp = timer->Time();
-		DBG_LOG(DBG_TM, "Dispatching timer %s in TimeMgr %p",
-				timer_type_to_string(timer->Type()), this);
-		timer->Dispatch(new_t, 0);
-		--current_timers[timer->Type()];
-		delete timer;
-		++num_expired;
-		}
-
-	return num_expired;
-	}
-
-unsigned int CQ_TimerMgr::MemoryUsage() const
-	{
-	// FIXME.
-	return 0;
-	}
-
-void CQ_TimerMgr::Remove(Timer* timer)
-	{
-	// This may fail if we cancel a timer which has already been removed.
-	// That's ok, but then we mustn't delete the timer.
-	if ( cq_remove(cq, timer->Time(), timer) )
-		{
-		--current_timers[timer->Type()];
-		delete timer;
-		}
+	return -1;
 	}

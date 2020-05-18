@@ -6,25 +6,26 @@
 #include <set>
 #include <map>
 
-#include "Dict.h"
+#include "Component.h"
 #include "Net.h"
-#include "Conn.h"
-#include "Val.h"
-#include "Analyzer.h"
-#include "Timer.h"
-#include "EventHandler.h"
 #include "RuleMatcher.h"
 
-#include "File.h"
-#include "FileTimer.h"
-#include "Component.h"
-#include "Tag.h"
 #include "plugin/ComponentManager.h"
+
 #include "analyzer/Tag.h"
 
-#include "file_analysis/file_analysis.bif.h"
+class TableVal;
+class VectorVal;
+
+namespace analyzer {
+class Analyzer;
+class Tag;
+}
 
 namespace file_analysis {
+
+class File;
+class Tag;
 
 /**
  * Main entry point for interacting with file analysis.
@@ -71,7 +72,7 @@ public:
 	 * a single file.
 	 * @return a prettified MD5 hash of \a handle, truncated to *bits_per_uid* bits.
 	 */
-	string HashHandle(const string& handle) const;
+	std::string HashHandle(const std::string& handle) const;
 
 	/**
 	 * Take in a unique file handle string to identify next piece of
@@ -79,7 +80,7 @@ public:
 	 * @param handle a unique string (may contain NULs) which identifies
 	 * a single file.
 	 */
-	void SetHandle(const string& handle);
+	void SetHandle(const std::string& handle);
 
 	/**
 	 * Pass in non-sequential file data.
@@ -106,7 +107,7 @@ public:
 	 *         indicates the associate file is not going to be analyzed further.
 	 */
 	std::string DataIn(const u_char* data, uint64_t len, uint64_t offset,
-	                   analyzer::Tag tag, Connection* conn, bool is_orig,
+	                   const analyzer::Tag& tag, Connection* conn, bool is_orig,
 	                   const std::string& precomputed_file_id = "",
 	                   const std::string& mime_type = "");
 
@@ -132,7 +133,7 @@ public:
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associated file is not going to be analyzed further.
 	 */
-	std::string DataIn(const u_char* data, uint64_t len, analyzer::Tag tag,
+	std::string DataIn(const u_char* data, uint64_t len, const analyzer::Tag& tag,
 	                   Connection* conn, bool is_orig,
 	                   const std::string& precomputed_file_id = "",
 	                   const std::string& mime_type = "");
@@ -146,8 +147,8 @@ public:
 	 *        in human-readable form where the file input is coming from (e.g.
 	 *        a local file path).
 	 */
-	void DataIn(const u_char* data, uint64_t len, const string& file_id,
-	            const string& source);
+	void DataIn(const u_char* data, uint64_t len, const std::string& file_id,
+	            const std::string& source);
 
 	/**
 	 * Signal the end of file data regardless of which direction it is being
@@ -155,7 +156,7 @@ public:
 	 * @param tag network protocol over which the file data is transferred.
 	 * @param conn network connection over which the file data is transferred.
 	 */
-	void EndOfFile(analyzer::Tag tag, Connection* conn);
+	void EndOfFile(const analyzer::Tag& tag, Connection* conn);
 
 	/**
 	 * Signal the end of file data being transferred over a connection in
@@ -163,13 +164,13 @@ public:
 	 * @param tag network protocol over which the file data is transferred.
 	 * @param conn network connection over which the file data is transferred.
 	 */
-	void EndOfFile(analyzer::Tag tag, Connection* conn, bool is_orig);
+	void EndOfFile(const analyzer::Tag& tag, Connection* conn, bool is_orig);
 
 	/**
 	 * Signal the end of file data being transferred using the file identifier.
 	 * @param file_id the file identifier/hash.
 	 */
-	void EndOfFile(const string& file_id);
+	void EndOfFile(const std::string& file_id);
 
 	/**
 	 * Signal a gap in the file data stream.
@@ -187,7 +188,7 @@ public:
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associate file is not going to be analyzed further.
 	 */
-	std::string Gap(uint64_t offset, uint64_t len, analyzer::Tag tag,
+	std::string Gap(uint64_t offset, uint64_t len, const analyzer::Tag& tag,
 	                Connection* conn, bool is_orig,
 	                const std::string& precomputed_file_id = "");
 
@@ -206,7 +207,7 @@ public:
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associate file is not going to be analyzed further.
 	 */
-	std::string SetSize(uint64_t size, analyzer::Tag tag, Connection* conn,
+	std::string SetSize(uint64_t size, const analyzer::Tag& tag, Connection* conn,
 	                    bool is_orig, const std::string& precomputed_file_id = "");
 
 	/**
@@ -215,7 +216,7 @@ public:
 	 * @param file_id the file identifier/hash.
 	 * @return false if file identifier did not map to anything, else true.
 	 */
-	bool IgnoreFile(const string& file_id);
+	bool IgnoreFile(const std::string& file_id);
 
 	/**
 	 * Set's an inactivity threshold for the file.
@@ -225,22 +226,22 @@ public:
 	 *        to be considered stale, timed out, and then resource reclaimed.
 	 * @return false if file identifier did not map to anything, else true.
 	 */
-	bool SetTimeoutInterval(const string& file_id, double interval) const;
+	bool SetTimeoutInterval(const std::string& file_id, double interval) const;
 
 	/**
 	 * Enable the reassembler for a file.
 	 */
-	bool EnableReassembly(const string& file_id);
-	
+	bool EnableReassembly(const std::string& file_id);
+
 	/**
 	 * Disable the reassembler for a file.
 	 */
-	bool DisableReassembly(const string& file_id);
+	bool DisableReassembly(const std::string& file_id);
 
 	/**
 	 * Set the reassembly for a file in bytes.
 	 */
-	bool SetReassemblyBuffer(const string& file_id, uint64_t max);
+	bool SetReassemblyBuffer(const std::string& file_id, uint64_t max);
 
 	/**
 	 * Sets a limit on the maximum size allowed for extracting the file
@@ -252,7 +253,7 @@ public:
 	 * @return false if file identifier and analyzer did not map to anything,
 	 *         else true.
 	 */
-	bool SetExtractionLimit(const string& file_id, RecordVal* args,
+	bool SetExtractionLimit(const std::string& file_id, RecordVal* args,
 	                        uint64_t n) const;
 
 	/**
@@ -261,7 +262,7 @@ public:
 	 * @return the File object mapped to \a file_id, or a null pointer if no
 	 *         mapping exists.
 	 */
-	File* LookupFile(const string& file_id) const;
+	File* LookupFile(const std::string& file_id) const;
 
 	/**
 	 * Queue attachment of an analzer to the file identifier.  Multiple
@@ -272,7 +273,7 @@ public:
 	 * @param args a \c AnalyzerArgs value which describes a file analyzer.
 	 * @return false if the analyzer failed to be instantiated, else true.
 	 */
-	bool AddAnalyzer(const string& file_id, file_analysis::Tag tag,
+	bool AddAnalyzer(const std::string& file_id, const file_analysis::Tag& tag,
 	                 RecordVal* args) const;
 
 	/**
@@ -282,7 +283,7 @@ public:
 	 * @param args a \c AnalyzerArgs value which describes a file analyzer.
 	 * @return true if the analyzer is active at the time of call, else false.
 	 */
-	bool RemoveAnalyzer(const string& file_id, file_analysis::Tag tag,
+	bool RemoveAnalyzer(const std::string& file_id, const file_analysis::Tag& tag,
 	                    RecordVal* args) const;
 
 	/**
@@ -290,7 +291,7 @@ public:
 	 * @param file_id the file identifier/hash.
 	 * @return whether the file mapped to \a file_id is being ignored.
 	 */
-	bool IsIgnored(const string& file_id);
+	bool IsIgnored(const std::string& file_id);
 
 	/**
 	 * Instantiates a new file analyzer instance for the file.
@@ -299,7 +300,7 @@ public:
 	 * @param f The file analzer is to be associated with.
 	 * @return The new analyzer instance or null if tag is invalid.
 	 */
-	Analyzer* InstantiateAnalyzer(Tag tag, RecordVal* args, File* f) const;
+	Analyzer* InstantiateAnalyzer(const Tag& tag, RecordVal* args, File* f) const;
 
 	/**
 	 * Returns a set of all matching MIME magic signatures for a given
@@ -354,10 +355,10 @@ protected:
 	 *         exist, the activity time is refreshed along with any
 	 *         connection-related fields.
 	 */
-	File* GetFile(const string& file_id, Connection* conn = 0,
-	              analyzer::Tag tag = analyzer::Tag::Error,
+	File* GetFile(const std::string& file_id, Connection* conn = nullptr,
+	              const analyzer::Tag& tag = analyzer::Tag::Error,
 	              bool is_orig = false, bool update_conn = true,
-	              const char* source_name = 0);
+	              const char* source_name = nullptr);
 
 	/**
 	 * Evaluate timeout policy for a file and remove the File object mapped to
@@ -366,14 +367,14 @@ protected:
 	 * @param is_termination whether the Manager (and probably Bro) is in a
 	 *        terminating state.  If true, then the timeout cannot be postponed.
 	 */
-	void Timeout(const string& file_id, bool is_terminating = ::terminating);
+	void Timeout(const std::string& file_id, bool is_terminating = ::terminating);
 
 	/**
 	 * Immediately remove file_analysis::File object associated with \a file_id.
 	 * @param file_id the file identifier/hash.
 	 * @return false if file id string did not map to anything, else true.
 	 */
-	bool RemoveFile(const string& file_id);
+	bool RemoveFile(const std::string& file_id);
 
 	/**
 	 * Sets #current_file_id to a hash of a unique file handle string based on
@@ -386,7 +387,7 @@ protected:
 	 * @return #current_file_id, which is a hash of a unique file handle string
 	 *         set by a \c get_file_handle event handler.
 	 */
-	std::string GetFileID(analyzer::Tag tag, Connection* c, bool is_orig);
+	std::string GetFileID(const analyzer::Tag& tag, Connection* c, bool is_orig);
 
 	/**
 	 * Check if analysis is available for files transferred over a given
@@ -396,23 +397,22 @@ protected:
 	 * @return whether file analysis is disabled for the analyzer given by
 	 *         \a tag.
 	 */
-	static bool IsDisabled(analyzer::Tag tag);
+	static bool IsDisabled(const analyzer::Tag& tag);
 
 private:
-	typedef set<Tag> TagSet;
-	typedef map<string, TagSet*> MIMEMap;
+	typedef std::set<Tag> TagSet;
+	typedef std::map<std::string, TagSet*> MIMEMap;
 
-	TagSet* LookupMIMEType(const string& mtype, bool add_if_not_found);
+	TagSet* LookupMIMEType(const std::string& mtype, bool add_if_not_found);
 
-	std::map<string, File*> id_map;  /**< Map file ID to file_analysis::File records. */
-	std::set<string> ignored; /**< Ignored files.  Will be finally removed on EOF. */
-	string current_file_id;	/**< Hash of what get_file_handle event sets. */
+	std::map<std::string, File*> id_map;  /**< Map file ID to file_analysis::File records. */
+	std::set<std::string> ignored; /**< Ignored files.  Will be finally removed on EOF. */
+	std::string current_file_id;	/**< Hash of what get_file_handle event sets. */
 	RuleFileMagicState* magic_state;	/**< File magic signature match state. */
 	MIMEMap mime_types;/**< Mapping of MIME types to analyzers. */
 
-	static TableVal* disabled;	/**< Table of disabled analyzers. */
-	static TableType* tag_set_type;	/**< Type for set[tag]. */
-	static string salt; /**< A salt added to file handles before hashing. */
+	inline static TableVal* disabled = nullptr;	/**< Table of disabled analyzers. */
+	inline static TableType* tag_set_type = nullptr;	/**< Type for set[tag]. */
 
 	size_t cumulative_files;
 	size_t max_files;
@@ -422,7 +422,7 @@ private:
  * Returns a script-layer value corresponding to the \c mime_matches type.
  * @param m The MIME match information with which to populate the value.
  */
-VectorVal* GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m);
+IntrusivePtr<VectorVal> GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m);
 
 } // namespace file_analysis
 

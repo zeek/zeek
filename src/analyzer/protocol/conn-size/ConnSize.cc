@@ -5,6 +5,8 @@
 
 #include "ConnSize.h"
 #include "analyzer/protocol/tcp/TCP.h"
+#include "IP.h"
+#include "Reporter.h"
 
 #include "events.bif.h"
 
@@ -48,11 +50,11 @@ void ConnSize_Analyzer::ThresholdEvent(EventHandlerPtr f, uint64_t threshold, bo
 	if ( ! f )
 		return;
 
-	ConnectionEventFast(f, {
-		BuildConnVal(),
-		val_mgr->GetCount(threshold),
-		val_mgr->GetBool(is_orig),
-	});
+	EnqueueConnEvent(f,
+		ConnVal(),
+		val_mgr->Count(threshold),
+		val_mgr->Bool(is_orig)
+	);
 	}
 
 void ConnSize_Analyzer::CheckThresholds(bool is_orig)
@@ -88,13 +90,13 @@ void ConnSize_Analyzer::CheckThresholds(bool is_orig)
 
 	if ( duration_thresh != 0 )
 		{
-		if ( duration_thresh > ( network_time - start_time ) && conn_duration_threshold_crossed )
+		if ( ( network_time - start_time ) > duration_thresh && conn_duration_threshold_crossed )
 			{
-			ConnectionEventFast(conn_duration_threshold_crossed, {
-					BuildConnVal(),
-					new Val(duration_thresh, TYPE_INTERVAL),
-					val_mgr->GetBool(is_orig),
-			});
+			EnqueueConnEvent(conn_duration_threshold_crossed,
+					ConnVal(),
+					make_intrusive<Val>(duration_thresh, TYPE_INTERVAL),
+					val_mgr->Bool(is_orig)
+			);
 			duration_thresh = 0;
 			}
 		}
@@ -181,10 +183,10 @@ void ConnSize_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	if ( bytesidx < 0 )
 		reporter->InternalError("'endpoint' record missing 'num_bytes_ip' field");
 
-	orig_endp->Assign(pktidx, val_mgr->GetCount(orig_pkts));
-	orig_endp->Assign(bytesidx, val_mgr->GetCount(orig_bytes));
-	resp_endp->Assign(pktidx, val_mgr->GetCount(resp_pkts));
-	resp_endp->Assign(bytesidx, val_mgr->GetCount(resp_bytes));
+	orig_endp->Assign(pktidx, val_mgr->Count(orig_pkts));
+	orig_endp->Assign(bytesidx, val_mgr->Count(orig_bytes));
+	resp_endp->Assign(pktidx, val_mgr->Count(resp_pkts));
+	resp_endp->Assign(bytesidx, val_mgr->Count(resp_bytes));
 
 	Analyzer::UpdateConnVal(conn_val);
 	}

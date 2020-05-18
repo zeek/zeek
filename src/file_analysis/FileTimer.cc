@@ -1,18 +1,19 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Manager.h"
+#include "FileTimer.h"
 #include "File.h"
+#include "Manager.h"
 
 using namespace file_analysis;
 
-FileTimer::FileTimer(double t, const string& id, double interval)
+FileTimer::FileTimer(double t, const std::string& id, double interval)
     : Timer(t + interval, TIMER_FILE_ANALYSIS_INACTIVITY), file_id(id)
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "New %f second timeout timer for %s",
 	        interval, file_id.c_str());
 	}
 
-void FileTimer::Dispatch(double t, int is_expire)
+void FileTimer::Dispatch(double t, bool is_expire)
 	{
 	File* file = file_mgr->LookupFile(file_id);
 

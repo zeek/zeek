@@ -14,6 +14,7 @@
 
 using namespace input::reader;
 using namespace threading;
+using namespace std;
 using threading::Value;
 using threading::Field;
 
@@ -50,7 +51,6 @@ Ascii::Ascii(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	{
 	mtime = 0;
 	ino = 0;
-	suppress_warnings = false;
 	fail_on_file_problem = false;
 	fail_on_invalid_lines = false;
 	}
@@ -65,7 +65,7 @@ void Ascii::DoClose()
 
 bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fields)
 	{
-	suppress_warnings = false;
+	StopWarningSuppression();
 
 	separator.assign( (const char*) BifConst::InputAscii::separator->Bytes(),
 	                 BifConst::InputAscii::separator->Len());
@@ -119,21 +119,6 @@ bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* f
 	return DoUpdate();
 	}
 
-void Ascii::FailWarn(bool is_error, const char *msg, bool suppress_future)
-	{
-	if ( is_error )
-		Error(msg);
-	else
-		{
-		// suppress error message when we are already in error mode.
-		// There is no reason to repeat it every second.
-		if ( ! suppress_warnings )
-			Warning(msg);
-
-		if ( suppress_future )
-			suppress_warnings = true;
-		}
-	}
 
 bool Ascii::OpenFile()
 	{
@@ -146,7 +131,7 @@ bool Ascii::OpenFile()
 	if ( fname.front() != '/' && ! path_prefix.empty() )
 		{
 		string path = path_prefix;
-		std::size_t last = path.find_last_not_of("/");
+		std::size_t last = path.find_last_not_of('/');
 
 		if ( last == string::npos ) // Nothing but slashes -- weird but ok...
 			path = "/";
@@ -173,7 +158,7 @@ bool Ascii::OpenFile()
 		return ! fail_on_file_problem;
 		}
 
-	suppress_warnings = false;
+	StopWarningSuppression();
 	return true;
 	}
 
@@ -309,7 +294,7 @@ bool Ascii::DoUpdate()
 			// is to suppress an extra warning that we'd otherwise get on the initial
 			// inode assignment.
 			if ( ino != 0 )
-				suppress_warnings = false;
+				StopWarningSuppression();
 
 			mtime = sb.st_mtime;
 			ino = sb.st_ino;
@@ -412,7 +397,7 @@ bool Ascii::DoUpdate()
 
 			Value* val = formatter->ParseValue(stringfields[(*fit).position], (*fit).name, (*fit).type, (*fit).subtype);
 
-			if ( val == 0 )
+			if ( ! val )
 				{
 				Warning(Fmt("Could not convert line '%s' of %s to Val. Ignoring line.", line.c_str(), fname.c_str()));
 				error = true;
@@ -484,4 +469,3 @@ bool Ascii::DoHeartbeat(double network_time, double current_time)
 
 	return true;
 	}
-

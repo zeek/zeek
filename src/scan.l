@@ -15,10 +15,13 @@
 #include "input.h"
 #include "util.h"
 #include "Scope.h"
+#include "BroString.h"
 #include "DNS_Mgr.h"
 #include "Expr.h"
 #include "Func.h"
 #include "Stmt.h"
+#include "IntrusivePtr.h"
+#include "Val.h"
 #include "Var.h"
 #include "Debug.h"
 #include "PolicyFile.h"
@@ -27,11 +30,19 @@
 #include "RE.h"
 #include "Net.h"
 #include "Traverse.h"
+#include "module_util.h"
 
 #include "analyzer/Analyzer.h"
 #include "zeekygen/Manager.h"
 
 #include "plugin/Manager.h"
+
+namespace {
+struct ZeekINode {
+	dev_t dev;
+	ino_t ino;
+};
+}
 
 extern YYLTYPE yylloc;	// holds start line and column of token
 extern EnumType* cur_enum_type;
@@ -66,10 +77,10 @@ static void deprecated_attr(const char* attr)
 	reporter->Warning("Use of deprecated attribute: %s", attr);
 	}
 
-static string find_relative_file(const string& filename, const string& ext)
+static std::string find_relative_file(const std::string& filename, const std::string& ext)
 	{
 	if ( filename.empty() )
-		return string();
+		return std::string();
 
 	if ( filename[0] == '.' )
 		return find_file(filename, SafeDirname(::filename).result, ext);
@@ -77,10 +88,10 @@ static string find_relative_file(const string& filename, const string& ext)
 		return find_file(filename, bro_path(), ext);
 	}
 
-static string find_relative_script_file(const string& filename)
+static std::string find_relative_script_file(const std::string& filename)
 	{
 	if ( filename.empty() )
-		return string();
+		return std::string();
 
 	if ( filename[0] == '.' )
 		return find_script_file(filename, SafeDirname(::filename).result);
@@ -88,7 +99,7 @@ static string find_relative_script_file(const string& filename)
 		return find_script_file(filename, bro_path());
 	}
 
-static ino_t get_inode_num(FILE* f, const string& path)
+static ZeekINode get_inode(FILE* f, const std::string& path)
 	{
 	struct stat b;
 
@@ -96,29 +107,29 @@ static ino_t get_inode_num(FILE* f, const string& path)
 		reporter->FatalError("fstat of %s failed: %s\n", path.c_str(),
 		                     strerror(errno));
 
-	return b.st_ino;
+	return {b.st_dev, b.st_ino};
 	}
 
-static ino_t get_inode_num(const string& path)
+static ZeekINode get_inode(const std::string& path)
 	{
 	FILE* f = open_file(path);
 
 	if ( ! f )
 		reporter->FatalError("failed to open %s\n", path.c_str());
 
-	ino_t inum = get_inode_num(f, path);
+	auto inode = get_inode(f, path);
 	fclose(f);
 
-	return inum;
+	return inode;
 	}
 
 class FileInfo {
 public:
-	FileInfo(string restore_module = "");
+	FileInfo(std::string restore_module = "");
 	~FileInfo();
 
 	YY_BUFFER_STATE buffer_state;
-	string restore_module;
+	std::string restore_module;
 	const char* name;
 	int line;
 	int level;
@@ -165,7 +176,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 	}
 
 ##<.* {
-	string hint(cur_enum_type && last_id_tok ?
+	std::string hint(cur_enum_type && last_id_tok ?
 	            make_full_var_name(current_module.c_str(), last_id_tok) : "");
 
 	zeekygen_mgr->PostComment(yytext + 3, hint);
@@ -195,7 +206,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 
 {IP6}{OWS}"/"{OWS}{D}	{
 	int len = 0;
-	string ip = extract_ip_and_len(yytext, &len);
+	std::string ip = extract_ip_and_len(yytext, &len);
 	RET_CONST(new SubNetVal(IPPrefix(IPAddr(ip), len, true)))
 }
 
@@ -204,7 +215,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 
 ({D}"."){3}{D}{OWS}"/"{OWS}{D}	{
 	int len = 0;
-	string ip = extract_ip_and_len(yytext, &len);
+	std::string ip = extract_ip_and_len(yytext, &len);
 	RET_CONST(new SubNetVal(IPPrefix(IPAddr(ip), len)))
 }
 
@@ -298,8 +309,7 @@ when	return TOK_WHEN;
 &read_expire	return TOK_ATTR_EXPIRE_READ;
 &redef		return TOK_ATTR_REDEF;
 &write_expire	return TOK_ATTR_EXPIRE_WRITE;
-&on_change  return TOK_ATTR_ON_CHANGE;
-&broker_store	return TOK_ATTR_BROKER_STORE;
+&on_change	return TOK_ATTR_ON_CHANGE;
 
 @deprecated.* {
 	auto num_files = file_stack.length();
@@ -322,7 +332,7 @@ when	return TOK_WHEN;
 @DEBUG	return TOK_DEBUG;	// marks input for debugger
 
 @DIR	{
-	string rval = SafeDirname(::filename).result;
+	std::string rval = SafeDirname(::filename).result;
 
 	if ( ! rval.empty() && rval[0] == '.' )
 		{
@@ -331,7 +341,7 @@ when	return TOK_WHEN;
 		if ( ! getcwd(path, MAXPATHLEN) )
 			reporter->InternalError("getcwd failed: %s", strerror(errno));
 		else
-			rval = string(path) + "/" + rval;
+			rval = std::string(path) + "/" + rval;
 		}
 
 	RET_CONST(new StringVal(rval.c_str()));
@@ -343,15 +353,15 @@ when	return TOK_WHEN;
 
 @load{WS}{FILE}	{
 	const char* new_file = skip_whitespace(yytext + 5);	// Skip "@load".
-	string loader = ::filename;  // load_files may change ::filename, save copy
-	string loading = find_relative_script_file(new_file);
+	std::string loader = ::filename;  // load_files may change ::filename, save copy
+	std::string loading = find_relative_script_file(new_file);
 	(void) load_files(new_file);
 	zeekygen_mgr->ScriptDependency(loader, loading);
 	}
 
 @load-sigs{WS}{FILE} {
 	const char* file = skip_whitespace(yytext + 10);
-	string path = find_relative_file(file, ".sig");
+	std::string path = find_relative_file(file, ".sig");
 	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(plugin::Plugin::SIGNATURES, file, path), -1);
 
 	switch ( rc ) {
@@ -411,14 +421,15 @@ when	return TOK_WHEN;
 @unload{WS}{FILE}	{
 	// Skip "@unload".
 	const char* file = skip_whitespace(yytext + 7);
-	string path = find_relative_script_file(file);
+	std::string path = find_relative_script_file(file);
 
 	if ( path.empty() )
 		reporter->Error("failed find file associated with @unload %s", file);
 	else
 		{
 		// All we have to do is pretend we've already scanned it.
-		ScannedFile sf(get_inode_num(path), file_stack.length(), path, true);
+		auto i = get_inode(path);
+		ScannedFile sf(i.dev, i.ino, file_stack.length(), path, true);
 		files_scanned.push_back(sf);
 		}
 	}
@@ -455,8 +466,8 @@ when	return TOK_WHEN;
 <IGNORE>[^@\n]+	/* eat */
 <IGNORE>.	/* eat */
 
-T	RET_CONST(val_mgr->GetTrue())
-F	RET_CONST(val_mgr->GetFalse())
+T	RET_CONST(val_mgr->True()->Ref())
+F	RET_CONST(val_mgr->False()->Ref())
 
 {ID}	{
 	yylval.str = copy_string(yytext);
@@ -465,7 +476,7 @@ F	RET_CONST(val_mgr->GetFalse())
 	}
 
 {D}		{
-		RET_CONST(val_mgr->GetCount(static_cast<bro_uint_t>(strtoull(yytext, (char**) NULL, 10))))
+		RET_CONST(val_mgr->Count(static_cast<bro_uint_t>(strtoull(yytext, (char**) NULL, 10))).release())
 		}
 {FLOAT}		RET_CONST(new Val(atof(yytext), TYPE_DOUBLE))
 
@@ -476,7 +487,7 @@ F	RET_CONST(val_mgr->GetFalse())
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(val_mgr->GetPort(p, TRANSPORT_TCP))
+		RET_CONST(val_mgr->Port(p, TRANSPORT_TCP)->Ref())
 		}
 {D}"/udp"	{
 		uint32_t p = atoi(yytext);
@@ -485,7 +496,7 @@ F	RET_CONST(val_mgr->GetFalse())
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(val_mgr->GetPort(p, TRANSPORT_UDP))
+		RET_CONST(val_mgr->Port(p, TRANSPORT_UDP)->Ref())
 		}
 {D}"/icmp"	{
 		uint32_t p = atoi(yytext);
@@ -494,7 +505,7 @@ F	RET_CONST(val_mgr->GetFalse())
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(val_mgr->GetPort(p, TRANSPORT_ICMP))
+		RET_CONST(val_mgr->Port(p, TRANSPORT_ICMP)->Ref())
 		}
 {D}"/unknown"	{
 		uint32_t p = atoi(yytext);
@@ -503,7 +514,7 @@ F	RET_CONST(val_mgr->GetFalse())
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(val_mgr->GetPort(p, TRANSPORT_UNKNOWN))
+		RET_CONST(val_mgr->Port(p, TRANSPORT_UNKNOWN)->Ref())
 		}
 
 {FLOAT}{OWS}day(s?)	RET_CONST(new IntervalVal(atof(yytext),Days))
@@ -513,9 +524,9 @@ F	RET_CONST(val_mgr->GetFalse())
 {FLOAT}{OWS}msec(s?)	RET_CONST(new IntervalVal(atof(yytext),Milliseconds))
 {FLOAT}{OWS}usec(s?)	RET_CONST(new IntervalVal(atof(yytext),Microseconds))
 
-"0x"{HEX}+	RET_CONST(val_mgr->GetCount(static_cast<bro_uint_t>(strtoull(yytext, 0, 16))))
+"0x"{HEX}+	RET_CONST(val_mgr->Count(static_cast<bro_uint_t>(strtoull(yytext, 0, 16))).release())
 
-{H}("."{H})+		RET_CONST(dns_mgr->LookupHost(yytext))
+{H}("."{H})+		RET_CONST(dns_mgr->LookupHost(yytext).release())
 
 \"([^\\\n\"]|{ESCSEQ})*\"	{
 	const char* text = yytext;
@@ -585,26 +596,23 @@ YYLTYPE GetCurrentLocation()
 	return currloc;
 	}
 
-
-static bool already_scanned(ino_t i)
+static bool already_scanned(ZeekINode in)
 	{
-	list<ScannedFile>::const_iterator it;
-
-	for ( it = files_scanned.begin(); it != files_scanned.end(); ++it )
-		if ( it->inode == i )
+	for ( const auto& it : files_scanned )
+		if ( it.dev == in.dev && it.inode == in.ino )
 			return true;
 
 	return false;
 	}
 
-static bool already_scanned(const string& path)
+static bool already_scanned(const std::string& path)
 	{
-	return already_scanned(get_inode_num(path));
+	return already_scanned(get_inode(path));
 	}
 
 static int load_files(const char* orig_file)
 	{
-	string file_path = find_relative_script_file(orig_file);
+	std::string file_path = find_relative_script_file(orig_file);
 	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(plugin::Plugin::SCRIPT, orig_file, file_path), -1);
 
 	if ( rc == 1 )
@@ -654,7 +662,7 @@ static int load_files(const char* orig_file)
 			reporter->FatalError("can't open %s", file_path.c_str());
 		}
 
-	ino_t i = get_inode_num(f, file_path);
+	auto i = get_inode(f, file_path);
 
 	if ( already_scanned(i) )
 		{
@@ -664,7 +672,7 @@ static int load_files(const char* orig_file)
 		return 0;
 		}
 
-	ScannedFile sf(i, file_stack.length(), file_path);
+	ScannedFile sf(i.dev, i.ino, file_stack.length(), file_path);
 	files_scanned.push_back(sf);
 
 	if ( g_policy_debug && ! file_path.empty() )
@@ -739,10 +747,10 @@ void do_atif(Expr* expr)
 
 	LocalNameFinder cb;
 	expr->Traverse(&cb);
-	Val* val = 0;
+	IntrusivePtr<Val> val;
 
 	if ( cb.local_names.empty() )
-		val = expr->Eval(0);
+		val = expr->Eval(nullptr);
 	else
 		{
 		for ( size_t i = 0; i < cb.local_names.size(); ++i )
@@ -766,30 +774,26 @@ void do_atifdef(const char* id)
 	{
 	++current_depth;
 
-	ID* i;
+	auto i = lookup_ID(id, current_module.c_str());
 
-	if ( ! (i = lookup_ID(id, current_module.c_str())) )
+	if ( ! i )
 		{
 		if_stack.push_back(current_depth);
 		BEGIN(IGNORE);
 		}
-
-	Unref(i);
 	}
 
 void do_atifndef(const char *id)
 	{
 	++current_depth;
 
-	ID* i;
+	auto i = lookup_ID(id, current_module.c_str());
 
-	if ( (i = lookup_ID(id, current_module.c_str())) )
+	if ( i )
 		{
 		if_stack.push_back(current_depth);
 		BEGIN(IGNORE);
 		}
-
-	Unref(i);
 	}
 
 void do_atelse()
@@ -949,9 +953,9 @@ int yywrap()
 			if ( ! zeek_script_prefixes[i][0] )
 				continue;
 
-			string canon = without_bropath_component(it->name);
-			string flat = flatten_script_name(canon, zeek_script_prefixes[i]);
-			string path = find_relative_script_file(flat);
+			std::string canon = without_bropath_component(it->name);
+			std::string flat = flatten_script_name(canon, zeek_script_prefixes[i]);
+			std::string path = find_relative_script_file(flat);
 
 			if ( ! path.empty() )
 				{
@@ -974,7 +978,7 @@ int yywrap()
 	// Add redef statements for any X=Y command line parameters.
 	if ( params.size() > 0 )
 		{
-		string policy;
+		std::string policy;
 
 		for ( unsigned int i = 0; i < params.size(); ++i )
 			{
@@ -995,13 +999,13 @@ int yywrap()
 			// that just means quoting the value if it's a
 			// string type.)  If no type is found, the value
 			// is left unchanged.
-			string opt_quote;	// no optional quote by default
+			std::string opt_quote;	// no optional quote by default
 			Val* v = opt_internal_val(param);
 
 			if ( v && v->Type() && v->Type()->Tag() == TYPE_STRING )
 				opt_quote = "\"";	// use quotes
 
-			policy += string("redef ") + param + "="
+			policy += std::string("redef ") + param + "="
 					+ opt_quote + val + opt_quote + ";";
 
 			delete [] param;
@@ -1038,7 +1042,7 @@ int yywrap()
 	return 1;
 	}
 
-FileInfo::FileInfo(string arg_restore_module)
+FileInfo::FileInfo(std::string arg_restore_module)
 	{
 	buffer_state = YY_CURRENT_BUFFER;
 	restore_module = arg_restore_module;

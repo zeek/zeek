@@ -10,6 +10,9 @@
 #include <openssl/sha.h>
 #include <openssl/evp.h>
 
+#include <sys/types.h> // for u_char
+#include <cstdint>
+
 #if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 #define EVP_MD_CTX_new EVP_MD_CTX_create
 #define EVP_MD_CTX_free EVP_MD_CTX_destroy
@@ -20,8 +23,8 @@ inline void* EVP_MD_CTX_md_data(const EVP_MD_CTX* ctx)
 	}
 #endif
 
-#include "Reporter.h"
-
+// if you add something here, note that you might have to make sure that the
+// static_out member in calculate_digest is still long enough.
 enum HashAlgorithm { Hash_MD5, Hash_SHA1, Hash_SHA224, Hash_SHA256, Hash_SHA384, Hash_SHA512 };
 
 inline const char* digest_print(const u_char* digest, size_t n)
@@ -47,68 +50,20 @@ inline const char* sha256_digest_print(const u_char digest[SHA256_DIGEST_LENGTH]
 	return digest_print(digest, SHA256_DIGEST_LENGTH);
 	}
 
-inline EVP_MD_CTX* hash_init(HashAlgorithm alg)
-	{
-	EVP_MD_CTX* c = EVP_MD_CTX_new();
-	const EVP_MD* md;
+EVP_MD_CTX* hash_init(HashAlgorithm alg);
 
-	switch (alg)
-		{
-		case Hash_MD5:
-#ifdef EVP_MD_CTX_FLAG_NON_FIPS_ALLOW
-			/* Allow this to work even if FIPS disables it */
-			EVP_MD_CTX_set_flags(c, EVP_MD_CTX_FLAG_NON_FIPS_ALLOW);
-#endif
-			md = EVP_md5();
-			break;
-		case Hash_SHA1:
-			md = EVP_sha1();
-			break;
-		case Hash_SHA224:
-			md = EVP_sha224();
-			break;
-		case Hash_SHA256:
-			md = EVP_sha256();
-			break;
-		case Hash_SHA384:
-			md = EVP_sha384();
-			break;
-		case Hash_SHA512:
-			md = EVP_sha512();
-			break;
-		default:
-			reporter->InternalError("Unknown hash algorithm passed to hash_init");
-		}
+void hash_update(EVP_MD_CTX* c, const void* data, unsigned long len);
 
-	if ( ! EVP_DigestInit_ex(c, md, NULL) )
-		reporter->InternalError("EVP_DigestInit failed");
+void hash_final(EVP_MD_CTX* c, u_char* md);
 
-	return c;
-	}
+unsigned char* internal_md5(const unsigned char* data, unsigned long len, unsigned char* out);
 
-inline void hash_update(EVP_MD_CTX* c, const void* data, unsigned long len)
-	{
-	if ( ! EVP_DigestUpdate(c, data, len) )
-		reporter->InternalError("EVP_DigestUpdate failed");
-	}
-
-inline void hash_final(EVP_MD_CTX* c, u_char* md)
-	{
-	if ( ! EVP_DigestFinal(c, md, NULL) )
-		reporter->InternalError("EVP_DigestFinal failed");
-
-	EVP_MD_CTX_free(c);
-	}
-
-inline unsigned char* internal_md5(const unsigned char* data, unsigned long len, unsigned char* out)
-	{
-	static unsigned char static_out[MD5_DIGEST_LENGTH];
-
-	if ( ! out )
-		out = static_out; // use static array for return, see OpenSSL man page
-
-	EVP_MD_CTX* c = hash_init(Hash_MD5);
-	hash_update(c, data, len);
-	hash_final(c, out);
-	return out;
-	}
+/**
+ * Calculates the selected digest.
+ * @param Alg Digest algorithm to use.
+ * @param data Data to hash.
+ * @param len Length of data to hash.
+ * @param out Buffer to write data to. If set to nullptr, a static buffer will be used
+ * @return Buffer that the hash was written to. Length is deoendent on the chosen hash function.
+ */
+unsigned char* calculate_digest(HashAlgorithm Alg, const unsigned char* data, uint64_t len, unsigned char* out);

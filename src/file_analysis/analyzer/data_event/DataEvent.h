@@ -7,6 +7,7 @@
 #include "Val.h"
 #include "File.h"
 #include "Analyzer.h"
+#include "EventHandler.h"
 
 namespace file_analysis {
 

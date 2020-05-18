@@ -1,11 +1,13 @@
 %%{
 #include "analyzer/protocol/conn-size/ConnSize.h"
+#include "Reporter.h"
+#include "Sessions.h"
 
 static analyzer::Analyzer* GetConnsizeAnalyzer(Val* cid)
 	{
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
-		return 0;
+		return nullptr;
 
 	analyzer::Analyzer* a = c->FindAnalyzer("CONNSIZE");
 	if ( ! a )
@@ -33,11 +35,11 @@ function set_current_conn_bytes_threshold%(cid: conn_id, threshold: count, is_or
 	%{
 	analyzer::Analyzer* a = GetConnsizeAnalyzer(cid);
 	if ( ! a )
-		return val_mgr->GetBool(0);
+		return val_mgr->False();
 
-	static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->SetByteAndPacketThreshold(threshold, 1, is_orig);
+	static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->SetByteAndPacketThreshold(threshold, true, is_orig);
 
-	return val_mgr->GetBool(1);
+	return val_mgr->True();
 	%}
 
 ## Sets a threshold for connection packets, overwtiting any potential old thresholds.
@@ -57,11 +59,11 @@ function set_current_conn_packets_threshold%(cid: conn_id, threshold: count, is_
 	%{
 	analyzer::Analyzer* a = GetConnsizeAnalyzer(cid);
 	if ( ! a )
-		return val_mgr->GetBool(0);
+		return val_mgr->False();
 
-	static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->SetByteAndPacketThreshold(threshold, 0, is_orig);
+	static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->SetByteAndPacketThreshold(threshold, false, is_orig);
 
-	return val_mgr->GetBool(1);
+	return val_mgr->True();
 	%}
 
 ## Sets the current duration threshold for connection, overwriting any potential old
@@ -79,11 +81,11 @@ function set_current_conn_duration_threshold%(cid: conn_id, threshold: interval%
 	%{
 	analyzer::Analyzer* a = GetConnsizeAnalyzer(cid);
 	if ( ! a )
-		return val_mgr->GetBool(0);
+		return val_mgr->False();
 
 	static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->SetDurationThreshold(threshold);
 
-	return val_mgr->GetBool(1);
+	return val_mgr->True();
 	%}
 
 # Gets the current byte threshold size for a connection.
@@ -101,9 +103,9 @@ function get_current_conn_bytes_threshold%(cid: conn_id, is_orig: bool%): count
 	%{
 	analyzer::Analyzer* a = GetConnsizeAnalyzer(cid);
 	if ( ! a )
-		return val_mgr->GetCount(0);
+		return val_mgr->Count(0);
 
-	return val_mgr->GetCount(static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->GetByteAndPacketThreshold(1, is_orig));
+	return val_mgr->Count(static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->GetByteAndPacketThreshold(true, is_orig));
 	%}
 
 ## Gets the current packet threshold size for a connection.
@@ -120,9 +122,9 @@ function get_current_conn_packets_threshold%(cid: conn_id, is_orig: bool%): coun
 	%{
 	analyzer::Analyzer* a = GetConnsizeAnalyzer(cid);
 	if ( ! a )
-		return val_mgr->GetCount(0);
+		return val_mgr->Count(0);
 
-	return val_mgr->GetCount(static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->GetByteAndPacketThreshold(0, is_orig));
+	return val_mgr->Count(static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->GetByteAndPacketThreshold(false, is_orig));
 	%}
 
 ## Gets the current duration threshold size for a connection.
@@ -137,7 +139,7 @@ function get_current_conn_duration_threshold%(cid: conn_id%): interval
 	%{
 	analyzer::Analyzer* a = GetConnsizeAnalyzer(cid);
 	if ( ! a )
-		return new Val(0.0, TYPE_INTERVAL);
+		return make_intrusive<Val>(0.0, TYPE_INTERVAL);
 
-	return new Val(static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->GetDurationThreshold(), TYPE_INTERVAL);
+	return make_intrusive<Val>(static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->GetDurationThreshold(), TYPE_INTERVAL);
 	%}

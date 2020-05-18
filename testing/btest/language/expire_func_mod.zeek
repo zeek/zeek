@@ -1,10 +1,13 @@
 # @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff out2
 
 module Test;
 
 redef exit_only_after_terminate = T;
 redef table_expire_interval = .1 secs ;
+
+global out2 = open("out2");
 
 export {
 	global table_expire_func: function(t: table[string] of count,
@@ -49,10 +52,10 @@ function table_expire_func(t: table[string] of count, s: string): interval
 function table_expire_func2 (tt: table[string, string, string] of count, s: string, s2: string, s3: string): interval
 	{
 	tt[s, s2, s3] += 1;
-	
-	print fmt("inside table_expire_func: [%s, %s], %s", s, s2, tt[s, s2, s3]);
 
-		if ( tt[s, s2, s3] < 10 )
+	print out2, fmt("inside table_expire_func: [%s, %s], %s", s, s2, tt[s, s2, s3]);
+
+	if ( tt[s, s2, s3] < 10 )
 		return .1 secs ;
 
 	schedule .1sec { die() };

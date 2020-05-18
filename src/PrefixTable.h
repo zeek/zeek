@@ -1,12 +1,15 @@
 #pragma once
 
-#include "Val.h"
-#include "net_util.h"
-#include "IPAddr.h"
-
 extern "C" {
 	#include "patricia.h"
 }
+
+#include <list>
+
+#include "IPAddr.h"
+
+class Val;
+class SubNetVal;
 
 class PrefixTable {
 private:
@@ -24,10 +27,10 @@ public:
 	// Addr in network byte order. If data is zero, acts like a set.
 	// Returns ptr to old data if already existing.
 	// For existing items without data, returns non-nil if found.
-	void* Insert(const IPAddr& addr, int width, void* data = 0);
+	void* Insert(const IPAddr& addr, int width, void* data = nullptr);
 
 	// Value may be addr or subnet.
-	void* Insert(const Val* value, void* data = 0);
+	void* Insert(const Val* value, void* data = nullptr);
 
 	// Returns nil if not found, pointer to data otherwise.
 	// For items without data, returns non-nil if found.
@@ -36,8 +39,8 @@ public:
 	void* Lookup(const Val* value, bool exact = false) const;
 
 	// Returns list of all found matches or empty list otherwise.
-	list<tuple<IPPrefix,void*>> FindAll(const IPAddr& addr, int width) const;
-	list<tuple<IPPrefix,void*>> FindAll(const SubNetVal* value) const;
+	std::list<std::tuple<IPPrefix,void*>> FindAll(const IPAddr& addr, int width) const;
+	std::list<std::tuple<IPPrefix,void*>> FindAll(const SubNetVal* value) const;
 
 	// Returns pointer to data or nil if not found.
 	void* Remove(const IPAddr& addr, int width);

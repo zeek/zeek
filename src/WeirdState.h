@@ -6,7 +6,7 @@
 #include <unordered_map>
 
 struct WeirdState {
-	WeirdState() { count = 0; sampling_start_time = 0; }
+	WeirdState() = default;
 	uint64_t count = 0;
 	double sampling_start_time = 0;
 };

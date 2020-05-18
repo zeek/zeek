@@ -2,12 +2,14 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <broker/expected.hh>
+
 #include <memory>
 #include <vector>
 
-#include <broker/data.hh>
-#include <broker/expected.hh>
+#include <stdint.h>
+
+namespace broker { class data; }
 
 namespace probabilistic {
 
@@ -41,7 +43,7 @@ public:
 	/**
 	 * Move-Constructor
 	 */
-	CardinalityCounter(CardinalityCounter&& o);
+	CardinalityCounter(CardinalityCounter&& o) noexcept;
 
 	/**
 	 * Constructor for a known number of buckets.

@@ -2,20 +2,23 @@
 
 #pragma once
 
+#include <sys/stat.h> // for ino_t
+
+#include <list>
 #include <vector>
 #include <string>
 #include <optional>
 
-#include "net_util.h"
-#include "util.h"
-#include "List.h"
-#include "Func.h"
-#include "iosource/IOSource.h"
-#include "iosource/PktSrc.h"
-#include "iosource/PktDumper.h"
+namespace iosource {
+	class IOSource;
+	class PktSrc;
+	class PktDumper;
+	}
 
-extern void net_init(const std::vector<std::string>& interfaces,
-                     const std::vector<std::string>& pcap_input_files,
+class Packet;
+
+extern void net_init(const std::optional<std::string>& interfaces,
+                     const std::optional<std::string>& pcap_input_file,
                      const std::optional<std::string>& pcap_output_file,
                      bool do_watchdog);
 extern void net_run();
@@ -25,7 +28,7 @@ extern void net_delete();	// Reclaim all memory, etc.
 extern void net_update_time(double new_network_time);
 extern void net_packet_dispatch(double t, const Packet* pkt,
 			iosource::PktSrc* src_ps);
-extern void expire_timers(iosource::PktSrc* src_ps = 0);
+extern void expire_timers(iosource::PktSrc* src_ps = nullptr);
 extern void zeek_terminate_loop(const char* reason);
 
 // Functions to temporarily suspend processing of live input (network packets
@@ -38,19 +41,19 @@ inline bool net_is_processing_suspended()
 	{ return _processing_suspended > 0; }
 
 // Whether we're reading live traffic.
-extern int reading_live;
+extern bool reading_live;
 
 // Same but for reading from traces instead.  We have two separate
 // variables because it's possible that neither is true, and we're
 // instead just running timers (per the variable after this one).
-extern int reading_traces;
+extern bool reading_traces;
 
 // True if we have timers scheduled for the future on which we need
 // to wait.  "Need to wait" here means that we're running live (though
 // perhaps not reading_live, but just running in real-time) as opposed
 // to reading a trace (in which case we don't want to wait in real-time
 // on future timers).
-extern int have_pending_timers;
+extern bool have_pending_timers;
 
 // If > 0, we are reading from traces but trying to mimic real-time behavior.
 // (In this case, both reading_traces and reading_live are true.)  The value
@@ -83,22 +86,25 @@ extern iosource::IOSource* current_iosrc;
 extern iosource::PktDumper* pkt_dumper;	// where to save packets
 
 // Script file we have already scanned (or are in the process of scanning).
-// They are identified by inode number.
+// They are identified by device and inode number.
 struct ScannedFile {
+	dev_t dev;
 	ino_t inode;
 	int include_level;
-	string name;
 	bool skipped;		// This ScannedFile was @unload'd.
 	bool prefixes_checked;	// If loading prefixes for this file has been tried.
+	std::string name;
 
-	ScannedFile(ino_t arg_inode, int arg_include_level, const string& arg_name,
-		    bool arg_skipped = false,
-		    bool arg_prefixes_checked = false)
-			: inode(arg_inode), include_level(arg_include_level),
-			name(arg_name), skipped(arg_skipped),
-			prefixes_checked(arg_prefixes_checked)
+	ScannedFile(dev_t arg_dev, ino_t arg_inode, int arg_include_level,
+	            const std::string& arg_name, bool arg_skipped = false,
+	            bool arg_prefixes_checked = false)
+		: dev(arg_dev), inode(arg_inode),
+		  include_level(arg_include_level),
+		  skipped(arg_skipped),
+		  prefixes_checked(arg_prefixes_checked),
+		  name(arg_name)
 		{ }
 };
 
 extern std::list<ScannedFile> files_scanned;
-extern std::vector<string> sig_files;
+extern std::vector<std::string> sig_files;

@@ -61,10 +61,10 @@ extern int recvfrom(int, void *, int, int, struct sockaddr *, int *);
 struct nb_dns_entry {
 	struct nb_dns_entry *next;
 	char name[NS_MAXDNAME + 1];
+	u_short id;
 	int qtype;			/* query type */
 	int atype;			/* address family */
 	int asize;			/* address size */
-	u_short id;
 	void *cookie;
 };
 

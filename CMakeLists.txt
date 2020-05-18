@@ -15,10 +15,15 @@ endif ()
 
 include(cmake/CommonCMakeConfig.cmake)
 include(cmake/FindClangTidy.cmake)
+include(cmake/CheckCompilerArch.cmake)
 
 ########################################################################
 ## Project/Build Configuration
 
+if ( ZEEK_ENABLE_FUZZERS )
+    # Fuzzers use shared lib to save disk space, so need -fPIC on everything
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+endif ()
 
 if (ENABLE_ZEEK_UNIT_TESTS)
     enable_testing()
@@ -79,11 +84,14 @@ execute_process(COMMAND grep "^#define  *BRO_PLUGIN_API_VERSION"
                 OUTPUT_STRIP_TRAILING_WHITESPACE)
 string(REGEX REPLACE "^#define.*VERSION *" "" API_VERSION "${API_VERSION}")
 
-string(REPLACE "." " " version_numbers ${VERSION})
+string(REGEX REPLACE "[.-]" " " version_numbers ${VERSION})
 separate_arguments(version_numbers)
 list(GET version_numbers 0 VERSION_MAJOR)
 list(GET version_numbers 1 VERSION_MINOR)
+list(GET version_numbers 2 VERSION_PATCH)
 set(VERSION_MAJ_MIN "${VERSION_MAJOR}.${VERSION_MINOR}")
+math(EXPR ZEEK_VERSION_NUMBER
+     "${VERSION_MAJOR} * 10000 + ${VERSION_MINOR} * 100 + ${VERSION_PATCH}")
 
 set(VERSION_C_IDENT "${VERSION}_plugin_${API_VERSION}")
 string(REGEX REPLACE "-[0-9]*$" "_git" VERSION_C_IDENT "${VERSION_C_IDENT}")
@@ -178,8 +186,7 @@ FindRequiredPackage(OpenSSL)
 FindRequiredPackage(BIND)
 FindRequiredPackage(ZLIB)
 
-if (NOT BINPAC_EXE_PATH AND
-    EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/binpac/CMakeLists.txt)
+if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/aux/binpac/CMakeLists.txt)
 
     set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
 
@@ -261,6 +268,7 @@ endif ()
 set(zeekdeps ${zeekdeps} ${CAF_LIBRARIES})
 include_directories(BEFORE ${broker_includes} ${CAF_INCLUDE_DIRS})
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/paraglob/include)
+include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/rapidjson/include)
 include_directories(BEFORE
                     ${PCAP_INCLUDE_DIR}
                     ${BIND_INCLUDE_DIR}
@@ -268,6 +276,9 @@ include_directories(BEFORE
                     ${ZLIB_INCLUDE_DIR}
                     ${JEMALLOC_INCLUDE_DIR}
 )
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/aux/rapidjson/include/rapidjson
+        DESTINATION include/zeek/3rdparty/rapidjson/include)
 
 # Optional Dependencies
 
@@ -320,6 +331,9 @@ endif ()
 # if one specifies --with-openssl (which may be common).
 include_directories(BEFORE ${OPENSSL_INCLUDE_DIR})
 
+# Make everyone find the highwayhash includes
+include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/aux/highwayhash)
+
 # Alpine support
 if ( ${CMAKE_SYSTEM_NAME} MATCHES Linux AND EXISTS /etc/os-release )
     execute_process(
@@ -362,6 +376,7 @@ include(OpenSSLTests)
 include(CheckNameserCompat)
 include(GetArchitecture)
 include(RequireCXX17)
+include(FindKqueue)
 
 if ( (OPENSSL_VERSION VERSION_EQUAL "1.1.0") OR (OPENSSL_VERSION VERSION_GREATER "1.1.0") )
   set(ZEEK_HAVE_OPENSSL_1_1 true CACHE INTERNAL "" FORCE)
@@ -473,6 +488,9 @@ message(
     "\n        tcmalloc:  ${USE_PERFTOOLS_TCMALLOC}"
     "\n       debugging:  ${USE_PERFTOOLS_DEBUG}"
     "\njemalloc:          ${ENABLE_JEMALLOC}"
+    "\n"
+    "\nFuzz Targets:      ${ZEEK_ENABLE_FUZZERS}"
+    "\nFuzz Engine:       ${ZEEK_FUZZING_ENGINE}"
     "\n"
     "\n================================================================\n"
 )

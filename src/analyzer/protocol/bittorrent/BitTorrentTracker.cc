@@ -15,7 +15,7 @@
 
 using namespace analyzer::bittorrent;
 
-static TableType* bt_tracker_headers = 0;
+static TableType* bt_tracker_headers = nullptr;
 static RecordType* bittorrent_peer;
 static TableType* bittorrent_peer_set;
 static RecordType* bittorrent_benc_value;
@@ -44,8 +44,8 @@ BitTorrentTracker_Analyzer::BitTorrentTracker_Analyzer(Connection* c)
 	req_buf[sizeof(req_buf) - 1] = 0;
 	req_buf_pos = req_buf;
 	req_buf_len = 0;
-	req_val_uri = 0;
-	req_val_headers = new TableVal(bt_tracker_headers);
+	req_val_uri = nullptr;
+	req_val_headers = new TableVal({NewRef{}, bt_tracker_headers});
 
 	res_state = BTT_RES_STATUS;
 	res_allow_blank_line = false;
@@ -53,9 +53,9 @@ BitTorrentTracker_Analyzer::BitTorrentTracker_Analyzer(Connection* c)
 	res_buf_pos = res_buf;
 	res_buf_len = 0;
 	res_status = 0;
-	res_val_headers = new TableVal(bt_tracker_headers);
-	res_val_peers = new TableVal(bittorrent_peer_set);
-	res_val_benc = new TableVal(bittorrent_benc_dir);
+	res_val_headers = new TableVal({NewRef{}, bt_tracker_headers});
+	res_val_peers = new TableVal({NewRef{}, bittorrent_peer_set});
+	res_val_benc = new TableVal({NewRef{}, bittorrent_benc_dir});
 
 	InitBencParser();
 
@@ -137,7 +137,7 @@ void BitTorrentTracker_Analyzer::ClientRequest(int len, const u_char* data)
 			memmove(req_buf, req_buf_pos, req_buf_len);
 			req_buf_pos = req_buf;
 			req_val_headers =
-				new TableVal(bt_tracker_headers);
+				new TableVal({NewRef{}, bt_tracker_headers});
 			}
 		}
 	}
@@ -199,9 +199,9 @@ void BitTorrentTracker_Analyzer::ServerReply(int len, const u_char* data)
 		res_buf_pos = res_buf;
 		res_status = 0;
 
-		res_val_headers = new TableVal(bt_tracker_headers);
-		res_val_peers = new TableVal(bittorrent_peer_set);
-		res_val_benc = new TableVal(bittorrent_benc_dir);
+		res_val_headers = new TableVal({NewRef{}, bt_tracker_headers});
+		res_val_peers = new TableVal({NewRef{}, bittorrent_peer_set});
+		res_val_benc = new TableVal({NewRef{}, bittorrent_benc_dir});
 
 		InitBencParser();
 		}
@@ -230,29 +230,27 @@ void BitTorrentTracker_Analyzer::InitBencParser(void)
 	benc_count.clear();
 
 	benc_state = BENC_STATE_EMPTY;
-	benc_raw = 0;
+	benc_raw = nullptr;
 	benc_raw_type = BENC_TYPE_NONE;
 	benc_raw_len = 0;
-	benc_key = 0;
+	benc_key = nullptr;
 	benc_key_len = 0;
-	benc_strlen = 0;
-	benc_str = 0;
+	benc_strlen = nullptr;
+	benc_str = nullptr;
 	benc_str_len = 0;
 	benc_str_have = 0;
-	benc_int = 0;
+	benc_int = nullptr;
 	benc_int_val = 0;
 	}
 
 void BitTorrentTracker_Analyzer::DeliverWeird(const char* msg, bool orig)
 	{
 	if ( bt_tracker_weird )
-		{
-		ConnectionEventFast(bt_tracker_weird, {
-			BuildConnVal(),
-			val_mgr->GetBool(orig),
-			new StringVal(msg),
-		});
-		}
+		EnqueueConnEvent(bt_tracker_weird,
+			ConnVal(),
+			val_mgr->Bool(orig),
+			make_intrusive<StringVal>(msg)
+		);
 	}
 
 bool BitTorrentTracker_Analyzer::ParseRequest(char* line)
@@ -349,14 +347,14 @@ void BitTorrentTracker_Analyzer::EmitRequest(void)
 	ProtocolConfirmation();
 
 	if ( bt_tracker_request )
-		ConnectionEventFast(bt_tracker_request, {
-			BuildConnVal(),
-			req_val_uri,
-			req_val_headers,
-		});
+		EnqueueConnEvent(bt_tracker_request,
+			ConnVal(),
+			IntrusivePtr{AdoptRef{}, req_val_uri},
+			IntrusivePtr{AdoptRef{}, req_val_headers}
+		);
 
-	req_val_uri = 0;
-	req_val_headers = 0;
+	req_val_uri = nullptr;
+	req_val_headers = nullptr;
 	}
 
 bool BitTorrentTracker_Analyzer::ParseResponse(char* line)
@@ -403,12 +401,12 @@ bool BitTorrentTracker_Analyzer::ParseResponse(char* line)
 			if ( res_status != 200 )
 				{
 				if ( bt_tracker_response_not_ok )
-					ConnectionEventFast(bt_tracker_response_not_ok, {
-						BuildConnVal(),
-						val_mgr->GetCount(res_status),
-						res_val_headers,
-					});
-				res_val_headers = 0;
+					EnqueueConnEvent(bt_tracker_response_not_ok,
+						ConnVal(),
+						val_mgr->Count(res_status),
+						IntrusivePtr{AdoptRef{}, res_val_headers}
+					);
+				res_val_headers = nullptr;
 				res_buf_pos = res_buf + res_buf_len;
 				res_state = BTT_RES_DONE;
 				}
@@ -481,9 +479,9 @@ void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name,
 			uint16_t pt = ntohs((value[4] << 8) | value[5]);
 
 			RecordVal* peer = new RecordVal(bittorrent_peer);
-			peer->Assign(0, new AddrVal(ad));
-			peer->Assign(1, val_mgr->GetPort(pt, TRANSPORT_TCP));
-			res_val_peers->Assign(peer, 0);
+			peer->Assign(0, make_intrusive<AddrVal>(ad));
+			peer->Assign(1, val_mgr->Port(pt, TRANSPORT_TCP));
+			res_val_peers->Assign(peer, nullptr);
 
 			Unref(peer);
 			}
@@ -491,9 +489,9 @@ void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name,
 	else
 		{
 		StringVal* name_ = new StringVal(name_len, name);
-		RecordVal* benc_value = new RecordVal(bittorrent_benc_value);
-		benc_value->Assign(type, new StringVal(value_len, value));
-		res_val_benc->Assign(name_, benc_value);
+		auto benc_value = make_intrusive<RecordVal>(bittorrent_benc_value);
+		benc_value->Assign(type, make_intrusive<StringVal>(value_len, value));
+		res_val_benc->Assign(name_, std::move(benc_value));
 
 		Unref(name_);
 		}
@@ -505,7 +503,7 @@ void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name,
 	RecordVal* benc_value = new RecordVal(bittorrent_benc_value);
 	StringVal* name_ = new StringVal(name_len, name);
 
-	benc_value->Assign(type, val_mgr->GetInt(value));
+	benc_value->Assign(type, val_mgr->Int(value));
 	res_val_benc->Assign(name_, benc_value);
 
 	Unref(name_);
@@ -619,9 +617,9 @@ int BitTorrentTracker_Analyzer::ResponseParseBenc(void)
 					ResponseBenc(benc_key_len, benc_key,
 							benc_raw_type,
 							benc_raw_len, benc_raw);
-					benc_key = 0;
+					benc_key = nullptr;
 					benc_key_len = 0;
-					benc_raw = 0;
+					benc_raw = nullptr;
 					benc_raw_len = 0;
 					benc_raw_type = BENC_TYPE_NONE;
 					}
@@ -688,7 +686,7 @@ int BitTorrentTracker_Analyzer::ResponseParseBenc(void)
 						ResponseBenc(benc_key_len,
 							benc_key, BENC_TYPE_INT,
 							benc_int_val);
-						benc_key = 0;
+						benc_key = nullptr;
 						benc_key_len = 0;
 						}
 					}
@@ -747,7 +745,7 @@ int BitTorrentTracker_Analyzer::ResponseParseBenc(void)
 			if ( benc_str_have < benc_str_len )
 				{
 				unsigned int seek =
-					min(len, benc_str_len - benc_str_have);
+					std::min(len, benc_str_len - benc_str_have);
 				benc_str_have += seek;
 
 				if ( benc_raw_type != BENC_TYPE_NONE )
@@ -766,7 +764,7 @@ int BitTorrentTracker_Analyzer::ResponseParseBenc(void)
 							BENC_TYPE_STR,
 							benc_str_len, benc_str);
 					benc_key_len = 0;
-					benc_key = 0;
+					benc_key = nullptr;
 					}
 
 				if ( ! benc_str_len )
@@ -790,15 +788,15 @@ void BitTorrentTracker_Analyzer::EmitResponse(void)
 	ProtocolConfirmation();
 
 	if ( bt_tracker_response )
-		ConnectionEventFast(bt_tracker_response, {
-			BuildConnVal(),
-			val_mgr->GetCount(res_status),
-			res_val_headers,
-			res_val_peers,
-			res_val_benc,
-		});
+		EnqueueConnEvent(bt_tracker_response,
+			ConnVal(),
+			val_mgr->Count(res_status),
+			IntrusivePtr{AdoptRef{}, res_val_headers},
+			IntrusivePtr{AdoptRef{}, res_val_peers},
+			IntrusivePtr{AdoptRef{}, res_val_benc}
+		);
 
-	res_val_headers = 0;
-	res_val_peers = 0;
-	res_val_benc = 0;
+	res_val_headers = nullptr;
+	res_val_peers = nullptr;
+	res_val_benc = nullptr;
 	}

@@ -1,19 +1,18 @@
 // See the file  in the main distribution directory for copyright.
 
-
-#include "plugin/Plugin.h"
-
 #include "NetbiosSSN.h"
+#include "plugin/Plugin.h"
+#include "analyzer/Component.h"
 
 namespace plugin {
 namespace Zeek_NetBIOS {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("NetbiosSSN", ::analyzer::netbios_ssn::NetbiosSSN_Analyzer::Instantiate));
-		AddComponent(new ::analyzer::Component("Contents_NetbiosSSN", 0));
+		AddComponent(new ::analyzer::Component("Contents_NetbiosSSN", nullptr));
 
 		plugin::Configuration config;
 		config.name = "Zeek::NetBIOS";

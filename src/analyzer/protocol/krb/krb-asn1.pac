@@ -2,21 +2,20 @@
 %include ../asn1/asn1.pac
 
 %header{
-    Val* GetTimeFromAsn1(const KRB_Time* atime, int64 usecs);
-    Val* GetTimeFromAsn1(StringVal* atime, int64 usecs);
+    IntrusivePtr<Val> GetTimeFromAsn1(const KRB_Time* atime, int64 usecs);
+    IntrusivePtr<Val> GetTimeFromAsn1(StringVal* atime, int64 usecs);
 %}
 
 %code{
 
-Val* GetTimeFromAsn1(const KRB_Time* atime, int64 usecs)
+IntrusivePtr<Val> GetTimeFromAsn1(const KRB_Time* atime, int64 usecs)
 	{
-	StringVal* atime_bytestring = bytestring_to_val(atime->time());
-	Val* result = GetTimeFromAsn1(atime_bytestring, usecs);
-	Unref(atime_bytestring);
+	auto atime_bytestring = to_stringval(atime->time());
+	auto result = GetTimeFromAsn1(atime_bytestring.get(), usecs);
 	return result;
 	}
 
-Val* GetTimeFromAsn1(StringVal* atime, int64 usecs)
+IntrusivePtr<Val> GetTimeFromAsn1(StringVal* atime, int64 usecs)
 	{
 	time_t lResult = 0;
 
@@ -27,7 +26,7 @@ Val* GetTimeFromAsn1(StringVal* atime, int64 usecs)
 	char * pString = (char *) atime->Bytes();
 
 	if ( lTimeLength != 15 && lTimeLength != 17 )
-		return 0;
+		return nullptr;
 
 	if (lTimeLength == 17 )
 		pString = pString + 2;
@@ -52,7 +51,7 @@ Val* GetTimeFromAsn1(StringVal* atime, int64 usecs)
 	if ( !lResult )
 		lResult = 0;
 
-	return new Val(double(lResult + double(usecs/100000.0)), TYPE_TIME);
+	return make_intrusive<Val>(double(lResult + double(usecs/100000.0)), TYPE_TIME);
 	}
 
 %}

@@ -2,6 +2,8 @@
 
 #include "zeek-config.h"
 
+#include "Debug.h"
+
 #include <stdio.h>
 #include <stdarg.h>
 #include <signal.h>
@@ -11,13 +13,22 @@
 using namespace std;
 
 #include "util.h"
-#include "Debug.h"
 #include "DebugCmds.h"
 #include "DbgBreakpoint.h"
+#include "ID.h"
+#include "IntrusivePtr.h"
+#include "Expr.h"
 #include "Stmt.h"
+#include "Frame.h"
 #include "Func.h"
+#include "IntrusivePtr.h"
 #include "Scope.h"
 #include "PolicyFile.h"
+#include "Desc.h"
+#include "Reporter.h"
+#include "Val.h"
+#include "module_util.h"
+#include "input.h"
 
 #ifdef HAVE_READLINE
 #include <readline/readline.h>
@@ -44,7 +55,7 @@ DebuggerState::DebuggerState()
 	BreakFromSignal(false);
 
 	// ### Don't choose this arbitrary size! Extend Frame.
-	dbg_locals = new Frame(1024, /* func = */ 0, /* fn_args = */ 0);
+	dbg_locals = new Frame(1024, /* func = */ nullptr, /* fn_args = */ nullptr);
 	}
 
 DebuggerState::~DebuggerState()
@@ -96,7 +107,7 @@ FILE* TraceState::SetTraceFile(const char* filename)
 	else
 		{
 		fprintf(stderr, "Unable to open trace file %s\n", filename);
-		trace_file = 0;
+		trace_file = nullptr;
 		}
 
 	return oldfile;
@@ -126,7 +137,7 @@ int TraceState::LogTrace(const char* fmt, ...)
 
 	const Stmt* stmt;
 	Location loc;
-	loc.filename = 0;
+	loc.filename = nullptr;
 
 	if ( g_frame_stack.size() > 0 && g_frame_stack.back() )
 		{
@@ -167,7 +178,7 @@ void get_first_statement(Stmt* list, Stmt*& first, Location& loc)
 	{
 	if ( ! list )
 		{
-		first = 0;
+		first = nullptr;
 		return;
 		}
 
@@ -186,13 +197,13 @@ void get_first_statement(Stmt* list, Stmt*& first, Location& loc)
 static void parse_function_name(vector<ParseLocationRec>& result,
 				ParseLocationRec& plr, const string& s)
 	{ // function name
-	ID* id = lookup_ID(s.c_str(), current_module.c_str());
+	auto id = lookup_ID(s.c_str(), current_module.c_str());
+
 	if ( ! id )
 		{
 		string fullname = make_full_var_name(current_module.c_str(), s.c_str());
 		debug_msg("Function %s not defined.\n", fullname.c_str());
 		plr.type = plrUnknown;
-		Unref(id);
 		return;
 		}
 
@@ -200,7 +211,6 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 		{
 		debug_msg("Function %s not declared.\n", id->Name());
 		plr.type = plrUnknown;
-		Unref(id);
 		return;
 		}
 
@@ -208,7 +218,6 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 		{
 		debug_msg("Function %s declared but not defined.\n", id->Name());
 		plr.type = plrUnknown;
-		Unref(id);
 		return;
 		}
 
@@ -219,19 +228,16 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 		{
 		debug_msg("Function %s is a built-in function\n", id->Name());
 		plr.type = plrUnknown;
-		Unref(id);
 		return;
 		}
 
-	Unref(id);
-
-	Stmt* body = 0;	// the particular body we care about; 0 = all
+	Stmt* body = nullptr;	// the particular body we care about; 0 = all
 
 	if ( bodies.size() == 1 )
-		body = bodies[0].stmts;
+		body = bodies[0].stmts.get();
 	else
 		{
-		while ( 1 )
+		while ( true )
 			{
 			debug_msg("There are multiple definitions of that event handler.\n"
 				 "Please choose one of the following options:\n");
@@ -239,8 +245,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 				{
 				Stmt* first;
 				Location stmt_loc;
-				get_first_statement(bodies[i].stmts, first,
-							stmt_loc);
+				get_first_statement(bodies[i].stmts.get(), first, stmt_loc);
 				debug_msg("[%d] %s:%d\n", i+1, stmt_loc.filename, stmt_loc.first_line);
 				}
 
@@ -272,7 +277,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 			int option = atoi(input.c_str());
 			if ( option > 0 && option <= (int) bodies.size() )
 				{
-				body = bodies[option - 1].stmts;
+				body = bodies[option - 1].stmts.get();
 				break;
 				}
 			}
@@ -302,7 +307,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 
 		for ( unsigned int i = 0; i < bodies.size(); ++i )
 			{
-			get_first_statement(bodies[i].stmts, first, stmt_loc);
+			get_first_statement(bodies[i].stmts.get(), first, stmt_loc);
 			if ( ! first )
 				continue;
 
@@ -375,7 +380,7 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 			return result;
 			}
 
-		StmtLocMapping* hit = 0;
+		StmtLocMapping* hit = nullptr;
 		for ( const auto entry : *(iter->second) )
 			{
 			plr.filename = entry->Loc().filename;
@@ -394,7 +399,7 @@ vector<ParseLocationRec> parse_location_string(const string& s)
 		if ( hit )
 			plr.stmt = hit->Statement();
 		else
-			plr.stmt = 0;
+			plr.stmt = nullptr;
 		}
 
 	return result;
@@ -560,7 +565,8 @@ int dbg_execute_command(const char* cmd)
 	delete [] localcmd;
 
 	// Make sure we know this op name.
-	const char* matching_cmds[num_debug_cmds()];
+	auto matching_cmds_buf = std::make_unique<const char*[]>(num_debug_cmds());
+	auto matching_cmds = matching_cmds_buf.get();
 	int num_matches = find_all_matching_cmds(opstring, matching_cmds);
 
 	if ( ! num_matches )
@@ -595,7 +601,7 @@ int dbg_execute_command(const char* cmd)
 		{
 		/* The prototype for add_history(), at least under MacOS,
 		 * has it taking a char* rather than a const char*.
-		 * But documentation at 
+		 * But documentation at
 		 * http://tiswww.case.edu/php/chet/readline/history.html
 		 * suggests that it's safe to assume it's really const char*.
 		 */
@@ -725,7 +731,7 @@ static char* get_prompt(bool reset_counter = false)
 string get_context_description(const Stmt* stmt, const Frame* frame)
 	{
 	ODesc d;
-	const BroFunc* func = frame ? frame->GetFunction() : 0;
+	const BroFunc* func = frame ? frame->GetFunction() : nullptr;
 
 	if ( func )
 		func->DescribeDebug(&d, frame->GetFuncArgs());
@@ -753,7 +759,7 @@ string get_context_description(const Stmt* stmt, const Frame* frame)
 
 int dbg_handle_debug_input()
 	{
-	static char* input_line = 0;
+	static char* input_line = nullptr;
 	int status = 0;
 
 	if ( g_debugger_state.BreakFromSignal() )
@@ -815,7 +821,7 @@ int dbg_handle_debug_input()
 		if ( input_line )
 			{
 			free(input_line);	// this was malloc'ed
-			input_line = 0;
+			input_line = nullptr;
 			}
 		else
 			exit(0);
@@ -929,8 +935,8 @@ bool post_execute_stmt(Stmt* stmt, Frame* f, Val* result, stmt_flow_type* flow)
 
 // Evaluates the given expression in the context of the currently selected
 // frame.  Returns the resulting value, or nil if none (or there was an error).
-Expr* g_curr_debug_expr = 0;
-const char* g_curr_debug_error = 0;
+Expr* g_curr_debug_expr = nullptr;
+const char* g_curr_debug_error = nullptr;
 bool in_debug = false;
 
 // ### fix this hardwired access to external variables etc.
@@ -942,7 +948,7 @@ extern YYLTYPE yylloc;	// holds start line and column of token
 extern int line_number;
 extern const char* filename;
 
-Val* dbg_eval_expr(const char* expr)
+IntrusivePtr<Val> dbg_eval_expr(const char* expr)
 	{
 	// Push the current frame's associated scope.
 	// Note: g_debugger_state.curr_frame_idx is the user-visible number,
@@ -959,7 +965,10 @@ Val* dbg_eval_expr(const char* expr)
 
 	const BroFunc* func = frame->GetFunction();
 	if ( func )
+		{
+		Ref(func->GetScope());
 		push_existing_scope(func->GetScope());
+		}
 
 	// ### Possibly push a debugger-local scope?
 
@@ -974,7 +983,7 @@ Val* dbg_eval_expr(const char* expr)
 	yylloc.first_line = yylloc.last_line = line_number = 1;
 
 	// Parse the thing into an expr.
-	Val* result = 0;
+	IntrusivePtr<Val> result;
 	if ( yyparse() )
 		{
 		if ( g_curr_debug_error )
@@ -985,7 +994,7 @@ Val* dbg_eval_expr(const char* expr)
 		if ( g_curr_debug_expr )
 			{
 			delete g_curr_debug_expr;
-			g_curr_debug_expr = 0;
+			g_curr_debug_expr = nullptr;
 			}
 		}
 	else
@@ -995,9 +1004,9 @@ Val* dbg_eval_expr(const char* expr)
 		pop_scope();
 
 	delete g_curr_debug_expr;
-	g_curr_debug_expr = 0;
+	g_curr_debug_expr = nullptr;
 	delete [] g_curr_debug_error;
-	g_curr_debug_error = 0;
+	g_curr_debug_error = nullptr;
 	in_debug = false;
 
 	return result;

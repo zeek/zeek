@@ -1,8 +1,10 @@
-#include "Event.h"
 #include "EventHandler.h"
+#include "Event.h"
+#include "Desc.h"
 #include "Func.h"
 #include "Scope.h"
 #include "NetVar.h"
+#include "ID.h"
 
 #include "broker/Manager.h"
 #include "broker/Data.h"
@@ -11,8 +13,8 @@ EventHandler::EventHandler(const char* arg_name)
 	{
 	name = copy_string(arg_name);
 	used = false;
-	local = 0;
-	type = 0;
+	local = nullptr;
+	type = nullptr;
 	error_handler = false;
 	enabled = true;
 	generate_always = false;
@@ -36,18 +38,16 @@ FuncType* EventHandler::FType(bool check_export)
 	if ( type )
 		return type;
 
-	ID* id = lookup_ID(name, current_module.c_str(), false, false,
-	                   check_export);
+	auto id = lookup_ID(name, current_module.c_str(), false, false,
+	                    check_export);
 
 	if ( ! id )
-		return 0;
+		return nullptr;
 
 	if ( id->Type()->Tag() != TYPE_FUNC )
-		return 0;
+		return nullptr;
 
 	type = id->Type()->AsFuncType();
-	Unref(id);
-
 	return type;
 	}
 
@@ -60,7 +60,7 @@ void EventHandler::SetLocalHandler(Func* f)
 	local = f;
 	}
 
-void EventHandler::Call(val_list* vl, bool no_remote)
+void EventHandler::Call(const zeek::Args& vl, bool no_remote)
 	{
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Event: %s\n", Name());
@@ -75,15 +75,15 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 			{
 			// Send event in form [name, xs...] where xs represent the arguments.
 			broker::vector xs;
-			xs.reserve(vl->length());
+			xs.reserve(vl.size());
 			bool valid_args = true;
 
-			for ( auto i = 0; i < vl->length(); ++i )
+			for ( auto i = 0u; i < vl.size(); ++i )
 				{
-				auto opt_data = bro_broker::val_to_data((*vl)[i]);
+				auto opt_data = bro_broker::val_to_data(vl[i].get());
 
 				if ( opt_data )
-					xs.emplace_back(move(*opt_data));
+					xs.emplace_back(std::move(*opt_data));
 				else
 					{
 					valid_args = false;
@@ -114,15 +114,10 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 
 	if ( local )
 		// No try/catch here; we pass exceptions upstream.
-		Unref(local->Call(vl));
-	else
-		{
-		for ( auto v : *vl )
-			Unref(v);
-		}
+		local->Call(vl);
 	}
 
-void EventHandler::NewEvent(val_list* vl)
+void EventHandler::NewEvent(const zeek::Args& vl)
 	{
 	if ( ! new_event )
 		return;
@@ -132,41 +127,34 @@ void EventHandler::NewEvent(val_list* vl)
 		return;
 
 	RecordType* args = FType()->Args();
-	VectorVal* vargs = new VectorVal(call_argument_vector);
+	auto vargs = make_intrusive<VectorVal>(call_argument_vector);
 
 	for ( int i = 0; i < args->NumFields(); i++ )
 		{
 		const char* fname = args->FieldName(i);
 		BroType* ftype = args->FieldType(i);
-		Val* fdefault = args->FieldDefault(i);
+		auto fdefault = args->FieldDefault(i);
 
-		RecordVal* rec = new RecordVal(call_argument);
-		rec->Assign(0, new StringVal(fname));
+		auto rec = make_intrusive<RecordVal>(call_argument);
+		rec->Assign(0, make_intrusive<StringVal>(fname));
 
 		ODesc d;
 		d.SetShort();
 		ftype->Describe(&d);
-		rec->Assign(1, new StringVal(d.Description()));
+		rec->Assign(1, make_intrusive<StringVal>(d.Description()));
 
 		if ( fdefault )
-			{
-			Ref(fdefault);
-			rec->Assign(2, fdefault);
-			}
+			rec->Assign(2, std::move(fdefault));
 
-		if ( i < vl->length() && (*vl)[i] )
-			{
-			Val* val = (*vl)[i];
-			Ref(val);
-			rec->Assign(3, val);
-			}
+		if ( i < static_cast<int>(vl.size()) && vl[i] )
+			rec->Assign(3, vl[i]);
 
-		vargs->Assign(i, rec);
+		vargs->Assign(i, std::move(rec));
 		}
 
 	Event* ev = new Event(new_event, {
-		new StringVal(name),
-		vargs,
+		make_intrusive<StringVal>(name),
+		std::move(vargs),
 	});
 	mgr.Dispatch(ev);
 	}

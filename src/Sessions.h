@@ -2,26 +2,25 @@
 
 #pragma once
 
+#include "Frag.h"
+#include "PacketFilter.h"
+#include "NetVar.h"
+#include "analyzer/protocol/tcp/Stats.h"
+
 #include <map>
 #include <utility>
 
-#include "Dict.h"
-#include "CompHash.h"
-#include "IP.h"
-#include "Frag.h"
-#include "PacketFilter.h"
-#include "Stats.h"
-#include "NetVar.h"
-#include "TunnelEncapsulation.h"
-#include "analyzer/protocol/tcp/Stats.h"
+#include <sys/types.h> // for u_char
 
 class EncapsulationStack;
+class EncapsulatingConn;
+class Packet;
+class PacketProfiler;
 class Connection;
 class ConnCompressor;
 struct ConnID;
 
 class Discarder;
-class PacketFilter;
 
 namespace analyzer { namespace stepping_stone { class SteppingStoneManager; } }
 namespace analyzer { namespace arp { class ARP_Analyzer; } }
@@ -42,20 +41,6 @@ struct SessionStats {
 	size_t num_fragments;
 	size_t max_fragments;
 	uint64_t num_packets;
-};
-
-// Drains and deletes a timer manager if it hasn't seen any advances
-// for an interval timer_mgr_inactivity_timeout.
-class TimerMgrExpireTimer : public Timer {
-public:
-	TimerMgrExpireTimer(double t, TimerMgr* arg_mgr)
-	    : Timer(t, TIMER_TIMERMGR_EXPIRE), mgr(arg_mgr)
-		{ }
-
-	void Dispatch(double t, int is_expire) override;
-
-protected:
-	TimerMgr* mgr;
 };
 
 class NetSessions {
@@ -87,12 +72,15 @@ public:
 	// that are still active.
 	void Drain();
 
+	// Clears the session maps.
+	void Clear();
+
 	void GetStats(SessionStats& s) const;
 
 	void Weird(const char* name, const Packet* pkt,
-	    const EncapsulationStack* encap = 0, const char* addl = "");
+	    const EncapsulationStack* encap = nullptr, const char* addl = "");
 	void Weird(const char* name, const IP_Hdr* ip,
-	    const EncapsulationStack* encap = 0, const char* addl = "");
+	    const EncapsulationStack* encap = nullptr, const char* addl = "");
 
 	PacketFilter* GetPacketFilter()
 		{
@@ -100,13 +88,6 @@ public:
 			packet_filter = new PacketFilter(packet_filter_default);
 		return packet_filter;
 		}
-
-	// Looks up timer manager associated with tag.  If tag is unknown and
-	// "create" is true, creates new timer manager and stores it.  Returns
-	// global timer manager if tag is nil.
-	TimerMgr* LookupTimerMgr(const TimerMgr::Tag* tag, bool create = true);
-
-	void ExpireTimerMgrs();
 
 	analyzer::stepping_stone::SteppingStoneManager* GetSTPManager()	{ return stp_manager; }
 
@@ -122,7 +103,7 @@ public:
 	 * Wrapper that recurses on DoNextPacket for encapsulated IP packets.
 	 *
 	 * @param t Network time.
-	 * @param hdr If the outer pcap header is available, this pointer can be set
+	 * @param pkt If the outer pcap header is available, this pointer can be set
 	 *        so that the fake pcap header passed to DoNextPacket will use
 	 *        the same timeval.  The caplen and len fields of the fake pcap
 	 *        header are always set to the TotalLength() of \a inner.
@@ -135,6 +116,27 @@ public:
 	void DoNextInnerPacket(double t, const Packet *pkt,
 	                      const IP_Hdr* inner, const EncapsulationStack* prev,
 	                      const EncapsulatingConn& ec);
+
+	/**
+	 * Recurses on DoNextPacket for encapsulated Ethernet/IP packets.
+	 *
+	 * @param t  Network time.
+	 * @param pkt  If the outer pcap header is available, this pointer can be
+	 *        set so that the fake pcap header passed to DoNextPacket will use
+	 *        the same timeval.
+	 * @param caplen  number of captured bytes remaining
+	 * @param len  number of bytes remaining as claimed by outer framing
+	 * @param data  the remaining packet data
+	 * @param link_type  layer 2 link type used for initializing inner packet
+	 * @param prev  Any previous encapsulation stack of the caller, not
+	 *        including the most-recently found depth of encapsulation.
+	 * @param ec The most-recently found depth of encapsulation.
+	 */
+	void DoNextInnerPacket(double t, const Packet* pkt,
+                           uint32_t caplen, uint32_t len,
+                           const u_char* data, int link_type,
+                           const EncapsulationStack* prev,
+                           const EncapsulatingConn& ec);
 
 	/**
 	 * Returns a wrapper IP_Hdr object if \a pkt appears to be a valid IPv4
@@ -168,7 +170,6 @@ public:
 
 protected:
 	friend class ConnCompressor;
-	friend class TimerMgrExpireTimer;
 	friend class IPTunnelTimer;
 
 	using ConnectionMap = std::map<ConnIDKey, Connection*>;
@@ -179,13 +180,6 @@ protected:
 			const Packet* pkt, const EncapsulationStack* encapsulation);
 
 	Connection* LookupConn(const ConnectionMap& conns, const ConnIDKey& key);
-
-	// Check whether the tag of the current packet is consistent with
-	// the given connection.  Returns:
-	//    -1   if current packet is to be completely ignored.
-	//     0   if tag is not consistent and new conn should be instantiated.
-	//     1   if tag is consistent, i.e., packet is part of connection.
-	int CheckConnectionTag(Connection* conn);
 
 	// Returns true if the port corresonds to an application
 	// for which there's a Bro analyzer (even if it might not
@@ -230,9 +224,9 @@ protected:
 
 	SessionStats stats;
 
-	typedef pair<IPAddr, IPAddr> IPPair;
-	typedef pair<EncapsulatingConn, double> TunnelActivity;
-	typedef std::map<IPPair, TunnelActivity> IPTunnelMap;
+	using IPPair = std::pair<IPAddr, IPAddr>;
+	using TunnelActivity = std::pair<EncapsulatingConn, double>;
+	using IPTunnelMap = std::map<IPPair, TunnelActivity>;
 	IPTunnelMap ip_tunnels;
 
 	analyzer::arp::ARP_Analyzer* arp_analyzer;
@@ -240,18 +234,13 @@ protected:
 	analyzer::stepping_stone::SteppingStoneManager* stp_manager;
 	Discarder* discarder;
 	PacketFilter* packet_filter;
-	int dump_this_packet;	// if true, current packet should be recorded
 	uint64_t num_packets_processed;
 	PacketProfiler* pkt_profiler;
-
-	// We may use independent timer managers for different sets of related
-	// activity.  The managers are identified by an unique tag.
-	typedef std::map<TimerMgr::Tag, TimerMgr*> TimerMgrMap;
-	TimerMgrMap timer_mgrs;
+	bool dump_this_packet;	// if true, current packet should be recorded
 };
 
 
-class IPTunnelTimer : public Timer {
+class IPTunnelTimer final : public Timer {
 public:
 	IPTunnelTimer(double t, NetSessions::IPPair p)
 	: Timer(t + BifConst::Tunnel::ip_tunnel_timeout,
@@ -259,7 +248,7 @@ public:
 
 	~IPTunnelTimer() override {}
 
-	void Dispatch(double t, int is_expire) override;
+	void Dispatch(double t, bool is_expire) override;
 
 protected:
 	NetSessions::IPPair tunnel_idx;

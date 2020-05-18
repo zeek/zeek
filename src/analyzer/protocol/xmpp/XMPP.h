@@ -8,7 +8,7 @@
 
 namespace analyzer { namespace xmpp {
 
-class XMPP_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class XMPP_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit XMPP_Analyzer(Connection* conn);
 	~XMPP_Analyzer() override;

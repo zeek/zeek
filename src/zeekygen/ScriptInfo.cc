@@ -5,6 +5,8 @@
 #include "ReStructuredTextTable.h"
 #include "utils.h"
 #include "Manager.h"
+#include "Scope.h"
+#include "DebugLogger.h"
 
 #include "Reporter.h"
 #include "Desc.h"
@@ -81,7 +83,7 @@ static string make_summary(const string& heading, char underline, char border,
 		{
 		ID* id = (*it)->GetID();
 		ODesc d;
-		d.SetQuotes(1);
+		d.SetQuotes(true);
 		id->DescribeReSTShort(&d);
 		add_summary_rows(d, summary_comment((*it)->GetComments()), &table);
 		}
@@ -104,7 +106,7 @@ static string make_redef_summary(const string& heading, char underline,
 		{
 		ID* id = (*it)->GetID();
 		ODesc d;
-		d.SetQuotes(1);
+		d.SetQuotes(true);
 		id->DescribeReSTShort(&d);
 
 		typedef list<IdentifierInfo::Redefinition> redef_list;
@@ -256,12 +258,12 @@ void ScriptInfo::DoInitPostScript()
 	if ( name == "base/frameworks/input/main.zeek" )
 		{
 		auto id = global_scope()->Lookup("Input::Reader");
-		types.push_back(new IdentifierInfo(id, this));
+		types.push_back(new IdentifierInfo({NewRef{}, id}, this));
 		}
 	else if ( name == "base/frameworks/logging/main.zeek" )
 		{
 		auto id = global_scope()->Lookup("Log::Writer");
-		types.push_back(new IdentifierInfo(id, this));
+		types.push_back(new IdentifierInfo({NewRef{}, id}, this));
 		}
 	}
 
@@ -387,5 +389,3 @@ time_t ScriptInfo::DoGetModificationTime() const
 
 	return most_recent;
 	}
-
-

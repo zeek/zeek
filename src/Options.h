@@ -53,13 +53,15 @@ struct Options {
 	bool debug_scripts = false;
 	bool perftools_check_leaks = false;
 	bool perftools_profile = false;
+	bool deterministic_mode = false;
+	bool abort_on_scripting_errors = false;
 
 	bool run_unit_tests = false;
 	std::vector<std::string> doctest_args;
 
 	std::optional<std::string> pcap_filter;
-	std::vector<std::string> interfaces;
-	std::vector<std::string> pcap_files;
+	std::optional<std::string> interface;
+	std::optional<std::string> pcap_file;
 	std::vector<std::string> signature_files;
 
 	std::optional<std::string> pcap_output_file;

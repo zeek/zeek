@@ -4,6 +4,7 @@
 #include "NetVar.h"
 #include "analyzer/protocol/tcp/TCP.h"
 #include "TCP_Reassembler.h"
+#include "Reporter.h"
 #include "Sessions.h"
 #include "Event.h"
 #include "File.h"
@@ -13,11 +14,11 @@
 
 using namespace analyzer::tcp;
 
-TCP_Endpoint::TCP_Endpoint(TCP_Analyzer* arg_analyzer, int arg_is_orig)
+TCP_Endpoint::TCP_Endpoint(TCP_Analyzer* arg_analyzer, bool arg_is_orig)
 	{
-	contents_processor = 0;
+	contents_processor = nullptr;
 	prev_state = state = TCP_ENDPOINT_INACTIVE;
-	peer = 0;
+	peer = nullptr;
 	start_time = last_time = 0.0;
 	start_seq = last_seq = ack_seq = 0;
 	seq_wraps = ack_wraps = 0;
@@ -27,8 +28,8 @@ TCP_Endpoint::TCP_Endpoint(TCP_Analyzer* arg_analyzer, int arg_is_orig)
 	contents_start_seq = 0;
 	FIN_seq = 0;
 	SYN_cnt = FIN_cnt = RST_cnt = 0;
-	did_close = 0;
-	contents_file = 0;
+	did_close = false;
+	contents_file = nullptr;
 	tcp_analyzer = arg_analyzer;
 	is_orig = arg_is_orig;
 
@@ -74,7 +75,7 @@ void TCP_Endpoint::SetPeer(TCP_Endpoint* p)
 		sessions->tcp_stats.StateEntered(state, peer->state);
 	}
 
-int TCP_Endpoint::HadGap() const
+bool TCP_Endpoint::HadGap() const
 	{
 	return contents_processor && contents_processor->HadGap();
 	}
@@ -89,20 +90,20 @@ void TCP_Endpoint::AddReassembler(TCP_Reassembler* arg_contents_processor)
 		contents_processor->SetContentsFile(contents_file);
 	}
 
-int TCP_Endpoint::DataPending() const
+bool TCP_Endpoint::DataPending() const
 	{
 	if ( contents_processor )
 		return contents_processor->DataPending();
 	else
-		return 0;
+		return false;
 	}
 
-int TCP_Endpoint::HasUndeliveredData() const
+bool TCP_Endpoint::HasUndeliveredData() const
 	{
 	if ( contents_processor )
 		return contents_processor->HasUndeliveredData();
 	else
-		return 0;
+		return false;
 	}
 
 void TCP_Endpoint::CheckEOF()
@@ -120,7 +121,7 @@ void TCP_Endpoint::SizeBufferedData(uint64_t& waiting_on_hole,
 		waiting_on_hole = waiting_on_ack = 0;
 	}
 
-int TCP_Endpoint::ValidChecksum(const struct tcphdr* tp, int len) const
+bool TCP_Endpoint::ValidChecksum(const struct tcphdr* tp, int len) const
 	{
 	uint32_t sum = checksum_base;
 	int tcp_len = tp->th_off * 4 + len;
@@ -198,11 +199,11 @@ uint64_t TCP_Endpoint::Size() const
 	return size;
 	}
 
-int TCP_Endpoint::DataSent(double t, uint64_t seq, int len, int caplen,
+bool TCP_Endpoint::DataSent(double t, uint64_t seq, int len, int caplen,
 				const u_char* data,
 				const IP_Hdr* ip, const struct tcphdr* tp)
 	{
-	int status = 0;
+	bool status = false;
 
 	if ( contents_processor )
 		{
@@ -236,13 +237,11 @@ int TCP_Endpoint::DataSent(double t, uint64_t seq, int len, int caplen,
 			reporter->Error("TCP contents write failed: %s", buf);
 
 			if ( contents_file_write_failure )
-				{
-				tcp_analyzer->ConnectionEventFast(contents_file_write_failure, {
-					Conn()->BuildConnVal(),
-					val_mgr->GetBool(IsOrig()),
-					new StringVal(buf),
-				});
-				}
+				tcp_analyzer->EnqueueConnEvent(contents_file_write_failure,
+					Conn()->ConnVal(),
+					val_mgr->Bool(IsOrig()),
+					make_intrusive<StringVal>(buf)
+				);
 			}
 		}
 
@@ -268,7 +267,7 @@ void TCP_Endpoint::SetContentsFile(BroFile* f)
 		contents_processor->SetContentsFile(contents_file);
 	}
 
-int TCP_Endpoint::CheckHistory(uint32_t mask, char code)
+bool TCP_Endpoint::CheckHistory(uint32_t mask, char code)
 	{
 	if ( ! IsOrig() )
 		{

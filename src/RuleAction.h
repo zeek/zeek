@@ -1,10 +1,10 @@
 #pragma once
 
-#include "BroString.h"
-#include "List.h"
-#include "util.h"
-
 #include "analyzer/Tag.h"
+
+#include <string>
+
+#include <sys/types.h> // for u_char
 
 class Rule;
 class RuleEndpointState;
@@ -23,7 +23,7 @@ public:
 // Implements the "event" keyword.
 class RuleActionEvent : public RuleAction {
 public:
-	explicit RuleActionEvent(const char* arg_msg)	{ msg = copy_string(arg_msg); }
+	explicit RuleActionEvent(const char* arg_msg);
 	~RuleActionEvent() override { delete [] msg; }
 
 	void DoAction(const Rule* parent, RuleEndpointState* state,
@@ -37,8 +37,7 @@ private:
 
 class RuleActionMIME : public RuleAction {
 public:
-	explicit RuleActionMIME(const char* arg_mime, int arg_strength = 0)
-		{ mime = copy_string(arg_mime); strength = arg_strength; }
+	explicit RuleActionMIME(const char* arg_mime, int arg_strength = 0);
 
 	~RuleActionMIME() override
 		{ delete [] mime; }
@@ -49,7 +48,7 @@ public:
 
 	void PrintDebug() override;
 
-	string GetMIME() const
+	std::string GetMIME() const
 		{ return mime; }
 
 	int GetStrength() const

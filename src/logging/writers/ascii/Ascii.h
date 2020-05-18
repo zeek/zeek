@@ -7,6 +7,7 @@
 #include "logging/WriterBackend.h"
 #include "threading/formatters/Ascii.h"
 #include "threading/formatters/JSON.h"
+#include "Desc.h"
 #include "zlib.h"
 
 namespace logging { namespace writer {
@@ -16,7 +17,7 @@ public:
 	explicit Ascii(WriterFrontend* frontend);
 	~Ascii() override;
 
-	static string LogExt();
+	static std::string LogExt();
 
 	static WriterBackend* Instantiate(WriterFrontend* frontend)
 		{ return new Ascii(frontend); }
@@ -34,11 +35,11 @@ protected:
 	bool DoHeartbeat(double network_time, double current_time) override;
 
 private:
-	bool IsSpecial(const string &path) 	{ return path.find("/dev/") == 0; }
-	bool WriteHeader(const string& path);
-	bool WriteHeaderField(const string& key, const string& value);
+	bool IsSpecial(const std::string &path) 	{ return path.find("/dev/") == 0; }
+	bool WriteHeader(const std::string& path);
+	bool WriteHeaderField(const std::string& key, const std::string& value);
 	void CloseFile(double t);
-	string Timestamp(double t); // Uses current time if t is zero.
+	std::string Timestamp(double t); // Uses current time if t is zero.
 	void InitConfigOptions();
 	bool InitFilterOptions();
 	bool InitFormatter();
@@ -47,7 +48,7 @@ private:
 
 	int fd;
 	gzFile gzfile;
-	string fname;
+	std::string fname;
 	ODesc desc;
 	bool ascii_done;
 
@@ -56,17 +57,17 @@ private:
 	bool include_meta;
 	bool tsv;
 
-	string separator;
-	string set_separator;
-	string empty_field;
-	string unset_field;
-	string meta_prefix;
+	std::string separator;
+	std::string set_separator;
+	std::string empty_field;
+	std::string unset_field;
+	std::string meta_prefix;
 
 	int gzip_level; // level > 0 enables gzip compression
-	string gzip_file_extension;
+	std::string gzip_file_extension;
 	bool use_json;
 	bool enable_utf_8;
-	string json_timestamps;
+	std::string json_timestamps;
 
 	threading::formatter::Formatter* formatter;
 	bool init_options;
@@ -74,4 +75,3 @@ private:
 
 }
 }
-

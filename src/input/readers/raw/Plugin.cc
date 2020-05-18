@@ -32,4 +32,3 @@ std::unique_lock<std::mutex> Plugin::ForkMutex()
 	{
 	return std::unique_lock<std::mutex>(fork_mutex, std::defer_lock);
 	}
-

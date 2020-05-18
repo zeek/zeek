@@ -15,11 +15,13 @@ RUN apt-get update && apt-get -y install \
     python3-pip\
     swig \
     zlib1g-dev \
+    libmaxminddb-dev \
     libkrb5-dev \
     bsdmainutils \
     sqlite3 \
     curl \
     wget \
+    unzip \
   && rm -rf /var/lib/apt/lists/*
 
 # Many distros adhere to PEP 394's recommendation for `python` = `python2` so

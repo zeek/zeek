@@ -13,5 +13,5 @@ function skip_smtp_data%(c: connection%): any
 	analyzer::Analyzer* sa = c->FindAnalyzer("SMTP");
 	if ( sa )
 		static_cast<analyzer::smtp::SMTP_Analyzer*>(sa)->SkipData();
-	return 0;
+	return nullptr;
 	%}

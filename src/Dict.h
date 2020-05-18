@@ -11,7 +11,7 @@ class IterCookie;
 
 // Type indicating whether the dictionary should keep track of the order
 // of insertions.
-typedef enum { ORDERED, UNORDERED } dict_order;
+enum dict_order { ORDERED, UNORDERED };
 
 // Type for function to be called when deleting elements.
 typedef void (*dict_delete_func)(void*);
@@ -23,7 +23,7 @@ class Dictionary {
 public:
 	explicit Dictionary(dict_order ordering = UNORDERED,
 			int initial_size = 0);
-	virtual ~Dictionary();
+	~Dictionary();
 
 	// Member functions for looking up a key, inserting/changing its
 	// contents, and deleting it.  These come in two flavors: one
@@ -42,7 +42,7 @@ public:
 	// that it's a heap pointer that now belongs to the Dictionary to
 	// manage as needed.
 	void* Insert(void* key, int key_size, hash_t hash, void* val,
-			int copy_key);
+			bool copy_key);
 
 	// Removes the given element.  Returns a pointer to the element in
 	// case it needs to be deleted.  Returns 0 if no such element exists.
@@ -70,7 +70,7 @@ public:
 		}
 
 	// True if the dictionary is ordered, false otherwise.
-	int IsOrdered() const		{ return order != 0; }
+	bool IsOrdered() const		{ return order != nullptr; }
 
 	// If the dictionary is ordered then returns the n'th entry's value;
 	// the second method also returns the key.  The first entry inserted
@@ -125,13 +125,13 @@ private:
 	void DeInit();
 
 	// Internal version of Insert().
-	void* Insert(DictEntry* entry, int copy_key);
+	void* Insert(DictEntry* entry, bool copy_key);
 
 	void* DoRemove(DictEntry* entry, hash_t h,
 			PList<DictEntry>* chain, int chain_offset);
 
 	int NextPrime(int n) const;
-	int IsPrime(int n) const;
+	bool IsPrime(int n) const;
 	void StartChangeSize(int new_size);
 	void FinishChangeSize();
 	void MoveChains();
@@ -158,26 +158,27 @@ private:
 	// When we're resizing, we'll have tbl (old) and tbl2 (new)
 	// tbl_next_ind keeps track of how much we've moved to tbl2
 	// (it's the next index we're going to move).
-	PList<DictEntry>** tbl;
-	int num_buckets;
-	int num_entries;
-	int max_num_entries;
-	uint64_t cumulative_entries;
-	double den_thresh;
-	int thresh_entries;
+	PList<DictEntry>** tbl = nullptr;
+	int num_buckets = 0;
+	int num_entries = 0;
+	int max_num_entries = 0;
+	int thresh_entries = 0;
+	uint64_t cumulative_entries = 0;
+	double den_thresh = 0.0;
 
 	// Resizing table (replicates tbl above).
-	PList<DictEntry>** tbl2;
-	int num_buckets2;
-	int num_entries2;
-	int max_num_entries2;
-	double den_thresh2;
-	int thresh_entries2;
+	PList<DictEntry>** tbl2 = nullptr;
+	int num_buckets2 = 0;
+	int num_entries2 = 0;
+	int max_num_entries2 = 0;
 
-	hash_t tbl_next_ind;
+	int thresh_entries2 = 0;
+	double den_thresh2 = 0;
 
-	PList<DictEntry>* order;
-	dict_delete_func delete_func;
+	hash_t tbl_next_ind = 0;
+
+	PList<DictEntry>* order = nullptr;
+	dict_delete_func delete_func = nullptr;
 
 	PList<IterCookie> cookies;
 };

@@ -60,24 +60,22 @@ void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig
 		assert(line <= end_of_line);
 		size_t n = end_of_line >= line ? end_of_line - line : 0; // just to be sure if assertions aren't on.
 		const char* at = reinterpret_cast<const char*>(memchr(line, '@', n));
-		const char* host = 0;
+		const char* host = nullptr;
 		if ( ! at )
 			at = host = end_of_line;
 		else
 			host = at + 1;
 
 		if ( finger_request )
-			{
-			ConnectionEventFast(finger_request, {
-				BuildConnVal(),
-				val_mgr->GetBool(long_cnt),
-				new StringVal(at - line, line),
-				new StringVal(end_of_line - host, host),
-			});
-			}
+			EnqueueConnEvent(finger_request,
+				ConnVal(),
+				val_mgr->Bool(long_cnt),
+				make_intrusive<StringVal>(at - line, line),
+				make_intrusive<StringVal>(end_of_line - host, host)
+			);
 
 		Conn()->Match(Rule::FINGER, (const u_char *) line,
-			  end_of_line - line, true, true, 1, true);
+			  end_of_line - line, true, true, true, true);
 
 		did_deliver = 1;
 		}
@@ -87,9 +85,9 @@ void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig
 		if ( ! finger_reply )
 			return;
 
-		ConnectionEventFast(finger_reply, {
-			BuildConnVal(),
-			new StringVal(end_of_line - line, line),
-		});
+		EnqueueConnEvent(finger_reply,
+			ConnVal(),
+			make_intrusive<StringVal>(end_of_line - line, line)
+		);
 		}
 	}

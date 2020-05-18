@@ -1,6 +1,8 @@
 #include "zeek-config.h"
 
 #include "Rule.h"
+#include "RuleAction.h"
+#include "RuleCondition.h"
 #include "RuleMatcher.h"
 
 // Start at one as we want search for this within a list,
@@ -85,7 +87,7 @@ void Rule::AddRequires(const char* id, bool opposite_direction, bool negate)
 	{
 	Precond* p = new Precond;
 	p->id = copy_string(id);
-	p->rule = 0;
+	p->rule = nullptr;
 	p->opposite_dir = opposite_direction;
 	p->negate = negate;
 

@@ -11,7 +11,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_subnet_option(v: OptionValue): bool
 		%{
-		${context.flow}->options->Assign(1, new AddrVal(htonl(${v.subnet})));
+		${context.flow}->options->Assign(1, make_intrusive<AddrVal>(htonl(${v.subnet})));
 		return true;
 		%}
 };
@@ -34,7 +34,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_time_offset_option(v: OptionValue): bool
 		%{
-		${context.flow}->options->Assign(25, val_mgr->GetInt(${v.time_offset}));
+		${context.flow}->options->Assign(25, val_mgr->Int(${v.time_offset}));
 		return true;
 		%}
 };
@@ -64,7 +64,7 @@ refine flow DHCP_Flow += {
 		for ( int i = 0; i < num_routers; ++i )
 			{
 			uint32 raddr = (*rlist)[i];
-			router_list->Assign(i, new AddrVal(htonl(raddr)));
+			router_list->Assign(i, make_intrusive<AddrVal>(htonl(raddr)));
 			}
 
 		${context.flow}->options->Assign(2, router_list);
@@ -98,7 +98,7 @@ refine flow DHCP_Flow += {
 		for ( int i = 0; i < num_servers; ++i )
 			{
 			uint32 raddr = (*rlist)[i];
-			timeserver_list->Assign(i, new AddrVal(htonl(raddr)));
+			timeserver_list->Assign(i, make_intrusive<AddrVal>(htonl(raddr)));
 			}
 
 		${context.flow}->options->Assign(26, timeserver_list);
@@ -132,7 +132,7 @@ refine flow DHCP_Flow += {
 		for ( int i = 0; i < num_servers; ++i )
 			{
 			uint32 raddr = (*rlist)[i];
-			nameserver_list->Assign(i, new AddrVal(htonl(raddr)));
+			nameserver_list->Assign(i, make_intrusive<AddrVal>(htonl(raddr)));
 			}
 
 		${context.flow}->options->Assign(27, nameserver_list);
@@ -166,7 +166,7 @@ refine flow DHCP_Flow += {
 		for ( int i = 0; i < num_servers; ++i )
 			{
 			uint32 raddr = (*rlist)[i];
-			server_list->Assign(i, new AddrVal(htonl(raddr)));
+			server_list->Assign(i, make_intrusive<AddrVal>(htonl(raddr)));
 			}
 
 		${context.flow}->options->Assign(3, server_list);
@@ -192,7 +192,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_host_name_option(v: OptionValue): bool
 		%{
-		${context.flow}->options->Assign(4, new StringVal(${v.host_name}.length(),
+		${context.flow}->options->Assign(4, make_intrusive<StringVal>(${v.host_name}.length(),
 		                                                  reinterpret_cast<const char*>(${v.host_name}.begin())));
 
 		return true;
@@ -225,7 +225,7 @@ refine flow DHCP_Flow += {
 				last_non_null = i;
 			}
 
-		${context.flow}->options->Assign(5, new StringVal(last_non_null == 0 ? 0 : last_non_null + 1,
+		${context.flow}->options->Assign(5, make_intrusive<StringVal>(last_non_null == 0 ? 0 : last_non_null + 1,
 		                                                  reinterpret_cast<const char*>(${v.domain_name}.begin())));
 
 		return true;
@@ -250,7 +250,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_forwarding_option(v: OptionValue): bool
 		%{
-		${context.flow}->options->Assign(6, val_mgr->GetBool(${v.forwarding} == 0 ? false : true));
+		${context.flow}->options->Assign(6, val_mgr->Bool(${v.forwarding} == 0 ? false : true));
 
 		return true;
 		%}
@@ -274,7 +274,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_broadcast_address_option(v: OptionValue): bool
 		%{
-		${context.flow}->options->Assign(7, new AddrVal(htonl(${v.broadcast_address})));
+		${context.flow}->options->Assign(7, make_intrusive<AddrVal>(htonl(${v.broadcast_address})));
 
 		return true;
 		%}
@@ -305,7 +305,7 @@ refine flow DHCP_Flow += {
 		for ( int i = 0; i < num_servers; ++i )
 			{
 			uint32 raddr = (*rlist)[i];
-			ntpserver_list->Assign(i, new AddrVal(htonl(raddr)));
+			ntpserver_list->Assign(i, make_intrusive<AddrVal>(htonl(raddr)));
 			}
 
 		${context.flow}->options->Assign(28, ntpserver_list);
@@ -331,7 +331,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_vendor_specific_option(v: OptionValue): bool
 		%{
-		${context.flow}->options->Assign(8, new StringVal(${v.vendor_specific}.length(),
+		${context.flow}->options->Assign(8, make_intrusive<StringVal>(${v.vendor_specific}.length(),
 		                                                  reinterpret_cast<const char*>(${v.vendor_specific}.begin())));
 
 		return true;
@@ -363,7 +363,7 @@ refine flow DHCP_Flow += {
 		for ( int i = 0; i < num_servers; ++i )
 			{
 			uint32 raddr = (*rlist)[i];
-			server_list->Assign(i, new AddrVal(htonl(raddr)));
+			server_list->Assign(i, make_intrusive<AddrVal>(htonl(raddr)));
 			}
 
 		${context.flow}->options->Assign(9, server_list);
@@ -389,7 +389,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_addr_request_option(v: OptionValue): bool
 		%{
-		${context.flow}->options->Assign(10, new AddrVal(htonl(${v.addr_request})));
+		${context.flow}->options->Assign(10, make_intrusive<AddrVal>(htonl(${v.addr_request})));
 
 		return true;
 		%}
@@ -414,7 +414,7 @@ refine flow DHCP_Flow += {
 	function process_lease_option(v: OptionValue): bool
 		%{
 		double lease = static_cast<double>(${v.lease});
-		${context.flow}->options->Assign(11, new Val(lease, TYPE_INTERVAL));
+		${context.flow}->options->Assign(11, make_intrusive<Val>(lease, TYPE_INTERVAL));
 
 		return true;
 		%}
@@ -438,7 +438,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_serv_id_option(v: OptionValue): bool
 		%{
-		${context.flow}->options->Assign(12, new AddrVal(htonl(${v.serv_addr})));
+		${context.flow}->options->Assign(12, make_intrusive<AddrVal>(htonl(${v.serv_addr})));
 
 		return true;
 		%}
@@ -469,7 +469,7 @@ refine flow DHCP_Flow += {
 		for ( int i = 0; i < num_parms; ++i )
 			{
 			uint8 param = (*plist)[i];
-			params->Assign(i, val_mgr->GetCount(param));
+			params->Assign(i, val_mgr->Count(param));
 			}
 
 		${context.flow}->options->Assign(13, params);
@@ -496,7 +496,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_message_option(v: OptionValue): bool
 		%{
-		${context.flow}->options->Assign(14, new StringVal(${v.message}.length(), 
+		${context.flow}->options->Assign(14, make_intrusive<StringVal>(${v.message}.length(), 
 		                                                   reinterpret_cast<const char*>(${v.message}.begin())));
 
 		return true;
@@ -521,7 +521,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_max_message_size_option(v: OptionValue): bool
 		%{
-		${context.flow}->options->Assign(15, val_mgr->GetCount(${v.max_msg_size}));
+		${context.flow}->options->Assign(15, val_mgr->Count(${v.max_msg_size}));
 
 		return true;
 		%}
@@ -546,7 +546,7 @@ refine flow DHCP_Flow += {
 	function process_renewal_time_option(v: OptionValue): bool
 		%{
 		double renewal_time = static_cast<double>(${v.renewal_time});
-		${context.flow}->options->Assign(16, new Val(renewal_time, TYPE_INTERVAL));
+		${context.flow}->options->Assign(16, make_intrusive<Val>(renewal_time, TYPE_INTERVAL));
 
 		return true;
 		%}
@@ -571,7 +571,7 @@ refine flow DHCP_Flow += {
 	function process_rebinding_time_option(v: OptionValue): bool
 		%{
 		double rebinding_time = static_cast<double>(${v.rebinding_time});
-		${context.flow}->options->Assign(17, new Val(rebinding_time, TYPE_INTERVAL));
+		${context.flow}->options->Assign(17, make_intrusive<Val>(rebinding_time, TYPE_INTERVAL));
 
 		return true;
 		%}
@@ -595,7 +595,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_vendor_class_option(v: OptionValue): bool
 		%{
-		${context.flow}->options->Assign(18, new StringVal(${v.vendor_class}.length(),
+		${context.flow}->options->Assign(18, make_intrusive<StringVal>(${v.vendor_class}.length(),
 		                                                   reinterpret_cast<const char*>(${v.vendor_class}.begin())));
 
 		return true;
@@ -626,8 +626,8 @@ refine flow DHCP_Flow += {
 	function process_client_id_option(v: OptionValue): bool
 		%{
 		RecordVal* client_id = new RecordVal(BifType::Record::DHCP::ClientID);
-		client_id->Assign(0, val_mgr->GetCount(${v.client_id.hwtype}));
-		client_id->Assign(1, new StringVal(fmt_mac(${v.client_id.hwaddr}.begin(), ${v.client_id.hwaddr}.length())));
+		client_id->Assign(0, val_mgr->Count(${v.client_id.hwtype}));
+		client_id->Assign(1, make_intrusive<StringVal>(fmt_mac(${v.client_id.hwaddr}.begin(), ${v.client_id.hwaddr}.length())));
 
 		${context.flow}->options->Assign(19, client_id);
 
@@ -653,7 +653,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_user_class_option(v: OptionValue): bool
 		%{
-		${context.flow}->options->Assign(20, new StringVal(${v.user_class}.length(),
+		${context.flow}->options->Assign(20, make_intrusive<StringVal>(${v.user_class}.length(),
 		                                                   reinterpret_cast<const char*>(${v.user_class}.begin())));
 
 		return true;
@@ -686,11 +686,11 @@ refine flow DHCP_Flow += {
 	function process_client_fqdn_option(v: OptionValue): bool
 		%{
 		RecordVal* client_fqdn = new RecordVal(BifType::Record::DHCP::ClientFQDN);
-		client_fqdn->Assign(0, val_mgr->GetCount(${v.client_fqdn.flags}));
-		client_fqdn->Assign(1, val_mgr->GetCount(${v.client_fqdn.rcode1}));
-		client_fqdn->Assign(2, val_mgr->GetCount(${v.client_fqdn.rcode2}));
+		client_fqdn->Assign(0, val_mgr->Count(${v.client_fqdn.flags}));
+		client_fqdn->Assign(1, val_mgr->Count(${v.client_fqdn.rcode1}));
+		client_fqdn->Assign(2, val_mgr->Count(${v.client_fqdn.rcode2}));
 		const char* domain_name = reinterpret_cast<const char*>(${v.client_fqdn.domain_name}.begin());
-		client_fqdn->Assign(3, new StringVal(${v.client_fqdn.domain_name}.length(), domain_name));
+		client_fqdn->Assign(3, make_intrusive<StringVal>(${v.client_fqdn.domain_name}.length(), domain_name));
 
 		${context.flow}->options->Assign(21, client_fqdn);
 
@@ -751,8 +751,8 @@ refine flow DHCP_Flow += {
 		      ptrsubopt != ${v.relay_agent_inf}->end(); ++ptrsubopt )
 			{
 			auto r = new RecordVal(BifType::Record::DHCP::SubOpt);
-			r->Assign(0, val_mgr->GetCount((*ptrsubopt)->code()));
-			r->Assign(1, bytestring_to_val((*ptrsubopt)->value()));
+			r->Assign(0, val_mgr->Count((*ptrsubopt)->code()));
+			r->Assign(1, to_stringval((*ptrsubopt)->value()));
 
 			relay_agent_sub_opt->Assign(i, r);
 			++i;
@@ -781,7 +781,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_auto_config_option(v: OptionValue): bool
 		%{
-		${context.flow}->options->Assign(23, val_mgr->GetBool(${v.auto_config} == 0 ? false : true));
+		${context.flow}->options->Assign(23, val_mgr->Bool(${v.auto_config} == 0 ? false : true));
 
 		return true;
 		%}
@@ -809,7 +809,7 @@ refine flow DHCP_Flow += {
 
 		if ( string_len == 0 )
 			{
-			${context.flow}->options->Assign(24, new StringVal(0, ""));
+			${context.flow}->options->Assign(24, make_intrusive<StringVal>(0, ""));
 			return true;
 			}
 
@@ -821,7 +821,7 @@ refine flow DHCP_Flow += {
 		if ( has_newline )
 			--string_len;
 
-		${context.flow}->options->Assign(24, new StringVal(string_len,
+		${context.flow}->options->Assign(24, make_intrusive<StringVal>(string_len,
 		                                                   reinterpret_cast<const char*>(${v.auto_proxy_config}.begin())));
 
 		return true;

@@ -3,8 +3,9 @@
 #include <map>
 #include <utility>
 #include <list>
-#include <Stmt.h>
+#include <string>
 
+class Stmt;
 
 /**
  * A simple class for managing stats of Bro script coverage across Bro runs.
@@ -44,13 +45,18 @@ private:
 	/**
 	 * The current, global Brofiler instance creates this list at parse-time.
 	 */
-	list<Stmt*> stmts;
+	std::list<Stmt*> stmts;
 
 	/**
 	 * Indicates whether new statments will not be considered as part of
 	 * coverage statistics because it was marked with the @no-test tag.
 	 */
-	unsigned int ignoring;
+	uint32_t ignoring;
+
+	/**
+	 * The character to use to delimit Brofiler output files.  Default is '\t'.
+	 */
+	char delim;
 
 	/**
 	 * This maps Stmt location-desc pairs to the total number of times that
@@ -58,12 +64,7 @@ private:
 	 * startup time and modified at shutdown time before writing back
 	 * to a file.
 	 */
-	map<pair<string, string>, uint64_t> usage_map;
-
-	/**
-	 * The character to use to delimit Brofiler output files.  Default is '\t'.
-	 */
-	char delim;
+	std::map<std::pair<std::string, std::string>, uint64_t> usage_map;
 
 	/**
 	 * A canonicalization routine for Stmt descriptions containing characters

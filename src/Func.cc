@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "Func.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -32,12 +33,14 @@
 #include <broker/error.hh>
 
 #include "Base64.h"
+#include "Debug.h"
+#include "Desc.h"
+#include "Expr.h"
 #include "Stmt.h"
 #include "Scope.h"
 #include "Net.h"
 #include "NetVar.h"
 #include "File.h"
-#include "Func.h"
 #include "Frame.h"
 #include "Var.h"
 #include "analyzer/protocol/login/Login.h"
@@ -47,13 +50,16 @@
 #include "Traverse.h"
 #include "Reporter.h"
 #include "plugin/Manager.h"
+#include "module_util.h"
+#include "iosource/PktSrc.h"
+#include "iosource/PktDumper.h"
 
 extern	RETSIGTYPE sig_handler(int signo);
 
-vector<CallInfo> call_stack;
+std::vector<CallInfo> call_stack;
 bool did_builtin_init = false;
 
-vector<Func*> Func::unique_ids;
+std::vector<Func*> Func::unique_ids;
 static const std::pair<bool, Val*> empty_hook_result(false, NULL);
 
 std::string render_call_stack()
@@ -73,19 +79,16 @@ std::string render_call_stack()
 		auto name = ci.func->Name();
 		std::string arg_desc;
 
-		if ( ci.args )
+		for ( const auto& arg : ci.args )
 			{
-			for ( const auto& arg : *ci.args )
-				{
-				ODesc d;
-				d.SetShort();
-				arg->Describe(&d);
+			ODesc d;
+			d.SetShort();
+			arg->Describe(&d);
 
-				if ( ! arg_desc.empty() )
-					arg_desc += ", ";
+			if ( ! arg_desc.empty() )
+				arg_desc += ", ";
 
-				arg_desc += d.Description();
-				}
+			arg_desc += d.Description();
 			}
 
 		rval += fmt("#%d %s(%s)", lvl, name, arg_desc.data());
@@ -105,54 +108,56 @@ std::string render_call_stack()
 	return rval;
 	}
 
-Func::Func() : scope(0), type(0)
+Func::Func()
 	{
 	unique_id = unique_ids.size();
 	unique_ids.push_back(this);
 	}
 
-Func::Func(Kind arg_kind) : scope(0), kind(arg_kind), type(0)
+Func::Func(Kind arg_kind) : kind(arg_kind)
 	{
 	unique_id = unique_ids.size();
 	unique_ids.push_back(this);
 	}
 
-Func::~Func()
-	{
-	Unref(type);
-	}
+Func::~Func() = default;
 
-void Func::AddBody(Stmt* /* new_body */, id_list* /* new_inits */,
+void Func::AddBody(IntrusivePtr<Stmt> /* new_body */, id_list* /* new_inits */,
 		   size_t /* new_frame_size */, int /* priority */)
 	{
 	Internal("Func::AddBody called");
 	}
 
-Func* Func::DoClone()
+void Func::SetScope(IntrusivePtr<Scope> newscope)
+	{
+	scope = std::move(newscope);
+	}
+
+IntrusivePtr<Func> Func::DoClone()
 	{
 	// By default, ok just to return a reference. Func does not have any state
 	// that is different across instances.
-	::Ref(this);
-	return this;
+	return {NewRef{}, this};
 	}
 
-void Func::DescribeDebug(ODesc* d, const val_list* args) const
+void Func::DescribeDebug(ODesc* d, const zeek::Args* args) const
 	{
 	d->Add(Name());
-
-	RecordType* func_args = FType()->Args();
 
 	if ( args )
 		{
 		d->Add("(");
+		RecordType* func_args = FType()->Args();
+		auto num_fields = static_cast<size_t>(func_args->NumFields());
 
-		for ( int i = 0; i < args->length(); ++i )
+		for ( auto i = 0u; i < args->size(); ++i )
 			{
 			// Handle varargs case (more args than formals).
-			if ( i >= func_args->NumFields() )
+			if ( i >= num_fields )
 				{
 				d->Add("vararg");
-				d->Add(i - func_args->NumFields());
+				int va_num = i - num_fields;
+				d->Add(va_num);
 				}
 			else
 				d->Add(func_args->FieldName(i));
@@ -160,7 +165,7 @@ void Func::DescribeDebug(ODesc* d, const val_list* args) const
 			d->Add(" = '");
 			(*args)[i]->Describe(d);
 
-			if ( i < args->length() - 1 )
+			if ( i < args->size() - 1 )
 				d->Add("', ");
 			else
 				d->Add("'");
@@ -174,7 +179,7 @@ TraversalCode Func::Traverse(TraversalCallback* cb) const
 	{
 	// FIXME: Make a fake scope for builtins?
 	Scope* old_scope = cb->current_scope;
-	cb->current_scope = scope;
+	cb->current_scope = scope.get();
 
 	TraversalCode tc = cb->PreFunction(this);
 	HANDLE_TC_STMT_PRE(tc);
@@ -200,20 +205,17 @@ TraversalCode Func::Traverse(TraversalCallback* cb) const
 
 void Func::CopyStateInto(Func* other) const
 	{
-	std::for_each(bodies.begin(), bodies.end(), [](const Body& b) { Ref(b.stmts); });
-
 	other->bodies = bodies;
 	other->scope = scope;
 	other->kind = kind;
 
-	Ref(type);
 	other->type = type;
 
 	other->name = name;
 	other->unique_id = unique_id;
 	}
 
-std::pair<bool, Val*> Func::HandlePluginResult(std::pair<bool, Val*> plugin_result, val_list* args, function_flavor flavor) const
+std::pair<bool, Val*> Func::HandlePluginResult(std::pair<bool, Val*> plugin_result, function_flavor flavor) const
 	{
 	// Helper function factoring out this code from BroFunc:Call() for
 	// better readability.
@@ -261,23 +263,21 @@ std::pair<bool, Val*> Func::HandlePluginResult(std::pair<bool, Val*> plugin_resu
 		}
 	}
 
-	for ( const auto& arg : *args )
-		Unref(arg);
-
 	return plugin_result;
 	}
 
-BroFunc::BroFunc(ID* arg_id, Stmt* arg_body, id_list* aggr_inits,
-		 size_t arg_frame_size, int priority) : Func(BRO_FUNC)
+BroFunc::BroFunc(ID* arg_id, IntrusivePtr<Stmt> arg_body, id_list* aggr_inits,
+                 size_t arg_frame_size, int priority)
+	: Func(BRO_FUNC)
 	{
 	name = arg_id->Name();
-	type = arg_id->Type()->Ref();
+	type = {NewRef{}, arg_id->Type()};
 	frame_size = arg_frame_size;
 
 	if ( arg_body )
 		{
 		Body b;
-		b.stmts = AddInits(arg_body, aggr_inits);
+		b.stmts = AddInits(std::move(arg_body), aggr_inits);
 		b.priority = priority;
 		bodies.push_back(b);
 		}
@@ -285,50 +285,46 @@ BroFunc::BroFunc(ID* arg_id, Stmt* arg_body, id_list* aggr_inits,
 
 BroFunc::~BroFunc()
 	{
-	std::for_each(bodies.begin(), bodies.end(),
-		[](Body& b) { Unref(b.stmts); });
-
 	if ( ! weak_closure_ref )
 		Unref(closure);
 	}
 
-int BroFunc::IsPure() const
+bool BroFunc::IsPure() const
 	{
 	return std::all_of(bodies.begin(), bodies.end(),
 		[](const Body& b) { return b.stmts->IsPure(); });
 	}
 
-Val* BroFunc::Call(val_list* args, Frame* parent) const
+IntrusivePtr<Val> Func::Call(val_list* args, Frame* parent) const
+	{
+	return Call(zeek::val_list_to_args(*args), parent);
+	}
+
+IntrusivePtr<Val> BroFunc::Call(const zeek::Args& args, Frame* parent) const
 	{
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", Name());
 #endif
-	SegmentProfiler(segment_logger, location);
+	SegmentProfiler prof(segment_logger, location);
 
 	if ( sample_logger )
 		sample_logger->FunctionSeen(this);
 
 	std::pair<bool, Val*> plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), empty_hook_result);
 
-	plugin_result = HandlePluginResult(plugin_result, args, Flavor());
+	plugin_result = HandlePluginResult(plugin_result,  Flavor());
 
 	if( plugin_result.first )
-		{
-		Val *result = plugin_result.second;
-		return result;
-		}
+		return {AdoptRef{}, plugin_result.second};
 
 	if ( bodies.empty() )
 		{
 		// Can only happen for events and hooks.
 		assert(Flavor() == FUNC_FLAVOR_EVENT || Flavor() == FUNC_FLAVOR_HOOK);
-		for ( const auto& arg : *args )
-			Unref(arg);
-
-		return Flavor() == FUNC_FLAVOR_HOOK ? val_mgr->GetTrue() : 0;
+		return Flavor() == FUNC_FLAVOR_HOOK ? val_mgr->True() : nullptr;
 		}
 
-	Frame* f = new Frame(frame_size, this, args);
+	auto f = make_intrusive<Frame>(frame_size, this, &args);
 
 	if ( closure )
 		f->CaptureClosure(closure, outer_ids);
@@ -336,25 +332,25 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 	// Hand down any trigger.
 	if ( parent )
 		{
-		f->SetTrigger(parent->GetTrigger());
+		f->SetTrigger({NewRef{}, parent->GetTrigger()});
 		f->SetCall(parent->GetCall());
 		}
 
-	g_frame_stack.push_back(f);	// used for backtracing
+	g_frame_stack.push_back(f.get());	// used for backtracing
 	const CallExpr* call_expr = parent ? parent->GetCall() : nullptr;
 	call_stack.emplace_back(CallInfo{call_expr, this, args});
 
 	if ( g_trace_state.DoTrace() )
 		{
 		ODesc d;
-		DescribeDebug(&d, args);
+		DescribeDebug(&d, &args);
 
 		g_trace_state.LogTrace("%s called: %s\n",
 			FType()->FlavorString().c_str(), d.Description());
 		}
 
 	stmt_flow_type flow = FLOW_NEXT;
-	Val* result = 0;
+	IntrusivePtr<Val> result;
 
 	for ( const auto& body : bodies )
 		{
@@ -362,26 +358,21 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 			sample_logger->LocationSeen(
 				body.stmts->GetLocationInfo());
 
-		Unref(result);
-
 		// Fill in the rest of the frame with the function's arguments.
-		loop_over_list(*args, j)
+		for ( auto j = 0u; j < args.size(); ++j )
 			{
-			Val* arg = (*args)[j];
+			Val* arg = args[j].get();
 
 			if ( f->NthElement(j) != arg )
-				{
 				// Either not yet set, or somebody reassigned the frame slot.
-				Ref(arg);
-				f->SetElement(j, arg);
-				}
+				f->SetElement(j, arg->Ref());
 			}
 
-		f->Reset(args->length());
+		f->Reset(args.size());
 
 		try
 			{
-			result = body.stmts->Exec(f, flow);
+			result = body.stmts->Exec(f.get(), flow);
 			}
 
 		catch ( InterpreterException& e )
@@ -389,7 +380,8 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 			// Already reported, but now determine whether to unwind further.
 			if ( Flavor() == FUNC_FLAVOR_FUNCTION )
 				{
-				Unref(f);
+				g_frame_stack.pop_back();
+				call_stack.pop_back();
 				// Result not set b/c exception was thrown
 				throw;
 				}
@@ -410,13 +402,12 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 			{
 			// Ignore any return values of hook bodies, final return value
 			// depends on whether a body returns as a result of break statement.
-			Unref(result);
-			result = 0;
+			result = nullptr;
 
 			if ( flow == FLOW_BREAK )
 				{
 				// Short-circuit execution of remaining hook handler bodies.
-				result = val_mgr->GetFalse();
+				result = val_mgr->False();
 				break;
 				}
 			}
@@ -424,15 +415,10 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 
 	call_stack.pop_back();
 
-	// We have an extra Ref for each argument (so that they don't get
-	// deleted between bodies), release that.
-	for ( const auto& arg : *args )
-		Unref(arg);
-
 	if ( Flavor() == FUNC_FLAVOR_HOOK )
 		{
 		if ( ! result )
-			result = val_mgr->GetTrue();
+			result = val_mgr->True();
 		}
 
 	// Warn if the function returns something, but we returned from
@@ -454,25 +440,26 @@ Val* BroFunc::Call(val_list* args, Frame* parent) const
 
 	g_frame_stack.pop_back();
 
-	Unref(f);
-
 	return result;
 	}
 
-void BroFunc::AddBody(Stmt* new_body, id_list* new_inits,
-		      size_t new_frame_size, int priority)
+void BroFunc::AddBody(IntrusivePtr<Stmt> new_body, id_list* new_inits,
+                      size_t new_frame_size, int priority)
 	{
 	if ( new_frame_size > frame_size )
 		frame_size = new_frame_size;
 
-	new_body = AddInits(new_body, new_inits);
+	auto num_args = FType()->Args()->NumFields();
+
+	if ( num_args > static_cast<int>(frame_size) )
+		frame_size = num_args;
+
+	new_body = AddInits(std::move(new_body), new_inits);
 
 	if ( Flavor() == FUNC_FLAVOR_FUNCTION )
 		{
 		// For functions, we replace the old body with the new one.
 		assert(bodies.size() <= 1);
-		for ( const auto& body : bodies )
-			Unref(body.stmts);
 		bodies.clear();
 		}
 
@@ -527,10 +514,12 @@ void BroFunc::SetClosureFrame(Frame* f)
 bool BroFunc::UpdateClosure(const broker::vector& data)
 	{
 	auto result = Frame::Unserialize(data);
+
 	if ( ! result.first )
 		return false;
 
-	Frame* new_closure = result.second;
+	auto& new_closure = result.second;
+
 	if ( new_closure )
 		new_closure->SetFunction(this);
 
@@ -538,19 +527,19 @@ bool BroFunc::UpdateClosure(const broker::vector& data)
 		Unref(closure);
 
 	weak_closure_ref = false;
-	closure = new_closure;
+	closure = new_closure.release();
 
 	return true;
 	}
 
 
-Func* BroFunc::DoClone()
+IntrusivePtr<Func> BroFunc::DoClone()
 	{
 	// BroFunc could hold a closure. In this case a clone of it must
 	// store a copy of this closure.
-	BroFunc* other = new BroFunc();
+	auto other = IntrusivePtr{AdoptRef{}, new BroFunc()};
 
-	CopyStateInto(other);
+	CopyStateInto(other.get());
 
 	other->frame_size = frame_size;
 	other->closure = closure ? closure->SelectiveClone(outer_ids, this) : nullptr;
@@ -578,83 +567,75 @@ void BroFunc::Describe(ODesc* d) const
 		}
 	}
 
-Stmt* BroFunc::AddInits(Stmt* body, id_list* inits)
+IntrusivePtr<Stmt> BroFunc::AddInits(IntrusivePtr<Stmt> body, id_list* inits)
 	{
 	if ( ! inits || inits->length() == 0 )
 		return body;
 
-	StmtList* stmt_series = new StmtList;
+	auto stmt_series = make_intrusive<StmtList>();
 	stmt_series->Stmts().push_back(new InitStmt(inits));
-	stmt_series->Stmts().push_back(body);
+	stmt_series->Stmts().push_back(body.release());
 
 	return stmt_series;
 	}
 
 BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
-			int arg_is_pure)
+			bool arg_is_pure)
 : Func(BUILTIN_FUNC)
 	{
 	func = arg_func;
 	name = make_full_var_name(GLOBAL_MODULE_NAME, arg_name);
 	is_pure = arg_is_pure;
 
-	ID* id = lookup_ID(Name(), GLOBAL_MODULE_NAME, false);
+	auto id = lookup_ID(Name(), GLOBAL_MODULE_NAME, false);
 	if ( ! id )
 		reporter->InternalError("built-in function %s missing", Name());
 	if ( id->HasVal() )
 		reporter->InternalError("built-in function %s multiply defined", Name());
 
-	type = id->Type()->Ref();
-	id->SetVal(new Val(this));
-	Unref(id);
+	type = {NewRef{}, id->Type()};
+	id->SetVal(make_intrusive<Val>(this));
 	}
 
 BuiltinFunc::~BuiltinFunc()
 	{
 	}
 
-int BuiltinFunc::IsPure() const
+bool BuiltinFunc::IsPure() const
 	{
 	return is_pure;
 	}
 
-Val* BuiltinFunc::Call(val_list* args, Frame* parent) const
+IntrusivePtr<Val> BuiltinFunc::Call(const zeek::Args& args, Frame* parent) const
 	{
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", Name());
 #endif
-	SegmentProfiler(segment_logger, Name());
+	SegmentProfiler prof(segment_logger, Name());
 
 	if ( sample_logger )
 		sample_logger->FunctionSeen(this);
 
 	std::pair<bool, Val*> plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), empty_hook_result);
 
-	plugin_result = HandlePluginResult(plugin_result, args, FUNC_FLAVOR_FUNCTION);
+	plugin_result = HandlePluginResult(plugin_result, FUNC_FLAVOR_FUNCTION);
 
 	if ( plugin_result.first )
-		{
-		Val *result = plugin_result.second;
-		return result;
-		}
+		return {AdoptRef{}, plugin_result.second};
 
 	if ( g_trace_state.DoTrace() )
 		{
 		ODesc d;
-		DescribeDebug(&d, args);
+		DescribeDebug(&d, &args);
 
 		g_trace_state.LogTrace("\tBuiltin Function called: %s\n", d.Description());
 		}
 
 	const CallExpr* call_expr = parent ? parent->GetCall() : nullptr;
 	call_stack.emplace_back(CallInfo{call_expr, this, args});
-	Val* result = func(parent, args);
+	auto result = std::move(func(parent, &args).rval);
 	call_stack.pop_back();
 
-	for ( const auto& arg : *args )
-		Unref(arg);
-
-	// Don't Unref() args, that's the caller's responsibility.
 	if ( result && g_trace_state.DoTrace() )
 		{
 		ODesc d;
@@ -670,6 +651,16 @@ void BuiltinFunc::Describe(ODesc* d) const
 	{
 	d->Add(Name());
 	d->AddCount(is_pure);
+	}
+
+void builtin_error(const char* msg)
+	{
+	builtin_error(msg, IntrusivePtr<Val>{});
+	}
+
+void builtin_error(const char* msg, IntrusivePtr<Val> arg)
+	{
+	builtin_error(msg, arg.get());
 	}
 
 void builtin_error(const char* msg, BroObj* arg)
@@ -808,7 +799,7 @@ bool check_built_in_call(BuiltinFunc* f, CallExpr* call)
 		return false;
 		}
 
-	Val* fmt_str_val = fmt_str_arg->Eval(0);
+	auto fmt_str_val = fmt_str_arg->Eval(nullptr);
 
 	if ( fmt_str_val )
 		{
@@ -858,7 +849,8 @@ static int get_func_priority(const attr_list& attrs)
 			continue;
 			}
 
-		Val* v = a->AttrExpr()->Eval(0);
+		auto v = a->AttrExpr()->Eval(nullptr);
+
 		if ( ! v )
 			{
 			a->Error("cannot evaluate attribute expression");
@@ -877,31 +869,31 @@ static int get_func_priority(const attr_list& attrs)
 	return priority;
 	}
 
-function_ingredients::function_ingredients(Scope* scope, Stmt* body)
+function_ingredients::function_ingredients(IntrusivePtr<Scope> scope, IntrusivePtr<Stmt> body)
 	{
 	frame_size = scope->Length();
 	inits = scope->GetInits();
 
-	this->scope = scope;
-	::Ref(this->scope);
-	id = scope->ScopeID();
-	::Ref(id);
+	this->scope = std::move(scope);
+	id = {NewRef{}, this->scope->ScopeID()};
 
-	auto attrs = scope->Attrs();
+	auto attrs = this->scope->Attrs();
 
 	priority = (attrs ? get_func_priority(*attrs) : 0);
-	this->body = body;
-	::Ref(this->body);
+	this->body = std::move(body);
 	}
 
 function_ingredients::~function_ingredients()
 	{
-	Unref(id);
-	Unref(body);
-	Unref(scope);
-
 	for ( const auto& i : *inits )
 		Unref(i);
 
 	delete inits;
 	}
+
+BifReturnVal::BifReturnVal(std::nullptr_t) noexcept
+	{ }
+
+BifReturnVal::BifReturnVal(Val* v) noexcept
+	: rval(AdoptRef{}, v)
+	{ }

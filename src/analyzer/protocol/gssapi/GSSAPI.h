@@ -9,9 +9,7 @@
 
 namespace analyzer { namespace gssapi {
 
-class GSSAPI_Analyzer
-
-: public tcp::TCP_ApplicationAnalyzer {
+class GSSAPI_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 
 public:
 	explicit GSSAPI_Analyzer(Connection* conn);

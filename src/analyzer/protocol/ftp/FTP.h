@@ -2,12 +2,13 @@
 
 #pragma once
 
-#include "analyzer/protocol/login/NVT.h"
 #include "analyzer/protocol/tcp/TCP.h"
+
+namespace analyzer { namespace login { class NVT_Analyzer; }}
 
 namespace analyzer { namespace ftp {
 
-class FTP_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class FTP_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit FTP_Analyzer(Connection* conn);
 
@@ -23,7 +24,7 @@ protected:
 	login::NVT_Analyzer* nvt_orig;
 	login::NVT_Analyzer* nvt_resp;
 	uint32_t pending_reply;	// code associated with multi-line reply, or 0
-	string auth_requested;	// AUTH method requested
+	std::string auth_requested;	// AUTH method requested
 };
 
 /**
@@ -33,7 +34,7 @@ protected:
  * analyzer just decodes the tokens and passes them on to the parent, which must
  * be an SSL analyzer instance.
  */
-class FTP_ADAT_Analyzer : public analyzer::SupportAnalyzer {
+class FTP_ADAT_Analyzer final : public analyzer::SupportAnalyzer {
 public:
 	FTP_ADAT_Analyzer(Connection* conn, bool arg_orig)
 	    : SupportAnalyzer("FTP_ADAT", conn, arg_orig),
@@ -48,4 +49,4 @@ protected:
 	bool first_token;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

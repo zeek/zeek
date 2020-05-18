@@ -37,7 +37,7 @@ function bloomfilter_basic_init%(fp: double, capacity: count,
 	if ( fp < 0.0 || fp > 1.0 )
 		{
 		reporter->Error("false-positive rate must take value between 0 and 1");
-		return 0;
+		return nullptr;
 		}
 
 	size_t cells = BasicBloomFilter::M(fp, capacity);
@@ -46,7 +46,7 @@ function bloomfilter_basic_init%(fp: double, capacity: count,
                                  name->Len());
 	const Hasher* h = new DoubleHasher(optimal_k, seed);
 
-	return new BloomFilterVal(new BasicBloomFilter(h, cells));
+	return make_intrusive<BloomFilterVal>(new BasicBloomFilter(h, cells));
 	%}
 
 ## Creates a basic Bloom filter. This function serves as a low-level
@@ -74,19 +74,19 @@ function bloomfilter_basic_init2%(k: count, cells: count,
 	if ( k == 0 )
 		{
 		reporter->Error("number of hash functions must be non-negative");
-		return 0;
+		return nullptr;
 		}
 	if ( cells == 0 )
 		{
 		reporter->Error("number of cells must be non-negative");
-		return 0;
+		return nullptr;
 		}
 
 	Hasher::seed_t seed = Hasher::MakeSeed(name->Len() > 0 ? name->Bytes() : 0,
 				       name->Len());
 	const Hasher* h = new DoubleHasher(k, seed);
 
-	return new BloomFilterVal(new BasicBloomFilter(h, cells));
+	return make_intrusive<BloomFilterVal>(new BasicBloomFilter(h, cells));
 	%}
 
 ## Creates a counting Bloom filter.
@@ -118,7 +118,7 @@ function bloomfilter_counting_init%(k: count, cells: count, max: count,
 	if ( max == 0 )
 		{
 		reporter->Error("max counter value must be greater than 0");
-		return 0;
+		return nullptr;
 		}
 
 	Hasher::seed_t seed = Hasher::MakeSeed(name->Len() > 0 ? name->Bytes() : 0,
@@ -130,7 +130,7 @@ function bloomfilter_counting_init%(k: count, cells: count, max: count,
 	while ( max >>= 1 )
 		++width;
 
-	return new BloomFilterVal(new CountingBloomFilter(h, cells, width));
+	return make_intrusive<BloomFilterVal>(new CountingBloomFilter(h, cells, width));
 	%}
 
 ## Adds an element to a Bloom filter.
@@ -155,7 +155,7 @@ function bloomfilter_add%(bf: opaque of bloomfilter, x: any%): any
 	else
 		bfv->Add(x);
 
-	return 0;
+	return nullptr;
 	%}
 
 ## Retrieves the counter for a given element in a Bloom filter.
@@ -174,15 +174,15 @@ function bloomfilter_lookup%(bf: opaque of bloomfilter, x: any%): count
 	const BloomFilterVal* bfv = static_cast<const BloomFilterVal*>(bf);
 
 	if ( ! bfv->Type() )
-		reporter->Error("cannot perform lookup on untyped Bloom filter");
+		return val_mgr->Count(0);
 
 	else if ( ! same_type(bfv->Type(), x->Type()) )
 		reporter->Error("incompatible Bloom filter types");
 
 	else
-		return val_mgr->GetCount(static_cast<uint64_t>(bfv->Count(x)));
+		return val_mgr->Count(static_cast<uint64_t>(bfv->Count(x)));
 
-	return val_mgr->GetCount(0);
+	return val_mgr->Count(0);
 	%}
 
 ## Removes all elements from a Bloom filter. This function resets all bits in
@@ -201,7 +201,7 @@ function bloomfilter_clear%(bf: opaque of bloomfilter%): any
 	if ( bfv->Type() ) // Untyped Bloom filters are already empty.
 		bfv->Clear();
 
-	return 0;
+	return nullptr;
 	%}
 
 ## Merges two Bloom filters.
@@ -230,7 +230,7 @@ function bloomfilter_merge%(bf1: opaque of bloomfilter,
 	     ! same_type(bfv1->Type(), bfv2->Type()) )
 		{
 		reporter->Error("incompatible Bloom filter types");
-		return 0;
+		return nullptr;
 		}
 
 	return BloomFilterVal::Merge(bfv1, bfv2);
@@ -245,5 +245,5 @@ function bloomfilter_merge%(bf1: opaque of bloomfilter,
 function bloomfilter_internal_state%(bf: opaque of bloomfilter%): string
 	%{
 	BloomFilterVal* bfv = static_cast<BloomFilterVal*>(bf);
-	return new StringVal(bfv->InternalState());
+	return make_intrusive<StringVal>(bfv->InternalState());
 	%}

@@ -9,9 +9,7 @@
 
 namespace analyzer { namespace MySQL {
 
-class MySQL_Analyzer
-
-: public tcp::TCP_ApplicationAnalyzer {
+class MySQL_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 
 public:
 	explicit MySQL_Analyzer(Connection* conn);

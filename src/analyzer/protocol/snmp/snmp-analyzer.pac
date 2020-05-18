@@ -12,12 +12,12 @@ AddrVal* network_address_to_val(const ASN1Encoding* na);
 AddrVal* network_address_to_val(const NetworkAddress* na);
 Val*     asn1_obj_to_val(const ASN1Encoding* obj);
 
-RecordVal* build_hdr(const Header* header);
+IntrusivePtr<RecordVal> build_hdr(const Header* header);
 RecordVal* build_hdrV3(const Header* header);
 VectorVal* build_bindings(const VarBindList* vbl);
-RecordVal* build_pdu(const CommonPDU* pdu);
-RecordVal* build_trap_pdu(const TrapPDU* pdu);
-RecordVal* build_bulk_pdu(const GetBulkRequestPDU* pdu);
+IntrusivePtr<RecordVal> build_pdu(const CommonPDU* pdu);
+IntrusivePtr<RecordVal> build_trap_pdu(const TrapPDU* pdu);
+IntrusivePtr<RecordVal> build_bulk_pdu(const GetBulkRequestPDU* pdu);
 %}
 
 %code{
@@ -47,7 +47,7 @@ Val* asn1_obj_to_val(const ASN1Encoding* obj)
 	RecordVal* rval = new RecordVal(BifType::Record::SNMP::ObjectValue);
 	uint8 tag = obj->meta()->tag();
 
-	rval->Assign(0, val_mgr->GetCount(tag));
+	rval->Assign(0, val_mgr->Count(tag));
 
 	switch ( tag ) {
 	case VARBIND_UNSPECIFIED_TAG:
@@ -90,10 +90,10 @@ Val* time_ticks_to_val(const TimeTicks* tt)
 	return asn1_integer_to_val(tt->asn1_integer(), TYPE_COUNT);
 	}
 
-RecordVal* build_hdr(const Header* header)
+IntrusivePtr<RecordVal> build_hdr(const Header* header)
 	{
-	RecordVal* rv = new RecordVal(BifType::Record::SNMP::Header);
-	rv->Assign(0, val_mgr->GetCount(header->version()));
+	auto rv = make_intrusive<RecordVal>(BifType::Record::SNMP::Header);
+	rv->Assign(0, val_mgr->Count(header->version()));
 
 	switch ( header->version() ) {
 	case SNMPV1_TAG:
@@ -133,10 +133,10 @@ RecordVal* build_hdrV3(const Header* header)
 	v3->Assign(0, asn1_integer_to_val(global_data->id(), TYPE_COUNT));
 	v3->Assign(1, asn1_integer_to_val(global_data->max_size(),
 	                                        TYPE_COUNT));
-	v3->Assign(2, val_mgr->GetCount(flags_byte));
-	v3->Assign(3, val_mgr->GetBool(flags_byte & 0x01));
-	v3->Assign(4, val_mgr->GetBool(flags_byte & 0x02));
-	v3->Assign(5, val_mgr->GetBool(flags_byte & 0x04));
+	v3->Assign(2, val_mgr->Count(flags_byte));
+	v3->Assign(3, val_mgr->Bool(flags_byte & 0x01));
+	v3->Assign(4, val_mgr->Bool(flags_byte & 0x02));
+	v3->Assign(5, val_mgr->Bool(flags_byte & 0x04));
 	v3->Assign(6, asn1_integer_to_val(global_data->security_model(),
 	                                        TYPE_COUNT));
 	v3->Assign(7, asn1_octet_string_to_val(v3hdr->security_parameters()));
@@ -169,9 +169,9 @@ VectorVal* build_bindings(const VarBindList* vbl)
 	return vv;
 	}
 
-RecordVal* build_pdu(const CommonPDU* pdu)
+IntrusivePtr<RecordVal> build_pdu(const CommonPDU* pdu)
 	{
-	RecordVal* rv = new RecordVal(BifType::Record::SNMP::PDU);
+	auto rv = make_intrusive<RecordVal>(BifType::Record::SNMP::PDU);
 	rv->Assign(0, asn1_integer_to_val(pdu->request_id(), TYPE_INT));
 	rv->Assign(1, asn1_integer_to_val(pdu->error_status(), TYPE_INT));
 	rv->Assign(2, asn1_integer_to_val(pdu->error_index(), TYPE_INT));
@@ -179,9 +179,9 @@ RecordVal* build_pdu(const CommonPDU* pdu)
 	return rv;
 	}
 
-RecordVal* build_trap_pdu(const TrapPDU* pdu)
+IntrusivePtr<RecordVal> build_trap_pdu(const TrapPDU* pdu)
 	{
-	RecordVal* rv = new RecordVal(BifType::Record::SNMP::TrapPDU);
+	auto rv = make_intrusive<RecordVal>(BifType::Record::SNMP::TrapPDU);
 	rv->Assign(0, asn1_oid_to_val(pdu->enterprise()));
 	rv->Assign(1, network_address_to_val(pdu->agent_addr()));
 	rv->Assign(2, asn1_integer_to_val(pdu->generic_trap(), TYPE_INT));
@@ -191,9 +191,9 @@ RecordVal* build_trap_pdu(const TrapPDU* pdu)
 	return rv;
 	}
 
-RecordVal* build_bulk_pdu(const GetBulkRequestPDU* pdu)
+IntrusivePtr<RecordVal> build_bulk_pdu(const GetBulkRequestPDU* pdu)
 	{
-	RecordVal* rv =  new RecordVal(BifType::Record::SNMP::BulkPDU);
+	auto rv = make_intrusive<RecordVal>(BifType::Record::SNMP::BulkPDU);
 	rv->Assign(0, asn1_integer_to_val(pdu->request_id(), TYPE_INT));
 	rv->Assign(1, asn1_integer_to_val(pdu->non_repeaters(), TYPE_COUNT));
 	rv->Assign(2, asn1_integer_to_val(pdu->max_repititions(), TYPE_COUNT));
@@ -209,11 +209,11 @@ refine connection SNMP_Conn += {
 		if ( ! snmp_get_request )
 			return false;
 
-		BifEvent::generate_snmp_get_request(bro_analyzer(),
-		                                    bro_analyzer()->Conn(),
-		                                    ${pdu.header.is_orig},
-		                                    build_hdr(${pdu.header}),
-		                                    build_pdu(${pdu.pdu}));
+		BifEvent::enqueue_snmp_get_request(bro_analyzer(),
+		                                   bro_analyzer()->Conn(),
+		                                   ${pdu.header.is_orig},
+		                                   build_hdr(${pdu.header}),
+		                                   build_pdu(${pdu.pdu}));
 		return true;
 		%}
 
@@ -222,11 +222,11 @@ refine connection SNMP_Conn += {
 		if ( ! snmp_get_next_request )
 			return false;
 
-		BifEvent::generate_snmp_get_next_request(bro_analyzer(),
-		                                         bro_analyzer()->Conn(),
-		                                         ${pdu.header.is_orig},
-		                                         build_hdr(${pdu.header}),
-		                                         build_pdu(${pdu.pdu}));
+		BifEvent::enqueue_snmp_get_next_request(bro_analyzer(),
+		                                        bro_analyzer()->Conn(),
+		                                        ${pdu.header.is_orig},
+		                                        build_hdr(${pdu.header}),
+		                                        build_pdu(${pdu.pdu}));
 		return true;
 		%}
 
@@ -235,11 +235,11 @@ refine connection SNMP_Conn += {
 		if ( ! snmp_response )
 			return false;
 
-		BifEvent::generate_snmp_response(bro_analyzer(),
-		                                 bro_analyzer()->Conn(),
-		                                 ${pdu.header.is_orig},
-		                                 build_hdr(${pdu.header}),
-		                                 build_pdu(${pdu.pdu}));
+		BifEvent::enqueue_snmp_response(bro_analyzer(),
+		                                bro_analyzer()->Conn(),
+		                                ${pdu.header.is_orig},
+		                                build_hdr(${pdu.header}),
+		                                build_pdu(${pdu.pdu}));
 		return true;
 		%}
 
@@ -248,11 +248,11 @@ refine connection SNMP_Conn += {
 		if ( ! snmp_set_request )
 			return false;
 
-		BifEvent::generate_snmp_set_request(bro_analyzer(),
-		                                    bro_analyzer()->Conn(),
-		                                    ${pdu.header.is_orig},
-		                                    build_hdr(${pdu.header}),
-		                                    build_pdu(${pdu.pdu}));
+		BifEvent::enqueue_snmp_set_request(bro_analyzer(),
+		                                   bro_analyzer()->Conn(),
+		                                   ${pdu.header.is_orig},
+		                                   build_hdr(${pdu.header}),
+		                                   build_pdu(${pdu.pdu}));
 		return true;
 		%}
 
@@ -261,11 +261,11 @@ refine connection SNMP_Conn += {
 		if ( ! snmp_trap )
 			return false;
 
-		BifEvent::generate_snmp_trap(bro_analyzer(),
-		                             bro_analyzer()->Conn(),
-		                             ${pdu.header.is_orig},
-		                             build_hdr(${pdu.header}),
-		                             build_trap_pdu(${pdu}));
+		BifEvent::enqueue_snmp_trap(bro_analyzer(),
+		                            bro_analyzer()->Conn(),
+		                            ${pdu.header.is_orig},
+		                            build_hdr(${pdu.header}),
+		                            build_trap_pdu(${pdu}));
 		return true;
 		%}
 
@@ -274,11 +274,11 @@ refine connection SNMP_Conn += {
 		if ( ! snmp_get_bulk_request )
 			return false;
 
-		BifEvent::generate_snmp_get_bulk_request(bro_analyzer(),
-		                                         bro_analyzer()->Conn(),
-		                                         ${pdu.header.is_orig},
-		                                         build_hdr(${pdu.header}),
-		                                         build_bulk_pdu(${pdu}));
+		BifEvent::enqueue_snmp_get_bulk_request(bro_analyzer(),
+		                                        bro_analyzer()->Conn(),
+		                                        ${pdu.header.is_orig},
+		                                        build_hdr(${pdu.header}),
+		                                        build_bulk_pdu(${pdu}));
 		return true;
 		%}
 
@@ -287,11 +287,11 @@ refine connection SNMP_Conn += {
 		if ( ! snmp_inform_request )
 			return false;
 
-		BifEvent::generate_snmp_inform_request(bro_analyzer(),
-		                                       bro_analyzer()->Conn(),
-		                                       ${pdu.header.is_orig},
-		                                       build_hdr(${pdu.header}),
-		                                       build_pdu(${pdu.pdu}));
+		BifEvent::enqueue_snmp_inform_request(bro_analyzer(),
+		                                      bro_analyzer()->Conn(),
+		                                      ${pdu.header.is_orig},
+		                                      build_hdr(${pdu.header}),
+		                                      build_pdu(${pdu.pdu}));
 		return true;
 		%}
 
@@ -300,11 +300,11 @@ refine connection SNMP_Conn += {
 		if ( ! snmp_trapV2 )
 			return false;
 
-		BifEvent::generate_snmp_trapV2(bro_analyzer(),
-		                               bro_analyzer()->Conn(),
-		                               ${pdu.header.is_orig},
-		                               build_hdr(${pdu.header}),
-		                               build_pdu(${pdu.pdu}));
+		BifEvent::enqueue_snmp_trapV2(bro_analyzer(),
+		                              bro_analyzer()->Conn(),
+		                              ${pdu.header.is_orig},
+		                              build_hdr(${pdu.header}),
+		                              build_pdu(${pdu.pdu}));
 		return true;
 		%}
 
@@ -313,11 +313,11 @@ refine connection SNMP_Conn += {
 		if ( ! snmp_report )
 			return false;
 
-		BifEvent::generate_snmp_report(bro_analyzer(),
-		                               bro_analyzer()->Conn(),
-		                               ${pdu.header.is_orig},
-		                               build_hdr(${pdu.header}),
-		                               build_pdu(${pdu.pdu}));
+		BifEvent::enqueue_snmp_report(bro_analyzer(),
+		                              bro_analyzer()->Conn(),
+		                              ${pdu.header.is_orig},
+		                              build_hdr(${pdu.header}),
+		                              build_pdu(${pdu.pdu}));
 		return true;
 		%}
 
@@ -326,10 +326,10 @@ refine connection SNMP_Conn += {
 		if ( ! snmp_unknown_header_version )
 			return false;
 
-		BifEvent::generate_snmp_unknown_header_version(bro_analyzer(),
-		                                               bro_analyzer()->Conn(),
-		                                               ${rec.header.is_orig},
-		                                               ${rec.header.version});
+		BifEvent::enqueue_snmp_unknown_header_version(bro_analyzer(),
+		                                              bro_analyzer()->Conn(),
+		                                              ${rec.header.is_orig},
+		                                              ${rec.header.version});
 		return true;
 		%}
 
@@ -338,11 +338,11 @@ refine connection SNMP_Conn += {
 		if ( ! snmp_unknown_pdu )
 			return false;
 
-		BifEvent::generate_snmp_unknown_pdu(bro_analyzer(),
-		                                    bro_analyzer()->Conn(),
-		                                    ${rec.header.is_orig},
-		                                    build_hdr(${rec.header}),
-		                                    ${rec.tag});
+		BifEvent::enqueue_snmp_unknown_pdu(bro_analyzer(),
+		                                   bro_analyzer()->Conn(),
+		                                   ${rec.header.is_orig},
+		                                   build_hdr(${rec.header}),
+		                                   ${rec.tag});
 		return true;
 		%}
 
@@ -351,11 +351,11 @@ refine connection SNMP_Conn += {
 		if ( ! snmp_unknown_scoped_pdu )
 			return false;
 
-		BifEvent::generate_snmp_unknown_scoped_pdu(bro_analyzer(),
-		                                           bro_analyzer()->Conn(),
-		                                           ${rec.header.is_orig},
-		                                           build_hdr(${rec.header}),
-		                                           ${rec.tag});
+		BifEvent::enqueue_snmp_unknown_scoped_pdu(bro_analyzer(),
+		                                          bro_analyzer()->Conn(),
+		                                          ${rec.header.is_orig},
+		                                          build_hdr(${rec.header}),
+		                                          ${rec.tag});
 		return true;
 		%}
 
@@ -364,10 +364,10 @@ refine connection SNMP_Conn += {
 		if ( ! snmp_encrypted_pdu )
 			return false;
 
-		BifEvent::generate_snmp_encrypted_pdu(bro_analyzer(),
-		                                      bro_analyzer()->Conn(),
-		                                      ${rec.header.is_orig},
-		                                      build_hdr(${rec.header}));
+		BifEvent::enqueue_snmp_encrypted_pdu(bro_analyzer(),
+		                                     bro_analyzer()->Conn(),
+		                                     ${rec.header.is_orig},
+		                                     build_hdr(${rec.header}));
 		return true;
 		%}
 

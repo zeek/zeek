@@ -1,0 +1,4 @@
+module Foo;
+
+event foo_message%(c: connection, is_orig: bool, len: count, plen: count, ptype: count%);
+

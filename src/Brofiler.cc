@@ -1,3 +1,5 @@
+#include "Brofiler.h"
+
 #include <cstdio>
 #include <cstring>
 #include <sstream>
@@ -5,8 +7,13 @@
 #include <utility>
 #include <algorithm>
 #include <sys/stat.h>
-#include "Brofiler.h"
+
+#include "Stmt.h"
+#include "Desc.h"
+#include "Reporter.h"
 #include "util.h"
+
+using namespace std;
 
 Brofiler::Brofiler()
 	: ignoring(0), delim('\t')
@@ -71,7 +78,7 @@ bool Brofiler::ReadStats()
 
 		pair<string, string> location_desc(std::move(location), std::move(desc));
 		uint64_t count;
-		atoi_n(cnt.size(), cnt.c_str(), 0, 10, count);
+		atoi_n(cnt.size(), cnt.c_str(), nullptr, 10, count);
 		usage_map.emplace(std::move(location_desc), count);
 		}
 

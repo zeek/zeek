@@ -4,6 +4,9 @@
 
 #include "RuleMatcher.h"
 #include "analyzer/Analyzer.h"
+#include "net_util.h"
+
+class VectorVal;
 
 namespace analyzer { namespace icmp {
 
@@ -14,7 +17,7 @@ typedef enum {
 
 // We do not have an PIA for ICMP (yet) and therefore derive from
 // RuleMatcherState to perform our own matching.
-class ICMP_Analyzer : public analyzer::TransportLayerAnalyzer {
+class ICMP_Analyzer final : public analyzer::TransportLayerAnalyzer {
 public:
 	explicit ICMP_Analyzer(Connection* conn);
 
@@ -81,7 +84,7 @@ protected:
 	RuleMatcherState matcher_state;
 
 private:
-	void UpdateEndpointVal(RecordVal* endp, int is_orig);
+	void UpdateEndpointVal(RecordVal* endp, bool is_orig);
 };
 
 // Returns the counterpart type to the given type (e.g., the counterpart
@@ -89,4 +92,4 @@ private:
 extern int ICMP4_counterpart(int icmp_type, int icmp_code, bool& is_one_way);
 extern int ICMP6_counterpart(int icmp_type, int icmp_code, bool& is_one_way);
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

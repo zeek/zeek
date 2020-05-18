@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "util.h"
 #include "util-config.h"
 
 #ifdef TIME_WITH_SYS_TIME
@@ -42,16 +43,19 @@
 # include <malloc.h>
 #endif
 
+#include "Desc.h"
+#include "Dict.h"
 #include "digest.h"
 #include "input.h"
-#include "util.h"
 #include "Obj.h"
 #include "Val.h"
 #include "NetVar.h"
 #include "Net.h"
 #include "Reporter.h"
 #include "iosource/Manager.h"
+#include "iosource/PktSrc.h"
 #include "ConvertUTF.h"
+#include "Hash.h"
 
 #include "3rdparty/doctest.h"
 
@@ -62,7 +66,9 @@
 #endif
 #endif
 
-static bool starts_with(const std::string_view& s, const std::string& beginning)
+using namespace std;
+
+static bool starts_with(std::string_view s, std::string_view beginning)
 	{
 	if ( beginning.size() > s.size() )
 		return false;
@@ -77,7 +83,7 @@ TEST_CASE("util starts_with")
 	CHECK(starts_with("abcde", "abcedf") == false);
 	}
 
-static bool ends_with(const std::string_view& s, const std::string& ending)
+static bool ends_with(std::string_view s, std::string_view ending)
 	{
 	if ( ending.size() > s.size() )
 		return false;
@@ -274,7 +280,7 @@ std::string get_escaped_string(const char* str, size_t len, bool escape_all)
 char* copy_string(const char* s)
 	{
 	if ( ! s )
-		return 0;
+		return nullptr;
 
 	char* c = new char[strlen(s)+1];
 	strcpy(c, s);
@@ -290,6 +296,26 @@ TEST_CASE("util streq")
 int streq(const char* s1, const char* s2)
 	{
 	return ! strcmp(s1, s2);
+	}
+
+static constexpr int parse_octal_digit(char ch) noexcept
+	{
+	if ( ch >= '0' && ch <= '7' )
+		return ch - '0';
+	else
+		return -1;
+	}
+
+static constexpr int parse_hex_digit(char ch) noexcept
+	{
+	if ( ch >= '0' && ch <= '9' )
+		return ch - '0';
+	else if ( ch >= 'a' && ch <= 'f' )
+		return 10 + ch - 'a';
+	else if ( ch >= 'A' && ch <= 'F' )
+		return 10 + ch - 'A';
+	else
+		return -1;
 	}
 
 int expand_escape(const char*& s)
@@ -309,23 +335,32 @@ int expand_escape(const char*& s)
 		--s;	// put back the first octal digit
 		const char* start = s;
 
-		// Don't increment inside loop control
-		// because if isdigit() is a macro it might
-		// expand into multiple increments ...
+		// require at least one octal digit and parse at most three
 
-		// Here we define a maximum length for escape sequence
-		// to allow easy handling of string like: "^H0" as
-		// "\0100".
+		int result = parse_octal_digit(*s++);
 
-		for ( int len = 0; len < 3 && isascii(*s) && isdigit(*s);
-		      ++s, ++len)
-			;
-
-		int result;
-		if ( sscanf(start, "%3o", &result) != 1 )
+		if ( result < 0 )
 			{
-			reporter->Warning("bad octal escape: %s ", start);
-			result = 0;
+			reporter->Error("bad octal escape: %s", start);
+			return 0;
+			}
+
+		// second digit?
+		int digit = parse_octal_digit(*s);
+
+		if ( digit >= 0 )
+			{
+			result = (result << 3) | digit;
+			++s;
+
+			// third digit?
+			digit = parse_octal_digit(*s);
+
+			if ( digit >= 0 )
+				{
+				result = (result << 3) | digit;
+				++s;
+				}
 			}
 
 		return result;
@@ -336,15 +371,22 @@ int expand_escape(const char*& s)
 		const char* start = s;
 
 		// Look at most 2 characters, so that "\x0ddir" -> "^Mdir".
-		for ( int len = 0; len < 2 && isascii(*s) && isxdigit(*s);
-		      ++s, ++len)
-			;
 
-		int result;
-		if ( sscanf(start, "%2x", &result) != 1 )
+		int result = parse_hex_digit(*s++);
+
+		if ( result < 0 )
 			{
-			reporter->Warning("bad hexadecimal escape: %s", start);
-			result = 0;
+			reporter->Error("bad hexadecimal escape: %s", start);
+			return 0;
+			}
+
+		// second digit?
+		int digit = parse_hex_digit(*s);
+
+		if ( digit >= 0 )
+			{
+			result = (result << 4) | digit;
+			++s;
 			}
 
 		return result;
@@ -519,7 +561,7 @@ const char* strpbrk_n(size_t len, const char* s, const char* charset)
 		if ( strchr(charset, *p) )
 			return p;
 
-	return 0;
+	return nullptr;
 	}
 
 #ifndef HAVE_STRCASESTR
@@ -778,9 +820,9 @@ const char* fmt_bytes(const char* data, int len)
 	return buf;
 	}
 
-const char* fmt(const char* format, va_list al)
+const char* vfmt(const char* format, va_list al)
 	{
-	static char* buf = 0;
+	static char* buf = nullptr;
 	static unsigned int buf_len = 1024;
 
 	if ( ! buf )
@@ -809,7 +851,7 @@ const char* fmt(const char* format, ...)
 	{
 	va_list al;
 	va_start(al, format);
-	auto rval = fmt(format, al);
+	auto rval = vfmt(format, al);
 	va_end(al);
 	return rval;
 	}
@@ -837,8 +879,7 @@ bool ensure_intermediate_dirs(const char* dirname)
 	bool absolute = dirname[0] == '/';
 	string path = normalize_path(dirname);
 
-	vector<string> path_components;
-	tokenize_string(path, "/", &path_components);
+	const auto path_components = tokenize_string(path, '/');
 
 	string current_dir;
 
@@ -957,29 +998,23 @@ std::string strstrip(std::string s)
 	return s;
 	}
 
-bool hmac_key_set = false;
-uint8_t shared_hmac_md5_key[16];
-
-bool siphash_key_set = false;
-uint8_t shared_siphash_key[SIPHASH_KEYLEN];
-
 void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
 	{
-	if ( ! hmac_key_set )
+	if ( ! KeyedHash::seeds_initialized )
 		reporter->InternalError("HMAC-MD5 invoked before the HMAC key is set");
 
 	internal_md5(bytes, size, digest);
 
 	for ( int i = 0; i < 16; ++i )
-		digest[i] ^= shared_hmac_md5_key[i];
+		digest[i] ^= KeyedHash::shared_hmac_md5_key[i];
 
 	internal_md5(digest, 16, digest);
 	}
 
 static bool read_random_seeds(const char* read_file, uint32_t* seed,
-				uint32_t* buf, int bufsiz)
+				std::array<uint32_t, KeyedHash::SEED_INIT_SIZE>& buf)
 	{
-	FILE* f = 0;
+	FILE* f = nullptr;
 
 	if ( ! (f = fopen(read_file, "r")) )
 		{
@@ -995,8 +1030,8 @@ static bool read_random_seeds(const char* read_file, uint32_t* seed,
 		return false;
 		}
 
-	// Read seeds for MD5.
-	for ( int i = 0; i < bufsiz; ++i )
+	// Read seeds for hmac-md5/siphash/highwayhash.
+	for ( auto &v : buf )
 		{
 		int tmp;
 		if ( fscanf(f, "%u", &tmp) != 1 )
@@ -1005,7 +1040,7 @@ static bool read_random_seeds(const char* read_file, uint32_t* seed,
 			return false;
 			}
 
-		buf[i] = tmp;
+		v = tmp;
 		}
 
 	fclose(f);
@@ -1013,9 +1048,9 @@ static bool read_random_seeds(const char* read_file, uint32_t* seed,
 	}
 
 static bool write_random_seeds(const char* write_file, uint32_t seed,
-				uint32_t* buf, int bufsiz)
+				std::array<uint32_t, KeyedHash::SEED_INIT_SIZE>& buf)
 	{
-	FILE* f = 0;
+	FILE* f = nullptr;
 
 	if ( ! (f = fopen(write_file, "w+")) )
 		{
@@ -1026,8 +1061,8 @@ static bool write_random_seeds(const char* write_file, uint32_t seed,
 
 	fprintf(f, "%u\n", seed);
 
-	for ( int i = 0; i < bufsiz; ++i )
-		fprintf(f, "%u\n", buf[i]);
+	for ( const auto &v: buf )
+		fprintf(f, "%u\n", v);
 
 	fclose(f);
 	return true;
@@ -1054,28 +1089,29 @@ void bro_srandom(unsigned int seed)
 		srandom(seed);
 	}
 
-void init_random_seed(const char* read_file, const char* write_file)
+void init_random_seed(const char* read_file, const char* write_file,
+                      bool use_empty_seeds)
 	{
-	static const int bufsiz = 20;
-	uint32_t buf[bufsiz];
-	memset(buf, 0, sizeof(buf));
-	int pos = 0;	// accumulates entropy
+	std::array<uint32_t, KeyedHash::SEED_INIT_SIZE> buf = {};
+	size_t pos = 0;	// accumulates entropy
 	bool seeds_done = false;
 	uint32_t seed = 0;
 
 	if ( read_file )
 		{
-		if ( ! read_random_seeds(read_file, &seed, buf, bufsiz) )
+		if ( ! read_random_seeds(read_file, &seed, buf) )
 			reporter->FatalError("Could not load seeds from file '%s'.\n",
 					     read_file);
 		else
 			seeds_done = true;
 		}
+	else if ( use_empty_seeds )
+		seeds_done = true;
 
 #ifdef HAVE_GETRANDOM
 	if ( ! seeds_done )
 		{
-		ssize_t nbytes = getrandom(buf, sizeof(buf), 0);
+		ssize_t nbytes = getrandom(buf.data(), sizeof(buf), 0);
 		seeds_done = nbytes == ssize_t(sizeof(buf));
 		}
 #endif
@@ -1083,7 +1119,7 @@ void init_random_seed(const char* read_file, const char* write_file)
 	if ( ! seeds_done )
 		{
 		// Gather up some entropy.
-		gettimeofday((struct timeval *)(buf + pos), 0);
+		gettimeofday((struct timeval *)(buf.data() + pos), 0);
 		pos += sizeof(struct timeval) / sizeof(uint32_t);
 
 		// use urandom. For reasons see e.g. http://www.2uo.de/myths-about-urandom/
@@ -1097,8 +1133,8 @@ void init_random_seed(const char* read_file, const char* write_file)
 
 		if ( fd >= 0 )
 			{
-			int amt = read(fd, buf + pos,
-					sizeof(uint32_t) * (bufsiz - pos));
+			int amt = read(fd, buf.data() + pos,
+					sizeof(uint32_t) * (KeyedHash::SEED_INIT_SIZE - pos));
 			safe_close(fd);
 
 			if ( amt > 0 )
@@ -1109,12 +1145,12 @@ void init_random_seed(const char* read_file, const char* write_file)
 				errno = 0;
 			}
 
-		if ( pos < bufsiz )
-			reporter->FatalError("Could not read enough random data from /dev/urandom. Wanted %d, got %d", bufsiz, pos);
+		if ( pos < KeyedHash::SEED_INIT_SIZE )
+			reporter->FatalError("Could not read enough random data from /dev/urandom. Wanted %d, got %lu", KeyedHash::SEED_INIT_SIZE, pos);
 
 		if ( ! seed )
 			{
-			for ( int i = 0; i < pos; ++i )
+			for ( size_t i = 0; i < pos; ++i )
 				{
 				seed ^= buf[i];
 				seed = (seed << 1) | (seed >> 31);
@@ -1132,21 +1168,10 @@ void init_random_seed(const char* read_file, const char* write_file)
 		first_seed_saved = true;
 		}
 
-	if ( ! hmac_key_set )
-		{
-		assert(sizeof(buf) - 16 == 64);
-		internal_md5((const u_char*) buf, sizeof(buf) - 16, shared_hmac_md5_key); // The last 128 bits of buf are for siphash
-		hmac_key_set = true;
-		}
+	if ( ! KeyedHash::IsInitialized() )
+		KeyedHash::InitializeSeeds(buf);
 
-	if ( ! siphash_key_set )
-		{
-		assert(sizeof(buf) - 64 == SIPHASH_KEYLEN);
-		memcpy(shared_siphash_key, reinterpret_cast<const char*>(buf) + 64, SIPHASH_KEYLEN);
-		siphash_key_set = true;
-		}
-
-	if ( write_file && ! write_random_seeds(write_file, seed, buf, bufsiz) )
+	if ( write_file && ! write_random_seeds(write_file, seed, buf) )
 		reporter->Error("Could not write seeds to file '%s'.\n",
 				write_file);
 	}
@@ -1279,7 +1304,7 @@ TEST_CASE("util is_package_loader")
 
 const array<string, 2> script_extensions = {".zeek", ".bro"};
 
-void warn_if_legacy_script(const std::string_view& filename)
+void warn_if_legacy_script(std::string_view filename)
 	{
 	if ( ends_with(filename, ".bro") )
 		{
@@ -1307,7 +1332,7 @@ bool is_package_loader(const string& path)
 FILE* open_file(const string& path, const string& mode)
 	{
 	if ( path.empty() )
-		return 0;
+		return nullptr;
 
 	FILE* rval = fopen(path.c_str(), mode.c_str());
 
@@ -1346,7 +1371,7 @@ FILE* open_package(string& path, const string& mode)
 	string package_loader = "__load__" + script_extensions[0];
 	reporter->Error("Failed to open package '%s': missing '%s' file",
 	                arg_path.c_str(), package_loader.c_str());
-	return 0;
+	return nullptr;
 	}
 
 TEST_CASE("util path ops")
@@ -1499,28 +1524,50 @@ TEST_CASE("util tokenize_string")
 	v2.clear();
 	tokenize_string("/wrong/delim", ",", &v2);
 	CHECK(v2.size() == 1);
+
+	auto svs = tokenize_string("one,two,three,four,", ',');
+	std::vector<std::string_view> expect{"one", "two", "three", "four", ""};
+	CHECK(svs == expect);
 	}
 
-vector<string>* tokenize_string(string input, const string& delim,
+vector<string>* tokenize_string(std::string_view input, std::string_view delim,
                                 vector<string>* rval, int limit)
 	{
 	if ( ! rval )
 		rval = new vector<string>();
 
+	size_t pos = 0;
 	size_t n;
 	auto found = 0;
 
-	while ( (n = input.find(delim)) != string::npos )
+	while ( (n = input.find(delim, pos)) != string::npos )
 		{
 		++found;
-		rval->push_back(input.substr(0, n));
-		input.erase(0, n + 1);
+		rval->emplace_back(input.substr(pos, n - pos));
+		pos = n + 1;
 
 		if ( limit && found == limit )
 			break;
 		}
 
-	rval->push_back(input);
+	rval->emplace_back(input.substr(pos));
+	return rval;
+	}
+
+vector<std::string_view> tokenize_string(std::string_view input, const char delim) noexcept
+	{
+	vector<std::string_view> rval;
+
+	size_t pos = 0;
+	size_t n;
+
+	while ( (n = input.find(delim, pos)) != string::npos )
+		{
+		rval.emplace_back(input.substr(pos, n - pos));
+		pos = n + 1;
+		}
+
+	rval.emplace_back(input.substr(pos));
 	return rval;
 	}
 
@@ -1551,26 +1598,36 @@ TEST_CASE("util normalize_path")
 	CHECK(normalize_path("zeek/../..") == "..");
 	}
 
-string normalize_path(const string& path)
+string normalize_path(std::string_view path)
 	{
-	size_t n;
-	vector<string> components, final_components;
-	string new_path;
+	if ( path.find("/.") == std::string_view::npos &&
+	     path.find("//") == std::string_view::npos )
+		{
+		// no need to normalize anything
+		if ( path.size() > 1 && path.back() == '/' )
+			path.remove_suffix(1);
+		return std::string(path);
+		}
 
-	if ( path[0] == '/' )
+	size_t n;
+	vector<std::string_view> final_components;
+	string new_path;
+	new_path.reserve(path.size());
+
+	if ( ! path.empty() && path[0] == '/' )
 		new_path = "/";
 
-	tokenize_string(path, "/", &components);
+	const auto components = tokenize_string(path, '/');
+	final_components.reserve(components.size());
 
-	vector<string>::const_iterator it;
-	for ( it = components.begin(); it != components.end(); ++it )
+	for ( auto it = components.begin(); it != components.end(); ++it )
 		{
 		if ( *it == "" ) continue;
+		if ( *it == "." && it != components.begin() ) continue;
+
 		final_components.push_back(*it);
 
-		if ( *it == "." && it != components.begin() )
-			final_components.pop_back();
-		else if ( *it == ".." )
+		if ( *it == ".." )
 			{
 			auto cur_idx = final_components.size() - 1;
 
@@ -1597,7 +1654,7 @@ string normalize_path(const string& path)
 			}
 		}
 
-	for ( it = final_components.begin(); it != final_components.end(); ++it )
+	for ( auto it = final_components.begin(); it != final_components.end(); ++it )
 		{
 		new_path.append(*it);
 		new_path.append("/");
@@ -1609,12 +1666,11 @@ string normalize_path(const string& path)
 	return new_path;
 	}
 
-string without_bropath_component(const string& path)
+string without_bropath_component(std::string_view path)
 	{
 	string rval = normalize_path(path);
 
-	vector<string> paths;
-	tokenize_string(bro_path(), ":", &paths);
+	const auto paths = tokenize_string(bro_path(), ':');
 
 	for ( size_t i = 0; i < paths.size(); ++i )
 		{
@@ -1624,13 +1680,14 @@ string without_bropath_component(const string& path)
 			continue;
 
 		// Found the containing directory.
-		rval.erase(0, common.size());
+		std::string_view v(rval);
+		v.remove_prefix(common.size());
 
 		// Remove leading path separators.
-		while ( rval.size() && rval[0] == '/' )
-			rval.erase(0, 1);
+		while ( !v.empty() && v.front() == '/' )
+			v.remove_prefix(1);
 
-		return rval;
+		return std::string(v);
 		}
 
 	return rval;
@@ -1668,6 +1725,38 @@ static string find_file_in_path(const string& filename, const string& path,
 		return abs_path;
 
 	return string();
+	}
+
+std::string get_exe_path(const std::string& invocation)
+	{
+	if ( invocation.empty() )
+		return "";
+
+	if ( invocation[0] == '/' || invocation[0] == '~' )
+		// Absolute path
+		return invocation;
+
+	if ( invocation.find('/') != std::string::npos )
+		{
+		// Relative path
+		char cwd[PATH_MAX];
+
+		if ( ! getcwd(cwd, sizeof(cwd)) )
+			{
+			fprintf(stderr, "failed to get current directory: %s\n",
+			        strerror(errno));
+			exit(1);
+			}
+
+		return std::string(cwd) + "/" + invocation;
+		}
+
+	auto path = getenv("PATH");
+
+	if ( ! path )
+		return "";
+
+	return find_file(invocation, path);
 	}
 
 string find_file(const string& filename, const string& path_set,
@@ -1727,7 +1816,10 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 	// Build file names.
 	const int buflen = strlen(name) + 128;
 
-	char newname[buflen], tmpname[buflen+4];
+	auto newname_buf = std::make_unique<char[]>(buflen);
+	auto tmpname_buf = std::make_unique<char[]>(buflen + 4);
+	auto newname = newname_buf.get();
+	auto tmpname = tmpname_buf.get();
 
 	snprintf(newname, buflen, "%s.%d.%.06f.tmp",
 			name, getpid(), network_time);
@@ -1740,7 +1832,7 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 	if ( ! newf )
 		{
 		reporter->Error("rotate_file: can't open %s: %s", tmpname, strerror(errno));
-		return 0;
+		return nullptr;
 		}
 
 	// Then move old file to "<name>.<pid>.<timestamp>" and make sure
@@ -1752,7 +1844,7 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 		fclose(newf);
 		unlink(newname);
 		unlink(tmpname);
-		return 0;
+		return nullptr;
 		}
 
 	// Close current file, and move the tmp to its place.
@@ -1837,7 +1929,7 @@ RETSIGTYPE sig_handler(int signo);
 void terminate_processing()
 	{
 	if ( ! terminating )
-		sig_handler(SIGTERM);
+		raise(SIGTERM);
 	}
 
 extern const char* proc_status_file;
@@ -1902,11 +1994,11 @@ double current_time(bool real)
 
 	double t = double(tv.tv_sec) + double(tv.tv_usec) / 1e6;
 
-	if ( ! pseudo_realtime || real || ! iosource_mgr || iosource_mgr->GetPktSrcs().empty() )
+	if ( ! pseudo_realtime || real || ! iosource_mgr || ! iosource_mgr->GetPktSrc() )
 		return t;
 
 	// This obviously only works for a single source ...
-	iosource::PktSrc* src = iosource_mgr->GetPktSrcs().front();
+	iosource::PktSrc* src = iosource_mgr->GetPktSrc();
 
 	if ( net_is_processing_suspended() )
 		return src->CurrentPacketTimestamp();

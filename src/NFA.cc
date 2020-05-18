@@ -2,21 +2,23 @@
 
 #include "zeek-config.h"
 
-#include <algorithm>
-
 #include "NFA.h"
+#include "Desc.h"
 #include "EquivClass.h"
+#include "IntSet.h"
+
+#include <algorithm>
 
 static int nfa_state_id = 0;
 
 NFA_State::NFA_State(int arg_sym, EquivClass* ec)
 	{
 	sym = arg_sym;
-	ccl = 0;
+	ccl = nullptr;
 	accept = NO_ACCEPT;
 	first_trans_is_back_ref = false;
-	mark = 0;
-	epsclosure = 0;
+	mark = nullptr;
+	epsclosure = nullptr;
 	id = ++nfa_state_id;
 
 	// Fix up equivalence classes based on this transition.  Note that any
@@ -37,9 +39,9 @@ NFA_State::NFA_State(CCL* arg_ccl)
 	ccl = arg_ccl;
 	accept = NO_ACCEPT;
 	first_trans_is_back_ref = false;
-	mark = 0;
+	mark = nullptr;
 	id = ++nfa_state_id;
-	epsclosure = 0;
+	epsclosure = nullptr;
 	}
 
 NFA_State::~NFA_State()
@@ -65,7 +67,7 @@ NFA_State* NFA_State::DeepCopy()
 		return mark;
 		}
 
-	NFA_State* copy = ccl ? new NFA_State(ccl) : new NFA_State(sym, 0);
+	NFA_State* copy = ccl ? new NFA_State(ccl) : new NFA_State(sym, nullptr);
 	SetMark(copy);
 
 	for ( int i = 0; i < xtions.length(); ++i )
@@ -78,7 +80,7 @@ void NFA_State::ClearMarks()
 	{
 	if ( mark )
 		{
-		SetMark(0);
+		SetMark(nullptr);
 		for ( int i = 0; i < xtions.length(); ++i )
 			xtions[i]->ClearMarks();
 		}
@@ -123,7 +125,7 @@ NFA_state_list* NFA_State::EpsilonClosure()
 
 	// Clear out markers.
 	for ( i = 0; i < states.length(); ++i )
-		states[i]->SetMark(0);
+		states[i]->SetMark(nullptr);
 
 	// Make it fit.
 	epsclosure->resize(0);
@@ -260,7 +262,7 @@ void NFA_Machine::MakePositiveClosure()
 
 void NFA_Machine::MakeRepl(int lower, int upper)
 	{
-	NFA_Machine* dup = 0;
+	NFA_Machine* dup = nullptr;
 	if ( upper > lower || upper == NO_UPPER_BOUND )
 		dup = DuplicateMachine();
 

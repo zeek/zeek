@@ -9,6 +9,7 @@
 #include "Var.h"
 #include "util.h"
 #include "Reporter.h"
+#include "Val.h"
 
 BroSubstring::BroSubstring(const BroSubstring& bst)
 : BroString((const BroString&) bst), _num(), _new(bst._new)
@@ -60,22 +61,22 @@ VectorVal* BroSubstring::VecToPolicy(Vec* vec)
 	RecordType* sw_substring_type =
 		internal_type("sw_substring")->AsRecordType();
 	if ( ! sw_substring_type )
-		return 0;
+		return nullptr;
 
 	RecordType* sw_align_type =
 		internal_type("sw_align")->AsRecordType();
 	if ( ! sw_align_type )
-		return 0;
+		return nullptr;
 
 	VectorType* sw_align_vec_type =
 		internal_type("sw_align_vec")->AsVectorType();
 	if ( ! sw_align_vec_type )
-		return 0;
+		return nullptr;
 
 	VectorVal* result =
 		new VectorVal(internal_type("sw_substring_vec")->AsVectorType());
 	if ( ! result )
-		return 0;
+		return nullptr;
 
 	if ( vec )
 		{
@@ -83,25 +84,25 @@ VectorVal* BroSubstring::VecToPolicy(Vec* vec)
 			{
 			BroSubstring* bst = (*vec)[i];
 
-			RecordVal* st_val = new RecordVal(sw_substring_type);
-			st_val->Assign(0, new StringVal(new BroString(*bst)));
+			auto st_val = make_intrusive<RecordVal>(sw_substring_type);
+			st_val->Assign(0, make_intrusive<StringVal>(new BroString(*bst)));
 
-			VectorVal* aligns = new VectorVal(sw_align_vec_type);
+			auto aligns = make_intrusive<VectorVal>(sw_align_vec_type);
 
 			for ( unsigned int j = 0; j < bst->GetNumAlignments(); ++j )
 				{
 				const BSSAlign& align = (bst->GetAlignments())[j];
 
-				RecordVal* align_val = new RecordVal(sw_align_type);
-				align_val->Assign(0, new StringVal(new BroString(*align.string)));
-				align_val->Assign(1, val_mgr->GetCount(align.index));
+				auto align_val = make_intrusive<RecordVal>(sw_align_type);
+				align_val->Assign(0, make_intrusive<StringVal>(new BroString(*align.string)));
+				align_val->Assign(1, val_mgr->Count(align.index));
 
-				aligns->Assign(j+1, align_val);
+				aligns->Assign(j + 1, std::move(align_val));
 				}
 
-			st_val->Assign(1, aligns);
-			st_val->Assign(2, val_mgr->GetBool(bst->IsNewAlignment()));
-			result->Assign(i+1, st_val);
+			st_val->Assign(1, std::move(aligns));
+			st_val->Assign(2, val_mgr->Bool(bst->IsNewAlignment()));
+			result->Assign(i + 1, std::move(st_val));
 			}
 		}
 
@@ -142,7 +143,7 @@ BroSubstring::Vec* BroSubstring::VecFromPolicy(VectorVal* vec)
 
 char* BroSubstring::VecToString(Vec* vec)
 	{
-	string result("[");
+	std::string result("[");
 
 	for ( BroSubstring::VecIt it = vec->begin(); it != vec->end(); ++it )
 		{
@@ -234,9 +235,9 @@ public:
 		{
 		// Make sure access is in allowed range.
 		if ( row < 0 || row >= _rows )
-			return 0;
+			return nullptr;
 		if ( col < 0 || col >= _cols )
-			return 0;
+			return nullptr;
 
 		return &(_nodes[row * _cols + col]);
 		}
@@ -275,7 +276,7 @@ private:
 static void sw_collect_single(BroSubstring::Vec* result, SWNodeMatrix& matrix,
 			      SWNode* node, SWParams& params)
 	{
-	string substring("");
+	std::string substring("");
 	int row = 0, col = 0;
 
 	while ( node )
@@ -339,7 +340,7 @@ static void sw_collect_single(BroSubstring::Vec* result, SWNodeMatrix& matrix,
 static void sw_collect_multiple(BroSubstring::Vec* result,
 				SWNodeMatrix& matrix, SWParams& params)
 	{
-	vector<BroSubstring::Vec*> als;
+	std::vector<BroSubstring::Vec*> als;
 
 	for ( int i = matrix.GetHeight() - 1; i > 0; --i )
 		{
@@ -353,12 +354,12 @@ static void sw_collect_multiple(BroSubstring::Vec* result,
 			BroSubstring::Vec* new_al = new BroSubstring::Vec();
 			sw_collect_single(new_al, matrix, node, params);
 
-			for ( vector<BroSubstring::Vec*>::iterator it = als.begin();
+			for ( std::vector<BroSubstring::Vec*>::iterator it = als.begin();
 			      it != als.end(); ++it )
 				{
 				BroSubstring::Vec* old_al = *it;
 
-				if ( old_al == 0 )
+				if ( old_al == nullptr )
 					continue;
 
 				for ( BroSubstring::VecIt it2 = old_al->begin();
@@ -371,7 +372,7 @@ static void sw_collect_multiple(BroSubstring::Vec* result,
 							{
 							delete_each(new_al);
 							delete new_al;
-							new_al = 0;
+							new_al = nullptr;
 							goto end_loop;
 							}
 
@@ -392,12 +393,12 @@ end_loop:
 			}
 		}
 
-	for ( vector<BroSubstring::Vec*>::iterator it = als.begin();
+	for ( std::vector<BroSubstring::Vec*>::iterator it = als.begin();
 	      it != als.end(); ++it )
 		{
 		BroSubstring::Vec* al = *it;
 
-		if ( al == 0 )
+		if ( al == nullptr )
 			continue;
 
 		for ( BroSubstring::VecIt it2 = al->begin();
@@ -431,8 +432,8 @@ BroSubstring::Vec* smith_waterman(const BroString* s1, const BroString* s2,
 	byte_vec string2 = s2->Bytes();
 
 	SWNodeMatrix matrix(s1, s2);	// dynamic programming matrix.
-	SWNode* node_max = 0;	// pointer to the best score's node
-	SWNode* node_br_max = 0;	// pointer to lowest-right matching node
+	SWNode* node_max = nullptr;	// pointer to the best score's node
+	SWNode* node_br_max = nullptr;	// pointer to lowest-right matching node
 
 	// The highest score in the matrix, globally.  We initialize to 1
 	// because we are only interested in real scores (initializing to
@@ -505,7 +506,7 @@ BroSubstring::Vec* smith_waterman(const BroString* s1, const BroString* s2,
 			if ( current->swn_byte_assigned )
 				current->swn_score = score_tl;
 			else
-				current->swn_score = max(max(score_t, score_l), score_tl);
+				current->swn_score = std::max(std::max(score_t, score_l), score_tl);
 
 			// Establish predecessor chain according to neighbor
 			// with best score.

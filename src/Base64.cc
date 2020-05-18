@@ -1,9 +1,13 @@
 #include "zeek-config.h"
 #include "Base64.h"
+#include "BroString.h"
+#include "Reporter.h"
+#include "Conn.h"
+
 #include <math.h>
 
 int Base64Converter::default_base64_table[256];
-const string Base64Converter::default_alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+const std::string Base64Converter::default_alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 void Base64Converter::Encode(int len, const unsigned char* data, int* pblen, char** pbuf)
 	{
@@ -42,7 +46,7 @@ void Base64Converter::Encode(int len, const unsigned char* data, int* pblen, cha
 	}
 
 
-int* Base64Converter::InitBase64Table(const string& alphabet)
+int* Base64Converter::InitBase64Table(const std::string& alphabet)
 	{
 	assert(alphabet.size() == 64);
 
@@ -51,7 +55,7 @@ int* Base64Converter::InitBase64Table(const string& alphabet)
 	if ( alphabet == default_alphabet && default_table_initialized )
 		return default_base64_table;
 
-	int* base64_table = 0;
+	int* base64_table = nullptr;
 
 	if ( alphabet == default_alphabet )
 		{
@@ -82,7 +86,7 @@ int* Base64Converter::InitBase64Table(const string& alphabet)
 	return base64_table;
 	}
 
-Base64Converter::Base64Converter(Connection* arg_conn, const string& arg_alphabet)
+Base64Converter::Base64Converter(Connection* arg_conn, const std::string& arg_alphabet)
 	{
 	if ( arg_alphabet.size() > 0 )
 		{
@@ -94,7 +98,7 @@ Base64Converter::Base64Converter(Connection* arg_conn, const string& arg_alphabe
 		alphabet = default_alphabet;
 		}
 
-	base64_table = 0;
+	base64_table = nullptr;
 	base64_group_next = 0;
 	base64_padding = base64_after_padding = 0;
 	errored = 0;
@@ -134,7 +138,7 @@ int Base64Converter::Decode(int len, const char* data, int* pblen, char** pbuf)
 
 	int dlen = 0;
 
-	while ( 1 )
+	while ( true )
 		{
 		if ( base64_group_next == 4 )
 			{
@@ -215,6 +219,14 @@ int Base64Converter::Done(int* pblen, char** pbuf)
 	return 0;
 	}
 
+void Base64Converter::IllegalEncoding(const char* msg)
+		{
+		// strncpy(error_msg, msg, sizeof(error_msg));
+		if ( conn )
+			conn->Weird("base64_illegal_encoding", msg);
+		else
+			reporter->Error("%s", msg);
+		}
 
 BroString* decode_base64(const BroString* s, const BroString* a, Connection* conn)
 	{
@@ -222,7 +234,7 @@ BroString* decode_base64(const BroString* s, const BroString* a, Connection* con
 		{
 		reporter->Error("base64 decoding alphabet is not 64 characters: %s",
 		                a->CheckString());
-		return 0;
+		return nullptr;
 		}
 
 	int buf_len = int((s->Len() + 3) / 4) * 3 + 1;
@@ -243,11 +255,11 @@ BroString* decode_base64(const BroString* s, const BroString* a, Connection* con
 	rlen += rlen2;
 
 	rbuf[rlen] = '\0';
-	return new BroString(1, (u_char*) rbuf, rlen);
+	return new BroString(true, (u_char*) rbuf, rlen);
 
 err:
 	delete [] rbuf;
-	return 0;
+	return nullptr;
 	}
 
 BroString* encode_base64(const BroString* s, const BroString* a, Connection* conn)
@@ -256,14 +268,13 @@ BroString* encode_base64(const BroString* s, const BroString* a, Connection* con
 		{
 		reporter->Error("base64 alphabet is not 64 characters: %s",
 		                a->CheckString());
-		return 0;
+		return nullptr;
 		}
 
-	char* outbuf = 0;
+	char* outbuf = nullptr;
 	int outlen = 0;
 	Base64Converter enc(conn, a ? a->CheckString() : "");
 	enc.Encode(s->Len(), (const unsigned char*) s->Bytes(), &outlen, &outbuf);
 
-	return new BroString(1, (u_char*)outbuf, outlen);
+	return new BroString(true, (u_char*)outbuf, outlen);
 	}
-

@@ -21,15 +21,16 @@ function utf16_bytestring_to_utf8_val(conn: Connection, utf16: bytestring): Stri
 		{
 		reporter->Info("utf16 too long in utf16_bytestring_to_utf8_val");
 		// If the conversion didn't go well, return the original data.
-		return bytestring_to_val(utf16);
+		return to_stringval(utf16).release();
 		}
 
 	resultstring.resize(utf8size, '\0');
 
 	// We can't assume that the string data is properly aligned
 	// here, so make a copy.
-	UTF16 utf16_copy[utf16.length()]; // Twice as much memory than necessary.
-	memset(utf16_copy, 0, sizeof(utf16_copy)); // needs to be set to 0, otherwhise we have uninitialized memory issues when utf16.length is odd.
+	auto utf16_copy_buf = std::make_unique<UTF16[]>(utf16.length()); // Twice as much memory than necessary.
+	auto utf16_copy = utf16_copy_buf.get();
+	memset(utf16_copy, 0, sizeof(UTF16) * utf16.length()); // needs to be set to 0, otherwhise we have uninitialized memory issues when utf16.length is odd.
 	memcpy(utf16_copy, utf16.begin(), utf16.length());
 
 	const char* utf16_copy_end = reinterpret_cast<const char*>(utf16_copy) + utf16.length();
@@ -48,7 +49,7 @@ function utf16_bytestring_to_utf8_val(conn: Connection, utf16: bytestring): Stri
 		{
 		reporter->Weird(conn, "utf16_conversion_failed", "utf16 conversion failed in utf16_bytestring_to_utf8_val");
 		// If the conversion didn't go well, return the original data.
-		return bytestring_to_val(utf16);
+		return to_stringval(utf16).release();
 		}
 
 	*targetstart = 0;

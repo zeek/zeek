@@ -286,6 +286,12 @@ public:
 	~Supervisor();
 
 	/**
+	 * Perform some initialization that needs to happen after scripts are loaded
+	 * and the IOSource manager is created.
+	 */
+	void InitPostScript();
+
+	/**
 	 * @return the process ID of the Stem.
 	 */
 	pid_t StemPID() const
@@ -305,7 +311,7 @@ public:
 	 * @return  script-layer Supervisor::Status record value describing the
 	 * status of a node or set of nodes.
 	 */
-	RecordVal* Status(std::string_view node_name);
+	IntrusivePtr<RecordVal> Status(std::string_view node_name);
 
 	/**
 	 * Create a new supervised node.
@@ -347,11 +353,7 @@ public:
 private:
 
 	// IOSource interface overrides:
-	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
-	            iosource::FD_Set* except) override;
-
-	double NextTimestamp(double* local_network_time) override;
-
+	double GetNextTimeout() override;
 	void Process() override;
 
 	size_t ProcessMessages();
@@ -392,7 +394,7 @@ private:
  * parent (supervisor) process has died.  If it has died, the supervised
  * process self-terminates.
  */
-class ParentProcessCheckTimer : public Timer {
+class ParentProcessCheckTimer final : public Timer {
 public:
 
 	/**
@@ -404,7 +406,7 @@ public:
 
 protected:
 
-	void Dispatch(double t, int is_expire) override;
+	void Dispatch(double t, bool is_expire) override;
 
 	double interval;
 };

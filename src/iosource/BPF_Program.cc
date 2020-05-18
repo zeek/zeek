@@ -2,8 +2,9 @@
 
 #include "zeek-config.h"
 
-#include "util.h"
 #include "BPF_Program.h"
+
+#include <string.h>
 
 #ifdef DONT_HAVE_LIBPCAP_PCAP_FREECODE
 extern "C" {
@@ -142,7 +143,7 @@ bool BPF_Program::Compile(int snaplen, int linktype, const char* filter,
 
 bpf_program* BPF_Program::GetProgram()
 	{
-	return m_compiled ? &m_program : 0;
+	return m_compiled ? &m_program : nullptr;
 	}
 
 void BPF_Program::FreeCode()

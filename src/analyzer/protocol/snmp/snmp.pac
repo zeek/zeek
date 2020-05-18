@@ -2,6 +2,7 @@
 %include bro.pac
 
 %extern{
+#include "Reporter.h"
 #include "types.bif.h"
 #include "events.bif.h"
 %}

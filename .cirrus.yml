@@ -1,9 +1,10 @@
 cpus: &CPUS 8
 btest_jobs: &BTEST_JOBS 8
-memory: &MEMORY 8GB
+btest_retries: &BTEST_RETRIES 2
+memory: &MEMORY 6GB
 
-config: &CONFIG --build-type=release --enable-cpp-tests
-memcheck_config: &MEMCHECK_CONFIG --build-type=debug --enable-cpp-tests --sanitizers=address
+config: &CONFIG --build-type=release --enable-cpp-tests  --disable-broker-tests
+memcheck_config: &MEMCHECK_CONFIG --build-type=debug --enable-cpp-tests --disable-broker-tests --sanitizers=address --enable-fuzzers
 
 resources_template: &RESOURCES_TEMPLATE
   cpu: *CPUS
@@ -46,6 +47,7 @@ env:
   CIRRUS_WORKING_DIR: /zeek
   ZEEK_CI_CPUS: *CPUS
   ZEEK_CI_BTEST_JOBS: *BTEST_JOBS
+  ZEEK_CI_BTEST_RETRIES: *BTEST_RETRIES
   ZEEK_CI_CONFIGURE_FLAGS: *CONFIG
   # This is a single-purpose, read-only GitHub deploy key (SSH private key) for
   # the zeek-testing-private repository.
@@ -75,6 +77,13 @@ debian9_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
+debian9_32bit_task:
+  container:
+    # Debian 9 EOL: June 2022
+    dockerfile: ci/debian-9-32bit/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+
 ubuntu18_task:
   container:
     # Ubuntu 18.04 EOL: April 2023
@@ -95,10 +104,11 @@ ubuntu16_task:
 macos_task:
   osx_instance:
     image: catalina-base
+    # cpu/memory setting is implicitly 2 core / 4 thread and 8GB, and
+    # trying to set it explicitly results in an error.
   prepare_script: ./ci/macos/prepare.sh
   << : *CI_TEMPLATE
   env:
-    # Currently only available as 2 core / 4 thread (and 8GB) instances.
     ZEEK_CI_CPUS: 4
     ZEEK_CI_BTEST_JOBS: 4
     # No permission to write to default location of /zeek
@@ -109,7 +119,9 @@ freebsd_task:
   freebsd_instance:
     # FreeBSD 12 EOL: June 30, 2024
     image_family: freebsd-12-1
-    << : *RESOURCES_TEMPLATE
+    cpu: 8
+    # Not allowed to request less than 8GB for an 8 CPU FreeBSD VM.
+    memory: 8GB
   prepare_script: ./ci/freebsd/prepare.sh
   << : *CI_TEMPLATE
 
@@ -117,7 +129,10 @@ memcheck_task:
   container:
     # Just uses a recent/common distro to run memory error/leak checks.
     dockerfile: ci/ubuntu-18.04/Dockerfile
-    << : *RESOURCES_TEMPLATE
+    cpu: 8
+    # AddressSanitizer uses a lot more memory than a typical config.
+    memory: 16GB
   << : *CI_TEMPLATE
+  test_fuzzers_script: ./ci/test-fuzzers.sh
   env:
     ZEEK_CI_CONFIGURE_FLAGS: *MEMCHECK_CONFIG

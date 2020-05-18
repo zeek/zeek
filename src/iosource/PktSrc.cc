@@ -1,17 +1,17 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <errno.h>
+#include "zeek-config.h"
+#include "PktSrc.h"
+
 #include <sys/stat.h>
 
-#include "zeek-config.h"
-
 #include "util.h"
-#include "PktSrc.h"
 #include "Hash.h"
 #include "Net.h"
 #include "Sessions.h"
 #include "broker/Manager.h"
 #include "iosource/Manager.h"
+#include "BPF_Program.h"
 
 #include "pcap/pcap.bif.h"
 
@@ -51,7 +51,7 @@ const std::string& PktSrc::Path() const
 
 const char* PktSrc::ErrorMsg() const
 	{
-	return errbuf.size() ? errbuf.c_str() : 0;
+	return errbuf.size() ? errbuf.c_str() : nullptr;
 	}
 
 int PktSrc::LinkType() const
@@ -66,7 +66,7 @@ uint32_t PktSrc::Netmask() const
 
 bool PktSrc::IsError() const
 	{
-	return ErrorMsg();
+	return ! errbuf.empty();
 	}
 
 bool PktSrc::IsLive() const
@@ -109,8 +109,19 @@ void PktSrc::Opened(const Properties& arg_props)
 		return;
 		}
 
+
 	if ( props.is_live )
+		{
 		Info(fmt("listening on %s\n", props.path.c_str()));
+
+		// We only register the file descriptor if we're in live
+		// mode because libpcap's file descriptor for trace files
+		// isn't a reliable way to know whether we actually have
+		// data to read.
+		if ( props.selectable_fd != -1 )
+			if ( ! iosource_mgr->RegisterFd(props.selectable_fd, this) )
+				reporter->FatalError("Failed to register pktsrc fd with iosource_mgr");
+		}
 
 	DBG_LOG(DBG_PKTIO, "Opened source %s", props.path.c_str());
 	}
@@ -118,6 +129,9 @@ void PktSrc::Opened(const Properties& arg_props)
 void PktSrc::Closed()
 	{
 	SetClosed(true);
+
+	if ( props.is_live && props.selectable_fd != -1 )
+		iosource_mgr->UnregisterFd(props.selectable_fd, this);
 
 	DBG_LOG(DBG_PKTIO, "Closed source %s", props.path.c_str());
 	}
@@ -139,7 +153,7 @@ void PktSrc::Info(const std::string& msg)
 
 void PktSrc::Weird(const std::string& msg, const Packet* p)
 	{
-	sessions->Weird(msg.c_str(), p, 0);
+	sessions->Weird(msg.c_str(), p, nullptr);
 	}
 
 void PktSrc::InternalError(const std::string& msg)
@@ -166,7 +180,7 @@ double PktSrc::CheckPseudoTime()
 	return pseudo_time <= ct ? bro_start_time + pseudo_time : 0;
 	}
 
-void PktSrc::Init()
+void PktSrc::InitSource()
 	{
 	Open();
 	}
@@ -175,55 +189,6 @@ void PktSrc::Done()
 	{
 	if ( IsOpen() )
 		Close();
-	}
-
-void PktSrc::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
-                    iosource::FD_Set* except)
-	{
-	if ( pseudo_realtime )
-		{
-		// Select would give erroneous results. But we simulate it
-		// by setting idle accordingly.
-		SetIdle(CheckPseudoTime() == 0);
-		return;
-		}
-
-	if ( IsOpen() && props.selectable_fd >= 0 )
-		read->Insert(props.selectable_fd);
-
-	// TODO: This seems like a hack that should be removed, but doing so
-	// causes the main run loop to spin more frequently and increase cpu usage.
-	// See also commit 9cd85be308.
-	if ( read->Empty() )
-		read->Insert(0);
-
-	if ( write->Empty() )
-		write->Insert(0);
-
-	if ( except->Empty() )
-		except->Insert(0);
-	}
-
-double PktSrc::NextTimestamp(double* local_network_time)
-	{
-	if ( ! IsOpen() )
-		return -1.0;
-
-	if ( ! ExtractNextPacketInternal() )
-		return -1.0;
-
-	if ( pseudo_realtime )
-		{
-		// Delay packet if necessary.
-		double packet_time = CheckPseudoTime();
-		if ( packet_time )
-			return packet_time;
-
-		SetIdle(true);
-		return -1.0;
-		}
-
-	return current_packet.time;
 	}
 
 void PktSrc::Process()
@@ -248,7 +213,7 @@ void PktSrc::Process()
 			net_packet_dispatch(current_packet.time, &current_packet, this);
 		}
 
-	have_packet = 0;
+	have_packet = false;
 	DoneWithPacket();
 	}
 
@@ -267,10 +232,7 @@ bool PktSrc::ExtractNextPacketInternal()
 	// Don't return any packets if processing is suspended (except for the
 	// very first packet which we need to set up times).
 	if ( net_is_processing_suspended() && first_timestamp )
-		{
-		SetIdle(true);
-		return 0;
-		}
+		return false;
 
 	if ( pseudo_realtime )
 		current_wallclock = current_time(true);
@@ -280,15 +242,14 @@ bool PktSrc::ExtractNextPacketInternal()
 		if ( current_packet.time < 0 )
 			{
 			Weird("negative_packet_timestamp", &current_packet);
-			return 0;
+			return false;
 			}
 
 		if ( ! first_timestamp )
 			first_timestamp = current_packet.time;
 
-		SetIdle(false);
 		have_packet = true;
-		return 1;
+		return true;
 		}
 
 	if ( pseudo_realtime && ! IsOpen() )
@@ -297,8 +258,7 @@ bool PktSrc::ExtractNextPacketInternal()
 			iosource_mgr->Terminate();
 		}
 
-	SetIdle(true);
-	return 0;
+	return false;
 	}
 
 bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
@@ -313,15 +273,15 @@ bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
 
 	if ( ! code->Compile(BifConst::Pcap::snaplen, LinkType(), filter.c_str(), Netmask(), errbuf, sizeof(errbuf)) )
 		{
-		string msg = fmt("cannot compile BPF filter \"%s\"", filter.c_str());
+		std::string msg = fmt("cannot compile BPF filter \"%s\"", filter.c_str());
 
 		if ( *errbuf )
-			msg += ": " + string(errbuf);
+			msg += ": " + std::string(errbuf);
 
 		Error(msg);
 
 		delete code;
-		return 0;
+		return false;
 		}
 
 	// Store it in vector.
@@ -339,9 +299,9 @@ bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
 BPF_Program* PktSrc::GetBPFFilter(int index)
 	{
 	if ( index < 0 )
-		return 0;
+		return nullptr;
 
-	return (static_cast<int>(filters.size()) > index ? filters[index] : 0);
+	return (static_cast<int>(filters.size()) > index ? filters[index] : nullptr);
 	}
 
 bool PktSrc::ApplyBPFFilter(int index, const struct pcap_pkthdr *hdr, const u_char *pkt)
@@ -368,4 +328,31 @@ bool PktSrc::GetCurrentPacket(const Packet** pkt)
 
 	*pkt = &current_packet;
 	return true;
+	}
+
+double PktSrc::GetNextTimeout()
+	{
+	// If there's no file descriptor for the source, which is the case for some interfaces like
+	// myricom, we can't rely on the polling mechanism to wait for data to be available. As gross
+	// as it is, just spin with a short timeout here so that it will continually poll the
+	// interface. The old IOSource code had a 20 microsecond timeout between calls to select()
+	// so just use that.
+	if ( props.selectable_fd == -1 )
+		return 0.00002;
+
+	// If we're live we want poll to do what it has to with the file descriptor. If we're not live
+	// but we're not in pseudo-realtime mode, let the loop just spin as fast as it can. If we're
+	// in pseudo-realtime mode, find the next time that a packet is ready and have poll block until
+	// then.
+	if ( IsLive() || net_is_processing_suspended() )
+		return -1;
+	else if ( ! pseudo_realtime )
+		return 0;
+
+	if ( ! have_packet )
+		ExtractNextPacketInternal();
+
+	double pseudo_time = current_packet.time - first_timestamp;
+	double ct = (current_time(true) - first_wallclock) * pseudo_realtime;
+	return std::max(0.0, pseudo_time - ct);
 	}

@@ -2,7 +2,10 @@
 
 #pragma once
 
-#include "Debug.h"
+#include <string>
+
+struct ParseLocationRec;
+class Stmt;
 
 enum BreakCode { bcNoHit, bcHit, bcHitAndDelete };
 class DbgBreakpoint {
@@ -16,7 +19,7 @@ public:
 	void SetID(int newID)	{ BPID = newID; }
 
 	// True if breakpoint could be set; false otherwise
-	bool SetLocation(ParseLocationRec plr, string loc_str);
+	bool SetLocation(ParseLocationRec plr, std::string_view loc_str);
 	bool SetLocation(Stmt* stmt);
 	bool SetLocation(double time);
 
@@ -35,8 +38,8 @@ public:
 	BreakCode ShouldBreak(Stmt* s);
 	BreakCode ShouldBreak(double t);
 
-	const string& GetCondition() const	{ return condition; }
-	bool SetCondition(const string& new_condition);
+	const std::string& GetCondition() const	{ return condition; }
+	bool SetCondition(const std::string& new_condition);
 
 	int GetRepeatCount() const	{ return repeat_count; }
 	bool SetRepeatCount(int count); // implements function of ignore command in gdb
@@ -58,21 +61,21 @@ protected:
 	void PrintHitMsg();	// display reason when the breakpoint hits
 
 	Kind kind;
-	bool enabled;	// ### comment this and next
-	bool temporary;
-	int BPID;
+	int32_t BPID;
 
 	char description[512];
-	string function_name;	// location
+	std::string function_name;	// location
 	const char* source_filename;
-	int source_line;
+	int32_t source_line;
+	bool enabled;	// ### comment this and next
+	bool temporary;
 
 	Stmt* at_stmt;
 	double at_time;	// break when the virtual time is this
 
 	// Support for conditional and N'th time breakpoints.
-	int repeat_count;	// if positive, break after this many hits
-	int hit_count;	// how many times it's been hit (w/o breaking)
+	int32_t repeat_count;	// if positive, break after this many hits
+	int32_t hit_count;	// how many times it's been hit (w/o breaking)
 
-	string condition;	// condition to evaluate; nil for none
+	std::string condition;	// condition to evaluate; nil for none
 };

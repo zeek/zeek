@@ -1,5 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include <optional>
 #include <sstream>
 #include <fstream>
 #include <dirent.h>
@@ -14,12 +15,14 @@
 #include "../Func.h"
 #include "../Event.h"
 #include "../util.h"
+#include "../input.h"
 
+using namespace std;
 using namespace plugin;
 
-Plugin* Manager::current_plugin = 0;
-const char* Manager::current_dir = 0;
-const char* Manager::current_sopath = 0;
+Plugin* Manager::current_plugin = nullptr;
+const char* Manager::current_dir = nullptr;
+const char* Manager::current_sopath = nullptr;
 
 Manager::Manager()
 	{
@@ -27,7 +30,7 @@ Manager::Manager()
 	hooks = new hook_list*[NUM_HOOKS];
 
 	for ( int i = 0; i < NUM_HOOKS; i++ )
-		hooks[i] = 0;
+		hooks[i] = nullptr;
 	}
 
 Manager::~Manager()
@@ -47,7 +50,7 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 	if ( dir.empty() )
 		return;
 
-	if ( dir.find(":") != string::npos )
+	if ( dir.find(':') != string::npos )
 		{
 		// Split at ":".
 		std::stringstream s(dir);
@@ -236,7 +239,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 			{
 			const char* path = gl.gl_pathv[i];
 
-			current_plugin = 0;
+			current_plugin = nullptr;
 			current_dir = dir.c_str();
 			current_sopath = path;
 			void* hdl = dlopen(path, RTLD_LAZY | RTLD_GLOBAL);
@@ -268,9 +271,9 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 				reporter->FatalError("inconsistent plugin name: %s vs %s",
 						     current_plugin->Name().c_str(), name.c_str());
 
-			current_dir = 0;
-			current_sopath = 0;
-			current_plugin = 0;
+			current_dir = nullptr;
+			current_sopath = nullptr;
+			current_plugin = nullptr;
 
 			DBG_LOG(DBG_PLUGINS, "  Loaded %s", path);
 			}
@@ -459,7 +462,7 @@ Manager::inactive_plugin_list Manager::InactivePlugins() const
 
 Manager::plugin_list* Manager::ActivePluginsInternal()
 	{
-	static plugin_list* plugins = 0;
+	static plugin_list* plugins = nullptr;
 
 	if ( ! plugins )
 		plugins = new plugin_list;
@@ -469,7 +472,7 @@ Manager::plugin_list* Manager::ActivePluginsInternal()
 
 Manager::bif_init_func_map* Manager::BifFilesInternal()
 	{
-	static bif_init_func_map* bifs = 0;
+	static bif_init_func_map* bifs = nullptr;
 
 	if ( ! bifs )
 		bifs = new bif_init_func_map;
@@ -477,9 +480,9 @@ Manager::bif_init_func_map* Manager::BifFilesInternal()
 	return bifs;
 	}
 
-Plugin* Manager::LookupPluginByPath(std::string path)
+Plugin* Manager::LookupPluginByPath(std::string_view _path)
 	{
-	path = normalize_path(path);
+	auto path = normalize_path(_path);
 
 	if ( is_file(path) )
 		path = SafeDirname(path).result;
@@ -491,7 +494,7 @@ Plugin* Manager::LookupPluginByPath(std::string path)
 		if ( i != plugins_by_path.end() )
 			return i->second;
 
-		auto j = path.rfind("/");
+		auto j = path.rfind('/');
 
 		if ( j == std::string::npos )
 			break;
@@ -569,7 +572,7 @@ void Manager::DisableHook(HookType hook, Plugin* plugin)
 	if ( l->empty() )
 		{
 		delete l;
-		hooks[hook] = 0;
+		hooks[hook] = nullptr;
 		}
 	}
 
@@ -618,15 +621,21 @@ int Manager::HookLoadFile(const Plugin::LoadType type, const string& file, const
 	return rc;
 	}
 
-std::pair<bool, Val*> Manager::HookCallFunction(const Func* func, Frame* parent, val_list* vargs) const
+std::pair<bool, Val*> Manager::HookCallFunction(const Func* func, Frame* parent, const zeek::Args& vecargs) const
 	{
 	HookArgumentList args;
+	std::optional<val_list> vargs;
 
 	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
+		vargs = val_list(vecargs.size());
+
+		for ( const auto& v : vecargs )
+			vargs->push_back(v.get());
+
 		args.push_back(HookArgument(func));
 		args.push_back(HookArgument(parent));
-		args.push_back(HookArgument(vargs));
+		args.push_back(HookArgument(&vargs.value()));
 		MetaHookPre(HOOK_CALL_FUNCTION, args);
 		}
 
@@ -636,11 +645,19 @@ std::pair<bool, Val*> Manager::HookCallFunction(const Func* func, Frame* parent,
 
 	if ( l )
 		{
+		if ( ! vargs )
+			{
+			vargs = val_list(vecargs.size());
+
+			for ( const auto& v : vecargs )
+				vargs->push_back(v.get());
+			}
+
 		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
 			{
 			Plugin* p = (*i).second;
 
-			v = p->HookCallFunction(func, parent, vargs);
+			v = p->HookCallFunction(func, parent, &vargs.value());
 
 			if ( v.first )
 				break;

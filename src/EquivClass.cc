@@ -3,6 +3,7 @@
 #include "zeek-config.h"
 
 #include "EquivClass.h"
+#include "CCL.h"
 
 EquivClass::EquivClass(int arg_size)
 	{
@@ -11,7 +12,7 @@ EquivClass::EquivClass(int arg_size)
 	bck = new int[size];
 	equiv_class = new int[size];
 	rep = new int[size];
-	ccl_flags = 0;
+	ccl_flags = nullptr;
 	num_ecs = 0;
 
 	ec_nil = no_class = no_rep = size + 1;

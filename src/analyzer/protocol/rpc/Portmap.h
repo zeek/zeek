@@ -11,8 +11,8 @@ public:
 	explicit PortmapperInterp(analyzer::Analyzer* arg_analyzer) : RPC_Interpreter(arg_analyzer) { }
 
 protected:
-	int RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n) override;
-	int RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status success,
+	bool RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n) override;
+	bool RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status success,
 			   const u_char*& buf, int& n, double start_time,
 			   double last_time, int reply_len) override;
 	uint32_t CheckPort(uint32_t port);
@@ -34,4 +34,4 @@ public:
 		{ return new Portmapper_Analyzer(conn); }
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

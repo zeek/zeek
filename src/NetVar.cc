@@ -2,8 +2,10 @@
 
 #include "zeek-config.h"
 
-#include "Var.h"
 #include "NetVar.h"
+#include "Var.h"
+#include "EventHandler.h"
+#include "Val.h"
 
 RecordType* conn_id;
 RecordType* endpoint;
@@ -73,8 +75,10 @@ bool tcp_content_deliver_all_resp;
 
 TableVal* udp_content_delivery_ports_orig;
 TableVal* udp_content_delivery_ports_resp;
+TableVal* udp_content_ports;
 bool udp_content_deliver_all_orig;
 bool udp_content_deliver_all_resp;
+bool udp_content_delivery_ports_use_resp;
 
 double dns_session_timeout;
 double rpc_timeout;
@@ -317,10 +321,14 @@ void init_net_var()
 		internal_val("udp_content_delivery_ports_orig")->AsTableVal();
 	udp_content_delivery_ports_resp =
 		internal_val("udp_content_delivery_ports_resp")->AsTableVal();
+	udp_content_ports =
+		internal_val("udp_content_ports")->AsTableVal();
 	udp_content_deliver_all_orig =
 		bool(internal_val("udp_content_deliver_all_orig")->AsBool());
 	udp_content_deliver_all_resp =
 		bool(internal_val("udp_content_deliver_all_resp")->AsBool());
+	udp_content_delivery_ports_use_resp =
+		bool(internal_val("udp_content_delivery_ports_use_resp")->AsBool());
 
 	dns_session_timeout = opt_internal_double("dns_session_timeout");
 	rpc_timeout = opt_internal_double("rpc_timeout");

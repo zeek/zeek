@@ -1,14 +1,20 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <algorithm>
+#include "analyzer/protocol/tcp/TCP.h"
 
+#include <vector>
+
+#include "analyzer/protocol/tcp/TCP_Reassembler.h"
+#include "analyzer/protocol/pia/PIA.h"
+
+#include "IP.h"
+#include "Net.h"
 #include "NetVar.h"
 #include "File.h"
 #include "Event.h"
-
-#include "analyzer/protocol/pia/PIA.h"
-#include "analyzer/protocol/tcp/TCP.h"
-#include "analyzer/protocol/tcp/TCP_Reassembler.h"
+#include "Reporter.h"
+#include "Sessions.h"
+#include "DebugLogger.h"
 
 #include "events.bif.h"
 #include "types.bif.h"
@@ -36,7 +42,7 @@ namespace { // local namespace
 static const int ORIG = 1;
 static const int RESP = 2;
 
-static RecordVal* build_syn_packet_val(int is_orig, const IP_Hdr* ip,
+static RecordVal* build_syn_packet_val(bool is_orig, const IP_Hdr* ip,
                                        const struct tcphdr* tcp)
 	{
 	int winscale = -1;
@@ -103,14 +109,14 @@ static RecordVal* build_syn_packet_val(int is_orig, const IP_Hdr* ip,
 
 	RecordVal* v = new RecordVal(SYN_packet);
 
-	v->Assign(0, val_mgr->GetBool(is_orig));
-	v->Assign(1, val_mgr->GetBool(int(ip->DF())));
-	v->Assign(2, val_mgr->GetCount((ip->TTL())));
-	v->Assign(3, val_mgr->GetCount((ip->TotalLen())));
-	v->Assign(4, val_mgr->GetCount(ntohs(tcp->th_win)));
-	v->Assign(5, val_mgr->GetInt(winscale));
-	v->Assign(6, val_mgr->GetCount(MSS));
-	v->Assign(7, val_mgr->GetBool(SACK));
+	v->Assign(0, val_mgr->Bool(is_orig));
+	v->Assign(1, val_mgr->Bool(int(ip->DF())));
+	v->Assign(2, val_mgr->Count((ip->TTL())));
+	v->Assign(3, val_mgr->Count((ip->TotalLen())));
+	v->Assign(4, val_mgr->Count(ntohs(tcp->th_win)));
+	v->Assign(5, val_mgr->Int(winscale));
+	v->Assign(6, val_mgr->Count(MSS));
+	v->Assign(7, val_mgr->Bool(SACK));
 
 	return v;
 	}
@@ -121,7 +127,7 @@ TCP_Analyzer::TCP_Analyzer(Connection* conn)
 	{
 	// Set a timer to eventually time out this connection.
 	ADD_ANALYZER_TIMER(&TCP_Analyzer::ExpireTimer,
-				network_time + tcp_SYN_timeout, 0,
+				network_time + tcp_SYN_timeout, false,
 				TIMER_TCP_EXPIRE);
 
 	deferred_gen_event = close_deferred = 0;
@@ -133,8 +139,8 @@ TCP_Analyzer::TCP_Analyzer(Connection* conn)
 	first_packet_seen = 0;
 	is_partial = 0;
 
-	orig = new TCP_Endpoint(this, 1);
-	resp = new TCP_Endpoint(this, 0);
+	orig = new TCP_Endpoint(this, true);
+	resp = new TCP_Endpoint(this, false);
 
 	orig->SetPeer(resp);
 	resp->SetPeer(orig);
@@ -186,7 +192,7 @@ analyzer::Analyzer* TCP_Analyzer::FindChild(ID arg_id)
 			return child;
 		}
 
-	return 0;
+	return nullptr;
 	}
 
 analyzer::Analyzer* TCP_Analyzer::FindChild(Tag arg_tag)
@@ -203,7 +209,7 @@ analyzer::Analyzer* TCP_Analyzer::FindChild(Tag arg_tag)
 			return child;
 		}
 
-	return 0;
+	return nullptr;
 	}
 
 bool TCP_Analyzer::RemoveChildAnalyzer(ID id)
@@ -247,7 +253,7 @@ const struct tcphdr* TCP_Analyzer::ExtractTCP_Header(const u_char*& data,
 	if ( tcp_hdr_len < sizeof(struct tcphdr) )
 		{
 		Weird("bad_TCP_header_len");
-		return 0;
+		return nullptr;
 		}
 
 	if ( tcp_hdr_len > uint32_t(len) ||
@@ -256,7 +262,7 @@ const struct tcphdr* TCP_Analyzer::ExtractTCP_Header(const u_char*& data,
 		// This can happen even with the above test, due to TCP
 		// options.
 		Weird("truncated_header");
-		return 0;
+		return nullptr;
 		}
 
 	len -= tcp_hdr_len;	// remove TCP header
@@ -269,7 +275,7 @@ const struct tcphdr* TCP_Analyzer::ExtractTCP_Header(const u_char*& data,
 bool TCP_Analyzer::ValidateChecksum(const struct tcphdr* tp,
 				TCP_Endpoint* endpoint, int len, int caplen)
 	{
-	if ( ! ignore_checksums && caplen >= len &&
+	if ( ! current_pkt->l3_checksummed && ! ignore_checksums && caplen >= len &&
 	     ! endpoint->ValidChecksum(tp, len) )
 		{
 		Weird("bad_TCP_checksum");
@@ -472,8 +478,8 @@ static void syn_weirds(TCP_Flags flags, TCP_Endpoint* endpoint, int data_len)
 void TCP_Analyzer::UpdateInactiveState(double t,
 			TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 			uint32_t base_seq, uint32_t ack_seq,
-			int len, int is_orig, TCP_Flags flags,
-			int& do_close, int& gen_event)
+			int len, bool is_orig, TCP_Flags flags,
+			bool& do_close, bool& gen_event)
 	{
 	if ( flags.SYN() )
 		{
@@ -489,7 +495,7 @@ void TCP_Analyzer::UpdateInactiveState(double t,
 
 			if ( tcp_attempt_delay )
 				ADD_ANALYZER_TIMER(&TCP_Analyzer::AttemptTimer,
-					t + tcp_attempt_delay, 1,
+					t + tcp_attempt_delay, true,
 					TIMER_TCP_ATTEMPT);
 			}
 		else
@@ -542,7 +548,7 @@ void TCP_Analyzer::UpdateInactiveState(double t,
 	if ( flags.FIN() )
 		{
 		endpoint->SetState(TCP_ENDPOINT_CLOSED);
-		do_close = gen_event = 1;
+		do_close = gen_event = true;
 		if ( peer->state != TCP_ENDPOINT_PARTIAL && ! flags.SYN() )
 			Weird("spontaneous_FIN");
 		}
@@ -551,7 +557,7 @@ void TCP_Analyzer::UpdateInactiveState(double t,
 		{
 		endpoint->SetState(TCP_ENDPOINT_RESET);
 
-		int is_reject = 0;
+		bool is_reject = false;
 
 		if ( is_orig )
 			{
@@ -560,15 +566,15 @@ void TCP_Analyzer::UpdateInactiveState(double t,
 			// scan, and we should treat this as a
 			// reject.
 			if ( peer->state == TCP_ENDPOINT_ESTABLISHED )
-				is_reject = 1;
+				is_reject = true;
 			}
 
 		else if ( peer->state == TCP_ENDPOINT_SYN_SENT ||
 			  peer->state == TCP_ENDPOINT_SYN_ACK_SENT )
 			// We're rejecting an initial SYN.
-			is_reject = 1;
+			is_reject = true;
 
-		do_close = 1;
+		do_close = true;
 		gen_event = ! is_reject;
 
 		if ( is_reject )
@@ -613,8 +619,8 @@ void TCP_Analyzer::UpdateInactiveState(double t,
 	}
 
 void TCP_Analyzer::UpdateSYN_SentState(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
-				       int len, int is_orig, TCP_Flags flags,
-				       int& do_close, int& gen_event)
+				       int len, bool is_orig, TCP_Flags flags,
+				       bool& do_close, bool& gen_event)
 	{
 	if ( flags.SYN() )
 		{
@@ -639,14 +645,14 @@ void TCP_Analyzer::UpdateSYN_SentState(TCP_Endpoint* endpoint, TCP_Endpoint* pee
 			Weird("inappropriate_FIN");
 
 		endpoint->SetState(TCP_ENDPOINT_CLOSED);
-		do_close = gen_event = 1;
+		do_close = gen_event = true;
 		}
 
 	if ( flags.RST() )
 		{
 		endpoint->SetState(TCP_ENDPOINT_RESET);
 		ConnectionReset();
-		do_close = 1;
+		do_close = true;
 		}
 
 	else if ( len > 0 )
@@ -655,7 +661,7 @@ void TCP_Analyzer::UpdateSYN_SentState(TCP_Endpoint* endpoint, TCP_Endpoint* pee
 
 void TCP_Analyzer::UpdateEstablishedState(
 			TCP_Endpoint* endpoint, TCP_Endpoint* peer,
-			TCP_Flags flags, int& do_close, int& gen_event)
+			TCP_Flags flags, bool& do_close, bool& gen_event)
 	{
 	if ( flags.SYN() )
 		{
@@ -678,13 +684,13 @@ void TCP_Analyzer::UpdateEstablishedState(
 			// this was actually normal termination.
 			peer->SetState(TCP_ENDPOINT_CLOSED);
 
-		do_close = gen_event = 1;
+		do_close = gen_event = true;
 		}
 
 	if ( flags.RST() )
 		{
 		endpoint->SetState(TCP_ENDPOINT_RESET);
-		do_close = 1;
+		do_close = true;
 
 		if ( peer->state != TCP_ENDPOINT_RESET ||
 		     peer->prev_state != TCP_ENDPOINT_ESTABLISHED )
@@ -693,7 +699,7 @@ void TCP_Analyzer::UpdateEstablishedState(
 	}
 
 void TCP_Analyzer::UpdateClosedState(double t, TCP_Endpoint* endpoint,
-				int32_t delta_last, TCP_Flags flags, int& do_close)
+				int32_t delta_last, TCP_Flags flags, bool& do_close)
 	{
 	if ( flags.SYN() )
 		Weird("SYN_after_close");
@@ -715,11 +721,11 @@ void TCP_Analyzer::UpdateClosedState(double t, TCP_Endpoint* endpoint,
 
 		if ( ! endpoint->did_close )
 			// RST after FIN.
-			do_close = 1;
+			do_close = true;
 
 		if ( connection_reset )
 			ADD_ANALYZER_TIMER(&TCP_Analyzer::ResetTimer,
-					t + tcp_reset_delay, 1,
+					t + tcp_reset_delay, true,
 					TIMER_TCP_RESET);
 		}
 	}
@@ -739,11 +745,11 @@ void TCP_Analyzer::UpdateResetState(int len, TCP_Flags flags)
 void TCP_Analyzer::UpdateStateMachine(double t,
 			TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 			uint32_t base_seq, uint32_t ack_seq,
-			int len, int32_t delta_last, int is_orig, TCP_Flags flags,
-			int& do_close, int& gen_event)
+			int len, int32_t delta_last, bool is_orig, TCP_Flags flags,
+			bool& do_close, bool& gen_event)
 	{
-	do_close = 0;	// whether to report the connection as closed
-	gen_event = 0;	// if so, whether to generate an event
+	do_close = false;	// whether to report the connection as closed
+	gen_event = false;	// if so, whether to generate an event
 
 	switch ( endpoint->state ) {
 
@@ -777,30 +783,30 @@ void TCP_Analyzer::UpdateStateMachine(double t,
 void TCP_Analyzer::GeneratePacketEvent(
 					uint64_t rel_seq, uint64_t rel_ack,
 					const u_char* data, int len, int caplen,
-					int is_orig, TCP_Flags flags)
+					bool is_orig, TCP_Flags flags)
 	{
-	ConnectionEventFast(tcp_packet, {
-		BuildConnVal(),
-		val_mgr->GetBool(is_orig),
-		new StringVal(flags.AsString()),
-		val_mgr->GetCount(rel_seq),
-		val_mgr->GetCount(flags.ACK() ? rel_ack : 0),
-		val_mgr->GetCount(len),
+	EnqueueConnEvent(tcp_packet,
+		ConnVal(),
+		val_mgr->Bool(is_orig),
+		make_intrusive<StringVal>(flags.AsString()),
+		val_mgr->Count(rel_seq),
+		val_mgr->Count(flags.ACK() ? rel_ack : 0),
+		val_mgr->Count(len),
 		// We need the min() here because Ethernet padding can lead to
 		// caplen > len.
-		new StringVal(min(caplen, len), (const char*) data),
-	});
+		make_intrusive<StringVal>(std::min(caplen, len), (const char*) data)
+	);
 	}
 
-int TCP_Analyzer::DeliverData(double t, const u_char* data, int len, int caplen,
+bool TCP_Analyzer::DeliverData(double t, const u_char* data, int len, int caplen,
 				const IP_Hdr* ip, const struct tcphdr* tp,
 				TCP_Endpoint* endpoint, uint64_t rel_data_seq,
-				int is_orig, TCP_Flags flags)
+				bool is_orig, TCP_Flags flags)
 	{
 	return endpoint->DataSent(t, rel_data_seq, len, caplen, data, ip, tp);
 	}
 
-void TCP_Analyzer::CheckRecording(int need_contents, TCP_Flags flags)
+void TCP_Analyzer::CheckRecording(bool need_contents, TCP_Flags flags)
 	{
 	bool record_current_content = need_contents || Conn()->RecordContents();
 	bool record_current_packet =
@@ -811,7 +817,7 @@ void TCP_Analyzer::CheckRecording(int need_contents, TCP_Flags flags)
 	Conn()->SetRecordCurrentPacket(record_current_packet);
 	}
 
-void TCP_Analyzer::CheckPIA_FirstPacket(int is_orig, const IP_Hdr* ip)
+void TCP_Analyzer::CheckPIA_FirstPacket(bool is_orig, const IP_Hdr* ip)
 	{
 	if ( is_orig && ! (first_packet_seen & ORIG) )
 		{
@@ -1049,7 +1055,7 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	// We need the min() here because Ethernet frame padding can lead to
 	// caplen > len.
 	if ( packet_contents )
-		PacketContents(data, min(len, caplen));
+		PacketContents(data, std::min(len, caplen));
 
 	TCP_Endpoint* endpoint = is_orig ? orig : resp;
 	TCP_Endpoint* peer = endpoint->peer;
@@ -1095,12 +1101,10 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		            base_seq, ack_seq);
 
 		if ( connection_SYN_packet )
-			{
-			ConnectionEventFast(connection_SYN_packet, {
-				BuildConnVal(),
-				SYN_vals->Ref(),
-			});
-			}
+			EnqueueConnEvent(connection_SYN_packet,
+				ConnVal(),
+				IntrusivePtr{NewRef{}, SYN_vals}
+			);
 
 		Unref(SYN_vals);
 		}
@@ -1169,8 +1173,8 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	int32_t delta_last = update_last_seq(endpoint, seq_one_past_segment, flags, len);
 	endpoint->last_time = current_timestamp;
 
-	int do_close;
-	int gen_event;
+	bool do_close;
+	bool gen_event;
 	UpdateStateMachine(current_timestamp, endpoint, peer, base_seq, ack_seq,
 	                   len, delta_last, is_orig, flags, do_close, gen_event);
 
@@ -1285,10 +1289,10 @@ void TCP_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	RecordVal *orig_endp_val = conn_val->Lookup("orig")->AsRecordVal();
 	RecordVal *resp_endp_val = conn_val->Lookup("resp")->AsRecordVal();
 
-	orig_endp_val->Assign(0, val_mgr->GetCount(orig->Size()));
-	orig_endp_val->Assign(1, val_mgr->GetCount(int(orig->state)));
-	resp_endp_val->Assign(0, val_mgr->GetCount(resp->Size()));
-	resp_endp_val->Assign(1, val_mgr->GetCount(int(resp->state)));
+	orig_endp_val->Assign(0, val_mgr->Count(orig->Size()));
+	orig_endp_val->Assign(1, val_mgr->Count(int(orig->state)));
+	resp_endp_val->Assign(0, val_mgr->Count(resp->Size()));
+	resp_endp_val->Assign(1, val_mgr->Count(int(resp->state)));
 
 	// Call children's UpdateConnVal
 	Analyzer::UpdateConnVal(conn_val);
@@ -1341,17 +1345,17 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 			{
 			auto kind = o[0];
 			auto length = kind < 2 ? 1 : o[1];
-			ConnectionEventFast(tcp_option, {
-				BuildConnVal(),
-				val_mgr->GetBool(is_orig),
-				val_mgr->GetCount(kind),
-				val_mgr->GetCount(length),
-				});
+			EnqueueConnEvent(tcp_option,
+				ConnVal(),
+				val_mgr->Bool(is_orig),
+				val_mgr->Count(kind),
+				val_mgr->Count(length)
+				);
 			}
 
 	if ( tcp_options )
 		{
-		auto option_list = new VectorVal(BifType::Vector::TCP::OptionList);
+		auto option_list = make_intrusive<VectorVal>(BifType::Vector::TCP::OptionList);
 
 		auto add_option_data = [](RecordVal* rv, const u_char* odata, int olen)
 			{
@@ -1360,7 +1364,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 
 			auto data_len = olen - 2;
 			auto data = reinterpret_cast<const char*>(odata + 2);
-			rv->Assign(2, new StringVal(data_len, data));
+			rv->Assign(2, make_intrusive<StringVal>(data_len, data));
 			};
 
 		for ( const auto& o : opts )
@@ -1369,8 +1373,8 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 			auto length = kind < 2 ? 1 : o[1];
 			auto option_record = new RecordVal(BifType::Record::TCP::Option);
 			option_list->Assign(option_list->Size(), option_record);
-			option_record->Assign(0, val_mgr->GetCount(kind));
-			option_record->Assign(1, val_mgr->GetCount(length));
+			option_record->Assign(0, val_mgr->Count(kind));
+			option_record->Assign(1, val_mgr->Count(length));
 
 			switch ( kind ) {
 			case 2:
@@ -1378,7 +1382,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 				if ( length == 4 )
 					{
 					auto mss = ntohs(*reinterpret_cast<const uint16_t*>(o + 2));
-					option_record->Assign(3, val_mgr->GetCount(mss));
+					option_record->Assign(3, val_mgr->Count(mss));
 					}
 				else
 					{
@@ -1392,7 +1396,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 				if ( length == 3 )
 					{
 					auto scale = o[2];
-					option_record->Assign(4, val_mgr->GetCount(scale));
+					option_record->Assign(4, val_mgr->Count(scale));
 					}
 				else
 					{
@@ -1421,7 +1425,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 					auto sack = new VectorVal(vt);
 
 					for ( auto i = 0; i < num_pointers; ++i )
-						sack->Assign(sack->Size(), val_mgr->GetCount(ntohl(p[i])));
+						sack->Assign(sack->Size(), val_mgr->Count(ntohl(p[i])));
 
 					option_record->Assign(5, sack);
 					}
@@ -1438,8 +1442,8 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 					{
 					auto send = ntohl(*reinterpret_cast<const uint32_t*>(o + 2));
 					auto echo = ntohl(*reinterpret_cast<const uint32_t*>(o + 6));
-					option_record->Assign(6, val_mgr->GetCount(send));
-					option_record->Assign(7, val_mgr->GetCount(echo));
+					option_record->Assign(6, val_mgr->Count(send));
+					option_record->Assign(7, val_mgr->Count(echo));
 					}
 				else
 					{
@@ -1454,11 +1458,11 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 			}
 			}
 
-		ConnectionEventFast(tcp_options, {
-			BuildConnVal(),
-			val_mgr->GetBool(is_orig),
-			option_list,
-			});
+		EnqueueConnEvent(tcp_options,
+			ConnVal(),
+			val_mgr->Bool(is_orig),
+			std::move(option_list)
+			);
 		}
 
 	if ( options < opt_end )
@@ -1555,7 +1559,7 @@ void TCP_Analyzer::ExpireTimer(double t)
 	// ### if PQ_Element's were BroObj's, could just Ref the timer
 	// and adjust its value here, instead of creating a new timer.
 	ADD_ANALYZER_TIMER(&TCP_Analyzer::ExpireTimer, t + tcp_session_timer,
-			0, TIMER_TCP_EXPIRE);
+			false, TIMER_TCP_EXPIRE);
 	}
 
 void TCP_Analyzer::ResetTimer(double /* t */)
@@ -1583,8 +1587,8 @@ void TCP_Analyzer::SetContentsFile(unsigned int direction, BroFile* f)
 	{
 	if ( direction == CONTENTS_NONE )
 		{
-		orig->SetContentsFile(0);
-		resp->SetContentsFile(0);
+		orig->SetContentsFile(nullptr);
+		resp->SetContentsFile(nullptr);
 		}
 
 	else
@@ -1600,7 +1604,7 @@ BroFile* TCP_Analyzer::GetContentsFile(unsigned int direction) const
 	{
 	switch ( direction ) {
 	case CONTENTS_NONE:
-		return 0;
+		return nullptr;
 
 	case CONTENTS_ORIG:
 		return orig->GetContentsFile();
@@ -1611,7 +1615,7 @@ BroFile* TCP_Analyzer::GetContentsFile(unsigned int direction) const
 	case CONTENTS_BOTH:
 		if ( orig->GetContentsFile() != resp->GetContentsFile())
 			// This is an "error".
-			return 0;
+			return nullptr;
 		else
 			return orig->GetContentsFile();
 
@@ -1621,11 +1625,11 @@ BroFile* TCP_Analyzer::GetContentsFile(unsigned int direction) const
 
 	reporter->Error("bad direction %u in TCP_Analyzer::GetContentsFile",
 	                direction);
-	return 0;
+	return nullptr;
 	}
 
 void TCP_Analyzer::ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
-					int gen_event)
+					bool gen_event)
 	{
 	const analyzer_list& children(GetChildren());
 	LOOP_OVER_CONST_CHILDREN(i)
@@ -1650,7 +1654,7 @@ void TCP_Analyzer::ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 	if ( endpoint->did_close )
 		return;	// nothing new to report
 
-	endpoint->did_close = 1;
+	endpoint->did_close = true;
 
 	int close_complete =
 		endpoint->state == TCP_ENDPOINT_RESET ||
@@ -1670,7 +1674,7 @@ void TCP_Analyzer::ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 			{
 			if ( deferred_gen_event )
 				{
-				gen_event = 1;
+				gen_event = true;
 				deferred_gen_event = 0;	// clear flag
 				}
 
@@ -1678,9 +1682,9 @@ void TCP_Analyzer::ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 			if ( gen_event )
 				{
 				if ( peer->state == TCP_ENDPOINT_INACTIVE )
-					ConnectionFinished(1);
+					ConnectionFinished(true);
 				else
-					ConnectionFinished(0);
+					ConnectionFinished(false);
 				}
 			}
 
@@ -1695,10 +1699,10 @@ void TCP_Analyzer::ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 		// deleted out from under us.
 		if ( tcp_close_delay != 0.0 )
 			ADD_ANALYZER_TIMER(&TCP_Analyzer::ConnDeleteTimer,
-				Conn()->LastTime() + tcp_close_delay, 0,
+				Conn()->LastTime() + tcp_close_delay, false,
 				TIMER_CONN_DELETE);
 		else
-			ADD_ANALYZER_TIMER(&TCP_Analyzer::DeleteTimer, Conn()->LastTime(), 0,
+			ADD_ANALYZER_TIMER(&TCP_Analyzer::DeleteTimer, Conn()->LastTime(), false,
 					TIMER_TCP_DELETE);
 		}
 
@@ -1708,7 +1712,7 @@ void TCP_Analyzer::ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 			{ // First time we've seen anything from this side.
 			if ( connection_partial_close )
 				ADD_ANALYZER_TIMER(&TCP_Analyzer::PartialCloseTimer,
-					Conn()->LastTime() + tcp_partial_close_delay, 0,
+					Conn()->LastTime() + tcp_partial_close_delay, false,
 					TIMER_TCP_PARTIAL_CLOSE );
 			}
 
@@ -1717,13 +1721,13 @@ void TCP_Analyzer::ConnectionClosed(TCP_Endpoint* endpoint, TCP_Endpoint* peer,
 			// Create a timer to look for the other side closing,
 			// too.
 			ADD_ANALYZER_TIMER(&TCP_Analyzer::ExpireTimer,
-					Conn()->LastTime() + tcp_session_timer, 0,
+					Conn()->LastTime() + tcp_session_timer, false,
 					TIMER_TCP_EXPIRE);
 			}
 		}
 	}
 
-void TCP_Analyzer::ConnectionFinished(int half_finished)
+void TCP_Analyzer::ConnectionFinished(bool half_finished)
 	{
 	const analyzer_list& children(GetChildren());
 	LOOP_OVER_CONST_CHILDREN(i)
@@ -1765,10 +1769,10 @@ void TCP_Analyzer::AddChildPacketAnalyzer(analyzer::Analyzer* a)
 	a->SetParent(this);
 	}
 
-int TCP_Analyzer::DataPending(TCP_Endpoint* closing_endp)
+bool TCP_Analyzer::DataPending(TCP_Endpoint* closing_endp)
 	{
 	if ( Skipping() )
-		return 0;
+		return false;
 
 	return closing_endp->DataPending();
 	}
@@ -1776,12 +1780,10 @@ int TCP_Analyzer::DataPending(TCP_Endpoint* closing_endp)
 void TCP_Analyzer::EndpointEOF(TCP_Reassembler* endp)
 	{
 	if ( connection_EOF )
-		{
-		ConnectionEventFast(connection_EOF, {
-			BuildConnVal(),
-			val_mgr->GetBool(endp->IsOrig()),
-		});
-		}
+		EnqueueConnEvent(connection_EOF,
+			ConnVal(),
+			val_mgr->Bool(endp->IsOrig())
+		);
 
 	const analyzer_list& children(GetChildren());
 	LOOP_OVER_CONST_CHILDREN(i)
@@ -1904,7 +1906,7 @@ void TCP_ApplicationAnalyzer::DeliverPacket(int len, const u_char* data,
 	Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 	DBG_LOG(DBG_ANALYZER, "TCP_ApplicationAnalyzer ignoring DeliverPacket(%d, %s, %" PRIu64", %p, %d) [%s%s]",
 			len, is_orig ? "T" : "F", seq, ip, caplen,
-			fmt_bytes((const char*) data, min(40, len)), len > 40 ? "..." : "");
+			fmt_bytes((const char*) data, std::min(40, len)), len > 40 ? "..." : "");
 	}
 
 void TCP_ApplicationAnalyzer::SetEnv(bool /* is_orig */, char* name, char* val)
@@ -1921,7 +1923,7 @@ void TCP_ApplicationAnalyzer::EndpointEOF(bool is_orig)
 	}
 
 void TCP_ApplicationAnalyzer::ConnectionClosed(TCP_Endpoint* endpoint,
-					TCP_Endpoint* peer, int gen_event)
+					TCP_Endpoint* peer, bool gen_event)
 	{
 	analyzer::SupportAnalyzer* sa =
 		endpoint->IsOrig() ? orig_supporters : resp_supporters;
@@ -1931,7 +1933,7 @@ void TCP_ApplicationAnalyzer::ConnectionClosed(TCP_Endpoint* endpoint,
 			->ConnectionClosed(endpoint, peer, gen_event);
 	}
 
-void TCP_ApplicationAnalyzer::ConnectionFinished(int half_finished)
+void TCP_ApplicationAnalyzer::ConnectionFinished(bool half_finished)
 	{
 	for ( analyzer::SupportAnalyzer* sa = orig_supporters; sa; sa = sa->Sibling() )
 		static_cast<TCP_SupportAnalyzer*>(sa)
@@ -1979,14 +1981,14 @@ int endian_flip(int n)
 	return ((n & 0xff) << 8) | ((n & 0xff00) >> 8);
 	}
 
-int TCPStats_Endpoint::DataSent(double /* t */, uint64_t seq, int len, int caplen,
+bool TCPStats_Endpoint::DataSent(double /* t */, uint64_t seq, int len, int caplen,
 			const u_char* /* data */,
 			const IP_Hdr* ip, const struct tcphdr* /* tp */)
 	{
 	if ( ++num_pkts == 1 )
 		{ // First packet.
 		last_id = ip->ID();
-		return 0;
+		return false;
 		}
 
 	int id = ip->ID();
@@ -1994,7 +1996,7 @@ int TCPStats_Endpoint::DataSent(double /* t */, uint64_t seq, int len, int caple
 	if ( id == last_id )
 		{
 		++num_repl;
-		return 0;
+		return false;
 		}
 
 	short id_delta = id - last_id;
@@ -2032,7 +2034,7 @@ int TCPStats_Endpoint::DataSent(double /* t */, uint64_t seq, int len, int caple
 	if ( final_id_delta < 0 && final_id_delta > -256 )
 		{
 		++num_OO;
-		return 0;
+		return false;
 		}
 
 	last_id = id;
@@ -2058,34 +2060,32 @@ int TCPStats_Endpoint::DataSent(double /* t */, uint64_t seq, int len, int caple
 		 	network_time, seq, len, max_top_seq, data_in_flight);
 
 		if ( tcp_rexmit )
-			{
-			endp->TCP()->ConnectionEventFast(tcp_rexmit, {
-				endp->TCP()->BuildConnVal(),
-				val_mgr->GetBool(endp->IsOrig()),
-				val_mgr->GetCount(seq),
-				val_mgr->GetCount(len),
-				val_mgr->GetCount(data_in_flight),
-				val_mgr->GetCount(endp->peer->window),
-			});
-			}
+			endp->TCP()->EnqueueConnEvent(tcp_rexmit,
+				endp->TCP()->ConnVal(),
+				val_mgr->Bool(endp->IsOrig()),
+				val_mgr->Count(seq),
+				val_mgr->Count(len),
+				val_mgr->Count(data_in_flight),
+				val_mgr->Count(endp->peer->window)
+			);
 		}
 	else
 		max_top_seq = top_seq;
 
-	return 0;
+	return false;
 	}
 
 RecordVal* TCPStats_Endpoint::BuildStats()
 	{
 	RecordVal* stats = new RecordVal(endpoint_stats);
 
-	stats->Assign(0, val_mgr->GetCount(num_pkts));
-	stats->Assign(1, val_mgr->GetCount(num_rxmit));
-	stats->Assign(2, val_mgr->GetCount(num_rxmit_bytes));
-	stats->Assign(3, val_mgr->GetCount(num_in_order));
-	stats->Assign(4, val_mgr->GetCount(num_OO));
-	stats->Assign(5, val_mgr->GetCount(num_repl));
-	stats->Assign(6, val_mgr->GetCount(endian_type));
+	stats->Assign(0, val_mgr->Count(num_pkts));
+	stats->Assign(1, val_mgr->Count(num_rxmit));
+	stats->Assign(2, val_mgr->Count(num_rxmit_bytes));
+	stats->Assign(3, val_mgr->Count(num_in_order));
+	stats->Assign(4, val_mgr->Count(num_OO));
+	stats->Assign(5, val_mgr->Count(num_repl));
+	stats->Assign(6, val_mgr->Count(endian_type));
 
 	return stats;
 	}
@@ -2115,11 +2115,11 @@ void TCPStats_Analyzer::Done()
 	TCP_ApplicationAnalyzer::Done();
 
 	if ( conn_stats )
-		ConnectionEventFast(conn_stats, {
-			BuildConnVal(),
-			orig_stats->BuildStats(),
-			resp_stats->BuildStats(),
-		});
+		EnqueueConnEvent(conn_stats,
+			ConnVal(),
+			IntrusivePtr{AdoptRef{}, orig_stats->BuildStats()},
+			IntrusivePtr{AdoptRef{}, resp_stats->BuildStats()}
+		);
 	}
 
 void TCPStats_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip, int caplen)
@@ -2127,7 +2127,7 @@ void TCPStats_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	TCP_ApplicationAnalyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 
 	if ( is_orig )
-		orig_stats->DataSent(network_time, seq, len, caplen, data, ip, 0);
+		orig_stats->DataSent(network_time, seq, len, caplen, data, ip, nullptr);
 	else
-		resp_stats->DataSent(network_time, seq, len, caplen, data, ip, 0);
+		resp_stats->DataSent(network_time, seq, len, caplen, data, ip, nullptr);
 	}

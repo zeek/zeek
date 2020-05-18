@@ -54,7 +54,9 @@ event http_reply%(c: connection, version: string, code: count, reason: string%);
 ##
 ## is_orig: True if the header was sent by the originator of the TCP connection.
 ##
-## name: The name of the header.
+## original_name: The name of the header (unaltered).
+##
+## name: The name of the header (converted to all uppercase).
 ##
 ## value: The value of the header.
 ##
@@ -64,6 +66,7 @@ event http_reply%(c: connection, version: string, code: count, reason: string%);
 ##
 ## .. note:: This event is also raised for headers found in nested body
 ##    entities.
+event http_header%(c: connection, is_orig: bool, original_name: string, name: string, value: string%);
 event http_header%(c: connection, is_orig: bool, name: string, value: string%);
 
 ## Generated for HTTP headers, passing on all headers of an HTTP message at

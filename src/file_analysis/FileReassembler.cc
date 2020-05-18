@@ -13,7 +13,7 @@ FileReassembler::FileReassembler(File *f, uint64_t starting_offset)
 	}
 
 FileReassembler::FileReassembler()
-	: Reassembler(), the_file(0), flushing(false)
+	: Reassembler(), the_file(nullptr), flushing(false)
 	{
 	}
 

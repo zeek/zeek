@@ -6,7 +6,7 @@ extern "C" {
 #include <pcap.h>
 }
 
-#include "util.h"
+#include <stdint.h>
 
 // BPF_Programs are an abstraction around struct bpf_program,
 // to create a clean facility for creating, compiling, and
@@ -22,14 +22,14 @@ public:
 	// Parameters are like in pcap_compile(). Returns true
 	// for successful compilation, false otherwise.
 	bool Compile(pcap_t* pcap, const char* filter, uint32_t netmask,
-		 char* errbuf = 0, unsigned int errbuf_len = 0,
+		 char* errbuf = nullptr, unsigned int errbuf_len = 0,
 		 bool optimize = true);
 
 	// Creates a BPF program when no pcap handle is around,
 	// similarly to pcap_compile_nopcap(). Parameters are
 	// similar. Returns true on success.
 	bool Compile(int snaplen, int linktype, const char* filter,
-		uint32_t netmask, char* errbuf = 0, unsigned int errbuf_len = 0,
+		uint32_t netmask, char* errbuf = nullptr, unsigned int errbuf_len = 0,
 		bool optimize = true);
 
 	// Returns true if this program currently contains compiled

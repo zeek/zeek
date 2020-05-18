@@ -11,6 +11,13 @@
 ##    directly and then remove this alias.
 type string_array: table[count] of string;
 
+## A string-table of any.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type string_any_table: table[string] of any;
+
 ## A set of strings.
 ##
 ## .. todo:: We need this type definition only for declaring builtin functions
@@ -132,9 +139,6 @@ type PacketSource: record {
 	## The netmask assoicated with the source or ``NETMASK_UNKNOWN``.
 	netmask: count;
 };
-
-## A list of packet sources being read by Zeek.
-type PacketSourceList: vector of PacketSource;
 
 ## A connection's transport-layer protocol. Note that Zeek uses the term
 ## "connection" broadly, using flow semantics for ICMP and UDP.
@@ -436,9 +440,9 @@ type connection: record {
 	## The inner VLAN, if applicable for this connection.
 	inner_vlan: int &optional;
 
-        ## Flag that will be true if :zeek:see:`connection_successful` has
-        ## already been generated for the connection. See the documentation of
-        ## that event for a definition of what makes a connection "succesful".
+	## Flag that will be true if :zeek:see:`connection_successful` has
+	## already been generated for the connection. See the documentation of
+	## that event for a definition of what makes a connection "succesful".
 	successful: bool;
 };
 
@@ -508,6 +512,13 @@ type fa_file: record {
 	bof_buffer: string &optional;
 } &redef;
 
+## A hook taking a fa_file, an any, and a string. Used by the X509 analyzer as callback.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type string_any_file_hook: hook(f: fa_file, e: any, str: string);
+
 ## Metadata that's been inferred about a particular file.
 type fa_metadata: record {
 	## The strongest matching MIME type if one was discovered.
@@ -551,7 +562,6 @@ type NetStats: record {
 type ConnStats: record {
 	total_conns: count;           ##<
 	current_conns: count;         ##<
-	current_conns_extern: count;  ##<
 	sess_current_conns: count;    ##<
 
 	num_packets: count;
@@ -1106,6 +1116,7 @@ const tcp_content_deliver_all_resp = F &redef;
 ##    tcp_content_deliver_all_orig tcp_content_deliver_all_resp
 ##    udp_content_delivery_ports_resp  udp_content_deliver_all_orig
 ##    udp_content_deliver_all_resp  udp_contents
+##    udp_content_delivery_ports_use_resp udp_content_ports
 const udp_content_delivery_ports_orig: table[port] of bool = {} &redef;
 
 ## Defines UDP destination ports for which the contents of the responder stream
@@ -1115,7 +1126,25 @@ const udp_content_delivery_ports_orig: table[port] of bool = {} &redef;
 ##    tcp_content_delivery_ports_resp tcp_content_deliver_all_orig
 ##    tcp_content_deliver_all_resp udp_content_delivery_ports_orig
 ##    udp_content_deliver_all_orig udp_content_deliver_all_resp udp_contents
+##    udp_content_delivery_ports_use_resp udp_content_ports
 const udp_content_delivery_ports_resp: table[port] of bool = {} &redef;
+
+## Defines UDP ports (source or destination) for which the contents of
+## either originator or responder streams should be delivered via
+## :zeek:see:`udp_contents`.
+##
+## .. zeek:see:: tcp_content_delivery_ports_orig
+##    tcp_content_delivery_ports_resp tcp_content_deliver_all_orig
+##    tcp_content_deliver_all_resp udp_content_delivery_ports_orig
+##    udp_content_deliver_all_orig udp_content_deliver_all_resp udp_contents
+##    udp_content_delivery_ports_use_resp udp_content_delivery_ports_resp
+option udp_content_ports: set[port] = {};
+
+## Whether ports given in :zeek:see:`udp_content_delivery_ports_orig`
+## and :zeek:see:`udp_content_delivery_ports_resp` are in terms of
+## UDP packet's destination port or the UDP connection's "responder"
+## port.
+option udp_content_delivery_ports_use_resp = F;
 
 ## If true, all UDP originator-side traffic is reported via
 ## :zeek:see:`udp_contents`.
@@ -1125,6 +1154,7 @@ const udp_content_delivery_ports_resp: table[port] of bool = {} &redef;
 ##    tcp_content_delivery_ports_orig udp_content_delivery_ports_orig
 ##    udp_content_delivery_ports_resp  udp_content_deliver_all_resp
 ##    udp_contents
+##    udp_content_delivery_ports_use_resp
 const udp_content_deliver_all_orig = F &redef;
 
 ## If true, all UDP responder-side traffic is reported via
@@ -1135,6 +1165,7 @@ const udp_content_deliver_all_orig = F &redef;
 ##    tcp_content_delivery_ports_orig udp_content_delivery_ports_orig
 ##    udp_content_delivery_ports_resp  udp_content_deliver_all_orig
 ##    udp_contents
+##    udp_content_delivery_ports_use_resp
 const udp_content_deliver_all_resp = F &redef;
 
 ## Check for expired table entries after this amount of time.
@@ -1556,7 +1587,8 @@ type tcp_hdr: record {
 	ack: count;		##< acknowledgement number
 	hl: count;		##< header length (in bytes)
 	dl: count;		##< data length (xxx: not in original tcphdr!)
-	flags: count;		##< flags
+	reserved: count;	##< The "reserved" 4 bits after the "data offset" field.
+	flags: count;		##< The 8 bits of flags after the "reserved" field.
 	win: count;		##< window
 };
 
@@ -2044,7 +2076,8 @@ global login_timeouts: set[string] &redef;
 ##
 ## .. zeek:see:: mime_header_list http_all_headers mime_all_headers mime_one_header
 type mime_header_rec: record {
-	name: string;	##< The header name.
+	original_name: string; ##< The header name (unaltered).
+	name: string;	##< The header name (converted to all upper-case).
 	value: string;	##< The header value.
 };
 
@@ -5230,3 +5263,12 @@ const global_hash_seed: string = "" &redef;
 ## files.  The larger the value, the more confidence in UID uniqueness.
 ## The maximum is currently 128 bits.
 const bits_per_uid: count = 96 &redef;
+
+## This salt value is used for several message digests in Zeek. We
+## use a salt to help mitigate the possibility of an attacker
+## manipulating source data to, e.g., mount complexity attacks or
+## cause ID collisions.
+## This salt is, for example, used by :zeek:see:`get_file_handle`
+## to generate installation-unique file IDs (the *id* field of :zeek:see:`fa_file`).
+const digest_salt = "Please change this value." &redef;
+

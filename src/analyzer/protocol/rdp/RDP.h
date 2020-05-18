@@ -1,16 +1,13 @@
 #pragma once
 
 #include "events.bif.h"
-
-
 #include "analyzer/protocol/tcp/TCP.h"
 #include "analyzer/protocol/pia/PIA.h"
-
 #include "rdp_pac.h"
 
 namespace analyzer { namespace rdp {
 
-class RDP_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class RDP_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 
 public:
 	explicit RDP_Analyzer(Connection* conn);
@@ -27,9 +24,9 @@ public:
 
 protected:
 	binpac::RDP::RDP_Conn* interp;
-	
+
 	bool had_gap;
 	pia::PIA_TCP *pia;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

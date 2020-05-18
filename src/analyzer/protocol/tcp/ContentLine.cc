@@ -1,7 +1,6 @@
-#include <algorithm>
-
 #include "ContentLine.h"
-#include "analyzer/protocol/tcp/TCP.h"
+#include "TCP.h"
+#include "Reporter.h"
 
 #include "events.bif.h"
 
@@ -25,7 +24,7 @@ void ContentLine_Analyzer::InitState()
 	CR_LF_as_EOL = (CR_as_EOL | LF_as_EOL);
 	skip_deliveries = false;
 	skip_partial = false;
-	buf = 0;
+	buf = nullptr;
 	seq_delivered_in_lines = 0;
 	skip_pending = 0;
 	seq = 0;
@@ -146,7 +145,7 @@ void ContentLine_Analyzer::DoDeliver(int len, const u_char* data)
 
 		if ( plain_delivery_length > 0 )
 			{
-			int deliver_plain = min(plain_delivery_length, (int64_t)len);
+			int deliver_plain = std::min(plain_delivery_length, (int64_t)len);
 
 			last_char = 0; // clear last_char
 			plain_delivery_length -= deliver_plain;
@@ -313,7 +312,7 @@ void ContentLine_Analyzer::CheckNUL()
 			{
 			if ( ! suppress_weirds && Conn()->FlagEvent(NUL_IN_LINE) )
 				Conn()->Weird("NUL_in_line");
-			flag_NULs = 0;
+			flag_NULs = false;
 			}
 		}
 	}

@@ -4,14 +4,20 @@
 
 #include <utility>
 #include <memory>
+#include <string>
+#include <vector>
+#include <tuple>
+#include <type_traits>
 
 #include <broker/data.hh>
 #include <broker/expected.hh>
 
 #include "BroList.h"
 #include "Obj.h"
-#include "Debug.h"
-#include "Frame.h"
+#include "IntrusivePtr.h"
+#include "Type.h" /* for function_flavor */
+#include "TraverseTypes.h"
+#include "ZeekArgs.h"
 
 class Val;
 class ListExpr;
@@ -20,38 +26,57 @@ class Stmt;
 class Frame;
 class ID;
 class CallExpr;
+class Scope;
 
 class Func : public BroObj {
 public:
-
 	enum Kind { BRO_FUNC, BUILTIN_FUNC };
 
 	explicit Func(Kind arg_kind);
 
 	~Func() override;
 
-	virtual int IsPure() const = 0;
+	virtual bool IsPure() const = 0;
 	function_flavor Flavor() const	{ return FType()->Flavor(); }
 
 	struct Body {
-		Stmt* stmts;
+		IntrusivePtr<Stmt> stmts;
 		int priority;
 		bool operator<(const Body& other) const
 			{ return priority > other.priority; } // reverse sort
 	};
 
-	const vector<Body>& GetBodies() const	{ return bodies; }
+	const std::vector<Body>& GetBodies() const	{ return bodies; }
 	bool HasBodies() const	{ return bodies.size(); }
 
-	// virtual Val* Call(ListExpr* args) const = 0;
-	virtual Val* Call(val_list* args, Frame* parent = 0) const = 0;
+	[[deprecated("Remove in v4.1. Use zeek::Args overload instead.")]]
+	virtual IntrusivePtr<Val> Call(val_list* args, Frame* parent = nullptr) const;
+
+	/**
+	 * Calls a Zeek function.
+	 * @param args  the list of arguments to the function call.
+	 * @param parent  the frame from which the function is being called.
+	 * @return  the return value of the function call.
+	 */
+	virtual IntrusivePtr<Val> Call(const zeek::Args& args, Frame* parent = nullptr) const = 0;
+
+	/**
+	 * A version of Call() taking a variable number of individual arguments.
+	 */
+	template <class... Args>
+	std::enable_if_t<
+	  std::is_convertible_v<std::tuple_element_t<0, std::tuple<Args...>>,
+	                        IntrusivePtr<Val>>,
+	  IntrusivePtr<Val>>
+	Call(Args&&... args) const
+		{ return Call(zeek::Args{std::forward<Args>(args)...}); }
 
 	// Add a new event handler to an existing function (event).
-	virtual void AddBody(Stmt* new_body, id_list* new_inits,
-			     size_t new_frame_size, int priority = 0);
+	virtual void AddBody(IntrusivePtr<Stmt> new_body, id_list* new_inits,
+	                     size_t new_frame_size, int priority = 0);
 
-	virtual void SetScope(Scope* newscope)	{ scope = newscope; }
-	virtual Scope* GetScope() const		{ return scope; }
+	virtual void SetScope(IntrusivePtr<Scope> newscope);
+	virtual Scope* GetScope() const		{ return scope.get(); }
 
 	virtual FuncType* FType() const { return type->AsFuncType(); }
 
@@ -61,15 +86,15 @@ public:
 	void SetName(const char* arg_name)	{ name = arg_name; }
 
 	void Describe(ODesc* d) const override = 0;
-	virtual void DescribeDebug(ODesc* d, const val_list* args) const;
+	virtual void DescribeDebug(ODesc* d, const zeek::Args* args) const;
 
-	virtual Func* DoClone();
+	virtual IntrusivePtr<Func> DoClone();
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const;
 
 	uint32_t GetUniqueFuncID() const { return unique_id; }
 	static Func* GetFuncPtrByID(uint32_t id)
-		{ return id >= unique_ids.size() ? 0 : unique_ids[id]; }
+		{ return id >= unique_ids.size() ? nullptr : unique_ids[id]; }
 
 protected:
 	Func();
@@ -78,25 +103,25 @@ protected:
 	void CopyStateInto(Func* other) const;
 
 	// Helper function for handling result of plugin hook.
-	std::pair<bool, Val*> HandlePluginResult(std::pair<bool, Val*> plugin_result, val_list* args, function_flavor flavor) const;
+	std::pair<bool, Val*> HandlePluginResult(std::pair<bool, Val*> plugin_result, function_flavor flavor) const;
 
-	vector<Body> bodies;
-	Scope* scope;
+	std::vector<Body> bodies;
+	IntrusivePtr<Scope> scope;
 	Kind kind;
-	BroType* type;
-	string name;
 	uint32_t unique_id;
-	static vector<Func*> unique_ids;
+	IntrusivePtr<BroType> type;
+	std::string name;
+	static std::vector<Func*> unique_ids;
 };
 
 
-class BroFunc : public Func {
+class BroFunc final : public Func {
 public:
-	BroFunc(ID* id, Stmt* body, id_list* inits, size_t frame_size, int priority);
+	BroFunc(ID* id, IntrusivePtr<Stmt> body, id_list* inits, size_t frame_size, int priority);
 	~BroFunc() override;
 
-	int IsPure() const override;
-	Val* Call(val_list* args, Frame* parent) const override;
+	bool IsPure() const override;
+	IntrusivePtr<Val> Call(const zeek::Args& args, Frame* parent) const override;
 
 	/**
 	 * Adds adds a closure to the function. Closures are cloned and
@@ -127,7 +152,7 @@ public:
 	 */
 	broker::expected<broker::data> SerializeClosure() const;
 
-	void AddBody(Stmt* new_body, id_list* new_inits,
+	void AddBody(IntrusivePtr<Stmt> new_body, id_list* new_inits,
 		     size_t new_frame_size, int priority) override;
 
 	/** Sets this function's outer_id list. */
@@ -138,12 +163,12 @@ public:
 
 protected:
 	BroFunc() : Func(BRO_FUNC)	{}
-	Stmt* AddInits(Stmt* body, id_list* inits);
+	IntrusivePtr<Stmt> AddInits(IntrusivePtr<Stmt> body, id_list* inits);
 
 	/**
 	 * Clones this function along with its closures.
 	 */
-	Func* DoClone() override;
+	IntrusivePtr<Func> DoClone() override;
 
 	/**
 	 * Performs a selective clone of *f* using the IDs that were
@@ -163,28 +188,55 @@ private:
 	bool weak_closure_ref = false;
 };
 
-typedef Val* (*built_in_func)(Frame* frame, val_list* args);
-
-class BuiltinFunc : public Func {
+/**
+ * A simple wrapper class to use for the return value of BIFs so that
+ * they may return either a Val* or IntrusivePtr<Val> (the former could
+ * potentially be deprecated).
+ */
+class BifReturnVal {
 public:
-	BuiltinFunc(built_in_func func, const char* name, int is_pure);
+
+	template <typename T>
+	BifReturnVal(IntrusivePtr<T> v) noexcept
+		: rval(AdoptRef{}, v.release())
+		{ }
+
+	BifReturnVal(std::nullptr_t) noexcept;
+
+	[[deprecated("Remove in v4.1.  Return an IntrusivePtr instead.")]]
+	BifReturnVal(Val* v) noexcept;
+
+private:
+
+	friend class BuiltinFunc;
+
+	IntrusivePtr<Val> rval;
+};
+
+using built_in_func = BifReturnVal (*)(Frame* frame, const zeek::Args* args);
+
+class BuiltinFunc final : public Func {
+public:
+	BuiltinFunc(built_in_func func, const char* name, bool is_pure);
 	~BuiltinFunc() override;
 
-	int IsPure() const override;
-	Val* Call(val_list* args, Frame* parent) const override;
+	bool IsPure() const override;
+	IntrusivePtr<Val> Call(const zeek::Args& args, Frame* parent) const override;
 	built_in_func TheFunc() const	{ return func; }
 
 	void Describe(ODesc* d) const override;
 
 protected:
-	BuiltinFunc()	{ func = 0; is_pure = 0; }
+	BuiltinFunc()	{ func = nullptr; is_pure = 0; }
 
 	built_in_func func;
-	int is_pure;
+	bool is_pure;
 };
 
 
-extern void builtin_error(const char* msg, BroObj* arg = 0);
+extern void builtin_error(const char* msg);
+extern void builtin_error(const char* msg, IntrusivePtr<Val>);
+extern void builtin_error(const char* msg, BroObj* arg);
 extern void init_builtin_funcs();
 extern void init_builtin_funcs_subdirs();
 
@@ -193,7 +245,7 @@ extern bool check_built_in_call(BuiltinFunc* f, CallExpr* call);
 struct CallInfo {
 	const CallExpr* call;
 	const Func* func;
-	const val_list* args;
+	const zeek::Args& args;
 };
 
 // Struct that collects all the specifics defining a Func. Used for BroFuncs
@@ -202,19 +254,19 @@ struct function_ingredients {
 
 	// Gathers all of the information from a scope and a function body needed
 	// to build a function.
-	function_ingredients(Scope* scope, Stmt* body);
+	function_ingredients(IntrusivePtr<Scope> scope, IntrusivePtr<Stmt> body);
 
 	~function_ingredients();
 
-	ID* id;
-	Stmt* body;
+	IntrusivePtr<ID> id;
+	IntrusivePtr<Stmt> body;
 	id_list* inits;
 	int frame_size;
 	int priority;
-	Scope* scope;
+	IntrusivePtr<Scope> scope;
 };
 
-extern vector<CallInfo> call_stack;
+extern std::vector<CallInfo> call_stack;
 
 extern std::string render_call_stack();
 

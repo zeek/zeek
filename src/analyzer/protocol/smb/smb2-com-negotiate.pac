@@ -11,7 +11,7 @@ enum smb3_capabilities {
 enum smb3_context_type {
 	SMB2_PREAUTH_INTEGRITY_CAPABILITIES   = 0x0001,
 	SMB2_ENCRYPTION_CAPABILITIES          = 0x0002,
-	SMB2_COMPRESSION_CAPABILITIES         = 0x0004,
+	SMB2_COMPRESSION_CAPABILITIES         = 0x0003,
 	SMB2_NETNAME_NEGOTIATE_CONTEXT_ID     = 0x0005,
 };
 
@@ -22,14 +22,14 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_negotiate_request )
 			{
-			VectorVal* dialects = new VectorVal(index_vec);
+			auto dialects = make_intrusive<VectorVal>(index_vec);
+
 			for ( unsigned int i = 0; i < ${val.dialects}->size(); ++i )
-				{
-				dialects->Assign(i, val_mgr->GetCount((*${val.dialects})[i]));
-				}
-			BifEvent::generate_smb2_negotiate_request(bro_analyzer(), bro_analyzer()->Conn(),
-			                                          BuildSMB2HeaderVal(h),
-			                                          dialects);
+				dialects->Assign(i, val_mgr->Count((*${val.dialects})[i]));
+
+			BifEvent::enqueue_smb2_negotiate_request(bro_analyzer(), bro_analyzer()->Conn(),
+			                                         {AdoptRef{}, BuildSMB2HeaderVal(h)},
+			                                         std::move(dialects));
 			}
 
 		return true;
@@ -39,26 +39,30 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_negotiate_response )
 			{
-			RecordVal* nr = new RecordVal(BifType::Record::SMB2::NegotiateResponse);
+			auto nr = make_intrusive<RecordVal>(BifType::Record::SMB2::NegotiateResponse);
 
-			nr->Assign(0, val_mgr->GetCount(${val.dialect_revision}));
-			nr->Assign(1, val_mgr->GetCount(${val.security_mode}));
+			nr->Assign(0, val_mgr->Count(${val.dialect_revision}));
+			nr->Assign(1, val_mgr->Count(${val.security_mode}));
 			nr->Assign(2, BuildSMB2GUID(${val.server_guid}));
 			nr->Assign(3, filetime2brotime(${val.system_time}));
 			nr->Assign(4, filetime2brotime(${val.server_start_time}));
-			nr->Assign(5, val_mgr->GetCount(${val.negotiate_context_count}));
+			nr->Assign(5, val_mgr->Count(${val.negotiate_context_count}));
 
 			VectorVal* cv = new VectorVal(BifType::Vector::SMB2::NegotiateContextValues);
 
-			if ( ${val.dialect_revision} == 0x0311 )
-				for ( auto i = 0u; i < ${val.smb3_ncl.vals}->size(); ++i )
-					cv->Assign(i, BuildSMB2ContextVal(${val.smb3_ncl.vals[i]}));
+			if ( ${val.dialect_revision} == 0x0311 && ${val.negotiate_context_count} > 0 )
+				{
+				for ( auto i = 0u; i < ${val.smb3_ncl.list.vals}->size(); ++i )
+					cv->Assign(i, BuildSMB2ContextVal(${val.smb3_ncl.list.vals[i].ncv}));
+
+				cv->Assign(${val.smb3_ncl.list.vals}->size(), BuildSMB2ContextVal(${val.smb3_ncl.list.last_val}));
+				}
 
 			nr->Assign(6, cv);
 
-			BifEvent::generate_smb2_negotiate_response(bro_analyzer(), bro_analyzer()->Conn(),
-			                                           BuildSMB2HeaderVal(h),
-			                                           nr);
+			BifEvent::enqueue_smb2_negotiate_response(bro_analyzer(), bro_analyzer()->Conn(),
+			                                          {AdoptRef{}, BuildSMB2HeaderVal(h)},
+													  std::move(nr));
 			}
 
 		return true;
@@ -97,8 +101,13 @@ type SMB3_negotiate_context_value = record {
 		SMB2_ENCRYPTION_CAPABILITIES          -> encryption_capabilities        : SMB3_encryption_capabilities;
 		SMB2_COMPRESSION_CAPABILITIES         -> compression_capabilities       : SMB3_compression_capabilities;
 		SMB2_NETNAME_NEGOTIATE_CONTEXT_ID     -> netname_negotiate_context_id   : SMB3_netname_negotiate_context_id(data_length);
+		default                               -> unknown_context_data           : bytestring &length=data_length;
 	};
-	pad			: padding align 4;
+};
+
+type Padded_SMB3_negotiate_context_value = record {
+	ncv: SMB3_negotiate_context_value;
+	pad: padding align 8;
 };
 
 type SMB2_negotiate_request(header: SMB2_Header) = record {
@@ -115,8 +124,16 @@ type SMB2_negotiate_request(header: SMB2_Header) = record {
 };
 
 type NegotiateContextList(len: uint16) = record {
-	vals : SMB3_negotiate_context_value[len];
-}
+	vals: Padded_SMB3_negotiate_context_value[len - 1];
+	last_val: SMB3_negotiate_context_value;
+};
+
+type OptNegotiateContextList(len: uint16) = record {
+	opt: case len of {
+		0 -> nil: empty;
+		default -> list: NegotiateContextList(len);
+	};
+};
 
 type SMB2_negotiate_response(header: SMB2_Header) = record {
 	structure_size            : uint16;
@@ -136,7 +153,7 @@ type SMB2_negotiate_response(header: SMB2_Header) = record {
 	security_blob             : bytestring &length=security_length;
 	pad1                      : padding to (dialect_revision == 0x0311 ? negotiate_context_offset - header.head_length : 0);
 	negotiate_context_list    : case dialect_revision of {
-		0x0311    -> smb3_ncl : NegotiateContextList(negotiate_context_count);
+		0x0311    -> smb3_ncl : OptNegotiateContextList(negotiate_context_count);
 		default   -> unknown  : empty;
 	};
 } &byteorder=littleendian, &let {

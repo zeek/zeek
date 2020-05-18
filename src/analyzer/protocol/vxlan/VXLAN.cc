@@ -1,12 +1,20 @@
 // See the file  in the main distribution directory for copyright.
 
+#include <pcap.h>	// for the DLT_EN10MB constant definition
+
 #include "VXLAN.h"
 #include "TunnelEncapsulation.h"
 #include "Conn.h"
 #include "IP.h"
+#include "Net.h"
+#include "Sessions.h"
 #include "Reporter.h"
 
 #include "events.bif.h"
+
+extern "C" {
+#include <pcap.h>
+}
 
 using namespace analyzer::vxlan;
 
@@ -93,8 +101,9 @@ void VXLAN_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	ProtocolConfirmation();
 
 	if ( vxlan_packet )
-		Conn()->Event(vxlan_packet, 0, inner->BuildPktHdrVal(),
-		              val_mgr->GetCount(vni));
+		Conn()->EnqueueEvent(vxlan_packet, nullptr, ConnVal(),
+		                     IntrusivePtr{AdoptRef{}, inner->BuildPktHdrVal()},
+		                     val_mgr->Count(vni));
 
 	EncapsulatingConn ec(Conn(), BifEnum::Tunnel::VXLAN);
 	sessions->DoNextInnerPacket(network_time, &pkt, inner, estack, ec);

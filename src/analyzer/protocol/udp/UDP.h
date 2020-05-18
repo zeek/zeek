@@ -12,7 +12,7 @@ typedef enum {
 	UDP_ACTIVE,	// packets seen
 } UDP_EndpointState;
 
-class UDP_Analyzer : public analyzer::TransportLayerAnalyzer {
+class UDP_Analyzer final : public analyzer::TransportLayerAnalyzer {
 public:
 	explicit UDP_Analyzer(Connection* conn);
 	~UDP_Analyzer() override;
@@ -39,7 +39,7 @@ protected:
 	bro_int_t request_len, reply_len;
 
 private:
-	void UpdateEndpointVal(RecordVal* endp, int is_orig);
+	void UpdateEndpointVal(RecordVal* endp, bool is_orig);
 
 #define HIST_ORIG_DATA_PKT 0x1
 #define HIST_RESP_DATA_PKT 0x2
@@ -51,4 +51,4 @@ private:
 	uint32_t rep_chk_cnt, rep_chk_thresh;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

@@ -7,13 +7,11 @@
 #include <string.h>
 #include <string>
 
-#include "BroString.h"
-#include "Hash.h"
-#include "util.h"
-#include "Type.h"
 #include "threading/SerialTypes.h"
 
 struct ConnID;
+class BroString;
+class HashKey;
 namespace analyzer { class ExpectedConn; }
 
 typedef in_addr in4_addr;
@@ -113,10 +111,7 @@ public:
 	 * @param s String containing an IP address as either a dotted IPv4
 	 * address or a hex IPv6 address.
 	 */
-	explicit IPAddr(const BroString& s)
-		{
-		Init(s.CheckString());
-		}
+	explicit IPAddr(const BroString& s);
 
 	/**
 	 * Constructs an address instance from a raw byte representation.
@@ -140,7 +135,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~IPAddr() { };
+	~IPAddr() = default;
 
 	/**
 	 * Returns the address' family.
@@ -149,8 +144,8 @@ public:
 		{
 		if ( memcmp(in6.s6_addr, v4_mapped_prefix, 12) == 0 )
 			return IPv4;
-		else
-			return IPv6;
+
+		return IPv6;
 		}
 
 	/**
@@ -165,8 +160,8 @@ public:
 		{
 		if ( GetFamily() == IPv4 )
 			return in6.s6_addr[12] == 224;
-		else
-			return in6.s6_addr[0] == 0xff;
+
+		return in6.s6_addr[0] == 0xff;
 		}
 
 	/**
@@ -177,8 +172,8 @@ public:
 		if ( GetFamily() == IPv4 )
 			return ((in6.s6_addr[12] == 0xff) && (in6.s6_addr[13] == 0xff)
 				&& (in6.s6_addr[14] == 0xff) && (in6.s6_addr[15] == 0xff));
-		else
-			return false;
+
+		return false;
 		}
 
 	/**
@@ -255,10 +250,7 @@ public:
 	 * Returns a key that can be used to lookup the IP Address in a hash
 	 * table. Passes ownership to caller.
 	 */
-	HashKey* GetHashKey() const
-		{
-		return new HashKey((void*)in6.s6_addr, sizeof(in6.s6_addr));
-		}
+	HashKey* GetHashKey() const;
 
 	/**
 	 * Masks out lower bits of the address.
@@ -312,25 +304,25 @@ public:
 	 * will be returned in dotted representation, IPv6 addresses in
 	 * compressed hex.
 	 */
-	string AsString() const;
+	std::string AsString() const;
 
 	/**
 	 * Returns a string representation of the address suitable for inclusion
 	 * in an URI.  For IPv4 addresses, this is the same as AsString(), but
 	 * IPv6 addresses are encased in square brackets.
 	 */
-	string AsURIString() const
+	std::string AsURIString() const
 		{
 		if ( GetFamily() == IPv4 )
 			return AsString();
-		else
-			return string("[") + AsString() + "]";
+
+		return std::string("[") + AsString() + "]";
 		}
 
 	/**
 	 * Returns a host-order, plain hex string representation of the address.
 	 */
-	string AsHexString() const;
+	std::string AsHexString() const;
 
 	/**
 	 * Returns a string representation of the address. This returns the
@@ -342,7 +334,7 @@ public:
 	 * Returns a reverse pointer name associated with the IP address.
 	 * For example, 192.168.0.1's reverse pointer is 1.0.168.192.in-addr.arpa.
 	 */
-	string PtrName() const;
+	std::string PtrName() const;
 
 	/**
 	 * Comparison operator for IP address.
@@ -535,7 +527,7 @@ public:
 	/**
 	 * Constructs a prefix 0/0.
 	 */
-	IPPrefix() : length(0)	{}
+	IPPrefix() = default;
 
 	/**
 	 * Constructs a prefix instance from an IPv4 address and a prefix
@@ -582,7 +574,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~IPPrefix() { }
+	~IPPrefix() = default;
 
 	/**
 	 * Returns the prefix in the form of an IP address. The address will
@@ -632,7 +624,7 @@ public:
 	 * will be returned in dotted representation, IPv6 addresses in
 	 * compressed hex.
 	 */
-	string AsString() const;
+	std::string AsString() const;
 
 	operator std::string() const	{ return AsString(); }
 
@@ -640,18 +632,7 @@ public:
 	 * Returns a key that can be used to lookup the IP Prefix in a hash
 	 * table. Passes ownership to caller.
 	 */
-	HashKey* GetHashKey() const
-		{
-		struct {
-			in6_addr ip;
-			uint32_t len;
-		} key;
-
-		key.ip = prefix.in6;
-		key.len = Length();
-
-		return new HashKey(&key, sizeof(key));
-		}
+	HashKey* GetHashKey() const;
 
 	/** Converts the prefix into the type used internally by the
 	  * inter-thread communication.
@@ -733,5 +714,5 @@ public:
 
 private:
 	IPAddr prefix;	// We store it as an address with the non-prefix bits masked out via Mask().
-	uint8_t length;	// The bit length of the prefix relative to full IPv6 addr.
+	uint8_t length = 0;	// The bit length of the prefix relative to full IPv6 addr.
 };

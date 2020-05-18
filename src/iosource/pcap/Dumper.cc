@@ -15,8 +15,8 @@ PcapDumper::PcapDumper(const std::string& path, bool arg_append)
 	{
 	append = arg_append;
 	props.path = path;
-	dumper = 0;
-	pd = 0;
+	dumper = nullptr;
+	pd = nullptr;
 	}
 
 PcapDumper::~PcapDumper()
@@ -93,8 +93,8 @@ void PcapDumper::Close()
 
 	pcap_dump_close(dumper);
 	pcap_close(pd);
-	dumper = 0;
-	pd = 0;
+	dumper = nullptr;
+	pd = nullptr;
 
 	Closed();
 	}

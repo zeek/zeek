@@ -4,7 +4,7 @@
 # @TEST-PORT: PROXY_PORT
 # @TEST-PORT: WORKER_PORT
 # @TEST-EXEC: btest-bg-run zeek zeek -j -b %INPUT
-# @TEST-EXEC: btest-bg-wait 20
+# @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: btest-diff zeek/supervisor.out
 # @TEST-EXEC: btest-diff zeek/manager/stdout
 # @TEST-EXEC: btest-diff zeek/logger-1/stdout

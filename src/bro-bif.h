@@ -6,3 +6,5 @@
 #include "Conn.h"
 #include "NetVar.h"
 #include "Event.h"
+#include "Reporter.h"
+#include "Var.h" // for internal_type()

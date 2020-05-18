@@ -7,9 +7,9 @@ refine connection SMB_Conn += {
 
 		if ( smb2_tree_disconnect_request )
 			{
-			BifEvent::generate_smb2_tree_disconnect_request(bro_analyzer(),
-			                                                bro_analyzer()->Conn(),
-			                                                BuildSMB2HeaderVal(header));
+			BifEvent::enqueue_smb2_tree_disconnect_request(bro_analyzer(),
+			                                               bro_analyzer()->Conn(),
+			                                               {AdoptRef{}, BuildSMB2HeaderVal(header)});
 			}
 
 		return true;
@@ -19,9 +19,9 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_tree_disconnect_response )
 			{
-			BifEvent::generate_smb2_tree_disconnect_response(bro_analyzer(),
-			                                                 bro_analyzer()->Conn(),
-			                                                 BuildSMB2HeaderVal(header));
+			BifEvent::enqueue_smb2_tree_disconnect_response(bro_analyzer(),
+			                                                bro_analyzer()->Conn(),
+			                                                {AdoptRef{}, BuildSMB2HeaderVal(header)});
 			}
 
 		return true;

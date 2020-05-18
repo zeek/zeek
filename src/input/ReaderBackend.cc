@@ -9,13 +9,13 @@ using threading::Field;
 
 namespace input {
 
-class PutMessage : public threading::OutputMessage<ReaderFrontend> {
+class PutMessage final : public threading::OutputMessage<ReaderFrontend> {
 public:
 	PutMessage(ReaderFrontend* reader, Value* *val)
 		: threading::OutputMessage<ReaderFrontend>("Put", reader),
 		val(val) {}
 
-	virtual bool Process()
+	bool Process() override
 		{
 		input_mgr->Put(Object(), val);
 		return true;
@@ -25,13 +25,13 @@ private:
 	Value* *val;
 };
 
-class DeleteMessage : public threading::OutputMessage<ReaderFrontend> {
+class DeleteMessage final : public threading::OutputMessage<ReaderFrontend> {
 public:
 	DeleteMessage(ReaderFrontend* reader, Value* *val)
 		: threading::OutputMessage<ReaderFrontend>("Delete", reader),
 		val(val) {}
 
-	virtual bool Process()
+	bool Process() override
 		{
 		return input_mgr->Delete(Object(), val);
 		}
@@ -40,12 +40,12 @@ private:
 	Value* *val;
 };
 
-class ClearMessage : public threading::OutputMessage<ReaderFrontend> {
+class ClearMessage final : public threading::OutputMessage<ReaderFrontend> {
 public:
 	ClearMessage(ReaderFrontend* reader)
 		: threading::OutputMessage<ReaderFrontend>("Clear", reader) {}
 
-	virtual bool Process()
+	bool Process() override
 		{
 		input_mgr->Clear(Object());
 		return true;
@@ -54,15 +54,15 @@ public:
 private:
 };
 
-class SendEventMessage : public threading::OutputMessage<ReaderFrontend> {
+class SendEventMessage final : public threading::OutputMessage<ReaderFrontend> {
 public:
 	SendEventMessage(ReaderFrontend* reader, const char* name, const int num_vals, Value* *val)
 		: threading::OutputMessage<ReaderFrontend>("SendEvent", reader),
 		name(copy_string(name)), num_vals(num_vals), val(val) {}
 
-	virtual ~SendEventMessage()	{ delete [] name; }
+	~SendEventMessage() override	{ delete [] name; }
 
-	virtual bool Process()
+	bool Process() override
 		{
 		bool success = input_mgr->SendEvent(Object(), name, num_vals, val);
 
@@ -78,7 +78,7 @@ private:
 	Value* *val;
 };
 
-class ReaderErrorMessage : public threading::OutputMessage<ReaderFrontend>
+class ReaderErrorMessage final : public threading::OutputMessage<ReaderFrontend>
 {
 public:
 	enum Type {
@@ -89,22 +89,22 @@ public:
 		: threading::OutputMessage<ReaderFrontend>("ReaderErrorMessage", reader)
 		{ type = arg_type; msg = copy_string(arg_msg); }
 
-	virtual ~ReaderErrorMessage() 	 { delete [] msg; }
+	~ReaderErrorMessage() override 	 { delete [] msg; }
 
-	virtual bool Process();
+	bool Process() override;
 
 private:
 	const char* msg;
 	Type type;
 };
 
-class SendEntryMessage : public threading::OutputMessage<ReaderFrontend> {
+class SendEntryMessage final : public threading::OutputMessage<ReaderFrontend> {
 public:
 	SendEntryMessage(ReaderFrontend* reader, Value* *val)
 		: threading::OutputMessage<ReaderFrontend>("SendEntry", reader),
 		val(val) { }
 
-	virtual bool Process()
+	bool Process() override
 		{
 		input_mgr->SendEntry(Object(), val);
 		return true;
@@ -114,12 +114,12 @@ private:
 	Value* *val;
 };
 
-class EndCurrentSendMessage : public threading::OutputMessage<ReaderFrontend> {
+class EndCurrentSendMessage final : public threading::OutputMessage<ReaderFrontend> {
 public:
 	EndCurrentSendMessage(ReaderFrontend* reader)
 		: threading::OutputMessage<ReaderFrontend>("EndCurrentSend", reader) {}
 
-	virtual bool Process()
+	bool Process() override
 		{
 		input_mgr->EndCurrentSend(Object());
 		return true;
@@ -128,12 +128,12 @@ public:
 private:
 };
 
-class EndOfDataMessage : public threading::OutputMessage<ReaderFrontend> {
+class EndOfDataMessage final : public threading::OutputMessage<ReaderFrontend> {
 public:
 	EndOfDataMessage(ReaderFrontend* reader)
 		: threading::OutputMessage<ReaderFrontend>("EndOfData", reader) {}
 
-	virtual bool Process()
+	bool Process() override
 		{
 		input_mgr->SendEndOfData(Object());
 		return true;
@@ -142,12 +142,12 @@ public:
 private:
 };
 
-class ReaderClosedMessage : public threading::OutputMessage<ReaderFrontend> {
+class ReaderClosedMessage final : public threading::OutputMessage<ReaderFrontend> {
 public:
 	ReaderClosedMessage(ReaderFrontend* reader)
 		: threading::OutputMessage<ReaderFrontend>("ReaderClosed", reader) {}
 
-	virtual bool Process()
+	bool Process() override
 		{
 		Object()->SetDisable();
 		return input_mgr->RemoveStreamContinuation(Object());
@@ -156,13 +156,13 @@ public:
 private:
 };
 
-class DisableMessage : public threading::OutputMessage<ReaderFrontend>
+class DisableMessage final : public threading::OutputMessage<ReaderFrontend>
 {
 public:
-        DisableMessage(ReaderFrontend* writer)
+	DisableMessage(ReaderFrontend* writer)
 		: threading::OutputMessage<ReaderFrontend>("Disable", writer)	{}
 
-	virtual bool Process()
+	bool Process() override
 		{
 		Object()->SetDisable();
 		// And - because we do not need disabled objects any more -
@@ -204,7 +204,7 @@ ReaderBackend::ReaderBackend(ReaderFrontend* arg_frontend) : MsgThread()
 	frontend = arg_frontend;
 	info = new ReaderInfo(frontend->Info());
 	num_fields = 0;
-	fields = 0;
+	fields = nullptr;
 
 	SetName(frontend->Name());
 	}
@@ -282,13 +282,13 @@ bool ReaderBackend::OnFinish(double network_time)
 	disabled = true; // frontend disables itself when it gets the Close-message.
 	SendOut(new ReaderClosedMessage(frontend));
 
-	if ( fields != 0 )
+	if ( fields )
 		{
 		for ( unsigned int i = 0; i < num_fields; i++ )
 			delete(fields[i]);
 
 		delete [] (fields);
-		fields = 0;
+		fields = nullptr;
 		}
 
 	return true;
@@ -336,8 +336,26 @@ void ReaderBackend::Info(const char* msg)
 	MsgThread::Info(msg);
 	}
 
+void ReaderBackend::FailWarn(bool is_error, const char *msg, bool suppress_future)
+	{
+	if ( is_error )
+		Error(msg);
+	else
+		{
+		// suppress error message when we are already in error mode.
+		// There is no reason to repeat it every second.
+		if ( ! suppress_warnings )
+			Warning(msg);
+
+		if ( suppress_future )
+			suppress_warnings = true;
+		}
+	}
 void ReaderBackend::Warning(const char* msg)
 	{
+	if ( suppress_warnings )
+		return;
+
 	SendOut(new ReaderErrorMessage(frontend, ReaderErrorMessage::WARNING, msg));
 	MsgThread::Warning(msg);
 	}

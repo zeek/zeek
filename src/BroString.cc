@@ -1,15 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "BroString.h"
 
 #include <algorithm>
+#include <iostream>
 #include <ctype.h>
 
-#include <algorithm>
-
-#include "BroString.h"
+#include "Val.h"
 #include "Var.h"
 #include "Reporter.h"
+#include "util.h"
 
 #ifdef DEBUG
 #define DEBUG_STR(msg) DBG_LOG(DBG_STRING, msg)
@@ -43,7 +44,7 @@ BroString::BroString(const char* str) : BroString()
 	Set(str);
 	}
 
-BroString::BroString(const string &str) : BroString()
+BroString::BroString(const std::string &str) : BroString()
 	{
 	Set(str);
 	}
@@ -106,7 +107,7 @@ void BroString::Adopt(byte_vec bytes, int len)
 
 	// Check if the string ends with a NUL.  If so, mark it as having
 	// a final NUL and adjust the length accordingly.
-	final_NUL = (b[len-1] == '\0') ? 1 : 0;
+	final_NUL = (b[len-1] == '\0');
 	n = len - final_NUL;
 	}
 
@@ -136,7 +137,7 @@ void BroString::Set(const char* str)
 	use_free_to_delete = false;
 	}
 
-void BroString::Set(const string& str)
+void BroString::Set(const std::string& str)
 	{
 	Reset();
 
@@ -233,7 +234,7 @@ char* BroString::Render(int format, int* len) const
 	return s;
 	}
 
-ostream& BroString::Render(ostream &os, int format) const
+std::ostream& BroString::Render(std::ostream &os, int format) const
 	{
 	char* tmp = Render(format);
 	os << tmp;
@@ -241,7 +242,7 @@ ostream& BroString::Render(ostream &os, int format) const
 	return os;
 	}
 
-istream& BroString::Read(istream &is, int format)
+std::istream& BroString::Read(std::istream &is, int format)
 	{
 	if ( (format & BroString::ESC_SER) )
 		{
@@ -259,7 +260,7 @@ istream& BroString::Read(istream &is, int format)
 		}
 	else
 		{
-		string str;
+		std::string str;
 		is >> str;
 		Set(str);
 		}
@@ -274,16 +275,21 @@ void BroString::ToUpper()
 			b[i] = toupper(b[i]);
 	}
 
+unsigned int BroString::MemoryAllocation() const
+	{
+	return padded_sizeof(*this) + pad_size(n + final_NUL);
+	}
+
 BroString* BroString::GetSubstring(int start, int len) const
 	{
 	// This code used to live in zeek.bif's sub_bytes() routine.
 	if ( start < 0 || start > n )
-		return 0;
+		return nullptr;
 
 	if ( len < 0 || len > n - start )
 		len = n - start;
 
-	return new BroString(&b[start], len, 1);
+	return new BroString(&b[start], len, true);
 	}
 
 int BroString::FindSubstring(const BroString* s) const
@@ -296,7 +302,7 @@ BroString::Vec* BroString::Split(const BroString::IdxVec& indices) const
 	unsigned int i;
 
 	if ( indices.empty() )
-		return 0;
+		return nullptr;
 
 	// Copy input, ensuring space for "0":
 	IdxVec idx(1 + indices.size());
@@ -337,7 +343,7 @@ VectorVal* BroString:: VecToPolicy(Vec* vec)
 	VectorVal* result =
 		new VectorVal(internal_type("string_vec")->AsVectorType());
 	if ( ! result )
-		return 0;
+		return nullptr;
 
 	for ( unsigned int i = 0; i < vec->size(); ++i )
 		{
@@ -370,7 +376,7 @@ BroString::Vec* BroString::VecFromPolicy(VectorVal* vec)
 
 char* BroString::VecToString(const Vec* vec)
 	{
-	string result("[");
+	std::string result("[");
 
 	for ( BroString::VecCIt it = vec->begin(); it != vec->end(); ++it )
 		{
@@ -390,7 +396,7 @@ bool BroStringLenCmp::operator()(BroString * const& bst1,
 				(bst1->Len() > bst2->Len());
 	}
 
-ostream& operator<<(ostream& os, const BroString& bs)
+std::ostream& operator<<(std::ostream& os, const BroString& bs)
 	{
 	char* tmp = bs.Render(BroString::EXPANDED_STRING);
 	os << tmp;
@@ -408,7 +414,7 @@ int Bstr_eq(const BroString* s1, const BroString* s2)
 
 int Bstr_cmp(const BroString* s1, const BroString* s2)
 	{
-	int n = min(s1->Len(), s2->Len());
+	int n = std::min(s1->Len(), s2->Len());
 	int cmp = memcmp(s1->Bytes(), s2->Bytes(), n);
 
 	if ( cmp || s1->Len() == s2->Len() )

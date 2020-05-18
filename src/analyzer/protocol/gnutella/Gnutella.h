@@ -16,10 +16,10 @@ class GnutellaMsgState {
 public:
 	GnutellaMsgState ();
 
-	string buffer;
+	std::string buffer;
 	int current_offset;
 	int got_CR;
-	string headers;
+	std::string headers;
 	char msg[GNUTELLA_MSG_SIZE];
 	u_char msg_hops;
 	unsigned int msg_len;
@@ -45,12 +45,12 @@ public:
 		{ return new Gnutella_Analyzer(conn); }
 
 private:
-	int NextLine(const u_char* data, int len);
+	bool NextLine(const u_char* data, int len);
 
-	int GnutellaOK(string header);
-	int IsHTTP(string header);
+	bool GnutellaOK(std::string header);
+	bool IsHTTP(std::string header);
 
-	int Established() const	{ return state == (ORIG_OK | RESP_OK); }
+	bool Established() const	{ return state == (ORIG_OK | RESP_OK); }
 
 	void DeliverLines(int len, const u_char* data, bool orig);
 
@@ -68,4 +68,4 @@ private:
 	GnutellaMsgState* ms;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

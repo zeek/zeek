@@ -1,5 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "Supervisor.h"
+
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -10,18 +12,24 @@
 #include <cstdarg>
 #include <sstream>
 
-#include "Supervisor.h"
+#include "iosource/Manager.h"
+#include "BroString.h"
+#include "Dict.h"
+#include "RE.h"
 #include "Reporter.h"
+#include "Scope.h"
 #include "DebugLogger.h"
+#include "ID.h"
 #include "Val.h"
 #include "Net.h"
 #include "NetVar.h"
 #include "zeek-config.h"
 #include "util.h"
+#include "input.h"
 #include "zeek-affinity.h"
 
 #define RAPIDJSON_HAS_STDSTRING 1
-#include "3rdparty/rapidjson/include/rapidjson/document.h"
+#include "rapidjson/document.h"
 
 extern "C" {
 #include "setsignal.h"
@@ -137,7 +145,7 @@ ParentProcessCheckTimer::ParentProcessCheckTimer(double t, double arg_interval)
 	{
 	}
 
-void ParentProcessCheckTimer::Dispatch(double t, int is_expire)
+void ParentProcessCheckTimer::Dispatch(double t, bool is_expire)
 	{
 	// Note: only simple + portable way of detecting loss of parent
 	// process seems to be polling for change in PPID.  There's platform
@@ -160,7 +168,6 @@ Supervisor::Supervisor(Supervisor::Config cfg, StemState ss)
 	{
 	DBG_LOG(DBG_SUPERVISOR, "forked stem process %d", stem_pid);
 	setsignal(SIGCHLD, supervisor_signal_handler);
-	SetIdle(true);
 
 	int status;
 	auto res = waitpid(stem_pid, &status, WNOHANG);
@@ -196,6 +203,9 @@ Supervisor::~Supervisor()
 		DBG_LOG(DBG_SUPERVISOR, "shutdown, stem process already exited");
 		return;
 		}
+
+	iosource_mgr->UnregisterFd(signal_flare.FD(), this);
+	iosource_mgr->UnregisterFd(stem_pipe->InFD(), this);
 
 	DBG_LOG(DBG_SUPERVISOR, "shutdown, killing stem process %d", stem_pid);
 
@@ -352,16 +362,19 @@ void Supervisor::HandleChildSignal()
 		}
 	}
 
-void Supervisor::GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
-                        iosource::FD_Set* except)
+void Supervisor::InitPostScript()
 	{
-	read->Insert(signal_flare.FD());
-	read->Insert(stem_pipe->InFD());
+	iosource_mgr->Register(this);
+
+	if ( ! iosource_mgr->RegisterFd(signal_flare.FD(), this) )
+		reporter->FatalError("Failed registration for signal_flare with iosource_mgr");
+	if ( ! iosource_mgr->RegisterFd(stem_pipe->InFD(), this) )
+		reporter->FatalError("Failed registration for stem_pipe with iosource_mgr");
 	}
 
-double Supervisor::NextTimestamp(double* local_network_time)
+double Supervisor::GetNextTimeout()
 	{
-	return timer_mgr->Time();
+	return -1;
 	}
 
 void Supervisor::Process()
@@ -524,6 +537,17 @@ void Stem::KillNode(Supervisor::Node* node, int signal) const
 		         node->Name().data(), node->pid, strerror(errno));
 	}
 
+static int get_kill_signal(int attempts, int max_attempts)
+	{
+	if ( getenv("ZEEK_SUPERVISOR_NO_SIGKILL") )
+		return SIGTERM;
+
+	if ( attempts < max_attempts )
+		return SIGTERM;
+
+	return SIGKILL;
+	}
+
 void Stem::Destroy(Supervisor::Node* node) const
 	{
 	constexpr auto max_term_attempts = 13;
@@ -539,7 +563,7 @@ void Stem::Destroy(Supervisor::Node* node) const
 
 	for ( ; ; )
 		{
-		auto sig = kill_attempts++ < max_term_attempts ? SIGTERM : SIGKILL;
+		auto sig = get_kill_signal(kill_attempts++, max_term_attempts);
 		KillNode(node, sig);
 		usleep(10);
 
@@ -655,7 +679,7 @@ void Stem::Shutdown(int exit_code)
 
 	for ( ; ; )
 		{
-		auto sig = kill_attempts++ < max_term_attempts ? SIGTERM : SIGKILL;
+		auto sig = get_kill_signal(kill_attempts++, max_term_attempts);
 
 		if ( ! nodes.empty() )
 			{
@@ -700,7 +724,7 @@ void Stem::ReportStatus(const Supervisor::Node& node) const
 
 void Stem::Log(std::string_view type, const char* format, va_list args) const
 	{
-	auto raw_msg = fmt(format, args);
+	auto raw_msg = vfmt(format, args);
 
 	if ( getenv("ZEEK_DEBUG_STEM_STDERR") )
 		{
@@ -1000,7 +1024,7 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 
 	while ( (v = cluster_table->NextEntry(k, c)) )
 		{
-		IntrusivePtr<ListVal> key{cluster_table_val->RecoverIndex(k), false};
+		auto key = cluster_table_val->RecoverIndex(k);
 		delete k;
 		auto name = key->Index(0)->AsStringVal()->ToStdString();
 		auto rv = v->Value()->AsRecordVal();
@@ -1075,42 +1099,39 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromJSON(std::string_view json)
 std::string Supervisor::NodeConfig::ToJSON() const
 	{
 	auto re = std::make_unique<RE_Matcher>("^_");
-	auto node_val = ToRecord();
-	IntrusivePtr<StringVal> json_val{node_val->ToJSON(false, re.get()), false};
-	auto rval = json_val->ToStdString();
-	return rval;
+	return ToRecord()->ToJSON(false, re.get())->ToStdString();
 	}
 
 IntrusivePtr<RecordVal> Supervisor::NodeConfig::ToRecord() const
 	{
 	auto rt = BifType::Record::Supervisor::NodeConfig;
 	auto rval = make_intrusive<RecordVal>(rt);
-	rval->Assign(rt->FieldOffset("name"), new StringVal(name));
+	rval->Assign(rt->FieldOffset("name"), make_intrusive<StringVal>(name));
 
 	if ( interface )
-		rval->Assign(rt->FieldOffset("interface"), new StringVal(*interface));
+		rval->Assign(rt->FieldOffset("interface"), make_intrusive<StringVal>(*interface));
 
 	if ( directory )
-		rval->Assign(rt->FieldOffset("directory"), new StringVal(*directory));
+		rval->Assign(rt->FieldOffset("directory"), make_intrusive<StringVal>(*directory));
 
 	if ( stdout_file )
-		rval->Assign(rt->FieldOffset("stdout_file"), new StringVal(*stdout_file));
+		rval->Assign(rt->FieldOffset("stdout_file"), make_intrusive<StringVal>(*stdout_file));
 
 	if ( stderr_file )
-		rval->Assign(rt->FieldOffset("stderr_file"), new StringVal(*stderr_file));
+		rval->Assign(rt->FieldOffset("stderr_file"), make_intrusive<StringVal>(*stderr_file));
 
 	if ( cpu_affinity )
-		rval->Assign(rt->FieldOffset("cpu_affinity"), val_mgr->GetInt(*cpu_affinity));
+		rval->Assign(rt->FieldOffset("cpu_affinity"), val_mgr->Int(*cpu_affinity));
 
 	auto st = BifType::Record::Supervisor::NodeConfig->FieldType("scripts");
 	auto scripts_val = new VectorVal(st->AsVectorType());
 	rval->Assign(rt->FieldOffset("scripts"), scripts_val);
 
 	for ( const auto& s : scripts )
-		scripts_val->Assign(scripts_val->Size(), new StringVal(s));
+		scripts_val->Assign(scripts_val->Size(), make_intrusive<StringVal>(s));
 
 	auto tt = BifType::Record::Supervisor::NodeConfig->FieldType("cluster");
-	auto cluster_val = new TableVal(tt->AsTableType());
+	auto cluster_val = new TableVal({NewRef{}, tt->AsTableType()});
 	rval->Assign(rt->FieldOffset("cluster"), cluster_val);
 
 	for ( const auto& e : cluster )
@@ -1122,13 +1143,13 @@ IntrusivePtr<RecordVal> Supervisor::NodeConfig::ToRecord() const
 		auto val = make_intrusive<RecordVal>(ept);
 
 		val->Assign(ept->FieldOffset("role"), BifType::Enum::Supervisor::ClusterRole->GetVal(ep.role));
-		val->Assign(ept->FieldOffset("host"), new AddrVal(ep.host));
-		val->Assign(ept->FieldOffset("p"), val_mgr->GetPort(ep.port, TRANSPORT_TCP));
+		val->Assign(ept->FieldOffset("host"), make_intrusive<AddrVal>(ep.host));
+		val->Assign(ept->FieldOffset("p"), val_mgr->Port(ep.port, TRANSPORT_TCP));
 
 		if ( ep.interface )
-			val->Assign(ept->FieldOffset("interface"), new StringVal(*ep.interface));
+			val->Assign(ept->FieldOffset("interface"), make_intrusive<StringVal>(*ep.interface));
 
-		cluster_val->Assign(key.get(), val.detach());
+		cluster_val->Assign(key.get(), std::move(val));
 		}
 
 	return rval;
@@ -1139,16 +1160,16 @@ IntrusivePtr<RecordVal> Supervisor::Node::ToRecord() const
 	auto rt = BifType::Record::Supervisor::NodeStatus;
 	auto rval = make_intrusive<RecordVal>(rt);
 
-	rval->Assign(rt->FieldOffset("node"), config.ToRecord().detach());
+	rval->Assign(rt->FieldOffset("node"), config.ToRecord());
 
 	if ( pid )
-		rval->Assign(rt->FieldOffset("pid"), val_mgr->GetInt(pid));
+		rval->Assign(rt->FieldOffset("pid"), val_mgr->Int(pid));
 
 	return rval;
 	}
 
 
-static Val* supervisor_role_to_cluster_node_type(BifEnum::Supervisor::ClusterRole role)
+static IntrusivePtr<Val> supervisor_role_to_cluster_node_type(BifEnum::Supervisor::ClusterRole role)
 	{
 	static auto node_type = global_scope()->Lookup("Cluster::NodeType")->AsType()->AsEnumType();
 
@@ -1194,22 +1215,22 @@ bool Supervisor::SupervisedNode::InitCluster() const
 		auto val = make_intrusive<RecordVal>(cluster_node_type);
 
 		auto node_type = supervisor_role_to_cluster_node_type(ep.role);
-		val->Assign(cluster_node_type->FieldOffset("node_type"), node_type);
-		val->Assign(cluster_node_type->FieldOffset("ip"), new AddrVal(ep.host));
-		val->Assign(cluster_node_type->FieldOffset("p"), val_mgr->GetPort(ep.port, TRANSPORT_TCP));
+		val->Assign(cluster_node_type->FieldOffset("node_type"), std::move(node_type));
+		val->Assign(cluster_node_type->FieldOffset("ip"), make_intrusive<AddrVal>(ep.host));
+		val->Assign(cluster_node_type->FieldOffset("p"), val_mgr->Port(ep.port, TRANSPORT_TCP));
 
 		if ( ep.interface )
 			val->Assign(cluster_node_type->FieldOffset("interface"),
-			            new StringVal(*ep.interface));
+			            make_intrusive<StringVal>(*ep.interface));
 
 		if ( manager_name && ep.role != BifEnum::Supervisor::MANAGER )
 			val->Assign(cluster_node_type->FieldOffset("manager"),
-			            new StringVal(*manager_name));
+			            make_intrusive<StringVal>(*manager_name));
 
-		cluster_nodes->Assign(key.get(), val.detach());
+		cluster_nodes->Assign(key.get(), std::move(val));
 		}
 
-	cluster_manager_is_logger_id->SetVal(val_mgr->GetBool(! has_logger));
+	cluster_manager_is_logger_id->SetVal(val_mgr->Bool(! has_logger));
 	return true;
 	}
 
@@ -1284,17 +1305,17 @@ void Supervisor::SupervisedNode::Init(zeek::Options* options) const
 	options->filter_supervised_node_options();
 
 	if ( config.interface )
-		options->interfaces.emplace_back(*config.interface);
+		options->interface = *config.interface;
 
 	for ( const auto& s : config.scripts )
 		options->scripts_to_load.emplace_back(s);
 	}
 
-RecordVal* Supervisor::Status(std::string_view node_name)
+IntrusivePtr<RecordVal> Supervisor::Status(std::string_view node_name)
 	{
-	auto rval = new RecordVal(BifType::Record::Supervisor::Status);
+	auto rval = make_intrusive<RecordVal>(BifType::Record::Supervisor::Status);
 	auto tt = BifType::Record::Supervisor::Status->FieldType("nodes");
-	auto node_table_val = new TableVal(tt->AsTableType());
+	auto node_table_val = new TableVal({NewRef{}, tt->AsTableType()});
 	rval->Assign(0, node_table_val);
 
 	if ( node_name.empty() )
@@ -1305,7 +1326,7 @@ RecordVal* Supervisor::Status(std::string_view node_name)
 			const auto& node = n.second;
 			auto key = make_intrusive<StringVal>(name);
 			auto val = node.ToRecord();
-			node_table_val->Assign(key.get(), val.detach());
+			node_table_val->Assign(key.get(), std::move(val));
 			}
 		}
 	else
@@ -1319,7 +1340,7 @@ RecordVal* Supervisor::Status(std::string_view node_name)
 		const auto& node = it->second;
 		auto key = make_intrusive<StringVal>(name);
 		auto val = node.ToRecord();
-		node_table_val->Assign(key.get(), val.detach());
+		node_table_val->Assign(key.get(), std::move(val));
 		}
 
 	return rval;

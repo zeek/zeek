@@ -47,6 +47,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
   Optional Features:
     --enable-debug         compile in debugging mode (like --build-type=Debug)
     --enable-coverage      compile with code coverage support (implies debugging mode)
+    --enable-fuzzers       build fuzzer targets
     --enable-mobile-ipv6   analyze mobile IPv6 features defined by RFC 6275
     --enable-perftools     enable use of Google perftools (use tcmalloc)
     --enable-perftools-debug use Google's perftools for debugging
@@ -54,6 +55,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-static-broker build Broker statically (ignored if --with-broker is specified)
     --enable-static-binpac build binpac statically (ignored if --with-binpac is specified)
     --enable-cpp-tests     build Zeek's C++ unit tests
+    --enable-rocksdb       try to find a RocksDB installation for use in Broker
     --disable-zeekctl      don't install ZeekControl
     --disable-auxtools     don't build or install auxiliary tools
     --disable-python       don't try to build python bindings for Broker
@@ -74,6 +76,8 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
                            (Zeek uses an embedded version by default)
     --with-caf=PATH        path to C++ Actor Framework install root
                            (a Broker dependency that is embedded by default)
+    --with-libkqueue=PATH  path to libkqueue install root
+                           (Zeek uses an embedded version by default)
 
   Optional Packages in Non-Standard Locations:
     --with-geoip=PATH      path to the libmaxminddb install root
@@ -83,7 +87,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-python-lib=PATH path to libpython
     --with-python-inc=PATH path to Python headers
     --with-swig=PATH       path to SWIG executable
-    --with-rocksdb=PATH    path to RocksDB installation
+    --with-rocksdb=PATH    path to RocksDB installation, implies --enable-rocksdb
                            (an optional Broker dependency)
 
   Packaging Options (for developers):
@@ -226,6 +230,9 @@ while [ $# -ne 0 ]; do
             append_cache_entry ENABLE_COVERAGE         BOOL   true
             append_cache_entry ENABLE_DEBUG         BOOL   true
             ;;
+        --enable-fuzzers)
+            append_cache_entry ZEEK_ENABLE_FUZZERS BOOL true
+            ;;
         --enable-debug)
             append_cache_entry ENABLE_DEBUG         BOOL   true
             ;;
@@ -264,7 +271,8 @@ while [ $# -ne 0 ]; do
             append_cache_entry DISABLE_PYTHON_BINDINGS     BOOL   true
             ;;
         --disable-broker-tests)
-            append_cache_entry BROKER_DISABLE_TESTS     BOOL   true
+            append_cache_entry BROKER_DISABLE_TESTS        BOOL true
+            append_cache_entry BROKER_DISABLE_DOC_EXAMPLES BOOL true
             ;;
         --with-openssl=*)
             append_cache_entry OPENSSL_ROOT_DIR PATH $optarg
@@ -277,7 +285,6 @@ while [ $# -ne 0 ]; do
             ;;
         --with-binpac=*)
             append_cache_entry BINPAC_EXE_PATH     PATH $optarg
-            append_cache_entry BinPAC_ROOT_DIR     PATH "$(dirname $optarg)/.."
             ;;
         --with-bifcl=*)
             append_cache_entry BIFCL_EXE_PATH      PATH   $optarg
@@ -320,7 +327,14 @@ while [ $# -ne 0 ]; do
         --with-caf=*)
             append_cache_entry CAF_ROOT_DIR      PATH   $optarg
             ;;
+        --with-libkqueue=*)
+            append_cache_entry LIBKQUEUE_ROOT_DIR      PATH   $optarg
+            ;;
+        --enable-rocksdb)
+            append_cache_entry BROKER_ENABLE_ROCKSDB BOOL true
+            ;;
         --with-rocksdb=*)
+            append_cache_entry BROKER_ENABLE_ROCKSDB BOOL true
             append_cache_entry ROCKSDB_ROOT_DIR     PATH   $optarg
             ;;
         --binary-package)

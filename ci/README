@@ -37,7 +37,7 @@ Email Notifications
 Cirrus CI doesn't feature any way to perform email notifications on failures,
 so that is instead handled by a separate GitHub Action:
 
-  https://github.com/jsiwek/ci-email-action
+  https://github.com/zeek/ci-email-action
 
 The configuration of that GitHub Action is typical: it's just the
 ``.github/workflows/ci-notification.yml`` file, which set SMTP/mail info

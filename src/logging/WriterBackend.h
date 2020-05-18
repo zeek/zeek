@@ -82,14 +82,14 @@ public:
 		 */
 		config_map config;
 
-		WriterInfo() : path(0), rotation_interval(0.0), rotation_base(0.0),
+		WriterInfo() : path(nullptr), rotation_interval(0.0), rotation_base(0.0),
 		               network_time(0.0)
 			{
 			}
 
 		WriterInfo(const WriterInfo& other)
 			{
-			path = other.path ? copy_string(other.path) : 0;
+			path = other.path ? copy_string(other.path) : nullptr;
 			rotation_interval = other.rotation_interval;
 			rotation_base = other.rotation_base;
 			network_time = other.network_time;

@@ -2,9 +2,10 @@
 
 #include "zeek-config.h"
 
+#include "Rlogin.h"
 #include "NetVar.h"
 #include "Event.h"
-#include "Rlogin.h"
+#include "Reporter.h"
 
 #include "events.bif.h"
 
@@ -15,7 +16,7 @@ Contents_Rlogin_Analyzer::Contents_Rlogin_Analyzer(Connection* conn, bool orig, 
 	{
 	num_bytes_to_scan = 0;
 	analyzer = arg_analyzer;
-	peer = 0;
+	peer = nullptr;
 
 	if ( orig )
 		state = save_state = RLOGIN_FIRST_NULL;
@@ -243,10 +244,8 @@ void Rlogin_Analyzer::ServerUserName(const char* s)
 void Rlogin_Analyzer::TerminalType(const char* s)
 	{
 	if ( login_terminal )
-		{
-		ConnectionEventFast(login_terminal, {
-			BuildConnVal(),
-			new StringVal(s),
-		});
-		}
+		EnqueueConnEvent(login_terminal,
+			ConnVal(),
+			make_intrusive<StringVal>(s)
+		);
 	}

@@ -35,7 +35,7 @@
 ## one-time initialization code at startup. At the time a handler runs, Zeek will
 ## have executed any global initializations and statements.
 ##
-## .. zeek:see:: zeek_done
+## .. zeek:see:: zeek_done network_time_init
 ##
 ## .. note::
 ##
@@ -61,6 +61,14 @@ event zeek_init%(%);
 ##    is not generated.
 event zeek_done%(%);
 
+## Generated when network time is initialized. The event engine generates this
+## event after the network time has been determined but before processing of
+## packets is started.
+##
+## .. zeek:see:: zeek_init network_time
+##
+event network_time_init%(%);
+
 ## Generated for every new connection. This event is raised with the first
 ## packet of a previously unknown connection. Zeek uses a flow-based definition
 ## of "connection" here that includes not only TCP sessions but also UDP and
@@ -69,7 +77,7 @@ event zeek_done%(%);
 ## c: The connection.
 ##
 ## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
-##    connection_established connection_external connection_finished
+##    connection_established connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
 ##    connection_state_remove connection_status_update connection_timeout
@@ -104,7 +112,7 @@ event tunnel_changed%(c: connection, e: EncapsulatingConnVector%);
 ## c: The connection.
 ##
 ## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
-##    connection_established connection_external connection_finished
+##    connection_established connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
 ##    connection_state_remove connection_status_update
@@ -131,7 +139,7 @@ event connection_timeout%(c: connection%);
 ## c: The connection.
 ##
 ## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
-##    connection_established connection_external connection_finished
+##    connection_established connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
 ##    connection_status_update connection_timeout scheduled_analyzer_applied
@@ -152,7 +160,7 @@ event connection_state_remove%(c: connection%);
 ## c: The new connection.
 ##
 ## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
-##    connection_established connection_external connection_finished
+##    connection_established connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
 ##    connection_status_update connection_timeout scheduled_analyzer_applied
@@ -171,7 +179,7 @@ event connection_successful%(c: connection%);
 ## c: The connection being removed
 ##
 ## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
-##    connection_established connection_external connection_finished
+##    connection_established connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
 ##    connection_status_update connection_timeout scheduled_analyzer_applied
@@ -187,7 +195,7 @@ event successful_connection_remove%(c: connection%);
 ## c: The connection.
 ##
 ## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
-##    connection_established connection_external connection_finished
+##    connection_established connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_state_remove
 ##    connection_status_update connection_timeout scheduled_analyzer_applied
@@ -201,7 +209,7 @@ event connection_reused%(c: connection%);
 ## c: The connection.
 ##
 ## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
-##    connection_established connection_external connection_finished
+##    connection_established connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
 ##    connection_state_remove  connection_timeout scheduled_analyzer_applied
@@ -221,16 +229,6 @@ event connection_status_update%(c: connection%);
 ##
 ## .. zeek:see:: connection_established new_connection
 event connection_flow_label_changed%(c: connection, is_orig: bool, old_label: count, new_label: count%);
-
-## Generated for a new connection received from the communication subsystem.
-## Remote peers can inject packets into Zeek's packet loop, for example via
-## Broccoli.  The communication system
-## raises this event with the first packet of a connection coming in this way.
-##
-## c: The connection.
-##
-## tag: TODO.
-event connection_external%(c: connection, tag: string%);
 
 ## Generated when a UDP session for a supported protocol has finished. Some of
 ## Zeek's application-layer UDP analyzers flag the end of a session by raising
@@ -256,7 +254,7 @@ event udp_session_done%(u: connection%);
 ##    ``count`` is one of the ``ANALYZER_*`` constants, e.g., ``ANALYZER_HTTP``.
 ##
 ## .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
-##    connection_established connection_external connection_finished
+##    connection_established connection_finished
 ##    connection_first_ACK connection_half_finished connection_partial_close
 ##    connection_pending connection_rejected connection_reset connection_reused
 ##    connection_state_remove connection_status_update connection_timeout
@@ -349,8 +347,9 @@ event packet_contents%(c: connection, contents: string%);
 ## tcp_flags: A string with the TCP flags of the packet triggering the
 ##            inconsistency. In the string, each character corresponds to one
 ##            set flag, as follows: ``S`` -> SYN; ``F`` -> FIN; ``R`` -> RST;
-##            ``A`` -> ACK; ``P`` -> PUSH. This string will not always be set,
-##            only if the information is available; it's "best effort".
+##            ``A`` -> ACK; ``P`` -> PUSH; ``U`` -> URGENT. This string will
+##            not always be set, only if the information is available; it's
+##            "best effort".
 ##
 ## .. zeek:see:: tcp_rexmit tcp_contents
 event rexmit_inconsistency%(c: connection, t1: string, t2: string, tcp_flags: string%);
@@ -851,3 +850,8 @@ event new_event%(name: string, params: call_argument_vector%);
 
 ## Shows an IP address anonymization mapping.
 event anonymization_mapping%(orig: addr, mapped: addr%);
+
+## An event that signals a pcap file is done being processed.
+##
+## path: the filesystem path of the pcap file
+event Pcap::file_done%(path: string%);

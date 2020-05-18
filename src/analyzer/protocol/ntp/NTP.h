@@ -9,7 +9,7 @@
 
 namespace analyzer { namespace NTP {
 
-class NTP_Analyzer : public analyzer::Analyzer {
+class NTP_Analyzer final : public analyzer::Analyzer {
 public:
 	explicit NTP_Analyzer(Connection* conn);
 	~NTP_Analyzer() override;

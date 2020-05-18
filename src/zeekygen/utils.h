@@ -2,9 +2,11 @@
 
 #pragma once
 
-#include "ID.h"
-
 #include <string>
+
+#include <time.h> // for time_t
+
+class ID;
 
 namespace zeekygen {
 

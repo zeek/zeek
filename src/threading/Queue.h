@@ -255,7 +255,10 @@ template<typename T>
 inline void Queue<T>::WakeUp()
 	{
 	for ( int i = 0; i < NUM_QUEUES; i++ )
+		{
+		auto lock = acquire_lock(mutex[i]);
 		has_data[i].notify_all();
+		}
 	}
 
 }

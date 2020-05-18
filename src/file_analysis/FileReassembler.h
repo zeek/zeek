@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Reassem.h"
-#include "File.h"
 
 class BroFile;
 class Connection;
@@ -10,7 +9,7 @@ namespace file_analysis {
 
 class File;
 
-class FileReassembler : public Reassembler {
+class FileReassembler final : public Reassembler {
 public:
 
 	FileReassembler(File* f, uint64_t starting_offset);
@@ -57,4 +56,4 @@ protected:
 	bool flushing;
 };
 
-} // namespace analyzer::* 
+} // namespace analyzer::*

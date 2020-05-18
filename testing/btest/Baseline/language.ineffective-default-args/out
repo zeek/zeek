@@ -1,0 +1,8 @@
+warning in /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.ineffective-default-args/ineffective-default-args.zeek, line 9: &default on parameter 'b' has no effect (not a event declaration)
+warning in /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.ineffective-default-args/ineffective-default-args.zeek, line 19: &default on parameter 'c' has no effect (not a event declaration)
+bar, A, B
+baz, A, B
+qux, Q, Q
+grault, A, B
+corge, C
+foo c, C

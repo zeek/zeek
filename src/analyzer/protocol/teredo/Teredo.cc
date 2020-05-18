@@ -4,6 +4,8 @@
 #include "Conn.h"
 #include "IP.h"
 #include "Reporter.h"
+#include "Sessions.h"
+#include "BroString.h"
 
 #include "events.bif.h"
 
@@ -94,11 +96,11 @@ bool TeredoEncapsulation::DoParse(const u_char* data, int& len,
 	return false;
 	}
 
-RecordVal* TeredoEncapsulation::BuildVal(const IP_Hdr* inner) const
+IntrusivePtr<RecordVal> TeredoEncapsulation::BuildVal(const IP_Hdr* inner) const
 	{
-	static RecordType* teredo_hdr_type = 0;
-	static RecordType* teredo_auth_type = 0;
-	static RecordType* teredo_origin_type = 0;
+	static RecordType* teredo_hdr_type = nullptr;
+	static RecordType* teredo_auth_type = nullptr;
+	static RecordType* teredo_origin_type = nullptr;
 
 	if ( ! teredo_hdr_type )
 		{
@@ -107,7 +109,7 @@ RecordVal* TeredoEncapsulation::BuildVal(const IP_Hdr* inner) const
 		teredo_origin_type = internal_type("teredo_origin")->AsRecordType();
 		}
 
-	RecordVal* teredo_hdr = new RecordVal(teredo_hdr_type);
+	auto teredo_hdr = make_intrusive<RecordVal>(teredo_hdr_type);
 
 	if ( auth )
 		{
@@ -116,12 +118,12 @@ RecordVal* TeredoEncapsulation::BuildVal(const IP_Hdr* inner) const
 		uint8_t au_len = *((uint8_t*)(auth + 3));
 		uint64_t nonce = ntohll(*((uint64_t*)(auth + 4 + id_len + au_len)));
 		uint8_t conf = *((uint8_t*)(auth + 4 + id_len + au_len + 8));
-		teredo_auth->Assign(0, new StringVal(
-		    new BroString(auth + 4, id_len, 1)));
-		teredo_auth->Assign(1, new StringVal(
-		    new BroString(auth + 4 + id_len, au_len, 1)));
-		teredo_auth->Assign(2, val_mgr->GetCount(nonce));
-		teredo_auth->Assign(3, val_mgr->GetCount(conf));
+		teredo_auth->Assign(0, make_intrusive<StringVal>(
+		    new BroString(auth + 4, id_len, true)));
+		teredo_auth->Assign(1, make_intrusive<StringVal>(
+		    new BroString(auth + 4 + id_len, au_len, true)));
+		teredo_auth->Assign(2, val_mgr->Count(nonce));
+		teredo_auth->Assign(3, val_mgr->Count(conf));
 		teredo_hdr->Assign(0, teredo_auth);
 		}
 
@@ -130,8 +132,8 @@ RecordVal* TeredoEncapsulation::BuildVal(const IP_Hdr* inner) const
 		RecordVal* teredo_origin = new RecordVal(teredo_origin_type);
 		uint16_t port = ntohs(*((uint16_t*)(origin_indication + 2))) ^ 0xFFFF;
 		uint32_t addr = ntohl(*((uint32_t*)(origin_indication + 4))) ^ 0xFFFFFFFF;
-		teredo_origin->Assign(0, val_mgr->GetPort(port, TRANSPORT_UDP));
-		teredo_origin->Assign(1, new AddrVal(htonl(addr)));
+		teredo_origin->Assign(0, val_mgr->Port(port, TRANSPORT_UDP));
+		teredo_origin->Assign(1, make_intrusive<AddrVal>(htonl(addr)));
 		teredo_hdr->Assign(1, teredo_origin);
 		}
 
@@ -165,7 +167,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		return;
 		}
 
-	IP_Hdr* inner = 0;
+	IP_Hdr* inner = nullptr;
 	int rslt = sessions->ParseIPPacket(len, te.InnerIP(), IPPROTO_IPV6, inner);
 
 	if ( rslt > 0 )
@@ -199,33 +201,39 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		return;
 		}
 
-	Val* teredo_hdr = 0;
+	IntrusivePtr<Val> teredo_hdr;
 
 	if ( teredo_packet )
 		{
 		teredo_hdr = te.BuildVal(inner);
-		Conn()->Event(teredo_packet, 0, teredo_hdr);
+		Conn()->EnqueueEvent(teredo_packet, nullptr, ConnVal(), teredo_hdr);
 		}
 
 	if ( te.Authentication() && teredo_authentication )
 		{
-		teredo_hdr = teredo_hdr ? teredo_hdr->Ref() : te.BuildVal(inner);
-		Conn()->Event(teredo_authentication, 0, teredo_hdr);
+		if ( ! teredo_hdr )
+			teredo_hdr = te.BuildVal(inner);
+
+		Conn()->EnqueueEvent(teredo_authentication, nullptr, ConnVal(), teredo_hdr);
 		}
 
 	if ( te.OriginIndication() && teredo_origin_indication )
 		{
-		teredo_hdr = teredo_hdr ? teredo_hdr->Ref() : te.BuildVal(inner);
-		Conn()->Event(teredo_origin_indication, 0, teredo_hdr);
+		if ( ! teredo_hdr )
+			teredo_hdr = te.BuildVal(inner);
+
+		Conn()->EnqueueEvent(teredo_origin_indication, nullptr, ConnVal(), teredo_hdr);
 		}
 
 	if ( inner->NextProto() == IPPROTO_NONE && teredo_bubble )
 		{
-		teredo_hdr = teredo_hdr ? teredo_hdr->Ref() : te.BuildVal(inner);
-		Conn()->Event(teredo_bubble, 0, teredo_hdr);
+		if ( ! teredo_hdr )
+			teredo_hdr = te.BuildVal(inner);
+
+		Conn()->EnqueueEvent(teredo_bubble, nullptr, ConnVal(), teredo_hdr);
 		}
 
 	EncapsulatingConn ec(Conn(), BifEnum::Tunnel::TEREDO);
 
-	sessions->DoNextInnerPacket(network_time, 0, inner, e, ec);
+	sessions->DoNextInnerPacket(network_time, nullptr, inner, e, ec);
 	}

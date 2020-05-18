@@ -6,6 +6,8 @@
 
 #define BTTRACKER_BUF 2048
 
+class StringVal;
+
 namespace analyzer { namespace bittorrent {
 
 // If the following is defined, then the analyzer will store all of
@@ -41,7 +43,7 @@ enum btt_benc_states {
 	BENC_STATE_STR2,
 };
 
-class BitTorrentTracker_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class BitTorrentTracker_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit BitTorrentTracker_Analyzer(Connection* conn);
 	~BitTorrentTracker_Analyzer() override;
@@ -104,8 +106,8 @@ protected:
 	TableVal* res_val_peers;
 	TableVal* res_val_benc;
 
-	vector<char> benc_stack;
-	vector<unsigned int> benc_count;
+	std::vector<char> benc_stack;
+	std::vector<unsigned int> benc_count;
 	enum btt_benc_states benc_state;
 
 	char* benc_raw;
@@ -127,4 +129,4 @@ protected:
 	bool stop_orig, stop_resp;
 };
 
-} } // namespace analyzer::* 
+} } // namespace analyzer::*

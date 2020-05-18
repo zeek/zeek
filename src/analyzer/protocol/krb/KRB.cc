@@ -1,8 +1,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "KRB.h"
+
 #include <unistd.h>
 
-#include "KRB.h"
 #include "types.bif.h"
 #include "events.bif.h"
 
@@ -86,7 +87,9 @@ void KRB_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		}
 	}
 
-StringVal* KRB_Analyzer::GetAuthenticationInfo(const BroString* principal, const BroString* ciphertext, const bro_uint_t enctype)
+IntrusivePtr<StringVal> KRB_Analyzer::GetAuthenticationInfo(const BroString* principal,
+                                                            const BroString* ciphertext,
+                                                            const bro_uint_t enctype)
 	{
 #ifdef USE_KRB5
 	if ( !krb_available )
@@ -144,7 +147,7 @@ StringVal* KRB_Analyzer::GetAuthenticationInfo(const BroString* principal, const
 		return nullptr;
 		}
 
-	StringVal* ret = new StringVal(cp);
+	auto ret = make_intrusive<StringVal>(cp);
 
 	krb5_free_unparsed_name(krb_context, cp);
 	krb5_free_ticket(krb_context, tkt);

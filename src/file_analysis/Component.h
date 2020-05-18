@@ -6,10 +6,9 @@
 #include "plugin/Component.h"
 #include "plugin/TaggedComponent.h"
 
-#include "Val.h"
-
 #include "../zeek-config.h"
-#include "../util.h"
+
+class RecordVal;
 
 namespace file_analysis {
 

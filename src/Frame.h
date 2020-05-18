@@ -2,17 +2,22 @@
 
 #pragma once
 
+#include "BroList.h" // for typedef val_list
+#include "Obj.h"
+#include "IntrusivePtr.h"
+#include "ZeekArgs.h"
+
 #include <unordered_map>
-#include <memory>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include <broker/data.hh>
 #include <broker/expected.hh>
 
-#include "Val.h"
-
-class Trigger;
+namespace trigger { class Trigger; }
 class CallExpr;
+class BroFunc;
 
 class Frame :  public BroObj {
 public:
@@ -24,7 +29,7 @@ public:
 	 * @param func the function that is creating this frame
 	 * @param fn_args the arguments being passed to that function.
 	 */
-	Frame(int size, const BroFunc* func, const val_list *fn_args);
+	Frame(int size, const BroFunc* func, const zeek::Args* fn_args);
 
 	/**
 	 * Deletes the frame. Unrefs its trigger, the values that it
@@ -96,7 +101,7 @@ public:
 	 * @return the arguments passed to the function that this frame
 	 * is associated with.
 	 */
-	const val_list* GetFuncArgs() const	{ return func_args; }
+	const zeek::Args* GetFuncArgs() const	{ return func_args; }
 
 	/**
 	 * Change the function that the frame is associated with.
@@ -177,7 +182,7 @@ public:
 	 * @return the broker representaton, or an error if the serialization
 	 * failed.
 	 */
-	static broker::expected<broker::data> Serialize(const Frame* target, const id_list selection);
+	static broker::expected<broker::data> Serialize(const Frame* target, const id_list& selection);
 
 	/**
 	 * Instantiates a Frame from a serialized one.
@@ -186,7 +191,7 @@ public:
 	 * and the second is the unserialized frame with reference count +1, or
 	 * null if the serialization wasn't successful.
 	 */
-	static std::pair<bool, Frame*> Unserialize(const broker::vector& data);
+	static std::pair<bool, IntrusivePtr<Frame>> Unserialize(const broker::vector& data);
 
 	/**
 	 * Sets the IDs that the frame knows offsets for. These offsets will
@@ -207,12 +212,12 @@ public:
 
 	// If the frame is run in the context of a trigger condition evaluation,
 	// the trigger needs to be registered.
-	void SetTrigger(Trigger* arg_trigger);
+	void SetTrigger(IntrusivePtr<trigger::Trigger> arg_trigger);
 	void ClearTrigger();
-	Trigger* GetTrigger() const		{ return trigger; }
+	trigger::Trigger* GetTrigger() const		{ return trigger.get(); }
 
 	void SetCall(const CallExpr* arg_call)	{ call = arg_call; }
-	void ClearCall()			{ call = 0; }
+	void ClearCall()			{ call = nullptr; }
 	const CallExpr* GetCall() const		{ return call; }
 
 	void SetDelayed()	{ delayed = true; }
@@ -229,23 +234,19 @@ public:
 
 private:
 
+	using OffsetMap = std::unordered_map<std::string, int>;
+
 	/**
 	 * Unrefs the value at offset 'n' frame unless it's a weak reference.
 	 */
-	void UnrefElement(int n)
-		{
-		if ( weak_refs && weak_refs[n] )
-			return;
-
-		Unref(frame[n]);
-		}
+	void UnrefElement(int n);
 
 	/** Have we captured this id? */
 	bool IsOuterID(const ID* in) const;
 
 	/** Serializes an offset_map */
 	static broker::expected<broker::data>
-	SerializeOffsetMap(const std::unordered_map<std::string, int>& in);
+	SerializeOffsetMap(const OffsetMap& in);
 
 	/** Serializes an id_list */
 	static broker::expected<broker::data>
@@ -262,6 +263,11 @@ private:
 	/** The number of vals that can be stored in this frame. */
 	int size;
 
+	bool weak_closure_ref = false;
+	bool break_before_next_stmt;
+	bool break_on_return;
+	bool delayed;
+
 	/** Associates ID's offsets with values. */
 	Val** frame;
 
@@ -271,7 +277,6 @@ private:
 
 	/** The enclosing frame of this frame. */
 	Frame* closure;
-	bool weak_closure_ref = false;
 
 	/** ID's used in this frame from the enclosing frame. */
 	id_list outer_ids;
@@ -280,24 +285,20 @@ private:
 	 * Maps ID names to offsets. Used if this frame is  serialized
 	 * to maintain proper offsets after being sent elsewhere.
 	 */
-	std::unordered_map<std::string, int> offset_map;
+	std::unique_ptr<OffsetMap> offset_map;
 
 	/** The function this frame is associated with. */
 	const BroFunc* function;
 	/** The arguments to the function that this Frame is associated with. */
-	const val_list* func_args;
+	const zeek::Args* func_args;
 
 	/** The next statement to be evaluted in the context of this frame. */
 	Stmt* next_stmt;
 
-	bool break_before_next_stmt;
-	bool break_on_return;
-
-	Trigger* trigger;
+	IntrusivePtr<trigger::Trigger> trigger;
 	const CallExpr* call;
-	bool delayed;
 
-	std::vector<BroFunc*> functions_with_closure_frame_reference;
+	std::unique_ptr<std::vector<BroFunc*>> functions_with_closure_frame_reference;
 };
 
 /**

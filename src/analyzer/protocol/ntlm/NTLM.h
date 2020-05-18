@@ -9,9 +9,7 @@
 
 namespace analyzer { namespace ntlm {
 
-class NTLM_Analyzer
-
-: public tcp::TCP_ApplicationAnalyzer {
+class NTLM_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 
 public:
 	explicit NTLM_Analyzer(Connection* conn);

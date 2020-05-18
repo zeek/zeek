@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek-config.h"
+#include "File.h"
 
 #include <sys/types.h>
 #ifdef TIME_WITH_SYS_TIME
@@ -20,13 +21,14 @@
 
 #include <algorithm>
 
-#include "File.h"
+#include "Attr.h"
 #include "Type.h"
 #include "Expr.h"
 #include "NetVar.h"
 #include "Net.h"
 #include "Event.h"
 #include "Reporter.h"
+#include "Desc.h"
 
 std::list<std::pair<std::string, BroFile*>> BroFile::open_files;
 
@@ -54,9 +56,9 @@ BroFile::BroFile(FILE* arg_f)
 	{
 	Init();
 	f = arg_f;
-	name = access = 0;
+	name = access = nullptr;
 	t = base_type(TYPE_STRING);
-	is_open = (f != 0);
+	is_open = (f != nullptr);
 	}
 
 BroFile::BroFile(FILE* arg_f, const char* arg_name, const char* arg_access)
@@ -66,16 +68,16 @@ BroFile::BroFile(FILE* arg_f, const char* arg_name, const char* arg_access)
 	name = copy_string(arg_name);
 	access = copy_string(arg_access);
 	t = base_type(TYPE_STRING);
-	is_open = (f != 0);
+	is_open = (f != nullptr);
 	}
 
-BroFile::BroFile(const char* arg_name, const char* arg_access, BroType* arg_t)
+BroFile::BroFile(const char* arg_name, const char* arg_access)
 	{
 	Init();
-	f = 0;
+	f = nullptr;
 	name = copy_string(arg_name);
 	access = copy_string(arg_access);
-	t = arg_t ? arg_t : base_type(TYPE_STRING);
+	t = base_type(TYPE_STRING);
 
 	if ( streq(name, "/dev/stdin") )
 		f = stdin;
@@ -85,12 +87,12 @@ BroFile::BroFile(const char* arg_name, const char* arg_access, BroType* arg_t)
 		f = stderr;
 
 	if ( f )
-		is_open = 1;
+		is_open = true;
 
 	else if ( ! Open() )
 		{
 		reporter->Error("cannot open %s: %s", name, strerror(errno));
-		is_open = 0;
+		is_open = false;
 		}
 	}
 
@@ -108,7 +110,7 @@ const char* BroFile::Name() const
 	if ( f == stderr )
 		return "/dev/stderr";
 
-	return 0;
+	return nullptr;
 	}
 
 bool BroFile::Open(FILE* file, const char* mode)
@@ -137,11 +139,11 @@ bool BroFile::Open(FILE* file, const char* mode)
 
 	if ( ! f )
 		{
-		is_open = 0;
+		is_open = false;
 		return false;
 		}
 
-	is_open = 1;
+	is_open = true;
 	open_files.emplace_back(std::make_pair(name, this));
 
 	RaiseOpenEvent();
@@ -152,7 +154,6 @@ bool BroFile::Open(FILE* file, const char* mode)
 BroFile::~BroFile()
 	{
 	Close();
-	Unref(t);
 	Unref(attrs);
 
 	delete [] name;
@@ -165,11 +166,11 @@ BroFile::~BroFile()
 
 void BroFile::Init()
 	{
-	open_time = is_open = 0;
-	attrs = 0;
+	open_time = 0;
+	is_open = false;
+	attrs = nullptr;
 	buffered = true;
 	raw_output = false;
-	t = 0;
 
 #ifdef USE_PERFTOOLS_DEBUG
 	heap_checker->IgnoreObject(this);
@@ -184,7 +185,7 @@ FILE* BroFile::File()
 FILE* BroFile::Seek(long new_position)
 	{
 	if ( ! File() )
-		return 0;
+		return nullptr;
 
 	if ( fseek(f, new_position, SEEK_SET) < 0 )
 		reporter->Error("seek failed");
@@ -203,25 +204,26 @@ void BroFile::SetBuf(bool arg_buffered)
 	buffered = arg_buffered;
 	}
 
-int BroFile::Close()
+bool BroFile::Close()
 	{
 	if ( ! is_open )
-		return 1;
+		return true;
 
 	// Do not close stdin/stdout/stderr.
 	if ( f == stdin || f == stdout || f == stderr )
-		return 0;
+		return false;
 
 	if ( ! f )
-		return 0;
+		return false;
 
 	fclose(f);
 	f = nullptr;
-	open_time = is_open = 0;
+	open_time = 0;
+	is_open = false;
 
 	Unlink();
 
-	return 1;
+	return true;
 	}
 
 void BroFile::Unlink()
@@ -269,11 +271,11 @@ void BroFile::SetAttrs(Attributes* arg_attrs)
 RecordVal* BroFile::Rotate()
 	{
 	if ( ! is_open )
-		return 0;
+		return nullptr;
 
 	// Do not rotate stdin/stdout/stderr.
 	if ( f == stdin || f == stdout || f == stderr )
-		return 0;
+		return nullptr;
 
 	RecordVal* info = new RecordVal(rotate_info);
 	FILE* newf = rotate_file(name, info);
@@ -281,15 +283,15 @@ RecordVal* BroFile::Rotate()
 	if ( ! newf )
 		{
 		Unref(info);
-		return 0;
+		return nullptr;
 		}
 
-	info->Assign(2, new Val(open_time, TYPE_TIME));
+	info->Assign(2, make_intrusive<Val>(open_time, TYPE_TIME));
 
 	Unlink();
 
  	fclose(f);
-	f = 0;
+	f = nullptr;
 
 	Open(newf);
 	return info;
@@ -305,10 +307,10 @@ void BroFile::CloseOpenFiles()
 		}
 	}
 
-int BroFile::Write(const char* data, int len)
+bool BroFile::Write(const char* data, int len)
 	{
 	if ( ! is_open )
-		return 0;
+		return false;
 
 	if ( ! len )
 		len = strlen(data);
@@ -325,7 +327,7 @@ void BroFile::RaiseOpenEvent()
 		return;
 
 	Ref(this);
-	Event* event = new ::Event(::file_opened, {new Val(this)});
+	Event* event = new ::Event(::file_opened, {make_intrusive<Val>(this)});
 	mgr.Dispatch(event, true);
 	}
 
@@ -353,6 +355,5 @@ BroFile* BroFile::GetFile(const char* name)
 			}
 		}
 
-	return new BroFile(name, "w", 0);
+	return new BroFile(name, "w");
 	}
-

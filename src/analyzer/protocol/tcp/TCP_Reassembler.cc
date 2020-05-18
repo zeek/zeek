@@ -1,12 +1,15 @@
-#include <algorithm>
-
+#include "TCP_Reassembler.h"
+#include "TCP_Endpoint.h"
 #include "File.h"
 #include "analyzer/Analyzer.h"
-#include "TCP_Reassembler.h"
 #include "analyzer/protocol/tcp/TCP.h"
-#include "TCP_Endpoint.h"
+#include "BroString.h"
+#include "Reporter.h"
+#include "RuleMatcher.h"
 
 #include "events.bif.h"
+
+#include <algorithm>
 
 using namespace analyzer::tcp;
 
@@ -27,7 +30,7 @@ TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 	type = arg_type;
 	endp = arg_endp;
 	had_gap = false;
-	record_contents_file = 0;
+	record_contents_file = nullptr;
 	deliver_tcp_contents = false;
 	skip_deliveries = false;
 	did_EOF = false;
@@ -39,19 +42,17 @@ TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 
 	if ( ::tcp_contents )
 		{
-		auto dst_port_val = val_mgr->GetPort(ntohs(tcp_analyzer->Conn()->RespPort()),
-					TRANSPORT_TCP);
+		const auto& dst_port_val = val_mgr->Port(ntohs(tcp_analyzer->Conn()->RespPort()),
+		                                         TRANSPORT_TCP);
 		TableVal* ports = IsOrig() ?
 			tcp_content_delivery_ports_orig :
 			tcp_content_delivery_ports_resp;
-		Val* result = ports->Lookup(dst_port_val);
+		auto result = ports->Lookup(dst_port_val.get());
 
 		if ( (IsOrig() && tcp_content_deliver_all_orig) ||
 		     (! IsOrig() && tcp_content_deliver_all_resp) ||
 		     (result && result->AsBool()) )
 			deliver_tcp_contents = true;
-
-		Unref(dst_port_val);
 		}
 	}
 
@@ -148,14 +149,12 @@ void TCP_Reassembler::Gap(uint64_t seq, uint64_t len)
 		endp->Gap(seq, len);
 
 	if ( report_gap(endp, endp->peer) )
-		{
-		dst_analyzer->ConnectionEventFast(content_gap, {
-			dst_analyzer->BuildConnVal(),
-			val_mgr->GetBool(IsOrig()),
-			val_mgr->GetCount(seq),
-			val_mgr->GetCount(len),
-		});
-		}
+		dst_analyzer->EnqueueConnEvent(content_gap,
+			dst_analyzer->ConnVal(),
+			val_mgr->Bool(IsOrig()),
+			val_mgr->Count(seq),
+			val_mgr->Count(len)
+		);
 
 	if ( type == Direct )
 		dst_analyzer->NextUndelivered(seq, len, IsOrig());
@@ -360,13 +359,11 @@ void TCP_Reassembler::RecordBlock(const DataBlock& b, BroFile* f)
 	reporter->Error("TCP_Reassembler contents write failed");
 
 	if ( contents_file_write_failure )
-		{
-		tcp_analyzer->ConnectionEventFast(contents_file_write_failure, {
-			Endpoint()->Conn()->BuildConnVal(),
-			val_mgr->GetBool(IsOrig()),
-			new StringVal("TCP reassembler content write failure"),
-		});
-		}
+		tcp_analyzer->EnqueueConnEvent(contents_file_write_failure,
+			Endpoint()->Conn()->ConnVal(),
+			val_mgr->Bool(IsOrig()),
+			make_intrusive<StringVal>("TCP reassembler content write failure")
+		);
 	}
 
 void TCP_Reassembler::RecordGap(uint64_t start_seq, uint64_t upper_seq, BroFile* f)
@@ -377,13 +374,11 @@ void TCP_Reassembler::RecordGap(uint64_t start_seq, uint64_t upper_seq, BroFile*
 	reporter->Error("TCP_Reassembler contents gap write failed");
 
 	if ( contents_file_write_failure )
-		{
-		tcp_analyzer->ConnectionEventFast(contents_file_write_failure, {
-			Endpoint()->Conn()->BuildConnVal(),
-			val_mgr->GetBool(IsOrig()),
-			new StringVal("TCP reassembler gap write failure"),
-		});
-		}
+		tcp_analyzer->EnqueueConnEvent(contents_file_write_failure,
+			Endpoint()->Conn()->ConnVal(),
+			val_mgr->Bool(IsOrig()),
+			make_intrusive<StringVal>("TCP reassembler gap write failure")
+		);
 	}
 
 void TCP_Reassembler::BlockInserted(DataBlockMap::const_iterator it)
@@ -456,15 +451,15 @@ void TCP_Reassembler::Overlap(const u_char* b1, const u_char* b2, uint64_t n)
 	     // we've ever seen for the connection.
 	     (n > 1 || endp->peer->HasDoneSomething()) )
 		{
-		BroString* b1_s = new BroString((const u_char*) b1, n, 0);
-		BroString* b2_s = new BroString((const u_char*) b2, n, 0);
+		BroString* b1_s = new BroString((const u_char*) b1, n, false);
+		BroString* b2_s = new BroString((const u_char*) b2, n, false);
 
-		tcp_analyzer->ConnectionEventFast(rexmit_inconsistency, {
-			tcp_analyzer->BuildConnVal(),
-			new StringVal(b1_s),
-			new StringVal(b2_s),
-			new StringVal(flags.AsString()),
-		});
+		tcp_analyzer->EnqueueConnEvent(rexmit_inconsistency,
+			tcp_analyzer->ConnVal(),
+			make_intrusive<StringVal>(b1_s),
+			make_intrusive<StringVal>(b2_s),
+			make_intrusive<StringVal>(flags.AsString())
+		);
 		}
 	}
 
@@ -476,7 +471,7 @@ void TCP_Reassembler::Deliver(uint64_t seq, int len, const u_char* data)
 		dst_analyzer->ForwardStream(len, data, IsOrig());
 	}
 
-int TCP_Reassembler::DataSent(double t, uint64_t seq, int len,
+bool TCP_Reassembler::DataSent(double t, uint64_t seq, int len,
 				const u_char* data, TCP_Flags arg_flags, bool replaying)
 	{
 	uint64_t ack = endp->ToRelativeSeqSpace(endp->AckSeq(), endp->AckWraps());
@@ -489,13 +484,13 @@ int TCP_Reassembler::DataSent(double t, uint64_t seq, int len,
 		}
 
 	if ( skip_deliveries )
-		return 0;
+		return false;
 
 	if ( seq < ack && ! replaying )
 		{
 		if ( upper_seq <= ack )
 			// We've already delivered this and it's been acked.
-			return 0;
+			return false;
 
 		// We've seen an ack for part of this packet, but not the
 		// whole thing.  This can happen when, for example, a previous
@@ -528,7 +523,7 @@ int TCP_Reassembler::DataSent(double t, uint64_t seq, int len,
 		skip_deliveries = true;
 		}
 
-	return 1;
+	return true;
 	}
 
 
@@ -615,14 +610,12 @@ void TCP_Reassembler::DeliverBlock(uint64_t seq, int len, const u_char* data)
 		}
 
 	if ( deliver_tcp_contents )
-		{
-		tcp_analyzer->ConnectionEventFast(tcp_contents, {
-			tcp_analyzer->BuildConnVal(),
-			val_mgr->GetBool(IsOrig()),
-			val_mgr->GetCount(seq),
-			new StringVal(len, (const char*) data),
-		});
-		}
+		tcp_analyzer->EnqueueConnEvent(tcp_contents,
+			tcp_analyzer->ConnVal(),
+			val_mgr->Bool(IsOrig()),
+			val_mgr->Count(seq),
+			make_intrusive<StringVal>(len, (const char*) data)
+		);
 
 	// Q. Can we say this because it is already checked in DataSent()?
 	// ASSERT(!Conn()->Skipping() && !SkipDeliveries());
@@ -652,19 +645,19 @@ void TCP_Reassembler::SkipToSeq(uint64_t seq)
 		}
 	}
 
-int TCP_Reassembler::DataPending() const
+bool TCP_Reassembler::DataPending() const
 	{
 	// If we are skipping deliveries, the reassembler will not get called
 	// in DataSent(), and DataSeq() will not be updated.
 	if ( skip_deliveries )
-		return 0;
+		return false;
 
 	uint64_t delivered_seq = Endpoint()->StartSeqI64() + DataSeq();
 	uint64_t last_seq = TCP_Endpoint::ToFullSeqSpace(Endpoint()->LastSeq(),
 	                                               Endpoint()->SeqWraps());
 
 	if ( last_seq < delivered_seq )
-		return 0;
+		return false;
 
 	// Q. Can we say that?
 	// ASSERT(delivered_seq <= last_seq);
@@ -681,12 +674,12 @@ int TCP_Reassembler::DataPending() const
 	// sequence space), or right at it (because a RST does not).
 	if ( delivered_seq != last_seq - 1 &&
 	     delivered_seq != last_seq )
-		return 1;
+		return true;
 
 	// If we've sent RST, then we can't send ACKs any more.
 	if ( Endpoint()->state != TCP_ENDPOINT_RESET &&
 	     Endpoint()->peer->HasUndeliveredData() )
-		return 1;
+		return true;
 
-	return 0;
+	return false;
 	}

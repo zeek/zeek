@@ -1,10 +1,10 @@
 {
-1d59:20f4:b44b:27a8:2bd:77c4:f053:6f5a,
-50cd:1a9a:1837:5803:9b08:41aa:738c:3f0b,
-477c:8c51:4f4f:61ec:9981:1259:86b8:8987
+7a5f:b783:9808:380e:b1a2:ce20:b58e:2a4a,
+51f3:f001:5b82:e802:c401:6750:7b95:89bb,
+4cc7:de52:d869:b2f9:f215:19b8:c828:3bdd
 }
 lookup_hostname_txt, fake_text_lookup_result_bro.wp.dg.cx
 lookup_hostname, {
-5aba:bd60:3b22:7803:2dd:8d83:498e:5172
+ce06:236:f21f:587:8c10:121d:c47d:b412
 }
 lookup_addr, fake_addr_lookup_result_1.2.3.4

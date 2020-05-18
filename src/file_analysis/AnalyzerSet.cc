@@ -4,6 +4,9 @@
 #include "File.h"
 #include "Analyzer.h"
 #include "Manager.h"
+#include "CompHash.h"
+#include "Val.h"
+#include "file_analysis/file_analysis.bif.h"
 
 using namespace file_analysis;
 
@@ -17,11 +20,10 @@ static void analyzer_del_func(void* v)
 
 AnalyzerSet::AnalyzerSet(File* arg_file) : file(arg_file)
 	{
-	TypeList* t = new TypeList();
-	t->Append(file_mgr->GetTagEnumType()->Ref());
-	t->Append(BifType::Record::Files::AnalyzerArgs->Ref());
-	analyzer_hash = new CompositeHash(t);
-	Unref(t);
+	auto t = make_intrusive<TypeList>();
+	t->Append({NewRef{}, file_mgr->GetTagEnumType()});
+	t->Append({NewRef{}, BifType::Record::Files::AnalyzerArgs});
+	analyzer_hash = new CompositeHash(std::move(t));
 	analyzer_map.SetDeleteFunc(analyzer_del_func);
 	}
 
@@ -38,7 +40,7 @@ AnalyzerSet::~AnalyzerSet()
 	delete analyzer_hash;
 	}
 
-Analyzer* AnalyzerSet::Find(file_analysis::Tag tag, RecordVal* args)
+Analyzer* AnalyzerSet::Find(const file_analysis::Tag& tag, RecordVal* args)
 	{
 	HashKey* key = GetKey(tag, args);
 	Analyzer* rval = analyzer_map.Lookup(key);
@@ -46,7 +48,7 @@ Analyzer* AnalyzerSet::Find(file_analysis::Tag tag, RecordVal* args)
 	return rval;
 	}
 
-bool AnalyzerSet::Add(file_analysis::Tag tag, RecordVal* args)
+bool AnalyzerSet::Add(const file_analysis::Tag& tag, RecordVal* args)
 	{
 	HashKey* key = GetKey(tag, args);
 
@@ -73,7 +75,7 @@ bool AnalyzerSet::Add(file_analysis::Tag tag, RecordVal* args)
 	return true;
 	}
 
-Analyzer* AnalyzerSet::QueueAdd(file_analysis::Tag tag, RecordVal* args)
+Analyzer* AnalyzerSet::QueueAdd(const file_analysis::Tag& tag, RecordVal* args)
 	{
 	HashKey* key = GetKey(tag, args);
 	file_analysis::Analyzer* a = InstantiateAnalyzer(tag, args);
@@ -81,7 +83,7 @@ Analyzer* AnalyzerSet::QueueAdd(file_analysis::Tag tag, RecordVal* args)
 	if ( ! a )
 		{
 		delete key;
-		return 0;
+		return nullptr;
 		}
 
 	mod_queue.push(new AddMod(a, key));
@@ -106,12 +108,18 @@ bool AnalyzerSet::AddMod::Perform(AnalyzerSet* set)
 	return true;
 	}
 
-bool AnalyzerSet::Remove(file_analysis::Tag tag, RecordVal* args)
+void AnalyzerSet::AddMod::Abort()
+	{
+	delete a;
+	delete key;
+	}
+
+bool AnalyzerSet::Remove(const file_analysis::Tag& tag, RecordVal* args)
 	{
 	return Remove(tag, GetKey(tag, args));
 	}
 
-bool AnalyzerSet::Remove(file_analysis::Tag tag, HashKey* key)
+bool AnalyzerSet::Remove(const file_analysis::Tag& tag, HashKey* key)
 	{
 	file_analysis::Analyzer* a =
 	    (file_analysis::Analyzer*) analyzer_map.Remove(key);
@@ -139,7 +147,7 @@ bool AnalyzerSet::Remove(file_analysis::Tag tag, HashKey* key)
 	return true;
 	}
 
-bool AnalyzerSet::QueueRemove(file_analysis::Tag tag, RecordVal* args)
+bool AnalyzerSet::QueueRemove(const file_analysis::Tag& tag, RecordVal* args)
 	{
 	HashKey* key = GetKey(tag, args);
 
@@ -153,12 +161,12 @@ bool AnalyzerSet::RemoveMod::Perform(AnalyzerSet* set)
 	return set->Remove(tag, key);
 	}
 
-HashKey* AnalyzerSet::GetKey(file_analysis::Tag t, RecordVal* args) const
+HashKey* AnalyzerSet::GetKey(const file_analysis::Tag& t, RecordVal* args) const
 	{
 	ListVal* lv = new ListVal(TYPE_ANY);
 	lv->Append(t.AsEnumVal()->Ref());
 	lv->Append(args->Ref());
-	HashKey* key = analyzer_hash->ComputeHash(lv, 1);
+	HashKey* key = analyzer_hash->ComputeHash(lv, true);
 	Unref(lv);
 	if ( ! key )
 		reporter->InternalError("AnalyzerArgs type mismatch");
@@ -166,7 +174,7 @@ HashKey* AnalyzerSet::GetKey(file_analysis::Tag t, RecordVal* args) const
 	return key;
 	}
 
-file_analysis::Analyzer* AnalyzerSet::InstantiateAnalyzer(Tag tag,
+file_analysis::Analyzer* AnalyzerSet::InstantiateAnalyzer(const Tag& tag,
                                                           RecordVal* args) const
 	{
 	file_analysis::Analyzer* a = file_mgr->InstantiateAnalyzer(tag, args, file);
@@ -176,7 +184,7 @@ file_analysis::Analyzer* AnalyzerSet::InstantiateAnalyzer(Tag tag,
 		reporter->Error("[%s] Failed file analyzer %s instantiation",
 		                file->GetID().c_str(),
 		                file_mgr->GetComponentName(tag).c_str());
-		return 0;
+		return nullptr;
 		}
 
 	return a;

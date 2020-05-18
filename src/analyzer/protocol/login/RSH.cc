@@ -2,9 +2,10 @@
 
 #include "zeek-config.h"
 
+#include "RSH.h"
 #include "NetVar.h"
 #include "Event.h"
-#include "RSH.h"
+#include "Reporter.h"
 
 #include "events.bif.h"
 
@@ -167,27 +168,37 @@ void Rsh_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 			return;
 		}
 
-	val_list vl(4 + orig);
+	zeek::Args vl;
+	vl.reserve(4 + orig);
 	const char* line = (const char*) data;
 	line = skip_whitespace(line);
-	vl.push_back(BuildConnVal());
-	vl.push_back(client_name ? client_name->Ref() : new StringVal("<none>"));
-	vl.push_back(username ? username->Ref() : new StringVal("<none>"));
-	vl.push_back(new StringVal(line));
+	vl.emplace_back(ConnVal());
+
+	if ( client_name )
+		vl.emplace_back(NewRef{}, client_name);
+	else
+		vl.emplace_back(make_intrusive<StringVal>("<none>"));
+
+	if ( username )
+		vl.emplace_back(NewRef{}, username);
+	else
+		vl.emplace_back(make_intrusive<StringVal>("<none>"));
+
+	vl.emplace_back(make_intrusive<StringVal>(line));
 
 	if ( orig )
 		{
 		if ( contents_orig->RshSaveState() == RSH_SERVER_USER_NAME )
 			// First input
-			vl.push_back(val_mgr->GetTrue());
+			vl.emplace_back(val_mgr->True());
 		else
-			vl.push_back(val_mgr->GetFalse());
+			vl.emplace_back(val_mgr->False());
 
-		ConnectionEventFast(rsh_request, std::move(vl));
+		EnqueueConnEvent(rsh_request, std::move(vl));
 		}
 
 	else
-		ConnectionEventFast(rsh_reply, std::move(vl));
+		EnqueueConnEvent(rsh_reply, std::move(vl));
 	}
 
 void Rsh_Analyzer::ClientUserName(const char* s)

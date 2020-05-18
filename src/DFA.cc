@@ -2,9 +2,10 @@
 
 #include "zeek-config.h"
 
-#include "EquivClass.h"
 #include "DFA.h"
-#include "digest.h"
+#include "EquivClass.h"
+#include "Desc.h"
+#include "Hash.h"
 
 unsigned int DFA_State::transition_counter = 0;
 
@@ -16,7 +17,7 @@ DFA_State::DFA_State(int arg_state_num, const EquivClass* ec,
 	num_sym = ec->NumClasses();
 	nfa_states = arg_nfa_states;
 	accept = arg_accept;
-	mark = 0;
+	mark = nullptr;
 
 	SymPartition(ec);
 
@@ -95,7 +96,7 @@ DFA_State* DFA_State::ComputeXtion(int sym, DFA_Machine* machine)
 	else
 		{
 		delete ns;
-		next_d = 0;	// Jam
+		next_d = nullptr;	// Jam
 		}
 
 	AddXtion(equiv_sym, next_d);
@@ -181,7 +182,7 @@ void DFA_State::ClearMarks()
 	{
 	if ( mark )
 		{
-		SetMark(0);
+		SetMark(nullptr);
 
 		for ( int i = 0; i < num_sym; ++i )
 			{
@@ -307,7 +308,8 @@ DFA_State* DFA_State_Cache::Lookup(const NFA_state_list& nfas, DigestStr* digest
 	{
 	// We assume that state ID's don't exceed 10 digits, plus
 	// we allow one more character for the delimiter.
-	u_char id_tag[nfas.length() * 11 + 1];
+	auto id_tag_buf = std::make_unique<u_char[]>(nfas.length() * 11 + 1);
+	auto id_tag = id_tag_buf.get();
 	u_char* p = id_tag;
 
 	for ( int i = 0; i < nfas.length(); ++i )
@@ -330,9 +332,9 @@ DFA_State* DFA_State_Cache::Lookup(const NFA_state_list& nfas, DigestStr* digest
 
 	// We use the short MD5 instead of the full string for the
 	// HashKey because the data is copied into the key.
-	u_char digest_bytes[16];
-	internal_md5(id_tag, p - id_tag, digest_bytes);
-	*digest = DigestStr(digest_bytes, 16);
+	hash128_t hash;
+	KeyedHash::Hash128(id_tag, p - id_tag, &hash);
+	*digest = DigestStr(reinterpret_cast<const unsigned char*>(hash), 16);
 
 	auto entry = states.find(*digest);
 	if ( entry == states.end() )
@@ -394,7 +396,7 @@ DFA_Machine::DFA_Machine(NFA_Machine* n, EquivClass* arg_ec)
 		}
 	else
 		{
-		start_state = 0; // Jam
+		start_state = nullptr; // Jam
 		delete ns;
 		}
 	}
@@ -450,7 +452,7 @@ bool DFA_Machine::StateSetToDFA_State(NFA_state_list* state_set,
 	if ( accept->empty() )
 		{
 		delete accept;
-		accept = 0;
+		accept = nullptr;
 		}
 
 	DFA_State* ds = new DFA_State(state_count++, ec, state_set, accept);

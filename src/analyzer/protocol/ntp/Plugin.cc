@@ -1,15 +1,15 @@
 // See the file  in the main distribution directory for copyright.
 
-#include "plugin/Plugin.h"
-
 #include "NTP.h"
+#include "plugin/Plugin.h"
+#include "analyzer/Component.h"
 
 namespace plugin {
 namespace Zeek_NTP {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("NTP", ::analyzer::NTP::NTP_Analyzer::Instantiate));
 

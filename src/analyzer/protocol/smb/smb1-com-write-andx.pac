@@ -3,12 +3,12 @@ refine connection SMB_Conn += {
 	function proc_smb1_write_andx_request(h: SMB_Header, val: SMB1_write_andx_request): bool
 		%{
 		if ( smb1_write_andx_request )
-			BifEvent::generate_smb1_write_andx_request(bro_analyzer(),
-			                                           bro_analyzer()->Conn(),
-			                                           BuildHeaderVal(h),
-			                                           ${val.file_id},
-			                                           ${val.write_offset},
-			                                           ${val.data_len});
+			BifEvent::enqueue_smb1_write_andx_request(bro_analyzer(),
+			                                          bro_analyzer()->Conn(),
+			                                          SMBHeaderVal(h),
+			                                          ${val.file_id},
+			                                          ${val.write_offset},
+			                                          ${val.data_len});
 
 		if ( ! ${h.is_pipe} && ${val.data}.length() > 0 )
 			{
@@ -24,9 +24,9 @@ refine connection SMB_Conn += {
 	function proc_smb1_write_andx_response(h: SMB_Header, val: SMB1_write_andx_response): bool
 		%{
 		if ( smb1_write_andx_response )
-			BifEvent::generate_smb1_write_andx_response(bro_analyzer(),
+			BifEvent::enqueue_smb1_write_andx_response(bro_analyzer(),
 			                                           bro_analyzer()->Conn(),
-			                                           BuildHeaderVal(h),
+			                                           SMBHeaderVal(h),
 			                                           ${val.written_bytes});
 
 		return true;
@@ -56,7 +56,7 @@ type SMB1_write_andx_request(header: SMB_Header, offset: uint16) = record {
 
 	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
 
-	andx_command    : SMB_andx_command(header, 1, offset+offsetof(andx_command), andx.command);
+	andx_command    : SMB_andx_command(header, true, offset+offsetof(andx_command), andx.command);
 } &let {
 	pipe_proc   : bool   = $context.connection.forward_dce_rpc(data, 0, true) &if(header.is_pipe);
 
@@ -78,7 +78,7 @@ type SMB1_write_andx_response(header: SMB_Header, offset: uint16) = record {
 
 	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
 
-	andx_command    : SMB_andx_command(header, 0, offset+offsetof(andx_command), andx.command);
+	andx_command    : SMB_andx_command(header, false, offset+offsetof(andx_command), andx.command);
 } &let {
 	written_bytes : uint32 = (written_high * 0x10000) + written_low;
 	proc          : bool   = $context.connection.proc_smb1_write_andx_response(header, this);

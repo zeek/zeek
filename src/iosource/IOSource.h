@@ -2,14 +2,6 @@
 
 #pragma once
 
-extern "C" {
-#include <pcap.h>
-}
-
-#include <string>
-#include "FD_Set.h"
-#include "Timer.h"
-
 namespace iosource {
 
 /**
@@ -21,17 +13,12 @@ public:
 	/**
 	 * Constructor.
 	 */
-	IOSource()	{ idle = false; closed = false; }
+	IOSource()	{ closed = false; }
 
 	/**
 	 * Destructor.
 	 */
 	virtual ~IOSource()	{}
-
-	/**
-	 * Returns true if source has nothing ready to process.
-	 */
-	bool IsIdle() const	{ return idle; }
 
 	/**
 	 * Returns true if more data is to be expected in the future.
@@ -40,9 +27,14 @@ public:
 	bool IsOpen() const	{ return ! closed; }
 
 	/**
+	 * Returns true if this is a packet source.
+	 */
+	virtual bool IsPacketSource() const { return false; }
+
+	/**
 	 * Initializes the source. Can be overwritten by derived classes.
 	 */
-	virtual void Init()	{ }
+	virtual void InitSource()	{ }
 
 	/**
 	 * Finalizes the source when it's being closed. Can be overwritten by
@@ -51,76 +43,37 @@ public:
 	virtual void Done()	{ }
 
 	/**
-	 * Returns select'able file descriptors for this source. Leaves the
-	 * passed values untouched if not available.
+	 * Return the next timeout value for this source. This should be
+	 * overridden by source classes where they have a timeout value
+	 * that can wake up the poll.
 	 *
-	 * @param read Pointer to container where to insert a read descriptor.
+	 * Must be overriden by derived classes.
 	 *
-	 * @param write Pointer to container where to insert a write descriptor.
-	 *
-	 * @param except Pointer to container where to insert a except descriptor.
+	 * @return A value for the next time that the source thinks the
+	 * poll should time out in seconds from the current time. Return
+	 * -1 if this source should not be considered. This should be a
+	 * a value relative to network_time, not an absolute time.
 	 */
-	virtual void GetFds(FD_Set* read, FD_Set* write, FD_Set* except) = 0;
+	virtual double GetNextTimeout() = 0;
 
 	/**
-	 * Returns the timestamp (in \a global network time) associated with
-	 * next data item from this source.  If the source wants the data
-	 * item to be processed with a local network time, it sets the
-	 * argument accordingly.
-	 *
-	 * This method will be called only when either IsIdle() returns
-	 * false, or select() on one of the fds returned by GetFDs()
-	 * indicates that there's data to process.
-	 *
-	 * Must be overridden by derived classes.
-	 *
-	 * @param network_time A pointer to store the \a local network time
-	 * associated with the next item (as opposed to global network time).
-	 *
-	 * @return The global network time of the next entry, or a value
-	 * smaller than zero if none is available currently.
-	 */
-	virtual double NextTimestamp(double* network_time) = 0;
-
-	/**
-	 * Processes and consumes next data item.
-	 *
-	 * This method will be called only when either IsIdle() returns
-	 * false, or select() on one of the fds returned by GetFDs()
-	 * indicates that there's data to process.
+	 * Processes and consumes next data item. This will be called by
+	 * net_run when this IOSource has been marked ready.
 	 *
 	 * Must be overridden by derived classes.
 	 */
 	virtual void Process() = 0;
 
 	/**
-	 * Returns the tag of the timer manafger associated with the last
-	 * procesees data item.
+	 * Returns a descriptive tag representing the source for debugging.
 	 *
-	 * Can be overridden by derived classes.
-	 *
-	 * @return The tag, or null for the global timer manager.
-	 * 
-	 */
-	virtual TimerMgr::Tag* GetCurrentTag()	{ return 0; }
-
-	/**
-	 * Returns a descriptual tag representing the source for debugging.
-	 *
-	 * Can be overridden by derived classes.
+	 * Must be overridden by derived classes.
 	 *
 	 * @return The debugging name.
 	 */
 	virtual const char* Tag() = 0;
 
 protected:
-	/*
-	 * Callback for derived classes to call when they have gone dry
-	 * temporarily.
-	 *
-	 * @param is_idle True if the source is idle currently.
-	 */
-	void SetIdle(bool is_idle)	{ idle = is_idle; }
 
 	/*
 	 * Callback for derived class to call when they have shutdown.
@@ -130,7 +83,6 @@ protected:
 	void SetClosed(bool is_closed)	{ closed = is_closed; }
 
 private:
-	bool idle;
 	bool closed;
 };
 

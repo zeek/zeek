@@ -2492,14 +2492,7 @@ void NullStmt::StmtDescribe(ODesc* d) const
 const CompiledStmt NullStmt::Compile(Compiler* c) const
 	{
 	c->SetCurrStmt(this);
-
-	if ( c->NullStmtOK() )
-		return c->EmptyStmt();
-	else
-		{
-		reporter->InternalError("null statement seen in reduced body");
-		return c->ErrorStmt();
-		}
+	return c->EmptyStmt();
 	}
 
 TraversalCode NullStmt::Traverse(TraversalCallback* cb) const

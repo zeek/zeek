@@ -408,7 +408,7 @@ broker::expected<broker::data> TopkVal::DoSerialize() const
 
 	if ( type )
 		{
-		auto t = SerializeType(type.get());
+		auto t = SerializeType(type);
 		if ( ! t )
 			return broker::ec::invalid_data;
 

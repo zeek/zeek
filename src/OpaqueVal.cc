@@ -96,7 +96,7 @@ IntrusivePtr<OpaqueVal> OpaqueVal::Unserialize(const broker::data& data)
 	return val;
 	}
 
-broker::expected<broker::data> OpaqueVal::SerializeType(BroType* t)
+broker::expected<broker::data> OpaqueVal::SerializeType(const IntrusivePtr<BroType>& t)
 	{
 	if ( t->InternalType() == TYPE_INTERNAL_ERROR )
 		return broker::ec::invalid_data;
@@ -818,7 +818,7 @@ broker::expected<broker::data> BloomFilterVal::DoSerialize() const
 
 	if ( type )
 		{
-		auto t = SerializeType(type.get());
+		auto t = SerializeType(type);
 		if ( ! t )
 			return broker::ec::invalid_data;
 
@@ -913,7 +913,7 @@ broker::expected<broker::data> CardinalityVal::DoSerialize() const
 
 	if ( type )
 		{
-		auto t = SerializeType(type.get());
+		auto t = SerializeType(type);
 		if ( ! t )
 			return broker::ec::invalid_data;
 

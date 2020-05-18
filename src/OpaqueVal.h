@@ -148,7 +148,7 @@ protected:
 	 * Helper function for derived class that need to record a type
 	 * during serialization.
 	 */
-	static broker::expected<broker::data> SerializeType(BroType* t);
+	static broker::expected<broker::data> SerializeType(const IntrusivePtr<BroType>& t);
 
 	/**
 	 * Helper function for derived class that need to restore a type

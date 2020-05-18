@@ -81,6 +81,9 @@ protected:
 	void CreateRecordRDs(DefinitionItem* di, DefinitionPoint dp, bool is_pre,
 				bool assume_full, const DefinitionItem* rhs_di);
 
+	void CheckRecordRDs(DefinitionItem* di, DefinitionPoint dp,
+					const RD_ptr& pre_rds, const BroObj* o);
+
 	void CreateEmptyPostRDs(const Stmt* s);
 	void AddBlockDefs(const Stmt* s,
 				bool is_pre, bool is_future, bool is_case);
@@ -899,8 +902,11 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			e->Error("used without definition");
 
 		if ( id->Type()->Tag() == TYPE_RECORD )
-			CreateRecordRDs(mgr.GetID_DI(id), DefinitionPoint(n),
-					false, nullptr);
+			{
+			auto di = mgr.GetID_DI(id);
+			auto e_pre = mgr.GetPreMinRDs(e);
+			CheckRecordRDs(di, DefinitionPoint(n), e_pre, e);
+			}
 
 		break;
 		}
@@ -1337,6 +1343,38 @@ void RD_Decorate::CreateRecordRDs(DefinitionItem* di, DefinitionPoint dp,
 		if ( t_i->Tag() == TYPE_RECORD )
 			CreateRecordRDs(di_i, dp, is_pre, assume_full, rhs_di_i);
 		}
+	}
+
+void RD_Decorate::CheckRecordRDs(DefinitionItem* di, DefinitionPoint dp,
+					const RD_ptr& pre_rds, const BroObj* o)
+	{
+	auto rt = di->Type()->AsRecordType();
+	auto num_fields = rt->NumFields();
+
+	for ( auto i = 0; i < num_fields; ++i )
+		{
+		if ( rt->FieldHasAttr(i, ATTR_DEFAULT) ||
+		     rt->FieldHasAttr(i, ATTR_OPTIONAL) )
+			continue;
+
+		auto n_i = rt->FieldName(i);
+		auto field_di = di->FindField(n_i);
+
+		if ( ! field_di || ! pre_rds->HasDI(field_di) )
+			{
+			printf("no reaching def for %s$%s (%s)\n",
+				di->Name(), n_i, obj_desc(o));
+			}
+
+		else
+			{
+			auto t_i = rt->FieldType(i);
+			if ( t_i->Tag() == TYPE_RECORD )
+				CheckRecordRDs(field_di, dp, pre_rds, o);
+			}
+		}
+
+	CreateRecordRDs(di, dp, false, nullptr);
 	}
 
 

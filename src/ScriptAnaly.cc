@@ -1304,6 +1304,7 @@ void RD_Decorate::CreateRecordRDs(DefinitionItem* di, DefinitionPoint dp,
 	for ( auto i = 0; i < n; ++i )
 		{
 		auto n_i = rt->FieldName(i);
+		auto t_i = rt->FieldType(i);
 		auto rhs_di_i = rhs_di ? rhs_di->FindField(n_i) : nullptr;
 
 		bool field_is_defined = false;
@@ -1317,10 +1318,15 @@ void RD_Decorate::CreateRecordRDs(DefinitionItem* di, DefinitionPoint dp,
 		else if ( rt->FieldHasAttr(i, ATTR_DEFAULT) )
 			field_is_defined = true;
 
+		else if ( ! rt->FieldHasAttr(i, ATTR_OPTIONAL) &&
+			  ! is_atomic_type(t_i) )
+			// Non-optional aggregates within records will be
+			// initialized.
+			field_is_defined = true;
+
 		if ( ! field_is_defined )
 			continue;
 
-		auto t_i = rt->FieldType(i);
 		auto di_i = di->CreateField(n_i, t_i);
 
 		if ( is_pre )

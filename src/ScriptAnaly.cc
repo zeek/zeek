@@ -896,7 +896,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		auto id = n->Id();
 
 		if ( ! mgr.HasPreMinRD(e, id) )
-			e->Warn("unreachable");
+			e->Error("used without definition");
 
 		if ( id->Type()->Tag() == TYPE_RECORD )
 			CreateRecordRDs(mgr.GetID_DI(id), DefinitionPoint(n),

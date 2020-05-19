@@ -21,13 +21,13 @@
 
 using namespace file_analysis;
 
-static Val* empty_connection_table()
+static IntrusivePtr<Val> empty_connection_table()
 	{
 	auto tbl_index = make_intrusive<TypeList>(zeek::id::conn_id);
 	tbl_index->Append(zeek::id::conn_id);
 	auto tbl_type = make_intrusive<TableType>(std::move(tbl_index),
 	                                          zeek::id::connection);
-	return new TableVal(std::move(tbl_type));
+	return make_intrusive<TableVal>(std::move(tbl_type));
 	}
 
 static IntrusivePtr<RecordVal> get_conn_id_val(const Connection* conn)
@@ -133,8 +133,9 @@ bool File::UpdateConnectionFields(Connection* conn, bool is_orig)
 
 	if ( ! conns )
 		{
-		conns = empty_connection_table();
-		val->Assign(conns_idx, conns);
+		auto ect = empty_connection_table();
+		conns = ect.get();
+		val->Assign(conns_idx, std::move(ect));
 		}
 
 	auto idx = get_conn_id_val(conn);
@@ -315,8 +316,8 @@ void File::InferMetadata()
 			return;
 
 		BroString* bs = concatenate(bof_buffer.chunks);
-		bof_buffer_val = new StringVal(bs);
-		val->Assign(bof_buffer_idx, bof_buffer_val);
+		val->Assign<StringVal>(bof_buffer_idx, bs);
+		bof_buffer_val = val->Lookup(bof_buffer_idx);
 		}
 
 	if ( ! FileEventAvailable(file_sniff) )
@@ -332,8 +333,8 @@ void File::InferMetadata()
 
 	if ( ! matches.empty() )
 		{
-		meta->Assign(meta_mime_type_idx,
-		             new StringVal(*(matches.begin()->second.begin())));
+		meta->Assign<StringVal>(meta_mime_type_idx,
+		                        *(matches.begin()->second.begin()));
 		meta->Assign(meta_mime_types_idx,
 		             file_analysis::GenMIMEMatchesVal(matches));
 		}

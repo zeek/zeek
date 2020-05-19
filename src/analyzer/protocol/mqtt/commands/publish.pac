@@ -27,8 +27,8 @@ refine flow MQTT_Flow += {
 			m->Assign(0, val_mgr->Bool(${msg.dup}));
 			m->Assign(1, val_mgr->Count(${msg.qos}));
 			m->Assign(2, val_mgr->Bool(${msg.retain}));
-			m->Assign(3, new StringVal(${msg.topic.str}.length(),
-			                           reinterpret_cast<const char*>(${msg.topic.str}.begin())));
+			m->Assign<StringVal>(3, ${msg.topic.str}.length(),
+			                     reinterpret_cast<const char*>(${msg.topic.str}.begin()));
 
 			auto len = ${msg.payload}.length();
 			static auto max_payload_size = zeek::id::find("MQTT::max_payload_size");
@@ -37,8 +37,8 @@ refine flow MQTT_Flow += {
 			if ( len > static_cast<int>(max) )
 				len = max;
 
-			m->Assign(4, new StringVal(len,
-			                           reinterpret_cast<const char*>(${msg.payload}.begin())));
+			m->Assign<StringVal>(4, len,
+			                     reinterpret_cast<const char*>(${msg.payload}.begin()));
 
 			m->Assign(5, val_mgr->Count(${msg.payload}.length()));
 

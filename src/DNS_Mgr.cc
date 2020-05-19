@@ -724,7 +724,7 @@ IntrusivePtr<Val> DNS_Mgr::BuildMappingVal(DNS_Mapping* dm)
 	r->Assign(3, val_mgr->Bool(dm->Valid()));
 
 	auto h = dm->Host();
-	r->Assign(4, h ? h.release() : new StringVal("<none>"));
+	r->Assign(4, h ? std::move(h) : make_intrusive<StringVal>("<none>"));
 	r->Assign(5, dm->AddrsSet());
 
 	return r;

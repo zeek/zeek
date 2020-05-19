@@ -18,7 +18,7 @@ extern IntrusivePtr<OpaqueType> opaque_of_store_handle;
  * @param success whether the query status should be set to success or failure.
  * @return a Broker::QueryStatus value.
  */
-EnumVal* query_status(bool success);
+IntrusivePtr<EnumVal> query_status(bool success);
 
 /**
  * @return a Broker::QueryResult value that has a Broker::QueryStatus indicating

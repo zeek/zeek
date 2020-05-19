@@ -1908,7 +1908,7 @@ RecordVal* Manager::ListValToRecordVal(ListVal* list, RecordType *request_type, 
 			(*position)++;
 			}
 
-		rec->Assign(i, fieldVal->Ref());
+		rec->Assign(i, {NewRef{}, fieldVal});
 		}
 
 	return rec;
@@ -1945,7 +1945,7 @@ RecordVal* Manager::ValueToRecordVal(const Stream* stream, const Value* const *v
 			}
 
 		if ( fieldVal )
-			rec->Assign(i, fieldVal);
+			rec->Assign(i, {AdoptRef{}, fieldVal});
 		}
 
 	return rec;

@@ -7,9 +7,43 @@
 #include "IPAddr.h"
 %}
 
+%code{
+IntrusivePtr<AddrVal> binpac::Unified2::Flow::unified2_addr_to_bro_addr(std::vector<uint32_t>* a)
+	{
+	if ( a->size() == 1 )
+		{
+		return make_intrusive<AddrVal>(IPAddr(IPv4, &(a->at(0)), IPAddr::Host));
+		}
+	else if ( a->size() == 4 )
+		{
+		uint32 tmp[4] = { a->at(0), a->at(1), a->at(2), a->at(3) };
+		return make_intrusive<AddrVal>(IPAddr(IPv6, tmp, IPAddr::Host));
+		}
+	else
+		{
+		// Should never reach here.
+		return make_intrusive<AddrVal>(1);
+		}
+	}
+
+IntrusivePtr<Val> binpac::Unified2::Flow::to_port(uint16_t n, uint8_t p)
+	{
+	TransportProto proto = TRANSPORT_UNKNOWN;
+	switch ( p ) {
+	case 1: proto = TRANSPORT_ICMP; break;
+	case 6: proto = TRANSPORT_TCP; break;
+	case 17: proto = TRANSPORT_UDP; break;
+	}
+
+	return val_mgr->Port(n, proto);
+	}
+%}
+
 refine flow Flow += {
 
 	%member{
+		IntrusivePtr<AddrVal> unified2_addr_to_bro_addr(std::vector<uint32_t>* a);
+		IntrusivePtr<Val> to_port(uint16_t n, uint8_t p);
 	%}
 
 	%init{
@@ -27,35 +61,6 @@ refine flow Flow += {
 		return t;
 		%}
 
-	function unified2_addr_to_bro_addr(a: uint32[]): AddrVal
-		%{
-		if ( a->size() == 1 )
-			{
-			return new AddrVal(IPAddr(IPv4, &(a->at(0)), IPAddr::Host));
-			}
-		else if ( a->size() == 4 )
-			{
-			uint32 tmp[4] = { a->at(0), a->at(1), a->at(2), a->at(3) };
-			return new AddrVal(IPAddr(IPv6, tmp, IPAddr::Host));
-			}
-		else
-			{
-			// Should never reach here.
-			return new AddrVal(1);
-			}
-		%}
-
-	function to_port(n: uint16, p: uint8): Val
-		%{
-		TransportProto proto = TRANSPORT_UNKNOWN;
-		switch ( p ) {
-		case 1: proto = TRANSPORT_ICMP; break;
-		case 6: proto = TRANSPORT_TCP; break;
-		case 17: proto = TRANSPORT_UDP; break;
-		}
-
-		return val_mgr->Port(n, proto)->Ref();
-		%}
 
 	#function proc_record(rec: Record) : bool
 	#	%{

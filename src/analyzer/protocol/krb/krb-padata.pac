@@ -7,16 +7,16 @@
 %}
 
 %header{
-VectorVal* proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_analyzer, bool is_error);
+IntrusivePtr<VectorVal> proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_analyzer, bool is_error);
 %}
 
 %code{
-VectorVal* proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_analyzer, bool is_error)
+IntrusivePtr<VectorVal> proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_analyzer, bool is_error)
 {
 	auto vv = make_intrusive<VectorVal>(zeek::id::find_type<VectorType>("KRB::Type_Value_Vector"));
 
 	if ( ! data->data()->has_padata() )
-		return vv.release();
+		return vv;
 
 	for ( uint i = 0; i < data->data()->padata_elems()->size(); ++i)
 		{
@@ -119,7 +119,7 @@ VectorVal* proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_a
 				}
 			}
 		}
-	return vv.release();
+	return vv;
 }
 %}
 

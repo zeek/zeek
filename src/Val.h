@@ -945,8 +945,30 @@ public:
 
 	IntrusivePtr<Val> SizeVal() const override;
 
+	/**
+	 * Assign a value to a record field.
+	 * @param field  The field index to assign.
+	 * @param new_val  The value to assign.
+	 */
 	void Assign(int field, IntrusivePtr<Val> new_val);
+
+	/**
+	 * Assign a value of type @c T to a record field, as constructed from
+	 * the provided arguments.
+	 * @param field  The field index to assign.
+	 * @param args  A variable number of arguments to pass to constructor of
+	 * type @c T.
+	 */
+	template <class T, class... Ts>
+	void Assign(int field, Ts&&... args)
+		{ Assign(field, make_intrusive<T>(std::forward<Ts>(args)...)); }
+
+	[[deprecated("Remove in v4.1.  Assign an IntrusivePtr instead.")]]
 	void Assign(int field, Val* new_val);
+	// Note: the following nullptr method can also go upon removing the above.
+	void Assign(int field, std::nullptr_t)
+		{ Assign(field, IntrusivePtr<Val>{}); }
+
 	Val* Lookup(int field) const;	// Does not Ref() value.
 	IntrusivePtr<Val> LookupWithDefault(int field) const;
 

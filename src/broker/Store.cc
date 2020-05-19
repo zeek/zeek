@@ -7,7 +7,7 @@ namespace bro_broker {
 
 IntrusivePtr<OpaqueType> opaque_of_store_handle;
 
-EnumVal* query_status(bool success)
+IntrusivePtr<EnumVal> query_status(bool success)
 	{
 	static EnumType* store_query_status = nullptr;
 	static int success_val;
@@ -21,7 +21,7 @@ EnumVal* query_status(bool success)
 		}
 
 	auto rval = store_query_status->GetVal(success ? success_val : failure_val);
-	return rval.release();
+	return rval;
 	}
 
 void StoreHandleVal::ValDescribe(ODesc* d) const

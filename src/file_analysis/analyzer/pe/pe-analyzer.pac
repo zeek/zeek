@@ -5,38 +5,42 @@
 %}
 
 %header{
-VectorVal* process_rvas(const RVAS* rvas);
+IntrusivePtr<VectorVal> process_rvas(const RVAS* rvas);
+IntrusivePtr<TableVal> characteristics_to_bro(uint32_t c, uint8_t len);
 %}
 
 %code{
-VectorVal* process_rvas(const RVAS* rva_table)
+IntrusivePtr<VectorVal> process_rvas(const RVAS* rva_table)
 	{
 	auto rvas = make_intrusive<VectorVal>(zeek::id::index_vec);
 
 	for ( uint16 i=0; i < rva_table->rvas()->size(); ++i )
 		rvas->Assign(i, val_mgr->Count((*rva_table->rvas())[i]->size()));
 
-	return rvas.release();
+	return rvas;
+	}
+
+IntrusivePtr<TableVal> characteristics_to_bro(uint32_t c, uint8_t len)
+	{
+	uint64 mask = (len==16) ? 0xFFFF : 0xFFFFFFFF;
+	auto char_set = make_intrusive<TableVal>(zeek::id::count_set);
+
+	for ( uint16 i=0; i < len; ++i )
+		{
+		if ( ((c >> i) & 0x1) == 1 )
+			{
+			auto ch = val_mgr->Count((1<<i)&mask);
+			char_set->Assign(ch.get(), 0);
+			}
+		}
+
+	return char_set;
 	}
 %}
 
 
 refine flow File += {
 
-	function characteristics_to_bro(c: uint32, len: uint8): TableVal
-		%{
-		uint64 mask = (len==16) ? 0xFFFF : 0xFFFFFFFF;
-		TableVal* char_set = new TableVal(zeek::id::count_set);
-		for ( uint16 i=0; i < len; ++i )
-			{
-			if ( ((c >> i) & 0x1) == 1 )
-				{
-				auto ch = val_mgr->Count((1<<i)&mask);
-				char_set->Assign(ch.get(), 0);
-				}
-			}
-		return char_set;
-		%}
 
 	function proc_dos_header(h: DOS_Header): bool
 		%{

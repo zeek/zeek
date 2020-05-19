@@ -1,14 +1,14 @@
 %header{
-RecordVal* proc_krb_kdc_options(const KRB_KDC_Options* opts);
-RecordVal* proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_analyzer);
+IntrusivePtr<RecordVal> proc_krb_kdc_options(const KRB_KDC_Options* opts);
+IntrusivePtr<RecordVal> proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_analyzer);
 
 bool proc_error_arguments(RecordVal* rv, const std::vector<KRB_ERROR_Arg*>* args, int64 error_code);
 %}
 
 %code{
-RecordVal* proc_krb_kdc_options(const KRB_KDC_Options* opts)
+IntrusivePtr<RecordVal> proc_krb_kdc_options(const KRB_KDC_Options* opts)
 {
-	RecordVal* rv = new RecordVal(zeek::BifType::Record::KRB::KDC_Options);
+	auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::KRB::KDC_Options);
 
 	rv->Assign(0, val_mgr->Bool(opts->forwardable()));
 	rv->Assign(1, val_mgr->Bool(opts->forwarded()));
@@ -27,12 +27,12 @@ RecordVal* proc_krb_kdc_options(const KRB_KDC_Options* opts)
 	return rv;
 }
 
-RecordVal* proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_analyzer)
+IntrusivePtr<RecordVal> proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_analyzer)
 {
-	RecordVal* rv = new RecordVal(zeek::BifType::Record::KRB::KDC_Request);
+	auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::KRB::KDC_Request);
 
-	rv->Assign(0, asn1_integer_to_val(msg->pvno()->data(), TYPE_COUNT));
-	rv->Assign(1, asn1_integer_to_val(msg->msg_type()->data(), TYPE_COUNT));
+	rv->Assign(0, {AdoptRef{}, asn1_integer_to_val(msg->pvno()->data(), TYPE_COUNT)});
+	rv->Assign(1, {AdoptRef{}, asn1_integer_to_val(msg->msg_type()->data(), TYPE_COUNT)});
 
 	if ( msg->padata()->has_padata() )
 		rv->Assign(2, proc_padata(msg->padata()->padata()->padata(), bro_analyzer, false));
@@ -64,7 +64,7 @@ RecordVal* proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_an
 				rv->Assign(9, GetTimeFromAsn1(element->data()->rtime(), 0));
 				break;
 			case 7:
-				rv->Assign(10, asn1_integer_to_val(element->data()->nonce(), TYPE_COUNT));
+				rv->Assign(10, {AdoptRef{}, asn1_integer_to_val(element->data()->nonce(), TYPE_COUNT)});
 				break;
 			case 8:
 				if ( element->data()->etype()->data()->size() )
@@ -132,10 +132,10 @@ bool proc_error_arguments(RecordVal* rv, const std::vector<KRB_ERROR_Arg*>* args
 		switch ( (*args)[i]->seq_meta()->index() )
 			{
 			case 0:
-				rv->Assign(0, asn1_integer_to_val((*args)[i]->args()->pvno(), TYPE_COUNT));
+				rv->Assign(0, {AdoptRef{}, asn1_integer_to_val((*args)[i]->args()->pvno(), TYPE_COUNT)});
 				break;
 			case 1:
-				rv->Assign(1, asn1_integer_to_val((*args)[i]->args()->msg_type(), TYPE_COUNT));
+				rv->Assign(1, {AdoptRef{}, asn1_integer_to_val((*args)[i]->args()->msg_type(), TYPE_COUNT)});
 				break;
 			// ctime/stime handled above
 			case 7:
@@ -179,8 +179,8 @@ refine connection KRB_Conn += {
 			if ( ! krb_as_request )
 				return false;
 
-			RecordVal* rv = proc_krb_kdc_req_arguments(${msg}, bro_analyzer());
-			zeek::BifEvent::enqueue_krb_as_request(bro_analyzer(), bro_analyzer()->Conn(), {AdoptRef{}, rv});
+			auto rv = proc_krb_kdc_req_arguments(${msg}, bro_analyzer());
+			zeek::BifEvent::enqueue_krb_as_request(bro_analyzer(), bro_analyzer()->Conn(), std::move(rv));
 			return true;
 			}
 
@@ -189,8 +189,8 @@ refine connection KRB_Conn += {
 			if ( ! krb_tgs_request )
 				return false;
 
-			RecordVal* rv = proc_krb_kdc_req_arguments(${msg}, bro_analyzer());
-			zeek::BifEvent::enqueue_krb_tgs_request(bro_analyzer(), bro_analyzer()->Conn(), {AdoptRef{}, rv});
+			auto rv = proc_krb_kdc_req_arguments(${msg}, bro_analyzer());
+			zeek::BifEvent::enqueue_krb_tgs_request(bro_analyzer(), bro_analyzer()->Conn(), std::move(rv));
 			return true;
 			}
 
@@ -205,8 +205,8 @@ refine connection KRB_Conn += {
 			{
 			auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::KRB::KDC_Response);
 
-			rv->Assign(0, asn1_integer_to_val(${msg.pvno.data}, TYPE_COUNT));
-			rv->Assign(1, asn1_integer_to_val(${msg.msg_type.data}, TYPE_COUNT));
+			rv->Assign(0, {AdoptRef{}, asn1_integer_to_val(${msg.pvno.data}, TYPE_COUNT)});
+			rv->Assign(1, {AdoptRef{}, asn1_integer_to_val(${msg.msg_type.data}, TYPE_COUNT)});
 
 			if ( ${msg.padata.has_padata} )
 				rv->Assign(2, proc_padata(${msg.padata.padata.padata}, bro_analyzer(), false));
@@ -246,7 +246,7 @@ refine connection KRB_Conn += {
 			{
 			auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::KRB::Error_Msg);
 			proc_error_arguments(rv.get(), ${msg.args1}, 0);
-			rv->Assign(4, asn1_integer_to_val(${msg.error_code}, TYPE_COUNT));
+			rv->Assign(4, {AdoptRef{}, asn1_integer_to_val(${msg.error_code}, TYPE_COUNT)});
 			proc_error_arguments(rv.get(), ${msg.args2}, binary_to_int64(${msg.error_code.encoding.content}));
 			zeek::BifEvent::enqueue_krb_error(bro_analyzer(), bro_analyzer()->Conn(), std::move(rv));
 			}
@@ -291,8 +291,8 @@ refine connection KRB_Conn += {
 			{
 			auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::KRB::SAFE_Msg);
 
-			rv->Assign(0, asn1_integer_to_val(${msg.pvno.data}, TYPE_COUNT));
-			rv->Assign(1, asn1_integer_to_val(${msg.msg_type.data}, TYPE_COUNT));
+			rv->Assign(0, {AdoptRef{}, asn1_integer_to_val(${msg.pvno.data}, TYPE_COUNT)});
+			rv->Assign(1, {AdoptRef{}, asn1_integer_to_val(${msg.msg_type.data}, TYPE_COUNT)});
 
 			uint timestamp_i = 0;
 			int64 timestamp_usecs = 0;
@@ -325,7 +325,7 @@ refine connection KRB_Conn += {
 						rv->Assign(3, to_stringval(${msg.safe_body.args[i].args.user_data.encoding.content}));
 						break;
 					case 3:
-						rv->Assign(5, asn1_integer_to_val(${msg.safe_body.args[i].args.seq_number}, TYPE_COUNT));
+						rv->Assign(5, {AdoptRef{}, asn1_integer_to_val(${msg.safe_body.args[i].args.seq_number}, TYPE_COUNT)});
 						break;
 					case 4:
 						rv->Assign(6, proc_host_address(bro_analyzer(), ${msg.safe_body.args[i].args.sender_addr}));

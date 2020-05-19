@@ -106,7 +106,7 @@ IntrusivePtr<RecordVal> TeredoEncapsulation::BuildVal(const IP_Hdr* inner) const
 
 	if ( auth )
 		{
-		RecordVal* teredo_auth = new RecordVal(teredo_auth_type);
+		auto teredo_auth = make_intrusive<RecordVal>(teredo_auth_type);
 		uint8_t id_len = *((uint8_t*)(auth + 2));
 		uint8_t au_len = *((uint8_t*)(auth + 3));
 		uint64_t nonce = ntohll(*((uint64_t*)(auth + 4 + id_len + au_len)));
@@ -117,17 +117,17 @@ IntrusivePtr<RecordVal> TeredoEncapsulation::BuildVal(const IP_Hdr* inner) const
 		    new BroString(auth + 4 + id_len, au_len, true)));
 		teredo_auth->Assign(2, val_mgr->Count(nonce));
 		teredo_auth->Assign(3, val_mgr->Count(conf));
-		teredo_hdr->Assign(0, teredo_auth);
+		teredo_hdr->Assign(0, std::move(teredo_auth));
 		}
 
 	if ( origin_indication )
 		{
-		RecordVal* teredo_origin = new RecordVal(teredo_origin_type);
+		auto teredo_origin = make_intrusive<RecordVal>(teredo_origin_type);
 		uint16_t port = ntohs(*((uint16_t*)(origin_indication + 2))) ^ 0xFFFF;
 		uint32_t addr = ntohl(*((uint32_t*)(origin_indication + 4))) ^ 0xFFFFFFFF;
 		teredo_origin->Assign(0, val_mgr->Port(port, TRANSPORT_UDP));
 		teredo_origin->Assign(1, make_intrusive<AddrVal>(htonl(addr)));
-		teredo_hdr->Assign(1, teredo_origin);
+		teredo_hdr->Assign(1, std::move(teredo_origin));
 		}
 
 	teredo_hdr->Assign(2, inner->ToPktHdrVal());

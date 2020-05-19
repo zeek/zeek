@@ -8,34 +8,33 @@
 %}
 
 %header{
-	Val* proc_ntp_short(const NTP_Short_Time* t);
-	Val* proc_ntp_timestamp(const NTP_Time* t);
+	IntrusivePtr<Val> proc_ntp_short(const NTP_Short_Time* t);
+	IntrusivePtr<Val> proc_ntp_timestamp(const NTP_Time* t);
+	IntrusivePtr<RecordVal> BuildNTPStdMsg(NTP_std_msg* nsm);
+	IntrusivePtr<RecordVal> BuildNTPControlMsg(NTP_control_msg* ncm);
+	IntrusivePtr<RecordVal> BuildNTPMode7Msg(NTP_mode7_msg* m7);
 %}
 
 
 %code{
-	Val* proc_ntp_short(const NTP_Short_Time* t)
+	IntrusivePtr<Val> proc_ntp_short(const NTP_Short_Time* t)
 		{
 		if ( t->seconds() == 0 && t->fractions() == 0 )
-			return new Val(0.0, TYPE_INTERVAL);
-		return new Val(t->seconds() + t->fractions()*FRAC_16, TYPE_INTERVAL);
+			return make_intrusive<Val>(0.0, TYPE_INTERVAL);
+		return make_intrusive<Val>(t->seconds() + t->fractions()*FRAC_16, TYPE_INTERVAL);
 		}
 
-	Val* proc_ntp_timestamp(const NTP_Time* t)
+	IntrusivePtr<Val> proc_ntp_timestamp(const NTP_Time* t)
 		{
 		if ( t->seconds() == 0 && t->fractions() == 0)
-			return new Val(0.0, TYPE_TIME);
-		return new Val(EPOCH_OFFSET + t->seconds() + t->fractions()*FRAC_32, TYPE_TIME);
+			return make_intrusive<Val>(0.0, TYPE_TIME);
+		return make_intrusive<Val>(EPOCH_OFFSET + t->seconds() + t->fractions()*FRAC_32, TYPE_TIME);
 		}
-%}
 
-
-refine flow NTP_Flow += {
-
-	# This builds the standard msg record
-	function BuildNTPStdMsg(nsm: NTP_std_msg): BroVal
-		%{
-		RecordVal* rv = new RecordVal(zeek::BifType::Record::NTP::StandardMessage);
+	// This builds the standard msg record
+	IntrusivePtr<RecordVal> BuildNTPStdMsg(NTP_std_msg* nsm)
+		{
+		auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::NTP::StandardMessage);
 
 		rv->Assign(0, val_mgr->Count(${nsm.stratum}));
 		rv->Assign(1, make_intrusive<Val>(pow(2, ${nsm.poll}), TYPE_INTERVAL));
@@ -83,12 +82,12 @@ refine flow NTP_Flow += {
 			}
 
 		return rv;
-		%}
+		}
 
-	# This builds the control msg record
-	function BuildNTPControlMsg(ncm: NTP_control_msg): BroVal
-		%{
-		RecordVal* rv = new RecordVal(zeek::BifType::Record::NTP::ControlMessage);
+	// This builds the control msg record
+	IntrusivePtr<RecordVal> BuildNTPControlMsg(NTP_control_msg* ncm)
+		{
+		auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::NTP::ControlMessage);
 
 		rv->Assign(0, val_mgr->Count(${ncm.OpCode}));
 		rv->Assign(1, val_mgr->Bool(${ncm.R}));
@@ -108,12 +107,12 @@ refine flow NTP_Flow += {
 			}
 
 		return rv;
-		%}
+		}
 
-	# This builds the mode7 msg record
-	function BuildNTPMode7Msg(m7: NTP_mode7_msg): BroVal
-		%{
-		RecordVal* rv = new RecordVal(zeek::BifType::Record::NTP::Mode7Message);
+	// This builds the mode7 msg record
+	IntrusivePtr<RecordVal> BuildNTPMode7Msg(NTP_mode7_msg* m7)
+		{
+		auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::NTP::Mode7Message);
 
 		rv->Assign(0, val_mgr->Count(${m7.request_code}));
 		rv->Assign(1, val_mgr->Bool(${m7.auth_bit}));
@@ -125,7 +124,11 @@ refine flow NTP_Flow += {
 			rv->Assign(5, to_stringval(${m7.data}));
 
 		return rv;
-		%}
+		}
+%}
+
+
+refine flow NTP_Flow += {
 
 
 	function proc_ntp_message(msg: NTP_PDU): bool

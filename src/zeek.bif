@@ -3864,7 +3864,7 @@ static bool mmdb_lookup_asn(const IPAddr& addr, MMDB_lookup_result_s& result)
 	return mmdb_lookup(addr, result, true);
 	}
 
-static Val* mmdb_getvalue(MMDB_entry_data_s* entry_data, int status,
+static IntrusivePtr<Val> mmdb_getvalue(MMDB_entry_data_s* entry_data, int status,
                           int data_type )
 	{
 	switch (status)
@@ -3875,16 +3875,16 @@ static Val* mmdb_getvalue(MMDB_entry_data_s* entry_data, int status,
 				switch (data_type)
 					{
 					case MMDB_DATA_TYPE_UTF8_STRING:
-						return new StringVal(entry_data->data_size,
-						                     entry_data->utf8_string);
+						return make_intrusive<StringVal>(entry_data->data_size,
+						                                 entry_data->utf8_string);
 						break;
 
 					case MMDB_DATA_TYPE_DOUBLE:
-						return new Val(entry_data->double_value, TYPE_DOUBLE);
+						return make_intrusive<Val>(entry_data->double_value, TYPE_DOUBLE);
 						break;
 
 					case MMDB_DATA_TYPE_UINT32:
-						return val_mgr->Count(entry_data->uint32).release();
+						return val_mgr->Count(entry_data->uint32);
 
 					default:
 						break;
@@ -4111,8 +4111,8 @@ function lookup_asn%(a: addr%) : count
 		// Get Autonomous System Number
 		status = MMDB_get_value(&result.entry, &entry_data,
 		                        "autonomous_system_number", nullptr);
-		Val* asn = mmdb_getvalue(&entry_data, status, MMDB_DATA_TYPE_UINT32);
-		return asn == nullptr ? val_mgr->Count(0) : IntrusivePtr<Val>{AdoptRef{}, asn};
+		auto asn = mmdb_getvalue(&entry_data, status, MMDB_DATA_TYPE_UINT32);
+		return asn == nullptr ? val_mgr->Count(0) : asn;
 		}
 
 #else // not USE_GEOIP

@@ -301,8 +301,8 @@ function Broker::__table_iterator_value%(it: opaque of Broker::TableIterator%): 
 	%{
 	auto ti = static_cast<bro_broker::TableIterator*>(it);
 	auto rval = make_intrusive<RecordVal>(zeek::BifType::Record::Broker::TableItem);
-	auto key_val = new RecordVal(zeek::BifType::Record::Broker::Data);
-	auto val_val = new RecordVal(zeek::BifType::Record::Broker::Data);
+	auto key_val = make_intrusive<RecordVal>(zeek::BifType::Record::Broker::Data);
+	auto val_val = make_intrusive<RecordVal>(zeek::BifType::Record::Broker::Data);
 	rval->Assign(0, key_val);
 	rval->Assign(1, val_val);
 

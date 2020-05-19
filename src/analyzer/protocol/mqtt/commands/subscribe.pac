@@ -24,11 +24,11 @@ refine flow MQTT_Flow += {
 
 			for ( auto topic: *${msg.topics} )
 				{
-				auto subscribe_topic = new StringVal(${topic.name.str}.length(),
+				auto subscribe_topic = make_intrusive<StringVal>(${topic.name.str}.length(),
 				                                     reinterpret_cast<const char*>(${topic.name.str}.begin()));
 				auto qos = val_mgr->Count(${topic.requested_QoS});
-				topics->Assign(topics->Size(), subscribe_topic);
-				qos_levels->Assign(qos_levels->Size(), qos);
+				topics->Assign(topics->Size(), std::move(subscribe_topic));
+				qos_levels->Assign(qos_levels->Size(), std::move(qos));
 				}
 
 			zeek::BifEvent::enqueue_mqtt_subscribe(connection()->bro_analyzer(),

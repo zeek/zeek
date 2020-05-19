@@ -191,6 +191,9 @@ Deprecated Functionality
 
 - ``FuncType::ArgTypes()`` is deprecated, use ``FuncType::ParamList()``.
 
+- ``RecordVal::Assign(int, Val*)`` is deprecated, use the overload taking
+  ``IntrusivePtr``.
+
 Zeek 3.1.0
 ==========
 

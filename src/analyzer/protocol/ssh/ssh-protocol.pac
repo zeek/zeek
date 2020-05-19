@@ -393,8 +393,8 @@ refine connection SSH_Conn += {
 		else if ( kex_orig_ == orig )
 			return false;
 
-		VectorVal* client_list = name_list_to_vector(orig ? algs             : kex_algs_cache_);
-		VectorVal* server_list = name_list_to_vector(orig ? kex_algs_cache_  : algs);
+		auto client_list = name_list_to_vector(orig ? algs             : kex_algs_cache_);
+		auto server_list = name_list_to_vector(orig ? kex_algs_cache_  : algs);
 
 		for ( unsigned int i = 0; i < client_list->Size(); ++i )
 			{
@@ -405,9 +405,6 @@ refine connection SSH_Conn += {
 					kex_algorithm_.free();
 					kex_algorithm_.init((const uint8 *) client_list->Lookup(i)->AsStringVal()->Bytes(),
 						client_list->Lookup(i)->AsStringVal()->Len());
-
-					Unref(client_list);
-					Unref(server_list);
 
 					// UNTESTED
 					if ( update_kex_state_if_equal("rsa1024-sha1", KEX_RSA) )
@@ -451,9 +448,6 @@ refine connection SSH_Conn += {
 					}
 				}
 			}
-
-		Unref(client_list);
-		Unref(server_list);
 
 		return true;
 		%}

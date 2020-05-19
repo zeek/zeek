@@ -597,7 +597,7 @@ IntrusivePtr<RecordVal> Packet::ToRawPktHdrVal() const
 	static auto raw_pkt_hdr_type = zeek::id::find_type<RecordType>("raw_pkt_hdr");
 	static auto l2_hdr_type = zeek::id::find_type<RecordType>("l2_hdr");
 	auto pkt_hdr = make_intrusive<RecordVal>(raw_pkt_hdr_type);
-	RecordVal* l2_hdr = new RecordVal(l2_hdr_type);
+	auto l2_hdr = make_intrusive<RecordVal>(l2_hdr_type);
 
 	bool is_ethernet = link_type == DLT_EN10MB;
 
@@ -651,7 +651,7 @@ IntrusivePtr<RecordVal> Packet::ToRawPktHdrVal() const
 
 	l2_hdr->Assign(8, zeek::BifType::Enum::layer3_proto->GetVal(l3));
 
-	pkt_hdr->Assign(0, l2_hdr);
+	pkt_hdr->Assign(0, std::move(l2_hdr));
 
 	if ( l3_proto == L3_IPV4 )
 		{
@@ -674,12 +674,12 @@ RecordVal* Packet::BuildPktHdrVal() const
 	return ToRawPktHdrVal().release();
 	}
 
-Val *Packet::FmtEUI48(const u_char *mac) const
+IntrusivePtr<Val> Packet::FmtEUI48(const u_char* mac) const
 	{
 	char buf[20];
 	snprintf(buf, sizeof buf, "%02x:%02x:%02x:%02x:%02x:%02x",
 		 mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-	return new StringVal(buf);
+	return make_intrusive<StringVal>(buf);
 	}
 
 void Packet::Describe(ODesc* d) const

@@ -336,10 +336,10 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 		return;
 		}
 
-	VectorVal* names = nullptr;
-	VectorVal* emails = nullptr;
-	VectorVal* uris = nullptr;
-	VectorVal* ips = nullptr;
+	IntrusivePtr<VectorVal> names;
+	IntrusivePtr<VectorVal> emails;
+	IntrusivePtr<VectorVal> uris;
+	IntrusivePtr<VectorVal> ips;
 
 	bool otherfields = false;
 
@@ -367,21 +367,21 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 				{
 				case GEN_DNS:
 					if ( names == nullptr )
-						names = new VectorVal(zeek::id::string_vec);
+						names = make_intrusive<VectorVal>(zeek::id::string_vec);
 
 					names->Assign(names->Size(), bs);
 					break;
 
 				case GEN_URI:
 					if ( uris == nullptr )
-						uris = new VectorVal(zeek::id::string_vec);
+						uris = make_intrusive<VectorVal>(zeek::id::string_vec);
 
 					uris->Assign(uris->Size(), bs);
 					break;
 
 				case GEN_EMAIL:
 					if ( emails == nullptr )
-						emails = new VectorVal(zeek::id::string_vec);
+						emails = make_intrusive<VectorVal>(zeek::id::string_vec);
 
 					emails->Assign(emails->Size(), bs);
 					break;
@@ -391,7 +391,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 		else if ( gen->type == GEN_IPADD )
 			{
 				if ( ips == nullptr )
-					ips = new VectorVal(zeek::id::find_type<VectorType>("addr_vec"));
+					ips = make_intrusive<VectorVal>(zeek::id::find_type<VectorType>("addr_vec"));
 
 				uint32_t* addr = (uint32_t*) gen->d.ip->data;
 
@@ -439,13 +439,13 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 	GENERAL_NAMES_free(altname);
 	}
 
-StringVal* file_analysis::X509::KeyCurve(EVP_PKEY *key)
+IntrusivePtr<StringVal> file_analysis::X509::KeyCurve(EVP_PKEY* key)
 	{
-	assert(key != NULL);
+	assert(key != nullptr);
 
 #ifdef OPENSSL_NO_EC
 	// well, we do not have EC-Support...
-	return NULL;
+	return nullptr;
 #else
 	if ( EVP_PKEY_base_id(key) != EVP_PKEY_EC )
 		{
@@ -468,7 +468,7 @@ StringVal* file_analysis::X509::KeyCurve(EVP_PKEY *key)
 	if ( curve_name == nullptr )
 		return nullptr;
 
-	return new StringVal(curve_name);
+	return make_intrusive<StringVal>(curve_name);
 #endif
 	}
 

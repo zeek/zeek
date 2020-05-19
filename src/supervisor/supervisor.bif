@@ -86,7 +86,7 @@ function Supervisor::__node%(%): Supervisor::NodeConfig
 		builtin_error("not a supervised process");
 		const auto& rt = zeek::BifType::Record::Supervisor::NodeConfig;
 		auto rval = make_intrusive<RecordVal>(rt);
-		rval->Assign(rt->FieldOffset("name"), new StringVal("<invalid>"));
+		rval->Assign<StringVal>(rt->FieldOffset("name"), "<invalid>");
 		return rval;
 		}
 

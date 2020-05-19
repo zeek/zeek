@@ -14,7 +14,7 @@ refine flow RADIUS_Flow += {
 
 		if ( ${msg.attributes}->size() )
 			{
-			TableVal* attributes = new TableVal(zeek::BifType::Table::RADIUS::Attributes);
+			auto attributes = make_intrusive<TableVal>(zeek::BifType::Table::RADIUS::Attributes);
 
 			for ( uint i = 0; i < ${msg.attributes}->size(); ++i )
 				{
@@ -38,8 +38,8 @@ refine flow RADIUS_Flow += {
 					}
 				}
 
-			result->Assign(3, attributes);
-		}
+			result->Assign(3, std::move(attributes));
+			}
 
 		zeek::BifEvent::enqueue_radius_message(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), std::move(result));
 		return true;

@@ -1131,8 +1131,8 @@ IntrusivePtr<RecordVal> Supervisor::NodeConfig::ToRecord() const
 
 	rval->Assign(rt->FieldOffset("scripts"), std::move(scripts_val));
 
-	const auto& tt = rt->GetFieldType("cluster");
-	auto cluster_val = new TableVal({NewRef{}, tt->AsTableType()});
+	auto tt = rt->GetFieldType<TableType>("cluster");
+	auto cluster_val = make_intrusive<TableVal>(std::move(tt));
 	rval->Assign(rt->FieldOffset("cluster"), cluster_val);
 
 	for ( const auto& e : cluster )
@@ -1316,7 +1316,7 @@ IntrusivePtr<RecordVal> Supervisor::Status(std::string_view node_name)
 	{
 	auto rval = make_intrusive<RecordVal>(zeek::BifType::Record::Supervisor::Status);
 	const auto& tt = zeek::BifType::Record::Supervisor::Status->GetFieldType("nodes");
-	auto node_table_val = new TableVal(cast_intrusive<TableType>(tt));
+	auto node_table_val = make_intrusive<TableVal>(cast_intrusive<TableType>(tt));
 	rval->Assign(0, node_table_val);
 
 	if ( node_name.empty() )

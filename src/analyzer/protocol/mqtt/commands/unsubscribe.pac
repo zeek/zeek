@@ -18,9 +18,9 @@ refine flow MQTT_Flow += {
 
 			for ( auto topic: *${msg.topics} )
 				{
-				auto unsubscribe_topic = new StringVal(${topic.str}.length(),
+				auto unsubscribe_topic = make_intrusive<StringVal>(${topic.str}.length(),
 				                                  reinterpret_cast<const char*>(${topic.str}.begin()));
-				topics->Assign(topics->Size(), unsubscribe_topic);
+				topics->Assign(topics->Size(), std::move(unsubscribe_topic));
 				}
 
 			zeek::BifEvent::enqueue_mqtt_unsubscribe(connection()->bro_analyzer(),

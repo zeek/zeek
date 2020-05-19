@@ -1857,10 +1857,10 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 	// Init rotate_info.
 	if ( rotate_info )
 		{
-		rotate_info->Assign(0, new StringVal(name));
-		rotate_info->Assign(1, new StringVal(newname));
-		rotate_info->Assign(2, new Val(network_time, TYPE_TIME));
-		rotate_info->Assign(3, new Val(network_time, TYPE_TIME));
+		rotate_info->Assign<StringVal>(0, name);
+		rotate_info->Assign<StringVal>(1, newname);
+		rotate_info->Assign<Val>(2, network_time, TYPE_TIME);
+		rotate_info->Assign<Val>(3, network_time, TYPE_TIME);
 		}
 
 	return newf;

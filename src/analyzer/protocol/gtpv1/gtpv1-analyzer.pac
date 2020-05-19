@@ -83,9 +83,9 @@ static IntrusivePtr<Val> BuildTraceType(const InformationElement* ie)
 	return val_mgr->Count(ie->trace_type()->value());
 	}
 
-Val* BuildEndUserAddr(const InformationElement* ie)
+IntrusivePtr<Val> BuildEndUserAddr(const InformationElement* ie)
 	{
-	RecordVal* ev = new RecordVal(zeek::BifType::Record::gtp_end_user_addr);
+	auto ev = make_intrusive<RecordVal>(zeek::BifType::Record::gtp_end_user_addr);
 	ev->Assign(0, val_mgr->Count(ie->end_user_addr()->pdp_type_org()));
 	ev->Assign(1, val_mgr->Count(ie->end_user_addr()->pdp_type_num()));
 
@@ -114,23 +114,23 @@ Val* BuildEndUserAddr(const InformationElement* ie)
 	return ev;
 	}
 
-Val* BuildAccessPointName(const InformationElement* ie)
+IntrusivePtr<Val> BuildAccessPointName(const InformationElement* ie)
 	{
 	BroString* bs = new BroString((const u_char*) ie->ap_name()->value().data(),
 	                              ie->ap_name()->value().length(), false);
-	return new StringVal(bs);
+	return make_intrusive<StringVal>(bs);
 	}
 
-Val* BuildProtoConfigOptions(const InformationElement* ie)
+IntrusivePtr<Val> BuildProtoConfigOptions(const InformationElement* ie)
 	{
 	const u_char* d = (const u_char*) ie->proto_config_opts()->value().data();
 	int len = ie->proto_config_opts()->value().length();
-	return new StringVal(new BroString(d, len, false));
+	return make_intrusive<StringVal>(new BroString(d, len, false));
 	}
 
-Val* BuildGSN_Addr(const InformationElement* ie)
+IntrusivePtr<Val> BuildGSN_Addr(const InformationElement* ie)
 	{
-	RecordVal* ev = new RecordVal(zeek::BifType::Record::gtp_gsn_addr);
+	auto ev = make_intrusive<RecordVal>(zeek::BifType::Record::gtp_gsn_addr);
 
 	int len = ie->gsn_addr()->value().length();
 	const uint8* d = ie->gsn_addr()->value().data();
@@ -147,16 +147,16 @@ Val* BuildGSN_Addr(const InformationElement* ie)
 	return ev;
 	}
 
-Val* BuildMSISDN(const InformationElement* ie)
+IntrusivePtr<Val> BuildMSISDN(const InformationElement* ie)
 	{
 	const u_char* d = (const u_char*) ie->msisdn()->value().data();
 	int len = ie->msisdn()->value().length();
-	return new StringVal(new BroString(d, len, false));
+	return make_intrusive<StringVal>(new BroString(d, len, false));
 	}
 
-Val* BuildQoS_Profile(const InformationElement* ie)
+IntrusivePtr<Val> BuildQoS_Profile(const InformationElement* ie)
 	{
-	RecordVal* ev = new RecordVal(zeek::BifType::Record::gtp_qos_profile);
+	auto ev = make_intrusive<RecordVal>(zeek::BifType::Record::gtp_qos_profile);
 
 	const u_char* d = (const u_char*) ie->qos_profile()->data().data();
 	int len = ie->qos_profile()->data().length();
@@ -167,30 +167,30 @@ Val* BuildQoS_Profile(const InformationElement* ie)
 	return ev;
 	}
 
-Val* BuildTrafficFlowTemplate(const InformationElement* ie)
+IntrusivePtr<Val> BuildTrafficFlowTemplate(const InformationElement* ie)
 	{
 	const uint8* d = ie->traffic_flow_template()->value().data();
 	int len = ie->traffic_flow_template()->value().length();
-	return new StringVal(new BroString((const u_char*) d, len, false));
+	return make_intrusive<StringVal>(new BroString((const u_char*) d, len, false));
 	}
 
-Val* BuildTriggerID(const InformationElement* ie)
+IntrusivePtr<Val> BuildTriggerID(const InformationElement* ie)
 	{
 	const uint8* d = ie->trigger_id()->value().data();
 	int len = ie->trigger_id()->value().length();
-	return new StringVal(new BroString((const u_char*) d, len, false));
+	return make_intrusive<StringVal>(new BroString((const u_char*) d, len, false));
 	}
 
-Val* BuildOMC_ID(const InformationElement* ie)
+IntrusivePtr<Val> BuildOMC_ID(const InformationElement* ie)
 	{
 	const uint8* d = ie->omc_id()->value().data();
 	int len = ie->omc_id()->value().length();
-	return new StringVal(new BroString((const u_char*) d, len, false));
+	return make_intrusive<StringVal>(new BroString((const u_char*) d, len, false));
 	}
 
-Val* BuildPrivateExt(const InformationElement* ie)
+IntrusivePtr<Val> BuildPrivateExt(const InformationElement* ie)
 	{
-	RecordVal* ev = new RecordVal(zeek::BifType::Record::gtp_private_extension);
+	auto ev = make_intrusive<RecordVal>(zeek::BifType::Record::gtp_private_extension);
 
 	const uint8* d = ie->private_ext()->value().data();
 	int len = ie->private_ext()->value().length();
@@ -216,16 +216,16 @@ static IntrusivePtr<Val> BuildChargingID(const InformationElement* ie)
 	return val_mgr->Count(ie->charging_id()->value());;
 	}
 
-Val* BuildChargingGatewayAddr(const InformationElement* ie)
+IntrusivePtr<Val> BuildChargingGatewayAddr(const InformationElement* ie)
 	{
 	const uint8* d = ie->charging_gateway_addr()->value().data();
 	int len = ie->charging_gateway_addr()->value().length();
 	if ( len == 4 )
-		return new AddrVal(IPAddr(IPv4, (const uint32*) d, IPAddr::Network));
+		return make_intrusive<AddrVal>(IPAddr(IPv4, (const uint32*) d, IPAddr::Network));
 	else if ( len == 16 )
-		return new AddrVal(IPAddr(IPv6, (const uint32*) d, IPAddr::Network));
+		return make_intrusive<AddrVal>(IPAddr(IPv6, (const uint32*) d, IPAddr::Network));
 	else
-		return 0;
+		return nullptr;
 	}
 
 static IntrusivePtr<Val> BuildTeardownInd(const InformationElement* ie)

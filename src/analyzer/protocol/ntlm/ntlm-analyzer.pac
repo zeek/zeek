@@ -1,28 +1,64 @@
+%header{
+	IntrusivePtr<Val> filetime2brotime(uint64_t ts);
+	IntrusivePtr<RecordVal> build_version_record(NTLM_Version* val);
+	IntrusivePtr<RecordVal> build_negotiate_flag_record(NTLM_Negotiate_Flags* val);
+%}
 
-refine connection NTLM_Conn += {
-
-	# This is replicated from the SMB analyzer. :(
-	function filetime2brotime(ts: uint64): Val
-		%{
+%code{
+	// This is replicated from the SMB analyzer. :(
+	IntrusivePtr<Val> filetime2brotime(uint64_t ts)
+		{
 		double secs = (ts / 10000000.0);
 
 		// Bro can't support times back to the 1600's
 		// so we subtract a lot of seconds.
-		Val* bro_ts = new Val(secs - 11644473600.0, TYPE_TIME);
+		auto bro_ts = make_intrusive<Val>(secs - 11644473600.0, TYPE_TIME);
 
 		return bro_ts;
-		%}
+		}
 
-	function build_version_record(val: NTLM_Version): BroVal
-		%{
-		RecordVal* result = new RecordVal(zeek::BifType::Record::NTLM::Version);
+	IntrusivePtr<RecordVal> build_version_record(NTLM_Version* val)
+		{
+		auto result = make_intrusive<RecordVal>(zeek::BifType::Record::NTLM::Version);
 		result->Assign(0, val_mgr->Count(${val.major_version}));
 		result->Assign(1, val_mgr->Count(${val.minor_version}));
 		result->Assign(2, val_mgr->Count(${val.build_number}));
 		result->Assign(3, val_mgr->Count(${val.ntlm_revision}));
 
 		return result;
-		%}
+		}
+
+	IntrusivePtr<RecordVal> build_negotiate_flag_record(NTLM_Negotiate_Flags* val)
+		{
+		auto flags = make_intrusive<RecordVal>(zeek::BifType::Record::NTLM::NegotiateFlags);
+		flags->Assign(0, val_mgr->Bool(${val.negotiate_56}));
+		flags->Assign(1, val_mgr->Bool(${val.negotiate_key_exch}));
+		flags->Assign(2, val_mgr->Bool(${val.negotiate_128}));
+		flags->Assign(3, val_mgr->Bool(${val.negotiate_version}));
+		flags->Assign(4, val_mgr->Bool(${val.negotiate_target_info}));
+		flags->Assign(5, val_mgr->Bool(${val.request_non_nt_session_key}));
+		flags->Assign(6, val_mgr->Bool(${val.negotiate_identify}));
+		flags->Assign(7, val_mgr->Bool(${val.negotiate_extended_sessionsecurity}));
+		flags->Assign(8, val_mgr->Bool(${val.target_type_server}));
+		flags->Assign(9, val_mgr->Bool(${val.target_type_domain}));
+		flags->Assign(10, val_mgr->Bool(${val.negotiate_always_sign}));
+		flags->Assign(11, val_mgr->Bool(${val.negotiate_oem_workstation_supplied}));
+		flags->Assign(12, val_mgr->Bool(${val.negotiate_oem_domain_supplied}));
+		flags->Assign(13, val_mgr->Bool(${val.negotiate_anonymous_connection}));
+		flags->Assign(14, val_mgr->Bool(${val.negotiate_ntlm}));
+		flags->Assign(15, val_mgr->Bool(${val.negotiate_lm_key}));
+		flags->Assign(16, val_mgr->Bool(${val.negotiate_datagram}));
+		flags->Assign(17, val_mgr->Bool(${val.negotiate_seal}));
+		flags->Assign(18, val_mgr->Bool(${val.negotiate_sign}));
+		flags->Assign(19, val_mgr->Bool(${val.request_target}));
+		flags->Assign(20, val_mgr->Bool(${val.negotiate_oem}));
+		flags->Assign(21, val_mgr->Bool(${val.negotiate_unicode}));
+
+		return flags;
+		}
+%}
+
+refine connection NTLM_Conn += {
 
 	function build_av_record(val: NTLM_AV_Pair_Sequence, len: uint16): BroVal
 		%{
@@ -76,35 +112,6 @@ refine connection NTLM_Conn += {
 		return result;
 		%}
 
-	function build_negotiate_flag_record(val: NTLM_Negotiate_Flags): BroVal
-		%{
-		RecordVal* flags = new RecordVal(zeek::BifType::Record::NTLM::NegotiateFlags);
-		flags->Assign(0, val_mgr->Bool(${val.negotiate_56}));
-		flags->Assign(1, val_mgr->Bool(${val.negotiate_key_exch}));
-		flags->Assign(2, val_mgr->Bool(${val.negotiate_128}));
-		flags->Assign(3, val_mgr->Bool(${val.negotiate_version}));
-		flags->Assign(4, val_mgr->Bool(${val.negotiate_target_info}));
-		flags->Assign(5, val_mgr->Bool(${val.request_non_nt_session_key}));
-		flags->Assign(6, val_mgr->Bool(${val.negotiate_identify}));
-		flags->Assign(7, val_mgr->Bool(${val.negotiate_extended_sessionsecurity}));
-		flags->Assign(8, val_mgr->Bool(${val.target_type_server}));
-		flags->Assign(9, val_mgr->Bool(${val.target_type_domain}));
-		flags->Assign(10, val_mgr->Bool(${val.negotiate_always_sign}));
-		flags->Assign(11, val_mgr->Bool(${val.negotiate_oem_workstation_supplied}));
-		flags->Assign(12, val_mgr->Bool(${val.negotiate_oem_domain_supplied}));
-		flags->Assign(13, val_mgr->Bool(${val.negotiate_anonymous_connection}));
-		flags->Assign(14, val_mgr->Bool(${val.negotiate_ntlm}));
-		flags->Assign(15, val_mgr->Bool(${val.negotiate_lm_key}));
-		flags->Assign(16, val_mgr->Bool(${val.negotiate_datagram}));
-		flags->Assign(17, val_mgr->Bool(${val.negotiate_seal}));
-		flags->Assign(18, val_mgr->Bool(${val.negotiate_sign}));
-		flags->Assign(19, val_mgr->Bool(${val.request_target}));
-		flags->Assign(20, val_mgr->Bool(${val.negotiate_oem}));
-		flags->Assign(21, val_mgr->Bool(${val.negotiate_unicode}));
-
-		return flags;
-		%}
-
 	function proc_ntlm_negotiate(val: NTLM_Negotiate): bool
 		%{
 		if ( ! ntlm_negotiate )
@@ -144,7 +151,7 @@ refine connection NTLM_Conn += {
 			result->Assign(2, build_version_record(${val.version}));
 
 		if ( ${val}->has_target_info() )
-			result->Assign(3, build_av_record(${val.target_info},  ${val.target_info_fields.length}));
+			result->Assign(3, {AdoptRef{}, build_av_record(${val.target_info},  ${val.target_info_fields.length})});
 
 		zeek::BifEvent::enqueue_ntlm_challenge(bro_analyzer(),
 		                                 bro_analyzer()->Conn(),

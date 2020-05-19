@@ -625,11 +625,11 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_client_id_option(v: OptionValue): bool
 		%{
-		RecordVal* client_id = new RecordVal(zeek::BifType::Record::DHCP::ClientID);
+		auto client_id = make_intrusive<RecordVal>(zeek::BifType::Record::DHCP::ClientID);
 		client_id->Assign(0, val_mgr->Count(${v.client_id.hwtype}));
 		client_id->Assign(1, make_intrusive<StringVal>(fmt_mac(${v.client_id.hwaddr}.begin(), ${v.client_id.hwaddr}.length())));
 
-		${context.flow}->options->Assign(19, client_id);
+		${context.flow}->options->Assign(19, std::move(client_id));
 
 		return true;
 		%}
@@ -685,14 +685,14 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_client_fqdn_option(v: OptionValue): bool
 		%{
-		RecordVal* client_fqdn = new RecordVal(zeek::BifType::Record::DHCP::ClientFQDN);
+		auto client_fqdn = make_intrusive<RecordVal>(zeek::BifType::Record::DHCP::ClientFQDN);
 		client_fqdn->Assign(0, val_mgr->Count(${v.client_fqdn.flags}));
 		client_fqdn->Assign(1, val_mgr->Count(${v.client_fqdn.rcode1}));
 		client_fqdn->Assign(2, val_mgr->Count(${v.client_fqdn.rcode2}));
 		const char* domain_name = reinterpret_cast<const char*>(${v.client_fqdn.domain_name}.begin());
 		client_fqdn->Assign(3, make_intrusive<StringVal>(${v.client_fqdn.domain_name}.length(), domain_name));
 
-		${context.flow}->options->Assign(21, client_fqdn);
+		${context.flow}->options->Assign(21, std::move(client_fqdn));
 
 		return true;
 		%}

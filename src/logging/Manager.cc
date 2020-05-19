@@ -1515,7 +1515,7 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 
 	// Create the RotationInfo record.
 	auto info = make_intrusive<RecordVal>(zeek::BifType::Record::Log::RotationInfo);
-	info->Assign(0, winfo->type->Ref());
+	info->Assign(0, {NewRef{}, winfo->type});
 	info->Assign(1, make_intrusive<StringVal>(new_name));
 	info->Assign(2, make_intrusive<StringVal>(winfo->writer->Info().path));
 	info->Assign(3, make_intrusive<Val>(open, TYPE_TIME));

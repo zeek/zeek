@@ -225,7 +225,7 @@ private:
 	void Weird(const char* name);
 
 	// Renders an MAC address into its ASCII representation.
-	Val* FmtEUI48(const u_char *mac) const;
+	IntrusivePtr<Val> FmtEUI48(const u_char* mac) const;
 
 	// True if we need to delete associated packet memory upon
 	// destruction.

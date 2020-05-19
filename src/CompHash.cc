@@ -900,7 +900,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 			RecordType* rt = t->AsRecordType();
 			int num_fields = rt->NumFields();
 
-			std::vector<Val*> values;
+			std::vector<IntrusivePtr<Val>> values;
 			int i;
 			for ( i = 0; i < num_fields; ++i )
 				{
@@ -922,7 +922,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 					break;
 					}
 
-				values.push_back(v.release());
+				values.emplace_back(std::move(v));
 				}
 
 			ASSERT(int(values.size()) == num_fields);
@@ -930,7 +930,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 			auto rv = make_intrusive<RecordVal>(IntrusivePtr{NewRef{}, rt});
 
 			for ( int i = 0; i < num_fields; ++i )
-				rv->Assign(i, values[i]);
+				rv->Assign(i, std::move(values[i]));
 
 			*pval = std::move(rv);
 			kp1 = kp;

@@ -136,7 +136,7 @@ private:
 	std::string cert_data;
 
 	// Helpers for ParseCertificate.
-	static StringVal* KeyCurve(EVP_PKEY *key);
+	static IntrusivePtr<StringVal> KeyCurve(EVP_PKEY* key);
 	static unsigned int KeyLength(EVP_PKEY *key);
 	/** X509 stores associated with global script-layer values */
 	inline static std::map<Val*, X509_STORE*> x509_stores = std::map<Val*, X509_STORE*>();

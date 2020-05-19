@@ -66,8 +66,8 @@ public:
 	 * @param id the ID to associate
 	 * @param v the value to associate it with
 	 */
-	void SetElement(const ID* id, IntrusivePtr<Val> v);
-	void SetElement(const IntrusivePtr<ID>& id, IntrusivePtr<Val> v)
+	void SetElement(const zeek::detail::ID* id, IntrusivePtr<Val> v);
+	void SetElement(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<Val> v)
 		{ SetElement(id.get(), std::move(v)); }
 
 	/**
@@ -77,11 +77,11 @@ public:
 	 * @param id the id who's value to retreive
 	 * @return the value associated with *id*
 	 */
-	const IntrusivePtr<Val>& GetElementByID(const IntrusivePtr<ID>& id) const
+	const IntrusivePtr<Val>& GetElementByID(const IntrusivePtr<zeek::detail::ID>& id) const
 		{ return GetElementByID(id.get()); }
 
 	[[deprecated("Remove in v4.1.  Use GetElementByID().")]]
-	Val* GetElement(const ID* id) const
+	Val* GetElement(const zeek::detail::ID* id) const
 		{ return GetElementByID(id).get(); }
 
 	/**
@@ -247,7 +247,7 @@ private:
 		bool weak_ref;
 	};
 
-	const IntrusivePtr<Val>& GetElementByID(const ID* id) const;
+	const IntrusivePtr<Val>& GetElementByID(const zeek::detail::ID* id) const;
 
 	/**
 	 * Sets the element at index *n* of the underlying array to *v*, but does
@@ -273,7 +273,7 @@ private:
 	void ClearElement(int n);
 
 	/** Have we captured this id? */
-	bool IsOuterID(const ID* in) const;
+	bool IsOuterID(const zeek::detail::ID* in) const;
 
 	/** Serializes an offset_map */
 	static broker::expected<broker::data>

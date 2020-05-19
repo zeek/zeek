@@ -11,12 +11,12 @@
 
 class Frame;
 class Val;
-class ID;
 class ODesc;
 
 FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
 FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 FORWARD_DECLARE_NAMESPACED(CallExpr, zeek::detail);
+FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
 
 namespace trigger {
 // Triggers are the heart of "when" statements: expressions that when
@@ -89,7 +89,7 @@ private:
 	friend class TriggerTimer;
 
 	void Init();
-	void Register(ID* id);
+	void Register(zeek::detail::ID* id);
 	void Register(Val* val);
 	void UnregisterAll();
 

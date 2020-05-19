@@ -324,9 +324,9 @@ public:
 #ifdef DEBUG
 	// For debugging, we keep a reference to the global ID to which a
 	// value has been bound *last*.
-	ID* GetID() const;
+	zeek::detail::ID* GetID() const;
 
-	void SetID(ID* id);
+	void SetID(zeek::detail::ID* id);
 #endif
 
 	static bool WouldOverflow(const BroType* from_type, const BroType* to_type, const Val* val);

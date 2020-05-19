@@ -31,7 +31,7 @@ IntrusivePtr<TableType> zeek::id::count_set;
 IntrusivePtr<VectorType> zeek::id::string_vec;
 IntrusivePtr<VectorType> zeek::id::index_vec;
 
-const IntrusivePtr<ID>& zeek::id::find(std::string_view name)
+const IntrusivePtr<zeek::detail::ID>& zeek::id::find(std::string_view name)
 	{
 	return global_scope()->Find(name);
 	}
@@ -102,6 +102,8 @@ void zeek::id::detail::init()
 	index_vec = zeek::id::find_type<VectorType>("index_vec");
 	}
 
+namespace zeek::detail {
+
 ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 	{
 	name = copy_string(arg_name);
@@ -117,6 +119,9 @@ ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 
 	SetLocationInfo(&start_location, &end_location);
 	}
+
+ID::ID(const char* arg_name, ::IDScope arg_scope, bool arg_is_export) :
+	ID(arg_name, static_cast<IDScope>(arg_scope), arg_is_export) {}
 
 ID::~ID()
 	{
@@ -205,7 +210,7 @@ void ID::SetVal(IntrusivePtr<Val> v, init_class c)
 		}
 	}
 
-void ID::SetVal(IntrusivePtr<zeek::detail::Expr> ev, init_class c)
+void ID::SetVal(IntrusivePtr<Expr> ev, init_class c)
 	{
 	const auto& a = attrs->Find(c == INIT_EXTRA ? ATTR_ADD_FUNC : ATTR_DEL_FUNC);
 
@@ -213,6 +218,16 @@ void ID::SetVal(IntrusivePtr<zeek::detail::Expr> ev, init_class c)
 		Internal("no add/delete function in ID::SetVal");
 
 	EvalFunc(a->GetExpr(), std::move(ev));
+	}
+
+void ID::SetVal(IntrusivePtr<Val> v, ::init_class c)
+	{
+	SetVal(v, static_cast<init_class>(c));
+	}
+
+void ID::SetVal(IntrusivePtr<Expr> ev, ::init_class c)
+	{
+	SetVal(ev, static_cast<init_class>(c));
 	}
 
 bool ID::IsRedefinable() const
@@ -276,7 +291,7 @@ bool ID::IsDeprecated() const
 	return GetAttr(ATTR_DEPRECATED) != nullptr;
 	}
 
-void ID::MakeDeprecated(IntrusivePtr<zeek::detail::Expr> deprecation)
+void ID::MakeDeprecated(IntrusivePtr<Expr> deprecation)
 	{
 	if ( IsDeprecated() )
 		return;
@@ -337,13 +352,13 @@ void ID::SetOption()
 		}
 	}
 
-void ID::EvalFunc(IntrusivePtr<zeek::detail::Expr> ef, IntrusivePtr<zeek::detail::Expr> ev)
+void ID::EvalFunc(IntrusivePtr<Expr> ef, IntrusivePtr<Expr> ev)
 	{
 	auto arg1 = make_intrusive<zeek::detail::ConstExpr>(val);
 	auto args = make_intrusive<zeek::detail::ListExpr>();
 	args->Append(std::move(arg1));
 	args->Append(std::move(ev));
-	auto ce = make_intrusive<zeek::detail::CallExpr>(std::move(ef), std::move(args));
+	auto ce = make_intrusive<CallExpr>(std::move(ef), std::move(args));
 	SetVal(ce->Eval(nullptr));
 	}
 
@@ -655,3 +670,5 @@ std::vector<Func*> ID::GetOptionHandlers() const
 		v.push_back(element.second.get());
 	return v;
 	}
+
+}

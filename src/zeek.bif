@@ -1918,7 +1918,7 @@ function global_sizes%(%): var_sizes
 
 	for ( const auto& global : globals )
 		{
-		ID* id = global.second.get();
+		auto id = global.second;
 		if ( id->HasVal() )
 			{
 			auto id_name = make_intrusive<StringVal>(id->Name());
@@ -1946,7 +1946,7 @@ function global_ids%(%): id_table
 
 	for ( const auto& global : globals )
 		{
-		ID* id = global.second.get();
+		zeek::detail::ID* id = global.second.get();
 		static auto script_id = zeek::id::find_type<RecordType>("script_id");
 		auto rec = make_intrusive<RecordVal>(script_id);
 		rec->Assign(0, make_intrusive<StringVal>(type_name(id->GetType()->Tag())));

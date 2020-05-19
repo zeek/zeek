@@ -122,7 +122,7 @@ Func::Func(Kind arg_kind) : kind(arg_kind)
 Func::~Func() = default;
 
 void Func::AddBody(IntrusivePtr<zeek::detail::Stmt> /* new_body */,
-                   const std::vector<IntrusivePtr<ID>>& /* new_inits */,
+                   const std::vector<IntrusivePtr<zeek::detail::ID>>& /* new_inits */,
                    size_t /* new_frame_size */, int /* priority */)
 	{
 	Internal("Func::AddBody called");
@@ -268,8 +268,8 @@ void Func::CheckPluginResult(bool handled, const IntrusivePtr<Val>& hook_result,
 	}
 	}
 
-BroFunc::BroFunc(const IntrusivePtr<ID>& arg_id, IntrusivePtr<zeek::detail::Stmt> arg_body,
-                 const std::vector<IntrusivePtr<ID>>& aggr_inits,
+BroFunc::BroFunc(const IntrusivePtr<zeek::detail::ID>& arg_id, IntrusivePtr<zeek::detail::Stmt> arg_body,
+                 const std::vector<IntrusivePtr<zeek::detail::ID>>& aggr_inits,
                  size_t arg_frame_size, int priority)
 	: Func(BRO_FUNC)
 	{
@@ -450,7 +450,7 @@ IntrusivePtr<Val> BroFunc::Invoke(zeek::Args* args, Frame* parent) const
 	}
 
 void BroFunc::AddBody(IntrusivePtr<zeek::detail::Stmt> new_body,
-                      const std::vector<IntrusivePtr<ID>>& new_inits,
+                      const std::vector<IntrusivePtr<zeek::detail::ID>>& new_inits,
                       size_t new_frame_size, int priority)
 	{
 	if ( new_frame_size > frame_size )
@@ -575,7 +575,7 @@ void BroFunc::Describe(ODesc* d) const
 	}
 
 IntrusivePtr<zeek::detail::Stmt> BroFunc::AddInits(IntrusivePtr<zeek::detail::Stmt> body,
-                                                   const std::vector<IntrusivePtr<ID>>& inits)
+                                                   const std::vector<IntrusivePtr<zeek::detail::ID>>& inits)
 	{
 	if ( inits.empty() )
 		return body;

@@ -32,7 +32,7 @@ public:
 	 * @param script The info object associated with the script in which \a id
 	 * is declared.
 	 */
-	IdentifierInfo(IntrusivePtr<ID> id, ScriptInfo* script);
+	IdentifierInfo(IntrusivePtr<zeek::detail::ID> id, ScriptInfo* script);
 
 	/**
 	 * Dtor.  Releases any references to script-level objects.
@@ -70,7 +70,7 @@ public:
 	 * @param init_expr The initialization expression used.
 	 * @param comments Comments associated with the redef statement.
 	 */
-	void AddRedef(const std::string& from_script, init_class ic,
+	void AddRedef(const std::string& from_script, zeek::detail::init_class ic,
 	              IntrusivePtr<zeek::detail::Expr> init_expr,
 	              const std::vector<std::string>& comments);
 
@@ -96,7 +96,7 @@ public:
 	/**
 	 * @return the script-level ID tracked by this info object.
 	 */
-	ID* GetID() const
+	zeek::detail::ID* GetID() const
 		{ return id.get(); }
 
 	/**
@@ -127,11 +127,11 @@ public:
 	 */
 	struct Redefinition {
 		std::string from_script; /**< Name of script doing the redef. */
-		init_class ic;
+		zeek::detail::init_class ic;
 		IntrusivePtr<zeek::detail::Expr> init_expr;
 		std::vector<std::string> comments; /**< Zeekygen comments on redef. */
 
-		Redefinition(std::string arg_script, init_class arg_ic,
+		Redefinition(std::string arg_script, zeek::detail::init_class arg_ic,
 		             IntrusivePtr<zeek::detail::Expr> arg_expr,
 		             std::vector<std::string> arg_comments);
 
@@ -174,7 +174,7 @@ private:
 	typedef std::map<std::string, RecordField*> record_field_map;
 
 	std::vector<std::string> comments;
-	IntrusivePtr<ID> id;
+	IntrusivePtr<zeek::detail::ID> id;
 	IntrusivePtr<Val> initial_val;
 	redef_list redefs;
 	record_field_map fields;

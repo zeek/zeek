@@ -136,7 +136,7 @@ std::vector<int> saved_in_init;
 
 static Location func_hdr_location;
 EnumType *cur_enum_type = 0;
-static ID* cur_decl_type_id = 0;
+static zeek::detail::ID* cur_decl_type_id = 0;
 
 static void parser_new_enum (void)
 	{
@@ -149,7 +149,7 @@ static void parser_new_enum (void)
 		reporter->FatalError("incorrect syntax for enum type declaration");
 	}
 
-static void parser_redef_enum (ID *id)
+static void parser_redef_enum (zeek::detail::ID *id)
 	{
 	/* Redef an enum. id points to the enum to be redefined.
 	   Let cur_enum_type point to it. */
@@ -166,7 +166,7 @@ static void parser_redef_enum (ID *id)
 		}
 	}
 
-static void extend_record(ID* id, std::unique_ptr<type_decl_list> fields,
+static void extend_record(zeek::detail::ID* id, std::unique_ptr<type_decl_list> fields,
                           std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs)
 	{
 	std::set<BroType*> types = BroType::GetAliases(id->Name());
@@ -232,9 +232,9 @@ static bool expr_is_table_type_name(const zeek::detail::Expr* expr)
 %union {
 	bool b;
 	char* str;
-	ID* id;
+	zeek::detail::ID* id;
 	id_list* id_l;
-	init_class ic;
+	zeek::detail::init_class ic;
 	Val* val;
 	RE_Matcher* re;
 	zeek::detail::Expr* expr;
@@ -1295,10 +1295,10 @@ opt_type:
 	;
 
 init_class:
-				{ $$ = INIT_NONE; }
-	|	'='		{ $$ = INIT_FULL; }
-	|	TOK_ADD_TO	{ $$ = INIT_EXTRA; }
-	|	TOK_REMOVE_FROM	{ $$ = INIT_REMOVE; }
+				{ $$ = zeek::detail::INIT_NONE; }
+	|	'='		{ $$ = zeek::detail::INIT_FULL; }
+	|	TOK_ADD_TO	{ $$ = zeek::detail::INIT_EXTRA; }
+	|	TOK_REMOVE_FROM	{ $$ = zeek::detail::INIT_REMOVE; }
 	;
 
 opt_init:
@@ -1658,7 +1658,7 @@ case_type_list:
 case_type:
 		TOK_TYPE type
 			{
-			$$ = new ID(0, SCOPE_FUNCTION, 0);
+			$$ = new zeek::detail::ID(0, zeek::detail::SCOPE_FUNCTION, 0);
 			$$->SetType({AdoptRef{}, $2});
 			}
 
@@ -1673,7 +1673,7 @@ case_type:
 			else
 				case_var = install_ID(name, current_module.c_str(), false, false);
 
-			add_local(case_var, std::move(type), INIT_NONE, nullptr, nullptr,
+			add_local(case_var, std::move(type), zeek::detail::INIT_NONE, nullptr, nullptr,
 			          VAR_REGULAR);
 			$$ = case_var.release();
 			}

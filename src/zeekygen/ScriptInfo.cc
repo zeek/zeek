@@ -82,7 +82,7 @@ static string make_summary(const string& heading, char underline, char border,
 	for ( id_info_list::const_iterator it = id_list.begin();
 	      it != id_list.end(); ++it )
 		{
-		ID* id = (*it)->GetID();
+		auto* id = (*it)->GetID();
 		ODesc d;
 		d.SetQuotes(true);
 		id->DescribeReSTShort(&d);
@@ -105,7 +105,7 @@ static string make_redef_summary(const string& heading, char underline,
 	for ( id_info_set::const_iterator it = id_set.begin(); it != id_set.end();
 	      ++it )
 		{
-		ID* id = (*it)->GetID();
+		auto* id = (*it)->GetID();
 		ODesc d;
 		d.SetQuotes(true);
 		id->DescribeReSTShort(&d);
@@ -179,7 +179,7 @@ void ScriptInfo::DoInitPostScript()
 	      it != id_info.end(); ++it )
 		{
 		IdentifierInfo* info = it->second;
-		ID* id = info->GetID();
+		auto* id = info->GetID();
 
 		if ( ! zeekygen::is_public_api(id) )
 			continue;

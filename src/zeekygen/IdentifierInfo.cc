@@ -11,7 +11,7 @@
 using namespace std;
 using namespace zeekygen;
 
-IdentifierInfo::IdentifierInfo(IntrusivePtr<ID> arg_id, ScriptInfo* script)
+IdentifierInfo::IdentifierInfo(IntrusivePtr<zeek::detail::ID> arg_id, ScriptInfo* script)
 	: Info(),
 	  comments(), id(std::move(arg_id)), initial_val(), redefs(), fields(),
 	  last_field_seen(), declaring_script(script)
@@ -31,7 +31,7 @@ IdentifierInfo::~IdentifierInfo()
 		delete it->second;
 	}
 
-void IdentifierInfo::AddRedef(const string& script, init_class ic,
+void IdentifierInfo::AddRedef(const string& script, zeek::detail::init_class ic,
                               IntrusivePtr<zeek::detail::Expr> init_expr, const vector<string>& comments)
 	{
 	Redefinition* redef = new Redefinition(script, ic, std::move(init_expr), comments);
@@ -141,7 +141,7 @@ time_t IdentifierInfo::DoGetModificationTime() const
 
 IdentifierInfo::Redefinition::Redefinition(
                        std::string arg_script,
-                       init_class arg_ic,
+                       zeek::detail::init_class arg_ic,
                        IntrusivePtr<zeek::detail::Expr> arg_expr,
                        std::vector<std::string> arg_comments)
 			: from_script(std::move(arg_script)),

@@ -7,8 +7,8 @@
 FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 typedef PList<zeek::detail::Expr> expr_list;
 
-class ID;
-typedef PList<ID> id_list;
+FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
+typedef PList<zeek::detail::ID> id_list;
 
 class Val;
 typedef PList<Val> val_list;

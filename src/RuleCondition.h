@@ -2,10 +2,12 @@
 
 #include <stdint.h> // for u_char
 #include <sys/types.h> // for u_char
+#include "util.h"
 
-class ID;
 class Rule;
 class RuleEndpointState;
+
+FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
 
 // Base class for all rule conditions except patterns and "header".
 class RuleCondition {
@@ -111,7 +113,5 @@ public:
 
 	void PrintDebug() override;
 private:
-	ID* id;
+	zeek::detail::ID* id;
 };
-
-

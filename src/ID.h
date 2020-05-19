@@ -22,16 +22,25 @@ class VectorType;
 class EnumType;
 class Attributes;
 
-FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
+enum [[deprecated("Remove in v4.1. Use zeek::detail::init_class instead.")]] init_class { INIT_NONE, INIT_FULL, INIT_EXTRA, INIT_REMOVE, };
+enum [[deprecated("Remove in v4.1. Use zeek::detail::IDScope instead.")]] IDScope { SCOPE_FUNCTION, SCOPE_MODULE, SCOPE_GLOBAL };
 
-typedef enum { INIT_NONE, INIT_FULL, INIT_EXTRA, INIT_REMOVE, } init_class;
-typedef enum { SCOPE_FUNCTION, SCOPE_MODULE, SCOPE_GLOBAL } IDScope;
+namespace zeek::detail {
+
+class Expr;
+
+enum init_class { INIT_NONE, INIT_FULL, INIT_EXTRA, INIT_REMOVE, };
+enum IDScope { SCOPE_FUNCTION, SCOPE_MODULE, SCOPE_GLOBAL };
 
 class ID final : public BroObj, public notifier::Modifiable {
 public:
 	static inline const IntrusivePtr<ID> nil;
 
 	ID(const char* name, IDScope arg_scope, bool arg_is_export);
+
+	[[deprecated("Remove in v4.1. Use version that takes zeek::detail::IDScope")]]
+	ID(const char* name, ::IDScope arg_scope, bool arg_is_export);
+
 	~ID() override;
 
 	const char* Name() const	{ return name; }
@@ -71,7 +80,12 @@ public:
 	void SetVal(IntrusivePtr<Val> v);
 
 	void SetVal(IntrusivePtr<Val> v, init_class c);
-	void SetVal(IntrusivePtr<zeek::detail::Expr> ev, init_class c);
+	void SetVal(IntrusivePtr<Expr> ev, init_class c);
+
+	[[deprecated("Remove in v4.1. Use version that takes zeek::detail::init_class")]]
+	void SetVal(IntrusivePtr<Val> v, ::init_class c);
+	[[deprecated("Remove in v4.1. Use version that takes zeek::detail::init_class")]]
+	void SetVal(IntrusivePtr<Expr> ev, ::init_class c);
 
 	bool HasVal() const		{ return val != nullptr; }
 
@@ -118,7 +132,7 @@ public:
 
 	bool IsDeprecated() const;
 
-	void MakeDeprecated(IntrusivePtr<zeek::detail::Expr> deprecation);
+	void MakeDeprecated(IntrusivePtr<Expr> deprecation);
 
 	std::string GetDeprecationWarning() const;
 
@@ -145,7 +159,7 @@ public:
 	std::vector<Func*> GetOptionHandlers() const;
 
 protected:
-	void EvalFunc(IntrusivePtr<zeek::detail::Expr> ef, IntrusivePtr<zeek::detail::Expr> ev);
+	void EvalFunc(IntrusivePtr<Expr> ef, IntrusivePtr<Expr> ev);
 
 #ifdef DEBUG
 	void UpdateValID();
@@ -165,6 +179,10 @@ protected:
 
 };
 
+}
+
+using ID [[deprecated("Remove in v4.1. Use zeek::detail::ID instead.")]] = zeek::detail::ID;
+
 namespace zeek::id {
 
 /**
@@ -173,7 +191,7 @@ namespace zeek::id {
  * @return  The identifier, which may reference a nil object if no such
  * name exists.
  */
-const IntrusivePtr<ID>& find(std::string_view name);
+const IntrusivePtr<zeek::detail::ID>& find(std::string_view name);
 
 /**
  * Lookup an ID by its name and return its type.  A fatal occurs if the ID

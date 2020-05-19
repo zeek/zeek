@@ -110,14 +110,14 @@ public:
 	 * Signal that a record or enum type is now being parsed.
 	 * @param id The record or enum type identifier.
 	 */
-	void StartType(IntrusivePtr<ID> id);
+	void StartType(IntrusivePtr<zeek::detail::ID> id);
 
 	/**
 	 * Register a script-level identifier for which information/documentation
 	 * will be gathered.
 	 * @param id The script-level identifier.
 	 */
-	void Identifier(IntrusivePtr<ID> id);
+	void Identifier(IntrusivePtr<zeek::detail::ID> id);
 
 	/**
 	 * Register a record-field for which information/documentation will be
@@ -128,7 +128,7 @@ public:
 	 * declared.  This can be different from the place where the record type
 	 * is declared due to redefs.
 	 */
-	void RecordField(const ID* id, const TypeDecl* field,
+	void RecordField(const zeek::detail::ID* id, const TypeDecl* field,
 	                 const std::string& path);
 
 	/**
@@ -138,10 +138,10 @@ public:
 	 * @param ic The initialization class that was used (e.g. =, +=, -=).
 	 * @param init_expr The intiialization expression that was used.
 	 */
-	void Redef(const ID* id, const std::string& path,
-		init_class ic, IntrusivePtr<zeek::detail::Expr> init_expr);
-	void Redef(const ID* id, const std::string& path,
-	           init_class ic = INIT_NONE);
+	void Redef(const zeek::detail::ID* id, const std::string& path,
+		zeek::detail::init_class ic, IntrusivePtr<zeek::detail::Expr> init_expr);
+	void Redef(const zeek::detail::ID* id, const std::string& path,
+		zeek::detail::init_class ic = zeek::detail::INIT_NONE);
 
 	/**
 	 * Register Zeekygen script summary content.
@@ -217,7 +217,7 @@ private:
 	typedef std::vector<std::string> comment_buffer_t;
 	typedef std::map<std::string, comment_buffer_t> comment_buffer_map_t;
 
-	IdentifierInfo* CreateIdentifierInfo(IntrusivePtr<ID> id, ScriptInfo* script);
+	IdentifierInfo* CreateIdentifierInfo(IntrusivePtr<zeek::detail::ID> id, ScriptInfo* script);
 
 	bool disabled;
 	comment_buffer_t comment_buffer; // For whatever next identifier comes in.

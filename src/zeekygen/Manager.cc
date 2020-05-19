@@ -27,7 +27,7 @@ static void DbgAndWarn(const char* msg)
 	DBG_LOG(DBG_ZEEKYGEN, "%s", msg);
 	}
 
-static void WarnMissingScript(const char* type, const ID* id,
+static void WarnMissingScript(const char* type, const zeek::detail::ID* id,
                               const string& script)
 	{
 	if ( script == "<command line>" )
@@ -216,7 +216,7 @@ void Manager::ModuleUsage(const string& path, const string& module)
 	        module.c_str(), name.c_str());
 	}
 
-IdentifierInfo* Manager::CreateIdentifierInfo(IntrusivePtr<ID> id, ScriptInfo* script)
+IdentifierInfo* Manager::CreateIdentifierInfo(IntrusivePtr<zeek::detail::ID> id, ScriptInfo* script)
 	{
 	const auto& id_name = id->Name();
 	auto prev = identifiers.GetInfo(id_name);
@@ -247,7 +247,7 @@ IdentifierInfo* Manager::CreateIdentifierInfo(IntrusivePtr<ID> id, ScriptInfo* s
 	return rval;
 	}
 
-void Manager::StartType(IntrusivePtr<ID> id)
+void Manager::StartType(IntrusivePtr<zeek::detail::ID> id)
 	{
 	if ( disabled )
 		return;
@@ -273,12 +273,12 @@ void Manager::StartType(IntrusivePtr<ID> id)
 	incomplete_type = CreateIdentifierInfo(std::move(id), script_info);
 	}
 
-static bool IsEnumType(ID* id)
+static bool IsEnumType(zeek::detail::ID* id)
 	{
 	return id->IsType() ? id->GetType()->Tag() == TYPE_ENUM : false;
 	}
 
-void Manager::Identifier(IntrusivePtr<ID> id)
+void Manager::Identifier(IntrusivePtr<zeek::detail::ID> id)
 	{
 	if ( disabled )
 		return;
@@ -337,7 +337,7 @@ void Manager::Identifier(IntrusivePtr<ID> id)
 	CreateIdentifierInfo(std::move(id), script_info);
 	}
 
-void Manager::RecordField(const ID* id, const TypeDecl* field,
+void Manager::RecordField(const zeek::detail::ID* id, const TypeDecl* field,
 			  const string& path)
 	{
 	if ( disabled )
@@ -360,8 +360,8 @@ void Manager::RecordField(const ID* id, const TypeDecl* field,
 	        field->id, id->Name(), script.c_str());
 	}
 
-void Manager::Redef(const ID* id, const string& path,
-	init_class ic, IntrusivePtr<zeek::detail::Expr> init_expr)
+void Manager::Redef(const zeek::detail::ID* id, const string& path,
+	zeek::detail::init_class ic, IntrusivePtr<zeek::detail::Expr> init_expr)
 	{
 	if ( disabled )
 		return;
@@ -397,8 +397,8 @@ void Manager::Redef(const ID* id, const string& path,
 	        id->Name(), from_script.c_str());
 	}
 
-void Manager::Redef(const ID* id, const std::string& path,
-                    init_class ic)
+void Manager::Redef(const zeek::detail::ID* id, const std::string& path,
+	zeek::detail::init_class ic)
 	{
 	Redef(id, path, ic, nullptr);
 	}

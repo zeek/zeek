@@ -898,6 +898,9 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		auto n = e->AsNameExpr();
 		auto id = n->Id();
 
+		if ( id->IsGlobal() )
+			break;
+
 		if ( ! mgr.HasPreMinRD(e, id) )
 			e->Error("used without definition");
 

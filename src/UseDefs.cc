@@ -165,7 +165,8 @@ bool UseDefs::CheckIfUnused(const Stmt* s, const ID* id, bool report)
 		{
 		if ( report && ! rc->IsTemporary(id) &&
 		     ! rc->IsConstantVar(id) )
-			reporter->Warning("%s unused", id->Name());
+			reporter->Warning("%s assignment unused: %s",
+						id->Name(), obj_desc(s));
 
 		return true;
 		}

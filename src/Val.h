@@ -318,6 +318,7 @@ public:
 #endif
 
 	static bool WouldOverflow(const BroType* from_type, const BroType* to_type, const Val* val);
+	static bool WouldOverflow(InternalTypeTag from_type, const InternalTypeTag to_type, const Val* val);
 
 	IntrusivePtr<TableVal> GetRecordFields();
 

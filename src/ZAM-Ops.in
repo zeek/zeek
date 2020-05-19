@@ -513,7 +513,9 @@ direct-unary-op Arith-Coerce ArithCoerce
 
 internal-op Coerce-UI
 type VV
-eval frame[z.v1].uint_val = bro_uint_t(frame[z.v2].int_val)
+eval auto v = frame[z.v2].int_val
+eval if ( v < 0 ) { ZAM_run_time_error(error_flag, z.stmt, "underflow converting int to count"); break; }
+eval frame[z.v1].uint_val = bro_uint_t(v)
 
 internal-op Coerce-UI-Vec
 type VV
@@ -522,7 +524,10 @@ eval frame[z.v1].vector_val = vec_coerce_UI(frame[z.v2].vector_val)
 
 internal-op Coerce-UD
 type VV
-eval frame[z.v1].uint_val = bro_uint_t(frame[z.v2].double_val)
+eval auto v = frame[z.v2].double_val
+eval if ( v < 0.0 ) { ZAM_run_time_error(error_flag, z.stmt, "underflow converting double to count"); break; }
+eval if ( v > UINT64_MAX ) { ZAM_run_time_error(error_flag, z.stmt, "overflow converting double to count"); break; }
+eval frame[z.v1].uint_val = bro_uint_t(v)
 
 internal-op Coerce-UD-Vec
 type VV
@@ -531,7 +536,9 @@ eval frame[z.v1].vector_val = vec_coerce_UD(frame[z.v2].vector_val)
 
 internal-op Coerce-IU
 type VV
-eval frame[z.v1].int_val = bro_int_t(frame[z.v2].uint_val)
+eval auto v = frame[z.v2].uint_val
+eval if ( v > INT64_MAX ) { ZAM_run_time_error(error_flag, z.stmt, "overflow converting count to int"); break; }
+eval frame[z.v1].int_val = bro_int_t(v)
 
 internal-op Coerce-IU-Vec
 type VV
@@ -540,7 +547,10 @@ eval frame[z.v1].vector_val = vec_coerce_IU(frame[z.v2].vector_val)
 
 internal-op Coerce-ID
 type VV
-eval frame[z.v1].int_val = bro_int_t(frame[z.v2].double_val)
+eval auto v = frame[z.v2].double_val
+eval if ( v < static_cast<double>(INT64_MIN) ) { ZAM_run_time_error(error_flag, z.stmt, "underflow converting double to int"); break; }
+eval if ( v > static_cast<double>(INT64_MAX) ) { ZAM_run_time_error(error_flag, z.stmt, "overflow converting double to int"); break; }
+eval frame[z.v1].int_val = bro_int_t(v)
 
 internal-op Coerce-ID-Vec
 type VV

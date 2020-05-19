@@ -284,6 +284,8 @@ static void vec_exec(ZOp op, ZAMVectorMgr*& v1, const ZAMVectorMgr* v2,
 			const ZAMVectorMgr* v3);
 
 // Vector coercion.
+//
+// ### Should check for underflow/overflow.
 #define VEC_COERCE(tag, lhs_accessor, cast, rhs_accessor) \
 	static ZAMVectorMgr* vec_coerce_##tag(ZAMVectorMgr* vec) \
 		{ \

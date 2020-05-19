@@ -384,24 +384,33 @@ bool Val::WouldOverflow(const BroType* from_type, const BroType* to_type, const 
 	{
 	if ( !to_type || !from_type )
 		return true;
-	else if ( same_type(to_type, from_type) )
+
+	return WouldOverflow(from_type->InternalType(), to_type->InternalType(),
+				val);
+	}
+
+bool Val::WouldOverflow(InternalTypeTag from_type, InternalTypeTag to_type, const Val* val)
+	{
+	if ( to_type == from_type )
 		return false;
 
-	if ( to_type->InternalType() == TYPE_INTERNAL_DOUBLE )
+	if ( to_type == TYPE_INTERNAL_DOUBLE )
 		return false;
-	else if ( to_type->InternalType() == TYPE_INTERNAL_UNSIGNED )
+
+	if ( to_type == TYPE_INTERNAL_UNSIGNED )
 		{
-		if ( from_type->InternalType() == TYPE_INTERNAL_DOUBLE )
+		if ( from_type == TYPE_INTERNAL_DOUBLE )
 			return (val->InternalDouble() < 0.0 || val->InternalDouble() > static_cast<double>(UINT64_MAX));
-		else if ( from_type->InternalType() == TYPE_INTERNAL_INT )
+		else if ( from_type == TYPE_INTERNAL_INT )
 			return (val->InternalInt() < 0);
 		}
-	else if ( to_type->InternalType() == TYPE_INTERNAL_INT )
+
+	else if ( to_type == TYPE_INTERNAL_INT )
 		{
-		if ( from_type->InternalType() == TYPE_INTERNAL_DOUBLE )
+		if ( from_type == TYPE_INTERNAL_DOUBLE )
 			return (val->InternalDouble() < static_cast<double>(INT64_MIN) ||
 			        val->InternalDouble() > static_cast<double>(INT64_MAX));
-		else if ( from_type->InternalType() == TYPE_INTERNAL_UNSIGNED )
+		else if ( from_type == TYPE_INTERNAL_UNSIGNED )
 			return (val->InternalUnsigned() > INT64_MAX);
 		}
 

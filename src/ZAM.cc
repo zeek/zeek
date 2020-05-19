@@ -1024,7 +1024,15 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 	auto index_assign = e->AsIndexAssignExpr();
 
 	auto op1 = index_assign->GetOp1();
-	auto op2 = index_assign->GetOp2()->AsListExpr()->Exprs()[0];
+	auto indexes = index_assign->GetOp2()->AsListExpr()->Exprs();
+
+	if ( indexes.length() > 1 )
+		{
+		// Vector slice assignment.  For now, punt to the interpreter.
+		return InterpretExpr(e);
+		}
+
+	auto op2 = indexes[0];
 	auto op3 = index_assign->GetOp3();
 
 	auto lhs = op1->AsNameExpr();

@@ -105,6 +105,13 @@ public:
 	// corresponds to "running off the end" (no explicit return).
 	virtual void SyncGlobals(const BroObj* o) = 0;
 
+	// Tells the compiler that the next statement is going to
+	// be an assignment to a global.  This enables the compiler
+	// to manage the global's state (for example, *not* loading
+	// it as part of executing the assignment, since it might not
+	// yet be defined).
+	virtual void AssigningToGlobal(const ID* global_id) = 0;
+
 	// Returns a handle to state associated with building
 	// up a list of values.
 	virtual OpaqueVals* BuildVals(const IntrusivePtr<ListExpr>&) = 0;

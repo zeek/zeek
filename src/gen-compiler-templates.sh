@@ -707,7 +707,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 
 	if ( type == "O" || type == "VO" )
 		{
-		pre_arg = type == "O" ? "" : ", FrameSlot(n)"
+		pre_arg = type == "O" ? "" : ", ModFrameSlot(n)"
 		print ("\treturn AddInst(ZInst(" \
 			full_op pre_arg ", reg));") >methods_f
 		}

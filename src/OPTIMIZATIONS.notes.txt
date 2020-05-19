@@ -4,8 +4,6 @@ optimize for common case of global that's a function/event name
 
 speed up vector operations that currently punt to converting to VectorVal's
 
-use usedef's to only restore globals that matter after a call
-
 versions of operators that take listval's that inline the values
 	rather than building val-vec's if a small number (including 0)
 
@@ -17,10 +15,6 @@ single val-vec maximally sized
 don't consider modifying a global's element as a reaching-def for
 	the global itself (glb[5] = 3)
 
-when flushing globals, no need to do so if they've already been flushed
-	(but may be tricky to be sure that code path reaches location)
-	and their reaching-defs haven't changed
-
 don't bother loading unused function parameters
 
 don't sync variables to the frame if they haven't changed since the
@@ -28,6 +22,9 @@ don't sync variables to the frame if they haven't changed since the
 	them initially, if parameters)
 
 collapse go-to's that branch to go-to's
+
+suppress sync-globals that are straight-line code from previous ones
+	for which no global was modified
 
 remove go-to's that branch to the next statement
 

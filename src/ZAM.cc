@@ -28,6 +28,13 @@ public:
 };
 
 
+typedef enum {
+	GS_UNLOADED,	// global hasn't been loaded
+	GS_CLEAN,	// global has been loaded but not modified
+	GS_DIRTY,	// loaded-and-modified
+} GlobalState;
+
+
 // Helper functions, to translate NameExpr*'s to slots.  Some aren't
 // needed, but we provide a complete set mirroring those for ZInst
 // for consistency.
@@ -38,28 +45,28 @@ ZInst GenInst(ZAM* m, ZOp op)
 
 ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1)
 	{
-	auto z = ZInst(op, m->FrameSlot(v1));
+	auto z = ZInst(op, m->ModFrameSlot(v1));
 	z.CheckIfManaged(v1);
 	return z;
 	}
 
 ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, int i)
 	{
-	auto z = ZInst(op, m->FrameSlot(v1), i);
+	auto z = ZInst(op, m->ModFrameSlot(v1), i);
 	z.CheckIfManaged(v1);
 	return z;
 	}
 
 ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const Expr* e)
 	{
-	auto z = ZInst(op, m->FrameSlot(v1), e);
+	auto z = ZInst(op, m->ModFrameSlot(v1), e);
 	z.CheckIfManaged(v1);
 	return z;
 	}
 
 ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const NameExpr* v2)
 	{
-	auto z = ZInst(op, m->FrameSlot(v1), m->FrameSlot(v2));
+	auto z = ZInst(op, m->ModFrameSlot(v1), m->FrameSlot(v2));
 	z.CheckIfManaged(v1);
 	return z;
 	}
@@ -67,7 +74,7 @@ ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const NameExpr* v2)
 ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const NameExpr* v2,
 		const NameExpr* v3)
 	{
-	auto z = ZInst(op, m->FrameSlot(v1), m->FrameSlot(v2),
+	auto z = ZInst(op, m->ModFrameSlot(v1), m->FrameSlot(v2),
 				m->FrameSlot(v3));
 	z.CheckIfManaged(v1);
 	return z;
@@ -76,7 +83,7 @@ ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const NameExpr* v2,
 ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const NameExpr* v2,
 		const NameExpr* v3, const NameExpr* v4)
 	{
-	auto z = ZInst(op, m->FrameSlot(v1), m->FrameSlot(v2),
+	auto z = ZInst(op, m->ModFrameSlot(v1), m->FrameSlot(v2),
 				m->FrameSlot(v3), m->FrameSlot(v4));
 	z.CheckIfManaged(v1);
 	return z;
@@ -89,7 +96,7 @@ ZInst GenInst(ZAM* m, ZOp op, const ConstExpr* ce)
 
 ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const ConstExpr* ce)
 	{
-	auto z = ZInst(op, m->FrameSlot(v1), ce);
+	auto z = ZInst(op, m->ModFrameSlot(v1), ce);
 	z.CheckIfManaged(v1);
 	return z;
 	}
@@ -97,14 +104,14 @@ ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const ConstExpr* ce)
 ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const ConstExpr* ce,
 		const NameExpr* v2)
 	{
-	auto z = ZInst(op, m->FrameSlot(v1), m->FrameSlot(v2), ce);
+	auto z = ZInst(op, m->ModFrameSlot(v1), m->FrameSlot(v2), ce);
 	z.CheckIfManaged(v1);
 	return z;
 	}
 ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const NameExpr* v2,
 		const ConstExpr* ce)
 	{
-	auto z = ZInst(op, m->FrameSlot(v1), m->FrameSlot(v2), ce);
+	auto z = ZInst(op, m->ModFrameSlot(v1), m->FrameSlot(v2), ce);
 	z.CheckIfManaged(v1);
 	return z;
 	}
@@ -112,7 +119,7 @@ ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const NameExpr* v2,
 ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const NameExpr* v2,
 		const NameExpr* v3, const ConstExpr* ce)
 	{
-	auto z = ZInst(op, m->FrameSlot(v1), m->FrameSlot(v2),
+	auto z = ZInst(op, m->ModFrameSlot(v1), m->FrameSlot(v2),
 				m->FrameSlot(v3), ce);
 	z.CheckIfManaged(v1);
 	return z;
@@ -122,7 +129,7 @@ ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const NameExpr* v2,
 	{
 	// Note that here we reverse the order of the arguments; saves
 	// us from needing to implement a redundant constructor.
-	auto z = ZInst(op, m->FrameSlot(v1), m->FrameSlot(v2),
+	auto z = ZInst(op, m->ModFrameSlot(v1), m->FrameSlot(v2),
 				m->FrameSlot(v3), ce);
 	z.CheckIfManaged(v1);
 	return z;
@@ -130,14 +137,14 @@ ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const NameExpr* v2,
 
 ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const ConstExpr* c, int i)
 	{
-	auto z = ZInst(op, m->FrameSlot(v1), i, c);
+	auto z = ZInst(op, m->ModFrameSlot(v1), i, c);
 	z.CheckIfManaged(v1);
 	z.op_type = OP_VVC_I2;
 	return z;
 	}
 ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const NameExpr* v2, int i)
 	{
-	auto z = ZInst(op, m->FrameSlot(v1), m->FrameSlot(v2), i);
+	auto z = ZInst(op, m->ModFrameSlot(v1), m->FrameSlot(v2), i);
 	z.CheckIfManaged(v1);
 	z.op_type = OP_VVV_I3;
 	return z;
@@ -204,9 +211,18 @@ void ZAM::Init()
 	auto args = scope->OrderedVars();
 	auto nparam = func->FType()->Args()->NumFields();
 
-	// Use slot 0 for the temporary register.
+	// Use slot 0 for the temporary register.  Note that this choice
+	// interacts with tracking globals, which we assume are in slots
+	// 1 .. num_globals.
 	register_slot = frame_size++;
 	frame_denizens.push_back(nullptr);
+
+	num_globals = pf->globals.size();
+
+	// Important that we added globals to the frame first, as we
+	// assume we can loop from 1 .. num_globals to iterate over them.
+	for ( auto g : pf->globals )
+		(void) AddToFrame(g);
 
 	::Ref(scope);
 	push_existing_scope(scope);
@@ -226,18 +242,6 @@ void ZAM::Init()
 		}
 
 	pop_scope();
-
-	for ( auto g : pf->globals )
-		{
-		// Only load a global if it has a use-def.  If it doesn't,
-		// that can be because it's uninitialized on entry and
-		// it's this function body that initializes it.
-		if ( uds && uds->HasID(g) )
-			LoadGlobal(g);
-		else
-			// But still make sure it's in the frame layout.
-			(void) AddToFrame(g);
-		}
 
 	// Assign slots for locals (which includes temporaries).
 	for ( auto l : pf->locals )
@@ -306,6 +310,11 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 						stmt_flow_type& flow) const
 	{
 	auto frame = new ZAMValUnion[frame_size];
+	auto global_state = num_globals > 0 ?
+					// We use +1 so we can index/loop
+					// from 1 .. num_globals
+					new GlobalState[num_globals + 1] :
+					nullptr;
 	int pc = start_pc;
 	bool error_flag = false;
 	int end_pc = insts.size();
@@ -331,6 +340,10 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 
 	// Type of the return value.  If nil, then we don't have a value.
 	BroType* ret_type = nullptr;
+
+	// All globals start out unloaded.
+	for ( auto i = 1; i <= num_globals; ++i )
+		global_state[i] = GS_UNLOADED;
 
 	// Clear slots for which we do explicit memory management.
 	for ( auto s : managed_slots )
@@ -367,6 +380,7 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 		}
 
 	delete [] frame;
+	delete [] global_state;
 
 	return result;
 	}
@@ -408,26 +422,18 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n, UDs uds)
 	for ( auto l : call_pf.locals )
 		StoreLocal(l);
 
-	auto a_s = n ? GenInst(this, OP_INTERPRET_EXPR_V, n, c) :
+	// Don't invoke GenStmt for the first case since if n is a global
+	// we don't want to dirty it prior to assignment
+	auto a_s = n ? ZInst(OP_INTERPRET_EXPR_V, RawSlot(n), c) :
 			ZInst(OP_INTERPRET_EXPR_X, c);
 
-	auto z = AddInst(a_s);
+	if ( n && n->Id()->IsGlobal() )
+		{
+		AddInst(a_s);
+		a_s = ZInst(OP_DIRTY_GLOBAL_V, RawSlot(n));
+		}
 
-	// Restore globals that are relevant after the call.
-	//
-	// Ideally, we'd also analyze the function to see whether it
-	// directly-or-indirectly can affect particular globals.
-	if ( uds )
-		for ( auto g : pf->globals )
-			{
-			if ( g->IsConst() )
-				continue;
-
-			if ( uds->HasID(g) )
-				z = LoadOrStoreGlobal(g, true, false);
-			}
-
-	return z;
+	return AddInst(a_s);
 	}
 
 void ZAM::FlushVars(const Expr* e)
@@ -438,8 +444,7 @@ void ZAM::FlushVars(const Expr* e)
 	auto mgr = reducer->GetDefSetsMgr();
 	auto entry_rds = mgr->GetPreMaxRDs(body);
 
-	for ( auto g : expr_pf.globals )
-		SyncGlobal(g, e, entry_rds);
+	SyncGlobals(nullptr);
 
 	for ( auto l : expr_pf.locals )
 		StoreLocal(l);
@@ -516,7 +521,7 @@ const CompiledStmt ZAM::RecordCoerce(const NameExpr* n, const Expr* e)
 	auto map = r->Map();
 	auto map_size = r->MapSize();
 
-	ZInst z(OP_RECORD_COERCE_VVV, FrameSlot(n), FrameSlot(op), map_size);
+	ZInst z(OP_RECORD_COERCE_VVV, ModFrameSlot(n), FrameSlot(op), map_size);
 
 	z.t = e->Type().get();
 	z.op_type = OP_VVV_I3;
@@ -529,7 +534,7 @@ const CompiledStmt ZAM::TableCoerce(const NameExpr* n, const Expr* e)
 	{
 	auto op = e->GetOp1()->AsNameExpr();
 
-	ZInst z(OP_TABLE_COERCE_VV, FrameSlot(n), FrameSlot(op));
+	ZInst z(OP_TABLE_COERCE_VV, ModFrameSlot(n), FrameSlot(op));
 	z.t = e->Type().get();
 
 	return AddInst(z);
@@ -540,7 +545,7 @@ const CompiledStmt ZAM::VectorCoerce(const NameExpr* n, const Expr* e)
 	auto op = e->GetOp1()->AsNameExpr();
 
 	ZInst z(IsAny(n) ? OP_ANY_VECTOR_COERCE_VV : OP_VECTOR_COERCE_VV,
-		FrameSlot(n), FrameSlot(op));
+		ModFrameSlot(n), FrameSlot(op));
 	z.t = e->Type().get();
 
 	return AddInst(z);
@@ -551,7 +556,7 @@ const CompiledStmt ZAM::Is(const NameExpr* n, const Expr* e)
 	auto is = e->AsIsExpr();
 	auto op = e->GetOp1()->AsNameExpr();
 
-	ZInst z(OP_IS_VV, FrameSlot(n), FrameSlot(op));
+	ZInst z(OP_IS_VV, ModFrameSlot(n), FrameSlot(op));
 	z.e = op;
 	z.t = is->TestType().get();
 
@@ -700,8 +705,6 @@ const CompiledStmt ZAM::Switch(const SwitchStmt* sw)
 const CompiledStmt ZAM::ValueSwitch(const SwitchStmt* sw, const NameExpr* v,
 					const ConstExpr* c)
 	{
-	auto body_end = EmptyStmt();
-
 	int slot = v ? FrameSlot(v) : 0;
 
 	if ( c )
@@ -711,7 +714,7 @@ const CompiledStmt ZAM::ValueSwitch(const SwitchStmt* sw, const NameExpr* v,
 		slot = RegisterSlot();
 		auto z = ZInst(OP_ASSIGN_CONST_VC, slot, c);
 		z.CheckIfManaged(c);
-		body_end = AddInst(z);
+		(void) AddInst(z);
 		}
 
 	// Figure out which jump table we're using.
@@ -759,7 +762,7 @@ const CompiledStmt ZAM::ValueSwitch(const SwitchStmt* sw, const NameExpr* v,
 	sw_head_op.op_type = OP_VVV_I2_I3;
 
 	auto sw_head = AddInst(sw_head_op);
-	body_end = sw_head;
+	auto body_end = sw_head;
 
 	// Generate each of the cases.
 	auto cases = sw->Cases();
@@ -931,7 +934,7 @@ const CompiledStmt ZAM::TypeSwitch(const SwitchStmt* sw, const NameExpr* v,
 		// ID with a null name.
 		if ( id->Name() )
 			{
-			int id_slot = FrameSlot(id);
+			int id_slot = ModFrameSlot(id);
 			z = ZInst(OP_CAST_ANY_VV, id_slot, slot);
 			z.t = type;
 			body_end = AddInst(z);
@@ -1034,11 +1037,11 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 
 		if ( is_any )
 			return AddInst(ZInst(OP_ANY_VECTOR_ELEM_ASSIGN_VVC,
-						FrameSlot(lhs), tmp,
+						ModFrameSlot(lhs), tmp,
 						op3->AsConstExpr()));
 		else
 			return AddInst(ZInst(OP_VECTOR_ELEM_ASSIGN_VVC,
-						FrameSlot(lhs), tmp,
+						ModFrameSlot(lhs), tmp,
 						op3->AsConstExpr()));
 		}
 
@@ -1096,16 +1099,18 @@ const CompiledStmt ZAM::LoopOverTable(const ForStmt* f, const NameExpr* val)
 	for ( int i = 0; i < loop_vars->length(); ++i )
 		{
 		auto id = (*loop_vars)[i];
-		z = ZInst(OP_ADD_VAR_TO_INIT_VV, info, FrameSlot(id));
+		z = ZInst(OP_ADD_VAR_TO_INIT_VV, info, ModFrameSlot(id));
 		z.CheckIfManaged(id->Type());
 		z.t = id->Type();
 		init_end = AddInst(z);
 		}
 
+	auto iter_head = StartingBlock();
 	if ( value_var )
+
 		{
 		z = ZInst(OP_NEXT_TABLE_ITER_VAL_VAR_VVV, info,
-					FrameSlot(value_var), 0);
+					ModFrameSlot(value_var), 0);
 		z.CheckIfManaged(value_var->Type());
 		z.op_type = OP_VVV_I3;
 		}
@@ -1115,7 +1120,7 @@ const CompiledStmt ZAM::LoopOverTable(const ForStmt* f, const NameExpr* val)
 		z.op_type = OP_VV_I2;
 		}
 
-	return FinishLoop(z, f->LoopBody(), info);
+	return FinishLoop(iter_head, z, f->LoopBody(), info);
 	}
 
 const CompiledStmt ZAM::LoopOverVector(const ForStmt* f, const NameExpr* val)
@@ -1131,11 +1136,13 @@ const CompiledStmt ZAM::LoopOverVector(const ForStmt* f, const NameExpr* val)
 	z.t = val->Type().get();
 	auto init_end = AddInst(z);
 
+	auto iter_head = StartingBlock();
+
 	z = ZInst(is_any ? OP_NEXT_ANY_VECTOR_ITER_VVV :
-			OP_NEXT_VECTOR_ITER_VVV, info, FrameSlot(loop_var), 0);
+			OP_NEXT_VECTOR_ITER_VVV, info, ModFrameSlot(loop_var), 0);
 	z.op_type = OP_VVV_I3;
 
-	return FinishLoop(z, f->LoopBody(), info);
+	return FinishLoop(iter_head, z, f->LoopBody(), info);
 	}
 
 const CompiledStmt ZAM::LoopOverString(const ForStmt* f, const NameExpr* val)
@@ -1148,21 +1155,23 @@ const CompiledStmt ZAM::LoopOverString(const ForStmt* f, const NameExpr* val)
 	z.CheckIfManaged(val);
 	auto init_end = AddInst(z);
 
-	z = ZInst(OP_NEXT_STRING_ITER_VVV, info, FrameSlot(loop_var), 0);
+	auto iter_head = StartingBlock();
+
+	z = ZInst(OP_NEXT_STRING_ITER_VVV, info, ModFrameSlot(loop_var), 0);
 	z.CheckIfManaged(loop_var->Type());
 	z.op_type = OP_VVV_I3;
 
-	return FinishLoop(z, f->LoopBody(), info);
+	return FinishLoop(iter_head, z, f->LoopBody(), info);
 	}
 
-const CompiledStmt ZAM::FinishLoop(ZInst iter_stmt, const Stmt* body,
+const CompiledStmt ZAM::FinishLoop(const CompiledStmt iter_head,
+					ZInst iter_stmt, const Stmt* body,
 					int info_slot)
 	{
 	auto loop_iter = AddInst(iter_stmt);
-
 	auto body_end = body->Compile(this);
 
-	auto loop_end = GoTo(loop_iter);
+	auto loop_end = GoTo(iter_head);
 	auto final_stmt = AddInst(ZInst(OP_END_LOOP_V, info_slot));
 
 	if ( iter_stmt.op_type == OP_VVV_I3 )
@@ -1170,7 +1179,7 @@ const CompiledStmt ZAM::FinishLoop(ZInst iter_stmt, const Stmt* body,
 	else
 		SetV2(loop_iter, final_stmt);
 
-	ResolveNexts(GoToTarget(loop_iter));
+	ResolveNexts(GoToTarget(iter_head));
 	ResolveBreaks(GoToTarget(final_stmt));
 
 	return loop_end;
@@ -1178,7 +1187,7 @@ const CompiledStmt ZAM::FinishLoop(ZInst iter_stmt, const Stmt* body,
 
 const CompiledStmt ZAM::InitRecord(ID* id, RecordType* rt)
 	{
-	auto z = ZInst(OP_INIT_RECORD_V, FrameSlot(id));
+	auto z = ZInst(OP_INIT_RECORD_V, ModFrameSlot(id));
 	z.t = rt;
 	return AddInst(z);
 	}
@@ -1189,7 +1198,7 @@ const CompiledStmt ZAM::InitVector(ID* id, VectorType* vt)
 			OP_INIT_ANY_VECTOR_VV :
 			OP_INIT_VECTOR_VV;
 
-	auto z = ZInst(op, FrameSlot(id), id->Offset());
+	auto z = ZInst(op, ModFrameSlot(id), id->Offset());
 	z.t = vt;
 	z.op_type = OP_VV_FRAME;
 	return AddInst(z);
@@ -1197,7 +1206,7 @@ const CompiledStmt ZAM::InitVector(ID* id, VectorType* vt)
 
 const CompiledStmt ZAM::InitTable(ID* id, TableType* tt, Attributes* attrs)
 	{
-	auto z = ZInst(OP_INIT_TABLE_V, FrameSlot(id));
+	auto z = ZInst(OP_INIT_TABLE_V, ModFrameSlot(id));
 	z.t = tt;
 	z.attrs = attrs;
 	return AddInst(z);
@@ -1323,22 +1332,22 @@ const CompiledStmt ZAM::LoadOrStoreLocal(ID* id, bool is_load, bool add)
 	return AddInst(z);
 	}
 
-const CompiledStmt ZAM::LoadOrStoreGlobal(ID* id, bool is_load, bool add)
+const CompiledStmt ZAM::LoadGlobal(ID* id, bool is_mod)
 	{
 	if ( id->AsType() )
 		// We never operate on these directly, so don't bother
 		// storing or loading them.
 		return EmptyStmt();
 
-	ZOp op;
 	bool is_any = IsAny(id->Type());
+	ZOp op;
 
 	if ( is_any )
-		op = is_load ? OP_LOAD_ANY_GLOBAL_VC : OP_STORE_ANY_GLOBAL_VC;
+		op = is_mod ? OP_MOD_ANY_GLOBAL_VC : OP_LOAD_ANY_GLOBAL_VC;
 	else
-		op = is_load ? OP_LOAD_GLOBAL_VC : OP_STORE_GLOBAL_VC;
+		op = is_mod ? OP_MOD_GLOBAL_VC : OP_LOAD_GLOBAL_VC;
 
-	int slot = (is_load && add) ? AddToFrame(id) : FrameSlot(id);
+	auto slot = RawSlot(id);
 
 	ZInst z(op, slot);
 	z.c.id_val = id;
@@ -1348,7 +1357,7 @@ const CompiledStmt ZAM::LoadOrStoreGlobal(ID* id, bool is_load, bool add)
 	return AddInst(z);
 	}
 
-int ZAM::AddToFrame(const ID* id)
+int ZAM::AddToFrame(ID* id)
 	{
 	frame_layout[id] = frame_size;
 	frame_denizens.push_back(id);
@@ -1433,7 +1442,7 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1,
 	else
 		reporter->InternalError("bad types when compiling \"in\"");
 
-	auto s1 = FrameSlot(n1);
+	auto s1 = ModFrameSlot(n1);
 	auto s2 = n2 ? FrameSlot(n2) : 0;
 	auto s3 = n3 ? FrameSlot(n3) : 0;
 
@@ -1477,7 +1486,7 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1, const ListExpr* l,
 		n2->Type()->Tag() == TYPE_VECTOR ?
 			OP_INDEX_IS_IN_VECTOR_VVV : OP_LIST_IS_IN_TABLE_VVV;
 
-	z = ZInst(op, FrameSlot(n1), FrameSlot(n2), build_indices);
+	z = ZInst(op, ModFrameSlot(n1), FrameSlot(n2), build_indices);
 	z.t = n2->Type().get();
 
 	return AddInst(z);
@@ -1505,11 +1514,11 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
 		if ( n2tag == TYPE_STRING )
 			{
 			if ( n3 )
-				z = ZInst(OP_INDEX_STRING_VVV, FrameSlot(n1),
+				z = ZInst(OP_INDEX_STRING_VVV, ModFrameSlot(n1),
 						FrameSlot(n2), FrameSlot(n3));
 			else
 				{
-				z = ZInst(OP_INDEX_STRINGC_VVV, FrameSlot(n1),
+				z = ZInst(OP_INDEX_STRINGC_VVV, ModFrameSlot(n1),
 						FrameSlot(n2), c);
 				z.op_type = OP_VVV_I3;
 				}
@@ -1520,11 +1529,11 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
 		if ( n2tag == TYPE_VECTOR && ! IsAny(n2) )
 			{
 			if ( n3 )
-				z = ZInst(OP_INDEX_VEC_VVV, FrameSlot(n1),
+				z = ZInst(OP_INDEX_VEC_VVV, ModFrameSlot(n1),
 						FrameSlot(n2), FrameSlot(n3));
 			else
 				{
-				z = ZInst(OP_INDEX_VECC_VVV, FrameSlot(n1),
+				z = ZInst(OP_INDEX_VECC_VVV, ModFrameSlot(n1),
 						FrameSlot(n2), c);
 				z.op_type = OP_VVV_I3;
 				}
@@ -1549,20 +1558,19 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
 		ZOp op =
 			n == 1 ? OP_INDEX_VEC_VVL : OP_INDEX_VEC_SLICE_VVL;
 
-		z = ZInst(op, FrameSlot(n1), FrameSlot(n2),
-					build_indices);
+		z = ZInst(op, ModFrameSlot(n1), FrameSlot(n2), build_indices);
 		z.t = n2->Type().get();
 		break;
 		}
 
 	case TYPE_TABLE:
-		z = ZInst(OP_TABLE_INDEX_VVV, FrameSlot(n1),
+		z = ZInst(OP_TABLE_INDEX_VVV, ModFrameSlot(n1),
 					FrameSlot(n2), build_indices);
 		z.t = n1->Type().get();
 		break;
 
 	case TYPE_STRING:
-		z = ZInst(OP_INDEX_STRING_SLICE_VVL, FrameSlot(n1),
+		z = ZInst(OP_INDEX_STRING_SLICE_VVL, ModFrameSlot(n1),
 					FrameSlot(n2), build_indices);
 		z.t = n1->Type().get();
 		break;
@@ -1609,35 +1617,18 @@ const CompiledStmt ZAM::CompileEvent(EventHandler* h, const ListExpr* l)
 
 void ZAM::SyncGlobals(const BroObj* o)
 	{
-	// (Could cache the upon-entry DPs for globals for a modest
-	// speed gain.)
-	auto mgr = reducer->GetDefSetsMgr();
-	auto entry_rds = mgr->GetPreMaxRDs(body);
-
-	for ( auto g : pf->globals )
-		SyncGlobal(g, o, entry_rds);
+	(void) AddInst(ZInst(OP_SYNC_GLOBALS_X));
 	}
 
-void ZAM::SyncGlobal(ID* g, const BroObj* o,
-					const RD_ptr& entry_rds)
+void ZAM::AssigningToGlobal(const ID* global_id)
 	{
-	auto mgr = reducer->GetDefSetsMgr();
-
-	RD_ptr rds;
-
-	if ( o )
-		rds = mgr->GetPreMaxRDs(o);
-	else
-		// Use the *post* RDs from the last statement in the
-		// function body.
-		rds = mgr->GetPostMaxRDs(LastStmt());
-
-	auto di = mgr->GetConstID_DI(g);
-	auto entry_dps = entry_rds->GetDefPoints(di);
-	auto stmt_dps = rds->GetDefPoints(di);
-
-	if ( ! same_DPs(entry_dps, stmt_dps) )
-		StoreGlobal(g);
+	// We're about to use ModFrameSlot() in whatever expression
+	// is assigning to the global.  We want to ensure that this
+	// does *not* lead to us pre-loading the global, which setting
+	// its state to something other than UNLOADED will achieve.
+	// Might as well use DIRTY since it's about to become dirty
+	// anyway.
+	AddInst(ZInst(OP_DIRTY_GLOBAL_V, RawSlot(global_id)));
 	}
 
 void ZAM::ResolveGoTos(vector<int>& gotos, const CompiledStmt s)
@@ -1736,6 +1727,26 @@ ListVal* ZAM::ValVecToListVal(val_vec* v, int n) const
 
 int ZAM::FrameSlot(const ID* id)
 	{
+	auto slot = RawSlot(id);
+
+	if ( id->IsGlobal() )
+		(void) LoadGlobal(frame_denizens[slot]);
+
+	return slot;
+	}
+
+int ZAM::ModFrameSlot(const ID* id)
+	{
+	auto slot = RawSlot(id);
+
+	if ( id->IsGlobal() )
+		(void) ModGlobal(frame_denizens[slot]);
+
+	return slot;
+	}
+
+int ZAM::RawSlot(const ID* id)
+	{
 	auto id_slot = frame_layout.find(id);
 
 	if ( id_slot == frame_layout.end() )
@@ -1747,11 +1758,6 @@ int ZAM::FrameSlot(const ID* id)
 bool ZAM::HasFrameSlot(const ID* id) const
 	{
 	return frame_layout.find(id) != frame_layout.end();
-	}
-
-int ZAM::FrameSlot(const NameExpr* e)
-	{
-	return FrameSlot(e->AsNameExpr()->Id());
 	}
 
 int ZAM::NewSlot()

@@ -3750,6 +3750,11 @@ Expr* AssignExpr::ReduceToSingleton(Reducer* c,
 const CompiledStmt AssignExpr::Compile(Compiler* c) const
 	{
 	auto lhs = op1->AsRefExpr()->GetOp1()->AsNameExpr();
+	auto lhs_id = lhs->Id();
+
+	if ( lhs_id->IsGlobal() )
+		c->AssigningToGlobal(lhs_id);
+
 	auto rhs = op2.get();
 
 	if ( rhs->Tag() == EXPR_INDEX )

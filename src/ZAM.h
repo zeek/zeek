@@ -68,7 +68,8 @@ public:
 	const CompiledStmt LoopOverVector(const ForStmt* f, const NameExpr* val);
 	const CompiledStmt LoopOverString(const ForStmt* f, const NameExpr* val);
 
-	const CompiledStmt FinishLoop(ZInst iter_stmt, const Stmt* body,
+	const CompiledStmt FinishLoop(const CompiledStmt iter_head,
+					ZInst iter_stmt, const Stmt* body,
 					int info_slot);
 
 	const CompiledStmt InitRecord(ID* id, RecordType* rt) override;
@@ -92,18 +93,19 @@ public:
 	bool IsUnused(const ID* id, const Stmt* where) const override;
 
 	void SyncGlobals(const BroObj* o) override;
-
-	// Sync's the given global at the given location 'o'.  Third argument
-	// provides the RDs at entry to the body.
-	void SyncGlobal(ID* g, const BroObj* o, const RD_ptr& entry_rds);
+	void AssigningToGlobal(const ID* global_id) override;
 
 	OpaqueVals* BuildVals(const IntrusivePtr<ListExpr>&) override;
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
-	int FrameSlot(const NameExpr* id);
-
 	void StmtDescribe(ODesc* d) const override;
+
+	// Public so that GenStmt flavors can get to it.
+	int FrameSlot(const NameExpr* id)
+		{ return FrameSlot(id->AsNameExpr()->Id()); }
+	int ModFrameSlot(const NameExpr* id)
+		{ return ModFrameSlot(id->AsNameExpr()->Id()); }
 
 	void Dump();
 
@@ -185,17 +187,24 @@ protected:
 	void FlushVars(const Expr* e);
 
 	void LoadParam(ID* id)		{ LoadOrStoreLocal(id, true, true); }
-	void LoadGlobal(ID* id)		{ LoadOrStoreGlobal(id, true, true); }
-
 	void StoreLocal(ID* id)		{ LoadOrStoreLocal(id, false, false); }
-	void StoreGlobal(ID* id)	{ LoadOrStoreGlobal(id, false, false); }
-
 	const CompiledStmt LoadOrStoreLocal(ID* id, bool is_load, bool add);
-	const CompiledStmt LoadOrStoreGlobal(ID* id, bool is_load, bool add);
 
-	int AddToFrame(const ID*);
+	const CompiledStmt LoadGlobal(ID* id)
+		{ return LoadGlobal(id, false); }
+	const CompiledStmt ModGlobal(ID* id)
+		{ return LoadGlobal(id, true); }
+	const CompiledStmt LoadGlobal(ID* id, bool is_mod);
+
+	int AddToFrame(ID*);
 
 	int FrameSlot(const ID* id);
+	int ModFrameSlot(const ID* id);
+
+	// The slot without doing any global-related checking.
+	int RawSlot(const NameExpr* n)	{ return RawSlot(n->Id()); }
+	int RawSlot(const ID* id);
+
 	bool HasFrameSlot(const ID* id) const;
 
 	int NewSlot();
@@ -251,6 +260,7 @@ protected:
 
 	int frame_size;
 	int register_slot;
+	int num_globals;
 	bool error_seen = false;
 };
 

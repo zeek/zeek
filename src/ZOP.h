@@ -29,7 +29,7 @@ typedef enum {
 } ZAMOpType;
 
 // Maps ZAM frame slots to associated identifiers.   
-typedef std::vector<const ID*> frame_map;
+typedef std::vector<ID*> frame_map;
 
 // A ZAM instruction.
 class ZInst {

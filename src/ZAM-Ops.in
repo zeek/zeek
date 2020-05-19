@@ -990,6 +990,28 @@ eval frame[z.v1].table_val = new TableVal(tt, attrs)
 # Internal
 ########################################
 
+op Sync-Globals
+type X
+eval for ( auto i = 1; i <= num_globals; ++i ) {
+eval	if ( global_state[i] == GS_DIRTY ) {
+eval		auto id = frame_denizens[i]
+eval		auto t = id->Type()
+eval		IntrusivePtr<Val> v
+eval		if ( t->Tag() == TYPE_ANY ) v = {NewRef{}, frame[i].any_val}
+eval		else {
+eval			auto is_vec = t->Tag() == TYPE_VECTOR
+eval			auto vv = is_vec ? frame[i].vector_val->VecVal() : nullptr
+eval			v = vv ? vv : frame[i].ToVal(t)
+eval		}
+eval		id->SetVal(v)
+eval	}
+eval	global_state[i] = GS_UNLOADED
+eval }
+
+op Dirty-Global
+type V
+eval global_state[z.v1] = GS_DIRTY
+
 op Assign-Any
 type VV
 set-type $2
@@ -1025,14 +1047,37 @@ eval frame[z.v1].any_val = v.get()
 
 internal-op Load-Global
 type VC
-eval IntrusivePtr<Val> v = {NewRef{}, z.c.id_val->ID_Val()}
-eval AssignV1(BuildVal(v, z.t, z.c.id_val))
+eval if ( global_state[z.v1] == GS_UNLOADED ) {
+eval	IntrusivePtr<Val> v = {NewRef{}, z.c.id_val->ID_Val()}
+eval	AssignV1(BuildVal(v, z.t, z.stmt))
+eval	global_state[z.v1] = GS_CLEAN
+eval }
 
 internal-op Load-Any-Global
 type VC
-eval IntrusivePtr<Val> v = {NewRef{}, z.c.id_val->ID_Val()}
-eval vals.push_back(v)
-eval frame[z.v1].any_val = v.get()
+eval if ( global_state[z.v1] == GS_UNLOADED ) {
+eval	IntrusivePtr<Val> v = {NewRef{}, z.c.id_val->ID_Val()}
+eval	vals.push_back(v)
+eval	frame[z.v1].any_val = v.get()
+eval	global_state[z.v1] = GS_CLEAN
+eval }
+
+internal-op Mod-Global
+type VC
+eval if ( global_state[z.v1] == GS_UNLOADED ) {
+eval	IntrusivePtr<Val> v = {NewRef{}, z.c.id_val->ID_Val()}
+eval	AssignV1(BuildVal(v, z.t, z.stmt))
+eval }
+eval global_state[z.v1] = GS_DIRTY
+
+internal-op Mod-Any-Global
+type VC
+eval if ( global_state[z.v1] == GS_UNLOADED ) {
+eval	IntrusivePtr<Val> v = {NewRef{}, z.c.id_val->ID_Val()}
+eval	vals.push_back(v)
+eval	frame[z.v1].any_val = v.get()
+eval }
+eval global_state[z.v1] = GS_DIRTY
 
 internal-op Store-Val
 type VV
@@ -1045,18 +1090,6 @@ internal-op Store-Any-Val
 type VV
 eval auto v = frame[z.v1].any_val->Ref()
 eval f->SetElement(z.v2, v)
-
-internal-op Store-Global
-type VC
-eval auto is_vec = z.t->Tag() == TYPE_VECTOR
-eval auto vv = is_vec ? frame[z.v1].vector_val->VecVal() : nullptr
-eval auto val = vv ? vv : frame[z.v1].ToVal(z.t)
-eval z.c.id_val->SetVal(val)
-
-internal-op Store-Any-Global
-type VC
-eval IntrusivePtr<Val> v = {NewRef{}, frame[z.v1].any_val}
-eval z.c.id_val->SetVal(v)
 
 internal-op Copy-To
 type VC

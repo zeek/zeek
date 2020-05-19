@@ -505,7 +505,7 @@ void Frame::CaptureClosure(Frame* c, id_list arg_outer_ids)
 	// if (c) closure = c->SelectiveClone(outer_ids);
 	}
 
-void Frame::SetTrigger(IntrusivePtr<trigger::Trigger> arg_trigger)
+void Frame::SetTrigger(IntrusivePtr<zeek::detail::trigger::Trigger> arg_trigger)
 	{
 	trigger = std::move(arg_trigger);
 	}

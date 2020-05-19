@@ -16,10 +16,10 @@
 #include <broker/data.hh>
 #include <broker/expected.hh>
 
-namespace trigger { class Trigger; }
 class BroFunc;
 
 FORWARD_DECLARE_NAMESPACED(CallExpr, zeek::detail);
+FORWARD_DECLARE_NAMESPACED(Trigger, zeek::detail::trigger);
 
 class Frame :  public BroObj {
 public:
@@ -216,9 +216,9 @@ public:
 
 	// If the frame is run in the context of a trigger condition evaluation,
 	// the trigger needs to be registered.
-	void SetTrigger(IntrusivePtr<trigger::Trigger> arg_trigger);
+	void SetTrigger(IntrusivePtr<zeek::detail::trigger::Trigger> arg_trigger);
 	void ClearTrigger();
-	trigger::Trigger* GetTrigger() const		{ return trigger.get(); }
+	zeek::detail::trigger::Trigger* GetTrigger() const		{ return trigger.get(); }
 
 	void SetCall(const zeek::detail::CallExpr* arg_call)	{ call = arg_call; }
 	void ClearCall()			{ call = nullptr; }
@@ -322,7 +322,7 @@ private:
 	/** The next statement to be evaluted in the context of this frame. */
 	zeek::detail::Stmt* next_stmt;
 
-	IntrusivePtr<trigger::Trigger> trigger;
+	IntrusivePtr<zeek::detail::trigger::Trigger> trigger;
 	const zeek::detail::CallExpr* call;
 
 	std::unique_ptr<std::vector<BroFunc*>> functions_with_closure_frame_reference;

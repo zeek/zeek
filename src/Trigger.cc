@@ -15,13 +15,13 @@
 #include "DebugLogger.h"
 #include "iosource/Manager.h"
 
-using namespace trigger;
 using namespace zeek::detail;
+using namespace zeek::detail::trigger;
 
 // Callback class to traverse an expression, registering all relevant IDs and
 // Vals for change notifications.
 
-namespace trigger {
+namespace zeek::detail::trigger {
 
 class TriggerTraversalCallback : public TraversalCallback {
 public:
@@ -31,15 +31,13 @@ public:
 	~TriggerTraversalCallback()
 		{ Unref(trigger); }
 
-	virtual TraversalCode PreExpr(const zeek::detail::Expr*);
+	virtual TraversalCode PreExpr(const zeek::detail::Expr*) override;
 
 private:
 	Trigger* trigger;
 };
 
-}
-
-TraversalCode TriggerTraversalCallback::PreExpr(const zeek::detail::Expr* expr)
+TraversalCode zeek::detail::trigger::TriggerTraversalCallback::PreExpr(const zeek::detail::Expr* expr)
 	{
 	// We catch all expressions here which in some way reference global
 	// state.
@@ -84,8 +82,6 @@ TraversalCode TriggerTraversalCallback::PreExpr(const zeek::detail::Expr* expr)
 	return TC_CONTINUE;
 	}
 
-namespace trigger {
-
 class TriggerTimer final : public Timer {
 public:
 	TriggerTimer(double arg_timeout, Trigger* arg_trigger)
@@ -120,8 +116,6 @@ protected:
 	double timeout;
 	double time;
 };
-
-}
 
 Trigger::Trigger(zeek::detail::Expr* arg_cond, zeek::detail::Stmt* arg_body,
 			zeek::detail::Stmt* arg_timeout_stmts,
@@ -555,3 +549,5 @@ void Manager::GetStats(Stats* stats)
 	stats->total = total_triggers;
 	stats->pending = pending->size();
 	}
+
+}

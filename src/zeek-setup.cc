@@ -98,7 +98,7 @@ zeekygen::Manager* zeekygen_mgr = nullptr;
 iosource::Manager* iosource_mgr = nullptr;
 bro_broker::Manager* broker_mgr = nullptr;
 zeek::Supervisor* zeek::supervisor_mgr = nullptr;
-trigger::Manager* trigger_mgr = nullptr;
+zeek::detail::trigger::Manager* trigger_mgr = nullptr;
 
 std::vector<std::string> zeek_script_prefixes;
 zeek::detail::Stmt* stmts;
@@ -570,7 +570,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	file_mgr = new file_analysis::Manager();
 	auto broker_real_time = ! options.pcap_file && ! options.deterministic_mode;
 	broker_mgr = new bro_broker::Manager(broker_real_time);
-	trigger_mgr = new trigger::Manager();
+	trigger_mgr = new zeek::detail::trigger::Manager();
 
 	plugin_mgr->InitPreScript();
 	analyzer_mgr->InitPreScript();

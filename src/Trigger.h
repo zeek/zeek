@@ -18,7 +18,8 @@ FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 FORWARD_DECLARE_NAMESPACED(CallExpr, zeek::detail);
 FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
 
-namespace trigger {
+namespace zeek::detail::trigger {
+
 // Triggers are the heart of "when" statements: expressions that when
 // they become true execute a body of statements.
 
@@ -142,4 +143,9 @@ private:
 
 }
 
-extern trigger::Manager* trigger_mgr;
+namespace trigger {
+	using Trigger [[deprecated("Remove in v4.1. Use zeek::detail::trigger::Trigger instead")]] = zeek::detail::trigger::Trigger;
+	using Manager [[deprecated("Remove in v4.1. Use zeek::detail::trigger::Manager instead")]] = zeek::detail::trigger::Manager;
+}
+
+extern zeek::detail::trigger::Manager* trigger_mgr;

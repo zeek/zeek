@@ -1619,7 +1619,8 @@ const CompiledStmt ZAM::CompileEvent(EventHandler* h, const ListExpr* l)
 
 void ZAM::SyncGlobals(const BroObj* o)
 	{
-	(void) AddInst(ZInst(OP_SYNC_GLOBALS_X));
+	if ( num_globals > 0 )
+		(void) AddInst(ZInst(OP_SYNC_GLOBALS_X));
 	}
 
 void ZAM::AssigningToGlobal(const ID* global_id)

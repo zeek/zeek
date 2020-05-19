@@ -2694,7 +2694,7 @@ RecordVal::RecordVal(IntrusivePtr<RecordType> t, bool init_fields) : Val(std::mo
 		     def->GetType()->Tag() == TYPE_RECORD &&
 		     ! same_type(def->GetType().get(), type.get()) )
 			{
-			auto tmp = def->AsRecordVal()->CoerceTo(type->AsRecordType());
+			auto tmp = def->AsRecordVal()->CoerceTo(cast_intrusive<RecordType>(type));
 
 			if ( tmp )
 				def = std::move(tmp);
@@ -2796,17 +2796,17 @@ IntrusivePtr<Val> RecordVal::Lookup(const char* field, bool with_default) const
 	return with_default ? LookupWithDefault(idx) : IntrusivePtr{NewRef{}, Lookup(idx)};
 	}
 
-IntrusivePtr<RecordVal> RecordVal::CoerceTo(const RecordType* t, Val* aggr, bool allow_orphaning) const
+IntrusivePtr<RecordVal> RecordVal::CoerceTo(IntrusivePtr<RecordType> t,
+                                            IntrusivePtr<RecordVal> aggr,
+                                            bool allow_orphaning) const
 	{
-	if ( ! record_promotion_compatible(t->AsRecordType(), GetType()->AsRecordType()) )
+	if ( ! record_promotion_compatible(t.get(), GetType()->AsRecordType()) )
 		return nullptr;
 
 	if ( ! aggr )
-		aggr = new RecordVal({NewRef{}, const_cast<RecordType*>(t)});
+		aggr = make_intrusive<RecordVal>(std::move(t));
 
-	RecordVal* ar = aggr->AsRecordVal();
 	RecordType* ar_t = aggr->GetType()->AsRecordType();
-
 	const RecordType* rv_t = GetType()->AsRecordType();
 
 	int i;
@@ -2840,15 +2840,15 @@ IntrusivePtr<RecordVal> RecordVal::CoerceTo(const RecordType* t, Val* aggr, bool
 			auto rhs = make_intrusive<ConstExpr>(IntrusivePtr{NewRef{}, v});
 			auto e = make_intrusive<RecordCoerceExpr>(std::move(rhs),
 			                                          cast_intrusive<RecordType>(ft));
-			ar->Assign(t_i, e->Eval(nullptr));
+			aggr->Assign(t_i, e->Eval(nullptr));
 			continue;
 			}
 
-		ar->Assign(t_i, {NewRef{}, v});
+		aggr->Assign(t_i, {NewRef{}, v});
 		}
 
 	for ( i = 0; i < ar_t->NumFields(); ++i )
-		if ( ! ar->Lookup(i) &&
+		if ( ! aggr->Lookup(i) &&
 			 ! ar_t->FieldDecl(i)->FindAttr(ATTR_OPTIONAL) )
 			{
 			char buf[512];
@@ -2857,15 +2857,16 @@ IntrusivePtr<RecordVal> RecordVal::CoerceTo(const RecordType* t, Val* aggr, bool
 			Error(buf);
 			}
 
-	return {AdoptRef{}, ar};
+	return aggr;
 	}
 
-IntrusivePtr<RecordVal> RecordVal::CoerceTo(RecordType* t, bool allow_orphaning)
+IntrusivePtr<RecordVal> RecordVal::CoerceTo(IntrusivePtr<RecordType> t,
+                                            bool allow_orphaning)
 	{
-	if ( same_type(GetType().get(), t) )
+	if ( same_type(GetType().get(), t.get()) )
 		return {NewRef{}, this};
 
-	return CoerceTo(t, nullptr, allow_orphaning);
+	return CoerceTo(std::move(t), nullptr, allow_orphaning);
 	}
 
 IntrusivePtr<TableVal> RecordVal::GetRecordFieldsVal() const

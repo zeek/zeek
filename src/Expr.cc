@@ -3018,7 +3018,10 @@ IntrusivePtr<Val> RecordConstructorExpr::InitVal(const BroType* t, IntrusivePtr<
 	if ( v )
 		{
 		RecordVal* rv = v->AsRecordVal();
-		auto ar = rv->CoerceTo(t->AsRecordType(), aggr.release());
+		auto bt = const_cast<BroType*>(t);
+		IntrusivePtr<RecordType> rt{NewRef{}, bt->AsRecordType()};
+		auto aggr_rec = cast_intrusive<RecordVal>(std::move(aggr));
+		auto ar = rv->CoerceTo(std::move(rt), std::move(aggr_rec));
 
 		if ( ar )
 			return ar;
@@ -3633,7 +3636,11 @@ IntrusivePtr<Val> RecordCoerceExpr::InitVal(const BroType* t, IntrusivePtr<Val> 
 	if ( auto v = Eval(nullptr) )
 		{
 		RecordVal* rv = v->AsRecordVal();
-		if ( auto ar = rv->CoerceTo(t->AsRecordType(), aggr.release()) )
+		auto bt = const_cast<BroType*>(t);
+		IntrusivePtr<RecordType> rt{NewRef{}, bt->AsRecordType()};
+		auto aggr_rec = cast_intrusive<RecordVal>(std::move(aggr));
+
+		if ( auto ar = rv->CoerceTo(std::move(rt), std::move(aggr_rec)) )
 			return ar;
 		}
 
@@ -3673,19 +3680,19 @@ IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 				}
 
 			BroType* rhs_type = rhs->GetType().get();
-			BroType* field_type = val_type->GetFieldType(i).get();
+			const auto& field_type = val_type->GetFieldType(i);
 
 			if ( rhs_type->Tag() == TYPE_RECORD &&
 			     field_type->Tag() == TYPE_RECORD &&
-			     ! same_type(rhs_type, field_type) )
+			     ! same_type(rhs_type, field_type.get()) )
 				{
-				if ( auto new_val = rhs->AsRecordVal()->CoerceTo(field_type->AsRecordType()) )
+				if ( auto new_val = rhs->AsRecordVal()->CoerceTo(cast_intrusive<RecordType>(field_type)) )
 					rhs = std::move(new_val);
 				}
 			else if ( BothArithmetic(rhs_type->Tag(), field_type->Tag()) &&
-			          ! same_type(rhs_type, field_type) )
+			          ! same_type(rhs_type, field_type.get()) )
 				{
-				if ( auto new_val = check_and_promote(rhs, field_type, false, op->GetLocationInfo()) )
+				if ( auto new_val = check_and_promote(rhs, field_type.get(), false, op->GetLocationInfo()) )
 					rhs = std::move(new_val);
 				else
 					RuntimeError("Failed type conversion");
@@ -3706,7 +3713,7 @@ IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 				     ! same_type(def_type.get(), field_type.get()) )
 					{
 					auto tmp = def_val->AsRecordVal()->CoerceTo(
-					        field_type->AsRecordType());
+					        cast_intrusive<RecordType>(field_type));
 
 					if ( tmp )
 						def_val = std::move(tmp);

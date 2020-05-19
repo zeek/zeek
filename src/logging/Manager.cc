@@ -701,7 +701,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 	if ( ! stream->enabled )
 		return true;
 
-	auto columns = columns_arg->CoerceTo(stream->columns);
+	auto columns = columns_arg->CoerceTo({NewRef{}, stream->columns});
 
 	if ( ! columns )
 		{
@@ -747,7 +747,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 			const auto& rt = filter->path_func->GetType()->Params()->GetFieldType("rec");
 
 			if ( rt->Tag() == TYPE_RECORD )
-				rec_arg = columns->CoerceTo(rt->AsRecordType(), true);
+				rec_arg = columns->CoerceTo(cast_intrusive<RecordType>(rt), true);
 			else
 				// Can be TYPE_ANY here.
 				rec_arg = columns;

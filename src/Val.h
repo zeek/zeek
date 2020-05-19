@@ -983,8 +983,11 @@ public:
 	//
 	// The *allow_orphaning* parameter allows for a record to be demoted
 	// down to a record type that contains less fields.
-	IntrusivePtr<RecordVal> CoerceTo(const RecordType* other, Val* aggr, bool allow_orphaning = false) const;
-	IntrusivePtr<RecordVal> CoerceTo(RecordType* other, bool allow_orphaning = false);
+	IntrusivePtr<RecordVal> CoerceTo(IntrusivePtr<RecordType> other,
+	                                 IntrusivePtr<RecordVal> aggr,
+	                                 bool allow_orphaning = false) const;
+	IntrusivePtr<RecordVal> CoerceTo(IntrusivePtr<RecordType> other,
+	                                 bool allow_orphaning = false);
 
 	unsigned int MemoryAllocation() const override;
 	void DescribeReST(ODesc* d) const override;

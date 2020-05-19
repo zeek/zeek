@@ -482,8 +482,9 @@ internal-op Index-String-Slice
 type VVL
 eval auto str = frame[z.v2].string_val
 eval auto lv = frame[z.v3].list_val
+eval auto slice = index_string_slice(str, lv)
 eval delete frame[z.v1].string_val
-eval frame[z.v1].string_val = index_string_slice(str, lv)
+eval frame[z.v1].string_val = slice
 
 op AnyIndex
 type VVi

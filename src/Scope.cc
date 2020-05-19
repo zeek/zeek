@@ -16,7 +16,7 @@ static scope_list scopes;
 static Scope* top_scope;
 
 Scope::Scope(IntrusivePtr<zeek::detail::ID> id,
-             std::unique_ptr<std::vector<IntrusivePtr<Attr>>> al)
+             std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> al)
 	: scope_id(std::move(id)), attrs(std::move(al))
 	{
 	return_type = nullptr;
@@ -190,7 +190,7 @@ void push_existing_scope(Scope* scope)
 	}
 
 void push_scope(IntrusivePtr<zeek::detail::ID> id,
-                std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs)
+                std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attrs)
 	{
 	top_scope = new Scope(std::move(id), std::move(attrs));
 	scopes.push_back(top_scope);

@@ -9,6 +9,8 @@
 #include "IntrusivePtr.h"
 #include "threading/SerialTypes.h"
 
+namespace zeek::detail {
+
 const char* attr_name(attr_tag t)
 	{
 	static const char* attr_names[int(NUM_ATTRS)] = {
@@ -23,15 +25,23 @@ const char* attr_name(attr_tag t)
 	return attr_names[int(t)];
 	}
 
-Attr::Attr(attr_tag t, IntrusivePtr<zeek::detail::Expr> e)
+Attr::Attr(attr_tag t, IntrusivePtr<Expr> e)
 	: expr(std::move(e))
 	{
 	tag = t;
 	SetLocationInfo(&start_location, &end_location);
 	}
 
+Attr::Attr(::attr_tag t, IntrusivePtr<Expr> e) : Attr(static_cast<attr_tag>(t), e)
+	{
+	}
+
 Attr::Attr(attr_tag t)
 	: Attr(t, nullptr)
+	{
+	}
+
+Attr::Attr(::attr_tag t) : Attr(static_cast<attr_tag>(t))
 	{
 	}
 
@@ -90,7 +100,7 @@ void Attr::DescribeReST(ODesc* d, bool shorten) const
 		d->Add("=");
 		d->SP();
 
-		if ( expr->Tag() == zeek::detail::EXPR_NAME )
+		if ( expr->Tag() == EXPR_NAME )
 			{
 			d->Add(":zeek:see:`");
 			expr->Describe(d);
@@ -104,7 +114,7 @@ void Attr::DescribeReST(ODesc* d, bool shorten) const
 			d->Add("`");
 			}
 
-		else if ( expr->Tag() == zeek::detail::EXPR_CONST )
+		else if ( expr->Tag() == EXPR_CONST )
 			{
 			ODesc dd;
 			dd.SetQuotes(true);
@@ -233,6 +243,11 @@ const IntrusivePtr<Attr>& Attributes::Find(attr_tag t) const
 	return Attr::nil;
 	}
 
+Attr* Attributes::FindAttr(::attr_tag t) const
+	{
+	return FindAttr(static_cast<attr_tag>(t));
+	}
+
 void Attributes::RemoveAttr(attr_tag t)
 	{
 	for ( auto it = attrs.begin(); it != attrs.end(); )
@@ -242,6 +257,11 @@ void Attributes::RemoveAttr(attr_tag t)
 		else
 			++it;
 		}
+	}
+
+void Attributes::RemoveAttr(::attr_tag t)
+	{
+	RemoveAttr(static_cast<attr_tag>(t));
 	}
 
 void Attributes::Describe(ODesc* d) const
@@ -663,3 +683,5 @@ bool Attributes::operator==(const Attributes& other) const
 
 	return true;
 	}
+
+}

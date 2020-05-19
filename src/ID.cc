@@ -337,6 +337,11 @@ void ID::RemoveAttr(attr_tag a)
 		attrs->RemoveAttr(a);
 	}
 
+void ID::RemoveAttr(::attr_tag a)
+	{
+	RemoveAttr(static_cast<attr_tag>(a));
+	}
+
 void ID::SetOption()
 	{
 	if ( is_option )

@@ -588,7 +588,7 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 				{
 				auto value = rval->GetFieldOrDefault(i);
 
-				if ( value && ( ! only_loggable || rt->FieldHasAttr(i, ATTR_LOG) ) )
+				if ( value && ( ! only_loggable || rt->FieldHasAttr(i, zeek::detail::ATTR_LOG) ) )
 					{
 					string key_str;
 					auto field_name = rt->FieldName(i);
@@ -1377,7 +1377,7 @@ static void find_nested_record_types(const IntrusivePtr<BroType>& t, std::set<Re
 	}
 	}
 
-TableVal::TableVal(IntrusivePtr<TableType> t, IntrusivePtr<Attributes> a) : Val(t)
+TableVal::TableVal(IntrusivePtr<TableType> t, IntrusivePtr<zeek::detail::Attributes> a) : Val(t)
 	{
 	Init(std::move(t));
 	SetAttrs(std::move(a));
@@ -1460,29 +1460,29 @@ int TableVal::RecursiveSize() const
 	return n;
 	}
 
-void TableVal::SetAttrs(IntrusivePtr<Attributes> a)
+void TableVal::SetAttrs(IntrusivePtr<zeek::detail::Attributes> a)
 	{
 	attrs = std::move(a);
 
 	if ( ! attrs )
 		return;
 
-	CheckExpireAttr(ATTR_EXPIRE_READ);
-	CheckExpireAttr(ATTR_EXPIRE_WRITE);
-	CheckExpireAttr(ATTR_EXPIRE_CREATE);
+	CheckExpireAttr(zeek::detail::ATTR_EXPIRE_READ);
+	CheckExpireAttr(zeek::detail::ATTR_EXPIRE_WRITE);
+	CheckExpireAttr(zeek::detail::ATTR_EXPIRE_CREATE);
 
-	const auto& ef = attrs->Find(ATTR_EXPIRE_FUNC);
+	const auto& ef = attrs->Find(zeek::detail::ATTR_EXPIRE_FUNC);
 
 	if ( ef )
 		expire_func = ef->GetExpr();
 
-	const auto& cf = attrs->Find(ATTR_ON_CHANGE);
+	const auto& cf = attrs->Find(zeek::detail::ATTR_ON_CHANGE);
 
 	if ( cf )
 		change_func = cf->GetExpr();
 	}
 
-void TableVal::CheckExpireAttr(attr_tag at)
+void TableVal::CheckExpireAttr(zeek::detail::attr_tag at)
 	{
 	const auto& a = attrs->Find(at);
 
@@ -1555,7 +1555,7 @@ bool TableVal::Assign(IntrusivePtr<Val> index, std::unique_ptr<HashKey> k,
 		}
 
 	// Keep old expiration time if necessary.
-	if ( old_entry_val && attrs && attrs->Find(ATTR_EXPIRE_CREATE) )
+	if ( old_entry_val && attrs && attrs->Find(zeek::detail::ATTR_EXPIRE_CREATE) )
 		new_entry_val->SetExpireAccess(old_entry_val->ExpireAccessTime());
 
 	Modified();
@@ -1808,7 +1808,7 @@ bool TableVal::ExpandAndInit(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val)
 
 IntrusivePtr<Val> TableVal::Default(const IntrusivePtr<Val>& index)
 	{
-	const auto& def_attr = GetAttr(ATTR_DEFAULT);
+	const auto& def_attr = GetAttr(zeek::detail::ATTR_DEFAULT);
 
 	if ( ! def_attr )
 		return nullptr;
@@ -1897,7 +1897,7 @@ const IntrusivePtr<Val>& TableVal::Find(const IntrusivePtr<Val>& index)
 		TableEntryVal* v = (TableEntryVal*) subnets->Lookup(index.get());
 		if ( v )
 			{
-			if ( attrs && attrs->Find(ATTR_EXPIRE_READ) )
+			if ( attrs && attrs->Find(zeek::detail::ATTR_EXPIRE_READ) )
 				v->SetExpireAccess(network_time);
 
 			if ( v->GetVal() )
@@ -1921,7 +1921,7 @@ const IntrusivePtr<Val>& TableVal::Find(const IntrusivePtr<Val>& index)
 
 			if ( v )
 				{
-				if ( attrs && attrs->Find(ATTR_EXPIRE_READ) )
+				if ( attrs && attrs->Find(zeek::detail::ATTR_EXPIRE_READ) )
 					v->SetExpireAccess(network_time);
 
 				if ( v->GetVal() )
@@ -1993,7 +1993,7 @@ IntrusivePtr<TableVal> TableVal::LookupSubnetValues(const SubNetVal* search)
 
 		if ( entry )
 			{
-			if ( attrs && attrs->Find(ATTR_EXPIRE_READ) )
+			if ( attrs && attrs->Find(zeek::detail::ATTR_EXPIRE_READ) )
 				entry->SetExpireAccess(network_time);
 			}
 		}
@@ -2195,9 +2195,9 @@ ListVal* TableVal::ConvertToPureList() const
 	return ToPureListVal().release();
 	}
 
-const IntrusivePtr<Attr>& TableVal::GetAttr(attr_tag t) const
+const IntrusivePtr<zeek::detail::Attr>& TableVal::GetAttr(zeek::detail::attr_tag t) const
 	{
-	return attrs ? attrs->Find(t) : Attr::nil;
+	return attrs ? attrs->Find(t) : zeek::detail::Attr::nil;
 	}
 
 void TableVal::Describe(ODesc* d) const
@@ -2336,7 +2336,7 @@ void TableVal::InitDefaultFunc(Frame* f)
 	if ( def_val )
 		return;
 
-	const auto& def_attr = GetAttr(ATTR_DEFAULT);
+	const auto& def_attr = GetAttr(zeek::detail::ATTR_DEFAULT);
 
 	if ( ! def_attr )
 		return;
@@ -2710,8 +2710,8 @@ RecordVal::RecordVal(IntrusivePtr<RecordType> t, bool init_fields) : Val(std::mo
 	// by default).
 	for ( int i = 0; i < n; ++i )
 		{
-		Attributes* a = rt->FieldDecl(i)->attrs.get();
-		Attr* def_attr = a ? a->Find(ATTR_DEFAULT).get() : nullptr;
+		zeek::detail::Attributes* a = rt->FieldDecl(i)->attrs.get();
+		zeek::detail::Attr* def_attr = a ? a->Find(zeek::detail::ATTR_DEFAULT).get() : nullptr;
 		auto def = def_attr ? def_attr->GetExpr()->Eval(nullptr) : nullptr;
 		const auto& type = rt->FieldDecl(i)->type;
 
@@ -2725,7 +2725,7 @@ RecordVal::RecordVal(IntrusivePtr<RecordType> t, bool init_fields) : Val(std::mo
 				def = std::move(tmp);
 			}
 
-		if ( ! def && ! (a && a->Find(ATTR_OPTIONAL)) )
+		if ( ! def && ! (a && a->Find(zeek::detail::ATTR_OPTIONAL)) )
 			{
 			TypeTag tag = type->Tag();
 
@@ -2878,7 +2878,7 @@ IntrusivePtr<RecordVal> RecordVal::CoerceTo(IntrusivePtr<RecordType> t,
 
 	for ( i = 0; i < ar_t->NumFields(); ++i )
 		if ( ! aggr->GetField(i) &&
-			 ! ar_t->FieldDecl(i)->GetAttr(ATTR_OPTIONAL) )
+		     ! ar_t->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL) )
 			{
 			char buf[512];
 			snprintf(buf, sizeof(buf),

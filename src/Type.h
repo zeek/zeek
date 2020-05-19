@@ -119,7 +119,6 @@ constexpr InternalTypeTag to_internal_type_tag(TypeTag tag) noexcept
 // Returns the name of the type.
 extern const char* type_name(TypeTag t);
 
-class Attributes;
 class TypeList;
 class TableType;
 class SetType;
@@ -135,6 +134,7 @@ class TableVal;
 
 FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 FORWARD_DECLARE_NAMESPACED(ListExpr, zeek::detail);
+FORWARD_DECLARE_NAMESPACED(Attributes, zeek::detail);
 
 const int DOES_NOT_MATCH_INDEX = 0;
 const int MATCHES_INDEX_SCALAR = 1;
@@ -564,21 +564,22 @@ protected:
 class TypeDecl final {
 public:
 	TypeDecl() = default;
-	TypeDecl(const char* i, IntrusivePtr<BroType> t, IntrusivePtr<Attributes> attrs = nullptr);
+	TypeDecl(const char* i, IntrusivePtr<BroType> t,
+	         IntrusivePtr<zeek::detail::Attributes> attrs = nullptr);
 	TypeDecl(const TypeDecl& other);
 	~TypeDecl();
 
 	[[deprecated("Remove in v4.1.  Use GetAttr().")]]
-	const Attr* FindAttr(attr_tag a) const
-		{ return attrs ? attrs->Find(a).get() : nullptr; }
+	const zeek::detail::Attr* FindAttr(::attr_tag a) const
+		{ return attrs ? attrs->Find(static_cast<zeek::detail::attr_tag>(a)).get() : nullptr; }
 
-	const IntrusivePtr<Attr>& GetAttr(attr_tag a) const
-		{ return attrs ? attrs->Find(a) : Attr::nil; }
+	const IntrusivePtr<zeek::detail::Attr>& GetAttr(zeek::detail::attr_tag a) const
+		{ return attrs ? attrs->Find(a) : zeek::detail::Attr::nil; }
 
 	void DescribeReST(ODesc* d, bool roles_only = false) const;
 
 	IntrusivePtr<BroType> type;
-	IntrusivePtr<Attributes> attrs;
+	IntrusivePtr<zeek::detail::Attributes> attrs;
 	const char* id = nullptr;
 };
 
@@ -670,13 +671,18 @@ public:
 	bool IsFieldDeprecated(int field) const
 		{
 		const TypeDecl* decl = FieldDecl(field);
-		return decl && decl->GetAttr(ATTR_DEPRECATED) != nullptr;
+		return decl && decl->GetAttr(zeek::detail::ATTR_DEPRECATED) != nullptr;
 		}
 
-	bool FieldHasAttr(int field, attr_tag at) const
+	bool FieldHasAttr(int field, zeek::detail::attr_tag at) const
 		{
 		const TypeDecl* decl = FieldDecl(field);
 		return decl && decl->GetAttr(at) != nullptr;
+		}
+	[[deprecated("Remove in v4.1. Use version that takes zeek::detail::attr_tag.")]]
+	bool FieldHasAttr(int field, ::attr_tag at) const
+		{
+		return FieldHasAttr(field, static_cast<zeek::detail::attr_tag>(at));
 		}
 
 	std::string GetFieldDeprecationWarning(int field, bool has_check) const;
@@ -842,7 +848,7 @@ inline bool same_type(const BroType* t1, const IntrusivePtr<BroType>& t2,
     { return same_type(*t1, *t2, is_init, match_record_field_names); }
 
 // True if the two attribute lists are equivalent.
-extern bool same_attrs(const Attributes* a1, const Attributes* a2);
+extern bool same_attrs(const zeek::detail::Attributes* a1, const zeek::detail::Attributes* a2);
 
 // Returns true if the record sub_rec can be promoted to the record
 // super_rec.

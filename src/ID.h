@@ -20,13 +20,13 @@ class RecordType;
 class TableType;
 class VectorType;
 class EnumType;
-class Attributes;
 
 enum [[deprecated("Remove in v4.1. Use zeek::detail::init_class instead.")]] init_class { INIT_NONE, INIT_FULL, INIT_EXTRA, INIT_REMOVE, };
 enum [[deprecated("Remove in v4.1. Use zeek::detail::IDScope instead.")]] IDScope { SCOPE_FUNCTION, SCOPE_MODULE, SCOPE_GLOBAL };
 
 namespace zeek::detail {
 
+class Attributes;
 class Expr;
 
 enum init_class { INIT_NONE, INIT_FULL, INIT_EXTRA, INIT_REMOVE, };
@@ -116,6 +116,8 @@ public:
 	void SetAttrs(IntrusivePtr<Attributes> attr);
 	void AddAttrs(IntrusivePtr<Attributes> attr);
 	void RemoveAttr(attr_tag a);
+	[[deprecated("Remove in v4.1. Use version that takes zeek::detail::attr_tag")]]
+	void RemoveAttr(::attr_tag a);
 	void UpdateValAttrs();
 
 	const IntrusivePtr<Attributes>& GetAttrs() const
@@ -125,10 +127,10 @@ public:
 	Attributes* Attrs() const	{ return attrs.get(); }
 
 	[[deprecated("Remove in 4.1.  Use GetAttr().")]]
-	Attr* FindAttr(attr_tag t) const
-		{ return GetAttr(t).get(); }
+	Attr* FindAttr(::attr_tag t) const
+		{ return GetAttr(static_cast<zeek::detail::attr_tag>(t)).get(); }
 
-	const IntrusivePtr<Attr>& GetAttr(attr_tag t) const;
+	const IntrusivePtr<zeek::detail::Attr>& GetAttr(zeek::detail::attr_tag t) const;
 
 	bool IsDeprecated() const;
 

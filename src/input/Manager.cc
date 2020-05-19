@@ -884,7 +884,6 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
 	{
 	for ( int i = 0; i < rec->NumFields(); i++ )
 		{
-
 		if ( ! IsCompatibleType(rec->GetFieldType(i).get()) )
 			{
 			string name = nameprepend + rec->FieldName(i);
@@ -897,7 +896,7 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
 				if ( ( rec->GetFieldType(i)->Tag() == TYPE_FILE ||
 				       rec->GetFieldType(i)->Tag() == TYPE_FUNC ||
 				       rec->GetFieldType(i)->Tag() == TYPE_OPAQUE ) &&
-				       rec->FieldDecl(i)->GetAttr(ATTR_OPTIONAL) )
+				       rec->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL) )
 					{
 					reporter->Info("Encountered incompatible type \"%s\" in type definition for field \"%s\" in ReaderFrontend. Ignoring optional field.", type_name(rec->GetFieldType(i)->Tag()), name.c_str());
 					continue;
@@ -912,7 +911,7 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
 			{
 			string prep = nameprepend + rec->FieldName(i) + ".";
 
-			if ( rec->FieldDecl(i)->GetAttr(ATTR_OPTIONAL) )
+			if ( rec->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL) )
 				{
 				reporter->Info("The input framework does not support optional record fields: \"%s\"", rec->FieldName(i));
 				return false;
@@ -941,11 +940,11 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
 				st = rec->GetFieldType(i)->AsVectorType()->Yield()->Tag();
 
 			else if ( ty == TYPE_PORT &&
-				  rec->FieldDecl(i)->GetAttr(ATTR_TYPE_COLUMN) )
+				  rec->FieldDecl(i)->GetAttr(zeek::detail::ATTR_TYPE_COLUMN) )
 				{
 				// we have an annotation for the second column
 
-				c = rec->FieldDecl(i)->GetAttr(ATTR_TYPE_COLUMN)->GetExpr()->Eval(nullptr);
+				c = rec->FieldDecl(i)->GetAttr(zeek::detail::ATTR_TYPE_COLUMN)->GetExpr()->Eval(nullptr);
 
 				assert(c);
 				assert(c->GetType()->Tag() == TYPE_STRING);
@@ -953,7 +952,7 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
 				secondary = c->AsStringVal()->AsString()->CheckString();
 				}
 
-			if ( rec->FieldDecl(i)->GetAttr(ATTR_OPTIONAL ) )
+			if ( rec->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL ) )
 				optional = true;
 
 			Field* field = new Field(name.c_str(), secondary, ty, st, optional);
@@ -1867,7 +1866,7 @@ RecordVal* Manager::ValueToRecordVal(const Stream* stream, const Value* const *v
 			// Hence -> assign null to the field, done.
 
 			// Better check that it really is optional. Uou never know.
-			assert(request_type->FieldDecl(i)->GetAttr(ATTR_OPTIONAL));
+			assert(request_type->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL));
 			}
 		else
 			{

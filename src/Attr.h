@@ -14,7 +14,7 @@ FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 // modify expressions or supply metadata on types, and the kind that
 // are extra metadata on every variable instance.
 
-typedef enum {
+enum [[deprecated("Remove in v4.1. Use zeek::detail::attr_tag instead.")]] attr_tag {
 	ATTR_OPTIONAL,
 	ATTR_DEFAULT,
 	ATTR_REDEF,
@@ -33,15 +33,45 @@ typedef enum {
 	ATTR_TRACKED,	// hidden attribute, tracked by NotifierRegistry
 	ATTR_ON_CHANGE, // for table change tracking
 	ATTR_DEPRECATED,
-#define NUM_ATTRS (int(ATTR_DEPRECATED) + 1)
-} attr_tag;
+	NUM_ATTRS // this item should always be last
+};
+
+namespace zeek::detail {
+
+enum attr_tag {
+	ATTR_OPTIONAL,
+	ATTR_DEFAULT,
+	ATTR_REDEF,
+	ATTR_ADD_FUNC,
+	ATTR_DEL_FUNC,
+	ATTR_EXPIRE_FUNC,
+	ATTR_EXPIRE_READ,
+	ATTR_EXPIRE_WRITE,
+	ATTR_EXPIRE_CREATE,
+	ATTR_RAW_OUTPUT,
+	ATTR_PRIORITY,
+	ATTR_GROUP,
+	ATTR_LOG,
+	ATTR_ERROR_HANDLER,
+	ATTR_TYPE_COLUMN,	// for input framework
+	ATTR_TRACKED,	// hidden attribute, tracked by NotifierRegistry
+	ATTR_ON_CHANGE, // for table change tracking
+	ATTR_DEPRECATED,
+	NUM_ATTRS // this item should always be last
+};
 
 class Attr final : public BroObj {
 public:
-	static inline const IntrusivePtr<Attr> nil;
+	static inline const IntrusivePtr<zeek::detail::Attr> nil;
 
 	Attr(attr_tag t, IntrusivePtr<zeek::detail::Expr> e);
+	[[deprecated("Remove in v4.1. Use version that takes zeek::detail::attr_tag.")]]
+	Attr(::attr_tag t, IntrusivePtr<zeek::detail::Expr> e);
+
 	explicit Attr(attr_tag t);
+	[[deprecated("Remove in v4.1. Use version that takes zeek::detail::attr_tag.")]]
+	explicit Attr(::attr_tag t);
+
 	~Attr() override;
 
 	attr_tag Tag() const	{ return tag; }
@@ -75,7 +105,7 @@ protected:
 	void AddTag(ODesc* d) const;
 
 	attr_tag tag;
-	IntrusivePtr<zeek::detail::Expr> expr;
+	IntrusivePtr<Expr> expr;
 };
 
 // Manages a collection of attributes.
@@ -97,10 +127,14 @@ public:
 
 	[[deprecated("Remove in v4.1. Use Find().")]]
 	Attr* FindAttr(attr_tag t) const;
+	[[deprecated("Remove in v4.1. Use version that takes zeek::detail::attr_tag.")]]
+	Attr* FindAttr(::attr_tag t) const;
 
 	const IntrusivePtr<Attr>& Find(attr_tag t) const;
 
 	void RemoveAttr(attr_tag t);
+	[[deprecated("Remove in v4.1. Use version that takes zeek::detail::attr_tag.")]]
+	void RemoveAttr(::attr_tag t);
 
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool shorten = false) const;
@@ -118,3 +152,8 @@ protected:
 	bool in_record;
 	bool global_var;
 };
+
+}
+
+using Attr [[deprecated("Remove in v4.1. Use zeek::detail::Attr instead.")]] = zeek::detail::Attr;
+using Attributes [[deprecated("Remove in v4.1. Use zeek::detail::Attr instead.")]] = zeek::detail::Attributes;

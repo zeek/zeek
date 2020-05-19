@@ -22,14 +22,14 @@ extern void add_global(const IntrusivePtr<zeek::detail::ID>& id,
                        IntrusivePtr<BroType> t,
                        zeek::detail::init_class c,
                        IntrusivePtr<zeek::detail::Expr> init,
-                       std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr,
+                       std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attr,
                        decl_type dt);
 
 extern IntrusivePtr<zeek::detail::Stmt> add_local(IntrusivePtr<zeek::detail::ID> id,
                                                   IntrusivePtr<BroType> t,
                                                   zeek::detail::init_class c,
                                                   IntrusivePtr<zeek::detail::Expr> init,
-                                                  std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr,
+                                                  std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attr,
                                                   decl_type dt);
 
 extern IntrusivePtr<zeek::detail::Expr> add_and_assign_local(IntrusivePtr<zeek::detail::ID> id,
@@ -37,12 +37,12 @@ extern IntrusivePtr<zeek::detail::Expr> add_and_assign_local(IntrusivePtr<zeek::
                                                IntrusivePtr<Val> val = nullptr);
 
 extern void add_type(zeek::detail::ID* id, IntrusivePtr<BroType> t,
-                     std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr);
+                     std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attr);
 
 extern void begin_func(IntrusivePtr<zeek::detail::ID> id, const char* module_name,
                        function_flavor flavor, bool is_redef,
                        IntrusivePtr<FuncType> t,
-                       std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs = nullptr);
+                       std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attrs = nullptr);
 
 extern void end_func(IntrusivePtr<zeek::detail::Stmt> body);
 

@@ -758,7 +758,8 @@ class Frame;
 
 class TableVal final : public Val, public notifier::Modifiable {
 public:
-	explicit TableVal(IntrusivePtr<TableType> t, IntrusivePtr<Attributes> attrs = nullptr);
+	explicit TableVal(IntrusivePtr<TableType> t, IntrusivePtr<zeek::detail::Attributes> attrs = nullptr);
+
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtrs instead.")]]
 	explicit TableVal(TableType* t, Attributes* attrs = nullptr)
 		: TableVal({NewRef{}, t}, {NewRef{}, attrs})
@@ -943,18 +944,18 @@ public:
 	[[deprecated("Remove in v4.1.  Use ToPureListVal() instead.")]]
 	ListVal* ConvertToPureList() const;	// must be single index type
 
-	void SetAttrs(IntrusivePtr<Attributes> attrs);
+	void SetAttrs(IntrusivePtr<zeek::detail::Attributes> attrs);
 
 	[[deprecated("Remove in v4.1.  Use GetAttr().")]]
-	Attr* FindAttr(attr_tag t) const
-		{ return GetAttr(t).get(); }
+	Attr* FindAttr(::attr_tag t) const
+		{ return GetAttr(static_cast<zeek::detail::attr_tag>(t)).get(); }
 
-	const IntrusivePtr<Attr>& GetAttr(attr_tag t) const;
+	const IntrusivePtr<zeek::detail::Attr>& GetAttr(zeek::detail::attr_tag t) const;
 
 	[[deprecated("Remove in v4.1.  Use GetAttrs().")]]
-	Attributes* Attrs()	{ return attrs.get(); }
+	zeek::detail::Attributes* Attrs()	{ return attrs.get(); }
 
-	const IntrusivePtr<Attributes>& GetAttrs() const
+	const IntrusivePtr<zeek::detail::Attributes>& GetAttrs() const
 		{ return attrs; }
 
 	// Returns the size of the table.
@@ -1020,7 +1021,9 @@ protected:
 	ParseTimeTableState DumpTableState();
 	void RebuildTable(ParseTimeTableState ptts);
 
-	void CheckExpireAttr(attr_tag at);
+	void CheckExpireAttr(zeek::detail::attr_tag at);
+	[[deprecated("Remove in v4.1. Use version that takes zeek::detail::attr_tag.")]]
+	void CheckExpireAttr(::attr_tag at);
 	bool ExpandCompoundAndInit(ListVal* lv, int k, IntrusivePtr<Val> new_val);
 	bool CheckAndAssign(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val);
 
@@ -1049,7 +1052,7 @@ protected:
 
 	IntrusivePtr<TableType> table_type;
 	CompositeHash* table_hash;
-	IntrusivePtr<Attributes> attrs;
+	IntrusivePtr<zeek::detail::Attributes> attrs;
 	IntrusivePtr<zeek::detail::Expr> expire_time;
 	IntrusivePtr<zeek::detail::Expr> expire_func;
 	TableValTimer* timer;

@@ -183,8 +183,8 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 				{
 				auto rv_i = rv->GetField(i).get();
 
-				Attributes* a = rt->FieldDecl(i)->attrs.get();
-				bool optional = (a && a->Find(ATTR_OPTIONAL));
+				zeek::detail::Attributes* a = rt->FieldDecl(i)->attrs.get();
+				bool optional = (a && a->Find(zeek::detail::ATTR_OPTIONAL));
 
 				if ( ! (rv_i || optional) )
 					return nullptr;
@@ -514,8 +514,8 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 
 			for ( int i = 0; i < num_fields; ++i )
 				{
-				Attributes* a = rt->FieldDecl(i)->attrs.get();
-				bool optional = (a && a->Find(ATTR_OPTIONAL));
+				zeek::detail::Attributes* a = rt->FieldDecl(i)->attrs.get();
+				bool optional = (a && a->Find(zeek::detail::ATTR_OPTIONAL));
 
 				sz = SingleTypeKeySize(rt->GetFieldType(i).get(),
 						       rv ? rv->GetField(i).get() : nullptr,
@@ -908,8 +908,8 @@ const char* CompositeHash::RecoverOneVal(const HashKey& k, const char* kp0,
 				{
 				IntrusivePtr<Val> v;
 
-				Attributes* a = rt->FieldDecl(i)->attrs.get();
-				bool optional = (a && a->Find(ATTR_OPTIONAL));
+				zeek::detail::Attributes* a = rt->FieldDecl(i)->attrs.get();
+				bool optional = (a && a->Find(zeek::detail::ATTR_OPTIONAL));
 
 				kp = RecoverOneVal(k, kp, k_end,
 				                   rt->GetFieldType(i).get(), &v, optional);

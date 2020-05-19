@@ -21,7 +21,7 @@ FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
 class Scope : public BroObj {
 public:
 	explicit Scope(IntrusivePtr<zeek::detail::ID> id,
-	               std::unique_ptr<std::vector<IntrusivePtr<Attr>>> al);
+	               std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> al);
 
 	const IntrusivePtr<zeek::detail::ID>& Find(std::string_view name) const;
 
@@ -41,7 +41,7 @@ public:
 	const IntrusivePtr<zeek::detail::ID>& GetID() const
 		{ return scope_id; }
 
-	const std::unique_ptr<std::vector<IntrusivePtr<Attr>>>& Attrs() const
+	const std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>>& Attrs() const
 		{ return attrs; }
 
 	[[deprecated("Remove in v4.1.  Use GetReturnTrype().")]]
@@ -69,7 +69,7 @@ public:
 
 protected:
 	IntrusivePtr<zeek::detail::ID> scope_id;
-	std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs;
+	std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attrs;
 	IntrusivePtr<BroType> return_type;
 	std::map<std::string, IntrusivePtr<zeek::detail::ID>, std::less<>> local;
 	std::vector<IntrusivePtr<zeek::detail::ID>> inits;
@@ -88,7 +88,7 @@ extern IntrusivePtr<zeek::detail::ID> install_ID(const char* name, const char* m
                                                  bool is_global, bool is_export);
 
 extern void push_scope(IntrusivePtr<zeek::detail::ID> id,
-                       std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs);
+                       std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attrs);
 extern void push_existing_scope(Scope* scope);
 
 // Returns the one popped off.

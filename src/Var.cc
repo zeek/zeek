@@ -17,6 +17,8 @@
 #include "module_util.h"
 #include "ID.h"
 
+using namespace zeek::detail;
+
 static IntrusivePtr<Val> init_val(zeek::detail::Expr* init, const BroType* t,
                                   IntrusivePtr<Val> aggr)
 	{
@@ -31,7 +33,7 @@ static IntrusivePtr<Val> init_val(zeek::detail::Expr* init, const BroType* t,
 	}
 
 static bool add_prototype(const IntrusivePtr<zeek::detail::ID>& id, BroType* t,
-                          std::vector<IntrusivePtr<Attr>>* attrs,
+                          std::vector<IntrusivePtr<zeek::detail::Attr>>* attrs,
                           const IntrusivePtr<zeek::detail::Expr>& init)
 	{
 	if ( ! IsFunc(id->GetType()->Tag()) )
@@ -100,7 +102,7 @@ static bool add_prototype(const IntrusivePtr<zeek::detail::ID>& id, BroType* t,
 
 	if ( attrs )
 		for ( const auto& a : *attrs )
-			if ( a->Tag() == ATTR_DEPRECATED )
+			if ( a->Tag() == zeek::detail::ATTR_DEPRECATED )
 				deprecated = true;
 
 	FuncType::Prototype p{deprecated, alt_args, std::move(offsets)};
@@ -111,7 +113,7 @@ static bool add_prototype(const IntrusivePtr<zeek::detail::ID>& id, BroType* t,
 static void make_var(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<BroType> t,
                      zeek::detail::init_class c,
                      IntrusivePtr<zeek::detail::Expr> init,
-                     std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr,
+                     std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attr,
                      decl_type dt,
                      bool do_init)
 	{
@@ -200,7 +202,7 @@ static void make_var(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<BroT
 	id->SetType(t);
 
 	if ( attr )
-		id->AddAttrs(make_intrusive<Attributes>(std::move(*attr), t, false, id->IsGlobal()));
+		id->AddAttrs(make_intrusive<zeek::detail::Attributes>(std::move(*attr), t, false, id->IsGlobal()));
 
 	if ( init )
 		{
@@ -234,8 +236,8 @@ static void make_var(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<BroT
 			// intention clearly isn't to overwrite entire existing table val.
 			c = zeek::detail::INIT_EXTRA;
 
-		if ( init && ((c == zeek::detail::INIT_EXTRA && id->GetAttr(ATTR_ADD_FUNC)) ||
-		              (c == zeek::detail::INIT_REMOVE && id->GetAttr(ATTR_DEL_FUNC)) ))
+		if ( init && ((c == zeek::detail::INIT_EXTRA && id->GetAttr(zeek::detail::ATTR_ADD_FUNC)) ||
+		              (c == zeek::detail::INIT_REMOVE && id->GetAttr(zeek::detail::ATTR_DEL_FUNC)) ))
 			// Just apply the function.
 			id->SetVal(init, c);
 
@@ -310,7 +312,7 @@ static void make_var(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<BroT
 
 void add_global(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<BroType> t,
                 zeek::detail::init_class c, IntrusivePtr<zeek::detail::Expr> init,
-                std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr,
+                std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attr,
                 decl_type dt)
 	{
 	make_var(id, std::move(t), c, std::move(init), std::move(attr), dt, true);
@@ -318,7 +320,7 @@ void add_global(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<BroType> 
 
 IntrusivePtr<zeek::detail::Stmt> add_local(IntrusivePtr<zeek::detail::ID> id, IntrusivePtr<BroType> t,
                              zeek::detail::init_class c, IntrusivePtr<zeek::detail::Expr> init,
-                             std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr,
+                             std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attr,
                              decl_type dt)
 	{
 	make_var(id, std::move(t), c, init, std::move(attr), dt, false);
@@ -359,7 +361,7 @@ extern IntrusivePtr<zeek::detail::Expr> add_and_assign_local(IntrusivePtr<zeek::
 	}
 
 void add_type(zeek::detail::ID* id, IntrusivePtr<BroType> t,
-              std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr)
+              std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attr)
 	{
 	std::string new_type_name = id->Name();
 	std::string old_type_name = t->GetName();
@@ -384,7 +386,7 @@ void add_type(zeek::detail::ID* id, IntrusivePtr<BroType> t,
 	id->MakeType();
 
 	if ( attr )
-		id->SetAttrs(make_intrusive<Attributes>(std::move(*attr), tnew, false, false));
+		id->SetAttrs(make_intrusive<zeek::detail::Attributes>(std::move(*attr), tnew, false, false));
 	}
 
 static void transfer_arg_defaults(RecordType* args, RecordType* recv)
@@ -394,25 +396,26 @@ static void transfer_arg_defaults(RecordType* args, RecordType* recv)
 		TypeDecl* args_i = args->FieldDecl(i);
 		TypeDecl* recv_i = recv->FieldDecl(i);
 
-		const auto& def = args_i->attrs ? args_i->attrs->Find(ATTR_DEFAULT) : nullptr;
+		const auto& def = args_i->attrs ? args_i->attrs->Find(zeek::detail::ATTR_DEFAULT) : nullptr;
 
 		if ( ! def )
 			continue;
 
 		if ( ! recv_i->attrs )
 			{
-			std::vector<IntrusivePtr<Attr>> a{def};
-			recv_i->attrs = make_intrusive<Attributes>(std::move(a),
-			                                           recv_i->type,
-			                                           true, false);
+			std::vector<IntrusivePtr<zeek::detail::Attr>> a{def};
+			recv_i->attrs = make_intrusive<zeek::detail::Attributes>(std::move(a),
+			                                                         recv_i->type,
+			                                                         true, false);
 			}
 
-		else if ( ! recv_i->attrs->Find(ATTR_DEFAULT) )
+		else if ( ! recv_i->attrs->Find(zeek::detail::ATTR_DEFAULT) )
 			recv_i->attrs->AddAttr(def);
 		}
 	}
 
-static Attr* find_attr(const std::vector<IntrusivePtr<Attr>>* al, attr_tag tag)
+static zeek::detail::Attr* find_attr(const std::vector<IntrusivePtr<zeek::detail::Attr>>* al,
+                                     zeek::detail::attr_tag tag)
 	{
 	if ( ! al )
 		return nullptr;
@@ -462,7 +465,7 @@ static bool canonical_arg_types_match(const FuncType* decl, const FuncType* impl
 void begin_func(IntrusivePtr<zeek::detail::ID> id, const char* module_name,
                 function_flavor flavor, bool is_redef,
                 IntrusivePtr<FuncType> t,
-                std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs)
+                std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attrs)
 	{
 	if ( flavor == FUNC_FLAVOR_EVENT )
 		{
@@ -502,7 +505,7 @@ void begin_func(IntrusivePtr<zeek::detail::ID> id, const char* module_name,
 					{
 					auto f = args->FieldDecl(i);
 
-					if ( f->attrs && f->attrs->Find(ATTR_DEFAULT) )
+					if ( f->attrs && f->attrs->Find(zeek::detail::ATTR_DEFAULT) )
 						{
 						reporter->PushLocation(args->GetLocationInfo());
 						reporter->Warning(
@@ -579,8 +582,8 @@ void begin_func(IntrusivePtr<zeek::detail::ID> id, const char* module_name,
 			arg_id->SetOffset(prototype->offsets[i]);
 		}
 
-	if ( Attr* depr_attr = find_attr(current_scope()->Attrs().get(),
-	                                 ATTR_DEPRECATED) )
+	if ( zeek::detail::Attr* depr_attr = find_attr(current_scope()->Attrs().get(),
+	                                               zeek::detail::ATTR_DEPRECATED) )
 		current_scope()->GetID()->MakeDeprecated(depr_attr->GetExpr());
 	}
 

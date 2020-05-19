@@ -844,16 +844,16 @@ bool check_built_in_call(BuiltinFunc* f, zeek::detail::CallExpr* call)
 
 // Gets a function's priority from its Scope's attributes. Errors if it sees any
 // problems.
-static int get_func_priority(const std::vector<IntrusivePtr<Attr>>& attrs)
+static int get_func_priority(const std::vector<IntrusivePtr<zeek::detail::Attr>>& attrs)
 	{
 	int priority = 0;
 
 	for ( const auto& a : attrs )
 		{
-		if ( a->Tag() == ATTR_DEPRECATED )
+		if ( a->Tag() == zeek::detail::ATTR_DEPRECATED )
 			continue;
 
-		if ( a->Tag() != ATTR_PRIORITY )
+		if ( a->Tag() != zeek::detail::ATTR_PRIORITY )
 			{
 			a->Error("illegal attribute for function body");
 			continue;

@@ -220,7 +220,7 @@ void ScriptInfo::DoInitPostScript()
 
 		if ( id->IsConst() )
 			{
-			if ( id->GetAttr(ATTR_REDEF) )
+			if ( id->GetAttr(zeek::detail::ATTR_REDEF) )
 				{
 				DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a redef_option",
 				        id->Name(), name.c_str());

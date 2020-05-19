@@ -16,11 +16,11 @@
 #include "IntrusivePtr.h"
 #include "util.h"
 
-class Attributes;
 class BroType;
 class RecordVal;
 
 FORWARD_DECLARE_NAMESPACED(PrintStmt, zeek::detail);
+FORWARD_DECLARE_NAMESPACED(Attributes, zeek::detail);
 
 class BroFile final : public BroObj {
 public:
@@ -61,7 +61,7 @@ public:
 	RecordVal* Rotate();
 
 	// Set &raw_output attribute.
-	void SetAttrs(Attributes* attrs);
+	void SetAttrs(zeek::detail::Attributes* attrs);
 
 	// Returns the current size of the file, after fresh stat'ing.
 	double Size();
@@ -107,7 +107,7 @@ protected:
 	IntrusivePtr<BroType> t;
 	char* name;
 	char* access;
-	Attributes* attrs;
+	zeek::detail::Attributes* attrs;
 	double open_time;
 	bool is_open;	// whether the file is open in a general sense
 	bool buffered;

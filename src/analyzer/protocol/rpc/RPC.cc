@@ -28,7 +28,6 @@ namespace { // local namespace
 
 RPC_CallInfo::RPC_CallInfo(uint32_t arg_xid, const u_char*& buf, int& n, double arg_start_time, double arg_last_time, int arg_rpc_len)
 	{
-	v = nullptr;
 	xid = arg_xid;
 	stamp = 0;
 	uid = 0;
@@ -98,7 +97,6 @@ RPC_CallInfo::RPC_CallInfo(uint32_t arg_xid, const u_char*& buf, int& n, double 
 RPC_CallInfo::~RPC_CallInfo()
 	{
 	delete [] call_buf;
-	Unref(v);
 	}
 
 bool RPC_CallInfo::CompareRexmit(const u_char* buf, int n) const

@@ -22,7 +22,7 @@ bool MOUNT_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 
 	uint32_t proc = c->Proc();
 	// The call arguments, depends on the call type obviously ...
-	Val *callarg = nullptr;
+	IntrusivePtr<RecordVal> callarg;
 
 	switch ( proc ) {
 		case BifEnum::MOUNT3::PROC_NULL:
@@ -41,7 +41,6 @@ bool MOUNT_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 		break;
 
 	default:
-		callarg = nullptr;
 		if ( proc < BifEnum::MOUNT3::PROC_END_OF_PROCS )
 			{
 			// We know the procedure but haven't implemented it.
@@ -58,19 +57,10 @@ bool MOUNT_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	}
 
 	if ( ! buf )
-		{
-		// There was a parse error while trying to extract the call
-		// arguments. However, we don't know where exactly it
-		// happened and whether Vals where already allocated (e.g., a
-		// RecordVal was allocated but we failed to fill it). So we
-		// Unref() the call arguments, and we are fine.
-		Unref(callarg);
-		callarg = nullptr;
+		// There was a parse error while trying to extract the call arguments.
 		return false;
-		}
 
-	c->AddVal(callarg); // It's save to AddVal(0).
-
+	c->AddVal(callarg);
 	return true;
 	}
 
@@ -114,7 +104,7 @@ bool MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_statu
 		break;
 
 	case BifEnum::MOUNT3::PROC_MNT:
-		reply = {AdoptRef{}, mount3_mnt_reply(buf, n, mount_status)};
+		reply = mount3_mnt_reply(buf, n, mount_status);
 		event = mount_proc_mnt;
 		break;
 
@@ -159,13 +149,13 @@ bool MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_statu
 	// optional and all are set to 0 ...
 	if ( event )
 		{
-		Val *request = c->TakeRequestVal();
+		auto request = c->TakeRequestVal();
 
 		auto vl = event_common_vl(c, rpc_status, mount_status,
 					start_time, last_time, reply_len, (bool)request + (bool)reply);
 
 		if ( request )
-			vl.emplace_back(AdoptRef{}, request);
+			vl.emplace_back(std::move(request));
 
 		if ( reply )
 			vl.emplace_back(reply);
@@ -213,14 +203,14 @@ zeek::Args MOUNT_Interp::event_common_vl(RPC_CallInfo *c,
 	return vl;
 	}
 
-EnumVal* MOUNT_Interp::mount3_auth_flavor(const u_char*& buf, int& n)
+IntrusivePtr<EnumVal> MOUNT_Interp::mount3_auth_flavor(const u_char*& buf, int& n)
     {
 	BifEnum::MOUNT3::auth_flavor_t t = (BifEnum::MOUNT3::auth_flavor_t)extract_XDR_uint32(buf, n);
 	auto rval = zeek::BifType::Enum::MOUNT3::auth_flavor_t->GetVal(t);
-	return rval.release();
+	return rval;
     }
 
-StringVal* MOUNT_Interp::mount3_fh(const u_char*& buf, int& n)
+IntrusivePtr<StringVal> MOUNT_Interp::mount3_fh(const u_char*& buf, int& n)
 	{
 	int fh_n;
 	const u_char* fh = extract_XDR_opaque(buf, n, fh_n, 64);
@@ -228,10 +218,10 @@ StringVal* MOUNT_Interp::mount3_fh(const u_char*& buf, int& n)
 	if ( ! fh )
 		return nullptr;
 
-	return new StringVal(new BroString(fh, fh_n, false));
+	return make_intrusive<StringVal>(new BroString(fh, fh_n, false));
 	}
 
-StringVal* MOUNT_Interp::mount3_filename(const u_char*& buf, int& n)
+IntrusivePtr<StringVal> MOUNT_Interp::mount3_filename(const u_char*& buf, int& n)
 	{
 	int name_len;
 	const u_char* name = extract_XDR_opaque(buf, n, name_len);
@@ -239,20 +229,20 @@ StringVal* MOUNT_Interp::mount3_filename(const u_char*& buf, int& n)
 	if ( ! name )
 		return nullptr;
 
-	return new StringVal(new BroString(name, name_len, false));
+	return make_intrusive<StringVal>(new BroString(name, name_len, false));
 	}
 
-RecordVal* MOUNT_Interp::mount3_dirmntargs(const u_char*& buf, int& n)
+IntrusivePtr<RecordVal> MOUNT_Interp::mount3_dirmntargs(const u_char*& buf, int& n)
 	{
-	RecordVal* dirmntargs = new RecordVal(zeek::BifType::Record::MOUNT3::dirmntargs_t);
+	auto dirmntargs = make_intrusive<RecordVal>(zeek::BifType::Record::MOUNT3::dirmntargs_t);
 	dirmntargs->Assign(0, mount3_filename(buf, n));
 	return dirmntargs;
 	}
 
-RecordVal* MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& n,
+IntrusivePtr<RecordVal> MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& n,
 		     BifEnum::MOUNT3::status_t status)
 	{
-	RecordVal* rep = new RecordVal(zeek::BifType::Record::MOUNT3::mnt_reply_t);
+	auto rep = make_intrusive<RecordVal>(zeek::BifType::Record::MOUNT3::mnt_reply_t);
 
 	if ( status == BifEnum::MOUNT3::MNT3_OK )
 		{

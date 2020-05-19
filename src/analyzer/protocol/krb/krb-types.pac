@@ -29,7 +29,7 @@ IntrusivePtr<VectorVal> proc_cipher_list(const Array* list)
 {
 	auto ciphers = make_intrusive<VectorVal>(zeek::id::index_vec);
 	for ( uint i = 0; i < list->data()->size(); ++i )
-		ciphers->Assign(ciphers->Size(), {AdoptRef{}, asn1_integer_to_val((*list->data())[i], TYPE_COUNT)});
+		ciphers->Assign(ciphers->Size(), asn1_integer_to_val((*list->data())[i], TYPE_COUNT));
 	return ciphers;
 }
 
@@ -86,7 +86,7 @@ IntrusivePtr<RecordVal> proc_host_address(const BroAnalyzer a, const KRB_Host_Ad
 		}
 
 	auto unk = make_intrusive<RecordVal>(zeek::BifType::Record::KRB::Type_Value);
-	unk->Assign(0, {AdoptRef{}, asn1_integer_to_val(addr->addr_type(), TYPE_COUNT)});
+	unk->Assign(0, asn1_integer_to_val(addr->addr_type(), TYPE_COUNT));
 	unk->Assign(1, to_stringval(addr_bytes));
 	rv->Assign(2, std::move(unk));
 	return rv;
@@ -109,10 +109,10 @@ IntrusivePtr<RecordVal> proc_ticket(const KRB_Ticket* ticket)
 	{
 	auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::KRB::Ticket);
 
-	rv->Assign(0, {AdoptRef{}, asn1_integer_to_val(ticket->tkt_vno()->data(), TYPE_COUNT)});
+	rv->Assign(0, asn1_integer_to_val(ticket->tkt_vno()->data(), TYPE_COUNT));
 	rv->Assign(1, to_stringval(ticket->realm()->data()->content()));
 	rv->Assign(2, GetStringFromPrincipalName(ticket->sname()));
-	rv->Assign(3, {AdoptRef{}, asn1_integer_to_val(ticket->enc_part()->data()->etype()->data(), TYPE_COUNT)});
+	rv->Assign(3, asn1_integer_to_val(ticket->enc_part()->data()->etype()->data(), TYPE_COUNT));
 	rv->Assign(4, to_stringval(ticket->enc_part()->data()->ciphertext()->encoding()->content()));
 
 	return rv;

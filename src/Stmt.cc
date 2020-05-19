@@ -1197,7 +1197,7 @@ IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 			delete k;
 
 			if ( value_var )
-				f->SetElement(value_var.get(), current_tev->Value()->Ref());
+				f->SetElement(value_var.get(), current_tev->GetVal()->Ref());
 
 			for ( int i = 0; i < ind_lv->Length(); i++ )
 				f->SetElement((*loop_vars)[i], ind_lv->Idx(i)->Ref());

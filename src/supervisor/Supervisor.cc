@@ -1027,7 +1027,7 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 		auto key = cluster_table_val->RecoverIndex(k);
 		delete k;
 		auto name = key->Idx(0)->AsStringVal()->ToStdString();
-		auto rv = v->Value()->AsRecordVal();
+		auto rv = v->GetVal()->AsRecordVal();
 
 		Supervisor::ClusterEndpoint ep;
 		ep.role = static_cast<BifEnum::Supervisor::ClusterRole>(rv->Lookup("role")->AsEnum());

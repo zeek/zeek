@@ -928,7 +928,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const Val* v)
 				caf::get<broker::set>(rval).emplace(move(key));
 			else
 				{
-				auto val = val_to_data(entry->Value());
+				auto val = val_to_data(entry->GetVal().get());
 
 				if ( ! val )
 					return broker::ec::invalid_data;

@@ -871,7 +871,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 				{
 				auto index = filter->config->RecoverIndex(k);
 				string key = index->Idx(0)->AsString()->CheckString();
-				string value = v->Value()->AsString()->CheckString();
+				string value = v->GetVal()->AsString()->CheckString();
 				info->config.insert(std::make_pair(copy_string(key.c_str()), copy_string(value.c_str())));
 				delete k;
 				}

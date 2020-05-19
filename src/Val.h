@@ -689,9 +689,8 @@ extern double bro_start_network_time;
 
 class TableEntryVal {
 public:
-	template<typename V>
-	explicit TableEntryVal(V&& v)
-		: val(std::forward<V>(v))
+	explicit TableEntryVal(IntrusivePtr<Val> v)
+		: val(std::move(v))
 		{
 		last_access_time = network_time;
 		expire_access_time =
@@ -700,7 +699,11 @@ public:
 
 	TableEntryVal* Clone(Val::CloneState* state);
 
+	[[deprecated("Remove in v4.1.  Use GetVal().")]]
 	Val* Value()	{ return val.get(); }
+
+	const IntrusivePtr<Val>& GetVal() const
+		{ return val; }
 
 	// Returns/sets time of last expiration relevant access to this value.
 	double ExpireAccessTime() const

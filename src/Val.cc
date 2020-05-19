@@ -559,7 +559,7 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 						// Strip quotes.
 						key_str = key_str.substr(1, key_str.length() - 2);
 
-					BuildJSON(writer, entry->Value(), only_loggable, re, key_str);
+					BuildJSON(writer, entry->GetVal().get(), only_loggable, re, key_str);
 					}
 				}
 
@@ -1451,8 +1451,8 @@ int TableVal::RecursiveSize() const
 	TableEntryVal* tv;
 	while ( (tv = v->NextEntry(c)) )
 		{
-		if ( tv->Value() )
-			n += tv->Value()->AsTableVal()->RecursiveSize();
+		if ( tv->GetVal() )
+			n += tv->GetVal()->AsTableVal()->RecursiveSize();
 		}
 
 	return n;
@@ -1561,8 +1561,8 @@ bool TableVal::Assign(Val* index, HashKey* k, IntrusivePtr<Val> new_val)
 		{
 		auto change_index = index ? IntrusivePtr<Val>{NewRef{}, index}
 		                          : RecoverIndex(&k_copy);
-		Val* v = old_entry_val ? old_entry_val->Value() : new_val.get();
-		CallChangeFunc(change_index.get(), v, old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
+		auto v = old_entry_val ? old_entry_val->GetVal() : new_val;
+		CallChangeFunc(change_index.get(), v.get(), old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
 		}
 
 	delete old_entry_val;
@@ -1618,12 +1618,12 @@ bool TableVal::AddTo(Val* val, bool is_first_init, bool propagate_ops) const
 
 		if ( type->IsSet() )
 			{
-			if ( ! t->Assign(v->Value(), k, nullptr) )
+			if ( ! t->Assign(v->GetVal().get(), k, nullptr) )
 				 return false;
 			}
 		else
 			{
-			if ( ! t->Assign(nullptr, k, {NewRef{}, v->Value()}) )
+			if ( ! t->Assign(nullptr, k, v->GetVal()) )
 				 return false;
 			}
 		}
@@ -1895,7 +1895,10 @@ IntrusivePtr<Val> TableVal::Lookup(Val* index, bool use_default_val)
 			if ( attrs && attrs->FindAttr(ATTR_EXPIRE_READ) )
 					v->SetExpireAccess(network_time);
 
-			return {NewRef{}, v->Value() ? v->Value() : this};
+			if ( v->GetVal() )
+				return v->GetVal();
+
+			return {NewRef{}, this};
 			}
 
 		if ( ! use_default_val )
@@ -1919,7 +1922,10 @@ IntrusivePtr<Val> TableVal::Lookup(Val* index, bool use_default_val)
 				if ( attrs && attrs->FindAttr(ATTR_EXPIRE_READ) )
 					v->SetExpireAccess(network_time);
 
-				return {NewRef{}, v->Value() ? v->Value() : this};
+				if ( v->GetVal() )
+					return v->GetVal();
+
+				return {NewRef{}, this};
 				}
 			}
 		}
@@ -1957,8 +1963,8 @@ IntrusivePtr<TableVal> TableVal::LookupSubnetValues(const SubNetVal* search)
 		SubNetVal* s = new SubNetVal(get<0>(element));
 		TableEntryVal* entry = reinterpret_cast<TableEntryVal*>(get<1>(element));
 
-		if ( entry && entry->Value() )
-			nt->Assign(s, {NewRef{}, entry->Value()});
+		if ( entry && entry->GetVal() )
+			nt->Assign(s, entry->GetVal());
 		else
 			nt->Assign(s, nullptr); // set
 
@@ -2069,7 +2075,10 @@ IntrusivePtr<Val> TableVal::Delete(const Val* index)
 	{
 	HashKey* k = ComputeHash(index);
 	TableEntryVal* v = k ? AsNonConstTable()->RemoveEntry(k) : nullptr;
-	IntrusivePtr<Val> va{NewRef{}, v ? (v->Value() ? v->Value() : this) : nullptr};
+	IntrusivePtr<Val> va;
+
+	if ( v )
+		va = v->GetVal() ? v->GetVal() : IntrusivePtr{NewRef{}, this};
 
 	if ( subnets && ! subnets->Remove(index) )
 		reporter->InternalWarning("index not in prefix table");
@@ -2088,7 +2097,10 @@ IntrusivePtr<Val> TableVal::Delete(const Val* index)
 IntrusivePtr<Val> TableVal::Delete(const HashKey* k)
 	{
 	TableEntryVal* v = AsNonConstTable()->RemoveEntry(k);
-	IntrusivePtr<Val> va{NewRef{}, v ? (v->Value() ? v->Value() : this) : nullptr};
+	IntrusivePtr<Val> va;
+
+	if ( v )
+		va = v->GetVal() ? v->GetVal() : IntrusivePtr{NewRef{}, this};
 
 	if ( subnets )
 		{
@@ -2232,8 +2244,8 @@ void TableVal::Describe(ODesc* d) const
 			{
 			if ( d->IsReadable() )
 				d->AddSP("] =");
-			if ( v->Value() )
-				v->Value()->Describe(d);
+			if ( v->GetVal() )
+				v->GetVal()->Describe(d);
 			}
 
 		if ( d->IsReadable() && ! d->IsShort() && d->IncludeStats() )
@@ -2408,7 +2420,7 @@ void TableVal::DoExpire(double t)
 				{
 				if ( ! idx )
 					idx = RecoverIndex(k);
-				CallChangeFunc(idx.get(), v->Value(), ELEMENT_EXPIRED);
+				CallChangeFunc(idx.get(), v->GetVal().get(), ELEMENT_EXPIRED);
 				}
 
 			delete v;
@@ -2576,8 +2588,8 @@ unsigned int TableVal::MemoryAllocation() const
 	TableEntryVal* tv;
 	while ( (tv = v->NextEntry(c)) )
 		{
-		if ( tv->Value() )
-			size += tv->Value()->MemoryAllocation();
+		if ( tv->GetVal() )
+			size += tv->GetVal()->MemoryAllocation();
 		size += padded_sizeof(TableEntryVal);
 		}
 
@@ -2628,9 +2640,7 @@ TableVal::ParseTimeTableState TableVal::DumpTableState()
 
 	while ( (val = tbl->NextEntry(key, cookie)) )
 		{
-		rval.emplace_back(RecoverIndex(key),
-		                  IntrusivePtr<Val>{NewRef{}, val->Value()});
-
+		rval.emplace_back(RecoverIndex(key), val->GetVal());
 		delete key;
 		}
 

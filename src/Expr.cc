@@ -767,19 +767,19 @@ IntrusivePtr<Val> BinaryExpr::SetFold(Val* v1, Val* v2) const
 		}
 
 	case EXPR_EQ:
-		res = tv1->EqualTo(tv2);
+		res = tv1->EqualTo(*tv2);
 		break;
 
 	case EXPR_NE:
-		res = ! tv1->EqualTo(tv2);
+		res = ! tv1->EqualTo(*tv2);
 		break;
 
 	case EXPR_LT:
-		res = tv1->IsSubsetOf(tv2) && tv1->Size() < tv2->Size();
+		res = tv1->IsSubsetOf(*tv2) && tv1->Size() < tv2->Size();
 		break;
 
 	case EXPR_LE:
-		res = tv1->IsSubsetOf(tv2);
+		res = tv1->IsSubsetOf(*tv2);
 		break;
 
 	case EXPR_GE:

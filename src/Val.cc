@@ -1695,10 +1695,10 @@ IntrusivePtr<TableVal> TableVal::Intersection(const TableVal& tv) const
 	return result;
 	}
 
-bool TableVal::EqualTo(const TableVal* tv) const
+bool TableVal::EqualTo(const TableVal& tv) const
 	{
 	const PDict<TableEntryVal>* t0 = AsTable();
-	const PDict<TableEntryVal>* t1 = tv->AsTable();
+	const PDict<TableEntryVal>* t1 = tv.AsTable();
 
 	if ( t0->Length() != t1->Length() )
 		return false;
@@ -1722,10 +1722,10 @@ bool TableVal::EqualTo(const TableVal* tv) const
 	return true;
 	}
 
-bool TableVal::IsSubsetOf(const TableVal* tv) const
+bool TableVal::IsSubsetOf(const TableVal& tv) const
 	{
 	const PDict<TableEntryVal>* t0 = AsTable();
-	const PDict<TableEntryVal>* t1 = tv->AsTable();
+	const PDict<TableEntryVal>* t1 = tv.AsTable();
 
 	if ( t0->Length() > t1->Length() )
 		return false;

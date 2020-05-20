@@ -813,11 +813,19 @@ public:
 	// given set.  Note that comparisons are done using hash keys,
 	// so errors can arise for compound sets such as sets-of-sets.
 	// See https://bro-tracker.atlassian.net/browse/BIT-1949.
-	bool EqualTo(const TableVal* v) const;
+	bool EqualTo(const TableVal& v) const;
+
+	[[deprecated("Remove in v4.1.  Pass TableVal& instead.")]]
+	bool EqualTo(const TableVal* v) const
+		{ return EqualTo(*v); }
 
 	// Returns true if this set is a subset (not necessarily proper)
 	// of the given set.
-	bool IsSubsetOf(const TableVal* v) const;
+	bool IsSubsetOf(const TableVal& v) const;
+
+	[[deprecated("Remove in v4.1.  Pass TableVal& instead.")]]
+	bool IsSubsetOf(const TableVal* v) const
+		{ return IsSubsetOf(*v); }
 
 	// Expands any lists in the index into multiple initializations.
 	// Returns true if the initializations typecheck, false if not.

@@ -278,22 +278,23 @@ void ZAM::StmtDescribe(ODesc* d) const
 	d->Add("compiled code");
 	}
 
-static void vec_exec(ZOp op, ZAMVectorMgr*& v1, const ZAMVectorMgr* v2);
+static void vec_exec(ZOp op, ZAMVectorMgr*& v1, const ZAMVectorMgr* v2,
+			ZAM_tracker_type* tracker);
 
 static void vec_exec(ZOp op, ZAMVectorMgr*& v1, const ZAMVectorMgr* v2,
-			const ZAMVectorMgr* v3);
+			const ZAMVectorMgr* v3, ZAM_tracker_type* tracker);
 
 // Vector coercion.
 //
 // ### Should check for underflow/overflow.
 #define VEC_COERCE(tag, lhs_accessor, cast, rhs_accessor) \
-	static ZAMVectorMgr* vec_coerce_##tag(ZAMVectorMgr* vec) \
+	static ZAMVectorMgr* vec_coerce_##tag(ZAMVectorMgr* vec, ZAM_tracker_type* tracker) \
 		{ \
 		auto v = vec->ConstVec(); \
 		auto res = make_shared<ZAM_vector>(); \
 		for ( unsigned int i = 0; i < v->size(); ++i ) \
 			(*res)[i].lhs_accessor = cast((*v)[i].rhs_accessor); \
-		return new ZAMVectorMgr(res, nullptr); \
+		return new ZAMVectorMgr(res, nullptr, tracker); \
 		}
 
 VEC_COERCE(IU, int_val, bro_int_t, uint_val)
@@ -327,7 +328,7 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 	// whether an object should be delete'd or not on reassignment.
 	std::vector<IntrusivePtr<BroObj>> vals;
 
-#define BuildVal(v, t, s) (vals.push_back(v), ZAMValUnion(v.get(), t, s, error_flag))
+#define BuildVal(v, t, s) (vals.push_back(v), ZAMValUnion(v.get(), t, &ZAM_VM_Tracker, s, error_flag))
 #define CopyVal(v) (IsManagedType(z.t) ? BuildVal(v.ToVal(z.t), z.t, z.stmt) : v)
 
 // Managed assignments to frame[s.v1].
@@ -335,7 +336,6 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 #define AssignV1T(v, t) { if ( z.is_managed ) DeleteManagedType(frame[z.v1], t); frame[z.v1] = v; }
 
 	ZAM_tracker_type ZAM_VM_Tracker;
-	curr_ZAM_VM_Tracker = &ZAM_VM_Tracker;
 
 	// Return value, or nil if none.
 	const ZAMValUnion* ret_u;
@@ -1813,7 +1813,8 @@ TraversalCode ResumptionAM::Traverse(TraversalCallback* cb) const
 	}
 
 // Unary vector operation of v1 <vec-op> v2.
-static void vec_exec(ZOp op, ZAMVectorMgr*& v1, const ZAMVectorMgr* v2)
+static void vec_exec(ZOp op, ZAMVectorMgr*& v1, const ZAMVectorMgr* v2,
+			ZAM_tracker_type* tracker)
 	{
 	// We could speed this up further still by gen'ing up an
 	// instance of the loop inside each switch case (in which
@@ -1826,7 +1827,7 @@ static void vec_exec(ZOp op, ZAMVectorMgr*& v1, const ZAMVectorMgr* v2)
 	if ( v1 )
 		v1->ModVec()->resize(vec2.size());
 	else
-		v1 = new ZAMVectorMgr(make_shared<ZAM_vector>(vec2.size()), nullptr);
+		v1 = new ZAMVectorMgr(make_shared<ZAM_vector>(vec2.size()), nullptr, tracker);
 
 	auto& vec1 = *v1->ModVec();
 
@@ -1842,7 +1843,7 @@ static void vec_exec(ZOp op, ZAMVectorMgr*& v1, const ZAMVectorMgr* v2)
 
 // Binary vector operation of v1 = v2 <vec-op> v3.
 static void vec_exec(ZOp op, ZAMVectorMgr*& v1, const ZAMVectorMgr* v2,
-			const ZAMVectorMgr* v3)
+			const ZAMVectorMgr* v3, ZAM_tracker_type* tracker)
 	{
 	// See comment above re further speed-up.
 
@@ -1852,7 +1853,7 @@ static void vec_exec(ZOp op, ZAMVectorMgr*& v1, const ZAMVectorMgr* v2,
 	if ( v1 )
 		v1->ModVec()->resize(vec2.size());
 	else
-		v1 = new ZAMVectorMgr(make_shared<ZAM_vector>(vec2.size()), nullptr);
+		v1 = new ZAMVectorMgr(make_shared<ZAM_vector>(vec2.size()), nullptr, tracker);
 
 	auto& vec1 = *v1->ModVec();
 

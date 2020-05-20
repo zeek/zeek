@@ -168,7 +168,7 @@ void ZInst::InitConst(const ConstExpr* ce)
 	t = ct;
 
 	bool error = false;
-	c = ZAMValUnion(v, t, ce, error);
+	c = ZAMValUnion(v, t, nullptr, ce, error);
 
 	if ( error )
 		reporter->InternalError("bad value compiling code");

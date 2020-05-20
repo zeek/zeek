@@ -57,7 +57,8 @@ void DeleteManagedType(ZAMValUnion& v, const BroType* t)
 	}
 
 
-ZAMValUnion::ZAMValUnion(Val* v, BroType* t, const BroObj* o, bool& error)
+ZAMValUnion::ZAMValUnion(Val* v, BroType* t, ZAM_tracker_type* tracker,
+				const BroObj* o, bool& error)
 	{
 	if ( ! v )
 		{
@@ -109,7 +110,7 @@ ZAMValUnion::ZAMValUnion(Val* v, BroType* t, const BroObj* o, bool& error)
 		     v->AsVector()->size() > 0 )
 			any_val = v->Ref();
 		else
-			vector_val = to_ZAM_vector(v, true);
+			vector_val = to_ZAM_vector(v, tracker, true);
 		break;
 
 	case TYPE_STRING:
@@ -242,7 +243,8 @@ IntrusivePtr<VectorVal> ZAMValUnion::ToVector(BroType* t) const
 	}
 
 
-ZAMVectorMgr::ZAMVectorMgr(std::shared_ptr<ZAM_vector> _vec, VectorVal* _v)
+ZAMVectorMgr::ZAMVectorMgr(std::shared_ptr<ZAM_vector> _vec, VectorVal* _v,
+				ZAM_tracker_type* _tracker)
 	{
 	vec = _vec;
 	v = _v;
@@ -255,7 +257,9 @@ ZAMVectorMgr::ZAMVectorMgr(std::shared_ptr<ZAM_vector> _vec, VectorVal* _v)
 		}
 
 	Ref(v);
-	curr_ZAM_VM_Tracker->insert(this);
+
+	tracker = _tracker;
+	tracker->insert(this);
 
 	auto vt = v->Type()->AsVectorType();
 	auto yt = vt->YieldType();
@@ -283,7 +287,7 @@ ZAMVectorMgr::~ZAMVectorMgr()
 			// to delete.
 			Spill();
 
-		curr_ZAM_VM_Tracker->erase(this);
+		tracker->erase(this);
 		}
 
 	if ( v )
@@ -316,17 +320,18 @@ void ZAMVectorMgr::Spill()
 void ZAMVectorMgr::Freshen()
 	{
 	ASSERT(is_clean);
-	vec = to_raw_ZAM_vector(v);
+	vec = to_raw_ZAM_vector(v, tracker);
 	}
 
 
-ZAMVectorMgr* to_ZAM_vector(Val* vec, bool track_val)
+ZAMVectorMgr* to_ZAM_vector(Val* vec, ZAM_tracker_type* tracker, bool track_val)
 	{
-	auto raw = to_raw_ZAM_vector(vec);
-	return new ZAMVectorMgr(raw, track_val ? vec->AsVectorVal() : nullptr);
+	auto raw = to_raw_ZAM_vector(vec, tracker);
+	auto v = track_val ? vec->AsVectorVal() : nullptr;
+	return new ZAMVectorMgr(raw, v, tracker);
 	}
 
-std::shared_ptr<ZAM_vector> to_raw_ZAM_vector(Val* vec)
+std::shared_ptr<ZAM_vector> to_raw_ZAM_vector(Val* vec, ZAM_tracker_type* trk)
 	{
 	auto v = vec->AsVector();
 	auto t = vec->Type()->AsVectorType();
@@ -340,7 +345,8 @@ std::shared_ptr<ZAM_vector> to_raw_ZAM_vector(Val* vec)
 			// Zeek vectors can have holes.
 			raw.get()->push_back(ZAMValUnion());
 		else
-			raw.get()->push_back(ZAMValUnion(elem, yt, vec, error));
+			raw.get()->push_back(ZAMValUnion(elem, yt, trk, vec,
+								error));
 
 	return raw;
 	}

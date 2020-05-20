@@ -8,7 +8,12 @@
 #include <unordered_set>
 
 
+// Manager of a single internal/Val* vector pairing.
 class ZAMVectorMgr;
+
+// Tracks all such managers.
+typedef std::unordered_set<ZAMVectorMgr*> ZAM_tracker_type;
+
 struct IterInfo;
 
 typedef std::vector<IntrusivePtr<Val>> val_vec;
@@ -26,7 +31,8 @@ union ZAMValUnion {
 	ZAMValUnion() { void_val = nullptr; }
 
 	// Construct from a given Bro value with a given type.
-	ZAMValUnion(Val* v, BroType* t, const BroObj* o, bool& error_flag);
+	ZAMValUnion(Val* v, BroType* t, ZAM_tracker_type* tracker,
+			const BroObj* o, bool& error_flag);
 
 	// True if when interpreting the value as having the given type,
 	// it's a nil pointer.
@@ -111,12 +117,13 @@ typedef vector<ZAMValUnion> ZAM_vector;
 
 class ZAMVectorMgr {
 public:
-	ZAMVectorMgr(std::shared_ptr<ZAM_vector> _vec, VectorVal* _v);
+	ZAMVectorMgr(std::shared_ptr<ZAM_vector> _vec, VectorVal* _v,
+			ZAM_tracker_type* tracker);
 	~ZAMVectorMgr();
 
 	ZAMVectorMgr* ShallowCopy()
 		{
-		return new ZAMVectorMgr(vec, v);
+		return new ZAMVectorMgr(vec, v, tracker);
 		}
 
 	const std::shared_ptr<ZAM_vector>& ConstVec() const	{ return vec; }
@@ -140,6 +147,7 @@ public:
 protected:
 	std::shared_ptr<ZAM_vector> vec;
 	VectorVal* v;
+	ZAM_tracker_type* tracker;
 
 	// The actual yield type of the vector, if we've had a chance to
 	// observe it.  Necessary for "vector of any".
@@ -192,20 +200,10 @@ struct IterInfo {
 	bro_uint_t n;	// we loop from 0 ... n-1
 };
 
-// Tracks the managers of internal/Val* vector pairings.
-typedef std::unordered_set<ZAMVectorMgr*> ZAM_tracker_type;
-
-// For the currently executing function, tracks the active ZAMVectorMgr's
-// that are associated with Val*'s.  We define this in a global so that
-// ZAMVectorMgr objects can access it without having to pass it all the
-// way down in the myriad ZAMValUnion constructor invocations.  OTOH,
-// this means we have to be careful to keep it consistent whenever
-// control flow potentially goes into another ZAM, which
-// currently means we need to restore it any time we invoke the interpreter.
-extern ZAM_tracker_type* curr_ZAM_VM_Tracker;
-
 // Converts between VectorVals and ZAM vectors.
-extern ZAMVectorMgr* to_ZAM_vector(Val* vec, bool track_val);
-extern std::shared_ptr<ZAM_vector> to_raw_ZAM_vector(Val* vec);
+extern ZAMVectorMgr* to_ZAM_vector(Val* vec, ZAM_tracker_type* tracker,
+					bool track_val);
+extern std::shared_ptr<ZAM_vector> to_raw_ZAM_vector(Val* vec,
+						ZAM_tracker_type* tracker);
 
 extern void grow_vector(ZAM_vector& vec, int new_size);

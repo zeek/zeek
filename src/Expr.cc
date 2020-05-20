@@ -744,7 +744,7 @@ IntrusivePtr<Val> BinaryExpr::SetFold(Val* v1, Val* v2) const
 
 	switch ( tag ) {
 	case EXPR_AND:
-		return {AdoptRef{}, tv1->Intersect(tv2)};
+		return tv1->Intersection(*tv2);
 
 	case EXPR_OR:
 		{

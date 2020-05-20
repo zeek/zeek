@@ -795,11 +795,19 @@ public:
 	// Returns true if the addition typechecked, false if not.
 	bool RemoveFrom(Val* v) const override;
 
-	// Returns a new table that is the intersection of this
-	// table and the given table.  Intersection is just done
-	// on index, not on yield value, so this really only makes
-	// sense for sets.
-	TableVal* Intersect(const TableVal* v) const;
+	/**
+	 * Returns a new table that is the intersection of this table
+	 * and the given table.  Intersection is done only on index, not on
+	 * yield value, so this generally makes most sense to use for sets,
+	 * not tables.
+	 * @param v  The intersecting table.
+	 * @return  The intersection of this table and the given one.
+	 */
+	IntrusivePtr<TableVal> Intersection(const TableVal& v) const;
+
+	[[deprecated("Remove in v4.1.  Use Intersection() instead.")]]
+	TableVal* Intersect(const TableVal* v) const
+		{ return Intersection(*v).release(); }
 
 	// Returns true if this set contains the same members as the
 	// given set.  Note that comparisons are done using hash keys,

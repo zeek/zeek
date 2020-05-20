@@ -1664,12 +1664,12 @@ bool TableVal::RemoveFrom(Val* val) const
 	return true;
 	}
 
-TableVal* TableVal::Intersect(const TableVal* tv) const
+IntrusivePtr<TableVal> TableVal::Intersection(const TableVal& tv) const
 	{
-	TableVal* result = new TableVal(table_type);
+	auto result = make_intrusive<TableVal>(table_type);
 
 	const PDict<TableEntryVal>* t0 = AsTable();
-	const PDict<TableEntryVal>* t1 = tv->AsTable();
+	const PDict<TableEntryVal>* t1 = tv.AsTable();
 	PDict<TableEntryVal>* t2 = result->AsNonConstTable();
 
 	// Figure out which is smaller; assign it to t1.

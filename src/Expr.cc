@@ -1500,20 +1500,31 @@ const CompiledStmt IncrExpr::Compile(Compiler* c) const
 	{
 	auto target = op->AsRefExpr()->GetOp1()->AsNameExpr();
 
+	auto s = c->EmptyStmt();
+
 	if ( target->Type()->Tag() == TYPE_INT )
 		{
 		if ( Tag() == EXPR_INCR )
-			return c->IncrIV(target);
+			s = c->IncrIV(target);
 		else
-			return c->DecrIV(target);
+			s = c->DecrIV(target);
 		}
 	else
 		{
 		if ( Tag() == EXPR_INCR )
-			return c->IncrUV(target);
+			s = c->IncrUV(target);
 		else
-			return c->DecrUV(target);
+			s = c->DecrUV(target);
 		}
+
+	auto target_id = target->Id();
+	if ( target_id->IsGlobal() )
+		// Give the compiler notice that a global may require
+		// updating.  We do this explicitly since uni-operand
+		// operations assume the operand isn't being modified.
+		return c->AssignedToGlobal(target_id);
+
+	return s;
 	}
 
 bool IncrExpr::IsPure() const

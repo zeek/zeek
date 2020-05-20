@@ -45,20 +45,25 @@ ZInst GenInst(ZAM* m, ZOp op)
 
 ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1)
 	{
-	auto z = ZInst(op, m->ModFrameSlot(v1));
+	// Operations with only a single operand are generally not
+	// changing their operand, so use FrameSlot, not ModFrameSlot.
+	auto z = ZInst(op, m->FrameSlot(v1));
 	z.CheckIfManaged(v1);
 	return z;
 	}
 
 ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, int i)
 	{
-	auto z = ZInst(op, m->ModFrameSlot(v1), i);
+	// Same as above.
+	auto z = ZInst(op, m->FrameSlot(v1), i);
 	z.CheckIfManaged(v1);
 	return z;
 	}
 
 ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const Expr* e)
 	{
+	// From here on, opeartions generally are assigning to their
+	// first operand, so treat them as modifications.
 	auto z = ZInst(op, m->ModFrameSlot(v1), e);
 	z.CheckIfManaged(v1);
 	return z;

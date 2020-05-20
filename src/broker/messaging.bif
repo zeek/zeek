@@ -28,7 +28,7 @@ std::set<std::string> val_to_topic_set(Val* val)
 		rval.emplace(val->AsString()->CheckString());
 	else
 		{
-		const PDict(TableEntryVal)* tbl = val->AsTable();
+		const PDict<TableEntryVal>* tbl = val->AsTable();
 
 		if ( tbl->Length() == 0 )
 			return rval;
@@ -40,7 +40,6 @@ std::set<std::string> val_to_topic_set(Val* val)
 			{
 			auto index = val->AsTableVal()->RecoverIndex(k);
 			rval.emplace(index->Index(0)->AsString()->CheckString());
-			Unref(index);
 			delete k;
 			}
 		}
@@ -74,7 +73,7 @@ module Broker;
 type Broker::Event: record;
 
 ## Create a data structure that may be used to send a remote event via
-## :bro:see:`Broker::publish`.
+## :zeek:see:`Broker::publish`.
 ##
 ## args: an event, followed by a list of argument values that may be used
 ##       to call it.
@@ -84,8 +83,13 @@ type Broker::Event: record;
 function Broker::make_event%(...%): Broker::Event
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
-	auto rval = broker_mgr->MakeEvent(@ARGS@, frame);
-	return rval;
+	const auto& bif_args = @ARGS@;
+	val_list args(bif_args->size());
+
+	for ( auto i = 0u; i < bif_args->size(); ++i )
+		args.push_back((*bif_args)[i].get());
+
+	return IntrusivePtr<RecordVal>{AdoptRef{}, broker_mgr->MakeEvent(&args, frame)};
 	%}
 
 ## Publishes an event at a given topic.
@@ -93,26 +97,26 @@ function Broker::make_event%(...%): Broker::Event
 ## topic: a topic associated with the event message.
 ##
 ## args: Either the event arguments as already made by
-##       :bro:see:`Broker::make_event` or the argument list to pass along
+##       :zeek:see:`Broker::make_event` or the argument list to pass along
 ##       to it.
 ##
 ## Returns: true if the message is sent.
 function Broker::publish%(topic: string, ...%): bool
 	%{
-	val_list* bif_args = @ARGS@;
-	val_list args(bif_args->length() - 1);
+	const auto& bif_args = @ARGS@;
+	val_list args(bif_args->size() - 1);
 
-	for ( auto i = 1; i < bif_args->length(); ++i )
-		args.append((*bif_args)[i]);
+	for ( auto i = 1u; i < bif_args->size(); ++i )
+		args.push_back((*bif_args)[i].get());
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
-	return new Val(rval, TYPE_BOOL);
+	return val_mgr->Bool(rval);
 	%}
 
 function Broker::__flush_logs%(%): count
 	%{
 	auto rval = broker_mgr->FlushLogBuffers();
-	return new Val(static_cast<uint64>(rval), TYPE_COUNT);
+	return val_mgr->Count(static_cast<uint64_t>(rval));
 	%}
 
 function Broker::__publish_id%(topic: string, id: string%): bool
@@ -120,42 +124,42 @@ function Broker::__publish_id%(topic: string, id: string%): bool
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->PublishIdentifier(topic->CheckString(),
 	                                          id->CheckString());
-	return new Val(rval, TYPE_BOOL);
+	return val_mgr->Bool(rval);
 	%}
 
 function Broker::__auto_publish%(topic: string, ev: any%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->AutoPublishEvent(topic->CheckString(), ev);
-	return new Val(rval, TYPE_BOOL);
+	return val_mgr->Bool(rval);
 	%}
 
 function Broker::__auto_unpublish%(topic: string, ev: any%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->AutoUnpublishEvent(topic->CheckString(), ev);
-	return new Val(rval, TYPE_BOOL);
+	return val_mgr->Bool(rval);
 	%}
 
 function Broker::__subscribe%(topic_prefix: string%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->Subscribe(topic_prefix->CheckString());
-	return new Val(rval, TYPE_BOOL);
+	return val_mgr->Bool(rval);
 	%}
 
 function Broker::__forward%(topic_prefix: string%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->Forward(topic_prefix->CheckString());
-	return new Val(rval, TYPE_BOOL);
+	return val_mgr->Bool(rval);
 	%}
 
 function Broker::__unsubscribe%(topic_prefix: string%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->Unsubscribe(topic_prefix->CheckString());
-	return new Val(rval, TYPE_BOOL);
+	return val_mgr->Bool(rval);
 	%}
 
 module Cluster;
@@ -172,7 +176,7 @@ type Cluster::Pool: record;
 ##      script like "Intel::cluster_rr_key".
 ##
 ## args: Either the event arguments as already made by
-##       :bro:see:`Broker::make_event` or the argument list to pass along
+##       :zeek:see:`Broker::make_event` or the argument list to pass along
 ##       to it.
 ##
 ## Returns: true if the message is sent.
@@ -183,26 +187,20 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 	if ( ! topic_func )
 		topic_func = global_scope()->Lookup("Cluster::rr_topic")->ID_Val()->AsFunc();
 
-	val_list vl(2);
-	vl.append(pool->Ref());
-	vl.append(key->Ref());
-	auto topic = topic_func->Call(&vl);
+	zeek::Args vl{{NewRef{}, pool}, {NewRef{}, key}};
+	auto topic = topic_func->Call(vl);
 
 	if ( ! topic->AsString()->Len() )
-		{
-		Unref(topic);
-		return new Val(false, TYPE_BOOL);
-		}
+		return val_mgr->False();
 
-	val_list* bif_args = @ARGS@;
-	val_list args(bif_args->length() - 2);
+	const auto& bif_args = @ARGS@;
+	val_list args(bif_args->size() - 2);
 
-	for ( auto i = 2; i < bif_args->length(); ++i )
-		args.append((*bif_args)[i]);
+	for ( auto i = 2u; i < bif_args->size(); ++i )
+		args.push_back((*bif_args)[i].get());
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
-	Unref(topic);
-	return new Val(rval, TYPE_BOOL);
+	return val_mgr->Bool(rval);
 	%}
 
 
@@ -215,7 +213,7 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 ##      distribute keys among available nodes.
 ##
 ## args: Either the event arguments as already made by
-##       :bro:see:`Broker::make_event` or the argument list to pass along
+##       :zeek:see:`Broker::make_event` or the argument list to pass along
 ##       to it.
 ##
 ## Returns: true if the message is sent.
@@ -226,24 +224,18 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 	if ( ! topic_func )
 		topic_func = global_scope()->Lookup("Cluster::hrw_topic")->ID_Val()->AsFunc();
 
-	val_list vl(2);
-	vl.append(pool->Ref());
-	vl.append(key->Ref());
-	auto topic = topic_func->Call(&vl);
+	zeek::Args vl{{NewRef{}, pool}, {NewRef{}, key}};
+	auto topic = topic_func->Call(vl);
 
 	if ( ! topic->AsString()->Len() )
-		{
-		Unref(topic);
-		return new Val(false, TYPE_BOOL);
-		}
+		return val_mgr->False();
 
-	val_list* bif_args = @ARGS@;
-	val_list args(bif_args->length() - 2);
+	const auto& bif_args = @ARGS@;
+	val_list args(bif_args->size() - 2);
 
-	for ( auto i = 2; i < bif_args->length(); ++i )
-		args.append((*bif_args)[i]);
+	for ( auto i = 2u; i < bif_args->size(); ++i )
+		args.push_back((*bif_args)[i].get());
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
-	Unref(topic);
-	return new Val(rval, TYPE_BOOL);
+	return val_mgr->Bool(rval);
 	%}

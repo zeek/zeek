@@ -1,6 +1,5 @@
 
-#ifndef BRO_PLUGIN_DEMO_FOO_H
-#define BRO_PLUGIN_DEMO_FOO_H
+#pragma once
 
 #include <Val.h>
 #include <iosource/PktDumper.h>
@@ -26,5 +25,3 @@ private:
 
 }
 }
-
-#endif

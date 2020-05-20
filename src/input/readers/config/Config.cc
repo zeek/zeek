@@ -24,16 +24,15 @@ Config::Config(ReaderFrontend *frontend) : ReaderBackend(frontend)
 	{
 	mtime = 0;
 	ino = 0;
-	suppress_warnings = false;
 	fail_on_file_problem = false;
 
 	// find all option names and their types.
-	auto globals = global_scope()->Vars();
-	auto c = globals->InitForIteration();
+	const auto& globals = global_scope()->Vars();
 
-	while ( auto id = globals->NextEntry(c) )
+	for ( const auto& entry : globals )
 		{
-		if ( id->IsInternalGlobal() || ! id->IsOption() )
+		ID* id = entry.second.get();
+		if ( ! id->IsOption() )
 			continue;
 
 		if ( id->Type()->Tag() == TYPE_RECORD ||
@@ -73,7 +72,7 @@ bool Config::DoInit(const ReaderInfo& info, int num_fields, const Field* const* 
 	                   BifConst::InputConfig::empty_field->Len());
 
 	formatter::Ascii::SeparatorInfo sep_info("\t", set_separator, "", empty_field);
-	formatter = unique_ptr<threading::formatter::Formatter>(new formatter::Ascii(this, sep_info));
+	formatter = std::unique_ptr<threading::formatter::Formatter>(new formatter::Ascii(this, sep_info));
 
 	return DoUpdate();
 	}
@@ -91,27 +90,11 @@ bool Config::OpenFile()
 		return ! fail_on_file_problem;
 		}
 
-	suppress_warnings = false;
+	StopWarningSuppression();
 	return true;
 	}
 
-void Config::FailWarn(bool is_error, const char *msg, bool suppress_future)
-	{
-	if ( is_error )
-		Error(msg);
-	else
-		{
-		// suppress error message when we are already in error mode.
-		// There is no reason to repeat it every second.
-		if ( ! suppress_warnings )
-			Warning(msg);
-
-		if ( suppress_future )
-			suppress_warnings = true;
-		}
-	}
-
-bool Config::GetLine(string& str)
+bool Config::GetLine(std::string& str)
 	{
 	while ( getline(file, str) )
 		{
@@ -151,11 +134,15 @@ bool Config::DoUpdate()
 				// no change
 				return true;
 
+			// Warn again in case of trouble if the file changes. The comparison to 0
+			// is to suppress an extra warning that we'd otherwise get on the initial
+			// inode assignment.
+			if ( ino != 0 )
+				StopWarningSuppression();
+
 			mtime = sb.st_mtime;
 			ino = sb.st_ino;
-			// file changed. reread.
-
-			// fallthrough
+			// File changed. Fall through to re-read.
 			}
 
 		case MODE_MANUAL:
@@ -183,19 +170,19 @@ bool Config::DoUpdate()
 			assert(false);
 		}
 
-	string line;
+	std::string line;
 	file.sync();
 
 	// keep a list of options to remove because they were no longer in the input file.
 	// Start out with all element and removes while going along
 	std::unordered_set<std::string> unseen_options;
-	for ( auto i : option_values )
+	for ( const auto& i : option_values )
 		{
 		unseen_options.insert(i.first);
 		}
 
 	regex_t re;
-	if ( regcomp(&re, "^([^[:blank:]]+)[[:blank:]]+(.*)$", REG_EXTENDED) )
+	if ( regcomp(&re, "^([^[:blank:]]+)[[:blank:]]+(.*[^[:blank:]])?[[:blank:]]*$", REG_EXTENDED) )
 		{
 		Error(Fmt("Failed to compile regex."));
 		return true;
@@ -210,8 +197,10 @@ bool Config::DoUpdate()
 			continue;
 			}
 
-		string key = line.substr(match[1].rm_so, match[1].rm_eo - match[1].rm_so);
-		string value = line.substr(match[2].rm_so, match[2].rm_eo - match[2].rm_so);
+		std::string key = line.substr(match[1].rm_so, match[1].rm_eo - match[1].rm_so);
+		std::string value;
+		if ( match[2].rm_so > 0 )
+			value = line.substr(match[2].rm_so, match[2].rm_eo - match[2].rm_so);
 
 		auto typeit = option_types.find(key);
 		if ( typeit == option_types.end() )
@@ -293,7 +282,7 @@ bool Config::DoUpdate()
 		EndCurrentSend();
 
 	// clean up all options we did not see
-	for ( auto i : unseen_options )
+	for ( const auto& i : unseen_options )
 		option_values.erase(i);
 
 	return true;
@@ -309,8 +298,8 @@ bool Config::DoHeartbeat(double network_time, double current_time)
 
 		case MODE_REREAD:
 		case MODE_STREAM:
-			Update(); // call update and not DoUpdate, because update
-				  // checks disabled.
+			Update(); // Call Update, not DoUpdate, because Update
+				  // checks the "disabled" flag.
 			break;
 
 		default:
@@ -319,4 +308,3 @@ bool Config::DoHeartbeat(double network_time, double current_time)
 
 	return true;
 	}
-

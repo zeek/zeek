@@ -2,7 +2,7 @@
 ## messages.
 ##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for more information about the
-## :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)` protocol. Bro's
+## :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)` protocol. Zeek's
 ## :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)` analyzer parses
 ## both :abbr:`SMB (Server Message Block)`-over-:abbr:`NetBIOS (Network Basic Input/Output System)` on
 ## ports 138/139 and :abbr:`SMB (Server Message Block)`-over-TCP on port 445.
@@ -14,7 +14,7 @@
 ## is_orig: True if the message was sent by the originator of the underlying
 ##          transport-level connection.
 ##
-## .. bro:see:: smb2_message
+## .. zeek:see:: smb2_message
 event smb1_message%(c: connection, hdr: SMB1::Header, is_orig: bool%);
 
 ## Generated when there is an :abbr:`SMB (Server Message Block)` version 1 response with no message body.
@@ -23,7 +23,7 @@ event smb1_message%(c: connection, hdr: SMB1::Header, is_orig: bool%);
 ##
 ## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` message.
 ##
-## .. bro:see:: smb1_message
+## .. zeek:see:: smb1_message
 event smb1_empty_response%(c: connection, hdr: SMB1::Header%);
 
 ## Generated for :abbr:`SMB (Server Message Block)` version 1 messages
@@ -37,6 +37,6 @@ event smb1_empty_response%(c: connection, hdr: SMB1::Header%);
 ## is_orig: True if the message was sent by the originator of the underlying
 ##          transport-level connection.
 ##
-## .. bro:see:: smb1_message
+## .. zeek:see:: smb1_message
 event smb1_error%(c: connection, hdr: SMB1::Header, is_orig: bool%);
 

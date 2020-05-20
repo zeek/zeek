@@ -2,6 +2,9 @@
 %include bro.pac
 
 %extern{
+#include "IP.h"
+#include "TunnelEncapsulation.h"
+#include "Reporter.h"
 #include "events.bif.h"
 %}
 

@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro %INPUT > output
+# @TEST-EXEC: zeek %INPUT > output
 # @TEST-EXEC: btest-diff output
 
 # This is loaded by default.
@@ -12,7 +12,7 @@ redef Site::local_admins += {
     [141.142.100.0/24] = b,
 };
 
-event bro_init()
+event zeek_init()
     {
     print Site::get_emails(141.142.1.1);
     print Site::get_emails(141.142.100.100);

@@ -2,22 +2,20 @@
 # Convenience wrapper for easily viewing/setting options that
 # the project's CMake scripts will recognize
 set -e
-command="$0 $*"
 
-# check for `cmake` command
-type cmake > /dev/null 2>&1 || {
-    echo "\
-This package requires CMake, please install it first, then you may
-use this configure script to access CMake equivalent functionality.\
-" >&2;
-    exit 1;
-}
+trap '[ $? -eq 0 ] && exit 0 ||
+echo "Also, before re-running configure, consider cleaning the cache \
+(removing the build directory) via \`make distclean\`"' EXIT
+
+command="$0 $*"
 
 usage="\
 Usage: $0 [OPTION]... [VAR=VALUE]...
 
   Build Options:
+    --cmake=PATH           custom path to a CMake binary
     --builddir=DIR         place build files in directory [build]
+    --build-dir=DIR        alias for --builddir
     --build-type=TYPE      set CMake build type [RelWithDebInfo]:
                              - Debug: optimizations off, debug symbols + flags
                              - MinSizeRel: size optimizations, debugging off
@@ -29,33 +27,38 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
                            ccache installation and CMake 3.10+)
     --toolchain=PATH       path to a CMAKE_TOOLCHAIN_FILE
                            (useful for cross-compiling)
+    --sanitizers=LIST      comma-separated list of sanitizer names to enable
 
   Installation Directories:
-    --prefix=PREFIX        installation directory [/usr/local/bro]
-    --scriptdir=PATH       root installation directory for Bro scripts
-                           [PREFIX/share/bro]
-    --localstatedir=PATH   when using BroControl, path to store log files
+    --prefix=PREFIX        installation directory [/usr/local/zeek]
+    --scriptdir=PATH       root installation directory for Zeek scripts
+                           [PREFIX/share/zeek]
+    --localstatedir=PATH   when using ZeekControl, path to store log files
                            and run-time data (within log/ and spool/ subdirs)
                            [PREFIX]
-    --spooldir=PATH        when using BroControl, path to store run-time data
+    --spooldir=PATH        when using ZeekControl, path to store run-time data
                            [PREFIX/spool]
-    --logdir=PATH          when using BroControl, path to store log file
+    --logdir=PATH          when using ZeekControl, path to store log file
                            [PREFIX/logs]
+    --libdir=PATH          installation directory for library files [PREFIX/lib]
     --conf-files-dir=PATH  config files installation directory [PREFIX/etc]
+    --mandir=PATH          installation path for man pages [PREFIX/share/man]
 
   Optional Features:
     --enable-debug         compile in debugging mode (like --build-type=Debug)
     --enable-coverage      compile with code coverage support (implies debugging mode)
+    --enable-fuzzers       build fuzzer targets
     --enable-mobile-ipv6   analyze mobile IPv6 features defined by RFC 6275
-    --enable-perftools     force use of Google perftools on non-Linux systems
-                           (automatically on when perftools is present on Linux)
+    --enable-perftools     enable use of Google perftools (use tcmalloc)
     --enable-perftools-debug use Google's perftools for debugging
     --enable-jemalloc      link against jemalloc
-    --enable-broccoli      build or install the Broccoli library (deprecated)
-    --disable-broctl       don't install Broctl
+    --enable-static-broker build Broker statically (ignored if --with-broker is specified)
+    --enable-static-binpac build binpac statically (ignored if --with-binpac is specified)
+    --enable-cpp-tests     build Zeek's C++ unit tests
+    --enable-rocksdb       try to find a RocksDB installation for use in Broker
+    --disable-zeekctl      don't install ZeekControl
     --disable-auxtools     don't build or install auxiliary tools
-    --disable-perftools    don't try to build with Google Perftools
-    --disable-python       don't try to build python bindings for broker
+    --disable-python       don't try to build python bindings for Broker
     --disable-broker-tests don't try to build Broker unit tests
 
   Required Packages in Non-Standard Locations:
@@ -64,15 +67,17 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-pcap=PATH       path to libpcap install root
     --with-binpac=PATH     path to BinPAC executable
                            (useful for cross-compiling)
-    --with-bifcl=PATH      path to Bro BIF compiler executable
+    --with-bifcl=PATH      path to Zeek BIF compiler executable
                            (useful for cross-compiling)
     --with-flex=PATH       path to flex executable
     --with-bison=PATH      path to bison executable
     --with-python=PATH     path to Python executable
     --with-broker=PATH     path to Broker install root
-                           (Bro uses an embedded version by default)
+                           (Zeek uses an embedded version by default)
     --with-caf=PATH        path to C++ Actor Framework install root
                            (a Broker dependency that is embedded by default)
+    --with-libkqueue=PATH  path to libkqueue install root
+                           (Zeek uses an embedded version by default)
 
   Optional Packages in Non-Standard Locations:
     --with-geoip=PATH      path to the libmaxminddb install root
@@ -82,7 +87,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-python-lib=PATH path to libpython
     --with-python-inc=PATH path to Python headers
     --with-swig=PATH       path to SWIG executable
-    --with-rocksdb=PATH    path to RocksDB installation
+    --with-rocksdb=PATH    path to RocksDB installation, implies --enable-rocksdb
                            (an optional Broker dependency)
 
   Packaging Options (for developers):
@@ -103,6 +108,18 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
 "
 
 sourcedir="$( cd "$( dirname "$0" )" && pwd )"
+
+if [ ! -e "$sourcedir/cmake/COPYING" ] && [ -d "$sourcedir/.git" ]; then
+    echo "\
+You seem to be missing the content of the cmake directory.
+
+This typically means that you performed a non-recursive git clone of
+Zeek. To check out the required subdirectories, please execute:
+
+  ( cd $sourcedir && git submodule update --recursive --init )
+" >&2;
+    exit 1;
+fi
 
 # Function to append a CMake cache entry definition to the
 # CMakeCacheEntries variable.
@@ -126,24 +143,22 @@ remove_cache_entry () {
 
 # set defaults
 builddir=build
-prefix=/usr/local/bro
+prefix=/usr/local/zeek
 CMakeCacheEntries=""
 append_cache_entry CMAKE_INSTALL_PREFIX PATH   $prefix
-append_cache_entry BRO_ROOT_DIR         PATH   $prefix
-append_cache_entry PY_MOD_INSTALL_DIR   PATH   $prefix/lib/broctl
-append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING $prefix/share/bro
-append_cache_entry BRO_ETC_INSTALL_DIR  PATH   $prefix/etc
+append_cache_entry ZEEK_ROOT_DIR        PATH   $prefix
+append_cache_entry PY_MOD_INSTALL_DIR   PATH   $prefix/lib/zeekctl
+append_cache_entry ZEEK_SCRIPT_INSTALL_PATH STRING $prefix/share/zeek
+append_cache_entry ZEEK_ETC_INSTALL_DIR PATH   $prefix/etc
 append_cache_entry ENABLE_DEBUG         BOOL   false
 append_cache_entry ENABLE_PERFTOOLS     BOOL   false
-append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL false
 append_cache_entry ENABLE_JEMALLOC      BOOL   false
 append_cache_entry BUILD_SHARED_LIBS    BOOL   true
-append_cache_entry INSTALL_BROCCOLI     BOOL   false
 append_cache_entry INSTALL_AUX_TOOLS    BOOL   true
-append_cache_entry INSTALL_BROCTL       BOOL   true
+append_cache_entry INSTALL_ZEEKCTL      BOOL   true
 append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
 append_cache_entry ENABLE_MOBILE_IPV6   BOOL   false
-append_cache_entry DISABLE_PERFTOOLS    BOOL   false
+append_cache_entry ZEEK_SANITIZERS      STRING ""
 
 # parse arguments
 while [ $# -ne 0 ]; do
@@ -157,7 +172,13 @@ while [ $# -ne 0 ]; do
             echo "${usage}" 1>&2
             exit 1
             ;;
+        --cmake=*)
+            CMakeCommand=$optarg
+            ;;
         --builddir=*)
+            builddir=$optarg
+            ;;
+        --build-dir=*)
             builddir=$optarg
             ;;
         --build-type=*)
@@ -179,29 +200,38 @@ while [ $# -ne 0 ]; do
         --prefix=*)
             prefix=$optarg
             append_cache_entry CMAKE_INSTALL_PREFIX PATH   $optarg
-            append_cache_entry BRO_ROOT_DIR         PATH   $optarg
-            append_cache_entry PY_MOD_INSTALL_DIR   PATH   $optarg/lib/broctl
+            append_cache_entry ZEEK_ROOT_DIR        PATH   $optarg
+            append_cache_entry PY_MOD_INSTALL_DIR   PATH   $optarg/lib/zeekctl
+            ;;
+        --libdir=*)
+            append_cache_entry CMAKE_INSTALL_LIBDIR PATH   $optarg
             ;;
         --scriptdir=*)
-            append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING $optarg
+            append_cache_entry ZEEK_SCRIPT_INSTALL_PATH STRING $optarg
             user_set_scriptdir="true"
             ;;
         --conf-files-dir=*)
-            append_cache_entry BRO_ETC_INSTALL_DIR PATH $optarg
+            append_cache_entry ZEEK_ETC_INSTALL_DIR PATH   $optarg
             user_set_conffilesdir="true"
             ;;
         --localstatedir=*)
-            append_cache_entry BRO_LOCAL_STATE_DIR  PATH   $optarg
+            append_cache_entry ZEEK_LOCAL_STATE_DIR PATH   $optarg
             ;;
         --spooldir=*)
-            append_cache_entry BRO_SPOOL_DIR  PATH   $optarg
+            append_cache_entry ZEEK_SPOOL_DIR       PATH   $optarg
             ;;
         --logdir=*)
-            append_cache_entry BRO_LOG_DIR  PATH   $optarg
+            append_cache_entry ZEEK_LOG_DIR         PATH   $optarg
+            ;;
+        --mandir=*)
+            append_cache_entry ZEEK_MAN_INSTALL_PATH         PATH   $optarg
             ;;
         --enable-coverage)
             append_cache_entry ENABLE_COVERAGE         BOOL   true
             append_cache_entry ENABLE_DEBUG         BOOL   true
+            ;;
+        --enable-fuzzers)
+            append_cache_entry ZEEK_ENABLE_FUZZERS BOOL true
             ;;
         --enable-debug)
             append_cache_entry ENABLE_DEBUG         BOOL   true
@@ -216,27 +246,33 @@ while [ $# -ne 0 ]; do
             append_cache_entry ENABLE_PERFTOOLS     BOOL   true
             append_cache_entry ENABLE_PERFTOOLS_DEBUG BOOL   true
             ;;
+        --sanitizers=*)
+            append_cache_entry ZEEK_SANITIZERS    STRING    $optarg
+            ;;
         --enable-jemalloc)
             append_cache_entry ENABLE_JEMALLOC     BOOL   true
             ;;
-        --enable-broccoli)
-            append_cache_entry DISABLE_RUBY_BINDINGS     BOOL   true
-            append_cache_entry INSTALL_BROCCOLI     BOOL   yes
+        --enable-static-broker)
+            append_cache_entry BUILD_STATIC_BROKER    BOOL    true
             ;;
-        --disable-broctl)
-            append_cache_entry INSTALL_BROCTL       BOOL   false
+        --enable-static-binpac)
+            append_cache_entry BUILD_STATIC_BINPAC    BOOL    true
+            ;;
+        --enable-cpp-tests)
+            append_cache_entry ENABLE_ZEEK_UNIT_TESTS BOOL    true
+            ;;
+        --disable-zeekctl)
+            append_cache_entry INSTALL_ZEEKCTL       BOOL   false
             ;;
         --disable-auxtools)
             append_cache_entry INSTALL_AUX_TOOLS    BOOL   false
-            ;;
-        --disable-perftools)
-            append_cache_entry DISABLE_PERFTOOLS    BOOL   true
             ;;
         --disable-python)
             append_cache_entry DISABLE_PYTHON_BINDINGS     BOOL   true
             ;;
         --disable-broker-tests)
-            append_cache_entry BROKER_DISABLE_TESTS     BOOL   true
+            append_cache_entry BROKER_DISABLE_TESTS        BOOL true
+            append_cache_entry BROKER_DISABLE_DOC_EXAMPLES BOOL true
             ;;
         --with-openssl=*)
             append_cache_entry OPENSSL_ROOT_DIR PATH $optarg
@@ -249,7 +285,6 @@ while [ $# -ne 0 ]; do
             ;;
         --with-binpac=*)
             append_cache_entry BINPAC_EXE_PATH     PATH $optarg
-            append_cache_entry BinPAC_ROOT_DIR     PATH "$(dirname $optarg)/.."
             ;;
         --with-bifcl=*)
             append_cache_entry BIFCL_EXE_PATH      PATH   $optarg
@@ -292,7 +327,14 @@ while [ $# -ne 0 ]; do
         --with-caf=*)
             append_cache_entry CAF_ROOT_DIR      PATH   $optarg
             ;;
+        --with-libkqueue=*)
+            append_cache_entry LIBKQUEUE_ROOT_DIR      PATH   $optarg
+            ;;
+        --enable-rocksdb)
+            append_cache_entry BROKER_ENABLE_ROCKSDB BOOL true
+            ;;
         --with-rocksdb=*)
+            append_cache_entry BROKER_ENABLE_ROCKSDB BOOL true
             append_cache_entry ROCKSDB_ROOT_DIR     PATH   $optarg
             ;;
         --binary-package)
@@ -318,12 +360,26 @@ while [ $# -ne 0 ]; do
     shift
 done
 
+if [ -z "$CMakeCommand" ]; then
+    # prefer cmake3 over "regular" cmake (cmake == cmake2 on RHEL)
+    if command -v cmake3 >/dev/null 2>&1 ; then
+        CMakeCommand="cmake3"
+    elif command -v cmake >/dev/null 2>&1 ; then
+        CMakeCommand="cmake"
+    else
+        echo "This package requires CMake, please install it first."
+        echo "Then you may use this script to configure the CMake build."
+        echo "Note: pass --cmake=PATH to use cmake in non-standard locations."
+        exit 1;
+    fi
+fi
+
 if [ "$user_set_scriptdir" != "true" ]; then
-    append_cache_entry BRO_SCRIPT_INSTALL_PATH STRING $prefix/share/bro
+    append_cache_entry ZEEK_SCRIPT_INSTALL_PATH STRING $prefix/share/zeek
 fi
 
 if [ "$user_set_conffilesdir" != "true" ]; then
-    append_cache_entry BRO_ETC_INSTALL_DIR PATH $prefix/etc
+    append_cache_entry ZEEK_ETC_INSTALL_DIR PATH $prefix/etc
 fi
 
 if [ -d $builddir ]; then
@@ -343,9 +399,9 @@ echo "Source Directory: $sourcedir"
 cd $builddir
 
 if [ -n "$CMakeGenerator" ]; then
-    cmake -G "$CMakeGenerator" $CMakeCacheEntries $sourcedir
+    "$CMakeCommand" -G "$CMakeGenerator" $CMakeCacheEntries $sourcedir
 else
-    cmake $CMakeCacheEntries $sourcedir
+    "$CMakeCommand" $CMakeCacheEntries $sourcedir
 fi
 
 echo "# This is the command used to configure this build" > config.status

@@ -1,27 +1,34 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef PROBABILISTIC_HASHER_H
-#define PROBABILISTIC_HASHER_H
+#pragma once
 
 #include "Hash.h"
-#include "SerialObj.h"
+
+#include <broker/expected.hh>
+
+#include <memory>
+
+namespace broker { class data; }
 
 namespace probabilistic {
+
+/** Types of derived Hasher classes. */
+enum HasherType { Default, Double };
 
 /**
  * Abstract base class for hashers. A hasher creates a family of hash
  * functions to hash an element *k* times.
  */
-class Hasher : public SerialObj {
+class Hasher {
 public:
 	typedef hash_t digest;
 	typedef std::vector<digest> digest_vector;
 	struct seed_t {
-		uint64_t h1;
-		uint64_t h2;
+		// actually HH_U64, which has the same type
+		alignas(16) unsigned long long h[2];
 
 		friend seed_t operator+(seed_t lhs, const uint64_t rhs) {
-			lhs.h1 += rhs;
+			lhs.h[0] += rhs;
 			return lhs;
 		}
 	};
@@ -43,7 +50,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~Hasher() override { }
+	virtual ~Hasher() { }
 
 	/**
 	 * Computes hash values for an element.
@@ -99,12 +106,10 @@ public:
 	 */
 	seed_t Seed() const	{ return seed; }
 
-	bool Serialize(SerialInfo* info) const;
-	static Hasher* Unserialize(UnserialInfo* info);
+	broker::expected<broker::data> Serialize() const;
+	static std::unique_ptr<Hasher> Unserialize(const broker::data& data);
 
 protected:
-	DECLARE_ABSTRACT_SERIAL(Hasher);
-
 	Hasher() { }
 
 	/**
@@ -115,6 +120,8 @@ protected:
 	 * @param arg_seed The seed for the hasher.
 	 */
 	Hasher(size_t arg_k, seed_t arg_seed);
+
+	virtual HasherType Type() const = 0;
 
 private:
 	size_t k;
@@ -172,14 +179,17 @@ public:
 
 	friend bool operator==(const UHF& x, const UHF& y)
 		{
-		return (x.seed.h1 == y.seed.h1) &&
-		       (x.seed.h2 == y.seed.h2);
+		return (x.seed.h[0] == y.seed.h[0]) &&
+		       (x.seed.h[1] == y.seed.h[1]);
 		}
 
 	friend bool operator!=(const UHF& x, const UHF& y)
 		{
 		return ! (x == y);
 		}
+
+	broker::expected<broker::data> Serialize() const;
+	static UHF Unserialize(const broker::data& data);
 
 private:
 	static size_t compute_seed(Hasher::seed_t seed);
@@ -208,10 +218,11 @@ public:
 	DefaultHasher* Clone() const final;
 	bool Equals(const Hasher* other) const final;
 
-	DECLARE_SERIAL(DefaultHasher);
-
 private:
 	DefaultHasher() { }
+
+	HasherType Type() const override
+		{ return HasherType::Default; }
 
 	std::vector<UHF> hash_functions;
 };
@@ -236,15 +247,14 @@ public:
 	DoubleHasher* Clone() const final;
 	bool Equals(const Hasher* other) const final;
 
-	DECLARE_SERIAL(DoubleHasher);
-
 private:
 	DoubleHasher() { }
+
+	HasherType Type() const override
+		{ return HasherType::Double; }
 
 	UHF h1;
 	UHF h2;
 };
 
 }
-
-#endif

@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include <stdlib.h>
 #include <string>
@@ -30,7 +30,7 @@ NCP_Session::NCP_Session(analyzer::Analyzer* a)
 	req_func = 0;
 	}
 
-void NCP_Session::Deliver(int is_orig, int len, const u_char* data)
+void NCP_Session::Deliver(bool is_orig, int len, const u_char* data)
 	{
 	try
 		{
@@ -61,29 +61,29 @@ void NCP_Session::DeliverFrame(const binpac::NCP::ncp_frame* frame)
 	EventHandlerPtr f = frame->is_orig() ? ncp_request : ncp_reply;
 	if ( f )
 		{
-		val_list* vl = new val_list;
-		vl->append(analyzer->BuildConnVal());
-		vl->append(new Val(frame->frame_type(), TYPE_COUNT));
-		vl->append(new Val(frame->body_length(), TYPE_COUNT));
-
 		if ( frame->is_orig() )
-			vl->append(new Val(req_func, TYPE_COUNT));
+			analyzer->EnqueueConnEvent(f,
+				analyzer->ConnVal(),
+				val_mgr->Count(frame->frame_type()),
+				val_mgr->Count(frame->body_length()),
+				val_mgr->Count(req_func)
+			);
 		else
-			{
-			vl->append(new Val(req_frame_type, TYPE_COUNT));
-			vl->append(new Val(req_func, TYPE_COUNT));
-			vl->append(new Val(frame->reply()->completion_code(),
-						TYPE_COUNT));
-			}
-
-		analyzer->ConnectionEvent(f, vl);
+			analyzer->EnqueueConnEvent(f,
+				analyzer->ConnVal(),
+				val_mgr->Count(frame->frame_type()),
+				val_mgr->Count(frame->body_length()),
+				val_mgr->Count(req_frame_type),
+				val_mgr->Count(req_func),
+				val_mgr->Count(frame->reply()->completion_code())
+			);
 		}
 	}
 
 FrameBuffer::FrameBuffer(size_t header_length)
 	{
 	hdr_len = header_length;
-	msg_buf = 0;
+	msg_buf = nullptr;
 	buf_len = 0;
 	Reset();
 	}
@@ -236,7 +236,7 @@ void Contents_NCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig
 		}
 	}
 
-void Contents_NCP_Analyzer::Undelivered(uint64 seq, int len, bool orig)
+void Contents_NCP_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
 	tcp::TCP_SupportAnalyzer::Undelivered(seq, len, orig);
 
@@ -258,4 +258,3 @@ NCP_Analyzer::~NCP_Analyzer()
 	{
 	delete session;
 	}
-

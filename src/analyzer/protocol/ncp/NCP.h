@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_NCP_NCP_H
-#define ANALYZER_PROTOCOL_NCP_NCP_H
+#pragma once
 
 // A very crude analyzer for NCP (Netware Core Protocol)
 //
@@ -32,9 +31,8 @@ namespace analyzer { namespace ncp {
 class NCP_Session {
 public:
 	explicit NCP_Session(analyzer::Analyzer* analyzer);
-	virtual ~NCP_Session() {}
 
-	virtual void Deliver(int is_orig, int len, const u_char* data);
+	void Deliver(bool is_orig, int len, const u_char* data);
 
 	static bool any_ncp_event()
 		{
@@ -69,7 +67,7 @@ protected:
 
 	size_t hdr_len;
 	u_char* msg_buf;
-	uint64 msg_len;
+	uint64_t msg_len;
 	size_t buf_n;	// number of bytes in msg_buf
 	size_t buf_len;	// size off msg_buf
 };
@@ -91,7 +89,7 @@ public:
 
 protected:
 	void DeliverStream(int len, const u_char* data, bool orig) override;
-	void Undelivered(uint64 seq, int len, bool orig) override;
+	void Undelivered(uint64_t seq, int len, bool orig) override;
 
 	NCP_FrameBuffer buffer;
 	NCP_Session* session;
@@ -116,6 +114,4 @@ protected:
 	Contents_NCP_Analyzer * r_ncp;
 };
 
-} } // namespace analyzer::* 
-
-#endif /* ncp_h */
+} } // namespace analyzer::*

@@ -2,9 +2,14 @@
 
 #include "CounterVector.h"
 
+#include <cassert>
 #include <limits>
+
+#include <broker/data.hh>
+#include <broker/error.hh>
+
 #include "BitVector.h"
-#include "Serializer.h"
+#include "util.h"
 
 using namespace probabilistic;
 
@@ -153,46 +158,37 @@ CounterVector operator|(const CounterVector& x, const CounterVector& y)
 
 }
 
-uint64 CounterVector::Hash() const
+uint64_t CounterVector::Hash() const
 	{
 	return bits->Hash();
 	}
 
-bool CounterVector::Serialize(SerialInfo* info) const
+broker::expected<broker::data> CounterVector::Serialize() const
 	{
-	return SerialObj::Serialize(info);
+	auto b = bits->Serialize();
+	if ( ! b )
+		return broker::ec::invalid_data; // Cannot serialize
+
+	return {broker::vector{static_cast<uint64_t>(width), std::move(*b)}};
 	}
 
-CounterVector* CounterVector::Unserialize(UnserialInfo* info)
+std::unique_ptr<CounterVector> CounterVector::Unserialize(const broker::data& data)
 	{
-	return reinterpret_cast<CounterVector*>(SerialObj::Unserialize(info, SER_COUNTERVECTOR));
+	auto v = caf::get_if<broker::vector>(&data);
+	if ( ! (v && v->size() >= 2) )
+		return nullptr;
+
+	auto width = caf::get_if<uint64_t>(&(*v)[0]);
+	auto bits = BitVector::Unserialize((*v)[1]);
+
+	if ( ! (width && bits) )
+		return nullptr;
+
+	auto cv = std::unique_ptr<CounterVector>(new CounterVector());
+	cv->width = *width;
+	cv->bits = bits.release();
+	return cv;
 	}
 
-IMPLEMENT_SERIAL(CounterVector, SER_COUNTERVECTOR)
 
-bool CounterVector::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_COUNTERVECTOR, SerialObj);
 
-	if ( ! bits->Serialize(info) )
-		return false;
-
-	return SERIALIZE(static_cast<uint64>(width));
-	}
-
-bool CounterVector::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(SerialObj);
-
-	bits = BitVector::Unserialize(info);
-	if ( ! bits )
-		return false;
-
-	uint64 w;
-	if ( ! UNSERIALIZE(&w) )
-		return false;
-
-	width = static_cast<size_t>(w);
-
-	return true;
-	}

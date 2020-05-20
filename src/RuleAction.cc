@@ -1,7 +1,7 @@
 #include <string>
 using std::string;
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "RuleAction.h"
 #include "RuleMatcher.h"
@@ -12,27 +12,31 @@ using std::string;
 
 #include "analyzer/Manager.h"
 
+RuleActionEvent::RuleActionEvent(const char* arg_msg)
+	{
+	msg = copy_string(arg_msg);
+	}
+
 void RuleActionEvent::DoAction(const Rule* parent, RuleEndpointState* state,
 				const u_char* data, int len)
 	{
 	if ( signature_match )
-		{
-		val_list* vl = new val_list;
-		vl->append(rule_matcher->BuildRuleStateValue(parent, state));
-		vl->append(new StringVal(msg));
-
-		if ( data )
-			vl->append(new StringVal(len, (const char*)data));
-		else
-			vl->append(new StringVal(""));
-
-		mgr.QueueEvent(signature_match, vl);
-		}
+		mgr.Enqueue(signature_match,
+			IntrusivePtr{AdoptRef{}, rule_matcher->BuildRuleStateValue(parent, state)},
+			make_intrusive<StringVal>(msg),
+			data ? make_intrusive<StringVal>(len, (const char*)data) : val_mgr->EmptyString()
+		);
 	}
 
 void RuleActionEvent::PrintDebug()
 	{
 	fprintf(stderr, "	RuleActionEvent: |%s|\n", msg);
+	}
+
+RuleActionMIME::RuleActionMIME(const char* arg_mime, int arg_strength)
+	{
+	mime = copy_string(arg_mime);
+	strength = arg_strength;
 	}
 
 void RuleActionMIME::PrintDebug()

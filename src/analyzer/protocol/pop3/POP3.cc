@@ -1,20 +1,16 @@
 // This code contributed to Bro by Florian Schimandl, Hugh Dollman and
 // Robin Sommer.
 
-#include "bro-config.h"
+#include "zeek-config.h"
+#include "POP3.h"
 
-#include <stdlib.h>
-#include <iostream>
 #include <vector>
 #include <string>
 #include <ctype.h>
 
-#include "NetVar.h"
-#include "POP3.h"
-#include "Event.h"
+#include "Base64.h"
 #include "Reporter.h"
 #include "analyzer/Manager.h"
-#include "analyzer/protocol/login/NVT.h"
 
 #include "events.bif.h"
 
@@ -47,7 +43,7 @@ POP3_Analyzer::POP3_Analyzer(Connection* conn)
 	lastRequiredCommand = 0;
 	authLines = 0;
 
-	mail = 0;
+	mail = nullptr;
 
 	cl_orig = new tcp::ContentLine_Analyzer(conn, true);
 	AddSupportAnalyzer(cl_orig);
@@ -82,7 +78,7 @@ void POP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	if ( (TCP() && TCP()->IsPartial()) )
 		return;
 
-	BroString terminated_string(data, len, 1);
+	BroString terminated_string(data, len, true);
 
 	if ( orig )
 		ProcessRequest(len, (char*) terminated_string.Bytes());
@@ -90,7 +86,7 @@ void POP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		ProcessReply(len, (char*) terminated_string.Bytes());
 	}
 
-static string trim_whitespace(const char* in)
+static std::string trim_whitespace(const char* in)
 	{
 	int n = strlen(in);
 	char* out = new char[n + 1];
@@ -125,7 +121,7 @@ static string trim_whitespace(const char* in)
 
 	*out_p = 0;
 
-	string rval(out);
+	std::string rval(out);
 	delete [] out;
 	return rval;
 	}
@@ -140,7 +136,7 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 		++authLines;
 
 		BroString encoded(line);
-		BroString* decoded = decode_base64(&encoded, 0, Conn());
+		BroString* decoded = decode_base64(&encoded, nullptr, Conn());
 
 		if ( ! decoded )
 			{
@@ -194,11 +190,7 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 				return;
 				}
 
-			char tmp[len];	// more than enough
-			int n = len - (s - str);
-			memcpy(tmp, s, n);
-			tmp[n] = '\0';
-			password = tmp;
+			password.assign(s, len - (s - str));
 
 			break;
 			}
@@ -235,7 +227,7 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 		// Some clients pipeline their commands (i.e., keep sending
 		// without waiting for a server's responses). Therefore we
 		// keep a list of pending commands.
-		cmds.push_back(string(line));
+		cmds.push_back(std::string(line));
 
 		if ( cmds.size() == 1 )
 			// Not waiting for another server response,
@@ -245,7 +237,7 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 
 	}
 
-static string commands[] = {
+static std::string commands[] = {
 	"OK", "ERR", "USER", "PASS", "APOP", "AUTH",
 	"STAT", "LIST", "RETR", "DELE", "RSET", "NOOP", "LAST", "QUIT",
 	"TOP", "CAPA", "UIDL", "STLS", "XSENDER",
@@ -262,8 +254,8 @@ void POP3_Analyzer::ProcessClientCmd()
 	if ( ! cmds.size() )
 		return;
 
-	string str = trim_whitespace(cmds.front().c_str());
-	vector<string> tokens = TokenizeLine(str, ' ');
+	std::string str = trim_whitespace(cmds.front().c_str());
+	std::vector<std::string> tokens = TokenizeLine(str, ' ');
 
 	int cmd_code = -1;
 	const char* cmd = "";
@@ -597,7 +589,7 @@ void POP3_Analyzer::FinishClientCmd()
 void POP3_Analyzer::ProcessReply(int length, const char* line)
 	{
 	const char* end_of_line = line + length;
-	string str = trim_whitespace(line);
+	std::string str = trim_whitespace(line);
 
 	if ( multiLine == true )
 		{
@@ -635,7 +627,7 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 	int cmd_code = -1;
 	const char* cmd = "";
 
-	vector<string> tokens = TokenizeLine(str, ' ');
+	std::vector<std::string> tokens = TokenizeLine(str, ' ');
 	if ( tokens.size() > 0 )
 		cmd_code = ParseCmd(tokens[0]);
 
@@ -833,10 +825,8 @@ void POP3_Analyzer::StartTLS()
 	if ( ssl )
 		AddChildAnalyzer(ssl);
 
-	val_list* vl = new val_list;
-	vl->append(BuildConnVal());
-
-	ConnectionEvent(pop3_starttls, vl);
+	if ( pop3_starttls )
+		EnqueueConnEvent(pop3_starttls, ConnVal());
 	}
 
 void POP3_Analyzer::AuthSuccessfull()
@@ -860,21 +850,21 @@ void POP3_Analyzer::EndData()
 		{
 		mail->Done();
 		delete mail;
-		mail = 0;
+		mail = nullptr;
 		}
 	}
 
 void POP3_Analyzer::ProcessData(int length, const char* line)
 	{
-	mail->Deliver(length, line, 1);
+	mail->Deliver(length, line, true);
 	}
 
-int POP3_Analyzer::ParseCmd(string cmd)
+int POP3_Analyzer::ParseCmd(std::string cmd)
 	{
 	if ( cmd.size() == 0 )
 		return -1;
 
-	for ( int code = POP3_CMD_OK; code <= POP3_CMD_END; ++code )
+	for ( int code = POP3_CMD_OK; code < POP3_CMD_END; ++code )
 		{
 		char c = cmd.c_str()[0];
 		if ( c == '+' || c == '-' )
@@ -890,18 +880,18 @@ int POP3_Analyzer::ParseCmd(string cmd)
 	return -1;
 	}
 
-vector<string> POP3_Analyzer::TokenizeLine(const string input, const char split)
+std::vector<std::string> POP3_Analyzer::TokenizeLine(const std::string& input, char split)
 	{
-	vector<string> tokens;
+	std::vector<std::string> tokens;
 
 	if ( input.size() < 1 )
 		return tokens;
 
 	int start = 0;
 	unsigned int splitPos = 0;
-	string token = "";
+	std::string token = "";
 
-	if ( input.find(split, 0) == string::npos )
+	if ( input.find(split, 0) == std::string::npos )
 		{
 		tokens.push_back(input);
 		return tokens;
@@ -926,14 +916,16 @@ void POP3_Analyzer::POP3Event(EventHandlerPtr event, bool is_orig,
 	if ( ! event )
 		return;
 
-	val_list* vl = new val_list;
+	zeek::Args vl;
+	vl.reserve(2 + (bool)arg1 + (bool)arg2);
 
-	vl->append(BuildConnVal());
-	vl->append(new Val(is_orig, TYPE_BOOL));
+	vl.emplace_back(ConnVal());
+	vl.emplace_back(val_mgr->Bool(is_orig));
+
 	if ( arg1 )
-		vl->append(new StringVal(arg1));
+		vl.emplace_back(make_intrusive<StringVal>(arg1));
 	if ( arg2 )
-		vl->append(new StringVal(arg2));
+		vl.emplace_back(make_intrusive<StringVal>(arg2));
 
-	ConnectionEvent(event, vl);
+	EnqueueConnEvent(event, std::move(vl));
 	}

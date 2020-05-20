@@ -4,13 +4,28 @@
  * Wrapper and helper functions for MD5/SHA digest algorithms.
  */
 
-#ifndef bro_digest_h
-#define bro_digest_h
+#pragma once
 
 #include <openssl/md5.h>
 #include <openssl/sha.h>
+#include <openssl/evp.h>
 
-#include "Reporter.h"
+#include <sys/types.h> // for u_char
+#include <cstdint>
+
+#if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
+#define EVP_MD_CTX_new EVP_MD_CTX_create
+#define EVP_MD_CTX_free EVP_MD_CTX_destroy
+
+inline void* EVP_MD_CTX_md_data(const EVP_MD_CTX* ctx)
+	{
+	return ctx->md_data;
+	}
+#endif
+
+// if you add something here, note that you might have to make sure that the
+// static_out member in calculate_digest is still long enough.
+enum HashAlgorithm { Hash_MD5, Hash_SHA1, Hash_SHA224, Hash_SHA256, Hash_SHA384, Hash_SHA512 };
 
 inline const char* digest_print(const u_char* digest, size_t n)
 	{
@@ -35,58 +50,20 @@ inline const char* sha256_digest_print(const u_char digest[SHA256_DIGEST_LENGTH]
 	return digest_print(digest, SHA256_DIGEST_LENGTH);
 	}
 
-inline void md5_init(MD5_CTX* c)
-	{
-	if ( ! MD5_Init(c) )
-		reporter->InternalError("MD5_Init failed");
-	}
+EVP_MD_CTX* hash_init(HashAlgorithm alg);
 
-inline void md5_update(MD5_CTX* c, const void* data, unsigned long len)
-	{
-	if ( ! MD5_Update(c, data, len) )
-		reporter->InternalError("MD5_Update failed");
-	}
+void hash_update(EVP_MD_CTX* c, const void* data, unsigned long len);
 
-inline void md5_final(MD5_CTX* c, u_char md[MD5_DIGEST_LENGTH])
-	{
-	if ( ! MD5_Final(md, c) )
-		reporter->InternalError("MD5_Final failed");
-	}
+void hash_final(EVP_MD_CTX* c, u_char* md);
 
-inline void sha1_init(SHA_CTX* c)
-	{
-	if ( ! SHA1_Init(c) )
-		reporter->InternalError("SHA_Init failed");
-	}
+unsigned char* internal_md5(const unsigned char* data, unsigned long len, unsigned char* out);
 
-inline void sha1_update(SHA_CTX* c, const void* data, unsigned long len)
-	{
-	if ( ! SHA1_Update(c, data, len) )
-		reporter->InternalError("SHA_Update failed");
-	}
-
-inline void sha1_final(SHA_CTX* c, u_char md[SHA_DIGEST_LENGTH])
-	{
-	if ( ! SHA1_Final(md, c) )
-		reporter->InternalError("SHA_Final failed");
-	}
-
-inline void sha256_init(SHA256_CTX* c)
-	{
-	if ( ! SHA256_Init(c) )
-		reporter->InternalError("SHA256_Init failed");
-	}
-
-inline void sha256_update(SHA256_CTX* c, const void* data, unsigned long len)
-	{
-	if ( ! SHA256_Update(c, data, len) )
-		reporter->InternalError("SHA256_Update failed");
-	}
-
-inline void sha256_final(SHA256_CTX* c, u_char md[SHA256_DIGEST_LENGTH])
-	{
-	if ( ! SHA256_Final(md, c) )
-		reporter->InternalError("SHA256_Final failed");
-	}
-
-#endif //bro_digest_h
+/**
+ * Calculates the selected digest.
+ * @param Alg Digest algorithm to use.
+ * @param data Data to hash.
+ * @param len Length of data to hash.
+ * @param out Buffer to write data to. If set to nullptr, a static buffer will be used
+ * @return Buffer that the hash was written to. Length is deoendent on the chosen hash function.
+ */
+unsigned char* calculate_digest(HashAlgorithm Alg, const unsigned char* data, uint64_t len, unsigned char* out);

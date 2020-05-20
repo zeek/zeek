@@ -7,16 +7,30 @@ connection Syslog_Conn(bro_analyzer: BroAnalyzer)
 
 flow Syslog_Flow
 {
-	datagram = Syslog_Message withcontext(connection, this);
+	datagram = Syslog_Message_Optional_PRI withcontext(connection, this);
 
 	function process_syslog_message(m: Syslog_Message): bool
 		%{
-		BifEvent::generate_syslog_message(connection()->bro_analyzer(),
-		                                  connection()->bro_analyzer()->Conn(),
-		                                  ${m.PRI.facility},
-		                                  ${m.PRI.severity},
-		                                  new StringVal(${m.msg}.length(), (const char*) ${m.msg}.begin())
-		                                  );
+		if ( ! syslog_message )
+			return true;
+
+		if ( ${m.has_pri} )
+			BifEvent::enqueue_syslog_message(
+			    connection()->bro_analyzer(),
+			    connection()->bro_analyzer()->Conn(),
+			    ${m.PRI.facility},
+			    ${m.PRI.severity},
+			    make_intrusive<StringVal>(${m.msg}.length(), (const char*)${m.msg}.begin())
+			    );
+		else
+			BifEvent::enqueue_syslog_message(
+			    connection()->bro_analyzer(),
+			    connection()->bro_analyzer()->Conn(),
+			    999,
+			    999,
+			    make_intrusive<StringVal>(${m.msg}.length(), (const char*)${m.msg}.begin())
+			    );
+
 		return true;
 		%}
 

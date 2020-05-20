@@ -1,5 +1,4 @@
-#ifndef ANALYZER_PROTOCOL_RFB_RFB_H
-#define ANALYZER_PROTOCOL_RFB_RFB_H
+#pragma once
 
 #include "events.bif.h"
 
@@ -10,9 +9,7 @@
 
 namespace analyzer { namespace rfb {
 
-class RFB_Analyzer
-
-: public tcp::TCP_ApplicationAnalyzer {
+class RFB_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 
 public:
 	explicit RFB_Analyzer(Connection* conn);
@@ -22,7 +19,7 @@ public:
 	void Done() override;
 
 	void DeliverStream(int len, const u_char* data, bool orig) override;
-	void Undelivered(uint64 seq, int len, bool orig) override;
+	void Undelivered(uint64_t seq, int len, bool orig) override;
 
 	// Overriden from tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
@@ -35,9 +32,8 @@ protected:
 	binpac::RFB::RFB_Conn* interp;
 
 	bool had_gap;
+	bool invalid;
 
 };
 
 } } // namespace analyzer::*
-
-#endif

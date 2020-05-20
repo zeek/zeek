@@ -15,10 +15,13 @@
 #include "input.h"
 #include "util.h"
 #include "Scope.h"
+#include "BroString.h"
 #include "DNS_Mgr.h"
 #include "Expr.h"
 #include "Func.h"
 #include "Stmt.h"
+#include "IntrusivePtr.h"
+#include "Val.h"
 #include "Var.h"
 #include "Debug.h"
 #include "PolicyFile.h"
@@ -27,11 +30,19 @@
 #include "RE.h"
 #include "Net.h"
 #include "Traverse.h"
+#include "module_util.h"
 
 #include "analyzer/Analyzer.h"
-#include "broxygen/Manager.h"
+#include "zeekygen/Manager.h"
 
 #include "plugin/Manager.h"
+
+namespace {
+struct ZeekINode {
+	dev_t dev;
+	ino_t ino;
+};
+}
 
 extern YYLTYPE yylloc;	// holds start line and column of token
 extern EnumType* cur_enum_type;
@@ -43,11 +54,16 @@ int_list if_stack;
 
 int line_number = 1;
 const char* filename = 0; // Absolute path of file currently being parsed.
+const char* last_filename = 0; // Absolute path of last file parsed.
 static const char* last_id_tok = 0;
 
+const char* last_tok_filename = 0;
+const char* last_last_tok_filename = 0;
 char last_tok[128];
 
-#define YY_USER_ACTION	strncpy(last_tok, yytext, sizeof(last_tok) - 1);
+#define YY_USER_ACTION	strncpy(last_tok, yytext, sizeof(last_tok) - 1); \
+                        last_last_tok_filename = last_tok_filename; \
+                        last_tok_filename = ::filename;
 #define YY_USER_INIT	last_tok[0] = '\0';
 
 // We define our own YY_INPUT because we want to trap the case where
@@ -61,10 +77,10 @@ static void deprecated_attr(const char* attr)
 	reporter->Warning("Use of deprecated attribute: %s", attr);
 	}
 
-static string find_relative_file(const string& filename, const string& ext)
+static std::string find_relative_file(const std::string& filename, const std::string& ext)
 	{
 	if ( filename.empty() )
-		return string();
+		return std::string();
 
 	if ( filename[0] == '.' )
 		return find_file(filename, SafeDirname(::filename).result, ext);
@@ -72,7 +88,18 @@ static string find_relative_file(const string& filename, const string& ext)
 		return find_file(filename, bro_path(), ext);
 	}
 
-static ino_t get_inode_num(FILE* f, const string& path)
+static std::string find_relative_script_file(const std::string& filename)
+	{
+	if ( filename.empty() )
+		return std::string();
+
+	if ( filename[0] == '.' )
+		return find_script_file(filename, SafeDirname(::filename).result);
+	else
+		return find_script_file(filename, bro_path());
+	}
+
+static ZeekINode get_inode(FILE* f, const std::string& path)
 	{
 	struct stat b;
 
@@ -80,29 +107,29 @@ static ino_t get_inode_num(FILE* f, const string& path)
 		reporter->FatalError("fstat of %s failed: %s\n", path.c_str(),
 		                     strerror(errno));
 
-	return b.st_ino;
+	return {b.st_dev, b.st_ino};
 	}
 
-static ino_t get_inode_num(const string& path)
+static ZeekINode get_inode(const std::string& path)
 	{
 	FILE* f = open_file(path);
 
 	if ( ! f )
 		reporter->FatalError("failed to open %s\n", path.c_str());
 
-	ino_t inum = get_inode_num(f, path);
+	auto inode = get_inode(f, path);
 	fclose(f);
 
-	return inum;
+	return inode;
 	}
 
 class FileInfo {
 public:
-	FileInfo(string restore_module = "");
+	FileInfo(std::string restore_module = "");
 	~FileInfo();
 
 	YY_BUFFER_STATE buffer_state;
-	string restore_module;
+	std::string restore_module;
 	const char* name;
 	int line;
 	int level;
@@ -110,8 +137,7 @@ public:
 
 // A stack of input buffers we're scanning.  file_stack[len-1] is the
 // top of the stack.
-declare(PList,FileInfo);
-static PList(FileInfo) file_stack;
+static PList<FileInfo> file_stack;
 
 #define RET_CONST(v) \
 	{ \
@@ -136,7 +162,7 @@ D	[0-9]+
 HEX	[0-9a-fA-F]+
 IDCOMPONENT [A-Za-z_][A-Za-z_0-9]*
 ID	{IDCOMPONENT}(::{IDCOMPONENT})*
-IP6 ("["({HEX}:){7}{HEX}"]")|("["0x{HEX}({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}|:)*"::"({HEX}|:)*({D}"."){3}{D}"]")
+IP6 ("["({HEX}:){7}{HEX}"]")|("["0x{HEX}({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}:){6}({D}"."){3}{D}"]")|("["({HEX}|:)*"::"({HEX}|:)*({D}"."){3}{D}"]")
 FILE	[^ \t\n]+
 PREFIX	[^ \t\n]+
 FLOAT	(({D}*"."?{D})|({D}"."?{D}*))([eE][-+]?{D})?
@@ -146,19 +172,19 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 %%
 
 ##!.* {
-	broxygen_mgr->SummaryComment(::filename, yytext + 3);
+	zeekygen_mgr->SummaryComment(::filename, yytext + 3);
 	}
 
 ##<.* {
-	string hint(cur_enum_type && last_id_tok ?
+	std::string hint(cur_enum_type && last_id_tok ?
 	            make_full_var_name(current_module.c_str(), last_id_tok) : "");
 
-	broxygen_mgr->PostComment(yytext + 3, hint);
+	zeekygen_mgr->PostComment(yytext + 3, hint);
 }
 
 ##.* {
 	if ( yytext[2] != '#' )
-		broxygen_mgr->PreComment(yytext + 2);
+		zeekygen_mgr->PreComment(yytext + 2);
 }
 
 #{OWS}@no-test.* return TOK_NO_TEST;
@@ -180,7 +206,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 
 {IP6}{OWS}"/"{OWS}{D}	{
 	int len = 0;
-	string ip = extract_ip_and_len(yytext, &len);
+	std::string ip = extract_ip_and_len(yytext, &len);
 	RET_CONST(new SubNetVal(IPPrefix(IPAddr(ip), len, true)))
 }
 
@@ -189,7 +215,7 @@ ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 
 ({D}"."){3}{D}{OWS}"/"{OWS}{D}	{
 	int len = 0;
-	string ip = extract_ip_and_len(yytext, &len);
+	std::string ip = extract_ip_and_len(yytext, &len);
 	RET_CONST(new SubNetVal(IPPrefix(IPAddr(ip), len)))
 }
 
@@ -283,37 +309,7 @@ when	return TOK_WHEN;
 &read_expire	return TOK_ATTR_EXPIRE_READ;
 &redef		return TOK_ATTR_REDEF;
 &write_expire	return TOK_ATTR_EXPIRE_WRITE;
-
-&encrypt {
-	deprecated_attr(yytext);
-	return TOK_ATTR_ENCRYPT;
-	}
-
-&mergeable {
-	deprecated_attr(yytext);
-	return TOK_ATTR_MERGEABLE;
-	}
-
-&persistent {
-	deprecated_attr(yytext);
-	return TOK_ATTR_PERSISTENT;
-	}
-
-&rotate_interval {
-	deprecated_attr(yytext);
-	return TOK_ATTR_ROTATE_INTERVAL;
-	}
-
-&rotate_size {
-	deprecated_attr(yytext);
-	return TOK_ATTR_ROTATE_SIZE;
-	}
-
-&synchronized  {
-	++old_comm_usage_count;
-	deprecated_attr(yytext);
-	return TOK_ATTR_SYNCHRONIZED;
-	}
+&on_change	return TOK_ATTR_ON_CHANGE;
 
 @deprecated.* {
 	auto num_files = file_stack.length();
@@ -336,7 +332,7 @@ when	return TOK_WHEN;
 @DEBUG	return TOK_DEBUG;	// marks input for debugger
 
 @DIR	{
-	string rval = SafeDirname(::filename).result;
+	std::string rval = SafeDirname(::filename).result;
 
 	if ( ! rval.empty() && rval[0] == '.' )
 		{
@@ -345,7 +341,7 @@ when	return TOK_WHEN;
 		if ( ! getcwd(path, MAXPATHLEN) )
 			reporter->InternalError("getcwd failed: %s", strerror(errno));
 		else
-			rval = string(path) + "/" + rval;
+			rval = std::string(path) + "/" + rval;
 		}
 
 	RET_CONST(new StringVal(rval.c_str()));
@@ -357,15 +353,15 @@ when	return TOK_WHEN;
 
 @load{WS}{FILE}	{
 	const char* new_file = skip_whitespace(yytext + 5);	// Skip "@load".
-	string loader = ::filename;  // load_files may change ::filename, save copy
-	string loading = find_relative_file(new_file, "bro");
+	std::string loader = ::filename;  // load_files may change ::filename, save copy
+	std::string loading = find_relative_script_file(new_file);
 	(void) load_files(new_file);
-	broxygen_mgr->ScriptDependency(loader, loading);
+	zeekygen_mgr->ScriptDependency(loader, loading);
 	}
 
 @load-sigs{WS}{FILE} {
 	const char* file = skip_whitespace(yytext + 10);
-	string path = find_relative_file(file, "sig");
+	std::string path = find_relative_file(file, ".sig");
 	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(plugin::Plugin::SIGNATURES, file, path), -1);
 
 	switch ( rc ) {
@@ -425,14 +421,15 @@ when	return TOK_WHEN;
 @unload{WS}{FILE}	{
 	// Skip "@unload".
 	const char* file = skip_whitespace(yytext + 7);
-	string path = find_relative_file(file, "bro");
+	std::string path = find_relative_script_file(file);
 
 	if ( path.empty() )
 		reporter->Error("failed find file associated with @unload %s", file);
 	else
 		{
 		// All we have to do is pretend we've already scanned it.
-		ScannedFile sf(get_inode_num(path), file_stack.length(), path, true);
+		auto i = get_inode(path);
+		ScannedFile sf(i.dev, i.ino, file_stack.length(), path, true);
 		files_scanned.push_back(sf);
 		}
 	}
@@ -450,10 +447,9 @@ when	return TOK_WHEN;
 	pref = skip_whitespace(pref + 1);	// Skip over '='.
 
 	if ( ! append )
-		while ( prefixes.length() > 1 )	// don't delete "" prefix
-			delete prefixes.remove_nth(1);
+		zeek_script_prefixes = { "" }; // don't delete the "" prefix
 
-	add_to_name_list(pref, ':', prefixes);
+	tokenize_string(pref, ":", &zeek_script_prefixes);
 	}
 
 @if	return TOK_ATIF;
@@ -470,8 +466,8 @@ when	return TOK_WHEN;
 <IGNORE>[^@\n]+	/* eat */
 <IGNORE>.	/* eat */
 
-T	RET_CONST(new Val(true, TYPE_BOOL))
-F	RET_CONST(new Val(false, TYPE_BOOL))
+T	RET_CONST(val_mgr->True()->Ref())
+F	RET_CONST(val_mgr->False()->Ref())
 
 {ID}	{
 	yylval.str = copy_string(yytext);
@@ -480,46 +476,45 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 	}
 
 {D}		{
-		RET_CONST(new Val(static_cast<bro_uint_t>(strtoull(yytext, (char**) NULL, 10)),
-			  TYPE_COUNT))
+		RET_CONST(val_mgr->Count(static_cast<bro_uint_t>(strtoull(yytext, (char**) NULL, 10))).release())
 		}
 {FLOAT}		RET_CONST(new Val(atof(yytext), TYPE_DOUBLE))
 
 {D}"/tcp"	{
-		uint32 p = atoi(yytext);
+		uint32_t p = atoi(yytext);
 		if ( p > 65535 )
 			{
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(port_mgr->Get(p, TRANSPORT_TCP))
+		RET_CONST(val_mgr->Port(p, TRANSPORT_TCP)->Ref())
 		}
 {D}"/udp"	{
-		uint32 p = atoi(yytext);
+		uint32_t p = atoi(yytext);
 		if ( p > 65535 )
 			{
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(port_mgr->Get(p, TRANSPORT_UDP))
+		RET_CONST(val_mgr->Port(p, TRANSPORT_UDP)->Ref())
 		}
 {D}"/icmp"	{
-		uint32 p = atoi(yytext);
+		uint32_t p = atoi(yytext);
 		if ( p > 255 )
 			{
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(port_mgr->Get(p, TRANSPORT_ICMP))
+		RET_CONST(val_mgr->Port(p, TRANSPORT_ICMP)->Ref())
 		}
 {D}"/unknown"	{
-		uint32 p = atoi(yytext);
+		uint32_t p = atoi(yytext);
 		if ( p > 255 )
 			{
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(port_mgr->Get(p, TRANSPORT_UNKNOWN))
+		RET_CONST(val_mgr->Port(p, TRANSPORT_UNKNOWN)->Ref())
 		}
 
 {FLOAT}{OWS}day(s?)	RET_CONST(new IntervalVal(atof(yytext),Days))
@@ -529,9 +524,9 @@ F	RET_CONST(new Val(false, TYPE_BOOL))
 {FLOAT}{OWS}msec(s?)	RET_CONST(new IntervalVal(atof(yytext),Milliseconds))
 {FLOAT}{OWS}usec(s?)	RET_CONST(new IntervalVal(atof(yytext),Microseconds))
 
-"0x"{HEX}+	RET_CONST(new Val(static_cast<bro_uint_t>(strtoull(yytext, 0, 16)), TYPE_COUNT))
+"0x"{HEX}+	RET_CONST(val_mgr->Count(static_cast<bro_uint_t>(strtoull(yytext, 0, 16))).release())
 
-{H}("."{H})+		RET_CONST(dns_mgr->LookupHost(yytext))
+{H}("."{H})+		RET_CONST(dns_mgr->LookupHost(yytext).release())
 
 \"([^\\\n\"]|{ESCSEQ})*\"	{
 	const char* text = yytext;
@@ -601,26 +596,23 @@ YYLTYPE GetCurrentLocation()
 	return currloc;
 	}
 
-
-static bool already_scanned(ino_t i)
+static bool already_scanned(ZeekINode in)
 	{
-	list<ScannedFile>::const_iterator it;
-
-	for ( it = files_scanned.begin(); it != files_scanned.end(); ++it )
-		if ( it->inode == i )
+	for ( const auto& it : files_scanned )
+		if ( it.dev == in.dev && it.inode == in.ino )
 			return true;
 
 	return false;
 	}
 
-static bool already_scanned(const string& path)
+static bool already_scanned(const std::string& path)
 	{
-	return already_scanned(get_inode_num(path));
+	return already_scanned(get_inode(path));
 	}
 
 static int load_files(const char* orig_file)
 	{
-	string file_path = find_relative_file(orig_file, "bro");
+	std::string file_path = find_relative_script_file(orig_file);
 	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(plugin::Plugin::SCRIPT, orig_file, file_path), -1);
 
 	if ( rc == 1 )
@@ -670,7 +662,7 @@ static int load_files(const char* orig_file)
 			reporter->FatalError("can't open %s", file_path.c_str());
 		}
 
-	ino_t i = get_inode_num(f, file_path);
+	auto i = get_inode(f, file_path);
 
 	if ( already_scanned(i) )
 		{
@@ -680,7 +672,7 @@ static int load_files(const char* orig_file)
 		return 0;
 		}
 
-	ScannedFile sf(i, file_stack.length(), file_path);
+	ScannedFile sf(i.dev, i.ino, file_stack.length(), file_path);
 	files_scanned.push_back(sf);
 
 	if ( g_policy_debug && ! file_path.empty() )
@@ -688,7 +680,7 @@ static int load_files(const char* orig_file)
 		// Add the filename to the file mapping table (Debug.h).
 		Filemap* map = new Filemap;
 		HashKey* key = new HashKey(file_path.c_str());
-		g_dbgfilemaps.Insert(key, map);
+		g_dbgfilemaps.emplace(file_path, map);
 		LoadPolicyFileText(file_path.c_str());
 		}
 
@@ -699,13 +691,13 @@ static int load_files(const char* orig_file)
 	// was done when we're finished processing it.
 	if ( ! did_module_restore )
 		{
-		file_stack.append(new FileInfo(current_module));
+		file_stack.push_back(new FileInfo(current_module));
 		did_module_restore = true;
 		}
 	else
-		file_stack.append(new FileInfo);
+		file_stack.push_back(new FileInfo);
 
-	broxygen_mgr->Script(file_path);
+	zeekygen_mgr->Script(file_path);
 
 	DBG_LOG(DBG_SCRIPTS, "Loading %s", file_path.c_str());
 
@@ -755,10 +747,10 @@ void do_atif(Expr* expr)
 
 	LocalNameFinder cb;
 	expr->Traverse(&cb);
-	Val* val = 0;
+	IntrusivePtr<Val> val;
 
 	if ( cb.local_names.empty() )
-		val = expr->Eval(0);
+		val = expr->Eval(nullptr);
 	else
 		{
 		for ( size_t i = 0; i < cb.local_names.size(); ++i )
@@ -773,7 +765,7 @@ void do_atif(Expr* expr)
 
 	if ( ! val->AsBool() )
 		{
-		if_stack.append(current_depth);
+		if_stack.push_back(current_depth);
 		BEGIN(IGNORE);
 		}
 	}
@@ -782,30 +774,26 @@ void do_atifdef(const char* id)
 	{
 	++current_depth;
 
-	ID* i;
+	auto i = lookup_ID(id, current_module.c_str());
 
-	if ( ! (i = lookup_ID(id, current_module.c_str())) )
+	if ( ! i )
 		{
-		if_stack.append(current_depth);
+		if_stack.push_back(current_depth);
 		BEGIN(IGNORE);
 		}
-
-	Unref(i);
 	}
 
 void do_atifndef(const char *id)
 	{
 	++current_depth;
 
-	ID* i;
+	auto i = lookup_ID(id, current_module.c_str());
 
-	if ( (i = lookup_ID(id, current_module.c_str())) )
+	if ( i )
 		{
-		if_stack.append(current_depth);
+		if_stack.push_back(current_depth);
 		BEGIN(IGNORE);
 		}
-
-	Unref(i);
 	}
 
 void do_atelse()
@@ -813,17 +801,17 @@ void do_atelse()
 	if ( current_depth == 0 )
 		reporter->Error("@else without @if...");
 
-	if ( if_stack.length() && current_depth > if_stack.last() )
+	if ( ! if_stack.empty() && current_depth > if_stack.back() )
 		return;
 
 	if ( YY_START == INITIAL )
 		{
-		if_stack.append(current_depth);
+		if_stack.push_back(current_depth);
 		BEGIN(IGNORE);
 		}
 	else
 		{
-		if_stack.get();
+		if_stack.pop_back();
 		BEGIN(INITIAL);
 		}
 	}
@@ -833,10 +821,10 @@ void do_atendif()
 	if ( current_depth == 0 )
 		reporter->Error("unbalanced @if... @endif");
 
-	if ( current_depth == if_stack.last() )
+	if ( current_depth == if_stack.back() )
 		{
 		BEGIN(INITIAL);
-		if_stack.get();
+		if_stack.pop_back();
 		}
 
 	--current_depth;
@@ -856,7 +844,7 @@ void add_essential_input_file(const char* file)
 	if ( ! filename )
 		(void) load_files(file);
 	else
-		essential_input_files.append(copy_string(file));
+		essential_input_files.push_back(copy_string(file));
 	}
 
 void add_input_file(const char* file)
@@ -867,7 +855,7 @@ void add_input_file(const char* file)
 	if ( ! filename )
 		(void) load_files(file);
 	else
-		input_files.append(copy_string(file));
+		input_files.push_back(copy_string(file));
 	}
 
 void add_input_file_at_front(const char* file)
@@ -878,7 +866,7 @@ void add_input_file_at_front(const char* file)
 	if ( ! filename )
 		(void) load_files(file);
 	else
-		input_files.insert(copy_string(file));
+		input_files.push_front(copy_string(file));
 	}
 
 void add_to_name_list(char* s, char delim, name_list& nl)
@@ -889,7 +877,7 @@ void add_to_name_list(char* s, char delim, name_list& nl)
 		if ( s_delim )
 			*s_delim = 0;
 
-		nl.append(copy_string(s));
+		nl.push_back(copy_string(s));
 
 		if ( s_delim )
 			s = s_delim + 1;
@@ -900,13 +888,15 @@ void add_to_name_list(char* s, char delim, name_list& nl)
 
 int yywrap()
 	{
+	last_filename = ::filename;
+
 	if ( reporter->Errors() > 0 )
 		return 1;
 
 	if ( ! did_builtin_init && file_stack.length() == 1 )
 		{
 		// ### This is a gross hack - we know that the first file
-		// we parse is init-bare.bro, and after it it's safe to initialize
+		// we parse is init-bare.zeek, and after it it's safe to initialize
 		// the built-ins.  Furthermore, we want to initialize the
 		// built-in's *right* after parsing bro.init, so that other
 		// source files can use built-in's when initializing globals.
@@ -915,7 +905,8 @@ int yywrap()
 
 	yy_delete_buffer(YY_CURRENT_BUFFER);
 
-	delete file_stack.remove_nth(file_stack.length() - 1);
+	if ( file_stack.length() > 0 )
+		delete file_stack.remove_nth(file_stack.length() - 1);
 
 	if ( YY_CURRENT_BUFFER )
 		// There's more on the stack to scan.
@@ -941,10 +932,10 @@ int yywrap()
 		}
 
 	// For each file scanned so far, and for each @prefix, look for a
-	// prefixed and flattened version of the loaded file in BROPATH. The
-	// flattening involves taking the path in BROPATH in which the
+	// prefixed and flattened version of the loaded file in ZEEKPATH. The
+	// flattening involves taking the path in ZEEKPATH in which the
 	// scanned file lives and replacing '/' path separators with a '.' If
-	// the scanned file is "__load__.bro", that part of the flattened
+	// the scanned file is "__load__.zeek", that part of the flattened
 	// file name is discarded. If the prefix is non-empty, it gets placed
 	// in front of the flattened path, separated with another '.'
 	std::list<ScannedFile>::iterator it;
@@ -956,15 +947,15 @@ int yywrap()
 
 		it->prefixes_checked = true;
 		// Prefixes are pushed onto a stack, so iterate backwards.
-		for ( int i = prefixes.length() - 1; i >= 0; --i )
+		for ( int i = zeek_script_prefixes.size() - 1; i >= 0; --i )
 			{
 			// Don't look at empty prefixes.
-			if ( ! prefixes[i][0] )
+			if ( ! zeek_script_prefixes[i][0] )
 				continue;
 
-			string canon = without_bropath_component(it->name);
-			string flat = flatten_script_name(canon, prefixes[i]);
-			string path = find_relative_file(flat, "bro");
+			std::string canon = without_bropath_component(it->name);
+			std::string flat = flatten_script_name(canon, zeek_script_prefixes[i]);
+			std::string path = find_relative_script_file(flat);
 
 			if ( ! path.empty() )
 				{
@@ -987,7 +978,7 @@ int yywrap()
 	// Add redef statements for any X=Y command line parameters.
 	if ( params.size() > 0 )
 		{
-		string policy;
+		std::string policy;
 
 		for ( unsigned int i = 0; i < params.size(); ++i )
 			{
@@ -1008,13 +999,13 @@ int yywrap()
 			// that just means quoting the value if it's a
 			// string type.)  If no type is found, the value
 			// is left unchanged.
-			string opt_quote;	// no optional quote by default
+			std::string opt_quote;	// no optional quote by default
 			Val* v = opt_internal_val(param);
 
 			if ( v && v->Type() && v->Type()->Tag() == TYPE_STRING )
 				opt_quote = "\"";	// use quotes
 
-			policy += string("redef ") + param + "="
+			policy += std::string("redef ") + param + "="
 					+ opt_quote + val + opt_quote + ";";
 
 			delete [] param;
@@ -1051,7 +1042,7 @@ int yywrap()
 	return 1;
 	}
 
-FileInfo::FileInfo(string arg_restore_module)
+FileInfo::FileInfo(std::string arg_restore_module)
 	{
 	buffer_state = YY_CURRENT_BUFFER;
 	restore_module = arg_restore_module;

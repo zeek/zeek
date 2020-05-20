@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include <ctype.h>
 
@@ -60,23 +60,22 @@ void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig
 		assert(line <= end_of_line);
 		size_t n = end_of_line >= line ? end_of_line - line : 0; // just to be sure if assertions aren't on.
 		const char* at = reinterpret_cast<const char*>(memchr(line, '@', n));
-		const char* host = 0;
+		const char* host = nullptr;
 		if ( ! at )
 			at = host = end_of_line;
 		else
 			host = at + 1;
 
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(new Val(long_cnt, TYPE_BOOL));
-		vl->append(new StringVal(at - line, line));
-		vl->append(new StringVal(end_of_line - host, host));
-
 		if ( finger_request )
-			ConnectionEvent(finger_request, vl);
+			EnqueueConnEvent(finger_request,
+				ConnVal(),
+				val_mgr->Bool(long_cnt),
+				make_intrusive<StringVal>(at - line, line),
+				make_intrusive<StringVal>(end_of_line - host, host)
+			);
 
 		Conn()->Match(Rule::FINGER, (const u_char *) line,
-			  end_of_line - line, true, true, 1, true);
+			  end_of_line - line, true, true, true, true);
 
 		did_deliver = 1;
 		}
@@ -86,10 +85,9 @@ void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig
 		if ( ! finger_reply )
 			return;
 
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(new StringVal(end_of_line - line, line));
-
-		ConnectionEvent(finger_reply, vl);
+		EnqueueConnEvent(finger_reply,
+			ConnVal(),
+			make_intrusive<StringVal>(end_of_line - line, line)
+		);
 		}
 	}

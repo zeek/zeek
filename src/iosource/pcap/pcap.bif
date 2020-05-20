@@ -4,6 +4,10 @@ module Pcap;
 const snaplen: count;
 const bufsize: count;
 
+%%{
+#include "iosource/Manager.h"
+%%}
+
 ## Precompiles a PCAP filter and binds it to a given identifier.
 ##
 ## id: The PCAP identifier to reference the filter *s* later on.
@@ -12,7 +16,7 @@ const bufsize: count;
 ##
 ## Returns: True if *s* is valid and precompiles successfully.
 ##
-## .. bro:see:: Pcap::install_pcap_filter
+## .. zeek:see:: Pcap::install_pcap_filter
 ##          install_src_addr_filter
 ##          install_src_net_filter
 ##          uninstall_src_addr_filter
@@ -30,35 +34,27 @@ function precompile_pcap_filter%(id: PcapFilterID, s: string%): bool
 		// lookups and limit the ID space so that that doesn't grow too
 		// large.
 		builtin_error(fmt("PCAP filter ids must remain below 100 (is %" PRId64 ")", id->AsInt()));
-		return new Val(false, TYPE_BOOL);
+		return val_mgr->False();
 		}
 
 	bool success = true;
 
-	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
+	iosource::PktSrc* ps = iosource_mgr->GetPktSrc();
+	if ( ps && ! ps->PrecompileFilter(id->ForceAsInt(), s->CheckString()) )
+		success = false;
 
-	for ( iosource::Manager::PktSrcList::const_iterator i = pkt_srcs.begin();
-	      i != pkt_srcs.end(); i++ )
-		{
-		iosource::PktSrc* ps = *i;
-
-		if ( ! ps->PrecompileFilter(id->ForceAsInt(),
-							s->CheckString()) )
-			success = false;
-		}
-
-	return new Val(success, TYPE_BOOL);
+	return val_mgr->Bool(success);
 	%}
 
 ## Installs a PCAP filter that has been precompiled with
-## :bro:id:`Pcap::precompile_pcap_filter`.
+## :zeek:id:`Pcap::precompile_pcap_filter`.
 ##
 ## id: The PCAP filter id of a precompiled filter.
 ##
 ## Returns: True if the filter associated with *id* has been installed
 ##          successfully.
 ##
-## .. bro:see:: Pcap::precompile_pcap_filter
+## .. zeek:see:: Pcap::precompile_pcap_filter
 ##              install_src_addr_filter
 ##              install_src_net_filter
 ##              uninstall_src_addr_filter
@@ -72,25 +68,18 @@ function Pcap::install_pcap_filter%(id: PcapFilterID%): bool
 	%{
 	bool success = true;
 
-	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
+	iosource::PktSrc* ps = iosource_mgr->GetPktSrc();
+	if ( ps && ! ps->SetFilter(id->ForceAsInt()) )
+		success = false;
 
-	for ( iosource::Manager::PktSrcList::const_iterator i = pkt_srcs.begin();
-	      i != pkt_srcs.end(); i++ )
-		{
-		iosource::PktSrc* ps = *i;
-
-		if ( ! ps->SetFilter(id->ForceAsInt()) )
-			success = false;
-		}
-
-	return new Val(success, TYPE_BOOL);
+	return val_mgr->Bool(success);
 	%}
 
 ## Returns a string representation of the last PCAP error.
 ##
 ## Returns: A descriptive error message of the PCAP function that failed.
 ##
-## .. bro:see:: Pcap::precompile_pcap_filter
+## .. zeek:see:: Pcap::precompile_pcap_filter
 ##              Pcap::install_pcap_filter
 ##              install_src_addr_filter
 ##              install_src_net_filter
@@ -102,17 +91,13 @@ function Pcap::install_pcap_filter%(id: PcapFilterID%): bool
 ##              uninstall_dst_net_filter
 function error%(%): string
 	%{
-	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
-
-	for ( iosource::Manager::PktSrcList::const_iterator i = pkt_srcs.begin();
-	      i != pkt_srcs.end(); i++ )
+	iosource::PktSrc* ps = iosource_mgr->GetPktSrc();
+	if ( ps )
 		{
-		iosource::PktSrc* ps = *i;
-
 		const char* err = ps->ErrorMsg();
 		if ( *err )
-			return new StringVal(err);
+			return make_intrusive<StringVal>(err);
 		}
 
-	return new StringVal("no error");
+	return make_intrusive<StringVal>("no error");
 	%}

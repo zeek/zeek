@@ -1,11 +1,12 @@
 // This code contributed by Nadi Sarrar.
 
-#ifndef ANALYZER_PROTOCOL_BITTORRENT_BITTORRENTTRACKER_H
-#define ANALYZER_PROTOCOL_BITTORRENT_BITTORRENTTRACKER_H
+#pragma once
 
 #include "analyzer/protocol/tcp/TCP.h"
 
 #define BTTRACKER_BUF 2048
+
+class StringVal;
 
 namespace analyzer { namespace bittorrent {
 
@@ -42,14 +43,14 @@ enum btt_benc_states {
 	BENC_STATE_STR2,
 };
 
-class BitTorrentTracker_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class BitTorrentTracker_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit BitTorrentTracker_Analyzer(Connection* conn);
 	~BitTorrentTracker_Analyzer() override;
 
 	void Done() override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
-	void Undelivered(uint64 seq, int len, bool orig) override;
+	void Undelivered(uint64_t seq, int len, bool orig) override;
 	void EndpointEOF(bool is_orig) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
@@ -105,8 +106,8 @@ protected:
 	TableVal* res_val_peers;
 	TableVal* res_val_benc;
 
-	vector<char> benc_stack;
-	vector<unsigned int> benc_count;
+	std::vector<char> benc_stack;
+	std::vector<unsigned int> benc_count;
 	enum btt_benc_states benc_state;
 
 	char* benc_raw;
@@ -128,6 +129,4 @@ protected:
 	bool stop_orig, stop_resp;
 };
 
-} } // namespace analyzer::* 
-
-#endif
+} } // namespace analyzer::*

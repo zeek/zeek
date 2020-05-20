@@ -1,11 +1,16 @@
 // Classes that collect and report statistics.
 
-#ifndef STATS_H
-#define STATS_H
+#pragma once
 
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <stdint.h>
+
+class Func;
+class TableVal;
+class Location;
+class BroFile;
 
 // Object called by SegmentProfiler when it is done and reports its
 // cumulative CPU/memory statistics.
@@ -60,7 +65,7 @@ protected:
 };
 
 
-class ProfileLogger : public SegmentStatsReporter {
+class ProfileLogger final : public SegmentStatsReporter {
 public:
 	ProfileLogger(BroFile* file, double interval);
 	~ProfileLogger() override;
@@ -79,7 +84,7 @@ private:
 
 
 // Generates load_sample() events.
-class SampleLogger : public SegmentStatsReporter {
+class SampleLogger final : public SegmentStatsReporter {
 public:
 	SampleLogger();
 	~SampleLogger() override;
@@ -102,13 +107,13 @@ extern ProfileLogger* segment_logger;
 extern SampleLogger* sample_logger;
 
 // Connection statistics.
-extern uint64 killed_by_inactivity;
+extern uint64_t killed_by_inactivity;
 
 // Content gap statistics.
-extern uint64 tot_ack_events;
-extern uint64 tot_ack_bytes;
-extern uint64 tot_gap_events;
-extern uint64 tot_gap_bytes;
+extern uint64_t tot_ack_events;
+extern uint64_t tot_ack_bytes;
+extern uint64_t tot_gap_events;
+extern uint64_t tot_gap_bytes;
 
 class PacketProfiler {
 public:
@@ -127,9 +132,7 @@ protected:
 	double update_freq;
 	double last_Utime, last_Stime, last_Rtime;
 	double last_timestamp, time;
-	uint64 last_mem;
-	uint64 pkt_cnt;
-	uint64 byte_cnt;
+	uint64_t last_mem;
+	uint64_t pkt_cnt;
+	uint64_t byte_cnt;
 };
-
-#endif

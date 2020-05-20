@@ -1,14 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
+#include "Desc.h"
 
 #include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 #include <math.h>
 
-#include "Desc.h"
 #include "File.h"
 #include "Reporter.h"
+#include "ConvertUTF.h"
 
 #define DEFAULT_SIZE 128
 #define SLOP 10
@@ -19,7 +21,7 @@ ODesc::ODesc(desc_type t, BroFile* arg_f)
 	style = STANDARD_STYLE;
 	f = arg_f;
 
-	if ( f == 0 )
+	if ( f == nullptr )
 		{
 		size = DEFAULT_SIZE;
 		base = safe_malloc(size);
@@ -29,16 +31,17 @@ ODesc::ODesc(desc_type t, BroFile* arg_f)
 	else
 		{
 		offset = size = 0;
-		base = 0;
+		base = nullptr;
 		}
 
 	indent_level = 0;
-	is_short = 0;
-	want_quotes = 0;
-	do_flush = 1;
-	include_stats = 0;
+	is_short = false;
+	want_quotes = false;
+	do_flush = true;
+	include_stats = false;
 	indent_with_spaces = 0;
 	escape = false;
+	utf8 = false;
 	}
 
 ODesc::~ODesc()
@@ -55,6 +58,11 @@ ODesc::~ODesc()
 void ODesc::EnableEscaping()
 	{
 	escape = true;
+	}
+
+void ODesc::EnableUTF8 ()
+	{
+	utf8 = true;
 	}
 
 void ODesc::PushIndent()
@@ -103,7 +111,7 @@ void ODesc::Add(int i)
 		}
 	}
 
-void ODesc::Add(uint32 u)
+void ODesc::Add(uint32_t u)
 	{
 	if ( IsBinary() )
 		AddBytes(&u, sizeof(u));
@@ -115,7 +123,7 @@ void ODesc::Add(uint32 u)
 		}
 	}
 
-void ODesc::Add(int64 i)
+void ODesc::Add(int64_t i)
 	{
 	if ( IsBinary() )
 		AddBytes(&i, sizeof(i));
@@ -127,7 +135,7 @@ void ODesc::Add(int64 i)
 		}
 	}
 
-void ODesc::Add(uint64 u)
+void ODesc::Add(uint64_t u)
 	{
 	if ( IsBinary() )
 		AddBytes(&u, sizeof(u));
@@ -156,7 +164,14 @@ void ODesc::Add(double d, bool no_exp)
 
 		Add(tmp);
 
-		if ( nearbyint(d) == d && isfinite(d) && ! strchr(tmp, 'e') )
+		auto approx_equal = [](double a, double b, double tolerance = 1e-6) -> bool
+			{
+			auto v = a - b;
+			return v < 0 ? -v < tolerance : v < tolerance;
+			};
+
+		if ( approx_equal(d, nearbyint(d), 1e-9) &&
+		     isfinite(d) && ! strchr(tmp, 'e') )
 			// disambiguate from integer
 			Add(".0");
 		}
@@ -236,7 +251,7 @@ size_t ODesc::StartsWithEscapeSequence(const char* start, const char* end)
 
 	for ( it = escape_sequences.begin(); it != escape_sequences.end(); ++it )
 		{
-		const string& esc_str = *it;
+		const std::string& esc_str = *it;
 		size_t esc_len = esc_str.length();
 
 		if ( start + esc_len > end )
@@ -249,22 +264,51 @@ size_t ODesc::StartsWithEscapeSequence(const char* start, const char* end)
 	return 0;
 	}
 
-pair<const char*, size_t> ODesc::FirstEscapeLoc(const char* bytes, size_t n)
+std::pair<const char*, size_t> ODesc::FirstEscapeLoc(const char* bytes, size_t n)
 	{
-	typedef pair<const char*, size_t> escape_pos;
+	typedef std::pair<const char*, size_t> escape_pos;
 
 	if ( IsBinary() )
 		return escape_pos(0, 0);
 
 	for ( size_t i = 0; i < n; ++i )
 		{
-		if ( ! isprint(bytes[i]) || bytes[i] == '\\' )
+		auto printable = isprint(bytes[i]);
+
+		if ( ! printable && ! utf8 )
+			return escape_pos(bytes + i, 1);
+
+		if ( bytes[i] == '\\' )
 			return escape_pos(bytes + i, 1);
 
 		size_t len = StartsWithEscapeSequence(bytes + i, bytes + n);
 
 		if ( len )
 			return escape_pos(bytes + i, len);
+
+		if ( ! printable && utf8 )
+			{
+			size_t utf_found = getNumBytesForUTF8(bytes[i]);
+
+			if ( utf_found == 1 )
+				return escape_pos(bytes + i, 1);
+
+			if ( i + utf_found > n )
+				// Don't know if this is even meant to be a utf8 encoding,
+				// since there's not enough bytes left to check it's a valid
+				// sequence, so maybe safest to just move up by one instead
+				// of escaping the entire remainder.
+				return escape_pos(bytes + i, 1);
+
+			if ( isLegalUTF8Sequence(reinterpret_cast<const unsigned char *>(bytes + i),
+			                         reinterpret_cast<const unsigned char *>(bytes + i + utf_found)) )
+				{
+				i += utf_found - 1;
+				continue;
+				}
+
+			return escape_pos(bytes + i, 1);
+			}
 		}
 
 	return escape_pos(0, 0);
@@ -283,7 +327,7 @@ void ODesc::AddBytes(const void* bytes, unsigned int n)
 
 	while ( s < e )
 		{
-		pair<const char*, size_t> p = FirstEscapeLoc(s, e - s);
+		std::pair<const char*, size_t> p = FirstEscapeLoc(s, e - s);
 
 		if ( p.first )
 			{
@@ -339,10 +383,9 @@ void ODesc::AddBytesRaw(const void* bytes, unsigned int n)
 void ODesc::Grow(unsigned int n)
 	{
 	while ( offset + n + SLOP >= size )
-		{
 		size *= 2;
-		base = safe_realloc(base, size);
-		}
+
+	base = safe_realloc(base, size);
 	}
 
 void ODesc::Clear()

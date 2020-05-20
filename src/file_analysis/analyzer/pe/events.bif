@@ -6,7 +6,7 @@
 ##
 ## h: The parsed DOS header information.
 ##
-## .. bro:see:: pe_dos_code pe_file_header pe_optional_header pe_section_header
+## .. zeek:see:: pe_dos_code pe_file_header pe_optional_header pe_section_header
 event pe_dos_header%(f: fa_file, h: PE::DOSHeader%);
 
 ## A :abbr:`PE (Portable Executable)` file DOS stub was parsed.
@@ -17,7 +17,7 @@ event pe_dos_header%(f: fa_file, h: PE::DOSHeader%);
 ##
 ## code: The DOS stub
 ##
-## .. bro:see:: pe_dos_header pe_file_header pe_optional_header pe_section_header
+## .. zeek:see:: pe_dos_header pe_file_header pe_optional_header pe_section_header
 event pe_dos_code%(f: fa_file, code: string%);
 
 ## A :abbr:`PE (Portable Executable)` file file header was parsed.
@@ -29,7 +29,7 @@ event pe_dos_code%(f: fa_file, code: string%);
 ##
 ## h: The parsed file header information.
 ##
-## .. bro:see:: pe_dos_header pe_dos_code pe_optional_header pe_section_header
+## .. zeek:see:: pe_dos_header pe_dos_code pe_optional_header pe_section_header
 event pe_file_header%(f: fa_file, h: PE::FileHeader%);
 
 ## A :abbr:`PE (Portable Executable)` file optional header was parsed.
@@ -42,7 +42,7 @@ event pe_file_header%(f: fa_file, h: PE::FileHeader%);
 ##
 ## h: The parsed optional header information.
 ##
-## .. bro:see:: pe_dos_header pe_dos_code pe_file_header pe_section_header
+## .. zeek:see:: pe_dos_header pe_dos_code pe_file_header pe_section_header
 event pe_optional_header%(f: fa_file, h: PE::OptionalHeader%);
 
 ## A :abbr:`PE (Portable Executable)` file section header was parsed.
@@ -53,5 +53,5 @@ event pe_optional_header%(f: fa_file, h: PE::OptionalHeader%);
 ##
 ## h: The parsed section header information.
 ##
-## .. bro:see:: pe_dos_header pe_dos_code pe_file_header pe_optional_header
+## .. zeek:see:: pe_dos_header pe_dos_code pe_file_header pe_optional_header
 event pe_section_header%(f: fa_file, h: PE::SectionHeader%);

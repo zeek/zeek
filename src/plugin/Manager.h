@@ -1,15 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef PLUGIN_MANAGER_H
-#define PLUGIN_MANAGER_H
+#pragma once
 
 #include <utility>
 #include <map>
+#include <string_view>
 
 #include "Plugin.h"
 #include "Component.h"
 
 #include "../Reporter.h"
+#include "../ZeekArgs.h"
 
 namespace plugin {
 
@@ -76,7 +77,7 @@ public:
 	/**
 	 * Activates a plugin that SearchDynamicPlugins() has previously discovered.
 	 * Activating a plugin involves loading its dynamic module, making its
-	 * bifs available, and adding its script paths to BROPATH.
+	 * bifs available, and adding its script paths to ZEEKPATH.
 	 *
 	 * @param name The name of the plugin, as found previously by
 	 * SearchPlugin().
@@ -92,7 +93,7 @@ public:
 	 *
 	 * @param all If true, activates all plugins that are found. If false,
 	 * activates only those that should always be activated unconditionally,
-	 * as specified via the BRO_PLUGIN_ACTIVATE enviroment variable. In other
+	 * as specified via the ZEEK_PLUGIN_ACTIVATE enviroment variable. In other
 	 * words, it's \c true in standard mode and \c false in bare mode.
 	 *
 	 * @return True if all plugins have been loaded successfully. If one
@@ -154,7 +155,7 @@ public:
 	 * path. The path can be the plugin directory itself, or any path
 	 * inside it.
 	 */
-	Plugin* LookupPluginByPath(std::string path);
+	Plugin* LookupPluginByPath(std::string_view path);
 
 	/**
 	 * Returns true if there's at least one plugin interested in a given
@@ -167,7 +168,7 @@ public:
 	bool HavePluginForHook(HookType hook) const
 		{
 		// Inline to avoid the function call.
-		return hooks[hook] != 0;
+		return hooks[hook] != nullptr;
 		}
 
 	/**
@@ -237,7 +238,7 @@ public:
 	 * if a plugin took over the file but had trouble loading it; and -1 if
 	 * no plugin was interested in the file at all.
 	 */
-	virtual int HookLoadFile(const Plugin::LoadType type, const string& file, const string& resolved);
+	virtual int HookLoadFile(const Plugin::LoadType type, const std::string& file, const std::string& resolved);
 
 	/**
 	 * Hook that filters calls to a script function/event/hook.
@@ -252,7 +253,7 @@ public:
 	 * functions and events, it may be any Val and must be ignored). If no
 	 * plugin handled the call, the method returns null.
 	 */
-	std::pair<bool, Val*> HookCallFunction(const Func* func, Frame *parent, val_list* args) const;
+	std::pair<bool, Val*> HookCallFunction(const Func* func, Frame* parent, const zeek::Args& args) const;
 
 	/**
 	 * Hook that filters the queuing of an event.
@@ -493,5 +494,3 @@ public:
  * The global plugin manager singleton.
  */
 extern plugin::Manager* plugin_mgr;
-
-#endif

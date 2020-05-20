@@ -1,9 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
-#include "Var.h"
 #include "NetVar.h"
+#include "Var.h"
+#include "EventHandler.h"
+#include "Val.h"
 
 RecordType* conn_id;
 RecordType* endpoint;
@@ -30,7 +32,6 @@ RecordType* mime_match;
 int watchdog_interval;
 
 int max_timer_expires;
-int max_remote_events_processed;
 
 int ignore_checksums;
 int partial_connection_ok;
@@ -74,11 +75,12 @@ bool tcp_content_deliver_all_resp;
 
 TableVal* udp_content_delivery_ports_orig;
 TableVal* udp_content_delivery_ports_resp;
+TableVal* udp_content_ports;
 bool udp_content_deliver_all_orig;
 bool udp_content_deliver_all_resp;
+bool udp_content_delivery_ports_use_resp;
 
 double dns_session_timeout;
-double ntp_session_timeout;
 double rpc_timeout;
 
 ListVal* skip_authentication;
@@ -104,8 +106,6 @@ TableType* pm_mappings;
 RecordType* pm_port_request;
 RecordType* pm_callit_request;
 
-RecordType* ntp_msg;
-
 RecordType* geo_location;
 
 RecordType* entropy_test_result;
@@ -115,6 +115,10 @@ RecordType* dns_answer;
 RecordType* dns_soa;
 RecordType* dns_edns_additional;
 RecordType* dns_tsig_additional;
+RecordType* dns_rrsig_rr;
+RecordType* dns_dnskey_rr;
+RecordType* dns_nsec3_rr;
+RecordType* dns_ds_rr;
 TableVal* dns_skip_auth;
 TableVal* dns_skip_addl;
 int dns_skip_all_auth;
@@ -125,35 +129,11 @@ double stp_delta;
 double stp_idle_min;
 TableVal* stp_skip_src;
 
-double interconn_min_interarrival;
-double interconn_max_interarrival;
-int interconn_max_keystroke_pkt_size;
-int interconn_default_pkt_size;
-double interconn_stat_period;
-double interconn_stat_backoff;
-RecordType* interconn_endp_stats;
-
-double backdoor_stat_period;
-double backdoor_stat_backoff;
-
-RecordType* backdoor_endp_stats;
-
-RecordType* software;
-RecordType* software_version;
-RecordType* OS_version;
-EnumType* OS_version_inference;
-TableVal* generate_OS_version_event;
-
 double table_expire_interval;
 double table_expire_delay;
 int table_incremental_step;
 
-RecordType* packet_type;
-
 double connection_status_update_interval;
-
-StringVal* state_dir;
-double state_write_delay;
 
 int orig_addr_anonymization, resp_addr_anonymization;
 int other_addr_anonymization;
@@ -161,23 +141,10 @@ TableVal* preserve_orig_addr;
 TableVal* preserve_resp_addr;
 TableVal* preserve_other_addr;
 
-int max_files_in_cache;
-double log_rotate_interval;
-double log_max_size;
 RecordType* rotate_info;
-StringVal* log_encryption_key;
 StringVal* log_rotate_base_time;
 
 StringVal* peer_description;
-RecordType* peer;
-int forward_remote_state_changes;
-int forward_remote_events;
-int remote_check_sync_consistency;
-bro_uint_t chunked_io_buffer_soft_cap;
-
-StringVal* ssl_ca_certificate;
-StringVal* ssl_private_key;
-StringVal* ssl_passphrase;
 
 Val* profiling_file;
 double profiling_interval;
@@ -195,24 +162,18 @@ int packet_filter_default;
 
 int sig_max_group_size;
 
-int enable_syslog;
-
 TableType* irc_join_list;
 RecordType* irc_join_info;
-TableVal* irc_servers;
 
 int dpd_reassemble_first_packets;
 int dpd_buffer_size;
 int dpd_match_only_beginning;
+int dpd_late_match_stop;
 int dpd_ignore_ports;
 
 TableVal* likely_server_ports;
 
-double remote_trace_sync_interval;
-int remote_trace_sync_peers;
-
 int check_for_unused_event_handlers;
-int dump_used_event_handlers;
 
 int suppress_local_output;
 
@@ -239,6 +200,7 @@ bro_uint_t bits_per_uid;
 #include "types.bif.netvar_def"
 #include "event.bif.netvar_def"
 #include "reporter.bif.netvar_def"
+#include "supervisor.bif.netvar_def"
 
 void init_event_handlers()
 	{
@@ -251,39 +213,18 @@ void init_general_global_var()
 	table_expire_delay = opt_internal_double("table_expire_delay");
 	table_incremental_step = opt_internal_int("table_incremental_step");
 
-	state_dir = internal_val("state_dir")->AsStringVal();
-	state_write_delay = opt_internal_double("state_write_delay");
-
-	max_files_in_cache = opt_internal_int("max_files_in_cache");
-	log_rotate_interval = opt_internal_double("log_rotate_interval");
-	log_max_size = opt_internal_double("log_max_size");
 	rotate_info = internal_type("rotate_info")->AsRecordType();
-	log_encryption_key = opt_internal_string("log_encryption_key");
 	log_rotate_base_time = opt_internal_string("log_rotate_base_time");
 
 	peer_description =
 		internal_val("peer_description")->AsStringVal();
-	peer = internal_type("event_peer")->AsRecordType();
-	forward_remote_state_changes =
-		opt_internal_int("forward_remote_state_changes");
-	forward_remote_events = opt_internal_int("forward_remote_events");
-	remote_check_sync_consistency =
-		opt_internal_int("remote_check_sync_consistency");
-	chunked_io_buffer_soft_cap = opt_internal_unsigned("chunked_io_buffer_soft_cap");
-
-	ssl_ca_certificate = internal_val("ssl_ca_certificate")->AsStringVal();
-	ssl_private_key = internal_val("ssl_private_key")->AsStringVal();
-	ssl_passphrase = internal_val("ssl_passphrase")->AsStringVal();
 
 	packet_filter_default = opt_internal_int("packet_filter_default");
 
 	sig_max_group_size = opt_internal_int("sig_max_group_size");
-	enable_syslog = opt_internal_int("enable_syslog");
 
 	check_for_unused_event_handlers =
 		opt_internal_int("check_for_unused_event_handlers");
-	dump_used_event_handlers =
-		opt_internal_int("dump_used_event_handlers");
 
 	suppress_local_output = opt_internal_int("suppress_local_output");
 
@@ -304,6 +245,7 @@ void init_net_var()
 #include "const.bif.netvar_init"
 #include "types.bif.netvar_init"
 #include "reporter.bif.netvar_init"
+#include "supervisor.bif.netvar_init"
 
 	conn_id = internal_type("conn_id")->AsRecordType();
 	endpoint = internal_type("endpoint")->AsRecordType();
@@ -379,20 +321,21 @@ void init_net_var()
 		internal_val("udp_content_delivery_ports_orig")->AsTableVal();
 	udp_content_delivery_ports_resp =
 		internal_val("udp_content_delivery_ports_resp")->AsTableVal();
+	udp_content_ports =
+		internal_val("udp_content_ports")->AsTableVal();
 	udp_content_deliver_all_orig =
 		bool(internal_val("udp_content_deliver_all_orig")->AsBool());
 	udp_content_deliver_all_resp =
 		bool(internal_val("udp_content_deliver_all_resp")->AsBool());
+	udp_content_delivery_ports_use_resp =
+		bool(internal_val("udp_content_delivery_ports_use_resp")->AsBool());
 
 	dns_session_timeout = opt_internal_double("dns_session_timeout");
-	ntp_session_timeout = opt_internal_double("ntp_session_timeout");
 	rpc_timeout = opt_internal_double("rpc_timeout");
 
 	watchdog_interval = int(opt_internal_double("watchdog_interval"));
 
 	max_timer_expires = opt_internal_int("max_timer_expires");
-	max_remote_events_processed =
-		opt_internal_int("max_remote_events_processed");
 
 	skip_authentication = internal_list_val("skip_authentication");
 	direct_login_prompts = internal_list_val("direct_login_prompts");
@@ -417,8 +360,6 @@ void init_net_var()
 	pm_port_request = internal_type("pm_port_request")->AsRecordType();
 	pm_callit_request = internal_type("pm_callit_request")->AsRecordType();
 
-	ntp_msg = internal_type("ntp_msg")->AsRecordType();
-
 	geo_location = internal_type("geo_location")->AsRecordType();
 
 	entropy_test_result = internal_type("entropy_test_result")->AsRecordType();
@@ -430,7 +371,10 @@ void init_net_var()
 		internal_type("dns_edns_additional")->AsRecordType();
 	dns_tsig_additional =
 		internal_type("dns_tsig_additional")->AsRecordType();
-
+	dns_rrsig_rr = internal_type("dns_rrsig_rr")->AsRecordType();
+	dns_dnskey_rr = internal_type("dns_dnskey_rr")->AsRecordType();
+	dns_nsec3_rr = internal_type("dns_nsec3_rr")->AsRecordType();
+	dns_ds_rr = internal_type("dns_ds_rr")->AsRecordType();
 	dns_skip_auth = internal_val("dns_skip_auth")->AsTableVal();
 	dns_skip_addl = internal_val("dns_skip_addl")->AsTableVal();
 	dns_skip_all_auth = opt_internal_int("dns_skip_all_auth");
@@ -440,27 +384,6 @@ void init_net_var()
 	stp_delta = opt_internal_double("stp_delta");
 	stp_idle_min = opt_internal_double("stp_idle_min");
 	stp_skip_src = internal_val("stp_skip_src")->AsTableVal();
-
-	interconn_min_interarrival = opt_internal_double("interconn_min_interarrival");
-	interconn_max_interarrival = opt_internal_double("interconn_max_interarrival");
-	interconn_max_keystroke_pkt_size = opt_internal_int("interconn_max_keystroke_pkt_size");
-	interconn_default_pkt_size = opt_internal_int("interconn_default_pkt_size");
-	interconn_stat_period = opt_internal_double("interconn_stat_period");
-	interconn_stat_backoff = opt_internal_double("interconn_stat_backoff");
-	interconn_endp_stats = internal_type("interconn_endp_stats")->AsRecordType();
-
-	backdoor_stat_period = opt_internal_double("backdoor_stat_period");
-	backdoor_stat_backoff = opt_internal_double("backdoor_stat_backoff");
-	backdoor_endp_stats = internal_type("backdoor_endp_stats")->AsRecordType();
-
-	software = internal_type("software")->AsRecordType();
-	software_version = internal_type("software_version")->AsRecordType();
-	OS_version = internal_type("OS_version")->AsRecordType();
-	OS_version_inference = internal_type("OS_version_inference")->AsEnumType();
-	generate_OS_version_event =
-		opt_internal_table("generate_OS_version_event");
-
-	packet_type = internal_type("packet")->AsRecordType();
 
 	orig_addr_anonymization = opt_internal_int("orig_addr_anonymization");
 	resp_addr_anonymization = opt_internal_int("resp_addr_anonymization");
@@ -489,16 +412,12 @@ void init_net_var()
 
 	irc_join_info = internal_type("irc_join_info")->AsRecordType();
 	irc_join_list = internal_type("irc_join_list")->AsTableType();
-	irc_servers = internal_val("irc_servers")->AsTableVal();
-
-	remote_trace_sync_interval =
-		opt_internal_double("remote_trace_sync_interval");
-	remote_trace_sync_peers = opt_internal_int("remote_trace_sync_peers");
 
 	dpd_reassemble_first_packets =
 		opt_internal_int("dpd_reassemble_first_packets");
 	dpd_buffer_size = opt_internal_int("dpd_buffer_size");
 	dpd_match_only_beginning = opt_internal_int("dpd_match_only_beginning");
+	dpd_late_match_stop = opt_internal_int("dpd_late_match_stop");
 	dpd_ignore_ports = opt_internal_int("dpd_ignore_ports");
 
 	likely_server_ports = internal_val("likely_server_ports")->AsTableVal();

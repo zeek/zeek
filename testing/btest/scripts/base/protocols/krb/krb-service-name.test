@@ -1,0 +1,3 @@
+# @TEST-EXEC: zeek -r $TRACES/krb/optional-service-name.pcap
+# @TEST-EXEC: btest-diff conn.log
+# @TEST-EXEC: btest-diff kerberos.log

@@ -5,16 +5,16 @@
 #include "Config.h"
 
 namespace plugin {
-namespace Bro_ConfigReader {
+namespace Zeek_ConfigReader {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::input::Component("Config", ::input::reader::Config::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::ConfigReader";
+		config.name = "Zeek::ConfigReader";
 		config.description = "Configuration file input reader";
 		return config;
 		}

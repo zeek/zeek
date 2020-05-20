@@ -1,9 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef INPUT_READERS_SQLITE_H
-#define INPUT_READERS_SQLITE_H
+#pragma once
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include <iostream>
 #include <vector>
@@ -36,19 +35,16 @@ private:
 	unsigned int num_fields;
 	int mode;
 	bool started;
-	string query;
+	std::string query;
 	sqlite3 *db;
 	sqlite3_stmt *st;
 	threading::formatter::Ascii* io;
 
-	string set_separator;
-	string unset_field;
-	string empty_field;
+	std::string set_separator;
+	std::string unset_field;
+	std::string empty_field;
 };
 
 
 }
 }
-
-#endif /* INPUT_READERS_SQLITE_H */
-

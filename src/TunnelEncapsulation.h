@@ -1,13 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef TUNNELS_H
-#define TUNNELS_H
+#pragma once
 
-#include "bro-config.h"
+#include "zeek-config.h"
 #include "NetVar.h"
 #include "IPAddr.h"
-#include "Val.h"
+#include "Var.h" // for internal_type()
 #include "UID.h"
+
 #include <vector>
 
 class Connection;
@@ -94,6 +94,14 @@ public:
 			  ((ec1.src_addr == ec2.src_addr && ec1.dst_addr == ec2.dst_addr) ||
 			   (ec1.src_addr == ec2.dst_addr && ec1.dst_addr == ec2.src_addr));
 
+		if ( ec1.type == BifEnum::Tunnel::VXLAN )
+			// Reversing endpoints is still same tunnel, destination port is
+			// always the same.
+			return ec1.dst_port == ec2.dst_port &&
+			       ec1.uid == ec2.uid && ec1.proto == ec2.proto &&
+			  ((ec1.src_addr == ec2.src_addr && ec1.dst_addr == ec2.dst_addr) ||
+			   (ec1.src_addr == ec2.dst_addr && ec1.dst_addr == ec2.src_addr));
+
 		return ec1.src_addr == ec2.src_addr && ec1.dst_addr == ec2.dst_addr &&
 		       ec1.src_port == ec2.src_port && ec1.dst_port == ec2.dst_port &&
 		       ec1.uid == ec2.uid && ec1.proto == ec2.proto;
@@ -108,8 +116,8 @@ public:
 protected:
 	IPAddr src_addr;
 	IPAddr dst_addr;
-	uint16 src_port;
-	uint16 dst_port;
+	uint16_t src_port;
+	uint16_t dst_port;
 	TransportProto proto;
 	BifEnum::Tunnel::Type type;
 	Bro::UID uid;
@@ -120,15 +128,15 @@ protected:
  */
 class EncapsulationStack {
 public:
-	EncapsulationStack() : conns(0)
+	EncapsulationStack() : conns(nullptr)
 		{}
 
 	EncapsulationStack(const EncapsulationStack& other)
 		{
 		if ( other.conns )
-			conns = new vector<EncapsulatingConn>(*(other.conns));
+			conns = new std::vector<EncapsulatingConn>(*(other.conns));
 		else
-			conns = 0;
+			conns = nullptr;
 		}
 
 	EncapsulationStack& operator=(const EncapsulationStack& other)
@@ -139,9 +147,9 @@ public:
 		delete conns;
 
 		if ( other.conns )
-			conns = new vector<EncapsulatingConn>(*(other.conns));
+			conns = new std::vector<EncapsulatingConn>(*(other.conns));
 		else
-			conns = 0;
+			conns = nullptr;
 
 		return *this;
 		}
@@ -156,7 +164,7 @@ public:
 	void Add(const EncapsulatingConn& c)
 		{
 		if ( ! conns )
-			conns = new vector<EncapsulatingConn>();
+			conns = new std::vector<EncapsulatingConn>();
 
 		conns->push_back(c);
 		}
@@ -206,7 +214,5 @@ public:
 		}
 
 protected:
-	vector<EncapsulatingConn>* conns;
+	std::vector<EncapsulatingConn>* conns;
 };
-
-#endif

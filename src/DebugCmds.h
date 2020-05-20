@@ -1,19 +1,14 @@
 // Support routines to help deal with Bro debugging commands and
 // implementation of most commands.
 
-#ifndef debug_cmds_h
-#define debug_cmds_h
+#pragma once
 
 #include <stdlib.h>
 #include <string>
 #include <vector>
-using namespace std;
 
 #include "Queue.h"
 #include "DebugCmdConstants.h"
-
-class DebugCmdInfo;
-declare(PQueue,DebugCmdInfo);
 
 class DebugCmdInfo {
 public:
@@ -23,11 +18,11 @@ public:
 			bool resume_execution, const char* const helpstring,
 			bool repeatable);
 
-	DebugCmdInfo() : helpstring(0) {}
+	DebugCmdInfo() : helpstring(nullptr) {}
 
 	int Cmd() const		{ return cmd; }
 	int NumNames() const	{ return num_names; }
-	const vector<const char *>& Names() const	{ return names; }
+	const std::vector<const char *>& Names() const	{ return names; }
 	bool ResumeExecution() const	{ return resume_execution; }
 	const char* Helpstring() const	{ return helpstring; }
 	bool Repeatable() const	{ return repeatable; }
@@ -35,19 +30,18 @@ public:
 protected:
 	DebugCmd cmd;
 
-	int num_names;
-	vector<const char*> names;
+	int32_t num_names;
+	std::vector<const char*> names;
+	const char* const helpstring;
 
 	// Whether executing this should restart execution of the script.
 	bool resume_execution;
-
-	const char* const helpstring;
 
 	// Does entering a blank line repeat this command?
 	bool repeatable;
 };
 
-extern PQueue(DebugCmdInfo) g_DebugCmdInfos;
+extern PQueue<DebugCmdInfo> g_DebugCmdInfos;
 
 void init_global_dbg_constants ();
 
@@ -61,14 +55,14 @@ const DebugCmdInfo* get_debug_cmd_info(DebugCmd cmd);
 // on whether or not the prefix supplied matches a name (DebugCmdString)
 // of the corresponding DebugCmd. The size of the array should be at
 // least NUM_DEBUG_CMDS. The total number of matches is returned.
-int find_all_matching_cmds(const string& prefix, const char* array_of_matches[]);
+int find_all_matching_cmds(const std::string& prefix, const char* array_of_matches[]);
 
 // Implementation of debugging commands.
 //
 // These functions return <= 0 if failure, > 0 for success.
 // More particular return values are command-specific: see comments w/function.
 
-typedef int DbgCmdFn(DebugCmd cmd, const vector<string>& args);
+typedef int DbgCmdFn(DebugCmd cmd, const std::vector<std::string>& args);
 
 DbgCmdFn dbg_cmd_backtrace;
 DbgCmdFn dbg_cmd_frame;
@@ -80,5 +74,3 @@ DbgCmdFn dbg_cmd_print;
 DbgCmdFn dbg_cmd_info;
 DbgCmdFn dbg_cmd_list;
 DbgCmdFn dbg_cmd_trace;
-
-#endif

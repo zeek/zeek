@@ -1,5 +1,5 @@
 
-PUBLIC_REPO=git://git.bro.org/bro-testing
+PUBLIC_REPO=https://github.com/zeek/zeek-testing
 REPOS=`./scripts/find-git-repos `
 
 DIAG=diag.log

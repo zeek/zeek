@@ -1,8 +1,8 @@
 
 refine flow DHCP_Flow += {
 	%member{
-		RecordVal* options;
-		VectorVal* all_options;
+		IntrusivePtr<RecordVal> options;
+		IntrusivePtr<VectorVal> all_options;
 	%}
 
 	%init{
@@ -11,10 +11,7 @@ refine flow DHCP_Flow += {
 	%}
 
 	%cleanup{
-		Unref(options);
 		options = nullptr;
-
-		Unref(all_options);
 		all_options = nullptr;
 	%}
 
@@ -22,9 +19,9 @@ refine flow DHCP_Flow += {
 		%{
 		if ( ! options )
 			{
-			options = new RecordVal(BifType::Record::DHCP::Options);
-			all_options = new VectorVal(index_vec);
-			options->Assign(0, all_options->Ref());
+			options = make_intrusive<RecordVal>(BifType::Record::DHCP::Options);
+			all_options = make_intrusive<VectorVal>(index_vec);
+			options->Assign(0, all_options);
 			}
 
 		return true;
@@ -35,8 +32,7 @@ refine flow DHCP_Flow += {
 		init_options();
 
 		if ( code != 255 )
-			all_options->Assign(all_options->Size(),
-			                    new Val(code, TYPE_COUNT));
+			all_options->Assign(all_options->Size(), val_mgr->Count(code));
 
 		return true;
 		%}
@@ -57,17 +53,17 @@ refine flow DHCP_Flow += {
 			std::string mac_str = fmt_mac(${msg.chaddr}.data(), ${msg.chaddr}.length());
 			double secs = static_cast<double>(${msg.secs});
 
-			auto dhcp_msg_val = new RecordVal(BifType::Record::DHCP::Msg);
-			dhcp_msg_val->Assign(0, new Val(${msg.op}, TYPE_COUNT));
-			dhcp_msg_val->Assign(1, new Val(${msg.type}, TYPE_COUNT));
-			dhcp_msg_val->Assign(2, new Val(${msg.xid}, TYPE_COUNT));
-			dhcp_msg_val->Assign(3, new Val(secs, TYPE_INTERVAL));
-			dhcp_msg_val->Assign(4, new Val(${msg.flags}, TYPE_COUNT));
-			dhcp_msg_val->Assign(5, new AddrVal(htonl(${msg.ciaddr})));
-			dhcp_msg_val->Assign(6, new AddrVal(htonl(${msg.yiaddr})));
-			dhcp_msg_val->Assign(7, new AddrVal(htonl(${msg.siaddr})));
-			dhcp_msg_val->Assign(8, new AddrVal(htonl(${msg.giaddr})));
-			dhcp_msg_val->Assign(9, new StringVal(mac_str));
+			auto dhcp_msg_val = make_intrusive<RecordVal>(BifType::Record::DHCP::Msg);
+			dhcp_msg_val->Assign(0, val_mgr->Count(${msg.op}));
+			dhcp_msg_val->Assign(1, val_mgr->Count(${msg.type}));
+			dhcp_msg_val->Assign(2, val_mgr->Count(${msg.xid}));
+			dhcp_msg_val->Assign(3, make_intrusive<Val>(secs, TYPE_INTERVAL));
+			dhcp_msg_val->Assign(4, val_mgr->Count(${msg.flags}));
+			dhcp_msg_val->Assign(5, make_intrusive<AddrVal>(htonl(${msg.ciaddr})));
+			dhcp_msg_val->Assign(6, make_intrusive<AddrVal>(htonl(${msg.yiaddr})));
+			dhcp_msg_val->Assign(7, make_intrusive<AddrVal>(htonl(${msg.siaddr})));
+			dhcp_msg_val->Assign(8, make_intrusive<AddrVal>(htonl(${msg.giaddr})));
+			dhcp_msg_val->Assign(9, make_intrusive<StringVal>(mac_str));
 
 			int last_non_null = 0;
 
@@ -78,8 +74,8 @@ refine flow DHCP_Flow += {
 				}
 
 			if ( last_non_null > 0 )
-				dhcp_msg_val->Assign(10, new StringVal(last_non_null + 1,
-				                                       reinterpret_cast<const char*>(${msg.sname}.begin())));
+				dhcp_msg_val->Assign(10, make_intrusive<StringVal>(last_non_null + 1,
+				                                                   reinterpret_cast<const char*>(${msg.sname}.begin())));
 
 			last_non_null = 0;
 
@@ -90,19 +86,18 @@ refine flow DHCP_Flow += {
 				}
 
 			if ( last_non_null > 0 )
-				dhcp_msg_val->Assign(11, new StringVal(last_non_null + 1,
-				                                       reinterpret_cast<const char*>(${msg.file_n}.begin())));
+				dhcp_msg_val->Assign(11, make_intrusive<StringVal>(last_non_null + 1,
+				                                                   reinterpret_cast<const char*>(${msg.file_n}.begin())));
 
 			init_options();
 
-			BifEvent::generate_dhcp_message(connection()->bro_analyzer(),
-			                                connection()->bro_analyzer()->Conn(),
-			                                ${msg.is_orig},
-			                                dhcp_msg_val,
-			                                options);
+			BifEvent::enqueue_dhcp_message(connection()->bro_analyzer(),
+			                               connection()->bro_analyzer()->Conn(),
+			                               ${msg.is_orig},
+			                               std::move(dhcp_msg_val),
+			                               std::move(options));
 
 			options = nullptr;
-			Unref(all_options);
 			all_options = nullptr;
 			}
 

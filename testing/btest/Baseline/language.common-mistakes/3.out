@@ -1,0 +1,2 @@
+expression error in ./3.zeek, line 5: type-checking failed in vector append (v += ok)
+in foo

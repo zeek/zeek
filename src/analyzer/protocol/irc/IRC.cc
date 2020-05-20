@@ -10,6 +10,7 @@
 #include "events.bif.h"
 
 using namespace analyzer::irc;
+using namespace std;
 
 IRC_Analyzer::IRC_Analyzer(Connection* conn)
 : tcp::TCP_ApplicationAnalyzer("IRC", conn)
@@ -34,7 +35,7 @@ void IRC_Analyzer::Done()
 
 inline void IRC_Analyzer::SkipLeadingWhitespace(string& str)
 	{
-	const auto first_char = str.find_first_not_of(" ");
+	const auto first_char = str.find_first_not_of(' ');
 	if ( first_char == string::npos )
 		str = "";
 	else
@@ -233,14 +234,13 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				// else ###
 				}
 
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(new Val(orig, TYPE_BOOL));
-			vl->append(new Val(users, TYPE_INT));
-			vl->append(new Val(services, TYPE_INT));
-			vl->append(new Val(servers, TYPE_INT));
-
-			ConnectionEvent(irc_network_info, vl);
+			EnqueueConnEvent(irc_network_info,
+				ConnVal(),
+				val_mgr->Bool(orig),
+				val_mgr->Int(users),
+				val_mgr->Int(services),
+				val_mgr->Int(servers)
+			);
 			}
 			break;
 
@@ -271,24 +271,23 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			if ( parts.size() > 0 && parts[0][0] == ':' )
 				parts[0] = parts[0].substr(1);
 
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(new Val(orig, TYPE_BOOL));
-			vl->append(new StringVal(type.c_str()));
-			vl->append(new StringVal(channel.c_str()));
+			auto set = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, string_set});
 
-			TableVal* set = new TableVal(string_set);
 			for ( unsigned int i = 0; i < parts.size(); ++i )
 				{
 				if ( parts[i][0] == '@' )
 					parts[i] = parts[i].substr(1);
-				Val* idx = new StringVal(parts[i].c_str());
-				set->Assign(idx, 0);
-				Unref(idx);
+				auto idx = make_intrusive<StringVal>(parts[i].c_str());
+				set->Assign(idx.get(), nullptr);
 				}
-			vl->append(set);
 
-			ConnectionEvent(irc_names_info, vl);
+			EnqueueConnEvent(irc_names_info,
+				ConnVal(),
+				val_mgr->Bool(orig),
+				make_intrusive<StringVal>(type.c_str()),
+				make_intrusive<StringVal>(channel.c_str()),
+				std::move(set)
+			);
 			}
 			break;
 
@@ -316,14 +315,13 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				// else ###
 				}
 
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(new Val(orig, TYPE_BOOL));
-			vl->append(new Val(users, TYPE_INT));
-			vl->append(new Val(services, TYPE_INT));
-			vl->append(new Val(servers, TYPE_INT));
-
-			ConnectionEvent(irc_server_info, vl);
+			EnqueueConnEvent(irc_server_info,
+				ConnVal(),
+				val_mgr->Bool(orig),
+				val_mgr->Int(users),
+				val_mgr->Int(services),
+				val_mgr->Int(servers)
+			);
 			}
 			break;
 
@@ -339,12 +337,11 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				if ( parts[i] == ":channels" )
 					channels = atoi(parts[i - 1].c_str());
 
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(new Val(orig, TYPE_BOOL));
-			vl->append(new Val(channels, TYPE_INT));
-
-			ConnectionEvent(irc_channel_info, vl);
+			EnqueueConnEvent(irc_channel_info,
+				ConnVal(),
+				val_mgr->Bool(orig),
+				val_mgr->Int(channels)
+			);
 			}
 			break;
 
@@ -372,12 +369,12 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				break;
 				}
 
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(new Val(orig, TYPE_BOOL));
-			vl->append(new StringVal(eop - prefix, prefix));
-			vl->append(new StringVal(++msg));
-			ConnectionEvent(irc_global_users, vl);
+			EnqueueConnEvent(irc_global_users,
+				ConnVal(),
+				val_mgr->Bool(orig),
+				make_intrusive<StringVal>(eop - prefix, prefix),
+				make_intrusive<StringVal>(++msg)
+			);
 			break;
 			}
 
@@ -397,12 +394,13 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				return;
 				}
 
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(new Val(orig, TYPE_BOOL));
-			vl->append(new StringVal(parts[0].c_str()));
-			vl->append(new StringVal(parts[1].c_str()));
-			vl->append(new StringVal(parts[2].c_str()));
+			zeek::Args vl;
+			vl.reserve(6);
+			vl.emplace_back(ConnVal());
+			vl.emplace_back(val_mgr->Bool(orig));
+			vl.emplace_back(make_intrusive<StringVal>(parts[0].c_str()));
+			vl.emplace_back(make_intrusive<StringVal>(parts[1].c_str()));
+			vl.emplace_back(make_intrusive<StringVal>(parts[2].c_str()));
 
 			parts.erase(parts.begin(), parts.begin() + 4);
 
@@ -413,9 +411,9 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			if ( real_name[0] == ':' )
 				real_name = real_name.substr(1);
 
-			vl->append(new StringVal(real_name.c_str()));
+			vl.emplace_back(make_intrusive<StringVal>(real_name.c_str()));
 
-			ConnectionEvent(irc_whois_user_line, vl);
+			EnqueueConnEvent(irc_whois_user_line, std::move(vl));
 			}
 			break;
 
@@ -436,12 +434,11 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				return;
 				}
 
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(new Val(orig, TYPE_BOOL));
-			vl->append(new StringVal(parts[0].c_str()));
-
-			ConnectionEvent(irc_whois_operator_line, vl);
+			EnqueueConnEvent(irc_whois_operator_line,
+				ConnVal(),
+				val_mgr->Bool(orig),
+				make_intrusive<StringVal>(parts[0].c_str())
+			);
 			}
 			break;
 
@@ -467,21 +464,20 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			if ( parts.size() > 0 && parts[0][0] == ':' )
 				parts[0] = parts[0].substr(1);
 
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(new Val(orig, TYPE_BOOL));
-			vl->append(new StringVal(nick.c_str()));
-			TableVal* set = new TableVal(string_set);
+			auto set = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, string_set});
+
 			for ( unsigned int i = 0; i < parts.size(); ++i )
 				{
-				Val* idx = new StringVal(parts[i].c_str());
-				set->Assign(idx, 0);
-				Unref(idx);
+				auto idx = make_intrusive<StringVal>(parts[i].c_str());
+				set->Assign(idx.get(), nullptr);
 				}
 
-			vl->append(set);
-
-			ConnectionEvent(irc_whois_channel_line, vl);
+			EnqueueConnEvent(irc_whois_channel_line,
+				ConnVal(),
+				val_mgr->Bool(orig),
+				make_intrusive<StringVal>(nick.c_str()),
+				std::move(set)
+			);
 			}
 			break;
 
@@ -502,19 +498,17 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			if ( pos < params.size() )
 				{
 				string topic = params.substr(pos + 1);
-				val_list* vl = new val_list;
-
-				vl->append(BuildConnVal());
-				vl->append(new Val(orig, TYPE_BOOL));
-				vl->append(new StringVal(parts[1].c_str()));
-
 				const char* t = topic.c_str();
+
 				if ( *t == ':' )
 					++t;
 
-				vl->append(new StringVal(t));
-
-				ConnectionEvent(irc_channel_topic, vl);
+				EnqueueConnEvent(irc_channel_topic,
+					ConnVal(),
+					val_mgr->Bool(orig),
+					make_intrusive<StringVal>(parts[1].c_str()),
+					make_intrusive<StringVal>(t)
+				);
 				}
 			else
 				{
@@ -537,24 +531,25 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				return;
 				}
 
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(new Val(orig, TYPE_BOOL));
-			vl->append(new StringVal(parts[0].c_str()));
-			vl->append(new StringVal(parts[1].c_str()));
 			if ( parts[2][0] == '~' )
 				parts[2] = parts[2].substr(1);
-			vl->append(new StringVal(parts[2].c_str()));
-			vl->append(new StringVal(parts[3].c_str()));
-			vl->append(new StringVal(parts[4].c_str()));
-			vl->append(new StringVal(parts[5].c_str()));
-			vl->append(new StringVal(parts[6].c_str()));
+
 			if ( parts[7][0] == ':' )
 				parts[7] = parts[7].substr(1);
-			vl->append(new Val(atoi(parts[7].c_str()), TYPE_INT));
-			vl->append(new StringVal(parts[8].c_str()));
 
-			ConnectionEvent(irc_who_line, vl);
+			EnqueueConnEvent(irc_who_line,
+				ConnVal(),
+				val_mgr->Bool(orig),
+				make_intrusive<StringVal>(parts[0].c_str()),
+				make_intrusive<StringVal>(parts[1].c_str()),
+				make_intrusive<StringVal>(parts[2].c_str()),
+				make_intrusive<StringVal>(parts[3].c_str()),
+				make_intrusive<StringVal>(parts[4].c_str()),
+				make_intrusive<StringVal>(parts[5].c_str()),
+				make_intrusive<StringVal>(parts[6].c_str()),
+				val_mgr->Int(atoi(parts[7].c_str())),
+				make_intrusive<StringVal>(parts[8].c_str())
+			);
 			}
 			break;
 
@@ -564,25 +559,21 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		case 433:
 		case 436:
 			if ( irc_invalid_nick )
-				{
-				val_list* vl = new val_list;
-				vl->append(BuildConnVal());
-				vl->append(new Val(orig, TYPE_BOOL));
-				ConnectionEvent(irc_invalid_nick, vl);
-				}
+				EnqueueConnEvent(irc_invalid_nick,
+					ConnVal(),
+					val_mgr->Bool(orig)
+				);
 			break;
 
 		// Operator responses.
 		case 381:  // User is operator
 		case 491:  // user is not operator
 			if ( irc_oper_response )
-				{
-				val_list* vl = new val_list;
-				vl->append(BuildConnVal());
-				vl->append(new Val(orig, TYPE_BOOL));
-				vl->append(new Val(code == 381, TYPE_BOOL));
-				ConnectionEvent(irc_oper_response, vl);
-				}
+				EnqueueConnEvent(irc_oper_response,
+					ConnVal(),
+					val_mgr->Bool(orig),
+					val_mgr->Bool(code == 381)
+				);
 			break;
 
 		case 670:
@@ -592,14 +583,14 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		// All other server replies.
 		default:
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(new Val(orig, TYPE_BOOL));
-			vl->append(new StringVal(prefix.c_str()));
-			vl->append(new Val(code, TYPE_COUNT));
-			vl->append(new StringVal(params.c_str()));
-
-			ConnectionEvent(irc_reply, vl);
+			if ( irc_reply )
+				EnqueueConnEvent(irc_reply,
+					ConnVal(),
+					val_mgr->Bool(orig),
+					make_intrusive<StringVal>(prefix.c_str()),
+					val_mgr->Count(code),
+					make_intrusive<StringVal>(params.c_str())
+				);
 			break;
 		}
 		return;
@@ -655,41 +646,38 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				}
 
 			// Calculate IP address.
-			uint32 raw_ip = 0;
+			uint32_t raw_ip = 0;
 			for ( unsigned int i = 0; i < parts[3].size(); ++i )
 				{
 				string s = parts[3].substr(i, 1);
 				raw_ip = (10 * raw_ip) + atoi(s.c_str());
 				}
 
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(new Val(orig, TYPE_BOOL));
-			vl->append(new StringVal(prefix.c_str()));
-			vl->append(new StringVal(target.c_str()));
-			vl->append(new StringVal(parts[1].c_str()));
-			vl->append(new StringVal(parts[2].c_str()));
-			vl->append(new AddrVal(htonl(raw_ip)));
-			vl->append(new Val(atoi(parts[4].c_str()), TYPE_COUNT));
-			if ( parts.size() >= 6 )
-				vl->append(new Val(atoi(parts[5].c_str()),
-							TYPE_COUNT));
-			else
-				vl->append(new Val(0, TYPE_COUNT));
 
-			ConnectionEvent(irc_dcc_message, vl);
+			if ( irc_dcc_message )
+				EnqueueConnEvent(irc_dcc_message,
+					ConnVal(),
+					val_mgr->Bool(orig),
+					make_intrusive<StringVal>(prefix.c_str()),
+					make_intrusive<StringVal>(target.c_str()),
+					make_intrusive<StringVal>(parts[1].c_str()),
+					make_intrusive<StringVal>(parts[2].c_str()),
+					make_intrusive<AddrVal>(htonl(raw_ip)),
+					val_mgr->Count(atoi(parts[4].c_str())),
+					parts.size() >= 6 ? val_mgr->Count(atoi(parts[5].c_str())) : val_mgr->Count(0)
+				);
 			}
 
 		else
 			{
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(new Val(orig, TYPE_BOOL));
-			vl->append(new StringVal(prefix.c_str()));
-			vl->append(new StringVal(target.c_str()));
-			vl->append(new StringVal(message.c_str()));
-
-			ConnectionEvent(irc_privmsg_message, vl);
+			if ( irc_privmsg_message )
+				EnqueueConnEvent(irc_privmsg_message,
+					ConnVal(),
+					val_mgr->Bool(orig),
+					make_intrusive<StringVal>(prefix.c_str()),
+					make_intrusive<StringVal>(target.c_str()),
+					make_intrusive<StringVal>(message.c_str())
+				);
 			}
 		}
 
@@ -708,14 +696,13 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		if ( message[0] == ':' )
 			message = message.substr(1);
 
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(new Val(orig, TYPE_BOOL));
-		vl->append(new StringVal(prefix.c_str()));
-		vl->append(new StringVal(target.c_str()));
-		vl->append(new StringVal(message.c_str()));
-
-		ConnectionEvent(irc_notice_message, vl);
+		EnqueueConnEvent(irc_notice_message,
+			ConnVal(),
+			val_mgr->Bool(orig),
+			make_intrusive<StringVal>(prefix.c_str()),
+			make_intrusive<StringVal>(target.c_str()),
+			make_intrusive<StringVal>(message.c_str())
+		);
 		}
 
 	else if ( irc_squery_message && command == "SQUERY" )
@@ -733,35 +720,35 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		if ( message[0] == ':' )
 			message = message.substr(1);
 
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(new Val(orig, TYPE_BOOL));
-		vl->append(new StringVal(prefix.c_str()));
-		vl->append(new StringVal(target.c_str()));
-		vl->append(new StringVal(message.c_str()));
-
-		ConnectionEvent(irc_squery_message, vl);
+		EnqueueConnEvent(irc_squery_message,
+			ConnVal(),
+			val_mgr->Bool(orig),
+			make_intrusive<StringVal>(prefix.c_str()),
+			make_intrusive<StringVal>(target.c_str()),
+			make_intrusive<StringVal>(message.c_str())
+		);
 		}
 
 	else if ( irc_user_message && command == "USER" )
 		{
 		// extract username and real name
 		vector<string> parts = SplitWords(params, ' ');
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(new Val(orig, TYPE_BOOL));
+		zeek::Args vl;
+		vl.reserve(6);
+		vl.emplace_back(ConnVal());
+		vl.emplace_back(val_mgr->Bool(orig));
 
 		if ( parts.size() > 0 )
-			vl->append(new StringVal(parts[0].c_str()));
-		else vl->append(new StringVal(""));
+			vl.emplace_back(make_intrusive<StringVal>(parts[0].c_str()));
+		else vl.emplace_back(val_mgr->EmptyString());
 
 		if ( parts.size() > 1 )
-			vl->append(new StringVal(parts[1].c_str()));
-		else vl->append(new StringVal(""));
+			vl.emplace_back(make_intrusive<StringVal>(parts[1].c_str()));
+		else vl.emplace_back(val_mgr->EmptyString());
 
 		if ( parts.size() > 2 )
-			vl->append(new StringVal(parts[2].c_str()));
-		else vl->append(new StringVal(""));
+			vl.emplace_back(make_intrusive<StringVal>(parts[2].c_str()));
+		else vl.emplace_back(val_mgr->EmptyString());
 
 		string realname;
 		for ( unsigned int i = 3; i < parts.size(); i++ )
@@ -772,9 +759,9 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			}
 
 		const char* name = realname.c_str();
-		vl->append(new StringVal(*name == ':' ? name + 1 : name));
+		vl.emplace_back(make_intrusive<StringVal>(*name == ':' ? name + 1 : name));
 
-		ConnectionEvent(irc_user_message, vl);
+		EnqueueConnEvent(irc_user_message, std::move(vl));
 		}
 
 	else if ( irc_oper_message && command == "OPER" )
@@ -782,15 +769,12 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		// extract username and password
 		vector<string> parts = SplitWords(params, ' ');
 		if ( parts.size() == 2 )
-			{
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(new Val(orig, TYPE_BOOL));
-			vl->append(new StringVal(parts[0].c_str()));
-			vl->append(new StringVal(parts[1].c_str()));
-
-			ConnectionEvent(irc_oper_message, vl);
-			}
+			EnqueueConnEvent(irc_oper_message,
+				ConnVal(),
+				val_mgr->Bool(orig),
+				make_intrusive<StringVal>(parts[0].c_str()),
+				make_intrusive<StringVal>(parts[1].c_str())
+			);
 
 		else
 			Weird("irc_invalid_oper_message_format");
@@ -806,12 +790,14 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			return;
 			}
 
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(new Val(orig, TYPE_BOOL));
-		vl->append(new StringVal(prefix.c_str()));
-		vl->append(new StringVal(parts[0].c_str()));
-		vl->append(new StringVal(parts[1].c_str()));
+		zeek::Args vl;
+		vl.reserve(6);
+		vl.emplace_back(ConnVal());
+		vl.emplace_back(val_mgr->Bool(orig));
+		vl.emplace_back(make_intrusive<StringVal>(prefix.c_str()));
+		vl.emplace_back(make_intrusive<StringVal>(parts[0].c_str()));
+		vl.emplace_back(make_intrusive<StringVal>(parts[1].c_str()));
+
 		if ( parts.size() > 2 )
 			{
 			string comment = parts[2];
@@ -821,12 +807,12 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			if ( comment[0] == ':' )
 				comment = comment.substr(1);
 
-			vl->append(new StringVal(comment.c_str()));
+			vl.emplace_back(make_intrusive<StringVal>(comment.c_str()));
 			}
 		else
-			vl->append(new StringVal(""));
+			vl.emplace_back(val_mgr->EmptyString());
 
-		ConnectionEvent(irc_kick_message, vl);
+		EnqueueConnEvent(irc_kick_message, std::move(vl));
 		}
 
 	else if ( irc_join_message && command == "JOIN" )
@@ -850,11 +836,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				nickname = prefix.substr(0, pos);
 			}
 
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(new Val(orig, TYPE_BOOL));
+		auto list = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, irc_join_list});
 
-		TableVal* list = new TableVal(irc_join_list);
 		vector<string> channels = SplitWords(parts[0], ',');
 		vector<string> passwords;
 
@@ -865,21 +848,23 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		for ( unsigned int i = 0; i < channels.size(); ++i )
 			{
 			RecordVal* info = new RecordVal(irc_join_info);
-			info->Assign(0, new StringVal(nickname.c_str()));
-			info->Assign(1, new StringVal(channels[i].c_str()));
+			info->Assign(0, make_intrusive<StringVal>(nickname.c_str()));
+			info->Assign(1, make_intrusive<StringVal>(channels[i].c_str()));
 			if ( i < passwords.size() )
-				info->Assign(2, new StringVal(passwords[i].c_str()));
+				info->Assign(2, make_intrusive<StringVal>(passwords[i].c_str()));
 			else
-				info->Assign(2, new StringVal(empty_string.c_str()));
+				info->Assign(2, make_intrusive<StringVal>(empty_string.c_str()));
 			// User mode.
-			info->Assign(3, new StringVal(empty_string.c_str()));
-			list->Assign(info, 0);
+			info->Assign(3, make_intrusive<StringVal>(empty_string.c_str()));
+			list->Assign(info, nullptr);
 			Unref(info);
 			}
 
-		vl->append(list);
-
-		ConnectionEvent(irc_join_message, vl);
+		EnqueueConnEvent(irc_join_message,
+			ConnVal(),
+			val_mgr->Bool(orig),
+			std::move(list)
+		);
 		}
 
 	else if ( irc_join_message && command == "NJOIN" )
@@ -896,17 +881,13 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			parts[1] = parts[1].substr(1);
 
 		vector<string> users = SplitWords(parts[1], ',');
+		auto list = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, irc_join_list});
 
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(new Val(orig, TYPE_BOOL));
-
-		TableVal* list = new TableVal(irc_join_list);
 		string empty_string = "";
 
 		for ( unsigned int i = 0; i < users.size(); ++i )
 			{
-			RecordVal* info = new RecordVal(irc_join_info);
+			auto info = make_intrusive<RecordVal>(irc_join_info);
 			string nick = users[i];
 			string mode = "none";
 
@@ -930,19 +911,20 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				mode = "voice";
 				}
 
-			info->Assign(0, new StringVal(nick.c_str()));
-			info->Assign(1, new StringVal(channel.c_str()));
+			info->Assign(0, make_intrusive<StringVal>(nick.c_str()));
+			info->Assign(1, make_intrusive<StringVal>(channel.c_str()));
 			// Password:
-			info->Assign(2, new StringVal(empty_string.c_str()));
+			info->Assign(2, make_intrusive<StringVal>(empty_string.c_str()));
 			// User mode:
-			info->Assign(3, new StringVal(mode.c_str()));
-			list->Assign(info, 0);
-			Unref(info);
+			info->Assign(3, make_intrusive<StringVal>(mode.c_str()));
+			list->Assign(info.get(), nullptr);
 			}
 
-		vl->append(list);
-
-		ConnectionEvent(irc_join_message, vl);
+		EnqueueConnEvent(irc_join_message,
+			ConnVal(),
+			val_mgr->Bool(orig),
+			std::move(list)
+		);
 		}
 
 	else if ( irc_part_message && command == "PART" )
@@ -969,23 +951,21 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			nick = nick.substr(0, pos);
 
 		vector<string> channelList = SplitWords(channels, ',');
-		TableVal* set = new TableVal(string_set);
+		auto set = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, string_set});
 
 		for ( unsigned int i = 0; i < channelList.size(); ++i )
 			{
-			Val* idx = new StringVal(channelList[i].c_str());
-			set->Assign(idx, 0);
-			Unref(idx);
+			auto idx = make_intrusive<StringVal>(channelList[i].c_str());
+			set->Assign(idx.get(), nullptr);
 			}
 
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(new Val(orig, TYPE_BOOL));
-		vl->append(new StringVal(nick.c_str()));
-		vl->append(set);
-		vl->append(new StringVal(message.c_str()));
-
-		ConnectionEvent(irc_part_message, vl);
+		EnqueueConnEvent(irc_part_message,
+			ConnVal(),
+			val_mgr->Bool(orig),
+			make_intrusive<StringVal>(nick.c_str()),
+			std::move(set),
+			make_intrusive<StringVal>(message.c_str())
+		);
 		}
 
 	else if ( irc_quit_message && command == "QUIT" )
@@ -1002,13 +982,12 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				nickname = prefix.substr(0, pos);
 			}
 
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(new Val(orig, TYPE_BOOL));
-		vl->append(new StringVal(nickname.c_str()));
-		vl->append(new StringVal(message.c_str()));
-
-		ConnectionEvent(irc_quit_message, vl);
+		EnqueueConnEvent(irc_quit_message,
+			ConnVal(),
+			val_mgr->Bool(orig),
+			make_intrusive<StringVal>(nickname.c_str()),
+			make_intrusive<StringVal>(message.c_str())
+		);
 		}
 
 	else if ( irc_nick_message && command == "NICK" )
@@ -1017,13 +996,12 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		if ( nick[0] == ':' )
 			nick = nick.substr(1);
 
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(new Val(orig, TYPE_BOOL));
-		vl->append(new StringVal(prefix.c_str()));
-		vl->append(new StringVal(nick.c_str()));
-
-		ConnectionEvent(irc_nick_message, vl);
+		EnqueueConnEvent(irc_nick_message,
+			ConnVal(),
+			val_mgr->Bool(orig),
+			make_intrusive<StringVal>(prefix.c_str()),
+			make_intrusive<StringVal>(nick.c_str())
+		);
 		}
 
 	else if ( irc_who_message && command == "WHO" )
@@ -1043,16 +1021,14 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		if ( parts.size() > 0 && parts[0].size() > 0 && parts[0][0] == ':' )
 			parts[0] = parts[0].substr(1);
 
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(new Val(orig, TYPE_BOOL));
-		if ( parts.size() > 0 )
-			vl->append(new StringVal(parts[0].c_str()));
-		else
-			vl->append(new StringVal(""));
-		vl->append(new Val(oper, TYPE_BOOL));
-
-		ConnectionEvent(irc_who_message, vl);
+		EnqueueConnEvent(irc_who_message,
+			ConnVal(),
+			val_mgr->Bool(orig),
+			parts.size() > 0 ?
+				make_intrusive<StringVal>(parts[0].c_str()) :
+				val_mgr->EmptyString(),
+			val_mgr->Bool(oper)
+		);
 		}
 
 	else if ( irc_whois_message && command == "WHOIS" )
@@ -1075,26 +1051,25 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		else
 			users = parts[0];
 
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(new Val(orig, TYPE_BOOL));
-		vl->append(new StringVal(server.c_str()));
-		vl->append(new StringVal(users.c_str()));
-
-		ConnectionEvent(irc_whois_message, vl);
+		EnqueueConnEvent(irc_whois_message,
+			ConnVal(),
+			val_mgr->Bool(orig),
+			make_intrusive<StringVal>(server.c_str()),
+			make_intrusive<StringVal>(users.c_str())
+		);
 		}
 
 	else if ( irc_error_message && command == "ERROR" )
 		{
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(new Val(orig, TYPE_BOOL));
-		vl->append(new StringVal(prefix.c_str()));
 		if ( params[0] == ':' )
 			params = params.substr(1);
-		vl->append(new StringVal(params.c_str()));
 
-		ConnectionEvent(irc_error_message, vl);
+		EnqueueConnEvent(irc_error_message,
+			ConnVal(),
+			val_mgr->Bool(orig),
+			make_intrusive<StringVal>(prefix.c_str()),
+			make_intrusive<StringVal>(params.c_str())
+		);
 		}
 
 	else if ( irc_invite_message && command == "INVITE" )
@@ -1105,14 +1080,13 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			if ( parts[1].size() > 0 && parts[1][0] == ':' )
 				parts[1] = parts[1].substr(1);
 
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(new Val(orig, TYPE_BOOL));
-			vl->append(new StringVal(prefix.c_str()));
-			vl->append(new StringVal(parts[0].c_str()));
-			vl->append(new StringVal(parts[1].c_str()));
-
-			ConnectionEvent(irc_invite_message, vl);
+			EnqueueConnEvent(irc_invite_message,
+				ConnVal(),
+				val_mgr->Bool(orig),
+				make_intrusive<StringVal>(prefix.c_str()),
+				make_intrusive<StringVal>(parts[0].c_str()),
+				make_intrusive<StringVal>(parts[1].c_str())
+			);
 			}
 		else
 			Weird("irc_invalid_invite_message_format");
@@ -1121,15 +1095,12 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	else if ( irc_mode_message && command == "MODE" )
 		{
 		if ( params.size() > 0 )
-			{
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(new Val(orig, TYPE_BOOL));
-			vl->append(new StringVal(prefix.c_str()));
-			vl->append(new StringVal(params.c_str()));
-
-			ConnectionEvent(irc_mode_message, vl);
-			}
+			EnqueueConnEvent(irc_mode_message,
+				ConnVal(),
+				val_mgr->Bool(orig),
+				make_intrusive<StringVal>(prefix.c_str()),
+				make_intrusive<StringVal>(params.c_str())
+			);
 
 		else
 			Weird("irc_invalid_mode_message_format");
@@ -1137,11 +1108,11 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 	else if ( irc_password_message && command == "PASS" )
 		{
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(new Val(orig, TYPE_BOOL));
-		vl->append(new StringVal(params.c_str()));
-		ConnectionEvent(irc_password_message, vl);
+		EnqueueConnEvent(irc_password_message,
+			ConnVal(),
+			val_mgr->Bool(orig),
+			make_intrusive<StringVal>(params.c_str())
+		);
 		}
 
 	else if ( irc_squit_message && command == "SQUIT" )
@@ -1159,14 +1130,13 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				message = message.substr(1);
 			}
 
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(new Val(orig, TYPE_BOOL));
-		vl->append(new StringVal(prefix.c_str()));
-		vl->append(new StringVal(server.c_str()));
-		vl->append(new StringVal(message.c_str()));
-
-		ConnectionEvent(irc_squit_message, vl);
+		EnqueueConnEvent(irc_squit_message,
+			ConnVal(),
+			val_mgr->Bool(orig),
+			make_intrusive<StringVal>(prefix.c_str()),
+			make_intrusive<StringVal>(server.c_str()),
+			make_intrusive<StringVal>(message.c_str())
+		);
 		}
 
 
@@ -1174,14 +1144,13 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		{
 		if ( irc_request )
 			{
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(new Val(orig, TYPE_BOOL));
-			vl->append(new StringVal(prefix.c_str()));
-			vl->append(new StringVal(command.c_str()));
-			vl->append(new StringVal(params.c_str()));
-
-			ConnectionEvent(irc_request, vl);
+			EnqueueConnEvent(irc_request,
+				ConnVal(),
+				val_mgr->Bool(orig),
+				make_intrusive<StringVal>(prefix.c_str()),
+				make_intrusive<StringVal>(command.c_str()),
+				make_intrusive<StringVal>(params.c_str())
+			);
 			}
 		}
 
@@ -1189,14 +1158,13 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		{
 		if ( irc_message )
 			{
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(new Val(orig, TYPE_BOOL));
-			vl->append(new StringVal(prefix.c_str()));
-			vl->append(new StringVal(command.c_str()));
-			vl->append(new StringVal(params.c_str()));
-
-			ConnectionEvent(irc_message, vl);
+			EnqueueConnEvent(irc_message,
+				ConnVal(),
+				val_mgr->Bool(orig),
+				make_intrusive<StringVal>(prefix.c_str()),
+				make_intrusive<StringVal>(command.c_str()),
+				make_intrusive<StringVal>(params.c_str())
+			);
 			}
 		}
 
@@ -1225,17 +1193,15 @@ void IRC_Analyzer::StartTLS()
 	if ( ssl )
 		AddChildAnalyzer(ssl);
 
-	val_list* vl = new val_list;
-	vl->append(BuildConnVal());
-
-	ConnectionEvent(irc_starttls, vl);
+	if ( irc_starttls )
+		EnqueueConnEvent(irc_starttls, ConnVal());
 	}
 
-vector<string> IRC_Analyzer::SplitWords(const string input, const char split)
+vector<string> IRC_Analyzer::SplitWords(const string& input, char split)
 	{
 	vector<string> words;
 
-	if ( input.size() < 1 )
+	if ( input.empty() )
 		return words;
 
 	unsigned int start = 0;

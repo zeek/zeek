@@ -1,11 +1,10 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef equiv_class_h
-#define equiv_class_h
+#pragma once
 
 #include <stdio.h>
 
-#include "CCL.h"
+class CCL;
 
 class EquivClass {
 public:
@@ -21,7 +20,7 @@ public:
 
 	void ConvertCCL(CCL* ccl);
 
-	int IsRep(int sym) const		{ return rep[sym] == sym; }
+	bool IsRep(int sym) const		{ return rep[sym] == sym; }
 	int EquivRep(int sym) const		{ return rep[sym]; }
 	int SymEquivClass(int sym) const	{ return equiv_class[sym]; }
 	int* EquivClasses() const		{ return equiv_class; }
@@ -42,5 +41,3 @@ protected:
 	int* ccl_flags;
 	int ec_nil, no_class, no_rep;
 };
-
-#endif

@@ -1,14 +1,9 @@
-#ifndef base64_h
-#define base64_h
+#pragma once
 
-#include <assert.h>
-#include <stdio.h>
-#include <string.h>
+#include <string>
 
-#include "util.h"
-#include "BroString.h"
-#include "Reporter.h"
-#include "Conn.h"
+class BroString;
+class Connection;
 
 // Maybe we should have a base class for generic decoders?
 class Base64Converter {
@@ -18,7 +13,7 @@ public:
 	// encode_base64()), encoding-errors will go to Reporter instead of
 	// Weird. Usage errors go to Reporter in any case. Empty alphabet
 	// indicates the default base64 alphabet.
-	explicit Base64Converter(Connection* conn, const string& alphabet = "");
+	explicit Base64Converter(Connection* conn, const std::string& alphabet = "");
 	~Base64Converter();
 
 	// A note on Decode():
@@ -35,29 +30,22 @@ public:
 	void Encode(int len, const unsigned char* data, int* blen, char** buf);
 
 	int Done(int* pblen, char** pbuf);
-	int HasData() const { return base64_group_next != 0; }
+	bool HasData() const { return base64_group_next != 0; }
 
 	// True if an error has occurred.
 	int Errored() const	{ return errored; }
 
 	const char* ErrorMsg() const	{ return error_msg; }
-	void IllegalEncoding(const char* msg)
-		{
-		// strncpy(error_msg, msg, sizeof(error_msg));
-		if ( conn )
-			conn->Weird("base64_illegal_encoding", msg);
-		else
-			reporter->Error("%s", msg);
-		}
+	void IllegalEncoding(const char* msg);
 
 protected:
 	char error_msg[256];
 
 protected:
-	static const string default_alphabet;
-	string alphabet;
+	static const std::string default_alphabet;
+	std::string alphabet;
 
-	static int* InitBase64Table(const string& alphabet);
+	static int* InitBase64Table(const std::string& alphabet);
 	static int default_base64_table[256];
 	char base64_group[4];
 	int base64_group_next;
@@ -69,7 +57,5 @@ protected:
 
 };
 
-BroString* decode_base64(const BroString* s, const BroString* a = 0, Connection* conn = 0);
-BroString* encode_base64(const BroString* s, const BroString* a = 0, Connection* conn = 0);
-
-#endif /* base64_h */
+BroString* decode_base64(const BroString* s, const BroString* a = nullptr, Connection* conn = nullptr);
+BroString* encode_base64(const BroString* s, const BroString* a = nullptr, Connection* conn = nullptr);

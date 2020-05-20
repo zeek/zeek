@@ -1,9 +1,9 @@
 
-#ifndef BRO_PLUGIN_DEMO_FOO_H
-#define BRO_PLUGIN_DEMO_FOO_H
+#pragma once
 
 #include "logging/WriterBackend.h"
 #include "threading/formatters/Ascii.h"
+#include "Desc.h"
 
 namespace logging { namespace writer {
 
@@ -29,11 +29,9 @@ protected:
 	virtual bool DoHeartbeat(double network_time, double current_time)	{ return true; }
 
 private:
-    string path;
+	std::string path;
 	ODesc desc;
 	threading::formatter::Formatter* formatter;
 };
 
 } }
-
-#endif

@@ -1,40 +1,34 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "Event.h"
+#include "Desc.h"
 #include "Func.h"
 #include "NetVar.h"
 #include "Trigger.h"
+#include "Val.h"
 #include "plugin/Manager.h"
+#include "iosource/Manager.h"
+#include "iosource/PktSrc.h"
+#include "Net.h"
 
 EventMgr mgr;
 
-uint64 num_events_queued = 0;
-uint64 num_events_dispatched = 0;
+uint64_t num_events_queued = 0;
+uint64_t num_events_dispatched = 0;
 
-Event::Event(EventHandlerPtr arg_handler, val_list* arg_args,
-		SourceID arg_src, analyzer::ID arg_aid, TimerMgr* arg_mgr,
-		BroObj* arg_obj)
+Event::Event(EventHandlerPtr arg_handler, zeek::Args arg_args,
+             SourceID arg_src, analyzer::ID arg_aid, BroObj* arg_obj)
+	: handler(arg_handler),
+	  args(std::move(arg_args)),
+	  src(arg_src),
+	  aid(arg_aid),
+	  obj(arg_obj),
+	  next_event(nullptr)
 	{
-	handler = arg_handler;
-	args = arg_args;
-	src = arg_src;
-	mgr = arg_mgr ? arg_mgr : timer_mgr; // default is global
-	aid = arg_aid;
-	obj = arg_obj;
-
 	if ( obj )
 		Ref(obj);
-
-	next_event = 0;
-	}
-
-Event::~Event()
-	{
-	// We don't Unref() the individual arguments by using delete_vals()
-	// here, because Func::Call already did that.
-	delete args;
 	}
 
 void Event::Describe(ODesc* d) const
@@ -42,9 +36,7 @@ void Event::Describe(ODesc* d) const
 	if ( d->IsReadable() )
 		d->AddSP("event");
 
-	int s = d->IsShort();
-	d->SetShort();
-//	handler->Describe(d);
+	bool s = d->IsShort();
 	d->SetShort(s);
 
 	if ( ! d->IsBinary() )
@@ -58,12 +50,6 @@ void Event::Dispatch(bool no_remote)
 	{
 	if ( src == SOURCE_BROKER )
 		no_remote = true;
-
-	if ( event_serializer )
-		{
-		SerialInfo info(event_serializer);
-		event_serializer->Serialize(&info, handler->Name(), args);
-		}
 
 	if ( handler->ErrorHandler() )
 		reporter->BeginErrorHandler();
@@ -88,12 +74,11 @@ void Event::Dispatch(bool no_remote)
 
 EventMgr::EventMgr()
 	{
-	head = tail = 0;
+	head = tail = nullptr;
 	current_src = SOURCE_LOCAL;
-	current_mgr = timer_mgr;
 	current_aid = 0;
-	src_val = 0;
-	draining = 0;
+	src_val = nullptr;
+	draining = false;
 	}
 
 EventMgr::~EventMgr()
@@ -108,6 +93,40 @@ EventMgr::~EventMgr()
 	Unref(src_val);
 	}
 
+void EventMgr::QueueEventFast(const EventHandlerPtr &h, val_list vl,
+                              SourceID src, analyzer::ID aid, TimerMgr* mgr,
+                              BroObj* obj)
+	{
+	QueueEvent(new Event(h, zeek::val_list_to_args(vl), src, aid, obj));
+	}
+
+void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list vl,
+                          SourceID src, analyzer::ID aid,
+                          TimerMgr* mgr, BroObj* obj)
+	{
+	auto args = zeek::val_list_to_args(vl);
+
+	if ( h )
+		Enqueue(h, std::move(args), src, aid, obj);
+	}
+
+void EventMgr::QueueEvent(const EventHandlerPtr &h, val_list* vl,
+                          SourceID src, analyzer::ID aid,
+                          TimerMgr* mgr, BroObj* obj)
+	{
+	auto args = zeek::val_list_to_args(*vl);
+	delete vl;
+
+	if ( h )
+		Enqueue(h, std::move(args), src, aid, obj);
+	}
+
+void EventMgr::Enqueue(const EventHandlerPtr& h, zeek::Args vl,
+                       SourceID src, analyzer::ID aid, BroObj* obj)
+	{
+	QueueEvent(new Event(h, std::move(vl), src, aid, obj));
+	}
+
 void EventMgr::QueueEvent(Event* event)
 	{
 	bool done = PLUGIN_HOOK_WITH_RESULT(HOOK_QUEUE_EVENT, HookQueueEvent(event), false);
@@ -116,7 +135,10 @@ void EventMgr::QueueEvent(Event* event)
 		return;
 
 	if ( ! head )
+		{
 		head = tail = event;
+		queue_flare.Fire();
+		}
 	else
 		{
 		tail->SetNext(event);
@@ -126,12 +148,19 @@ void EventMgr::QueueEvent(Event* event)
 	++num_events_queued;
 	}
 
+void EventMgr::Dispatch(Event* event, bool no_remote)
+	{
+	current_src = event->Source();
+	event->Dispatch(no_remote);
+	Unref(event);
+	}
+
 void EventMgr::Drain()
 	{
 	if ( event_queue_flush_point )
-		QueueEvent(event_queue_flush_point, new val_list());
+		Enqueue(event_queue_flush_point, zeek::Args{});
 
-	SegmentProfiler(segment_logger, "draining-events");
+	SegmentProfiler prof(segment_logger, "draining-events");
 
 	PLUGIN_HOOK_VOID(HOOK_DRAIN_EVENTS, HookDrainEvents());
 
@@ -147,15 +176,14 @@ void EventMgr::Drain()
 	for ( int round = 0; head && round < 2; round++ )
 		{
 		Event* current = head;
-		head = 0;
-		tail = 0;
+		head = nullptr;
+		tail = nullptr;
 
 		while ( current )
 			{
 			Event* next = current->NextEvent();
 
 			current_src = current->Source();
-			current_mgr = current->Mgr();
 			current_aid = current->Analyzer();
 			current->Dispatch();
 			Unref(current);
@@ -169,10 +197,9 @@ void EventMgr::Drain()
 	// do after draining events.
 	draining = false;
 
-	// We evaluate Triggers here. While this is somewhat unrelated to event
-	// processing, we ensure that it's done at a regular basis by checking
-	// them here.
-	Trigger::EvaluatePending();
+	// Make sure all of the triggers get processed every time the events
+	// drain.
+	trigger_mgr->Process();
 	}
 
 void EventMgr::Describe(ODesc* d) const
@@ -191,20 +218,29 @@ void EventMgr::Describe(ODesc* d) const
 		}
 	}
 
-RecordVal* EventMgr::GetLocalPeerVal()
+void EventMgr::Process()
 	{
-	if ( ! src_val )
-		{
-		src_val = new RecordVal(peer);
-		src_val->Assign(0, new Val(0, TYPE_COUNT));
-		src_val->Assign(1, new AddrVal("127.0.0.1"));
-		src_val->Assign(2, port_mgr->Get(0));
-		src_val->Assign(3, new Val(true, TYPE_BOOL));
+	// If we don't have a source, or the source is closed, or we're
+	// reading live (which includes pseudo-realtime), advance the time
+	// here to the current time since otherwise it won't move forward.
+	iosource::PktSrc* pkt_src = iosource_mgr->GetPktSrc();
+	if ( ! pkt_src || ! pkt_src->IsOpen() || reading_live )
+		net_update_time(current_time());
 
-		Ref(peer_description);
-		src_val->Assign(4, peer_description);
-		src_val->Assign(5, 0);	// class (optional).
-		}
+	queue_flare.Extinguish();
 
-	return src_val;
+	// While it semes like the most logical thing to do, we dont want
+	// to call Drain() as part of this method. It will get called at
+	// the end of net_run after all of the sources have been processed
+	// and had the opportunity to spawn new events. We could use
+	// iosource_mgr->Wakeup() instead of making EventMgr an IOSource,
+	// but then we couldn't update the time above and nothing would
+	// drive it forward.
+	}
+
+void EventMgr::InitPostScript()
+	{
+	iosource_mgr->Register(this, true, false);
+	if ( ! iosource_mgr->RegisterFd(queue_flare.FD(), this) )
+		reporter->FatalError("Failed to register event manager FD with iosource_mgr");
 	}

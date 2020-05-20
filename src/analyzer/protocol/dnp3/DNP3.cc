@@ -97,6 +97,7 @@
 //                                            Binpac DNP3 Analyzer
 
 #include "DNP3.h"
+#include "Reporter.h"
 #include "events.bif.h"
 
 using namespace analyzer::dnp3;
@@ -408,17 +409,17 @@ void DNP3_TCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	try
 		{
 		if ( ! ProcessData(len, data, orig) )
-			SetSkip(1);
+			SetSkip(true);
 		}
 
 	catch ( const binpac::Exception& e )
 		{
-		SetSkip(1);
+		SetSkip(true);
 		throw;
 		}
 	}
 
-void DNP3_TCP_Analyzer::Undelivered(uint64 seq, int len, bool orig)
+void DNP3_TCP_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
 	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	Interpreter()->NewGap(orig, len);
@@ -439,20 +440,19 @@ DNP3_UDP_Analyzer::~DNP3_UDP_Analyzer()
 	{
 	}
 
-void DNP3_UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64 seq, const IP_Hdr* ip, int caplen)
+void DNP3_UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 
 	try
 		{
 		if ( ! ProcessData(len, data, orig) )
-			SetSkip(1);
+			SetSkip(true);
 		}
 
 	catch ( const binpac::Exception& e )
 		{
-		SetSkip(1);
+		SetSkip(true);
 		throw;
 		}
 	}
-

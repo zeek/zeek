@@ -1,6 +1,7 @@
 
 %%{
 #include "analyzer/protocol/ssl/SSL.h"
+#include "Reporter.h"
 #include <openssl/x509.h>
 %%}
 
@@ -13,5 +14,5 @@ function set_ssl_established%(c: connection%): any
 	analyzer::Analyzer* sa = c->FindAnalyzer("SSL");
 	if ( sa )
 		static_cast<analyzer::ssl::SSL_Analyzer*>(sa)->StartEncryption();
-	return 0;
+	return nullptr;
 	%}

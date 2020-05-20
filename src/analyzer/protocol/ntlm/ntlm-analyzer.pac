@@ -16,21 +16,34 @@ refine connection NTLM_Conn += {
 	function build_version_record(val: NTLM_Version): BroVal
 		%{
 		RecordVal* result = new RecordVal(BifType::Record::NTLM::Version);
-		result->Assign(0, new Val(${val.major_version}, TYPE_COUNT));
-		result->Assign(1, new Val(${val.minor_version}, TYPE_COUNT));
-		result->Assign(2, new Val(${val.build_number},  TYPE_COUNT));
-		result->Assign(3, new Val(${val.ntlm_revision}, TYPE_COUNT));
+		result->Assign(0, val_mgr->Count(${val.major_version}));
+		result->Assign(1, val_mgr->Count(${val.minor_version}));
+		result->Assign(2, val_mgr->Count(${val.build_number}));
+		result->Assign(3, val_mgr->Count(${val.ntlm_revision}));
 
 		return result;
 		%}
 
-	function build_av_record(val: NTLM_AV_Pair_Sequence): BroVal
+	function build_av_record(val: NTLM_AV_Pair_Sequence, len: uint16): BroVal
 		%{
 		RecordVal* result = new RecordVal(BifType::Record::NTLM::AVs);
-		for ( uint i = 0; ${val.pairs[i].id} != 0; i++ )
+		for ( uint i = 0; ; i++ )
 			{
+			if ( i >= ${val.pairs}->size() )
+				{
+				if ( len != 0 )
+					// According to spec, the TargetInfo MUST be a sequence of
+					// AV_PAIRs and terminated by the null AV_PAIR when the
+					// TargetInfoLen is non-zero, so this is in violation.
+					bro_analyzer()->ProtocolViolation("NTLM AV Pair loop underflow");
+
+				return result;
+				}
+
 			switch ( ${val.pairs[i].id} )
 				{
+				case 0:
+					return result;
 				case 1:
 					result->Assign(0, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].nb_computer_name.data}));
 					break;
@@ -47,13 +60,13 @@ refine connection NTLM_Conn += {
 					result->Assign(4, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].dns_tree_name.data}));
 					break;
 				case 6:
-					result->Assign(5, new Val(${val.pairs[i].constrained_auth}, TYPE_BOOL));
+					result->Assign(5, val_mgr->Bool(${val.pairs[i].constrained_auth}));
 					break;
 				case 7:
 					result->Assign(6, filetime2brotime(${val.pairs[i].timestamp}));
 					break;
 				case 8:
-					result->Assign(7, new Val(${val.pairs[i].single_host.machine_id}, TYPE_COUNT));
+					result->Assign(7, val_mgr->Count(${val.pairs[i].single_host.machine_id}));
 					break;
 				case 9:
 					result->Assign(8, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].target_name.data}));
@@ -66,35 +79,38 @@ refine connection NTLM_Conn += {
 	function build_negotiate_flag_record(val: NTLM_Negotiate_Flags): BroVal
 		%{
 		RecordVal* flags = new RecordVal(BifType::Record::NTLM::NegotiateFlags);
-		flags->Assign(0, new Val(${val.negotiate_56},                        TYPE_BOOL));
-		flags->Assign(1, new Val(${val.negotiate_key_exch},                  TYPE_BOOL));
-		flags->Assign(2, new Val(${val.negotiate_128},                       TYPE_BOOL));
-		flags->Assign(3, new Val(${val.negotiate_version},                   TYPE_BOOL));
-		flags->Assign(4, new Val(${val.negotiate_target_info},               TYPE_BOOL));
-		flags->Assign(5, new Val(${val.request_non_nt_session_key},          TYPE_BOOL));
-		flags->Assign(6, new Val(${val.negotiate_identify},                  TYPE_BOOL));
-		flags->Assign(7, new Val(${val.negotiate_extended_sessionsecurity},  TYPE_BOOL));
-		flags->Assign(8, new Val(${val.target_type_server},                  TYPE_BOOL));
-		flags->Assign(9, new Val(${val.target_type_domain},                  TYPE_BOOL));
-		flags->Assign(10, new Val(${val.negotiate_always_sign},              TYPE_BOOL));
-		flags->Assign(11, new Val(${val.negotiate_oem_workstation_supplied}, TYPE_BOOL));
-		flags->Assign(12, new Val(${val.negotiate_oem_domain_supplied},      TYPE_BOOL));
-		flags->Assign(13, new Val(${val.negotiate_anonymous_connection},     TYPE_BOOL));
-		flags->Assign(14, new Val(${val.negotiate_ntlm},                     TYPE_BOOL));
-		flags->Assign(15, new Val(${val.negotiate_lm_key},                   TYPE_BOOL));
-		flags->Assign(16, new Val(${val.negotiate_datagram},                 TYPE_BOOL));
-		flags->Assign(17, new Val(${val.negotiate_seal},                     TYPE_BOOL));
-		flags->Assign(18, new Val(${val.negotiate_sign},                     TYPE_BOOL));
-		flags->Assign(19, new Val(${val.request_target},                     TYPE_BOOL));
-		flags->Assign(20, new Val(${val.negotiate_oem},                      TYPE_BOOL));
-		flags->Assign(21, new Val(${val.negotiate_unicode},                  TYPE_BOOL));
+		flags->Assign(0, val_mgr->Bool(${val.negotiate_56}));
+		flags->Assign(1, val_mgr->Bool(${val.negotiate_key_exch}));
+		flags->Assign(2, val_mgr->Bool(${val.negotiate_128}));
+		flags->Assign(3, val_mgr->Bool(${val.negotiate_version}));
+		flags->Assign(4, val_mgr->Bool(${val.negotiate_target_info}));
+		flags->Assign(5, val_mgr->Bool(${val.request_non_nt_session_key}));
+		flags->Assign(6, val_mgr->Bool(${val.negotiate_identify}));
+		flags->Assign(7, val_mgr->Bool(${val.negotiate_extended_sessionsecurity}));
+		flags->Assign(8, val_mgr->Bool(${val.target_type_server}));
+		flags->Assign(9, val_mgr->Bool(${val.target_type_domain}));
+		flags->Assign(10, val_mgr->Bool(${val.negotiate_always_sign}));
+		flags->Assign(11, val_mgr->Bool(${val.negotiate_oem_workstation_supplied}));
+		flags->Assign(12, val_mgr->Bool(${val.negotiate_oem_domain_supplied}));
+		flags->Assign(13, val_mgr->Bool(${val.negotiate_anonymous_connection}));
+		flags->Assign(14, val_mgr->Bool(${val.negotiate_ntlm}));
+		flags->Assign(15, val_mgr->Bool(${val.negotiate_lm_key}));
+		flags->Assign(16, val_mgr->Bool(${val.negotiate_datagram}));
+		flags->Assign(17, val_mgr->Bool(${val.negotiate_seal}));
+		flags->Assign(18, val_mgr->Bool(${val.negotiate_sign}));
+		flags->Assign(19, val_mgr->Bool(${val.request_target}));
+		flags->Assign(20, val_mgr->Bool(${val.negotiate_oem}));
+		flags->Assign(21, val_mgr->Bool(${val.negotiate_unicode}));
 
 		return flags;
 		%}
 
 	function proc_ntlm_negotiate(val: NTLM_Negotiate): bool
 		%{
-		RecordVal* result = new RecordVal(BifType::Record::NTLM::Negotiate);
+		if ( ! ntlm_negotiate )
+			return true;
+
+		auto result = make_intrusive<RecordVal>(BifType::Record::NTLM::Negotiate);
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
 		if ( ${val}->has_domain_name() )
@@ -106,16 +122,19 @@ refine connection NTLM_Conn += {
 		if ( ${val}->has_version() )
 		        result->Assign(3, build_version_record(${val.version}));
 
-		BifEvent::generate_ntlm_negotiate(bro_analyzer(),
-		                                  bro_analyzer()->Conn(),
-		                                  result);
+		BifEvent::enqueue_ntlm_negotiate(bro_analyzer(),
+		                                 bro_analyzer()->Conn(),
+		                                 std::move(result));
 
 		return true;
 		%}
 
 	function proc_ntlm_challenge(val: NTLM_Challenge): bool
 		%{
-		RecordVal* result = new RecordVal(BifType::Record::NTLM::Challenge);
+		if ( ! ntlm_challenge )
+			return true;
+
+		auto result = make_intrusive<RecordVal>(BifType::Record::NTLM::Challenge);
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
 		if ( ${val}->has_target_name() )
@@ -125,18 +144,21 @@ refine connection NTLM_Conn += {
 			result->Assign(2, build_version_record(${val.version}));
 
 		if ( ${val}->has_target_info() )
-			result->Assign(3, build_av_record(${val.target_info}));
+			result->Assign(3, build_av_record(${val.target_info},  ${val.target_info_fields.length}));
 
-		BifEvent::generate_ntlm_challenge(bro_analyzer(),
-		                                  bro_analyzer()->Conn(),
-		                                  result);
+		BifEvent::enqueue_ntlm_challenge(bro_analyzer(),
+		                                 bro_analyzer()->Conn(),
+		                                 std::move(result));
 
 		return true;
 		%}
 
 	function proc_ntlm_authenticate(val: NTLM_Authenticate): bool
 		%{
-		RecordVal* result = new RecordVal(BifType::Record::NTLM::Authenticate);
+		if ( ! ntlm_authenticate )
+			return true;
+
+		auto result = make_intrusive<RecordVal>(BifType::Record::NTLM::Authenticate);
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
 		if ( ${val}->has_domain_name() > 0 )
@@ -149,14 +171,14 @@ refine connection NTLM_Conn += {
 			result->Assign(3, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.workstation.string.data}));
 
 		if ( ${val}->has_encrypted_session_key() > 0 )
-			result->Assign(4, bytestring_to_val(${val.encrypted_session_key.string.data}));
+			result->Assign(4, to_stringval(${val.encrypted_session_key.string.data}));
 
 		if ( ${val}->has_version() )
 			result->Assign(5, build_version_record(${val.version}));
 
-		BifEvent::generate_ntlm_authenticate(bro_analyzer(),
-		                                     bro_analyzer()->Conn(),
-		                                     result);
+		BifEvent::enqueue_ntlm_authenticate(bro_analyzer(),
+		                                    bro_analyzer()->Conn(),
+		                                    std::move(result));
 		return true;
 		%}
 }

@@ -1,7 +1,14 @@
-# @TEST-EXEC: bro -C -r $TRACES/var-services-std-ports.trace %INPUT >output
+# @TEST-EXEC: zeek -C -r $TRACES/var-services-std-ports.trace %INPUT >output
 # @TEST-EXEC: btest-diff output
+# @TEST-EXEC: btest-diff expire-nums-output
+# @TEST-EXEC: btest-diff expire-nets-output
 
 redef table_expire_interval = 1sec;
+
+# The order of &expire_func calls between different tables does not have
+# well-defined or expected order, so put their output in different files.
+global expire_nums_out = open("expire-nums-output");
+global expire_nets_out = open("expire-nets-output");
 
 global start_time: time;
 
@@ -12,13 +19,13 @@ function time_past(): interval
 
 function expire_nums(tbl: table[count] of string, idx: count): interval
 	{
-	print fmt("Expired Num: %s --> %s at %s", idx, tbl[idx], time_past());
+	print expire_nums_out, fmt("Expired Num: %s --> %s at %s", idx, tbl[idx], time_past());
 	return 0sec;
 	}
 
 function expire_nets(tbl: table[subnet] of string, idx: subnet): interval
 	{
-	print fmt("Expired Subnet: %s --> %s at %s", idx, tbl[idx], time_past());
+	print expire_nets_out, fmt("Expired Subnet: %s --> %s at %s", idx, tbl[idx], time_past());
 	return 0sec;
 	}
 
@@ -50,12 +57,11 @@ function execute_test()
 	print fmt("Accessed table nums: %s; %s", num_a, num_b);
 	print fmt("Accessed table nets: %s; %s", net_a, nets_b);
 	print fmt("Time: %s", time_past());
-	print "";
 	}
 
 ### Events ###
 
-event bro_init()
+event zeek_init()
 	{
 	step = 0;
 

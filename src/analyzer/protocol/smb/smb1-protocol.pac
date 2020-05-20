@@ -2,10 +2,14 @@
 #include "file_analysis/Manager.h"
 %}
 
-refine connection SMB_Conn += {
-	function BuildHeaderVal(hdr: SMB_Header): BroVal
-		%{
-		RecordVal* r = new RecordVal(BifType::Record::SMB1::Header);
+%header{
+	IntrusivePtr<RecordVal> SMBHeaderVal(SMB_Header* hdr);
+%}
+
+%code{
+	IntrusivePtr<RecordVal> SMBHeaderVal(SMB_Header* hdr)
+		{
+		auto r = make_intrusive<RecordVal>(BifType::Record::SMB1::Header);
 
 		//unsigned int status = 0;
 		//
@@ -21,24 +25,26 @@ refine connection SMB_Conn += {
 		//	{ // do nothing
 		//	}
 
-		r->Assign(0, new Val(${hdr.command}, TYPE_COUNT));
-		r->Assign(1, new Val(${hdr.status}, TYPE_COUNT));
-		r->Assign(2, new Val(${hdr.flags}, TYPE_COUNT));
-		r->Assign(3, new Val(${hdr.flags2}, TYPE_COUNT));
-		r->Assign(4, new Val(${hdr.tid}, TYPE_COUNT));
-		r->Assign(5, new Val(${hdr.pid}, TYPE_COUNT));
-		r->Assign(6, new Val(${hdr.uid}, TYPE_COUNT));
-		r->Assign(7, new Val(${hdr.mid}, TYPE_COUNT));
+		r->Assign(0, val_mgr->Count(${hdr.command}));
+		r->Assign(1, val_mgr->Count(${hdr.status}));
+		r->Assign(2, val_mgr->Count(${hdr.flags}));
+		r->Assign(3, val_mgr->Count(${hdr.flags2}));
+		r->Assign(4, val_mgr->Count(${hdr.tid}));
+		r->Assign(5, val_mgr->Count(${hdr.pid}));
+		r->Assign(6, val_mgr->Count(${hdr.uid}));
+		r->Assign(7, val_mgr->Count(${hdr.mid}));
 
 		return r;
-		%}
+		}
+%}
 
+refine connection SMB_Conn += {
 	function proc_smb_message(h: SMB_Header, is_orig: bool): bool
 		%{
 		if ( smb1_message )
 			{
-			BifEvent::generate_smb1_message(bro_analyzer(), bro_analyzer()->Conn(),
-			                                BuildHeaderVal(h),
+			BifEvent::enqueue_smb1_message(bro_analyzer(), bro_analyzer()->Conn(),
+			                                SMBHeaderVal(h),
 			                                is_orig);
 			}
 		return true;
@@ -48,9 +54,9 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb1_empty_response )
 			{
-			BifEvent::generate_smb1_empty_response(bro_analyzer(),
-			                                       bro_analyzer()->Conn(),
-			                                       BuildHeaderVal(header));
+			BifEvent::enqueue_smb1_empty_response(bro_analyzer(),
+			                                      bro_analyzer()->Conn(),
+			                                      SMBHeaderVal(header));
 			}
 		return true;
 		%}
@@ -61,14 +67,17 @@ refine connection SMB_Conn += {
 			{
 			if ( smb1_empty_response )
 				{
-				BifEvent::generate_smb1_empty_response(bro_analyzer(), bro_analyzer()->Conn(), BuildHeaderVal(h));
+				BifEvent::enqueue_smb1_empty_response(bro_analyzer(),
+				                                      bro_analyzer()->Conn(),
+				                                      SMBHeaderVal(h));
 				}
 			}
 		else
 			{
-			BifEvent::generate_smb1_error(bro_analyzer(),
-			                              bro_analyzer()->Conn(),
-			                              BuildHeaderVal(h), is_orig);
+			if ( smb1_error )
+				BifEvent::enqueue_smb1_error(bro_analyzer(),
+				                             bro_analyzer()->Conn(),
+				                             SMBHeaderVal(h), is_orig);
 			}
 		return true;
 		%}

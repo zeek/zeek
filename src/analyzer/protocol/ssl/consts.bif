@@ -1,0 +1,2 @@
+const SSL::dtls_max_version_errors: count;
+const SSL::dtls_max_reported_version_errors: count;

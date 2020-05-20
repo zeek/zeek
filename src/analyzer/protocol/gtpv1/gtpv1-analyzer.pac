@@ -1,89 +1,93 @@
+%extern{
+#include "Sessions.h"
+#include "BroString.h"
+%}
 
 %code{
-RecordVal* BuildGTPv1Hdr(const GTPv1_Header* pdu)
+IntrusivePtr<RecordVal> BuildGTPv1Hdr(const GTPv1_Header* pdu)
 	{
-	RecordVal* rv = new RecordVal(BifType::Record::gtpv1_hdr);
+	auto rv = make_intrusive<RecordVal>(BifType::Record::gtpv1_hdr);
 
-	rv->Assign(0, new Val(pdu->version(), TYPE_COUNT));
-	rv->Assign(1, new Val(pdu->pt_flag(), TYPE_BOOL));
-	rv->Assign(2, new Val(pdu->rsv(), TYPE_BOOL));
-	rv->Assign(3, new Val(pdu->e_flag(), TYPE_BOOL));
-	rv->Assign(4, new Val(pdu->s_flag(), TYPE_BOOL));
-	rv->Assign(5, new Val(pdu->pn_flag(), TYPE_BOOL));
-	rv->Assign(6, new Val(pdu->msg_type(), TYPE_COUNT));
-	rv->Assign(7, new Val(pdu->length(), TYPE_COUNT));
-	rv->Assign(8, new Val(pdu->teid(), TYPE_COUNT));
+	rv->Assign(0, val_mgr->Count(pdu->version()));
+	rv->Assign(1, val_mgr->Bool(pdu->pt_flag()));
+	rv->Assign(2, val_mgr->Bool(pdu->rsv()));
+	rv->Assign(3, val_mgr->Bool(pdu->e_flag()));
+	rv->Assign(4, val_mgr->Bool(pdu->s_flag()));
+	rv->Assign(5, val_mgr->Bool(pdu->pn_flag()));
+	rv->Assign(6, val_mgr->Count(pdu->msg_type()));
+	rv->Assign(7, val_mgr->Count(pdu->length()));
+	rv->Assign(8, val_mgr->Count(pdu->teid()));
 
 	if ( pdu->has_opt() )
 		{
-		rv->Assign(9, new Val(pdu->opt_hdr()->seq(), TYPE_COUNT));
-		rv->Assign(10, new Val(pdu->opt_hdr()->n_pdu(), TYPE_COUNT));
-		rv->Assign(11, new Val(pdu->opt_hdr()->next_type(), TYPE_COUNT));
+		rv->Assign(9, val_mgr->Count(pdu->opt_hdr()->seq()));
+		rv->Assign(10, val_mgr->Count(pdu->opt_hdr()->n_pdu()));
+		rv->Assign(11, val_mgr->Count(pdu->opt_hdr()->next_type()));
 		}
 
 	return rv;
 	}
 
-Val* BuildIMSI(const InformationElement* ie)
+static IntrusivePtr<Val> BuildIMSI(const InformationElement* ie)
 	{
-	return new Val(ie->imsi()->value(), TYPE_COUNT);
+	return val_mgr->Count(ie->imsi()->value());
 	}
 
-Val* BuildRAI(const InformationElement* ie)
+static IntrusivePtr<Val> BuildRAI(const InformationElement* ie)
 	{
-	RecordVal* ev = new RecordVal(BifType::Record::gtp_rai);
-	ev->Assign(0, new Val(ie->rai()->mcc(), TYPE_COUNT));
-	ev->Assign(1, new Val(ie->rai()->mnc(), TYPE_COUNT));
-	ev->Assign(2, new Val(ie->rai()->lac(), TYPE_COUNT));
-	ev->Assign(3, new Val(ie->rai()->rac(), TYPE_COUNT));
+	auto ev = make_intrusive<RecordVal>(BifType::Record::gtp_rai);
+	ev->Assign(0, val_mgr->Count(ie->rai()->mcc()));
+	ev->Assign(1, val_mgr->Count(ie->rai()->mnc()));
+	ev->Assign(2, val_mgr->Count(ie->rai()->lac()));
+	ev->Assign(3, val_mgr->Count(ie->rai()->rac()));
 	return ev;
 	}
 
-Val* BuildRecovery(const InformationElement* ie)
+static IntrusivePtr<Val> BuildRecovery(const InformationElement* ie)
 	{
-	return new Val(ie->recovery()->restart_counter(), TYPE_COUNT);
+	return val_mgr->Count(ie->recovery()->restart_counter());
 	}
 
-Val* BuildSelectionMode(const InformationElement* ie)
+static IntrusivePtr<Val> BuildSelectionMode(const InformationElement* ie)
 	{
-	return new Val(ie->selection_mode()->mode(), TYPE_COUNT);
+	return val_mgr->Count(ie->selection_mode()->mode());
 	}
 
-Val* BuildTEID1(const InformationElement* ie)
+static IntrusivePtr<Val> BuildTEID1(const InformationElement* ie)
 	{
-	return new Val(ie->teid1()->value(), TYPE_COUNT);
+	return val_mgr->Count(ie->teid1()->value());
 	}
 
-Val* BuildTEID_ControlPlane(const InformationElement* ie)
+static IntrusivePtr<Val> BuildTEID_ControlPlane(const InformationElement* ie)
 	{
-	return new Val(ie->teidcp()->value(), TYPE_COUNT);
+	return val_mgr->Count(ie->teidcp()->value());
 	}
 
-Val* BuildNSAPI(const InformationElement* ie)
+static IntrusivePtr<Val> BuildNSAPI(const InformationElement* ie)
 	{
-	return new Val(ie->nsapi()->nsapi(), TYPE_COUNT);
+	return val_mgr->Count(ie->nsapi()->nsapi());
 	}
 
-Val* BuildChargingCharacteristics(const InformationElement* ie)
+static IntrusivePtr<Val> BuildChargingCharacteristics(const InformationElement* ie)
 	{
-	return new Val(ie->charging_characteristics()->value(), TYPE_COUNT);
+	return val_mgr->Count(ie->charging_characteristics()->value());
 	}
 
-Val* BuildTraceReference(const InformationElement* ie)
+static IntrusivePtr<Val> BuildTraceReference(const InformationElement* ie)
 	{
-	return new Val(ie->trace_reference()->value(), TYPE_COUNT);
+	return val_mgr->Count(ie->trace_reference()->value());
 	}
 
-Val* BuildTraceType(const InformationElement* ie)
+static IntrusivePtr<Val> BuildTraceType(const InformationElement* ie)
 	{
-	return new Val(ie->trace_type()->value(), TYPE_COUNT);
+	return val_mgr->Count(ie->trace_type()->value());
 	}
 
 Val* BuildEndUserAddr(const InformationElement* ie)
 	{
 	RecordVal* ev = new RecordVal(BifType::Record::gtp_end_user_addr);
-	ev->Assign(0, new Val(ie->end_user_addr()->pdp_type_org(), TYPE_COUNT));
-	ev->Assign(1, new Val(ie->end_user_addr()->pdp_type_num(), TYPE_COUNT));
+	ev->Assign(0, val_mgr->Count(ie->end_user_addr()->pdp_type_org()));
+	ev->Assign(1, val_mgr->Count(ie->end_user_addr()->pdp_type_num()));
 
 	int len = ie->end_user_addr()->pdp_addr().length();
 
@@ -93,16 +97,16 @@ Val* BuildEndUserAddr(const InformationElement* ie)
 
 		switch ( ie->end_user_addr()->pdp_type_num() ) {
 		case 0x21:
-			ev->Assign(2, new AddrVal(
+			ev->Assign(2, make_intrusive<AddrVal>(
 			  IPAddr(IPv4, (const uint32*) d, IPAddr::Network)));
 			break;
 		case 0x57:
-			ev->Assign(2, new AddrVal(
+			ev->Assign(2, make_intrusive<AddrVal>(
 			  IPAddr(IPv6, (const uint32*) d, IPAddr::Network)));
 			break;
 		default:
-			ev->Assign(3, new StringVal(
-			  new BroString((const u_char*) d, len, 0)));
+			ev->Assign(3, make_intrusive<StringVal>(
+			  new BroString((const u_char*) d, len, false)));
 			break;
 		}
 		}
@@ -113,7 +117,7 @@ Val* BuildEndUserAddr(const InformationElement* ie)
 Val* BuildAccessPointName(const InformationElement* ie)
 	{
 	BroString* bs = new BroString((const u_char*) ie->ap_name()->value().data(),
-	                              ie->ap_name()->value().length(), 0);
+	                              ie->ap_name()->value().length(), false);
 	return new StringVal(bs);
 	}
 
@@ -121,7 +125,7 @@ Val* BuildProtoConfigOptions(const InformationElement* ie)
 	{
 	const u_char* d = (const u_char*) ie->proto_config_opts()->value().data();
 	int len = ie->proto_config_opts()->value().length();
-	return new StringVal(new BroString(d, len, 0));
+	return new StringVal(new BroString(d, len, false));
 	}
 
 Val* BuildGSN_Addr(const InformationElement* ie)
@@ -132,13 +136,13 @@ Val* BuildGSN_Addr(const InformationElement* ie)
 	const uint8* d = ie->gsn_addr()->value().data();
 
 	if ( len == 4 )
-		ev->Assign(0, new AddrVal(
+		ev->Assign(0, make_intrusive<AddrVal>(
 		  IPAddr(IPv4, (const uint32*) d, IPAddr::Network)));
 	else if ( len == 16 )
-		ev->Assign(0, new AddrVal(
+		ev->Assign(0, make_intrusive<AddrVal>(
 		  IPAddr(IPv6, (const uint32*) d, IPAddr::Network)));
 	else
-		ev->Assign(1, new StringVal(new BroString((const u_char*) d, len, 0)));
+		ev->Assign(1, make_intrusive<StringVal>(new BroString((const u_char*) d, len, false)));
 
 	return ev;
 	}
@@ -147,7 +151,7 @@ Val* BuildMSISDN(const InformationElement* ie)
 	{
 	const u_char* d = (const u_char*) ie->msisdn()->value().data();
 	int len = ie->msisdn()->value().length();
-	return new StringVal(new BroString(d, len, 0));
+	return new StringVal(new BroString(d, len, false));
 	}
 
 Val* BuildQoS_Profile(const InformationElement* ie)
@@ -157,9 +161,8 @@ Val* BuildQoS_Profile(const InformationElement* ie)
 	const u_char* d = (const u_char*) ie->qos_profile()->data().data();
 	int len = ie->qos_profile()->data().length();
 
-	ev->Assign(0, new Val(ie->qos_profile()->alloc_retention_priority(),
-	                      TYPE_COUNT));
-	ev->Assign(1, new StringVal(new BroString(d, len, 0)));
+	ev->Assign(0, val_mgr->Count(ie->qos_profile()->alloc_retention_priority()));
+	ev->Assign(1, make_intrusive<StringVal>(new BroString(d, len, false)));
 
 	return ev;
 	}
@@ -168,21 +171,21 @@ Val* BuildTrafficFlowTemplate(const InformationElement* ie)
 	{
 	const uint8* d = ie->traffic_flow_template()->value().data();
 	int len = ie->traffic_flow_template()->value().length();
-	return new StringVal(new BroString((const u_char*) d, len, 0));
+	return new StringVal(new BroString((const u_char*) d, len, false));
 	}
 
 Val* BuildTriggerID(const InformationElement* ie)
 	{
 	const uint8* d = ie->trigger_id()->value().data();
 	int len = ie->trigger_id()->value().length();
-	return new StringVal(new BroString((const u_char*) d, len, 0));
+	return new StringVal(new BroString((const u_char*) d, len, false));
 	}
 
 Val* BuildOMC_ID(const InformationElement* ie)
 	{
 	const uint8* d = ie->omc_id()->value().data();
 	int len = ie->omc_id()->value().length();
-	return new StringVal(new BroString((const u_char*) d, len, 0));
+	return new StringVal(new BroString((const u_char*) d, len, false));
 	}
 
 Val* BuildPrivateExt(const InformationElement* ie)
@@ -192,25 +195,25 @@ Val* BuildPrivateExt(const InformationElement* ie)
 	const uint8* d = ie->private_ext()->value().data();
 	int len = ie->private_ext()->value().length();
 
-	ev->Assign(0, new Val(ie->private_ext()->id(), TYPE_COUNT));
-	ev->Assign(1, new StringVal(new BroString((const u_char*) d, len, 0)));
+	ev->Assign(0, val_mgr->Count(ie->private_ext()->id()));
+	ev->Assign(1, make_intrusive<StringVal>(new BroString((const u_char*) d, len, false)));
 
 	return ev;
 	}
 
-Val* BuildCause(const InformationElement* ie)
+static IntrusivePtr<Val> BuildCause(const InformationElement* ie)
 	{
-	return new Val(ie->cause()->value(), TYPE_COUNT);
+	return val_mgr->Count(ie->cause()->value());
 	}
 
-Val* BuildReorderReq(const InformationElement* ie)
+static IntrusivePtr<Val> BuildReorderReq(const InformationElement* ie)
 	{
-	return new Val(ie->reorder_req()->req(), TYPE_BOOL);
+	return val_mgr->Bool(ie->reorder_req()->req());
 	}
 
-Val* BuildChargingID(const InformationElement* ie)
+static IntrusivePtr<Val> BuildChargingID(const InformationElement* ie)
 	{
-	return new Val(ie->charging_id()->value(), TYPE_COUNT);;
+	return val_mgr->Count(ie->charging_id()->value());;
 	}
 
 Val* BuildChargingGatewayAddr(const InformationElement* ie)
@@ -225,16 +228,16 @@ Val* BuildChargingGatewayAddr(const InformationElement* ie)
 		return 0;
 	}
 
-Val* BuildTeardownInd(const InformationElement* ie)
+static IntrusivePtr<Val> BuildTeardownInd(const InformationElement* ie)
 	{
-	return new Val(ie->teardown_ind()->ind(), TYPE_BOOL);
+	return val_mgr->Bool(ie->teardown_ind()->ind());
 	}
 
 void CreatePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
 	{
 	if ( ! ::gtpv1_create_pdp_ctx_request ) return;
 
-	RecordVal* rv = new RecordVal(
+	auto rv = make_intrusive<RecordVal>(
 	  BifType::Record::gtp_create_pdp_ctx_request_elements);
 
 	const vector<InformationElement *> * v = pdu->create_pdp_ctx_request();
@@ -320,13 +323,13 @@ void CreatePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
 			rv->Assign(21, BuildPrivateExt(ie));
 			break;
 		default:
-			a->Weird(fmt("gtp_invalid_info_element_%d", (*v)[i]->type()));
+			a->Weird("gtp_invalid_info_element", fmt("%d", (*v)[i]->type()));
 			break;
 		}
 		}
 
-	BifEvent::generate_gtpv1_create_pdp_ctx_request(a, a->Conn(),
-	                                                BuildGTPv1Hdr(pdu), rv);
+	BifEvent::enqueue_gtpv1_create_pdp_ctx_request(a, a->Conn(),
+	                                               BuildGTPv1Hdr(pdu), std::move(rv));
 	}
 
 void CreatePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
@@ -334,7 +337,7 @@ void CreatePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
 	if ( ! ::gtpv1_create_pdp_ctx_response )
 	    return;
 
-	RecordVal* rv = new RecordVal(
+	auto rv = make_intrusive<RecordVal>(
 	  BifType::Record::gtp_create_pdp_ctx_response_elements);
 
 	const vector<InformationElement *> * v = pdu->create_pdp_ctx_response();
@@ -389,13 +392,13 @@ void CreatePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
 			rv->Assign(12, BuildPrivateExt(ie));
 			break;
 		default:
-			a->Weird(fmt("gtp_invalid_info_element_%d", (*v)[i]->type()));
+			a->Weird("gtp_invalid_info_element", fmt("%d", (*v)[i]->type()));
 			break;
 		}
 		}
 
-	BifEvent::generate_gtpv1_create_pdp_ctx_response(a, a->Conn(),
-	                                                 BuildGTPv1Hdr(pdu), rv);
+	BifEvent::enqueue_gtpv1_create_pdp_ctx_response(a, a->Conn(),
+	                                                BuildGTPv1Hdr(pdu), std::move(rv));
 	}
 
 void UpdatePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
@@ -403,7 +406,7 @@ void UpdatePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
 	if ( ! ::gtpv1_update_pdp_ctx_request )
 	    return;
 
-	RecordVal* rv = new RecordVal(
+	auto rv = make_intrusive<RecordVal>(
 	  BifType::Record::gtp_update_pdp_ctx_request_elements);
 
 	const vector<InformationElement *> * v = pdu->update_pdp_ctx_request();
@@ -467,13 +470,13 @@ void UpdatePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
 			rv->Assign(15, BuildEndUserAddr(ie));
 			break;
 		default:
-			a->Weird(fmt("gtp_invalid_info_element_%d", (*v)[i]->type()));
+			a->Weird("gtp_invalid_info_element", fmt("%d", (*v)[i]->type()));
 			break;
 		}
 		}
 
-	BifEvent::generate_gtpv1_update_pdp_ctx_request(a, a->Conn(),
-	                                                BuildGTPv1Hdr(pdu), rv);
+	BifEvent::enqueue_gtpv1_update_pdp_ctx_request(a, a->Conn(),
+	                                               BuildGTPv1Hdr(pdu), std::move(rv));
 	}
 
 void UpdatePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
@@ -481,7 +484,7 @@ void UpdatePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
 	if ( ! ::gtpv1_update_pdp_ctx_response )
 	    return;
 
-	RecordVal* rv = new RecordVal(
+	auto rv = make_intrusive<RecordVal>(
 	  BifType::Record::gtp_update_pdp_ctx_response_elements);
 
 	const vector<InformationElement *> * v = pdu->update_pdp_ctx_response();
@@ -527,13 +530,13 @@ void UpdatePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
 			rv->Assign(9, BuildPrivateExt(ie));
 			break;
 		default:
-			a->Weird(fmt("gtp_invalid_info_element_%d", (*v)[i]->type()));
+			a->Weird("gtp_invalid_info_element", fmt("%d", (*v)[i]->type()));
 			break;
 		}
 		}
 
-	BifEvent::generate_gtpv1_update_pdp_ctx_response(a, a->Conn(),
-	                                                 BuildGTPv1Hdr(pdu), rv);
+	BifEvent::enqueue_gtpv1_update_pdp_ctx_response(a, a->Conn(),
+	                                                BuildGTPv1Hdr(pdu), std::move(rv));
 	}
 
 void DeletePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
@@ -541,7 +544,7 @@ void DeletePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
 	if ( ! ::gtpv1_delete_pdp_ctx_request )
 	    return;
 
-	RecordVal* rv = new RecordVal(
+	auto rv = make_intrusive<RecordVal>(
 	  BifType::Record::gtp_delete_pdp_ctx_request_elements);
 
 	const vector<InformationElement *> * v = pdu->delete_pdp_ctx_request();
@@ -561,13 +564,13 @@ void DeletePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
 			rv->Assign(2, BuildPrivateExt(ie));
 			break;
 		default:
-			a->Weird(fmt("gtp_invalid_info_element_%d", (*v)[i]->type()));
+			a->Weird("gtp_invalid_info_element", fmt("%d", (*v)[i]->type()));
 			break;
 		}
 		}
 
-	BifEvent::generate_gtpv1_delete_pdp_ctx_request(a, a->Conn(),
-	                                                BuildGTPv1Hdr(pdu), rv);
+	BifEvent::enqueue_gtpv1_delete_pdp_ctx_request(a, a->Conn(),
+	                                               BuildGTPv1Hdr(pdu), std::move(rv));
 	}
 
 void DeletePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
@@ -575,7 +578,7 @@ void DeletePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
 	if ( ! ::gtpv1_delete_pdp_ctx_response )
 	    return;
 
-	RecordVal* rv = new RecordVal(
+	auto rv = make_intrusive<RecordVal>(
 	  BifType::Record::gtp_delete_pdp_ctx_response_elements);
 
 	const vector<InformationElement *> * v = pdu->delete_pdp_ctx_response();
@@ -592,13 +595,13 @@ void DeletePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
 			rv->Assign(1, BuildPrivateExt(ie));
 			break;
 		default:
-			a->Weird(fmt("gtp_invalid_info_element_%d", (*v)[i]->type()));
+			a->Weird("gtp_invalid_info_element", fmt("%d", (*v)[i]->type()));
 			break;
 		}
 		}
 
-	BifEvent::generate_gtpv1_delete_pdp_ctx_response(a, a->Conn(),
-	                                                 BuildGTPv1Hdr(pdu), rv);
+	BifEvent::enqueue_gtpv1_delete_pdp_ctx_response(a, a->Conn(),
+	                                                BuildGTPv1Hdr(pdu), std::move(rv));
 	}
 %}
 
@@ -676,7 +679,7 @@ flow GTPv1_Flow(is_orig: bool)
 			}
 
 		if ( ::gtpv1_message )
-			BifEvent::generate_gtpv1_message(a, c, BuildGTPv1Hdr(pdu));
+			BifEvent::enqueue_gtpv1_message(a, c, BuildGTPv1Hdr(pdu));
 
 		switch ( ${pdu.msg_type} ) {
 		case 16:
@@ -756,8 +759,8 @@ flow GTPv1_Flow(is_orig: bool)
 			}
 
 		if ( ::gtpv1_g_pdu_packet )
-			BifEvent::generate_gtpv1_g_pdu_packet(a, c, BuildGTPv1Hdr(pdu),
-			                                      inner->BuildPktHdrVal());
+			BifEvent::enqueue_gtpv1_g_pdu_packet(a, c, BuildGTPv1Hdr(pdu),
+			                                     {AdoptRef{}, inner->BuildPktHdrVal()});
 
 		EncapsulatingConn ec(c, BifEnum::Tunnel::GTPv1);
 
@@ -768,4 +771,3 @@ flow GTPv1_Flow(is_orig: bool)
 	};
 
 refine typeattr GTPv1_Header += &let { proc_gtpv1 = $context.flow.process_gtpv1(this); };
-

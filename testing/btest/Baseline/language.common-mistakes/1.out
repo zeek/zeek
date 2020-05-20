@@ -1,0 +1,4 @@
+expression error in ./1.zeek, line 9: field value missing (mr$f)
+bar start
+foo start
+other zeek_init

@@ -1,0 +1,11 @@
+warning in /Users/jon/projects/bro/bro/scripts/policy/protocols/dhcp/deprecated_events.zeek, line 245: deprecated (dhcp_discover)
+warning in /Users/jon/projects/bro/bro/scripts/policy/protocols/dhcp/deprecated_events.zeek, line 248: deprecated (dhcp_offer)
+warning in /Users/jon/projects/bro/bro/scripts/policy/protocols/dhcp/deprecated_events.zeek, line 251: deprecated (dhcp_request)
+warning in /Users/jon/projects/bro/bro/scripts/policy/protocols/dhcp/deprecated_events.zeek, line 254: deprecated (dhcp_decline)
+warning in /Users/jon/projects/bro/bro/scripts/policy/protocols/dhcp/deprecated_events.zeek, line 257: deprecated (dhcp_ack)
+warning in /Users/jon/projects/bro/bro/scripts/policy/protocols/dhcp/deprecated_events.zeek, line 260: deprecated (dhcp_nak)
+warning in /Users/jon/projects/bro/bro/scripts/policy/protocols/dhcp/deprecated_events.zeek, line 263: deprecated (dhcp_release)
+warning in /Users/jon/projects/bro/bro/scripts/policy/protocols/dhcp/deprecated_events.zeek, line 266: deprecated (dhcp_inform)
+warning in /Users/jon/projects/bro/bro/scripts/policy/protocols/smb/__load__.zeek, line 1: deprecated script loaded from /Users/jon/projects/bro/bro/scripts/broxygen/__load__.zeek:10 "Use '@load base/protocols/smb' instead"
+error in /Users/jon/projects/bro/bro/scripts/policy/frameworks/control/controller.zeek, line 22: The '' control command is unknown.
+<params>, line 1: received termination signal

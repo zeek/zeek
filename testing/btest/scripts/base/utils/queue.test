@@ -1,10 +1,10 @@
-# @TEST-EXEC: bro -b %INPUT > output
+# @TEST-EXEC: zeek -b %INPUT > output
 # @TEST-EXEC: btest-diff output
 
 # This is loaded by default
 @load base/utils/queue
 
-event bro_init()
+event zeek_init()
 	{
 	local q = Queue::init([$max_len=2]);
 	Queue::put(q, 1);

@@ -21,7 +21,7 @@ void File_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
 
-	int n = min(len, BUFFER_SIZE - buffer_len);
+	int n = std::min(len, BUFFER_SIZE - buffer_len);
 
 	if ( n )
 		{
@@ -40,7 +40,7 @@ void File_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		                                orig, file_id_resp);
 	}
 
-void File_Analyzer::Undelivered(uint64 seq, int len, bool orig)
+void File_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
 	TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 
@@ -75,12 +75,14 @@ void File_Analyzer::Identify()
 	RuleMatcher::MIME_Matches matches;
 	file_mgr->DetectMIME(reinterpret_cast<const u_char*>(buffer), buffer_len,
 	                     &matches);
-	string match = matches.empty() ? "<unknown>"
+	std::string match = matches.empty() ? "<unknown>"
 	                               : *(matches.begin()->second.begin());
-	val_list* vl = new val_list;
-	vl->append(BuildConnVal());
-	vl->append(new StringVal(buffer_len, buffer));
-	vl->append(new StringVal("<unknown>"));
-	vl->append(new StringVal(match));
-	ConnectionEvent(file_transferred, vl);
+
+	if ( file_transferred )
+		EnqueueConnEvent(file_transferred,
+			ConnVal(),
+			make_intrusive<StringVal>(buffer_len, buffer),
+			make_intrusive<StringVal>("<unknown>"),
+			make_intrusive<StringVal>(match)
+		);
 	}

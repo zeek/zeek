@@ -11,11 +11,11 @@
 ##
 ## func: The requested function, as specified by the protocol.
 ##
-## .. bro:see:: ncp_reply
+## .. zeek:see:: ncp_reply
 ##
-## .. todo:: Bro's current default configuration does not activate the protocol
+## .. todo:: Zeek's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to
+##    been ported. To still enable this event, one needs to
 ##    register a port for it or add a DPD payload signature.
 event ncp_request%(c: connection, frame_type: count, length: count, func: count%);
 
@@ -36,11 +36,11 @@ event ncp_request%(c: connection, frame_type: count, length: count, func: count%
 ##
 ## completion_code: The reply's completion code, as specified by the protocol.
 ##
-## .. bro:see:: ncp_request
+## .. zeek:see:: ncp_request
 ##
-## .. todo:: Bro's current default configuration does not activate the protocol
+## .. todo:: Zeek's current default configuration does not activate the protocol
 ##    analyzer that generates this event; the corresponding script has not yet
-##    been ported to Bro 2.x. To still enable this event, one needs to
+##    been ported. To still enable this event, one needs to
 ##    register a port for it or add a DPD payload signature.
 event ncp_reply%(c: connection, frame_type: count, length: count, req_frame: count, req_func: count, completion_code: count%);
 

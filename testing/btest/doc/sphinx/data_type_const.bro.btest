@@ -1,1 +1,0 @@
-@TEST-EXEC: btest-rst-cmd bro -b ${DOC_ROOT}/scripting/data_type_const.bro

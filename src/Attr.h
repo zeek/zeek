@@ -1,9 +1,10 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef attr_h
-#define attr_h
+#pragma once
 
 #include "Obj.h"
+#include "BroList.h"
+#include "IntrusivePtr.h"
 
 class Expr;
 
@@ -15,49 +16,38 @@ typedef enum {
 	ATTR_OPTIONAL,
 	ATTR_DEFAULT,
 	ATTR_REDEF,
-	ATTR_ROTATE_INTERVAL,
-	ATTR_ROTATE_SIZE,
 	ATTR_ADD_FUNC,
 	ATTR_DEL_FUNC,
 	ATTR_EXPIRE_FUNC,
 	ATTR_EXPIRE_READ,
 	ATTR_EXPIRE_WRITE,
 	ATTR_EXPIRE_CREATE,
-	ATTR_PERSISTENT,
-	ATTR_SYNCHRONIZED,
-	ATTR_ENCRYPT,
 	ATTR_RAW_OUTPUT,
-	ATTR_MERGEABLE,
 	ATTR_PRIORITY,
 	ATTR_GROUP,
 	ATTR_LOG,
 	ATTR_ERROR_HANDLER,
 	ATTR_TYPE_COLUMN,	// for input framework
 	ATTR_TRACKED,	// hidden attribute, tracked by NotifierRegistry
+	ATTR_ON_CHANGE, // for table change tracking
 	ATTR_DEPRECATED,
 #define NUM_ATTRS (int(ATTR_DEPRECATED) + 1)
 } attr_tag;
 
-class Attr : public BroObj {
+class Attr final : public BroObj {
 public:
-	explicit Attr(attr_tag t, Expr* e = 0);
+	Attr(attr_tag t, IntrusivePtr<Expr> e);
+	explicit Attr(attr_tag t);
 	~Attr() override;
 
 	attr_tag Tag() const	{ return tag; }
-	Expr* AttrExpr() const	{ return expr; }
+	Expr* AttrExpr() const	{ return expr.get(); }
 
-	// Up to the caller to decide if previous expr can be unref'd since it may
-	// not always be safe; e.g. expressions (at time of writing) don't always
-	// keep careful track of referencing their operands, so doing something
-	// like SetAttrExpr(coerce(AttrExpr())) must not completely unref the
-	// previous expr as the new expr depends on it.
-	void SetAttrExpr(Expr* e) { expr = e; }
-
-	int RedundantAttrOkay() const
-		{ return tag == ATTR_REDEF || tag == ATTR_OPTIONAL; }
+	template<typename E>
+	void SetAttrExpr(E&& e) { expr = std::forward<E>(e); }
 
 	void Describe(ODesc* d) const override;
-	void DescribeReST(ODesc* d) const;
+	void DescribeReST(ODesc* d, bool shorten = false) const;
 
 	bool operator==(const Attr& other) const
 		{
@@ -77,16 +67,16 @@ protected:
 	void AddTag(ODesc* d) const;
 
 	attr_tag tag;
-	Expr* expr;
+	IntrusivePtr<Expr> expr;
 };
 
 // Manages a collection of attributes.
-class Attributes : public BroObj {
+class Attributes final : public BroObj {
 public:
-	Attributes(attr_list* a, BroType* t, bool in_record);
+	Attributes(attr_list* a, IntrusivePtr<BroType> t, bool in_record, bool is_global);
 	~Attributes() override;
 
-	void AddAttr(Attr* a);
+	void AddAttr(IntrusivePtr<Attr> a);
 	void AddAttrs(Attributes* a);	// Unref's 'a' when done
 
 	Attr* FindAttr(attr_tag t) const;
@@ -94,24 +84,17 @@ public:
 	void RemoveAttr(attr_tag t);
 
 	void Describe(ODesc* d) const override;
-	void DescribeReST(ODesc* d) const;
+	void DescribeReST(ODesc* d, bool shorten = false) const;
 
 	attr_list* Attrs()	{ return attrs; }
-
-	bool Serialize(SerialInfo* info) const;
-	static Attributes* Unserialize(UnserialInfo* info);
 
 	bool operator==(const Attributes& other) const;
 
 protected:
-	Attributes() : type(), attrs(), in_record()	{ }
 	void CheckAttr(Attr* attr);
 
-	DECLARE_SERIAL(Attributes);
-
-	BroType* type;
+	IntrusivePtr<BroType> type;
 	attr_list* attrs;
 	bool in_record;
+	bool global_var;
 };
-
-#endif

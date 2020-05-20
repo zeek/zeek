@@ -1,21 +1,23 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <typeinfo>
+#include "BloomFilter.h"
+
 #include <cmath>
 #include <limits>
 
-#include "BloomFilter.h"
+#include <broker/data.hh>
+#include <broker/error.hh>
 
 #include "CounterVector.h"
-#include "Serializer.h"
 
 #include "../util.h"
+#include "../Reporter.h"
 
 using namespace probabilistic;
 
 BloomFilter::BloomFilter()
 	{
-	hasher = 0;
+	hasher = nullptr;
 	}
 
 BloomFilter::BloomFilter(const Hasher* arg_hasher)
@@ -28,29 +30,53 @@ BloomFilter::~BloomFilter()
 	delete hasher;
 	}
 
-bool BloomFilter::Serialize(SerialInfo* info) const
+broker::expected<broker::data> BloomFilter::Serialize() const
 	{
-	return SerialObj::Serialize(info);
+	auto h = hasher->Serialize();
+
+	if ( ! h )
+		return broker::ec::invalid_data; // Cannot serialize
+
+	auto d = DoSerialize();
+
+	if ( ! d )
+		return broker::ec::invalid_data; // Cannot serialize
+
+	return {broker::vector{static_cast<uint64_t>(Type()), std::move(*h), std::move(*d)}};
 	}
 
-BloomFilter* BloomFilter::Unserialize(UnserialInfo* info)
+std::unique_ptr<BloomFilter> BloomFilter::Unserialize(const broker::data& data)
 	{
-	return reinterpret_cast<BloomFilter*>(SerialObj::Unserialize(info, SER_BLOOMFILTER));
+	auto v = caf::get_if<broker::vector>(&data);
+
+	if ( ! (v && v->size() == 3) )
+		return nullptr;
+
+	auto type = caf::get_if<uint64_t>(&(*v)[0]);
+	if ( ! type )
+		return nullptr;
+
+	auto hasher_ = Hasher::Unserialize((*v)[1]);
+	if ( ! hasher_ )
+		return nullptr;
+
+	std::unique_ptr<BloomFilter> bf;
+
+	switch ( *type ) {
+	case Basic:
+		bf = std::unique_ptr<BloomFilter>(new BasicBloomFilter());
+		break;
+
+	case Counting:
+		bf = std::unique_ptr<BloomFilter>(new CountingBloomFilter());
+		break;
 	}
 
-bool BloomFilter::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_BLOOMFILTER, SerialObj);
+	if ( ! bf->DoUnserialize((*v)[2]) )
+		return nullptr;
 
-	return hasher->Serialize(info);
-	}
-
-bool BloomFilter::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(SerialObj);
-
-	hasher = Hasher::Unserialize(info);
-	return hasher != 0;
+	bf->hasher = hasher_.release();
+	return bf;
 	}
 
 size_t BasicBloomFilter::M(double fp, size_t capacity)
@@ -116,7 +142,7 @@ std::string BasicBloomFilter::InternalState() const
 
 BasicBloomFilter::BasicBloomFilter()
 	{
-	bits = 0;
+	bits = nullptr;
 	}
 
 BasicBloomFilter::BasicBloomFilter(const Hasher* hasher, size_t cells)
@@ -128,21 +154,6 @@ BasicBloomFilter::BasicBloomFilter(const Hasher* hasher, size_t cells)
 BasicBloomFilter::~BasicBloomFilter()
 	{
 	delete bits;
-	}
-
-IMPLEMENT_SERIAL(BasicBloomFilter, SER_BASICBLOOMFILTER)
-
-bool BasicBloomFilter::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_BASICBLOOMFILTER, BloomFilter);
-	return bits->Serialize(info);
-	}
-
-bool BasicBloomFilter::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(BloomFilter);
-	bits = BitVector::Unserialize(info);
-	return (bits != 0);
 	}
 
 void BasicBloomFilter::Add(const HashKey* key)
@@ -166,9 +177,25 @@ size_t BasicBloomFilter::Count(const HashKey* key) const
 	return 1;
 	}
 
+broker::expected<broker::data> BasicBloomFilter::DoSerialize() const
+	{
+	auto b = bits->Serialize();
+	return b;
+	}
+
+bool BasicBloomFilter::DoUnserialize(const broker::data& data)
+	{
+	auto b = BitVector::Unserialize(data);
+	if ( ! b )
+		return false;
+
+	bits = b.release();
+	return true;
+	}
+
 CountingBloomFilter::CountingBloomFilter()
 	{
-	cells = 0;
+	cells = nullptr;
 	}
 
 CountingBloomFilter::CountingBloomFilter(const Hasher* hasher,
@@ -227,24 +254,9 @@ CountingBloomFilter* CountingBloomFilter::Clone() const
 	return copy;
 	}
 
-string CountingBloomFilter::InternalState() const
+std::string CountingBloomFilter::InternalState() const
 	{
 	return fmt("%" PRIu64, cells->Hash());
-	}
-
-IMPLEMENT_SERIAL(CountingBloomFilter, SER_COUNTINGBLOOMFILTER)
-
-bool CountingBloomFilter::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_COUNTINGBLOOMFILTER, BloomFilter);
-	return cells->Serialize(info);
-	}
-
-bool CountingBloomFilter::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(BloomFilter);
-	cells = CounterVector::Unserialize(info);
-	return (cells != 0);
 	}
 
 // TODO: Use partitioning in add/count to allow for reusing CMS bounds.
@@ -271,4 +283,20 @@ size_t CountingBloomFilter::Count(const HashKey* key) const
 		}
 
 	return min;
+	}
+
+broker::expected<broker::data> CountingBloomFilter::DoSerialize() const
+	{
+	auto c = cells->Serialize();
+	return c;
+	}
+
+bool CountingBloomFilter::DoUnserialize(const broker::data& data)
+	{
+	auto c = CounterVector::Unserialize(data);
+	if ( ! c )
+		return false;
+
+	cells = c.release();
+	return true;
 	}

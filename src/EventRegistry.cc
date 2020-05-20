@@ -1,88 +1,74 @@
 #include "EventRegistry.h"
+#include "EventHandler.h"
 #include "RE.h"
-#include "RemoteSerializer.h"
+#include "Reporter.h"
+
+EventRegistry::EventRegistry() = default;
+EventRegistry::~EventRegistry() noexcept = default;
 
 void EventRegistry::Register(EventHandlerPtr handler)
 	{
-	HashKey key(handler->Name());
-	handlers.Insert(&key, handler.Ptr());
+	handlers[std::string(handler->Name())] = std::unique_ptr<EventHandler>(handler.Ptr());
 	}
 
-EventHandler* EventRegistry::Lookup(const char* name)
+EventHandler* EventRegistry::Lookup(const std::string& name)
 	{
-	HashKey key(name);
-	return handlers.Lookup(&key);
+	auto it = handlers.find(name);
+	if ( it != handlers.end() )
+		return it->second.get();
+
+	return nullptr;
 	}
 
-EventRegistry::string_list* EventRegistry::Match(RE_Matcher* pattern)
+EventRegistry::string_list EventRegistry::Match(RE_Matcher* pattern)
 	{
-	string_list* names = new string_list;
+	string_list names;
 
-	IterCookie* c = handlers.InitForIteration();
-
-	HashKey* k;
-	EventHandler* v;
-	while ( (v = handlers.NextEntry(k, c)) )
+	for ( const auto& entry : handlers )
 		{
+		EventHandler* v = entry.second.get();
 		if ( v->LocalHandler() && pattern->MatchExactly(v->Name()) )
-			names->append(v->Name());
-
-		delete k;
+			names.push_back(entry.first);
 		}
 
 	return names;
 	}
 
-EventRegistry::string_list* EventRegistry::UnusedHandlers()
+EventRegistry::string_list EventRegistry::UnusedHandlers()
 	{
-	string_list* names = new string_list;
+	string_list names;
 
-	IterCookie* c = handlers.InitForIteration();
-
-	HashKey* k;
-	EventHandler* v;
-	while ( (v = handlers.NextEntry(k, c)) )
+	for ( const auto& entry : handlers )
 		{
+		EventHandler* v = entry.second.get();
 		if ( v->LocalHandler() && ! v->Used() )
-			names->append(v->Name());
-
-		delete k;
+			names.push_back(entry.first);
 		}
 
 	return names;
 	}
 
-EventRegistry::string_list* EventRegistry::UsedHandlers()
+EventRegistry::string_list EventRegistry::UsedHandlers()
 	{
-	string_list* names = new string_list;
+	string_list names;
 
-	IterCookie* c = handlers.InitForIteration();
-
-	HashKey* k;
-	EventHandler* v;
-	while ( (v = handlers.NextEntry(k, c)) )
+	for ( const auto& entry : handlers )
 		{
+		EventHandler* v = entry.second.get();
 		if ( v->LocalHandler() && v->Used() )
-			names->append(v->Name());
-
-		delete k;
+			names.push_back(entry.first);
 		}
 
 	return names;
 	}
 
-EventRegistry::string_list* EventRegistry::AllHandlers()
+EventRegistry::string_list EventRegistry::AllHandlers()
 	{
-	string_list* names = new string_list;
+	string_list names;
 
-	IterCookie* c = handlers.InitForIteration();
-
-	HashKey* k;
-	EventHandler* v;
-	while ( (v = handlers.NextEntry(k, c)) )
+	for ( const auto& entry : handlers )
 		{
-		names->append(v->Name());
-		delete k;
+		names.push_back(entry.first);
 		}
 
 	return names;
@@ -90,13 +76,9 @@ EventRegistry::string_list* EventRegistry::AllHandlers()
 
 void EventRegistry::PrintDebug()
 	{
-	IterCookie* c = handlers.InitForIteration();
-
-	HashKey* k;
-	EventHandler* v;
-	while ( (v = handlers.NextEntry(k, c)) )
+	for ( const auto& entry : handlers )
 		{
-		delete k;
+		EventHandler* v = entry.second.get();
 		fprintf(stderr, "Registered event %s (%s handler / %s)\n", v->Name(),
 				v->LocalHandler()? "local" : "no",
 				*v ? "active" : "not active"
@@ -104,7 +86,7 @@ void EventRegistry::PrintDebug()
 		}
 	}
 
-void EventRegistry::SetErrorHandler(const char* name)
+void EventRegistry::SetErrorHandler(const std::string& name)
 	{
 	EventHandler* eh = Lookup(name);
 
@@ -114,7 +96,7 @@ void EventRegistry::SetErrorHandler(const char* name)
 		return;
 		}
 
-	reporter->InternalWarning(
-	            "unknown event handler '%s' in SetErrorHandler()", name);
+	reporter->InternalWarning("unknown event handler '%s' in SetErrorHandler()",
+	                          name.c_str());
 	}
 

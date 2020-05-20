@@ -44,4 +44,6 @@ three
 [zero, one, two]
 [s=abc]
 [c=123, r1=[s=xyz]]
+opaque of md5, T
+opaque of sha1, T
 opaque of sha256, T

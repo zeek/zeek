@@ -1,19 +1,18 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef FILE_ANALYSIS_ANALYZER_H
-#define FILE_ANALYSIS_ANALYZER_H
+#pragma once
 
-#include "Val.h"
-#include "NetVar.h"
 #include "Tag.h"
 
-#include "file_analysis/file_analysis.bif.h"
+#include <sys/types.h> // for u_char
+
+class RecordVal;
 
 namespace file_analysis {
 
 class File;
 
-typedef uint32 ID;
+typedef uint32_t ID;
 
 /**
  * Base class for analyzers that can be attached to file_analysis::File objects.
@@ -40,14 +39,14 @@ public:
 		{ }
 
 	/**
-	 * Subclasses may override this metod to receive file data non-sequentially.
+	 * Subclasses may override this method to receive file data non-sequentially.
 	 * @param data points to start of a chunk of file data.
 	 * @param len length in bytes of the chunk of data pointed to by \a data.
 	 * @param offset the byte offset within full file that data chunk starts.
 	 * @return true if the analyzer is still in a valid state to continue
 	 *         receiving data/events or false if it's essentially "done".
 	 */
-	virtual bool DeliverChunk(const u_char* data, uint64 len, uint64 offset)
+	virtual bool DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 		{ return true; }
 
 	/**
@@ -57,7 +56,7 @@ public:
 	 * @return true if the analyzer is still in a valid state to continue
 	 *         receiving data/events or false if it's essentially "done".
 	 */
-	virtual bool DeliverStream(const u_char* data, uint64 len)
+	virtual bool DeliverStream(const u_char* data, uint64_t len)
 		{ return true; }
 
 	/**
@@ -78,7 +77,7 @@ public:
 	 * @return true if the analyzer is still in a valid state to continue
 	 *         receiving data/events or false if it's essentially "done".
 	 */
-	virtual bool Undelivered(uint64 offset, uint64 len)
+	virtual bool Undelivered(uint64_t offset, uint64_t len)
 		{ return true; }
 
 	/**
@@ -147,15 +146,7 @@ protected:
 	 *        tunable options, if any, related to a particular analyzer type.
 	 * @param arg_file the file to which the the analyzer is being attached.
 	 */
-	Analyzer(file_analysis::Tag arg_tag, RecordVal* arg_args, File* arg_file)
-	    : tag(arg_tag),
-	      args(arg_args->Ref()->AsRecordVal()),
-	      file(arg_file),
-	      got_stream_delivery(false),
-	      skip(false)
-		{
-		id = ++id_counter;
-		}
+	Analyzer(file_analysis::Tag arg_tag, RecordVal* arg_args, File* arg_file);
 
 	/**
 	 * Constructor.  Only derived classes are meant to be instantiated.
@@ -167,13 +158,8 @@ protected:
 	 * @param arg_file the file to which the the analyzer is being attached.
 	 */
 	Analyzer(RecordVal* arg_args, File* arg_file)
-	    : tag(),
-	      args(arg_args->Ref()->AsRecordVal()),
-	      file(arg_file),
-	      got_stream_delivery(false),
-	      skip(false)
+	    : Analyzer({}, arg_args, arg_file)
 		{
-		id = ++id_counter;
 		}
 
 private:
@@ -189,5 +175,3 @@ private:
 };
 
 } // namespace file_analysis
-
-#endif

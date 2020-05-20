@@ -1,27 +1,25 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef PLUGIN_PLUGIN_H
-#define PLUGIN_PLUGIN_H
+#pragma once
 
 #include <list>
 #include <string>
 #include <utility>
 
-#include "bro-config.h"
-#include "analyzer/Component.h"
-#include "file_analysis/Component.h"
-#include "iosource/Component.h"
+#include "zeek-config.h"
 #include "logging/WriterBackend.h"
 
 // Increase this when making incompatible changes to the plugin API. Note
 // that the constant is never used in C code. It's picked up on by CMake.
-#define BRO_PLUGIN_API_VERSION 6
+#define BRO_PLUGIN_API_VERSION 7
 
 #define BRO_PLUGIN_BRO_VERSION BRO_VERSION_FUNCTION
 
 class ODesc;
+class Frame;
 class Func;
 class Event;
+template <class T> class IntrusivePtr;
 
 namespace threading {
 struct Field;
@@ -67,18 +65,24 @@ extern const char* hook_name(HookType h);
  * Helper class to capture a plugin's version.
  * */
 struct VersionNumber {
-	int major; //< Major version number;
-	int minor; //< Minor version number;
+	int major; //< Major version number.
+	int minor; //< Minor version number.
+	int patch; //< Patch version number (available since Zeek 3.0).
 
 	/**
 	 *  Constructor.
 	 */
-	VersionNumber()	{ major = minor = -1; }
+	VersionNumber()	{
+		// Major and minor versions are required.
+		major = minor = -1;
+		// Patch version is optional, and set to 0 if not manually set.
+		patch = 0;
+	}
 
 	/**
 	 *  Returns true if the version is set to a non-negative value.
 	 */
-	explicit operator bool() const { return major >= 0 && minor >= 0; }
+	explicit operator bool() const { return major >= 0 && minor >= 0 && patch >= 0; }
 };
 
 /**
@@ -905,5 +909,3 @@ private:
 };
 
 }
-
-#endif

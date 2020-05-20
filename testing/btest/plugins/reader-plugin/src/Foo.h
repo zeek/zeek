@@ -1,6 +1,5 @@
 
-#ifndef BRO_PLUGIN_DEMO_FOO_H
-#define BRO_PLUGIN_DEMO_FOO_H
+#pragma once
 
 #include "input/ReaderBackend.h"
 #include "threading/formatters/Ascii.h"
@@ -24,11 +23,9 @@ protected:
 	virtual bool DoHeartbeat(double network_time, double current_time);
 
 private:
-	string RandomString(const int len);
+	std::string RandomString(const int len);
 	threading::Value* EntryToVal(TypeTag Type, TypeTag subtype);
 	threading::formatter::Ascii* ascii;
 };
 
 } }
-
-#endif

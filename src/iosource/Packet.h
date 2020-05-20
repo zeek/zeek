@@ -1,9 +1,9 @@
-#ifndef packet_h
-#define packet_h
+#pragma once
 
-#include "Desc.h"
-#include "IP.h"
-#include "NetVar.h"
+#include <string>
+
+#include <stdint.h>
+#include <sys/types.h> // for u_char
 
 #if defined(__OpenBSD__)
 #include <net/bpf.h>
@@ -12,24 +12,25 @@ typedef struct bpf_timeval pkt_timeval;
 typedef struct timeval pkt_timeval;
 #endif
 
+class Val;
+class ODesc;
+class IP_Hdr;
+class RecordVal;
+
 /**
  * The Layer 3 type of a packet, as determined by the parsing code in Packet.
+ * This enum is sized as an int32_t to make the Packet structure align
+ * correctly.
  */
-enum Layer3Proto {
+enum Layer3Proto : int32_t {
 	L3_UNKNOWN = -1,	/// Layer 3 type could not be determined.
-	L3_IPV4 = 1,	/// Layer 3 is IPv4.
-	L3_IPV6 = 2,	/// Layer 3 is IPv6.
-	L3_ARP = 3,	/// Layer 3 is ARP.
+	L3_IPV4 = 1,		/// Layer 3 is IPv4.
+	L3_IPV6 = 2,		/// Layer 3 is IPv6.
+	L3_ARP = 3,			/// Layer 3 is ARP.
 };
 
 /**
  * A link-layer packet.
- *
- * Note that for serialization we don't use much of the support provided by
- * the serialization framework. Serialize/Unserialize do all the work by
- * themselves. In particular, Packets aren't derived from SerialObj. They are
- * completely seperate and self-contained entities, and we don't need any of
- * the sophisticated features like object caching.
  */
 class Packet {
 public:
@@ -55,10 +56,10 @@ public:
 	 * @param tag A textual tag to associate with the packet for
 	 * differentiating the input streams.
 	 */
-	Packet(int link_type, pkt_timeval *ts, uint32 caplen,
-	       uint32 len, const u_char *data, int copy = false,
+	Packet(int link_type, pkt_timeval *ts, uint32_t caplen,
+	       uint32_t len, const u_char *data, bool copy = false,
 	       std::string tag = std::string(""))
-	           : data(0), l2_src(0), l2_dst(0)
+	           : data(nullptr), l2_src(nullptr), l2_dst(nullptr)
 	       {
 	       Init(link_type, ts, caplen, len, data, copy, tag);
 	       }
@@ -66,10 +67,10 @@ public:
 	/**
 	 * Default constructor. For internal use only.
 	 */
-	Packet() : data(0), l2_src(0), l2_dst(0)
+	Packet() : data(nullptr), l2_src(nullptr), l2_dst(nullptr)
 		{
 		pkt_timeval ts = {0, 0};
-		Init(0, &ts, 0, 0, 0);
+		Init(0, &ts, 0, 0, nullptr);
 		}
 
 	/**
@@ -103,15 +104,15 @@ public:
 	 * @param tag A textual tag to associate with the packet for
 	 * differentiating the input streams.
 	 */
-	void Init(int link_type, pkt_timeval *ts, uint32 caplen,
-		uint32 len, const u_char *data, int copy = false,
+	void Init(int link_type, pkt_timeval *ts, uint32_t caplen,
+		uint32_t len, const u_char *data, bool copy = false,
 		std::string tag = std::string(""));
 
 	/**
 	 * Returns true if parsing the layer 2 fields failed, including when
 	 * no data was passed into the constructor in the first place.
 	 */
-	bool Layer2Valid()
+	bool Layer2Valid() const
 		{
 		return l2_valid;
 		}
@@ -120,8 +121,7 @@ public:
 	 * Interprets the Layer 3 of the packet as IP and returns a
 	 * correspondign object.
 	 */
-	const IP_Hdr IP() const
-		{ return IP_Hdr((struct ip *) (data + hdr_size), false); }
+	const IP_Hdr IP() const;
 
 	/**
 	 * Returns a \c raw_pkt_hdr RecordVal, which includes layer 2 and
@@ -145,16 +145,6 @@ public:
 	void Describe(ODesc* d) const;
 
 	/**
-	 * Serializes the packet, with standard signature.
-	 */
-	bool Serialize(SerialInfo* info) const;
-
-	/**
-	 * Unserializes the packet, with standard signature.
-	 */
-	static Packet* Unserialize(UnserialInfo* info);
-
-	/**
 	 * Maximal length of a layer 2 address.
 	 */
 	static const int l2_addr_len = 6;
@@ -164,9 +154,9 @@ public:
 	double time;			/// Timestamp reconstituted as float
 	pkt_timeval ts;			/// Capture timestamp
 	const u_char* data;		/// Packet data.
-	uint32 len;			/// Actual length on wire
-	uint32 cap_len;			/// Captured packet length
-	uint32 link_type;		/// pcap link_type (DLT_EN10MB, DLT_RAW, etc)
+	uint32_t len;			/// Actual length on wire
+	uint32_t cap_len;			/// Captured packet length
+	uint32_t link_type;		/// pcap link_type (DLT_EN10MB, DLT_RAW, etc)
 
 	// These are computed from Layer 2 data. These fields are only valid if
 	// Layer2Valid() returns true.
@@ -174,7 +164,7 @@ public:
 	/**
 	 * Layer 2 header size. Valid iff Layer2Valid() returns true.
 	 */
-	uint32 hdr_size;
+	uint32_t hdr_size;
 
 	/**
 	 * Layer 3 protocol identified (if any). Valid iff Layer2Valid()
@@ -186,7 +176,7 @@ public:
 	 * If layer 2 is Ethernet, innermost ethertype field. Valid iff
 	 * Layer2Valid() returns true.
 	 */
-	uint32 eth_type;
+	uint32_t eth_type;
 
 	/**
 	 * Layer 2 source address. Valid iff Layer2Valid() returns true.
@@ -203,23 +193,35 @@ public:
 	 * (Outermost) VLAN tag if any, else 0. Valid iff Layer2Valid()
 	 * returns true.
 	 */
-	uint32 vlan;
+	uint32_t vlan;
 
 	/**
 	 * (Innermost) VLAN tag if any, else 0. Valid iff Layer2Valid()
 	 * returns true.
 	 */
-	uint32 inner_vlan;
+	uint32_t inner_vlan;
+
+	/**
+	 * Indicates whether the layer 2 checksum was validated by the
+	 * hardware/kernel before being received by zeek.
+	 */
+	bool l2_checksummed;
+
+	/**
+	 * Indicates whether the layer 3 checksum was validated by the
+	 * hardware/kernel before being received by zeek.
+	 */
+	bool l3_checksummed;
 
 private:
-	// Calculate layer 2 attributes. Sets
+	// Calculate layer 2 attributes.
 	void ProcessLayer2();
 
 	// Wrapper to generate a packet-level weird.
 	void Weird(const char* name);
 
 	// Renders an MAC address into its ASCII representation.
-	Val *FmtEUI48(const u_char *mac) const;
+	Val* FmtEUI48(const u_char *mac) const;
 
 	// True if we need to delete associated packet memory upon
 	// destruction.
@@ -228,5 +230,3 @@ private:
 	// True if L2 processing succeeded.
 	bool l2_valid;
 };
-
-#endif // packet_h

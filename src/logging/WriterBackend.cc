@@ -16,7 +16,7 @@ using threading::Field;
 
 namespace logging  {
 
-class RotationFinishedMessage : public threading::OutputMessage<WriterFrontend>
+class RotationFinishedMessage final : public threading::OutputMessage<WriterFrontend>
 {
 public:
 	RotationFinishedMessage(WriterFrontend* writer, const char* new_name, const char* old_name,
@@ -25,13 +25,13 @@ public:
 		new_name(copy_string(new_name)), old_name(copy_string(old_name)), open(open),
 		close(close), success(success), terminating(terminating)	{ }
 
-	virtual ~RotationFinishedMessage()
+	~RotationFinishedMessage() override
 		{
 		delete [] new_name;
 		delete [] old_name;
 		}
 
-	virtual bool Process()
+	bool Process() override
 		{
 		return log_mgr->FinishedRotation(Object(), new_name, old_name, open, close, success, terminating);
 		}
@@ -45,22 +45,22 @@ private:
         bool terminating;
 };
 
-class FlushWriteBufferMessage : public threading::OutputMessage<WriterFrontend>
+class FlushWriteBufferMessage final : public threading::OutputMessage<WriterFrontend>
 {
 public:
-        FlushWriteBufferMessage(WriterFrontend* writer)
+	FlushWriteBufferMessage(WriterFrontend* writer)
 		: threading::OutputMessage<WriterFrontend>("FlushWriteBuffer", writer)	{}
 
-	virtual bool Process()	{ Object()->FlushWriteBuffer(); return true; }
+	bool Process() override	{ Object()->FlushWriteBuffer(); return true; }
 };
 
-class DisableMessage : public threading::OutputMessage<WriterFrontend>
+class DisableMessage final : public threading::OutputMessage<WriterFrontend>
 {
 public:
-        DisableMessage(WriterFrontend* writer)
+	DisableMessage(WriterFrontend* writer)
 		: threading::OutputMessage<WriterFrontend>("Disable", writer)	{}
 
-	virtual bool Process()	{ Object()->SetDisable(); return true; }
+	bool Process() override	{ Object()->SetDisable(); return true; }
 };
 
 }
@@ -68,58 +68,6 @@ public:
 // Backend methods.
 
 using namespace logging;
-
-bool WriterBackend::WriterInfo::Read(SerializationFormat* fmt)
-	{
-	int size;
-
-	string tmp_path;
-
-	if ( ! (fmt->Read(&tmp_path, "path") &&
-		fmt->Read(&rotation_base, "rotation_base") &&
-		fmt->Read(&rotation_interval, "rotation_interval") &&
-		fmt->Read(&network_time, "network_time") &&
-		fmt->Read(&size, "config_size")) )
-		return false;
-
-	path = copy_string(tmp_path.c_str());
-
-	config.clear();
-
-	while ( size-- )
-		{
-		string value;
-		string key;
-
-		if ( ! (fmt->Read(&value, "config-value") && fmt->Read(&key, "config-key")) )
-			return false;
-
-		config.insert(std::make_pair(copy_string(value.c_str()), copy_string(key.c_str())));
-		}
-
-	return true;
-	}
-
-
-bool WriterBackend::WriterInfo::Write(SerializationFormat* fmt) const
-	{
-	int size = config.size();
-
-	if ( ! (fmt->Write(path, "path") &&
-		fmt->Write(rotation_base, "rotation_base") &&
-		fmt->Write(rotation_interval, "rotation_interval") &&
-		fmt->Write(network_time, "network_time") &&
-		fmt->Write(size, "config_size")) )
-		return false;
-
-	for ( config_map::const_iterator i = config.begin(); i != config.end(); ++i )
-		{
-		if ( ! (fmt->Write(i->first, "config-value") && fmt->Write(i->second, "config-key")) )
-			return false;
-		}
-
-	return true;
-	}
 
 broker::data WriterBackend::WriterInfo::ToBroker() const
 	{
@@ -173,7 +121,7 @@ bool WriterBackend::WriterInfo::FromBroker(broker::data d)
 WriterBackend::WriterBackend(WriterFrontend* arg_frontend) : MsgThread()
 	{
 	num_fields = 0;
-	fields = 0;
+	fields = nullptr;
 	buffering = true;
 	frontend = arg_frontend;
 	info = new WriterInfo(frontend->Info());
@@ -220,7 +168,7 @@ bool WriterBackend::FinishedRotation(const char* new_name, const char* old_name,
 bool WriterBackend::FinishedRotation()
 	{
 	--rotation_counter;
-	SendOut(new RotationFinishedMessage(frontend, 0, 0, 0, 0, false, false));
+	SendOut(new RotationFinishedMessage(frontend, nullptr, nullptr, 0, 0, false, false));
 	return true;
 	}
 
@@ -231,7 +179,7 @@ void WriterBackend::DisableFrontend()
 
 bool WriterBackend::Init(int arg_num_fields, const Field* const* arg_fields)
 	{
-	SetOSName(Fmt("bro: %s", Name()));
+	SetOSName(Fmt("zk.%s", Name()));
 	num_fields = arg_num_fields;
 	fields = arg_fields;
 

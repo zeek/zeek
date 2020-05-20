@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_RPC_PORTMAP_H
-#define ANALYZER_PROTOCOL_RPC_PORTMAP_H
+#pragma once
 
 #include "RPC.h"
 
@@ -12,11 +11,11 @@ public:
 	explicit PortmapperInterp(analyzer::Analyzer* arg_analyzer) : RPC_Interpreter(arg_analyzer) { }
 
 protected:
-	int RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n) override;
-	int RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status success,
+	bool RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n) override;
+	bool RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status success,
 			   const u_char*& buf, int& n, double start_time,
 			   double last_time, int reply_len) override;
-	uint32 CheckPort(uint32 port);
+	uint32_t CheckPort(uint32_t port);
 
 	void Event(EventHandlerPtr f, Val* request, BifEnum::rpc_status status, Val* reply);
 
@@ -35,6 +34,4 @@ public:
 		{ return new Portmapper_Analyzer(conn); }
 };
 
-} } // namespace analyzer::* 
-
-#endif
+} } // namespace analyzer::*

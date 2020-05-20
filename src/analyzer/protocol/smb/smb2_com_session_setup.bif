@@ -11,7 +11,7 @@
 ##
 ## request: A record containing more information related to the request.
 ##
-## .. bro:see:: smb2_message smb2_session_setup_response
+## .. zeek:see:: smb2_message smb2_session_setup_response
 event smb2_session_setup_request%(c: connection, hdr: SMB2::Header, request: SMB2::SessionSetupRequest%);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
@@ -26,7 +26,7 @@ event smb2_session_setup_request%(c: connection, hdr: SMB2::Header, request: SMB
 ##
 ## response: A record containing more information related to the response.
 ##
-## .. bro:see:: smb2_message smb2_session_setup_request
+## .. zeek:see:: smb2_message smb2_session_setup_request
 event smb2_session_setup_response%(c: connection, hdr: SMB2::Header, response: SMB2::SessionSetupResponse%);
 
 #### Types

@@ -1,19 +1,19 @@
-#include "plugin/Plugin.h"
-
 #include "RFB.h"
+#include "plugin/Plugin.h"
+#include "analyzer/Component.h"
 
 namespace plugin {
-namespace Bro_RFB {
+namespace Zeek_RFB {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("RFB",
 		             ::analyzer::rfb::RFB_Analyzer::InstantiateAnalyzer));
 
 		plugin::Configuration config;
-		config.name = "Bro::RFB";
+		config.name = "Zeek::RFB";
 		config.description = "Parser for rfb (VNC) analyzer";
 		return config;
 		}

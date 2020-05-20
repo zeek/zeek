@@ -1,16 +1,21 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef THREADING_FORMATTER_H
-#define THREADING_FORMATTER_H
+#pragma once
 
-#include "../Desc.h"
-#include "MsgThread.h"
+#include <string>
 
-namespace threading { namespace formatter {
+#include "Type.h"
+#include "SerialTypes.h"
+
+namespace threading {
+
+class MsgThread;
+
+namespace formatter {
 
 /**
   * A thread-safe class for converting values into some textual format. This
-  * is a base class that implements the interface for common 
+  * is a base class that implements the interface for common
   * rendering/parsing code needed by a number of input/output threads.
   */
 class Formatter {
@@ -62,7 +67,7 @@ public:
 	 * @return Returns true on success, false on error. Errors are also
 	 * flagged via the thread.
 	 */
-	virtual bool Describe(ODesc* desc, threading::Value* val, const string& name = "") const = 0;
+	virtual bool Describe(ODesc* desc, threading::Value* val, const std::string& name = "") const = 0;
 
 	/**
 	 * Convert an implementation-specific textual representation of a
@@ -76,7 +81,7 @@ public:
 	 * @return The new value, or null on error. Errors must also be
 	 * flagged via the thread.
 	 */
-	virtual threading::Value* ParseValue(const string& s, const string& name, TypeTag type, TypeTag subtype = TYPE_ERROR) const = 0;
+	virtual threading::Value* ParseValue(const std::string& s, const std::string& name, TypeTag type, TypeTag subtype = TYPE_ERROR) const = 0;
 
 	/**
 	 * Convert an IP address into a string.
@@ -87,7 +92,7 @@ public:
 	 *
 	 * @return An ASCII representation of the address.
 	 */
-	static string Render(const threading::Value::addr_t& addr);
+	static std::string Render(const threading::Value::addr_t& addr);
 
 	/**
 	 * Convert an subnet value into a string.
@@ -98,7 +103,7 @@ public:
 	 *
 	 * @return An ASCII representation of the subnet.
 	 */
-	static string Render(const threading::Value::subnet_t& subnet);
+	static std::string Render(const threading::Value::subnet_t& subnet);
 
 	/**
 	 * Convert a double into a string. This renders the double with Bro's
@@ -110,7 +115,18 @@ public:
 	 *
 	 * @return An ASCII representation of the double.
 	 */
-	static string Render(double d);
+	static std::string Render(double d);
+
+	/**
+	 * Convert a transport protocol into a string.
+	 *
+	 * This is a helper function that formatter implementations may use.
+	 *
+	 * @param proto The transport protocol.
+	 *
+	 * @return An ASCII representation of the protocol.
+	 */
+	static std::string Render(TransportProto proto);
 
 	/**
 	 * Convert a string into a TransportProto. The string must be one of
@@ -123,7 +139,7 @@ public:
 	 * @return The transport protocol, which will be \c TRANSPORT_UNKNOWN
 	 * on error. Errors are also flagged via the thread.
 	 */
-	TransportProto ParseProto(const string &proto) const;
+	TransportProto ParseProto(const std::string &proto) const;
 
 	/**
 	 * Convert a string into a Value::addr_t.
@@ -135,7 +151,7 @@ public:
 	 * @return The address, which will be all-zero on error. Errors are
 	 * also flagged via the thread.
 	 */
-	threading::Value::addr_t ParseAddr(const string &addr) const;
+	threading::Value::addr_t ParseAddr(const std::string &addr) const;
 
 protected:
 	/**
@@ -149,5 +165,3 @@ private:
 };
 
 }}
-
-#endif /* THREADING_FORMATTER_H */

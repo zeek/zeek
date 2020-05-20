@@ -1,10 +1,15 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef PROBABILISTIC_CARDINALITYCOUNTER_H
-#define PROBABILISTIC_CARDINALITYCOUNTER_H
+#pragma once
+
+#include <broker/expected.hh>
+
+#include <memory>
+#include <vector>
 
 #include <stdint.h>
-#include <OpaqueVal.h>
+
+namespace broker { class data; }
 
 namespace probabilistic {
 
@@ -38,7 +43,7 @@ public:
 	/**
 	 * Move-Constructor
 	 */
-	CardinalityCounter(CardinalityCounter&& o);
+	CardinalityCounter(CardinalityCounter&& o) noexcept;
 
 	/**
 	 * Constructor for a known number of buckets.
@@ -84,24 +89,8 @@ public:
 	 */
 	bool Merge(CardinalityCounter* c);
 
-	/**
-	 * Serializes the cardinality counter.
-	 *
-	 * @param info The serializaton information to use.
-	 *
-	 * @return True if successful.
-	 */
-	bool Serialize(SerialInfo* info) const;
-
-	/**
-	 * Unserializes a cardinality counter.
-	 *
-	 * @param info The serializaton information to use.
-	 *
-	 * @return The unserialized cardinality counter, or null if an error
-	 * 	   occured.
-	 */
-	static CardinalityCounter* Unserialize(UnserialInfo* info);
+	broker::expected<broker::data> Serialize() const;
+	static std::unique_ptr<CardinalityCounter> Unserialize(const broker::data& data);
 
 protected:
 	/**
@@ -198,5 +187,3 @@ private:
 };
 
 }
-
-#endif

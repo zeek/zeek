@@ -1,47 +1,41 @@
 // Debugging support for Bro policy files.
 
-#ifndef debug_h
-#define debug_h
+#pragma once
+
+#include "Obj.h"
+#include "Queue.h"
+#include "StmtEnums.h"
 
 #include <vector>
 #include <map>
 #include <string>
-using namespace std;
 
-
+template <class T> class IntrusivePtr;
+class Val;
 class Stmt;
 
 // This needs to be defined before we do the includes that come after it.
 enum ParseLocationRecType { plrUnknown, plrFileAndLine, plrFunction };
 struct ParseLocationRec {
 	ParseLocationRecType type;
+	int32_t line;
 	Stmt* stmt;
 	const char* filename;
-	int line;
 };
 
-#include "Expr.h"
-#include "Var.h"
-#include "Frame.h"
-#include "Queue.h"
-#include "Dict.h"
-#include "StmtEnums.h"
-#include "DbgBreakpoint.h"
-
 class StmtLocMapping;
-declare(PQueue,StmtLocMapping);
-typedef PQueue(StmtLocMapping) Filemap; // mapping for a single file
-declare(PDict,Filemap);
+typedef PQueue<StmtLocMapping> Filemap; // mapping for a single file
 
+class Frame;
 class DbgBreakpoint;
 class DbgWatch;
 class DbgDisplay;
 class StmtHashFn;
 
-typedef map<int, DbgBreakpoint*> BPIDMapType;
-typedef multimap<const Stmt*, DbgBreakpoint*> BPMapType;
+typedef std::map<int, DbgBreakpoint*> BPIDMapType;
+typedef std::multimap<const Stmt*, DbgBreakpoint*> BPMapType;
 
-extern string current_module;
+extern std::string current_module;
 
 class TraceState {
 public:
@@ -91,8 +85,8 @@ public:
 	Location last_loc;	// used by 'list'; the last location listed
 
 	BPIDMapType breakpoints;	// BPID -> Breakpoint
-	vector<DbgWatch*> watches;
-	vector<DbgDisplay*> displays;
+	std::vector<DbgWatch*> watches;
+	std::vector<DbgDisplay*> displays;
 	BPMapType breakpoint_map;	// maps Stmt -> Breakpoints on it
 
 protected:
@@ -138,7 +132,7 @@ extern DebuggerState g_debugger_state;
 // Multiple results can be returned depending on the input, but always
 // at least 1.
 
-vector<ParseLocationRec> parse_location_string(const string& s);
+std::vector<ParseLocationRec> parse_location_string(const std::string& s);
 
 // ### TODO: Add a bunch of hook functions for various events
 //   e.g. variable changed, breakpoint hit, etc.
@@ -155,7 +149,7 @@ bool post_execute_stmt(Stmt* stmt, Frame* f, Val* result, stmt_flow_type* flow);
 // Returns 1 if successful, 0 otherwise.
 // If cmdfile is non-nil, it contains the location of a file of commands
 // to be executed as debug commands.
-int dbg_init_debugger(const char* cmdfile = 0);
+int dbg_init_debugger(const char* cmdfile = nullptr);
 int dbg_shutdown_debugger();
 
 // Returns 1 if successful, 0 otherwise.
@@ -166,7 +160,7 @@ int dbg_handle_debug_input();	// read a line and then have it executed
 int dbg_execute_command(const char* cmd);
 
 // Interactive expression evaluation.
-Val* dbg_eval_expr(const char* expr);
+IntrusivePtr<Val> dbg_eval_expr(const char* expr);
 
 // Extra debugging facilities.
 // TODO: current connections, memory allocated, other internal data structures.
@@ -174,13 +168,11 @@ Val* dbg_eval_expr(const char* expr);
 int dbg_read_internal_state();
 
 // Get line that looks like "In FnFoo(arg = val) at File:Line".
-string get_context_description(const Stmt* stmt, const Frame* frame);
+std::string get_context_description(const Stmt* stmt, const Frame* frame);
 
 extern Frame* g_dbg_locals;	// variables created within debugger context
 
-extern PDict(Filemap) g_dbgfilemaps; // filename => filemap
+extern std::map<std::string, Filemap*> g_dbgfilemaps; // filename => filemap
 
 // Perhaps add a code/priority argument to do selective output.
 int debug_msg(const char* fmt, ...) __attribute__ ((format (printf, 1, 2)));
-
-#endif

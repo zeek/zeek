@@ -1,16 +1,14 @@
 include(InstallPackageConfigFile)
 
-install(DIRECTORY ./ DESTINATION ${BRO_SCRIPT_INSTALL_PATH} FILES_MATCHING
+install(DIRECTORY ./ DESTINATION ${ZEEK_SCRIPT_INSTALL_PATH} FILES_MATCHING
         PATTERN "site/local*" EXCLUDE
-        PATTERN "test-all-policy.bro" EXCLUDE
-        PATTERN "*.bro"
+        PATTERN "*.zeek"
         PATTERN "*.sig"
         PATTERN "*.fp"
 )
 
-# Install all local* scripts as config files since they are meant to be
-# user modify-able.
+# Install local script as a config file since it's meant to be modified directly.
 InstallPackageConfigFile(
-    ${CMAKE_CURRENT_SOURCE_DIR}/site/local.bro
-    ${BRO_SCRIPT_INSTALL_PATH}/site
-    local.bro)
+    ${CMAKE_CURRENT_SOURCE_DIR}/site/local.zeek
+    ${ZEEK_SCRIPT_INSTALL_PATH}/site
+    local.zeek)

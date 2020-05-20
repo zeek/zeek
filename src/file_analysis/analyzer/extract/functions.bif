@@ -4,16 +4,16 @@ module FileExtract;
 
 %%{
 #include "file_analysis/Manager.h"
+#include "file_analysis/file_analysis.bif.h"
 %%}
 
-## :bro:see:`FileExtract::set_limit`.
+## :zeek:see:`FileExtract::set_limit`.
 function FileExtract::__set_limit%(file_id: string, args: any, n: count%): bool
-    %{
+	%{
 	using BifType::Record::Files::AnalyzerArgs;
-	RecordVal* rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
-    bool result = file_mgr->SetExtractionLimit(file_id->CheckString(), rv, n);
-	Unref(rv);
-    return new Val(result, TYPE_BOOL);
-    %}
+	auto rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
+	bool result = file_mgr->SetExtractionLimit(file_id->CheckString(), rv.get(), n);
+	return val_mgr->Bool(result);
+	%}
 
 module GLOBAL;

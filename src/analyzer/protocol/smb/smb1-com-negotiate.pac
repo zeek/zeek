@@ -15,15 +15,17 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb1_negotiate_request )
 			{
-			VectorVal* dialects = new VectorVal(string_vec);
+			auto dialects = make_intrusive<VectorVal>(string_vec);
+
 			for ( unsigned int i = 0; i < ${val.dialects}->size(); ++i )
 				{
 				StringVal* dia = smb_string2stringval((*${val.dialects})[i]->name());
 				dialects->Assign(i, dia);
 				}
-			BifEvent::generate_smb1_negotiate_request(bro_analyzer(), bro_analyzer()->Conn(),
-			                                         BuildHeaderVal(header),
-			                                         dialects);
+
+			BifEvent::enqueue_smb1_negotiate_request(bro_analyzer(), bro_analyzer()->Conn(),
+			                                         SMBHeaderVal(header),
+			                                         std::move(dialects));
 			}
 
 		return true;
@@ -33,7 +35,7 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb1_negotiate_response )
 			{
-			RecordVal* response = new RecordVal(BifType::Record::SMB1::NegotiateResponse);
+			auto response = make_intrusive<RecordVal>(BifType::Record::SMB1::NegotiateResponse);
 
 			RecordVal* core;
 			RecordVal* lanman;
@@ -46,32 +48,32 @@ refine connection SMB_Conn += {
 				{
 				case 0x01:
 					core = new RecordVal(BifType::Record::SMB1::NegotiateResponseCore);
-					core->Assign(0, new Val(${val.dialect_index}, TYPE_COUNT));
+					core->Assign(0, val_mgr->Count(${val.dialect_index}));
 
 					response->Assign(0, core);
 					break;
 
 				case 0x0d:
 					security = new RecordVal(BifType::Record::SMB1::NegotiateResponseSecurity);
-					security->Assign(0, new Val(${val.lanman.security_user_level}, TYPE_BOOL));
-					security->Assign(1, new Val(${val.lanman.security_challenge_response}, TYPE_BOOL));
+					security->Assign(0, val_mgr->Bool(${val.lanman.security_user_level}));
+					security->Assign(1, val_mgr->Bool(${val.lanman.security_challenge_response}));
 
 					raw = new RecordVal(BifType::Record::SMB1::NegotiateRawMode);
-					raw->Assign(0, new Val(${val.lanman.raw_read_supported}, TYPE_BOOL));
-					raw->Assign(1, new Val(${val.lanman.raw_write_supported}, TYPE_BOOL));
+					raw->Assign(0, val_mgr->Bool(${val.lanman.raw_read_supported}));
+					raw->Assign(1, val_mgr->Bool(${val.lanman.raw_write_supported}));
 
 					lanman = new RecordVal(BifType::Record::SMB1::NegotiateResponseLANMAN);
-					lanman->Assign(0, new Val(${val.word_count}, TYPE_COUNT));
-					lanman->Assign(1, new Val(${val.dialect_index}, TYPE_COUNT));
+					lanman->Assign(0, val_mgr->Count(${val.word_count}));
+					lanman->Assign(1, val_mgr->Count(${val.dialect_index}));
 					lanman->Assign(2, security);
-					lanman->Assign(3, new Val(${val.lanman.max_buffer_size}, TYPE_COUNT));
-					lanman->Assign(4, new Val(${val.lanman.max_mpx_count}, TYPE_COUNT));
+					lanman->Assign(3, val_mgr->Count(${val.lanman.max_buffer_size}));
+					lanman->Assign(4, val_mgr->Count(${val.lanman.max_mpx_count}));
 
-					lanman->Assign(5, new Val(${val.lanman.max_number_vcs}, TYPE_COUNT));
+					lanman->Assign(5, val_mgr->Count(${val.lanman.max_number_vcs}));
 					lanman->Assign(6, raw);
-					lanman->Assign(7, new Val(${val.lanman.session_key}, TYPE_COUNT));
+					lanman->Assign(7, val_mgr->Count(${val.lanman.session_key}));
 					lanman->Assign(8, time_from_lanman(${val.lanman.server_time}, ${val.lanman.server_date}, ${val.lanman.server_tz}));
-					lanman->Assign(9, bytestring_to_val(${val.lanman.encryption_key}));
+					lanman->Assign(9, to_stringval(${val.lanman.encryption_key}));
 
 					lanman->Assign(10, smb_string2stringval(${val.lanman.primary_domain}));
 
@@ -80,61 +82,64 @@ refine connection SMB_Conn += {
 
 				case 0x11:
 					security = new RecordVal(BifType::Record::SMB1::NegotiateResponseSecurity);
-					security->Assign(0, new Val(${val.ntlm.security_user_level}, TYPE_BOOL));
-					security->Assign(1, new Val(${val.ntlm.security_challenge_response}, TYPE_BOOL));
-					security->Assign(2, new Val(${val.ntlm.security_signatures_enabled}, TYPE_BOOL));
-					security->Assign(3, new Val(${val.ntlm.security_signatures_required}, TYPE_BOOL));
+					security->Assign(0, val_mgr->Bool(${val.ntlm.security_user_level}));
+					security->Assign(1, val_mgr->Bool(${val.ntlm.security_challenge_response}));
+					security->Assign(2, val_mgr->Bool(${val.ntlm.security_signatures_enabled}));
+					security->Assign(3, val_mgr->Bool(${val.ntlm.security_signatures_required}));
 
 					capabilities = new RecordVal(BifType::Record::SMB1::NegotiateCapabilities);
-					capabilities->Assign(0, new Val(${val.ntlm.capabilities_raw_mode}, TYPE_BOOL));
-					capabilities->Assign(1, new Val(${val.ntlm.capabilities_mpx_mode}, TYPE_BOOL));
-					capabilities->Assign(2, new Val(${val.ntlm.capabilities_unicode}, TYPE_BOOL));
-					capabilities->Assign(3, new Val(${val.ntlm.capabilities_large_files}, TYPE_BOOL));
-					capabilities->Assign(4, new Val(${val.ntlm.capabilities_nt_smbs}, TYPE_BOOL));
+					capabilities->Assign(0, val_mgr->Bool(${val.ntlm.capabilities_raw_mode}));
+					capabilities->Assign(1, val_mgr->Bool(${val.ntlm.capabilities_mpx_mode}));
+					capabilities->Assign(2, val_mgr->Bool(${val.ntlm.capabilities_unicode}));
+					capabilities->Assign(3, val_mgr->Bool(${val.ntlm.capabilities_large_files}));
+					capabilities->Assign(4, val_mgr->Bool(${val.ntlm.capabilities_nt_smbs}));
 
-					capabilities->Assign(5, new Val(${val.ntlm.capabilities_rpc_remote_apis}, TYPE_BOOL));
-					capabilities->Assign(6, new Val(${val.ntlm.capabilities_status32}, TYPE_BOOL));
-					capabilities->Assign(7, new Val(${val.ntlm.capabilities_level_2_oplocks}, TYPE_BOOL));
-					capabilities->Assign(8, new Val(${val.ntlm.capabilities_lock_and_read}, TYPE_BOOL));
-					capabilities->Assign(9, new Val(${val.ntlm.capabilities_nt_find}, TYPE_BOOL));
+					capabilities->Assign(5, val_mgr->Bool(${val.ntlm.capabilities_rpc_remote_apis}));
+					capabilities->Assign(6, val_mgr->Bool(${val.ntlm.capabilities_status32}));
+					capabilities->Assign(7, val_mgr->Bool(${val.ntlm.capabilities_level_2_oplocks}));
+					capabilities->Assign(8, val_mgr->Bool(${val.ntlm.capabilities_lock_and_read}));
+					capabilities->Assign(9, val_mgr->Bool(${val.ntlm.capabilities_nt_find}));
 
-					capabilities->Assign(10, new Val(${val.ntlm.capabilities_dfs}, TYPE_BOOL));
-					capabilities->Assign(11, new Val(${val.ntlm.capabilities_infolevel_passthru}, TYPE_BOOL));
-					capabilities->Assign(12, new Val(${val.ntlm.capabilities_large_readx}, TYPE_BOOL));
-					capabilities->Assign(13, new Val(${val.ntlm.capabilities_large_writex}, TYPE_BOOL));
-					capabilities->Assign(14, new Val(${val.ntlm.capabilities_unix}, TYPE_BOOL));
+					capabilities->Assign(10, val_mgr->Bool(${val.ntlm.capabilities_dfs}));
+					capabilities->Assign(11, val_mgr->Bool(${val.ntlm.capabilities_infolevel_passthru}));
+					capabilities->Assign(12, val_mgr->Bool(${val.ntlm.capabilities_large_readx}));
+					capabilities->Assign(13, val_mgr->Bool(${val.ntlm.capabilities_large_writex}));
+					capabilities->Assign(14, val_mgr->Bool(${val.ntlm.capabilities_unix}));
 
-					capabilities->Assign(15, new Val(${val.ntlm.capabilities_bulk_transfer}, TYPE_BOOL));
-					capabilities->Assign(16, new Val(${val.ntlm.capabilities_compressed_data}, TYPE_BOOL));
-					capabilities->Assign(17, new Val(${val.ntlm.capabilities_extended_security}, TYPE_BOOL));
+					capabilities->Assign(15, val_mgr->Bool(${val.ntlm.capabilities_bulk_transfer}));
+					capabilities->Assign(16, val_mgr->Bool(${val.ntlm.capabilities_compressed_data}));
+					capabilities->Assign(17, val_mgr->Bool(${val.ntlm.capabilities_extended_security}));
 
 					ntlm = new RecordVal(BifType::Record::SMB1::NegotiateResponseNTLM);
-					ntlm->Assign(0, new Val(${val.word_count}, TYPE_COUNT));
-					ntlm->Assign(1, new Val(${val.dialect_index}, TYPE_COUNT));
+					ntlm->Assign(0, val_mgr->Count(${val.word_count}));
+					ntlm->Assign(1, val_mgr->Count(${val.dialect_index}));
 					ntlm->Assign(2, security);
-					ntlm->Assign(3, new Val(${val.ntlm.max_buffer_size}, TYPE_COUNT));
-					ntlm->Assign(4, new Val(${val.ntlm.max_mpx_count}, TYPE_COUNT));
+					ntlm->Assign(3, val_mgr->Count(${val.ntlm.max_buffer_size}));
+					ntlm->Assign(4, val_mgr->Count(${val.ntlm.max_mpx_count}));
 
-					ntlm->Assign(5, new Val(${val.ntlm.max_number_vcs}, TYPE_COUNT));
-					ntlm->Assign(6, new Val(${val.ntlm.max_raw_size}, TYPE_COUNT));
-					ntlm->Assign(7, new Val(${val.ntlm.session_key}, TYPE_COUNT));
+					ntlm->Assign(5, val_mgr->Count(${val.ntlm.max_number_vcs}));
+					ntlm->Assign(6, val_mgr->Count(${val.ntlm.max_raw_size}));
+					ntlm->Assign(7, val_mgr->Count(${val.ntlm.session_key}));
 					ntlm->Assign(8, capabilities);
 					ntlm->Assign(9, filetime2brotime(${val.ntlm.server_time}));
 
 					if ( ${val.ntlm.capabilities_extended_security} == false )
 						{
-						ntlm->Assign(10, bytestring_to_val(${val.ntlm.encryption_key}));
+						ntlm->Assign(10, to_stringval(${val.ntlm.encryption_key}));
 						ntlm->Assign(11, smb_string2stringval(${val.ntlm.domain_name}));
 						}
 					else
 						{
-						ntlm->Assign(12, bytestring_to_val(${val.ntlm.server_guid}));
+						ntlm->Assign(12, to_stringval(${val.ntlm.server_guid}));
 						}
 
 					response->Assign(2, ntlm);
 					break;
 				}
-			BifEvent::generate_smb1_negotiate_response(bro_analyzer(), bro_analyzer()->Conn(), BuildHeaderVal(header), response);
+			BifEvent::enqueue_smb1_negotiate_response(bro_analyzer(),
+			                                          bro_analyzer()->Conn(),
+			                                          SMBHeaderVal(header),
+			                                          std::move(response));
 			}
 
 		return true;

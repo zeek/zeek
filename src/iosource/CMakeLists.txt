@@ -1,5 +1,5 @@
 
-include(BroSubdir)
+include(ZeekSubdir)
 
 include_directories(BEFORE
                     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -15,8 +15,7 @@ set(iosource_SRCS
     Packet.cc
     PktDumper.cc
     PktSrc.cc
-)
+    )
 
 bro_add_subdir_library(iosource ${iosource_SRCS})
 add_dependencies(bro_iosource generate_outputs)
-

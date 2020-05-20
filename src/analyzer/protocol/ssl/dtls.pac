@@ -10,6 +10,7 @@ namespace analyzer { namespace dtls { class DTLS_Analyzer; } }
 typedef analyzer::dtls::DTLS_Analyzer* DTLSAnalyzer;
 
 #include "DTLS.h"
+#include "consts.bif.h"
 %}
 
 extern type DTLSAnalyzer;

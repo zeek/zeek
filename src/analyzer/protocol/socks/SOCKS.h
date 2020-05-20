@@ -1,5 +1,4 @@
-#ifndef ANALYZER_PROTOCOL_SOCKS_SOCKS_H
-#define ANALYZER_PROTOCOL_SOCKS_SOCKS_H
+#pragma once
 
 // SOCKS v4 analyzer.
 
@@ -14,7 +13,7 @@ namespace binpac  {
 
 namespace analyzer { namespace socks {
 
-class SOCKS_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class SOCKS_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit SOCKS_Analyzer(Connection* conn);
 	~SOCKS_Analyzer() override;
@@ -23,7 +22,7 @@ public:
 
 	void Done() override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
-	void Undelivered(uint64 seq, int len, bool orig) override;
+	void Undelivered(uint64_t seq, int len, bool orig) override;
 	void EndpointEOF(bool is_orig) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
@@ -38,6 +37,4 @@ protected:
 	binpac::SOCKS::SOCKS_Conn* interp;
 };
 
-} } // namespace analyzer::* 
-
-#endif
+} } // namespace analyzer::*

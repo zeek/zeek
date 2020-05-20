@@ -33,9 +33,9 @@ signature_algorithm, 192.168.6.240, 139.162.123.134
 sha256, ecdsa
 sha384, ecdsa
 sha512, ecdsa
-unknown-8, unknown-4
-unknown-8, unknown-5
-unknown-8, unknown-6
+Intrinsic, rsa_pss_sha256
+Intrinsic, rsa_pss_sha384
+Intrinsic, rsa_pss_sha512
 sha256, rsa
 sha384, rsa
 sha512, rsa
@@ -45,7 +45,7 @@ sha1, dsa
 sha256, dsa
 sha384, dsa
 sha512, dsa
-supported_versions(, 192.168.6.240, 139.162.123.134
+supported_versions, 192.168.6.240, 139.162.123.134
 TLSv13-draft19
 TLSv12
 TLSv11
@@ -66,9 +66,9 @@ signature_algorithm, 192.168.6.240, 139.162.123.134
 sha256, ecdsa
 sha384, ecdsa
 sha512, ecdsa
-unknown-8, unknown-4
-unknown-8, unknown-5
-unknown-8, unknown-6
+Intrinsic, rsa_pss_sha256
+Intrinsic, rsa_pss_sha384
+Intrinsic, rsa_pss_sha512
 sha256, rsa
 sha384, rsa
 sha512, rsa
@@ -78,7 +78,7 @@ sha1, dsa
 sha256, dsa
 sha384, dsa
 sha512, dsa
-supported_versions(, 192.168.6.240, 139.162.123.134
+supported_versions, 192.168.6.240, 139.162.123.134
 TLSv13-draft19
 TLSv12
 TLSv11
@@ -86,3 +86,50 @@ TLSv10
 psk_key_exchange_modes, 192.168.6.240, 139.162.123.134
 1
 0
+pre_shared_key client hello, 192.168.6.240, 139.162.123.134, [[identity=\x01\xf3\x88\x12\xae\xeb\x13\x01\xed]\xcf\x0b\x8f\xad\xf2\xc1I\x9f-\xfa\xe1\x98\x9f\xb7\x82@\x81Or\x0e\xbe\xfc\xa3\xbc\x8f\x03\x86\xf1\x8e\xae\xd7\xe5\xa2\xee\xf3\xde\xb7\xa5\xf6\\xeb\x18^ICPm!|\x09\xe0NE\xe8\x0f\xda\xf8\xf2\xa8s\x84\x17>\xe5\xd9!\x19\x09\xfe\xdb\xa87\x05\xd7\xd06JG\xeb\xad\xf9\xf8\x13?#\xdc\xe7J\xad\x14\xbfS.\x98\xd8\xd2r\x01\xef\xc5\x0c_\xdf\xc9[7\xa7l\xa7\xa0\xb5\xda\x83\x16\x10\xa1\xdb\xe2<j\xfeN=uU\xd3\xf3[\x021\xb1\xff\xcc\xbbZ\x1d\xab\x14=\xca\x80\x07!d\x06\xbe\xc6\x90\x94\x92S\xcfu\x8e\x92_/\xc9\xf0H\xf3\xd0\xfa\xeb\xb6&, obfuscated_ticket_age=1415540021]], [\xdcJ$\x00L\x12\x87\x929wEed\xbd\xf6\xcb4\x04ip5\x95\xe2X\xca[Kx}\xadHY\xae\xab\xedz\xb3\xcaK=\xa0\x09ER\x0a\x8dO\xe4]
+pre_shared_key server hello, 192.168.6.240, 139.162.123.134, 0
+Point formats, 192.168.178.80, 174.138.9.219, T
+uncompressed
+ansiX962_compressed_prime
+ansiX962_compressed_char2
+Curves, 192.168.178.80, 174.138.9.219
+x25519
+secp256r1
+x448
+secp521r1
+secp384r1
+signature_algorithm, 192.168.178.80, 174.138.9.219
+sha256, ecdsa
+sha384, ecdsa
+sha512, ecdsa
+Intrinsic, ed25519
+Intrinsic, ed448
+Intrinsic, rsa_pss_sha256
+Intrinsic, rsa_pss_sha384
+Intrinsic, rsa_pss_sha512
+Intrinsic, rsa_pss_sha256
+Intrinsic, rsa_pss_sha384
+Intrinsic, rsa_pss_sha512
+sha256, rsa
+sha384, rsa
+sha512, rsa
+sha224, ecdsa
+sha1, ecdsa
+sha224, rsa
+sha1, rsa
+sha224, dsa
+sha1, dsa
+sha256, dsa
+sha384, dsa
+sha512, dsa
+supported_versions, 192.168.178.80, 174.138.9.219
+TLSv13
+TLSv12
+TLSv11
+TLSv10
+psk_key_exchange_modes, 192.168.178.80, 174.138.9.219
+1
+pre_shared_key client hello, 192.168.178.80, 174.138.9.219, [[identity=Client_identity, obfuscated_ticket_age=0]], [\xdbm7\xb6\xb9\xa3\xb29C\xb5\xa3\xa4\8\x95\x94o\x8d'\xd7\x99\x91R\xea\xcb\xa82\x9cb$e\xe9]
+supported_versions, 192.168.178.80, 174.138.9.219
+TLSv13
+pre_shared_key server hello, 192.168.178.80, 174.138.9.219, 0

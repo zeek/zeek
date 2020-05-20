@@ -40,6 +40,7 @@
 #include "smb2_com_tree_connect.bif.h"
 #include "smb2_com_tree_disconnect.bif.h"
 #include "smb2_com_write.bif.h"
+#include "smb2_com_transform_header.bif.h"
 %}
 
 analyzer SMB withcontext {
@@ -93,6 +94,7 @@ connection SMB_Conn(bro_analyzer: BroAnalyzer) {
 %include smb2-com-tree-connect.pac
 %include smb2-com-tree-disconnect.pac
 %include smb2-com-write.pac
+%include smb2-com-transform-header.pac
 
 type uint24 = record {
 	byte1 : uint8;
@@ -128,6 +130,8 @@ type SMB_Protocol_Identifier(is_orig: bool, msg_len: uint32) = record {
 	smb_1_or_2        : case protocol of {
 		SMB1    -> smb1    : SMB_PDU(is_orig, msg_len);
 		SMB2    -> smb2    : SMB2_PDU(is_orig);
+		# SMB 3.x protocol ID implies use of transform header to support encryption
+		SMB3    -> smb3    : SMB2_transform_header;
 		default -> unknown : empty;
 	};
 };

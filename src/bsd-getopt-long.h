@@ -52,8 +52,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __BSD_GETOPT_LONG_H__
-#define __BSD_GETOPT_LONG_H__
+#pragma once
 
 #ifndef HAVE_GETOPT_LONG
 
@@ -124,7 +123,5 @@ int pure_getopt(int nargc, char * const *nargv, const char *options);
 #  undef optreset
 #  define optreset pure_optreset
 # endif
-
-#endif
 
 #endif

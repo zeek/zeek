@@ -1,9 +1,11 @@
-
 #include "Packet.h"
 #include "Sessions.h"
+#include "Desc.h"
+#include "IP.h"
 #include "iosource/Manager.h"
 
 extern "C" {
+#include <pcap.h>
 #ifdef HAVE_NET_ETHERNET_H
 #include <net/ethernet.h>
 #elif defined(HAVE_SYS_ETHERNET_H)
@@ -16,8 +18,8 @@ extern "C" {
 #endif
 }
 
-void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32 arg_caplen,
-		  uint32 arg_len, const u_char *arg_data, int arg_copy,
+void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32_t arg_caplen,
+		  uint32_t arg_len, const u_char *arg_data, bool arg_copy,
 		  std::string arg_tag)
 	{
 	if ( data && copy )
@@ -27,7 +29,7 @@ void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32 arg_caplen,
 	ts = *arg_ts;
 	cap_len = arg_caplen;
 	len = arg_len;
-	tag = arg_tag;
+	tag = std::move(arg_tag);
 
 	copy = arg_copy;
 
@@ -41,14 +43,17 @@ void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32 arg_caplen,
 
 	time = ts.tv_sec + double(ts.tv_usec) / 1e6;
 	hdr_size = GetLinkHeaderSize(arg_link_type);
-	l3_proto = L3_UNKNOWN;
 	eth_type = 0;
 	vlan = 0;
 	inner_vlan = 0;
-	l2_src = 0;
-	l2_dst = 0;
 
+	l2_src = nullptr;
+	l2_dst = nullptr;
 	l2_valid = false;
+	l2_checksummed = false;
+
+	l3_proto = L3_UNKNOWN;
+	l3_checksummed = false;
 
 	if ( data && cap_len < hdr_size )
 		{
@@ -58,6 +63,11 @@ void Packet::Init(int arg_link_type, pkt_timeval *arg_ts, uint32 arg_caplen,
 
 	if ( data )
 		ProcessLayer2();
+	}
+
+const IP_Hdr Packet::IP() const
+	{
+	return IP_Hdr((struct ip *) (data + hdr_size), false);
 	}
 
 void Packet::Weird(const char* name)
@@ -91,6 +101,14 @@ int Packet::GetLinkHeaderSize(int link_type)
 
 	case DLT_IEEE802_11_RADIO:	// 802.11 plus RadioTap
 		return 59;
+
+	case DLT_NFLOG:
+		// Linux netlink NETLINK NFLOG socket log messages
+		// The actual header size is variable, but we return the minimum
+		// expected size here, which is 4 bytes for the main header plus at
+		// least 2 bytes each for the type and length values assoicated with
+		// the final TLV carrying the packet payload.
+		return 8;
 
 	case DLT_RAW:
 		return 0;
@@ -395,6 +413,85 @@ void Packet::ProcessLayer2()
 		break;
 		}
 
+	case DLT_NFLOG:
+		{
+		// See https://www.tcpdump.org/linktypes/LINKTYPE_NFLOG.html
+
+		uint8_t protocol = pdata[0];
+
+		if ( protocol == AF_INET )
+			l3_proto = L3_IPV4;
+		else if ( protocol == AF_INET6 )
+			l3_proto = L3_IPV6;
+		else
+			{
+			Weird("non_ip_in_nflog");
+			return;
+			}
+
+		uint8_t version = pdata[1];
+
+		if ( version != 0 )
+			{
+			Weird("unknown_nflog_version");
+			return;
+			}
+
+		// Skip to TLVs.
+		pdata += 4;
+
+		uint16_t tlv_len;
+		uint16_t tlv_type;
+
+		while ( true )
+			{
+			if ( pdata + 4 >= end_of_data )
+				{
+				Weird("nflog_no_pcap_payload");
+				return;
+				}
+
+			// TLV Type and Length values are specified in host byte order
+			// (libpcap should have done any needed byteswapping already).
+
+			tlv_len = *(reinterpret_cast<const uint16_t*>(pdata));
+			tlv_type = *(reinterpret_cast<const uint16_t*>(pdata + 2));
+
+			auto constexpr nflog_type_payload = 9;
+
+			if ( tlv_type == nflog_type_payload )
+				{
+				// The raw packet payload follows this TLV.
+				pdata += 4;
+				break;
+				}
+			else
+				{
+				// The Length value includes the 4 octets for the Type and
+				// Length values, but TLVs are also implicitly padded to
+				// 32-bit alignments (that padding may not be included in
+				// the Length value).
+
+				if ( tlv_len < 4 )
+					{
+					Weird("nflog_bad_tlv_len");
+					return;
+					}
+				else
+					{
+					auto rem = tlv_len % 4;
+
+					if ( rem != 0 )
+						tlv_len += 4 - rem;
+					}
+
+				pdata += tlv_len;
+				}
+			}
+
+		break;
+		}
+
 	default:
 		{
 		// Assume we're pointing at IP. Just figure out which version.
@@ -498,7 +595,7 @@ RecordVal* Packet::BuildPktHdrVal() const
 	RecordVal* pkt_hdr = new RecordVal(raw_pkt_hdr_type);
 	RecordVal* l2_hdr = new RecordVal(l2_hdr_type);
 
-	int is_ethernet = (link_type == DLT_EN10MB) ? 1 : 0;
+	bool is_ethernet = link_type == DLT_EN10MB;
 
 	int l3 = BifEnum::L3_UNKNOWN;
 
@@ -526,29 +623,29 @@ RecordVal* Packet::BuildPktHdrVal() const
 		{
 		// Ethernet header layout is:
 		//    dst[6bytes] src[6bytes] ethertype[2bytes]...
-		l2_hdr->Assign(0, new EnumVal(BifEnum::LINK_ETHERNET, BifType::Enum::link_encap));
+		l2_hdr->Assign(0, BifType::Enum::link_encap->GetVal(BifEnum::LINK_ETHERNET));
 		l2_hdr->Assign(3, FmtEUI48(data + 6));	// src
 		l2_hdr->Assign(4, FmtEUI48(data));  	// dst
 
 		if ( vlan )
-			l2_hdr->Assign(5, new Val(vlan, TYPE_COUNT));
+			l2_hdr->Assign(5, val_mgr->Count(vlan));
 
 		if ( inner_vlan )
-			l2_hdr->Assign(6, new Val(inner_vlan, TYPE_COUNT));
+			l2_hdr->Assign(6, val_mgr->Count(inner_vlan));
 
-		l2_hdr->Assign(7, new Val(eth_type, TYPE_COUNT));
+		l2_hdr->Assign(7, val_mgr->Count(eth_type));
 
 		if ( eth_type == ETHERTYPE_ARP || eth_type == ETHERTYPE_REVARP )
 			// We also identify ARP for L3 over ethernet
 			l3 = BifEnum::L3_ARP;
 		}
 	else
-		l2_hdr->Assign(0, new EnumVal(BifEnum::LINK_UNKNOWN, BifType::Enum::link_encap));
+		l2_hdr->Assign(0, BifType::Enum::link_encap->GetVal(BifEnum::LINK_UNKNOWN));
 
-	l2_hdr->Assign(1, new Val(len, TYPE_COUNT));
-	l2_hdr->Assign(2, new Val(cap_len, TYPE_COUNT));
+	l2_hdr->Assign(1, val_mgr->Count(len));
+	l2_hdr->Assign(2, val_mgr->Count(cap_len));
 
-	l2_hdr->Assign(8, new EnumVal(l3, BifType::Enum::layer3_proto));
+	l2_hdr->Assign(8, BifType::Enum::layer3_proto->GetVal(l3));
 
 	pkt_hdr->Assign(0, l2_hdr);
 
@@ -582,68 +679,4 @@ void Packet::Describe(ODesc* d) const
 	d->Add(ip.SrcAddr());
 	d->Add("->");
 	d->Add(ip.DstAddr());
-	}
-
-bool Packet::Serialize(SerialInfo* info) const
-	{
-	return SERIALIZE(uint32(ts.tv_sec)) &&
-		SERIALIZE(uint32(ts.tv_usec)) &&
-		SERIALIZE(uint32(len)) &&
-		SERIALIZE(link_type) &&
-		info->s->Write(tag.c_str(), tag.length(), "tag") &&
-		info->s->Write((const char*)data, cap_len, "data");
-	}
-
-#ifdef DEBUG
-static iosource::PktDumper* dump = 0;
-#endif
-
-Packet* Packet::Unserialize(UnserialInfo* info)
-	{
-	pkt_timeval ts;
-	uint32 len, link_type;
-
-	if ( ! (UNSERIALIZE((uint32 *)&ts.tv_sec) &&
-		UNSERIALIZE((uint32 *)&ts.tv_usec) &&
-		UNSERIALIZE(&len) &&
-		UNSERIALIZE(&link_type)) )
-		return 0;
-
-	char* tag;
-	if ( ! info->s->Read((char**) &tag, 0, "tag") )
-		return 0;
-
-	const u_char* pkt;
-	int caplen;
-	if ( ! info->s->Read((char**) &pkt, &caplen, "data") )
-		{
-		delete [] tag;
-		return 0;
-		}
-
-	Packet *p = new Packet(link_type, &ts, caplen, len, pkt, true,
-			       std::string(tag));
-	delete [] tag;
-
-	// For the global timer manager, we take the global network_time as the
-	// packet's timestamp for feeding it into our packet loop.
-	if ( p->tag == "" )
-		p->time = timer_mgr->Time();
-	else
-		p->time = p->ts.tv_sec + double(p->ts.tv_usec) / 1e6;
-
-#ifdef DEBUG
-	if ( debug_logger.IsEnabled(DBG_TM) )
-		{
-		if ( ! dump )
-			dump = iosource_mgr->OpenPktDumper("tm.pcap", true);
-
-		if ( dump )
-			{
-			dump->Dump(p);
-			}
-		}
-#endif
-
-	return p;
 	}

@@ -1,19 +1,20 @@
 // See the file  in the main distribution directory for copyright.
-#include "plugin/Plugin.h"
 
 #include "XMPP.h"
+#include "plugin/Plugin.h"
+#include "analyzer/Component.h"
 
 namespace plugin {
-namespace Bro_XMPP {
+namespace Zeek_XMPP {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("XMPP", ::analyzer::xmpp::XMPP_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::XMPP";
+		config.name = "Zeek::XMPP";
 		config.description = "XMPP analyzer (StartTLS only)";
 		return config;
 		}

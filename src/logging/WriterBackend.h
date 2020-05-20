@@ -2,14 +2,11 @@
 //
 // Bridge class between main process and writer threads.
 
-#ifndef LOGGING_WRITERBACKEND_H
-#define LOGGING_WRITERBACKEND_H
+#pragma once
 
 #include "threading/MsgThread.h"
 
 #include "Component.h"
-
-class RemoteSerializer;
 
 namespace broker { class data; }
 
@@ -85,14 +82,14 @@ public:
 		 */
 		config_map config;
 
-		WriterInfo() : path(0), rotation_interval(0.0), rotation_base(0.0),
+		WriterInfo() : path(nullptr), rotation_interval(0.0), rotation_base(0.0),
 		               network_time(0.0)
 			{
 			}
 
 		WriterInfo(const WriterInfo& other)
 			{
-			path = other.path ? copy_string(other.path) : 0;
+			path = other.path ? copy_string(other.path) : nullptr;
 			rotation_interval = other.rotation_interval;
 			rotation_base = other.rotation_base;
 			network_time = other.network_time;
@@ -114,8 +111,6 @@ public:
 
 		// Note, these need to be adapted when changing the struct's
 		// fields. They serialize/deserialize the struct.
-		bool Read(SerializationFormat* fmt);
-		bool Write(SerializationFormat* fmt) const;
 		broker::data ToBroker() const;
 		bool FromBroker(broker::data d);
 
@@ -394,6 +389,3 @@ private:
 
 
 }
-
-#endif
-

@@ -2,8 +2,8 @@
 
 
 #include "SerialTypes.h"
-#include "../RemoteSerializer.h"
-
+#include "SerializationFormat.h"
+#include "Reporter.h"
 
 using namespace threading;
 
@@ -11,7 +11,7 @@ bool Field::Read(SerializationFormat* fmt)
 	{
 	int t;
 	int st;
-	string tmp_name;
+	std::string tmp_name;
 	bool have_2nd;
 
 	if ( ! fmt->Read(&have_2nd, "have_2nd") )
@@ -19,14 +19,14 @@ bool Field::Read(SerializationFormat* fmt)
 
 	if ( have_2nd )
 		{
-		string tmp_secondary_name;
+		std::string tmp_secondary_name;
 		if ( ! fmt->Read(&tmp_secondary_name, "secondary_name") )
 			return false;
 
 		secondary_name = copy_string(tmp_secondary_name.c_str());
 		}
 	else
-		secondary_name = 0;
+		secondary_name = nullptr;
 
 	bool success = (fmt->Read(&tmp_name, "name")
 			&& fmt->Read(&t, "type")
@@ -64,9 +64,9 @@ bool Field::Write(SerializationFormat* fmt) const
 		fmt->Write(optional, "optional"));
 	}
 
-string Field::TypeName() const
+std::string Field::TypeName() const
 	{
-	string n;
+	std::string n;
 
 	// We do not support tables, if the internal Bro type is table it
 	// always is a set.
@@ -87,11 +87,16 @@ string Field::TypeName() const
 
 Value::~Value()
 	{
-	if ( (type == TYPE_ENUM || type == TYPE_STRING || type == TYPE_FILE || type == TYPE_FUNC)
-	     && present )
+	if ( ! present )
+		return;
+
+	if ( type == TYPE_ENUM || type == TYPE_STRING || type == TYPE_FILE || type == TYPE_FUNC )
 		delete [] val.string_val.data;
 
-	if ( type == TYPE_TABLE && present )
+	else if ( type == TYPE_PATTERN )
+		delete [] val.pattern_text_val;
+
+	else if ( type == TYPE_TABLE )
 		{
 		for ( int i = 0; i < val.set_val.size; i++ )
 			delete val.set_val.vals[i];
@@ -99,7 +104,7 @@ Value::~Value()
 		delete [] val.set_val.vals;
 		}
 
-	if ( type == TYPE_VECTOR && present )
+	else if ( type == TYPE_VECTOR )
 		{
 		for ( int i = 0; i < val.vector_val.size; i++ )
 			delete val.vector_val.vals[i];
@@ -414,4 +419,3 @@ bool Value::Write(SerializationFormat* fmt) const
 
 	return false;
 	}
-

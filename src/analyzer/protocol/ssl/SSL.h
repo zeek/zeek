@@ -1,5 +1,4 @@
-#ifndef ANALYZER_PROTOCOL_SSL_SSL_H
-#define ANALYZER_PROTOCOL_SSL_SSL_H
+#pragma once
 
 #include "events.bif.h"
 
@@ -11,7 +10,7 @@ namespace binpac { namespace TLSHandshake { class Handshake_Conn; } }
 
 namespace analyzer { namespace ssl {
 
-class SSL_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class SSL_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit SSL_Analyzer(Connection* conn);
 	~SSL_Analyzer() override;
@@ -19,9 +18,9 @@ public:
 	// Overriden from Analyzer.
 	void Done() override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
-	void Undelivered(uint64 seq, int len, bool orig) override;
+	void Undelivered(uint64_t seq, int len, bool orig) override;
 
-	void SendHandshake(uint16 raw_tls_version, const u_char* begin, const u_char* end, bool orig);
+	void SendHandshake(uint16_t raw_tls_version, const u_char* begin, const u_char* end, bool orig);
 
 	// Tell the analyzer that encryption has started.
 	void StartEncryption();
@@ -39,6 +38,4 @@ protected:
 
 };
 
-} } // namespace analyzer::* 
-
-#endif
+} } // namespace analyzer::*

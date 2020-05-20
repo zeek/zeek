@@ -1,7 +1,7 @@
-This a test suite of small "unit tests" that verify individual pieces of Bro
+This a test suite of small "unit tests" that verify individual pieces of Zeek
 functionality.  They all utilize BTest, a simple framework/driver for
 writing unit tests.  More information about BTest can be found at
-https://github.com/bro/btest
+https://github.com/zeek/btest
 
 The test suite's BTest configuration is handled through the
 ``btest.cfg`` file.  Of particular interest is the "TestDirs" settings,
@@ -20,17 +20,17 @@ Significant Subdirectories
 	Packet captures utilized by the various BTest tests.
 
 * scripts/
-    This hierarchy of tests emulates the hierarchy of the Bro scripts/
-    directory.
+	This hierarchy of tests emulates the hierarchy of the Zeek scripts/
+	directory.
 
 * coverage/
-    This collection of tests relates to checking whether we're covering
-    everything we want to in terms of tests, documentation, and which
-    scripts get loaded in different Bro configurations.  These tests are
-    more prone to fail as new Bro scripts are developed and added to the
-    distribution -- checking the individual test's comments is the best
-    place to check for more details on what exactly the test is checking
-    and hints on how to fix it when it fails.
+	This collection of tests relates to checking whether we're covering
+	everything we want to in terms of tests, documentation, and which
+	scripts get loaded in different Zeek configurations.  These tests are
+	more prone to fail as new Zeek scripts are developed and added to the
+	distribution -- checking the individual test's comments is the best
+	place to check for more details on what exactly the test is checking
+	and hints on how to fix it when it fails.
 
 Running Tests
 =============
@@ -48,7 +48,7 @@ run ``btest`` directly with desired options/arguments.  Examples:
 	You can specify a directory on the command line to run just the
 	tests contained in that directory. This is useful if you wish to
 	run all of a given type of test, without running all the tests
-	there are. For example, "btest scripts" will run all of the Bro
+	there are. For example, "btest scripts" will run all of the Zeek
 	script unit tests.
 
 
@@ -61,7 +61,7 @@ Adding Tests
 =============
 
 See either the `BTest documentation
-<https://github.com/bro/btest>`_ or the existing unit
+<https://github.com/zeek/btest>`_ or the existing unit
 tests for examples of what they actually look like.  The essential
 components of a new test include:
 

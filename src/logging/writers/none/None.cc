@@ -4,6 +4,8 @@
 #include "None.h"
 #include "none.bif.h"
 
+#include <iostream>
+
 using namespace logging;
 using namespace writer;
 
@@ -19,14 +21,14 @@ bool None::DoInit(const WriterInfo& info, int num_fields,
 
 		// Output the config sorted by keys.
 
-		std::vector<std::pair<string, string> > keys;
+		std::vector<std::pair<std::string, std::string> > keys;
 
 		for ( WriterInfo::config_map::const_iterator i = info.config.begin(); i != info.config.end(); i++ )
 			keys.push_back(std::make_pair(i->first, i->second));
 
 		std::sort(keys.begin(), keys.end());
 
-		for ( std::vector<std::pair<string,string> >::const_iterator i = keys.begin(); i != keys.end(); i++ )
+		for ( std::vector<std::pair<std::string, std::string> >::const_iterator i = keys.begin(); i != keys.end(); i++ )
 			std::cout << "  config[" << (*i).first << "] = " << (*i).second << std::endl;
 
 		for ( int i = 0; i < num_fields; i++ )

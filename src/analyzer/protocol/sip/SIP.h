@@ -1,5 +1,4 @@
-#ifndef ANALYZER_PROTOCOL_SIP_SIP_H
-#define ANALYZER_PROTOCOL_SIP_SIP_H
+#pragma once
 
 #include "events.bif.h"
 
@@ -8,7 +7,7 @@
 
 namespace analyzer { namespace SIP {
 
-class SIP_Analyzer : public analyzer::Analyzer {
+class SIP_Analyzer final : public analyzer::Analyzer {
 public:
 	explicit SIP_Analyzer(Connection* conn);
 	~SIP_Analyzer() override;
@@ -17,7 +16,7 @@ public:
 
 	void Done() override;
 	void DeliverPacket(int len, const u_char* data, bool orig,
-				   	   uint64 seq, const IP_Hdr* ip, int caplen) override;
+				   	   uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 	{ return new SIP_Analyzer(conn); }
@@ -27,5 +26,3 @@ protected:
 };
 
 } } // namespace analyzer::*
-
-#endif

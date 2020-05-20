@@ -5,10 +5,12 @@
 #include "OCSP.h"
 #include "X509.h"
 #include "Event.h"
+#include "Reporter.h"
 
 #include "types.bif.h"
 #include "ocsp_events.bif.h"
 
+#include "file_analysis/File.h"
 #include "file_analysis/Manager.h"
 
 #include <openssl/x509.h>
@@ -28,13 +30,11 @@ X509* helper_sk_X509_value(const STACK_OF(X509)* certs, int i)
 
 using namespace file_analysis;
 
-IMPLEMENT_SERIAL(OCSP_RESPVal, SER_OCSP_RESP_VAL);
-
 #define OCSP_STRING_BUF_SIZE 2048
 
-static Val* get_ocsp_type(RecordVal* args, const char* name)
+static IntrusivePtr<Val> get_ocsp_type(RecordVal* args, const char* name)
 	{
-	Val* rval = args->Lookup(name);
+	auto rval = args->Lookup(name);
 
 	if ( ! rval )
 		reporter->Error("File extraction analyzer missing arg field: %s", name);
@@ -44,7 +44,7 @@ static Val* get_ocsp_type(RecordVal* args, const char* name)
 
 static bool OCSP_RESPID_bio(OCSP_BASICRESP* basic_resp, BIO* bio)
 	{
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
+#if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 	ASN1_OCTET_STRING* key  = nullptr;
 	X509_NAME*         name = nullptr;
 
@@ -75,7 +75,7 @@ static bool OCSP_RESPID_bio(OCSP_BASICRESP* basic_resp, BIO* bio)
 	return true;
 	}
 
-bool ocsp_add_cert_id(const OCSP_CERTID* cert_id, val_list* vl, BIO* bio)
+static bool ocsp_add_cert_id(const OCSP_CERTID* cert_id, zeek::Args* vl, BIO* bio)
 	{
 	ASN1_OBJECT*       hash_alg         = nullptr;
 	ASN1_OCTET_STRING* issuer_name_hash = nullptr;
@@ -89,10 +89,10 @@ bool ocsp_add_cert_id(const OCSP_CERTID* cert_id, val_list* vl, BIO* bio)
 	if ( ! res )
 		{
 		reporter->Weird("OpenSSL failed to get OCSP_CERTID info");
-		vl->append(new StringVal(""));
-		vl->append(new StringVal(""));
-		vl->append(new StringVal(""));
-		vl->append(new StringVal(""));
+		vl->emplace_back(val_mgr->EmptyString());
+		vl->emplace_back(val_mgr->EmptyString());
+		vl->emplace_back(val_mgr->EmptyString());
+		vl->emplace_back(val_mgr->EmptyString());
 		return false;
 		}
 
@@ -101,22 +101,22 @@ bool ocsp_add_cert_id(const OCSP_CERTID* cert_id, val_list* vl, BIO* bio)
 
 	i2a_ASN1_OBJECT(bio, hash_alg);
 	int len = BIO_read(bio, buf, sizeof(buf));
-	vl->append(new StringVal(len, buf));
+	vl->emplace_back(make_intrusive<StringVal>(len, buf));
 	BIO_reset(bio);
 
 	i2a_ASN1_STRING(bio, issuer_name_hash, V_ASN1_OCTET_STRING);
 	len = BIO_read(bio, buf, sizeof(buf));
-	vl->append(new StringVal(len, buf));
+	vl->emplace_back(make_intrusive<StringVal>(len, buf));
 	BIO_reset(bio);
 
 	i2a_ASN1_STRING(bio, issuer_key_hash, V_ASN1_OCTET_STRING);
 	len = BIO_read(bio, buf, sizeof(buf));
-	vl->append(new StringVal(len, buf));
+	vl->emplace_back(make_intrusive<StringVal>(len, buf));
 	BIO_reset(bio);
 
 	i2a_ASN1_INTEGER(bio, serial_number);
 	len = BIO_read(bio, buf, sizeof(buf));
-	vl->append(new StringVal(len, buf));
+	vl->emplace_back(make_intrusive<StringVal>(len, buf));
 	BIO_reset(bio);
 
 	return true;
@@ -137,13 +137,13 @@ file_analysis::OCSP::OCSP(RecordVal* args, file_analysis::File* file, bool arg_r
 	{
 	}
 
-bool file_analysis::OCSP::DeliverStream(const u_char* data, uint64 len)
+bool file_analysis::OCSP::DeliverStream(const u_char* data, uint64_t len)
 	{
 	ocsp_data.append(reinterpret_cast<const char*>(data), len);
 	return true;
 	}
 
-bool file_analysis::OCSP::Undelivered(uint64 offset, uint64 len)
+bool file_analysis::OCSP::Undelivered(uint64_t offset, uint64_t len)
 	{
 	return false;
 	}
@@ -160,11 +160,11 @@ bool file_analysis::OCSP::EndOfFile()
 
 		if (!req)
 			{
-			reporter->Weird(fmt("OPENSSL Could not parse OCSP request (fuid %s)", GetFile()->GetID().c_str()));
+			reporter->Weird(GetFile(), "openssl_ocsp_request_parse_error");
 			return false;
 			}
 
-		ParseRequest(req, GetFile()->GetID().c_str());
+		ParseRequest(req);
 		OCSP_REQUEST_free(req);
 		}
 	else
@@ -173,19 +173,35 @@ bool file_analysis::OCSP::EndOfFile()
 
 		if (!resp)
 			{
-			reporter->Weird(fmt("OPENSSL Could not parse OCSP response (fuid %s)", GetFile()->GetID().c_str()));
+			reporter->Weird(GetFile(), "openssl_ocsp_response_parse_error");
 			return false;
 			}
 
-		OCSP_RESPVal* resp_val = new OCSP_RESPVal(resp); // resp_val takes ownership
-		ParseResponse(resp_val, GetFile()->GetID().c_str());
-		Unref(resp_val);
+		ParseResponse(resp);
+		OCSP_RESPONSE_free(resp);
 		}
 
 	return true;
 }
 
 #if ( OPENSSL_VERSION_NUMBER >= 0x10100000L )
+
+struct ASN1Seq {
+	ASN1Seq(const unsigned char** der_in, long length)
+		{ decoded = d2i_ASN1_SEQUENCE_ANY(nullptr, der_in, length); }
+
+	~ASN1Seq()
+		{ sk_ASN1_TYPE_pop_free(decoded, ASN1_TYPE_free); }
+
+	explicit operator bool() const
+		{ return decoded; }
+
+	operator ASN1_SEQUENCE_ANY*() const
+		{ return decoded; }
+
+	ASN1_SEQUENCE_ANY* decoded;
+};
+
 // Re-encode and then parse out ASN1 structures to get at what we need...
 /*-  BasicOCSPResponse       ::= SEQUENCE {
  *      tbsResponseData      ResponseData,
@@ -199,8 +215,9 @@ typedef struct ocsp_basic_response_st {
     STACK_OF(X509) *certs;
 } OCSP_BASICRESP;
 */
-static StringVal* parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp,
-                                           BIO* bio, char* buf, size_t buf_len)
+static IntrusivePtr<StringVal> parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp,
+                                                        BIO* bio, char* buf,
+                                                        size_t buf_len)
 	{
 	int der_basic_resp_len = 0;
 	unsigned char* der_basic_resp_dat = nullptr;
@@ -208,24 +225,22 @@ static StringVal* parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp,
 	der_basic_resp_len = i2d_OCSP_BASICRESP(basic_resp, &der_basic_resp_dat);
 
 	if ( der_basic_resp_len <= 0 )
-		return new StringVal("");
+		return val_mgr->EmptyString();
 
 	const unsigned char* const_der_basic_resp_dat = der_basic_resp_dat;
 
-	auto bseq = d2i_ASN1_SEQUENCE_ANY(nullptr, &const_der_basic_resp_dat,
-	                                  der_basic_resp_len);
+	ASN1Seq bseq{&const_der_basic_resp_dat, der_basic_resp_len};
 
 	if ( ! bseq )
 		{
 		OPENSSL_free(der_basic_resp_dat);
-		return new StringVal("");
+		return val_mgr->EmptyString();
 		}
 
 	if ( sk_ASN1_TYPE_num(bseq) < 3 )
 		{
-		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
-		return new StringVal("");
+		return val_mgr->EmptyString();
 		}
 
 	auto constexpr sig_alg_idx = 1u;
@@ -233,30 +248,26 @@ static StringVal* parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp,
 
 	if ( ASN1_TYPE_get(aseq_type) != V_ASN1_SEQUENCE )
 		{
-		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
-		return new StringVal("");
+		return val_mgr->EmptyString();
 		}
 
 	auto aseq_str = aseq_type->value.asn1_string;
 	auto aseq_len = ASN1_STRING_length(aseq_str);
 	auto aseq_dat = ASN1_STRING_get0_data(aseq_str);
 
-	auto aseq = d2i_ASN1_SEQUENCE_ANY(nullptr, &aseq_dat, aseq_len);
+	ASN1Seq aseq{&aseq_dat, aseq_len};
 
 	if ( ! aseq )
 		{
-		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
-		return new StringVal("");
+		return val_mgr->EmptyString();
 		}
 
 	if ( sk_ASN1_TYPE_num(aseq) < 1 )
 		{
-		sk_ASN1_TYPE_free(aseq);
-		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
-		return new StringVal("");
+		return val_mgr->EmptyString();
 		}
 
 	auto constexpr alg_obj_idx = 0u;
@@ -264,25 +275,21 @@ static StringVal* parse_basic_resp_sig_alg(OCSP_BASICRESP* basic_resp,
 
 	if ( ASN1_TYPE_get(alg_obj_type) != V_ASN1_OBJECT )
 		{
-		sk_ASN1_TYPE_free(aseq);
-		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
-		return new StringVal("");
+		return val_mgr->EmptyString();
 		}
 
 	auto alg_obj = alg_obj_type->value.object;
 	i2a_ASN1_OBJECT(bio, alg_obj);
 	auto alg_len = BIO_read(bio, buf, buf_len);
-	auto rval = new StringVal(alg_len, buf);
+	auto rval = make_intrusive<StringVal>(alg_len, buf);
 	BIO_reset(bio);
 
-	sk_ASN1_TYPE_free(aseq);
-	sk_ASN1_TYPE_free(bseq);
 	OPENSSL_free(der_basic_resp_dat);
 	return rval;
 	}
 
-static Val* parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
+static IntrusivePtr<Val> parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 	{
 	int der_basic_resp_len = 0;
 	unsigned char* der_basic_resp_dat = nullptr;
@@ -290,24 +297,22 @@ static Val* parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 	der_basic_resp_len = i2d_OCSP_BASICRESP(basic_resp, &der_basic_resp_dat);
 
 	if ( der_basic_resp_len <= 0 )
-		return new Val(-1, TYPE_COUNT);
+		return val_mgr->Count(-1);
 
 	const unsigned char* const_der_basic_resp_dat = der_basic_resp_dat;
 
-	auto bseq = d2i_ASN1_SEQUENCE_ANY(nullptr, &const_der_basic_resp_dat,
-	                                  der_basic_resp_len);
+	ASN1Seq bseq{&const_der_basic_resp_dat, der_basic_resp_len};
 
 	if ( ! bseq )
 		{
 		OPENSSL_free(der_basic_resp_dat);
-		return new Val(-1, TYPE_COUNT);
+		return val_mgr->Count(-1);
 		}
 
 	if ( sk_ASN1_TYPE_num(bseq) < 3 )
 		{
-		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
-		return new Val(-1, TYPE_COUNT);
+		return val_mgr->Count(-1);
 		}
 
 	auto constexpr resp_data_idx = 0u;
@@ -315,30 +320,26 @@ static Val* parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 
 	if ( ASN1_TYPE_get(dseq_type) != V_ASN1_SEQUENCE )
 		{
-		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
-		return new Val(-1, TYPE_COUNT);
+		return val_mgr->Count(-1);
 		}
 
 	auto dseq_str = dseq_type->value.asn1_string;
 	auto dseq_len = ASN1_STRING_length(dseq_str);
 	auto dseq_dat = ASN1_STRING_get0_data(dseq_str);
 
-	auto dseq = d2i_ASN1_SEQUENCE_ANY(nullptr, &dseq_dat, dseq_len);
+	ASN1Seq dseq{&dseq_dat, dseq_len};
 
 	if ( ! dseq )
 		{
-		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
-		return new StringVal("");
+		return val_mgr->Count(-1);
 		}
 
 	if ( sk_ASN1_TYPE_num(dseq) < 1 )
 		{
-		sk_ASN1_TYPE_free(dseq);
-		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
-		return new StringVal("");
+		return val_mgr->Count(-1);
 		}
 
 /*-  ResponseData ::= SEQUENCE {
@@ -354,21 +355,17 @@ static Val* parse_basic_resp_data_version(OCSP_BASICRESP* basic_resp)
 
 	if ( ASN1_TYPE_get(version_type) != V_ASN1_INTEGER )
 		{
-		sk_ASN1_TYPE_free(dseq);
-		sk_ASN1_TYPE_free(bseq);
 		OPENSSL_free(der_basic_resp_dat);
 		// Not present, use default value.
-		return new Val(0, TYPE_COUNT);
+		return val_mgr->Count(0);
 		}
 
 	uint64_t asn1_int = ASN1_INTEGER_get(version_type->value.integer);
-	sk_ASN1_TYPE_free(dseq);
-	sk_ASN1_TYPE_free(bseq);
 	OPENSSL_free(der_basic_resp_dat);
-	return new Val(asn1_int, TYPE_COUNT);
+	return val_mgr->Count(asn1_int);
 	}
 
-static uint64 parse_request_version(OCSP_REQUEST* req)
+static uint64_t parse_request_version(OCSP_REQUEST* req)
 	{
 	int der_req_len = 0;
 	unsigned char* der_req_dat = nullptr;
@@ -378,8 +375,7 @@ static uint64 parse_request_version(OCSP_REQUEST* req)
 	if ( ! der_req_dat )
 		return -1;
 
-	auto rseq = d2i_ASN1_SEQUENCE_ANY(nullptr, &const_der_req_dat,
-	                                  der_req_len);
+	ASN1Seq rseq{&const_der_req_dat, der_req_len};
 
 	if ( ! rseq )
 		{
@@ -389,7 +385,6 @@ static uint64 parse_request_version(OCSP_REQUEST* req)
 
 	if ( sk_ASN1_TYPE_num(rseq) < 1 )
 		{
-		sk_ASN1_TYPE_free(rseq);
 		OPENSSL_free(der_req_dat);
 		return -1;
 		}
@@ -399,63 +394,61 @@ static uint64 parse_request_version(OCSP_REQUEST* req)
 
 	if ( ASN1_TYPE_get(version_type) != V_ASN1_INTEGER )
 		{
-		sk_ASN1_TYPE_free(rseq);
 		OPENSSL_free(der_req_dat);
 		// Not present, use default value.
 		return 0;
 		}
 
 	uint64_t asn1_int = ASN1_INTEGER_get(version_type->value.integer);
-	sk_ASN1_TYPE_free(rseq);
 	OPENSSL_free(der_req_dat);
 	return asn1_int;
 	}
 #endif
 
-void file_analysis::OCSP::ParseRequest(OCSP_REQUEST* req, const char* fid)
+void file_analysis::OCSP::ParseRequest(OCSP_REQUEST* req)
 	{
 	char buf[OCSP_STRING_BUF_SIZE]; // we need a buffer for some of the openssl functions
 	memset(buf, 0, sizeof(buf));
 
-	// build up our response as we go along...
-	val_list* vl = new val_list();
-	vl->append(GetFile()->GetVal()->Ref());
+	uint64_t version = 0;
 
-	uint64 version = 0;
-
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
+#if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 	if ( req->tbsRequest->version )
-		version = (uint64)ASN1_INTEGER_get(req->tbsRequest->version);
+		version = (uint64_t)ASN1_INTEGER_get(req->tbsRequest->version);
 #else
 	version = parse_request_version(req);
 	// TODO: try to parse out general name ?
 #endif
 
-	vl->append(new Val(version, TYPE_COUNT));
+	if ( ocsp_request )
+		mgr.Enqueue(ocsp_request,
+			IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+			val_mgr->Count(version)
+		);
 
 	BIO *bio = BIO_new(BIO_s_mem());
-
-	mgr.QueueEvent(ocsp_request, vl);
 
 	int req_count = OCSP_request_onereq_count(req);
 	for ( int i=0; i<req_count; i++ )
 		{
-		val_list* rvl = new val_list();
-		rvl->append(GetFile()->GetVal()->Ref());
+		zeek::Args rvl;
+		rvl.reserve(5);
+		rvl.emplace_back(NewRef{}, GetFile()->GetVal());
 
 		OCSP_ONEREQ *one_req = OCSP_request_onereq_get0(req, i);
 		OCSP_CERTID *cert_id = OCSP_onereq_get0_id(one_req);
 
-		ocsp_add_cert_id(cert_id, rvl, bio);
-		mgr.QueueEvent(ocsp_request_certificate, rvl);
+		ocsp_add_cert_id(cert_id, &rvl, bio);
+
+		if ( ocsp_request_certificate )
+			mgr.Enqueue(ocsp_request_certificate, std::move(rvl));
 		}
 
 	BIO_free(bio);
 }
 
-void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val, const char* fid)
+void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 	{
-	OCSP_RESPONSE   *resp       = resp_val->GetResp();
 	//OCSP_RESPBYTES  *resp_bytes = resp->responseBytes;
 	OCSP_BASICRESP  *basic_resp = nullptr;
 	OCSP_RESPDATA   *resp_data  = nullptr;
@@ -470,14 +463,14 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val, const char* fid)
  	char buf[OCSP_STRING_BUF_SIZE];
 	memset(buf, 0, sizeof(buf));
 
-	val_list* vl = new val_list();
-	vl->append(GetFile()->GetVal()->Ref());
-
 	const char *status_str = OCSP_response_status_str(OCSP_response_status(resp));
 	StringVal* status_val = new StringVal(strlen(status_str), status_str);
-	vl->append(status_val->Ref());
-	mgr.QueueEvent(ocsp_response_status, vl);
-	vl = nullptr;
+
+	if ( ocsp_response_status )
+		mgr.Enqueue(ocsp_response_status,
+			IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+			IntrusivePtr{NewRef{}, status_val}
+		);
 
 	//if (!resp_bytes)
 	//	{
@@ -490,49 +483,56 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val, const char* fid)
 	//int len = BIO_read(bio, buf, sizeof(buf));
 	//BIO_reset(bio);
 
+	zeek::Args vl;
+	vl.reserve(8);
+
 	// get the basic response
 	basic_resp = OCSP_response_get1_basic(resp);
 	if ( !basic_resp )
+		{
+		Unref(status_val);
 		goto clean_up;
+		}
 
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
+#if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 	resp_data = basic_resp->tbsResponseData;
 	if ( !resp_data )
+		{
+		Unref(status_val);
 		goto clean_up;
+		}
 #endif
 
-	vl = new val_list();
-	vl->append(GetFile()->GetVal()->Ref());
-	vl->append(resp_val->Ref());
-	vl->append(status_val);
+	vl.emplace_back(NewRef{}, GetFile()->GetVal());
+	vl.emplace_back(AdoptRef{}, status_val);
 
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
-	vl->append(new Val((uint64)ASN1_INTEGER_get(resp_data->version), TYPE_COUNT));
+#if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
+	vl.emplace_back(val_mgr->Count((uint64_t)ASN1_INTEGER_get(resp_data->version)));
 #else
-	vl->append(parse_basic_resp_data_version(basic_resp));
+	vl.emplace_back(parse_basic_resp_data_version(basic_resp));
 #endif
 
 	// responderID
 	if ( OCSP_RESPID_bio(basic_resp, bio) )
 		{
 		len = BIO_read(bio, buf, sizeof(buf));
-		vl->append(new StringVal(len, buf));
+		vl.emplace_back(make_intrusive<StringVal>(len, buf));
 		BIO_reset(bio);
 		}
 	else
 		{
 		reporter->Weird("OpenSSL failed to get OCSP responder id");
-		vl->append(new StringVal(""));
+		vl.emplace_back(val_mgr->EmptyString());
 		}
 
 	// producedAt
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
+#if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 	produced_at = resp_data->producedAt;
 #else
 	produced_at = OCSP_resp_get0_produced_at(basic_resp);
 #endif
 
-	vl->append(new Val(GetTimeFromAsn1(produced_at, fid, reporter), TYPE_TIME));
+	vl.emplace_back(make_intrusive<Val>(GetTimeFromAsn1(produced_at, GetFile(), reporter), TYPE_TIME));
 
 	// responses
 
@@ -545,19 +545,20 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val, const char* fid)
 		if ( !single_resp )
 			continue;
 
-		val_list* rvl = new val_list();
-		rvl->append(GetFile()->GetVal()->Ref());
+		zeek::Args rvl;
+		rvl.reserve(10);
+		rvl.emplace_back(NewRef{}, GetFile()->GetVal());
 
 		// cert id
 		const OCSP_CERTID* cert_id = nullptr;
 
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
+#if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 		cert_id = single_resp->certId;
 #else
 		cert_id = OCSP_SINGLERESP_get0_id(single_resp);
 #endif
 
-		ocsp_add_cert_id(cert_id, rvl, bio);
+		ocsp_add_cert_id(cert_id, &rvl, bio);
 		BIO_reset(bio);
 
 		// certStatus
@@ -574,38 +575,39 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val, const char* fid)
 			reporter->Weird("OpenSSL failed to find status of OCSP response");
 
 		const char* cert_status_str = OCSP_cert_status_str(status);
-		rvl->append(new StringVal(strlen(cert_status_str), cert_status_str));
+		rvl.emplace_back(make_intrusive<StringVal>(strlen(cert_status_str), cert_status_str));
 
 		// revocation time and reason if revoked
 		if ( status == V_OCSP_CERTSTATUS_REVOKED )
 			{
-			rvl->append(new Val(GetTimeFromAsn1(revoke_time, fid, reporter), TYPE_TIME));
+			rvl.emplace_back(make_intrusive<Val>(GetTimeFromAsn1(revoke_time, GetFile(), reporter), TYPE_TIME));
 
 			if ( reason != OCSP_REVOKED_STATUS_NOSTATUS )
 				{
 				const char* revoke_reason = OCSP_crl_reason_str(reason);
-				rvl->append(new StringVal(strlen(revoke_reason), revoke_reason));
+				rvl.emplace_back(make_intrusive<StringVal>(strlen(revoke_reason), revoke_reason));
 				}
 			else
-				rvl->append(new StringVal(0, ""));
+				rvl.emplace_back(make_intrusive<StringVal>(0, ""));
 			}
 		else
 			{
-			rvl->append(new Val(0, TYPE_TIME));
-			rvl->append(new StringVal(0, ""));
+			rvl.emplace_back(make_intrusive<Val>(0.0, TYPE_TIME));
+			rvl.emplace_back(make_intrusive<StringVal>(0, ""));
 			}
 
 		if ( this_update )
-			rvl->append(new Val(GetTimeFromAsn1(this_update, fid, reporter), TYPE_TIME));
+			rvl.emplace_back(make_intrusive<Val>(GetTimeFromAsn1(this_update, GetFile(), reporter), TYPE_TIME));
 		else
-			rvl->append(new Val(0, TYPE_TIME));
+			rvl.emplace_back(make_intrusive<Val>(0.0, TYPE_TIME));
 
 		if ( next_update )
-			rvl->append(new Val(GetTimeFromAsn1(next_update, fid, reporter), TYPE_TIME));
+			rvl.emplace_back(make_intrusive<Val>(GetTimeFromAsn1(next_update, GetFile(), reporter), TYPE_TIME));
 		else
-			rvl->append(new Val(0, TYPE_TIME));
+			rvl.emplace_back(make_intrusive<Val>(0.0, TYPE_TIME));
 
-		mgr.QueueEvent(ocsp_response_certificate, rvl);
+		if ( ocsp_response_certificate )
+			mgr.Enqueue(ocsp_response_certificate, std::move(rvl));
 
 		num_ext = OCSP_SINGLERESP_get_ext_count(single_resp);
 		for ( int k = 0; k < num_ext; ++k )
@@ -618,24 +620,24 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val, const char* fid)
 			}
 		}
 
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
+#if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 	i2a_ASN1_OBJECT(bio, basic_resp->signatureAlgorithm->algorithm);
 	len = BIO_read(bio, buf, sizeof(buf));
-	vl->append(new StringVal(len, buf));
+	vl.emplace_back(make_intrusive<StringVal>(len, buf));
 	BIO_reset(bio);
 #else
-	vl->append(parse_basic_resp_sig_alg(basic_resp, bio, buf, sizeof(buf)));
+	vl.emplace_back(parse_basic_resp_sig_alg(basic_resp, bio, buf, sizeof(buf)));
 #endif
 
 	//i2a_ASN1_OBJECT(bio, basic_resp->signature);
 	//len = BIO_read(bio, buf, sizeof(buf));
-	//ocsp_resp_record->Assign(7, new StringVal(len, buf));
+	//ocsp_resp_record->Assign(7, make_intrusive<StringVal>(len, buf));
 	//BIO_reset(bio);
 
 	certs_vector = new VectorVal(internal_type("x509_opaque_vector")->AsVectorType());
-	vl->append(certs_vector);
+	vl.emplace_back(AdoptRef{}, certs_vector);
 
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
+#if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 	certs = basic_resp->certs;
 #else
 	certs = OCSP_resp_get0_certs(basic_resp);
@@ -649,12 +651,14 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPVal *resp_val, const char* fid)
 			::X509 *this_cert = X509_dup(helper_sk_X509_value(certs, i));
 			//::X509 *this_cert = X509_dup(sk_X509_value(certs, i));
 			if (this_cert)
-				certs_vector->Assign(i, new file_analysis::X509Val(this_cert));
+				certs_vector->Assign(i, make_intrusive<file_analysis::X509Val>(this_cert));
 			else
 				reporter->Weird("OpenSSL returned null certificate");
 			}
 	  }
-	mgr.QueueEvent(ocsp_response_bytes, vl);
+
+	if ( ocsp_response_bytes )
+		mgr.Enqueue(ocsp_response_bytes, std::move(vl));
 
 	// ok, now that we are done with the actual certificate - let's parse extensions :)
 	num_ext = OCSP_BASICRESP_get_ext_count(basic_resp);
@@ -686,52 +690,3 @@ void file_analysis::OCSP::ParseExtensionsSpecific(X509_EXTENSION* ex, bool globa
 		ParseSignedCertificateTimestamps(ex);
 	}
 
-OCSP_RESPVal::OCSP_RESPVal(OCSP_RESPONSE* arg_ocsp_resp) : OpaqueVal(ocsp_resp_opaque_type)
-	{
-	ocsp_resp = arg_ocsp_resp;
-	}
-
-OCSP_RESPVal::OCSP_RESPVal() : OpaqueVal(ocsp_resp_opaque_type)
-	{
-	ocsp_resp = nullptr;
-	}
-
-OCSP_RESPVal::~OCSP_RESPVal()
-	{
-	if (ocsp_resp)
-		OCSP_RESPONSE_free(ocsp_resp);
-	}
-
-OCSP_RESPONSE* OCSP_RESPVal::GetResp() const
-	{
-	return ocsp_resp;
-	}
-
-bool OCSP_RESPVal::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_OCSP_RESP_VAL, OpaqueVal);
-	unsigned char *buf = nullptr;
-	int length = i2d_OCSP_RESPONSE(ocsp_resp, &buf);
-	if ( length < 0 )
-		return false;
-	bool res = SERIALIZE_STR(reinterpret_cast<const char*>(buf), length);
-	OPENSSL_free(buf);
-	return res;
-	}
-
-bool OCSP_RESPVal::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(OpaqueVal)
-
-	int length;
-	unsigned char *ocsp_resp_buf, *opensslbuf;
-
-	if ( ! UNSERIALIZE_STR(reinterpret_cast<char **>(&ocsp_resp_buf), &length) )
-		return false;
-	opensslbuf = ocsp_resp_buf; // OpenSSL likes to shift pointers around. really.
-	ocsp_resp = d2i_OCSP_RESPONSE(nullptr, const_cast<const unsigned char**>(&opensslbuf), length);
-	delete [] ocsp_resp_buf;
-	if ( ! ocsp_resp )
-		return false;
-	return true;
-	}

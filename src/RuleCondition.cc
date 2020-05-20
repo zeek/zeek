@@ -1,8 +1,13 @@
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "RuleCondition.h"
+#include "RuleMatcher.h"
 #include "analyzer/protocol/tcp/TCP.h"
+#include "Reporter.h"
 #include "Scope.h"
+#include "Func.h"
+#include "Val.h"
+#include "Var.h" // for internal_type()
 
 static inline bool is_established(const analyzer::tcp::TCP_Endpoint* e)
 	{
@@ -93,7 +98,7 @@ bool RuleConditionPayloadSize::DoMatch(Rule* rule, RuleEndpointState* state,
 		// We are interested in the first non-empty chunk.
 		return false;
 
-	uint32 payload_size = uint32(state->PayloadSize());
+	uint32_t payload_size = uint32_t(state->PayloadSize());
 
 	switch ( comp ) {
 	case RULE_EQ:
@@ -140,7 +145,7 @@ RuleConditionEval::RuleConditionEval(const char* func)
 			rules_error("eval function type must yield a 'bool'", func);
 
 		TypeList tl;
-		tl.Append(internal_type("signature_state")->Ref());
+		tl.Append({NewRef{}, internal_type("signature_state")});
 		tl.Append(base_type(TYPE_STRING));
 
 		if ( ! f->CheckArgs(tl.Types()) )
@@ -162,32 +167,25 @@ bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state,
 		return id->ID_Val()->AsBool();
 
 	// Call function with a signature_state value as argument.
-	val_list args;
-	args.append(rule_matcher->BuildRuleStateValue(rule, state));
+	zeek::Args args;
+	args.reserve(2);
+	args.emplace_back(AdoptRef{}, rule_matcher->BuildRuleStateValue(rule, state));
 
 	if ( data )
-		args.append(new StringVal(len, (const char*) data));
+		args.emplace_back(make_intrusive<StringVal>(len, (const char*) data));
 	else
-		args.append(new StringVal(""));
+		args.emplace_back(val_mgr->EmptyString());
 
-	bool result = 0;
+	bool result = false;
 
 	try
 		{
-		Val* val = id->ID_Val()->AsFunc()->Call(&args);
-
-		if ( val )
-			{
-			result = val->AsBool();
-			Unref(val);
-			}
-		else
-			result = false;
+		auto val = id->ID_Val()->AsFunc()->Call(args);
+		result = val && val->AsBool();
 		}
 
 	catch ( InterpreterException& e )
 		{
-		result = false;
 		}
 
 	return result;
@@ -197,4 +195,3 @@ void RuleConditionEval::PrintDebug()
 	{
 	fprintf(stderr, "	RuleConditionEval: %s\n", id->Name());
 	}
-

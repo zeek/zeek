@@ -1,24 +1,21 @@
-#ifndef rule_h
-#define rule_h
+#pragma once
+
+#include "List.h"
+#include "Obj.h"
+
+#include <map>
+#include <string>
 
 #include <limits.h>
-
-#include "Obj.h"
-#include "List.h"
-#include "Dict.h"
-#include "util.h"
+#include <stdint.h>
 
 class RuleCondition;
 class RuleAction;
 class RuleHdrTest;
-
 class Rule;
 
-declare(PList, Rule);
-typedef PList(Rule) rule_list;
-
-declare(PDict, Rule);
-typedef PDict(Rule) rule_dict;
+typedef PList<Rule> rule_list;
+typedef std::map<std::string, Rule*> rule_dict;
 
 class Rule {
 public:
@@ -28,7 +25,7 @@ public:
 		idx = rule_counter++;
 		location = arg_location;
 		active = true;
-		next = 0;
+		next = nullptr;
 		}
 
 	~Rule();
@@ -43,11 +40,11 @@ public:
 
 	bool Active()	{ return active; }
 	void SetActiveStatus(bool new_status)	{ active = new_status; }
-	void AddAction(RuleAction* act)		{ actions.append(act); }
-	void AddCondition(RuleCondition* cond)	{ conditions.append(cond); }
-	void AddHdrTest(RuleHdrTest* hdr_test)	{ hdr_tests.append(hdr_test);	}
+	void AddAction(RuleAction* act)		{ actions.push_back(act); }
+	void AddCondition(RuleCondition* cond)	{ conditions.push_back(cond); }
+	void AddHdrTest(RuleHdrTest* hdr_test)	{ hdr_tests.push_back(hdr_test);	}
 	void AddPattern(const char* str, Rule::PatternType type,
-			uint32 offset = 0, uint32 depth = INT_MAX);
+			uint32_t offset = 0, uint32_t depth = INT_MAX);
 	void AddRequires(const char* id, bool opposite_direction, bool negate);
 
 	const Location& GetLocation() const	{ return location; }
@@ -61,14 +58,9 @@ private:
 
 	void SortHdrTests();
 
-	declare(PList, RuleAction);
-	typedef PList(RuleAction) rule_action_list;
-
-	declare(PList, RuleCondition);
-	typedef PList(RuleCondition) rule_condition_list;
-
-	declare(PList, RuleHdrTest);
-	typedef PList(RuleHdrTest) rule_hdr_test_list;
+	typedef PList<RuleAction> rule_action_list;
+	typedef PList<RuleCondition> rule_condition_list;
+	typedef PList<RuleHdrTest> rule_hdr_test_list;
 
 	rule_hdr_test_list hdr_tests;
 	rule_condition_list conditions;
@@ -82,8 +74,7 @@ private:
 		bool negate;	// negate test
 	};
 
-	declare(PList, Precond);
-	typedef PList(Precond) precond_list;
+	typedef PList<Precond> precond_list;
 
 	precond_list preconds;
 	rule_list dependents;	// rules w/ us as a precondition
@@ -97,12 +88,11 @@ private:
 		char* pattern;	// the pattern itself
 		PatternType type;
 		int id;	// ID of pattern (for identifying it within regexps)
-		uint32 offset;
-		uint32 depth;
+		uint32_t offset;
+		uint32_t depth;
 	};
 
-	declare(PList, Pattern);
-	typedef PList(Pattern) pattern_list;
+	typedef PList<Pattern> pattern_list;
 	pattern_list patterns;
 
 	Rule* next;	// Linkage within RuleHdrTest tree:
@@ -117,5 +107,3 @@ private:
 	// Array of rules indexed by payloadid.
 	static rule_list rule_table;
 	};
-
-#endif

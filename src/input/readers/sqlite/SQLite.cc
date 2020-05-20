@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include <fstream>
 #include <sstream>
@@ -38,7 +38,7 @@ SQLite::SQLite(ReaderFrontend *frontend)
 			BifConst::InputSQLite::empty_field->Len()
 			);
 
-	io = new threading::formatter::Ascii(this, threading::formatter::Ascii::SeparatorInfo(string(), set_separator, unset_field, empty_field));
+	io = new threading::formatter::Ascii(this, threading::formatter::Ascii::SeparatorInfo(std::string(), set_separator, unset_field, empty_field));
 	}
 
 SQLite::~SQLite()
@@ -49,6 +49,9 @@ SQLite::~SQLite()
 
 void SQLite::DoClose()
 	{
+	sqlite3_finalize(st);
+	st = nullptr;
+
 	if ( db != 0 )
 		{
 		sqlite3_close(db);
@@ -71,7 +74,7 @@ bool SQLite::DoInit(const ReaderInfo& info, int arg_num_fields, const threading:
 	{
 	if ( sqlite3_threadsafe() == 0 )
 		{
-		Error("SQLite reports that it is not threadsafe. Bro needs a threadsafe version of SQLite. Aborting");
+		Error("SQLite reports that it is not threadsafe. Zeek needs a threadsafe version of SQLite. Aborting");
 		return false;
 		}
 
@@ -87,10 +90,10 @@ bool SQLite::DoInit(const ReaderInfo& info, int arg_num_fields, const threading:
 
 	started = false;
 
-	string fullpath(info.source);
+	std::string fullpath(info.source);
 	fullpath.append(".sqlite");
 
-	string query;
+	std::string query;
 	ReaderInfo::config_map::const_iterator it = info.config.find("query");
 	if ( it == info.config.end() )
 		{
@@ -153,7 +156,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 			{
 			Error("Invalid data type for boolean - expected Integer");
 			delete val;
-			return 0;
+			return nullptr;
 			}
 
 		int res = sqlite3_column_int(st, pos);
@@ -164,7 +167,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 			{
 			Error(Fmt("Invalid value for boolean: %d", res));
 			delete val;
-			return 0;
+			return nullptr;
 			}
 		break;
 		}
@@ -196,7 +199,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 				Error("Port protocol definition did not contain text");
 			else
 				{
-				string s(text, sqlite3_column_bytes(st, subpos));
+				std::string s(text, sqlite3_column_bytes(st, subpos));
 				val->val.port_val.proto = io->ParseProto(s);
 				}
 			}
@@ -206,10 +209,10 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 	case TYPE_SUBNET:
 		{
 		const char *text = (const char*) sqlite3_column_text(st, pos);
-		string s(text, sqlite3_column_bytes(st, pos));
-		int pos = s.find("/");
+		std::string s(text, sqlite3_column_bytes(st, pos));
+		int pos = s.find('/');
 		int width = atoi(s.substr(pos+1).c_str());
-		string addr = s.substr(0, pos);
+		std::string addr = s.substr(0, pos);
 
 		val->val.subnet_val.prefix = io->ParseAddr(addr);
 		val->val.subnet_val.length = width;
@@ -219,7 +222,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 	case TYPE_ADDR:
 		{
 		const char *text = (const char*) sqlite3_column_text(st, pos);
-		string s(text, sqlite3_column_bytes(st, pos));
+		std::string s(text, sqlite3_column_bytes(st, pos));
 		val->val.addr_val = io->ParseAddr(s);
 		break;
 		}
@@ -228,7 +231,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 	case TYPE_VECTOR:
 		{
 		const char *text = (const char*) sqlite3_column_text(st, pos);
-		string s(text, sqlite3_column_bytes(st, pos));
+		std::string s(text, sqlite3_column_bytes(st, pos));
 		delete val;
 		val = io->ParseValue(s, "", field->type, field->subtype);
 		break;
@@ -237,7 +240,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 	default:
 		Error(Fmt("unsupported field format %d", field->type));
 		delete val;
-		return 0;
+		return nullptr;
 	}
 
 	return val;
@@ -276,7 +279,7 @@ bool SQLite::DoUpdate()
 				mapping[j] = i;
 				}
 
-			if ( fields[j]->secondary_name != 0 && strcmp(fields[j]->secondary_name, name) == 0 )
+			if ( fields[j]->secondary_name != nullptr && strcmp(fields[j]->secondary_name, name) == 0 )
 				{
 				assert(fields[j]->type == TYPE_PORT);
 				if ( submapping[j] != -1 )
@@ -311,7 +314,7 @@ bool SQLite::DoUpdate()
 		for ( unsigned int j = 0; j < num_fields; ++j)
 			{
 			ofields[j] = EntryToVal(st, fields[j], mapping[j], submapping[j]);
-			if ( ofields[j] == 0 )
+			if ( ! ofields[j] )
 				{
 				for ( unsigned int k = 0; k < j; ++k )
 					delete ofields[k];
@@ -339,4 +342,3 @@ bool SQLite::DoUpdate()
 
 	return true;
 	}
-

@@ -52,9 +52,9 @@ type Data_Block = record {
 	header: Data_Header;
 	block: case header.type of {
 		0xc001  -> client_core:       Client_Core_Data;
-		#0xc002  -> client_security:   Client_Security_Data;
-		#0xc003  -> client_network:    Client_Network_Data;
-		#0xc004  -> client_cluster:    Client_Cluster_Data;
+		0xc002  -> client_security:   Client_Security_Data;
+		0xc003  -> client_network:    Client_Network_Data;
+		0xc004  -> client_cluster:    Client_Cluster_Data;
 		#0xc005  -> client_monitor:    Client_Monitor_Data;
 		#0xc006  -> client_msgchannel: Client_MsgChannel_Data;
 		#0xc008  -> client_monitor_ex: Client_MonitorExtended_Data;
@@ -220,6 +220,43 @@ type Client_Core_Data = record {
 	SUPPORT_HEARTBEAT_PDU:      bool = early_capability_flags & 0x0400;
 } &byteorder=littleendian;
 
+type Client_Security_Data = record {
+	encryption_methods:	uint32;
+	ext_encryption_methods:	uint32;
+} &byteorder=littleendian;
+
+type Client_Network_Data = record {
+	channel_count: uint32;
+	channel_def_array: Client_Channel_Def[channel_count];
+} &byteorder=littleendian;
+
+type Client_Cluster_Data = record {
+	flags: uint32;
+	redir_session_id: uint32;
+} &let {
+	REDIRECTION_SUPPORTED:                        bool = redir_session_id & 0x00000001;
+	SERVER_SESSION_REDIRECTION_VERSION_MASK:      uint8 = (redir_session_id & 0x0000003C);
+	REDIRECTED_SESSIONID_FIELD_VALID:             bool = (redir_session_id & 0x00000002);
+	REDIRECTED_SMARTCARD:                         bool = redir_session_id & 0x00000040;
+} &byteorder=littleendian;
+
+type Client_Channel_Def = record {
+	name:     bytestring &length=8;
+	options:  uint32;
+} &let {
+	REMOTE_CONTROL_PERSISTENT:    bool = options & 0x00100000;
+	CHANNEL_OPTION_SHOW_PROTOCOL: bool = options & 0x00200000;
+	CHANNEL_OPTION_COMPRESS:      bool = options & 0x00400000;
+	CHANNEL_OPTION_COMPRESS_RDP:  bool = options & 0x00800000;
+	CHANNEL_OPTION_PRI_LOW:       bool = options & 0x02000000;
+	CHANNEL_OPTION_PRI_MED:       bool = options & 0x04000000;
+	CHANNEL_OPTION_PRI_HIGH:      bool = options & 0x08000000;
+	CHANNEL_OPTION_ENCRYPT_CS:    bool = options & 0x10000000;
+	CHANNEL_OPTION_ENCRYPT_SC:    bool = options & 0x20000000;
+	CHANNEL_OPTION_ENCRYPT_RDP:   bool = options & 0x40000000;
+	CHANNEL_OPTION_INITIALIZED:   bool = options & 0x80000000;
+} &byteorder=littleendian;
+
 ######################################################################
 # Server MCS
 ######################################################################
@@ -346,9 +383,9 @@ refine connection RDP_Conn += {
 
 		if ( rdp_begin_encryption )
 			{
-			BifEvent::generate_rdp_begin_encryption(bro_analyzer(),
-			                                        bro_analyzer()->Conn(),
-			                                        ${method});
+			BifEvent::enqueue_rdp_begin_encryption(bro_analyzer(),
+			                                       bro_analyzer()->Conn(),
+			                                       ${method});
 			}
 
 		return is_encrypted_;

@@ -1,6 +1,5 @@
 
-#ifndef THREADING_SERIALIZATIONTYPES_H
-#define THREADING_SERIALIZATIONTYPES_H
+#pragma once
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -10,10 +9,7 @@
 #include "Type.h"
 #include "net_util.h"
 
-using namespace std;
-
 class SerializationFormat;
-class RemoteSerializer;
 
 namespace threading {
 
@@ -33,16 +29,16 @@ struct Field {
 	 * Constructor.
 	 */
 	Field(const char* name, const char* secondary_name, TypeTag type, TypeTag subtype, bool optional)
-		: name(name ? copy_string(name) : 0),
-		  secondary_name(secondary_name ? copy_string(secondary_name) : 0),
+		: name(name ? copy_string(name) : nullptr),
+		  secondary_name(secondary_name ? copy_string(secondary_name) : nullptr),
 		  type(type), subtype(subtype), optional(optional)	{ }
 
 	/**
 	 * Copy constructor.
 	 */
 	Field(const Field& other)
-		: name(other.name ? copy_string(other.name) : 0),
-		  secondary_name(other.secondary_name ? copy_string(other.secondary_name) : 0),
+		: name(other.name ? copy_string(other.name) : nullptr),
+		  secondary_name(other.secondary_name ? copy_string(other.secondary_name) : nullptr),
 		  type(other.type), subtype(other.subtype), optional(other.optional)	{ }
 
 	~Field()
@@ -75,11 +71,9 @@ struct Field {
 	 * Returns a textual description of the field's type. This method is
 	 * thread-safe.
 	 */
-	string TypeName() const;
+	std::string TypeName() const;
 
 private:
-	friend class ::RemoteSerializer;
-
 	// Force usage of constructor above.
 	Field()	{}
 };
@@ -129,6 +123,7 @@ struct Value {
 		vec_t vector_val;
 		addr_t addr_val;
 		subnet_t subnet_val;
+		const char* pattern_text_val;
 
 		struct {
 			char* data;
@@ -198,5 +193,3 @@ private:
 };
 
 }
-
-#endif /* THREADING_SERIALIZATIONTYPES_H */

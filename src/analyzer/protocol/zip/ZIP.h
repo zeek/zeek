@@ -1,16 +1,15 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_ZIP_ZIP_H
-#define ANALYZER_PROTOCOL_ZIP_ZIP_H
+#pragma once
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "zlib.h"
 #include "analyzer/protocol/tcp/TCP.h"
 
 namespace analyzer { namespace zip {
 
-class ZIP_Analyzer : public tcp::TCP_SupportAnalyzer {
+class ZIP_Analyzer final : public tcp::TCP_SupportAnalyzer {
 public:
 	enum Method { GZIP, DEFLATE };
 
@@ -28,6 +27,4 @@ protected:
 	Method method;
 };
 
-} } // namespace analyzer::* 
-
-#endif
+} } // namespace analyzer::*

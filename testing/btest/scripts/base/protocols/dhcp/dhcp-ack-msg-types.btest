@@ -2,5 +2,5 @@
 # The trace has a message of each DHCP message type,
 # but only one lease should show up in the logs.
 
-# @TEST-EXEC: bro -r $TRACES/dhcp/dhcp_ack_subscriber_id_and_agent_remote_id.trace %INPUT
+# @TEST-EXEC: zeek -r $TRACES/dhcp/dhcp_ack_subscriber_id_and_agent_remote_id.trace %INPUT
 # @TEST-EXEC: btest-diff dhcp.log

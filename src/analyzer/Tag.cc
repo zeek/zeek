@@ -3,7 +3,7 @@
 #include "Tag.h"
 #include "Manager.h"
 
-analyzer::Tag analyzer::Tag::Error;
+const analyzer::Tag analyzer::Tag::Error;
 
 analyzer::Tag::Tag(type_t type, subtype_t subtype)
 	: ::Tag(analyzer_mgr->GetTagEnumType(), type, subtype)

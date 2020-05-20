@@ -4,10 +4,29 @@ enum Trans_subcommands {
 	NT_TRANSACT_CREATE2 = 0x0009,
 };
 
+%code{
+	IntrusivePtr<StringVal> SMB_Conn::transaction_data_to_val(SMB1_transaction_data* payload)
+		{
+		switch ( payload->trans_type() ) {
+		case SMB_PIPE:
+			return to_stringval(payload->pipe_data());
+		case SMB_UNKNOWN:
+			return to_stringval(payload->unknown());
+		default:
+			return to_stringval(payload->data());
+		}
+
+		assert(false);
+		return val_mgr->EmptyString();
+		}
+%}
+
 refine connection SMB_Conn += {
 
 	%member{
 		map<uint16, bool> is_file_a_pipe;
+
+		static IntrusivePtr<StringVal> transaction_data_to_val(SMB1_transaction_data* payload);
 	%}
 
 	function get_is_file_a_pipe(id: uint16): bool
@@ -34,43 +53,22 @@ refine connection SMB_Conn += {
 		if ( ! smb1_transaction_request )
 			return false;
 
-		StringVal* parameters = new StringVal(${val.parameters}.length(),
-		                                      (const char*)${val.parameters}.data());
-		StringVal* payload_str = nullptr;
-		SMB1_transaction_data* payload = nullptr;
+		auto parameters = make_intrusive<StringVal>(${val.parameters}.length(),
+		                                            (const char*)${val.parameters}.data());
+		IntrusivePtr<StringVal> payload_str;
 
 		if ( ${val.data_count} > 0 )
-			{
-			payload = ${val.data};
-			}
+			payload_str = transaction_data_to_val(${val.data});
+		else
+			payload_str = val_mgr->EmptyString();
 
-		if ( payload )
-			{
-			switch ( payload->trans_type() ) {
-			case SMB_PIPE:
-				payload_str = new StringVal(${val.data_count}, (const char*)${val.data.pipe_data}.data());
-				break;
-			case SMB_UNKNOWN:
-				payload_str = new StringVal(${val.data_count}, (const char*)${val.data.unknown}.data());
-				break;
-			default:
-				payload_str = new StringVal(${val.data_count}, (const char*)${val.data.data}.data());
-				break;
-			}
-			}
-
-		if ( ! payload_str )
-			{
-			payload_str = new StringVal("");
-			}
-
-		BifEvent::generate_smb1_transaction_request(bro_analyzer(),
-		                                            bro_analyzer()->Conn(),
-		                                            BuildHeaderVal(header),
-		                                            smb_string2stringval(${val.name}),
-		                                            ${val.sub_cmd},
-		                                            parameters,
-		                                            payload_str);
+		BifEvent::enqueue_smb1_transaction_request(bro_analyzer(),
+		                                           bro_analyzer()->Conn(),
+		                                           SMBHeaderVal(header),
+		                                           {AdoptRef{}, smb_string2stringval(${val.name})},
+		                                           ${val.sub_cmd},
+		                                           std::move(parameters),
+		                                           std::move(payload_str));
 
 		return true;
 		%}
@@ -80,41 +78,20 @@ refine connection SMB_Conn += {
 		if ( ! smb1_transaction_response )
 			return false;
 
-		StringVal* parameters = new StringVal(${val.parameters}.length(),
-		                                      (const char*)${val.parameters}.data());
-		StringVal* payload_str = nullptr;
-		SMB1_transaction_data* payload = nullptr;
+		auto parameters = make_intrusive<StringVal>(${val.parameters}.length(),
+		                                            (const char*)${val.parameters}.data());
+		IntrusivePtr<StringVal> payload_str;
 
 		if ( ${val.data_count} > 0 )
-			{
-			payload = ${val.data[0]};
-			}
+			payload_str = transaction_data_to_val(${val.data[0]});
+		else
+			payload_str = val_mgr->EmptyString();
 
-		if ( payload )
-			{
-			switch ( payload->trans_type() ) {
-			case SMB_PIPE:
-				payload_str = new StringVal(${val.data_count}, (const char*)${val.data[0].pipe_data}.data());
-				break;
-			case SMB_UNKNOWN:
-				payload_str = new StringVal(${val.data_count}, (const char*)${val.data[0].unknown}.data());
-				break;
-			default:
-				payload_str = new StringVal(${val.data_count}, (const char*)${val.data[0].data}.data());
-				break;
-			}
-			}
-
-		if ( ! payload_str )
-			{
-			payload_str = new StringVal("");
-			}
-
-		BifEvent::generate_smb1_transaction_response(bro_analyzer(),
-		                                             bro_analyzer()->Conn(),
-		                                             BuildHeaderVal(header),
-		                                             parameters,
-		                                             payload_str);
+		BifEvent::enqueue_smb1_transaction_response(bro_analyzer(),
+		                                            bro_analyzer()->Conn(),
+		                                            SMBHeaderVal(header),
+		                                            std::move(parameters),
+		                                            std::move(payload_str));
 		return true;
 		%}
 };

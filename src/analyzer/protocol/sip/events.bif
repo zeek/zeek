@@ -13,7 +13,7 @@
 ##
 ## version: The version number specified in the request (e.g., ``2.0``).
 ##
-## .. bro:see:: sip_reply sip_header sip_all_headers sip_begin_entity sip_end_entity
+## .. zeek:see:: sip_reply sip_header sip_all_headers sip_begin_entity sip_end_entity
 event sip_request%(c: connection, method: string, original_URI: string, version: string%);
 
 ## Generated for :abbr:`SIP (Session Initiation Protocol)` replies, used in Voice over IP (VoIP).
@@ -31,7 +31,7 @@ event sip_request%(c: connection, method: string, original_URI: string, version:
 ##
 ## reason: Textual details for the response code.
 ##
-## .. bro:see:: sip_request sip_header sip_all_headers sip_begin_entity sip_end_entity
+## .. zeek:see:: sip_request sip_header sip_all_headers sip_begin_entity sip_end_entity
 event sip_reply%(c: connection, version: string, code: count, reason: string%);
 
 ## Generated for each :abbr:`SIP (Session Initiation Protocol)` header.
@@ -47,7 +47,7 @@ event sip_reply%(c: connection, version: string, code: count, reason: string%);
 ##
 ## value: Header value.
 ##
-## .. bro:see:: sip_request sip_reply sip_all_headers sip_begin_entity sip_end_entity
+## .. zeek:see:: sip_request sip_reply sip_all_headers sip_begin_entity sip_end_entity
 event sip_header%(c: connection, is_orig: bool, name: string, value: string%);
 
 ## Generated once for all :abbr:`SIP (Session Initiation Protocol)` headers from the originator or responder.
@@ -61,7 +61,7 @@ event sip_header%(c: connection, is_orig: bool, name: string, value: string%);
 ##
 ## hlist: All the headers, and their values
 ##
-## .. bro:see:: sip_request sip_reply sip_header sip_begin_entity sip_end_entity
+## .. zeek:see:: sip_request sip_reply sip_header sip_begin_entity sip_end_entity
 event sip_all_headers%(c: connection, is_orig: bool, hlist: mime_header_list%);
 
 ## Generated at the beginning of a :abbr:`SIP (Session Initiation Protocol)` message.
@@ -75,7 +75,7 @@ event sip_all_headers%(c: connection, is_orig: bool, hlist: mime_header_list%);
 ##
 ## is_orig: Whether the message came from the originator.
 ##
-## .. bro:see:: sip_request sip_reply sip_header sip_all_headers sip_end_entity
+## .. zeek:see:: sip_request sip_reply sip_header sip_all_headers sip_end_entity
 event sip_begin_entity%(c: connection, is_orig: bool%);
 
 ## Generated at the end of a :abbr:`SIP (Session Initiation Protocol)` message.
@@ -87,5 +87,5 @@ event sip_begin_entity%(c: connection, is_orig: bool%);
 ##
 ## is_orig: Whether the message came from the originator.
 ##
-## .. bro:see:: sip_request sip_reply sip_header sip_all_headers sip_begin_entity
+## .. zeek:see:: sip_request sip_reply sip_header sip_all_headers sip_begin_entity
 event sip_end_entity%(c: connection, is_orig: bool%);

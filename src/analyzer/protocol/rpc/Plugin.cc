@@ -1,28 +1,27 @@
 // See the file  in the main distribution directory for copyright.
 
-
-#include "plugin/Plugin.h"
-
 #include "RPC.h"
 #include "NFS.h"
 #include "MOUNT.h"
 #include "Portmap.h"
+#include "plugin/Plugin.h"
+#include "analyzer/Component.h"
 
 namespace plugin {
-namespace Bro_RPC {
+namespace Zeek_RPC {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("NFS", ::analyzer::rpc::NFS_Analyzer::Instantiate));
 		AddComponent(new ::analyzer::Component("MOUNT", ::analyzer::rpc::MOUNT_Analyzer::Instantiate));
 		AddComponent(new ::analyzer::Component("Portmapper", ::analyzer::rpc::Portmapper_Analyzer::Instantiate));
-		AddComponent(new ::analyzer::Component("Contents_RPC", 0));
-		AddComponent(new ::analyzer::Component("Contents_NFS", 0));
+		AddComponent(new ::analyzer::Component("Contents_RPC", nullptr));
+		AddComponent(new ::analyzer::Component("Contents_NFS", nullptr));
 
 		plugin::Configuration config;
-		config.name = "Bro::RPC";
+		config.name = "Zeek::RPC";
 		config.description = "Analyzers for RPC-based protocols";
 		return config;
 		}

@@ -13,7 +13,7 @@ refine connection XMPP_Conn += {
 		string token = std_str(name);
 		// Result will either be text after ":" or original string; this discards the namespace
 		string token_no_ns = std_str(name);
-		auto offset = token_no_ns.find(":");
+		auto offset = token_no_ns.find(':');
 		if ( offset != std::string::npos && token_no_ns.length() > offset + 1 )
 			token_no_ns = token_no_ns.substr(offset + 1);
 
@@ -32,7 +32,8 @@ refine connection XMPP_Conn += {
 		if ( !is_orig && ( token == "proceed" || token_no_ns == "proceed" ) && client_starttls )
 			{
 			bro_analyzer()->StartTLS();
-			BifEvent::generate_xmpp_starttls(bro_analyzer(), bro_analyzer()->Conn());
+			if ( xmpp_starttls )
+				BifEvent::enqueue_xmpp_starttls(bro_analyzer(), bro_analyzer()->Conn());
 			}
 		else if ( !is_orig && token == "proceed" )
 			reporter->Weird(bro_analyzer()->Conn(), "XMPP: proceed without starttls");

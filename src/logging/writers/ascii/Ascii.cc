@@ -10,6 +10,7 @@
 #include "Ascii.h"
 #include "ascii.bif.h"
 
+using namespace std;
 using namespace logging::writer;
 using namespace threading;
 using threading::Value;
@@ -23,7 +24,8 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 	include_meta = false;
 	tsv = false;
 	use_json = false;
-	formatter = 0;
+	enable_utf_8 = false;
+	formatter = nullptr;
 	gzip_level = 0;
 	gzfile = nullptr;
 
@@ -36,6 +38,7 @@ void Ascii::InitConfigOptions()
 	output_to_stdout = BifConst::LogAscii::output_to_stdout;
 	include_meta = BifConst::LogAscii::include_meta;
 	use_json = BifConst::LogAscii::use_json;
+	enable_utf_8 = BifConst::LogAscii::enable_utf_8;
 	gzip_level = BifConst::LogAscii::gzip_level;
 
 	separator.assign(
@@ -69,6 +72,11 @@ void Ascii::InitConfigOptions()
 			(const char*) tsfmt.Bytes(),
 			tsfmt.Len()
 			);
+
+	gzip_file_extension.assign(
+		(const char*) BifConst::LogAscii::gzip_file_extension->Bytes(),
+		BifConst::LogAscii::gzip_file_extension->Len()
+		);
 	}
 
 bool Ascii::InitFilterOptions()
@@ -115,6 +123,19 @@ bool Ascii::InitFilterOptions()
 				}
 			}
 
+		else if ( strcmp(i->first, "enable_utf_8") == 0 )
+			{
+			if ( strcmp(i->second, "T") == 0 )
+				enable_utf_8 = true;
+			else if ( strcmp(i->second, "F") == 0 )
+				enable_utf_8 = false;
+			else
+				{
+				Error("invalid value for 'enable_utf_8', must be a string and either \"T\" or \"F\"");
+				return false;
+				}
+			}
+
 		else if ( strcmp(i->first, "output_to_stdout") == 0 )
 			{
 			if ( strcmp(i->second, "T") == 0 )
@@ -145,6 +166,9 @@ bool Ascii::InitFilterOptions()
 
 		else if ( strcmp(i->first, "json_timestamps") == 0 )
 			json_timestamps.assign(i->second);
+
+		else if ( strcmp(i->first, "gzip_file_extension") == 0 )
+			gzip_file_extension.assign(i->second);
 		}
 
 	if ( ! InitFormatter() )
@@ -156,7 +180,7 @@ bool Ascii::InitFilterOptions()
 bool Ascii::InitFormatter()
 	{
 	delete formatter;
-	formatter = 0;
+	formatter = nullptr;
 
 	if ( use_json )
 		{
@@ -181,6 +205,10 @@ bool Ascii::InitFormatter()
 		}
 	else
 		{
+		// Enable utf-8 if needed
+		if ( enable_utf_8 )
+			desc.EnableUTF8();
+
 		// Use the default "Bro logs" format.
 		desc.EnableEscaping();
 		desc.AddEscapeSequence(separator);
@@ -233,8 +261,13 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const Field* const * 
 	if ( output_to_stdout )
 		path = "/dev/stdout";
 
-	fname = IsSpecial(path) ? path : path + "." + LogExt() +
-	                          (gzip_level > 0 ? ".gz" : "");
+	fname = IsSpecial(path) ? path : path + "." + LogExt();
+
+	if ( gzip_level > 0 )
+		{
+		fname += ".";
+		fname += gzip_file_extension.empty() ? "gz" : gzip_file_extension;
+		}
 
 	fd = open(fname.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 
@@ -408,8 +441,13 @@ bool Ascii::DoRotate(const char* rotated_path, double open, double close, bool t
 
 	CloseFile(close);
 
-	string nname = string(rotated_path) + "." + LogExt() +
-	               (gzip_level > 0 ? ".gz" : "");
+	string nname = string(rotated_path) + "." + LogExt();
+
+	if ( gzip_level > 0 )
+		{
+		nname += ".";
+		nname += gzip_file_extension.empty() ? "gz" : gzip_file_extension;
+		}
 
 	if ( rename(fname.c_str(), nname.c_str()) != 0 )
 		{
@@ -444,7 +482,8 @@ bool Ascii::DoHeartbeat(double network_time, double current_time)
 
 string Ascii::LogExt()
 	{
-	const char* ext = getenv("BRO_LOG_SUFFIX");
+	const char* ext = zeekenv("ZEEK_LOG_SUFFIX");
+
 	if ( ! ext )
 		ext = "log";
 

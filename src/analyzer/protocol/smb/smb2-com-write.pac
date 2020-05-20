@@ -4,12 +4,12 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_write_request )
 			{
-			BifEvent::generate_smb2_write_request(bro_analyzer(),
-			                                      bro_analyzer()->Conn(),
-			                                      BuildSMB2HeaderVal(h),
-			                                      BuildSMB2GUID(${val.file_id}),
-			                                      ${val.offset},
-			                                      ${val.data_len});
+			BifEvent::enqueue_smb2_write_request(bro_analyzer(),
+			                                     bro_analyzer()->Conn(),
+			                                     {AdoptRef{}, BuildSMB2HeaderVal(h)},
+			                                     {AdoptRef{}, BuildSMB2GUID(${val.file_id})},
+			                                     ${val.offset},
+			                                     ${val.data_len});
 			}
 
 		if ( ! ${h.is_pipe} && ${val.data}.length() > 0 )
@@ -24,6 +24,15 @@ refine connection SMB_Conn += {
 
 	function proc_smb2_write_response(h: SMB2_Header, val: SMB2_write_response) : bool
 		%{
+
+		if ( smb2_write_response )
+			{
+			BifEvent::enqueue_smb2_write_response(bro_analyzer(),
+			                                      bro_analyzer()->Conn(),
+			                                      {AdoptRef{}, BuildSMB2HeaderVal(h)},
+			                                      ${val.write_count});
+			}
+
 		return true;
 		%}
 

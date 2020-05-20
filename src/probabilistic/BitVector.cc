@@ -1,11 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "BitVector.h"
+
+#include <broker/data.hh>
+
 #include <openssl/sha.h>
 #include <cassert>
 #include <limits>
 
-#include "BitVector.h"
-#include "Serializer.h"
 #include "digest.h"
 
 using namespace probabilistic;
@@ -492,19 +494,59 @@ BitVector::size_type BitVector::FindNext(size_type i) const
 	return block ? bi * bits_per_block + lowest_bit(block) : find_from(bi + 1);
 	}
 
-uint64 BitVector::Hash() const
+uint64_t BitVector::Hash() const
 	{
 	u_char buf[SHA256_DIGEST_LENGTH];
-	uint64 digest;
-	SHA256_CTX ctx;
-	sha256_init(&ctx);
+	uint64_t digest;
+	EVP_MD_CTX* ctx = hash_init(Hash_SHA256);
 
 	for ( size_type i = 0; i < Blocks(); ++i )
-		sha256_update(&ctx, &bits[i], sizeof(bits[i]));
+		hash_update(ctx, &bits[i], sizeof(bits[i]));
 
-	sha256_final(&ctx, buf);
+	hash_final(ctx, buf);
 	memcpy(&digest, buf, sizeof(digest)); // Use the first bytes as digest
 	return digest;
+	}
+
+broker::expected<broker::data> BitVector::Serialize() const
+	{
+	broker::vector v = {static_cast<uint64_t>(num_bits), static_cast<uint64_t>(bits.size())};
+	v.reserve(2 + bits.size());
+
+	for ( size_t i = 0; i < bits.size(); ++i )
+		v.emplace_back(static_cast<uint64_t>(bits[i]));
+
+	return {std::move(v)};
+	}
+
+std::unique_ptr<BitVector> BitVector::Unserialize(const broker::data& data)
+	{
+	auto v = caf::get_if<broker::vector>(&data);
+	if ( ! (v && v->size() >= 2) )
+		return nullptr;
+
+	auto num_bits = caf::get_if<uint64_t>(&(*v)[0]);
+	auto size = caf::get_if<uint64_t>(&(*v)[1]);
+
+	if ( ! (num_bits && size) )
+		return nullptr;
+
+	if ( v->size() != 2 + *size )
+		return nullptr;
+
+	auto bv = std::unique_ptr<BitVector>(new BitVector());
+	bv->num_bits = *num_bits;
+
+	for ( size_t i = 0; i < *size; ++i )
+		{
+		auto x = caf::get_if<uint64_t>(&(*v)[2 + i]);
+		if ( ! x )
+			return nullptr;
+
+		bv->bits.push_back(*x);
+		}
+
+	return bv;
 	}
 
 BitVector::size_type BitVector::lowest_bit(block_type block)
@@ -540,56 +582,3 @@ BitVector::size_type BitVector::find_from(size_type i) const
 	return i * bits_per_block + lowest_bit(bits[i]);
 	}
 
-bool BitVector::Serialize(SerialInfo* info) const
-	{
-	return SerialObj::Serialize(info);
-	}
-
-BitVector* BitVector::Unserialize(UnserialInfo* info)
-	{
-	return reinterpret_cast<BitVector*>(SerialObj::Unserialize(info, SER_BITVECTOR));
-	}
-
-IMPLEMENT_SERIAL(BitVector, SER_BITVECTOR);
-
-bool BitVector::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_BITVECTOR, SerialObj);
-
-	if ( ! SERIALIZE(static_cast<uint64>(bits.size())) )
-		return false;
-
-	for ( size_t i = 0; i < bits.size(); ++i )
-		if ( ! SERIALIZE(static_cast<uint64>(bits[i])) )
-			return false;
-
-	return SERIALIZE(static_cast<uint64>(num_bits));
-	}
-
-bool BitVector::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(SerialObj);
-
-	uint64 size;
-	if ( ! UNSERIALIZE(&size) )
-		return false;
-
-	bits.resize(static_cast<size_t>(size));
-
-	for ( size_t i = 0; i < bits.size(); ++i )
-		{
-		uint64 block;
-		if ( ! UNSERIALIZE(&block) )
-			return false;
-
-		bits[i] = static_cast<block_type>(block);
-		}
-
-	uint64 n;
-	if ( ! UNSERIALIZE(&n) )
-		return false;
-
-	num_bits = static_cast<size_type>(n);
-
-	return true;
-	}

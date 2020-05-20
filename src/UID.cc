@@ -1,13 +1,15 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <cstdlib>
-
 #include "UID.h"
+#include "Reporter.h"
+#include "util.h"
+
+#include <cstdlib>
 
 using namespace Bro;
 using namespace std;
 
-void UID::Set(bro_uint_t bits, const uint64* v, size_t n)
+void UID::Set(bro_uint_t bits, const uint64_t* v, size_t n)
 	{
 	initialized = true;
 
@@ -25,4 +27,16 @@ void UID::Set(bro_uint_t bits, const uint64* v, size_t n)
 
 	if ( res.rem )
 		uid[0] >>= 64 - res.rem;
+	}
+
+std::string UID::Base62(std::string prefix) const
+	{
+	if ( ! initialized )
+		reporter->InternalError("use of uninitialized UID");
+
+	char tmp[sizeof(uid) * 8 + 1];  // enough for even binary representation
+	for ( size_t i = 0; i < BRO_UID_LEN; ++i )
+		prefix.append(uitoa_n(uid[i], tmp, sizeof(tmp), 62));
+
+	return prefix;
 	}

@@ -23,11 +23,14 @@ install-aux: configured
 clean: configured docclean
 	$(MAKE) -C $(BUILD) $@
 
-doc: configured
-	$(MAKE) -C $(BUILD) $@
+doc:
+	$(MAKE) -C doc $@
 
-docclean: configured
-	$(MAKE) -C $(BUILD) $@
+docclean:
+	(cd doc && make clean)
+
+livehtml:
+	$(MAKE) -C doc $@
 
 dist:
 	@test -e ../$(VERSION_FULL) && rm -ri ../$(VERSION_FULL) || true
@@ -52,9 +55,9 @@ test:
 	-@( cd testing && make )
 
 test-aux:
-	-test -d aux/broctl && ( cd aux/broctl && make test-all )
+	-test -d aux/zeekctl && ( cd aux/zeekctl && make test-all )
 	-test -d aux/btest  && ( cd aux/btest && make test )
-	-test -d aux/bro-aux && ( cd aux/bro-aux && make test )
+	-test -d aux/zeek-aux && ( cd aux/zeek-aux && make test )
 	-test -d aux/plugins && ( cd aux/plugins && make test-all )
 
 test-all: test test-aux
@@ -63,4 +66,4 @@ configured:
 	@test -d $(BUILD) || ( echo "Error: No build/ directory found. Did you run configure?" && exit 1 )
 	@test -e $(BUILD)/Makefile || ( echo "Error: No build/Makefile found. Did you run configure?" && exit 1 )
 
-.PHONY : all install clean doc docclean dist distclean configured
+.PHONY : all install clean doc docclean dist distclean configured livehtml

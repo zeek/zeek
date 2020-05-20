@@ -5,6 +5,7 @@
 #include "DataEvent.h"
 #include "EventRegistry.h"
 #include "Event.h"
+#include "Func.h"
 #include "util.h"
 #include "file_analysis/Manager.h"
 
@@ -20,10 +21,10 @@ DataEvent::DataEvent(RecordVal* args, File* file,
 
 file_analysis::Analyzer* DataEvent::Instantiate(RecordVal* args, File* file)
 	{
-	Val* chunk_val = args->Lookup("chunk_event");
-	Val* stream_val = args->Lookup("stream_event");
+	auto chunk_val = args->Lookup("chunk_event");
+	auto stream_val = args->Lookup("stream_event");
 
-	if ( ! chunk_val && ! stream_val ) return 0;
+	if ( ! chunk_val && ! stream_val ) return nullptr;
 
 	EventHandlerPtr chunk;
 	EventHandlerPtr stream;
@@ -37,29 +38,27 @@ file_analysis::Analyzer* DataEvent::Instantiate(RecordVal* args, File* file)
 	return new DataEvent(args, file, chunk, stream);
 	}
 
-bool DataEvent::DeliverChunk(const u_char* data, uint64 len, uint64 offset)
+bool DataEvent::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 	{
 	if ( ! chunk_event ) return true;
 
-	val_list* args = new val_list;
-	args->append(GetFile()->GetVal()->Ref());
-	args->append(new StringVal(new BroString(data, len, 0)));
-	args->append(new Val(offset, TYPE_COUNT));
-
-	mgr.QueueEvent(chunk_event, args);
+	mgr.Enqueue(chunk_event,
+		IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+		make_intrusive<StringVal>(new BroString(data, len, false)),
+		val_mgr->Count(offset)
+	);
 
 	return true;
 	}
 
-bool DataEvent::DeliverStream(const u_char* data, uint64 len)
+bool DataEvent::DeliverStream(const u_char* data, uint64_t len)
 	{
 	if ( ! stream_event ) return true;
 
-	val_list* args = new val_list;
-	args->append(GetFile()->GetVal()->Ref());
-	args->append(new StringVal(new BroString(data, len, 0)));
-
-	mgr.QueueEvent(stream_event, args);
+	mgr.Enqueue(stream_event,
+		IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+		make_intrusive<StringVal>(new BroString(data, len, false))
+	);
 
 	return true;
 	}

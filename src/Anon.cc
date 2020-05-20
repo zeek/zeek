@@ -1,3 +1,5 @@
+#include "Anon.h"
+
 #include <stdlib.h>
 #include <unistd.h>
 #include <assert.h>
@@ -5,23 +7,23 @@
 
 #include "util.h"
 #include "net_util.h"
-#include "Anon.h"
 #include "Val.h"
 #include "NetVar.h"
+#include "Reporter.h"
 
 
-AnonymizeIPAddr* ip_anonymizer[NUM_ADDR_ANONYMIZATION_METHODS] = {0};
+AnonymizeIPAddr* ip_anonymizer[NUM_ADDR_ANONYMIZATION_METHODS] = {nullptr};
 
-static uint32 rand32()
+static uint32_t rand32()
 	{
 	return ((bro_random() & 0xffff) << 16) | (bro_random() & 0xffff);
 	}
 
 // From tcpdpriv.
-int bi_ffs(uint32 value)
+int bi_ffs(uint32_t value)
 	{
 	int add = 0;
-	static uint8 bvals[] = {
+	static uint8_t bvals[] = {
 		0, 4, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1
 	};
 
@@ -54,7 +56,7 @@ int bi_ffs(uint32 value)
 
 ipaddr32_t AnonymizeIPAddr::Anonymize(ipaddr32_t addr)
 	{
-	map<ipaddr32_t, ipaddr32_t>::iterator p = mapping.find(addr);
+	std::map<ipaddr32_t, ipaddr32_t>::iterator p = mapping.find(addr);
 	if ( p != mapping.end() )
 		return p->second;
 	else
@@ -66,7 +68,14 @@ ipaddr32_t AnonymizeIPAddr::Anonymize(ipaddr32_t addr)
 		}
 	}
 
-int AnonymizeIPAddr::PreserveNet(ipaddr32_t input)
+// Keep the specified prefix unchanged.
+bool AnonymizeIPAddr::PreservePrefix(ipaddr32_t /* input */, int /* num_bits */)
+	{
+	reporter->InternalError("prefix preserving is not supported for the anonymizer");
+	return false;
+	}
+
+bool AnonymizeIPAddr::PreserveNet(ipaddr32_t input)
 	{
 	switch ( addr_to_class(ntohl(input)) ) {
 	case 'A':
@@ -76,7 +85,7 @@ int AnonymizeIPAddr::PreserveNet(ipaddr32_t input)
 	case 'C':
 		return PreservePrefix(input, 24);
 	default:
-		return 0;
+		return false;
 	}
 	}
 
@@ -88,7 +97,7 @@ ipaddr32_t AnonymizeIPAddr_Seq::anonymize(ipaddr32_t /* input */)
 
 ipaddr32_t AnonymizeIPAddr_RandomMD5::anonymize(ipaddr32_t input)
 	{
-	uint8 digest[16];
+	uint8_t digest[16];
 	ipaddr32_t output = 0;
 
 	hmac_md5(sizeof(input), (u_char*)(&input), digest);
@@ -107,7 +116,7 @@ ipaddr32_t AnonymizeIPAddr_RandomMD5::anonymize(ipaddr32_t input)
 
 ipaddr32_t AnonymizeIPAddr_PrefixMD5::anonymize(ipaddr32_t input)
 	{
-	uint8 digest[16];
+	uint8_t digest[16];
 	ipaddr32_t prefix_mask = 0xffffffff;
 	input = ntohl(input);
 	ipaddr32_t output = input;
@@ -135,13 +144,11 @@ AnonymizeIPAddr_A50::~AnonymizeIPAddr_A50()
 	{
 	for ( unsigned int i = 0; i < blocks.size(); ++i )
 		delete [] blocks[i];
-
-	blocks.clear();
 	}
 
 void AnonymizeIPAddr_A50::init()
 	{
-	root = next_free_node = 0;
+	root = next_free_node = nullptr;
 
 	// Prepare special nodes for 0.0.0.0 and 255.255.255.255.
 	memset(&special_nodes[0], 0, sizeof(special_nodes));
@@ -153,7 +160,7 @@ void AnonymizeIPAddr_A50::init()
 	new_mapping = 0;
 	}
 
-int AnonymizeIPAddr_A50::PreservePrefix(ipaddr32_t input, int num_bits)
+bool AnonymizeIPAddr_A50::PreservePrefix(ipaddr32_t input, int num_bits)
 	{
 	DEBUG_MSG("%s/%d\n",
 			IPAddr(IPv4, &input, IPAddr::Network).AsString().c_str(),
@@ -162,7 +169,7 @@ int AnonymizeIPAddr_A50::PreservePrefix(ipaddr32_t input, int num_bits)
 	if ( ! before_anonymization )
 		{
 		reporter->Error("prefix perservation specified after anonymization begun");
-		return 0;
+		return false;
 		}
 
 	input = ntohl(input);
@@ -179,12 +186,12 @@ int AnonymizeIPAddr_A50::PreservePrefix(ipaddr32_t input, int num_bits)
 	else if ( num_bits > 0 )
 		{
 		assert((0xFFFFFFFFU >> 1) == 0x7FFFFFFFU);
-		uint32 suffix_mask = (0xFFFFFFFFU >> num_bits);
-		uint32 prefix_mask = ~suffix_mask;
+		uint32_t suffix_mask = (0xFFFFFFFFU >> num_bits);
+		uint32_t prefix_mask = ~suffix_mask;
 		n->output = (input & prefix_mask) | (rand32() & suffix_mask);
 		}
 
-	return 1;
+	return true;
 	}
 
 ipaddr32_t AnonymizeIPAddr_A50::anonymize(ipaddr32_t a)
@@ -215,7 +222,7 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::new_node_block()
 	for ( int i = 1; i < block_size - 1; ++i )
 		block[i].child[0] = &block[i+1];
 
-	block[block_size - 1].child[0] = 0;
+	block[block_size - 1].child[0] = nullptr;
 	next_free_node = &block[1];
 
 	return &block[0];
@@ -269,12 +276,12 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::make_peer(ipaddr32_t a, Node* n)
 	Node* down[2];
 
 	if ( ! (down[0] = new_node()) )
-		return 0;
+		return nullptr;
 
 	if ( ! (down[1] = new_node()) )
 		{
 		free_node(down[0]);
-		return 0;
+		return nullptr;
 		}
 
 	// swivel is first bit 'a' and 'old->input' differ.
@@ -285,7 +292,7 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::make_peer(ipaddr32_t a, Node* n)
 
 	down[bitvalue]->input = a;
 	down[bitvalue]->output = make_output(n->output, swivel);
-	down[bitvalue]->child[0] = down[bitvalue]->child[1] = 0;
+	down[bitvalue]->child[0] = down[bitvalue]->child[1] = nullptr;
 
 	*down[1 - bitvalue] = *n;	// copy orig node down one level
 
@@ -309,7 +316,7 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::find_node(ipaddr32_t a)
 		root = new_node();
 		root->input = a;
 		root->output = rand32();
-		root->child[0] = root->child[1] = 0;
+		root->child[0] = root->child[1] = nullptr;
 
 		return root;
 		}
@@ -344,12 +351,12 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::find_node(ipaddr32_t a)
 		}
 
 	reporter->InternalError("out of memory!");
-	return 0;
+	return nullptr;
 	}
 
 void init_ip_addr_anonymizers()
 	{
-	ip_anonymizer[KEEP_ORIG_ADDR] = 0;
+	ip_anonymizer[KEEP_ORIG_ADDR] = nullptr;
 	ip_anonymizer[SEQUENTIALLY_NUMBERED] = new AnonymizeIPAddr_Seq();
 	ip_anonymizer[RANDOM_MD5] = new AnonymizeIPAddr_RandomMD5();
 	ip_anonymizer[PREFIX_PRESERVING_A50] = new AnonymizeIPAddr_A50();
@@ -358,7 +365,7 @@ void init_ip_addr_anonymizers()
 
 ipaddr32_t anonymize_ip(ipaddr32_t ip, enum ip_addr_anonymization_class_t cl)
 	{
-	TableVal* preserve_addr = 0;
+	TableVal* preserve_addr = nullptr;
 	AddrVal addr(ip);
 
 	int method = -1;
@@ -414,12 +421,10 @@ ipaddr32_t anonymize_ip(ipaddr32_t ip, enum ip_addr_anonymization_class_t cl)
 void log_anonymization_mapping(ipaddr32_t input, ipaddr32_t output)
 	{
 	if ( anonymization_mapping )
-		{
-		val_list* vl = new val_list;
-		vl->append(new AddrVal(input));
-		vl->append(new AddrVal(output));
-		mgr.QueueEvent(anonymization_mapping, vl);
-		}
+		mgr.Enqueue(anonymization_mapping,
+			make_intrusive<AddrVal>(input),
+			make_intrusive<AddrVal>(output)
+		);
 	}
 
 #endif

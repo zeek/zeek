@@ -2,7 +2,9 @@
 #include <stdio.h>
 #include <netinet/in.h>
 #include <vector>
-#include "bro-config.h"
+#include "zeek-config.h"
+#include "RuleAction.h"
+#include "RuleCondition.h"
 #include "RuleMatcher.h"
 #include "Reporter.h"
 #include "IPAddr.h"
@@ -70,6 +72,7 @@ static uint8_t ip4_mask_to_len(uint32_t mask)
 %type <vallist> value_list
 %type <prefix_val_list> prefix_value_list
 %type <mval> TOK_IP value
+%type <vallist> ranged_value
 %type <prefixval> TOK_IP6 prefix_value
 %type <prot> TOK_PROT
 %type <ptype> TOK_PATTERN_TYPE
@@ -78,7 +81,7 @@ static uint8_t ip4_mask_to_len(uint32_t mask)
 	Rule* rule;
 	RuleHdrTest* hdr_test;
 	maskedvalue_list* vallist;
-	vector<IPPrefix>* prefix_val_list;
+	std::vector<IPPrefix>* prefix_val_list;
 	IPPrefix* prefixval;
 
 	bool bl;
@@ -165,7 +168,7 @@ rule_attr:
 
 				val->val = proto;
 				val->mask = 0xffffffff;
-				vallist->append(val);
+				vallist->push_back(val);
 
 				// offset & size params are dummies, actual next proto value in
 				// header is retrieved dynamically via IP_Hdr::NextProto()
@@ -258,7 +261,7 @@ hdr_expr:
 
 			val->val = $8.val;
 			val->mask = $6;
-			vallist->append(val);
+			vallist->push_back(val);
 
 			$$ = new RuleHdrTest($1, $3.offset, $3.len,
 					(RuleHdrTest::Comp) $7, vallist);
@@ -273,13 +276,27 @@ hdr_expr:
 
 value_list:
 		value_list ',' value
-			{ $1->append(new MaskedValue($3)); $$ = $1; }
+			{ $1->push_back(new MaskedValue($3)); $$ = $1; }
+	|	value_list ',' ranged_value
+			{
+			int numVals = $3->length();
+			for ( int idx = 0; idx < numVals; idx++ )
+				{
+				MaskedValue* val = (*$3)[idx];
+				$1->push_back(val);
+				}
+			$$ = $1;
+			}
 	|	value_list ',' TOK_IDENT
 			{ id_to_maskedvallist($3, $1); $$ = $1; }
 	|	value
 			{
 			$$ = new maskedvalue_list();
-			$$->append(new MaskedValue($1));
+			$$->push_back(new MaskedValue($1));
+			}
+	|	ranged_value
+			{
+			$$ = $1;
 			}
 	|	TOK_IDENT
 			{
@@ -301,12 +318,12 @@ prefix_value_list:
 			}
 	|	prefix_value
 			{
-			$$ = new vector<IPPrefix>();
+			$$ = new std::vector<IPPrefix>();
 			$$->push_back(*($1));
 			}
 	|	TOK_IDENT
 			{
-			$$ = new vector<IPPrefix>();
+			$$ = new std::vector<IPPrefix>();
 			id_to_maskedvallist($1, 0, $$);
 			}
 	;
@@ -319,6 +336,20 @@ prefix_value:
 			}
 	|	TOK_IP6
 	;
+
+ranged_value:
+		TOK_INT '-' TOK_INT
+			{
+			$$ = new maskedvalue_list();
+			for ( int val = $1; val <= $3; val++ )
+				{
+				MaskedValue* masked = new MaskedValue();
+				masked->val = val;
+				masked->mask = 0xffffffff;
+				$$->push_back(masked);
+				}
+			}
+		;
 
 value:
 		TOK_INT

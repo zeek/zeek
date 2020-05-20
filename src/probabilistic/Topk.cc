@@ -1,14 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "probabilistic/Topk.h"
+
+#include <broker/error.hh>
+
+#include "broker/Data.h"
 #include "CompHash.h"
+#include "IntrusivePtr.h"
 #include "Reporter.h"
-#include "Serializer.h"
-#include "NetVar.h"
+#include "Dict.h"
 
 namespace probabilistic {
-
-IMPLEMENT_SERIAL(TopkVal, SER_TOPK_VAL);
 
 static void topk_element_hash_delete_func(void* val)
 	{
@@ -25,38 +27,37 @@ void TopkVal::Typify(BroType* t)
 	{
 	assert(!hash && !type);
 	type = t->Ref();
-	TypeList* tl = new TypeList(t);
-	tl->Append(t->Ref());
-	hash = new CompositeHash(tl);
-	Unref(tl);
+	auto tl = make_intrusive<TypeList>(IntrusivePtr{NewRef{}, t});
+	tl->Append({NewRef{}, t});
+	hash = new CompositeHash(std::move(tl));
 	}
 
 HashKey* TopkVal::GetHash(Val* v) const
 	{
-	HashKey* key = hash->ComputeHash(v, 1);
+	HashKey* key = hash->ComputeHash(v, true);
 	assert(key);
 	return key;
 	}
 
-TopkVal::TopkVal(uint64 arg_size) : OpaqueVal(topk_type)
+TopkVal::TopkVal(uint64_t arg_size) : OpaqueVal(topk_type)
 	{
-	elementDict = new PDict(Element);
+	elementDict = new PDict<Element>;
 	elementDict->SetDeleteFunc(topk_element_hash_delete_func);
 	size = arg_size;
-	type = 0;
+	type = nullptr;
 	numElements = 0;
 	pruned = false;
-	hash = 0;
+	hash = nullptr;
 	}
 
 TopkVal::TopkVal() : OpaqueVal(topk_type)
 	{
-	elementDict = new PDict(Element);
+	elementDict = new PDict<Element>;
 	elementDict->SetDeleteFunc(topk_element_hash_delete_func);
 	size = 0;
-	type = 0;
+	type = nullptr;
 	numElements = 0;
-	hash = 0;
+	hash = nullptr;
 	}
 
 TopkVal::~TopkVal()
@@ -78,7 +79,14 @@ TopkVal::~TopkVal()
 
 void TopkVal::Merge(const TopkVal* value, bool doPrune)
 	{
-	if ( type == 0 )
+	if ( ! value->type )
+		{
+		// Merge-from is empty. Nothing to do.
+		assert(value->numElements == 0);
+		return;
+		}
+
+	if ( type == nullptr )
 		{
 		assert(numElements == 0);
 		Typify(value->type);
@@ -107,7 +115,7 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune)
 			HashKey* key = GetHash(e->value);
 			Element* olde = (Element*) elementDict->Lookup(key);
 
-			if ( olde == 0 )
+			if ( olde == nullptr )
 				{
 				olde = new Element();
 				olde->epsilon = 0;
@@ -176,120 +184,24 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune)
 		}
 	}
 
-bool TopkVal::DoSerialize(SerialInfo* info) const
+IntrusivePtr<Val> TopkVal::DoClone(CloneState* state)
 	{
-	DO_SERIALIZE(SER_TOPK_VAL, OpaqueVal);
-
-	bool v = true;
-
-	v &= SERIALIZE(size);
-	v &= SERIALIZE(numElements);
-	v &= SERIALIZE(pruned);
-
-	bool type_present = (type != 0);
-	v &= SERIALIZE(type_present);
-
-	if ( type_present )
-		v &= type->Serialize(info);
-	else
-		assert(numElements == 0);
-
-	uint64_t i = 0;
-	std::list<Bucket*>::const_iterator it = buckets.begin();
-	while ( it != buckets.end() )
-		{
-		Bucket* b = *it;
-		uint32_t elements_count = b->elements.size();
-		v &= SERIALIZE(elements_count);
-		v &= SERIALIZE(b->count);
-
-		std::list<Element*>::const_iterator eit = b->elements.begin();
-		while ( eit != b->elements.end() )
-			{
-			Element* element = *eit;
-			v &= SERIALIZE(element->epsilon);
-			v &= element->value->Serialize(info);
-
-			eit++;
-			i++;
-			}
-
-		it++;
-		}
-
-	assert(i == numElements);
-
-	return v;
+	auto clone = make_intrusive<TopkVal>(size);
+	clone->Merge(this);
+	return state->NewClone(this, std::move(clone));
 	}
-
-bool TopkVal::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(OpaqueVal);
-
-	bool v = true;
-
-	v &= UNSERIALIZE(&size);
-	v &= UNSERIALIZE(&numElements);
-	v &= UNSERIALIZE(&pruned);
-
-	bool type_present = false;
-	v &= UNSERIALIZE(&type_present);
-	if ( type_present )
-		{
-		BroType* deserialized_type = BroType::Unserialize(info);
-
-		Typify(deserialized_type);
-		Unref(deserialized_type);
-		assert(type);
-		}
-	else
-		assert(numElements == 0);
-
-	uint64_t i = 0;
-	while ( i < numElements )
-		{
-		Bucket* b = new Bucket();
-		uint32_t elements_count;
-		v &= UNSERIALIZE(&elements_count);
-		v &= UNSERIALIZE(&b->count);
-		b->bucketPos = buckets.insert(buckets.end(), b);
-
-		for ( uint64_t j = 0; j < elements_count; j++ )
-			{
-			Element* e = new Element();
-			v &= UNSERIALIZE(&e->epsilon);
-			e->value = Val::Unserialize(info, type);
-			e->parent = b;
-
-			b->elements.insert(b->elements.end(), e);
-
-			HashKey* key = GetHash(e->value);
-			assert (elementDict->Lookup(key) == 0);
-
-			elementDict->Insert(key, e);
-			delete key;
-
-			i++;
-			}
-		}
-
-	assert(i == numElements);
-
-	return v;
-	}
-
 
 VectorVal* TopkVal::GetTopK(int k) const // returns vector
 	{
 	if ( numElements == 0 )
 		{
 		reporter->Error("Cannot return topk of empty");
-		return 0;
+		return nullptr;
 		}
 
-	TypeList* vector_index = new TypeList(type);
-	vector_index->Append(type->Ref());
-	VectorType* v = new VectorType(vector_index);
+	auto vector_index = make_intrusive<TypeList>(IntrusivePtr{NewRef{}, type});
+	vector_index->Append({NewRef{}, type});
+	VectorType* v = new VectorType(std::move(vector_index));
 	VectorVal* t = new VectorVal(v);
 
 	// this does no estimation if the results is correct!
@@ -326,7 +238,7 @@ uint64_t TopkVal::GetCount(Val* value) const
 	Element* e = (Element*) elementDict->Lookup(key);
 	delete key;
 
-	if ( e == 0 )
+	if ( e == nullptr )
 		{
 		reporter->Error("GetCount for element that is not in top-k");
 		return 0;
@@ -341,7 +253,7 @@ uint64_t TopkVal::GetEpsilon(Val* value) const
 	Element* e = (Element*) elementDict->Lookup(key);
 	delete key;
 
-	if ( e == 0 )
+	if ( e == nullptr )
 		{
 		reporter->Error("GetEpsilon for element that is not in top-k");
 		return 0;
@@ -385,7 +297,7 @@ void TopkVal::Encountered(Val* encountered)
 	HashKey* key = GetHash(encountered);
 	Element* e = (Element*) elementDict->Lookup(key);
 
-	if ( e == 0 )
+	if ( e == nullptr )
 		{
 		e = new Element();
 		e->epsilon = 0;
@@ -453,12 +365,12 @@ void TopkVal::Encountered(Val* encountered)
 void TopkVal::IncrementCounter(Element* e, unsigned int count)
 	{
 	Bucket* currBucket = e->parent;
-	uint64 currcount = currBucket->count;
+	uint64_t currcount = currBucket->count;
 
 	// well, let's test if there is a bucket for currcount++
 	std::list<Bucket*>::iterator bucketIter = currBucket->bucketPos;
 
-	Bucket* nextBucket = 0;
+	Bucket* nextBucket = nullptr;
 
 	bucketIter++;
 
@@ -468,7 +380,7 @@ void TopkVal::IncrementCounter(Element* e, unsigned int count)
 	if ( bucketIter != buckets.end() && (*bucketIter)->count == currcount+count )
 		nextBucket = *bucketIter;
 
-	if ( nextBucket == 0 )
+	if ( nextBucket == nullptr )
 		{
 		// the bucket for the value that we want does not exist.
 		// create it...
@@ -493,8 +405,130 @@ void TopkVal::IncrementCounter(Element* e, unsigned int count)
 		{
 		buckets.remove(currBucket);
 		delete currBucket;
-		currBucket = 0;
+		currBucket = nullptr;
 		}
 	}
 
-};
+IMPLEMENT_OPAQUE_VALUE(TopkVal)
+
+broker::expected<broker::data> TopkVal::DoSerialize() const
+	{
+	broker::vector d = {size, numElements, pruned};
+
+	if ( type )
+		{
+		auto t = SerializeType(type);
+		if ( ! t )
+			return broker::ec::invalid_data;
+
+		d.emplace_back(std::move(*t));
+		}
+	else
+		d.emplace_back(broker::none());
+
+	uint64_t i = 0;
+	std::list<Bucket*>::const_iterator it = buckets.begin();
+	while ( it != buckets.end() )
+		{
+		Bucket* b = *it;
+		uint32_t elements_count = b->elements.size();
+
+		d.emplace_back(static_cast<uint64_t>(b->elements.size()));
+		d.emplace_back(b->count);
+
+		std::list<Element*>::const_iterator eit = b->elements.begin();
+		while ( eit != b->elements.end() )
+			{
+			Element* element = *eit;
+			d.emplace_back(element->epsilon);
+			auto v = bro_broker::val_to_data(element->value);
+			if ( ! v )
+				return broker::ec::invalid_data;
+
+			d.emplace_back(*v);
+
+			eit++;
+			i++;
+			}
+
+		it++;
+		}
+
+	assert(i == numElements);
+	return {std::move(d)};
+	}
+
+
+bool TopkVal::DoUnserialize(const broker::data& data)
+	{
+	auto v = caf::get_if<broker::vector>(&data);
+
+	if ( ! (v && v->size() >= 4) )
+		return false;
+
+	auto size_ = caf::get_if<uint64_t>(&(*v)[0]);
+	auto numElements_ = caf::get_if<uint64_t>(&(*v)[1]);
+	auto pruned_ = caf::get_if<bool>(&(*v)[2]);
+
+	if ( ! (size_ && numElements_ && pruned_) )
+		return false;
+
+	size = *size_;
+	numElements = *numElements_;
+	pruned = *pruned_;
+
+	auto no_type = caf::get_if<broker::none>(&(*v)[3]);
+	if ( ! no_type )
+		{
+		BroType* t = UnserializeType((*v)[3]);
+		if ( ! t )
+			return false;
+
+		Typify(t);
+		Unref(t);
+		}
+
+	uint64_t i = 0;
+	uint64_t idx = 4;
+
+	while ( i < numElements )
+		{
+		auto elements_count = caf::get_if<uint64_t>(&(*v)[idx++]);
+		auto count = caf::get_if<uint64_t>(&(*v)[idx++]);
+
+		if ( ! (elements_count && count) )
+			return false;
+
+		Bucket* b = new Bucket();
+		b->count = *count;
+		b->bucketPos = buckets.insert(buckets.end(), b);
+
+		for ( uint64_t j = 0; j < *elements_count; j++ )
+			{
+			auto epsilon = caf::get_if<uint64_t>(&(*v)[idx++]);
+			auto val = bro_broker::data_to_val((*v)[idx++], type);
+
+			if ( ! (epsilon && val) )
+				return false;
+
+			Element* e = new Element();
+			e->epsilon = *epsilon;
+			e->value = val.release();
+			e->parent = b;
+
+			b->elements.insert(b->elements.end(), e);
+
+			HashKey* key = GetHash(e->value);
+			assert (elementDict->Lookup(key) == nullptr);
+
+			elementDict->Insert(key, e);
+			delete key;
+
+			i++;
+			}
+		}
+
+	assert(i == numElements);
+	return true;
+	}
+}

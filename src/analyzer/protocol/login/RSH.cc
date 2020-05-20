@@ -1,10 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
+#include "RSH.h"
 #include "NetVar.h"
 #include "Event.h"
-#include "RSH.h"
+#include "Reporter.h"
 
 #include "events.bif.h"
 
@@ -156,31 +157,48 @@ void Rsh_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	Login_Analyzer::DeliverStream(len, data, orig);
 
+	if ( orig )
+		{
+		if ( ! rsh_request )
+			return;
+		}
+	else
+		{
+		if ( ! rsh_reply )
+			return;
+		}
+
+	zeek::Args vl;
+	vl.reserve(4 + orig);
 	const char* line = (const char*) data;
-	val_list* vl = new val_list;
-
 	line = skip_whitespace(line);
-	vl->append(BuildConnVal());
-	vl->append(client_name ? client_name->Ref() : new StringVal("<none>"));
-	vl->append(username ? username->Ref() : new StringVal("<none>"));
-	vl->append(new StringVal(line));
+	vl.emplace_back(ConnVal());
 
-	if ( orig && rsh_request )
+	if ( client_name )
+		vl.emplace_back(NewRef{}, client_name);
+	else
+		vl.emplace_back(make_intrusive<StringVal>("<none>"));
+
+	if ( username )
+		vl.emplace_back(NewRef{}, username);
+	else
+		vl.emplace_back(make_intrusive<StringVal>("<none>"));
+
+	vl.emplace_back(make_intrusive<StringVal>(line));
+
+	if ( orig )
 		{
 		if ( contents_orig->RshSaveState() == RSH_SERVER_USER_NAME )
 			// First input
-			vl->append(new Val(true, TYPE_BOOL));
+			vl.emplace_back(val_mgr->True());
 		else
-			vl->append(new Val(false, TYPE_BOOL));
+			vl.emplace_back(val_mgr->False());
 
-		ConnectionEvent(rsh_request, vl);
+		EnqueueConnEvent(rsh_request, std::move(vl));
 		}
 
-	else if ( rsh_reply )
-		ConnectionEvent(rsh_reply, vl);
-
 	else
-		delete_vals(vl);
+		EnqueueConnEvent(rsh_reply, std::move(vl));
 	}
 
 void Rsh_Analyzer::ClientUserName(const char* s)

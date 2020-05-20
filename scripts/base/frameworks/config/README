@@ -1,2 +1,2 @@
-The configuration framework provides a way to change the Bro configuration
+The configuration framework provides a way to change the Zeek configuration
 in "option" values at run-time.

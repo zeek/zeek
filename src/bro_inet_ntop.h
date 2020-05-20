@@ -1,5 +1,4 @@
-#ifndef BRO_INET_NTOP_H
-#define BRO_INET_NTOP_H
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,6 +13,4 @@ bro_inet_ntop(int af, const void * __restrict src, char * __restrict dst,
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

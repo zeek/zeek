@@ -1,13 +1,19 @@
 # This tests that basic IRC commands (NICK, USER, JOIN, DCC SEND)
 # are logged for a client.
 
-# @TEST-EXEC: bro -r $TRACES/irc-dcc-send.trace %INPUT
+# @TEST-EXEC: zeek -r $TRACES/irc-dcc-send.trace %INPUT >out
 # @TEST-EXEC: btest-diff irc.log
 # @TEST-EXEC: btest-diff conn.log
+# @TEST-EXEC: btest-diff out
 
 # dcc mime types are irrelevant to this test, so filter it out
-event bro_init()
+event zeek_init()
 	{
 	Log::remove_default_filter(IRC::LOG);
 	Log::add_filter(IRC::LOG, [$name="remove-mime", $exclude=set("dcc_mime_type")]);
+	}
+
+event irc_names_info(c: connection, is_orig: bool, c_type: string, channel: string, users: string_set)
+	{
+	print "irc_names_info", channel, users;
 	}

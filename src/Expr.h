@@ -1,19 +1,23 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef expr_h
-#define expr_h
+#pragma once
 
-// BRO expressions.
+#include <memory>
+#include <string>
+#include <vector>
+#include <utility>
+#include <optional>
 
 #include "BroList.h"
-#include "ID.h"
+#include "IntrusivePtr.h"
 #include "Timer.h"
-#include "Val.h"
-#include "Debug.h"
+#include "Type.h"
 #include "EventHandler.h"
 #include "TraverseTypes.h"
+#include "Val.h"
+#include "ZeekArgs.h"
 
-typedef enum {
+enum BroExprTag : int {
 	EXPR_ANY = -1,
 	EXPR_NAME, EXPR_CONST,
 	EXPR_CLONE,
@@ -28,7 +32,6 @@ typedef enum {
 	EXPR_COND,
 	EXPR_REF,
 	EXPR_ASSIGN,
-	EXPR_MATCH,
 	EXPR_INDEX,
 	EXPR_FIELD, EXPR_HAS_FIELD,
 	EXPR_RECORD_CONSTRUCTOR,
@@ -39,6 +42,7 @@ typedef enum {
 	EXPR_IN,
 	EXPR_LIST,
 	EXPR_CALL,
+	EXPR_LAMBDA,
 	EXPR_EVENT,
 	EXPR_SCHEDULE,
 	EXPR_ARITH_COERCE,
@@ -49,32 +53,36 @@ typedef enum {
 	EXPR_FLATTEN,
 	EXPR_CAST,
 	EXPR_IS,
-#define NUM_EXPRS (int(EXPR_IS) + 1)
-} BroExprTag;
+	EXPR_INDEX_SLICE_ASSIGN,
+#define NUM_EXPRS (int(EXPR_INDEX_SLICE_ASSIGN) + 1)
+};
 
 extern const char* expr_name(BroExprTag t);
 
+template <class T> class IntrusivePtr;
 class Stmt;
 class Frame;
+class Scope;
 class ListExpr;
 class NameExpr;
+class IndexExpr;
 class AssignExpr;
 class CallExpr;
 class EventExpr;
 
+struct function_ingredients;
+
 
 class Expr : public BroObj {
 public:
-	BroType* Type() const		{ return type; }
+	BroType* Type() const		{ return type.get(); }
 	BroExprTag Tag() const	{ return tag; }
-
-	~Expr() override;
 
 	Expr* Ref()			{ ::Ref(this); return this; }
 
 	// Evaluates the expression and returns a corresponding Val*,
 	// or nil if the expression's value isn't fixed.
-	virtual Val* Eval(Frame* f) const = 0;
+	virtual IntrusivePtr<Val> Eval(Frame* f) const = 0;
 
 	// Same, but the context is that we are adding an element
 	// into the given aggregate of the given type.  Note that
@@ -84,37 +92,36 @@ public:
 			const;
 
 	// Assign to the given value, if appropriate.
-	virtual void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN);
+	virtual void Assign(Frame* f, IntrusivePtr<Val> v);
 
 	// Returns the type corresponding to this expression interpreted
-	// as an initialization.  The type should be Unref()'d when done
-	// using it.  Returns nil if the initialization is illegal.
-	virtual BroType* InitType() const;
+	// as an initialization.  Returns nil if the initialization is illegal.
+	virtual IntrusivePtr<BroType> InitType() const;
 
 	// Returns true if this expression, interpreted as an initialization,
 	// constitutes a record element, false otherwise.  If the TypeDecl*
 	// is non-nil and the expression is a record element, fills in the
 	// TypeDecl with a description of the element.
-	virtual int IsRecordElement(TypeDecl* td) const;
+	virtual bool IsRecordElement(TypeDecl* td) const;
 
 	// Returns a value corresponding to this expression interpreted
 	// as an initialization, or nil if the expression is inconsistent
 	// with the given type.  If "aggr" is non-nil, then this expression
 	// is an element of the given aggregate, and it is added to it
 	// accordingly.
-	virtual Val* InitVal(const BroType* t, Val* aggr) const;
+	virtual IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const;
 
 	// True if the expression has no side effects, false otherwise.
-	virtual int IsPure() const;
+	virtual bool IsPure() const;
 
 	// True if the expression is a constant, false otherwise.
-	int IsConst() const	{ return tag == EXPR_CONST; }
+	bool IsConst() const	{ return tag == EXPR_CONST; }
 
 	// True if the expression is in error (to alleviate error propagation).
-	int IsError() const	{ return type && type->Tag() == TYPE_ERROR; }
+	bool IsError() const;
 
 	// Mark expression as in error.
-	void SetError()		{ SetType(error_type()); }
+	void SetError();
 	void SetError(const char* msg);
 
 	// Returns the expression's constant value, or complains
@@ -122,21 +129,15 @@ public:
 	inline Val* ExprVal() const;
 
 	// True if the expression is a constant zero, false otherwise.
-	int IsZero() const
-		{
-		return IsConst() && ExprVal()->IsZero();
-		}
+	bool IsZero() const;
 
 	// True if the expression is a constant one, false otherwise.
-	int IsOne() const
-		{
-		return IsConst() && ExprVal()->IsOne();
-		}
+	bool IsOne() const;
 
 	// True if the expression supports the "add" or "delete" operations,
 	// false otherwise.
-	virtual int CanAdd() const;
-	virtual int CanDel() const;
+	virtual bool CanAdd() const;
+	virtual bool CanDel() const;
 
 	virtual void Add(Frame* f);	// perform add operation
 	virtual void Delete(Frame* f);	// perform delete operation
@@ -144,12 +145,12 @@ public:
 	// Return the expression converted to L-value form.  If expr
 	// cannot be used as an L-value, reports an error and returns
 	// the current value of expr (this is the default method).
-	virtual Expr* MakeLvalue();
+	virtual IntrusivePtr<Expr> MakeLvalue();
 
 	// Marks the expression as one requiring (or at least appearing
 	// with) parentheses.  Used for pretty-printing.
-	void MarkParen()		{ paren = 1; }
-	int IsParen() const		{ return paren; }
+	void MarkParen()		{ paren = true; }
+	bool IsParen() const		{ return paren; }
 
 	const ListExpr* AsListExpr() const
 		{
@@ -187,15 +188,24 @@ public:
 		return (AssignExpr*) this;
 		}
 
-	void Describe(ODesc* d) const override;
+	const IndexExpr* AsIndexExpr() const
+		{
+		CHECK_TAG(tag, EXPR_INDEX, "ExprVal::AsIndexExpr", expr_name)
+		return (const IndexExpr*) this;
+		}
 
-	bool Serialize(SerialInfo* info) const;
-	static Expr* Unserialize(UnserialInfo* info, BroExprTag want = EXPR_ANY);
+	IndexExpr* AsIndexExpr()
+		{
+		CHECK_TAG(tag, EXPR_INDEX, "ExprVal::AsIndexExpr", expr_name)
+		return (IndexExpr*) this;
+		}
+
+	void Describe(ODesc* d) const override final;
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const = 0;
 
 protected:
-	Expr()	{ type = 0; }
+	Expr() = default;
 	explicit Expr(BroExprTag arg_tag);
 
 	virtual void ExprDescribe(ODesc* d) const = 0;
@@ -204,142 +214,123 @@ protected:
 	// Puts the expression in canonical form.
 	virtual void Canonicize();
 
-	void SetType(BroType* t);
+	void SetType(IntrusivePtr<BroType> t);
 
 	// Reports the given error and sets the expression's type to
 	// TYPE_ERROR.
 	void ExprError(const char msg[]);
 
-	DECLARE_ABSTRACT_SERIAL(Expr);
+	// These two functions both call Reporter::RuntimeError or Reporter::ExprRuntimeError,
+	// both of which are marked as [[noreturn]].
+	[[noreturn]] void RuntimeError(const std::string& msg) const;
+	[[noreturn]] void RuntimeErrorWithCallStack(const std::string& msg) const;
 
 	BroExprTag tag;
-	BroType* type;
-
-	int paren;
+	IntrusivePtr<BroType> type;
+	bool paren;
 };
 
-class NameExpr : public Expr {
+class NameExpr final : public Expr {
 public:
-	explicit NameExpr(ID* id, bool const_init = false);
-	~NameExpr() override;
+	explicit NameExpr(IntrusivePtr<ID> id, bool const_init = false);
 
-	ID* Id() const		{ return id; }
+	ID* Id() const		{ return id.get(); }
 
-	Val* Eval(Frame* f) const override;
-	void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN) override;
-	Expr* MakeLvalue() override;
-	int IsPure() const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
+	void Assign(Frame* f, IntrusivePtr<Val> v) override;
+	IntrusivePtr<Expr> MakeLvalue() override;
+	bool IsPure() const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	friend class Expr;
-	NameExpr()	{ id = 0; }
-
 	void ExprDescribe(ODesc* d) const override;
 
-	DECLARE_SERIAL(NameExpr);
-
-	ID* id;
+	IntrusivePtr<ID> id;
 	bool in_const_init;
 };
 
-class ConstExpr : public Expr {
+class ConstExpr final : public Expr {
 public:
-	explicit ConstExpr(Val* val);
-	~ConstExpr() override;
+	explicit ConstExpr(IntrusivePtr<Val> val);
 
-	Val* Value() const	{ return val; }
+	Val* Value() const	{ return val.get(); }
 
-	Val* Eval(Frame* f) const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	friend class Expr;
-	ConstExpr()	{ val = 0; }
-
 	void ExprDescribe(ODesc* d) const override;
-	DECLARE_SERIAL(ConstExpr);
-
-	Val* val;
+	IntrusivePtr<Val> val;
 };
 
 class UnaryExpr : public Expr {
 public:
-	Expr* Op() const	{ return op; }
+	Expr* Op() const	{ return op.get(); }
 
 	// UnaryExpr::Eval correctly handles vector types.  Any child
 	// class that overrides Eval() should be modified to handle
 	// vectors correctly as necessary.
-	Val* Eval(Frame* f) const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 
-	int IsPure() const override;
+	bool IsPure() const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	friend class Expr;
-	UnaryExpr()	{ op = 0; }
-
-	UnaryExpr(BroExprTag arg_tag, Expr* arg_op);
-	~UnaryExpr() override;
+	UnaryExpr(BroExprTag arg_tag, IntrusivePtr<Expr> arg_op);
 
 	void ExprDescribe(ODesc* d) const override;
 
 	// Returns the expression folded using the given constant.
-	virtual Val* Fold(Val* v) const;
+	virtual IntrusivePtr<Val> Fold(Val* v) const;
 
-	DECLARE_SERIAL(UnaryExpr);
-
-	Expr* op;
+	IntrusivePtr<Expr> op;
 };
 
 class BinaryExpr : public Expr {
 public:
-	Expr* Op1() const	{ return op1; }
-	Expr* Op2() const	{ return op2; }
+	Expr* Op1() const	{ return op1.get(); }
+	Expr* Op2() const	{ return op2.get(); }
 
-	int IsPure() const override;
+	bool IsPure() const override;
 
 	// BinaryExpr::Eval correctly handles vector types.  Any child
 	// class that overrides Eval() should be modified to handle
 	// vectors correctly as necessary.
-	Val* Eval(Frame* f) const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	friend class Expr;
-	BinaryExpr()	{ op1 = op2 = 0; }
-
-	BinaryExpr(BroExprTag arg_tag, Expr* arg_op1, Expr* arg_op2)
-	    : Expr(arg_tag), op1(arg_op1), op2(arg_op2)
+	BinaryExpr(BroExprTag arg_tag,
+	           IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
+		: Expr(arg_tag), op1(std::move(arg_op1)), op2(std::move(arg_op2))
 		{
-		if ( ! (arg_op1 && arg_op2) )
+		if ( ! (op1 && op2) )
 			return;
 		if ( op1->IsError() || op2->IsError() )
 			SetError();
 		}
-	~BinaryExpr() override;
 
 	// Returns the expression folded using the given constants.
-	virtual Val* Fold(Val* v1, Val* v2) const;
+	virtual IntrusivePtr<Val> Fold(Val* v1, Val* v2) const;
 
 	// Same for when the constants are strings.
-	virtual Val* StringFold(Val* v1, Val* v2) const;
+	virtual IntrusivePtr<Val> StringFold(Val* v1, Val* v2) const;
 
 	// Same for when the constants are patterns.
-	virtual Val* PatternFold(Val* v1, Val* v2) const;
+	virtual IntrusivePtr<Val> PatternFold(Val* v1, Val* v2) const;
 
 	// Same for when the constants are sets.
-	virtual Val* SetFold(Val* v1, Val* v2) const;
+	virtual IntrusivePtr<Val> SetFold(Val* v1, Val* v2) const;
 
 	// Same for when the constants are addresses or subnets.
-	virtual Val* AddrFold(Val* v1, Val* v2) const;
-	virtual Val* SubNetFold(Val* v1, Val* v2) const;
+	virtual IntrusivePtr<Val> AddrFold(Val* v1, Val* v2) const;
+	virtual IntrusivePtr<Val> SubNetFold(Val* v1, Val* v2) const;
 
-	int BothConst() const	{ return op1->IsConst() && op2->IsConst(); }
+	bool BothConst() const	{ return op1->IsConst() && op2->IsConst(); }
 
 	// Exchange op1 and op2.
 	void SwapOps();
@@ -353,366 +344,246 @@ protected:
 
 	void ExprDescribe(ODesc* d) const override;
 
-	DECLARE_SERIAL(BinaryExpr);
-
-	Expr* op1;
-	Expr* op2;
+	IntrusivePtr<Expr> op1;
+	IntrusivePtr<Expr> op2;
 };
 
-class CloneExpr : public UnaryExpr {
+class CloneExpr final : public UnaryExpr {
 public:
-	explicit CloneExpr(Expr* op);
-	Val* Eval(Frame* f) const override;
+	explicit CloneExpr(IntrusivePtr<Expr> op);
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 protected:
-	friend class Expr;
-	CloneExpr()	{ }
-
-	Val* Fold(Val* v) const override;
-
-	DECLARE_SERIAL(CloneExpr);
+	IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
-class IncrExpr : public UnaryExpr {
+class IncrExpr final : public UnaryExpr {
 public:
-	IncrExpr(BroExprTag tag, Expr* op);
+	IncrExpr(BroExprTag tag, IntrusivePtr<Expr> op);
 
-	Val* Eval(Frame* f) const override;
-	Val* DoSingleEval(Frame* f, Val* v) const;
-	int IsPure() const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
+	IntrusivePtr<Val> DoSingleEval(Frame* f, Val* v) const;
+	bool IsPure() const override;
+};
+
+class ComplementExpr final : public UnaryExpr {
+public:
+	explicit ComplementExpr(IntrusivePtr<Expr> op);
 
 protected:
-	friend class Expr;
-	IncrExpr()	{ }
-
-	DECLARE_SERIAL(IncrExpr);
+	IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
-class ComplementExpr : public UnaryExpr {
+class NotExpr final : public UnaryExpr {
 public:
-	explicit ComplementExpr(Expr* op);
+	explicit NotExpr(IntrusivePtr<Expr> op);
 
 protected:
-	friend class Expr;
-	ComplementExpr()	{ }
-
-	Val* Fold(Val* v) const override;
-
-	DECLARE_SERIAL(ComplementExpr);
+	IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
-class NotExpr : public UnaryExpr {
+class PosExpr final : public UnaryExpr {
 public:
-	explicit NotExpr(Expr* op);
+	explicit PosExpr(IntrusivePtr<Expr> op);
 
 protected:
-	friend class Expr;
-	NotExpr()	{ }
-
-	Val* Fold(Val* v) const override;
-
-	DECLARE_SERIAL(NotExpr);
+	IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
-class PosExpr : public UnaryExpr {
+class NegExpr final : public UnaryExpr {
 public:
-	explicit PosExpr(Expr* op);
+	explicit NegExpr(IntrusivePtr<Expr> op);
 
 protected:
-	friend class Expr;
-	PosExpr()	{ }
-
-	Val* Fold(Val* v) const override;
-
-	DECLARE_SERIAL(PosExpr);
+	IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
-class NegExpr : public UnaryExpr {
+class SizeExpr final : public UnaryExpr {
 public:
-	explicit NegExpr(Expr* op);
+	explicit SizeExpr(IntrusivePtr<Expr> op);
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 protected:
-	friend class Expr;
-	NegExpr()	{ }
-
-	Val* Fold(Val* v) const override;
-
-	DECLARE_SERIAL(NegExpr);
+	IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
-class SizeExpr : public UnaryExpr {
+class AddExpr final : public BinaryExpr {
 public:
-	explicit SizeExpr(Expr* op);
-	Val* Eval(Frame* f) const override;
+	AddExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
+	void Canonicize() override;
+};
+
+class AddToExpr final : public BinaryExpr {
+public:
+	AddToExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
+	IntrusivePtr<Val> Eval(Frame* f) const override;
+};
+
+class RemoveFromExpr final : public BinaryExpr {
+public:
+	RemoveFromExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
+	IntrusivePtr<Val> Eval(Frame* f) const override;
+};
+
+class SubExpr final : public BinaryExpr {
+public:
+	SubExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
+};
+
+class TimesExpr final : public BinaryExpr {
+public:
+	TimesExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
+	void Canonicize() override;
+};
+
+class DivideExpr final : public BinaryExpr {
+public:
+	DivideExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 
 protected:
-	friend class Expr;
-	SizeExpr()	{ }
-
-	Val* Fold(Val* v) const override;
-	DECLARE_SERIAL(SizeExpr);
+	IntrusivePtr<Val> AddrFold(Val* v1, Val* v2) const override;
 };
 
-class AddExpr : public BinaryExpr {
+class ModExpr final : public BinaryExpr {
 public:
-	AddExpr(Expr* op1, Expr* op2);
+	ModExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
+};
+
+class BoolExpr final : public BinaryExpr {
+public:
+	BoolExpr(BroExprTag tag, IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
+
+	IntrusivePtr<Val> Eval(Frame* f) const override;
+	IntrusivePtr<Val> DoSingleEval(Frame* f, IntrusivePtr<Val> v1, Expr* op2) const;
+};
+
+class BitExpr final : public BinaryExpr {
+public:
+	BitExpr(BroExprTag tag, IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
+};
+
+class EqExpr final : public BinaryExpr {
+public:
+	EqExpr(BroExprTag tag, IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	void Canonicize() override;
 
 protected:
-	friend class Expr;
-	AddExpr()	{ }
-
-	DECLARE_SERIAL(AddExpr);
-
+	IntrusivePtr<Val> Fold(Val* v1, Val* v2) const override;
 };
 
-class AddToExpr : public BinaryExpr {
+class RelExpr final : public BinaryExpr {
 public:
-	AddToExpr(Expr* op1, Expr* op2);
-	Val* Eval(Frame* f) const override;
-
-protected:
-	friend class Expr;
-	AddToExpr()	{ }
-
-	DECLARE_SERIAL(AddToExpr);
-};
-
-class RemoveFromExpr : public BinaryExpr {
-public:
-	RemoveFromExpr(Expr* op1, Expr* op2);
-	Val* Eval(Frame* f) const override;
-
-protected:
-	friend class Expr;
-	RemoveFromExpr()	{ }
-
-	DECLARE_SERIAL(RemoveFromExpr);
-};
-
-class SubExpr : public BinaryExpr {
-public:
-	SubExpr(Expr* op1, Expr* op2);
-
-protected:
-	friend class Expr;
-	SubExpr()	{ }
-
-	DECLARE_SERIAL(SubExpr);
-
-};
-
-class TimesExpr : public BinaryExpr {
-public:
-	TimesExpr(Expr* op1, Expr* op2);
+	RelExpr(BroExprTag tag, IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	void Canonicize() override;
-
-protected:
-	friend class Expr;
-	TimesExpr()	{ }
-
-	DECLARE_SERIAL(TimesExpr);
-
 };
 
-class DivideExpr : public BinaryExpr {
+class CondExpr final : public Expr {
 public:
-	DivideExpr(Expr* op1, Expr* op2);
+	CondExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2, IntrusivePtr<Expr> op3);
 
-protected:
-	friend class Expr;
-	DivideExpr()	{ }
+	const Expr* Op1() const	{ return op1.get(); }
+	const Expr* Op2() const	{ return op2.get(); }
+	const Expr* Op3() const	{ return op3.get(); }
 
-	Val* AddrFold(Val* v1, Val* v2) const override;
-
-	DECLARE_SERIAL(DivideExpr);
-
-};
-
-class ModExpr : public BinaryExpr {
-public:
-	ModExpr(Expr* op1, Expr* op2);
-
-protected:
-	friend class Expr;
-	ModExpr()	{ }
-
-	DECLARE_SERIAL(ModExpr);
-};
-
-class BoolExpr : public BinaryExpr {
-public:
-	BoolExpr(BroExprTag tag, Expr* op1, Expr* op2);
-
-	Val* Eval(Frame* f) const override;
-	Val* DoSingleEval(Frame* f, Val* v1, Expr* op2) const;
-
-protected:
-	friend class Expr;
-	BoolExpr()	{ }
-
-	DECLARE_SERIAL(BoolExpr);
-};
-
-class BitExpr : public BinaryExpr {
-public:
-	BitExpr(BroExprTag tag, Expr* op1, Expr* op2);
-
-protected:
-	friend class Expr;
-	BitExpr()	{ }
-
-	DECLARE_SERIAL(BitExpr);
-};
-
-class EqExpr : public BinaryExpr {
-public:
-	EqExpr(BroExprTag tag, Expr* op1, Expr* op2);
-	void Canonicize() override;
-
-protected:
-	friend class Expr;
-	EqExpr()	{ }
-
-	Val* Fold(Val* v1, Val* v2) const override;
-
-	DECLARE_SERIAL(EqExpr);
-};
-
-class RelExpr : public BinaryExpr {
-public:
-	RelExpr(BroExprTag tag, Expr* op1, Expr* op2);
-	void Canonicize() override;
-
-protected:
-	friend class Expr;
-	RelExpr()	{ }
-
-	DECLARE_SERIAL(RelExpr);
-};
-
-class CondExpr : public Expr {
-public:
-	CondExpr(Expr* op1, Expr* op2, Expr* op3);
-	~CondExpr() override;
-
-	const Expr* Op1() const	{ return op1; }
-	const Expr* Op2() const	{ return op2; }
-	const Expr* Op3() const	{ return op3; }
-
-	Val* Eval(Frame* f) const override;
-	int IsPure() const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
+	bool IsPure() const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	friend class Expr;
-	CondExpr()	{ op1 = op2 = op3 = 0; }
-
 	void ExprDescribe(ODesc* d) const override;
 
-	DECLARE_SERIAL(CondExpr);
-
-	Expr* op1;
-	Expr* op2;
-	Expr* op3;
+	IntrusivePtr<Expr> op1;
+	IntrusivePtr<Expr> op2;
+	IntrusivePtr<Expr> op3;
 };
 
-class RefExpr : public UnaryExpr {
+class RefExpr final : public UnaryExpr {
 public:
-	explicit RefExpr(Expr* op);
+	explicit RefExpr(IntrusivePtr<Expr> op);
 
-	void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN) override;
-	Expr* MakeLvalue() override;
-
-protected:
-	friend class Expr;
-	RefExpr()	{ }
-
-	DECLARE_SERIAL(RefExpr);
+	void Assign(Frame* f, IntrusivePtr<Val> v) override;
+	IntrusivePtr<Expr> MakeLvalue() override;
 };
 
 class AssignExpr : public BinaryExpr {
 public:
 	// If val is given, evaluating this expression will always yield the val
 	// yet still perform the assignment.  Used for triggers.
-	AssignExpr(Expr* op1, Expr* op2, int is_init, Val* val = 0, attr_list* attrs = 0);
-	~AssignExpr() override { Unref(val); }
+	AssignExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2, bool is_init,
+	           IntrusivePtr<Val> val = nullptr, attr_list* attrs = nullptr);
 
-	Val* Eval(Frame* f) const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 	void EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const override;
-	BroType* InitType() const override;
-	int IsRecordElement(TypeDecl* td) const override;
-	Val* InitVal(const BroType* t, Val* aggr) const override;
-	int IsPure() const override;
+	IntrusivePtr<BroType> InitType() const override;
+	bool IsRecordElement(TypeDecl* td) const override;
+	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
+	bool IsPure() const override;
 
 protected:
-	friend class Expr;
-	AssignExpr()	{ }
-
-	bool TypeCheck(attr_list* attrs = 0);
+	bool TypeCheck(attr_list* attrs = nullptr);
 	bool TypeCheckArithmetics(TypeTag bt1, TypeTag bt2);
 
-	DECLARE_SERIAL(AssignExpr);
-
-	int is_init;
-	Val* val;	// optional
+	bool is_init;
+	IntrusivePtr<Val> val;	// optional
 };
 
-class IndexExpr : public BinaryExpr {
+class IndexSliceAssignExpr final : public AssignExpr {
 public:
-	IndexExpr(Expr* op1, ListExpr* op2, bool is_slice = false);
+	IndexSliceAssignExpr(IntrusivePtr<Expr> op1,
+	                     IntrusivePtr<Expr> op2, bool is_init);
+	IntrusivePtr<Val> Eval(Frame* f) const override;
+};
 
-	int CanAdd() const override;
-	int CanDel() const override;
+class IndexExpr final : public BinaryExpr {
+public:
+	IndexExpr(IntrusivePtr<Expr> op1,
+	          IntrusivePtr<ListExpr> op2, bool is_slice = false);
+
+	bool CanAdd() const override;
+	bool CanDel() const override;
 
 	void Add(Frame* f) override;
 	void Delete(Frame* f) override;
 
-	void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN) override;
-	Expr* MakeLvalue() override;
+	void Assign(Frame* f, IntrusivePtr<Val> v) override;
+	IntrusivePtr<Expr> MakeLvalue() override;
 
 	// Need to override Eval since it can take a vector arg but does
 	// not necessarily return a vector.
-	Val* Eval(Frame* f) const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
-protected:
-	friend class Expr;
-	IndexExpr()	{ }
+	bool IsSlice() const { return is_slice; }
 
-	Val* Fold(Val* v1, Val* v2) const override;
+protected:
+	IntrusivePtr<Val> Fold(Val* v1, Val* v2) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 
-	DECLARE_SERIAL(IndexExpr);
+	bool is_slice;
 };
 
-class FieldExpr : public UnaryExpr {
+class FieldExpr final : public UnaryExpr {
 public:
-	FieldExpr(Expr* op, const char* field_name);
+	FieldExpr(IntrusivePtr<Expr> op, const char* field_name);
 	~FieldExpr() override;
 
 	int Field() const	{ return field; }
 	const char* FieldName() const	{ return field_name; }
 
-	int CanDel() const override;
+	bool CanDel() const override;
 
-	void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN) override;
+	void Assign(Frame* f, IntrusivePtr<Val> v) override;
 	void Delete(Frame* f) override;
 
-	Expr* MakeLvalue() override;
+	IntrusivePtr<Expr> MakeLvalue() override;
 
 protected:
-	friend class Expr;
-	FieldExpr()	{ field_name = 0; td = 0; }
-
-	Val* Fold(Val* v) const override;
+	IntrusivePtr<Val> Fold(Val* v) const override;
 
 	void ExprDescribe(ODesc* d) const override;
-
-	DECLARE_SERIAL(FieldExpr);
 
 	const char* field_name;
 	const TypeDecl* td;
@@ -721,154 +592,115 @@ protected:
 
 // "rec?$fieldname" is true if the value of $fieldname in rec is not nil.
 // "rec?$$attrname" is true if the attribute attrname is not nil.
-class HasFieldExpr : public UnaryExpr {
+class HasFieldExpr final : public UnaryExpr {
 public:
-	HasFieldExpr(Expr* op, const char* field_name);
+	HasFieldExpr(IntrusivePtr<Expr> op, const char* field_name);
 	~HasFieldExpr() override;
 
 	const char* FieldName() const	{ return field_name; }
 
 protected:
-	friend class Expr;
-	HasFieldExpr()	{ field_name = 0; }
-
-	Val* Fold(Val* v) const override;
+	IntrusivePtr<Val> Fold(Val* v) const override;
 
 	void ExprDescribe(ODesc* d) const override;
-
-	DECLARE_SERIAL(HasFieldExpr);
 
 	const char* field_name;
 	int field;
 };
 
-class RecordConstructorExpr : public UnaryExpr {
+class RecordConstructorExpr final : public UnaryExpr {
 public:
-	explicit RecordConstructorExpr(ListExpr* constructor_list);
+	explicit RecordConstructorExpr(IntrusivePtr<ListExpr> constructor_list);
 	~RecordConstructorExpr() override;
 
 protected:
-	friend class Expr;
-	RecordConstructorExpr()	{ }
-
-	Val* InitVal(const BroType* t, Val* aggr) const override;
-	Val* Fold(Val* v) const override;
+	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
+	IntrusivePtr<Val> Fold(Val* v) const override;
 
 	void ExprDescribe(ODesc* d) const override;
-
-	DECLARE_SERIAL(RecordConstructorExpr);
 };
 
-class TableConstructorExpr : public UnaryExpr {
+class TableConstructorExpr final : public UnaryExpr {
 public:
-	TableConstructorExpr(ListExpr* constructor_list, attr_list* attrs,
-	                     BroType* arg_type = 0);
+	TableConstructorExpr(IntrusivePtr<ListExpr> constructor_list, attr_list* attrs,
+	                     IntrusivePtr<BroType> arg_type = nullptr);
 	~TableConstructorExpr() override { Unref(attrs); }
 
 	Attributes* Attrs() { return attrs; }
 
-	Val* Eval(Frame* f) const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 protected:
-	friend class Expr;
-	TableConstructorExpr()	{ }
-
-	Val* InitVal(const BroType* t, Val* aggr) const override;
+	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
 
 	void ExprDescribe(ODesc* d) const override;
-
-	DECLARE_SERIAL(TableConstructorExpr);
 
 	Attributes* attrs;
 };
 
-class SetConstructorExpr : public UnaryExpr {
+class SetConstructorExpr final : public UnaryExpr {
 public:
-	SetConstructorExpr(ListExpr* constructor_list, attr_list* attrs,
-	                   BroType* arg_type = 0);
+	SetConstructorExpr(IntrusivePtr<ListExpr> constructor_list, attr_list* attrs,
+	                   IntrusivePtr<BroType> arg_type = nullptr);
 	~SetConstructorExpr() override { Unref(attrs); }
 
 	Attributes* Attrs() { return attrs; }
 
-	Val* Eval(Frame* f) const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 protected:
-	friend class Expr;
-	SetConstructorExpr()	{ }
-
-	Val* InitVal(const BroType* t, Val* aggr) const override;
+	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
 
 	void ExprDescribe(ODesc* d) const override;
-
-	DECLARE_SERIAL(SetConstructorExpr);
 
 	Attributes* attrs;
 };
 
-class VectorConstructorExpr : public UnaryExpr {
+class VectorConstructorExpr final : public UnaryExpr {
 public:
-	explicit VectorConstructorExpr(ListExpr* constructor_list, BroType* arg_type = 0);
+	explicit VectorConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
+	                               IntrusivePtr<BroType> arg_type = nullptr);
 
-	Val* Eval(Frame* f) const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 protected:
-	friend class Expr;
-	VectorConstructorExpr()	{ }
-
-	Val* InitVal(const BroType* t, Val* aggr) const override;
+	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
 
 	void ExprDescribe(ODesc* d) const override;
-
-	DECLARE_SERIAL(VectorConstructorExpr);
 };
 
-class FieldAssignExpr : public UnaryExpr {
+class FieldAssignExpr final : public UnaryExpr {
 public:
-	FieldAssignExpr(const char* field_name, Expr* value);
+	FieldAssignExpr(const char* field_name, IntrusivePtr<Expr> value);
 
 	const char* FieldName() const	{ return field_name.c_str(); }
 
 	void EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const override;
-	int IsRecordElement(TypeDecl* td) const override;
+	bool IsRecordElement(TypeDecl* td) const override;
 
 protected:
-	friend class Expr;
-	FieldAssignExpr()	{ }
-
 	void ExprDescribe(ODesc* d) const override;
 
-	DECLARE_SERIAL(FieldAssignExpr);
-
-	string field_name;
+	std::string field_name;
 };
 
-class ArithCoerceExpr : public UnaryExpr {
+class ArithCoerceExpr final : public UnaryExpr {
 public:
-	ArithCoerceExpr(Expr* op, TypeTag t);
+	ArithCoerceExpr(IntrusivePtr<Expr> op, TypeTag t);
 
 protected:
-	friend class Expr;
-	ArithCoerceExpr()	{ }
-
-	Val* FoldSingleVal(Val* v, InternalTypeTag t) const;
-	Val* Fold(Val* v) const override;
-
-	DECLARE_SERIAL(ArithCoerceExpr);
+	IntrusivePtr<Val> FoldSingleVal(Val* v, InternalTypeTag t) const;
+	IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
-class RecordCoerceExpr : public UnaryExpr {
+class RecordCoerceExpr final : public UnaryExpr {
 public:
-	RecordCoerceExpr(Expr* op, RecordType* r);
+	RecordCoerceExpr(IntrusivePtr<Expr> op, IntrusivePtr<RecordType> r);
 	~RecordCoerceExpr() override;
 
 protected:
-	friend class Expr;
-	RecordCoerceExpr()	{ map = 0; }
-
-	Val* InitVal(const BroType* t, Val* aggr) const override;
-	Val* Fold(Val* v) const override;
-
-	DECLARE_SERIAL(RecordCoerceExpr);
+	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
+	IntrusivePtr<Val> Fold(Val* v) const override;
 
 	// For each super-record slot, gives subrecord slot with which to
 	// fill it.
@@ -876,238 +708,200 @@ protected:
 	int map_size;	// equivalent to Type()->AsRecordType()->NumFields()
 };
 
-class TableCoerceExpr : public UnaryExpr {
+class TableCoerceExpr final : public UnaryExpr {
 public:
-	TableCoerceExpr(Expr* op, TableType* r);
+	TableCoerceExpr(IntrusivePtr<Expr> op, IntrusivePtr<TableType> r);
 	~TableCoerceExpr() override;
 
 protected:
-	friend class Expr;
-	TableCoerceExpr()	{ }
-
-	Val* Fold(Val* v) const override;
-
-	DECLARE_SERIAL(TableCoerceExpr);
+	IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
-class VectorCoerceExpr : public UnaryExpr {
+class VectorCoerceExpr final : public UnaryExpr {
 public:
-	VectorCoerceExpr(Expr* op, VectorType* v);
+	VectorCoerceExpr(IntrusivePtr<Expr> op, IntrusivePtr<VectorType> v);
 	~VectorCoerceExpr() override;
 
 protected:
-	friend class Expr;
-	VectorCoerceExpr()	{ }
-
-	Val* Fold(Val* v) const override;
-
-	DECLARE_SERIAL(VectorCoerceExpr);
+	IntrusivePtr<Val> Fold(Val* v) const override;
 };
 
 // An internal operator for flattening array indices that are records
 // into a list of individual values.
-class FlattenExpr : public UnaryExpr {
+class FlattenExpr final : public UnaryExpr {
 public:
-	explicit FlattenExpr(Expr* op);
+	explicit FlattenExpr(IntrusivePtr<Expr> op);
 
 protected:
-	friend class Expr;
-	FlattenExpr()	{ }
-
-	Val* Fold(Val* v) const override;
-
-	DECLARE_SERIAL(FlattenExpr);
+	IntrusivePtr<Val> Fold(Val* v) const override;
 
 	int num_fields;
 };
 
-class EventHandler;
-
-class ScheduleTimer : public Timer {
+class ScheduleTimer final : public Timer {
 public:
-	ScheduleTimer(EventHandlerPtr event, val_list* args, double t,
-			TimerMgr* tmgr);
+	ScheduleTimer(const EventHandlerPtr& event, zeek::Args args, double t);
 	~ScheduleTimer() override;
 
-	void Dispatch(double t, int is_expire) override;
+	void Dispatch(double t, bool is_expire) override;
 
 protected:
 	EventHandlerPtr event;
-	val_list* args;
-	TimerMgr* tmgr;
+	zeek::Args args;
 };
 
-class ScheduleExpr : public Expr {
+class ScheduleExpr final : public Expr {
 public:
-	ScheduleExpr(Expr* when, EventExpr* event);
-	~ScheduleExpr() override;
+	ScheduleExpr(IntrusivePtr<Expr> when, IntrusivePtr<EventExpr> event);
 
-	int IsPure() const override;
+	bool IsPure() const override;
 
-	Val* Eval(Frame* f) const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 
-	Expr* When() const	{ return when; }
-	EventExpr* Event() const	{ return event; }
+	Expr* When() const	{ return when.get(); }
+	EventExpr* Event() const	{ return event.get(); }
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	friend class Expr;
-	ScheduleExpr()	{ when = 0; event = 0; }
-
 	void ExprDescribe(ODesc* d) const override;
 
-	DECLARE_SERIAL(ScheduleExpr);
-
-	Expr* when;
-	EventExpr* event;
+	IntrusivePtr<Expr> when;
+	IntrusivePtr<EventExpr> event;
 };
 
-class InExpr : public BinaryExpr {
+class InExpr final : public BinaryExpr {
 public:
-	InExpr(Expr* op1, Expr* op2);
+	InExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 
 protected:
-	friend class Expr;
-	InExpr()	{ }
-
-	Val* Fold(Val* v1, Val* v2) const override;
-
-	DECLARE_SERIAL(InExpr);
+	IntrusivePtr<Val> Fold(Val* v1, Val* v2) const override;
 
 };
 
-class CallExpr : public Expr {
+class CallExpr final : public Expr {
 public:
-	CallExpr(Expr* func, ListExpr* args, bool in_hook = false);
-	~CallExpr() override;
+	CallExpr(IntrusivePtr<Expr> func, IntrusivePtr<ListExpr> args,
+	         bool in_hook = false);
 
-	Expr* Func() const	{ return func; }
-	ListExpr* Args() const	{ return args; }
+	Expr* Func() const	{ return func.get(); }
+	ListExpr* Args() const	{ return args.get(); }
 
-	int IsPure() const override;
+	bool IsPure() const override;
 
-	Val* Eval(Frame* f) const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	friend class Expr;
-	CallExpr()	{ func = 0; args = 0; }
-
 	void ExprDescribe(ODesc* d) const override;
 
-	DECLARE_SERIAL(CallExpr);
-
-	Expr* func;
-	ListExpr* args;
+	IntrusivePtr<Expr> func;
+	IntrusivePtr<ListExpr> args;
 };
 
-class EventExpr : public Expr {
+
+/**
+ * Class that represents an anonymous function expression in Zeek.
+ * On evaluation, captures the frame that it is evaluated in. This becomes
+ * the closure for the instance of the function that it creates.
+ */
+class LambdaExpr final : public Expr {
 public:
-	EventExpr(const char* name, ListExpr* args);
-	~EventExpr() override;
+	LambdaExpr(std::unique_ptr<function_ingredients> ingredients,
+		   id_list outer_ids);
+
+	IntrusivePtr<Val> Eval(Frame* f) const override;
+	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+	Scope* GetScope() const;
+
+protected:
+	void ExprDescribe(ODesc* d) const override;
+
+private:
+	std::unique_ptr<function_ingredients> ingredients;
+
+	id_list outer_ids;
+	std::string my_name;
+};
+
+class EventExpr final : public Expr {
+public:
+	EventExpr(const char* name, IntrusivePtr<ListExpr> args);
 
 	const char* Name() const	{ return name.c_str(); }
-	ListExpr* Args() const		{ return args; }
+	ListExpr* Args() const		{ return args.get(); }
 	EventHandlerPtr Handler()  const	{ return handler; }
 
-	Val* Eval(Frame* f) const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	friend class Expr;
-	EventExpr()	{ args = 0; }
-
 	void ExprDescribe(ODesc* d) const override;
 
-	DECLARE_SERIAL(EventExpr);
-
-	string name;
+	std::string name;
 	EventHandlerPtr handler;
-	ListExpr* args;
+	IntrusivePtr<ListExpr> args;
 };
 
 class ListExpr : public Expr {
 public:
 	ListExpr();
-	explicit ListExpr(Expr* e);
+	explicit ListExpr(IntrusivePtr<Expr> e);
 	~ListExpr() override;
 
-	void Append(Expr* e);
+	void Append(IntrusivePtr<Expr> e);
 
 	const expr_list& Exprs() const	{ return exprs; }
 	expr_list& Exprs()		{ return exprs; }
 
 	// True if the entire list represents pure values.
-	int IsPure() const override;
+	bool IsPure() const override;
 
-	// True if the entire list represents constant values.
-	int AllConst() const;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 
-	Val* Eval(Frame* f) const override;
-
-	BroType* InitType() const override;
-	Val* InitVal(const BroType* t, Val* aggr) const override;
-	Expr* MakeLvalue() override;
-	void Assign(Frame* f, Val* v, Opcode op = OP_ASSIGN) override;
+	IntrusivePtr<BroType> InitType() const override;
+	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
+	IntrusivePtr<Expr> MakeLvalue() override;
+	void Assign(Frame* f, IntrusivePtr<Val> v) override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	Val* AddSetInit(const BroType* t, Val* aggr) const;
+	IntrusivePtr<Val> AddSetInit(const BroType* t, IntrusivePtr<Val> aggr) const;
 
 	void ExprDescribe(ODesc* d) const override;
-
-	DECLARE_SERIAL(ListExpr);
 
 	expr_list exprs;
 };
 
 
-class RecordAssignExpr : public ListExpr {
+class RecordAssignExpr final : public ListExpr {
 public:
-	RecordAssignExpr(Expr* record, Expr* init_list, int is_init);
-
-	Val* Eval(Frame* f) const override	{ return ListExpr::Eval(f); }
-
-protected:
-	friend class Expr;
-	RecordAssignExpr()	{ }
-
-	DECLARE_SERIAL(RecordAssignExpr);
+	RecordAssignExpr(const IntrusivePtr<Expr>& record, const IntrusivePtr<Expr>& init_list, bool is_init);
 };
 
-class CastExpr : public UnaryExpr {
+class CastExpr final : public UnaryExpr {
 public:
-	CastExpr(Expr* op, BroType* t);
+	CastExpr(IntrusivePtr<Expr> op, IntrusivePtr<BroType> t);
 
 protected:
-	friend class Expr;
-	CastExpr()	{ }
-
-	Val* Eval(Frame* f) const override;
+	IntrusivePtr<Val> Eval(Frame* f) const override;
 	void ExprDescribe(ODesc* d) const override;
-
-	DECLARE_SERIAL(CastExpr);
 };
 
-class IsExpr : public UnaryExpr {
+class IsExpr final : public UnaryExpr {
 public:
-	IsExpr(Expr* op, BroType* t);
-	virtual ~IsExpr();
+	IsExpr(IntrusivePtr<Expr> op, IntrusivePtr<BroType> t);
 
 protected:
-	friend class Expr;
-	IsExpr()	{ }
-
-	Val* Fold(Val* v) const override;
+	IntrusivePtr<Val> Fold(Val* v) const override;
 	void ExprDescribe(ODesc* d) const override;
-	DECLARE_SERIAL(IsExpr);
 
 private:
-	BroType* t;
+	IntrusivePtr<BroType> t;
 };
 
 inline Val* Expr::ExprVal() const
@@ -1118,7 +912,8 @@ inline Val* Expr::ExprVal() const
 	}
 
 // Decides whether to return an AssignExpr or a RecordAssignExpr.
-Expr* get_assign_expr(Expr* op1, Expr* op2, int is_init);
+IntrusivePtr<Expr> get_assign_expr(IntrusivePtr<Expr> op1,
+                                   IntrusivePtr<Expr> op2, bool is_init);
 
 // Type-check the given expression(s) against the given type(s).  Complain
 // if the expression cannot match the given type, returning 0.  If it can
@@ -1130,25 +925,25 @@ Expr* get_assign_expr(Expr* op1, Expr* op2, int is_init);
 // types or a single type.
 //
 // Note, the type is not "const" because it can be ref'd.
-extern int check_and_promote_expr(Expr*& e, BroType* t);
-extern int check_and_promote_exprs(ListExpr*& elements, TypeList* types);
-extern int check_and_promote_args(ListExpr*& args, RecordType* types);
-extern int check_and_promote_exprs_to_type(ListExpr*& elements, BroType* type);
 
-// Returns a ListExpr simplified down to a list a values, or a nil
-// pointer if they couldn't all be reduced.
-val_list* eval_list(Frame* f, const ListExpr* l);
+/**
+ * Returns nullptr if the expression cannot match or a promoted
+ * expression.
+ */
+extern IntrusivePtr<Expr> check_and_promote_expr(Expr* e, BroType* t);
+
+extern bool check_and_promote_exprs(ListExpr* elements, TypeList* types);
+extern bool check_and_promote_args(ListExpr* args, RecordType* types);
+extern bool check_and_promote_exprs_to_type(ListExpr* elements, BroType* type);
+
+// Returns a ListExpr simplified down to a list a values, or nil
+// if they couldn't all be reduced.
+std::optional<std::vector<IntrusivePtr<Val>>> eval_list(Frame* f, const ListExpr* l);
 
 // Returns true if e1 is "greater" than e2 - here "greater" is just
 // a heuristic, used with commutative operators to put them into
 // a canonical form.
-extern int expr_greater(const Expr* e1, const Expr* e2);
-
-// Return constants of the given type.
-Expr* make_zero(BroType* t);
-Expr* make_one(BroType* t);
+extern bool expr_greater(const Expr* e1, const Expr* e2);
 
 // True if the given Val* has a vector type
 inline bool is_vector(Expr* e)	{ return e->Type()->Tag() == TYPE_VECTOR; }
-
-#endif

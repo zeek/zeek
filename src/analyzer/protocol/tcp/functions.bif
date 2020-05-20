@@ -1,5 +1,8 @@
 
 %%{
+#include "File.h"
+#include "Sessions.h"
+#include "Reporter.h"
 #include "analyzer/protocol/tcp/TCP.h"
 %%}
 
@@ -12,24 +15,23 @@
 ## Returns: The highest sequence number sent by a connection's originator, or 0
 ##          if *cid* does not point to an active TCP connection.
 ##
-## .. bro:see:: get_resp_seq
+## .. zeek:see:: get_resp_seq
 function get_orig_seq%(cid: conn_id%): count
 	%{
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
-		return new Val(0, TYPE_COUNT);
+		return val_mgr->Count(0);
 
 	if ( c->ConnTransport() != TRANSPORT_TCP )
-		return new Val(0, TYPE_COUNT);
+		return val_mgr->Count(0);
 
 	analyzer::Analyzer* tc = c->FindAnalyzer("TCP");
 	if ( tc )
-		return new Val(static_cast<analyzer::tcp::TCP_Analyzer*>(tc)->OrigSeq(),
-				TYPE_COUNT);
+		return val_mgr->Count(static_cast<analyzer::tcp::TCP_Analyzer*>(tc)->OrigSeq());
 	else
 		{
 		reporter->Error("connection does not have TCP analyzer");
-		return new Val(0, TYPE_COUNT);
+		return val_mgr->Count(0);
 		}
 	%}
 
@@ -42,24 +44,23 @@ function get_orig_seq%(cid: conn_id%): count
 ## Returns: The highest sequence number sent by a connection's responder, or 0
 ##          if *cid* does not point to an active TCP connection.
 ##
-## .. bro:see:: get_orig_seq
+## .. zeek:see:: get_orig_seq
 function get_resp_seq%(cid: conn_id%): count
 	%{
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
-		return new Val(0, TYPE_COUNT);
+		return val_mgr->Count(0);
 
 	if ( c->ConnTransport() != TRANSPORT_TCP )
-		return new Val(0, TYPE_COUNT);
+		return val_mgr->Count(0);
 
 	analyzer::Analyzer* tc = c->FindAnalyzer("TCP");
 	if ( tc )
-		return new Val(static_cast<analyzer::tcp::TCP_Analyzer*>(tc)->RespSeq(),
-				TYPE_COUNT);
+		return val_mgr->Count(static_cast<analyzer::tcp::TCP_Analyzer*>(tc)->RespSeq());
 	else
 		{
 		reporter->Error("connection does not have TCP analyzer");
-		return new Val(0, TYPE_COUNT);
+		return val_mgr->Count(0);
 		}
 	%}
 
@@ -78,7 +79,7 @@ function get_resp_seq%(cid: conn_id%): count
 ##              responder (often the server).
 ##            - ``CONTENTS_BOTH``: Record the data sent in both directions.
 ##              Results in the two directions being intermixed in the file,
-##              in the order the data was seen by Bro.
+##              in the order the data was seen by Zeek.
 ##
 ## f: The file handle of the file to write the contents to.
 ##
@@ -91,17 +92,17 @@ function get_resp_seq%(cid: conn_id%): count
 ##     contents of individual packets. Reordering and duplicates are
 ##     removed. If any data is missing, the recording stops at the
 ##     missing data; this can happen, e.g., due to an
-##     :bro:id:`content_gap` event.
+##     :zeek:id:`content_gap` event.
 ##
-## .. bro:see:: get_contents_file set_record_packets contents_file_write_failure
+## .. zeek:see:: get_contents_file set_record_packets contents_file_write_failure
 function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
 	%{
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->False();
 
 	c->GetRootAnalyzer()->SetContentsFile(direction, f);
-	return new Val(1, TYPE_BOOL);
+	return val_mgr->True();
 	%}
 
 ## Returns the file handle of the contents file of a connection.
@@ -109,23 +110,23 @@ function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
 ## cid: The connection ID.
 ##
 ## direction: Controls what sides of the connection to record. See
-##            :bro:id:`set_contents_file` for possible values.
+##            :zeek:id:`set_contents_file` for possible values.
 ##
-## Returns: The :bro:type:`file` handle for the contents file of the
+## Returns: The :zeek:type:`file` handle for the contents file of the
 ##          connection identified by *cid*. If the connection exists
 ##          but there is no contents file for *direction*, then the function
 ##          generates an error and returns a file handle to ``stderr``.
 ##
-## .. bro:see:: set_contents_file set_record_packets contents_file_write_failure
+## .. zeek:see:: set_contents_file set_record_packets contents_file_write_failure
 function get_contents_file%(cid: conn_id, direction: count%): file
 	%{
 	Connection* c = sessions->FindConnection(cid);
-	BroFile* f = c ? c->GetRootAnalyzer()->GetContentsFile(direction) : 0;
+	BroFile* f = c ? c->GetRootAnalyzer()->GetContentsFile(direction) : nullptr;
 
 	if ( f )
 		{
 		Ref(f);
-		return new Val(f);
+		return make_intrusive<Val>(f);
 		}
 
 	// Return some sort of error value.
@@ -134,5 +135,5 @@ function get_contents_file%(cid: conn_id, direction: count%): file
 	else
 		builtin_error("no contents file for given direction");
 
-	return new Val(new BroFile(stderr, "-", "w"));
+	return make_intrusive<Val>(new BroFile(stderr, "-", "w"));
 	%}

@@ -1,21 +1,20 @@
 // See the file  in the main distribution directory for copyright.
 
-
-#include "plugin/Plugin.h"
-
 #include "Ident.h"
+#include "plugin/Plugin.h"
+#include "analyzer/Component.h"
 
 namespace plugin {
-namespace Bro_Ident {
+namespace Zeek_Ident {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("Ident", ::analyzer::ident::Ident_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::Ident";
+		config.name = "Zeek::Ident";
 		config.description = "Ident analyzer";
 		return config;
 		}

@@ -37,12 +37,12 @@ refine connection DCE_RPC_Conn += {
 		%{
 		if ( dce_rpc_message )
 			{
-			BifEvent::generate_dce_rpc_message(bro_analyzer(),
-			                                   bro_analyzer()->Conn(),
-			                                   ${header.is_orig},
-			                                   fid,
-			                                   ${header.PTYPE},
-			                                   new EnumVal(${header.PTYPE}, BifType::Enum::DCE_RPC::PType));
+			BifEvent::enqueue_dce_rpc_message(bro_analyzer(),
+			                                  bro_analyzer()->Conn(),
+			                                  ${header.is_orig},
+			                                  fid,
+			                                  ${header.PTYPE},
+			                                  BifType::Enum::DCE_RPC::PType->GetVal(${header.PTYPE}));
 			}
 		return true;
 		%}
@@ -51,13 +51,13 @@ refine connection DCE_RPC_Conn += {
 		%{
 		if ( dce_rpc_bind )
 			{
-			BifEvent::generate_dce_rpc_bind(bro_analyzer(),
-			                                bro_analyzer()->Conn(),
-			                                fid,
-			                                ${req.id},
-			                                bytestring_to_val(${req.abstract_syntax.uuid}),
-			                                ${req.abstract_syntax.ver_major},
-			                                ${req.abstract_syntax.ver_minor});
+			BifEvent::enqueue_dce_rpc_bind(bro_analyzer(),
+			                               bro_analyzer()->Conn(),
+			                               fid,
+			                               ${req.id},
+			                               to_stringval(${req.abstract_syntax.uuid}),
+			                               ${req.abstract_syntax.ver_major},
+			                               ${req.abstract_syntax.ver_minor});
 			}
 
 		return true;
@@ -67,13 +67,13 @@ refine connection DCE_RPC_Conn += {
 		%{
 		if ( dce_rpc_alter_context )
 			{
-			BifEvent::generate_dce_rpc_alter_context(bro_analyzer(),
-			                                         bro_analyzer()->Conn(),
-			                                         fid,
-			                                         ${req.id},
-			                                         bytestring_to_val(${req.abstract_syntax.uuid}),
-			                                         ${req.abstract_syntax.ver_major},
-			                                         ${req.abstract_syntax.ver_minor});
+			BifEvent::enqueue_dce_rpc_alter_context(bro_analyzer(),
+			                                        bro_analyzer()->Conn(),
+			                                        fid,
+			                                        ${req.id},
+			                                        to_stringval(${req.abstract_syntax.uuid}),
+			                                        ${req.abstract_syntax.ver_major},
+			                                        ${req.abstract_syntax.ver_minor});
 			}
 
 		return true;
@@ -83,22 +83,19 @@ refine connection DCE_RPC_Conn += {
 		%{
 		if ( dce_rpc_bind_ack )
 			{
-			StringVal *sec_addr;
+			IntrusivePtr<StringVal> sec_addr;
+
 			// Remove the null from the end of the string if it's there.
 			if ( ${bind.sec_addr}.length() > 0 &&
 			     *(${bind.sec_addr}.begin() + ${bind.sec_addr}.length()) == 0 )
-				{
-				sec_addr = new StringVal(${bind.sec_addr}.length()-1, (const char*) ${bind.sec_addr}.begin());
-				}
+				sec_addr = make_intrusive<StringVal>(${bind.sec_addr}.length()-1, (const char*) ${bind.sec_addr}.begin());
 			else
-				{
-				sec_addr = new StringVal(${bind.sec_addr}.length(), (const char*) ${bind.sec_addr}.begin());
-				}
+				sec_addr = make_intrusive<StringVal>(${bind.sec_addr}.length(), (const char*) ${bind.sec_addr}.begin());
 
-			BifEvent::generate_dce_rpc_bind_ack(bro_analyzer(),
-			                                    bro_analyzer()->Conn(),
-			                                    fid,
-			                                    sec_addr);
+			BifEvent::enqueue_dce_rpc_bind_ack(bro_analyzer(),
+			                                   bro_analyzer()->Conn(),
+			                                   fid,
+			                                   std::move(sec_addr));
 			}
 		return true;
 		%}
@@ -107,9 +104,9 @@ refine connection DCE_RPC_Conn += {
 		%{
 		if ( dce_rpc_alter_context_resp )
 			{
-			BifEvent::generate_dce_rpc_alter_context_resp(bro_analyzer(),
-			                                              bro_analyzer()->Conn(),
-			                                              fid);
+			BifEvent::enqueue_dce_rpc_alter_context_resp(bro_analyzer(),
+			                                             bro_analyzer()->Conn(),
+			                                             fid);
 			}
 		return true;
 		%}
@@ -118,12 +115,12 @@ refine connection DCE_RPC_Conn += {
 		%{
 		if ( dce_rpc_request )
 			{
-			BifEvent::generate_dce_rpc_request(bro_analyzer(),
-			                                   bro_analyzer()->Conn(),
-			                                   fid,
-			                                   ${req.context_id},
-			                                   ${req.opnum},
-			                                   ${req.stub}.length());
+			BifEvent::enqueue_dce_rpc_request(bro_analyzer(),
+			                                  bro_analyzer()->Conn(),
+			                                  fid,
+			                                  ${req.context_id},
+			                                  ${req.opnum},
+			                                  ${req.stub}.length());
 			}
 
 		set_cont_id_opnum_map(${req.context_id},
@@ -135,12 +132,12 @@ refine connection DCE_RPC_Conn += {
 		%{
 		if ( dce_rpc_response )
 			{
-			BifEvent::generate_dce_rpc_response(bro_analyzer(),
-			                                    bro_analyzer()->Conn(),
-			                                    fid,
-			                                    ${resp.context_id},
-			                                    get_cont_id_opnum_map(${resp.context_id}),
-			                                    ${resp.stub}.length());
+			BifEvent::enqueue_dce_rpc_response(bro_analyzer(),
+			                                   bro_analyzer()->Conn(),
+			                                   fid,
+			                                   ${resp.context_id},
+			                                   get_cont_id_opnum_map(${resp.context_id}),
+			                                   ${resp.stub}.length());
 			}
 
 		return true;

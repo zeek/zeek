@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/globus-url-copy.trace %INPUT
+# @TEST-EXEC: zeek -r $TRACES/globus-url-copy.trace %INPUT
 # @TEST-EXEC: btest-diff notice.log
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff ssl.log

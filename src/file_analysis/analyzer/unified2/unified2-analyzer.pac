@@ -45,7 +45,7 @@ refine flow Flow += {
 			}
 		%}
 
-	function to_port(n: uint16, p: uint8): PortVal
+	function to_port(n: uint16, p: uint8): Val
 		%{
 		TransportProto proto = TRANSPORT_UNKNOWN;
 		switch ( p ) {
@@ -54,7 +54,7 @@ refine flow Flow += {
 		case 17: proto = TRANSPORT_UDP; break;
 		}
 
-		return port_mgr->Get(n, proto);
+		return val_mgr->Port(n, proto)->Ref();
 		%}
 
 	#function proc_record(rec: Record) : bool
@@ -66,25 +66,24 @@ refine flow Flow += {
 		%{
 		if ( ::unified2_event )
 			{
-			RecordVal* ids_event = new RecordVal(BifType::Record::Unified2::IDSEvent);
-			ids_event->Assign(0, new Val(${ev.sensor_id}, TYPE_COUNT));
-			ids_event->Assign(1, new Val(${ev.event_id}, TYPE_COUNT));
-			ids_event->Assign(2, new Val(ts_to_double(${ev.ts}), TYPE_TIME));
-			ids_event->Assign(3, new Val(${ev.signature_id}, TYPE_COUNT));
-			ids_event->Assign(4, new Val(${ev.generator_id}, TYPE_COUNT));
-			ids_event->Assign(5, new Val(${ev.signature_revision}, TYPE_COUNT));
-			ids_event->Assign(6, new Val(${ev.classification_id}, TYPE_COUNT));
-			ids_event->Assign(7, new Val(${ev.priority_id}, TYPE_COUNT));
+			auto ids_event = make_intrusive<RecordVal>(BifType::Record::Unified2::IDSEvent);
+			ids_event->Assign(0, val_mgr->Count(${ev.sensor_id}));
+			ids_event->Assign(1, val_mgr->Count(${ev.event_id}));
+			ids_event->Assign(2, make_intrusive<Val>(ts_to_double(${ev.ts}), TYPE_TIME));
+			ids_event->Assign(3, val_mgr->Count(${ev.signature_id}));
+			ids_event->Assign(4, val_mgr->Count(${ev.generator_id}));
+			ids_event->Assign(5, val_mgr->Count(${ev.signature_revision}));
+			ids_event->Assign(6, val_mgr->Count(${ev.classification_id}));
+			ids_event->Assign(7, val_mgr->Count(${ev.priority_id}));
 			ids_event->Assign(8, unified2_addr_to_bro_addr(${ev.src_ip}));
 			ids_event->Assign(9, unified2_addr_to_bro_addr(${ev.dst_ip}));
 			ids_event->Assign(10, to_port(${ev.src_p}, ${ev.protocol}));
 			ids_event->Assign(11, to_port(${ev.dst_p}, ${ev.protocol}));
-			ids_event->Assign(17, new Val(${ev.packet_action}, TYPE_COUNT));
+			ids_event->Assign(17, val_mgr->Count(${ev.packet_action}));
 
-			val_list* vl = new val_list();
-			vl->append(connection()->bro_analyzer()->GetFile()->GetVal()->Ref());
-			vl->append(ids_event);
-			mgr.QueueEvent(::unified2_event, vl, SOURCE_LOCAL);
+			mgr.Enqueue(::unified2_event,
+					IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+					std::move(ids_event));
 			}
 		return true;
 		%}
@@ -93,29 +92,28 @@ refine flow Flow += {
 		%{
 		if ( ::unified2_event )
 			{
-			RecordVal* ids_event = new RecordVal(BifType::Record::Unified2::IDSEvent);
-			ids_event->Assign(0, new Val(${ev.sensor_id}, TYPE_COUNT));
-			ids_event->Assign(1, new Val(${ev.event_id}, TYPE_COUNT));
-			ids_event->Assign(2, new Val(ts_to_double(${ev.ts}), TYPE_TIME));
-			ids_event->Assign(3, new Val(${ev.signature_id}, TYPE_COUNT));
-			ids_event->Assign(4, new Val(${ev.generator_id}, TYPE_COUNT));
-			ids_event->Assign(5, new Val(${ev.signature_revision}, TYPE_COUNT));
-			ids_event->Assign(6, new Val(${ev.classification_id}, TYPE_COUNT));
-			ids_event->Assign(7, new Val(${ev.priority_id}, TYPE_COUNT));
+			auto ids_event = make_intrusive<RecordVal>(BifType::Record::Unified2::IDSEvent);
+			ids_event->Assign(0, val_mgr->Count(${ev.sensor_id}));
+			ids_event->Assign(1, val_mgr->Count(${ev.event_id}));
+			ids_event->Assign(2, make_intrusive<Val>(ts_to_double(${ev.ts}), TYPE_TIME));
+			ids_event->Assign(3, val_mgr->Count(${ev.signature_id}));
+			ids_event->Assign(4, val_mgr->Count(${ev.generator_id}));
+			ids_event->Assign(5, val_mgr->Count(${ev.signature_revision}));
+			ids_event->Assign(6, val_mgr->Count(${ev.classification_id}));
+			ids_event->Assign(7, val_mgr->Count(${ev.priority_id}));
 			ids_event->Assign(8, unified2_addr_to_bro_addr(${ev.src_ip}));
 			ids_event->Assign(9, unified2_addr_to_bro_addr(${ev.dst_ip}));
 			ids_event->Assign(10, to_port(${ev.src_p}, ${ev.protocol}));
 			ids_event->Assign(11, to_port(${ev.dst_p}, ${ev.protocol}));
-			ids_event->Assign(12, new Val(${ev.impact_flag}, TYPE_COUNT));
-			ids_event->Assign(13, new Val(${ev.impact}, TYPE_COUNT));
-			ids_event->Assign(14, new Val(${ev.blocked}, TYPE_COUNT));
-			ids_event->Assign(15, new Val(${ev.mpls_label}, TYPE_COUNT));
-			ids_event->Assign(16, new Val(${ev.vlan_id}, TYPE_COUNT));
+			ids_event->Assign(12, val_mgr->Count(${ev.impact_flag}));
+			ids_event->Assign(13, val_mgr->Count(${ev.impact}));
+			ids_event->Assign(14, val_mgr->Count(${ev.blocked}));
+			ids_event->Assign(15, val_mgr->Count(${ev.mpls_label}));
+			ids_event->Assign(16, val_mgr->Count(${ev.vlan_id}));
 
-			val_list* vl = new val_list();
-			vl->append(connection()->bro_analyzer()->GetFile()->GetVal()->Ref());
-			vl->append(ids_event);
-			mgr.QueueEvent(::unified2_event, vl, SOURCE_LOCAL);
+			mgr.Enqueue(::unified2_event,
+					IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+					std::move(ids_event));
 			}
 
 		return true;
@@ -125,18 +123,17 @@ refine flow Flow += {
 		%{
 		if ( ::unified2_packet )
 			{
-			RecordVal* packet = new RecordVal(BifType::Record::Unified2::Packet);
-			packet->Assign(0, new Val(${pkt.sensor_id}, TYPE_COUNT));
-			packet->Assign(1, new Val(${pkt.event_id}, TYPE_COUNT));
-			packet->Assign(2, new Val(${pkt.event_second}, TYPE_COUNT));
-			packet->Assign(3, new Val(ts_to_double(${pkt.packet_ts}), TYPE_TIME));
-			packet->Assign(4, new Val(${pkt.link_type}, TYPE_COUNT));
-			packet->Assign(5, bytestring_to_val(${pkt.packet_data}));
+			auto packet = make_intrusive<RecordVal>(BifType::Record::Unified2::Packet);
+			packet->Assign(0, val_mgr->Count(${pkt.sensor_id}));
+			packet->Assign(1, val_mgr->Count(${pkt.event_id}));
+			packet->Assign(2, val_mgr->Count(${pkt.event_second}));
+			packet->Assign(3, make_intrusive<Val>(ts_to_double(${pkt.packet_ts}), TYPE_TIME));
+			packet->Assign(4, val_mgr->Count(${pkt.link_type}));
+			packet->Assign(5, to_stringval(${pkt.packet_data}));
 
-			val_list* vl = new val_list();
-			vl->append(connection()->bro_analyzer()->GetFile()->GetVal()->Ref());
-			vl->append(packet);
-			mgr.QueueEvent(::unified2_packet, vl, SOURCE_LOCAL);
+			mgr.Enqueue(::unified2_packet,
+					IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+					std::move(packet));
 			}
 
 		return true;

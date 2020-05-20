@@ -1,21 +1,20 @@
 // See the file  in the main distribution directory for copyright.
 
-
-#include "plugin/Plugin.h"
-
 #include "HTTP.h"
+#include "plugin/Plugin.h"
+#include "analyzer/Component.h"
 
 namespace plugin {
-namespace Bro_HTTP {
+namespace Zeek_HTTP {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("HTTP", ::analyzer::http::HTTP_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::HTTP";
+		config.name = "Zeek::HTTP";
 		config.description = "HTTP analyzer";
 		return config;
 		}

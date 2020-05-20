@@ -1,2 +1,0 @@
-# Make sure this parses correctly at least.
-@TEST-EXEC: bro ${DOC_ROOT}/frameworks/sqlite-read-table.bro

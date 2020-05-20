@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_LOGIN_NVT_H
-#define ANALYZER_PROTOCOL_LOGIN_NVT_H
+#pragma once
 
 #include "analyzer/protocol/tcp/ContentLine.h"
 
@@ -29,12 +28,12 @@ public:
 
 	unsigned int Code() const	{ return code; }
 
-	int IsActive() const		{ return active; }
+	bool IsActive() const		{ return active; }
 
-	int SaidWill() const	{ return flags & OPT_SAID_WILL; }
-	int SaidWont() const	{ return flags & OPT_SAID_WONT; }
-	int SaidDo() const	{ return flags & OPT_SAID_DO; }
-	int SaidDont() const	{ return flags & OPT_SAID_DONT; }
+	bool SaidWill() const	{ return flags & OPT_SAID_WILL; }
+	bool SaidWont() const	{ return flags & OPT_SAID_WONT; }
+	bool SaidDo() const	{ return flags & OPT_SAID_DO; }
+	bool SaidDont() const	{ return flags & OPT_SAID_DONT; }
 
 	void SetWill()	{ flags |= OPT_SAID_WILL; }
 	void SetWont()	{ flags |= OPT_SAID_WONT; }
@@ -44,7 +43,7 @@ public:
 	void RecvOption(unsigned int type);
 	virtual void RecvSubOption(u_char* data, int len);
 
-	virtual void SetActive(int is_active);
+	virtual void SetActive(bool is_active);
 
 	const NVT_Analyzer* Endpoint() const	{ return endp; }
 
@@ -59,7 +58,7 @@ protected:
 	int active;
 };
 
-class TelnetTerminalOption : public TelnetOption {
+class TelnetTerminalOption final : public TelnetOption {
 public:
 	explicit TelnetTerminalOption(NVT_Analyzer* arg_endp)
 		: TelnetOption(arg_endp, TELNET_OPTION_TERMINAL)	{ }
@@ -67,7 +66,7 @@ public:
 	void RecvSubOption(u_char* data, int len) override;
 };
 
-class TelnetEncryptOption : public TelnetOption {
+class TelnetEncryptOption final : public TelnetOption {
 public:
 	explicit TelnetEncryptOption(NVT_Analyzer* arg_endp)
 		: TelnetOption(arg_endp, TELNET_OPTION_ENCRYPT)
@@ -83,7 +82,7 @@ protected:
 	int did_encrypt_request, doing_encryption;
 };
 
-class TelnetAuthenticateOption : public TelnetOption {
+class TelnetAuthenticateOption final : public TelnetOption {
 public:
 	explicit TelnetAuthenticateOption(NVT_Analyzer* arg_endp)
 		: TelnetOption(arg_endp, TELNET_OPTION_AUTHENTICATE)
@@ -99,7 +98,7 @@ protected:
 	int authentication_requested;
 };
 
-class TelnetEnvironmentOption : public TelnetOption {
+class TelnetEnvironmentOption final : public TelnetOption {
 public:
 	explicit TelnetEnvironmentOption(NVT_Analyzer* arg_endp)
 		: TelnetOption(arg_endp, TELNET_OPTION_ENVIRON)
@@ -111,19 +110,19 @@ protected:
 	char* ExtractEnv(u_char*& data, int& len, int& code);
 };
 
-class TelnetBinaryOption : public TelnetOption {
+class TelnetBinaryOption final : public TelnetOption {
 public:
 	explicit TelnetBinaryOption(NVT_Analyzer* arg_endp)
 		: TelnetOption(arg_endp, TELNET_OPTION_BINARY)
 			{ }
 
-	void SetActive(int is_active) override;
+	void SetActive(bool is_active) override;
 
 protected:
 	void InconsistentOption(unsigned int type) override;
 };
 
-class NVT_Analyzer : public tcp::ContentLine_Analyzer {
+class NVT_Analyzer final : public tcp::ContentLine_Analyzer {
 public:
 	NVT_Analyzer(Connection* conn, bool orig);
 	~NVT_Analyzer() override;
@@ -155,21 +154,20 @@ protected:
 	virtual void BadOptionTermination(unsigned int code);
 	const char* PeerAuthName() const;
 
-	NVT_Analyzer* peer;
+	NVT_Analyzer* peer = nullptr;
 
-	int pending_IAC;	// true if we're working on an option/IAC
-	int IAC_pos;		// where the IAC was seen
-	int is_suboption;	// true if current option is suboption
-	int last_was_IAC;	// for scanning suboptions
+	int IAC_pos = 0;		// where the IAC was seen
+	bool pending_IAC = false;	// true if we're working on an option/IAC
+	bool is_suboption = false;	// true if current option is suboption
+	bool last_was_IAC = false;	// for scanning suboptions
+	bool authentication_has_been_accepted = false;	// if true, we accepted peer's authentication
 
-	int binary_mode, encrypting_mode;
-	int authentication_has_been_accepted;	// if true, we accepted peer's authentication
-	char* auth_name;
+	int binary_mode = 0;
+	int encrypting_mode = 0;
+	char* auth_name = nullptr;
 
 	TelnetOption* options[NUM_TELNET_OPTIONS];
-	int num_options;
+	int num_options = 0;
 };
 
-} } // namespace analyzer::* 
-
-#endif
+} } // namespace analyzer::*

@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	conn
-#open	2016-07-13-16-16-17
+#open	2020-04-30-00-46-59
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
 #types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	bool	count	string	count	count	count	count	set[string]
 1329843175.736107	ClEkJM2Vm5giqnMf4h	141.142.220.235	37604	199.233.217.249	56666	tcp	ftp-data	0.112432	0	342	SF	-	-	0	ShAdfFa	4	216	4	562	-
@@ -11,4 +11,4 @@
 1329843194.151526	CtPZjS20MLrsMUOJi2	199.233.217.249	61920	141.142.220.235	33582	tcp	ftp-data	0.056211	342	0	SF	-	-	0	ShADaFf	5	614	3	164	-
 1329843197.783443	CUM0KZ3MLUfNB0cl11	199.233.217.249	61918	141.142.220.235	37835	tcp	ftp-data	0.056005	77	0	SF	-	-	0	ShADaFf	5	349	3	164	-
 1329843161.968492	CHhAvVGS1DHFjwGM9	141.142.220.235	50003	199.233.217.249	21	tcp	ftp	38.055625	180	3146	SF	-	-	0	ShAdDfFa	38	2164	25	4458	-
-#close	2016-07-13-16-16-17
+#close	2020-04-30-00-46-59

@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -C -r $TRACES/tls/chrome-63.0.3211.0-canary-tls_experiment.pcap %INPUT
+# @TEST-EXEC: zeek -C -r $TRACES/tls/chrome-63.0.3211.0-canary-tls_experiment.pcap %INPUT
 # @TEST-EXEC: btest-diff ssl.log
 # @TEST-EXEC: btest-diff .stdout
 

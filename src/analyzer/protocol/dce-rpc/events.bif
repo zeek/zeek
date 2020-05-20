@@ -12,7 +12,7 @@
 ##
 ## ptype: Enum representation of the prodecure type of the message.
 ##
-## .. bro:see:: dce_rpc_bind dce_rpc_bind_ack dce_rpc_request dce_rpc_response
+## .. zeek:see:: dce_rpc_bind dce_rpc_bind_ack dce_rpc_request dce_rpc_response
 event dce_rpc_message%(c: connection, is_orig: bool, fid: count, ptype_id: count, ptype: DCE_RPC::PType%);
 
 ## Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` bind request message.
@@ -33,7 +33,7 @@ event dce_rpc_message%(c: connection, is_orig: bool, fid: count, ptype_id: count
 ##
 ## ver_minor: The minor version of the endpoint being requested.
 ##
-## .. bro:see:: dce_rpc_message dce_rpc_bind_ack dce_rpc_request dce_rpc_response
+## .. zeek:see:: dce_rpc_message dce_rpc_bind_ack dce_rpc_request dce_rpc_response
 event dce_rpc_bind%(c: connection, fid: count, ctx_id: count, uuid: string, ver_major: count, ver_minor: count%);
 
 ## Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` alter context request message.
@@ -54,7 +54,7 @@ event dce_rpc_bind%(c: connection, fid: count, ctx_id: count, uuid: string, ver_
 ##
 ## ver_minor: The minor version of the endpoint being requested.
 ##
-## .. bro:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_request dce_rpc_response dce_rpc_alter_context_resp
+## .. zeek:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_request dce_rpc_response dce_rpc_alter_context_resp
 event dce_rpc_alter_context%(c: connection, fid: count, ctx_id: count, uuid: string, ver_major: count, ver_minor: count%);
 
 ## Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` bind request ack message.
@@ -67,7 +67,7 @@ event dce_rpc_alter_context%(c: connection, fid: count, ctx_id: count, uuid: str
 ##
 ## sec_addr: Secondary address for the ack.
 ##
-## .. bro:see:: dce_rpc_message dce_rpc_bind dce_rpc_request dce_rpc_response
+## .. zeek:see:: dce_rpc_message dce_rpc_bind dce_rpc_request dce_rpc_response
 event dce_rpc_bind_ack%(c: connection, fid: count, sec_addr: string%);
 
 ## Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` alter context response message.
@@ -78,7 +78,7 @@ event dce_rpc_bind_ack%(c: connection, fid: count, sec_addr: string%);
 ##      message. Zero will be used if the :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` was
 ##      not transported over a pipe.
 ##
-## .. bro:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_request dce_rpc_response dce_rpc_alter_context
+## .. zeek:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_request dce_rpc_response dce_rpc_alter_context
 event dce_rpc_alter_context_resp%(c: connection, fid: count%);
 
 ## Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` request message.
@@ -95,7 +95,7 @@ event dce_rpc_alter_context_resp%(c: connection, fid: count%);
 ##
 ## stub_len: Length of the data for the request.
 ##
-## .. bro:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_response
+## .. zeek:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_response
 event dce_rpc_request%(c: connection, fid: count, ctx_id: count, opnum: count, stub_len: count%);
 
 ## Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` response message.
@@ -112,5 +112,5 @@ event dce_rpc_request%(c: connection, fid: count, ctx_id: count, opnum: count, s
 ##
 ## stub_len: Length of the data for the response.
 ##
-## .. bro:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_request
+## .. zeek:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_request
 event dce_rpc_response%(c: connection, fid: count, ctx_id: count, opnum: count, stub_len: count%);

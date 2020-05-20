@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/tunnels/gtp/gtp6_gtp_0x32.pcap %INPUT >out
+# @TEST-EXEC: zeek -r $TRACES/tunnels/gtp/gtp6_gtp_0x32.pcap %INPUT >out
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff tunnel.log

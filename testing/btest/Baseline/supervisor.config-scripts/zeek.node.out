@@ -1,0 +1,3 @@
+supervised node zeek_init()
+supervised node loaded qux.zeek
+supervised node zeek_done()

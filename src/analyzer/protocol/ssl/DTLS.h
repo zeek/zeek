@@ -1,5 +1,4 @@
-#ifndef ANALYZER_PROTOCOL_SSL_DTLS_H
-#define ANALYZER_PROTOCOL_SSL_DTLS_H
+#pragma once
 
 #include "events.bif.h"
 
@@ -11,7 +10,7 @@ namespace binpac { namespace TLSHandshake { class Handshake_Conn; } }
 
 namespace analyzer { namespace dtls {
 
-class DTLS_Analyzer : public analyzer::Analyzer {
+class DTLS_Analyzer final : public analyzer::Analyzer {
 public:
 	explicit DTLS_Analyzer(Connection* conn);
 	~DTLS_Analyzer() override;
@@ -19,10 +18,10 @@ public:
 	// Overriden from Analyzer.
 	void Done() override;
 	void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const IP_Hdr* ip, int caplen) override;
 	void EndOfData(bool is_orig) override;
 
-	void SendHandshake(uint16 raw_tls_version, uint8 msg_type, uint32 length, const u_char* begin, const u_char* end, bool orig);
+	void SendHandshake(uint16_t raw_tls_version, uint8_t msg_type, uint32_t length, const u_char* begin, const u_char* end, bool orig);
 
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
@@ -34,5 +33,3 @@ protected:
 };
 
 } } // namespace analyzer::*
-
-#endif

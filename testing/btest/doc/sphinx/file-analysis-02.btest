@@ -1,1 +1,0 @@
-@TEST-EXEC: btest-rst-cmd bro -r ${TRACES}/http/get.trace ${DOC_ROOT}/frameworks/file_analysis_02.bro

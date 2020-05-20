@@ -2,10 +2,11 @@
 type ftp_port: record;
 
 %%{
+#include "Reporter.h"
 
-static Val* parse_port(const char* line)
+static IntrusivePtr<Val> parse_port(const char* line)
 	{
-	RecordVal* r = new RecordVal(BifType::Record::ftp_port);
+	auto r = make_intrusive<RecordVal>(BifType::Record::ftp_port);
 
 	int bytes[6];
 	if ( line && sscanf(line, "%d,%d,%d,%d,%d,%d",
@@ -21,9 +22,9 @@ static Val* parse_port(const char* line)
 				break;
 				}
 
-		uint32 addr = (bytes[0] << 24) | (bytes[1] << 16) |
+		uint32_t addr = (bytes[0] << 24) | (bytes[1] << 16) |
 				(bytes[2] << 8) | bytes[3];
-		uint32 port = (bytes[4] << 8) | bytes[5];
+		uint32_t port = (bytes[4] << 8) | bytes[5];
 
 		// Since port is unsigned, no need to check for < 0.
 		if ( port > 65535 )
@@ -32,23 +33,23 @@ static Val* parse_port(const char* line)
 			good = 0;
 			}
 
-		r->Assign(0, new AddrVal(htonl(addr)));
-		r->Assign(1, port_mgr->Get(port, TRANSPORT_TCP));
-		r->Assign(2, new Val(good, TYPE_BOOL));
+		r->Assign(0, make_intrusive<AddrVal>(htonl(addr)));
+		r->Assign(1, val_mgr->Port(port, TRANSPORT_TCP));
+		r->Assign(2, val_mgr->Bool(good));
 		}
 	else
 		{
-		r->Assign(0, new AddrVal(uint32(0)));
-		r->Assign(1, port_mgr->Get(0, TRANSPORT_TCP));
-		r->Assign(2, new Val(0, TYPE_BOOL));
+		r->Assign(0, make_intrusive<AddrVal>(uint32_t(0)));
+		r->Assign(1, val_mgr->Port(0, TRANSPORT_TCP));
+		r->Assign(2, val_mgr->False());
 		}
 
 	return r;
 	}
 
-static Val* parse_eftp(const char* line)
+static IntrusivePtr<Val> parse_eftp(const char* line)
 	{
-	RecordVal* r = new RecordVal(BifType::Record::ftp_port);
+	auto r = make_intrusive<RecordVal>(BifType::Record::ftp_port);
 
 	int net_proto = 0;	// currently not used
 	IPAddr addr;	// unspecified IPv6 address (all 128 bits zero)
@@ -85,7 +86,7 @@ static Val* parse_eftp(const char* line)
 					good = 0;
 					}
 
-				string s(line, nptr-line); // extract IP address
+				std::string s(line, nptr-line); // extract IP address
 				IPAddr tmp(s);
 				// on error, "tmp" will have all 128 bits zero
 				if ( tmp == addr )
@@ -108,29 +109,29 @@ static Val* parse_eftp(const char* line)
 
 		}
 
-	r->Assign(0, new AddrVal(addr));
-	r->Assign(1, port_mgr->Get(port, TRANSPORT_TCP));
-	r->Assign(2, new Val(good, TYPE_BOOL));
+	r->Assign(0, make_intrusive<AddrVal>(addr));
+	r->Assign(1, val_mgr->Port(port, TRANSPORT_TCP));
+	r->Assign(2, val_mgr->Bool(good));
 
 	return r;
 	}
 %%}
 
 ## Converts a string representation of the FTP PORT command to an
-## :bro:type:`ftp_port`.
+## :zeek:type:`ftp_port`.
 ##
 ## s: The string of the FTP PORT command, e.g., ``"10,0,0,1,4,31"``.
 ##
 ## Returns: The FTP PORT, e.g., ``[h=10.0.0.1, p=1055/tcp, valid=T]``.
 ##
-## .. bro:see:: parse_eftp_port parse_ftp_pasv parse_ftp_epsv fmt_ftp_port
+## .. zeek:see:: parse_eftp_port parse_ftp_pasv parse_ftp_epsv fmt_ftp_port
 function parse_ftp_port%(s: string%): ftp_port
 	%{
 	return parse_port(s->CheckString());
 	%}
 
 ## Converts a string representation of the FTP EPRT command (see :rfc:`2428`)
-## to an :bro:type:`ftp_port`.  The format is
+## to an :zeek:type:`ftp_port`.  The format is
 ## ``"EPRT<space><d><net-prt><d><net-addr><d><tcp-port><d>"``,
 ## where ``<d>`` is a delimiter in the ASCII range 33-126 (usually ``|``).
 ##
@@ -138,19 +139,19 @@ function parse_ftp_port%(s: string%): ftp_port
 ##
 ## Returns: The FTP PORT, e.g., ``[h=10.0.0.1, p=1055/tcp, valid=T]``.
 ##
-## .. bro:see:: parse_ftp_port parse_ftp_pasv parse_ftp_epsv fmt_ftp_port
+## .. zeek:see:: parse_ftp_port parse_ftp_pasv parse_ftp_epsv fmt_ftp_port
 function parse_eftp_port%(s: string%): ftp_port
 	%{
 	return parse_eftp(s->CheckString());
 	%}
 
-## Converts the result of the FTP PASV command to an :bro:type:`ftp_port`.
+## Converts the result of the FTP PASV command to an :zeek:type:`ftp_port`.
 ##
 ## str: The string containing the result of the FTP PASV command.
 ##
 ## Returns: The FTP PORT, e.g., ``[h=10.0.0.1, p=1055/tcp, valid=T]``.
 ##
-## .. bro:see:: parse_ftp_port parse_eftp_port parse_ftp_epsv fmt_ftp_port
+## .. zeek:see:: parse_ftp_port parse_eftp_port parse_ftp_epsv fmt_ftp_port
 function parse_ftp_pasv%(str: string%): ftp_port
 	%{
 	const char* s = str->CheckString();
@@ -170,14 +171,14 @@ function parse_ftp_pasv%(str: string%): ftp_port
 	%}
 
 ## Converts the result of the FTP EPSV command (see :rfc:`2428`) to an
-## :bro:type:`ftp_port`.  The format is ``"<text> (<d><d><d><tcp-port><d>)"``,
+## :zeek:type:`ftp_port`.  The format is ``"<text> (<d><d><d><tcp-port><d>)"``,
 ## where ``<d>`` is a delimiter in the ASCII range 33-126 (usually ``|``).
 ##
 ## str: The string containing the result of the FTP EPSV command.
 ##
 ## Returns: The FTP PORT, e.g., ``[h=10.0.0.1, p=1055/tcp, valid=T]``.
 ##
-## .. bro:see:: parse_ftp_port parse_eftp_port parse_ftp_pasv fmt_ftp_port
+## .. zeek:see:: parse_ftp_port parse_eftp_port parse_ftp_pasv fmt_ftp_port
 function parse_ftp_epsv%(str: string%): ftp_port
 	%{
 	const char* s = str->CheckString();
@@ -196,16 +197,16 @@ function parse_ftp_epsv%(str: string%): ftp_port
 ##
 ## Returns: The FTP PORT string.
 ##
-## .. bro:see:: parse_ftp_port parse_eftp_port parse_ftp_pasv parse_ftp_epsv
+## .. zeek:see:: parse_ftp_port parse_eftp_port parse_ftp_pasv parse_ftp_epsv
 function fmt_ftp_port%(a: addr, p: port%): string
 	%{
-	const uint32* addr;
+	const uint32_t* addr;
 	int len = a->AsAddr().GetBytes(&addr);
 	if ( len == 1 )
 		{
-		uint32 a = ntohl(addr[0]);
-		uint32 pn = p->Port();
-		return new StringVal(fmt("%d,%d,%d,%d,%d,%d",
+		uint32_t a = ntohl(addr[0]);
+		uint32_t pn = p->Port();
+		return make_intrusive<StringVal>(fmt("%d,%d,%d,%d,%d,%d",
 						a >> 24, (a >> 16) & 0xff,
 						(a >> 8) & 0xff, a & 0xff,
 						pn >> 8, pn & 0xff));
@@ -214,7 +215,6 @@ function fmt_ftp_port%(a: addr, p: port%): string
 		{
 		builtin_error("conversion of non-IPv4 address in fmt_ftp_port",
 		              @ARG@[0]);
-		return new StringVal("");
+		return val_mgr->EmptyString();
 		}
 	%}
-

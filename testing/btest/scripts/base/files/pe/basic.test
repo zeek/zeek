@@ -1,5 +1,5 @@
 # This tests the PE analyzer against a PCAP of 4 PE files being downloaded via FTP.
 # The files are a mix of DLL/EXEs, signed/unsigned, and 32/64-bit files.
 
-# @TEST-EXEC: bro -r $TRACES/pe/pe.trace %INPUT
+# @TEST-EXEC: zeek -r $TRACES/pe/pe.trace %INPUT
 # @TEST-EXEC: btest-diff pe.log

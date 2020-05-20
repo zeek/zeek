@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b -r $TRACES/ipv6-hbh-routing0.trace %INPUT >output
+# @TEST-EXEC: zeek -b -r $TRACES/ipv6-hbh-routing0.trace %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 event ipv6_ext_headers(c: connection, p: pkt_hdr)

@@ -1,232 +1,130 @@
-#include "bro-config.h"
+#include <List.h>
+#include <3rdparty/doctest.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "List.h"
-#include "util.h"
-
-static const int DEFAULT_CHUNK_SIZE = 10;
-
-BaseList::BaseList(int size)
+TEST_CASE("list construction")
 	{
-	chunk_size = DEFAULT_CHUNK_SIZE;
+	List<int> list;
+	CHECK(list.empty());
 
-	if ( size < 0 )
-		{
-		num_entries = max_entries = 0;
-		entry = 0;
-		}
-	else
-		{
-		if ( size > 0 )
-			chunk_size = size;
-
-		num_entries = 0;
-		entry = (ent *) safe_malloc(chunk_size * sizeof(ent));
-		max_entries = chunk_size;
-		}
+	List<int> list2(10);
+	CHECK(list2.empty());
+	CHECK(list2.max() == 10);
 	}
 
-
-BaseList::BaseList(BaseList& b)
+TEST_CASE("list operation")
 	{
-	max_entries = b.max_entries;
-	chunk_size = b.chunk_size;
-	num_entries = b.num_entries;
+	List<int> list({ 1, 2, 3 });
+	CHECK(list.size() == 3);
+	CHECK(list.max() == 3);
+	CHECK(list[0] == 1);
+	CHECK(list[1] == 2);
+	CHECK(list[2] == 3);
 
-	if ( max_entries )
-		entry = (ent *) safe_malloc(max_entries * sizeof(ent));
-	else
-		entry = 0;
+	// push_back forces a resize of the list here, which grows the list
+	// by a growth factor. That makes the max elements equal to 6.
+	list.push_back(4);
+	CHECK(list.size() == 4);
+	CHECK(list.max() == 6);
+	CHECK(list[3] == 4);
 
-	for ( int i = 0; i < num_entries; ++i )
-		entry[i] = b.entry[i];
+	CHECK(list.front() == 1);
+	CHECK(list.back() == 4);
+
+	list.pop_front();
+	CHECK(list.size() == 3);
+	CHECK(list.front() == 2);
+
+	list.pop_back();
+	CHECK(list.size() == 2);
+	CHECK(list.back() == 3);
+
+	list.push_back(4);
+	CHECK(list.is_member(2));
+	CHECK(list.member_pos(2) == 0);
+
+	list.remove(2);
+	CHECK(list.size() == 2);
+	CHECK(list[0] == 3);
+	CHECK(list[1] == 4);
+
+	// Squash the list down to the existing elements.
+	list.resize();
+	CHECK(list.size() == 2);
+	CHECK(list.max() == 2);
+
+	// Attempt replacing a known position.
+	int old = list.replace(0, 10);
+	CHECK(list.size() == 2);
+	CHECK(list.max() == 2);
+	CHECK(old == 3);
+	CHECK(list[0] == 10);
+	CHECK(list[1] == 4);
+
+	// Attempt replacing an element off the end of the list, which
+	// causes a resize.
+	old = list.replace(3, 5);
+	CHECK(list.size() == 4);
+	CHECK(list.max() == 4);
+	CHECK(old == 0);
+	CHECK(list[0] == 10);
+	CHECK(list[1] == 4);
+	CHECK(list[2] == 0);
+	CHECK(list[3] == 5);
+
+	// Attempt replacing an element with a negative index, which returns the
+	// default value for the list type.
+	old = list.replace(-1, 50);
+	CHECK(list.size() == 4);
+	CHECK(list.max() == 4);
+	CHECK(old == 0);
+
+	list.clear();
+	CHECK(list.size() == 0);
+	CHECK(list.max() == 0);
 	}
 
-void BaseList::sort(list_cmp_func cmp_func)
+TEST_CASE("list iteration")
 	{
-	qsort(entry, num_entries, sizeof(ent), cmp_func);
+	List<int> list({ 1, 2, 3, 4});
+
+	int index = 1;
+	for ( int v : list )
+		CHECK(v == index++);
+
+	index = 1;
+	for ( auto it = list.begin(); it != list.end(); index++, ++it)
+		CHECK(*it == index);
 	}
 
-void BaseList::operator=(BaseList& b)
+TEST_CASE("plists")
 	{
-	if ( this == &b )
-		return;	// i.e., this already equals itself
+	PList<int> list;
+	list.push_back(new int(1));
+	list.push_back(new int(2));
+	list.push_back(new int(3));
 
-	if ( entry )
-		free(entry);
+	CHECK(*list[0] == 1);
 
-	max_entries = b.max_entries;
-	chunk_size = b.chunk_size;
-	num_entries = b.num_entries;
+	int* new_val = new int(5);
+	auto old = list.replace(-1, new_val);
+	delete new_val;
+	CHECK(old == nullptr);
 
-	if ( max_entries )
-		entry = (ent *) safe_malloc(max_entries * sizeof(ent));
-	else
-		entry = 0;
-
-	for ( int i = 0; i < num_entries; ++i )
-		entry[i] = b.entry[i];
+	for ( auto v : list )
+		delete v;
+	list.clear();
 	}
 
-void BaseList::insert(ent a)
+TEST_CASE("unordered list operation")
 	{
-	if ( num_entries == max_entries )
-		{
-		resize(max_entries + chunk_size);	// make more room
-		chunk_size *= 2;
-		}
+	List<int, ListOrder::UNORDERED> list({1, 2, 3, 4});
+	CHECK(list.size() == 4);
 
-	for ( int i = num_entries; i > 0; --i )
-		entry[i] = entry[i-1];	// move all pointers up one
-
-	++num_entries;
-	entry[0] = a;
-	}
-
-#include <stdio.h>
-
-void BaseList::sortedinsert(ent a, list_cmp_func cmp_func)
-	{
-	// We optimize for the case that the new element is
-	// larger than most of the current entries.
-
-	// First append element.
-	if ( num_entries == max_entries )
-		{
-		resize(max_entries + chunk_size);
-		chunk_size *= 2;
-		}
-
-	entry[num_entries++] = a;
-
-	// Then move it to the correct place.
-	ent tmp;
-	for ( int i = num_entries - 1; i > 0; --i )
-		{
-		if ( cmp_func(entry[i],entry[i-1]) <= 0 )
-			break;
-
-		tmp = entry[i];
-		entry[i] = entry[i-1];
-		entry[i-1] = tmp;
-		}
-	}
-
-ent BaseList::remove(ent a)
-	{
-	int i;
-	for ( i = 0; i < num_entries && a != entry[i]; ++i )
-		;
-
-	return remove_nth(i);
-	}
-
-ent BaseList::remove_nth(int n)
-	{
-	if ( n < 0 || n >= num_entries )
-		return 0;
-
-	ent old_ent = entry[n];
-	--num_entries;
-
-	for ( ; n < num_entries; ++n )
-		entry[n] = entry[n+1];
-
-	entry[n] = 0;	// for debugging
-	return old_ent;
-	}
-
-void BaseList::append(ent a)
-	{
-	if ( num_entries == max_entries )
-		{
-		resize(max_entries + chunk_size);	// make more room
-		chunk_size *= 2;
-		}
-
-	entry[num_entries++] = a;
-	}
-
-// Get and remove from the end of the list.
-ent BaseList::get()
-	{
-	if ( num_entries == 0 )
-		return 0;
-
-	return entry[--num_entries];
-	}
-
-
-void BaseList::clear()
-	{
-	if ( entry )
-		{
-		free(entry);
-		entry = 0;
-		}
-
-	num_entries = max_entries = 0;
-	chunk_size = DEFAULT_CHUNK_SIZE;
-	}
-
-ent BaseList::replace(int ent_index, ent new_ent)
-	{
-	if ( ent_index < 0 )
-		return 0;
-
-	ent old_ent;
-
-	if ( ent_index > num_entries - 1 )
-		{ // replacement beyond the end of the list
-		resize(ent_index + 1);
-
-		for ( int i = num_entries; i < max_entries; ++i )
-			entry[i] = 0;
-		num_entries = max_entries;
-
-		old_ent = 0;
-		}
-	else
-		old_ent = entry[ent_index];
-
-	entry[ent_index] = new_ent;
-
-	return old_ent;
-	}
-
-int BaseList::resize(int new_size)
-	{
-	if ( new_size < num_entries )
-		new_size = num_entries;	// do not lose any entries
-
-	if ( new_size != max_entries )
-		{
-		entry = (ent*) safe_realloc((void*) entry, sizeof(ent) * new_size);
-		if ( entry )
-			max_entries = new_size;
-		else
-			max_entries = 0;
-		}
-
-	return max_entries;
-	}
-
-ent BaseList::is_member(ent e) const
-	{
-	int i;
-	for ( i = 0; i < length() && e != entry[i]; ++i )
-		;
-
-	return (i == length()) ? 0 : e;
-	}
-
-int BaseList::member_pos(ent e) const
-	{
-	int i;
-	for ( i = 0; i < length() && e != entry[i]; ++i )
-		;
-
-	return (i == length()) ? -1 : i;
+	// An unordered list doesn't maintain the ordering of the elements when
+	// one is removed. It just swaps the last element into the hole.
+	list.remove(2);
+	CHECK(list.size() == 3);
+	CHECK(list[0] == 1);
+	CHECK(list[1] == 4);
+	CHECK(list[2] == 3);
 	}

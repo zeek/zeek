@@ -12,7 +12,7 @@ Syslog_Analyzer::Syslog_Analyzer(Connection* conn)
 	interp = new binpac::Syslog::Syslog_Conn(this);
 	did_session_done = 0;
 	//ADD_ANALYZER_TIMER(&Syslog_Analyzer::ExpireTimer,
-	//		network_time + Syslog_session_timeout, 1, TIMER_Syslog_EXPIRE);
+	//		network_time + Syslog_session_timeout, true, TIMER_Syslog_EXPIRE);
 	}
 
 Syslog_Analyzer::~Syslog_Analyzer()
@@ -28,7 +28,7 @@ void Syslog_Analyzer::Done()
 		Event(udp_session_done);
 	}
 
-void Syslog_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64 seq, const IP_Hdr* ip, int caplen)
+void Syslog_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen)
 	{
 	Analyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
 	interp->NewData(orig, data, data + len);
@@ -46,7 +46,7 @@ void Syslog_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint
 //		}
 //	else
 //		ADD_ANALYZER_TIMER(&Syslog_Analyzer::ExpireTimer,
-//				t + Syslog_session_timeout, 1, TIMER_Syslog_EXPIRE);
+//				t + Syslog_session_timeout, true, TIMER_Syslog_EXPIRE);
 //	}
 
 //Syslog_tcp::TCP_Analyzer::Syslog_tcp::TCP_Analyzer(Connection* conn)
@@ -88,7 +88,7 @@ void Syslog_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint
 //	interp->NewData(orig, data, data + len);
 //	}
 
-//void Syslog_tcp::TCP_Analyzer::Undelivered(uint64 seq, int len, bool orig)
+//void Syslog_tcp::TCP_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 //	{
 //	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 //	interp->NewGap(orig, len);

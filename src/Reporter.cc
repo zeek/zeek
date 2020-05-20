@@ -2,17 +2,25 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 //
 
+#include "zeek-config.h"
+#include "Reporter.h"
+
+#include <unistd.h>
 #include <syslog.h>
 
-#include "bro-config.h"
-#include "Reporter.h"
+#include "Desc.h"
 #include "Event.h"
+#include "Expr.h"
 #include "NetVar.h"
 #include "Net.h"
 #include "Conn.h"
 #include "Timer.h"
+#include "Var.h" // for internal_val()
+#include "EventHandler.h"
 #include "plugin/Plugin.h"
 #include "plugin/Manager.h"
+#include "input.h"
+#include "file_analysis/File.h"
 
 #ifdef SYSLOG_INT
 extern "C" {
@@ -22,20 +30,23 @@ int closelog();
 }
 #endif
 
-Reporter* reporter = 0;
+Reporter* reporter = nullptr;
 
-Reporter::Reporter()
+Reporter::Reporter(bool arg_abort_on_scripting_errors)
 	{
+	abort_on_scripting_errors = arg_abort_on_scripting_errors;
 	errors = 0;
 	via_events = false;
 	in_error_handler = 0;
 
-	// Always use stderr at startup/init before scripts have been fully parsed.
+	// Always use stderr at startup/init before scripts have been fully parsed
+	// and zeek_init() processed.
 	// Messages may otherwise be missed if an error occurs that prevents events
 	// from ever being dispatched.
 	info_to_stderr = true;
 	warnings_to_stderr = true;
 	errors_to_stderr = true;
+	after_zeek_init = false;
 
 	weird_count = 0;
 	weird_sampling_rate = 0;
@@ -68,9 +79,8 @@ void Reporter::InitOptions()
 	while ( (v = wl_table->NextEntry(k, c)) )
 		{
 		auto index = wl_val->RecoverIndex(k);
-		string key = index->Index(0)->AsString()->CheckString();
+		std::string key = index->Index(0)->AsString()->CheckString();
 		weird_sampling_whitelist.emplace(move(key));
-		Unref(index);
 		delete k;
 		}
 	}
@@ -79,8 +89,8 @@ void Reporter::Info(const char* fmt, ...)
 	{
 	va_list ap;
 	va_start(ap, fmt);
-	FILE* out = info_to_stderr ? stderr : 0;
-	DoLog("", reporter_info, out, 0, 0, true, true, 0, fmt, ap);
+	FILE* out = EmitToStderr(info_to_stderr) ? stderr : nullptr;
+	DoLog("", reporter_info, out, nullptr, nullptr, true, true, nullptr, fmt, ap);
 	va_end(ap);
 	}
 
@@ -88,8 +98,8 @@ void Reporter::Warning(const char* fmt, ...)
 	{
 	va_list ap;
 	va_start(ap, fmt);
-	FILE* out = warnings_to_stderr ? stderr : 0;
-	DoLog("warning", reporter_warning, out, 0, 0, true, true, 0, fmt, ap);
+	FILE* out = EmitToStderr(warnings_to_stderr) ? stderr : nullptr;
+	DoLog("warning", reporter_warning, out, nullptr, nullptr, true, true, nullptr, fmt, ap);
 	va_end(ap);
 	}
 
@@ -98,8 +108,8 @@ void Reporter::Error(const char* fmt, ...)
 	++errors;
 	va_list ap;
 	va_start(ap, fmt);
-	FILE* out = errors_to_stderr ? stderr : 0;
-	DoLog("error", reporter_error, out, 0, 0, true, true, 0, fmt, ap);
+	FILE* out = EmitToStderr(errors_to_stderr) ? stderr : nullptr;
+	DoLog("error", reporter_error, out, nullptr, nullptr, true, true, nullptr, fmt, ap);
 	va_end(ap);
 	}
 
@@ -109,12 +119,14 @@ void Reporter::FatalError(const char* fmt, ...)
 	va_start(ap, fmt);
 
 	// Always log to stderr.
-	DoLog("fatal error", 0, stderr, 0, 0, true, false, 0, fmt, ap);
+	DoLog("fatal error", nullptr, stderr, nullptr, nullptr, true, false, nullptr, fmt, ap);
 
 	va_end(ap);
 
 	set_processing_status("TERMINATED", "fatal_error");
-	exit(1);
+	fflush(stderr);
+	fflush(stdout);
+	_exit(1);
 	}
 
 void Reporter::FatalErrorWithCore(const char* fmt, ...)
@@ -123,7 +135,7 @@ void Reporter::FatalErrorWithCore(const char* fmt, ...)
 	va_start(ap, fmt);
 
 	// Always log to stderr.
-	DoLog("fatal error", 0, stderr, 0, 0, true, false, 0, fmt, ap);
+	DoLog("fatal error", nullptr, stderr, nullptr, nullptr, true, false, nullptr, fmt, ap);
 
 	va_end(ap);
 
@@ -141,11 +153,15 @@ void Reporter::ExprRuntimeError(const Expr* expr, const char* fmt, ...)
 	PushLocation(expr->GetLocationInfo());
 	va_list ap;
 	va_start(ap, fmt);
-	FILE* out = errors_to_stderr ? stderr : 0;
-	DoLog("expression error", reporter_error, out, 0, 0, true, true,
+	FILE* out = EmitToStderr(errors_to_stderr) ? stderr : nullptr;
+	DoLog("expression error", reporter_error, out, nullptr, nullptr, true, true,
 	      d.Description(), fmt, ap);
 	va_end(ap);
 	PopLocation();
+
+	if ( abort_on_scripting_errors )
+		abort();
+
 	throw InterpreterException();
 	}
 
@@ -155,10 +171,14 @@ void Reporter::RuntimeError(const Location* location, const char* fmt, ...)
 	PushLocation(location);
 	va_list ap;
 	va_start(ap, fmt);
-	FILE* out = errors_to_stderr ? stderr : 0;
-	DoLog("runtime error", reporter_error, out, 0, 0, true, true, "", fmt, ap);
+	FILE* out = EmitToStderr(errors_to_stderr) ? stderr : nullptr;
+	DoLog("runtime error", reporter_error, out, nullptr, nullptr, true, true, "", fmt, ap);
 	va_end(ap);
 	PopLocation();
+
+	if ( abort_on_scripting_errors )
+		abort();
+
 	throw InterpreterException();
 	}
 
@@ -168,7 +188,7 @@ void Reporter::InternalError(const char* fmt, ...)
 	va_start(ap, fmt);
 
 	// Always log to stderr.
-	DoLog("internal error", 0, stderr, 0, 0, true, false, 0, fmt, ap);
+	DoLog("internal error", nullptr, stderr, nullptr, nullptr, true, false, nullptr, fmt, ap);
 
 	va_end(ap);
 
@@ -186,7 +206,7 @@ void Reporter::AnalyzerError(analyzer::Analyzer* a, const char* fmt,
 	va_start(ap, fmt);
 	// Always log to stderr.
 	// TODO: would be nice to also log a call stack.
-	DoLog("analyzer error", reporter_error, stderr, 0, 0, true, true, 0, fmt,
+	DoLog("analyzer error", reporter_error, stderr, nullptr, nullptr, true, true, nullptr, fmt,
 	      ap);
 	va_end(ap);
 	}
@@ -195,9 +215,9 @@ void Reporter::InternalWarning(const char* fmt, ...)
 	{
 	va_list ap;
 	va_start(ap, fmt);
-	FILE* out = warnings_to_stderr ? stderr : 0;
+	FILE* out = EmitToStderr(warnings_to_stderr) ? stderr : nullptr;
 	// TODO: would be nice to also log a call stack.
-	DoLog("internal warning", reporter_warning, out, 0, 0, true, true, 0, fmt,
+	DoLog("internal warning", reporter_warning, out, nullptr, nullptr, true, true, nullptr, fmt,
 	      ap);
 	va_end(ap);
 	}
@@ -213,36 +233,12 @@ void Reporter::Syslog(const char* fmt, ...)
 	va_end(ap);
 	}
 
-void Reporter::WeirdHelper(EventHandlerPtr event, Val* conn_val, const char* addl, const char* fmt_name, ...)
+void Reporter::WeirdHelper(EventHandlerPtr event, val_list vl, const char* fmt_name, ...)
 	{
-	val_list* vl = new val_list(1);
-
-	if ( conn_val )
-		vl->append(conn_val);
-
-	if ( addl )
-		vl->append(new StringVal(addl));
-
 	va_list ap;
 	va_start(ap, fmt_name);
-	DoLog("weird", event, 0, 0, vl, false, false, 0, fmt_name, ap);
+	DoLog("weird", event, nullptr, nullptr, &vl, false, false, nullptr, fmt_name, ap);
 	va_end(ap);
-
-	delete vl;
-	}
-
-void Reporter::WeirdFlowHelper(const IPAddr& orig, const IPAddr& resp, const char* fmt_name, ...)
-	{
-	val_list* vl = new val_list(2);
-	vl->append(new AddrVal(orig));
-	vl->append(new AddrVal(resp));
-
-	va_list ap;
-	va_start(ap, fmt_name);
-	DoLog("weird", flow_weird, 0, 0, vl, false, false, 0, fmt_name, ap);
-	va_end(ap);
-
-	delete vl;
 	}
 
 void Reporter::UpdateWeirdStats(const char* name)
@@ -251,27 +247,27 @@ void Reporter::UpdateWeirdStats(const char* name)
 	++weird_count_by_type[name];
 	}
 
-class NetWeirdTimer : public Timer {
+class NetWeirdTimer final : public Timer {
 public:
 	NetWeirdTimer(double t, const char* name, double timeout)
 	: Timer(t + timeout, TIMER_NET_WEIRD_EXPIRE), weird_name(name)
 		{}
 
-	void Dispatch(double t, int is_expire) override
+	void Dispatch(double t, bool is_expire) override
 		{ reporter->ResetNetWeird(weird_name); }
 
 	std::string weird_name;
 };
 
-class FlowWeirdTimer : public Timer {
+class FlowWeirdTimer final : public Timer {
 public:
 	using IPPair = std::pair<IPAddr, IPAddr>;
 
 	FlowWeirdTimer(double t, IPPair p, double timeout)
-	: Timer(t + timeout, TIMER_FLOW_WEIRD_EXPIRE), endpoints(p)
+		: Timer(t + timeout, TIMER_FLOW_WEIRD_EXPIRE), endpoints(std::move(p))
 		{}
 
-	void Dispatch(double t, int is_expire) override
+	void Dispatch(double t, bool is_expire) override
 		{ reporter->ResetFlowWeird(endpoints.first, endpoints.second); }
 
 	IPPair endpoints;
@@ -329,7 +325,7 @@ bool Reporter::PermitFlowWeird(const char* name,
 		return false;
 	}
 
-void Reporter::Weird(const char* name)
+void Reporter::Weird(const char* name, const char* addl)
 	{
 	UpdateWeirdStats(name);
 
@@ -339,7 +335,22 @@ void Reporter::Weird(const char* name)
 			return;
 		}
 
-	WeirdHelper(net_weird, 0, 0, "%s", name);
+	WeirdHelper(net_weird, {new StringVal(addl)}, "%s", name);
+	}
+
+void Reporter::Weird(file_analysis::File* f, const char* name, const char* addl)
+	{
+	UpdateWeirdStats(name);
+
+	if ( ! WeirdOnSamplingWhiteList(name) )
+		{
+		if ( ! f->PermitWeird(name, weird_sampling_threshold,
+		                      weird_sampling_rate, weird_sampling_duration) )
+			return;
+		}
+
+	WeirdHelper(file_weird, {f->GetVal()->Ref(), new StringVal(addl)},
+	            "%s", name);
 	}
 
 void Reporter::Weird(Connection* conn, const char* name, const char* addl)
@@ -353,10 +364,11 @@ void Reporter::Weird(Connection* conn, const char* name, const char* addl)
 			return;
 		}
 
-	WeirdHelper(conn_weird, conn->BuildConnVal(), addl, "%s", name);
+	WeirdHelper(conn_weird, {conn->ConnVal()->Ref(), new StringVal(addl)},
+	            "%s", name);
 	}
 
-void Reporter::Weird(const IPAddr& orig, const IPAddr& resp, const char* name)
+void Reporter::Weird(const IPAddr& orig, const IPAddr& resp, const char* name, const char* addl)
 	{
 	UpdateWeirdStats(name);
 
@@ -366,7 +378,9 @@ void Reporter::Weird(const IPAddr& orig, const IPAddr& resp, const char* name)
 			 return;
 		}
 
-	WeirdFlowHelper(orig, resp, "%s", name);
+	WeirdHelper(flow_weird,
+	            {new AddrVal(orig), new AddrVal(resp), new StringVal(addl)},
+	            "%s", name);
 	}
 
 void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
@@ -377,13 +391,13 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 
 	int size = sizeof(tmp);
 	char* buffer  = tmp;
-	char* alloced = 0;
+	char* alloced = nullptr;
 
-	string loc_str;
+	std::string loc_str;
 
 	if ( location )
 		{
-		string loc_file = "";
+		std::string loc_file = "";
 		int loc_line = 0;
 
 		if ( locations.size() )
@@ -422,7 +436,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 			loc_str = filename;
 			char tmp[32];
 			snprintf(tmp, 32, "%d", line_number);
-			loc_str += string(", line ") + string(tmp);
+			loc_str += std::string(", line ") + std::string(tmp);
 			}
 		}
 
@@ -430,7 +444,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		{
 		va_list aq;
 		va_copy(aq, ap);
-		int n = safe_vsnprintf(buffer, size, fmt, aq);
+		int n = vsnprintf(buffer, size, fmt, aq);
 		va_end(aq);
 
 		if ( postfix )
@@ -451,7 +465,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 	if ( postfix && *postfix )
 		// Note, if you change this fmt string, adjust the additional
 		// buffer size above.
-		safe_snprintf(buffer + strlen(buffer), size - strlen(buffer), " [%s]", postfix);
+		snprintf(buffer + strlen(buffer), size - strlen(buffer), " (%s)", postfix);
 
 	bool raise_event = true;
 
@@ -472,56 +486,58 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 
 	if ( raise_event && event && via_events && ! in_error_handler )
 		{
-		val_list* vl = new val_list;
+		auto vl_size = 1 + (bool)time + (bool)location + (bool)conn +
+		               (addl ? addl->length() : 0);
+
+		zeek::Args vl;
+		vl.reserve(vl_size);
 
 		if ( time )
-			vl->append(new Val((bro_start_network_time != 0.0) ? network_time : 0, TYPE_TIME));
+			vl.emplace_back(make_intrusive<Val>(network_time ? network_time : current_time(), TYPE_TIME));
 
-		vl->append(new StringVal(buffer));
+		vl.emplace_back(make_intrusive<StringVal>(buffer));
 
 		if ( location )
-			vl->append(new StringVal(loc_str.c_str()));
+			vl.emplace_back(make_intrusive<StringVal>(loc_str.c_str()));
 
 		if ( conn )
-			vl->append(conn->BuildConnVal());
+			vl.emplace_back(conn->ConnVal());
 
 		if ( addl )
-			{
-			loop_over_list(*addl, i)
-				vl->append((*addl)[i]);
-			}
+			for ( auto v : *addl )
+				vl.emplace_back(AdoptRef{}, v);
 
 		if ( conn )
-			conn->ConnectionEvent(event, 0, vl);
+			conn->EnqueueEvent(event, nullptr, std::move(vl));
 		else
-			mgr.QueueEvent(event, vl);
+			mgr.Enqueue(event, std::move(vl));
 		}
 	else
 		{
 		if ( addl )
 			{
-			loop_over_list(*addl, i)
-				Unref((*addl)[i]);
+			for ( const auto& av : *addl )
+				Unref(av);
 			}
 		}
 
 	if ( out )
 		{
-		string s = "";
+		std::string s = "";
 
 		if ( bro_start_network_time != 0.0 )
 			{
 			char tmp[32];
 			snprintf(tmp, 32, "%.6f", network_time);
-			s += string(tmp) + " ";
+			s += std::string(tmp) + " ";
 			}
 
 		if ( prefix && *prefix )
 			{
 			if ( loc_str != "" )
-				s += string(prefix) + " in " + loc_str + ": ";
+				s += std::string(prefix) + " in " + loc_str + ": ";
 			else
-				s += string(prefix) + ": ";
+				s += std::string(prefix) + ": ";
 			}
 
 		else

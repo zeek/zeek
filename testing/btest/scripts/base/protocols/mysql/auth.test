@@ -1,6 +1,6 @@
 # This tests that successful/unsuccesful auth attempts get logged correctly
 
-# @TEST-EXEC: bro -b -r $TRACES/mysql/auth.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/mysql/auth.trace %INPUT
 # @TEST-EXEC: btest-diff mysql.log
 
 @load base/protocols/mysql

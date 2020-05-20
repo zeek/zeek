@@ -1,21 +1,20 @@
 // See the file  in the main distribution directory for copyright.
 
-
-#include "plugin/Plugin.h"
-
 #include "ICMP.h"
+#include "plugin/Plugin.h"
+#include "analyzer/Component.h"
 
 namespace plugin {
-namespace Bro_ICMP {
+namespace Zeek_ICMP {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("ICMP", ::analyzer::icmp::ICMP_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::ICMP";
+		config.name = "Zeek::ICMP";
 		config.description = "ICMP analyzer";
 		return config;
 		}

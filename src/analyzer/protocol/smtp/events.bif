@@ -16,11 +16,11 @@
 ##
 ## arg: The request command's arguments.
 ##
-## .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
+## .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
 ##    mime_end_entity mime_entity_data mime_event mime_one_header mime_segment_data
 ##    smtp_data smtp_reply
 ##
-## .. note:: Bro does not support the newer ETRN extension yet.
+## .. note:: Zeek does not support the newer ETRN extension yet.
 event smtp_request%(c: connection, is_orig: bool, command: string, arg: string%);
 
 ## Generated for server-side SMTP commands.
@@ -47,11 +47,11 @@ event smtp_request%(c: connection, is_orig: bool, command: string, arg: string%)
 ##       line. If so, further events will be raised and a handler may want to
 ##       reassemble the pieces before processing the response any further.
 ##
-## .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
+## .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
 ##    mime_end_entity mime_entity_data mime_event mime_one_header mime_segment_data
 ##    smtp_data  smtp_request
 ##
-## .. note:: Bro doesn't support the newer ETRN extension yet.
+## .. note:: Zeek doesn't support the newer ETRN extension yet.
 event smtp_reply%(c: connection, is_orig: bool, code: count, cmd: string, msg: string, cont_resp: bool%);
 
 ## Generated for DATA transmitted on SMTP sessions. This event is raised for
@@ -70,7 +70,7 @@ event smtp_reply%(c: connection, is_orig: bool, code: count, cmd: string, msg: s
 ## data: The raw data. Note that the size of each chunk is undefined and
 ##       depends on specifics of the underlying TCP connection.
 ##
-## .. bro:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
+## .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_content_hash
 ##    mime_end_entity mime_entity_data mime_event mime_one_header mime_segment_data
 ##    smtp_reply smtp_request skip_smtp_data
 ##
@@ -96,7 +96,7 @@ event smtp_data%(c: connection, is_orig: bool, data: string%);
 ##
 ## detail: The actual SMTP line triggering the event.
 ##
-## .. bro:see:: smtp_data  smtp_request smtp_reply
+## .. zeek:see:: smtp_data  smtp_request smtp_reply
 event smtp_unexpected%(c: connection, is_orig: bool, msg: string, detail: string%);
 
 ## Generated if a connection switched to using TLS using STARTTLS or X-ANONYMOUSTLS.

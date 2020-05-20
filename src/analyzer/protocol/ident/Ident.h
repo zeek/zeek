@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_IDENT_IDENT_H
-#define ANALYZER_PROTOCOL_IDENT_IDENT_H
+#pragma once
 
 #include "analyzer/protocol/tcp/TCP.h"
 #include "analyzer/protocol/tcp/ContentLine.h"
@@ -30,10 +29,8 @@ protected:
 	tcp::ContentLine_Analyzer* orig_ident;
 	tcp::ContentLine_Analyzer* resp_ident;
 
-	unsigned int did_deliver:1;
-	unsigned int did_bad_reply:1;
+	bool did_deliver;
+	bool did_bad_reply;
 };
 
-} } // namespace analyzer::* 
-
-#endif
+} } // namespace analyzer::*

@@ -4,6 +4,7 @@
 #include <Func.h>
 #include <Event.h>
 #include <Conn.h>
+#include <Desc.h>
 #include <threading/Formatter.h>
 
 namespace plugin { namespace Log_Hooks { Plugin plugin; } }
@@ -21,6 +22,7 @@ plugin::Configuration Plugin::Configure()
 	config.description = "Exercises Log hooks";
 	config.version.major = 1;
 	config.version.minor = 0;
+	config.version.patch = 0;
 	return config;
 	}
 

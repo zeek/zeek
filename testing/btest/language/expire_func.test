@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -C -r $TRACES/var-services-std-ports.trace %INPUT >output
+# @TEST-EXEC: zeek -C -r $TRACES/var-services-std-ports.trace %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 function inform_me(s: set[string], idx: string): interval
@@ -9,7 +9,7 @@ function inform_me(s: set[string], idx: string): interval
 
 global s: set[string] &create_expire=1secs &expire_func=inform_me;
 
-event bro_init()
+event zeek_init()
     {
     add s["i"];
     add s["am"];

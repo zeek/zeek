@@ -1,21 +1,20 @@
 // See the file  in the main distribution directory for copyright.
 
-
-#include "plugin/Plugin.h"
-
 #include "ConnSize.h"
+#include "plugin/Plugin.h"
+#include "analyzer/Component.h"
 
 namespace plugin {
-namespace Bro_ConnSize {
+namespace Zeek_ConnSize {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("ConnSize", ::analyzer::conn_size::ConnSize_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::ConnSize";
+		config.name = "Zeek::ConnSize";
 		config.description = "Connection size analyzer";
 		return config;
 		}

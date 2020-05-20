@@ -1,13 +1,13 @@
-This directory contains suites for testing for Bro's correct
+This directory contains suites for testing for Zeek's correct
 operation:
 
     btest/
-        An ever-growing set of small unit tests testing Bro's
+        An ever-growing set of small unit tests testing Zeek's
         functionality.
 
     external/
         A framework for downloading additional test sets that run more
-        complex Bro configuration on larger traces files. Due to their
+        complex Zeek configuration on larger traces files. Due to their
         size, these are not included directly. See the README for more
         information. 
 

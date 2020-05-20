@@ -1,0 +1,19 @@
+0 secs
+0.123457 usecs
+-0.123457 usecs
+1.0 msec 234.567891 usecs
+-1.0 msec -234.567891 usecs
+12.0 secs 345.0 msecs 678.912345 usecs
+-12.0 secs -345.0 msecs -678.912345 usecs
+1.0 day 10.0 hrs 17.0 mins 36.0 secs 789.0 msecs 123.449984 usecs
+-1.0 day -10.0 hrs -17.0 mins -36.0 secs -789.0 msecs -123.449984 usecs
+1.001 usecs
+1.0 msec 1.0 usec
+11.0 msecs
+8.0 days 12.0 hrs
+7.0 hrs 30.0 mins
+6.0 mins 30.0 secs
+5.0 secs 500.0 msecs
+4.0 msecs 500.0 usecs
+3.5 usecs
+2.0 days 2.0 secs

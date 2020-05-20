@@ -1,20 +1,19 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef FILE_ANALYSIS_ANALYZERSET_H
-#define FILE_ANALYSIS_ANALYZERSET_H
+#pragma once
 
 #include <queue>
 
-#include "Analyzer.h"
 #include "Dict.h"
-#include "CompHash.h"
-#include "Val.h"
 #include "Tag.h"
+
+class CompositeHash;
+class RecordVal;
 
 namespace file_analysis {
 
+class Analyzer;
 class File;
-declare(PDict,Analyzer);
 
 /**
  * A set of file analysis analyzers indexed by an \c AnalyzerArgs (script-layer
@@ -43,7 +42,7 @@ public:
 	 * @param args an \c AnalyzerArgs record.
 	 * @return pointer to an analyzer instance, or a null pointer if not found.
 	 */
-	Analyzer* Find(file_analysis::Tag tag, RecordVal* args);
+	Analyzer* Find(const file_analysis::Tag& tag, RecordVal* args);
 
 	/**
 	 * Attach an analyzer to #file immediately.
@@ -51,7 +50,7 @@ public:
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
 	 * @return true if analyzer was instantiated/attached, else false.
 	 */
-	bool Add(file_analysis::Tag tag, RecordVal* args);
+	bool Add(const file_analysis::Tag& tag, RecordVal* args);
 
 	/**
 	 * Queue the attachment of an analyzer to #file.
@@ -60,7 +59,7 @@ public:
 	 * @return if successful, a pointer to a newly instantiated analyzer else
 	 * a null pointer.  The caller does *not* take ownership of the memory.
 	 */
-	file_analysis::Analyzer* QueueAdd(file_analysis::Tag tag, RecordVal* args);
+	file_analysis::Analyzer* QueueAdd(const file_analysis::Tag& tag, RecordVal* args);
 
 	/**
 	 * Remove an analyzer from #file immediately.
@@ -68,7 +67,7 @@ public:
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
 	 * @return false if analyzer didn't exist and so wasn't removed, else true.
 	 */
-	bool Remove(file_analysis::Tag tag, RecordVal* args);
+	bool Remove(const file_analysis::Tag& tag, RecordVal* args);
 
 	/**
 	 * Queue the removal of an analyzer from #file.
@@ -76,7 +75,7 @@ public:
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
 	 * @return true if analyzer exists at time of call, else false;
 	 */
-	bool QueueRemove(file_analysis::Tag tag, RecordVal* args);
+	bool QueueRemove(const file_analysis::Tag& tag, RecordVal* args);
 
 	/**
 	 * Perform all queued modifications to the current analyzer set.
@@ -109,7 +108,7 @@ protected:
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
 	 * @return the hash key calculated from \a args
 	 */
-	HashKey* GetKey(file_analysis::Tag tag, RecordVal* args) const;
+	HashKey* GetKey(const file_analysis::Tag& tag, RecordVal* args) const;
 
 	/**
 	 * Create an instance of a file analyzer.
@@ -117,7 +116,7 @@ protected:
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
 	 * @return a new file analyzer instance.
 	 */
-	file_analysis::Analyzer* InstantiateAnalyzer(file_analysis::Tag tag,
+	file_analysis::Analyzer* InstantiateAnalyzer(const file_analysis::Tag& tag,
 	                                             RecordVal* args) const;
 
 	/**
@@ -133,13 +132,13 @@ protected:
 	 *        just used for debugging messages.
 	 * @param key the hash key which represents the analyzer's \c AnalyzerArgs.
 	 */
-	bool Remove(file_analysis::Tag tag, HashKey* key);
+	bool Remove(const file_analysis::Tag& tag, HashKey* key);
 
 private:
 
 	File* file;                                  /**< File which owns the set */
 	CompositeHash* analyzer_hash;                /**< AnalyzerArgs hashes. */
-	PDict(file_analysis::Analyzer) analyzer_map; /**< Indexed by AnalyzerArgs. */
+	PDict<file_analysis::Analyzer> analyzer_map; /**< Indexed by AnalyzerArgs. */
 
 	/**
 	 * Abstract base class for analyzer set modifications.
@@ -164,7 +163,7 @@ private:
 	/**
 	 * Represents a request to add an analyzer to an analyzer set.
 	 */
-	class AddMod : public Modification {
+	class AddMod final : public Modification {
 	public:
 		/**
 		 * Construct request which can add an analyzer to an analyzer set.
@@ -175,7 +174,7 @@ private:
 			: Modification(), a(arg_a), key(arg_key) {}
 		~AddMod() override {}
 		bool Perform(AnalyzerSet* set) override;
-		void Abort() override { delete a; delete key; }
+		void Abort() override;
 
 	protected:
 		file_analysis::Analyzer* a;
@@ -185,14 +184,14 @@ private:
 	/**
 	 * Represents a request to remove an analyzer from an analyzer set.
 	 */
-	class RemoveMod : public Modification {
+	class RemoveMod final : public Modification {
 	public:
 		/**
 		 * Construct request which can remove an analyzer from an analyzer set.
 		 * @param arg_a an analyzer instance to add to an analyzer set.
 		 * @param arg_key hash key representing the analyzer's \c AnalyzerArgs.
 		 */
-		RemoveMod(file_analysis::Tag arg_tag, HashKey* arg_key)
+		RemoveMod(const file_analysis::Tag& arg_tag, HashKey* arg_key)
 			: Modification(), tag(arg_tag), key(arg_key) {}
 		~RemoveMod() override {}
 		bool Perform(AnalyzerSet* set) override;
@@ -203,10 +202,8 @@ private:
 		HashKey* key;
 	};
 
-	typedef queue<Modification*> ModQueue;
+	using ModQueue = std::queue<Modification*>;
 	ModQueue mod_queue;	/**< A queue of analyzer additions/removals requests. */
 };
 
 } // namespace file_analysiss
-
-#endif

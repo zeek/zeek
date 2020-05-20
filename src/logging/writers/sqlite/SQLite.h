@@ -2,14 +2,14 @@
 //
 // Log writer for SQLITE logs.
 
-#ifndef LOGGING_WRITER_SQLITE_H
-#define LOGGING_WRITER_SQLITE_H
+#pragma once
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "logging/WriterBackend.h"
 #include "threading/formatters/Ascii.h"
 #include "3rdparty/sqlite3.h"
+#include "Desc.h"
 
 namespace logging { namespace writer {
 
@@ -37,7 +37,7 @@ private:
 	bool checkError(int code);
 
 	int AddParams(threading::Value* val, int pos);
-	string GetTableType(int, int);
+	std::string GetTableType(int, int);
 
 	const threading::Field* const * fields; // raw mapping
 	unsigned int num_fields;
@@ -45,15 +45,12 @@ private:
 	sqlite3 *db;
 	sqlite3_stmt *st;
 
-	string set_separator;
-	string unset_field;
-	string empty_field;
+	std::string set_separator;
+	std::string unset_field;
+	std::string empty_field;
 
 	threading::formatter::Ascii* io;
 };
 
 }
 }
-
-#endif /* LOGGING_WRITER_SQLITE_H */
-

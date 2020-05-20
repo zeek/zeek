@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro %INPUT >output
+# @TEST-EXEC: zeek %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 # These are loaded by default.
@@ -40,7 +40,7 @@ function test_dir(id: conn_id, d: Direction, expect: bool)
 	          result == expect ? "SUCCESS" : "FAIL");
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	test_host(local_ip,  LOCAL_HOSTS,  T);
 	test_host(local_ip,  REMOTE_HOSTS, F);

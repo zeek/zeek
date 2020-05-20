@@ -1,5 +1,4 @@
-#ifndef binpac_bro_h
-#define binpac_bro_h
+#pragma once
 
 class Connection;
 class Val;
@@ -9,11 +8,10 @@ namespace analyzer { class Analyzer; }
 
 #include "util.h"
 #include "Val.h"
+#include "IntrusivePtr.h"
 #include "event.bif.func_h"
-#include "TunnelEncapsulation.h"
 #include "analyzer/Analyzer.h"
 #include "file_analysis/Analyzer.h"
-#include "Conn.h"
 
 #include "binpac.h"
 
@@ -25,16 +23,21 @@ typedef Val* BroVal;
 typedef PortVal* BroPortVal;
 typedef StringVal* BroStringVal;
 
+[[deprecated("Remove in v4.1.  Use StringVal constructor directly.")]]
 inline StringVal* string_to_val(string const &str)
 	{
 	return new StringVal(str.c_str());
 	}
 
+[[deprecated("Remove in v4.1.  Use binpac::to_stringval() instead.")]]
 inline StringVal* bytestring_to_val(const_bytestring const &str)
 	{
 	return new StringVal(str.length(), (const char*) str.begin());
 	}
 
-} // namespace binpac
+inline IntrusivePtr<StringVal> to_stringval(const_bytestring const& str)
+    {
+	return make_intrusive<StringVal>(str.length(), (const char*) str.begin());
+    }
 
-#endif
+} // namespace binpac

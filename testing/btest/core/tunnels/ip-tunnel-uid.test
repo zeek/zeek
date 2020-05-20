@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -b -r $TRACES/tunnels/ping6-in-ipv4.pcap %INPUT >>output 2>&1
+# @TEST-EXEC: zeek -b -r $TRACES/tunnels/ping6-in-ipv4.pcap %INPUT >>output 2>&1
 # @TEST-EXEC: btest-diff output
 
 event new_connection(c: connection)

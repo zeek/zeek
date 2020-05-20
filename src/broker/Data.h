@@ -1,11 +1,14 @@
-#ifndef BRO_COMM_DATA_H
-#define BRO_COMM_DATA_H
+#pragma once
 
-#include <broker/broker.hh>
-#include "Val.h"
+#include "OpaqueVal.h"
 #include "Reporter.h"
 #include "Frame.h"
 #include "Expr.h"
+
+template <class T>
+class IntrusivePtr;
+
+class ODesc;
 
 namespace bro_broker {
 
@@ -26,14 +29,14 @@ TransportProto to_bro_port_proto(broker::port::protocol tp);
  * @return a Broker::Data value, where the optional field is set if the conversion
  * was possible, else it is unset.
  */
-RecordVal* make_data_val(Val* v);
+IntrusivePtr<RecordVal> make_data_val(Val* v);
 
 /**
  * Create a Broker::Data value from a Broker data value.
  * @param d the Broker value to wrap in an opaque type.
  * @return a Broker::Data value that wraps the Broker value.
  */
-RecordVal* make_data_val(broker::data d);
+IntrusivePtr<RecordVal> make_data_val(broker::data d);
 
 /**
  * Get the type of Broker data that Broker::Data wraps.
@@ -41,14 +44,14 @@ RecordVal* make_data_val(broker::data d);
  * @param frame used to get location info upon error.
  * @return a Broker::DataType value.
  */
-EnumVal* get_data_type(RecordVal* v, Frame* frame);
+IntrusivePtr<EnumVal> get_data_type(RecordVal* v, Frame* frame);
 
 /**
  * Convert a Bro value to a Broker data value.
  * @param v a Bro value.
  * @return a Broker data value if the Bro value could be converted to one.
  */
-broker::expected<broker::data> val_to_data(Val* v);
+broker::expected<broker::data> val_to_data(const Val* v);
 
 /**
  * Convert a Broker data value to a Bro value.
@@ -57,7 +60,7 @@ broker::expected<broker::data> val_to_data(Val* v);
  * @return a pointer to a new Bro value or a nullptr if the conversion was not
  * possible.
  */
-Val* data_to_val(broker::data d, BroType* type);
+IntrusivePtr<Val> data_to_val(broker::data d, BroType* type);
 
 /**
  * Convert a Bro threading::Value to a Broker data value.
@@ -99,34 +102,23 @@ public:
 		: OpaqueVal(bro_broker::opaque_of_data_type), data(std::move(arg_data))
 		{}
 
-	void ValDescribe(ODesc* d) const override
-		{
-		d->Add("broker::data{");
-		d->Add(broker::to_string(data));
-		d->Add("}");
-		}
+	void ValDescribe(ODesc* d) const override;
 
-	Val* castTo(BroType* t);
+	IntrusivePtr<Val> castTo(BroType* t);
 	bool canCastTo(BroType* t) const;
 
 	// Returns the Bro type that scripts use to represent a Broker data
 	// instance. This may be wrapping the opaque value inside another
 	// type.
-	static BroType* ScriptDataType()
-		{
-		if ( ! script_data_type )
-			script_data_type = internal_type("Broker::Data");
-
-		return script_data_type;
-		}
-
-	DECLARE_SERIAL(DataVal);
+	static BroType* ScriptDataType();
 
 	broker::data data;
 
 protected:
 	DataVal()
 		{}
+
+	DECLARE_OPAQUE_VALUE(bro_broker::DataVal)
 
 	static BroType* script_data_type;
 };
@@ -180,9 +172,9 @@ struct type_name_getter {
 		{ return "table"; }
 
 	result_type operator()(const broker::vector&)
-		{ 
+		{
 		assert(tag == TYPE_VECTOR || tag == TYPE_RECORD);
-	 	return tag == TYPE_VECTOR ? "vector" : "record";
+		return tag == TYPE_VECTOR ? "vector" : "record";
 		}
 
 	TypeTag tag;
@@ -242,6 +234,10 @@ public:
 
 	broker::set dat;
 	broker::set::iterator it;
+
+protected:
+	SetIterator()	{}
+	DECLARE_OPAQUE_VALUE(bro_broker::SetIterator)
 };
 
 class TableIterator : public OpaqueVal {
@@ -255,6 +251,10 @@ public:
 
 	broker::table dat;
 	broker::table::iterator it;
+
+protected:
+	TableIterator()	{}
+	DECLARE_OPAQUE_VALUE(bro_broker::TableIterator)
 };
 
 class VectorIterator : public OpaqueVal {
@@ -268,6 +268,10 @@ public:
 
 	broker::vector dat;
 	broker::vector::iterator it;
+
+protected:
+	VectorIterator()	{}
+	DECLARE_OPAQUE_VALUE(bro_broker::VectorIterator)
 };
 
 class RecordIterator : public OpaqueVal {
@@ -281,8 +285,10 @@ public:
 
 	broker::vector dat;
 	broker::vector::iterator it;
+
+protected:
+	RecordIterator()	{}
+	DECLARE_OPAQUE_VALUE(bro_broker::RecordIterator)
 };
 
 } // namespace bro_broker
-
-#endif // BRO_COMM_DATA_H

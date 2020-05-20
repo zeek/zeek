@@ -1,15 +1,18 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef FILE_ANALYZER_TAG_H
-#define FILE_ANALYZER_TAG_H
+#pragma once
 
-#include "bro-config.h"
-#include "util.h"
+#include "zeek-config.h"
 #include "../Tag.h"
-#include "plugin/TaggedComponent.h"
-#include "plugin/ComponentManager.h"
 
 class EnumVal;
+
+namespace plugin {
+template <class T>
+class TaggedComponent;
+template <class T, class C>
+class ComponentManager;
+}
 
 namespace file_analysis {
 
@@ -42,7 +45,7 @@ public:
 	 * Returns false if the tag represents an error value rather than a
 	 * legal analyzer type.
 	 */
-	explicit operator bool() const	{ return *this != Tag(); }
+	explicit operator bool() const	{ return *this != Error; }
 
 	/**
 	 * Assignment operator.
@@ -81,7 +84,7 @@ public:
 	 */
 	EnumVal* AsEnumVal() const;
 
-	static Tag Error;
+	static const Tag Error;
 
 protected:
 	friend class plugin::ComponentManager<Tag, Component>;
@@ -108,5 +111,3 @@ protected:
 };
 
 }
-
-#endif

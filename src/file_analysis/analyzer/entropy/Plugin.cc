@@ -1,20 +1,20 @@
 // See the file  in the main distribution directory for copyright.
 
-#include "plugin/Plugin.h"
-
 #include "Entropy.h"
+#include "plugin/Plugin.h"
+#include "file_analysis/Component.h"
 
 namespace plugin {
-namespace Bro_FileEntropy {
+namespace Zeek_FileEntropy {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::file_analysis::Component("ENTROPY", ::file_analysis::Entropy::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::FileEntropy";
+		config.name = "Zeek::FileEntropy";
 		config.description = "Entropy test file content";
 		return config;
 		}

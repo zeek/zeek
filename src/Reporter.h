@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef REPORTER_H
-#define REPORTER_H
+#pragma once
 
 #include <stdarg.h>
 
@@ -12,14 +11,14 @@
 #include <unordered_set>
 #include <unordered_map>
 
-#include "util.h"
-#include "EventHandler.h"
 #include "IPAddr.h"
 
 namespace analyzer { class Analyzer; }
+namespace file_analysis { class File; }
 class Connection;
 class Location;
 class Reporter;
+class EventHandlerPtr;
 
 // One cannot raise this exception directly, go through the
 // Reporter's methods instead.
@@ -41,11 +40,11 @@ protected:
 class Reporter {
 public:
 	using IPPair = std::pair<IPAddr, IPAddr>;
-	using WeirdCountMap = std::unordered_map<std::string, uint64>;
+	using WeirdCountMap = std::unordered_map<std::string, uint64_t>;
 	using WeirdFlowMap = std::map<IPPair, WeirdCountMap>;
 	using WeirdSet = std::unordered_set<std::string>;
 
-	Reporter();
+	Reporter(bool abort_on_scripting_errors);
 	~Reporter();
 
 	// Initialize reporter-sepcific options	that are defined in script-layer.
@@ -67,25 +66,26 @@ public:
 
 	// Report a fatal error. Bro will terminate after the message has been
 	// reported.
-	void FatalError(const char* fmt, ...) FMT_ATTR;
+	[[noreturn]] void FatalError(const char* fmt, ...) FMT_ATTR;
 
 	// Report a fatal error. Bro will terminate after the message has been
 	// reported and always generate a core dump.
-	void FatalErrorWithCore(const char* fmt, ...) FMT_ATTR;
+	[[noreturn]] void FatalErrorWithCore(const char* fmt, ...) FMT_ATTR;
 
 	// Report a runtime error in evaluating a Bro script expression. This
 	// function will not return but raise an InterpreterException.
-	void ExprRuntimeError(const Expr* expr, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
+	[[noreturn]] void ExprRuntimeError(const Expr* expr, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
 
 	// Report a runtime error in evaluating a Bro script expression. This
 	// function will not return but raise an InterpreterException.
-	void RuntimeError(const Location* location, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
+	[[noreturn]] void RuntimeError(const Location* location, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
 
 	// Report a traffic weirdness, i.e., an unexpected protocol situation
 	// that may lead to incorrectly processing a connnection.
-	void Weird(const char* name);	// Raises net_weird().
+	void Weird(const char* name, const char* addl = "");	// Raises net_weird().
+	void Weird(file_analysis::File* f, const char* name, const char* addl = "");	// Raises file_weird().
 	void Weird(Connection* conn, const char* name, const char* addl = "");	// Raises conn_weird().
-	void Weird(const IPAddr& orig, const IPAddr& resp, const char* name);	// Raises flow_weird().
+	void Weird(const IPAddr& orig, const IPAddr& resp, const char* name, const char* addl = "");	// Raises flow_weird().
 
 	// Syslog a message. This methods does nothing if we're running
 	// offline from a trace.
@@ -97,7 +97,7 @@ public:
 
 	// Report an internal program error. Bro will terminate with a core
 	// dump after the message has been reported.
-	void InternalError(const char* fmt, ...) FMT_ATTR;
+	[[noreturn]] void InternalError(const char* fmt, ...) FMT_ATTR;
 
 	// Report an analyzer error. That analyzer will be set to not process
 	// any further input, but Bro otherwise continues normally.
@@ -142,7 +142,7 @@ public:
 	 * Return the total number of weirds generated (counts weirds before
 	 * any rate-limiting occurs).
 	 */
-	uint64 GetWeirdCount() const
+	uint64_t GetWeirdCount() const
 		{ return weird_count; }
 
 	/**
@@ -175,7 +175,7 @@ public:
 	 *
 	 * @return weird sampling threshold.
 	 */
-	uint64 GetWeirdSamplingThreshold() const
+	uint64_t GetWeirdSamplingThreshold() const
 		{
 		return weird_sampling_threshold;
 		}
@@ -185,7 +185,7 @@ public:
 	 *
 	 * @param weird_sampling_threshold New weird sampling threshold.
 	 */
-	void SetWeirdSamplingThreshold(uint64 weird_sampling_threshold)
+	void SetWeirdSamplingThreshold(uint64_t weird_sampling_threshold)
 		{
 		this->weird_sampling_threshold = weird_sampling_threshold;
 		}
@@ -195,7 +195,7 @@ public:
 	 *
 	 * @return weird sampling rate.
 	 */
-	uint64 GetWeirdSamplingRate() const
+	uint64_t GetWeirdSamplingRate() const
 		{
 		return weird_sampling_rate;
 		}
@@ -205,7 +205,7 @@ public:
 	 *
 	 * @param weird_sampling_rate New weird sampling rate.
 	 */
-	void SetWeirdSamplingRate(uint64 weird_sampling_rate)
+	void SetWeirdSamplingRate(uint64_t weird_sampling_rate)
 		{
 		this->weird_sampling_rate = weird_sampling_rate;
 		}
@@ -231,20 +231,29 @@ public:
 		this->weird_sampling_duration = weird_sampling_duration;
 		}
 
+	/**
+	 * Called after zeek_init() and toggles whether messages may stop being
+	 * emitted to stderr.
+	 */
+	void ZeekInitDone()
+		{ after_zeek_init = true; }
+
 private:
 	void DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		   Connection* conn, val_list* addl, bool location, bool time,
 		   const char* postfix, const char* fmt, va_list ap) __attribute__((format(printf, 10, 0)));
 
-	// The order if addl, name needs to be like that since fmt_name can
-	// contain format specifiers
-	void WeirdHelper(EventHandlerPtr event, Val* conn_val, const char* addl, const char* fmt_name, ...) __attribute__((format(printf, 5, 6)));;
-	void WeirdFlowHelper(const IPAddr& orig, const IPAddr& resp, const char* fmt_name, ...) __attribute__((format(printf, 4, 5)));;
+	// WeirdHelper doesn't really have to be variadic, but it calls DoLog
+	// and that takes va_list anyway.
+	void WeirdHelper(EventHandlerPtr event, val_list vl, const char* fmt_name, ...) __attribute__((format(printf, 4, 5)));;
 	void UpdateWeirdStats(const char* name);
 	inline bool WeirdOnSamplingWhiteList(const char* name)
 		{ return weird_sampling_whitelist.find(name) != weird_sampling_whitelist.end(); }
 	bool PermitNetWeird(const char* name);
 	bool PermitFlowWeird(const char* name, const IPAddr& o, const IPAddr& r);
+
+	bool EmitToStderr(bool flag)
+		{ return flag || ! after_zeek_init; }
 
 	int errors;
 	bool via_events;
@@ -252,21 +261,21 @@ private:
 	bool info_to_stderr;
 	bool warnings_to_stderr;
 	bool errors_to_stderr;
+	bool after_zeek_init;
+	bool abort_on_scripting_errors = false;
 
 	std::list<std::pair<const Location*, const Location*> > locations;
 
-	uint64 weird_count;
+	uint64_t weird_count;
 	WeirdCountMap weird_count_by_type;
 	WeirdCountMap net_weird_state;
 	WeirdFlowMap flow_weird_state;
 
 	WeirdSet weird_sampling_whitelist;
-	uint64 weird_sampling_threshold;
-	uint64 weird_sampling_rate;
+	uint64_t weird_sampling_threshold;
+	uint64_t weird_sampling_rate;
 	double weird_sampling_duration;
 
 };
 
 extern Reporter* reporter;
-
-#endif

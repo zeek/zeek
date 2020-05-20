@@ -1,13 +1,12 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_COMPONENT_H
-#define ANALYZER_COMPONENT_H
+#pragma once
 
 #include "Tag.h"
 #include "plugin/Component.h"
 #include "plugin/TaggedComponent.h"
 
-#include "../bro-config.h"
+#include "../zeek-config.h"
 #include "../util.h"
 
 class Connection;
@@ -109,5 +108,3 @@ private:
 };
 
 }
-
-#endif

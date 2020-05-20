@@ -1,5 +1,4 @@
-#ifndef list_h
-#define list_h
+#pragma once
 
 // BaseList.h --
 //	Interface for class BaseList, current implementation is as an
@@ -11,7 +10,7 @@
 //	element up, and resizing the list, which involves getting new space
 //	and moving the data.  Resizing occurs automatically when inserting
 //	more elements than the list can currently hold.  Automatic
-//	resizing is done one "chunk_size" of elements at a time and
+//	resizing is done by growing by GROWTH_FACTOR at a time and
 //	always increases the size of the list.  Resizing to zero
 //	(or to less than the current value of num_entries)
 //	will decrease the size of the list to the current number of
@@ -21,175 +20,323 @@
 //	sizeof(data) <= sizeof(void*).
 
 #include <stdarg.h>
+#include <initializer_list>
+#include <iterator>
+#include <utility>
+#include <cassert>
 #include "util.h"
 
-typedef void* ent;
+// TODO: this can be removed in v3.1 when List::sort() is removed
 typedef int (*list_cmp_func)(const void* v1, const void* v2);
 
-class BaseList {
+enum class ListOrder : int { ORDERED, UNORDERED };
+
+template<typename T, ListOrder Order = ListOrder::ORDERED>
+class List {
 public:
-	~BaseList()		{ clear(); }
 
-	void clear();		// remove all entries
-	int length() const	{ return num_entries; }
-	int chunk() const	{ return chunk_size; }
-	int max() const		{ return max_entries; }
-	int resize(int = 0);	// 0 => size to fit current number of entries
+	constexpr static int DEFAULT_LIST_SIZE = 10;
+	constexpr static int LIST_GROWTH_FACTOR = 2;
 
-	void sort(list_cmp_func cmp_func);
-
-	int MemoryAllocation() const
-		{ return padded_sizeof(*this) + pad_size(max_entries * sizeof(ent)); }
-
-protected:
-	explicit BaseList(int = 0);
-	BaseList(BaseList&);
-
-	void insert(ent);	// add at head of list
-
-	// Assumes that the list is sorted and inserts at correct position.
-	void sortedinsert(ent, list_cmp_func cmp_func);
-
-	void append(ent);	// add to end of list
-	ent remove(ent);	// delete entry from list
-	ent remove_nth(int);	// delete nth entry from list
-	ent get();		// return and remove ent at end of list
-	ent last()		// return at end of list
-		{ return entry[num_entries-1]; }
-
-	// Return 0 if ent is not in the list, ent otherwise.
-	ent is_member(ent) const;
-
-	// Returns -1 if ent is not in the list, otherwise its position.
-	int member_pos(ent) const;
-
-	ent replace(int, ent);	// replace entry #i with a new value
-
-	// Return nth ent of list (do not remove).
-	ent operator[](int i) const
+	~List()		{ free(entries); }
+	explicit List(int size = 0)
 		{
-#ifdef SAFE_LISTS
-		if ( i < 0 || i > num_entries-1 )
-			return 0;
-		else
-#endif
-			return entry[i];
+		num_entries = 0;
+
+		if ( size <= 0 )
+			{
+			max_entries = 0;
+			entries = nullptr;
+			return;
+			}
+
+		max_entries = size;
+
+		entries = (T*) safe_malloc(max_entries * sizeof(T));
 		}
 
-	void operator=(BaseList&);
+	List(const List& b)
+		{
+		max_entries = b.max_entries;
+		num_entries = b.num_entries;
 
-	ent* entry;
-	int chunk_size;		// increase size by this amount when necessary
+		if ( max_entries )
+			entries = (T*) safe_malloc(max_entries * sizeof(T));
+		else
+			entries = nullptr;
+
+		for ( int i = 0; i < num_entries; ++i )
+			entries[i] = b.entries[i];
+		}
+
+	List(List&& b)
+		{
+		entries = b.entries;
+		num_entries = b.num_entries;
+		max_entries = b.max_entries;
+
+		b.entries = nullptr;
+		b.num_entries = b.max_entries = 0;
+		}
+
+	List(const T* arr, int n)
+		{
+		num_entries = max_entries = n;
+		entries = (T*) safe_malloc(max_entries * sizeof(T));
+		memcpy(entries, arr, n * sizeof(T));
+		}
+
+	List(std::initializer_list<T> il) : List(il.begin(), il.size()) {}
+
+	List& operator=(const List& b)
+		{
+		if ( this == &b )
+			return *this;
+
+		free(entries);
+
+		max_entries = b.max_entries;
+		num_entries = b.num_entries;
+
+		if ( max_entries )
+			entries = (T *) safe_malloc(max_entries * sizeof(T));
+		else
+			entries = nullptr;
+
+		for ( int i = 0; i < num_entries; ++i )
+			entries[i] = b.entries[i];
+
+		return *this;
+		}
+
+	List& operator=(List&& b)
+		{
+		if ( this == &b )
+			return *this;
+
+		free(entries);
+		entries = b.entries;
+		num_entries = b.num_entries;
+		max_entries = b.max_entries;
+
+		b.entries = nullptr;
+		b.num_entries = b.max_entries = 0;
+		return *this;
+		}
+
+	// Return nth ent of list (do not remove).
+	T& operator[](int i) const
+		{
+		return entries[i];
+		}
+
+	void clear()		// remove all entries
+		{
+		free(entries);
+		entries = nullptr;
+		num_entries = max_entries = 0;
+		}
+
+	bool empty() const noexcept { return num_entries == 0; }
+	size_t size() const noexcept { return num_entries; }
+
+	int length() const	{ return num_entries; }
+	int max() const		{ return max_entries; }
+	int resize(int new_size = 0)	// 0 => size to fit current number of entries
+		{
+		if ( new_size < num_entries )
+			new_size = num_entries;	// do not lose any entries
+
+		if ( new_size != max_entries )
+			{
+			entries = (T*) safe_realloc((void*) entries, sizeof(T) * new_size);
+			if ( entries )
+				max_entries = new_size;
+			else
+				max_entries = 0;
+			}
+
+		return max_entries;
+		}
+
+	int MemoryAllocation() const
+		{ return padded_sizeof(*this) + pad_size(max_entries * sizeof(T)); }
+
+	void push_front(const T& a)
+		{
+		if ( num_entries == max_entries )
+			resize(max_entries ? max_entries * LIST_GROWTH_FACTOR : DEFAULT_LIST_SIZE);
+
+		for ( int i = num_entries; i > 0; --i )
+			entries[i] = entries[i-1];	// move all pointers up one
+
+		++num_entries;
+		entries[0] = a;
+		}
+
+	void push_back(const T& a)
+		{
+		if ( num_entries == max_entries )
+			resize(max_entries ? max_entries * LIST_GROWTH_FACTOR : DEFAULT_LIST_SIZE);
+
+		entries[num_entries++] = a;
+		}
+
+	void pop_front()	{ remove_nth(0); }
+	void pop_back()	{ remove_nth(num_entries-1); }
+
+	T& front()	 { return entries[0]; }
+	T& back()	 { return entries[num_entries-1]; }
+
+	// The append method is maintained for historical/compatibility reasons.
+	// (It's commonly used in the event generation API)
+	void append(const T& a)	// add to end of list
+		{
+		push_back(a);
+		}
+
+	bool remove(const T& a)	// delete entry from list
+		{
+		int pos = member_pos(a);
+		if ( pos != -1 )
+			{
+			remove_nth(pos);
+			return true;
+			}
+
+		return false;
+		}
+
+	T remove_nth(int n)	// delete nth entry from list
+		{
+		assert(n >=0 && n < num_entries);
+
+		T old_ent = entries[n];
+
+		// For data where we don't care about ordering, we don't care about keeping
+		// the list in the same order when removing an element. Just swap the last
+		// element with the element being removed.
+		if constexpr ( Order == ListOrder::ORDERED )
+			{
+			--num_entries;
+
+			for ( ; n < num_entries; ++n )
+				entries[n] = entries[n+1];
+			}
+		else
+			{
+			entries[n] = entries[num_entries - 1];
+			--num_entries;
+			}
+
+		return old_ent;
+		}
+
+	// Return 0 if ent is not in the list, ent otherwise.
+	bool is_member(const T& a) const
+		{
+		int pos = member_pos(a);
+		return pos != -1;
+		}
+
+	// Returns -1 if ent is not in the list, otherwise its position.
+	int member_pos(const T& e) const
+		{
+		int i;
+		for ( i = 0; i < length() && e != entries[i]; ++i )
+			;
+
+		return (i == length()) ? -1 : i;
+		}
+
+	T replace(int ent_index, const T& new_ent)	// replace entry #i with a new value
+		{
+		if ( ent_index < 0 )
+			return T{};
+
+		T old_ent{};
+
+		if ( ent_index > num_entries - 1 )
+			{ // replacement beyond the end of the list
+			resize(ent_index + 1);
+
+			for ( int i = num_entries; i < max_entries; ++i )
+				entries[i] = T{};
+			num_entries = max_entries;
+			}
+		else
+			old_ent = entries[ent_index];
+
+		entries[ent_index] = new_ent;
+
+		return old_ent;
+		}
+
+	// Type traits needed for some of the std algorithms to work
+	using value_type = T;
+	using pointer = T*;
+	using const_pointer = const T*;
+
+	// Iterator support
+	using iterator = pointer;
+	using const_iterator = const_pointer;
+	using reverse_iterator = std::reverse_iterator<iterator>;
+	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+	iterator begin() { return entries; }
+	iterator end() { return entries + num_entries; }
+	const_iterator begin() const { return entries; }
+	const_iterator end() const { return entries + num_entries; }
+	const_iterator cbegin() const { return entries; }
+	const_iterator cend() const { return entries + num_entries; }
+
+	reverse_iterator rbegin() { return reverse_iterator{end()}; }
+	reverse_iterator rend() { return reverse_iterator{begin()}; }
+	const_reverse_iterator rbegin() const { return const_reverse_iterator{end()}; }
+	const_reverse_iterator rend() const { return const_reverse_iterator{begin()}; }
+	const_reverse_iterator crbegin() const { return rbegin(); }
+	const_reverse_iterator crend() const { return rend(); }
+
+protected:
+
+	// This could essentially be an std::vector if we wanted.  Some
+	// reasons to maybe not refactor to use std::vector ?
+	//
+	//  - Harder to use a custom growth factor.  Also, the growth
+	//    factor would be implementation-specific, taking some control over
+	//    performance out of our hands.
+	//
+	//  - It won't ever take advantage of realloc's occasional ability to
+	//    grow in-place.
+	//
+	//  - Combine above point this with lack of control of growth
+	//    factor means the common choice of 2x growth factor causes
+	//    a growth pattern that crawls forward in memory with no possible
+	//    re-use of previous chunks (the new capacity is always larger than
+	//    all previously allocated chunks combined).  This point and
+	//    whether 2x is empirically an issue still seems debated (at least
+	//    GCC seems to stand by 2x as empirically better).
+	//
+	//  - Sketchy shrinking behavior: standard says that requests to
+	//    shrink are non-binding (it's expected implementations heed, but
+	//    still not great to have no guarantee).  Also, it would not take
+	//    advantage of realloc's ability to contract in-place, it would
+	//    allocate-and-copy.
+
+	T* entries;
 	int max_entries;
 	int num_entries;
 	};
 
 
-// List.h -- interface for class List
-//	Use:	to get a list of pointers to class foo you should:
-//		1) typedef foo* Pfoo; (the macros don't like explicit pointers)
-//		2) declare(List,Pfoo); (declare an interest in lists of Pfoo's)
-//		3) variables are declared like:
-//				List(Pfoo) bar;	(bar is of type list of Pfoo's)
-
-// For lists of "type".
-
-#define List(type) type ## List
-
-// For lists of pointers to "type"
-#define PList(type) type ## PList
-
-#define Listdeclare(type)						\
-struct List(type) : BaseList						\
-	{								\
-	explicit List(type)(type ...);						\
-	List(type)() : BaseList(0) {}					\
-	explicit List(type)(int sz) : BaseList(sz) {}				\
-	List(type)(List(type)& l) : BaseList((BaseList&)l) {}		\
-									\
-	void operator=(List(type)& l)					\
-		{ BaseList::operator=((BaseList&)l); }			\
-	void insert(type a)	{ BaseList::insert(ent(a)); }		\
-	void sortedinsert(type a, list_cmp_func cmp_func)		\
-		{ BaseList::sortedinsert(ent(a), cmp_func); }		\
-	void append(type a)	{ BaseList::append(ent(a)); }		\
-	type remove(type a)						\
-			{ return type(BaseList::remove(ent(a))); }	\
-	type remove_nth(int n)	{ return type(BaseList::remove_nth(n)); }\
-	type get()		{ return type(BaseList::get()); }	\
-	type last()		{ return type(BaseList::last()); }	\
-	type replace(int i, type new_type)				\
-		{ return type(BaseList::replace(i,ent(new_type))); }	\
-	type is_member(type e) const					\
-		{ return type(BaseList::is_member(ent(e))); }		\
-	int member_pos(type e) const					\
-		{ return BaseList::member_pos(ent(e)); }		\
-									\
-	type operator[](int i) const					\
-		{ return type(BaseList::operator[](i)); }		\
-	};								\
-
-#define Listimplement(type)						\
-List(type)::List(type)(type e1 ...) : BaseList()			\
-	{								\
-	append(e1);							\
-	va_list ap;							\
-	va_start(ap,e1);						\
-	for ( type e = va_arg(ap,type); e != 0; e = va_arg(ap,type) )	\
-		append(e);						\
-	resize();							\
-	}
-
-#define PListdeclare(type)						\
-struct PList(type) : BaseList						\
-	{								\
-	explicit PList(type)(type* ...);						\
-	PList(type)() : BaseList(0) {}					\
-	explicit PList(type)(int sz) : BaseList(sz) {}				\
-	PList(type)(PList(type)& l) : BaseList((BaseList&)l) {}		\
-									\
-	void operator=(PList(type)& l)					\
-		{ BaseList::operator=((BaseList&)l); }			\
-	void insert(type* a)	{ BaseList::insert(ent(a)); }		\
-	void sortedinsert(type* a, list_cmp_func cmp_func)		\
-		{ BaseList::sortedinsert(ent(a), cmp_func); }		\
-	void append(type* a)	{ BaseList::append(ent(a)); }		\
-	type* remove(type* a)						\
-		{ return (type*)BaseList::remove(ent(a)); }		\
-	type* remove_nth(int n)	{ return (type*)(BaseList::remove_nth(n)); }\
-	type* get()		{ return (type*)BaseList::get(); }	\
-	type* operator[](int i) const					\
-		{ return (type*)(BaseList::operator[](i)); }		\
-	type* replace(int i, type* new_type)				\
-		{ return (type*)BaseList::replace(i,ent(new_type)); }	\
-	type* is_member(type* e)					\
-		{ return (type*)BaseList::is_member(ent(e)); }		\
-	int member_pos(type* e)						\
-		{ return BaseList::member_pos(ent(e)); }		\
-	};								\
-
-#define PListimplement(type)						\
-PList(type)::PList(type)(type* ep1 ...) : BaseList()			\
-	{								\
-	append(ep1);							\
-	va_list ap;							\
-	va_start(ap,ep1);						\
-	for ( type* ep = va_arg(ap,type*); ep != 0;			\
-	      ep = va_arg(ap,type*) )					\
-		append(ep);						\
-	resize();							\
-	}
-
-
-#define declare(metatype,type) metatype ## declare (type)
+// Specialization of the List class to store pointers of a type.
+template<typename T, ListOrder Order = ListOrder::ORDERED>
+using PList = List<T*, Order>;
 
 // Popular type of list: list of strings.
-declare(PList,char);
-typedef PList(char) name_list;
+typedef PList<char> name_list;
 
 // Macro to visit each list element in turn.
 #define loop_over_list(list, iterator)  \
 	int iterator;	\
 	for ( iterator = 0; iterator < (list).length(); ++iterator )
-
-#endif /* list_h */

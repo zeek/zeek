@@ -1,13 +1,13 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef FILE_ANALYSIS_DATAEVENT_H
-#define FILE_ANALYSIS_DATAEVENT_H
+#pragma once
 
 #include <string>
 
 #include "Val.h"
 #include "File.h"
 #include "Analyzer.h"
+#include "EventHandler.h"
 
 namespace file_analysis {
 
@@ -25,7 +25,7 @@ public:
 	 * @param offset number of bytes from start of file at which chunk occurs.
 	 * @return always true
 	 */
-	bool DeliverChunk(const u_char* data, uint64 len, uint64 offset) override;
+	bool DeliverChunk(const u_char* data, uint64_t len, uint64_t offset) override;
 
 	/**
 	 * Generates the event, if any, specified by the "stream_event" field of
@@ -34,7 +34,7 @@ public:
 	 * @param len number of bytes in the data chunk.
 	 * @return always true
 	 */
-	bool DeliverStream(const u_char* data, uint64 len) override;
+	bool DeliverStream(const u_char* data, uint64_t len) override;
 
 	/**
 	 * Create a new instance of a DataEvent analyzer.
@@ -65,5 +65,3 @@ private:
 };
 
 } // namespace file_analysis
-
-#endif

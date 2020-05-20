@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef INPUT_READERS_BENCHMARK_H
-#define INPUT_READERS_BENCHMARK_H
+#pragma once
 
 #include "input/ReaderBackend.h"
 #include "threading/formatters/Ascii.h"
@@ -26,7 +25,7 @@ protected:
 
 private:
 	double CurrTime();
-	string RandomString(const int len);
+	std::string RandomString(const int len);
 	threading::Value* EntryToVal(TypeTag Type, TypeTag subtype);
 
 	int num_lines;
@@ -46,5 +45,3 @@ private:
 
 }
 }
-
-#endif /* INPUT_READERS_BENCHMARK_H */

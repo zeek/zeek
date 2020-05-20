@@ -30,7 +30,7 @@ void BitTorrent_Analyzer::Done()
 
 void BitTorrent_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
-	uint64& this_stream_len = orig ? stream_len_orig : stream_len_resp;
+	uint64_t& this_stream_len = orig ? stream_len_orig : stream_len_resp;
 	bool& this_stop = orig ? stop_orig : stop_resp;
 
 	tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, orig);
@@ -68,7 +68,7 @@ void BitTorrent_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	}
 
-void BitTorrent_Analyzer::Undelivered(uint64 seq, int len, bool orig)
+void BitTorrent_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 
@@ -77,10 +77,10 @@ void BitTorrent_Analyzer::Undelivered(uint64 seq, int len, bool orig)
 	// The way it's currently tracking the next message offset isn't
 	// compatible with new 64bit int support in binpac either.
 
-	//uint64 entry_offset = orig ?
+	//uint64_t entry_offset = orig ?
 	//	*interp->upflow()->next_message_offset() :
 	//	*interp->downflow()->next_message_offset();
-	//uint64& this_stream_len = orig ? stream_len_orig : stream_len_resp;
+	//uint64_t& this_stream_len = orig ? stream_len_orig : stream_len_resp;
 	//bool& this_stop = orig ? stop_orig : stop_resp;
 	//
 	//this_stream_len += len;
@@ -119,13 +119,9 @@ void BitTorrent_Analyzer::EndpointEOF(bool is_orig)
 void BitTorrent_Analyzer::DeliverWeird(const char* msg, bool orig)
 	{
 	if ( bittorrent_peer_weird )
-		{
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(new Val(orig, TYPE_BOOL));
-		vl->append(new StringVal(msg));
-		ConnectionEvent(bittorrent_peer_weird, vl);
-		}
-	else
-		Weird(msg);
+		EnqueueConnEvent(bittorrent_peer_weird,
+			ConnVal(),
+			val_mgr->Bool(orig),
+			make_intrusive<StringVal>(msg)
+		);
 	}

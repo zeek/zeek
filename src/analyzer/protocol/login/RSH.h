@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_LOGIN_RSH_H
-#define ANALYZER_PROTOCOL_LOGIN_RSH_H
+#pragma once
 
 #include "Login.h"
 #include "analyzer/protocol/tcp/ContentLine.h"
@@ -23,7 +22,7 @@ typedef enum {
 
 class Rsh_Analyzer;
 
-class Contents_Rsh_Analyzer : public tcp::ContentLine_Analyzer {
+class Contents_Rsh_Analyzer final : public tcp::ContentLine_Analyzer {
 public:
 	Contents_Rsh_Analyzer(Connection* conn, bool orig, Rsh_Analyzer* analyzer);
 	~Contents_Rsh_Analyzer() override;
@@ -40,7 +39,7 @@ protected:
 	Rsh_Analyzer* analyzer;
 };
 
-class Rsh_Analyzer : public Login_Analyzer {
+class Rsh_Analyzer final : public Login_Analyzer {
 public:
 	explicit Rsh_Analyzer(Connection* conn);
 
@@ -56,6 +55,4 @@ public:
 	Contents_Rsh_Analyzer* contents_resp;
 };
 
-} } // namespace analyzer::* 
-
-#endif
+} } // namespace analyzer::*

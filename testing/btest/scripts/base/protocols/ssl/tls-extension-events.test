@@ -1,5 +1,6 @@
-# @TEST-EXEC: bro -C -r $TRACES/tls/chrome-34-google.trace %INPUT
-# @TEST-EXEC: bro -C -r $TRACES/tls/tls-13draft19-early-data.pcap %INPUT
+# @TEST-EXEC: zeek -C -r $TRACES/tls/chrome-34-google.trace %INPUT
+# @TEST-EXEC: zeek -C -r $TRACES/tls/tls-13draft19-early-data.pcap %INPUT
+# @TEST-EXEC: zeek -C -r $TRACES/tls/tls13_psk_succesfull.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 event ssl_extension_elliptic_curves(c: connection, is_orig: bool, curves: index_vec)
@@ -37,7 +38,7 @@ event ssl_extension_signature_algorithm(c: connection, is_orig: bool, signature_
 
 event ssl_extension_supported_versions(c: connection, is_orig: bool, versions: index_vec)
 	{
-	print "supported_versions(", c$id$orig_h, c$id$resp_h;
+	print "supported_versions", c$id$orig_h, c$id$resp_h;
 	for ( i in versions )
 		print SSL::version_strings[versions[i]];
 	}
@@ -47,4 +48,14 @@ event ssl_extension_psk_key_exchange_modes(c: connection, is_orig: bool, modes: 
 	print "psk_key_exchange_modes", c$id$orig_h, c$id$resp_h;
 	for ( i in modes )
 		print modes[i];
+	}
+
+event ssl_extension_pre_shared_key_client_hello(c: connection, is_orig: bool, identities: psk_identity_vec, binders: string_vec)
+	{
+	print "pre_shared_key client hello", c$id$orig_h, c$id$resp_h, identities, binders;
+	}
+
+event ssl_extension_pre_shared_key_server_hello(c: connection, is_orig: bool, selected_identity: count)
+	{
+	print "pre_shared_key server hello", c$id$orig_h, c$id$resp_h, selected_identity;
 	}

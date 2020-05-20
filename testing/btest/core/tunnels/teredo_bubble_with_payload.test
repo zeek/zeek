@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/tunnels/teredo_bubble_with_payload.pcap %INPUT >output
+# @TEST-EXEC: zeek -r $TRACES/tunnels/teredo_bubble_with_payload.pcap %INPUT >output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: btest-diff tunnel.log
 # @TEST-EXEC: btest-diff conn.log

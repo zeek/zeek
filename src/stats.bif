@@ -20,12 +20,12 @@ RecordType* ReporterStats;
 %%}
 
 ## Returns packet capture statistics. Statistics include the number of
-## packets *(i)* received by Bro, *(ii)* dropped, and *(iii)* seen on the
+## packets *(i)* received by Zeek, *(ii)* dropped, and *(iii)* seen on the
 ## link (not always available).
 ##
 ## Returns: A record of packet statistics.
 ##
-## .. bro:see:: get_conn_stats
+## .. zeek:see:: get_conn_stats
 ##              get_dns_stats
 ##              get_event_stats
 ##              get_file_analysis_stats
@@ -39,18 +39,13 @@ RecordType* ReporterStats;
 ##              get_reporter_stats
 function get_net_stats%(%): NetStats
 	%{
-	uint64 recv = 0;
-	uint64 drop = 0;
-	uint64 link = 0;
-	uint64 bytes_recv = 0;
+	uint64_t recv = 0;
+	uint64_t drop = 0;
+	uint64_t link = 0;
+	uint64_t bytes_recv = 0;
 
-	const iosource::Manager::PktSrcList& pkt_srcs(iosource_mgr->GetPktSrcs());
-
-	for ( iosource::Manager::PktSrcList::const_iterator i = pkt_srcs.begin();
-	      i != pkt_srcs.end(); i++ )
+	if ( iosource::PktSrc* ps = iosource_mgr->GetPktSrc() )
 		{
-		iosource::PktSrc* ps = *i;
-
 		struct iosource::PktSrc::Stats stat;
 		ps->Statistics(&stat);
 		recv += stat.received;
@@ -59,22 +54,22 @@ function get_net_stats%(%): NetStats
 		bytes_recv += stat.bytes_received;
 		}
 
-	RecordVal* r = new RecordVal(NetStats);
+	auto r = make_intrusive<RecordVal>(NetStats);
 	int n = 0;
 
-	r->Assign(n++, new Val(recv, TYPE_COUNT));
-	r->Assign(n++, new Val(drop, TYPE_COUNT));
-	r->Assign(n++, new Val(link, TYPE_COUNT));
-	r->Assign(n++, new Val(bytes_recv, TYPE_COUNT));
+	r->Assign(n++, val_mgr->Count(recv));
+	r->Assign(n++, val_mgr->Count(drop));
+	r->Assign(n++, val_mgr->Count(link));
+	r->Assign(n++, val_mgr->Count(bytes_recv));
 
 	return r;
 	%}
 
-## Returns Bro traffic statistics.
+## Returns Zeek traffic statistics.
 ##
 ## Returns: A record with connection and packet statistics.
 ##
-## .. bro:see:: get_dns_stats
+## .. zeek:see:: get_dns_stats
 ##              get_event_stats
 ##              get_file_analysis_stats
 ##              get_gap_stats
@@ -88,20 +83,19 @@ function get_net_stats%(%): NetStats
 ##              get_reporter_stats
 function get_conn_stats%(%): ConnStats
 	%{
-	RecordVal* r = new RecordVal(ConnStats);
+	auto r = make_intrusive<RecordVal>(ConnStats);
 	int n = 0;
 
-	r->Assign(n++, new Val(Connection::TotalConnections(), TYPE_COUNT));
-	r->Assign(n++, new Val(Connection::CurrentConnections(), TYPE_COUNT));
-	r->Assign(n++, new Val(Connection::CurrentExternalConnections(), TYPE_COUNT));
-	r->Assign(n++, new Val(sessions->CurrentConnections(), TYPE_COUNT));
+	r->Assign(n++, val_mgr->Count(Connection::TotalConnections()));
+	r->Assign(n++, val_mgr->Count(Connection::CurrentConnections()));
+	r->Assign(n++, val_mgr->Count(sessions->CurrentConnections()));
 
 	SessionStats s;
 	if ( sessions )
 		sessions->GetStats(s);
 
 #define ADD_STAT(x) \
-	r->Assign(n++, new Val(unsigned(sessions ? x : 0), TYPE_COUNT));
+	r->Assign(n++, val_mgr->Count(unsigned(sessions ? x : 0)));
 
 	ADD_STAT(s.num_packets);
 	ADD_STAT(s.num_fragments);
@@ -116,16 +110,16 @@ function get_conn_stats%(%): ConnStats
 	ADD_STAT(s.max_ICMP_conns);
 	ADD_STAT(s.cumulative_ICMP_conns);
 
-	r->Assign(n++, new Val(killed_by_inactivity, TYPE_COUNT));
+	r->Assign(n++, val_mgr->Count(killed_by_inactivity));
 
 	return r;
 	%}
 
-## Returns Bro process statistics.
+## Returns Zeek process statistics.
 ##
 ## Returns: A record with process statistics.
 ##
-## .. bro:see:: get_conn_stats
+## .. zeek:see:: get_conn_stats
 ##              get_dns_stats
 ##              get_event_stats
 ##              get_file_analysis_stats
@@ -143,7 +137,7 @@ function get_proc_stats%(%): ProcStats
 	if ( getrusage(RUSAGE_SELF, &ru) < 0 )
 		reporter->InternalError("getrusage() failed in get_proc_stats()");
 
-	RecordVal* r = new RecordVal(ProcStats);
+	auto r = make_intrusive<RecordVal>(ProcStats);
 	int n = 0;
 
 	double elapsed_time = current_time() - bro_start_time;
@@ -153,27 +147,27 @@ function get_proc_stats%(%): ProcStats
 		double(ru.ru_stime.tv_sec) + double(ru.ru_stime.tv_usec) / 1e6;
 
 #ifdef DEBUG
-	r->Assign(n++, new Val(1, TYPE_COUNT));
+	r->Assign(n++, val_mgr->Count(1));
 #else
-	r->Assign(n++, new Val(0, TYPE_COUNT));
+	r->Assign(n++, val_mgr->Count(0));
 #endif
 
-	r->Assign(n++, new Val(bro_start_time, TYPE_TIME));
+	r->Assign(n++, make_intrusive<Val>(bro_start_time, TYPE_TIME));
 
-	r->Assign(n++, new IntervalVal(elapsed_time, Seconds));
-	r->Assign(n++, new IntervalVal(user_time, Seconds));
-	r->Assign(n++, new IntervalVal(system_time, Seconds));
+	r->Assign(n++, make_intrusive<IntervalVal>(elapsed_time, Seconds));
+	r->Assign(n++, make_intrusive<IntervalVal>(user_time, Seconds));
+	r->Assign(n++, make_intrusive<IntervalVal>(system_time, Seconds));
 
-	uint64 total_mem;
+	uint64_t total_mem;
 	get_memory_usage(&total_mem, NULL);
-	r->Assign(n++, new Val(unsigned(total_mem), TYPE_COUNT));
+	r->Assign(n++, val_mgr->Count(unsigned(total_mem)));
 
-	r->Assign(n++, new Val(unsigned(ru.ru_minflt), TYPE_COUNT));
-	r->Assign(n++, new Val(unsigned(ru.ru_majflt), TYPE_COUNT));
-	r->Assign(n++, new Val(unsigned(ru.ru_nswap), TYPE_COUNT));
-	r->Assign(n++, new Val(unsigned(ru.ru_inblock), TYPE_COUNT));
-	r->Assign(n++, new Val(unsigned(ru.ru_oublock), TYPE_COUNT));
-	r->Assign(n++, new Val(unsigned(ru.ru_nivcsw), TYPE_COUNT));
+	r->Assign(n++, val_mgr->Count(unsigned(ru.ru_minflt)));
+	r->Assign(n++, val_mgr->Count(unsigned(ru.ru_majflt)));
+	r->Assign(n++, val_mgr->Count(unsigned(ru.ru_nswap)));
+	r->Assign(n++, val_mgr->Count(unsigned(ru.ru_inblock)));
+	r->Assign(n++, val_mgr->Count(unsigned(ru.ru_oublock)));
+	r->Assign(n++, val_mgr->Count(unsigned(ru.ru_nivcsw)));
 
 	return r;
 	%}
@@ -182,7 +176,7 @@ function get_proc_stats%(%): ProcStats
 ##
 ## Returns: A record with event engine statistics.
 ##
-## .. bro:see:: get_conn_stats
+## .. zeek:see:: get_conn_stats
 ##              get_dns_stats
 ##              get_file_analysis_stats
 ##              get_gap_stats
@@ -196,11 +190,11 @@ function get_proc_stats%(%): ProcStats
 ##              get_reporter_stats
 function get_event_stats%(%): EventStats
 	%{
-	RecordVal* r = new RecordVal(EventStats);
+	auto r = make_intrusive<RecordVal>(EventStats);
 	int n = 0;
 
-	r->Assign(n++, new Val(num_events_queued, TYPE_COUNT));
-	r->Assign(n++, new Val(num_events_dispatched, TYPE_COUNT));
+	r->Assign(n++, val_mgr->Count(num_events_queued));
+	r->Assign(n++, val_mgr->Count(num_events_dispatched));
 
 	return r;
 	%}
@@ -209,7 +203,7 @@ function get_event_stats%(%): EventStats
 ##
 ## Returns: A record with reassembler statistics.
 ##
-## .. bro:see:: get_conn_stats
+## .. zeek:see:: get_conn_stats
 ##              get_dns_stats
 ##              get_event_stats
 ##              get_file_analysis_stats
@@ -223,13 +217,13 @@ function get_event_stats%(%): EventStats
 ##              get_reporter_stats
 function get_reassembler_stats%(%): ReassemblerStats
 	%{
-	RecordVal* r = new RecordVal(ReassemblerStats);
+	auto r = make_intrusive<RecordVal>(ReassemblerStats);
 	int n = 0;
 
-	r->Assign(n++, new Val(Reassembler::MemoryAllocation(REASSEM_FILE), TYPE_COUNT));
-	r->Assign(n++, new Val(Reassembler::MemoryAllocation(REASSEM_FRAG), TYPE_COUNT));
-	r->Assign(n++, new Val(Reassembler::MemoryAllocation(REASSEM_TCP), TYPE_COUNT));
-	r->Assign(n++, new Val(Reassembler::MemoryAllocation(REASSEM_UNKNOWN), TYPE_COUNT));
+	r->Assign(n++, val_mgr->Count(Reassembler::MemoryAllocation(REASSEM_FILE)));
+	r->Assign(n++, val_mgr->Count(Reassembler::MemoryAllocation(REASSEM_FRAG)));
+	r->Assign(n++, val_mgr->Count(Reassembler::MemoryAllocation(REASSEM_TCP)));
+	r->Assign(n++, val_mgr->Count(Reassembler::MemoryAllocation(REASSEM_UNKNOWN)));
 
 	return r;
 	%}
@@ -238,7 +232,7 @@ function get_reassembler_stats%(%): ReassemblerStats
 ##
 ## Returns: A record with DNS lookup statistics.
 ##
-## .. bro:see:: get_conn_stats
+## .. zeek:see:: get_conn_stats
 ##              get_event_stats
 ##              get_file_analysis_stats
 ##              get_gap_stats
@@ -252,18 +246,18 @@ function get_reassembler_stats%(%): ReassemblerStats
 ##              get_reporter_stats
 function get_dns_stats%(%): DNSStats
 	%{
-	RecordVal* r = new RecordVal(DNSStats);
+	auto r = make_intrusive<RecordVal>(DNSStats);
 	int n = 0;
 
 	DNS_Mgr::Stats dstats;
 	dns_mgr->GetStats(&dstats);
 
-	r->Assign(n++, new Val(unsigned(dstats.requests), TYPE_COUNT));
-	r->Assign(n++, new Val(unsigned(dstats.successful), TYPE_COUNT));
-	r->Assign(n++, new Val(unsigned(dstats.failed), TYPE_COUNT));
-	r->Assign(n++, new Val(unsigned(dstats.pending), TYPE_COUNT));
-	r->Assign(n++, new Val(unsigned(dstats.cached_hosts), TYPE_COUNT));
-	r->Assign(n++, new Val(unsigned(dstats.cached_addresses), TYPE_COUNT));
+	r->Assign(n++, val_mgr->Count(unsigned(dstats.requests)));
+	r->Assign(n++, val_mgr->Count(unsigned(dstats.successful)));
+	r->Assign(n++, val_mgr->Count(unsigned(dstats.failed)));
+	r->Assign(n++, val_mgr->Count(unsigned(dstats.pending)));
+	r->Assign(n++, val_mgr->Count(unsigned(dstats.cached_hosts)));
+	r->Assign(n++, val_mgr->Count(unsigned(dstats.cached_addresses)));
 
 	return r;
 	%}
@@ -272,7 +266,7 @@ function get_dns_stats%(%): DNSStats
 ##
 ## Returns: A record with timer usage statistics.
 ##
-## .. bro:see:: get_conn_stats
+## .. zeek:see:: get_conn_stats
 ##              get_dns_stats
 ##              get_event_stats
 ##              get_file_analysis_stats
@@ -286,12 +280,12 @@ function get_dns_stats%(%): DNSStats
 ##              get_reporter_stats
 function get_timer_stats%(%): TimerStats
 	%{
-	RecordVal* r = new RecordVal(TimerStats);
+	auto r = make_intrusive<RecordVal>(TimerStats);
 	int n = 0;
 
-	r->Assign(n++, new Val(unsigned(timer_mgr->Size()), TYPE_COUNT));
-	r->Assign(n++, new Val(unsigned(timer_mgr->PeakSize()), TYPE_COUNT));
-	r->Assign(n++, new Val(timer_mgr->CumulativeNum(), TYPE_COUNT));
+	r->Assign(n++, val_mgr->Count(unsigned(timer_mgr->Size())));
+	r->Assign(n++, val_mgr->Count(unsigned(timer_mgr->PeakSize())));
+	r->Assign(n++, val_mgr->Count(timer_mgr->CumulativeNum()));
 
 	return r;
 	%}
@@ -300,7 +294,7 @@ function get_timer_stats%(%): TimerStats
 ##
 ## Returns: A record with file analysis statistics.
 ##
-## .. bro:see:: get_conn_stats
+## .. zeek:see:: get_conn_stats
 ##              get_dns_stats
 ##              get_event_stats
 ##              get_gap_stats
@@ -314,12 +308,12 @@ function get_timer_stats%(%): TimerStats
 ##              get_reporter_stats
 function get_file_analysis_stats%(%): FileAnalysisStats
 	%{
-	RecordVal* r = new RecordVal(FileAnalysisStats);
+	auto r = make_intrusive<RecordVal>(FileAnalysisStats);
 	int n = 0;
 
-	r->Assign(n++, new Val(file_mgr->CurrentFiles(), TYPE_COUNT));
-	r->Assign(n++, new Val(file_mgr->MaxFiles(), TYPE_COUNT));
-	r->Assign(n++, new Val(file_mgr->CumulativeFiles(), TYPE_COUNT));
+	r->Assign(n++, val_mgr->Count(file_mgr->CurrentFiles()));
+	r->Assign(n++, val_mgr->Count(file_mgr->MaxFiles()));
+	r->Assign(n++, val_mgr->Count(file_mgr->CumulativeFiles()));
 
 	return r;
 	%}
@@ -328,7 +322,7 @@ function get_file_analysis_stats%(%): FileAnalysisStats
 ##
 ## Returns: A record with thread usage statistics.
 ##
-## .. bro:see:: get_conn_stats
+## .. zeek:see:: get_conn_stats
 ##              get_dns_stats
 ##              get_event_stats
 ##              get_file_analysis_stats
@@ -342,10 +336,10 @@ function get_file_analysis_stats%(%): FileAnalysisStats
 ##              get_reporter_stats
 function get_thread_stats%(%): ThreadStats
 	%{
-	RecordVal* r = new RecordVal(ThreadStats);
+	auto r = make_intrusive<RecordVal>(ThreadStats);
 	int n = 0;
 
-	r->Assign(n++, new Val(thread_mgr->NumThreads(), TYPE_COUNT));
+	r->Assign(n++, val_mgr->Count(thread_mgr->NumThreads()));
 
 	return r;
 	%}
@@ -354,7 +348,7 @@ function get_thread_stats%(%): ThreadStats
 ##
 ## Returns: A record with TCP gap statistics.
 ##
-## .. bro:see:: get_conn_stats
+## .. zeek:see:: get_conn_stats
 ##              get_dns_stats
 ##              get_event_stats
 ##              get_file_analysis_stats
@@ -368,13 +362,13 @@ function get_thread_stats%(%): ThreadStats
 ##              get_reporter_stats
 function get_gap_stats%(%): GapStats
 	%{
-	RecordVal* r = new RecordVal(GapStats);
+	auto r = make_intrusive<RecordVal>(GapStats);
 	int n = 0;
 
-	r->Assign(n++, new Val(tot_ack_events, TYPE_COUNT));
-	r->Assign(n++, new Val(tot_ack_bytes, TYPE_COUNT));
-	r->Assign(n++, new Val(tot_gap_events, TYPE_COUNT));
-	r->Assign(n++, new Val(tot_gap_bytes, TYPE_COUNT));
+	r->Assign(n++, val_mgr->Count(tot_ack_events));
+	r->Assign(n++, val_mgr->Count(tot_ack_bytes));
+	r->Assign(n++, val_mgr->Count(tot_gap_events));
+	r->Assign(n++, val_mgr->Count(tot_gap_bytes));
 
 	return r;
 	%}
@@ -386,7 +380,7 @@ function get_gap_stats%(%): GapStats
 ##
 ## Returns: A record with matcher statistics.
 ##
-## .. bro:see:: get_conn_stats
+## .. zeek:see:: get_conn_stats
 ##              get_dns_stats
 ##              get_event_stats
 ##              get_file_analysis_stats
@@ -400,7 +394,7 @@ function get_gap_stats%(%): GapStats
 ##              get_reporter_stats
 function get_matcher_stats%(%): MatcherStats
 	%{
-	RecordVal* r = new RecordVal(MatcherStats);
+	auto r = make_intrusive<RecordVal>(MatcherStats);
 	int n = 0;
 
 	RuleMatcher::Stats s;
@@ -408,13 +402,13 @@ function get_matcher_stats%(%): MatcherStats
 	if ( rule_matcher )
 		rule_matcher->GetStats(&s);
 
-	r->Assign(n++, new Val(s.matchers, TYPE_COUNT));
-	r->Assign(n++, new Val(s.nfa_states, TYPE_COUNT));
-	r->Assign(n++, new Val(s.dfa_states, TYPE_COUNT));
-	r->Assign(n++, new Val(s.computed, TYPE_COUNT));
-	r->Assign(n++, new Val(s.mem, TYPE_COUNT));
-	r->Assign(n++, new Val(s.hits, TYPE_COUNT));
-	r->Assign(n++, new Val(s.misses, TYPE_COUNT));
+	r->Assign(n++, val_mgr->Count(s.matchers));
+	r->Assign(n++, val_mgr->Count(s.nfa_states));
+	r->Assign(n++, val_mgr->Count(s.dfa_states));
+	r->Assign(n++, val_mgr->Count(s.computed));
+	r->Assign(n++, val_mgr->Count(s.mem));
+	r->Assign(n++, val_mgr->Count(s.hits));
+	r->Assign(n++, val_mgr->Count(s.misses));
 
 	return r;
 	%}
@@ -423,7 +417,7 @@ function get_matcher_stats%(%): MatcherStats
 ##
 ## Returns: A record with Broker statistics.
 ##
-## .. bro:see:: get_conn_stats
+## .. zeek:see:: get_conn_stats
 ##              get_dns_stats
 ##              get_event_stats
 ##              get_file_analysis_stats
@@ -438,19 +432,19 @@ function get_matcher_stats%(%): MatcherStats
 ##              get_reporter_stats
 function get_broker_stats%(%): BrokerStats
 	%{
-	RecordVal* r = new RecordVal(BrokerStats);
+	auto r = make_intrusive<RecordVal>(BrokerStats);
 	int n = 0;
-	
+
 	auto cs = broker_mgr->GetStatistics();
-	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_peers), TYPE_COUNT));
-	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_stores), TYPE_COUNT));
-	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_pending_queries), TYPE_COUNT));
-	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_events_incoming), TYPE_COUNT));
-	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_events_outgoing), TYPE_COUNT));
-	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_logs_incoming), TYPE_COUNT));
-	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_logs_outgoing), TYPE_COUNT));
-	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_ids_incoming), TYPE_COUNT));
-	r->Assign(n++, new Val(static_cast<uint64_t>(cs.num_ids_outgoing), TYPE_COUNT));
+	r->Assign(n++, val_mgr->Count(static_cast<uint64_t>(cs.num_peers)));
+	r->Assign(n++, val_mgr->Count(static_cast<uint64_t>(cs.num_stores)));
+	r->Assign(n++, val_mgr->Count(static_cast<uint64_t>(cs.num_pending_queries)));
+	r->Assign(n++, val_mgr->Count(static_cast<uint64_t>(cs.num_events_incoming)));
+	r->Assign(n++, val_mgr->Count(static_cast<uint64_t>(cs.num_events_outgoing)));
+	r->Assign(n++, val_mgr->Count(static_cast<uint64_t>(cs.num_logs_incoming)));
+	r->Assign(n++, val_mgr->Count(static_cast<uint64_t>(cs.num_logs_outgoing)));
+	r->Assign(n++, val_mgr->Count(static_cast<uint64_t>(cs.num_ids_incoming)));
+	r->Assign(n++, val_mgr->Count(static_cast<uint64_t>(cs.num_ids_outgoing)));
 
 	return r;
 	%}
@@ -459,7 +453,7 @@ function get_broker_stats%(%): BrokerStats
 ##
 ## Returns: A record with reporter statistics.
 ##
-## .. bro:see:: get_conn_stats
+## .. zeek:see:: get_conn_stats
 ##              get_dns_stats
 ##              get_event_stats
 ##              get_file_analysis_stats
@@ -473,19 +467,18 @@ function get_broker_stats%(%): BrokerStats
 ##              get_broker_stats
 function get_reporter_stats%(%): ReporterStats
 	%{
-	RecordVal* r = new RecordVal(ReporterStats);
+	auto r = make_intrusive<RecordVal>(ReporterStats);
 	int n = 0;
 
-	TableVal* weirds_by_type = new TableVal(internal_type("table_string_of_count")->AsTableType());
+	TableVal* weirds_by_type = new TableVal({NewRef{}, internal_type("table_string_of_count")->AsTableType()});
 
 	for ( auto& kv : reporter->GetWeirdsByType() )
 		{
-		Val* weird = new StringVal(kv.first);
-		weirds_by_type->Assign(weird, new Val(kv.second, TYPE_COUNT));
-		Unref(weird);
+		auto weird = make_intrusive<StringVal>(kv.first);
+		weirds_by_type->Assign(weird.get(), val_mgr->Count(kv.second));
 		}
 
-	r->Assign(n++, new Val(reporter->GetWeirdCount(), TYPE_COUNT));
+	r->Assign(n++, val_mgr->Count(reporter->GetWeirdCount()));
 	r->Assign(n++, weirds_by_type);
 
 	return r;

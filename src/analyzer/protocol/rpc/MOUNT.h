@@ -1,11 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_RPC_MOUNT_H
-#define ANALYZER_PROTOCOL_RPC_MOUNT_H
+#pragma once
 
 #include "RPC.h"
-#include "XDR.h"
-#include "Event.h"
 
 namespace analyzer { namespace rpc {
 
@@ -14,18 +11,18 @@ public:
 	explicit MOUNT_Interp(analyzer::Analyzer* arg_analyzer) : RPC_Interpreter(arg_analyzer) { }
 
 protected:
-	int RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n) override;
-	int RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
+	bool RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n) override;
+	bool RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 				const u_char*& buf, int& n, double start_time,
 				double last_time, int reply_len) override;
 
-	// Returns a new val_list that already has a conn_val, rpc_status and
+	// Returns a new arg list that already has a conn_val, rpc_status and
 	// mount_status. These are the first parameters for each mount_* event
 	// ...
-	val_list* event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_status,
+	zeek::Args event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_status,
 				BifEnum::MOUNT3::status_t mount_status,
 				double rep_start_time, double rep_last_time,
-				int reply_len);
+				int reply_len, int extra_elements);
 
 	// These methods parse the appropriate MOUNTv3 "type" out of buf. If
 	// there are any errors (i.e., buffer to short, etc), buf will be set
@@ -51,5 +48,3 @@ public:
 
 
 } } // namespace analyzer::*
-
-#endif

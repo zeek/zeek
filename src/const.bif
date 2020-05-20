@@ -1,6 +1,6 @@
-##! Declaration of various scripting-layer constants that the Bro core uses
+##! Declaration of various scripting-layer constants that the Zeek core uses
 ##! internally.  Documentation and default values for the scripting-layer
-##! variables themselves are found in :doc:`/scripts/base/init-bare.bro`.
+##! variables themselves are found in :doc:`/scripts/base/init-bare.zeek`.
 
 const ignore_keep_alive_rexmit: bool;
 const skip_http_data: bool;
@@ -8,6 +8,7 @@ const use_conn_size_analyzer: bool;
 const detect_filtered_trace: bool;
 const report_gaps_for_partial: bool;
 const exit_only_after_terminate: bool;
+const digest_salt: string;
 
 const NFS3::return_data: bool;
 const NFS3::return_data_max: count;
@@ -22,5 +23,6 @@ const Tunnel::enable_gre: bool;
 const Tunnel::delay_teredo_confirmation: bool;
 const Tunnel::delay_gtp_confirmation: bool;
 const Tunnel::ip_tunnel_timeout: interval;
+const Tunnel::validate_vxlan_checksums: bool;
 
 const Threading::heartbeat_interval: interval;

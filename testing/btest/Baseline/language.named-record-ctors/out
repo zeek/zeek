@@ -3,7 +3,7 @@
 [aaa=1, bbb=test, ccc=<uninitialized>, ddd=default]
 {
 [Java] = {
-[min=<uninitialized>, max=[major=1, minor=6, minor2=0, minor3=44, addl=<uninitialized>]],
-[min=[major=1, minor=7, minor2=<uninitialized>, minor3=<uninitialized>, addl=<uninitialized>], max=[major=1, minor=7, minor2=0, minor3=20, addl=<uninitialized>]]
+[min=[major=1, minor=7, minor2=<uninitialized>, minor3=<uninitialized>, addl=<uninitialized>], max=[major=1, minor=7, minor2=0, minor3=20, addl=<uninitialized>]],
+[min=<uninitialized>, max=[major=1, minor=6, minor2=0, minor3=44, addl=<uninitialized>]]
 }
 }

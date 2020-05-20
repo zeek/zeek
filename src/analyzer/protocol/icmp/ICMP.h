@@ -1,10 +1,12 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_ICMP_ICMP_H
-#define ANALYZER_PROTOCOL_ICMP_ICMP_H
+#pragma once
 
 #include "RuleMatcher.h"
 #include "analyzer/Analyzer.h"
+#include "net_util.h"
+
+class VectorVal;
 
 namespace analyzer { namespace icmp {
 
@@ -15,7 +17,7 @@ typedef enum {
 
 // We do not have an PIA for ICMP (yet) and therefore derive from
 // RuleMatcherState to perform our own matching.
-class ICMP_Analyzer : public analyzer::TransportLayerAnalyzer {
+class ICMP_Analyzer final : public analyzer::TransportLayerAnalyzer {
 public:
 	explicit ICMP_Analyzer(Connection* conn);
 
@@ -27,7 +29,7 @@ public:
 protected:
 	void Done() override;
 	void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const IP_Hdr* ip, int caplen) override;
 	bool IsReuse(double t, const u_char* pkt) override;
 	unsigned int MemoryAllocation() const override;
 
@@ -60,8 +62,8 @@ protected:
 	void Context4(double t, const struct icmp* icmpp, int len, int caplen,
 			const u_char*& data, const IP_Hdr* ip_hdr);
 
-	TransportProto GetContextProtocol(const IP_Hdr* ip_hdr, uint32* src_port,
-			uint32* dst_port);
+	TransportProto GetContextProtocol(const IP_Hdr* ip_hdr, uint32_t* src_port,
+			uint32_t* dst_port);
 
 	void NextICMP6(double t, const struct icmp* icmpp, int len, int caplen,
 			const u_char*& data, const IP_Hdr* ip_hdr );
@@ -82,7 +84,7 @@ protected:
 	RuleMatcherState matcher_state;
 
 private:
-	void UpdateEndpointVal(RecordVal* endp, int is_orig);
+	void UpdateEndpointVal(RecordVal* endp, bool is_orig);
 };
 
 // Returns the counterpart type to the given type (e.g., the counterpart
@@ -90,6 +92,4 @@ private:
 extern int ICMP4_counterpart(int icmp_type, int icmp_code, bool& is_one_way);
 extern int ICMP6_counterpart(int icmp_type, int icmp_code, bool& is_one_way);
 
-} } // namespace analyzer::* 
-
-#endif
+} } // namespace analyzer::*

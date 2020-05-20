@@ -1,55 +1,81 @@
 #include "PacketFilter.h"
+#include "IP.h"
 
-void PacketFilter::AddSrc(const IPAddr& src, uint32 tcp_flags, double probability)
+void PacketFilter::DeleteFilter(void* data)
 	{
-	Filter* f = new Filter;
-	f->tcp_flags = tcp_flags;
-	f->probability = uint32(probability * RAND_MAX);
-	src_filter.Insert(src, 128, f);
+	auto f = static_cast<Filter*>(data);
+	delete f;
 	}
 
-void PacketFilter::AddSrc(Val* src, uint32 tcp_flags, double probability)
+PacketFilter::PacketFilter(bool arg_default)
 	{
-	Filter* f = new Filter;
-	f->tcp_flags = tcp_flags;
-	f->probability = uint32(probability * RAND_MAX);
-	src_filter.Insert(src, f);
+	default_match = arg_default;
+	src_filter.SetDeleteFunction(PacketFilter::DeleteFilter);
+	dst_filter.SetDeleteFunction(PacketFilter::DeleteFilter);
 	}
 
-void PacketFilter::AddDst(const IPAddr& dst, uint32 tcp_flags, double probability)
+void PacketFilter::AddSrc(const IPAddr& src, uint32_t tcp_flags, double probability)
 	{
 	Filter* f = new Filter;
 	f->tcp_flags = tcp_flags;
-	f->probability = uint32(probability * RAND_MAX);
-	dst_filter.Insert(dst, 128, f);
+	f->probability = uint32_t(probability * RAND_MAX);
+	auto prev = static_cast<Filter*>(src_filter.Insert(src, 128, f));
+	delete prev;
 	}
 
-void PacketFilter::AddDst(Val* dst, uint32 tcp_flags, double probability)
+void PacketFilter::AddSrc(Val* src, uint32_t tcp_flags, double probability)
 	{
 	Filter* f = new Filter;
 	f->tcp_flags = tcp_flags;
-	f->probability = uint32(probability * RAND_MAX);
-	dst_filter.Insert(dst, f);
+	f->probability = uint32_t(probability * RAND_MAX);
+	auto prev = static_cast<Filter*>(src_filter.Insert(src, f));
+	delete prev;
+	}
+
+void PacketFilter::AddDst(const IPAddr& dst, uint32_t tcp_flags, double probability)
+	{
+	Filter* f = new Filter;
+	f->tcp_flags = tcp_flags;
+	f->probability = uint32_t(probability * RAND_MAX);
+	auto prev = static_cast<Filter*>(dst_filter.Insert(dst, 128, f));
+	delete prev;
+	}
+
+void PacketFilter::AddDst(Val* dst, uint32_t tcp_flags, double probability)
+	{
+	Filter* f = new Filter;
+	f->tcp_flags = tcp_flags;
+	f->probability = uint32_t(probability * RAND_MAX);
+	auto prev = static_cast<Filter*>(dst_filter.Insert(dst, f));
+	delete prev;
 	}
 
 bool PacketFilter::RemoveSrc(const IPAddr& src)
 	{
-	return src_filter.Remove(src, 128) != 0;
+	auto f = static_cast<Filter*>(src_filter.Remove(src, 128));
+	delete f;
+	return f != nullptr;
 	}
 
 bool PacketFilter::RemoveSrc(Val* src)
 	{
-	return src_filter.Remove(src) != NULL;
+	auto f = static_cast<Filter*>(src_filter.Remove(src));
+	delete f;
+	return f != nullptr;
 	}
 
 bool PacketFilter::RemoveDst(const IPAddr& dst)
 	{
-	return dst_filter.Remove(dst, 128) != NULL;
+	auto f = static_cast<Filter*>(dst_filter.Remove(dst, 128));
+	delete f;
+	return f != nullptr;
 	}
 
 bool PacketFilter::RemoveDst(Val* dst)
 	{
-	return dst_filter.Remove(dst) != NULL;
+	auto f = static_cast<Filter*>(dst_filter.Remove(dst));
+	delete f;
+	return f != nullptr;
 	}
 
 bool PacketFilter::Match(const IP_Hdr* ip, int len, int caplen)
@@ -87,5 +113,5 @@ bool PacketFilter::MatchFilter(const Filter& f, const IP_Hdr& ip,
 			return false;
 		}
 
-	return uint32(bro_random()) < f.probability;
+	return uint32_t(bro_random()) < f.probability;
 	}

@@ -1,5 +1,4 @@
-#ifndef ANALYZER_PROTOCOL_TEREDO_TEREDO_H
-#define ANALYZER_PROTOCOL_TEREDO_TEREDO_H
+#pragma once
 
 #include "analyzer/Analyzer.h"
 #include "NetVar.h"
@@ -7,7 +6,7 @@
 
 namespace analyzer { namespace teredo {
 
-class Teredo_Analyzer : public analyzer::Analyzer {
+class Teredo_Analyzer final : public analyzer::Analyzer {
 public:
 	explicit Teredo_Analyzer(Connection* conn) : Analyzer("TEREDO", conn),
 	                                    valid_orig(false), valid_resp(false)
@@ -19,7 +18,7 @@ public:
 	void Done() override;
 
 	void DeliverPacket(int len, const u_char* data, bool orig,
-					uint64 seq, const IP_Hdr* ip, int caplen) override;
+					uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new Teredo_Analyzer(conn); }
@@ -56,7 +55,7 @@ protected:
 class TeredoEncapsulation {
 public:
 	explicit TeredoEncapsulation(const Teredo_Analyzer* ta)
-		: inner_ip(0), origin_indication(0), auth(0), analyzer(ta)
+		: inner_ip(nullptr), origin_indication(nullptr), auth(nullptr), analyzer(ta)
 		{}
 
 	/**
@@ -75,7 +74,7 @@ public:
 	const u_char* Authentication() const
 		{ return auth; }
 
-	RecordVal* BuildVal(const IP_Hdr* inner) const;
+	IntrusivePtr<RecordVal> BuildVal(const IP_Hdr* inner) const;
 
 protected:
 	bool DoParse(const u_char* data, int& len, bool found_orig, bool found_au);
@@ -89,6 +88,4 @@ protected:
 	const Teredo_Analyzer* analyzer;
 };
 
-} } // namespace analyzer::* 
-
-#endif
+} } // namespace analyzer::*

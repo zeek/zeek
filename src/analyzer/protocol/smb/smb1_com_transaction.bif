@@ -18,7 +18,7 @@
 ##
 ## data: content of the SMB_Data.Trans_Data field
 ##
-## .. bro:see:: smb1_message smb1_transaction2_request
+## .. zeek:see:: smb1_message smb1_transaction2_request
 event smb1_transaction_request%(c: connection, hdr: SMB1::Header, name: string, sub_cmd: count, parameters: string, data: string%);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`

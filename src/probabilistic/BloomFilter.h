@@ -1,25 +1,34 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef PROBABILISTIC_BLOOMFILTER_H
-#define PROBABILISTIC_BLOOMFILTER_H
+#pragma once
 
+#include <memory>
 #include <vector>
+#include <string>
+
+#include <broker/expected.hh>
+
 #include "BitVector.h"
 #include "Hasher.h"
+
+namespace broker { class data; }
 
 namespace probabilistic {
 
 class CounterVector;
 
+/** Types of derived BloomFilter classes. */
+enum BloomFilterType { Basic, Counting };
+
 /**
  * The abstract base class for Bloom filters.
  */
-class BloomFilter : public SerialObj {
+class BloomFilter {
 public:
 	/**
 	 * Destructor.
 	 */
-	~BloomFilter() override;
+	virtual ~BloomFilter();
 
 	/**
 	 * Adds an element to the Bloom filter.
@@ -69,30 +78,12 @@ public:
 	 * Returns a string with a representation of the Bloom filter's
 	 * internal state. This is for debugging/testing purposes only.
 	 */
-	virtual string InternalState() const = 0;
+	virtual std::string InternalState() const = 0;
 
-	/**
-	 * Serializes the Bloom filter.
-	 *
-	 * @param info The serializaton information to use.
-	 *
-	 * @return True if successful.
-	 */
-	bool Serialize(SerialInfo* info) const;
-
-	/**
-	 * Unserializes a Bloom filter.
-	 *
-	 * @param info The serializaton information to use.
-	 *
-	 * @return The unserialized Bloom filter, or null if an error
-	 * occured.
-	 */
-	static BloomFilter* Unserialize(UnserialInfo* info);
+	broker::expected<broker::data> Serialize() const;
+	static std::unique_ptr<BloomFilter> Unserialize(const broker::data& data);
 
 protected:
-	DECLARE_ABSTRACT_SERIAL(BloomFilter);
-
 	/**
 	 * Default constructor.
 	 */
@@ -104,6 +95,10 @@ protected:
 	 * @param hasher The hasher to use for this Bloom filter.
 	 */
 	explicit BloomFilter(const Hasher* hasher);
+
+	virtual broker::expected<broker::data> DoSerialize() const = 0;
+	virtual bool DoUnserialize(const broker::data& data) = 0;
+	virtual BloomFilterType Type() const = 0;
 
 	const Hasher* hasher;
 };
@@ -162,10 +157,10 @@ public:
 	void Clear() override;
 	bool Merge(const BloomFilter* other) override;
 	BasicBloomFilter* Clone() const override;
-	string InternalState() const override;
+	std::string InternalState() const override;
 
 protected:
-	DECLARE_SERIAL(BasicBloomFilter);
+	friend class BloomFilter;
 
 	/**
 	 * Default constructor.
@@ -175,6 +170,10 @@ protected:
 	// Overridden from BloomFilter.
 	void Add(const HashKey* key) override;
 	size_t Count(const HashKey* key) const override;
+	broker::expected<broker::data> DoSerialize() const override;
+	bool DoUnserialize(const broker::data& data) override;
+	BloomFilterType Type() const override
+		{ return BloomFilterType::Basic; }
 
 private:
 	BitVector* bits;
@@ -207,10 +206,10 @@ public:
 	void Clear() override;
 	bool Merge(const BloomFilter* other) override;
 	CountingBloomFilter* Clone() const override;
-	string InternalState() const override;
+	std::string InternalState() const override;
 
 protected:
-	DECLARE_SERIAL(CountingBloomFilter);
+	friend class BloomFilter;
 
 	/**
 	 * Default constructor.
@@ -220,11 +219,13 @@ protected:
 	// Overridden from BloomFilter.
 	void Add(const HashKey* key) override;
 	size_t Count(const HashKey* key) const override;
+	broker::expected<broker::data> DoSerialize() const override;
+	bool DoUnserialize(const broker::data& data) override;
+	BloomFilterType Type() const override
+		{ return BloomFilterType::Counting; }
 
 private:
 	CounterVector* cells;
 };
 
 }
-
-#endif

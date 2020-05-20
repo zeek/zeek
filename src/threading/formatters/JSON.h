@@ -1,7 +1,10 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef THREADING_FORMATTERS_JSON_H
-#define THREADING_FORMATTERS_JSON_H
+#pragma once
+
+#define RAPIDJSON_HAS_STDSTRING 1
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
 
 #include "../Formatter.h"
 
@@ -22,18 +25,22 @@ public:
 	JSON(threading::MsgThread* t, TimeFormat tf);
 	~JSON() override;
 
-	bool Describe(ODesc* desc, threading::Value* val, const string& name = "") const override;
+	bool Describe(ODesc* desc, threading::Value* val, const std::string& name = "") const override;
 	bool Describe(ODesc* desc, int num_fields, const threading::Field* const * fields,
 	                      threading::Value** vals) const override;
-	threading::Value* ParseValue(const string& s, const string& name, TypeTag type, TypeTag subtype = TYPE_ERROR) const override;
+	threading::Value* ParseValue(const std::string& s, const std::string& name, TypeTag type, TypeTag subtype = TYPE_ERROR) const override;
 
-	void SurroundingBraces(bool use_braces);
+	class NullDoubleWriter : public rapidjson::Writer<rapidjson::StringBuffer> {
+	public:
+		NullDoubleWriter(rapidjson::StringBuffer& stream) : rapidjson::Writer<rapidjson::StringBuffer>(stream) {}
+		bool Double(double d);
+	};
 
 private:
+	void BuildJSON(NullDoubleWriter& writer, Value* val, const std::string& name = "") const;
+
 	TimeFormat timestamps;
 	bool surrounding_braces;
 };
 
 }}
-
-#endif /* THREADING_FORMATTERS_JSON_H */

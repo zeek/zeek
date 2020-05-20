@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_SSH_SSH_H
-#define ANALYZER_PROTOCOL_SSH_SSH_H
+#pragma once
 
 #include "events.bif.h"
 
@@ -10,7 +9,7 @@
 
 namespace analyzer {
 	namespace SSH {
-		class SSH_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+		class SSH_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 
 		public:
 			explicit SSH_Analyzer(Connection* conn);
@@ -19,7 +18,7 @@ namespace analyzer {
 			// Overriden from Analyzer.
 			void Done() override;
 			void DeliverStream(int len, const u_char* data, bool orig) override;
-			void Undelivered(uint64 seq, int len, bool orig) override;
+			void Undelivered(uint64_t seq, int len, bool orig) override;
 
 			// Overriden from tcp::TCP_ApplicationAnalyzer.
 			void EndpointEOF(bool is_orig) override;
@@ -31,18 +30,18 @@ namespace analyzer {
 			binpac::SSH::SSH_Conn* interp;
 
 			void ProcessEncrypted(int len, bool orig);
+			void ProcessEncryptedSegment(int len, bool orig);
 
 			bool had_gap;
 
 			// Packet analysis stuff
 			bool auth_decision_made;
 			bool skipped_banner;
+			bool saw_encrypted_client_data;
 
 			int service_accept_size;
 			int userauth_failure_size;
 
-			};
-
-		}
+		};
 	}
-#endif
+}

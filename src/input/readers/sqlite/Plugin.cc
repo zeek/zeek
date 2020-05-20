@@ -5,16 +5,16 @@
 #include "SQLite.h"
 
 namespace plugin {
-namespace Bro_SQLiteReader {
+namespace Zeek_SQLiteReader {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::input::Component("SQLite", ::input::reader::SQLite::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::SQLiteReader";
+		config.name = "Zeek::SQLiteReader";
 		config.description = "SQLite input reader";
 		return config;
 		}

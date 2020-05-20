@@ -1,4 +1,4 @@
-Demo::Foo - A Foo test analyzer (dynamic, version 1.0)
+Demo::Foo - A Foo test analyzer (dynamic, version 1.0.0)
     [Analyzer] Foo (ANALYZER_FOO, enabled)
     [Event] foo_message
 

@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_MYSQL_MYSQL_H
-#define ANALYZER_PROTOCOL_MYSQL_MYSQL_H
+#pragma once
 
 #include "events.bif.h"
 #include "analyzer/protocol/tcp/TCP.h"
@@ -10,9 +9,7 @@
 
 namespace analyzer { namespace MySQL {
 
-class MySQL_Analyzer
-
-: public tcp::TCP_ApplicationAnalyzer {
+class MySQL_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 
 public:
 	explicit MySQL_Analyzer(Connection* conn);
@@ -22,7 +19,7 @@ public:
 	void Done() override;
 
 	void DeliverStream(int len, const u_char* data, bool orig) override;
-	void Undelivered(uint64 seq, int len, bool orig) override;
+	void Undelivered(uint64_t seq, int len, bool orig) override;
 
 	// Overriden from tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
@@ -36,5 +33,3 @@ protected:
 };
 
 } } // namespace analyzer::*
-
-#endif

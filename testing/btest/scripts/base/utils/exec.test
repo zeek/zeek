@@ -1,8 +1,8 @@
-# @TEST-EXEC: btest-bg-run bro bro -b ../exectest.bro
+# @TEST-EXEC: btest-bg-run zeek zeek -b ../exectest.zeek
 # @TEST-EXEC: btest-bg-wait 15
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff bro/.stdout
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff zeek/.stdout
 
-@TEST-START-FILE exectest.bro
+@TEST-START-FILE exectest.zeek
 
 @load base/utils/exec
 redef exit_only_after_terminate = T;
@@ -26,7 +26,7 @@ function test_cmd(label: string, cmd: Exec::Command)
 		}
 	}
 
-event bro_init()
+event zeek_init()
 	{
 	test_cmd("test1", [$cmd="bash ../somescript.sh",
 	                   $read_files=set("out1", "out2")]);

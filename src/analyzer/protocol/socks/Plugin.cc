@@ -1,21 +1,20 @@
 // See the file  in the main distribution directory for copyright.
 
-
-#include "plugin/Plugin.h"
-
 #include "SOCKS.h"
+#include "plugin/Plugin.h"
+#include "analyzer/Component.h"
 
 namespace plugin {
-namespace Bro_SOCKS {
+namespace Zeek_SOCKS {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("SOCKS", ::analyzer::socks::SOCKS_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::SOCKS";
+		config.name = "Zeek::SOCKS";
 		config.description = "SOCKS analyzer";
 		return config;
 		}

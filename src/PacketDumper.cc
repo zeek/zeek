@@ -1,14 +1,10 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-
-#include "bro-config.h"
-
-#include <assert.h>
-#include <stdlib.h>
-
-#include "Event.h"
-#include "Net.h"
+#include "zeek-config.h"
 #include "PacketDumper.h"
+#include "Reporter.h"
+#include "util.h"
+#include "iosource/PktDumper.h"
 
 PacketDumper::PacketDumper(pcap_dumper_t* arg_pkt_dump)
 	{

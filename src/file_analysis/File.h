@@ -1,22 +1,27 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef FILE_ANALYSIS_FILE_H
-#define FILE_ANALYSIS_FILE_H
+#pragma once
 
+#include <list>
 #include <string>
 #include <utility>
-#include <vector>
 
-#include "FileReassembler.h"
-#include "Conn.h"
-#include "Val.h"
-#include "Tag.h"
+#include "analyzer/Tag.h"
 #include "AnalyzerSet.h"
 #include "BroString.h"
+#include "BroList.h" // for val_list
+#include "ZeekArgs.h"
+#include "WeirdState.h"
+
+class Connection;
+class RecordType;
+class RecordVal;
+class EventHandlerPtr;
 
 namespace file_analysis {
 
 class FileReassembler;
+class Tag;
 
 /**
  * Wrapper class around \c fa_file record values from script layer.
@@ -39,13 +44,13 @@ public:
 	 * @return the value of the "source" field from #val record or an empty
 	 * string if it's not initialized.
 	 */
-	string GetSource() const;
+	std::string GetSource() const;
 
 	/**
 	 * Set the "source" field from #val record to \a source.
 	 * @param source the new value of the "source" field.
 	 */
-	void SetSource(const string& source);
+	void SetSource(const std::string& source);
 
 	/**
 	 * @return value (seconds) of the "timeout_interval" field from #val record.
@@ -64,12 +69,12 @@ public:
 	 * @param bytes new limit.
 	 * @return false if no extraction analyzer is active, else true.
 	 */
-	bool SetExtractionLimit(RecordVal* args, uint64 bytes);
+	bool SetExtractionLimit(RecordVal* args, uint64_t bytes);
 
 	/**
 	 * @return value of the "id" field from #val record.
 	 */
-	string GetID() const { return id; }
+	std::string GetID() const { return id; }
 
 	/**
 	 * @return value of "last_active" field in #val record;
@@ -85,7 +90,7 @@ public:
 	 * Set "total_bytes" field of #val record to \a size.
 	 * @param size the new value of the "total_bytes" field.
 	 */
-	void SetTotalBytes(uint64 size);
+	void SetTotalBytes(uint64_t size);
 
 	/**
 	 * @return true if file analysis is complete for the file, else false.
@@ -130,14 +135,14 @@ public:
 	 * @param len number of bytes in the data chunk.
 	 * @param offset number of bytes from start of file at which chunk occurs.
 	 */
-	void DataIn(const u_char* data, uint64 len, uint64 offset);
+	void DataIn(const u_char* data, uint64_t len, uint64_t offset);
 
 	/**
 	 * Pass in sequential data and deliver to attached analyzers.
 	 * @param data pointer to start of a chunk of file data.
 	 * @param len number of bytes in the data chunk.
 	 */
-	void DataIn(const u_char* data, uint64 len);
+	void DataIn(const u_char* data, uint64_t len);
 
 	/**
 	 * Inform attached analyzers about end of file being seen.
@@ -149,7 +154,7 @@ public:
 	 * @param offset number of bytes in to file at which missing chunk starts.
 	 * @param len length in bytes of the missing chunk of file data.
 	 */
-	void Gap(uint64 offset, uint64 len);
+	void Gap(uint64_t offset, uint64_t len);
 
 	/**
 	 * @param h pointer to an event handler.
@@ -169,8 +174,23 @@ public:
 	 * @param h pointer to an event handler.
 	 * @param vl list of argument values to pass to event call.
 	 */
+	[[deprecated("Remove in v4.1. Use zeek::Args overload instead.")]]
 	void FileEvent(EventHandlerPtr h, val_list* vl);
 
+	/**
+	 * Raises an event related to the file's life-cycle.
+	 * @param h pointer to an event handler.
+	 * @param vl list of argument values to pass to event call.
+	 */
+	[[deprecated("Remove in v4.1. Use zeek::Args overload instead.")]]
+	void FileEvent(EventHandlerPtr h, val_list vl);
+
+	/**
+	 * Raises an event related to the file's life-cycle.
+	 * @param h pointer to an event handler.
+	 * @param args list of argument values to pass to event call.
+	 */
+	void FileEvent(EventHandlerPtr h, zeek::Args args);
 
 	/**
 	 * Sets the MIME type for a file to a specific value.
@@ -190,7 +210,14 @@ public:
 	 * @return true if the mime type was set. False if it could not be set because
 	 *         a mime type was already set or inferred.
 	 */
-	bool SetMime(const string& mime_type);
+	bool SetMime(const std::string& mime_type);
+
+	/**
+	 * Whether to permit a weird to carry on through the full reporter/weird
+	 * framework.
+	 */
+	bool PermitWeird(const char* name, uint64_t threshold, uint64_t rate,
+	                 double duration);
 
 protected:
 	friend class Manager;
@@ -207,7 +234,7 @@ protected:
 	 *        of the connection to the responder.  False indicates the other
 	 *        direction.
 	 */
-	File(const string& file_id, const string& source_name, Connection* conn = 0,
+	File(const std::string& file_id, const std::string& source_name, Connection* conn = nullptr,
 	     analyzer::Tag tag = analyzer::Tag::Error, bool is_orig = false);
 
 	/**
@@ -229,7 +256,7 @@ protected:
 	 * @param size number of bytes by which to increment.
 	 * @param field_idx the index of the field in \c fa_file to increment.
 	 */
-	void IncrementByteCount(uint64 size, int field_idx);
+	void IncrementByteCount(uint64_t size, int field_idx);
 
 	/**
 	 * Wrapper to RecordVal::LookupWithDefault for the field in #val at index
@@ -237,7 +264,7 @@ protected:
 	 * @param idx the index of a field of type "count" in \c fa_file.
 	 * @return the value of the field, which may be it &default.
 	 */
-	uint64 LookupFieldDefaultCount(int idx) const;
+	uint64_t LookupFieldDefaultCount(int idx) const;
 
 	/**
 	 * Wrapper to RecordVal::LookupWithDefault for the field in #val at index
@@ -253,7 +280,7 @@ protected:
 	 * @param len number of bytes in the data chunk.
 	 * @return true if buffering is still required, else false
 	 */
-	bool BufferBOF(const u_char* data, uint64 len);
+	bool BufferBOF(const u_char* data, uint64_t len);
 
 	/**
 	 * Does metadata inference (e.g. mime type detection via file
@@ -277,17 +304,17 @@ protected:
 	/**
 	 * Set a maximum allowed bytes of memory for file reassembly for this file.
 	 */
-	void SetReassemblyBuffer(uint64 max);
+	void SetReassemblyBuffer(uint64_t max);
 
 	/**
 	 * Perform stream-wise delivery for analyzers that need it.
 	 */
-	void DeliverStream(const u_char* data, uint64 len);
+	void DeliverStream(const u_char* data, uint64_t len);
 
-	/** 
+	/**
 	 * Perform chunk-wise delivery for analyzers that need it.
 	 */
-	void DeliverChunk(const u_char* data, uint64 len, uint64 offset);
+	void DeliverChunk(const u_char* data, uint64_t len, uint64_t offset);
 
 	/**
 	 * Lookup a record field index/offset by name.
@@ -295,7 +322,7 @@ protected:
 	 * @param type the record type for which the field will be looked up.
 	 * @return the field offset in #val record corresponding to \a field_name.
 	 */
-	static int Idx(const string& field_name, const RecordType* type);
+	static int Idx(const std::string& field_name, const RecordType* type);
 
 	/**
 	 * Initializes static member.
@@ -303,11 +330,11 @@ protected:
 	static void StaticInit();
 
 protected:
-	string id;                 /**< A pretty hash that likely identifies file */
+	std::string id;                 /**< A pretty hash that likely identifies file */
 	RecordVal* val;            /**< \c fa_file from script layer. */
 	FileReassembler* file_reassembler; /**< A reassembler for the file if it's needed. */
-	uint64 stream_offset;      /**< The offset of the file which has been forwarded. */
-	uint64 reassembly_max_buffer;      /**< Maximum allowed buffer for reassembly. */
+	uint64_t stream_offset;      /**< The offset of the file which has been forwarded. */
+	uint64_t reassembly_max_buffer;      /**< Maximum allowed buffer for reassembly. */
 	bool did_metadata_inference;        /**< Whether the metadata inference has already been attempted. */
 	bool reassembly_enabled;           /**< Whether file stream reassembly is needed. */
 	bool postpone_timeout;     /**< Whether postponing timeout is requested. */
@@ -321,9 +348,11 @@ protected:
 			{ for ( size_t i = 0; i < chunks.size(); ++i ) delete chunks[i]; }
 
 		bool full;
-		uint64 size;
+		uint64_t size;
 		BroString::CVec chunks;
 	} bof_buffer;              /**< Beginning of file buffer. */
+
+	WeirdStateMap weird_state;
 
 	static int id_idx;
 	static int parent_id_idx;
@@ -347,5 +376,3 @@ protected:
 };
 
 } // namespace file_analysis
-
-#endif

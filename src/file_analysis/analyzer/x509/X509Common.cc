@@ -2,6 +2,7 @@
 
 #include "X509Common.h"
 #include "x509-extension_pac.h"
+#include "Reporter.h"
 
 #include "events.bif.h"
 #include "ocsp_events.bif.h"
@@ -15,14 +16,21 @@
 
 using namespace file_analysis;
 
-X509Common::X509Common(file_analysis::Tag arg_tag, RecordVal* arg_args, File* arg_file)
+X509Common::X509Common(const file_analysis::Tag& arg_tag, RecordVal* arg_args, File* arg_file)
 	: file_analysis::Analyzer(arg_tag, arg_args, arg_file)
 	{
 	}
 
-double X509Common::GetTimeFromAsn1(const ASN1_TIME* atime, const char* arg_fid, Reporter* reporter)
+static void EmitWeird(const char* name, File* file, const char* addl = "")
 	{
-	const char *fid = arg_fid ? arg_fid : "";
+	if ( file )
+		reporter->Weird(file, name, addl);
+	else
+		reporter->Weird(name);
+	}
+
+double X509Common::GetTimeFromAsn1(const ASN1_TIME* atime, File* f, Reporter* reporter)
+	{
 	time_t lResult = 0;
 
 	char lBuffer[26];
@@ -35,14 +43,14 @@ double X509Common::GetTimeFromAsn1(const ASN1_TIME* atime, const char* arg_fid, 
 		{
 		if ( remaining < 11 || remaining > 17 )
 			{
-			reporter->Weird(fmt("Could not parse time in X509 certificate (fuid %s) -- UTCTime has wrong length", fid));
+			EmitWeird("x509_utc_length", f);
 			return 0;
 			}
 
 		if ( pString[remaining-1] != 'Z' )
 			{
 			// not valid according to RFC 2459 4.1.2.5.1
-			reporter->Weird(fmt("Could not parse UTC time in non-YY-format in X509 certificate (x509 %s)", fid));
+			EmitWeird("x509_utc_format", f);
 			return 0;
 			}
 
@@ -71,7 +79,7 @@ double X509Common::GetTimeFromAsn1(const ASN1_TIME* atime, const char* arg_fid, 
 
 		if ( remaining < 12 || remaining > 23 )
 			{
-			reporter->Weird(fmt("Could not parse time in X509 certificate (fuid %s) -- Generalized time has wrong length", fid));
+			EmitWeird("x509_gen_time_length", f);
 			return 0;
 			}
 
@@ -82,7 +90,7 @@ double X509Common::GetTimeFromAsn1(const ASN1_TIME* atime, const char* arg_fid, 
 		}
 	else
 		{
-		reporter->Weird(fmt("Invalid time type in X509 certificate (fuid %s)", fid));
+		EmitWeird("x509_invalid_time_type", f);
 		return 0;
 		}
 
@@ -115,7 +123,7 @@ double X509Common::GetTimeFromAsn1(const ASN1_TIME* atime, const char* arg_fid, 
 
 	else
 		{
-		reporter->Weird(fmt("Could not parse time in X509 certificate (fuid %s) -- additional char after time", fid));
+		EmitWeird("x509_time_add_char", f);
 		return 0;
 		}
 
@@ -130,13 +138,13 @@ double X509Common::GetTimeFromAsn1(const ASN1_TIME* atime, const char* arg_fid, 
 		{
 		if ( remaining < 5 )
 			{
-			reporter->Weird(fmt("Could not parse time in X509 certificate (fuid %s) -- not enough bytes remaining for offset", fid));
+			EmitWeird("x509_time_offset_underflow", f);
 			return 0;
 			}
 
 		if ((*pString != '+') && (*pString != '-'))
 			{
-			reporter->Weird(fmt("Could not parse time in X509 certificate (fuid %s) -- unknown offset type", fid));
+			EmitWeird("x509_time_offset_type", f);
 			return 0;
 			}
 
@@ -222,7 +230,7 @@ void file_analysis::X509Common::ParseSignedCertificateTimestamps(X509_EXTENSION*
 	delete conn;
 	}
 
-void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, EventHandlerPtr h, bool global)
+void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, const EventHandlerPtr& h, bool global)
 	{
 	char name[256];
 	char oid[256];
@@ -249,19 +257,26 @@ void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, EventHandlerP
 			}
 		}
 
-	StringVal* ext_val = GetExtensionFromBIO(bio);
+	auto ext_val = GetExtensionFromBIO(bio, GetFile());
+
+	if ( ! h )
+		{
+		// let individual analyzers parse more.
+		ParseExtensionsSpecific(ex, global, ext_asn, oid);
+		return;
+		}
 
 	if ( ! ext_val )
-		ext_val = new StringVal(0, "");
+		ext_val = make_intrusive<StringVal>(0, "");
 
-	RecordVal* pX509Ext = new RecordVal(BifType::Record::X509::Extension);
-	pX509Ext->Assign(0, new StringVal(name));
+	auto pX509Ext = make_intrusive<RecordVal>(BifType::Record::X509::Extension);
+	pX509Ext->Assign(0, make_intrusive<StringVal>(name));
 
 	if ( short_name and strlen(short_name) > 0 )
-		pX509Ext->Assign(1, new StringVal(short_name));
+		pX509Ext->Assign(1, make_intrusive<StringVal>(short_name));
 
-	pX509Ext->Assign(2, new StringVal(oid));
-	pX509Ext->Assign(3, new Val(critical, TYPE_BOOL));
+	pX509Ext->Assign(2, make_intrusive<StringVal>(oid));
+	pX509Ext->Assign(3, val_mgr->Bool(critical));
 	pX509Ext->Assign(4, ext_val);
 
 	// send off generic extension event
@@ -270,19 +285,20 @@ void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, EventHandlerP
 	// parsed. And if we have it, we send the specialized event on top of the
 	// generic event that we just had. I know, that is... kind of not nice,
 	// but I am not sure if there is a better way to do it...
-	val_list* vl = new val_list();
-	vl->append(GetFile()->GetVal()->Ref());
-	vl->append(pX509Ext);
-	if ( h == ocsp_extension )
-		vl->append(new Val(global ? 1 : 0, TYPE_BOOL));
 
-	mgr.QueueEvent(h, vl);
+	if ( h == ocsp_extension )
+		mgr.Enqueue(h, IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+					std::move(pX509Ext),
+					val_mgr->Bool(global));
+	else
+		mgr.Enqueue(h, IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+		            std::move(pX509Ext));
 
 	// let individual analyzers parse more.
 	ParseExtensionsSpecific(ex, global, ext_asn, oid);
 	}
 
-StringVal* file_analysis::X509Common::GetExtensionFromBIO(BIO* bio)
+IntrusivePtr<StringVal> file_analysis::X509Common::GetExtensionFromBIO(BIO* bio, File* f)
 	{
 	BIO_flush(bio);
 	ERR_clear_error();
@@ -292,15 +308,15 @@ StringVal* file_analysis::X509Common::GetExtensionFromBIO(BIO* bio)
 		{
 		char tmp[120];
 		ERR_error_string_n(ERR_get_error(), tmp, sizeof(tmp));
-		reporter->Weird(fmt("X509::GetExtensionFromBIO: %s", tmp));
+		EmitWeird("x509_get_ext_from_bio", f, tmp);
 		BIO_free_all(bio);
-		return 0;
+		return nullptr;
 		}
 
 	if ( length == 0 )
 		{
 		BIO_free_all(bio);
-		return new StringVal("");
+		return val_mgr->EmptyString();
 		}
 
 	char* buffer = (char*) malloc(length);
@@ -311,11 +327,11 @@ StringVal* file_analysis::X509Common::GetExtensionFromBIO(BIO* bio)
 		// because it's unclear the length value is very reliable.
 		reporter->Error("X509::GetExtensionFromBIO malloc(%d) failed", length);
 		BIO_free_all(bio);
-		return 0;
+		return nullptr;
 		}
 
 	BIO_read(bio, (void*) buffer, length);
-	StringVal* ext_val = new StringVal(length, buffer);
+	auto ext_val = make_intrusive<StringVal>(length, buffer);
 
 	free(buffer);
 	BIO_free_all(bio);

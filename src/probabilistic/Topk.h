@@ -1,22 +1,22 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef topk_h
-#define topk_h
+#pragma once
 
 #include <list>
 #include "Val.h"
-#include "CompHash.h"
 #include "OpaqueVal.h"
 
 // This class implements the top-k algorithm. Or - to be more precise - an
 // interpretation of it.
+
+class CompositeHash;
 
 namespace probabilistic {
 
 struct Element;
 
 struct Bucket {
-	uint64 count;
+	uint64_t count;
 	std::list<Element*> elements;
 
 	// Iterators only get invalidated for removed elements. This one
@@ -26,14 +26,12 @@ struct Bucket {
 };
 
 struct Element {
-	uint64 epsilon;
+	uint64_t epsilon;
 	Val* value;
 	Bucket* parent;
 
 	~Element();
 };
-
-declare(PDict, Element);
 
 class TopkVal : public OpaqueVal {
 
@@ -45,7 +43,7 @@ public:
 	 *
 	 * @return A newly initialized TopkVal
 	 */
-	explicit TopkVal(uint64 size);
+	explicit TopkVal(uint64_t size);
 
 	/**
 	 * Destructor.
@@ -122,6 +120,17 @@ public:
 	 */
 	void Merge(const TopkVal* value, bool doPrune=false);
 
+	/**
+	 * Clone the Opaque Type
+	 *
+	 * @param state Clone state (tracking duplicate pointers)
+	 *
+	 * @returns cloned TopkVal
+	 */
+	IntrusivePtr<Val> DoClone(CloneState* state) override;
+
+	DECLARE_OPAQUE_VALUE(TopkVal)
+
 protected:
 	/**
 	 * Construct an empty TopkVal. Only used for deserialization
@@ -157,14 +166,10 @@ private:
 	BroType* type;
 	CompositeHash* hash;
 	std::list<Bucket*> buckets;
-	PDict(Element)* elementDict;
-	uint64 size; // how many elements are we tracking?
-	uint64 numElements; // how many elements do we have at the moment
+	PDict<Element>* elementDict;
+	uint64_t size; // how many elements are we tracking?
+	uint64_t numElements; // how many elements do we have at the moment
 	bool pruned; // was this data structure pruned?
-
-	DECLARE_SERIAL(TopkVal);
 };
 
 };
-
-#endif

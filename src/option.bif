@@ -7,21 +7,25 @@ module Option;
 #include "NetVar.h"
 #include "broker/Data.h"
 
-static bool call_option_handlers_and_set_value(StringVal* name, ID* i, Val* val,
+static bool call_option_handlers_and_set_value(StringVal* name, ID* i,
+                                               IntrusivePtr<Val> val,
                                                StringVal* location)
 	{
-	val->Ref();
 	if ( i->HasOptionHandlers() )
 		{
 		for ( auto handler_function : i->GetOptionHandlers() )
 			{
-			val_list vl(2);
-			vl.append(name->Ref());
-			vl.append(val);
-			if ( handler_function->FType()->AsFuncType()->ArgTypes()->Types()->length() == 3 )
-				vl.append(location->Ref());
+			bool add_loc = handler_function->FType()->AsFuncType()->ArgTypes()->Types()->length() == 3;
+			zeek::Args vl;
+			vl.reserve(2 + add_loc);
+			vl.emplace_back(NewRef{}, name);
+			vl.emplace_back(val);
 
-			val = handler_function->Call(&vl); // consumed by next call.
+			if ( add_loc )
+				vl.emplace_back(NewRef{}, location);
+
+			val = handler_function->Call(vl); // consumed by next call.
+
 			if ( ! val )
 				{
 				// Someone messed up, don't change value and just return
@@ -32,7 +36,6 @@ static bool call_option_handlers_and_set_value(StringVal* name, ID* i, Val* val,
 
 	// clone to prevent changes
 	i->SetVal(val->Clone());
-	Unref(val); // Either ref'd once or function call result.
 	return true;
 	}
 %%}
@@ -48,10 +51,10 @@ static bool call_option_handlers_and_set_value(StringVal* name, ID* i, Val* val,
 ##
 ## Returns: true on success, false when an error occurred.
 ##
-## .. bro:see:: Option::set_change_handler Config::set_value
+## .. zeek:see:: Option::set_change_handler Config::set_value
 ##
-## .. note:: :bro:id:`Option::set` only works on one node and does not distribute
-##           new values across a cluster. The higher-level :bro:id:`Config::set_value`
+## .. note:: :zeek:id:`Option::set` only works on one node and does not distribute
+##           new values across a cluster. The higher-level :zeek:id:`Config::set_value`
 ##           supports clusterization and should typically be used instead of this
 ##           lower-level function.
 function Option::set%(ID: string, val: any, location: string &default=""%): bool
@@ -60,20 +63,20 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 	if ( ! i )
 		{
 		builtin_error(fmt("Could not find ID named '%s'", ID->CheckString()));
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->False();
 		}
 
 	if ( ! i->HasVal() )
 		{
 		// should be impossible because initialization is enforced
 		builtin_error(fmt("ID '%s' has no value", ID->CheckString()));
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->False();
 		}
 
 	if ( ! i->IsOption() )
 		{
 		builtin_error(fmt("ID '%s' is not an option", ID->CheckString()));
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->False();
 		}
 
 	if ( same_type(val->Type(), bro_broker::DataVal::ScriptDataType()) )
@@ -85,27 +88,38 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 			{
 			builtin_error(fmt("Incompatible type for set of ID '%s': got broker data '%s', need '%s'",
 				ID->CheckString(), dv->data.get_type_name(), type_name(i->Type()->Tag())));
-			return new Val(0, TYPE_BOOL);
+			return val_mgr->False();
 			}
 
-		auto rval = call_option_handlers_and_set_value(ID, i, val_from_data, location);
-		Unref(val_from_data);
-		return new Val(rval, TYPE_BOOL);
+		auto rval = call_option_handlers_and_set_value(ID, i, std::move(val_from_data), location);
+		return val_mgr->Bool(rval);
 		}
 
 	if ( ! same_type(i->Type(), val->Type()) )
 		{
+		if ( i->Type()->Tag() == TYPE_TABLE &&
+		     val->Type()->Tag() == TYPE_TABLE &&
+		     val->Type()->AsTableType()->IsUnspecifiedTable() )
+			{
+			// Just coerce an empty/unspecified table to the right type.
+			auto tv = make_intrusive<TableVal>(
+			        IntrusivePtr{NewRef{}, i->Type()->AsTableType()},
+			        IntrusivePtr{NewRef{}, i->ID_Val()->AsTableVal()->Attrs()});
+			auto rval = call_option_handlers_and_set_value(ID, i, std::move(tv), location);
+			return val_mgr->Bool(rval);
+			}
+
 		builtin_error(fmt("Incompatible type for set of ID '%s': got '%s', need '%s'",
 			ID->CheckString(), type_name(val->Type()->Tag()), type_name(i->Type()->Tag())));
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->False();
 		}
 
-	auto rval = call_option_handlers_and_set_value(ID, i, val, location);
-	return new Val(rval, TYPE_BOOL);
+	auto rval = call_option_handlers_and_set_value(ID, i, {NewRef{}, val}, location);
+	return val_mgr->Bool(rval);
 	%}
 
 ## Set a change handler for an option. The change handler will be
-## called anytime :bro:id:`Option::set` is called for the option.
+## called anytime :zeek:id:`Option::set` is called for the option.
 ##
 ## ID: The ID of the option for which change notifications are desired.
 ##
@@ -127,33 +141,33 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 ##
 ## Returns: true when the change handler was set, false when an error occurred.
 ##
-## .. bro:see:: Option::set
+## .. zeek:see:: Option::set
 function Option::set_change_handler%(ID: string, on_change: any, priority: int &default=0%): bool
 	%{
 	auto i = global_scope()->Lookup(ID->CheckString());
 	if ( ! i )
 		{
 		builtin_error(fmt("Could not find ID named '%s'", ID->CheckString()));
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->False();
 		}
 
 	if ( ! i->IsOption() )
 		{
 		builtin_error(fmt("ID '%s' is not an option", ID->CheckString()));
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->False();
 		}
 
 	if ( on_change->Type()->Tag() != TYPE_FUNC )
 		{
 		builtin_error(fmt("Option::on_change needs function argument; got '%s' for ID '%s'",
 			type_name(on_change->Type()->Tag()), ID->CheckString()));
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->False();
 		}
 
 	if ( on_change->Type()->AsFuncType()->Flavor() != FUNC_FLAVOR_FUNCTION )
 		{
 		builtin_error("Option::on_change needs function argument; not hook or event");
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->False();
 		}
 
 	const type_list* args = on_change->Type()->AsFuncType()->ArgTypes()->Types();
@@ -161,37 +175,38 @@ function Option::set_change_handler%(ID: string, on_change: any, priority: int &
 		{
 		builtin_error(fmt("Wrong number of arguments for passed function in Option::on_change for ID '%s'; expected 2 or 3, got %d",
 			ID->CheckString(), args->length()));
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->False();
 		}
 
 	if ( (*args)[0]->Tag() != TYPE_STRING )
 		{
 		builtin_error(fmt("First argument of passed function has to be string in Option::on_change for ID '%s'; got '%s'",
 			ID->CheckString(), type_name((*args)[0]->Tag())));
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->False();
 		}
 
 	if ( ! same_type((*args)[1], i->Type()) )
 		{
 		builtin_error(fmt("Second argument of passed function has to be %s in Option::on_change for ID '%s'; got '%s'",
 			type_name(i->Type()->Tag()), ID->CheckString(), type_name((*args)[1]->Tag())));
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->False();
 		}
 
 	if ( args->length() == 3 && (*args)[2]->Tag() != TYPE_STRING )
 		{
 		builtin_error(fmt("Third argument of passed function has to be string in Option::on_change for ID '%s'; got '%s'",
 			ID->CheckString(), type_name((*args)[2]->Tag())));
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->False();
 		}
 
 	if ( ! same_type(on_change->Type()->AsFuncType()->YieldType(), i->Type()) )
 		{
 		builtin_error(fmt("Passed function needs to return type '%s' for ID '%s'; got '%s'",
 			type_name(i->Type()->Tag()), ID->CheckString(), type_name(on_change->Type()->AsFuncType()->YieldType()->Tag())));
-		return new Val(0, TYPE_BOOL);
+		return val_mgr->False();
 		}
 
-	i->AddOptionHandler(on_change->Ref()->AsFunc(), -priority);
-	return new Val(1, TYPE_BOOL);
+	auto* func = on_change->AsFunc();
+	i->AddOptionHandler({NewRef{}, func}, -priority);
+	return val_mgr->True();
 	%}

@@ -1,16 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef IOSOURCE_PKTSRC_PKTSRC_H
-#define IOSOURCE_PKTSRC_PKTSRC_H
+#pragma once
 
 #include <vector>
 
 #include "IOSource.h"
-#include "BPF_Program.h"
-#include "Dict.h"
 #include "Packet.h"
 
-declare(PDict,BPF_Program);
+#include <sys/types.h> // for u_char
+
+struct pcap_pkthdr;
+class BPF_Program;
 
 namespace iosource {
 
@@ -28,23 +28,23 @@ public:
 		/**
 		 * Packets received by source after filtering (w/o drops).
 		 */
-		uint64 received;
+		uint64_t received;
 
 		/**
 		 * Packets dropped by source.
 		 */
-		uint64 dropped;	// pkts dropped
+		uint64_t dropped;	// pkts dropped
 
 		/**
 		 * Total number of packets on link before filtering.
 		 * Optional, can be left unset if not available.
 		 */
-		uint64 link;
+		uint64_t link;
 
 		/**
 		  * Bytes received by source after filtering (w/o drops).
 		*/
-		uint64 bytes_received;
+		uint64_t bytes_received;
 
 		Stats()	{ received = dropped = link = bytes_received = 0; }
 	};
@@ -79,7 +79,7 @@ public:
 	 * Returns the netmask associated with the source, or \c
 	 * NETMASK_UNKNOWN if unknown.
 	 */
-	uint32 Netmask() const;
+	uint32_t Netmask() const;
 
 	/**
 	 * Returns true if the source has flagged an error.
@@ -207,8 +207,20 @@ public:
 	 */
 	virtual void Statistics(Stats* stats) = 0;
 
+	/**
+	 * Return the next timeout value for this source. This should be
+	 * overridden by source classes where they have a timeout value
+	 * that can wake up the poll.
+	 *
+	 * @return A value for the next time that the source thinks the
+	 * poll should time out in seconds from the current time. Return
+	 * -1 if this should should not be considered.
+	 */
+	virtual double GetNextTimeout() override;
+
 protected:
 	friend class Manager;
+	friend class ManagerBase;
 
 	// Methods to use by derived classes.
 
@@ -238,7 +250,7 @@ protected:
 		 * Returns the netmask associated with the source, or \c
 		 * NETMASK_UNKNOWN if unknown.
 		 */
-		uint32 netmask;
+		uint32_t netmask;
 
 		/**
 		 * True if the source is reading live inout, false for
@@ -345,11 +357,8 @@ private:
 	bool ExtractNextPacketInternal();
 
 	// IOSource interface implementation.
-	void Init() override;
+	void InitSource() override;
 	void Done() override;
-	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
-	                    iosource::FD_Set* except) override;
-	double NextTimestamp(double* local_network_time) override;
 	void Process() override;
 	const char* Tag() override;
 
@@ -372,5 +381,3 @@ private:
 };
 
 }
-
-#endif

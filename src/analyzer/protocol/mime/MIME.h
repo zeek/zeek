@@ -1,16 +1,17 @@
-#ifndef ANALYZER_PROTOCOL_MIME_MIME_H
-#define ANALYZER_PROTOCOL_MIME_MIME_H
+#pragma once
 
 #include <assert.h>
-#include <openssl/md5.h>
+#include <openssl/evp.h>
 #include <stdio.h>
 #include <vector>
 #include <queue>
-using namespace std;
 
-#include "Base64.h"
 #include "BroString.h"
+#include "Reporter.h"
 #include "analyzer/Analyzer.h"
+
+class StringVal;
+class Base64Converter;
 
 namespace analyzer { namespace mime {
 
@@ -59,7 +60,7 @@ public:
 	BroString* get_concatenated_line();
 
 protected:
-	vector<const BroString*> buffer;
+	std::vector<const BroString*> buffer;
 	BroString* line;
 };
 
@@ -84,15 +85,14 @@ protected:
 };
 
 
-// declare(PList, MIME_Header);
-typedef vector<MIME_Header*> MIME_HeaderList;
+using MIME_HeaderList = std::vector<MIME_Header*>;
 
 class MIME_Entity {
 public:
 	MIME_Entity(MIME_Message* output_message, MIME_Entity* parent_entity);
 	virtual ~MIME_Entity();
 
-	virtual void Deliver(int len, const char* data, int trailing_CRLF);
+	virtual void Deliver(int len, const char* data, bool trailing_CRLF);
 	virtual void EndOfData();
 
 	MIME_Entity* Parent() const { return parent; }
@@ -111,25 +111,25 @@ protected:
 
 	void ParseMIMEHeader(MIME_Header* h);
 	int LookupMIMEHeaderName(data_chunk_t name);
-	int ParseContentTypeField(MIME_Header* h);
-	int ParseContentEncodingField(MIME_Header* h);
-	int ParseFieldParameters(int len, const char* data);
+	bool ParseContentTypeField(MIME_Header* h);
+	bool ParseContentEncodingField(MIME_Header* h);
+	bool ParseFieldParameters(int len, const char* data);
 
 	void ParseContentType(data_chunk_t type, data_chunk_t sub_type);
 	void ParseContentEncoding(data_chunk_t encoding_mechanism);
 
 	void BeginBody();
-	void NewDataLine(int len, const char* data, int trailing_CRLF);
+	void NewDataLine(int len, const char* data, bool trailing_CRLF);
 
 	int CheckBoundaryDelimiter(int len, const char* data);
-	void DecodeDataLine(int len, const char* data, int trailing_CRLF);
-	void DecodeBinary(int len, const char* data, int trailing_CRLF);
+	void DecodeDataLine(int len, const char* data, bool trailing_CRLF);
+	void DecodeBinary(int len, const char* data, bool trailing_CRLF);
 	void DecodeQuotedPrintable(int len, const char* data);
 	void DecodeBase64(int len, const char* data);
 	void StartDecodeBase64();
 	void FinishDecodeBase64();
 
-	int GetDataBuffer();
+	bool GetDataBuffer();
 	void DataOctet(char ch);
 	void DataOctets(int len, const char* data);
 	void FlushData();
@@ -173,6 +173,7 @@ protected:
 
 	MIME_Message* message;
 	bool delay_adding_implicit_CRLF;
+	bool want_all_headers;
 };
 
 // The reason I separate MIME_Message as an abstract class is to
@@ -186,8 +187,8 @@ public:
 		// Cannot initialize top_level entity because we do
 		// not know its type yet (MIME_Entity / MIME_Mail /
 		// etc.).
-		top_level = 0;
-		finished = 0;
+		top_level = nullptr;
+		finished = false;
 		analyzer = arg_analyzer;
 		}
 
@@ -198,11 +199,11 @@ public:
 			  "missing MIME_Message::Done() call");
 		}
 
-	virtual void Done()	{ finished = 1; }
+	virtual void Done()	{ finished = true; }
 
-	int Finished() const	{ return finished; }
+	bool Finished() const	{ return finished; }
 
-	virtual void Deliver(int len, const char* data, int trailing_CRLF)
+	virtual void Deliver(int len, const char* data, bool trailing_CRLF)
 		{
 		top_level->Deliver(len, data, trailing_CRLF);
 		}
@@ -215,20 +216,20 @@ public:
 	virtual void SubmitHeader(MIME_Header* h) = 0;
 	virtual void SubmitAllHeaders(MIME_HeaderList& hlist) = 0;
 	virtual void SubmitData(int len, const char* buf) = 0;
-	virtual int RequestBuffer(int* plen, char** pbuf) = 0;
+	virtual bool RequestBuffer(int* plen, char** pbuf) = 0;
 	virtual void SubmitEvent(int event_type, const char* detail) = 0;
 
 protected:
 	analyzer::Analyzer* analyzer;
 
 	MIME_Entity* top_level;
-	int finished;
+	bool finished;
 
 	RecordVal* BuildHeaderVal(MIME_Header* h);
 	TableVal* BuildHeaderTable(MIME_HeaderList& hlist);
 };
 
-class MIME_Mail : public MIME_Message {
+class MIME_Mail final : public MIME_Message {
 public:
 	MIME_Mail(analyzer::Analyzer* mail_conn, bool is_orig, int buf_size = 0);
 	~MIME_Mail() override;
@@ -239,7 +240,7 @@ public:
 	void SubmitHeader(MIME_Header* h) override;
 	void SubmitAllHeaders(MIME_HeaderList& hlist) override;
 	void SubmitData(int len, const char* buf) override;
-	int RequestBuffer(int* plen, char** pbuf) override;
+	bool RequestBuffer(int* plen, char** pbuf) override;
 	void SubmitAllData();
 	void SubmitEvent(int event_type, const char* detail) override;
 	void Undelivered(int len);
@@ -252,25 +253,25 @@ protected:
 	int data_start;
 	int compute_content_hash;
 	int content_hash_length;
-	MD5_CTX md5_hash;
-	vector<const BroString*> entity_content;
-	vector<const BroString*> all_content;
+	EVP_MD_CTX* md5_hash;
+	std::vector<const BroString*> entity_content;
+	std::vector<const BroString*> all_content;
 
 	BroString* data_buffer;
 
-	uint64 cur_entity_len;
-	string cur_entity_id;
+	uint64_t cur_entity_len;
+	std::string cur_entity_id;
 };
 
 
-extern int is_null_data_chunk(data_chunk_t b);
+extern bool is_null_data_chunk(data_chunk_t b);
 extern StringVal* new_string_val(int length, const char* data);
 extern StringVal* new_string_val(const char* data, const char* end_of_data);
 extern StringVal* new_string_val(const data_chunk_t buf);
 extern int fputs(data_chunk_t b, FILE* fp);
 extern bool istrequal(data_chunk_t s, const char* t);
-extern int is_lws(char ch);
-extern int MIME_is_field_name_char(char ch);
+extern bool is_lws(char ch);
+extern bool MIME_is_field_name_char(char ch);
 extern int MIME_count_leading_lws(int len, const char* data);
 extern int MIME_count_trailing_lws(int len, const char* data);
 extern int MIME_skip_comments(int len, const char* data);
@@ -284,5 +285,3 @@ extern int MIME_get_field_name(int len, const char* data, data_chunk_t* name);
 extern BroString* MIME_decode_quoted_pairs(data_chunk_t buf);
 
 } } // namespace analyzer::*
-
-#endif

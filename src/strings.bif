@@ -25,10 +25,10 @@ function levenshtein_distance%(s1: string, s2: string%): count
 	unsigned int m = s2->Len();
 
 	if ( ! n )
-		return new Val(m, TYPE_COUNT);
+		return val_mgr->Count(m);
 
 	if ( ! m )
-		return new Val(n, TYPE_COUNT);
+		return val_mgr->Count(n);
 
 	vector<vector<unsigned int> > d(n + 1, vector<unsigned int>(m + 1));
 
@@ -47,7 +47,7 @@ function levenshtein_distance%(s1: string, s2: string%): count
 				      d[i-1][j-1] + (s1->Bytes()[i-1] == s2->Bytes()[j-1] ? 0 : 1));
 		}
 
-	return new Val(d[n][m], TYPE_COUNT);
+	return val_mgr->Count(d[n][m]);
 	%}
 
 ## Concatenates all arguments into a single string. The function takes a
@@ -55,140 +55,27 @@ function levenshtein_distance%(s1: string, s2: string%): count
 ##
 ## Returns: The concatenation of all (string) arguments.
 ##
-## .. bro:see:: cat cat_sep cat_string_array cat_string_array_n
+## .. zeek:see:: cat cat_sep
 ##              fmt
-##              join_string_vec join_string_array
+##              join_string_vec
 function string_cat%(...%): string
 	%{
 	int n = 0;
-	loop_over_list(@ARG@, i)
-		n += @ARG@[i]->AsString()->Len();
+	for ( const auto& a : @ARG@ )
+		n += a->AsString()->Len();
 
 	u_char* b = new u_char[n+1];
 	BroString* s = new BroString(1, b, n);
 
-	loop_over_list(@ARG@, j)
+	for ( const auto& a : @ARG@ )
 		{
-		const BroString* s = @ARG@[j]->AsString();
+		const BroString* s = a->AsString();
 		memcpy(b, s->Bytes(), s->Len());
 		b += s->Len();
 		}
 	*b = 0;
 
-	return new StringVal(s);
-	%}
-
-%%{
-int string_array_to_vs(TableVal* tbl, int start, int end,
-			vector<const BroString*>& vs)
-	{
-	vs.clear();
-	for ( int i = start; i <= end; ++i )
-		{
-		Val* ind = new Val(i, TYPE_COUNT);
-		Val* v = tbl->Lookup(ind);
-		if ( ! v )
-			return 0;
-		vs.push_back(v->AsString());
-#if 0
-		char* str = v->AsString()->Render();
-		DEBUG_MSG("string_array[%d] = \"%s\"\n", i, str);
-		delete [] str;
-#endif
-		delete ind;
-		}
-	return 1;
-	}
-
-int vs_to_string_array(vector<const BroString*>& vs, TableVal* tbl,
-			int start, int end)
-	{
-	for ( int i = start, j = 0; i <= end; ++i, ++j )
-		{
-		Val* ind = new Val(i, TYPE_COUNT);
-		tbl->Assign(ind, new StringVal(vs[j]->Len(),
-						(const char *)vs[j]->Bytes()));
-		Unref(ind);
-		}
-	return 1;
-	}
-
-BroString* cat_string_array_n(TableVal* tbl, int start, int end)
-	{
-	vector<const BroString*> vs;
-	string_array_to_vs(tbl, start, end, vs);
-	return concatenate(vs);
-	}
-%%}
-
-## Concatenates all elements in an array of strings.
-##
-## a: The :bro:type:`string_array` (``table[count] of string``).
-##
-## Returns: The concatenation of all elements in *a*.
-##
-## .. bro:see:: cat cat_sep string_cat cat_string_array_n
-##              fmt
-##              join_string_vec join_string_array
-function cat_string_array%(a: string_array%): string &deprecated
-	%{
-	TableVal* tbl = a->AsTableVal();
-	return new StringVal(cat_string_array_n(tbl, 1, a->AsTable()->Length()));
-	%}
-
-## Concatenates a specific range of elements in an array of strings.
-##
-## a: The :bro:type:`string_array` (``table[count] of string``).
-##
-## start: The array index of the first element of the range.
-##
-## end: The array index of the last element of the range.
-##
-## Returns: The concatenation of the range *[start, end]* in *a*.
-##
-## .. bro:see:: cat string_cat cat_string_array
-##              fmt
-##              join_string_vec join_string_array
-function cat_string_array_n%(a: string_array, start: count, end: count%): string &deprecated
-	%{
-	TableVal* tbl = a->AsTableVal();
-	return new StringVal(cat_string_array_n(tbl, start, end));
-	%}
-
-## Joins all values in the given array of strings with a separator placed
-## between each element.
-##
-## sep: The separator to place between each element.
-##
-## a: The :bro:type:`string_array` (``table[count] of string``).
-##
-## Returns: The concatenation of all elements in *a*, with *sep* placed
-##          between each element.
-##
-## .. bro:see:: cat cat_sep string_cat cat_string_array cat_string_array_n
-##              fmt
-##              join_string_vec
-function join_string_array%(sep: string, a: string_array%): string &deprecated
-	%{
-	vector<const BroString*> vs;
-	TableVal* tbl = a->AsTableVal();
-	int n = a->AsTable()->Length();
-
-	for ( int i = 1; i <= n; ++i )
-		{
-		Val* ind = new Val(i, TYPE_COUNT);
-		Val* v = tbl->Lookup(ind);
-		if ( ! v )
-			return 0;
-
-		vs.push_back(v->AsString());
-		Unref(ind);
-
-		if ( i < n )
-			vs.push_back(sep->AsString());
-		}
-
-	return new StringVal(concatenate(vs));
+	return make_intrusive<StringVal>(s);
 	%}
 
 ## Joins all values in the given vector of strings with a separator placed
@@ -196,14 +83,13 @@ function join_string_array%(sep: string, a: string_array%): string &deprecated
 ##
 ## sep: The separator to place between each element.
 ##
-## vec: The :bro:type:`string_vec` (``vector of string``).
+## vec: The :zeek:type:`string_vec` (``vector of string``).
 ##
 ## Returns: The concatenation of all elements in *vec*, with *sep* placed
 ##          between each element.
 ##
-## .. bro:see:: cat cat_sep string_cat cat_string_array cat_string_array_n
+## .. zeek:see:: cat cat_sep string_cat
 ##              fmt
-##              join_string_array
 function join_string_vec%(vec: string_vec, sep: string%): string
 	%{
 	ODesc d;
@@ -228,40 +114,7 @@ function join_string_vec%(vec: string_vec, sep: string%): string
 	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
 	s->SetUseFreeToDelete(true);
 
-	return new StringVal(s);
-	%}
-
-## Sorts an array of strings.
-##
-## a: The :bro:type:`string_array` (``table[count] of string``).
-##
-## Returns: A sorted copy of *a*.
-##
-## .. bro:see:: sort
-function sort_string_array%(a: string_array%): string_array &deprecated
-	%{
-	TableVal* tbl = a->AsTableVal();
-	int n = a->AsTable()->Length();
-
-	vector<const BroString*> vs;
-	string_array_to_vs(tbl, 1, n, vs);
-
-	unsigned int i, j;
-	for ( i = 0; i < vs.size(); ++i )
-		{
-		const BroString* x = vs[i];
-		for ( j = i; j > 0; --j )
-			if ( Bstr_cmp(vs[j-1], x) <= 0 )
-				break;
-			else
-				vs[j] = vs[j-1];
-		vs[j] = x;
-		}
-	// sort(vs.begin(), vs.end(), Bstr_cmp);
-
-	TableVal* b = new TableVal(string_array);
-	vs_to_string_array(vs, b, 1, n);
-	return b;
+	return make_intrusive<StringVal>(s);
 	%}
 
 ## Returns an edited version of a string that applies a special
@@ -271,14 +124,14 @@ function sort_string_array%(a: string_array%): string_array &deprecated
 ## arg_s: The string to edit.
 ##
 ## arg_edit_char: A string of exactly one character that represents the
-##                "backspace character". If it is longer than one character Bro
+##                "backspace character". If it is longer than one character Zeek
 ##                generates a run-time error and uses the first character in
 ##                the string.
 ##
 ## Returns: An edited version of *arg_s* where *arg_edit_char* triggers the
 ##          deletion of the last character.
 ##
-## .. bro:see:: clean
+## .. zeek:see:: clean
 ##              to_string_literal
 ##              escape_string
 ##              strip
@@ -309,7 +162,7 @@ function edit%(arg_s: string, arg_edit_char: string%): string
 
 	new_s[ind] = '\0';
 
-	return new StringVal(new BroString(1, byte_vec(new_s), ind));
+	return make_intrusive<StringVal>(new BroString(1, byte_vec(new_s), ind));
 	%}
 
 ## Get a substring from a string, given a starting position and length.
@@ -332,7 +185,7 @@ function sub_bytes%(s: string, start: count, n: int%): string
 	if ( ! ss )
 		ss = new BroString("");
 
-	return new StringVal(ss);
+	return make_intrusive<StringVal>(ss);
 	%}
 
 %%{
@@ -346,11 +199,12 @@ static int match_prefix(int s_len, const char* s, int t_len, const char* t)
 	return 1;
 	}
 
-VectorVal* do_split_string(StringVal* str_val, RE_Matcher* re, int incl_sep,
-                           int max_num_sep)
+static IntrusivePtr<VectorVal> do_split_string(StringVal* str_val,
+                                               RE_Matcher* re, int incl_sep,
+                                               int max_num_sep)
 	{
 	// string_vec is used early in the version script - do not use the NetVar.
-	VectorVal* rval = new VectorVal(internal_type("string_vec")->AsVectorType());
+	auto rval = make_intrusive<VectorVal>(internal_type("string_vec")->AsVectorType());
 	const u_char* s = str_val->Bytes();
 	int n = str_val->Len();
 	const u_char* end_of_s = s + n;
@@ -377,7 +231,7 @@ VectorVal* do_split_string(StringVal* str_val, RE_Matcher* re, int incl_sep,
 			n=0;
 			}
 
-		rval->Assign(num++, new StringVal(offset, (const char*) s));
+		rval->Assign(num++, make_intrusive<StringVal>(offset, (const char*) s));
 
 		// No more separators will be needed if this is the end of string.
 		if ( n <= 0 )
@@ -385,7 +239,7 @@ VectorVal* do_split_string(StringVal* str_val, RE_Matcher* re, int incl_sep,
 
 		if ( incl_sep )
 			{ // including the part that matches the pattern
-			rval->Assign(num++, new StringVal(end_of_match, (const char*) s+offset));
+			rval->Assign(num++, make_intrusive<StringVal>(end_of_match, (const char*) s+offset));
 			}
 
 		if ( max_num_sep && num_sep >= max_num_sep )
@@ -405,7 +259,7 @@ VectorVal* do_split_string(StringVal* str_val, RE_Matcher* re, int incl_sep,
 
 Val* do_split(StringVal* str_val, RE_Matcher* re, int incl_sep, int max_num_sep)
 	{
-	TableVal* a = new TableVal(string_array);
+	TableVal* a = new TableVal({NewRef{}, string_array});
 	const u_char* s = str_val->Bytes();
 	int n = str_val->Len();
 	const u_char* end_of_s = s + n;
@@ -432,9 +286,8 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, int incl_sep, int max_num_sep)
 			n=0;
 			}
 
-		Val* ind = new Val(++num, TYPE_COUNT);
-		a->Assign(ind, new StringVal(offset, (const char*) s));
-		Unref(ind);
+		auto ind = val_mgr->Count(++num);
+		a->Assign(ind.get(), make_intrusive<StringVal>(offset, (const char*) s));
 
 		// No more separators will be needed if this is the end of string.
 		if ( n <= 0 )
@@ -442,9 +295,8 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, int incl_sep, int max_num_sep)
 
 		if ( incl_sep )
 			{ // including the part that matches the pattern
-			ind = new Val(++num, TYPE_COUNT);
-			a->Assign(ind, new StringVal(end_of_match, (const char*) s+offset));
-			Unref(ind);
+			ind = val_mgr->Count(++num);
+			a->Assign(ind.get(), make_intrusive<StringVal>(end_of_match, (const char*) s+offset));
 			}
 
 		if ( max_num_sep && num_sep >= max_num_sep )
@@ -461,92 +313,6 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, int incl_sep, int max_num_sep)
 
 	return a;
 	}
-
-Val* do_sub(StringVal* str_val, RE_Matcher* re, StringVal* repl, int do_all)
-	{
-	const u_char* s = str_val->Bytes();
-	int offset = 0;
-	int n = str_val->Len();
-
-	// cut_points is a set of pairs of indices in str that should
-	// be removed/replaced.  A pair <x,y> means "delete starting
-	// at offset x, up to but not including offset y".
-	List(ptr_compat_int) cut_points;	// where RE matches pieces of str
-
-	int size = 0;	// size of result
-
-	while ( n > 0 )
-		{
-		// Find next match offset.
-		int end_of_match;
-		while ( n > 0 &&
-			(end_of_match = re->MatchPrefix(&s[offset], n)) <= 0 )
-			{
-			// This character is going to be copied to the result.
-			++size;
-
-			// Move on to next character.
-			++offset;
-			--n;
-			}
-
-		if ( n <= 0 )
-			break;
-
-		// s[offset .. offset+end_of_match-1] matches re.
-		cut_points.append(offset);
-		cut_points.append(offset + end_of_match);
-
-		offset += end_of_match;
-		n -= end_of_match;
-
-		if ( ! do_all )
-			{
-			// We've now done the first substitution - finished.
-			// Include the remainder of the string in the result.
-			size += n;
-			break;
-			}
-		}
-
-	// size now reflects amount of space copied.  Factor in amount
-	// of space for replacement text.
-	int num_cut_points = cut_points.length() / 2;
-	size += num_cut_points * repl->Len();
-
-	// And a final NUL for good health.
-	++size;
-
-	byte_vec result = new u_char[size];
-	byte_vec r = result;
-
-	// Copy it all over.
-	int start_offset = 0;
-	for ( int i = 0; i < cut_points.length(); i += 2 /* loop over pairs */ )
-		{
-		int num_to_copy = cut_points[i] - start_offset;
-		memcpy(r, s + start_offset, num_to_copy);
-
-		r += num_to_copy;
-		start_offset = cut_points[i+1];
-
-		// Now add in replacement text.
-		memcpy(r, repl->Bytes(), repl->Len());
-		r += repl->Len();
-		}
-
-	// Copy final trailing characters.
-	int num_to_copy = str_val->Len() - start_offset;
-	memcpy(r, s + start_offset, num_to_copy);
-	r += num_to_copy;
-
-	// Final NUL.  No need to increment r, since the length
-	// computed from it in the next statement does not include
-	// the NUL.
-	r[0] = '\0';
-
-	return new StringVal(new BroString(1, result, r - result));
-	}
 %%}
 
 ## Splits a string into an array of strings according to a pattern.
@@ -558,27 +324,7 @@ Val* do_sub(StringVal* str_val, RE_Matcher* re, StringVal* repl, int do_all)
 ## Returns: An array of strings where each element corresponds to a substring
 ##          in *str* separated by *re*.
 ##
-## .. bro:see:: split1 split_all split_n str_split split_string1 split_string_all split_string_n str_split
-##
-## .. note:: The returned table starts at index 1. Note that conceptually the
-##           return value is meant to be a vector and this might change in the
-##           future.
-##
-function split%(str: string, re: pattern%): string_array &deprecated
-	%{
-	return do_split(str, re, 0, 0);
-	%}
-
-## Splits a string into an array of strings according to a pattern.
-##
-## str: The string to split.
-##
-## re: The pattern describing the element separator in *str*.
-##
-## Returns: An array of strings where each element corresponds to a substring
-##          in *str* separated by *re*.
-##
-## .. bro:see:: split_string1 split_string_all split_string_n str_split
+## .. zeek:see:: split_string1 split_string_all split_string_n str_split
 ##
 function split_string%(str: string, re: pattern%): string_vec
 	%{
@@ -586,27 +332,7 @@ function split_string%(str: string, re: pattern%): string_vec
 	%}
 
 ## Splits a string *once* into a two-element array of strings according to a
-## pattern. This function is the same as :bro:id:`split`, but *str* is only
-## split once (if possible) at the earliest position and an array of two strings
-## is returned.
-##
-## str: The string to split.
-##
-## re: The pattern describing the separator to split *str* in two pieces.
-##
-## Returns: An array of strings with two elements in which the first represents
-##          the substring in *str* up to the first occurence of *re*, and the
-##          second everything after *re*. An array of one string is returned
-##          when *s* cannot be split.
-##
-## .. bro:see:: split split_all split_n str_split split_string split_string_all split_string_n str_split
-function split1%(str: string, re: pattern%): string_array &deprecated
-	%{
-	return do_split(str, re, 0, 1);
-	%}
-
-## Splits a string *once* into a two-element array of strings according to a
-## pattern. This function is the same as :bro:id:`split_string`, but *str* is
+## pattern. This function is the same as :zeek:id:`split_string`, but *str* is
 ## only split once (if possible) at the earliest position and an array of two
 ## strings is returned.
 ##
@@ -619,34 +345,14 @@ function split1%(str: string, re: pattern%): string_array &deprecated
 ##          second everything after *re*. An array of one string is returned
 ##          when *s* cannot be split.
 ##
-## .. bro:see:: split_string split_string_all split_string_n str_split
+## .. zeek:see:: split_string split_string_all split_string_n str_split
 function split_string1%(str: string, re: pattern%): string_vec
 	%{
 	return do_split_string(str, re, 0, 1);
 	%}
 
 ## Splits a string into an array of strings according to a pattern. This
-## function is the same as :bro:id:`split`, except that the separators are
-## returned as well. For example, ``split_all("a-b--cd", /(\-)+/)`` returns
-## ``{"a", "-", "b", "--", "cd"}``: odd-indexed elements do not match the
-## pattern and even-indexed ones do.
-##
-## str: The string to split.
-##
-## re: The pattern describing the element separator in *str*.
-##
-## Returns: An array of strings where each two successive elements correspond
-##          to a substring in *str* of the part not matching *re* (odd-indexed)
-##          and the part that matches *re* (even-indexed).
-##
-## .. bro:see:: split split1 split_n str_split split_string split_string1 split_string_n str_split
-function split_all%(str: string, re: pattern%): string_array &deprecated
-	%{
-	return do_split(str, re, 1, 0);
-	%}
-
-## Splits a string into an array of strings according to a pattern. This
-## function is the same as :bro:id:`split_string`, except that the separators
+## function is the same as :zeek:id:`split_string`, except that the separators
 ## are returned as well. For example, ``split_string_all("a-b--cd", /(\-)+/)``
 ## returns ``{"a", "-", "b", "--", "cd"}``: odd-indexed elements do match the
 ## pattern and even-indexed ones do not.
@@ -659,15 +365,15 @@ function split_all%(str: string, re: pattern%): string_array &deprecated
 ##          to a substring in *str* of the part not matching *re* (even-indexed)
 ##          and the part that matches *re* (odd-indexed).
 ##
-## .. bro:see:: split_string split_string1 split_string_n str_split
+## .. zeek:see:: split_string split_string1 split_string_n str_split
 function split_string_all%(str: string, re: pattern%): string_vec
 	%{
 	return do_split_string(str, re, 1, 0);
 	%}
 
 ## Splits a string a given number of times into an array of strings according
-## to a pattern. This function is similar to :bro:id:`split1` and
-## :bro:id:`split_all`, but with customizable behavior with respect to
+## to a pattern. This function is similar to :zeek:id:`split_string1` and
+## :zeek:id:`split_string_all`, but with customizable behavior with respect to
 ## including separators in the result and the number of times to split.
 ##
 ## str: The string to split.
@@ -675,33 +381,7 @@ function split_string_all%(str: string, re: pattern%): string_vec
 ## re: The pattern describing the element separator in *str*.
 ##
 ## incl_sep: A flag indicating whether to include the separator matches in the
-##           result (as in :bro:id:`split_all`).
-##
-## max_num_sep: The number of times to split *str*.
-##
-## Returns: An array of strings where, if *incl_sep* is true, each two
-##          successive elements correspond to a substring in *str* of the part
-##          not matching *re* (odd-indexed) and the part that matches *re*
-##          (even-indexed).
-##
-## .. bro:see:: split split1 split_all str_split split_string split_string1 split_string_all str_split
-function split_n%(str: string, re: pattern,
-		incl_sep: bool, max_num_sep: count%): string_array &deprecated
-	%{
-	return do_split(str, re, incl_sep, max_num_sep);
-	%}
-
-## Splits a string a given number of times into an array of strings according
-## to a pattern. This function is similar to :bro:id:`split_string1` and
-## :bro:id:`split_string_all`, but with customizable behavior with respect to
-## including separators in the result and the number of times to split.
-##
-## str: The string to split.
-##
-## re: The pattern describing the element separator in *str*.
-##
-## incl_sep: A flag indicating whether to include the separator matches in the
-##           result (as in :bro:id:`split_string_all`).
+##           result (as in :zeek:id:`split_string_all`).
 ##
 ## max_num_sep: The number of times to split *str*.
 ##
@@ -710,7 +390,7 @@ function split_n%(str: string, re: pattern,
 ##          not matching *re* (even-indexed) and the part that matches *re*
 ##          (odd-indexed).
 ##
-## .. bro:see:: split_string split_string1 split_string_all str_split
+## .. zeek:see:: split_string split_string1 split_string_all str_split
 function split_string_n%(str: string, re: pattern,
 		incl_sep: bool, max_num_sep: count%): string_vec
 	%{
@@ -729,10 +409,10 @@ function split_string_n%(str: string, re: pattern,
 ## Returns: A copy of *str* with the first occurence of *re* replaced with
 ##          *repl*.
 ##
-## .. bro:see:: gsub subst_string
+## .. zeek:see:: gsub subst_string
 function sub%(str: string, re: pattern, repl: string%): string
 	%{
-	return do_sub(str, re, repl, 0);
+	return str->Substitute(re, repl, false);
 	%}
 
 ## Substitutes a given replacement string for all occurrences of a pattern
@@ -746,10 +426,10 @@ function sub%(str: string, re: pattern, repl: string%): string
 ##
 ## Returns: A copy of *str* with all occurrences of *re* replaced with *repl*.
 ##
-## .. bro:see:: sub subst_string
+## .. zeek:see:: sub subst_string
 function gsub%(str: string, re: pattern, repl: string%): string
 	%{
-	return do_sub(str, re, repl, 1);
+	return str->Substitute(re, repl, true);
 	%}
 
 
@@ -763,7 +443,7 @@ function gsub%(str: string, re: pattern, repl: string%): string
 ##          *s1* is greater than, equal to, or less than *s2*.
 function strcmp%(s1: string, s2: string%): int
 	%{
-	return new Val(Bstr_cmp(s1->AsString(), s2->AsString()), TYPE_INT);
+	return val_mgr->Int(Bstr_cmp(s1->AsString(), s2->AsString()));
 	%}
 
 ## Locates the first occurrence of one string in another.
@@ -775,12 +455,11 @@ function strcmp%(s1: string, s2: string%): int
 ## Returns: The location of *little* in *big*, or 0 if *little* is not found in
 ##          *big*.
 ##
-## .. bro:see:: find_all find_last
+## .. zeek:see:: find_all find_last
 function strstr%(big: string, little: string%): count
 	%{
-	return new Val(
-		1 + big->AsString()->FindSubstring(little->AsString()),
-		TYPE_COUNT);
+	return val_mgr->Count(
+		1 + big->AsString()->FindSubstring(little->AsString()));
 	%}
 
 ## Substitutes each (non-overlapping) appearance of a string in another.
@@ -793,12 +472,12 @@ function strstr%(big: string, little: string%): count
 ##
 ## Returns: A copy of *s* where each occurrence of *from* is replaced with *to*.
 ##
-## .. bro:see:: sub gsub
+## .. zeek:see:: sub gsub
 function subst_string%(s: string, from: string, to: string%): string
 	%{
 	const int little_len = from->Len();
 	if ( little_len == 0 )
-		return s->Ref();
+		return IntrusivePtr{NewRef{}, s};
 
 	int big_len = s->Len();
 	const u_char* big = s->Bytes();
@@ -833,7 +512,7 @@ function subst_string%(s: string, from: string, to: string%): string
 		vs.push_back(dc);
 		}
 
-	return new StringVal(concatenate(vs));
+	return make_intrusive<StringVal>(concatenate(vs));
 	%}
 
 ## Replaces all uppercase letters in a string with their lowercase counterpart.
@@ -844,7 +523,7 @@ function subst_string%(s: string, from: string, to: string%): string
 ##          by ``isascii`` and ``isupper``) folded to lowercase
 ##          (via ``tolower``).
 ##
-## .. bro:see:: to_upper is_ascii
+## .. zeek:see:: to_upper is_ascii
 function to_lower%(str: string%): string
 	%{
 	const u_char* s = str->Bytes();
@@ -862,7 +541,7 @@ function to_lower%(str: string%): string
 
     *ls++ = '\0';
 
-	return new StringVal(new BroString(1, lower_s, n));
+	return make_intrusive<StringVal>(new BroString(1, lower_s, n));
 	%}
 
 ## Replaces all lowercase letters in a string with their uppercase counterpart.
@@ -873,7 +552,7 @@ function to_lower%(str: string%): string
 ##          by ``isascii`` and ``islower``) folded to uppercase
 ##          (via ``toupper``).
 ##
-## .. bro:see:: to_lower is_ascii
+## .. zeek:see:: to_lower is_ascii
 function to_upper%(str: string%): string
 	%{
 	const u_char* s = str->Bytes();
@@ -891,7 +570,7 @@ function to_upper%(str: string%): string
 
     *us++ = '\0';
 
-	return new StringVal(new BroString(1, upper_s, n));
+	return make_intrusive<StringVal>(new BroString(1, upper_s, n));
 	%}
 
 ## Replaces non-printable characters in a string with escaped sequences. The
@@ -901,17 +580,17 @@ function to_upper%(str: string%): string
 ##
 ## If the string does not yet have a trailing NUL, one is added internally.
 ##
-## In contrast to :bro:id:`escape_string`, this encoding is *not* fully reversible.` 
+## In contrast to :zeek:id:`escape_string`, this encoding is *not* fully reversible.`
 ##
 ## str: The string to escape.
 ##
 ## Returns: The escaped string.
 ##
-## .. bro:see:: to_string_literal escape_string
+## .. zeek:see:: to_string_literal escape_string
 function clean%(str: string%): string
 	%{
 	char* s = str->AsString()->Render();
-	return new StringVal(new BroString(1, byte_vec(s), strlen(s)));
+	return make_intrusive<StringVal>(new BroString(1, byte_vec(s), strlen(s)));
 	%}
 
 ## Replaces non-printable characters in a string with escaped sequences. The
@@ -925,11 +604,11 @@ function clean%(str: string%): string
 ##
 ## Returns: The escaped string.
 ##
-## .. bro:see:: clean escape_string
+## .. zeek:see:: clean escape_string
 function to_string_literal%(str: string%): string
 	%{
 	char* s = str->AsString()->Render(BroString::BRO_STRING_LITERAL);
-	return new StringVal(new BroString(1, byte_vec(s), strlen(s)));
+	return make_intrusive<StringVal>(new BroString(1, byte_vec(s), strlen(s)));
 	%}
 
 ## Determines whether a given string contains only ASCII characters.
@@ -939,7 +618,7 @@ function to_string_literal%(str: string%): string
 ## Returns: False if any byte value of *str* is greater than 127, and true
 ##          otherwise.
 ##
-## .. bro:see:: to_upper to_lower
+## .. zeek:see:: to_upper to_lower
 function is_ascii%(str: string%): bool
 	%{
 	int n = str->Len();
@@ -947,9 +626,9 @@ function is_ascii%(str: string%): bool
 
 	for ( int i = 0; i < n; ++i )
 		if ( s[i] > 127 )
-			return new Val(0, TYPE_BOOL);
+			return val_mgr->False();
 
-	return new Val(1, TYPE_BOOL);
+	return val_mgr->True();
 	%}
 
 ## Replaces non-printable characters in a string with escaped sequences. The
@@ -958,17 +637,17 @@ function is_ascii%(str: string%): bool
 ##     - values not in *[32, 126]* to ``\xXX``
 ##     - ``\`` to ``\\``
 ##
-## In contrast to :bro:id:`clean`, this encoding is fully reversible.` 
+## In contrast to :zeek:id:`clean`, this encoding is fully reversible.`
 ##
 ## str: The string to escape.
 ##
 ## Returns: The escaped string.
 ##
-## .. bro:see:: clean to_string_literal
+## .. zeek:see:: clean to_string_literal
 function escape_string%(s: string%): string
 	%{
 	char* escstr = s->AsString()->Render(BroString::ESC_HEX | BroString::ESC_ESC);
-	Val* val = new StringVal(escstr);
+	auto val = make_intrusive<StringVal>(escstr);
 	delete [] escstr;
 	return val;
 	%}
@@ -987,7 +666,7 @@ function string_to_ascii_hex%(s: string%): string
 	for ( int i = 0; i < s->Len(); ++i )
 		sprintf(x + i * 2, "%02x", sp[i]);
 
-	return new StringVal(new BroString(1, (u_char*) x, s->Len() * 2));
+	return make_intrusive<StringVal>(new BroString(1, (u_char*) x, s->Len() * 2));
 	%}
 
 ## Uses the Smith-Waterman algorithm to find similar/overlapping substrings.
@@ -1007,7 +686,7 @@ function str_smith_waterman%(s1: string, s2: string, params: sw_params%) : sw_su
 
 	BroSubstring::Vec* subseq =
 		smith_waterman(s1->AsString(), s2->AsString(), sw_params);
-	VectorVal* result = BroSubstring::VecToPolicy(subseq);
+	auto result = IntrusivePtr<VectorVal>{AdoptRef{}, BroSubstring::VecToPolicy(subseq)};
 	delete_each(subseq);
 	delete subseq;
 
@@ -1023,7 +702,7 @@ function str_smith_waterman%(s1: string, s2: string, params: sw_params%) : sw_su
 ##
 ## Returns: A vector of strings.
 ##
-## .. bro:see:: split split1 split_all split_n
+## .. zeek:see:: split_string split_string1 split_string_all split_string_n
 function str_split%(s: string, idx: index_vec%): string_vec
 	%{
 	vector<Val*>* idx_v = idx->AsVector();
@@ -1034,7 +713,7 @@ function str_split%(s: string, idx: index_vec%): string_vec
 		indices[i] = (*idx_v)[i]->AsCount();
 
 	BroString::Vec* result = s->AsString()->Split(indices);
-	VectorVal* result_v = new VectorVal(
+	auto result_v = make_intrusive<VectorVal>(
 	    internal_type("string_vec")->AsVectorType());
 
 	if ( result )
@@ -1043,7 +722,7 @@ function str_split%(s: string, idx: index_vec%): string_vec
 
 		for ( BroString::VecIt it = result->begin();
 		      it != result->end(); ++it, ++i )
-			result_v->Assign(i, new StringVal(*it));
+			result_v->Assign(i, make_intrusive<StringVal>(*it));
 			// StringVal now possesses string.
 
 		delete result;
@@ -1058,7 +737,7 @@ function str_split%(s: string, idx: index_vec%): string_vec
 ##
 ## Returns: A copy of *str* with leading and trailing whitespace removed.
 ##
-## .. bro:see:: sub gsub
+## .. zeek:see:: sub gsub lstrip rstrip
 function strip%(str: string%): string
 	%{
 	const u_char* s = str->Bytes();
@@ -1066,7 +745,7 @@ function strip%(str: string%): string
 
 	if ( n == 0 )
 		// Empty string.
-		return new StringVal(new BroString(s, n, 1));
+		return make_intrusive<StringVal>(new BroString(s, n, 1));
 
 	const u_char* sp = s;
 
@@ -1079,7 +758,82 @@ function strip%(str: string%): string
 	while ( isspace(*sp) && sp <= e )
 		++sp;
 
-	return new StringVal(new BroString(sp, (e - sp + 1), 1));
+	return make_intrusive<StringVal>(new BroString(sp, (e - sp + 1), 1));
+	%}
+
+%%{
+static bool should_strip(u_char c, const BroString* strip_chars)
+	{
+	auto strip_bytes = strip_chars->Bytes();
+
+	for ( auto i = 0; i < strip_chars->Len(); ++i )
+		if ( c == strip_bytes[i] )
+			return true;
+
+	return false;
+	}
+%%}
+
+## Removes all combinations of characters in the *chars* argument
+## starting at the beginning of the string until first mismatch.
+##
+## str: The string to strip characters from.
+##
+## chars: A string consisting of the characters to be removed.
+##        Defaults to all whitespace characters.
+##
+## Returns: A copy of *str* with the characters in *chars* removed from
+##          the beginning.
+##
+## .. zeek:see:: sub gsub strip rstrip
+function lstrip%(str: string, chars: string &default=" \t\n\r\v\f"%): string
+	%{
+	const u_char* s = str->Bytes();
+	int n = str->Len();
+
+	// empty input string
+	if ( n == 0 )
+		return make_intrusive<StringVal>(new BroString(s, n, 1));
+
+	int i;
+	auto bs_chars = chars->AsString();
+
+	for ( i = 0; i < n; ++i )
+		if ( ! should_strip(s[i], bs_chars) )
+			break;
+
+	return make_intrusive<StringVal>(new BroString(s + i, n - i, 1));
+	%}
+
+## Removes all combinations of characters in the *chars* argument
+## starting at the end of the string until first mismatch.
+##
+## str: The string to strip characters from.
+##
+## chars: A string consisting of the characters to be removed.
+##        Defaults to all whitespace characters.
+##
+## Returns: A copy of *str* with the characters in *chars* removed from
+##          the end.
+##
+## .. zeek:see:: sub gsub strip lstrip
+function rstrip%(str: string, chars: string &default=" \t\n\r\v\f"%): string
+	%{
+	const u_char* s = str->Bytes();
+	int n = str->Len();
+
+	// empty input string
+	if ( n == 0 )
+		return make_intrusive<StringVal>(new BroString(s, n, 1));
+
+	int n_to_remove;
+	auto bs_chars = chars->AsString();
+
+	for ( n_to_remove = 0; n_to_remove < n; ++n_to_remove )
+		if ( ! should_strip(s[n - n_to_remove - 1], bs_chars) )
+			break;
+
+	return make_intrusive<StringVal>(new BroString(s, n - n_to_remove, 1));
 	%}
 
 ## Generates a string of a given size and fills it with repetitions of a source
@@ -1101,33 +855,35 @@ function string_fill%(len: int, source: string%): string
 
 	dst[len - 1] = 0;
 
-	return new StringVal(new BroString(1, byte_vec(dst), len));
+	return make_intrusive<StringVal>(new BroString(1, byte_vec(dst), len));
 	%}
 
 ## Takes a string and escapes characters that would allow execution of
 ## commands at the shell level. Must be used before including strings in
-## :bro:id:`system` or similar calls.
+## :zeek:id:`system` or similar calls.
 ##
 ## source: The string to escape.
 ##
-## Returns: A shell-escaped version of *source*.
+## Returns: A shell-escaped version of *source*.  Specifically, this
+##          backslash-escapes characters whose literal value is not otherwise
+##          preserved by enclosure in double-quotes (dollar-sign, backquote,
+##          backslash, and double-quote itself), and then encloses that
+##          backslash-escaped string in double-quotes to ultimately preserve
+##          the literal value of all input characters.
 ##
-## .. bro:see:: system
-function str_shell_escape%(source: string%): string
+## .. zeek:see:: system safe_shell_quote
+function safe_shell_quote%(source: string%): string
 	%{
 	unsigned j = 0;
 	const u_char* src = source->Bytes();
 	unsigned n = source->Len();
-	byte_vec dst = new u_char[n * 2 + 1];
+	byte_vec dst = new u_char[n * 2 + 1 + 2];
+	dst[j++] = '"';
 
 	for ( unsigned i = 0; i < n; ++i )
 		{
 		switch ( src[i] ) {
 		case '`': case '"': case '\\': case '$':
-
-		// case '|': case '&': case ';': case '(': case ')': case '<':
-		// case '>': case '\'': case '*': case '?': case '[': case ']':
-		// case '!': case '#': case '{': case '}':
 			dst[j++] = '\\';
 			break;
 		default:
@@ -1137,8 +893,9 @@ function str_shell_escape%(source: string%): string
 		dst[j++] = src[i];
 		}
 
+	dst[j++] = '"';
 	dst[j] = '\0';
-	return new StringVal(new BroString(1, dst, j));
+	return make_intrusive<StringVal>(new BroString(1, dst, j));
 	%}
 
 ## Finds all occurrences of a pattern in a string.
@@ -1149,10 +906,10 @@ function str_shell_escape%(source: string%): string
 ##
 ## Returns: The set of strings in *str* that match *re*, or the empty set.
 ##
-## .. bro:see: find_last strstr
+## .. zeek:see: find_last strstr
 function find_all%(str: string, re: pattern%) : string_set
 	%{
-	TableVal* a = new TableVal(string_set);
+	auto a = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, string_set});
 
 	const u_char* s = str->Bytes();
 	const u_char* e = s + str->Len();
@@ -1162,9 +919,8 @@ function find_all%(str: string, re: pattern%) : string_set
 		int n = re->MatchPrefix(t, e - t);
 		if ( n >= 0 )
 			{
-			Val* idx = new StringVal(n, (const char*) t);
-			a->Assign(idx, 0);
-			Unref(idx);
+			auto idx = make_intrusive<StringVal>(n, (const char*) t);
+			a->Assign(idx.get(), 0);
 			t += n - 1;
 			}
 		}
@@ -1183,7 +939,7 @@ function find_all%(str: string, re: pattern%) : string_set
 ##
 ## Returns: The last string in *str* that matches *re*, or the empty string.
 ##
-## .. bro:see: find_all strstr
+## .. zeek:see: find_all strstr
 function find_last%(str: string, re: pattern%) : string
 	%{
 	const u_char* s = str->Bytes();
@@ -1193,10 +949,10 @@ function find_last%(str: string, re: pattern%) : string
 		{
 		int n = re->MatchPrefix(t, e - t);
 		if ( n >= 0 )
-			return new StringVal(n, (const char*) t);
+			return make_intrusive<StringVal>(n, (const char*) t);
 		}
 
-	return new StringVal("");
+	return val_mgr->EmptyString();
 	%}
 
 ## Returns a hex dump for given input data. The hex dump renders 16 bytes per
@@ -1207,7 +963,7 @@ function find_last%(str: string, re: pattern%) : string
 ##
 ## Returns: The hex dump of the given string.
 ##
-## .. bro:see:: string_to_ascii_hex bytestring_to_hexstr
+## .. zeek:see:: string_to_ascii_hex bytestring_to_hexstr
 ##
 ## .. note:: Based on Netdude's hex editor code.
 ##
@@ -1241,13 +997,13 @@ function hexdump%(data_str: string%) : string
 	unsigned data_size = data_str->Len();
 
 	if ( ! data )
-		return new StringVal("");
+		return val_mgr->EmptyString();
 
 	int num_lines = (data_size / 16) + 1;
 	int len = num_lines * HEX_LINE_WIDTH;
 	u_char* hex_data = new u_char[len + 1];
 	if ( ! hex_data )
-		return new StringVal("");
+		return val_mgr->EmptyString();
 
 	memset(hex_data, ' ', len);
 
@@ -1261,15 +1017,15 @@ function hexdump%(data_str: string%) : string
 		if ( x == 0 )
 			{
 			char offset[5];
-			safe_snprintf(offset, sizeof(offset),
-					"%.4x", data_ptr - data);
+			snprintf(offset, sizeof(offset),
+					"%.4tx", data_ptr - data);
 			memcpy(hex_data_ptr, offset, 4);
 			hex_data_ptr += 6;
 			ascii_ptr = hex_data_ptr + 50;
 			}
 
 		char hex_byte[3];
-		safe_snprintf(hex_byte, sizeof(hex_byte),
+		snprintf(hex_byte, sizeof(hex_byte),
 				"%.2x", (u_char) *data_ptr);
 
 		int val = (u_char) *data_ptr;
@@ -1311,7 +1067,7 @@ function hexdump%(data_str: string%) : string
 		*ascii_ptr++ = '\n';
 	*ascii_ptr = 0;
 
-	StringVal* result = new StringVal((const char*) hex_data);
+	auto result = make_intrusive<StringVal>((const char*) hex_data);
 	delete [] hex_data;
 
 	return result;
@@ -1327,5 +1083,5 @@ function reverse%(str: string%) : string
 	%{
 	string s = string((const char*)str->Bytes(), str->Len());
 	reverse(s.begin(), s.end());
-	return new StringVal(s.length(), (const char*)s.c_str());
+	return make_intrusive<StringVal>(s.length(), (const char*)s.c_str());
 	%}

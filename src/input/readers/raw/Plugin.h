@@ -1,5 +1,7 @@
 // See the file in the main distribution directory for copyright.
 
+#pragma once
+
 #include <mutex>
 
 #include "plugin/Plugin.h"
@@ -7,7 +9,7 @@
 #include "Raw.h"
 
 namespace plugin {
-namespace Bro_RawReader {
+namespace Zeek_RawReader {
 
 class Plugin : public plugin::Plugin {
 public:

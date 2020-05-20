@@ -5,16 +5,16 @@
 #include "Benchmark.h"
 
 namespace plugin {
-namespace Bro_BenchmarkReader {
+namespace Zeek_BenchmarkReader {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::input::Component("Benchmark", ::input::reader::Benchmark::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::BenchmarkReader";
+		config.name = "Zeek::BenchmarkReader";
 		config.description = "Benchmark input reader";
 		return config;
 		}

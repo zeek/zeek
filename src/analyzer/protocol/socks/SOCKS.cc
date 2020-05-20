@@ -11,7 +11,7 @@ SOCKS_Analyzer::SOCKS_Analyzer(Connection* conn)
 	{
 	interp = new binpac::SOCKS::SOCKS_Conn(this);
 	orig_done = resp_done = false;
-	pia = 0;
+	pia = nullptr;
 	}
 
 SOCKS_Analyzer::~SOCKS_Analyzer()
@@ -63,11 +63,11 @@ void SOCKS_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 			pia = new pia::PIA_TCP(Conn());
 			if ( AddChildAnalyzer(pia) )
 				{
-				pia->FirstPacket(true, 0);
-				pia->FirstPacket(false, 0);
+				pia->FirstPacket(true, nullptr);
+				pia->FirstPacket(false, nullptr);
 				}
 			else
-				pia = 0;
+				pia = nullptr;
 			}
 
 		ForwardStream(len, data, orig);
@@ -85,7 +85,7 @@ void SOCKS_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		}
 	}
 
-void SOCKS_Analyzer::Undelivered(uint64 seq, int len, bool orig)
+void SOCKS_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	interp->NewGap(orig, len);

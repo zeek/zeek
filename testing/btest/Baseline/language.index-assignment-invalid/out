@@ -1,0 +1,5 @@
+runtime error in /home/jon/pro/zeek/zeek/scripts/base/utils/queue.zeek, line 152: vector index assignment failed for invalid type 'myrec', value: [a=T, b=hi, c=<uninitialized>], expression: Queue::ret[Queue::j], call stack: 
+ #0 Queue::get_vector([initialized=T, vals={[2] = test,[6] = jkl;,[4] = asdf,[1] = goodbye,[5] = 3,[0] = hello,[3] = [a=T, b=hi, c=<uninitialized>]}, settings=[max_len=<uninitialized>], top=7, bottom=0, size=0], [hello, goodbye, test]) at /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.index-assignment-invalid/index-assignment-invalid.zeek:19 
+ #1 bar(55) at /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.index-assignment-invalid/index-assignment-invalid.zeek:27 
+ #2 foo(hi, 13) at /home/jon/pro/zeek/zeek/testing/btest/.tmp/language.index-assignment-invalid/index-assignment-invalid.zeek:39 
+ #3 zeek_init() 

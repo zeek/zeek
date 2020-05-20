@@ -4,8 +4,7 @@
 // TODO: - Document how to use this.
 //       - Find some nice macro-based interface?
 
-#ifndef continuation_h
-#define continuation_h
+#pragma once
 
 #include "List.h"
 
@@ -50,10 +49,7 @@ private:
 	int current_level;
 	int suspend_level;
 
-	declare(PList, void);
-	typedef PList(void) voidp_list;
+	typedef PList<void> voidp_list;
 
 	voidp_list states;
 };
-
-#endif

@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef netvar_h
-#define netvar_h
+#pragma once
 
 #include "Val.h"
 #include "Func.h"
@@ -33,7 +32,6 @@ extern RecordType* mime_match;
 extern int watchdog_interval;
 
 extern int max_timer_expires;
-extern int max_remote_events_processed;
 
 extern int ignore_checksums;
 extern int partial_connection_ok;
@@ -77,11 +75,12 @@ extern bool tcp_content_deliver_all_resp;
 
 extern TableVal* udp_content_delivery_ports_orig;
 extern TableVal* udp_content_delivery_ports_resp;
+extern TableVal* udp_content_ports;
 extern bool udp_content_deliver_all_orig;
 extern bool udp_content_deliver_all_resp;
+extern bool udp_content_delivery_ports_use_resp;
 
 extern double dns_session_timeout;
-extern double ntp_session_timeout;
 extern double rpc_timeout;
 
 extern ListVal* skip_authentication;
@@ -107,8 +106,6 @@ extern TableType* pm_mappings;
 extern RecordType* pm_port_request;
 extern RecordType* pm_callit_request;
 
-extern RecordType* ntp_msg;
-
 extern RecordType* geo_location;
 
 extern RecordType* entropy_test_result;
@@ -118,6 +115,10 @@ extern RecordType* dns_answer;
 extern RecordType* dns_soa;
 extern RecordType* dns_edns_additional;
 extern RecordType* dns_tsig_additional;
+extern RecordType* dns_rrsig_rr;
+extern RecordType* dns_dnskey_rr;
+extern RecordType* dns_nsec3_rr;
+extern RecordType* dns_ds_rr;
 extern TableVal* dns_skip_auth;
 extern TableVal* dns_skip_addl;
 extern int dns_skip_all_auth;
@@ -128,30 +129,9 @@ extern double stp_delta;
 extern double stp_idle_min;
 extern TableVal* stp_skip_src;
 
-extern double interconn_min_interarrival;
-extern double interconn_max_interarrival;
-extern int interconn_max_keystroke_pkt_size;
-extern int interconn_default_pkt_size;
-extern double interconn_stat_period;
-extern double interconn_stat_backoff;
-extern RecordType* interconn_endp_stats;
-
-extern double backdoor_stat_period;
-extern double backdoor_stat_backoff;
-
-extern RecordType* backdoor_endp_stats;
-
-extern RecordType* software;
-extern RecordType* software_version;
-extern RecordType* OS_version;
-extern EnumType* OS_version_inference;
-extern TableVal* generate_OS_version_event;
-
 extern double table_expire_interval;
 extern double table_expire_delay;
 extern int table_incremental_step;
-
-extern RecordType* packet_type;
 
 extern int orig_addr_anonymization, resp_addr_anonymization;
 extern int other_addr_anonymization;
@@ -161,26 +141,10 @@ extern TableVal* preserve_other_addr;
 
 extern double connection_status_update_interval;
 
-extern StringVal* state_dir;
-extern double state_write_delay;
-
-extern int max_files_in_cache;
-extern double log_rotate_interval;
-extern double log_max_size;
 extern RecordType* rotate_info;
-extern StringVal* log_encryption_key;
 extern StringVal* log_rotate_base_time;
 
 extern StringVal* peer_description;
-extern RecordType* peer;
-extern int forward_remote_state_changes;
-extern int forward_remote_events;
-extern int remote_check_sync_consistency;
-extern bro_uint_t chunked_io_buffer_soft_cap;
-
-extern StringVal* ssl_ca_certificate;
-extern StringVal* ssl_private_key;
-extern StringVal* ssl_passphrase;
 
 extern Val* profiling_file;
 extern double profiling_interval;
@@ -197,24 +161,18 @@ extern int packet_filter_default;
 
 extern int sig_max_group_size;
 
-extern int enable_syslog;
-
 extern TableType* irc_join_list;
 extern RecordType* irc_join_info;
-extern TableVal* irc_servers;
 
 extern int dpd_reassemble_first_packets;
 extern int dpd_buffer_size;
 extern int dpd_match_only_beginning;
+extern int dpd_late_match_stop;
 extern int dpd_ignore_ports;
 
 extern TableVal* likely_server_ports;
 
-extern double remote_trace_sync_interval;
-extern int remote_trace_sync_peers;
-
 extern int check_for_unused_event_handlers;
-extern int dump_used_event_handlers;
 
 extern int suppress_local_output;
 
@@ -247,5 +205,4 @@ extern void init_net_var();
 #include "types.bif.netvar_h"
 #include "event.bif.netvar_h"
 #include "reporter.bif.netvar_h"
-
-#endif
+#include "supervisor.bif.netvar_h"

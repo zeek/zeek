@@ -1,4 +1,4 @@
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -18,8 +18,8 @@ using namespace std;
 #include "Reporter.h"
 
 struct PolicyFile {
-	PolicyFile ()	{ filedata = 0; lmtime = 0; }
-	~PolicyFile ()	{ delete [] filedata; filedata = 0; }
+	PolicyFile ()	{ filedata = nullptr; lmtime = 0; }
+	~PolicyFile ()	{ delete [] filedata; filedata = nullptr; }
 
 	time_t lmtime;
 	char* filedata;

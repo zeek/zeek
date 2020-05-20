@@ -1,0 +1,2 @@
+expression error in ./2.zeek, line 7: no such index (t[nope])
+in foo

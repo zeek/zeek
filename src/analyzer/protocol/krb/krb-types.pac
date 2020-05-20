@@ -1,28 +1,28 @@
 # Fundamental KRB types
 
 %header{
-Val* GetStringFromPrincipalName(const KRB_Principal_Name* pname);
+IntrusivePtr<Val> GetStringFromPrincipalName(const KRB_Principal_Name* pname);
 
 VectorVal* proc_cipher_list(const Array* list);
 
-VectorVal* proc_host_address_list(const KRB_Host_Addresses* list);
-RecordVal* proc_host_address(const KRB_Host_Address* addr);
+VectorVal* proc_host_address_list(const BroAnalyzer a, const KRB_Host_Addresses* list);
+RecordVal* proc_host_address(const BroAnalyzer a, const KRB_Host_Address* addr);
 
-VectorVal* proc_tickets(const KRB_Ticket_Sequence* list);
-RecordVal* proc_ticket(const KRB_Ticket* ticket);
+IntrusivePtr<VectorVal> proc_tickets(const KRB_Ticket_Sequence* list);
+IntrusivePtr<RecordVal> proc_ticket(const KRB_Ticket* ticket);
 %}
 
 %code{
-Val* GetStringFromPrincipalName(const KRB_Principal_Name* pname)
+IntrusivePtr<Val> GetStringFromPrincipalName(const KRB_Principal_Name* pname)
 {
 	if ( pname->data()->size() == 1 )
-		return bytestring_to_val(pname->data()[0][0]->encoding()->content());
+		return to_stringval(pname->data()[0][0]->encoding()->content());
 	if ( pname->data()->size() == 2 )
-		return new StringVal(fmt("%s/%s", (char *) pname->data()[0][0]->encoding()->content().begin(), (char *)pname->data()[0][1]->encoding()->content().begin()));
+		return make_intrusive<StringVal>(fmt("%s/%s", (char *) pname->data()[0][0]->encoding()->content().begin(), (char *)pname->data()[0][1]->encoding()->content().begin()));
 	if ( pname->data()->size() == 3 ) // if the name-string has a third value, this will just append it, else this will return unknown as the principal name
-		return new StringVal(fmt("%s/%s/%s", (char *) pname->data()[0][0]->encoding()->content().begin(), (char *)pname->data()[0][1]->encoding()->content().begin(), (char *)pname->data()[0][2]->encoding()->content().begin()));
+		return make_intrusive<StringVal>(fmt("%s/%s/%s", (char *) pname->data()[0][0]->encoding()->content().begin(), (char *)pname->data()[0][1]->encoding()->content().begin(), (char *)pname->data()[0][2]->encoding()->content().begin()));
 
-	return new StringVal("unknown");
+	return make_intrusive<StringVal>("unknown");
 }
 
 VectorVal* proc_cipher_list(const Array* list)
@@ -33,51 +33,69 @@ VectorVal* proc_cipher_list(const Array* list)
 	return ciphers;
 }
 
-VectorVal* proc_host_address_list(const KRB_Host_Addresses* list)
+VectorVal* proc_host_address_list(const BroAnalyzer a, const KRB_Host_Addresses* list)
 {
 	VectorVal* addrs = new VectorVal(internal_type("KRB::Host_Address_Vector")->AsVectorType());
 
 	for ( uint i = 0; i < list->addresses()->size(); ++i )
 		{
-		addrs->Assign(addrs->Size(), proc_host_address((*list->addresses())[i]));
+		addrs->Assign(addrs->Size(), proc_host_address(a, (*list->addresses())[i]));
 		}
 
 	return addrs;
 }
 
-RecordVal* proc_host_address(const KRB_Host_Address* addr)
+RecordVal* proc_host_address(const BroAnalyzer a, const KRB_Host_Address* addr)
 {
 	RecordVal* rv = new RecordVal(BifType::Record::KRB::Host_Address);
+	const auto& addr_bytes = addr->address()->data()->content();
 
 	switch ( binary_to_int64(addr->addr_type()->encoding()->content()) )
 		{
 		case 2:
-			rv->Assign(0, new AddrVal(IPAddr(IPv4,
-					    	         (const uint32_t*) c_str(addr->address()->data()->content()),
-							 IPAddr::Network)));
-			break;
+			{
+			if ( addr_bytes.length() != 4 )
+				{
+				a->Weird("invalid_kerberos_addr_len");
+				break;
+				}
+
+			auto bytes = reinterpret_cast<const uint32_t*>(addr_bytes.data());
+			rv->Assign(0, make_intrusive<AddrVal>(IPAddr(IPv4, bytes, IPAddr::Network)));
+			return rv;
+			}
 		case 24:
-			rv->Assign(0, new AddrVal(IPAddr(IPv6,
-					    		 (const uint32_t*) c_str(addr->address()->data()->content()),
-							 IPAddr::Network)));
-			break;
+			{
+			if ( addr_bytes.length() != 16 )
+				{
+				a->Weird("invalid_kerberos_addr_len");
+				break;
+				}
+
+			auto bytes = reinterpret_cast<const uint32_t*>(addr_bytes.data());
+			rv->Assign(0, make_intrusive<AddrVal>(IPAddr(IPv6, bytes, IPAddr::Network)));
+			return rv;
+			}
 		case 20:
-			rv->Assign(1, bytestring_to_val(addr->address()->data()->content()));
-			break;
+			{
+			rv->Assign(1, to_stringval(addr_bytes));
+			return rv;
+			}
 		default:
-			RecordVal* unk = new RecordVal(BifType::Record::KRB::Type_Value);
-			unk->Assign(0, asn1_integer_to_val(addr->addr_type(), TYPE_COUNT));
-			unk->Assign(1, bytestring_to_val(addr->address()->data()->content()));
-			rv->Assign(2, unk);
 			break;
 		}
 
+	RecordVal* unk = new RecordVal(BifType::Record::KRB::Type_Value);
+	unk->Assign(0, asn1_integer_to_val(addr->addr_type(), TYPE_COUNT));
+	unk->Assign(1, to_stringval(addr_bytes));
+	rv->Assign(2, unk);
 	return rv;
 }
 
-VectorVal* proc_tickets(const KRB_Ticket_Sequence* list)
-{
-	VectorVal* tickets = new VectorVal(internal_type("KRB::Ticket_Vector")->AsVectorType());
+IntrusivePtr<VectorVal> proc_tickets(const KRB_Ticket_Sequence* list)
+	{
+	auto tickets = make_intrusive<VectorVal>(internal_type("KRB::Ticket_Vector")->AsVectorType());
+
 	for ( uint i = 0; i < list->tickets()->size(); ++i )
 		{
 		KRB_Ticket* element = (*list->tickets())[i];
@@ -85,20 +103,20 @@ VectorVal* proc_tickets(const KRB_Ticket_Sequence* list)
 		}
 
 	return tickets;
-}
+	}
 
-RecordVal* proc_ticket(const KRB_Ticket* ticket)
-{
-	RecordVal* rv = new RecordVal(BifType::Record::KRB::Ticket);
+IntrusivePtr<RecordVal> proc_ticket(const KRB_Ticket* ticket)
+	{
+	auto rv = make_intrusive<RecordVal>(BifType::Record::KRB::Ticket);
 
 	rv->Assign(0, asn1_integer_to_val(ticket->tkt_vno()->data(), TYPE_COUNT));
-	rv->Assign(1, bytestring_to_val(ticket->realm()->data()->content()));
+	rv->Assign(1, to_stringval(ticket->realm()->data()->content()));
 	rv->Assign(2, GetStringFromPrincipalName(ticket->sname()));
 	rv->Assign(3, asn1_integer_to_val(ticket->enc_part()->data()->etype()->data(), TYPE_COUNT));
-	rv->Assign(4, bytestring_to_val(ticket->enc_part()->data()->ciphertext()->encoding()->content()));
+	rv->Assign(4, to_stringval(ticket->enc_part()->data()->ciphertext()->encoding()->content()));
 
 	return rv;
-}
+	}
 %}
 
 type KRB_Principal_Name = record {

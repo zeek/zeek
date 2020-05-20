@@ -1,7 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
+#include "CompHash.h"
 #include "Expr.h"
 #include "Event.h"
 #include "Frame.h"
@@ -11,10 +12,13 @@
 #include "Stmt.h"
 #include "Scope.h"
 #include "Var.h"
+#include "Desc.h"
 #include "Debug.h"
 #include "Traverse.h"
 #include "Trigger.h"
-#include "RemoteSerializer.h"
+#include "IntrusivePtr.h"
+#include "logging/Manager.h"
+#include "logging/logging.bif.h"
 
 const char* stmt_name(BroStmtTag t)
 	{
@@ -51,11 +55,11 @@ bool Stmt::SetLocationInfo(const Location* start, const Location* end)
 
 	// Update the Filemap of line number -> statement mapping for
 	// breakpoints (Debug.h).
-	Filemap* map_ptr = (Filemap*) g_dbgfilemaps.Lookup(location->filename);
-	if ( ! map_ptr )
+	auto map_iter = g_dbgfilemaps.find(location->filename);
+	if ( map_iter == g_dbgfilemaps.end() )
 		return false;
 
-	Filemap& map = *map_ptr;
+	Filemap& map = *(map_iter->second);
 
 	StmtLocMapping* new_mapping = new StmtLocMapping(GetLocationInfo(), this);
 
@@ -79,15 +83,23 @@ bool Stmt::SetLocationInfo(const Location* start, const Location* end)
 	return true;
 	}
 
-int Stmt::IsPure() const
+bool Stmt::IsPure() const
 	{
-	return 0;
+	return false;
 	}
 
 void Stmt::Describe(ODesc* d) const
 	{
 	if ( ! d->IsReadable() || Tag() != STMT_EXPR )
 		AddTag(d);
+	}
+
+void Stmt::DecrBPCount()
+	{
+	if ( breakpoint_count )
+		--breakpoint_count;
+	else
+		reporter->InternalError("breakpoint count decremented below 0");
 	}
 
 void Stmt::AddTag(ODesc* d) const
@@ -118,82 +130,33 @@ void Stmt::AccessStats(ODesc* d) const
 		}
 	}
 
-bool Stmt::Serialize(SerialInfo* info) const
+ExprListStmt::ExprListStmt(BroStmtTag t, IntrusivePtr<ListExpr> arg_l)
+	: Stmt(t), l(std::move(arg_l))
 	{
-	return SerialObj::Serialize(info);
-	}
-
-Stmt* Stmt::Unserialize(UnserialInfo* info, BroStmtTag want)
-	{
-	Stmt* stmt = (Stmt*) SerialObj::Unserialize(info, SER_STMT);
-
-	if ( want != STMT_ANY && stmt->tag != want )
-		{
-		info->s->Error("wrong stmt type");
-		Unref(stmt);
-		return 0;
-		}
-
-	return stmt;
-	}
-
-bool Stmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_STMT, BroObj);
-
-	return SERIALIZE(char(tag)) && SERIALIZE(last_access)
-			&& SERIALIZE(access_count);
-	}
-
-bool Stmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(BroObj);
-
-	char c;
-	if ( ! UNSERIALIZE(&c) )
-		return 0;
-
-	tag = BroStmtTag(c);
-
-	return UNSERIALIZE(&last_access) && UNSERIALIZE(&access_count);
-	}
-
-
-ExprListStmt::ExprListStmt(BroStmtTag t, ListExpr* arg_l)
-: Stmt(t)
-	{
-	l = arg_l;
-
 	const expr_list& e = l->Exprs();
-	loop_over_list(e, i)
+	for ( const auto& expr : e )
 		{
-		const BroType* t = e[i]->Type();
+		const BroType* t = expr->Type();
 		if ( ! t || t->Tag() == TYPE_VOID )
 			Error("value of type void illegal");
 		}
 
-	SetLocationInfo(arg_l->GetLocationInfo());
+	SetLocationInfo(l->GetLocationInfo());
 	}
 
-ExprListStmt::~ExprListStmt()
-	{
-	Unref(l);
-	}
+ExprListStmt::~ExprListStmt() = default;
 
-Val* ExprListStmt::Exec(Frame* f, stmt_flow_type& flow) const
+IntrusivePtr<Val> ExprListStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	last_access = network_time;
 	flow = FLOW_NEXT;
 
-	val_list* vals = eval_list(f, l);
+	auto vals = eval_list(f, l.get());
+
 	if ( vals )
-		{
-		Val* result = DoExec(vals, flow);
-		delete_vals(vals);
-		return result;
-		}
-	else
-		return 0;
+		return DoExec(std::move(*vals), flow);
+
+	return nullptr;
 	}
 
 void ExprListStmt::Describe(ODesc* d) const
@@ -203,33 +166,15 @@ void ExprListStmt::Describe(ODesc* d) const
 	DescribeDone(d);
 	}
 
-void ExprListStmt::PrintVals(ODesc* d, val_list* vals, int offset) const
-	{
-	describe_vals(vals, d, offset);
-	}
-
-bool ExprListStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_EXPR_LIST_STMT, Stmt);
-	return l->Serialize(info);
-	}
-
-bool ExprListStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Stmt);
-	l = (ListExpr*) Expr::Unserialize(info, EXPR_LIST);
-	return l != 0;
-	}
-
 TraversalCode ExprListStmt::Traverse(TraversalCallback* cb) const
 	{
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
 
 	const expr_list& e = l->Exprs();
-	loop_over_list(e, i)
+	for ( const auto& expr : e )
 		{
-		tc = e[i]->Traverse(cb);
+		tc = expr->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
 		}
 
@@ -237,9 +182,42 @@ TraversalCode ExprListStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-static BroFile* print_stdout = 0;
+static BroFile* print_stdout = nullptr;
 
-Val* PrintStmt::DoExec(val_list* vals, stmt_flow_type& /* flow */) const
+static IntrusivePtr<EnumVal> lookup_enum_val(const char* module_name, const char* name)
+	{
+	auto id = lookup_ID(name, module_name);
+	assert(id);
+	assert(id->IsEnumConst());
+
+	EnumType* et = id->Type()->AsEnumType();
+
+	int index = et->Lookup(module_name, name);
+	assert(index >= 0);
+
+	return et->GetVal(index);
+	}
+
+static void print_log(const std::vector<IntrusivePtr<Val>>& vals)
+	{
+	auto plval = lookup_enum_val("Log", "PRINTLOG");
+	auto record = make_intrusive<RecordVal>(internal_type("Log::PrintLogInfo")->AsRecordType());
+	auto vec = make_intrusive<VectorVal>(internal_type("string_vec")->AsVectorType());
+
+	for ( const auto& val : vals )
+		{
+		ODesc d(DESC_READABLE);
+		val->Describe(&d);
+		vec->Assign(vec->Size(), make_intrusive<StringVal>(d.Description()));
+		}
+
+	record->Assign(0, make_intrusive<Val>(current_time(), TYPE_TIME));
+	record->Assign(1, std::move(vec));
+	log_mgr->Write(plval.get(), record.get());
+	}
+
+IntrusivePtr<Val> PrintStmt::DoExec(std::vector<IntrusivePtr<Val>> vals,
+                                    stmt_flow_type& /* flow */) const
 	{
 	RegisterAccess();
 
@@ -249,124 +227,100 @@ Val* PrintStmt::DoExec(val_list* vals, stmt_flow_type& /* flow */) const
 	BroFile* f = print_stdout;
 	int offset = 0;
 
-	if ( vals->length() > 0 && (*vals)[0]->Type()->Tag() == TYPE_FILE )
+	if ( vals.size() > 0 && (vals)[0]->Type()->Tag() == TYPE_FILE )
 		{
-		f = (*vals)[0]->AsFile();
+		f = (vals)[0]->AsFile();
 		if ( ! f->IsOpen() )
-			return 0;
+			return nullptr;
 
 		++offset;
 		}
 
-	bool ph = print_hook && f->IsPrintHookEnabled();
+	static auto print_log_type = static_cast<BifEnum::Log::PrintLogType>(
+	        internal_val("Log::print_to_log")->AsEnum());
+
+	switch ( print_log_type ) {
+	case BifEnum::Log::REDIRECT_NONE:
+		break;
+	case BifEnum::Log::REDIRECT_ALL:
+		{
+		print_log(vals);
+		return nullptr;
+		}
+	case BifEnum::Log::REDIRECT_STDOUT:
+		if ( f->File() == stdout )
+			{
+			// Should catch even printing to a "manually opened" stdout file,
+			// like "/dev/stdout" or "-".
+			print_log(vals);
+			return nullptr;
+			}
+		break;
+	default:
+		reporter->InternalError("unknown Log::PrintLogType value: %d",
+		                        print_log_type);
+		break;
+	}
 
 	desc_style style = f->IsRawOutput() ? RAW_STYLE : STANDARD_STYLE;
 
-	if ( ! (suppress_local_output && ph) )
-		{
-		if ( f->IsRawOutput() )
-			{
-			ODesc d(DESC_READABLE);
-			d.SetFlush(0);
-			d.SetStyle(style);
-
-			PrintVals(&d, vals, offset);
-			f->Write(d.Description(), d.Len());
-			}
-		else
-			{
-			ODesc d(DESC_READABLE, f);
-			d.SetFlush(0);
-			d.SetStyle(style);
-
-			PrintVals(&d, vals, offset);
-			f->Write("\n", 1);
-			}
-		}
-
-	if ( ph )
+	if ( f->IsRawOutput() )
 		{
 		ODesc d(DESC_READABLE);
+		d.SetFlush(false);
 		d.SetStyle(style);
-		PrintVals(&d, vals, offset);
 
-		if ( print_hook )
-			{
-			val_list* vl = new val_list(2);
-			::Ref(f);
-			vl->append(new Val(f));
-			vl->append(new StringVal(d.Len(), d.Description()));
+		describe_vals(vals, &d, offset);
+		f->Write(d.Description(), d.Len());
+		}
+	else
+		{
+		ODesc d(DESC_READABLE, f);
+		d.SetFlush(false);
+		d.SetStyle(style);
 
-			// Note, this doesn't do remote printing.
-			mgr.Dispatch(new Event(print_hook, vl), true);
-			}
-
-		if ( remote_serializer )
-			remote_serializer->SendPrintHookEvent(f, d.Description(), d.Len());
+		describe_vals(vals, &d, offset);
+		f->Write("\n", 1);
 		}
 
-	return 0;
+	return nullptr;
 	}
 
-IMPLEMENT_SERIAL(PrintStmt, SER_PRINT_STMT);
-
-bool PrintStmt::DoSerialize(SerialInfo* info) const
+ExprStmt::ExprStmt(IntrusivePtr<Expr> arg_e) : Stmt(STMT_EXPR), e(std::move(arg_e))
 	{
-	DO_SERIALIZE(SER_PRINT_STMT, ExprListStmt);
-	return true;
-	}
-
-bool PrintStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(ExprListStmt);
-	return true;
-	}
-
-ExprStmt::ExprStmt(Expr* arg_e) : Stmt(STMT_EXPR)
-	{
-	e = arg_e;
 	if ( e && e->IsPure() )
 		Warn("expression value ignored");
 
-	SetLocationInfo(arg_e->GetLocationInfo());
+	SetLocationInfo(e->GetLocationInfo());
 	}
 
-ExprStmt::ExprStmt(BroStmtTag t, Expr* arg_e) : Stmt(t)
+ExprStmt::ExprStmt(BroStmtTag t, IntrusivePtr<Expr> arg_e) : Stmt(t), e(std::move(arg_e))
 	{
-	e = arg_e;
-
 	if ( e )
 		SetLocationInfo(e->GetLocationInfo());
 	}
 
-ExprStmt::~ExprStmt()
-	{
-	Unref(e);
-	}
+ExprStmt::~ExprStmt() = default;
 
-Val* ExprStmt::Exec(Frame* f, stmt_flow_type& flow) const
+IntrusivePtr<Val> ExprStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
 
-	Val* v = e->Eval(f);
+	auto v = e->Eval(f);
 
 	if ( v )
-		{
-		Val* ret_val = DoExec(f, v, flow);
-		Unref(v);
-		return ret_val;
-		}
+		return DoExec(f, v.get(), flow);
 	else
-		return 0;
+		return nullptr;
 	}
 
-Val* ExprStmt::DoExec(Frame* /* f */, Val* /* v */, stmt_flow_type& /* flow */) const
+IntrusivePtr<Val> ExprStmt::DoExec(Frame* /* f */, Val* /* v */, stmt_flow_type& /* flow */) const
 	{
-	return 0;
+	return nullptr;
 	}
 
-int ExprStmt::IsPure() const
+bool ExprStmt::IsPure() const
 	{
 	return ! e || e->IsPure();
 	}
@@ -407,45 +361,25 @@ TraversalCode ExprStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IMPLEMENT_SERIAL(ExprStmt, SER_EXPR_STMT);
-
-bool ExprStmt::DoSerialize(SerialInfo* info) const
+IfStmt::IfStmt(IntrusivePtr<Expr> test,
+               IntrusivePtr<Stmt> arg_s1, IntrusivePtr<Stmt> arg_s2)
+	: ExprStmt(STMT_IF, std::move(test)),
+	  s1(std::move(arg_s1)), s2(std::move(arg_s2))
 	{
-	DO_SERIALIZE(SER_EXPR_STMT, Stmt);
-	SERIALIZE_OPTIONAL(e);
-	return true;
-	}
-
-bool ExprStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Stmt);
-	UNSERIALIZE_OPTIONAL(e, Expr::Unserialize(info));
-	return true;
-	}
-
-IfStmt::IfStmt(Expr* test, Stmt* arg_s1, Stmt* arg_s2) : ExprStmt(STMT_IF, test)
-	{
-	s1 = arg_s1;
-	s2 = arg_s2;
-
 	if ( ! e->IsError() && ! IsBool(e->Type()->Tag()) )
 		e->Error("conditional in test must be boolean");
 
-	const Location* loc1 = arg_s1->GetLocationInfo();
-	const Location* loc2 = arg_s2->GetLocationInfo();
+	const Location* loc1 = s1->GetLocationInfo();
+	const Location* loc2 = s2->GetLocationInfo();
 	SetLocationInfo(loc1, loc2);
 	}
 
-IfStmt::~IfStmt()
-	{
-	Unref(s1);
-	Unref(s2);
-	}
+IfStmt::~IfStmt() = default;
 
-Val* IfStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
+IntrusivePtr<Val> IfStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 	{
 	// Treat 0 as false, but don't require 1 for true.
-	Stmt* do_stmt = v->IsZero() ? s2 : s1;
+	Stmt* do_stmt = v->IsZero() ? s2.get() : s1.get();
 
 	f->SetNextStmt(do_stmt);
 
@@ -453,16 +387,16 @@ Val* IfStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 		{ // ### Abort or something
 		}
 
-	Val* result = do_stmt->Exec(f, flow);
+	auto result = do_stmt->Exec(f, flow);
 
-	if ( ! post_execute_stmt(do_stmt, f, result, &flow) )
+	if ( ! post_execute_stmt(do_stmt, f, result.get(), &flow) )
 		{ // ### Abort or something
 		}
 
 	return result;
 	}
 
-int IfStmt::IsPure() const
+bool IfStmt::IsPure() const
 	{
 	return e->IsPure() && s1->IsPure() && s2->IsPure();
 	}
@@ -510,25 +444,6 @@ TraversalCode IfStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IMPLEMENT_SERIAL(IfStmt, SER_IF_STMT);
-
-bool IfStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_IF_STMT, ExprStmt);
-	return s1->Serialize(info) && s2->Serialize(info);
-	}
-
-bool IfStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(ExprStmt);
-	s1 = Stmt::Unserialize(info);
-	if ( ! s1 )
-		return false;
-
-	s2 = Stmt::Unserialize(info);
-	return s2 != 0;
-	}
-
 static BroStmtTag get_last_stmt_tag(const Stmt* stmt)
 	{
 	if ( ! stmt )
@@ -546,8 +461,10 @@ static BroStmtTag get_last_stmt_tag(const Stmt* stmt)
 	return get_last_stmt_tag(stmts->Stmts()[len - 1]);
 	}
 
-Case::Case(ListExpr* arg_expr_cases, id_list* arg_type_cases, Stmt* arg_s)
-	: expr_cases(arg_expr_cases), type_cases(arg_type_cases), s(arg_s)
+Case::Case(IntrusivePtr<ListExpr> arg_expr_cases, id_list* arg_type_cases,
+           IntrusivePtr<Stmt> arg_s)
+	: expr_cases(std::move(arg_expr_cases)), type_cases(arg_type_cases),
+	  s(std::move(arg_s))
 	{
 	BroStmtTag t = get_last_stmt_tag(Body());
 
@@ -557,11 +474,8 @@ Case::Case(ListExpr* arg_expr_cases, id_list* arg_type_cases, Stmt* arg_s)
 
 Case::~Case()
 	{
-	Unref(expr_cases);
-	Unref(s);
-
-	loop_over_list((*type_cases), i)
-		Unref((*type_cases)[i]);
+	for ( const auto& id : *type_cases )
+		Unref(id);
 
 	delete type_cases;
 	}
@@ -658,67 +572,6 @@ TraversalCode Case::Traverse(TraversalCallback* cb) const
 	return TC_CONTINUE;
 	}
 
-bool Case::Serialize(SerialInfo* info) const
-	{
-	return SerialObj::Serialize(info);
-	}
-
-Case* Case::Unserialize(UnserialInfo* info)
-	{
-	return (Case*) SerialObj::Unserialize(info, SER_CASE);
-	}
-
-IMPLEMENT_SERIAL(Case, SER_CASE);
-
-bool Case::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_CASE, BroObj);
-
-	if ( ! expr_cases->Serialize(info) )
-		return false;
-
-	id_list empty;
-	id_list* types = (type_cases ? type_cases : &empty);
-
-	if ( ! SERIALIZE(types->length()) )
-		return false;
-
-	loop_over_list((*types), i)
-		{
-		if ( ! (*types)[i]->Serialize(info) )
-			return false;
-		}
-
-	return this->s->Serialize(info);
-	}
-
-bool Case::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(BroObj);
-
-	expr_cases = (ListExpr*) Expr::Unserialize(info, EXPR_LIST);
-	if ( ! expr_cases )
-		return false;
-
-	int len;
-	if ( ! UNSERIALIZE(&len) )
-		return false;
-
-	type_cases = new id_list;
-
-	while ( len-- )
-		{
-		ID* id = ID::Unserialize(info);
-		if ( ! id )
-			return false;
-
-		type_cases->append(id);
-		}
-
-	this->s = Stmt::Unserialize(info);
-	return this->s != 0;
-	}
-
 static void int_del_func(void* v)
 	{
 	delete (int*) v;
@@ -726,16 +579,16 @@ static void int_del_func(void* v)
 
 void SwitchStmt::Init()
 	{
-	TypeList* t = new TypeList();
-	t->Append(e->Type()->Ref());
-	comp_hash = new CompositeHash(t);
-	Unref(t);
+	auto t = make_intrusive<TypeList>();
+	t->Append({NewRef{}, e->Type()});
+	comp_hash = new CompositeHash(std::move(t));
 
 	case_label_value_map.SetDeleteFunc(int_del_func);
 	}
 
-SwitchStmt::SwitchStmt(Expr* index, case_list* arg_cases) :
-	ExprStmt(STMT_SWITCH, index), cases(arg_cases), default_case_idx(-1)
+SwitchStmt::SwitchStmt(IntrusivePtr<Expr> index, case_list* arg_cases)
+	: ExprStmt(STMT_SWITCH, std::move(index)),
+	  cases(arg_cases), default_case_idx(-1)
 	{
 	Init();
 
@@ -757,7 +610,7 @@ SwitchStmt::SwitchStmt(Expr* index, case_list* arg_cases) :
 
 			if ( ! le->Type()->AsTypeList()->AllMatch(e->Type(), false) )
 				{
-				le->Error("case expression type differs from switch type", e);
+				le->Error("case expression type differs from switch type", e.get());
 				continue;
 				}
 
@@ -776,7 +629,7 @@ SwitchStmt::SwitchStmt(Expr* index, case_list* arg_cases) :
 						NegExpr* ne = (NegExpr*)(expr);
 
 						if ( ne->Op()->IsConst() )
-							Unref(exprs.replace(j, new ConstExpr(ne->Eval(0))));
+							Unref(exprs.replace(j, new ConstExpr(ne->Eval(nullptr))));
 						}
 						break;
 
@@ -785,7 +638,7 @@ SwitchStmt::SwitchStmt(Expr* index, case_list* arg_cases) :
 						PosExpr* pe = (PosExpr*)(expr);
 
 						if ( pe->Op()->IsConst() )
-							Unref(exprs.replace(j, new ConstExpr(pe->Eval(0))));
+							Unref(exprs.replace(j, new ConstExpr(pe->Eval(nullptr))));
 						}
 						break;
 
@@ -795,10 +648,10 @@ SwitchStmt::SwitchStmt(Expr* index, case_list* arg_cases) :
 
 						if ( ne->Id()->IsConst() )
 							{
-							Val* v = ne->Eval(0);
+							auto v = ne->Eval(nullptr);
 
 							if ( v )
-								Unref(exprs.replace(j, new ConstExpr(v)));
+								Unref(exprs.replace(j, new ConstExpr(std::move(v))));
 							}
 						}
 						break;
@@ -822,9 +675,9 @@ SwitchStmt::SwitchStmt(Expr* index, case_list* arg_cases) :
 			{
 			have_types = true;
 
-			loop_over_list((*tl), j)
+			for ( const auto& t : *tl )
 				{
-				BroType* ct = (*tl)[j]->Type();
+				BroType* ct = t->Type();
 
 	   			if ( ! can_cast_value_to_type(e->Type(), ct) )
 					{
@@ -832,7 +685,7 @@ SwitchStmt::SwitchStmt(Expr* index, case_list* arg_cases) :
 					continue;
 					}
 
-				if ( ! AddCaseLabelTypeMapping((*tl)[j], i) )
+				if ( ! AddCaseLabelTypeMapping(t, i) )
 					{
 					c->Error("duplicate case label");
 					continue;
@@ -856,8 +709,8 @@ SwitchStmt::SwitchStmt(Expr* index, case_list* arg_cases) :
 
 SwitchStmt::~SwitchStmt()
 	{
-	loop_over_list(*cases, i)
-		Unref((*cases)[i]);
+	for ( const auto& c : *cases )
+		Unref(c);
 
 	delete cases;
 	delete comp_hash;
@@ -865,7 +718,7 @@ SwitchStmt::~SwitchStmt()
 
 bool SwitchStmt::AddCaseLabelValueMapping(const Val* v, int idx)
 	{
-	HashKey* hk = comp_hash->ComputeHash(v, 1);
+	HashKey* hk = comp_hash->ComputeHash(v, true);
 
 	if ( ! hk )
 		{
@@ -904,12 +757,12 @@ bool SwitchStmt::AddCaseLabelTypeMapping(ID* t, int idx)
 std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const
 	{
 	int label_idx = -1;
-	ID* label_id = 0;
+	ID* label_id = nullptr;
 
 	// Find matching expression cases.
 	if ( case_label_value_map.Length() )
 		{
-		HashKey* hk = comp_hash->ComputeHash(v, 1);
+		HashKey* hk = comp_hash->ComputeHash(v, true);
 
 		if ( ! hk )
 			{
@@ -945,16 +798,16 @@ std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const
 		return std::make_pair(label_idx, label_id);
 	}
 
-Val* SwitchStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
+IntrusivePtr<Val> SwitchStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 	{
-	Val* rval = 0;
+	IntrusivePtr<Val> rval;
 
 	auto m = FindCaseLabelMatch(v);
 	int matching_label_idx = m.first;
 	ID* matching_id = m.second;
 
 	if ( matching_label_idx == -1 )
-		return 0;
+		return nullptr;
 
 	for ( int i = matching_label_idx; i < cases->length(); ++i )
 		{
@@ -963,7 +816,7 @@ Val* SwitchStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 		if ( matching_id )
 			{
 			auto cv = cast_value_to_type(v, matching_id->Type());
-			f->SetElement(matching_id->Offset(), cv);
+			f->SetElement(matching_id, cv.release());
 			}
 
 		flow = FLOW_NEXT;
@@ -979,19 +832,18 @@ Val* SwitchStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 	return rval;
 	}
 
-int SwitchStmt::IsPure() const
+bool SwitchStmt::IsPure() const
 	{
 	if ( ! e->IsPure() )
-		return 0;
+		return false;
 
-	loop_over_list(*cases, i)
+	for ( const auto& c : *cases )
 		{
-		Case* c = (*cases)[i];
 		if ( ! c->ExprCases()->IsPure() || ! c->Body()->IsPure() )
-			return 0;
+			return false;
 		}
 
-	return 1;
+	return true;
 	}
 
 void SwitchStmt::Describe(ODesc* d) const
@@ -1003,8 +855,8 @@ void SwitchStmt::Describe(ODesc* d) const
 
 	d->PushIndent();
 	d->AddCount(cases->length());
-	loop_over_list(*cases, i)
-		(*cases)[i]->Describe(d);
+	for ( const auto& c : *cases )
+		c->Describe(d);
 	d->PopIndent();
 
 	if ( ! d->IsBinary() )
@@ -1021,9 +873,9 @@ TraversalCode SwitchStmt::Traverse(TraversalCallback* cb) const
 	tc = e->Traverse(cb);
 	HANDLE_TC_STMT_PRE(tc);
 
-	loop_over_list(*cases, i)
+	for ( const auto& c : *cases )
 		{
-		tc = (*cases)[i]->Traverse(cb);
+		tc = c->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
 		}
 
@@ -1031,83 +883,23 @@ TraversalCode SwitchStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IMPLEMENT_SERIAL(SwitchStmt, SER_SWITCH_STMT);
-
-bool SwitchStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_SWITCH_STMT, ExprStmt);
-
-	if ( ! SERIALIZE(cases->length()) )
-		return false;
-
-	loop_over_list((*cases), i)
-		if ( ! (*cases)[i]->Serialize(info) )
-			return false;
-
-	if ( ! SERIALIZE(default_case_idx) )
-		return false;
-
-	return true;
-	}
-
-bool SwitchStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(ExprStmt);
-
-	Init();
-
-	int len;
-	if ( ! UNSERIALIZE(&len) )
-		return false;
-
-	while ( len-- )
-		{
-		Case* c = Case::Unserialize(info);
-		if ( ! c )
-			return false;
-
-		cases->append(c);
-		}
-
-	if ( ! UNSERIALIZE(&default_case_idx) )
-		return false;
-
-	loop_over_list(*cases, i)
-		{
-		const ListExpr* le = (*cases)[i]->ExprCases();
-
-		if ( ! le )
-			continue;
-
-		const expr_list& exprs = le->Exprs();
-
-		loop_over_list(exprs, j)
-			{
-			if ( ! AddCaseLabelValueMapping(exprs[j]->ExprVal(), i) )
-				return false;
-			}
-		}
-
-	return true;
-	}
-
-AddStmt::AddStmt(Expr* arg_e) : ExprStmt(STMT_ADD, arg_e)
+AddStmt::AddStmt(IntrusivePtr<Expr> arg_e) : ExprStmt(STMT_ADD, std::move(arg_e))
 	{
 	if ( ! e->CanAdd() )
 		Error("illegal add statement");
 	}
 
-int AddStmt::IsPure() const
+bool AddStmt::IsPure() const
 	{
-	return 0;
+	return false;
 	}
 
-Val* AddStmt::Exec(Frame* f, stmt_flow_type& flow) const
+IntrusivePtr<Val> AddStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
 	e->Add(f);
-	return 0;
+	return nullptr;
 	}
 
 
@@ -1124,21 +916,7 @@ TraversalCode AddStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IMPLEMENT_SERIAL(AddStmt, SER_ADD_STMT);
-
-bool AddStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_ADD_STMT, ExprStmt);
-	return true;
-	}
-
-bool AddStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(ExprStmt);
-	return true;
-	}
-
-DelStmt::DelStmt(Expr* arg_e) : ExprStmt(STMT_DELETE, arg_e)
+DelStmt::DelStmt(IntrusivePtr<Expr> arg_e) : ExprStmt(STMT_DELETE, std::move(arg_e))
 	{
 	if ( e->IsError() )
 		return;
@@ -1147,17 +925,17 @@ DelStmt::DelStmt(Expr* arg_e) : ExprStmt(STMT_DELETE, arg_e)
 		Error("illegal delete statement");
 	}
 
-int DelStmt::IsPure() const
+bool DelStmt::IsPure() const
 	{
-	return 0;
+	return false;
 	}
 
-Val* DelStmt::Exec(Frame* f, stmt_flow_type& flow) const
+IntrusivePtr<Val> DelStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
 	e->Delete(f);
-	return 0;
+	return nullptr;
 	}
 
 TraversalCode DelStmt::Traverse(TraversalCallback* cb) const
@@ -1173,36 +951,22 @@ TraversalCode DelStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IMPLEMENT_SERIAL(DelStmt, SER_DEL_STMT);
-
-bool DelStmt::DoSerialize(SerialInfo* info) const
+EventStmt::EventStmt(IntrusivePtr<EventExpr> arg_e)
+	: ExprStmt(STMT_EVENT, arg_e), event_expr(std::move(arg_e))
 	{
-	DO_SERIALIZE(SER_DEL_STMT, ExprStmt);
-	return true;
 	}
 
-bool DelStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(ExprStmt);
-	return true;
-	}
-
-EventStmt::EventStmt(EventExpr* arg_e) : ExprStmt(STMT_EVENT, arg_e)
-	{
-	event_expr = arg_e;
-	}
-
-Val* EventStmt::Exec(Frame* f, stmt_flow_type& flow) const
+IntrusivePtr<Val> EventStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
-	val_list* args = eval_list(f, event_expr->Args());
+	auto args = eval_list(f, event_expr->Args());
+	auto h = event_expr->Handler();
 
-	if ( args )
-		mgr.QueueEvent(event_expr->Handler(), args);
+	if ( args && h )
+		mgr.Enqueue(h, std::move(*args));
 
 	flow = FLOW_NEXT;
-
-	return 0;
+	return nullptr;
 	}
 
 TraversalCode EventStmt::Traverse(TraversalCallback* cb) const
@@ -1218,37 +982,18 @@ TraversalCode EventStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IMPLEMENT_SERIAL(EventStmt, SER_EVENT_STMT);
-
-bool EventStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_EVENT_STMT, ExprStmt);
-	return event_expr->Serialize(info);
-	}
-
-bool EventStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(ExprStmt);
-
-	event_expr = (EventExpr*) Expr::Unserialize(info, EXPR_EVENT);
-	return event_expr != 0;
-	}
-
-WhileStmt::WhileStmt(Expr* arg_loop_condition, Stmt* arg_body)
-	: loop_condition(arg_loop_condition), body(arg_body)
+WhileStmt::WhileStmt(IntrusivePtr<Expr> arg_loop_condition,
+                     IntrusivePtr<Stmt> arg_body)
+	: loop_condition(std::move(arg_loop_condition)), body(std::move(arg_body))
 	{
 	if ( ! loop_condition->IsError() &&
 	     ! IsBool(loop_condition->Type()->Tag()) )
 		loop_condition->Error("while conditional must be boolean");
 	}
 
-WhileStmt::~WhileStmt()
-	{
-	Unref(loop_condition);
-	Unref(body);
-	}
+WhileStmt::~WhileStmt() = default;
 
-int WhileStmt::IsPure() const
+bool WhileStmt::IsPure() const
 	{
 	return loop_condition->IsPure() && body->IsPure();
 	}
@@ -1287,23 +1032,20 @@ TraversalCode WhileStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-Val* WhileStmt::Exec(Frame* f, stmt_flow_type& flow) const
+IntrusivePtr<Val> WhileStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
-	Val* rval = 0;
+	IntrusivePtr<Val> rval;
 
 	for ( ; ; )
 		{
-		Val* cond = loop_condition->Eval(f);
+		auto cond = loop_condition->Eval(f);
 
 		if ( ! cond )
 			break;
 
-		bool cont = cond->AsBool();
-		Unref(cond);
-
-		if ( ! cont )
+		if ( ! cond->AsBool() )
 			break;
 
 		flow = FLOW_NEXT;
@@ -1319,35 +1061,11 @@ Val* WhileStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	return rval;
 	}
 
-IMPLEMENT_SERIAL(WhileStmt, SER_WHILE_STMT);
-
-bool WhileStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_WHILE_STMT, Stmt);
-
-	if ( ! loop_condition->Serialize(info) )
-		return false;
-
-	return body->Serialize(info);
-	}
-
-bool WhileStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Stmt);
-	loop_condition = Expr::Unserialize(info);
-
-	if ( ! loop_condition )
-		return false;
-
-	body = Stmt::Unserialize(info);
-	return body != 0;
-	}
-
-ForStmt::ForStmt(id_list* arg_loop_vars, Expr* loop_expr)
-: ExprStmt(STMT_FOR, loop_expr)
+ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
+	: ExprStmt(STMT_FOR, std::move(loop_expr))
 	{
 	loop_vars = arg_loop_vars;
-	body = 0;
+	body = nullptr;
 
 	if ( e->Type()->Tag() == TYPE_TABLE )
 		{
@@ -1370,9 +1088,9 @@ ForStmt::ForStmt(id_list* arg_loop_vars, Expr* loop_expr)
 
 			else
 				{
-				delete add_local((*loop_vars)[i],
-						ind_type->Ref(), INIT_NONE,
-						0, 0, VAR_REGULAR);
+				add_local({NewRef{}, (*loop_vars)[i]},
+						{NewRef{}, ind_type}, INIT_NONE,
+						nullptr, nullptr, VAR_REGULAR);
 				}
 			}
 		}
@@ -1387,8 +1105,8 @@ ForStmt::ForStmt(id_list* arg_loop_vars, Expr* loop_expr)
 
 		BroType* t = (*loop_vars)[0]->Type();
 		if ( ! t )
-			delete add_local((*loop_vars)[0], base_type(TYPE_INT),
-						INIT_NONE, 0, 0, VAR_REGULAR);
+			add_local({NewRef{}, (*loop_vars)[0]}, base_type(TYPE_COUNT),
+						INIT_NONE, nullptr, nullptr, VAR_REGULAR);
 
 		else if ( ! IsIntegral(t->Tag()) )
 			{
@@ -1407,9 +1125,9 @@ ForStmt::ForStmt(id_list* arg_loop_vars, Expr* loop_expr)
 
 		BroType* t = (*loop_vars)[0]->Type();
 		if ( ! t )
-			delete add_local((*loop_vars)[0],
+			add_local({NewRef{}, (*loop_vars)[0]},
 					base_type(TYPE_STRING),
-					INIT_NONE, 0, 0, VAR_REGULAR);
+					INIT_NONE, nullptr, nullptr, VAR_REGULAR);
 
 		else if ( t->Tag() != TYPE_STRING )
 			{
@@ -1421,40 +1139,76 @@ ForStmt::ForStmt(id_list* arg_loop_vars, Expr* loop_expr)
 		e->Error("target to iterate over must be a table, set, vector, or string");
 	}
 
-ForStmt::~ForStmt()
+ForStmt::ForStmt(id_list* arg_loop_vars,
+                 IntrusivePtr<Expr> loop_expr, IntrusivePtr<ID> val_var)
+	: ForStmt(arg_loop_vars, std::move(loop_expr))
 	{
-	loop_over_list(*loop_vars, i)
-		Unref((*loop_vars)[i]);
-	delete loop_vars;
+	value_var = std::move(val_var);
 
-	Unref(body);
+	if ( e->Type()->IsTable() )
+		{
+		BroType* yield_type = e->Type()->AsTableType()->YieldType();
+
+		// Verify value_vars type if its already been defined
+		if ( value_var->Type() )
+			{
+			if ( ! same_type(value_var->Type(), yield_type) )
+				value_var->Type()->Error("type clash in iteration", yield_type);
+			}
+		else
+			{
+			add_local(value_var, {NewRef{}, yield_type}, INIT_NONE,
+			                 nullptr, nullptr, VAR_REGULAR);
+			}
+		}
+	else
+		e->Error("key value for loops only support iteration over tables");
 	}
 
-Val* ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
+ForStmt::~ForStmt()
 	{
-	Val* ret = 0;
+	for ( const auto& var : *loop_vars )
+		Unref(var);
+	delete loop_vars;
+	}
+
+IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
+	{
+	IntrusivePtr<Val> ret;
 
 	if ( v->Type()->Tag() == TYPE_TABLE )
 		{
 		TableVal* tv = v->AsTableVal();
-		const PDict(TableEntryVal)* loop_vals = tv->AsTable();
+		const PDict<TableEntryVal>* loop_vals = tv->AsTable();
 
 		if ( ! loop_vals->Length() )
-			return 0;
+			return nullptr;
 
 		HashKey* k;
+		TableEntryVal* current_tev;
 		IterCookie* c = loop_vals->InitForIteration();
-		while ( loop_vals->NextEntry(k, c) )
+		while ( (current_tev = loop_vals->NextEntry(k, c)) )
 			{
-			ListVal* ind_lv = tv->RecoverIndex(k);
+			auto ind_lv = tv->RecoverIndex(k);
 			delete k;
 
+			if ( value_var )
+				f->SetElement(value_var.get(), current_tev->Value()->Ref());
+
 			for ( int i = 0; i < ind_lv->Length(); i++ )
-				f->SetElement((*loop_vars)[i]->Offset(), ind_lv->Index(i)->Ref());
-			Unref(ind_lv);
+				f->SetElement((*loop_vars)[i], ind_lv->Index(i)->Ref());
 
 			flow = FLOW_NEXT;
-			ret = body->Exec(f, flow);
+
+			try
+				{
+				ret = body->Exec(f, flow);
+				}
+			catch ( InterpreterException& )
+				{
+				loop_vals->StopIteration(c);
+				throw;
+				}
 
 			if ( flow == FLOW_BREAK || flow == FLOW_RETURN )
 				{
@@ -1470,7 +1224,7 @@ Val* ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 		{
 		VectorVal* vv = v->AsVectorVal();
 
-		for ( int i = 0; i <= int(vv->Size()); ++i )
+		for ( auto i = 0u; i <= vv->Size(); ++i )
 			{
 			// Skip unassigned vector indices.
 			if ( ! vv->Lookup(i) )
@@ -1478,8 +1232,7 @@ Val* ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 
 			// Set the loop variable to the current index, and make
 			// another pass over the loop body.
-			f->SetElement((*loop_vars)[0]->Offset(),
-					new Val(i, TYPE_INT));
+			f->SetElement((*loop_vars)[0], val_mgr->Count(i).release());
 			flow = FLOW_NEXT;
 			ret = body->Exec(f, flow);
 
@@ -1493,7 +1246,7 @@ Val* ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 
 		for ( int i = 0; i < sval->Len(); ++i )
 			{
-			f->SetElement((*loop_vars)[0]->Offset(),
+			f->SetElement((*loop_vars)[0],
 					new StringVal(1, (const char*) sval->Bytes() + i));
 			flow = FLOW_NEXT;
 			ret = body->Exec(f, flow);
@@ -1515,7 +1268,7 @@ Val* ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 	return ret;
 	}
 
-int ForStmt::IsPure() const
+bool ForStmt::IsPure() const
 	{
 	return e->IsPure() && body->IsPure();
 	}
@@ -1561,9 +1314,9 @@ TraversalCode ForStmt::Traverse(TraversalCallback* cb) const
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
 
-	loop_over_list(*loop_vars, i)
+	for ( const auto& var : *loop_vars )
 		{
-		tc = (*loop_vars)[i]->Traverse(cb);
+		tc = var->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
 		}
 
@@ -1577,57 +1330,16 @@ TraversalCode ForStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IMPLEMENT_SERIAL(ForStmt, SER_FOR_STMT);
-
-bool ForStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_FOR_STMT, ExprStmt);
-
-	if ( ! SERIALIZE(loop_vars->length()) )
-		return false;
-
-	loop_over_list((*loop_vars), i)
-		{
-		if ( ! (*loop_vars)[i]->Serialize(info) )
-			return false;
-		}
-
-	return body->Serialize(info);
-	}
-
-bool ForStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(ExprStmt);
-
-	int len;
-	if ( ! UNSERIALIZE(&len) )
-		return false;
-
-	loop_vars = new id_list;
-
-	while ( len-- )
-		{
-		ID* id = ID::Unserialize(info);
-		if ( ! id )
-			return false;
-
-		loop_vars->append(id);
-		}
-
-	body = Stmt::Unserialize(info);
-	return body != 0;
-	}
-
-Val* NextStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
+IntrusivePtr<Val> NextStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_LOOP;
-	return 0;
+	return nullptr;
 	}
 
-int NextStmt::IsPure() const
+bool NextStmt::IsPure() const
 	{
-	return 1;
+	return true;
 	}
 
 void NextStmt::Describe(ODesc* d) const
@@ -1645,30 +1357,16 @@ TraversalCode NextStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IMPLEMENT_SERIAL(NextStmt, SER_NEXT_STMT);
-
-bool NextStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_NEXT_STMT, Stmt);
-	return true;
-	}
-
-bool NextStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Stmt);
-	return true;
-	}
-
-Val* BreakStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
+IntrusivePtr<Val> BreakStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_BREAK;
-	return 0;
+	return nullptr;
 	}
 
-int BreakStmt::IsPure() const
+bool BreakStmt::IsPure() const
 	{
-	return 1;
+	return true;
 	}
 
 void BreakStmt::Describe(ODesc* d) const
@@ -1686,30 +1384,16 @@ TraversalCode BreakStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IMPLEMENT_SERIAL(BreakStmt, SER_BREAK_STMT);
-
-bool BreakStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_BREAK_STMT, Stmt);
-	return true;
-	}
-
-bool BreakStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Stmt);
-	return true;
-	}
-
-Val* FallthroughStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
+IntrusivePtr<Val> FallthroughStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_FALLTHROUGH;
-	return 0;
+	return nullptr;
 	}
 
-int FallthroughStmt::IsPure() const
+bool FallthroughStmt::IsPure() const
 	{
-	return 1;
+	return false;
 	}
 
 void FallthroughStmt::Describe(ODesc* d) const
@@ -1727,21 +1411,8 @@ TraversalCode FallthroughStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IMPLEMENT_SERIAL(FallthroughStmt, SER_FALLTHROUGH_STMT);
-
-bool FallthroughStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_FALLTHROUGH_STMT, Stmt);
-	return true;
-	}
-
-bool FallthroughStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Stmt);
-	return true;
-	}
-
-ReturnStmt::ReturnStmt(Expr* arg_e) : ExprStmt(STMT_RETURN, arg_e)
+ReturnStmt::ReturnStmt(IntrusivePtr<Expr> arg_e)
+	: ExprStmt(STMT_RETURN, std::move(arg_e))
 	{
 	Scope* s = current_scope();
 
@@ -1758,7 +1429,7 @@ ReturnStmt::ReturnStmt(Expr* arg_e) : ExprStmt(STMT_RETURN, arg_e)
 		{
 		if ( e )
 			{
-			ft->SetYieldType(e->Type());
+			ft->SetYieldType({NewRef{}, e->Type()});
 			s->ScopeID()->SetInferReturnType(false);
 			}
 		}
@@ -1776,10 +1447,15 @@ ReturnStmt::ReturnStmt(Expr* arg_e) : ExprStmt(STMT_RETURN, arg_e)
 		}
 
 	else
-		(void) check_and_promote_expr(e, yt);
+		{
+		auto promoted_e = check_and_promote_expr(e.get(), yt);
+
+		if ( promoted_e )
+			e = std::move(promoted_e);
+		}
 	}
 
-Val* ReturnStmt::Exec(Frame* f, stmt_flow_type& flow) const
+IntrusivePtr<Val> ReturnStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_RETURN;
@@ -1787,14 +1463,14 @@ Val* ReturnStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	if ( e )
 		return e->Eval(f);
 	else
-		return 0;
+		return nullptr;
 	}
 
 void ReturnStmt::Describe(ODesc* d) const
 	{
 	Stmt::Describe(d);
 	if ( ! d->IsReadable() )
-		d->Add(e != 0);
+		d->Add(e != nullptr);
 
 	if ( e )
 		{
@@ -1808,46 +1484,32 @@ void ReturnStmt::Describe(ODesc* d) const
 	DescribeDone(d);
 	}
 
-IMPLEMENT_SERIAL(ReturnStmt, SER_RETURN_STMT);
-
-bool ReturnStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_RETURN_STMT, ExprStmt);
-	return true;
-	}
-
-bool ReturnStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(ExprStmt);
-	return true;
-	}
-
 StmtList::StmtList() : Stmt(STMT_LIST)
 	{
 	}
 
 StmtList::~StmtList()
 	{
-	loop_over_list(stmts, i)
-		Unref(stmts[i]);
+	for ( const auto& stmt : stmts )
+		Unref(stmt);
 	}
 
-Val* StmtList::Exec(Frame* f, stmt_flow_type& flow) const
+IntrusivePtr<Val> StmtList::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
 
-	loop_over_list(stmts, i)
+	for ( const auto& stmt : stmts )
 		{
-		f->SetNextStmt(stmts[i]);
+		f->SetNextStmt(stmt);
 
-		if ( ! pre_execute_stmt(stmts[i], f) )
+		if ( ! pre_execute_stmt(stmt, f) )
 			{ // ### Abort or something
 			}
 
-		Val* result = stmts[i]->Exec(f, flow);
+		auto result = stmt->Exec(f, flow);
 
-		if ( ! post_execute_stmt(stmts[i], f, result, &flow) )
+		if ( ! post_execute_stmt(stmt, f, result.get(), &flow) )
 			{ // ### Abort or something
 			}
 
@@ -1855,15 +1517,15 @@ Val* StmtList::Exec(Frame* f, stmt_flow_type& flow) const
 			return result;
 		}
 
-	return 0;
+	return nullptr;
 	}
 
-int StmtList::IsPure() const
+bool StmtList::IsPure() const
 	{
-	loop_over_list(stmts, i)
-		if ( ! stmts[i]->IsPure() )
-			return 0;
-	return 1;
+	for ( const auto& stmt : stmts )
+		if ( ! stmt->IsPure() )
+			return false;
+	return true;
 	}
 
 void StmtList::Describe(ODesc* d) const
@@ -1885,9 +1547,9 @@ void StmtList::Describe(ODesc* d) const
 			d->NL();
 			}
 
-		loop_over_list(stmts, i)
+		for ( const auto& stmt : stmts )
 			{
-			stmts[i]->Describe(d);
+			stmt->Describe(d);
 			d->NL();
 			}
 
@@ -1901,9 +1563,9 @@ TraversalCode StmtList::Traverse(TraversalCallback* cb) const
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
 
-	loop_over_list(stmts, i)
+	for ( const auto& stmt : stmts )
 		{
-		tc = stmts[i]->Traverse(cb);
+		tc = stmt->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
 		}
 
@@ -1911,88 +1573,51 @@ TraversalCode StmtList::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IMPLEMENT_SERIAL(StmtList, SER_STMT_LIST);
-
-bool StmtList::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_STMT_LIST, Stmt);
-
-	if ( ! SERIALIZE(stmts.length()) )
-		return false;
-
-	loop_over_list(stmts, i)
-		if ( ! stmts[i]->Serialize(info) )
-			return false;
-
-	return true;
-	}
-
-bool StmtList::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Stmt);
-
-	int len;
-	if ( ! UNSERIALIZE(&len) )
-		return false;
-
-	while ( len-- )
-		{
-		Stmt* stmt = Stmt::Unserialize(info);
-		if ( ! stmt )
-			return false;
-
-		stmts.append(stmt);
-		}
-
-	return true;
-	}
-
-
-Val* EventBodyList::Exec(Frame* f, stmt_flow_type& flow) const
+IntrusivePtr<Val> EventBodyList::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
 
-	loop_over_list(stmts, i)
+	for ( const auto& stmt : stmts )
 		{
-		f->SetNextStmt(stmts[i]);
+		f->SetNextStmt(stmt);
 
 		// Ignore the return value, since there shouldn't be
 		// any; and ignore the flow, since we still execute
 		// all of the event bodies even if one of them does
 		// a FLOW_RETURN.
-		if ( ! pre_execute_stmt(stmts[i], f) )
+		if ( ! pre_execute_stmt(stmt, f) )
 			{ // ### Abort or something
 			}
 
-		Val* result = stmts[i]->Exec(f, flow);
+		auto result = stmt->Exec(f, flow);
 
-		if ( ! post_execute_stmt(stmts[i], f, result, &flow) )
+		if ( ! post_execute_stmt(stmt, f, result.get(), &flow) )
 			{ // ### Abort or something
 			}
 		}
 
 	// Simulate a return so the hooks operate properly.
 	stmt_flow_type ft = FLOW_RETURN;
-	(void) post_execute_stmt(f->GetNextStmt(), f, 0, &ft);
+	(void) post_execute_stmt(f->GetNextStmt(), f, nullptr, &ft);
 
-	return 0;
+	return nullptr;
 	}
 
 void EventBodyList::Describe(ODesc* d) const
 	{
 	if ( d->IsReadable() && stmts.length() > 0 )
 		{
-		loop_over_list(stmts, i)
+		for ( const auto& stmt : stmts )
 			{
 			if ( ! d->IsBinary() )
 				{
 				d->Add("{");
 				d->PushIndent();
-				stmts[i]->AccessStats(d);
+				stmt->AccessStats(d);
 				}
 
-			stmts[i]->Describe(d);
+			stmt->Describe(d);
 
 			if ( ! d->IsBinary() )
 				{
@@ -2006,39 +1631,31 @@ void EventBodyList::Describe(ODesc* d) const
 		StmtList::Describe(d);
 	}
 
-IMPLEMENT_SERIAL(EventBodyList, SER_EVENT_BODY_LIST);
-
-bool EventBodyList::DoSerialize(SerialInfo* info) const
+InitStmt::InitStmt(id_list* arg_inits) : Stmt(STMT_INIT)
 	{
-	DO_SERIALIZE(SER_EVENT_BODY_LIST, StmtList);
-	return SERIALIZE(topmost);
-	}
-
-bool EventBodyList::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(StmtList);
-	return UNSERIALIZE(&topmost);
+	inits = arg_inits;
+	if ( arg_inits && arg_inits->length() )
+		SetLocationInfo((*arg_inits)[0]->GetLocationInfo());
 	}
 
 InitStmt::~InitStmt()
 	{
-	loop_over_list(*inits, i)
-		Unref((*inits)[i]);
+	for ( const auto& init : *inits )
+		Unref(init);
 
 	delete inits;
 	}
 
-Val* InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
+IntrusivePtr<Val> InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
 
-	loop_over_list(*inits, i)
+	for ( const auto& aggr : *inits )
 		{
-		ID* aggr = (*inits)[i];
 		BroType* t = aggr->Type();
 
-		Val* v = 0;
+		Val* v = nullptr;
 
 		switch ( t->Tag() ) {
 		case TYPE_RECORD:
@@ -2048,16 +1665,16 @@ Val* InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
 			v = new VectorVal(t->AsVectorType());
 			break;
 		case TYPE_TABLE:
-			v = new TableVal(t->AsTableType(), aggr->Attrs());
+			v = new TableVal({NewRef{}, t->AsTableType()}, {NewRef{}, aggr->Attrs()});
 			break;
 		default:
 			break;
 		}
 
-		f->SetElement(aggr->Offset(), v);
+		f->SetElement(aggr, v);
 		}
 
-	return 0;
+	return nullptr;
 	}
 
 void InitStmt::Describe(ODesc* d) const
@@ -2083,9 +1700,9 @@ TraversalCode InitStmt::Traverse(TraversalCallback* cb) const
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
 
-	loop_over_list(*inits, i)
+	for ( const auto& init : *inits )
 		{
-		tc = (*inits)[i]->Traverse(cb);
+		tc = init->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
 		}
 
@@ -2093,55 +1710,16 @@ TraversalCode InitStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IMPLEMENT_SERIAL(InitStmt, SER_INIT_STMT);
-
-bool InitStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_INIT_STMT, Stmt);
-
-	if ( ! SERIALIZE(inits->length()) )
-		return false;
-
-	loop_over_list((*inits), i)
-		{
-		if ( ! (*inits)[i]->Serialize(info) )
-			return false;
-		}
-
-	return true;
-	}
-
-bool InitStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Stmt);
-
-	int len;
-	if ( ! UNSERIALIZE(&len) )
-		return false;
-
-	inits = new id_list;
-
-	while ( len-- )
-		{
-		ID* id = ID::Unserialize(info);
-		if ( ! id )
-			return false;
-		inits->append(id);
-		}
-	return true;
-	}
-
-
-Val* NullStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
+IntrusivePtr<Val> NullStmt::Exec(Frame* /* f */, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
-	return 0;
+	return nullptr;
 	}
 
-int NullStmt::IsPure() const
+bool NullStmt::IsPure() const
 	{
-	return 1;
+	return true;
 	}
 
 void NullStmt::Describe(ODesc* d) const
@@ -2161,32 +1739,15 @@ TraversalCode NullStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-IMPLEMENT_SERIAL(NullStmt, SER_NULL_STMT);
-
-bool NullStmt::DoSerialize(SerialInfo* info) const
+WhenStmt::WhenStmt(IntrusivePtr<Expr> arg_cond,
+                   IntrusivePtr<Stmt> arg_s1, IntrusivePtr<Stmt> arg_s2,
+                   IntrusivePtr<Expr> arg_timeout, bool arg_is_return)
+	: Stmt(STMT_WHEN),
+	  cond(std::move(arg_cond)), s1(std::move(arg_s1)), s2(std::move(arg_s2)),
+	  timeout(std::move(arg_timeout)), is_return(arg_is_return)
 	{
-	DO_SERIALIZE(SER_NULL_STMT, Stmt);
-	return true;
-	}
-
-bool NullStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Stmt);
-	return true;
-	}
-
-WhenStmt::WhenStmt(Expr* arg_cond, Stmt* arg_s1, Stmt* arg_s2,
-			Expr* arg_timeout, bool arg_is_return)
-: Stmt(STMT_WHEN)
-	{
-	assert(arg_cond);
-	assert(arg_s1);
-
-	cond = arg_cond;
-	s1 = arg_s1;
-	s2 = arg_s2;
-	timeout = arg_timeout;
-	is_return = arg_is_return;
+	assert(cond);
+	assert(s1);
 
 	if ( ! cond->IsError() && ! IsBool(cond->Type()->Tag()) )
 		cond->Error("conditional in test must be boolean");
@@ -2202,32 +1763,23 @@ WhenStmt::WhenStmt(Expr* arg_cond, Stmt* arg_s1, Stmt* arg_s2,
 		}
 	}
 
-WhenStmt::~WhenStmt()
-	{
-	Unref(cond);
-	Unref(s1);
-	Unref(s2);
-	}
+WhenStmt::~WhenStmt() = default;
 
-Val* WhenStmt::Exec(Frame* f, stmt_flow_type& flow) const
+IntrusivePtr<Val> WhenStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
 
-	::Ref(cond);
-	::Ref(s1);
-	if ( s2 )
-		::Ref(s2);
-	if ( timeout )
-		::Ref(timeout);
-
 	// The new trigger object will take care of its own deletion.
-	new Trigger(cond, s1, s2, timeout, f, is_return, location);
-
-	return 0;
+	new trigger::Trigger(IntrusivePtr{cond}.release(),
+	                     IntrusivePtr{s1}.release(),
+	                     IntrusivePtr{s2}.release(),
+	                     IntrusivePtr{timeout}.release(),
+	                     f, is_return, location);
+	return nullptr;
 	}
 
-int WhenStmt::IsPure() const
+bool WhenStmt::IsPure() const
 	{
 	return cond->IsPure() && s1->IsPure() && (! s2 || s2->IsPure());
 	}
@@ -2288,37 +1840,4 @@ TraversalCode WhenStmt::Traverse(TraversalCallback* cb) const
 
 	tc = cb->PostStmt(this);
 	HANDLE_TC_STMT_POST(tc);
-	}
-
-IMPLEMENT_SERIAL(WhenStmt, SER_WHEN_STMT);
-
-bool WhenStmt::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_WHEN_STMT, Stmt);
-
-	if ( cond->Serialize(info) && s1->Serialize(info) )
-		return false;
-
-	SERIALIZE_OPTIONAL(s2);
-	SERIALIZE_OPTIONAL(timeout);
-
-	return true;
-	}
-
-bool WhenStmt::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Stmt);
-
-	cond = Expr::Unserialize(info);
-	if ( ! cond )
-		return false;
-
-	s1 = Stmt::Unserialize(info);
-	if ( ! s1 )
-		return false;
-
-	UNSERIALIZE_OPTIONAL(s2, Stmt::Unserialize(info));
-	UNSERIALIZE_OPTIONAL(timeout, Expr::Unserialize(info));
-
-	return true;
 	}

@@ -1,3 +1,8 @@
+# Do not try parsing if the DOS stub program seems larger than 4mb.
+# DOS stub programs are not expected to be much more than on the order of
+# hundreds of bytes even though the format allows a full 32-bit range.
+let MAX_DOS_CODE_LENGTH = 4 * 1024 * 1024;
+
 type Headers = record {
 	dos_header      : DOS_Header;
 	dos_code        : DOS_Code(dos_code_len);
@@ -6,6 +11,9 @@ type Headers = record {
 } &let {
 	dos_code_len: uint32 = dos_header.AddressOfNewExeHeader > 64 ? dos_header.AddressOfNewExeHeader - 64 : 0;
 	length: uint64 = 64 + dos_code_len + pe_header.length + section_headers.length;
+
+	# Do not care about parsing rest of the file so mark done now ...
+	proc:             bool   = $context.connection.mark_done();
 };
 
 # The DOS header gives us the offset of the NT headers
@@ -28,7 +36,7 @@ type DOS_Header = record {
 	OEMid                    : uint16;
 	OEMinfo                  : uint16;
 	Reserved2                : uint16[10];
-	AddressOfNewExeHeader    : uint32;
+	AddressOfNewExeHeader    : uint32 &enforce(AddressOfNewExeHeader >= 64 && (AddressOfNewExeHeader - 64) < MAX_DOS_CODE_LENGTH);
 } &length=64;
 
 type DOS_Code(len: uint32) = record {

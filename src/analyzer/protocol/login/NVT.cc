@@ -1,12 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
+#include "NVT.h"
 
 #include <stdlib.h>
 
-#include "NVT.h"
+#include "BroString.h"
 #include "NetVar.h"
 #include "Event.h"
+#include "Reporter.h"
 #include "analyzer/protocol/tcp/TCP.h"
 
 #include "events.bif.h"
@@ -56,7 +58,7 @@ void TelnetOption::RecvOption(unsigned int type)
 		peer->SetWill();
 
 		if ( SaidDo() )
-			peer->SetActive(1);
+			peer->SetActive(true);
 		break;
 
 	case TELNET_OPT_WONT:
@@ -66,7 +68,7 @@ void TelnetOption::RecvOption(unsigned int type)
 		peer->SetWont();
 
 		if ( SaidDont() )
-			peer->SetActive(0);
+			peer->SetActive(false);
 		break;
 
 	case TELNET_OPT_DO:
@@ -76,7 +78,7 @@ void TelnetOption::RecvOption(unsigned int type)
 		peer->SetDo();
 
 		if ( SaidWill() )
-			SetActive(1);
+			SetActive(true);
 		break;
 
 	case TELNET_OPT_DONT:
@@ -86,7 +88,7 @@ void TelnetOption::RecvOption(unsigned int type)
 		peer->SetDont();
 
 		if ( SaidWont() )
-			SetActive(0);
+			SetActive(false);
 		break;
 
 	default:
@@ -100,7 +102,7 @@ void TelnetOption::RecvSubOption(u_char* /* data */, int /* len */)
 	{
 	}
 
-void TelnetOption::SetActive(int is_active)
+void TelnetOption::SetActive(bool is_active)
 	{
 	active = is_active;
 	}
@@ -318,7 +320,7 @@ char* TelnetEnvironmentOption::ExtractEnv(u_char*& data, int& len, int& code)
 
 	if ( code != ENVIRON_VAR && code != ENVIRON_VAL &&
 	     code != ENVIRON_USERVAR )
-		return 0;
+		return nullptr;
 
 	// Move past code.
 	--len;
@@ -336,7 +338,7 @@ char* TelnetEnvironmentOption::ExtractEnv(u_char*& data, int& len, int& code)
 			{
 			++d;	// move past ESC
 			if ( d >= data_end )
-				return 0;
+				return nullptr;
 			break;
 			}
 		}
@@ -364,7 +366,7 @@ char* TelnetEnvironmentOption::ExtractEnv(u_char*& data, int& len, int& code)
 	return env;
 	}
 
-void TelnetBinaryOption::SetActive(int is_active)
+void TelnetBinaryOption::SetActive(bool is_active)
 	{
 	endp->SetBinaryMode(is_active);
 	active = is_active;
@@ -379,10 +381,7 @@ void TelnetBinaryOption::InconsistentOption(unsigned int /* type */)
 
 
 NVT_Analyzer::NVT_Analyzer(Connection* conn, bool orig)
-	: tcp::ContentLine_Analyzer("NVT", conn, orig),
-	peer(), pending_IAC(), IAC_pos(), is_suboption(), last_was_IAC(),
-	binary_mode(), encrypting_mode(), authentication_has_been_accepted(),
-	auth_name(), options(), num_options()
+	: tcp::ContentLine_Analyzer("NVT", conn, orig), options()
 	{
 	}
 
@@ -401,7 +400,7 @@ TelnetOption* NVT_Analyzer::FindOption(unsigned int code)
 		if ( options[i]->Code() == code )
 			return options[i];
 
-	TelnetOption* opt = 0;
+	TelnetOption* opt = nullptr;
 	if ( i < NUM_TELNET_OPTIONS )
 		{ // Maybe we haven't created this option yet.
 		switch ( code ) {
@@ -441,13 +440,13 @@ TelnetOption* NVT_Analyzer::FindPeerOption(unsigned int code)
 
 void NVT_Analyzer::AuthenticationAccepted()
 	{
-	authentication_has_been_accepted = 1;
+	authentication_has_been_accepted = true;
 	Event(authentication_accepted, PeerAuthName());
 	}
 
 void NVT_Analyzer::AuthenticationRejected()
 	{
-	authentication_has_been_accepted = 0;
+	authentication_has_been_accepted = false;
 	Event(authentication_rejected, PeerAuthName());
 	}
 
@@ -460,13 +459,10 @@ const char* NVT_Analyzer::PeerAuthName() const
 void NVT_Analyzer::SetTerminal(const u_char* terminal, int len)
 	{
 	if ( login_terminal )
-		{
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(new StringVal(new BroString(terminal, len, 0)));
-
-		ConnectionEvent(login_terminal, vl);
-		}
+		EnqueueConnEvent(login_terminal,
+			ConnVal(),
+			make_intrusive<StringVal>(new BroString(terminal, len, false))
+		);
 	}
 
 void NVT_Analyzer::SetEncrypting(int mode)
@@ -555,9 +551,9 @@ void NVT_Analyzer::DoDeliver(int len, const u_char* data)
 			break;
 
 		case TELNET_IAC:
-			pending_IAC = 1;
+			pending_IAC = true;
 			IAC_pos = offset;
-			is_suboption = 0;
+			is_suboption = false;
 			buf[offset++] = c;
 			ScanOption(seq, len - 1, data + 1);
 			return;
@@ -591,20 +587,28 @@ void NVT_Analyzer::ScanOption(int seq, int len, const u_char* data)
 			{
 			// An escaped 255, throw away the second
 			// instance and drop the IAC state.
-			pending_IAC = 0;
+			pending_IAC = false;
 			last_char = code;
 			}
 
 		else if ( code == TELNET_OPT_SB )
 			{
-			is_suboption = 1;
-			last_was_IAC = 0;
+			is_suboption = true;
+			last_was_IAC = false;
+
+			if ( offset >= buf_len )
+				InitBuffer(buf_len * 2);
+
 			buf[offset++] = code;
 			}
 
 		else if ( IS_3_BYTE_OPTION(code) )
 			{
-			is_suboption = 0;
+			is_suboption = false;
+
+			if ( offset >= buf_len )
+				InitBuffer(buf_len * 2);
+
 			buf[offset++] = code;
 			}
 
@@ -615,7 +619,7 @@ void NVT_Analyzer::ScanOption(int seq, int len, const u_char* data)
 
 			// Throw it and the IAC away.
 			--offset;
-			pending_IAC = 0;
+			pending_IAC = false;
 			}
 
 		// Recurse to munch on the remainder.
@@ -630,7 +634,7 @@ void NVT_Analyzer::ScanOption(int seq, int len, const u_char* data)
 
 		// Delete the option.
 		offset -= 2;	// code + IAC
-		pending_IAC = 0;
+		pending_IAC = false;
 
 		DeliverStream(len - 1, data + 1, IsOrig());
 		return;
@@ -639,11 +643,14 @@ void NVT_Analyzer::ScanOption(int seq, int len, const u_char* data)
 	// A suboption.  Spin looking for end.
 	for ( ; len > 0; --len, ++data )
 		{
+		if ( offset >= buf_len )
+			InitBuffer(buf_len * 2);
+
 		unsigned int code = data[0];
 
 		if ( last_was_IAC )
 			{
-			last_was_IAC = 0;
+			last_was_IAC = false;
 
 			if ( code == TELNET_IAC )
 				{
@@ -666,14 +673,14 @@ void NVT_Analyzer::ScanOption(int seq, int len, const u_char* data)
 
 			// Delete suboption.
 			offset = IAC_pos;
-			pending_IAC = is_suboption = 0;
+			pending_IAC = is_suboption = false;
 
 			if ( code == TELNET_OPT_SE )
 				DeliverStream(len - 1, data + 1, IsOrig());
 			else
 				{
 				// Munch on the new (broken) option.
-				pending_IAC = 1;
+				pending_IAC = true;
 				IAC_pos = offset;
 				buf[offset++] = TELNET_IAC;
 				DeliverStream(len, data, IsOrig());
@@ -716,4 +723,3 @@ void NVT_Analyzer::BadOptionTermination(unsigned int /* code */)
 	{
 	Event(bad_option_termination);
 	}
-

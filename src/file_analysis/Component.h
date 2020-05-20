@@ -1,16 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef FILE_ANALYZER_COMPONENT_H
-#define FILE_ANALYZER_COMPONENT_H
+#pragma once
 
 #include "Tag.h"
 #include "plugin/Component.h"
 #include "plugin/TaggedComponent.h"
 
-#include "Val.h"
+#include "../zeek-config.h"
 
-#include "../bro-config.h"
-#include "../util.h"
+class RecordVal;
 
 namespace file_analysis {
 
@@ -77,5 +75,3 @@ private:
 };
 
 }
-
-#endif

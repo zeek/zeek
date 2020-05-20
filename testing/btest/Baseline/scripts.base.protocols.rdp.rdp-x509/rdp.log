@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	rdp
-#open	2016-07-13-16-16-49
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	cookie	result	security_protocol	keyboard_layout	client_build	client_name	client_dig_product_id	desktop_width	desktop_height	requested_color_depth	cert_type	cert_count	cert_permanent	encryption_level	encryption_method
-#types	time	string	addr	port	addr	port	string	string	string	string	string	string	string	count	count	string	string	count	bool	string	string
-1423755598.202845	CHhAvVGS1DHFjwGM9	192.168.1.1	54990	192.168.1.2	3389	JOHN-PC  	Success	RDP	English - United States	RDP 8.1	JOHN-PC-LAPTOP	3c571ed0-3415-474b-ae94-74e151b	1920	1080	16bit	X.509	2	F	Client compatible	128bit
-#close	2016-07-13-16-16-49
+#open	2020-04-30-00-47-28
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	cookie	result	security_protocol	client_channels	keyboard_layout	client_build	client_name	client_dig_product_id	desktop_width	desktop_height	requested_color_depth	cert_type	cert_count	cert_permanent	encryption_level	encryption_method
+#types	time	string	addr	port	addr	port	string	string	string	vector[string]	string	string	string	string	count	count	string	string	count	bool	string	string
+1423755598.202845	CHhAvVGS1DHFjwGM9	192.168.1.1	54990	192.168.1.2	3389	JOHN-PC  	Success	RDP	rdpdr,rdpsnd,cliprdr,drdynvc	English - United States	RDP 8.1	JOHN-PC-LAPTOP	3c571ed0-3415-474b-ae94-74e151b	1920	1080	16bit	X.509	2	F	Client compatible	128bit
+#close	2020-04-30-00-47-28

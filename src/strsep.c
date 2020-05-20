@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #ifndef HAVE_STRSEP
 

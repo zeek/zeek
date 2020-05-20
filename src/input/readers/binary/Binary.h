@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef INPUT_READERS_BINARY_H
-#define INPUT_READERS_BINARY_H
+#pragma once
 
 #include <fstream>
 #include <sys/types.h>
@@ -31,20 +30,19 @@ protected:
 private:
 	bool OpenInput();
 	bool CloseInput();
-	streamsize GetChunk(char** chunk);
+	std::streamsize GetChunk(char** chunk);
 	int UpdateModificationTime();
 
-	string fname;
-	ifstream* in;
+	std::string fname;
+	std::ifstream* in;
 	time_t mtime;
 	ino_t ino;
 	bool firstrun;
 
 	// options set from the script-level.
-	static streamsize chunk_size;
+	static std::streamsize chunk_size;
+	std::string path_prefix;
 };
 
 }
 }
-
-#endif /* INPUT_READERS_BINARY_H */

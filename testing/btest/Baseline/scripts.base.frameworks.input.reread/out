@@ -28,7 +28,7 @@ CC
 }, se={
 
 }, vc=[10, 20, 30], ve=[]]
-}, idx=<no value description>, val=<no value description>, want_record=T, ev=line
+}, idx=A::Idx, val=A::Val, want_record=T, ev=line
 { 
 print A::outfile, ============EVENT============;
 print A::outfile, Description;
@@ -39,7 +39,7 @@ print A::outfile, Left;
 print A::outfile, A::left;
 print A::outfile, Right;
 print A::outfile, A::right;
-}, pred=anonymous-function
+}, pred=lambda_<8259878504945965908>
 { 
 print A::outfile, ============PREDICATE============;
 print A::outfile, A::typ;
@@ -123,7 +123,7 @@ CC
 }, se={
 
 }, vc=[10, 20, 30], ve=[]]
-}, idx=<no value description>, val=<no value description>, want_record=T, ev=line
+}, idx=A::Idx, val=A::Val, want_record=T, ev=line
 { 
 print A::outfile, ============EVENT============;
 print A::outfile, Description;
@@ -134,7 +134,7 @@ print A::outfile, Left;
 print A::outfile, A::left;
 print A::outfile, Right;
 print A::outfile, A::right;
-}, pred=anonymous-function
+}, pred=lambda_<8259878504945965908>
 { 
 print A::outfile, ============PREDICATE============;
 print A::outfile, A::typ;
@@ -230,7 +230,7 @@ CC
 }, se={
 
 }, vc=[10, 20, 30], ve=[]]
-}, idx=<no value description>, val=<no value description>, want_record=T, ev=line
+}, idx=A::Idx, val=A::Val, want_record=T, ev=line
 { 
 print A::outfile, ============EVENT============;
 print A::outfile, Description;
@@ -241,7 +241,7 @@ print A::outfile, Left;
 print A::outfile, A::left;
 print A::outfile, Right;
 print A::outfile, A::right;
-}, pred=anonymous-function
+}, pred=lambda_<8259878504945965908>
 { 
 print A::outfile, ============PREDICATE============;
 print A::outfile, A::typ;
@@ -457,7 +457,7 @@ CC
 }, se={
 
 }, vc=[10, 20, 30], ve=[]]
-}, idx=<no value description>, val=<no value description>, want_record=T, ev=line
+}, idx=A::Idx, val=A::Val, want_record=T, ev=line
 { 
 print A::outfile, ============EVENT============;
 print A::outfile, Description;
@@ -468,7 +468,7 @@ print A::outfile, Left;
 print A::outfile, A::left;
 print A::outfile, Right;
 print A::outfile, A::right;
-}, pred=anonymous-function
+}, pred=lambda_<8259878504945965908>
 { 
 print A::outfile, ============PREDICATE============;
 print A::outfile, A::typ;
@@ -582,7 +582,7 @@ CC
 }, se={
 
 }, vc=[10, 20, 30], ve=[]]
-}, idx=<no value description>, val=<no value description>, want_record=T, ev=line
+}, idx=A::Idx, val=A::Val, want_record=T, ev=line
 { 
 print A::outfile, ============EVENT============;
 print A::outfile, Description;
@@ -593,7 +593,7 @@ print A::outfile, Left;
 print A::outfile, A::left;
 print A::outfile, Right;
 print A::outfile, A::right;
-}, pred=anonymous-function
+}, pred=lambda_<8259878504945965908>
 { 
 print A::outfile, ============PREDICATE============;
 print A::outfile, A::typ;
@@ -707,7 +707,7 @@ CC
 }, se={
 
 }, vc=[10, 20, 30], ve=[]]
-}, idx=<no value description>, val=<no value description>, want_record=T, ev=line
+}, idx=A::Idx, val=A::Val, want_record=T, ev=line
 { 
 print A::outfile, ============EVENT============;
 print A::outfile, Description;
@@ -718,7 +718,7 @@ print A::outfile, Left;
 print A::outfile, A::left;
 print A::outfile, Right;
 print A::outfile, A::right;
-}, pred=anonymous-function
+}, pred=lambda_<8259878504945965908>
 { 
 print A::outfile, ============PREDICATE============;
 print A::outfile, A::typ;
@@ -832,7 +832,7 @@ CC
 }, se={
 
 }, vc=[10, 20, 30], ve=[]]
-}, idx=<no value description>, val=<no value description>, want_record=T, ev=line
+}, idx=A::Idx, val=A::Val, want_record=T, ev=line
 { 
 print A::outfile, ============EVENT============;
 print A::outfile, Description;
@@ -843,7 +843,7 @@ print A::outfile, Left;
 print A::outfile, A::left;
 print A::outfile, Right;
 print A::outfile, A::right;
-}, pred=anonymous-function
+}, pred=lambda_<8259878504945965908>
 { 
 print A::outfile, ============PREDICATE============;
 print A::outfile, A::typ;
@@ -957,7 +957,7 @@ CC
 }, se={
 
 }, vc=[10, 20, 30], ve=[]]
-}, idx=<no value description>, val=<no value description>, want_record=T, ev=line
+}, idx=A::Idx, val=A::Val, want_record=T, ev=line
 { 
 print A::outfile, ============EVENT============;
 print A::outfile, Description;
@@ -968,7 +968,7 @@ print A::outfile, Left;
 print A::outfile, A::left;
 print A::outfile, Right;
 print A::outfile, A::right;
-}, pred=anonymous-function
+}, pred=lambda_<8259878504945965908>
 { 
 print A::outfile, ============PREDICATE============;
 print A::outfile, A::typ;
@@ -1187,7 +1187,7 @@ CC
 }, se={
 
 }, vc=[10, 20, 30], ve=[]]
-}, idx=<no value description>, val=<no value description>, want_record=T, ev=line
+}, idx=A::Idx, val=A::Val, want_record=T, ev=line
 { 
 print A::outfile, ============EVENT============;
 print A::outfile, Description;
@@ -1198,7 +1198,7 @@ print A::outfile, Left;
 print A::outfile, A::left;
 print A::outfile, Right;
 print A::outfile, A::right;
-}, pred=anonymous-function
+}, pred=lambda_<8259878504945965908>
 { 
 print A::outfile, ============PREDICATE============;
 print A::outfile, A::typ;
@@ -1240,7 +1240,7 @@ CC
 }, se={
 
 }, vc=[10, 20, 30], ve=[]]
-}, idx=<no value description>, val=<no value description>, want_record=T, ev=line
+}, idx=A::Idx, val=A::Val, want_record=T, ev=line
 { 
 print A::outfile, ============EVENT============;
 print A::outfile, Description;
@@ -1251,7 +1251,7 @@ print A::outfile, Left;
 print A::outfile, A::left;
 print A::outfile, Right;
 print A::outfile, A::right;
-}, pred=anonymous-function
+}, pred=lambda_<8259878504945965908>
 { 
 print A::outfile, ============PREDICATE============;
 print A::outfile, A::typ;
@@ -1293,7 +1293,7 @@ CC
 }, se={
 
 }, vc=[10, 20, 30], ve=[]]
-}, idx=<no value description>, val=<no value description>, want_record=T, ev=line
+}, idx=A::Idx, val=A::Val, want_record=T, ev=line
 { 
 print A::outfile, ============EVENT============;
 print A::outfile, Description;
@@ -1304,7 +1304,7 @@ print A::outfile, Left;
 print A::outfile, A::left;
 print A::outfile, Right;
 print A::outfile, A::right;
-}, pred=anonymous-function
+}, pred=lambda_<8259878504945965908>
 { 
 print A::outfile, ============PREDICATE============;
 print A::outfile, A::typ;
@@ -1346,7 +1346,7 @@ CC
 }, se={
 
 }, vc=[10, 20, 30], ve=[]]
-}, idx=<no value description>, val=<no value description>, want_record=T, ev=line
+}, idx=A::Idx, val=A::Val, want_record=T, ev=line
 { 
 print A::outfile, ============EVENT============;
 print A::outfile, Description;
@@ -1357,7 +1357,7 @@ print A::outfile, Left;
 print A::outfile, A::left;
 print A::outfile, Right;
 print A::outfile, A::right;
-}, pred=anonymous-function
+}, pred=lambda_<8259878504945965908>
 { 
 print A::outfile, ============PREDICATE============;
 print A::outfile, A::typ;
@@ -1399,7 +1399,7 @@ CC
 }, se={
 
 }, vc=[10, 20, 30], ve=[]]
-}, idx=<no value description>, val=<no value description>, want_record=T, ev=line
+}, idx=A::Idx, val=A::Val, want_record=T, ev=line
 { 
 print A::outfile, ============EVENT============;
 print A::outfile, Description;
@@ -1410,7 +1410,7 @@ print A::outfile, Left;
 print A::outfile, A::left;
 print A::outfile, Right;
 print A::outfile, A::right;
-}, pred=anonymous-function
+}, pred=lambda_<8259878504945965908>
 { 
 print A::outfile, ============PREDICATE============;
 print A::outfile, A::typ;
@@ -1452,7 +1452,7 @@ CC
 }, se={
 
 }, vc=[10, 20, 30], ve=[]]
-}, idx=<no value description>, val=<no value description>, want_record=T, ev=line
+}, idx=A::Idx, val=A::Val, want_record=T, ev=line
 { 
 print A::outfile, ============EVENT============;
 print A::outfile, Description;
@@ -1463,7 +1463,7 @@ print A::outfile, Left;
 print A::outfile, A::left;
 print A::outfile, Right;
 print A::outfile, A::right;
-}, pred=anonymous-function
+}, pred=lambda_<8259878504945965908>
 { 
 print A::outfile, ============PREDICATE============;
 print A::outfile, A::typ;

@@ -35,15 +35,18 @@ refine connection MockConnection += {
 
 	function proc_signedcertificatetimestamp(rec: HandshakeRecord, version: uint8, logid: const_bytestring, timestamp: uint64, digitally_signed_algorithms: SignatureAndHashAlgorithm, digitally_signed_signature: const_bytestring) : bool
 		%{
-		BifEvent::generate_x509_ocsp_ext_signed_certificate_timestamp((analyzer::Analyzer *) bro_analyzer(),
-			bro_analyzer()->GetFile()->GetVal()->Ref(),
-			version,
-			new StringVal(logid.length(), reinterpret_cast<const char*>(logid.begin())),
-			timestamp,
-			digitally_signed_algorithms->HashAlgorithm(),
-			digitally_signed_algorithms->SignatureAlgorithm(),
-			new StringVal(digitally_signed_signature.length(), reinterpret_cast<const char*>(digitally_signed_signature.begin()))
-		);
+		if ( ! x509_ocsp_ext_signed_certificate_timestamp )
+			return true;
+
+		mgr.Enqueue(x509_ocsp_ext_signed_certificate_timestamp,
+			IntrusivePtr{NewRef{}, bro_analyzer()->GetFile()->GetVal()},
+			val_mgr->Count(version),
+			make_intrusive<StringVal>(logid.length(), reinterpret_cast<const char*>(logid.begin())),
+			val_mgr->Count(timestamp),
+			val_mgr->Count(digitally_signed_algorithms->HashAlgorithm()),
+			val_mgr->Count(digitally_signed_algorithms->SignatureAlgorithm()),
+			make_intrusive<StringVal>(digitally_signed_signature.length(), reinterpret_cast<const char*>(digitally_signed_signature.begin()))
+			);
 
 		return true;
 		%}

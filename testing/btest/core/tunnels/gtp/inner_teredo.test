@@ -1,4 +1,4 @@
-# @TEST-EXEC: bro -r $TRACES/tunnels/gtp/gtp8_teredo.pcap "Tunnel::delay_teredo_confirmation=F"
+# @TEST-EXEC: zeek -r $TRACES/tunnels/gtp/gtp8_teredo.pcap "Tunnel::delay_teredo_confirmation=F"
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff tunnel.log
 

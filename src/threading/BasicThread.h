@@ -1,12 +1,10 @@
 
-#ifndef THREADING_BASICTHREAD_H
-#define THREADING_BASICTHREAD_H
+#pragma once
 
+#include <stdint.h>
+
+#include <iosfwd>
 #include <thread>
-
-#include "util.h"
-
-using namespace std;
 
 namespace threading {
 
@@ -214,5 +212,3 @@ private:
 };
 
 }
-
-#endif

@@ -1,8 +1,6 @@
-#ifndef FILE_ANALYSIS_FILEREASSEMBLER_H
-#define FILE_ANALYSIS_FILEREASSEMBLER_H
+#pragma once
 
 #include "Reassem.h"
-#include "File.h"
 
 class BroFile;
 class Connection;
@@ -11,10 +9,10 @@ namespace file_analysis {
 
 class File;
 
-class FileReassembler : public Reassembler {
+class FileReassembler final : public Reassembler {
 public:
 
-	FileReassembler(File* f, uint64 starting_offset);
+	FileReassembler(File* f, uint64_t starting_offset);
 	~FileReassembler() override;
 
 	void Done();
@@ -29,7 +27,7 @@ public:
 	 * appropriate.
 	 * @return the number of new bytes now detected as gaps in the file.
 	 */
-	uint64 Flush();
+	uint64_t Flush();
 
 	/**
 	 * Discards all contents of the reassembly buffer up to a given sequence
@@ -38,7 +36,7 @@ public:
 	 * @param sequence the sequence number to flush until.
 	 * @return the number of new bytes now detected as gaps in the file.
 	 */
-	uint64 FlushTo(uint64 sequence);
+	uint64_t FlushTo(uint64_t sequence);
 
 	/**
 	 * @return whether the reassembler is currently is the process of flushing
@@ -50,16 +48,12 @@ public:
 protected:
 	FileReassembler();
 
-	DECLARE_SERIAL(FileReassembler);
-
-	void Undelivered(uint64 up_to_seq) override;
-	void BlockInserted(DataBlock* b) override;
-	void Overlap(const u_char* b1, const u_char* b2, uint64 n) override;
+	void Undelivered(uint64_t up_to_seq) override;
+	void BlockInserted(DataBlockMap::const_iterator it) override;
+	void Overlap(const u_char* b1, const u_char* b2, uint64_t n) override;
 
 	File* the_file;
 	bool flushing;
 };
 
-} // namespace analyzer::* 
-
-#endif
+} // namespace analyzer::*

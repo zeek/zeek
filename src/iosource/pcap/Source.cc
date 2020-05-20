@@ -1,11 +1,12 @@
 // See the file  in the main distribution directory for copyright.
 
-#include <assert.h>
-
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "Source.h"
 #include "iosource/Packet.h"
+#include "iosource/BPF_Program.h"
+
+#include "Event.h"
 
 #include "pcap.bif.h"
 
@@ -24,10 +25,8 @@ PcapSource::PcapSource(const std::string& path, bool is_live)
 	{
 	props.path = path;
 	props.is_live = is_live;
-	pd = 0;
+	pd = nullptr;
 	memset(&current_hdr, 0, sizeof(current_hdr));
-	memset(&last_hdr, 0, sizeof(last_hdr));
-	last_data = 0;
 	}
 
 void PcapSource::Open()
@@ -44,38 +43,56 @@ void PcapSource::Close()
 		return;
 
 	pcap_close(pd);
-	pd = 0;
-	last_data = 0;
+	pd = nullptr;
 
 	Closed();
+
+	if ( Pcap::file_done )
+		mgr.Enqueue(Pcap::file_done, make_intrusive<StringVal>(props.path));
 	}
 
 void PcapSource::OpenLive()
 	{
 	char errbuf[PCAP_ERRBUF_SIZE];
-	char tmp_errbuf[PCAP_ERRBUF_SIZE];
 
 	// Determine interface if not specified.
 	if ( props.path.empty() )
-		props.path = pcap_lookupdev(tmp_errbuf);
-
-	if ( props.path.empty() )
 		{
-		safe_snprintf(errbuf, sizeof(errbuf),
-			 "pcap_lookupdev: %s", tmp_errbuf);
-		Error(errbuf);
-		return;
+		pcap_if_t* devs;
+
+		if ( pcap_findalldevs(&devs, errbuf) < 0 )
+			{
+			Error(fmt("pcap_findalldevs: %s", errbuf));
+			return;
+			}
+
+		if ( devs )
+			{
+			props.path = devs->name;
+			pcap_freealldevs(devs);
+
+			if ( props.path.empty() )
+				{
+				Error("pcap_findalldevs: empty device name");
+				return;
+				}
+			}
+		else
+			{
+			Error("pcap_findalldevs: no devices found");
+			return;
+			}
 		}
 
 	// Determine network and netmask.
-	uint32 net;
-	if ( pcap_lookupnet(props.path.c_str(), &net, &props.netmask, tmp_errbuf) < 0 )
+	uint32_t net;
+	if ( pcap_lookupnet(props.path.c_str(), &net, &props.netmask, errbuf) < 0 )
 		{
 		// ### The lookup can fail if no address is assigned to
 		// the interface; and libpcap doesn't have any useful notion
 		// of error codes, just error std::strings - how bogus - so we
 		// just kludge around the error :-(.
-		// sprintf(errbuf, "pcap_lookupnet %s", tmp_errbuf);
+		// sprintf(errbuf, "pcap_lookupnet %s", errbuf);
 		// return;
 		props.netmask = 0xffffff00;
 		}
@@ -133,7 +150,7 @@ void PcapSource::OpenLive()
 		}
 
 #ifdef HAVE_LINUX
-	if ( pcap_setnonblock(pd, 1, tmp_errbuf) < 0 )
+	if ( pcap_setnonblock(pd, 1, errbuf) < 0 )
 		{
 		PcapError("pcap_setnonblock");
 		return;
@@ -144,14 +161,9 @@ void PcapSource::OpenLive()
 	Info(fmt("pcap bufsize = %d\n", ((struct pcap *) pd)->bufsize));
 #endif
 
-	props.selectable_fd = pcap_fileno(pd);
+	props.selectable_fd = pcap_get_selectable_fd(pd);
 
-	SetHdrSize();
-
-	if ( ! pd )
-		// Was closed, couldn't get header size.
-		return;
-
+	props.link_type = pcap_datalink(pd);
 	props.is_live = true;
 
 	Opened(props);
@@ -169,18 +181,14 @@ void PcapSource::OpenOffline()
 		return;
 		}
 
-	SetHdrSize();
-
-	if ( ! pd )
-		// Was closed, unknown link layer type.
-		return;
-
 	props.selectable_fd = fileno(pcap_file(pd));
 
 	if ( props.selectable_fd < 0 )
 		InternalError("OS does not support selectable pcap fd");
 
+	props.link_type = pcap_datalink(pd);
 	props.is_live = false;
+
 	Opened(props);
 	}
 
@@ -202,7 +210,6 @@ bool PcapSource::ExtractNextPacket(Packet* pkt)
 		return false;
 		}
 
-	last_data = data;
 	pkt->Init(props.link_type, &current_hdr.ts, current_hdr.caplen, current_hdr.len, data);
 
 	if ( current_hdr.len == 0 || current_hdr.caplen == 0 )
@@ -211,8 +218,6 @@ bool PcapSource::ExtractNextPacket(Packet* pkt)
 		return false;
 		}
 
-	last_hdr = current_hdr;
-	last_data = data;
 	++stats.received;
 	stats.bytes_received += current_hdr.len;
 
@@ -240,17 +245,27 @@ bool PcapSource::SetFilter(int index)
 
 	if ( ! code )
 		{
-		safe_snprintf(errbuf, sizeof(errbuf),
+		snprintf(errbuf, sizeof(errbuf),
 			      "No precompiled pcap filter for index %d",
 			      index);
 		Error(errbuf);
 		return false;
 		}
 
-	if ( pcap_setfilter(pd, code->GetProgram()) < 0 )
+	if ( LinkType() == DLT_NFLOG )
 		{
-		PcapError();
-		return false;
+		// No-op, NFLOG does not support BPF filters.
+		// Raising a warning might be good, but it would also be noisy
+		// since the default scripts will always attempt to compile
+		// and install a default filter
+		}
+	else
+		{
+		if ( pcap_setfilter(pd, code->GetProgram()) < 0 )
+			{
+			PcapError();
+			return false;
+			}
 		}
 
 #ifndef HAVE_LINUX
@@ -293,7 +308,7 @@ void PcapSource::Statistics(Stats* s)
 
 void PcapSource::PcapError(const char* where)
 	{
-	string location;
+	std::string location;
 
 	if ( where )
 		location = fmt(" (%s)", where);
@@ -304,16 +319,6 @@ void PcapSource::PcapError(const char* where)
 		Error(fmt("pcap_error: not open%s", location.c_str()));
 
 	Close();
-	}
-
-void PcapSource::SetHdrSize()
-	{
-	if ( ! pd )
-		return;
-
-	char errbuf[PCAP_ERRBUF_SIZE];
-
-	props.link_type = pcap_datalink(pd);
 	}
 
 iosource::PktSrc* PcapSource::Instantiate(const std::string& path, bool is_live)

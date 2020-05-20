@@ -1,62 +1,80 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef scope_h
-#define scope_h
+#pragma once
 
+#include <utility>
 #include <string>
+#include <map>
 
-#include "Dict.h"
 #include "Obj.h"
 #include "BroList.h"
+#include "IntrusivePtr.h"
 #include "TraverseTypes.h"
-#include "module_util.h"
 
+template <class T> class IntrusivePtr;
 class ID;
 class BroType;
 class ListVal;
 
-declare(PDict,ID);
-
 class Scope : public BroObj {
 public:
-	explicit Scope(ID* id, attr_list* al);
+	explicit Scope(IntrusivePtr<ID> id, attr_list* al);
 	~Scope() override;
 
-	ID* Lookup(const char* name) const	{ return local->Lookup(name); }
-	void Insert(const char* name, ID* id)	{ local->Insert(name, id); }
-	ID* Remove(const char* name)
+	template<typename N>
+	ID* Lookup(N&& name) const
 		{
-		HashKey key(name);
-		return (ID*) local->Remove(&key);
+		const auto& entry = local.find(std::forward<N>(name));
+
+		if ( entry != local.end() )
+			return entry->second.get();
+
+		return nullptr;
 		}
 
-	ID* ScopeID() const		{ return scope_id; }
-	attr_list* Attrs() const	{ return attrs; }
-	BroType* ReturnType() const	{ return return_type; }
+	template<typename N, typename I>
+	void Insert(N&& name, I&& id) { local[std::forward<N>(name)] = std::forward<I>(id); }
 
-	int Length() const		{ return local->Length(); }
-	PDict(ID)* Vars() const		{ return local; }
+	template<typename N>
+	IntrusivePtr<ID> Remove(N&& name)
+		{
+		const auto& entry = local.find(std::forward<N>(name));
+
+		if ( entry != local.end() )
+			{
+			auto id = std::move(entry->second);
+			local.erase(entry);
+			return id;
+			}
+
+		return nullptr;
+		}
+
+	ID* ScopeID() const		{ return scope_id.get(); }
+	attr_list* Attrs() const	{ return attrs; }
+	BroType* ReturnType() const	{ return return_type.get(); }
+
+	size_t Length() const		{ return local.size(); }
+	const auto& Vars()	{ return local; }
 
 	ID* GenerateTemporary(const char* name);
-
-	PDict(ID)* GetIDs() const	{ return local; }
 
 	// Returns the list of variables needing initialization, and
 	// removes it from this Scope.
 	id_list* GetInits();
 
 	// Adds a variable to the list.
-	void AddInit(ID* id)		{ inits->append(id); }
+	void AddInit(IntrusivePtr<ID> id)		{ inits->push_back(id.release()); }
 
 	void Describe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const;
 
 protected:
-	ID* scope_id;
+	IntrusivePtr<ID> scope_id;
 	attr_list* attrs;
-	BroType* return_type;
-	PDict(ID)* local;
+	IntrusivePtr<BroType> return_type;
+	std::map<std::string, IntrusivePtr<ID>> local;
 	id_list* inits;
 };
 
@@ -64,22 +82,21 @@ protected:
 extern bool in_debug;
 
 // If no_global is true, don't search in the default "global" namespace.
-// This passed ownership of a ref'ed ID to the caller.
-extern ID* lookup_ID(const char* name, const char* module,
-		     bool no_global = false, bool same_module_only = false,
-		     bool check_export = true);
-extern ID* install_ID(const char* name, const char* module_name,
-			bool is_global, bool is_export);
+extern IntrusivePtr<ID> lookup_ID(const char* name, const char* module,
+                                  bool no_global = false,
+                                  bool same_module_only = false,
+                                  bool check_export = true);
 
-extern void push_scope(ID* id, attr_list* attrs);
+extern IntrusivePtr<ID> install_ID(const char* name, const char* module_name,
+                                   bool is_global, bool is_export);
+
+extern void push_scope(IntrusivePtr<ID> id, attr_list* attrs);
 extern void push_existing_scope(Scope* scope);
 
-// Returns the one popped off; it's not deleted.
-extern Scope* pop_scope();
+// Returns the one popped off.
+extern IntrusivePtr<Scope> pop_scope();
 extern Scope* current_scope();
 extern Scope* global_scope();
 
 // Current module (identified by its name).
-extern string current_module;
-
-#endif
+extern std::string current_module;

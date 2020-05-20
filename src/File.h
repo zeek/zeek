@@ -1,36 +1,35 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef file_h
-#define file_h
+#pragma once
+
+#include "Obj.h"
+#include "IntrusivePtr.h"
+
+#include <list>
+#include <string>
+#include <utility>
 
 #include <fcntl.h>
-#include "util.h"
-#include "Obj.h"
-#include "Attr.h"
 
 # ifdef NEED_KRB5_H
 #  include <krb5.h>
 # endif // NEED_KRB5_H
 
-// From OpenSSL. We forward-declare these here to avoid introducing a
-// dependency on OpenSSL headers just for this header file.
-typedef struct evp_pkey_st EVP_PKEY;
-typedef struct evp_cipher_ctx_st EVP_CIPHER_CTX;
-
+class Attributes;
 class BroType;
-class RotateTimer;
+class RecordVal;
 
-class BroFile : public BroObj {
+class BroFile final : public BroObj {
 public:
 	explicit BroFile(FILE* arg_f);
 	BroFile(FILE* arg_f, const char* filename, const char* access);
-	BroFile(const char* filename, const char* access, BroType* arg_t = 0);
+	BroFile(const char* filename, const char* access);
 	~BroFile() override;
 
 	const char* Name() const;
 
 	// Returns false if an error occured.
-	int Write(const char* data, int len = 0);
+	bool Write(const char* data, int len = 0);
 
 	void Flush()	{ fflush(f); }
 
@@ -38,52 +37,40 @@ public:
 
 	void SetBuf(bool buffered);	// false=line buffered, true=fully buffered
 
-	BroType* FType() const	{ return t; }
+	BroType* FType() const	{ return t.get(); }
 
 	// Whether the file is open in a general sense; it might
 	// not be open as a Unix file due to our management of
 	// a finite number of FDs.
-	int IsOpen() const	{ return is_open; }
+	bool IsOpen() const	{ return is_open; }
 
 	// Returns true if the close made sense, false if it was already
 	// closed, not active, or whatever.
-	int Close();
+	bool Close();
 
 	void Describe(ODesc* d) const override;
-
-	void SetRotateInterval(double secs);
 
 	// Rotates the logfile. Returns rotate_info.
 	RecordVal* Rotate();
 
-	// Set &rotate_interval, &rotate_size,
-	// and &raw_output attributes.
+	// Set &raw_output attribute.
 	void SetAttrs(Attributes* attrs);
 
 	// Returns the current size of the file, after fresh stat'ing.
-	double Size()	{ fflush(f); UpdateFileSize(); return current_size; }
+	double Size();
 
-	// Set rotate/postprocessor for all files that don't define them
-	// by their own. (interval/max_size=0 for no rotation; size in bytes).
-	static void SetDefaultRotation(double interval, double max_size);
-
-	// Close all files which are managed by us.
-	static void CloseCachedFiles();
+	// Close all files which are currently open.
+	static void CloseOpenFiles();
 
 	// Get the file with the given name, opening it if it doesn't yet exist.
 	static BroFile* GetFile(const char* name);
 
-	void DisablePrintHook() 	{ print_hook = false; }
-	bool IsPrintHookEnabled() const	{ return print_hook; }
-
 	void EnableRawOutput()		{ raw_output = true; }
 	bool IsRawOutput() const	{ return raw_output; }
 
-	bool Serialize(SerialInfo* info) const;
-	static BroFile* Unserialize(UnserialInfo* info);
-
 protected:
-	friend class RotateTimer;
+
+	friend class PrintStmt;
 
 	BroFile()	{ Init(); }
 	void Init();
@@ -93,72 +80,31 @@ protected:
 	 * If file is not given and mode is, the filename will be opened with that
 	 * access mode.
 	 */
-	bool Open(FILE* f = 0, const char* mode = 0);
+	bool Open(FILE* f = nullptr, const char* mode = nullptr);
 
-	BroFile* Prev()	{ return prev; }
-	BroFile* Next()	{ return next; }
-	void SetPrev(BroFile* f)	{ prev = f; }
-	void SetNext(BroFile* f)	{ next = f; }
-
-	void Suspend();
-	void PurgeCache();
 	void Unlink();
-	void InsertAtBeginning();
-	void MoveToBeginning();
-	void InstallRotateTimer();
 
 	// Returns nil if the file is not active, was in error, etc.
 	// (Protected because we do not want anyone to write directly
-	// to the file.)
+	// to the file, but the PrintStmt friend uses this to check whether
+	// it's really stdout.)
 	FILE* File();
-	FILE* BringIntoCache();
-
-	// Stats the file to get its current size.
-	void UpdateFileSize();
 
 	// Raises a file_opened event.
 	void RaiseOpenEvent();
 
-	// Initialize encryption with the given public key.
-	void InitEncrypt(const char* keyfile);
-	// Finalize encryption.
-	void FinishEncrypt();
-
-	DECLARE_SERIAL(BroFile);
-
 	FILE* f;
-	BroType* t;
+	IntrusivePtr<BroType> t;
 	char* name;
 	char* access;
-	int is_in_cache;	// whether it's currently in the open-file cache
-	int is_open;	// whether the file is open in a general sense
-	int okay_to_manage;	// we're allowed to cache/uncache
-	long position;	// only valid if ! is_in_cache
-	BroFile* next;	// doubly-linked list of cached files
-	BroFile* prev;
 	Attributes* attrs;
-	double rotate_interval;
-	bool buffered;
-
-	// Sizes are double's so that it's easy to specify large
-	// ones with scientific notation, and so they can exceed 4GB.
-	double rotate_size;
-	double current_size;
-
-	Timer* rotate_timer;
 	double open_time;
-	bool print_hook;
+	bool is_open;	// whether the file is open in a general sense
+	bool buffered;
 	bool raw_output;
 
-	static double default_rotation_interval;
-	static double default_rotation_size;
-
-	EVP_PKEY* pub_key;
-	EVP_CIPHER_CTX* cipher_ctx;
-
 	static const int MIN_BUFFER_SIZE = 1024;
-	unsigned char* cipher_buffer;
 
+private:
+	static std::list<std::pair<std::string, BroFile*>> open_files;
 };
-
-#endif

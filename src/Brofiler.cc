@@ -1,10 +1,19 @@
+#include "Brofiler.h"
+
 #include <cstdio>
 #include <cstring>
+#include <sstream>
+#include <fstream>
 #include <utility>
 #include <algorithm>
 #include <sys/stat.h>
-#include "Brofiler.h"
+
+#include "Stmt.h"
+#include "Desc.h"
+#include "Reporter.h"
 #include "util.h"
+
+using namespace std;
 
 Brofiler::Brofiler()
 	: ignoring(0), delim('\t')
@@ -13,48 +22,81 @@ Brofiler::Brofiler()
 
 Brofiler::~Brofiler()
 	{
+	for ( auto& s : stmts )
+		Unref(s);
+	}
+
+void Brofiler::AddStmt(Stmt* s)
+	{
+	if ( ignoring != 0 )
+		return;
+
+	::Ref(s);
+	stmts.push_back(s);
 	}
 
 bool Brofiler::ReadStats()
 	{
-	char* bf = getenv("BRO_PROFILER_FILE");
+	char* bf = zeekenv("ZEEK_PROFILER_FILE");
+
 	if ( ! bf )
 		return false;
 
-	FILE* f = fopen(bf, "r");
-	if ( ! f )
+	std::ifstream ifs;
+	ifs.open(bf, std::ifstream::in);
+
+	if ( ! ifs )
 		return false;
 
-	char line[16384];
+	std::stringstream ss;
+	ss << ifs.rdbuf();
+	std::string file_contents = ss.str();
+	ss.clear();
+
+	std::vector<std::string> lines;
+	tokenize_string(file_contents, "\n", &lines);
 	string delimiter;
 	delimiter = delim;
 
-	while( fgets(line, sizeof(line), f) )
+	for ( const auto& line : lines )
 		{
-		line[strlen(line) - 1] = 0; //remove newline
-		string cnt(strtok(line, delimiter.c_str()));
-		string location(strtok(0, delimiter.c_str()));
-		string desc(strtok(0, delimiter.c_str()));
-		pair<string, string> location_desc(location, desc);
-		uint64 count;
-		atoi_n(cnt.size(), cnt.c_str(), 0, 10, count);
-		usage_map[location_desc] = count;
+		if ( line.empty() )
+			continue;
+
+		std::vector<std::string> line_components;
+		tokenize_string(line, delimiter, &line_components);
+
+		if ( line_components.size() != 3 )
+			{
+			fprintf(stderr, "invalid ZEEK_PROFILER_FILE line: %s\n", line.data());
+			continue;
+			}
+
+		std::string& cnt = line_components[0];
+		std::string& location = line_components[1];
+		std::string& desc = line_components[2];
+
+		pair<string, string> location_desc(std::move(location), std::move(desc));
+		uint64_t count;
+		atoi_n(cnt.size(), cnt.c_str(), nullptr, 10, count);
+		usage_map.emplace(std::move(location_desc), count);
 		}
 
-	fclose(f);
 	return true;
 	}
 
 bool Brofiler::WriteStats()
 	{
-	char* bf = getenv("BRO_PROFILER_FILE");
-	if ( ! bf ) return false;
+	char* bf = zeekenv("ZEEK_PROFILER_FILE");
+
+	if ( ! bf )
+		return false;
 
 	SafeDirname dirname{bf};
 
 	if ( ! ensure_intermediate_dirs(dirname.result.data()) )
 		{
-		reporter->Error("Failed to open BRO_PROFILER_FILE destination '%s' for writing", bf);
+		reporter->Error("Failed to open ZEEK_PROFILER_FILE destination '%s' for writing", bf);
 		return false;
 		}
 
@@ -69,7 +111,7 @@ bool Brofiler::WriteStats()
 
 		if ( fd == -1 )
 			{
-			reporter->Error("Failed to generate unique file name from BRO_PROFILER_FILE: %s", bf);
+			reporter->Error("Failed to generate unique file name from ZEEK_PROFILER_FILE: %s", bf);
 			return false;
 			}
 		f = fdopen(fd, "w");
@@ -81,11 +123,11 @@ bool Brofiler::WriteStats()
 
 	if ( ! f )
 		{
-		reporter->Error("Failed to open BRO_PROFILER_FILE destination '%s' for writing", bf);
+		reporter->Error("Failed to open ZEEK_PROFILER_FILE destination '%s' for writing", bf);
 		return false;
 		}
 
-	for ( list<const Stmt*>::const_iterator it = stmts.begin();
+	for ( list<Stmt*>::const_iterator it = stmts.begin();
 	      it != stmts.end(); ++it )
 		{
 		ODesc location_info;
@@ -93,7 +135,8 @@ bool Brofiler::WriteStats()
 		ODesc desc_info;
 		(*it)->Describe(&desc_info);
 		string desc(desc_info.Description());
-		for_each(desc.begin(), desc.end(), canonicalize_desc());
+		canonicalize_desc cd{delim};
+		for_each(desc.begin(), desc.end(), cd);
 		pair<string, string> location_desc(location_info.Description(), desc);
 		if ( usage_map.find(location_desc) != usage_map.end() )
 			usage_map[location_desc] += (*it)->GetAccessCount();
@@ -101,7 +144,7 @@ bool Brofiler::WriteStats()
 			usage_map[location_desc] = (*it)->GetAccessCount();
 		}
 
-	map<pair<string, string>, uint64 >::const_iterator it;
+	map<pair<string, string>, uint64_t >::const_iterator it;
 	for ( it = usage_map.begin(); it != usage_map.end(); ++it )
 		{
 		fprintf(f, "%" PRIu64"%c%s%c%s\n", it->second, delim,

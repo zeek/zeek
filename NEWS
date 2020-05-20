@@ -1,8 +1,949 @@
 
-This document summarizes the most important changes in the current Bro
+This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
-(note that submodules, such as BroControl and Broccoli, come with
-their own ``CHANGES``.)
+(note that submodules, such as Broker, come with their own ``CHANGES``.)
+
+Zeek 3.2.0
+==========
+
+New Functionality
+-----------------
+
+- X509 Certificate caching:
+
+  Zeek now caches certificates if they have (by default) been encountered
+  more than 10 times in 62 seconds. Information for cached certificates is
+  retained; if the certificate is encountered again it does not have to
+  be re-parsed and already existing information is used to raise the events.
+
+  This should especially help with performance in environments where the
+  same certificates are seen very often.
+
+  Certificate caching is very configureable; it is possible to disable the
+  feature, change the time intervals or even suppress X509 events.
+  For details see ``scripts/base/files/x509/main.zeek``.
+
+- Add parsing support for Remote Desktop Protocol UDP Transport Extension
+  (RDPEUDP versions 1 and 2).  This primarily only adds "rdpeudp" to
+  connection record service fields when an RDPEUDP session handhake is
+  detected, but also provides a few other events related to the RDPEUDP
+  connection establishment.
+
+- Add the ``udp_content_ports`` configuration option. Any port added to
+  this set will cause the ``udp_contents`` event to be raised.
+
+- Add the ``udp_content_delivery_ports_use_resp`` option which can be used
+  to specify how the destination port for the ``udp_content_delivery_ports_orig``
+  and ``udp_content_delivery_ports_orig`` options is determined. The current value
+  keeps behavior as it was in previous versions of Zeek.
+
+- Add a file signature to identify ISO9660 disk images (application/x-iso9660-image)
+
+- Add file signature to identify Python bytecode (application/x-python-bytecode)
+
+Changed Functionality
+---------------------
+
+- Several C++ functions have been changed to pass smart pointers
+  (``class IntrusivePtr<>``) instead of raw pointers.  This makes the
+  code more robust.  External plugins may need to be updated to this
+  API change.
+
+- BIFs that use @ARG@, @ARGS@, or @ARGC@ may break since their type has
+  changed: BIF arguments are now passed as a ``std::vector<IntrusivePtr<Val>>``
+  rather than a ``val_list`` (i.e. ``List<Val*>``).
+
+- RocksDB support for Broker data stores is now opt-in instead of automatically
+  detected and used at configuration-time.  Use the ``--enable-rocksdb`` and
+  ``--with-rocksdb=`` flags to opt-in.
+
+- At the C++ level, a large number of functions had their return
+  values and/or arguments changed to use ``bool`` types instead of
+  ``int``. This includes some virtual methods, which may cause build
+  failures in plugins that were overriding those methods. Those
+  plugins will need to be updated to match these API changes. To make
+  sure to catch changes you need to make to your plugin, double-check
+  that all virtual method implementations use "override".
+
+- Many C++ classes were marked "final" which also has some performance benefits
+  due to devirtualization optimizations.
+
+- Data members of many C++ classes/structs were reordered to achieve better
+  packing and smaller memory footprint.
+
+- "using namespace std" was removed from the Zeek header files; Zeek now always
+  explicitly specifies std when using STL functionality in headers. This may
+  necessitate small changes in external plugins, if they relied on the using 
+  statement in Zeek headers.
+
+- The ``connection_external`` event was removed. This functionality that could
+  raise this event (injecting connections via broccoli) was removed a while ago;
+  the event handler served no purpose anymore.
+
+- Reorganize the file signatures to break them out into more groups.  This may
+  break scripts that had been explicitly loading any signature files that moved.
+
+- The DCE/RPC operation string of "NetrLogonSamLogonWithFlags" has been
+  corrected from "NetrLogonSameLogonWithFlags".
+
+Removed Functionality
+---------------------
+
+- The fmt() function which takes a va_list argument is replaced, use
+  the new vfmt() function for equivalent functionality.  The former is
+  deprecated because overloading it with the variadic fmt() function
+  can cause the unintended overload to be chosen depending on how the
+  platform implements va_list.
+
+Deprecated Functionality
+------------------------
+
+- The ``Func::Call(val_list*, ...)`` method is now deprecated.  The alternate
+  overload taking a ``zeek::Args`` (``std::vector<IntrusivePtr<Val>>``) should
+  be used instead.  There's also now a variadic template that forwards all
+  arguments.
+
+- The ``EventMgr::QueueEvent()`` and EventMgr::QueueEventFast()`` methods
+  are now deprecated, use ``EventMgr::Enqueue()`` instead.
+
+- The ``Connection::ConnectionEvent()``, ``Connection::Event()``, and
+  ``Connection::ConnectionEventFast()`` methods are now deprecated, use
+  ``Connection::EnqueueEvent()`` instead.
+
+- The ``file_analysis::File::FileEvent()`` methods taking ``val_list``
+  arguments are now deprecated, use the overload that takes a ``zeek::Args``
+  instead.
+
+- The ``analyzer::Analyzer::ConnectionEvent()``, ``analyzer::Analyzer::Event``,
+  and ``analyzer::Analyzer::ConectionEventFast()`` methods are deprecated, use
+  ``analyzer::Analyzer::EnqueueConnEvent()`` instead.
+
+- All ``val_mgr`` methods starting with "Get" are deprecated, use the new
+  ``val_mgr`` methods that return ``IntrusivePtr``.
+
+- ``Connection::BuildConnVal()`` is deprecated, use ``Connection::ConnVal()``.
+
+- ``Analyzer::BuildConnVal()`` is deprecated, use ``Analyzer::ConnVal()``.
+
+- ``BifEvent::generate_`` functions are deprecated, use ``BifEvent::enqueue_``.
+
+- ``binpac::bytestring_to_val()`` is deprecated, use ``binpac::to_stringval()``.
+
+- ``binpac::string_to_val()`` is deprecated, use ``StringVal`` constructor.
+
+- Returning ``Val*`` from BIFs is deprecated, return ``IntrusivePtr`` instead.
+
+Zeek 3.1.0
+==========
+
+New Functionality
+-----------------
+
+- Add a new supervisor framework that enables Zeek to operate clusters
+  of processes itself without any external help.
+
+  The Supervisor framework provides an entirely new deployment mode
+  for Zeek, one that supervises a set of Zeek processes that are meant
+  to be persistent. A Supervisor automatically revives any process
+  that dies or exits prematurely and also arranges for an ordered
+  shutdown of the entire process tree upon its own termination. This
+  Supervisor mode for Zeek provides the basic foundation for process
+  configuration/management that could be used to deploy a Zeek cluster
+  similar to what ZeekControl does, but is also simpler to integrate
+  as a standard system service.
+
+  This mode is still experimental and will evolve over time. The
+  command-line argument of ``-j`` toggles Zeek to run in "Supervisor
+  mode" to allow for creation and management of child processes. If
+  you're going to test this, please note that you will need some
+  custom script code to configure the processes you want Zeek to run.
+  See the documentation for more information:
+  https://docs.zeek.org/en/stable/frameworks/supervisor.html
+
+- Add a new option, ``dpd_late_match_stop``, which can be used in conjuction
+  with the option ``dpd_match_only_beginning`` and the new event
+  ``protocol_late_match`` to help annotate the conn.log with a field
+  to speculate on the protocol/service in cases where the DPD buffer
+  was already exhausted and can't analyze the full connection anymore,
+  but where there was still a late signature match.  A new script,
+  ``policy/protocols/conn/speculative-service.zeek``, was added as an
+  example of how to perform this tuning and add a "speculative_service"
+  field to conn.log, but it's not loaded by default.
+
+- There is now a new ``tcp_options`` event that is raised for each TCP header
+  that contains options.
+
+- Added a new option, ``Log::print_to_log`` that can be set to automatically
+  redirect the output from "print" statements to a real log stream (e.g.
+  instead of writing to stdout).
+
+- There is now a new ``&on_change`` attribute that can be used to be notified
+  of changes to tables and sets.
+
+Changed Functionality
+---------------------
+
+- A C++17-capable compiler and CMake 3.0+ are now required to compile Zeek
+
+- The backwards-compability wrappers & work-arounds introduced in 3.0
+  for the "Bro to Zeek rename" have either changed their operation, or in some
+  cases been removed. Generally, anything that reported a
+  naming-related warning in 3.0 now aborts with a corresponding error
+  message. In cases where 3.0 silently continued to accept old names,
+  3.1 now reports warnings. Most importantly, that's loading of
+  scripts with ".bro" endings, which are now flagged and should be
+  renamed.
+
+- Broker has switched versions for the underlying CAF communication
+  library from 0.16 to 0.17. CAF has changed its wireformat between
+  those versions, which means that previous Broker and Zeek versions
+  won't be able to connect to the new ones. In other words, all Zeek
+  instances, as well as other Broker clients, need to upgrade at the
+  same time. In case of version mismatches, Broker now reports better
+  error messages to point out the problem.
+
+- The key type of ``Known::service_store`` has changed to
+  ``Known::AddrPortServTriplet`` and ``Known::services`` is now a table
+  instead of just a set.
+
+- The DNS class name for Hesiod in the ``DNS::classes`` table is now spelled
+  correctly as "C_HESIOD" instead of "C_HESOD".  For reference, this
+  class name string may appear in the dns.log file or in any custom
+  script logic that inspects the ``qclass`` field of ``DNS::Info``
+  after a ``dns_request`` event.
+
+- The configuration input reader now ignores trailing spaces at the end of
+  configuration lines.
+
+- The tcp_option event is now correctly raised.
+
+- The base scripts shipped with Zeek now use the new
+  ``successful_connection_remove`` event instead of
+  ``connection_state_remove`` where possible (when the logic doesn't
+  pertain to unestablished TCP connections). There's a performance
+  benefit to this switch, but it may potentially break custom scripts
+  that depended on accessing or modifying state via specific
+  ``&priority`` ordering of ``connection_state_remove`` event
+  handlers. However, since most of Zeek's base scripts previously just
+  used that event with the intention of writing a finalized log as the
+  last thing executed for a given connection, and the new
+  ``successful_connection_remove`` event handlers all run after
+  ``connection_state_remove``, it's not likely this change to the base
+  scripts causes any incompatibility with user scripts.
+
+  There's also a new event called ``connection_successful`` and a new
+  ``connection`` record field named "successful" to help indicate this
+  new property of connections.
+
+- The JSON output formatters now use the RapidJSON library. This
+  improves their performance considerably over the library that was
+  previously used. Output from the formatters remains nearly
+  identical.
+
+- The ``decompose_uri`` function no longer raises an error when parsing
+  URIs with an empty port number (e.g. ``http://example.org:/``). Instead,
+  the ``portnum`` component of the returned ``URI`` value is left
+  uninitialized.
+
+- Replace old ``select``-based IO loop with a new architecture that doesn't
+  spin checking for active IO sources. The new architecture now waits for the
+  the sources to actively notify it when activity occurs and only processes
+  data once it's ready. This helps heavily reduce the CPU usage on idle
+  network connections. This includes a couple of breaking changes:
+
+  - Only a single packet source is allowed to be specified from the
+    command-line now. If you pass combinations of multiple ``-r`` and/or
+    ``-i`` flags, Zeek will return an error at startup.
+  - The IOSource API changed fairly wildly. The ``GetFds()`` and
+    ``NextTimestamp`` methods no longer exist. If you had previously
+    implemented a custom IOSource, you will need to look at the new API
+    and make changes to your code to accomodate it. This does not include
+    packet sources, which should remain functional with little to no
+    changes, since the entirety of the changes should be in ``PktSrc``.
+
+- Remove a large number of headers from being included by various files across
+  the entire code base, which leads to a sizeable build time improvement. This
+  set of changes has the potential to cause plugins to not build anymore. The
+  fixes for this potential breakage should just be a matter of including the
+  necessary headers in the plugin code.
+
+Removed Functionality
+---------------------
+
+- Removed the ``current_conns_extern`` field from the ConnStats record
+  type. Zeek only maintains a single timer manager now, and without the
+  manager tags that came with multiple tiemr managers, we don't track
+  whether a connection is external anymore.
+
+Deprecated Functionality
+------------------------
+
+- The C++ API typedefs for int{8,16,32,64} and uint{8,16,32,64} are deprecated
+  in favor of the real <cstdint> types they alias.  E.g. use int8_t instead of
+  int8.
+
+- The C++ API functions "safe_snprintf" and "safe_vsnprintf" are deprecated.
+  Use "snprintf" and "vsnprintf" instead.
+
+Zeek 3.0.0
+==========
+
+New Functionality
+-----------------
+
+- Added support for DNSSEC resource records RRSIG, DNSKEY, DS, NSEC, and NSEC3.
+  The associated events are:
+
+  - dns_RRSIG
+  - dns_DNSKEY
+  - dns_DS
+  - dns_NSEC
+  - dns_NSEC3
+
+- Added support for parsing and logging DNS SPF resource records.
+  A new ``dns_SPF_reply`` event is also available.
+
+- Zeek's Plugin framework now allows a patch version.  If a patch version is not
+  provided, it will default to 0.  To specify this, modify the plugin
+  Configuration class in your ``src/Plugin.cc`` and set
+  ``config.version.patch``.  Note that the default plugin skeleton
+  includes a unit test whose Baseline has the plugin version number in
+  it and that will now fail due to the version number now including a
+  patch number.  For those that want to keep the unit test, simply adapt
+  the unit test/baseline to include the new plugin patch number.
+
+- The default http.log not includes a field for the HTTP request Origin header.
+
+- Support for decapsulating VXLAN tunnels.
+
+- The for-loop syntax now allows for iterating over key-value pairs of tables.
+  Previously, a separate lookup within the loop was required to obtain the
+  value at a given index/key, but now this works::
+
+      local t: table[count] of string = table();
+      t[1] = "hello";
+      t[55] = "goodbye";
+
+      for ( key, value in t )
+          print key, value;
+
+- Added options for controlling the source path/prefix for Input and
+  Intel framework files:
+
+  - InputAscii::path_prefix
+  - InputBinary::path_prefix
+  - Intel::path_prefix
+
+- Support for NFLOG link-layer type.
+
+- Support for some SMB 3.x features
+
+  - An ``smb2_transform_header`` event is raised after parsing
+    TRANSFORM_HEADER structures associated with encrypted messages.
+
+  - The ``SMB2::NegotiateResponse`` record now contains
+    ``negotiate_context_count`` and ``negotiate_context_values`` fields
+    containing capability information found in an SMB 3.1.1 dialect's
+    negotiation message.
+
+- Added a new hook, ``Intel::filter_item``, to assist in filtering and
+  removal of intelligence items that are about to be inserted.
+
+- Add support for SMB filenames in the intel framework.
+
+- Added a new event for weirdness found via file analysis: ``file_weird``.
+
+- The conn.log "history" field supports a new character 'G' or 'g'
+  (capital for originator, lowercase responder) to indicate a content
+  gap in the TCP stream.  These are recorded logarithmically.
+
+- The ``ZEEK_DNS_RESOLVER`` environment variable now controls
+  the DNS resolver to use by setting it to an IPv4 or IPv6 address.  If
+  not set, then the first IPv4 address from /etc/resolv.conf gets used.
+
+- The ``/<re>/i`` convenience syntax for case-insensitive patterns is now
+  also allowed when specifying patterns used in signature files.
+
+- New RDP functionality.
+
+  - New events:
+    - rdp_client_network_data
+    - rdp_client_security_data
+    - rdp_client_cluster_data
+    - rdp_native_encrypted_data
+
+  - Add a new "client_channels" field to rdp.log based on data parsed from
+    the Client Network Data (TS_UD_CS_NET) packet.  The channel list is also
+    available in the new ``rdp_client_network_data`` event.
+
+- Add parsing support for TLS 1.3 pre-shared key extension.  This info
+  is available in the events: ``ssl_extension_pre_shared_key_client_hello``
+  and ``ssl_extension_pre_shared_key_server_hello``.
+
+- Added/re-wrote support for NTP.
+
+  - Parsing support for modes 1-7, with parsed structures available in
+    the ``ntp_message`` event.
+
+  - An ntp.log is produced by default, containing data extracted from
+    NTP messages with modes 1-5.
+
+- Add support for vector slicing operations.  For example::
+
+    local v = vector(1, 2, 3, 4, 5);
+    v[2:4] = vector(6, 7, 8);        # v is now [1, 2, 6, 7, 8, 5]
+    print v[:4];                     # prints [1, 2, 6, 7]
+
+- Add support for paraglob, a fairly quick data structure for matching a string
+  against a large list of patterns. For example::
+
+	local v1 = vector("*", "d?g", "*og", "d?", "d[!wl]g");
+	local p1 = paraglob_init(v1);
+	print paraglob_match(p1, "dog");
+
+- An ``expire_func`` for a table with a multi-value-index will now unroll
+  the index and take one argument for each index value. For example, for a
+  ``table[string,string] of count`` the expire function signature is:
+
+  function(t: table[string, string] of count, s: string, s2: string): interval
+
+- Zeek's anonymous functions now capture their closures by reference.
+  This means that they can use and modify variables from the scope
+  that they were generated in. For example:
+
+      local n = 3;
+      local f = function() { n += 1; };
+      f();
+      print n; # prints 4
+
+  These anonymous functions can also be serialized over Broker with
+  their closures. In order to be serialzed over Broker the receiving
+  script needs to have an identical version of the function declared.
+  For the above example, a receiving script would need to have
+  declared a function
+
+      local name = function() { n += 1; };
+
+  to be able to receive the senders function over Broker.
+
+  Functions with closures can still use the variables they have
+  captured even after they have left the scope that they were declared
+  in. For example, a simple generator function like the one below
+  works as expected.
+
+      local make_adder = function(n: count): function(m: count): count
+          {
+          return function (m: count): count
+              {
+              return n + m;
+              };
+          };
+
+      print make_adder(3)(5); # prints 8
+
+      local three = make_adder(3);
+      print three(5); # prints 8
+
+- Add ``LogAscii::enable_utf_8`` option to allow valid utf8 sequences
+  to be written directly into the ASCII logs without any escaping.
+
+- Add parsing, analysis, and logging support for MQTT protocol v3.1/v3.1.1.
+  This is not enabled by default, use ``@load policy/protocols/mqtt`` to
+  use the new MQTT analysis support.
+
+- Zeek now supports duration thresholding on connections, similarly to how it supports
+  byte and packet thresholds.
+
+  - New events:
+    - ConnThreshold::duration_threshold_crossed
+    - conn_duration_threshold_crossed
+
+  - New functions:
+    - ConnThreshold::set_duration_threshold
+    - ConnThreshold::delete_duration_threshold
+    - set_current_conn_duration_threshold
+    - get_current_conn_duration_threshold
+
+Changed Functionality
+---------------------
+
+- The following executable names have changed (the old names will
+  continue to work, but emit a deprecation warning):
+
+  - ``bro`` is now ``zeek``
+
+  - ``bro-config`` is now ``zeek-config``
+
+  - ``broctl`` is now ``zeekctl``
+
+  - ``bro-cut`` is now ``zeek-cut``
+
+- BroControl has been completely renamed to ZeekControl.  Many installation
+  directories and files with "broctl" in their name have been changed
+  to use "zeekctl" instead.  It's expected this has been done in a way
+  that's backwards compatible with previous Bro installations.  E.g.
+  if you made customizations to the ``broctl.cfg`` file of a previous
+  installation, installing the newer Zeek version over it will retain that
+  file and even symlink the new ``zeekctl.cfg`` to it.
+
+- The default install prefix is now ``/usr/local/zeek`` instead of
+  ``/usr/local/bro``.  If you have an existing installation that used
+  the previous default and are still using the new default when upgrading,
+  we'll crate ``/usr/local/zeek`` as a symlink to ``/usr/local/bro``.
+  Certain subdirectories will also get similar treatment: ``share/bro``,
+  ``include/bro``, and ``lib/bro``.
+
+- ``$prefix/share/bro/site/local.bro`` has been renamed to
+  ``local.zeek``.  If you have a ``local.bro`` file from a previous
+  installation, possibly with customizations made to it, the new
+  version of Zeek will install a ``local.zeek`` file that is a symlink
+  to the pre-existing ``local.bro``.  In that case, you may want to
+  just copy ``local.bro`` into the new ``local.zeek`` location to
+  avoid confusion, but things are otherwise meant to work properly
+  without intervention.
+
+- All scripts ending in ``.bro`` that ship with the Zeek source tree have
+  been renamed to ``.zeek``.
+
+- The search logic for the ``@load`` script directive now prefers files
+  ending in ``.zeek``, but will fallback to loading a ``.bro`` file if
+  it exists.  E.g. ``@load foo`` will first check for a ``foo.zeek``
+  file to load and then otherwise ``foo.bro``.  Note that
+  ``@load foo.bro`` (with the explicit ``.bro`` file suffix) prefers
+  in the opposite order: it first checks for ``foo.bro`` and then
+  falls back to a ``foo.zeek``, if it exists.
+
+- The for-loop index variable for vectors has been changed from
+  'int' to 'count' type.  It's unlikely this would alter/break any
+  script behavior unless they were explicitly inspecting the variable's
+  type (and there's typically no reason to do that).
+
+- The startup/initialization behavior has changed such that any errors
+  encountered while processing the ``bro_init()`` event will cause the
+  process to terminate rather than continue on the main run loop.
+
+- The ``dns_state`` field within ``connection`` records has changed: the
+  ``pending_queries`` and ``pending_replies`` fields are now ``&optional``,
+  and there is a new field ``pending_query`` that is populated before
+  ``pending_queries``.  If you have scripts that access the ``pending_queries``
+  or ``pending_replies`` fields, they will need to be updated.
+  This change was made to improve performance.
+
+- The ternary operator ("<expr> ? <alt1> : <alt2>") now enforces that
+  if "<alt1>" and "<alt2>" are both records, they are of the same
+  type. It was always assumed that they were, but code might have
+  still worked even if not.
+
+- The "orig_fuids", "orig_filenames", "orig_mime_types" http.log fields
+  as well as their "resp" counterparts are now limited to having
+  "HTTP::max_files_orig" or "HTTP::max_files_resp" entries, which are 15
+  by default.  The limit can also be ignored case-by-case via the
+  "HTTP::max_files_policy" hook.
+
+- The binpac library is now only compiled as a shared library by default.
+  To revert back to compiling only a static library, there's the
+  ``--enable-static-binpac`` configure option.
+
+- The Broker C++ API has some breaking changes, see it's own NEWS file for
+  details on how to migrate old code.
+
+- Some Weirds associated with generic binpac parsing exceptions in analyzers
+  that didn't otherwise handle them (like syslog, modbus, dnp3) are now
+  a ProtocolViolation instead
+
+- An "addl" parameter was added to the ``flow_weird`` and ``net_weird`` events
+  for describing additional information about the weird.  The ``conn_weird``
+  event already had such a parameter.
+
+- Weird names that contained variable content and may result in an unbounded
+  number of weird names have been renamed to remove the variable content
+  (which has been made available in the "addl" field of ``conn_weird``,
+   ``flow_weird``, or ``net_weird`` events):
+
+    - "unknown_dce_rpc_auth_type_%d" -> unknown_dce_rpc_auth_type
+    - "gtp_invalid_info_element_%d" -> gtp_invalid_info_element
+    - "unknown_netbios_type:" 0x%x -> unknown_netbios_type
+    - "excess_netbios_hdr_len" (%d > %d) -> excess_netbios_hdr_len
+    - "deficit_netbios_hdr_len" (%d > %d) -> deficit_netbios_hdr_len
+    - "bad_RPC_program (%d)" -> bad_RPC_program
+    - "unknown_MOUNT_request(%u)" -> unknown_MOUNT_request
+    - "unknown_NFS_request(%u)" -> unknown_NFS_request
+    - "RPC resync: discard %d bytes\n" -> RPC_resync
+    - "RPC_message_too_long (%d64)" -> RPC_message_too_long
+    - "socks5_unsupported_authentication_method_%d" -> socks5_unsupported_authentication_method
+    - "socks5_unsupported_authentication_%d_%d" -> socks5_unsupported_authentication
+    - "ssh_unknown_kex_algorithm=%s" -> ssh_unknown_kex_algorithm
+    - "Encountered unknown type in server name ssl extension: %d" -> ssl_ext_unknown_server_name_type
+    - "UDP_datagram_length_mismatch(%d!=%d)" -> UDP_datagram_length_mismatch
+    - "OPENSSL Could not parse OCSP request (fuid %s)" -> openssl_ocsp_request_parse_error
+    - "OPENSSL Could not parse OCSP response (fuid %s)" -> openssl_ocsp_response_parse_error
+    - "Could not parse X509 certificate (fuid %s)" -> x509_cert_parse_error
+    - "Certificate with invalid BasicConstraint. fuid %s" -> x509_invalid_basic_constraint
+    - "Could not parse subject alternative names. fuid %s" -> x509_san_parse_error
+    - "DNS-field does not contain an IA5String. fuid %s" -> x509_san_non_string
+    - "Weird IP address length %d in subject alternative name. fuid %s" -> x509_san_ip_length
+    - "Could not parse time in X509 certificate (fuid %s) -- UTCTime has wrong length" -> x509_utc_length
+    - "Could not parse UTC time in non-YY-format in X509 certificate (x509 %s)" -> x509_utc_format
+    - "Could not parse time in X509 certificate (fuid %s) -- Generalized time has wrong length" -> x509_gen_time_length
+    - "Invalid time type in X509 certificate (fuid %s)" -> x509_invalid_time_type
+    - "Could not parse time in X509 certificate (fuid %s) -- additional char after time" -> x509_time_add_char
+    - "Could not parse time in X509 certificate (fuid %s) -- not enough bytes remaining for offset" -> x509_time_offset_underflow
+    - "Could not parse time in X509 certificate (fuid %s) -- unknown offset type" -> x509_time_offset_type
+    - "X509::GetExtensionFromBIO: %s" -> x509_get_ext_from_bio
+    - "unknown_mobility_type_%d" -> unknown_mobility_type
+    - "unknown_routing_type_%d" -> unknown_routing_type
+    - "unknown_protocol_%d" ->  unknown_protocol
+    - "unknown_gre_version_%d" -> unknown_gre_version
+    - "unknown_gre_protocol_%u16" -> unknown_gre_protocol
+
+- The "missed_bytes" field of conn.log can be calculated slightly differently
+  in some cases: ACKs that reveal a content gap, but also come at
+  the end of a connection (in a FIN or RST) are considered unreliable
+  and aren't counted as true gaps.
+
+- The Broxygen component, which is used to generate our Doxygen-like
+  scripting API documentation has been renamed to Zeekygen.  This likely has
+  no breaking or visible changes for most users, except in the case one
+  used it to generate their own documentation via the ``--broxygen`` flag,
+  which is now named ``--zeekygen``.  Besides that, the various documentation
+  in scripts has also been updated to replace Sphinx cross-referencing roles
+  and directives like ":bro:see:" with ":zeek:see:".
+
+- The catch-and-release and unified2 scripts are no longer loaded by
+  default.  Because there was a performance impact simply from loading
+  them and it's unlikely a majority of user make use of their features,
+  they've been moved from the scripts/base/ directory into
+  scripts/policy/ and must be manually loaded to use their
+  functionality.  The "drop" action for the notice framework is likewise
+  moved since it was implemented via catch-and-release.  As a result,
+  the default notice.log no longer contains a "dropped" field.
+
+  If you previously used the catch-and-release functionality add this:
+
+      @load policy/frameworks/netcontrol/catch-and-release
+
+  If you previously used Notice::ACTION_DROP add:
+
+      @load policy/frameworks/notice/actions/drop
+
+  If you previously used the Unified2 file analysis support add:
+
+      @load policy/files/unified2
+
+- The default value of ``peer_description`` has changed from "bro"
+  to "zeek".  This won't effect most users, except for the fact that
+  this value may appear in several log files, so any external plugins
+  that have written unit tests that compare baselines of such log
+  files may need to be updated.
+
+- The "remote_ip" field of "addr" type was removed from radius.log and
+  replaced with a field named "tunnel_client" of "string" type.  The
+  reason for this is that the Tunnel-Client-Endpoint RADIUS attribute
+  this data is derived from may also be a FQDN, not just an IP address.
+
+- The ``ssl_server_hello`` event's ``server_random`` parameter has been
+  changed to always include the full 32-byte field from the
+  ServerHello.  Previously a 4-byte timestamp and 28-byte random data
+  were parsed separately as some TLS protocol versions specified a
+  separate timestamp field as part of the full 32-byte random sequence.
+
+- The namespace used by all the builtin plugins that ship with Zeek have
+  changed to use "Zeek::" instead of "Bro::".
+
+- Any Broker topic names used in scripts shipped with Zeek that
+  previously were prefixed with "bro/" are now prefixed with "zeek/"
+  instead.
+
+  In the case where external applications were using a "bro/" topic
+  to send data into a Bro process, a Zeek process still subscribes
+  to those topics in addition to the equivalently named "zeek/" topic.
+
+  In the case where external applications were using a "bro/" topic
+  to subscribe to remote messages or query data stores, there's no
+  backwards compatibility and external applications must be changed
+  to use the new "zeek/" topic.  The thought is this change will have
+  low impact since most data published under "bro/" topic names is
+  intended for use only as a detail of implementing cluster-enabled
+  versions of various scripts.
+
+  A list of the most relevant/common topic names that could potentially
+  be used in external applications to consume/query remote data that
+  one may need to change:
+
+  - store names
+    - bro/known/services
+    - bro/known/hosts
+    - bro/known/certs
+
+  - cluster nodes
+    - bro/cluster/<node type>
+    - bro/cluster/node/<name>
+    - bro/cluster/nodeid/<id>
+
+  - logging
+    - bro/logs/<stream>
+
+- The ``resp_ref`` argument was removed from the ``ocsp_response_bytes``
+  event. ``resp_ref`` was not used by anything in the codebase and could not be
+  passed to any other functions for further processing. The remainder of the
+  ``ocsp_response_bytes`` is unchanged.
+
+- For performance reasons, processing of notices is now always
+  performed by the node on which the notice is raised rather than
+  the centralized Manager node.  This has potential incompatibilities
+  for those that relied on global state for notice policy processing.
+  It also introduces an expected race condition that may cause multiple
+  notices of the same kind that are generated within a short timespan
+  of each other on separate cluster nodes to all be logged rather
+  than suppressed and de-duplicated into a single notice.
+
+
+- to_json is now a bif, no longer a script. Loading base/utils/json.zeek is no
+  longer necessary and has been deprecated. to_json should yield much better, always
+  valid json. There are some small differences in output; unnecessary spaces are removed
+  and port values are rendered differently, now including the port and the protocol.
+
+- The output of the JSON logger now uses an external library to generate json. There
+  are small changes to the output; most visibly double numbers are now rounded slightly
+  differently. The way in which port values are rendered does _not_ change for JSON logs.
+
+- The C++-layer List, Queue, and Dict types have changed from using macros to
+  templates as well as some other API changes.
+
+  - Range-based for-loops are now supported
+
+  - The loop_over_queue macro is now removed
+
+  - PList is now a template instead of a macro, so any "PList(T)" usages in
+    external code should now use "PList<T>"
+
+  - PDict is now a template instead of a macro, so any "PDict(T)" usages in
+    external code should now use "PDict<T>"
+
+  - Generally some methods used to assume containers were only using integer
+    or pointer types, so semantics may now be slightly different to
+    either avoid copying or unsafely returning arbitrary T types by value.
+    E.g. List::remove_nth and List::get can no longer return a "null" value
+    when the provided index is out of range, so they assert instead, and
+    Queue::pop methods do not return a value at all (one must check for
+    a non-empty container before removing an element).
+
+- Google Perftools (tcmalloc) is no longer used by default on Linux
+  systems if it's found during the configuration process.
+  Use the --enable-perftools configuration flag to use tcmalloc.
+  The --disable-perftools flag is also no longer provided since
+  there's no longer any case in which tcmalloc will be used by default.
+
+- There now is a maximum number of protocol violations that can be raised by an analyzer
+  before it is disabled; the default is set to 5. This behavior is customizable using
+  ``DPD::max_violations`` and ``DPD::ignore_violations``.
+
+- The scan detection script, ``policy/misc/scan``, is no longer loaded by
+  default in ``site/local.zeek`` due to it frequenty causing performance issues.
+
+Removed Functionality
+---------------------
+
+- A number of functions that were deprecated in version 2.6 or below and completely
+  removed from this release. Most of the functions were used for the old communication
+  code.
+
+    - ``find_ip_addresses``
+    - ``cat_string_array``
+    - ``cat_string_array_n``
+    - ``complete_handshake``
+    - ``connect``
+    - ``decode_base64_custom``
+    - ``disconnect``
+    - ``enable_communication``
+    - ``encode_base64_custom``
+    - ``get_event_peer``
+    - ``get_local_event_peer``
+    - ``join_string_array``
+    - ``listen``
+    - ``merge_pattern``
+    - ``request_remote_events``
+    - ``request_remote_logs``
+    - ``request_remote_sync``
+    - ``resume_state_updates``
+    - ``send_capture_filter``
+    - ``send_current_packet``
+    - ``send_id``
+    - ``send_ping``
+    - ``set_accept_state``
+    - ``set_compression_level``
+    - ``sort_string_array``
+    - ``split1``
+    - ``split_all``
+    - ``split``
+    - ``suspend_state_updates``
+    - ``terminate_communication``
+    - ``split``
+    - ``send_state``
+    - ``checkpoint_state``
+    - ``rescan_state``
+    - ``log_file_name``
+    - ``open_log_file``
+    - ``disable_print_hook``
+
+- The following events were deprecated in version 2.6 or below and are completely
+  removed from this release:
+
+    - ``ssl_server_curve``
+    - ``dhcp_ack``
+    - ``dhcp_decline``
+    - ``dhcp_discover``
+    - ``dhcp_inform``
+    - ``dhcp_nak``
+    - ``dhcp_offer``
+    - ``dhcp_release``
+    - ``dhcp_request``
+    - ``remote_state_access_performed``
+    - ``remote_state_inconsistency``
+    - ``remote_connection_established``
+    - ``remote_connection_closed``
+    - ``remote_connection_handshake_done``
+    - ``remote_event_registered``
+    - ``remote_connection_error``
+    - ``remote_capture_filter``
+    - ``remote_log_peer``
+    - ``remote_log``
+    - ``finished_send_state``
+    - ``remote_pong``
+    - ``software_version_found``
+    - ``software_unparsed_version_found``
+    - ``software_parse_error``
+    - ``print_hook``
+    - ``interconn_stats``
+    - ``interconn_remove_conn``
+    - ``root_backdoor_signature_found``
+    - ``napster_signature_found``
+    - ``kazaa_signature_found``
+    - ``gaobot_signature_found``
+    - ``ftp_signature_found``
+    - ``gnutella_signature_found``
+    - ``http_signature_found``
+    - ``irc_signature_found``
+    - ``telnet_signature_found``
+    - ``ssh_signature_found``
+    - ``rlogin_signature_found``
+    - ``smtp_signature_found``
+    - ``http_proxy_signature_found``
+    - ``backdoor_stats``
+    - ``backdoor_remove_conn``
+    - ``dns_full_request``
+    - ``non_dns_request``
+
+- The following types/records were deprecated in version 2.6 or below and are
+  removed from this release:
+
+    - ``peer_id``
+    - ``event_peer``
+    - ``packet``
+    - ``software``
+    - ``software_version``
+
+- The following configuration options were deprecated in version 2.6 or below and are
+  removed from this release:
+
+    - ``max_remote_events_processed``
+    - ``forward_remote_events``
+    - ``forward_remote_state_changes``
+    - ``enable_syslog``
+    - ``remote_trace_sync_interval``
+    - ``remote_trace_sync_peers``
+    - ``remote_check_sync_consistency``
+    - ``log_rotate_interval``
+    - ``log_max_size``
+    - ``log_encryption_key``
+    - ``state_dir``
+    - ``state_write_delay``
+    - ``ssl_ca_certificate``
+    - ``ssl_private_key``
+    - ``ssl_passphrase``
+    - ``suppress_local_output``
+    - ``irc_servers``
+    - ``interconn_min_interarrival``
+    - ``interconn_max_interarrival``
+    - ``interconn_max_keystroke_pkt_size``
+    - ``interconn_default_pkt_size``
+    - ``interconn_stat_period``
+    - ``interconn_stat_backoff``
+    - ``interconn_endp_stats``
+    - ``backdoor_stat_period``
+    - ``backdoor_stat_backoff``
+    - ``backdoor_endp_stats``
+    - ``chunked_io_buffer_soft_cap``
+
+- The following constants were used as part of deprecated functionality in version 2.6
+  or below and are removed from this release:
+
+    - ``PEER_ID_NONE``
+    - ``REMOTE_LOG_INFO``
+    - ``REMOTE_SRC_CHILD``
+    - ``REMOTE_SRC_PARENT``
+    - ``REMOTE_SRC_SCRIPT``
+
+- The deprecated script ``policy/protocols/smb/__load__.bro`` was removed.
+  Instead of ``@load policy/protocols/smb`` use ``@load base/protocols/smb``.
+
+- Broccoli, which had been deprecated in version 2.6 and was no longer built by default
+  was removed from the source tree.
+
+- Support for the &persistent, &synchronized, &mergeable, &encrypt, &rotate_interval,
+  and &rotate_size attributes, which were deprecated in Bro 2.6, was removed. The ``-g``
+  command-line option (dump-config) which relied on this functionality was also removed.
+
+- Functionality for writing state updates for variables with the
+  &synchronized attribute was removed. This entails the
+  ``-x`` command-line option (print-state) as well as the
+  ``capture_state_updates`` function.
+
+- Removed the BroControl ``update`` command, which was deprecated in Bro 2.6.
+
+- Functionality for writing/reading binary event streams was
+  removed. This functionality relied on the old communication code
+  anc was basically untested. The ``-R`` command-line option (replay)
+  as well as the ``capture_events`` function were removed.
+
+- Removed p0f (passive OS fingerprinting) support. The version of
+  p0f shipped with zeek was ancient, probably did not give
+  any reliable support anymore and did not offer a clear
+  upgrade path. The ``OS_version_found`` event as well as the
+  ``generate_OS_version_event`` configuration option were removed.
+
+- Removed the ``max_files_in_cache`` option and the associated
+  "file caching" feature it's associated with. That feature allowed
+  one to open many scripting-layer ``file`` objects and potentially
+  bypass the operating system's resource limits for open files.
+  This is typically not necessary and it's a problem that is more
+  appropriately addressed at the system configuration level.
+
+- Removed the InterConn analyzer.
+
+- Removed the BackDoor analyzer.
+
+- Removed ``List::sortedinsert`` from the C++ API.
+
+Deprecated Functionality
+------------------------
+
+- The ``str_shell_escape`` function is now deprecated, use ``safe_shell_quote``
+  instead.  The later will automatically return a value that is enclosed
+  in double-quotes.
+
+- The ``bro_init``, ``bro_done``, and ``bro_script_loaded`` events are now
+  deprecated, use ``zeek_init``, ``zeek_done``, and
+  ``zeek_script_loaded`` instead.  Any existing event handlers for
+  the deprecated versions will automatically alias to the new events
+  such that existing code will not break, but will emit a deprecation
+  warning.
+
+- The ``bro_is_terminating`` and ``bro_version`` function are deprecated and
+  replaced by functions named ``zeek_is_terminating`` and ``zeek_version``.
+
+- The ``List::insert`` method from the C++ API is deprecated, use
+  ``List::push_front`` instead.
 
 Bro 2.6
 =======
@@ -375,7 +1316,7 @@ New Functionality
   Each has the same form, e.g.::
 
       event tcp_multiple_retransmissions(c: connection, is_orig: bool,
-				                         threshold: count);
+                                         threshold: count);
 
 - Added support for set union, intersection, difference, and comparison
   operations.  The corresponding operators for the first three are

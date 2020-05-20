@@ -1,8 +1,3 @@
-## Generated for RFB event
-##
-## c: The connection record for the underlying transport-layer session/flow.
-event rfb_event%(c: connection%);
-
 ## Generated for RFB event authentication mechanism selection
 ##
 ## c: The connection record for the underlying transport-layer session/flow.

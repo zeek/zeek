@@ -13,7 +13,7 @@
 ##
 ## data: The data being written.
 ##
-## .. bro:see:: smb1_message smb1_write_andx_response
+## .. zeek:see:: smb1_message smb1_write_andx_response
 event smb1_write_andx_request%(c: connection, hdr: SMB1::Header, file_id: count, offset: count, data_len: count%);
 
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
@@ -28,5 +28,5 @@ event smb1_write_andx_request%(c: connection, hdr: SMB1::Header, file_id: count,
 ##
 ## written_bytes: The number of bytes the server reported having actually written.
 ##
-## .. bro:see:: smb1_message smb1_write_andx_request
+## .. zeek:see:: smb1_message smb1_write_andx_request
 event smb1_write_andx_response%(c: connection, hdr: SMB1::Header, written_bytes: count%);

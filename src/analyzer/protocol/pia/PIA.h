@@ -1,10 +1,10 @@
 // An analyzer for application-layer protocol-detection.
 
-#ifndef ANALYZER_PROTOCOL_PIA_PIA_H
-#define ANALYZER_PROTOCOL_PIA_PIA_H
+#pragma once
 
 #include "analyzer/Analyzer.h"
 #include "analyzer/protocol/tcp/TCP.h"
+#include "RuleMatcher.h"
 
 class RuleEndpointState;
 
@@ -25,7 +25,7 @@ public:
 	// Called when PIA wants to put an Analyzer in charge.  rule is the
 	// signature that triggered the activitation, if any.
 	virtual void ActivateAnalyzer(analyzer::Tag tag,
-					const Rule* rule = 0) = 0;
+					const Rule* rule = nullptr) = 0;
 
 	// Called when PIA wants to remove an Analyzer.
 	virtual void DeactivateAnalyzer(analyzer::Tag tag) = 0;
@@ -42,7 +42,7 @@ public:
 protected:
 	void PIA_Done();
 	void PIA_DeliverPacket(int len, const u_char* data, bool is_orig,
-				uint64 seq, const IP_Hdr* ip, int caplen, bool clear_state);
+				uint64_t seq, const IP_Hdr* ip, int caplen, bool clear_state);
 
 	enum State { INIT, BUFFERING, MATCHING_ONLY, SKIPPING } state;
 
@@ -53,12 +53,12 @@ protected:
 		const u_char* data;
 		bool is_orig;
 		int len;
-		uint64 seq;
+		uint64_t seq;
 		DataBlock* next;
 	};
 
 	struct Buffer {
-		Buffer() { head = tail = 0; size = 0; state = INIT; }
+		Buffer() { head = tail = nullptr; size = 0; state = INIT; }
 
 		DataBlock* head;
 		DataBlock* tail;
@@ -66,16 +66,16 @@ protected:
 		State state;
 	};
 
-	void AddToBuffer(Buffer* buffer, uint64 seq, int len,
-				const u_char* data, bool is_orig, const IP_Hdr* ip = 0);
+	void AddToBuffer(Buffer* buffer, uint64_t seq, int len,
+				const u_char* data, bool is_orig, const IP_Hdr* ip = nullptr);
 	void AddToBuffer(Buffer* buffer, int len,
-				const u_char* data, bool is_orig, const IP_Hdr* ip = 0);
+				const u_char* data, bool is_orig, const IP_Hdr* ip = nullptr);
 	void ClearBuffer(Buffer* buffer);
 
 	DataBlock* CurrentPacket()	{ return &current_packet; }
 
 	void DoMatch(const u_char* data, int len, bool is_orig, bool bol,
-			bool eol, bool clear_state, const IP_Hdr* ip = 0);
+			bool eol, bool clear_state, const IP_Hdr* ip = nullptr);
 
 	void SetConn(Connection* c)	{ conn = c; }
 
@@ -106,7 +106,7 @@ protected:
 		}
 
 	void DeliverPacket(int len, const u_char* data, bool is_orig,
-					uint64 seq, const IP_Hdr* ip, int caplen) override
+					uint64_t seq, const IP_Hdr* ip, int caplen) override
 		{
 		Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 		PIA_DeliverPacket(len, data, is_orig, seq, ip, caplen, true);
@@ -151,17 +151,17 @@ protected:
 		}
 
 	void DeliverPacket(int len, const u_char* data, bool is_orig,
-					uint64 seq, const IP_Hdr* ip, int caplen) override
+					uint64_t seq, const IP_Hdr* ip, int caplen) override
 		{
 		Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 		PIA_DeliverPacket(len, data, is_orig, seq, ip, caplen, false);
 		}
 
 	void DeliverStream(int len, const u_char* data, bool is_orig) override;
-	void Undelivered(uint64 seq, int len, bool is_orig) override;
+	void Undelivered(uint64_t seq, int len, bool is_orig) override;
 
 	void ActivateAnalyzer(analyzer::Tag tag,
-					const Rule* rule = 0) override;
+					const Rule* rule = nullptr) override;
 	void DeactivateAnalyzer(analyzer::Tag tag) override;
 
 private:
@@ -173,5 +173,3 @@ private:
 };
 
 } } // namespace analyzer::* 
-
-#endif

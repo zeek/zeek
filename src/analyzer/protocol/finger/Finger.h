@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_FINGER_FINGER_H
-#define ANALYZER_PROTOCOL_FINGER_FINGER_H
+#pragma once
 
 #include "analyzer/protocol/tcp/TCP.h"
 #include "analyzer/protocol/tcp/ContentLine.h"
@@ -27,5 +26,3 @@ protected:
 };
 
 } } // namespace analyzer::* 
-
-#endif

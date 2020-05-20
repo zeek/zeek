@@ -1,6 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
+
+#include <algorithm>
 
 #include "CCL.h"
 #include "RE.h"
@@ -30,14 +32,19 @@ void CCL::Add(int sym)
 	ptr_compat_int sym_p = ptr_compat_int(sym);
 
 	// Check to see if the character is already in the ccl.
-	for ( int i = 0; i < syms->length(); ++i )
-		if ( (*syms)[i] == sym_p )
+	for ( auto sym : *syms )
+		if ( sym == sym_p )
 			return;
 
-	syms->append(sym_p);
+	syms->push_back(sym_p);
 	}
 
 void CCL::Sort()
 	{
-	syms->sort(int_list_cmp);
+	std::sort(syms->begin(), syms->end());
+	}
+
+unsigned int CCL::MemoryAllocation() const
+	{
+	return padded_sizeof(*this) + padded_sizeof(*syms) + pad_size(syms->size() * sizeof(int_list::value_type));
 	}

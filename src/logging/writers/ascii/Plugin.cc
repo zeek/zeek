@@ -6,16 +6,16 @@
 #include "Ascii.h"
 
 namespace plugin {
-namespace Bro_AsciiWriter {
+namespace Zeek_AsciiWriter {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::logging::Component("Ascii", ::logging::writer::Ascii::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::AsciiWriter";
+		config.name = "Zeek::AsciiWriter";
 		config.description = "ASCII log writer";
 		return config;
 		}

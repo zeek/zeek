@@ -5,16 +5,16 @@
 #include "Binary.h"
 
 namespace plugin {
-namespace Bro_BinaryReader {
+namespace Zeek_BinaryReader {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::input::Component("Binary", ::input::reader::Binary::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::BinaryReader";
+		config.name = "Zeek::BinaryReader";
 		config.description = "Binary input reader";
 		return config;
 		}

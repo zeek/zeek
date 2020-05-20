@@ -1,5 +1,9 @@
 %include consts.pac
 
+%extern{
+#include "BroString.h"
+%}
+
 # Common constructs across SSH1 and SSH2
 ########################################
 
@@ -9,9 +13,15 @@
 #  - Encrypted messages have no usable data, so we'll just ignore them as best we can.
 #  - Finally, key exchange messages have a common format.
 
+type EncryptedByte(is_orig: bool) = record {
+	encrypted : bytestring &length=1 &transient;
+} &let {
+proc: bool = $context.connection.inc_encrypted_byte_count_in_current_segment();
+};
+
 type SSH_PDU(is_orig: bool) = case $context.connection.get_state(is_orig) of {
 	VERSION_EXCHANGE -> version   : SSH_Version(is_orig);
-	ENCRYPTED        -> encrypted : bytestring &length=1 &transient;
+	ENCRYPTED        -> encrypted : EncryptedByte(is_orig);
 	default          -> kex       : SSH_Key_Exchange(is_orig);
 } &byteorder=bigendian;
 
@@ -265,6 +275,7 @@ refine connection SSH_Conn += {
 		int state_up_;
 		int state_down_;
 		int version_;
+		int encrypted_bytes_in_current_segment_;
 
 		bool kex_orig_;
 		bool kex_seen_;
@@ -276,6 +287,7 @@ refine connection SSH_Conn += {
 		state_up_   = VERSION_EXCHANGE;
 		state_down_ = VERSION_EXCHANGE;
 		version_    = UNK;
+		encrypted_bytes_in_current_segment_ = 0;
 
 		kex_seen_ = false;
 		kex_orig_ = false;
@@ -287,6 +299,23 @@ refine connection SSH_Conn += {
 		kex_algorithm_.free();
 		kex_algs_cache_.free();
 	%}
+
+	function clear_encrypted_byte_count_in_current_segment() : bool
+		%{
+		encrypted_bytes_in_current_segment_ = 0;
+		return true;
+		%}
+
+	function inc_encrypted_byte_count_in_current_segment() : bool
+		%{
+		++encrypted_bytes_in_current_segment_;
+		return true;
+		%}
+
+	function get_encrypted_bytes_in_current_segment() : int
+		%{
+		return encrypted_bytes_in_current_segment_;
+		%}
 
 	function get_state(is_orig: bool) : int
 		%{
@@ -373,6 +402,7 @@ refine connection SSH_Conn += {
 				{
 				if ( *(client_list->Lookup(i)->AsStringVal()->AsString()) == *(server_list->Lookup(j)->AsStringVal()->AsString()) )
 					{
+					kex_algorithm_.free();
 					kex_algorithm_.init((const uint8 *) client_list->Lookup(i)->AsStringVal()->Bytes(),
 						client_list->Lookup(i)->AsStringVal()->Len());
 
@@ -415,7 +445,7 @@ refine connection SSH_Conn += {
 						return true;
 
 
-					bro_analyzer()->Weird(fmt("ssh_unknown_kex_algorithm=%s", c_str(kex_algorithm_)));
+					bro_analyzer()->Weird("ssh_unknown_kex_algorithm", c_str(kex_algorithm_));
 					return true;
 
 					}

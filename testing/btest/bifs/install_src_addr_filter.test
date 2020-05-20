@@ -1,7 +1,7 @@
-# @TEST-EXEC: bro -C -r $TRACES/wikipedia.trace %INPUT >output
+# @TEST-EXEC: zeek -C -r $TRACES/wikipedia.trace %INPUT >output
 # @TEST-EXEC: btest-diff output
 
-event bro_init()
+event zeek_init()
     {
     install_src_addr_filter(141.142.220.118, TH_SYN, 100.0);
     }

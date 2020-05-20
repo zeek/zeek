@@ -1,24 +1,28 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
+
+#include "Conn.h"
 
 #include <ctype.h>
 
+#include "Desc.h"
 #include "Net.h"
 #include "NetVar.h"
-#include "Conn.h"
 #include "Event.h"
 #include "Sessions.h"
 #include "Reporter.h"
 #include "Timer.h"
+#include "iosource/IOSource.h"
 #include "analyzer/protocol/pia/PIA.h"
 #include "binpac.h"
 #include "TunnelEncapsulation.h"
 #include "analyzer/Analyzer.h"
 #include "analyzer/Manager.h"
+#include "iosource/IOSource.h"
 
 void ConnectionTimer::Init(Connection* arg_conn, timer_func arg_timer,
-				int arg_do_expire)
+				bool arg_do_expire)
 	{
 	conn = arg_conn;
 	timer = arg_timer;
@@ -35,7 +39,7 @@ ConnectionTimer::~ConnectionTimer()
 	Unref(conn);
 	}
 
-void ConnectionTimer::Dispatch(double t, int is_expire)
+void ConnectionTimer::Dispatch(double t, bool is_expire)
 	{
 	if ( is_expire && ! do_expire )
 		return;
@@ -50,76 +54,16 @@ void ConnectionTimer::Dispatch(double t, int is_expire)
 		reporter->InternalError("reference count inconsistency in ConnectionTimer::Dispatch");
 	}
 
-IMPLEMENT_SERIAL(ConnectionTimer, SER_CONNECTION_TIMER);
+uint64_t Connection::total_connections = 0;
+uint64_t Connection::current_connections = 0;
 
-bool ConnectionTimer::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_CONNECTION_TIMER, Timer);
-
-	// We enumerate all the possible timer functions here ... This
-	// has to match the list is DoUnserialize()!
-	char type = 0;
-
-	if ( timer == timer_func(&Connection::DeleteTimer) )
-		type = 1;
-	else if ( timer == timer_func(&Connection::InactivityTimer) )
-		type = 2;
-	else if ( timer == timer_func(&Connection::StatusUpdateTimer) )
-		type = 3;
-	else if ( timer == timer_func(&Connection::RemoveConnectionTimer) )
-		type = 4;
-	else
-		reporter->InternalError("unknown function in ConnectionTimer::DoSerialize()");
-
-	return conn->Serialize(info) && SERIALIZE(type) && SERIALIZE(do_expire);
-	}
-
-bool ConnectionTimer::DoUnserialize(UnserialInfo* info)
-	{
-	DO_UNSERIALIZE(Timer);
-
-	conn = Connection::Unserialize(info);
-	if ( ! conn )
-		return false;
-
-	char type;
-
-	if ( ! UNSERIALIZE(&type) || ! UNSERIALIZE(&do_expire) )
-		return false;
-
-	switch ( type ) {
-	case 1:
-		timer = timer_func(&Connection::DeleteTimer);
-		break;
-	case 2:
-		timer = timer_func(&Connection::InactivityTimer);
-		break;
-	case 3:
-		timer = timer_func(&Connection::StatusUpdateTimer);
-		break;
-	case 4:
-		timer = timer_func(&Connection::RemoveConnectionTimer);
-		break;
-	default:
-		info->s->Error("unknown connection timer function");
-		return false;
-	}
-
-	return true;
-	}
-
-uint64 Connection::total_connections = 0;
-uint64 Connection::current_connections = 0;
-uint64 Connection::external_connections = 0;
-
-IMPLEMENT_SERIAL(Connection, SER_CONNECTION);
-
-Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
-                       uint32 flow, const Packet* pkt,
-		       const EncapsulationStack* arg_encap)
+Connection::Connection(NetSessions* s, const ConnIDKey& k, double t, const ConnID* id,
+                       uint32_t flow, const Packet* pkt,
+                       const EncapsulationStack* arg_encap)
 	{
 	sessions = s;
 	key = k;
+	key_valid = true;
 	start_time = last_time = t;
 
 	orig_addr = id->src_addr;
@@ -131,27 +75,26 @@ Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
 	resp_flow_label = 0;
 	saw_first_orig_packet = 1;
 	saw_first_resp_packet = 0;
+	is_successful = false;
 
 	if ( pkt->l2_src )
 		memcpy(orig_l2_addr, pkt->l2_src, sizeof(orig_l2_addr));
 	else
-		bzero(orig_l2_addr, sizeof(orig_l2_addr));
+		memset(orig_l2_addr, 0, sizeof(orig_l2_addr));
 
 	if ( pkt->l2_dst )
 		memcpy(resp_l2_addr, pkt->l2_dst, sizeof(resp_l2_addr));
 	else
-		bzero(resp_l2_addr, sizeof(resp_l2_addr));
+		memset(resp_l2_addr, 0, sizeof(resp_l2_addr));
 
 	vlan = pkt->vlan;
 	inner_vlan = pkt->inner_vlan;
 
-	conn_val = 0;
-	login_conn = 0;
+	login_conn = nullptr;
 
 	is_active = 1;
 	skip = 0;
 	weird = 0;
-	persistent = 0;
 
 	suppress_event = 0;
 
@@ -167,29 +110,16 @@ Connection::Connection(NetSessions* s, HashKey* k, double t, const ConnID* id,
 	hist_seen = 0;
 	history = "";
 
-	root_analyzer = 0;
-	primary_PIA = 0;
+	root_analyzer = nullptr;
+	primary_PIA = nullptr;
 
 	++current_connections;
 	++total_connections;
 
-	TimerMgr::Tag* tag = current_iosrc->GetCurrentTag();
-	conn_timer_mgr = tag ? new TimerMgr::Tag(*tag) : 0;
-
 	if ( arg_encap )
 		encapsulation = new EncapsulationStack(*arg_encap);
 	else
-		encapsulation = 0;
-
-	if ( conn_timer_mgr )
-		{
-		++external_connections;
-		// We schedule a timer which removes this connection from memory
-		// indefinitively into the future. Ii will expire when the timer
-		// mgr is drained but not before.
-		ADD_TIMER(&Connection::RemoveConnectionTimer, 1e20, 1,
-				TIMER_REMOVE_CONNECTION);
-		}
+		encapsulation = nullptr;
 	}
 
 Connection::~Connection()
@@ -200,19 +130,12 @@ Connection::~Connection()
 	CancelTimers();
 
 	if ( conn_val )
-		{
-		conn_val->SetOrigin(0);
-		Unref(conn_val);
-		}
+		conn_val->SetOrigin(nullptr);
 
-	delete key;
 	delete root_analyzer;
-	delete conn_timer_mgr;
 	delete encapsulation;
 
 	--current_connections;
-	if ( conn_timer_mgr )
-		--external_connections;
 	}
 
 void Connection::CheckEncapsulation(const EncapsulationStack* arg_encap)
@@ -221,7 +144,10 @@ void Connection::CheckEncapsulation(const EncapsulationStack* arg_encap)
 		{
 		if ( *encapsulation != *arg_encap )
 			{
-			Event(tunnel_changed, 0, arg_encap->GetVectorVal());
+			if ( tunnel_changed )
+				EnqueueEvent(tunnel_changed, nullptr, ConnVal(),
+				             IntrusivePtr{AdoptRef{}, arg_encap->GetVectorVal()});
+
 			delete encapsulation;
 			encapsulation = new EncapsulationStack(*arg_encap);
 			}
@@ -229,15 +155,23 @@ void Connection::CheckEncapsulation(const EncapsulationStack* arg_encap)
 
 	else if ( encapsulation )
 		{
-		EncapsulationStack empty;
-		Event(tunnel_changed, 0, empty.GetVectorVal());
+		if ( tunnel_changed )
+			{
+			EncapsulationStack empty;
+			EnqueueEvent(tunnel_changed, nullptr, ConnVal(),
+			             IntrusivePtr{AdoptRef{}, empty.GetVectorVal()});
+			}
+
 		delete encapsulation;
-		encapsulation = 0;
+		encapsulation = nullptr;
 		}
 
 	else if ( arg_encap )
 		{
-		Event(tunnel_changed, 0, arg_encap->GetVectorVal());
+		if ( tunnel_changed )
+			EnqueueEvent(tunnel_changed, nullptr, ConnVal(),
+			             IntrusivePtr{AdoptRef{}, arg_encap->GetVectorVal()});
+
 		encapsulation = new EncapsulationStack(*arg_encap);
 		}
 	}
@@ -250,7 +184,7 @@ void Connection::Done()
 		root_analyzer->Done();
 	}
 
-void Connection::NextPacket(double t, int is_orig,
+void Connection::NextPacket(double t, bool is_orig,
 			const IP_Hdr* ip, int len, int caplen,
 			const u_char*& data,
 			int& record_packet, int& record_content,
@@ -265,17 +199,24 @@ void Connection::NextPacket(double t, int is_orig,
 
 	if ( root_analyzer )
 		{
+		auto was_successful = is_successful;
 		record_current_packet = record_packet;
 		record_current_content = record_content;
 		root_analyzer->NextPacket(len, data, is_orig, -1, ip, caplen);
 		record_packet = record_current_packet;
 		record_content = record_current_content;
+
+		if ( ConnTransport() != TRANSPORT_TCP )
+			is_successful = true;
+
+		if ( ! was_successful && is_successful && connection_successful )
+			EnqueueEvent(connection_successful, nullptr, ConnVal());
 		}
 	else
 		last_time = t;
 
 	current_timestamp = 0;
-	current_pkt = 0;
+	current_pkt = nullptr;
 	}
 
 void Connection::SetLifetime(double lifetime)
@@ -289,9 +230,9 @@ bool Connection::IsReuse(double t, const u_char* pkt)
 	return root_analyzer && root_analyzer->IsReuse(t, pkt);
 	}
 
-bool Connection::ScaledHistoryEntry(char code, uint32& counter,
-                                    uint32& scaling_threshold,
-                                    uint32 scaling_base)
+bool Connection::ScaledHistoryEntry(char code, uint32_t& counter,
+                                    uint32_t& scaling_threshold,
+                                    uint32_t scaling_base)
 	{
 	if ( ++counter == scaling_threshold )
 		{
@@ -315,7 +256,7 @@ bool Connection::ScaledHistoryEntry(char code, uint32& counter,
 	}
 
 void Connection::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig,
-                                       uint32 threshold)
+                                       uint32_t threshold)
 	{
 	if ( ! e )
 		return;
@@ -325,51 +266,53 @@ void Connection::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig,
 		// and at this stage it's not a *multiple* instance.
 		return;
 
-	val_list* vl = new val_list;
-	vl->append(BuildConnVal());
-	vl->append(new Val(is_orig, TYPE_BOOL));
-	vl->append(new Val(threshold, TYPE_COUNT));
-
-	ConnectionEvent(e, 0, vl);
+	EnqueueEvent(e, nullptr,
+		ConnVal(),
+		val_mgr->Bool(is_orig),
+		val_mgr->Count(threshold)
+	);
 	}
 
 void Connection::DeleteTimer(double /* t */)
 	{
 	if ( is_active )
-		Event(connection_timeout, 0);
+		Event(connection_timeout, nullptr);
 
 	sessions->Remove(this);
 	}
 
 void Connection::InactivityTimer(double t)
 	{
-	// If the inactivity_timeout is zero, there has been an active
-	// timeout once, but it's disabled now. We do nothing then.
-	if ( inactivity_timeout )
+	if ( last_time + inactivity_timeout <= t )
 		{
-		if ( last_time + inactivity_timeout <= t )
-			{
-			Event(connection_timeout, 0);
-			sessions->Remove(this);
-			++killed_by_inactivity;
-			}
-		else
-			ADD_TIMER(&Connection::InactivityTimer,
-					last_time + inactivity_timeout, 0,
-					TIMER_CONN_INACTIVITY);
+		Event(connection_timeout, nullptr);
+		sessions->Remove(this);
+		++killed_by_inactivity;
 		}
+	else
+		ADD_TIMER(&Connection::InactivityTimer,
+		          last_time + inactivity_timeout, 0, TIMER_CONN_INACTIVITY);
 	}
 
 void Connection::RemoveConnectionTimer(double t)
 	{
-	Event(connection_state_remove, 0);
+	RemovalEvent();
 	sessions->Remove(this);
 	}
 
 void Connection::SetInactivityTimeout(double timeout)
 	{
-	// We add a new inactivity timer even if there already is one.  When
-	// it fires, we always use the current value to check for inactivity.
+	if ( timeout == inactivity_timeout )
+		return;
+
+	// First cancel and remove any existing inactivity timer.
+	for ( const auto& timer : timers )
+		if ( timer->Type() == TIMER_CONN_INACTIVITY )
+			{
+			timer_mgr->Cancel(timer);
+			break;
+			}
+
 	if ( timeout )
 		ADD_TIMER(&Connection::InactivityTimer,
 				last_time + timeout, 0, TIMER_CONN_INACTIVITY);
@@ -390,9 +333,7 @@ void Connection::EnableStatusUpdateTimer()
 
 void Connection::StatusUpdateTimer(double t)
 	{
-	val_list* vl = new val_list(1);
-	vl->append(BuildConnVal());
-	ConnectionEvent(connection_status_update, 0, vl);
+	EnqueueEvent(connection_status_update, nullptr, ConnVal());
 	ADD_TIMER(&Connection::StatusUpdateTimer,
 			network_time + connection_status_update_interval, 0,
 			TIMER_CONN_STATUS_UPDATE);
@@ -400,82 +341,86 @@ void Connection::StatusUpdateTimer(double t)
 
 RecordVal* Connection::BuildConnVal()
 	{
+	return ConnVal()->Ref()->AsRecordVal();
+	}
+
+const IntrusivePtr<RecordVal>& Connection::ConnVal()
+	{
 	if ( ! conn_val )
 		{
-		conn_val = new RecordVal(connection_type);
+		conn_val = make_intrusive<RecordVal>(connection_type);
 
 		TransportProto prot_type = ConnTransport();
 
-		RecordVal* id_val = new RecordVal(conn_id);
-		id_val->Assign(0, new AddrVal(orig_addr));
-		id_val->Assign(1, port_mgr->Get(ntohs(orig_port), prot_type));
-		id_val->Assign(2, new AddrVal(resp_addr));
-		id_val->Assign(3, port_mgr->Get(ntohs(resp_port), prot_type));
+		auto id_val = make_intrusive<RecordVal>(conn_id);
+		id_val->Assign(0, make_intrusive<AddrVal>(orig_addr));
+		id_val->Assign(1, val_mgr->Port(ntohs(orig_port), prot_type));
+		id_val->Assign(2, make_intrusive<AddrVal>(resp_addr));
+		id_val->Assign(3, val_mgr->Port(ntohs(resp_port), prot_type));
 
-		RecordVal *orig_endp = new RecordVal(endpoint);
-		orig_endp->Assign(0, new Val(0, TYPE_COUNT));
-		orig_endp->Assign(1, new Val(0, TYPE_COUNT));
-		orig_endp->Assign(4, new Val(orig_flow_label, TYPE_COUNT));
+		auto orig_endp = make_intrusive<RecordVal>(endpoint);
+		orig_endp->Assign(0, val_mgr->Count(0));
+		orig_endp->Assign(1, val_mgr->Count(0));
+		orig_endp->Assign(4, val_mgr->Count(orig_flow_label));
 
 		const int l2_len = sizeof(orig_l2_addr);
 		char null[l2_len]{};
 
 		if ( memcmp(&orig_l2_addr, &null, l2_len) != 0 )
-			orig_endp->Assign(5, new StringVal(fmt_mac(orig_l2_addr, l2_len)));
+			orig_endp->Assign(5, make_intrusive<StringVal>(fmt_mac(orig_l2_addr, l2_len)));
 
-		RecordVal *resp_endp = new RecordVal(endpoint);
-		resp_endp->Assign(0, new Val(0, TYPE_COUNT));
-		resp_endp->Assign(1, new Val(0, TYPE_COUNT));
-		resp_endp->Assign(4, new Val(resp_flow_label, TYPE_COUNT));
+		auto resp_endp = make_intrusive<RecordVal>(endpoint);
+		resp_endp->Assign(0, val_mgr->Count(0));
+		resp_endp->Assign(1, val_mgr->Count(0));
+		resp_endp->Assign(4, val_mgr->Count(resp_flow_label));
 
 		if ( memcmp(&resp_l2_addr, &null, l2_len) != 0 )
-			resp_endp->Assign(5, new StringVal(fmt_mac(resp_l2_addr, l2_len)));
+			resp_endp->Assign(5, make_intrusive<StringVal>(fmt_mac(resp_l2_addr, l2_len)));
 
-		conn_val->Assign(0, id_val);
-		conn_val->Assign(1, orig_endp);
-		conn_val->Assign(2, resp_endp);
+		conn_val->Assign(0, std::move(id_val));
+		conn_val->Assign(1, std::move(orig_endp));
+		conn_val->Assign(2, std::move(resp_endp));
 		// 3 and 4 are set below.
-		conn_val->Assign(5, new TableVal(string_set));	// service
-		conn_val->Assign(6, new StringVal(""));	// history
+		conn_val->Assign(5, make_intrusive<TableVal>(IntrusivePtr{NewRef{}, string_set}));	// service
+		conn_val->Assign(6, val_mgr->EmptyString());	// history
 
 		if ( ! uid )
 			uid.Set(bits_per_uid);
 
-		conn_val->Assign(7, new StringVal(uid.Base62("C").c_str()));
+		conn_val->Assign(7, make_intrusive<StringVal>(uid.Base62("C").c_str()));
 
 		if ( encapsulation && encapsulation->Depth() > 0 )
 			conn_val->Assign(8, encapsulation->GetVectorVal());
 
 		if ( vlan != 0 )
-			conn_val->Assign(9, new Val(vlan, TYPE_INT));
+			conn_val->Assign(9, val_mgr->Int(vlan));
 
 		if ( inner_vlan != 0 )
-			conn_val->Assign(10, new Val(inner_vlan, TYPE_INT));
+			conn_val->Assign(10, val_mgr->Int(inner_vlan));
 
 		}
 
 	if ( root_analyzer )
-		root_analyzer->UpdateConnVal(conn_val);
+		root_analyzer->UpdateConnVal(conn_val.get());
 
-	conn_val->Assign(3, new Val(start_time, TYPE_TIME));	// ###
-	conn_val->Assign(4, new Val(last_time - start_time, TYPE_INTERVAL));
-	conn_val->Assign(6, new StringVal(history.c_str()));
+	conn_val->Assign(3, make_intrusive<Val>(start_time, TYPE_TIME));	// ###
+	conn_val->Assign(4, make_intrusive<Val>(last_time - start_time, TYPE_INTERVAL));
+	conn_val->Assign(6, make_intrusive<StringVal>(history.c_str()));
+	conn_val->Assign(11, val_mgr->Bool(is_successful));
 
 	conn_val->SetOrigin(this);
-
-	Ref(conn_val);
 
 	return conn_val;
 	}
 
 analyzer::Analyzer* Connection::FindAnalyzer(analyzer::ID id)
 	{
-	return root_analyzer ? root_analyzer->FindChild(id) : 0;
+	return root_analyzer ? root_analyzer->FindChild(id) : nullptr;
 	}
 
-analyzer::Analyzer* Connection::FindAnalyzer(analyzer::Tag tag)
+analyzer::Analyzer* Connection::FindAnalyzer(const analyzer::Tag& tag)
 	{
-	return root_analyzer ? root_analyzer->FindChild(tag) : 0;
+	return root_analyzer ? root_analyzer->FindChild(tag) : nullptr;
 	}
 
 analyzer::Analyzer* Connection::FindAnalyzer(const char* name)
@@ -485,12 +430,12 @@ analyzer::Analyzer* Connection::FindAnalyzer(const char* name)
 
 void Connection::AppendAddl(const char* str)
 	{
-	Unref(BuildConnVal());
+	const auto& cv = ConnVal();
 
-	const char* old = conn_val->Lookup(6)->AsString()->CheckString();
+	const char* old = cv->Lookup(6)->AsString()->CheckString();
 	const char* format = *old ? "%s %s" : "%s%s";
 
-	conn_val->Assign(6, new StringVal(fmt(format, old, str)));
+	cv->Assign(6, make_intrusive<StringVal>(fmt(format, old, str)));
 	}
 
 // Returns true if the character at s separates a version number.
@@ -512,171 +457,15 @@ void Connection::Match(Rule::PatternType type, const u_char* data, int len, bool
 		primary_PIA->Match(type, data, len, is_orig, bol, eol, clear_state);
 	}
 
-Val* Connection::BuildVersionVal(const char* s, int len)
+void Connection::RemovalEvent()
 	{
-	Val* name = 0;
-	Val* major = 0;
-	Val* minor = 0;
-	Val* minor2 = 0;
-	Val* addl = 0;
+	auto cv = ConnVal();
 
-	const char* last = s + len;
-	const char* e = s;
+	if ( connection_state_remove )
+		EnqueueEvent(connection_state_remove, nullptr, cv);
 
-	// This is all just a guess...
-
-	// Eat non-alpha-numerical chars.
-	for ( ; s < last && ! isalnum(*s); ++s )
-		;
-
-	// Leading characters are the program name.
-	// (first character must not be a digit)
-	if ( isalpha(*s) )
-		{
-		for ( e = s; e < last && ! is_version_sep(e, last); ++e )
-			;
-
-		if ( s != e )
-			name = new StringVal(e - s, s);
-		}
-
-	// Find first number - that's the major version.
-	for ( s = e; s < last && ! isdigit(*s); ++s )
-		;
-	for ( e = s; e < last && isdigit(*e); ++e )
-		;
-
-	if ( s != e )
-		major = new Val(atoi(s), TYPE_INT);
-
-	// Find second number seperated only by punctuation chars -
-	// that's the minor version.
-	for ( s = e; s < last && ispunct(*s); ++s )
-		;
-	for ( e = s; e < last && isdigit(*e); ++e )
-		;
-
-	if ( s != e )
-		minor = new Val(atoi(s), TYPE_INT);
-
-	// Find second number seperated only by punctuation chars; -
-	// that's the minor version.
-	for ( s = e; s < last && ispunct(*s); ++s )
-		;
-	for ( e = s; e < last && isdigit(*e); ++e )
-		;
-
-	if ( s != e )
-		minor2 = new Val(atoi(s), TYPE_INT);
-
-	// Anything after following punctuation and until next white space is
-	// an additional version string.
-	for ( s = e; s < last && ispunct(*s); ++s )
-		;
-	for ( e = s; e < last && ! isspace(*e); ++e )
-		;
-
-	if ( s != e )
-		addl = new StringVal(e - s, s);
-
-	// If we do not have a name yet, the next alphanumerical string is it.
-	if ( ! name )
-		{ // eat non-alpha-numerical characters
-		for ( s = e; s < last && ! isalpha(*s); ++s )
-			;
-
-		// Get name.
-		for ( e = s; e < last && (isalnum(*e) || *e == '_'); ++e )
-			;
-
-		if ( s != e )
-			name = new StringVal(e - s, s);
-		}
-
-	// We need at least a name.
-	if ( ! name )
-		{
-		Unref(major);
-		Unref(minor);
-		Unref(minor2);
-		Unref(addl);
-		return 0;
-		}
-
-	RecordVal* version = new RecordVal(software_version);
-	version->Assign(0, major ? major : new Val(-1, TYPE_INT));
-	version->Assign(1, minor ? minor : new Val(-1, TYPE_INT));
-	version->Assign(2, minor2 ? minor2 : new Val(-1, TYPE_INT));
-	version->Assign(3, addl ? addl : new StringVal(""));
-
-	RecordVal* sw = new RecordVal(software);
-	sw->Assign(0, name);
-	sw->Assign(1, version);
-
-	return sw;
-	}
-
-int Connection::VersionFoundEvent(const IPAddr& addr, const char* s, int len,
-					analyzer::Analyzer* analyzer)
-	{
-	if ( ! software_version_found && ! software_parse_error )
-		return 1;
-
-	if ( ! is_printable(s, len) )
-		return 0;
-
-	Val* val = BuildVersionVal(s, len);
-	if ( ! val )
-		{
-		if ( software_parse_error )
-			{
-			val_list* vl = new val_list;
-			vl->append(BuildConnVal());
-			vl->append(new AddrVal(addr));
-			vl->append(new StringVal(len, s));
-			ConnectionEvent(software_parse_error, analyzer, vl);
-			}
-		return 0;
-		}
-
-	if ( software_version_found )
-		{
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(new AddrVal(addr));
-		vl->append(val);
-		vl->append(new StringVal(len, s));
-		ConnectionEvent(software_version_found, 0, vl);
-		}
-	else
-		Unref(val);
-
-	return 1;
-	}
-
-int Connection::UnparsedVersionFoundEvent(const IPAddr& addr,
-					const char* full, int len, analyzer::Analyzer* analyzer)
-	{
-	// Skip leading white space.
-	while ( len && isspace(*full) )
-		{
-		--len;
-		++full;
-		}
-
-	if ( ! is_printable(full, len) )
-		return 0;
-
-	if ( software_unparsed_version_found )
-		{
-		val_list* vl = new val_list;
-		vl->append(BuildConnVal());
-		vl->append(new AddrVal(addr));
-		vl->append(new StringVal(len, full));
-		ConnectionEvent(software_unparsed_version_found, analyzer, vl);
-		}
-
-	return 1;
+	if ( is_successful && successful_connection_remove )
+		EnqueueEvent(successful_connection_remove, nullptr, cv);
 	}
 
 void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const char* name)
@@ -684,12 +473,10 @@ void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const ch
 	if ( ! f )
 		return;
 
-	val_list* vl = new val_list(2);
 	if ( name )
-		vl->append(new StringVal(name));
-	vl->append(BuildConnVal());
-
-	ConnectionEvent(f, analyzer, vl);
+		EnqueueEvent(f, analyzer, make_intrusive<StringVal>(name), ConnVal());
+	else
+		EnqueueEvent(f, analyzer, ConnVal());
 	}
 
 void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1, Val* v2)
@@ -701,31 +488,51 @@ void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1,
 		return;
 		}
 
-	val_list* vl = new val_list(3);
-	vl->append(BuildConnVal());
-	vl->append(v1);
-
 	if ( v2 )
-		vl->append(v2);
+		EnqueueEvent(f, analyzer,
+		             ConnVal(),
+		             IntrusivePtr{AdoptRef{}, v1},
+		             IntrusivePtr{AdoptRef{}, v2});
+	else
+		EnqueueEvent(f, analyzer,
+		             ConnVal(),
+		             IntrusivePtr{AdoptRef{}, v1});
+	}
 
-	ConnectionEvent(f, analyzer, vl);
+void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, val_list vl)
+	{
+	auto args = zeek::val_list_to_args(vl);
+
+	if ( ! f )
+		// This may actually happen if there is no local handler
+		// and a previously existing remote handler went away.
+		return;
+
+	// "this" is passed as a cookie for the event
+	mgr.Enqueue(f, std::move(args), SOURCE_LOCAL, a ? a->GetID() : 0, this);
+	}
+
+void Connection::ConnectionEventFast(EventHandlerPtr f, analyzer::Analyzer* a, val_list vl)
+	{
+	// "this" is passed as a cookie for the event
+	mgr.Enqueue(f, zeek::val_list_to_args(vl), SOURCE_LOCAL,
+	            a ? a->GetID() : 0, this);
 	}
 
 void Connection::ConnectionEvent(EventHandlerPtr f, analyzer::Analyzer* a, val_list* vl)
 	{
-	if ( ! f )
-		{
-		// This may actually happen if there is no local handler
-		// and a previously existing remote handler went away.
-		loop_over_list(*vl, i)
-			Unref((*vl)[i]);
-		delete vl;
-		return;
-		}
+	auto args = zeek::val_list_to_args(*vl);
+	delete vl;
 
+	if ( f )
+		EnqueueEvent(f, a, std::move(args));
+	}
+
+void Connection::EnqueueEvent(EventHandlerPtr f, analyzer::Analyzer* a,
+                              zeek::Args args)
+	{
 	// "this" is passed as a cookie for the event
-	mgr.QueueEvent(f, vl, SOURCE_LOCAL,
-			a ? a->GetID() : 0, GetTimerMgr(), this);
+	mgr.Enqueue(f, std::move(args), SOURCE_LOCAL, a ? a->GetID() : 0, this);
 	}
 
 void Connection::Weird(const char* name, const char* addl)
@@ -734,7 +541,7 @@ void Connection::Weird(const char* name, const char* addl)
 	reporter->Weird(this, name, addl ? addl : "");
 	}
 
-void Connection::AddTimer(timer_func timer, double t, int do_expire,
+void Connection::AddTimer(timer_func timer, double t, bool do_expire,
 		TimerType type)
 	{
 	if ( timers_canceled )
@@ -743,12 +550,12 @@ void Connection::AddTimer(timer_func timer, double t, int do_expire,
 	// If the key is cleared, the connection isn't stored in the connection
 	// table anymore and will soon be deleted. We're not installing new
 	// timers anymore then.
-	if ( ! key )
+	if ( ! key_valid )
 		return;
 
 	Timer* conn_timer = new ConnectionTimer(this, timer, t, do_expire, type);
-	GetTimerMgr()->Add(conn_timer);
-	timers.append(conn_timer);
+	timer_mgr->Add(conn_timer);
+	timers.push_back(conn_timer);
 	}
 
 void Connection::RemoveTimer(Timer* t)
@@ -763,27 +570,13 @@ void Connection::CancelTimers()
 	// traversing. Thus, we first make a copy of the list which we then
 	// iterate through.
 	timer_list tmp(timers.length());
-	loop_over_list(timers, j)
-		tmp.append(timers[j]);
+	std::copy(timers.begin(), timers.end(), std::back_inserter(tmp));
 
-	loop_over_list(tmp, i)
-		GetTimerMgr()->Cancel(tmp[i]);
+	for ( const auto& timer : tmp )
+		timer_mgr->Cancel(timer);
 
 	timers_canceled = 1;
 	timers.clear();
-	}
-
-TimerMgr* Connection::GetTimerMgr() const
-	{
-	if ( ! conn_timer_mgr )
-		// Global manager.
-		return timer_mgr;
-
-	// We need to check whether the local timer manager still exists;
-	// it may have already been timed out, in which case we fall back
-	// to the global manager (though this should be rare).
-	TimerMgr* local_mgr = sessions->LookupTimerMgr(conn_timer_mgr, false);
-	return local_mgr ? local_mgr : timer_mgr;
 	}
 
 void Connection::FlipRoles()
@@ -792,7 +585,7 @@ void Connection::FlipRoles()
 	resp_addr = orig_addr;
 	orig_addr = tmp_addr;
 
-	uint32 tmp_port = resp_port;
+	uint32_t tmp_port = resp_port;
 	resp_port = orig_port;
 	orig_port = tmp_port;
 
@@ -806,12 +599,11 @@ void Connection::FlipRoles()
 	saw_first_resp_packet = saw_first_orig_packet;
 	saw_first_orig_packet = tmp_bool;
 
-	uint32 tmp_flow = resp_flow_label;
+	uint32_t tmp_flow = resp_flow_label;
 	resp_flow_label = orig_flow_label;
 	orig_flow_label = tmp_flow;
 
-	Unref(conn_val);
-	conn_val = 0;
+	conn_val = nullptr;
 
 	if ( root_analyzer )
 		root_analyzer->FlipRoles();
@@ -824,7 +616,6 @@ void Connection::FlipRoles()
 unsigned int Connection::MemoryAllocation() const
 	{
 	return padded_sizeof(*this)
-		+ (key ? key->MemoryAllocation() : 0)
 		+ (timers.MemoryAllocation() - padded_sizeof(timers))
 		+ (conn_val ? conn_val->MemoryAllocation() : 0)
 		+ (root_analyzer ? root_analyzer->MemoryAllocation(): 0)
@@ -896,171 +687,33 @@ void Connection::IDString(ODesc* d) const
 	d->Add(ntohs(resp_port));
 	}
 
-bool Connection::Serialize(SerialInfo* info) const
-	{
-	return SerialObj::Serialize(info);
-	}
-
-Connection* Connection::Unserialize(UnserialInfo* info)
-	{
-	return (Connection*) SerialObj::Unserialize(info, SER_CONNECTION);
-	}
-
-bool Connection::DoSerialize(SerialInfo* info) const
-	{
-	DO_SERIALIZE(SER_CONNECTION, BroObj);
-
-	// First we write the members which are needed to
-	// create the HashKey.
-	if ( ! SERIALIZE(orig_addr) || ! SERIALIZE(resp_addr) )
-		return false;
-
-	if ( ! SERIALIZE(orig_port) || ! SERIALIZE(resp_port) )
-		return false;
-
-	if ( ! SERIALIZE(timers.length()) )
-		return false;
-
-	loop_over_list(timers, i)
-		if ( ! timers[i]->Serialize(info) )
-			return false;
-
-	SERIALIZE_OPTIONAL(conn_val);
-
-	// FIXME: RuleEndpointState not yet serializable.
-	// FIXME: Analyzers not yet serializable.
-
-	return
-		SERIALIZE(int(proto)) &&
-		SERIALIZE(history) &&
-		SERIALIZE(hist_seen) &&
-		SERIALIZE(start_time) &&
-		SERIALIZE(last_time) &&
-		SERIALIZE(inactivity_timeout) &&
-		SERIALIZE(suppress_event) &&
-		SERIALIZE(login_conn != 0) &&
-		SERIALIZE_BIT(installed_status_timer) &&
-		SERIALIZE_BIT(timers_canceled) &&
-		SERIALIZE_BIT(is_active) &&
-		SERIALIZE_BIT(skip) &&
-		SERIALIZE_BIT(weird) &&
-		SERIALIZE_BIT(finished) &&
-		SERIALIZE_BIT(record_packets) &&
-		SERIALIZE_BIT(record_contents) &&
-		SERIALIZE_BIT(persistent);
-	}
-
-bool Connection::DoUnserialize(UnserialInfo* info)
-	{
-	// Make sure this is initialized for the condition in Unserialize().
-	persistent = 0;
-
-	DO_UNSERIALIZE(BroObj);
-
-	// Build the hash key first. Some of the recursive *::Unserialize()
-	// functions may need it.
-	ConnID id;
-
-	if ( ! UNSERIALIZE(&orig_addr) || ! UNSERIALIZE(&resp_addr) )
-		goto error;
-
-	if ( ! UNSERIALIZE(&orig_port) || ! UNSERIALIZE(&resp_port) )
-		goto error;
-
-	id.src_addr = orig_addr;
-	id.dst_addr = resp_addr;
-	// This doesn't work for ICMP. But I guess this is not really important.
-	id.src_port = orig_port;
-	id.dst_port = resp_port;
-	id.is_one_way = 0;	// ### incorrect for ICMP
-	key = BuildConnIDHashKey(id);
-
-	int len;
-	if ( ! UNSERIALIZE(&len) )
-		goto error;
-
-	while ( len-- )
-		{
-		Timer* t = Timer::Unserialize(info);
-		if ( ! t )
-			goto error;
-		timers.append(t);
-		}
-
-	UNSERIALIZE_OPTIONAL(conn_val,
-			(RecordVal*) Val::Unserialize(info, connection_type));
-
-	int iproto;
-
-	if ( ! (UNSERIALIZE(&iproto) &&
-		UNSERIALIZE(&history) &&
-		UNSERIALIZE(&hist_seen) &&
-		UNSERIALIZE(&start_time) &&
-		UNSERIALIZE(&last_time) &&
-		UNSERIALIZE(&inactivity_timeout) &&
-		UNSERIALIZE(&suppress_event)) )
-		goto error;
-
-	proto = static_cast<TransportProto>(iproto);
-
-	bool has_login_conn;
-	if ( ! UNSERIALIZE(&has_login_conn) )
-		goto error;
-
-	login_conn = has_login_conn ? (LoginConn*) this : 0;
-
-	UNSERIALIZE_BIT(installed_status_timer);
-	UNSERIALIZE_BIT(timers_canceled);
-	UNSERIALIZE_BIT(is_active);
-	UNSERIALIZE_BIT(skip);
-	UNSERIALIZE_BIT(weird);
-	UNSERIALIZE_BIT(finished);
-	UNSERIALIZE_BIT(record_packets);
-	UNSERIALIZE_BIT(record_contents);
-	UNSERIALIZE_BIT(persistent);
-
-	// Hmm... Why does each connection store a sessions ptr?
-	sessions = ::sessions;
-
-	root_analyzer = 0;
-	primary_PIA = 0;
-	conn_timer_mgr = 0;
-
-	return true;
-
-error:
-	abort();
-	CancelTimers();
-	return false;
-	}
-
 void Connection::SetRootAnalyzer(analyzer::TransportLayerAnalyzer* analyzer, analyzer::pia::PIA* pia)
 	{
 	root_analyzer = analyzer;
 	primary_PIA = pia;
 	}
 
-void Connection::CheckFlowLabel(bool is_orig, uint32 flow_label)
+void Connection::CheckFlowLabel(bool is_orig, uint32_t flow_label)
 	{
-	uint32& my_flow_label = is_orig ? orig_flow_label : resp_flow_label;
+	uint32_t& my_flow_label = is_orig ? orig_flow_label : resp_flow_label;
 
 	if ( my_flow_label != flow_label )
 		{
 		if ( conn_val )
 			{
 			RecordVal *endp = conn_val->Lookup(is_orig ? 1 : 2)->AsRecordVal();
-			endp->Assign(4, new Val(flow_label, TYPE_COUNT));
+			endp->Assign(4, val_mgr->Count(flow_label));
 			}
 
 		if ( connection_flow_label_changed &&
 		     (is_orig ? saw_first_orig_packet : saw_first_resp_packet) )
 			{
-			val_list* vl = new val_list(4);
-			vl->append(BuildConnVal());
-			vl->append(new Val(is_orig, TYPE_BOOL));
-			vl->append(new Val(my_flow_label, TYPE_COUNT));
-			vl->append(new Val(flow_label, TYPE_COUNT));
-			ConnectionEvent(connection_flow_label_changed, 0, vl);
+			EnqueueEvent(connection_flow_label_changed, nullptr,
+				ConnVal(),
+				val_mgr->Bool(is_orig),
+				val_mgr->Count(my_flow_label),
+				val_mgr->Count(flow_label)
+			);
 			}
 
 		my_flow_label = flow_label;
@@ -1072,30 +725,8 @@ void Connection::CheckFlowLabel(bool is_orig, uint32 flow_label)
 		saw_first_resp_packet = 1;
 	}
 
-bool Connection::PermitWeird(const char* name, uint64 threshold, uint64 rate,
+bool Connection::PermitWeird(const char* name, uint64_t threshold, uint64_t rate,
                              double duration)
 	{
-	auto& state = weird_state[name];
-	++state.count;
-
-	if ( state.count <= threshold )
-		return true;
-
-	if ( state.count == threshold + 1)
-		state.sampling_start_time = network_time;
-	else
-		{
-		if ( network_time > state.sampling_start_time + duration )
-			{
-			state.sampling_start_time = 0;
-			state.count = 1;
-			return true;
-			}
-		}
-
-	auto num_above_threshold = state.count - threshold;
-	if ( rate )
-		return num_above_threshold % rate == 0;
-	else
-		return false;
+	return ::PermitWeird(weird_state, name, threshold, rate, duration);
 	}

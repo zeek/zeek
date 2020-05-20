@@ -40,7 +40,6 @@ flow BitTorrent_Flow(is_orig: bool) {
 		if ( pstrlen != 19 ||
 		     memcmp("BitTorrent protocol", pstr.begin(), 19) )
 			{
-			connection()->bro_analyzer()->Weird(fmt("BitTorrent: invalid handshake (pstrlen: %hhu, pstr: %.*s)", pstrlen, 19, pstr.begin()));
 			throw Exception("invalid handshake");
 			}
 
@@ -62,13 +61,13 @@ flow BitTorrent_Flow(is_orig: bool) {
 		handshake_ok = true;
 		if ( ::bittorrent_peer_handshake )
 			{
-			BifEvent::generate_bittorrent_peer_handshake(
+			BifEvent::enqueue_bittorrent_peer_handshake(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(),
-				bytestring_to_val(reserved),
-				bytestring_to_val(info_hash),
-				bytestring_to_val(peer_id));
+				to_stringval(reserved),
+				to_stringval(info_hash),
+				to_stringval(peer_id));
 			}
 
 		connection()->bro_analyzer()->ProtocolConfirmation();
@@ -80,7 +79,7 @@ flow BitTorrent_Flow(is_orig: bool) {
 		%{
 		if ( ::bittorrent_peer_keep_alive )
 			{
-			BifEvent::generate_bittorrent_peer_keep_alive(
+			BifEvent::enqueue_bittorrent_peer_keep_alive(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig());
@@ -93,7 +92,7 @@ flow BitTorrent_Flow(is_orig: bool) {
 		%{
 		if ( ::bittorrent_peer_choke )
 			{
-			BifEvent::generate_bittorrent_peer_choke(
+			BifEvent::enqueue_bittorrent_peer_choke(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig());
@@ -106,7 +105,7 @@ flow BitTorrent_Flow(is_orig: bool) {
 		%{
 		if ( ::bittorrent_peer_unchoke )
 			{
-			BifEvent::generate_bittorrent_peer_unchoke(
+			BifEvent::enqueue_bittorrent_peer_unchoke(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig());
@@ -119,7 +118,7 @@ flow BitTorrent_Flow(is_orig: bool) {
 		%{
 		if ( ::bittorrent_peer_interested )
 			{
-			BifEvent::generate_bittorrent_peer_interested(
+			BifEvent::enqueue_bittorrent_peer_interested(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig());
@@ -132,7 +131,7 @@ flow BitTorrent_Flow(is_orig: bool) {
 		%{
 		if ( ::bittorrent_peer_not_interested )
 			{
-			BifEvent::generate_bittorrent_peer_not_interested(
+			BifEvent::enqueue_bittorrent_peer_not_interested(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig());
@@ -145,7 +144,7 @@ flow BitTorrent_Flow(is_orig: bool) {
 		%{
 		if ( ::bittorrent_peer_have )
 			{
-			BifEvent::generate_bittorrent_peer_have(
+			BifEvent::enqueue_bittorrent_peer_have(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(),
@@ -159,11 +158,11 @@ flow BitTorrent_Flow(is_orig: bool) {
 		%{
 		if ( ::bittorrent_peer_bitfield )
 			{
-			BifEvent::generate_bittorrent_peer_bitfield(
+			BifEvent::enqueue_bittorrent_peer_bitfield(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(),
-				bytestring_to_val(bitfield));
+				to_stringval(bitfield));
 			}
 
 		return true;
@@ -174,7 +173,7 @@ flow BitTorrent_Flow(is_orig: bool) {
 		%{
 		if ( ::bittorrent_peer_request )
 			{
-			BifEvent::generate_bittorrent_peer_request(
+			BifEvent::enqueue_bittorrent_peer_request(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(),
@@ -189,7 +188,7 @@ flow BitTorrent_Flow(is_orig: bool) {
 		%{
 		if ( ::bittorrent_peer_piece )
 			{
-			BifEvent::generate_bittorrent_peer_piece(
+			BifEvent::enqueue_bittorrent_peer_piece(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(),
@@ -204,7 +203,7 @@ flow BitTorrent_Flow(is_orig: bool) {
 		%{
 		if ( ::bittorrent_peer_cancel )
 			{
-			BifEvent::generate_bittorrent_peer_cancel(
+			BifEvent::enqueue_bittorrent_peer_cancel(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(),
@@ -218,11 +217,11 @@ flow BitTorrent_Flow(is_orig: bool) {
 		%{
 		if ( ::bittorrent_peer_port )
 			{
-			BifEvent::generate_bittorrent_peer_port(
+			BifEvent::enqueue_bittorrent_peer_port(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(),
-				port_mgr->Get(listen_port, TRANSPORT_TCP));
+				val_mgr->Port(listen_port, TRANSPORT_TCP));
 			}
 
 		return true;
@@ -232,12 +231,12 @@ flow BitTorrent_Flow(is_orig: bool) {
 		%{
 		if ( ::bittorrent_peer_unknown )
 			{
-			BifEvent::generate_bittorrent_peer_unknown(
+			BifEvent::enqueue_bittorrent_peer_unknown(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(),
 				id,
-				bytestring_to_val(data));
+				to_stringval(data));
 			}
 
 		return true;

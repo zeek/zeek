@@ -2,9 +2,9 @@
 
 #include "Plugin.h"
 
-namespace plugin { namespace Bro_RawReader { Plugin plugin; } }
+namespace plugin { namespace Zeek_RawReader { Plugin plugin; } }
 
-using namespace plugin::Bro_RawReader;
+using namespace plugin::Zeek_RawReader;
 
 Plugin::Plugin()
 	{
@@ -15,7 +15,7 @@ plugin::Configuration Plugin::Configure()
 	AddComponent(new ::input::Component("Raw", ::input::reader::Raw::Instantiate));
 
 	plugin::Configuration config;
-	config.name = "Bro::RawReader";
+	config.name = "Zeek::RawReader";
 	config.description = "Raw input reader";
 	return config;
 	}
@@ -32,4 +32,3 @@ std::unique_lock<std::mutex> Plugin::ForkMutex()
 	{
 	return std::unique_lock<std::mutex>(fork_mutex, std::defer_lock);
 	}
-

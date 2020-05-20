@@ -62,9 +62,9 @@ Expect: /this/is/a/dir\ is\ current\ directory
 Result: /this/is/a/dir\ is\ current\ directory
 Result: SUCCESS
 ===============================
-Given : hey, /foo/bar/baz.bro is a cool script
-Expect: /foo/bar/baz.bro
-Result: /foo/bar/baz.bro
+Given : hey, /foo/bar/baz.zeek is a cool script
+Expect: /foo/bar/baz.zeek
+Result: /foo/bar/baz.zeek
 Result: SUCCESS
 ===============================
 Given : here's two dirs: /foo/bar and /foo/baz
@@ -74,11 +74,11 @@ Result: SUCCESS
 ===============================
 test build_path_compressed()
 ===============================
-/home/bro/policy/somefile.bro
-/usr/local/bro/share/bro/somefile.bro
-/usr/local/bro/somefile.bro
+/home/bro/policy/somefile.zeek
+/usr/local/bro/share/bro/somefile.zeek
+/usr/local/bro/somefile.zeek
 ===============================
 test build_full_path()
 ===============================
-/home/bro//policy/somefile.bro
-/usr/local/bro/share/bro/somefile.bro
+/home/bro//policy/somefile.zeek
+/usr/local/bro/share/bro/somefile.zeek

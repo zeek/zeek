@@ -1,12 +1,18 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek-config.h"
+
+#include "Discard.h"
+
 #include <algorithm>
 
-#include "bro-config.h"
-
+#include "BroString.h"
 #include "Net.h"
+#include "Func.h"
 #include "Var.h"
-#include "Discard.h"
+#include "Val.h"
+#include "IP.h"
+#include "Reporter.h" // for InterpreterException
 
 Discarder::Discarder()
 	{
@@ -22,19 +28,18 @@ Discarder::~Discarder()
 	{
 	}
 
-int Discarder::IsActive()
+bool Discarder::IsActive()
 	{
 	return check_ip || check_tcp || check_udp || check_icmp;
 	}
 
-int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
+bool Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 	{
-	int discard_packet = 0;
+	bool discard_packet = false;
 
 	if ( check_ip )
 		{
-		val_list* args = new val_list;
-		args->append(ip->BuildPktHdrVal());
+		zeek::Args args{{AdoptRef{}, ip->BuildPktHdrVal()}};
 
 		try
 			{
@@ -46,8 +51,6 @@ int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 			discard_packet = false;
 			}
 
-		delete args;
-
 		if ( discard_packet )
 			return discard_packet;
 		}
@@ -56,26 +59,26 @@ int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 	if ( proto != IPPROTO_TCP && proto != IPPROTO_UDP &&
 	     proto != IPPROTO_ICMP )
 		// This is not a protocol we understand.
-		return 0;
+		return false;
 
 	// XXX shall we only check the first packet???
 	if ( ip->IsFragment() )
 		// Never check any fragment.
-		return 0;
+		return false;
 
 	int ip_hdr_len = ip->HdrLen();
 	len -= ip_hdr_len;	// remove IP header
 	caplen -= ip_hdr_len;
 
-	int is_tcp = (proto == IPPROTO_TCP);
-	int is_udp = (proto == IPPROTO_UDP);
+	bool is_tcp = (proto == IPPROTO_TCP);
+	bool is_udp = (proto == IPPROTO_UDP);
 	int min_hdr_len = is_tcp ?
 		sizeof(struct tcphdr) :
 		(is_udp ? sizeof(struct udphdr) : sizeof(struct icmp));
 
 	if ( len < min_hdr_len || caplen < min_hdr_len )
 		// we don't have a complete protocol header
-		return 0;
+		return false;
 
 	// Where the data starts - if this is a protocol we know about,
 	// this gets advanced past the transport header.
@@ -88,9 +91,10 @@ int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 			const struct tcphdr* tp = (const struct tcphdr*) data;
 			int th_len = tp->th_off * 4;
 
-			val_list* args = new val_list;
-			args->append(ip->BuildPktHdrVal());
-			args->append(BuildData(data, th_len, len, caplen));
+			zeek::Args args{
+				{AdoptRef{}, ip->BuildPktHdrVal()},
+				{AdoptRef{}, BuildData(data, th_len, len, caplen)},
+			};
 
 			try
 				{
@@ -101,8 +105,6 @@ int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 				{
 				discard_packet = false;
 				}
-
-			delete args;
 			}
 		}
 
@@ -113,9 +115,10 @@ int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 			const struct udphdr* up = (const struct udphdr*) data;
 			int uh_len = sizeof (struct udphdr);
 
-			val_list* args = new val_list;
-			args->append(ip->BuildPktHdrVal());
-			args->append(BuildData(data, uh_len, len, caplen));
+			zeek::Args args{
+				{AdoptRef{}, ip->BuildPktHdrVal()},
+				{AdoptRef{}, BuildData(data, uh_len, len, caplen)},
+			};
 
 			try
 				{
@@ -126,8 +129,6 @@ int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 				{
 				discard_packet = false;
 				}
-
-			delete args;
 			}
 		}
 
@@ -137,8 +138,7 @@ int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 			{
 			const struct icmp* ih = (const struct icmp*) data;
 
-			val_list* args = new val_list;
-			args->append(ip->BuildPktHdrVal());
+			zeek::Args args{{AdoptRef{}, ip->BuildPktHdrVal()}};
 
 			try
 				{
@@ -149,8 +149,6 @@ int Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 				{
 				discard_packet = false;
 				}
-
-			delete args;
 			}
 		}
 
@@ -163,7 +161,7 @@ Val* Discarder::BuildData(const u_char* data, int hdrlen, int len, int caplen)
 	caplen -= hdrlen;
 	data += hdrlen;
 
-	len = max(min(min(len, caplen), discarder_maxlen), 0);
+	len = std::max(std::min(std::min(len, caplen), discarder_maxlen), 0);
 
-	return new StringVal(new BroString(data, len, 1));
+	return new StringVal(new BroString(data, len, true));
 	}

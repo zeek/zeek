@@ -1,9 +1,27 @@
 #include "Store.h"
+#include "Desc.h"
+#include "Var.h" // for internal_type()
 #include "broker/Manager.h"
 
 namespace bro_broker {
 
 OpaqueType* opaque_of_store_handle;
+
+EnumVal* query_status(bool success)
+	{
+	static EnumType* store_query_status = nullptr;
+	static int success_val;
+	static int failure_val;
+
+	if ( ! store_query_status )
+		{
+		store_query_status = internal_type("Broker::QueryStatus")->AsEnumType();
+		success_val = store_query_status->Lookup("Broker", "SUCCESS");
+		failure_val = store_query_status->Lookup("Broker", "FAILURE");
+		}
+
+	return store_query_status->GetVal(success ? success_val : failure_val).release();
+	}
 
 void StoreHandleVal::ValDescribe(ODesc* d) const
 	{
@@ -49,59 +67,31 @@ void StoreHandleVal::ValDescribe(ODesc* d) const
 	d->Add("}");
 	}
 
-IMPLEMENT_SERIAL(StoreHandleVal, SER_COMM_STORE_HANDLE_VAL);
+IMPLEMENT_OPAQUE_VALUE(StoreHandleVal)
 
-bool StoreHandleVal::DoSerialize(SerialInfo* info) const
+broker::expected<broker::data> StoreHandleVal::DoSerialize() const
 	{
-	DO_SERIALIZE(SER_COMM_STORE_HANDLE_VAL, OpaqueVal);
-
-	auto name = store.name();
-	if ( ! SERIALIZE_STR(name.data(), name.size()) )
-		return false;
-
-	return true;
+	// Cannot serialize.
+	return broker::ec::invalid_data;
 	}
 
-bool StoreHandleVal::DoUnserialize(UnserialInfo* info)
+bool StoreHandleVal::DoUnserialize(const broker::data& data)
 	{
-	DO_UNSERIALIZE(OpaqueVal);
-
-	const char* name_str;
-	int len;
-
-	if ( ! UNSERIALIZE_STR(&name_str, &len) )
-		return false;
-
-	std::string name(name_str, len);
-	delete [] name_str;
-
-	auto handle = broker_mgr->LookupStore(name);
-	if ( ! handle )
-		{
-		// Passing serialized version of store handles to other Bro processes
-		// doesn't make sense, only allow local clones of the handle val.
-		reporter->Error("failed to look up unserialized store handle %s",
-		                name.c_str());
-		return false;
-		}
-
-	store = handle->store;
-	proxy = broker::store::proxy{store};
-
-	return true;
+	// Cannot unserialize.
+	return false;
 	}
 
 broker::backend to_backend_type(BifEnum::Broker::BackendType type)
 	{
 	switch ( type ) {
 	case BifEnum::Broker::MEMORY:
-		return broker::memory;
+		return broker::backend::memory;
 
 	case BifEnum::Broker::SQLITE:
-		return broker::sqlite;
+		return broker::backend::sqlite;
 
 	case BifEnum::Broker::ROCKSDB:
-		return broker::rocksdb;
+		return broker::backend::rocksdb;
 	}
 
 	throw std::runtime_error("unknown broker backend");
@@ -111,14 +101,14 @@ broker::backend_options to_backend_options(broker::backend backend,
                                            RecordVal* options)
 	{
 	switch ( backend ) {
-	case broker::sqlite:
+	case broker::backend::sqlite:
 		{
 		auto path = options->Lookup(0)->AsRecordVal()
 			->Lookup(0)->AsStringVal()->CheckString();
 		return {{"path", path}};
 		}
 
-	case broker::rocksdb:
+	case broker::backend::rocksdb:
 		{
 		auto path = options->Lookup(1)->AsRecordVal()
 			->Lookup(0)->AsStringVal()->CheckString();

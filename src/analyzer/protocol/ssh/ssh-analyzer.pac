@@ -5,12 +5,12 @@
 %}
 
 %header{
-VectorVal* name_list_to_vector(const bytestring nl);
+VectorVal* name_list_to_vector(const bytestring& nl);
 %}
 
 %code{
 // Copied from IRC_Analyzer::SplitWords
-VectorVal* name_list_to_vector(const bytestring nl)
+VectorVal* name_list_to_vector(const bytestring& nl)
 	{
 	VectorVal* vv = new VectorVal(internal_type("string_vec")->AsVectorType());
 
@@ -32,7 +32,7 @@ VectorVal* name_list_to_vector(const bytestring nl)
 		{
 		word = name_list.substr(start, split_pos - start);
 		if ( word.size() > 0 && word[0] != ',' )
-			vv->Assign(vv->Size(), new StringVal(word));
+			vv->Assign(vv->Size(), make_intrusive<StringVal>(word));
 
 		start = split_pos + 1;
 		}
@@ -41,7 +41,7 @@ VectorVal* name_list_to_vector(const bytestring nl)
 	if ( start < name_list.size() )
 		{
 		word = name_list.substr(start, name_list.size() - start);
-		vv->Assign(vv->Size(), new StringVal(word));
+		vv->Assign(vv->Size(), make_intrusive<StringVal>(word));
 		}
 	return vv;
 	}
@@ -52,15 +52,15 @@ refine flow SSH_Flow += {
 		%{
 		if ( ssh_client_version && ${msg.is_orig } )
 			{
-			BifEvent::generate_ssh_client_version(connection()->bro_analyzer(), 
-				connection()->bro_analyzer()->Conn(), 
-				bytestring_to_val(${msg.version}));
+			BifEvent::enqueue_ssh_client_version(connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				to_stringval(${msg.version}));
 			}
 		else if ( ssh_server_version )
 			{
-			BifEvent::generate_ssh_server_version(connection()->bro_analyzer(), 
-				connection()->bro_analyzer()->Conn(), 
-				bytestring_to_val(${msg.version}));
+			BifEvent::enqueue_ssh_server_version(connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				to_stringval(${msg.version}));
 			}
 		return true;
 		%}
@@ -70,7 +70,7 @@ refine flow SSH_Flow += {
 		if ( ! ssh_capabilities )
 			return false;
 
-		RecordVal* result = new RecordVal(BifType::Record::SSH::Capabilities);
+		auto result = make_intrusive<RecordVal>(BifType::Record::SSH::Capabilities);
 		result->Assign(0, name_list_to_vector(${msg.kex_algorithms.val}));
 		result->Assign(1, name_list_to_vector(${msg.server_host_key_algorithms.val}));
 
@@ -101,10 +101,10 @@ refine flow SSH_Flow += {
 			}
 
 
-		result->Assign(6, new Val(!${msg.is_orig}, TYPE_BOOL));
+		result->Assign(6, val_mgr->Bool(!${msg.is_orig}));
 
-		BifEvent::generate_ssh_capabilities(connection()->bro_analyzer(),
-			connection()->bro_analyzer()->Conn(), bytestring_to_val(${msg.cookie}),
+		BifEvent::enqueue_ssh_capabilities(connection()->bro_analyzer(),
+			connection()->bro_analyzer()->Conn(), to_stringval(${msg.cookie}),
 			result);
 
 		return true;
@@ -115,9 +115,9 @@ refine flow SSH_Flow += {
 		%{
 		if ( ssh2_dh_server_params )
 			{
-			BifEvent::generate_ssh2_dh_server_params(connection()->bro_analyzer(),
+			BifEvent::enqueue_ssh2_dh_server_params(connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
-				bytestring_to_val(${msg.p.val}), bytestring_to_val(${msg.g.val}));
+				to_stringval(${msg.p.val}), to_stringval(${msg.g.val}));
 			}
 		return true;
 		%}
@@ -126,9 +126,9 @@ refine flow SSH_Flow += {
 		%{
 		if ( ssh2_ecc_key )
 			{
-			BifEvent::generate_ssh2_ecc_key(connection()->bro_analyzer(),
+			BifEvent::enqueue_ssh2_ecc_key(connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
-				is_orig, bytestring_to_val(q));
+				is_orig, to_stringval(q));
 			}
 		return true;
 		%}
@@ -137,10 +137,10 @@ refine flow SSH_Flow += {
 		%{
 		if ( ssh2_gss_error )
 			{
-			BifEvent::generate_ssh2_gss_error(connection()->bro_analyzer(),
+			BifEvent::enqueue_ssh2_gss_error(connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				${msg.major_status}, ${msg.minor_status},
-				bytestring_to_val(${msg.message.val}));
+				to_stringval(${msg.message.val}));
 			}
 		return true;
 		%}
@@ -149,9 +149,9 @@ refine flow SSH_Flow += {
 		%{
 		if ( ssh2_server_host_key )
 			{
-			BifEvent::generate_ssh2_server_host_key(connection()->bro_analyzer(), 
-				connection()->bro_analyzer()->Conn(), 
-				bytestring_to_val(${key}));
+			BifEvent::enqueue_ssh2_server_host_key(connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				to_stringval(${key}));
 			}
 		return true;
 		%}
@@ -160,10 +160,10 @@ refine flow SSH_Flow += {
 		%{
 		if ( ssh1_server_host_key )
 			{
-			BifEvent::generate_ssh1_server_host_key(connection()->bro_analyzer(), 
-				connection()->bro_analyzer()->Conn(), 
-				bytestring_to_val(${p}),
-				bytestring_to_val(${e}));
+			BifEvent::enqueue_ssh1_server_host_key(connection()->bro_analyzer(),
+				connection()->bro_analyzer()->Conn(),
+				to_stringval(${p}),
+				to_stringval(${e}));
 			}
 		return true;
 		%}

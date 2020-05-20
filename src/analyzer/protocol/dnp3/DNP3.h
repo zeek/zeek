@@ -1,6 +1,5 @@
 
-#ifndef ANALYZER_PROTOCOL_DNP3_DNP3_H
-#define ANALYZER_PROTOCOL_DNP3_DNP3_H
+#pragma once
 
 #include "analyzer/protocol/tcp/TCP.h"
 #include "analyzer/protocol/udp/UDP.h"
@@ -69,7 +68,7 @@ public:
 
 	void Done() override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
-	void Undelivered(uint64 seq, int len, bool orig) override;
+	void Undelivered(uint64_t seq, int len, bool orig) override;
 	void EndpointEOF(bool is_orig) override;
 
 	static Analyzer* Instantiate(Connection* conn)
@@ -82,7 +81,7 @@ public:
 	~DNP3_UDP_Analyzer() override;
 
 	void DeliverPacket(int len, const u_char* data, bool orig,
-                    uint64 seq, const IP_Hdr* ip, int caplen) override;
+                    uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new DNP3_UDP_Analyzer(conn); }
@@ -90,5 +89,3 @@ public:
 
 
 } } // namespace analyzer::*
-
-#endif

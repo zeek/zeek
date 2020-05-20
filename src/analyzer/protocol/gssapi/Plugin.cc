@@ -5,16 +5,16 @@
 #include "GSSAPI.h"
 
 namespace plugin {
-namespace Bro_GSSAPI {
+namespace Zeek_GSSAPI {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("GSSAPI", ::analyzer::gssapi::GSSAPI_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::GSSAPI";
+		config.name = "Zeek::GSSAPI";
 		config.description = "GSSAPI analyzer";
 		return config;
 		}

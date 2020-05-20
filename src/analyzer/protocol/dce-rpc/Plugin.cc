@@ -6,16 +6,16 @@
 #include "DCE_RPC.h"
 
 namespace plugin {
-namespace Bro_DCE_RPC {
+namespace Zeek_DCE_RPC {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("DCE_RPC", ::analyzer::dce_rpc::DCE_RPC_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::DCE_RPC";
+		config.name = "Zeek::DCE_RPC";
 		config.description = "DCE-RPC analyzer";
 		return config;
 		}

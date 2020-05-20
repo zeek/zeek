@@ -1,6 +1,8 @@
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "Rule.h"
+#include "RuleAction.h"
+#include "RuleCondition.h"
 #include "RuleMatcher.h"
 
 // Start at one as we want search for this within a list,
@@ -13,25 +15,25 @@ Rule::~Rule()
 	{
 	delete [] id;
 
-	loop_over_list(patterns, i)
+	for ( const auto& p : patterns )
 		{
-		delete [] patterns[i]->pattern;
-		delete patterns[i];
+		delete [] p->pattern;
+		delete p;
 		}
 
-	loop_over_list(hdr_tests, j)
-		delete hdr_tests[j];
+	for ( const auto& test : hdr_tests )
+		delete test;
 
-	loop_over_list(conditions, k)
-		delete conditions[k];
+	for ( const auto& cond : conditions )
+		delete cond;
 
-	loop_over_list(actions, l)
-		delete actions[l];
+	for ( const auto& action : actions )
+		delete action;
 
-	loop_over_list(preconds, m)
+	for ( const auto& prec : preconds )
 		{
-		delete [] preconds[m]->id;
-		delete preconds[m];
+		delete [] prec->id;
+		delete prec;
 		}
 	}
 
@@ -49,27 +51,26 @@ void Rule::PrintDebug()
 	{
 	fprintf(stderr, "Rule %s (%d) %s\n", id, idx, active ? "[active]" : "[disabled]");
 
-	loop_over_list(patterns, i)
+	for ( const auto& p : patterns )
 		{
 		fprintf(stderr, "	%-8s |%s| (%d) \n",
-			TypeToString(patterns[i]->type), patterns[i]->pattern,
-			patterns[i]->id);
+			TypeToString(p->type), p->pattern, p->id);
 		}
 
-	loop_over_list(hdr_tests, j)
-		hdr_tests[j]->PrintDebug();
+	for ( const auto& h : hdr_tests )
+		h->PrintDebug();
 
-	loop_over_list(conditions, k)
-		conditions[k]->PrintDebug();
+	for ( const auto& c : conditions )
+		c->PrintDebug();
 
-	loop_over_list(actions, l)
-		actions[l]->PrintDebug();
+	for ( const auto& a : actions )
+		a->PrintDebug();
 
 	fputs("\n", stderr);
 	}
 
 void Rule::AddPattern(const char* str, Rule::PatternType type,
-			uint32 offset, uint32 depth)
+			uint32_t offset, uint32_t depth)
 	{
 	Pattern* p = new Pattern;
 	p->pattern = copy_string(str);
@@ -77,20 +78,20 @@ void Rule::AddPattern(const char* str, Rule::PatternType type,
 	p->id = ++pattern_counter;
 	p->offset = offset;
 	p->depth = depth;
-	patterns.append(p);
+	patterns.push_back(p);
 
-	rule_table.append(this);
+	rule_table.push_back(this);
 	}
 
 void Rule::AddRequires(const char* id, bool opposite_direction, bool negate)
 	{
 	Precond* p = new Precond;
 	p->id = copy_string(id);
-	p->rule = 0;
+	p->rule = nullptr;
 	p->opposite_dir = opposite_direction;
 	p->negate = negate;
 
-	preconds.append(p);
+	preconds.push_back(p);
 	}
 
 void Rule::SortHdrTests()

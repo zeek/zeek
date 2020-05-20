@@ -1,1 +1,0 @@
-.. broxygen:proto_analyzer:: *

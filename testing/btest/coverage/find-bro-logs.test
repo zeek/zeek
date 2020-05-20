@@ -19,16 +19,17 @@ python find_logs.py "${BROSCRIPTS}" | sort > out
 
 @TEST-START-FILE find_logs.py
 import os, sys
+import re
 
 scriptdir = sys.argv[1]
 
-# Return a list of all bro script files.
+# Return a list of all zeek script files.
 def find_scripts():
     scripts = []
 
     for r, d, f in os.walk(scriptdir):
         for fname in f:
-            if fname.endswith(".bro"):
+            if fname.endswith(".zeek") or fname.endswith(".bro"):
                 scripts.append(os.path.join(r, fname))
 
     return scripts
@@ -66,5 +67,6 @@ for fname in find_scripts():
         # Print the value of the "$path" field.
         idx = line.find("$path")
         if idx > 0:
-            print("%s" % line[idx:].split('"')[1])
+            m = re.match('.*\$path\s*=\s*"?(\w+)"?.*', line[idx:])
+            print(m.group(1))
 @TEST-END-FILE

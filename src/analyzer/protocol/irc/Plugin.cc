@@ -1,21 +1,20 @@
 // See the file  in the main distribution directory for copyright.
 
-
-#include "plugin/Plugin.h"
-
 #include "IRC.h"
+#include "plugin/Plugin.h"
+#include "analyzer/Component.h"
 
 namespace plugin {
-namespace Bro_IRC {
+namespace Zeek_IRC {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("IRC", ::analyzer::irc::IRC_Analyzer::Instantiate));
 
 		plugin::Configuration config;
-		config.name = "Bro::IRC";
+		config.name = "Zeek::IRC";
 		config.description = "IRC analyzer";
 		return config;
 		}

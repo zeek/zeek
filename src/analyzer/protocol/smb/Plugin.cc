@@ -5,17 +5,17 @@
 #include "SMB.h"
 
 namespace plugin {
-namespace Bro_SMB {
+namespace Zeek_SMB {
 
 class Plugin : public plugin::Plugin {
 public:
-	plugin::Configuration Configure()
+	plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("SMB", ::analyzer::smb::SMB_Analyzer::Instantiate));
-		AddComponent(new ::analyzer::Component("Contents_SMB", 0));
+		AddComponent(new ::analyzer::Component("Contents_SMB", nullptr));
 
 		plugin::Configuration config;
-		config.name = "Bro::SMB";
+		config.name = "Zeek::SMB";
 		config.description = "SMB analyzer";
 		return config;
 		}

@@ -3,8 +3,8 @@ refine connection Foo_Conn += {
 
 	function Foo_data(msg: Foo_Message): bool
 		%{
-		StringVal* data = new StringVal(${msg.data}.length(), (const char*) ${msg.data}.data());
-		BifEvent::generate_foo_message(bro_analyzer(), bro_analyzer()->Conn(), data);
+		auto data = make_intrusive<StringVal>(${msg.data}.length(), (const char*) ${msg.data}.data());
+		BifEvent::enqueue_foo_message(bro_analyzer(), bro_analyzer()->Conn(), std::move(data));
 		return true;
 		%}
 

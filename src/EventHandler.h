@@ -1,19 +1,15 @@
 // Capsulates local and remote event handlers.
 
-#ifndef EVENTHANDLER
-#define EVENTHANDLER
+#pragma once
 
-#include <assert.h>
+#include "BroList.h"
+#include "ZeekArgs.h"
+
 #include <unordered_set>
 #include <string>
-#include "List.h"
-#include "BroList.h"
 
 class Func;
 class FuncType;
-class Serializer;
-class SerialInfo;
-class UnserialInfo;
 
 class EventHandler {
 public:
@@ -26,9 +22,6 @@ public:
 
 	void SetLocalHandler(Func* f);
 
-	void AddRemoteHandler(SourceID peer);
-	void RemoveRemoteHandler(SourceID peer);
-
 	void AutoPublish(std::string topic)
 		{
 		auto_publish.insert(std::move(topic));
@@ -39,7 +32,7 @@ public:
 		auto_publish.erase(topic);
 		}
 
-	void Call(val_list* vl, bool no_remote = false);
+	void Call(const zeek::Args& vl, bool no_remote = false);
 
 	// Returns true if there is at least one local or remote handler.
 	explicit operator  bool() const;
@@ -59,13 +52,8 @@ public:
 	void SetGenerateAlways()	{ generate_always = true; }
 	bool GenerateAlways()	{ return generate_always; }
 
-	// We don't serialize the handler(s) itself here, but
-	// just the reference to it.
-	bool Serialize(SerialInfo* info) const;
-	static EventHandler* Unserialize(UnserialInfo* info);
-
 private:
-	void NewEvent(val_list* vl);	// Raise new_event() meta event.
+	void NewEvent(const zeek::Args& vl);	// Raise new_event() meta event.
 
 	const char* name;
 	Func* local;
@@ -75,17 +63,13 @@ private:
 	bool error_handler;	// this handler reports error messages.
 	bool generate_always;
 
-	declare(List, SourceID);
-	typedef List(SourceID) receiver_list;
-	receiver_list receivers;
-
 	std::unordered_set<std::string> auto_publish;
 };
 
 // Encapsulates a ptr to an event handler to overload the boolean operator.
 class EventHandlerPtr {
 public:
-	EventHandlerPtr(EventHandler* p = 0)		{ handler = p; }
+	EventHandlerPtr(EventHandler* p = nullptr)		{ handler = p; }
 	EventHandlerPtr(const EventHandlerPtr& h)	{ handler = h.handler; }
 
 	const EventHandlerPtr& operator=(EventHandler* p)
@@ -105,5 +89,3 @@ public:
 private:
 	EventHandler* handler;
 };
-
-#endif

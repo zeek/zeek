@@ -1,0 +1,55 @@
+expect: 4
+4
+expect: 8
+8
+expect: 8
+8
+expect: T
+T
+expect: T
+T
+expect: 118
+118
+expect: 118
+118
+expect: 101
+101
+expect: 160
+160
+expect: 225
+225
+expect: 290
+290
+
+tables:
+
+expect: unknown-11. outside-7
+unknown-11. outside-7
+expect: unknown-11. outside-8
+unknown-11. outside-8
+expect: client
+client
+expect: client
+client
+expect: unknown-33. outside-8
+unknown-33. outside-8
+
+expect: unknown-11. outside-4
+unknown-11. outside-4
+expect: unknown-11. outside-5
+unknown-11. outside-5
+expect: client
+client
+expect: client
+client
+expect: unknown-33. outside-5
+unknown-33. outside-5
+
+classes!
+
+bark i am thunder
+eat i weigh 13
+eat i weigh 14
+I have a new name
+bark i am twig
+bark i am thunder

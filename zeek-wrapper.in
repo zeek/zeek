@@ -1,0 +1,31 @@
+#! /usr/bin/env bash
+#
+# Wrapper to continue reporting usage of old names of executables.
+# This will print an error to stderr if stdin/stdout/stderr
+# are all connected to a tty. It will then abort with an error
+# exit code.
+
+function deprecated {
+cat >&2 <<EOF
+Error: Use of '$1' is no longer supported. Please use '$2' instead.
+
+EOF
+}
+
+base=$(dirname $0)
+old=$(basename $0)
+new=$(echo "${old}" | sed 's/^bro/zeek/')
+
+if [ "${new}" = "${old}" ]; then
+    echo "zeek-wrapper: this script is just a wrapper for old commands"
+    exit 1
+fi
+
+if [ ! -f "${base}/${new}" ]; then
+    echo "zeek-wrapper: ${new} not found"
+    exit 1
+fi
+
+test -t 0 && test -t 1 && test -t 2 && deprecated "${old}" "${new}"
+
+exit 1

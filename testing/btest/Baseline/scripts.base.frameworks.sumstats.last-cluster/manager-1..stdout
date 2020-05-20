@@ -1,0 +1,9 @@
+node up, worker-1
+test thresh crossed, [[num=0, dbl=<uninitialized>, str=<uninitialized>]]
+test thresh crossed, [[num=1, dbl=<uninitialized>, str=<uninitialized>]]
+test thresh crossed, [[num=2, dbl=<uninitialized>, str=<uninitialized>]]
+test thresh crossed, [[num=3, dbl=<uninitialized>, str=<uninitialized>]]
+test thresh crossed, [[num=4, dbl=<uninitialized>, str=<uninitialized>]]
+test thresh crossed, [[num=5, dbl=<uninitialized>, str=<uninitialized>]]
+test thresh crossed, [[num=6, dbl=<uninitialized>, str=<uninitialized>]]
+test thresh crossed, [[num=7, dbl=<uninitialized>, str=<uninitialized>]]

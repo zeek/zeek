@@ -1,3 +1,40 @@
+## Generated for RDPEUDP SYN UDP Datagram
+##
+## c: The connection record for the underlying transport-layer session/flow.
+event rdpeudp_syn%(c: connection%);
+
+## Generated for RDPEUDP SYNACK UDP Datagram
+##
+## c: The connection record for the underlying transport-layer session/flow.
+event rdpeudp_synack%(c: connection%);
+
+## Generated when RDPEUDP connections are established (both sides SYN)
+##
+## c: The connection record for the underlying transport-layer session/flow.
+##
+## version: Whether the connection is RDPEUDP1 or RDPEUDP2
+event rdpeudp_established%(c: connection, version: count%);
+
+## Generated when for data messages exchanged after a RDPEUDP connection establishes
+##
+## c: The connection record for the underlying transport-layer session/flow.
+##
+## is_orig: Whether the data was sent by the originator or responder of the connection.
+##
+## version: Whether the connection is RDPEUDP1 or RDPEUDP2
+##
+## data: The payload of the packet. This is probably very non-performant.
+event rdpeudp_data%(c: connection, is_orig: bool, version: count, data: string%);
+
+## Generated for each packet after RDP native encryption begins
+##
+## c: The connection record for the underlying transport-layer session/flow.
+##
+## orig: True if the packet was sent by the originator of the connection.
+##
+## len: The length of the encrypted data.
+event rdp_native_encrypted_data%(c: connection, orig: bool, len: count%);
+
 ## Generated for X.224 client requests.
 ##
 ## c: The connection record for the underlying transport-layer session/flow.
@@ -25,6 +62,27 @@ event rdp_negotiation_failure%(c: connection, failure_code: count%);
 ##
 ## data: The data contained in the client core data structure.
 event rdp_client_core_data%(c: connection, data: RDP::ClientCoreData%);
+
+## Generated for client security data packets.
+##
+## c: The connection record for the underlying transport-layer session/flow.
+##
+## data: The data contained in the client security data structure.
+event rdp_client_security_data%(c: connection, data: RDP::ClientSecurityData%);
+
+## Generated for Client Network Data (TS_UD_CS_NET) packets
+##
+## c: The connection record for the underlying transport-layer session/flow.
+##
+## channels: The channels that were requested
+event rdp_client_network_data%(c: connection, channels: RDP::ClientChannelList%);
+
+## Generated for client cluster data packets.
+##
+## c: The connection record for the underlying transport-layer session/flow.
+##
+## data: The data contained in the client security data structure.
+event rdp_client_cluster_data%(c: connection, data: RDP::ClientClusterData%);
 
 ## Generated for MCS server responses.
 ##

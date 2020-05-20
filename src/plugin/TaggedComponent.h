@@ -1,5 +1,4 @@
-#ifndef PLUGIN_TAGGED_COMPONENT_H
-#define PLUGIN_TAGGED_COMPONENT_H
+#pragma once
 
 #include <assert.h>
 
@@ -72,5 +71,3 @@ T TaggedComponent<T>::Tag() const
 template <class T> typename T::type_t TaggedComponent<T>::type_counter(0);
 
 } // namespace plugin
-
-#endif

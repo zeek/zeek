@@ -1,21 +1,32 @@
-#ifndef BRO_COMM_MANAGER_H
-#define BRO_COMM_MANAGER_H
+#pragma once
 
-#include <broker/broker.hh>
-#include <broker/bro.hh>
+#include <broker/topic.hh>
+#include <broker/data.hh>
+#include <broker/store.hh>
+#include <broker/status.hh>
+#include <broker/error.hh>
+#include <broker/endpoint.hh>
+#include <broker/endpoint_info.hh>
+#include <broker/peer_info.hh>
+#include <broker/backend.hh>
+#include <broker/backend_options.hh>
+#include <broker/detail/hash.hh>
+#include <broker/zeek.hh>
+
 #include <memory>
 #include <string>
-#include <map>
-#include <set>
 #include <unordered_map>
-#include <unordered_set>
-#include "broker/Store.h"
-#include "Reporter.h"
+
 #include "iosource/IOSource.h"
-#include "Val.h"
+#include "logging/WriterBackend.h"
+
+class Frame;
+class Func;
 
 namespace bro_broker {
 
+class StoreHandleVal;
+class StoreQueryCallback;
 class BrokerState;
 
 /**
@@ -53,7 +64,7 @@ public:
 	/**
 	 * Constructor.
 	 */
-	Manager(bool reading_pcaps);
+	Manager(bool use_real_time);
 
 	/**
 	 * Destructor.
@@ -66,8 +77,8 @@ public:
 	 */
 	void InitPostScript();
 
-	void BroInitDone()
-		{ after_bro_init = true; }
+	void ZeekInitDone()
+		{ after_zeek_init = true; }
 
 	/**
 	 * Shuts Broker down at termination.
@@ -101,7 +112,7 @@ public:
 	 * @param addr an address to connect to, e.g. "localhost" or "127.0.0.1".
 	 * @param port the TCP port on which the remote side is listening.
 	 * @param retry If non-zero, the time after which to retry if
-	 * connection cannot be established, or breaks.  BRO_DEFAULT_CONNECT_RETRY
+	 * connection cannot be established, or breaks.  ZEEK_DEFAULT_CONNECT_RETRY
 	 * environment variable overrides this value.
 	 */
 	void Peer(const std::string& addr, uint16_t port, double retry = 10.0);
@@ -183,7 +194,7 @@ public:
 	 * See the Broker::SendFlags record type.
 	 * @return true if the message is sent successfully.
 	 */
-	bool PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int num_vals,
+	bool PublishLogWrite(EnumVal* stream, EnumVal* writer, std::string path, int num_vals,
 			     const threading::Value* const * vals);
 
 	/**
@@ -306,6 +317,11 @@ public:
 	size_t FlushLogBuffers();
 
 	/**
+	 * Flushes all pending data store queries and also clears all contents.
+	 */
+	void ClearStores();
+
+	/**
 	 * @return communication statistics.
 	 */
 	const Stats& GetStatistics();
@@ -323,10 +339,10 @@ public:
 private:
 
 	void DispatchMessage(const broker::topic& topic, broker::data msg);
-	void ProcessEvent(const broker::topic& topic, broker::bro::Event ev);
-	bool ProcessLogCreate(broker::bro::LogCreate lc);
-	bool ProcessLogWrite(broker::bro::LogWrite lw);
-	bool ProcessIdentifierUpdate(broker::bro::IdentifierUpdate iu);
+	void ProcessEvent(const broker::topic& topic, broker::zeek::Event ev);
+	bool ProcessLogCreate(broker::zeek::LogCreate lc);
+	bool ProcessLogWrite(broker::zeek::LogWrite lw);
+	bool ProcessIdentifierUpdate(broker::zeek::IdentifierUpdate iu);
 	void ProcessStatus(broker::status stat);
 	void ProcessError(broker::error err);
 	void ProcessStoreResponse(StoreHandleVal*, broker::store::response response);
@@ -336,23 +352,16 @@ private:
 		__attribute__((format (printf, 2, 3)));
 
 	// IOSource interface overrides:
-	void GetFds(iosource::FD_Set* read, iosource::FD_Set* write,
-	            iosource::FD_Set* except) override;
-
-	double NextTimestamp(double* local_network_time) override;
-
 	void Process() override;
-
-	const char* Tag() override
-		{ return "Broker::Manager"; }
+	const char* Tag() override	{ return "Broker::Manager"; }
+	double GetNextTimeout() override	{ return -1; }
 
 	struct LogBuffer {
 		// Indexed by topic string.
 		std::unordered_map<std::string, broker::vector> msgs;
-		double last_flush;
 		size_t message_count;
 
-		size_t Flush(broker::endpoint& endpoint);
+		size_t Flush(broker::endpoint& endpoint, size_t batch_size);
 	};
 
 	// Data stores
@@ -379,10 +388,11 @@ private:
 	Stats statistics;
 
 	uint16_t bound_port;
-	bool reading_pcaps;
-	bool after_bro_init;
+	bool use_real_time;
+	bool after_zeek_init;
 	int peer_count;
 
+	size_t log_batch_size;
 	Func* log_topic_func;
 	VectorType* vector_of_data_type;
 	EnumType* log_id_type;
@@ -394,5 +404,3 @@ private:
 } // namespace bro_broker
 
 extern bro_broker::Manager* broker_mgr;
-
-#endif // BRO_COMM_MANAGER_H

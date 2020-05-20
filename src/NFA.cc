@@ -1,20 +1,24 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include "NFA.h"
+#include "Desc.h"
 #include "EquivClass.h"
+#include "IntSet.h"
+
+#include <algorithm>
 
 static int nfa_state_id = 0;
 
 NFA_State::NFA_State(int arg_sym, EquivClass* ec)
 	{
 	sym = arg_sym;
-	ccl = 0;
+	ccl = nullptr;
 	accept = NO_ACCEPT;
 	first_trans_is_back_ref = false;
-	mark = 0;
-	epsclosure = 0;
+	mark = nullptr;
+	epsclosure = nullptr;
 	id = ++nfa_state_id;
 
 	// Fix up equivalence classes based on this transition.  Note that any
@@ -35,9 +39,9 @@ NFA_State::NFA_State(CCL* arg_ccl)
 	ccl = arg_ccl;
 	accept = NO_ACCEPT;
 	first_trans_is_back_ref = false;
-	mark = 0;
+	mark = nullptr;
 	id = ++nfa_state_id;
-	epsclosure = 0;
+	epsclosure = nullptr;
 	}
 
 NFA_State::~NFA_State()
@@ -52,7 +56,7 @@ NFA_State::~NFA_State()
 void NFA_State::AddXtionsTo(NFA_state_list* ns)
 	{
 	for ( int i = 0; i < xtions.length(); ++i )
-		ns->append(xtions[i]);
+		ns->push_back(xtions[i]);
 	}
 
 NFA_State* NFA_State::DeepCopy()
@@ -63,7 +67,7 @@ NFA_State* NFA_State::DeepCopy()
 		return mark;
 		}
 
-	NFA_State* copy = ccl ? new NFA_State(ccl) : new NFA_State(sym, 0);
+	NFA_State* copy = ccl ? new NFA_State(ccl) : new NFA_State(sym, nullptr);
 	SetMark(copy);
 
 	for ( int i = 0; i < xtions.length(); ++i )
@@ -76,7 +80,7 @@ void NFA_State::ClearMarks()
 	{
 	if ( mark )
 		{
-		SetMark(0);
+		SetMark(nullptr);
 		for ( int i = 0; i < xtions.length(); ++i )
 			xtions[i]->ClearMarks();
 		}
@@ -90,7 +94,7 @@ NFA_state_list* NFA_State::EpsilonClosure()
 	epsclosure = new NFA_state_list;
 
 	NFA_state_list states;
-	states.append(this);
+	states.push_back(this);
 	SetMark(this);
 
 	int i;
@@ -105,23 +109,23 @@ NFA_state_list* NFA_State::EpsilonClosure()
 				NFA_State* nxt = (*x)[j];
 				if ( ! nxt->Mark() )
 					{
-					states.append(nxt);
+					states.push_back(nxt);
 					nxt->SetMark(nxt);
 					}
 				}
 
 			if ( ns->Accept() != NO_ACCEPT )
-				epsclosure->append(ns);
+				epsclosure->push_back(ns);
 			}
 
 		else
 			// Non-epsilon transition - keep it.
-			epsclosure->append(ns);
+			epsclosure->push_back(ns);
 		}
 
 	// Clear out markers.
 	for ( i = 0; i < states.length(); ++i )
-		states[i]->SetMark(0);
+		states[i]->SetMark(nullptr);
 
 	// Make it fit.
 	epsclosure->resize(0);
@@ -258,7 +262,7 @@ void NFA_Machine::MakePositiveClosure()
 
 void NFA_Machine::MakeRepl(int lower, int upper)
 	{
-	NFA_Machine* dup = 0;
+	NFA_Machine* dup = nullptr;
 	if ( upper > lower || upper == NO_UPPER_BOUND )
 		dup = DuplicateMachine();
 
@@ -342,10 +346,13 @@ NFA_state_list* epsilon_closure(NFA_state_list* states)
 			if ( ! closuremap.Contains(ns->ID()) )
 				{
 				closuremap.Insert(ns->ID());
-				closure->sortedinsert(ns, NFA_state_cmp_neg);
+				closure->push_back(ns);
 				}
 			}
 		}
+
+	// Sort all of the closures in the list by ID
+	std::sort(closure->begin(), closure->end(), NFA_state_cmp_neg);
 
 	// Make it fit.
 	closure->resize(0);
@@ -355,15 +362,10 @@ NFA_state_list* epsilon_closure(NFA_state_list* states)
 	return closure;
 	}
 
-int NFA_state_cmp_neg(const void* v1, const void* v2)
+bool NFA_state_cmp_neg(const NFA_State* v1, const NFA_State* v2)
 	{
-	const NFA_State* n1 = (const NFA_State*) v1;
-	const NFA_State* n2 = (const NFA_State*) v2;
-
-	if ( n1->ID() < n2->ID() )
-		return -1;
-	else if ( n1->ID() == n2->ID() )
-		return 0;
+	if ( v1->ID() < v2->ID() )
+		return true;
 	else
-		return 1;
+		return false;
 	}

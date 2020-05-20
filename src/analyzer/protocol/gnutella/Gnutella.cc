@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
 
 #include <ctype.h>
 
@@ -40,7 +40,7 @@ Gnutella_Analyzer::Gnutella_Analyzer(Connection* conn)
 	new_state = 0;
 	sent_establish = 0;
 
-	ms = 0;
+	ms = nullptr;
 
 	orig_msg_state = new GnutellaMsgState();
 	resp_msg_state = new GnutellaMsgState();
@@ -58,16 +58,10 @@ void Gnutella_Analyzer::Done()
 
 	if ( ! sent_establish && (gnutella_establish || gnutella_not_establish) )
 		{
-		val_list* vl = new val_list;
-
-		vl->append(BuildConnVal());
-
 		if ( Established() && gnutella_establish )
-			ConnectionEvent(gnutella_establish, vl);
+			EnqueueConnEvent(gnutella_establish, ConnVal());
 		else if ( ! Established () && gnutella_not_establish )
-			ConnectionEvent(gnutella_not_establish, vl);
-		else
-			delete_vals(vl);
+			EnqueueConnEvent(gnutella_not_establish, ConnVal());
 		}
 
 	if ( gnutella_partial_binary_msg )
@@ -77,16 +71,12 @@ void Gnutella_Analyzer::Done()
 		for ( int i = 0; i < 2; ++i, p = resp_msg_state )
 			{
 			if ( ! p->msg_sent && p->msg_pos )
-				{
-				val_list* vl = new val_list;
-
-				vl->append(BuildConnVal());
-				vl->append(new StringVal(p->msg));
-				vl->append(new Val((i == 0), TYPE_BOOL));
-				vl->append(new Val(p->msg_pos, TYPE_COUNT));
-
-				ConnectionEvent(gnutella_partial_binary_msg, vl);
-				}
+				EnqueueConnEvent(gnutella_partial_binary_msg,
+					ConnVal(),
+					make_intrusive<StringVal>(p->msg),
+					val_mgr->Bool((i == 0)),
+					val_mgr->Count(p->msg_pos)
+				);
 
 			else if ( ! p->msg_sent && p->payload_left )
 				SendEvents(p, (i == 0));
@@ -95,13 +85,13 @@ void Gnutella_Analyzer::Done()
 	}
 
 
-int Gnutella_Analyzer::NextLine(const u_char* data, int len)
+bool Gnutella_Analyzer::NextLine(const u_char* data, int len)
 	{
 	if ( ! ms )
-		return 0;
+		return false;
 
 	if ( Established() || ms->current_offset >= len )
-		return 0;
+		return false;
 
 	for ( ; ms->current_offset < len; ++ms->current_offset )
 		{
@@ -112,28 +102,23 @@ int Gnutella_Analyzer::NextLine(const u_char* data, int len)
 			{
 			ms->got_CR = 0;
 			++ms->current_offset;
-			return 1;
+			return true;
 			}
 		else
 			ms->buffer += data[ms->current_offset];
 		}
 
-	return 0;
+	return false;
 	}
 
 
-int Gnutella_Analyzer::IsHTTP(string header)
+bool Gnutella_Analyzer::IsHTTP(std::string header)
 	{
-	if ( header.find(" HTTP/1.") == string::npos )
-		return 0;
+	if ( header.find(" HTTP/1.") == std::string::npos )
+		return false;
 
 	if ( gnutella_http_notify )
-		{
-		val_list* vl = new val_list;
-
-		vl->append(BuildConnVal());
-		ConnectionEvent(gnutella_http_notify, vl);
-		}
+		EnqueueConnEvent(gnutella_http_notify, ConnVal());
 
 	analyzer::Analyzer* a = analyzer_mgr->InstantiateAnalyzer("HTTP", Conn());
 
@@ -150,20 +135,20 @@ int Gnutella_Analyzer::IsHTTP(string header)
 		Parent()->RemoveChildAnalyzer(this);
 		}
 
-	return 1;
+	return true;
 	}
 
 
-int Gnutella_Analyzer::GnutellaOK(string header)
+bool Gnutella_Analyzer::GnutellaOK(std::string header)
 	{
 	if ( strncmp("GNUTELLA", header.data(), 8) )
-		return 0;
+		return false;
 
 	int codepos = header.find(' ') + 1;
 	if ( ! strncmp("200", header.data() + codepos, 3) )
-		return 1;
+		return true;
 
-	return 0;
+	return false;
 	}
 
 
@@ -191,27 +176,20 @@ void Gnutella_Analyzer::DeliverLines(int len, const u_char* data, bool orig)
 		else
 			{
 			if ( gnutella_text_msg )
-				{
-				val_list* vl = new val_list;
-
-				vl->append(BuildConnVal());
-				vl->append(new Val(orig, TYPE_BOOL));
-				vl->append(new StringVal(ms->headers.data()));
-
-				ConnectionEvent(gnutella_text_msg, vl);
-				}
+				EnqueueConnEvent(gnutella_text_msg,
+					ConnVal(),
+					val_mgr->Bool(orig),
+					make_intrusive<StringVal>(ms->headers.data())
+				);
 
 			ms->headers = "";
 			state |= new_state;
 
 			if ( Established () && gnutella_establish )
 				{
-				val_list* vl = new val_list;
-
 				sent_establish = 1;
-				vl->append(BuildConnVal());
 
-				ConnectionEvent(gnutella_establish, vl);
+				EnqueueConnEvent(gnutella_establish, ConnVal());
 				}
 			}
 		}
@@ -236,24 +214,18 @@ void Gnutella_Analyzer::SendEvents(GnutellaMsgState* p, bool is_orig)
 		return;
 
 	if ( gnutella_binary_msg )
-		{
-		val_list* vl = new val_list;
-
-		vl->append(BuildConnVal());
-		vl->append(new Val(is_orig, TYPE_BOOL));
-		vl->append(new Val(p->msg_type, TYPE_COUNT));
-		vl->append(new Val(p->msg_ttl, TYPE_COUNT));
-		vl->append(new Val(p->msg_hops, TYPE_COUNT));
-		vl->append(new Val(p->msg_len, TYPE_COUNT));
-		vl->append(new StringVal(p->payload));
-		vl->append(new Val(p->payload_len, TYPE_COUNT));
-		vl->append(new Val((p->payload_len <
-				    min(p->msg_len, (unsigned int)GNUTELLA_MAX_PAYLOAD)),
-				   TYPE_BOOL));
-		vl->append(new Val((p->payload_left == 0), TYPE_BOOL));
-
-		ConnectionEvent(gnutella_binary_msg, vl);
-		}
+		EnqueueConnEvent(gnutella_binary_msg,
+			ConnVal(),
+			val_mgr->Bool(is_orig),
+			val_mgr->Count(p->msg_type),
+			val_mgr->Count(p->msg_ttl),
+			val_mgr->Count(p->msg_hops),
+			val_mgr->Count(p->msg_len),
+			make_intrusive<StringVal>(p->payload),
+			val_mgr->Count(p->payload_len),
+			val_mgr->Bool((p->payload_len < std::min(p->msg_len, (unsigned int)GNUTELLA_MAX_PAYLOAD))),
+			val_mgr->Bool((p->payload_left == 0))
+		);
 	}
 
 
@@ -348,4 +320,3 @@ void Gnutella_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	else if ( gnutella_binary_msg )
 		DeliverMessages(len, data, orig);
 	}
-

@@ -1,6 +1,5 @@
 
-#ifndef BRO_PLUGIN_DEMO_FOO_H
-#define BRO_PLUGIN_DEMO_FOO_H
+#pragma once
 
 #include <Val.h>
 #include <file_analysis/Analyzer.h>
@@ -19,5 +18,3 @@ protected:
 };
 
 } }
-
-#endif

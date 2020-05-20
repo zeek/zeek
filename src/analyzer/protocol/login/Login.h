@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef ANALYZER_PROTOCOL_LOGIN_LOGIN_H
-#define ANALYZER_PROTOCOL_LOGIN_LOGIN_H
+#pragma once
 
 #include "analyzer/protocol/tcp/TCP.h"
 
@@ -39,28 +38,28 @@ protected:
 	void NewLine(bool orig, char* line);
 	void AuthenticationDialog(bool orig, char* line);
 
-	void LoginEvent(EventHandlerPtr f, const char* line, int no_user_okay=0);
+	void LoginEvent(EventHandlerPtr f, const char* line, bool no_user_okay=false);
 	const char* GetUsername(const char* line) const;
 	void LineEvent(EventHandlerPtr f, const char* line);
 	void Confused(const char* msg, const char* addl);
 	void ConfusionText(const char* line);
 
-	int IsPloy(const char* line);
-	int IsSkipAuthentication(const char* line) const;
+	bool IsPloy(const char* line);
+	bool IsSkipAuthentication(const char* line) const;
 	const char* IsLoginPrompt(const char* line) const;	// nil if not
-	int IsDirectLoginPrompt(const char* line) const;
-	int IsFailureMsg(const char* line) const;
-	int IsSuccessMsg(const char* line) const;
-	int IsTimeout(const char* line) const;
-	int IsEmpty(const char* line) const;
+	bool IsDirectLoginPrompt(const char* line) const;
+	bool IsFailureMsg(const char* line) const;
+	bool IsSuccessMsg(const char* line) const;
+	bool IsTimeout(const char* line) const;
+	bool IsEmpty(const char* line) const;
 
 	void AddUserText(const char* line);	// complains on overflow
 	char* PeekUserText();	// internal warning on underflow
 	char* PopUserText();		// internal warning on underflow
 	Val* PopUserTextVal();
 
-	int MatchesTypeahead(const char* line) const;
-	int HaveTypeahead() const	{ return num_user_text > 0; }
+	bool MatchesTypeahead(const char* line) const;
+	bool HaveTypeahead() const	{ return num_user_text > 0; }
 	void FlushEmptyTypeahead();
 
 // If we have more user text than this unprocessed, we complain about
@@ -80,10 +79,8 @@ protected:
 	int login_prompt_line;
 	int failure_line;
 
-	int is_VMS;
-	int saw_ploy;
+	bool is_VMS;
+	bool saw_ploy;
 };
 
-} } // namespace analyzer::* 
-
-#endif
+} } // namespace analyzer::*

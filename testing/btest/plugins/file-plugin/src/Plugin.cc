@@ -1,7 +1,8 @@
 
-#include "Plugin.h"
-
 #include "Foo.h"
+#include "Plugin.h"
+#include "file_analysis/Component.h"
+#include "file_analysis/File.h"
 
 namespace plugin { namespace Demo_Foo { Plugin plugin; } }
 
@@ -16,5 +17,6 @@ plugin::Configuration Plugin::Configure()
 	config.description = "A Foo test analyzer";
 	config.version.major = 1;
 	config.version.minor = 0;
+	config.version.patch = 0;
 	return config;
 	}

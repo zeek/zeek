@@ -1,12 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "CardinalityCounter.h"
+
 #include <math.h>
 #include <stdint.h>
-#include <iostream>
+#include <utility>
 
-#include "CardinalityCounter.h"
+#include <broker/data.hh>
+
 #include "Reporter.h"
-#include "Serializer.h"
 
 using namespace probabilistic;
 
@@ -74,7 +76,7 @@ CardinalityCounter::CardinalityCounter(CardinalityCounter& other)
 	p = other.p;
 	}
 
-CardinalityCounter::CardinalityCounter(CardinalityCounter&& o)
+CardinalityCounter::CardinalityCounter(CardinalityCounter&& o) noexcept
 	{
 	V = o.V;
 	alpha_m = o.alpha_m;
@@ -88,7 +90,7 @@ CardinalityCounter::CardinalityCounter(CardinalityCounter&& o)
 CardinalityCounter::CardinalityCounter(double error_margin, double confidence)
 	{
 	int b = OptimalB(error_margin, confidence);
-	Init((uint64) pow(2, b));
+	Init((uint64_t) pow(2, b));
 
 	assert(b == p);
 	}
@@ -171,7 +173,7 @@ bool CardinalityCounter::Merge(CardinalityCounter* c)
 	if ( m != c->GetM() )
 		return false;
 
-	const vector<uint8_t> temp = c->GetBuckets();
+	const std::vector<uint8_t>& temp = c->GetBuckets();
 
 	V = 0;
 
@@ -187,7 +189,7 @@ bool CardinalityCounter::Merge(CardinalityCounter* c)
 	return true;
 	}
 
-const vector<uint8_t> &CardinalityCounter::GetBuckets() const
+const std::vector<uint8_t> &CardinalityCounter::GetBuckets() const
 	{
 	return buckets;
 	}
@@ -197,49 +199,48 @@ uint64_t CardinalityCounter::GetM() const
 	return m;
 	}
 
-bool CardinalityCounter::Serialize(SerialInfo* info) const
+broker::expected<broker::data> CardinalityCounter::Serialize() const
 	{
-	bool valid = true;
+	broker::vector v = {m, V, alpha_m};
+	v.reserve(3 + m);
 
-	valid &= SERIALIZE(m);
-	valid &= SERIALIZE(V);
-	valid &= SERIALIZE(alpha_m);
+	for ( size_t i = 0; i < m; ++i )
+		v.emplace_back(static_cast<uint64_t>(buckets[i]));
 
-	for ( unsigned int i = 0; i < m; i++ )
-		valid &= SERIALIZE((char)buckets[i]);
-
-	return valid;
+	return {std::move(v)};
 	}
 
-CardinalityCounter* CardinalityCounter::Unserialize(UnserialInfo* info)
+std::unique_ptr<CardinalityCounter> CardinalityCounter::Unserialize(const broker::data& data)
 	{
-	uint64_t m;
-	uint64_t V;
-	double alpha_m;
+	auto v = caf::get_if<broker::vector>(&data);
+	if ( ! (v && v->size() >= 3) )
+		return nullptr;
 
-	bool valid = true;
-	valid &= UNSERIALIZE(&m);
-	valid &= UNSERIALIZE(&V);
-	valid &= UNSERIALIZE(&alpha_m);
+	auto m = caf::get_if<uint64_t>(&(*v)[0]);
+	auto V = caf::get_if<uint64_t>(&(*v)[1]);
+	auto alpha_m = caf::get_if<double>(&(*v)[2]);
 
-	CardinalityCounter* c = new CardinalityCounter(m, V, alpha_m);
+	if ( ! (m && V && alpha_m) )
+		return nullptr;
+	if ( v->size() != 3 + *m )
+		return nullptr;
 
-	vector<uint8_t>& buckets = c->buckets;
+	auto cc = std::unique_ptr<CardinalityCounter>(new CardinalityCounter(*m, *V, *alpha_m));
+	if ( *m != cc->m )
+		return nullptr;
+	if ( cc->buckets.size() != * m )
+		return nullptr;
 
-	for ( unsigned int i = 0; i < m; i++ )
+	for ( size_t i = 0; i < *m; ++i )
 		{
-		char c;
-		valid &= UNSERIALIZE(&c);
-		buckets[i] = (uint8_t)c;
+		auto x = caf::get_if<uint64_t>(&(*v)[3 + i]);
+		if ( ! x )
+			return nullptr;
+
+		cc->buckets[i] = *x;
 		}
 
-	if ( ! valid )
-		{
-		delete c;
-		c = 0;
-		}
-
-	return c;
+	return cc;
 	}
 
 /**

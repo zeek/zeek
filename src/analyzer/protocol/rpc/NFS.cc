@@ -1,27 +1,28 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <algorithm>
+#include "zeek-config.h"
+#include "NFS.h"
+
+#include <utility>
 #include <vector>
 
-#include "bro-config.h"
-
+#include "BroString.h"
 #include "NetVar.h"
 #include "XDR.h"
-#include "NFS.h"
 #include "Event.h"
 
 #include "events.bif.h"
 
 using namespace analyzer::rpc;
 
-int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
+bool NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	{
 	if ( c->Program() != 100003 )
-		Weird(fmt("bad_RPC_program (%d)", c->Program()));
+		Weird("bad_RPC_program", fmt("%d", c->Program()));
 
-	uint32 proc = c->Proc();
+	uint32_t proc = c->Proc();
 	// The call arguments, depends on the call type obviously ...
-	Val *callarg = 0;
+	Val *callarg = nullptr;
 
 	switch ( proc ) {
 	case BifEnum::NFS3::PROC_NULL:
@@ -94,7 +95,7 @@ int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 		break;
 
 	default:
-		callarg = 0;
+		callarg = nullptr;
 		if ( proc < BifEnum::NFS3::PROC_END_OF_PROCS )
 			{
 			// We know the procedure but haven't implemented it.
@@ -103,11 +104,11 @@ int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 			n = 0;
 			}
 		else
-			Weird(fmt("unknown_NFS_request(%u)", proc));
+			Weird("unknown_NFS_request", fmt("%u", proc));
 
 		// Return 1 so that replies to unprocessed calls will still
 		// be processed, and the return status extracted.
-		return 1;
+		return true;
 	}
 
 	if ( ! buf )
@@ -118,21 +119,21 @@ int NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 		// RecordVal was allocated but we failed to fill it). So we
 		// Unref() the call arguments, and we are fine.
 		Unref(callarg);
-		callarg = 0;
-		return 0;
+		callarg = nullptr;
+		return false;
 		}
 
 	c->AddVal(callarg); // It's save to AddVal(0).
 
-	return 1;
+	return true;
 	}
 
-int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
+bool NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 			       const u_char*& buf, int& n, double start_time,
 			       double last_time, int reply_len)
 	{
-	EventHandlerPtr event = 0;
-	Val *reply = 0;
+	EventHandlerPtr event = nullptr;
+	Val *reply = nullptr;
 	BifEnum::NFS3::status_t nfs_status = BifEnum::NFS3::NFS3ERR_OK;
 	bool rpc_success = ( rpc_status == BifEnum::RPC_SUCCESS );
 
@@ -147,9 +148,9 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 
 	if ( nfs_reply_status )
 		{
-		val_list* vl = event_common_vl(c, rpc_status, nfs_status,
-					       start_time, last_time, reply_len);
-		analyzer->ConnectionEvent(nfs_reply_status, vl);
+		auto vl = event_common_vl(c, rpc_status, nfs_status,
+					       start_time, last_time, reply_len, 0);
+		analyzer->EnqueueConnEvent(nfs_reply_status, std::move(vl));
 		}
 
 	if ( ! rpc_success )
@@ -157,7 +158,7 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 		// We set the buffer to NULL, the function that extract the
 		// reply from the data stream will then return empty records.
 		//
-		buf = NULL;
+		buf = nullptr;
 		n = 0;
 		}
 
@@ -250,11 +251,11 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 			// Otherwise DeliverRPC would complain about
 			// excess_RPC.
 			n = 0;
-			reply = new EnumVal(c->Proc(), BifType::Enum::NFS3::proc_t);
+			reply = BifType::Enum::NFS3::proc_t->GetVal(c->Proc()).release();
 			event = nfs_proc_not_implemented;
 			}
 		else
-			return 0;
+			return false;
 	}
 
 	if ( rpc_success && ! buf )
@@ -262,8 +263,8 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 		// There was a parse error. We have to unref the reply. (see
 		// also comments in RPC_BuildCall.
 		Unref(reply);
-		reply = 0;
-		return 0;
+		reply = nullptr;
+		return false;
 		}
 
 	// Note: if reply == 0, it won't be added to the val_list for the
@@ -274,23 +275,23 @@ int NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 	// optional and all are set to 0 ...
 	if ( event )
 		{
-		val_list* vl = event_common_vl(c, rpc_status, nfs_status,
-					start_time, last_time, reply_len);
-
 		Val *request = c->TakeRequestVal();
 
+		auto vl = event_common_vl(c, rpc_status, nfs_status,
+					start_time, last_time, reply_len, (bool)request + (bool)reply);
+
 		if ( request )
-			vl->append(request);
+			vl.emplace_back(AdoptRef{}, request);
 
 		if ( reply )
-			vl->append(reply);
+			vl.emplace_back(AdoptRef{}, reply);
 
-		analyzer->ConnectionEvent(event, vl);
+		analyzer->EnqueueConnEvent(event, std::move(vl));
 		}
 	else
 		Unref(reply);
 
-	return 1;
+	return true;
 	}
 
 StringVal* NFS_Interp::nfs3_file_data(const u_char*& buf, int& n, uint64_t offset, int size)
@@ -302,51 +303,52 @@ StringVal* NFS_Interp::nfs3_file_data(const u_char*& buf, int& n, uint64_t offse
 
 	// check whether we have to deliver data to the event
 	if ( ! BifConst::NFS3::return_data )
-		return 0;
+		return nullptr;
 
 	if ( BifConst::NFS3::return_data_first_only && offset != 0 )
-		return 0;
+		return nullptr;
 
 	// Ok, so we want to return some data
-	data_n = min(data_n, size);
-	data_n = min(data_n, int(BifConst::NFS3::return_data_max));
+	data_n = std::min(data_n, size);
+	data_n = std::min(data_n, int(BifConst::NFS3::return_data_max));
 
 	if ( data && data_n > 0 )
-		return new StringVal(new BroString(data, data_n, 0));
+		return new StringVal(new BroString(data, data_n, false));
 
-	return 0;
+	return nullptr;
 	}
 
-val_list* NFS_Interp::event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_status,
+zeek::Args NFS_Interp::event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_status,
 				      BifEnum::NFS3::status_t nfs_status,
 				      double rep_start_time,
-				      double rep_last_time, int reply_len)
+				      double rep_last_time, int reply_len, int extra_elements)
 	{
 	// Returns a new val_list that already has a conn_val, and nfs3_info.
 	// These are the first parameters for each nfs_* event ...
-	val_list *vl = new val_list;
-	vl->append(analyzer->BuildConnVal());
-	VectorVal* auxgids = new VectorVal(internal_type("index_vec")->AsVectorType());
+	zeek::Args vl;
+	vl.reserve(2 + extra_elements);
+	vl.emplace_back(analyzer->ConnVal());
+	auto auxgids = make_intrusive<VectorVal>(internal_type("index_vec")->AsVectorType());
 
 	for ( size_t i = 0; i < c->AuxGIDs().size(); ++i )
-		auxgids->Assign(i, new Val(c->AuxGIDs()[i], TYPE_COUNT));
+		auxgids->Assign(i, val_mgr->Count(c->AuxGIDs()[i]));
 
-	RecordVal *info = new RecordVal(BifType::Record::NFS3::info_t);
-	info->Assign(0, new EnumVal(rpc_status, BifType::Enum::rpc_status));
-	info->Assign(1, new EnumVal(nfs_status, BifType::Enum::NFS3::status_t));
-	info->Assign(2, new Val(c->StartTime(), TYPE_TIME));
-	info->Assign(3, new Val(c->LastTime()-c->StartTime(), TYPE_INTERVAL));
-	info->Assign(4, new Val(c->RPCLen(), TYPE_COUNT));
-	info->Assign(5, new Val(rep_start_time, TYPE_TIME));
-	info->Assign(6, new Val(rep_last_time-rep_start_time, TYPE_INTERVAL));
-	info->Assign(7, new Val(reply_len, TYPE_COUNT));
-	info->Assign(8, new Val(c->Uid(), TYPE_COUNT));
-	info->Assign(9, new Val(c->Gid(), TYPE_COUNT));
-	info->Assign(10, new Val(c->Stamp(), TYPE_COUNT));
-	info->Assign(11, new StringVal(c->MachineName()));
-	info->Assign(12, auxgids);
+	auto info = make_intrusive<RecordVal>(BifType::Record::NFS3::info_t);
+	info->Assign(0, BifType::Enum::rpc_status->GetVal(rpc_status));
+	info->Assign(1, BifType::Enum::NFS3::status_t->GetVal(nfs_status));
+	info->Assign(2, make_intrusive<Val>(c->StartTime(), TYPE_TIME));
+	info->Assign(3, make_intrusive<Val>(c->LastTime()-c->StartTime(), TYPE_INTERVAL));
+	info->Assign(4, val_mgr->Count(c->RPCLen()));
+	info->Assign(5, make_intrusive<Val>(rep_start_time, TYPE_TIME));
+	info->Assign(6, make_intrusive<Val>(rep_last_time-rep_start_time, TYPE_INTERVAL));
+	info->Assign(7, val_mgr->Count(reply_len));
+	info->Assign(8, val_mgr->Count(c->Uid()));
+	info->Assign(9, val_mgr->Count(c->Gid()));
+	info->Assign(10, val_mgr->Count(c->Stamp()));
+	info->Assign(11, make_intrusive<StringVal>(c->MachineName()));
+	info->Assign(12, std::move(auxgids));
 
-	vl->append(info);
+	vl.emplace_back(std::move(info));
 	return vl;
 	}
 
@@ -356,9 +358,9 @@ StringVal* NFS_Interp::nfs3_fh(const u_char*& buf, int& n)
 	const u_char* fh = extract_XDR_opaque(buf, n, fh_n, 64);
 
 	if ( ! fh )
-		return 0;
+		return nullptr;
 
-	return new StringVal(new BroString(fh, fh_n, 0));
+	return new StringVal(new BroString(fh, fh_n, false));
 	}
 
 
@@ -366,22 +368,22 @@ RecordVal* NFS_Interp::nfs3_sattr(const u_char*& buf, int& n)
 	{
 	RecordVal* attrs = new RecordVal(BifType::Record::NFS3::sattr_t);
 
-	attrs->Assign(0, 0); // mode
+	attrs->Assign(0, nullptr); // mode
 	int mode_set_it =  extract_XDR_uint32(buf, n);
 	if ( mode_set_it )
 		attrs->Assign(0, ExtractUint32(buf, n)); // mode
 
-	attrs->Assign(1, 0); // uid
+	attrs->Assign(1, nullptr); // uid
 	int uid_set_it =  extract_XDR_uint32(buf, n);
 	if ( uid_set_it )
 		attrs->Assign(1, ExtractUint32(buf, n)); // uid
 
-	attrs->Assign(2, 0); // gid
+	attrs->Assign(2, nullptr); // gid
 	int gid_set_it =  extract_XDR_uint32(buf, n);
 	if ( gid_set_it )
 		attrs->Assign(2, ExtractUint32(buf, n)); // gid
 
-	attrs->Assign(3, 0); // size
+	attrs->Assign(3, nullptr); // size
 	int size_set_it =  extract_XDR_uint32(buf, n);
 	if ( size_set_it )
 		attrs->Assign(3, ExtractTime(buf, n));	 // size
@@ -404,8 +406,8 @@ RecordVal* NFS_Interp::nfs3_sattr_reply(const u_char*& buf, int& n, BifEnum::NFS
 		}
 	else
 		{
-		rep->Assign(1, 0);
-		rep->Assign(2, 0);
+		rep->Assign(1, nullptr);
+		rep->Assign(2, nullptr);
 		}
 
 	return rep;
@@ -436,13 +438,13 @@ RecordVal* NFS_Interp::nfs3_fattr(const u_char*& buf, int& n)
 EnumVal* NFS_Interp::nfs3_time_how(const u_char*& buf, int& n)
 	{
 	BifEnum::NFS3::time_how_t t = (BifEnum::NFS3::time_how_t)extract_XDR_uint32(buf, n);
-	return new EnumVal(t, BifType::Enum::NFS3::time_how_t);
+	return BifType::Enum::NFS3::time_how_t->GetVal(t).release();
 	}
 
 EnumVal* NFS_Interp::nfs3_ftype(const u_char*& buf, int& n)
 	{
 	BifEnum::NFS3::file_type_t t = (BifEnum::NFS3::file_type_t)extract_XDR_uint32(buf, n);
-	return new EnumVal(t, BifType::Enum::NFS3::file_type_t);
+	return BifType::Enum::NFS3::file_type_t->GetVal(t).release();
 	}
 
 RecordVal* NFS_Interp::nfs3_wcc_attr(const u_char*& buf, int& n)
@@ -462,9 +464,9 @@ StringVal *NFS_Interp::nfs3_filename(const u_char*& buf, int& n)
 	const u_char* name = extract_XDR_opaque(buf, n, name_len);
 
 	if ( ! name )
-		return 0;
+		return nullptr;
 
-	return new StringVal(new BroString(name, name_len, 0));
+	return new StringVal(new BroString(name, name_len, false));
 	}
 
 RecordVal *NFS_Interp::nfs3_diropargs(const u_char*& buf, int& n)
@@ -506,7 +508,7 @@ RecordVal* NFS_Interp::nfs3_post_op_attr(const u_char*& buf, int& n)
 	if ( have_attrs )
 		return nfs3_fattr(buf, n);
 
-	return 0;
+	return nullptr;
 	}
 
 StringVal* NFS_Interp::nfs3_post_op_fh(const u_char*& buf, int& n)
@@ -516,7 +518,7 @@ StringVal* NFS_Interp::nfs3_post_op_fh(const u_char*& buf, int& n)
 	if ( have_fh )
 		return nfs3_fh(buf, n);
 
-	return 0;
+	return nullptr;
 	}
 
 RecordVal* NFS_Interp::nfs3_pre_op_attr(const u_char*& buf, int& n)
@@ -525,13 +527,13 @@ RecordVal* NFS_Interp::nfs3_pre_op_attr(const u_char*& buf, int& n)
 
 	if ( have_attrs )
 		return nfs3_wcc_attr(buf, n);
-	return 0;
+	return nullptr;
 	}
 
 EnumVal *NFS_Interp::nfs3_stable_how(const u_char*& buf, int& n)
 	{
 	BifEnum::NFS3::stable_how_t stable = (BifEnum::NFS3::stable_how_t)extract_XDR_uint32(buf, n);
-	return new EnumVal(stable, BifType::Enum::NFS3::stable_how_t);
+	return BifType::Enum::NFS3::stable_how_t->GetVal(stable).release();
 	}
 
 RecordVal* NFS_Interp::nfs3_lookup_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status)
@@ -546,8 +548,8 @@ RecordVal* NFS_Interp::nfs3_lookup_reply(const u_char*& buf, int& n, BifEnum::NF
 		}
 	else
 		{
-		rep->Assign(0, 0);
-		rep->Assign(1, 0);
+		rep->Assign(0, nullptr);
+		rep->Assign(1, nullptr);
 		rep->Assign(2, nfs3_post_op_attr(buf, n));
 		}
 	return rep;
@@ -575,7 +577,7 @@ RecordVal* NFS_Interp::nfs3_read_reply(const u_char*& buf, int& n, BifEnum::NFS3
 
 		rep->Assign(0, nfs3_post_op_attr(buf, n));
 		bytes_read = extract_XDR_uint32(buf, n);
-		rep->Assign(1, new Val(bytes_read, TYPE_COUNT));
+		rep->Assign(1, val_mgr->Count(bytes_read));
 		rep->Assign(2, ExtractBool(buf, n));
 		rep->Assign(3, nfs3_file_data(buf, n, offset, bytes_read));
 		}
@@ -658,9 +660,9 @@ RecordVal *NFS_Interp::nfs3_writeargs(const u_char*& buf, int& n)
 
 	writeargs->Assign(0, nfs3_fh(buf, n));
 	offset = extract_XDR_uint64(buf, n);
-	writeargs->Assign(1, new Val(offset, TYPE_COUNT));  // offset
+	writeargs->Assign(1, val_mgr->Count(offset));  // offset
 	bytes = extract_XDR_uint32(buf, n);
-	writeargs->Assign(2, new Val(bytes, TYPE_COUNT));   // size
+	writeargs->Assign(2, val_mgr->Count(bytes));   // size
 
 	writeargs->Assign(3, nfs3_stable_how(buf, n));
 	writeargs->Assign(4, nfs3_file_data(buf, n, offset, bytes));
@@ -708,8 +710,8 @@ RecordVal* NFS_Interp::nfs3_newobj_reply(const u_char*& buf, int& n, BifEnum::NF
 		}
 	else
 		{
-		rep->Assign(0, 0);
-		rep->Assign(1, 0);
+		rep->Assign(0, nullptr);
+		rep->Assign(1, nullptr);
 		rep->Assign(2, nfs3_pre_op_attr(buf, n));
 		rep->Assign(3, nfs3_post_op_attr(buf, n));
 		}
@@ -745,7 +747,7 @@ RecordVal* NFS_Interp::nfs3_readdirargs(bool isplus, const u_char*& buf, int&n)
 	{
 	RecordVal *args = new RecordVal(BifType::Record::NFS3::readdirargs_t);
 
-	args->Assign(0, new Val(isplus, TYPE_BOOL));
+	args->Assign(0, val_mgr->Bool(isplus));
 	args->Assign(1, nfs3_fh(buf, n));
 	args->Assign(2, ExtractUint64(buf,n));	// cookie
 	args->Assign(3, ExtractUint64(buf,n));	// cookieverf
@@ -762,7 +764,7 @@ RecordVal* NFS_Interp::nfs3_readdir_reply(bool isplus, const u_char*& buf,
 	{
 	RecordVal *rep = new RecordVal(BifType::Record::NFS3::readdir_reply_t);
 
-	rep->Assign(0, new Val(isplus, TYPE_BOOL));
+	rep->Assign(0, val_mgr->Bool(isplus));
 
 	if ( status == BifEnum::NFS3::NFS3ERR_OK )
 		{
@@ -804,12 +806,12 @@ RecordVal* NFS_Interp::nfs3_readdir_reply(bool isplus, const u_char*& buf,
 
 Val* NFS_Interp::ExtractUint32(const u_char*& buf, int& n)
 	{
-	return new Val(extract_XDR_uint32(buf, n), TYPE_COUNT);
+	return val_mgr->Count(extract_XDR_uint32(buf, n)).release();
 	}
 
 Val* NFS_Interp::ExtractUint64(const u_char*& buf, int& n)
 	{
-	return new Val(extract_XDR_uint64(buf, n), TYPE_COUNT);
+	return val_mgr->Count(extract_XDR_uint64(buf, n)).release();
 	}
 
 Val* NFS_Interp::ExtractTime(const u_char*& buf, int& n)
@@ -824,14 +826,14 @@ Val* NFS_Interp::ExtractInterval(const u_char*& buf, int& n)
 
 Val* NFS_Interp::ExtractBool(const u_char*& buf, int& n)
 	{
-	return new Val(extract_XDR_uint32(buf, n), TYPE_BOOL);
+	return val_mgr->Bool(extract_XDR_uint32(buf, n))->Ref();
 	}
 
 
 NFS_Analyzer::NFS_Analyzer(Connection* conn)
 	: RPC_Analyzer("NFS", conn, new NFS_Interp(this))
 	{
-	orig_rpc = resp_rpc = 0;
+	orig_rpc = resp_rpc = nullptr;
 	}
 
 void NFS_Analyzer::Init()

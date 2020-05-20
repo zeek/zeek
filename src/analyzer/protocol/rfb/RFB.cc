@@ -15,6 +15,7 @@ RFB_Analyzer::RFB_Analyzer(Connection* c)
 	{
 	interp = new binpac::RFB::RFB_Conn(this);
 	had_gap = false;
+	invalid = false;
 	}
 
 RFB_Analyzer::~RFB_Analyzer()
@@ -49,6 +50,15 @@ void RFB_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		// deliver data to the other side if the script layer can handle this.
 		return;
 
+	if ( invalid )
+		return;
+
+	if ( interp->saw_handshake() && ! orig )
+		// Don't try parsing server data after the handshake
+		// (it's not completely implemented and contains mostly
+		// uninteresting pixel data).
+		return;
+
 	try
 		{
 		interp->NewData(orig, data, data + len);
@@ -56,10 +66,11 @@ void RFB_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	catch ( const binpac::Exception& e )
 		{
 		ProtocolViolation(fmt("Binpac exception: %s", e.c_msg()));
+		invalid = true;
 		}
 	}
 
-void RFB_Analyzer::Undelivered(uint64 seq, int len, bool orig)
+void RFB_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	{
 	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	had_gap = true;

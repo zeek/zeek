@@ -20,7 +20,7 @@ Hash::~Hash()
 	Unref(hash);
 	}
 
-bool Hash::DeliverStream(const u_char* data, uint64 len)
+bool Hash::DeliverStream(const u_char* data, uint64_t len)
 	{
 	if ( ! hash->IsValid() )
 		return false;
@@ -38,7 +38,7 @@ bool Hash::EndOfFile()
 	return false;
 	}
 
-bool Hash::Undelivered(uint64 offset, uint64 len)
+bool Hash::Undelivered(uint64_t offset, uint64_t len)
 	{
 	return false;
 	}
@@ -48,10 +48,12 @@ void Hash::Finalize()
 	if ( ! hash->IsValid() || ! fed )
 		return;
 
-	val_list* vl = new val_list();
-	vl->append(GetFile()->GetVal()->Ref());
-	vl->append(new StringVal(kind));
-	vl->append(hash->Get());
+	if ( ! file_hash )
+		return;
 
-	mgr.QueueEvent(file_hash, vl);
+	mgr.Enqueue(file_hash,
+		IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+		make_intrusive<StringVal>(kind),
+		hash->Get()
+	);
 	}

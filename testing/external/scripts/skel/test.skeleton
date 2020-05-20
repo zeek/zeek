@@ -1,4 +1,4 @@
-# @TEST-EXEC: zcat $TRACES/trace.gz | bro -r - %INPUT
+# @TEST-EXEC: zcat $TRACES/trace.gz | zeek -r - %INPUT
 # @TEST-EXEC: $SCRIPTS/diff-all '*.log'
 
 @load testing-setup

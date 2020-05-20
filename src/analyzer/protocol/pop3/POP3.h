@@ -2,8 +2,7 @@
 //
 // An analyser for the POP3 protocol.
 
-#ifndef ANALYZER_PROTOCOL_POP3_POP3_H
-#define ANALYZER_PROTOCOL_POP3_POP3_H
+#pragma once
 
 #include <vector>
 #include <string>
@@ -62,7 +61,7 @@ typedef enum {
 	POP3_WOK,
 } POP3_SubState;
 
-class POP3_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class POP3_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
 	explicit POP3_Analyzer(Connection* conn);
 	~POP3_Analyzer() override;
@@ -87,8 +86,8 @@ protected:
 	int lastRequiredCommand;
 	int authLines;
 
-	string user;
-	string password;
+	std::string user;
+	std::string password;
 
 	void ProcessRequest(int length, const char* line);
 	void ProcessReply(int length, const char* line);
@@ -100,14 +99,14 @@ protected:
 	void EndData();
 	void StartTLS();
 
-	vector<string> TokenizeLine(const string input, const char split);
-	int ParseCmd(string cmd);
+	std::vector<std::string> TokenizeLine(const std::string& input, char split);
+	int ParseCmd(std::string cmd);
 	void AuthSuccessfull();
 	void POP3Event(EventHandlerPtr event, bool is_orig,
-			const char* arg1 = 0, const char* arg2 = 0);
+			const char* arg1 = nullptr, const char* arg2 = nullptr);
 
 	mime::MIME_Mail* mail;
-	list<string> cmds;
+	std::list<std::string> cmds;
 
 private:
 	bool tls;
@@ -115,6 +114,4 @@ private:
 	tcp::ContentLine_Analyzer* cl_resp;
 };
 
-} } // namespace analyzer::* 
-
-#endif
+} } // namespace analyzer::*

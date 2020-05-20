@@ -2,15 +2,19 @@
 
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "Plugin.h"
+
 #include <cassert>
 
-#include "Plugin.h"
 #include "Manager.h"
 #include "Component.h"
+#include "Val.h"
 
 #include "../Desc.h"
 #include "../Event.h"
+#include "../Func.h"
 #include "../Conn.h"
+#include "../input.h"
 #include "threading/SerialTypes.h"
 
 using namespace plugin;
@@ -445,6 +449,8 @@ void Plugin::Describe(ODesc* d) const
 			d->Add(config.version.major);
 			d->Add(".");
 			d->Add(config.version.minor);
+			d->Add(".");
+			d->Add(config.version.patch);
 			d->Add(")");
 			}
 		else
@@ -469,7 +475,7 @@ void Plugin::Describe(ODesc* d) const
 
 	for ( bif_item_list::const_iterator i = items.begin(); i != items.end(); i++ )
 		{
-		const char* type = 0;
+		const char* type = nullptr;
 
 		switch ( (*i).GetType() ) {
 		case BifItem::FUNCTION:

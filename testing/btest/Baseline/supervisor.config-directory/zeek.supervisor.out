@@ -1,0 +1,3 @@
+supervisor zeek_init()
+destroying node
+supervisor zeek_done()

@@ -1,12 +1,15 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bro-config.h"
+#include "zeek-config.h"
+
+#include "Ascii.h"
+#include "Desc.h"
+#include "threading/MsgThread.h"
 
 #include <sstream>
 #include <errno.h>
 
-#include "./Ascii.h"
-
+using namespace std;
 using namespace threading::formatter;
 
 // If the value we'd write out would match exactly the a reserved string, we
@@ -197,7 +200,7 @@ bool Ascii::Describe(ODesc* desc, threading::Value* val, const string& name) con
 		}
 
 	default:
-		GetThread()->Error(GetThread()->Fmt("Ascii writer unsupported field format %d", val->type));
+		GetThread()->Warning(GetThread()->Fmt("Ascii writer unsupported field format %d", val->type));
 		return false;
 	}
 
@@ -212,7 +215,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 
 	threading::Value* val = new threading::Value(type, subtype, true);
 	const char* start = s.c_str();
-	char* end = 0;
+	char* end = nullptr;
 	errno = 0;
 	size_t pos;
 
@@ -227,9 +230,11 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 		}
 
 	case TYPE_BOOL:
-		if ( s == "T" || s == "1" )
+		{
+		auto stripped = strstrip(s);
+		if ( stripped == "T" || stripped == "1" )
 			val->val.int_val = 1;
-		else if ( s == "F" || s == "0" )
+		else if ( stripped == "F" || stripped == "0" )
 			val->val.int_val = 0;
 		else
 			{
@@ -238,6 +243,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 			goto parse_error;
 			}
 		break;
+		}
 
 	case TYPE_INT:
 		val->val.int_val = strtoll(start, &end, 10);
@@ -262,12 +268,13 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 
 	case TYPE_PORT:
 		{
+		auto stripped = strstrip(s);
 		val->val.port_val.proto = TRANSPORT_UNKNOWN;
-		pos = s.find('/');
+		pos = stripped.find('/');
 		string numberpart;
-		if ( pos != std::string::npos && s.length() > pos + 1 )
+		if ( pos != std::string::npos && stripped.length() > pos + 1 )
 			{
-			auto proto = s.substr(pos+1);
+			auto proto = stripped.substr(pos+1);
 			if ( strtolower(proto) == "tcp" )
 				val->val.port_val.proto = TRANSPORT_TCP;
 			else if ( strtolower(proto) == "udp" )
@@ -282,7 +289,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 
 		if ( pos != std::string::npos && pos > 0 )
 			{
-			numberpart = s.substr(0, pos);
+			numberpart = stripped.substr(0, pos);
 			start = numberpart.c_str();
 			}
 		val->val.port_val.port = strtoull(start, &end, 10);
@@ -293,8 +300,8 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 
 	case TYPE_SUBNET:
 		{
-		string unescaped = get_unescaped_string(s);
-		size_t pos = unescaped.find("/");
+		string unescaped = strstrip(get_unescaped_string(s));
+		size_t pos = unescaped.find('/');
 		if ( pos == unescaped.npos )
 			{
 			GetThread()->Warning(GetThread()->Fmt("Invalid value for subnet: %s", start));
@@ -316,9 +323,32 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 
 	case TYPE_ADDR:
 		{
-		string unescaped = get_unescaped_string(s);
+		string unescaped = strstrip(get_unescaped_string(s));
 		val->val.addr_val = ParseAddr(unescaped);
 		break;
+		}
+
+	case TYPE_PATTERN:
+		{
+		string candidate = get_unescaped_string(s);
+		// A string is a candidate pattern iff it begins and ends with
+		// a '/'. Rather or not the rest of the string is legal will
+		// be determined later when it is given to the RE engine.
+		if ( candidate.size() >= 2 )
+			{
+			if ( candidate.front() == candidate.back() &&
+			     candidate.back() == '/' )
+				{
+				// Remove the '/'s
+				candidate.erase(0, 1);
+				candidate.erase(candidate.size() - 1);
+				val->val.pattern_text_val = copy_string(candidate.c_str());
+				break;
+				}
+			}
+
+		GetThread()->Warning(GetThread()->Fmt("String '%s' contained no parseable pattern.", candidate.c_str()));
+		goto parse_error;
 		}
 
 	case TYPE_TABLE:
@@ -382,7 +412,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 				}
 
 			threading::Value* newval = ParseValue(element, name, subtype);
-			if ( newval == 0 )
+			if ( newval == nullptr )
 				{
 				GetThread()->Warning("Error while reading set or vector");
 				error = true;
@@ -400,7 +430,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 		if ( ! error && (s.empty() || *s.rbegin() == separators.set_separator[0]) )
 			{
 			lvals[pos] = ParseValue("", name, subtype);
-			if ( lvals[pos] == 0 )
+			if ( lvals[pos] == nullptr )
 				{
 				GetThread()->Warning("Error while trying to add empty set element");
 				goto parse_error;
@@ -441,7 +471,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 
 parse_error:
 	delete val;
-	return 0;
+	return nullptr;
 	}
 
 bool Ascii::CheckNumberError(const char* start, const char* end) const

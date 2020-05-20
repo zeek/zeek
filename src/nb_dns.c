@@ -11,7 +11,7 @@
  * crack reply buffers is private.
  */
 
-#include "bro-config.h"			/* must appear before first ifdef */
+#include "zeek-config.h"			/* must appear before first ifdef */
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -61,10 +61,10 @@ extern int recvfrom(int, void *, int, int, struct sockaddr *, int *);
 struct nb_dns_entry {
 	struct nb_dns_entry *next;
 	char name[NS_MAXDNAME + 1];
+	u_short id;
 	int qtype;			/* query type */
 	int atype;			/* address family */
 	int asize;			/* address size */
-	u_short id;
 	void *cookie;
 };
 
@@ -86,7 +86,7 @@ struct nb_dns_hostent {
 
 struct nb_dns_info {
 	int s;				/* Resolver file descriptor */
-	struct sockaddr_in server;	/* server address to bind to */
+	struct sockaddr_storage server;	/* server address to bind to */
 	struct nb_dns_entry *list;	/* outstanding requests */
 	struct nb_dns_hostent dns_hostent;
 };
@@ -108,6 +108,18 @@ my_strerror(int errnum)
 	return errnum_buf;
 #endif
 }
+
+static const char* sa_ntop(struct sockaddr* sa, char* buf, int len)
+	{
+	if ( sa->sa_family == AF_INET )
+		return inet_ntop(sa->sa_family,
+		                 &(((struct sockaddr_in*)sa)->sin_addr),
+		                 buf, len);
+	else
+		return inet_ntop(sa->sa_family,
+		                 &(((struct sockaddr_in6*)sa)->sin6_addr),
+		                 buf, len);
+	}
 
 struct nb_dns_info *
 nb_dns_init(char *errstr)
@@ -132,17 +144,98 @@ nb_dns_init(char *errstr)
 		return (NULL);
 	}
 
+	if ( _res.nscount == 0 )
+		{
+		// Really?  Let's try parsing resolv.conf ourselves to see what's
+		// there.  (e.g. musl libc has res_init() that doesn't actually
+		// parse the config file).
+		const char* config_file_path = "/etc/resolv.conf";
+
+#ifdef _PATH_RESCONF
+		config_file_path = _PATH_RESCONF;
+#endif
+
+		FILE* config_file = fopen(config_file_path, "r");
+
+		if ( config_file )
+			{
+			char line[128];
+			char* ns;
+
+			while ( fgets(line, sizeof(line), config_file) )
+				{
+				ns = strtok(line, " \t\n");
+
+				if ( ! ns || strcmp(ns, "nameserver") )
+					continue;
+
+				ns = strtok(0, " \t\n");
+
+				if ( ! ns )
+					continue;
+
+				/* XXX support IPv6 */
+				struct sockaddr_in a;
+				memset(&a, 0, sizeof(a));
+				a.sin_family = AF_INET;
+				a.sin_port = htons(53);
+
+				if ( inet_pton(AF_INET, ns, &a.sin_addr) == 1 )
+					{
+					memcpy(&nd->server, &a, sizeof(a));
+					nd->s = socket(nd->server.ss_family, SOCK_DGRAM, 0);
+
+					if ( nd->s < 0 )
+						{
+						snprintf(errstr, NB_DNS_ERRSIZE, "socket(): %s",
+						         my_strerror(errno));
+						fclose(config_file);
+						free(nd);
+						return (NULL);
+						}
+
+					if ( connect(nd->s, (struct sockaddr *)&nd->server,
+					             nd->server.ss_family == AF_INET ?
+					             sizeof(struct sockaddr_in) :
+					             sizeof(struct sockaddr_in6)) < 0 )
+						{
+						char s[INET6_ADDRSTRLEN];
+						sa_ntop((struct sockaddr*)&nd->server, s, INET6_ADDRSTRLEN);
+						snprintf(errstr, NB_DNS_ERRSIZE, "connect(%s): %s", s,
+						         my_strerror(errno));
+						fclose(config_file);
+						close(nd->s);
+						free(nd);
+						return (NULL);
+						}
+
+					fclose(config_file);
+					return (nd);
+					}
+				}
+
+			fclose(config_file);
+			snprintf(errstr, NB_DNS_ERRSIZE, "no valid nameserver found in %s",
+			         config_file_path);
+			free(nd);
+			return (NULL);
+			}
+
+		snprintf(errstr, NB_DNS_ERRSIZE, "resolver config file not located");
+		free(nd);
+		return (NULL);
+		}
+
 	int i;
 
 	for ( i = 0; i < _res.nscount; ++i )
 		{
-		nd->server = _res.nsaddr_list[i];
-
+		memcpy(&nd->server, &_res.nsaddr_list[i], sizeof(struct sockaddr_in));
 		/* XXX support IPv6 */
-		if ( nd->server.sin_family != AF_INET )
+		if ( nd->server.ss_family != AF_INET )
 			continue;
 
-		nd->s = socket(nd->server.sin_family, SOCK_DGRAM, 0);
+		nd->s = socket(nd->server.ss_family, SOCK_DGRAM, 0);
 
 		if ( nd->s < 0 )
 			{
@@ -153,10 +246,14 @@ nb_dns_init(char *errstr)
 			}
 
 		if ( connect(nd->s, (struct sockaddr *)&nd->server,
-		             sizeof(struct sockaddr)) < 0 )
+	                 nd->server.ss_family == AF_INET ?
+	                           sizeof(struct sockaddr_in) :
+	                           sizeof(struct sockaddr_in6)) < 0 )
 			{
-			snprintf(errstr, NB_DNS_ERRSIZE, "connect(%s): %s",
-			         inet_ntoa(nd->server.sin_addr), my_strerror(errno));
+			char s[INET6_ADDRSTRLEN];
+			sa_ntop((struct sockaddr*)&nd->server, s, INET6_ADDRSTRLEN);
+			snprintf(errstr, NB_DNS_ERRSIZE, "connect(%s): %s", s,
+			         my_strerror(errno));
 			close(nd->s);
 			free(nd);
 			return (NULL);
@@ -168,6 +265,58 @@ nb_dns_init(char *errstr)
 	snprintf(errstr, NB_DNS_ERRSIZE, "no valid nameservers in resolver config");
 	free(nd);
 	return (NULL);
+}
+
+struct nb_dns_info *
+nb_dns_init2(char *errstr, struct sockaddr* sa)
+{
+	register struct nb_dns_info *nd;
+
+	nd = (struct nb_dns_info *)malloc(sizeof(*nd));
+	if (nd == NULL) {
+		snprintf(errstr, NB_DNS_ERRSIZE, "nb_dns_init: malloc(): %s",
+		    my_strerror(errno));
+		return (NULL);
+	}
+	memset(nd, 0, sizeof(*nd));
+	nd->s = -1;
+
+	if ( sa->sa_family == AF_INET )
+		{
+		memcpy(&nd->server, sa, sizeof(struct sockaddr_in));
+		((struct sockaddr_in*)&nd->server)->sin_port = htons(53);
+		}
+	else
+		{
+		memcpy(&nd->server, sa, sizeof(struct sockaddr_in6));
+		((struct sockaddr_in6*)&nd->server)->sin6_port = htons(53);
+		}
+
+	nd->s = socket(nd->server.ss_family, SOCK_DGRAM, 0);
+
+	if ( nd->s < 0 )
+		{
+		snprintf(errstr, NB_DNS_ERRSIZE, "socket(): %s",
+		         my_strerror(errno));
+		free(nd);
+		return (NULL);
+		}
+
+	if ( connect(nd->s, (struct sockaddr *)&nd->server,
+	             nd->server.ss_family == AF_INET ?
+	                       sizeof(struct sockaddr_in) :
+	                       sizeof(struct sockaddr_in6)) < 0 )
+		{
+		char s[INET6_ADDRSTRLEN];
+		sa_ntop((struct sockaddr*)&nd->server, s, INET6_ADDRSTRLEN);
+		snprintf(errstr, NB_DNS_ERRSIZE, "connect(%s): %s", s,
+		         my_strerror(errno));
+		close(nd->s);
+		free(nd);
+		return (NULL);
+		}
+
+	return (nd);
 }
 
 void
@@ -226,12 +375,12 @@ _nb_dns_cmpsockaddr(register struct sockaddr *sa1,
 		sin6a = (struct sockaddr_in6 *)sa1;
 		sin6b = (struct sockaddr_in6 *)sa2;
 		if (sin6a->sin6_port != sin6b->sin6_port) {
-			snprintf(errstr, NB_DNS_ERRSIZE, serr, 2);
+			snprintf(errstr, NB_DNS_ERRSIZE, serr, 62);
 			return (-1);
 		}
 		if (memcmp(&sin6a->sin6_addr, &sin6b->sin6_addr,
 		    sizeof(sin6a->sin6_addr)) != 0) {
-			snprintf(errstr, NB_DNS_ERRSIZE, serr, 3);
+			snprintf(errstr, NB_DNS_ERRSIZE, serr, 63);
 			return (-1);
 		}
 		break;
@@ -262,7 +411,7 @@ _nb_dns_mkquery(register struct nb_dns_info *nd, register const char *name,
 		return (-1);
 	}
 	memset(ne, 0, sizeof(*ne));
-	strncpy(ne->name, name, sizeof(ne->name));
+	strncpy(ne->name, name, sizeof(ne->name) - 1);
 	ne->name[sizeof(ne->name) - 1] = '\0';
 	ne->qtype = qtype;
 	ne->atype = atype;
@@ -446,7 +595,7 @@ nb_dns_activity(struct nb_dns_info *nd, struct nb_dns_result *nr, char *errstr)
 	register int msglen, qtype, atype, n, i;
 	register struct nb_dns_entry *ne, *lastne;
 	socklen_t fromlen;
-	struct sockaddr from;
+	struct sockaddr_storage from;
 	u_long msg[MAXPACKET / sizeof(u_long)];
 	register char *bp, *ep;
 	register char **ap, **hap;
@@ -460,7 +609,8 @@ nb_dns_activity(struct nb_dns_info *nd, struct nb_dns_result *nr, char *errstr)
 
 	/* This comes from the second half of do_query() */
 	fromlen = sizeof(from);
-	msglen = recvfrom(nd->s, (char *)msg, sizeof(msg), 0, &from, &fromlen);
+	msglen = recvfrom(nd->s, (char *)msg, sizeof(msg), 0,
+	                  (struct sockaddr*)&from, &fromlen);
 	if (msglen <= 0) {
 		snprintf(errstr, NB_DNS_ERRSIZE, "recvfrom(): %s",
 		    my_strerror(errno));
@@ -479,8 +629,8 @@ nb_dns_activity(struct nb_dns_info *nd, struct nb_dns_result *nr, char *errstr)
 	}
 
 	/* RES_INSECURE1 style check */
-	if (_nb_dns_cmpsockaddr((struct sockaddr *)&nd->server, &from,
-	    errstr) < 0) {
+	if (_nb_dns_cmpsockaddr((struct sockaddr*)&nd->server,
+	                        (struct sockaddr*)&from, errstr) < 0) {
 		nr->host_errno = NO_RECOVERY;
 		return (-1);
 	}

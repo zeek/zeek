@@ -4,6 +4,7 @@
 %include bro.pac
 
 %extern{
+#include "Desc.h"
 #include "types.bif.h"
 #include "events.bif.h"
 %}

@@ -1,7 +1,6 @@
 // An IRC analyzer contributed by Roland Gruber.
 
-#ifndef ANALYZER_PROTOCOL_IRC_IRC_H
-#define ANALYZER_PROTOCOL_IRC_IRC_H
+#pragma once
 #include "analyzer/protocol/tcp/TCP.h"
 #include "analyzer/protocol/tcp/ContentLine.h"
 
@@ -10,7 +9,7 @@ namespace analyzer { namespace irc {
 /**
 * \brief Main class for analyzing IRC traffic.
 */
-class IRC_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class IRC_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 	enum { WAIT_FOR_REGISTRATION, REGISTERED, };
 	enum { NO_ZIP, ACCEPT_ZIP, ZIP_LOADED, };
 public:
@@ -47,7 +46,7 @@ protected:
 private:
 	void StartTLS();
 
-	inline void SkipLeadingWhitespace(string& str);
+	inline void SkipLeadingWhitespace(std::string& str);
 
 	/** \brief counts number of invalid IRC messages */
 	int invalid_msg_count;
@@ -63,13 +62,11 @@ private:
 	* \param split character which separates the words
 	* \return vector containing words
 	*/
-	vector<string> SplitWords(const string input, const char split);
+	std::vector<std::string> SplitWords(const std::string& input, char split);
 
 	tcp::ContentLine_Analyzer* cl_orig;
 	tcp::ContentLine_Analyzer* cl_resp;
 	bool starttls; // if true, connection has been upgraded to tls
 };
 
-} } // namespace analyzer::* 
-
-#endif
+} } // namespace analyzer::*

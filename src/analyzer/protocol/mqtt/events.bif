@@ -1,0 +1,111 @@
+## Generated for MQTT "client requests a connection" messages
+##
+## c: The connection
+##
+## msg: MQTT connect message fields.
+event mqtt_connect%(c: connection, msg: MQTT::ConnectMsg%);
+
+## Generated for MQTT acknowledge connection messages
+##
+## c: The connection
+##
+## msg: MQTT connect ack message fields.
+event mqtt_connack%(c: connection, msg: MQTT::ConnectAckMsg%);
+
+## Generated for MQTT publish messages
+##
+## c: The connection
+##
+## is_orig: Direction in which the message was sent
+##
+## msg: The MQTT publish message record.
+event mqtt_publish%(c: connection, is_orig: bool, msg_id: count, msg: MQTT::PublishMsg%);
+
+## Generated for MQTT publish acknowledgement messages
+##
+## c: The connection
+##
+## is_orig: Direction in which the message was sent
+##
+## msg_id: The id value for the message.
+event mqtt_puback%(c: connection, is_orig: bool, msg_id: count%);
+
+## Generated for MQTT publish received messages (QoS 2 publish received, part 1)
+##
+## c: The connection
+##
+## is_orig: Direction in which the message was sent
+##
+## msg_id: The id value for the message.
+event mqtt_pubrec%(c: connection, is_orig: bool, msg_id: count%);
+
+## Generated for MQTT publish release messages (QoS 2 publish received, part 2)
+##
+## c: The connection
+##
+## is_orig: Direction in which the message was sent
+##
+## msg_id: The id value for the message.
+event mqtt_pubrel%(c: connection, is_orig: bool, msg_id: count%);
+
+## Generated for MQTT publish complete messages (QoS 2 publish received, part 3)
+##
+## c: The connection
+##
+## is_orig: Direction in which the message was sent
+##
+## msg_id: The id value for the message.
+event mqtt_pubcomp%(c: connection, is_orig: bool, msg_id: count%);
+
+## Generated for MQTT subscribe messages
+##
+## c: The connection
+##
+## is_orig: Direction in which the message was sent
+##
+## msg_id: The id value for the message.
+##
+## topics: The topics being subscribed to
+##
+## requested_qos: The desired QoS option associated with each topic.
+event mqtt_subscribe%(c: connection, msg_id: count, topics: string_vec, requested_qos: index_vec%);
+
+## Generated for MQTT subscribe messages
+##
+## c: The connection
+##
+## is_orig: Direction in which the message was sent
+##
+## msg_id: The id value for the message.
+event mqtt_suback%(c: connection, msg_id: count, granted_qos: count%);
+
+## Generated for MQTT unsubscribe messages sent by the client
+##
+## c: The connection
+##
+## msg_id: The id value for the message.
+##
+## topics: The topics being unsubscribed from
+event mqtt_unsubscribe%(c: connection, msg_id: count, topics: string_vec%);
+
+## Generated for MQTT unsubscribe acknowledgements sent by the server
+##
+## c: The connection
+##
+## msg_id: The id value for the message.
+event mqtt_unsuback%(c: connection, msg_id: count%);
+
+## Generated for MQTT ping requests sent by the client.
+##
+## c: The connection
+event mqtt_pingreq%(c: connection%);
+
+## Generated for MQTT ping responses sent by the server.
+##
+## c: The connection
+event mqtt_pingresp%(c: connection%);
+
+## Generated for MQTT disconnect messages sent by the client when it is diconnecting cleanly.
+##
+## c: The connection
+event mqtt_disconnect%(c: connection%);

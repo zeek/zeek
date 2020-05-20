@@ -1,11 +1,10 @@
 
-#ifndef BRO_BIF_H
-#define BRO_BIF_H
+#pragma once
 
 // Headers to include by generated BiF code.
 #include "analyzer/Analyzer.h"
 #include "Conn.h"
 #include "NetVar.h"
 #include "Event.h"
-
-#endif
+#include "Reporter.h"
+#include "Var.h" // for internal_type()

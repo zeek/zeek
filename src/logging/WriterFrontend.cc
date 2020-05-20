@@ -14,7 +14,7 @@ namespace logging  {
 
 // Messages sent from frontend to backend (i.e., "InputMessages").
 
-class InitMessage : public threading::InputMessage<WriterBackend>
+class InitMessage final : public threading::InputMessage<WriterBackend>
 {
 public:
 	InitMessage(WriterBackend* backend, const int num_fields, const Field* const* fields)
@@ -23,14 +23,14 @@ public:
 			{}
 
 
-	virtual bool Process() { return Object()->Init(num_fields, fields); }
+	bool Process() override { return Object()->Init(num_fields, fields); }
 
 private:
 	const int num_fields;
 	const Field * const* fields;
 };
 
-class RotateMessage : public threading::InputMessage<WriterBackend>
+class RotateMessage final : public threading::InputMessage<WriterBackend>
 {
 public:
 	RotateMessage(WriterBackend* backend, WriterFrontend* frontend, const char* rotated_path, const double open,
@@ -42,7 +42,7 @@ public:
 
 	virtual ~RotateMessage()	{ delete [] rotated_path; }
 
-	virtual bool Process() { return Object()->Rotate(rotated_path, open, close, terminating); }
+	bool Process() override { return Object()->Rotate(rotated_path, open, close, terminating); }
 
 private:
 	WriterFrontend* frontend;
@@ -52,14 +52,14 @@ private:
 	const bool terminating;
 };
 
-class WriteMessage : public threading::InputMessage<WriterBackend>
+class WriteMessage final : public threading::InputMessage<WriterBackend>
 {
 public:
 	WriteMessage(WriterBackend* backend, int num_fields, int num_writes, Value*** vals)
 		: threading::InputMessage<WriterBackend>("Write", backend),
 		num_fields(num_fields), num_writes(num_writes), vals(vals)	{}
 
-	virtual bool Process() { return Object()->Write(num_fields, num_writes, vals); }
+	bool Process() override { return Object()->Write(num_fields, num_writes, vals); }
 
 private:
 	int num_fields;
@@ -67,27 +67,27 @@ private:
 	Value ***vals;
 };
 
-class SetBufMessage : public threading::InputMessage<WriterBackend>
+class SetBufMessage final : public threading::InputMessage<WriterBackend>
 {
 public:
 	SetBufMessage(WriterBackend* backend, const bool enabled)
 		: threading::InputMessage<WriterBackend>("SetBuf", backend),
 		enabled(enabled) { }
 
-	virtual bool Process() { return Object()->SetBuf(enabled); }
+	bool Process() override { return Object()->SetBuf(enabled); }
 
 private:
 	const bool enabled;
 };
 
-class FlushMessage : public threading::InputMessage<WriterBackend>
+class FlushMessage final : public threading::InputMessage<WriterBackend>
 {
 public:
 	FlushMessage(WriterBackend* backend, double network_time)
 		: threading::InputMessage<WriterBackend>("Flush", backend),
 		network_time(network_time) {}
 
-	virtual bool Process() { return Object()->Flush(network_time); }
+	bool Process() override { return Object()->Flush(network_time); }
 private:
 	double network_time;
 };
@@ -109,12 +109,12 @@ WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, EnumVa
 	buf = true;
 	local = arg_local;
 	remote = arg_remote;
-	write_buffer = 0;
+	write_buffer = nullptr;
 	write_buffer_pos = 0;
 	info = new WriterBackend::WriterInfo(arg_info);
 
 	num_fields = 0;
-	fields = 0;
+	fields = nullptr;
 
 	const char* w = arg_writer->Type()->AsEnumType()->Lookup(arg_writer->InternalInt());
 	name = copy_string(fmt("%s/%s", arg_info.path, w));
@@ -128,11 +128,16 @@ WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, EnumVa
 		}
 
 	else
-		backend = 0;
+		backend = nullptr;
 	}
 
 WriterFrontend::~WriterFrontend()
 	{
+	for ( auto i = 0; i < num_fields; ++i )
+		delete fields[i];
+
+	delete [] fields;
+
 	Unref(stream);
 	Unref(writer);
 	delete info;
@@ -147,7 +152,7 @@ void WriterFrontend::Stop()
 	if ( backend )
 		{
 		backend->SignalStop();
-		backend = 0; // Thread manager will clean it up once it finishes.
+		backend = nullptr; // Thread manager will clean it up once it finishes.
 		}
 	}
 
@@ -165,16 +170,17 @@ void WriterFrontend::Init(int arg_num_fields, const Field* const * arg_fields)
 	initialized = true;
 
 	if ( backend )
-		backend->SendIn(new InitMessage(backend, arg_num_fields, arg_fields));
+		{
+		auto fs = new Field*[num_fields];
+
+		for ( auto i = 0; i < num_fields; ++i )
+			fs[i] = new Field(*fields[i]);
+
+		backend->SendIn(new InitMessage(backend, arg_num_fields, fs));
+		}
 
 	if ( remote )
 		{
-		remote_serializer->SendLogCreateWriter(stream,
-						       writer,
-						       *info,
-						       arg_num_fields,
-						       arg_fields);
-
 		broker_mgr->PublishLogCreate(stream,
 					     writer,
 					     *info,
@@ -201,12 +207,6 @@ void WriterFrontend::Write(int arg_num_fields, Value** vals)
 
 	if ( remote )
 		{
-		remote_serializer->SendLogWrite(stream,
-						writer,
-						info->path,
-						num_fields,
-						vals);
-
 		broker_mgr->PublishLogWrite(stream,
 				writer,
 				info->path,
@@ -245,7 +245,7 @@ void WriterFrontend::FlushWriteBuffer()
 		backend->SendIn(new WriteMessage(backend, num_fields, write_buffer_pos, write_buffer));
 
 	// Clear buffer (no delete, we pass ownership to child thread.)
-	write_buffer = 0;
+	write_buffer = nullptr;
 	write_buffer_pos = 0;
 	}
 
@@ -286,7 +286,7 @@ void WriterFrontend::Rotate(const char* rotated_path, double open, double close,
 		backend->SendIn(new RotateMessage(backend, this, rotated_path, open, close, terminating));
 	else
 		// Still signal log manager that we're done.
-		log_mgr->FinishedRotation(this, 0, 0, 0, 0, false, terminating);
+		log_mgr->FinishedRotation(this, nullptr, nullptr, 0, 0, false, terminating);
 	}
 
 void WriterFrontend::DeleteVals(int num_fields, Value** vals)

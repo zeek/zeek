@@ -10,6 +10,6 @@
 ##
 ## is_orig: True if the message was from the originator.
 ##
-## .. bro:see:: smb1_message
+## .. zeek:see:: smb1_message
 event smb1_tree_disconnect%(c: connection, hdr: SMB1::Header, is_orig: bool%);
 

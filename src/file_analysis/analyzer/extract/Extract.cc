@@ -32,9 +32,9 @@ Extract::~Extract()
 		safe_close(fd);
 	}
 
-static IntrusivePtr<Val> get_extract_field_val(RecordVal* args, const char* name)
+static const IntrusivePtr<Val>& get_extract_field_val(RecordVal* args, const char* name)
 	{
-	auto rval = args->Lookup(name);
+	const auto& rval = args->GetField(name);
 
 	if ( ! rval )
 		reporter->Error("File extraction analyzer missing arg field: %s", name);
@@ -44,8 +44,8 @@ static IntrusivePtr<Val> get_extract_field_val(RecordVal* args, const char* name
 
 file_analysis::Analyzer* Extract::Instantiate(RecordVal* args, File* file)
 	{
-	auto fname = get_extract_field_val(args, "extract_filename");
-	auto limit = get_extract_field_val(args, "extract_limit");
+	const auto& fname = get_extract_field_val(args, "extract_filename");
+	const auto& limit = get_extract_field_val(args, "extract_limit");
 
 	if ( ! fname || ! limit )
 		return nullptr;

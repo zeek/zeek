@@ -233,7 +233,7 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 		return false;
 		}
 
-	string name = description->Lookup("name", true)->AsString()->CheckString();
+	string name = description->GetFieldOrDefault("name")->AsString()->CheckString();
 
 	if ( Stream *i = FindStream(name) )
 		{
@@ -242,17 +242,19 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 		return false;
 		}
 
-	auto reader = description->Lookup("reader", true);
+	auto reader = description->GetFieldOrDefault("reader");
 
 	// get the source ...
-	const BroString* bsource = description->Lookup("source", true)->AsString();
+	auto source_val = description->GetFieldOrDefault("source");
+	const BroString* bsource = source_val->AsString();
 	string source((const char*) bsource->Bytes(), bsource->Len());
 
 	ReaderBackend::ReaderInfo rinfo;
 	rinfo.source = copy_string(source.c_str());
 	rinfo.name = copy_string(name.c_str());
 
-	auto mode = description->Lookup("mode", true)->AsEnumVal();
+	auto mode_val = description->GetFieldOrDefault("mode");
+	auto mode = mode_val->AsEnumVal();
 	switch ( mode->InternalInt() )
 		{
 		case 0:
@@ -272,7 +274,7 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 			return false;
 		}
 
-	auto config = description->Lookup("config", true);
+	auto config = description->GetFieldOrDefault("config");
 	info->config = config.release()->AsTableVal();
 
 		{
@@ -317,14 +319,15 @@ bool Manager::CreateEventStream(RecordVal* fval)
 		return false;
 		}
 
-	string stream_name = fval->Lookup("name", true)->AsString()->CheckString();
+	string stream_name = fval->GetFieldOrDefault("name")->AsString()->CheckString();
 
-	auto fields_val = fval->Lookup("fields", true);
+	auto fields_val = fval->GetFieldOrDefault("fields");
 	RecordType* fields = fields_val->AsType()->AsTypeType()->Type()->AsRecordType();
 
-	auto want_record = fval->Lookup("want_record", true);
+	auto want_record = fval->GetFieldOrDefault("want_record");
 
-	Func* event = fval->Lookup("ev", true)->AsFunc();
+	auto ev_val = fval->GetFieldOrDefault("ev");
+	Func* event = ev_val->AsFunc();
 
 	const auto& etype = event->GetType();
 
@@ -412,7 +415,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 	else
 		assert(false);
 
-	auto error_event_val = fval->Lookup("error_ev", true);
+	auto error_event_val = fval->GetFieldOrDefault("error_ev");
 	Func* error_event = error_event_val ? error_event_val->AsFunc() : nullptr;
 
 	if ( ! CheckErrorEventTypes(stream_name, error_event, false) )
@@ -470,19 +473,19 @@ bool Manager::CreateTableStream(RecordVal* fval)
 		return false;
 		}
 
-	string stream_name = fval->Lookup("name", true)->AsString()->CheckString();
+	string stream_name = fval->GetFieldOrDefault("name")->AsString()->CheckString();
 
-	auto pred = fval->Lookup("pred", true);
-	auto idx_val = fval->Lookup("idx", true);
+	auto pred = fval->GetFieldOrDefault("pred");
+	auto idx_val = fval->GetFieldOrDefault("idx");
 	RecordType* idx = idx_val->AsType()->AsTypeType()->Type()->AsRecordType();
 
 	IntrusivePtr<RecordType> val;
-	auto val_val = fval->Lookup("val", true);
+	auto val_val = fval->GetFieldOrDefault("val");
 
 	if ( val_val )
 		val = {NewRef{}, val_val->AsType()->AsTypeType()->Type()->AsRecordType()};
 
-	auto dst = fval->Lookup("destination", true);
+	auto dst = fval->GetFieldOrDefault("destination");
 
 	// check if index fields match table description
 	int num = idx->NumFields();
@@ -518,7 +521,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 		return false;
 		}
 
-	auto want_record = fval->Lookup("want_record", true);
+	auto want_record = fval->GetFieldOrDefault("want_record");
 
 	if ( val )
 		{
@@ -551,7 +554,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 			}
 		}
 
-	auto event_val = fval->Lookup("ev", true);
+	auto event_val = fval->GetFieldOrDefault("ev");
 	Func* event = event_val ? event_val->AsFunc() : nullptr;
 
 	if ( event )
@@ -624,7 +627,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 		assert(want_record->InternalInt() == 1 || want_record->InternalInt() == 0);
 		}
 
-	auto error_event_val = fval->Lookup("error_ev", true);
+	auto error_event_val = fval->GetFieldOrDefault("error_ev");
 	Func* error_event = error_event_val ? error_event_val->AsFunc() : nullptr;
 
 	if ( ! CheckErrorEventTypes(stream_name, error_event, true) )

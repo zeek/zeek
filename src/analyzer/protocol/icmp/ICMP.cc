@@ -459,22 +459,22 @@ void ICMP_Analyzer::Describe(ODesc* d) const
 
 void ICMP_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	{
-	auto orig_endp = conn_val->Lookup("orig");
-	auto resp_endp = conn_val->Lookup("resp");
+	const auto& orig_endp = conn_val->GetField("orig");
+	const auto& resp_endp = conn_val->GetField("resp");
 
-	UpdateEndpointVal(&orig_endp, true);
-	UpdateEndpointVal(&resp_endp, false);
+	UpdateEndpointVal(orig_endp, true);
+	UpdateEndpointVal(resp_endp, false);
 
 	// Call children's UpdateConnVal
 	Analyzer::UpdateConnVal(conn_val);
 	}
 
-void ICMP_Analyzer::UpdateEndpointVal(IntrusivePtr<Val>* endp_arg, bool is_orig)
+void ICMP_Analyzer::UpdateEndpointVal(const IntrusivePtr<Val>& endp_arg, bool is_orig)
 	{
 	Conn()->EnableStatusUpdateTimer();
 
 	int size = is_orig ? request_len : reply_len;
-	auto endp = (*endp_arg)->AsRecordVal();
+	auto endp = endp_arg->AsRecordVal();
 
 	if ( size < 0 )
 		{

@@ -1001,6 +1001,46 @@ public:
 		{ return GetFieldOrDefault(field).release(); }
 
 	/**
+	 * Returns the value of a given field name.
+	 * @param field  The name of a field to retrieve.
+	 * @return  The value of the given field.  If no such field name exists,
+	 * a fatal error occurs.
+	 */
+	const IntrusivePtr<Val>& GetField(const char* field) const;
+
+	/**
+	 * Returns the value of a given field name as cast to type @c T.
+	 * @param field  The name of a field to retrieve.
+	 * @return  The value of the given field cast to type @c T.  If no such
+	 * field name exists, a fatal error occurs.
+	 */
+	template <class T>
+	IntrusivePtr<T> GetField(const char* field) const
+		{ return cast_intrusive<T>(GetField(field)); }
+
+	/**
+	 * Returns the value of a given field name if it's previously been
+	 * assigned, or else returns the value created from evaluating the record
+	 * fields' &default expression.
+	 * @param field  The name of a field to retrieve.
+	 * @return  The value of the given field.  or the default value
+	 * if the field hasn't been assigned yet.  If no such field name exists,
+	 * a fatal error occurs.
+	 */
+	IntrusivePtr<Val> GetFieldOrDefault(const char* field) const;
+
+	/**
+	 * Returns the value of a given field name or its default value
+	 * as cast to type @c T.
+	 * @param field  The name of a field to retrieve.
+	 * @return  The value of the given field or its default value cast to
+	 * type @c T.  If no such field name exists, a fatal error occurs.
+	 */
+	template <class T>
+	IntrusivePtr<T> GetFieldOrDefault(const char* field) const
+		{ return cast_intrusive<T>(GetField(field)); }
+
+	/**
 	 * Looks up the value of a field by field name.  If the field doesn't
 	 * exist in the record type, it's an internal error: abort.
 	 * @param field name of field to lookup.
@@ -1008,7 +1048,9 @@ public:
 	 * the field has yet to be initialized.
 	 * @return the value in field \a field.
 	 */
-	IntrusivePtr<Val> Lookup(const char* field, bool with_default = false) const;
+	[[deprecated("Remove in v4.1.  Use GetField() or GetFieldOrDefault().")]]
+	Val* Lookup(const char* field, bool with_default = false) const
+		{ return with_default ? GetFieldOrDefault(field).release() : GetField(field).get(); }
 
 	void Describe(ODesc* d) const override;
 

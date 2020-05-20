@@ -237,7 +237,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 		return false;
 		}
 
-	RecordType* columns = sval->Lookup("columns")
+	RecordType* columns = sval->GetField("columns")
 		->AsType()->AsTypeType()->Type()->AsRecordType();
 
 	bool log_attr_present = false;
@@ -264,7 +264,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 		return false;
 		}
 
-	auto event_val = sval->Lookup("ev");
+	const auto& event_val = sval->GetField("ev");
 	Func* event = event_val ? event_val->AsFunc() : nullptr;
 
 	if ( event )
@@ -545,22 +545,22 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 		return false;
 
 	// Find the right writer type.
-	EnumVal* writer = fval->Lookup("writer", true)->AsEnumVal();
+	auto writer = fval->GetFieldOrDefault<EnumVal>("writer");
 
 	// Create a new Filter instance.
 
-	auto name = fval->Lookup("name", true);
-	auto pred = fval->Lookup("pred", true);
-	auto path_func = fval->Lookup("path_func", true);
-	auto log_local = fval->Lookup("log_local", true);
-	auto log_remote = fval->Lookup("log_remote", true);
-	auto interv = fval->Lookup("interv", true);
-	auto postprocessor = fval->Lookup("postprocessor", true);
-	auto config = fval->Lookup("config", true);
-	auto field_name_map = fval->Lookup("field_name_map", true);
-	auto scope_sep = fval->Lookup("scope_sep", true);
-	auto ext_prefix = fval->Lookup("ext_prefix", true);
-	auto ext_func = fval->Lookup("ext_func", true);
+	auto name = fval->GetFieldOrDefault("name");
+	auto pred = fval->GetFieldOrDefault("pred");
+	auto path_func = fval->GetFieldOrDefault("path_func");
+	auto log_local = fval->GetFieldOrDefault("log_local");
+	auto log_remote = fval->GetFieldOrDefault("log_remote");
+	auto interv = fval->GetFieldOrDefault("interv");
+	auto postprocessor = fval->GetFieldOrDefault("postprocessor");
+	auto config = fval->GetFieldOrDefault("config");
+	auto field_name_map = fval->GetFieldOrDefault("field_name_map");
+	auto scope_sep = fval->GetFieldOrDefault("scope_sep");
+	auto ext_prefix = fval->GetFieldOrDefault("ext_prefix");
+	auto ext_func = fval->GetFieldOrDefault("ext_func");
 
 	Filter* filter = new Filter;
 	filter->fval = fval->Ref();
@@ -581,8 +581,8 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 
 	// Build the list of fields that the filter wants included, including
 	// potentially rolling out fields.
-	auto include = fval->Lookup("include");
-	auto exclude = fval->Lookup("exclude");
+	const auto& include = fval->GetField("include");
+	const auto& exclude = fval->GetField("exclude");
 
 	filter->num_ext_fields = 0;
 	if ( filter->ext_func )
@@ -616,7 +616,7 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 		}
 
 	// Get the path for the filter.
-	auto path_val = fval->Lookup("path");
+	auto path_val = fval->GetField("path");
 
 	if ( path_val )
 		{

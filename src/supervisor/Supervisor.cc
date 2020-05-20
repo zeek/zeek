@@ -982,33 +982,33 @@ static BifEnum::Supervisor::ClusterRole role_str_to_enum(std::string_view r)
 Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 	{
 	Supervisor::NodeConfig rval;
-	rval.name = node->Lookup("name")->AsString()->CheckString();
-	auto iface_val = node->Lookup("interface");
+	rval.name = node->GetField("name")->AsString()->CheckString();
+	const auto& iface_val = node->GetField("interface");
 
 	if ( iface_val )
 		rval.interface = iface_val->AsString()->CheckString();
 
-	auto directory_val = node->Lookup("directory");
+	const auto& directory_val = node->GetField("directory");
 
 	if ( directory_val )
 		rval.directory = directory_val->AsString()->CheckString();
 
-	auto stdout_val = node->Lookup("stdout_file");
+	const auto& stdout_val = node->GetField("stdout_file");
 
 	if ( stdout_val )
 		rval.stdout_file = stdout_val->AsString()->CheckString();
 
-	auto stderr_val = node->Lookup("stderr_file");
+	const auto& stderr_val = node->GetField("stderr_file");
 
 	if ( stderr_val )
 		rval.stderr_file = stderr_val->AsString()->CheckString();
 
-	auto affinity_val = node->Lookup("cpu_affinity");
+	const auto& affinity_val = node->GetField("cpu_affinity");
 
 	if ( affinity_val )
 		rval.cpu_affinity = affinity_val->AsInt();
 
-	auto scripts_val = node->Lookup("scripts")->AsVectorVal();
+	auto scripts_val = node->GetField("scripts")->AsVectorVal();
 
 	for ( auto i = 0u; i < scripts_val->Size(); ++i )
 		{
@@ -1016,7 +1016,7 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 		rval.scripts.emplace_back(std::move(script));
 		}
 
-	auto cluster_table_val = node->Lookup("cluster")->AsTableVal();
+	auto cluster_table_val = node->GetField("cluster")->AsTableVal();
 	auto cluster_table = cluster_table_val->AsTable();
 	auto c = cluster_table->InitForIteration();
 	HashKey* k;
@@ -1030,11 +1030,11 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 		auto rv = v->GetVal()->AsRecordVal();
 
 		Supervisor::ClusterEndpoint ep;
-		ep.role = static_cast<BifEnum::Supervisor::ClusterRole>(rv->Lookup("role")->AsEnum());
-		ep.host = rv->Lookup("host")->AsAddr().AsString();
-		ep.port = rv->Lookup("p")->AsPortVal()->Port();
+		ep.role = static_cast<BifEnum::Supervisor::ClusterRole>(rv->GetField("role")->AsEnum());
+		ep.host = rv->GetField("host")->AsAddr().AsString();
+		ep.port = rv->GetField("p")->AsPortVal()->Port();
 
-		auto iface = rv->Lookup("interface");
+		const auto& iface = rv->GetField("interface");
 
 		if ( iface )
 			ep.interface = iface->AsStringVal()->ToStdString();

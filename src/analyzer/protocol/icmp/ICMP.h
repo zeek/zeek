@@ -84,7 +84,7 @@ protected:
 	RuleMatcherState matcher_state;
 
 private:
-	void UpdateEndpointVal(IntrusivePtr<Val>* endp, bool is_orig);
+	void UpdateEndpointVal(const IntrusivePtr<Val>& endp, bool is_orig);
 };
 
 // Returns the counterpart type to the given type (e.g., the counterpart

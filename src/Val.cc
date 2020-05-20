@@ -2781,14 +2781,24 @@ void RecordVal::DoneParsing()
 	parse_time_records.clear();
 	}
 
-IntrusivePtr<Val> RecordVal::Lookup(const char* field, bool with_default) const
+const IntrusivePtr<Val>& RecordVal::GetField(const char* field) const
 	{
 	int idx = GetType()->AsRecordType()->FieldOffset(field);
 
 	if ( idx < 0 )
 		reporter->InternalError("missing record field: %s", field);
 
-	return with_default ? GetFieldOrDefault(idx) : GetField(idx);
+	return GetField(idx);
+	}
+
+IntrusivePtr<Val> RecordVal::GetFieldOrDefault(const char* field) const
+	{
+	int idx = GetType()->AsRecordType()->FieldOffset(field);
+
+	if ( idx < 0 )
+		reporter->InternalError("missing record field: %s", field);
+
+	return GetFieldOrDefault(idx);
 	}
 
 IntrusivePtr<RecordVal> RecordVal::CoerceTo(IntrusivePtr<RecordType> t,

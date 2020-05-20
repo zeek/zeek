@@ -1287,8 +1287,8 @@ void TCP_Analyzer::FlipRoles()
 
 void TCP_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	{
-	RecordVal *orig_endp_val = conn_val->Lookup("orig")->AsRecordVal();
-	RecordVal *resp_endp_val = conn_val->Lookup("resp")->AsRecordVal();
+	RecordVal* orig_endp_val = conn_val->GetField("orig")->AsRecordVal();
+	RecordVal* resp_endp_val = conn_val->GetField("resp")->AsRecordVal();
 
 	orig_endp_val->Assign(0, val_mgr->Count(orig->Size()));
 	orig_endp_val->Assign(1, val_mgr->Count(int(orig->state)));

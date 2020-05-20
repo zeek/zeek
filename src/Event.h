@@ -145,7 +145,7 @@ protected:
 	analyzer::ID current_aid;
 	RecordVal* src_val;
 	bool draining;
-	bro::Flare queue_flare;
+	zeek::detail::Flare queue_flare;
 };
 
 extern EventMgr mgr;

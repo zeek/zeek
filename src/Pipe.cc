@@ -7,7 +7,7 @@
 #include <errno.h>
 #include <cstdio>
 
-using namespace bro;
+using namespace zeek::detail;
 
 static void pipe_fail(int eno)
 	{

@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace bro {
+namespace zeek::detail {
 
 class Pipe {
 public:
@@ -136,4 +136,4 @@ private:
 	bool swapped = false;
 };
 
-} // namespace bro
+} // namespace zeek::detail

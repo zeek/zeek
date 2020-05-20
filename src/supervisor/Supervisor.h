@@ -241,7 +241,7 @@ public:
 		/**
 		 * Bidirectional pipes that allow the Supervisor and Stem to talk.
 		 */
-		std::unique_ptr<bro::PipePair> pipe;
+		std::unique_ptr<zeek::detail::PipePair> pipe;
 		/**
 		 * The Stem's parent process ID (i.e. PID of the Supervisor).
 		 */
@@ -382,9 +382,9 @@ private:
 
 	Config config;
 	pid_t stem_pid;
-	std::unique_ptr<bro::PipePair> stem_pipe;
+	std::unique_ptr<zeek::detail::PipePair> stem_pipe;
 	int last_signal = -1;
-	bro::Flare signal_flare;
+	zeek::detail::Flare signal_flare;
 	NodeMap nodes;
 	std::string msg_buffer;
 };

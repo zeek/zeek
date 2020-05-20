@@ -253,13 +253,15 @@ ZAMVectorMgr::ZAMVectorMgr(std::shared_ptr<ZAM_vector> _vec, VectorVal* _v,
 	if ( ! v )
 		{
 		yield_type = nullptr;
+		tracker = nullptr;
 		return;
 		}
 
 	Ref(v);
 
 	tracker = _tracker;
-	tracker->insert(this);
+	if ( tracker )
+		tracker->insert(this);
 
 	auto vt = v->Type()->AsVectorType();
 	auto yt = vt->YieldType();
@@ -287,7 +289,8 @@ ZAMVectorMgr::~ZAMVectorMgr()
 			// to delete.
 			Spill();
 
-		tracker->erase(this);
+		if ( tracker )
+			tracker->erase(this);
 		}
 
 	if ( v )

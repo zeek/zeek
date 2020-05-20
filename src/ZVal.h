@@ -123,7 +123,7 @@ public:
 
 	ZAMVectorMgr* ShallowCopy()
 		{
-		return new ZAMVectorMgr(vec, v, tracker);
+		return new ZAMVectorMgr(vec, v, nullptr);
 		}
 
 	const std::shared_ptr<ZAM_vector>& ConstVec() const	{ return vec; }

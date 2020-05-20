@@ -1073,23 +1073,6 @@ eval	frame[z.v1].any_val = v.get()
 eval	global_state[z.v1] = GS_CLEAN
 eval }
 
-internal-op Mod-Global
-type VC
-eval if ( global_state[z.v1] == GS_UNLOADED ) {
-eval	IntrusivePtr<Val> v = {NewRef{}, z.c.id_val->ID_Val()}
-eval	AssignV1(BuildVal(v, z.t, z.stmt))
-eval }
-eval global_state[z.v1] = GS_DIRTY
-
-internal-op Mod-Any-Global
-type VC
-eval if ( global_state[z.v1] == GS_UNLOADED ) {
-eval	IntrusivePtr<Val> v = {NewRef{}, z.c.id_val->ID_Val()}
-eval	vals.push_back(v)
-eval	frame[z.v1].any_val = v.get()
-eval }
-eval global_state[z.v1] = GS_DIRTY
-
 internal-op Store-Val
 type VV
 eval auto is_vec = z.t->Tag() == TYPE_VECTOR

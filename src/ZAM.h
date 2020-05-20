@@ -190,11 +190,7 @@ protected:
 	void StoreLocal(ID* id)		{ LoadOrStoreLocal(id, false, false); }
 	const CompiledStmt LoadOrStoreLocal(ID* id, bool is_load, bool add);
 
-	const CompiledStmt LoadGlobal(ID* id)
-		{ return LoadGlobal(id, false); }
-	const CompiledStmt ModGlobal(ID* id)
-		{ return LoadGlobal(id, true); }
-	const CompiledStmt LoadGlobal(ID* id, bool is_mod);
+	const CompiledStmt LoadGlobal(ID* id);
 
 	int AddToFrame(ID*);
 

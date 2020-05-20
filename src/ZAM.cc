@@ -1355,7 +1355,7 @@ const CompiledStmt ZAM::LoadOrStoreLocal(ID* id, bool is_load, bool add)
 	return AddInst(z);
 	}
 
-const CompiledStmt ZAM::LoadGlobal(ID* id, bool is_mod)
+const CompiledStmt ZAM::LoadGlobal(ID* id)
 	{
 	if ( id->AsType() )
 		// We never operate on these directly, so don't bother
@@ -1365,10 +1365,7 @@ const CompiledStmt ZAM::LoadGlobal(ID* id, bool is_mod)
 	bool is_any = IsAny(id->Type());
 	ZOp op;
 
-	if ( is_any )
-		op = is_mod ? OP_MOD_ANY_GLOBAL_VC : OP_LOAD_ANY_GLOBAL_VC;
-	else
-		op = is_mod ? OP_MOD_GLOBAL_VC : OP_LOAD_GLOBAL_VC;
+	op = is_any ? OP_LOAD_ANY_GLOBAL_VC : OP_LOAD_GLOBAL_VC;
 
 	auto slot = RawSlot(id);
 

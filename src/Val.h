@@ -965,7 +965,27 @@ public:
 	void Assign(int field, std::nullptr_t)
 		{ Assign(field, IntrusivePtr<Val>{}); }
 
-	Val* Lookup(int field) const;	// Does not Ref() value.
+	[[deprecated("Remove in v4.1.  Use GetField().")]]
+	Val* Lookup(int field) const	// Does not Ref() value.
+		{ return (*AsRecord())[field].get(); }
+
+	/**
+	 * Returns the value of a given field index.
+	 * @param field  The field index to retrieve.
+	 * @return  The value at the given field index.
+	 */
+	const IntrusivePtr<Val>& GetField(int field) const
+		{ return (*AsRecord())[field]; }
+
+	/**
+	 * Returns the value of a given field index as cast to type @c T.
+	 * @param field  The field index to retrieve.
+	 * @return  The value at the given field index cast to type @c T.
+	 */
+	template <class T>
+	IntrusivePtr<T> GetField(int field) const
+		{ return cast_intrusive<T>(GetField(field)); }
+
 	IntrusivePtr<Val> LookupWithDefault(int field) const;
 
 	/**

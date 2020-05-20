@@ -681,8 +681,8 @@ function string_to_ascii_hex%(s: string%): string
 ## Returns: The result of the Smith-Waterman algorithm calculation.
 function str_smith_waterman%(s1: string, s2: string, params: sw_params%) : sw_substring_vec
 	%{
-	SWParams sw_params(params->AsRecordVal()->Lookup(0)->AsCount(),
-			   SWVariant(params->AsRecordVal()->Lookup(1)->AsCount()));
+	SWParams sw_params(params->AsRecordVal()->GetField(0)->AsCount(),
+			   SWVariant(params->AsRecordVal()->GetField(1)->AsCount()));
 
 	BroSubstring::Vec* subseq =
 		smith_waterman(s1->AsString(), s2->AsString(), sw_params);

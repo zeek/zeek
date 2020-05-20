@@ -81,7 +81,7 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 
 	if ( same_type(val->GetType().get(), bro_broker::DataVal::ScriptDataType()) )
 		{
-		auto dv = static_cast<bro_broker::DataVal*>(val->AsRecordVal()->Lookup(0));
+		auto dv = static_cast<bro_broker::DataVal*>(val->AsRecordVal()->GetField(0).get());
 		auto val_from_data = dv->castTo(i->GetType().get());
 
 		if ( ! val_from_data )

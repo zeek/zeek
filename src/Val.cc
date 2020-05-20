@@ -2741,11 +2741,6 @@ void RecordVal::Assign(int field, Val* new_val)
 	Assign(field, {AdoptRef{}, new_val});
 	}
 
-Val* RecordVal::Lookup(int field) const
-	{
-	return (*AsRecord())[field].get();
-	}
-
 IntrusivePtr<Val> RecordVal::LookupWithDefault(int field) const
 	{
 	const auto& val = (*AsRecord())[field];
@@ -2793,7 +2788,7 @@ IntrusivePtr<Val> RecordVal::Lookup(const char* field, bool with_default) const
 	if ( idx < 0 )
 		reporter->InternalError("missing record field: %s", field);
 
-	return with_default ? LookupWithDefault(idx) : IntrusivePtr{NewRef{}, Lookup(idx)};
+	return with_default ? LookupWithDefault(idx) : GetField(idx);
 	}
 
 IntrusivePtr<RecordVal> RecordVal::CoerceTo(IntrusivePtr<RecordType> t,
@@ -2827,7 +2822,7 @@ IntrusivePtr<RecordVal> RecordVal::CoerceTo(IntrusivePtr<RecordType> t,
 			break;
 			}
 
-		Val* v = Lookup(i);
+		const auto& v = GetField(i);
 
 		if ( ! v )
 			// Check for allowable optional fields is outside the loop, below.
@@ -2837,18 +2832,18 @@ IntrusivePtr<RecordVal> RecordVal::CoerceTo(IntrusivePtr<RecordType> t,
 
 		if ( ft->Tag() == TYPE_RECORD && ! same_type(ft.get(), v->GetType().get()) )
 			{
-			auto rhs = make_intrusive<ConstExpr>(IntrusivePtr{NewRef{}, v});
+			auto rhs = make_intrusive<ConstExpr>(v);
 			auto e = make_intrusive<RecordCoerceExpr>(std::move(rhs),
 			                                          cast_intrusive<RecordType>(ft));
 			aggr->Assign(t_i, e->Eval(nullptr));
 			continue;
 			}
 
-		aggr->Assign(t_i, {NewRef{}, v});
+		aggr->Assign(t_i, v);
 		}
 
 	for ( i = 0; i < ar_t->NumFields(); ++i )
-		if ( ! aggr->Lookup(i) &&
+		if ( ! aggr->GetField(i) &&
 			 ! ar_t->FieldDecl(i)->FindAttr(ATTR_OPTIONAL) )
 			{
 			char buf[512];
@@ -3390,12 +3385,12 @@ IntrusivePtr<Val> cast_value_to_type(Val* v, BroType* t)
 
 	if ( same_type(v->GetType().get(), bro_broker::DataVal::ScriptDataType()) )
 		{
-		auto dv = v->AsRecordVal()->Lookup(0);
+		const auto& dv = v->AsRecordVal()->GetField(0);
 
 		if ( ! dv )
 			return nullptr;
 
-		return static_cast<bro_broker::DataVal*>(dv)->castTo(t);
+		return static_cast<bro_broker::DataVal*>(dv.get())->castTo(t);
 		}
 
 	return nullptr;
@@ -3416,12 +3411,12 @@ bool can_cast_value_to_type(const Val* v, BroType* t)
 
 	if ( same_type(v->GetType().get(), bro_broker::DataVal::ScriptDataType()) )
 		{
-		auto dv = v->AsRecordVal()->Lookup(0);
+		const auto& dv = v->AsRecordVal()->GetField(0);
 
 		if ( ! dv )
 			return false;
 
-		return static_cast<const bro_broker::DataVal *>(dv)->canCastTo(t);
+		return static_cast<const bro_broker::DataVal *>(dv.get())->canCastTo(t);
 		}
 
 	return false;

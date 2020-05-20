@@ -21,7 +21,7 @@
 
 using namespace file_analysis;
 
-static IntrusivePtr<Val> empty_connection_table()
+static IntrusivePtr<TableVal> empty_connection_table()
 	{
 	auto tbl_index = make_intrusive<TypeList>(zeek::id::conn_id);
 	tbl_index->Append(zeek::id::conn_id);
@@ -121,7 +121,7 @@ void File::UpdateLastActivityTime()
 
 double File::GetLastActivityTime() const
 	{
-	return val->Lookup(last_active_idx)->AsTime();
+	return val->GetField(last_active_idx)->AsTime();
 	}
 
 bool File::UpdateConnectionFields(Connection* conn, bool is_orig)
@@ -129,7 +129,7 @@ bool File::UpdateConnectionFields(Connection* conn, bool is_orig)
 	if ( ! conn )
 		return false;
 
-	Val* conns = val->Lookup(conns_idx);
+	Val* conns = val->GetField(conns_idx).get();
 
 	if ( ! conns )
 		{
@@ -184,7 +184,7 @@ int File::Idx(const std::string& field, const RecordType* type)
 
 std::string File::GetSource() const
 	{
-	Val* v = val->Lookup(source_idx);
+	const auto& v = val->GetField(source_idx);
 
 	return v ? v->AsString()->CheckString() : std::string();
 	}
@@ -234,7 +234,8 @@ void File::SetTotalBytes(uint64_t size)
 
 bool File::IsComplete() const
 	{
-	Val* total = val->Lookup(total_bytes_idx);
+	const auto& total = val->GetField(total_bytes_idx);
+
 	if ( ! total )
 		return false;
 
@@ -308,7 +309,7 @@ void File::InferMetadata()
 	{
 	did_metadata_inference = true;
 
-	Val* bof_buffer_val = val->Lookup(bof_buffer_idx);
+	Val* bof_buffer_val = val->GetField(bof_buffer_idx).get();
 
 	if ( ! bof_buffer_val )
 		{
@@ -317,7 +318,7 @@ void File::InferMetadata()
 
 		BroString* bs = concatenate(bof_buffer.chunks);
 		val->Assign<StringVal>(bof_buffer_idx, bs);
-		bof_buffer_val = val->Lookup(bof_buffer_idx);
+		bof_buffer_val = val->GetField(bof_buffer_idx).get();
 		}
 
 	if ( ! FileEventAvailable(file_sniff) )

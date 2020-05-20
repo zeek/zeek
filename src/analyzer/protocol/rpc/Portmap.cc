@@ -125,7 +125,7 @@ bool PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status statu
 				return false;
 
 			RecordVal* rv = c->RequestVal()->AsRecordVal();
-			Val* is_tcp = rv->Lookup(2);
+			const auto& is_tcp = rv->GetField(2);
 			reply = val_mgr->Port(CheckPort(port), is_tcp->IsOne() ?
 			                      TRANSPORT_TCP : TRANSPORT_UDP);
 			event = pm_request_getport;

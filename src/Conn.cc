@@ -430,7 +430,7 @@ void Connection::AppendAddl(const char* str)
 	{
 	const auto& cv = ConnVal();
 
-	const char* old = cv->Lookup(6)->AsString()->CheckString();
+	const char* old = cv->GetField(6)->AsString()->CheckString();
 	const char* format = *old ? "%s %s" : "%s%s";
 
 	cv->Assign(6, make_intrusive<StringVal>(fmt(format, old, str)));
@@ -699,7 +699,7 @@ void Connection::CheckFlowLabel(bool is_orig, uint32_t flow_label)
 		{
 		if ( conn_val )
 			{
-			RecordVal *endp = conn_val->Lookup(is_orig ? 1 : 2)->AsRecordVal();
+			RecordVal* endp = conn_val->GetField(is_orig ? 1 : 2)->AsRecordVal();
 			endp->Assign(4, val_mgr->Count(flow_label));
 			}
 

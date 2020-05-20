@@ -1098,7 +1098,7 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		{
 		syn_weirds(flags, endpoint, len);
 		RecordVal* SYN_vals = build_syn_packet_val(is_orig, ip, tp);
-		init_window(endpoint, peer, flags, SYN_vals->Lookup(5)->CoerceToInt(),
+		init_window(endpoint, peer, flags, SYN_vals->GetField(5)->CoerceToInt(),
 		            base_seq, ack_seq);
 
 		if ( connection_SYN_packet )

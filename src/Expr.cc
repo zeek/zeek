@@ -2897,8 +2897,8 @@ void FieldExpr::Delete(Frame* f)
 
 IntrusivePtr<Val> FieldExpr::Fold(Val* v) const
 	{
-	if ( Val* result = v->AsRecordVal()->Lookup(field) )
-		return {NewRef{}, result};
+	if ( const auto& result = v->AsRecordVal()->GetField(field) )
+		return result;
 
 	// Check for &default.
 	const Attr* def_attr = td ? td->FindAttr(ATTR_DEFAULT) : nullptr;
@@ -2959,7 +2959,7 @@ HasFieldExpr::~HasFieldExpr()
 IntrusivePtr<Val> HasFieldExpr::Fold(Val* v) const
 	{
 	auto rv = v->AsRecordVal();
-	return val_mgr->Bool(rv->Lookup(field));
+	return val_mgr->Bool(rv->GetField(field) != nullptr);
 	}
 
 void HasFieldExpr::ExprDescribe(ODesc* d) const
@@ -3659,7 +3659,7 @@ IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 		{
 		if ( map[i] >= 0 )
 			{
-			IntrusivePtr<Val> rhs{NewRef{}, rv->Lookup(map[i])};
+			auto rhs = rv->GetField(map[i]);
 
 			if ( ! rhs )
 				{
@@ -4830,7 +4830,7 @@ IntrusivePtr<Val> CastExpr::Eval(Frame* f) const
 	d.Add("'");
 
 	if ( same_type(v->GetType().get(), bro_broker::DataVal::ScriptDataType()) &&
-		 ! v->AsRecordVal()->Lookup(0) )
+		 ! v->AsRecordVal()->GetField(0) )
 		d.Add(" (nil $data field)");
 
 	RuntimeError(d.Description());

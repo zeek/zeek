@@ -107,19 +107,19 @@ BroSubstring::Vec* BroSubstring::VecFromPolicy(VectorVal* vec)
 		if ( ! v )
 			continue;
 
-		const BroString* str = v->AsRecordVal()->Lookup(0)->AsString();
+		const BroString* str = v->AsRecordVal()->GetField(0)->AsString();
 		BroSubstring* substr = new BroSubstring(*str);
 
-		const VectorVal* aligns = v->AsRecordVal()->Lookup(1)->AsVectorVal();
+		const VectorVal* aligns = v->AsRecordVal()->GetField(1)->AsVectorVal();
 		for ( unsigned int j = 1; j <= aligns->Size(); ++j )
 			{
 			const RecordVal* align = aligns->AsVectorVal()->Lookup(j)->AsRecordVal();
-			const BroString* str = align->Lookup(0)->AsString();
-			int index = align->Lookup(1)->AsCount();
+			const BroString* str = align->GetField(0)->AsString();
+			int index = align->GetField(1)->AsCount();
 			substr->AddAlignment(str, index);
 			}
 
-		bool new_alignment = v->AsRecordVal()->Lookup(2)->AsBool();
+		bool new_alignment = v->AsRecordVal()->GetField(2)->AsBool();
 		substr->MarkNewAlignment(new_alignment);
 
 		result->push_back(substr);

@@ -197,6 +197,8 @@ Deprecated Functionality
 - ``RecordVal::Assign(int, Val*)`` is deprecated, use the overload taking
   ``IntrusivePtr``.
 
+- ``RecordVal::Lookup(int)`` is deprecated, use ``RecordVal::GetField(int)``.
+
 Zeek 3.1.0
 ==========
 

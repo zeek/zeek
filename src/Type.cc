@@ -804,10 +804,10 @@ IntrusivePtr<TableVal> RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 		{
 		const auto& ft = GetFieldType(i);
 		const TypeDecl* fd = FieldDecl(i);
-		Val* fv = nullptr;
+		IntrusivePtr<Val> fv;
 
 		if ( rv )
-			fv = rv->Lookup(i);
+			fv = rv->GetField(i);
 
 		bool logged = (fd->attrs && fd->FindAttr(ATTR_LOG) != nullptr);
 
@@ -816,7 +816,7 @@ IntrusivePtr<TableVal> RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 		string s = container_type_name(ft.get());
 		nr->Assign(0, make_intrusive<StringVal>(s));
 		nr->Assign(1, val_mgr->Bool(logged));
-		nr->Assign(2, {NewRef{}, fv});
+		nr->Assign(2, std::move(fv));
 		nr->Assign(3, FieldDefault(i));
 		Val* field_name = new StringVal(FieldName(i));
 		rval->Assign(field_name, std::move(nr));

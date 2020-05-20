@@ -104,15 +104,15 @@ broker::backend_options to_backend_options(broker::backend backend,
 	switch ( backend ) {
 	case broker::sqlite:
 		{
-		auto path = options->Lookup(0)->AsRecordVal()
-			->Lookup(0)->AsStringVal()->CheckString();
+		auto path = options->GetField(0)->AsRecordVal()
+			->GetField(0)->AsStringVal()->CheckString();
 		return {{"path", path}};
 		}
 
 	case broker::rocksdb:
 		{
-		auto path = options->Lookup(1)->AsRecordVal()
-			->Lookup(0)->AsStringVal()->CheckString();
+		auto path = options->GetField(1)->AsRecordVal()
+			->GetField(0)->AsStringVal()->CheckString();
 		return {{"path", path}};
 		}
 

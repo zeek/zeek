@@ -386,18 +386,18 @@ bool Manager::PublishEvent(string topic, RecordVal* args)
 	if ( peer_count == 0 )
 		return true;
 
-	if ( ! args->Lookup(0) )
+	if ( ! args->GetField(0) )
 		return false;
 
-	auto event_name = args->Lookup(0)->AsString()->CheckString();
-	auto vv = args->Lookup(1)->AsVectorVal();
+	auto event_name = args->GetField(0)->AsString()->CheckString();
+	auto vv = args->GetField(1)->AsVectorVal();
 	broker::vector xs;
 	xs.reserve(vv->Size());
 
 	for ( auto i = 0u; i < vv->Size(); ++i )
 		{
-		auto val = vv->Lookup(i)->AsRecordVal()->Lookup(0);
-		auto data_val = static_cast<DataVal*>(val);
+		const auto& val = vv->Lookup(i)->AsRecordVal()->GetField(0);
+		auto data_val = static_cast<DataVal*>(val.get());
 		xs.emplace_back(data_val->data);
 		}
 
@@ -759,7 +759,7 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 		else
 			data_val = make_data_val((*args)[i]);
 
-		if ( ! data_val->Lookup(0) )
+		if ( ! data_val->GetField(0) )
 			{
 			rval->Assign(0, nullptr);
 			Error("failed to convert param #%d of type %s to broker data",

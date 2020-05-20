@@ -263,7 +263,7 @@ refine connection KRB_Conn += {
 			rv->Assign(1, val_mgr->Bool(${msg.ap_options.mutual_required}));
 
 			auto rvticket = proc_ticket(${msg.ticket});
-			auto authenticationinfo = bro_analyzer()->GetAuthenticationInfo(rvticket->Lookup(2)->AsString(), rvticket->Lookup(4)->AsString(), rvticket->Lookup(3)->AsCount());
+			auto authenticationinfo = bro_analyzer()->GetAuthenticationInfo(rvticket->GetField(2)->AsString(), rvticket->GetField(4)->AsString(), rvticket->GetField(3)->AsCount());
 
 			if ( authenticationinfo )
 				rvticket->Assign(5, authenticationinfo);

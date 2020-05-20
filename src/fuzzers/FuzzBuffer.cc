@@ -17,6 +17,23 @@ bool zeek::detail::FuzzBuffer::Valid() const
 	return true;
 	}
 
+int zeek::detail::FuzzBuffer::ChunkCount() const
+	{
+	auto pos = begin;
+	int chunks = 0;
+	while (pos < end)
+		{
+		pos = (const unsigned char*)memmem(pos, end - pos,
+		                                   PKT_MAGIC, PKT_MAGIC_LEN);
+		if ( ! pos )
+			break;
+		pos += PKT_MAGIC_LEN + 1;
+		chunks++;
+		}
+
+	return chunks;
+	}
+
 std::optional<zeek::detail::FuzzBuffer::Chunk> zeek::detail::FuzzBuffer::Next()
 	{
 	if ( begin == end )

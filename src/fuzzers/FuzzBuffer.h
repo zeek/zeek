@@ -44,6 +44,11 @@ public:
 	bool Valid() const;
 
 	/**
+	 * @return  the number of chunks in the fuzz buffer object
+	 */
+	int ChunkCount() const;
+
+	/**
 	 * @return  the next chunk to deliver, if one could be extracted
 	 */
 	std::optional<Chunk> Next();

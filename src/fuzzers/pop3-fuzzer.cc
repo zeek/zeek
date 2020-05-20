@@ -50,6 +50,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 	if ( ! fb.Valid() )
 		return 0;
 
+	if ( fb.ChunkCount() > 64 )
+		return 0;
+
 	auto conn = add_connection();
 	auto a = add_analyzer(conn);
 

@@ -3333,8 +3333,8 @@ function lookup_connection%(cid: conn_id%): connection
 %%{
 const char* conn_id_string(Val* c)
 	{
-	Val* id = (*(c->AsRecord()))[0];
-	const val_list* vl = id->AsRecord();
+	const auto& id = (*(c->AsRecord()))[0];
+	auto vl = id->AsRecord();
 
 	const IPAddr& orig_h = (*vl)[0]->AsAddr();
 	uint32_t orig_p = (*vl)[1]->AsPortVal()->Port();
@@ -3459,7 +3459,7 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 		uint32_t caplen, len, link_type;
 		u_char *data;
 
-		const val_list* pkt_vl = pkt->AsRecord();
+		auto pkt_vl = pkt->AsRecord();
 
 		ts.tv_sec = (*pkt_vl)[0]->AsCount();
 		ts.tv_usec = (*pkt_vl)[1]->AsCount();

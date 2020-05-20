@@ -80,8 +80,7 @@ union BroValUnion {
 	BroFile* file_val;
 	RE_Matcher* re_val;
 	PDict<TableEntryVal>* table_val;
-	val_list* val_list_val;
-
+	std::vector<IntrusivePtr<Val>>* record_val;
 	std::vector<Val*>* vector_val;
 
 	BroValUnion() = default;
@@ -115,9 +114,6 @@ union BroValUnion {
 
 	constexpr BroValUnion(PDict<TableEntryVal>* value) noexcept
 		: table_val(value) {}
-
-	constexpr BroValUnion(val_list* value) noexcept
-		: val_list_val(value) {}
 
 	constexpr BroValUnion(std::vector<Val*> *value) noexcept
 		: vector_val(value) {}
@@ -222,7 +218,7 @@ public:
 	CONST_ACCESSOR(TYPE_STRING, BroString*, string_val, AsString)
 	CONST_ACCESSOR(TYPE_FUNC, Func*, func_val, AsFunc)
 	CONST_ACCESSOR(TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsTable)
-	CONST_ACCESSOR(TYPE_RECORD, val_list*, val_list_val, AsRecord)
+	CONST_ACCESSOR(TYPE_RECORD, std::vector<IntrusivePtr<Val>>*, record_val, AsRecord)
 	CONST_ACCESSOR(TYPE_FILE, BroFile*, file_val, AsFile)
 	CONST_ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
 	CONST_ACCESSOR(TYPE_VECTOR, std::vector<Val*>*, vector_val, AsVector)
@@ -368,7 +364,7 @@ protected:
 		{}
 
 	ACCESSOR(TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsNonConstTable)
-	ACCESSOR(TYPE_RECORD, val_list*, val_list_val, AsNonConstRecord)
+	ACCESSOR(TYPE_RECORD, std::vector<IntrusivePtr<Val>>*, record_val, AsNonConstRecord)
 
 	// For internal use by the Val::Clone() methods.
 	struct CloneState {

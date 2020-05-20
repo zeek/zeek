@@ -89,6 +89,9 @@ Changed Functionality
 - ``TypeList::Types()`` and ``IndexType::IndexTypes()`` now return an
   ``std::vector`` instead of ``type_list*``
 
+- ``AsRecord()`` and ``AsNonConstRecord()`` have changed to return
+  ``std::vector<IntrusivePtr<Val>>*``.
+
 Removed Functionality
 ---------------------
 

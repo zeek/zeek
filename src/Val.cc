@@ -2673,7 +2673,8 @@ RecordVal::RecordVal(IntrusivePtr<RecordType> t, bool init_fields) : Val(std::mo
 	origin = nullptr;
 	auto rt = GetType()->AsRecordType();
 	int n = rt->NumFields();
-	val_list* vl = val.val_list_val = new val_list(n);
+	auto vl = val.record_val = new std::vector<IntrusivePtr<Val>>;
+	vl->reserve(n);
 
 	if ( is_parsing )
 		parse_time_records[rt].emplace_back(NewRef{}, this);
@@ -2715,13 +2716,13 @@ RecordVal::RecordVal(IntrusivePtr<RecordType> t, bool init_fields) : Val(std::mo
 				def = make_intrusive<VectorVal>(cast_intrusive<VectorType>(type));
 			}
 
-		vl->push_back(def.release());
+		vl->emplace_back(std::move(def));
 		}
 	}
 
 RecordVal::~RecordVal()
 	{
-	delete_vals(AsNonConstRecord());
+	delete AsNonConstRecord();
 	}
 
 IntrusivePtr<Val> RecordVal::SizeVal() const
@@ -2731,8 +2732,7 @@ IntrusivePtr<Val> RecordVal::SizeVal() const
 
 void RecordVal::Assign(int field, IntrusivePtr<Val> new_val)
 	{
-	Val* old_val = AsNonConstRecord()->replace(field, new_val.release());
-	Unref(old_val);
+	(*AsNonConstRecord())[field] = std::move(new_val);
 	Modified();
 	}
 
@@ -2743,15 +2743,15 @@ void RecordVal::Assign(int field, Val* new_val)
 
 Val* RecordVal::Lookup(int field) const
 	{
-	return (*AsRecord())[field];
+	return (*AsRecord())[field].get();
 	}
 
 IntrusivePtr<Val> RecordVal::LookupWithDefault(int field) const
 	{
-	Val* val = (*AsRecord())[field];
+	const auto& val = (*AsRecord())[field];
 
 	if ( val )
-		return {NewRef{}, val};
+		return val;
 
 	return GetType()->AsRecordType()->FieldDefault(field);
 	}
@@ -2767,16 +2767,16 @@ void RecordVal::ResizeParseTimeRecords(RecordType* rt)
 
 	for ( auto& rv : rvs )
 		{
-		auto vs = rv->val.val_list_val;
-		auto current_length = vs->length();
+		auto vs = rv->val.record_val;
+		int current_length = vs->size();
 		auto required_length = rt->NumFields();
 
 		if ( required_length > current_length )
 			{
-			vs->resize(required_length);
+			vs->reserve(required_length);
 
 			for ( auto i = current_length; i < required_length; ++i )
-				vs->replace(i, rt->FieldDefault(i).release());
+				vs->emplace_back(rt->FieldDefault(i));
 			}
 		}
 	}
@@ -2876,8 +2876,8 @@ IntrusivePtr<TableVal> RecordVal::GetRecordFieldsVal() const
 
 void RecordVal::Describe(ODesc* d) const
 	{
-	const val_list* vl = AsRecord();
-	int n = vl->length();
+	auto vl = AsRecord();
+	auto n = vl->size();
 	auto record_type = GetType()->AsRecordType();
 
 	if ( d->IsBinary() || d->IsPortable() )
@@ -2890,7 +2890,7 @@ void RecordVal::Describe(ODesc* d) const
 	else
 		d->Add("[");
 
-	loop_over_list(*vl, i)
+	for ( size_t i = 0; i < n; ++i )
 		{
 		if ( ! d->IsBinary() && i > 0 )
 			d->Add(", ");
@@ -2900,7 +2900,8 @@ void RecordVal::Describe(ODesc* d) const
 		if ( ! d->IsBinary() )
 			d->Add("=");
 
-		Val* v = (*vl)[i];
+		const auto& v = (*vl)[i];
+
 		if ( v )
 			v->Describe(d);
 		else
@@ -2913,14 +2914,14 @@ void RecordVal::Describe(ODesc* d) const
 
 void RecordVal::DescribeReST(ODesc* d) const
 	{
-	const val_list* vl = AsRecord();
-	int n = vl->length();
+	auto vl = AsRecord();
+	auto n = vl->size();
 	auto record_type = GetType()->AsRecordType();
 
 	d->Add("{");
 	d->PushIndent();
 
-	loop_over_list(*vl, i)
+	for ( size_t i = 0; i < n; ++i )
 		{
 		if ( i > 0 )
 			d->NL();
@@ -2928,7 +2929,7 @@ void RecordVal::DescribeReST(ODesc* d) const
 		d->Add(record_type->FieldName(i));
 		d->Add("=");
 
-		Val* v = (*vl)[i];
+		const auto& v = (*vl)[i];
 
 		if ( v )
 			v->Describe(d);
@@ -2951,10 +2952,10 @@ IntrusivePtr<Val> RecordVal::DoClone(CloneState* state)
 	rv->origin = nullptr;
 	state->NewClone(this, rv);
 
-	for ( const auto& vlv : *val.val_list_val )
+	for ( const auto& vlv : *val.record_val)
 		{
 		auto v = vlv ? vlv->Clone(state) : nullptr;
-  		rv->val.val_list_val->push_back(v.release());
+  		rv->val.record_val->emplace_back(std::move(v));
 		}
 
 	return rv;
@@ -2963,15 +2964,17 @@ IntrusivePtr<Val> RecordVal::DoClone(CloneState* state)
 unsigned int RecordVal::MemoryAllocation() const
 	{
 	unsigned int size = 0;
-	const val_list* vl = AsRecord();
+	const auto& vl = *AsRecord();
 
-	for ( const auto& v : *vl )
+	for ( const auto& v : vl )
 		{
 		if ( v )
 		    size += v->MemoryAllocation();
 		}
 
-	return size + padded_sizeof(*this) + val.val_list_val->MemoryAllocation();
+	size += pad_size(vl.capacity() * sizeof(IntrusivePtr<Val>));
+	size += padded_sizeof(vl);
+	return size + padded_sizeof(*this);
 	}
 
 IntrusivePtr<Val> EnumVal::SizeVal() const

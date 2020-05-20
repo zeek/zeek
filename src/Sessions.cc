@@ -910,7 +910,7 @@ Connection* NetSessions::FindConnection(Val* v)
 		return nullptr;
 
 	RecordType* vr = vt->AsRecordType();
-	const val_list* vl = v->AsRecord();
+	auto vl = v->AsRecord();
 
 	int orig_h, orig_p;	// indices into record's value list
 	int resp_h, resp_p;

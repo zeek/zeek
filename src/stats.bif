@@ -475,7 +475,7 @@ function get_reporter_stats%(%): ReporterStats
 	for ( auto& kv : reporter->GetWeirdsByType() )
 		{
 		auto weird = make_intrusive<StringVal>(kv.first);
-		weirds_by_type->Assign(weird.get(), val_mgr->Count(kv.second));
+		weirds_by_type->Assign(std::move(weird), val_mgr->Count(kv.second));
 		}
 
 	r->Assign(n++, val_mgr->Count(reporter->GetWeirdCount()));

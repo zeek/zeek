@@ -741,14 +741,38 @@ public:
 	explicit TableVal(IntrusivePtr<TableType> t, IntrusivePtr<Attributes> attrs = nullptr);
 	~TableVal() override;
 
+	/**
+	 * Assigns a value at an associated index in the table (or in the
+	 * case of a set, just adds the index).
+	 * @param index  The key to assign.
+	 * @param new_val  The value to assign at the index.  For a set, this
+	 * must be nullptr.
+	 * @return  True if the assignment type-checked.
+	 */
+	bool Assign(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val);
+
+	/**
+	 * Assigns a value at an associated index in the table (or in the
+	 * case of a set, just adds the index).
+	 * @param index  The key to assign.  For tables, this is allowed to be null
+	 * (if needed, the index val can be recovered from the hash key).
+	 * @param k  A precomputed hash key to use (this method takes ownership
+	 * of deleting it).
+	 * @param new_val  The value to assign at the index.  For a set, this
+	 * must be nullptr.
+	 * @return  True if the assignment type-checked.
+	 */
+	bool Assign(IntrusivePtr<Val> index, HashKey* k, IntrusivePtr<Val> new_val);
+
 	// Returns true if the assignment typechecked, false if not. The
-	// methods take ownership of new_val, but not of the index. Second
-	// version takes a HashKey and Unref()'s it when done. If we're a
-	// set, new_val has to be nil. If we aren't a set, index may be nil
-	// in the second version.
-	bool Assign(Val* index, IntrusivePtr<Val> new_val);
+	// methods take ownership of new_val, but not of the index.  If we're
+	// a set, new_val has to be nil.
+	[[deprecated("Remove in v4.1.  Use IntrusivePtr overload instead.")]]
 	bool Assign(Val* index, Val* new_val);
-	bool Assign(Val* index, HashKey* k, IntrusivePtr<Val> new_val);
+
+	// Same as other Assign() method, but takes a precomuted HashKey and
+	// deletes it when done.
+	[[deprecated("Remove in v4.1.  Use IntrusivePtr overload instead.")]]
 	bool Assign(Val* index, HashKey* k, Val* new_val);
 
 	IntrusivePtr<Val> SizeVal() const override;
@@ -890,7 +914,7 @@ protected:
 
 	void CheckExpireAttr(attr_tag at);
 	bool ExpandCompoundAndInit(ListVal* lv, int k, IntrusivePtr<Val> new_val);
-	bool CheckAndAssign(Val* index, IntrusivePtr<Val> new_val);
+	bool CheckAndAssign(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val);
 
 	// Calculates default value for index.  Returns 0 if none.
 	IntrusivePtr<Val> Default(Val* index);

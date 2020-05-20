@@ -3,7 +3,7 @@ refine flow SIP_Flow += {
 	%member{
 		int content_length;
 		bool build_headers;
-		vector<BroVal> headers;
+		std::vector<IntrusivePtr<Val>> headers;
 	%}
 
 	%init{
@@ -59,7 +59,7 @@ refine flow SIP_Flow += {
 
 		if ( build_headers )
 			{
-			headers.push_back(build_sip_header_val(name, value));
+			headers.push_back({AdoptRef{}, build_sip_header_val(name, value)});
 			}
 
 		return true;
@@ -73,7 +73,7 @@ refine flow SIP_Flow += {
 		for ( unsigned int i = 0; i < headers.size(); ++i )
 			{ // index starting from 1
 			auto index = val_mgr->Count(i + 1);
-			t->Assign(index.get(), headers[i]);
+			t->Assign(std::move(index), std::move(headers[i]));
 			}
 
 		return t;

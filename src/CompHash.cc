@@ -952,13 +952,13 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 				kp1 = RecoverOneVal(k, kp1, k_end, tt->Indices(), &key, false);
 
 				if ( t->IsSet() )
-					tv->Assign(key.get(), nullptr);
+					tv->Assign(std::move(key), nullptr);
 				else
 					{
 					IntrusivePtr<Val> value;
 					kp1 = RecoverOneVal(k, kp1, k_end, tt->Yield().get(), &value,
 					                    false);
-					tv->Assign(key.get(), std::move(value));
+					tv->Assign(std::move(key), std::move(value));
 					}
 				}
 

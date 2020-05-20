@@ -30,7 +30,7 @@ IntrusivePtr<TableVal> characteristics_to_bro(uint32_t c, uint8_t len)
 		if ( ((c >> i) & 0x1) == 1 )
 			{
 			auto ch = val_mgr->Count((1<<i)&mask);
-			char_set->Assign(ch.get(), 0);
+			char_set->Assign(std::move(ch), 0);
 			}
 		}
 

@@ -2321,7 +2321,7 @@ void AssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const
 	if ( ! index || ! v )
 		return;
 
-	if ( ! tv->Assign(index.get(), std::move(v)) )
+	if ( ! tv->Assign(std::move(index), std::move(v)) )
 		RuntimeError("type clash in table assignment");
 	}
 
@@ -2532,7 +2532,7 @@ void IndexExpr::Add(Frame* f)
 	if ( ! v2 )
 		return;
 
-	v1->AsTableVal()->Assign(v2.get(), nullptr);
+	v1->AsTableVal()->Assign(std::move(v2), nullptr);
 	}
 
 void IndexExpr::Delete(Frame* f)
@@ -2780,7 +2780,7 @@ void IndexExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 		}
 
 	case TYPE_TABLE:
-		if ( ! v1->AsTableVal()->Assign(v2.get(), std::move(v)) )
+		if ( ! v1->AsTableVal()->Assign(std::move(v2), std::move(v)) )
 			{
 			v = std::move(v_extra);
 
@@ -3256,7 +3256,7 @@ IntrusivePtr<Val> SetConstructorExpr::Eval(Frame* f) const
 	for ( const auto& expr : exprs )
 		{
 		auto element = expr->Eval(f);
-		aggr->Assign(element.get(), nullptr);
+		aggr->Assign(std::move(element), nullptr);
 		}
 
 	return aggr;
@@ -3278,7 +3278,7 @@ IntrusivePtr<Val> SetConstructorExpr::InitVal(const BroType* t, IntrusivePtr<Val
 		{
 		auto element = check_and_promote(e->Eval(nullptr), index_type, true);
 
-		if ( ! element || ! tval->Assign(element.get(), nullptr) )
+		if ( ! element || ! tval->Assign(std::move(element), nullptr) )
 			{
 			Error(fmt("initialization type mismatch in set"), e);
 			return nullptr;

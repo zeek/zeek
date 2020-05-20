@@ -1925,7 +1925,7 @@ function global_sizes%(%): var_sizes
 			{
 			auto id_name = make_intrusive<StringVal>(id->Name());
 			auto id_size = val_mgr->Count(id->GetVal()->MemoryAllocation());
-			sizes->Assign(id_name.get(), std::move(id_size));
+			sizes->Assign(std::move(id_name), std::move(id_size));
 			}
 		}
 
@@ -1962,7 +1962,7 @@ function global_ids%(%): id_table
 			rec->Assign(6, id->GetVal());
 
 		auto id_name = make_intrusive<StringVal>(id->Name());
-		ids->Assign(id_name.get(), std::move(rec));
+		ids->Assign(std::move(id_name), std::move(rec));
 		}
 
 	return ids;

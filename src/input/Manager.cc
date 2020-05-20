@@ -1256,8 +1256,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 	ih->idxkey = new HashKey(k->Key(), k->Size(), k->Hash());
 	ih->valhash = valhash;
 
-	stream->tab->Assign(idxval, k, valval);
-	Unref(idxval); // asssign does not consume idxval.
+	stream->tab->Assign({AdoptRef{}, idxval}, k, {AdoptRef{}, valval});
 
 	if ( predidx != nullptr )
 		Unref(predidx);
@@ -1603,7 +1602,7 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 
 			}
 
-		stream->tab->Assign(idxval, valval);
+		stream->tab->Assign({NewRef{}, idxval}, {AdoptRef{}, valval});
 
 		if ( stream->event )
 			{
@@ -1641,7 +1640,7 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 		}
 
 	else // no predicates or other stuff
-		stream->tab->Assign(idxval, valval);
+		stream->tab->Assign({NewRef{}, idxval}, {AdoptRef{}, valval});
 
 	Unref(idxval); // not consumed by assign
 
@@ -2331,8 +2330,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 			{
 			Val* assignval = ValueToVal(i, val->val.set_val.vals[j], type.get(), have_error);
 
-			t->Assign(assignval, nullptr);
-			Unref(assignval); // index is not consumed by assign.
+			t->Assign({AdoptRef{}, assignval}, nullptr);
 			}
 
 		return t;
@@ -2512,8 +2510,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, bool& have_error) co
 			{
 			Val* assignval = ValueToVal(i, val->val.set_val.vals[j], have_error);
 
-			t->Assign(assignval, nullptr);
-			Unref(assignval); // index is not consumed by assign.
+			t->Assign({AdoptRef{}, assignval}, nullptr);
 			}
 
 		return t;

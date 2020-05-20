@@ -1150,7 +1150,7 @@ IntrusivePtr<RecordVal> Supervisor::NodeConfig::ToRecord() const
 		if ( ep.interface )
 			val->Assign(ept->FieldOffset("interface"), make_intrusive<StringVal>(*ep.interface));
 
-		cluster_val->Assign(key.get(), std::move(val));
+		cluster_val->Assign(std::move(key), std::move(val));
 		}
 
 	return rval;
@@ -1228,7 +1228,7 @@ bool Supervisor::SupervisedNode::InitCluster() const
 			val->Assign(cluster_node_type->FieldOffset("manager"),
 			            make_intrusive<StringVal>(*manager_name));
 
-		cluster_nodes->Assign(key.get(), std::move(val));
+		cluster_nodes->Assign(std::move(key), std::move(val));
 		}
 
 	cluster_manager_is_logger_id->SetVal(val_mgr->Bool(! has_logger));
@@ -1327,7 +1327,7 @@ IntrusivePtr<RecordVal> Supervisor::Status(std::string_view node_name)
 			const auto& node = n.second;
 			auto key = make_intrusive<StringVal>(name);
 			auto val = node.ToRecord();
-			node_table_val->Assign(key.get(), std::move(val));
+			node_table_val->Assign(std::move(key), std::move(val));
 			}
 		}
 	else
@@ -1341,7 +1341,7 @@ IntrusivePtr<RecordVal> Supervisor::Status(std::string_view node_name)
 		const auto& node = it->second;
 		auto key = make_intrusive<StringVal>(name);
 		auto val = node.ToRecord();
-		node_table_val->Assign(key.get(), std::move(val));
+		node_table_val->Assign(std::move(key), std::move(val));
 		}
 
 	return rval;

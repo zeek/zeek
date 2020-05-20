@@ -151,7 +151,7 @@ bool PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status statu
 					break;
 
 				auto index = val_mgr->Count(++nmap);
-				mappings->Assign(index.get(), std::move(m));
+				mappings->Assign(std::move(index), std::move(m));
 				}
 
 			if ( ! buf )

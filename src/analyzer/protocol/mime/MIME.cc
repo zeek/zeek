@@ -1308,7 +1308,7 @@ IntrusivePtr<TableVal> MIME_Message::BuildHeaderTable(MIME_HeaderList& hlist)
 		{
 		auto index = val_mgr->Count(i + 1);	// index starting from 1
 		MIME_Header* h = hlist[i];
-		t->Assign(index.get(), BuildHeaderVal(h));
+		t->Assign(std::move(index), BuildHeaderVal(h));
 		}
 
 	return t;

@@ -287,7 +287,7 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, int incl_sep, int max_num_sep)
 			}
 
 		auto ind = val_mgr->Count(++num);
-		a->Assign(ind.get(), make_intrusive<StringVal>(offset, (const char*) s));
+		a->Assign(std::move(ind), make_intrusive<StringVal>(offset, (const char*) s));
 
 		// No more separators will be needed if this is the end of string.
 		if ( n <= 0 )
@@ -296,7 +296,7 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, int incl_sep, int max_num_sep)
 		if ( incl_sep )
 			{ // including the part that matches the pattern
 			ind = val_mgr->Count(++num);
-			a->Assign(ind.get(), make_intrusive<StringVal>(end_of_match, (const char*) s+offset));
+			a->Assign(std::move(ind), make_intrusive<StringVal>(end_of_match, (const char*) s+offset));
 			}
 
 		if ( max_num_sep && num_sep >= max_num_sep )
@@ -919,7 +919,7 @@ function find_all%(str: string, re: pattern%) : string_set
 		if ( n >= 0 )
 			{
 			auto idx = make_intrusive<StringVal>(n, (const char*) t);
-			a->Assign(idx.get(), 0);
+			a->Assign(std::move(idx), 0);
 			t += n - 1;
 			}
 		}

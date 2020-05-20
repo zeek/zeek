@@ -157,7 +157,7 @@ function Reporter::get_weird_sampling_whitelist%(%): string_set
 	for ( auto el : reporter->GetWeirdSamplingWhitelist() )
 		{
 		auto idx = make_intrusive<StringVal>(el);
-		set->Assign(idx.get(), nullptr);
+		set->Assign(std::move(idx), nullptr);
 		}
 	return set;
 	%}

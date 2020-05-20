@@ -353,16 +353,14 @@ SampleLogger::~SampleLogger()
 
 void SampleLogger::FunctionSeen(const Func* func)
 	{
-	Val* idx = new StringVal(func->Name());
-	load_samples->Assign(idx, nullptr);
-	Unref(idx);
+	auto idx = make_intrusive<StringVal>(func->Name());
+	load_samples->Assign(std::move(idx), nullptr);
 	}
 
 void SampleLogger::LocationSeen(const Location* loc)
 	{
-	Val* idx = new StringVal(loc->filename);
-	load_samples->Assign(idx, nullptr);
-	Unref(idx);
+	auto idx = make_intrusive<StringVal>(loc->filename);
+	load_samples->Assign(std::move(idx), nullptr);
 	}
 
 void SampleLogger::SegmentProfile(const char* /* name */,

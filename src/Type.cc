@@ -818,9 +818,8 @@ IntrusivePtr<TableVal> RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 		nr->Assign(1, val_mgr->Bool(logged));
 		nr->Assign(2, std::move(fv));
 		nr->Assign(3, FieldDefault(i));
-		Val* field_name = new StringVal(FieldName(i));
-		rval->Assign(field_name, std::move(nr));
-		Unref(field_name);
+		auto field_name = make_intrusive<StringVal>(FieldName(i));
+		rval->Assign(std::move(field_name), std::move(nr));
 		}
 
 	return rval;

@@ -256,7 +256,7 @@ struct val_converter {
 				}
 
 
-			rval->Assign(list_val.get(), nullptr);
+			rval->Assign(std::move(list_val), nullptr);
 			}
 
 		return rval.release();
@@ -320,7 +320,7 @@ struct val_converter {
 			if ( ! value_val )
 				return nullptr;
 
-			rval->Assign(list_val.get(), std::move(value_val));
+			rval->Assign(std::move(list_val), std::move(value_val));
 			}
 
 		return rval.release();

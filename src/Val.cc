@@ -1244,7 +1244,7 @@ IntrusivePtr<TableVal> ListVal::ToSetVal() const
 	auto t = make_intrusive<TableVal>(std::move(s));
 
 	for ( const auto& val : vals )
-		t->Assign(val.get(), nullptr);
+		t->Assign(val, nullptr);
 
 	return t;
 	}
@@ -1506,24 +1506,24 @@ void TableVal::CheckExpireAttr(attr_tag at)
 		}
 	}
 
-bool TableVal::Assign(Val* index, IntrusivePtr<Val> new_val)
+bool TableVal::Assign(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val)
 	{
-	HashKey* k = ComputeHash(index);
+	HashKey* k = ComputeHash(index.get());
 	if ( ! k )
 		{
 		index->Error("index type doesn't match table", table_type->Indices());
 		return false;
 		}
 
-	return Assign(index, k, std::move(new_val));
+	return Assign(std::move(index), k, std::move(new_val));
 	}
 
 bool TableVal::Assign(Val* index, Val* new_val)
 	{
-	return Assign(index, {AdoptRef{}, new_val});
+	return Assign({NewRef{}, index}, {AdoptRef{}, new_val});
 	}
 
-bool TableVal::Assign(Val* index, HashKey* k, IntrusivePtr<Val> new_val)
+bool TableVal::Assign(IntrusivePtr<Val> index, HashKey* k, IntrusivePtr<Val> new_val)
 	{
 	bool is_set = table_type->IsSet();
 
@@ -1548,7 +1548,7 @@ bool TableVal::Assign(Val* index, HashKey* k, IntrusivePtr<Val> new_val)
 			subnets->Insert(v.get(), new_entry_val);
 			}
 		else
-			subnets->Insert(index, new_entry_val);
+			subnets->Insert(index.get(), new_entry_val);
 		}
 
 	// Keep old expiration time if necessary.
@@ -1559,8 +1559,7 @@ bool TableVal::Assign(Val* index, HashKey* k, IntrusivePtr<Val> new_val)
 
 	if ( change_func )
 		{
-		auto change_index = index ? IntrusivePtr<Val>{NewRef{}, index}
-		                          : RecoverIndex(&k_copy);
+		auto change_index = index ? std::move(index) : RecoverIndex(&k_copy);
 		auto v = old_entry_val ? old_entry_val->GetVal() : new_val;
 		CallChangeFunc(change_index.get(), v.get(), old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
 		}
@@ -1572,7 +1571,7 @@ bool TableVal::Assign(Val* index, HashKey* k, IntrusivePtr<Val> new_val)
 
 bool TableVal::Assign(Val* index, HashKey* k, Val* new_val)
 	{
-	return Assign(index, k, {AdoptRef{}, new_val});
+	return Assign({NewRef{}, index}, k, {AdoptRef{}, new_val});
 	}
 
 IntrusivePtr<Val> TableVal::SizeVal() const
@@ -1618,7 +1617,7 @@ bool TableVal::AddTo(Val* val, bool is_first_init, bool propagate_ops) const
 
 		if ( type->IsSet() )
 			{
-			if ( ! t->Assign(v->GetVal().get(), k, nullptr) )
+			if ( ! t->Assign(v->GetVal(), k, nullptr) )
 				 return false;
 			}
 		else
@@ -1762,7 +1761,7 @@ bool TableVal::ExpandAndInit(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val)
 
 	if ( index_type->Tag() != TYPE_LIST )
 		// Nothing to expand.
-		return CheckAndAssign(index.get(), std::move(new_val));
+		return CheckAndAssign(std::move(index), std::move(new_val));
 
 	ListVal* iv = index->AsListVal();
 	if ( iv->BaseTag() != TYPE_ANY )
@@ -1795,7 +1794,7 @@ bool TableVal::ExpandAndInit(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val)
 
 		if ( i >= iv->Length() )
 			// Nothing to expand.
-			return CheckAndAssign(index.get(), std::move(new_val));
+			return CheckAndAssign(std::move(index), std::move(new_val));
 		else
 			return ExpandCompoundAndInit(iv, i, std::move(new_val));
 		}
@@ -1960,21 +1959,19 @@ IntrusivePtr<TableVal> TableVal::LookupSubnetValues(const SubNetVal* search)
 	auto matches = subnets->FindAll(search);
 	for ( auto element : matches )
 		{
-		SubNetVal* s = new SubNetVal(get<0>(element));
+		auto s = make_intrusive<SubNetVal>(get<0>(element));
 		TableEntryVal* entry = reinterpret_cast<TableEntryVal*>(get<1>(element));
 
 		if ( entry && entry->GetVal() )
-			nt->Assign(s, entry->GetVal());
+			nt->Assign(std::move(s), entry->GetVal());
 		else
-			nt->Assign(s, nullptr); // set
+			nt->Assign(std::move(s), nullptr); // set
 
 		if ( entry )
 			{
 			if ( attrs && attrs->FindAttr(ATTR_EXPIRE_READ) )
 				entry->SetExpireAccess(network_time);
 			}
-
-		Unref(s); // assign does not consume index
 		}
 
 	return nt;
@@ -2294,19 +2291,19 @@ bool TableVal::ExpandCompoundAndInit(ListVal* lv, int k, IntrusivePtr<Val> new_v
 	return true;
 	}
 
-bool TableVal::CheckAndAssign(Val* index, IntrusivePtr<Val> new_val)
+bool TableVal::CheckAndAssign(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val)
 	{
 	Val* v = nullptr;
 	if ( subnets )
 		// We need an exact match here.
-		v = (Val*) subnets->Lookup(index, true);
+		v = (Val*) subnets->Lookup(index.get(), true);
 	else
-		v = Lookup(index, false).get();
+		v = Lookup(index.get(), false).get();
 
 	if ( v )
 		index->Warn("multiple initializations for index");
 
-	return Assign(index, std::move(new_val));
+	return Assign(std::move(index), std::move(new_val));
 	}
 
 void TableVal::InitDefaultFunc(Frame* f)
@@ -2655,7 +2652,7 @@ void TableVal::RebuildTable(ParseTimeTableState ptts)
 	                               table_type->Indices()));
 
 	for ( auto& [key, val] : ptts )
-		Assign(key.get(), val.release());
+		Assign(std::move(key), std::move(val));
 	}
 
 TableVal::ParseTimeTableStates TableVal::parse_time_table_states;

@@ -29,7 +29,7 @@ void TopkVal::Typify(IntrusivePtr<BroType> t)
 
 HashKey* TopkVal::GetHash(Val* v) const
 	{
-	HashKey* key = hash->ComputeHash(v, true);
+	HashKey* key = hash->ComputeHash(*v, true);
 	assert(key);
 	return key;
 	}

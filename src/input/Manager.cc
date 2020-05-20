@@ -1248,7 +1248,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 		oldval = stream->tab->Lookup(idxval, false);
 		}
 
-	HashKey* k = stream->tab->ComputeHash(idxval);
+	HashKey* k = stream->tab->ComputeHash(*idxval);
 	if ( ! k )
 		reporter->InternalError("could not hash");
 

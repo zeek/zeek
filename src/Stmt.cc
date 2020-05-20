@@ -719,7 +719,7 @@ SwitchStmt::~SwitchStmt()
 
 bool SwitchStmt::AddCaseLabelValueMapping(const Val* v, int idx)
 	{
-	HashKey* hk = comp_hash->ComputeHash(v, true);
+	HashKey* hk = comp_hash->ComputeHash(*v, true);
 
 	if ( ! hk )
 		{
@@ -763,7 +763,7 @@ std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const
 	// Find matching expression cases.
 	if ( case_label_value_map.Length() )
 		{
-		HashKey* hk = comp_hash->ComputeHash(v, true);
+		HashKey* hk = comp_hash->ComputeHash(*v, true);
 
 		if ( ! hk )
 			{

@@ -739,14 +739,14 @@ bool BloomFilterVal::Typify(IntrusivePtr<BroType> arg_type)
 
 void BloomFilterVal::Add(const Val* val)
 	{
-	HashKey* key = hash->ComputeHash(val, true);
+	HashKey* key = hash->ComputeHash(*val, true);
 	bloom_filter->Add(key);
 	delete key;
 	}
 
 size_t BloomFilterVal::Count(const Val* val) const
 	{
-	HashKey* key = hash->ComputeHash(val, true);
+	HashKey* key = hash->ComputeHash(*val, true);
 	size_t cnt = bloom_filter->Count(key);
 	delete key;
 	return cnt;
@@ -900,7 +900,7 @@ bool CardinalityVal::Typify(IntrusivePtr<BroType> arg_type)
 
 void CardinalityVal::Add(const Val* val)
 	{
-	HashKey* key = hash->ComputeHash(val, true);
+	HashKey* key = hash->ComputeHash(*val, true);
 	c->AddElement(key->Hash());
 	delete key;
 	}

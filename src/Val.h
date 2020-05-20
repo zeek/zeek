@@ -892,7 +892,11 @@ public:
 			timer = nullptr;
 		}
 
-	HashKey* ComputeHash(const Val* index) const;
+	HashKey* ComputeHash(const Val& index) const;
+
+	[[deprecated("Remove in v4.1.  Pass a Val& instead.")]]
+	HashKey* ComputeHash(const Val* index) const
+		{ return ComputeHash(*index); }
 
 	notifier::Modifiable* Modifiable() override	{ return this; }
 

@@ -333,10 +333,9 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 	}
 
 
-HashKey* CompositeHash::ComputeHash(const Val* v, bool type_check) const
+HashKey* CompositeHash::ComputeHash(const Val& argv, bool type_check) const
 	{
-	if ( ! v )
-		reporter->InternalError("null value given to CompositeHash::ComputeHash");
+	auto v = &argv;
 
 	if ( is_singleton )
 		return ComputeSingletonHash(v, type_check);
@@ -350,7 +349,7 @@ HashKey* CompositeHash::ComputeHash(const Val* v, bool type_check) const
 		// be okay; the only thing is that the ListVal unref's it.
 		Val* ncv = (Val*) v;
 		lv.Append({NewRef{}, ncv});
-		HashKey* hk = ComputeHash(&lv, type_check);
+		HashKey* hk = ComputeHash(lv, type_check);
 		return hk;
 		}
 

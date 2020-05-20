@@ -14,8 +14,12 @@ public:
 	~CompositeHash();
 
 	// Compute the hash corresponding to the given index val,
-	// or 0 if it fails to typecheck.
-	HashKey* ComputeHash(const Val* v, bool type_check) const;
+	// or nullptr if it fails to typecheck.
+	HashKey* ComputeHash(const Val& v, bool type_check) const;
+
+	[[deprecated("Remove in v4.1.  Pass a Val& instead.")]]
+	HashKey* ComputeHash(const Val* v, bool type_check) const
+		{ return ComputeHash(*v, type_check); }
 
 	// Given a hash key, recover the values used to create it.
 	IntrusivePtr<ListVal> RecoverVals(const HashKey* k) const;

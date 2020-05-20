@@ -1508,7 +1508,7 @@ void TableVal::CheckExpireAttr(attr_tag at)
 
 bool TableVal::Assign(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val)
 	{
-	HashKey* k = ComputeHash(index.get());
+	HashKey* k = ComputeHash(*index);
 	if ( ! k )
 		{
 		index->Error("index type doesn't match table", table_type->Indices());
@@ -1910,7 +1910,7 @@ IntrusivePtr<Val> TableVal::Lookup(Val* index, bool use_default_val)
 
 	if ( tbl->Length() > 0 )
 		{
-		HashKey* k = ComputeHash(index);
+		HashKey* k = ComputeHash(*index);
 		if ( k )
 			{
 			TableEntryVal* v = AsTable()->Lookup(k);
@@ -1985,7 +1985,7 @@ bool TableVal::UpdateTimestamp(Val* index)
 		v = (TableEntryVal*) subnets->Lookup(index);
 	else
 		{
-		HashKey* k = ComputeHash(index);
+		HashKey* k = ComputeHash(*index);
 		if ( ! k )
 			return false;
 
@@ -2070,7 +2070,7 @@ void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe
 
 IntrusivePtr<Val> TableVal::Delete(const Val* index)
 	{
-	HashKey* k = ComputeHash(index);
+	HashKey* k = ComputeHash(*index);
 	TableEntryVal* v = k ? AsNonConstTable()->RemoveEntry(k) : nullptr;
 	IntrusivePtr<Val> va;
 
@@ -2594,7 +2594,7 @@ unsigned int TableVal::MemoryAllocation() const
 		+ table_hash->MemoryAllocation();
 	}
 
-HashKey* TableVal::ComputeHash(const Val* index) const
+HashKey* TableVal::ComputeHash(const Val& index) const
 	{
 	return table_hash->ComputeHash(index, true);
 	}

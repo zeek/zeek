@@ -777,6 +777,7 @@ public:
 	void SetIsTemp()	{ is_temp = true; }
 
 protected:
+	const CompiledStmt DoCompile(Compiler* c, const NameExpr* lhs) const;
 	const CompiledStmt CompileAssignToIndex(Compiler* c,
 						const NameExpr* lhs,
 						const IndexExpr* rhs) const;

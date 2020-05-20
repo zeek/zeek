@@ -93,7 +93,7 @@ public:
 	bool IsUnused(const ID* id, const Stmt* where) const override;
 
 	void SyncGlobals(const BroObj* o) override;
-	void AssigningToGlobal(const ID* global_id) override;
+	const CompiledStmt AssignedToGlobal(const ID* global_id) override;
 
 	OpaqueVals* BuildVals(const IntrusivePtr<ListExpr>&) override;
 

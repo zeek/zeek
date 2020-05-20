@@ -259,7 +259,7 @@ protected:
 	void IncrementByteCount(uint64_t size, int field_idx);
 
 	/**
-	 * Wrapper to RecordVal::LookupWithDefault for the field in #val at index
+	 * Wrapper to RecordVal::GetFieldOrDefault for the field in #val at index
 	 * \a idx which automatically unrefs the Val and returns a converted value.
 	 * @param idx the index of a field of type "count" in \c fa_file.
 	 * @return the value of the field, which may be it &default.
@@ -267,7 +267,7 @@ protected:
 	uint64_t LookupFieldDefaultCount(int idx) const;
 
 	/**
-	 * Wrapper to RecordVal::LookupWithDefault for the field in #val at index
+	 * Wrapper to RecordVal::GetFieldOrDefault for the field in #val at index
 	 * \a idx which automatically unrefs the Val and returns a converted value.
 	 * @param idx the index of a field of type "interval" in \c fa_file.
 	 * @return the value of the field, which may be it &default.

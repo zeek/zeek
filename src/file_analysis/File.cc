@@ -161,13 +161,13 @@ void File::RaiseFileOverNewConnection(Connection* conn, bool is_orig)
 
 uint64_t File::LookupFieldDefaultCount(int idx) const
 	{
-	auto v = val->LookupWithDefault(idx);
+	auto v = val->GetFieldOrDefault(idx);
 	return v->AsCount();
 	}
 
 double File::LookupFieldDefaultInterval(int idx) const
 	{
-	auto v = val->LookupWithDefault(idx);
+	auto v = val->GetFieldOrDefault(idx);
 	return v->AsInterval();
 	}
 

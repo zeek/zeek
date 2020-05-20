@@ -1005,13 +1005,13 @@ Val* Manager::RecordValToIndexVal(RecordVal *r) const
 	int num_fields = type->NumFields();
 
 	if ( num_fields == 1 && type->FieldDecl(0)->type->Tag() != TYPE_RECORD  )
-		idxval = r->LookupWithDefault(0);
+		idxval = r->GetFieldOrDefault(0);
 
 	else
 		{
 		auto l = make_intrusive<ListVal>(TYPE_ANY);
 		for ( int j = 0 ; j < num_fields; j++ )
-			l->Append(r->LookupWithDefault(j));
+			l->Append(r->GetFieldOrDefault(j));
 
 		idxval = std::move(l);
 		}

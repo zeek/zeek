@@ -199,6 +199,9 @@ Deprecated Functionality
 
 - ``RecordVal::Lookup(int)`` is deprecated, use ``RecordVal::GetField(int)``.
 
+- ``RecordVal::LookupWithDefault(int)`` is deprecated, use
+  ``RecordVal::GetFieldOrDefault(int)``.
+
 Zeek 3.1.0
 ==========
 

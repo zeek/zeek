@@ -971,7 +971,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const Val* v)
 
 		for ( auto i = 0u; i < num_fields; ++i )
 			{
-			auto item_val = rec->LookupWithDefault(i);
+			auto item_val = rec->GetFieldOrDefault(i);
 
 			if ( ! item_val )
 				{

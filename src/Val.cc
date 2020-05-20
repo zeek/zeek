@@ -580,7 +580,7 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 
 			for ( auto i = 0; i < rt->NumFields(); ++i )
 				{
-				auto value = rval->LookupWithDefault(i);
+				auto value = rval->GetFieldOrDefault(i);
 
 				if ( value && ( ! only_loggable || rt->FieldHasAttr(i, ATTR_LOG) ) )
 					{
@@ -2741,7 +2741,7 @@ void RecordVal::Assign(int field, Val* new_val)
 	Assign(field, {AdoptRef{}, new_val});
 	}
 
-IntrusivePtr<Val> RecordVal::LookupWithDefault(int field) const
+IntrusivePtr<Val> RecordVal::GetFieldOrDefault(int field) const
 	{
 	const auto& val = (*AsRecord())[field];
 
@@ -2788,7 +2788,7 @@ IntrusivePtr<Val> RecordVal::Lookup(const char* field, bool with_default) const
 	if ( idx < 0 )
 		reporter->InternalError("missing record field: %s", field);
 
-	return with_default ? LookupWithDefault(idx) : GetField(idx);
+	return with_default ? GetFieldOrDefault(idx) : GetField(idx);
 	}
 
 IntrusivePtr<RecordVal> RecordVal::CoerceTo(IntrusivePtr<RecordType> t,

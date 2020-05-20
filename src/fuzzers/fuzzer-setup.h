@@ -32,6 +32,9 @@ extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 	options.scripts_to_load.emplace_back("local.zeek");
 	options.script_options_to_set.emplace_back("Site::local_nets={10.0.0.0/8}");
 	options.script_options_to_set.emplace_back("Log::default_writer=Log::WRITER_NONE");
+	options.script_options_to_set.emplace_back("Reporter::info_to_stderr=F");
+	options.script_options_to_set.emplace_back("Reporter::warnings_to_stderr=F");
+	options.script_options_to_set.emplace_back("Reporter::errors_to_stderr=F");
 	options.deterministic_mode = true;
 	options.ignore_checksums = true;
 	options.abort_on_scripting_errors = true;

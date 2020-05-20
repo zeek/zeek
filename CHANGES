@@ -1,4 +1,8 @@
 
+3.2.0-dev.555 | 2020-05-20 11:19:08 -0700
+
+  * Disable output of Reporter messages to stderr in fuzz targets (Jon Siwek, Corelight)
+
 3.2.0-dev.554 | 2020-05-20 10:56:46 -0700
 
   * Improve standalone fuzz driver timing output (Jon Siwek, Corelight)

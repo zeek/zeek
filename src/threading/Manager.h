@@ -88,6 +88,18 @@ public:
 	 */
 	void KillThreads();
 
+	/**
+	 * Allows threads to directly send Zeek events. The num_vals and vals must be
+	 * the same the named event expects. Takes ownership of threading::Value fields.
+	 *
+	 * @param thread Thread raising the event
+	 * @param name Name of event being raised
+	 * @param num_vals Number of values passed to the event
+	 * @param vals Values passed to the event
+	 * @returns True on success false on failure.
+	 */
+	bool SendEvent(MsgThread* thread, const std::string& name, const int num_vals, threading::Value* *vals) const;
+
 protected:
 	friend class BasicThread;
 	friend class MsgThread;

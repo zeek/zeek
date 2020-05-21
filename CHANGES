@@ -1,4 +1,19 @@
 
+3.2.0-dev.559 | 2020-05-21 13:04:19 -0700
+
+  * Make SendEvent callable from all threads
+
+    This commit refactors the SendEvent call and moves it from the Input
+    ReaderBackend to to MsgThread. This allows all other types of threads
+    to access this functionality.
+
+    This necessitated a few more changes. Most importantly, one of the
+    ValueToVal methods was moved over to SerialTypes. Whereit arguably
+    belongs - there was nothing that was input-framework specific in
+    that method - and the functionality could come in useful in a number
+    of cases. (Johanna Amann, Corelight)
+
+
 3.2.0-dev.557 | 2020-05-21 11:41:12 -0700
 
   * Speed up FuzzBuffer ChunkCount validity check (Justin Azoff, Corelight)

@@ -110,25 +110,26 @@ ZAMValUnion::ZAMValUnion(Val* v, BroType* t, ZAM_tracker_type* tracker,
 
 	case TYPE_VECTOR:
 		{
-		auto my_vt = t->AsVectorType();
-		auto v_vt = vt->AsVectorType();
+		auto my_ytag = t->AsVectorType()->YieldType()->Tag();
+		auto v_ytag = vt->AsVectorType()->YieldType()->Tag();
 
-		auto my_yt = my_vt->YieldType();
-		auto v_yt = v_vt->YieldType();
-
-		if ( my_yt->Tag() == TYPE_ANY && v->AsVector()->size() > 0 )
+		if ( my_ytag == TYPE_ANY && v->AsVector()->size() > 0 )
 			{
 			any_val = v->Ref();
 			break;
 			}
 
-		if ( my_yt->Tag() != v_yt->Tag() )
+		if ( my_ytag != v_ytag && my_ytag != TYPE_ANY &&
+		     v_ytag != TYPE_ANY )
 			{
-			// This can happen due to the miracle of vector-of-any.
+			// Despite the above checks, this clash can still
+			// happen thanks to the intercession of vector-of-any,
+			// which for example can allow a function to return
+			// a concrete vector-of-X that's assigned to a local
+			// with a concrete vector-of-Y type.
 			char msg[8192];
 			snprintf(msg, sizeof msg, "vector type clash: %s vs. %s",
-					type_name(my_yt->Tag()),
-					type_name(v_yt->Tag()));
+					type_name(my_ytag), type_name(v_ytag));
 			ZAM_run_time_error(error, o, msg);
 			vector_val = nullptr;
 			}

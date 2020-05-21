@@ -93,10 +93,15 @@ union ZAMValUnion {
 
 // True if a given type is one that we treat internally as an "any" type.
 extern bool IsAny(const BroType* t);
+// Same for vector-of-any.
+extern bool IsAnyVec(const BroType* t);
 
-// Convenience functions for getting to this.
+// Convenience functions for getting to these.
 inline bool IsAny(const IntrusivePtr<BroType>& t) { return IsAny(t.get()); }
 inline bool IsAny(const Expr* e) { return IsAny(e->Type()); }
+
+inline bool IsAnyVec(const IntrusivePtr<BroType>& t) { return IsAnyVec(t.get()); }
+inline bool IsAnyVec(const Expr* e) { return IsAnyVec(e->Type()); }
 
 // True if a given type is one for which we manage the associated
 // memory internally.

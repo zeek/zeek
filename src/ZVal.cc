@@ -15,9 +15,11 @@ ZAM_tracker_type* curr_ZAM_VM_Tracker;
 
 bool IsAny(const BroType* t)
 	{
-	if ( t->Tag() == TYPE_ANY )
-		return true;
+	return t->Tag() == TYPE_ANY;
+	}
 
+bool IsAnyVec(const BroType* t)
+	{
 	if ( t->Tag() != TYPE_VECTOR )
 		return false;
 
@@ -203,11 +205,7 @@ IntrusivePtr<Val> ZAMValUnion::ToVal(BroType* t) const
 
 	case TYPE_PORT:		v = val_mgr->GetPort(uint_val); break;
 
-	case TYPE_VECTOR:
-		if ( t->AsVectorType()->YieldType()->Tag() == TYPE_ANY )
-			return {NewRef{}, any_val};
-		else
-			return ToVector(t);
+	case TYPE_VECTOR:	return ToVector(t);
 
 	case TYPE_ANY:		return {NewRef{}, any_val};
 
@@ -249,6 +247,8 @@ IntrusivePtr<VectorVal> ZAMValUnion::ToVector(BroType* t) const
 	if ( ! actual_yt )
 		actual_yt = yt;
 
+	auto is_any = actual_yt->Tag() == TYPE_ANY;
+
 	v = make_intrusive<VectorVal>(vt);
 	for ( int i = 0; i < n; ++i )
 		{
@@ -257,7 +257,13 @@ IntrusivePtr<VectorVal> ZAMValUnion::ToVector(BroType* t) const
 		if ( vr.IsNil(actual_yt) )
 			continue;
 
-		v->Assign(i, vr.ToVal(actual_yt));
+		IntrusivePtr<Val> v_i;
+		if ( is_any )
+			v_i = {NewRef{}, vr.any_val};
+		else
+			v_i = vr.ToVal(actual_yt);
+
+		v->Assign(i, v_i);
 		}
 
 	vector_val->SetVecVal(v.get());

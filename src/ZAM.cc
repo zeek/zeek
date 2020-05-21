@@ -541,7 +541,7 @@ const CompiledStmt ZAM::VectorCoerce(const NameExpr* n, const Expr* e)
 	auto op = e->GetOp1()->AsNameExpr();
 	int op_slot = FrameSlot(op);
 
-	auto zop = IsAny(n) ? OP_ANY_VECTOR_COERCE_VV : OP_VECTOR_COERCE_VV;
+	auto zop = OP_VECTOR_COERCE_VV;
 	ZInst z(zop, Frame1Slot(n, zop), op_slot);
 	z.t = e->Type().get();
 
@@ -1036,7 +1036,7 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 	auto op3 = index_assign->GetOp3();
 
 	auto lhs = op1->AsNameExpr();
-	auto is_any = IsAny(lhs);
+	auto is_any = IsAnyVec(lhs);
 
 	if ( op2->Tag() == EXPR_CONST && op3->Tag() == EXPR_CONST )
 		{
@@ -1135,7 +1135,7 @@ const CompiledStmt ZAM::LoopOverVector(const ForStmt* f, const NameExpr* val)
 	auto loop_vars = f->LoopVars();
 	auto loop_var = (*loop_vars)[0];
 
-	bool is_any = IsAny(val);
+	bool is_any = IsAnyVec(val);
 
 	auto info = NewSlot();
 	auto z = ZInst(is_any ? OP_INIT_ANY_VECTOR_LOOP_VV :
@@ -1544,7 +1544,7 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
 		if ( n2tag == TYPE_VECTOR )
 			{
 			int n2_slot = FrameSlot(n2);
-			bool is_any = IsAny(n2);
+			bool is_any = IsAnyVec(n2);
 
 			if ( n3 )
 				{

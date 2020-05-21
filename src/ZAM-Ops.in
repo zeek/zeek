@@ -640,12 +640,6 @@ eval auto vv_p = make_intrusive<VectorVal>(t)
 eval delete frame[z.v1].vector_val
 eval frame[z.v1].vector_val = to_ZAM_vector(vv_p.get(), &ZAM_VM_Tracker, false)
 
-internal-op Any-Vector-Coerce
-type VV
-eval auto& vec = frame[z.v2].vector_val->ConstVec()
-eval if ( vec->size() > 0 ) { ZAM_run_time_error(error_flag, z.stmt, "coercion of non-empty vector"); break; }
-eval frame[z.v1].any_val = frame[z.v2].ToVal(z.t).release()
-
 ########## Aggregate Assignments ##########
 
 op Vector-Elem-Assign

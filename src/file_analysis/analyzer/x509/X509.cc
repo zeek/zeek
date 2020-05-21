@@ -61,8 +61,8 @@ bool file_analysis::X509::EndOfFile()
 				return false;
 			// yup, let's call the callback.
 
-			cache_hit_callback->Call(IntrusivePtr{NewRef{}, GetFile()->GetVal()},
-			                         entry, make_intrusive<StringVal>(cert_sha256));
+			cache_hit_callback->operator()(IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+			                               entry, make_intrusive<StringVal>(cert_sha256));
 			return false;
 			}
 		}

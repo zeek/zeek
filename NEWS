@@ -104,10 +104,10 @@ Removed Functionality
 Deprecated Functionality
 ------------------------
 
-- The ``Func::Call(val_list*, ...)`` method is now deprecated.  The alternate
-  overload taking a ``zeek::Args`` (``std::vector<IntrusivePtr<Val>>``) should
-  be used instead.  There's also now a variadic template that forwards all
-  arguments.
+- The ``Func::Call(val_list*, ...)`` method is now deprecated.  Use operator()
+  instead which takes a ``zeek::Args`` (``std::vector<IntrusivePtr<Val>>``).
+  There's also a variadic template for operator() that forwards all arguments
+  into a ``zeek::Args`` for you.
 
 - The ``EventMgr::QueueEvent()`` and EventMgr::QueueEventFast()`` methods
   are now deprecated, use ``EventMgr::Enqueue()`` instead.

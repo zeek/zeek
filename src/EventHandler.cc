@@ -115,7 +115,7 @@ void EventHandler::Call(const zeek::Args& vl, bool no_remote)
 
 	if ( local )
 		// No try/catch here; we pass exceptions upstream.
-		local->Call(vl);
+		local->operator()(vl);
 	}
 
 void EventHandler::NewEvent(const zeek::Args& vl)

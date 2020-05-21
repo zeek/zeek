@@ -1338,8 +1338,8 @@ bool sort_function(Val* a, Val* b)
 	if ( ! b )
 		return 1;
 
-	auto result = sort_function_comp->Call(IntrusivePtr{NewRef{}, a},
-	                                       IntrusivePtr{NewRef{}, b});
+	auto result = sort_function_comp->operator()(IntrusivePtr{NewRef{}, a},
+	                                             IntrusivePtr{NewRef{}, b});
 	int int_result = result->CoerceToInt();
 
 	return int_result < 0;

@@ -552,8 +552,8 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 	std::string serial_data(data, len);
 	free(data);
 
-	auto v = log_topic_func->Call(IntrusivePtr{NewRef{}, stream},
-	                              make_intrusive<StringVal>(path));
+	auto v = log_topic_func->operator()(IntrusivePtr{NewRef{}, stream},
+	                                    make_intrusive<StringVal>(path));
 
 	if ( ! v )
 		{

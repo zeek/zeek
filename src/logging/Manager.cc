@@ -721,7 +721,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 			// See whether the predicates indicates that we want
 			// to log this record.
 			int result = 1;
-			auto v = filter->pred->Call(columns);
+			auto v = filter->pred->operator()(columns);
 
 			if ( v )
 				result = v->AsBool();
@@ -748,9 +748,9 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 				// Can be TYPE_ANY here.
 				rec_arg = columns;
 
-			auto v = filter->path_func->Call(IntrusivePtr{NewRef{}, id},
-			                                 std::move(path_arg),
-			                                 std::move(rec_arg));
+			auto v = filter->path_func->operator()(IntrusivePtr{NewRef{}, id},
+			                                       std::move(path_arg),
+			                                       std::move(rec_arg));
 
 			if ( ! v )
 				return false;
@@ -1054,7 +1054,7 @@ threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
 
 	if ( filter->num_ext_fields > 0 )
 		{
-		auto res = filter->ext_func->Call(IntrusivePtr{NewRef{}, filter->path_val});
+		auto res = filter->ext_func->operator()(IntrusivePtr{NewRef{}, filter->path_val});
 
 		if ( res )
 			ext_rec = {AdoptRef{}, res.release()->AsRecordVal()};
@@ -1531,7 +1531,7 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 	// Call the postprocessor function.
 	int result = 0;
 
-	auto v = func->Call(std::move(info));
+	auto v = func->operator()(std::move(info));
 	if ( v )
 		result = v->AsBool();
 

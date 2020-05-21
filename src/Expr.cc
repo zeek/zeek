@@ -4144,7 +4144,7 @@ IntrusivePtr<Val> CallExpr::Eval(Frame* f) const
 		if ( f )
 			f->SetCall(this);
 
-		ret = funcv->Call(*v, f);
+		ret = funcv->operator()(*v, f);
 
 		if ( f )
 			f->SetCall(current_call);

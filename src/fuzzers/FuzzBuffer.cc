@@ -6,7 +6,7 @@
 
 #include "FuzzBuffer.h"
 
-bool zeek::detail::FuzzBuffer::Valid() const
+bool zeek::detail::FuzzBuffer::Valid(int chunk_count_limit) const
 	{
 	if ( end - begin < PKT_MAGIC_LEN + 2 )
 		return false;
@@ -14,7 +14,29 @@ bool zeek::detail::FuzzBuffer::Valid() const
 	if ( memcmp(begin, PKT_MAGIC, PKT_MAGIC_LEN) != 0)
 		return false;
 
+	if ( ExceedsChunkLimit(chunk_count_limit) )
+		return false;
+
 	return true;
+	}
+
+int zeek::detail::FuzzBuffer::ChunkCount(int chunk_count_limit) const
+	{
+	auto pos = begin;
+	int chunks = 0;
+
+	while ( pos < end && (chunks < chunk_count_limit || chunk_count_limit == 0) )
+		{
+		pos = (const unsigned char*)memmem(pos, end - pos,
+		                                   PKT_MAGIC, PKT_MAGIC_LEN);
+		if ( ! pos )
+			break;
+
+		pos += PKT_MAGIC_LEN + 1;
+		chunks++;
+		}
+
+	return chunks;
 	}
 
 std::optional<zeek::detail::FuzzBuffer::Chunk> zeek::detail::FuzzBuffer::Next()

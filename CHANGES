@@ -1,4 +1,24 @@
 
+3.2.0-dev.557 | 2020-05-21 11:41:12 -0700
+
+  * Speed up FuzzBuffer ChunkCount validity check (Justin Azoff, Corelight)
+
+3.2.0-dev.555 | 2020-05-20 11:19:08 -0700
+
+  * Disable output of Reporter messages to stderr in fuzz targets (Jon Siwek, Corelight)
+
+3.2.0-dev.554 | 2020-05-20 10:56:46 -0700
+
+  * Improve standalone fuzz driver timing output (Jon Siwek, Corelight)
+
+  * Skip fuzz inputs that have more than 64 chunks (Justin Azoff, Corelight)
+
+3.2.0-dev.550 | 2020-05-19 10:50:42 -0700
+
+  * Upgrade to latest Broker changes for CAF 0.18 (Dominik Charousset, Corelight)
+
+  * Include pcap.h instead of pcap/dlt.h in packet-fuzzer (Tim Wojtulewicz, Corelight)
+
 3.2.0-dev.547 | 2020-05-18 10:47:54 -0700
 
   * add packet fuzzer (Justin Azoff)

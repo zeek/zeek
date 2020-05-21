@@ -17,6 +17,7 @@ int main(int argc, char** argv)
 	printf("Standalone fuzzer processing %d inputs\n", num_inputs);
 
 	LLVMFuzzerInitialize(&argc, &argv);
+	auto fuzz_start = high_resolution_clock::now();
 
 	for ( auto i = 0; i < num_inputs; ++i )
 		{
@@ -60,5 +61,7 @@ int main(int argc, char** argv)
 
 	auto agg_stop = high_resolution_clock::now();
 	auto agg_dt = duration<double>(agg_stop - agg_start).count();
-	printf("Processed %d inputs in %fs\n", num_inputs, agg_dt);
+	auto fuzz_dt = duration<double>(agg_stop - fuzz_start).count();
+	printf("Processed %d inputs in %fs (%fs w/ initialization), avg = %fs\n",
+	       num_inputs, fuzz_dt, agg_dt, fuzz_dt / num_inputs);
 	}

@@ -86,13 +86,13 @@ broker::backend to_backend_type(BifEnum::Broker::BackendType type)
 	{
 	switch ( type ) {
 	case BifEnum::Broker::MEMORY:
-		return broker::memory;
+		return broker::backend::memory;
 
 	case BifEnum::Broker::SQLITE:
-		return broker::sqlite;
+		return broker::backend::sqlite;
 
 	case BifEnum::Broker::ROCKSDB:
-		return broker::rocksdb;
+		return broker::backend::rocksdb;
 	}
 
 	throw std::runtime_error("unknown broker backend");
@@ -102,14 +102,14 @@ broker::backend_options to_backend_options(broker::backend backend,
                                            RecordVal* options)
 	{
 	switch ( backend ) {
-	case broker::sqlite:
+	case broker::backend::sqlite:
 		{
 		auto path = options->GetField(0)->AsRecordVal()
 			->GetField(0)->AsStringVal()->CheckString();
 		return {{"path", path}};
 		}
 
-	case broker::rocksdb:
+	case broker::backend::rocksdb:
 		{
 		auto path = options->GetField(1)->AsRecordVal()
 			->GetField(0)->AsStringVal()->CheckString();

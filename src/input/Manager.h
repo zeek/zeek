@@ -118,7 +118,6 @@ protected:
 	friend class PutMessage;
 	friend class DeleteMessage;
 	friend class ClearMessage;
-	friend class SendEventMessage;
 	friend class SendEntryMessage;
 	friend class EndCurrentSendMessage;
 	friend class ReaderClosedMessage;
@@ -141,11 +140,6 @@ protected:
 	// threading::Value fields.
 	void SendEntry(ReaderFrontend* reader, threading::Value* *vals);
 	void EndCurrentSend(ReaderFrontend* reader);
-
-	// Allows readers to directly send Bro events. The num_vals and vals
-	// must be the same the named event expects. Takes ownership of
-	// threading::Value fields.
-	bool SendEvent(ReaderFrontend* reader, const std::string& name, const int num_vals, threading::Value* *vals) const;
 
 	// Instantiates a new ReaderBackend of the given type (note that
 	// doing so creates a new thread!).
@@ -227,13 +221,8 @@ private:
 	// startpos.
 	int CopyValue(char *data, const int startpos, const threading::Value* val) const;
 
-	// Convert Threading::Value to an internal Bro Type (works also with
-	// Records).
+	// Convert Threading::Value to an internal Bro Type (works with Records).
 	Val* ValueToVal(const Stream* i, const threading::Value* val, BroType* request_type, bool& have_error) const;
-
-	// Convert Threading::Value to an internal Bro type just using the information given in the threading::Value.
-	// This allows more flexibility, especially given structures in script-land that contain any types.
-	Val* ValueToVal(const Stream* i, const threading::Value* val, bool& have_error) const;
 
 	// Convert Threading::Value to an internal Bro list type.
 	Val* ValueToIndexVal(const Stream* i, int num_fields, const RecordType* type, const threading::Value* const *vals, bool& have_error) const;

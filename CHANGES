@@ -1,4 +1,59 @@
 
+3.2.0-dev.561 | 2020-05-21 13:05:39 -0700
+
+  * GH-983: Fix opaque Broker types lacking a Type after (de)serialization (Jon Siwek, Corelight)
+
+3.2.0-dev.559 | 2020-05-21 13:04:19 -0700
+
+  * Make SendEvent callable from all threads
+
+    This commit refactors the SendEvent call and moves it from the Input
+    ReaderBackend to to MsgThread. This allows all other types of threads
+    to access this functionality.
+
+    This necessitated a few more changes. Most importantly, one of the
+    ValueToVal methods was moved over to SerialTypes. Whereit arguably
+    belongs - there was nothing that was input-framework specific in
+    that method - and the functionality could come in useful in a number
+    of cases. (Johanna Amann, Corelight)
+
+3.2.0-dev.557 | 2020-05-21 11:41:12 -0700
+
+  * Speed up FuzzBuffer ChunkCount validity check (Justin Azoff, Corelight)
+
+3.2.0-dev.555 | 2020-05-20 11:19:08 -0700
+
+  * Disable output of Reporter messages to stderr in fuzz targets (Jon Siwek, Corelight)
+
+3.2.0-dev.554 | 2020-05-20 10:56:46 -0700
+
+  * Improve standalone fuzz driver timing output (Jon Siwek, Corelight)
+
+  * Skip fuzz inputs that have more than 64 chunks (Justin Azoff, Corelight)
+
+3.2.0-dev.550 | 2020-05-19 10:50:42 -0700
+
+  * Upgrade to latest Broker changes for CAF 0.18 (Dominik Charousset, Corelight)
+
+  * Include pcap.h instead of pcap/dlt.h in packet-fuzzer (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.547 | 2020-05-18 10:47:54 -0700
+
+  * add packet fuzzer (Justin Azoff)
+
+  * Fix building fuzz targets on macOS (Jon Siwek, Corelight)
+
+  * Highwayhash: small build fix (Johanna Amann, Corelight)
+
+    Turns out that hh_neon should not be compiled on generic arm CPUs.
+    That one is only for aarch64.
+
+3.2.0-dev.539 | 2020-05-15 19:47:55 +0000
+
+  * Replace bzero() with memset() (Noah Treuhaft)
+
+  * Change Coverity action to output build log (Jon Siwek, Corelight)
+
 3.2.0-dev.530 | 2020-05-13 15:05:31 -0700
 
   * GH-906: Fix the regex in url.zeek to better match for find_all_urls (Tim Wojtulewicz, Corelight)

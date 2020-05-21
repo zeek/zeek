@@ -27,6 +27,7 @@ public:
 
 	static constexpr int PKT_MAGIC_LEN = 4;
 	static constexpr unsigned char PKT_MAGIC[PKT_MAGIC_LEN + 1] = "\1PKT";
+	static constexpr int MAX_CHUNK_COUNT = 64;
 
 	/**
 	 * Initialize fuzz buffer.
@@ -39,9 +40,25 @@ public:
 
 	/**
 	 * @return  whether the fuzz buffer object is valid --  has enough bytes
-	 * to Deliver to an analyzer and starts with a *PKT_MAGIC* bytestring.
+	 * to Deliver to an analyzer, starts with a *PKT_MAGIC* bytestring, and
+	 * contains less than the limiting number of chunk.
+	 * .
 	 */
-	bool Valid() const;
+	bool Valid(int chunk_count_limit = MAX_CHUNK_COUNT) const;
+
+	/**
+	 * @param chunk_count_limit  Number of chunks to stop counting at (zero
+	 * means "never stop").
+	 * @return  the number of chunks in the fuzz buffer object
+	 */
+	int ChunkCount(int chunk_count_limit = 0) const;
+
+	/**
+	 * @param  Maximum number of chunks to permit the FuzzBuffer to have.
+	 * @return  Whether the FuzzBuffer exceeds the desired chunk count limit.
+	 */
+	bool ExceedsChunkLimit(int chunk_count_limit) const
+		{ return ChunkCount(chunk_count_limit + 1) > chunk_count_limit; }
 
 	/**
 	 * @return  the next chunk to deliver, if one could be extracted

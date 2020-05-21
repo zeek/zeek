@@ -338,9 +338,6 @@ set(HH_SRCS
 if (${COMPILER_ARCHITECTURE} STREQUAL "arm")
   set_source_files_properties(${HH_SRCS} PROPERTIES COMPILE_FLAGS
                               -mfloat-abi=hard -march=armv7-a -mfpu=neon)
-  list(APPEND HH_SRCS
-       ../aux/highwayhash/highwayhash/hh_neon.cc
-  )
 elseif (${COMPILER_ARCHITECTURE} STREQUAL "aarch64")
   list(APPEND HH_SRCS
        ../aux/highwayhash/highwayhash/hh_neon.cc

@@ -2911,7 +2911,7 @@ void RecordVal::Describe(ODesc* d) const
 		{
 		record_type->Describe(d);
 		d->SP();
-		d->Add(n);
+		d->Add(static_cast<uint64_t>(n));
 		d->SP();
 		}
 	else

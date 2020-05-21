@@ -1561,8 +1561,8 @@ bool TableVal::Assign(IntrusivePtr<Val> index, std::unique_ptr<HashKey> k,
 	if ( change_func )
 		{
 		auto change_index = index ? std::move(index) : RecreateIndex(k_copy);
-		auto v = old_entry_val ? old_entry_val->GetVal() : new_entry_val->GetVal();
-		CallChangeFunc(change_index.get(), v.get(), old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
+		const auto& v = old_entry_val ? old_entry_val->GetVal() : new_entry_val->GetVal();
+		CallChangeFunc(change_index.get(), v, old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
 		}
 
 	delete old_entry_val;
@@ -2030,7 +2030,9 @@ IntrusivePtr<ListVal> TableVal::RecreateIndex(const HashKey& k) const
 	return table_hash->RecoverVals(k);
 	}
 
-void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe)
+void TableVal::CallChangeFunc(const Val* index,
+                              const IntrusivePtr<Val>& old_value,
+                              OnChangeType tpe)
 	{
 	if ( ! change_func || ! index || in_change_func )
 		return;
@@ -2079,7 +2081,7 @@ void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe
 			vl.emplace_back(v);
 
 		if ( table_type->IsTable() )
-			vl.emplace_back(NewRef{}, old_value);
+			vl.emplace_back(old_value);
 
 		in_change_func = true;
 		f->operator()(vl);
@@ -2108,7 +2110,7 @@ IntrusivePtr<Val> TableVal::Remove(const Val& index)
 	Modified();
 
 	if ( change_func )
-		CallChangeFunc(&index, va.get(), ELEMENT_REMOVED);
+		CallChangeFunc(&index, va, ELEMENT_REMOVED);
 
 	return va;
 	}
@@ -2136,7 +2138,7 @@ IntrusivePtr<Val> TableVal::Remove(const HashKey& k)
 	if ( change_func && va )
 		{
 		auto index = table_hash->RecoverVals(k);
-		CallChangeFunc(index.get(), va.get(), ELEMENT_REMOVED);
+		CallChangeFunc(index.get(), va, ELEMENT_REMOVED);
 		}
 
 	return va;
@@ -2439,7 +2441,7 @@ void TableVal::DoExpire(double t)
 				{
 				if ( ! idx )
 					idx = RecreateIndex(*k);
-				CallChangeFunc(idx.get(), v->GetVal().get(), ELEMENT_EXPIRED);
+				CallChangeFunc(idx.get(), v->GetVal(), ELEMENT_EXPIRED);
 				}
 
 			delete v;

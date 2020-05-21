@@ -1017,7 +1017,8 @@ protected:
 	enum OnChangeType { ELEMENT_NEW, ELEMENT_CHANGED, ELEMENT_REMOVED, ELEMENT_EXPIRED };
 
 	// Calls &change_func. Does not take ownership of values. (Refs if needed).
-	void CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe);
+	void CallChangeFunc(const Val* index, const IntrusivePtr<Val>& old_value,
+	                    OnChangeType tpe);
 
 	IntrusivePtr<Val> DoClone(CloneState* state) override;
 

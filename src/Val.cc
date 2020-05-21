@@ -1532,7 +1532,7 @@ bool TableVal::Assign(IntrusivePtr<Val> index, std::unique_ptr<HashKey> k,
 	if ( (is_set && new_val) || (! is_set && ! new_val) )
 		InternalWarning("bad set/table in TableVal::Assign");
 
-	TableEntryVal* new_entry_val = new TableEntryVal(new_val);
+	TableEntryVal* new_entry_val = new TableEntryVal(std::move(new_val));
 	HashKey k_copy(k->Key(), k->Size(), k->Hash());
 	TableEntryVal* old_entry_val = AsNonConstTable()->Insert(k.get(), new_entry_val);
 
@@ -1561,7 +1561,7 @@ bool TableVal::Assign(IntrusivePtr<Val> index, std::unique_ptr<HashKey> k,
 	if ( change_func )
 		{
 		auto change_index = index ? std::move(index) : RecreateIndex(k_copy);
-		auto v = old_entry_val ? old_entry_val->GetVal() : new_val;
+		auto v = old_entry_val ? old_entry_val->GetVal() : new_entry_val->GetVal();
 		CallChangeFunc(change_index.get(), v.get(), old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
 		}
 

@@ -1,4 +1,8 @@
 
+3.2.0-dev.557 | 2020-05-21 11:41:12 -0700
+
+  * Speed up FuzzBuffer ChunkCount validity check (Justin Azoff, Corelight)
+
 3.2.0-dev.555 | 2020-05-20 11:19:08 -0700
 
   * Disable output of Reporter messages to stderr in fuzz targets (Jon Siwek, Corelight)

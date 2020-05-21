@@ -13,6 +13,10 @@ vector of mixed-any
 	e.g. language.index-assignment-invalid (expects it to fail)
 		vs. language.type-check-vector
 
+assigning vector-of-any (that's actually vector-of-string) to
+	local explicitly typed as vector-of-count works in the interpreter
+	and *changes the local's type* to vector-of-string
+
 same_object() on atomic types
 
 need to track NewSlot() denizens in case they require memory management

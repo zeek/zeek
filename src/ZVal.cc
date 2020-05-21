@@ -69,11 +69,12 @@ ZAMValUnion::ZAMValUnion(Val* v, BroType* t, ZAM_tracker_type* tracker,
 		}
 
 	auto vu = v->val;
+	auto vt = v->Type();
 
-	if ( v->Type()->Tag() != t->Tag() && t->Tag() != TYPE_ANY )
+	if ( vt->Tag() != t->Tag() && t->Tag() != TYPE_ANY )
 		{
 		if ( t->InternalType() == TYPE_INTERNAL_OTHER ||
-		     t->InternalType() != v->Type()->InternalType() )
+		     t->InternalType() != vt->InternalType() )
 			reporter->InternalError("type inconsistency in ZAMValUnion constructor");
 		}
 
@@ -106,12 +107,34 @@ ZAMValUnion::ZAMValUnion(Val* v, BroType* t, ZAM_tracker_type* tracker,
 	case TYPE_TABLE:	table_val = v->AsTableVal(); break;
 
 	case TYPE_VECTOR:
-		if ( t->AsVectorType()->YieldType()->Tag() == TYPE_ANY &&
-		     v->AsVector()->size() > 0 )
+		{
+		auto my_vt = t->AsVectorType();
+		auto v_vt = vt->AsVectorType();
+
+		auto my_yt = my_vt->YieldType();
+		auto v_yt = v_vt->YieldType();
+
+		if ( my_yt->Tag() == TYPE_ANY && v->AsVector()->size() > 0 )
+			{
 			any_val = v->Ref();
+			break;
+			}
+
+		if ( my_yt->Tag() != v_yt->Tag() )
+			{
+			// This can happen due to the miracle of vector-of-any.
+			char msg[8192];
+			snprintf(msg, sizeof msg, "vector type clash: %s vs. %s",
+					type_name(my_yt->Tag()),
+					type_name(v_yt->Tag()));
+			ZAM_run_time_error(error, o, msg);
+			vector_val = nullptr;
+			}
 		else
 			vector_val = to_ZAM_vector(v, tracker, true);
+
 		break;
+		}
 
 	case TYPE_STRING:
 		string_val = new BroString(*v->AsString());

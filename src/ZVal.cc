@@ -270,7 +270,10 @@ ZAMVectorMgr::ZAMVectorMgr(std::shared_ptr<ZAM_vector> _vec, VectorVal* _v,
 		{
 		if ( v->Size() > 0 )
 			{
-			auto elem0 = v->Lookup(0);
+			// If we use a bare 0 in the call to Lookup, effin'
+			// C++ selects the Val* version of Lookup.  Geez.
+			unsigned int zee_row = 0;
+			auto elem0 = v->Lookup(zee_row);
 			yt = elem0->Type();
 			}
 		else

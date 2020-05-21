@@ -292,7 +292,10 @@ expr-op Field
 type R
 eval auto v = frame[z.v2].record_val->LookupWithDefault(z.v3)
 eval if ( ! v ) z.e->RuntimeError("field value missing")
-eval else AssignV1(BuildVal(v, z.t, z.stmt))
+eval else {
+eval	if ( IsAny(z.t) ) frame[z.v1].any_val = v.release()
+eval	else AssignV1(BuildVal(v, z.t, z.stmt))
+eval }
 
 expr-op Has-Field
 type Ri

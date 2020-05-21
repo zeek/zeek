@@ -1,4 +1,8 @@
 
+3.2.0-dev.561 | 2020-05-21 13:05:39 -0700
+
+  * GH-983: Fix opaque Broker types lacking a Type after (de)serialization (Jon Siwek, Corelight)
+
 3.2.0-dev.559 | 2020-05-21 13:04:19 -0700
 
   * Make SendEvent callable from all threads
@@ -12,7 +16,6 @@
     belongs - there was nothing that was input-framework specific in
     that method - and the functionality could come in useful in a number
     of cases. (Johanna Amann, Corelight)
-
 
 3.2.0-dev.557 | 2020-05-21 11:41:12 -0700
 

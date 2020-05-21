@@ -374,13 +374,13 @@ function build_op_combo(op1, j, k)
 	for ( i in op_types )
 		{
 		sel = eval_selector[i]
-		ex = expand_eval(eval[sel], "", expr_op, i, i, j, k)
+		ex = expand_eval(eval[sel], eval_pre, expr_op, i, i, j, k)
 		build_op(op, "V" op1 op2, i, i, eval[sel], ex, j, k)
 		}
 
 	if ( mix_eval )
 		{
-		ex = expand_eval(mix_eval, "", expr_op, ev_mix1, ev_mix2, j, k)
+		ex = expand_eval(mix_eval, eval_pre, expr_op, ev_mix1, ev_mix2, j, k)
 		build_op(op, "V" op1 op2, ev_mix1, ev_mix2, mix_eval, ex, j, k)
 		}
 	}

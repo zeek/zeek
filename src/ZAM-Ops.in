@@ -173,7 +173,7 @@ op-type I U D
 set-expr $1
 vector
 #
-eval-pre if ( $2 == 0 ) ZAM_run_time_error(error_flag, z.stmt, "division by zero")
+eval-pre if ( $2 == 0 ) { ZAM_run_time_error(error_flag, z.stmt, "division by zero"); break; }
 eval $1 / $2
 #
 eval-mixed A I auto mask = static_cast<uint32_t>($2)
@@ -189,7 +189,7 @@ eval-mixed A I /* Note, $$ is ignored but mentioned here so templator backs off 
 binary-expr-op Mod
 op-type I U
 vector
-eval-pre if ( $2 == 0 ) ZAM_run_time_error(error_flag, z.stmt, "modulo by zero")
+eval-pre if ( $2 == 0 ) { ZAM_run_time_error(error_flag, z.stmt, "modulo by zero"); break; }
 eval $1 % $2
 
 binary-expr-op And-And

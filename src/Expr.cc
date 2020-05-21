@@ -2756,7 +2756,7 @@ void IndexExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 			VectorVal* v_vect = v->AsVectorVal();
 
 			for ( auto idx = 0u; idx < v_vect->Size(); idx++, first++ )
-				v1_vect->Insert(first, v_vect->Lookup(idx)->Ref());
+				v1_vect->Insert(first, {NewRef{}, v_vect->Lookup(idx)});
 			}
 		else if ( ! v1_vect->Assign(lv->Idx(0)->CoerceToUnsigned(), std::move(v)) )
 			{

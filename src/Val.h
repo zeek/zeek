@@ -1309,8 +1309,19 @@ public:
 
 	notifier::Modifiable* Modifiable() override	{ return this; }
 
-	// Insert an element at a specific position into the underlying vector.
-	bool Insert(unsigned int index, Val* element);
+	/**
+	 * Inserts an element at the given position in the vector.  All elements
+	 * at that original position and higher are shifted up by one.
+	 * @param index  The index to insert the element at.
+	 * @param element  The value to insert into the vector.
+	 * @return  True if the element was inserted or false if the element was
+	 * the wrong type.
+	 */
+	bool Insert(unsigned int index, IntrusivePtr<Val> element);
+
+	[[deprecated("Remove in v4.1.  Insert an IntrusivePtr instead.")]]
+	bool Insert(unsigned int index, Val* element)
+		{ return Insert(index, {AdoptRef{}, element}); }
 
 	// Removes an element at a specific position.
 	bool Remove(unsigned int index);

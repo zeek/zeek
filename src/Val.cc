@@ -3092,12 +3092,11 @@ bool VectorVal::AssignRepeat(unsigned int index, unsigned int how_many,
 	return true;
 	}
 
-bool VectorVal::Insert(unsigned int index, Val* element)
+bool VectorVal::Insert(unsigned int index, IntrusivePtr<Val> element)
 	{
 	if ( element &&
 	     ! same_type(element->GetType().get(), GetType()->AsVectorType()->Yield().get(), false) )
 		{
-		Unref(element);
 		return false;
 		}
 
@@ -3111,7 +3110,7 @@ bool VectorVal::Insert(unsigned int index, Val* element)
 	// Note: we do *not* Ref() the element, if any, at this point.
 	// AssignExpr::Eval() already does this; other callers must remember
 	// to do it similarly.
-	val.vector_val->insert(it, element);
+	val.vector_val->insert(it, element.release());
 
 	Modified();
 	return true;

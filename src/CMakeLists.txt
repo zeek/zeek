@@ -210,6 +210,7 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/CompilerBaseDefs.h
                           ${CMAKE_CURRENT_BINARY_DIR}/CompilerOpsExprsDefsV.h
                           ${CMAKE_CURRENT_BINARY_DIR}/ZAM-SubDefs.h
                           ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpsDefs.h
+                          ${CMAKE_CURRENT_BINARY_DIR}/ZAM-Op1FlavorsDefs.h
                           ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpsNamesDefs.h
                           ${CMAKE_CURRENT_BINARY_DIR}/ZAM-OpsEvalDefs.h
                           ${CMAKE_CURRENT_BINARY_DIR}/ZAM-Vec1EvalDefs.h

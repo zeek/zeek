@@ -14,6 +14,11 @@ static const char* abstract_op_name(ZOp op)
 	}
 
 
+ZAMOp1Flavor op1_flavor[] = { OP1_INTERNAL,
+#include "ZAM-Op1FlavorsDefs.h"
+};
+
+
 int ZInst::NumFrameSlots() const
 	{
 	switch ( op_type ) {

@@ -11,6 +11,7 @@ BEGIN	{
 	sub_class_f = "ZAM-SubDefs.h"
 	ops_f = "ZAM-OpsDefs.h"
 	ops_names_f = "ZAM-OpsNamesDefs.h"
+	op1_flavors_f = "ZAM-Op1FlavorsDefs.h"
 	ops_direct_f = "CompilerOpsDirectDefs.h"
 	ops_eval_f = "ZAM-OpsEvalDefs.h"
 	vec1_eval_f = "ZAM-Vec1EvalDefs.h"
@@ -154,6 +155,11 @@ $1 == "internal-op"	{ dump_op(); op = $2; internal_op = 1; next }
 $1 == "internal-binary-op" {
 	dump_op(); op = $2; binary_op = internal_op = 1; next
 	}
+
+$1 == "op1-read"	{ op1_flavor = "OP1_READ"; next }
+$1 == "op1-write"	{ op1_flavor = "OP1_WRITE"; next }
+$1 == "op1-read-write"	{ op1_flavor = "OP1_READ_WRITE"; next }
+$1 == "op1-internal"	{ op1_flavor = "OP1_INTERNAL"; next }
 
 $1 == "op-accessor"	{ op1_accessor = op2_accessor = $2; next }
 $1 == "op1-accessor"	{ op1_accessor = $2; next }
@@ -547,6 +553,11 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 		print ("\tcase " full_op vec ":\treturn \"" tolower(orig_op) \
 			"-" type orig_suffix "-vec" "\";") >ops_names_f
 
+	flavor1 = op1_flavor ? op1_flavor : "OP1_WRITE";
+	print ("\t", flavor1 ",\t// " full_op) >op1_flavors_f
+	if ( do_vec )
+		print ("\t", flavor1 ",\t// " full_op vec) >op1_flavors_f
+
 	if ( no_eval )
 		print ("\tcase " full_op ":\tbreak;") >ops_eval_f
 	else
@@ -707,7 +718,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 
 	if ( type == "O" || type == "VO" )
 		{
-		pre_arg = type == "O" ? "" : ", ModFrameSlot(n)"
+		pre_arg = type == "O" ? "" : ", Frame1Slot(n, " full_op ")"
 		print ("\treturn AddInst(ZInst(" \
 			full_op pre_arg ", reg));") >methods_f
 		}
@@ -878,7 +889,7 @@ function clear_vars()
 	custom_method = method_pre = eval_pre = ""
 	no_const = no_eval = mix_eval = multi_eval = eval_blank = ""
 	vector = binary_op = internal_op = rel_op = ary_op = expr_op = op = ""
-	direct_method = direct_op = ""
+	op1_flavor = direct_method = direct_op = ""
 	laccessor = raccessor1 = raccessor2 = ""
 	op1_accessor = op2_accessor = ""
 	ev_mix1 = ev_mix2 = ""

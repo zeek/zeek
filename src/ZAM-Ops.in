@@ -74,28 +74,38 @@ vector
 eval -$1
 
 op IncrI
+op1-read-write
 type V
 eval ++frame[z.v1].int_val
 
 op IncrU
+op1-read-write
 type V
 eval ++frame[z.v1].uint_val
 
 op DecrI
+op1-read-write
 type V
 eval --frame[z.v1].int_val
 
 op DecrU
+op1-read-write
 type V
 eval --frame[z.v1].uint_val
 
 unary-op AppendTo
+# Note, even though it feels like appending both reads and modifies
+# its first operand, for our purposes it just reads it (to get the
+# aggregate), and then modifies its *content* but not the operand's
+# value itself.
+op1-read
 set-type $2
 eval auto copy = CopyVal($1)
 eval auto& vv = frame[z.v1].vector_val->ModVec()
 eval vv->push_back(copy)
 
 unary-op AppendToAny
+op1-read
 set-type $2
 eval auto vv = frame[z.v1].any_val->AsVectorVal()
 eval vv->Assign(vv->Size(), $1.ToVal(z.t))
@@ -620,6 +630,7 @@ eval frame[z.v1].any_val = frame[z.v2].ToVal(z.t).release()
 ########## Aggregate Assignments ##########
 
 op Vector-Elem-Assign
+op1-read
 type VVV
 eval auto vmgr = frame[z.v1].vector_val
 eval vmgr->SetYieldType(z.t)
@@ -629,6 +640,7 @@ eval if ( vec->size() <= ind ) grow_vector(*vec, ind + 1)
 eval (*vec)[ind] = frame[z.v3]
 
 op Any-Vector-Elem-Assign
+op1-read
 type VVV
 eval auto vec = frame[z.v1].any_val->AsVector()
 eval auto ind = frame[z.v2].uint_val
@@ -636,6 +648,7 @@ eval if ( ind < vec->size() ) Unref((*vec)[ind]); else vec->resize(ind+1)
 eval (*vec)[ind] = frame[z.v3].ToVal(z.t).release()
 
 op Vector-Elem-Assign
+op1-read
 type VVC
 eval auto vmgr = frame[z.v1].vector_val
 eval vmgr->SetYieldType(z.t)
@@ -645,6 +658,7 @@ eval if ( vec->size() <= ind ) grow_vector(*vec, ind + 1)
 eval (*vec)[ind] = z.c
 
 op Any-Vector-Elem-Assign
+op1-read
 type VVC
 eval auto vec = frame[z.v1].any_val->AsVector()
 eval auto ind = frame[z.v2].uint_val
@@ -653,6 +667,7 @@ eval (*vec)[ind] = z.c.ToVal(z.t).release()
 
 # These versions are used when the constant is the index, not the new value.
 op Vector-Elem-Assign
+op1-read
 type VVi
 eval auto vmgr = frame[z.v1].vector_val
 eval vmgr->SetYieldType(z.t)
@@ -662,6 +677,7 @@ eval if ( vec->size() <= ind ) grow_vector(*vec, ind + 1)
 eval (*vec)[ind] = frame[z.v2]
 
 op Any-Vector-Elem-Assign
+op1-read
 type VVi
 eval auto vec = frame[z.v1].any_val->AsVector()
 eval auto ind = z.v3
@@ -670,12 +686,14 @@ eval (*vec)[ind] = frame[z.v2].ToVal(z.t).release()
 
 
 op Field-LHS-Assign
+op1-read
 type VVi
 set-type $2
 eval auto v = frame[z.v2].ToVal(z.t)
 eval frame[z.v1].record_val->Assign(z.v3, v)
 
 op Field-LHS-Assign
+op1-read
 type VCi
 set-type $2
 eval auto v = z.c.ToVal(z.t)
@@ -685,6 +703,7 @@ eval frame[z.v1].record_val->Assign(z.v2, v)
 
 op Schedule
 type ViHL
+op1-read
 custom-method return CompileSchedule(n, nullptr, i, h, l);
 eval double dt = frame[z.v1].double_val
 eval if ( z.v2 ) dt += network_time
@@ -716,6 +735,7 @@ eval ret_u = nullptr
 eval pc = end_pc
 
 op Return
+op1-read
 type V
 set-type $1
 eval ret_u = &frame[z.v1]
@@ -732,12 +752,14 @@ eval pc = end_pc
 # Branch on the value of v1 using switch table v2, with default branch to v3
 internal-op SwitchI
 type VVV
+op1-read
 eval auto v = frame[z.v1].int_val
 eval auto t = int_cases[z.v2]
 eval if ( t.find(v) == t.end() ) pc = z.v3
 eval else pc = t[v]
 
 internal-op SwitchU
+op1-read
 type VVV
 eval auto v = frame[z.v1].uint_val
 eval auto t = uint_cases[z.v2]
@@ -745,6 +767,7 @@ eval if ( t.find(v) == t.end() ) pc = z.v3
 eval else pc = t[v]
 
 internal-op SwitchD
+op1-read
 type VVV
 eval auto v = frame[z.v1].double_val
 eval auto t = double_cases[z.v2]
@@ -752,6 +775,7 @@ eval if ( t.find(v) == t.end() ) pc = z.v3
 eval else pc = t[v]
 
 internal-op SwitchS
+op1-read
 type VVV
 eval auto vs = frame[z.v1].string_val->Render()
 eval std::string v(vs)
@@ -761,6 +785,7 @@ eval else pc = t[v]
 eval delete[] vs
 
 internal-op SwitchA
+op1-read
 type VVV
 eval auto v = frame[z.v1].addr_val->AsString()
 eval auto t = str_cases[z.v2]
@@ -768,6 +793,7 @@ eval if ( t.find(v) == t.end() ) pc = z.v3
 eval else pc = t[v]
 
 internal-op SwitchN
+op1-read
 type VVV
 eval auto v = frame[z.v1].subnet_val->AsString()
 eval auto t = str_cases[z.v2]
@@ -776,6 +802,7 @@ eval else pc = t[v]
 
 
 internal-op Branch-If-Not-Type
+op1-read
 type VV
 eval auto v = frame[z.v1].any_val
 eval if ( ! can_cast_value_to_type(v, z.t) ) pc = z.v2;
@@ -904,6 +931,7 @@ eval delete ii
 
 
 op When
+op1-read
 type VVVV
 eval auto when_body = new ResumptionAM(this, z.v2)
 eval auto timeout_body = new ResumptionAM(this, z.v3)
@@ -918,14 +946,16 @@ eval new trigger::Trigger(z.non_const_e, when_body, timeout_body, z.c.double_val
 op When
 type VV
 eval auto when_body = new ResumptionAM(this, z.v2)
-eval new trigger::Trigger(z.non_const_e, when_body, nullptr, -1.0, f, z.v4, z.stmt->GetLocationInfo())
+eval new trigger::Trigger(z.non_const_e, when_body, nullptr, -1.0, f, z.v1, z.stmt->GetLocationInfo())
 
 op CheckAnyLen
+op1-read
 type Vi
 eval auto v = frame[z.v1].list_val
 eval if ( v->Vals()->length() != z.v2 ) ZAM_run_time_error(error_flag, z.stmt, "mismatch in list lengths")
 
 op Print
+op1-read
 type O
 eval auto vvec = frame[z.v1].vvec
 eval do_print(*vvec)
@@ -934,19 +964,23 @@ method-pre int reg = v->n; delete v
 
 
 internal-op If-Else
+op1-read
 type VV
 eval if ( ! frame[z.v1].int_val ) pc = z.v2
 
 internal-op If
+op1-read
 type VV
 eval if ( ! frame[z.v1].int_val ) pc = z.v2
 
 internal-op If-Not
+op1-read
 type VV
 eval if ( frame[z.v1].int_val ) pc = z.v2
 
 
 op AddStmt
+op1-read
 type VO
 eval auto vvec = frame[z.v2].vvec
 eval auto lval = ValVecToListVal(vvec, vvec->size())
@@ -956,6 +990,7 @@ method-pre int reg = v->n; delete v
 
 
 op DelTable
+op1-read
 type VO
 eval auto vvec = frame[z.v2].vvec
 eval auto lval = ValVecToListVal(vvec, vvec->size())
@@ -964,6 +999,7 @@ eval delete lval
 method-pre int reg = v->n; delete v
 
 op DelField
+op1-read
 type Vi
 eval frame[z.v1].record_val->Assign(z.v2, nullptr)
 
@@ -1020,6 +1056,7 @@ eval	global_state[i] = GS_UNLOADED
 eval }
 
 op Dirty-Global
+op1-internal
 type V
 eval global_state[z.v1] = GS_DIRTY
 
@@ -1057,6 +1094,7 @@ eval vals.push_back(v)
 eval frame[z.v1].any_val = v.get()
 
 internal-op Load-Global
+op1-internal
 type VC
 eval if ( global_state[z.v1] == GS_UNLOADED ) {
 eval	IntrusivePtr<Val> v = {NewRef{}, z.c.id_val->ID_Val()}
@@ -1065,6 +1103,7 @@ eval	global_state[z.v1] = GS_CLEAN
 eval }
 
 internal-op Load-Any-Global
+op1-internal
 type VC
 eval if ( global_state[z.v1] == GS_UNLOADED ) {
 eval	IntrusivePtr<Val> v = {NewRef{}, z.c.id_val->ID_Val()}
@@ -1074,6 +1113,7 @@ eval	global_state[z.v1] = GS_CLEAN
 eval }
 
 internal-op Store-Val
+op1-read
 type VV
 eval auto is_vec = z.t->Tag() == TYPE_VECTOR
 eval auto vv = is_vec ? frame[z.v1].vector_val->VecVal() : nullptr
@@ -1081,6 +1121,7 @@ eval auto val = vv ? vv : frame[z.v1].ToVal(z.t)
 eval f->SetElement(z.v2, val.release())
 
 internal-op Store-Any-Val
+op1-read
 type VV
 eval auto v = frame[z.v1].any_val->Ref()
 eval f->SetElement(z.v2, v)

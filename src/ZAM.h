@@ -104,8 +104,8 @@ public:
 	// Public so that GenStmt flavors can get to it.
 	int FrameSlot(const NameExpr* id)
 		{ return FrameSlot(id->AsNameExpr()->Id()); }
-	int ModFrameSlot(const NameExpr* id)
-		{ return ModFrameSlot(id->AsNameExpr()->Id()); }
+	int Frame1Slot(const NameExpr* id, ZOp op)
+		{ return Frame1Slot(id->AsNameExpr()->Id(), op); }
 
 	void Dump();
 
@@ -179,7 +179,10 @@ protected:
 		{ SetV1(s, targ); }
 
 	const CompiledStmt AddInst(const ZInst& inst);
-	ZInst& TopInst();
+
+	// Returns the most recent added instruction *other* than those
+	// added for bookkeeping (like dirtying globals);
+	ZInst& TopMainInst()	{ return insts[top_main_inst]; }
 
 	// Returns the last (interpreter) statement in the body.
 	const Stmt* LastStmt() const;
@@ -195,7 +198,7 @@ protected:
 	int AddToFrame(ID*);
 
 	int FrameSlot(const ID* id);
-	int ModFrameSlot(const ID* id);
+	int Frame1Slot(const ID* id, ZOp op);
 
 	// The slot without doing any global-related checking.
 	int RawSlot(const NameExpr* n)	{ return RawSlot(n->Id()); }
@@ -258,6 +261,14 @@ protected:
 	int register_slot;
 	int num_globals;
 	bool error_seen = false;
+
+	// Most recent instruction, other than for housekeeping.
+	int top_main_inst;
+
+	// Used for communication between Frame1Slot and a subsequent
+	// AddInst.  If >= 0, then upon adding the next instruction,
+	// it should be followed by Dirty-Global for the given slot.
+	int mark_dirty = -1;
 };
 
 // This is a statement that resumes execution into a code block in an

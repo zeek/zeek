@@ -28,6 +28,17 @@ typedef enum {
 	OP_V_I1, OP_VV_I2, OP_VVC_I2, OP_VVV_I3, OP_VVV_I2_I3,
 } ZAMOpType;
 
+// Possible "flavors" for an operator's first slot.
+typedef enum {
+	OP1_READ,	// the slot is read, not modified
+	OP1_WRITE,	// the slot is modified, not read - the most common
+	OP1_READ_WRITE,	// the slot is both read and then modified, e.g. "++"
+	OP1_INTERNAL,	// we're doing some internal manipulation of the slot
+} ZAMOp1Flavor;
+
+// Maps an operand to its flavor.
+extern ZAMOp1Flavor op1_flavor[];
+
 // Maps ZAM frame slots to associated identifiers.   
 typedef std::vector<ID*> frame_map;
 

@@ -915,7 +915,12 @@ public:
 
 	void SetAttrs(IntrusivePtr<Attributes> attrs);
 	Attr* FindAttr(attr_tag t) const;
+
+	[[deprecated("Remove in v4.1.  Use GetAttrs().")]]
 	Attributes* Attrs()	{ return attrs.get(); }
+
+	const IntrusivePtr<Attributes>& GetAttrs() const
+		{ return attrs; }
 
 	// Returns the size of the table.
 	int Size() const;

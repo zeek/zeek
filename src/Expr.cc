@@ -3757,8 +3757,7 @@ IntrusivePtr<Val> TableCoerceExpr::Fold(Val* v) const
 	if ( tv->Size() > 0 )
 		RuntimeErrorWithCallStack("coercion of non-empty table/set");
 
-	return make_intrusive<TableVal>(GetType<TableType>(),
-	                                IntrusivePtr{NewRef{}, tv->Attrs()});
+	return make_intrusive<TableVal>(GetType<TableType>(), tv->GetAttrs());
 	}
 
 VectorCoerceExpr::VectorCoerceExpr(IntrusivePtr<Expr> arg_op,

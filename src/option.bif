@@ -104,7 +104,7 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 			// Just coerce an empty/unspecified table to the right type.
 			auto tv = make_intrusive<TableVal>(
 			        cast_intrusive<TableType>(i->GetType()),
-			        IntrusivePtr{NewRef{}, i->GetVal()->AsTableVal()->Attrs()});
+			        i->GetVal()->AsTableVal()->GetAttrs());
 			auto rval = call_option_handlers_and_set_value(ID, i, std::move(tv), location);
 			return val_mgr->Bool(rval);
 			}

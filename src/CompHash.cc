@@ -229,7 +229,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 			while ( tbl->NextEntry(k, it) )
 				{
 				hashkeys[k] = idx++;
-				lv->Append(tv->RecoverIndex(k));
+				lv->Append(tv->RecreateIndex(*k));
 				}
 
 			for ( auto& kv : hashkeys )
@@ -333,7 +333,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 	}
 
 
-HashKey* CompositeHash::ComputeHash(const Val& argv, bool type_check) const
+std::unique_ptr<HashKey> CompositeHash::MakeHashKey(const Val& argv, bool type_check) const
 	{
 	auto v = &argv;
 
@@ -349,8 +349,7 @@ HashKey* CompositeHash::ComputeHash(const Val& argv, bool type_check) const
 		// be okay; the only thing is that the ListVal unref's it.
 		Val* ncv = (Val*) v;
 		lv.Append({NewRef{}, ncv});
-		HashKey* hk = ComputeHash(lv, type_check);
-		return hk;
+		return MakeHashKey(lv, type_check);
 		}
 
 	char* k = key;
@@ -383,10 +382,10 @@ HashKey* CompositeHash::ComputeHash(const Val& argv, bool type_check) const
 			return nullptr;
 		}
 
-	return new HashKey((k == key), (void*) k, kp - k);
+	return std::make_unique<HashKey>((k == key), (void*) k, kp - k);
 	}
 
-HashKey* CompositeHash::ComputeSingletonHash(const Val* v, bool type_check) const
+std::unique_ptr<HashKey> CompositeHash::ComputeSingletonHash(const Val* v, bool type_check) const
 	{
 	if ( v->GetType()->Tag() == TYPE_LIST )
 		{
@@ -404,21 +403,21 @@ HashKey* CompositeHash::ComputeSingletonHash(const Val* v, bool type_check) cons
 	switch ( singleton_tag ) {
 	case TYPE_INTERNAL_INT:
 	case TYPE_INTERNAL_UNSIGNED:
-		return new HashKey(v->ForceAsInt());
+		return std::make_unique<HashKey>(v->ForceAsInt());
 
 	case TYPE_INTERNAL_ADDR:
-		return v->AsAddr().GetHashKey();
+		return v->AsAddr().MakeHashKey();
 
 	case TYPE_INTERNAL_SUBNET:
-		return v->AsSubNet().GetHashKey();
+		return v->AsSubNet().MakeHashKey();
 
 	case TYPE_INTERNAL_DOUBLE:
-		return new HashKey(v->InternalDouble());
+		return std::make_unique<HashKey>(v->InternalDouble());
 
 	case TYPE_INTERNAL_VOID:
 	case TYPE_INTERNAL_OTHER:
 		if ( v->GetType()->Tag() == TYPE_FUNC )
-			return new HashKey(v->AsFunc()->GetUniqueFuncID());
+			return std::make_unique<HashKey>(v->AsFunc()->GetUniqueFuncID());
 
 		if ( v->GetType()->Tag() == TYPE_PATTERN )
 			{
@@ -430,14 +429,14 @@ HashKey* CompositeHash::ComputeSingletonHash(const Val* v, bool type_check) cons
 			char* key = new char[n];
 			std::memcpy(key, texts[0], strlen(texts[0]) + 1);
 			std::memcpy(key + strlen(texts[0]) + 1, texts[1], strlen(texts[1]) + 1);
-			return new HashKey(false, key, n);
+			return std::make_unique<HashKey>(false, key, n);
 			}
 
 		reporter->InternalError("bad index type in CompositeHash::ComputeSingletonHash");
 		return nullptr;
 
 	case TYPE_INTERNAL_STRING:
-		return new HashKey(v->AsString());
+		return std::make_unique<HashKey>(v->AsString());
 
 	case TYPE_INTERNAL_ERROR:
 		return nullptr;
@@ -707,12 +706,12 @@ int CompositeHash::SizeAlign(int offset, unsigned int size) const
 	return offset;
 	}
 
-IntrusivePtr<ListVal> CompositeHash::RecoverVals(const HashKey* k) const
+IntrusivePtr<ListVal> CompositeHash::RecoverVals(const HashKey& k) const
 	{
 	auto l = make_intrusive<ListVal>(TYPE_ANY);
 	const auto& tl = type->Types();
-	const char* kp = (const char*) k->Key();
-	const char* const k_end = kp + k->Size();
+	const char* kp = (const char*) k.Key();
+	const char* const k_end = kp + k.Size();
 
 	for ( const auto& type : tl )
 		{
@@ -728,12 +727,12 @@ IntrusivePtr<ListVal> CompositeHash::RecoverVals(const HashKey* k) const
 	return l;
 	}
 
-const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
+const char* CompositeHash::RecoverOneVal(const HashKey& k, const char* kp0,
 					 const char* const k_end, BroType* t,
 					 IntrusivePtr<Val>* pval, bool optional) const
 	{
 	// k->Size() == 0 for a single empty string.
-	if ( kp0 >= k_end && k->Size() > 0 )
+	if ( kp0 >= k_end && k.Size() > 0 )
 		reporter->InternalError("over-ran key in CompositeHash::RecoverVals");
 
 	TypeTag tag = t->Tag();
@@ -874,7 +873,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 				kp1 = kp0;
 				int divider = strlen(kp0) + 1;
 				re = new RE_Matcher(kp1, kp1 + divider);
-				kp1 += k->Size();
+				kp1 += k.Size();
 				}
 			else
 				{
@@ -1033,7 +1032,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey* k, const char* kp0,
 		if ( is_singleton )
 			{
 			kp1 = kp0;
-			n = k->Size();
+			n = k.Size();
 			}
 		else
 			{

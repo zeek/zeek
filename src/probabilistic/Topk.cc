@@ -29,9 +29,9 @@ void TopkVal::Typify(IntrusivePtr<BroType> t)
 
 HashKey* TopkVal::GetHash(Val* v) const
 	{
-	HashKey* key = hash->ComputeHash(*v, true);
+	auto key = hash->MakeHashKey(*v, true);
 	assert(key);
-	return key;
+	return key.release();
 	}
 
 TopkVal::TopkVal(uint64_t arg_size) : OpaqueVal(topk_type)

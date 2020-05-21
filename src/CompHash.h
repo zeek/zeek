@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "Type.h"
 #include "IntrusivePtr.h"
 
@@ -15,19 +17,23 @@ public:
 
 	// Compute the hash corresponding to the given index val,
 	// or nullptr if it fails to typecheck.
-	HashKey* ComputeHash(const Val& v, bool type_check) const;
+	std::unique_ptr<HashKey> MakeHashKey(const Val& v, bool type_check) const;
 
-	[[deprecated("Remove in v4.1.  Pass a Val& instead.")]]
+	[[deprecated("Remove in v4.1.  Use MakeHashKey().")]]
 	HashKey* ComputeHash(const Val* v, bool type_check) const
-		{ return ComputeHash(*v, type_check); }
+		{ return MakeHashKey(*v, type_check).release(); }
 
 	// Given a hash key, recover the values used to create it.
-	IntrusivePtr<ListVal> RecoverVals(const HashKey* k) const;
+	IntrusivePtr<ListVal> RecoverVals(const HashKey& k) const;
+
+	[[deprecated("Remove in v4.1.  Pass in HashKey& instead.")]]
+	IntrusivePtr<ListVal> RecoverVals(const HashKey* k) const
+		{ return RecoverVals(*k); }
 
 	unsigned int MemoryAllocation() const { return padded_sizeof(*this) + pad_size(size); }
 
 protected:
-	HashKey* ComputeSingletonHash(const Val* v, bool type_check) const;
+	std::unique_ptr<HashKey> ComputeSingletonHash(const Val* v, bool type_check) const;
 
 	// Computes the piece of the hash for Val*, returning the new kp.
 	// Used as a helper for ComputeHash in the non-singleton case.
@@ -38,7 +44,7 @@ protected:
 	// Upon return, pval will point to the recovered Val of type t.
 	// Returns and updated kp for the next Val.  Calls reporter->InternalError()
 	// upon errors, so there is no return value for invalid input.
-	const char* RecoverOneVal(const HashKey* k,
+	const char* RecoverOneVal(const HashKey& k,
 				  const char* kp, const char* const k_end,
 				  BroType* t, IntrusivePtr<Val>* pval, bool optional) const;
 

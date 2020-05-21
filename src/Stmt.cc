@@ -719,7 +719,7 @@ SwitchStmt::~SwitchStmt()
 
 bool SwitchStmt::AddCaseLabelValueMapping(const Val* v, int idx)
 	{
-	HashKey* hk = comp_hash->ComputeHash(*v, true);
+	auto hk = comp_hash->MakeHashKey(*v, true);
 
 	if ( ! hk )
 		{
@@ -728,16 +728,12 @@ bool SwitchStmt::AddCaseLabelValueMapping(const Val* v, int idx)
 		    type_name(v->GetType()->Tag()), type_name(e->GetType()->Tag()));
 		}
 
-	int* label_idx = case_label_value_map.Lookup(hk);
+	int* label_idx = case_label_value_map.Lookup(hk.get());
 
 	if ( label_idx )
-		{
-		delete hk;
 		return false;
-		}
 
-	case_label_value_map.Insert(hk, new int(idx));
-	delete hk;
+	case_label_value_map.Insert(hk.get(), new int(idx));
 	return true;
 	}
 
@@ -763,7 +759,7 @@ std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const
 	// Find matching expression cases.
 	if ( case_label_value_map.Length() )
 		{
-		HashKey* hk = comp_hash->ComputeHash(*v, true);
+		auto hk = comp_hash->MakeHashKey(*v, true);
 
 		if ( ! hk )
 			{
@@ -773,10 +769,8 @@ std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const
 			return std::make_pair(-1, nullptr);
 			}
 
-		if ( auto i = case_label_value_map.Lookup(hk) )
+		if ( auto i = case_label_value_map.Lookup(hk.get()) )
 			label_idx = *i;
-
-		delete hk;
 		}
 
 	// Find matching type cases.
@@ -1193,7 +1187,7 @@ IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 		IterCookie* c = loop_vals->InitForIteration();
 		while ( (current_tev = loop_vals->NextEntry(k, c)) )
 			{
-			auto ind_lv = tv->RecoverIndex(k);
+			auto ind_lv = tv->RecreateIndex(*k);
 			delete k;
 
 			if ( value_var )

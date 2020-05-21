@@ -761,13 +761,13 @@ public:
 	 * case of a set, just adds the index).
 	 * @param index  The key to assign.  For tables, this is allowed to be null
 	 * (if needed, the index val can be recovered from the hash key).
-	 * @param k  A precomputed hash key to use (this method takes ownership
-	 * of deleting it).
+	 * @param k  A precomputed hash key to use.
 	 * @param new_val  The value to assign at the index.  For a set, this
 	 * must be nullptr.
 	 * @return  True if the assignment type-checked.
 	 */
-	bool Assign(IntrusivePtr<Val> index, HashKey* k, IntrusivePtr<Val> new_val);
+	bool Assign(IntrusivePtr<Val> index, std::unique_ptr<HashKey> k,
+	            IntrusivePtr<Val> new_val);
 
 	// Returns true if the assignment typechecked, false if not. The
 	// methods take ownership of new_val, but not of the index.  If we're
@@ -877,8 +877,14 @@ public:
 	// Returns false if index does not exist.
 	bool UpdateTimestamp(Val* index);
 
-	// Returns the index corresponding to the given HashKey.
-	IntrusivePtr<ListVal> RecoverIndex(const HashKey* k) const;
+	/**
+	 * @return  The index corresponding to the given HashKey.
+	 */
+	IntrusivePtr<ListVal> RecreateIndex(const HashKey& k) const;
+
+	[[deprecated("Remove in v4.1.  Use RecreateIndex().")]]
+	ListVal* RecoverIndex(const HashKey* k) const
+		{ return RecreateIndex(*k).release(); }
 
 	/**
 	 * Remove an element from the table and return it.
@@ -892,11 +898,10 @@ public:
 
 	/**
 	 * Same as Remove(const Val&), but uses a precomputed hash key.
-	 * @param k  The hash key to lookup.  This method takes ownership of
-	 * deleting it.
+	 * @param k  The hash key to lookup.
 	 * @return  Same as Remove(const Val&).
 	 */
-	IntrusivePtr<Val> Remove(const HashKey* k);
+	IntrusivePtr<Val> Remove(const HashKey& k);
 
 	[[deprecated("Remove in v4.1.  Use Remove().")]]
 	Val* Delete(const Val* index)
@@ -904,7 +909,7 @@ public:
 
 	[[deprecated("Remove in v4.1.  Use Remove().")]]
 	Val* Delete(const HashKey* k)
-		{ return Remove(k).release(); }
+		{ return Remove(*k).release(); }
 
 	// Returns a ListVal representation of the table (which must be a set).
 	IntrusivePtr<ListVal> ToListVal(TypeTag t = TYPE_ANY) const;
@@ -954,11 +959,15 @@ public:
 			timer = nullptr;
 		}
 
-	HashKey* ComputeHash(const Val& index) const;
+	/**
+	 * @param  The index value to hash.
+	 * @return  The hash of the index value or nullptr if
+	 * type-checking failed.
+	 */
+	std::unique_ptr<HashKey> MakeHashKey(const Val& index) const;
 
-	[[deprecated("Remove in v4.1.  Pass a Val& instead.")]]
-	HashKey* ComputeHash(const Val* index) const
-		{ return ComputeHash(*index); }
+	[[deprecated("Remove in v4.1.  Use MakeHashKey().")]]
+	HashKey* ComputeHash(const Val* index) const;
 
 	notifier::Modifiable* Modifiable() override	{ return this; }
 

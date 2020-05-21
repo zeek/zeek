@@ -901,7 +901,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const Val* v)
 
 		while ( (entry = table->NextEntry(hk, c)) )
 			{
-			auto vl = table_val->RecoverIndex(hk);
+			auto vl = table_val->RecreateIndex(*hk);
 			delete hk;
 
 			broker::vector composite_key;

@@ -78,7 +78,7 @@ void Reporter::InitOptions()
 
 	while ( (v = wl_table->NextEntry(k, c)) )
 		{
-		auto index = wl_val->RecoverIndex(k);
+		auto index = wl_val->RecreateIndex(*k);
 		std::string key = index->Idx(0)->AsString()->CheckString();
 		weird_sampling_whitelist.emplace(move(key));
 		delete k;

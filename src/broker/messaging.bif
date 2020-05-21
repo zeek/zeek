@@ -38,7 +38,7 @@ std::set<std::string> val_to_topic_set(Val* val)
 
 		while ( tbl->NextEntry(k, c) )
 			{
-			auto index = val->AsTableVal()->RecoverIndex(k);
+			auto index = val->AsTableVal()->RecreateIndex(*k);
 			rval.emplace(index->Idx(0)->AsString()->CheckString());
 			delete k;
 			}

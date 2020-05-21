@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <string>
+#include <memory>
 
 #include "threading/SerialTypes.h"
 
@@ -247,9 +248,11 @@ public:
 		}
 
 	/**
-	 * Returns a key that can be used to lookup the IP Address in a hash
-	 * table. Passes ownership to caller.
+	 * Returns a key that can be used to lookup the IP Address in a hash table.
 	 */
+	std::unique_ptr<HashKey> MakeHashKey() const;
+
+	[[deprecated("Remove in v4.1.  Use MakeHashKey().")]]
 	HashKey* GetHashKey() const;
 
 	/**
@@ -629,9 +632,11 @@ public:
 	operator std::string() const	{ return AsString(); }
 
 	/**
-	 * Returns a key that can be used to lookup the IP Prefix in a hash
-	 * table. Passes ownership to caller.
+	 * Returns a key that can be used to lookup the IP Prefix in a hash table.
 	 */
+	std::unique_ptr<HashKey> MakeHashKey() const;
+
+	[[deprecated("Remove in v4.1.  Use MakeHashKey().")]]
 	HashKey* GetHashKey() const;
 
 	/** Converts the prefix into the type used internally by the

@@ -166,12 +166,12 @@ HashKey* AnalyzerSet::GetKey(const file_analysis::Tag& t, RecordVal* args) const
 	auto lv = make_intrusive<ListVal>(TYPE_ANY);
 	lv->Append(t.AsVal());
 	lv->Append({NewRef{}, args});
-	HashKey* key = analyzer_hash->ComputeHash(*lv, true);
+	auto key = analyzer_hash->MakeHashKey(*lv, true);
 
 	if ( ! key )
 		reporter->InternalError("AnalyzerArgs type mismatch");
 
-	return key;
+	return key.release();
 	}
 
 file_analysis::Analyzer* AnalyzerSet::InstantiateAnalyzer(const Tag& tag,

@@ -285,7 +285,7 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 		TableEntryVal* v;
 		while ( (v = info->config->AsTable()->NextEntry(k, c)) )
 			{
-			auto index = info->config->RecoverIndex(k);
+			auto index = info->config->RecreateIndex(*k);
 			string key = index->Idx(0)->AsString()->CheckString();
 			string value = v->GetVal()->AsString()->CheckString();
 			rinfo.config.insert(std::make_pair(copy_string(key.c_str()), copy_string(value.c_str())));
@@ -1248,7 +1248,8 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 		oldval = stream->tab->Find({NewRef{}, idxval});
 		}
 
-	HashKey* k = stream->tab->ComputeHash(*idxval);
+	auto k = stream->tab->MakeHashKey(*idxval);
+
 	if ( ! k )
 		reporter->InternalError("could not hash");
 
@@ -1256,7 +1257,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 	ih->idxkey = new HashKey(k->Key(), k->Size(), k->Hash());
 	ih->valhash = valhash;
 
-	stream->tab->Assign({AdoptRef{}, idxval}, k, {AdoptRef{}, valval});
+	stream->tab->Assign({AdoptRef{}, idxval}, std::move(k), {AdoptRef{}, valval});
 
 	if ( predidx != nullptr )
 		Unref(predidx);
@@ -1342,7 +1343,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 
 		if ( stream->pred || stream->event )
 			{
-			auto idx = stream->tab->RecoverIndex(ih->idxkey);
+			auto idx = stream->tab->RecreateIndex(*ih->idxkey);
 			assert(idx != nullptr);
 			val = stream->tab->FindOrDefault(idx);
 			assert(val != nullptr);
@@ -1371,7 +1372,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 			SendEvent(stream->event, 4, stream->description->Ref(), ev->Ref(),
 			          predidx->Ref(), val->Ref());
 
-		stream->tab->Remove(ih->idxkey);
+		stream->tab->Remove(*ih->idxkey);
 		stream->lastDict->Remove(lastDictIdxKey); // delete in next line
 		delete lastDictIdxKey;
 		delete(ih);

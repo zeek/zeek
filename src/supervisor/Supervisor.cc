@@ -1024,7 +1024,7 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 
 	while ( (v = cluster_table->NextEntry(k, c)) )
 		{
-		auto key = cluster_table_val->RecoverIndex(k);
+		auto key = cluster_table_val->RecreateIndex(*k);
 		delete k;
 		auto name = key->Idx(0)->AsStringVal()->ToStdString();
 		auto rv = v->GetVal()->AsRecordVal();

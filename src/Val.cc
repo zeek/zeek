@@ -540,7 +540,7 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 			auto c = table->InitForIteration();
 			while ( (entry = table->NextEntry(k, c)) )
 				{
-				auto lv = tval->RecoverIndex(k);
+				auto lv = tval->RecreateIndex(*k);
 				delete k;
 				Val* entry_key = lv->Length() == 1 ? lv->Idx(0).get() : lv.get();
 
@@ -1508,14 +1508,15 @@ void TableVal::CheckExpireAttr(attr_tag at)
 
 bool TableVal::Assign(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val)
 	{
-	HashKey* k = ComputeHash(*index);
+	auto k = MakeHashKey(*index);
+
 	if ( ! k )
 		{
 		index->Error("index type doesn't match table", table_type->Indices());
 		return false;
 		}
 
-	return Assign(std::move(index), k, std::move(new_val));
+	return Assign(std::move(index), std::move(k), std::move(new_val));
 	}
 
 bool TableVal::Assign(Val* index, Val* new_val)
@@ -1523,7 +1524,8 @@ bool TableVal::Assign(Val* index, Val* new_val)
 	return Assign({NewRef{}, index}, {AdoptRef{}, new_val});
 	}
 
-bool TableVal::Assign(IntrusivePtr<Val> index, HashKey* k, IntrusivePtr<Val> new_val)
+bool TableVal::Assign(IntrusivePtr<Val> index, std::unique_ptr<HashKey> k,
+                      IntrusivePtr<Val> new_val)
 	{
 	bool is_set = table_type->IsSet();
 
@@ -1532,19 +1534,18 @@ bool TableVal::Assign(IntrusivePtr<Val> index, HashKey* k, IntrusivePtr<Val> new
 
 	TableEntryVal* new_entry_val = new TableEntryVal(new_val);
 	HashKey k_copy(k->Key(), k->Size(), k->Hash());
-	TableEntryVal* old_entry_val = AsNonConstTable()->Insert(k, new_entry_val);
+	TableEntryVal* old_entry_val = AsNonConstTable()->Insert(k.get(), new_entry_val);
 
 	// If the dictionary index already existed, the insert may free up the
 	// memory allocated to the key bytes, so have to assume k is invalid
 	// from here on out.
-	delete k;
 	k = nullptr;
 
 	if ( subnets )
 		{
 		if ( ! index )
 			{
-			auto v = RecoverIndex(&k_copy);
+			auto v = RecreateIndex(k_copy);
 			subnets->Insert(v.get(), new_entry_val);
 			}
 		else
@@ -1559,7 +1560,7 @@ bool TableVal::Assign(IntrusivePtr<Val> index, HashKey* k, IntrusivePtr<Val> new
 
 	if ( change_func )
 		{
-		auto change_index = index ? std::move(index) : RecoverIndex(&k_copy);
+		auto change_index = index ? std::move(index) : RecreateIndex(k_copy);
 		auto v = old_entry_val ? old_entry_val->GetVal() : new_val;
 		CallChangeFunc(change_index.get(), v.get(), old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
 		}
@@ -1571,7 +1572,7 @@ bool TableVal::Assign(IntrusivePtr<Val> index, HashKey* k, IntrusivePtr<Val> new
 
 bool TableVal::Assign(Val* index, HashKey* k, Val* new_val)
 	{
-	return Assign({NewRef{}, index}, k, {AdoptRef{}, new_val});
+	return Assign({NewRef{}, index}, std::unique_ptr<HashKey>{k}, {AdoptRef{}, new_val});
 	}
 
 IntrusivePtr<Val> TableVal::SizeVal() const
@@ -1607,9 +1608,11 @@ bool TableVal::AddTo(Val* val, bool is_first_init, bool propagate_ops) const
 	TableEntryVal* v;
 	while ( (v = tbl->NextEntry(k, c)) )
 		{
+		std::unique_ptr<HashKey> hk{k};
+
 		if ( is_first_init && t->AsTable()->Lookup(k) )
 			{
-			auto key = table_hash->RecoverVals(k);
+			auto key = table_hash->RecoverVals(*k);
 			// ### Shouldn't complain if their values are equal.
 			key->Warn("multiple initializations for index");
 			continue;
@@ -1617,12 +1620,12 @@ bool TableVal::AddTo(Val* val, bool is_first_init, bool propagate_ops) const
 
 		if ( type->IsSet() )
 			{
-			if ( ! t->Assign(v->GetVal(), k, nullptr) )
+			if ( ! t->Assign(v->GetVal(), std::move(hk), nullptr) )
 				 return false;
 			}
 		else
 			{
-			if ( ! t->Assign(nullptr, k, v->GetVal()) )
+			if ( ! t->Assign(nullptr, std::move(hk), v->GetVal()) )
 				 return false;
 			}
 		}
@@ -1657,7 +1660,7 @@ bool TableVal::RemoveFrom(Val* val) const
 		// OTOH, they are both the same type, so as long as
 		// we don't have hash keys that are keyed per dictionary,
 		// it should work ...
-		t->Remove(k);
+		t->Remove(*k);
 		delete k;
 		}
 
@@ -1910,11 +1913,11 @@ const IntrusivePtr<Val>& TableVal::Find(const IntrusivePtr<Val>& index)
 
 	if ( tbl->Length() > 0 )
 		{
-		HashKey* k = ComputeHash(*index);
+		auto k = MakeHashKey(*index);
+
 		if ( k )
 			{
-			TableEntryVal* v = AsTable()->Lookup(k);
-			delete k;
+			TableEntryVal* v = AsTable()->Lookup(k.get());
 
 			if ( v )
 				{
@@ -2006,13 +2009,12 @@ bool TableVal::UpdateTimestamp(Val* index)
 		v = (TableEntryVal*) subnets->Lookup(index);
 	else
 		{
-		HashKey* k = ComputeHash(*index);
+		auto k = MakeHashKey(*index);
+
 		if ( ! k )
 			return false;
 
-		v = AsTable()->Lookup(k);
-
-		delete k;
+		v = AsTable()->Lookup(k.get());
 		}
 
 	if ( ! v )
@@ -2023,7 +2025,7 @@ bool TableVal::UpdateTimestamp(Val* index)
 	return true;
 	}
 
-IntrusivePtr<ListVal> TableVal::RecoverIndex(const HashKey* k) const
+IntrusivePtr<ListVal> TableVal::RecreateIndex(const HashKey& k) const
 	{
 	return table_hash->RecoverVals(k);
 	}
@@ -2091,8 +2093,8 @@ void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe
 
 IntrusivePtr<Val> TableVal::Remove(const Val& index)
 	{
-	HashKey* k = ComputeHash(index);
-	TableEntryVal* v = k ? AsNonConstTable()->RemoveEntry(k) : nullptr;
+	auto k = MakeHashKey(index);
+	TableEntryVal* v = k ? AsNonConstTable()->RemoveEntry(k.get()) : nullptr;
 	IntrusivePtr<Val> va;
 
 	if ( v )
@@ -2101,7 +2103,6 @@ IntrusivePtr<Val> TableVal::Remove(const Val& index)
 	if ( subnets && ! subnets->Remove(&index) )
 		reporter->InternalWarning("index not in prefix table");
 
-	delete k;
 	delete v;
 
 	Modified();
@@ -2112,7 +2113,7 @@ IntrusivePtr<Val> TableVal::Remove(const Val& index)
 	return va;
 	}
 
-IntrusivePtr<Val> TableVal::Remove(const HashKey* k)
+IntrusivePtr<Val> TableVal::Remove(const HashKey& k)
 	{
 	TableEntryVal* v = AsNonConstTable()->RemoveEntry(k);
 	IntrusivePtr<Val> va;
@@ -2151,7 +2152,7 @@ IntrusivePtr<ListVal> TableVal::ToListVal(TypeTag t) const
 	HashKey* k;
 	while ( tbl->NextEntry(k, c) )
 		{
-		auto index = table_hash->RecoverVals(k);
+		auto index = table_hash->RecoverVals(*k);
 
 		if ( t == TYPE_ANY )
 			l->Append(std::move(index));
@@ -2226,7 +2227,7 @@ void TableVal::Describe(ODesc* d) const
 		if ( ! v )
 			reporter->InternalError("hash table underflow in TableVal::Describe");
 
-		auto vl = table_hash->RecoverVals(k);
+		auto vl = table_hash->RecoverVals(*k);
 		int dim = vl->Length();
 
 		if ( i > 0 )
@@ -2398,7 +2399,7 @@ void TableVal::DoExpire(double t)
 
 			if ( expire_func )
 				{
-				idx = RecoverIndex(k);
+				idx = RecreateIndex(*k);
 				double secs = CallExpireFunc(idx);
 
 				// It's possible that the user-provided
@@ -2428,7 +2429,7 @@ void TableVal::DoExpire(double t)
 			if ( subnets )
 				{
 				if ( ! idx )
-					idx = RecoverIndex(k);
+					idx = RecreateIndex(*k);
 				if ( ! subnets->Remove(idx.get()) )
 					reporter->InternalWarning("index not in prefix table");
 				}
@@ -2437,7 +2438,7 @@ void TableVal::DoExpire(double t)
 			if ( change_func )
 				{
 				if ( ! idx )
-					idx = RecoverIndex(k);
+					idx = RecreateIndex(*k);
 				CallChangeFunc(idx.get(), v->GetVal().get(), ELEMENT_EXPIRED);
 				}
 
@@ -2568,7 +2569,7 @@ IntrusivePtr<Val> TableVal::DoClone(CloneState* state)
 
 		if ( subnets )
 			{
-			auto idx = RecoverIndex(key);
+			auto idx = RecreateIndex(*key);
 			tv->subnets->Insert(idx.get(), nval);
 			}
 
@@ -2615,9 +2616,12 @@ unsigned int TableVal::MemoryAllocation() const
 		+ table_hash->MemoryAllocation();
 	}
 
-HashKey* TableVal::ComputeHash(const Val& index) const
+HashKey* TableVal::ComputeHash(const Val* index) const
+	{ return MakeHashKey(*index).release(); }
+
+std::unique_ptr<HashKey> TableVal::MakeHashKey(const Val& index) const
 	{
-	return table_hash->ComputeHash(index, true);
+	return table_hash->MakeHashKey(index, true);
 	}
 
 void TableVal::SaveParseTimeTableState(RecordType* rt)
@@ -2658,7 +2662,7 @@ TableVal::ParseTimeTableState TableVal::DumpTableState()
 
 	while ( (val = tbl->NextEntry(key, cookie)) )
 		{
-		rval.emplace_back(RecoverIndex(key), val->GetVal());
+		rval.emplace_back(RecreateIndex(*key), val->GetVal());
 		delete key;
 		}
 

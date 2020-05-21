@@ -113,12 +113,6 @@ ZAMValUnion::ZAMValUnion(Val* v, BroType* t, ZAM_tracker_type* tracker,
 		auto my_ytag = t->AsVectorType()->YieldType()->Tag();
 		auto v_ytag = vt->AsVectorType()->YieldType()->Tag();
 
-		if ( my_ytag == TYPE_ANY && v->AsVector()->size() > 0 )
-			{
-			any_val = v->Ref();
-			break;
-			}
-
 		if ( my_ytag != v_ytag && my_ytag != TYPE_ANY &&
 		     v_ytag != TYPE_ANY )
 			{

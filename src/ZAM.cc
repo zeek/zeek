@@ -1036,7 +1036,6 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 	auto op3 = index_assign->GetOp3();
 
 	auto lhs = op1->AsNameExpr();
-	auto is_any = IsAnyVec(lhs);
 
 	if ( op2->Tag() == EXPR_CONST && op3->Tag() == EXPR_CONST )
 		{
@@ -1045,8 +1044,7 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 		auto tmp = RegisterSlot();
 		AddInst(ZInst(OP_ASSIGN_VC, tmp, op2->AsConstExpr()));
 
-		auto zop = is_any ? OP_ANY_VECTOR_ELEM_ASSIGN_VVC :
-					OP_VECTOR_ELEM_ASSIGN_VVC;
+		auto zop = OP_VECTOR_ELEM_ASSIGN_VVC;
 
 		return AddInst(ZInst(zop, Frame1Slot(lhs, zop), tmp,
 					op3->AsConstExpr()));
@@ -1057,20 +1055,10 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 		CompiledStmt inst(0);
 
 		if ( op3->Tag() == EXPR_NAME )
-			inst = is_any ?
-					Any_Vector_Elem_AssignVVV(lhs,
-							op2->AsNameExpr(),
-							op3->AsNameExpr()) :
-					Vector_Elem_AssignVVV(lhs,
-							op2->AsNameExpr(),
+			inst = Vector_Elem_AssignVVV(lhs, op2->AsNameExpr(),
 							op3->AsNameExpr());
 		else
-			inst = is_any ?
-					Any_Vector_Elem_AssignVVC(lhs,
-							op2->AsNameExpr(),
-							op3->AsConstExpr()) :
-					Vector_Elem_AssignVVC(lhs,
-							op2->AsNameExpr(),
+			inst = Vector_Elem_AssignVVC(lhs, op2->AsNameExpr(),
 							op3->AsConstExpr());
 
 		TopMainInst().t = op3->Type().get();
@@ -1082,11 +1070,7 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 		auto c = op2->AsConstExpr();
 		auto index = c->Value()->AsCount();
 
-		auto inst = is_any ?
-				Any_Vector_Elem_AssignVVi(lhs,
-					op3->AsNameExpr(), index) :
-				Vector_Elem_AssignVVi(lhs,
-					op3->AsNameExpr(), index);
+		auto inst = Vector_Elem_AssignVVi(lhs, op3->AsNameExpr(), index);
 
 		TopMainInst().t = op3->Type().get();
 		return inst;
@@ -1135,18 +1119,14 @@ const CompiledStmt ZAM::LoopOverVector(const ForStmt* f, const NameExpr* val)
 	auto loop_vars = f->LoopVars();
 	auto loop_var = (*loop_vars)[0];
 
-	bool is_any = IsAnyVec(val);
-
 	auto info = NewSlot();
-	auto z = ZInst(is_any ? OP_INIT_ANY_VECTOR_LOOP_VV :
-				OP_INIT_VECTOR_LOOP_VV, info, FrameSlot(val));
+	auto z = ZInst(OP_INIT_VECTOR_LOOP_VV, info, FrameSlot(val));
 	z.t = val->Type().get();
 	auto init_end = AddInst(z);
 
 	auto iter_head = StartingBlock();
 
-	z = ZInst(is_any ? OP_NEXT_ANY_VECTOR_ITER_VVV :
-			OP_NEXT_VECTOR_ITER_VVV, info, FrameSlot(loop_var), 0);
+	z = ZInst(OP_NEXT_VECTOR_ITER_VVV, info, FrameSlot(loop_var), 0);
 	z.op_type = OP_VVV_I3;
 
 	return FinishLoop(iter_head, z, f->LoopBody(), info);
@@ -1544,20 +1524,17 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
 		if ( n2tag == TYPE_VECTOR )
 			{
 			int n2_slot = FrameSlot(n2);
-			bool is_any = IsAnyVec(n2);
 
 			if ( n3 )
 				{
 				int n3_slot = FrameSlot(n3);
-				auto zop = is_any ? OP_INDEX_ANY_VEC_VVV :
-							OP_INDEX_VEC_VVV;
+				auto zop = OP_INDEX_VEC_VVV;
 				z = ZInst(zop, Frame1Slot(n1, zop),
 						n2_slot, n3_slot);
 				}
 			else
 				{
-				auto zop = is_any ? OP_INDEX_ANY_VECC_VVV :
-							OP_INDEX_VECC_VVV;
+				auto zop = OP_INDEX_VECC_VVV;
 				z = ZInst(zop, Frame1Slot(n1, zop), n2_slot, c);
 				z.op_type = OP_VVV_I3;
 				}

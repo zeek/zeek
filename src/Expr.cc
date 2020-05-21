@@ -1974,12 +1974,8 @@ const CompiledStmt AppendToExpr::Compile(Compiler* c) const
 	auto n1 = op1->AsNameExpr();
 	auto n2 = op2->Tag() == EXPR_NAME ? op2->AsNameExpr() : nullptr;
 	auto cc = op2->Tag() != EXPR_NAME ? op2->AsConstExpr() : nullptr;
-	bool is_any = n1->Type()->AsVectorType()->YieldType()->Tag() == TYPE_ANY;
 
-	if ( is_any )
-		return n2 ? c->AppendToAnyVV(n1, n2) : c->AppendToAnyVC(n1, cc);
-	else
-		return n2 ? c->AppendToVV(n1, n2) : c->AppendToVC(n1, cc);
+	return n2 ? c->AppendToVV(n1, n2) : c->AppendToVC(n1, cc);
 	}
 
 

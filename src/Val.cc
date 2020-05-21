@@ -3040,14 +3040,11 @@ VectorVal::VectorVal(VectorType* t) : VectorVal({NewRef{}, t})
 
 VectorVal::VectorVal(IntrusivePtr<VectorType> t) : Val(std::move(t))
 	{
-	val.vector_val = new vector<Val*>();
+	val.vector_val = new vector<IntrusivePtr<Val>>();
 	}
 
 VectorVal::~VectorVal()
 	{
-	for ( unsigned int i = 0; i < val.vector_val->size(); ++i )
-		Unref((*val.vector_val)[i]);
-
 	delete val.vector_val;
 	}
 
@@ -3062,19 +3059,10 @@ bool VectorVal::Assign(unsigned int index, IntrusivePtr<Val> element)
 	     ! same_type(element->GetType().get(), GetType()->AsVectorType()->Yield().get(), false) )
 		return false;
 
-	Val* val_at_index = nullptr;
-
-	if ( index < val.vector_val->size() )
-		val_at_index = (*val.vector_val)[index];
-	else
+	if ( index >= val.vector_val->size() )
 		val.vector_val->resize(index + 1);
 
-	Unref(val_at_index);
-
-	// Note: we do *not* Ref() the element, if any, at this point.
-	// AssignExpr::Eval() already does this; other callers must remember
-	// to do it similarly.
-	(*val.vector_val)[index] = element.release();
+	(*val.vector_val)[index] = std::move(element);
 
 	Modified();
 	return true;
@@ -3100,17 +3088,14 @@ bool VectorVal::Insert(unsigned int index, IntrusivePtr<Val> element)
 		return false;
 		}
 
-	vector<Val*>::iterator it;
+	vector<IntrusivePtr<Val>>::iterator it;
 
 	if ( index < val.vector_val->size() )
 		it = std::next(val.vector_val->begin(), index);
 	else
 		it = val.vector_val->end();
 
-	// Note: we do *not* Ref() the element, if any, at this point.
-	// AssignExpr::Eval() already does this; other callers must remember
-	// to do it similarly.
-	val.vector_val->insert(it, element.release());
+	val.vector_val->insert(it, std::move(element));
 
 	Modified();
 	return true;
@@ -3121,10 +3106,8 @@ bool VectorVal::Remove(unsigned int index)
 	if ( index >= val.vector_val->size() )
 		return false;
 
-	Val* val_at_index = (*val.vector_val)[index];
 	auto it = std::next(val.vector_val->begin(), index);
 	val.vector_val->erase(it);
-	Unref(val_at_index);
 
 	Modified();
 	return true;
@@ -3159,7 +3142,7 @@ Val* VectorVal::Lookup(unsigned int index) const
 	if ( index >= val.vector_val->size() )
 		return nullptr;
 
-	return (*val.vector_val)[index];
+	return (*val.vector_val)[index].get();
 	}
 
 unsigned int VectorVal::Resize(unsigned int new_num_elements)
@@ -3188,7 +3171,7 @@ IntrusivePtr<Val> VectorVal::DoClone(CloneState* state)
 	for ( unsigned int i = 0; i < val.vector_val->size(); ++i )
 		{
 		auto v = (*val.vector_val)[i]->Clone(state);
-		vv->val.vector_val->push_back(v.release());
+		vv->val.vector_val->push_back(std::move(v));
 		}
 
 	return vv;

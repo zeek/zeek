@@ -92,6 +92,8 @@ Changed Functionality
 - ``AsRecord()`` and ``AsNonConstRecord()`` have changed to return
   ``std::vector<IntrusivePtr<Val>>*``.
 
+- ``AsVector()`` has changed to return ``std::vector<IntrusivePtr<Val>>*``.
+
 Removed Functionality
 ---------------------
 

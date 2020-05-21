@@ -1327,10 +1327,10 @@ function all_set%(v: any%) : bool
 	%}
 
 %%{
-static Func* sort_function_comp = 0;
-static Val** index_map = 0;	// used for indirect sorting to support order()
+static Func* sort_function_comp = nullptr;
+static std::vector<const IntrusivePtr<Val>*> index_map;	// used for indirect sorting to support order()
 
-bool sort_function(Val* a, Val* b)
+bool sort_function(const IntrusivePtr<Val>& a, const IntrusivePtr<Val>& b)
 	{
 	// Sort missing values as "high".
 	if ( ! a )
@@ -1338,8 +1338,7 @@ bool sort_function(Val* a, Val* b)
 	if ( ! b )
 		return 1;
 
-	auto result = sort_function_comp->operator()(IntrusivePtr{NewRef{}, a},
-	                                             IntrusivePtr{NewRef{}, b});
+	auto result = sort_function_comp->operator()(a, b);
 	int int_result = result->CoerceToInt();
 
 	return int_result < 0;
@@ -1347,10 +1346,10 @@ bool sort_function(Val* a, Val* b)
 
 bool indirect_sort_function(size_t a, size_t b)
 	{
-	return sort_function(index_map[a], index_map[b]);
+	return sort_function(*index_map[a], *index_map[b]);
 	}
 
-bool signed_sort_function (Val* a, Val* b)
+bool signed_sort_function (const IntrusivePtr<Val>& a, const IntrusivePtr<Val>& b)
 	{
 	if ( ! a )
 		return 0;
@@ -1363,7 +1362,7 @@ bool signed_sort_function (Val* a, Val* b)
 	return ia < ib;
 	}
 
-bool unsigned_sort_function (Val* a, Val* b)
+bool unsigned_sort_function (const IntrusivePtr<Val>& a, const IntrusivePtr<Val>& b)
 	{
 	if ( ! a )
 		return 0;
@@ -1378,12 +1377,12 @@ bool unsigned_sort_function (Val* a, Val* b)
 
 bool indirect_signed_sort_function(size_t a, size_t b)
 	{
-	return signed_sort_function(index_map[a], index_map[b]);
+	return signed_sort_function(*index_map[a], *index_map[b]);
 	}
 
 bool indirect_unsigned_sort_function(size_t a, size_t b)
 	{
-	return unsigned_sort_function(index_map[a], index_map[b]);
+	return unsigned_sort_function(*index_map[a], *index_map[b]);
 	}
 %%}
 
@@ -1431,7 +1430,7 @@ function sort%(v: any, ...%) : any
 	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
 		builtin_error("comparison function required for sort() with non-integral types");
 
-	vector<Val*>& vv = *v->AsVector();
+	auto& vv = *v->AsVector();
 
 	if ( comp )
 		{
@@ -1501,18 +1500,18 @@ function order%(v: any, ...%) : index_vec
 	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
 		builtin_error("comparison function required for order() with non-integral types");
 
-	vector<Val*>& vv = *v->AsVector();
+	auto& vv = *v->AsVector();
 	auto n = vv.size();
 
 	// Set up initial mapping of indices directly to corresponding
 	// elements.
 	vector<size_t> ind_vv(n);
-	index_map = new Val*[n];
+	index_map.reserve(n);
 	size_t i;
 	for ( i = 0; i < n; ++i )
 		{
 		ind_vv[i] = i;
-		index_map[i] = vv[i];
+		index_map.emplace_back(&vv[i]);
 		}
 
 	if ( comp )
@@ -1537,8 +1536,7 @@ function order%(v: any, ...%) : index_vec
 			sort(ind_vv.begin(), ind_vv.end(), indirect_signed_sort_function);
 		}
 
-	delete [] index_map;
-	index_map = 0;
+	index_map = {};
 
 	// Now spin through ind_vv to read out the rearrangement.
 	for ( i = 0; i < n; ++i )

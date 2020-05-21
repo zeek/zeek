@@ -81,7 +81,7 @@ union BroValUnion {
 	RE_Matcher* re_val;
 	PDict<TableEntryVal>* table_val;
 	std::vector<IntrusivePtr<Val>>* record_val;
-	std::vector<Val*>* vector_val;
+	std::vector<IntrusivePtr<Val>>* vector_val;
 
 	BroValUnion() = default;
 
@@ -114,9 +114,6 @@ union BroValUnion {
 
 	constexpr BroValUnion(PDict<TableEntryVal>* value) noexcept
 		: table_val(value) {}
-
-	constexpr BroValUnion(std::vector<Val*> *value) noexcept
-		: vector_val(value) {}
 };
 
 class Val : public BroObj {
@@ -221,7 +218,7 @@ public:
 	CONST_ACCESSOR(TYPE_RECORD, std::vector<IntrusivePtr<Val>>*, record_val, AsRecord)
 	CONST_ACCESSOR(TYPE_FILE, BroFile*, file_val, AsFile)
 	CONST_ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
-	CONST_ACCESSOR(TYPE_VECTOR, std::vector<Val*>*, vector_val, AsVector)
+	CONST_ACCESSOR(TYPE_VECTOR, std::vector<IntrusivePtr<Val>>*, vector_val, AsVector)
 
 	const IPPrefix& AsSubNet() const
 		{
@@ -255,7 +252,7 @@ public:
 	ACCESSOR(TYPE_FUNC, Func*, func_val, AsFunc)
 	ACCESSOR(TYPE_FILE, BroFile*, file_val, AsFile)
 	ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
-	ACCESSOR(TYPE_VECTOR, std::vector<Val*>*, vector_val, AsVector)
+	ACCESSOR(TYPE_VECTOR, std::vector<IntrusivePtr<Val>>*, vector_val, AsVector)
 
 	IntrusivePtr<Func> AsFuncPtr() const;
 

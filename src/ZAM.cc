@@ -1507,8 +1507,13 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
 		auto n3 = var_ind ? ind->AsNameExpr() : nullptr;
 		bro_uint_t c = 0;
 
-		if ( ! var_ind && ind->Type()->Tag() == TYPE_COUNT )
-			c = ind->AsConstExpr()->Value()->AsCount();
+		if ( ! var_ind )
+			{
+			if ( ind->Type()->Tag() == TYPE_COUNT )
+				c = ind->AsConstExpr()->Value()->AsCount();
+			else if ( ind->Type()->Tag() == TYPE_INT )
+				c = ind->AsConstExpr()->Value()->AsInt();
+			}
 
 		if ( n2tag == TYPE_STRING )
 			{

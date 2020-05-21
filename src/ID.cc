@@ -164,14 +164,14 @@ void ID::SetVal(IntrusivePtr<Val> v, bool arg_weak_ref)
 		if ( ! handler )
 			{
 			handler = new EventHandler(name);
-			handler->SetLocalHandler(val->AsFunc());
+			handler->SetFunc(val->AsFuncPtr());
 			event_registry->Register(handler);
 			}
 		else
 			{
 			// Otherwise, internally defined events cannot
 			// have local handler.
-			handler->SetLocalHandler(val->AsFunc());
+			handler->SetFunc(val->AsFuncPtr());
 			}
 		}
 	}

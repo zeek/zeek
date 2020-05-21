@@ -47,7 +47,7 @@ EventRegistry::string_list EventRegistry::Match(RE_Matcher* pattern)
 	for ( const auto& entry : handlers )
 		{
 		EventHandler* v = entry.second.get();
-		if ( v->LocalHandler() && pattern->MatchExactly(v->Name()) )
+		if ( v->GetFunc() && pattern->MatchExactly(v->Name()) )
 			names.push_back(entry.first);
 		}
 
@@ -61,7 +61,7 @@ EventRegistry::string_list EventRegistry::UnusedHandlers()
 	for ( const auto& entry : handlers )
 		{
 		EventHandler* v = entry.second.get();
-		if ( v->LocalHandler() && ! v->Used() )
+		if ( v->GetFunc() && ! v->Used() )
 			names.push_back(entry.first);
 		}
 
@@ -75,7 +75,7 @@ EventRegistry::string_list EventRegistry::UsedHandlers()
 	for ( const auto& entry : handlers )
 		{
 		EventHandler* v = entry.second.get();
-		if ( v->LocalHandler() && v->Used() )
+		if ( v->GetFunc() && v->Used() )
 			names.push_back(entry.first);
 		}
 
@@ -100,7 +100,7 @@ void EventRegistry::PrintDebug()
 		{
 		EventHandler* v = entry.second.get();
 		fprintf(stderr, "Registered event %s (%s handler / %s)\n", v->Name(),
-				v->LocalHandler()? "local" : "no",
+				v->GetFunc() ? "local" : "no",
 				*v ? "active" : "not active"
 				);
 		}

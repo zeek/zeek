@@ -14,15 +14,9 @@ EventHandler::EventHandler(std::string arg_name)
 	{
 	name = std::move(arg_name);
 	used = false;
-	local = nullptr;
 	error_handler = false;
 	enabled = true;
 	generate_always = false;
-	}
-
-EventHandler::~EventHandler()
-	{
-	Unref(local);
 	}
 
 EventHandler::operator bool() const
@@ -50,15 +44,6 @@ const IntrusivePtr<FuncType>& EventHandler::GetType(bool check_export)
 
 	type = id->GetType<FuncType>();
 	return type;
-	}
-
-void EventHandler::SetLocalHandler(Func* f)
-	{
-	if ( local )
-		Unref(local);
-
-	Ref(f);
-	local = f;
 	}
 
 void EventHandler::Call(const zeek::Args& vl, bool no_remote)

@@ -5,19 +5,22 @@
 #include "BroList.h"
 #include "ZeekArgs.h"
 #include "Type.h"
+#include "Func.h"
 
 #include <unordered_set>
 #include <string>
 
-class Func;
-
 class EventHandler {
 public:
 	explicit EventHandler(std::string name);
-	~EventHandler();
 
 	const char* Name()	{ return name.data(); }
-	Func* LocalHandler()	{ return local; }
+
+	const IntrusivePtr<Func>& GetFunc()
+		{ return local; }
+
+	[[deprecated("Remove in v4.1.  Use GetFunc().")]]
+	Func* LocalHandler()	{ return local.get(); }
 
 	const IntrusivePtr<FuncType>& GetType(bool check_export = true);
 
@@ -25,7 +28,12 @@ public:
 	FuncType* FType(bool check_export = true)
 		{ return GetType().get(); }
 
-	void SetLocalHandler(Func* f);
+	void SetFunc(IntrusivePtr<Func> f)
+		{ local = std::move(f); }
+
+	[[deprecated("Remove in v4.1.  Use SetFunc().")]]
+	void SetLocalHandler(Func* f)
+		{ SetFunc({NewRef{}, f}); }
 
 	void AutoPublish(std::string topic)
 		{
@@ -61,7 +69,7 @@ private:
 	void NewEvent(const zeek::Args& vl);	// Raise new_event() meta event.
 
 	std::string name;
-	Func* local;
+	IntrusivePtr<Func> local;
 	IntrusivePtr<FuncType> type;
 	bool used;		// this handler is indeed used somewhere
 	bool enabled;

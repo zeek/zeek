@@ -1371,7 +1371,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 			SendEvent(stream->event, 4, stream->description->Ref(), ev->Ref(),
 			          predidx->Ref(), val->Ref());
 
-		stream->tab->Delete(ih->idxkey);
+		stream->tab->Remove(ih->idxkey);
 		stream->lastDict->Remove(lastDictIdxKey); // delete in next line
 		delete lastDictIdxKey;
 		delete(ih);
@@ -1737,7 +1737,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 		// only if stream = true -> no streaming
 		if ( streamresult )
 			{
-			if ( ! stream->tab->Delete(idxval) )
+			if ( ! stream->tab->Remove(*idxval) )
 				Warning(i, "Internal error while deleting values from input table");
 			}
 		}

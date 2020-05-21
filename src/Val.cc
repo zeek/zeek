@@ -1657,7 +1657,7 @@ bool TableVal::RemoveFrom(Val* val) const
 		// OTOH, they are both the same type, so as long as
 		// we don't have hash keys that are keyed per dictionary,
 		// it should work ...
-		t->Delete(k);
+		t->Remove(k);
 		delete k;
 		}
 
@@ -2089,16 +2089,16 @@ void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe
 	in_change_func = false;
 	}
 
-IntrusivePtr<Val> TableVal::Delete(const Val* index)
+IntrusivePtr<Val> TableVal::Remove(const Val& index)
 	{
-	HashKey* k = ComputeHash(*index);
+	HashKey* k = ComputeHash(index);
 	TableEntryVal* v = k ? AsNonConstTable()->RemoveEntry(k) : nullptr;
 	IntrusivePtr<Val> va;
 
 	if ( v )
 		va = v->GetVal() ? v->GetVal() : IntrusivePtr{NewRef{}, this};
 
-	if ( subnets && ! subnets->Remove(index) )
+	if ( subnets && ! subnets->Remove(&index) )
 		reporter->InternalWarning("index not in prefix table");
 
 	delete k;
@@ -2107,12 +2107,12 @@ IntrusivePtr<Val> TableVal::Delete(const Val* index)
 	Modified();
 
 	if ( change_func )
-		CallChangeFunc(index, va.get(), ELEMENT_REMOVED);
+		CallChangeFunc(&index, va.get(), ELEMENT_REMOVED);
 
 	return va;
 	}
 
-IntrusivePtr<Val> TableVal::Delete(const HashKey* k)
+IntrusivePtr<Val> TableVal::Remove(const HashKey* k)
 	{
 	TableEntryVal* v = AsNonConstTable()->RemoveEntry(k);
 	IntrusivePtr<Val> va;

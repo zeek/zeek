@@ -875,9 +875,31 @@ public:
 	// Returns the index corresponding to the given HashKey.
 	IntrusivePtr<ListVal> RecoverIndex(const HashKey* k) const;
 
-	// Returns the element if it was in the table, false otherwise.
-	IntrusivePtr<Val> Delete(const Val* index);
-	IntrusivePtr<Val> Delete(const HashKey* k);
+	/**
+	 * Remove an element from the table and return it.
+	 * @param index  The index to remove.
+	 * @return  The value associated with the index if it exists, else nullptr.
+	 * For a sets that don't really contain associated values, a placeholder
+	 * value is returned to differentiate it from non-existent index (nullptr),
+	 * but otherwise has no meaning in relation to the set's contents.
+	 */
+	IntrusivePtr<Val> Remove(const Val& index);
+
+	/**
+	 * Same as Remove(const Val&), but uses a precomputed hash key.
+	 * @param k  The hash key to lookup.  This method takes ownership of
+	 * deleting it.
+	 * @return  Same as Remove(const Val&).
+	 */
+	IntrusivePtr<Val> Remove(const HashKey* k);
+
+	[[deprecated("Remove in v4.1.  Use Remove().")]]
+	Val* Delete(const Val* index)
+		{ return Remove(*index).release(); }
+
+	[[deprecated("Remove in v4.1.  Use Remove().")]]
+	Val* Delete(const HashKey* k)
+		{ return Remove(k).release(); }
 
 	// Returns a ListVal representation of the table (which must be a set).
 	IntrusivePtr<ListVal> ToListVal(TypeTag t = TYPE_ANY) const;

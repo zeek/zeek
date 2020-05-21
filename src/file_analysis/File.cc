@@ -140,7 +140,7 @@ bool File::UpdateConnectionFields(Connection* conn, bool is_orig)
 
 	auto idx = get_conn_id_val(conn);
 
-	if ( conns->AsTableVal()->Lookup(idx.get()) )
+	if ( conns->AsTableVal()->FindOrDefault(idx) )
 		return false;
 
 	conns->AsTableVal()->Assign(std::move(idx), conn->ConnVal());

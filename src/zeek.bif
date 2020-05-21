@@ -406,7 +406,7 @@ static bool prepare_environment(TableVal* tbl, bool set)
 	for ( int i = 0; i < idxs->Length(); ++i )
 		{
 		const auto& key = idxs->Idx(i);
-		auto val = tbl->Lookup(key.get(), false);
+		const auto& val = tbl->Find(key);
 
 		if ( key->GetType()->Tag() != TYPE_STRING ||
 		     val->GetType()->Tag() != TYPE_STRING )

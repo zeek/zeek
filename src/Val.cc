@@ -1801,7 +1801,7 @@ bool TableVal::ExpandAndInit(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val)
 	}
 
 
-IntrusivePtr<Val> TableVal::Default(Val* index)
+IntrusivePtr<Val> TableVal::Default(const IntrusivePtr<Val>& index)
 	{
 	Attr* def_attr = FindAttr(ATTR_DEFAULT);
 
@@ -1863,7 +1863,7 @@ IntrusivePtr<Val> TableVal::Default(Val* index)
 			vl.emplace_back(v);
 		}
 	else
-		vl.emplace_back(NewRef{}, index);
+		vl.emplace_back(index);
 
 	IntrusivePtr<Val> result;
 
@@ -1884,26 +1884,26 @@ IntrusivePtr<Val> TableVal::Default(Val* index)
 	return result;
 	}
 
-IntrusivePtr<Val> TableVal::Lookup(Val* index, bool use_default_val)
+const IntrusivePtr<Val>& TableVal::Find(const IntrusivePtr<Val>& index)
 	{
+	static IntrusivePtr<Val> nil;
+	static IntrusivePtr<Val> exists = val_mgr->True();
+
 	if ( subnets )
 		{
-		TableEntryVal* v = (TableEntryVal*) subnets->Lookup(index);
+		TableEntryVal* v = (TableEntryVal*) subnets->Lookup(index.get());
 		if ( v )
 			{
 			if ( attrs && attrs->FindAttr(ATTR_EXPIRE_READ) )
-					v->SetExpireAccess(network_time);
+				v->SetExpireAccess(network_time);
 
 			if ( v->GetVal() )
 				return v->GetVal();
 
-			return {NewRef{}, this};
+			return exists;
 			}
 
-		if ( ! use_default_val )
-			return nullptr;
-
-		return Default(index);
+		return nil;
 		}
 
 	const PDict<TableEntryVal>* tbl = AsTable();
@@ -1924,15 +1924,36 @@ IntrusivePtr<Val> TableVal::Lookup(Val* index, bool use_default_val)
 				if ( v->GetVal() )
 					return v->GetVal();
 
-				return {NewRef{}, this};
+				return exists;
 				}
 			}
 		}
 
+	return nil;
+	}
+
+IntrusivePtr<Val> TableVal::FindOrDefault(const IntrusivePtr<Val>& index)
+	{
+	if ( auto rval = Find(index) )
+		return rval;
+
+	return Default(index);
+	}
+
+Val* TableVal::Lookup(Val* index, bool use_default_val)
+	{
+	static IntrusivePtr<Val> last_default;
+	last_default = nullptr;
+	IntrusivePtr<Val> idx{NewRef{}, index};
+
+	if ( const auto& rval = Find(idx) )
+		return rval.get();
+
 	if ( ! use_default_val )
 		return nullptr;
 
-	return Default(index);
+	last_default = Default(idx);
+	return last_default.get();
 	}
 
 IntrusivePtr<VectorVal> TableVal::LookupSubnets(const SubNetVal* search)
@@ -2298,7 +2319,7 @@ bool TableVal::CheckAndAssign(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val
 		// We need an exact match here.
 		v = (Val*) subnets->Lookup(index.get(), true);
 	else
-		v = Lookup(index.get(), false).get();
+		v = Find(index).get();
 
 	if ( v )
 		index->Warn("multiple initializations for index");

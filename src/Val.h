@@ -831,10 +831,32 @@ public:
 	// Returns true if the initializations typecheck, false if not.
 	bool ExpandAndInit(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val);
 
+	/**
+	 * Finds an index in the table and returns its associated value.
+	 * @param index  The index to lookup in the table.
+	 * @return  The value associated with the index.  If the index doesn't
+	 * exist, this is a nullptr.  For sets that don't really contain associated
+	 * values, a placeholder value is returned to differentiate it from
+	 * non-existent index (nullptr), but otherwise has no meaning in relation
+	 * to the set's contents.
+	 */
+	const IntrusivePtr<Val>& Find(const IntrusivePtr<Val>& index);
+
+	/**
+	 * Finds an index in the table and returns its associated value or else
+	 * the &default value.
+	 * @param index  The index to lookup in the table.
+	 * @return  The value associated with the index.  If the index doesn't
+	 * exist, instead returns the &default value.  If there's no &default
+	 * attribute, then nullptr is still returned for non-existent index.
+	 */
+	IntrusivePtr<Val> FindOrDefault(const IntrusivePtr<Val>& index);
+
 	// Returns the element's value if it exists in the table,
 	// nil otherwise.  Note, "index" is not const because we
 	// need to Ref/Unref it when calling the default function.
-	IntrusivePtr<Val> Lookup(Val* index, bool use_default_val = true);
+	[[deprecated("Remove in v4.1.  Use Find() or FindOrDefault().")]]
+	Val* Lookup(Val* index, bool use_default_val = true);
 
 	// For a table[subnet]/set[subnet], return all subnets that cover
 	// the given subnet.
@@ -936,8 +958,8 @@ protected:
 	bool ExpandCompoundAndInit(ListVal* lv, int k, IntrusivePtr<Val> new_val);
 	bool CheckAndAssign(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val);
 
-	// Calculates default value for index.  Returns 0 if none.
-	IntrusivePtr<Val> Default(Val* index);
+	// Calculates default value for index.  Returns nullptr if none.
+	IntrusivePtr<Val> Default(const IntrusivePtr<Val>& index);
 
 	// Returns true if item expiration is enabled.
 	bool ExpirationEnabled()	{ return expire_time != nullptr; }

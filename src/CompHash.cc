@@ -238,15 +238,15 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 			for ( auto& kv : hashkeys )
 				{
 				auto idx = kv.second;
-				Val* key = lv->Idx(idx).get();
+				const auto& key = lv->Idx(idx);
 
-				if ( ! (kp1 = SingleValHash(type_check, kp1, key->GetType().get(), key,
-				                            false)) )
+				if ( ! (kp1 = SingleValHash(type_check, kp1, key->GetType().get(),
+				                            key.get(), false)) )
 					return nullptr;
 
 				if ( ! v->GetType()->IsSet() )
 					{
-					auto val = tv->Lookup(key);
+					auto val = tv->FindOrDefault(key);
 
 					if ( ! (kp1 = SingleValHash(type_check, kp1, val->GetType().get(),
 								    val.get(), false)) )
@@ -537,15 +537,15 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 			auto lv = tv->ToListVal();
 			for ( int i = 0; i < tv->Size(); ++i )
 				{
-				Val* key = lv->Idx(i).get();
-				sz = SingleTypeKeySize(key->GetType().get(), key, type_check, sz, false,
+				const auto& key = lv->Idx(i);
+				sz = SingleTypeKeySize(key->GetType().get(), key.get(), type_check, sz, false,
 				                       calc_static_size);
 				if ( ! sz )
 					return 0;
 
 				if ( ! bt->IsSet() )
 					{
-					auto val = tv->Lookup(key);
+					auto val = tv->FindOrDefault(key);
 					sz = SingleTypeKeySize(val->GetType().get(), val.get(), type_check, sz,
 					                       false, calc_static_size);
 					if ( ! sz )

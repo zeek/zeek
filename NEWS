@@ -208,6 +208,9 @@ Deprecated Functionality
 - ``TableVal::Assign`` methods taking raw ``Val*`` are deprecated, use the
   overloads taking ``IntrusivePtr``.
 
+- ``TableVal::Lookup()`` is deprecated, use ``TableVal::Find()`` or
+  ``TableVal::FindOrDefault()``.
+
 Zeek 3.1.0
 ==========
 

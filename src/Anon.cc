@@ -387,7 +387,7 @@ void init_ip_addr_anonymizers()
 ipaddr32_t anonymize_ip(ipaddr32_t ip, enum ip_addr_anonymization_class_t cl)
 	{
 	TableVal* preserve_addr = nullptr;
-	AddrVal addr(ip);
+	auto addr = make_intrusive<AddrVal>(ip);
 
 	int method = -1;
 
@@ -410,7 +410,7 @@ ipaddr32_t anonymize_ip(ipaddr32_t ip, enum ip_addr_anonymization_class_t cl)
 
 	ipaddr32_t new_ip = 0;
 
-	if ( preserve_addr && preserve_addr->Lookup(&addr) )
+	if ( preserve_addr && preserve_addr->FindOrDefault(addr) )
 		new_ip = ip;
 
 	else if ( method >= 0 && method < NUM_ADDR_ANONYMIZATION_METHODS )

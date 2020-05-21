@@ -434,7 +434,7 @@ bool Manager::IsDisabled(const analyzer::Tag& tag)
 		disabled = zeek::id::find_const("Files::disable")->AsTableVal();
 
 	auto index = val_mgr->Count(bool(tag));
-	auto yield = disabled->Lookup(index.get());
+	auto yield = disabled->FindOrDefault(index);
 
 	if ( ! yield )
 		return false;

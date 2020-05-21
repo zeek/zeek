@@ -21,7 +21,7 @@ refine flow RADIUS_Flow += {
 				auto index = val_mgr->Count(${msg.attributes[i].code});
 
 				// Do we already have a vector of attributes for this type?
-				auto current = attributes->Lookup(index.get());
+				auto current = attributes->FindOrDefault(index);
 				IntrusivePtr<Val> val = to_stringval(${msg.attributes[i].value});
 
 				if ( current )

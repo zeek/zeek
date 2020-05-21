@@ -141,8 +141,8 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		const auto& sport_val = val_mgr->Port(ntohs(up->uh_sport), TRANSPORT_UDP);
 		const auto& dport_val = val_mgr->Port(ntohs(up->uh_dport), TRANSPORT_UDP);
 
-		if ( udp_content_ports->Lookup(dport_val.get()) ||
-		     udp_content_ports->Lookup(sport_val.get()) )
+		if ( udp_content_ports->FindOrDefault(dport_val) ||
+		     udp_content_ports->FindOrDefault(sport_val) )
 			do_udp_contents = true;
 		else
 			{
@@ -152,14 +152,14 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 			if ( is_orig )
 				{
-				auto result = udp_content_delivery_ports_orig->Lookup(port_val.get());
+				auto result = udp_content_delivery_ports_orig->FindOrDefault(port_val);
 
 				if ( udp_content_deliver_all_orig || (result && result->AsBool()) )
 					do_udp_contents = true;
 				}
 			else
 				{
-				auto result = udp_content_delivery_ports_resp->Lookup(port_val.get());
+				auto result = udp_content_delivery_ports_resp->FindOrDefault(port_val);
 
 				if ( udp_content_deliver_all_resp || (result && result->AsBool()) )
 					do_udp_contents = true;

@@ -477,10 +477,8 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 		// If include fields are specified, only include if explicitly listed.
 		if ( include )
 			{
-			StringVal* new_path_val = new StringVal(new_path.c_str());
-			bool result = (bool)include->Lookup(new_path_val);
-
-			Unref(new_path_val);
+			auto new_path_val = make_intrusive<StringVal>(new_path.c_str());
+			bool result = (bool)include->FindOrDefault(new_path_val);
 
 			if ( ! result )
 				continue;
@@ -489,10 +487,8 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 		// If exclude fields are specified, do not only include if listed.
 		if ( exclude )
 			{
-			StringVal* new_path_val = new StringVal(new_path.c_str());
-			bool result = (bool)exclude->Lookup(new_path_val);
-
-			Unref(new_path_val);
+			auto new_path_val = make_intrusive<StringVal>(new_path.c_str());
+			bool result = (bool)exclude->FindOrDefault(new_path_val);
 
 			if ( result )
 				continue;
@@ -848,13 +844,13 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 				if ( filter->field_name_map )
 					{
 					const char* name = filter->fields[j]->name;
-					StringVal *fn = new StringVal(name);
-					if ( auto val = filter->field_name_map->Lookup(fn, false) )
+					auto fn = make_intrusive<StringVal>(name);
+
+					if ( const auto& val = filter->field_name_map->Find(fn) )
 						{
 						delete [] filter->fields[j]->name;
 						filter->fields[j]->name = copy_string(val->AsStringVal()->CheckString());
 						}
-					delete fn;
 					}
 				arg_fields[j] = new threading::Field(*filter->fields[j]);
 				}

@@ -1245,7 +1245,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const *vals)
 		{
 		assert(stream->num_val_fields > 0);
 		// in that case, we need the old value to send the event (if we send an event).
-		oldval = stream->tab->Lookup(idxval, false);
+		oldval = stream->tab->Find({NewRef{}, idxval});
 		}
 
 	HashKey* k = stream->tab->ComputeHash(*idxval);
@@ -1344,7 +1344,7 @@ void Manager::EndCurrentSend(ReaderFrontend* reader)
 			{
 			auto idx = stream->tab->RecoverIndex(ih->idxkey);
 			assert(idx != nullptr);
-			val = stream->tab->Lookup(idx.get());
+			val = stream->tab->FindOrDefault(idx);
 			assert(val != nullptr);
 			predidx = {AdoptRef{}, ListValToRecordVal(idx.get(), stream->itype, &startpos)};
 			ev = zeek::BifType::Enum::Input::Event->GetVal(BifEnum::Input::EVENT_REMOVED);
@@ -1555,7 +1555,7 @@ int Manager::PutTable(Stream* i, const Value* const *vals)
 		if ( stream->num_val_fields > 0 )
 			{
 			// in that case, we need the old value to send the event (if we send an event).
-			oldval = stream->tab->Lookup(idxval, false);
+			oldval = stream->tab->Find({NewRef{}, idxval});
 			}
 
 		if ( oldval != nullptr )
@@ -1699,7 +1699,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value* *vals)
 
 		if ( stream->pred || stream->event )
 			{
-			auto val = stream->tab->Lookup(idxval);
+			auto val = stream->tab->FindOrDefault({NewRef{}, idxval});
 
 			if ( stream->pred )
 				{

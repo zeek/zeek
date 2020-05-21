@@ -85,19 +85,18 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
 
 	analyzer->ProtocolConfirmation();
 
-	AddrVal server(analyzer->Conn()->RespAddr());
-
 	int skip_auth = dns_skip_all_auth;
 	int skip_addl = dns_skip_all_addl;
 	if ( msg.ancount > 0 )
 		{ // We did an answer, so can potentially skip auth/addl.
 		static auto dns_skip_auth = zeek::id::find_val<TableVal>("dns_skip_auth");
 		static auto dns_skip_addl = zeek::id::find_val<TableVal>("dns_skip_addl");
+		auto server = make_intrusive<AddrVal>(analyzer->Conn()->RespAddr());
 
 		skip_auth = skip_auth || msg.nscount == 0 ||
-				dns_skip_auth->Lookup(&server);
+				dns_skip_auth->FindOrDefault(server);
 		skip_addl = skip_addl || msg.arcount == 0 ||
-				dns_skip_addl->Lookup(&server);
+				dns_skip_addl->FindOrDefault(server);
 		}
 
 	if ( skip_auth && skip_addl )

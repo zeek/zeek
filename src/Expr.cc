@@ -2669,7 +2669,7 @@ IntrusivePtr<Val> IndexExpr::Fold(Val* v1, Val* v2) const
 		break;
 
 	case TYPE_TABLE:
-		v = v1->AsTableVal()->Lookup(v2); // Then, we jump into the TableVal here.
+		v = v1->AsTableVal()->FindOrDefault({NewRef{}, v2}); // Then, we jump into the TableVal here.
 		break;
 
 	case TYPE_STRING:
@@ -3995,7 +3995,7 @@ IntrusivePtr<Val> InExpr::Fold(Val* v1, Val* v2) const
 	if ( is_vector(v2) )
 		res = (bool)v2->AsVectorVal()->Lookup(v1);
 	else
-		res = (bool)v2->AsTableVal()->Lookup(v1, false);
+		res = (bool)v2->AsTableVal()->Find({NewRef{}, v1});
 
 	return val_mgr->Bool(res);
 	}

@@ -739,6 +739,11 @@ class Frame;
 class TableVal final : public Val, public notifier::Modifiable {
 public:
 	explicit TableVal(IntrusivePtr<TableType> t, IntrusivePtr<Attributes> attrs = nullptr);
+	[[deprecated("Remove in v4.1.  Construct from IntrusivePtrs instead.")]]
+	explicit TableVal(TableType* t, Attributes* attrs = nullptr)
+		: TableVal({NewRef{}, t}, {NewRef{}, attrs})
+		{}
+
 	~TableVal() override;
 
 	/**

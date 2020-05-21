@@ -49,7 +49,7 @@ public:
 	/**
 	 * @return  the number of chunks in the fuzz buffer object
 	 */
-	int ChunkCount() const;
+	int ChunkCount(int chunk_count_limit = 0) const;
 
 	/**
 	 * @return  the next chunk to deliver, if one could be extracted

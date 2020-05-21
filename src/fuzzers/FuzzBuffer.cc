@@ -14,18 +14,18 @@ bool zeek::detail::FuzzBuffer::Valid(int chunk_count_limit) const
 	if ( memcmp(begin, PKT_MAGIC, PKT_MAGIC_LEN) != 0)
 		return false;
 
-	if ( ChunkCount() > chunk_count_limit )
+	if ( ChunkCount(chunk_count_limit + 1) > chunk_count_limit )
 		return false;
 
 	return true;
 	}
 
-int zeek::detail::FuzzBuffer::ChunkCount() const
+int zeek::detail::FuzzBuffer::ChunkCount(int chunk_count_limit) const
 	{
 	auto pos = begin;
 	int chunks = 0;
 
-	while ( pos < end )
+	while ( pos < end && (chunk_count_limit == 0 || chunks < chunk_count_limit) )
 		{
 		pos = (const unsigned char*)memmem(pos, end - pos,
 		                                   PKT_MAGIC, PKT_MAGIC_LEN);

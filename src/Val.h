@@ -257,6 +257,8 @@ public:
 	ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
 	ACCESSOR(TYPE_VECTOR, std::vector<Val*>*, vector_val, AsVector)
 
+	IntrusivePtr<Func> AsFuncPtr() const;
+
 	const IPPrefix& AsSubNet()
 		{
 		CHECK_TAG(type->Tag(), TYPE_SUBNET, "Val::SubNet", type_name)

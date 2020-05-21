@@ -84,7 +84,7 @@ IntrusivePtr<Func> zeek::id::find_func(std::string_view name)
 		reporter->InternalError("Expected variable '%s' to be a function",
 		                        std::string(name).data());
 
-	return {NewRef{}, v->AsFunc()};
+	return v->AsFuncPtr();
 	}
 
 void zeek::id::detail::init()

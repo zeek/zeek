@@ -206,7 +206,6 @@ function Option::set_change_handler%(ID: string, on_change: any, priority: int &
 		return val_mgr->False();
 		}
 
-	auto* func = on_change->AsFunc();
-	i->AddOptionHandler({NewRef{}, func}, -priority);
+	i->AddOptionHandler(on_change->AsFuncPtr(), -priority);
 	return val_mgr->True();
 	%}

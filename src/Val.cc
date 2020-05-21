@@ -153,6 +153,12 @@ IntrusivePtr<Val> Val::DoClone(CloneState* state)
 	return nullptr;
  	}
 
+IntrusivePtr<Func> Val::AsFuncPtr() const
+	{
+	CHECK_TAG(type->Tag(), TYPE_FUNC, "Val::Func", type_name)
+	return {NewRef{}, val.func_val};
+	}
+
 bool Val::IsZero() const
 	{
 	switch ( type->InternalType() ) {

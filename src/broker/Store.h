@@ -121,7 +121,9 @@ public:
 	broker::store::proxy proxy;
 
 protected:
-	StoreHandleVal() = default;
+	StoreHandleVal()
+		: OpaqueVal(bro_broker::opaque_of_store_handle)
+		{}
 
 	DECLARE_OPAQUE_VALUE(StoreHandleVal)
 };

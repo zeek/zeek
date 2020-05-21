@@ -1181,11 +1181,7 @@ const CompiledStmt ZAM::InitRecord(ID* id, RecordType* rt)
 
 const CompiledStmt ZAM::InitVector(ID* id, VectorType* vt)
 	{
-	auto op = vt->YieldType()->Tag() == TYPE_ANY ?
-			OP_INIT_ANY_VECTOR_VV :
-			OP_INIT_VECTOR_VV;
-
-	auto z = ZInst(op, FrameSlot(id), id->Offset());
+	auto z = ZInst(OP_INIT_VECTOR_VV, FrameSlot(id), id->Offset());
 	z.t = vt;
 	z.op_type = OP_VV_FRAME;
 	return AddInst(z);

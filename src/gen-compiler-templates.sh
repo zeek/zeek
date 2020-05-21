@@ -94,7 +94,6 @@ BEGIN	{
 	accessors["S"] = ".string_val"
 	accessors["T"] = ".table_val"
 	accessors["V"] = ".vector_val"
-	accessors["VA"] = ".any_val"
 	accessors["X"] = "###"
 
 	# Update eval(...) below
@@ -111,12 +110,10 @@ BEGIN	{
 	eval_selector["S"] = "S"
 	eval_selector["T"] = "T"
 	eval_selector["V"] = "V"
-	eval_selector["VA"] = "VA"
 
 	++no_vec["P"]
 	++no_vec["T"]
 	++no_vec["V"]
-	++no_vec["VA"]
 	++no_vec["A", "I"]
 
 	method_map["i"] = method_map["I"] = "i_t == TYPE_INTERNAL_INT"
@@ -130,8 +127,7 @@ BEGIN	{
 
 	# We need to explicitly check for any/not-any because we go through
 	# the op-types via dictionary traversal (i.e., unpredcitable order).
-	method_map["V"] = "tag == TYPE_VECTOR && t->AsVectorType()->YieldType()->Tag() != TYPE_ANY"
-	method_map["VA"] = "tag == TYPE_VECTOR && t->AsVectorType()->YieldType()->Tag() == TYPE_ANY"
+	method_map["V"] = "tag == TYPE_VECTOR"
 
 	mixed_type_supported["P", "S"]
 	mixed_type_supported["A", "I"]
@@ -175,7 +171,7 @@ $1 == "opaque"	{ opaque = 1; next }
 $1 == "set-type"	{ set_type = $2; next }
 $1 == "set-expr"	{ set_expr = $2; next }
 
-$1 ~ /^eval((_([iudANPSTV]|VA))?)$/	{
+$1 ~ /^eval((_([iudANPSTV]))?)$/	{
 		if ( $1 != "eval" )
 			{
 			# Extract subtype specifier.

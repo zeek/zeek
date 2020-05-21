@@ -459,6 +459,7 @@ internal-op Table-Index
 type VVV
 eval auto v2 = frame[z.v3].list_val
 eval auto v = frame[z.v2].table_val->Lookup(v2)
+eval if ( ! v ) ZAM_run_time_error(error_flag, z.stmt, "no such index")
 eval AssignV1(BuildVal(v, z.t, z.stmt))
 
 # This version is for a variable v3.

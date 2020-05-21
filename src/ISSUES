@@ -22,3 +22,5 @@ assigning vector-of-any (that's actually vector-of-string) to
 same_object() on atomic types
 
 need to track NewSlot() denizens in case they require memory management
+
+error messages tied back to non-reduced original

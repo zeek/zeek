@@ -588,7 +588,10 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 			auto v = make_intrusive<VectorVal>(std::move(vt));
 
 			for ( int j = 0; j < val->val.vector_val.size; j++ )
-				v->Assign(j, ValueToVal(source, val->val.vector_val.vals[j], have_error));
+				{
+				auto el = ValueToVal(source, val->val.vector_val.vals[j], have_error);
+				v->Assign(j, {AdoptRef{}, el});
+				}
 
 			return v.release();
 			}

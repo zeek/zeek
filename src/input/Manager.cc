@@ -2275,7 +2275,10 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 		auto v = make_intrusive<VectorVal>(std::move(vt));
 
 		for ( int j = 0; j < val->val.vector_val.size; j++ )
-			v->Assign(j, ValueToVal(i, val->val.vector_val.vals[j], type.get(), have_error));
+			{
+			auto el = ValueToVal(i, val->val.vector_val.vals[j], type.get(), have_error);
+			v->Assign(j, {AdoptRef{}, el});
+			}
 
 		return v.release();
 		}

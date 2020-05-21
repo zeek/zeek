@@ -362,7 +362,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 #else
 			const char* name = (const char*) ASN1_STRING_get0_data(gen->d.ia5);
 #endif
-			StringVal* bs = new StringVal(name);
+			auto bs = make_intrusive<StringVal>(name);
 
 			switch ( gen->type )
 				{
@@ -370,21 +370,21 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 					if ( names == nullptr )
 						names = make_intrusive<VectorVal>(zeek::id::string_vec);
 
-					names->Assign(names->Size(), bs);
+					names->Assign(names->Size(), std::move(bs));
 					break;
 
 				case GEN_URI:
 					if ( uris == nullptr )
 						uris = make_intrusive<VectorVal>(zeek::id::string_vec);
 
-					uris->Assign(uris->Size(), bs);
+					uris->Assign(uris->Size(), std::move(bs));
 					break;
 
 				case GEN_EMAIL:
 					if ( emails == nullptr )
 						emails = make_intrusive<VectorVal>(zeek::id::string_vec);
 
-					emails->Assign(emails->Size(), bs);
+					emails->Assign(emails->Size(), std::move(bs));
 					break;
 				}
 			}

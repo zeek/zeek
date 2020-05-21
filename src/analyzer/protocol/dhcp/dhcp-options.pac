@@ -750,11 +750,11 @@ refine flow DHCP_Flow += {
 		for ( auto ptrsubopt = ${v.relay_agent_inf}->begin();
 		      ptrsubopt != ${v.relay_agent_inf}->end(); ++ptrsubopt )
 			{
-			auto r = new RecordVal(zeek::BifType::Record::DHCP::SubOpt);
+			auto r = make_intrusive<RecordVal>(zeek::BifType::Record::DHCP::SubOpt);
 			r->Assign(0, val_mgr->Count((*ptrsubopt)->code()));
 			r->Assign(1, to_stringval((*ptrsubopt)->value()));
 
-			relay_agent_sub_opt->Assign(i, r);
+			relay_agent_sub_opt->Assign(i, std::move(r));
 			++i;
 			}
 

@@ -765,7 +765,7 @@ IntrusivePtr<RecordVal> NFS_Interp::nfs3_readdir_reply(bool isplus, const u_char
 
 		while ( extract_XDR_uint32(buf,n) )
 			{
-			RecordVal *entry = new RecordVal(zeek::BifType::Record::NFS3::direntry_t);
+			auto entry = make_intrusive<RecordVal>(zeek::BifType::Record::NFS3::direntry_t);
 			entry->Assign(0, ExtractUint64(buf,n)); // fileid
 			entry->Assign(1, nfs3_filename(buf,n)); // fname
 			entry->Assign(2, ExtractUint64(buf,n)); // cookie
@@ -776,7 +776,7 @@ IntrusivePtr<RecordVal> NFS_Interp::nfs3_readdir_reply(bool isplus, const u_char
 				entry->Assign(4, nfs3_post_op_fh(buf,n));
 				}
 
-			entries->Assign(pos, entry);
+			entries->Assign(pos, std::move(entry));
 			pos++;
 			}
 

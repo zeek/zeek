@@ -345,9 +345,9 @@ VectorVal* BroString:: VecToPolicy(Vec* vec)
 	for ( unsigned int i = 0; i < vec->size(); ++i )
 		{
 		BroString* string = (*vec)[i];
-		StringVal* val = new StringVal(string->Len(),
-						(const char*) string->Bytes());
-		result->Assign(i+1, val);
+		auto val = make_intrusive<StringVal>(string->Len(),
+		                                     (const char*) string->Bytes());
+		result->Assign(i+1, std::move(val));
 		}
 
 	return result.release();

@@ -209,7 +209,7 @@ IntrusivePtr<VectorVal> TopkVal::GetTopK(int k) const // returns vector
 		while ( eit != (*it)->elements.end() )
 			{
 			//printf("Size: %ld\n", (*it)->elements.size());
-			t->Assign(read, (*eit)->value->Ref());
+			t->Assign(read, (*eit)->value);
 			read++;
 			eit++;
 			}

@@ -1358,7 +1358,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 		{
 		auto option_list = make_intrusive<VectorVal>(zeek::BifType::Vector::TCP::OptionList);
 
-		auto add_option_data = [](RecordVal* rv, const u_char* odata, int olen)
+		auto add_option_data = [](const IntrusivePtr<RecordVal>& rv, const u_char* odata, int olen)
 			{
 			if ( olen <= 2 )
 				return;
@@ -1372,7 +1372,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 			{
 			auto kind = o[0];
 			auto length = kind < 2 ? 1 : o[1];
-			auto option_record = new RecordVal(zeek::BifType::Record::TCP::Option);
+			auto option_record = make_intrusive<RecordVal>(zeek::BifType::Record::TCP::Option);
 			option_list->Assign(option_list->Size(), option_record);
 			option_record->Assign(0, val_mgr->Count(kind));
 			option_record->Assign(1, val_mgr->Count(length));

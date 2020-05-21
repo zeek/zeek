@@ -1245,25 +1245,44 @@ public:
 
 	IntrusivePtr<Val> SizeVal() const override;
 
-	// Returns false if the type of the argument was wrong.
-	// The vector will automatically grow to accomodate the index.
-	//
+	/**
+	 * Assigns an element to a given vector index.
+	 * @param index  The index to assign.
+	 * @param element  The element value to assign.
+	 * @return  True if the element was successfully assigned, or false if
+	 * the element was the wrong type.
+	 */
+	bool Assign(unsigned int index, IntrusivePtr<Val> element);
+
 	// Note: does NOT Ref() the element! Remember to do so unless
 	//       the element was just created and thus has refcount 1.
-	//
-	bool Assign(unsigned int index, IntrusivePtr<Val> element);
-	bool Assign(unsigned int index, Val* element);
+	[[deprecated("Remove in v4.1.  Assign an IntrusivePtr instead.")]]
+	bool Assign(unsigned int index, Val* element)
+		{ return Assign(index, {AdoptRef{}, element}); }
+	// Note: the following nullptr method can also go upon removing the above.
+	void Assign(unsigned int index, std::nullptr_t)
+		{ Assign(index, IntrusivePtr<Val>{}); }
 
-	template<typename E>
-	bool Assign(Val* index, E&& element)
+	[[deprecated("Remove in v4.1.  Assign using integer index and IntrusivePtr element.")]]
+	bool Assign(Val* index, Val* element)
 		{
 		return Assign(index->AsListVal()->Idx(0)->CoerceToUnsigned(),
-		              std::forward<E>(element));
+		              {AdoptRef{}, element});
 		}
 
-	// Assigns the value to how_many locations starting at index.
+	/**
+	 * Assigns a given value to multiple indices in the vector.
+	 * @param index  The starting index to assign to.
+	 * @param how_many  The number of indices to assign, counting from *index*.
+	 * @return  True if the elements were successfully assigned, or false if
+	 * the element was the wrong type.
+	 */
 	bool AssignRepeat(unsigned int index, unsigned int how_many,
-			  Val* element);
+	                  IntrusivePtr<Val> element);
+
+	[[deprecated("Remove in v4.1.  Assign an IntrusivePtr instead.")]]
+	bool AssignRepeat(unsigned int index, unsigned int how_many, Val* element)
+		{ return AssignRepeat(index, how_many, {NewRef{}, element}); }
 
 	// Add this value to the given value (if appropriate).
 	// Returns true if succcessful.

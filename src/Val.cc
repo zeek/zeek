@@ -3080,18 +3080,13 @@ bool VectorVal::Assign(unsigned int index, IntrusivePtr<Val> element)
 	return true;
 	}
 
-bool VectorVal::Assign(unsigned int index, Val* element)
-	{
-	return Assign(index, {AdoptRef{}, element});
-	}
-
 bool VectorVal::AssignRepeat(unsigned int index, unsigned int how_many,
-				Val* element)
+                             IntrusivePtr<Val> element)
 	{
 	ResizeAtLeast(index + how_many);
 
 	for ( unsigned int i = index; i < index + how_many; ++i )
-		if ( ! Assign(i, {NewRef{}, element}) )
+		if ( ! Assign(i, element) )
 			return false;
 
 	return true;

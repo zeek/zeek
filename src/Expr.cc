@@ -1572,7 +1572,7 @@ IntrusivePtr<Val> BoolExpr::Eval(Frame* f) const
 			{
 			result = make_intrusive<VectorVal>(GetType<VectorType>());
 			result->Resize(vector_v->Size());
-			result->AssignRepeat(0, result->Size(), scalar_v.get());
+			result->AssignRepeat(0, result->Size(), std::move(scalar_v));
 			}
 		else
 			result = std::move(vector_v);
@@ -1937,7 +1937,7 @@ IntrusivePtr<Val> CondExpr::Eval(Frame* f) const
 		if ( local_cond )
 			{
 			Val* v = local_cond->IsZero() ? b->Lookup(i) : a->Lookup(i);
-			result->Assign(i, v ? v->Ref() : nullptr);
+			result->Assign(i, v ? IntrusivePtr{NewRef{}, v} : nullptr);
 			}
 		else
 			result->Assign(i, nullptr);
@@ -2595,7 +2595,7 @@ IntrusivePtr<Val> IndexExpr::Eval(Frame* f) const
 				if ( v_v2->Lookup(i)->AsBool() )
 					{
 					auto a = v_v1->Lookup(i);
-					v_result->Assign(v_result->Size() + 1, a ? a->Ref() : nullptr);
+					v_result->Assign(v_result->Size() + 1, a ? IntrusivePtr{NewRef{}, a} : nullptr);
 					}
 				}
 			}
@@ -2608,7 +2608,7 @@ IntrusivePtr<Val> IndexExpr::Eval(Frame* f) const
 			for ( unsigned int i = 0; i < v_v2->Size(); ++i )
 				{
 				auto a = v_v1->Lookup(v_v2->Lookup(i)->CoerceToInt());
-				v_result->Assign(i, a ? a->Ref() : nullptr);
+				v_result->Assign(i, a ? IntrusivePtr{NewRef{}, a} : nullptr);
 				}
 			}
 
@@ -2659,7 +2659,7 @@ IntrusivePtr<Val> IndexExpr::Fold(Val* v1, Val* v2) const
 				for ( int idx = first; idx < last; idx++ )
 					{
 					auto a = vect->Lookup(idx);
-					result->Assign(idx - first, a ? a->Ref() : nullptr);
+					result->Assign(idx - first, a ? IntrusivePtr{NewRef{}, a} : nullptr);
 					}
 				}
 
@@ -2758,7 +2758,7 @@ void IndexExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 			for ( auto idx = 0u; idx < v_vect->Size(); idx++, first++ )
 				v1_vect->Insert(first, v_vect->Lookup(idx)->Ref());
 			}
-		else if ( ! v1_vect->Assign(v2.get(), std::move(v)) )
+		else if ( ! v1_vect->Assign(lv->Idx(0)->CoerceToUnsigned(), std::move(v)) )
 			{
 			v = std::move(v_extra);
 

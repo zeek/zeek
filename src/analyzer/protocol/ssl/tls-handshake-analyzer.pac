@@ -161,10 +161,10 @@ refine connection Handshake_Conn += {
 			{
 			for ( unsigned int i = 0; i < supported_signature_algorithms->size(); ++i )
 				{
-				RecordVal* el = new RecordVal(zeek::BifType::Record::SSL::SignatureAndHashAlgorithm);
+				auto el = make_intrusive<RecordVal>(zeek::BifType::Record::SSL::SignatureAndHashAlgorithm);
 				el->Assign(0, val_mgr->Count((*supported_signature_algorithms)[i]->HashAlgorithm()));
 				el->Assign(1, val_mgr->Count((*supported_signature_algorithms)[i]->SignatureAlgorithm()));
-				slist->Assign(i, el);
+				slist->Assign(i, std::move(el));
 				}
 			}
 
@@ -498,10 +498,10 @@ refine connection Handshake_Conn += {
 			{
 			for ( auto&& identity : *(identities->identities()) )
 				{
-				RecordVal* el = new RecordVal(zeek::BifType::Record::SSL::PSKIdentity);
+				auto el = make_intrusive<RecordVal>(zeek::BifType::Record::SSL::PSKIdentity);
 				el->Assign(0, make_intrusive<StringVal>(identity->identity().length(), (const char*) identity->identity().data()));
 				el->Assign(1, val_mgr->Count(identity->obfuscated_ticket_age()));
-				slist->Assign(slist->Size(), el);
+				slist->Assign(slist->Size(), std::move(el));
 				}
 			}
 

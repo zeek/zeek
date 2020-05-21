@@ -600,7 +600,12 @@ public:
 
 	unsigned int MemoryAllocation() const override;
 
-	IntrusivePtr<StringVal> Substitute(RE_Matcher* re, StringVal* repl, bool do_all);
+	IntrusivePtr<StringVal> Replace(RE_Matcher* re, const BroString& repl,
+	                                bool do_all);
+
+	[[deprecated("Remove in v4.1.  Use Replace().")]]
+	Val* Substitute(RE_Matcher* re, StringVal* repl, bool do_all)
+		{ return Replace(re, *repl->AsString(), do_all).release(); }
 
 protected:
 	void ValDescribe(ODesc* d) const override;

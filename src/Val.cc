@@ -591,7 +591,8 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 						{
 						auto blank = make_intrusive<StringVal>("");
 						auto fn_val = make_intrusive<StringVal>(field_name);
-						auto key_val = fn_val->Substitute(re, blank.get(), false);
+						const auto& bs = *blank->AsString();
+						auto key_val = fn_val->Replace(re, bs, false);
 						key_str = key_val->ToStdString();
 						}
 					else
@@ -1031,7 +1032,8 @@ unsigned int StringVal::MemoryAllocation() const
 	return padded_sizeof(*this) + val.string_val->MemoryAllocation();
 	}
 
-IntrusivePtr<StringVal> StringVal::Substitute(RE_Matcher* re, StringVal* repl, bool do_all)
+IntrusivePtr<StringVal> StringVal::Replace(RE_Matcher* re,
+                                           const BroString& repl, bool do_all)
 	{
 	const u_char* s = Bytes();
 	int offset = 0;
@@ -1079,7 +1081,7 @@ IntrusivePtr<StringVal> StringVal::Substitute(RE_Matcher* re, StringVal* repl, b
 
 	// size now reflects amount of space copied.  Factor in amount
 	// of space for replacement text.
-	size += cut_points.size() * repl->Len();
+	size += cut_points.size() * repl.Len();
 
 	// And a final NUL for good health.
 	++size;
@@ -1098,8 +1100,8 @@ IntrusivePtr<StringVal> StringVal::Substitute(RE_Matcher* re, StringVal* repl, b
 		start_offset = point.second;
 
 		// Now add in replacement text.
-		memcpy(r, repl->Bytes(), repl->Len());
-		r += repl->Len();
+		memcpy(r, repl.Bytes(), repl.Len());
+		r += repl.Len();
 		}
 
 	// Copy final trailing characters.

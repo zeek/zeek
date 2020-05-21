@@ -412,7 +412,7 @@ function split_string_n%(str: string, re: pattern,
 ## .. zeek:see:: gsub subst_string
 function sub%(str: string, re: pattern, repl: string%): string
 	%{
-	return str->Substitute(re, repl, false);
+	return str->Replace(re, *repl->AsString(), false);
 	%}
 
 ## Substitutes a given replacement string for all occurrences of a pattern
@@ -429,7 +429,7 @@ function sub%(str: string, re: pattern, repl: string%): string
 ## .. zeek:see:: sub subst_string
 function gsub%(str: string, re: pattern, repl: string%): string
 	%{
-	return str->Substitute(re, repl, true);
+	return str->Replace(re, *repl->AsString(), true);
 	%}
 
 

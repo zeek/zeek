@@ -883,7 +883,7 @@ type VV
 eval auto ii = new IterInfo
 eval ii->any_vv = frame[z.v2].any_val->AsVector()
 eval ii->iter = 0
-eval ii->n = ii->vv->size()
+eval ii->n = ii->any_vv->size()
 eval ii->c = 0;	// because End-Loop will check it
 eval frame[z.v1].iter_info = ii
 

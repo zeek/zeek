@@ -64,8 +64,8 @@ ZAMValUnion::ZAMValUnion(Val* v, BroType* t, ZAM_tracker_type* tracker,
 	{
 	if ( ! v )
 		{
-		ZAM_run_time_error(error, o,
-					"uninitialized value in compiled code");
+		ZAM_run_time_error("uninitialized value in compiled code",
+					o, error);
 		int_val = 0;
 		return;
 		}
@@ -124,7 +124,7 @@ ZAMValUnion::ZAMValUnion(Val* v, BroType* t, ZAM_tracker_type* tracker,
 			char msg[8192];
 			snprintf(msg, sizeof msg, "vector type clash: %s vs. %s",
 					type_name(my_ytag), type_name(v_ytag));
-			ZAM_run_time_error(error, o, msg);
+			ZAM_run_time_error(msg, o, error);
 			vector_val = nullptr;
 			}
 		else

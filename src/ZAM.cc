@@ -13,7 +13,21 @@
 #include "Traverse.h"
 
 
-void ZAM_run_time_error(bool& error_flag, const BroObj* o, const char* msg)
+void ZAM_run_time_error(bool& error_flag, const Stmt* stmt, const char* msg)
+	{
+	if ( stmt->Tag() == STMT_EXPR )
+		{
+		auto e = stmt->AsExprStmt()->StmtExpr();
+		reporter->ExprRuntimeError(e, "%s", msg);
+		}
+	else
+		fprintf(stderr, "%s: %s\n", msg, obj_desc(stmt));
+
+	error_flag = true;
+	}
+
+void ZAM_run_time_error(const char* msg, const BroObj* o,
+				bool& error_flag)
 	{
 	fprintf(stderr, "%s: %s\n", msg, obj_desc(o));
 	error_flag = true;

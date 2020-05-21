@@ -292,5 +292,7 @@ protected:
 	int xfer_pc = 0;
 };
 
-extern void ZAM_run_time_error(bool& error_flag, const BroObj* o,
+extern void ZAM_run_time_error(bool& error_flag, const Stmt* stmt,
 				const char* msg);
+extern void ZAM_run_time_error(const char* msg, const BroObj* o,
+				bool& error_flag);

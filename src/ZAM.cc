@@ -414,10 +414,15 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n, UDs uds)
 	auto a_s = n ? ZInst(OP_INTERPRET_EXPR_V, RawSlot(n), c) :
 			ZInst(OP_INTERPRET_EXPR_X, c);
 
-	if ( n && n->Id()->IsGlobal() )
+	if ( n )
 		{
-		AddInst(a_s);
-		a_s = ZInst(OP_DIRTY_GLOBAL_V, RawSlot(n));
+		a_s.t = n->Type().get();
+
+		if ( n->Id()->IsGlobal() )
+			{
+			AddInst(a_s);
+			a_s = ZInst(OP_DIRTY_GLOBAL_V, RawSlot(n));
+			}
 		}
 
 	return AddInst(a_s);
@@ -1536,20 +1541,23 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
 			return AddInst(z);
 			}
 
-		if ( n2tag == TYPE_VECTOR && ! IsAny(n2) )
+		if ( n2tag == TYPE_VECTOR )
 			{
 			int n2_slot = FrameSlot(n2);
+			bool is_any = IsAny(n2);
 
 			if ( n3 )
 				{
 				int n3_slot = FrameSlot(n3);
-				auto zop = OP_INDEX_VEC_VVV;
+				auto zop = is_any ? OP_INDEX_ANY_VEC_VVV :
+							OP_INDEX_VEC_VVV;
 				z = ZInst(zop, Frame1Slot(n1, zop),
 						n2_slot, n3_slot);
 				}
 			else
 				{
-				auto zop = OP_INDEX_VECC_VVV;
+				auto zop = is_any ? OP_INDEX_ANY_VECC_VVV :
+							OP_INDEX_VECC_VVV;
 				z = ZInst(zop, Frame1Slot(n1, zop), n2_slot, c);
 				z.op_type = OP_VVV_I3;
 				}

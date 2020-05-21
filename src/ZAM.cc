@@ -1638,7 +1638,10 @@ void ZAM::SyncGlobals(const BroObj* o)
 
 const CompiledStmt  ZAM::AssignedToGlobal(const ID* global_id)
 	{
-	return AddInst(ZInst(OP_DIRTY_GLOBAL_V, RawSlot(global_id)));
+	// We used to need this before adding ZAMOp1Flavor.  We keep
+	// it as a structure since it potentially could be needed
+	// in the future.
+	return EmptyStmt();
 	}
 
 void ZAM::ResolveGoTos(vector<int>& gotos, const CompiledStmt s)

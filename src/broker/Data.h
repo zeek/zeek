@@ -126,6 +126,7 @@ public:
 
 protected:
 	DataVal()
+		: OpaqueVal(bro_broker::opaque_of_data_type)
 		{}
 
 	DECLARE_OPAQUE_VALUE(bro_broker::DataVal)
@@ -246,7 +247,10 @@ public:
 	broker::set::iterator it;
 
 protected:
-	SetIterator()	{}
+	SetIterator()
+		: OpaqueVal(bro_broker::opaque_of_set_iterator)
+		{}
+
 	DECLARE_OPAQUE_VALUE(bro_broker::SetIterator)
 };
 
@@ -263,7 +267,10 @@ public:
 	broker::table::iterator it;
 
 protected:
-	TableIterator()	{}
+	TableIterator()
+		: OpaqueVal(bro_broker::opaque_of_table_iterator)
+		{}
+
 	DECLARE_OPAQUE_VALUE(bro_broker::TableIterator)
 };
 
@@ -280,7 +287,10 @@ public:
 	broker::vector::iterator it;
 
 protected:
-	VectorIterator()	{}
+	VectorIterator()
+		: OpaqueVal(bro_broker::opaque_of_vector_iterator)
+		{}
+
 	DECLARE_OPAQUE_VALUE(bro_broker::VectorIterator)
 };
 
@@ -297,7 +307,10 @@ public:
 	broker::vector::iterator it;
 
 protected:
-	RecordIterator()	{}
+	RecordIterator()
+		: OpaqueVal(bro_broker::opaque_of_record_iterator)
+		{}
+
 	DECLARE_OPAQUE_VALUE(bro_broker::RecordIterator)
 };
 

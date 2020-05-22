@@ -110,7 +110,7 @@ public:
 	// Returns the Bro type that scripts use to represent a Broker data
 	// instance. This may be wrapping the opaque value inside another
 	// type.
-	static BroType* ScriptDataType();
+	static const IntrusivePtr<BroType>& ScriptDataType();
 
 	broker::data data;
 
@@ -120,8 +120,6 @@ protected:
 		{}
 
 	DECLARE_OPAQUE_VALUE(bro_broker::DataVal)
-
-	static BroType* script_data_type;
 };
 
 /**

@@ -23,8 +23,6 @@ IntrusivePtr<OpaqueType> bro_broker::opaque_of_table_iterator;
 IntrusivePtr<OpaqueType> bro_broker::opaque_of_vector_iterator;
 IntrusivePtr<OpaqueType> bro_broker::opaque_of_record_iterator;
 
-BroType* bro_broker::DataVal::script_data_type = nullptr;
-
 static bool data_type_check(const broker::data& d, BroType* t);
 
 static broker::port::protocol to_broker_port_proto(TransportProto tp)
@@ -1152,11 +1150,9 @@ IntrusivePtr<Val> bro_broker::DataVal::castTo(BroType* t)
 	return data_to_val(data, t);
 	}
 
-BroType* bro_broker::DataVal::ScriptDataType()
+const IntrusivePtr<BroType>& bro_broker::DataVal::ScriptDataType()
 	{
-	if ( ! script_data_type )
-		script_data_type = zeek::id::find_type("Broker::Data").get();
-
+	static auto script_data_type = zeek::id::find_type("Broker::Data");
 	return script_data_type;
 	}
 

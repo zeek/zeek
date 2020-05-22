@@ -137,7 +137,7 @@ Val* Frame::GetElement(const ID* id) const
 
 void Frame::Reset(int startIdx)
 	{
-	for ( int i = startIdx; i < size; ++i )
+	for ( int i = startIdx + current_offset; i < size; ++i )
 		{
 		UnrefElement(i);
 		frame[i] = 0;

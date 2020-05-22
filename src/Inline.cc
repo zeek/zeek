@@ -3,6 +3,7 @@
 #include "Inline.h"
 #include "ScriptAnaly.h"
 #include "ProfileFunc.h"
+#include "Desc.h"
 
 
 void Inliner::Analyze()
@@ -28,7 +29,6 @@ void Inliner::Analyze()
 	int depth = 0;
 	bool added_more = true;
 	std::unordered_set<FuncInfo*> new_ones;	// to migrate to inline_ables
-	std::unordered_set<Func*> inline_ables;
 
 	while ( 1 )
 		{
@@ -37,9 +37,9 @@ void Inliner::Analyze()
 		new_ones.clear();
 
 		for ( auto& c : candidates )
-			if ( IsInlineAble(c, inline_ables) )
+			if ( IsInlineAble(c) )
 				{
-				c->body->Inline(this);
+				InlineFunction(c);
 				new_ones.insert(c);
 				}
 
@@ -65,12 +65,32 @@ void Inliner::Analyze()
 		}
 #endif
 
+#if 0
 	for ( auto& f : funcs )
 		{
-		// Only inline f if we didn't already do it.
+		// Processing optimization: only spend time trying to inline f
+		// if we didn't already do so.
 		if ( inline_ables.find(f->func) == inline_ables.end() )
-			f->body->Inline(this);
+			InlineFunction(f);
 		}
+#endif
+	}
+
+void Inliner::InlineFunction(FuncInfo* f)
+	{
+	max_inlined_frame_size = 0;
+	curr_frame_size = f->func->FrameSize();
+
+	bool dump = false;	// streq(f->func->Name(), "test_func2");
+
+	if ( dump )
+		printf("%s body before inlining:\n%s\n", f->func->Name(), obj_desc(f->body));
+
+	f->body->Inline(this);
+	f->func->GrowFrameSize(max_inlined_frame_size);
+
+	if ( dump )
+		printf("%s body after inlining:\n%s\n", f->func->Name(), obj_desc(f->body));
 	}
 
 Expr* Inliner::CheckForInlining(CallExpr* c)
@@ -94,9 +114,22 @@ Expr* Inliner::CheckForInlining(CallExpr* c)
 
 	if ( ! func_vf )
 		return c->Ref();
+
+	if ( inline_ables.find(func_vf) == inline_ables.end() )
+		return c->Ref();
+
+	int frame_size = func_vf->FrameSize();
+	if ( frame_size > max_inlined_frame_size )
+		max_inlined_frame_size = frame_size;
+
+	IntrusivePtr<ListExpr> args = {NewRef{}, c->Args()};
+	auto body = func_vf->GetBodies()[0].stmts;
+	auto t = c->Type();
+
+	return new InlineExpr(args, body, curr_frame_size, t);
 	}
 
-bool Inliner::IsInlineAble(FuncInfo* f, std::unordered_set<Func*>& inline_ables)
+bool Inliner::IsInlineAble(FuncInfo* f)
 	{
 	for ( auto& func : f->pf->script_calls )
 		if ( inline_ables.find(func) == inline_ables.end() )

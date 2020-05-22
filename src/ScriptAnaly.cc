@@ -1652,9 +1652,9 @@ void analyze_scripts()
 		f->body->Traverse(f->pf);
 		}
 
-	analyze_orphan_events();
-	analyze_orphan_functions();
-	// analyze_inlining();
+	// analyze_orphan_events();
+	// analyze_orphan_functions();
+	Inliner inl(funcs);
 
 	if ( 0 )
 		for ( auto& f : funcs )

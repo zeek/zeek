@@ -86,10 +86,8 @@ function Files::__lookup_file%(fuid: string%): fa_file
 	%{
 	auto f = file_mgr->LookupFile(fuid->CheckString());
 	if ( f != nullptr )
-		{
-		return IntrusivePtr{NewRef{}, f->GetVal()};
-		}
-	
+		return f->ToVal();
+
 	reporter->Error("file ID %s not a known file", fuid->CheckString());
 	return nullptr;
 	%}

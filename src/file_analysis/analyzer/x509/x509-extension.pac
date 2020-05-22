@@ -39,7 +39,7 @@ refine connection MockConnection += {
 			return true;
 
 		mgr.Enqueue(x509_ocsp_ext_signed_certificate_timestamp,
-			IntrusivePtr{NewRef{}, bro_analyzer()->GetFile()->GetVal()},
+			bro_analyzer()->GetFile()->ToVal(),
 			val_mgr->Count(version),
 			make_intrusive<StringVal>(logid.length(), reinterpret_cast<const char*>(logid.begin())),
 			val_mgr->Count(timestamp),

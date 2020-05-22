@@ -66,7 +66,7 @@ refine flow File += {
 			dh->Assign(16, val_mgr->Count(${h.AddressOfNewExeHeader}));
 
 			mgr.Enqueue(pe_dos_header,
-			    IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+			    connection()->bro_analyzer()->GetFile()->ToVal(),
 			    std::move(dh));
 			}
 		return true;
@@ -76,7 +76,7 @@ refine flow File += {
 		%{
 		if ( pe_dos_code )
 			mgr.Enqueue(pe_dos_code,
-			    IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+			    connection()->bro_analyzer()->GetFile()->ToVal(),
 			    make_intrusive<StringVal>(code.length(), (const char*) code.data())
 			    );
 		return true;
@@ -105,7 +105,7 @@ refine flow File += {
 			fh->Assign(5, characteristics_to_bro(${h.Characteristics}, 16));
 
 			mgr.Enqueue(pe_file_header,
-			    IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+			    connection()->bro_analyzer()->GetFile()->ToVal(),
 			    std::move(fh));
 			}
 
@@ -156,7 +156,7 @@ refine flow File += {
 			oh->Assign(23, process_rvas(${h.rvas}));
 
 			mgr.Enqueue(pe_optional_header,
-			    IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+			    connection()->bro_analyzer()->GetFile()->ToVal(),
 			    std::move(oh));
 			}
 		return true;
@@ -188,7 +188,7 @@ refine flow File += {
 			section_header->Assign(9, characteristics_to_bro(${h.characteristics}, 32));
 
 			mgr.Enqueue(pe_section_header,
-			    IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+			    connection()->bro_analyzer()->GetFile()->ToVal(),
 			    std::move(section_header)
 			    );
 			}

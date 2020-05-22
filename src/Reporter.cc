@@ -349,7 +349,7 @@ void Reporter::Weird(file_analysis::File* f, const char* name, const char* addl)
 			return;
 		}
 
-	WeirdHelper(file_weird, {f->GetVal()->Ref(), new StringVal(addl)},
+	WeirdHelper(file_weird, {f->ToVal()->Ref(), new StringVal(addl)},
 	            "%s", name);
 	}
 

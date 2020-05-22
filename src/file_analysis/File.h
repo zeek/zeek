@@ -38,7 +38,12 @@ public:
 	/**
 	 * @return the wrapped \c fa_file record value, #val.
 	 */
-	RecordVal* GetVal() const { return val; }
+	const IntrusivePtr<RecordVal>& ToVal() const
+		{ return val; }
+
+	[[deprecated("Remove in v4.1.  Use ToVal().")]]
+	RecordVal* GetVal() const
+		{ return val.get(); }
 
 	/**
 	 * @return the value of the "source" field from #val record or an empty
@@ -333,7 +338,7 @@ protected:
 
 protected:
 	std::string id;                 /**< A pretty hash that likely identifies file */
-	RecordVal* val;            /**< \c fa_file from script layer. */
+	IntrusivePtr<RecordVal> val;            /**< \c fa_file from script layer. */
 	FileReassembler* file_reassembler; /**< A reassembler for the file if it's needed. */
 	uint64_t stream_offset;      /**< The offset of the file which has been forwarded. */
 	uint64_t reassembly_max_buffer;      /**< Maximum allowed buffer for reassembly. */

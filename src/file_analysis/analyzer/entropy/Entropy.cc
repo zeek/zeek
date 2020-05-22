@@ -69,7 +69,7 @@ void Entropy::Finalize()
 	ent_result->Assign(4, make_intrusive<Val>(scc,     TYPE_DOUBLE));
 
 	mgr.Enqueue(file_entropy,
-		IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+		GetFile()->ToVal(),
 		std::move(ent_result)
 	);
 	}

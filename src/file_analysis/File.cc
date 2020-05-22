@@ -91,7 +91,7 @@ File::File(const std::string& file_id, const std::string& source_name, Connectio
 
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Creating new File object", file_id.c_str());
 
-	val = new RecordVal(zeek::id::fa_file);
+	val = make_intrusive<RecordVal>(zeek::id::fa_file);
 	val->Assign(id_idx, make_intrusive<StringVal>(file_id.c_str()));
 	SetSource(source_name);
 
@@ -107,7 +107,6 @@ File::File(const std::string& file_id, const std::string& source_name, Connectio
 File::~File()
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Destroying File object", id.c_str());
-	Unref(val);
 	delete file_reassembler;
 
 	for ( auto a : done_analyzers )
@@ -152,7 +151,7 @@ void File::RaiseFileOverNewConnection(Connection* conn, bool is_orig)
 	if ( conn && FileEventAvailable(file_over_new_connection) )
 		{
 		FileEvent(file_over_new_connection, {
-			IntrusivePtr{NewRef{}, val},
+			val,
 			conn->ConnVal(),
 			val_mgr->Bool(is_orig),
 		});
@@ -301,7 +300,7 @@ bool File::SetMime(const std::string& mime_type)
 	meta->Assign(meta_mime_type_idx, make_intrusive<StringVal>(mime_type));
 	meta->Assign(meta_inferred_idx, val_mgr->False());
 
-	FileEvent(file_sniff, {IntrusivePtr{NewRef{}, val}, std::move(meta)});
+	FileEvent(file_sniff, {val, std::move(meta)});
 	return true;
 	}
 
@@ -340,7 +339,7 @@ void File::InferMetadata()
 		             file_analysis::GenMIMEMatchesVal(matches));
 		}
 
-	FileEvent(file_sniff, {IntrusivePtr{NewRef{}, val}, std::move(meta)});
+	FileEvent(file_sniff, {val, std::move(meta)});
 	}
 
 bool File::BufferBOF(const u_char* data, uint64_t len)
@@ -452,7 +451,7 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 			if ( FileEventAvailable(file_reassembly_overflow) )
 				{
 				FileEvent(file_reassembly_overflow, {
-					IntrusivePtr{NewRef{}, val},
+					val,
 					val_mgr->Count(current_offset),
 					val_mgr->Count(gap_bytes)
 				});
@@ -595,13 +594,7 @@ void File::Gap(uint64_t offset, uint64_t len)
 		}
 
 	if ( FileEventAvailable(file_gap) )
-		{
-		FileEvent(file_gap, {
-			IntrusivePtr{NewRef{}, val},
-			val_mgr->Count(offset),
-			val_mgr->Count(len)
-		});
-		}
+		FileEvent(file_gap, {val, val_mgr->Count(offset), val_mgr->Count(len)});
 
 	analyzers.DrainModifications();
 
@@ -619,7 +612,7 @@ void File::FileEvent(EventHandlerPtr h)
 	if ( ! FileEventAvailable(h) )
 		return;
 
-	FileEvent(h, zeek::Args{{NewRef{}, val}});
+	FileEvent(h, zeek::Args{val});
 	}
 
 void File::FileEvent(EventHandlerPtr h, val_list* vl)

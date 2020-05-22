@@ -287,12 +287,11 @@ void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, const EventHa
 	// but I am not sure if there is a better way to do it...
 
 	if ( h == ocsp_extension )
-		mgr.Enqueue(h, IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+		mgr.Enqueue(h, GetFile()->ToVal(),
 					std::move(pX509Ext),
 					val_mgr->Bool(global));
 	else
-		mgr.Enqueue(h, IntrusivePtr{NewRef{}, GetFile()->GetVal()},
-		            std::move(pX509Ext));
+		mgr.Enqueue(h, GetFile()->ToVal(), std::move(pX509Ext));
 
 	// let individual analyzers parse more.
 	ParseExtensionsSpecific(ex, global, ext_asn, oid);

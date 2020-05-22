@@ -87,7 +87,7 @@ refine flow Flow += {
 			ids_event->Assign(17, val_mgr->Count(${ev.packet_action}));
 
 			mgr.Enqueue(::unified2_event,
-					IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+					connection()->bro_analyzer()->GetFile()->ToVal(),
 					std::move(ids_event));
 			}
 		return true;
@@ -117,7 +117,7 @@ refine flow Flow += {
 			ids_event->Assign(16, val_mgr->Count(${ev.vlan_id}));
 
 			mgr.Enqueue(::unified2_event,
-					IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+					connection()->bro_analyzer()->GetFile()->ToVal(),
 					std::move(ids_event));
 			}
 
@@ -137,7 +137,7 @@ refine flow Flow += {
 			packet->Assign(5, to_stringval(${pkt.packet_data}));
 
 			mgr.Enqueue(::unified2_packet,
-					IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+					connection()->bro_analyzer()->GetFile()->ToVal(),
 					std::move(packet));
 			}
 

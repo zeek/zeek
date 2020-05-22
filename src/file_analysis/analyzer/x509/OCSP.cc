@@ -412,7 +412,7 @@ void file_analysis::OCSP::ParseRequest(OCSP_REQUEST* req)
 
 	if ( ocsp_request )
 		mgr.Enqueue(ocsp_request,
-			IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+			GetFile()->ToVal(),
 			val_mgr->Count(version)
 		);
 
@@ -423,7 +423,7 @@ void file_analysis::OCSP::ParseRequest(OCSP_REQUEST* req)
 		{
 		zeek::Args rvl;
 		rvl.reserve(5);
-		rvl.emplace_back(NewRef{}, GetFile()->GetVal());
+		rvl.emplace_back(GetFile()->ToVal());
 
 		OCSP_ONEREQ *one_req = OCSP_request_onereq_get0(req, i);
 		OCSP_CERTID *cert_id = OCSP_onereq_get0_id(one_req);
@@ -454,13 +454,10 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 	memset(buf, 0, sizeof(buf));
 
 	const char *status_str = OCSP_response_status_str(OCSP_response_status(resp));
-	StringVal* status_val = new StringVal(strlen(status_str), status_str);
+	auto status_val = make_intrusive<StringVal>(strlen(status_str), status_str);
 
 	if ( ocsp_response_status )
-		mgr.Enqueue(ocsp_response_status,
-			IntrusivePtr{NewRef{}, GetFile()->GetVal()},
-			IntrusivePtr{NewRef{}, status_val}
-		);
+		mgr.Enqueue(ocsp_response_status, GetFile()->ToVal(), status_val);
 
 	//if (!resp_bytes)
 	//	{
@@ -479,22 +476,16 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 	// get the basic response
 	basic_resp = OCSP_response_get1_basic(resp);
 	if ( !basic_resp )
-		{
-		Unref(status_val);
 		goto clean_up;
-		}
 
 #if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 	resp_data = basic_resp->tbsResponseData;
 	if ( !resp_data )
-		{
-		Unref(status_val);
 		goto clean_up;
-		}
 #endif
 
-	vl.emplace_back(NewRef{}, GetFile()->GetVal());
-	vl.emplace_back(AdoptRef{}, status_val);
+	vl.emplace_back(GetFile()->ToVal());
+	vl.emplace_back(std::move(status_val));
 
 #if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 	vl.emplace_back(val_mgr->Count((uint64_t)ASN1_INTEGER_get(resp_data->version)));
@@ -537,7 +528,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 
 		zeek::Args rvl;
 		rvl.reserve(10);
-		rvl.emplace_back(NewRef{}, GetFile()->GetVal());
+		rvl.emplace_back(GetFile()->ToVal());
 
 		// cert id
 		const OCSP_CERTID* cert_id = nullptr;

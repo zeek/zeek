@@ -52,7 +52,7 @@ void Hash::Finalize()
 		return;
 
 	mgr.Enqueue(file_hash,
-		IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+		GetFile()->ToVal(),
 		make_intrusive<StringVal>(kind),
 		hash->Get()
 	);

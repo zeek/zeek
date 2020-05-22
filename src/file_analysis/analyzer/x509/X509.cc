@@ -61,8 +61,8 @@ bool file_analysis::X509::EndOfFile()
 				return false;
 			// yup, let's call the callback.
 
-			cache_hit_callback->operator()(IntrusivePtr{NewRef{}, GetFile()->GetVal()},
-			                               entry, make_intrusive<StringVal>(cert_sha256));
+			cache_hit_callback->operator()(GetFile()->ToVal(), entry,
+			                               make_intrusive<StringVal>(cert_sha256));
 			return false;
 			}
 		}
@@ -84,7 +84,7 @@ bool file_analysis::X509::EndOfFile()
 	// and send the record on to scriptland
 	if ( x509_certificate )
 		mgr.Enqueue(x509_certificate,
-		            IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+		            GetFile()->ToVal(),
 		            IntrusivePtr{NewRef{}, cert_val},
 		            cert_record);
 
@@ -294,7 +294,7 @@ void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex)
 				pBasicConstraint->Assign(1, val_mgr->Count((int32_t) ASN1_INTEGER_get(constr->pathlen)));
 
 			mgr.Enqueue(x509_ext_basic_constraints,
-				IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+				GetFile()->ToVal(),
 				std::move(pBasicConstraint)
 			);
 			}
@@ -435,7 +435,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 		sanExt->Assign(4, val_mgr->Bool(otherfields));
 
 		mgr.Enqueue(x509_ext_subject_alternative_name,
-		            IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+		            GetFile()->ToVal(),
 		            std::move(sanExt));
 	GENERAL_NAMES_free(altname);
 	}

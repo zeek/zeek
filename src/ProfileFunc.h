@@ -24,6 +24,15 @@ public:
 	// unused aggregates.
 	std::unordered_set<ID*> inits;
 
+	// Script funcs this script calls.
+	std::unordered_set<Func*> script_calls;
+
+	// Same for BiF's.
+	std::unordered_set<Func*> BiF_calls;
+
+	// True if makes a call through an expression.
+	bool does_indirect_calls;
+
 	int num_stmts = 0;
 	int num_when_stmts = 0;
 	int num_lambdas = 0;

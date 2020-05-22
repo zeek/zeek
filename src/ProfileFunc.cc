@@ -3,6 +3,7 @@
 #include "ProfileFunc.h"
 #include "Desc.h"
 #include "Stmt.h"
+#include "Func.h"
 
 
 TraversalCode ProfileFunc::PreStmt(const Stmt* s)
@@ -58,14 +59,43 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 		auto c = e->AsCallExpr();
 		auto f = c->Func();
 
-		if ( f->Tag() == EXPR_NAME &&
-		     f->AsNameExpr()->Id()->IsGlobal() )
+		if ( f->Tag() != EXPR_NAME )
 			{
-			// Only recurse into the arguments.
-			auto args = c->Args();
-			args->Traverse(this);
-			return TC_ABORTSTMT;
+			does_indirect_calls = true;
+			return TC_CONTINUE;
 			}
+
+		auto n = f->AsNameExpr();
+		auto func = n->Id();
+
+		if ( ! func->IsGlobal() )
+			{
+			does_indirect_calls = true;
+			return TC_CONTINUE;
+			}
+
+		auto func_v = func->ID_Val();
+		if ( func_v )
+			{
+			auto func_vf = func_v->AsFunc();
+
+			if ( func_vf->AsBroFunc() )
+				script_calls.insert(func_vf);
+			else
+				BiF_calls.insert(func_vf);
+			}
+		else
+			{
+			// We could complain, but for now we don't because
+			// if we're invoked prior to full Zeek initialization,
+			// the value might indeed not there.
+			// printf("no function value for global %s\n", func->Name());
+			}
+
+		// Only recurse into the arguments.
+		auto args = c->Args();
+		args->Traverse(this);
+		return TC_ABORTSTMT;
 		}
 
 	else if ( e->Tag() == EXPR_LAMBDA )

@@ -468,6 +468,9 @@ IntrusivePtr<Expr> Reducer::UpdateExpr(IntrusivePtr<Expr> e)
 	auto n = e->AsNameExpr();
 	auto id = n->Id();
 
+	if ( id->IsGlobal() )
+		return e;
+
 	auto tmp_var = FindTemporary(id);
 	if ( ! tmp_var )
 		{

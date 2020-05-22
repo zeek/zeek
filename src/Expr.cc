@@ -5378,6 +5378,12 @@ bool ArithCoerceExpr::WillTransform() const
 
 Expr* ArithCoerceExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
+	if ( c->Optimizing() )
+		{
+		op = c->UpdateExpr(op);
+		return this->Ref();
+		}
+
 	red_stmt = nullptr;
 
 	auto t = type->InternalType();

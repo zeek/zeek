@@ -1425,6 +1425,7 @@ bool ud_dump = false;
 bool optimize = false;
 bool compile = false;
 bool dump_code = false;
+bool dump_xform = false;
 const char* only_func = 0;
 
 void analyze_func(BroFunc* f)
@@ -1445,6 +1446,7 @@ void analyze_func(BroFunc* f)
 		optimize = getenv("ZEEK_OPTIMIZE");
 		compile = getenv("ZEEK_COMPILE");
 		dump_code = getenv("ZEEK_DUMP_CODE");
+		dump_xform = getenv("ZEEK_DUMP_XFORM");
 
 		if ( only_func )
 			activate = true;
@@ -1494,7 +1496,7 @@ void analyze_func(BroFunc* f)
 			obj_desc(non_reduced_perp));
 	checking_reduction = false;
 
-	if ( only_func )
+	if ( only_func || dump_xform )
 		printf("Transformed: %s\n", obj_desc(new_body));
 
 	IntrusivePtr<Stmt> body_ptr = {AdoptRef{}, body};
@@ -1503,6 +1505,26 @@ void analyze_func(BroFunc* f)
 	f->ReplaceBody(body_ptr, new_body_ptr);
 	f->GrowFrameSize(rc->NumTemps());
 
+	if ( optimize )
+		{
+		ProfileFunc pf_red;
+		f->Traverse(&pf_red);
+
+		auto cb = RD_Decorate(&pf_red);
+		f->Traverse(&cb);
+
+		rc->SetDefSetsMgr(cb.GetDefSetsMgr());
+
+		body_ptr = new_body_ptr;
+		new_body = new_body->Reduce(rc);
+		new_body_ptr = {AdoptRef{}, new_body};
+
+		if ( only_func || dump_xform )
+			printf("Optimized: %s\n", obj_desc(new_body));
+
+		f->ReplaceBody(body_ptr, new_body_ptr);
+		}
+
 	ProfileFunc* pf_red = new ProfileFunc;
 	f->Traverse(pf_red);
 
@@ -1510,19 +1532,6 @@ void analyze_func(BroFunc* f)
 	f->Traverse(cb);
 
 	rc->SetDefSetsMgr(cb->GetDefSetsMgr());
-
-	if ( optimize )
-		{
-		// ### update RDs, profile
-		body_ptr = new_body_ptr;
-		new_body = new_body->Reduce(rc);
-		new_body_ptr = {AdoptRef{}, new_body};
-
-		if ( only_func )
-			printf("Optimized: %s\n", obj_desc(new_body));
-
-		f->ReplaceBody(body_ptr, new_body_ptr);
-		}
 
 	auto ud = new UseDefs(new_body, rc);
 	ud->Analyze();

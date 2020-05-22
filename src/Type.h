@@ -860,7 +860,11 @@ IntrusivePtr<BroType> merge_type_list(ListExpr* elements);
 IntrusivePtr<BroType> init_type(Expr* init);
 
 // Returns true if argument is an atomic type.
-bool is_atomic_type(const BroType* t);
+bool is_atomic_type(const BroType& t);
+inline bool is_atomic_type(const BroType* t)
+	{ return is_atomic_type(*t); }
+inline bool is_atomic_type(const IntrusivePtr<BroType>& t)
+	{ return is_atomic_type(*t); }
 
 // True if the given type tag corresponds to type that can be assigned to.
 extern bool is_assignable(BroType* t);

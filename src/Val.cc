@@ -3305,7 +3305,7 @@ bool same_val(const Val* /* v1 */, const Val* /* v2 */)
 
 bool is_atomic_val(const Val* v)
 	{
-	return is_atomic_type(v->GetType().get());
+	return is_atomic_type(v->GetType());
 	}
 
 bool same_atomic_val(const Val* v1, const Val* v2)

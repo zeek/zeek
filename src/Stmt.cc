@@ -606,10 +606,10 @@ SwitchStmt::SwitchStmt(IntrusivePtr<Expr> index, case_list* arg_cases)
 			{
 			have_exprs = true;
 
-			if ( ! is_atomic_type(e->GetType().get()) )
+			if ( ! is_atomic_type(e->GetType()) )
 				e->Error("switch expression must be of an atomic type when cases are expressions");
 
-			if ( ! le->GetType()->AsTypeList()->AllMatch(e->GetType().get(), false) )
+			if ( ! le->GetType()->AsTypeList()->AllMatch(e->GetType(), false) )
 				{
 				le->Error("case expression type differs from switch type", e.get());
 				continue;

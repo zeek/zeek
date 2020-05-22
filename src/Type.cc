@@ -2082,9 +2082,9 @@ IntrusivePtr<BroType> init_type(Expr* init)
 	                               nullptr);
 	}
 
-bool is_atomic_type(const BroType* t)
+bool is_atomic_type(const BroType& t)
 	{
-	switch ( t->InternalType() ) {
+	switch ( t.InternalType() ) {
 	case TYPE_INTERNAL_INT:
 	case TYPE_INTERNAL_UNSIGNED:
 	case TYPE_INTERNAL_DOUBLE:

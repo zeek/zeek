@@ -314,7 +314,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 	string stream_name = fval->GetFieldOrDefault("name")->AsString()->CheckString();
 
 	auto fields_val = fval->GetFieldOrDefault("fields");
-	RecordType* fields = fields_val->AsType()->AsTypeType()->Type()->AsRecordType();
+	RecordType* fields = fields_val->AsType()->AsTypeType()->GetType()->AsRecordType();
 
 	auto want_record = fval->GetFieldOrDefault("want_record");
 
@@ -469,13 +469,13 @@ bool Manager::CreateTableStream(RecordVal* fval)
 
 	auto pred = fval->GetFieldOrDefault("pred");
 	auto idx_val = fval->GetFieldOrDefault("idx");
-	RecordType* idx = idx_val->AsType()->AsTypeType()->Type()->AsRecordType();
+	RecordType* idx = idx_val->AsType()->AsTypeType()->GetType()->AsRecordType();
 
 	IntrusivePtr<RecordType> val;
 	auto val_val = fval->GetFieldOrDefault("val");
 
 	if ( val_val )
-		val = {NewRef{}, val_val->AsType()->AsTypeType()->Type()->AsRecordType()};
+		val = val_val->AsType()->AsTypeType()->GetType<RecordType>();
 
 	auto dst = fval->GetFieldOrDefault("destination");
 

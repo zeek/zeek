@@ -547,7 +547,13 @@ public:
 	const IntrusivePtr<BroType>& GetType() const
 		{ return type; }
 
+	template <class T>
+	IntrusivePtr<T> GetType() const
+		{ return cast_intrusive<T>(type); }
+
+	[[deprecated("Remove in v4.1.  Use GetType().")]]
 	BroType* Type()			{ return type.get(); }
+	[[deprecated("Remove in v4.1.  Use GetType().")]]
 	const BroType* Type() const	{ return type.get(); }
 
 protected:

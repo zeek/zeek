@@ -237,7 +237,7 @@ static bool expr_is_table_type_name(const Expr* expr)
 		return true;
 
 	if ( type->Tag() == TYPE_TYPE )
-		return type->AsTypeType()->Type()->IsTable();
+		return type->AsTypeType()->GetType()->IsTable();
 
 	return false;
 	}

@@ -347,7 +347,7 @@ void Val::ValDescribe(ODesc* d) const
 		else if ( type->Tag() == TYPE_FILE )
 			AsFile()->Describe(d);
 		else if ( type->Tag() == TYPE_TYPE )
-			d->Add(type->AsTypeType()->Type()->GetName());
+			d->Add(type->AsTypeType()->GetType()->GetName());
 		else
 			d->Add("<no value description>");
 		break;
@@ -440,7 +440,7 @@ IntrusivePtr<TableVal> Val::GetRecordFields()
 		}
 	else
 		{
-		t = t->AsTypeType()->Type();
+		t = t->AsTypeType()->GetType().get();
 
 		if ( t->Tag() != TYPE_RECORD )
 			{
@@ -1375,7 +1375,7 @@ static void find_nested_record_types(BroType* t, std::set<RecordType*>* found)
 		find_nested_record_types(t->AsVectorType()->Yield().get(), found);
 		return;
 	case TYPE_TYPE:
-		find_nested_record_types(t->AsTypeType()->Type(), found);
+		find_nested_record_types(t->AsTypeType()->GetType().get(), found);
 		return;
 	default:
 		return;

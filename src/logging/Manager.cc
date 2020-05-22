@@ -236,7 +236,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 		}
 
 	RecordType* columns = sval->GetField("columns")
-		->AsType()->AsTypeType()->Type()->AsRecordType();
+		->AsType()->AsTypeType()->GetType()->AsRecordType();
 
 	bool log_attr_present = false;
 

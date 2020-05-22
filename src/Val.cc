@@ -1342,7 +1342,7 @@ static void table_entry_val_delete_func(void* val)
 	delete tv;
 	}
 
-static void find_nested_record_types(BroType* t, std::set<RecordType*>* found)
+static void find_nested_record_types(const IntrusivePtr<BroType>& t, std::set<RecordType*>* found)
 	{
 	if ( ! t )
 		return;
@@ -1354,28 +1354,28 @@ static void find_nested_record_types(BroType* t, std::set<RecordType*>* found)
 		found->emplace(rt);
 
 		for ( auto i = 0; i < rt->NumFields(); ++i )
-			find_nested_record_types(rt->FieldDecl(i)->type.get(), found);
+			find_nested_record_types(rt->FieldDecl(i)->type, found);
 		}
 		return;
 	case TYPE_TABLE:
-		find_nested_record_types(t->AsTableType()->GetIndices().get(), found);
-		find_nested_record_types(t->AsTableType()->Yield().get(), found);
+		find_nested_record_types(t->AsTableType()->GetIndices(), found);
+		find_nested_record_types(t->AsTableType()->Yield(), found);
 		return;
 	case TYPE_LIST:
 		{
 		for ( const auto& type : t->AsTypeList()->Types() )
-			find_nested_record_types(type.get(), found);
+			find_nested_record_types(type, found);
 		}
 		return;
 	case TYPE_FUNC:
-		find_nested_record_types(t->AsFuncType()->Params().get(), found);
-		find_nested_record_types(t->AsFuncType()->Yield().get(), found);
+		find_nested_record_types(t->AsFuncType()->Params(), found);
+		find_nested_record_types(t->AsFuncType()->Yield(), found);
 		return;
 	case TYPE_VECTOR:
-		find_nested_record_types(t->AsVectorType()->Yield().get(), found);
+		find_nested_record_types(t->AsVectorType()->Yield(), found);
 		return;
 	case TYPE_TYPE:
-		find_nested_record_types(t->AsTypeType()->GetType().get(), found);
+		find_nested_record_types(t->AsTypeType()->GetType(), found);
 		return;
 	default:
 		return;
@@ -1395,7 +1395,7 @@ TableVal::TableVal(IntrusivePtr<TableType> t, IntrusivePtr<Attributes> a) : Val(
 		std::set<RecordType*> found;
 		// TODO: this likely doesn't have to be repeated for each new TableVal,
 		//       can remember the resulting dependencies per TableType
-		find_nested_record_types(t.get(), &found);
+		find_nested_record_types(t, &found);
 
 		for ( auto rt : found )
 			parse_time_table_record_dependencies[rt].emplace_back(NewRef{}, this);

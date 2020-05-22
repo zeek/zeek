@@ -352,7 +352,7 @@ IntrusivePtr<Val> UnaryExpr::Eval(Frame* f) const
 	if ( ! v )
 		return nullptr;
 
-	if ( is_vector(v.get()) && Tag() != EXPR_IS && Tag() != EXPR_CAST )
+	if ( is_vector(v) && Tag() != EXPR_IS && Tag() != EXPR_CAST )
 		{
 		VectorVal* v_op = v->AsVectorVal();
 		IntrusivePtr<VectorType> out_t;
@@ -439,8 +439,8 @@ IntrusivePtr<Val> BinaryExpr::Eval(Frame* f) const
 	if ( ! v2 )
 		return nullptr;
 
-	bool is_vec1 = is_vector(v1.get());
-	bool is_vec2 = is_vector(v2.get());
+	bool is_vec1 = is_vector(v1);
+	bool is_vec2 = is_vector(v2);
 
 	if ( is_vec1 && is_vec2 )
 		{ // fold pairs of elements
@@ -965,7 +965,7 @@ IntrusivePtr<Val> IncrExpr::Eval(Frame* f) const
 	if ( ! v )
 		return nullptr;
 
-	if ( is_vector(v.get()) )
+	if ( is_vector(v) )
 		{
 		IntrusivePtr<VectorVal> v_vec{NewRef{}, v->AsVectorVal()};
 
@@ -1053,7 +1053,7 @@ PosExpr::PosExpr(IntrusivePtr<Expr> arg_op)
 	else
 		ExprError("requires an integral or double operand");
 
-	if ( is_vector(op.get()) )
+	if ( is_vector(op) )
 		SetType(make_intrusive<VectorType>(std::move(base_result_type)));
 	else
 		SetType(std::move(base_result_type));
@@ -1088,7 +1088,7 @@ NegExpr::NegExpr(IntrusivePtr<Expr> arg_op)
 	else
 		ExprError("requires an integral or double operand");
 
-	if ( is_vector(op.get()) )
+	if ( is_vector(op) )
 		SetType(make_intrusive<VectorType>(std::move(base_result_type)));
 	else
 		SetType(std::move(base_result_type));
@@ -1154,7 +1154,7 @@ AddExpr::AddExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 	else if ( bt2 == TYPE_TIME && bt1 == TYPE_INTERVAL )
 		base_result_type = base_type(bt2);
 	else if ( BothArithmetic(bt1, bt2) )
-		PromoteType(max_type(bt1, bt2), is_vector(op1.get()) || is_vector(op2.get()));
+		PromoteType(max_type(bt1, bt2), is_vector(op1) || is_vector(op2));
 	else if ( BothString(bt1, bt2) )
 		base_result_type = base_type(bt1);
 	else
@@ -1162,7 +1162,7 @@ AddExpr::AddExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 
 	if ( base_result_type )
 		{
-		if ( is_vector(op1.get()) || is_vector(op2.get()) )
+		if ( is_vector(op1) || is_vector(op2) )
 			SetType(make_intrusive<VectorType>(std::move(base_result_type)));
 		else
 			SetType(std::move(base_result_type));
@@ -1179,7 +1179,7 @@ void AddExpr::Canonicize()
 	}
 
 AddToExpr::AddToExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
-	: BinaryExpr(EXPR_ADD_TO, is_vector(arg_op1.get()) ?
+	: BinaryExpr(EXPR_ADD_TO, is_vector(arg_op1) ?
 	             std::move(arg_op1) : arg_op1->MakeLvalue(),
 	             std::move(arg_op2))
 	{
@@ -1190,7 +1190,7 @@ AddToExpr::AddToExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 	TypeTag bt2 = op2->GetType()->Tag();
 
 	if ( BothArithmetic(bt1, bt2) )
-		PromoteType(max_type(bt1, bt2), is_vector(op1.get()) || is_vector(op2.get()));
+		PromoteType(max_type(bt1, bt2), is_vector(op1) || is_vector(op2));
 	else if ( BothString(bt1, bt2) || BothInterval(bt1, bt2) )
 		SetType(base_type(bt1));
 
@@ -1236,7 +1236,7 @@ IntrusivePtr<Val> AddToExpr::Eval(Frame* f) const
 	if ( ! v2 )
 		return nullptr;
 
-	if ( is_vector(v1.get()) )
+	if ( is_vector(v1) )
 		{
 		VectorVal* vv = v1->AsVectorVal();
 
@@ -1289,14 +1289,14 @@ SubExpr::SubExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 		}
 
 	else if ( BothArithmetic(bt1, bt2) )
-		PromoteType(max_type(bt1, bt2), is_vector(op1.get()) || is_vector(op2.get()));
+		PromoteType(max_type(bt1, bt2), is_vector(op1) || is_vector(op2));
 
 	else
 		ExprError("requires arithmetic operands");
 
 	if ( base_result_type )
 		{
-		if ( is_vector(op1.get()) || is_vector(op2.get()) )
+		if ( is_vector(op1) || is_vector(op2) )
 			SetType(make_intrusive<VectorType>(std::move(base_result_type)));
 		else
 			SetType(std::move(base_result_type));
@@ -1314,7 +1314,7 @@ RemoveFromExpr::RemoveFromExpr(IntrusivePtr<Expr> arg_op1,
 	TypeTag bt2 = op2->GetType()->Tag();
 
 	if ( BothArithmetic(bt1, bt2) )
-		PromoteType(max_type(bt1, bt2), is_vector(op1.get()) || is_vector(op2.get()));
+		PromoteType(max_type(bt1, bt2), is_vector(op1) || is_vector(op2));
 	else if ( BothInterval(bt1, bt2) )
 		SetType(base_type(bt1));
 	else
@@ -1363,12 +1363,12 @@ TimesExpr::TimesExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 	if ( bt1 == TYPE_INTERVAL || bt2 == TYPE_INTERVAL )
 		{
 		if ( IsArithmetic(bt1) || IsArithmetic(bt2) )
-			PromoteType(TYPE_INTERVAL, is_vector(op1.get()) || is_vector(op2.get()) );
+			PromoteType(TYPE_INTERVAL, is_vector(op1) || is_vector(op2) );
 		else
 			ExprError("multiplication with interval requires arithmetic operand");
 		}
 	else if ( BothArithmetic(bt1, bt2) )
-		PromoteType(max_type(bt1, bt2), is_vector(op1.get()) || is_vector(op2.get()));
+		PromoteType(max_type(bt1, bt2), is_vector(op1) || is_vector(op2));
 	else
 		ExprError("requires arithmetic operands");
 	}
@@ -1400,10 +1400,10 @@ DivideExpr::DivideExpr(IntrusivePtr<Expr> arg_op1,
 	if ( bt1 == TYPE_INTERVAL || bt2 == TYPE_INTERVAL )
 		{
 		if ( IsArithmetic(bt1) || IsArithmetic(bt2) )
-			PromoteType(TYPE_INTERVAL, is_vector(op1.get()) || is_vector(op2.get()));
+			PromoteType(TYPE_INTERVAL, is_vector(op1) || is_vector(op2));
 		else if ( bt1 == TYPE_INTERVAL && bt2 == TYPE_INTERVAL )
 			{
-			if ( is_vector(op1.get()) || is_vector(op2.get()) )
+			if ( is_vector(op1) || is_vector(op2) )
 				SetType(make_intrusive<VectorType>(base_type(TYPE_DOUBLE)));
 			else
 				SetType(base_type(TYPE_DOUBLE));
@@ -1413,9 +1413,9 @@ DivideExpr::DivideExpr(IntrusivePtr<Expr> arg_op1,
 		}
 
 	else if ( BothArithmetic(bt1, bt2) )
-		PromoteType(max_type(bt1, bt2), is_vector(op1.get()) || is_vector(op2.get()));
+		PromoteType(max_type(bt1, bt2), is_vector(op1) || is_vector(op2));
 
-	else if ( bt1 == TYPE_ADDR && ! is_vector(op2.get()) &&
+	else if ( bt1 == TYPE_ADDR && ! is_vector(op2) &&
 		  (bt2 == TYPE_COUNT || bt2 == TYPE_INT) )
 		SetType(base_type(TYPE_SUBNET));
 
@@ -1465,7 +1465,7 @@ ModExpr::ModExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 		bt2 = op2->GetType()->AsVectorType()->Yield()->Tag();
 
 	if ( BothIntegral(bt1, bt2) )
-		PromoteType(max_type(bt1, bt2), is_vector(op1.get()) || is_vector(op2.get()));
+		PromoteType(max_type(bt1, bt2), is_vector(op1) || is_vector(op2));
 	else
 		ExprError("requires integral operands");
 	}
@@ -1489,9 +1489,9 @@ BoolExpr::BoolExpr(BroExprTag arg_tag,
 
 	if ( BothBool(bt1, bt2) )
 		{
-		if ( is_vector(op1.get()) || is_vector(op2.get()) )
+		if ( is_vector(op1) || is_vector(op2) )
 			{
-			if ( ! (is_vector(op1.get()) && is_vector(op2.get())) )
+			if ( ! (is_vector(op1) && is_vector(op2)) )
 				reporter->Warning("mixing vector and scalar operands is deprecated");
 			SetType(make_intrusive<VectorType>(base_type(TYPE_BOOL)));
 			}
@@ -1534,8 +1534,8 @@ IntrusivePtr<Val> BoolExpr::Eval(Frame* f) const
 	if ( ! v1 )
 		return nullptr;
 
-	bool is_vec1 = is_vector(op1.get());
-	bool is_vec2 = is_vector(op2.get());
+	bool is_vec1 = is_vector(op1);
+	bool is_vec2 = is_vector(op2);
 
 	// Handle scalar op scalar
 	if ( ! is_vec1 && ! is_vec2 )
@@ -1642,7 +1642,7 @@ BitExpr::BitExpr(BroExprTag arg_tag,
 		{
 		if ( bt1 == TYPE_COUNTER && bt2 == TYPE_COUNTER )
 			ExprError("cannot apply a bitwise operator to two \"counter\" operands");
-		else if ( is_vector(op1.get()) || is_vector(op2.get()) )
+		else if ( is_vector(op1) || is_vector(op2) )
 			SetType(make_intrusive<VectorType>(base_type(TYPE_COUNT)));
 		else
 			SetType(base_type(TYPE_COUNT));
@@ -1690,7 +1690,7 @@ EqExpr::EqExpr(BroExprTag arg_tag,
 	if ( IsVector(bt2) )
 		bt2 = t2->AsVectorType()->Yield()->Tag();
 
-	if ( is_vector(op1.get()) || is_vector(op2.get()) )
+	if ( is_vector(op1) || is_vector(op2) )
 		SetType(make_intrusive<VectorType>(base_type(TYPE_BOOL)));
 	else
 		SetType(base_type(TYPE_BOOL));
@@ -1792,7 +1792,7 @@ RelExpr::RelExpr(BroExprTag arg_tag,
 	if ( IsVector(bt2) )
 		bt2 = t2->AsVectorType()->Yield()->Tag();
 
-	if ( is_vector(op1.get()) || is_vector(op2.get()) )
+	if ( is_vector(op1) || is_vector(op2) )
 		SetType(make_intrusive<VectorType>(base_type(TYPE_BOOL)));
 	else
 		SetType(base_type(TYPE_BOOL));
@@ -1850,7 +1850,7 @@ CondExpr::CondExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2,
 		{
 		TypeTag bt2 = op2->GetType()->Tag();
 
-		if ( is_vector(op2.get()) )
+		if ( is_vector(op2) )
 			bt2 = op2->GetType()->AsVectorType()->Yield()->Tag();
 
 		TypeTag bt3 = op3->GetType()->Tag();
@@ -1858,7 +1858,7 @@ CondExpr::CondExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2,
 		if ( IsVector(bt3) )
 			bt3 = op3->GetType()->AsVectorType()->Yield()->Tag();
 
-		if ( is_vector(op1.get()) && ! (is_vector(op2.get()) && is_vector(op3.get())) )
+		if ( is_vector(op1) && ! (is_vector(op2) && is_vector(op3)) )
 			{
 			ExprError("vector conditional requires vector alternatives");
 			return;
@@ -1872,7 +1872,7 @@ CondExpr::CondExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2,
 			if ( bt3 != t )
 				op3 = make_intrusive<ArithCoerceExpr>(std::move(op3), t);
 
-			if ( is_vector(op2.get()) )
+			if ( is_vector(op2) )
 				SetType(make_intrusive<VectorType>(base_type(t)));
 			else
 				SetType(base_type(t));
@@ -1894,7 +1894,7 @@ CondExpr::CondExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2,
 
 IntrusivePtr<Val> CondExpr::Eval(Frame* f) const
 	{
-	if ( ! is_vector(op1.get()) )
+	if ( ! is_vector(op1) )
 		{
 		// Scalar case
 		auto false_eval = op1->Eval(f)->IsZero();

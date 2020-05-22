@@ -941,5 +941,6 @@ std::optional<std::vector<IntrusivePtr<Val>>> eval_list(Frame* f, const ListExpr
 // a canonical form.
 extern bool expr_greater(const Expr* e1, const Expr* e2);
 
-// True if the given Val* has a vector type
+// True if the given Expr* has a vector type
 inline bool is_vector(Expr* e)	{ return e->GetType()->Tag() == TYPE_VECTOR; }
+inline bool is_vector(const IntrusivePtr<Expr>& e)	{ return is_vector(e.get()); }

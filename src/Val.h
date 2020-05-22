@@ -1340,10 +1340,9 @@ protected:
 };
 
 // Checks the given value for consistency with the given type.  If an
-// exact match, returns it.  If promotable, returns the promoted version,
-// Unref()'ing the original.  If not a match, generates an error message
-// and returns nil, also Unref()'ing v.  If is_init is true, then
-// the checking is done in the context of an initialization.
+// exact match, returns it.  If promotable, returns the promoted version.
+// If not a match, generates an error message and return nil.  If is_init is
+// true, then the checking is done in the context of an initialization.
 extern IntrusivePtr<Val> check_and_promote(IntrusivePtr<Val> v,
                                            const BroType* t, bool is_init,
                                            const Location* expr_location = nullptr);
@@ -1358,6 +1357,7 @@ extern void delete_vals(val_list* vals);
 
 // True if the given Val* has a vector type.
 inline bool is_vector(Val* v)	{ return  v->GetType()->Tag() == TYPE_VECTOR; }
+inline bool is_vector(const IntrusivePtr<Val>& v)	{ return is_vector(v.get()); }
 
 // Returns v casted to type T if the type supports that. Returns null if not.
 //

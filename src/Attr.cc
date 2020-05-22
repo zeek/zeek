@@ -273,7 +273,7 @@ void Attributes::CheckAttr(Attr* a)
 			}
 
 		FuncType* aft = at->AsFuncType();
-		if ( ! same_type(aft->Yield().get(), type.get()) )
+		if ( ! same_type(aft->Yield(), type) )
 			{
 			a->AttrExpr()->Error(
 				is_add ?
@@ -294,11 +294,11 @@ void Attributes::CheckAttr(Attr* a)
 			break;
 			}
 
-		BroType* atype = a->AttrExpr()->GetType().get();
+		const auto& atype = a->AttrExpr()->GetType();
 
 		if ( type->Tag() != TYPE_TABLE || (type->IsSet() && ! in_record) )
 			{
-			if ( same_type(atype, type.get()) )
+			if ( same_type(atype, type) )
 				// Ok.
 				break;
 
@@ -328,7 +328,7 @@ void Attributes::CheckAttr(Attr* a)
 			}
 
 		TableType* tt = type->AsTableType();
-		BroType* ytype = tt->Yield().get();
+		const auto& ytype = tt->Yield();
 
 		if ( ! in_record )
 			{
@@ -340,7 +340,7 @@ void Attributes::CheckAttr(Attr* a)
 					{
 					FuncType* f = atype->AsFuncType();
 					if ( ! f->CheckArgs(tt->IndexTypes()) ||
-					     ! same_type(f->Yield().get(), ytype) )
+					     ! same_type(f->Yield(), ytype) )
 						Error("&default function type clash");
 
 					// Ok.
@@ -354,7 +354,7 @@ void Attributes::CheckAttr(Attr* a)
 					// Ok.
 					break;
 
-				auto e = check_and_promote_expr(a->AttrExpr(), ytype);
+				auto e = check_and_promote_expr(a->AttrExpr(), ytype.get());
 
 				if ( e )
 					{
@@ -374,7 +374,7 @@ void Attributes::CheckAttr(Attr* a)
 			{
 			// &default applies to record field.
 
-			if ( same_type(atype, type.get()) )
+			if ( same_type(atype, type) )
 				// Ok.
 				break;
 
@@ -519,7 +519,7 @@ void Attributes::CheckAttr(Attr* a)
 			break;
 			}
 
-		if ( ! same_type(args[0].get(), the_table->AsTableType()) )
+		if ( ! same_type(args[0], the_table->AsTableType()) )
 			{
 			Error("&on_change: first argument must be of same type as table");
 			break;
@@ -534,7 +534,7 @@ void Attributes::CheckAttr(Attr* a)
 
 		for ( size_t i = 0; i < t_indexes.size(); i++ )
 			{
-			if ( ! same_type(args[2+i].get(), t_indexes[i].get()) )
+			if ( ! same_type(args[2+i], t_indexes[i]) )
 				{
 				Error("&on_change: index types do not match table");
 				break;
@@ -542,7 +542,7 @@ void Attributes::CheckAttr(Attr* a)
 			}
 
 		if ( ! type->IsSet() )
-			if ( ! same_type(args[2+t_indexes.size()].get(), the_table->Yield().get()) )
+			if ( ! same_type(args[2+t_indexes.size()], the_table->Yield()) )
 				{
 				Error("&on_change: value type does not match table");
 				break;

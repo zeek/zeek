@@ -855,7 +855,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey& k, const char* kp0,
 			if ( ! pvt )
 				reporter->InternalError("bad aggregate Val in CompositeHash::RecoverOneVal()");
 
-			else if ( t->Tag() != TYPE_FUNC && ! same_type(pvt.get(), t) )
+			else if ( t->Tag() != TYPE_FUNC && ! same_type(pvt, t) )
 				// ### Maybe fix later, but may be fundamentally
 				// un-checkable --US
 				reporter->InternalError("inconsistent aggregate Val in CompositeHash::RecoverOneVal()");

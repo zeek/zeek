@@ -1282,7 +1282,7 @@ SubExpr::SubExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 
 	else if ( t1->IsSet() && t2->IsSet() )
 		{
-		if ( same_type(t1.get(), t2.get()) )
+		if ( same_type(t1, t2) )
 			SetType(op1->GetType());
 		else
 			ExprError("incompatible \"set\" operands");
@@ -1660,7 +1660,7 @@ BitExpr::BitExpr(BroExprTag arg_tag,
 
 	else if ( t1->IsSet() && t2->IsSet() )
 		{
-		if ( same_type(t1.get(), t2.get()) )
+		if ( same_type(t1, t2) )
 			SetType(op1->GetType());
 		else
 			ExprError("incompatible \"set\" operands");
@@ -1718,14 +1718,14 @@ EqExpr::EqExpr(BroExprTag arg_tag,
 			break;
 
 		case TYPE_ENUM:
-			if ( ! same_type(t1.get(), t2.get()) )
+			if ( ! same_type(t1, t2) )
 				ExprError("illegal enum comparison");
 			break;
 
 		case TYPE_TABLE:
 			if ( t1->IsSet() && t2->IsSet() )
 				{
-				if ( ! same_type(t1.get(), t2.get()) )
+				if ( ! same_type(t1, t2) )
 					ExprError("incompatible sets in comparison");
 				break;
 				}
@@ -1802,7 +1802,7 @@ RelExpr::RelExpr(BroExprTag arg_tag,
 
 	else if ( t1->IsSet() && t2->IsSet() )
 		{
-		if ( ! same_type(t1.get(), t2.get()) )
+		if ( ! same_type(t1, t2) )
 			ExprError("incompatible sets in comparison");
 		}
 
@@ -1884,7 +1884,7 @@ CondExpr::CondExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2,
 		else
 			{
 			if ( IsRecord(bt2) && IsRecord(bt3) &&
-			     ! same_type(op2->GetType().get(), op3->GetType().get()) )
+			     ! same_type(op2->GetType(), op3->GetType()) )
 				ExprError("operands must be of the same type");
 			else
 				SetType(op2->GetType());
@@ -2086,7 +2086,7 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 			op2 = make_intrusive<TableConstructorExpr>(
 			        IntrusivePtr{NewRef{}, op2->AsListExpr()}, attr_copy);
 
-		if ( ! empty_list_assignment && ! same_type(op1->GetType().get(), op2->GetType().get()) )
+		if ( ! empty_list_assignment && ! same_type(op1->GetType(), op2->GetType()) )
 			{
 			if ( op1->GetType()->IsSet() )
 				ExprError("set type mismatch in assignment");
@@ -2119,7 +2119,7 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 	if ( op1->GetType()->Tag() == TYPE_RECORD &&
 	     op2->GetType()->Tag() == TYPE_RECORD )
 		{
-		if ( same_type(op1->GetType().get(), op2->GetType().get()) )
+		if ( same_type(op1->GetType(), op2->GetType()) )
 			{
 			RecordType* rt1 = op1->GetType()->AsRecordType();
 			RecordType* rt2 = op2->GetType()->AsRecordType();
@@ -2141,7 +2141,7 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 		return true;
 		}
 
-	if ( ! same_type(op1->GetType().get(), op2->GetType().get()) )
+	if ( ! same_type(op1->GetType(), op2->GetType()) )
 		{
 		if ( bt1 == TYPE_TABLE && bt2 == TYPE_TABLE )
 			{
@@ -3547,8 +3547,8 @@ RecordCoerceExpr::RecordCoerceExpr(IntrusivePtr<Expr> arg_op,
 				break;
 				}
 
-			BroType* sub_t_i = sub_r->GetFieldType(i).get();
-			BroType* sup_t_i = t_r->GetFieldType(t_i).get();
+			const auto& sub_t_i = sub_r->GetFieldType(i);
+			const auto& sup_t_i = t_r->GetFieldType(t_i);
 
 			if ( ! same_type(sup_t_i, sub_t_i) )
 				{
@@ -3581,12 +3581,12 @@ RecordCoerceExpr::RecordCoerceExpr(IntrusivePtr<Expr> arg_op,
 					                                   sub->AsRecordType());
 					};
 
-				if ( ! is_arithmetic_promotable(sup_t_i, sub_t_i) &&
-				     ! is_record_promotable(sup_t_i, sub_t_i) )
+				if ( ! is_arithmetic_promotable(sup_t_i.get(), sub_t_i.get()) &&
+				     ! is_record_promotable(sup_t_i.get(), sub_t_i.get()) )
 					{
 					std::string error_msg = fmt(
 						"type clash for field \"%s\"", sub_r->FieldName(i));
-					Error(error_msg.c_str(), sub_t_i);
+					Error(error_msg.c_str(), sub_t_i.get());
 					SetError();
 					break;
 					}
@@ -3670,18 +3670,18 @@ IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 				continue;
 				}
 
-			BroType* rhs_type = rhs->GetType().get();
+			const auto& rhs_type = rhs->GetType();
 			const auto& field_type = val_type->GetFieldType(i);
 
 			if ( rhs_type->Tag() == TYPE_RECORD &&
 			     field_type->Tag() == TYPE_RECORD &&
-			     ! same_type(rhs_type, field_type.get()) )
+			     ! same_type(rhs_type, field_type) )
 				{
 				if ( auto new_val = rhs->AsRecordVal()->CoerceTo(cast_intrusive<RecordType>(field_type)) )
 					rhs = std::move(new_val);
 				}
 			else if ( BothArithmetic(rhs_type->Tag(), field_type->Tag()) &&
-			          ! same_type(rhs_type, field_type.get()) )
+			          ! same_type(rhs_type, field_type) )
 				{
 				if ( auto new_val = check_and_promote(rhs, field_type.get(), false, op->GetLocationInfo()) )
 					rhs = std::move(new_val);
@@ -3701,7 +3701,7 @@ IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 
 				if ( def_type->Tag() == TYPE_RECORD &&
 				     field_type->Tag() == TYPE_RECORD &&
-				     ! same_type(def_type.get(), field_type.get()) )
+				     ! same_type(def_type, field_type) )
 					{
 					auto tmp = def_val->AsRecordVal()->CoerceTo(
 					        cast_intrusive<RecordType>(field_type));
@@ -3908,7 +3908,7 @@ InExpr::InExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 			const auto& t1 = op1->GetType();
 			const auto& it = op2->GetType()->AsTableType()->GetIndices();
 
-			if ( ! same_type(t1.get(), it.get()) )
+			if ( ! same_type(t1, it) )
 				{
 				t1->Error("indexing mismatch", op2->GetType().get());
 				SetError();
@@ -4608,7 +4608,7 @@ IntrusivePtr<Val> ListExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) co
 
 			auto v = e->Eval(nullptr);
 
-			if ( ! same_type(v->GetType().get(), t) )
+			if ( ! same_type(v->GetType(), t) )
 				{
 				v->GetType()->Error("type clash in table initializer", t);
 				return nullptr;
@@ -4648,7 +4648,7 @@ IntrusivePtr<Val> ListExpr::AddSetInit(const BroType* t, IntrusivePtr<Val> aggr)
 
 		if ( element->GetType()->IsSet() )
 			{
-			if ( ! same_type(element->GetType().get(), t) )
+			if ( ! same_type(element->GetType(), t) )
 				{
 				element->Error("type clash in set initializer", t);
 				return nullptr;
@@ -4747,7 +4747,7 @@ RecordAssignExpr::RecordAssignExpr(const IntrusivePtr<Expr>& record,
 				int field = lhs->FieldOffset(field_name);
 
 				if ( field >= 0 &&
-				     same_type(lhs->GetFieldType(field).get(), t->GetFieldType(j).get()) )
+				     same_type(lhs->GetFieldType(field), t->GetFieldType(j)) )
 					{
 					auto fe_lhs = make_intrusive<FieldExpr>(record, field_name);
 					auto fe_rhs = make_intrusive<FieldExpr>(IntrusivePtr{NewRef{}, init}, field_name);
@@ -4818,7 +4818,7 @@ IntrusivePtr<Val> CastExpr::Eval(Frame* f) const
 	GetType()->Describe(&d);
 	d.Add("'");
 
-	if ( same_type(v->GetType().get(), bro_broker::DataVal::ScriptDataType()) &&
+	if ( same_type(v->GetType(), bro_broker::DataVal::ScriptDataType()) &&
 		 ! v->AsRecordVal()->GetField(0) )
 		d.Add(" (nil $data field)");
 
@@ -4906,7 +4906,7 @@ IntrusivePtr<Expr> check_and_promote_expr(Expr* const e, BroType* t)
 		RecordType* t_r = t->AsRecordType();
 		RecordType* et_r = et->AsRecordType();
 
-		if ( same_type(t, et.get()) )
+		if ( same_type(t, et) )
 			{
 			// Make sure the attributes match as well.
 			for ( int i = 0; i < t_r->NumFields(); ++i )
@@ -4929,7 +4929,7 @@ IntrusivePtr<Expr> check_and_promote_expr(Expr* const e, BroType* t)
 		}
 
 
-	if ( ! same_type(t, et.get()) )
+	if ( ! same_type(t, et) )
 		{
 		if ( t->Tag() == TYPE_TABLE && et->Tag() == TYPE_TABLE &&
 			  et->AsTableType()->IsUnspecifiedTable() )

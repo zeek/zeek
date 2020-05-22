@@ -217,9 +217,9 @@ ReaderBackend* Manager::CreateBackend(ReaderFrontend* frontend, EnumVal* tag)
 bool Manager::CreateStream(Stream* info, RecordVal* description)
 	{
 	RecordType* rtype = description->GetType()->AsRecordType();
-	if ( ! ( same_type(rtype, zeek::BifType::Record::Input::TableDescription.get(), false)
-		|| same_type(rtype, zeek::BifType::Record::Input::EventDescription.get(), false)
-		|| same_type(rtype, zeek::BifType::Record::Input::AnalysisDescription.get(), false) ) )
+	if ( ! ( same_type(rtype, zeek::BifType::Record::Input::TableDescription, false)
+		|| same_type(rtype, zeek::BifType::Record::Input::EventDescription, false)
+		|| same_type(rtype, zeek::BifType::Record::Input::AnalysisDescription, false) ) )
 		{
 		reporter->Error("Stream description argument not of right type for new input stream");
 		return false;
@@ -305,7 +305,7 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 bool Manager::CreateEventStream(RecordVal* fval)
 	{
 	RecordType* rtype = fval->GetType()->AsRecordType();
-	if ( ! same_type(rtype, zeek::BifType::Record::Input::EventDescription.get(), false) )
+	if ( ! same_type(rtype, zeek::BifType::Record::Input::EventDescription, false) )
 		{
 		reporter->Error("EventDescription argument not of right type");
 		return false;
@@ -339,13 +339,13 @@ bool Manager::CreateEventStream(RecordVal* fval)
 		return false;
 		}
 
-	if ( ! same_type(args[1].get(), zeek::BifType::Enum::Input::Event.get(), false) )
+	if ( ! same_type(args[1], zeek::BifType::Enum::Input::Event, false) )
 		{
 		reporter->Error("Input stream %s: Event's second attribute must be of type Input::Event", stream_name.c_str());
 		return false;
 		}
 
-	if ( ! same_type(args[0].get(), zeek::BifType::Record::Input::EventDescription.get(), false) )
+	if ( ! same_type(args[0], zeek::BifType::Record::Input::EventDescription, false) )
 		{
 		reporter->Error("Input stream %s: Event's first attribute must be of type Input::EventDescription", stream_name.c_str());
 		return false;
@@ -361,7 +361,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 
 		for ( int i = 0; i < fields->NumFields(); i++ )
 			{
-			if ( ! same_type(args[i + 2].get(), fields->GetFieldType(i).get() ) )
+			if ( ! same_type(args[i + 2], fields->GetFieldType(i) ) )
 				{
 				ODesc desc1;
 				ODesc desc2;
@@ -387,7 +387,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 			return false;
 			}
 
-		if ( ! same_type(args[2].get(), fields ) )
+		if ( ! same_type(args[2], fields ) )
 			{
 			ODesc desc1;
 			ODesc desc2;
@@ -459,7 +459,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 bool Manager::CreateTableStream(RecordVal* fval)
 	{
 	RecordType* rtype = fval->GetType()->AsRecordType();
-	if ( ! same_type(rtype, zeek::BifType::Record::Input::TableDescription.get(), false) )
+	if ( ! same_type(rtype, zeek::BifType::Record::Input::TableDescription, false) )
 		{
 		reporter->Error("TableDescription argument not of right type");
 		return false;
@@ -492,7 +492,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 			return false;
 			}
 
-		if ( ! same_type(idx->GetFieldType(j).get(), tl[j].get()) )
+		if ( ! same_type(idx->GetFieldType(j), tl[j]) )
 			{
 			ODesc desc1;
 			ODesc desc2;
@@ -518,12 +518,9 @@ bool Manager::CreateTableStream(RecordVal* fval)
 	if ( val )
 		{
 		const auto& table_yield = dst->GetType()->AsTableType()->Yield();
-		const BroType* compare_type = val.get();
+		const auto& compare_type = want_record->InternalInt() == 0 ? val->GetFieldType(0) : val;
 
-		if ( want_record->InternalInt() == 0 )
-			compare_type = val->GetFieldType(0).get();
-
-		if ( ! same_type(table_yield.get(), compare_type) )
+		if ( ! same_type(table_yield, compare_type) )
 			{
 			ODesc desc1;
 			ODesc desc2;
@@ -567,19 +564,19 @@ bool Manager::CreateTableStream(RecordVal* fval)
 			return false;
 			}
 
-		if ( ! same_type(args[0].get(), zeek::BifType::Record::Input::TableDescription.get(), false) )
+		if ( ! same_type(args[0], zeek::BifType::Record::Input::TableDescription, false) )
 			{
 			reporter->Error("Input stream %s: Table event's first attribute must be of type Input::TableDescription", stream_name.c_str());
 			return false;
 			}
 
-		if ( ! same_type(args[1].get(), zeek::BifType::Enum::Input::Event.get(), false) )
+		if ( ! same_type(args[1], zeek::BifType::Enum::Input::Event, false) )
 			{
 			reporter->Error("Input stream %s: Table event's second attribute must be of type Input::Event", stream_name.c_str());
 			return false;
 			}
 
-		if ( ! same_type(args[2].get(), idx) )
+		if ( ! same_type(args[2], idx) )
 			{
 			ODesc desc1;
 			ODesc desc2;
@@ -590,7 +587,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 			return false;
 			}
 
-		if ( want_record->InternalInt() == 1 && val && ! same_type(args[3].get(), val.get()) )
+		if ( want_record->InternalInt() == 1 && val && ! same_type(args[3], val) )
 			{
 			ODesc desc1;
 			ODesc desc2;
@@ -601,7 +598,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 			return false;
 			}
 		else if (  want_record->InternalInt() == 0
-		           && val && !same_type(args[3].get(), val->GetFieldType(0).get() ) )
+		           && val && !same_type(args[3], val->GetFieldType(0) ) )
 			{
 			ODesc desc1;
 			ODesc desc2;
@@ -714,13 +711,13 @@ bool Manager::CheckErrorEventTypes(const std::string& stream_name, const Func* e
 		return false;
 		}
 
-	if ( table && ! same_type(args[0].get(), zeek::BifType::Record::Input::TableDescription.get(), false) )
+	if ( table && ! same_type(args[0], zeek::BifType::Record::Input::TableDescription, false) )
 		{
 		reporter->Error("Input stream %s: Error event's first attribute must be of type Input::TableDescription", stream_name.c_str());
 		return false;
 		}
 
-	if ( ! table && ! same_type(args[0].get(), zeek::BifType::Record::Input::EventDescription.get(), false) )
+	if ( ! table && ! same_type(args[0], zeek::BifType::Record::Input::EventDescription, false) )
 		{
 		reporter->Error("Input stream %s: Error event's first attribute must be of type Input::EventDescription", stream_name.c_str());
 		return false;
@@ -732,7 +729,7 @@ bool Manager::CheckErrorEventTypes(const std::string& stream_name, const Func* e
 		return false;
 		}
 
-	if ( ! same_type(args[2].get(), zeek::BifType::Enum::Reporter::Level.get(), false) )
+	if ( ! same_type(args[2], zeek::BifType::Enum::Reporter::Level, false) )
 		{
 		reporter->Error("Input stream %s: Error event's third attribute must be of type Reporter::Level", stream_name.c_str());
 		return false;
@@ -745,7 +742,7 @@ bool Manager::CreateAnalysisStream(RecordVal* fval)
 	{
 	RecordType* rtype = fval->GetType()->AsRecordType();
 
-	if ( ! same_type(rtype, zeek::BifType::Record::Input::AnalysisDescription.get(), false) )
+	if ( ! same_type(rtype, zeek::BifType::Record::Input::AnalysisDescription, false) )
 		{
 		reporter->Error("AnalysisDescription argument not of right type");
 		return false;

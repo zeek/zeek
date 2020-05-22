@@ -48,7 +48,7 @@ function hll_cardinality_add%(handle: opaque of cardinality, elem: any%): bool
 		return val_mgr->False();
 		}
 
-	else if ( ! same_type(cv->Type().get(), elem->GetType().get()) )
+	else if ( ! same_type(cv->Type(), elem->GetType()) )
 		{
 		reporter->Error("incompatible HLL data type");
 		return val_mgr->False();
@@ -79,7 +79,7 @@ function hll_cardinality_merge_into%(handle1: opaque of cardinality, handle2: op
 	if ( (v1->Type() != v2->Type()) && // both 0 is ok
 	     (v1->Type() != nullptr) && // any one 0 also is ok
 	     (v2->Type() != nullptr) &&
-	     ! same_type(v1->Type().get(), v2->Type().get()) )
+	     ! same_type(v1->Type(), v2->Type()) )
 		{
 		reporter->Error("incompatible HLL types");
 		return val_mgr->False();

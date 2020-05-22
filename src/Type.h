@@ -544,6 +544,9 @@ public:
 	explicit TypeType(IntrusivePtr<BroType> t) : BroType(TYPE_TYPE), type(std::move(t)) {}
 	IntrusivePtr<BroType> ShallowClone() override { return make_intrusive<TypeType>(type); }
 
+	const IntrusivePtr<BroType>& GetType() const
+		{ return type; }
+
 	BroType* Type()			{ return type.get(); }
 	const BroType* Type() const	{ return type.get(); }
 
@@ -811,7 +814,20 @@ inline const IntrusivePtr<BroType>& error_type()	{ return base_type(TYPE_ERROR);
 // True if the two types are equivalent.  If is_init is true then the test is
 // done in the context of an initialization. If match_record_field_names is
 // true then for record types the field names have to match, too.
-extern bool same_type(const BroType* t1, const BroType* t2, bool is_init=false, bool match_record_field_names=true);
+extern bool same_type(const BroType& t1, const BroType& t2,
+                      bool is_init=false, bool match_record_field_names=true);
+inline bool same_type(const IntrusivePtr<BroType>& t1, const IntrusivePtr<BroType>& t2,
+                      bool is_init=false, bool match_record_field_names=true)
+    { return same_type(*t1, *t2, is_init, match_record_field_names); }
+inline bool same_type(const BroType* t1, const BroType* t2,
+                      bool is_init=false, bool match_record_field_names=true)
+    { return same_type(*t1, *t2, is_init, match_record_field_names); }
+inline bool same_type(const IntrusivePtr<BroType>& t1, const BroType* t2,
+                      bool is_init=false, bool match_record_field_names=true)
+    { return same_type(*t1, *t2, is_init, match_record_field_names); }
+inline bool same_type(const BroType* t1, const IntrusivePtr<BroType>& t2,
+                      bool is_init=false, bool match_record_field_names=true)
+    { return same_type(*t1, *t2, is_init, match_record_field_names); }
 
 // True if the two attribute lists are equivalent.
 extern bool same_attrs(const Attributes* a1, const Attributes* a2);

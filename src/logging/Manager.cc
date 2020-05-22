@@ -229,9 +229,7 @@ void Manager::RemoveDisabledWriters(Stream* stream)
 
 bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 	{
-	RecordType* rtype = sval->GetType()->AsRecordType();
-
-	if ( ! same_type(rtype, zeek::BifType::Record::Log::Stream.get(), false) )
+	if ( ! same_type(sval->GetType(), zeek::BifType::Record::Log::Stream, false) )
 		{
 		reporter->Error("sval argument not of right type");
 		return false;
@@ -286,7 +284,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 			return false;
 			}
 
-		if ( ! same_type(args[0].get(), columns) )
+		if ( ! same_type(args[0], columns) )
 			{
 			reporter->Error("stream event's argument type does not match column record type");
 			return false;
@@ -528,9 +526,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 
 bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	{
-	RecordType* rtype = fval->GetType()->AsRecordType();
-
-	if ( ! same_type(rtype, zeek::BifType::Record::Log::Filter.get(), false) )
+	if ( ! same_type(fval->GetType(), zeek::BifType::Record::Log::Filter, false) )
 		{
 		reporter->Error("filter argument not of right type");
 		return false;

@@ -770,7 +770,7 @@ IntrusivePtr<BloomFilterVal> BloomFilterVal::Merge(const BloomFilterVal* x,
 	{
 	if ( x->Type() && // any one 0 is ok here
 	     y->Type() &&
-	     ! same_type(x->Type().get(), y->Type().get()) )
+	     ! same_type(x->Type(), y->Type()) )
 		{
 		reporter->Error("cannot merge Bloom filters with different types");
 		return nullptr;

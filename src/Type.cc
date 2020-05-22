@@ -156,14 +156,14 @@ unsigned int BroType::MemoryAllocation() const
 bool TypeList::AllMatch(const BroType* t, bool is_init) const
 	{
 	for ( const auto& type : types )
-		if ( ! same_type(type.get(), t, is_init) )
+		if ( ! same_type(type, t, is_init) )
 			return false;
 	return true;
 	}
 
 void TypeList::Append(IntrusivePtr<BroType> t)
 	{
-	if ( pure_type && ! same_type(t.get(), pure_type.get()) )
+	if ( pure_type && ! same_type(t, pure_type) )
 		reporter->InternalError("pure type-list violation");
 
 	types.emplace_back(std::move(t));
@@ -171,7 +171,7 @@ void TypeList::Append(IntrusivePtr<BroType> t)
 
 void TypeList::AppendEvenIfNotPure(IntrusivePtr<BroType> t)
 	{
-	if ( pure_type && ! same_type(t.get(), pure_type.get()) )
+	if ( pure_type && ! same_type(t, pure_type) )
 		pure_type = nullptr;
 
 	types.emplace_back(std::move(t));
@@ -503,7 +503,7 @@ bool FuncType::CheckArgs(const std::vector<IntrusivePtr<BroType>>& args,
 	bool success = true;
 
 	for ( size_t i = 0; i < my_args.size(); ++i )
-		if ( ! same_type(args[i].get(), my_args[i].get(), is_init) )
+		if ( ! same_type(args[i], my_args[i], is_init) )
 			{
 			Warn(fmt("Type mismatch in function argument #%zu. Expected %s, got %s.",
 				i, type_name(args[i]->Tag()), type_name(my_args[i]->Tag())));
@@ -592,7 +592,7 @@ std::optional<FuncType::Prototype> FuncType::FindPrototype(const RecordType& arg
 			const auto& ptype = p.args->GetFieldType(i);
 			const auto& desired_type = args.GetFieldType(i);
 
-			if ( ! same_type(ptype.get(), desired_type.get()) ||
+			if ( ! same_type(ptype, desired_type) ||
 			     ! streq(args.FieldName(i), p.args->FieldName(i)) )
 				{
 				matched = false;
@@ -1405,38 +1405,40 @@ const IntrusivePtr<BroType>& base_type(TypeTag tag)
 // false otherwise.  Assumes that t1's tag is different from t2's.  Note
 // that the test is in only one direction - we don't check whether t2 is
 // initialization-compatible with t1.
-static bool is_init_compat(const BroType* t1, const BroType* t2)
+static bool is_init_compat(const BroType& t1, const BroType& t2)
 	{
-	if ( t1->Tag() == TYPE_LIST )
+	if ( t1.Tag() == TYPE_LIST )
 		{
-		if ( t2->Tag() == TYPE_RECORD )
+		if ( t2.Tag() == TYPE_RECORD )
 			return true;
 		else
-			return t1->AsTypeList()->AllMatch(t2, true);
+			return t1.AsTypeList()->AllMatch(&t2, true);
 		}
 
-	if ( t1->IsSet() )
-		return same_type(t1->AsSetType()->GetIndices().get(), t2, true);
+	if ( t1.IsSet() )
+		return same_type(*t1.AsSetType()->GetIndices(), t2, true);
 
 	return false;
 	}
 
-bool same_type(const BroType* t1, const BroType* t2, bool is_init, bool match_record_field_names)
+bool same_type(const BroType& arg_t1, const BroType& arg_t2,
+               bool is_init, bool match_record_field_names)
 	{
-	if ( t1 == t2 ||
-	     t1->Tag() == TYPE_ANY ||
-	     t2->Tag() == TYPE_ANY )
+	if ( &arg_t1 == &arg_t2 ||
+	     arg_t1.Tag() == TYPE_ANY ||
+	     arg_t2.Tag() == TYPE_ANY )
 		return true;
 
-	t1 = flatten_type(t1);
-	t2 = flatten_type(t2);
+	auto t1 = flatten_type(&arg_t1);
+	auto t2 = flatten_type(&arg_t2);
+
 	if ( t1 == t2 )
 		return true;
 
 	if ( t1->Tag() != t2->Tag() )
 		{
 		if ( is_init )
-			return is_init_compat(t1, t2) || is_init_compat(t2, t1);
+			return is_init_compat(*t1, *t2) || is_init_compat(*t2, *t1);
 
 		return false;
 		}
@@ -1477,12 +1479,12 @@ bool same_type(const BroType* t1, const BroType* t2, bool is_init, bool match_re
 
 		if ( tl1 || tl2 )
 			{
-			if ( ! tl1 || ! tl2 || ! same_type(tl1.get(), tl2.get(), is_init, match_record_field_names) )
+			if ( ! tl1 || ! tl2 || ! same_type(tl1, tl2, is_init, match_record_field_names) )
 				return false;
 			}
 
-		const BroType* y1 = t1->Yield().get();
-		const BroType* y2 = t2->Yield().get();
+		const auto& y1 = t1->Yield();
+		const auto& y2 = t2->Yield();
 
 		if ( y1 || y2 )
 			{
@@ -1504,7 +1506,7 @@ bool same_type(const BroType* t1, const BroType* t2, bool is_init, bool match_re
 		if ( t1->Yield() || t2->Yield() )
 			{
 			if ( ! t1->Yield() || ! t2->Yield() ||
-			     ! same_type(t1->Yield().get(), t2->Yield().get(), is_init, match_record_field_names) )
+			     ! same_type(t1->Yield(), t2->Yield(), is_init, match_record_field_names) )
 				return false;
 			}
 
@@ -1525,7 +1527,7 @@ bool same_type(const BroType* t1, const BroType* t2, bool is_init, bool match_re
 			const TypeDecl* td2 = rt2->FieldDecl(i);
 
 			if ( (match_record_field_names && ! streq(td1->id, td2->id)) ||
-			     ! same_type(td1->type.get(), td2->type.get(), is_init, match_record_field_names) )
+			     ! same_type(td1->type, td2->type, is_init, match_record_field_names) )
 				return false;
 			}
 
@@ -1541,7 +1543,7 @@ bool same_type(const BroType* t1, const BroType* t2, bool is_init, bool match_re
 			return false;
 
 		for ( auto i = 0u; i < tl1.size(); ++i )
-			if ( ! same_type(tl1[i].get(), tl2[i].get(), is_init, match_record_field_names) )
+			if ( ! same_type(tl1[i], tl2[i], is_init, match_record_field_names) )
 				return false;
 
 		return true;
@@ -1549,7 +1551,7 @@ bool same_type(const BroType* t1, const BroType* t2, bool is_init, bool match_re
 
 	case TYPE_VECTOR:
 	case TYPE_FILE:
-		return same_type(t1->Yield().get(), t2->Yield().get(), is_init, match_record_field_names);
+		return same_type(t1->Yield(), t2->Yield(), is_init, match_record_field_names);
 
 	case TYPE_OPAQUE:
 		{
@@ -1562,7 +1564,7 @@ bool same_type(const BroType* t1, const BroType* t2, bool is_init, bool match_re
 		{
 		auto tt1 = t1->AsTypeType();
 		auto tt2 = t2->AsTypeType();
-		return same_type(tt1->Type(), tt1->Type(),
+		return same_type(tt1->GetType(), tt1->GetType(),
 		                 is_init, match_record_field_names);
 		}
 
@@ -1597,7 +1599,7 @@ bool record_promotion_compatible(const RecordType* super_rec,
 		const auto& sub_field_type = sub_rec->GetFieldType(i);
 		const auto& super_field_type = super_rec->GetFieldType(o);
 
-		if ( same_type(sub_field_type.get(), super_field_type.get()) )
+		if ( same_type(sub_field_type, super_field_type) )
 			continue;
 
 		if ( sub_field_type->Tag() != TYPE_RECORD )
@@ -1924,7 +1926,7 @@ IntrusivePtr<BroType> merge_types(const IntrusivePtr<BroType>& arg_t1,
 		}
 
 	case TYPE_VECTOR:
-		if ( ! same_type(t1->Yield().get(), t2->Yield().get()) )
+		if ( ! same_type(t1->Yield(), t2->Yield()) )
 			{
 			t1->Error("incompatible types", t2);
 			return nullptr;
@@ -1933,7 +1935,7 @@ IntrusivePtr<BroType> merge_types(const IntrusivePtr<BroType>& arg_t1,
 		return make_intrusive<VectorType>(merge_types(t1->Yield(), t2->Yield()));
 
 	case TYPE_FILE:
-		if ( ! same_type(t1->Yield().get(), t2->Yield().get()) )
+		if ( ! same_type(t1->Yield(), t2->Yield()) )
 			{
 			t1->Error("incompatible types", t2);
 			return nullptr;
@@ -2051,7 +2053,7 @@ IntrusivePtr<BroType> init_type(Expr* init)
 		if ( ! ti )
 			return nullptr;
 
-		if ( same_type(t.get(), ti.get()) )
+		if ( same_type(t, ti) )
 			continue;
 
 		t = merge_types(t, ti);

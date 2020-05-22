@@ -741,7 +741,7 @@ bool SwitchStmt::AddCaseLabelTypeMapping(ID* t, int idx)
 	{
 	for ( auto i : case_label_type_list )
 		{
-		if ( same_type(i.first->GetType().get(), t->GetType().get()) )
+		if ( same_type(i.first->GetType(), t->GetType()) )
 			return false;
 		}
 
@@ -1080,7 +1080,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 
 			if ( lvt )
 				{
-				if ( ! same_type(lvt.get(), ind_type.get()) )
+				if ( ! same_type(lvt, ind_type) )
 					lvt->Error("type clash in iteration", ind_type.get());
 				}
 
@@ -1151,7 +1151,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars,
 		// Verify value_vars type if its already been defined
 		if ( value_var->GetType() )
 			{
-			if ( ! same_type(value_var->GetType().get(), yield_type.get()) )
+			if ( ! same_type(value_var->GetType(), yield_type) )
 				value_var->GetType()->Error("type clash in iteration", yield_type.get());
 			}
 		else

@@ -743,7 +743,7 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 		const auto& got_type = (*args)[i]->GetType();
 		const auto& expected_type = func->GetType()->ParamList()->Types()[i - 1];
 
-		if ( ! same_type(got_type.get(), expected_type.get()) )
+		if ( ! same_type(got_type, expected_type) )
 			{
 			rval->Assign(0, nullptr);
 			Error("event parameter #%d type mismatch, got %s, expect %s", i,
@@ -754,7 +754,7 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 
 		IntrusivePtr<RecordVal> data_val;
 
-		if ( same_type(got_type.get(), bro_broker::DataVal::ScriptDataType()) )
+		if ( same_type(got_type, bro_broker::DataVal::ScriptDataType()) )
 			data_val = {NewRef{}, (*args)[i]->AsRecordVal()};
 		else
 			data_val = make_data_val((*args)[i]);

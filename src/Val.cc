@@ -1602,7 +1602,7 @@ bool TableVal::AddTo(Val* val, bool is_first_init, bool propagate_ops) const
 
 	TableVal* t = val->AsTableVal();
 
-	if ( ! same_type(type.get(), t->GetType().get()) )
+	if ( ! same_type(type, t->GetType()) )
 		{
 		type->Error("table type clash", t->GetType().get());
 		return false;
@@ -1650,7 +1650,7 @@ bool TableVal::RemoveFrom(Val* val) const
 
 	TableVal* t = val->AsTableVal();
 
-	if ( ! same_type(type.get(), t->GetType().get()) )
+	if ( ! same_type(type, t->GetType()) )
 		{
 		type->Error("table type clash", t->GetType().get());
 		return false;
@@ -1824,7 +1824,7 @@ IntrusivePtr<Val> TableVal::Default(const IntrusivePtr<Val>& index)
 		const auto& dtype = def_attr->AttrExpr()->GetType();
 
 		if ( dtype->Tag() == TYPE_RECORD && ytype->Tag() == TYPE_RECORD &&
-		     ! same_type(dtype.get(), ytype.get()) &&
+		     ! same_type(dtype, ytype) &&
 		     record_promotion_compatible(dtype->AsRecordType(),
 						 ytype->AsRecordType()) )
 			{
@@ -1845,7 +1845,7 @@ IntrusivePtr<Val> TableVal::Default(const IntrusivePtr<Val>& index)
 		}
 
 	if ( def_val->GetType()->Tag() != TYPE_FUNC ||
-	     same_type(def_val->GetType().get(), GetType()->Yield().get()) )
+	     same_type(def_val->GetType(), GetType()->Yield()) )
 		{
 		if ( def_attr->AttrExpr()->IsConst() )
 			return def_val;
@@ -2348,7 +2348,7 @@ void TableVal::InitDefaultFunc(Frame* f)
 	const auto& dtype = def_attr->AttrExpr()->GetType();
 
 	if ( dtype->Tag() == TYPE_RECORD && ytype->Tag() == TYPE_RECORD &&
-	     ! same_type(dtype.get(), ytype.get()) &&
+	     ! same_type(dtype, ytype) &&
 	     record_promotion_compatible(dtype->AsRecordType(),
 					 ytype->AsRecordType()) )
 		return; // TableVal::Default will handle this.
@@ -2720,7 +2720,7 @@ RecordVal::RecordVal(IntrusivePtr<RecordType> t, bool init_fields) : Val(std::mo
 
 		if ( def && type->Tag() == TYPE_RECORD &&
 		     def->GetType()->Tag() == TYPE_RECORD &&
-		     ! same_type(def->GetType().get(), type.get()) )
+		     ! same_type(def->GetType(), type) )
 			{
 			auto tmp = def->AsRecordVal()->CoerceTo(cast_intrusive<RecordType>(type));
 
@@ -2867,7 +2867,7 @@ IntrusivePtr<RecordVal> RecordVal::CoerceTo(IntrusivePtr<RecordType> t,
 
 		const auto& ft = ar_t->GetFieldType(t_i);
 
-		if ( ft->Tag() == TYPE_RECORD && ! same_type(ft.get(), v->GetType().get()) )
+		if ( ft->Tag() == TYPE_RECORD && ! same_type(ft, v->GetType()) )
 			{
 			auto rhs = make_intrusive<ConstExpr>(v);
 			auto e = make_intrusive<RecordCoerceExpr>(std::move(rhs),
@@ -2895,7 +2895,7 @@ IntrusivePtr<RecordVal> RecordVal::CoerceTo(IntrusivePtr<RecordType> t,
 IntrusivePtr<RecordVal> RecordVal::CoerceTo(IntrusivePtr<RecordType> t,
                                             bool allow_orphaning)
 	{
-	if ( same_type(GetType().get(), t.get()) )
+	if ( same_type(GetType(), t) )
 		return {NewRef{}, this};
 
 	return CoerceTo(std::move(t), nullptr, allow_orphaning);
@@ -3051,7 +3051,7 @@ IntrusivePtr<Val> VectorVal::SizeVal() const
 bool VectorVal::Assign(unsigned int index, IntrusivePtr<Val> element)
 	{
 	if ( element &&
-	     ! same_type(element->GetType().get(), GetType()->AsVectorType()->Yield().get(), false) )
+	     ! same_type(element->GetType(), GetType()->AsVectorType()->Yield(), false) )
 		return false;
 
 	if ( index >= val.vector_val->size() )
@@ -3078,7 +3078,7 @@ bool VectorVal::AssignRepeat(unsigned int index, unsigned int how_many,
 bool VectorVal::Insert(unsigned int index, IntrusivePtr<Val> element)
 	{
 	if ( element &&
-	     ! same_type(element->GetType().get(), GetType()->AsVectorType()->Yield().get(), false) )
+	     ! same_type(element->GetType(), GetType()->AsVectorType()->Yield(), false) )
 		{
 		return false;
 		}
@@ -3118,7 +3118,7 @@ bool VectorVal::AddTo(Val* val, bool /* is_first_init */) const
 
 	VectorVal* v = val->AsVectorVal();
 
-	if ( ! same_type(type.get(), v->GetType().get()) )
+	if ( ! same_type(type, v->GetType()) )
 		{
 		type->Error("vector type clash", v->GetType().get());
 		return false;
@@ -3198,9 +3198,7 @@ IntrusivePtr<Val> check_and_promote(IntrusivePtr<Val> v, const BroType* t,
 	if ( ! v )
 		return nullptr;
 
-	BroType* vt = v->GetType().get();
-
-	vt = flatten_type(vt);
+	BroType* vt = flatten_type(v->GetType().get());
 	t = flatten_type(t);
 
 	TypeTag t_tag = t->Tag();
@@ -3394,10 +3392,10 @@ IntrusivePtr<Val> cast_value_to_type(Val* v, BroType* t)
 
 	// Always allow casting to same type. This also covers casting 'any'
 	// to the actual type.
-	if ( same_type(v->GetType().get(), t) )
+	if ( same_type(v->GetType(), t) )
 		return {NewRef{}, v};
 
-	if ( same_type(v->GetType().get(), bro_broker::DataVal::ScriptDataType()) )
+	if ( same_type(v->GetType(), bro_broker::DataVal::ScriptDataType()) )
 		{
 		const auto& dv = v->AsRecordVal()->GetField(0);
 
@@ -3420,10 +3418,10 @@ bool can_cast_value_to_type(const Val* v, BroType* t)
 
 	// Always allow casting to same type. This also covers casting 'any'
 	// to the actual type.
-	if ( same_type(v->GetType().get(), t) )
+	if ( same_type(v->GetType(), t) )
 		return true;
 
-	if ( same_type(v->GetType().get(), bro_broker::DataVal::ScriptDataType()) )
+	if ( same_type(v->GetType(), bro_broker::DataVal::ScriptDataType()) )
 		{
 		const auto& dv = v->AsRecordVal()->GetField(0);
 

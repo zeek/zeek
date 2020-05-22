@@ -86,7 +86,7 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune)
 
 	else
 		{
-		if ( ! same_type(type.get(), value->type.get()) )
+		if ( ! same_type(type, value->type) )
 			{
 			reporter->Error("Cannot merge top-k elements of differing types.");
 			return;
@@ -278,7 +278,7 @@ void TopkVal::Encountered(IntrusivePtr<Val> encountered)
 	if ( numElements == 0 )
 		Typify(encountered->GetType());
 	else
-		if ( ! same_type(type.get(), encountered->GetType().get()) )
+		if ( ! same_type(type, encountered->GetType()) )
 			{
 			reporter->Error("Trying to add element to topk with differing type from other elements");
 			return;

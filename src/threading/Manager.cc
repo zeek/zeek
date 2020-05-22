@@ -166,7 +166,7 @@ bool Manager::SendEvent(MsgThread* thread, const std::string& name, const int nu
 		Val* v = Value::ValueToVal(std::string("thread ") + thread->Name(), vals[j], convert_error);
 		vl.emplace_back(AdoptRef{}, v);
 
-		if ( v && ! convert_error && ! same_type(type->GetFieldType(j).get(), v->GetType().get()) )
+		if ( v && ! convert_error && ! same_type(type->GetFieldType(j), v->GetType()) )
 			{
 			convert_error = true;
 			type->GetFieldType(j)->Error("SendEvent types do not match", v->GetType().get());

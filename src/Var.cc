@@ -153,7 +153,7 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 			}
 
 		// Allow redeclaration in order to initialize.
-		if ( ! same_type(t.get(), id->GetType().get()) )
+		if ( ! same_type(t, id->GetType()) )
 			{
 			id->Error("redefinition changes type", init.get());
 			return;
@@ -449,7 +449,7 @@ static bool canonical_arg_types_match(const FuncType* decl, const FuncType* impl
 		return false;
 
 	for ( auto i = 0; i < canon_args->NumFields(); ++i )
-		if ( ! same_type(canon_args->GetFieldType(i).get(), impl_args->GetFieldType(i).get()) )
+		if ( ! same_type(canon_args->GetFieldType(i), impl_args->GetFieldType(i)) )
 			return false;
 
 	return true;

@@ -298,6 +298,9 @@ IntrusivePtr<RecordVal> IPv6_Hdr::ToVal(IntrusivePtr<VectorVal> chain) const
 	return rv;
 	}
 
+IntrusivePtr<RecordVal> IPv6_Hdr::ToVal() const
+	{ return ToVal(nullptr); }
+
 RecordVal* IPv6_Hdr::BuildRecordVal(VectorVal* chain) const
 	{
 	return ToVal({AdoptRef{}, chain}).release();

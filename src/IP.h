@@ -136,7 +136,8 @@ public:
 	/**
 	 * Returns the script-layer record representation of the header.
 	 */
-	IntrusivePtr<RecordVal> ToVal(IntrusivePtr<VectorVal> chain = nullptr) const;
+	IntrusivePtr<RecordVal> ToVal(IntrusivePtr<VectorVal> chain) const;
+	IntrusivePtr<RecordVal> ToVal() const;
 
 	[[deprecated("Remove in v4.1.  Use ToVal() instead.")]]
 	RecordVal* BuildRecordVal(VectorVal* chain = nullptr) const;

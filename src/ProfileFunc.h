@@ -12,6 +12,9 @@ public:
 	// Globals seen in the function.  Non-const solely to support
 	// methods returning non-const values that can be Ref'd.  I.e.,
 	// this could all be IntrusivePtr-ified with enough elbow grease.
+	//
+	// Does *not* include globals solely seen as the function in a call.
+	// (We should extend that to include events.)
 	std::unordered_set<ID*> globals;
 
 	// Same for locals.

@@ -41,6 +41,8 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s)
 
 TraversalCode ProfileFunc::PreExpr(const Expr* e)
 	{
+	++num_exprs;
+
 	if ( e->Tag() == EXPR_NAME )
 		{
 		auto n = e->AsNameExpr();
@@ -51,10 +53,23 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 			locals.insert(id);
 		}
 
+	else if ( e->Tag() == EXPR_CALL )
+		{
+		auto c = e->AsCallExpr();
+		auto f = c->Func();
+
+		if ( f->Tag() == EXPR_NAME &&
+		     f->AsNameExpr()->Id()->IsGlobal() )
+			{
+			// Only recurse into the arguments.
+			auto args = c->Args();
+			args->Traverse(this);
+			return TC_ABORTSTMT;
+			}
+		}
+
 	else if ( e->Tag() == EXPR_LAMBDA )
 		++num_lambdas;
-
-	++num_exprs;
 
 	return TC_CONTINUE;
 	}

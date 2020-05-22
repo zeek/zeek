@@ -12,7 +12,7 @@
 #include "Reporter.h"
 #include "Scope.h"
 #include "ID.h"
-
+#include "IPAddr.h"
 
 AnonymizeIPAddr* ip_anonymizer[NUM_ADDR_ANONYMIZATION_METHODS] = {nullptr};
 

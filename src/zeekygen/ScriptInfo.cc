@@ -10,6 +10,7 @@
 
 #include "Reporter.h"
 #include "Desc.h"
+#include "Type.h"
 
 using namespace std;
 using namespace zeekygen;

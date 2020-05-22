@@ -12,6 +12,7 @@
 #include "ID.h"
 #include "Expr.h"
 #include "Scope.h"
+#include "IPAddr.h"
 
 using namespace threading;
 

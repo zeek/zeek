@@ -10,6 +10,7 @@
 #include "Reporter.h"
 #include "analyzer/Analyzer.h"
 
+class TableVal;
 class StringVal;
 class Base64Converter;
 

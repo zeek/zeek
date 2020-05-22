@@ -11,6 +11,7 @@
 #include "File.h"
 #include "Reporter.h"
 #include "ConvertUTF.h"
+#include "IPAddr.h"
 
 #define DEFAULT_SIZE 128
 #define SLOP 10

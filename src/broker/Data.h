@@ -10,6 +10,11 @@ class IntrusivePtr;
 
 class ODesc;
 
+namespace threading {
+struct Value;
+struct Field;
+}
+
 namespace bro_broker {
 
 extern IntrusivePtr<OpaqueType> opaque_of_data_type;

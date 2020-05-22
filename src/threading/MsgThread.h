@@ -8,11 +8,15 @@
 #include "iosource/IOSource.h"
 #include "Flare.h"
 
+class BroObj;
+
 namespace threading {
 
 class BasicInputMessage;
 class BasicOutputMessage;
 class HeartbeatMessage;
+struct Value;
+struct Field;
 
 /**
  * A specialized thread that provides bi-directional message passing between

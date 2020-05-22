@@ -9,6 +9,7 @@
 #include <memory>
 
 #include "threading/SerialTypes.h"
+#include "IPAddr.h"
 
 struct ConnID;
 class BroString;

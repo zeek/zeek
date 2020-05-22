@@ -1285,14 +1285,23 @@ public:
 	// Returns true if succcessful.
 	bool AddTo(Val* v, bool is_first_init) const override;
 
-	// Returns nil if no element was at that value.
-	// Lookup does NOT grow the vector to this size.
-	// The Val* variant assumes that the index Val* has been type-checked.
-	Val* Lookup(unsigned int index) const;
+	/**
+	 * Returns the element at a given index or nullptr if it does not exist.
+	 * @param index  The position in the vector of the element to return.
+	 * @return  The element at the given index or nullptr if the index
+	 * does not exist (it's greater than or equal to vector's current size).
+	 */
+	const IntrusivePtr<Val>& At(unsigned int index) const;
+
+	[[deprecated("Remove in v4.1.  Use At().")]]
+	Val* Lookup(unsigned int index) const
+		{ return At(index).get(); }
+
+	[[deprecated("Remove in v4.1.  Use At().")]]
 	Val* Lookup(Val* index)
 		{
 		bro_uint_t i = index->AsListVal()->Idx(0)->CoerceToUnsigned();
-		return Lookup(static_cast<unsigned int>(i));
+		return At(static_cast<unsigned int>(i)).get();
 		}
 
 	unsigned int Size() const { return val.vector_val->size(); }

@@ -35,13 +35,13 @@ STACK_OF(X509)* x509_get_untrusted_stack(VectorVal* certs_vec)
 
 	for ( int i = 1; i < (int) certs_vec->Size(); ++i ) // start at 1 - 0 is host cert
 		{
-		Val *sv = certs_vec->Lookup(i);
+		const auto& sv = certs_vec->At(i);
 
 		if ( ! sv )
 			continue;
 
 		// Fixme: check type
-		X509* x = ((file_analysis::X509Val*) sv)->GetCertificate();
+		X509* x = ((file_analysis::X509Val*) sv.get())->GetCertificate();
 		if ( ! x )
 			{
 			sk_X509_free(untrusted_certs);
@@ -230,14 +230,14 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 
 	// host certificate
 	unsigned int index = 0; // to prevent overloading to 0pointer
-	Val *sv = certs_vec->Lookup(index);
+	const auto& sv = certs_vec->At(index);
 	if ( ! sv )
 		{
 		builtin_error("undefined value in certificate vector");
 		return x509_result_record(-1, "undefined value in certificate vector");
 		}
 
-	file_analysis::X509Val* cert_handle = (file_analysis::X509Val*) sv;
+	file_analysis::X509Val* cert_handle = (file_analysis::X509Val*) sv.get();
 
 	X509* cert = cert_handle->GetCertificate();
 	if ( ! cert )
@@ -516,13 +516,13 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 
 	// host certificate
 	unsigned int index = 0; // to prevent overloading to 0pointer
-	Val *sv = certs_vec->Lookup(index);
+	const auto& sv = certs_vec->At(index);
 	if ( !sv )
 		{
 		builtin_error("undefined value in certificate vector");
 		return x509_result_record(-1, "undefined value in certificate vector");
 		}
-	file_analysis::X509Val* cert_handle = (file_analysis::X509Val*) sv;
+	file_analysis::X509Val* cert_handle = (file_analysis::X509Val*) sv.get();
 
 	X509* cert = cert_handle->GetCertificate();
 	if ( ! cert )

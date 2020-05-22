@@ -947,12 +947,12 @@ broker::expected<broker::data> bro_broker::val_to_data(const Val* v)
 
 		for ( auto i = 0u; i < vec->Size(); ++i )
 			{
-			auto item_val = vec->Lookup(i);
+			const auto& item_val = vec->At(i);
 
 			if ( ! item_val )
 				continue;
 
-			auto item = val_to_data(item_val);
+			auto item = val_to_data(item_val.get());
 
 			if ( ! item )
 				return broker::ec::invalid_data;

@@ -815,7 +815,7 @@ function paraglob_init%(v: any%) : opaque of paraglob
 	VectorVal* vv = v->AsVectorVal();
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		{
-		const BroString* s = vv->Lookup(i)->AsString();
+		const BroString* s = vv->At(i)->AsString();
 		patterns.push_back(std::string(reinterpret_cast<const char*>(s->Bytes()), s->Len()));
 		}
 
@@ -1291,7 +1291,7 @@ function any_set%(v: any%) : bool
 
 	VectorVal* vv = v->AsVectorVal();
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
-		if ( vv->Lookup(i) && vv->Lookup(i)->AsBool() )
+		if ( vv->At(i) && vv->At(i)->AsBool() )
 			return val_mgr->True();
 
 	return val_mgr->False();
@@ -1320,7 +1320,7 @@ function all_set%(v: any%) : bool
 
 	VectorVal* vv = v->AsVectorVal();
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
-		if ( ! vv->Lookup(i) || ! vv->Lookup(i)->AsBool() )
+		if ( ! vv->At(i) || ! vv->At(i)->AsBool() )
 			return val_mgr->False();
 
 	return val_mgr->True();

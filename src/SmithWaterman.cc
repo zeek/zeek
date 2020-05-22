@@ -103,7 +103,7 @@ BroSubstring::Vec* BroSubstring::VecFromPolicy(VectorVal* vec)
 	// VectorVals start at index 1!
 	for ( unsigned int i = 1; i <= vec->Size(); ++i )
 		{
-		Val* v = vec->Lookup(i);	// get the RecordVal
+		const auto& v = vec->At(i);	// get the RecordVal
 		if ( ! v )
 			continue;
 
@@ -113,7 +113,7 @@ BroSubstring::Vec* BroSubstring::VecFromPolicy(VectorVal* vec)
 		const VectorVal* aligns = v->AsRecordVal()->GetField(1)->AsVectorVal();
 		for ( unsigned int j = 1; j <= aligns->Size(); ++j )
 			{
-			const RecordVal* align = aligns->AsVectorVal()->Lookup(j)->AsRecordVal();
+			const RecordVal* align = aligns->AsVectorVal()->At(j)->AsRecordVal();
 			const BroString* str = align->GetField(0)->AsString();
 			int index = align->GetField(1)->AsCount();
 			substr->AddAlignment(str, index);

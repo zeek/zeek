@@ -632,7 +632,7 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 			auto* vval = val->AsVectorVal();
 			size_t size = vval->SizeVal()->AsCount();
 			for (size_t i = 0; i < size; i++)
-				BuildJSON(writer, vval->Lookup(i), only_loggable, re);
+				BuildJSON(writer, vval->At(i).get(), only_loggable, re);
 
 			writer.EndArray();
 			break;
@@ -3132,17 +3132,19 @@ bool VectorVal::AddTo(Val* val, bool /* is_first_init */) const
 	auto last_idx = v->Size();
 
 	for ( auto i = 0u; i < Size(); ++i )
-		v->Assign(last_idx++, {NewRef{}, Lookup(i)});
+		v->Assign(last_idx++, At(i));
 
 	return true;
 	}
 
-Val* VectorVal::Lookup(unsigned int index) const
+const IntrusivePtr<Val>& VectorVal::At(unsigned int index) const
 	{
-	if ( index >= val.vector_val->size() )
-		return nullptr;
+	static IntrusivePtr<Val> nil;
 
-	return (*val.vector_val)[index].get();
+	if ( index >= val.vector_val->size() )
+		return nil;
+
+	return (*val.vector_val)[index];
 	}
 
 unsigned int VectorVal::Resize(unsigned int new_num_elements)

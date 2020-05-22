@@ -1225,7 +1225,7 @@ IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 		for ( auto i = 0u; i <= vv->Size(); ++i )
 			{
 			// Skip unassigned vector indices.
-			if ( ! vv->Lookup(i) )
+			if ( ! vv->At(i) )
 				continue;
 
 			// Set the loop variable to the current index, and make

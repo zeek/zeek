@@ -2384,7 +2384,7 @@ IntrusivePtr<Val> AssignExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) 
 		const TableType* tt = tv->GetType()->AsTableType();
 		const auto& yt = tv->GetType()->Yield();
 
-		auto index = op1->InitVal(tt->Indices(), nullptr);
+		auto index = op1->InitVal(tt->GetIndices().get(), nullptr);
 		auto v = op2->InitVal(yt.get(), nullptr);
 
 		if ( ! index || ! v )
@@ -3084,7 +3084,7 @@ TableConstructorExpr::TableConstructorExpr(IntrusivePtr<ListExpr> constructor_li
 
 	attrs = arg_attrs ? new Attributes(arg_attrs, type, false, false) : nullptr;
 
-	const auto& indices = type->AsTableType()->Indices()->Types();
+	const auto& indices = type->AsTableType()->GetIndices()->Types();
 	const expr_list& cle = op->AsListExpr()->Exprs();
 
 	// check and promote all index expressions in ctor list
@@ -3203,7 +3203,7 @@ SetConstructorExpr::SetConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
 
 	attrs = arg_attrs ? new Attributes(arg_attrs, type, false, false) : nullptr;
 
-	const auto& indices = type->AsTableType()->Indices()->Types();
+	const auto& indices = type->AsTableType()->GetIndices()->Types();
 	expr_list& cle = op->AsListExpr()->Exprs();
 
 	if ( indices.size() == 1 )
@@ -3222,7 +3222,7 @@ SetConstructorExpr::SetConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
 			ListExpr* le = ce->AsListExpr();
 
 			if ( ce->Tag() == EXPR_LIST &&
-			     check_and_promote_exprs(le, type->AsTableType()->Indices()) )
+			     check_and_promote_exprs(le, type->AsTableType()->GetIndices().get()) )
 				{
 				if ( le != cle[i] )
 					cle.replace(i, le);
@@ -3258,7 +3258,7 @@ IntrusivePtr<Val> SetConstructorExpr::InitVal(const BroType* t, IntrusivePtr<Val
 	if ( IsError() )
 		return nullptr;
 
-	const BroType* index_type = t->AsTableType()->Indices();
+	const auto& index_type = t->AsTableType()->GetIndices();
 	auto tt = GetType<TableType>();
 	auto tval = aggr ?
 	        IntrusivePtr<TableVal>{AdoptRef{}, aggr.release()->AsTableVal()} :
@@ -3267,7 +3267,7 @@ IntrusivePtr<Val> SetConstructorExpr::InitVal(const BroType* t, IntrusivePtr<Val
 
 	for ( const auto& e : exprs )
 		{
-		auto element = check_and_promote(e->Eval(nullptr), index_type, true);
+		auto element = check_and_promote(e->Eval(nullptr), index_type.get(), true);
 
 		if ( ! element || ! tval->Assign(std::move(element), nullptr) )
 			{
@@ -3906,10 +3906,9 @@ InExpr::InExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 		else
 			{
 			const auto& t1 = op1->GetType();
-			const TypeList* it =
-				op2->GetType()->AsTableType()->Indices();
+			const auto& it = op2->GetType()->AsTableType()->GetIndices();
 
-			if ( ! same_type(t1.get(), it) )
+			if ( ! same_type(t1.get(), it.get()) )
 				{
 				t1->Error("indexing mismatch", op2->GetType().get());
 				SetError();
@@ -4462,7 +4461,7 @@ IntrusivePtr<BroType> ListExpr::InitType() const
 			if ( ti->IsSet() || ti->Tag() == TYPE_LIST )
 				{
 				TypeList* til = ti->IsSet() ?
-					ti->AsSetType()->Indices() :
+					ti->AsSetType()->GetIndices().get() :
 					ti->AsTypeList();
 
 				if ( ! til->IsPure() ||
@@ -4630,7 +4629,7 @@ IntrusivePtr<Val> ListExpr::AddSetInit(const BroType* t, IntrusivePtr<Val> aggr)
 
 	TableVal* tv = aggr->AsTableVal();
 	const TableType* tt = tv->GetType()->AsTableType();
-	const TypeList* it = tt->Indices();
+	const TypeList* it = tt->GetIndices().get();
 
 	for ( const auto& expr : exprs )
 		{

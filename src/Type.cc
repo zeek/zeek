@@ -230,7 +230,7 @@ int IndexType::MatchesIndex(ListExpr* const index) const
 	     exprs.length() == 1 && exprs[0]->GetType()->Tag() == TYPE_ADDR )
 		return MATCHES_INDEX_SCALAR;
 
-	return check_and_promote_exprs(index, Indices()) ?
+	return check_and_promote_exprs(index, GetIndices().get()) ?
 			MATCHES_INDEX_SCALAR : DOES_NOT_MATCH_INDEX;
 	}
 
@@ -1416,7 +1416,7 @@ static bool is_init_compat(const BroType* t1, const BroType* t2)
 		}
 
 	if ( t1->IsSet() )
-		return same_type(t1->AsSetType()->Indices(), t2, true);
+		return same_type(t1->AsSetType()->GetIndices().get(), t2, true);
 
 	return false;
 	}
@@ -1472,12 +1472,12 @@ bool same_type(const BroType* t1, const BroType* t2, bool is_init, bool match_re
 		const IndexType* it1 = (const IndexType*) t1;
 		const IndexType* it2 = (const IndexType*) t2;
 
-		TypeList* tl1 = it1->Indices();
-		TypeList* tl2 = it2->Indices();
+		const auto& tl1 = it1->GetIndices();
+		const auto& tl2 = it2->GetIndices();
 
 		if ( tl1 || tl2 )
 			{
-			if ( ! tl1 || ! tl2 || ! same_type(tl1, tl2, is_init, match_record_field_names) )
+			if ( ! tl1 || ! tl2 || ! same_type(tl1.get(), tl2.get(), is_init, match_record_field_names) )
 				return false;
 			}
 
@@ -1981,11 +1981,12 @@ static BroType* reduce_type(BroType* t)
 
 	else if ( t->IsSet() )
 		{
-		TypeList* tl = t->AsTableType()->Indices();
+		const auto& tl = t->AsTableType()->GetIndices();
+
 		if ( tl->Types().size() == 1 )
 			return tl->Types()[0].get();
 		else
-			return tl;
+			return tl.get();
 		}
 
 	else

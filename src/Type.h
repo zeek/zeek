@@ -400,6 +400,10 @@ class IndexType : public BroType {
 public:
 	int MatchesIndex(ListExpr* index) const override;
 
+	const IntrusivePtr<TypeList>& GetIndices() const
+		{ return indices; }
+
+	[[deprecated("Remove in v4.1.  Use GetIndices().")]]
 	TypeList* Indices() const		{ return indices.get(); }
 
 	const std::vector<IntrusivePtr<BroType>>& IndexTypes() const

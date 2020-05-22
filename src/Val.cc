@@ -1358,7 +1358,7 @@ static void find_nested_record_types(BroType* t, std::set<RecordType*>* found)
 		}
 		return;
 	case TYPE_TABLE:
-		find_nested_record_types(t->AsTableType()->Indices(), found);
+		find_nested_record_types(t->AsTableType()->GetIndices().get(), found);
 		find_nested_record_types(t->AsTableType()->Yield().get(), found);
 		return;
 	case TYPE_LIST:
@@ -1416,8 +1416,7 @@ void TableVal::Init(IntrusivePtr<TableType> t)
 	else
 		subnets = nullptr;
 
-	table_hash = new CompositeHash(IntrusivePtr<TypeList>(NewRef{},
-	                               table_type->Indices()));
+	table_hash = new CompositeHash(table_type->GetIndices());
 	val.table_val = new PDict<TableEntryVal>;
 	val.table_val->SetDeleteFunc(table_entry_val_delete_func);
 	}
@@ -1520,7 +1519,7 @@ bool TableVal::Assign(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val)
 
 	if ( ! k )
 		{
-		index->Error("index type doesn't match table", table_type->Indices());
+		index->Error("index type doesn't match table", table_type->GetIndices().get());
 		return false;
 		}
 
@@ -1777,7 +1776,7 @@ bool TableVal::ExpandAndInit(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val)
 	ListVal* iv = index->AsListVal();
 	if ( iv->BaseTag() != TYPE_ANY )
 		{
-		if ( table_type->Indices()->Types().size() != 1 )
+		if ( table_type->GetIndices()->Types().size() != 1 )
 			reporter->InternalError("bad singleton list index");
 
 		for ( int i = 0; i < iv->Length(); ++i )
@@ -2185,7 +2184,7 @@ ListVal* TableVal::ConvertToList(TypeTag t) const
 
 IntrusivePtr<ListVal> TableVal::ToPureListVal() const
 	{
-	const auto& tl = table_type->Indices()->Types();
+	const auto& tl = table_type->GetIndices()->Types();
 	if ( tl.size() != 1 )
 		{
 		InternalWarning("bad index type in TableVal::ToPureListVal");
@@ -2680,8 +2679,7 @@ TableVal::ParseTimeTableState TableVal::DumpTableState()
 void TableVal::RebuildTable(ParseTimeTableState ptts)
 	{
 	delete table_hash;
-	table_hash = new CompositeHash(IntrusivePtr<TypeList>(NewRef{},
-	                               table_type->Indices()));
+	table_hash = new CompositeHash(table_type->GetIndices());
 
 	for ( auto& [key, val] : ptts )
 		Assign(std::move(key), std::move(val));

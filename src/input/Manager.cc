@@ -808,7 +808,7 @@ bool Manager::IsCompatibleType(BroType* t, bool atomic_only)
 		if ( ! t->IsSet() )
 			return false;
 
-		return IsCompatibleType(t->AsSetType()->Indices()->GetPureType().get(), true);
+		return IsCompatibleType(t->AsSetType()->GetIndices()->GetPureType().get(), true);
 		}
 
 	case TYPE_VECTOR:
@@ -937,7 +937,7 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
 			bool optional = false;
 
 			if ( ty == TYPE_TABLE )
-				st = rec->GetFieldType(i)->AsSetType()->Indices()->GetPureType()->Tag();
+				st = rec->GetFieldType(i)->AsSetType()->GetIndices()->GetPureType()->Tag();
 
 			else if ( ty == TYPE_VECTOR )
 				st = rec->GetFieldType(i)->AsVectorType()->Yield()->Tag();
@@ -2252,7 +2252,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 	case TYPE_TABLE:
 		{
 		// all entries have to have the same type...
-		const auto& type = request_type->AsTableType()->Indices()->GetPureType();
+		const auto& type = request_type->AsTableType()->GetIndices()->GetPureType();
 		auto set_index = make_intrusive<TypeList>(type);
 		set_index->Append(type);
 		auto s = make_intrusive<SetType>(std::move(set_index), nullptr);

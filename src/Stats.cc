@@ -13,6 +13,7 @@
 #include "threading/Manager.h"
 #include "broker/Manager.h"
 #include "input.h"
+#include "Func.h"
 
 uint64_t killed_by_inactivity = 0;
 

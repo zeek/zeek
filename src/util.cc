@@ -20,10 +20,6 @@
 #include <mach/mach_init.h>
 #endif
 
-#include <string>
-#include <array>
-#include <vector>
-#include <algorithm>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -42,6 +38,12 @@
 #ifdef HAVE_MALLINFO
 # include <malloc.h>
 #endif
+
+#include <string>
+#include <array>
+#include <vector>
+#include <algorithm>
+#include <iostream>
 
 #include "Desc.h"
 #include "Dict.h"

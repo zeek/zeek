@@ -45,6 +45,7 @@ extern "C" {
 #include "Traverse.h"
 #include "Trigger.h"
 #include "Hash.h"
+#include "Func.h"
 
 #include "supervisor/Supervisor.h"
 #include "threading/Manager.h"

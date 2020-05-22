@@ -17,6 +17,7 @@
 #include "NetVar.h"
 #include "Net.h"
 #include "CompHash.h"
+#include "Func.h"
 
 #include "../file_analysis/Manager.h"
 #include "../threading/SerialTypes.h"

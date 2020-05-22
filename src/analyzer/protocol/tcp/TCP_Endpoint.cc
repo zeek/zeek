@@ -1,5 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include <errno.h>
+
 #include "Net.h"
 #include "NetVar.h"
 #include "analyzer/protocol/tcp/TCP.h"

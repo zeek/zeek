@@ -396,10 +396,10 @@ bool Manager::RemoveFile(const string& file_id)
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Remove file", file_id.c_str());
 
 	f->EndOfFile();
-	delete f;
 
 	id_map.erase(file_id);
 	ignored.erase(file_id);
+	delete f;
 	return true;
 	}
 

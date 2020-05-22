@@ -74,7 +74,7 @@ public:
 	/**
 	 * @return value of the "id" field from #val record.
 	 */
-	std::string GetID() const { return id; }
+	const std::string& GetID() const { return id; }
 
 	/**
 	 * @return value of "last_active" field in #val record;

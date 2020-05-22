@@ -242,6 +242,7 @@ void init_alternative_mode()
 
 	fprintf(fp_func_def, "\n");
 	fprintf(fp_func_def, "#include \"%s.h\"\n", input_filename);
+	fprintf(fp_func_def, "#include \"Func.h\"\n");
 	fprintf(fp_func_def, "\n");
 
 	static char name[1024];
@@ -265,6 +266,7 @@ void init_alternative_mode()
 		fprintf(fp_func_init, "#include <list>\n");
 		fprintf(fp_func_init, "#include <string>\n");
 		fprintf(fp_func_init, "#include \"plugin/Plugin.h\"\n");
+		fprintf(fp_func_init, "#include \"Func.h\"\n");
 		fprintf(fp_func_init, "#include \"%s.h\"\n", input_filename);
 		fprintf(fp_func_init, "\n");
 		fprintf(fp_func_init, "namespace plugin { namespace %s {\n", plugin_canon);
@@ -448,4 +450,3 @@ void err_exit(void)
 	remove_file("netvar_init");
 	exit(1);
 	}
-

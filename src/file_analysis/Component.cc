@@ -13,6 +13,15 @@ Component::Component(const std::string& name, factory_callback arg_factory, Tag:
 	  plugin::TaggedComponent<file_analysis::Tag>(subtype)
 	{
 	factory = arg_factory;
+	factory_func = nullptr;
+	}
+
+Component::Component(const std::string& name, factory_function arg_factory, Tag::subtype_t subtype)
+	: plugin::Component(plugin::component::FILE_ANALYZER, name),
+	  plugin::TaggedComponent<file_analysis::Tag>(subtype)
+	{
+	factory = nullptr;
+	factory_func = arg_factory;
 	}
 
 void Component::Initialize()

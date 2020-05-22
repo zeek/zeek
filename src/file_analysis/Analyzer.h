@@ -151,6 +151,10 @@ protected:
 	 *        tunable options, if any, related to a particular analyzer type.
 	 * @param arg_file the file to which the the analyzer is being attached.
 	 */
+	Analyzer(file_analysis::Tag arg_tag, IntrusivePtr<RecordVal> arg_args,
+	         File* arg_file);
+
+	[[deprecated("Remove in v4.1..  Construct using IntrusivePtr instead.")]]
 	Analyzer(file_analysis::Tag arg_tag, RecordVal* arg_args, File* arg_file);
 
 	/**
@@ -162,10 +166,10 @@ protected:
 	 *        tunable options, if any, related to a particular analyzer type.
 	 * @param arg_file the file to which the the analyzer is being attached.
 	 */
-	Analyzer(RecordVal* arg_args, File* arg_file)
-	    : Analyzer({}, arg_args, arg_file)
-		{
-		}
+	Analyzer(IntrusivePtr<RecordVal> arg_args, File* arg_file);
+
+	[[deprecated("Remove in v4.1..  Construct using IntrusivePtr instead.")]]
+	Analyzer(RecordVal* arg_args, File* arg_file);
 
 private:
 

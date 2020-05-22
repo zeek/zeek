@@ -40,7 +40,8 @@ public:
 	static double GetTimeFromAsn1(const ASN1_TIME* atime, File* f, Reporter* reporter);
 
 protected:
-	X509Common(const file_analysis::Tag& arg_tag, RecordVal* arg_args, File* arg_file);
+	X509Common(const file_analysis::Tag& arg_tag,
+	           IntrusivePtr<RecordVal> arg_args, File* arg_file);
 
 	void ParseExtension(X509_EXTENSION* ex, const EventHandlerPtr& h, bool global);
 	void ParseSignedCertificateTimestamps(X509_EXTENSION* ext);

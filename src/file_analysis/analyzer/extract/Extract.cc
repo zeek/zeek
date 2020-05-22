@@ -10,9 +10,10 @@
 
 using namespace file_analysis;
 
-Extract::Extract(RecordVal* args, File* file, const std::string& arg_filename,
-                 uint64_t arg_limit)
-    : file_analysis::Analyzer(file_mgr->GetComponentTag("EXTRACT"), args, file),
+Extract::Extract(IntrusivePtr<RecordVal> args, File* file,
+                 const std::string& arg_filename, uint64_t arg_limit)
+    : file_analysis::Analyzer(file_mgr->GetComponentTag("EXTRACT"),
+                              std::move(args), file),
       filename(arg_filename), limit(arg_limit), depth(0)
 	{
 	fd = open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_APPEND, 0666);
@@ -32,7 +33,8 @@ Extract::~Extract()
 		safe_close(fd);
 	}
 
-static const IntrusivePtr<Val>& get_extract_field_val(RecordVal* args, const char* name)
+static const IntrusivePtr<Val>& get_extract_field_val(const IntrusivePtr<RecordVal>& args,
+                                                      const char* name)
 	{
 	const auto& rval = args->GetField(name);
 
@@ -42,7 +44,7 @@ static const IntrusivePtr<Val>& get_extract_field_val(RecordVal* args, const cha
 	return rval;
 	}
 
-file_analysis::Analyzer* Extract::Instantiate(RecordVal* args, File* file)
+file_analysis::Analyzer* Extract::Instantiate(IntrusivePtr<RecordVal> args, File* file)
 	{
 	const auto& fname = get_extract_field_val(args, "extract_filename");
 	const auto& limit = get_extract_field_val(args, "extract_limit");
@@ -50,7 +52,7 @@ file_analysis::Analyzer* Extract::Instantiate(RecordVal* args, File* file)
 	if ( ! fname || ! limit )
 		return nullptr;
 
-	return new Extract(args, file, fname->AsString()->CheckString(),
+	return new Extract(std::move(args), file, fname->AsString()->CheckString(),
 	                   limit->AsCount());
 	}
 

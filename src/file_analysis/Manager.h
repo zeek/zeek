@@ -300,6 +300,10 @@ public:
 	 * @param f The file analzer is to be associated with.
 	 * @return The new analyzer instance or null if tag is invalid.
 	 */
+	Analyzer* InstantiateAnalyzer(const Tag& tag, IntrusivePtr<RecordVal> args,
+	                              File* f) const;
+
+	[[deprecated("Remove in v4.1.  Pass in IntrusivePtr args instead.")]]
 	Analyzer* InstantiateAnalyzer(const Tag& tag, RecordVal* args, File* f) const;
 
 	/**

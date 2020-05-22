@@ -20,10 +20,11 @@ public:
 
 	bool DeliverStream(const u_char* data, uint64_t len) override;
 
-	static file_analysis::Analyzer* Instantiate(RecordVal* args, File* file);
+	static file_analysis::Analyzer* Instantiate(IntrusivePtr<RecordVal> args,
+	                                            File* file);
 
 protected:
-	Unified2(RecordVal* args, File* file);
+	Unified2(IntrusivePtr<RecordVal> args, File* file);
 
 private:
 	binpac::Unified2::Unified2_Analyzer* interp;

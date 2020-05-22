@@ -9,8 +9,10 @@
 
 using namespace file_analysis;
 
-Hash::Hash(RecordVal* args, File* file, HashVal* hv, const char* arg_kind)
-	: file_analysis::Analyzer(file_mgr->GetComponentTag(to_upper(arg_kind).c_str()), args, file), hash(hv), fed(false), kind(arg_kind)
+Hash::Hash(IntrusivePtr<RecordVal> args, File* file, HashVal* hv, const char* arg_kind)
+	: file_analysis::Analyzer(file_mgr->GetComponentTag(to_upper(arg_kind).c_str()),
+	                          std::move(args), file),
+	  hash(hv), fed(false), kind(arg_kind)
 	{
 	hash->Init();
 	}

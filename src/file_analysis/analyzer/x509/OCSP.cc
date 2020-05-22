@@ -112,18 +112,23 @@ static bool ocsp_add_cert_id(const OCSP_CERTID* cert_id, zeek::Args* vl, BIO* bi
 	return true;
 	}
 
-file_analysis::Analyzer* OCSP::InstantiateRequest(RecordVal* args, File* file)
+file_analysis::Analyzer* OCSP::InstantiateRequest(IntrusivePtr<RecordVal> args,
+                                                  File* file)
 	{
-	return new OCSP(args, file, true);
+	return new OCSP(std::move(args), file, true);
 	}
 
-file_analysis::Analyzer* OCSP::InstantiateReply(RecordVal* args, File* file)
+file_analysis::Analyzer* OCSP::InstantiateReply(IntrusivePtr<RecordVal> args,
+                                                File* file)
 	{
-	return new OCSP(args, file, false);
+	return new OCSP(std::move(args), file, false);
 	}
 
-file_analysis::OCSP::OCSP(RecordVal* args, file_analysis::File* file, bool arg_request)
-	: file_analysis::X509Common::X509Common(file_mgr->GetComponentTag("OCSP"), args, file), request(arg_request)
+file_analysis::OCSP::OCSP(IntrusivePtr<RecordVal> args, file_analysis::File* file,
+                          bool arg_request)
+	: file_analysis::X509Common::X509Common(file_mgr->GetComponentTag("OCSP"),
+	                                        std::move(args), file),
+	  request(arg_request)
 	{
 	}
 

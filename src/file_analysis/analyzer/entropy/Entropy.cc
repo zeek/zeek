@@ -9,8 +9,9 @@
 
 using namespace file_analysis;
 
-Entropy::Entropy(RecordVal* args, File* file)
-    : file_analysis::Analyzer(file_mgr->GetComponentTag("ENTROPY"), args, file)
+Entropy::Entropy(IntrusivePtr<RecordVal> args, File* file)
+    : file_analysis::Analyzer(file_mgr->GetComponentTag("ENTROPY"),
+                              std::move(args), file)
 	{
 	//entropy->Init();
 	entropy = new EntropyVal;
@@ -22,9 +23,10 @@ Entropy::~Entropy()
 	Unref(entropy);
 	}
 
-file_analysis::Analyzer* Entropy::Instantiate(RecordVal* args, File* file)
+file_analysis::Analyzer* Entropy::Instantiate(IntrusivePtr<RecordVal> args,
+                                              File* file)
 	{
-	return new Entropy(args, file);
+	return new Entropy(std::move(args), file);
 	}
 
 bool Entropy::DeliverStream(const u_char* data, uint64_t len)

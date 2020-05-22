@@ -443,6 +443,11 @@ bool Manager::IsDisabled(const analyzer::Tag& tag)
 	}
 
 Analyzer* Manager::InstantiateAnalyzer(const Tag& tag, RecordVal* args, File* f) const
+	{ return InstantiateAnalyzer(tag, {NewRef{}, args}, f); }
+
+Analyzer* Manager::InstantiateAnalyzer(const Tag& tag,
+                                       IntrusivePtr<RecordVal> args,
+                                       File* f) const
 	{
 	Component* c = Lookup(tag);
 
@@ -454,17 +459,21 @@ Analyzer* Manager::InstantiateAnalyzer(const Tag& tag, RecordVal* args, File* f)
 		return nullptr;
 		}
 
-	if ( ! c->Factory() )
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Instantiate analyzer %s",
+	        f->id.c_str(), GetComponentName(tag).c_str());
+
+	Analyzer* a;
+
+	if ( c->factory_func )
+		a = c->factory_func(std::move(args), f);
+	else if ( c->factory )
+		a = c->factory(args.get(), f);
+	else
 		{
 		reporter->InternalWarning("file analyzer %s cannot be instantiated "
-					  "dynamically", c->CanonicalName().c_str());
+		                          "dynamically", c->CanonicalName().c_str());
 		return nullptr;
 		}
-
-	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Instantiate analyzer %s",
-		f->id.c_str(), GetComponentName(tag).c_str());
-
-	Analyzer* a = c->Factory()(args, f);
 
 	if ( ! a )
 		reporter->InternalError("file analyzer instantiation failed");

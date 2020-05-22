@@ -16,8 +16,9 @@
 
 using namespace file_analysis;
 
-X509Common::X509Common(const file_analysis::Tag& arg_tag, RecordVal* arg_args, File* arg_file)
-	: file_analysis::Analyzer(arg_tag, arg_args, arg_file)
+X509Common::X509Common(const file_analysis::Tag& arg_tag,
+                       IntrusivePtr<RecordVal> arg_args, File* arg_file)
+	: file_analysis::Analyzer(arg_tag, std::move(arg_args), arg_file)
 	{
 	}
 

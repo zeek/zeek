@@ -3,8 +3,9 @@
 
 using namespace file_analysis;
 
-PE::PE(RecordVal* args, File* file)
-    : file_analysis::Analyzer(file_mgr->GetComponentTag("PE"), args, file)
+PE::PE(IntrusivePtr<RecordVal> args, File* file)
+    : file_analysis::Analyzer(file_mgr->GetComponentTag("PE"), std::move(args),
+                              file)
 	{
 	conn = new binpac::PE::MockConnection(this);
 	interp = new binpac::PE::File(conn);

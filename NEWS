@@ -218,6 +218,10 @@ Deprecated Functionality
 
 - ``VectorVal::Lookup()`` is deprecated, use ``VectorVal::At()``.
 
+- The file analysis/analyzer API has deprecated methods taking raw
+  ``RecordVal*`` for analyzer arguments and replaced those with methods
+  taking ``IntrusivePtr``.
+
 Zeek 3.1.0
 ==========
 

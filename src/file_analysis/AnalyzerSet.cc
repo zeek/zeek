@@ -177,7 +177,7 @@ HashKey* AnalyzerSet::GetKey(const file_analysis::Tag& t, RecordVal* args) const
 file_analysis::Analyzer* AnalyzerSet::InstantiateAnalyzer(const Tag& tag,
                                                           RecordVal* args) const
 	{
-	file_analysis::Analyzer* a = file_mgr->InstantiateAnalyzer(tag, args, file);
+	auto  a = file_mgr->InstantiateAnalyzer(tag, {NewRef{}, args}, file);
 
 	if ( ! a )
 		{

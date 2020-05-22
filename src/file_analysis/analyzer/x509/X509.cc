@@ -21,8 +21,9 @@
 
 using namespace file_analysis;
 
-file_analysis::X509::X509(RecordVal* args, file_analysis::File* file)
-	: file_analysis::X509Common::X509Common(file_mgr->GetComponentTag("X509"), args, file)
+file_analysis::X509::X509(IntrusivePtr<RecordVal> args, file_analysis::File* file)
+	: file_analysis::X509Common::X509Common(file_mgr->GetComponentTag("X509"),
+	                                        std::move(args), file)
 	{
 	cert_data.clear();
 	}

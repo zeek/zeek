@@ -44,7 +44,8 @@ function Files::__add_analyzer%(file_id: string, tag: Files::Tag, args: any%): b
 	using zeek::BifType::Record::Files::AnalyzerArgs;
 	auto rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
 	bool result = file_mgr->AddAnalyzer(file_id->CheckString(),
-	                                    file_mgr->GetComponentTag(tag), rv.get());
+	                                    file_mgr->GetComponentTag(tag),
+	                                    std::move(rv));
 	return val_mgr->Bool(result);
 	%}
 
@@ -54,7 +55,8 @@ function Files::__remove_analyzer%(file_id: string, tag: Files::Tag, args: any%)
 	using zeek::BifType::Record::Files::AnalyzerArgs;
 	auto rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
 	bool result = file_mgr->RemoveAnalyzer(file_id->CheckString(),
-	                                       file_mgr->GetComponentTag(tag) , rv.get());
+	                                       file_mgr->GetComponentTag(tag),
+	                                       std::move(rv));
 	return val_mgr->Bool(result);
 	%}
 

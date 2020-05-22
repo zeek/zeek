@@ -253,6 +253,10 @@ public:
 	 * @return false if file identifier and analyzer did not map to anything,
 	 *         else true.
 	 */
+	bool SetExtractionLimit(const std::string& file_id,
+	                        IntrusivePtr<RecordVal> args, uint64_t n) const;
+
+	[[deprecated("Remove in v4.1.  Pass IntrusivePtr args param instead.")]]
 	bool SetExtractionLimit(const std::string& file_id, RecordVal* args,
 	                        uint64_t n) const;
 
@@ -274,6 +278,10 @@ public:
 	 * @return false if the analyzer failed to be instantiated, else true.
 	 */
 	bool AddAnalyzer(const std::string& file_id, const file_analysis::Tag& tag,
+	                 IntrusivePtr<RecordVal> args) const;
+
+	[[deprecated("Remove in v4.1.  Pass IntrusivePtr args param instead.")]]
+	bool AddAnalyzer(const std::string& file_id, const file_analysis::Tag& tag,
 	                 RecordVal* args) const;
 
 	/**
@@ -283,6 +291,10 @@ public:
 	 * @param args a \c AnalyzerArgs value which describes a file analyzer.
 	 * @return true if the analyzer is active at the time of call, else false.
 	 */
+	bool RemoveAnalyzer(const std::string& file_id, const file_analysis::Tag& tag,
+	                    IntrusivePtr<RecordVal> args) const;
+
+	[[deprecated("Remove in v4.1.  Pass IntrusivePtr args param instead.")]]
 	bool RemoveAnalyzer(const std::string& file_id, const file_analysis::Tag& tag,
 	                    RecordVal* args) const;
 

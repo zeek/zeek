@@ -204,8 +204,12 @@ void File::SetTimeoutInterval(double interval)
 	}
 
 bool File::SetExtractionLimit(RecordVal* args, uint64_t bytes)
+	{ return SetExtractionLimit({NewRef{}, args}, bytes); }
+
+bool File::SetExtractionLimit(IntrusivePtr<RecordVal> args, uint64_t bytes)
 	{
-	Analyzer* a = analyzers.Find(file_mgr->GetComponentTag("EXTRACT"), args);
+	Analyzer* a = analyzers.Find(file_mgr->GetComponentTag("EXTRACT"),
+	                             std::move(args));
 
 	if ( ! a )
 		return false;
@@ -250,6 +254,9 @@ void File::ScheduleInactivityTimer() const
 	}
 
 bool File::AddAnalyzer(file_analysis::Tag tag, RecordVal* args)
+	{ return AddAnalyzer(tag, {NewRef{}, args}); }
+
+bool File::AddAnalyzer(file_analysis::Tag tag, IntrusivePtr<RecordVal> args)
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Queuing addition of %s analyzer",
 		id.c_str(), file_mgr->GetComponentName(tag).c_str());
@@ -257,15 +264,18 @@ bool File::AddAnalyzer(file_analysis::Tag tag, RecordVal* args)
 	if ( done )
 		return false;
 
-	return analyzers.QueueAdd(tag, args) != nullptr;
+	return analyzers.QueueAdd(tag, std::move(args)) != nullptr;
 	}
 
 bool File::RemoveAnalyzer(file_analysis::Tag tag, RecordVal* args)
+	{ return RemoveAnalyzer(tag, {NewRef{}, args}); }
+
+bool File::RemoveAnalyzer(file_analysis::Tag tag, IntrusivePtr<RecordVal> args)
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Queuing remove of %s analyzer",
 		id.c_str(), file_mgr->GetComponentName(tag).c_str());
 
-	return done ? false : analyzers.QueueRemove(tag, args);
+	return done ? false : analyzers.QueueRemove(tag, std::move(args));
 	}
 
 void File::EnableReassembly()
@@ -410,7 +420,7 @@ void File::DeliverStream(const u_char* data, uint64_t len)
 								bof_buffer.chunks[i]->Len()) )
 						{
 						a->SetSkip(true);
-						analyzers.QueueRemove(a->Tag(), a->GetArgs().get());
+						analyzers.QueueRemove(a->Tag(), a->GetArgs());
 						}
 					}
 
@@ -427,7 +437,7 @@ void File::DeliverStream(const u_char* data, uint64_t len)
 			if ( ! a->DeliverStream(data, len) )
 				{
 				a->SetSkip(true);
-				analyzers.QueueRemove(a->Tag(), a->GetArgs().get());
+				analyzers.QueueRemove(a->Tag(), a->GetArgs());
 				}
 			}
 		}
@@ -498,7 +508,7 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 			if ( ! a->DeliverChunk(data, len, offset) )
 				{
 				a->SetSkip(true);
-				analyzers.QueueRemove(a->Tag(), a->GetArgs().get());
+				analyzers.QueueRemove(a->Tag(), a->GetArgs());
 				}
 			}
 		}
@@ -557,7 +567,7 @@ void File::EndOfFile()
 	while ( (a = analyzers.NextEntry(c)) )
 		{
 		if ( ! a->EndOfFile() )
-			analyzers.QueueRemove(a->Tag(), a->GetArgs().get());
+			analyzers.QueueRemove(a->Tag(), a->GetArgs());
 		}
 
 	FileEvent(file_state_remove);
@@ -590,7 +600,7 @@ void File::Gap(uint64_t offset, uint64_t len)
 	while ( (a = analyzers.NextEntry(c)) )
 		{
 		if ( ! a->Undelivered(offset, len) )
-			analyzers.QueueRemove(a->Tag(), a->GetArgs().get());
+			analyzers.QueueRemove(a->Tag(), a->GetArgs());
 		}
 
 	if ( FileEventAvailable(file_gap) )

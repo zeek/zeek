@@ -74,6 +74,9 @@ public:
 	 * @param bytes new limit.
 	 * @return false if no extraction analyzer is active, else true.
 	 */
+	bool SetExtractionLimit(IntrusivePtr<RecordVal> args, uint64_t bytes);
+
+	[[deprecated("Remove in v4.1.  Pass an IntrusivePtr instead.")]]
 	bool SetExtractionLimit(RecordVal* args, uint64_t bytes);
 
 	/**
@@ -119,6 +122,9 @@ public:
 	 * @param args an \c AnalyzerArgs value representing a file analyzer.
 	 * @return false if analyzer can't be instantiated, else true.
 	 */
+	bool AddAnalyzer(file_analysis::Tag tag, IntrusivePtr<RecordVal> args);
+
+	[[deprecated("Remove in v4.1.  Pass an IntrusivePtr instead.")]]
 	bool AddAnalyzer(file_analysis::Tag tag, RecordVal* args);
 
 	/**
@@ -127,6 +133,9 @@ public:
 	 * @param args an \c AnalyzerArgs value representing a file analyzer.
 	 * @return true if analyzer was active at time of call, else false.
 	 */
+	bool RemoveAnalyzer(file_analysis::Tag tag, IntrusivePtr<RecordVal> args);
+
+	[[deprecated("Remove in v4.1.  Pass an IntrusivePtr instead.")]]
 	bool RemoveAnalyzer(file_analysis::Tag tag, RecordVal* args);
 
 	/**

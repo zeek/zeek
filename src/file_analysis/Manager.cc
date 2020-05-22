@@ -260,35 +260,47 @@ bool Manager::SetReassemblyBuffer(const string& file_id, uint64_t max)
 
 bool Manager::SetExtractionLimit(const string& file_id, RecordVal* args,
                                  uint64_t n) const
+	{ return SetExtractionLimit(file_id, {NewRef{}, args}, n); }
+
+bool Manager::SetExtractionLimit(const string& file_id,
+                                 IntrusivePtr<RecordVal> args, uint64_t n) const
 	{
 	File* file = LookupFile(file_id);
 
 	if ( ! file )
 		return false;
 
-	return file->SetExtractionLimit(args, n);
+	return file->SetExtractionLimit(std::move(args), n);
 	}
 
 bool Manager::AddAnalyzer(const string& file_id, const file_analysis::Tag& tag,
                           RecordVal* args) const
+	{ return AddAnalyzer(file_id, tag, {NewRef{}, args}); }
+
+bool Manager::AddAnalyzer(const string& file_id, const file_analysis::Tag& tag,
+                          IntrusivePtr<RecordVal> args) const
 	{
 	File* file = LookupFile(file_id);
 
 	if ( ! file )
 		return false;
 
-	return file->AddAnalyzer(tag, args);
+	return file->AddAnalyzer(tag, std::move(args));
 	}
 
 bool Manager::RemoveAnalyzer(const string& file_id, const file_analysis::Tag& tag,
                              RecordVal* args) const
+	{ return RemoveAnalyzer(file_id, tag, {NewRef{}, args}); }
+
+bool Manager::RemoveAnalyzer(const string& file_id, const file_analysis::Tag& tag,
+                             IntrusivePtr<RecordVal> args) const
 	{
 	File* file = LookupFile(file_id);
 
 	if ( ! file )
 		return false;
 
-	return file->RemoveAnalyzer(tag, args);
+	return file->RemoveAnalyzer(tag, std::move(args));
 	}
 
 File* Manager::GetFile(const string& file_id, Connection* conn,

@@ -6,4 +6,4 @@
 
 
 extern void analyze_func(BroFunc* f);
-extern void analyze_funcs();
+extern void analyze_scripts();

@@ -14,7 +14,6 @@ public:
 	// this could all be IntrusivePtr-ified with enough elbow grease.
 	//
 	// Does *not* include globals solely seen as the function in a call.
-	// (We should extend that to include events.)
 	std::unordered_set<ID*> globals;
 
 	// Same for locals.
@@ -29,6 +28,9 @@ public:
 
 	// Same for BiF's.
 	std::unordered_set<Func*> BiF_calls;
+
+	// Names of generated events.
+	std::unordered_set<const char*> events;
 
 	// True if makes a call through an expression.
 	bool does_indirect_calls;

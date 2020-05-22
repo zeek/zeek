@@ -639,6 +639,8 @@ int main(int argc, char** argv)
 	ocsp_resp_opaque_type = new OpaqueType("ocsp_resp");
 	paraglob_type = new OpaqueType("paraglob");
 
+	net_done = internal_handler("net_done");
+
 	// The leak-checker tends to produce some false
 	// positives (memory which had already been
 	// allocated before we start the checking is
@@ -657,10 +659,9 @@ int main(int argc, char** argv)
 	RecordVal::DoneParsing();
 	TableVal::DoneParsing();
 
-	analyze_funcs();
-
 	init_general_global_var();
 	init_net_var();
+
 	init_builtin_funcs_subdirs();
 
 	// Must come after plugin activation (and also after hash
@@ -675,6 +676,8 @@ int main(int argc, char** argv)
 	binpac::init(&flowbuffer_policy);
 
 	plugin_mgr->InitBifs();
+
+	analyze_scripts();
 
 	if ( reporter->Errors() > 0 )
 		exit(1);
@@ -774,8 +777,6 @@ int main(int argc, char** argv)
 
 	if ( dns_type != DNS_PRIME )
 		net_init(options.interface, options.pcap_file, options.pcap_output_file, options.use_watchdog);
-
-	net_done = internal_handler("net_done");
 
 	if ( ! g_policy_debug )
 		{

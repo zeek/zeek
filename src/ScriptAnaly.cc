@@ -9,6 +9,7 @@
 #include "Expr.h"
 #include "Stmt.h"
 #include "Scope.h"
+#include "EventRegistry.h"
 #include "Traverse.h"
 #include "Reporter.h"
 #include "module_util.h"
@@ -1565,27 +1566,175 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 
 
 // Info we need for tracking an instance of a function.
-struct FuncInfo {
+class FuncInfo {
+public:
+	FuncInfo(BroFunc* _func, IntrusivePtr<Scope> _scope,
+			IntrusivePtr<Stmt> _body)
+		{
+		func = _func;
+		scope = _scope;
+		body = _body;
+		pf = nullptr;
+		}
+
+	~FuncInfo()
+		{
+		delete pf;
+		}
+
 	BroFunc* func;
 	IntrusivePtr<Scope> scope;
 	IntrusivePtr<Stmt> body;
+	ProfileFunc* pf;
 };
 
-std::vector<FuncInfo> funcs;
+std::vector<FuncInfo*> funcs;
 
 void analyze_func(BroFunc* f)
 	{
-	FuncInfo info;
-
-	info.func = f;
-	info.scope = {NewRef{}, f->GetScope()};
-	info.body = f->CurrentBody();
-
+	auto info = new FuncInfo(f, {NewRef{}, f->GetScope()}, f->CurrentBody());
 	funcs.push_back(info);
 	}
 
-void analyze_funcs()
+bool is_inline_able(FuncInfo* f, std::unordered_set<Func*>& inline_ables)
 	{
+	for ( auto& func : f->pf->script_calls )
+		if ( inline_ables.find(func) == inline_ables.end() )
+			return false;
+
+	return true;
+	}
+
+void analyze_inlining()
+	{
+	// Candidates are non-event, non-hook functions.
+	std::unordered_set<FuncInfo*> candidates;
+
 	for ( auto& f : funcs )
-		optimize_func(f.func, f.scope, f.body);
+		if ( f->func->Flavor() == FUNC_FLAVOR_FUNCTION )
+			candidates.insert(f);
+
+	int depth = 0;
+	bool added_more = true;
+	std::unordered_set<FuncInfo*> new_ones;
+	std::unordered_set<Func*> inline_ables;
+
+	while ( 1 )
+		{
+		++depth;
+
+		new_ones.clear();
+
+		for ( auto& c : candidates )
+			if ( is_inline_able(c, inline_ables) )
+				{
+				printf("can inline %s at depth %d\n",
+					c->func->Name(), depth);
+				new_ones.insert(c);
+				}
+
+		if ( new_ones.size() == 0 )
+			break;
+
+		for ( auto& n : new_ones )
+			{
+			candidates.erase(n);
+			inline_ables.insert(n->func);
+			}
+		}
+
+	for ( auto& c : candidates )
+		{
+		printf("cannot inline %s:", c->func->Name());
+		for ( auto& func : c->pf->script_calls )
+			if ( inline_ables.find(func) == inline_ables.end() )
+				printf(" %s", func->Name());
+
+		printf("\n");
+		}
+	}
+
+void analyze_orphan_functions()
+	{
+	std::unordered_set<Func*> called_functions;
+
+	for ( auto& f : funcs )
+		{
+		for ( auto& c : f->pf->script_calls )
+			called_functions.insert(c);
+
+		// Functions can also be implicitly called, if they show
+		// up in the globals of a function (which might be passing
+		// the function to another function to call).
+
+		for ( auto& g : f->pf->globals )
+			if ( g->Type()->Tag() == TYPE_FUNC && g->ID_Val() &&
+			     g->ID_Val()->AsFunc()->AsBroFunc() )
+			called_functions.insert(g->ID_Val()->AsFunc());
+		}
+
+	for ( auto& f : funcs )
+		{
+		auto func = f->func;
+
+		if ( func->Flavor() == FUNC_FLAVOR_FUNCTION )
+			// Too many of these are unused to be worth reporting.
+			continue;
+
+		bool is_called =
+			called_functions.find(func) != called_functions.end();
+
+#if 0
+		if ( ! is_called && func->Flavor() == FUNC_FLAVOR_FUNCTION )
+			printf("orphan function %s\n", func->Name());
+#endif
+
+		if ( ! is_called && func->Flavor() == FUNC_FLAVOR_HOOK )
+			printf("orphan hook %s\n", func->Name());
+		}
+	}
+
+void analyze_orphan_events()
+	{
+	std::unordered_set<const char*> globals;
+
+	for ( auto& f : funcs )
+		for ( auto& g : f->pf->events )
+			globals.insert(g);
+
+	for ( auto& f : funcs )
+		{
+		auto func = f->func;
+
+		if ( func->Flavor() == FUNC_FLAVOR_EVENT )
+			{
+			auto fn = func->Name();
+			auto h = event_registry->Lookup(fn);
+			if ( (! h || ! h->Used()) &&
+			     globals.find(fn) == globals.end() )
+				printf("event %s cannot be generated\n", fn);
+			}
+		}
+	}
+
+void analyze_scripts()
+	{
+	// Now that everything's parsed and BiF's have been initialized,
+	// profile functions.
+	for ( auto& f : funcs )
+		{
+		f->pf = new ProfileFunc();
+		f->body->Traverse(f->pf);
+		}
+
+	analyze_orphan_events();
+	analyze_orphan_functions();
+	// analyze_inlining();
+
+	if ( 0 )
+		for ( auto& f : funcs )
+			optimize_func(f->func, f->scope, f->body);
+
+	for ( auto& f : funcs )
+		delete f;
 	}

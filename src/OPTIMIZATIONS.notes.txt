@@ -17,6 +17,8 @@ don't consider modifying a global's element as a reaching-def for
 
 don't bother loading unused function parameters
 
+expand records into pointers-to-blocks
+
 collapse dirty-global-V <x> / load-global-VC <x> sequences
 
 don't sync variables to the frame if they haven't changed since the

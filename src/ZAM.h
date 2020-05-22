@@ -209,6 +209,8 @@ protected:
 	int NewSlot();
 	int RegisterSlot();
 
+	void SyncGlobals(std::unordered_set<ID*>& g, const BroObj* o);
+
 	void SpillVectors(ZAM_tracker_type* tracker) const;
 	void LoadVectors(ZAM_tracker_type* tracker) const;
 
@@ -291,6 +293,8 @@ protected:
 	const ZAM* am;
 	int xfer_pc = 0;
 };
+
+extern void report_ZOP_profile();
 
 extern void ZAM_run_time_error(bool& error_flag, const Stmt* stmt,
 				const char* msg);

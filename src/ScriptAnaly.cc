@@ -1424,6 +1424,7 @@ bool report_profile = false;
 bool ud_dump = false;
 bool optimize = false;
 bool compile = false;
+bool dump_code = false;
 const char* only_func = 0;
 
 void analyze_func(BroFunc* f)
@@ -1443,6 +1444,7 @@ void analyze_func(BroFunc* f)
 		ud_dump = getenv("ZEEK_UD_DUMP");
 		optimize = getenv("ZEEK_OPTIMIZE");
 		compile = getenv("ZEEK_COMPILE");
+		dump_code = getenv("ZEEK_DUMP_CODE");
 
 		if ( only_func )
 			activate = true;
@@ -1536,7 +1538,7 @@ void analyze_func(BroFunc* f)
 		auto zam = new ZAM(f, new_body, ud, rc, pf_red);
 		new_body = zam->CompileBody();
 
-		if ( only_func )
+		if ( only_func || dump_code )
 			zam->Dump();
 
 		new_body_ptr = {AdoptRef{}, new_body};

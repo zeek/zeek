@@ -43,6 +43,7 @@ extern "C" {
 #include "Brofiler.h"
 #include "Traverse.h"
 #include "Trigger.h"
+#include "ZAM.h"
 
 #include "supervisor/Supervisor.h"
 #include "threading/Manager.h"
@@ -312,6 +313,9 @@ void terminate_bro()
 	pop_scope();
 
 	reporter = 0;
+
+	printf("%d vals created, %d destructed\n", num_Vals, num_del_Vals);
+	report_ZOP_profile();
 	}
 
 void zeek_terminate_loop(const char* reason)

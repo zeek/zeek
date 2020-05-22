@@ -13,6 +13,18 @@
 #include "Traverse.h"
 
 
+// Count of how often each top of ZOP executed.
+int ZOP_count[OP_HOOK_BREAK_X+1];
+
+
+void report_ZOP_profile()
+	{
+	for ( int i = 1; i <= OP_HOOK_BREAK_X; ++i )
+		if ( ZOP_count[i] > 0 )
+			printf("%s\t%d\n", ZOP_name(ZOp(i)), ZOP_count[i]);
+	}
+
+
 void ZAM_run_time_error(bool& error_flag, const Stmt* stmt, const char* msg)
 	{
 	if ( stmt->Tag() == STMT_EXPR )
@@ -361,6 +373,8 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 			z.Dump(frame_denizens);
 			}
 
+		++ZOP_count[z.op];
+
 		switch ( z.op ) {
 		case OP_NOP:
 			break;
@@ -414,9 +428,9 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n, UDs uds)
 	// interpreter.
 
 	// Look for any locals that are used in the argument list.
-	// We do this separately from FlushVars because we have to
-	// sync *all* the globals, whereas it only sync's those
-	// that are explicitly present in the expression.
+	// We do this separately from FlushVars() because we have to
+	// consider sync *all* the globals, whereas it only sync's those
+	// explicitly present in the expression.
 	ProfileFunc call_pf;
 	c->Traverse(&call_pf);
 
@@ -447,10 +461,7 @@ void ZAM::FlushVars(const Expr* e)
 	ProfileFunc expr_pf;
 	e->Traverse(&expr_pf);
 
-	auto mgr = reducer->GetDefSetsMgr();
-	auto entry_rds = mgr->GetPreMaxRDs(body);
-
-	SyncGlobals(nullptr);
+	SyncGlobals(expr_pf.globals, e);
 
 	for ( auto l : expr_pf.locals )
 		StoreLocal(l);
@@ -1632,7 +1643,30 @@ const CompiledStmt ZAM::CompileEvent(EventHandler* h, const ListExpr* l)
 
 void ZAM::SyncGlobals(const BroObj* o)
 	{
-	if ( num_globals > 0 )
+	SyncGlobals(pf->globals, o);
+	}
+
+void ZAM::SyncGlobals(std::unordered_set<ID*>& g, const BroObj* o)
+	{
+	auto mgr = reducer->GetDefSetsMgr();
+	auto entry_rds = mgr->GetPreMaxRDs(body);
+
+	auto curr_rds = o ?
+		mgr->GetPreMaxRDs(o) : mgr->GetPostMaxRDs(LastStmt());
+
+	bool could_be_dirty = false;
+
+	for ( auto g : g )
+		{
+		auto g_di = mgr->GetConstID_DI(g);
+		auto entry_dps = entry_rds->GetDefPoints(g_di);
+		auto curr_dps = curr_rds->GetDefPoints(g_di);
+
+		if ( ! entry_rds->SameDefPoints(entry_dps, curr_dps) )
+			could_be_dirty = true;
+		}
+
+	if ( could_be_dirty )
 		(void) AddInst(ZInst(OP_SYNC_GLOBALS_X));
 	}
 

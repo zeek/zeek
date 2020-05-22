@@ -62,6 +62,21 @@ public:
 			return dps->second;
 		}
 
+	bool SameDefPoints(const DefPoints* dp1, const DefPoints* dp2) const
+		{
+		if ( ! dp1 || ! dp2 )
+			return ! dp1 && ! dp2;
+
+		if ( dp1->length() != dp2->length() )
+			return false;
+
+		for ( auto i = 0; i < dp1->length(); ++i )
+			if ( ! (*dp1)[i].SameAs((*dp2)[i]) )
+				return false;
+
+		return true;
+		}
+
 	// Return a new object representing the intersection/union of
 	// this object's RDs and those of another.
 	RD_ptr Intersect(const RD_ptr& r) const;

@@ -173,3 +173,5 @@ protected:
 	// Initialize 'c' from the given ConstExpr.
 	void InitConst(const ConstExpr* ce);
 };
+
+extern const char* ZOP_name(ZOp op);

@@ -5,7 +5,7 @@
 #include "Reporter.h"
 
 
-static const char* abstract_op_name(ZOp op)
+const char* ZOP_name(ZOp op)
 	{
 	switch ( op ) {
 	case OP_NOP:	return "nop";
@@ -62,7 +62,7 @@ const char* ZInst::VName(int max_n, int n, const frame_map& frame_ids) const
 
 void ZInst::Dump(const frame_map& frame_ids) const
 	{
-	printf("%s ", abstract_op_name(op));
+	printf("%s ", ZOP_name(op));
 	if ( t && 0 )
 		printf("(%s) ", type_name(t->Tag()));
 

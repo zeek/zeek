@@ -130,11 +130,15 @@ union BroValUnion {
 		: vector_val(value) {}
 };
 
+extern int num_Vals;
+extern int num_del_Vals;
+
 class Val : public BroObj {
 public:
 	Val(double d, TypeTag t)
 		: val(d), type(base_type(t).release())
 		{
+		++num_Vals;
 		}
 
 	explicit Val(Func* f);
@@ -147,11 +151,13 @@ public:
 	Val(BroType* t, bool type_type)
 		: type(new TypeType({NewRef{}, t}))
 		{
+		++num_Vals;
 		}
 
 	Val()
 		: val(bro_int_t(0)), type(base_type(TYPE_ERROR).release())
 		{
+		++num_Vals;
 		}
 
 	~Val() override;
@@ -358,23 +364,27 @@ protected:
 	Val(V &&v, TypeTag t) noexcept
 		: val(std::forward<V>(v)), type(base_type(t).release())
 		{
+		++num_Vals;
 		}
 
 	template<typename V>
 	Val(V &&v, BroType* t) noexcept
 		: val(std::forward<V>(v)), type(t->Ref())
 		{
+		++num_Vals;
 		}
 
 	explicit Val(BroType* t)
 		: type(t->Ref())
 		{
+		++num_Vals;
 		}
 
 	Val(BroValUnion u, BroType* t)
 		{
 		val = u;
 		type = t;
+		++num_Vals;
 		}
 
 	ACCESSOR(TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsNonConstTable)

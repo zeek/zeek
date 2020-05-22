@@ -40,10 +40,14 @@
 
 #include "threading/formatters/JSON.h"
 
+int num_Vals = 0;
+int num_del_Vals = 0;
+
 Val::Val(Func* f)
 	: val(f), type(f->FType()->Ref())
 	{
 	::Ref(val.func_val);
+	++num_Vals;
 	}
 
 static FileType* GetStringFileType() noexcept
@@ -58,6 +62,7 @@ Val::Val(BroFile* f)
 	: val(f), type(GetStringFileType()->Ref())
 	{
 	assert(f->FType()->Tag() == TYPE_STRING);
+	++num_Vals;
 	}
 
 Val::~Val()
@@ -75,6 +80,7 @@ Val::~Val()
 #ifdef DEBUG
 	delete [] bound_id;
 #endif
+	++num_del_Vals;
 	}
 
 IntrusivePtr<Val> Val::CloneState::NewClone(Val* src, IntrusivePtr<Val> dst)

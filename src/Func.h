@@ -41,10 +41,10 @@ public:
 	~Func() override;
 
         BroFunc* AsBroFunc()
-                { return Kind() == BRO_FUNC ? (BroFunc*) this : nullptr; }
+                { return GetKind() == BRO_FUNC ? (BroFunc*) this : nullptr; }
 
         const BroFunc* AsBroFunc() const
-                { return Kind() == BRO_FUNC ? (BroFunc*) this : nullptr; }
+                { return GetKind() == BRO_FUNC ? (BroFunc*) this : nullptr; }
 
 	virtual bool IsPure() const = 0;
 	function_flavor Flavor() const	{ return FType()->Flavor(); }

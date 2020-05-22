@@ -30,6 +30,8 @@ class Scope;
 
 class Func : public BroObj {
 public:
+	static inline const IntrusivePtr<Func> nil;
+
 	enum Kind { BRO_FUNC, BUILTIN_FUNC };
 
 	explicit Func(Kind arg_kind);
@@ -99,10 +101,7 @@ public:
 
 	uint32_t GetUniqueFuncID() const { return unique_id; }
 	static const IntrusivePtr<Func>& GetFuncPtrByID(uint32_t id)
-		{
-		static IntrusivePtr<Func> nil;
-		return id >= unique_ids.size() ? nil : unique_ids[id];
-		}
+		{ return id >= unique_ids.size() ? Func::nil : unique_ids[id]; }
 
 protected:
 	Func();

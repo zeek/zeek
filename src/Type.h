@@ -141,6 +141,8 @@ const int MATCHES_INDEX_VECTOR = 2;
 
 class BroType : public BroObj {
 public:
+	static inline const IntrusivePtr<BroType> nil;
+
 	explicit BroType(TypeTag tag, bool base_type = false);
 
 	// Performs a shallow clone operation of the Bro type.
@@ -456,6 +458,8 @@ protected:
 
 class FuncType final : public BroType {
 public:
+	static inline const IntrusivePtr<FuncType> nil;
+
 	/**
 	 * Prototype is only currently used for events and hooks which declare
 	 * multiple signature prototypes that allow users to have handlers

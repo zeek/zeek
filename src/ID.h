@@ -28,6 +28,8 @@ typedef enum { SCOPE_FUNCTION, SCOPE_MODULE, SCOPE_GLOBAL } IDScope;
 
 class ID final : public BroObj, public notifier::Modifiable {
 public:
+	static inline const IntrusivePtr<ID> nil;
+
 	ID(const char* name, IDScope arg_scope, bool arg_is_export);
 	~ID() override;
 

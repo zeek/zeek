@@ -28,8 +28,6 @@ EventHandler::operator bool() const
 
 const IntrusivePtr<FuncType>& EventHandler::GetType(bool check_export)
 	{
-	static IntrusivePtr<FuncType> nil;
-
 	if ( type )
 		return type;
 
@@ -37,10 +35,10 @@ const IntrusivePtr<FuncType>& EventHandler::GetType(bool check_export)
 	                           check_export);
 
 	if ( ! id )
-		return nil;
+		return FuncType::nil;
 
 	if ( id->GetType()->Tag() != TYPE_FUNC )
-		return nil;
+		return FuncType::nil;
 
 	type = id->GetType<FuncType>();
 	return type;

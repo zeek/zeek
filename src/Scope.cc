@@ -14,7 +14,6 @@ typedef PList<Scope> scope_list;
 
 static scope_list scopes;
 static Scope* top_scope;
-static IntrusivePtr<ID> nil_id;
 
 Scope::Scope(IntrusivePtr<ID> id, attr_list* al)
 	: scope_id(std::move(id))
@@ -64,7 +63,7 @@ const IntrusivePtr<ID>& Scope::Find(std::string_view name) const
 	if ( entry != local.end() )
 		return entry->second;
 
-	return nil_id;
+	return ID::nil;
 	}
 
 IntrusivePtr<ID> Scope::Remove(std::string_view name)
@@ -172,7 +171,7 @@ const IntrusivePtr<ID>& lookup_ID(const char* name, const char* curr_module,
 		return global_scope()->Find(globalname);
 		}
 
-	return nil_id;
+	return ID::nil;
 	}
 
 IntrusivePtr<ID> install_ID(const char* name, const char* module_name,

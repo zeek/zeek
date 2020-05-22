@@ -111,8 +111,7 @@ int BroType::MatchesIndex(ListExpr* const index) const
 
 const IntrusivePtr<BroType>& BroType::Yield() const
 	{
-	static IntrusivePtr<BroType> nil;
-	return nil;
+	return BroType::nil;
 	}
 
 bool BroType::HasField(const char* /* field */) const

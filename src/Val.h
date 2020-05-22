@@ -118,6 +118,8 @@ union BroValUnion {
 
 class Val : public BroObj {
 public:
+	static inline const IntrusivePtr<Val> nil;
+
 	Val(double d, TypeTag t)
 		: val(d), type(base_type(t))
 		{}

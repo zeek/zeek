@@ -1897,9 +1897,6 @@ IntrusivePtr<Val> TableVal::Default(const IntrusivePtr<Val>& index)
 
 const IntrusivePtr<Val>& TableVal::Find(const IntrusivePtr<Val>& index)
 	{
-	static IntrusivePtr<Val> nil;
-	static IntrusivePtr<Val> exists = val_mgr->True();
-
 	if ( subnets )
 		{
 		TableEntryVal* v = (TableEntryVal*) subnets->Lookup(index.get());
@@ -1911,10 +1908,10 @@ const IntrusivePtr<Val>& TableVal::Find(const IntrusivePtr<Val>& index)
 			if ( v->GetVal() )
 				return v->GetVal();
 
-			return exists;
+			return val_mgr->True();
 			}
 
-		return nil;
+		return Val::nil;
 		}
 
 	const PDict<TableEntryVal>* tbl = AsTable();
@@ -1935,12 +1932,12 @@ const IntrusivePtr<Val>& TableVal::Find(const IntrusivePtr<Val>& index)
 				if ( v->GetVal() )
 					return v->GetVal();
 
-				return exists;
+				return val_mgr->True();
 				}
 			}
 		}
 
-	return nil;
+	return Val::nil;
 	}
 
 IntrusivePtr<Val> TableVal::FindOrDefault(const IntrusivePtr<Val>& index)
@@ -3139,10 +3136,8 @@ bool VectorVal::AddTo(Val* val, bool /* is_first_init */) const
 
 const IntrusivePtr<Val>& VectorVal::At(unsigned int index) const
 	{
-	static IntrusivePtr<Val> nil;
-
 	if ( index >= val.vector_val->size() )
-		return nil;
+		return Val::nil;
 
 	return (*val.vector_val)[index];
 	}

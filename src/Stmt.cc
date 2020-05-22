@@ -272,6 +272,13 @@ Stmt* ExprListStmt::DoReduce(Reducer* c)
 		}
 	}
 
+void ExprListStmt::Inline(Inliner* inl)
+	{
+	expr_list& e = l->Exprs();
+	for ( auto i = 0; i < e.length(); ++i )
+		e.replace(i, e[i]->Inline(inl));
+	}
+
 void ExprListStmt::StmtDescribe(ODesc* d) const
 	{
 	Stmt::StmtDescribe(d);
@@ -534,6 +541,12 @@ Stmt* ExprStmt::DoReduce(Reducer* c)
 		return TransformMe(new NullStmt, c);
 	}
 
+void ExprStmt::Inline(Inliner* inl)
+	{
+	if ( e )
+		e = {AdoptRef{}, e->Inline(inl)};
+	}
+
 void ExprStmt::StmtDescribe(ODesc* d) const
 	{
 	Stmt::StmtDescribe(d);
@@ -660,6 +673,16 @@ Stmt* IfStmt::DoReduce(Reducer* c)
 		return TransformMe(new StmtList(red_e_stmt, this), c);
 
 	return this->Ref();
+	}
+
+void IfStmt::Inline(Inliner* inl)
+	{
+	ExprStmt::Inline(inl);
+
+	if ( s1 )
+		s1->Inline(inl);
+	if ( s2 )
+		s2->Inline(inl);
 	}
 
 const CompiledStmt IfStmt::Compile(Compiler* c) const
@@ -1189,6 +1212,17 @@ Stmt* SwitchStmt::DoReduce(Reducer* rc)
 	return this->Ref();
 	}
 
+void SwitchStmt::Inline(Inliner* inl)
+	{
+	ExprStmt::Inline(inl);
+
+	for ( auto c : *cases )
+		// In principle this can do the operation multiple times
+		// for a given body, but that's no big deal as repeated
+		// calls won't do anything.
+		c->Body()->Inline(inl);
+	}
+
 void SwitchStmt::StmtDescribe(ODesc* d) const
 	{
 	ExprStmt::StmtDescribe(d);
@@ -1476,6 +1510,18 @@ Stmt* WhileStmt::DoReduce(Reducer* c)
 		}
 
 	return this->Ref();
+	}
+
+void WhileStmt::Inline(Inliner* inl)
+	{
+	loop_condition = {AdoptRef{}, loop_condition->Inline(inl)};
+
+	if ( stmt_loop_condition )
+		stmt_loop_condition->Inline(inl);
+	if ( loop_cond_stmt )
+		loop_cond_stmt->Inline(inl);
+	if ( body )
+		body->Inline(inl);
 	}
 
 const CompiledStmt WhileStmt::Compile(Compiler* c) const
@@ -1824,6 +1870,12 @@ Stmt* ForStmt::DoReduce(Reducer* c)
 		return TransformMe(new StmtList(red_e_stmt, this), c);
 
 	return this->Ref();
+	}
+
+void ForStmt::Inline(Inliner* inl)
+	{
+	ExprStmt::Inline(inl);
+	body->Inline(inl);
 	}
 
 void ForStmt::StmtDescribe(ODesc* d) const
@@ -2217,6 +2269,12 @@ Stmt* StmtList::DoReduce(Reducer* c)
 	return this->Ref();
 	}
 
+void StmtList::Inline(Inliner* inl)
+	{
+	for ( const auto& stmt : Stmts() )
+		stmt->Inline(inl);
+	}
+
 const CompiledStmt StmtList::Compile(Compiler* c) const
 	{
 	c->SetCurrStmt(this);
@@ -2545,6 +2603,14 @@ IntrusivePtr<Val> WhenStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	                     IntrusivePtr{timeout}.release(),
 	                     f, is_return, location);
 	return nullptr;
+	}
+
+void WhenStmt::Inline(Inliner* inl)
+	{
+	// Don't inline the condition or timeout, just the bodies.
+	s1->Inline(inl);
+	if ( s2 )
+		s2->Inline(inl);
 	}
 
 const CompiledStmt WhenStmt::Compile(Compiler* c) const

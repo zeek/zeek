@@ -29,6 +29,8 @@ protected:
 	bool IsReduced() const override;
 	Stmt* DoReduce(Reducer* c) override;
 
+	void Inline(Inliner* inl) override;
+
 	// Returns a new version of the original derived object
 	// based on the given list of singleton expressions.
 	virtual Stmt* DoSubclassReduce(IntrusivePtr<ListExpr> singletons,
@@ -79,6 +81,8 @@ protected:
 	bool IsReduced() const override;
 	Stmt* DoReduce(Reducer* c) override;
 
+	void Inline(Inliner* inl) override;
+
 	const CompiledStmt Compile(Compiler* c) const override;
 
 	IntrusivePtr<Expr> e;
@@ -101,6 +105,8 @@ protected:
 	bool IsPure() const override;
 	bool IsReduced() const override;
 	Stmt* DoReduce(Reducer* c) override;
+
+	void Inline(Inliner* inl) override;
 
 	const CompiledStmt Compile(Compiler* c) const override;
 
@@ -163,6 +169,8 @@ protected:
 	bool IsPure() const override;
 	bool IsReduced() const override;
 	Stmt* DoReduce(Reducer* c) override;
+
+	void Inline(Inliner* inl) override;
 
 	const CompiledStmt Compile(Compiler* c) const override;
 
@@ -249,6 +257,8 @@ public:
 	bool IsReduced() const override;
 	Stmt* DoReduce(Reducer* c) override;
 
+	void Inline(Inliner* inl) override;
+
 	const Expr* Condition() const	{ return loop_condition.get(); }
 
 	// If we construct a loop_cond_stmt, then for optimization
@@ -294,6 +304,8 @@ public:
 	bool IsPure() const override;
 	bool IsReduced() const override;
 	Stmt* DoReduce(Reducer* c) override;
+
+	void Inline(Inliner* inl) override;
 
 	void StmtDescribe(ODesc* d) const override;
 
@@ -389,6 +401,7 @@ public:
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	Stmt* DoReduce(Reducer* c) override;
+	void Inline(Inliner* inl) override;
 	const CompiledStmt Compile(Compiler* c) const override;
 
 	const stmt_list& Stmts() const	{ return *stmts; }
@@ -458,6 +471,7 @@ public:
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
+	void Inline(Inliner* inl) override;
 	const CompiledStmt Compile(Compiler* c) const override;
 
 	bool IsPure() const override;

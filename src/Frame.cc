@@ -32,6 +32,8 @@ Frame::Frame(int arg_size, const BroFunc* func, const zeek::Args* fn_args)
 
 	for (int i = 0; i < size; ++i)
 		frame[i] = nullptr;
+
+	current_offset = 0;
 	}
 
 Frame::~Frame()
@@ -61,6 +63,8 @@ void Frame::AddFunctionWithClosureRef(BroFunc* func)
 
 void Frame::SetElement(int n, Val* v, bool weak_ref)
 	{
+	n += current_offset;
+
 	UnrefElement(n);
 	frame[n] = v;
 
@@ -125,10 +129,10 @@ Val* Frame::GetElement(const ID* id) const
 		{
 		auto where = offset_map.find(std::string(id->Name()));
 		if ( where != offset_map.end() )
-			return frame[where->second];
+			return frame[where->second + current_offset];
 		}
 
-	return frame[id->Offset()];
+	return frame[id->Offset() + current_offset];
 	}
 
 void Frame::Reset(int startIdx)
@@ -243,7 +247,7 @@ Frame* Frame::SelectiveClone(const id_list& selection, BroFunc* func) const
 				}
 			}
 
-		if ( ! frame[id->Offset()] )
+		if ( ! frame[id->Offset() + current_offset] )
 			reporter->InternalError("Attempted to clone an id ('%s') with no associated value.", id->Name());
 
 		clone_if_not_func(frame, id->Offset(), func, other);

@@ -46,6 +46,7 @@ enum BroExprTag : int {
 	EXPR_IN,
 	EXPR_LIST,
 	EXPR_CALL,
+	EXPR_INLINE,
 	EXPR_LAMBDA,
 	EXPR_EVENT,
 	EXPR_SCHEDULE,
@@ -79,6 +80,7 @@ class FieldExpr;
 class HasFieldExpr;
 class FieldAssignExpr;
 class CallExpr;
+class InlineExpr;
 class EventExpr;
 class RefExpr;
 class IsExpr;
@@ -94,6 +96,7 @@ class RecordCoerceExpr;
 struct function_ingredients;
 
 class Reducer;
+class Inliner;
 class CompiledStmt;
 class Compiler;
 class ZAM;
@@ -182,6 +185,8 @@ public:
 	// Reduces the expression to one whose operands are singletons.
 	// Returns a predecessor statement(list), if any.
 	virtual IntrusivePtr<Stmt> ReduceToSingletons(Reducer* c);
+
+	virtual Expr* Inline(Inliner* inl)	{ return this->Ref(); }
 
 	virtual const CompiledStmt Compile(Compiler* c) const;
 
@@ -296,6 +301,7 @@ public:
 
 	CONST_ACCESSOR(EXPR_HAS_FIELD, HasFieldExpr, AsHasFieldExpr);
 	CONST_ACCESSOR(EXPR_CALL, CallExpr, AsCallExpr);
+	CONST_ACCESSOR(EXPR_INLINE, InlineExpr, AsInlineExpr);
 	CONST_ACCESSOR(EXPR_ADD_TO, AddToExpr, AsAddToExpr);
 	CONST_ACCESSOR(EXPR_INCR, IncrExpr, AsIncrExpr);
 	CONST_ACCESSOR(EXPR_APPEND_TO, AppendToExpr, AsAppendToExpr);
@@ -427,6 +433,7 @@ public:
 	bool IsReduced() const override;
 	bool HasReducedOps() const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
+	Expr* Inline(Inliner* inl) override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -457,6 +464,7 @@ public:
 	bool IsReduced() const override;
 	bool HasReducedOps() const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
+	Expr* Inline(Inliner* inl) override;
 
 	// BinaryExpr::Eval correctly handles vector types.  Any child
 	// class that overrides Eval() should be modified to handle
@@ -722,6 +730,7 @@ public:
 	bool WillTransform() const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	IntrusivePtr<Stmt> ReduceToSingletons(Reducer* c) override;
+	Expr* Inline(Inliner* inl) override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -1134,6 +1143,7 @@ public:
 	bool IsReduced() const override;
 	bool HasReducedOps() const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
+	Expr* Inline(Inliner* inl) override;
 	const CompiledStmt Compile(Compiler* c) const override;
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
@@ -1180,6 +1190,7 @@ public:
 	bool HasReducedOps() const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	IntrusivePtr<Stmt> ReduceToSingletons(Reducer* c) override;
+	Expr* Inline(Inliner* inl) override;
 	const CompiledStmt Compile(Compiler* c) const override;
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
@@ -1191,6 +1202,28 @@ protected:
 
 	IntrusivePtr<Expr> func;
 	IntrusivePtr<ListExpr> args;
+};
+
+class InlineExpr : public Expr {
+public:
+	InlineExpr(IntrusivePtr<ListExpr> arg_args, IntrusivePtr<Stmt> body,
+			int frame_offset, IntrusivePtr<BroType> ret_type);
+
+	bool IsPure() const override;
+	bool IsReduced() const override;
+	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
+	const CompiledStmt Compile(Compiler* c) const override;
+
+	IntrusivePtr<Val> Eval(Frame* f) const override;
+
+	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+protected:
+	void ExprDescribe(ODesc* d) const override;
+
+	int frame_offset;
+	IntrusivePtr<ListExpr> args;
+	IntrusivePtr<Stmt> body;
 };
 
 
@@ -1207,6 +1240,7 @@ public:
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
+	Expr* Inline(Inliner* inl) override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -1239,6 +1273,7 @@ public:
 	bool HasReducedOps() const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	IntrusivePtr<Stmt> ReduceToSingletons(Reducer* c) override;
+	Expr* Inline(Inliner* inl) override;
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
@@ -1271,6 +1306,7 @@ public:
 	bool IsReduced() const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	IntrusivePtr<Stmt> ReduceToSingletons(Reducer* c) override;
+	Expr* Inline(Inliner* inl) override;
 	const CompiledStmt Compile(Compiler* c) const override;
 
 	IntrusivePtr<Expr> GetOp1() const override final	{ return args; }

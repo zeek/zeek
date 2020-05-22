@@ -9,6 +9,7 @@
 #include "Func.h"
 #include "RE.h"
 #include "Reduce.h"
+#include "Inline.h"
 #include "Compile.h"
 #include "Scope.h"
 #include "Stmt.h"
@@ -46,7 +47,7 @@ const char* expr_name(BroExprTag t)
 		"=", "[]=", "$=", "[]", "any[]", "$", "?$", "[=]",
 		"table()", "set()", "vector()",
 		"$=", "in", "<<>>",
-		"()", "function()", "event", "schedule",
+		"()", "inline()", "function()", "event", "schedule",
 		"coerce", "record_coerce", "table_coerce", "vector_coerce",
 		"sizeof", "flatten", "cast", "is", "[:]=",
 		"nop",
@@ -695,6 +696,12 @@ Expr* UnaryExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		return AssignToTemporary(c, red_stmt);
 	}
 
+Expr* UnaryExpr::Inline(Inliner* inl)
+	{
+	op = {NewRef{}, op->Inline(inl)};
+	return this->Ref();
+	}
+
 TraversalCode UnaryExpr::Traverse(TraversalCallback* cb) const
 	{
 	TraversalCode tc = cb->PreExpr(this, Op());
@@ -874,6 +881,14 @@ Expr* BinaryExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		return this->Ref();
 	else
 		return AssignToTemporary(c, red_stmt);
+	}
+
+Expr* BinaryExpr::Inline(Inliner* inl)
+	{
+	op1 = {NewRef{}, op1->Inline(inl)};
+	op2 = {NewRef{}, op2->Inline(inl)};
+
+	return this->Ref();
 	}
 
 TraversalCode BinaryExpr::Traverse(TraversalCallback* cb) const
@@ -2994,6 +3009,15 @@ Expr* CondExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	red_stmt = MergeStmts(red_stmt, assign_stmt);
 
 	return TransformMe(res, c, red_stmt);
+	}
+
+Expr* CondExpr::Inline(Inliner* inl)
+	{
+	op1 = {NewRef{}, op1->Inline(inl)};
+	op2 = {NewRef{}, op2->Inline(inl)};
+	op3 = {NewRef{}, op3->Inline(inl)};
+
+	return this->Ref();
 	}
 
 IntrusivePtr<Stmt> CondExpr::ReduceToSingletons(Reducer* c)
@@ -5818,6 +5842,16 @@ Expr* ScheduleExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	return this->Ref();
 	}
 
+Expr* ScheduleExpr::Inline(Inliner* inl)
+	{
+	when = {NewRef{}, when->Inline(inl)};
+	auto e = event->Inline(inl);
+	auto ev = e->AsEventExpr();
+	event = {NewRef{}, ev};
+
+	return this->Ref();
+	}
+
 IntrusivePtr<Val> ScheduleExpr::Eval(Frame* f) const
 	{
 	if ( terminating )
@@ -6186,6 +6220,11 @@ Expr* CallExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		return AssignToTemporary(c, red_stmt);
 	}
 
+Expr* CallExpr::Inline(Inliner* inl)
+	{
+	return inl->CheckForInlining(this);
+	}
+
 IntrusivePtr<Stmt> CallExpr::ReduceToSingletons(Reducer* c)
 	{
 	IntrusivePtr<Stmt> func_stmt;
@@ -6274,6 +6313,104 @@ void CallExpr::ExprDescribe(ODesc* d) const
 		}
 	else
 		args->Describe(d);
+	}
+
+
+InlineExpr::InlineExpr(IntrusivePtr<ListExpr> arg_args,
+			IntrusivePtr<Stmt> arg_body, int _frame_offset,
+			IntrusivePtr<BroType> t)
+: Expr(EXPR_INLINE), args(std::move(arg_args)), body(std::move(arg_body))
+	{
+	frame_offset = _frame_offset;
+	type = t;
+	}
+
+bool InlineExpr::IsPure() const
+	{
+	return args->IsPure() && body->IsPure();
+	}
+
+bool InlineExpr::IsReduced() const
+	{
+	return args->IsReduced() && body->IsReduced();
+	}
+
+Expr* InlineExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	body = {AdoptRef{}, body->Reduce(c)};
+
+	if ( c->Optimizing() )
+		{
+		auto e = c->UpdateExpr(args);
+		auto el = e->AsListExpr();
+		args = {NewRef{}, el};
+		return this->Ref();
+		}
+
+	red_stmt = nullptr;
+
+	return this->Ref();
+	}
+
+IntrusivePtr<Val> InlineExpr::Eval(Frame* f) const
+	{
+	auto v = eval_list(f, args.get());
+
+	if ( ! v )
+		return nullptr;
+
+	int nargs = args->Exprs().length();
+
+	f->Reset(frame_offset + nargs);
+
+	f->IncreaseOffset(frame_offset);
+
+	// Assign the arguments.
+	for ( auto i = 0; i < nargs; ++i )
+		f->SetElement(i, (*v)[i].release());
+
+	stmt_flow_type flow = FLOW_NEXT;
+	auto result = body->Exec(f, flow);
+
+	f->IncreaseOffset(-frame_offset);
+
+	return result;
+	}
+
+const CompiledStmt InlineExpr::Compile(Compiler* c) const
+	{
+	}
+
+TraversalCode InlineExpr::Traverse(TraversalCallback* cb) const
+	{
+	TraversalCode tc = cb->PreExpr(this);
+	HANDLE_TC_EXPR_PRE(tc);
+
+	tc = args->Traverse(cb);
+	HANDLE_TC_EXPR_PRE(tc);
+
+	tc = body->Traverse(cb);
+	HANDLE_TC_EXPR_PRE(tc);
+
+	tc = cb->PostExpr(this);
+	HANDLE_TC_EXPR_POST(tc);
+	}
+
+void InlineExpr::ExprDescribe(ODesc* d) const
+	{
+	if ( d->IsReadable() || d->IsPortable() )
+		{
+		d->Add("inline(");
+		args->Describe(d);
+		d->Add("){");
+		body->Describe(d);
+		d->Add("}");
+		}
+	else
+		{
+		args->Describe(d);
+		body->Describe(d);
+		}
 	}
 
 static std::unique_ptr<id_list> shallow_copy_func_inits(const IntrusivePtr<Stmt>& body,
@@ -6385,6 +6522,12 @@ Expr* LambdaExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		return AssignToTemporary(c, red_stmt);
 	}
 
+Expr* LambdaExpr::Inline(Inliner* inl)
+	{
+	ingredients->body->Inline(inl);
+	return this->Ref();
+	}
+
 void LambdaExpr::ExprDescribe(ODesc* d) const
 	{
 	d->Add(expr_name(Tag()));
@@ -6484,6 +6627,15 @@ Expr* EventExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 IntrusivePtr<Stmt> EventExpr::ReduceToSingletons(Reducer* c)
 	{
 	return args->ReduceToSingletons(c);
+	}
+
+Expr* EventExpr::Inline(Inliner* inl)
+	{
+	auto e = args->Inline(inl);
+	auto el = e->AsListExpr();
+	args = {NewRef{}, el};
+
+	return this->Ref();
 	}
 
 const CompiledStmt EventExpr::Compile(Compiler* c) const
@@ -6915,6 +7067,14 @@ Expr* ListExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		if ( e_stmt )
 			red_stmt = MergeStmts(red_stmt, e_stmt);
 		}
+
+	return this->Ref();
+	}
+
+Expr* ListExpr::Inline(Inliner* inl)
+	{
+	loop_over_list(exprs, i)
+		exprs[i] = exprs[i]->Inline(inl);
 
 	return this->Ref();
 	}

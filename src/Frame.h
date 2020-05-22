@@ -74,6 +74,12 @@ public:
 	Val* GetElement(const ID* id) const;
 
 	/**
+	 * Increases the current offset being used for frame accesses.
+	 * This is in support of inlined functions.
+	 */
+	void IncreaseOffset(int incr)	{ current_offset += incr; }
+
+	/**
 	 * Resets all of the indexes from [*startIdx, frame_size) in
 	 * the Frame. Unrefs all of the values in reset indexes.
 	 *
@@ -263,6 +269,11 @@ private:
 
 	/** Associates ID's offsets with values. */
 	Val** frame;
+
+	/** The offset we're currently using for references into the frame.
+	 * This is how we support inlined functions without having to
+	 * alter the offsets associated with their local variables. */
+	int current_offset;
 
 	/** Values that are weakly referenced by the frame.  Used to
 	 * prevent circular reference memory leaks in lambda/closures */

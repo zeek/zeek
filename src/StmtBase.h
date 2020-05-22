@@ -31,6 +31,7 @@ class PrintStmt;
 class Frame;
 
 class Reducer;
+class Inliner;
 class Compiler;
 class CompiledStmt;
 
@@ -56,6 +57,8 @@ public:
 
 	Stmt* Reduce(Reducer* c);
 	virtual Stmt* DoReduce(Reducer* c)	{ return this->Ref(); }
+
+	virtual void Inline(Inliner* inl)	{ }
 
 	// Compile the statement and return its opaque handle.  (For
 	// statement blocks, this is whatever the compiler returns

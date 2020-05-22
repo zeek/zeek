@@ -4,6 +4,7 @@
 #include "DefSetsMgr.h"
 #include "ProfileFunc.h"
 #include "Reduce.h"
+#include "Inline.h"
 #include "ZAM.h"
 #include "Desc.h"
 #include "Expr.h"
@@ -1565,28 +1566,10 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 	}
 
 
-// Info we need for tracking an instance of a function.
-class FuncInfo {
-public:
-	FuncInfo(BroFunc* _func, IntrusivePtr<Scope> _scope,
-			IntrusivePtr<Stmt> _body)
-		{
-		func = _func;
-		scope = _scope;
-		body = _body;
-		pf = nullptr;
-		}
-
-	~FuncInfo()
-		{
-		delete pf;
-		}
-
-	BroFunc* func;
-	IntrusivePtr<Scope> scope;
-	IntrusivePtr<Stmt> body;
-	ProfileFunc* pf;
-};
+FuncInfo::~FuncInfo()
+	{
+	delete pf;
+	}
 
 std::vector<FuncInfo*> funcs;
 
@@ -1594,64 +1577,6 @@ void analyze_func(BroFunc* f)
 	{
 	auto info = new FuncInfo(f, {NewRef{}, f->GetScope()}, f->CurrentBody());
 	funcs.push_back(info);
-	}
-
-bool is_inline_able(FuncInfo* f, std::unordered_set<Func*>& inline_ables)
-	{
-	for ( auto& func : f->pf->script_calls )
-		if ( inline_ables.find(func) == inline_ables.end() )
-			return false;
-
-	return true;
-	}
-
-void analyze_inlining()
-	{
-	// Candidates are non-event, non-hook functions.
-	std::unordered_set<FuncInfo*> candidates;
-
-	for ( auto& f : funcs )
-		if ( f->func->Flavor() == FUNC_FLAVOR_FUNCTION )
-			candidates.insert(f);
-
-	int depth = 0;
-	bool added_more = true;
-	std::unordered_set<FuncInfo*> new_ones;
-	std::unordered_set<Func*> inline_ables;
-
-	while ( 1 )
-		{
-		++depth;
-
-		new_ones.clear();
-
-		for ( auto& c : candidates )
-			if ( is_inline_able(c, inline_ables) )
-				{
-				printf("can inline %s at depth %d\n",
-					c->func->Name(), depth);
-				new_ones.insert(c);
-				}
-
-		if ( new_ones.size() == 0 )
-			break;
-
-		for ( auto& n : new_ones )
-			{
-			candidates.erase(n);
-			inline_ables.insert(n->func);
-			}
-		}
-
-	for ( auto& c : candidates )
-		{
-		printf("cannot inline %s:", c->func->Name());
-		for ( auto& func : c->pf->script_calls )
-			if ( inline_ables.find(func) == inline_ables.end() )
-				printf(" %s", func->Name());
-
-		printf("\n");
-		}
 	}
 
 void analyze_orphan_functions()

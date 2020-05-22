@@ -271,6 +271,7 @@ set(MAIN_SRCS
     Func.cc
     Hash.cc
     ID.cc
+    Inline.cc
     IntSet.cc
     IP.cc
     IPAddr.cc

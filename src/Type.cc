@@ -1644,9 +1644,9 @@ BroType* flatten_type(BroType* t)
 	return (BroType*) flatten_type((const BroType*) t);
 	}
 
-bool is_assignable(BroType* t)
+bool is_assignable(TypeTag t)
 	{
-	switch ( t->Tag() ) {
+	switch ( t ) {
 	case TYPE_BOOL:
 	case TYPE_INT:
 	case TYPE_COUNT:

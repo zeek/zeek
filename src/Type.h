@@ -867,7 +867,9 @@ inline bool is_atomic_type(const IntrusivePtr<BroType>& t)
 	{ return is_atomic_type(*t); }
 
 // True if the given type tag corresponds to type that can be assigned to.
-extern bool is_assignable(BroType* t);
+extern bool is_assignable(TypeTag t);
+inline bool is_assignable(BroType* t)
+	{ return ::is_assignable(t->Tag()); }
 
 // True if the given type tag corresponds to an integral type.
 inline bool IsIntegral(TypeTag t) { return (t == TYPE_INT || t == TYPE_COUNT || t == TYPE_COUNTER); }

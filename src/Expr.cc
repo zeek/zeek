@@ -1984,7 +1984,7 @@ RefExpr::RefExpr(IntrusivePtr<Expr> arg_op)
 	if ( IsError() )
 		return;
 
-	if ( ! ::is_assignable(op->GetType().get()) )
+	if ( ! ::is_assignable(op->GetType()->Tag()) )
 		ExprError("illegal assignment target");
 	else
 		SetType(op->GetType());

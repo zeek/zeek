@@ -43,7 +43,9 @@ class RD_Decorate : public TraversalCallback {
 public:
 	RD_Decorate(const ProfileFunc* pf);
 
-	TraversalCode PreFunction(const Func*) override;
+	void TraverseFunction(const Func*, Scope* scope,
+				IntrusivePtr<Stmt> body);
+
 	TraversalCode PreStmt(const Stmt*) override;
 	TraversalCode PostStmt(const Stmt*) override;
 	TraversalCode PreExpr(const Expr*) override;
@@ -101,9 +103,9 @@ RD_Decorate::RD_Decorate(const ProfileFunc* _pf) : pf(_pf)
 	}
 
 
-TraversalCode RD_Decorate::PreFunction(const Func* f)
+void RD_Decorate::TraverseFunction(const Func* f, Scope* scope,
+					IntrusivePtr<Stmt> body)
 	{
-	auto scope = f->GetScope();
 	auto args = scope->OrderedVars();
         auto nparam = f->FType()->Args()->NumFields();
 
@@ -131,12 +133,8 @@ TraversalCode RD_Decorate::PreFunction(const Func* f)
 		mgr.GetPostMaxRDs(f)->Dump();
 		}
 
-	auto body = f->AsBroFunc()->CurrentBody().get();
-
-	mgr.SetPreFromPost(body, f);
+	mgr.SetPreFromPost(body.get(), f);
 	body->Traverse(this);
-
-	return TC_ABORTSTMT;
 	}
 
 TraversalCode RD_Decorate::PreStmt(const Stmt* s)
@@ -1428,10 +1426,9 @@ bool dump_code = false;
 bool dump_xform = false;
 const char* only_func = 0;
 
-void analyze_func(BroFunc* f)
+void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
+			IntrusivePtr<Stmt> body)
 	{
-	auto body = f->CurrentBody().get();
-
 	if ( reporter->Errors() > 0 )
 		return;
 
@@ -1473,7 +1470,7 @@ void analyze_func(BroFunc* f)
 		return;
 		}
 
-	auto scope = f->GetScope();
+	auto scope = scope_ptr.get();
 
 	::Ref(scope);
 	push_existing_scope(scope);
@@ -1499,10 +1496,9 @@ void analyze_func(BroFunc* f)
 	if ( only_func || dump_xform )
 		printf("Transformed: %s\n", obj_desc(new_body));
 
-	IntrusivePtr<Stmt> body_ptr = {AdoptRef{}, body};
 	IntrusivePtr<Stmt> new_body_ptr = {AdoptRef{}, new_body};
 
-	f->ReplaceBody(body_ptr, new_body_ptr);
+	f->ReplaceBody(body, new_body_ptr);
 	f->GrowFrameSize(rc->NumTemps());
 
 	if ( optimize )
@@ -1511,25 +1507,25 @@ void analyze_func(BroFunc* f)
 		f->Traverse(&pf_red);
 
 		auto cb = RD_Decorate(&pf_red);
-		f->Traverse(&cb);
+		cb.TraverseFunction(f, scope, new_body_ptr);
 
 		rc->SetDefSetsMgr(cb.GetDefSetsMgr());
 
-		body_ptr = new_body_ptr;
+		body = new_body_ptr;
 		new_body = new_body->Reduce(rc);
 		new_body_ptr = {AdoptRef{}, new_body};
 
 		if ( only_func || dump_xform )
 			printf("Optimized: %s\n", obj_desc(new_body));
 
-		f->ReplaceBody(body_ptr, new_body_ptr);
+		f->ReplaceBody(body, new_body_ptr);
 		}
 
 	ProfileFunc* pf_red = new ProfileFunc;
 	f->Traverse(pf_red);
 
 	auto cb = new RD_Decorate(pf_red);
-	f->Traverse(cb);
+	cb->TraverseFunction(f, scope, new_body_ptr);
 
 	rc->SetDefSetsMgr(cb->GetDefSetsMgr());
 
@@ -1543,7 +1539,7 @@ void analyze_func(BroFunc* f)
 
 	if ( compile )
 		{
-		body_ptr = new_body_ptr;
+		body = new_body_ptr;
 		auto zam = new ZAM(f, new_body, ud, rc, pf_red);
 		new_body = zam->CompileBody();
 
@@ -1551,7 +1547,7 @@ void analyze_func(BroFunc* f)
 			zam->Dump();
 
 		new_body_ptr = {AdoptRef{}, new_body};
-		f->ReplaceBody(body_ptr, new_body_ptr);
+		f->ReplaceBody(body, new_body_ptr);
 
 		// ### For now, we leak cb.
 		}
@@ -1565,4 +1561,31 @@ void analyze_func(BroFunc* f)
 		}
 
 	pop_scope();
+	}
+
+
+// Info we need for tracking an instance of a function.
+struct FuncInfo {
+	BroFunc* func;
+	IntrusivePtr<Scope> scope;
+	IntrusivePtr<Stmt> body;
+};
+
+std::vector<FuncInfo> funcs;
+
+void analyze_func(BroFunc* f)
+	{
+	FuncInfo info;
+
+	info.func = f;
+	info.scope = {NewRef{}, f->GetScope()};
+	info.body = f->CurrentBody();
+
+	funcs.push_back(info);
+	}
+
+void analyze_funcs()
+	{
+	for ( auto& f : funcs )
+		optimize_func(f.func, f.scope, f.body);
 	}

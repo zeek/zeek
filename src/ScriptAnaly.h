@@ -3,8 +3,7 @@
 #pragma once
 
 #include "Func.h"
-#include "ID.h"
-#include "Expr.h"
 
 
 extern void analyze_func(BroFunc* f);
+extern void analyze_funcs();

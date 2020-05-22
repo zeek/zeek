@@ -43,6 +43,7 @@ extern "C" {
 #include "Brofiler.h"
 #include "Traverse.h"
 #include "Trigger.h"
+#include "ScriptAnaly.h"
 #include "ZAM.h"
 
 #include "supervisor/Supervisor.h"
@@ -655,6 +656,8 @@ int main(int argc, char** argv)
 
 	RecordVal::DoneParsing();
 	TableVal::DoneParsing();
+
+	analyze_funcs();
 
 	init_general_global_var();
 	init_net_var();

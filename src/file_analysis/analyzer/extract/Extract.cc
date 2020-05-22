@@ -93,7 +93,7 @@ bool Extract::DeliverStream(const u_char* data, uint64_t len)
 		File* f = GetFile();
 		f->FileEvent(file_extraction_limit, {
 			f->ToVal(),
-			IntrusivePtr{NewRef{}, Args()},
+			GetArgs(),
 			val_mgr->Count(limit),
 			val_mgr->Count(len)
 		});

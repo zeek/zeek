@@ -410,7 +410,7 @@ void File::DeliverStream(const u_char* data, uint64_t len)
 								bof_buffer.chunks[i]->Len()) )
 						{
 						a->SetSkip(true);
-						analyzers.QueueRemove(a->Tag(), a->Args());
+						analyzers.QueueRemove(a->Tag(), a->GetArgs().get());
 						}
 					}
 
@@ -427,7 +427,7 @@ void File::DeliverStream(const u_char* data, uint64_t len)
 			if ( ! a->DeliverStream(data, len) )
 				{
 				a->SetSkip(true);
-				analyzers.QueueRemove(a->Tag(), a->Args());
+				analyzers.QueueRemove(a->Tag(), a->GetArgs().get());
 				}
 			}
 		}
@@ -498,7 +498,7 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 			if ( ! a->DeliverChunk(data, len, offset) )
 				{
 				a->SetSkip(true);
-				analyzers.QueueRemove(a->Tag(), a->Args());
+				analyzers.QueueRemove(a->Tag(), a->GetArgs().get());
 				}
 			}
 		}
@@ -557,7 +557,7 @@ void File::EndOfFile()
 	while ( (a = analyzers.NextEntry(c)) )
 		{
 		if ( ! a->EndOfFile() )
-			analyzers.QueueRemove(a->Tag(), a->Args());
+			analyzers.QueueRemove(a->Tag(), a->GetArgs().get());
 		}
 
 	FileEvent(file_state_remove);
@@ -590,7 +590,7 @@ void File::Gap(uint64_t offset, uint64_t len)
 	while ( (a = analyzers.NextEntry(c)) )
 		{
 		if ( ! a->Undelivered(offset, len) )
-			analyzers.QueueRemove(a->Tag(), a->Args());
+			analyzers.QueueRemove(a->Tag(), a->GetArgs().get());
 		}
 
 	if ( FileEventAvailable(file_gap) )

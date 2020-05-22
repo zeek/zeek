@@ -95,7 +95,12 @@ public:
 	/**
 	 * @return the AnalyzerArgs associated with the analyzer.
 	 */
-	RecordVal* Args() const { return args; }
+	const IntrusivePtr<RecordVal>& GetArgs() const
+		{ return args; }
+
+	[[deprecated("Remove in v4.1.  Use GetArgs().")]]
+	RecordVal* Args() const
+		{ return args.get(); }
 
 	/**
 	 * @return the file_analysis::File object to which the analyzer is attached.
@@ -166,7 +171,7 @@ private:
 
 	ID id;	/**< Unique instance ID. */
 	file_analysis::Tag tag;	/**< The particular type of the analyzer instance. */
-	RecordVal* args;	/**< \c AnalyzerArgs val gives tunable analyzer params. */
+	IntrusivePtr<RecordVal> args;	/**< \c AnalyzerArgs val gives tunable analyzer params. */
 	File* file;	/**< The file to which the analyzer is attached. */
 	bool got_stream_delivery;
 	bool skip;

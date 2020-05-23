@@ -811,7 +811,7 @@ IntrusivePtr<Val> SwitchStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) con
 		if ( matching_id )
 			{
 			auto cv = cast_value_to_type(v, matching_id->GetType().get());
-			f->SetElement(matching_id, cv.release());
+			f->SetElement(matching_id, std::move(cv));
 			}
 
 		flow = FLOW_NEXT;
@@ -1191,10 +1191,10 @@ IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 			delete k;
 
 			if ( value_var )
-				f->SetElement(value_var.get(), current_tev->GetVal()->Ref());
+				f->SetElement(value_var.get(), current_tev->GetVal());
 
 			for ( int i = 0; i < ind_lv->Length(); i++ )
-				f->SetElement((*loop_vars)[i], ind_lv->Idx(i)->Ref());
+				f->SetElement((*loop_vars)[i], ind_lv->Idx(i));
 
 			flow = FLOW_NEXT;
 
@@ -1230,7 +1230,7 @@ IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 
 			// Set the loop variable to the current index, and make
 			// another pass over the loop body.
-			f->SetElement((*loop_vars)[0], val_mgr->Count(i).release());
+			f->SetElement((*loop_vars)[0], val_mgr->Count(i));
 			flow = FLOW_NEXT;
 			ret = body->Exec(f, flow);
 
@@ -1244,8 +1244,8 @@ IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 
 		for ( int i = 0; i < sval->Len(); ++i )
 			{
-			f->SetElement((*loop_vars)[0],
-					new StringVal(1, (const char*) sval->Bytes() + i));
+			auto sv = make_intrusive<StringVal>(1, (const char*) sval->Bytes() + i);
+			f->SetElement((*loop_vars)[0], std::move(sv));
 			flow = FLOW_NEXT;
 			ret = body->Exec(f, flow);
 
@@ -1653,23 +1653,24 @@ IntrusivePtr<Val> InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
 		{
 		const auto& t = aggr->GetType();
 
-		Val* v = nullptr;
+		IntrusivePtr<Val> v;
 
 		switch ( t->Tag() ) {
 		case TYPE_RECORD:
-			v = new RecordVal(cast_intrusive<RecordType>(t));
+			v = make_intrusive<RecordVal>(cast_intrusive<RecordType>(t));
 			break;
 		case TYPE_VECTOR:
-			v = new VectorVal(cast_intrusive<VectorType>(t));
+			v = make_intrusive<VectorVal>(cast_intrusive<VectorType>(t));
 			break;
 		case TYPE_TABLE:
-			v = new TableVal(cast_intrusive<TableType>(t), {NewRef{}, aggr->Attrs()});
+			v = make_intrusive<TableVal>(cast_intrusive<TableType>(t),
+			                             IntrusivePtr{NewRef{}, aggr->Attrs()});
 			break;
 		default:
 			break;
 		}
 
-		f->SetElement(aggr, v);
+		f->SetElement(aggr, std::move(v));
 		}
 
 	return nullptr;

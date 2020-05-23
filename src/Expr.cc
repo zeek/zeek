@@ -273,7 +273,7 @@ void NameExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 	if ( id->IsGlobal() )
 		id->SetVal(std::move(v));
 	else
-		f->SetElement(id.get(), v.release());
+		f->SetElement(id.get(), std::move(v));
 	}
 
 bool NameExpr::IsPure() const

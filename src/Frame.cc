@@ -49,7 +49,7 @@ Frame::~Frame()
 		Unref(i);
 
 	for ( int i = 0; i < size; ++i )
-		UnrefElement(i);
+		ClearElement(i);
 
 	delete [] weak_refs;
 	}
@@ -64,37 +64,41 @@ void Frame::AddFunctionWithClosureRef(BroFunc* func)
 	functions_with_closure_frame_reference->emplace_back(func);
 	}
 
-void Frame::SetElement(int n, Val* v, bool weak_ref)
+void Frame::SetElement(int n, Val* v)
+	{ SetElement(n, {AdoptRef{}, v}); }
+
+void Frame::SetElement(int n, IntrusivePtr<Val> v)
 	{
-	UnrefElement(n);
-	frame[n] = {AdoptRef{}, v};
+	ClearElement(n);
+	frame[n] = std::move(v);
 
-	if ( weak_ref )
-		{
-		if ( ! weak_refs )
-			{
-			weak_refs = new bool[size];
-
-			for ( auto i = 0; i < size; ++i )
-				weak_refs[i] = false;
-			}
-
-		weak_refs[n] = true;
-		}
-	else
-		{
-		if ( weak_refs )
-			weak_refs[n] = false;
-		}
+	if ( weak_refs )
+		weak_refs[n] = false;
 	}
 
-void Frame::SetElement(const ID* id, Val* v)
+void Frame::SetElementWeak(int n, Val* v)
+	{
+	ClearElement(n);
+	frame[n] = {AdoptRef{}, v};
+
+	if ( ! weak_refs )
+		{
+		weak_refs = new bool[size];
+
+		for ( auto i = 0; i < size; ++i )
+			weak_refs[i] = false;
+		}
+
+	weak_refs[n] = true;
+	}
+
+void Frame::SetElement(const ID* id, IntrusivePtr<Val> v)
 	{
 	if ( closure )
 		{
 		if ( IsOuterID(id) )
 			{
-			closure->SetElement(id, v);
+			closure->SetElement(id, std::move(v));
 			return;
 			}
 		}
@@ -110,11 +114,11 @@ void Frame::SetElement(const ID* id, Val* v)
 			// id->Offset() below is otherwise responsible for keeping track
 			// of the implied reference count of the passed-in 'v' argument.
 			// i.e. if we end up storing it twice, we need an addition Ref.
-			SetElement(where->second, v->Ref());
+			SetElement(where->second, v);
 			}
 		}
 
-	SetElement(id->Offset(), v);
+	SetElement(id->Offset(), std::move(v));
 	}
 
 Val* Frame::GetElement(const ID* id) const
@@ -140,7 +144,7 @@ void Frame::Reset(int startIdx)
 	{
 	for ( int i = startIdx; i < size; ++i )
 		{
-		UnrefElement(i);
+		ClearElement(i);
 		frame[i] = nullptr;
 		}
 	}
@@ -195,9 +199,7 @@ static bool val_is_func(const IntrusivePtr<Val>& v, BroFunc* func)
 	return v->AsFunc() == func;
 	}
 
-static void clone_if_not_func(const std::unique_ptr<IntrusivePtr<Val>[]>& frame,
-                              int offset, BroFunc* func,
-                              Frame* other)
+void Frame::CloneNonFuncElement(int offset, BroFunc* func, Frame* other) const
 	{
 	const auto& v = frame[offset];
 
@@ -206,12 +208,12 @@ static void clone_if_not_func(const std::unique_ptr<IntrusivePtr<Val>[]>& frame,
 
 	if ( val_is_func(v, func) )
 		{
-		other->SetElement(offset, v.get(), true);
+		other->SetElementWeak(offset, v.get());
 		return;
 		}
 
 	auto rval = v->Clone();
-	other->SetElement(offset, rval.release());
+	other->SetElement(offset, std::move(rval));
 	}
 
 Frame* Frame::SelectiveClone(const id_list& selection, BroFunc* func) const
@@ -240,7 +242,7 @@ Frame* Frame::SelectiveClone(const id_list& selection, BroFunc* func) const
 			auto where = offset_map->find(std::string(id->Name()));
 			if ( where != offset_map->end() )
 				{
-				clone_if_not_func(frame, where->second, func, other);
+				CloneNonFuncElement(where->second, func, other);
 				continue;
 				}
 			}
@@ -248,7 +250,7 @@ Frame* Frame::SelectiveClone(const id_list& selection, BroFunc* func) const
 		if ( ! frame[id->Offset()] )
 			reporter->InternalError("Attempted to clone an id ('%s') with no associated value.", id->Name());
 
-		clone_if_not_func(frame, id->Offset(), func, other);
+		CloneNonFuncElement(id->Offset(), func, other);
 		}
 
 	/**
@@ -531,7 +533,7 @@ void Frame::ClearTrigger()
 	trigger = nullptr;
 	}
 
-void Frame::UnrefElement(int n)
+void Frame::ClearElement(int n)
 	{
 	if ( weak_refs && weak_refs[n] )
 		frame[n].release();

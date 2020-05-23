@@ -43,10 +43,10 @@ public:
 	 * @return the value at index *n* of the underlying array.
 	 */
 	const IntrusivePtr<Val>& GetElement(int n) const
-		{ return frame[n]; }
+		{ return frame[n].val; }
 
 	[[deprecated("Remove in v4.1.  Use GetElement(int).")]]
-	Val* NthElement(int n) const	{ return frame[n].get(); }
+	Val* NthElement(int n) const	{ return frame[n].val.get(); }
 
 	/**
 	 * Sets the element at index *n* of the underlying array to *v*.
@@ -237,6 +237,13 @@ private:
 
 	using OffsetMap = std::unordered_map<std::string, int>;
 
+	struct Element {
+		IntrusivePtr<Val> val;
+		// Weak reference is used to prevent circular reference memory leaks
+		// in lambdas/closures.
+		bool weak_ref;
+	};
+
 	const IntrusivePtr<Val>& GetElementByID(const ID* id) const;
 
 	/**
@@ -290,11 +297,7 @@ private:
 	bool delayed;
 
 	/** Associates ID's offsets with values. */
-	std::unique_ptr<IntrusivePtr<Val>[]> frame;
-
-	/** Values that are weakly referenced by the frame.  Used to
-	 * prevent circular reference memory leaks in lambda/closures */
-	bool* weak_refs = nullptr;
+	std::unique_ptr<Element[]> frame;
 
 	/** The enclosing frame of this frame. */
 	Frame* closure;

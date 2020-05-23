@@ -43,7 +43,7 @@ bool Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 
 		try
 			{
-			discard_packet = check_ip->operator()(args)->AsBool();
+			discard_packet = check_ip->operator()(&args)->AsBool();
 			}
 
 		catch ( InterpreterException& e )
@@ -98,7 +98,7 @@ bool Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 
 			try
 				{
-				discard_packet = check_tcp->operator()(args)->AsBool();
+				discard_packet = check_tcp->operator()(&args)->AsBool();
 				}
 
 			catch ( InterpreterException& e )
@@ -122,7 +122,7 @@ bool Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 
 			try
 				{
-				discard_packet = check_udp->operator()(args)->AsBool();
+				discard_packet = check_udp->operator()(&args)->AsBool();
 				}
 
 			catch ( InterpreterException& e )
@@ -142,7 +142,7 @@ bool Discarder::NextPacket(const IP_Hdr* ip, int len, int caplen)
 
 			try
 				{
-				discard_packet = check_icmp->operator()(args)->AsBool();
+				discard_packet = check_icmp->operator()(&args)->AsBool();
 				}
 
 			catch ( InterpreterException& e )

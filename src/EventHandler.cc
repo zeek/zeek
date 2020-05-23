@@ -44,7 +44,7 @@ const IntrusivePtr<FuncType>& EventHandler::GetType(bool check_export)
 	return type;
 	}
 
-void EventHandler::Call(const zeek::Args& vl, bool no_remote)
+void EventHandler::Call(zeek::Args* vl, bool no_remote)
 	{
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Event: %s\n", Name());
@@ -59,12 +59,12 @@ void EventHandler::Call(const zeek::Args& vl, bool no_remote)
 			{
 			// Send event in form [name, xs...] where xs represent the arguments.
 			broker::vector xs;
-			xs.reserve(vl.size());
+			xs.reserve(vl->size());
 			bool valid_args = true;
 
-			for ( auto i = 0u; i < vl.size(); ++i )
+			for ( auto i = 0u; i < vl->size(); ++i )
 				{
-				auto opt_data = bro_broker::val_to_data(vl[i].get());
+				auto opt_data = bro_broker::val_to_data((*vl)[i].get());
 
 				if ( opt_data )
 					xs.emplace_back(std::move(*opt_data));
@@ -101,7 +101,7 @@ void EventHandler::Call(const zeek::Args& vl, bool no_remote)
 		local->operator()(vl);
 	}
 
-void EventHandler::NewEvent(const zeek::Args& vl)
+void EventHandler::NewEvent(zeek::Args* vl)
 	{
 	if ( ! new_event )
 		return;
@@ -132,8 +132,8 @@ void EventHandler::NewEvent(const zeek::Args& vl)
 		if ( fdefault )
 			rec->Assign(2, std::move(fdefault));
 
-		if ( i < static_cast<int>(vl.size()) && vl[i] )
-			rec->Assign(3, vl[i]);
+		if ( i < static_cast<int>(vl->size()) && (*vl)[i] )
+			rec->Assign(3, (*vl)[i]);
 
 		vargs->Assign(i, std::move(rec));
 		}

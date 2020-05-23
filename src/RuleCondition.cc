@@ -181,7 +181,7 @@ bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state,
 
 	try
 		{
-		auto val = id->GetVal()->AsFunc()->operator()(args);
+		auto val = id->GetVal()->AsFunc()->operator()(&args);
 		result = val && val->AsBool();
 		}
 

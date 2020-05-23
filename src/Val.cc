@@ -1879,7 +1879,7 @@ IntrusivePtr<Val> TableVal::Default(const IntrusivePtr<Val>& index)
 
 	try
 		{
-		result = f->operator()(vl);
+		result = f->operator()(&vl);
 		}
 
 	catch ( InterpreterException& e )
@@ -2088,7 +2088,7 @@ void TableVal::CallChangeFunc(const Val* index,
 			vl.emplace_back(old_value);
 
 		in_change_func = true;
-		f->operator()(vl);
+		f->operator()(&vl);
 		}
 	catch ( InterpreterException& e )
 		{
@@ -2545,7 +2545,7 @@ double TableVal::CallExpireFunc(IntrusivePtr<ListVal> idx)
 				vl.emplace_back(std::move(idx));
 			}
 
-		auto result = f->operator()(vl);
+		auto result = f->operator()(&vl);
 
 		if ( result )
 			secs = result->AsInterval();

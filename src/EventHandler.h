@@ -45,7 +45,7 @@ public:
 		auto_publish.erase(topic);
 		}
 
-	void Call(const zeek::Args& vl, bool no_remote = false);
+	void Call(zeek::Args* vl, bool no_remote = false);
 
 	// Returns true if there is at least one local or remote handler.
 	explicit operator  bool() const;
@@ -66,7 +66,7 @@ public:
 	bool GenerateAlways()	{ return generate_always; }
 
 private:
-	void NewEvent(const zeek::Args& vl);	// Raise new_event() meta event.
+	void NewEvent(zeek::Args* vl);	// Raise new_event() meta event.
 
 	std::string name;
 	IntrusivePtr<Func> local;

@@ -214,13 +214,13 @@ void Func::CopyStateInto(Func* other) const
 	other->unique_id = unique_id;
 	}
 
-void Func::CheckPluginResult(bool hooked, const IntrusivePtr<Val>& hook_result,
+void Func::CheckPluginResult(bool handled, const IntrusivePtr<Val>& hook_result,
                              function_flavor flavor) const
 	{
 	// Helper function factoring out this code from BroFunc:Call() for
 	// better readability.
 
-	if ( ! hooked )
+	if ( ! handled )
 		{
 		if ( hook_result )
 			reporter->InternalError("plugin set processed flag to false but actually returned a value");
@@ -297,9 +297,12 @@ bool BroFunc::IsPure() const
 	}
 
 Val* Func::Call(val_list* args, Frame* parent) const
-	{ return operator()(zeek::val_list_to_args(*args), parent).release(); };
+	{
+	auto zargs = zeek::val_list_to_args(*args);
+	return operator()(&zargs, parent).release();
+	};
 
-IntrusivePtr<Val> BroFunc::operator()(const zeek::Args& args, Frame* parent) const
+IntrusivePtr<Val> BroFunc::operator()(zeek::Args* args, Frame* parent) const
 	{
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", Name());
@@ -309,13 +312,13 @@ IntrusivePtr<Val> BroFunc::operator()(const zeek::Args& args, Frame* parent) con
 	if ( sample_logger )
 		sample_logger->FunctionSeen(this);
 
-	auto [hooked, hook_result] = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION,
-	                                                     HookCallFunction(this, parent, args),
-	                                                     empty_hook_result);
+	auto [handled, hook_result] = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION,
+	                                                      HookCallFunction(this, parent, args),
+	                                                      empty_hook_result);
 
-	CheckPluginResult(hooked, hook_result, Flavor());
+	CheckPluginResult(handled, hook_result, Flavor());
 
-	if ( hooked )
+	if ( handled )
 		return hook_result;
 
 	if ( bodies.empty() )
@@ -325,7 +328,7 @@ IntrusivePtr<Val> BroFunc::operator()(const zeek::Args& args, Frame* parent) con
 		return Flavor() == FUNC_FLAVOR_HOOK ? val_mgr->True() : nullptr;
 		}
 
-	auto f = make_intrusive<Frame>(frame_size, this, &args);
+	auto f = make_intrusive<Frame>(frame_size, this, args);
 
 	if ( closure )
 		f->CaptureClosure(closure, outer_ids);
@@ -339,12 +342,12 @@ IntrusivePtr<Val> BroFunc::operator()(const zeek::Args& args, Frame* parent) con
 
 	g_frame_stack.push_back(f.get());	// used for backtracing
 	const CallExpr* call_expr = parent ? parent->GetCall() : nullptr;
-	call_stack.emplace_back(CallInfo{call_expr, this, args});
+	call_stack.emplace_back(CallInfo{call_expr, this, *args});
 
 	if ( g_trace_state.DoTrace() )
 		{
 		ODesc d;
-		DescribeDebug(&d, &args);
+		DescribeDebug(&d, args);
 
 		g_trace_state.LogTrace("%s called: %s\n",
 			GetType()->FlavorString().c_str(), d.Description());
@@ -360,16 +363,16 @@ IntrusivePtr<Val> BroFunc::operator()(const zeek::Args& args, Frame* parent) con
 				body.stmts->GetLocationInfo());
 
 		// Fill in the rest of the frame with the function's arguments.
-		for ( auto j = 0u; j < args.size(); ++j )
+		for ( auto j = 0u; j < args->size(); ++j )
 			{
-			Val* arg = args[j].get();
+			Val* arg = (*args)[j].get();
 
 			if ( f->NthElement(j) != arg )
 				// Either not yet set, or somebody reassigned the frame slot.
 				f->SetElement(j, arg->Ref());
 			}
 
-		f->Reset(args.size());
+		f->Reset(args->size());
 
 		try
 			{
@@ -607,7 +610,7 @@ bool BuiltinFunc::IsPure() const
 	return is_pure;
 	}
 
-IntrusivePtr<Val> BuiltinFunc::operator()(const zeek::Args& args, Frame* parent) const
+IntrusivePtr<Val> BuiltinFunc::operator()(zeek::Args* args, Frame* parent) const
 	{
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", Name());
@@ -617,26 +620,26 @@ IntrusivePtr<Val> BuiltinFunc::operator()(const zeek::Args& args, Frame* parent)
 	if ( sample_logger )
 		sample_logger->FunctionSeen(this);
 
-	auto [hooked, hook_result] = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION,
-	                                                     HookCallFunction(this, parent, args),
-	                                                     empty_hook_result);
+	auto [handled, hook_result] = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION,
+	                                                      HookCallFunction(this, parent, args),
+	                                                      empty_hook_result);
 
-	CheckPluginResult(hooked, hook_result, FUNC_FLAVOR_FUNCTION);
+	CheckPluginResult(handled, hook_result, FUNC_FLAVOR_FUNCTION);
 
-	if ( hooked )
+	if ( handled )
 		return hook_result;
 
 	if ( g_trace_state.DoTrace() )
 		{
 		ODesc d;
-		DescribeDebug(&d, &args);
+		DescribeDebug(&d, args);
 
 		g_trace_state.LogTrace("\tBuiltin Function called: %s\n", d.Description());
 		}
 
 	const CallExpr* call_expr = parent ? parent->GetCall() : nullptr;
-	call_stack.emplace_back(CallInfo{call_expr, this, args});
-	auto result = std::move(func(parent, &args).rval);
+	call_stack.emplace_back(CallInfo{call_expr, this, *args});
+	auto result = std::move(func(parent, args).rval);
 	call_stack.pop_back();
 
 	if ( result && g_trace_state.DoTrace() )

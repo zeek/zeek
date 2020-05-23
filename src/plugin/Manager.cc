@@ -624,43 +624,35 @@ int Manager::HookLoadFile(const Plugin::LoadType type, const string& file, const
 
 std::pair<bool, IntrusivePtr<Val>>
 Manager::HookCallFunction(const Func* func, Frame* parent,
-                          const zeek::Args& vecargs) const
+                          zeek::Args* vecargs) const
 	{
 	HookArgumentList args;
-	std::optional<val_list> vargs;
+	val_list vargs;
 
 	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
-		vargs = val_list(vecargs.size());
+		vargs.resize(vecargs->size());
 
-		for ( const auto& v : vecargs )
-			vargs->push_back(v.get());
+		for ( const auto& v : *vecargs )
+			vargs.push_back(v.get());
 
 		args.push_back(HookArgument(func));
 		args.push_back(HookArgument(parent));
-		args.push_back(HookArgument(&vargs.value()));
+		args.push_back(HookArgument(&vargs));
 		MetaHookPre(HOOK_CALL_FUNCTION, args);
 		}
 
 	hook_list* l = hooks[HOOK_CALL_FUNCTION];
 
-	std::pair<bool, Val*> rval{false, nullptr};
+	std::pair<bool, IntrusivePtr<Val>> rval{false, nullptr};
 
 	if ( l )
 		{
-		if ( ! vargs )
-			{
-			vargs = val_list(vecargs.size());
-
-			for ( const auto& v : vecargs )
-				vargs->push_back(v.get());
-			}
-
 		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
 			{
 			Plugin* p = (*i).second;
 
-			rval = p->HookCallFunction(func, parent, &vargs.value());
+			rval = p->HookFunctionCall(func, parent, vecargs);
 
 			if ( rval.first )
 				break;
@@ -668,9 +660,10 @@ Manager::HookCallFunction(const Func* func, Frame* parent,
 		}
 
 	if ( HavePluginForHook(META_HOOK_POST) )
-		MetaHookPost(HOOK_CALL_FUNCTION, args, HookArgument(rval));
+		MetaHookPost(HOOK_CALL_FUNCTION, args,
+		             HookArgument(std::make_pair(rval.first, rval.second.get())));
 
-	return {rval.first, {AdoptRef{}, rval.second}};
+	return rval;
 	}
 
 bool Manager::HookQueueEvent(Event* event) const

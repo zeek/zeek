@@ -106,6 +106,11 @@ Removed Functionality
 Deprecated Functionality
 ------------------------
 
+- The ``plugin::Plugin::HookCallFunction()`` method is deprecated.  Note
+  that compilers will not emit a deprecation warning, but the replacement
+  method to now use is called ``HookFunctionCall`` and uses ``IntrusivePtr``
+  arguments and return value.
+
 - The ``Func::Call(val_list*, ...)`` method is now deprecated.  Use operator()
   instead which takes a ``zeek::Args`` (``std::vector<IntrusivePtr<Val>>``).
   There's also a variadic template for operator() that forwards all arguments

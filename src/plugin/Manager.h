@@ -256,7 +256,7 @@ public:
 	 * the method returns null.
 	 */
 	std::pair<bool, IntrusivePtr<Val>>
-	HookCallFunction(const Func* func, Frame* parent, const zeek::Args& args) const;
+	HookCallFunction(const Func* func, Frame* parent, zeek::Args* args) const;
 
 	/**
 	 * Hook that filters the queuing of an event.

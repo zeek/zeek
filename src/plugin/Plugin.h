@@ -8,6 +8,7 @@
 
 #include "zeek-config.h"
 #include "logging/WriterBackend.h"
+#include "ZeekArgs.h"
 
 // Increase this when making incompatible changes to the plugin API. Note
 // that the constant is never used in C code. It's picked up on by CMake.
@@ -177,7 +178,8 @@ public:
 	 */
 	enum Type {
 		BOOL, DOUBLE, EVENT, FRAME, FUNC, FUNC_RESULT, INT, STRING, VAL,
-		VAL_LIST, VOID, VOIDP, WRITER_INFO, CONN, THREAD_FIELDS, LOCATION
+		VAL_LIST, VOID, VOIDP, WRITER_INFO, CONN, THREAD_FIELDS, LOCATION,
+		ARG_LIST
 	};
 
 	/**
@@ -261,6 +263,11 @@ public:
 	explicit HookArgument(const Location* location)	{ type = LOCATION; arg.loc = location; }
 
 	/**
+	 * Constructor with a zeek::Args argument.
+	 */
+	explicit HookArgument(const zeek::Args* args)	{ type = ARG_LIST; arg.args = args; }
+
+	/**
 	 * Returns the value for a boolen argument. The argument's type must
 	 * match accordingly.
 	 */
@@ -339,6 +346,11 @@ public:
 	const val_list* AsValList() const	{ assert(type == VAL_LIST); return arg.vals; }
 
 	/**
+	 * Returns the value as a zeek::Args.
+	 */
+	const zeek::Args* AsArgList() const	{ assert(type == ARG_LIST); return arg.args; }
+
+	/**
 	 * Returns the value for a vod pointer argument. The argument's type
 	 * must match accordingly.
 	 */
@@ -368,6 +380,7 @@ private:
 		int int_;
 		const Val* val;
 		const val_list* vals;
+		const zeek::Args* args;
 		const void* voidp;
 		const logging::WriterBackend::WriterInfo* winfo;
 		const Location* loc;
@@ -664,12 +677,15 @@ protected:
 	 * in place as long as it ensures matching types and correct reference
 	 * counting.
 	 *
-	 * @return If the plugin handled the call, a std::pair<bool, Val*> with the
-	 * processed flag set to true, and a value set on the object with
-	 * a+1 reference count containing the result value to pass back to the
-	 * interpreter.  If the plugin did not handle the call, it must
-	 * return a pair with the processed flag set to 'false'.
+	 * @return If the plugin handled the call, a pair with the first member
+	 * set to true, and a Val representing the result value to pass back to the
+	 * interpreter. If the plugin did not handle the call, it must return a
+	 * pair with the first member set to 'false' and null result value.
 	 */
+	virtual std::pair<bool, IntrusivePtr<Val>>
+	HookFunctionCall(const Func* func, Frame* parent, zeek::Args* args);
+
+	[[deprecated("Remove in v4.1.  Use HookFunctionCall()")]]
 	virtual std::pair<bool, Val*> HookCallFunction(const Func* func, Frame *parent, val_list* args);
 
 	/**

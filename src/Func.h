@@ -60,7 +60,7 @@ public:
 	 * @param parent  the frame from which the function is being called.
 	 * @return  the return value of the function call.
 	 */
-	virtual IntrusivePtr<Val> operator()(const zeek::Args& args,
+	virtual IntrusivePtr<Val> operator()(zeek::Args* args,
 	                                     Frame* parent = nullptr) const = 0;
 
 	/**
@@ -72,7 +72,10 @@ public:
 	                        IntrusivePtr<Val>>,
 	  IntrusivePtr<Val>>
 	operator()(Args&&... args) const
-		{ return operator()(zeek::Args{std::forward<Args>(args)...}); }
+		{
+		auto zargs = zeek::Args{std::forward<Args>(args)...};
+		return operator()(&zargs);
+		}
 
 	// Add a new event handler to an existing function (event).
 	virtual void AddBody(IntrusivePtr<Stmt> new_body, id_list* new_inits,
@@ -110,7 +113,7 @@ protected:
 	void CopyStateInto(Func* other) const;
 
 	// Helper function for checking result of plugin hook.
-	void CheckPluginResult(bool hooked, const IntrusivePtr<Val>& hook_result,
+	void CheckPluginResult(bool handled, const IntrusivePtr<Val>& hook_result,
 	                       function_flavor flavor) const;
 
 	std::vector<Body> bodies;
@@ -129,7 +132,7 @@ public:
 	~BroFunc() override;
 
 	bool IsPure() const override;
-	IntrusivePtr<Val> operator()(const zeek::Args& args, Frame* parent) const override;
+	IntrusivePtr<Val> operator()(zeek::Args* args, Frame* parent) const override;
 
 	/**
 	 * Adds adds a closure to the function. Closures are cloned and
@@ -225,7 +228,7 @@ public:
 	~BuiltinFunc() override;
 
 	bool IsPure() const override;
-	IntrusivePtr<Val> operator()(const zeek::Args& args, Frame* parent) const override;
+	IntrusivePtr<Val> operator()(zeek::Args* args, Frame* parent) const override;
 	built_in_func TheFunc() const	{ return func; }
 
 	void Describe(ODesc* d) const override;

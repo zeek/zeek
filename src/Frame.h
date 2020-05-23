@@ -11,6 +11,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <memory>
 
 #include <broker/data.hh>
 #include <broker/expected.hh>
@@ -41,7 +42,7 @@ public:
 	 * @param n the index to get.
 	 * @return the value at index *n* of the underlying array.
 	 */
-	Val* NthElement(int n) const	{ return frame[n]; }
+	Val* NthElement(int n) const	{ return frame[n].get(); }
 
 	/**
 	 * Sets the element at index *n* of the underlying array
@@ -80,12 +81,6 @@ public:
 	 * @param the first index to unref.
 	 */
 	void Reset(int startIdx);
-
-	/**
-	 * Resets all of the values in the frame and clears out the
-	 * underlying array.
-	 */
-	void Release();
 
 	/**
 	 * Describes the frame and all of its values.
@@ -269,7 +264,7 @@ private:
 	bool delayed;
 
 	/** Associates ID's offsets with values. */
-	Val** frame;
+	std::unique_ptr<IntrusivePtr<Val>[]> frame;
 
 	/** Values that are weakly referenced by the frame.  Used to
 	 * prevent circular reference memory leaks in lambda/closures */

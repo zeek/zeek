@@ -17,7 +17,7 @@ std::vector<Frame*> g_frame_stack;
 Frame::Frame(int arg_size, const BroFunc* func, const zeek::Args* fn_args)
 	{
 	size = arg_size;
-	frame = new Val*[size];
+	frame = std::make_unique<IntrusivePtr<Val>[]>(size);
 	function = func;
 	func_args = fn_args;
 
@@ -29,9 +29,6 @@ Frame::Frame(int arg_size, const BroFunc* func, const zeek::Args* fn_args)
 	delayed = false;
 
 	closure = nullptr;
-
-	for (int i = 0; i < size; ++i)
-		frame[i] = nullptr;
 	}
 
 Frame::~Frame()
@@ -51,7 +48,8 @@ Frame::~Frame()
 	for ( auto& i : outer_ids )
 		Unref(i);
 
-	Release();
+	for ( int i = 0; i < size; ++i )
+		UnrefElement(i);
 
 	delete [] weak_refs;
 	}
@@ -69,7 +67,7 @@ void Frame::AddFunctionWithClosureRef(BroFunc* func)
 void Frame::SetElement(int n, Val* v, bool weak_ref)
 	{
 	UnrefElement(n);
-	frame[n] = v;
+	frame[n] = {AdoptRef{}, v};
 
 	if ( weak_ref )
 		{
@@ -132,10 +130,10 @@ Val* Frame::GetElement(const ID* id) const
 		{
 		auto where = offset_map->find(std::string(id->Name()));
 		if ( where != offset_map->end() )
-			return frame[where->second];
+			return frame[where->second].get();
 		}
 
-	return frame[id->Offset()];
+	return frame[id->Offset()].get();
 	}
 
 void Frame::Reset(int startIdx)
@@ -145,14 +143,6 @@ void Frame::Reset(int startIdx)
 		UnrefElement(i);
 		frame[i] = nullptr;
 		}
-	}
-
-void Frame::Release()
-	{
-	for ( int i = 0; i < size; ++i )
-		UnrefElement(i);
-
-	delete [] frame;
 	}
 
 void Frame::Describe(ODesc* d) const
@@ -190,13 +180,14 @@ Frame* Frame::Clone() const
 	other->call = call;
 	other->trigger = trigger;
 
-	for (int i = 0; i < size; i++)
-		other->frame[i] = frame[i] ? frame[i]->Clone().release() : nullptr;
+	for ( int i = 0; i < size; i++ )
+		if ( frame[i] )
+			other->frame[i] = frame[i]->Clone();
 
 	return other;
 	}
 
-static bool val_is_func(Val* v, BroFunc* func)
+static bool val_is_func(const IntrusivePtr<Val>& v, BroFunc* func)
 	{
 	if ( v->GetType()->Tag() != TYPE_FUNC )
 		return false;
@@ -204,17 +195,18 @@ static bool val_is_func(Val* v, BroFunc* func)
 	return v->AsFunc() == func;
 	}
 
-static void clone_if_not_func(Val** frame, int offset, BroFunc* func,
+static void clone_if_not_func(const std::unique_ptr<IntrusivePtr<Val>[]>& frame,
+                              int offset, BroFunc* func,
                               Frame* other)
 	{
-	auto v = frame[offset];
+	const auto& v = frame[offset];
 
 	if ( ! v )
 		return;
 
 	if ( val_is_func(v, func) )
 		{
-		other->SetElement(offset, v, true);
+		other->SetElement(offset, v.get(), true);
 		return;
 		}
 
@@ -355,11 +347,11 @@ broker::expected<broker::data> Frame::Serialize(const Frame* target, const id_li
 		if (where != new_map.end())
 			location = where->second;
 
-		Val* val = target->frame[location];
+		const auto& val = target->frame[location];
 
 		TypeTag tag = val->GetType()->Tag();
 
-		auto expected = bro_broker::val_to_data(val);
+		auto expected = bro_broker::val_to_data(val.get());
 		if ( ! expected )
 			return broker::ec::invalid_data;
 
@@ -490,7 +482,7 @@ std::pair<bool, IntrusivePtr<Frame>> Frame::Unserialize(const broker::vector& da
 		if ( ! val )
 			return std::make_pair(false, nullptr);
 
-		rf->frame[i] = val.release();
+		rf->frame[i] = std::move(val);
 		}
 
 	return std::make_pair(true, std::move(rf));
@@ -542,9 +534,9 @@ void Frame::ClearTrigger()
 void Frame::UnrefElement(int n)
 	{
 	if ( weak_refs && weak_refs[n] )
-		return;
-
-	Unref(frame[n]);
+		frame[n].release();
+	else
+		frame[n] = nullptr;
 	}
 
 bool Frame::IsOuterID(const ID* in) const

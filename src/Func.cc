@@ -59,7 +59,7 @@ extern	RETSIGTYPE sig_handler(int signo);
 std::vector<CallInfo> call_stack;
 bool did_builtin_init = false;
 
-static const std::pair<bool, Val*> empty_hook_result(false, NULL);
+static const std::pair<bool, IntrusivePtr<Val>> empty_hook_result(false, nullptr);
 
 std::string render_call_stack()
 	{
@@ -214,31 +214,34 @@ void Func::CopyStateInto(Func* other) const
 	other->unique_id = unique_id;
 	}
 
-std::pair<bool, Val*> Func::HandlePluginResult(std::pair<bool, Val*> plugin_result, function_flavor flavor) const
+void Func::CheckPluginResult(bool hooked, const IntrusivePtr<Val>& hook_result,
+                             function_flavor flavor) const
 	{
 	// Helper function factoring out this code from BroFunc:Call() for
 	// better readability.
 
-	if( ! plugin_result.first )
+	if ( ! hooked )
 		{
-		if( plugin_result.second )
+		if ( hook_result )
 			reporter->InternalError("plugin set processed flag to false but actually returned a value");
 
 		// The plugin result hasn't been processed yet (read: fall
 		// into ::Call method).
-		return plugin_result;
+		return;
 		}
 
 	switch ( flavor ) {
 	case FUNC_FLAVOR_EVENT:
-		if( plugin_result.second )
-			reporter->InternalError("plugin returned non-void result for event %s", this->Name());
+		if ( hook_result )
+			reporter->InternalError("plugin returned non-void result for event %s",
+			                        this->Name());
 
 		break;
 
 	case FUNC_FLAVOR_HOOK:
-		if ( plugin_result.second->GetType()->Tag() != TYPE_BOOL )
-			reporter->InternalError("plugin returned non-bool for hook %s", this->Name());
+		if ( hook_result->GetType()->Tag() != TYPE_BOOL )
+			reporter->InternalError("plugin returned non-bool for hook %s",
+			                        this->Name());
 
 		break;
 
@@ -248,21 +251,20 @@ std::pair<bool, Val*> Func::HandlePluginResult(std::pair<bool, Val*> plugin_resu
 
 		if ( (! yt) || yt->Tag() == TYPE_VOID )
 			{
-			if( plugin_result.second )
-				reporter->InternalError("plugin returned non-void result for void method %s", this->Name());
+			if ( hook_result )
+				reporter->InternalError("plugin returned non-void result for void method %s",
+				                        this->Name());
 			}
 
-		else if ( plugin_result.second && plugin_result.second->GetType()->Tag() != yt->Tag() && yt->Tag() != TYPE_ANY)
+		else if ( hook_result && hook_result->GetType()->Tag() != yt->Tag() && yt->Tag() != TYPE_ANY )
 			{
 			reporter->InternalError("plugin returned wrong type (got %d, expecting %d) for %s",
-						plugin_result.second->GetType()->Tag(), yt->Tag(), this->Name());
+			                        hook_result->GetType()->Tag(), yt->Tag(), this->Name());
 			}
 
 		break;
 		}
 	}
-
-	return plugin_result;
 	}
 
 BroFunc::BroFunc(ID* arg_id, IntrusivePtr<Stmt> arg_body, id_list* aggr_inits,
@@ -307,12 +309,14 @@ IntrusivePtr<Val> BroFunc::operator()(const zeek::Args& args, Frame* parent) con
 	if ( sample_logger )
 		sample_logger->FunctionSeen(this);
 
-	std::pair<bool, Val*> plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), empty_hook_result);
+	auto [hooked, hook_result] = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION,
+	                                                     HookCallFunction(this, parent, args),
+	                                                     empty_hook_result);
 
-	plugin_result = HandlePluginResult(plugin_result,  Flavor());
+	CheckPluginResult(hooked, hook_result, Flavor());
 
-	if( plugin_result.first )
-		return {AdoptRef{}, plugin_result.second};
+	if ( hooked )
+		return hook_result;
 
 	if ( bodies.empty() )
 		{
@@ -613,12 +617,14 @@ IntrusivePtr<Val> BuiltinFunc::operator()(const zeek::Args& args, Frame* parent)
 	if ( sample_logger )
 		sample_logger->FunctionSeen(this);
 
-	std::pair<bool, Val*> plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), empty_hook_result);
+	auto [hooked, hook_result] = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION,
+	                                                     HookCallFunction(this, parent, args),
+	                                                     empty_hook_result);
 
-	plugin_result = HandlePluginResult(plugin_result, FUNC_FLAVOR_FUNCTION);
+	CheckPluginResult(hooked, hook_result, FUNC_FLAVOR_FUNCTION);
 
-	if ( plugin_result.first )
-		return {AdoptRef{}, plugin_result.second};
+	if ( hooked )
+		return hook_result;
 
 	if ( g_trace_state.DoTrace() )
 		{

@@ -109,8 +109,9 @@ protected:
 	// Copies this function's state into other.
 	void CopyStateInto(Func* other) const;
 
-	// Helper function for handling result of plugin hook.
-	std::pair<bool, Val*> HandlePluginResult(std::pair<bool, Val*> plugin_result, function_flavor flavor) const;
+	// Helper function for checking result of plugin hook.
+	void CheckPluginResult(bool hooked, const IntrusivePtr<Val>& hook_result,
+	                       function_flavor flavor) const;
 
 	std::vector<Body> bodies;
 	IntrusivePtr<Scope> scope;

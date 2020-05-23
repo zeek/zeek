@@ -14,6 +14,7 @@
 #include "../Reporter.h"
 #include "../Func.h"
 #include "../Event.h"
+#include "../Val.h"
 #include "../util.h"
 #include "../input.h"
 
@@ -621,7 +622,9 @@ int Manager::HookLoadFile(const Plugin::LoadType type, const string& file, const
 	return rc;
 	}
 
-std::pair<bool, Val*> Manager::HookCallFunction(const Func* func, Frame* parent, const zeek::Args& vecargs) const
+std::pair<bool, IntrusivePtr<Val>>
+Manager::HookCallFunction(const Func* func, Frame* parent,
+                          const zeek::Args& vecargs) const
 	{
 	HookArgumentList args;
 	std::optional<val_list> vargs;
@@ -641,7 +644,7 @@ std::pair<bool, Val*> Manager::HookCallFunction(const Func* func, Frame* parent,
 
 	hook_list* l = hooks[HOOK_CALL_FUNCTION];
 
-	std::pair<bool, Val*> v = std::pair<bool, Val*>(false, NULL);
+	std::pair<bool, Val*> rval{false, nullptr};
 
 	if ( l )
 		{
@@ -657,17 +660,17 @@ std::pair<bool, Val*> Manager::HookCallFunction(const Func* func, Frame* parent,
 			{
 			Plugin* p = (*i).second;
 
-			v = p->HookCallFunction(func, parent, &vargs.value());
+			rval = p->HookCallFunction(func, parent, &vargs.value());
 
-			if ( v.first )
+			if ( rval.first )
 				break;
 			}
 		}
 
 	if ( HavePluginForHook(META_HOOK_POST) )
-		MetaHookPost(HOOK_CALL_FUNCTION, args, HookArgument(v));
+		MetaHookPost(HOOK_CALL_FUNCTION, args, HookArgument(rval));
 
-	return v;
+	return {rval.first, {AdoptRef{}, rval.second}};
 	}
 
 bool Manager::HookQueueEvent(Event* event) const

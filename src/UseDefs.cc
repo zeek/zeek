@@ -100,6 +100,7 @@ bool UseDefs::RemoveUnused(int iter)
 					Ref(id);
 
 				auto new_init = new InitStmt(used_ids);
+				new_init->SetOriginal(init);
 				rc->AddStmtToReplace(s, new_init);
 				}
 

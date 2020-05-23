@@ -126,7 +126,24 @@ Expr* Inliner::CheckForInlining(CallExpr* c)
 	auto body = func_vf->GetBodies()[0].stmts;
 	auto t = c->Type();
 
-	return new InlineExpr(args, body, curr_frame_size, t);
+	// Getting the names of the parameters is tricky.  It's tempting
+	// to take them from the function's type declaration, but alas
+	// Zeek allows forward-declaring a function with one set of parameter
+	// names and then defining a later instance of it with different
+	// names, as long as the types match.  So we have to glue together
+	// the type declaration, which gives us the number of parameters,
+	// with the scope, which gives us all the variables declared in
+	// the function, *using the knowledge that the parameters are
+	// declared first*.
+	auto scope = func_vf->GetScope();
+	auto vars = scope->OrderedVars();
+	int nparam = func_vf->FType()->Args()->NumFields();
+
+	auto params = new id_list;
+	for ( int i = 0; i < nparam; ++i )
+		params->append(vars[i].get());
+
+	return new InlineExpr(args, params, body, curr_frame_size, t);
 	}
 
 bool Inliner::IsInlineAble(FuncInfo* f)

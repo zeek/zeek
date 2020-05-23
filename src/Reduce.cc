@@ -29,6 +29,30 @@ IntrusivePtr<Expr> Reducer::GenTemporaryExpr(const IntrusivePtr<BroType>& t,
 	return {AdoptRef{}, new NameExpr(GenTemporary(t, rhs))};
 	}
 
+NameExpr* Reducer::UpdateName(NameExpr* n)
+	{
+	if ( inline_block_level == 0 || n->Id()->IsGlobal() || IsNewLocal(n) )
+		{
+		Ref(n);
+		return n;
+		}
+
+	return new NameExpr(FindNewLocal(n));
+	}
+
+bool Reducer::NameIsReduced(const NameExpr* n) const
+	{
+	return inline_block_level == 0 || n->Id()->IsGlobal() || IsNewLocal(n);
+	}
+
+IntrusivePtr<NameExpr> Reducer::GenInlineBlockName(ID* id)
+	{
+	return make_intrusive<NameExpr>(GenLocal(id));
+	}
+
+// void PushInlineBlock(bool have_ret_val)	{ ++inline_block_level; }
+// Expr* PopInlineBlock()	{ --inline_block_level; }
+
 bool Reducer::SameVal(const Val* v1, const Val* v2) const
 	{
 	if ( is_atomic_val(v1) )
@@ -621,6 +645,45 @@ IntrusivePtr<ID> Reducer::GenTemporary(const IntrusivePtr<BroType>& t,
 	ids_to_temps[temp_id.get()] = temp;
 
 	return temp_id;
+	}
+
+IntrusivePtr<ID> Reducer::FindNewLocal(const NameExpr* n)
+	{
+	auto id = n->Id();
+	auto mapping = orig_to_new_locals.find(id);
+
+	if ( mapping != orig_to_new_locals.end() )
+		return mapping->second;
+
+	return GenLocal(id);
+	}
+
+IntrusivePtr<ID> Reducer::GenLocal(ID* orig)
+	{
+	if ( Optimizing() )
+		reporter->InternalError("Generating a new local while optimizing");
+
+	if ( omitted_stmts.size() > 0 )
+		reporter->InternalError("Generating a new local while pruning statements");
+
+	char buf[8192];
+	int n = new_locals.size();
+	snprintf(buf, sizeof buf, "%s.%u", orig->Name(), n);
+
+	IntrusivePtr<ID> local_id = install_ID(buf, "<internal>", false, false);
+	IntrusivePtr<BroType> t = {NewRef{}, orig->Type()};
+	local_id->SetType(t);
+
+	new_locals.insert(local_id.get());
+	orig_to_new_locals[orig] = local_id;
+
+	return local_id;
+	}
+
+bool Reducer::IsNewLocal(const NameExpr* n) const
+	{
+	auto id = n->Id();
+	return new_locals.find(id) != new_locals.end();
 	}
 
 TempVar* Reducer::FindTemporary(const ID* id) const

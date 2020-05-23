@@ -26,7 +26,7 @@ protected:
 	virtual IntrusivePtr<Val> DoExec(const std::vector<IntrusivePtr<Val>>& vals,
 	                                 stmt_flow_type& flow) const = 0;
 
-	bool IsReduced() const override;
+	bool IsReduced(Reducer* c) const override;
 	Stmt* DoReduce(Reducer* c) override;
 
 	void Inline(Inliner* inl) override;
@@ -78,7 +78,7 @@ protected:
 	virtual IntrusivePtr<Val> DoExec(Frame* f, Val* v, stmt_flow_type& flow) const;
 
 	bool IsPure() const override;
-	bool IsReduced() const override;
+	bool IsReduced(Reducer* c) const override;
 	Stmt* DoReduce(Reducer* c) override;
 
 	void Inline(Inliner* inl) override;
@@ -103,7 +103,7 @@ public:
 protected:
 	IntrusivePtr<Val> DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
 	bool IsPure() const override;
-	bool IsReduced() const override;
+	bool IsReduced(Reducer* c) const override;
 	Stmt* DoReduce(Reducer* c) override;
 
 	void Inline(Inliner* inl) override;
@@ -167,7 +167,7 @@ public:
 protected:
 	IntrusivePtr<Val> DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
 	bool IsPure() const override;
-	bool IsReduced() const override;
+	bool IsReduced(Reducer* c) const override;
 	Stmt* DoReduce(Reducer* c) override;
 
 	void Inline(Inliner* inl) override;
@@ -205,7 +205,7 @@ public:
 	bool IsPure() const override;
 
 	Stmt* DoReduce(Reducer* c) override;
-	bool IsReduced() const override;
+	bool IsReduced(Reducer* c) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -254,7 +254,7 @@ public:
 	~WhileStmt() override;
 
 	bool IsPure() const override;
-	bool IsReduced() const override;
+	bool IsReduced(Reducer* c) const override;
 	Stmt* DoReduce(Reducer* c) override;
 
 	void Inline(Inliner* inl) override;
@@ -302,7 +302,7 @@ public:
 	const Stmt* LoopBody() const	{ return body.get(); }
 
 	bool IsPure() const override;
-	bool IsReduced() const override;
+	bool IsReduced(Reducer* c) const override;
 	Stmt* DoReduce(Reducer* c) override;
 
 	void Inline(Inliner* inl) override;
@@ -386,6 +386,24 @@ public:
 	void StmtDescribe(ODesc* d) const override;
 };
 
+// Internal statement used for inlining.  Executes a block and stops
+// the propagation of any "return" inside the block.
+class CatchReturnStmt : public Stmt {
+public:
+	explicit CatchReturnStmt(IntrusivePtr<Stmt> block);
+
+	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
+
+	// No reduction method because generated in reduced form.
+
+	const CompiledStmt Compile(Compiler* c) const override;
+
+	void StmtDescribe(ODesc* d) const override;
+
+protected:
+	IntrusivePtr<Stmt> block;
+};
+
 class StmtList : public Stmt {
 public:
 	StmtList();
@@ -421,7 +439,7 @@ protected:
 		}
 
 	bool IsPure() const override;
-	bool IsReduced() const override;
+	bool IsReduced(Reducer* c) const override;
 
 	stmt_list* stmts;
 };
@@ -475,7 +493,7 @@ public:
 	const CompiledStmt Compile(Compiler* c) const override;
 
 	bool IsPure() const override;
-	bool IsReduced() const override;
+	bool IsReduced(Reducer* c) const override;
 
 	const Expr* Cond() const	{ return cond.get(); }
 	const Stmt* Body() const	{ return s1.get(); }
@@ -502,7 +520,7 @@ public:
 
 	const CompiledStmt Compile(Compiler* c) const override;
 
-	bool IsReduced() const override;
+	bool IsReduced(Reducer* c) const override;
 	Stmt* DoReduce(Reducer* c) override;
 
 	void StmtDescribe(ODesc* d) const override;

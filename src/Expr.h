@@ -165,10 +165,10 @@ public:
 
 	// True if the expression is in fully reduced form: a singleton
 	// or an assignment to an operator with singleton operands.
-	virtual bool IsReduced() const;
+	virtual bool IsReduced(Reducer* c) const;
 
 	// True if the expression's operands are singletons.
-	virtual bool HasReducedOps() const;
+	virtual bool HasReducedOps(Reducer* c) const;
 
 	// Returns a set of predecessor statements in red_stmt (which might
 	// be nil if no reduction necessary), and the reduced version of
@@ -211,7 +211,7 @@ public:
 	// something beyond assignment to a temporary.  Necessary so that
 	// we know to fully reduce such expressions if they're the RHS
 	// of an assignment.
-	virtual bool WillTransform() const	{ return false; }
+	virtual bool WillTransform(Reducer* c) const	{ return false; }
 
 	// True if the expression is in error (to alleviate error propagation).
 	bool IsError() const;
@@ -391,6 +391,9 @@ public:
 	bool IsPure() const override;
 	bool HasNoSideEffects() const override	{ return true; }
 
+	bool IsReduced(Reducer* c) const override;
+	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
+
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
@@ -430,8 +433,8 @@ public:
 
 	bool IsPure() const override;
 	bool HasNoSideEffects() const override;
-	bool IsReduced() const override;
-	bool HasReducedOps() const override;
+	bool IsReduced(Reducer* c) const override;
+	bool HasReducedOps(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	Expr* Inline(Inliner* inl) override;
 
@@ -461,8 +464,8 @@ public:
 
 	bool IsPure() const override;
 	bool HasNoSideEffects() const override;
-	bool IsReduced() const override;
-	bool HasReducedOps() const override;
+	bool IsReduced(Reducer* c) const override;
+	bool HasReducedOps(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	Expr* Inline(Inliner* inl) override;
 
@@ -534,9 +537,9 @@ public:
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 	IntrusivePtr<Val> DoSingleEval(Frame* f, Val* v) const;
 
-	bool IsReduced() const override;
-	bool HasReducedOps() const override	{ return false; }
-	bool WillTransform() const override	{ return true; }
+	bool IsReduced(Reducer* c) const override;
+	bool HasReducedOps(Reducer* c) const override	{ return false; }
+	bool WillTransform(Reducer* c) const override	{ return true; }
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	Expr* ReduceToSingleton(Reducer* c,
 				IntrusivePtr<Stmt>& red_stmt) override;
@@ -552,7 +555,7 @@ public:
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
-	bool WillTransform() const override;
+	bool WillTransform(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
@@ -562,7 +565,7 @@ public:
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
-	bool WillTransform() const override;
+	bool WillTransform(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
@@ -572,7 +575,7 @@ public:
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
-	bool WillTransform() const override;
+	bool WillTransform(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
@@ -582,7 +585,7 @@ public:
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
-	bool WillTransform() const override;
+	bool WillTransform(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
@@ -600,7 +603,7 @@ public:
 	AddExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	void Canonicize() override;
 
-	bool WillTransform() const override;
+	bool WillTransform(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	Expr* BuildSub(const IntrusivePtr<Expr>& op1,
 			const IntrusivePtr<Expr>& op2);
@@ -611,7 +614,7 @@ public:
 	AddToExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
-	bool WillTransform() const override	{ return true; }
+	bool WillTransform(Reducer* c) const override	{ return true; }
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
@@ -620,7 +623,7 @@ public:
 	AppendToExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
-	bool IsReduced() const override;
+	bool IsReduced(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	const CompiledStmt Compile(Compiler* c) const override;
 };
@@ -630,7 +633,7 @@ public:
 	RemoveFromExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
-	bool WillTransform() const override	{ return true; }
+	bool WillTransform(Reducer* c) const override	{ return true; }
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
@@ -638,7 +641,7 @@ class SubExpr : public BinaryExpr {
 public:
 	SubExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 
-	bool WillTransform() const override;
+	bool WillTransform(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
@@ -647,7 +650,7 @@ public:
 	TimesExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	void Canonicize() override;
 
-	bool WillTransform() const override;
+	bool WillTransform(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
@@ -658,7 +661,7 @@ public:
 protected:
 	IntrusivePtr<Val> AddrFold(Val* v1, Val* v2) const override;
 
-	bool WillTransform() const override;
+	bool WillTransform(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
@@ -674,7 +677,7 @@ public:
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 	IntrusivePtr<Val> DoSingleEval(Frame* f, IntrusivePtr<Val> v1, Expr* op2) const;
 
-	bool WillTransform() const override	{ return true; }
+	bool WillTransform(Reducer* c) const override	{ return true; }
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	bool IsTrue(const IntrusivePtr<Expr>& e) const;
 	bool IsFalse(const IntrusivePtr<Expr>& e) const;
@@ -684,7 +687,7 @@ class BitExpr : public BinaryExpr {
 public:
 	BitExpr(BroExprTag tag, IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 
-	bool WillTransform() const override;
+	bool WillTransform(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
@@ -695,7 +698,7 @@ public:
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v1, Val* v2) const override;
-	bool WillTransform() const override;
+	bool WillTransform(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
@@ -703,7 +706,7 @@ class RelExpr : public BinaryExpr {
 public:
 	RelExpr(BroExprTag tag, IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 	void Canonicize() override;
-	bool WillTransform() const override;
+	bool WillTransform(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
@@ -725,9 +728,9 @@ public:
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 	bool IsPure() const override;
-	bool IsReduced() const override;
-	bool HasReducedOps() const override;
-	bool WillTransform() const override;
+	bool IsReduced(Reducer* c) const override;
+	bool HasReducedOps(Reducer* c) const override;
+	bool WillTransform(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	IntrusivePtr<Stmt> ReduceToSingletons(Reducer* c) override;
 	Expr* Inline(Inliner* inl) override;
@@ -749,9 +752,9 @@ public:
 	void Assign(Frame* f, IntrusivePtr<Val> v) override;
 	IntrusivePtr<Expr> MakeLvalue() override;
 
-	bool IsReduced() const override;
-	bool HasReducedOps() const override;
-	bool WillTransform() const override;
+	bool IsReduced(Reducer* c) const override;
+	bool HasReducedOps(Reducer* c) const override;
+	bool WillTransform(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 
 	// Reduce to simplifed LHS form, i.e., a reference to only a name.
@@ -773,9 +776,9 @@ public:
 	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
 	bool IsPure() const override;
 	bool HasNoSideEffects() const override;
-	bool IsReduced() const override;
-	bool HasReducedOps() const override;
-	bool WillTransform() const override	{ return true; }
+	bool IsReduced(Reducer* c) const override;
+	bool HasReducedOps(Reducer* c) const override;
+	bool WillTransform(Reducer* c) const override	{ return true; }
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	Expr* ReduceToSingleton(Reducer* c,
 				IntrusivePtr<Stmt>& red_stmt) override;
@@ -807,8 +810,8 @@ public:
 			IntrusivePtr<Expr> op3);
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
-	bool IsReduced() const override;
-	bool HasReducedOps() const override;
+	bool IsReduced(Reducer* c) const override;
+	bool HasReducedOps(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	Expr* ReduceToSingleton(Reducer* c,
 				IntrusivePtr<Stmt>& red_stmt) override;
@@ -845,7 +848,7 @@ public:
 	void Delete(Frame* f) override;
 
 	void Assign(Frame* f, IntrusivePtr<Val> v) override;
-	bool HasReducedOps() const override;
+	bool HasReducedOps(Reducer* c) const override;
 	IntrusivePtr<Expr> MakeLvalue() override;
 
 	// Need to override Eval since it can take a vector arg but does
@@ -905,8 +908,8 @@ public:
 	int Field() const		{ return field; }
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
-	bool IsReduced() const override;
-	bool HasReducedOps() const override;
+	bool IsReduced(Reducer* c) const override;
+	bool HasReducedOps(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	Expr* ReduceToSingleton(Reducer* c,
 				IntrusivePtr<Stmt>& red_stmt) override;
@@ -972,7 +975,7 @@ protected:
 	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
 	IntrusivePtr<Val> Fold(Val* v) const override;
 
-	bool HasReducedOps() const override;
+	bool HasReducedOps(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	IntrusivePtr<Stmt> ReduceToSingletons(Reducer* c) override;
 
@@ -989,7 +992,7 @@ public:
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
-	bool HasReducedOps() const override;
+	bool HasReducedOps(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	IntrusivePtr<Stmt> ReduceToSingletons(Reducer* c) override;
 
@@ -1011,7 +1014,7 @@ public:
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
-	bool HasReducedOps() const override;
+	bool HasReducedOps(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	IntrusivePtr<Stmt> ReduceToSingletons(Reducer* c) override;
 
@@ -1029,7 +1032,7 @@ public:
 	                               IntrusivePtr<BroType> arg_type = nullptr);
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
-	bool HasReducedOps() const override;
+	bool HasReducedOps(Reducer* c) const override;
 
 protected:
 	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
@@ -1044,7 +1047,7 @@ public:
 	const char* FieldName() const	{ return field_name.c_str(); }
 
 	void EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const override;
-	bool WillTransform() const override	{ return true; }
+	bool WillTransform(Reducer* c) const override	{ return true; }
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 
 	bool IsRecordElement(TypeDecl* td) const override;
@@ -1063,7 +1066,7 @@ protected:
 	IntrusivePtr<Val> FoldSingleVal(Val* v, InternalTypeTag t) const;
 	IntrusivePtr<Val> Fold(Val* v) const override;
 
-	bool WillTransform() const override;
+	bool WillTransform(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 };
 
@@ -1140,8 +1143,8 @@ public:
 	ScheduleExpr(IntrusivePtr<Expr> when, IntrusivePtr<EventExpr> event);
 
 	bool IsPure() const override;
-	bool IsReduced() const override;
-	bool HasReducedOps() const override;
+	bool IsReduced(Reducer* c) const override;
+	bool HasReducedOps(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	Expr* Inline(Inliner* inl) override;
 	const CompiledStmt Compile(Compiler* c) const override;
@@ -1170,7 +1173,7 @@ class InExpr : public BinaryExpr {
 public:
 	InExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
 
-	bool HasReducedOps() const override;
+	bool HasReducedOps(Reducer* c) const override;
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v1, Val* v2) const override;
@@ -1186,8 +1189,8 @@ public:
 	ListExpr* Args() const	{ return args.get(); }
 
 	bool IsPure() const override;
-	bool IsReduced() const override;
-	bool HasReducedOps() const override;
+	bool IsReduced(Reducer* c) const override;
+	bool HasReducedOps(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	IntrusivePtr<Stmt> ReduceToSingletons(Reducer* c) override;
 	Expr* Inline(Inliner* inl) override;
@@ -1206,13 +1209,13 @@ protected:
 
 class InlineExpr : public Expr {
 public:
-	InlineExpr(IntrusivePtr<ListExpr> arg_args, IntrusivePtr<Stmt> body,
-			int frame_offset, IntrusivePtr<BroType> ret_type);
+	InlineExpr(IntrusivePtr<ListExpr> arg_args, id_list* params,
+			IntrusivePtr<Stmt> body, int frame_offset,
+			IntrusivePtr<BroType> ret_type);
 
 	bool IsPure() const override;
-	bool IsReduced() const override;
+	bool IsReduced(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
-	const CompiledStmt Compile(Compiler* c) const override;
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
@@ -1221,6 +1224,7 @@ public:
 protected:
 	void ExprDescribe(ODesc* d) const override;
 
+	id_list* params;
 	int frame_offset;
 	IntrusivePtr<ListExpr> args;
 	IntrusivePtr<Stmt> body;
@@ -1269,8 +1273,8 @@ public:
 
 	// True if the entire list represents pure values / reduced expressions.
 	bool IsPure() const override;
-	bool IsReduced() const override;
-	bool HasReducedOps() const override;
+	bool IsReduced(Reducer* c) const override;
+	bool HasReducedOps(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	IntrusivePtr<Stmt> ReduceToSingletons(Reducer* c) override;
 	Expr* Inline(Inliner* inl) override;
@@ -1303,7 +1307,7 @@ public:
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 	bool IsPure() const override	{ return false; }
-	bool IsReduced() const override;
+	bool IsReduced(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	IntrusivePtr<Stmt> ReduceToSingletons(Reducer* c) override;
 	Expr* Inline(Inliner* inl) override;

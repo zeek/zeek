@@ -219,12 +219,12 @@ bool Expr::IsPure() const
 	return true;
 	}
 
-bool Expr::IsReduced() const
+bool Expr::IsReduced(Reducer* c) const
 	{
 	return true;
 	}
 
-bool Expr::HasReducedOps() const
+bool Expr::HasReducedOps(Reducer* c) const
 	{
 	return true;
 	}
@@ -557,6 +557,21 @@ bool NameExpr::IsPure() const
 	return f->IsPure();
 	}
 
+bool NameExpr::IsReduced(Reducer* c) const
+	{
+	return c->NameIsReduced(this);
+	}
+
+Expr* NameExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	red_stmt = nullptr;
+
+	if ( c->Optimizing() )
+		return this->Ref();
+
+	return c->UpdateName(this);
+	}
+
 TraversalCode NameExpr::Traverse(TraversalCallback* cb) const
 	{
 	TraversalCode tc = cb->PreExpr(this);
@@ -663,12 +678,12 @@ bool UnaryExpr::HasNoSideEffects() const
 	return op->HasNoSideEffects();
 	}
 
-bool UnaryExpr::IsReduced() const
+bool UnaryExpr::IsReduced(Reducer* c) const
 	{
 	return NonReduced(this);
 	}
 
-bool UnaryExpr::HasReducedOps() const
+bool UnaryExpr::HasReducedOps(Reducer* c) const
 	{
 	return op->IsSingleton();
 	}
@@ -840,12 +855,12 @@ bool BinaryExpr::HasNoSideEffects() const
 	return op1->HasNoSideEffects() && op2->HasNoSideEffects();
 	}
 
-bool BinaryExpr::IsReduced() const
+bool BinaryExpr::IsReduced(Reducer* c) const
 	{
 	return NonReduced(this);
 	}
 
-bool BinaryExpr::HasReducedOps() const
+bool BinaryExpr::HasReducedOps(Reducer* c) const
 	{
 	return op1->IsSingleton() && op2->IsSingleton();
 	}
@@ -1391,7 +1406,7 @@ IntrusivePtr<Val> IncrExpr::Eval(Frame* f) const
 		}
 	}
 
-bool IncrExpr::IsReduced() const
+bool IncrExpr::IsReduced(Reducer* c) const
 	{
 	auto ref_op = op->AsRefExpr();
 	auto target = ref_op->GetOp1();
@@ -1399,7 +1414,7 @@ bool IncrExpr::IsReduced() const
 	if ( target->Tag() != EXPR_NAME || ! IsIntegral(target->Type()->Tag()) )
 		return NonReduced(this);
 
-	return ref_op->IsReduced();
+	return ref_op->IsReduced(c);
 	}
 
 Expr* IncrExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
@@ -1572,7 +1587,7 @@ IntrusivePtr<Val> ComplementExpr::Fold(Val* v) const
 	return {AdoptRef{}, val_mgr->GetCount(~ v->InternalUnsigned())};
 	}
 
-bool ComplementExpr::WillTransform() const
+bool ComplementExpr::WillTransform(Reducer* c) const
 	{
 	return op->Tag() == EXPR_COMPLEMENT;
 	}
@@ -1604,7 +1619,7 @@ IntrusivePtr<Val> NotExpr::Fold(Val* v) const
 	return {AdoptRef{}, val_mgr->GetBool(! v->InternalInt())};
 	}
 
-bool NotExpr::WillTransform() const
+bool NotExpr::WillTransform(Reducer* c) const
 	{
 	return op->Tag() == EXPR_NOT && Op()->Type()->Tag() == TYPE_BOOL;
 	}
@@ -1655,7 +1670,7 @@ IntrusivePtr<Val> PosExpr::Fold(Val* v) const
 		return {AdoptRef{}, val_mgr->GetInt(v->CoerceToInt())};
 	}
 
-bool PosExpr::WillTransform() const
+bool PosExpr::WillTransform(Reducer* c) const
 	{
 	return op->Type()->Tag() != TYPE_COUNT;
 	}
@@ -1709,7 +1724,7 @@ IntrusivePtr<Val> NegExpr::Fold(Val* v) const
 		return {AdoptRef{}, val_mgr->GetInt(- v->CoerceToInt())};
 	}
 
-bool NegExpr::WillTransform() const
+bool NegExpr::WillTransform(Reducer* c) const
 	{
 	return op->Tag() == EXPR_NEGATE;
 	}
@@ -1796,7 +1811,7 @@ void AddExpr::Canonicize()
 		SwapOps();
 	}
 
-bool AddExpr::WillTransform() const
+bool AddExpr::WillTransform(Reducer* c) const
 	{
 	return op1->IsZero() || op2->IsZero() ||
 		op1->Tag() == EXPR_NEGATE || op2->Tag() == EXPR_NEGATE;
@@ -1968,7 +1983,7 @@ IntrusivePtr<Val> AppendToExpr::Eval(Frame* f) const
 	return v1;
 	}
 
-bool AppendToExpr::IsReduced() const
+bool AppendToExpr::IsReduced(Reducer* c) const
 	{
 	return true;
 	}
@@ -2042,7 +2057,7 @@ SubExpr::SubExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 		}
 	}
 
-bool SubExpr::WillTransform() const
+bool SubExpr::WillTransform(Reducer* c) const
 	{
 	return op2->IsZero() || op2->Tag() == EXPR_NEGATE || 
 		(type->Tag() != TYPE_VECTOR && type->Tag() != TYPE_TABLE &&
@@ -2171,7 +2186,7 @@ void TimesExpr::Canonicize()
 		SwapOps();
 	}
 
-bool TimesExpr::WillTransform() const
+bool TimesExpr::WillTransform(Reducer* c) const
 	{
 	return op1->IsZero() || op2->IsZero() || op1->IsOne() || op2->IsOne();
 	}
@@ -2241,7 +2256,7 @@ DivideExpr::DivideExpr(IntrusivePtr<Expr> arg_op1,
 		ExprError("requires arithmetic operands");
 	}
 
-bool DivideExpr::WillTransform() const
+bool DivideExpr::WillTransform(Reducer* c) const
 	{
 	return Type()->Tag() != TYPE_SUBNET && op2->IsOne();
 	}
@@ -2578,7 +2593,7 @@ BitExpr::BitExpr(BroExprTag arg_tag,
 		ExprError("requires \"count\" or compatible \"set\" operands");
 	}
 
-bool BitExpr::WillTransform() const
+bool BitExpr::WillTransform(Reducer* c) const
 	{
 	return Type()->Tag() == TYPE_COUNT &&
 		(op1->IsZero() || op2->IsZero() ||
@@ -2730,7 +2745,7 @@ IntrusivePtr<Val> EqExpr::Fold(Val* v1, Val* v2) const
 		return BinaryExpr::Fold(v1, v2);
 	}
 
-bool EqExpr::WillTransform() const
+bool EqExpr::WillTransform(Reducer* c) const
 	{
 	return Type()->Tag() == TYPE_BOOL && same_singletons(op1, op2);
 	}
@@ -2806,7 +2821,7 @@ void RelExpr::Canonicize()
 		}
 	}
 
-bool RelExpr::WillTransform() const
+bool RelExpr::WillTransform(Reducer* c) const
 	{
 	return Type()->Tag() == TYPE_BOOL && same_singletons(op1, op2);
 	}
@@ -2957,20 +2972,20 @@ bool CondExpr::IsPure() const
 	return op1->IsPure() && op2->IsPure() && op3->IsPure();
 	}
 
-bool CondExpr::IsReduced() const
+bool CondExpr::IsReduced(Reducer* c) const
 	{
 	return NonReduced(this);
 	}
 
-bool CondExpr::HasReducedOps() const
+bool CondExpr::HasReducedOps(Reducer* c) const
 	{
 	return op1->IsSingleton() && op2->IsSingleton() && op3->IsSingleton() &&
 		! op1->IsConst();
 	}
 
-bool CondExpr::WillTransform() const
+bool CondExpr::WillTransform(Reducer* c) const
 	{
-	return ! HasReducedOps();
+	return ! HasReducedOps(c);
 	}
 
 Expr* CondExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
@@ -3098,7 +3113,7 @@ void RefExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 	op->Assign(f, std::move(v));
 	}
 
-bool RefExpr::IsReduced() const
+bool RefExpr::IsReduced(Reducer* c) const
 	{
 	if ( op->Tag() == EXPR_NAME )
 		return true;
@@ -3106,23 +3121,23 @@ bool RefExpr::IsReduced() const
 	return NonReduced(this);
 	}
 
-bool RefExpr::HasReducedOps() const
+bool RefExpr::HasReducedOps(Reducer* c) const
 	{
 	switch ( op->Tag() ) {
 	case EXPR_NAME:
 		return true;
 
 	case EXPR_FIELD:
-		return op->AsFieldExpr()->Op()->IsReduced();
+		return op->AsFieldExpr()->Op()->IsReduced(c);
 
 	case EXPR_INDEX:
 		{
 		auto ind = op->AsIndexExpr();
-		return ind->Op1()->IsReduced() && ind->Op2()->IsReduced();
+		return ind->Op1()->IsReduced(c) && ind->Op2()->IsReduced(c);
 		}
 
 	case EXPR_LIST:
-		return op->IsReduced();
+		return op->IsReduced(c);
 
 	default:
 		Internal("bad operand in RefExpr::IsReduced");
@@ -3130,7 +3145,7 @@ bool RefExpr::HasReducedOps() const
 	}
 	}
 
-bool RefExpr::WillTransform() const
+bool RefExpr::WillTransform(Reducer* c) const
 	{
 	return op->Tag() != EXPR_NAME;
 	}
@@ -3593,7 +3608,7 @@ bool AssignExpr::HasNoSideEffects() const
 	return false;
 	}
 
-bool AssignExpr::IsReduced() const
+bool AssignExpr::IsReduced(Reducer* c) const
 	{
 	if ( op2->Tag() == EXPR_ASSIGN )
 		// Cascaded assignments are never reduced.
@@ -3609,21 +3624,21 @@ bool AssignExpr::IsReduced() const
 		// We are not reduced because we should instead be folded.
 		return false;
 
-	if ( ! op2->HasReducedOps() )
+	if ( ! op2->HasReducedOps(c) )
 		return false;
 
 	if ( op1->IsSingleton() )
 		return true;
 
 	if ( op1->Tag() == EXPR_REF )
-		return op1->AsRefExpr()->IsReduced();
+		return op1->AsRefExpr()->IsReduced(c);
 
 	return NonReduced(this);
 	}
 
-bool AssignExpr::HasReducedOps() const
+bool AssignExpr::HasReducedOps(Reducer* c) const
 	{
-	return op1->IsReduced() && op2->IsSingleton();
+	return op1->IsReduced(c) && op2->IsSingleton();
 	}
 
 Expr* AssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
@@ -3729,7 +3744,7 @@ Expr* AssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		return TransformMe(nop, c, red_stmt);
 		}
 
-	if ( op2->WillTransform() )
+	if ( op2->WillTransform(c) )
 		{
 		IntrusivePtr<Stmt> xform_stmt;
 		op2 = {AdoptRef{}, op2->ReduceToSingleton(c, xform_stmt)};
@@ -3747,7 +3762,7 @@ Expr* AssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	// always first reduce the operands, because for expressions
 	// like && and ||, that's incorrect.
 
-	if ( op2->WillTransform() )
+	if ( op2->WillTransform(c) )
 		{
 		IntrusivePtr<Stmt> xform_stmt;
 		op2 = {AdoptRef{}, op2->ReduceToSingleton(c, xform_stmt)};
@@ -3940,14 +3955,14 @@ IntrusivePtr<Val> IndexAssignExpr::Eval(Frame* f) const
 	return nullptr;
 	}
 
-bool IndexAssignExpr::IsReduced() const
+bool IndexAssignExpr::IsReduced(Reducer* c) const
 	{
 	// op2 is a ListExpr, not a singleton expression.
-	ASSERT(op1->IsSingleton() && op2->IsReduced() && op3->IsSingleton());
+	ASSERT(op1->IsSingleton() && op2->IsReduced(c) && op3->IsSingleton());
 	return true;
 	}
 
-bool IndexAssignExpr::HasReducedOps() const
+bool IndexAssignExpr::HasReducedOps(Reducer* c) const
 	{
 	return true;
 	}
@@ -4370,13 +4385,13 @@ void IndexExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 	AssignToIndex(v1, v2, v);
 	}
 
-bool IndexExpr::HasReducedOps() const
+bool IndexExpr::HasReducedOps(Reducer* c) const
 	{
 	if ( ! op1->IsSingleton() )
 		return NonReduced(this);
 
 	if ( op2->Tag() == EXPR_LIST )
-		return op2->HasReducedOps();
+		return op2->HasReducedOps(c);
 	else
 		{
 		if ( op2->IsSingleton() )
@@ -4461,16 +4476,16 @@ IntrusivePtr<Val> FieldLHSAssignExpr::Eval(Frame* f) const
 	return nullptr;
 	}
 
-bool FieldLHSAssignExpr::IsReduced() const
+bool FieldLHSAssignExpr::IsReduced(Reducer* c) const
 	{
-	if ( ! (op1->IsSingleton() && op2->IsReduced()) )
+	if ( ! (op1->IsSingleton() && op2->IsReduced(c)) )
 		printf("oops: %s\n", obj_desc(op2));
 		
-	ASSERT(op1->IsSingleton() && op2->IsReduced());
+	ASSERT(op1->IsSingleton() && op2->IsReduced(c));
 	return true;
 	}
 
-bool FieldLHSAssignExpr::HasReducedOps() const
+bool FieldLHSAssignExpr::HasReducedOps(Reducer* c) const
 	{
 	return true;
 	}
@@ -4744,7 +4759,7 @@ IntrusivePtr<Val> RecordConstructorExpr::Fold(Val* v) const
 	return rv;
 	}
 
-bool RecordConstructorExpr::HasReducedOps() const
+bool RecordConstructorExpr::HasReducedOps(Reducer* c) const
 	{
 	expr_list& exprs = op->AsListExpr()->Exprs();
 
@@ -4906,7 +4921,7 @@ IntrusivePtr<Val> TableConstructorExpr::Eval(Frame* f) const
 	return aggr;
 	}
 
-bool TableConstructorExpr::HasReducedOps() const
+bool TableConstructorExpr::HasReducedOps(Reducer* c) const
 	{
 	const expr_list& exprs = op->AsListExpr()->Exprs();
 
@@ -4914,7 +4929,7 @@ bool TableConstructorExpr::HasReducedOps() const
 		{
 		auto a = expr->AsAssignExpr();
 		// LHS is a list, not a singleton.
-		if ( ! a->GetOp1()->HasReducedOps() ||
+		if ( ! a->GetOp1()->HasReducedOps(c) ||
 		     ! a->GetOp2()->IsSingleton() )
 			return NonReduced(this);
 		}
@@ -5085,9 +5100,9 @@ IntrusivePtr<Val> SetConstructorExpr::Eval(Frame* f) const
 	return aggr;
 	}
 
-bool SetConstructorExpr::HasReducedOps() const
+bool SetConstructorExpr::HasReducedOps(Reducer* c) const
 	{
-	return op->IsReduced();
+	return op->IsReduced(c);
 	}
 
 Expr* SetConstructorExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
@@ -5207,9 +5222,9 @@ IntrusivePtr<Val> VectorConstructorExpr::Eval(Frame* f) const
 	return vec;
 	}
 
-bool VectorConstructorExpr::HasReducedOps() const
+bool VectorConstructorExpr::HasReducedOps(Reducer* c) const
 	{
-	return Op()->HasReducedOps();
+	return Op()->HasReducedOps(c);
 	}
 
 IntrusivePtr<Val> VectorConstructorExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) const
@@ -5283,7 +5298,7 @@ Expr* FieldAssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 
 	red_stmt = nullptr;
 
-	if ( ! op->IsReduced() )
+	if ( ! op->IsReduced(c) )
 		op = {AdoptRef{}, op->ReduceToSingleton(c, red_stmt)};
 
 	// Doesn't seem worth checking for constant folding.
@@ -5394,7 +5409,7 @@ IntrusivePtr<Val> ArithCoerceExpr::Fold(Val* v) const
 	return result;
 	}
 
-bool ArithCoerceExpr::WillTransform() const
+bool ArithCoerceExpr::WillTransform(Reducer* c) const
 	{
 	return op->Tag() == EXPR_CONST &&
 		IsArithmetic(op->AsConstExpr()->Value()->Type()->Tag());
@@ -5412,7 +5427,7 @@ Expr* ArithCoerceExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 
 	auto t = type->InternalType();
 
-	if ( ! op->IsReduced() )
+	if ( ! op->IsReduced(c) )
 		op = {AdoptRef{}, op->ReduceToSingleton(c, red_stmt)};
 
 	if ( op->Tag() == EXPR_CONST )
@@ -5805,12 +5820,12 @@ bool ScheduleExpr::IsPure() const
 	return false;
 	}
 
-bool ScheduleExpr::IsReduced() const
+bool ScheduleExpr::IsReduced(Reducer* c) const
 	{
-	return when->IsReduced() && event->IsReduced();
+	return when->IsReduced(c) && event->IsReduced(c);
 	}
 
-bool ScheduleExpr::HasReducedOps() const
+bool ScheduleExpr::HasReducedOps(Reducer* c) const
 	{
 	if ( when->IsSingleton() && event->IsSingleton() )
 		return true;
@@ -5830,7 +5845,7 @@ Expr* ScheduleExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 
 	red_stmt = nullptr;
 
-	if ( ! when->IsReduced() )
+	if ( ! when->IsReduced(c) )
 		when = {AdoptRef{}, when->Reduce(c, red_stmt)};
 
 	IntrusivePtr<Stmt> red2_stmt;
@@ -6060,9 +6075,9 @@ IntrusivePtr<Val> InExpr::Fold(Val* v1, Val* v2) const
 	return {AdoptRef{}, val_mgr->GetBool(res)};
 	}
 
-bool InExpr::HasReducedOps() const
+bool InExpr::HasReducedOps(Reducer* c) const
 	{
-	return op1->HasReducedOps() && op2->IsSingleton();
+	return op1->HasReducedOps(c) && op2->IsSingleton();
 	}
 
 
@@ -6176,17 +6191,17 @@ bool CallExpr::IsPure() const
 	return pure;
 	}
 
-bool CallExpr::IsReduced() const
+bool CallExpr::IsReduced(Reducer* c) const
 	{
-	return func->IsSingleton() && args->IsReduced();
+	return func->IsSingleton() && args->IsReduced(c);
 	}
 
-bool CallExpr::HasReducedOps() const
+bool CallExpr::HasReducedOps(Reducer* c) const
 	{
 	if ( ! func->IsSingleton() )
 		return NonReduced(this);
 
-	return args->HasReducedOps();
+	return args->HasReducedOps(c);
 	}
 
 Expr* CallExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
@@ -6316,11 +6331,12 @@ void CallExpr::ExprDescribe(ODesc* d) const
 	}
 
 
-InlineExpr::InlineExpr(IntrusivePtr<ListExpr> arg_args,
+InlineExpr::InlineExpr(IntrusivePtr<ListExpr> arg_args, id_list* arg_params,
 			IntrusivePtr<Stmt> arg_body, int _frame_offset,
 			IntrusivePtr<BroType> t)
 : Expr(EXPR_INLINE), args(std::move(arg_args)), body(std::move(arg_body))
 	{
+	params = arg_params;
 	frame_offset = _frame_offset;
 	type = t;
 	}
@@ -6330,26 +6346,43 @@ bool InlineExpr::IsPure() const
 	return args->IsPure() && body->IsPure();
 	}
 
-bool InlineExpr::IsReduced() const
+bool InlineExpr::IsReduced(Reducer* c) const
 	{
-	return args->IsReduced() && body->IsReduced();
+	return args->IsReduced(c) && body->IsReduced(c);
 	}
 
 Expr* InlineExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
-	body = {AdoptRef{}, body->Reduce(c)};
-
-	if ( c->Optimizing() )
-		{
-		auto e = c->UpdateExpr(args);
-		auto el = e->AsListExpr();
-		args = {NewRef{}, el};
-		return this->Ref();
-		}
+	// First, reduce each argument and assign it to a parameter.
+	// We do this one at a time because that will often allow the
+	// optimizer to collapse the final assignment.
 
 	red_stmt = nullptr;
 
-	return this->Ref();
+	auto args_list = args->Exprs();
+
+	loop_over_list(args_list, i)
+		{
+		IntrusivePtr<Stmt> arg_red_stmt;
+		auto red_i = args_list[i]->Reduce(c, arg_red_stmt);
+		IntrusivePtr<Expr> red_i_p = {AdoptRef{}, red_i};
+
+		auto param_i = c->GenInlineBlockName((*params)[i]);
+		auto assign = make_intrusive<AssignExpr>(param_i, red_i_p,
+						false, nullptr, nullptr, false);
+		auto assign_stmt = make_intrusive<ExprStmt>(assign);
+
+		red_stmt = MergeStmts(red_stmt, arg_red_stmt, assign_stmt);
+		}
+
+	bool have_ret_val = type && type->Tag() != TYPE_VOID;
+	c->PushInlineBlock(have_ret_val);
+
+	body = {AdoptRef{}, body->Reduce(c)};
+
+	red_stmt = MergeStmts(red_stmt, body);
+
+	return c->PopInlineBlock();
 	}
 
 IntrusivePtr<Val> InlineExpr::Eval(Frame* f) const
@@ -6375,10 +6408,6 @@ IntrusivePtr<Val> InlineExpr::Eval(Frame* f) const
 	f->IncreaseOffset(-frame_offset);
 
 	return result;
-	}
-
-const CompiledStmt InlineExpr::Compile(Compiler* c) const
-	{
 	}
 
 TraversalCode InlineExpr::Traverse(TraversalCallback* cb) const
@@ -6600,9 +6629,9 @@ IntrusivePtr<Val> EventExpr::Eval(Frame* f) const
 	return nullptr;
 	}
 
-bool EventExpr::IsReduced() const
+bool EventExpr::IsReduced(Reducer* c) const
 	{
-	return Args()->IsReduced();
+	return Args()->IsReduced(c);
 	}
 
 Expr* EventExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
@@ -6617,7 +6646,7 @@ Expr* EventExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 
 	red_stmt = nullptr;
 
-	if ( ! Args()->IsReduced() )
+	if ( ! Args()->IsReduced(c) )
 		// We assume that ListExpr won't transform itself fundamentally.
 		Unref(Args()->Reduce(c, red_stmt));
 
@@ -6701,26 +6730,26 @@ bool ListExpr::IsPure() const
 	return true;
 	}
 
-bool ListExpr::IsReduced() const
+bool ListExpr::IsReduced(Reducer* c) const
 	{
 	for ( const auto& expr : exprs )
 		if ( ! expr->IsSingleton() )
 			{
-			if ( expr->Tag() != EXPR_LIST || ! expr->IsReduced() )
+			if ( expr->Tag() != EXPR_LIST || ! expr->IsReduced(c) )
 				return NonReduced(expr);
 			}
 
 	return true;
 	}
 
-bool ListExpr::HasReducedOps() const
+bool ListExpr::HasReducedOps(Reducer* c) const
 	{
 	for ( const auto& expr : exprs )
 		{
 		// Ugly hack for record constructors.
 		if ( expr->Tag() == EXPR_FIELD_ASSIGN )
 			{
-			if ( ! expr->HasReducedOps() )
+			if ( ! expr->HasReducedOps(c) )
 				return false;
 			}
 		else if ( ! expr->IsSingleton() )

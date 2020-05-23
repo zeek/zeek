@@ -27,7 +27,8 @@ const char* stmt_name(BroStmtTag t)
 	static const char* stmt_names[int(NUM_STMTS)] = {
 		"alarm", // Does no longer exist, but kept for keeping enums consistent.
 		"print", "event", "expr", "if", "when", "switch",
-		"for", "next", "break", "return", "add", "delete",
+		"for", "next", "break", "return", "catch-return",
+		"add", "delete",
 		"list",
 		"<init>", "fallthrough", "while",
 		"check-any-length",
@@ -94,7 +95,7 @@ bool Stmt::IsPure() const
 	return false;
 	}
 
-bool Stmt::IsReduced() const
+bool Stmt::IsReduced(Reducer* c) const
 	{
 	return true;
 	}
@@ -218,7 +219,7 @@ IntrusivePtr<Val> ExprListStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	return nullptr;
 	}
 
-bool ExprListStmt::IsReduced() const
+bool ExprListStmt::IsReduced(Reducer* c) const
 	{
 	const expr_list& e = l->Exprs();
 	for ( const auto& expr : e )
@@ -230,7 +231,7 @@ bool ExprListStmt::IsReduced() const
 
 Stmt* ExprListStmt::DoReduce(Reducer* c)
 	{
-	if ( ! c->Optimizing() && IsReduced() )
+	if ( ! c->Optimizing() && IsReduced(c) )
 		return this->Ref();
 
 	auto new_l = make_intrusive<ListExpr>();
@@ -462,9 +463,9 @@ bool ExprStmt::IsPure() const
 	return ! e || e->IsPure();
 	}
 
-bool ExprStmt::IsReduced() const
+bool ExprStmt::IsReduced(Reducer* c) const
 	{
-	if ( ! e || e->IsReduced() )
+	if ( ! e || e->IsReduced(c) )
 		return true;
 
 	return NonReduced(e.get());
@@ -513,7 +514,7 @@ Stmt* ExprStmt::DoReduce(Reducer* c)
 		if ( (t == EXPR_ASSIGN || t == EXPR_CALL ||
 		      t == EXPR_INDEX_ASSIGN || t == EXPR_FIELD_LHS_ASSIGN ||
 		      t == EXPR_APPEND_TO) &&
-		     e->IsReduced() )
+		     e->IsReduced(c) )
 			return this->Ref();
 
 		IntrusivePtr<Stmt> red_e_stmt;
@@ -623,12 +624,12 @@ bool IfStmt::IsPure() const
 	return e->IsPure() && s1->IsPure() && s2->IsPure();
 	}
 
-bool IfStmt::IsReduced() const
+bool IfStmt::IsReduced(Reducer* c) const
 	{
-	if ( ! e->IsReduced() )
+	if ( ! e->IsReduced(c) )
 		return NonReduced(e.get());
 
-	return s1->IsReduced() && s2->IsReduced();
+	return s1->IsReduced(c) && s2->IsReduced(c);
 	}
 
 Stmt* IfStmt::DoReduce(Reducer* c)
@@ -1155,17 +1156,17 @@ bool SwitchStmt::IsPure() const
 	return true;
 	}
 
-bool SwitchStmt::IsReduced() const
+bool SwitchStmt::IsReduced(Reducer* r) const
 	{
-	if ( ! e->IsReduced() )
+	if ( ! e->IsReduced(r) )
 		return NonReduced(e.get());
 
 	for ( const auto& c : *cases )
 		{
-		if ( c->ExprCases() && ! c->ExprCases()->IsReduced() )
+		if ( c->ExprCases() && ! c->ExprCases()->IsReduced(r) )
 			return false;
 
-		if ( ! c->Body()->IsReduced() )
+		if ( ! c->Body()->IsReduced(r) )
 			return false;
 		}
 
@@ -1271,9 +1272,9 @@ bool AddDelStmt::IsPure() const
 	return false;
 	}
 
-bool AddDelStmt::IsReduced() const
+bool AddDelStmt::IsReduced(Reducer* c) const
 	{
-	return e->HasReducedOps();
+	return e->HasReducedOps(c);
 	}
 
 Stmt* AddDelStmt::DoReduce(Reducer* c)
@@ -1482,10 +1483,10 @@ bool WhileStmt::IsPure() const
 	return ! loop_cond_stmt || loop_cond_stmt->IsPure();
 	}
 
-bool WhileStmt::IsReduced() const
+bool WhileStmt::IsReduced(Reducer* c) const
 	{
 	// No need to check loop_cond_stmt, as we create it reduced.
-	return loop_condition->IsReduced() && body->IsReduced();
+	return loop_condition->IsReduced(c) && body->IsReduced(c);
 	}
 
 Stmt* WhileStmt::DoReduce(Reducer* c)
@@ -1494,7 +1495,7 @@ Stmt* WhileStmt::DoReduce(Reducer* c)
 		loop_condition = c->OptExpr(loop_condition);
 	else
 		{
-		if ( ! c->IsPruning() && IsReduced() )
+		if ( ! c->IsPruning() && IsReduced(c) )
 			return this->Ref();
 
 		loop_condition =
@@ -1844,12 +1845,12 @@ bool ForStmt::IsPure() const
 	return e->IsPure() && body->IsPure();
 	}
 
-bool ForStmt::IsReduced() const
+bool ForStmt::IsReduced(Reducer* c) const
 	{
-	if ( ! e->IsReduced() )
+	if ( ! e->IsReduced(c) )
 		return NonReduced(e.get());
 
-	return body->IsReduced();
+	return body->IsReduced(c);
 	}
 
 Stmt* ForStmt::DoReduce(Reducer* c)
@@ -2151,6 +2152,36 @@ void ReturnStmt::StmtDescribe(ODesc* d) const
 	DescribeDone(d);
 	}
 
+CatchReturnStmt::CatchReturnStmt(IntrusivePtr<Stmt> _block)
+	: Stmt(STMT_CATCH_RETURN)
+	{
+	block = _block;
+	}
+
+IntrusivePtr<Val> CatchReturnStmt::Exec(Frame* f, stmt_flow_type& flow) const
+	{
+	RegisterAccess();
+
+	auto val = block->Exec(f, flow);
+
+	if ( flow == FLOW_RETURN )
+		flow = FLOW_NEXT;
+
+	return val;
+	}
+
+const CompiledStmt CatchReturnStmt::Compile(Compiler* c) const
+	{
+	c->SetCurrStmt(this);
+	}
+
+void CatchReturnStmt::StmtDescribe(ODesc* d) const
+	{
+	Stmt::StmtDescribe(d);
+	block->Describe(d);
+	DescribeDone(d);
+	}
+
 StmtList::StmtList() : Stmt(STMT_LIST)
 	{
 	stmts = new stmt_list;
@@ -2229,10 +2260,10 @@ bool StmtList::IsPure() const
 	return true;
 	}
 
-bool StmtList::IsReduced() const
+bool StmtList::IsReduced(Reducer* c) const
 	{
 	for ( const auto& stmt : Stmts() )
-		if ( ! stmt->IsReduced() )
+		if ( ! stmt->IsReduced(c) )
 			return false;
 	return true;
 	}
@@ -2627,7 +2658,7 @@ bool WhenStmt::IsPure() const
 	return 0;
 	}
 
-bool WhenStmt::IsReduced() const
+bool WhenStmt::IsReduced(Reducer* c) const
 	{
 	// We consider these always reduced because they're not
 	// candidates for any further optimization.
@@ -2718,7 +2749,7 @@ const CompiledStmt CheckAnyLenStmt::Compile(Compiler* c) const
 	return c->CheckAnyLenVi(e->AsNameExpr(), expected_len);
 	}
 
-bool CheckAnyLenStmt::IsReduced() const
+bool CheckAnyLenStmt::IsReduced(Reducer* c) const
 	{
 	return true;
 	}

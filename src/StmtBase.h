@@ -53,7 +53,7 @@ public:
 	virtual bool IsPure() const;
 
 	// True if the statement is in reduced form.
-	virtual bool IsReduced() const;
+	virtual bool IsReduced(Reducer* c) const;
 
 	Stmt* Reduce(Reducer* c);
 	virtual Stmt* DoReduce(Reducer* c)	{ return this->Ref(); }

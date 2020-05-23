@@ -20,6 +20,16 @@ public:
 	IntrusivePtr<Expr> GenTemporaryExpr(const IntrusivePtr<BroType>& t,
 						IntrusivePtr<Expr> rhs);
 
+	NameExpr* UpdateName(NameExpr* n);
+	bool NameIsReduced(const NameExpr* n) const;
+
+	// This is called *prior* to pushing a new inline block, in
+	// order to generate the equivalent of function parameters.
+	IntrusivePtr<NameExpr> GenInlineBlockName(ID* id);
+
+	void PushInlineBlock(bool have_ret_val);
+	Expr* PopInlineBlock();
+
 	int NumTemps() const		{ return temps.length(); }
 	bool IsTemporary(const ID* id) const
 		{ return FindTemporary(id) != nullptr; }
@@ -107,6 +117,19 @@ protected:
 					IntrusivePtr<Expr> rhs);
 	TempVar* FindTemporary(const ID* id) const;
 
+	// Retrieve the identifier corresponding to the new local for
+	// the given expression.  Creates the local if necessary.
+	IntrusivePtr<ID> FindNewLocal(const NameExpr* n);
+
+	// Generate a new local to use in lieu of the original (seen
+	// in an inlined block).  The difference is that the new
+	// version has a distinct name and has a correct frame offset
+	// for the current function.
+	IntrusivePtr<ID> GenLocal(ID* orig);
+
+	// True if this name already reflects the replacement.
+	bool IsNewLocal(const NameExpr* n) const;
+
 	// This is the heart of constant propagation.  Given an identifier
 	// and a set of definition points for it, if its value is constant
 	// then returns the corresponding ConstExpr with the value.
@@ -126,6 +149,13 @@ protected:
 	// Let's us go from an identifier to an associated temporary
 	// variable, if it corresponds to one.
 	std::unordered_map<const ID*, TempVar*> ids_to_temps;
+
+	std::unordered_set<ID*> new_locals;
+	std::unordered_map<const ID*, IntrusivePtr<ID>> orig_to_new_locals;
+
+	// Tracks whether we're inside an inline block, and if so then
+	// how deeply.
+	int inline_block_level = 0;
 
 	// For a given usage of a variable's value, return the definition
 	// points associated with its use at that point.  We use this

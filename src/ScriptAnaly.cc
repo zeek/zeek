@@ -1490,7 +1490,7 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 
 	non_reduced_perp = nullptr;
 	checking_reduction = true;
-	if ( ! new_body->IsReduced() )
+	if ( ! new_body->IsReduced(rc) )
 		printf("Reduction inconsistency for %s: %s\n", f->Name(),
 			obj_desc(non_reduced_perp));
 	checking_reduction = false;
@@ -1656,9 +1656,8 @@ void analyze_scripts()
 	// analyze_orphan_functions();
 	Inliner inl(funcs);
 
-	if ( 0 )
-		for ( auto& f : funcs )
-			optimize_func(f->func, f->scope, f->body);
+	for ( auto& f : funcs )
+		optimize_func(f->func, f->scope, f->body);
 
 	for ( auto& f : funcs )
 		delete f;

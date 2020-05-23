@@ -6375,14 +6375,15 @@ Expr* InlineExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		red_stmt = MergeStmts(red_stmt, arg_red_stmt, assign_stmt);
 		}
 
-	bool have_ret_val = type && type->Tag() != TYPE_VOID;
-	c->PushInlineBlock(have_ret_val);
-
+	auto ret_val = c->PushInlineBlock(type);
 	body = {AdoptRef{}, body->Reduce(c)};
+	c->PopInlineBlock();
 
-	red_stmt = MergeStmts(red_stmt, body);
+	auto catch_ret = make_intrusive<CatchReturnStmt>(body, ret_val);
 
-	return c->PopInlineBlock();
+	red_stmt = MergeStmts(red_stmt, catch_ret);
+
+	return ret_val ? ret_val.release() : nullptr;
 	}
 
 IntrusivePtr<Val> InlineExpr::Eval(Frame* f) const

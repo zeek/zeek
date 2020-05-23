@@ -388,20 +388,35 @@ public:
 
 // Internal statement used for inlining.  Executes a block and stops
 // the propagation of any "return" inside the block.
+class NameExpr;
 class CatchReturnStmt : public Stmt {
 public:
-	explicit CatchReturnStmt(IntrusivePtr<Stmt> block);
+	explicit CatchReturnStmt(IntrusivePtr<Stmt> block,
+					IntrusivePtr<NameExpr> ret_var);
+
+	IntrusivePtr<Stmt> Block() const	{ return block; }
+
+	// This returns a bare pointer rather than an IntrusivePtr only
+	// because we don't want to have to include Expr.h in this header.
+	const NameExpr* RetVar() const		{ return ret_var.get(); }
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
-	// No reduction method because generated in reduced form.
+	bool IsPure() const override;
 
+	// No reduction method because generated in reduced form.
 	const CompiledStmt Compile(Compiler* c) const override;
 
 	void StmtDescribe(ODesc* d) const override;
 
+	TraversalCode Traverse(TraversalCallback* cb) const override;
+
 protected:
 	IntrusivePtr<Stmt> block;
+
+	// Expression that holds the return value.  Only used for
+	// compiling.
+	IntrusivePtr<NameExpr> ret_var;
 };
 
 class StmtList : public Stmt {

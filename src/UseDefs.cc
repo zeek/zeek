@@ -207,6 +207,15 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt,
 		return UseUDs(s, succ_UDs);
 		}
 
+	case STMT_CATCH_RETURN:
+		{
+                auto cr = s->AsCatchReturnStmt();
+                auto block = cr->Block();
+
+		return PropagateUDs(block.get(), succ_UDs, succ_stmt,
+					second_pass);
+		}
+
 	case STMT_NULL:
 	case STMT_NEXT:
 	case STMT_BREAK:

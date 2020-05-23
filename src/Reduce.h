@@ -27,8 +27,11 @@ public:
 	// order to generate the equivalent of function parameters.
 	IntrusivePtr<NameExpr> GenInlineBlockName(ID* id);
 
-	void PushInlineBlock(bool have_ret_val);
-	Expr* PopInlineBlock();
+	// Returns the name of a temporary for holding the return
+	// value of the block, or nil if the type indicates there's
+	// o return value.
+	IntrusivePtr<NameExpr> PushInlineBlock(IntrusivePtr<BroType> type);
+	void PopInlineBlock();
 
 	int NumTemps() const		{ return temps.length(); }
 	bool IsTemporary(const ID* id) const

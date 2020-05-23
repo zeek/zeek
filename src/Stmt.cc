@@ -2152,10 +2152,12 @@ void ReturnStmt::StmtDescribe(ODesc* d) const
 	DescribeDone(d);
 	}
 
-CatchReturnStmt::CatchReturnStmt(IntrusivePtr<Stmt> _block)
+CatchReturnStmt::CatchReturnStmt(IntrusivePtr<Stmt> _block,
+					IntrusivePtr<NameExpr> _ret_var)
 	: Stmt(STMT_CATCH_RETURN)
 	{
 	block = _block;
+	ret_var = _ret_var;
 	}
 
 IntrusivePtr<Val> CatchReturnStmt::Exec(Frame* f, stmt_flow_type& flow) const
@@ -2170,6 +2172,12 @@ IntrusivePtr<Val> CatchReturnStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	return val;
 	}
 
+bool CatchReturnStmt::IsPure() const
+	{
+	// The ret_var is pure by construction.
+	return block->IsPure();
+	}
+
 const CompiledStmt CatchReturnStmt::Compile(Compiler* c) const
 	{
 	c->SetCurrStmt(this);
@@ -2180,6 +2188,20 @@ void CatchReturnStmt::StmtDescribe(ODesc* d) const
 	Stmt::StmtDescribe(d);
 	block->Describe(d);
 	DescribeDone(d);
+	}
+
+TraversalCode CatchReturnStmt::Traverse(TraversalCallback* cb) const
+	{
+	TraversalCode tc = cb->PreStmt(this);
+	HANDLE_TC_STMT_PRE(tc);
+
+	if ( ret_var )
+		ret_var->Traverse(cb);
+
+	block->Traverse(cb);
+
+	tc = cb->PostStmt(this);
+	HANDLE_TC_STMT_POST(tc);
 	}
 
 StmtList::StmtList() : Stmt(STMT_LIST)

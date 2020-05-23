@@ -21,6 +21,7 @@ class ListExpr;
 class ForStmt;
 class WhileStmt;
 class ReturnStmt;
+class CatchReturnStmt;
 class IfStmt;
 class ExprStmt;
 class AddStmt;
@@ -91,6 +92,7 @@ public:
 
 	CONST_ACCESSOR(STMT_WHILE, WhileStmt, AsWhileStmt)
 	CONST_ACCESSOR(STMT_RETURN, ReturnStmt, AsReturnStmt)
+	CONST_ACCESSOR(STMT_CATCH_RETURN, CatchReturnStmt, AsCatchReturnStmt)
 	CONST_ACCESSOR(STMT_IF, IfStmt, AsIfStmt)
 	CONST_ACCESSOR(STMT_EXPR, ExprStmt, AsExprStmt)
 	CONST_ACCESSOR(STMT_ADD, AddStmt, AsAddStmt)

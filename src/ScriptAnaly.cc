@@ -174,6 +174,19 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		break;
 		}
 
+        case STMT_CATCH_RETURN:
+		{
+		auto cr = s->AsCatchReturnStmt();
+		auto block = cr->Block();
+		auto ret_var = cr->RetVar();
+
+		mgr.SetPreFromPre(block.get(), s);
+
+		if ( ret_var )
+			mgr.SetPreFromPre(ret_var, s);
+		break;
+		}
+
 	case STMT_LIST:
 		{
 		auto sl = s->AsStmtList();
@@ -591,6 +604,22 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 	case STMT_RETURN:
 		CreateEmptyPostRDs(s);
 		break;
+
+	case STMT_CATCH_RETURN:
+		{
+		auto bd = block_defs.back();
+		block_defs.pop_back();
+
+		// Treat the block as a no-op for analyzing RDs,
+		// since it shouldn't affect the definition status of
+		// any of the RDs outside of it.
+		mgr.SetPostFromPre(s);
+
+		// We might have to compute RDs for the return variable,
+		// so for now we leave in place the block_defs structure
+		// that tracks whether an assignment is made to it.
+		break;
+		}
 
 	case STMT_NEXT:
 		AddBlockDefs(s, true, false, false);

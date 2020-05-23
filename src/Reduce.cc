@@ -50,8 +50,27 @@ IntrusivePtr<NameExpr> Reducer::GenInlineBlockName(ID* id)
 	return make_intrusive<NameExpr>(GenLocal(id));
 	}
 
-// void PushInlineBlock(bool have_ret_val)	{ ++inline_block_level; }
-// Expr* PopInlineBlock()	{ --inline_block_level; }
+IntrusivePtr<NameExpr> Reducer::PushInlineBlock(IntrusivePtr<BroType> type)
+	{
+	++inline_block_level;
+
+	if ( ! type || type->Tag() == TYPE_VOID )
+		return nullptr;
+
+	char buf[8192];
+	int n = new_locals.size();
+	snprintf(buf, sizeof buf, "retvar.%d", n);
+
+	IntrusivePtr<ID> ret_id = install_ID(buf, "<internal>", false, false);
+	ret_id->SetType(type);
+
+	return GenInlineBlockName(ret_id.release());
+	}
+
+void Reducer::PopInlineBlock()
+	{
+	--inline_block_level;
+	}
 
 bool Reducer::SameVal(const Val* v1, const Val* v2) const
 	{
@@ -668,7 +687,7 @@ IntrusivePtr<ID> Reducer::GenLocal(ID* orig)
 
 	char buf[8192];
 	int n = new_locals.size();
-	snprintf(buf, sizeof buf, "%s.%u", orig->Name(), n);
+	snprintf(buf, sizeof buf, "%s.%d", orig->Name(), n);
 
 	IntrusivePtr<ID> local_id = install_ID(buf, "<internal>", false, false);
 	IntrusivePtr<BroType> t = {NewRef{}, orig->Type()};

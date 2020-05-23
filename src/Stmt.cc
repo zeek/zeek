@@ -107,21 +107,14 @@ Stmt* Stmt::Reduce(Reducer* c)
 	if ( repl )
 		return repl;
 
-	else if ( c->ShouldOmitStmt(this) )
-		return new NullStmt;
-
-	else
+	if ( c->ShouldOmitStmt(this) )
 		{
-		if ( c->Optimizing() )
-			{
-			// printf("pre-reduction: %s\n", obj_desc(this));
-			auto s = DoReduce(c);
-			// printf(" ... post-reduction: %s\n", obj_desc(s));
-			return s;
-			}
-
-		return DoReduce(c);
+		auto null = new NullStmt;
+		null->SetOriginal(this);
+		return null;
 		}
+
+	return DoReduce(c);
 	}
 
 const CompiledStmt Stmt::Compile(Compiler* c) const
@@ -169,12 +162,12 @@ void Stmt::DescribeDone(ODesc* d) const
 
 Stmt* Stmt::TransformMe(Stmt* new_me, Reducer* c)
 	{
-	if ( new_me == this )
-		return this;
+	ASSERT(new_me != this);
 
+	// Set the original prior to reduction, to support "original chains"
+	// to ultimately resolve back to the source statement.
 	new_me->SetOriginal(this);
-	new_me = new_me->Reduce(c);
-	return new_me;
+	return new_me->Reduce(c);
 	}
 
 void Stmt::AccessStats(ODesc* d) const
@@ -487,59 +480,56 @@ const CompiledStmt ExprStmt::Compile(Compiler* c) const
 
 Stmt* ExprStmt::DoReduce(Reducer* c)
 	{
-	if ( e )
+	if ( ! e )
+		// e can be nil for our derived classes (like ReturnStmt).
+		return TransformMe(new NullStmt, c);
+
+	auto t = e->Tag();
+
+	if ( t == EXPR_NOP )
+		return TransformMe(new NullStmt, c);
+
+	if ( c->Optimizing() )
 		{
-		auto t = e->Tag();
+		e = c->OptExpr(e);
+		return this->Ref();
+		}
 
-		if ( t == EXPR_NOP )
-			return TransformMe(new NullStmt, c);
+	if ( e->IsSingleton(c) )
+		// No point evaluating.
+		return TransformMe(new NullStmt, c);
 
-		if ( c->Optimizing() )
-			{
-			e = c->OptExpr(e);
-			return this->Ref();
-			}
+	// ### If optimizing, we should flag for the Reducer if
+	// there's a call here, so it can deactivate any temporaries
+	// who have reaching definitions to the call site, to
+	// keep them from being used for CSE across the call
+	// (since it's too difficult to tell whether they might
+	// depend on a global or aggregate modified by the call).
 
-		if ( e->IsSingleton(c) )
-			// No point evaluating.
-			return TransformMe(new NullStmt, c);
+	if ( (t == EXPR_ASSIGN || t == EXPR_CALL ||
+	      t == EXPR_INDEX_ASSIGN || t == EXPR_FIELD_LHS_ASSIGN ||
+	      t == EXPR_APPEND_TO) &&
+	     e->IsReduced(c) )
+		return this->Ref();
 
-		// ### If optimizing, we should flag for the Reducer if
-		// there's a call here, so it can deactivate any temporaries
-		// who have reaching definitions to the call site, to
-		// keep them from being used for CSE across the call
-		// (since it's too difficult to tell whether they might
-		// depend on a global or aggregate modified by the call).
+	IntrusivePtr<Stmt> red_e_stmt;
 
-		if ( (t == EXPR_ASSIGN || t == EXPR_CALL ||
-		      t == EXPR_INDEX_ASSIGN || t == EXPR_FIELD_LHS_ASSIGN ||
-		      t == EXPR_APPEND_TO) &&
-		     e->IsReduced(c) )
-			return this->Ref();
+	if ( t == EXPR_CALL )
+		// A bare call.  If we reduce it regularly, if
+		// it has a non-void type it'll generate an
+		// assignment to a temporary.
+		red_e_stmt = e->ReduceToSingletons(c);
+	else
+		e = {AdoptRef{}, e->Reduce(c, red_e_stmt)};
 
-		IntrusivePtr<Stmt> red_e_stmt;
-
-		if ( t == EXPR_CALL )
-			// A bare call.  If we reduce it regularly, if
-			// it has a non-void type it'll generate an
-			// assignment to a temporary.
-			red_e_stmt = e->ReduceToSingletons(c);
-		else
-			e = {AdoptRef{}, e->Reduce(c, red_e_stmt)};
-
-		if ( red_e_stmt )
-			{
-			auto s = new StmtList(red_e_stmt, {NewRef{}, this});
-			return TransformMe(s, c);
-			}
-
-		else
-			return this->Ref();
+	if ( red_e_stmt )
+		{
+		auto s = new StmtList(red_e_stmt, {NewRef{}, this});
+		return TransformMe(s, c);
 		}
 
 	else
-		// e can be nil for our derived classes (like ReturnStmt).
-		return TransformMe(new NullStmt, c);
+		return this->Ref();
 	}
 
 void ExprStmt::Inline(Inliner* inl)
@@ -638,7 +628,7 @@ Stmt* IfStmt::DoReduce(Reducer* c)
 	s2 = {AdoptRef{}, s2->Reduce(c)};
 
 	if ( s1->Tag() == STMT_NULL && s2->Tag() == STMT_NULL )
-		return TransformMe(new NullStmt(), c);
+		return TransformMe(new NullStmt, c);
 
 	if ( e->Tag() == EXPR_NOT )
 		{

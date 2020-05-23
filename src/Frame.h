@@ -42,6 +42,10 @@ public:
 	 * @param n the index to get.
 	 * @return the value at index *n* of the underlying array.
 	 */
+	const IntrusivePtr<Val>& GetElement(int n) const
+		{ return frame[n]; }
+
+	[[deprecated("Remove in v4.1.  Use GetElement(int).")]]
 	Val* NthElement(int n) const	{ return frame[n].get(); }
 
 	/**

@@ -367,7 +367,7 @@ IntrusivePtr<Val> BroFunc::operator()(zeek::Args* args, Frame* parent) const
 			{
 			const auto& arg = (*args)[j];
 
-			if ( f->NthElement(j) != arg )
+			if ( f->GetElement(j) != arg )
 				// Either not yet set, or somebody reassigned the frame slot.
 				f->SetElement(j, arg);
 			}

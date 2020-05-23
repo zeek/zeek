@@ -67,15 +67,7 @@ public:
 
 	void MakeType()			{ is_type = true; }
 
-	// If weak_ref is false, the Val is assumed to be already ref'ed
-	// and will be deref'ed when the ID is deleted.
-	//
-	// If weak_ref is true, we store the Val but don't ref/deref it.
-	// That means that when the ID becomes the only one holding a
-	// reference to the Val, the Val will be destroyed (naturally,
-	// you have to take care that it will not be accessed via
-	// the ID afterwards).
-	void SetVal(IntrusivePtr<Val> v, bool weak_ref = false);
+	void SetVal(IntrusivePtr<Val> v);
 
 	void SetVal(IntrusivePtr<Val> v, init_class c);
 	void SetVal(IntrusivePtr<Expr> ev, init_class c);
@@ -153,7 +145,6 @@ protected:
 	IDScope scope;
 	bool is_export;
 	bool infer_return_type;
-	bool weak_ref;
 	IntrusivePtr<BroType> type;
 	bool is_const, is_enum_const, is_type, is_option;
 	int offset;

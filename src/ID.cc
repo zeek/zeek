@@ -114,7 +114,6 @@ ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 	offset = 0;
 
 	infer_return_type = false;
-	weak_ref = false;
 
 	SetLocationInfo(&start_location, &end_location);
 	}
@@ -122,9 +121,6 @@ ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 ID::~ID()
 	{
 	delete [] name;
-
-	if ( weak_ref )
-		val.release();
 	}
 
 std::string ID::ModuleName() const
@@ -139,17 +135,12 @@ void ID::SetType(IntrusivePtr<BroType> t)
 
 void ID::ClearVal()
 	{
-	if ( weak_ref )
-		val.release();
+	val = nullptr;
 	}
 
-void ID::SetVal(IntrusivePtr<Val> v, bool arg_weak_ref)
+void ID::SetVal(IntrusivePtr<Val> v)
 	{
-	if ( weak_ref )
-		val.release();
-
 	val = std::move(v);
-	weak_ref = arg_weak_ref;
 	Modified();
 
 #ifdef DEBUG

@@ -239,7 +239,7 @@ IntrusivePtr<Val> NameExpr::Eval(Frame* f) const
 		v = id->GetVal();
 
 	else if ( f )
-		v = {NewRef{}, f->GetElement(id.get())};
+		v = f->GetElementByID(id);
 
 	else
 		// No frame - evaluating for Simplify() purposes

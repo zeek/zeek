@@ -74,7 +74,12 @@ public:
 	 * @param id the id who's value to retreive
 	 * @return the value associated with *id*
 	 */
-	Val* GetElement(const ID* id) const;
+	const IntrusivePtr<Val>& GetElementByID(const IntrusivePtr<ID>& id) const
+		{ return GetElementByID(id.get()); }
+
+	[[deprecated("Remove in v4.1.  Use GetElementByID().")]]
+	Val* GetElement(const ID* id) const
+		{ return GetElementByID(id).get(); }
 
 	/**
 	 * Resets all of the indexes from [*startIdx, frame_size) in
@@ -231,6 +236,8 @@ public:
 private:
 
 	using OffsetMap = std::unordered_map<std::string, int>;
+
+	const IntrusivePtr<Val>& GetElementByID(const ID* id) const;
 
 	/**
 	 * Sets the element at index *n* of the underlying array to *v*, but does

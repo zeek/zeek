@@ -121,12 +121,12 @@ void Frame::SetElement(const ID* id, IntrusivePtr<Val> v)
 	SetElement(id->Offset(), std::move(v));
 	}
 
-Val* Frame::GetElement(const ID* id) const
+const IntrusivePtr<Val>& Frame::GetElementByID(const ID* id) const
 	{
 	if ( closure )
 		{
 		if ( IsOuterID(id) )
-			return closure->GetElement(id);
+			return closure->GetElementByID(id);
 		}
 
 	// do we have an offset for it?
@@ -134,10 +134,10 @@ Val* Frame::GetElement(const ID* id) const
 		{
 		auto where = offset_map->find(std::string(id->Name()));
 		if ( where != offset_map->end() )
-			return frame[where->second].get();
+			return frame[where->second];
 		}
 
-	return frame[id->Offset()].get();
+	return frame[id->Offset()];
 	}
 
 void Frame::Reset(int startIdx)

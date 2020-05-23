@@ -192,8 +192,10 @@ public:
 
 	// True if the expression can serve as an operand to a reduced
 	// expression.
-	bool IsSingleton() const
-		{ return tag == EXPR_NAME || tag == EXPR_CONST; }
+	bool IsSingleton(Reducer* r) const
+		{
+		return (tag == EXPR_NAME && IsReduced(r)) || tag == EXPR_CONST;
+		}
 
 	// True if the expression is a constant, false otherwise.
 	bool IsConst() const	{ return tag == EXPR_CONST; }

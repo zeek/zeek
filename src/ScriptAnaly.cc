@@ -181,10 +181,18 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		auto ret_var = cr->RetVar();
 
 		mgr.SetPreFromPre(block.get(), s);
+		block->Traverse(this);
 
-		if ( ret_var )
-			mgr.SetPreFromPre(ret_var, s);
-		break;
+		// Treat the block as a no-op for analyzing RDs,
+		// since it shouldn't affect the definition status of
+		// any of the RDs outside of it.
+		mgr.SetPostFromPre(s);
+
+		// Ideally for the return variable (if any) we'd track
+		// whether all of the paths out of the block go through
+		// a "return <expr>".  For now, we punt.
+
+		return TC_ABORTSTMT;
 		}
 
 	case STMT_LIST:
@@ -604,22 +612,6 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 	case STMT_RETURN:
 		CreateEmptyPostRDs(s);
 		break;
-
-	case STMT_CATCH_RETURN:
-		{
-		auto bd = block_defs.back();
-		block_defs.pop_back();
-
-		// Treat the block as a no-op for analyzing RDs,
-		// since it shouldn't affect the definition status of
-		// any of the RDs outside of it.
-		mgr.SetPostFromPre(s);
-
-		// We might have to compute RDs for the return variable,
-		// so for now we leave in place the block_defs structure
-		// that tracks whether an assignment is made to it.
-		break;
-		}
 
 	case STMT_NEXT:
 		AddBlockDefs(s, true, false, false);
@@ -1530,7 +1522,7 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 	IntrusivePtr<Stmt> new_body_ptr = {AdoptRef{}, new_body};
 
 	f->ReplaceBody(body, new_body_ptr);
-	f->GrowFrameSize(rc->NumTemps());
+	f->GrowFrameSize(rc->NumTemps() + rc->NumNewLocals());
 
 	if ( optimize )
 		{

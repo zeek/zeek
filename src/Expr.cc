@@ -245,11 +245,11 @@ IntrusivePtr<Stmt> Expr::ReduceToSingletons(Reducer* c)
 	IntrusivePtr<Stmt> red2_stmt;
 	IntrusivePtr<Stmt> red3_stmt;
 
-	if ( op1 && ! op1->IsSingleton() )
+	if ( op1 && ! op1->IsSingleton(c) )
 		SetOp1({AdoptRef{}, op1->ReduceToSingleton(c, red1_stmt)});
-	if ( op2 && ! op2->IsSingleton() )
+	if ( op2 && ! op2->IsSingleton(c) )
 		SetOp2({AdoptRef{}, op2->ReduceToSingleton(c, red2_stmt)});
-	if ( op3 && ! op3->IsSingleton() )
+	if ( op3 && ! op3->IsSingleton(c) )
 		SetOp3({AdoptRef{}, op3->ReduceToSingleton(c, red3_stmt)});
 
 	return MergeStmts(red1_stmt, red2_stmt, red3_stmt);
@@ -685,7 +685,7 @@ bool UnaryExpr::IsReduced(Reducer* c) const
 
 bool UnaryExpr::HasReducedOps(Reducer* c) const
 	{
-	return op->IsSingleton();
+	return op->IsSingleton(c);
 	}
 
 Expr* UnaryExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
@@ -695,7 +695,7 @@ Expr* UnaryExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 
 	red_stmt = nullptr;
 
-	if ( ! op->IsSingleton() )
+	if ( ! op->IsSingleton(c) )
 		op = {AdoptRef{}, op->ReduceToSingleton(c, red_stmt)};
 
 	if ( op->IsConst() )
@@ -862,7 +862,7 @@ bool BinaryExpr::IsReduced(Reducer* c) const
 
 bool BinaryExpr::HasReducedOps(Reducer* c) const
 	{
-	return op1->IsSingleton() && op2->IsSingleton();
+	return op1->IsSingleton(c) && op2->IsSingleton(c);
 	}
 
 Expr* BinaryExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
@@ -875,11 +875,11 @@ Expr* BinaryExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 
 	red_stmt = nullptr;
 
-	if ( ! op1->IsSingleton() )
+	if ( ! op1->IsSingleton(c) )
 		op1 = {AdoptRef{}, op1->ReduceToSingleton(c, red_stmt)};
 
 	IntrusivePtr<Stmt> red2_stmt;
-	if ( ! op2->IsSingleton() )
+	if ( ! op2->IsSingleton(c) )
 		op2 = {AdoptRef{}, op2->ReduceToSingleton(c, red2_stmt)};
 
 	red_stmt = MergeStmts(red_stmt, red2_stmt);
@@ -2979,7 +2979,7 @@ bool CondExpr::IsReduced(Reducer* c) const
 
 bool CondExpr::HasReducedOps(Reducer* c) const
 	{
-	return op1->IsSingleton() && op2->IsSingleton() && op3->IsSingleton() &&
+	return op1->IsSingleton(c) && op2->IsSingleton(c) && op3->IsSingleton(c) &&
 		! op1->IsConst();
 	}
 
@@ -3038,15 +3038,15 @@ Expr* CondExpr::Inline(Inliner* inl)
 IntrusivePtr<Stmt> CondExpr::ReduceToSingletons(Reducer* c)
 	{
 	IntrusivePtr<Stmt> red1_stmt;
-	if ( ! op1->IsSingleton() )
+	if ( ! op1->IsSingleton(c) )
 		op1 = {AdoptRef{}, op1->ReduceToSingleton(c, red1_stmt)};
 
 	IntrusivePtr<Stmt> red2_stmt;
-	if ( ! op2->IsSingleton() )
+	if ( ! op2->IsSingleton(c) )
 		op2 = {AdoptRef{}, op2->ReduceToSingleton(c, red2_stmt)};
 
 	IntrusivePtr<Stmt> red3_stmt;
-	if ( ! op3->IsSingleton() )
+	if ( ! op3->IsSingleton(c) )
 		op3 = {AdoptRef{}, op3->ReduceToSingleton(c, red3_stmt)};
 
 	IntrusivePtr<Stmt> if_else;
@@ -3615,7 +3615,7 @@ bool AssignExpr::IsReduced(Reducer* c) const
 		return false;
 
 	if ( op1->Tag() == EXPR_NAME && op1->Type()->Tag() == TYPE_ANY )
-		return op2->IsSingleton();
+		return op2->IsSingleton(c);
 
 	if ( IsTemp() )
 		return true;
@@ -3627,7 +3627,7 @@ bool AssignExpr::IsReduced(Reducer* c) const
 	if ( ! op2->HasReducedOps(c) )
 		return false;
 
-	if ( op1->IsSingleton() )
+	if ( op1->IsSingleton(c) )
 		return true;
 
 	if ( op1->Tag() == EXPR_REF )
@@ -3638,7 +3638,7 @@ bool AssignExpr::IsReduced(Reducer* c) const
 
 bool AssignExpr::HasReducedOps(Reducer* c) const
 	{
-	return op1->IsReduced(c) && op2->IsSingleton();
+	return op1->IsReduced(c) && op2->IsSingleton(c);
 	}
 
 Expr* AssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
@@ -3663,7 +3663,7 @@ Expr* AssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	bool is_any_assign =
 		lhs_expr->Tag() == EXPR_NAME &&
 		lhs_expr->Type()->Tag() == TYPE_ANY &&
-		! op2->IsSingleton();
+		! op2->IsSingleton(c);
 
 	if ( is_any_assign )
 		{ // RHS must be a singleton.
@@ -3958,7 +3958,7 @@ IntrusivePtr<Val> IndexAssignExpr::Eval(Frame* f) const
 bool IndexAssignExpr::IsReduced(Reducer* c) const
 	{
 	// op2 is a ListExpr, not a singleton expression.
-	ASSERT(op1->IsSingleton() && op2->IsReduced(c) && op3->IsSingleton());
+	ASSERT(op1->IsSingleton(c) && op2->IsReduced(c) && op3->IsSingleton(c));
 	return true;
 	}
 
@@ -4227,7 +4227,7 @@ IntrusivePtr<Val> IndexExpr::Eval(Frame* f) const
 IntrusivePtr<Stmt> IndexExpr::ReduceToSingletons(Reducer* c)
 	{
 	IntrusivePtr<Stmt> red1_stmt;
-	if ( ! op1->IsSingleton() )
+	if ( ! op1->IsSingleton(c) )
 		SetOp1({AdoptRef{}, op1->ReduceToSingleton(c, red1_stmt)});
 
 	IntrusivePtr<Stmt> red2_stmt = op2->ReduceToSingletons(c);
@@ -4387,14 +4387,14 @@ void IndexExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 
 bool IndexExpr::HasReducedOps(Reducer* c) const
 	{
-	if ( ! op1->IsSingleton() )
+	if ( ! op1->IsSingleton(c) )
 		return NonReduced(this);
 
 	if ( op2->Tag() == EXPR_LIST )
 		return op2->HasReducedOps(c);
 	else
 		{
-		if ( op2->IsSingleton() )
+		if ( op2->IsSingleton(c) )
 			return true;
 
 		return NonReduced(this);
@@ -4478,10 +4478,10 @@ IntrusivePtr<Val> FieldLHSAssignExpr::Eval(Frame* f) const
 
 bool FieldLHSAssignExpr::IsReduced(Reducer* c) const
 	{
-	if ( ! (op1->IsSingleton() && op2->IsReduced(c)) )
+	if ( ! (op1->IsSingleton(c) && op2->IsReduced(c)) )
 		printf("oops: %s\n", obj_desc(op2));
 		
-	ASSERT(op1->IsSingleton() && op2->IsReduced(c));
+	ASSERT(op1->IsSingleton(c) && op2->IsReduced(c));
 	return true;
 	}
 
@@ -4766,7 +4766,7 @@ bool RecordConstructorExpr::HasReducedOps(Reducer* c) const
 	loop_over_list(exprs, i)
 		{
 		auto e_i = exprs[i];
-		if ( ! e_i->AsFieldAssignExpr()->Op()->IsSingleton() )
+		if ( ! e_i->AsFieldAssignExpr()->Op()->IsSingleton(c) )
 			return false;
 		}
 
@@ -4802,7 +4802,7 @@ IntrusivePtr<Stmt> RecordConstructorExpr::ReduceToSingletons(Reducer* c)
 			continue;
 			}
 
-		if ( fa_i_rhs->IsSingleton() )
+		if ( fa_i_rhs->IsSingleton(c) )
 			continue;
 
 		IntrusivePtr<Stmt> e_stmt;
@@ -4930,7 +4930,7 @@ bool TableConstructorExpr::HasReducedOps(Reducer* c) const
 		auto a = expr->AsAssignExpr();
 		// LHS is a list, not a singleton.
 		if ( ! a->GetOp1()->HasReducedOps(c) ||
-		     ! a->GetOp2()->IsSingleton() )
+		     ! a->GetOp2()->IsSingleton(c) )
 			return NonReduced(this);
 		}
 
@@ -5827,7 +5827,7 @@ bool ScheduleExpr::IsReduced(Reducer* c) const
 
 bool ScheduleExpr::HasReducedOps(Reducer* c) const
 	{
-	if ( when->IsSingleton() && event->IsSingleton() )
+	if ( when->IsSingleton(c) && event->IsSingleton(c) )
 		return true;
 
 	return NonReduced(this);
@@ -6077,7 +6077,7 @@ IntrusivePtr<Val> InExpr::Fold(Val* v1, Val* v2) const
 
 bool InExpr::HasReducedOps(Reducer* c) const
 	{
-	return op1->HasReducedOps(c) && op2->IsSingleton();
+	return op1->HasReducedOps(c) && op2->IsSingleton(c);
 	}
 
 
@@ -6193,12 +6193,12 @@ bool CallExpr::IsPure() const
 
 bool CallExpr::IsReduced(Reducer* c) const
 	{
-	return func->IsSingleton() && args->IsReduced(c);
+	return func->IsSingleton(c) && args->IsReduced(c);
 	}
 
 bool CallExpr::HasReducedOps(Reducer* c) const
 	{
-	if ( ! func->IsSingleton() )
+	if ( ! func->IsSingleton(c) )
 		return NonReduced(this);
 
 	return args->HasReducedOps(c);
@@ -6217,7 +6217,7 @@ Expr* CallExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 
 	red_stmt = nullptr;
 
-	if ( ! func->IsSingleton() )
+	if ( ! func->IsSingleton(c) )
 		func = {AdoptRef{}, func->ReduceToSingleton(c, red_stmt)};
 
 	IntrusivePtr<Stmt> red2_stmt;
@@ -6244,7 +6244,7 @@ IntrusivePtr<Stmt> CallExpr::ReduceToSingletons(Reducer* c)
 	{
 	IntrusivePtr<Stmt> func_stmt;
 
-	if ( ! func->IsSingleton() )
+	if ( ! func->IsSingleton(c) )
 		func = {AdoptRef{}, func->Reduce(c, func_stmt)};
 
 	auto args_stmt = args->ReduceToSingletons(c);
@@ -6734,7 +6734,7 @@ bool ListExpr::IsPure() const
 bool ListExpr::IsReduced(Reducer* c) const
 	{
 	for ( const auto& expr : exprs )
-		if ( ! expr->IsSingleton() )
+		if ( ! expr->IsSingleton(c) )
 			{
 			if ( expr->Tag() != EXPR_LIST || ! expr->IsReduced(c) )
 				return NonReduced(expr);
@@ -6753,7 +6753,7 @@ bool ListExpr::HasReducedOps(Reducer* c) const
 			if ( ! expr->HasReducedOps(c) )
 				return false;
 			}
-		else if ( ! expr->IsSingleton() )
+		else if ( ! expr->IsSingleton(c) )
 			return false;
 		}
 
@@ -7088,7 +7088,7 @@ Expr* ListExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 			continue;
 			}
 
-		if ( exprs[i]->IsSingleton() )
+		if ( exprs[i]->IsSingleton(c) )
 			continue;
 
 		IntrusivePtr<Stmt> e_stmt;
@@ -7115,7 +7115,7 @@ IntrusivePtr<Stmt> ListExpr::ReduceToSingletons(Reducer* c)
 
 	loop_over_list(exprs, i)
 		{
-		if ( exprs[i]->IsSingleton() )
+		if ( exprs[i]->IsSingleton(c) )
 			continue;
 
 		IntrusivePtr<Stmt> e_stmt;
@@ -7535,14 +7535,18 @@ std::optional<std::vector<IntrusivePtr<Val>>> eval_list(Frame* f, const ListExpr
 
 bool same_singletons(IntrusivePtr<Expr> e1, IntrusivePtr<Expr> e2)
 	{
-	if ( ! e1->IsSingleton() || ! e2->IsSingleton() )
+	auto e1t = e1->Tag();
+	auto e2t = e2->Tag();
+
+	if ( (e1t != EXPR_NAME && e1t != EXPR_CONST) ||
+	     (e2t != EXPR_NAME && e2t != EXPR_CONST) )
 		return false;
 
-	if ( e1->IsConst() || e2->IsConst() )
-		{
-		if ( ! e1->IsConst() || ! e2->IsConst() )
-			return false;
+	if ( e1t != e2t )
+		return false;
 
+	if ( e1t == EXPR_CONST )
+		{
 		auto c1 = e1->AsConstExpr()->Value();
 		auto c2 = e2->AsConstExpr()->Value();
 

@@ -223,7 +223,7 @@ bool ExprListStmt::IsReduced(Reducer* c) const
 	{
 	const expr_list& e = l->Exprs();
 	for ( const auto& expr : e )
-		if ( ! expr->IsSingleton() )
+		if ( ! expr->IsSingleton(c) )
 			return NonReduced(expr);
 
 	return true;
@@ -246,7 +246,7 @@ Stmt* ExprListStmt::DoReduce(Reducer* c)
 			new_l->Append({AdoptRef{}, expr_opt});
 			}
 
-		else if ( expr->IsSingleton() )
+		else if ( expr->IsSingleton(c) )
 			new_l->Append({NewRef{}, expr});
 
 		else
@@ -500,7 +500,7 @@ Stmt* ExprStmt::DoReduce(Reducer* c)
 			return this->Ref();
 			}
 
-		if ( e->IsSingleton() )
+		if ( e->IsSingleton(c) )
 			// No point evaluating.
 			return TransformMe(new NullStmt, c);
 
@@ -1420,7 +1420,7 @@ Stmt* EventStmt::DoReduce(Reducer* c)
 		event_expr = {NewRef{}, e->AsEventExpr()};
 		}
 
-	else if ( ! event_expr->IsSingleton() )
+	else if ( ! event_expr->IsSingleton(c) )
 		{
 		IntrusivePtr<Stmt> red_e_stmt;
 		auto ee_red = event_expr->Reduce(c, red_e_stmt);
@@ -2100,7 +2100,7 @@ Stmt* ReturnStmt::DoReduce(Reducer* c)
 			return this->Ref();
 			}
 
-		if ( ! e->IsSingleton() )
+		if ( ! e->IsSingleton(c) )
 			{
 			IntrusivePtr<Stmt> red_e_stmt;
 			e = {AdoptRef{}, e->Reduce(c, red_e_stmt)};

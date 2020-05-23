@@ -27,6 +27,8 @@ public:
 	// order to generate the equivalent of function parameters.
 	IntrusivePtr<NameExpr> GenInlineBlockName(ID* id);
 
+	int NumNewLocals() const	{ return new_locals.size(); }
+
 	// Returns the name of a temporary for holding the return
 	// value of the block, or nil if the type indicates there's
 	// o return value.

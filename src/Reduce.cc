@@ -31,7 +31,7 @@ IntrusivePtr<Expr> Reducer::GenTemporaryExpr(const IntrusivePtr<BroType>& t,
 
 NameExpr* Reducer::UpdateName(NameExpr* n)
 	{
-	if ( inline_block_level == 0 || n->Id()->IsGlobal() || IsNewLocal(n) )
+	if ( NameIsReduced(n) )
 		{
 		Ref(n);
 		return n;
@@ -42,7 +42,9 @@ NameExpr* Reducer::UpdateName(NameExpr* n)
 
 bool Reducer::NameIsReduced(const NameExpr* n) const
 	{
-	return inline_block_level == 0 || n->Id()->IsGlobal() || IsNewLocal(n);
+	auto id = n->Id();
+	return inline_block_level == 0 || id->IsGlobal() || IsTemporary(id) ||
+		IsNewLocal(n);
 	}
 
 IntrusivePtr<NameExpr> Reducer::GenInlineBlockName(ID* id)
@@ -63,6 +65,9 @@ IntrusivePtr<NameExpr> Reducer::PushInlineBlock(IntrusivePtr<BroType> type)
 
 	IntrusivePtr<ID> ret_id = install_ID(buf, "<internal>", false, false);
 	ret_id->SetType(type);
+
+	// Add it as a new local so we track its frame usage.
+	new_locals.insert(ret_id.get());
 
 	return GenInlineBlockName(ret_id.release());
 	}

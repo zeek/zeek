@@ -5184,7 +5184,7 @@ IntrusivePtr<Stmt> TableConstructorExpr::ReduceToSingletons(Reducer* c)
 IntrusivePtr<Expr> TableConstructorExpr::Duplicate()
 	{
 	auto op_l = op->Duplicate()->AsListExprPtr();
-	auto a = attrs->Attrs();
+	auto a = attrs ? attrs->Attrs() : nullptr;
 	return make_intrusive<TableConstructorExpr>(op_l, a, type);
 	}
 
@@ -5320,7 +5320,7 @@ Expr* SetConstructorExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 IntrusivePtr<Expr> SetConstructorExpr::Duplicate()
 	{
 	auto op_l = op->Duplicate()->AsListExprPtr();
-	auto a = attrs->Attrs();
+	auto a = attrs ? attrs->Attrs() : nullptr;
 	return make_intrusive<SetConstructorExpr>(op_l, a, type);
 	}
 

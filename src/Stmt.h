@@ -398,6 +398,10 @@ class ReturnStmt : public ExprStmt {
 public:
 	explicit ReturnStmt(IntrusivePtr<Expr> e);
 
+	// Constructor used for duplication, when we've already done
+	// all of the type-checking.
+	ReturnStmt(IntrusivePtr<Expr> e, bool ignored);
+
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	Stmt* DoReduce(Reducer* c) override;

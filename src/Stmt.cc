@@ -2137,6 +2137,11 @@ ReturnStmt::ReturnStmt(IntrusivePtr<Expr> arg_e)
 		}
 	}
 
+ReturnStmt::ReturnStmt(IntrusivePtr<Expr> arg_e, bool ignored)
+	: ExprStmt(STMT_RETURN, std::move(arg_e))
+	{
+	}
+
 IntrusivePtr<Val> ReturnStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	RegisterAccess();
@@ -2194,7 +2199,7 @@ const CompiledStmt ReturnStmt::Compile(Compiler* c) const
 
 IntrusivePtr<Stmt> ReturnStmt::Duplicate()
 	{
-	return make_intrusive<ReturnStmt>(e ? e->Duplicate() : nullptr);
+	return make_intrusive<ReturnStmt>(e ? e->Duplicate() : nullptr, true);
 	}
 
 void ReturnStmt::StmtDescribe(ODesc* d) const

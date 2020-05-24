@@ -143,7 +143,8 @@ Expr* Inliner::CheckForInlining(CallExpr* c)
 	for ( int i = 0; i < nparam; ++i )
 		params->append(vars[i].get());
 
-	return new InlineExpr(args, params, body, curr_frame_size, t);
+	auto body_dup = body->Duplicate();
+	return new InlineExpr(args, params, body_dup, curr_frame_size, t);
 	}
 
 bool Inliner::IsInlineAble(FuncInfo* f)

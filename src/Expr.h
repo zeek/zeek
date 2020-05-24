@@ -1320,7 +1320,12 @@ public:
 
 	bool IsPure() const override;
 	bool IsReduced(Reducer* c) const override;
+	bool HasReducedOps(Reducer* c) const override	{ return false; }
+	bool WillTransform(Reducer* c) const override	{ return true; }
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
+
+	IntrusivePtr<ListExpr> Args() const	{ return args; }
+	IntrusivePtr<Stmt> Body() const		{ return body; }
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 

@@ -2237,6 +2237,9 @@ IntrusivePtr<Val> CatchReturnStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	if ( flow == FLOW_RETURN )
 		flow = FLOW_NEXT;
 
+	if ( ret_var )
+		f->SetElement(ret_var->Id()->Offset(), val.get());
+
 	return val;
 	}
 

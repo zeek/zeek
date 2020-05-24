@@ -177,10 +177,10 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
         case STMT_CATCH_RETURN:
 		{
 		auto cr = s->AsCatchReturnStmt();
-		auto block = cr->Block();
+		auto block = cr->Block().get();
 		auto ret_var = cr->RetVar();
 
-		mgr.SetPreFromPre(block.get(), s);
+		mgr.SetPreFromPre(block, s);
 		block->Traverse(this);
 
 		// Treat the block as a no-op for analyzing RDs,
@@ -188,9 +188,21 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		// any of the RDs outside of it.
 		mgr.SetPostFromPre(s);
 
-		// Ideally for the return variable (if any) we'd track
-		// whether all of the paths out of the block go through
-		// a "return <expr>".  For now, we punt.
+		if ( ret_var )
+			{
+			// Ideally for the return variable (if any) we'd track
+			// whether all of the paths out of the block go through
+			// a "return <expr>".  For now, we punt and just mark
+			// it as defined.
+			auto cr_post_min = mgr.GetPostMinRDs(s);
+			auto cr_post_max = mgr.GetPostMaxRDs(s);
+
+			auto di = mgr.GetID_DI(ret_var->Id());
+			auto dp = DefinitionPoint(s);
+
+			cr_post_min->AddRD(di, dp);
+			cr_post_max->AddRD(di, dp);
+			}
 
 		return TC_ABORTSTMT;
 		}
@@ -1197,6 +1209,15 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 				mgr.CreatePostDef(g, DefinitionPoint(c), false);
 
 		return TC_ABORTSTMT;
+		}
+
+	case EXPR_INLINE:
+		{
+		ASSERT(0);
+		auto inl = e->AsInlineExpr();
+		mgr.SetPreFromPre(inl->Args().get(), inl);
+		mgr.SetPreFromPre(inl->Body().get(), inl);
+		break;
 		}
 
 	case EXPR_COND:

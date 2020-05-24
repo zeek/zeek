@@ -6650,7 +6650,7 @@ bool InlineExpr::IsPure() const
 
 bool InlineExpr::IsReduced(Reducer* c) const
 	{
-	return args->IsReduced(c) && body->IsReduced(c);
+	return NonReduced(this);
 	}
 
 Expr* InlineExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)

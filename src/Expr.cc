@@ -1525,7 +1525,12 @@ Expr* IncrExpr::ReduceToSingleton(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		red_stmt = make_intrusive<ExprStmt>(incr_expr);
 		red_stmt = {AdoptRef{}, red_stmt->Reduce(c)};
 
-		return op->AsRefExpr()->Op()->Ref();
+		IntrusivePtr<Stmt> targ_red_stmt;
+		auto targ_red = target->Reduce(c, targ_red_stmt);
+
+		red_stmt = MergeStmts(red_stmt, targ_red_stmt);
+
+		return targ_red;
 		}
 
 	else
@@ -3244,7 +3249,7 @@ void RefExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 bool RefExpr::IsReduced(Reducer* c) const
 	{
 	if ( op->Tag() == EXPR_NAME )
-		return true;
+		return op->IsReduced(c);
 
 	return NonReduced(this);
 	}
@@ -3253,7 +3258,7 @@ bool RefExpr::HasReducedOps(Reducer* c) const
 	{
 	switch ( op->Tag() ) {
 	case EXPR_NAME:
-		return true;
+		return op->IsReduced(c);
 
 	case EXPR_FIELD:
 		return op->AsFieldExpr()->Op()->IsReduced(c);
@@ -3280,7 +3285,9 @@ bool RefExpr::WillTransform(Reducer* c) const
 
 Expr* RefExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
-	if ( op->Tag() != EXPR_NAME )
+	if ( op->Tag() == EXPR_NAME )
+		op = {AdoptRef{}, op->Reduce(c, red_stmt)};
+	else
 		op = {AdoptRef{}, AssignToTemporary(c, red_stmt)};
 
 	return this->Ref();
@@ -3289,7 +3296,11 @@ Expr* RefExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 IntrusivePtr<Stmt> RefExpr::ReduceToLHS(Reducer* c)
 	{
 	if ( op->Tag() == EXPR_NAME )
-		return nullptr;
+		{
+		IntrusivePtr<Stmt> red_stmt;
+		op = {AdoptRef{}, op->Reduce(c, red_stmt)};
+		return red_stmt;
+		}
 
 	auto red_stmt1 = op->ReduceToSingletons(c);
 	auto op_ref = make_intrusive<RefExpr>(op);
@@ -3748,7 +3759,7 @@ bool AssignExpr::IsReduced(Reducer* c) const
 		return false;
 
 	if ( op1->Tag() == EXPR_NAME && op1->Type()->Tag() == TYPE_ANY )
-		return op2->IsSingleton(c);
+		return op1->IsReduced(c) && op2->IsSingleton(c);
 
 	if ( IsTemp() )
 		return true;
@@ -4127,6 +4138,9 @@ Expr* IndexAssignExpr::ReduceToSingleton(Reducer* c,
 	if ( op1->Tag() != EXPR_NAME )
 		Internal("Confusion in IndexAssignExpr::ReduceToSingleton");
 
+	IntrusivePtr<Stmt> op1_red_stmt;
+	op1 = {AdoptRef{}, op1->Reduce(c, op1_red_stmt)};
+
 	IntrusivePtr<Expr> assign_expr{NewRef{}, this};
 	auto assign_stmt = make_intrusive<ExprStmt>(assign_expr);
 
@@ -4134,7 +4148,7 @@ Expr* IndexAssignExpr::ReduceToSingleton(Reducer* c,
 	auto res = new IndexExpr(GetOp1(), index, false);
 	auto final_res = res->ReduceToSingleton(c, red_stmt);
 
-	red_stmt = MergeStmts(assign_stmt, red_stmt);
+	red_stmt = MergeStmts(op1_red_stmt, assign_stmt, red_stmt);
 
 	return final_res;
 	}
@@ -4677,6 +4691,9 @@ Expr* FieldLHSAssignExpr::ReduceToSingleton(Reducer* c,
 	if ( op1->Tag() != EXPR_NAME )
 		Internal("Confusion in FieldLHSAssignExpr::ReduceToSingleton");
 
+	IntrusivePtr<Stmt> op1_red_stmt;
+	op1 = {AdoptRef{}, op1->Reduce(c, op1_red_stmt)};
+
 	IntrusivePtr<Expr> assign_expr{NewRef{}, this};
 	auto assign_stmt = make_intrusive<ExprStmt>(assign_expr);
 
@@ -4684,7 +4701,8 @@ Expr* FieldLHSAssignExpr::ReduceToSingleton(Reducer* c,
 	IntrusivePtr<Stmt> field_res_stmt;
 	auto res = field_res->ReduceToSingleton(c, field_res_stmt);
 
-	red_stmt = MergeStmts(assign_stmt, red_stmt, field_res_stmt);
+	red_stmt = MergeStmts(MergeStmts(op1_red_stmt, assign_stmt),
+				red_stmt, field_res_stmt);
 
 	return res;
 	}

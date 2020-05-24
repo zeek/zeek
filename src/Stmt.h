@@ -431,7 +431,9 @@ public:
 
 	bool IsPure() const override;
 
-	// No reduction method because generated in reduced form.
+	// Even though these are generated in reduced form, we still
+	// have a reduction method to support the optimizer pass.
+	Stmt* DoReduce(Reducer* c) override;
 	const CompiledStmt Compile(Compiler* c) const override;
 
 	void StmtDescribe(ODesc* d) const override;

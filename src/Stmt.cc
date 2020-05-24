@@ -2268,6 +2268,12 @@ bool CatchReturnStmt::IsPure() const
 	return block->IsPure();
 	}
 
+Stmt* CatchReturnStmt::DoReduce(Reducer* c)
+	{
+	block = {AdoptRef{}, block->Reduce(c)};
+	return this->Ref();
+	}
+
 const CompiledStmt CatchReturnStmt::Compile(Compiler* c) const
 	{
 	c->SetCurrStmt(this);

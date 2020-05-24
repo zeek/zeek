@@ -1699,7 +1699,10 @@ void analyze_scripts()
 	Inliner inl(funcs);
 
 	for ( auto& f : funcs )
+		{
+		printf("optimizing %s\n", f->func->Name());
 		optimize_func(f->func, f->scope, f->body);
+		}
 
 	for ( auto& f : funcs )
 		delete f;

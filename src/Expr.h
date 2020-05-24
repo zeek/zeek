@@ -547,6 +547,8 @@ public:
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 };
 
 class IncrExpr : public UnaryExpr {
@@ -564,6 +566,8 @@ public:
 				IntrusivePtr<Stmt>& red_stmt) override;
 	const CompiledStmt Compile(Compiler* c) const override;
 
+	IntrusivePtr<Expr> Duplicate() override;
+
 	bool IsPure() const override;
 	bool HasNoSideEffects() const override;
 };
@@ -576,6 +580,8 @@ protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
 	bool WillTransform(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 };
 
 class NotExpr : public UnaryExpr {
@@ -586,6 +592,8 @@ protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
 	bool WillTransform(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 };
 
 class PosExpr : public UnaryExpr {
@@ -596,6 +604,8 @@ protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
 	bool WillTransform(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 };
 
 class NegExpr : public UnaryExpr {
@@ -606,6 +616,8 @@ protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
 	bool WillTransform(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 };
 
 class SizeExpr : public UnaryExpr {
@@ -615,6 +627,8 @@ public:
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 };
 
 class AddExpr : public BinaryExpr {
@@ -626,6 +640,8 @@ public:
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	Expr* BuildSub(const IntrusivePtr<Expr>& op1,
 			const IntrusivePtr<Expr>& op2);
+
+	IntrusivePtr<Expr> Duplicate() override;
 };
 
 class AddToExpr : public BinaryExpr {
@@ -635,6 +651,8 @@ public:
 
 	bool WillTransform(Reducer* c) const override	{ return true; }
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 };
 
 class AppendToExpr : public BinaryExpr {
@@ -645,6 +663,8 @@ public:
 	bool IsReduced(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	const CompiledStmt Compile(Compiler* c) const override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 };
 
 class RemoveFromExpr : public BinaryExpr {
@@ -654,6 +674,8 @@ public:
 
 	bool WillTransform(Reducer* c) const override	{ return true; }
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 };
 
 class SubExpr : public BinaryExpr {
@@ -662,6 +684,8 @@ public:
 
 	bool WillTransform(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 };
 
 class TimesExpr : public BinaryExpr {
@@ -671,6 +695,8 @@ public:
 
 	bool WillTransform(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 };
 
 class DivideExpr : public BinaryExpr {
@@ -682,11 +708,15 @@ protected:
 
 	bool WillTransform(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 };
 
 class ModExpr : public BinaryExpr {
 public:
 	ModExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2);
+
+	IntrusivePtr<Expr> Duplicate() override;
 };
 
 class BoolExpr : public BinaryExpr {
@@ -698,6 +728,9 @@ public:
 
 	bool WillTransform(Reducer* c) const override	{ return true; }
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
+
+	IntrusivePtr<Expr> Duplicate() override;
+
 	bool IsTrue(const IntrusivePtr<Expr>& e) const;
 	bool IsFalse(const IntrusivePtr<Expr>& e) const;
 };
@@ -708,6 +741,8 @@ public:
 
 	bool WillTransform(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 };
 
 class EqExpr : public BinaryExpr {
@@ -719,6 +754,8 @@ protected:
 	IntrusivePtr<Val> Fold(Val* v1, Val* v2) const override;
 	bool WillTransform(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 };
 
 class RelExpr : public BinaryExpr {
@@ -727,6 +764,8 @@ public:
 	void Canonicize() override;
 	bool WillTransform(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 };
 
 class CondExpr : public Expr {
@@ -752,6 +791,9 @@ public:
 	bool WillTransform(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	IntrusivePtr<Stmt> ReduceToSingletons(Reducer* c) override;
+
+	IntrusivePtr<Expr> Duplicate() override;
+
 	Expr* Inline(Inliner* inl) override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
@@ -778,6 +820,8 @@ public:
 
 	// Reduce to simplifed LHS form, i.e., a reference to only a name.
 	IntrusivePtr<Stmt> ReduceToLHS(Reducer* c);
+
+	IntrusivePtr<Expr> Duplicate() override;
 };
 
 class AssignExpr : public BinaryExpr {
@@ -802,6 +846,8 @@ public:
 	Expr* ReduceToSingleton(Reducer* c,
 				IntrusivePtr<Stmt>& red_stmt) override;
 	const CompiledStmt Compile(Compiler* c) const override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 
 	// Whether this is an assignment to a temporary.
 	bool IsTemp() const	{ return is_temp; }
@@ -836,6 +882,8 @@ public:
 				IntrusivePtr<Stmt>& red_stmt) override;
 	const CompiledStmt Compile(Compiler* c) const override;
 
+	IntrusivePtr<Expr> Duplicate() override;
+
 	IntrusivePtr<Expr> GetOp3() const override final	{ return op3; }
 	void SetOp3(IntrusivePtr<Expr> _op) override final { op3 = _op; }
 
@@ -853,6 +901,8 @@ public:
 	                     IntrusivePtr<Expr> op2, bool is_init);
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 	const CompiledStmt Compile(Compiler* c) const override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 };
 
 class IndexExpr : public BinaryExpr {
@@ -875,6 +925,8 @@ public:
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 	IntrusivePtr<Stmt> ReduceToSingletons(Reducer* c) override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 
 	bool IsSlice() const { return is_slice; }
 
@@ -911,6 +963,8 @@ protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 
+	IntrusivePtr<Expr> Duplicate() override;
+
 	void ExprDescribe(ODesc* d) const override;
 
 	int index;
@@ -933,6 +987,8 @@ public:
 	Expr* ReduceToSingleton(Reducer* c,
 				IntrusivePtr<Stmt>& red_stmt) override;
 	const CompiledStmt Compile(Compiler* c) const override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 
 protected:
 	void ExprDescribe(ODesc* d) const override;
@@ -959,6 +1015,8 @@ public:
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
 
+	IntrusivePtr<Expr> Duplicate() override;
+
 	void ExprDescribe(ODesc* d) const override;
 
 	const char* field_name;
@@ -979,6 +1037,8 @@ public:
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
 
+	IntrusivePtr<Expr> Duplicate() override;
+
 	void ExprDescribe(ODesc* d) const override;
 
 	const char* field_name;
@@ -997,6 +1057,8 @@ protected:
 	bool HasReducedOps(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	IntrusivePtr<Stmt> ReduceToSingletons(Reducer* c) override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 
 	void ExprDescribe(ODesc* d) const override;
 };
@@ -1017,6 +1079,8 @@ public:
 
 protected:
 	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -1040,6 +1104,8 @@ public:
 protected:
 	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
 
+	IntrusivePtr<Expr> Duplicate() override;
+
 	void ExprDescribe(ODesc* d) const override;
 
 	Attributes* attrs;
@@ -1056,6 +1122,8 @@ public:
 protected:
 	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
 
+	IntrusivePtr<Expr> Duplicate() override;
+
 	void ExprDescribe(ODesc* d) const override;
 };
 
@@ -1068,6 +1136,8 @@ public:
 	void EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const override;
 	bool WillTransform(Reducer* c) const override	{ return true; }
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 
 	bool IsRecordElement(TypeDecl* td) const override;
 
@@ -1084,6 +1154,8 @@ public:
 protected:
 	IntrusivePtr<Val> FoldSingleVal(Val* v, InternalTypeTag t) const;
 	IntrusivePtr<Val> Fold(Val* v) const override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 
 	bool WillTransform(Reducer* c) const override;
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
@@ -1103,6 +1175,8 @@ protected:
 	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
 	IntrusivePtr<Val> Fold(Val* v) const override;
 
+	IntrusivePtr<Expr> Duplicate() override;
+
 	// For each super-record slot, gives subrecord slot with which to
 	// fill it.
 	int* map;
@@ -1119,6 +1193,8 @@ public:
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 };
 
 class VectorCoerceExpr : public UnaryExpr {
@@ -1128,6 +1204,8 @@ public:
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 };
 
 // An internal operator for flattening array indices that are records
@@ -1138,6 +1216,8 @@ public:
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 
 	int num_fields;
 };
@@ -1168,6 +1248,8 @@ public:
 	Expr* Inline(Inliner* inl) override;
 	const CompiledStmt Compile(Compiler* c) const override;
 
+	IntrusivePtr<Expr> Duplicate() override;
+
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 	Expr* When() const	{ return when.get(); }
@@ -1197,6 +1279,8 @@ public:
 protected:
 	IntrusivePtr<Val> Fold(Val* v1, Val* v2) const override;
 
+	IntrusivePtr<Expr> Duplicate() override;
+
 };
 
 class CallExpr : public Expr {
@@ -1216,6 +1300,8 @@ public:
 	const CompiledStmt Compile(Compiler* c) const override;
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -1237,6 +1323,8 @@ public:
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
+
+	IntrusivePtr<Expr> Duplicate() override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -1264,6 +1352,7 @@ public:
 
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 	Expr* Inline(Inliner* inl) override;
+	IntrusivePtr<Expr> Duplicate() override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -1300,6 +1389,8 @@ public:
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
+	IntrusivePtr<Expr> Duplicate() override;
+
 	IntrusivePtr<BroType> InitType() const override;
 	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
 	IntrusivePtr<Expr> MakeLvalue() override;
@@ -1331,6 +1422,7 @@ public:
 	IntrusivePtr<Stmt> ReduceToSingletons(Reducer* c) override;
 	Expr* Inline(Inliner* inl) override;
 	const CompiledStmt Compile(Compiler* c) const override;
+	IntrusivePtr<Expr> Duplicate() override;
 
 	IntrusivePtr<Expr> GetOp1() const override final	{ return args; }
 	void SetOp1(IntrusivePtr<Expr> _op) override final
@@ -1358,6 +1450,7 @@ public:
 
 protected:
 	IntrusivePtr<Val> Eval(Frame* f) const override;
+	IntrusivePtr<Expr> Duplicate() override;
 	void ExprDescribe(ODesc* d) const override;
 };
 
@@ -1371,6 +1464,7 @@ public:
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
+	IntrusivePtr<Expr> Duplicate() override;
 	void ExprDescribe(ODesc* d) const override;
 
 private:

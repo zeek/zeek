@@ -47,6 +47,42 @@ bool Reducer::NameIsReduced(const NameExpr* n) const
 		IsNewLocal(n);
 	}
 
+id_list* Reducer::UpdateIDs(id_list* ids)
+	{
+	loop_over_list(*ids, i)
+		{
+		IntrusivePtr<ID> id = {NewRef{}, (*ids)[i]};
+
+		if ( ! ID_IsReduced(id) )
+			(*ids)[i] = UpdateID(id).release();
+		}
+
+	return ids;
+	}
+
+bool Reducer::IDsAreReduced(const id_list* ids) const
+	{
+	for ( auto& id : *ids )
+		if ( ! ID_IsReduced(id) )
+			return false;
+
+	return true;
+	}
+
+IntrusivePtr<ID> Reducer::UpdateID(IntrusivePtr<ID> id)
+	{
+	if ( ID_IsReduced(id) )
+		return id;
+
+	return GenLocal(id.get());
+	}
+
+bool Reducer::ID_IsReduced(const ID* id) const
+	{
+	return inline_block_level == 0 || id->IsGlobal() || IsTemporary(id) ||
+		IsNewLocal(id);
+	}
+
 IntrusivePtr<NameExpr> Reducer::GenInlineBlockName(ID* id)
 	{
 	return make_intrusive<NameExpr>(GenLocal(id));
@@ -704,10 +740,10 @@ IntrusivePtr<ID> Reducer::GenLocal(ID* orig)
 	return local_id;
 	}
 
-bool Reducer::IsNewLocal(const NameExpr* n) const
+bool Reducer::IsNewLocal(const ID* id) const
 	{
-	auto id = n->Id();
-	return new_locals.find(id) != new_locals.end();
+	ID* non_const_ID = (ID*) id;	// I don't get why C++ requires this
+	return new_locals.count(non_const_ID) != 0;
 	}
 
 TempVar* Reducer::FindTemporary(const ID* id) const

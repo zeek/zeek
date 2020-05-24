@@ -496,6 +496,9 @@ public:
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
+	bool IsReduced(Reducer* c) const override;
+	Stmt* DoReduce(Reducer* c) override;
+
 	const CompiledStmt Compile(Compiler* c) const override;
 
 	const id_list* Inits() const	{ return inits; }

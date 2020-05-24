@@ -23,6 +23,14 @@ public:
 	NameExpr* UpdateName(NameExpr* n);
 	bool NameIsReduced(const NameExpr* n) const;
 
+	id_list* UpdateIDs(id_list* ids);
+	bool IDsAreReduced(const id_list* ids) const;
+
+	IntrusivePtr<ID> UpdateID(IntrusivePtr<ID> id);
+	bool ID_IsReduced(const IntrusivePtr<ID>& id) const
+		{ return ID_IsReduced(id.get()); }
+	bool ID_IsReduced(const ID* id) const;
+
 	// This is called *prior* to pushing a new inline block, in
 	// order to generate the equivalent of function parameters.
 	IntrusivePtr<NameExpr> GenInlineBlockName(ID* id);
@@ -133,7 +141,9 @@ protected:
 	IntrusivePtr<ID> GenLocal(ID* orig);
 
 	// True if this name already reflects the replacement.
-	bool IsNewLocal(const NameExpr* n) const;
+	bool IsNewLocal(const NameExpr* n) const
+		{ return IsNewLocal(n->Id()); }
+	bool IsNewLocal(const ID* id) const;
 
 	// This is the heart of constant propagation.  Given an identifier
 	// and a set of definition points for it, if its value is constant

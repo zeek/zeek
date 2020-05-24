@@ -411,6 +411,8 @@ public:
 	bool HasNoSideEffects() const override	{ return true; }
 
 	bool IsReduced(Reducer* c) const override;
+	bool WillTransform(Reducer* c) const override
+		{ return ! IsReduced(c); }
 	Expr* Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt) override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;

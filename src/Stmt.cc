@@ -792,8 +792,14 @@ Case::~Case()
 
 Case* Case::Duplicate()
 	{
-	return new Case(expr_cases->Duplicate()->AsListExprPtr(),
-			type_cases, s->Duplicate());
+	if ( expr_cases )
+		{
+		auto new_exprs = expr_cases->Duplicate()->AsListExprPtr();
+		return new Case(new_exprs, type_cases, s->Duplicate());
+		}
+
+	else
+		return new Case(nullptr, type_cases, s->Duplicate());
 	}
 
 void Case::Describe(ODesc* d) const
@@ -1908,6 +1914,12 @@ bool ForStmt::IsReduced(Reducer* c) const
 	if ( ! e->IsReduced(c) )
 		return NonReduced(e.get());
 
+	if ( ! c->IDsAreReduced(loop_vars) )
+		return false;
+
+	if ( value_var && ! c->ID_IsReduced(value_var) )
+		return false;
+
 	return body->IsReduced(c);
 	}
 
@@ -1918,7 +1930,12 @@ Stmt* ForStmt::DoReduce(Reducer* c)
 	if ( c->Optimizing() )
 		e = c->OptExpr(e);
 	else
+		{
 		e = {AdoptRef{}, e->Reduce(c, red_e_stmt)};
+		loop_vars = c->UpdateIDs(loop_vars);
+		if ( value_var )
+			value_var = c->UpdateID(value_var);
+		}
 
 	body = {AdoptRef{}, body->Reduce(c)};
 
@@ -2240,7 +2257,9 @@ IntrusivePtr<Val> CatchReturnStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	if ( ret_var )
 		f->SetElement(ret_var->Id()->Offset(), val.get());
 
-	return val;
+	// Note, do *not* return the value!  That's taken as a signal
+	// that a full return executed.
+	return nullptr;
 	}
 
 bool CatchReturnStmt::IsPure() const
@@ -2595,6 +2614,18 @@ IntrusivePtr<Val> InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
 		}
 
 	return nullptr;
+	}
+
+bool InitStmt::IsReduced(Reducer* c) const
+	{
+	return c->IDsAreReduced(inits);
+	}
+
+Stmt* InitStmt::DoReduce(Reducer* c)
+	{
+	inits = c->UpdateIDs(inits);
+
+	return this->Ref();
 	}
 
 const CompiledStmt InitStmt::Compile(Compiler* c) const

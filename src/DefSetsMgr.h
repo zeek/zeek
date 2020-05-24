@@ -154,7 +154,7 @@ public:
 		{ return item_map.GetConstID_DI(di, field_name); }
 
 protected:
-	RD_ptr& GetRDs(const IntrusivePtr<ReachingDefSet> defs,
+	RD_ptr& GetRDs(const IntrusivePtr<ReachingDefSet>& defs,
 				const BroObj* o) const
 		{
 		return defs->FindRDs(o);

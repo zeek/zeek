@@ -5203,7 +5203,11 @@ IntrusivePtr<Expr> TableConstructorExpr::Duplicate()
 	{
 	auto op_l = op->Duplicate()->AsListExprPtr();
 	auto a = attrs ? attrs->Attrs() : nullptr;
-	return make_intrusive<TableConstructorExpr>(op_l, a, type);
+
+	if ( op->AsListExpr()->Exprs().empty() )
+		return make_intrusive<TableConstructorExpr>(op_l, a, nullptr);
+	else
+		return make_intrusive<TableConstructorExpr>(op_l, a, type);
 	}
 
 IntrusivePtr<Val> TableConstructorExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) const
@@ -5339,7 +5343,11 @@ IntrusivePtr<Expr> SetConstructorExpr::Duplicate()
 	{
 	auto op_l = op->Duplicate()->AsListExprPtr();
 	auto a = attrs ? attrs->Attrs() : nullptr;
-	return make_intrusive<SetConstructorExpr>(op_l, a, type);
+
+	if ( op->AsListExpr()->Exprs().empty() )
+		return make_intrusive<SetConstructorExpr>(op_l, a, nullptr);
+	else
+		return make_intrusive<SetConstructorExpr>(op_l, a, type);
 	}
 
 IntrusivePtr<Stmt> SetConstructorExpr::ReduceToSingletons(Reducer* c)
@@ -5479,7 +5487,11 @@ IntrusivePtr<Val> VectorConstructorExpr::InitVal(const BroType* t, IntrusivePtr<
 IntrusivePtr<Expr> VectorConstructorExpr::Duplicate()
 	{
 	auto op_l = op->Duplicate()->AsListExprPtr();
-	return make_intrusive<VectorConstructorExpr>(op_l, type);
+
+	if ( op->AsListExpr()->Exprs().empty() )
+		return make_intrusive<VectorConstructorExpr>(op_l, nullptr);
+	else
+		return make_intrusive<VectorConstructorExpr>(op_l, type);
 	}
 
 void VectorConstructorExpr::ExprDescribe(ODesc* d) const

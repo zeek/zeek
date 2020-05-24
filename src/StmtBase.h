@@ -59,6 +59,15 @@ public:
 	Stmt* Reduce(Reducer* c);
 	virtual Stmt* DoReduce(Reducer* c)	{ return this->Ref(); }
 
+	// Returns a duplicate of the statement so that modifications
+	// can be made to statements from inlining function bodies - or
+	// to the originals - without affecting other instances.
+	//
+	// Statements that are safe to share across multiple functions
+	// can just return references to themselves, as is done in the
+	// default here.
+	virtual IntrusivePtr<Stmt> Duplicate() { return {NewRef{}, this}; }
+
 	virtual void Inline(Inliner* inl)	{ }
 
 	// Compile the statement and return its opaque handle.  (For

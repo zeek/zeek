@@ -190,6 +190,13 @@ public:
 
 	virtual const CompiledStmt Compile(Compiler* c) const;
 
+	// Returns a duplciate of the expression.  For atomic expressions
+	// that can be safely shared across multiple function bodies
+	// (due to inline-ing), can return just a reference, per the
+	// default here.
+	virtual IntrusivePtr<Expr> Duplicate()
+		{ return {NewRef{}, this}; }
+
 	// True if the expression can serve as an operand to a reduced
 	// expression.
 	bool IsSingleton(Reducer* r) const
@@ -274,6 +281,15 @@ public:
                 return (ctype*) this; \
                 }
 
+#undef PTR_ACCESSOR
+#define PTR_ACCESSOR(tag, ctype, name) \
+        IntrusivePtr<ctype> name ## Ptr() \
+                { \
+                CHECK_TAG(Tag(), tag, "Expr::ACCESSOR", expr_name) \
+		IntrusivePtr<ctype> res = {NewRef{}, (ctype*) this}; \
+                return res; \
+                }
+
 #undef CONST_ACCESSOR
 #define CONST_ACCESSOR(tag, ctype, name) \
         const ctype* name() const \
@@ -285,6 +301,7 @@ public:
 #undef ACCESSORS
 #define ACCESSORS(tag, ctype, name) \
 	ACCESSOR(tag, ctype, name) \
+	PTR_ACCESSOR(tag, ctype, name) \
 	CONST_ACCESSOR(tag, ctype, name)
 
 	ACCESSORS(EXPR_LIST, ListExpr, AsListExpr);

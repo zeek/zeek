@@ -54,6 +54,8 @@ protected:
 			Reducer* c) override;
 
 	const CompiledStmt Compile(Compiler* c) const override;
+
+	IntrusivePtr<Stmt> Duplicate() override;
 };
 
 extern void do_print(const std::vector<IntrusivePtr<Val>>& vals);
@@ -85,6 +87,8 @@ protected:
 
 	const CompiledStmt Compile(Compiler* c) const override;
 
+	IntrusivePtr<Stmt> Duplicate() override;
+
 	IntrusivePtr<Expr> e;
 };
 
@@ -110,6 +114,8 @@ protected:
 
 	const CompiledStmt Compile(Compiler* c) const override;
 
+	IntrusivePtr<Stmt> Duplicate() override;
+
 	IntrusivePtr<Stmt> s1;
 	IntrusivePtr<Stmt> s2;
 };
@@ -129,6 +135,8 @@ public:
 	Stmt* Body()			{ return s.get(); }
 
 	void UpdateBody(Stmt* new_body)	{ s = {AdoptRef{}, new_body}; }
+
+	Case* Duplicate();
 
 	void Describe(ODesc* d) const override;
 
@@ -173,6 +181,8 @@ protected:
 	void Inline(Inliner* inl) override;
 
 	const CompiledStmt Compile(Compiler* c) const override;
+
+	IntrusivePtr<Stmt> Duplicate() override;
 
 	// Initialize composite hash and case label map.
 	void Init();
@@ -220,6 +230,8 @@ public:
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	const CompiledStmt Compile(Compiler* c) const override;
+
+	IntrusivePtr<Stmt> Duplicate() override;
 };
 
 class DelStmt : public AddDelStmt {
@@ -229,6 +241,8 @@ public:
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	const CompiledStmt Compile(Compiler* c) const override;
+
+	IntrusivePtr<Stmt> Duplicate() override;
 };
 
 class EventStmt : public ExprStmt {
@@ -240,6 +254,8 @@ public:
 	Stmt* DoReduce(Reducer* c) override;
 
 	const CompiledStmt Compile(Compiler* c) const override;
+
+	IntrusivePtr<Stmt> Duplicate() override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -281,6 +297,8 @@ protected:
 
 	const CompiledStmt Compile(Compiler* c) const override;
 
+	IntrusivePtr<Stmt> Duplicate() override;
+
 	IntrusivePtr<Expr> loop_condition;
 	IntrusivePtr<Stmt> stmt_loop_condition;
 	IntrusivePtr<Stmt> loop_cond_stmt;
@@ -315,6 +333,8 @@ protected:
 	IntrusivePtr<Val> DoExec(Frame* f, Val* v, stmt_flow_type& flow) const override;
 
 	const CompiledStmt Compile(Compiler* c) const override;
+
+	IntrusivePtr<Stmt> Duplicate() override;
 
 	id_list* loop_vars;
 	IntrusivePtr<Stmt> body;
@@ -383,11 +403,14 @@ public:
 	Stmt* DoReduce(Reducer* c) override;
 	const CompiledStmt Compile(Compiler* c) const override;
 
+	IntrusivePtr<Stmt> Duplicate() override;
+
 	void StmtDescribe(ODesc* d) const override;
 };
 
 // Internal statement used for inlining.  Executes a block and stops
-// the propagation of any "return" inside the block.
+// the propagation of any "return" inside the block.  Generated in
+// an already-reduced state.
 class NameExpr;
 class CatchReturnStmt : public Stmt {
 public:
@@ -436,6 +459,8 @@ public:
 	Stmt* DoReduce(Reducer* c) override;
 	void Inline(Inliner* inl) override;
 	const CompiledStmt Compile(Compiler* c) const override;
+
+	IntrusivePtr<Stmt> Duplicate() override;
 
 	const stmt_list& Stmts() const	{ return *stmts; }
 	stmt_list& Stmts()		{ return *stmts; }
@@ -507,6 +532,8 @@ public:
 	void Inline(Inliner* inl) override;
 	const CompiledStmt Compile(Compiler* c) const override;
 
+	IntrusivePtr<Stmt> Duplicate() override;
+
 	bool IsPure() const override;
 	bool IsReduced(Reducer* c) const override;
 
@@ -527,6 +554,7 @@ protected:
 	bool is_return;
 };
 
+// Generated in an already-reduced state.
 class CheckAnyLenStmt : public ExprStmt {
 public:
 	explicit CheckAnyLenStmt(IntrusivePtr<Expr> e, int expected_len);

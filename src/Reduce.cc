@@ -66,7 +66,7 @@ IntrusivePtr<NameExpr> Reducer::PushInlineBlock(IntrusivePtr<BroType> type)
 	IntrusivePtr<ID> ret_id = install_ID(buf, "<internal>", false, false);
 	ret_id->SetType(type);
 
-	// Add it as a new local so we track its frame usage.
+	// Add it as a new local so we track its potential frame usage.
 	new_locals.insert(ret_id.get());
 
 	return GenInlineBlockName(ret_id.release());

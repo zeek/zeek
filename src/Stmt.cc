@@ -1894,10 +1894,18 @@ IntrusivePtr<Stmt> ForStmt::Duplicate()
 	IntrusivePtr<ForStmt> f;
 	auto expr_copy = e->Duplicate();
 
+	id_list* new_loop_vars = new id_list;
+	loop_over_list(*loop_vars, i)
+		{
+		auto id = (*loop_vars)[i];
+		::Ref(id);
+		new_loop_vars->append(id);
+		}
+
 	if ( value_var )
-		f = make_intrusive<ForStmt>(loop_vars, expr_copy, value_var);
+		f = make_intrusive<ForStmt>(new_loop_vars, expr_copy, value_var);
 	else
-		f = make_intrusive<ForStmt>(loop_vars, expr_copy);
+		f = make_intrusive<ForStmt>(new_loop_vars, expr_copy);
 
 	f->AddBody(body->Duplicate());
 

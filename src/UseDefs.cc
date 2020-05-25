@@ -164,7 +164,7 @@ bool UseDefs::CheckIfUnused(const Stmt* s, const ID* id, bool report)
 	if ( ! uds || ! uds->HasID(id) )
 		{
 		if ( report && ! rc->IsTemporary(id) &&
-		     ! rc->IsConstantVar(id) )
+		     ! rc->IsConstantVar(id) && ! rc->IsNewLocal(id) )
 			reporter->Warning("%s assignment unused: %s",
 						id->Name(), obj_desc(s));
 

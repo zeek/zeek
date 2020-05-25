@@ -49,6 +49,11 @@ public:
 	bool IsConstantVar(const ID* id) const
 		{ return constant_vars.find(id) != constant_vars.end(); }
 
+	// True if this name already reflects the replacement.
+	bool IsNewLocal(const NameExpr* n) const
+		{ return IsNewLocal(n->Id()); }
+	bool IsNewLocal(const ID* id) const;
+
 	bool Optimizing() const	
 		{ return ! IsPruning() && mgr != nullptr; }
 
@@ -139,11 +144,6 @@ protected:
 	// version has a distinct name and has a correct frame offset
 	// for the current function.
 	IntrusivePtr<ID> GenLocal(ID* orig);
-
-	// True if this name already reflects the replacement.
-	bool IsNewLocal(const NameExpr* n) const
-		{ return IsNewLocal(n->Id()); }
-	bool IsNewLocal(const ID* id) const;
 
 	// This is the heart of constant propagation.  Given an identifier
 	// and a set of definition points for it, if its value is constant

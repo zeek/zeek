@@ -107,7 +107,7 @@ op-type X
 eval const char* error;
 eval auto res = flatten_value(frame[z.v2].record_val, z.v3, error);
 eval if ( error ) ZAM_run_time_error(error_flag, z.stmt, error);
-eval else frame[z.v1].record_val = res->AsRecordVal();
+eval else frame[z.v1].record_val = TrackValPtr(res)->AsRecordVal();
 
 unary-expr-op Cast
 op-type X
@@ -151,8 +151,7 @@ vector
 eval $1 - $2
 #
 eval_T auto v = $1->Clone()
-eval_T vals.push_back(v)
-eval_T $$ = v->AsTableVal()
+eval_T $$ = TrackValPtr(v)->AsTableVal()
 eval_T $2->RemoveFrom($$)
 
 binary-expr-op Times
@@ -173,7 +172,6 @@ eval-mixed A I auto a = $1
 eval-mixed A I if ( a->GetFamily() == IPv4 && mask > 32 ) z.e->RuntimeError(fmt("bad IPv4 subnet prefix length: %" PRIu32, mask))
 eval-mixed A I if ( a->GetFamily() == IPv6 && mask > 128 ) z.e->RuntimeError(fmt("bad IPv6 subnet prefix length: %" PRIu32, mask))
 eval-mixed A I auto v = make_intrusive<SubNetVal>(*a, mask)
-eval-mixed A I vals.push_back(v)
 eval-mixed A I delete frame[z.v1].subnet_val
 eval-mixed A I frame[z.v1].subnet_val = new IPPrefix(*v->val.subnet_val)
 eval-mixed A I /* Note, $$ is ignored but mentioned here so templator backs off */
@@ -200,8 +198,7 @@ vector
 eval $1 & $2
 #
 eval_P auto p = make_intrusive<PatternVal>(RE_Matcher_conjunction($1->AsPattern(), $2->AsPattern()))
-eval_P vals.push_back(p)
-eval_P $$ = p.get()
+eval_P $$ = TrackValPtr(p)
 #
 eval_T $$ = $1->Intersect($2)
 
@@ -211,12 +208,10 @@ vector
 eval $1 | $2
 #
 eval_P auto p = make_intrusive<PatternVal>(RE_Matcher_disjunction($1->AsPattern(), $2->AsPattern()))
-eval_P vals.push_back(p)
-eval_P $$ = p.get()
+eval_P $$ = TrackValPtr(p)
 #
 eval_T auto v = $1->Clone()
-eval_T vals.push_back(v)
-eval_T $$ = v->AsTableVal()
+eval_T $$ = TrackValPtr(v)->AsTableVal()
 eval_T (void) $2->AddTo($$, false, false)
 
 binary-expr-op Xor
@@ -361,12 +356,14 @@ internal-op List-Is-In-Table
 type VVV
 eval auto op1 = frame[z.v3].list_val
 eval frame[z.v1].int_val = frame[z.v2].table_val->Lookup(op1) != nullptr
+eval Unref(op1)
 
 internal-op Index-Is-In-Vector
 type VVV
 eval auto op1 = frame[z.v3].list_val
 eval auto op2 = frame[z.v2].ToVector(z.t)
 eval frame[z.v1].int_val = op2->Lookup(op1) != nullptr
+eval Unref(op1)
 
 expr-op Cond
 type VVVV
@@ -443,7 +440,9 @@ internal-op Index-Vec
 type VVL
 eval auto yt = z.t->AsVectorType()->YieldType()
 eval auto vec = frame[z.v2].ToVector(z.t)
-eval auto v = vec->Lookup(frame[z.v3].list_val)
+eval auto lv = frame[z.v3].list_val
+eval auto v = vec->Lookup(lv)
+eval Unref(lv)
 eval IntrusivePtr<Val> v_p = {NewRef{}, v}
 eval AssignV1T(BuildVal(v_p, yt, z.stmt), yt)
 
@@ -451,7 +450,9 @@ internal-op Index-Vec-Slice
 type VVL
 eval auto vt = z.t->AsVectorType()
 eval auto vec = frame[z.v2].ToVector(z.t)
-eval auto v = vector_index(vt, vec.get(), frame[z.v3].list_val)
+eval auto lv = frame[z.v3].list_val
+eval auto v = vector_index(vt, vec.get(), lv)
+eval Unref(lv)
 eval delete frame[z.v1].vector_val
 eval frame[z.v1].vector_val = to_ZAM_vector(v.get(), &ZAM_VM_Tracker, false)
 
@@ -459,6 +460,7 @@ internal-op Table-Index
 type VVV
 eval auto v2 = frame[z.v3].list_val
 eval auto v = frame[z.v2].table_val->Lookup(v2)
+eval Unref(v2)
 eval if ( ! v ) ZAM_run_time_error(error_flag, z.stmt, "no such index")
 eval AssignV1(BuildVal(v, z.t, z.stmt))
 
@@ -489,6 +491,7 @@ type VVL
 eval auto str = frame[z.v2].string_val
 eval auto lv = frame[z.v3].list_val
 eval auto slice = index_string_slice(str, lv)
+eval Unref(lv)
 eval delete frame[z.v1].string_val
 eval frame[z.v1].string_val = slice
 
@@ -591,8 +594,7 @@ eval auto v = frame[z.v2].record_val
 eval auto map = z.int_ptr
 eval auto map_size = z.v3
 eval auto to_r = coerce_to_record(rt, v, map, map_size)
-eval vals.push_back(to_r)
-eval frame[z.v1].record_val = to_r->AsRecordVal()
+eval frame[z.v1].record_val = TrackValPtr(to_r)->AsRecordVal()
 
 direct-unary-op Table-Coerce TableCoerce
 
@@ -603,8 +605,7 @@ eval if ( tv->Size() > 0 ) { ZAM_run_time_error(error_flag, z.stmt, "coercion of
 eval IntrusivePtr<TableType> tt = {NewRef{}, z.t->AsTableType()}
 eval IntrusivePtr<Attributes> attrs = {NewRef{}, tv->Attrs()}
 eval auto t = make_intrusive<TableVal>(tt, attrs)
-eval vals.push_back(t)
-eval frame[z.v1].table_val = t.get()
+eval frame[z.v1].table_val = TrackValPtr(t)
 
 direct-unary-op Vector-Coerce VectorCoerce
 
@@ -901,6 +902,7 @@ op1-read
 type Vi
 eval auto v = frame[z.v1].list_val
 eval if ( v->Vals()->length() != z.v2 ) ZAM_run_time_error(error_flag, z.stmt, "mismatch in list lengths")
+eval Unref(v)
 
 op Print
 op1-read
@@ -954,7 +956,8 @@ eval frame[z.v1].record_val->Assign(z.v2, nullptr)
 
 internal-op Init-Record
 type V
-eval frame[z.v1].record_val = new RecordVal(z.t->AsRecordType())
+eval auto r = new RecordVal(z.t->AsRecordType())
+eval frame[z.v1].record_val = TrackVal(r)
 
 # v1 is the frame element being initialized
 # v2 is its slot in the interpreted frame
@@ -969,7 +972,8 @@ internal-op Init-Table
 type V
 eval IntrusivePtr<TableType> tt = {NewRef{}, z.t->AsTableType()}
 eval IntrusivePtr<Attributes> attrs = {NewRef{}, z.attrs}
-eval frame[z.v1].table_val = new TableVal(tt, attrs)
+eval auto t = new TableVal(tt, attrs)
+eval frame[z.v1].table_val = TrackVal(t)
 
 
 ########################################
@@ -1003,15 +1007,13 @@ op Assign-Any
 type VV
 set-type $2
 eval auto v = frame[z.v2].ToVal(z.t)
-eval vals.push_back(v)
-eval frame[z.v1].any_val = v.get()
+eval frame[z.v1].any_val = TrackValPtr(v)
 
 op Assign-Any
 type VC
 set-type $2
 eval auto v = z.c.ToVal(z.t)
-eval vals.push_back(v)
-eval frame[z.v1].any_val = v.get()
+eval frame[z.v1].any_val = TrackValPtr(v)
 
 # Lazy way to assign without having to track the specific type of
 # a constant.
@@ -1029,8 +1031,7 @@ eval AssignV1(BuildVal(v_p, z.t, v))
 internal-op Load-Any-Val
 type VV
 eval IntrusivePtr<Val> v = {NewRef{}, f->NthElement(z.v2)}
-eval vals.push_back(v)
-eval frame[z.v1].any_val = v.get()
+eval frame[z.v1].any_val = TrackValPtr(v)
 
 internal-op Load-Global
 op1-internal
@@ -1046,8 +1047,7 @@ op1-internal
 type VC
 eval if ( global_state[z.v1] == GS_UNLOADED ) {
 eval	IntrusivePtr<Val> v = {NewRef{}, z.c.id_val->ID_Val()}
-eval	vals.push_back(v)
-eval	frame[z.v1].any_val = v.get()
+eval	frame[z.v1].any_val = TrackValPtr(v)
 eval	global_state[z.v1] = GS_CLEAN
 eval }
 

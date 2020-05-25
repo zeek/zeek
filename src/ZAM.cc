@@ -324,7 +324,17 @@ VEC_COERCE(DU, double_val, double, uint_val)
 
 IntrusivePtr<Val> ZAM::Exec(Frame* f, stmt_flow_type& flow) const
 	{
-	return DoExec(f, 0, flow);
+	auto nv = num_Vals;
+	auto ndv = num_del_Vals;
+	auto val = DoExec(f, 0, flow);
+
+	auto dnv = num_Vals - nv;
+	auto dndv = num_del_Vals - ndv;
+
+	if ( /* dnv || dndv */ 0 )
+		printf("%s vals: +%d -%d\n", func->Name(), dnv, dndv);
+
+	return val;
 	}
 
 IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
@@ -346,6 +356,8 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 	// whether an object should be delete'd or not on reassignment.
 	std::vector<IntrusivePtr<BroObj>> vals;
 
+#define TrackVal(v) (vals.push_back({AdoptRef{}, v}), v)
+#define TrackValPtr(v) (vals.push_back(v), v.get())
 #define BuildVal(v, t, s) (vals.push_back(v), ZAMValUnion(v.get(), t, &ZAM_VM_Tracker, s, error_flag))
 #define CopyVal(v) (IsManagedType(z.t) ? BuildVal(v.ToVal(z.t), z.t, z.stmt) : v)
 

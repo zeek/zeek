@@ -146,9 +146,9 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 
 	if ( trace )
 		{
-		printf("pre RDs for stmt %s:\n", obj_desc(s));
-		// mgr.GetPreMinRDs(s)->Dump();
-		mgr.GetPreMaxRDs(s)->Dump();
+		printf("pre min RDs for stmt %s:\n", obj_desc(s));
+		mgr.GetPreMinRDs(s)->Dump();
+		// mgr.GetPreMaxRDs(s)->Dump();
 		printf("\n");
 		}
 
@@ -185,23 +185,22 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 
 		// Treat the block as a no-op for analyzing RDs,
 		// since it shouldn't affect the definition status of
-		// any of the RDs outside of it.
+		// any of the RDs outside of it.  The only question
+		// is how to propagate RDs relating to the return value.
 		mgr.SetPostFromPre(s);
 
 		if ( ret_var )
 			{
 			// Ideally for the return variable (if any) we'd track
 			// whether all of the paths out of the block go through
-			// a "return <expr>".  For now, we punt and just mark
-			// it as defined.
-			auto cr_post_min = mgr.GetPostMinRDs(s);
-			auto cr_post_max = mgr.GetPostMaxRDs(s);
-
-			auto di = mgr.GetID_DI(ret_var->Id());
-			auto dp = DefinitionPoint(s);
-
-			cr_post_min->AddRD(di, dp);
-			cr_post_max->AddRD(di, dp);
+			// a "return <expr>".  One way we could do that would
+			// be to literally assign it for internal returns.
+			// The trick with that is it could entail some subtle
+			// debugging of how RDs are propagated across internal
+			// returns.  For now, we punt and just mark it as
+			// defined.
+			CreateInitPostDef(ret_var->Id(), DefinitionPoint(s),
+						true, nullptr);
 			}
 
 		return TC_ABORTSTMT;
@@ -937,18 +936,12 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 		if ( ! mgr.HasPreMinRD(e, id) )
 			e->Error("used without definition");
 
-#if 0
-		// The following works correctly, but finds a number
-		// of places in the base scripts where indeed non-optional
-		// record elements are not initialized.
 		if ( id->Type()->Tag() == TYPE_RECORD )
 			{
 			auto di = mgr.GetID_DI(id);
 			auto e_pre = mgr.GetPreMinRDs(e);
 			CheckRecordRDs(di, DefinitionPoint(n), e_pre, e);
 			}
-#endif
-
 		break;
 		}
 
@@ -1410,6 +1403,10 @@ void RD_Decorate::CheckRecordRDs(DefinitionItem* di, DefinitionPoint dp,
 		auto n_i = rt->FieldName(i);
 		auto field_di = di->FindField(n_i);
 
+#if 0
+		// The following works correctly, but finds a number
+		// of places in the base scripts where indeed non-optional
+		// record elements are not initialized.
 		if ( ! field_di || ! pre_rds->HasDI(field_di) )
 			{
 			printf("no reaching def for %s$%s (%s)\n",
@@ -1417,6 +1414,7 @@ void RD_Decorate::CheckRecordRDs(DefinitionItem* di, DefinitionPoint dp,
 			}
 
 		else
+#endif
 			{
 			auto t_i = rt->FieldType(i);
 			if ( t_i->Tag() == TYPE_RECORD )
@@ -1700,7 +1698,7 @@ void analyze_scripts()
 
 	for ( auto& f : funcs )
 		{
-		printf("optimizing %s\n", f->func->Name());
+		// printf("optimizing %s\n", f->func->Name());
 		optimize_func(f->func, f->scope, f->body);
 		}
 

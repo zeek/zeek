@@ -20,6 +20,8 @@ public:
 	// possession of.
 	Expr* CheckForInlining(CallExpr* c);
 
+	bool WasInlined(Func* f)	{ return inline_ables.count(f) > 0; }
+
 protected:
 	void Analyze();
 

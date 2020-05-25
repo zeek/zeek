@@ -1698,8 +1698,13 @@ void analyze_scripts()
 
 	for ( auto& f : funcs )
 		{
-		printf("optimizing %s\n", f->func->Name());
-		optimize_func(f->func, f->scope, f->body);
+		if ( inl.WasInlined(f->func) )
+			printf("skipping optimizing %s\n", f->func->Name());
+		else
+			{
+			printf("optimizing %s\n", f->func->Name());
+			optimize_func(f->func, f->scope, f->body);
+			}
 		}
 
 	for ( auto& f : funcs )

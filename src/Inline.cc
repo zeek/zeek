@@ -65,7 +65,6 @@ void Inliner::Analyze()
 		}
 #endif
 
-#if 0
 	for ( auto& f : funcs )
 		{
 		// Processing optimization: only spend time trying to inline f
@@ -73,7 +72,6 @@ void Inliner::Analyze()
 		if ( inline_ables.find(f->func) == inline_ables.end() )
 			InlineFunction(f);
 		}
-#endif
 	}
 
 void Inliner::InlineFunction(FuncInfo* f)

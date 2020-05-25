@@ -293,7 +293,7 @@ void ZAM::Init()
 void ZAM::StmtDescribe(ODesc* d) const
 	{
 	d->AddSP("compiled");
-	d->AddSP(f->Name());
+	d->AddSP(func->Name());
 	}
 
 static void vec_exec(ZOp op, ZAMVectorMgr*& v1, const ZAMVectorMgr* v2,

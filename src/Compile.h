@@ -18,6 +18,7 @@ class ListExpr;
 class EventHandler;
 class Stmt;
 class SwitchStmt;
+class CatchReturnStmt;
 
 // Class representing a single compiled statement.  Designed to
 // be fully opaque, but also effective without requiring pointer
@@ -83,6 +84,9 @@ public:
 	virtual const CompiledStmt InitVector(ID* id, VectorType* vt) = 0;
 	virtual const CompiledStmt InitTable(ID* id, TableType* tt,
 						Attributes* attrs) = 0;
+
+	virtual const CompiledStmt Return(const ReturnStmt* r) = 0;
+	virtual const CompiledStmt CatchReturn(const CatchReturnStmt* cr) = 0;
 
 	virtual const CompiledStmt Next() = 0;
 	virtual const CompiledStmt Break() = 0;

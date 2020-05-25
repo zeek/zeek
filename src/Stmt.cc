@@ -2208,18 +2208,7 @@ Stmt* ReturnStmt::DoReduce(Reducer* c)
 const CompiledStmt ReturnStmt::Compile(Compiler* c) const
 	{
 	c->SetCurrStmt(this);
-	c->SyncGlobals(this);
-
-	if ( e )
-		{
-		if ( e->Tag() == EXPR_NAME )
-			return c->ReturnV(e->AsNameExpr());
-		else
-			return c->ReturnC(e->AsConstExpr());
-		}
-
-	else
-		return c->ReturnX();
+	return c->Return(this);
 	}
 
 IntrusivePtr<Stmt> ReturnStmt::Duplicate()
@@ -2285,6 +2274,7 @@ Stmt* CatchReturnStmt::DoReduce(Reducer* c)
 const CompiledStmt CatchReturnStmt::Compile(Compiler* c) const
 	{
 	c->SetCurrStmt(this);
+	return c->CatchReturn(this);
 	}
 
 void CatchReturnStmt::StmtDescribe(ODesc* d) const

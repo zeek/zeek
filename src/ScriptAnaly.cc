@@ -1698,7 +1698,7 @@ void analyze_scripts()
 
 	for ( auto& f : funcs )
 		{
-		// printf("optimizing %s\n", f->func->Name());
+		printf("optimizing %s\n", f->func->Name());
 		optimize_func(f->func, f->scope, f->body);
 		}
 

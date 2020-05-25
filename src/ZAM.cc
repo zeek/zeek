@@ -188,6 +188,10 @@ ZAM::~ZAM()
 Stmt* ZAM::CompileBody()
 	{
 	curr_stmt = nullptr;
+
+	if ( func->Flavor() == FUNC_FLAVOR_HOOK )
+		PushBreaks();
+
 	(void) body->Compile(this);
 
 	if ( LastStmt()->Tag() != STMT_RETURN )
@@ -195,10 +199,12 @@ Stmt* ZAM::CompileBody()
 
 	if ( breaks.size() > 0 )
 		{
+		ASSERT(breaks.size() == 1);
+
 		if ( func->Flavor() == FUNC_FLAVOR_HOOK )
 			{
 			// Rewrite the breaks.
-			for ( auto b : breaks )
+			for ( auto b : breaks[0] )
 				insts[b] = ZInst(OP_HOOK_BREAK_X);
 			}
 
@@ -633,6 +639,9 @@ const CompiledStmt ZAM::While(const Stmt* cond_stmt, const NameExpr* cond,
 	auto cond_IF = AddInst(ZInst(OP_IF_VV, FrameSlot(cond), 0));
 	TopMainInst().op_type = OP_VV_I2;
 
+	PushNexts();
+	PushBreaks();
+
 	if ( body && body->Tag() != STMT_NULL )
 		(void) body->Compile(this);
 
@@ -649,6 +658,9 @@ const CompiledStmt ZAM::While(const Stmt* cond_stmt, const NameExpr* cond,
 
 const CompiledStmt ZAM::Loop(const Stmt* body)
 	{
+	PushNexts();
+	PushBreaks();
+
 	auto head = StartingBlock();
 	(void) body->Compile(this);
 	auto tail = GoTo(head);
@@ -723,6 +735,8 @@ const CompiledStmt ZAM::Switch(const SwitchStmt* sw)
 
 	auto t = e->Type()->Tag();
 
+	PushBreaks();
+
 	if ( t != TYPE_ANY && t != TYPE_TYPE )
 		return ValueSwitch(sw, n, c);
 	else
@@ -795,11 +809,13 @@ const CompiledStmt ZAM::ValueSwitch(const SwitchStmt* sw, const NameExpr* v,
 	auto cases = sw->Cases();
 	std::vector<CompiledStmt> case_start;
 
+	PushFallThroughs();
 	for ( auto c : *cases )
 		{
 		auto start = GoToTargetBeyond(body_end);
 		ResolveFallThroughs(start);
 		case_start.push_back(start);
+		PushFallThroughs();
 		body_end = c->Body()->Compile(this);
 		}
 
@@ -945,6 +961,7 @@ const CompiledStmt ZAM::TypeSwitch(const SwitchStmt* sw, const NameExpr* v,
 	CompiledStmt def_succ(0);	// successor to default, if any
 	bool saw_def_succ = false;	// whether def_succ is meaningful
 
+	PushFallThroughs();
 	for ( auto& i : *type_map )
 		{
 		auto id = i.first;
@@ -978,12 +995,16 @@ const CompiledStmt ZAM::TypeSwitch(const SwitchStmt* sw, const NameExpr* v,
 			def_succ = case_test;
 			saw_def_succ = true;
 			}
+
+		PushFallThroughs();
 		}
 
 	ResolveFallThroughs(GoToTargetBeyond(body_end));
 
 	if ( def_ind >= 0 )
 		{
+		PushFallThroughs();
+
 		body_end = (*sw->Cases())[def_ind]->Body()->Compile(this);
 
 		// Now resolve any fallthrough's in the default.
@@ -1003,6 +1024,9 @@ const CompiledStmt ZAM::For(const ForStmt* f)
 	auto e = f->LoopExpr();
 	auto val = e->AsNameExpr();
 	auto et = e->Type()->Tag();
+
+	PushNexts();
+	PushBreaks();
 
 	if ( et == TYPE_TABLE )
 		return LoopOverTable(f, val);
@@ -1218,6 +1242,57 @@ const CompiledStmt ZAM::InitTable(ID* id, TableType* tt, Attributes* attrs)
 	z.t = tt;
 	z.attrs = attrs;
 	return AddInst(z);
+	}
+
+const CompiledStmt ZAM::Return(const ReturnStmt* r)
+	{
+	auto e = r->StmtExpr();
+
+	if ( retvars.size() == 0 )
+		{ // a "true" return
+		SyncGlobals(r);
+
+		if ( e )
+			{
+			if ( e->Tag() == EXPR_NAME )
+				return ReturnV(e->AsNameExpr());
+			else
+				return ReturnC(e->AsConstExpr());
+			}
+
+		else
+			return ReturnX();
+		}
+
+	auto rv = retvars.back();
+	if ( e && ! rv )
+		reporter->InternalError("unexpected returned value inside inlined block");
+	if ( ! e && rv )
+		reporter->InternalError("expected returned value inside inlined block but none provider");
+
+	if ( e )
+		{
+		if ( e->Tag() == EXPR_NAME )
+			(void) AssignVV(rv, e->AsNameExpr());
+		else
+			(void) AssignVC(rv, e->AsConstExpr());
+		}
+
+	return CatchReturn();
+	}
+
+const CompiledStmt ZAM::CatchReturn(const CatchReturnStmt* cr)
+	{
+	retvars.push_back(cr->RetVar());
+
+	PushCatchReturns();
+
+	auto block_end = cr->Block()->Compile(this);
+	retvars.pop_back();
+
+	ResolveCatchReturns(GoToTargetBeyond(block_end));
+
+	return block_end;
 	}
 
 const CompiledStmt ZAM::StartingBlock()
@@ -1678,12 +1753,20 @@ const CompiledStmt  ZAM::AssignedToGlobal(const ID* global_id)
 	return EmptyStmt();
 	}
 
-void ZAM::ResolveGoTos(vector<int>& gotos, const CompiledStmt s)
+void ZAM::PushGoTos(vector<vector<int>>& gotos)
 	{
-	for ( int i = 0; i < gotos.size(); ++i )
-		SetGoTo(gotos[i], s);
+	vector<int> vi;
+	gotos.push_back(vi);
+	}
 
-	gotos.clear();
+void ZAM::ResolveGoTos(vector<vector<int>>& gotos, const CompiledStmt s)
+	{
+	auto& g = gotos.back();
+
+	for ( int i = 0; i < g.size(); ++i )
+		SetGoTo(g[i], s);
+
+	gotos.pop_back();
 	}
 
 CompiledStmt ZAM::GenGoTo(vector<int>& v)

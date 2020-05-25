@@ -77,10 +77,17 @@ public:
 	const CompiledStmt InitTable(ID* id, TableType* tt, Attributes* attrs)
 		override;
 
-	const CompiledStmt Next() override	{ return GenGoTo(nexts); }
-	const CompiledStmt Break() override	{ return GenGoTo(breaks); }
+	const CompiledStmt Return(const ReturnStmt* r) override;
+	const CompiledStmt CatchReturn(const CatchReturnStmt* cr) override;
+
+	const CompiledStmt Next() override
+		{ return GenGoTo(nexts.back()); }
+	const CompiledStmt Break() override
+		{ return GenGoTo(breaks.back()); }
 	const CompiledStmt FallThrough() override
-		{ return GenGoTo(fallthroughs); }
+		{ return GenGoTo(fallthroughs.back()); }
+	const CompiledStmt CatchReturn()
+		{ return GenGoTo(catches.back()); }
 
 	const CompiledStmt StartingBlock() override;
 	const CompiledStmt FinishBlock(const CompiledStmt start) override;
@@ -157,14 +164,22 @@ protected:
 
 	ListVal* ValVecToListVal(val_vec* v, int n) const;
 
+	void PushNexts()		{ PushGoTos(nexts); }
+	void PushBreaks()		{ PushGoTos(breaks); }
+	void PushFallThroughs()		{ PushGoTos(fallthroughs); }
+	void PushCatchReturns()		{ PushGoTos(catches); }
+
 	void ResolveNexts(const CompiledStmt s)
 		{ ResolveGoTos(nexts, s); }
 	void ResolveBreaks(const CompiledStmt s)
 		{ ResolveGoTos(breaks, s); }
 	void ResolveFallThroughs(const CompiledStmt s)
 		{ ResolveGoTos(fallthroughs, s); }
+	void ResolveCatchReturns(const CompiledStmt s)
+		{ ResolveGoTos(catches, s); }
 
-	void ResolveGoTos(vector<int>& gotos, const CompiledStmt s);
+	void PushGoTos(vector<vector<int>>& gotos);
+	void ResolveGoTos(vector<vector<int>>& gotos, const CompiledStmt s);
 
 	CompiledStmt GenGoTo(vector<int>& v);
 	CompiledStmt GoTo();
@@ -216,11 +231,18 @@ protected:
 
 	vector<ZInst> insts;
 
-	// Indices of break/next/fallthrough goto's, so they can be
-	// patched up post factor.
-	vector<int> breaks;
-	vector<int> nexts;
-	vector<int> fallthroughs;
+	// Indices of break/next/fallthrough/catch-return goto's, so they
+	// can be patched up post-facto.  These are vectors-of-vectors
+	// so that nesting works properly.
+	vector<vector<int>> breaks;
+	vector<vector<int>> nexts;
+	vector<vector<int>> fallthroughs;
+	vector<vector<int>> catches;
+
+	// The following tracks return variables for catch-returns.
+	// Can be nil if the usage doesn't include using the return value
+	// (and/or no return value generated).
+	vector<const NameExpr*> retvars;
 
 	const BroFunc* func;
 	Stmt* body;

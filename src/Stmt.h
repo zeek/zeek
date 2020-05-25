@@ -503,6 +503,8 @@ public:
 
 	const CompiledStmt Compile(Compiler* c) const override;
 
+	IntrusivePtr<Stmt> Duplicate() override;
+
 	const id_list* Inits() const	{ return inits; }
 
 	void StmtDescribe(ODesc* d) const override;

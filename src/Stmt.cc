@@ -2665,6 +2665,21 @@ const CompiledStmt InitStmt::Compile(Compiler* c) const
 	return last;
 	}
 
+IntrusivePtr<Stmt> InitStmt::Duplicate()
+	{
+	// Need to duplicate the initializer list since later reductions
+	// can modify it in place.
+	id_list* new_inits = new id_list;
+	loop_over_list(*inits, i)
+		{
+		auto id = (*inits)[i];
+		::Ref(id);
+		new_inits->append(id);
+		}
+
+	return make_intrusive<InitStmt>(new_inits);
+	}
+
 void InitStmt::StmtDescribe(ODesc* d) const
 	{
 	AddTag(d);

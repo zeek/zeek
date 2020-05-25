@@ -162,11 +162,12 @@ ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const NameExpr* v2, int i)
 	}
 
 
-ZAM::ZAM(const BroFunc* f, Stmt* _body, UseDefs* _ud, Reducer* _rd,
-		ProfileFunc* _pf)
+ZAM::ZAM(const BroFunc* f, Scope* _scope, Stmt* _body,
+		UseDefs* _ud, Reducer* _rd, ProfileFunc* _pf)
 	{
 	tag = STMT_COMPILED;
 	func = f;
+	scope = _scope;
 	body = _body;
 	body->Ref();
 	ud = _ud;
@@ -224,7 +225,6 @@ Stmt* ZAM::CompileBody()
 void ZAM::Init()
 	{
 	auto uds = ud->HasUsage(body) ? ud->GetUsage(body) : nullptr;
-	auto scope = func->GetScope();
 	auto args = scope->OrderedVars();
 	auto nparam = func->FType()->Args()->NumFields();
 
@@ -292,7 +292,8 @@ void ZAM::Init()
 
 void ZAM::StmtDescribe(ODesc* d) const
 	{
-	d->Add("compiled code");
+	d->AddSP("compiled");
+	d->AddSP(f->Name());
 	}
 
 static void vec_exec(ZOp op, ZAMVectorMgr*& v1, const ZAMVectorMgr* v2,

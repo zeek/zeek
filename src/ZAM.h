@@ -21,8 +21,8 @@ class ZInst;
 
 class ZAM : public Compiler {
 public:
-	ZAM(const BroFunc* f, Stmt* body, UseDefs* ud, Reducer* rd,
-		ProfileFunc* pf);
+	ZAM(const BroFunc* f, Scope* scope, Stmt* body,
+		UseDefs* ud, Reducer* rd, ProfileFunc* pf);
 	~ZAM() override;
 
 	Stmt* CompileBody();
@@ -245,6 +245,7 @@ protected:
 	vector<const NameExpr*> retvars;
 
 	const BroFunc* func;
+	Scope* scope;
 	Stmt* body;
 	UseDefs* ud;
 	Reducer* reducer;

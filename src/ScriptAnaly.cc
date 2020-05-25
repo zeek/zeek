@@ -1582,7 +1582,7 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 	if ( compile )
 		{
 		body = new_body_ptr;
-		auto zam = new ZAM(f, new_body, ud, rc, pf_red);
+		auto zam = new ZAM(f, scope, new_body, ud, rc, pf_red);
 		new_body = zam->CompileBody();
 
 		if ( only_func || dump_code )

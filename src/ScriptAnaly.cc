@@ -1462,6 +1462,7 @@ bool did_init = false;
 bool activate = false;
 bool report_profile = false;
 bool ud_dump = false;
+bool inliner = false;
 bool optimize = false;
 bool compile = false;
 bool dump_code = false;
@@ -1482,6 +1483,7 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 		only_func = getenv("ZEEK_ONLY");
 		report_profile = getenv("ZEEK_REPORT_PROFILE");
 		ud_dump = getenv("ZEEK_UD_DUMP");
+		inliner = getenv("ZEEK_INLINE");
 		optimize = getenv("ZEEK_OPTIMIZE");
 		compile = getenv("ZEEK_COMPILE");
 		dump_code = getenv("ZEEK_DUMP_CODE");
@@ -1694,19 +1696,21 @@ void analyze_scripts()
 
 	// analyze_orphan_events();
 	// analyze_orphan_functions();
-	Inliner inl(funcs);
+	Inliner* inl = inliner ? new Inliner(funcs) : nullptr;
 
 	for ( auto& f : funcs )
 		{
-		if ( inl.WasInlined(f->func) )
-			printf("skipping optimizing %s\n", f->func->Name());
+		if ( inl && inl->WasInlined(f->func) )
+			; // printf("skipping optimizing %s\n", f->func->Name());
 		else
 			{
-			printf("optimizing %s\n", f->func->Name());
+			// printf("optimizing %s\n", f->func->Name());
 			optimize_func(f->func, f->scope, f->body);
 			}
 		}
 
 	for ( auto& f : funcs )
 		delete f;
+
+	delete inl;
 	}

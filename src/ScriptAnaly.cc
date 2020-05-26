@@ -1426,38 +1426,6 @@ void RD_Decorate::CheckRecordRDs(DefinitionItem* di, DefinitionPoint dp,
 	}
 
 
-class FolderFinder : public TraversalCallback {
-public:
-	// TraversalCode PreExpr(const Expr*) override;
-	TraversalCode PreExpr(const Expr*, const Expr*) override;
-	TraversalCode PreExpr(const Expr*, const Expr*, const Expr*) override;
-
-protected:
-	void ReportFoldable(const Expr* e, const char* type);
-};
-
-void FolderFinder::ReportFoldable(const Expr* e, const char* type)
-	{
-	printf("foldable %s: %s\n", type, obj_desc(e));
-	}
-
-TraversalCode FolderFinder::PreExpr(const Expr* expr, const Expr* op)
-	{
-	if ( op->IsConst() )
-		ReportFoldable(expr, "unary");
-
-	return TC_CONTINUE;
-	}
-
-TraversalCode FolderFinder::PreExpr(const Expr* expr, const Expr* op1, const Expr* op2)
-	{
-	if ( op1->IsConst() && op2->IsConst() )
-		ReportFoldable(expr, "binary");
-
-	return TC_CONTINUE;
-	}
-
-
 bool did_init = false;
 bool activate = false;
 bool report_profile = false;

@@ -609,9 +609,18 @@ std::optional<FuncType::Prototype> FuncType::FindPrototype(const RecordType& arg
 
 TypeDecl::TypeDecl(IntrusivePtr<BroType> t, const char* i, attr_list* arg_attrs, bool in_record)
 	: type(std::move(t)),
-	  attrs(arg_attrs ? make_intrusive<Attributes>(arg_attrs, type, in_record, false) : nullptr),
 	  id(i)
 	{
+	if ( arg_attrs )
+		{
+		std::vector<IntrusivePtr<Attr>> attrv;
+
+		for ( auto& a : *arg_attrs )
+			attrv.emplace_back(AdoptRef{}, a);
+
+		attrs = make_intrusive<Attributes>(std::move(attrv), type, in_record, false);
+		delete arg_attrs;
+		}
 	}
 
 TypeDecl::TypeDecl(const TypeDecl& other)
@@ -856,7 +865,7 @@ const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)
 		if ( log )
 			{
 			if ( ! td->attrs )
-				td->attrs = make_intrusive<Attributes>(new attr_list, td->type, true, false);
+				td->attrs = make_intrusive<Attributes>(td->type, true, false);
 
 			td->attrs->AddAttr(make_intrusive<Attr>(ATTR_LOG));
 			}

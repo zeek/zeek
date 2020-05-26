@@ -196,7 +196,14 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 	id->SetType(t);
 
 	if ( attr )
-		id->AddAttrs(make_intrusive<Attributes>(attr, t, false, id->IsGlobal()));
+		{
+		std::vector<IntrusivePtr<Attr>> attrv;
+
+		for ( auto& a : *attr)
+			attrv.emplace_back(AdoptRef{}, a);
+
+		id->AddAttrs(make_intrusive<Attributes>(std::move(attrv), t, false, id->IsGlobal()));
+		}
 
 	if ( init )
 		{
@@ -387,7 +394,15 @@ void add_type(ID* id, IntrusivePtr<BroType> t, attr_list* attr)
 	id->MakeType();
 
 	if ( attr )
-		id->SetAttrs(make_intrusive<Attributes>(attr, tnew, false, false));
+		{
+		std::vector<IntrusivePtr<Attr>> attrv;
+
+		for ( auto& a : *attr )
+			attrv.emplace_back(AdoptRef{}, a);
+
+		id->SetAttrs(make_intrusive<Attributes>(std::move(attrv), tnew, false, false));
+		delete attr;
+		}
 	}
 
 static void transfer_arg_defaults(RecordType* args, RecordType* recv)
@@ -404,8 +419,10 @@ static void transfer_arg_defaults(RecordType* args, RecordType* recv)
 
 		if ( ! recv_i->attrs )
 			{
-			attr_list* a = new attr_list{def};
-			recv_i->attrs = make_intrusive<Attributes>(a, recv_i->type, true, false);
+			std::vector<IntrusivePtr<Attr>> a{{NewRef{}, def}};
+			recv_i->attrs = make_intrusive<Attributes>(std::move(a),
+			                                           recv_i->type,
+			                                           true, false);
 			}
 
 		else if ( ! recv_i->attrs->FindAttr(ATTR_DEFAULT) )

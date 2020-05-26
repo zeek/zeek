@@ -258,7 +258,7 @@ void ID::UpdateValAttrs()
 				TypeDecl* fd = rt->FieldDecl(i);
 
 				if ( ! fd->attrs )
-					fd->attrs = make_intrusive<Attributes>(new attr_list, rt->GetFieldType(i), true, IsGlobal());
+					fd->attrs = make_intrusive<Attributes>(rt->GetFieldType(i), true, IsGlobal());
 
 				fd->attrs->AddAttr(make_intrusive<Attr>(ATTR_LOG));
 				}
@@ -281,8 +281,8 @@ void ID::MakeDeprecated(IntrusivePtr<Expr> deprecation)
 	if ( IsDeprecated() )
 		return;
 
-	attr_list* attr = new attr_list{new Attr(ATTR_DEPRECATED, std::move(deprecation))};
-	AddAttrs(make_intrusive<Attributes>(attr, GetType(), false, IsGlobal()));
+	std::vector<IntrusivePtr<Attr>> attrv{make_intrusive<Attr>(ATTR_DEPRECATED, std::move(deprecation))};
+	AddAttrs(make_intrusive<Attributes>(std::move(attrv), GetType(), false, IsGlobal()));
 	}
 
 std::string ID::GetDeprecationWarning() const
@@ -331,8 +331,8 @@ void ID::SetOption()
 	// option implied redefinable
 	if ( ! IsRedefinable() )
 		{
-		attr_list* attr = new attr_list{new Attr(ATTR_REDEF)};
-		AddAttrs(make_intrusive<Attributes>(attr, GetType(), false, IsGlobal()));
+		std::vector<IntrusivePtr<Attr>> attrv{make_intrusive<Attr>(ATTR_REDEF)};
+		AddAttrs(make_intrusive<Attributes>(std::move(attrv), GetType(), false, IsGlobal()));
 		}
 	}
 

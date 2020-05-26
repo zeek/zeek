@@ -3087,7 +3087,16 @@ TableConstructorExpr::TableConstructorExpr(IntrusivePtr<ListExpr> constructor_li
 			}
 		}
 
-	attrs = arg_attrs ? new Attributes(arg_attrs, type, false, false) : nullptr;
+	if ( arg_attrs )
+		{
+		std::vector<IntrusivePtr<Attr>> attrv;
+
+		for ( auto& a : *arg_attrs )
+			attrv.emplace_back(AdoptRef{}, a);
+
+		attrs = new Attributes(std::move(attrv), type, false, false);
+		delete arg_attrs;
+		}
 
 	const auto& indices = type->AsTableType()->GetIndices()->Types();
 	const expr_list& cle = op->AsListExpr()->Exprs();
@@ -3206,7 +3215,16 @@ SetConstructorExpr::SetConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
 	else if ( type->Tag() != TYPE_TABLE || ! type->AsTableType()->IsSet() )
 		SetError("values in set(...) constructor do not specify a set");
 
-	attrs = arg_attrs ? new Attributes(arg_attrs, type, false, false) : nullptr;
+	if ( arg_attrs )
+		{
+		std::vector<IntrusivePtr<Attr>> attrv;
+
+		for ( auto& a : *arg_attrs )
+			attrv.emplace_back(AdoptRef{}, a);
+
+		attrs = new Attributes(std::move(attrv), type, false, false);
+		delete arg_attrs;
+		}
 
 	const auto& indices = type->AsTableType()->GetIndices()->Types();
 	expr_list& cle = op->AsListExpr()->Exprs();

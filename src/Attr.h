@@ -79,7 +79,12 @@ protected:
 // Manages a collection of attributes.
 class Attributes final : public BroObj {
 public:
+	[[deprecated("Remove in v4.1.  Construct using IntrusivePtrs instead.")]]
 	Attributes(attr_list* a, IntrusivePtr<BroType> t, bool in_record, bool is_global);
+
+	Attributes(std::vector<IntrusivePtr<Attr>> a, IntrusivePtr<BroType> t,
+	           bool in_record, bool is_global);
+	Attributes(IntrusivePtr<BroType> t, bool in_record, bool is_global);
 
 	void AddAttr(IntrusivePtr<Attr> a);
 	void AddAttrs(Attributes* a);	// Unref's 'a' when done

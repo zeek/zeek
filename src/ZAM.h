@@ -19,6 +19,8 @@ class UseDefs;
 class ProfileFunc;
 class ZInst;
 
+typedef CompiledStmt InstLabel;
+
 class ZAM : public Compiler {
 public:
 	ZAM(const BroFunc* f, Scope* scope, Stmt* body,
@@ -171,35 +173,38 @@ protected:
 	void PushFallThroughs()		{ PushGoTos(fallthroughs); }
 	void PushCatchReturns()		{ PushGoTos(catches); }
 
-	void ResolveNexts(const CompiledStmt s)
-		{ ResolveGoTos(nexts, s); }
-	void ResolveBreaks(const CompiledStmt s)
-		{ ResolveGoTos(breaks, s); }
-	void ResolveFallThroughs(const CompiledStmt s)
-		{ ResolveGoTos(fallthroughs, s); }
-	void ResolveCatchReturns(const CompiledStmt s)
-		{ ResolveGoTos(catches, s); }
+	void ResolveNexts(const InstLabel l)
+		{ ResolveGoTos(nexts, l); }
+	void ResolveBreaks(const InstLabel l)
+		{ ResolveGoTos(breaks, l); }
+	void ResolveFallThroughs(const InstLabel l)
+		{ ResolveGoTos(fallthroughs, l); }
+	void ResolveCatchReturns(const InstLabel l)
+		{ ResolveGoTos(catches, l); }
 
-	void PushGoTos(vector<vector<int>>& gotos);
-	void ResolveGoTos(vector<vector<int>>& gotos, const CompiledStmt s);
+	typedef vector<int> GoToSet;
+	typedef vector<GoToSet> GoToSets;
 
-	CompiledStmt GenGoTo(vector<int>& v);
-	CompiledStmt GoTo();
-	CompiledStmt GoTo(const CompiledStmt s);
-	CompiledStmt GoToTarget(const CompiledStmt s);
-	CompiledStmt GoToTargetBeyond(const CompiledStmt s);
+	void PushGoTos(GoToSets& gotos);
+	void ResolveGoTos(GoToSets& gotos, const InstLabel l);
+
+	CompiledStmt GenGoTo(GoToSet& v);
+	CompiledStmt GoToStub();
+	CompiledStmt GoTo(const InstLabel l);
+	InstLabel GoToTarget(const CompiledStmt s);
+	InstLabel GoToTargetBeyond(const CompiledStmt s);
 	CompiledStmt PrevStmt(const CompiledStmt s);
-	void SetV1(CompiledStmt s, const CompiledStmt s1);
-	void SetV2(CompiledStmt s, const CompiledStmt s2);
-	void SetV3(CompiledStmt s, const CompiledStmt s2);
-	void SetGoTo(CompiledStmt s, const CompiledStmt targ)
+	void SetV1(CompiledStmt s, const InstLabel l);
+	void SetV2(CompiledStmt s, const InstLabel l);
+	void SetV3(CompiledStmt s, const InstLabel l);
+	void SetGoTo(CompiledStmt s, const InstLabel targ)
 		{ SetV1(s, targ); }
 
 	const CompiledStmt AddInst(const ZInst& inst);
 
 	// Returns the most recent added instruction *other* than those
 	// added for bookkeeping (like dirtying globals);
-	ZInst& TopMainInst()	{ return insts[top_main_inst]; }
+	ZInst* TopMainInst()	{ return insts[top_main_inst]; }
 
 	// Returns the last (interpreter) statement in the body.
 	const Stmt* LastStmt() const;
@@ -231,7 +236,7 @@ protected:
 	void SpillVectors(ZAM_tracker_type* tracker) const;
 	void LoadVectors(ZAM_tracker_type* tracker) const;
 
-	vector<ZInst> insts;
+	vector<ZInst*> insts;
 
 	bool profile = true;
 	vector<int>* inst_count;	// for profiling
@@ -239,10 +244,10 @@ protected:
 	// Indices of break/next/fallthrough/catch-return goto's, so they
 	// can be patched up post-facto.  These are vectors-of-vectors
 	// so that nesting works properly.
-	vector<vector<int>> breaks;
-	vector<vector<int>> nexts;
-	vector<vector<int>> fallthroughs;
-	vector<vector<int>> catches;
+	GoToSets breaks;
+	GoToSets nexts;
+	GoToSets fallthroughs;
+	GoToSets catches;
 
 	// The following tracks return variables for catch-returns.
 	// Can be nil if the usage doesn't include using the return value

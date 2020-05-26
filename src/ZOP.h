@@ -136,7 +136,7 @@ public:
 		op_type = OP_VE;
 		}
 
-	// Constructor used when we're going to just copy in another ZAM.
+	// Constructor used when we're going to just copy in another ZInst.
 	ZInst() { }
 
 	const char* VName(int max_n, int n, const frame_map& frame_ids) const;
@@ -148,15 +148,23 @@ public:
 
 	// Indices into frame.
 	int v1, v2, v3, v4;
+
+	ZAMValUnion c;	// constant associated with instruction
+
+	// Branch target, prior to concretizing into PC target.
+	ZInst* target = nullptr;
+	int target_slot = 0;	// which of v1/v2/v3 should hold the target
+
+	// Meta-data associated with the execution.
 	BroType* t = nullptr;
 	const Expr* e = nullptr;
 	Expr* non_const_e = nullptr;
 	int* int_ptr = nullptr;
 	EventHandler* event_handler = nullptr;
 	Attributes* attrs = nullptr;
-	const Stmt* stmt = curr_stmt;
 
-	ZAMValUnion c;	// constant associated with instruction
+	// Used for reporting errors during execution.
+	const Stmt* stmt = curr_stmt;
 
 	// Whether v1 represents a frame slot type for which we
 	// explicitly manage the memory.
@@ -168,6 +176,14 @@ public:
 		{ if ( IsManagedType(t) ) is_managed = true; }
 
 	ZAMOpType op_type;
+
+	// The final PC location of the statement.  -1 indicates not
+	// yet assigned.
+	int inst_num = -1;
+
+	// Number of associated label(s) (indicating the statement is
+	// a branch target).
+	int num_labels = 0;
 
 protected:
 	// Initialize 'c' from the given ConstExpr.

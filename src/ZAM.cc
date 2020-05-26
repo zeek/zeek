@@ -207,7 +207,10 @@ Stmt* ZAM::CompileBody()
 			{
 			// Rewrite the breaks.
 			for ( auto b : breaks[0] )
-				insts[b] = ZInst(OP_HOOK_BREAK_X);
+				{
+				delete insts[b];
+				insts[b] = new ZInst(OP_HOOK_BREAK_X);
+				}
 			}
 
 		else
@@ -219,6 +222,46 @@ Stmt* ZAM::CompileBody()
 
 	if ( fallthroughs.size() > 0 )
 		reporter->Error("\"fallthrough\" used without an enclosing \"switch\"");
+
+	if ( catches.size() > 0 )
+		reporter->InternalError("untargeted inline return");
+
+	// Concretize statement numbers, GoTo's.
+	for ( auto i = 0; i < insts.size(); ++i )
+		insts[i]->inst_num = i;
+
+	for ( auto i = 0; i < insts.size(); ++i )
+		{
+		auto inst = insts[i];
+
+		if ( inst->target )
+			{
+			int t;
+
+			if ( inst->target == &insts[insts.size()] )
+				// This is a branch just beyond the end
+				// of execution.
+				t = insts->size();
+
+			else if ( inst.target < &insts[0] )
+				// A branch intended to target the beginning.
+				t = -1;
+
+			else
+				t = inst->target->inst_num;
+
+			switch ( inst.target_slot ) {
+			case 1:	inst->v1 = t; break;
+			case 2:	inst->v2 = t; break;
+			case 3:	inst->v3 = t; break;
+
+			default:
+				reporter->InternalError("bad GoTo target");
+			}
+			}
+
+			inst->target = nullptr;
+		}
 
 	if ( profile )
 		{
@@ -395,7 +438,7 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 	flow = FLOW_RETURN;	// can be over-written by a Hook-Break
 
 	while ( pc < end_pc && ! error_flag ) {
-		auto& z = insts[pc];
+		auto& z = *insts[pc];
 
 		if ( 0 )
 			{
@@ -633,7 +676,7 @@ const CompiledStmt ZAM::IfElse(const NameExpr* n, const Stmt* s1, const Stmt* s2
 		auto s1_end = s1->Compile(this);
 		if ( s2 )
 			{
-			auto branch_after_s1 = GoTo();
+			auto branch_after_s1 = GoToStub();
 			auto s2_end = s2->Compile(this);
 			SetV2(cond_stmt, GoToTargetBeyond(branch_after_s1));
 			SetGoTo(branch_after_s1, GoToTargetBeyond(s2_end));
@@ -665,7 +708,7 @@ const CompiledStmt ZAM::While(const Stmt* cond_stmt, const NameExpr* cond,
 		(void) cond_stmt->Compile(this);
 
 	auto cond_IF = AddInst(ZInst(OP_IF_VV, FrameSlot(cond), 0));
-	TopMainInst().op_type = OP_VV_I2;
+	TopMainInst()->op_type = OP_VV_I2;
 
 	PushNexts();
 	PushBreaks();
@@ -728,7 +771,7 @@ const CompiledStmt ZAM::When(Expr* cond, const Stmt* body,
 
 	AddInst(z);
 
-	auto branch_past_blocks = GoTo();
+	auto branch_past_blocks = GoToStub();
 
 	auto when_body = body->Compile(this);
 	auto when_done = ReturnX();
@@ -1138,7 +1181,7 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 			inst = Vector_Elem_AssignVVC(lhs, op2->AsNameExpr(),
 							op3->AsConstExpr());
 
-		TopMainInst().t = op3->Type().get();
+		TopMainInst()->t = op3->Type().get();
 		return inst;
 		}
 
@@ -1149,7 +1192,7 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 
 		auto inst = Vector_Elem_AssignVVi(lhs, op3->AsNameExpr(), index);
 
-		TopMainInst().t = op3->Type().get();
+		TopMainInst()->t = op3->Type().get();
 		return inst;
 		}
 	}
@@ -1399,7 +1442,10 @@ int ZAM::InternalBuildVals(const ListExpr* l)
 
 const CompiledStmt ZAM::AddInst(const ZInst& inst)
 	{
-	insts.push_back(inst);
+	auto i = new ZInst();
+	*i = inst;
+
+	insts.push_back(i);
 
 	top_main_inst = insts.size() - 1;
 
@@ -1491,7 +1537,7 @@ void ZAM::ProfileExecution() const
 		}
 
 	for ( int i = 0; i < inst_count->size(); ++i )
-		printf("%s %d %s %d\n", func->Name(), i, ZOP_name(insts[i].op),
+		printf("%s %d %s %d\n", func->Name(), i, ZOP_name(insts[i]->op),
 			(*inst_count)[i]);
 	}
 
@@ -1512,7 +1558,7 @@ void ZAM::Dump()
 	for ( int i = 0; i < insts.size(); ++i )
 		{
 		printf("%d: ", i);
-		insts[i].Dump(frame_denizens);
+		insts[i]->Dump(frame_denizens);
 		}
 	}
 
@@ -1806,46 +1852,46 @@ void ZAM::PushGoTos(vector<vector<int>>& gotos)
 	gotos.push_back(vi);
 	}
 
-void ZAM::ResolveGoTos(vector<vector<int>>& gotos, const CompiledStmt s)
+void ZAM::ResolveGoTos(vector<vector<int>>& gotos, const InstLabel l)
 	{
 	auto& g = gotos.back();
 
 	for ( int i = 0; i < g.size(); ++i )
-		SetGoTo(g[i], s);
+		SetGoTo(g[i], l);
 
 	gotos.pop_back();
 	}
 
 CompiledStmt ZAM::GenGoTo(vector<int>& v)
 	{
-	auto g = GoTo();
+	auto g = GoToStub();
 	v.push_back(g.stmt_num);
 
 	return g;
 	}
 
-CompiledStmt ZAM::GoTo()
+CompiledStmt ZAM::GoToStub()
 	{
 	ZInst z(OP_GOTO_V, 0);
 	z.op_type = OP_V_I1;
 	return AddInst(z);
 	}
 
-CompiledStmt ZAM::GoTo(const CompiledStmt s)
+CompiledStmt ZAM::GoTo(const InstLabel s)
 	{
 	ZInst inst(OP_GOTO_V, s.stmt_num - 1);
 	inst.op_type = OP_V_I1;
 	return AddInst(inst);
 	}
 
-CompiledStmt ZAM::GoToTarget(const CompiledStmt s)
+InstLabel ZAM::GoToTarget(const CompiledStmt s)
 	{
 	// We use one before the actual target due to pc increment
 	// after the statement executes.
 	return PrevStmt(s);
 	}
 
-CompiledStmt ZAM::GoToTargetBeyond(const CompiledStmt s)
+InstLabel ZAM::GoToTargetBeyond(const CompiledStmt s)
 	{
 	// See above.
 	return s;
@@ -1856,37 +1902,40 @@ CompiledStmt ZAM::PrevStmt(const CompiledStmt s)
 	return CompiledStmt(s.stmt_num - 1);
 	}
 
-void ZAM::SetV1(CompiledStmt s, const CompiledStmt s1)
+void ZAM::SetV1(CompiledStmt s, const InstLabel l)
 	{
-	auto& inst = insts[s.stmt_num];
-	inst.v1 = s1.stmt_num;
-	ASSERT(inst.op_type == OP_V || inst.op_type == OP_V_I1);
-	inst.op_type = OP_V_I1;
+	auto inst = insts[s.stmt_num];
+	inst->target = insts[l.stmt_num];
+	inst->target_slot = 1;
+	ASSERT(inst->op_type == OP_V || inst->op_type == OP_V_I1);
+	inst->op_type = OP_V_I1;
 	}
 
-void ZAM::SetV2(CompiledStmt s, const CompiledStmt s2)
+void ZAM::SetV2(CompiledStmt s, const InstLabel l)
 	{
-	auto& inst = insts[s.stmt_num];
-	inst.v2 = s2.stmt_num;
+	auto inst = insts[s.stmt_num];
+	inst->target = &insts[l.stmt_num];
+	inst->target_slot = 2;
 
-	if ( inst.op_type == OP_VV )
-		inst.op_type = OP_VV_I2;
+	if ( inst->op_type == OP_VV )
+		inst->op_type = OP_VV_I2;
 
-	else if ( inst.op_type == OP_VVC )
-		inst.op_type = OP_VVC_I2;
+	else if ( inst->op_type == OP_VVC )
+		inst->op_type = OP_VVC_I2;
 
 	else
-		ASSERT(inst.op_type == OP_VV_I2 || inst.op_type == OP_VVC_I2);
+		ASSERT(inst->op_type == OP_VV_I2 || inst->op_type == OP_VVC_I2);
 	}
 
-void ZAM::SetV3(CompiledStmt s, const CompiledStmt s2)
+void ZAM::SetV3(CompiledStmt s, const InstLabel l)
 	{
-	auto& inst = insts[s.stmt_num];
-	inst.v3 = s2.stmt_num;
-	ASSERT(inst.op_type == OP_VVV || inst.op_type == OP_VVV_I3 ||
-		inst.op_type == OP_VVV_I2_I3);
-	if ( inst.op_type != OP_VVV_I2_I3 )
-		inst.op_type = OP_VVV_I3;
+	auto inst = insts[s.stmt_num];
+	inst->target = &insts[l.stmt_num];
+	inst->target_slot = 3;
+	ASSERT(inst->op_type == OP_VVV || inst->op_type == OP_VVV_I3 ||
+		inst->op_type == OP_VVV_I2_I3);
+	if ( inst->op_type != OP_VVV_I2_I3 )
+		inst->op_type = OP_VVV_I3;
 	}
 
 

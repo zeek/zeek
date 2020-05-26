@@ -1438,7 +1438,7 @@ bool dump_xform = false;
 const char* only_func = 0;
 
 void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
-			IntrusivePtr<Stmt> body)
+			IntrusivePtr<Stmt>& body)
 	{
 	if ( reporter->Errors() > 0 )
 		return;
@@ -1491,6 +1491,8 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 	IntrusivePtr<Stmt> new_body_ptr = {AdoptRef{}, new_body};
 
 	f->ReplaceBody(body, new_body_ptr);
+	body = new_body_ptr;
+
 	f->GrowFrameSize(rc->NumTemps() + rc->NumNewLocals());
 
 	if ( optimize )
@@ -1503,7 +1505,6 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 
 		rc->SetDefSetsMgr(cb.GetDefSetsMgr());
 
-		body = new_body_ptr;
 		new_body = new_body->Reduce(rc);
 		new_body_ptr = {AdoptRef{}, new_body};
 
@@ -1511,6 +1512,7 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 			printf("Optimized: %s\n", obj_desc(new_body));
 
 		f->ReplaceBody(body, new_body_ptr);
+		body = new_body_ptr;
 		}
 
 	ProfileFunc* pf_red = new ProfileFunc;
@@ -1531,7 +1533,6 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 
 	if ( compile )
 		{
-		body = new_body_ptr;
 		auto zam = new ZAM(f, scope, new_body, ud, rc, pf_red);
 		new_body = zam->CompileBody();
 
@@ -1540,6 +1541,7 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 
 		new_body_ptr = {AdoptRef{}, new_body};
 		f->ReplaceBody(body, new_body_ptr);
+		body = new_body_ptr;
 
 		// ### For now, we leak cb.
 		}
@@ -1677,8 +1679,27 @@ void analyze_scripts()
 			}
 		}
 
+	delete inl;
+	}
+
+void profile_script_execution()
+	{
+	printf("%d vals created, %d destructed\n", num_Vals, num_del_Vals);
+	printf("%d string vals created, %d destructed\n", num_StringVals, num_del_StringVals);
+	report_ZOP_profile();
+
+	if ( report_profile )
+		for ( auto& f : funcs )
+			{
+			if ( f->body->Tag() == STMT_COMPILED )
+				f->body->AsCompiler()->ProfileExecution();
+			}
+	}
+
+void finish_script_execution()
+	{
+	profile_script_execution();
+
 	for ( auto& f : funcs )
 		delete f;
-
-	delete inl;
 	}

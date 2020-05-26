@@ -114,6 +114,8 @@ public:
 	int Frame1Slot(const NameExpr* id, ZOp op)
 		{ return Frame1Slot(id->AsNameExpr()->Id(), op); }
 
+	void ProfileExecution() const override;
+
 	void Dump();
 
 protected:
@@ -230,6 +232,9 @@ protected:
 	void LoadVectors(ZAM_tracker_type* tracker) const;
 
 	vector<ZInst> insts;
+
+	bool profile = true;
+	vector<int>* inst_count;	// for profiling
 
 	// Indices of break/next/fallthrough/catch-return goto's, so they
 	// can be patched up post-facto.  These are vectors-of-vectors

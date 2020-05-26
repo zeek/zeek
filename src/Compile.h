@@ -118,6 +118,8 @@ public:
 	// up a list of values.
 	virtual OpaqueVals* BuildVals(const IntrusivePtr<ListExpr>&) = 0;
 
+	virtual void ProfileExecution() const = 0;
+
 protected:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 };

@@ -181,6 +181,7 @@ ZAM::ZAM(const BroFunc* f, Scope* _scope, Stmt* _body,
 ZAM::~ZAM()
 	{
 	Unref(body);
+	delete inst_count;
 	delete ud;
 	delete reducer;
 	delete pf;
@@ -218,6 +219,15 @@ Stmt* ZAM::CompileBody()
 
 	if ( fallthroughs.size() > 0 )
 		reporter->Error("\"fallthrough\" used without an enclosing \"switch\"");
+
+	if ( profile )
+		{
+		inst_count = new vector<int>;
+		for ( auto i : insts )
+			inst_count->push_back(0);
+		}
+	else
+		inst_count = nullptr;
 
 	return this;
 	}
@@ -393,7 +403,11 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 			z.Dump(frame_denizens);
 			}
 
-		++ZOP_count[z.op];
+		if ( profile )
+			{
+			++ZOP_count[z.op];
+			++(*inst_count)[pc];
+			}
 
 		switch ( z.op ) {
 		case OP_NOP:
@@ -1460,6 +1474,25 @@ int ZAM::AddToFrame(ID* id)
 	frame_layout[id] = frame_size;
 	frame_denizens.push_back(id);
 	return frame_size++;
+	}
+
+void ZAM::ProfileExecution() const
+	{
+	if ( inst_count->size() == 0 )
+		{
+		printf("%s has an empty body\n", func->Name());
+		return;
+		}
+
+	if ( (*inst_count)[0] == 0 )
+		{
+		printf("%s did not execute\n", func->Name());
+		return;
+		}
+
+	for ( int i = 0; i < inst_count->size(); ++i )
+		printf("%s %d %s %d\n", func->Name(), i, ZOP_name(insts[i].op),
+			(*inst_count)[i]);
 	}
 
 void ZAM::Dump()

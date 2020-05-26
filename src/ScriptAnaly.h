@@ -31,3 +31,4 @@ public:
 
 extern void analyze_func(BroFunc* f);
 extern void analyze_scripts();
+extern void finish_script_execution();

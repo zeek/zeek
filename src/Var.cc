@@ -326,10 +326,20 @@ IntrusivePtr<Stmt> add_local(IntrusivePtr<ID> id, IntrusivePtr<BroType> t,
 		        *init->GetLocationInfo() : no_location;
 
 		auto name_expr = make_intrusive<NameExpr>(id, dt == VAR_CONST);
-		auto attrs = id->GetAttrs() ? id->GetAttrs()->Attrs() : nullptr;
+		attr_list* attrs = nullptr;
+
+		if ( id->GetAttrs() )
+			{
+			attrs = new attr_list(id->GetAttrs()->Attrs().size());
+
+			for ( const auto& a : id->GetAttrs()->Attrs() )
+				attrs->push_back(a.get());
+			}
+
 		auto assign_expr = make_intrusive<AssignExpr>(std::move(name_expr),
 		                                              std::move(init), 0,
 		                                              nullptr, attrs);
+		delete attrs;
 		auto stmt = make_intrusive<ExprStmt>(std::move(assign_expr));
 		stmt->SetLocationInfo(&location);
 		return stmt;

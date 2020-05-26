@@ -139,7 +139,7 @@ void Attr::AddTag(ODesc* d) const
 Attributes::Attributes(attr_list* a, IntrusivePtr<BroType> t, bool arg_in_record, bool is_global)
 	: type(std::move(t))
 	{
-	attrs = new attr_list(a->length());
+	attrs.reserve(a->length());
 	in_record = arg_in_record;
 	global_var = is_global;
 
@@ -155,22 +155,11 @@ Attributes::Attributes(attr_list* a, IntrusivePtr<BroType> t, bool arg_in_record
 	delete a;
 	}
 
-Attributes::~Attributes()
-	{
-	for ( const auto& attr : *attrs )
-		Unref(attr);
-
-	delete attrs;
-	}
-
 void Attributes::AddAttr(IntrusivePtr<Attr> attr)
 	{
-	if ( ! attrs )
-		attrs = new attr_list(1);
-
 	// We overwrite old attributes by deleting them first.
 	RemoveAttr(attr->Tag());
-	attrs->push_back(IntrusivePtr{attr}.release());
+	attrs.emplace_back(attr);
 
 	// We only check the attribute after we've added it, to facilitate
 	// generating error messages via Attributes::Describe.
@@ -180,71 +169,69 @@ void Attributes::AddAttr(IntrusivePtr<Attr> attr)
 	// those attributes only have meaning for a redefinable value.
 	if ( (attr->Tag() == ATTR_ADD_FUNC || attr->Tag() == ATTR_DEL_FUNC) &&
 	     ! FindAttr(ATTR_REDEF) )
-		attrs->push_back(new Attr(ATTR_REDEF));
+		attrs.emplace_back(make_intrusive<Attr>(ATTR_REDEF));
 
 	// For DEFAULT, add an implicit OPTIONAL if it's not a global.
 	if ( ! global_var && attr->Tag() == ATTR_DEFAULT &&
 	     ! FindAttr(ATTR_OPTIONAL) )
-		attrs->push_back(new Attr(ATTR_OPTIONAL));
+		attrs.emplace_back(make_intrusive<Attr>(ATTR_OPTIONAL));
 	}
 
 void Attributes::AddAttrs(Attributes* a)
 	{
-	attr_list* as = a->Attrs();
-	for ( const auto& attr : *as )
-		AddAttr({NewRef{}, attr});
+	for ( const auto& attr : a->Attrs() )
+		AddAttr(attr);
 
 	Unref(a);
 	}
 
 Attr* Attributes::FindAttr(attr_tag t) const
 	{
-	if ( ! attrs )
-		return nullptr;
-
-	for ( const auto& a : *attrs )
-		{
+	for ( const auto& a : attrs )
 		if ( a->Tag() == t )
-			return a;
-		}
+			return a.get();
 
 	return nullptr;
 	}
 
 void Attributes::RemoveAttr(attr_tag t)
 	{
-	for ( int i = 0; i < attrs->length(); i++ )
-		if ( (*attrs)[i]->Tag() == t )
-			attrs->remove_nth(i--);
+	for ( auto it = attrs.begin(); it != attrs.end(); )
+		{
+		if ( (*it)->Tag() == t )
+			it = attrs.erase(it);
+		else
+			++it;
+		}
 	}
 
 void Attributes::Describe(ODesc* d) const
 	{
-	if ( ! attrs )
+	if ( attrs.empty() )
 		{
 		d->AddCount(0);
 		return;
 		}
 
-	d->AddCount(attrs->length());
+	d->AddCount(static_cast<uint64_t>(attrs.size()));
 
-	loop_over_list(*attrs, i)
+	for ( size_t i = 0; i < attrs.size(); ++i )
 		{
 		if ( (d->IsReadable() || d->IsPortable()) && i > 0 )
 			d->Add(", ");
 
-		(*attrs)[i]->Describe(d);
+		attrs[i]->Describe(d);
 		}
 	}
 
 void Attributes::DescribeReST(ODesc* d, bool shorten) const
 	{
-	loop_over_list(*attrs, i)
+	for ( size_t i = 0; i < attrs.size(); ++i )
 		{
 		if ( i > 0 )
 			d->Add(" ");
 
-		(*attrs)[i]->DescribeReST(d, shorten);
+		attrs[i]->DescribeReST(d, shorten);
 		}
 	}
 
@@ -415,15 +402,13 @@ void Attributes::CheckAttr(Attr* a)
 			}
 
 		int num_expires = 0;
-		if ( attrs )
+
+		for ( const auto& a : attrs )
 			{
-			for ( const auto& a : *attrs )
-				{
-				if ( a->Tag() == ATTR_EXPIRE_READ ||
-				     a->Tag() == ATTR_EXPIRE_WRITE ||
-				     a->Tag() == ATTR_EXPIRE_CREATE )
-					num_expires++;
-				}
+			if ( a->Tag() == ATTR_EXPIRE_READ ||
+				 a->Tag() == ATTR_EXPIRE_WRITE ||
+				 a->Tag() == ATTR_EXPIRE_CREATE )
+				num_expires++;
 			}
 
 		if ( num_expires > 1 )
@@ -609,13 +594,13 @@ void Attributes::CheckAttr(Attr* a)
 
 bool Attributes::operator==(const Attributes& other) const
 	{
-	if ( ! attrs )
-		return other.attrs;
+	if ( attrs.empty() )
+		return other.attrs.empty();
 
-	if ( ! other.attrs )
+	if ( other.attrs.empty() )
 		return false;
 
-	for ( const auto& a : *attrs )
+	for ( const auto& a : attrs )
 		{
 		Attr* o = other.FindAttr(a->Tag());
 
@@ -626,7 +611,7 @@ bool Attributes::operator==(const Attributes& other) const
 			return false;
 		}
 
-	for ( const auto& o : *other.attrs )
+	for ( const auto& o : other.attrs )
 		{
 		Attr* a = FindAttr(o->Tag());
 

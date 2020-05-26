@@ -94,6 +94,9 @@ Changed Functionality
 
 - ``AsVector()`` has changed to return ``std::vector<IntrusivePtr<Val>>*``.
 
+- ``Attributes::Attrs()`` now returns ``const std::vector<IntrusivePtr<Attr>>&``
+  instead of ``attr_list*``
+
 Removed Functionality
 ---------------------
 

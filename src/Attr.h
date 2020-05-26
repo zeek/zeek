@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include "Obj.h"
 #include "BroList.h"
 #include "IntrusivePtr.h"
@@ -78,7 +80,6 @@ protected:
 class Attributes final : public BroObj {
 public:
 	Attributes(attr_list* a, IntrusivePtr<BroType> t, bool in_record, bool is_global);
-	~Attributes() override;
 
 	void AddAttr(IntrusivePtr<Attr> a);
 	void AddAttrs(Attributes* a);	// Unref's 'a' when done
@@ -90,7 +91,8 @@ public:
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool shorten = false) const;
 
-	attr_list* Attrs()	{ return attrs; }
+	const std::vector<IntrusivePtr<Attr>>& Attrs() const
+		{ return attrs; }
 
 	bool operator==(const Attributes& other) const;
 
@@ -98,7 +100,7 @@ protected:
 	void CheckAttr(Attr* attr);
 
 	IntrusivePtr<BroType> type;
-	attr_list* attrs;
+	std::vector<IntrusivePtr<Attr>> attrs;
 	bool in_record;
 	bool global_var;
 };

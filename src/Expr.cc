@@ -2170,9 +2170,14 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 
 				if ( sce->Attrs() )
 					{
-					attr_list* a = sce->Attrs()->Attrs();
-					attrs = new attr_list(a->length());
-					std::copy(a->begin(), a->end(), std::back_inserter(*attrs));
+					const auto& a = sce->Attrs()->Attrs();
+					attr_copy = new attr_list(a.size());
+
+					for ( const auto& attr : a )
+						{
+						::Ref(attr.get());
+						attrs->push_back(attr.get());
+						}
 					}
 
 				int errors_before = reporter->Errors();

@@ -12,6 +12,9 @@ refine flow RDP_Flow += {
 			BifEvent::enqueue_rdp_connect_request(connection()->bro_analyzer(),
 			                                      connection()->bro_analyzer()->Conn(),
 			                                      to_stringval(${cr.cookie_value}));
+			BifEvent::enqueue_rdp_connect_request_flags(connection()->bro_analyzer(),
+			                                      connection()->bro_analyzer()->Conn(),
+			                                      ${cr.rdp_neg_req.flags});
 			}
 
 		return true;
@@ -24,6 +27,9 @@ refine flow RDP_Flow += {
 			BifEvent::enqueue_rdp_negotiation_response(connection()->bro_analyzer(),
 			                                           connection()->bro_analyzer()->Conn(),
 			                                           ${nr.selected_protocol});
+			BifEvent::enqueue_rdp_negotiation_response_flags(connection()->bro_analyzer(),
+			                                           connection()->bro_analyzer()->Conn(),
+			                                           ${nr.flags});
 			}
 
 		return true;

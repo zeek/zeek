@@ -42,12 +42,26 @@ event rdp_native_encrypted_data%(c: connection, orig: bool, len: count%);
 ## cookie: The cookie included in the request.
 event rdp_connect_request%(c: connection, cookie: string%);
 
+## Generated for X.224 client requests.
+##
+## c: The connection record for the underlying transport-layer session/flow.
+##
+## flags: The flags set by the client.
+event rdp_connect_request_flags%(c: connection, flags: count%);
+
 ## Generated for RDP Negotiation Response messages.
 ##
 ## c: The connection record for the underlying transport-layer session/flow.
 ##
 ## security_protocol: The security protocol selected by the server.
 event rdp_negotiation_response%(c: connection, security_protocol: count%);
+
+## Generated for RDP Negotiation Response messages.
+##
+## c: The connection record for the underlying transport-layer session/flow.
+##
+## flags: The flags set by the server.
+event rdp_negotiation_response_flags%(c: connection, flags: count%);
 
 ## Generated for RDP Negotiation Failure messages.
 ##

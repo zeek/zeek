@@ -19,7 +19,7 @@ class UseDefs;
 class ProfileFunc;
 class ZInst;
 
-typedef CompiledStmt InstLabel;
+typedef ZInst* InstLabel;
 
 class ZAM : public Compiler {
 public:
@@ -182,7 +182,7 @@ protected:
 	void ResolveCatchReturns(const InstLabel l)
 		{ ResolveGoTos(catches, l); }
 
-	typedef vector<int> GoToSet;
+	typedef vector<CompiledStmt> GoToSet;
 	typedef vector<GoToSet> GoToSets;
 
 	void PushGoTos(GoToSets& gotos);
@@ -237,6 +237,9 @@ protected:
 	void LoadVectors(ZAM_tracker_type* tracker) const;
 
 	vector<ZInst*> insts;
+	// Used as a placeholder when we have to generate a GoTo target
+	// beyond the end of what we've compiled so far.
+	ZInst* pending_inst = nullptr;
 
 	bool profile = true;
 	vector<int>* inst_count;	// for profiling
@@ -276,7 +279,7 @@ protected:
 	// switch value (which can be any atomic type) to a branch target.
 	// We have vectors of them because functions can contain multiple
 	// switches.
-	template<class T> using CaseMap = std::map<T, int>;
+	template<class T> using CaseMap = std::map<T, InstLabel>;
 	template<class T> using CaseMaps = std::vector<CaseMap<T>>;
 
 	CaseMaps<bro_int_t> int_cases;

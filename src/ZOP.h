@@ -152,7 +152,7 @@ public:
 	ZAMValUnion c;	// constant associated with instruction
 
 	// Branch target, prior to concretizing into PC target.
-	ZInst* target = nullptr;
+	const ZInst* target = nullptr;
 	int target_slot = 0;	// which of v1/v2/v3 should hold the target
 
 	// Meta-data associated with the execution.

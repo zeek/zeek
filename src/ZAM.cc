@@ -208,8 +208,9 @@ Stmt* ZAM::CompileBody()
 			// Rewrite the breaks.
 			for ( auto b : breaks[0] )
 				{
-				delete insts[b];
-				insts[b] = new ZInst(OP_HOOK_BREAK_X);
+				auto& i = insts[b.stmt_num];
+				delete i;
+				i = new ZInst(OP_HOOK_BREAK_X);
 				}
 			}
 
@@ -236,21 +237,18 @@ Stmt* ZAM::CompileBody()
 
 		if ( inst->target )
 			{
-			int t;
+			int t;	// instruction number of target
 
-			if ( inst->target == &insts[insts.size()] )
-				// This is a branch just beyond the end
-				// of execution.
-				t = insts->size();
-
-			else if ( inst.target < &insts[0] )
-				// A branch intended to target the beginning.
-				t = -1;
-
+			if ( inst->target == pending_inst )
+				t = insts.size();
 			else
 				t = inst->target->inst_num;
 
-			switch ( inst.target_slot ) {
+			// Decrement because our model is the PC will be
+			// incremented after executing the statement.
+			--t;
+
+			switch ( inst->target_slot ) {
 			case 1:	inst->v1 = t; break;
 			case 2:	inst->v2 = t; break;
 			case 3:	inst->v3 = t; break;
@@ -259,9 +257,9 @@ Stmt* ZAM::CompileBody()
 				reporter->InternalError("bad GoTo target");
 			}
 			}
-
-			inst->target = nullptr;
 		}
+
+	delete pending_inst;
 
 	if ( profile )
 		{
@@ -716,7 +714,7 @@ const CompiledStmt ZAM::While(const Stmt* cond_stmt, const NameExpr* cond,
 	if ( body && body->Tag() != STMT_NULL )
 		(void) body->Compile(this);
 
-	auto tail = GoTo(head);
+	auto tail = GoTo(GoToTarget(head));
 
 	auto beyond_tail = GoToTargetBeyond(tail);
 	SetV2(cond_IF, beyond_tail);
@@ -734,7 +732,7 @@ const CompiledStmt ZAM::Loop(const Stmt* body)
 
 	auto head = StartingBlock();
 	(void) body->Compile(this);
-	auto tail = GoTo(head);
+	auto tail = GoTo(GoToTarget(head));
 
 	ResolveNexts(GoToTarget(head));
 	ResolveBreaks(GoToTargetBeyond(tail));
@@ -878,7 +876,7 @@ const CompiledStmt ZAM::ValueSwitch(const SwitchStmt* sw, const NameExpr* v,
 
 	// Generate each of the cases.
 	auto cases = sw->Cases();
-	std::vector<CompiledStmt> case_start;
+	std::vector<InstLabel> case_start;
 
 	PushFallThroughs();
 	for ( auto c : *cases )
@@ -929,7 +927,7 @@ const CompiledStmt ZAM::ValueSwitch(const SwitchStmt* sw, const NameExpr* v,
 			reporter->InternalError("bad recovered value when compiling switch");
 
 		auto cv = (*case_vals)[0];
-		auto case_body_start = case_start[*index].stmt_num;
+		auto case_body_start = case_start[*index];
 
 		switch ( cv->Type()->InternalType() ) {
 		case TYPE_INTERNAL_INT:
@@ -1278,13 +1276,13 @@ const CompiledStmt ZAM::FinishLoop(const CompiledStmt iter_head,
 	auto loop_iter = AddInst(iter_stmt);
 	auto body_end = body->Compile(this);
 
-	auto loop_end = GoTo(iter_head);
+	auto loop_end = GoTo(GoToTarget(iter_head));
 	auto final_stmt = AddInst(ZInst(OP_END_LOOP_V, info_slot));
 
 	if ( iter_stmt.op_type == OP_VVV_I3 )
-		SetV3(loop_iter, final_stmt);
+		SetV3(loop_iter, GoToTarget(final_stmt));
 	else
-		SetV2(loop_iter, final_stmt);
+		SetV2(loop_iter, GoToTarget(final_stmt));
 
 	ResolveNexts(GoToTarget(iter_head));
 	ResolveBreaks(GoToTarget(final_stmt));
@@ -1442,7 +1440,16 @@ int ZAM::InternalBuildVals(const ListExpr* l)
 
 const CompiledStmt ZAM::AddInst(const ZInst& inst)
 	{
-	auto i = new ZInst();
+	ZInst* i;
+
+	if ( pending_inst )
+		{
+		i = pending_inst;
+		pending_inst = nullptr;
+		}
+	else
+		i = new ZInst();
+
 	*i = inst;
 
 	insts.push_back(i);
@@ -1450,7 +1457,7 @@ const CompiledStmt ZAM::AddInst(const ZInst& inst)
 	top_main_inst = insts.size() - 1;
 
 	if ( mark_dirty < 0 )
-		return CompiledStmt(insts.size() - 1);
+		return CompiledStmt(top_main_inst);
 
 	auto dirty_global_slot = mark_dirty;
 	mark_dirty = -1;
@@ -1566,7 +1573,7 @@ void ZAM::DumpIntCases(int i) const
 	{
 	printf("int switch table #%d:", i);
 	for ( auto& m : int_cases[i] )
-		printf(" %lld->%d", m.first, m.second);
+		printf(" %lld->%d", m.first, m.second->inst_num);
 	printf("\n");
 	}
 
@@ -1574,7 +1581,7 @@ void ZAM::DumpUIntCases(int i) const
 	{
 	printf("uint switch table #%d:", i);
 	for ( auto& m : uint_cases[i] )
-		printf(" %llu->%d", m.first, m.second);
+		printf(" %llu->%d", m.first, m.second->inst_num);
 	printf("\n");
 	}
 
@@ -1582,7 +1589,7 @@ void ZAM::DumpDoubleCases(int i) const
 	{
 	printf("double switch table #%d:", i);
 	for ( auto& m : double_cases[i] )
-		printf(" %lf->%d", m.first, m.second);
+		printf(" %lf->%d", m.first, m.second->inst_num);
 	printf("\n");
 	}
 
@@ -1590,7 +1597,7 @@ void ZAM::DumpStrCases(int i) const
 	{
 	printf("str switch table #%d:", i);
 	for ( auto& m : str_cases[i] )
-		printf(" %s->%d", m.first.c_str(), m.second);
+		printf(" %s->%d", m.first.c_str(), m.second->inst_num);
 	printf("\n");
 	}
 
@@ -1846,13 +1853,13 @@ const CompiledStmt  ZAM::AssignedToGlobal(const ID* global_id)
 	return EmptyStmt();
 	}
 
-void ZAM::PushGoTos(vector<vector<int>>& gotos)
+void ZAM::PushGoTos(GoToSets& gotos)
 	{
-	vector<int> vi;
+	vector<CompiledStmt> vi;
 	gotos.push_back(vi);
 	}
 
-void ZAM::ResolveGoTos(vector<vector<int>>& gotos, const InstLabel l)
+void ZAM::ResolveGoTos(GoToSets& gotos, const InstLabel l)
 	{
 	auto& g = gotos.back();
 
@@ -1862,7 +1869,7 @@ void ZAM::ResolveGoTos(vector<vector<int>>& gotos, const InstLabel l)
 	gotos.pop_back();
 	}
 
-CompiledStmt ZAM::GenGoTo(vector<int>& v)
+CompiledStmt ZAM::GenGoTo(GoToSet& v)
 	{
 	auto g = GoToStub();
 	v.push_back(g.stmt_num);
@@ -1877,24 +1884,33 @@ CompiledStmt ZAM::GoToStub()
 	return AddInst(z);
 	}
 
-CompiledStmt ZAM::GoTo(const InstLabel s)
+CompiledStmt ZAM::GoTo(const InstLabel l)
 	{
-	ZInst inst(OP_GOTO_V, s.stmt_num - 1);
+	ZInst inst(OP_GOTO_V, 0);
+	inst.target = l;
+	inst.target_slot = 1;
 	inst.op_type = OP_V_I1;
 	return AddInst(inst);
 	}
 
 InstLabel ZAM::GoToTarget(const CompiledStmt s)
 	{
-	// We use one before the actual target due to pc increment
-	// after the statement executes.
-	return PrevStmt(s);
+	return insts[s.stmt_num];
 	}
 
 InstLabel ZAM::GoToTargetBeyond(const CompiledStmt s)
 	{
-	// See above.
-	return s;
+	int n = s.stmt_num;
+
+	if ( n == insts.size() - 1 )
+		{
+		if ( ! pending_inst )
+			pending_inst = new ZInst();
+
+		return pending_inst;
+		}
+
+	return insts[n+1];
 	}
 
 CompiledStmt ZAM::PrevStmt(const CompiledStmt s)
@@ -1905,7 +1921,7 @@ CompiledStmt ZAM::PrevStmt(const CompiledStmt s)
 void ZAM::SetV1(CompiledStmt s, const InstLabel l)
 	{
 	auto inst = insts[s.stmt_num];
-	inst->target = insts[l.stmt_num];
+	inst->target = l;
 	inst->target_slot = 1;
 	ASSERT(inst->op_type == OP_V || inst->op_type == OP_V_I1);
 	inst->op_type = OP_V_I1;
@@ -1914,7 +1930,7 @@ void ZAM::SetV1(CompiledStmt s, const InstLabel l)
 void ZAM::SetV2(CompiledStmt s, const InstLabel l)
 	{
 	auto inst = insts[s.stmt_num];
-	inst->target = &insts[l.stmt_num];
+	inst->target = l;
 	inst->target_slot = 2;
 
 	if ( inst->op_type == OP_VV )
@@ -1930,7 +1946,7 @@ void ZAM::SetV2(CompiledStmt s, const InstLabel l)
 void ZAM::SetV3(CompiledStmt s, const InstLabel l)
 	{
 	auto inst = insts[s.stmt_num];
-	inst->target = &insts[l.stmt_num];
+	inst->target = l;
 	inst->target_slot = 3;
 	ASSERT(inst->op_type == OP_VVV || inst->op_type == OP_VVV_I3 ||
 		inst->op_type == OP_VVV_I2_I3);

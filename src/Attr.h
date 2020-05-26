@@ -87,6 +87,10 @@ public:
 	Attributes(IntrusivePtr<BroType> t, bool in_record, bool is_global);
 
 	void AddAttr(IntrusivePtr<Attr> a);
+
+	void AddAttrs(const IntrusivePtr<Attributes>& a);
+
+	[[deprecated("Remove in v4.1. Pass IntrusivePtr instead.")]]
 	void AddAttrs(Attributes* a);	// Unref's 'a' when done
 
 	Attr* FindAttr(attr_tag t) const;

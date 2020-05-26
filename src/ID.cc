@@ -308,7 +308,7 @@ std::string ID::GetDeprecationWarning() const
 void ID::AddAttrs(IntrusivePtr<Attributes> a)
 	{
 	if ( attrs )
-		attrs->AddAttrs(a.release());
+		attrs->AddAttrs(a);
 	else
 		attrs = std::move(a);
 

@@ -201,6 +201,12 @@ void Attributes::AddAttr(IntrusivePtr<Attr> attr)
 		attrs.emplace_back(make_intrusive<Attr>(ATTR_OPTIONAL));
 	}
 
+void Attributes::AddAttrs(const IntrusivePtr<Attributes>& a)
+	{
+	for ( const auto& attr : a->Attrs() )
+		AddAttr(attr);
+	}
+
 void Attributes::AddAttrs(Attributes* a)
 	{
 	for ( const auto& attr : a->Attrs() )

@@ -2871,7 +2871,7 @@ IntrusivePtr<Expr> FieldExpr::MakeLvalue()
 
 bool FieldExpr::CanDel() const
 	{
-	return td->FindAttr(ATTR_DEFAULT) || td->FindAttr(ATTR_OPTIONAL);
+	return td->GetAttr(ATTR_DEFAULT) || td->GetAttr(ATTR_OPTIONAL);
 	}
 
 void FieldExpr::Assign(Frame* f, IntrusivePtr<Val> v)
@@ -2897,7 +2897,7 @@ IntrusivePtr<Val> FieldExpr::Fold(Val* v) const
 		return result;
 
 	// Check for &default.
-	const Attr* def_attr = td ? td->FindAttr(ATTR_DEFAULT) : nullptr;
+	const Attr* def_attr = td ? td->GetAttr(ATTR_DEFAULT).get() : nullptr;
 
 	if ( def_attr )
 		return def_attr->GetExpr()->Eval(nullptr);
@@ -3625,7 +3625,7 @@ RecordCoerceExpr::RecordCoerceExpr(IntrusivePtr<Expr> arg_op,
 			{
 			if ( map[i] == -1 )
 				{
-				if ( ! t_r->FieldDecl(i)->FindAttr(ATTR_OPTIONAL) )
+				if ( ! t_r->FieldDecl(i)->GetAttr(ATTR_OPTIONAL) )
 					{
 					std::string error_msg = fmt(
 						"non-optional field \"%s\" missing", t_r->FieldName(i));
@@ -3677,14 +3677,14 @@ IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 
 			if ( ! rhs )
 				{
-				const Attr* def = rv->GetType()->AsRecordType()->FieldDecl(
-					map[i])->FindAttr(ATTR_DEFAULT);
+				const auto& def = rv->GetType()->AsRecordType()->FieldDecl(
+					map[i])->GetAttr(ATTR_DEFAULT);
 
 				if ( def )
 					rhs = def->GetExpr()->Eval(nullptr);
 				}
 
-			assert(rhs || GetType()->AsRecordType()->FieldDecl(i)->FindAttr(ATTR_OPTIONAL));
+			assert(rhs || GetType()->AsRecordType()->FieldDecl(i)->GetAttr(ATTR_OPTIONAL));
 
 			if ( ! rhs )
 				{
@@ -3716,7 +3716,7 @@ IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 			}
 		else
 			{
-			if ( const Attr* def = GetType()->AsRecordType()->FieldDecl(i)->FindAttr(ATTR_DEFAULT) )
+			if ( const auto& def = GetType()->AsRecordType()->FieldDecl(i)->GetAttr(ATTR_DEFAULT) )
 				{
 				auto def_val = def->GetExpr()->Eval(nullptr);
 				const auto& def_type = def_val->GetType();

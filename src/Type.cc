@@ -816,7 +816,7 @@ IntrusivePtr<TableVal> RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 		if ( rv )
 			fv = rv->GetField(i);
 
-		bool logged = (fd->attrs && fd->FindAttr(ATTR_LOG) != nullptr);
+		bool logged = (fd->attrs && fd->GetAttr(ATTR_LOG) != nullptr);
 
 		auto nr = make_intrusive<RecordVal>(record_field);
 
@@ -849,8 +849,7 @@ const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)
 
 	for ( const auto& td : *others )
 		{
-		if ( ! td->FindAttr(ATTR_DEFAULT) &&
-		     ! td->FindAttr(ATTR_OPTIONAL) )
+		if ( ! td->GetAttr(ATTR_DEFAULT) && ! td->GetAttr(ATTR_OPTIONAL) )
 			{
 			delete others;
 			return "extension field must be &optional or have &default";
@@ -1016,7 +1015,7 @@ string RecordType::GetFieldDeprecationWarning(int field, bool has_check) const
 	if ( decl)
 		{
 		string result;
-		if ( const Attr* deprecation = decl->FindAttr(ATTR_DEPRECATED) )
+		if ( const auto& deprecation = decl->GetAttr(ATTR_DEPRECATED) )
 			{
 			auto expr = static_cast<ConstExpr*>(deprecation->GetExpr().get());
 			if ( expr )

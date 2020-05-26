@@ -2881,7 +2881,7 @@ IntrusivePtr<RecordVal> RecordVal::CoerceTo(IntrusivePtr<RecordType> t,
 
 	for ( i = 0; i < ar_t->NumFields(); ++i )
 		if ( ! aggr->GetField(i) &&
-			 ! ar_t->FieldDecl(i)->FindAttr(ATTR_OPTIONAL) )
+			 ! ar_t->FieldDecl(i)->GetAttr(ATTR_OPTIONAL) )
 			{
 			char buf[512];
 			snprintf(buf, sizeof(buf),

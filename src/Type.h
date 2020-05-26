@@ -566,8 +566,12 @@ public:
 	TypeDecl(const TypeDecl& other);
 	~TypeDecl();
 
+	[[deprecated("Remove in v4.1.  Use GetAttr().")]]
 	const Attr* FindAttr(attr_tag a) const
 		{ return attrs ? attrs->Find(a).get() : nullptr; }
+
+	const IntrusivePtr<Attr>& GetAttr(attr_tag a) const
+		{ return attrs ? attrs->Find(a) : Attr::nil; }
 
 	void DescribeReST(ODesc* d, bool roles_only = false) const;
 
@@ -664,13 +668,13 @@ public:
 	bool IsFieldDeprecated(int field) const
 		{
 		const TypeDecl* decl = FieldDecl(field);
-		return decl && decl->FindAttr(ATTR_DEPRECATED) != nullptr;
+		return decl && decl->GetAttr(ATTR_DEPRECATED) != nullptr;
 		}
 
 	bool FieldHasAttr(int field, attr_tag at) const
 		{
 		const TypeDecl* decl = FieldDecl(field);
-		return decl && decl->FindAttr(at) != nullptr;
+		return decl && decl->GetAttr(at) != nullptr;
 		}
 
 	std::string GetFieldDeprecationWarning(int field, bool has_check) const;

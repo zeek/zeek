@@ -48,8 +48,7 @@ public:
 	const IntrusivePtr<Expr>& GetExpr() const
 		{ return expr; }
 
-	template<typename E>
-	void SetAttrExpr(E&& e) { expr = std::forward<E>(e); }
+	void SetAttrExpr(IntrusivePtr<Expr> e);
 
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool shorten = false) const;

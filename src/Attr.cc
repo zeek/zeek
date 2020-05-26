@@ -37,6 +37,9 @@ Attr::Attr(attr_tag t)
 
 Attr::~Attr() = default;
 
+void Attr::SetAttrExpr(IntrusivePtr<Expr> e)
+	{ expr = std::move(e); }
+
 void Attr::Describe(ODesc* d) const
 	{
 	AddTag(d);

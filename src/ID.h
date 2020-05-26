@@ -109,7 +109,11 @@ public:
 	[[deprecated("Remove in 4.1.  Use GetAttrs().")]]
 	Attributes* Attrs() const	{ return attrs.get(); }
 
-	Attr* FindAttr(attr_tag t) const;
+	[[deprecated("Remove in 4.1.  Use GetAttr().")]]
+	Attr* FindAttr(attr_tag t) const
+		{ return GetAttr(t).get(); }
+
+	const IntrusivePtr<Attr>& GetAttr(attr_tag t) const;
 
 	bool IsDeprecated() const;
 

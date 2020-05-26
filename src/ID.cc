@@ -217,7 +217,7 @@ void ID::SetVal(IntrusivePtr<Expr> ev, init_class c)
 
 bool ID::IsRedefinable() const
 	{
-	return FindAttr(ATTR_REDEF) != nullptr;
+	return GetAttr(ATTR_REDEF) != nullptr;
 	}
 
 void ID::SetAttrs(IntrusivePtr<Attributes> a)
@@ -266,14 +266,14 @@ void ID::UpdateValAttrs()
 		}
 	}
 
-Attr* ID::FindAttr(attr_tag t) const
+const IntrusivePtr<Attr>& ID::GetAttr(attr_tag t) const
 	{
-	return attrs ? attrs->Find(t).get() : nullptr;
+	return attrs ? attrs->Find(t) : Attr::nil;
 	}
 
 bool ID::IsDeprecated() const
 	{
-	return FindAttr(ATTR_DEPRECATED) != nullptr;
+	return GetAttr(ATTR_DEPRECATED) != nullptr;
 	}
 
 void ID::MakeDeprecated(IntrusivePtr<Expr> deprecation)
@@ -288,7 +288,8 @@ void ID::MakeDeprecated(IntrusivePtr<Expr> deprecation)
 std::string ID::GetDeprecationWarning() const
 	{
 	std::string result;
-	Attr* depr_attr = FindAttr(ATTR_DEPRECATED);
+	const auto& depr_attr = GetAttr(ATTR_DEPRECATED);
+
 	if ( depr_attr )
 		{
 		auto expr = static_cast<ConstExpr*>(depr_attr->GetExpr().get());

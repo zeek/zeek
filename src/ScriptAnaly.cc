@@ -1443,26 +1443,6 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 	if ( reporter->Errors() > 0 )
 		return;
 
-	if ( ! did_init )
-		{
-		if ( getenv("ZEEK_ANALY") )
-			activate = true;
-
-		only_func = getenv("ZEEK_ONLY");
-		report_profile = getenv("ZEEK_REPORT_PROFILE");
-		ud_dump = getenv("ZEEK_UD_DUMP");
-		inliner = getenv("ZEEK_INLINE");
-		optimize = getenv("ZEEK_OPTIMIZE");
-		compile = getenv("ZEEK_COMPILE");
-		dump_code = getenv("ZEEK_DUMP_CODE");
-		dump_xform = getenv("ZEEK_DUMP_XFORM");
-
-		if ( only_func )
-			activate = true;
-
-		did_init = true;
-		}
-
 	if ( ! activate )
 		return;
 
@@ -1654,6 +1634,26 @@ void analyze_orphan_events()
 
 void analyze_scripts()
 	{
+	if ( ! did_init )
+		{
+		if ( getenv("ZEEK_ANALY") )
+			activate = true;
+
+		only_func = getenv("ZEEK_ONLY");
+		report_profile = getenv("ZEEK_REPORT_PROFILE");
+		ud_dump = getenv("ZEEK_UD_DUMP");
+		inliner = getenv("ZEEK_INLINE");
+		optimize = getenv("ZEEK_OPTIMIZE");
+		compile = getenv("ZEEK_COMPILE");
+		dump_code = getenv("ZEEK_DUMP_CODE");
+		dump_xform = getenv("ZEEK_DUMP_XFORM");
+
+		if ( only_func )
+			activate = true;
+
+		did_init = true;
+		}
+
 	// Now that everything's parsed and BiF's have been initialized,
 	// profile functions.
 	for ( auto& f : funcs )

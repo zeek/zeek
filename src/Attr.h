@@ -41,7 +41,12 @@ public:
 	~Attr() override;
 
 	attr_tag Tag() const	{ return tag; }
+
+	[[deprecated("Remove in v4.1.  Use GetExpr().")]]
 	Expr* AttrExpr() const	{ return expr.get(); }
+
+	const IntrusivePtr<Expr>& GetExpr() const
+		{ return expr; }
 
 	template<typename E>
 	void SetAttrExpr(E&& e) { expr = std::forward<E>(e); }

@@ -689,7 +689,7 @@ IntrusivePtr<Val> RecordType::FieldDefault(int field) const
 
 	const Attr* def_attr = td->attrs->FindAttr(ATTR_DEFAULT);
 
-	return def_attr ? def_attr->AttrExpr()->Eval(nullptr) : nullptr;
+	return def_attr ? def_attr->GetExpr()->Eval(nullptr) : nullptr;
 	}
 
 int RecordType::FieldOffset(const char* field) const
@@ -1010,7 +1010,7 @@ string RecordType::GetFieldDeprecationWarning(int field, bool has_check) const
 		string result;
 		if ( const Attr* deprecation = decl->FindAttr(ATTR_DEPRECATED) )
 			{
-			ConstExpr* expr = static_cast<ConstExpr*>(deprecation->AttrExpr());
+			auto expr = static_cast<ConstExpr*>(deprecation->GetExpr().get());
 			if ( expr )
 				{
 				StringVal* text = expr->Value()->AsStringVal();

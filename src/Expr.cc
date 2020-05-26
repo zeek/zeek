@@ -2895,7 +2895,7 @@ IntrusivePtr<Val> FieldExpr::Fold(Val* v) const
 	const Attr* def_attr = td ? td->FindAttr(ATTR_DEFAULT) : nullptr;
 
 	if ( def_attr )
-		return def_attr->AttrExpr()->Eval(nullptr);
+		return def_attr->GetExpr()->Eval(nullptr);
 	else
 		{
 		RuntimeError("field value missing");
@@ -3658,7 +3658,7 @@ IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 					map[i])->FindAttr(ATTR_DEFAULT);
 
 				if ( def )
-					rhs = def->AttrExpr()->Eval(nullptr);
+					rhs = def->GetExpr()->Eval(nullptr);
 				}
 
 			assert(rhs || GetType()->AsRecordType()->FieldDecl(i)->FindAttr(ATTR_OPTIONAL));
@@ -3695,7 +3695,7 @@ IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 			{
 			if ( const Attr* def = GetType()->AsRecordType()->FieldDecl(i)->FindAttr(ATTR_DEFAULT) )
 				{
-				auto def_val = def->AttrExpr()->Eval(nullptr);
+				auto def_val = def->GetExpr()->Eval(nullptr);
 				const auto& def_type = def_val->GetType();
 				const auto& field_type = GetType()->AsRecordType()->GetFieldType(i);
 
@@ -5010,7 +5010,7 @@ bool check_and_promote_args(ListExpr* const args, RecordType* types)
 				return false;
 				}
 
-			def_elements.push_front(def_attr->AttrExpr());
+			def_elements.push_front(def_attr->GetExpr().get());
 			}
 
 		for ( const auto& elem : def_elements )

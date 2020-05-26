@@ -574,7 +574,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 		}
 
 	if ( Attr* depr_attr = find_attr(attrs, ATTR_DEPRECATED) )
-		id->MakeDeprecated({NewRef{}, depr_attr->AttrExpr()});
+		id->MakeDeprecated(depr_attr->GetExpr());
 	}
 
 class OuterIDBindingFinder : public TraversalCallback {

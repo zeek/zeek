@@ -855,7 +855,7 @@ static int get_func_priority(const attr_list& attrs)
 			continue;
 			}
 
-		auto v = a->AttrExpr()->Eval(nullptr);
+		auto v = a->GetExpr()->Eval(nullptr);
 
 		if ( ! v )
 			{

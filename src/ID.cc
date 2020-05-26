@@ -213,7 +213,7 @@ void ID::SetVal(IntrusivePtr<Expr> ev, init_class c)
 	if ( ! a )
 		Internal("no add/delete function in ID::SetVal");
 
-	EvalFunc({NewRef{}, a->AttrExpr()}, std::move(ev));
+	EvalFunc(a->GetExpr(), std::move(ev));
 	}
 
 bool ID::IsRedefinable() const
@@ -291,7 +291,7 @@ std::string ID::GetDeprecationWarning() const
 	Attr* depr_attr = FindAttr(ATTR_DEPRECATED);
 	if ( depr_attr )
 		{
-		ConstExpr* expr = static_cast<ConstExpr*>(depr_attr->AttrExpr());
+		auto expr = static_cast<ConstExpr*>(depr_attr->GetExpr().get());
 		if ( expr )
 			{
 			StringVal* text = expr->Value()->AsStringVal();

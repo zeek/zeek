@@ -1479,12 +1479,12 @@ void TableVal::SetAttrs(IntrusivePtr<Attributes> a)
 	Attr* ef = attrs->FindAttr(ATTR_EXPIRE_FUNC);
 
 	if ( ef )
-		expire_func = {NewRef{}, ef->AttrExpr()};
+		expire_func = ef->GetExpr();
 
 	auto cf = attrs->FindAttr(ATTR_ON_CHANGE);
 
 	if ( cf )
-		change_func = {NewRef{}, cf->AttrExpr()};
+		change_func = cf->GetExpr();
 	}
 
 void TableVal::CheckExpireAttr(attr_tag at)
@@ -1493,7 +1493,7 @@ void TableVal::CheckExpireAttr(attr_tag at)
 
 	if ( a )
 		{
-		expire_time = {NewRef{}, a->AttrExpr()};
+		expire_time = a->GetExpr();
 
 		if ( expire_time->GetType()->Tag() != TYPE_INTERVAL )
 			{
@@ -1821,21 +1821,21 @@ IntrusivePtr<Val> TableVal::Default(const IntrusivePtr<Val>& index)
 	if ( ! def_val )
 		{
 		const auto& ytype = GetType()->Yield();
-		const auto& dtype = def_attr->AttrExpr()->GetType();
+		const auto& dtype = def_attr->GetExpr()->GetType();
 
 		if ( dtype->Tag() == TYPE_RECORD && ytype->Tag() == TYPE_RECORD &&
 		     ! same_type(dtype, ytype) &&
 		     record_promotion_compatible(dtype->AsRecordType(),
 						 ytype->AsRecordType()) )
 			{
-			auto coerce = make_intrusive<RecordCoerceExpr>(
-			        IntrusivePtr{NewRef{}, def_attr->AttrExpr()},
-			        IntrusivePtr{NewRef{}, ytype->AsRecordType()});
+			auto rt = cast_intrusive<RecordType>(ytype);
+			auto coerce = make_intrusive<RecordCoerceExpr>(def_attr->GetExpr(),
+			                                               std::move(rt));
 			def_val = coerce->Eval(nullptr);
 			}
 
 		else
-			def_val = def_attr->AttrExpr()->Eval(nullptr);
+			def_val = def_attr->GetExpr()->Eval(nullptr);
 		}
 
 	if ( ! def_val )
@@ -1847,7 +1847,7 @@ IntrusivePtr<Val> TableVal::Default(const IntrusivePtr<Val>& index)
 	if ( def_val->GetType()->Tag() != TYPE_FUNC ||
 	     same_type(def_val->GetType(), GetType()->Yield()) )
 		{
-		if ( def_attr->AttrExpr()->IsConst() )
+		if ( def_attr->GetExpr()->IsConst() )
 			return def_val;
 
 		try
@@ -2345,7 +2345,7 @@ void TableVal::InitDefaultFunc(Frame* f)
 		return;
 
 	const auto& ytype = GetType()->Yield();
-	const auto& dtype = def_attr->AttrExpr()->GetType();
+	const auto& dtype = def_attr->GetExpr()->GetType();
 
 	if ( dtype->Tag() == TYPE_RECORD && ytype->Tag() == TYPE_RECORD &&
 	     ! same_type(dtype, ytype) &&
@@ -2353,7 +2353,7 @@ void TableVal::InitDefaultFunc(Frame* f)
 					 ytype->AsRecordType()) )
 		return; // TableVal::Default will handle this.
 
-	def_val = def_attr->AttrExpr()->Eval(f);
+	def_val = def_attr->GetExpr()->Eval(f);
 	}
 
 void TableVal::InitTimer(double delay)
@@ -2715,7 +2715,7 @@ RecordVal::RecordVal(IntrusivePtr<RecordType> t, bool init_fields) : Val(std::mo
 		{
 		Attributes* a = rt->FieldDecl(i)->attrs.get();
 		Attr* def_attr = a ? a->FindAttr(ATTR_DEFAULT) : nullptr;
-		auto def = def_attr ? def_attr->AttrExpr()->Eval(nullptr) : nullptr;
+		auto def = def_attr ? def_attr->GetExpr()->Eval(nullptr) : nullptr;
 		const auto& type = rt->FieldDecl(i)->type;
 
 		if ( def && type->Tag() == TYPE_RECORD &&

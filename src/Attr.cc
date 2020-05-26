@@ -262,10 +262,10 @@ void Attributes::CheckAttr(Attr* a)
 		{
 		bool is_add = a->Tag() == ATTR_ADD_FUNC;
 
-		const auto& at = a->AttrExpr()->GetType();
+		const auto& at = a->GetExpr()->GetType();
 		if ( at->Tag() != TYPE_FUNC )
 			{
-			a->AttrExpr()->Error(
+			a->GetExpr()->Error(
 				is_add ?
 					"&add_func must be a function" :
 					"&delete_func must be a function");
@@ -275,7 +275,7 @@ void Attributes::CheckAttr(Attr* a)
 		FuncType* aft = at->AsFuncType();
 		if ( ! same_type(aft->Yield(), type) )
 			{
-			a->AttrExpr()->Error(
+			a->GetExpr()->Error(
 				is_add ?
 					"&add_func function must yield same type as variable" :
 					"&delete_func function must yield same type as variable");
@@ -294,7 +294,7 @@ void Attributes::CheckAttr(Attr* a)
 			break;
 			}
 
-		const auto& atype = a->AttrExpr()->GetType();
+		const auto& atype = a->GetExpr()->GetType();
 
 		if ( type->Tag() != TYPE_TABLE || (type->IsSet() && ! in_record) )
 			{
@@ -314,7 +314,7 @@ void Attributes::CheckAttr(Attr* a)
 				// Ok.
 				break;
 
-			auto e = check_and_promote_expr(a->AttrExpr(), type.get());
+			auto e = check_and_promote_expr(a->GetExpr().get(), type.get());
 
 			if ( e )
 				{
@@ -323,7 +323,7 @@ void Attributes::CheckAttr(Attr* a)
 				break;
 				}
 
-			a->AttrExpr()->Error("&default value has inconsistent type", type.get());
+			a->GetExpr()->Error("&default value has inconsistent type", type.get());
 			return;
 			}
 
@@ -354,7 +354,7 @@ void Attributes::CheckAttr(Attr* a)
 					// Ok.
 					break;
 
-				auto e = check_and_promote_expr(a->AttrExpr(), ytype.get());
+				auto e = check_and_promote_expr(a->GetExpr().get(), ytype.get());
 
 				if ( e )
 					{
@@ -380,7 +380,7 @@ void Attributes::CheckAttr(Attr* a)
 
 			if ( (atype->Tag() == TYPE_TABLE && atype->AsTableType()->IsUnspecifiedTable()) )
 				{
-				auto e = check_and_promote_expr(a->AttrExpr(), type.get());
+				auto e = check_and_promote_expr(a->GetExpr().get(), type.get());
 
 				if ( e )
 					{
@@ -446,7 +446,7 @@ void Attributes::CheckAttr(Attr* a)
 			break;
 			}
 
-		const Expr* expire_func = a->AttrExpr();
+		const auto& expire_func = a->GetExpr();
 
 		if ( expire_func->GetType()->Tag() != TYPE_FUNC )
 			Error("&expire_func attribute is not a function");
@@ -493,7 +493,7 @@ void Attributes::CheckAttr(Attr* a)
 			break;
 			}
 
-		const Expr* change_func = a->AttrExpr();
+		const auto& change_func = a->GetExpr();
 
 		if ( change_func->GetType()->Tag() != TYPE_FUNC || change_func->GetType()->AsFuncType()->Flavor() != FUNC_FLAVOR_FUNCTION )
 			Error("&on_change attribute is not a function");
@@ -588,7 +588,7 @@ void Attributes::CheckAttr(Attr* a)
 			break;
 			}
 
-		const auto& atype = a->AttrExpr()->GetType();
+		const auto& atype = a->GetExpr()->GetType();
 
 		if ( atype->Tag() != TYPE_STRING ) {
 			Error("type column needs to have a string argument");

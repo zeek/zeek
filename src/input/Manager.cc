@@ -944,7 +944,7 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
 				{
 				// we have an annotation for the second column
 
-				c = rec->FieldDecl(i)->FindAttr(ATTR_TYPE_COLUMN)->AttrExpr()->Eval(nullptr);
+				c = rec->FieldDecl(i)->FindAttr(ATTR_TYPE_COLUMN)->GetExpr()->Eval(nullptr);
 
 				assert(c);
 				assert(c->GetType()->Tag() == TYPE_STRING);

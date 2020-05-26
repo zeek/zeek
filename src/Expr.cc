@@ -3134,7 +3134,12 @@ Expr* CondExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	if ( same_singletons(op2, op3) )
 		{
 		if ( op1->HasNoSideEffects() )
-			op1 = {AdoptRef{}, op1->AssignToTemporary(c, red_stmt)};
+			{
+			if ( op1->Tag() != EXPR_CONST &&
+			     op1->Tag() != EXPR_NAME )
+				op1 = {AdoptRef{},
+					op1->AssignToTemporary(c, red_stmt)};
+			}
 
 		return op2->Ref();
 		}

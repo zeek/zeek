@@ -930,7 +930,12 @@ public:
 	ListVal* ConvertToPureList() const;	// must be single index type
 
 	void SetAttrs(IntrusivePtr<Attributes> attrs);
-	Attr* FindAttr(attr_tag t) const;
+
+	[[deprecated("Remove in v4.1.  Use GetAttr().")]]
+	Attr* FindAttr(attr_tag t) const
+		{ return GetAttr(t).get(); }
+
+	const IntrusivePtr<Attr>& GetAttr(attr_tag t) const;
 
 	[[deprecated("Remove in v4.1.  Use GetAttrs().")]]
 	Attributes* Attrs()	{ return attrs.get(); }

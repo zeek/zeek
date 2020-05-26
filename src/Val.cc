@@ -1813,7 +1813,7 @@ bool TableVal::ExpandAndInit(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val)
 
 IntrusivePtr<Val> TableVal::Default(const IntrusivePtr<Val>& index)
 	{
-	Attr* def_attr = FindAttr(ATTR_DEFAULT);
+	const auto& def_attr = GetAttr(ATTR_DEFAULT);
 
 	if ( ! def_attr )
 		return nullptr;
@@ -2199,9 +2199,9 @@ ListVal* TableVal::ConvertToPureList() const
 	return ToPureListVal().release();
 	}
 
-Attr* TableVal::FindAttr(attr_tag t) const
+const IntrusivePtr<Attr>& TableVal::GetAttr(attr_tag t) const
 	{
-	return attrs ? attrs->Find(t).get() : nullptr;
+	return attrs ? attrs->Find(t) : Attr::nil;
 	}
 
 void TableVal::Describe(ODesc* d) const
@@ -2340,7 +2340,8 @@ void TableVal::InitDefaultFunc(Frame* f)
 	if ( def_val )
 		return;
 
-	Attr* def_attr = FindAttr(ATTR_DEFAULT);
+	const auto& def_attr = GetAttr(ATTR_DEFAULT);
+
 	if ( ! def_attr )
 		return;
 

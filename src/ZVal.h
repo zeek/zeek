@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "Dict.h"
 #include "Expr.h"
 #include <unordered_set>
 
@@ -14,7 +15,7 @@ class ZAMVectorMgr;
 // Tracks all such managers.
 typedef std::unordered_set<ZAMVectorMgr*> ZAM_tracker_type;
 
-struct IterInfo;
+class IterInfo;
 
 typedef std::vector<IntrusivePtr<Val>> val_vec;
 
@@ -80,7 +81,7 @@ union ZAMValUnion {
 	// is explicit in the operations accessing it.
 	val_vec* vvec;
 
-	// Used for managing "for" loops.  Explicit memory management.
+	// Used for managing "for" loops.  Implicit memory management.
 	IterInfo* iter_info;
 
 	// Used for loading/spilling globals; also, local vectors.
@@ -163,8 +164,13 @@ protected:
 };
 
 // Information used to iterate over aggregates.  It's a hodge-podge since
-// it's meant to support every type of aggregate & loop.
-struct IterInfo {
+// it's meant to support every type of aggregate & loop.  Only a BroObj
+// so we can make intrusive pointers for memory management.
+class IterInfo : public BroObj {
+public:
+	IterInfo()	{ c = nullptr; }
+	~IterInfo()	{ if ( c ) loop_vals->StopIteration(c); }
+
 	// If we're looping over a table:
 	TableVal* tv;
 

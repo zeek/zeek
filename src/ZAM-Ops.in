@@ -777,12 +777,12 @@ eval if ( ! can_cast_value_to_type(v, z.t) ) pc = z.v2;
 
 internal-op Init-Table-Loop
 type VV
-eval auto ii = new IterInfo
+eval auto ii = new IterInfo()
 eval ii->tv = frame[z.v2].table_val
 eval ii->loop_vals = ii->tv->AsTable()
 eval ii->c = ii->loop_vals->InitForIteration()
 eval ii->value_var_type = z.t
-eval frame[z.v1].iter_info = ii
+eval frame[z.v1].iter_info = TrackVal(ii)
 
 internal-op Add-Var-To-Init
 type VV
@@ -833,14 +833,13 @@ eval }
 
 internal-op Init-Vector-Loop
 type VV
-eval auto ii = new IterInfo
+eval auto ii = new IterInfo()
 eval ii->vv = frame[z.v2].vector_val->ConstVec()
 eval ii->vec_type = z.t->AsVectorType()
 eval ii->yield_type = ii->vec_type->YieldType()
 eval ii->iter = 0
 eval ii->n = ii->vv->size()
-eval ii->c = 0;	// because End-Loop will check it
-eval frame[z.v1].iter_info = ii
+eval frame[z.v1].iter_info = TrackVal(ii)
 
 internal-op Next-Vector-Iter
 type VVV
@@ -853,12 +852,11 @@ eval ++ii->iter
 
 internal-op Init-String-Loop
 type VV
-eval auto ii = new IterInfo
+eval auto ii = new IterInfo()
 eval ii->s = frame[z.v2].string_val
 eval ii->iter = 0
 eval ii->n = ii->s->Len()
-eval ii->c = 0;	// because End-Loop will check it
-eval frame[z.v1].iter_info = ii
+eval frame[z.v1].iter_info = TrackVal(ii)
 
 internal-op Next-String-Iter
 type VVV
@@ -876,7 +874,7 @@ internal-op End-Loop
 type V
 eval auto ii = frame[z.v1].iter_info
 eval if ( ii->c ) ii->loop_vals->StopIteration(ii->c)
-eval delete ii
+eval ii->c = nullptr;
 
 
 op When

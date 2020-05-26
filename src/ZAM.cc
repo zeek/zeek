@@ -355,6 +355,7 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 	// per-frame-slot, we don't need to add frame state about
 	// whether an object should be delete'd or not on reassignment.
 	std::vector<IntrusivePtr<BroObj>> vals;
+	vals.reserve(100);
 
 #define TrackVal(v) (vals.push_back({AdoptRef{}, v}), v)
 #define TrackValPtr(v) (vals.push_back(v), v.get())

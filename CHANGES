@@ -1,4 +1,8 @@
 
+3.2.0-dev.565 | 2020-05-26 21:55:54 +0000
+
+  * Add DCE-RPC constants from BZAR project (V)
+
 3.2.0-dev.562 | 2020-05-26 11:06:34 -0700
 
   * GH-979: Update libkqueue to fix use on CentOS 6 (Jon Siwek, Corelight)

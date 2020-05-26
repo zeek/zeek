@@ -41,7 +41,9 @@
 #include "threading/formatters/JSON.h"
 
 int num_Vals = 0;
+int num_StringVals = 0;
 int num_del_Vals = 0;
+int num_del_StringVals = 0;
 
 Val::Val(Func* f)
 	: val(f), type(f->FType()->Ref())
@@ -978,6 +980,7 @@ IntrusivePtr<Val> SubNetVal::DoClone(CloneState* state)
 
 StringVal::StringVal(BroString* s) : Val(s, TYPE_STRING)
 	{
+	++num_StringVals;
 	}
 
 // The following adds a NUL at the end.

@@ -131,7 +131,9 @@ union BroValUnion {
 };
 
 extern int num_Vals;
+extern int num_StringVals;
 extern int num_del_Vals;
+extern int num_del_StringVals;
 
 class Val : public BroObj {
 public:
@@ -572,6 +574,7 @@ public:
 	explicit StringVal(const char* s);
 	explicit StringVal(const string& s);
 	StringVal(int length, const char* s);
+	~StringVal() override	{ ++num_del_StringVals; }
 
 	IntrusivePtr<Val> SizeVal() const override;
 

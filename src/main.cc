@@ -316,6 +316,7 @@ void terminate_bro()
 	reporter = 0;
 
 	printf("%d vals created, %d destructed\n", num_Vals, num_del_Vals);
+	printf("%d string vals created, %d destructed\n", num_StringVals, num_del_StringVals);
 	report_ZOP_profile();
 	}
 

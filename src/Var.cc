@@ -250,8 +250,8 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 				}
 
 			else if ( t->Tag() == TYPE_TABLE )
-				aggr = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, t->AsTableType()},
-				                                IntrusivePtr{NewRef{}, id->Attrs()});
+				aggr = make_intrusive<TableVal>(cast_intrusive<TableType>(t),
+				                                id->GetAttrs());
 
 			else if ( t->Tag() == TYPE_VECTOR )
 				aggr = make_intrusive<VectorVal>(cast_intrusive<VectorType>(t));
@@ -326,7 +326,7 @@ IntrusivePtr<Stmt> add_local(IntrusivePtr<ID> id, IntrusivePtr<BroType> t,
 		        *init->GetLocationInfo() : no_location;
 
 		auto name_expr = make_intrusive<NameExpr>(id, dt == VAR_CONST);
-		auto attrs = id->Attrs() ? id->Attrs()->Attrs() : nullptr;
+		auto attrs = id->GetAttrs() ? id->GetAttrs()->Attrs() : nullptr;
 		auto assign_expr = make_intrusive<AssignExpr>(std::move(name_expr),
 		                                              std::move(init), 0,
 		                                              nullptr, attrs);

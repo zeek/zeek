@@ -1664,7 +1664,7 @@ IntrusivePtr<Val> InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
 			break;
 		case TYPE_TABLE:
 			v = make_intrusive<TableVal>(cast_intrusive<TableType>(t),
-			                             IntrusivePtr{NewRef{}, aggr->Attrs()});
+			                             aggr->GetAttrs());
 			break;
 		default:
 			break;

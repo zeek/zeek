@@ -102,6 +102,11 @@ public:
 	void AddAttrs(IntrusivePtr<Attributes> attr);
 	void RemoveAttr(attr_tag a);
 	void UpdateValAttrs();
+
+	const IntrusivePtr<Attributes>& GetAttrs() const
+		{ return attrs; }
+
+	[[deprecated("Remove in 4.1.  Use GetAttrs().")]]
 	Attributes* Attrs() const	{ return attrs.get(); }
 
 	Attr* FindAttr(attr_tag t) const;

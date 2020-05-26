@@ -422,7 +422,7 @@ FuncType::FuncType(IntrusivePtr<RecordType> arg_args,
 		{
 		const TypeDecl* td = args->FieldDecl(i);
 
-		if ( td->attrs && td->attrs->FindAttr(ATTR_DEFAULT) )
+		if ( td->attrs && td->attrs->Find(ATTR_DEFAULT) )
 			has_default_arg = true;
 
 		else if ( has_default_arg )
@@ -696,8 +696,7 @@ IntrusivePtr<Val> RecordType::FieldDefault(int field) const
 	if ( ! td->attrs )
 		return nullptr;
 
-	const Attr* def_attr = td->attrs->FindAttr(ATTR_DEFAULT);
-
+	const auto& def_attr = td->attrs->Find(ATTR_DEFAULT);
 	return def_attr ? def_attr->GetExpr()->Eval(nullptr) : nullptr;
 	}
 

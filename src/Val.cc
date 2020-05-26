@@ -1476,12 +1476,12 @@ void TableVal::SetAttrs(IntrusivePtr<Attributes> a)
 	CheckExpireAttr(ATTR_EXPIRE_WRITE);
 	CheckExpireAttr(ATTR_EXPIRE_CREATE);
 
-	Attr* ef = attrs->FindAttr(ATTR_EXPIRE_FUNC);
+	const auto& ef = attrs->Find(ATTR_EXPIRE_FUNC);
 
 	if ( ef )
 		expire_func = ef->GetExpr();
 
-	auto cf = attrs->FindAttr(ATTR_ON_CHANGE);
+	const auto& cf = attrs->Find(ATTR_ON_CHANGE);
 
 	if ( cf )
 		change_func = cf->GetExpr();
@@ -1489,7 +1489,7 @@ void TableVal::SetAttrs(IntrusivePtr<Attributes> a)
 
 void TableVal::CheckExpireAttr(attr_tag at)
 	{
-	Attr* a = attrs->FindAttr(at);
+	const auto& a = attrs->Find(at);
 
 	if ( a )
 		{
@@ -1560,7 +1560,7 @@ bool TableVal::Assign(IntrusivePtr<Val> index, std::unique_ptr<HashKey> k,
 		}
 
 	// Keep old expiration time if necessary.
-	if ( old_entry_val && attrs && attrs->FindAttr(ATTR_EXPIRE_CREATE) )
+	if ( old_entry_val && attrs && attrs->Find(ATTR_EXPIRE_CREATE) )
 		new_entry_val->SetExpireAccess(old_entry_val->ExpireAccessTime());
 
 	Modified();
@@ -1901,7 +1901,7 @@ const IntrusivePtr<Val>& TableVal::Find(const IntrusivePtr<Val>& index)
 		TableEntryVal* v = (TableEntryVal*) subnets->Lookup(index.get());
 		if ( v )
 			{
-			if ( attrs && attrs->FindAttr(ATTR_EXPIRE_READ) )
+			if ( attrs && attrs->Find(ATTR_EXPIRE_READ) )
 				v->SetExpireAccess(network_time);
 
 			if ( v->GetVal() )
@@ -1925,7 +1925,7 @@ const IntrusivePtr<Val>& TableVal::Find(const IntrusivePtr<Val>& index)
 
 			if ( v )
 				{
-				if ( attrs && attrs->FindAttr(ATTR_EXPIRE_READ) )
+				if ( attrs && attrs->Find(ATTR_EXPIRE_READ) )
 					v->SetExpireAccess(network_time);
 
 				if ( v->GetVal() )
@@ -1997,7 +1997,7 @@ IntrusivePtr<TableVal> TableVal::LookupSubnetValues(const SubNetVal* search)
 
 		if ( entry )
 			{
-			if ( attrs && attrs->FindAttr(ATTR_EXPIRE_READ) )
+			if ( attrs && attrs->Find(ATTR_EXPIRE_READ) )
 				entry->SetExpireAccess(network_time);
 			}
 		}
@@ -2201,7 +2201,7 @@ ListVal* TableVal::ConvertToPureList() const
 
 Attr* TableVal::FindAttr(attr_tag t) const
 	{
-	return attrs ? attrs->FindAttr(t) : nullptr;
+	return attrs ? attrs->Find(t).get() : nullptr;
 	}
 
 void TableVal::Describe(ODesc* d) const
@@ -2714,7 +2714,7 @@ RecordVal::RecordVal(IntrusivePtr<RecordType> t, bool init_fields) : Val(std::mo
 	for ( int i = 0; i < n; ++i )
 		{
 		Attributes* a = rt->FieldDecl(i)->attrs.get();
-		Attr* def_attr = a ? a->FindAttr(ATTR_DEFAULT) : nullptr;
+		Attr* def_attr = a ? a->Find(ATTR_DEFAULT).get() : nullptr;
 		auto def = def_attr ? def_attr->GetExpr()->Eval(nullptr) : nullptr;
 		const auto& type = rt->FieldDecl(i)->type;
 
@@ -2728,7 +2728,7 @@ RecordVal::RecordVal(IntrusivePtr<RecordType> t, bool init_fields) : Val(std::mo
 				def = std::move(tmp);
 			}
 
-		if ( ! def && ! (a && a->FindAttr(ATTR_OPTIONAL)) )
+		if ( ! def && ! (a && a->Find(ATTR_OPTIONAL)) )
 			{
 			TypeTag tag = type->Tag();
 

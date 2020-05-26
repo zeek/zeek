@@ -265,7 +265,7 @@ void BroFile::SetAttrs(Attributes* arg_attrs)
 	attrs = arg_attrs;
 	Ref(attrs);
 
-	if ( attrs->FindAttr(ATTR_RAW_OUTPUT) )
+	if ( attrs->Find(ATTR_RAW_OUTPUT) )
 		EnableRawOutput();
 	}
 

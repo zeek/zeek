@@ -207,8 +207,7 @@ void ID::SetVal(IntrusivePtr<Val> v, init_class c)
 
 void ID::SetVal(IntrusivePtr<Expr> ev, init_class c)
 	{
-	Attr* a = attrs->FindAttr(c == INIT_EXTRA ?
-					ATTR_ADD_FUNC : ATTR_DEL_FUNC);
+	const auto& a = attrs->Find(c == INIT_EXTRA ? ATTR_ADD_FUNC : ATTR_DEL_FUNC);
 
 	if ( ! a )
 		Internal("no add/delete function in ID::SetVal");
@@ -240,7 +239,7 @@ void ID::UpdateValAttrs()
 
 	if ( GetType()->Tag() == TYPE_FUNC )
 		{
-		Attr* attr = attrs->FindAttr(ATTR_ERROR_HANDLER);
+		const auto& attr = attrs->Find(ATTR_ERROR_HANDLER);
 
 		if ( attr )
 			event_registry->SetErrorHandler(Name());
@@ -248,7 +247,8 @@ void ID::UpdateValAttrs()
 
 	if ( GetType()->Tag() == TYPE_RECORD )
 		{
-		Attr* attr = attrs->FindAttr(ATTR_LOG);
+		const auto& attr = attrs->Find(ATTR_LOG);
+
 		if ( attr )
 			{
 			// Apply &log to all record fields.
@@ -268,7 +268,7 @@ void ID::UpdateValAttrs()
 
 Attr* ID::FindAttr(attr_tag t) const
 	{
-	return attrs ? attrs->FindAttr(t) : nullptr;
+	return attrs ? attrs->Find(t).get() : nullptr;
 	}
 
 bool ID::IsDeprecated() const

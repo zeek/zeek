@@ -567,7 +567,7 @@ public:
 	~TypeDecl();
 
 	const Attr* FindAttr(attr_tag a) const
-		{ return attrs ? attrs->FindAttr(a) : nullptr; }
+		{ return attrs ? attrs->Find(a).get() : nullptr; }
 
 	void DescribeReST(ODesc* d, bool roles_only = false) const;
 

@@ -412,21 +412,21 @@ static void transfer_arg_defaults(RecordType* args, RecordType* recv)
 		TypeDecl* args_i = args->FieldDecl(i);
 		TypeDecl* recv_i = recv->FieldDecl(i);
 
-		Attr* def = args_i->attrs ? args_i->attrs->FindAttr(ATTR_DEFAULT) : nullptr;
+		const auto& def = args_i->attrs ? args_i->attrs->Find(ATTR_DEFAULT) : nullptr;
 
 		if ( ! def )
 			continue;
 
 		if ( ! recv_i->attrs )
 			{
-			std::vector<IntrusivePtr<Attr>> a{{NewRef{}, def}};
+			std::vector<IntrusivePtr<Attr>> a{def};
 			recv_i->attrs = make_intrusive<Attributes>(std::move(a),
 			                                           recv_i->type,
 			                                           true, false);
 			}
 
-		else if ( ! recv_i->attrs->FindAttr(ATTR_DEFAULT) )
-			recv_i->attrs->AddAttr({NewRef{}, def});
+		else if ( ! recv_i->attrs->Find(ATTR_DEFAULT) )
+			recv_i->attrs->AddAttr(def);
 		}
 	}
 
@@ -523,7 +523,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 					{
 					auto f = args->FieldDecl(i);
 
-					if ( f->attrs && f->attrs->FindAttr(ATTR_DEFAULT) )
+					if ( f->attrs && f->attrs->Find(ATTR_DEFAULT) )
 						{
 						reporter->PushLocation(args->GetLocationInfo());
 						reporter->Warning(

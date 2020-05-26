@@ -5025,7 +5025,7 @@ bool check_and_promote_args(ListExpr* const args, RecordType* types)
 		for ( int i = ntypes - 1; i >= el.length(); --i )
 			{
 			TypeDecl* td = types->FieldDecl(i);
-			Attr* def_attr = td->attrs ? td->attrs->FindAttr(ATTR_DEFAULT) : nullptr;
+			const auto& def_attr = td->attrs ? td->attrs->Find(ATTR_DEFAULT).get() : nullptr;
 
 			if ( ! def_attr )
 				{

@@ -192,12 +192,12 @@ void Attributes::AddAttr(IntrusivePtr<Attr> attr)
 	// For ADD_FUNC or DEL_FUNC, add in an implicit REDEF, since
 	// those attributes only have meaning for a redefinable value.
 	if ( (attr->Tag() == ATTR_ADD_FUNC || attr->Tag() == ATTR_DEL_FUNC) &&
-	     ! FindAttr(ATTR_REDEF) )
+	     ! Find(ATTR_REDEF) )
 		attrs.emplace_back(make_intrusive<Attr>(ATTR_REDEF));
 
 	// For DEFAULT, add an implicit OPTIONAL if it's not a global.
 	if ( ! global_var && attr->Tag() == ATTR_DEFAULT &&
-	     ! FindAttr(ATTR_OPTIONAL) )
+	     ! Find(ATTR_OPTIONAL) )
 		attrs.emplace_back(make_intrusive<Attr>(ATTR_OPTIONAL));
 	}
 
@@ -222,6 +222,15 @@ Attr* Attributes::FindAttr(attr_tag t) const
 			return a.get();
 
 	return nullptr;
+	}
+
+const IntrusivePtr<Attr>& Attributes::Find(attr_tag t) const
+	{
+	for ( const auto& a : attrs )
+		if ( a->Tag() == t )
+			return a;
+
+	return Attr::nil;
 	}
 
 void Attributes::RemoveAttr(attr_tag t)
@@ -632,7 +641,7 @@ bool Attributes::operator==(const Attributes& other) const
 
 	for ( const auto& a : attrs )
 		{
-		Attr* o = other.FindAttr(a->Tag());
+		const auto& o = other.Find(a->Tag());
 
 		if ( ! o )
 			return false;
@@ -643,7 +652,7 @@ bool Attributes::operator==(const Attributes& other) const
 
 	for ( const auto& o : other.attrs )
 		{
-		Attr* a = FindAttr(o->Tag());
+		const auto& a = Find(o->Tag());
 
 		if ( ! a )
 			return false;

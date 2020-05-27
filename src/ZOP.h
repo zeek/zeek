@@ -152,6 +152,11 @@ public:
 	// given by slot 1 (v1).
 	bool AssignsToSlot1() const;
 
+	// True if the given instruction uses the value in given frame slot.
+	// (Assigning to the slot does not constitute using the value.)
+	// Does not include storing to the interpreter frame.
+	bool UsesSlot(int slot) const;
+
 	bool IsFrameLoad() const
 		{ return op == OP_LOAD_VAL_VV || op == OP_LOAD_ANY_VAL_VV; }
 	bool IsFrameStore() const

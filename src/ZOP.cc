@@ -86,6 +86,39 @@ bool ZInst::AssignsToSlot1() const
 	}
 	}
 
+bool ZInst::UsesSlot(int slot) const
+	{
+	switch ( op_type ) {
+	case OP_X:
+	case OP_C:
+	case OP_VC:
+	case OP_E:
+	case OP_VE:
+	case OP_V_I1:
+	case OP_VV_FRAME:
+	case OP_VC_ID:
+	case OP_VV_I2:
+	case OP_VVC_I2:
+	case OP_VVV_I2_I3:
+		return false;
+
+	case OP_V:
+		return op == OP_RETURN_V && v1 == slot;
+
+	case OP_VV:
+	case OP_VVC:
+	case OP_VVV_I3:
+		return v2 == slot;
+
+	case OP_VVV:
+	case OP_VVVC:
+		return v2 == slot || v3 == slot;
+
+	case OP_VVVV:
+		return v2 == slot || v3 == slot || v4 == slot;
+	}
+	}
+
 const char* ZInst::VName(int max_n, int n, const frame_map& frame_ids) const
 	{
 	if ( n > max_n )

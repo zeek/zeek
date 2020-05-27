@@ -360,6 +360,7 @@ void ZAM::Peephole()
 			something_changed = true;
 		while ( CollapseGoTos() )
 			something_changed = true;
+
 		if ( PruneGlobally() )
 			something_changed = true;
 		}
@@ -428,7 +429,13 @@ bool ZAM::PruneGlobally()
 		if ( ! inst->live )
 			continue;
 
-		if ( inst->IsFrameSync() && ! VarIsAssigned(inst->v1) )
+		if ( inst->IsFrameStore() && ! VarIsAssigned(inst->v1) )
+			{
+			did_prune = true;
+			KillInst(inst);
+			}
+
+		if ( inst->IsFrameLoad() && ! VarIsUsed(inst->v1) )
 			{
 			did_prune = true;
 			KillInst(inst);
@@ -454,6 +461,18 @@ bool ZAM::VarIsAssigned(int slot, const ZInst* i) const
 	{
 	return i->AssignsToSlot1() && i->v1 == slot &&
 		! i->IsFrameSync();
+	}
+
+bool ZAM::VarIsUsed(int slot) const
+	{
+	for ( int i = 0; i < insts.size(); ++i )
+		{
+		auto& inst = insts[i];
+		if ( inst->live && inst->UsesSlot(slot) )
+			return true;
+		}
+
+	return false;
 	}
 
 void ZAM::KillInst(ZInst* i)

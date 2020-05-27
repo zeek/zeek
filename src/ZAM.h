@@ -136,12 +136,16 @@ protected:
 	// analysis.  True if something got pruned.
 	bool PruneGlobally();
 
-	// True if any statement other than a frame load assigns to the
+	// True if any statement other than a frame sync assigns to the
 	// given slot.
 	bool VarIsAssigned(int slot) const;
 
-	// True if the given statement assigns to the given slot.
+	// True if the given statement assigns to the given slot, and
+	// it's not a frame sync.
 	bool VarIsAssigned(int slot, const ZInst* i) const;
+
+	// True if any statement other than a frame sync uses the given slot.
+	bool VarIsUsed(int slot) const;
 
 	// Mark a statement as unnecessary and remove its influence on
 	// other statements.

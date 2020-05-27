@@ -38,8 +38,9 @@ extern IntrusivePtr<Expr> add_and_assign_local(IntrusivePtr<ID> id,
 extern void add_type(ID* id, IntrusivePtr<BroType> t,
                      std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr);
 
-extern void begin_func(ID* id, const char* module_name, function_flavor flavor,
-                       bool is_redef, IntrusivePtr<FuncType> t,
+extern void begin_func(IntrusivePtr<ID> id, const char* module_name,
+                       function_flavor flavor, bool is_redef,
+                       IntrusivePtr<FuncType> t,
                        std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs = nullptr);
 
 extern void end_func(IntrusivePtr<Stmt> body);

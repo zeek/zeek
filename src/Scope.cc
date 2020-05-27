@@ -72,9 +72,9 @@ IntrusivePtr<ID> Scope::Remove(std::string_view name)
 	return nullptr;
 	}
 
-ID* Scope::GenerateTemporary(const char* name)
+IntrusivePtr<ID> Scope::GenerateTemporary(const char* name)
 	{
-	return new ID(name, SCOPE_FUNCTION, false);
+	return make_intrusive<ID>(name, SCOPE_FUNCTION, false);
 	}
 
 id_list* Scope::GetInits()

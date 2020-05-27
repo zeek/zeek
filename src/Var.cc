@@ -458,8 +458,9 @@ static bool canonical_arg_types_match(const FuncType* decl, const FuncType* impl
 	return true;
 	}
 
-void begin_func(ID* id, const char* module_name, function_flavor flavor,
-                bool is_redef, IntrusivePtr<FuncType> t,
+void begin_func(IntrusivePtr<ID> id, const char* module_name,
+                function_flavor flavor, bool is_redef,
+                IntrusivePtr<FuncType> t,
                 std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs)
 	{
 	if ( flavor == FUNC_FLAVOR_EVENT )
@@ -512,7 +513,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 				}
 
 			if ( prototype->deprecated )
-				t->Warn("use of deprecated prototype", id);
+				t->Warn("use of deprecated prototype", id.get());
 			}
 		else
 			{
@@ -521,7 +522,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 			if ( canonical_arg_types_match(decl, t.get()) )
 				prototype = decl->Prototypes()[0];
 			else
-				t->Error("use of undeclared alternate prototype", id);
+				t->Error("use of undeclared alternate prototype", id.get());
 			}
 		}
 
@@ -557,7 +558,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 	else
 		id->SetType(t);
 
-	push_scope({NewRef{}, id}, std::move(attrs));
+	push_scope(std::move(id), std::move(attrs));
 
 	const auto& args = t->Params();
 	int num_args = args->NumFields();
@@ -579,7 +580,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 
 	if ( Attr* depr_attr = find_attr(current_scope()->Attrs().get(),
 	                                 ATTR_DEPRECATED) )
-		id->MakeDeprecated(depr_attr->GetExpr());
+		current_scope()->GetID()->MakeDeprecated(depr_attr->GetExpr());
 	}
 
 class OuterIDBindingFinder : public TraversalCallback {

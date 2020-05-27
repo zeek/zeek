@@ -53,7 +53,7 @@ public:
 	size_t Length() const		{ return local.size(); }
 	const auto& Vars()	{ return local; }
 
-	ID* GenerateTemporary(const char* name);
+	IntrusivePtr<ID> GenerateTemporary(const char* name);
 
 	// Returns the list of variables needing initialization, and
 	// removes it from this Scope.

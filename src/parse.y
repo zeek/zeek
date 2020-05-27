@@ -134,7 +134,6 @@ bool resolving_global_ID = false;
 bool defining_global_ID = false;
 std::vector<int> saved_in_init;
 
-ID* func_id = 0;
 static Location func_hdr_location;
 EnumType *cur_enum_type = 0;
 static ID* cur_decl_type_id = 0;
@@ -496,15 +495,15 @@ expr:
 	|	'$' TOK_ID func_params '='
 			{
 			func_hdr_location = @1;
-			func_id = current_scope()->GenerateTemporary("anonymous-function");
+			auto func_id = current_scope()->GenerateTemporary("anonymous-function");
 			func_id->SetInferReturnType(true);
-			begin_func(func_id, current_module.c_str(), FUNC_FLAVOR_FUNCTION,
-			           0, {AdoptRef{}, $3});
+			begin_func(std::move(func_id), current_module.c_str(),
+			           FUNC_FLAVOR_FUNCTION, false,
+			           {AdoptRef{}, $3});
 			}
 		 lambda_body
 			{
 			$$ = new FieldAssignExpr($2, IntrusivePtr{AdoptRef{}, $6});
-			Unref(func_id);
 			}
 
 	|	expr TOK_IN expr
@@ -1180,7 +1179,7 @@ func_hdr:
 		TOK_FUNCTION def_global_id func_params opt_attr
 			{
 			IntrusivePtr id{AdoptRef{}, $2};
-			begin_func(id.get(), current_module.c_str(),
+			begin_func(id, current_module.c_str(),
 				FUNC_FLAVOR_FUNCTION, 0, {NewRef{}, $3},
 				std::unique_ptr<std::vector<IntrusivePtr<Attr>>>{$4});
 			$$ = $3;
@@ -1195,7 +1194,7 @@ func_hdr:
 				reporter->Error("event %s() is no longer available, use zeek_%s() instead", name, base.c_str());
 				}
 
-			begin_func($2, current_module.c_str(),
+			begin_func({NewRef{}, $2}, current_module.c_str(),
 				   FUNC_FLAVOR_EVENT, 0, {NewRef{}, $3},
 				   std::unique_ptr<std::vector<IntrusivePtr<Attr>>>{$4});
 			$$ = $3;
@@ -1204,14 +1203,14 @@ func_hdr:
 			{
 			$3->ClearYieldType(FUNC_FLAVOR_HOOK);
 			$3->SetYieldType(base_type(TYPE_BOOL));
-			begin_func($2, current_module.c_str(),
+			begin_func({NewRef{}, $2}, current_module.c_str(),
 				   FUNC_FLAVOR_HOOK, 0, {NewRef{}, $3},
 				   std::unique_ptr<std::vector<IntrusivePtr<Attr>>>{$4});
 			$$ = $3;
 			}
 	|	TOK_REDEF TOK_EVENT event_id func_params opt_attr
 			{
-			begin_func($3, current_module.c_str(),
+			begin_func({NewRef{}, $3}, current_module.c_str(),
 				   FUNC_FLAVOR_EVENT, 1, {NewRef{}, $4},
 				   std::unique_ptr<std::vector<IntrusivePtr<Attr>>>{$5});
 			$$ = $4;
@@ -1275,8 +1274,9 @@ anonymous_function:
 begin_func:
 		func_params
 			{
-			$$ = current_scope()->GenerateTemporary("anonymous-function");
-			begin_func($$, current_module.c_str(), FUNC_FLAVOR_FUNCTION, 0, {AdoptRef{}, $1});
+			auto id = current_scope()->GenerateTemporary("anonymous-function");
+			begin_func(id, current_module.c_str(), FUNC_FLAVOR_FUNCTION, 0, {AdoptRef{}, $1});
+			$$ = id.release();
 			}
 	;
 

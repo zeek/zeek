@@ -208,7 +208,7 @@ Stmt* ZAM::CompileBody()
 			// Rewrite the breaks.
 			for ( auto b : breaks[0] )
 				{
-				auto& i = insts[b.stmt_num];
+				auto& i = insts1[b.stmt_num];
 				delete i;
 				i = new ZInst(OP_HOOK_BREAK_X);
 				}
@@ -229,20 +229,61 @@ Stmt* ZAM::CompileBody()
 
 	OptimizeInsts();
 
-	// Concretize statement numbers, GoTo's.
-	for ( auto i = 0; i < insts.size(); ++i )
-		insts[i]->inst_num = i;
+	// Make sure we have a (pseudo-)instruction at the end so we
+	// can use it as a branch label.
+	if ( ! pending_inst )
+		pending_inst = new ZInst();
 
-	for ( auto i = 0; i < insts.size(); ++i )
+	// Now concretize instruction numbers in inst1 so we can
+	// easily move through the code.
+	for ( auto i = 0; i < insts1.size(); ++i )
+		insts1[i]->inst_num = i;
+
+	// Move branches to dead code forward to their successor live code.
+	for ( auto i = 0; i < insts1.size(); ++i )
 		{
-		auto inst = insts[i];
+		auto inst = insts1[i];
+		auto t = inst->target;
+
+		if ( ! t || t->live )
+			continue;
+
+		int idx = t->inst_num;
+		while ( idx < insts1.size() && ! insts1[idx]->live )
+			++idx;
+
+		if ( idx == insts1.size() )
+			inst->target = pending_inst;
+		else
+			inst->target = insts1[idx];
+		}
+
+	// Construct the final program with the dead code eliminated
+	// and branches resolved.
+
+	// Make sure we don't include the empty pending-instruction,
+	// if any.
+	if ( pending_inst )
+		pending_inst->live = false;
+
+	for ( auto i = 0; i < insts1.size(); ++i )
+		if ( insts1[i]->live )
+			insts2.push_back(insts1[i]);
+
+	// Re-concretize instruction numbers, and concretize GoTo's.
+	for ( auto i = 0; i < insts2.size(); ++i )
+		insts2[i]->inst_num = i;
+
+	for ( auto i = 0; i < insts2.size(); ++i )
+		{
+		auto inst = insts2[i];
 
 		if ( inst->target )
 			{
 			int t;	// instruction number of target
 
 			if ( inst->target == pending_inst )
-				t = insts.size();
+				t = insts2.size();
 			else
 				t = inst->target->inst_num;
 
@@ -263,10 +304,13 @@ Stmt* ZAM::CompileBody()
 
 	delete pending_inst;
 
+	// Could erase insts1 here to recover memory, but it's handy
+	// for debugging.
+
 	if ( profile )
 		{
 		inst_count = new vector<int>;
-		for ( auto i : insts )
+		for ( auto i : insts2 )
 			inst_count->push_back(0);
 		}
 	else
@@ -346,7 +390,7 @@ void ZAM::Init()
 void ZAM::OptimizeInsts()
 	{
 	// Do accounting for targeted statements.
-	for ( auto& i : insts )
+	for ( auto& i : insts1 )
 		if ( i->target && i->target->live )
 			++(i->target->num_labels);
 
@@ -371,10 +415,10 @@ bool ZAM::RemoveDeadCode()
 	{
 	bool did_removal = false;
 
-	for ( int i = 0; i < int(insts.size()) - 1; ++i )
+	for ( int i = 0; i < int(insts1.size()) - 1; ++i )
 		{
-		auto i0 = insts[i];
-		auto i1 = insts[i+1];
+		auto i0 = insts1[i];
+		auto i1 = insts1[i+1];
 
 		if ( i0->live && i1->live && i0->DoesNotContinue() &&
 		     i0->target != i1 && i1->num_labels == 0 )
@@ -391,9 +435,9 @@ bool ZAM::CollapseGoTos()
 	{
 	bool did_collapse = false;
 
-	for ( int i = 0; i < insts.size(); ++i )
+	for ( int i = 0; i < insts1.size(); ++i )
 		{
-		auto i0 = insts[i];
+		auto i0 = insts1[i];
 
 		if ( ! i0->live )
 			continue;
@@ -414,7 +458,7 @@ bool ZAM::CollapseGoTos()
 			while ( t->IsUnconditionalBranch() );
 			}
 
-		if ( i < insts.size() - 1 && t == insts[i+1] )
+		if ( i < insts1.size() - 1 && t == insts1[i+1] )
 			{ // Collapse branch-to-next-statement.
 			i0->live = false;
 			--t->num_labels;
@@ -428,9 +472,9 @@ bool ZAM::PruneGlobally()
 	{
 	bool did_prune = false;
 
-	for ( int i = 0; i < insts.size(); ++i )
+	for ( int i = 0; i < insts1.size(); ++i )
 		{
-		auto inst = insts[i];
+		auto inst = insts1[i];
 
 		if ( ! inst->live )
 			continue;
@@ -453,9 +497,9 @@ bool ZAM::PruneGlobally()
 
 bool ZAM::VarIsAssigned(int slot) const
 	{
-	for ( int i = 0; i < insts.size(); ++i )
+	for ( int i = 0; i < insts1.size(); ++i )
 		{
-		auto& inst = insts[i];
+		auto& inst = insts1[i];
 		if ( inst->live && VarIsAssigned(slot, inst) )
 			return true;
 		}
@@ -471,9 +515,9 @@ bool ZAM::VarIsAssigned(int slot, const ZInst* i) const
 
 bool ZAM::VarIsUsed(int slot) const
 	{
-	for ( int i = 0; i < insts.size(); ++i )
+	for ( int i = 0; i < insts1.size(); ++i )
 		{
-		auto& inst = insts[i];
+		auto& inst = insts1[i];
 		if ( inst->live && inst->UsesSlot(slot) )
 			return true;
 		}
@@ -546,7 +590,7 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 					nullptr;
 	int pc = start_pc;
 	bool error_flag = false;
-	int end_pc = insts.size();
+	int end_pc = insts2.size();
 
 	// Memory management: all of the BroObj's that we have used
 	// in interior values.  By managing them here rather than
@@ -583,7 +627,7 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 	flow = FLOW_RETURN;	// can be over-written by a Hook-Break
 
 	while ( pc < end_pc && ! error_flag ) {
-		auto& z = *insts[pc];
+		auto& z = *insts2[pc];
 
 		if ( 0 )
 			{
@@ -1513,23 +1557,23 @@ const CompiledStmt ZAM::CatchReturn(const CatchReturnStmt* cr)
 
 const CompiledStmt ZAM::StartingBlock()
 	{
-	return CompiledStmt(insts.size());
+	return CompiledStmt(insts1.size());
 	}
 
 const CompiledStmt ZAM::FinishBlock(const CompiledStmt /* start */)
 	{
-	return CompiledStmt(insts.size() - 1);
+	return CompiledStmt(insts1.size() - 1);
 	}
 
 bool ZAM::NullStmtOK() const
 	{
 	// They're okay iff they're the entire statement body.
-	return insts.size() == 0;
+	return insts1.size() == 0;
 	}
 
 const CompiledStmt ZAM::EmptyStmt()
 	{
-	return CompiledStmt(insts.size() - 1);
+	return CompiledStmt(insts1.size() - 1);
 	}
 
 const CompiledStmt ZAM::ErrorStmt()
@@ -1599,9 +1643,9 @@ const CompiledStmt ZAM::AddInst(const ZInst& inst)
 
 	*i = inst;
 
-	insts.push_back(i);
+	insts1.push_back(i);
 
-	top_main_inst = insts.size() - 1;
+	top_main_inst = insts1.size() - 1;
 
 	if ( mark_dirty < 0 )
 		return CompiledStmt(top_main_inst);
@@ -1691,7 +1735,7 @@ void ZAM::ProfileExecution() const
 		}
 
 	for ( int i = 0; i < inst_count->size(); ++i )
-		printf("%s %d %s %d\n", func->Name(), i, ZOP_name(insts[i]->op),
+		printf("%s %d %s %d\n", func->Name(), i, ZOP_name(insts1[i]->op),
 			(*inst_count)[i]);
 	}
 
@@ -1709,9 +1753,22 @@ void ZAM::Dump()
 	for ( int i = 0; i < str_cases.size(); ++i )
 		DumpStrCases(i);
 
-	for ( int i = 0; i < insts.size(); ++i )
+	if ( insts2.size() > 0 )
+		printf("Pre-removal of dead code:\n");
+
+	for ( int i = 0; i < insts1.size(); ++i )
 		{
-		auto& inst = insts[i];
+		auto& inst = insts1[i];
+		printf("%d%s: ", i, inst->live ? "" : " (dead)");
+		inst->Dump(frame_denizens);
+		}
+
+	if ( insts2.size() > 0 )
+		printf("Final code:\n");
+
+	for ( int i = 0; i < insts2.size(); ++i )
+		{
+		auto& inst = insts2[i];
 		printf("%d%s: ", i, inst->live ? "" : " (dead)");
 		inst->Dump(frame_denizens);
 		}
@@ -2043,14 +2100,14 @@ CompiledStmt ZAM::GoTo(const InstLabel l)
 
 InstLabel ZAM::GoToTarget(const CompiledStmt s)
 	{
-	return insts[s.stmt_num];
+	return insts1[s.stmt_num];
 	}
 
 InstLabel ZAM::GoToTargetBeyond(const CompiledStmt s)
 	{
 	int n = s.stmt_num;
 
-	if ( n == insts.size() - 1 )
+	if ( n == insts1.size() - 1 )
 		{
 		if ( ! pending_inst )
 			pending_inst = new ZInst();
@@ -2058,7 +2115,7 @@ InstLabel ZAM::GoToTargetBeyond(const CompiledStmt s)
 		return pending_inst;
 		}
 
-	return insts[n+1];
+	return insts1[n+1];
 	}
 
 CompiledStmt ZAM::PrevStmt(const CompiledStmt s)
@@ -2068,7 +2125,7 @@ CompiledStmt ZAM::PrevStmt(const CompiledStmt s)
 
 void ZAM::SetV1(CompiledStmt s, const InstLabel l)
 	{
-	auto inst = insts[s.stmt_num];
+	auto inst = insts1[s.stmt_num];
 	inst->target = l;
 	inst->target_slot = 1;
 	ASSERT(inst->op_type == OP_V || inst->op_type == OP_V_I1);
@@ -2077,7 +2134,7 @@ void ZAM::SetV1(CompiledStmt s, const InstLabel l)
 
 void ZAM::SetV2(CompiledStmt s, const InstLabel l)
 	{
-	auto inst = insts[s.stmt_num];
+	auto inst = insts1[s.stmt_num];
 	inst->target = l;
 	inst->target_slot = 2;
 
@@ -2093,7 +2150,7 @@ void ZAM::SetV2(CompiledStmt s, const InstLabel l)
 
 void ZAM::SetV3(CompiledStmt s, const InstLabel l)
 	{
-	auto inst = insts[s.stmt_num];
+	auto inst = insts1[s.stmt_num];
 	inst->target = l;
 	inst->target_slot = 3;
 	ASSERT(inst->op_type == OP_VVV || inst->op_type == OP_VVV_I3 ||

@@ -232,7 +232,7 @@ protected:
 
 	// Returns the most recent added instruction *other* than those
 	// added for bookkeeping (like dirtying globals);
-	ZInst* TopMainInst()	{ return insts[top_main_inst]; }
+	ZInst* TopMainInst()	{ return insts1[top_main_inst]; }
 
 	// Returns the last (interpreter) statement in the body.
 	const Stmt* LastStmt() const;
@@ -264,7 +264,12 @@ protected:
 	void SpillVectors(ZAM_tracker_type* tracker) const;
 	void LoadVectors(ZAM_tracker_type* tracker) const;
 
-	vector<ZInst*> insts;
+	// The first of these is used as we compile down to ZInst's.
+	// The second is the final code used during execution.  They're
+	// separate to make it easy to remove dead code.
+	vector<ZInst*> insts1;
+	vector<ZInst*> insts2;
+
 	// Used as a placeholder when we have to generate a GoTo target
 	// beyond the end of what we've compiled so far.
 	ZInst* pending_inst = nullptr;

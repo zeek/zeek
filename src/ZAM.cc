@@ -1735,7 +1735,7 @@ void ZAM::ProfileExecution() const
 		}
 
 	for ( int i = 0; i < inst_count->size(); ++i )
-		printf("%s %d %s %d\n", func->Name(), i, ZOP_name(insts1[i]->op),
+		printf("%s %d %s %d\n", func->Name(), i, ZOP_name(insts2[i]->op),
 			(*inst_count)[i]);
 	}
 

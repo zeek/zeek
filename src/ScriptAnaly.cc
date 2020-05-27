@@ -1642,7 +1642,7 @@ void analyze_scripts()
 			activate = true;
 
 		only_func = getenv("ZEEK_ONLY");
-		report_profile = getenv("ZEEK_REPORT_PROFILE");
+		report_profile = getenv("ZEEK_ZAM_PROFILE");
 		ud_dump = getenv("ZEEK_UD_DUMP");
 		inliner = getenv("ZEEK_INLINE");
 		optimize = getenv("ZEEK_OPTIMIZE");

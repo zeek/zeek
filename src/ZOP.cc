@@ -61,38 +61,24 @@ int ZInst::NumFrameSlots() const
 
 bool ZInst::AssignsToSlot1() const
 	{
-	switch ( op_type ) {
-	case OP_X:
-	case OP_C:
-	case OP_E:
-	case OP_V_I1:
-		return false;
-
-	case OP_V:
-	case OP_VV:
-	case OP_VVV:
-	case OP_VVVV:
-	case OP_VVVC:
-	case OP_VC:
-	case OP_VVC:
-	case OP_VE:
-	case OP_VV_FRAME:
-	case OP_VC_ID:
-	case OP_VV_I2:
-	case OP_VVC_I2:
-	case OP_VVV_I3:
-	case OP_VVV_I2_I3:
-		return true;
-	}
+	auto fl = op1_flavor[op];
+	return fl == OP1_WRITE || fl == OP1_READ_WRITE;
 	}
 
 bool ZInst::UsesSlot(int slot) const
 	{
+	auto fl = op1_flavor[op];
+	auto v1_relevant = fl == OP1_READ || fl == OP1_READ_WRITE;
+	auto v1_match = v1_relevant && v1 == slot;
+
 	switch ( op_type ) {
 	case OP_X:
 	case OP_C:
-	case OP_VC:
 	case OP_E:
+		return false;
+
+	case OP_V:
+	case OP_VC:
 	case OP_VE:
 	case OP_V_I1:
 	case OP_VV_FRAME:
@@ -100,22 +86,19 @@ bool ZInst::UsesSlot(int slot) const
 	case OP_VV_I2:
 	case OP_VVC_I2:
 	case OP_VVV_I2_I3:
-		return false;
-
-	case OP_V:
-		return op == OP_RETURN_V && v1 == slot;
+		return v1_match;
 
 	case OP_VV:
 	case OP_VVC:
 	case OP_VVV_I3:
-		return v2 == slot;
+		return v1_match || v2 == slot;
 
 	case OP_VVV:
 	case OP_VVVC:
-		return v2 == slot || v3 == slot;
+		return v1_match || v2 == slot || v3 == slot;
 
 	case OP_VVVV:
-		return v2 == slot || v3 == slot || v4 == slot;
+		return v1_match || v2 == slot || v3 == slot || v4 == slot;
 	}
 	}
 

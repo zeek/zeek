@@ -44,7 +44,11 @@ public:
 	const std::unique_ptr<std::vector<IntrusivePtr<Attr>>>& Attrs() const
 		{ return attrs; }
 
+	[[deprecated("Remove in v4.1.  Use GetReturnTrype().")]]
 	BroType* ReturnType() const	{ return return_type.get(); }
+
+	const IntrusivePtr<BroType>& GetReturnType() const
+		{ return return_type; }
 
 	size_t Length() const		{ return local.size(); }
 	const auto& Vars()	{ return local; }

@@ -182,6 +182,7 @@ ZAM::~ZAM()
 	{
 	Unref(body);
 	delete inst_count;
+	delete CPU_time;
 	delete ud;
 	delete reducer;
 	delete pf;
@@ -310,8 +311,15 @@ Stmt* ZAM::CompileBody()
 	if ( profile )
 		{
 		inst_count = new vector<int>;
+		inst_CPU = new vector<double>;
 		for ( auto i : insts2 )
+			{
 			inst_count->push_back(0);
+			inst_CPU->push_back(0.0);
+			}
+
+		CPU_time = new double;
+		*CPU_time = 0.0;
 		}
 	else
 		inst_count = nullptr;
@@ -564,11 +572,24 @@ VEC_COERCE(UD, uint_val, bro_uint_t, double_val)
 VEC_COERCE(DI, double_val, double, int_val)
 VEC_COERCE(DU, double_val, double, uint_val)
 
+double curr_CPU_time()
+	{
+	struct timespec ts;
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
+	return double(ts.tv_sec) + double(ts.tv_nsec) / 1e9;
+	}
+
 IntrusivePtr<Val> ZAM::Exec(Frame* f, stmt_flow_type& flow) const
 	{
 	auto nv = num_Vals;
 	auto ndv = num_del_Vals;
+
+	double t = profile ? curr_CPU_time() : 0.0;
+
 	auto val = DoExec(f, 0, flow);
+
+	if ( profile )
+		*CPU_time += curr_CPU_time() - t;
 
 	auto dnv = num_Vals - nv;
 	auto dndv = num_del_Vals - ndv;
@@ -628,6 +649,8 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 
 	while ( pc < end_pc && ! error_flag ) {
 		auto& z = *insts2[pc];
+		int profile_pc;
+		double profile_CPU;
 
 		if ( 0 )
 			{
@@ -639,6 +662,9 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 			{
 			++ZOP_count[z.op];
 			++(*inst_count)[pc];
+
+			profile_pc = pc;
+			profile_CPU = curr_CPU_time();
 			}
 
 		switch ( z.op ) {
@@ -647,6 +673,12 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 
 #include "ZAM-OpsEvalDefs.h"
 		}
+
+		if ( profile )
+			{
+			double dt = curr_CPU_time() - profile_CPU;
+			(*inst_CPU)[profile_pc] += dt;
+			}
 
 		++pc;
 		}
@@ -1734,9 +1766,10 @@ void ZAM::ProfileExecution() const
 		return;
 		}
 
+	printf("%s CPU time: %.06f\n", func->Name(), *CPU_time);
 	for ( int i = 0; i < inst_count->size(); ++i )
-		printf("%s %d %s %d\n", func->Name(), i, ZOP_name(insts2[i]->op),
-			(*inst_count)[i]);
+		printf("%s %d %s %d %.06f\n", func->Name(), i, ZOP_name(insts2[i]->op),
+			(*inst_count)[i], (*inst_CPU)[i]);
 	}
 
 void ZAM::Dump()

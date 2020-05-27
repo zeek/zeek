@@ -275,7 +275,11 @@ protected:
 	ZInst* pending_inst = nullptr;
 
 	bool profile = true;
+	// These need to be pointers so we can manipulate them in a
+	// const method.
 	vector<int>* inst_count;	// for profiling
+	double* CPU_time = nullptr;	// cumulative CPU time for the program
+	vector<double>* inst_CPU;	// per-instruction CPU time.
 
 	// Indices of break/next/fallthrough/catch-return goto's, so they
 	// can be patched up post-facto.  These are vectors-of-vectors

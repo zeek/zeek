@@ -134,6 +134,20 @@ Analyzer::~Analyzer()
 	{
 	assert(finished);
 
+	// Make sure any late entries into the analyzer tree are handled (e.g.
+	// from some Done() implementation).
+	LOOP_OVER_GIVEN_CHILDREN(i, new_children)
+		{
+		if ( ! (*i)->finished )
+			(*i)->Done();
+		}
+
+	// Deletion of new_children done in separate loop in case a Done()
+	// implementation tries to inspect analyzer tree w/ assumption that
+	// all analyzers are still valid.
+	LOOP_OVER_GIVEN_CHILDREN(i, new_children)
+		delete *i;
+
 	LOOP_OVER_CHILDREN(i)
 		delete *i;
 

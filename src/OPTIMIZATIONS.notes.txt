@@ -1,8 +1,20 @@
-function inliner/collapser
+hoist loop invariants
 
-optimize for common case of global that's a function/event name
+remove go-to's that branch to the next statement
 
-speed up vector operations that currently punt to converting to VectorVal's
+expand records into pointers-to-blocks
+
+don't sync variables to the frame if they haven't changed since the
+	last time they were sync'd to the frame (or since we loaded
+	them initially, if parameters)
+
+suppress sync-globals that are straight-line code from previous ones
+	for which no global was modified
+
+collapse dirty-global-V <x> / load-global-VC <x> sequences
+
+share frame slots across multiple locals if they have non-overlapping
+	effective scope, and aren't managed or have same management type
 
 versions of operators that take listval's that inline the values
 	rather than building val-vec's if a small number (including 0)
@@ -17,21 +29,6 @@ don't consider modifying a global's element as a reaching-def for
 
 don't bother loading unused function parameters
 
-expand records into pointers-to-blocks
-
-collapse dirty-global-V <x> / load-global-VC <x> sequences
-
-don't sync variables to the frame if they haven't changed since the
-	last time they were sync'd to the frame (or since we loaded
-	them initially, if parameters)
-
-collapse go-to's that branch to go-to's
-
-suppress sync-globals that are straight-line code from previous ones
-	for which no global was modified
-
-remove go-to's that branch to the next statement
-
 could explicitly support +=/-= for integral types
 
 could save grief/complexity by splitting out early (in the parser)
@@ -39,6 +36,6 @@ could save grief/complexity by splitting out early (in the parser)
 	address masking, or InExpr supporting patterns/strings.
 	This would allow simplifications for gen-compiler-templates.sh.
 
-do global analysis for unused/ungenerated event handlers
-
 could consider introducing unordered_map's for high numbers of "switch" cases
+speed up vector operations that currently punt to converting to VectorVal's
+

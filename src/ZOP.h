@@ -21,7 +21,8 @@ typedef enum {
 
 
 // Possible types of statement operands in terms of which fields they use.
-// Used for dumping statements.
+// Used for low-level optimization (so important that they're correct),
+// and for dumping statements.
 typedef enum {
 	OP_X, OP_V, OP_VV, OP_VVV, OP_VVVV, OP_VVVC, OP_C, OP_VC, OP_VVC,
 	OP_E, OP_VE, OP_VV_FRAME, OP_VC_ID,
@@ -170,24 +171,38 @@ public:
 	void Dump(const frame_map& frame_ids) const;
 	const char* ConstDump() const;
 
+
+	// These first values are needed at run-time.  We could separate
+	// them from the later values only needed at compile time to
+	// shrink the size of frames.  This won't matter much in terms
+	// of memory usage, as Zeek call stacks don't appear to ever
+	// get that deep.  OTOH, it might be beneficial for creating
+	// closures (how common is that?).  OTOOH, keeping them together
+	// for now can help with certain types of compiler debugging.
 	ZOp op;
+	ZAMOpType op_type;
 
 	// Indices into frame.
 	int v1, v2, v3, v4;
 
-	ZAMValUnion c;	// constant associated with instruction
-
-	// Branch target, prior to concretizing into PC target.
-	ZInst* target = nullptr;
-	int target_slot = 0;	// which of v1/v2/v3 should hold the target
+	ZAMValUnion c;	// constant associated with instruction, if any
 
 	// Meta-data associated with the execution.
+
+	// Type, usually for interpreting the constant.
 	BroType* t = nullptr;
+
+	// These two could be doubled up into a union, or just grit
+	// our teeth and use coercion to construct only the latter.
 	const Expr* e = nullptr;
 	Expr* non_const_e = nullptr;
-	int* int_ptr = nullptr;
+
 	EventHandler* event_handler = nullptr;
 	Attributes* attrs = nullptr;
+
+	// Looks like we could remove this by changing Record-Coerce to be
+	// (a new) VVVV_I4.
+	int* int_ptr = nullptr;
 
 	// Used for reporting errors during execution.
 	const Stmt* stmt = curr_stmt;
@@ -195,17 +210,24 @@ public:
 	// Whether v1 represents a frame slot type for which we
 	// explicitly manage the memory.
 	bool is_managed = false;
+
+	// These are only needed during compilation.
 	void CheckIfManaged(const Expr* e)
 		{ if ( IsManagedType(e) ) is_managed = true; }
 
 	void CheckIfManaged(const BroType* t)
 		{ if ( IsManagedType(t) ) is_managed = true; }
 
-	ZAMOpType op_type;
+
+	// The following are only needed during compilation.
 
 	// Whether the instruction should be included in final code
 	// generation.
 	bool live = true;
+
+	// Branch target, prior to concretizing into PC target.
+	ZInst* target = nullptr;
+	int target_slot = 0;	// which of v1/v2/v3 should hold the target
 
 	// The final PC location of the statement.  -1 indicates not
 	// yet assigned.

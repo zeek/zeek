@@ -840,7 +840,7 @@ bool check_built_in_call(BuiltinFunc* f, CallExpr* call)
 
 // Gets a function's priority from its Scope's attributes. Errors if it sees any
 // problems.
-static int get_func_priority(const attr_list& attrs)
+static int get_func_priority(const std::vector<IntrusivePtr<Attr>>& attrs)
 	{
 	int priority = 0;
 
@@ -883,7 +883,7 @@ function_ingredients::function_ingredients(IntrusivePtr<Scope> scope, IntrusiveP
 	this->scope = std::move(scope);
 	id = {NewRef{}, this->scope->ScopeID()};
 
-	auto attrs = this->scope->Attrs();
+	const auto& attrs = this->scope->Attrs();
 
 	priority = (attrs ? get_func_priority(*attrs) : 0);
 	this->body = std::move(body);

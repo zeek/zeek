@@ -15,10 +15,10 @@ typedef PList<Scope> scope_list;
 static scope_list scopes;
 static Scope* top_scope;
 
-Scope::Scope(IntrusivePtr<ID> id, attr_list* al)
-	: scope_id(std::move(id))
+Scope::Scope(IntrusivePtr<ID> id,
+             std::unique_ptr<std::vector<IntrusivePtr<Attr>>> al)
+	: scope_id(std::move(id)), attrs(std::move(al))
 	{
-	attrs = al;
 	return_type = nullptr;
 
 	inits = new id_list;
@@ -39,14 +39,6 @@ Scope::Scope(IntrusivePtr<ID> id, attr_list* al)
 
 Scope::~Scope()
 	{
-	if ( attrs )
-		{
-		for ( const auto& attr : *attrs )
-			Unref(attr);
-
-		delete attrs;
-		}
-
 	if ( inits )
 		{
 		for ( const auto& i : *inits )
@@ -210,9 +202,10 @@ void push_existing_scope(Scope* scope)
 	scopes.push_back(scope);
 	}
 
-void push_scope(IntrusivePtr<ID> id, attr_list* attrs)
+void push_scope(IntrusivePtr<ID> id,
+                std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs)
 	{
-	top_scope = new Scope(std::move(id), attrs);
+	top_scope = new Scope(std::move(id), std::move(attrs));
 	scopes.push_back(top_scope);
 	}
 

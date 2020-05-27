@@ -562,7 +562,8 @@ protected:
 
 class TypeDecl final {
 public:
-	TypeDecl(IntrusivePtr<BroType> t, const char* i, attr_list* attrs = nullptr, bool in_record = false);
+	TypeDecl() = default;
+	TypeDecl(const char* i, IntrusivePtr<BroType> t, IntrusivePtr<Attributes> attrs = nullptr);
 	TypeDecl(const TypeDecl& other);
 	~TypeDecl();
 
@@ -577,7 +578,7 @@ public:
 
 	IntrusivePtr<BroType> type;
 	IntrusivePtr<Attributes> attrs;
-	const char* id;
+	const char* id = nullptr;
 };
 
 typedef PList<TypeDecl> type_decl_list;
@@ -656,9 +657,9 @@ public:
 	 */
 	IntrusivePtr<TableVal> GetRecordFieldsVal(const RecordVal* rv = nullptr) const;
 
-	// Returns 0 if all is ok, otherwise a pointer to an error message.
-	// Takes ownership of list.
-	const char* AddFields(type_decl_list* types, attr_list* attr);
+	// Returns null if all is ok, otherwise a pointer to an error message.
+	const char* AddFields(const type_decl_list& types,
+	                      bool add_log_attr = false);
 
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;

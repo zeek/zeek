@@ -607,21 +607,12 @@ std::optional<FuncType::Prototype> FuncType::FindPrototype(const RecordType& arg
 	return {};
 	}
 
-TypeDecl::TypeDecl(IntrusivePtr<BroType> t, const char* i, attr_list* arg_attrs, bool in_record)
+TypeDecl::TypeDecl(const char* i, IntrusivePtr<BroType> t,
+                   IntrusivePtr<Attributes> arg_attrs)
 	: type(std::move(t)),
+	  attrs(std::move(arg_attrs)),
 	  id(i)
-	{
-	if ( arg_attrs )
-		{
-		std::vector<IntrusivePtr<Attr>> attrv;
-
-		for ( auto& a : *arg_attrs )
-			attrv.emplace_back(AdoptRef{}, a);
-
-		attrs = make_intrusive<Attributes>(std::move(attrv), type, in_record, false);
-		delete arg_attrs;
-		}
-	}
+	{}
 
 TypeDecl::TypeDecl(const TypeDecl& other)
 	{
@@ -832,35 +823,24 @@ IntrusivePtr<TableVal> RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 	return rval;
 	}
 
-const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)
+const char* RecordType::AddFields(const type_decl_list& others,
+                                  bool add_log_attr)
 	{
 	assert(types);
 
 	bool log = false;
 
-	if ( attr )
-		{
-		for ( const auto& at : *attr )
-			{
-			if ( at->Tag() == ATTR_LOG )
-				log = true;
-			}
-		}
-
-	for ( const auto& td : *others )
+	for ( const auto& td : others )
 		{
 		if ( ! td->GetAttr(ATTR_DEFAULT) && ! td->GetAttr(ATTR_OPTIONAL) )
-			{
-			delete others;
 			return "extension field must be &optional or have &default";
-			}
 		}
 
 	TableVal::SaveParseTimeTableState(this);
 
-	for ( const auto& td : *others )
+	for ( const auto& td : others )
 		{
-		if ( log )
+		if ( add_log_attr )
 			{
 			if ( ! td->attrs )
 				td->attrs = make_intrusive<Attributes>(td->type, true, false);
@@ -870,8 +850,6 @@ const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)
 
 		types->push_back(td);
 		}
-
-	delete others;
 
 	num_fields = types->length();
 	RecordVal::ResizeParseTimeRecords(this);
@@ -1878,7 +1856,7 @@ IntrusivePtr<BroType> merge_types(const IntrusivePtr<BroType>& arg_t1,
 				return nullptr;
 				}
 
-			tdl3->push_back(new TypeDecl(std::move(tdl3_i), copy_string(td1->id)));
+			tdl3->push_back(new TypeDecl(copy_string(td1->id), std::move(tdl3_i)));
 			}
 
 		return make_intrusive<RecordType>(tdl3);

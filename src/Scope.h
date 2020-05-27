@@ -19,7 +19,8 @@ class ListVal;
 
 class Scope : public BroObj {
 public:
-	explicit Scope(IntrusivePtr<ID> id, attr_list* al);
+	explicit Scope(IntrusivePtr<ID> id,
+	               std::unique_ptr<std::vector<IntrusivePtr<Attr>>> al);
 	~Scope() override;
 
 	const IntrusivePtr<ID>& Find(std::string_view name) const;
@@ -35,7 +36,10 @@ public:
 	IntrusivePtr<ID> Remove(std::string_view name);
 
 	ID* ScopeID() const		{ return scope_id.get(); }
-	attr_list* Attrs() const	{ return attrs; }
+
+	const std::unique_ptr<std::vector<IntrusivePtr<Attr>>>& Attrs() const
+		{ return attrs; }
+
 	BroType* ReturnType() const	{ return return_type.get(); }
 
 	size_t Length() const		{ return local.size(); }
@@ -56,7 +60,7 @@ public:
 
 protected:
 	IntrusivePtr<ID> scope_id;
-	attr_list* attrs;
+	std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs;
 	IntrusivePtr<BroType> return_type;
 	std::map<std::string, IntrusivePtr<ID>, std::less<>> local;
 	id_list* inits;
@@ -74,7 +78,8 @@ extern const IntrusivePtr<ID>& lookup_ID(const char* name, const char* module,
 extern IntrusivePtr<ID> install_ID(const char* name, const char* module_name,
                                    bool is_global, bool is_export);
 
-extern void push_scope(IntrusivePtr<ID> id, attr_list* attrs);
+extern void push_scope(IntrusivePtr<ID> id,
+                       std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs);
 extern void push_existing_scope(Scope* scope);
 
 // Returns the one popped off.

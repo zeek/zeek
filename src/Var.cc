@@ -30,7 +30,8 @@ static IntrusivePtr<Val> init_val(Expr* init, const BroType* t,
 		}
 	}
 
-static bool add_prototype(ID* id, BroType* t, attr_list* attrs,
+static bool add_prototype(ID* id, BroType* t,
+                          std::vector<IntrusivePtr<Attr>>* attrs,
                           const IntrusivePtr<Expr>& init)
 	{
 	if ( ! IsFunc(id->GetType()->Tag()) )
@@ -108,7 +109,9 @@ static bool add_prototype(ID* id, BroType* t, attr_list* attrs,
 	}
 
 static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
-                     IntrusivePtr<Expr> init, attr_list* attr, decl_type dt,
+                     IntrusivePtr<Expr> init,
+                     std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr,
+                     decl_type dt,
                      bool do_init)
 	{
 	if ( id->GetType() )
@@ -123,7 +126,7 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 		else if ( dt != VAR_REDEF || init || ! attr )
 			{
 			if ( IsFunc(id->GetType()->Tag()) )
-				add_prototype(id, t.get(), attr, init);
+				add_prototype(id, t.get(), attr.get(), init);
 			else
 				id->Error("already defined", init.get());
 
@@ -196,14 +199,7 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 	id->SetType(t);
 
 	if ( attr )
-		{
-		std::vector<IntrusivePtr<Attr>> attrv;
-
-		for ( auto& a : *attr)
-			attrv.emplace_back(AdoptRef{}, a);
-
-		id->AddAttrs(make_intrusive<Attributes>(std::move(attrv), t, false, id->IsGlobal()));
-		}
+		id->AddAttrs(make_intrusive<Attributes>(std::move(*attr), t, false, id->IsGlobal()));
 
 	if ( init )
 		{
@@ -211,16 +207,16 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 		case EXPR_TABLE_CONSTRUCTOR:
 			{
 			TableConstructorExpr* ctor = (TableConstructorExpr*) init.get();
-			if ( ctor->Attrs() )
-				id->AddAttrs({NewRef{}, ctor->Attrs()});
+			if ( ctor->GetAttrs() )
+				id->AddAttrs(ctor->GetAttrs());
 			}
 			break;
 
 		case EXPR_SET_CONSTRUCTOR:
 			{
 			SetConstructorExpr* ctor = (SetConstructorExpr*) init.get();
-			if ( ctor->Attrs() )
-				id->AddAttrs({NewRef{}, ctor->Attrs()});
+			if ( ctor->GetAttrs() )
+				id->AddAttrs(ctor->GetAttrs());
 			}
 			break;
 
@@ -312,16 +308,19 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 
 
 void add_global(ID* id, IntrusivePtr<BroType> t, init_class c,
-                IntrusivePtr<Expr> init, attr_list* attr, decl_type dt)
+                IntrusivePtr<Expr> init,
+                std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr,
+                decl_type dt)
 	{
-	make_var(id, std::move(t), c, std::move(init), attr, dt, true);
+	make_var(id, std::move(t), c, std::move(init), std::move(attr), dt, true);
 	}
 
 IntrusivePtr<Stmt> add_local(IntrusivePtr<ID> id, IntrusivePtr<BroType> t,
                              init_class c, IntrusivePtr<Expr> init,
-                             attr_list* attr, decl_type dt)
+                             std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr,
+                             decl_type dt)
 	{
-	make_var(id.get(), std::move(t), c, init, attr, dt, false);
+	make_var(id.get(), std::move(t), c, init, std::move(attr), dt, false);
 
 	if ( init )
 		{
@@ -333,20 +332,9 @@ IntrusivePtr<Stmt> add_local(IntrusivePtr<ID> id, IntrusivePtr<BroType> t,
 		        *init->GetLocationInfo() : no_location;
 
 		auto name_expr = make_intrusive<NameExpr>(id, dt == VAR_CONST);
-		attr_list* attrs = nullptr;
-
-		if ( id->GetAttrs() )
-			{
-			attrs = new attr_list(id->GetAttrs()->Attrs().size());
-
-			for ( const auto& a : id->GetAttrs()->Attrs() )
-				attrs->push_back(a.get());
-			}
-
 		auto assign_expr = make_intrusive<AssignExpr>(std::move(name_expr),
 		                                              std::move(init), 0,
-		                                              nullptr, attrs);
-		delete attrs;
+		                                              nullptr, id->GetAttrs());
 		auto stmt = make_intrusive<ExprStmt>(std::move(assign_expr));
 		stmt->SetLocationInfo(&location);
 		return stmt;
@@ -369,7 +357,8 @@ extern IntrusivePtr<Expr> add_and_assign_local(IntrusivePtr<ID> id,
 	                                  false, std::move(val));
 	}
 
-void add_type(ID* id, IntrusivePtr<BroType> t, attr_list* attr)
+void add_type(ID* id, IntrusivePtr<BroType> t,
+              std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr)
 	{
 	std::string new_type_name = id->Name();
 	std::string old_type_name = t->GetName();
@@ -394,15 +383,7 @@ void add_type(ID* id, IntrusivePtr<BroType> t, attr_list* attr)
 	id->MakeType();
 
 	if ( attr )
-		{
-		std::vector<IntrusivePtr<Attr>> attrv;
-
-		for ( auto& a : *attr )
-			attrv.emplace_back(AdoptRef{}, a);
-
-		id->SetAttrs(make_intrusive<Attributes>(std::move(attrv), tnew, false, false));
-		delete attr;
-		}
+		id->SetAttrs(make_intrusive<Attributes>(std::move(*attr), tnew, false, false));
 	}
 
 static void transfer_arg_defaults(RecordType* args, RecordType* recv)
@@ -430,21 +411,16 @@ static void transfer_arg_defaults(RecordType* args, RecordType* recv)
 		}
 	}
 
-static Attr* find_attr(const attr_list* al, attr_tag tag)
+static Attr* find_attr(const std::vector<IntrusivePtr<Attr>>* al, attr_tag tag)
 	{
 	if ( ! al )
 		return nullptr;
 
-	for ( int i = 0; i < al->length(); ++i )
+	for ( size_t i = 0; i < al->size(); ++i )
 		if ( (*al)[i]->Tag() == tag )
-			return (*al)[i];
+			return (*al)[i].get();
 
 	return nullptr;
-	}
-
-static bool has_attr(const attr_list* al, attr_tag tag)
-	{
-	return find_attr(al, tag) != nullptr;
 	}
 
 static std::optional<FuncType::Prototype> func_type_check(const FuncType* decl, const FuncType* impl)
@@ -483,7 +459,8 @@ static bool canonical_arg_types_match(const FuncType* decl, const FuncType* impl
 	}
 
 void begin_func(ID* id, const char* module_name, function_flavor flavor,
-                bool is_redef, IntrusivePtr<FuncType> t, attr_list* attrs)
+                bool is_redef, IntrusivePtr<FuncType> t,
+                std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs)
 	{
 	if ( flavor == FUNC_FLAVOR_EVENT )
 		{
@@ -580,7 +557,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 	else
 		id->SetType(t);
 
-	push_scope({NewRef{}, id}, attrs);
+	push_scope({NewRef{}, id}, std::move(attrs));
 
 	const auto& args = t->Params();
 	int num_args = args->NumFields();
@@ -600,7 +577,8 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 			arg_id->SetOffset(prototype->offsets[i]);
 		}
 
-	if ( Attr* depr_attr = find_attr(attrs, ATTR_DEPRECATED) )
+	if ( Attr* depr_attr = find_attr(current_scope()->Attrs().get(),
+	                                 ATTR_DEPRECATED) )
 		id->MakeDeprecated(depr_attr->GetExpr());
 	}
 

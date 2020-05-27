@@ -17,23 +17,30 @@ class ListVal;
 
 typedef enum { VAR_REGULAR, VAR_CONST, VAR_REDEF, VAR_OPTION, } decl_type;
 
-extern void add_global(ID* id, IntrusivePtr<BroType> t, init_class c,
-                       IntrusivePtr<Expr> init, attr_list* attr, decl_type dt);
+extern void add_global(ID* id,
+                       IntrusivePtr<BroType> t,
+                       init_class c,
+                       IntrusivePtr<Expr> init,
+                       std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr,
+                       decl_type dt);
 
 extern IntrusivePtr<Stmt> add_local(IntrusivePtr<ID> id,
-                                    IntrusivePtr<BroType> t, init_class c,
-                                    IntrusivePtr<Expr> init, attr_list* attr,
+                                    IntrusivePtr<BroType> t,
+                                    init_class c,
+                                    IntrusivePtr<Expr> init,
+                                    std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr,
                                     decl_type dt);
 
 extern IntrusivePtr<Expr> add_and_assign_local(IntrusivePtr<ID> id,
                                                IntrusivePtr<Expr> init,
                                                IntrusivePtr<Val> val = nullptr);
 
-extern void add_type(ID* id, IntrusivePtr<BroType> t, attr_list* attr);
+extern void add_type(ID* id, IntrusivePtr<BroType> t,
+                     std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr);
 
 extern void begin_func(ID* id, const char* module_name, function_flavor flavor,
                        bool is_redef, IntrusivePtr<FuncType> t,
-                       attr_list* attrs = nullptr);
+                       std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs = nullptr);
 
 extern void end_func(IntrusivePtr<Stmt> body);
 

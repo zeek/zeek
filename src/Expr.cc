@@ -2002,7 +2002,7 @@ void RefExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 
 AssignExpr::AssignExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2,
                        bool arg_is_init, IntrusivePtr<Val> arg_val,
-                       attr_list* arg_attrs)
+                       const IntrusivePtr<Attributes>& attrs)
 	: BinaryExpr(EXPR_ASSIGN, arg_is_init ?
 	             std::move(arg_op1) : arg_op1->MakeLvalue(),
 	             std::move(arg_op2))
@@ -2027,14 +2027,14 @@ AssignExpr::AssignExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2,
 
 	// We discard the status from TypeCheck since it has already
 	// generated error messages.
-	(void) TypeCheck(arg_attrs);
+	(void) TypeCheck(attrs);
 
 	val = std::move(arg_val);
 
 	SetLocationInfo(op1->GetLocationInfo(), op2->GetLocationInfo());
 	}
 
-bool AssignExpr::TypeCheck(attr_list* attrs)
+bool AssignExpr::TypeCheck(const IntrusivePtr<Attributes>& attrs)
 	{
 	TypeTag bt1 = op1->GetType()->Tag();
 	TypeTag bt2 = op2->GetType()->Tag();
@@ -2069,22 +2069,19 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 
 	if ( bt1 == TYPE_TABLE && op2->Tag() == EXPR_LIST )
 		{
-		attr_list* attr_copy = nullptr;
+		std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr_copy;
 
 		if ( attrs )
-			{
-			attr_copy = new attr_list(attrs->length());
-			std::copy(attrs->begin(), attrs->end(), std::back_inserter(*attr_copy));
-			}
+			attr_copy = std::make_unique<std::vector<IntrusivePtr<Attr>>>(attrs->Attrs());
 
 		bool empty_list_assignment = (op2->AsListExpr()->Exprs().empty());
 
 		if ( op1->GetType()->IsSet() )
 			op2 = make_intrusive<SetConstructorExpr>(
-			        IntrusivePtr{NewRef{}, op2->AsListExpr()}, attr_copy);
+			        cast_intrusive<ListExpr>(op2), std::move(attr_copy));
 		else
 			op2 = make_intrusive<TableConstructorExpr>(
-			        IntrusivePtr{NewRef{}, op2->AsListExpr()}, attr_copy);
+			        cast_intrusive<ListExpr>(op2), std::move(attr_copy));
 
 		if ( ! empty_list_assignment && ! same_type(op1->GetType(), op2->GetType()) )
 			{
@@ -2166,23 +2163,19 @@ bool AssignExpr::TypeCheck(attr_list* attrs)
 					return false;
 					}
 
-				attr_list* attr_copy = nullptr;
+				std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr_copy;
 
-				if ( sce->Attrs() )
+
+				if ( sce->GetAttrs() )
 					{
-					const auto& a = sce->Attrs()->Attrs();
-					attr_copy = new attr_list(a.size());
-
-					for ( const auto& attr : a )
-						{
-						::Ref(attr.get());
-						attrs->push_back(attr.get());
-						}
+					const auto& a = sce->GetAttrs()->Attrs();
+					attr_copy = std::make_unique<std::vector<IntrusivePtr<Attr>>>(a);
 					}
 
 				int errors_before = reporter->Errors();
 				op2 = make_intrusive<SetConstructorExpr>(
-				        IntrusivePtr{NewRef{}, ctor_list}, attr_copy,
+				        IntrusivePtr{NewRef{}, ctor_list},
+				        std::move(attr_copy),
 				        op1->GetType());
 				int errors_after = reporter->Errors();
 
@@ -2286,7 +2279,7 @@ void AssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const
 	if ( IsError() )
 		return;
 
-	TypeDecl td(nullptr, nullptr);
+	TypeDecl td;
 
 	if ( IsRecordElement(&td) )
 		{
@@ -2341,7 +2334,7 @@ IntrusivePtr<Val> AssignExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) 
 	if ( IsError() )
 		return nullptr;
 
-	TypeDecl td(nullptr, nullptr);
+	TypeDecl td;
 
 	if ( IsRecordElement(&td) )
 		{
@@ -2997,7 +2990,7 @@ RecordConstructorExpr::RecordConstructorExpr(IntrusivePtr<ListExpr> constructor_
 		FieldAssignExpr* field = (FieldAssignExpr*) e;
 		const auto& field_type = field->GetType();
 		char* field_name = copy_string(field->FieldName());
-		record_types->push_back(new TypeDecl(field_type, field_name));
+		record_types->push_back(new TypeDecl(field_name, field_type));
 		}
 
 	SetType(make_intrusive<RecordType>(record_types));
@@ -3051,10 +3044,9 @@ void RecordConstructorExpr::ExprDescribe(ODesc* d) const
 	}
 
 TableConstructorExpr::TableConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
-                                           attr_list* arg_attrs,
+                                           std::unique_ptr<std::vector<IntrusivePtr<Attr>>> arg_attrs,
                                            IntrusivePtr<BroType> arg_type)
-	: UnaryExpr(EXPR_TABLE_CONSTRUCTOR, std::move(constructor_list)),
-	  attrs(nullptr)
+	: UnaryExpr(EXPR_TABLE_CONSTRUCTOR, std::move(constructor_list))
 	{
 	if ( IsError() )
 		return;
@@ -3088,15 +3080,7 @@ TableConstructorExpr::TableConstructorExpr(IntrusivePtr<ListExpr> constructor_li
 		}
 
 	if ( arg_attrs )
-		{
-		std::vector<IntrusivePtr<Attr>> attrv;
-
-		for ( auto& a : *arg_attrs )
-			attrv.emplace_back(AdoptRef{}, a);
-
-		attrs = new Attributes(std::move(attrv), type, false, false);
-		delete arg_attrs;
-		}
+		attrs = make_intrusive<Attributes>(std::move(*arg_attrs), type, false, false);
 
 	const auto& indices = type->AsTableType()->GetIndices()->Types();
 	const expr_list& cle = op->AsListExpr()->Exprs();
@@ -3144,8 +3128,7 @@ IntrusivePtr<Val> TableConstructorExpr::Eval(Frame* f) const
 	if ( IsError() )
 		return nullptr;
 
-	auto aggr = make_intrusive<TableVal>(GetType<TableType>(),
-	                                     IntrusivePtr{NewRef{}, attrs});
+	auto aggr = make_intrusive<TableVal>(GetType<TableType>(), attrs);
 	const expr_list& exprs = op->AsListExpr()->Exprs();
 
 	for ( const auto& expr : exprs )
@@ -3165,7 +3148,7 @@ IntrusivePtr<Val> TableConstructorExpr::InitVal(const BroType* t, IntrusivePtr<V
 
 	auto tval = aggr ?
 	        IntrusivePtr<TableVal>{AdoptRef{}, aggr.release()->AsTableVal()} :
-	        make_intrusive<TableVal>(std::move(tt), IntrusivePtr{NewRef{}, attrs});
+	        make_intrusive<TableVal>(std::move(tt), attrs);
 	const expr_list& exprs = op->AsListExpr()->Exprs();
 
 	for ( const auto& expr : exprs )
@@ -3182,10 +3165,9 @@ void TableConstructorExpr::ExprDescribe(ODesc* d) const
 	}
 
 SetConstructorExpr::SetConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
-                                       attr_list* arg_attrs,
+                                       std::unique_ptr<std::vector<IntrusivePtr<Attr>>> arg_attrs,
                                        IntrusivePtr<BroType> arg_type)
-	: UnaryExpr(EXPR_SET_CONSTRUCTOR, std::move(constructor_list)),
-	  attrs(nullptr)
+	: UnaryExpr(EXPR_SET_CONSTRUCTOR, std::move(constructor_list))
 	{
 	if ( IsError() )
 		return;
@@ -3216,15 +3198,7 @@ SetConstructorExpr::SetConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
 		SetError("values in set(...) constructor do not specify a set");
 
 	if ( arg_attrs )
-		{
-		std::vector<IntrusivePtr<Attr>> attrv;
-
-		for ( auto& a : *arg_attrs )
-			attrv.emplace_back(AdoptRef{}, a);
-
-		attrs = new Attributes(std::move(attrv), type, false, false);
-		delete arg_attrs;
-		}
+		attrs = make_intrusive<Attributes>(std::move(*arg_attrs), type, false, false);
 
 	const auto& indices = type->AsTableType()->GetIndices()->Types();
 	expr_list& cle = op->AsListExpr()->Exprs();
@@ -3264,7 +3238,7 @@ IntrusivePtr<Val> SetConstructorExpr::Eval(Frame* f) const
 		return nullptr;
 
 	auto aggr = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, type->AsTableType()},
-	                                     IntrusivePtr{NewRef{}, attrs});
+	                                     attrs);
 	const expr_list& exprs = op->AsListExpr()->Exprs();
 
 	for ( const auto& expr : exprs )
@@ -3285,7 +3259,7 @@ IntrusivePtr<Val> SetConstructorExpr::InitVal(const BroType* t, IntrusivePtr<Val
 	auto tt = GetType<TableType>();
 	auto tval = aggr ?
 	        IntrusivePtr<TableVal>{AdoptRef{}, aggr.release()->AsTableVal()} :
-	        make_intrusive<TableVal>(std::move(tt), IntrusivePtr{NewRef{}, attrs});
+	        make_intrusive<TableVal>(std::move(tt), attrs);
 	const expr_list& exprs = op->AsListExpr()->Exprs();
 
 	for ( const auto& e : exprs )

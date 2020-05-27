@@ -167,36 +167,8 @@ static void parser_redef_enum (ID *id)
 		}
 	}
 
-static type_decl_list* copy_type_decl_list(type_decl_list* tdl)
-	{
-	if ( ! tdl )
-		return 0;
-
-	type_decl_list* rval = new type_decl_list();
-
-	for ( const auto& td : *tdl )
-		rval->push_back(new TypeDecl(*td));
-
-	return rval;
-	}
-
-static attr_list* copy_attr_list(attr_list* al)
-	{
-	if ( ! al )
-		return 0;
-
-	attr_list* rval = new attr_list();
-
-	for ( const auto& a : *al )
-		{
-		::Ref(a);
-		rval->push_back(a);
-		}
-
-	return rval;
-	}
-
-static void extend_record(ID* id, type_decl_list* fields, attr_list* attrs)
+static void extend_record(ID* id, std::unique_ptr<type_decl_list> fields,
+                          std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs)
 	{
 	std::set<BroType*> types = BroType::GetAliases(id->Name());
 
@@ -206,17 +178,19 @@ static void extend_record(ID* id, type_decl_list* fields, attr_list* attrs)
 		return;
 		}
 
-	for ( std::set<BroType*>::const_iterator it = types.begin(); it != types.end(); )
-		{
-		RecordType* add_to = (*it)->AsRecordType();
-		const char* error = 0;
-		++it;
+	bool add_log_attr = false;
 
-		if ( it == types.end() )
-			error = add_to->AddFields(fields, attrs);
-		else
-			error = add_to->AddFields(copy_type_decl_list(fields),
-			                          copy_attr_list(attrs));
+	if ( attrs )
+		for ( const auto& at : *attrs )
+			if ( at->Tag() == ATTR_LOG )
+				{
+				add_log_attr = true;
+				break;
+				}
+
+	for ( auto t : types )
+		{
+		auto error = t->AsRecordType()->AddFields(*fields, add_log_attr);
 
 		if ( error )
 			{
@@ -224,6 +198,19 @@ static void extend_record(ID* id, type_decl_list* fields, attr_list* attrs)
 			break;
 			}
 		}
+	}
+
+static IntrusivePtr<Attributes>
+make_attributes(std::vector<IntrusivePtr<Attr>>* attrs,
+                IntrusivePtr<BroType> t, bool in_record, bool is_global)
+	{
+	if ( ! attrs )
+		return nullptr;
+
+	auto rval = make_intrusive<Attributes>(std::move(*attrs), std::move(t),
+	                                       in_record, is_global);
+	delete attrs;
+	return rval;
 	}
 
 static bool expr_is_table_type_name(const Expr* expr)
@@ -264,7 +251,7 @@ static bool expr_is_table_type_name(const Expr* expr)
 	Case* c_case;
 	case_list* case_l;
 	Attr* attr;
-	attr_list* attr_l;
+	std::vector<IntrusivePtr<Attr>>* attr_l;
 	attr_tag attrtag;
 }
 
@@ -576,13 +563,15 @@ expr:
 		opt_attr
 			{ // the ++in_init fixes up the parsing of "[x] = y"
 			set_location(@1, @5);
-			$$ = new TableConstructorExpr({AdoptRef{}, $4}, $7);
+			std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs{$7};
+			$$ = new TableConstructorExpr({AdoptRef{}, $4}, std::move(attrs));
 			}
 
 	|	TOK_SET '(' opt_expr_list ')' opt_attr
 			{
 			set_location(@1, @4);
-			$$ = new SetConstructorExpr({AdoptRef{}, $3}, $5);
+			std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs{$5};
+			$$ = new SetConstructorExpr({AdoptRef{}, $3}, std::move(attrs));
 			}
 
 	|	TOK_VECTOR '(' opt_expr_list ')'
@@ -1046,7 +1035,8 @@ type_decl:
 		TOK_ID ':' type opt_attr ';'
 			{
 			set_location(@1, @4);
-			$$ = new TypeDecl({AdoptRef{}, $3}, $1, $4, (in_record > 0));
+			auto attrs = make_attributes($4, {NewRef{}, $3}, in_record > 0, false);
+			$$ = new TypeDecl($1, {AdoptRef{}, $3}, std::move(attrs));
 
 			if ( in_record > 0 && cur_decl_type_id )
 				zeekygen_mgr->RecordField(cur_decl_type_id, $$, ::filename);
@@ -1075,7 +1065,8 @@ formal_args_decl:
 		TOK_ID ':' type opt_attr
 			{
 			set_location(@1, @4);
-			$$ = new TypeDecl({AdoptRef{}, $3}, $1, $4, true);
+			auto attrs = make_attributes($4, {NewRef{}, $3}, true, false);
+			$$ = new TypeDecl($1, {AdoptRef{}, $3}, std::move(attrs));
 			}
 	;
 
@@ -1092,21 +1083,27 @@ decl:
 	|	TOK_GLOBAL def_global_id opt_type init_class opt_init opt_attr ';'
 			{
 			IntrusivePtr id{AdoptRef{}, $2};
-			add_global(id.get(), {AdoptRef{}, $3}, $4, {AdoptRef{}, $5}, $6, VAR_REGULAR);
+			add_global(id.get(), {AdoptRef{}, $3}, $4, {AdoptRef{}, $5},
+			           std::unique_ptr<std::vector<IntrusivePtr<Attr>>>{$6},
+			           VAR_REGULAR);
 			zeekygen_mgr->Identifier(std::move(id));
 			}
 
 	|	TOK_OPTION def_global_id opt_type init_class opt_init opt_attr ';'
 			{
 			IntrusivePtr id{AdoptRef{}, $2};
-			add_global(id.get(), {AdoptRef{}, $3}, $4, {AdoptRef{}, $5}, $6, VAR_OPTION);
+			add_global(id.get(), {AdoptRef{}, $3}, $4, {AdoptRef{}, $5},
+			           std::unique_ptr<std::vector<IntrusivePtr<Attr>>>{$6},
+			           VAR_OPTION);
 			zeekygen_mgr->Identifier(std::move(id));
 			}
 
 	|	TOK_CONST def_global_id opt_type init_class opt_init opt_attr ';'
 			{
 			IntrusivePtr id{AdoptRef{}, $2};
-			add_global(id.get(), {AdoptRef{}, $3}, $4, {AdoptRef{}, $5}, $6, VAR_CONST);
+			add_global(id.get(), {AdoptRef{}, $3}, $4, {AdoptRef{}, $5},
+			           std::unique_ptr<std::vector<IntrusivePtr<Attr>>>{$6},
+			           VAR_CONST);
 			zeekygen_mgr->Identifier(std::move(id));
 			}
 
@@ -1114,7 +1111,9 @@ decl:
 			{
 			IntrusivePtr id{AdoptRef{}, $2};
 			IntrusivePtr<Expr> init{AdoptRef{}, $5};
-			add_global(id.get(), {AdoptRef{}, $3}, $4, init, $6, VAR_REDEF);
+			add_global(id.get(), {AdoptRef{}, $3}, $4, init,
+			           std::unique_ptr<std::vector<IntrusivePtr<Attr>>>{$6},
+			           VAR_REDEF);
 			zeekygen_mgr->Redef(id.get(), ::filename, $4, std::move(init));
 			}
 
@@ -1138,7 +1137,8 @@ decl:
 			if ( ! $3->GetType() )
 				$3->Error("unknown identifier");
 			else
-				extend_record($3, $8, $11);
+				extend_record($3, std::unique_ptr<type_decl_list>($8),
+				              std::unique_ptr<std::vector<IntrusivePtr<Attr>>>($11));
 			}
 
 	|	TOK_TYPE global_id ':'
@@ -1147,7 +1147,8 @@ decl:
 			{
 			cur_decl_type_id = 0;
 			IntrusivePtr id{AdoptRef{}, $2};
-			add_type(id.get(), {AdoptRef{}, $5}, $6);
+			add_type(id.get(), {AdoptRef{}, $5},
+			         std::unique_ptr<std::vector<IntrusivePtr<Attr>>>{$6});
 			zeekygen_mgr->Identifier(std::move(id));
 			}
 
@@ -1180,7 +1181,8 @@ func_hdr:
 			{
 			IntrusivePtr id{AdoptRef{}, $2};
 			begin_func(id.get(), current_module.c_str(),
-				FUNC_FLAVOR_FUNCTION, 0, {NewRef{}, $3}, $4);
+				FUNC_FLAVOR_FUNCTION, 0, {NewRef{}, $3},
+				std::unique_ptr<std::vector<IntrusivePtr<Attr>>>{$4});
 			$$ = $3;
 			zeekygen_mgr->Identifier(std::move(id));
 			}
@@ -1194,7 +1196,8 @@ func_hdr:
 				}
 
 			begin_func($2, current_module.c_str(),
-				   FUNC_FLAVOR_EVENT, 0, {NewRef{}, $3}, $4);
+				   FUNC_FLAVOR_EVENT, 0, {NewRef{}, $3},
+				   std::unique_ptr<std::vector<IntrusivePtr<Attr>>>{$4});
 			$$ = $3;
 			}
 	|	TOK_HOOK def_global_id func_params opt_attr
@@ -1202,13 +1205,15 @@ func_hdr:
 			$3->ClearYieldType(FUNC_FLAVOR_HOOK);
 			$3->SetYieldType(base_type(TYPE_BOOL));
 			begin_func($2, current_module.c_str(),
-				   FUNC_FLAVOR_HOOK, 0, {NewRef{}, $3}, $4);
+				   FUNC_FLAVOR_HOOK, 0, {NewRef{}, $3},
+				   std::unique_ptr<std::vector<IntrusivePtr<Attr>>>{$4});
 			$$ = $3;
 			}
 	|	TOK_REDEF TOK_EVENT event_id func_params opt_attr
 			{
 			begin_func($3, current_module.c_str(),
-				   FUNC_FLAVOR_EVENT, 1, {NewRef{}, $4}, $5);
+				   FUNC_FLAVOR_EVENT, 1, {NewRef{}, $4},
+				   std::unique_ptr<std::vector<IntrusivePtr<Attr>>>{$5});
 			$$ = $4;
 			}
 	;
@@ -1334,16 +1339,16 @@ index_slice:
 opt_attr:
 		attr_list
 	|
-			{ $$ = 0; }
+			{ $$ = nullptr; }
 	;
 
 attr_list:
 		attr_list attr
-			{ $1->push_back($2); }
+			{ $1->emplace_back(AdoptRef{}, $2); }
 	|	attr
 			{
-			$$ = new attr_list;
-			$$->push_back($1);
+			$$ = new std::vector<IntrusivePtr<Attr>>;
+			$$->emplace_back(AdoptRef{}, $1);
 			}
 	;
 
@@ -1509,7 +1514,9 @@ stmt:
 			{
 			set_location(@1, @7);
 			$$ = add_local({AdoptRef{}, $2}, {AdoptRef{}, $3}, $4,
-			               {AdoptRef{}, $5}, $6, VAR_REGULAR).release();
+			               {AdoptRef{}, $5},
+			               std::unique_ptr<std::vector<IntrusivePtr<Attr>>>{$6},
+			               VAR_REGULAR).release();
 			if ( ! $8 )
 			    brofiler.AddStmt($$);
 			}
@@ -1518,7 +1525,9 @@ stmt:
 			{
 			set_location(@1, @6);
 			$$ = add_local({AdoptRef{}, $2}, {AdoptRef{}, $3}, $4,
-			               {AdoptRef{}, $5}, $6, VAR_CONST).release();
+			               {AdoptRef{}, $5},
+			               std::unique_ptr<std::vector<IntrusivePtr<Attr>>>{$6},
+			               VAR_CONST).release();
 			if ( ! $8 )
 			    brofiler.AddStmt($$);
 			}
@@ -1664,7 +1673,8 @@ case_type:
 			else
 				case_var = install_ID(name, current_module.c_str(), false, false);
 
-			add_local(case_var, std::move(type), INIT_NONE, 0, 0, VAR_REGULAR);
+			add_local(case_var, std::move(type), INIT_NONE, nullptr, nullptr,
+			          VAR_REGULAR);
 			$$ = case_var.release();
 			}
 

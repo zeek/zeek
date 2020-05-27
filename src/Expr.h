@@ -519,7 +519,8 @@ public:
 	// If val is given, evaluating this expression will always yield the val
 	// yet still perform the assignment.  Used for triggers.
 	AssignExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2, bool is_init,
-	           IntrusivePtr<Val> val = nullptr, attr_list* attrs = nullptr);
+	           IntrusivePtr<Val> val = nullptr,
+	           const IntrusivePtr<Attributes>& attrs = nullptr);
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 	void EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const override;
@@ -529,7 +530,7 @@ public:
 	bool IsPure() const override;
 
 protected:
-	bool TypeCheck(attr_list* attrs = nullptr);
+	bool TypeCheck(const IntrusivePtr<Attributes>& attrs = nullptr);
 	bool TypeCheckArithmetics(TypeTag bt1, TypeTag bt2);
 
 	bool is_init;
@@ -630,11 +631,15 @@ protected:
 
 class TableConstructorExpr final : public UnaryExpr {
 public:
-	TableConstructorExpr(IntrusivePtr<ListExpr> constructor_list, attr_list* attrs,
+	TableConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
+	                     std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs,
 	                     IntrusivePtr<BroType> arg_type = nullptr);
-	~TableConstructorExpr() override { Unref(attrs); }
 
-	Attributes* Attrs() { return attrs; }
+	[[deprecated("Remove in v4.1.  Use GetAttrs().")]]
+	Attributes* Attrs() { return attrs.get(); }
+
+	const IntrusivePtr<Attributes>& GetAttrs() const
+		{ return attrs; }
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
@@ -643,16 +648,20 @@ protected:
 
 	void ExprDescribe(ODesc* d) const override;
 
-	Attributes* attrs;
+	IntrusivePtr<Attributes> attrs;
 };
 
 class SetConstructorExpr final : public UnaryExpr {
 public:
-	SetConstructorExpr(IntrusivePtr<ListExpr> constructor_list, attr_list* attrs,
+	SetConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
+	                   std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs,
 	                   IntrusivePtr<BroType> arg_type = nullptr);
-	~SetConstructorExpr() override { Unref(attrs); }
 
-	Attributes* Attrs() { return attrs; }
+	[[deprecated("Remove in v4.1.  Use GetAttrs().")]]
+	Attributes* Attrs() { return attrs.get(); }
+
+	const IntrusivePtr<Attributes>& GetAttrs() const
+		{ return attrs; }
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
@@ -661,7 +670,7 @@ protected:
 
 	void ExprDescribe(ODesc* d) const override;
 
-	Attributes* attrs;
+	IntrusivePtr<Attributes> attrs;
 };
 
 class VectorConstructorExpr final : public UnaryExpr {

@@ -35,7 +35,11 @@ public:
 
 	IntrusivePtr<ID> Remove(std::string_view name);
 
+	[[deprecated("Remove in v4.1.  Use GetID().")]]
 	ID* ScopeID() const		{ return scope_id.get(); }
+
+	const IntrusivePtr<ID>& GetID() const
+		{ return scope_id; }
 
 	const std::unique_ptr<std::vector<IntrusivePtr<Attr>>>& Attrs() const
 		{ return attrs; }

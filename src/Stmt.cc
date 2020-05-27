@@ -1414,21 +1414,21 @@ ReturnStmt::ReturnStmt(IntrusivePtr<Expr> arg_e)
 	{
 	Scope* s = current_scope();
 
-	if ( ! s || ! s->ScopeID() )
+	if ( ! s || ! s->GetID() )
 		{
 		Error("return statement outside of function/event");
 		return;
 		}
 
-	FuncType* ft = s->ScopeID()->GetType()->AsFuncType();
+	FuncType* ft = s->GetID()->GetType()->AsFuncType();
 	const auto& yt = ft->Yield();
 
-	if ( s->ScopeID()->DoInferReturnType() )
+	if ( s->GetID()->DoInferReturnType() )
 		{
 		if ( e )
 			{
 			ft->SetYieldType(e->GetType());
-			s->ScopeID()->SetInferReturnType(false);
+			s->GetID()->SetInferReturnType(false);
 			}
 		}
 

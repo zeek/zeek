@@ -881,7 +881,7 @@ function_ingredients::function_ingredients(IntrusivePtr<Scope> scope, IntrusiveP
 	inits = scope->GetInits();
 
 	this->scope = std::move(scope);
-	id = {NewRef{}, this->scope->ScopeID()};
+	id = this->scope->GetID();
 
 	const auto& attrs = this->scope->Attrs();
 

@@ -1,7 +1,5 @@
 hoist loop invariants
 
-remove go-to's that branch to the next statement
-
 expand records into pointers-to-blocks
 
 don't sync variables to the frame if they haven't changed since the

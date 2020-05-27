@@ -227,7 +227,7 @@ Stmt* ZAM::CompileBody()
 	if ( catches.size() > 0 )
 		reporter->InternalError("untargeted inline return");
 
-	Peephole();
+	OptimizeInsts();
 
 	// Concretize statement numbers, GoTo's.
 	for ( auto i = 0; i < insts.size(); ++i )
@@ -343,7 +343,7 @@ void ZAM::Init()
 		}
 	}
 
-void ZAM::Peephole()
+void ZAM::OptimizeInsts()
 	{
 	// Do accounting for targeted statements.
 	for ( auto& i : insts )
@@ -401,7 +401,7 @@ bool ZAM::CollapseGoTos()
 		auto t = i0->target;
 
 		if ( t && t->IsUnconditionalBranch() )
-			{
+			{ // Collapse branch-to-branch.
 			did_collapse = true;
 			do
 				{
@@ -412,6 +412,12 @@ bool ZAM::CollapseGoTos()
 				i0->target = t;
 				}
 			while ( t->IsUnconditionalBranch() );
+			}
+
+		if ( i < insts.size() - 1 && t == insts[i+1] )
+			{ // Collapse branch-to-next-statement.
+			i0->live = false;
+			--t->num_labels;
 			}
 		}
 

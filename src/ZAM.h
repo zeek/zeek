@@ -123,8 +123,8 @@ public:
 protected:
 	void Init();
 
-	// Performs peephole optimizations after main compilation.
-	void Peephole();
+	// Optimizing the low-level compiled instructions.
+	void OptimizeInsts();
 
 	// Remove code that can't be reached.  True if some removal happened.
 	bool RemoveDeadCode();

@@ -1399,7 +1399,7 @@ const CompiledStmt ZAM::LoopOverTable(const ForStmt* f, const NameExpr* val)
 	for ( int i = 0; i < loop_vars->length(); ++i )
 		{
 		auto id = (*loop_vars)[i];
-		z = ZInst(OP_ADD_VAR_TO_INIT_VV, info, FrameSlot(id));
+		z = ZInst(OP_ADD_VAR_TO_INIT_VV, FrameSlot(id), info);
 		z.CheckIfManaged(id->Type());
 		z.t = id->Type();
 		init_end = AddInst(z);
@@ -1409,8 +1409,8 @@ const CompiledStmt ZAM::LoopOverTable(const ForStmt* f, const NameExpr* val)
 	if ( value_var )
 
 		{
-		z = ZInst(OP_NEXT_TABLE_ITER_VAL_VAR_VVV, info,
-					FrameSlot(value_var), 0);
+		z = ZInst(OP_NEXT_TABLE_ITER_VAL_VAR_VVV, FrameSlot(value_var),
+				info, 0);
 		z.CheckIfManaged(value_var->Type());
 		z.op_type = OP_VVV_I3;
 		}
@@ -1435,7 +1435,7 @@ const CompiledStmt ZAM::LoopOverVector(const ForStmt* f, const NameExpr* val)
 
 	auto iter_head = StartingBlock();
 
-	z = ZInst(OP_NEXT_VECTOR_ITER_VVV, info, FrameSlot(loop_var), 0);
+	z = ZInst(OP_NEXT_VECTOR_ITER_VVV, FrameSlot(loop_var), info, 0);
 	z.op_type = OP_VVV_I3;
 
 	return FinishLoop(iter_head, z, f->LoopBody(), info);
@@ -1453,7 +1453,7 @@ const CompiledStmt ZAM::LoopOverString(const ForStmt* f, const NameExpr* val)
 
 	auto iter_head = StartingBlock();
 
-	z = ZInst(OP_NEXT_STRING_ITER_VVV, info, FrameSlot(loop_var), 0);
+	z = ZInst(OP_NEXT_STRING_ITER_VVV, FrameSlot(loop_var), info, 0);
 	z.CheckIfManaged(loop_var->Type());
 	z.op_type = OP_VVV_I3;
 

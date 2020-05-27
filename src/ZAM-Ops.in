@@ -784,10 +784,12 @@ eval ii->c = ii->loop_vals->InitForIteration()
 eval ii->value_var_type = z.t
 eval frame[z.v1].iter_info = TrackVal(ii)
 
+# It might feel nature to have v1 be the iteration info, but we
+# have a convention of always having any assigned-to variable in v1.
 internal-op Add-Var-To-Init
 type VV
-eval auto ii = frame[z.v1].iter_info
-eval ii->loop_vars.push_back(z.v2)
+eval auto ii = frame[z.v2].iter_info
+eval ii->loop_vars.push_back(z.v1)
 eval ii->loop_var_types.push_back(z.t)
 
 internal-op Next-Table-Iter
@@ -809,20 +811,20 @@ eval	var = BuildVal(ind_lv_p, ii->loop_var_types[i], z.stmt)
 eval }
 
 internal-op Next-Table-Iter-Val-Var
-# v1 = iteration info
-# v2 = slot of the "ValueVar"
+# v1 = slot of the "ValueVar"
+# v2 = iteration info
 # v3 = branch target if loop done
 type VVV
 eval HashKey* k
-eval auto ii = frame[z.v1].iter_info
+eval auto ii = frame[z.v2].iter_info
 eval TableEntryVal* current_tev = ii->loop_vals->NextEntry(k, ii->c)
 eval if ( ! current_tev ) { pc = z.v3; break; }
 eval auto ind_lv = ii->tv->RecoverIndex(k);
 eval delete k
 eval IntrusivePtr<Val> tev_p = {NewRef{}, current_tev->Value()}
 eval auto val_var_t = ii->value_var_type
-eval if ( IsManagedType(val_var_t) ) DeleteManagedType(frame[z.v2], val_var_t)
-eval frame[z.v2] = BuildVal(tev_p, val_var_t, z.stmt)
+eval if ( IsManagedType(val_var_t) ) DeleteManagedType(frame[z.v1], val_var_t)
+eval frame[z.v1] = BuildVal(tev_p, val_var_t, z.stmt)
 eval for ( int i = 0; i < ind_lv->Length(); i++ ) {
 eval	IntrusivePtr<Val> ind_lv_p = {NewRef{}, ind_lv->Index(i)}
 eval	auto ind = ii->loop_vars[i]
@@ -841,13 +843,15 @@ eval ii->iter = 0
 eval ii->n = ii->vv->size()
 eval frame[z.v1].iter_info = TrackVal(ii)
 
+# v1 = iteration variable
+# v2 = iteration info
 internal-op Next-Vector-Iter
 type VVV
-eval auto ii = frame[z.v1].iter_info
+eval auto ii = frame[z.v2].iter_info
 eval if ( ii->iter >= ii->n ) { pc = z.v3; break; }
 eval auto& vv = *ii->vv
 eval if ( vv[ii->iter].IsNil(ii->yield_type) ) { ++ii->iter; --pc; break; }
-eval frame[z.v2].uint_val = ii->iter
+eval frame[z.v1].uint_val = ii->iter
 eval ++ii->iter
 
 internal-op Init-String-Loop
@@ -858,15 +862,17 @@ eval ii->iter = 0
 eval ii->n = ii->s->Len()
 eval frame[z.v1].iter_info = TrackVal(ii)
 
+# v1 = iteration variable
+# v2 = iteration info
 internal-op Next-String-Iter
 type VVV
-eval auto ii = frame[z.v1].iter_info
+eval auto ii = frame[z.v2].iter_info
 eval auto sval = ii->s
 eval if ( ii->iter >= ii->n ) { pc = z.v3; break; }
 eval auto bytes = (const char*) sval->Bytes() + ii->iter
 eval auto sv = new StringVal(1, bytes)
-eval delete frame[z.v2].string_val
-eval frame[z.v2].string_val = new BroString(*sv->AsString())
+eval delete frame[z.v1].string_val
+eval frame[z.v1].string_val = new BroString(*sv->AsString())
 eval delete sv
 eval ++ii->iter
 

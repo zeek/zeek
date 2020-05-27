@@ -19,6 +19,21 @@ ZAMOp1Flavor op1_flavor[] = { OP1_INTERNAL,
 };
 
 
+bool ZInst::DoesNotContinue() const
+	{
+	switch ( op ) {
+	case OP_RETURN_X:
+	case OP_RETURN_V:
+	case OP_RETURN_C:
+	case OP_GOTO_V:
+	case OP_HOOK_BREAK_X:
+		return true;
+
+	default:
+		return false;
+	}
+	}
+
 int ZInst::NumFrameSlots() const
 	{
 	switch ( op_type ) {
@@ -41,6 +56,33 @@ int ZInst::NumFrameSlots() const
 	case OP_VVC_I2:	return 1;
 	case OP_VVV_I3:	return 2;
 	case OP_VVV_I2_I3:	return 1;
+	}
+	}
+
+bool ZInst::AssignsToSlot1() const
+	{
+	switch ( op_type ) {
+	case OP_X:
+	case OP_C:
+	case OP_E:
+	case OP_V_I1:
+		return false;
+
+	case OP_V:
+	case OP_VV:
+	case OP_VVV:
+	case OP_VVVV:
+	case OP_VVVC:
+	case OP_VC:
+	case OP_VVC:
+	case OP_VE:
+	case OP_VV_FRAME:
+	case OP_VC_ID:
+	case OP_VV_I2:
+	case OP_VVC_I2:
+	case OP_VVV_I3:
+	case OP_VVV_I2_I3:
+		return true;
 	}
 	}
 

@@ -227,6 +227,8 @@ Stmt* ZAM::CompileBody()
 	if ( catches.size() > 0 )
 		reporter->InternalError("untargeted inline return");
 
+	Peephole();
+
 	// Concretize statement numbers, GoTo's.
 	for ( auto i = 0; i < insts.size(); ++i )
 		insts[i]->inst_num = i;
@@ -339,6 +341,126 @@ void ZAM::Init()
 			managed_slot_types.push_back(t);
 			}
 		}
+	}
+
+void ZAM::Peephole()
+	{
+	// Do accounting for targeted statements.
+	for ( auto& i : insts )
+		if ( i->target && i->target->live )
+			++(i->target->num_labels);
+
+	bool something_changed;
+
+	do
+		{
+		something_changed = false;
+
+		while ( RemoveDeadCode() )
+			something_changed = true;
+		while ( CollapseGoTos() )
+			something_changed = true;
+		if ( PruneGlobally() )
+			something_changed = true;
+		}
+	while ( something_changed );
+	}
+
+bool ZAM::RemoveDeadCode()
+	{
+	bool did_removal = false;
+
+	for ( int i = 0; i < int(insts.size()) - 1; ++i )
+		{
+		auto i0 = insts[i];
+		auto i1 = insts[i+1];
+
+		if ( i0->live && i1->live && i0->DoesNotContinue() &&
+		     i0->target != i1 && i1->num_labels == 0 )
+			{
+			did_removal = true;
+			KillInst(i1);
+			}
+		}
+
+	return did_removal;
+	}
+
+bool ZAM::CollapseGoTos()
+	{
+	bool did_collapse = false;
+
+	for ( int i = 0; i < insts.size(); ++i )
+		{
+		auto i0 = insts[i];
+
+		if ( ! i0->live )
+			continue;
+
+		auto t = i0->target;
+
+		if ( t && t->IsUnconditionalBranch() )
+			{
+			did_collapse = true;
+			do
+				{
+				ASSERT(t->live);
+
+				--t->num_labels;
+				t = t->target;
+				i0->target = t;
+				}
+			while ( t->IsUnconditionalBranch() );
+			}
+		}
+
+	return did_collapse;
+	}
+
+bool ZAM::PruneGlobally()
+	{
+	bool did_prune = false;
+
+	for ( int i = 0; i < insts.size(); ++i )
+		{
+		auto inst = insts[i];
+
+		if ( ! inst->live )
+			continue;
+
+		if ( inst->IsFrameSync() && ! VarIsAssigned(inst->v1) )
+			{
+			did_prune = true;
+			KillInst(inst);
+			}
+		}
+
+	return did_prune;
+	}
+
+bool ZAM::VarIsAssigned(int slot) const
+	{
+	for ( int i = 0; i < insts.size(); ++i )
+		{
+		auto& inst = insts[i];
+		if ( inst->live && VarIsAssigned(slot, inst) )
+			return true;
+		}
+
+	return false;
+	}
+
+bool ZAM::VarIsAssigned(int slot, const ZInst* i) const
+	{
+	return i->AssignsToSlot1() && i->v1 == slot &&
+		! i->IsFrameSync();
+	}
+
+void ZAM::KillInst(ZInst* i)
+	{
+	i->live = false;
+	if ( i->target )
+		--(i->target->num_labels);
 	}
 
 void ZAM::StmtDescribe(ODesc* d) const
@@ -1564,8 +1686,9 @@ void ZAM::Dump()
 
 	for ( int i = 0; i < insts.size(); ++i )
 		{
-		printf("%d: ", i);
-		insts[i]->Dump(frame_denizens);
+		auto& inst = insts[i];
+		printf("%d%s: ", i, inst->live ? "" : " (dead)");
+		inst->Dump(frame_denizens);
 		}
 	}
 

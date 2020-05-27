@@ -123,6 +123,30 @@ public:
 protected:
 	void Init();
 
+	// Performs peephole optimizations after main compilation.
+	void Peephole();
+
+	// Remove code that can't be reached.  True if some removal happened.
+	bool RemoveDeadCode();
+
+	// Collapse chains of gotos.  True if some collapsing happened.
+	bool CollapseGoTos();
+
+	// Prune statements that are unnecessary given just global
+	// analysis.  True if something got pruned.
+	bool PruneGlobally();
+
+	// True if any statement other than a frame load assigns to the
+	// given slot.
+	bool VarIsAssigned(int slot) const;
+
+	// True if the given statement assigns to the given slot.
+	bool VarIsAssigned(int slot, const ZInst* i) const;
+
+	// Mark a statement as unnecessary and remove its influence on
+	// other statements.
+	void KillInst(ZInst* i);
+
 	friend class ResumptionAM;
 
 	IntrusivePtr<Val> DoExec(Frame* f, int start_pc,

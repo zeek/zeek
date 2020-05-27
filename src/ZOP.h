@@ -139,6 +139,27 @@ public:
 	// Constructor used when we're going to just copy in another ZInst.
 	ZInst() { }
 
+	// True if this instruction definitely won't proceed to the one
+	// after it.
+	bool DoesNotContinue() const;
+
+	// True if this instruction always branches elsewhere.  Different
+	// from DoesNotContinue in that returns do not continue, but they
+	// are not branches.
+	bool IsUnconditionalBranch() const	{ return op == OP_GOTO_V; }
+
+	// True if the given instruction assigns to the frame location
+	// given by slot 1 (v1).
+	bool AssignsToSlot1() const;
+
+	bool IsFrameLoad() const
+		{ return op == OP_LOAD_VAL_VV || op == OP_LOAD_ANY_VAL_VV; }
+	bool IsFrameStore() const
+		{ return op == OP_STORE_VAL_VV || op == OP_STORE_ANY_VAL_VV; }
+
+	bool IsFrameSync() const
+		{ return IsFrameLoad() || IsFrameStore(); }
+
 	const char* VName(int max_n, int n, const frame_map& frame_ids) const;
 	int NumFrameSlots() const;
 	void Dump(const frame_map& frame_ids) const;
@@ -152,7 +173,7 @@ public:
 	ZAMValUnion c;	// constant associated with instruction
 
 	// Branch target, prior to concretizing into PC target.
-	const ZInst* target = nullptr;
+	ZInst* target = nullptr;
 	int target_slot = 0;	// which of v1/v2/v3 should hold the target
 
 	// Meta-data associated with the execution.
@@ -176,6 +197,10 @@ public:
 		{ if ( IsManagedType(t) ) is_managed = true; }
 
 	ZAMOpType op_type;
+
+	// Whether the instruction should be included in final code
+	// generation.
+	bool live = true;
 
 	// The final PC location of the statement.  -1 indicates not
 	// yet assigned.

@@ -572,6 +572,26 @@ VEC_COERCE(UD, uint_val, bro_uint_t, double_val)
 VEC_COERCE(DI, double_val, double, int_val)
 VEC_COERCE(DU, double_val, double, uint_val)
 
+BroString* ZAM_to_lower(const BroString* bs)
+	{
+	const u_char* s = bs->Bytes();
+	int n = bs->Len();
+	u_char* lower_s = new u_char[n + 1];
+	u_char* ls = lower_s;
+
+	for ( int i = 0; i < n; ++i )
+		{
+		if ( isascii(s[i]) && isupper(s[i]) )
+			*ls++ = tolower(s[i]);
+		else
+			*ls++ = s[i];
+		}
+
+	*ls++ = '\0';
+		
+	return new BroString(1, lower_s, n);
+	}
+
 BroString* ZAM_sub_bytes(const BroString* s, bro_uint_t start, bro_int_t n)
 	{
         if ( start > 0 )
@@ -757,6 +777,9 @@ bool ZAM::IsZAM_BuiltIn(const Expr* e)
 	if ( streq(func->Name(), "sub_bytes") )
 		return BuiltIn_sub_bytes(n, args);
 
+	else if ( streq(func->Name(), "to_lower") )
+		return BuiltIn_to_lower(n, args);
+
 	return false;
 	}
 
@@ -774,6 +797,22 @@ bro_uint_t ZAM::ConstArgsMask(const expr_list& args, int nargs) const
 		}
 
 	return mask;
+	}
+
+bool ZAM::BuiltIn_to_lower(const NameExpr* n, const expr_list& args)
+	{
+	if ( ! n )
+		{
+		reporter->Warning("return value from built-in function ignored");
+		return true;
+		}
+
+	auto arg_s = args[0]->AsNameExpr();
+	int nslot = Frame1Slot(n, OP1_WRITE);
+
+	AddInst(ZInst(OP_TO_LOWER_VV, nslot, FrameSlot(arg_s)));
+
+	return true;
 	}
 
 bool ZAM::BuiltIn_sub_bytes(const NameExpr* n, const expr_list& args)

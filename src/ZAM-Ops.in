@@ -7,17 +7,21 @@ unary-expr-op Assign
 op-type A N S V *
 set-type $2
 #
+eval_A auto av = new IPAddr(*$1)
 eval_A delete $$.addr_val
-eval_A $$.addr_val = new IPAddr(*$1)
+eval_A $$.addr_val = av
 #
+eval_N auto nv = new IPPrefix(*$1)
 eval_N delete $$.subnet_val
-eval_N $$.subnet_val = new IPPrefix(*$1)
+eval_N $$.subnet_val = nv
 #
+eval_S auto sv = new BroString(*$1)
 eval_S delete $$.string_val
-eval_S $$.string_val = new BroString(*$1)
+eval_S $$.string_val = sv
 #
+eval_V auto vv = $1->ShallowCopy()
 eval_V delete $$.vector_val
-eval_V $$.vector_val = $1->ShallowCopy()
+eval_V $$.vector_val = vv
 #
 eval $$ = $1;
 
@@ -1136,40 +1140,54 @@ eval pc = end_pc
 
 internal-op Sub-Bytes
 type VVVV
+eval auto sv = ZAM_sub_bytes(frame[z.v2].string_val, frame[z.v3].uint_val, frame[z.v4].int_val)
 eval delete frame[z.v1].string_val
-eval frame[z.v1].string_val = ZAM_sub_bytes(frame[z.v2].string_val, frame[z.v3].uint_val, frame[z.v4].int_val)
+eval frame[z.v1].string_val = sv
 
 internal-op Sub-Bytes
 type VVVi
+eval auto sv = ZAM_sub_bytes(frame[z.v2].string_val, frame[z.v3].uint_val, z.v4)
 eval delete frame[z.v1].string_val
-eval frame[z.v1].string_val = ZAM_sub_bytes(frame[z.v2].string_val, frame[z.v3].uint_val, z.v4)
+eval frame[z.v1].string_val = sv
 
 internal-op Sub-Bytes
 type VViV
+eval auto sv = ZAM_sub_bytes(frame[z.v2].string_val, bro_uint_t(z.v4), frame[z.v3].int_val)
 eval delete frame[z.v1].string_val
-eval frame[z.v1].string_val = ZAM_sub_bytes(frame[z.v2].string_val, bro_uint_t(z.v4), frame[z.v3].int_val)
+eval frame[z.v1].string_val = sv
 
 internal-op Sub-Bytes
 type VVii
+eval auto sv = ZAM_sub_bytes(frame[z.v2].string_val, bro_uint_t(z.v3), z.v4)
 eval delete frame[z.v1].string_val
-eval frame[z.v1].string_val = ZAM_sub_bytes(frame[z.v2].string_val, bro_uint_t(z.v3), z.v4)
+eval frame[z.v1].string_val = sv
 
 internal-op Sub-Bytes
 type VVVC
+eval auto sv = ZAM_sub_bytes(z.c.string_val, frame[z.v2].uint_val, frame[z.v3].int_val)
 eval delete frame[z.v1].string_val
-eval frame[z.v1].string_val = ZAM_sub_bytes(z.c.string_val, frame[z.v2].uint_val, frame[z.v3].int_val)
+eval frame[z.v1].string_val = sv
 
 internal-op Sub-Bytes
 type VViC
+eval auto sv = ZAM_sub_bytes(z.c.string_val, frame[z.v2].uint_val, z.v3)
 eval delete frame[z.v1].string_val
-eval frame[z.v1].string_val = ZAM_sub_bytes(z.c.string_val, frame[z.v2].uint_val, z.v3)
+eval frame[z.v1].string_val = sv
 
 internal-op Sub-Bytes
 type ViVC
+eval auto sv = ZAM_sub_bytes(z.c.string_val, bro_uint_t(z.v3), frame[z.v2].int_val)
 eval delete frame[z.v1].string_val
-eval frame[z.v1].string_val = ZAM_sub_bytes(z.c.string_val, bro_uint_t(z.v3), frame[z.v2].int_val)
+eval frame[z.v1].string_val = sv
 
 internal-op Sub-Bytes
 type ViiC
+eval auto sv = ZAM_sub_bytes(z.c.string_val, bro_uint_t(z.v2), z.v3)
 eval delete frame[z.v1].string_val
-eval frame[z.v1].string_val = ZAM_sub_bytes(z.c.string_val, bro_uint_t(z.v2), z.v3)
+eval frame[z.v1].string_val = sv
+
+internal-op To-Lower
+type VV
+eval auto sv = ZAM_to_lower(frame[z.v2].string_val)
+eval delete frame[z.v1].string_val
+eval frame[z.v1].string_val = sv

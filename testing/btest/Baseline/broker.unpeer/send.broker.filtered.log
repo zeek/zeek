@@ -1,2 +1,2 @@
-1499913965.830809 Broker::STATUS peer-added 127.0.0.1 XXX received handshake from remote core
-1499913969.832007 Broker::STATUS peer-removed 127.0.0.1 XXX removed peering
+1590697262.213159 Broker::STATUS peer-added 127.0.0.1 XXX handshake successful
+1590697266.213877 Broker::STATUS peer-removed 127.0.0.1 XXX removed connection to remote peer

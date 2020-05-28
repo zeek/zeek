@@ -560,6 +560,9 @@ bool NameExpr::IsPure() const
 
 bool NameExpr::IsReduced(Reducer* c) const
 	{
+	if ( id->IsGlobal() && id->IsConst() )
+		return false;
+
 	return c->NameIsReduced(this);
 	}
 
@@ -569,6 +572,13 @@ Expr* NameExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 
 	if ( c->Optimizing() )
 		return this->Ref();
+
+	if ( id->IsGlobal() && id->IsConst() )
+		{
+		IntrusivePtr<Val> v = {NewRef{}, id->ID_Val()};
+		ASSERT(v);
+		return TransformMe(new ConstExpr(v), c, red_stmt);
+		}
 
 	return c->UpdateName(this);
 	}

@@ -30,7 +30,7 @@ static IntrusivePtr<Val> init_val(Expr* init, const BroType* t,
 		}
 	}
 
-static bool add_prototype(ID* id, BroType* t,
+static bool add_prototype(const IntrusivePtr<ID>& id, BroType* t,
                           std::vector<IntrusivePtr<Attr>>* attrs,
                           const IntrusivePtr<Expr>& init)
 	{
@@ -39,7 +39,7 @@ static bool add_prototype(ID* id, BroType* t,
 
 	if ( ! IsFunc(t->Tag()) )
 		{
-		t->Error("type incompatible with previous definition", id);
+		t->Error("type incompatible with previous definition", id.get());
 		return false;
 		}
 
@@ -108,7 +108,7 @@ static bool add_prototype(ID* id, BroType* t,
 	return true;
 	}
 
-static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
+static void make_var(const IntrusivePtr<ID>& id, IntrusivePtr<BroType> t, init_class c,
                      IntrusivePtr<Expr> init,
                      std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr,
                      decl_type dt,
@@ -308,8 +308,8 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 	}
 
 
-void add_global(ID* id, IntrusivePtr<BroType> t, init_class c,
-                IntrusivePtr<Expr> init,
+void add_global(const IntrusivePtr<ID>& id, IntrusivePtr<BroType> t,
+                init_class c, IntrusivePtr<Expr> init,
                 std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr,
                 decl_type dt)
 	{
@@ -321,7 +321,7 @@ IntrusivePtr<Stmt> add_local(IntrusivePtr<ID> id, IntrusivePtr<BroType> t,
                              std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr,
                              decl_type dt)
 	{
-	make_var(id.get(), std::move(t), c, init, std::move(attr), dt, false);
+	make_var(id, std::move(t), c, init, std::move(attr), dt, false);
 
 	if ( init )
 		{
@@ -352,7 +352,7 @@ extern IntrusivePtr<Expr> add_and_assign_local(IntrusivePtr<ID> id,
                                                IntrusivePtr<Expr> init,
                                                IntrusivePtr<Val> val)
 	{
-	make_var(id.get(), nullptr, INIT_FULL, init, nullptr, VAR_REGULAR, false);
+	make_var(id, nullptr, INIT_FULL, init, nullptr, VAR_REGULAR, false);
 	auto name_expr = make_intrusive<NameExpr>(std::move(id));
 	return make_intrusive<AssignExpr>(std::move(name_expr), std::move(init),
 	                                  false, std::move(val));
@@ -646,7 +646,7 @@ void end_func(IntrusivePtr<Stmt> body)
 	else
 		{
 		auto f = make_intrusive<BroFunc>(
-			ingredients->id.get(),
+			ingredients->id,
 			ingredients->body,
 			ingredients->inits,
 			ingredients->frame_size,

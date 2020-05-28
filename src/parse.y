@@ -1082,7 +1082,7 @@ decl:
 	|	TOK_GLOBAL def_global_id opt_type init_class opt_init opt_attr ';'
 			{
 			IntrusivePtr id{AdoptRef{}, $2};
-			add_global(id.get(), {AdoptRef{}, $3}, $4, {AdoptRef{}, $5},
+			add_global(id, {AdoptRef{}, $3}, $4, {AdoptRef{}, $5},
 			           std::unique_ptr<std::vector<IntrusivePtr<Attr>>>{$6},
 			           VAR_REGULAR);
 			zeekygen_mgr->Identifier(std::move(id));
@@ -1091,7 +1091,7 @@ decl:
 	|	TOK_OPTION def_global_id opt_type init_class opt_init opt_attr ';'
 			{
 			IntrusivePtr id{AdoptRef{}, $2};
-			add_global(id.get(), {AdoptRef{}, $3}, $4, {AdoptRef{}, $5},
+			add_global(id, {AdoptRef{}, $3}, $4, {AdoptRef{}, $5},
 			           std::unique_ptr<std::vector<IntrusivePtr<Attr>>>{$6},
 			           VAR_OPTION);
 			zeekygen_mgr->Identifier(std::move(id));
@@ -1100,7 +1100,7 @@ decl:
 	|	TOK_CONST def_global_id opt_type init_class opt_init opt_attr ';'
 			{
 			IntrusivePtr id{AdoptRef{}, $2};
-			add_global(id.get(), {AdoptRef{}, $3}, $4, {AdoptRef{}, $5},
+			add_global(id, {AdoptRef{}, $3}, $4, {AdoptRef{}, $5},
 			           std::unique_ptr<std::vector<IntrusivePtr<Attr>>>{$6},
 			           VAR_CONST);
 			zeekygen_mgr->Identifier(std::move(id));
@@ -1110,7 +1110,7 @@ decl:
 			{
 			IntrusivePtr id{AdoptRef{}, $2};
 			IntrusivePtr<Expr> init{AdoptRef{}, $5};
-			add_global(id.get(), {AdoptRef{}, $3}, $4, init,
+			add_global(id, {AdoptRef{}, $3}, $4, init,
 			           std::unique_ptr<std::vector<IntrusivePtr<Attr>>>{$6},
 			           VAR_REDEF);
 			zeekygen_mgr->Redef(id.get(), ::filename, $4, std::move(init));

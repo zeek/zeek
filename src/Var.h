@@ -17,7 +17,7 @@ class ListVal;
 
 typedef enum { VAR_REGULAR, VAR_CONST, VAR_REDEF, VAR_OPTION, } decl_type;
 
-extern void add_global(ID* id,
+extern void add_global(const IntrusivePtr<ID>& id,
                        IntrusivePtr<BroType> t,
                        init_class c,
                        IntrusivePtr<Expr> init,

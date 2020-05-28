@@ -4179,7 +4179,7 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 	// Install a dummy version of the function globally for use only
 	// when broker provides a closure.
 	auto dummy_func = make_intrusive<BroFunc>(
-		ingredients->id.get(),
+		ingredients->id,
 		ingredients->body,
 		ingredients->inits,
 		ingredients->frame_size,
@@ -4230,7 +4230,7 @@ Scope* LambdaExpr::GetScope() const
 IntrusivePtr<Val> LambdaExpr::Eval(Frame* f) const
 	{
 	auto lamb = make_intrusive<BroFunc>(
-		ingredients->id.get(),
+		ingredients->id,
 		ingredients->body,
 		ingredients->inits,
 		ingredients->frame_size,

@@ -268,7 +268,7 @@ void Func::CheckPluginResult(bool handled, const IntrusivePtr<Val>& hook_result,
 	}
 	}
 
-BroFunc::BroFunc(ID* arg_id, IntrusivePtr<Stmt> arg_body,
+BroFunc::BroFunc(const IntrusivePtr<ID>& arg_id, IntrusivePtr<Stmt> arg_body,
                  const std::vector<IntrusivePtr<ID>>& aggr_inits,
                  size_t arg_frame_size, int priority)
 	: Func(BRO_FUNC)

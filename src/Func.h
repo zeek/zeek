@@ -129,7 +129,7 @@ protected:
 
 class BroFunc final : public Func {
 public:
-	BroFunc(ID* id, IntrusivePtr<Stmt> body,
+	BroFunc(const IntrusivePtr<ID>& id, IntrusivePtr<Stmt> body,
 	        const std::vector<IntrusivePtr<ID>>& inits,
 	        size_t frame_size, int priority);
 

@@ -97,6 +97,7 @@ public:
 	bool NullStmtOK() const override;
 
 	const CompiledStmt EmptyStmt() override;
+	const CompiledStmt LastInst();
 	const CompiledStmt ErrorStmt() override;
 
 	bool IsUnused(const ID* id, const Stmt* where) const override;
@@ -181,6 +182,22 @@ protected:
 	const CompiledStmt CompileIndex(const NameExpr* n1, const NameExpr* n2,
 					const ListExpr* l);
 
+	// If the given expression corresponds to a call to a ZAM built-in,
+	// then compiles the call and returns true.  Otherwise, returns false.
+	bool IsZAM_BuiltIn(const Expr* e);
+
+	// Built-ins returns true if they were able to compile the
+	// call, false if not.
+	bool BuiltIn_sub_bytes(const NameExpr* n, const expr_list& args);
+
+	// A bit weird, but handy for switch statements: returns a
+	// bit mask of which of the arguments in the given list correspond
+	// to constants, with the high-ordered bit being the first argument
+	// (argument "0" in the list) and the low-ordered bit being the
+	// last.  Second parameter is the number of arguments that should
+	// be present.
+	bro_uint_t ConstArgsMask(const expr_list& args, int nargs) const;
+
 	const CompiledStmt DoCall(const CallExpr* c, const NameExpr* n, UDs uds);
 
 	const CompiledStmt CompileSchedule(const NameExpr* n,
@@ -248,7 +265,33 @@ protected:
 	int AddToFrame(ID*);
 
 	int FrameSlot(const ID* id);
-	int Frame1Slot(const ID* id, ZOp op);
+	int FrameSlotIfName(const Expr* e)
+		{
+		auto n = e->Tag() == EXPR_NAME ? e->AsNameExpr() : nullptr;
+		return n ? FrameSlot(n->Id()) : 0;
+		}
+
+	int ConvertToInt(const Expr* e)
+		{
+		if ( e->Tag() == EXPR_NAME )
+			return FrameSlot(e->AsNameExpr()->Id());
+		else
+			return e->AsConstExpr()->Value()->AsInt();
+		}
+
+	int ConvertToCount(const Expr* e)
+		{
+		if ( e->Tag() == EXPR_NAME )
+			return FrameSlot(e->AsNameExpr()->Id());
+		else
+			return e->AsConstExpr()->Value()->AsCount();
+		}
+
+	int Frame1Slot(const ID* id, ZOp op)
+		{ return Frame1Slot(id, op1_flavor[op]); }
+	int Frame1Slot(const NameExpr* n, ZAMOp1Flavor fl)
+		{ return Frame1Slot(n->Id(), fl); }
+	int Frame1Slot(const ID* id, ZAMOp1Flavor fl);
 
 	// The slot without doing any global-related checking.
 	int RawSlot(const NameExpr* n)	{ return RawSlot(n->Id()); }

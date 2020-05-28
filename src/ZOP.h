@@ -27,6 +27,8 @@ typedef enum {
 	OP_X, OP_V, OP_VV, OP_VVV, OP_VVVV, OP_VVVC, OP_C, OP_VC, OP_VVC,
 	OP_E, OP_VE, OP_VV_FRAME, OP_VC_ID,
 	OP_V_I1, OP_VV_I2, OP_VVC_I2, OP_VVV_I3, OP_VVV_I2_I3,
+	OP_VVVV_I3, OP_VVVV_I4, OP_VVVV_I3_I4,
+	OP_VVVC_I2, OP_VVVC_I3, OP_VVVC_I2_I3,
 } ZAMOpType;
 
 // Possible "flavors" for an operator's first slot.

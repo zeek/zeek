@@ -1128,3 +1128,48 @@ internal-op Hook-Break
 type X
 eval flow = FLOW_BREAK
 eval pc = end_pc
+
+
+########################################
+# Built-in Functions
+########################################
+
+internal-op Sub-Bytes
+type VVVV
+eval delete frame[z.v1].string_val
+eval frame[z.v1].string_val = ZAM_sub_bytes(frame[z.v2].string_val, frame[z.v3].uint_val, frame[z.v4].int_val)
+
+internal-op Sub-Bytes
+type VVVi
+eval delete frame[z.v1].string_val
+eval frame[z.v1].string_val = ZAM_sub_bytes(frame[z.v2].string_val, frame[z.v3].uint_val, z.v4)
+
+internal-op Sub-Bytes
+type VViV
+eval delete frame[z.v1].string_val
+eval frame[z.v1].string_val = ZAM_sub_bytes(frame[z.v2].string_val, bro_uint_t(z.v4), frame[z.v3].int_val)
+
+internal-op Sub-Bytes
+type VVii
+eval delete frame[z.v1].string_val
+eval frame[z.v1].string_val = ZAM_sub_bytes(frame[z.v2].string_val, bro_uint_t(z.v3), z.v4)
+
+internal-op Sub-Bytes
+type VVVC
+eval delete frame[z.v1].string_val
+eval frame[z.v1].string_val = ZAM_sub_bytes(z.c.string_val, frame[z.v2].uint_val, frame[z.v3].int_val)
+
+internal-op Sub-Bytes
+type VViC
+eval delete frame[z.v1].string_val
+eval frame[z.v1].string_val = ZAM_sub_bytes(z.c.string_val, frame[z.v2].uint_val, z.v3)
+
+internal-op Sub-Bytes
+type ViVC
+eval delete frame[z.v1].string_val
+eval frame[z.v1].string_val = ZAM_sub_bytes(z.c.string_val, bro_uint_t(z.v3), frame[z.v2].int_val)
+
+internal-op Sub-Bytes
+type ViiC
+eval delete frame[z.v1].string_val
+eval frame[z.v1].string_val = ZAM_sub_bytes(z.c.string_val, bro_uint_t(z.v2), z.v3)

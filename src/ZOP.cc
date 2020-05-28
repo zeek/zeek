@@ -56,6 +56,13 @@ int ZInst::NumFrameSlots() const
 	case OP_VVC_I2:	return 1;
 	case OP_VVV_I3:	return 2;
 	case OP_VVV_I2_I3:	return 1;
+
+	case OP_VVVV_I3:	return 3;
+	case OP_VVVV_I4:	return 3;
+	case OP_VVVV_I3_I4:	return 2;
+	case OP_VVVC_I2:	return 2;
+	case OP_VVVC_I3:	return 2;
+	case OP_VVVC_I2_I3:	return 1;
 	}
 	}
 
@@ -86,15 +93,21 @@ bool ZInst::UsesSlot(int slot) const
 	case OP_VV_I2:
 	case OP_VVC_I2:
 	case OP_VVV_I2_I3:
+	case OP_VVVC_I2_I3:
 		return v1_match;
 
 	case OP_VV:
 	case OP_VVC:
 	case OP_VVV_I3:
+	case OP_VVVV_I3_I4:
+	case OP_VVVC_I2:
+	case OP_VVVC_I3:
 		return v1_match || v2 == slot;
 
 	case OP_VVV:
 	case OP_VVVC:
+	case OP_VVVV_I3:
+	case OP_VVVV_I4:
 		return v1_match || v2 == slot || v3 == slot;
 
 	case OP_VVVV:
@@ -201,6 +214,24 @@ void ZInst::Dump(const frame_map& frame_ids) const
 
 	case OP_VVV_I2_I3:
 		printf("%s, %d, %d", id1, v2, v3);
+		break;
+
+	case OP_VVVV_I3:
+	case OP_VVVV_I4:
+		printf("%s, %s, %s, %d", id1, id2, id3, v4);
+		break;
+
+	case OP_VVVV_I3_I4:
+		printf("%s, %s, %d, %d", id1, id2, v3, v4);
+		break;
+
+	case OP_VVVC_I2:
+	case OP_VVVC_I3:
+		printf("%s, %s, %d, %s", id1, id2, v3, ConstDump());
+		break;
+
+	case OP_VVVC_I2_I3:
+		printf("%s, %d, %d, %s", id1, v2, v3, ConstDump());
 		break;
 	}
 

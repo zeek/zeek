@@ -2342,7 +2342,12 @@ char* zeekenv(const char* name)
 	auto val = getenv(it->second);
 
 	if ( val && starts_with(it->second, "BRO_") )
-		reporter->Warning("Using legacy environment variable %s, support will be removed in Zeek v4.1; use %s instead", it->second, name);
+		{
+		if ( reporter )
+			reporter->Warning("Using legacy environment variable %s, support will be removed in Zeek v4.1; use %s instead", it->second, name);
+		else
+			fprintf(stderr, "Using legacy environment variable %s, support will be removed in Zeek v4.1; use %s instead\n", it->second, name);
+		}
 
 	return val;
 	}

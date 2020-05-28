@@ -8,14 +8,15 @@
 const char* ZOP_name(ZOp op)
 	{
 	switch ( op ) {
-	case OP_NOP:	return "nop";
 #include "ZAM-OpsNamesDefs.h"
+	case OP_NOP:	return "nop";
 	}
 	}
 
 
-ZAMOp1Flavor op1_flavor[] = { OP1_INTERNAL,
+ZAMOp1Flavor op1_flavor[] = {
 #include "ZAM-Op1FlavorsDefs.h"
+	OP1_INTERNAL,	// OP_NOP
 };
 
 

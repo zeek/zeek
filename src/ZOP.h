@@ -15,8 +15,8 @@ class Stmt;
 
 // Operands associated with ZAM instructions.
 typedef enum {
-	OP_NOP,
 #include "ZAM-OpsDefs.h"
+	OP_NOP,
 } ZOp;
 
 

@@ -14,7 +14,7 @@
 
 
 // Count of how often each top of ZOP executed.
-int ZOP_count[OP_HOOK_BREAK_X+1];
+int ZOP_count[OP_NOP+1];
 
 // Per-interpreted-expression.
 std::unordered_map<const Expr*, double> expr_CPU;
@@ -25,6 +25,9 @@ void report_ZOP_profile()
 	for ( int i = 1; i <= OP_HOOK_BREAK_X; ++i )
 		if ( ZOP_count[i] > 0 )
 			printf("%s\t%d\n", ZOP_name(ZOp(i)), ZOP_count[i]);
+
+	for ( auto& e : expr_CPU )
+		printf("expr CPU %.06f %s\n", e.second, obj_desc(e.first));
 	}
 
 
@@ -723,7 +726,7 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 				{
 				auto ec = expr_CPU.find(profile_expr);
 				if ( ec == expr_CPU.end() )
-					(expr_CPU)[profile_expr] = dt;
+					expr_CPU[profile_expr] = dt;
 				else
 					ec->second += dt;
 				}
@@ -1975,9 +1978,6 @@ void ZAM::ProfileExecution() const
 	for ( int i = 0; i < inst_count->size(); ++i )
 		printf("%s %d %s %d %.06f\n", func->Name(), i, ZOP_name(insts2[i]->op),
 			(*inst_count)[i], (*inst_CPU)[i]);
-
-	for ( auto& e : expr_CPU )
-		printf("expr CPU %.06f %s\n", e.second, obj_desc(e.first));
 	}
 
 void ZAM::Dump()

@@ -229,37 +229,37 @@ rel-expr-op LT
 op-type I U D S T A
 vector
 eval $1 < $2
-eval_S $$ = Bstr_cmp($1, $2) < 0
-eval_T $$ = $1->IsSubsetOf($2) && $1->Size() < $2->Size()
-eval_A $$ = *$1 < *$2
+eval_S Bstr_cmp($1, $2) < 0
+eval_T $1->IsSubsetOf($2) && $1->Size() < $2->Size()
+eval_A *$1 < *$2
 
 rel-expr-op LE
 op-type I U D S T A
 vector
 eval $1 <= $2
-eval_S $$ = Bstr_cmp($1, $2) <= 0
-eval_T $$ = $1->IsSubsetOf($2)
-eval_A $$ = *$1 < *$2 || *$1 == *$2
+eval_S Bstr_cmp($1, $2) <= 0
+eval_T $1->IsSubsetOf($2)
+eval_A *$1 < *$2 || *$1 == *$2
 
 rel-expr-op EQ
 op-type I U D S T A N
 vector
 eval $1 == $2
-eval_S $$ = Bstr_cmp($1, $2) == 0
-eval_T $$ = $1->EqualTo($2)
-eval_A $$ = *$1 == *$2
-eval_N $$ = *$1 == *$2
-eval-mixed P S $$ = $1->AsPattern()->MatchExactly($2)
+eval_S Bstr_cmp($1, $2) == 0
+eval_T $1->EqualTo($2)
+eval_A *$1 == *$2
+eval_N *$1 == *$2
+eval-mixed P S $1->AsPattern()->MatchExactly($2)
 
 rel-expr-op NE
 op-type I U D S T A N
 vector
 eval $1 != $2
-eval_S $$ = Bstr_cmp($1, $2) != 0
-eval_T $$ = ! $1->EqualTo($2)
-eval_A $$ = *$1 != *$2
-eval_N $$ = *$1 != *$2
-eval-mixed P S $$ = ! $1->AsPattern()->MatchExactly($2)
+eval_S Bstr_cmp($1, $2) != 0
+eval_T ! $1->EqualTo($2)
+eval_A *$1 != *$2
+eval_N *$1 != *$2
+eval-mixed P S ! $1->AsPattern()->MatchExactly($2)
 
 # Note, canonicalization means that GE and GT shouldn't occur
 # for Sets (type T).
@@ -267,15 +267,15 @@ rel-expr-op GE
 op-type I U D S A
 vector
 eval $1 >= $2
-eval_S $$ = Bstr_cmp($1, $2) >= 0
-eval_A $$ = ! (*$1 < *$2)
+eval_S Bstr_cmp($1, $2) >= 0
+eval_A ! (*$1 < *$2)
 
 rel-expr-op GT
 op-type I U D S A
 vector
 eval $1 > $2
-eval_S $$ = Bstr_cmp($1, $2) > 0
-eval_A $$ = ! (*$1 < *$2) && *$1 != *$2
+eval_S Bstr_cmp($1, $2) > 0
+eval_A ! (*$1 < *$2) && *$1 != *$2
 
 ########## Nonuniform Expressions ##########
 

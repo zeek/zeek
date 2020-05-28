@@ -46,7 +46,7 @@ public:
 
 	const CompiledStmt Is(const NameExpr* n, const Expr* e) override;
 
-	const CompiledStmt IfElse(const NameExpr* n, const Stmt* s1,
+	const CompiledStmt IfElse(const Expr* e, const Stmt* s1,
 					const Stmt* s2) override;
 
 	const CompiledStmt While(const Stmt* cond_stmt, const NameExpr* cond,
@@ -111,7 +111,7 @@ public:
 
 	void StmtDescribe(ODesc* d) const override;
 
-	// Public so that GenStmt flavors can get to it.
+	// Public so that GenInst flavors can get to it.
 	int FrameSlot(const NameExpr* id)
 		{ return FrameSlot(id->AsNameExpr()->Id()); }
 	int Frame1Slot(const NameExpr* id, ZOp op)

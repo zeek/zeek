@@ -1,3 +1,5 @@
+"for" loop initialization is static, pull it in
+
 richer conditionals; canonicalize to &&, turn into cascades
 
 hoist loop invariants

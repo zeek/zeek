@@ -29,6 +29,7 @@ BEGIN	{
 	args["Ri"] = "(const NameExpr* n1, const NameExpr* n2, int field)"
 	args["V"] = "(const NameExpr* n)"
 	args["Vi"] = "(const NameExpr* n, int i)"
+	args["CVi"] = "(const ConstExpr* c, const NameExpr* n, int i)"
 	args["VV"] = "(const NameExpr* n1, const NameExpr* n2)"
 	args["VO"] = "(const NameExpr* n, OpaqueVals* v)"
 	args["HL"] = "(EventHandler* h, const ListExpr* l)"
@@ -54,6 +55,7 @@ BEGIN	{
 	args2["Ri"] = "n1, n2, field"
 	args2["V"] = "n"
 	args2["Vi"] = "n, i"
+	args2["CVi"] = "c, n, i"
 	args2["VV"] = "n1, n2"
 	args2["VO"] = "n, reg"
 	args2["VVV"] = "n1, n2, n3"
@@ -129,11 +131,20 @@ BEGIN	{
 	# the op-types via dictionary traversal (i.e., unpredcitable order).
 	method_map["V"] = "tag == TYPE_VECTOR"
 
+	# Maps original op-types (for example, for relationals) to the
+	# equivalent when using them in a conditional.
+	cond_type["VVV"] = "VVi"
+	cond_type["VVC"] = "VCi"
+	cond_type["VCV"] = "CVi"
+
 	mixed_type_supported["P", "S"]
 	mixed_type_supported["A", "I"]
 
 	# Suffix used for vector operations.
 	vec = "_vec"
+
+	# Suffix used for conditionals.
+	cond = "_cond"
 	}
 
 $1 == "op"	{ dump_op(); op = $2; next }
@@ -145,7 +156,9 @@ $1 == "direct-unary-op" {
 $1 == "unary-expr-op"	{ dump_op(); op = $2; expr_op = 1; ary_op = 1; next }
 $1 == "binary-expr-op"	{ dump_op(); op = $2; expr_op = 1; ary_op = 2; next }
 $1 == "rel-expr-op"	{
-	dump_op(); op = $2; expr_op = 1; ary_op = 2; rel_op = 1; next
+	dump_op();
+	op = $2; expr_op = 1; ary_op = 2; rel_op = 1; cond_op = 1;
+	next
 	}
 $1 == "internal-op"	{ dump_op(); op = $2; internal_op = 1; next }
 $1 == "internal-binary-op" {
@@ -186,7 +199,7 @@ $1 ~ /^eval((_([iudANPSTV]))?)$/	{
 			eval_sub = ""
 
 		new_eval = all_but_first()
-		if ( ! operand_type || eval_sub || binary_op )
+		if ( (! operand_type || eval_sub || binary_op) && ! cond_op )
 			# Add semicolons for potentially multi-line evals.
 			new_eval = new_eval ";"
 
@@ -469,6 +482,27 @@ function expand_eval(e, pre_eval, is_expr_op, otype1, otype2, is_var1, is_var2)
 		gsub(/\$2/, rep2, pre_copy)
 		}
 
+	if ( cond_op )
+		{
+		cond_eval = e
+		cond_rep1 = "(" (is_var1 ? "frame[z.v1]" : "z.c") raccessor1 ")"
+		cond_op3 = (is_var1 && is_var2) ? "v2" : "v1"
+		cond_rep2 = "(" (is_var2 ? "frame[z." cond_op3 "]" : "z.c") raccessor2 ")"
+
+		gsub(/\$1/, cond_rep1, cond_eval)
+		gsub(/\$2/, cond_rep2, cond_eval)
+
+		branch_target = "v1";
+		if ( is_var1 && is_var2 )
+			branch_target = "v3"
+		else if ( is_var1 || is_var2 )
+			branch_target = "v2"
+
+		cond_eval = "if ( ! (" cond_eval ") ) pc = z." branch_target ";"
+		}
+	else
+		cond_eval = ""
+
 	if ( is_expr_op )
 		{
 		if ( "*" in op_types )
@@ -484,8 +518,10 @@ function expand_eval(e, pre_eval, is_expr_op, otype1, otype2, is_var1, is_var2)
 			}
 
 		else
+			{
 			return pre_copy \
 				"frame[z.v1]" laccessor " = " e_copy expr_app
+			}
 		}
 	else
 		return e_copy raccessor1
@@ -537,22 +573,39 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 			print ("\tconst CompiledStmt " op_type vec \
 				args[type] " override;") >sub_class_f
 			}
+
+		if ( cond_op )
+			{
+			ct = cond_type[type]
+
+			print ("\tvirtual const CompiledStmt " \
+				op_type cond args[ct] " = 0;") >base_class_f
+			print ("\tconst CompiledStmt " op_type cond \
+				args[ct] " override;") >sub_class_f
+			}
 		}
 
 	print ("\t" full_op ",") >ops_f
 	if ( do_vec )
 		print ("\t" full_op vec ",") >ops_f
+	if ( cond_op )
+		print ("\t" full_op cond ",") >ops_f
 
 	print ("\tcase " full_op ":\treturn \"" tolower(orig_op) \
 		"-" type orig_suffix "\";") >ops_names_f
 	if ( do_vec )
 		print ("\tcase " full_op vec ":\treturn \"" tolower(orig_op) \
 			"-" type orig_suffix "-vec" "\";") >ops_names_f
+	if ( cond_op )
+		print ("\tcase " full_op cond ":\treturn \"" tolower(orig_op) \
+			"-" type orig_suffix "-cond" "\";") >ops_names_f
 
 	flavor1 = op1_flavor ? op1_flavor : "OP1_WRITE";
 	print ("\t", flavor1 ",\t// " full_op) >op1_flavors_f
 	if ( do_vec )
 		print ("\t", flavor1 ",\t// " full_op vec) >op1_flavors_f
+	if ( cond_op )
+		print ("\t", "OP1_READ" ",\t// " full_op cond) >op1_flavors_f
 
 	if ( no_eval )
 		print ("\tcase " full_op ":\tbreak;") >ops_eval_f
@@ -560,6 +613,15 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 		print ("\tcase " full_op ":\n\t\t{ " \
 			multi_eval eval multi_eval eval_blank \
 			"}" multi_eval eval_blank "break;\n") >ops_eval_f
+
+	if ( cond_op )
+		{
+		# For now we ASSUME that conditionals are binary.
+
+		print ("\tcase " full_op cond ":\n\t\t{ " \
+			cond_eval \
+			"}" multi_eval eval_blank "break;\n") >ops_eval_f
+		}
 
 	if ( do_vec && ! no_eval )
 		{
@@ -604,9 +666,10 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 
 			# Check for whether "$$" is meaningful, which
 			# occurs for types with non-atomic frame values,
-			# and also for any mixed evaluation.
-			if ( eval_selector[sub_type1] != "" ||
-			     sub_type1 != sub_type2 )
+			# and also for any mixed evaluation, but not
+			# for conditionals.
+			if ( (eval_selector[sub_type1] != "" ||
+			      sub_type1 != sub_type2) && ! cond_op )
 				{
 				gsub(/\$\$/, "vec1[i]" laccessor, oe_copy)
 				print ("\tcase " full_op vec ":\n\t\t{\n\t\t" \
@@ -623,11 +686,15 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 	if ( ! internal_op && is_rep )
 		{
 		gen_method(full_op_no_sub, full_op, type, sub_type1,
-				0, method_pre)
+				0, 0, method_pre)
 
 		if ( do_vec )
 			gen_method(full_op_no_sub, full_op, type, sub_type1,
-					1, method_pre)
+					1, 0, method_pre)
+
+		if ( cond_op )
+			gen_method(full_op_no_sub, full_op, type, sub_type1,
+					0, 1, method_pre)
 		}
 
 	if ( type == "R" )
@@ -691,17 +758,20 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 		}
 	}
 
-function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
+function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, is_cond, method_pre)
 	{
+	mt = is_cond ? cond_type[type] : type
+	suffix = is_vec ? vec : (is_cond ? cond : "")
+
 	print ("const CompiledStmt ZAM::" \
-		(op_type (is_vec ? vec : "")) args[type]) >methods_f
+		(op_type suffix) args[mt]) >methods_f
 
 	print ("\t{") >methods_f
 
 	if ( custom_method )
 		{
 		cm_copy = custom_method
-		gsub(/\$\*/, args2[type], cm_copy)
+		gsub(/\$\*/, args2[mt], cm_copy)
 		print ("\t" cm_copy) >methods_f
 		# This { balances the following one so searches for matching
 		# braces are not thrown off.
@@ -712,28 +782,28 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 	if ( method_pre )
 		print ("\t" method_pre ";") >methods_f
 
-	if ( type == "O" || type == "VO" )
+	if ( mt == "O" || mt == "VO" )
 		{
-		pre_arg = type == "O" ? "" : ", Frame1Slot(n, " full_op ")"
+		pre_arg = mt == "O" ? "" : ", Frame1Slot(n, " full_op ")"
 		print ("\treturn AddInst(ZInst(" \
 			full_op pre_arg ", reg));") >methods_f
 		}
 
-	else if ( type == "R" )
+	else if ( mt == "R" )
 		{
 		print ("\tauto z = GenInst(this, " full_op ", " \
-			args2[type] ");") >methods_f
+			args2[mt] ");") >methods_f
 		print ("\tz.e = n1;") >methods_f
 		print ("\tz.t = n1->Type().get();") >methods_f
 		print ("\treturn AddInst(z);") >methods_f
 		}
 
-	else if ( args2[type] != "" )
+	else if ( args2[mt] != "" )
 		{
 		# This is the only scenario where sub_type should occur.
 		part1 = "\tauto z = GenInst(this, "
 
-		part2a = ", " args2[type] ");\n"
+		part2a = ", " args2[mt] ");\n"
 		part2c = "\treturn AddInst(z);"
 
 		if ( sub_type && sub_type != "X" )
@@ -745,7 +815,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 			}
 
 		# Provide access to the individual variables.
-		split(args2[type], vars, /, /)
+		split(args2[mt], vars, /, /)
 
 		if ( set_type )
 			{
@@ -786,15 +856,26 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 			# generate correct typing for relationals (where
 			# the first operand has a type of bool regardless
 			# of the types of the other operands).
-			op2_is_const = type ~ /^VC/
 
-			if ( type ~ /^.../ || type_selector == 2 )
-				# Has three operands, choose second.
-				test_var = op2_is_const ? "c" : "n2"
-			else if ( op2_is_const )
-				test_var = "c"
+			if ( is_cond )
+				{
+				if ( mt == "VVi" )
+					test_var = "n1"
+				else
+					test_var = "c"
+				}
 			else
-				test_var = op1_is_const ? "n" : "n1"
+				{
+				op2_is_const = mt ~ /^VC/
+
+				if ( mt ~ /^.../ || type_selector == 2 )
+					# Has three operands, choose second.
+					test_var = op2_is_const ? "c" : "n2"
+				else if ( op2_is_const )
+					test_var = "c"
+				else
+					test_var = "n1"
+				}
 
 			print ("\tauto t = " test_var "->Type().get();") >methods_f
 
@@ -821,7 +902,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 					}
 
 				invoke1 = (part1 full_op_no_sub "_")
-				invoke2 = ((is_vec ? vec : "") part2)
+				invoke2 = ((is_vec ? vec : (is_cond ? cond : "")) part2)
 
 				build_method_conditional(o, ++n)
 				print (invoke1 o invoke2) >methods_f
@@ -834,9 +915,34 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, method_pre)
 				#
 				# We do not support vectors for these,
 				# even though the interpreter does.
-				op2_param = op2_is_const ? "c" : "n2";
-				op3_is_const = type ~ /^V.C/
-				op3_param = op2_is_const ? "n2" : (op3_is_const ? "c" : "n3")
+				if ( is_cond )
+					{
+					# We fudge and treat the actual
+					# first operand as "op2" here, etc.,
+					# so that we can integrate with
+					# the code for operator assignment.
+					if ( mt == "VVi" )
+						{
+						op2_param = "n1"
+						op3_param = "n2"
+						}
+					else if ( mt == "CVi" )
+						{
+						op2_param = "c"
+						op3_param = "n"
+						}
+					else
+						{
+						op2_param = "n"
+						op3_param = "c"
+						}
+					}
+				else
+					{
+					op2_param = op2_is_const ? "c" : "n2";
+					op3_is_const = mt ~ /^V.C/
+					op3_param = op2_is_const ? "n2" : (op3_is_const ? "c" : "n3")
+					}
 
 				op2_tag = op2_param "->Type()->Tag()"
 				op3_tag = op3_param "->Type()->Tag()"
@@ -884,7 +990,8 @@ function clear_vars()
 	opaque = set_expr = set_type = type = type_selector = operand_type = ""
 	custom_method = method_pre = eval_pre = ""
 	no_const = no_eval = mix_eval = multi_eval = eval_blank = ""
-	vector = binary_op = internal_op = rel_op = ary_op = expr_op = op = ""
+	cond_op = rel_op = ary_op = expr_op = op = ""
+	vector = binary_op = internal_op = ""
 	op1_flavor = direct_method = direct_op = ""
 	laccessor = raccessor1 = raccessor2 = ""
 	op1_accessor = op2_accessor = ""

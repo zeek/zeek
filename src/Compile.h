@@ -60,7 +60,7 @@ public:
 
 	virtual const CompiledStmt Is(const NameExpr* n, const Expr* e) = 0;
 
-	virtual const CompiledStmt IfElse(const NameExpr* n, const Stmt* s1,
+	virtual const CompiledStmt IfElse(const Expr* e, const Stmt* s1,
 						const Stmt* s2) = 0;
 
 	virtual const CompiledStmt While(const Stmt* cond_stmt,

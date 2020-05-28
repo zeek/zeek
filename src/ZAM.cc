@@ -85,6 +85,13 @@ ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, int i)
 	return ZInst(op, m->Frame1Slot(v1, op), i);
 	}
 
+ZInst GenInst(ZAM* m, ZOp op, const ConstExpr* c, const NameExpr* v1, int i)
+	{
+	auto z = ZInst(op, m->Frame1Slot(v1, op), i, c);
+	z.op_type = OP_VVC_I2;
+	return z;
+	}
+
 ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const Expr* e)
 	{
 	return ZInst(op, m->Frame1Slot(v1, op), e);
@@ -932,7 +939,7 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n, UDs uds)
 	for ( auto l : call_pf.locals )
 		StoreLocal(l);
 
-	// Don't invoke GenStmt for the first case since if n is a global
+	// Don't invoke GenInst for the first case since if n is a global
 	// we don't want to dirty it prior to assignment
 	auto a_s = n ? ZInst(OP_INTERPRET_EXPR_V, RawSlot(n), c) :
 			ZInst(OP_INTERPRET_EXPR_X, c);
@@ -1081,8 +1088,10 @@ const CompiledStmt ZAM::Is(const NameExpr* n, const Expr* e)
 	return AddInst(z);
 	}
 
-const CompiledStmt ZAM::IfElse(const NameExpr* n, const Stmt* s1, const Stmt* s2)
+const CompiledStmt ZAM::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2)
 	{
+	auto n = e->AsNameExpr();
+
 	ZOp op = (s1 && s2) ?
 		OP_IF_ELSE_VV : (s1 ? OP_IF_VV : OP_IF_NOT_VV);
 

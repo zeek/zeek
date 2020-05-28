@@ -76,7 +76,7 @@ TEST_CASE("converting Broker to Zeek protocol constants")
 	}
 
 struct val_converter {
-	using result_type = Val*;
+	using result_type = IntrusivePtr<Val>;
 
 	BroType* type;
 
@@ -88,30 +88,30 @@ struct val_converter {
 	result_type operator()(bool a)
 		{
 		if ( type->Tag() == TYPE_BOOL )
-			return val_mgr->Bool(a)->Ref();
+			return val_mgr->Bool(a);
 		return nullptr;
 		}
 
 	result_type operator()(uint64_t a)
 		{
 		if ( type->Tag() == TYPE_COUNT )
-			return val_mgr->Count(a).release();
+			return val_mgr->Count(a);
 		if ( type->Tag() == TYPE_COUNTER )
-			return val_mgr->Count(a).release();
+			return val_mgr->Count(a);
 		return nullptr;
 		}
 
 	result_type operator()(int64_t a)
 		{
 		if ( type->Tag() == TYPE_INT )
-			return val_mgr->Int(a).release();
+			return val_mgr->Int(a);
 		return nullptr;
 		}
 
 	result_type operator()(double a)
 		{
 		if ( type->Tag() == TYPE_DOUBLE )
-			return new Val(a, TYPE_DOUBLE);
+			return make_intrusive<Val>(a, TYPE_DOUBLE);
 		return nullptr;
 		}
 
@@ -119,13 +119,13 @@ struct val_converter {
 		{
 		switch ( type->Tag() ) {
 		case TYPE_STRING:
-			return new StringVal(a.size(), a.data());
+			return make_intrusive<StringVal>(a.size(), a.data());
 		case TYPE_FILE:
 			{
 			auto file = BroFile::Get(a.data());
 
 			if ( file )
-				return new Val(std::move(file));
+				return make_intrusive<Val>(std::move(file));
 
 			return nullptr;
 			}
@@ -139,7 +139,7 @@ struct val_converter {
 		if ( type->Tag() == TYPE_ADDR )
 			{
 			auto bits = reinterpret_cast<const in6_addr*>(&a.bytes());
-			return new AddrVal(IPAddr(*bits));
+			return make_intrusive<AddrVal>(IPAddr(*bits));
 			}
 
 		return nullptr;
@@ -150,7 +150,7 @@ struct val_converter {
 		if ( type->Tag() == TYPE_SUBNET )
 			{
 			auto bits = reinterpret_cast<const in6_addr*>(&a.network().bytes());
-			return new SubNetVal(IPPrefix(IPAddr(*bits), a.length()));
+			return make_intrusive<SubNetVal>(IPPrefix(IPAddr(*bits), a.length()));
 			}
 
 		return nullptr;
@@ -159,7 +159,7 @@ struct val_converter {
 	result_type operator()(broker::port& a)
 		{
 		if ( type->Tag() == TYPE_PORT )
-			return val_mgr->Port(a.number(), bro_broker::to_bro_port_proto(a.type()))->Ref();
+			return val_mgr->Port(a.number(), bro_broker::to_bro_port_proto(a.type()));
 
 		return nullptr;
 		}
@@ -171,7 +171,7 @@ struct val_converter {
 
 		using namespace std::chrono;
 		auto s = duration_cast<broker::fractional_seconds>(a.time_since_epoch());
-		return new Val(s.count(), TYPE_TIME);
+		return make_intrusive<Val>(s.count(), TYPE_TIME);
 		}
 
 	result_type operator()(broker::timespan& a)
@@ -181,7 +181,7 @@ struct val_converter {
 
 		using namespace std::chrono;
 		auto s = duration_cast<broker::fractional_seconds>(a);
-		return new Val(s.count(), TYPE_INTERVAL);
+		return make_intrusive<Val>(s.count(), TYPE_INTERVAL);
 		}
 
 	result_type operator()(broker::enum_value& a)
@@ -195,7 +195,7 @@ struct val_converter {
 				return nullptr;
 
 			auto rval = etype->GetVal(i);
-			return rval.release();
+			return rval;
 			}
 
 		return nullptr;
@@ -257,7 +257,7 @@ struct val_converter {
 			rval->Assign(std::move(list_val), nullptr);
 			}
 
-		return rval.release();
+		return rval;
 		}
 
 	result_type operator()(broker::table& a)
@@ -321,7 +321,7 @@ struct val_converter {
 			rval->Assign(std::move(list_val), std::move(value_val));
 			}
 
-		return rval.release();
+		return rval;
 		}
 
 	result_type operator()(broker::vector& a)
@@ -341,7 +341,7 @@ struct val_converter {
 				rval->Assign(rval->Size(), std::move(item_val));
 				}
 
-			return rval.release();
+			return rval;
 			}
 		else if ( type->Tag() == TYPE_FUNC )
 			{
@@ -381,7 +381,7 @@ struct val_converter {
 					return nullptr;
 				}
 
-			return rval->Ref();
+			return rval;
 			}
 		else if ( type->Tag() == TYPE_RECORD )
 			{
@@ -411,7 +411,7 @@ struct val_converter {
 				++idx;
 				}
 
-			return rval.release();
+			return rval;
 			}
 		else if ( type->Tag() == TYPE_PATTERN )
 			{
@@ -435,11 +435,11 @@ struct val_converter {
 				return nullptr;
 				}
 
-			auto rval = new PatternVal(re);
+			auto rval = make_intrusive<PatternVal>(re);
 			return rval;
 			}
 		else if ( type->Tag() == TYPE_OPAQUE )
-			return OpaqueVal::Unserialize(a).release();
+			return OpaqueVal::Unserialize(a);
 
 		return nullptr;
 		}
@@ -787,7 +787,7 @@ IntrusivePtr<Val> bro_broker::data_to_val(broker::data d, BroType* type)
 	if ( type->Tag() == TYPE_ANY )
 		return bro_broker::make_data_val(move(d));
 
-	return {AdoptRef{}, caf::visit(val_converter{type}, std::move(d))};
+	return caf::visit(val_converter{type}, std::move(d));
 	}
 
 broker::expected<broker::data> bro_broker::val_to_data(const Val* v)

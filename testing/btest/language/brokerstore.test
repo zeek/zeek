@@ -1,13 +1,15 @@
 # @TEST-EXEC: zeek %INPUT >output
 # @TEST-EXEC: btest-diff output
 
+redef exit_only_after_terminate = T;
+
 module TestModule;
 
 global tablestore: opaque of Broker::Store;
 global setstore: opaque of Broker::Store;
 
-global t: table[string] of count &broker_store=tablestore;
-global s: set[string] &broker_store=setstore;
+global t: table[string] of count &broker_store="table";
+global s: set[string] &broker_store="set";
 
 event zeek_init()
 	{

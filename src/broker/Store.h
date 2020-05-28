@@ -6,6 +6,7 @@
 #include "Trigger.h"
 
 #include <broker/store.hh>
+#include <broker/store_event.hh>
 #include <broker/backend.hh>
 #include <broker/backend_options.hh>
 

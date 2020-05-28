@@ -38,6 +38,7 @@
 
 #include "broker/Data.h"
 #include "broker/Store.h"
+#include "broker/Manager.h"
 
 #include "threading/formatters/JSON.h"
 
@@ -1471,8 +1472,14 @@ void TableVal::SetAttrs(IntrusivePtr<Attributes> a)
 		change_func = {NewRef{}, cf->AttrExpr()};
 
 	auto bs = attrs->FindAttr(ATTR_BROKER_STORE);
-	if ( bs )
-		broker_store = {NewRef{}, bs->AttrExpr()};
+	if ( bs && broker_store.empty() ) // this does not mesh well with being updated several times
+		{
+		IntrusivePtr<Val> c = bs->AttrExpr()->Eval(nullptr);
+		assert(c);
+		assert(c->Type()->Tag() == TYPE_STRING);
+		broker_store = c->AsStringVal()->AsString()->CheckString();
+		broker_mgr->AddForwardedStore(broker_store, {NewRef{}, this});
+		}
 	}
 
 void TableVal::CheckExpireAttr(attr_tag at)
@@ -1552,16 +1559,16 @@ bool TableVal::Assign(Val* index, HashKey* k, IntrusivePtr<Val> new_val)
 
 	Modified();
 
-	if ( change_func || broker_store )
+	if ( change_func || ( ! broker_store.empty() ) )
 		{
 		auto change_index = index ? IntrusivePtr<Val>{NewRef{}, index}
 		                          : RecoverIndex(&k_copy);
-		if ( broker_store )
+		if ( ! broker_store.empty() )
 			SendToStore(change_index.get(), new_val.get(), old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
 		if ( change_func )
 			{
-		Val* v = old_entry_val ? old_entry_val->Value() : new_val.get();
-		CallChangeFunc(change_index.get(), v, old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
+			Val* v = old_entry_val ? old_entry_val->Value() : new_val.get();
+			CallChangeFunc(change_index.get(), v, old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
 			}
 		}
 
@@ -2062,23 +2069,16 @@ void TableVal::CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe
 
 void TableVal::SendToStore(const Val* index, const Val* new_value, OnChangeType tpe)
 	{
-	if ( ! broker_store || ! index )
+	if ( broker_store.empty() || ! index )
 		return;
 
 	try
 		{
-		auto thestore = broker_store->Eval(0);
+		auto handle = broker_mgr->LookupStore(broker_store);
 
-		if ( ! thestore )
+		if ( ! handle )
 			return;
 
-		if ( thestore->Type()->Tag() != TYPE_OPAQUE || broker_store->Type()->AsOpaqueType()->Name() != "Broker::Store" )
-			{
-			thestore->Error("not a Broker::Store");
-			return;
-			}
-
-		auto handle = static_cast<bro_broker::StoreHandleVal*>(thestore.get());
 		if ( index->AsListVal()->Length() != 1 )
 			{
 			builtin_error("table with complex index not supported for &broker_store");
@@ -2149,7 +2149,7 @@ IntrusivePtr<Val> TableVal::Delete(const Val* index)
 
 	Modified();
 
-	if ( broker_store )
+	if ( ! broker_store.empty() )
 		SendToStore(index, nullptr, ELEMENT_REMOVED);
 	if ( change_func )
 		CallChangeFunc(index, va.get(), ELEMENT_REMOVED);
@@ -2174,10 +2174,10 @@ IntrusivePtr<Val> TableVal::Delete(const HashKey* k)
 
 	Modified();
 
-	if ( ( change_func && va ) || broker_store )
+	if ( ( change_func && va ) || ( ! broker_store.empty() ) )
 		{
 		auto index = table_hash->RecoverVals(k);
-		if ( broker_store )
+		if ( ! broker_store.empty() )
 			SendToStore(index.get(), nullptr, ELEMENT_REMOVED);
 		if ( change_func && va )
 			CallChangeFunc(index.get(), va.get(), ELEMENT_REMOVED);

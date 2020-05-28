@@ -8,6 +8,7 @@
 #include <broker/endpoint.hh>
 #include <broker/endpoint_info.hh>
 #include <broker/peer_info.hh>
+#include <broker/publisher_id.hh>
 #include <broker/backend.hh>
 #include <broker/backend_options.hh>
 #include <broker/detail/hash.hh>
@@ -294,6 +295,8 @@ public:
 	 */
 	StoreHandleVal* LookupStore(const std::string& name);
 
+	bool AddForwardedStore(const std::string& name, IntrusivePtr<TableVal> table);
+
 	/**
 	 * Close and unregister a data store.  Any existing references to the
 	 * store handle will not be able to be used for any data store operations.
@@ -347,6 +350,7 @@ private:
 	void ProcessError(broker::error err);
 	void ProcessStoreResponse(StoreHandleVal*, broker::store::response response);
 	void FlushPendingQueries();
+	void CheckForwarding(const std::string& name);
 
 	void Error(const char* format, ...)
 		__attribute__((format (printf, 2, 3)));
@@ -381,6 +385,8 @@ private:
 	std::string default_log_topic_prefix;
 	std::shared_ptr<BrokerState> bstate;
 	std::unordered_map<std::string, StoreHandleVal*> data_stores;
+	std::unordered_map<std::string, IntrusivePtr<TableVal>> forwarded_stores;
+	std::unordered_map<broker::publisher_id, IntrusivePtr<TableVal>> forwarded_ids;
 	std::unordered_map<query_id, StoreQueryCallback*,
 	                   query_id_hasher> pending_queries;
 	std::vector<std::string> forwarded_prefixes;

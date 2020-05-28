@@ -558,10 +558,11 @@ void Attributes::CheckAttr(Attr* a)
 			break;
 			}
 
-		const Expr *broker_store = a->AttrExpr();
-		if ( broker_store->Type()->Tag() != TYPE_OPAQUE || broker_store->Type()->AsOpaqueType()->Name() != "Broker::Store" )
-			Error("&broker_store must take an opaque of Broker::Store");
-
+		if ( a->AttrExpr()->Type()->Tag() != TYPE_STRING )
+			{
+			Error("&broker_store must take a string argument");
+			break;
+			}
 
 		// Temporary since Broker does not support ListVals - and we cannot easily convert to set/vector
 		if ( type->AsTableType()->IndexTypes()->length() != 1 )

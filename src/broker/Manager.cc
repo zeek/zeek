@@ -212,6 +212,8 @@ void Manager::InitPostScript()
 		reporter->FatalError("Failed to register broker subscriber with iosource_mgr");
 	if ( ! iosource_mgr->RegisterFd(bstate->status_subscriber.fd(), this) )
 		reporter->FatalError("Failed to register broker status subscriber with iosource_mgr");
+
+	bstate->subscriber.add_topic(broker::topics::store_events, true);
 	}
 
 void Manager::Terminate()
@@ -905,6 +907,20 @@ void Manager::Process()
 		auto& topic = broker::get_topic(message);
 		auto& msg = broker::get_data(message);
 
+		if ( topic == broker::topics::store_events )
+			{
+			if (auto insert = broker::store_event::insert::make(msg))
+				{
+				reporter->Warning("It is an insert!");
+				reporter->Warning("Key/Data (endpoint): %s/%s (%s)", to_string(insert.key()).c_str(), to_string(insert.value()).c_str(), to_string(insert.publisher()).c_str());
+				}
+			else
+				{
+				reporter->Warning("Unhandled event type");
+				}
+			continue;
+			}
+
 		try
 			{
 			DispatchMessage(topic, std::move(msg));
@@ -1449,6 +1465,7 @@ StoreHandleVal* Manager::MakeMaster(const string& name, broker::backend type,
 
 	data_stores.emplace(name, handle);
 	iosource_mgr->RegisterFd(handle->proxy.mailbox().descriptor(), this);
+	CheckForwarding(name);
 
 	if ( bstate->endpoint.use_real_time() )
 		return handle;
@@ -1486,7 +1503,7 @@ StoreHandleVal* Manager::MakeClone(const string& name, double resync_interval,
 
 	data_stores.emplace(name, handle);
 	iosource_mgr->RegisterFd(handle->proxy.mailbox().descriptor(), this);
-
+	CheckForwarding(name);
 	return handle;
 	}
 
@@ -1503,6 +1520,9 @@ bool Manager::CloseStore(const string& name)
 	auto s = data_stores.find(name);
 	if ( s == data_stores.end() )
 		return false;
+
+	auto pubid = s->second->store.frontend_id();
+	forwarded_ids.erase(pubid);
 
 	iosource_mgr->UnregisterFd(s->second->proxy.mailbox().descriptor(), this);
 
@@ -1544,6 +1564,36 @@ const Stats& Manager::GetStatistics()
 	// The other attributes are set as activity happens.
 
 	return statistics;
+	}
+
+bool Manager::AddForwardedStore(const std::string& name, IntrusivePtr<TableVal> table)
+	{
+	if ( forwarded_stores.find(name) != forwarded_stores.end() )
+		{
+		reporter->Error("same &broker_store %s specified for two different variables", name.c_str());
+		return false;
+		}
+
+	DBG_LOG(DBG_BROKER, "Adding table forward for data store %s", name.c_str());	
+	forwarded_stores.emplace(name, table);
+
+	CheckForwarding(name);
+	return true;
+	}
+
+void Manager::CheckForwarding(const std::string &name)
+	{
+	auto handle = LookupStore(name);
+	if ( ! handle )
+		return;
+
+	if ( forwarded_stores.find(name) == forwarded_stores.end() )
+		return;
+
+	auto pubid = handle->store.frontend_id();
+
+	DBG_LOG(DBG_BROKER, "Resolved publishder %s for table forward for data store %s", to_string(pubid).c_str(), name.c_str());	
+	forwarded_ids.emplace(pubid, forwarded_stores.at(name));
 	}
 
 } // namespace bro_broker

@@ -895,7 +895,7 @@ protected:
 	PrefixTable* subnets;
 	IntrusivePtr<Val> def_val;
 	IntrusivePtr<Expr> change_func;
-	IntrusivePtr<Expr> broker_store;
+	std::string broker_store;
 	// prevent recursion of change functions
 	bool in_change_func = false;
 

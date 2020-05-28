@@ -788,7 +788,7 @@ eval ii->c = ii->loop_vals->InitForIteration()
 eval ii->value_var_type = z.t
 eval frame[z.v1].iter_info = TrackVal(ii)
 
-# It might feel nature to have v1 be the iteration info, but we
+# It might feel natural to have v1 be the iteration info, but we
 # have a convention of always having any assigned-to variable in v1.
 internal-op Add-Var-To-Init
 type VV

@@ -560,7 +560,7 @@ bool NameExpr::IsPure() const
 
 bool NameExpr::IsReduced(Reducer* c) const
 	{
-	if ( id->IsGlobal() && id->IsConst() )
+	if ( id->IsGlobal() && id->IsConst() && is_atomic_type(id->Type()) )
 		return false;
 
 	return c->NameIsReduced(this);
@@ -573,7 +573,7 @@ Expr* NameExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	if ( c->Optimizing() )
 		return this->Ref();
 
-	if ( id->IsGlobal() && id->IsConst() )
+	if ( id->IsGlobal() && id->IsConst() && is_atomic_type(id->Type()) )
 		{
 		IntrusivePtr<Val> v = {NewRef{}, id->ID_Val()};
 		ASSERT(v);
@@ -3133,12 +3133,20 @@ Expr* CondExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		op3 = c->UpdateExpr(op3);
 		}
 
+	IntrusivePtr<Stmt> op1_red_stmt;
+	op1 = {AdoptRef{}, op1->ReduceToSingleton(c, op1_red_stmt)};
+
 	if ( op1->IsConst() )
 		{
+		Expr* res;
 		if ( op1->AsConstExpr()->Value()->IsOne() )
-			return op2->ReduceToSingleton(c, red_stmt);
+			res = op2->ReduceToSingleton(c, red_stmt);
 		else
-			return op3->ReduceToSingleton(c, red_stmt);
+			res = op3->ReduceToSingleton(c, red_stmt);
+
+		red_stmt = MergeStmts(op1_red_stmt, red_stmt);
+
+		return res;
 		}
 
 	if ( same_singletons(op2, op3) )
@@ -3147,9 +3155,13 @@ Expr* CondExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 			{
 			if ( op1->Tag() != EXPR_CONST &&
 			     op1->Tag() != EXPR_NAME )
+				{
 				op1 = {AdoptRef{},
 					op1->AssignToTemporary(c, red_stmt)};
+				}
 			}
+
+		red_stmt = MergeStmts(op1_red_stmt, red_stmt);
 
 		return op2->Ref();
 		}
@@ -3162,7 +3174,7 @@ Expr* CondExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	IntrusivePtr<Stmt> assign_stmt;
 	auto res = AssignToTemporary(c, assign_stmt);
 
-	red_stmt = MergeStmts(red_stmt, assign_stmt);
+	red_stmt = MergeStmts(op1_red_stmt, red_stmt, assign_stmt);
 
 	return TransformMe(res, c, red_stmt);
 	}
@@ -4009,12 +4021,22 @@ const CompiledStmt AssignExpr::DoCompile(Compiler* c, const NameExpr* lhs) const
 
 	if ( rhs->Tag() == EXPR_IN && r1->Tag() == EXPR_LIST )
 		{
-		auto r2n = r2->AsNameExpr();
+		// r2 can be a constant due to propagating "const"
+		// globals, for example.
+		if ( r2->Tag() == EXPR_NAME )
+			{
+			auto r2n = r2->AsNameExpr();
+
+			if ( r2->Type()->Tag() == TYPE_TABLE )
+				return c->L_In_TVLV(lhs, r1->AsListExpr(), r2n);
+			return c->L_In_VecVLV(lhs, r1->AsListExpr(), r2n);
+			}
+
+		auto r2c = r2->AsConstExpr();
 
 		if ( r2->Type()->Tag() == TYPE_TABLE )
-			return c->L_In_TVLV(lhs, r1->AsListExpr(), r2n);
-		else
-			return c->L_In_VecVLV(lhs, r1->AsListExpr(), r2n);
+			return c->L_In_TVLC(lhs, r1->AsListExpr(), r2c);
+		return c->L_In_VecVLC(lhs, r1->AsListExpr(), r2c);
 		}
 
 	if ( rhs->Tag() == EXPR_ANY_INDEX )

@@ -1177,7 +1177,6 @@ const CompiledStmt ZAM::While(const Stmt* cond_stmt, const NameExpr* cond,
 		(void) cond_stmt->Compile(this);
 
 	auto cond_IF = AddInst(ZInst(OP_IF_VV, FrameSlot(cond), 0));
-	TopMainInst()->op_type = OP_VV_I2;
 
 	PushNexts();
 	PushBreaks();
@@ -1511,7 +1510,6 @@ const CompiledStmt ZAM::TypeSwitch(const SwitchStmt* sw, const NameExpr* v,
 
 		z = ZInst(OP_BRANCH_IF_NOT_TYPE_VV, slot, 0);
 		z.t = type;
-		z.op_type = OP_VV_I2;
 		auto case_test = AddInst(z);
 
 		// Type cases that don't use "as" create a placeholder
@@ -2153,23 +2151,33 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1,
 	}
 
 const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1, const ListExpr* l,
-					const NameExpr* n2)
+					const NameExpr* n2, const ConstExpr* c)
 	{
 	int n = l->Exprs().length();
 	auto build_indices = InternalBuildVals(l);
 
 	auto z = ZInst(OP_TRANSFORM_VAL_VEC_TO_LIST_VAL_VVV,
 				build_indices, build_indices, n);
-	z.op_type = OP_VVV_I3;
+	z.op_type = n2 ? OP_VVV_I3 : OP_VVC_I2;
 	AddInst(z);
 
-	ZOp op =
-		n2->Type()->Tag() == TYPE_VECTOR ?
-			OP_INDEX_IS_IN_VECTOR_VVV : OP_LIST_IS_IN_TABLE_VVV;
+	ZOp op;
 
-	int n2_slot = FrameSlot(n2);
-	z = ZInst(op, Frame1Slot(n1, op), n2_slot, build_indices);
-	z.t = n2->Type().get();
+	auto aggr = n2 ? (Expr*) n2 : (Expr*) c;
+
+	if ( aggr->Type()->Tag() == TYPE_VECTOR )
+		op = n2 ? OP_INDEX_IS_IN_VECTOR_VVV : OP_INDEX_IS_IN_VECTOR_VVC;
+	else
+		op = n2 ? OP_LIST_IS_IN_TABLE_VVV : OP_LIST_IS_IN_TABLE_VVC;
+
+	if ( n2 )
+		{
+		int n2_slot = FrameSlot(n2);
+		z = ZInst(op, Frame1Slot(n1, op), n2_slot, build_indices);
+		z.t = n2->Type().get();
+		}
+	else
+		z = ZInst(op, Frame1Slot(n1, op), build_indices, c);
 
 	return AddInst(z);
 	}

@@ -24,3 +24,7 @@ same_object() on atomic types
 need to track NewSlot() denizens in case they require memory management
 
 error messages tied back to non-reduced original
+
+really don't want to generate "isn't used" if doing reduction since
+	it induces some constant propagation of globals (could turn that
+	off though)

@@ -1686,14 +1686,17 @@ void profile_script_execution()
 	{
 	printf("%d vals created, %d destructed\n", num_Vals, num_del_Vals);
 	printf("%d string vals created, %d destructed\n", num_StringVals, num_del_StringVals);
-	report_ZOP_profile();
 
 	if ( report_profile )
+		{
+		report_ZOP_profile();
+
 		for ( auto& f : funcs )
 			{
 			if ( f->body->Tag() == STMT_COMPILED )
 				f->body->AsCompiler()->ProfileExecution();
 			}
+		}
 	}
 
 void finish_script_execution()

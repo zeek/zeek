@@ -46,6 +46,7 @@ BEGIN	{
 	args["VCV"] = "(const NameExpr* n1, const ConstExpr* c, const NameExpr* n2)"
 
 	args["VLV"] = "(const NameExpr* n1, const ListExpr* l, const NameExpr* n2)"
+	args["VLC"] = "(const NameExpr* n, const ListExpr* l, const ConstExpr* c)"
 	args["VVL"] = "(const NameExpr* n1, const NameExpr* n2, const ListExpr* l)"
 	args["ViHL"] = "(const NameExpr* n, int i, EventHandler* h, const ListExpr* l)"
 	args["CiHL"] = "(const ConstExpr* c, int i, EventHandler* h, const ListExpr* l)"
@@ -61,6 +62,7 @@ BEGIN	{
 	args2["VO"] = "n, reg"
 	args2["VVV"] = "n1, n2, n3"
 	args2["VLV"] = "n1, l, n2"
+	args2["VLC"] = "n, l, c"
 	args2["VVVV"] = "n1, n2, n3, n4"
 	args2["C"] = "c"
 	args2["VC"] = "n, c"
@@ -85,6 +87,7 @@ BEGIN	{
 	exprV["VV"] = "lhs, r1->AsNameExpr()"
 	exprV["VVV"] = "lhs, r1->AsNameExpr(), r2->AsNameExpr()"
 	exprV["VLV"] = "lhs, r1->AsListExpr(), r2->AsNameExpr()"
+	exprV["VLC"] = "lhs, r1->AsListExpr(), r2->AsConstExpr()"
 	exprV["VVVV"] = "lhs, r1->AsNameExpr(), r2->AsNameExpr(), r3->AsNameExpr()"
 
 	accessors["i"] = accessors["I"] = ".int_val"
@@ -555,6 +558,7 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 	# operations with multiple types of operands.  This lets us
 	# avoid redundant declarations.
 	is_rep = ! sub_type1 || sub_type1 == op_type_rep
+
 	do_vec = vector && ! no_vec[sub_type1] && ! no_vec[sub_type1, sub_type2]
 
 	if ( ! internal_op && is_rep )

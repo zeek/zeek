@@ -339,9 +339,19 @@ type VLV
 custom-method return CompileInExpr(n1, l, n2);
 no-eval
 
+op L-In-T
+type VLC
+custom-method return CompileInExpr(n, l, c);
+no-eval
+
 op L-In-Vec
 type VLV
 custom-method return CompileInExpr(n1, l, n2);
+no-eval
+
+op L-In-Vec
+type VLC
+custom-method return CompileInExpr(n, l, c);
 no-eval
 
 
@@ -362,10 +372,23 @@ eval auto op1 = frame[z.v3].list_val
 eval frame[z.v1].int_val = frame[z.v2].table_val->Lookup(op1) != nullptr
 eval Unref(op1)
 
+internal-op List-Is-In-Table
+type VVC
+eval auto op1 = frame[z.v2].list_val
+eval frame[z.v1].int_val = z.c.table_val->Lookup(op1) != nullptr
+eval Unref(op1)
+
 internal-op Index-Is-In-Vector
 type VVV
 eval auto op1 = frame[z.v3].list_val
 eval auto op2 = frame[z.v2].ToVector(z.t)
+eval frame[z.v1].int_val = op2->Lookup(op1) != nullptr
+eval Unref(op1)
+
+internal-op Index-Is-In-Vector
+type VVC
+eval auto op1 = frame[z.v2].list_val
+eval auto op2 = z.c.ToVector(z.t)
 eval frame[z.v1].int_val = op2->Lookup(op1) != nullptr
 eval Unref(op1)
 

@@ -4168,29 +4168,6 @@ void CallExpr::ExprDescribe(ODesc* d) const
 		args->Describe(d);
 	}
 
-static std::unique_ptr<id_list> shallow_copy_func_inits(const IntrusivePtr<Stmt>& body,
-                                                        const id_list* src)
-	{
-	if ( ! body )
-		return nullptr;
-
-	if ( ! src )
-		return nullptr;
-
-	if ( src->empty() )
-		return nullptr;
-
-	auto dest = std::make_unique<id_list>(src->length());
-
-	for ( ID* i : *src )
-		{
-		Ref(i);
-		dest->push_back(i);
-		}
-
-	return dest;
-	}
-
 LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
                        id_list arg_outer_ids) : Expr(EXPR_LAMBDA)
 	{
@@ -4204,7 +4181,7 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing,
 	auto dummy_func = make_intrusive<BroFunc>(
 		ingredients->id.get(),
 		ingredients->body,
-		shallow_copy_func_inits(ingredients->body, ingredients->inits).release(),
+		ingredients->inits,
 		ingredients->frame_size,
 		ingredients->priority);
 
@@ -4255,7 +4232,7 @@ IntrusivePtr<Val> LambdaExpr::Eval(Frame* f) const
 	auto lamb = make_intrusive<BroFunc>(
 		ingredients->id.get(),
 		ingredients->body,
-		shallow_copy_func_inits(ingredients->body, ingredients->inits).release(),
+		ingredients->inits,
 		ingredients->frame_size,
 		ingredients->priority);
 

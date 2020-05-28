@@ -121,8 +121,9 @@ Func::Func(Kind arg_kind) : kind(arg_kind)
 
 Func::~Func() = default;
 
-void Func::AddBody(IntrusivePtr<Stmt> /* new_body */, id_list* /* new_inits */,
-		   size_t /* new_frame_size */, int /* priority */)
+void Func::AddBody(IntrusivePtr<Stmt> /* new_body */,
+                   const std::vector<IntrusivePtr<ID>>& /* new_inits */,
+                   size_t /* new_frame_size */, int /* priority */)
 	{
 	Internal("Func::AddBody called");
 	}
@@ -267,7 +268,8 @@ void Func::CheckPluginResult(bool handled, const IntrusivePtr<Val>& hook_result,
 	}
 	}
 
-BroFunc::BroFunc(ID* arg_id, IntrusivePtr<Stmt> arg_body, id_list* aggr_inits,
+BroFunc::BroFunc(ID* arg_id, IntrusivePtr<Stmt> arg_body,
+                 const std::vector<IntrusivePtr<ID>>& aggr_inits,
                  size_t arg_frame_size, int priority)
 	: Func(BRO_FUNC)
 	{
@@ -447,7 +449,8 @@ IntrusivePtr<Val> BroFunc::operator()(zeek::Args* args, Frame* parent) const
 	return result;
 	}
 
-void BroFunc::AddBody(IntrusivePtr<Stmt> new_body, id_list* new_inits,
+void BroFunc::AddBody(IntrusivePtr<Stmt> new_body,
+                      const std::vector<IntrusivePtr<ID>>& new_inits,
                       size_t new_frame_size, int priority)
 	{
 	if ( new_frame_size > frame_size )
@@ -571,9 +574,10 @@ void BroFunc::Describe(ODesc* d) const
 		}
 	}
 
-IntrusivePtr<Stmt> BroFunc::AddInits(IntrusivePtr<Stmt> body, id_list* inits)
+IntrusivePtr<Stmt> BroFunc::AddInits(IntrusivePtr<Stmt> body,
+                                     const std::vector<IntrusivePtr<ID>>& inits)
 	{
-	if ( ! inits || inits->length() == 0 )
+	if ( inits.empty() )
 		return body;
 
 	auto stmt_series = make_intrusive<StmtList>();
@@ -887,14 +891,6 @@ function_ingredients::function_ingredients(IntrusivePtr<Scope> scope, IntrusiveP
 
 	priority = (attrs ? get_func_priority(*attrs) : 0);
 	this->body = std::move(body);
-	}
-
-function_ingredients::~function_ingredients()
-	{
-	for ( const auto& i : *inits )
-		Unref(i);
-
-	delete inits;
 	}
 
 BifReturnVal::BifReturnVal(std::nullptr_t) noexcept

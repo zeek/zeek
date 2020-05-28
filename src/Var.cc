@@ -301,7 +301,8 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 		// For events, add a function value (without any body) here so that
 		// we can later access the ID even if no implementations have been
 		// defined.
-		auto f = make_intrusive<BroFunc>(id, nullptr, nullptr, 0, 0);
+		std::vector<IntrusivePtr<ID>> inits;
+		auto f = make_intrusive<BroFunc>(id, nullptr, inits, 0, 0);
 		id->SetVal(make_intrusive<Val>(std::move(f)));
 		}
 	}

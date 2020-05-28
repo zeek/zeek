@@ -21,8 +21,6 @@ Scope::Scope(IntrusivePtr<ID> id,
 	{
 	return_type = nullptr;
 
-	inits = new id_list;
-
 	if ( id )
 		{
 		const auto& id_type = scope_id->GetType();
@@ -34,17 +32,6 @@ Scope::Scope(IntrusivePtr<ID> id,
 
 		FuncType* ft = id->GetType()->AsFuncType();
 		return_type = ft->Yield();
-		}
-	}
-
-Scope::~Scope()
-	{
-	if ( inits )
-		{
-		for ( const auto& i : *inits )
-			Unref(i);
-
-		delete inits;
 		}
 	}
 
@@ -77,11 +64,11 @@ IntrusivePtr<ID> Scope::GenerateTemporary(const char* name)
 	return make_intrusive<ID>(name, SCOPE_FUNCTION, false);
 	}
 
-id_list* Scope::GetInits()
+std::vector<IntrusivePtr<ID>> Scope::GetInits()
 	{
-	id_list* ids = inits;
-	inits = nullptr;
-	return ids;
+	auto rval = std::move(inits);
+	inits = {};
+	return rval;
 	}
 
 void Scope::Describe(ODesc* d) const

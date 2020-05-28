@@ -78,7 +78,8 @@ public:
 		}
 
 	// Add a new event handler to an existing function (event).
-	virtual void AddBody(IntrusivePtr<Stmt> new_body, id_list* new_inits,
+	virtual void AddBody(IntrusivePtr<Stmt> new_body,
+	                     const std::vector<IntrusivePtr<ID>>& new_inits,
 	                     size_t new_frame_size, int priority = 0);
 
 	virtual void SetScope(IntrusivePtr<Scope> newscope);
@@ -128,7 +129,10 @@ protected:
 
 class BroFunc final : public Func {
 public:
-	BroFunc(ID* id, IntrusivePtr<Stmt> body, id_list* inits, size_t frame_size, int priority);
+	BroFunc(ID* id, IntrusivePtr<Stmt> body,
+	        const std::vector<IntrusivePtr<ID>>& inits,
+	        size_t frame_size, int priority);
+
 	~BroFunc() override;
 
 	bool IsPure() const override;
@@ -163,8 +167,9 @@ public:
 	 */
 	broker::expected<broker::data> SerializeClosure() const;
 
-	void AddBody(IntrusivePtr<Stmt> new_body, id_list* new_inits,
-		     size_t new_frame_size, int priority) override;
+	void AddBody(IntrusivePtr<Stmt> new_body,
+	             const std::vector<IntrusivePtr<ID>>& new_inits,
+	             size_t new_frame_size, int priority) override;
 
 	/** Sets this function's outer_id list. */
 	void SetOuterIDs(id_list ids)
@@ -174,7 +179,8 @@ public:
 
 protected:
 	BroFunc() : Func(BRO_FUNC)	{}
-	IntrusivePtr<Stmt> AddInits(IntrusivePtr<Stmt> body, id_list* inits);
+	IntrusivePtr<Stmt> AddInits(IntrusivePtr<Stmt> body,
+	                            const std::vector<IntrusivePtr<ID>>& inits);
 
 	/**
 	 * Clones this function along with its closures.
@@ -263,11 +269,9 @@ struct function_ingredients {
 	// to build a function.
 	function_ingredients(IntrusivePtr<Scope> scope, IntrusivePtr<Stmt> body);
 
-	~function_ingredients();
-
 	IntrusivePtr<ID> id;
 	IntrusivePtr<Stmt> body;
-	id_list* inits;
+	std::vector<IntrusivePtr<ID>> inits;
 	int frame_size;
 	int priority;
 	IntrusivePtr<Scope> scope;

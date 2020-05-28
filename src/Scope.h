@@ -21,7 +21,6 @@ class Scope : public BroObj {
 public:
 	explicit Scope(IntrusivePtr<ID> id,
 	               std::unique_ptr<std::vector<IntrusivePtr<Attr>>> al);
-	~Scope() override;
 
 	const IntrusivePtr<ID>& Find(std::string_view name) const;
 
@@ -57,10 +56,11 @@ public:
 
 	// Returns the list of variables needing initialization, and
 	// removes it from this Scope.
-	id_list* GetInits();
+	std::vector<IntrusivePtr<ID>> GetInits();
 
 	// Adds a variable to the list.
-	void AddInit(IntrusivePtr<ID> id)		{ inits->push_back(id.release()); }
+	void AddInit(IntrusivePtr<ID> id)
+		{ inits.emplace_back(std::move(id)); }
 
 	void Describe(ODesc* d) const override;
 
@@ -71,7 +71,7 @@ protected:
 	std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs;
 	IntrusivePtr<BroType> return_type;
 	std::map<std::string, IntrusivePtr<ID>, std::less<>> local;
-	id_list* inits;
+	std::vector<IntrusivePtr<ID>> inits;
 };
 
 

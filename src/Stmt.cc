@@ -1629,19 +1629,12 @@ void EventBodyList::Describe(ODesc* d) const
 		StmtList::Describe(d);
 	}
 
-InitStmt::InitStmt(id_list* arg_inits) : Stmt(STMT_INIT)
+InitStmt::InitStmt(std::vector<IntrusivePtr<ID>> arg_inits) : Stmt(STMT_INIT)
 	{
-	inits = arg_inits;
-	if ( arg_inits && arg_inits->length() )
-		SetLocationInfo((*arg_inits)[0]->GetLocationInfo());
-	}
+	inits = std::move(arg_inits);
 
-InitStmt::~InitStmt()
-	{
-	for ( const auto& init : *inits )
-		Unref(init);
-
-	delete inits;
+	if ( ! inits.empty() )
+		SetLocationInfo(inits[0]->GetLocationInfo());
 	}
 
 IntrusivePtr<Val> InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
@@ -1649,7 +1642,7 @@ IntrusivePtr<Val> InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	RegisterAccess();
 	flow = FLOW_NEXT;
 
-	for ( const auto& aggr : *inits )
+	for ( const auto& aggr : inits )
 		{
 		const auto& t = aggr->GetType();
 
@@ -1670,7 +1663,7 @@ IntrusivePtr<Val> InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
 			break;
 		}
 
-		f->SetElement(aggr, std::move(v));
+		f->SetElement(aggr.get(), std::move(v));
 		}
 
 	return nullptr;
@@ -1681,14 +1674,14 @@ void InitStmt::Describe(ODesc* d) const
 	AddTag(d);
 
 	if ( ! d->IsReadable() )
-		d->AddCount(inits->length());
+		d->AddCount(inits.size());
 
-	loop_over_list(*inits, i)
+	for ( size_t i = 0; i < inits.size(); ++i )
 		{
 		if ( ! d->IsBinary() && i > 0 )
 			d->AddSP(",");
 
-		(*inits)[i]->Describe(d);
+		inits[i]->Describe(d);
 		}
 
 	DescribeDone(d);
@@ -1699,7 +1692,7 @@ TraversalCode InitStmt::Traverse(TraversalCallback* cb) const
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
 
-	for ( const auto& init : *inits )
+	for ( const auto& init : inits )
 		{
 		tc = init->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);

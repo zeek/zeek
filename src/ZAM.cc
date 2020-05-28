@@ -1126,6 +1126,35 @@ const CompiledStmt ZAM::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2)
 		}
 	}
 
+const CompiledStmt ZAM::GenCond(const Expr* e)
+	{
+	auto op1 = e->GetOp1();
+	auto op2 = e->GetOp2();
+
+	NameExpr* n1 = nullptr;
+	NameExpr* n2 = nullptr;
+	ConstExpr* c = nullptr;
+
+	if ( op1->Tag() == EXPR_NAME )
+		n1 = op1->AsNameExpr();
+	else
+		c = op1->AsConstExpr();
+
+	if ( op2->Tag() == EXPR_NAME )
+		n2 = op2->AsNameExpr();
+	else
+		c = op2->AsConstExpr();
+
+	switch ( e->Tag() ) {
+#include "ZAM-Conds.h"
+
+	default:
+		reporter->InternalError("bad expression type in ZAM::GenCond");
+	}
+
+	// Not reached.
+	}
+
 const CompiledStmt ZAM::While(const Stmt* cond_stmt, const NameExpr* cond,
 				const Stmt* body)
 	{

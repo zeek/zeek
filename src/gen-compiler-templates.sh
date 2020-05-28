@@ -8,6 +8,7 @@ BEGIN	{
 	exprsC3_f = "CompilerOpsExprsDefsC3.h"
 	exprsV_f = "CompilerOpsExprsDefsV.h"
 
+	conds_f = "ZAM-Conds.h"
 	sub_class_f = "ZAM-SubDefs.h"
 	ops_f = "ZAM-OpsDefs.h"
 	ops_names_f = "ZAM-OpsNamesDefs.h"
@@ -755,6 +756,20 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 		else
 			print ("\tcase " expr_case ":\treturn c->" \
 				op_type "(" eargs ");") >f
+
+		# The test on "type" in the following is to ensure we
+		# generate the case only once per operator, rather than
+		# once for each type.
+		if ( cond_op && type == "VVV" )
+			{
+			print ("\tcase " expr_case ":\n\t\t" \
+				"if ( n1 && n2 )\n\t\t\t" \
+				"return " op "VVV" cond "(n1, n2, 0);\n" \
+				"\t\telse if ( n1 )\n\t\t\t" \
+				"return " op "VVC" cond "(n1, c, 0);\n" \
+				"\t\telse\n\t\t\t" \
+				"return " op "VCV" cond "(c, n1, 0);\n") >conds_f
+			}
 		}
 	}
 

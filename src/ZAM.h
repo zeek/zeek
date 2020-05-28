@@ -124,6 +124,8 @@ public:
 protected:
 	void Init();
 
+	const CompiledStmt GenCond(const Expr* e);
+
 	// Optimizing the low-level compiled instructions.
 	void OptimizeInsts();
 

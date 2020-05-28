@@ -66,6 +66,8 @@ public:
 	 * @param v the value to associate it with
 	 */
 	void SetElement(const ID* id, IntrusivePtr<Val> v);
+	void SetElement(const IntrusivePtr<ID>& id, IntrusivePtr<Val> v)
+		{ SetElement(id.get(), std::move(v)); }
 
 	/**
 	 * Gets the value associated with *id* and returns it. Returns

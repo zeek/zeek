@@ -242,6 +242,16 @@ protected:
 	InstLabel GoToTarget(const CompiledStmt s);
 	InstLabel GoToTargetBeyond(const CompiledStmt s);
 	CompiledStmt PrevStmt(const CompiledStmt s);
+	void SetV(CompiledStmt s, const InstLabel l, int v)
+		{
+		if ( v == 1 )
+			SetV1(s, l);
+		else if ( v == 2 )
+			SetV2(s, l);
+		else
+			SetV3(s, l);
+		}
+
 	void SetV1(CompiledStmt s, const InstLabel l);
 	void SetV2(CompiledStmt s, const InstLabel l);
 	void SetV3(CompiledStmt s, const InstLabel l);

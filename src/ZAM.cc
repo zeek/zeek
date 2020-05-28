@@ -1090,13 +1090,25 @@ const CompiledStmt ZAM::Is(const NameExpr* n, const Expr* e)
 
 const CompiledStmt ZAM::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2)
 	{
-	auto n = e->AsNameExpr();
+	CompiledStmt cond_stmt = EmptyStmt();
+	int branch_v;
 
-	ZOp op = (s1 && s2) ?
-		OP_IF_ELSE_VV : (s1 ? OP_IF_VV : OP_IF_NOT_VV);
+	if ( e->Tag() == EXPR_NAME )
+		{
+		auto n = e->AsNameExpr();
 
-	ZInst cond(op, FrameSlot(n), 0);
-	auto cond_stmt = AddInst(cond);
+		ZOp op = (s1 && s2) ?
+			OP_IF_ELSE_VV : (s1 ? OP_IF_VV : OP_IF_NOT_VV);
+
+		ZInst cond(op, FrameSlot(n), 0);
+		cond_stmt = AddInst(cond);
+		branch_v = 2;
+		}
+	else
+		{
+		cond_stmt = GenCond(e);
+		branch_v = 3;
+		}
 
 	if ( s1 )
 		{
@@ -1105,7 +1117,8 @@ const CompiledStmt ZAM::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2)
 			{
 			auto branch_after_s1 = GoToStub();
 			auto s2_end = s2->Compile(this);
-			SetV2(cond_stmt, GoToTargetBeyond(branch_after_s1));
+			SetV(cond_stmt, GoToTargetBeyond(branch_after_s1),
+				branch_v);
 			SetGoTo(branch_after_s1, GoToTargetBeyond(s2_end));
 
 			return s2_end;
@@ -1113,7 +1126,7 @@ const CompiledStmt ZAM::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2)
 
 		else
 			{
-			SetV2(cond_stmt, GoToTargetBeyond(s1_end));
+			SetV(cond_stmt, GoToTargetBeyond(s1_end), branch_v);
 			return s1_end;
 			}
 		}
@@ -1121,7 +1134,7 @@ const CompiledStmt ZAM::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2)
 	else
 		{
 		auto s2_end = s2->Compile(this);
-		SetV2(cond_stmt, GoToTargetBeyond(s2_end));
+		SetV(cond_stmt, GoToTargetBeyond(s2_end), branch_v);
 		return s2_end;
 		}
 	}

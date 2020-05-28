@@ -1,4 +1,12 @@
 
+3.2.0-dev.570 | 2020-05-28 14:49:10 -0700
+
+  * Add negotiation flags parameter to some RDP events (Anthony Kasza, Corelight)
+
+    Namely rdp_connect_request, rdp_negotiation_response, and rdp_negotiation_failure
+
+  * Update test baselines for new Broker connection status/error strings (Jon Siwek, Corelight)
+
 3.2.0-dev.565 | 2020-05-26 21:55:54 +0000
 
   * Add DCE-RPC constants from BZAR project (V)

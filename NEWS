@@ -41,6 +41,16 @@ New Functionality
 
 - Add file signature to identify Python bytecode (application/x-python-bytecode)
 
+- Events and hooks are now allowed to have multiple, alternate prototype
+  declarations.  This allows for extending event/hook parameters in a way that
+  won't break an existing user's handlers and also allows users to define their
+  own custom event/hook prototypes that consume a subset of the parameters
+  (convenience of typing/memory/etc).  This feature is documented in detail
+  here: https://docs.zeek.org/en/current/script-reference/types.html#type-event
+
+- Add ``flags`` parameters to ``rdp_connect_request``,
+  ``rdp_negotiation_response``, and ``rdp_negotiation_failure`` events.
+
 Changed Functionality
 ---------------------
 

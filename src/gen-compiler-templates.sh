@@ -772,7 +772,7 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 				"\t\telse if ( n1 )\n\t\t\t" \
 				"return " op "VVC" cond "(n1, c, 0);\n" \
 				"\t\telse\n\t\t\t" \
-				"return " op "VCV" cond "(c, n1, 0);\n") >conds_f
+				"return " op "VCV" cond "(c, n2, 0);\n") >conds_f
 			}
 		}
 	}

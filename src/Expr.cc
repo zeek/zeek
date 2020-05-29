@@ -230,6 +230,28 @@ bool Expr::HasReducedOps(Reducer* c) const
 	return true;
 	}
 
+bool Expr::IsReducedConditional(Reducer* c) const
+	{
+	switch ( tag ) {
+	case EXPR_CONST:
+		return true;
+
+	case EXPR_NAME:
+		return IsReduced(c);
+
+	case EXPR_EQ:
+	case EXPR_NE:
+	case EXPR_LE:
+	case EXPR_GE:
+	case EXPR_LT:
+	case EXPR_GT:
+		return HasReducedOps(c);
+
+	default:
+		return false;
+	}
+	}
+
 Expr* Expr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	{
 	red_stmt = nullptr;
@@ -254,6 +276,40 @@ IntrusivePtr<Stmt> Expr::ReduceToSingletons(Reducer* c)
 		SetOp3({AdoptRef{}, op3->ReduceToSingleton(c, red3_stmt)});
 
 	return MergeStmts(red1_stmt, red2_stmt, red3_stmt);
+	}
+
+Expr* Expr::ReduceToConditional(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
+	{
+	switch ( tag ) {
+	case EXPR_CONST:
+		return this->Ref();
+
+	case EXPR_NAME:
+		return Reduce(c, red_stmt);
+
+	case EXPR_EQ:
+	case EXPR_NE:
+	case EXPR_LE:
+	case EXPR_GE:
+	case EXPR_LT:
+	case EXPR_GT:
+		red_stmt = ReduceToSingletons(c);
+
+		if ( GetOp1()->IsConst() && GetOp2()->IsConst() )
+			// Fold!
+			{
+			IntrusivePtr<Stmt> fold_stmts;
+			auto new_me = Reduce(c, fold_stmts);
+			red_stmt = MergeStmts(red_stmt, fold_stmts);
+
+			return new_me;
+			}
+
+		return this->Ref();
+
+	default:
+		return Reduce(c, red_stmt);
+	}
 	}
 
 const CompiledStmt Expr::Compile(Compiler* c) const

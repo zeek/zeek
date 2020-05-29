@@ -1105,10 +1105,7 @@ const CompiledStmt ZAM::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2)
 		branch_v = 2;
 		}
 	else
-		{
-		cond_stmt = GenCond(e);
-		branch_v = 3;
-		}
+		cond_stmt = GenCond(e, branch_v);
 
 	if ( s1 )
 		{
@@ -1139,7 +1136,7 @@ const CompiledStmt ZAM::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2)
 		}
 	}
 
-const CompiledStmt ZAM::GenCond(const Expr* e)
+const CompiledStmt ZAM::GenCond(const Expr* e, int& branch_v)
 	{
 	auto op1 = e->GetOp1();
 	auto op2 = e->GetOp2();
@@ -1149,14 +1146,24 @@ const CompiledStmt ZAM::GenCond(const Expr* e)
 	ConstExpr* c = nullptr;
 
 	if ( op1->Tag() == EXPR_NAME )
+		{
 		n1 = op1->AsNameExpr();
-	else
-		c = op1->AsConstExpr();
 
-	if ( op2->Tag() == EXPR_NAME )
-		n2 = op2->AsNameExpr();
+		if ( op2->Tag() == EXPR_NAME )
+			n2 = op2->AsNameExpr();
+		else
+			c = op2->AsConstExpr();
+		}
 	else
-		c = op2->AsConstExpr();
+		{
+		c = op1->AsConstExpr();
+		n2 = op2->AsNameExpr();
+		}
+
+	if ( n1 && n2 )
+		branch_v = 3;
+	else
+		branch_v = 2;
 
 	switch ( e->Tag() ) {
 #include "ZAM-Conds.h"
@@ -1186,10 +1193,7 @@ const CompiledStmt ZAM::While(const Stmt* cond_stmt, const Expr* cond,
 		branch_v = 2;
 		}
 	else
-		{
-		cond_IF = GenCond(cond);
-		branch_v = 3;
-		}
+		cond_IF = GenCond(cond, branch_v);
 
 	PushNexts();
 	PushBreaks();

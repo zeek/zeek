@@ -626,7 +626,7 @@ bool IfStmt::IsPure() const
 
 bool IfStmt::IsReduced(Reducer* c) const
 	{
-	if ( ! e->IsReduced(c) )
+	if ( ! e->IsReducedConditional(c) )
 		return NonReduced(e.get());
 
 	return s1->IsReduced(c) && s2->IsReduced(c);
@@ -654,7 +654,7 @@ Stmt* IfStmt::DoReduce(Reducer* c)
 	if ( c->Optimizing() )
 		e = c->OptExpr(e);
 	else
-		e = {AdoptRef{}, e->Reduce(c, red_e_stmt)};
+		e = {AdoptRef{}, e->ReduceToConditional(c, red_e_stmt)};
 
 	if ( e->IsConst() )
 		{
@@ -699,7 +699,7 @@ const CompiledStmt IfStmt::Compile(Compiler* c) const
 	if ( block2->Tag() == STMT_NULL )
 		block2 = nullptr;
 
-	return c->IfElse(e->AsNameExpr(), block1.get(), block2.get());
+	return c->IfElse(e.get(), block1.get(), block2.get());
 	}
 
 IntrusivePtr<Stmt> IfStmt::Duplicate()
@@ -1529,7 +1529,7 @@ bool WhileStmt::IsPure() const
 bool WhileStmt::IsReduced(Reducer* c) const
 	{
 	// No need to check loop_cond_stmt, as we create it reduced.
-	return loop_condition->IsReduced(c) && body->IsReduced(c);
+	return loop_condition->IsReducedConditional(c) && body->IsReduced(c);
 	}
 
 Stmt* WhileStmt::DoReduce(Reducer* c)
@@ -1541,8 +1541,8 @@ Stmt* WhileStmt::DoReduce(Reducer* c)
 		if ( ! c->IsPruning() && IsReduced(c) )
 			return this->Ref();
 
-		loop_condition =
-			{AdoptRef{}, loop_condition->Reduce(c, loop_cond_stmt)};
+		auto lc = loop_condition->ReduceToConditional(c, loop_cond_stmt);
+		loop_condition = {AdoptRef{}, lc};
 		}
 
 	body = {AdoptRef{}, body->Reduce(c)};

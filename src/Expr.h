@@ -170,6 +170,10 @@ public:
 	// True if the expression's operands are singletons.
 	virtual bool HasReducedOps(Reducer* c) const;
 
+	// True if the expression is reduced to a form that can be
+	// used in a conditional.
+	bool IsReducedConditional(Reducer* c) const;
+
 	// Returns a set of predecessor statements in red_stmt (which might
 	// be nil if no reduction necessary), and the reduced version of
 	// the expression, suitable for replacing previous uses.  The
@@ -185,6 +189,9 @@ public:
 	// Reduces the expression to one whose operands are singletons.
 	// Returns a predecessor statement(list), if any.
 	virtual IntrusivePtr<Stmt> ReduceToSingletons(Reducer* c);
+
+	// Reduces the expression to one that can appear as a conditional.
+	Expr* ReduceToConditional(Reducer* c, IntrusivePtr<Stmt>& red_stmt);
 
 	virtual Expr* Inline(Inliner* inl)	{ return this->Ref(); }
 

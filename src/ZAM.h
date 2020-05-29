@@ -124,7 +124,8 @@ public:
 protected:
 	void Init();
 
-	const CompiledStmt GenCond(const Expr* e);
+	// Second argument is which instruction slot holds the branch target.
+	const CompiledStmt GenCond(const Expr* e, int& branch_v);
 
 	// Optimizing the low-level compiled instructions.
 	void OptimizeInsts();

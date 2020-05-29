@@ -52,6 +52,7 @@ int ZInst::NumFrameSlots() const
 
 	case OP_V_I1:	return 0;
 	case OP_VV_FRAME:	return 1;
+	case OP_VVc:	return 2;
 	case OP_VC_ID:	return 1;
 	case OP_VV_I2:	return 1;
 	case OP_VVC_I2:	return 1;
@@ -98,6 +99,7 @@ bool ZInst::UsesSlot(int slot) const
 		return v1_match;
 
 	case OP_VV:
+	case OP_VVc:
 	case OP_VVC:
 	case OP_VVV_I3:
 	case OP_VVVV_I3_I4:
@@ -195,6 +197,10 @@ void ZInst::Dump(const frame_map& frame_ids) const
 
 	case OP_VV_FRAME:
 		printf("%s, interpreter frame[%d]", id1, v2);
+		break;
+
+	case OP_VVc:
+		printf("%s, %s, <special-constant>", id1, id2);
 		break;
 
 	case OP_VC_ID:

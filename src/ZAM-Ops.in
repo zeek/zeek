@@ -803,21 +803,13 @@ eval if ( ! can_cast_value_to_type(v, z.t) ) pc = z.v2;
 
 
 internal-op Init-Table-Loop
-type VV
-eval auto ii = new IterInfo()
+type VVC
+eval auto ii = z.c.iter_info
 eval ii->tv = frame[z.v2].table_val
 eval ii->loop_vals = ii->tv->AsTable()
 eval ii->c = ii->loop_vals->InitForIteration()
 eval ii->value_var_type = z.t
-eval frame[z.v1].iter_info = TrackVal(ii)
-
-# It might feel natural to have v1 be the iteration info, but we
-# have a convention of always having any assigned-to variable in v1.
-internal-op Add-Var-To-Init
-type VV
-eval auto ii = frame[z.v2].iter_info
-eval ii->loop_vars.push_back(z.v1)
-eval ii->loop_var_types.push_back(z.t)
+eval frame[z.v1].iter_info = ii
 
 internal-op Next-Table-Iter
 # v1 = iteration info
@@ -862,13 +854,11 @@ eval }
 
 internal-op Init-Vector-Loop
 type VV
-eval auto ii = new IterInfo()
+eval auto ii = z.c.iter_info
 eval ii->vv = frame[z.v2].vector_val->ConstVec()
-eval ii->vec_type = z.t->AsVectorType()
-eval ii->yield_type = ii->vec_type->YieldType()
-eval ii->iter = 0
 eval ii->n = ii->vv->size()
-eval frame[z.v1].iter_info = TrackVal(ii)
+eval ii->iter = 0
+eval frame[z.v1].iter_info = ii
 
 # v1 = iteration variable
 # v2 = iteration info
@@ -883,11 +873,11 @@ eval ++ii->iter
 
 internal-op Init-String-Loop
 type VV
-eval auto ii = new IterInfo()
+eval auto ii = z.c.iter_info
 eval ii->s = frame[z.v2].string_val
 eval ii->iter = 0
 eval ii->n = ii->s->Len()
-eval frame[z.v1].iter_info = TrackVal(ii)
+eval frame[z.v1].iter_info = ii
 
 # v1 = iteration variable
 # v2 = iteration info

@@ -531,6 +531,24 @@ bool ZAM::VarIsAssigned(int slot) const
 
 bool ZAM::VarIsAssigned(int slot, const ZInst* i) const
 	{
+	// Special-case for table iterators, which assign to a bunch
+	// of variables but they're not immediately visible in the
+	// instruction layout.
+	if ( i->op == OP_NEXT_TABLE_ITER_VAL_VAR_VVV ||
+	     i->op == OP_NEXT_TABLE_ITER_VV )
+		{
+		auto iter_vars = i->c.iter_info;
+		for ( auto v : iter_vars->loop_vars )
+			if ( v == slot )
+				return true;
+
+		if ( i->op != OP_NEXT_TABLE_ITER_VAL_VAR_VVV )
+			return false;
+
+		// Otherwise fall through, since that flavor of iterate
+		// *does* also assign to slot 1.
+		}
+
 	return i->AssignsToSlot1() && i->v1 == slot &&
 		! i->IsFrameSync();
 	}
@@ -1693,32 +1711,38 @@ const CompiledStmt ZAM::LoopOverTable(const ForStmt* f, const NameExpr* val)
 	auto loop_vars = f->LoopVars();
 	auto value_var = f->ValueVar();
 
-	auto info = NewSlot();
-	auto z = ZInst(OP_INIT_TABLE_LOOP_VV, info, FrameSlot(val));
-	z.t = value_var ? value_var->Type() : nullptr;
-	auto init_end = AddInst(z);
+	auto ii = new IterInfo();
 
 	for ( int i = 0; i < loop_vars->length(); ++i )
 		{
 		auto id = (*loop_vars)[i];
-		z = ZInst(OP_ADD_VAR_TO_INIT_VV, FrameSlot(id), info);
-		z.CheckIfManaged(id->Type());
-		z.t = id->Type();
-		init_end = AddInst(z);
+		ii->loop_vars.push_back(FrameSlot(id));
+		ii->loop_var_types.push_back(id->Type());
 		}
+
+	ZAMValUnion ii_val;
+	ii_val.iter_info = ii;
+
+	auto info = NewSlot();
+	auto z = ZInst(OP_INIT_TABLE_LOOP_VVC, info, FrameSlot(val));
+	z.c = ii_val;
+	z.op_type = OP_VVc;
+	z.t = value_var ? value_var->Type() : nullptr;
+	auto init_end = AddInst(z);
 
 	auto iter_head = StartingBlock();
 	if ( value_var )
-
 		{
 		z = ZInst(OP_NEXT_TABLE_ITER_VAL_VAR_VVV, FrameSlot(value_var),
 				info, 0);
+		z.c = ii_val;
 		z.CheckIfManaged(value_var->Type());
 		z.op_type = OP_VVV_I3;
 		}
 	else
 		{
 		z = ZInst(OP_NEXT_TABLE_ITER_VV, info, 0);
+		z.c = ii_val;
 		z.op_type = OP_VV_I2;
 		}
 
@@ -1730,9 +1754,18 @@ const CompiledStmt ZAM::LoopOverVector(const ForStmt* f, const NameExpr* val)
 	auto loop_vars = f->LoopVars();
 	auto loop_var = (*loop_vars)[0];
 
+	auto ii = new IterInfo();
+	ii->vec_type = val->Type()->AsVectorType();
+	ii->yield_type = ii->vec_type->YieldType();
+
+	ZAMValUnion ii_val;
+	ii_val.iter_info = ii;
+
 	auto info = NewSlot();
 	auto z = ZInst(OP_INIT_VECTOR_LOOP_VV, info, FrameSlot(val));
-	z.t = val->Type().get();
+	z.c = ii_val;
+	z.op_type = OP_VVc;
+
 	auto init_end = AddInst(z);
 
 	auto iter_head = StartingBlock();
@@ -1748,9 +1781,14 @@ const CompiledStmt ZAM::LoopOverString(const ForStmt* f, const NameExpr* val)
 	auto loop_vars = f->LoopVars();
 	auto loop_var = (*loop_vars)[0];
 
+	ZAMValUnion ii_val;
+	ii_val.iter_info = new IterInfo();
+
 	auto info = NewSlot();
 	auto z = ZInst(OP_INIT_STRING_LOOP_VV, info, FrameSlot(val));
-	z.CheckIfManaged(val);
+	z.c = ii_val;
+	z.op_type = OP_VVc;
+
 	auto init_end = AddInst(z);
 
 	auto iter_head = StartingBlock();

@@ -487,6 +487,9 @@ protected:
 	bool IsPure() const override;
 	bool IsReduced(Reducer* c) const override;
 
+	// True if there's definitely no control flow past the statement.
+	bool NoFlowAfter(const Stmt* s) const;
+
 	stmt_list* stmts;
 };
 

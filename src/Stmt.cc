@@ -2376,10 +2376,32 @@ bool StmtList::IsPure() const
 
 bool StmtList::IsReduced(Reducer* c) const
 	{
-	for ( const auto& stmt : Stmts() )
-		if ( ! stmt->IsReduced(c) )
+	int n = Stmts().length();
+
+	for ( auto i = 0; i < n; ++i )
+		{
+		auto& s_i = Stmts()[i];
+		if ( ! s_i->IsReduced(c) )
 			return false;
+
+		if ( NoFlowAfter(s_i) && i < n - 1 )
+			return false;
+		}
+
 	return true;
+	}
+
+bool StmtList::NoFlowAfter(const Stmt* s) const
+	{
+	switch ( s->Tag() ) {
+	case STMT_NEXT:
+	case STMT_BREAK:
+	case STMT_RETURN:
+		return true;
+
+	default:
+		return false;
+	}
 	}
 
 Stmt* StmtList::DoReduce(Reducer* c)
@@ -2387,10 +2409,18 @@ Stmt* StmtList::DoReduce(Reducer* c)
 	stmt_list* f_stmts = new stmt_list;
 	bool did_change = false;
 
-	for ( auto i = 0; i < Stmts().length(); ++i )
+	int n = Stmts().length();
+
+	for ( auto i = 0; i < n; ++i )
 		{
 		if ( ReduceStmt(i, f_stmts, c) )
 			did_change = true;
+
+		if ( NoFlowAfter(Stmts()[i]) && i < n - 1 )
+			{
+			did_change = true;
+			break;
+			}
 
 		if ( reporter->Errors() > 0 )
 			return this->Ref();

@@ -1115,7 +1115,10 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 
 			auto e_pre = mgr.GetPreMinRDs(e);
 			if ( ! field_rd || ! e_pre->HasDI(field_rd) )
-				printf("no reaching def for %s\n", obj_desc(e));
+				{
+				if ( ! analysis_options.inliner )
+					printf("no reaching def for %s\n", obj_desc(e));
+				}
 			}
 
 		return TC_ABORTSTMT;
@@ -1128,7 +1131,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 
 		mgr.SetPreFromPre(r, e);
 
-		// Treat this as a definition of lhs$fn, since it's
+		// Treat this as a definition of r$fn, since it's
 		// assuring that that field exists.  That's not quite
 		// right, since this expression's parent could be a
 		// negation, but at least we know that the script
@@ -1141,7 +1144,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 			auto id_rt = id_e->Type()->AsRecordType();
 			auto id_di = mgr.GetID_DI(id);
 
-			if ( ! id_di )
+			if ( ! id_di && ! analysis_options.inliner )
 				{
 				printf("no ID reaching def for %s\n", id->Name());
 				break;

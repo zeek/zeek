@@ -14,6 +14,7 @@
 #include "Traverse.h"
 
 // Just needed for the Log-Write BiF.
+#include "Net.h"
 #include "logging/Manager.h"
 
 
@@ -837,6 +838,12 @@ bool ZAM::IsZAM_BuiltIn(const Expr* e)
 	else if ( streq(func->Name(), "get_port_transport_proto") )
 		return BuiltIn_get_port_etc(n, args);
 
+	else if ( streq(func->Name(), "reading_live_traffic") )
+		return BuiltIn_reading_live_traffic(n, args);
+
+	else if ( streq(func->Name(), "reading_traces") )
+		return BuiltIn_reading_traces(n, args);
+
 	return false;
 	}
 
@@ -979,6 +986,36 @@ bool ZAM::BuiltIn_get_port_etc(const NameExpr* n, const expr_list& args)
 	int nslot = Frame1Slot(n, OP1_WRITE);
 
 	AddInst(ZInst(OP_GET_PORT_TRANSPORT_PROTO_VV, nslot, FrameSlot(pn)));
+
+	return true;
+	}
+
+bool ZAM::BuiltIn_reading_live_traffic(const NameExpr* n, const expr_list& args)
+	{
+	if ( ! n )
+		{
+		reporter->Warning("return value from built-in function ignored");
+		return true;
+		}
+
+	int nslot = Frame1Slot(n, OP1_WRITE);
+
+	AddInst(ZInst(OP_READING_LIVE_TRAFFIC_V, nslot));
+
+	return true;
+	}
+
+bool ZAM::BuiltIn_reading_traces(const NameExpr* n, const expr_list& args)
+	{
+	if ( ! n )
+		{
+		reporter->Warning("return value from built-in function ignored");
+		return true;
+		}
+
+	int nslot = Frame1Slot(n, OP1_WRITE);
+
+	AddInst(ZInst(OP_READING_TRACES_V, nslot));
 
 	return true;
 	}

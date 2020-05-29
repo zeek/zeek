@@ -1229,3 +1229,11 @@ eval if ( mask == TCP_PORT_MASK ) v = 1
 eval else if ( mask == UDP_PORT_MASK ) v = 2
 eval else if ( mask == ICMP_PORT_MASK ) v = 3
 eval frame[z.v1].uint_val = v
+
+internal-op Reading-Live-Traffic
+type V
+eval frame[z.v1].int_val = reading_live
+
+internal-op Reading-Traces
+type V
+eval frame[z.v1].int_val = reading_traces

@@ -203,6 +203,8 @@ protected:
 	// call, false if not.
 	bool BuiltIn_to_lower(const NameExpr* n, const expr_list& args);
 	bool BuiltIn_sub_bytes(const NameExpr* n, const expr_list& args);
+	bool BuiltIn_Log__write(const NameExpr* n, const expr_list& args);
+	bool BuiltIn_get_port_etc(const NameExpr* n, const expr_list& args);
 
 	// A bit weird, but handy for switch statements: returns a
 	// bit mask of which of the arguments in the given list correspond

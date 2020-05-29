@@ -1204,3 +1204,28 @@ type VV
 eval auto sv = ZAM_to_lower(frame[z.v2].string_val)
 eval delete frame[z.v1].string_val
 eval frame[z.v1].string_val = sv
+
+# A ZAM version of Log::__write.  In calls to it, the first argument
+# is generally a constant (enum), so for now we just support a VVC
+# version.  It's actually the case that the return value is pretty
+# much always ignored, so we could have a VC version for that case,
+# but doesn't seem worth it.
+#
+# Could speed things up further by modifying the Write method to just
+# take the raw enum value, as it appears that that's all that's ever
+# actually used.
+internal-op Log-Write
+type VVC
+eval auto id = z.c.ToVal(z.t)
+eval auto columns = frame[z.v2].record_val
+eval bool result = log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal())
+eval frame[z.v1].int_val = result
+
+internal-op Get-Port-Transport-Proto
+type VV
+eval auto mask = frame[z.v2].uint_val & PORT_SPACE_MASK
+eval auto v = 0; /* TRANPORT_UNKNOWN */
+eval if ( mask == TCP_PORT_MASK ) v = 1
+eval else if ( mask == UDP_PORT_MASK ) v = 2
+eval else if ( mask == ICMP_PORT_MASK ) v = 3
+eval frame[z.v1].uint_val = v

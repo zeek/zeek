@@ -13,6 +13,9 @@
 #include "Reporter.h"
 #include "Traverse.h"
 
+// Just needed for the Log-Write BiF.
+#include "logging/Manager.h"
+
 
 // Count of how often each top of ZOP executed.
 int ZOP_count[OP_NOP+1];
@@ -828,6 +831,12 @@ bool ZAM::IsZAM_BuiltIn(const Expr* e)
 	else if ( streq(func->Name(), "to_lower") )
 		return BuiltIn_to_lower(n, args);
 
+	else if ( streq(func->Name(), "Log::__write") )
+		return BuiltIn_Log__write(n, args);
+
+	else if ( streq(func->Name(), "get_port_transport_proto") )
+		return BuiltIn_get_port_etc(n, args);
+
 	return false;
 	}
 
@@ -931,6 +940,45 @@ bool ZAM::BuiltIn_sub_bytes(const NameExpr* n, const expr_list& args)
 	}
 
 	AddInst(z);
+
+	return true;
+	}
+
+bool ZAM::BuiltIn_Log__write(const NameExpr* n, const expr_list& args)
+	{
+	auto id = args[0];
+	auto columns = args[1];
+
+	if ( id->Tag() != EXPR_CONST || columns->Tag() != EXPR_NAME )
+		return false;
+
+	auto id_c = id->AsConstExpr();
+	auto columns_n = columns->AsNameExpr();
+
+	int nslot = n ? Frame1Slot(n, OP1_WRITE) : RegisterSlot();
+
+	AddInst(ZInst(OP_LOG_WRITE_VVC, nslot, FrameSlot(columns_n), id_c));
+
+	return true;
+	}
+
+bool ZAM::BuiltIn_get_port_etc(const NameExpr* n, const expr_list& args)
+	{
+	if ( ! n )
+		{
+		reporter->Warning("return value from built-in function ignored");
+		return true;
+		}
+
+	auto p = args[0];
+
+	if ( p->Tag() != EXPR_NAME )
+		return false;
+
+	auto pn = p->AsNameExpr();
+	int nslot = Frame1Slot(n, OP1_WRITE);
+
+	AddInst(ZInst(OP_GET_PORT_TRANSPORT_PROTO_VV, nslot, FrameSlot(pn)));
 
 	return true;
 	}

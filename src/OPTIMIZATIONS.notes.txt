@@ -1,6 +1,7 @@
-"for" loop initialization is static, pull it in
+allow inlining of any function that is not itself (ultimately) recursive
+hot-spot BiFs: Log::__write, get_port_transport_proto
 
-richer conditionals; canonicalize to &&, turn into cascades
+&&/|| conditionals to cascades
 
 hoist loop invariants
 

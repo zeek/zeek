@@ -21,7 +21,8 @@ void Inliner::Analyze()
 			{
 			cs.insert(func);
 
-			if ( func == f->func )
+			if ( func == f->func &&
+			     analysis_options.report_recursive )
 				printf("%s is directly recursive\n", func->Name());
 			}
 
@@ -64,7 +65,8 @@ void Inliner::Analyze()
 						{
 						addls.insert(ccc);
 
-						if ( ccc == c.first )
+						if ( ccc == c.first &&
+						     analysis_options.report_recursive )
 							printf("%s is indirectly recursive, called by %s\n",
 								c.first->Name(),
 								cc->Name());

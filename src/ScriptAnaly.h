@@ -29,6 +29,10 @@ extern struct AnalyOpt {
 	// If true, do global inlining.  Not affected by only_func.
 	bool inliner = false;
 
+	// If true, report which functions are directly and indirectly
+	// recursive.  Only germane if running the inliner.
+	bool report_recursive = false;
+
 	// If true, do optimization on reduced interpreted scripts.
 	bool optimize = false;
 

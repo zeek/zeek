@@ -1581,10 +1581,8 @@ const CompiledStmt WhileStmt::Compile(Compiler* c) const
 		}
 
 	else
-		{
-		auto cond = loop_condition->AsNameExpr();
-		return c->While(loop_cond_stmt.get(), cond, body.get());
-		}
+		return c->While(loop_cond_stmt.get(), loop_condition.get(),
+				body.get());
 	}
 
 IntrusivePtr<Stmt> WhileStmt::Duplicate()

@@ -49,7 +49,7 @@ public:
 	const CompiledStmt IfElse(const Expr* e, const Stmt* s1,
 					const Stmt* s2) override;
 
-	const CompiledStmt While(const Stmt* cond_stmt, const NameExpr* cond,
+	const CompiledStmt While(const Stmt* cond_stmt, const Expr* cond,
 					const Stmt* body) override;
 	const CompiledStmt Loop(const Stmt* body) override;
 

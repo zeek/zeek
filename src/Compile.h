@@ -64,7 +64,7 @@ public:
 						const Stmt* s2) = 0;
 
 	virtual const CompiledStmt While(const Stmt* cond_stmt,
-				const NameExpr* cond, const Stmt* body) = 0;
+					const Expr* cond, const Stmt* body) = 0;
 	virtual const CompiledStmt Loop(const Stmt* body) = 0;
 
 	virtual const CompiledStmt When(Expr* cond, const Stmt* body,

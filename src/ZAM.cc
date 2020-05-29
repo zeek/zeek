@@ -1168,7 +1168,7 @@ const CompiledStmt ZAM::GenCond(const Expr* e)
 	// Not reached.
 	}
 
-const CompiledStmt ZAM::While(const Stmt* cond_stmt, const NameExpr* cond,
+const CompiledStmt ZAM::While(const Stmt* cond_stmt, const Expr* cond,
 				const Stmt* body)
 	{
 	auto head = StartingBlock();
@@ -1176,7 +1176,20 @@ const CompiledStmt ZAM::While(const Stmt* cond_stmt, const NameExpr* cond,
 	if ( cond_stmt )
 		(void) cond_stmt->Compile(this);
 
-	auto cond_IF = AddInst(ZInst(OP_IF_VV, FrameSlot(cond), 0));
+	CompiledStmt cond_IF = EmptyStmt();
+	int branch_v;
+
+	if ( cond->Tag() == EXPR_NAME )
+		{
+		auto n = cond->AsNameExpr();
+		cond_IF = AddInst(ZInst(OP_IF_VV, FrameSlot(n), 0));
+		branch_v = 2;
+		}
+	else
+		{
+		cond_IF = GenCond(cond);
+		branch_v = 3;
+		}
 
 	PushNexts();
 	PushBreaks();
@@ -1187,7 +1200,7 @@ const CompiledStmt ZAM::While(const Stmt* cond_stmt, const NameExpr* cond,
 	auto tail = GoTo(GoToTarget(head));
 
 	auto beyond_tail = GoToTargetBeyond(tail);
-	SetV2(cond_IF, beyond_tail);
+	SetV(cond_IF, beyond_tail, branch_v);
 
 	ResolveNexts(GoToTarget(head));
 	ResolveBreaks(beyond_tail);

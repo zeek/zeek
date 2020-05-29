@@ -7,6 +7,7 @@
 #include "Reduce.h"
 #include "Scope.h"
 #include "ProfileFunc.h"
+#include "ScriptAnaly.h"
 #include "Trigger.h"
 #include "Desc.h"
 #include "Reporter.h"
@@ -321,7 +322,7 @@ Stmt* ZAM::CompileBody()
 	// Could erase insts1 here to recover memory, but it's handy
 	// for debugging.
 
-	if ( profile )
+	if ( analysis_options.report_profile )
 		{
 		inst_count = new vector<int>;
 		inst_CPU = new vector<double>;
@@ -627,11 +628,11 @@ IntrusivePtr<Val> ZAM::Exec(Frame* f, stmt_flow_type& flow) const
 	auto nv = num_Vals;
 	auto ndv = num_del_Vals;
 
-	double t = profile ? curr_CPU_time() : 0.0;
+	double t = analysis_options.report_profile ? curr_CPU_time() : 0.0;
 
 	auto val = DoExec(f, 0, flow);
 
-	if ( profile )
+	if ( analysis_options.report_profile )
 		*CPU_time += curr_CPU_time() - t;
 
 	auto dnv = num_Vals - nv;
@@ -702,7 +703,7 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 			z.Dump(frame_denizens);
 			}
 
-		if ( profile )
+		if ( analysis_options.report_profile )
 			{
 			++ZOP_count[z.op];
 			++(*inst_count)[pc];
@@ -724,7 +725,7 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 #include "ZAM-OpsEvalDefs.h"
 		}
 
-		if ( profile )
+		if ( analysis_options.report_profile )
 			{
 			double dt = curr_CPU_time() - profile_CPU;
 			(*inst_CPU)[profile_pc] += dt;

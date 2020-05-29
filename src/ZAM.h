@@ -341,7 +341,6 @@ protected:
 	// beyond the end of what we've compiled so far.
 	ZInst* pending_inst = nullptr;
 
-	bool profile = false;
 	// These need to be pointers so we can manipulate them in a
 	// const method.
 	vector<int>* inst_count;	// for profiling

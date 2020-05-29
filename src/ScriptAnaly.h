@@ -6,6 +6,47 @@
 #include "Expr.h"
 #include "Scope.h"
 
+
+// Flags controlling what sorts of analysis to do.
+
+extern struct AnalyOpt {
+	// Whether to analyze scripts.
+	bool activate = false;
+
+	// If non-nil, then only analyze the given function/event/hook.
+	const char* only_func = nullptr;
+
+	// If true, then generate a detailed dynamic execution profile
+	// for generate code.
+	bool report_profile = false;
+
+	// If true, activates tracing for the generation of reaching-defs.
+	bool rd_trace = false;
+
+	// If true, dump out the use-defs for each analyzed function.
+	bool ud_dump = false;
+
+	// If true, do global inlining.  Not affected by only_func.
+	bool inliner = false;
+
+	// If true, do optimization on reduced interpreted scripts.
+	bool optimize = false;
+
+	// If true, compile interpreted scripts to ZAM.
+	bool compile = false;
+
+	// If true, dump out the ZAM code.  This is always done if
+	// only_func is set (and compile is set).
+	bool dump_code = false;
+
+	// If true, dump out transformed code: the results of reducing
+	// interpreted scripts, and, if optimize is set, of then optimizing
+	// them.  Always done if only_func is set.
+	bool dump_xform = false;
+
+} analysis_options;
+
+
 class ProfileFunc;
 
 // Info we need for tracking an instance of a function.

@@ -95,13 +95,11 @@ protected:
 	const ProfileFunc* pf;
 	DefSetsMgr mgr;
 	vector<BlockDefs*> block_defs;
-	bool trace;
 };
 
 
 RD_Decorate::RD_Decorate(const ProfileFunc* _pf) : pf(_pf)
 	{
-	trace = getenv("ZEEK_OPT_TRACE") != nullptr;
 	}
 
 
@@ -129,7 +127,7 @@ void RD_Decorate::TraverseFunction(const Func* f, Scope* scope,
 		// empty ones we set up.
 		mgr.SetPostFromPre(f);
 
-	if ( trace )
+	if ( analysis_options.rd_trace )
 		{
 		printf("traversing function %s, post RDs:\n", f->Name());
 		mgr.GetPostMaxRDs(f)->Dump();
@@ -144,7 +142,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 	ASSERT(mgr.HasPreMinRDs(s));
 	ASSERT(mgr.HasPreMaxRDs(s));
 
-	if ( trace )
+	if ( analysis_options.rd_trace )
 		{
 		printf("pre min RDs for stmt %s:\n", obj_desc(s));
 		mgr.GetPreMinRDs(s)->Dump();
@@ -221,7 +219,7 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 
 			stmt->Traverse(this);
 
-			if ( trace )
+			if ( analysis_options.rd_trace )
 				{
 				printf("post RDs for stmt %s:\n", obj_desc(stmt));
 				// mgr.GetPostMinRDs(stmt)->Dump();
@@ -903,7 +901,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	ASSERT(mgr.HasPreMinRDs(e));
 	ASSERT(mgr.HasPreMaxRDs(e));
 
-	if ( trace && 0 )
+	if ( analysis_options.rd_trace && 0 )
 		{
 		printf("---\npre RDs for expr %s:\n", obj_desc(e));
 		mgr.GetPreMinRDs(e)->Dump();
@@ -917,7 +915,7 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 	// values).
 	mgr.SetPostFromPre(e);
 
-	if ( trace && 0 )
+	if ( analysis_options.rd_trace && 0 )
 		{
 		printf("---\nnominal post RDs for expr %s:\n", obj_desc(e));
 		mgr.GetPostMaxRDs(e)->Dump();
@@ -1426,30 +1424,20 @@ void RD_Decorate::CheckRecordRDs(DefinitionItem* di, DefinitionPoint dp,
 	}
 
 
-bool did_init = false;
-bool activate = false;
-bool report_profile = false;
-bool ud_dump = false;
-bool inliner = false;
-bool optimize = false;
-bool compile = false;
-bool dump_code = false;
-bool dump_xform = false;
-const char* only_func = 0;
-
 void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 			IntrusivePtr<Stmt>& body)
 	{
 	if ( reporter->Errors() > 0 )
 		return;
 
-	if ( ! activate )
+	if ( ! analysis_options.activate )
 		return;
 
-	if ( only_func && ! streq(f->Name(), only_func) )
+	if ( analysis_options.only_func &&
+	     ! streq(f->Name(), analysis_options.only_func) )
 		return;
 
-	if ( only_func )
+	if ( analysis_options.only_func )
 		printf("Original: %s\n", obj_desc(body));
 
 	ProfileFunc pf_orig;
@@ -1457,7 +1445,7 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 
 	if ( pf_orig.num_when_stmts > 0 || pf_orig.num_lambdas > 0 )
 		{
-		if ( only_func )
+		if ( analysis_options.only_func )
 			printf("Skipping analysis due to \"when\" statement or use of lambdas\n");
 		return;
 		}
@@ -1485,7 +1473,7 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 			obj_desc(non_reduced_perp));
 	checking_reduction = false;
 
-	if ( only_func || dump_xform )
+	if ( analysis_options.only_func || analysis_options.dump_xform )
 		printf("Transformed: %s\n", obj_desc(new_body));
 
 	IntrusivePtr<Stmt> new_body_ptr = {AdoptRef{}, new_body};
@@ -1495,7 +1483,7 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 
 	f->GrowFrameSize(rc->NumTemps() + rc->NumNewLocals());
 
-	if ( optimize )
+	if ( analysis_options.optimize )
 		{
 		ProfileFunc pf_red;
 		f->Traverse(&pf_red);
@@ -1508,7 +1496,7 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 		new_body = new_body->Reduce(rc);
 		new_body_ptr = {AdoptRef{}, new_body};
 
-		if ( only_func || dump_xform )
+		if ( analysis_options.only_func || analysis_options.dump_xform )
 			printf("Optimized: %s\n", obj_desc(new_body));
 
 		f->ReplaceBody(body, new_body_ptr);
@@ -1526,17 +1514,17 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 	auto ud = new UseDefs(new_body, rc);
 	ud->Analyze();
 
-	if ( ud_dump )
+	if ( analysis_options.ud_dump )
 		ud->Dump();
 
 	ud->RemoveUnused();
 
-	if ( compile )
+	if ( analysis_options.compile )
 		{
 		auto zam = new ZAM(f, scope, new_body, ud, rc, pf_red);
 		new_body = zam->CompileBody();
 
-		if ( only_func || dump_code )
+		if ( analysis_options.only_func || analysis_options.dump_code )
 			zam->Dump();
 
 		new_body_ptr = {AdoptRef{}, new_body};
@@ -1634,24 +1622,30 @@ void analyze_orphan_events()
 		}
 	}
 
+
+struct AnalyOpt analysis_options;
+
 void analyze_scripts()
 	{
+	static bool did_init = false;
+
 	if ( ! did_init )
 		{
 		if ( getenv("ZEEK_ANALY") )
-			activate = true;
+			analysis_options.activate = true;
 
-		only_func = getenv("ZEEK_ONLY");
-		report_profile = getenv("ZEEK_ZAM_PROFILE");
-		ud_dump = getenv("ZEEK_UD_DUMP");
-		inliner = getenv("ZEEK_INLINE");
-		optimize = getenv("ZEEK_OPTIMIZE");
-		compile = getenv("ZEEK_COMPILE");
-		dump_code = getenv("ZEEK_DUMP_CODE");
-		dump_xform = getenv("ZEEK_DUMP_XFORM");
+		analysis_options.only_func = getenv("ZEEK_ONLY");
+		analysis_options.report_profile = getenv("ZEEK_ZAM_PROFILE");
+		analysis_options.rd_trace = getenv("ZEEK_OPT_TRACE");
+		analysis_options.ud_dump = getenv("ZEEK_UD_DUMP");
+		analysis_options.inliner = getenv("ZEEK_INLINE");
+		analysis_options.optimize = getenv("ZEEK_OPTIMIZE");
+		analysis_options.compile = getenv("ZEEK_COMPILE");
+		analysis_options.dump_code = getenv("ZEEK_DUMP_CODE");
+		analysis_options.dump_xform = getenv("ZEEK_DUMP_XFORM");
 
-		if ( only_func )
-			activate = true;
+		if ( analysis_options.only_func )
+			analysis_options.activate = true;
 
 		did_init = true;
 		}
@@ -1666,7 +1660,7 @@ void analyze_scripts()
 
 	// analyze_orphan_events();
 	// analyze_orphan_functions();
-	Inliner* inl = inliner ? new Inliner(funcs) : nullptr;
+	Inliner* inl = analysis_options.inliner ? new Inliner(funcs) : nullptr;
 
 	for ( auto& f : funcs )
 		{
@@ -1687,7 +1681,7 @@ void profile_script_execution()
 	printf("%d vals created, %d destructed\n", num_Vals, num_del_Vals);
 	printf("%d string vals created, %d destructed\n", num_StringVals, num_del_StringVals);
 
-	if ( report_profile )
+	if ( analysis_options.report_profile )
 		{
 		report_ZOP_profile();
 

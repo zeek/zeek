@@ -2079,14 +2079,27 @@ void TableVal::SendToStore(const Val* index, const Val* new_value, OnChangeType 
 		if ( ! handle )
 			return;
 
-		if ( index->AsListVal()->Length() != 1 )
+		// we wither get passed the raw index_val - or a ListVal with exactly one element.
+		// Since broker does not support ListVals, we have to unoll this in the second case.
+		const Val* index_val;
+		if ( index->Type()->Tag() == TYPE_LIST )
 			{
-			builtin_error("table with complex index not supported for &broker_store");
-			return;
+			if ( index->AsListVal()->Length() != 1 )
+				{
+				builtin_error("table with complex index not supported for &broker_store");
+				return;
+				}
+
+			index_val = index->AsListVal()->Index(0);
+			}
+		else
+			{
+			index_val = index;
 			}
 
-		const auto index_val = index->AsListVal()->Index(0);
-		auto key_val = new StringVal("test");
+		// FIXME: at the moment this is hardcoded to the name of the broker store. I needed something to be able to tell
+		// me which store a change came from - and this still seems to be missing from the store_events. (Or I am blind).
+		auto key_val = new StringVal(broker_store);
 		auto broker_key = bro_broker::val_to_data(key_val);
 		auto broker_index = bro_broker::val_to_data(index_val);
 		Unref(key_val);

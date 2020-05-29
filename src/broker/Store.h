@@ -95,13 +95,16 @@ private:
 class StoreHandleVal : public OpaqueVal {
 public:
 	StoreHandleVal(broker::store s)
-		: OpaqueVal(bro_broker::opaque_of_store_handle), store{s}, proxy{store}
+		: OpaqueVal(bro_broker::opaque_of_store_handle), store{s}, proxy{store}, store_pid{store.frontend_id()}
 		{ }
 
 	void ValDescribe(ODesc* d) const override;
 
 	broker::store store;
 	broker::store::proxy proxy;
+	broker::publisher_id store_pid;
+	// Zeek table that events are forwarded to.
+	IntrusivePtr<TableVal> forward_to;
 
 protected:
 	StoreHandleVal() = default;

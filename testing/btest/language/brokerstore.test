@@ -6,21 +6,28 @@ redef exit_only_after_terminate = T;
 module TestModule;
 
 global tablestore: opaque of Broker::Store;
+#global tabletwostore: opaque of Broker::Store;
 global setstore: opaque of Broker::Store;
 
 global t: table[string] of count &broker_store="table";
+#global ct: table[string, string] of count &broker_store="table2";
 global s: set[string] &broker_store="set";
 
 event zeek_init()
 	{
 	tablestore = Broker::create_master("table");
+	#tabletwostore = Broker::create_master("table2");
 	setstore = Broker::create_master("set");
 	print "inserting";
 	t["a"] = 5;
-	add s["hi"];
-	print "changing";
-	t["a"] = 2;
-	print "deleting";
 	delete t["a"];
-	delete s["hi"];
+	#add s["hi"];
+	#print "changing";
+	t["a"] = 2;
+	t["b"] = 3;
+	t["c"] = 4;
+	t["whatever"] = 5;
+	#print "deleting";
+	#delete t["a"];
+	#delete s["hi"];
 	}

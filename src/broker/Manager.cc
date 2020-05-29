@@ -909,15 +909,7 @@ void Manager::Process()
 
 		if ( topic == broker::topics::store_events )
 			{
-			if (auto insert = broker::store_event::insert::make(msg))
-				{
-				reporter->Warning("It is an insert!");
-				reporter->Warning("Key/Data (endpoint): %s/%s (%s)", to_string(insert.key()).c_str(), to_string(insert.value()).c_str(), to_string(insert.publisher()).c_str());
-				}
-			else
-				{
-				reporter->Warning("Unhandled event type");
-				}
+			ProcessStoreEvent(topic, std::move(msg));
 			continue;
 			}
 
@@ -956,6 +948,132 @@ void Manager::Process()
 		}
 	}
 
+void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
+	{
+	// for all of the following we currently cheat. The key always is the name of the store. This will change
+	// in the future.
+	if ( auto insert = broker::store_event::insert::make(msg) )
+		{
+		auto remstore = to_string(insert.key());
+		auto storehandle = broker_mgr->LookupStore(remstore);
+		if ( ! storehandle )
+			return;
+
+		auto table = storehandle->forward_to;
+		if ( ! table )
+			return;
+
+		auto data = insert.value();
+
+		reporter->Warning("Insert Data: %s (%s)", to_string(insert.value()).c_str(), insert.value().get_type_name());
+		if ( table->Type()->IsSet() && data.get_type() != broker::data::type::set )
+			{
+			reporter->Error("ProcessStoreEvent Insert got %s when expecting set", data.get_type_name());
+			return;
+			}
+		else if ( ! table->Type()->IsSet() && data.get_type() != broker::data::type::table )
+			{
+			reporter->Error("ProcessStoreEvent Insert got %s when expecting table", data.get_type_name());
+			return;
+			}
+
+		// We sent this message. Ignore it.
+		//if ( insert.publisher() == storehandle->store_pid )
+		//	continue;
+
+		// We currently use data_to_val here. It creates a bit of overhead, but makes the code easier. We could change
+		// this to manual unrolling in the future.
+		auto val = data_to_val(std::move(data), table->Type());
+		// So we are just doing it manually - at least for now.
+		auto temptable = val->AsTable();
+		auto temptableval = val->AsTableVal();
+		HashKey* k;
+		TableEntryVal* entry;
+		auto c = temptable->InitForIteration();
+		while ( (entry = temptable->NextEntry(k, c)))
+			{
+			auto lv = temptableval->RecoverIndex(k);
+			delete k;
+			Val* entry_key = lv->Length() == 1 ? lv->Index(0) : lv.get();
+
+			// note - at the moment this code creates a loop
+			// Fixme: expiry!
+			if ( temptableval->Type()->IsSet() )
+				table->Assign(entry_key, nullptr);
+			else
+				table->Assign(entry_key, entry->Value());
+			}
+		}
+	else if ( auto update = broker::store_event::update::make(msg) )
+		{
+		auto remstore = to_string(update.key());
+		auto storehandle = broker_mgr->LookupStore(remstore);
+		if ( ! storehandle )
+			return;
+
+		auto table = storehandle->forward_to;
+		if ( ! table )
+			return;
+
+		auto data = update.new_value();
+
+		reporter->Warning("Update Data: %s->%s (%s)", to_string(update.old_value()).c_str(), to_string(update.new_value()).c_str(), update.new_value().get_type_name());
+		if ( table->Type()->IsSet() && data.get_type() != broker::data::type::set )
+			{
+			reporter->Error("ProcessStoreEvent Update got %s when expecting set", data.get_type_name());
+			return;
+			}
+		else if ( ! table->Type()->IsSet() && data.get_type() != broker::data::type::table )
+			{
+			reporter->Error("ProcessStoreEvent Update got %s when expecting table", data.get_type_name());
+			return;
+			}
+
+		// We sent this message. Ignore it.
+		if ( update.publisher() == storehandle->store_pid )
+			return;
+
+		// We currently use data_to_val here. It creates a bit of overhead, but makes the code easier. We could change
+		// this to manual unrolling in the future.
+		auto val = data_to_val(std::move(data), table->Type());
+		// So we are just doing it manually - at least for now.
+		auto temptable = val->AsTable();
+		auto temptableval = val->AsTableVal();
+		HashKey* k;
+		TableEntryVal* entry;
+		auto c = temptable->InitForIteration();
+		while ( (entry = temptable->NextEntry(k, c)))
+			{
+			auto lv = temptableval->RecoverIndex(k);
+			delete k;
+			Val* entry_key = lv->Length() == 1 ? lv->Index(0) : lv.get();
+
+			// note - at the moment this code creates a loop
+			if ( temptableval->Type()->IsSet() )
+				table->Assign(entry_key, nullptr);
+			else
+				table->Assign(entry_key, entry->Value());
+			}
+		}
+	else if ( auto erase = broker::store_event::erase::make(msg) )
+		{
+		auto remstore = to_string(erase.key());
+		auto storehandle = broker_mgr->LookupStore(remstore);
+		if ( ! storehandle )
+			return;
+
+		auto table = storehandle->forward_to;
+		if ( ! table )
+			return;
+
+		// I'm actually not sure we can get an erase - since we will never delete keys...
+		reporter->Warning("Erase for key %s", remstore.c_str());
+		}
+	else
+		{
+		reporter->Warning("Unhandled event type");
+		}
+	}
 
 void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 	{
@@ -1522,7 +1640,6 @@ bool Manager::CloseStore(const string& name)
 		return false;
 
 	auto pubid = s->second->store.frontend_id();
-	forwarded_ids.erase(pubid);
 
 	iosource_mgr->UnregisterFd(s->second->proxy.mailbox().descriptor(), this);
 
@@ -1590,10 +1707,8 @@ void Manager::CheckForwarding(const std::string &name)
 	if ( forwarded_stores.find(name) == forwarded_stores.end() )
 		return;
 
-	auto pubid = handle->store.frontend_id();
-
-	DBG_LOG(DBG_BROKER, "Resolved publishder %s for table forward for data store %s", to_string(pubid).c_str(), name.c_str());	
-	forwarded_ids.emplace(pubid, forwarded_stores.at(name));
+	handle->forward_to = forwarded_stores.at(name);
+	DBG_LOG(DBG_BROKER, "Resolved table forward for data store %s", name.c_str());
 	}
 
 } // namespace bro_broker

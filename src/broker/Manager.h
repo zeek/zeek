@@ -342,6 +342,7 @@ public:
 private:
 
 	void DispatchMessage(const broker::topic& topic, broker::data msg);
+	void ProcessStoreEvent(const broker::topic& topic, broker::data msg);
 	void ProcessEvent(const broker::topic& topic, broker::zeek::Event ev);
 	bool ProcessLogCreate(broker::zeek::LogCreate lc);
 	bool ProcessLogWrite(broker::zeek::LogWrite lw);
@@ -386,7 +387,6 @@ private:
 	std::shared_ptr<BrokerState> bstate;
 	std::unordered_map<std::string, StoreHandleVal*> data_stores;
 	std::unordered_map<std::string, IntrusivePtr<TableVal>> forwarded_stores;
-	std::unordered_map<broker::publisher_id, IntrusivePtr<TableVal>> forwarded_ids;
 	std::unordered_map<query_id, StoreQueryCallback*,
 	                   query_id_hasher> pending_queries;
 	std::vector<std::string> forwarded_prefixes;

@@ -1,5 +1,4 @@
 allow inlining of any function that is not itself (ultimately) recursive
-hot-spot BiFs: Log::__write, get_port_transport_proto
 
 &&/|| conditionals to cascades
 
@@ -33,6 +32,8 @@ don't consider modifying a global's element as a reaching-def for
 don't bother loading unused function parameters
 
 could explicitly support +=/-= for integral types
+
+could flatten tail-recursion to enable inlining
 
 could save grief/complexity by splitting out early (in the parser)
 	operands with weird mixed types, like DivideExpr supporting

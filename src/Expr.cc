@@ -6635,7 +6635,18 @@ Expr* CallExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 
 Expr* CallExpr::Inline(Inliner* inl)
 	{
-	return inl->CheckForInlining(this);
+	auto new_me = inl->CheckForInlining(this);
+
+	if ( new_me != this )
+		return new_me;
+
+	// We're not inlining, but perhaps our elements should be.
+	func = {NewRef{}, func->Inline(inl)};
+
+	auto new_args = args->Inline(inl);
+	args = {NewRef{}, new_args->AsListExpr()};
+
+	return this->Ref();
 	}
 
 IntrusivePtr<Stmt> CallExpr::ReduceToSingletons(Reducer* c)

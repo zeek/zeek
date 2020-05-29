@@ -415,6 +415,7 @@ public:
 	void Assign(Frame* f, IntrusivePtr<Val> v) override;
 	IntrusivePtr<Expr> MakeLvalue() override;
 	bool IsPure() const override;
+	bool HasReducedOps(Reducer* c) const override	{ return IsReduced(c); }
 	bool HasNoSideEffects() const override	{ return true; }
 
 	bool IsReduced(Reducer* c) const override;

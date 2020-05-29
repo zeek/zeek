@@ -27,8 +27,6 @@ protected:
 
 	void InlineFunction(FuncInfo* f);
 
-	bool IsInlineAble(FuncInfo* f);
-
 	// Information about all of the functions (and events/hooks) in
 	// the full set of scripts.
 	std::vector<FuncInfo*>& funcs;

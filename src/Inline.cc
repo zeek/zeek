@@ -8,68 +8,104 @@
 
 void Inliner::Analyze()
 	{
-	// We first recursively develop "leaves", i.e., simple
-	// (non-event, non-hook) functions that don't call any
-	// other script functions.  From the starting set of
-	// true leaves we can then develop new leaves by in-lining
-	// any functions that only call established leaves.  We
-	// keep doing so until we don't find any more candidates.
-	// At that point, every function that can be flattened to
-	// only calling BiFs (or nothing) has been rewritten.  We
-	// then go through the leftovers and do one round of inlining
-	// on them (so they can take advantage of these leaves).
+	// Locate self- and indirectly recursive functions.
+	std::unordered_map<const Func*, std::unordered_set<const Func*>> call_set;
 
-	// Initial candidates are non-event, non-hook functions.
-	std::unordered_set<FuncInfo*> candidates;
-
+	// Prime the call set for each function with the functions it
+	// directly calls.
 	for ( auto& f : funcs )
-		if ( f->func->Flavor() == FUNC_FLAVOR_FUNCTION )
-			candidates.insert(f);
-
-	int depth = 0;
-	bool added_more = true;
-	std::unordered_set<FuncInfo*> new_ones;	// to migrate to inline_ables
-
-	while ( 1 )
 		{
-		++depth;
+		std::unordered_set<const Func*> cs;
 
-		new_ones.clear();
+		for ( auto& func : f->pf->script_calls )
+			{
+			cs.insert(func);
 
-		for ( auto& c : candidates )
-			if ( IsInlineAble(c) )
+			if ( func == f->func )
+				printf("%s is directly recursive\n", func->Name());
+			}
+
+		call_set[f->func] = cs;
+		}
+
+	// Transitive closure.  If we had any self-respect, we'd implement
+	// Warshall's algorithm.  What we do here is feasible though since
+	// Zeek call graphs tend not to be super-deep.  (We could also save
+	// cycles by only analyzing non-[direct-or-indirect] leaves, as
+	// was computed by the previous version of this code.  But in
+	// practice, the execution time for this is completely dwarfed
+	// by the expense of compiling inlined functions, so we keep it
+	// simple.)
+	bool did_addition = true;
+	while ( did_addition )
+		{
+		did_addition = false;
+
+		// Loop over all the functions of interest.
+		for ( auto& c : call_set )
+			{
+			// For each of them, loop over the set of functions
+			// they call.
+
+			std::unordered_set<const Func*> addls;
+
+			for ( auto& cc : c.second )
 				{
-				InlineFunction(c);
-				new_ones.insert(c);
+				if ( cc == c.first )
+					// Don't loop over ourselves.
+					continue;
+
+				// For each called function, pull up *its*
+				// set of called functions.
+				for ( auto& ccc : call_set[cc] )
+					// For each of those, if we don't
+					// already have it, add it.
+					if ( c.second.find(ccc) == c.second.end() )
+						{
+						addls.insert(ccc);
+
+						if ( ccc == c.first )
+							printf("%s is indirectly recursive, called by %s\n",
+								c.first->Name(),
+								cc->Name());
+						}
 				}
 
-		if ( new_ones.size() == 0 )
-			break;
+			if ( addls.size() > 0 )
+				{
+				did_addition = true;
 
-		for ( auto& n : new_ones )
-			{
-			candidates.erase(n);
-			inline_ables.insert(n->func);
+				for ( auto& a : addls )
+					c.second.insert(a);
+				}
 			}
 		}
 
-#if 0
-	for ( auto& c : candidates )
-		{
-		printf("cannot inline %s:", c->func->Name());
-		for ( auto& func : c->pf->script_calls )
-			if ( inline_ables.find(func) == inline_ables.end() )
-				printf(" %s", func->Name());
+	std::unordered_set<const Func*> recursives;
 
-		printf("\n");
-		}
-#endif
+	for ( auto& c : call_set )
+		if ( c.second.find(c.first) != c.second.end() )
+			recursives.insert(c.first);
+
+	std::unordered_set<FuncInfo*> candidates;
+
+	for ( auto& f : funcs )
+		// Candidates are non-event, non-hook, non-recursive functions.
+		if ( f->func->Flavor() == FUNC_FLAVOR_FUNCTION &&
+		     recursives.count(f->func) == 0 )
+			inline_ables.insert(f->func);
 
 	for ( auto& f : funcs )
 		{
 		// Processing optimization: only spend time trying to inline f
-		// if we didn't already do so.
-		if ( inline_ables.find(f->func) == inline_ables.end() )
+		// if we haven't marked it as inlineable.  This trades off a
+		// bunch of compilation load (inlining every single function,
+		// even though almost none will be called directly) for a
+		// modest gain of having compiled code for those rare
+		// circumstances in which a Zeek function can be called
+		// not ultimately stemming from an event (such as global
+		// scripting, or expiration functions).
+		if ( inline_ables.count(f->func) == 0 )
 			InlineFunction(f);
 		}
 	}
@@ -113,12 +149,8 @@ Expr* Inliner::CheckForInlining(CallExpr* c)
 	if ( ! func_vf )
 		return c->Ref();
 
-	if ( inline_ables.find(func_vf) == inline_ables.end() )
+	if ( inline_ables.count(func_vf) == 0 )
 		return c->Ref();
-
-	int frame_size = func_vf->FrameSize();
-	if ( frame_size > max_inlined_frame_size )
-		max_inlined_frame_size = frame_size;
 
 	IntrusivePtr<ListExpr> args = {NewRef{}, c->Args()};
 	auto body = func_vf->GetBodies()[0].stmts;
@@ -142,18 +174,23 @@ Expr* Inliner::CheckForInlining(CallExpr* c)
 		params->append(vars[i].get());
 
 	auto body_dup = body->Duplicate();
+
+	// Recursive inline the body - necessary now that we no longer
+	// build up in-lines from leaves.  This is safe to do because
+	// we've ensured there are no recursive loops ...
+	// ... but we have to be careful in accounting for the max frame
+	// size.
+
+	int hold_max_inlined_frame_size = max_inlined_frame_size;
+	max_inlined_frame_size = 0;
+	body_dup->Inline(this);
+
+	int frame_size = func_vf->FrameSize() + max_inlined_frame_size;
+
+	if ( frame_size > hold_max_inlined_frame_size )
+		max_inlined_frame_size = frame_size;
+	else
+		max_inlined_frame_size = hold_max_inlined_frame_size;
+
 	return new InlineExpr(args, params, body_dup, curr_frame_size, t);
-	}
-
-bool Inliner::IsInlineAble(FuncInfo* f)
-	{
-	for ( auto& func : f->pf->script_calls )
-		if ( inline_ables.find(func) == inline_ables.end() )
-			// In principle we could allow calls to hooks
-			// providing the hook is itself inline-able other
-			// than the fact that it's a hook.  Not clear
-			// that's enough of a gain to be worth the hassle.
-			return false;
-
-	return true;
 	}

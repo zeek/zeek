@@ -115,7 +115,7 @@ void Inliner::InlineFunction(FuncInfo* f)
 	max_inlined_frame_size = 0;
 	curr_frame_size = f->func->FrameSize();
 
-	bool dump = false;	// streq(f->func->Name(), "test_func2");
+	bool dump = false;
 
 	if ( dump )
 		printf("%s body before inlining:\n%s\n", f->func->Name(), obj_desc(f->body));
@@ -178,19 +178,29 @@ Expr* Inliner::CheckForInlining(CallExpr* c)
 	// Recursive inline the body - necessary now that we no longer
 	// build up in-lines from leaves.  This is safe to do because
 	// we've ensured there are no recursive loops ...
-	// ... but we have to be careful in accounting for the max frame
-	// size.
+	// ... but we have to be careful in accounting for the frame
+	// sizes.
+	int frame_size = func_vf->FrameSize();
+
+	int hold_curr_frame_size = curr_frame_size;
+	curr_frame_size = frame_size;
 
 	int hold_max_inlined_frame_size = max_inlined_frame_size;
 	max_inlined_frame_size = 0;
+
 	body_dup->Inline(this);
 
-	int frame_size = func_vf->FrameSize() + max_inlined_frame_size;
+	curr_frame_size = hold_curr_frame_size;
 
-	if ( frame_size > hold_max_inlined_frame_size )
-		max_inlined_frame_size = frame_size;
+	int new_frame_size = frame_size + max_inlined_frame_size;
+
+	if ( new_frame_size > hold_max_inlined_frame_size )
+		max_inlined_frame_size = new_frame_size;
 	else
 		max_inlined_frame_size = hold_max_inlined_frame_size;
 
-	return new InlineExpr(args, params, body_dup, curr_frame_size, t);
+	auto ie = new InlineExpr(args, params, body_dup, curr_frame_size, t);
+	ie->SetOriginal(c);
+
+	return ie;
 	}

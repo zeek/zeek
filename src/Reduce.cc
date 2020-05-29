@@ -97,13 +97,16 @@ IntrusivePtr<NameExpr> Reducer::PushInlineBlock(IntrusivePtr<BroType> type)
 
 	char buf[8192];
 	int n = new_locals.size();
-	snprintf(buf, sizeof buf, "retvar.%d", n);
+	snprintf(buf, sizeof buf, "@retvar", n);
 
 	IntrusivePtr<ID> ret_id = install_ID(buf, "<internal>", false, false);
 	ret_id->SetType(type);
 
-	// Add it as a new local so we track its potential frame usage.
-	new_locals.insert(ret_id.get());
+	// Track this as a new local *if* we're in the outermost inlining
+	// block.  If we're recursively deeper into inlining, then this
+	// variable will get mapped to a local anyway, so no need.
+	if ( inline_block_level == 1 )
+		new_locals.insert(ret_id.get());
 
 	return GenInlineBlockName(ret_id.release());
 	}

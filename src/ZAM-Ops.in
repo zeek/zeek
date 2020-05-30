@@ -147,6 +147,7 @@ eval $1 + $2
 eval_S vector<const BroString*> strings
 eval_S strings.push_back($1)
 eval_S strings.push_back($2)
+eval_S delete $$
 eval_S $$ = concatenate(strings)
 
 binary-expr-op Sub
@@ -700,6 +701,7 @@ eval if ( z.v2 ) dt += network_time
 eval auto handler = EventHandlerPtr(z.event_handler)
 eval auto args = frame[z.v3].vvec
 eval auto timer = new ScheduleTimer(z.event_handler, std::move(*args), dt)
+eval delete frame[z.v3].vvec
 eval timer_mgr->Add(timer)
 
 op Schedule
@@ -710,6 +712,7 @@ eval if ( z.v1 ) dt += network_time
 eval auto hp = EventHandlerPtr(z.event_handler)
 eval auto args = frame[z.v2].vvec
 eval auto timer = new ScheduleTimer(z.event_handler, std::move(*args), dt)
+eval delete frame[z.v2].vvec
 eval timer_mgr->Add(timer)
 
 
@@ -717,6 +720,7 @@ op Event
 type HL
 custom-method return CompileEvent(h, l);
 eval mgr.Enqueue(z.event_handler, std::move(*frame[z.v1].vvec))
+eval delete frame[z.v1].vvec
 
 
 op Return

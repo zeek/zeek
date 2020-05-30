@@ -1,3 +1,5 @@
+need to fix IterInfo's to be (1) dynamic, via (2) IntrusivePtr's
+
 &&/|| conditionals to cascades
 
 initialization of records with field values pre-computed

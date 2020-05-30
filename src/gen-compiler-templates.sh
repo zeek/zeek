@@ -824,6 +824,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, is_cond, me
 			args2[mt] ");") >methods_f
 		print ("\tz.e = n1;") >methods_f
 		print ("\tz.t = n1->Type().get();") >methods_f
+		print ("\tz.CheckIfManaged(z.t);") >methods_f
 		print ("\treturn AddInst(z);") >methods_f
 		}
 

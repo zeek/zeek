@@ -1,6 +1,8 @@
-allow inlining of any function that is not itself (ultimately) recursive
-
 &&/|| conditionals to cascades
+
+initialization of records with field values pre-computed
+	- however, not via Clone(), which turns out to be more
+	  expensive than just constructing afresh
 
 hoist loop invariants
 

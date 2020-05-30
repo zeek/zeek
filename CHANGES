@@ -1,4 +1,21 @@
 
+3.2.0-dev.573 | 2020-05-29 17:13:36 -0700
+
+  * Add "Known::service_udp_requires_response" option (Jon Siwek, Corelight)
+
+    Determines whether to require UDP server response before considering
+    an active service to log in known_services.log.
+
+  * Update known-services.zeek logic for "active" TCP services (Jon Siwek, Corelight)
+
+    To better check for only endpoints that either have observed a TCP handshake
+    or else assumed to have done one in the past (partial connections, missed
+    the handshake, but now see data/acks from server)
+
+  * Log services with unknown protocol names (Michael Dopheide)
+
+  * GH-989: Fix crash on using some deprecated environment variables (Jon Siwek, Corelight)
+
 3.2.0-dev.570 | 2020-05-28 14:49:10 -0700
 
   * Add negotiation flags parameter to some RDP events (Anthony Kasza, Corelight)

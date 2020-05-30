@@ -1,7 +1,10 @@
-##! This script logs and tracks services.  In the case of this script, a service
-##! is defined as an IP address and port which has responded to and fully 
-##! completed a TCP handshake with another host.  If a protocol is detected
-##! during the session, the protocol will also be logged.
+##! This script logs and tracks active services.  For this script, an active
+##! service is defined as an IP address and port of a server for which
+##! a TCP handshake (SYN+ACK) is observed, assumed to have been done in the
+##! past (started seeing packets mid-connection, but the server is actively
+##! sending data), or sent at least one UDP packet.
+##! If a protocol name is found/known for service, that will be logged,
+##! but services whose names can't be determined are also still logged.
 
 @load base/utils/directions-and-hosts
 @load base/frameworks/cluster
@@ -32,7 +35,10 @@ export {
 	## with keys uniformly distributed over proxy nodes in cluster
 	## operation.
 	const use_service_store = T &redef;
-	
+
+	## Require UDP server to respond before considering it an "active service".
+	option service_udp_requires_response = T;
+
 	## The hosts whose services should be tracked and logged.
 	## See :zeek:type:`Host` for possible choices.
 	option service_tracking = LOCAL_HOSTS;
@@ -206,10 +212,37 @@ event service_info_commit(info: ServicesInfo)
 	event known_service_add(info);
 	}
 
+function has_active_service(c: connection): bool
+	{
+	local proto = get_port_transport_proto(c$id$resp_p);
+
+	switch ( proto ) {
+	case tcp:
+		# Not a service unless the TCP server did a handshake (SYN+ACK).
+		if ( c$resp$state == TCP_ESTABLISHED ||
+			 c$resp$state == TCP_CLOSED ||
+			 c$resp$state == TCP_PARTIAL ||
+		     /h/ in c$history )
+			return T;
+		return F;
+	case udp:
+		# Not a service unless UDP server has sent something (or the option
+		# to not care about that is set).
+		if ( Known::service_udp_requires_response )
+			return c$resp$state == UDP_ACTIVE;
+		return T;
+	case icmp:
+		# ICMP is not considered a service.
+		return F;
+	default:
+		# Unknown/other transport not considered a service for now.
+		return F;
+	}
+	}
+
 function known_services_done(c: connection)
 	{
 	local id = c$id;
-	c$known_services_done = T;
 
 	if ( ! addr_matches_host(id$resp_h, service_tracking) )
 		return;
@@ -225,6 +258,15 @@ function known_services_done(c: connection)
 			return;
 		}
 
+	if ( ! has_active_service(c) )
+		# If we're here during a protocol_confirmation, it's still premature
+		# to declare there's an actual service, so wait for the connection
+		# removal to check again (to get more timely reporting we'd have
+		# schedule some recurring event to poll for handshake/activity).
+		return;
+
+	c$known_services_done = T;
+
 	# Drop services starting with "-" (confirmed-but-then-violated protocol)
 	local tempservs: set[string];
 		for (s in c$service)
@@ -239,11 +281,15 @@ function known_services_done(c: connection)
 	# If no protocol was detected, wait a short time before attempting to log
 	# in case a protocol is detected on another connection.
 	if ( |c$service| == 0 )
+		{
+		# Add an empty service so the service loops will work later
+		add info$service[""];
 		schedule 5min { service_info_commit(info) };
-	else 
+		}
+	else
 		event service_info_commit(info);
 	}
-	
+
 event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &priority=-5
 	{
 	known_services_done(c);
@@ -253,12 +299,6 @@ event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) &pr
 event successful_connection_remove(c: connection) &priority=-5
 	{
 	if ( c$known_services_done )
-		return;
-
-	if ( c$resp$state != TCP_ESTABLISHED && c$resp$state != UDP_ACTIVE )
-		return;
-
-	if ( |c$service| == 0 )
 		return;
 
 	known_services_done(c);

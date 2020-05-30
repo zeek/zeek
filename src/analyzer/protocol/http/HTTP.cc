@@ -738,15 +738,15 @@ void HTTP_Message::SubmitAllHeaders(mime::MIME_HeaderList& hlist)
 		analyzer->EnqueueConnEvent(http_all_headers,
 			analyzer->ConnVal(),
 			val_mgr->Bool(is_orig),
-			BuildHeaderTable(hlist)
+			ToHeaderTable(hlist)
 		);
 
 	if ( http_content_type )
 		analyzer->EnqueueConnEvent(http_content_type,
 			analyzer->ConnVal(),
 			val_mgr->Bool(is_orig),
-			current_entity->ContentType(),
-			current_entity->ContentSubType()
+			current_entity->GetContentType(),
+			current_entity->GetContentSubType()
 		);
 	}
 
@@ -928,7 +928,7 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 		return;
 		}
 
-	// HTTP_Event("HTTP line", new_string_val(length, line));
+	// HTTP_Event("HTTP line", to_string_val(length, line));
 
 	if ( is_orig )
 		{
@@ -961,7 +961,7 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 				{
 				if ( ! RequestExpected() )
 					HTTP_Event("crud_trailing_HTTP_request",
-						   mime::new_string_val(line, end_of_line));
+						   mime::to_string_val(line, end_of_line));
 				else
 					{
 					// We do see HTTP requests with a
@@ -1304,10 +1304,10 @@ bool HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line)
 			version_end = version_start + 3;
 			if ( skip_whitespace(version_end, end_of_line) != end_of_line )
 				HTTP_Event("crud after HTTP version is ignored",
-					   mime::new_string_val(line, end_of_line));
+					   mime::to_string_val(line, end_of_line));
 			}
 		else
-			HTTP_Event("bad_HTTP_version", mime::new_string_val(line, end_of_line));
+			HTTP_Event("bad_HTTP_version", mime::to_string_val(line, end_of_line));
 		}
 
 	// NormalizeURI(line, end_of_uri);
@@ -1333,7 +1333,7 @@ HTTP_Analyzer::HTTP_VersionNumber HTTP_Analyzer::HTTP_Version(int len, const cha
 		}
 	else
 		{
-		HTTP_Event("bad_HTTP_version", mime::new_string_val(len, data));
+		HTTP_Event("bad_HTTP_version", mime::to_string_val(len, data));
 		return {};
 		}
 	}
@@ -1509,7 +1509,7 @@ int HTTP_Analyzer::HTTP_ReplyLine(const char* line, const char* end_of_line)
 		// ##TODO: some server replies with an HTML document
 		// without a status line and a MIME header, when the
 		// request is malformed.
-		HTTP_Event("bad_HTTP_reply", mime::new_string_val(line, end_of_line));
+		HTTP_Event("bad_HTTP_reply", mime::to_string_val(line, end_of_line));
 		return 0;
 		}
 
@@ -1522,7 +1522,7 @@ int HTTP_Analyzer::HTTP_ReplyLine(const char* line, const char* end_of_line)
 	if ( rest >= end_of_line )
 		{
 		HTTP_Event("HTTP_reply_code_missing",
-				mime::new_string_val(line, end_of_line));
+				mime::to_string_val(line, end_of_line));
 		return 0;
 		}
 
@@ -1531,7 +1531,7 @@ int HTTP_Analyzer::HTTP_ReplyLine(const char* line, const char* end_of_line)
 	if ( rest + 3 > end_of_line )
 		{
 		HTTP_Event("HTTP_reply_code_missing",
-			mime::new_string_val(line, end_of_line));
+			mime::to_string_val(line, end_of_line));
 		return 0;
 		}
 
@@ -1544,7 +1544,7 @@ int HTTP_Analyzer::HTTP_ReplyLine(const char* line, const char* end_of_line)
 	if ( rest >= end_of_line )
 		{
 		HTTP_Event("HTTP_reply_reason_phrase_missing",
-			mime::new_string_val(line, end_of_line));
+			mime::to_string_val(line, end_of_line));
 		// Tolerate missing reason phrase?
 		return 1;
 		}
@@ -1635,15 +1635,15 @@ void HTTP_Analyzer::HTTP_Header(bool is_orig, mime::MIME_Header* h)
 		if ( DEBUG_http )
 			DEBUG_MSG("%.6f http_header\n", network_time);
 
-		auto upper_hn = mime::new_string_val(h->get_name());
+		auto upper_hn = mime::to_string_val(h->get_name());
 		upper_hn->ToUpper();
 
 		EnqueueConnEvent(http_header,
 			ConnVal(),
 			val_mgr->Bool(is_orig),
-			mime::new_string_val(h->get_name()),
+			mime::to_string_val(h->get_name()),
 			std::move(upper_hn),
-			mime::new_string_val(h->get_value())
+			mime::to_string_val(h->get_value())
 		);
 		}
 	}

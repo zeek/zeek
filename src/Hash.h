@@ -30,9 +30,9 @@ class BroString;
 class Val;
 class Frame;
 class BifReturnVal;
-namespace zeek { namespace BifFunc {
+namespace zeek::BifFunc {
 	extern BifReturnVal md5_hmac_bif(Frame* frame, const zeek::Args*);
-}}
+}
 
 typedef uint64_t hash_t;
 typedef uint64_t hash64_t;

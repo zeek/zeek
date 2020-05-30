@@ -164,7 +164,7 @@ protected:
 
 };
 
-namespace zeek { namespace id {
+namespace zeek::id {
 
 /**
  * Lookup an ID in the global module and return it, if one exists;
@@ -254,4 +254,4 @@ void init();
 
 } // namespace zeek::id::detail
 
-}} // namespace zeek::id
+} // namespace zeek::id

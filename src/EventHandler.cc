@@ -98,7 +98,7 @@ void EventHandler::Call(zeek::Args* vl, bool no_remote)
 
 	if ( local )
 		// No try/catch here; we pass exceptions upstream.
-		local->operator()(vl);
+		local->Invoke(vl);
 	}
 
 void EventHandler::NewEvent(zeek::Args* vl)

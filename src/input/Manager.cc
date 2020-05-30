@@ -480,11 +480,11 @@ bool Manager::CreateTableStream(RecordVal* fval)
 	auto dst = fval->GetFieldOrDefault("destination");
 
 	// check if index fields match table description
-	int num = idx->NumFields();
+	size_t num = idx->NumFields();
 	const auto& tl = dst->GetType()->AsTableType()->IndexTypes();
-	int j;
+	size_t j;
 
-	for ( j = 0; j < static_cast<int>(tl.size()); ++j )
+	for ( j = 0; j < tl.size(); ++j )
 		{
 		if ( j >= num )
 			{
@@ -1768,7 +1768,7 @@ bool Manager::CallPred(Func* pred_func, const int numvals, ...) const
 
 	va_end(lP);
 
-	auto v = pred_func->operator()(&vl);
+	auto v = pred_func->Invoke(&vl);
 
 	if ( v )
 		result = v->AsBool();

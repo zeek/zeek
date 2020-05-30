@@ -24,7 +24,7 @@ static bool call_option_handlers_and_set_value(StringVal* name, const IntrusiveP
 			if ( add_loc )
 				vl.emplace_back(NewRef{}, location);
 
-			val = handler_function->operator()(&vl); // consumed by next call.
+			val = handler_function->Invoke(&vl); // consumed by next call.
 
 			if ( ! val )
 				{

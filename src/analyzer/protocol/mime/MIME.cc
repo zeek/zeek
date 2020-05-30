@@ -108,19 +108,28 @@ bool is_lws(char ch)
 	return ch == 9 || ch == 32;
 	}
 
-IntrusivePtr<StringVal> new_string_val(int length, const char* data)
+StringVal* new_string_val(int length, const char* data)
+	{ return to_string_val(length, data).release(); }
+
+StringVal* new_string_val(const char* data, const char* end_of_data)
+	{ return to_string_val(data, end_of_data).release(); }
+
+StringVal* new_string_val(const data_chunk_t buf)
+	{ return to_string_val(buf).release(); }
+
+IntrusivePtr<StringVal> to_string_val(int length, const char* data)
 	{
 	return make_intrusive<StringVal>(length, data);
 	}
 
-IntrusivePtr<StringVal> new_string_val(const char* data, const char* end_of_data)
+IntrusivePtr<StringVal> to_string_val(const char* data, const char* end_of_data)
 	{
 	return make_intrusive<StringVal>(end_of_data - data, data);
 	}
 
-IntrusivePtr<StringVal> new_string_val(const data_chunk_t buf)
+IntrusivePtr<StringVal> to_string_val(const data_chunk_t buf)
 	{
-	return new_string_val(buf.length, buf.data);
+	return to_string_val(buf.length, buf.data);
 	}
 
 static data_chunk_t get_data_chunk(BroString* s)
@@ -1287,19 +1296,25 @@ void MIME_Entity::DebugPrintHeaders()
 #endif
 	}
 
-IntrusivePtr<RecordVal> MIME_Message::BuildHeaderVal(MIME_Header* h)
+RecordVal* MIME_Message::BuildHeaderVal(MIME_Header* h)
+	{ return ToHeaderVal(h).release(); }
+
+IntrusivePtr<RecordVal> MIME_Message::ToHeaderVal(MIME_Header* h)
 	{
 	static auto mime_header_rec = zeek::id::find_type<RecordType>("mime_header_rec");
 	auto header_record = make_intrusive<RecordVal>(mime_header_rec);
-	header_record->Assign(0, new_string_val(h->get_name()));
-	auto upper_hn = new_string_val(h->get_name());
+	header_record->Assign(0, to_string_val(h->get_name()));
+	auto upper_hn = to_string_val(h->get_name());
 	upper_hn->ToUpper();
 	header_record->Assign(1, std::move(upper_hn));
-	header_record->Assign(2, new_string_val(h->get_value()));
+	header_record->Assign(2, to_string_val(h->get_value()));
 	return header_record;
 	}
 
-IntrusivePtr<TableVal> MIME_Message::BuildHeaderTable(MIME_HeaderList& hlist)
+TableVal* MIME_Message::BuildHeaderTable(MIME_HeaderList& hlist)
+	{ return ToHeaderTable(hlist).release(); }
+
+IntrusivePtr<TableVal> MIME_Message::ToHeaderTable(MIME_HeaderList& hlist)
 	{
 	static auto mime_header_list = zeek::id::find_type<TableType>("mime_header_list");
 	auto t = make_intrusive<TableVal>(mime_header_list);
@@ -1308,7 +1323,7 @@ IntrusivePtr<TableVal> MIME_Message::BuildHeaderTable(MIME_HeaderList& hlist)
 		{
 		auto index = val_mgr->Count(i + 1);	// index starting from 1
 		MIME_Header* h = hlist[i];
-		t->Assign(std::move(index), BuildHeaderVal(h));
+		t->Assign(std::move(index), ToHeaderVal(h));
 		}
 
 	return t;
@@ -1427,7 +1442,7 @@ void MIME_Mail::SubmitHeader(MIME_Header* h)
 	if ( mime_one_header )
 		analyzer->EnqueueConnEvent(mime_one_header,
 			analyzer->ConnVal(),
-			BuildHeaderVal(h)
+			ToHeaderVal(h)
 		);
 	}
 
@@ -1436,7 +1451,7 @@ void MIME_Mail::SubmitAllHeaders(MIME_HeaderList& hlist)
 	if ( mime_all_headers )
 		analyzer->EnqueueConnEvent(mime_all_headers,
 			analyzer->ConnVal(),
-			BuildHeaderTable(hlist)
+			ToHeaderTable(hlist)
 		);
 	}
 

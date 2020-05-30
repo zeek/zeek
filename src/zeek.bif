@@ -1338,7 +1338,7 @@ bool sort_function(const IntrusivePtr<Val>& a, const IntrusivePtr<Val>& b)
 	if ( ! b )
 		return 1;
 
-	auto result = sort_function_comp->operator()(a, b);
+	auto result = sort_function_comp->Invoke(a, b);
 	int int_result = result->CoerceToInt();
 
 	return int_result < 0;
@@ -1516,7 +1516,7 @@ function order%(v: any, ...%) : index_vec
 
 	if ( comp )
 		{
-		const auto& comp_type = comp->GetType()->AsFuncType();
+		const auto& comp_type = comp->GetType();
 		if ( comp_type->Yield()->Tag() != TYPE_INT ||
 		     ! comp_type->ParamList()->AllMatch(elt_type, 0) )
 			{

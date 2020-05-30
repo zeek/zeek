@@ -301,10 +301,10 @@ bool BroFunc::IsPure() const
 Val* Func::Call(val_list* args, Frame* parent) const
 	{
 	auto zargs = zeek::val_list_to_args(*args);
-	return operator()(&zargs, parent).release();
+	return Invoke(&zargs, parent).release();
 	};
 
-IntrusivePtr<Val> BroFunc::operator()(zeek::Args* args, Frame* parent) const
+IntrusivePtr<Val> BroFunc::Invoke(zeek::Args* args, Frame* parent) const
 	{
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", Name());
@@ -614,7 +614,7 @@ bool BuiltinFunc::IsPure() const
 	return is_pure;
 	}
 
-IntrusivePtr<Val> BuiltinFunc::operator()(zeek::Args* args, Frame* parent) const
+IntrusivePtr<Val> BuiltinFunc::Invoke(zeek::Args* args, Frame* parent) const
 	{
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", Name());

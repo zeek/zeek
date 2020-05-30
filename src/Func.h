@@ -51,7 +51,7 @@ public:
 	const std::vector<Body>& GetBodies() const	{ return bodies; }
 	bool HasBodies() const	{ return bodies.size(); }
 
-	[[deprecated("Remove in v4.1. Use operator() instead.")]]
+	[[deprecated("Remove in v4.1. Use Invoke() instead.")]]
 	Val* Call(val_list* args, Frame* parent = nullptr) const;
 
 	/**
@@ -60,21 +60,21 @@ public:
 	 * @param parent  the frame from which the function is being called.
 	 * @return  the return value of the function call.
 	 */
-	virtual IntrusivePtr<Val> operator()(zeek::Args* args,
-	                                     Frame* parent = nullptr) const = 0;
+	virtual IntrusivePtr<Val> Invoke(zeek::Args* args,
+	                                   Frame* parent = nullptr) const = 0;
 
 	/**
-	 * A version of operator() taking a variable number of individual arguments.
+	 * A version of Invoke() taking a variable number of individual arguments.
 	 */
 	template <class... Args>
 	std::enable_if_t<
 	  std::is_convertible_v<std::tuple_element_t<0, std::tuple<Args...>>,
 	                        IntrusivePtr<Val>>,
 	  IntrusivePtr<Val>>
-	operator()(Args&&... args) const
+	Invoke(Args&&... args) const
 		{
 		auto zargs = zeek::Args{std::forward<Args>(args)...};
-		return operator()(&zargs);
+		return Invoke(&zargs);
 		}
 
 	// Add a new event handler to an existing function (event).
@@ -136,7 +136,7 @@ public:
 	~BroFunc() override;
 
 	bool IsPure() const override;
-	IntrusivePtr<Val> operator()(zeek::Args* args, Frame* parent) const override;
+	IntrusivePtr<Val> Invoke(zeek::Args* args, Frame* parent) const override;
 
 	/**
 	 * Adds adds a closure to the function. Closures are cloned and
@@ -234,7 +234,7 @@ public:
 	~BuiltinFunc() override;
 
 	bool IsPure() const override;
-	IntrusivePtr<Val> operator()(zeek::Args* args, Frame* parent) const override;
+	IntrusivePtr<Val> Invoke(zeek::Args* args, Frame* parent) const override;
 	built_in_func TheFunc() const	{ return func; }
 
 	void Describe(ODesc* d) const override;

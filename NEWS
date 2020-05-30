@@ -114,9 +114,9 @@ Deprecated Functionality
   method to now use is called ``HookFunctionCall`` and uses ``IntrusivePtr``
   arguments and return value.
 
-- The ``Func::Call(val_list*, ...)`` method is now deprecated.  Use operator()
+- The ``Func::Call(val_list*, ...)`` method is now deprecated.  Use ``Invoke()``
   instead which takes a ``zeek::Args`` (``std::vector<IntrusivePtr<Val>>``).
-  There's also a variadic template for operator() that forwards all arguments
+  There's also a variadic template for ``Invoke()`` that forwards all arguments
   into a ``zeek::Args`` for you.
 
 - The ``EventMgr::QueueEvent()`` and EventMgr::QueueEventFast()`` methods
@@ -151,7 +151,7 @@ Deprecated Functionality
 
 - Various methods of converting protocol structures, like IP or packet headers,
   to associated ``Val`` type are now deprecated, the deprecation warning
-  message will advice what new method to use instead.
+  message will advise what new method to use instead.
 
 - Various methods of ``Tag`` classes are deprecated with the warning
   message advising what new method to use instead.

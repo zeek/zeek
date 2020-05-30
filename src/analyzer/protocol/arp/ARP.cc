@@ -192,10 +192,10 @@ void ARP_Analyzer::BadARP(const struct arp_pkthdr* hdr, const char* msg)
 		return;
 
 	mgr.Enqueue(bad_arp,
-		ConstructAddrVal(ar_spa(hdr)),
-		EthAddrToStr((const u_char*) ar_sha(hdr)),
-		ConstructAddrVal(ar_tpa(hdr)),
-		EthAddrToStr((const u_char*) ar_tha(hdr)),
+		ToAddrVal(ar_spa(hdr)),
+		ToEthAddrStr((const u_char*) ar_sha(hdr)),
+		ToAddrVal(ar_tpa(hdr)),
+		ToEthAddrStr((const u_char*) ar_tha(hdr)),
 		make_intrusive<StringVal>(msg)
 	);
 	}
@@ -214,22 +214,28 @@ void ARP_Analyzer::RREvent(EventHandlerPtr e,
 		return;
 
 	mgr.Enqueue(e,
-		EthAddrToStr(src),
-		EthAddrToStr(dst),
-		ConstructAddrVal(spa),
-		EthAddrToStr((const u_char*) sha),
-		ConstructAddrVal(tpa),
-		EthAddrToStr((const u_char*) tha)
+		ToEthAddrStr(src),
+		ToEthAddrStr(dst),
+		ToAddrVal(spa),
+		ToEthAddrStr((const u_char*) sha),
+		ToAddrVal(tpa),
+		ToEthAddrStr((const u_char*) tha)
 	);
 	}
 
-IntrusivePtr<AddrVal> ARP_Analyzer::ConstructAddrVal(const void* addr)
+AddrVal* ARP_Analyzer::ConstructAddrVal(const void* addr)
+	{ return ToAddrVal(addr).release(); }
+
+IntrusivePtr<AddrVal> ARP_Analyzer::ToAddrVal(const void* addr)
 	{
 	// ### For now, we only handle IPv4 addresses.
 	return make_intrusive<AddrVal>(*(const uint32_t*) addr);
 	}
 
-IntrusivePtr<StringVal> ARP_Analyzer::EthAddrToStr(const u_char* addr)
+StringVal* ARP_Analyzer::EthAddrToStr(const u_char* addr)
+	{ return ToEthAddrStr(addr).release(); }
+
+IntrusivePtr<StringVal> ARP_Analyzer::ToEthAddrStr(const u_char* addr)
 	{
 	char buf[1024];
 	snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x",

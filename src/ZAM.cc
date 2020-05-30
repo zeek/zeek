@@ -17,6 +17,8 @@
 #include "Net.h"
 #include "logging/Manager.h"
 
+static BroType* log_ID_enum_type;
+
 
 // Count of how often each top of ZOP executed.
 int ZOP_count[OP_NOP+1];
@@ -953,18 +955,28 @@ bool ZAM::BuiltIn_sub_bytes(const NameExpr* n, const expr_list& args)
 
 bool ZAM::BuiltIn_Log__write(const NameExpr* n, const expr_list& args)
 	{
+	if ( ! log_ID_enum_type )
+		{
+		auto log_ID_type = lookup_ID("ID", "Log");
+		ASSERT(log_ID_type);
+		log_ID_enum_type = log_ID_type->Type()->AsEnumType();
+		}
+
 	auto id = args[0];
 	auto columns = args[1];
 
-	if ( id->Tag() != EXPR_CONST || columns->Tag() != EXPR_NAME )
+	if ( columns->Tag() != EXPR_NAME )
 		return false;
 
-	auto id_c = id->AsConstExpr();
+	int nslot = n ? Frame1Slot(n, OP1_WRITE) : RegisterSlot();
 	auto columns_n = columns->AsNameExpr();
 
-	int nslot = n ? Frame1Slot(n, OP1_WRITE) : RegisterSlot();
-
-	AddInst(ZInst(OP_LOG_WRITE_VVC, nslot, FrameSlot(columns_n), id_c));
+	if ( id->Tag() == EXPR_CONST )
+		AddInst(ZInst(OP_LOG_WRITE_VVC, nslot, FrameSlot(columns_n),
+				id->AsConstExpr()));
+	else
+		AddInst(ZInst(OP_LOG_WRITE_VVV, nslot,
+			FrameSlot(id->AsNameExpr()), FrameSlot(columns_n)));
 
 	return true;
 	}
@@ -2166,8 +2178,11 @@ void ZAM::ProfileExecution() const
 
 	printf("%s CPU time: %.06f\n", func->Name(), *CPU_time);
 	for ( int i = 0; i < inst_count->size(); ++i )
-		printf("%s %d %s %d %.06f\n", func->Name(), i, ZOP_name(insts2[i]->op),
+		{
+		printf("%s %d %d %.06f ", func->Name(), i,
 			(*inst_count)[i], (*inst_CPU)[i]);
+		insts2[i]->Dump(frame_denizens);
+		}
 	}
 
 void ZAM::Dump()

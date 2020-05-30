@@ -24,6 +24,7 @@ event zeek_init()
 	#add s["hi"];
 	#print "changing";
 	t["a"] = 2;
+	t["a"] = 3;
 	t["b"] = 3;
 	t["c"] = 4;
 	t["whatever"] = 5;

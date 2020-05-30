@@ -907,7 +907,7 @@ void Manager::Process()
 		auto& topic = broker::get_topic(message);
 		auto& msg = broker::get_data(message);
 
-		if ( topic == broker::topics::store_events )
+		if ( broker::topics::store_events.prefix_of(topic) )
 			{
 			ProcessStoreEvent(topic, std::move(msg));
 			continue;
@@ -950,82 +950,66 @@ void Manager::Process()
 
 void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
 	{
-	// for all of the following we currently cheat. The key always is the name of the store. This will change
-	// in the future.
+	auto topic_parts = broker::topic::split(topic);
+	const auto& store_name = topic_parts.back();
+
+	auto storehandle = broker_mgr->LookupStore(store_name);
+	if ( ! storehandle )
+		return;
+
+	auto table = storehandle->forward_to;
+	if ( ! table )
+		return;
+
 	if ( auto insert = broker::store_event::insert::make(msg) )
 		{
-		auto remstore = to_string(insert.key());
-		auto storehandle = broker_mgr->LookupStore(remstore);
-		if ( ! storehandle )
-			return;
-
-		auto table = storehandle->forward_to;
-		if ( ! table )
-			return;
-
+		auto key = insert.key();
 		auto data = insert.value();
 
-		reporter->Warning("Insert Data: %s (%s)", to_string(insert.value()).c_str(), insert.value().get_type_name());
-		if ( table->Type()->IsSet() && data.get_type() != broker::data::type::set )
+		DBG_LOG(DBG_BROKER, "Insert Data: %s:%s (%s:%s)", to_string(insert.key()).c_str(), to_string(insert.value()).c_str(), insert.key().get_type_name(), insert.value().get_type_name());
+		if ( table->Type()->IsSet() && data.get_type() != broker::data::type::none )
 			{
 			reporter->Error("ProcessStoreEvent Insert got %s when expecting set", data.get_type_name());
 			return;
 			}
-		else if ( ! table->Type()->IsSet() && data.get_type() != broker::data::type::table )
+
+		// We sent this message. Ignore it.
+		if ( insert.publisher() == storehandle->store_pid )
+			return;
+
+		// FIXME: expiry!
+		assert( table->Type()->AsTableType()->IndexTypes()->length() == 1 );
+		auto zeek_key = data_to_val(std::move(key), (*(table->Type()->AsTableType()->IndexTypes()))[0]);
+		if ( ! zeek_key )
 			{
-			reporter->Error("ProcessStoreEvent Insert got %s when expecting table", data.get_type_name());
+			reporter->Error("ProcessStoreEvent: failed to convert key");
 			return;
 			}
 
-		// We sent this message. Ignore it.
-		//if ( insert.publisher() == storehandle->store_pid )
-		//	continue;
-
-		// We currently use data_to_val here. It creates a bit of overhead, but makes the code easier. We could change
-		// this to manual unrolling in the future.
-		auto val = data_to_val(std::move(data), table->Type());
-		// So we are just doing it manually - at least for now.
-		auto temptable = val->AsTable();
-		auto temptableval = val->AsTableVal();
-		HashKey* k;
-		TableEntryVal* entry;
-		auto c = temptable->InitForIteration();
-		while ( (entry = temptable->NextEntry(k, c)))
+		if ( table->Type()->IsSet() )
 			{
-			auto lv = temptableval->RecoverIndex(k);
-			delete k;
-			Val* entry_key = lv->Length() == 1 ? lv->Index(0) : lv.get();
-
-			// note - at the moment this code creates a loop
-			// Fixme: expiry!
-			if ( temptableval->Type()->IsSet() )
-				table->Assign(entry_key, nullptr);
-			else
-				table->Assign(entry_key, entry->Value());
+			table->Assign(zeek_key.get(), nullptr);
+			return;
 			}
+
+		// it is a table
+		auto zeek_value = data_to_val(std::move(data), table->Type()->YieldType());
+		if ( ! zeek_value )
+			{
+			reporter->Error("ProcessStoreEvent: failed to convert value");
+			return;
+			}
+			table->Assign(zeek_key.get(), zeek_value);
 		}
 	else if ( auto update = broker::store_event::update::make(msg) )
 		{
-		auto remstore = to_string(update.key());
-		auto storehandle = broker_mgr->LookupStore(remstore);
-		if ( ! storehandle )
-			return;
-
-		auto table = storehandle->forward_to;
-		if ( ! table )
-			return;
-
+		auto key = update.key();
 		auto data = update.new_value();
 
-		reporter->Warning("Update Data: %s->%s (%s)", to_string(update.old_value()).c_str(), to_string(update.new_value()).c_str(), update.new_value().get_type_name());
-		if ( table->Type()->IsSet() && data.get_type() != broker::data::type::set )
+		DBG_LOG(DBG_BROKER, "Update Data: %s->%s (%s)", to_string(update.old_value()).c_str(), to_string(update.new_value()).c_str(), update.new_value().get_type_name());
+		if ( table->Type()->IsSet() && data.get_type() != broker::data::type::none )
 			{
 			reporter->Error("ProcessStoreEvent Update got %s when expecting set", data.get_type_name());
-			return;
-			}
-		else if ( ! table->Type()->IsSet() && data.get_type() != broker::data::type::table )
-			{
-			reporter->Error("ProcessStoreEvent Update got %s when expecting table", data.get_type_name());
 			return;
 			}
 
@@ -1033,45 +1017,50 @@ void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
 		if ( update.publisher() == storehandle->store_pid )
 			return;
 
-		// We currently use data_to_val here. It creates a bit of overhead, but makes the code easier. We could change
-		// this to manual unrolling in the future.
-		auto val = data_to_val(std::move(data), table->Type());
-		// So we are just doing it manually - at least for now.
-		auto temptable = val->AsTable();
-		auto temptableval = val->AsTableVal();
-		HashKey* k;
-		TableEntryVal* entry;
-		auto c = temptable->InitForIteration();
-		while ( (entry = temptable->NextEntry(k, c)))
+		assert( table->Type()->AsTableType()->IndexTypes()->length() == 1 );
+		auto zeek_key = data_to_val(std::move(key), (*(table->Type()->AsTableType()->IndexTypes()))[0]);
+		if ( ! zeek_key )
 			{
-			auto lv = temptableval->RecoverIndex(k);
-			delete k;
-			Val* entry_key = lv->Length() == 1 ? lv->Index(0) : lv.get();
-
-			// note - at the moment this code creates a loop
-			if ( temptableval->Type()->IsSet() )
-				table->Assign(entry_key, nullptr);
-			else
-				table->Assign(entry_key, entry->Value());
+			reporter->Error("ProcessStoreEvent: failed to convert key");
+			return;
 			}
+
+		if ( table->Type()->IsSet() )
+			{
+			table->Assign(zeek_key.get(), nullptr);
+			return;
+			}
+
+		// it is a table
+		auto zeek_value = data_to_val(std::move(data), table->Type()->YieldType());
+		if ( ! zeek_value )
+			{
+			reporter->Error("ProcessStoreEvent: failed to convert value");
+			return;
+			}
+			table->Assign(zeek_key.get(), zeek_value);
 		}
 	else if ( auto erase = broker::store_event::erase::make(msg) )
 		{
-		auto remstore = to_string(erase.key());
-		auto storehandle = broker_mgr->LookupStore(remstore);
-		if ( ! storehandle )
+		DBG_LOG(DBG_BROKER, "Erase for key %s", store_name.c_str());
+
+		// We sent this message. Ignore it.
+		if ( erase.publisher() == storehandle->store_pid )
 			return;
 
-		auto table = storehandle->forward_to;
-		if ( ! table )
+		auto key = erase.key();
+		assert( table->Type()->AsTableType()->IndexTypes()->length() == 1 );
+		auto zeek_key = data_to_val(std::move(key), (*(table->Type()->AsTableType()->IndexTypes()))[0]);
+		if ( ! zeek_key )
+			{
+			reporter->Error("ProcessStoreEvent: failed to convert key");
 			return;
-
-		// I'm actually not sure we can get an erase - since we will never delete keys...
-		reporter->Warning("Erase for key %s", remstore.c_str());
+			}
+		table->Delete(zeek_key.get());
 		}
 	else
 		{
-		reporter->Warning("Unhandled event type");
+		reporter->Error("ProcessStoreEvent: Unhandled event type");
 		}
 	}
 

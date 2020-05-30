@@ -2097,18 +2097,10 @@ void TableVal::SendToStore(const Val* index, const Val* new_value, OnChangeType 
 			index_val = index;
 			}
 
-		// FIXME: at the moment this is hardcoded to the name of the broker store. I needed something to be able to tell
+		// FIXME: switch back to just storing tables directly in the broker store? 
 		// me which store a change came from - and this still seems to be missing from the store_events. (Or I am blind).
-		auto key_val = new StringVal(broker_store);
-		auto broker_key = bro_broker::val_to_data(key_val);
 		auto broker_index = bro_broker::val_to_data(index_val);
-		Unref(key_val);
 
-		if ( ! broker_key )
-			{
-			builtin_error("invalid Broker data conversion for &broker_store_key");
-			return;
-			}
 		if ( ! broker_index )
 			{
 			builtin_error("invalid Broker data conversation for table index");
@@ -2120,7 +2112,7 @@ void TableVal::SendToStore(const Val* index, const Val* new_value, OnChangeType 
 			case ELEMENT_NEW:
 			case ELEMENT_CHANGED:
 				if ( table_type->IsSet() )
-					handle->store.insert_into(std::move(*broker_key), std::move(*broker_index));
+					handle->store.put(std::move(*broker_index), broker::data());
 				else
 					{
 					if ( ! new_value )
@@ -2134,11 +2126,11 @@ void TableVal::SendToStore(const Val* index, const Val* new_value, OnChangeType 
 						builtin_error("invalid Broker data conversation for table value");
 						return;
 						}
-					handle->store.insert_into(std::move(*broker_key), std::move(*broker_index), std::move(*broker_val));
+					handle->store.put(std::move(*broker_index), std::move(*broker_val));
 					}
 				break;
 			case ELEMENT_REMOVED:
-				handle->store.remove_from(std::move(*broker_key), std::move(*broker_index));
+				handle->store.erase(std::move(*broker_index));
 				break;
 			}
 		}

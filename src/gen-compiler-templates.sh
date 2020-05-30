@@ -102,6 +102,14 @@ BEGIN	{
 	accessors["V"] = ".vector_val"
 	accessors["X"] = "###"
 
+	# While vectors other than vector-of-any are also managed, we
+	# do not need to enter them here because this property is only
+	# relevant for vector elements used in looped vector operations,
+	# and we do not do those for vector-of-vector-of-X.
+	++is_managed["A"]
+	++is_managed["N"]
+	++is_managed["S"]
+
 	# Update eval(...) below
 
 	eval_selector["I"] = ""
@@ -561,6 +569,14 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 
 	do_vec = vector && ! no_vec[sub_type1] && ! no_vec[sub_type1, sub_type2]
 
+	if ( ary_op == 2 && (! is_var1 || ! is_var2) )
+		# We do not support constant operands for binary vector
+		# operations.  These have been deprecated ... and if we
+		# did, then we would have to figure out how to hold
+		# in generated instructions both the type of the constant
+		# and the managed type of the vector.
+		do_vec = 0
+
 	if ( ! internal_op && is_rep )
 		{
 		if ( ! (type in args) )
@@ -644,26 +660,18 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 				oe_copy "; break;") >vec1_eval_f
 			}
 
-		else
+		else if ( is_var1 && is_var2 )
 			{
-			### Right now we wind up generating 3 identical
-			### case bodies for VCV, VVC, and VVV.  This gives
-			### us some latitude in case down the line we
-			### come up with a different vector scheme that
-			### varies for constant vectors, but we could
-			### consider compressing them down in the interest
-			### of smaller code size.
-
+			# Here we rely on the fact that we do not provide
+			# compiler support for constants in vector operations.
+			# See older history for code that does support this.
 			# See comment above for the role of op3.
-			op3 = (is_var1 && is_var2) ? "v3" : "v2"
-
 			print ("\tcase " full_op vec ":\n\t\tvec_exec("  \
-				full_op vec \
-				",\n\t\t\tframe[z.v1].vector_val,\n\t\t\t" \
-				(is_var1 ? "frame[z.v2]" : "z.c") \
-				".vector_val, " \
-				(is_var2 ? "frame[z." op3 "]" : "z.c") \
-				".vector_val, &ZAM_VM_Tracker);\n\t\tbreak;\n") >ops_eval_f
+				full_op vec ", z.t,\n\t\t" \
+				"frame[z.v1].vector_val, " \
+				"frame[z.v2].vector_val, " \
+				"frame[z.v3].vector_val, " \
+				"&ZAM_VM_Tracker);\n\t\tbreak;\n") >ops_eval_f
 
 			oe_copy = orig_eval
 			gsub(/\$1/, "vec2[i]" raccessor1, oe_copy)
@@ -677,8 +685,10 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 			      sub_type1 != sub_type2) && ! cond_op )
 				{
 				gsub(/\$\$/, "vec1[i]" laccessor, oe_copy)
-				print ("\tcase " full_op vec ":\n\t\t{\n\t\t" \
-					oe_copy "\n\t\tbreak;\n\t\t}") >vec2_eval_f
+				print ("\tcase " full_op vec ":\n\t\t{\n") >vec2_eval_f
+				if ( sub_type1 in is_managed )
+					print ("\t\tif ( needs_management ) delete vec1[i]" laccessor ";\n\t\t") >vec2_eval_f
+				print (oe_copy "\n\t\tbreak;\n\t\t}") >vec2_eval_f
 				}
 
 			else
@@ -819,19 +829,19 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, is_cond, me
 
 	else if ( args2[mt] != "" )
 		{
+		if ( sub_type && sub_type != "X" )
+			indent = "\t\t"
+		else
+			indent = "\t"
+
 		# This is the only scenario where sub_type should occur.
-		part1 = "\tauto z = GenInst(this, "
+		part1 = indent "auto z = GenInst(this, "
 
 		part2a = ", " args2[mt] ");\n"
-		part2c = "\treturn AddInst(z);"
+		part2c = indent "return AddInst(z);"
 
-		if ( sub_type && sub_type != "X" )
-			{
-			# The code will be indented due to if-else constructs.
-			part1 = "\t" part1
-			part2a = part2a
-			part2c = "\t" part2c
-			}
+		if ( is_vec && ary_op == 2 )
+			part2c = indent "z.t = myt;\n" part2c
 
 		# Provide access to the individual variables.
 		split(args2[mt], vars, /, /)
@@ -841,10 +851,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, is_cond, me
 			# Remove extraneous $, if present.
 			sub(/\$/, "", set_type)
 
-			part2b = "\tz.t = " vars[set_type] "->Type().get();\n"
-
-			if ( sub_type )
-				part2b = "\t" part2b
+			part2b = indent "z.t = " vars[set_type] "->Type().get();\n"
 			}
 		else
 			part2b = ""
@@ -854,10 +861,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, is_cond, me
 			# Remove extraneous $, if present.
 			sub(/\$/, "", set_expr)
 
-			part2b = part2b "\t\tz.e = " vars[set_expr] ";\n"
-
-			if ( sub_type )
-				part2b = "\t" part2b
+			part2b = part2b indent "z.e = " vars[set_expr] ";\n"
 			}
 
 		part2 = part2a part2b part2c
@@ -865,8 +869,8 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, is_cond, me
 		if ( sub_type && sub_type != "X" )
 			{
 			# Need braces for multi-line parts.
-			part1 = "\t\t{\n" part1
-			part2 = part2 "\n\t\t}"
+			part1 = indent "{\n" part1
+			part2 = part2 "\n" indent "}"
 
 			# Figure out the type to use to select which
 			# flavor of the operation to generate.  For
@@ -899,7 +903,14 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, is_cond, me
 			print ("\tauto t = " test_var "->Type().get();") >methods_f
 
 			if ( is_vec )
+				{
 				print ("\tt = t->AsVectorType()->YieldType();") >methods_f
+				if ( ary_op == 2 )
+					{
+					print ("\tauto yt1 = n1->Type()->AsVectorType()->YieldType();") >methods_f
+					print ("\tauto myt = IsManagedType(yt1) ? yt1 : nullptr;") >methods_f
+					}
+				}
 
 			print ("\tauto tag = t->Tag();") >methods_f
 			print ("\tauto i_t = t->InternalType();") >methods_f

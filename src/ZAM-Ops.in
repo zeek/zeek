@@ -53,7 +53,7 @@ eval_S $$.uint_val = $1->Len()
 #
 eval_T $$.uint_val = $1->Size()
 #
-eval_V $$.uint_val = $1->ConstVec()->size()
+eval_V $$.uint_val = $1->ConstVec()->zvec.size()
 #
 eval auto v = frame[z.v2].ToVal(z.e->Type().get())->SizeVal(); frame[z.v1] = BuildVal(v, z.t, z.stmt);
 
@@ -103,8 +103,8 @@ unary-op AppendTo
 op1-read
 set-type $2
 eval auto copy = CopyVal($1)
-eval auto& vv = frame[z.v1].vector_val->ModVec()
-eval vv->push_back(copy)
+eval auto& vv = frame[z.v1].vector_val->ModVec()->zvec
+eval vv.push_back(copy)
 
 unary-expr-op Flatten
 op-type X
@@ -425,7 +425,7 @@ eval if ( ! frame[z.v2].int_val ) AssignV1(CopyVal(z.c))
 op IndexVecBoolSelect
 type VVV
 set-type $1
-eval if ( frame[z.v2].vector_val->ConstVec()->size() != frame[z.v3].vector_val->ConstVec()->size() ) {
+eval if ( frame[z.v2].vector_val->ConstVec()->zvec.size() != frame[z.v3].vector_val->ConstVec()->zvec.size() ) {
 eval	ZAM_run_time_error(error_flag, z.stmt, "size mismatch, boolean index and vector")
 eval	break; }
 eval auto vt = z.t->AsVectorType()
@@ -451,17 +451,17 @@ custom-method return CompileIndex(n1, n2, l);
 
 internal-op Index-Vec
 type VVV
-eval auto& vec = frame[z.v2].vector_val->ConstVec()
+eval auto& vec = frame[z.v2].vector_val->ConstVec()->zvec
 eval auto ind = frame[z.v3].uint_val
-eval if ( ind >= vec->size() ) ZAM_run_time_error(error_flag, z.stmt, "no such index")
-eval AssignV1(CopyVal((*vec)[ind]))
+eval if ( ind >= vec.size() ) ZAM_run_time_error(error_flag, z.stmt, "no such index")
+eval AssignV1(CopyVal(vec[ind]))
 
 internal-op Index-VecC
 type VVV
-eval auto& vec = frame[z.v2].vector_val->ConstVec()
+eval auto& vec = frame[z.v2].vector_val->ConstVec()->zvec
 eval auto ind = z.v3
-eval if ( ind >= vec->size() ) ZAM_run_time_error(error_flag, z.stmt, "no such index")
-eval AssignV1(CopyVal((*vec)[ind]))
+eval if ( ind >= vec.size() ) ZAM_run_time_error(error_flag, z.stmt, "no such index")
+eval AssignV1(CopyVal(vec[ind]))
 
 internal-op Index-Vec
 type VVL
@@ -638,8 +638,8 @@ direct-unary-op Vector-Coerce VectorCoerce
 
 internal-op Vector-Coerce
 type VV
-eval auto& vec = frame[z.v2].vector_val->ConstVec()
-eval if ( vec->size() > 0 ) { ZAM_run_time_error(error_flag, z.stmt, "coercion of non-empty vector"); break; }
+eval auto& vec = frame[z.v2].vector_val->ConstVec()->zvec
+eval if ( vec.size() > 0 ) { ZAM_run_time_error(error_flag, z.stmt, "coercion of non-empty vector"); break; }
 eval auto t = z.t->Ref()->AsVectorType();
 eval auto vv_p = make_intrusive<VectorVal>(t)
 eval delete frame[z.v1].vector_val
@@ -652,10 +652,9 @@ op1-read
 type VVV
 eval auto vmgr = frame[z.v1].vector_val
 eval vmgr->SetYieldType(z.t)
-eval auto& vec = vmgr->ModVec()
+eval auto vec = vmgr->ModVec()
 eval auto ind = frame[z.v2].uint_val
-eval if ( vec->size() <= ind ) grow_vector(*vec, ind + 1)
-eval (*vec)[ind] = frame[z.v3]
+eval vec->SetElement(ind, frame[z.v3])
 
 op Vector-Elem-Assign
 op1-read
@@ -664,8 +663,7 @@ eval auto vmgr = frame[z.v1].vector_val
 eval vmgr->SetYieldType(z.t)
 eval auto& vec = vmgr->ModVec()
 eval auto ind = frame[z.v2].uint_val
-eval if ( vec->size() <= ind ) grow_vector(*vec, ind + 1)
-eval (*vec)[ind] = z.c
+eval vec->SetElement(ind, z.c)
 
 # These versions are used when the constant is the index, not the new value.
 op Vector-Elem-Assign
@@ -674,9 +672,7 @@ type VVi
 eval auto vmgr = frame[z.v1].vector_val
 eval vmgr->SetYieldType(z.t)
 eval auto& vec = vmgr->ModVec()
-eval auto ind = z.v3
-eval if ( vec->size() <= ind ) grow_vector(*vec, ind + 1)
-eval (*vec)[ind] = frame[z.v2]
+eval vec->SetElement(z.v3, frame[z.v2])
 
 
 op Field-LHS-Assign
@@ -856,7 +852,7 @@ internal-op Init-Vector-Loop
 type VV
 eval auto ii = z.c.iter_info
 eval ii->vv = frame[z.v2].vector_val->ConstVec()
-eval ii->n = ii->vv->size()
+eval ii->n = ii->vv->zvec.size()
 eval ii->iter = 0
 eval frame[z.v1].iter_info = ii
 
@@ -866,7 +862,7 @@ internal-op Next-Vector-Iter
 type VVV
 eval auto ii = frame[z.v2].iter_info
 eval if ( ii->iter >= ii->n ) { pc = z.v3; break; }
-eval auto& vv = *ii->vv
+eval auto& vv = ii->vv->zvec
 eval if ( vv[ii->iter].IsNil(ii->yield_type) ) { ++ii->iter; --pc; break; }
 eval frame[z.v1].uint_val = ii->iter
 eval ++ii->iter
@@ -897,7 +893,8 @@ internal-op End-Loop
 type V
 eval auto ii = frame[z.v1].iter_info
 eval if ( ii->c ) ii->loop_vals->StopIteration(ii->c)
-eval ii->c = nullptr;
+eval ii->c = nullptr
+eval ii->vv = nullptr
 
 
 op When
@@ -984,10 +981,11 @@ eval frame[z.v1].record_val = TrackVal(r)
 # v2 is its slot in the interpreted frame
 internal-op Init-Vector
 type VV
-eval auto vec = new VectorVal(z.t->AsVectorType())
+eval auto vt = z.t->AsVectorType()
+eval auto vec = new VectorVal(vt)
 eval f->SetElement(z.v2, vec)
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = new ZAMVectorMgr(make_shared<ZAM_vector>(), vec, &ZAM_VM_Tracker)
+eval frame[z.v1].vector_val = new ZAMVectorMgr(make_shared<ZAM_vector>(nullptr), vec, &ZAM_VM_Tracker)
 
 internal-op Init-Table
 type V

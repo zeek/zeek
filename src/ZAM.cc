@@ -584,11 +584,15 @@ void ZAM::StmtDescribe(ODesc* d) const
 	d->AddSP(func->Name());
 	}
 
+// Unary vector operations never work on managed types, so no need
+// to pass in the type ...
 static void vec_exec(ZOp op, ZAMVectorMgr*& v1, const ZAMVectorMgr* v2,
 			ZAM_tracker_type* tracker);
 
-static void vec_exec(ZOp op, ZAMVectorMgr*& v1, const ZAMVectorMgr* v2,
-			const ZAMVectorMgr* v3, ZAM_tracker_type* tracker);
+// ... but binary ones can.
+static void vec_exec(ZOp op, BroType* t, ZAMVectorMgr*& v1,
+			const ZAMVectorMgr* v2, const ZAMVectorMgr* v3,
+			ZAM_tracker_type* tracker);
 
 // Vector coercion.
 //
@@ -596,11 +600,15 @@ static void vec_exec(ZOp op, ZAMVectorMgr*& v1, const ZAMVectorMgr* v2,
 #define VEC_COERCE(tag, lhs_accessor, cast, rhs_accessor) \
 	static ZAMVectorMgr* vec_coerce_##tag(ZAMVectorMgr* vec, ZAM_tracker_type* tracker) \
 		{ \
-		auto v = vec->ConstVec(); \
-		auto res = make_shared<ZAM_vector>(); \
-		for ( unsigned int i = 0; i < v->size(); ++i ) \
-			(*res)[i].lhs_accessor = cast((*v)[i].rhs_accessor); \
-		return new ZAMVectorMgr(res, nullptr, tracker); \
+		auto& v = vec->ConstVec()->zvec; \
+		auto yt = vec->YieldType(); \
+		auto res_zv = make_shared<ZAM_vector>(vec->ManagedYieldType()); \
+		auto& res = res_zv->zvec; \
+		for ( unsigned int i = 0; i < v.size(); ++i ) \
+			res[i].lhs_accessor = cast(v[i].rhs_accessor); \
+		auto zvm = new ZAMVectorMgr(res_zv, nullptr, tracker); \
+		zvm->SetYieldType(yt); \
+		return zvm; \
 		}
 
 VEC_COERCE(IU, int_val, bro_int_t, uint_val)
@@ -2734,14 +2742,18 @@ static void vec_exec(ZOp op, ZAMVectorMgr*& v1, const ZAMVectorMgr* v2,
 	// into the Exec method).  But that seems like a lot of
 	// code bloat for only a very modest gain.
 
-	auto& vec2 = *v2->ConstVec();
+	auto& vec2 = v2->ConstVec()->zvec;
+	bool needs_management;
 
 	if ( v1 )
-		v1->ModVec()->resize(vec2.size());
+		v1->ModVec()->zvec.resize(vec2.size());
 	else
-		v1 = new ZAMVectorMgr(make_shared<ZAM_vector>(vec2.size()), nullptr, tracker);
+		v1 = new ZAMVectorMgr(make_shared<ZAM_vector>(nullptr, vec2.size()),
+					nullptr, tracker);
 
-	auto& vec1 = *v1->ModVec();
+	v1->SetYieldType(v2->YieldType());
+
+	auto& vec1 = v1->ModVec()->zvec;
 
 	for ( unsigned int i = 0; i < vec2.size(); ++i )
 		switch ( op ) {
@@ -2754,20 +2766,30 @@ static void vec_exec(ZOp op, ZAMVectorMgr*& v1, const ZAMVectorMgr* v2,
 	}
 
 // Binary vector operation of v1 = v2 <vec-op> v3.
-static void vec_exec(ZOp op, ZAMVectorMgr*& v1, const ZAMVectorMgr* v2,
-			const ZAMVectorMgr* v3, ZAM_tracker_type* tracker)
+static void vec_exec(ZOp op, BroType* yt, ZAMVectorMgr*& v1,
+			const ZAMVectorMgr* v2, const ZAMVectorMgr* v3,
+			ZAM_tracker_type* tracker)
 	{
 	// See comment above re further speed-up.
 
-	auto& vec2 = *v2->ConstVec();
-	auto& vec3 = *v3->ConstVec();
+	auto& vec2 = v2->ConstVec()->zvec;
+	auto& vec3 = v3->ConstVec()->zvec;
+
+	BroType* needs_management = nullptr;
 
 	if ( v1 )
-		v1->ModVec()->resize(vec2.size());
+		{
+		// ### This leaks if it's a vector-of-string becoming smaller.
+		v1->ModVec()->zvec.resize(vec2.size());
+		needs_management = yt;
+		}
 	else
-		v1 = new ZAMVectorMgr(make_shared<ZAM_vector>(vec2.size()), nullptr, tracker);
+		v1 = new ZAMVectorMgr(make_shared<ZAM_vector>(yt, vec2.size()),
+					nullptr, tracker);
 
-	auto& vec1 = *v1->ModVec();
+	v1->SetYieldType(yt);
+
+	auto& vec1 = v1->ModVec()->zvec;
 
 	for ( unsigned int i = 0; i < vec2.size(); ++i )
 		switch ( op ) {

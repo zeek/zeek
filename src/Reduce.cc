@@ -97,7 +97,7 @@ IntrusivePtr<NameExpr> Reducer::PushInlineBlock(IntrusivePtr<BroType> type)
 
 	char buf[8192];
 	int n = new_locals.size();
-	snprintf(buf, sizeof buf, "@retvar", n);
+	snprintf(buf, sizeof buf, "@retvar");
 
 	IntrusivePtr<ID> ret_id = install_ID(buf, "<internal>", false, false);
 	ret_id->SetType(type);

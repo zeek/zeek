@@ -112,14 +112,52 @@ inline bool IsManagedType(const IntrusivePtr<BroType>& t)
 inline bool IsManagedType(const Expr* e) { return IsManagedType(e->Type()); }
 
 // Deletes a managed value.
-void DeleteManagedType(ZAMValUnion& v, const BroType* t);
+extern void DeleteManagedType(ZAMValUnion& v, const BroType* t);
 
 
 // Class used to manage vectors - only needed to support sync'ing them
 // with Val*'s.
 
 // The underlying "raw" vector.
-typedef vector<ZAMValUnion> ZAM_vector;
+class ZAM_vector {
+public:
+	ZAM_vector(const BroType* _t)	{ t = _t; }
+	ZAM_vector(const BroType* _t, int n) : zvec(n)	{ t = _t; }
+
+	~ZAM_vector()	{ if ( t ) DeleteMembers(); }
+
+	vector<ZAMValUnion> zvec;
+
+	// Sets the given element, doing deletions and deep-copies
+	// for managed types.
+	void SetElement(int n, ZAMValUnion& v)
+		{
+		if ( zvec.size() <= n )
+			GrowVector(n + 1);
+
+		if ( t )
+			SetManagedElement(n, v);
+		else
+			zvec[n] = v;
+		}
+
+	// The type of the vector elements.  Only non-nil if they
+	// are managed types.
+	const BroType* t;
+
+protected:
+	void SetManagedElement(int n, ZAMValUnion& v);
+	void GrowVector(int size);
+
+	void DeleteMembers();
+
+	// Deletes the given element if necessary.
+	void DeleteIfManaged(int n)
+		{
+		if ( t )
+			DeleteManagedType(zvec[n], t);
+		}
+};
 
 class ZAMVectorMgr {
 public:
@@ -137,10 +175,24 @@ public:
 		{ is_clean = false; return vec; }
 
 	BroType* YieldType() const	{ return yield_type; }
-	void SetYieldType(BroType* yt)	{ yield_type = yt; }
+	BroType* ManagedYieldType() const
+		{ return is_managed ? yield_type : nullptr; }
+
+	void SetYieldType(BroType* yt)
+		{
+		if ( ! yield_type )
+			{
+			yield_type = yt;
+			is_managed = IsManagedType(yt);
+			if ( is_managed )
+				vec->t = yt;
+			}
+		}
 
 	IntrusivePtr<VectorVal> VecVal()	{ return {NewRef{}, v}; }
 	void SetVecVal(VectorVal* vv)	 	{ v = vv; v->Ref(); }
+
+	bool IsManaged() const	{ return is_managed; }
 
 	bool IsClean() const	{ return is_clean || ! v; }
 
@@ -156,8 +208,13 @@ protected:
 	ZAM_tracker_type* tracker;
 
 	// The actual yield type of the vector, if we've had a chance to
-	// observe it.  Necessary for "vector of any".
+	// observe it.  Necessary for "vector of any".  Non-const because
+	// we need to be able to ref it.
 	BroType* yield_type;
+
+	// Whether the base type of the vector is one for which we need
+	// to do explicit memory management.
+	bool is_managed;
 
 	// Whether the local vector is unmodified since we created it.
 	bool is_clean;
@@ -172,14 +229,14 @@ public:
 	~IterInfo()	{ if ( c ) loop_vals->StopIteration(c); }
 
 	// If we're looping over a table:
-	TableVal* tv;
+	TableVal* tv = nullptr;
 
 	// The raw values being looped over
-	const PDict<TableEntryVal>* loop_vals;
+	const PDict<TableEntryVal>* loop_vals = nullptr;
 
 	// Iterator status.  Always gets deleted, so non-table/set
 	// iteration instructions need to set it to nil.
-	IterCookie* c;
+	IterCookie* c = nullptr;
 
 	// Frame slots of iteration variables, such as "[v1, v2, v3] in aggr".
 	// These are used for iterating over vectors and strings, too
@@ -191,20 +248,20 @@ public:
 
 	// Type associated with the "value" entry, for "k, v in aggr"
 	// iteration.
-	BroType* value_var_type;
+	BroType* value_var_type = nullptr;
 
 	// If we're iterating over vectors, points to the raw vector ...
-	std::shared_ptr<ZAM_vector> vv;
+	std::shared_ptr<ZAM_vector> vv = nullptr;
 
 	// ... unless it's a vector of any (sigh):
-	vector<Val*>* any_vv;
+	vector<Val*>* any_vv = nullptr;
 
 	// The vector's type & yield.
-	VectorType* vec_type;
-	BroType* yield_type;
+	VectorType* vec_type = nullptr;
+	BroType* yield_type = nullptr;
 
 	// String we're iterating over.
-	BroString* s;
+	BroString* s = nullptr;
 
 	// Counter of where we are in the iteration.
 	bro_uint_t iter;
@@ -216,5 +273,3 @@ extern ZAMVectorMgr* to_ZAM_vector(Val* vec, ZAM_tracker_type* tracker,
 					bool track_val);
 extern std::shared_ptr<ZAM_vector> to_raw_ZAM_vector(Val* vec,
 						ZAM_tracker_type* tracker);
-
-extern void grow_vector(ZAM_vector& vec, int new_size);

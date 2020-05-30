@@ -48,10 +48,14 @@ bool IsManagedType(const BroType* t)
 void DeleteManagedType(ZAMValUnion& v, const BroType* t)
 	{
 	switch ( t->Tag() ) {
-	case TYPE_ADDR:		delete v.addr_val; break;
-	case TYPE_SUBNET:	delete v.subnet_val; break;
-	case TYPE_STRING:	delete v.string_val; break;
-	case TYPE_VECTOR:	delete v.vector_val; break;
+	case TYPE_ADDR:	
+		delete v.addr_val; v.addr_val = nullptr; break;
+	case TYPE_SUBNET:
+		delete v.subnet_val; v.subnet_val = nullptr; break;
+	case TYPE_STRING:
+		delete v.string_val; v.string_val = nullptr; break;
+	case TYPE_VECTOR:
+		delete v.vector_val; v.vector_val = nullptr; break;
 
 	default:
 		reporter->InternalError("type inconsistency in DeleteManagedType");
@@ -235,7 +239,7 @@ IntrusivePtr<VectorVal> ZAMValUnion::ToVector(BroType* t) const
 	auto vt = t->AsVectorType();
 	auto yt = vt->YieldType();
 
-	auto& vec = *vector_val->ConstVec();
+	auto& vec = vector_val->ConstVec()->zvec;
 	int n = vec.size();
 
 	auto actual_yt = vector_val->YieldType();
@@ -264,6 +268,51 @@ IntrusivePtr<VectorVal> ZAMValUnion::ToVector(BroType* t) const
 	vector_val->SetVecVal(v.get());
 
 	return v;
+	}
+
+
+void ZAM_vector::SetManagedElement(int n, ZAMValUnion& v)
+	{
+	auto& zn = zvec[n];
+
+	DeleteManagedType(zn, t);
+
+	switch ( t->Tag() ) {
+	case TYPE_STRING:
+		zn.string_val = new BroString(*v.string_val);
+		break;
+
+	case TYPE_ADDR:
+		zn.addr_val = new IPAddr(*v.addr_val);
+		break;
+
+	case TYPE_SUBNET:
+		zn.subnet_val = new IPPrefix(*v.subnet_val);
+		break;
+
+	case TYPE_VECTOR:
+		zn.vector_val = v.vector_val->ShallowCopy();
+
+	default:
+		reporter->InternalError("bad type tag in ZAM_vector::SetManagedElement");
+	}
+	}
+
+void ZAM_vector::GrowVector(int new_size)
+	{
+	int old_size = zvec.size();
+	zvec.resize(new_size);
+
+	for ( int i = old_size; i < new_size; ++i )
+		// Strictly speaking, we should know the particular type of
+		// vector and zero it accordingly.
+		zvec[i].void_val = nullptr;
+	}
+
+void ZAM_vector::DeleteMembers()
+	{
+	for ( auto& z : zvec )
+		DeleteManagedType(z, t);
 	}
 
 
@@ -304,6 +353,11 @@ ZAMVectorMgr::ZAMVectorMgr(std::shared_ptr<ZAM_vector> _vec, VectorVal* _v,
 			yt = nullptr;
 		}
 
+	if ( yt )
+		is_managed = IsManagedType(yt);
+	else
+		is_managed = false;
+
 	yield_type = yt;
 	}
 
@@ -333,7 +387,7 @@ void ZAMVectorMgr::Spill()
 	auto yt = vt->YieldType();
 	auto val_vec = new vector<Val*>();
 
-	for ( auto elem : *vec )
+	for ( auto elem : vec->zvec )
 		{
 		if ( elem.IsNil(yt) )
 			val_vec->push_back(nullptr);
@@ -367,28 +421,18 @@ std::shared_ptr<ZAM_vector> to_raw_ZAM_vector(Val* vec, ZAM_tracker_type* trk)
 	auto t = vec->Type()->AsVectorType();
 	auto yt = t->YieldType();
 
-	auto raw = make_shared<ZAM_vector>();
+	auto myt = IsManagedType(yt) ? yt : nullptr;
+	auto zv = make_shared<ZAM_vector>(myt);
+	auto& raw = zv->zvec;
+
 	bool error;
 
 	for ( auto elem : *v )
 		if ( ! elem )
 			// Zeek vectors can have holes.
-			raw.get()->push_back(ZAMValUnion());
+			raw.push_back(ZAMValUnion());
 		else
-			raw.get()->push_back(ZAMValUnion(elem, yt, trk, vec,
-								error));
+			raw.push_back(ZAMValUnion(elem, yt, trk, vec, error));
 
-	return raw;
-	}
-
-void grow_vector(ZAM_vector& vec, int new_size)
-	{
-	int old_size = vec.size();
-	vec.resize(new_size);
-
-	for ( int i = old_size; i < new_size; ++i )
-		// Strictly speaking, we should know the particular type of
-		// vector and zero it accordingly.  We could get that
-		// from the original vector_val's Val but geez.
-		vec[i].void_val = nullptr;
+	return zv;
 	}

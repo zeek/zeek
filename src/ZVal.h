@@ -242,8 +242,6 @@ protected:
 	bool is_clean;
 };
 
-typedef unsigned long ZRM_flags;
-
 class ZAMRecordMgr : public ZAMAggregateMgr {
 public:
 	// Main constructor, for tracking an existing RecordVal.
@@ -262,10 +260,28 @@ public:
 					is_loaded, is_dirty, is_managed);
 		}
 
-	void SetRecordType(RecordType* _rt, ZRM_flags _is_managed)
+	void SetRecordType(RecordType* _rt)
 		{
 		rt = _rt;
-		is_managed = _is_managed;
+		is_managed = rt->ManagedFields();
+		}
+
+	ZAMValUnion& GetField(int field)
+		{
+		if ( ! IsLoaded(field) )
+			Load(field);
+
+		return rvec[field];
+		}
+
+	void SetField(int field, ZAMValUnion v)
+		{
+		if ( IsManaged(field) )
+			Delete(field);
+
+		rvec[field] = v;
+
+		is_dirty |= (1 << field);
 		}
 
 	ZRM_flags OffsetMask(int offset)	{ return 1 << offset; }
@@ -281,6 +297,9 @@ public:
 	void Freshen() override;
 
 protected:
+	void Load(int field);
+	void Delete(int field);
+
 	RecordVal* v;	// our own copy of aggr_val, with the right type
 
 	// And a handy pointer to its type.

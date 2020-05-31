@@ -8,6 +8,7 @@
 #include "Expr.h"
 #include "Scope.h"
 #include "Val.h"
+#include "ZVal.h"
 #include "Var.h"
 #include "Reporter.h"
 #include "zeekygen/Manager.h"
@@ -617,6 +618,15 @@ RecordType::RecordType(type_decl_list* arg_types) : BroType(TYPE_RECORD)
 	{
 	types = arg_types;
 	num_fields = types ? types->length() : 0;
+
+	managed_fields = 0;
+
+	if ( types )
+		{
+		loop_over_list(*types, i)
+			if ( IsManagedType((*types)[i]->type) )
+				managed_fields |= (1 << i);
+		}
 	}
 
 // in this case the clone is actually not so shallow, since

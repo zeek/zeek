@@ -438,7 +438,7 @@ ZAMRecordMgr::ZAMRecordMgr(RecordVal* _v, ZAM_tracker_type* _tracker)
 		{
 		Ref(v);
 		rt = v->Type()->AsRecordType();
-		// ### is_managed = rt->ManagedFields();
+		is_managed = rt->ManagedFields();
 		}
 	else
 		{
@@ -477,8 +477,20 @@ void ZAMRecordMgr::Spill()
 
 void ZAMRecordMgr::Freshen()
 	{
-	// Due to our load-as-needed, no need to do work here.
-	is_loaded = 0;
+	// Due to our load-as-needed, no need to do work here.  We rely
+	// on Freshen() only being called after Spill().
+	}
+
+void ZAMRecordMgr::Load(int field)
+	{
+	if ( ! v )
+		reporter->InternalError("field missing in record load");
+
+	auto f = v->Lookup(field);
+	}
+
+void ZAMRecordMgr::Delete(int field)
+	{
 	}
 
 

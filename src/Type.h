@@ -138,6 +138,10 @@ const int DOES_NOT_MATCH_INDEX = 0;
 const int MATCHES_INDEX_SCALAR = 1;
 const int MATCHES_INDEX_VECTOR = 2;
 
+// Needed by the compiler, but we define it here so RecordType can use it
+// in its declaration.
+typedef unsigned long ZRM_flags;
+
 class BroType : public BroObj {
 public:
 	explicit BroType(TypeTag tag, bool base_type = false);
@@ -527,6 +531,10 @@ public:
 	const TypeDecl* FieldDecl(int field) const;
 	TypeDecl* FieldDecl(int field);
 
+	// Returns flags corresponding to which fields in the record
+	// have types managed by the compiler.
+	ZRM_flags ManagedFields() const		{ return managed_fields; }
+
 	int NumFields() const			{ return num_fields; }
 
 	/**
@@ -564,6 +572,7 @@ protected:
 
 	int num_fields;
 	type_decl_list* types;
+	ZRM_flags managed_fields;
 };
 
 class SubNetType : public BroType {

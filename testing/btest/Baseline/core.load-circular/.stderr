@@ -1,0 +1,6 @@
+warning in /home/awelzel/projects/zeek/testing/btest/.tmp/core.load-circular/././cluster.zeek, line 1: Detected circular @load of /home/awelzel/projects/zeek/testing/btest/.tmp/core.load-circular/./././notice.zeek from:
+warning in /home/awelzel/projects/zeek/testing/btest/.tmp/core.load-circular/././cluster.zeek, line 1:   /home/awelzel/projects/zeek/testing/btest/.tmp/core.load-circular/././cluster.zeek:1
+warning in /home/awelzel/projects/zeek/testing/btest/.tmp/core.load-circular/././cluster.zeek, line 1:   /home/awelzel/projects/zeek/testing/btest/.tmp/core.load-circular/./notice.zeek:1
+warning in /home/awelzel/projects/zeek/testing/btest/.tmp/core.load-circular/././cluster.zeek, line 1:   /home/awelzel/projects/zeek/testing/btest/.tmp/core.load-circular/load-circular.zeek:6
+warning in /home/awelzel/projects/zeek/testing/btest/.tmp/core.load-circular/././cluster.zeek, line 1:   (null):1
+fatal error in /home/awelzel/projects/zeek/testing/btest/.tmp/core.load-circular/././cluster.zeek, line 5: unknown enum identifier "XNotice::XType"

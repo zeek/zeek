@@ -447,47 +447,22 @@ protected:
 	BroType* yield_type;
 };
 
-#if 0
-class ZAMRecord : public ZAMAggregate {
+
+// An individual instance of a ZAM record aggregate, which potentially
+// shares the underlying instantiation of that value with other instances.
+
+class ZAMRecord {
 public:
-	// Main constructor, for tracking an existing RecordVal.
-	ZAMRecord(RecordVal* _v, ZAMAggrBindings* bindings);
-
-	// Copy constructor.
-	ZAMRecord(IntrusivePtr<ZVU_vec> _vec, RecordVal* _v,
-			ZAMAggrBindings* bindings, ZRM_flags _is_loaded,
-			ZRM_flags _is_dirty, ZRM_flags _is_managed);
-
-	~ZAMRecord() override;
+	ZAMRecord(IntrusivePtr<ZAM_record> _zr);
 
 	ZAMRecord* ShallowCopy()
 		{
-		return new ZAMRecord(rvec, v, nullptr,
-					is_loaded, is_dirty, is_managed);
+		return new ZAMRecord(zr);
 		}
 
 protected:
-	void Load(int field);
-	void Delete(int field);
-
-	RecordVal* v;	// our own copy of aggr_val, with the right type
-
-	// And a handy pointer to its type.
-	const RecordType* rt;
-
-	// The underlying vector of values used internally.
-	IntrusivePtr<ZVU_vec> rvec;
-
-	// Whether a given field is loaded.
-	ZRM_flags is_loaded;
-
-	// Whether a given field has been modified since we loaded it.
-	ZRM_flags is_dirty;
-
-	// Whether a given field requires explicit memory management.
-	ZRM_flags is_managed;
+	IntrusivePtr<ZAM_record> zr;
 };
-#endif
 
 // Information used to iterate over aggregates.  It's a hodge-podge since
 // it's meant to support every type of aggregate & loop.  Only a BroObj

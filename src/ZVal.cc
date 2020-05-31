@@ -394,6 +394,12 @@ void ZAM_record::Load(int field)
 		reporter->InternalError("field missing in record load");
 
 	auto f = rv->Lookup(field);
+	Ref(f);	// will leak until we clean up ZAMValUnion's constructor
+
+	bool error;
+	zvec[field] = ZAMValUnion(f, rt->FieldType(field), bindings, rv, error);
+
+	is_loaded |= (1 << field);
 	}
 
 void ZAM_record::Delete(int field)
@@ -449,18 +455,10 @@ ZAMVector::ZAMVector(IntrusivePtr<ZAM_vector> _vec)
 	}
 
 
-#if 0
-ZAMRecord::ZAMRecord(RecordVal* _v, ZAMAggrBindings* _bindings)
-	: ZAMAggregate(_bindings, _v)
+ZAMRecord::ZAMRecord(IntrusivePtr<ZAM_record> _zr)
 	{
-	v = _v;
+	zr = _zr;
 	}
-
-ZAMRecord::~ZAMRecord()
-	{
-	Finish();
-	}
-#endif
 
 
 ZAMVector* to_ZAM_vector(Val* vec, ZAMAggrBindings* bindings, bool track_val)

@@ -133,13 +133,12 @@ typedef vector<ZAMValUnion> ZVU_vec;
 
 class ZAMAggrInstantiation {
 public:
-	// The following assume that the Val, if any, has been
-	// ref'd such that it we should Unref() it upon destruction.
 	ZAMAggrInstantiation(Val* _v, ZAMAggrBindings* _bindings, int n)
 	: zvec(n)
 		{
 		bindings = _bindings;
 		aggr_val = _v;
+		Ref(aggr_val);
 		is_dirty = 0;
 
 		if ( bindings && aggr_val )
@@ -147,7 +146,11 @@ public:
 		}
 
 	// Subclasses should delete any managed elements.
-	virtual ~ZAMAggrInstantiation()	{ Unref(aggr_val); }
+	virtual ~ZAMAggrInstantiation()
+		{
+		if ( bindings )
+			bindings->erase(this);
+		}
 
 	// Copy the internal aggregate to the associated Val.
 	virtual void Spill() = 0;
@@ -156,10 +159,31 @@ public:
 	virtual void Freshen() = 0;
 
 protected:
+	// This would be in the destructor but it needs to call virtual
+	// functions, so instead derived classes need to call it from
+	// their own destructors.
+	void Finish()
+		{
+		if ( aggr_val )
+			{
+			if ( aggr_val->RefCnt() > 1 )
+				// Don't bother spilling for a value we're
+				// about to delete.
+				Spill();
+			}
+
+		if ( aggr_val )
+			Unref(aggr_val);
+		}
+
 	// The associated Zeek interpreter value.  If nil, then this
 	// aggregate might still be shared by multiple ZAM values, but
 	// does not require sync'ing.
 	Val* aggr_val;
+
+	// Bindings manager we need to register with if we're a
+	// pairing with a Val*.
+	ZAMAggrBindings* bindings;
 
 	// The underlying set of ZAM values.
 	ZVU_vec zvec;
@@ -178,12 +202,31 @@ public:
 	// the associated VectorVal because (1) there might not be a
 	// VectorVal at all, and (2) it is static information that can
 	// be computed at compile time rather than run-time.
-	ZAM_vector(VectorVal* _v, const BroType* _yt)
-		: ZAMAggrInstantiation(_v) { yt = _yt; }
-	ZAM_vector(VectorVal* _v, const BroType* _yt, int n)
-		: ZAMAggrInstantiation(_v, n) { yt = _yt; }
+	ZAM_vector(VectorVal* _v, ZAMAggrBindings* _bindings,
+			BroType* _myt, int n = 0)
+		: ZAMAggrInstantiation(_v, _bindings, n)
+		{ vv = _v; managed_yt = _myt; }
 
-	~ZAM_vector()	{ if ( yt ) DeleteMembers(); }
+	~ZAM_vector()
+		{
+		Finish();
+		if ( managed_yt )
+			DeleteMembers();
+		}
+
+	BroType* ManagedYieldType() const	{ return managed_yt; }
+	void SetManagedYieldType(BroType* _myt)	{ managed_yt = _myt; }
+
+	int Size() const		{ return zvec.size(); }
+
+	const ZVU_vec& ConstVec() const	{ return zvec; }
+	ZVU_vec& ModVec()		{ is_dirty = 1; return zvec; }
+
+	// Used when access to the underlying vector is for initialization.
+	ZVU_vec& ModVecNoDirty()	{ return zvec; }
+
+	IntrusivePtr<VectorVal> VecVal()	{ return {NewRef{}, vv}; }
+	void SetVecVal(VectorVal* _vv)		{ vv = _vv; vv->Ref(); }
 
 	// Sets the given element, doing deletions and deep-copies
 	// for managed types.
@@ -192,7 +235,7 @@ public:
 		if ( zvec.size() <= n )
 			GrowVector(n + 1);
 
-		if ( yt )
+		if ( managed_yt )
 			SetManagedElement(n, v);
 		else
 			zvec[n] = v;
@@ -200,19 +243,10 @@ public:
 		is_dirty = 1;
 		}
 
-	void SetYieldType(const BroType* _yt)	{ yt = _yt; }
-
-	const ZVU_vec& ConstVec() const	{ return zvec; }
-	ZVU_vec& ModVec()		{ is_dirty = 1; return zvec; }
-
-	// Used when access to the underlying vector is for initialization.
-	ZVU_vec& ModVecNoDirty()	{ return zvec; }
+	void Spill() override;
+	void Freshen() override;
 
 protected:
-	// The yield type of the vector elements.  Only non-nil if they
-	// are managed types.
-	const BroType* yt;
-
 	void SetManagedElement(int n, ZAMValUnion& v);
 	void GrowVector(int size);
 
@@ -221,51 +255,39 @@ protected:
 	// Deletes the given element if necessary.
 	void DeleteIfManaged(int n)
 		{
-		if ( yt )
-			DeleteManagedType(zvec[n], yt);
+		if ( managed_yt )
+			DeleteManagedType(zvec[n], managed_yt);
 		}
+
+	VectorVal* vv;	// our own copy of aggr_val, with the right type
+
+	// The yield type of the vector elements.  Only non-nil if they
+	// are managed types.
+	BroType* managed_yt;
+
+	// Whether the base type of the vector is one for which we need
+	// to do explicit memory management.
+	bool is_managed;
 };
 
 
-// An individual instance of a ZAM aggregate value, which potentially
+// An individual instance of a ZAM vector aggregate, which potentially
 // shares the underlying instantiation of that value with other instances.
-class ZAMAggregate {
+
+class ZAMVector {
 public:
-	ZAMAggregate(Val* aggr_val);
-	virtual ~ZAMAggregate();
-
-	// Copy back the internal aggregate to the associated value.
-	virtual void Spill() = 0;
-
-	// Reload the internal aggregate from the associated value.
-	virtual void Freshen() = 0;
-
-protected:
-	// This would be in the destructor but it needs to call virtual
-	// functions, so instead derived classes need to call it from
-	// their own destructors.
-	void Finish();
-
-	ZAMAggrBindings* bindings;
-	Val* aggr_val;
-};
-
-class ZAMVector : public ZAMAggregate {
-public:
-	ZAMVector(std::shared_ptr<ZAM_vector> _vec, VectorVal* _v,
-			ZAMAggrBindings* bindings);
-	~ZAMVector() override;
+	ZAMVector(std::shared_ptr<ZAM_vector> _vec);
 
 	ZAMVector* ShallowCopy()
 		{
-		return new ZAMVector(vec, v, nullptr);
+		return new ZAMVector(vec);
 		}
 
-	int Size() const		{ return vec->ConstVec().size(); }
+	int Size() const		{ return vec->Size(); }
 	void Resize(int n) const	{ vec->ModVec().resize(n); }
 
 	const ZVU_vec& ConstVec() const	{ return vec->ConstVec(); }
-	const std::shared_ptr<ZAM_vector>& ConstVecPt() const	{ return vec; }
+	const std::shared_ptr<ZAM_vector>& ConstVecPtr() const	{ return vec; }
 
 	ZVU_vec& ModVec()			{ return vec->ModVec(); }
 	std::shared_ptr<ZAM_vector>& ModVecPtr()	{ return vec; }
@@ -275,46 +297,33 @@ public:
 
 	BroType* YieldType() const	{ return yield_type; }
 	BroType* ManagedYieldType() const
-		{ return is_managed ? yield_type : nullptr; }
+		{ return vec->ManagedYieldType(); }
 
 	void SetYieldType(BroType* yt)
 		{
 		if ( ! yield_type )
 			{
 			yield_type = yt;
-			is_managed = IsManagedType(yt);
-			if ( is_managed )
-				vec->SetYieldType(yt);
+			if ( IsManagedType(yt) )
+				vec->SetManagedYieldType(yt);
 			}
 		}
 
-	IntrusivePtr<VectorVal> VecVal()	{ return {NewRef{}, v}; }
-	void SetVecVal(VectorVal* vv)	 	{ aggr_val = v = vv; v->Ref(); }
+	IntrusivePtr<VectorVal> VecVal()	{ return vec->VecVal(); }
+	void SetVecVal(VectorVal* vv)		{ vec->SetVecVal(vv); }
 
-	bool IsManaged() const	{ return is_managed; }
-
-	bool IsClean() const	{ return is_clean || ! v; }
-
-	void Spill() override;
-	void Freshen() override;
+	void Spill()	{ vec->Spill(); }
 
 protected:
 	std::shared_ptr<ZAM_vector> vec;
-	VectorVal* v;	// our own copy of aggr_val, with the right type
 
 	// The actual yield type of the vector, if we've had a chance to
 	// observe it.  Necessary for "vector of any".  Non-const because
 	// we need to be able to ref it.
 	BroType* yield_type;
-
-	// Whether the base type of the vector is one for which we need
-	// to do explicit memory management.
-	bool is_managed;
-
-	// Whether the local vector is unmodified since we created it.
-	bool is_clean;
 };
 
+#if 0
 class ZAMRecord : public ZAMAggregate {
 public:
 	// Main constructor, for tracking an existing RecordVal.
@@ -390,6 +399,7 @@ protected:
 	// Whether a given field requires explicit memory management.
 	ZRM_flags is_managed;
 };
+#endif
 
 // Information used to iterate over aggregates.  It's a hodge-podge since
 // it's meant to support every type of aggregate & loop.  Only a BroObj

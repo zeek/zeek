@@ -601,11 +601,11 @@ static void vec_exec(ZOp op, BroType* t, ZAMVector*& v1, const ZAMVector* v2,
 		{ \
 		auto& v = vec->ConstVec(); \
 		auto yt = vec->YieldType(); \
-		auto res_zv = make_shared<ZAM_vector>(nullptr, vec->ManagedYieldType()); \
+		auto res_zv = make_shared<ZAM_vector>(nullptr, bindings, vec->ManagedYieldType()); \
 		auto& res = res_zv->ModVecNoDirty(); \
 		for ( unsigned int i = 0; i < v.size(); ++i ) \
 			res[i].lhs_accessor = cast(v[i].rhs_accessor); \
-		auto zvm = new ZAMVector(res_zv, nullptr, bindings); \
+		auto zvm = new ZAMVector(res_zv); \
 		zvm->SetYieldType(yt); \
 		return zvm; \
 		}
@@ -2747,8 +2747,11 @@ static void vec_exec(ZOp op, ZAMVector*& v1, const ZAMVector* v2,
 	if ( v1 )
 		v1->Resize(vec2.size());
 	else
-		v1 = new ZAMVector(make_shared<ZAM_vector>(nullptr, vec2.size()),
-					nullptr, bindings);
+		{
+		auto zv = make_shared<ZAM_vector>(nullptr, bindings, nullptr,
+							vec2.size());
+		v1 = new ZAMVector(zv);
+		}
 
 	v1->SetYieldType(v2->YieldType());
 
@@ -2783,8 +2786,11 @@ static void vec_exec(ZOp op, BroType* yt, ZAMVector*& v1,
 		needs_management = yt;
 		}
 	else
-		v1 = new ZAMVector(make_shared<ZAM_vector>(yt, vec2.size()),
-					nullptr, bindings);
+		{
+		auto zv = make_shared<ZAM_vector>(nullptr, bindings, yt,
+							vec2.size());
+		v1 = new ZAMVector(zv);
+		}
 
 	v1->SetYieldType(yt);
 

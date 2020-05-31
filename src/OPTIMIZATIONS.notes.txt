@@ -3,6 +3,9 @@ need to fix IterInfo's to be (1) dynamic, via (2) IntrusivePtr's
 make sure "a = a" assignments are pruned, otherwise can lead to
 	memory management glitches where value is deleted 
 
+vector init always associated with the interpreted frame - this seems
+	unnecessary
+
 &&/|| conditionals to cascades
 
 initialization of records with field values pre-computed

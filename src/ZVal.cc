@@ -272,9 +272,9 @@ void ZAM_vector::SetManagedElement(int n, ZAMValUnion& v)
 	{
 	auto& zn = zvec[n];
 
-	DeleteManagedType(zn, yt);
+	DeleteManagedType(zn, managed_yt);
 
-	switch ( yt->Tag() ) {
+	switch ( managed_yt->Tag() ) {
 	case TYPE_STRING:
 		zn.string_val = new BroString(*v.string_val);
 		break;
@@ -309,96 +309,19 @@ void ZAM_vector::GrowVector(int new_size)
 void ZAM_vector::DeleteMembers()
 	{
 	for ( auto& z : zvec )
-		DeleteManagedType(z, yt);
+		DeleteManagedType(z, managed_yt);
 	}
 
-
-ZAMAggregate::ZAMAggregate(ZAMAggrBindings* _bindings, Val* _aggr_val)
+void ZAM_vector::Spill()
 	{
-	bindings = _bindings;
-	aggr_val = _aggr_val;
-
-	if ( bindings && aggr_val )
-		bindings->insert(this);
-	}
-
-ZAMAggregate::~ZAMAggregate()
-	{
-	if ( bindings )
-		bindings->erase(this);
-	}
-
-void ZAMAggregate::Finish()
-	{
-	if ( aggr_val )
-		{
-		if ( aggr_val->RefCnt() > 1 )
-			// Don't bother spilling for a value we're about
-			// to delete.
-			Spill();
-		}
-
-	if ( aggr_val )
-		Unref(aggr_val);
-	}
-
-
-ZAMVector::ZAMVector(std::shared_ptr<ZAM_vector> _vec, VectorVal* _v,
-				ZAMAggrBindings* _bindings)
-	: ZAMAggregate(_bindings, _v)
-	{
-	vec = _vec;
-	v = _v;
-	is_clean = true;
-
-	if ( ! v )
-		{
-		yield_type = nullptr;
-		return;
-		}
-
-	Ref(v);
-
-	auto vt = v->Type()->AsVectorType();
-	auto yt = vt->YieldType();
-
-	if ( yt->Tag() == TYPE_ANY )
-		{
-		if ( v->Size() > 0 )
-			{
-			// If we use a bare 0 in the call to Lookup, effin'
-			// C++ selects the Val* version of Lookup.  Geez.
-			unsigned int zee_row = 0;
-			auto elem0 = v->Lookup(zee_row);
-			yt = elem0->Type();
-			}
-		else
-			yt = nullptr;
-		}
-
-	if ( yt )
-		is_managed = IsManagedType(yt);
-	else
-		is_managed = false;
-
-	yield_type = yt;
-	}
-
-ZAMVector::~ZAMVector()
-	{
-	Finish();
-	}
-
-void ZAMVector::Spill()
-	{
-	if ( ! v || is_clean )
+	if ( ! vv || ! is_dirty )
 		return;
 
-	auto vt = v->Type()->AsVectorType();
+	auto vt = vv->Type()->AsVectorType();
 	auto yt = vt->YieldType();
 	auto val_vec = new vector<Val*>();
 
-	for ( auto elem : vec->zvec )
+	for ( auto elem : zvec )
 		{
 		if ( elem.IsNil(yt) )
 			val_vec->push_back(nullptr);
@@ -406,23 +329,75 @@ void ZAMVector::Spill()
 			val_vec->push_back(elem.ToVal(yt).release());
 		}
 
-	auto& vv = v->val.vector_val;
-	for ( unsigned int i = 0; i < vv->size(); ++i )
-		Unref((*vv)[i]);
-	delete vv;
+	auto& vvv = vv->val.vector_val;
+	for ( unsigned int i = 0; i < vvv->size(); ++i )
+		Unref((*vvv)[i]);
+	delete vvv;
 
-	v->val.vector_val = val_vec;
+	vv->val.vector_val = val_vec;
 
-	is_clean = true;
+	is_dirty = false;
 	}
 
-void ZAMVector::Freshen()
+void ZAM_vector::Freshen()
 	{
-	ASSERT(is_clean);
-	vec = to_raw_ZAM_vector(v, bindings);
+	ASSERT(! is_dirty);
+
+	auto vals = vv->AsVector();
+	auto t = vv->Type()->AsVectorType();
+	auto yt = t->YieldType();
+
+	zvec.clear();
+
+	bool error;
+
+	for ( auto elem : *vals )
+		if ( ! elem )
+			// Zeek vectors can have holes.
+			zvec.push_back(ZAMValUnion());
+		else
+			zvec.push_back(ZAMValUnion(elem, yt, bindings,
+							vv, error));
 	}
 
 
+ZAMVector::ZAMVector(std::shared_ptr<ZAM_vector> _vec)
+	{
+	vec = _vec;
+
+	auto vv = vec->VecVal();
+
+	if ( ! vv )
+		{
+		yield_type = nullptr;
+		return;
+		}
+
+	auto vt = vv->Type()->AsVectorType();
+	auto yt = vt->YieldType();
+
+	if ( yt->Tag() == TYPE_ANY )
+		{
+		if ( vec->Size() > 0 )
+			{
+			// If we use a bare 0 in the call to Lookup, effin'
+			// C++ selects the Val* version of Lookup.  Geez.
+			unsigned int zee_row = 0;
+			auto elem0 = vv->Lookup(zee_row);
+			yt = elem0->Type();
+			}
+		else
+			yt = nullptr;
+		}
+
+	if ( yt && IsManagedType(yt) )
+		vec->SetManagedYieldType(yt);
+
+	yield_type = yt;
+	}
+
+
+#if 0
 ZAMRecord::ZAMRecord(RecordVal* _v, ZAMAggrBindings* _bindings)
 	: ZAMAggregate(_bindings, _v)
 	{
@@ -489,40 +464,49 @@ void ZAMRecord::Load(int field)
 void ZAMRecord::Delete(int field)
 	{
 	}
+#endif
 
 
 ZAMVector* to_ZAM_vector(Val* vec, ZAMAggrBindings* bindings, bool track_val)
 	{
+	if ( ! track_val )
+		// Set the bindings to nil so that the ZAM_vector knows
+		// not to bother sync'ing the aggregate.
+		bindings = nullptr;
+
 	auto raw = to_raw_ZAM_vector(vec, bindings);
-	auto v = track_val ? vec->AsVectorVal() : nullptr;
-	return new ZAMVector(raw, v, bindings);
+	return new ZAMVector(raw);
 	}
 
-std::shared_ptr<ZAM_vector> to_raw_ZAM_vector(Val* vec, ZAMAggrBindings* trk)
+std::shared_ptr<ZAM_vector> to_raw_ZAM_vector(Val* vec,
+						ZAMAggrBindings* bindings)
 	{
-	auto v = vec->AsVector();
+	auto vv = vec->AsVector();
 	auto t = vec->Type()->AsVectorType();
 	auto yt = t->YieldType();
 
 	auto myt = IsManagedType(yt) ? yt : nullptr;
-	auto zv = make_shared<ZAM_vector>(myt);
-	auto& raw = zv->zvec;
+	auto zv = make_shared<ZAM_vector>(vec->AsVectorVal(), bindings, myt);
+	auto& raw = zv->ModVecNoDirty();
 
 	bool error;
 
-	for ( auto elem : *v )
+	for ( auto elem : *vv )
 		if ( ! elem )
 			// Zeek vectors can have holes.
 			raw.push_back(ZAMValUnion());
 		else
-			raw.push_back(ZAMValUnion(elem, yt, trk, vec, error));
+			raw.push_back(ZAMValUnion(elem, yt, bindings,
+							vec, error));
 
 	return zv;
 	}
 
 
+#if 0
 ZAMRecord* to_ZAM_record(Val* r, ZAMAggrBindings* bindings, bool track_val)
 	{
 	auto v = track_val ? r->AsRecordVal() : nullptr;
 	return new ZAMRecord(v, bindings);
 	}
+#endif

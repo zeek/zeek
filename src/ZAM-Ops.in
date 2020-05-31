@@ -452,7 +452,7 @@ custom-method return CompileIndex(n1, n2, l);
 
 internal-op Index-Vec
 type VVV
-eval vv = frame[z.v2].vector_val
+eval auto vv = frame[z.v2].vector_val
 eval auto& vec = vv->ConstVec()
 eval auto ind = frame[z.v3].uint_val
 eval if ( ind >= vv->Size() ) ZAM_run_time_error(error_flag, z.stmt, "no such index")
@@ -460,7 +460,7 @@ eval AssignV1(CopyVal(vec[ind]))
 
 internal-op Index-VecC
 type VVV
-eval vv = frame[z.v2].vector_val
+eval auto vv = frame[z.v2].vector_val
 eval auto& vec = vv->ConstVec()
 eval auto ind = z.v3
 eval if ( ind >= vv->Size() ) ZAM_run_time_error(error_flag, z.stmt, "no such index")
@@ -854,7 +854,7 @@ internal-op Init-Vector-Loop
 type VV
 eval auto ii = z.c.iter_info
 eval ii->vv = frame[z.v2].vector_val->ConstVecPtr()
-eval ii->n = ii->vv->zvec.size()
+eval ii->n = ii->vv->Size()
 eval ii->iter = 0
 eval frame[z.v1].iter_info = ii
 
@@ -864,7 +864,7 @@ internal-op Next-Vector-Iter
 type VVV
 eval auto ii = frame[z.v2].iter_info
 eval if ( ii->iter >= ii->n ) { pc = z.v3; break; }
-eval auto& vv = ii->vv->zvec
+eval auto& vv = ii->vv->ConstVec()
 eval if ( vv[ii->iter].IsNil(ii->yield_type) ) { ++ii->iter; --pc; break; }
 eval frame[z.v1].uint_val = ii->iter
 eval ++ii->iter
@@ -984,10 +984,13 @@ eval frame[z.v1].record_val = TrackVal(r)
 internal-op Init-Vector
 type VV
 eval auto vt = z.t->AsVectorType()
+eval auto yt = vt->YieldType()
 eval auto vec = new VectorVal(vt)
 eval f->SetElement(z.v2, vec)
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = new ZAMVector(make_shared<ZAM_vector>(nullptr), vec, &ZAM_VM_bindings)
+eval auto myt = IsManagedType(yt) ? yt : nullptr
+eval auto zv = make_shared<ZAM_vector>(vec, &ZAM_VM_bindings, myt)
+eval frame[z.v1].vector_val = new ZAMVector(zv)
 
 internal-op Init-Table
 type V

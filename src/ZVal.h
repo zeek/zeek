@@ -11,6 +11,8 @@
 
 // Manager of a single internal/Val* aggregate pairing.
 class ZAMAggregateMgr;
+class ZAMVectorMgr;
+class ZAMRecordMgr;
 
 // Tracks all such managers.
 typedef std::unordered_set<ZAMAggregateMgr*> ZAM_tracker_type;
@@ -61,6 +63,8 @@ union ZAMValUnion {
 	IPAddr* addr_val;
 	IPPrefix* subnet_val;
 	ZAMVectorMgr* vector_val;
+	ZAMRecordMgr* rrecord_val;
+	RecordVal* record_val;
 
 	// The types are all variants of Val (or BroType).  For memory
 	// management, in the AM frame we shadow these with IntrusivePtr's.
@@ -70,7 +74,6 @@ union ZAMValUnion {
 	ListVal* list_val;
 	OpaqueVal* opaque_val;
 	PatternVal* re_val;
-	RecordVal* record_val;
 	TableVal* table_val;
 	BroType* type_val;
 
@@ -115,6 +118,8 @@ inline bool IsManagedType(const Expr* e) { return IsManagedType(e->Type()); }
 extern void DeleteManagedType(ZAMValUnion& v, const BroType* t);
 
 
+typedef vector<ZAMValUnion> ZVU_vec;
+
 // Class used to manage vectors - only needed to support sync'ing them
 // with Val*'s.
 
@@ -126,7 +131,7 @@ public:
 
 	~ZAM_vector()	{ if ( t ) DeleteMembers(); }
 
-	vector<ZAMValUnion> zvec;
+	ZVU_vec zvec;
 
 	// Sets the given element, doing deletions and deep-copies
 	// for managed types.
@@ -237,6 +242,63 @@ protected:
 	bool is_clean;
 };
 
+typedef unsigned long ZRM_flags;
+
+class ZAMRecordMgr : public ZAMAggregateMgr {
+public:
+	// Main constructor, for tracking an existing RecordVal.
+	ZAMRecordMgr(RecordVal* _v, ZAM_tracker_type* tracker);
+
+	// Copy constructor.
+	ZAMRecordMgr(std::shared_ptr<ZVU_vec> _vec, RecordVal* _v,
+			ZAM_tracker_type* tracker, ZRM_flags _is_loaded,
+			ZRM_flags _is_dirty, ZRM_flags _is_managed);
+
+	~ZAMRecordMgr() override;
+
+	ZAMRecordMgr* ShallowCopy()
+		{
+		return new ZAMRecordMgr(rvec, v, nullptr,
+					is_loaded, is_dirty, is_managed);
+		}
+
+	void SetRecordType(RecordType* _rt, ZRM_flags _is_managed)
+		{
+		rt = _rt;
+		is_managed = _is_managed;
+		}
+
+	ZRM_flags OffsetMask(int offset)	{ return 1 << offset; }
+
+	bool IsLoaded(int offset)
+		{ return (is_loaded & OffsetMask(offset)) != 0; }
+	bool IsDirty(int offset)
+		{ return (is_dirty & OffsetMask(offset)) != 0; }
+	bool IsManaged(int offset)
+		{ return (is_managed & OffsetMask(offset)) != 0; }
+
+	void Spill() override;
+	void Freshen() override;
+
+protected:
+	RecordVal* v;	// our own copy of aggr_val, with the right type
+
+	// And a handy pointer to its type.
+	const RecordType* rt;
+
+	// The underlying vector of values used internally.
+	std::shared_ptr<ZVU_vec> rvec;
+
+	// Whether a given field is loaded.
+	ZRM_flags is_loaded;
+
+	// Whether a given field has been modified since we loaded it.
+	ZRM_flags is_dirty;
+
+	// Whether a given field requires explicit memory management.
+	ZRM_flags is_managed;
+};
+
 // Information used to iterate over aggregates.  It's a hodge-podge since
 // it's meant to support every type of aggregate & loop.  Only a BroObj
 // so we can make intrusive pointers for memory management.
@@ -290,3 +352,8 @@ extern ZAMVectorMgr* to_ZAM_vector(Val* vec, ZAM_tracker_type* tracker,
 					bool track_val);
 extern std::shared_ptr<ZAM_vector> to_raw_ZAM_vector(Val* vec,
 						ZAM_tracker_type* tracker);
+
+// Likewise for RecordVals, but due to lazy loading, no need for "raw"
+// vectors.
+extern ZAMRecordMgr* to_ZAM_record(Val* rec, ZAM_tracker_type* tracker,
+					bool track_val);

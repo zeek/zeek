@@ -409,7 +409,11 @@ void ZAMVectorMgr::Spill()
 			val_vec->push_back(elem.ToVal(yt).release());
 		}
 
-	delete v->val.vector_val;
+	auto& vv = v->val.vector_val;
+	for ( unsigned int i = 0; i < vv->size(); ++i )
+		Unref((*vv)[i]);
+	delete vv;
+
 	v->val.vector_val = val_vec;
 
 	is_clean = true;
@@ -419,6 +423,62 @@ void ZAMVectorMgr::Freshen()
 	{
 	ASSERT(is_clean);
 	vec = to_raw_ZAM_vector(v, tracker);
+	}
+
+
+ZAMRecordMgr::ZAMRecordMgr(RecordVal* _v, ZAM_tracker_type* _tracker)
+	: ZAMAggregateMgr(_tracker, _v)
+	{
+	v = _v;
+
+	rvec = nullptr;
+	is_loaded = is_dirty = 0;
+
+	if ( v )
+		{
+		Ref(v);
+		rt = v->Type()->AsRecordType();
+		// ### is_managed = rt->ManagedFields();
+		}
+	else
+		{
+		rt = nullptr;
+		is_managed = 0;
+		}
+	}
+
+ZAMRecordMgr::~ZAMRecordMgr()
+	{
+	Finish();
+	}
+
+void ZAMRecordMgr::Spill()
+	{
+	if ( ! v || ! is_dirty )
+		return;
+
+	auto rt = v->Type()->AsRecordType();
+	auto& zr = *rvec;
+
+	for ( auto i = 0; i < zr.size(); ++i )
+		{
+		auto rti = rt->FieldType(i);
+		auto& zri = zr[i];
+
+		if ( IsDirty(i) )
+			v->Assign(i, zri.ToVal(rti));
+
+		if ( IsManaged(i) )
+			DeleteManagedType(zri, rti);
+		}
+
+	is_loaded = is_dirty = 0;
+	}
+
+void ZAMRecordMgr::Freshen()
+	{
+	// Due to our load-as-needed, no need to do work here.
+	is_loaded = 0;
 	}
 
 
@@ -449,4 +509,11 @@ std::shared_ptr<ZAM_vector> to_raw_ZAM_vector(Val* vec, ZAM_tracker_type* trk)
 			raw.push_back(ZAMValUnion(elem, yt, trk, vec, error));
 
 	return zv;
+	}
+
+
+ZAMRecordMgr* to_ZAM_record(Val* r, ZAM_tracker_type* tracker, bool track_val)
+	{
+	auto v = track_val ? r->AsRecordVal() : nullptr;
+	return new ZAMRecordMgr(v, tracker);
 	}

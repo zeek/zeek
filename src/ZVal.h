@@ -173,10 +173,25 @@ protected:
 				// Don't bother spilling for a value we're
 				// about to delete.
 				Spill();
-			}
 
-		if ( aggr_val )
 			Unref(aggr_val);
+			}
+		}
+
+	// Ends the binding association.  This can potentially wind up
+	// deleting the value, so make sure all of its affairs are in order
+	// before calling.
+	void EndAssociation()
+		{
+		bindings->erase(this);
+		bindings = nullptr;
+
+		// The upcoming Unref can cause us to be deleted, in which case
+		// aggr_val will be checked, so set it to nil before doing so.
+		auto old_aggr_val = aggr_val;
+		aggr_val = nullptr;
+
+		Unref(old_aggr_val);
 		}
 
 	// The associated Zeek interpreter value.  If nil, then this
@@ -310,6 +325,75 @@ protected:
 	bool is_managed;
 };
 
+class ZAM_record : public ZAMAggrInstantiation {
+public:
+	ZAM_record(RecordVal* _v, ZAMAggrBindings* _bindings);
+
+	~ZAM_record()
+		{
+		Finish();
+		DeleteManagedMembers();
+		}
+
+	// int Size() const		{ return zvec.size(); }
+
+	void Assign(int field, ZAMValUnion v)
+		{
+		if ( IsManaged(field) )
+			Delete(field);
+
+		zvec[field] = v;
+
+		is_dirty |= (1 << field);
+		}
+
+	ZAMValUnion& Lookup(int field)
+		{
+		if ( ! IsLoaded(field) )
+			Load(field);
+
+		return zvec[field];
+		}
+
+	void SetRecordType(RecordType* _rt)
+		{
+		rt = _rt;
+		is_managed = rt->ManagedFields();
+		}
+
+	ZRM_flags OffsetMask(int offset)	{ return 1 << offset; }
+
+	bool IsLoaded(int offset)
+		{ return (is_loaded & OffsetMask(offset)) != 0; }
+	bool IsDirty(int offset)
+		{ return (is_dirty & OffsetMask(offset)) != 0; }
+	bool IsManaged(int offset)
+		{ return (is_managed & OffsetMask(offset)) != 0; }
+
+	void Spill() override;
+	void Freshen() override;
+
+protected:
+	void Load(int field);
+	void Delete(int field);
+
+	void DeleteManagedMembers();
+
+	RecordVal* rv;	// our own copy of aggr_val, with the right type
+
+	// And a handy pointer to its type.
+	const RecordType* rt;
+
+	// Whether a given field is loaded.
+	ZRM_flags is_loaded;
+
+	// Whether a given field has been modified since we loaded it.
+	ZRM_flags is_dirty;
+
+	// Whether a given field requires explicit memory management.
+	ZRM_flags is_managed;
+};
+
 
 // An individual instance of a ZAM vector aggregate, which potentially
 // shares the underlying instantiation of that value with other instances.
@@ -381,42 +465,6 @@ public:
 		return new ZAMRecord(rvec, v, nullptr,
 					is_loaded, is_dirty, is_managed);
 		}
-
-	void SetRecordType(RecordType* _rt)
-		{
-		rt = _rt;
-		is_managed = rt->ManagedFields();
-		}
-
-	ZAMValUnion& GetField(int field)
-		{
-		if ( ! IsLoaded(field) )
-			Load(field);
-
-		return (*rvec)[field];
-		}
-
-	void SetField(int field, ZAMValUnion v)
-		{
-		if ( IsManaged(field) )
-			Delete(field);
-
-		(*rvec)[field] = v;
-
-		is_dirty |= (1 << field);
-		}
-
-	ZRM_flags OffsetMask(int offset)	{ return 1 << offset; }
-
-	bool IsLoaded(int offset)
-		{ return (is_loaded & OffsetMask(offset)) != 0; }
-	bool IsDirty(int offset)
-		{ return (is_dirty & OffsetMask(offset)) != 0; }
-	bool IsManaged(int offset)
-		{ return (is_managed & OffsetMask(offset)) != 0; }
-
-	void Spill() override;
-	void Freshen() override;
 
 protected:
 	void Load(int field);

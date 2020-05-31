@@ -325,16 +325,92 @@ void ZAM_vector::Freshen()
 		// Association stands.
 		return;
 
-	bindings->erase(this);
-	bindings = nullptr;
-
-	// The upcoming Unref can cause us to be deleted, in which case
-	// aggr_val will be checked, so set it to nil before doing so.
-	auto old_aggr_val = aggr_val;
-	aggr_val = nullptr;
 	vv = nullptr;
 
-	Unref(old_aggr_val);
+	EndAssociation();
+	}
+
+
+ZAM_record::ZAM_record(RecordVal* _v, ZAMAggrBindings* _bindings)
+	: ZAMAggrInstantiation(_v, _bindings, 0)
+	{
+	is_loaded = 0;
+
+	rv = _v;
+
+	if ( rv )
+		{
+		Ref(rv);
+		rt = rv->Type()->AsRecordType();
+		is_managed = rt->ManagedFields();
+		}
+	else
+		{
+		rt = nullptr;
+		is_managed = 0;
+		}
+	}
+
+void ZAM_record::Spill()
+	{
+	if ( ! rv || ! is_dirty )
+		return;
+
+	for ( auto i = 0; i < zvec.size(); ++i )
+		{
+		auto rti = rt->FieldType(i);
+		auto& zvi = zvec[i];
+
+		if ( IsDirty(i) )
+			{
+			rv->Assign(i, zvi.ToVal(rti));
+
+			if ( IsManaged(i) )
+				DeleteManagedType(zvi, rti);
+			}
+		}
+
+	is_loaded = is_dirty = 0;
+	}
+
+void ZAM_record::Freshen()
+	{
+	ASSERT(! is_loaded && ! is_dirty);
+	ASSERT(rv);
+	// The following is for when we've converted over RecordVal's.
+	//
+	// if ( rv->val.record_val == this )
+	// 	// Association stands.
+	// 	return;
+	//
+	// rv = nullptr;
+	//
+	// EndAssociation();
+	}
+
+void ZAM_record::Load(int field)
+	{
+	if ( ! rv )
+		reporter->InternalError("field missing in record load");
+
+	auto f = rv->Lookup(field);
+	}
+
+void ZAM_record::Delete(int field)
+	{
+	}
+
+void ZAM_record::DeleteManagedMembers()
+	{
+	for ( auto i = 0; i < zvec.size(); ++i )
+		{
+		auto& zvi = zvec[i];
+		if ( IsLoaded(i) && IsManaged(i) )
+			{
+			auto rti = rt->FieldType(i);
+			DeleteManagedType(zvi, rti);
+			}
+		}
 	}
 
 
@@ -378,67 +454,11 @@ ZAMRecord::ZAMRecord(RecordVal* _v, ZAMAggrBindings* _bindings)
 	: ZAMAggregate(_bindings, _v)
 	{
 	v = _v;
-
-	rvec = nullptr;
-	is_loaded = is_dirty = 0;
-
-	if ( v )
-		{
-		Ref(v);
-		rt = v->Type()->AsRecordType();
-		is_managed = rt->ManagedFields();
-		}
-	else
-		{
-		rt = nullptr;
-		is_managed = 0;
-		}
 	}
 
 ZAMRecord::~ZAMRecord()
 	{
 	Finish();
-	}
-
-void ZAMRecord::Spill()
-	{
-	if ( ! v || ! is_dirty )
-		return;
-
-	auto rt = v->Type()->AsRecordType();
-	auto& zr = *rvec;
-
-	for ( auto i = 0; i < zr.size(); ++i )
-		{
-		auto rti = rt->FieldType(i);
-		auto& zri = zr[i];
-
-		if ( IsDirty(i) )
-			v->Assign(i, zri.ToVal(rti));
-
-		if ( IsManaged(i) )
-			DeleteManagedType(zri, rti);
-		}
-
-	is_loaded = is_dirty = 0;
-	}
-
-void ZAMRecord::Freshen()
-	{
-	// Due to our load-as-needed, no need to do work here.  We rely
-	// on Freshen() only being called after Spill().
-	}
-
-void ZAMRecord::Load(int field)
-	{
-	if ( ! v )
-		reporter->InternalError("field missing in record load");
-
-	auto f = v->Lookup(field);
-	}
-
-void ZAMRecord::Delete(int field)
-	{
 	}
 #endif
 

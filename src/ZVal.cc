@@ -10,9 +10,6 @@
 #include "Reporter.h"
 
 
-ZAM_tracker_type* curr_ZAM_VM_Tracker;
-
-
 bool IsAny(const BroType* t)
 	{
 	return t->Tag() == TYPE_ANY;
@@ -63,7 +60,7 @@ void DeleteManagedType(ZAMValUnion& v, const BroType* t)
 	}
 
 
-ZAMValUnion::ZAMValUnion(Val* v, BroType* t, ZAM_tracker_type* tracker,
+ZAMValUnion::ZAMValUnion(Val* v, BroType* t, ZAMAggrBindings* bindings,
 				const BroObj* o, bool& error)
 	{
 	if ( ! v )
@@ -132,7 +129,7 @@ ZAMValUnion::ZAMValUnion(Val* v, BroType* t, ZAM_tracker_type* tracker,
 			vector_val = nullptr;
 			}
 		else
-			vector_val = to_ZAM_vector(v, tracker, true);
+			vector_val = to_ZAM_vector(v, bindings, true);
 
 		break;
 		}
@@ -239,7 +236,7 @@ IntrusivePtr<VectorVal> ZAMValUnion::ToVector(BroType* t) const
 	auto vt = t->AsVectorType();
 	auto yt = vt->YieldType();
 
-	auto& vec = vector_val->ConstVec()->zvec;
+	auto& vec = vector_val->ConstVec();
 	int n = vec.size();
 
 	auto actual_yt = vector_val->YieldType();
@@ -275,9 +272,9 @@ void ZAM_vector::SetManagedElement(int n, ZAMValUnion& v)
 	{
 	auto& zn = zvec[n];
 
-	DeleteManagedType(zn, t);
+	DeleteManagedType(zn, yt);
 
-	switch ( t->Tag() ) {
+	switch ( yt->Tag() ) {
 	case TYPE_STRING:
 		zn.string_val = new BroString(*v.string_val);
 		break;
@@ -312,26 +309,26 @@ void ZAM_vector::GrowVector(int new_size)
 void ZAM_vector::DeleteMembers()
 	{
 	for ( auto& z : zvec )
-		DeleteManagedType(z, t);
+		DeleteManagedType(z, yt);
 	}
 
 
-ZAMAggregateMgr::ZAMAggregateMgr(ZAM_tracker_type* _tracker, Val* _aggr_val)
+ZAMAggregate::ZAMAggregate(ZAMAggrBindings* _bindings, Val* _aggr_val)
 	{
-	tracker = _tracker;
+	bindings = _bindings;
 	aggr_val = _aggr_val;
 
-	if ( tracker && aggr_val )
-		tracker->insert(this);
+	if ( bindings && aggr_val )
+		bindings->insert(this);
 	}
 
-ZAMAggregateMgr::~ZAMAggregateMgr()
+ZAMAggregate::~ZAMAggregate()
 	{
-	if ( tracker )
-		tracker->erase(this);
+	if ( bindings )
+		bindings->erase(this);
 	}
 
-void ZAMAggregateMgr::Finish()
+void ZAMAggregate::Finish()
 	{
 	if ( aggr_val )
 		{
@@ -346,9 +343,9 @@ void ZAMAggregateMgr::Finish()
 	}
 
 
-ZAMVectorMgr::ZAMVectorMgr(std::shared_ptr<ZAM_vector> _vec, VectorVal* _v,
-				ZAM_tracker_type* _tracker)
-	: ZAMAggregateMgr(_tracker, _v)
+ZAMVector::ZAMVector(std::shared_ptr<ZAM_vector> _vec, VectorVal* _v,
+				ZAMAggrBindings* _bindings)
+	: ZAMAggregate(_bindings, _v)
 	{
 	vec = _vec;
 	v = _v;
@@ -387,12 +384,12 @@ ZAMVectorMgr::ZAMVectorMgr(std::shared_ptr<ZAM_vector> _vec, VectorVal* _v,
 	yield_type = yt;
 	}
 
-ZAMVectorMgr::~ZAMVectorMgr()
+ZAMVector::~ZAMVector()
 	{
 	Finish();
 	}
 
-void ZAMVectorMgr::Spill()
+void ZAMVector::Spill()
 	{
 	if ( ! v || is_clean )
 		return;
@@ -419,15 +416,15 @@ void ZAMVectorMgr::Spill()
 	is_clean = true;
 	}
 
-void ZAMVectorMgr::Freshen()
+void ZAMVector::Freshen()
 	{
 	ASSERT(is_clean);
-	vec = to_raw_ZAM_vector(v, tracker);
+	vec = to_raw_ZAM_vector(v, bindings);
 	}
 
 
-ZAMRecordMgr::ZAMRecordMgr(RecordVal* _v, ZAM_tracker_type* _tracker)
-	: ZAMAggregateMgr(_tracker, _v)
+ZAMRecord::ZAMRecord(RecordVal* _v, ZAMAggrBindings* _bindings)
+	: ZAMAggregate(_bindings, _v)
 	{
 	v = _v;
 
@@ -447,12 +444,12 @@ ZAMRecordMgr::ZAMRecordMgr(RecordVal* _v, ZAM_tracker_type* _tracker)
 		}
 	}
 
-ZAMRecordMgr::~ZAMRecordMgr()
+ZAMRecord::~ZAMRecord()
 	{
 	Finish();
 	}
 
-void ZAMRecordMgr::Spill()
+void ZAMRecord::Spill()
 	{
 	if ( ! v || ! is_dirty )
 		return;
@@ -475,13 +472,13 @@ void ZAMRecordMgr::Spill()
 	is_loaded = is_dirty = 0;
 	}
 
-void ZAMRecordMgr::Freshen()
+void ZAMRecord::Freshen()
 	{
 	// Due to our load-as-needed, no need to do work here.  We rely
 	// on Freshen() only being called after Spill().
 	}
 
-void ZAMRecordMgr::Load(int field)
+void ZAMRecord::Load(int field)
 	{
 	if ( ! v )
 		reporter->InternalError("field missing in record load");
@@ -489,19 +486,19 @@ void ZAMRecordMgr::Load(int field)
 	auto f = v->Lookup(field);
 	}
 
-void ZAMRecordMgr::Delete(int field)
+void ZAMRecord::Delete(int field)
 	{
 	}
 
 
-ZAMVectorMgr* to_ZAM_vector(Val* vec, ZAM_tracker_type* tracker, bool track_val)
+ZAMVector* to_ZAM_vector(Val* vec, ZAMAggrBindings* bindings, bool track_val)
 	{
-	auto raw = to_raw_ZAM_vector(vec, tracker);
+	auto raw = to_raw_ZAM_vector(vec, bindings);
 	auto v = track_val ? vec->AsVectorVal() : nullptr;
-	return new ZAMVectorMgr(raw, v, tracker);
+	return new ZAMVector(raw, v, bindings);
 	}
 
-std::shared_ptr<ZAM_vector> to_raw_ZAM_vector(Val* vec, ZAM_tracker_type* trk)
+std::shared_ptr<ZAM_vector> to_raw_ZAM_vector(Val* vec, ZAMAggrBindings* trk)
 	{
 	auto v = vec->AsVector();
 	auto t = vec->Type()->AsVectorType();
@@ -524,8 +521,8 @@ std::shared_ptr<ZAM_vector> to_raw_ZAM_vector(Val* vec, ZAM_tracker_type* trk)
 	}
 
 
-ZAMRecordMgr* to_ZAM_record(Val* r, ZAM_tracker_type* tracker, bool track_val)
+ZAMRecord* to_ZAM_record(Val* r, ZAMAggrBindings* bindings, bool track_val)
 	{
 	auto v = track_val ? r->AsRecordVal() : nullptr;
-	return new ZAMRecordMgr(v, tracker);
+	return new ZAMRecord(v, bindings);
 	}

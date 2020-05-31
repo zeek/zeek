@@ -63,7 +63,7 @@ class TableEntryVal;
 class RE_Matcher;
 
 class ZAM;
-class ZAMVectorMgr;
+class ZAMVector;
 union ZAMValUnion;
 
 union BroValUnion {
@@ -341,7 +341,7 @@ protected:
 	friend class ValManager;
 	friend class TableEntryVal;
 	friend class ZAM;
-	friend class ZAMVectorMgr;
+	friend class ZAMVector;
 	friend union ZAMValUnion;
 
 	virtual void ValDescribe(ODesc* d) const;

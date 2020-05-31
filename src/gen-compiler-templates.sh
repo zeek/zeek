@@ -651,7 +651,7 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 			print ("\tcase " full_op vec ":\n\t\tvec_exec(" full_op vec \
 				", frame[z.v1].vector_val,\n\t\t\t" \
 				(is_var1 ? "frame[z.v2]" : "z.c") \
-				".vector_val, &ZAM_VM_Tracker);\n\t\tbreak;\n") >ops_eval_f
+				".vector_val, &ZAM_VM_bindings);\n\t\tbreak;\n") >ops_eval_f
 
 			oe_copy = orig_eval
 			gsub(/\$1/, "vec2[i]" raccessor1, oe_copy)
@@ -671,7 +671,7 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 				"frame[z.v1].vector_val, " \
 				"frame[z.v2].vector_val, " \
 				"frame[z.v3].vector_val, " \
-				"&ZAM_VM_Tracker);\n\t\tbreak;\n") >ops_eval_f
+				"&ZAM_VM_bindings);\n\t\tbreak;\n") >ops_eval_f
 
 			oe_copy = orig_eval
 			gsub(/\$1/, "vec2[i]" raccessor1, oe_copy)

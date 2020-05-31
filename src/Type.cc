@@ -619,6 +619,9 @@ RecordType::RecordType(type_decl_list* arg_types) : BroType(TYPE_RECORD)
 	types = arg_types;
 	num_fields = types ? types->length() : 0;
 
+	// Ideally we'd only do the following assertion if compiling.
+	ASSERT(num_fields <= sizeof(ZRM_flags) * 8);
+
 	managed_fields = 0;
 
 	if ( types )

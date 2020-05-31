@@ -53,7 +53,7 @@ eval_S $$.uint_val = $1->Len()
 #
 eval_T $$.uint_val = $1->Size()
 #
-eval_V $$.uint_val = $1->ConstVec()->zvec.size()
+eval_V $$.uint_val = $1->Size()
 #
 eval auto v = frame[z.v2].ToVal(z.e->Type().get())->SizeVal(); frame[z.v1] = BuildVal(v, z.t, z.stmt);
 
@@ -103,7 +103,7 @@ unary-op AppendTo
 op1-read
 set-type $2
 eval auto copy = CopyVal($1)
-eval auto& vv = frame[z.v1].vector_val->ModVec()->zvec
+eval auto& vv = frame[z.v1].vector_val->ModVec()
 eval vv.push_back(copy)
 
 unary-expr-op Flatten
@@ -426,7 +426,7 @@ eval if ( ! frame[z.v2].int_val ) AssignV1(CopyVal(z.c))
 op IndexVecBoolSelect
 type VVV
 set-type $1
-eval if ( frame[z.v2].vector_val->ConstVec()->zvec.size() != frame[z.v3].vector_val->ConstVec()->zvec.size() ) {
+eval if ( frame[z.v2].vector_val->Size() != frame[z.v3].vector_val->Size() ) {
 eval	ZAM_run_time_error(error_flag, z.stmt, "size mismatch, boolean index and vector")
 eval	break; }
 eval auto vt = z.t->AsVectorType()
@@ -434,7 +434,7 @@ eval auto v2 = frame[z.v2].ToVector(vt)
 eval auto v3 = frame[z.v3].ToVector(vt)
 eval auto v = vector_bool_select(vt, v2.get(), v3.get())
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = to_ZAM_vector(v.get(), &ZAM_VM_Tracker, false)
+eval frame[z.v1].vector_val = to_ZAM_vector(v.get(), &ZAM_VM_bindings, false)
 
 op IndexVecIntSelect
 type VVV
@@ -444,7 +444,7 @@ eval auto v2 = frame[z.v2].ToVector(vt)
 eval auto v3 = frame[z.v3].ToVector(vt)
 eval auto v = vector_int_select(vt, v2.get(), v3.get())
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = to_ZAM_vector(v.get(), &ZAM_VM_Tracker, false)
+eval frame[z.v1].vector_val = to_ZAM_vector(v.get(), &ZAM_VM_bindings, false)
 
 op Index
 type VVL
@@ -452,16 +452,18 @@ custom-method return CompileIndex(n1, n2, l);
 
 internal-op Index-Vec
 type VVV
-eval auto& vec = frame[z.v2].vector_val->ConstVec()->zvec
+eval vv = frame[z.v2].vector_val
+eval auto& vec = vv->ConstVec()
 eval auto ind = frame[z.v3].uint_val
-eval if ( ind >= vec.size() ) ZAM_run_time_error(error_flag, z.stmt, "no such index")
+eval if ( ind >= vv->Size() ) ZAM_run_time_error(error_flag, z.stmt, "no such index")
 eval AssignV1(CopyVal(vec[ind]))
 
 internal-op Index-VecC
 type VVV
-eval auto& vec = frame[z.v2].vector_val->ConstVec()->zvec
+eval vv = frame[z.v2].vector_val
+eval auto& vec = vv->ConstVec()
 eval auto ind = z.v3
-eval if ( ind >= vec.size() ) ZAM_run_time_error(error_flag, z.stmt, "no such index")
+eval if ( ind >= vv->Size() ) ZAM_run_time_error(error_flag, z.stmt, "no such index")
 eval AssignV1(CopyVal(vec[ind]))
 
 internal-op Index-Vec
@@ -482,7 +484,7 @@ eval auto lv = frame[z.v3].list_val
 eval auto v = vector_index(vt, vec.get(), lv)
 eval Unref(lv)
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = to_ZAM_vector(v.get(), &ZAM_VM_Tracker, false)
+eval frame[z.v1].vector_val = to_ZAM_vector(v.get(), &ZAM_VM_bindings, false)
 
 internal-op Table-Index
 type VVV
@@ -558,7 +560,7 @@ eval frame[z.v1].uint_val = bro_uint_t(v)
 internal-op Coerce-UI-Vec
 type VV
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = vec_coerce_UI(frame[z.v2].vector_val, &ZAM_VM_Tracker)
+eval frame[z.v1].vector_val = vec_coerce_UI(frame[z.v2].vector_val, &ZAM_VM_bindings)
 
 internal-op Coerce-UD
 type VV
@@ -570,7 +572,7 @@ eval frame[z.v1].uint_val = bro_uint_t(v)
 internal-op Coerce-UD-Vec
 type VV
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = vec_coerce_UD(frame[z.v2].vector_val, &ZAM_VM_Tracker)
+eval frame[z.v1].vector_val = vec_coerce_UD(frame[z.v2].vector_val, &ZAM_VM_bindings)
 
 internal-op Coerce-IU
 type VV
@@ -581,7 +583,7 @@ eval frame[z.v1].int_val = bro_int_t(v)
 internal-op Coerce-IU-Vec
 type VV
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = vec_coerce_IU(frame[z.v2].vector_val, &ZAM_VM_Tracker)
+eval frame[z.v1].vector_val = vec_coerce_IU(frame[z.v2].vector_val, &ZAM_VM_bindings)
 
 internal-op Coerce-ID
 type VV
@@ -593,7 +595,7 @@ eval frame[z.v1].int_val = bro_int_t(v)
 internal-op Coerce-ID-Vec
 type VV
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = vec_coerce_ID(frame[z.v2].vector_val, &ZAM_VM_Tracker)
+eval frame[z.v1].vector_val = vec_coerce_ID(frame[z.v2].vector_val, &ZAM_VM_bindings)
 
 internal-op Coerce-DI
 type VV
@@ -602,7 +604,7 @@ eval frame[z.v1].double_val = double(frame[z.v2].int_val)
 internal-op Coerce-DI-Vec
 type VV
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = vec_coerce_DI(frame[z.v2].vector_val, &ZAM_VM_Tracker)
+eval frame[z.v1].vector_val = vec_coerce_DI(frame[z.v2].vector_val, &ZAM_VM_bindings)
 
 internal-op Coerce-DU
 type VV
@@ -611,7 +613,7 @@ eval frame[z.v1].double_val = double(frame[z.v2].uint_val)
 internal-op Coerce-DU-Vec
 type VV
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = vec_coerce_DU(frame[z.v2].vector_val, &ZAM_VM_Tracker)
+eval frame[z.v1].vector_val = vec_coerce_DU(frame[z.v2].vector_val, &ZAM_VM_bindings)
 
 direct-unary-op Record-Coerce RecordCoerce
 
@@ -639,41 +641,37 @@ direct-unary-op Vector-Coerce VectorCoerce
 
 internal-op Vector-Coerce
 type VV
-eval auto& vec = frame[z.v2].vector_val->ConstVec()->zvec
-eval if ( vec.size() > 0 ) { ZAM_run_time_error(error_flag, z.stmt, "coercion of non-empty vector"); break; }
+eval if ( frame[z.v2].vector_val->Size() > 0 ) { ZAM_run_time_error(error_flag, z.stmt, "coercion of non-empty vector"); break; }
 eval auto t = z.t->Ref()->AsVectorType();
 eval auto vv_p = make_intrusive<VectorVal>(t)
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = to_ZAM_vector(vv_p.get(), &ZAM_VM_Tracker, false)
+eval frame[z.v1].vector_val = to_ZAM_vector(vv_p.get(), &ZAM_VM_bindings, false)
 
 ########## Aggregate Assignments ##########
 
 op Vector-Elem-Assign
 op1-read
 type VVV
-eval auto vmgr = frame[z.v1].vector_val
-eval vmgr->SetYieldType(z.t)
-eval auto vec = vmgr->ModVec()
 eval auto ind = frame[z.v2].uint_val
-eval vec->SetElement(ind, frame[z.v3])
+eval auto vv = frame[z.v1].vector_val
+eval vv->SetYieldType(z.t)
+eval vv->SetElement(ind, frame[z.v3])
 
 op Vector-Elem-Assign
 op1-read
 type VVC
-eval auto vmgr = frame[z.v1].vector_val
-eval vmgr->SetYieldType(z.t)
-eval auto& vec = vmgr->ModVec()
 eval auto ind = frame[z.v2].uint_val
-eval vec->SetElement(ind, z.c)
+eval auto vv = frame[z.v1].vector_val
+eval vv->SetYieldType(z.t)
+eval vv->SetElement(ind, z.c)
 
 # These versions are used when the constant is the index, not the new value.
 op Vector-Elem-Assign
 op1-read
 type VVi
-eval auto vmgr = frame[z.v1].vector_val
-eval vmgr->SetYieldType(z.t)
-eval auto& vec = vmgr->ModVec()
-eval vec->SetElement(z.v3, frame[z.v2])
+eval auto vv = frame[z.v1].vector_val
+eval vv->SetYieldType(z.t)
+eval vv->SetElement(z.v3, frame[z.v2])
 
 
 op Field-LHS-Assign
@@ -855,7 +853,7 @@ eval }
 internal-op Init-Vector-Loop
 type VV
 eval auto ii = z.c.iter_info
-eval ii->vv = frame[z.v2].vector_val->ConstVec()
+eval ii->vv = frame[z.v2].vector_val->ConstVecPtr()
 eval ii->n = ii->vv->zvec.size()
 eval ii->iter = 0
 eval frame[z.v1].iter_info = ii
@@ -989,7 +987,7 @@ eval auto vt = z.t->AsVectorType()
 eval auto vec = new VectorVal(vt)
 eval f->SetElement(z.v2, vec)
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = new ZAMVectorMgr(make_shared<ZAM_vector>(nullptr), vec, &ZAM_VM_Tracker)
+eval frame[z.v1].vector_val = new ZAMVector(make_shared<ZAM_vector>(nullptr), vec, &ZAM_VM_bindings)
 
 internal-op Init-Table
 type V
@@ -1126,16 +1124,16 @@ eval frame[z.v1].list_val = ValVecToListVal(frame[z.v2].vvec, z.v3)
 # Interprets the statement's expression as a stand-alone statement.
 internal-op Interpret-Expr
 type X
-eval SpillVectors(&ZAM_VM_Tracker)
+eval SpillVectors(&ZAM_VM_bindings)
 eval (void) z.e->Eval(f) /* this could invoke us recursively */
-eval LoadVectors(&ZAM_VM_Tracker)
+eval LoadVectors(&ZAM_VM_bindings)
 
 # Interprets the statement's expression and assigns the result to v1.
 internal-op Interpret-Expr
 type V
-eval SpillVectors(&ZAM_VM_Tracker)
+eval SpillVectors(&ZAM_VM_bindings)
 eval auto v = z.e->Eval(f) /* this could invoke us recursively */
-eval LoadVectors(&ZAM_VM_Tracker)
+eval LoadVectors(&ZAM_VM_bindings)
 eval AssignV1(BuildVal(v, z.t, z.e))
 
 

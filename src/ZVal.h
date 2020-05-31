@@ -9,13 +9,18 @@
 #include <unordered_set>
 
 
-// Manager of a single internal/Val* aggregate pairing.
-class ZAMAggregateMgr;
-class ZAMVectorMgr;
-class ZAMRecordMgr;
+// An instantiation of a ZAM aggregate.  May have a binding with a
+// script-level Val*.
+class ZAMAggrInstantiation;
 
-// Tracks all such managers.
-typedef std::unordered_set<ZAMAggregateMgr*> ZAM_tracker_type;
+// Data structure to track such instantiations *if* they have a
+// Val* binding.
+typedef std::unordered_set<ZAMAggrInstantiation*> ZAMAggrBindings;
+
+// A single instance of a ZAM aggregate.  Note that multiple instances
+// may share the same underlying ZAMAggrInstantiation.
+class ZAMVector;
+class ZAMRecord;
 
 class IterInfo;
 
@@ -34,7 +39,7 @@ union ZAMValUnion {
 	ZAMValUnion() { void_val = nullptr; }
 
 	// Construct from a given Bro value with a given type.
-	ZAMValUnion(Val* v, BroType* t, ZAM_tracker_type* tracker,
+	ZAMValUnion(Val* v, BroType* t, ZAMAggrBindings* bindings,
 			const BroObj* o, bool& error_flag);
 
 	// True if when interpreting the value as having the given type,
@@ -62,8 +67,8 @@ union ZAMValUnion {
 	BroString* string_val;
 	IPAddr* addr_val;
 	IPPrefix* subnet_val;
-	ZAMVectorMgr* vector_val;
-	ZAMRecordMgr* rrecord_val;
+	ZAMVector* vector_val;
+	ZAMRecord* rrecord_val;
 	RecordVal* record_val;
 
 	// The types are all variants of Val (or BroType).  For memory
@@ -120,18 +125,65 @@ extern void DeleteManagedType(ZAMValUnion& v, const BroType* t);
 
 typedef vector<ZAMValUnion> ZVU_vec;
 
-// Class used to manage vectors - only needed to support sync'ing them
-// with Val*'s.
+// Class used to manage aggregates.  Supports sync'ing them with associated
+// Val*'s (if any), and enables sharing of them between multiple ZAM values.
+//
+// The base class manages a ZVU_vec.  Its values might be homogeneous if
+// it reflects a Zeek vector, or heterogeneous if it reflects a Zeek record.
 
-// The underlying "raw" vector.
-class ZAM_vector {
+class ZAMAggrInstantiation {
 public:
-	ZAM_vector(const BroType* _t)	{ t = _t; }
-	ZAM_vector(const BroType* _t, int n) : zvec(n)	{ t = _t; }
+	// The following assume that the Val, if any, has been
+	// ref'd such that it we should Unref() it upon destruction.
+	ZAMAggrInstantiation(Val* _v, ZAMAggrBindings* _bindings, int n)
+	: zvec(n)
+		{
+		bindings = _bindings;
+		aggr_val = _v;
+		is_dirty = 0;
 
-	~ZAM_vector()	{ if ( t ) DeleteMembers(); }
+		if ( bindings && aggr_val )
+			bindings->insert(this);
+		}
 
+	// Subclasses should delete any managed elements.
+	virtual ~ZAMAggrInstantiation()	{ Unref(aggr_val); }
+
+	// Copy the internal aggregate to the associated Val.
+	virtual void Spill() = 0;
+
+	// Reload the internal aggregate from the associated Val.
+	virtual void Freshen() = 0;
+
+protected:
+	// The associated Zeek interpreter value.  If nil, then this
+	// aggregate might still be shared by multiple ZAM values, but
+	// does not require sync'ing.
+	Val* aggr_val;
+
+	// The underlying set of ZAM values.
 	ZVU_vec zvec;
+
+	// Whether the internal aggregate is out of sync with the
+	// associated Val.  Subclasses might use this as a simple
+	// boolean flag (such as for vectors), or element-wise
+	// (such as for records).
+	ZRM_flags is_dirty;
+};
+
+class ZAM_vector : ZAMAggrInstantiation {
+public:
+	// The yield type is non-nil only if it represents a managed type.
+	// We have this passed in rather than computing it ourselves from
+	// the associated VectorVal because (1) there might not be a
+	// VectorVal at all, and (2) it is static information that can
+	// be computed at compile time rather than run-time.
+	ZAM_vector(VectorVal* _v, const BroType* _yt)
+		: ZAMAggrInstantiation(_v) { yt = _yt; }
+	ZAM_vector(VectorVal* _v, const BroType* _yt, int n)
+		: ZAMAggrInstantiation(_v, n) { yt = _yt; }
+
+	~ZAM_vector()	{ if ( yt ) DeleteMembers(); }
 
 	// Sets the given element, doing deletions and deep-copies
 	// for managed types.
@@ -140,17 +192,27 @@ public:
 		if ( zvec.size() <= n )
 			GrowVector(n + 1);
 
-		if ( t )
+		if ( yt )
 			SetManagedElement(n, v);
 		else
 			zvec[n] = v;
+
+		is_dirty = 1;
 		}
 
-	// The type of the vector elements.  Only non-nil if they
-	// are managed types.
-	const BroType* t;
+	void SetYieldType(const BroType* _yt)	{ yt = _yt; }
+
+	const ZVU_vec& ConstVec() const	{ return zvec; }
+	ZVU_vec& ModVec()		{ is_dirty = 1; return zvec; }
+
+	// Used when access to the underlying vector is for initialization.
+	ZVU_vec& ModVecNoDirty()	{ return zvec; }
 
 protected:
+	// The yield type of the vector elements.  Only non-nil if they
+	// are managed types.
+	const BroType* yt;
+
 	void SetManagedElement(int n, ZAMValUnion& v);
 	void GrowVector(int size);
 
@@ -159,15 +221,18 @@ protected:
 	// Deletes the given element if necessary.
 	void DeleteIfManaged(int n)
 		{
-		if ( t )
-			DeleteManagedType(zvec[n], t);
+		if ( yt )
+			DeleteManagedType(zvec[n], yt);
 		}
 };
 
-class ZAMAggregateMgr {
+
+// An individual instance of a ZAM aggregate value, which potentially
+// shares the underlying instantiation of that value with other instances.
+class ZAMAggregate {
 public:
-	ZAMAggregateMgr(ZAM_tracker_type* tracker, Val* aggr_val);
-	virtual ~ZAMAggregateMgr();
+	ZAMAggregate(Val* aggr_val);
+	virtual ~ZAMAggregate();
 
 	// Copy back the internal aggregate to the associated value.
 	virtual void Spill() = 0;
@@ -181,24 +246,32 @@ protected:
 	// their own destructors.
 	void Finish();
 
-	ZAM_tracker_type* tracker;
+	ZAMAggrBindings* bindings;
 	Val* aggr_val;
 };
 
-class ZAMVectorMgr : public ZAMAggregateMgr {
+class ZAMVector : public ZAMAggregate {
 public:
-	ZAMVectorMgr(std::shared_ptr<ZAM_vector> _vec, VectorVal* _v,
-			ZAM_tracker_type* tracker);
-	~ZAMVectorMgr() override;
+	ZAMVector(std::shared_ptr<ZAM_vector> _vec, VectorVal* _v,
+			ZAMAggrBindings* bindings);
+	~ZAMVector() override;
 
-	ZAMVectorMgr* ShallowCopy()
+	ZAMVector* ShallowCopy()
 		{
-		return new ZAMVectorMgr(vec, v, nullptr);
+		return new ZAMVector(vec, v, nullptr);
 		}
 
-	const std::shared_ptr<ZAM_vector>& ConstVec() const	{ return vec; }
-	std::shared_ptr<ZAM_vector>& ModVec()	
-		{ is_clean = false; return vec; }
+	int Size() const		{ return vec->ConstVec().size(); }
+	void Resize(int n) const	{ vec->ModVec().resize(n); }
+
+	const ZVU_vec& ConstVec() const	{ return vec->ConstVec(); }
+	const std::shared_ptr<ZAM_vector>& ConstVecPt() const	{ return vec; }
+
+	ZVU_vec& ModVec()			{ return vec->ModVec(); }
+	std::shared_ptr<ZAM_vector>& ModVecPtr()	{ return vec; }
+
+	void SetElement(int n, ZAMValUnion& v)
+		{ ModVecPtr()->SetElement(n, v); }
 
 	BroType* YieldType() const	{ return yield_type; }
 	BroType* ManagedYieldType() const
@@ -211,7 +284,7 @@ public:
 			yield_type = yt;
 			is_managed = IsManagedType(yt);
 			if ( is_managed )
-				vec->t = yt;
+				vec->SetYieldType(yt);
 			}
 		}
 
@@ -242,21 +315,21 @@ protected:
 	bool is_clean;
 };
 
-class ZAMRecordMgr : public ZAMAggregateMgr {
+class ZAMRecord : public ZAMAggregate {
 public:
 	// Main constructor, for tracking an existing RecordVal.
-	ZAMRecordMgr(RecordVal* _v, ZAM_tracker_type* tracker);
+	ZAMRecord(RecordVal* _v, ZAMAggrBindings* bindings);
 
 	// Copy constructor.
-	ZAMRecordMgr(std::shared_ptr<ZVU_vec> _vec, RecordVal* _v,
-			ZAM_tracker_type* tracker, ZRM_flags _is_loaded,
+	ZAMRecord(std::shared_ptr<ZVU_vec> _vec, RecordVal* _v,
+			ZAMAggrBindings* bindings, ZRM_flags _is_loaded,
 			ZRM_flags _is_dirty, ZRM_flags _is_managed);
 
-	~ZAMRecordMgr() override;
+	~ZAMRecord() override;
 
-	ZAMRecordMgr* ShallowCopy()
+	ZAMRecord* ShallowCopy()
 		{
-		return new ZAMRecordMgr(rvec, v, nullptr,
+		return new ZAMRecord(rvec, v, nullptr,
 					is_loaded, is_dirty, is_managed);
 		}
 
@@ -271,7 +344,7 @@ public:
 		if ( ! IsLoaded(field) )
 			Load(field);
 
-		return rvec[field];
+		return (*rvec)[field];
 		}
 
 	void SetField(int field, ZAMValUnion v)
@@ -279,7 +352,7 @@ public:
 		if ( IsManaged(field) )
 			Delete(field);
 
-		rvec[field] = v;
+		(*rvec)[field] = v;
 
 		is_dirty |= (1 << field);
 		}
@@ -367,12 +440,12 @@ public:
 };
 
 // Converts between VectorVals and ZAM vectors.
-extern ZAMVectorMgr* to_ZAM_vector(Val* vec, ZAM_tracker_type* tracker,
+extern ZAMVector* to_ZAM_vector(Val* vec, ZAMAggrBindings* bindings,
 					bool track_val);
 extern std::shared_ptr<ZAM_vector> to_raw_ZAM_vector(Val* vec,
-						ZAM_tracker_type* tracker);
+						ZAMAggrBindings* bindings);
 
 // Likewise for RecordVals, but due to lazy loading, no need for "raw"
 // vectors.
-extern ZAMRecordMgr* to_ZAM_record(Val* rec, ZAM_tracker_type* tracker,
+extern ZAMRecord* to_ZAM_record(Val* rec, ZAMAggrBindings* bindings,
 					bool track_val);

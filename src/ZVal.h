@@ -9,11 +9,11 @@
 #include <unordered_set>
 
 
-// Manager of a single internal/Val* vector pairing.
-class ZAMVectorMgr;
+// Manager of a single internal/Val* aggregate pairing.
+class ZAMAggregateMgr;
 
 // Tracks all such managers.
-typedef std::unordered_set<ZAMVectorMgr*> ZAM_tracker_type;
+typedef std::unordered_set<ZAMAggregateMgr*> ZAM_tracker_type;
 
 class IterInfo;
 
@@ -159,11 +159,32 @@ protected:
 		}
 };
 
-class ZAMVectorMgr {
+class ZAMAggregateMgr {
+public:
+	ZAMAggregateMgr(ZAM_tracker_type* tracker, Val* aggr_val);
+	virtual ~ZAMAggregateMgr();
+
+	// Copy back the internal aggregate to the associated value.
+	virtual void Spill() = 0;
+
+	// Reload the internal aggregate from the associated value.
+	virtual void Freshen() = 0;
+
+protected:
+	// This would be in the destructor but it needs to call virtual
+	// functions, so instead derived classes need to call it from
+	// their own destructors.
+	void Finish();
+
+	ZAM_tracker_type* tracker;
+	Val* aggr_val;
+};
+
+class ZAMVectorMgr : public ZAMAggregateMgr {
 public:
 	ZAMVectorMgr(std::shared_ptr<ZAM_vector> _vec, VectorVal* _v,
 			ZAM_tracker_type* tracker);
-	~ZAMVectorMgr();
+	~ZAMVectorMgr() override;
 
 	ZAMVectorMgr* ShallowCopy()
 		{
@@ -190,22 +211,18 @@ public:
 		}
 
 	IntrusivePtr<VectorVal> VecVal()	{ return {NewRef{}, v}; }
-	void SetVecVal(VectorVal* vv)	 	{ v = vv; v->Ref(); }
+	void SetVecVal(VectorVal* vv)	 	{ aggr_val = v = vv; v->Ref(); }
 
 	bool IsManaged() const	{ return is_managed; }
 
 	bool IsClean() const	{ return is_clean || ! v; }
 
-	// Copy back the internal vector the associated value.
-	void Spill();
-
-	// Reload the internal vector from the associated value.
-	void Freshen();
+	void Spill() override;
+	void Freshen() override;
 
 protected:
 	std::shared_ptr<ZAM_vector> vec;
-	VectorVal* v;
-	ZAM_tracker_type* tracker;
+	VectorVal* v;	// our own copy of aggr_val, with the right type
 
 	// The actual yield type of the vector, if we've had a chance to
 	// observe it.  Necessary for "vector of any".  Non-const because

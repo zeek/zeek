@@ -316,8 +316,39 @@ void ZAM_vector::DeleteMembers()
 	}
 
 
+ZAMAggregateMgr::ZAMAggregateMgr(ZAM_tracker_type* _tracker, Val* _aggr_val)
+	{
+	tracker = _tracker;
+	aggr_val = _aggr_val;
+
+	if ( tracker && aggr_val )
+		tracker->insert(this);
+	}
+
+ZAMAggregateMgr::~ZAMAggregateMgr()
+	{
+	if ( tracker )
+		tracker->erase(this);
+	}
+
+void ZAMAggregateMgr::Finish()
+	{
+	if ( aggr_val )
+		{
+		if ( aggr_val->RefCnt() > 1 )
+			// Don't bother spilling for a value we're about
+			// to delete.
+			Spill();
+		}
+
+	if ( aggr_val )
+		Unref(aggr_val);
+	}
+
+
 ZAMVectorMgr::ZAMVectorMgr(std::shared_ptr<ZAM_vector> _vec, VectorVal* _v,
 				ZAM_tracker_type* _tracker)
+	: ZAMAggregateMgr(_tracker, _v)
 	{
 	vec = _vec;
 	v = _v;
@@ -326,15 +357,10 @@ ZAMVectorMgr::ZAMVectorMgr(std::shared_ptr<ZAM_vector> _vec, VectorVal* _v,
 	if ( ! v )
 		{
 		yield_type = nullptr;
-		tracker = nullptr;
 		return;
 		}
 
 	Ref(v);
-
-	tracker = _tracker;
-	if ( tracker )
-		tracker->insert(this);
 
 	auto vt = v->Type()->AsVectorType();
 	auto yt = vt->YieldType();
@@ -363,19 +389,7 @@ ZAMVectorMgr::ZAMVectorMgr(std::shared_ptr<ZAM_vector> _vec, VectorVal* _v,
 
 ZAMVectorMgr::~ZAMVectorMgr()
 	{
-	if ( v )
-		{
-		if ( v->RefCnt() > 1 )
-			// Don't bother spilling for a value we're about
-			// to delete.
-			Spill();
-
-		if ( tracker )
-			tracker->erase(this);
-		}
-
-	if ( v )
-		Unref(v);
+	Finish();
 	}
 
 void ZAMVectorMgr::Spill()

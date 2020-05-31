@@ -125,7 +125,7 @@ static ZeekINode get_inode(const std::string& path)
 
 class FileInfo {
 public:
-	FileInfo(std::string restore_module = "");
+	FileInfo(std::string arg_restore_module, dev_t arg_dev, ino_t arg_ino);
 	~FileInfo();
 
 	YY_BUFFER_STATE buffer_state;
@@ -133,6 +133,8 @@ public:
 	const char* name;
 	int line;
 	int level;
+	dev_t dev;
+	ino_t ino;
 };
 
 // A stack of input buffers we're scanning.  file_stack[len-1] is the
@@ -610,6 +612,15 @@ static bool already_scanned(const std::string& path)
 	return already_scanned(get_inode(path));
 	}
 
+static bool currently_scanning(ZeekINode in)
+	{
+	for (const auto it: file_stack)
+		if ( it->dev == in.dev && it->ino == in.ino )
+			return true;
+
+	return false;
+	}
+
 static int load_files(const char* orig_file)
 	{
 	std::string file_path = find_relative_script_file(orig_file);
@@ -661,6 +672,14 @@ static int load_files(const char* orig_file)
 
 	auto i = get_inode(f, file_path);
 
+	if (currently_scanning(i))
+		{
+		reporter->Warning("Detected circular @load of %s from:", file_path.c_str());
+		reporter->Warning("  %s:%d", ::filename, ::line_number);
+		for ( auto fi = file_stack.rbegin(); fi != file_stack.rend(); ++fi )
+			reporter->Warning("  %s:%d", (*fi)->name, (*fi)->line);
+		}
+
 	if ( already_scanned(i) )
 		{
 		if ( f != stdin )
@@ -683,7 +702,7 @@ static int load_files(const char* orig_file)
 
 	// Remember where we were to restore the module scope in which
 	// this @load was done when we're finished processing it.
-	file_stack.push_back(new FileInfo(current_module));
+	file_stack.push_back(new FileInfo(current_module, i.dev, i.ino));
 
 	zeekygen_mgr->Script(file_path);
 
@@ -1030,12 +1049,14 @@ int yywrap()
 	return 1;
 	}
 
-FileInfo::FileInfo(std::string arg_restore_module)
+FileInfo::FileInfo(std::string arg_restore_module, dev_t arg_dev, ino_t arg_ino)
 	{
 	buffer_state = YY_CURRENT_BUFFER;
 	restore_module = arg_restore_module;
 	name = ::filename;
 	line = ::line_number;
+	dev = arg_dev;
+	ino = arg_ino;
 	}
 
 FileInfo::~FileInfo()

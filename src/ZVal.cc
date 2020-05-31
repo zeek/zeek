@@ -314,50 +314,27 @@ void ZAM_vector::DeleteMembers()
 
 void ZAM_vector::Spill()
 	{
-	if ( ! vv || ! is_dirty )
-		return;
-
-	auto vt = vv->Type()->AsVectorType();
-	auto yt = vt->YieldType();
-	auto val_vec = new vector<Val*>();
-
-	for ( auto elem : zvec )
-		{
-		if ( elem.IsNil(yt) )
-			val_vec->push_back(nullptr);
-		else
-			val_vec->push_back(elem.ToVal(yt).release());
-		}
-
-	auto& vvv = vv->val.vector_val;
-	for ( unsigned int i = 0; i < vvv->size(); ++i )
-		Unref((*vvv)[i]);
-	delete vvv;
-
-	vv->val.vector_val = val_vec;
-
-	is_dirty = false;
 	}
 
 void ZAM_vector::Freshen()
 	{
 	ASSERT(! is_dirty);
+	ASSERT(vv);
 
-	auto vals = vv->AsVector();
-	auto t = vv->Type()->AsVectorType();
-	auto yt = t->YieldType();
+	if ( vv->AsVector() == this )
+		// Association stands.
+		return;
 
-	zvec.clear();
+	bindings->erase(this);
+	bindings = nullptr;
 
-	bool error;
+	// The upcoming Unref can cause us to be deleted, in which case
+	// aggr_val will be checked, so set it to nil before doing so.
+	auto old_aggr_val = aggr_val;
+	aggr_val = nullptr;
+	vv = nullptr;
 
-	for ( auto elem : *vals )
-		if ( ! elem )
-			// Zeek vectors can have holes.
-			zvec.push_back(ZAMValUnion());
-		else
-			zvec.push_back(ZAMValUnion(elem, yt, bindings,
-							vv, error));
+	Unref(old_aggr_val);
 	}
 
 
@@ -480,6 +457,9 @@ ZAMVector* to_ZAM_vector(Val* vec, ZAMAggrBindings* bindings, bool track_val)
 IntrusivePtr<ZAM_vector> to_raw_ZAM_vector(Val* vec, ZAMAggrBindings* bindings)
 	{
 	auto vv = vec->AsVector();
+
+	return {NewRef{}, vv};
+#if 0
 	auto t = vec->Type()->AsVectorType();
 	auto yt = t->YieldType();
 
@@ -498,6 +478,7 @@ IntrusivePtr<ZAM_vector> to_raw_ZAM_vector(Val* vec, ZAMAggrBindings* bindings)
 							vec, error));
 
 	return zv;
+#endif
 	}
 
 

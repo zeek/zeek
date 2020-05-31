@@ -19,6 +19,7 @@
 #include "digest.h"
 #include "Reporter.h"
 #include "IPAddr.h"
+#include "ZVal.h"
 #include "util.h"
 #include "file_analysis/Manager.h"
 #include "iosource/Manager.h"
@@ -811,10 +812,10 @@ function paraglob_init%(v: any%) : opaque of paraglob
 		}
 
 	std::vector<std::string> patterns;
-	VectorVal* vv = v->AsVectorVal();
-	for ( unsigned int i = 0; i < vv->Size(); ++i )
+	auto vv = v->AsVectorVal()->AsVector()->ConstVec();
+	for ( unsigned int i = 0; i < vv.size(); ++i )
 		{
-		const BroString* s = vv->Lookup(i)->AsString();
+		const BroString* s = vv[i].string_val;
 		patterns.push_back(std::string(reinterpret_cast<const char*>(s->Bytes()), s->Len()));
 		}
 
@@ -1382,6 +1383,37 @@ bool indirect_unsigned_sort_function(size_t a, size_t b)
 	{
 	return unsigned_sort_function(index_map[a], index_map[b]);
 	}
+
+// For now we define parallel versions that use ZAMValUnion's instead.
+// Ultimately we should port the above over, too.
+
+// Yuck, we need a variable to hold the type.  Luckily, this won't be
+// invoked concurrently for two different types.
+BroType* zsort_type;
+
+bool zsort_function(ZAMValUnion& a, ZAMValUnion& b)
+	{
+	// ### Unable to do this:
+	// Sort missing values as "high".
+
+	auto a_v = a.ToVal(zsort_type);
+	auto b_v = b.ToVal(zsort_type);
+
+	auto result = sort_function_comp->Call(a_v, b_v);
+	int int_result = result->CoerceToInt();
+
+	return int_result < 0;
+	}
+
+bool signed_zsort_function (ZAMValUnion& a, ZAMValUnion& b)
+	{
+	return a.int_val < b.int_val;
+	}
+
+bool unsigned_zsort_function (ZAMValUnion& a, ZAMValUnion& b)
+	{
+	return a.uint_val < b.uint_val;
+	}
 %%}
 
 ## Sorts a vector in place. The second argument is a comparison function that
@@ -1428,7 +1460,9 @@ function sort%(v: any, ...%) : any
 	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
 		builtin_error("comparison function required for sort() with non-integral types");
 
-	vector<Val*>& vv = *v->AsVector();
+	auto& vv = v->AsVector()->ModVec();
+
+	zsort_type = elt_type;
 
 	if ( comp )
 		{
@@ -1442,14 +1476,14 @@ function sort%(v: any, ...%) : any
 
 		sort_function_comp = comp;
 
-		sort(vv.begin(), vv.end(), sort_function);
+		sort(vv.begin(), vv.end(), zsort_function);
 		}
 	else
 		{
 		if ( elt_type->InternalType() == TYPE_INTERNAL_UNSIGNED )
-			sort(vv.begin(), vv.end(), unsigned_sort_function);
+			sort(vv.begin(), vv.end(), unsigned_zsort_function);
 		else
-			sort(vv.begin(), vv.end(), signed_sort_function);
+			sort(vv.begin(), vv.end(), signed_zsort_function);
 		}
 
 	return v;
@@ -1498,18 +1532,20 @@ function order%(v: any, ...%) : index_vec
 	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
 		builtin_error("comparison function required for order() with non-integral types");
 
-	vector<Val*>& vv = *v->AsVector();
-	auto n = vv.size();
+	auto vv = v->AsVector();
+	auto n = vv->Size();
 
 	// Set up initial mapping of indices directly to corresponding
 	// elements.
 	vector<size_t> ind_vv(n);
+
+	// Could speed this up a bunch switching it to a ZVU_vec.
 	index_map = new Val*[n];
 	size_t i;
 	for ( i = 0; i < n; ++i )
 		{
 		ind_vv[i] = i;
-		index_map[i] = vv[i];
+		index_map[i] = vv->Lookup(i).ToVal(elt_type).release();
 		}
 
 	if ( comp )
@@ -1534,7 +1570,11 @@ function order%(v: any, ...%) : index_vec
 			sort(ind_vv.begin(), ind_vv.end(), indirect_signed_sort_function);
 		}
 
-	delete [] index_map;
+	// Need to do memory management since vv->Lookup above returned
+	// new items.
+	for ( i = 0; i < n; ++i )
+		Unref(index_map[i]);
+	delete index_map;
 	index_map = 0;
 
 	// Now spin through ind_vv to read out the rearrangement.
@@ -2243,15 +2283,16 @@ function addr_to_counts%(a: addr%): index_vec
 ## .. zeek:see:: addr_to_counts
 function counts_to_addr%(v: index_vec%): addr
 	%{
-	if ( v->AsVector()->size() == 1 )
+	auto vv = v->AsVector()->ConstVec();
+	if ( vv.size() == 1 )
 		{
-		return new AddrVal(htonl((*v->AsVector())[0]->AsCount()));
+		return new AddrVal(htonl(vv[0].uint_val));
 		}
-	else if ( v->AsVector()->size() == 4 )
+	else if ( vv.size() == 4 )
 		{
 		uint32_t bytes[4];
 		for ( int i = 0; i < 4; ++i )
-			bytes[i] = htonl((*v->AsVector())[i]->AsCount());
+			bytes[i] = htonl(vv[i].uint_val);
 		return new AddrVal(bytes);
 		}
 	else

@@ -473,8 +473,7 @@ eval auto vec = frame[z.v2].ToVector(z.t)
 eval auto lv = frame[z.v3].list_val
 eval auto v = vec->Lookup(lv)
 eval Unref(lv)
-eval IntrusivePtr<Val> v_p = {NewRef{}, v}
-eval AssignV1T(BuildVal(v_p, yt, z.stmt), yt)
+eval AssignV1T(BuildVal(v, yt, z.stmt), yt)
 
 internal-op Index-Vec-Slice
 type VVL

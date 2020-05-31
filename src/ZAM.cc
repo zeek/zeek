@@ -2702,14 +2702,23 @@ int ZAM::RegisterSlot()
 
 void ZAM::SpillVectors(ZAMAggrBindings* bindings) const
 	{
-	for ( auto vm : *bindings )
-		vm->Spill();
+	for ( auto aggr : *bindings )
+		aggr->Spill();
 	}
 
 void ZAM::LoadVectors(ZAMAggrBindings* bindings) const
 	{
-	for ( auto vm : *bindings )
-		vm->Freshen();
+	// The process of freshening an aggregate can lead to it
+	// needing to be removed, or even deleting itself, so
+	// first generate the iteration list and then proceed
+	// through it separately.
+
+	std::vector<ZAMAggrInstantiation*> aggrs;
+	for ( auto aggr : *bindings )
+		aggrs.push_back(aggr);
+
+	for ( auto aggr : aggrs )
+		aggr->Freshen();
 	}
 
 IntrusivePtr<Val> ResumptionAM::Exec(Frame* f, stmt_flow_type& flow) const

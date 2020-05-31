@@ -366,7 +366,7 @@ BroString::Vec* BroString::VecFromPolicy(VectorVal* vec)
 	// VectorVals start at index 1!
 	for ( unsigned int i = 1; i <= vec->Size(); ++i )
 		{
-		Val* v = vec->Lookup(i);	// get the RecordVal
+		auto v = vec->Lookup(i);	// get the RecordVal
 		if ( ! v )
 			continue;
 

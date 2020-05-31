@@ -723,8 +723,8 @@ IntrusivePtr<Val> UnaryExpr::Eval(Frame* f) const
 
 		for ( unsigned int i = 0; i < v_op->Size(); ++i )
 			{
-			Val* v_i = v_op->Lookup(i);
-			result->Assign(i, v_i ? Fold(v_i) : nullptr);
+			auto v_i = v_op->Lookup(i);
+			result->Assign(i, v_i ? Fold(v_i.get()) : nullptr);
 			}
 
 		return result;
@@ -880,7 +880,7 @@ IntrusivePtr<Val> BinaryExpr::Eval(Frame* f) const
 		for ( unsigned int i = 0; i < v_op1->Size(); ++i )
 			{
 			if ( v_op1->Lookup(i) && v_op2->Lookup(i) )
-				v_result->Assign(i, Fold(v_op1->Lookup(i), v_op2->Lookup(i)));
+				v_result->Assign(i, Fold(v_op1->Lookup(i).get(), v_op2->Lookup(i).get()));
 			else
 				v_result->Assign(i, nullptr);
 			// SetError("undefined element in vector operation");
@@ -896,9 +896,9 @@ IntrusivePtr<Val> BinaryExpr::Eval(Frame* f) const
 
 		for ( unsigned int i = 0; i < vv->Size(); ++i )
 			{
-			if ( Val* vv_i = vv->Lookup(i) )
-				v_result->Assign(i, is_vec1 ? Fold(vv_i, v2.get())
-				                            : Fold(v1.get(), vv_i));
+			if ( auto vv_i = vv->Lookup(i) )
+				v_result->Assign(i, is_vec1 ? Fold(vv_i.get(), v2.get())
+				                            : Fold(v1.get(), vv_i.get()));
 			else
 				v_result->Assign(i, nullptr);
 
@@ -1460,10 +1460,10 @@ IntrusivePtr<Val> IncrExpr::Eval(Frame* f) const
 
 		for ( unsigned int i = 0; i < v_vec->Size(); ++i )
 			{
-			Val* elt = v_vec->Lookup(i);
+			auto elt = v_vec->Lookup(i);
 
 			if ( elt )
-				v_vec->Assign(i, DoSingleEval(f, elt));
+				v_vec->Assign(i, DoSingleEval(f, elt.get()));
 			else
 				v_vec->Assign(i, nullptr);
 			}
@@ -2613,8 +2613,8 @@ IntrusivePtr<Val> BoolExpr::Eval(Frame* f) const
 
 	for ( unsigned int i = 0; i < vec_v1->Size(); ++i )
 		{
-		Val* op1 = vec_v1->Lookup(i);
-		Val* op2 = vec_v2->Lookup(i);
+		auto op1 = vec_v1->Lookup(i);
+		auto op2 = vec_v2->Lookup(i);
 		if ( op1 && op2 )
 			{
 			bool local_result = (tag == EXPR_AND_AND) ?
@@ -3145,12 +3145,12 @@ IntrusivePtr<Val> CondExpr::Eval(Frame* f) const
 
 	for ( unsigned int i = 0; i < cond->Size(); ++i )
 		{
-		Val* local_cond = cond->Lookup(i);
+		auto local_cond = cond->Lookup(i);
 
 		if ( local_cond )
 			{
-			Val* v = local_cond->IsZero() ? b->Lookup(i) : a->Lookup(i);
-			result->Assign(i, v ? v->Ref() : nullptr);
+			auto v = local_cond->IsZero() ? b->Lookup(i) : a->Lookup(i);
+			result->Assign(i, v ? v.release() : nullptr);
 			}
 		else
 			result->Assign(i, 0);
@@ -4512,7 +4512,7 @@ IntrusivePtr<Val> IndexExpr::Fold(Val* v1, Val* v2) const
 		const ListVal* lv = v2->AsListVal();
 
 		if ( lv->Length() == 1 )
-			v = {NewRef{}, vect->Lookup(v2)};
+			v = vect->Lookup(v2);
 		else
 			{
 			auto vt = vect->Type()->AsVectorType();
@@ -5741,8 +5741,8 @@ IntrusivePtr<Val> ArithCoerceExpr::Fold(Val* v) const
 
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		{
-		if ( Val* elt = vv->Lookup(i) )
-			result->Assign(i, FoldSingleVal(elt, t));
+		if ( auto elt = vv->Lookup(i) )
+			result->Assign(i, FoldSingleVal(elt.get(), t));
 		else
 			result->Assign(i, 0);
 		}

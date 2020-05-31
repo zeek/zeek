@@ -1,3 +1,7 @@
+revise memory management now that ZAMValUnion's can be constructed outside
+	of compiled code
+need to hook into notifier::Modifiable framework for aggregates
+
 need to fix IterInfo's to be (1) dynamic, via (2) IntrusivePtr's
 
 make sure "a = a" assignments are pruned, otherwise can lead to

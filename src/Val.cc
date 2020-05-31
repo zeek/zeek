@@ -638,7 +638,8 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 			auto* vval = val->AsVectorVal();
 			size_t size = vval->SizeVal()->AsCount();
 			for (size_t i = 0; i < size; i++)
-				BuildJSON(writer, vval->Lookup(i), only_loggable, re);
+				BuildJSON(writer, vval->Lookup(i).get(),
+						only_loggable, re);
 
 			writer.EndArray();
 			break;
@@ -2979,19 +2980,23 @@ VectorVal::VectorVal(VectorType* t) : Val(t)
 	val.vector_val = new ZAM_vector(this, nullptr, myt);
 	}
 
+VectorVal::VectorVal(VectorType* t, unsigned int n) : Val(t)
+	{
+	vector_type = t->Ref()->AsVectorType();
+	auto yt = vector_type->YieldType();
+	auto myt = IsManagedType(yt) ? yt : nullptr;
+	val.vector_val = new ZAM_vector(this, nullptr, myt, n);
+	}
+
 VectorVal::~VectorVal()
 	{
-	for ( unsigned int i = 0; i < val.vector_val->size(); ++i )
-		Unref((*val.vector_val)[i]);
-
+	Unref(val.vector_val);
 	Unref(vector_type);
-
-	delete val.vector_val;
 	}
 
 IntrusivePtr<Val> VectorVal::SizeVal() const
 	{
-	return {AdoptRef{}, val_mgr->GetCount(uint32_t(val.vector_val->size()))};
+	return {AdoptRef{}, val_mgr->GetCount(uint32_t(val.vector_val->Size()))};
 	}
 
 bool VectorVal::Assign(unsigned int index, IntrusivePtr<Val> element)
@@ -3000,19 +3005,11 @@ bool VectorVal::Assign(unsigned int index, IntrusivePtr<Val> element)
 	     ! same_type(element->Type(), vector_type->YieldType(), false) )
 		return false;
 
-	Val* val_at_index = 0;
+	auto yt = vector_type->YieldType();
+	bool error;
+        ZAMValUnion elem(element.release(), yt, nullptr, this, error);
 
-	if ( index < val.vector_val->size() )
-		val_at_index = (*val.vector_val)[index];
-	else
-		val.vector_val->resize(index + 1);
-
-	Unref(val_at_index);
-
-	// Note: we do *not* Ref() the element, if any, at this point.
-	// AssignExpr::Eval() already does this; other callers must remember
-	// to do it similarly.
-	(*val.vector_val)[index] = element.release();
+	val.vector_val->SetElement(index, elem);
 
 	Modified();
 	return true;
@@ -3044,17 +3041,10 @@ bool VectorVal::Insert(unsigned int index, Val* element)
 		return false;
 		}
 
-	vector<Val*>::iterator it;
+	bool error;
+        ZAMValUnion elem(element, vector_type, nullptr, this, error);
 
-	if ( index < val.vector_val->size() )
-		it = std::next(val.vector_val->begin(), index);
-	else
-		it = val.vector_val->end();
-
-	// Note: we do *not* Ref() the element, if any, at this point.
-	// AssignExpr::Eval() already does this; other callers must remember
-	// to do it similarly.
-	val.vector_val->insert(it, element);
+	val.vector_val->Insert(index, elem);
 
 	Modified();
 	return true;
@@ -3062,13 +3052,10 @@ bool VectorVal::Insert(unsigned int index, Val* element)
 
 bool VectorVal::Remove(unsigned int index)
 	{
-	if ( index >= val.vector_val->size() )
+	if ( index >= val.vector_val->Size() )
 		return false;
 
-	Val* val_at_index = (*val.vector_val)[index];
-	auto it = std::next(val.vector_val->begin(), index);
-	val.vector_val->erase(it);
-	Unref(val_at_index);
+	val.vector_val->Remove(index);
 
 	Modified();
 	return true;
@@ -3093,30 +3080,36 @@ bool VectorVal::AddTo(Val* val, bool /* is_first_init */) const
 	auto last_idx = v->Size();
 
 	for ( auto i = 0u; i < Size(); ++i )
-		v->Assign(last_idx++, {NewRef{}, Lookup(i)});
+		v->Assign(last_idx++, Lookup(i));
 
 	return true;
 	}
 
-Val* VectorVal::Lookup(unsigned int index) const
+IntrusivePtr<Val> VectorVal::Lookup(unsigned int index) const
 	{
-	if ( index >= val.vector_val->size() )
+	if ( index >= val.vector_val->Size() )
 		return nullptr;
 
-	return (*val.vector_val)[index];
+	auto raw_v = val.vector_val->Lookup(index);
+
+	return raw_v.ToVal(vector_type->YieldType());
+	}
+
+unsigned int VectorVal::Size() const
+	{
+	return val.vector_val->Size();
 	}
 
 unsigned int VectorVal::Resize(unsigned int new_num_elements)
 	{
-	unsigned int oldsize = val.vector_val->size();
-	val.vector_val->reserve(new_num_elements);
-	val.vector_val->resize(new_num_elements);
+	unsigned int oldsize = val.vector_val->Size();
+	val.vector_val->Resize(new_num_elements);
 	return oldsize;
 	}
 
 unsigned int VectorVal::ResizeAtLeast(unsigned int new_num_elements)
 	 {
-	 unsigned int old_size = val.vector_val->size();
+	 unsigned int old_size = val.vector_val->Size();
 	 if ( new_num_elements <= old_size )
 		 return old_size;
 
@@ -3125,14 +3118,19 @@ unsigned int VectorVal::ResizeAtLeast(unsigned int new_num_elements)
 
 IntrusivePtr<Val> VectorVal::DoClone(CloneState* state)
 	{
-	auto vv = make_intrusive<VectorVal>(vector_type);
-	vv->val.vector_val->reserve(val.vector_val->size());
+	auto vv = make_intrusive<VectorVal>(vector_type, val.vector_val->Size());
 	state->NewClone(this, vv);
 
-	for ( unsigned int i = 0; i < val.vector_val->size(); ++i )
+	auto& zvu1 = val.vector_val->ConstVec();
+	auto& zvu2 = vv->val.vector_val->ModVecNoDirty();
+	auto yt = vector_type->YieldType();
+
+	bool error;
+
+	for ( unsigned int i = 0; i < zvu1.size(); ++i )
 		{
-		auto v = (*val.vector_val)[i]->Clone(state);
-		vv->val.vector_val->push_back(v.release());
+		auto v = zvu1[i].ToVal(yt)->Clone(state);
+		zvu2[i] = ZAMValUnion(v.release(), yt, nullptr, this, error);
 		}
 
 	return vv;
@@ -3142,17 +3140,20 @@ void VectorVal::ValDescribe(ODesc* d) const
 	{
 	d->Add("[");
 
-	if ( val.vector_val->size() > 0 )
-		for ( unsigned int i = 0; i < (val.vector_val->size() - 1); ++i )
+	auto n = val.vector_val->Size();
+	auto vv = val.vector_val->ConstVec();
+	auto yt = vector_type->YieldType();
+
+	if ( n > 0 )
+		for ( unsigned int i = 0; i < (n - 1); ++i )
 			{
-			if ( (*val.vector_val)[i] )
-				(*val.vector_val)[i]->Describe(d);
+			// if ( (*val.vector_val)[i] )
+			vv[i].ToVal(yt)->Describe(d);
 			d->Add(", ");
 			}
 
-	if ( val.vector_val->size() &&
-	     (*val.vector_val)[val.vector_val->size() - 1] )
-		(*val.vector_val)[val.vector_val->size() - 1]->Describe(d);
+	if ( n /* && (*val.vector_val)[n - 1] */ )
+		vv[n - 1].ToVal(yt)->Describe(d);
 
 	d->Add("]");
 	}

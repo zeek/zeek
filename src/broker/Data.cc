@@ -955,7 +955,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const Val* v)
 			if ( ! item_val )
 				continue;
 
-			auto item = val_to_data(item_val);
+			auto item = val_to_data(item_val.get());
 
 			if ( ! item )
 				return broker::ec::invalid_data;

@@ -266,7 +266,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 			kp1 = reinterpret_cast<char*>(kp+1);
 			for ( unsigned int i = 0; i < vv->Size(); ++i )
 				{
-				Val* val = vv->Lookup(i);
+				auto val = vv->Lookup(i);
 				unsigned int* kp = AlignAndPadType<unsigned int>(kp1);
 				*kp = i;
 				kp1 = reinterpret_cast<char*>(kp+1);
@@ -277,7 +277,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 				if ( val )
 					{
 					if ( ! (kp1 = SingleValHash(type_check, kp1,
-					                            vt->YieldType(), val, false)) )
+					                            vt->YieldType(), val.get(), false)) )
 						return 0;
 					}
 				}
@@ -573,12 +573,12 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 			VectorVal* vv = const_cast<VectorVal*>(v->AsVectorVal());
 			for ( unsigned int i = 0; i < vv->Size(); ++i )
 				{
-				Val* val = vv->Lookup(i);
+				auto val = vv->Lookup(i);
 				sz = SizeAlign(sz, sizeof(unsigned int));
 				sz = SizeAlign(sz, sizeof(unsigned int));
 				if ( val )
 					sz = SingleTypeKeySize(bt->AsVectorType()->YieldType(),
-					                       val, type_check, sz, false,
+					                       val.get(), type_check, sz, false,
 					                       calc_static_size);
 				if ( ! sz ) return 0;
 				}

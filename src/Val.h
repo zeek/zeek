@@ -987,6 +987,10 @@ protected:
 class VectorVal : public Val, public notifier::Modifiable {
 public:
 	explicit VectorVal(VectorType* t);
+
+	// Used for cloning, where the size is already known:
+	explicit VectorVal(VectorType* t, unsigned int n);
+
 	~VectorVal() override;
 
 	IntrusivePtr<Val> SizeVal() const override;
@@ -1018,14 +1022,14 @@ public:
 	// Returns nil if no element was at that value.
 	// Lookup does NOT grow the vector to this size.
 	// The Val* variant assumes that the index Val* has been type-checked.
-	Val* Lookup(unsigned int index) const;
-	Val* Lookup(Val* index)
+	IntrusivePtr<Val> Lookup(unsigned int index) const;
+	IntrusivePtr<Val> Lookup(Val* index)
 		{
 		bro_uint_t i = index->AsListVal()->Index(0)->CoerceToUnsigned();
 		return Lookup(static_cast<unsigned int>(i));
 		}
 
-	unsigned int Size() const { return val.vector_val->Size(); }
+	unsigned int Size() const;
 
 	// Is there any way to reclaim previously-allocated memory when you
 	// shrink a vector?  The return value is the old size.

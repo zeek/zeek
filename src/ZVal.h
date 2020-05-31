@@ -38,7 +38,8 @@ union ZAMValUnion {
 	// Constructor for hand-populating the values.
 	ZAMValUnion() { void_val = nullptr; }
 
-	// Construct from a given Bro value with a given type.
+	// Construct from a given Bro value with a given type.  TODO: Takes
+	// ownership of the given Val or Unref()'s it if not further needed.
 	ZAMValUnion(Val* v, BroType* t, ZAMAggrBindings* bindings,
 			const BroObj* o, bool& error_flag);
 
@@ -155,7 +156,9 @@ public:
 	// Copy the internal aggregate to the associated Val.
 	virtual void Spill() = 0;
 
-	// Reload the internal aggregate from the associated Val.
+	// Reload the internal aggregate from the associated Val.  If
+	// the association has ended, will result in removing this object
+	// from the bindings, and possibly deleting it entirely.
 	virtual void Freshen() = 0;
 
 protected:
@@ -228,6 +231,11 @@ public:
 	IntrusivePtr<VectorVal> VecVal()	{ return {NewRef{}, vv}; }
 	void SetVecVal(VectorVal* _vv)		{ vv = _vv; vv->Ref(); }
 
+	ZAMValUnion& Lookup(int n)
+		{
+		return zvec[n];
+		}
+
 	// Sets the given element, doing deletions and deep-copies
 	// for managed types.
 	void SetElement(int n, ZAMValUnion& v)
@@ -241,6 +249,38 @@ public:
 			zvec[n] = v;
 
 		is_dirty = 1;
+		}
+
+	void Insert(unsigned int index, ZAMValUnion& element)
+		{
+		ZVU_vec::iterator it;
+
+		if ( index < zvec.size() )
+			{
+			it = std::next(zvec.begin(), index);
+			DeleteIfManaged(index);
+			}
+		else
+			it = zvec.end();
+
+		zvec.insert(it, element);
+
+		is_dirty = 1;
+		}
+
+	void Remove(unsigned int index)
+		{
+		DeleteIfManaged(index);
+		auto it = std::next(zvec.begin(), index);
+		zvec.erase(it);
+
+		is_dirty = 1;
+		}
+
+	void Resize(unsigned int new_num_elements)
+		{
+		zvec.reserve(new_num_elements);
+		zvec.resize(new_num_elements);
 		}
 
 	void Spill() override;

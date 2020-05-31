@@ -34,6 +34,7 @@
 #include "Conn.h"
 #include "Reporter.h"
 #include "IPAddr.h"
+#include "ZVal.h"
 #include "Var.h" // for internal_type()
 
 #include "broker/Data.h"
@@ -2973,7 +2974,9 @@ IntrusivePtr<Val> EnumVal::DoClone(CloneState* state)
 VectorVal::VectorVal(VectorType* t) : Val(t)
 	{
 	vector_type = t->Ref()->AsVectorType();
-	val.vector_val = new vector<Val*>();
+	auto yt = vector_type->YieldType();
+	auto myt = IsManagedType(yt) ? yt : nullptr;
+	val.vector_val = new ZAM_vector(this, nullptr, myt);
 	}
 
 VectorVal::~VectorVal()

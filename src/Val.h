@@ -89,8 +89,7 @@ union BroValUnion {
 	PDict<TableEntryVal>* table_val;
 	val_list* val_list_val;
 
-	vector<Val*>* vector_val;
-	ZAM_vector* zvector_val;
+	ZAM_vector* vector_val;
 
 	BroValUnion() = default;
 
@@ -127,7 +126,7 @@ union BroValUnion {
 	constexpr BroValUnion(val_list* value) noexcept
 		: val_list_val(value) {}
 
-	constexpr BroValUnion(vector<Val*> *value) noexcept
+	constexpr BroValUnion(ZAM_vector* value) noexcept
 		: vector_val(value) {}
 };
 
@@ -227,7 +226,7 @@ public:
 	CONST_ACCESSOR(TYPE_RECORD, val_list*, val_list_val, AsRecord)
 	CONST_ACCESSOR(TYPE_FILE, BroFile*, file_val, AsFile)
 	CONST_ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
-	CONST_ACCESSOR(TYPE_VECTOR, vector<Val*>*, vector_val, AsVector)
+	CONST_ACCESSOR(TYPE_VECTOR, ZAM_vector*, vector_val, AsVector)
 
 	const IPPrefix& AsSubNet() const
 		{
@@ -261,7 +260,7 @@ public:
 	ACCESSOR(TYPE_FUNC, Func*, func_val, AsFunc)
 	ACCESSOR(TYPE_FILE, BroFile*, file_val, AsFile)
 	ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
-	ACCESSOR(TYPE_VECTOR, vector<Val*>*, vector_val, AsVector)
+	ACCESSOR(TYPE_VECTOR, ZAM_vector*, vector_val, AsVector)
 
 	const IPPrefix& AsSubNet()
 		{
@@ -1026,7 +1025,7 @@ public:
 		return Lookup(static_cast<unsigned int>(i));
 		}
 
-	unsigned int Size() const { return val.vector_val->size(); }
+	unsigned int Size() const { return val.vector_val->Size(); }
 
 	// Is there any way to reclaim previously-allocated memory when you
 	// shrink a vector?  The return value is the old size.

@@ -90,6 +90,7 @@ union BroValUnion {
 	val_list* val_list_val;
 
 	vector<Val*>* vector_val;
+	ZAM_vector* zvector_val;
 
 	BroValUnion() = default;
 

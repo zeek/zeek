@@ -1698,7 +1698,7 @@ void profile_script_execution()
 
 void finish_script_execution()
 	{
-	profile_script_execution();
+	// profile_script_execution();
 
 	for ( auto& f : funcs )
 		delete f;

@@ -601,7 +601,7 @@ static void vec_exec(ZOp op, BroType* t, ZAMVector*& v1, const ZAMVector* v2,
 		{ \
 		auto& v = vec->ConstVec(); \
 		auto yt = vec->YieldType(); \
-		auto res_zv = make_shared<ZAM_vector>(nullptr, bindings, vec->ManagedYieldType()); \
+		auto res_zv = make_intrusive<ZAM_vector>(nullptr, bindings, vec->ManagedYieldType()); \
 		auto& res = res_zv->ModVecNoDirty(); \
 		for ( unsigned int i = 0; i < v.size(); ++i ) \
 			res[i].lhs_accessor = cast(v[i].rhs_accessor); \
@@ -2748,7 +2748,7 @@ static void vec_exec(ZOp op, ZAMVector*& v1, const ZAMVector* v2,
 		v1->Resize(vec2.size());
 	else
 		{
-		auto zv = make_shared<ZAM_vector>(nullptr, bindings, nullptr,
+		auto zv = make_intrusive<ZAM_vector>(nullptr, bindings, nullptr,
 							vec2.size());
 		v1 = new ZAMVector(zv);
 		}
@@ -2787,7 +2787,7 @@ static void vec_exec(ZOp op, BroType* yt, ZAMVector*& v1,
 		}
 	else
 		{
-		auto zv = make_shared<ZAM_vector>(nullptr, bindings, yt,
+		auto zv = make_intrusive<ZAM_vector>(nullptr, bindings, yt,
 							vec2.size());
 		v1 = new ZAMVector(zv);
 		}

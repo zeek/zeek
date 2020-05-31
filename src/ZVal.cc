@@ -361,10 +361,9 @@ void ZAM_vector::Freshen()
 	}
 
 
-ZAMVector::ZAMVector(std::shared_ptr<ZAM_vector> _vec)
+ZAMVector::ZAMVector(IntrusivePtr<ZAM_vector> _vec)
+	: vec(std::move(_vec))
 	{
-	vec = _vec;
-
 	auto vv = vec->VecVal();
 
 	if ( ! vv )
@@ -478,15 +477,14 @@ ZAMVector* to_ZAM_vector(Val* vec, ZAMAggrBindings* bindings, bool track_val)
 	return new ZAMVector(raw);
 	}
 
-std::shared_ptr<ZAM_vector> to_raw_ZAM_vector(Val* vec,
-						ZAMAggrBindings* bindings)
+IntrusivePtr<ZAM_vector> to_raw_ZAM_vector(Val* vec, ZAMAggrBindings* bindings)
 	{
 	auto vv = vec->AsVector();
 	auto t = vec->Type()->AsVectorType();
 	auto yt = t->YieldType();
 
 	auto myt = IsManagedType(yt) ? yt : nullptr;
-	auto zv = make_shared<ZAM_vector>(vec->AsVectorVal(), bindings, myt);
+	auto zv = make_intrusive<ZAM_vector>(vec->AsVectorVal(), bindings, myt);
 	auto& raw = zv->ModVecNoDirty();
 
 	bool error;

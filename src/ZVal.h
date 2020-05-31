@@ -131,7 +131,7 @@ typedef vector<ZAMValUnion> ZVU_vec;
 // The base class manages a ZVU_vec.  Its values might be homogeneous if
 // it reflects a Zeek vector, or heterogeneous if it reflects a Zeek record.
 
-class ZAMAggrInstantiation {
+class ZAMAggrInstantiation : public BroObj {
 public:
 	ZAMAggrInstantiation(Val* _v, ZAMAggrBindings* _bindings, int n)
 	: zvec(n)
@@ -195,7 +195,7 @@ protected:
 	ZRM_flags is_dirty;
 };
 
-class ZAM_vector : ZAMAggrInstantiation {
+class ZAM_vector : public ZAMAggrInstantiation {
 public:
 	// The yield type is non-nil only if it represents a managed type.
 	// We have this passed in rather than computing it ourselves from
@@ -276,7 +276,7 @@ protected:
 
 class ZAMVector {
 public:
-	ZAMVector(std::shared_ptr<ZAM_vector> _vec);
+	ZAMVector(IntrusivePtr<ZAM_vector> _vec);
 
 	ZAMVector* ShallowCopy()
 		{
@@ -287,10 +287,10 @@ public:
 	void Resize(int n) const	{ vec->ModVec().resize(n); }
 
 	const ZVU_vec& ConstVec() const	{ return vec->ConstVec(); }
-	const std::shared_ptr<ZAM_vector>& ConstVecPtr() const	{ return vec; }
+	const IntrusivePtr<ZAM_vector>& ConstVecPtr() const	{ return vec; }
 
 	ZVU_vec& ModVec()			{ return vec->ModVec(); }
-	std::shared_ptr<ZAM_vector>& ModVecPtr()	{ return vec; }
+	IntrusivePtr<ZAM_vector>& ModVecPtr()	{ return vec; }
 
 	void SetElement(int n, ZAMValUnion& v)
 		{ ModVecPtr()->SetElement(n, v); }
@@ -315,7 +315,7 @@ public:
 	void Spill()	{ vec->Spill(); }
 
 protected:
-	std::shared_ptr<ZAM_vector> vec;
+	IntrusivePtr<ZAM_vector> vec;
 
 	// The actual yield type of the vector, if we've had a chance to
 	// observe it.  Necessary for "vector of any".  Non-const because
@@ -330,7 +330,7 @@ public:
 	ZAMRecord(RecordVal* _v, ZAMAggrBindings* bindings);
 
 	// Copy constructor.
-	ZAMRecord(std::shared_ptr<ZVU_vec> _vec, RecordVal* _v,
+	ZAMRecord(IntrusivePtr<ZVU_vec> _vec, RecordVal* _v,
 			ZAMAggrBindings* bindings, ZRM_flags _is_loaded,
 			ZRM_flags _is_dirty, ZRM_flags _is_managed);
 
@@ -388,7 +388,7 @@ protected:
 	const RecordType* rt;
 
 	// The underlying vector of values used internally.
-	std::shared_ptr<ZVU_vec> rvec;
+	IntrusivePtr<ZVU_vec> rvec;
 
 	// Whether a given field is loaded.
 	ZRM_flags is_loaded;
@@ -432,7 +432,7 @@ public:
 	BroType* value_var_type = nullptr;
 
 	// If we're iterating over vectors, points to the raw vector ...
-	std::shared_ptr<ZAM_vector> vv = nullptr;
+	IntrusivePtr<ZAM_vector> vv = nullptr;
 
 	// ... unless it's a vector of any (sigh):
 	vector<Val*>* any_vv = nullptr;
@@ -452,7 +452,7 @@ public:
 // Converts between VectorVals and ZAM vectors.
 extern ZAMVector* to_ZAM_vector(Val* vec, ZAMAggrBindings* bindings,
 					bool track_val);
-extern std::shared_ptr<ZAM_vector> to_raw_ZAM_vector(Val* vec,
+extern IntrusivePtr<ZAM_vector> to_raw_ZAM_vector(Val* vec,
 						ZAMAggrBindings* bindings);
 
 // Likewise for RecordVals, but due to lazy loading, no need for "raw"

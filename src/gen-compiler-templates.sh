@@ -26,11 +26,7 @@ BEGIN	{
 
 	args["X"] = "()"
 	args["O"] = "(OpaqueVals* v)"
-	args["RV"] = "(const NameExpr* n1, const NameExpr* n2, const FieldExpr* f)"
-	args["RC"] = "(const NameExpr* n, const ConstExpr* c, const FieldExpr* f)"
 	args["Ri"] = "(const NameExpr* n1, const NameExpr* n2, int field)"
-	args["XV"] = "(const NameExpr* n1, const NameExpr* n2)"
-	args["XC"] = "(const NameExpr* n, const ConstExpr* c)"
 	args["V"] = "(const NameExpr* n)"
 	args["Vi"] = "(const NameExpr* n, int i)"
 	args["CVi"] = "(const ConstExpr* c, const NameExpr* n, int i)"
@@ -56,11 +52,7 @@ BEGIN	{
 
 	args2["X"] = ""
 	args2["O"] = "reg"
-	args2["RV"] = "n1, n2, field"
-	args2["RC"] = "n, c, field"
 	args2["Ri"] = "n1, n2, field"
-	args2["XV"] = "n1, n2"
-	args2["XC"] = "n, c"
 	args2["V"] = "n"
 	args2["Vi"] = "n, i"
 	args2["CVi"] = "c, n, i"
@@ -115,16 +107,91 @@ BEGIN	{
 	++is_managed["S"]
 	++is_managed["V"]	# other than vector-of-any, sigh
 
+	# We break these out because here the type structure does not match
+	# the argument structure.  Instead, these are special types known
+	# to the part of the templator that deals with assignment operations.
+
+	# Types associated with the dispatch side of assignment operators.
+	++assign_types["RV"]
+	++assign_types["RC"]
+	++assign_types["FV"]
+	++assign_types["FC"]
+	++assign_types["XV"]
+	++assign_types["XC"]
+
+	# Assignments to values computed from record fields "x=y$f".
+	args["RV"] = \
+		"(const NameExpr* n1, const NameExpr* n2, const FieldExpr* f)"
+	args["RC"] = \
+		"(const NameExpr* n, const ConstExpr* c, const FieldExpr* f)"
+
+	# Assignments to record fields "x$f = y".
+	args["FV"] = "(const NameExpr* n1, int field, const NameExpr* n2)"
+	args["FC"] = "(const NameExpr* n, int field, const ConstExpr* c)"
+
+	# Vanilla assignments "x=y".
+	args["XV"] = "(const NameExpr* n1, const NameExpr* n2)"
+	args["XC"] = "(const NameExpr* n, const ConstExpr* c)"
+
+	args2["RV"] = "n1, n2, field"
+	args2["RC"] = "n, c, field"
+	args2["FV"] = "n1, n2, field"
+	args2["FC"] = "n, c, field"
+	args2["XV"] = "n1, n2"
+	args2["XC"] = "n, c"
+
+	method_extra_prefix["R"] = "auto field = f->Field();"
+
+	# For an assign-to-any, then we will need the instruction
+	# type field set to the type of the RHS.  It does no harm
+	# to just always do that.
+	method_extra_suffix["R"] = "z.t = t->FieldType(field);"
+	method_extra_suffix["X"] = "z.t = t;"
+
+	# Whether for generated statements to take their type from the
+	# main assignment target (1) or from the first operand (0).
+	use_target_for_type["F"] = 1
+	use_target_for_type["R"] = 0
+	use_target_for_type["X"] = 0
+
+	# Accessor for the type, if something special required.
+	specific_type["F"] = ".get()"
+	specific_type["R"] = "->AsRecordType()"
+	specific_type["X"] = ".get()"
+
+	# Evaluation of @ parameters in assignments has two basic types,
+	# "short" (0) and "long" (1).  Short means to construct a new local
+	# "v" with the @ target.  Long means that an existing value is
+	# being replaced, so it should be deleted if managed and then
+	# the assignment is done directly into the frame.
+
+	SHORT = 0
+	LONG = 1
+
+	assignment_type["F"] = SHORT
+	assignment_type["R"] = LONG
+	assignment_type["X"] = LONG
+
 	# Templates for mapping "bare" frame assignments to specific
 	# transformations/memory management, depending on the type
-	# of the assignment.
-	assign_tmpl["A"] = "auto av = new IPAddr(*($1.addr_val));\ndelete $$.addr_val;\n$$.addr_val = av;"
-	assign_tmpl["N"] = "auto nv = new IPPrefix(*($1.subnet_val));\ndelete $$.subnet_val;\n$$.subnet_val = nv;"
-	assign_tmpl["R"] = "auto rv = $1.record_val->ShallowCopy();\ndelete $$.record_val;\n$$.record_val = rv;"
-	assign_tmpl["S"] = "auto sv = new BroString(*($1.string_val));\ndelete $$.string_val;\n$$.string_val = sv;"
-	assign_tmpl["V"] = "auto vv = $1.vector_val->ShallowCopy();\ndelete $$.vector_val;\n$$.vector_val = vv;"
-	assign_tmpl["ANY"] = "$$.any_val = TrackValPtr($1.ToVal(z.t));"
-	assign_tmpl[""] = "$$ = $1;"
+	# of the assignment.  Indexed by both the type and 0/1 for
+	# short/long.
+
+	assign_tmpl["A", SHORT] = "auto av = new IPAddr(*($1.addr_val));\nZAMValUnion $$;\n$$.addr_val = av;"
+	assign_tmpl["N", SHORT] = "auto nv = new IPPrefix(*($1.subnet_val));\nZAMValUnion $$;\n$$.subnet_val = nv;"
+	assign_tmpl["R", SHORT] = "auto rv = $1.record_val->ShallowCopy();\nZAMValUnion $$;\n$$.record_val = rv;"
+	assign_tmpl["S", SHORT] = "auto sv = new BroString(*($1.string_val));\nZAMValUnion $$;\n$$.string_val = sv;"
+	assign_tmpl["V", SHORT] = "auto vv = $1.vector_val->ShallowCopy();\nZAMValUnion $$;\n$$.vector_val = vv;"
+	assign_tmpl["ANY", SHORT] = "ZAMValUnion $$ = $1;"
+	assign_tmpl["", SHORT] = "ZAMValUnion $$ = $1;"
+
+	assign_tmpl["A", LONG] = "auto av = new IPAddr(*($1.addr_val));\ndelete $$.addr_val;\n$$.addr_val = av;"
+	assign_tmpl["N", LONG] = "auto nv = new IPPrefix(*($1.subnet_val));\ndelete $$.subnet_val;\n$$.subnet_val = nv;"
+	assign_tmpl["R", LONG] = "auto rv = $1.record_val->ShallowCopy();\ndelete $$.record_val;\n$$.record_val = rv;"
+	assign_tmpl["S", LONG] = "auto sv = new BroString(*($1.string_val));\ndelete $$.string_val;\n$$.string_val = sv;"
+	assign_tmpl["V", LONG] = "auto vv = $1.vector_val->ShallowCopy();\ndelete $$.vector_val;\n$$.vector_val = vv;"
+	assign_tmpl["ANY", LONG] = "$$.any_val = TrackValPtr($1.ToVal(z.t));"
+	assign_tmpl["", LONG] = "$$ = $1;"
 
 
 	# Update eval(...) below
@@ -171,20 +238,6 @@ BEGIN	{
 
 	mixed_type_supported["P", "S"]
 	mixed_type_supported["A", "I"]
-
-	# Types associated with the dispatch side of assignment operators.
-	++assign_types["RV"]
-	++assign_types["RC"]
-	++assign_types["XV"]
-	++assign_types["XC"]
-
-	method_extra_prefix["R"] = "auto field = f->Field();"
-
-	# For an assign-to-any, then we will need the instruction
-	# type field set to the type of the RHS.  It does no harm
-	# to just always do that.
-	method_extra_suffix["R"] = "z.t = t->FieldType(field);"
-	method_extra_suffix["X"] = "z.t = t;"
 
 	# Suffix used for vector operations.
 	vec = "_vec"
@@ -504,13 +557,13 @@ function build_assignment_op(op, type)
 
 	# Now generate the specific flavors.
 	for ( flavor in is_managed )
-		build_assignment(op, flavor, eval[""])
+		build_assignment(op, type, flavor, eval[""])
 
 	# Handle assignment-to-any.
-	build_assignment(op, "ANY", eval[""])
+	build_assignment(op, type, "ANY", eval[""])
 
 	# Default assignment where no special work is needed.
-	build_assignment(op, "", eval[""])
+	build_assignment(op, type, "", eval[""])
 	}
 
 function build_assignment_dispatch(op, type)
@@ -521,17 +574,17 @@ function build_assignment_dispatch(op, type)
 
 function build_assignment_dispatch2(op, type, is_var)
 	{
-	# Generate generic versions of the assignment, which
-	# provide a custom method for dispatching to the
-	# specific flavors.
+	# Generate generic versions of the assignment, which provide custom
+	# methods for dispatching to the specific flavors.
 	no_eval = 1
 
 	targ = is_var ? "n1" : "n"
-	operand = is_var ? "n2" : "c"
+	type_base = use_target_for_type[type] ? targ : (is_var ? "n2" : "c")
 
 	atype = type (is_var ? "V" : "C")
 
-	custom_method = "auto t = " operand "->Type()->AsRecordType();\n" \
+	custom_method = \
+		"auto t = " type_base "->Type()" specific_type[type] ";\n" \
 		"\tauto tag = t->Tag();\n" \
 		"\tauto i_t = t->InternalType();\n" \
 		"\tZInst z;"
@@ -563,13 +616,13 @@ function build_assignment_dispatch2(op, type, is_var)
 	custom_method = ""
 	}
 
-function build_assignment(op, flavor, ev)
+function build_assignment(op, type, flavor, ev)
 	{
-	build_assignment2(op, flavor, 0, ev)
-	build_assignment2(op, flavor, 1, ev)
+	build_assignment2(op, type, flavor, 0, ev)
+	build_assignment2(op, type, flavor, 1, ev)
 	}
 
-function build_assignment2(op, flavor, is_var, ev)
+function build_assignment2(op, type, flavor, is_var, ev)
 	{
 	if ( index(ev, "@") == 0 )
 		gripe("no @ specifier in assignment op")
@@ -578,11 +631,21 @@ function build_assignment2(op, flavor, is_var, ev)
 	sub(/.*@/, "", assign_val)
 	sub(/[ \t;].*/, "", assign_val)
 
-	tmpl = "{\n" assign_tmpl[flavor] "\n}"
-	gsub(/\$1/, assign_val, tmpl)
-	gsub(/\$\$/, "frame[z.v1]", tmpl)
+	a_t = assignment_type[type]
 
-	gsub(/@[a-zA-Z]*/, tmpl, ev)
+	tmpl = assign_tmpl[flavor, a_t]
+
+	if ( a_t == LONG )
+		# Allow for long form to be for example in an if-else
+		# clause.  We do not do this for SHORT however because
+		# for it the whole point is that the $$ variable is
+		# subsequently accessible.
+		tmpl = "{\n" tmpl "\n}"
+
+	gsub(/\$1/, assign_val, tmpl)
+	gsub(/\$\$/, a_t ? "frame[z.v1]" : "v", tmpl)
+
+	gsub(/@[a-zA-Z$0-9]*/, tmpl, ev)
 	gsub(/\$2/, is_var ? "frame[z.v2]" : "z.c", ev)
 
 	build_op(op, "V" (is_var ? "V" : "C") "i", flavor, "", ev, ev, is_var, 0)
@@ -891,7 +954,10 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 			}
 
 		else
-			gripe("unsupported assignment type " type)
+			{
+			# Note, no need to generate these for FV/FC types
+			# because FieldLHSAssignExpr does its own dispatch.
+			}
 		}
 
 	else if ( type == "Ri" )

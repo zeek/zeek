@@ -4807,9 +4807,9 @@ const CompiledStmt FieldLHSAssignExpr::Compile(Compiler* c) const
 	auto rhs = Op2();
 
 	if ( rhs->Tag() == EXPR_NAME )
-		return c->Field_LHS_AssignVVi(lhs, rhs->AsNameExpr(), field);
+		return c->Field_LHS_AssignFV(lhs, field, rhs->AsNameExpr());
 	else
-		return c->Field_LHS_AssignVCi(lhs, rhs->AsConstExpr(), field);
+		return c->Field_LHS_AssignFC(lhs, field, rhs->AsConstExpr());
 	}
 
 IntrusivePtr<Expr> FieldLHSAssignExpr::Duplicate()

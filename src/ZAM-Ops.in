@@ -655,17 +655,11 @@ eval vv->SetYieldType(z.t)
 eval vv->SetElement(z.v3, frame[z.v2])
 
 
-op Field-LHS-Assign
+assign-op Field-LHS-Assign
 op1-read
-type VVi
-set-type $2
-eval frame[z.v1].record_val->Assign(z.v3, frame[z.v2])
-
-op Field-LHS-Assign
-op1-read
-type VCi
-set-type $2
-eval frame[z.v1].record_val->Assign(z.v2, z.c)
+type F
+eval @$2
+eval frame[z.v1].record_val->Assign(z.v3, v)
 
 ########## General Statements ##########
 

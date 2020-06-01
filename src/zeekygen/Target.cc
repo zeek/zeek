@@ -35,7 +35,7 @@ static void write_plugin_section_heading(FILE* f, const plugin::Plugin* p)
 
 static void write_analyzer_component(FILE* f, const analyzer::Component* c)
 	{
-	EnumType* atag = analyzer_mgr->GetTagEnumType();
+	const auto& atag = analyzer_mgr->GetTagType();
 	string tag = fmt("ANALYZER_%s", c->CanonicalName().c_str());
 
 	if ( atag->Lookup("Analyzer", tag.c_str()) < 0 )
@@ -46,7 +46,7 @@ static void write_analyzer_component(FILE* f, const analyzer::Component* c)
 
 static void write_analyzer_component(FILE* f, const file_analysis::Component* c)
 	{
-	EnumType* atag = file_mgr->GetTagEnumType();
+	const auto& atag = file_mgr->GetTagType();
 	string tag = fmt("ANALYZER_%s", c->CanonicalName().c_str());
 
 	if ( atag->Lookup("Files", tag.c_str()) < 0 )

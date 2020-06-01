@@ -54,7 +54,7 @@ void IPTunnelTimer::Dispatch(double t, bool is_expire)
 	double last_active = it->second.second;
 	double inactive_time = t > last_active ? t - last_active : 0;
 
-	if ( inactive_time >= BifConst::Tunnel::ip_tunnel_timeout )
+	if ( inactive_time >= zeek::BifConst::Tunnel::ip_tunnel_timeout )
 		// tunnel activity timed out, delete it from map
 		sessions->ip_tunnels.erase(tunnel_idx);
 
@@ -81,6 +81,7 @@ NetSessions::NetSessions()
 
 	dump_this_packet = false;
 	num_packets_processed = 0;
+	static auto pkt_profile_file = zeek::id::find_val("pkt_profile_file");
 
 	if ( pkt_profile_mode && pkt_profile_freq > 0 && pkt_profile_file )
 		pkt_profiler = new PacketProfiler(pkt_profile_mode,
@@ -123,7 +124,7 @@ void NetSessions::NextPacket(double t, const Packet* pkt)
 	SegmentProfiler prof(segment_logger, "dispatching-packet");
 
 	if ( raw_packet )
-		mgr.Enqueue(raw_packet, IntrusivePtr{AdoptRef{}, pkt->BuildPktHdrVal()});
+		mgr.Enqueue(raw_packet, pkt->ToRawPktHdrVal());
 
 	if ( pkt_profiler )
 		pkt_profiler->ProfilePkt(t, pkt->cap_len);
@@ -310,7 +311,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		{
 		dump_this_packet = true;
 		if ( esp_packet )
-			mgr.Enqueue(esp_packet, IntrusivePtr{AdoptRef{}, ip_hdr->BuildPktHdrVal()});
+			mgr.Enqueue(esp_packet, ip_hdr->ToPktHdrVal());
 
 		// Can't do more since upper-layer payloads are going to be encrypted.
 		return;
@@ -330,8 +331,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 			}
 
 		if ( mobile_ipv6_message )
-			mgr.Enqueue(mobile_ipv6_message,
-			            IntrusivePtr{AdoptRef{}, ip_hdr->BuildPktHdrVal()});
+			mgr.Enqueue(mobile_ipv6_message, ip_hdr->ToPktHdrVal());
 
 		if ( ip_hdr->NextProto() != IPPROTO_NONE )
 			Weird("mobility_piggyback", pkt, encapsulation);
@@ -409,7 +409,7 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 
 	case IPPROTO_GRE:
 		{
-		if ( ! BifConst::Tunnel::enable_gre )
+		if ( ! zeek::BifConst::Tunnel::enable_gre )
 			{
 			Weird("GRE_tunnel", ip_hdr, encapsulation);
 			return;
@@ -561,14 +561,14 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	case IPPROTO_IPV4:
 	case IPPROTO_IPV6:
 		{
-		if ( ! BifConst::Tunnel::enable_ip )
+		if ( ! zeek::BifConst::Tunnel::enable_ip )
 			{
 			Weird("IP_tunnel", ip_hdr, encapsulation);
 			return;
 			}
 
 		if ( encapsulation &&
-		     encapsulation->Depth() >= BifConst::Tunnel::max_depth )
+		     encapsulation->Depth() >= zeek::BifConst::Tunnel::max_depth )
 			{
 			Weird("exceeded_tunnel_max_depth", ip_hdr, encapsulation);
 			return;
@@ -686,19 +686,18 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 
 	conn->CheckFlowLabel(is_orig, ip_hdr->FlowLabel());
 
-	Val* pkt_hdr_val = nullptr;
+	IntrusivePtr<Val> pkt_hdr_val;
 
 	if ( ipv6_ext_headers && ip_hdr->NumHeaders() > 1 )
 		{
-		pkt_hdr_val = ip_hdr->BuildPktHdrVal();
+		pkt_hdr_val = ip_hdr->ToPktHdrVal();
 		conn->EnqueueEvent(ipv6_ext_headers, nullptr, conn->ConnVal(),
-		                   IntrusivePtr{AdoptRef{}, pkt_hdr_val});
+		                   pkt_hdr_val);
 		}
 
 	if ( new_packet )
 		conn->EnqueueEvent(new_packet, nullptr, conn->ConnVal(), pkt_hdr_val ?
-		                   IntrusivePtr{NewRef{}, pkt_hdr_val} :
-		                   IntrusivePtr{AdoptRef{}, ip_hdr->BuildPktHdrVal()});
+		                   std::move(pkt_hdr_val) : ip_hdr->ToPktHdrVal());
 
 	conn->NextPacket(t, is_orig, ip_hdr, len, caplen, data,
 				record_packet, record_content, pkt);
@@ -906,17 +905,17 @@ FragReassembler* NetSessions::NextFragment(double t, const IP_Hdr* ip,
 
 Connection* NetSessions::FindConnection(Val* v)
 	{
-	BroType* vt = v->Type();
+	const auto& vt = v->GetType();
 	if ( ! IsRecord(vt->Tag()) )
 		return nullptr;
 
 	RecordType* vr = vt->AsRecordType();
-	const val_list* vl = v->AsRecord();
+	auto vl = v->AsRecord();
 
 	int orig_h, orig_p;	// indices into record's value list
 	int resp_h, resp_p;
 
-	if ( vr == conn_id )
+	if ( vr == zeek::id::conn_id )
 		{
 		orig_h = 0;
 		orig_p = 1;
@@ -1220,11 +1219,11 @@ bool NetSessions::IsLikelyServerPort(uint32_t port, TransportProto proto) const
 
 	if ( ! have_cache )
 		{
-		ListVal* lv = likely_server_ports->ConvertToPureList();
+		auto likely_server_ports = zeek::id::find_val<TableVal>("likely_server_ports");
+		auto lv = likely_server_ports->ToPureListVal();
 		for ( int i = 0; i < lv->Length(); i++ )
-			port_cache.insert(lv->Index(i)->InternalUnsigned());
+			port_cache.insert(lv->Idx(i)->InternalUnsigned());
 		have_cache = true;
-		Unref(lv);
 		}
 
 	// We exploit our knowledge of PortVal's internal storage mechanism

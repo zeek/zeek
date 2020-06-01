@@ -687,13 +687,8 @@ void Analyzer::ProtocolConfirmation(Tag arg_tag)
 	if ( ! protocol_confirmation )
 		return;
 
-	EnumVal* tval = arg_tag ? arg_tag.AsEnumVal() : tag.AsEnumVal();
-
-	mgr.Enqueue(protocol_confirmation,
-		ConnVal(),
-		IntrusivePtr{NewRef{}, tval},
-		val_mgr->Count(id)
-	);
+	const auto& tval = arg_tag ? arg_tag.AsVal() : tag.AsVal();
+	mgr.Enqueue(protocol_confirmation, ConnVal(), tval, val_mgr->Count(id));
 	}
 
 void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
@@ -701,27 +696,21 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 	if ( ! protocol_violation )
 		return;
 
-	StringVal* r;
+	IntrusivePtr<StringVal> r;
 
 	if ( data && len )
 		{
 		const char *tmp = copy_string(reason);
-		r = new StringVal(fmt("%s [%s%s]", tmp,
+		r = make_intrusive<StringVal>(fmt("%s [%s%s]", tmp,
 					fmt_bytes(data, min(40, len)),
 					len > 40 ? "..." : ""));
 		delete [] tmp;
 		}
 	else
-		r = new StringVal(reason);
+		r = make_intrusive<StringVal>(reason);
 
-	EnumVal* tval = tag.AsEnumVal();
-
-	mgr.Enqueue(protocol_violation,
-		ConnVal(),
-		IntrusivePtr{NewRef{}, tval},
-		val_mgr->Count(id),
-		IntrusivePtr{AdoptRef{}, r}
-	);
+	const auto& tval = tag.AsVal();
+	mgr.Enqueue(protocol_violation, ConnVal(), tval, val_mgr->Count(id), std::move(r));
 	}
 
 void Analyzer::AddTimer(analyzer_timer_func timer, double t,
@@ -923,12 +912,12 @@ void TransportLayerAnalyzer::Done()
 	}
 
 void TransportLayerAnalyzer::SetContentsFile(unsigned int /* direction */,
-						BroFile* /* f */)
+						IntrusivePtr<BroFile> /* f */)
 	{
 	reporter->Error("analyzer type does not support writing to a contents file");
 	}
 
-BroFile* TransportLayerAnalyzer::GetContentsFile(unsigned int /* direction */) const
+IntrusivePtr<BroFile> TransportLayerAnalyzer::GetContentsFile(unsigned int /* direction */) const
 	{
 	reporter->Error("analyzer type does not support writing to a contents file");
 	return nullptr;

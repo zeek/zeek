@@ -11,6 +11,7 @@
 #include "RE.h"
 #include "Reporter.h"
 #include "Event.h"
+#include "Var.h"
 
 #include "events.bif.h"
 
@@ -44,16 +45,24 @@ Login_Analyzer::Login_Analyzer(const char* name, Connection* conn)
 
 	if ( ! re_skip_authentication )
 		{
+		IntrusivePtr<ListVal> skip_authentication = zeek::id::find_val("skip_authentication")->AsTableVal()->ToPureListVal();
+		IntrusivePtr<ListVal> direct_login_prompts = zeek::id::find_val("direct_login_prompts")->AsTableVal()->ToPureListVal();
+		IntrusivePtr<ListVal> login_prompts = zeek::id::find_val("login_prompts")->AsTableVal()->ToPureListVal();
+		IntrusivePtr<ListVal> login_non_failure_msgs = zeek::id::find_val("login_non_failure_msgs")->AsTableVal()->ToPureListVal();
+		IntrusivePtr<ListVal> login_failure_msgs = zeek::id::find_val("login_failure_msgs")->AsTableVal()->ToPureListVal();
+		IntrusivePtr<ListVal> login_success_msgs = zeek::id::find_val("login_success_msgs")->AsTableVal()->ToPureListVal();
+		IntrusivePtr<ListVal> login_timeouts = zeek::id::find_val("login_timeouts")->AsTableVal()->ToPureListVal();
+
 #ifdef USE_PERFTOOLS_DEBUG
 		HeapLeakChecker::Disabler disabler;
 #endif
-		re_skip_authentication = init_RE(skip_authentication);
-		re_direct_login_prompts = init_RE(direct_login_prompts);
-		re_login_prompts = init_RE(login_prompts);
-		re_login_non_failure_msgs = init_RE(login_non_failure_msgs);
-		re_login_failure_msgs = init_RE(login_failure_msgs);
-		re_login_success_msgs = init_RE(login_success_msgs);
-		re_login_timeouts = init_RE(login_timeouts);
+		re_skip_authentication = init_RE(skip_authentication.get());
+		re_direct_login_prompts = init_RE(direct_login_prompts.get());
+		re_login_prompts = init_RE(login_prompts.get());
+		re_login_non_failure_msgs = init_RE(login_non_failure_msgs.get());
+		re_login_failure_msgs = init_RE(login_failure_msgs.get());
+		re_login_success_msgs = init_RE(login_success_msgs.get());
+		re_login_timeouts = init_RE(login_timeouts.get());
 		}
 	}
 

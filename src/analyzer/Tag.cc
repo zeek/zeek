@@ -6,7 +6,7 @@
 const analyzer::Tag analyzer::Tag::Error;
 
 analyzer::Tag::Tag(type_t type, subtype_t subtype)
-	: ::Tag(analyzer_mgr->GetTagEnumType(), type, subtype)
+	: ::Tag(analyzer_mgr->GetTagType(), type, subtype)
 	{
 	}
 
@@ -16,7 +16,20 @@ analyzer::Tag& analyzer::Tag::operator=(const analyzer::Tag& other)
 	return *this;
 	}
 
+const IntrusivePtr<EnumVal>& analyzer::Tag::AsVal() const
+	{
+	return ::Tag::AsVal(analyzer_mgr->GetTagType());
+	}
+
 EnumVal* analyzer::Tag::AsEnumVal() const
 	{
-	return ::Tag::AsEnumVal(analyzer_mgr->GetTagEnumType());
+	return AsVal().get();
 	}
+
+analyzer::Tag::Tag(IntrusivePtr<EnumVal> val)
+	: ::Tag(std::move(val))
+	{ }
+
+analyzer::Tag::Tag(EnumVal* val)
+	: ::Tag({NewRef{}, val})
+	{ }

@@ -3,9 +3,10 @@
 #pragma once
 
 #include "zeek-config.h"
+#include "IntrusivePtr.h"
 #include "NetVar.h"
 #include "IPAddr.h"
-#include "Var.h" // for internal_type()
+#include "ID.h"
 #include "UID.h"
 
 #include <vector>
@@ -79,7 +80,11 @@ public:
 	/**
 	 * Returns record value of type "EncapsulatingConn" representing the tunnel.
 	 */
-	RecordVal* GetRecordVal() const;
+	IntrusivePtr<RecordVal> ToVal() const;
+
+	[[deprecated("Remove in v4.1.  Use ToVal() instead.")]]
+	RecordVal* GetRecordVal() const
+		{ return ToVal().release(); }
 
 	friend bool operator==(const EncapsulatingConn& ec1,
 	                       const EncapsulatingConn& ec2)
@@ -190,19 +195,23 @@ public:
 	 * Get the value of type "EncapsulatingConnVector" represented by the
 	 * entire encapsulation chain.
 	 */
-	VectorVal* GetVectorVal() const
+	IntrusivePtr<VectorVal> ToVal() const
 		{
-		VectorVal* vv = new VectorVal(
-		    internal_type("EncapsulatingConnVector")->AsVectorType());
+		auto vv = make_intrusive<VectorVal>(
+		    zeek::id::find_type<VectorType>("EncapsulatingConnVector"));
 
 		if ( conns )
 			{
 			for ( size_t i = 0; i < conns->size(); ++i )
-				vv->Assign(i, (*conns)[i].GetRecordVal());
+				vv->Assign(i, (*conns)[i].ToVal());
 			}
 
 		return vv;
 		}
+
+	[[deprecated("Remove in v4.1.  Use ToVal() instead.")]]
+	VectorVal* GetVectorVal() const
+		{ return ToVal().release(); }
 
 	friend bool operator==(const EncapsulationStack& e1,
 	                       const EncapsulationStack& e2);

@@ -151,6 +151,17 @@ void HookArgument::Describe(ODesc* d) const
 			d->Add("<null>");
 		break;
 
+	case ARG_LIST:
+		if ( arg.args)
+			{
+			d->Add("(");
+			describe_vals(*arg.args, d);
+			d->Add(")");
+			}
+		else
+			d->Add("<null>");
+		break;
+
 	case VOID:
 		d->Add("<void>");
 		break;
@@ -362,6 +373,26 @@ void Plugin::RequestBroObjDtor(BroObj* obj)
 int Plugin::HookLoadFile(const LoadType type, const std::string& file, const std::string& resolved)
 	{
 	return -1;
+	}
+
+std::pair<bool, IntrusivePtr<Val>>
+Plugin::HookFunctionCall(const Func* func, Frame* parent,
+                         zeek::Args* args)
+	{
+	val_list vlargs(args->size());
+
+	for ( auto& v : *args )
+		vlargs.push_back(v.release());
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	auto [handled, result] = HookCallFunction(func, parent, &vlargs);
+#pragma GCC diagnostic pop
+
+	for ( auto i = 0u; i < args->size(); ++i )
+		(*args)[i] = {AdoptRef{}, vlargs[i]};
+
+	return {handled, {AdoptRef{}, result}};
 	}
 
 std::pair<bool, Val*> Plugin::HookCallFunction(const Func* func, Frame *parent, val_list* args)

@@ -29,7 +29,6 @@ TCP_Endpoint::TCP_Endpoint(TCP_Analyzer* arg_analyzer, bool arg_is_orig)
 	FIN_seq = 0;
 	SYN_cnt = FIN_cnt = RST_cnt = 0;
 	did_close = false;
-	contents_file = nullptr;
 	tcp_analyzer = arg_analyzer;
 	is_orig = arg_is_orig;
 
@@ -53,7 +52,6 @@ TCP_Endpoint::TCP_Endpoint(TCP_Analyzer* arg_analyzer, bool arg_is_orig)
 TCP_Endpoint::~TCP_Endpoint()
 	{
 	delete contents_processor;
-	Unref(contents_file);
 	}
 
 Connection* TCP_Endpoint::Conn() const
@@ -254,10 +252,9 @@ void TCP_Endpoint::AckReceived(uint64_t seq)
 		contents_processor->AckReceived(seq);
 	}
 
-void TCP_Endpoint::SetContentsFile(BroFile* f)
+void TCP_Endpoint::SetContentsFile(IntrusivePtr<BroFile> f)
 	{
-	Ref(f);
-	contents_file = f;
+	contents_file = std::move(f);
 	contents_start_seq = ToRelativeSeqSpace(last_seq, seq_wraps);
 
 	if ( contents_start_seq == 0 )

@@ -6,6 +6,7 @@
 #include "Var.h"
 #include "EventHandler.h"
 #include "Val.h"
+#include "ID.h"
 
 RecordType* conn_id;
 RecordType* endpoint;
@@ -83,14 +84,6 @@ bool udp_content_delivery_ports_use_resp;
 double dns_session_timeout;
 double rpc_timeout;
 
-ListVal* skip_authentication;
-ListVal* direct_login_prompts;
-ListVal* login_prompts;
-ListVal* login_non_failure_msgs;
-ListVal* login_failure_msgs;
-ListVal* login_success_msgs;
-ListVal* login_timeouts;
-
 int mime_segment_length;
 int mime_segment_overlap_length;
 RecordType* mime_header_rec;
@@ -156,8 +149,6 @@ Val* pkt_profile_file;
 
 int load_sample_freq;
 
-double gap_report_freq;
-
 int packet_filter_default;
 
 int sig_max_group_size;
@@ -174,8 +165,6 @@ int dpd_ignore_ports;
 TableVal* likely_server_ports;
 
 int check_for_unused_event_handlers;
-
-int suppress_local_output;
 
 double timer_mgr_inactivity_timeout;
 
@@ -209,36 +198,17 @@ void init_event_handlers()
 
 void init_general_global_var()
 	{
-	table_expire_interval = opt_internal_double("table_expire_interval");
-	table_expire_delay = opt_internal_double("table_expire_delay");
-	table_incremental_step = opt_internal_int("table_incremental_step");
-
-	rotate_info = internal_type("rotate_info")->AsRecordType();
-	log_rotate_base_time = opt_internal_string("log_rotate_base_time");
-
-	peer_description =
-		internal_val("peer_description")->AsStringVal();
-
-	packet_filter_default = opt_internal_int("packet_filter_default");
-
-	sig_max_group_size = opt_internal_int("sig_max_group_size");
-
-	check_for_unused_event_handlers =
-		opt_internal_int("check_for_unused_event_handlers");
-
-	suppress_local_output = opt_internal_int("suppress_local_output");
-
-	trace_output_file = internal_val("trace_output_file")->AsStringVal();
-
-	record_all_packets = opt_internal_int("record_all_packets");
-
-	cmd_line_bpf_filter =
-		internal_val("cmd_line_bpf_filter")->AsStringVal();
-
-	global_hash_seed = opt_internal_string("global_hash_seed");
-
-	bits_per_uid = opt_internal_unsigned("bits_per_uid");
+	table_expire_interval = zeek::id::find_val("table_expire_interval")->AsInterval();
+	table_expire_delay = zeek::id::find_val("table_expire_delay")->AsInterval();
+	table_incremental_step = zeek::id::find_val("table_incremental_step")->AsCount();
+	packet_filter_default = zeek::id::find_val("packet_filter_default")->AsBool();
+	sig_max_group_size = zeek::id::find_val("sig_max_group_size")->AsCount();
+	check_for_unused_event_handlers = zeek::id::find_val("check_for_unused_event_handlers")->AsBool();
+	record_all_packets = zeek::id::find_val("record_all_packets")->AsBool();
+	bits_per_uid = zeek::id::find_val("bits_per_uid")->AsCount();
 	}
+
+extern void zeek_legacy_netvar_init();
 
 void init_net_var()
 	{
@@ -247,188 +217,105 @@ void init_net_var()
 #include "reporter.bif.netvar_init"
 #include "supervisor.bif.netvar_init"
 
-	conn_id = internal_type("conn_id")->AsRecordType();
-	endpoint = internal_type("endpoint")->AsRecordType();
-	endpoint_stats = internal_type("endpoint_stats")->AsRecordType();
-	connection_type = internal_type("connection")->AsRecordType();
-	fa_file_type = internal_type("fa_file")->AsRecordType();
-	fa_metadata_type = internal_type("fa_metadata")->AsRecordType();
-	icmp_conn = internal_type("icmp_conn")->AsRecordType();
-	icmp_context = internal_type("icmp_context")->AsRecordType();
-	signature_state = internal_type("signature_state")->AsRecordType();
-	SYN_packet = internal_type("SYN_packet")->AsRecordType();
-	pcap_packet = internal_type("pcap_packet")->AsRecordType();
-	raw_pkt_hdr_type = internal_type("raw_pkt_hdr")->AsRecordType();
-	l2_hdr_type = internal_type("l2_hdr")->AsRecordType();
-	transport_proto = internal_type("transport_proto")->AsEnumType();
-	string_set = internal_type("string_set")->AsTableType();
-	string_array = internal_type("string_array")->AsTableType();
-	string_vec = internal_type("string_vec")->AsVectorType();
-	index_vec = internal_type("index_vec")->AsVectorType();
-	mime_match = internal_type("mime_match")->AsRecordType();
-	mime_matches = internal_type("mime_matches")->AsVectorType();
+	zeek::id::detail::init();
+	zeek_legacy_netvar_init();
 
-	ignore_checksums = opt_internal_int("ignore_checksums");
-	partial_connection_ok = opt_internal_int("partial_connection_ok");
-	tcp_SYN_ack_ok = opt_internal_int("tcp_SYN_ack_ok");
-	tcp_match_undelivered = opt_internal_int("tcp_match_undelivered");
+	ignore_checksums = zeek::id::find_val("ignore_checksums")->AsBool();
+	partial_connection_ok = zeek::id::find_val("partial_connection_ok")->AsBool();
+	tcp_SYN_ack_ok = zeek::id::find_val("tcp_SYN_ack_ok")->AsBool();
+	tcp_match_undelivered = zeek::id::find_val("tcp_match_undelivered")->AsBool();
 
-	encap_hdr_size = opt_internal_int("encap_hdr_size");
+	encap_hdr_size = zeek::id::find_val("encap_hdr_size")->AsCount();
 
-	frag_timeout = opt_internal_double("frag_timeout");
+	frag_timeout = zeek::id::find_val("frag_timeout")->AsInterval();
 
-	tcp_SYN_timeout = opt_internal_double("tcp_SYN_timeout");
-	tcp_session_timer = opt_internal_double("tcp_session_timer");
-	tcp_connection_linger = opt_internal_double("tcp_connection_linger");
-	tcp_attempt_delay = opt_internal_double("tcp_attempt_delay");
-	tcp_close_delay = opt_internal_double("tcp_close_delay");
-	tcp_reset_delay = opt_internal_double("tcp_reset_delay");
-	tcp_partial_close_delay = opt_internal_double("tcp_partial_close_delay");
+	tcp_SYN_timeout = zeek::id::find_val("tcp_SYN_timeout")->AsInterval();
+	tcp_session_timer = zeek::id::find_val("tcp_session_timer")->AsInterval();
+	tcp_connection_linger = zeek::id::find_val("tcp_connection_linger")->AsInterval();
+	tcp_attempt_delay = zeek::id::find_val("tcp_attempt_delay")->AsInterval();
+	tcp_close_delay = zeek::id::find_val("tcp_close_delay")->AsInterval();
+	tcp_reset_delay = zeek::id::find_val("tcp_reset_delay")->AsInterval();
+	tcp_partial_close_delay = zeek::id::find_val("tcp_partial_close_delay")->AsInterval();
 
-	tcp_max_initial_window = opt_internal_int("tcp_max_initial_window");
-	tcp_max_above_hole_without_any_acks =
-		opt_internal_int("tcp_max_above_hole_without_any_acks");
-	tcp_excessive_data_without_further_acks =
-		opt_internal_int("tcp_excessive_data_without_further_acks");
-	tcp_max_old_segments = opt_internal_int("tcp_max_old_segments");
+	tcp_max_initial_window = zeek::id::find_val("tcp_max_initial_window")->AsCount();
+	tcp_max_above_hole_without_any_acks = zeek::id::find_val("tcp_max_above_hole_without_any_acks")->AsCount();
+	tcp_excessive_data_without_further_acks = zeek::id::find_val("tcp_excessive_data_without_further_acks")->AsCount();
+	tcp_max_old_segments = zeek::id::find_val("tcp_max_old_segments")->AsCount();
 
-	socks_address = internal_type("SOCKS::Address")->AsRecordType();
+	non_analyzed_lifetime = zeek::id::find_val("non_analyzed_lifetime")->AsInterval();
+	tcp_inactivity_timeout = zeek::id::find_val("tcp_inactivity_timeout")->AsInterval();
+	udp_inactivity_timeout = zeek::id::find_val("udp_inactivity_timeout")->AsInterval();
+	icmp_inactivity_timeout = zeek::id::find_val("icmp_inactivity_timeout")->AsInterval();
 
-	non_analyzed_lifetime = opt_internal_double("non_analyzed_lifetime");
-	tcp_inactivity_timeout = opt_internal_double("tcp_inactivity_timeout");
-	udp_inactivity_timeout = opt_internal_double("udp_inactivity_timeout");
-	icmp_inactivity_timeout = opt_internal_double("icmp_inactivity_timeout");
+	tcp_storm_thresh = zeek::id::find_val("tcp_storm_thresh")->AsCount();
+	tcp_storm_interarrival_thresh = zeek::id::find_val("tcp_storm_interarrival_thresh")->AsInterval();
 
-	tcp_storm_thresh = opt_internal_int("tcp_storm_thresh");
-	tcp_storm_interarrival_thresh =
-		opt_internal_double("tcp_storm_interarrival_thresh");
-
-	tcp_reassembler_ports_orig =
-		internal_val("tcp_reassembler_ports_orig")->AsTableVal();
-	tcp_reassembler_ports_resp =
-		internal_val("tcp_reassembler_ports_resp")->AsTableVal();
-
-	tcp_content_delivery_ports_orig =
-		internal_val("tcp_content_delivery_ports_orig")->AsTableVal();
-	tcp_content_delivery_ports_resp =
-		internal_val("tcp_content_delivery_ports_resp")->AsTableVal();
 	tcp_content_deliver_all_orig =
-		bool(internal_val("tcp_content_deliver_all_orig")->AsBool());
+		bool(zeek::id::find_val("tcp_content_deliver_all_orig")->AsBool());
 	tcp_content_deliver_all_resp =
-		bool(internal_val("tcp_content_deliver_all_resp")->AsBool());
+		bool(zeek::id::find_val("tcp_content_deliver_all_resp")->AsBool());
 
-	udp_content_delivery_ports_orig =
-		internal_val("udp_content_delivery_ports_orig")->AsTableVal();
-	udp_content_delivery_ports_resp =
-		internal_val("udp_content_delivery_ports_resp")->AsTableVal();
-	udp_content_ports =
-		internal_val("udp_content_ports")->AsTableVal();
 	udp_content_deliver_all_orig =
-		bool(internal_val("udp_content_deliver_all_orig")->AsBool());
+		bool(zeek::id::find_val("udp_content_deliver_all_orig")->AsBool());
 	udp_content_deliver_all_resp =
-		bool(internal_val("udp_content_deliver_all_resp")->AsBool());
+		bool(zeek::id::find_val("udp_content_deliver_all_resp")->AsBool());
 	udp_content_delivery_ports_use_resp =
-		bool(internal_val("udp_content_delivery_ports_use_resp")->AsBool());
+		bool(zeek::id::find_val("udp_content_delivery_ports_use_resp")->AsBool());
 
-	dns_session_timeout = opt_internal_double("dns_session_timeout");
-	rpc_timeout = opt_internal_double("rpc_timeout");
+	dns_session_timeout = zeek::id::find_val("dns_session_timeout")->AsInterval();
+	rpc_timeout = zeek::id::find_val("rpc_timeout")->AsInterval();
 
-	watchdog_interval = int(opt_internal_double("watchdog_interval"));
+	watchdog_interval = int(zeek::id::find_val("watchdog_interval")->AsInterval());
 
-	max_timer_expires = opt_internal_int("max_timer_expires");
+	max_timer_expires = zeek::id::find_val("max_timer_expires")->AsCount();
 
-	skip_authentication = internal_list_val("skip_authentication");
-	direct_login_prompts = internal_list_val("direct_login_prompts");
-	login_prompts = internal_list_val("login_prompts");
-	login_non_failure_msgs = internal_list_val("login_non_failure_msgs");
-	login_failure_msgs = internal_list_val("login_failure_msgs");
-	login_success_msgs = internal_list_val("login_success_msgs");
-	login_timeouts = internal_list_val("login_timeouts");
+	mime_segment_length = zeek::id::find_val("mime_segment_length")->AsCount();
+	mime_segment_overlap_length = zeek::id::find_val("mime_segment_overlap_length")->AsCount();
 
-	mime_segment_length = opt_internal_int("mime_segment_length");
-	mime_segment_overlap_length = opt_internal_int("mime_segment_overlap_length");
-	mime_header_rec = internal_type("mime_header_rec")->AsRecordType();
-	mime_header_list = internal_type("mime_header_list")->AsTableType();
+	http_entity_data_delivery_size = zeek::id::find_val("http_entity_data_delivery_size")->AsCount();
+	truncate_http_URI = zeek::id::find_val("truncate_http_URI")->AsInt();
 
-	http_entity_data_delivery_size = opt_internal_int("http_entity_data_delivery_size");
-	http_stats_rec = internal_type("http_stats_rec")->AsRecordType();
-	http_message_stat = internal_type("http_message_stat")->AsRecordType();
-	truncate_http_URI = opt_internal_int("truncate_http_URI");
+	dns_skip_all_auth = zeek::id::find_val("dns_skip_all_auth")->AsBool();
+	dns_skip_all_addl = zeek::id::find_val("dns_skip_all_addl")->AsBool();
+	dns_max_queries = zeek::id::find_val("dns_max_queries")->AsCount();
 
-	pm_mapping = internal_type("pm_mapping")->AsRecordType();
-	pm_mappings = internal_type("pm_mappings")->AsTableType();
-	pm_port_request = internal_type("pm_port_request")->AsRecordType();
-	pm_callit_request = internal_type("pm_callit_request")->AsRecordType();
+	stp_delta = 0.0;
+	if ( const auto& v = zeek::id::find_val("stp_delta") ) stp_delta = v->AsInterval();
+	stp_idle_min = 0.0;
+	if ( const auto& v = zeek::id::find_val("stp_idle_min") ) stp_delta = v->AsInterval();
 
-	geo_location = internal_type("geo_location")->AsRecordType();
+	orig_addr_anonymization = 0;
+	if ( const auto& id = zeek::id::find("orig_addr_anonymization") )
+		if ( const auto& v = id->GetVal() )
+			orig_addr_anonymization = v->AsInt();
+	resp_addr_anonymization = 0;
+	if ( const auto& id = zeek::id::find("resp_addr_anonymization") )
+		if ( const auto& v = id->GetVal() )
+			resp_addr_anonymization = v->AsInt();
+	other_addr_anonymization = 0;
+	if ( const auto& id = zeek::id::find("other_addr_anonymization") )
+		if ( const auto& v = id->GetVal() )
+			other_addr_anonymization = v->AsInt();
 
-	entropy_test_result = internal_type("entropy_test_result")->AsRecordType();
+	connection_status_update_interval = 0.0;
+	if ( const auto& id = zeek::id::find("connection_status_update_interval") )
+		if ( const auto& v = id->GetVal() )
+			connection_status_update_interval = v->AsInterval();
 
-	dns_msg = internal_type("dns_msg")->AsRecordType();
-	dns_answer = internal_type("dns_answer")->AsRecordType();
-	dns_soa = internal_type("dns_soa")->AsRecordType();
-	dns_edns_additional =
-		internal_type("dns_edns_additional")->AsRecordType();
-	dns_tsig_additional =
-		internal_type("dns_tsig_additional")->AsRecordType();
-	dns_rrsig_rr = internal_type("dns_rrsig_rr")->AsRecordType();
-	dns_dnskey_rr = internal_type("dns_dnskey_rr")->AsRecordType();
-	dns_nsec3_rr = internal_type("dns_nsec3_rr")->AsRecordType();
-	dns_ds_rr = internal_type("dns_ds_rr")->AsRecordType();
-	dns_skip_auth = internal_val("dns_skip_auth")->AsTableVal();
-	dns_skip_addl = internal_val("dns_skip_addl")->AsTableVal();
-	dns_skip_all_auth = opt_internal_int("dns_skip_all_auth");
-	dns_skip_all_addl = opt_internal_int("dns_skip_all_addl");
-	dns_max_queries = opt_internal_int("dns_max_queries");
+	expensive_profiling_multiple = zeek::id::find_val("expensive_profiling_multiple")->AsCount();
+	profiling_interval = zeek::id::find_val("profiling_interval")->AsInterval();
+	segment_profiling = zeek::id::find_val("segment_profiling")->AsBool();
 
-	stp_delta = opt_internal_double("stp_delta");
-	stp_idle_min = opt_internal_double("stp_idle_min");
-	stp_skip_src = internal_val("stp_skip_src")->AsTableVal();
+	pkt_profile_mode = zeek::id::find_val("pkt_profile_mode")->InternalInt();
+	pkt_profile_freq = zeek::id::find_val("pkt_profile_freq")->AsDouble();
 
-	orig_addr_anonymization = opt_internal_int("orig_addr_anonymization");
-	resp_addr_anonymization = opt_internal_int("resp_addr_anonymization");
-	other_addr_anonymization = opt_internal_int("other_addr_anonymization");
+	load_sample_freq = zeek::id::find_val("load_sample_freq")->AsCount();
 
-	preserve_orig_addr = opt_internal_table("preserve_orig_addr");
-	preserve_resp_addr = opt_internal_table("preserve_resp_addr");
-	preserve_other_addr = opt_internal_table("preserve_other_addr");
+	dpd_reassemble_first_packets = zeek::id::find_val("dpd_reassemble_first_packets")->AsBool();
+	dpd_buffer_size = zeek::id::find_val("dpd_buffer_size")->AsCount();
+	dpd_match_only_beginning = zeek::id::find_val("dpd_match_only_beginning")->AsBool();
+	dpd_late_match_stop = zeek::id::find_val("dpd_late_match_stop")->AsBool();
+	dpd_ignore_ports = zeek::id::find_val("dpd_ignore_ports")->AsBool();
 
-	connection_status_update_interval =
-		opt_internal_double("connection_status_update_interval");
-
-	profiling_file = internal_val("profiling_file");
-	expensive_profiling_multiple =
-		opt_internal_int("expensive_profiling_multiple");
-	profiling_interval = opt_internal_double("profiling_interval");
-	segment_profiling = opt_internal_int("segment_profiling");
-
-	pkt_profile_mode = opt_internal_int("pkt_profile_mode");
-	pkt_profile_freq = opt_internal_double("pkt_profile_freq");
-	pkt_profile_file = opt_internal_val("pkt_profile_file");
-
-	load_sample_freq = opt_internal_int("load_sample_freq");
-
-	gap_report_freq = opt_internal_double("gap_report_freq");
-
-	irc_join_info = internal_type("irc_join_info")->AsRecordType();
-	irc_join_list = internal_type("irc_join_list")->AsTableType();
-
-	dpd_reassemble_first_packets =
-		opt_internal_int("dpd_reassemble_first_packets");
-	dpd_buffer_size = opt_internal_int("dpd_buffer_size");
-	dpd_match_only_beginning = opt_internal_int("dpd_match_only_beginning");
-	dpd_late_match_stop = opt_internal_int("dpd_late_match_stop");
-	dpd_ignore_ports = opt_internal_int("dpd_ignore_ports");
-
-	likely_server_ports = internal_val("likely_server_ports")->AsTableVal();
-
-	timer_mgr_inactivity_timeout =
-		opt_internal_double("timer_mgr_inactivity_timeout");
-
-	script_id = internal_type("script_id")->AsRecordType();
-	id_table = internal_type("id_table")->AsTableType();
-	record_field = internal_type("record_field")->AsRecordType();
-	record_field_table = internal_type("record_field_table")->AsTableType();
-	call_argument_vector = internal_type("call_argument_vector")->AsVectorType();
-	call_argument = internal_type("call_argument")->AsRecordType();
+	timer_mgr_inactivity_timeout = zeek::id::find_val("timer_mgr_inactivity_timeout")->AsInterval();
 	}

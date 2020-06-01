@@ -29,7 +29,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_header_block )
 			{
-			BifEvent::enqueue_dnp3_header_block(
+			zeek::BifEvent::enqueue_dnp3_header_block(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), len, ctrl, dest_addr, src_addr);
@@ -42,7 +42,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_application_request_header )
 			{
-			BifEvent::enqueue_dnp3_application_request_header(
+			zeek::BifEvent::enqueue_dnp3_application_request_header(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(),
@@ -57,7 +57,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_application_response_header )
 			{
-			BifEvent::enqueue_dnp3_application_response_header(
+			zeek::BifEvent::enqueue_dnp3_application_response_header(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(),
@@ -73,7 +73,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_object_header )
 			{
-			BifEvent::enqueue_dnp3_object_header(
+			zeek::BifEvent::enqueue_dnp3_object_header(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), obj_type, qua_field, number, rf_low, rf_high);
@@ -86,7 +86,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_object_prefix )
 			{
-			BifEvent::enqueue_dnp3_object_prefix(
+			zeek::BifEvent::enqueue_dnp3_object_prefix(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), prefix_value);
@@ -99,7 +99,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_response_data_object )
 			{
-			BifEvent::enqueue_dnp3_response_data_object(
+			zeek::BifEvent::enqueue_dnp3_response_data_object(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), data_value);
@@ -113,7 +113,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_attribute_common )
 			{
-			BifEvent::enqueue_dnp3_attribute_common(
+			zeek::BifEvent::enqueue_dnp3_attribute_common(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), data_type_code, leng, to_stringval(attribute_obj) );
@@ -127,7 +127,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_crob )
 			{
-			BifEvent::enqueue_dnp3_crob(
+			zeek::BifEvent::enqueue_dnp3_crob(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), control_code, count8, on_time, off_time, status_code);
@@ -141,7 +141,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_pcb )
 			{
-			BifEvent::enqueue_dnp3_pcb(
+			zeek::BifEvent::enqueue_dnp3_pcb(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), control_code, count8, on_time, off_time, status_code);
@@ -155,7 +155,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_counter_32wFlag )
 			{
-			BifEvent::enqueue_dnp3_counter_32wFlag(
+			zeek::BifEvent::enqueue_dnp3_counter_32wFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, count_value);
@@ -169,7 +169,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_counter_16wFlag )
 			{
-			BifEvent::enqueue_dnp3_counter_16wFlag(
+			zeek::BifEvent::enqueue_dnp3_counter_16wFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, count_value);
@@ -183,7 +183,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_counter_32woFlag )
 			{
-			BifEvent::enqueue_dnp3_counter_32woFlag(
+			zeek::BifEvent::enqueue_dnp3_counter_32woFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), count_value);
@@ -197,7 +197,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_counter_16woFlag )
 			{
-			BifEvent::enqueue_dnp3_counter_16woFlag(
+			zeek::BifEvent::enqueue_dnp3_counter_16woFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), count_value);
@@ -211,7 +211,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_frozen_counter_32wFlag )
 			{
-			BifEvent::enqueue_dnp3_frozen_counter_32wFlag(
+			zeek::BifEvent::enqueue_dnp3_frozen_counter_32wFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, count_value);
@@ -225,7 +225,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_frozen_counter_16wFlag )
 			{
-			BifEvent::enqueue_dnp3_frozen_counter_16wFlag(
+			zeek::BifEvent::enqueue_dnp3_frozen_counter_16wFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, count_value);
@@ -239,7 +239,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_frozen_counter_32wFlagTime )
 			{
-			BifEvent::enqueue_dnp3_frozen_counter_32wFlagTime(
+			zeek::BifEvent::enqueue_dnp3_frozen_counter_32wFlagTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, count_value, bytestring_to_time(time48));
@@ -253,7 +253,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_frozen_counter_16wFlagTime )
 			{
-			BifEvent::enqueue_dnp3_frozen_counter_16wFlagTime(
+			zeek::BifEvent::enqueue_dnp3_frozen_counter_16wFlagTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, count_value, bytestring_to_time(time48));
@@ -267,7 +267,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_frozen_counter_32woFlag )
 			{
-			BifEvent::enqueue_dnp3_frozen_counter_32woFlag(
+			zeek::BifEvent::enqueue_dnp3_frozen_counter_32woFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), count_value);
@@ -281,7 +281,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_frozen_counter_16woFlag )
 			{
-			BifEvent::enqueue_dnp3_frozen_counter_16woFlag(
+			zeek::BifEvent::enqueue_dnp3_frozen_counter_16woFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), count_value);
@@ -295,7 +295,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_analog_input_32wFlag )
 			{
-			BifEvent::enqueue_dnp3_analog_input_32wFlag(
+			zeek::BifEvent::enqueue_dnp3_analog_input_32wFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, value);
@@ -309,7 +309,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_analog_input_16wFlag )
 			{
-			BifEvent::enqueue_dnp3_analog_input_16wFlag(
+			zeek::BifEvent::enqueue_dnp3_analog_input_16wFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, value);
@@ -323,7 +323,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_analog_input_32woFlag )
 			{
-			BifEvent::enqueue_dnp3_analog_input_32woFlag(
+			zeek::BifEvent::enqueue_dnp3_analog_input_32woFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), value);
@@ -337,7 +337,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_analog_input_16woFlag )
 			{
-			BifEvent::enqueue_dnp3_analog_input_16woFlag(
+			zeek::BifEvent::enqueue_dnp3_analog_input_16woFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), value);
@@ -351,7 +351,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_analog_input_SPwFlag )
 			{
-			BifEvent::enqueue_dnp3_analog_input_SPwFlag(
+			zeek::BifEvent::enqueue_dnp3_analog_input_SPwFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, value);
@@ -365,7 +365,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_analog_input_DPwFlag )
 			{
-			BifEvent::enqueue_dnp3_analog_input_DPwFlag(
+			zeek::BifEvent::enqueue_dnp3_analog_input_DPwFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, value_low, value_high);
@@ -379,7 +379,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_frozen_analog_input_32wFlag )
 			{
-			BifEvent::enqueue_dnp3_frozen_analog_input_32wFlag(
+			zeek::BifEvent::enqueue_dnp3_frozen_analog_input_32wFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, frozen_value);
@@ -393,7 +393,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_frozen_analog_input_16wFlag )
 			{
-			BifEvent::enqueue_dnp3_frozen_analog_input_16wFlag(
+			zeek::BifEvent::enqueue_dnp3_frozen_analog_input_16wFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, frozen_value);
@@ -407,7 +407,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_frozen_analog_input_32wTime )
 			{
-			BifEvent::enqueue_dnp3_frozen_analog_input_32wTime(
+			zeek::BifEvent::enqueue_dnp3_frozen_analog_input_32wTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, frozen_value, bytestring_to_time(time48));
@@ -421,7 +421,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_frozen_analog_input_16wTime )
 			{
-			BifEvent::enqueue_dnp3_frozen_analog_input_16wTime(
+			zeek::BifEvent::enqueue_dnp3_frozen_analog_input_16wTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, frozen_value, bytestring_to_time(time48));
@@ -435,7 +435,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_frozen_analog_input_32woFlag )
 			{
-			BifEvent::enqueue_dnp3_frozen_analog_input_32woFlag(
+			zeek::BifEvent::enqueue_dnp3_frozen_analog_input_32woFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), frozen_value);
@@ -449,7 +449,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_frozen_analog_input_16woFlag )
 			{
-			BifEvent::enqueue_dnp3_frozen_analog_input_16woFlag(
+			zeek::BifEvent::enqueue_dnp3_frozen_analog_input_16woFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), frozen_value);
@@ -463,7 +463,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_frozen_analog_input_SPwFlag )
 			{
-			BifEvent::enqueue_dnp3_frozen_analog_input_SPwFlag(
+			zeek::BifEvent::enqueue_dnp3_frozen_analog_input_SPwFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, frozen_value);
@@ -477,7 +477,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_frozen_analog_input_DPwFlag )
 			{
-			BifEvent::enqueue_dnp3_frozen_analog_input_DPwFlag(
+			zeek::BifEvent::enqueue_dnp3_frozen_analog_input_DPwFlag(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, frozen_value_low, frozen_value_high);
@@ -491,7 +491,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_analog_input_event_32woTime )
 			{
-			BifEvent::enqueue_dnp3_analog_input_event_32woTime(
+			zeek::BifEvent::enqueue_dnp3_analog_input_event_32woTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, value);
@@ -505,7 +505,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_analog_input_event_16woTime )
 			{
-			BifEvent::enqueue_dnp3_analog_input_event_16woTime(
+			zeek::BifEvent::enqueue_dnp3_analog_input_event_16woTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, value);
@@ -519,7 +519,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_analog_input_event_32wTime )
 			{
-			BifEvent::enqueue_dnp3_analog_input_event_32wTime(
+			zeek::BifEvent::enqueue_dnp3_analog_input_event_32wTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, value, bytestring_to_time(time48));
@@ -533,7 +533,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_analog_input_event_16wTime )
 			{
-			BifEvent::enqueue_dnp3_analog_input_event_16wTime(
+			zeek::BifEvent::enqueue_dnp3_analog_input_event_16wTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, value, bytestring_to_time(time48));
@@ -547,7 +547,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_analog_input_event_SPwoTime )
 			{
-			BifEvent::enqueue_dnp3_analog_input_event_SPwoTime(
+			zeek::BifEvent::enqueue_dnp3_analog_input_event_SPwoTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, value);
@@ -561,7 +561,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_analog_input_event_DPwoTime )
 			{
-			BifEvent::enqueue_dnp3_analog_input_event_DPwoTime(
+			zeek::BifEvent::enqueue_dnp3_analog_input_event_DPwoTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, value_low, value_high);
@@ -575,7 +575,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_analog_input_event_SPwTime )
 			{
-			BifEvent::enqueue_dnp3_analog_input_event_SPwTime(
+			zeek::BifEvent::enqueue_dnp3_analog_input_event_SPwTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, value, bytestring_to_time(time48));
@@ -589,7 +589,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_analog_input_event_DPwTime )
 			{
-			BifEvent::enqueue_dnp3_analog_input_event_DPwTime(
+			zeek::BifEvent::enqueue_dnp3_analog_input_event_DPwTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, value_low, value_high, bytestring_to_time(time48));
@@ -603,7 +603,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_frozen_analog_input_event_32woTime )
 			{
-			BifEvent::enqueue_dnp3_frozen_analog_input_event_32woTime(
+			zeek::BifEvent::enqueue_dnp3_frozen_analog_input_event_32woTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, frozen_value);
@@ -617,7 +617,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_frozen_analog_input_event_16woTime )
 			{
-			BifEvent::enqueue_dnp3_frozen_analog_input_event_16woTime(
+			zeek::BifEvent::enqueue_dnp3_frozen_analog_input_event_16woTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, frozen_value);
@@ -631,7 +631,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_frozen_analog_input_event_32wTime )
 			{
-			BifEvent::enqueue_dnp3_frozen_analog_input_event_32wTime(
+			zeek::BifEvent::enqueue_dnp3_frozen_analog_input_event_32wTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, frozen_value, bytestring_to_time(time48));
@@ -645,7 +645,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_frozen_analog_input_event_16wTime )
 			{
-			BifEvent::enqueue_dnp3_frozen_analog_input_event_16wTime(
+			zeek::BifEvent::enqueue_dnp3_frozen_analog_input_event_16wTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, frozen_value, bytestring_to_time(time48));
@@ -659,7 +659,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_frozen_analog_input_event_SPwoTime )
 			{
-			BifEvent::enqueue_dnp3_frozen_analog_input_event_SPwoTime(
+			zeek::BifEvent::enqueue_dnp3_frozen_analog_input_event_SPwoTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, frozen_value);
@@ -673,7 +673,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_frozen_analog_input_event_DPwoTime )
 			{
-			BifEvent::enqueue_dnp3_frozen_analog_input_event_DPwoTime(
+			zeek::BifEvent::enqueue_dnp3_frozen_analog_input_event_DPwoTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, frozen_value_low, frozen_value_high);
@@ -687,7 +687,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_frozen_analog_input_event_SPwTime )
 			{
-			BifEvent::enqueue_dnp3_frozen_analog_input_event_SPwTime(
+			zeek::BifEvent::enqueue_dnp3_frozen_analog_input_event_SPwTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, frozen_value, bytestring_to_time(time48));
@@ -701,7 +701,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_frozen_analog_input_event_DPwTime )
 			{
-			BifEvent::enqueue_dnp3_frozen_analog_input_event_DPwTime(
+			zeek::BifEvent::enqueue_dnp3_frozen_analog_input_event_DPwTime(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), flag, frozen_value_low, frozen_value_high, bytestring_to_time(time48));
@@ -715,7 +715,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_file_transport )
 			{
-			BifEvent::enqueue_dnp3_file_transport(
+			zeek::BifEvent::enqueue_dnp3_file_transport(
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), file_handle, block_num, to_stringval(file_data));
@@ -729,7 +729,7 @@ flow DNP3_Flow(is_orig: bool) {
 		%{
 		if ( ::dnp3_debug_byte )
 			{
-			BifEvent::enqueue_dnp3_debug_byte (
+			zeek::BifEvent::enqueue_dnp3_debug_byte (
 				connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig(), to_stringval(debug));

@@ -23,7 +23,7 @@
 			else
 				std::transform(cipher_suites24->begin(), cipher_suites24->end(), std::back_inserter(cipher_suites), to_int());
 
-			auto cipher_vec = make_intrusive<VectorVal>(internal_type("index_vec")->AsVectorType());
+			auto cipher_vec = make_intrusive<VectorVal>(zeek::id::index_vec);
 
 			for ( unsigned int i = 0; i < cipher_suites.size(); ++i )
 				{
@@ -31,7 +31,7 @@
 				cipher_vec->Assign(i, ciph);
 				}
 
-			auto comp_vec = make_intrusive<VectorVal>(internal_type("index_vec")->AsVectorType());
+			auto comp_vec = make_intrusive<VectorVal>(zeek::id::index_vec);
 
 			if ( compression_methods )
 				{
@@ -42,7 +42,7 @@
 					}
 				}
 
-			BifEvent::enqueue_ssl_client_hello(bro_analyzer(), bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_ssl_client_hello(bro_analyzer(), bro_analyzer()->Conn(),
 							version, record_version(), ts,
 							make_intrusive<StringVal>(client_random.length(),
 							                          (const char*) client_random.data()),

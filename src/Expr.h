@@ -50,7 +50,6 @@ enum BroExprTag : int {
 	EXPR_TABLE_COERCE,
 	EXPR_VECTOR_COERCE,
 	EXPR_SIZE,
-	EXPR_FLATTEN,
 	EXPR_CAST,
 	EXPR_IS,
 	EXPR_INDEX_SLICE_ASSIGN,
@@ -75,7 +74,16 @@ struct function_ingredients;
 
 class Expr : public BroObj {
 public:
+	[[deprecated("Remove in v4.1.  Use GetType().")]]
 	BroType* Type() const		{ return type.get(); }
+
+	const IntrusivePtr<BroType>& GetType() const
+		{ return type; }
+
+	template <class T>
+	IntrusivePtr<T> GetType() const
+		{ return cast_intrusive<T>(type); }
+
 	BroExprTag Tag() const	{ return tag; }
 
 	Expr* Ref()			{ ::Ref(this); return this; }
@@ -511,7 +519,8 @@ public:
 	// If val is given, evaluating this expression will always yield the val
 	// yet still perform the assignment.  Used for triggers.
 	AssignExpr(IntrusivePtr<Expr> op1, IntrusivePtr<Expr> op2, bool is_init,
-	           IntrusivePtr<Val> val = nullptr, attr_list* attrs = nullptr);
+	           IntrusivePtr<Val> val = nullptr,
+	           const IntrusivePtr<Attributes>& attrs = nullptr);
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 	void EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const override;
@@ -521,7 +530,7 @@ public:
 	bool IsPure() const override;
 
 protected:
-	bool TypeCheck(attr_list* attrs = nullptr);
+	bool TypeCheck(const IntrusivePtr<Attributes>& attrs = nullptr);
 	bool TypeCheckArithmetics(TypeTag bt1, TypeTag bt2);
 
 	bool is_init;
@@ -622,11 +631,15 @@ protected:
 
 class TableConstructorExpr final : public UnaryExpr {
 public:
-	TableConstructorExpr(IntrusivePtr<ListExpr> constructor_list, attr_list* attrs,
+	TableConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
+	                     std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs,
 	                     IntrusivePtr<BroType> arg_type = nullptr);
-	~TableConstructorExpr() override { Unref(attrs); }
 
-	Attributes* Attrs() { return attrs; }
+	[[deprecated("Remove in v4.1.  Use GetAttrs().")]]
+	Attributes* Attrs() { return attrs.get(); }
+
+	const IntrusivePtr<Attributes>& GetAttrs() const
+		{ return attrs; }
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
@@ -635,16 +648,20 @@ protected:
 
 	void ExprDescribe(ODesc* d) const override;
 
-	Attributes* attrs;
+	IntrusivePtr<Attributes> attrs;
 };
 
 class SetConstructorExpr final : public UnaryExpr {
 public:
-	SetConstructorExpr(IntrusivePtr<ListExpr> constructor_list, attr_list* attrs,
+	SetConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
+	                   std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs,
 	                   IntrusivePtr<BroType> arg_type = nullptr);
-	~SetConstructorExpr() override { Unref(attrs); }
 
-	Attributes* Attrs() { return attrs; }
+	[[deprecated("Remove in v4.1.  Use GetAttrs().")]]
+	Attributes* Attrs() { return attrs.get(); }
+
+	const IntrusivePtr<Attributes>& GetAttrs() const
+		{ return attrs; }
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
@@ -653,7 +670,7 @@ protected:
 
 	void ExprDescribe(ODesc* d) const override;
 
-	Attributes* attrs;
+	IntrusivePtr<Attributes> attrs;
 };
 
 class VectorConstructorExpr final : public UnaryExpr {
@@ -724,18 +741,6 @@ public:
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
-};
-
-// An internal operator for flattening array indices that are records
-// into a list of individual values.
-class FlattenExpr final : public UnaryExpr {
-public:
-	explicit FlattenExpr(IntrusivePtr<Expr> op);
-
-protected:
-	IntrusivePtr<Val> Fold(Val* v) const override;
-
-	int num_fields;
 };
 
 class ScheduleTimer final : public Timer {
@@ -945,5 +950,6 @@ std::optional<std::vector<IntrusivePtr<Val>>> eval_list(Frame* f, const ListExpr
 // a canonical form.
 extern bool expr_greater(const Expr* e1, const Expr* e2);
 
-// True if the given Val* has a vector type
-inline bool is_vector(Expr* e)	{ return e->Type()->Tag() == TYPE_VECTOR; }
+// True if the given Expr* has a vector type
+inline bool is_vector(Expr* e)	{ return e->GetType()->Tag() == TYPE_VECTOR; }
+inline bool is_vector(const IntrusivePtr<Expr>& e)	{ return is_vector(e.get()); }

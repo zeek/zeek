@@ -35,10 +35,10 @@ static void warn_krb(const char* msg, krb5_context ctx, krb5_error_code code)
 
 void KRB_Analyzer::Initialize_Krb()
 	{
-	if ( BifConst::KRB::keytab->Len() == 0 )
+	if ( zeek::BifConst::KRB::keytab->Len() == 0 )
 		return; // no keytab set
 
-	const char* keytab_filename = BifConst::KRB::keytab->CheckString();
+	const char* keytab_filename = zeek::BifConst::KRB::keytab->CheckString();
 	if ( access(keytab_filename, R_OK) != 0 )
 		{
 		reporter->Warning("KRB: Can't access keytab (%s)", keytab_filename);

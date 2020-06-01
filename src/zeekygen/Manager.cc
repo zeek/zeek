@@ -218,13 +218,14 @@ void Manager::ModuleUsage(const string& path, const string& module)
 
 IdentifierInfo* Manager::CreateIdentifierInfo(IntrusivePtr<ID> id, ScriptInfo* script)
 	{
-	auto prev = identifiers.GetInfo(id->Name());
-	IdentifierInfo* rval = prev ? prev : new IdentifierInfo(id, script);
+	const auto& id_name = id->Name();
+	auto prev = identifiers.GetInfo(id_name);
+	IdentifierInfo* rval = prev ? prev : new IdentifierInfo(std::move(id), script);
 
 	rval->AddComments(comment_buffer);
 	comment_buffer.clear();
 
-	comment_buffer_map_t::iterator it = comment_buffer_map.find(id->Name());
+	comment_buffer_map_t::iterator it = comment_buffer_map.find(id_name);
 
 	if ( it != comment_buffer_map.end() )
 		{
@@ -235,7 +236,7 @@ IdentifierInfo* Manager::CreateIdentifierInfo(IntrusivePtr<ID> id, ScriptInfo* s
 	if ( ! prev )
 		{
 		all_info.push_back(rval);
-		identifiers.map[id->Name()] = rval;
+		identifiers.map[id_name] = rval;
 		}
 
 	last_identifier_seen = rval;
@@ -267,14 +268,14 @@ void Manager::StartType(IntrusivePtr<ID> id)
 		return;
 		}
 
-	incomplete_type = CreateIdentifierInfo(id, script_info);
-	DBG_LOG(DBG_ZEEKYGEN, "Made IdentifierInfo (incomplete) %s, in %s",
+	DBG_LOG(DBG_ZEEKYGEN, "Making IdentifierInfo (incomplete) %s, in %s",
 	        id->Name(), script.c_str());
+	incomplete_type = CreateIdentifierInfo(std::move(id), script_info);
 	}
 
 static bool IsEnumType(ID* id)
 	{
-	return id->AsType() ? id->AsType()->Tag() == TYPE_ENUM : false;
+	return id->IsType() ? id->GetType()->Tag() == TYPE_ENUM : false;
 	}
 
 void Manager::Identifier(IntrusivePtr<ID> id)
@@ -300,7 +301,7 @@ void Manager::Identifier(IntrusivePtr<ID> id)
 
 	if ( id_info )
 		{
-		if ( IsFunc(id_info->GetID()->Type()->Tag()) )
+		if ( IsFunc(id_info->GetID()->GetType()->Tag()) )
 			{
 			// Function may already been seen (declaration versus body).
 			id_info->AddComments(comment_buffer);
@@ -331,9 +332,9 @@ void Manager::Identifier(IntrusivePtr<ID> id)
 		return;
 		}
 
-	CreateIdentifierInfo(id, script_info);
-	DBG_LOG(DBG_ZEEKYGEN, "Made IdentifierInfo %s, in script %s",
+	DBG_LOG(DBG_ZEEKYGEN, "Making IdentifierInfo %s, in script %s",
 	        id->Name(), script.c_str());
+	CreateIdentifierInfo(std::move(id), script_info);
 	}
 
 void Manager::RecordField(const ID* id, const TypeDecl* field,

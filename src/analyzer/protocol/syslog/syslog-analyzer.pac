@@ -15,7 +15,7 @@ flow Syslog_Flow
 			return true;
 
 		if ( ${m.has_pri} )
-			BifEvent::enqueue_syslog_message(
+			zeek::BifEvent::enqueue_syslog_message(
 			    connection()->bro_analyzer(),
 			    connection()->bro_analyzer()->Conn(),
 			    ${m.PRI.facility},
@@ -23,7 +23,7 @@ flow Syslog_Flow
 			    make_intrusive<StringVal>(${m.msg}.length(), (const char*)${m.msg}.begin())
 			    );
 		else
-			BifEvent::enqueue_syslog_message(
+			zeek::BifEvent::enqueue_syslog_message(
 			    connection()->bro_analyzer(),
 			    connection()->bro_analyzer()->Conn(),
 			    999,

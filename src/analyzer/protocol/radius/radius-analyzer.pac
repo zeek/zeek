@@ -7,21 +7,21 @@ refine flow RADIUS_Flow += {
 		if ( ! radius_message )
 			return false;
 
-		auto result = make_intrusive<RecordVal>(BifType::Record::RADIUS::Message);
+		auto result = make_intrusive<RecordVal>(zeek::BifType::Record::RADIUS::Message);
 		result->Assign(0, val_mgr->Count(${msg.code}));
 		result->Assign(1, val_mgr->Count(${msg.trans_id}));
 		result->Assign(2, to_stringval(${msg.authenticator}));
 
 		if ( ${msg.attributes}->size() )
 			{
-			TableVal* attributes = new TableVal({NewRef{}, BifType::Table::RADIUS::Attributes});
+			auto attributes = make_intrusive<TableVal>(zeek::BifType::Table::RADIUS::Attributes);
 
 			for ( uint i = 0; i < ${msg.attributes}->size(); ++i )
 				{
 				auto index = val_mgr->Count(${msg.attributes[i].code});
 
 				// Do we already have a vector of attributes for this type?
-				auto current = attributes->Lookup(index.get());
+				auto current = attributes->FindOrDefault(index);
 				IntrusivePtr<Val> val = to_stringval(${msg.attributes[i].value});
 
 				if ( current )
@@ -32,16 +32,16 @@ refine flow RADIUS_Flow += {
 
 				else
 					{
-					VectorVal* attribute_list = new VectorVal(BifType::Vector::RADIUS::AttributeList);
+					auto attribute_list = make_intrusive<VectorVal>(zeek::BifType::Vector::RADIUS::AttributeList);
 					attribute_list->Assign((unsigned int)0, std::move(val));
-					attributes->Assign(index.get(), attribute_list);
+					attributes->Assign(std::move(index), std::move(attribute_list));
 					}
 				}
 
-			result->Assign(3, attributes);
-		}
+			result->Assign(3, std::move(attributes));
+			}
 
-		BifEvent::enqueue_radius_message(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), std::move(result));
+		zeek::BifEvent::enqueue_radius_message(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), std::move(result));
 		return true;
 		%}
 
@@ -50,7 +50,7 @@ refine flow RADIUS_Flow += {
 		if ( ! radius_attribute )
 			return false;
 
-		BifEvent::enqueue_radius_attribute(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
+		zeek::BifEvent::enqueue_radius_attribute(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
 		                                    ${attr.code}, to_stringval(${attr.value}));
 		return true;
 		%}

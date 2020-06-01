@@ -18,7 +18,7 @@ int main(int argc, char** argv)
 	auto& options = setup_result.options;
 	auto do_net_run = iosource_mgr->Size() > 0 ||
 	                  have_pending_timers ||
-	                  BifConst::exit_only_after_terminate;
+	                  zeek::BifConst::exit_only_after_terminate;
 
 	if ( do_net_run )
 		{

@@ -17,6 +17,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "IntrusivePtr.h"
 #include "iosource/IOSource.h"
 #include "logging/WriterBackend.h"
 
@@ -394,7 +395,7 @@ private:
 
 	size_t log_batch_size;
 	Func* log_topic_func;
-	VectorType* vector_of_data_type;
+	IntrusivePtr<VectorType> vector_of_data_type;
 	EnumType* log_id_type;
 	EnumType* writer_id_type;
 

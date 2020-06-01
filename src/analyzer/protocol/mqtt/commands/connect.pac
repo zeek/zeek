@@ -44,7 +44,7 @@ refine flow MQTT_Flow += {
 		%{
 		if ( mqtt_connect )
 			{
-			auto m = make_intrusive<RecordVal>(BifType::Record::MQTT::ConnectMsg);
+			auto m = make_intrusive<RecordVal>(zeek::BifType::Record::MQTT::ConnectMsg);
 			m->Assign(0, make_intrusive<StringVal>(${msg.protocol_name.str}.length(),
 			                           reinterpret_cast<const char*>(${msg.protocol_name.str}.begin())));
 			m->Assign(1, val_mgr->Count(${msg.protocol_version}));
@@ -75,7 +75,7 @@ refine flow MQTT_Flow += {
 				                            reinterpret_cast<const char*>(${msg.pass.str}.begin())));
 				}
 
-			BifEvent::enqueue_mqtt_connect(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_mqtt_connect(connection()->bro_analyzer(),
 			                               connection()->bro_analyzer()->Conn(),
 			                               std::move(m));
 			}

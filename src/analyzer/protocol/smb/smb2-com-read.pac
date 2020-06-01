@@ -26,10 +26,10 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_read_request )
 			{
-			BifEvent::enqueue_smb2_read_request(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb2_read_request(bro_analyzer(),
 			                                    bro_analyzer()->Conn(),
-			                                    {AdoptRef{}, BuildSMB2HeaderVal(h)},
-			                                    {AdoptRef{}, BuildSMB2GUID(${val.file_id})},
+			                                    BuildSMB2HeaderVal(h),
+			                                    BuildSMB2GUID(${val.file_id}),
 			                                    ${val.offset},
 			                                    ${val.read_len});
 			}

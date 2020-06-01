@@ -28,15 +28,15 @@ refine connection SMB_Conn += {
 	function proc_smb2_set_info_request_file(val: SMB2_file_basic_info): bool
 		%{
 		if ( smb2_file_sattr )
-			BifEvent::enqueue_smb2_file_sattr(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb2_file_sattr(bro_analyzer(),
 			                                  bro_analyzer()->Conn(),
-			                                  {AdoptRef{}, BuildSMB2HeaderVal(${val.sir.header})},
-			                                  {AdoptRef{}, BuildSMB2GUID(${val.sir.file_id})},
-			                                  {AdoptRef{}, SMB_BuildMACTimes(${val.last_write_time},
-			                                                       ${val.last_access_time},
-			                                                       ${val.creation_time},
-			                                                       ${val.change_time})},
-			                                  {AdoptRef{}, smb2_file_attrs_to_bro(${val.file_attrs})});
+			                                  BuildSMB2HeaderVal(${val.sir.header}),
+			                                  BuildSMB2GUID(${val.sir.file_id}),
+			                                  SMB_BuildMACTimes(${val.last_write_time},
+			                                                    ${val.last_access_time},
+			                                                    ${val.creation_time},
+			                                                    ${val.change_time}),
+			                                  smb2_file_attrs_to_bro(${val.file_attrs}));
 
 		return true;
 		%}
@@ -44,11 +44,11 @@ refine connection SMB_Conn += {
 	function proc_smb2_set_info_request_file_rename(val: SMB2_file_rename_info): bool
 		%{
 		if ( smb2_file_rename )
-			BifEvent::enqueue_smb2_file_rename(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb2_file_rename(bro_analyzer(),
 			                                   bro_analyzer()->Conn(),
-			                                   {AdoptRef{}, BuildSMB2HeaderVal(${val.sir.header})},
-			                                   {AdoptRef{}, BuildSMB2GUID(${val.sir.file_id})},
-			                                   {AdoptRef{}, smb2_string2stringval(${val.filename})});
+			                                   BuildSMB2HeaderVal(${val.sir.header}),
+			                                   BuildSMB2GUID(${val.sir.file_id}),
+			                                   smb2_string2stringval(${val.filename}));
 
 		return true;
 		%}
@@ -56,10 +56,10 @@ refine connection SMB_Conn += {
 	function proc_smb2_set_info_request_file_delete(val: SMB2_file_disposition_info): bool
 		%{
 		if ( smb2_file_delete )
-			BifEvent::enqueue_smb2_file_delete(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb2_file_delete(bro_analyzer(),
 			                                   bro_analyzer()->Conn(),
-			                                   {AdoptRef{}, BuildSMB2HeaderVal(${val.sir.header})},
-			                                   {AdoptRef{}, BuildSMB2GUID(${val.sir.file_id})},
+			                                   BuildSMB2HeaderVal(${val.sir.header}),
+			                                   BuildSMB2GUID(${val.sir.file_id}),
 			                                   (${val.delete_pending} > 0));
 
 		return true;
@@ -68,10 +68,10 @@ refine connection SMB_Conn += {
 	function proc_smb2_set_info_request_file_allocation(val: SMB2_file_allocation_info): bool
 		%{
 		if ( smb2_file_allocation )
-			BifEvent::enqueue_smb2_file_allocation(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb2_file_allocation(bro_analyzer(),
 			                                       bro_analyzer()->Conn(),
-			                                       {AdoptRef{}, BuildSMB2HeaderVal(${val.sir.header})},
-			                                       {AdoptRef{}, BuildSMB2GUID(${val.sir.file_id})},
+			                                       BuildSMB2HeaderVal(${val.sir.header}),
+			                                       BuildSMB2GUID(${val.sir.file_id}),
 			                                       (${val.allocation_size}));
 
 		return true;
@@ -80,10 +80,10 @@ refine connection SMB_Conn += {
 	function proc_smb2_set_info_request_file_endoffile(val: SMB2_file_endoffile_info): bool
 		%{
 		if ( smb2_file_endoffile )
-			BifEvent::enqueue_smb2_file_endoffile(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb2_file_endoffile(bro_analyzer(),
 			                                      bro_analyzer()->Conn(),
-			                                      {AdoptRef{}, BuildSMB2HeaderVal(${val.sir.header})},
-			                                      {AdoptRef{}, BuildSMB2GUID(${val.sir.file_id})},
+			                                      BuildSMB2HeaderVal(${val.sir.header}),
+			                                      BuildSMB2GUID(${val.sir.file_id}),
 			                                      ${val.endoffile});
 
 		return true;
@@ -93,22 +93,22 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_file_fullea )
 			{
-			auto eas = make_intrusive<VectorVal>(BifType::Vector::SMB2::FileEAs);
+			auto eas = make_intrusive<VectorVal>(zeek::BifType::Vector::SMB2::FileEAs);
 
 			for ( auto i = 0u; i < ${val.ea_vector}->size(); ++i )
 				{
-				auto r = make_intrusive<RecordVal>(BifType::Record::SMB2::FileEA);
+				auto r = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::FileEA);
 				r->Assign(0, smb2_string2stringval(${val.ea_vector[i].ea_name}));
 				r->Assign(1, smb2_string2stringval(${val.ea_vector[i].ea_value}));
 
 				eas->Assign(i, std::move(r));
 				}
 
-			BifEvent::enqueue_smb2_file_fullea(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb2_file_fullea(bro_analyzer(),
 			                                   bro_analyzer()->Conn(),
-			                                   {AdoptRef{}, BuildSMB2HeaderVal(${val.sir.header})},
-			                                   {AdoptRef{}, BuildSMB2GUID(${val.sir.file_id})},
-											   std::move(eas));
+			                                   BuildSMB2HeaderVal(${val.sir.header}),
+			                                   BuildSMB2GUID(${val.sir.file_id}),
+			                                   std::move(eas));
 			}
 
 		return true;
@@ -117,12 +117,12 @@ refine connection SMB_Conn += {
 	function proc_smb2_set_info_request_file_link(val: SMB2_file_link_info): bool
 		%{
 		if ( smb2_file_link )
-			BifEvent::enqueue_smb2_file_link(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb2_file_link(bro_analyzer(),
 			                                 bro_analyzer()->Conn(),
-			                                 {AdoptRef{}, BuildSMB2HeaderVal(${val.sir.header})},
-			                                 {AdoptRef{}, BuildSMB2GUID(${val.sir.file_id})},
+			                                 BuildSMB2HeaderVal(${val.sir.header}),
+			                                 BuildSMB2GUID(${val.sir.file_id}),
 			                                 ${val.root_directory},
-			                                 {AdoptRef{}, smb2_string2stringval(${val.file_name})});
+			                                 smb2_string2stringval(${val.file_name}));
 
 		return true;
 		%}
@@ -130,10 +130,10 @@ refine connection SMB_Conn += {
 	function proc_smb2_set_info_request_file_mode(val: SMB2_file_mode_info): bool
 		%{
 		if ( smb2_file_mode )
-			BifEvent::enqueue_smb2_file_mode(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb2_file_mode(bro_analyzer(),
 			                                 bro_analyzer()->Conn(),
-			                                 {AdoptRef{}, BuildSMB2HeaderVal(${val.sir.header})},
-			                                 {AdoptRef{}, BuildSMB2GUID(${val.sir.file_id})},
+			                                 BuildSMB2HeaderVal(${val.sir.header}),
+			                                 BuildSMB2GUID(${val.sir.file_id}),
 			                                 ${val.mode});
 
 		return true;
@@ -142,12 +142,12 @@ refine connection SMB_Conn += {
 	function proc_smb2_set_info_request_file_pipe(val: SMB2_file_pipe_info): bool
 		%{
 		if ( smb2_file_pipe )
-			BifEvent::enqueue_smb2_file_pipe(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb2_file_pipe(bro_analyzer(),
 			                                 bro_analyzer()->Conn(),
-			                                 {AdoptRef{}, BuildSMB2HeaderVal(${val.sir.header})},
-			                                 {AdoptRef{}, BuildSMB2GUID(${val.sir.file_id})},
+			                                 BuildSMB2HeaderVal(${val.sir.header}),
+			                                 BuildSMB2GUID(${val.sir.file_id}),
 			                                 ${val.read_mode},
-			                                    ${val.completion_mode});
+			                                 ${val.completion_mode});
 
 		return true;
 		%}
@@ -155,10 +155,10 @@ refine connection SMB_Conn += {
 	function proc_smb2_set_info_request_file_position(val: SMB2_file_position_info): bool
 		%{
 		if ( smb2_file_position )
-			BifEvent::enqueue_smb2_file_position(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb2_file_position(bro_analyzer(),
 			                                     bro_analyzer()->Conn(),
-			                                     {AdoptRef{}, BuildSMB2HeaderVal(${val.sir.header})},
-			                                     {AdoptRef{}, BuildSMB2GUID(${val.sir.file_id})},
+			                                     BuildSMB2HeaderVal(${val.sir.header}),
+			                                     BuildSMB2GUID(${val.sir.file_id}),
 			                                     ${val.current_byte_offset});
 
 		return true;
@@ -167,11 +167,11 @@ refine connection SMB_Conn += {
 	function proc_smb2_set_info_request_file_shortname(val: SMB2_file_shortname_info): bool
 		%{
 		if ( smb2_file_shortname )
-			BifEvent::enqueue_smb2_file_shortname(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb2_file_shortname(bro_analyzer(),
 			                                      bro_analyzer()->Conn(),
-			                                      {AdoptRef{}, BuildSMB2HeaderVal(${val.sir.header})},
-			                                      {AdoptRef{}, BuildSMB2GUID(${val.sir.file_id})},
-			                                      {AdoptRef{}, smb2_string2stringval(${val.filename})});
+			                                      BuildSMB2HeaderVal(${val.sir.header}),
+			                                      BuildSMB2GUID(${val.sir.file_id}),
+			                                      smb2_string2stringval(${val.filename}));
 
 		return true;
 		%}
@@ -179,10 +179,10 @@ refine connection SMB_Conn += {
 	function proc_smb2_set_info_request_file_validdatalength(val: SMB2_file_validdatalength_info): bool
 		%{
 		if ( smb2_file_validdatalength )
-			BifEvent::enqueue_smb2_file_validdatalength(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb2_file_validdatalength(bro_analyzer(),
 			                                            bro_analyzer()->Conn(),
-			                                            {AdoptRef{}, BuildSMB2HeaderVal(${val.sir.header})},
-			                                            {AdoptRef{}, BuildSMB2GUID(${val.sir.file_id})},
+			                                            BuildSMB2HeaderVal(${val.sir.header}),
+			                                            BuildSMB2GUID(${val.sir.file_id}),
 			                                            ${val.validdatalength});
 
 		return true;
@@ -192,7 +192,7 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_file_fscontrol )
 			{
-			auto r = make_intrusive<RecordVal>(BifType::Record::SMB2::Fscontrol);
+			auto r = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::Fscontrol);
 			r->Assign(0, val_mgr->Int(${val.free_space_start_filtering}));
 			r->Assign(1, val_mgr->Int(${val.free_space_start_threshold}));
 			r->Assign(2, val_mgr->Int(${val.free_space_stop_filtering}));
@@ -200,11 +200,11 @@ refine connection SMB_Conn += {
 			r->Assign(4, val_mgr->Count(${val.default_quota_limit}));
 			r->Assign(5, val_mgr->Count(${val.file_system_control_flags}));
 
-			BifEvent::enqueue_smb2_file_fscontrol(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb2_file_fscontrol(bro_analyzer(),
 			                                      bro_analyzer()->Conn(),
-			                                      {AdoptRef{}, BuildSMB2HeaderVal(${val.sir.header})},
-			                                      {AdoptRef{}, BuildSMB2GUID(${val.sir.file_id})},
-												  std::move(r));
+			                                      BuildSMB2HeaderVal(${val.sir.header}),
+			                                      BuildSMB2GUID(${val.sir.file_id}),
+			                                      std::move(r));
 			}
 
 		return true;
@@ -213,12 +213,12 @@ refine connection SMB_Conn += {
 	function proc_smb2_set_info_request_file_fsobjectid(val: SMB2_file_fsobjectid_info): bool
 		%{
 		if ( smb2_file_fsobjectid )
-			BifEvent::enqueue_smb2_file_fsobjectid(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb2_file_fsobjectid(bro_analyzer(),
 			                                       bro_analyzer()->Conn(),
-			                                       {AdoptRef{}, BuildSMB2HeaderVal(${val.sir.header})},
-			                                       {AdoptRef{}, BuildSMB2GUID(${val.sir.file_id})},
-			                                       {AdoptRef{}, BuildSMB2GUID(${val.object_id})},
-			                                       {AdoptRef{}, smb2_string2stringval(${val.extended_info})});
+			                                       BuildSMB2HeaderVal(${val.sir.header}),
+			                                       BuildSMB2GUID(${val.sir.file_id}),
+			                                       BuildSMB2GUID(${val.object_id}),
+			                                       smb2_string2stringval(${val.extended_info}));
 
 		return true;
 		%}

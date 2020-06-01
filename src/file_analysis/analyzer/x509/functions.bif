@@ -11,14 +11,14 @@
 #include <openssl/err.h>
 
 // construct an error record
-IntrusivePtr<RecordVal> x509_result_record(uint64_t num, const char* reason, Val* chainVector = nullptr)
+static IntrusivePtr<RecordVal> x509_result_record(uint64_t num, const char* reason, IntrusivePtr<Val> chainVector = nullptr)
 	{
-	auto rrecord = make_intrusive<RecordVal>(BifType::Record::X509::Result);
+	auto rrecord = make_intrusive<RecordVal>(zeek::BifType::Record::X509::Result);
 
 	rrecord->Assign(0, val_mgr->Int(num));
 	rrecord->Assign(1, make_intrusive<StringVal>(reason));
 	if ( chainVector )
-		rrecord->Assign(2, chainVector);
+		rrecord->Assign(2, std::move(chainVector));
 
 	return rrecord;
 	}
@@ -35,13 +35,13 @@ STACK_OF(X509)* x509_get_untrusted_stack(VectorVal* certs_vec)
 
 	for ( int i = 1; i < (int) certs_vec->Size(); ++i ) // start at 1 - 0 is host cert
 		{
-		Val *sv = certs_vec->Lookup(i);
+		const auto& sv = certs_vec->At(i);
 
 		if ( ! sv )
 			continue;
 
 		// Fixme: check type
-		X509* x = ((file_analysis::X509Val*) sv)->GetCertificate();
+		X509* x = ((file_analysis::X509Val*) sv.get())->GetCertificate();
 		if ( ! x )
 			{
 			sk_X509_free(untrusted_certs);
@@ -230,14 +230,14 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 
 	// host certificate
 	unsigned int index = 0; // to prevent overloading to 0pointer
-	Val *sv = certs_vec->Lookup(index);
+	const auto& sv = certs_vec->At(index);
 	if ( ! sv )
 		{
 		builtin_error("undefined value in certificate vector");
 		return x509_result_record(-1, "undefined value in certificate vector");
 		}
 
-	file_analysis::X509Val* cert_handle = (file_analysis::X509Val*) sv;
+	file_analysis::X509Val* cert_handle = (file_analysis::X509Val*) sv.get();
 
 	X509* cert = cert_handle->GetCertificate();
 	if ( ! cert )
@@ -516,13 +516,13 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 
 	// host certificate
 	unsigned int index = 0; // to prevent overloading to 0pointer
-	Val *sv = certs_vec->Lookup(index);
+	const auto& sv = certs_vec->At(index);
 	if ( !sv )
 		{
 		builtin_error("undefined value in certificate vector");
 		return x509_result_record(-1, "undefined value in certificate vector");
 		}
-	file_analysis::X509Val* cert_handle = (file_analysis::X509Val*) sv;
+	file_analysis::X509Val* cert_handle = (file_analysis::X509Val*) sv.get();
 
 	X509* cert = cert_handle->GetCertificate();
 	if ( ! cert )
@@ -542,7 +542,7 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 
 	int result = X509_verify_cert(csc);
 
-	VectorVal* chainVector = nullptr;
+	IntrusivePtr<VectorVal> chainVector;
 
 	if ( result == 1 ) // we have a valid chain. try to get it...
 		{
@@ -556,7 +556,7 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 			}
 
 		int num_certs = sk_X509_num(chain);
-		chainVector = new VectorVal(internal_type("x509_opaque_vector")->AsVectorType());
+		chainVector = make_intrusive<VectorVal>(zeek::id::find_type<VectorType>("x509_opaque_vector"));
 
 		for ( int i = 0; i < num_certs; i++ )
 			{
@@ -578,7 +578,7 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 
 x509_verify_chainerror:
 
-	auto rrecord = x509_result_record(X509_STORE_CTX_get_error(csc), X509_verify_cert_error_string(X509_STORE_CTX_get_error(csc)), chainVector);
+	auto rrecord = x509_result_record(X509_STORE_CTX_get_error(csc), X509_verify_cert_error_string(X509_STORE_CTX_get_error(csc)), std::move(chainVector));
 
 	X509_STORE_CTX_cleanup(csc);
 	X509_STORE_CTX_free(csc);

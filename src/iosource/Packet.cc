@@ -2,7 +2,9 @@
 #include "Sessions.h"
 #include "Desc.h"
 #include "IP.h"
+#include "IntrusivePtr.h"
 #include "iosource/Manager.h"
+#include "Var.h"
 
 extern "C" {
 #include <pcap.h>
@@ -590,10 +592,12 @@ void Packet::ProcessLayer2()
 	hdr_size = (pdata - data);
 }
 
-RecordVal* Packet::BuildPktHdrVal() const
+IntrusivePtr<RecordVal> Packet::ToRawPktHdrVal() const
 	{
-	RecordVal* pkt_hdr = new RecordVal(raw_pkt_hdr_type);
-	RecordVal* l2_hdr = new RecordVal(l2_hdr_type);
+	static auto raw_pkt_hdr_type = zeek::id::find_type<RecordType>("raw_pkt_hdr");
+	static auto l2_hdr_type = zeek::id::find_type<RecordType>("l2_hdr");
+	auto pkt_hdr = make_intrusive<RecordVal>(raw_pkt_hdr_type);
+	auto l2_hdr = make_intrusive<RecordVal>(l2_hdr_type);
 
 	bool is_ethernet = link_type == DLT_EN10MB;
 
@@ -623,7 +627,7 @@ RecordVal* Packet::BuildPktHdrVal() const
 		{
 		// Ethernet header layout is:
 		//    dst[6bytes] src[6bytes] ethertype[2bytes]...
-		l2_hdr->Assign(0, BifType::Enum::link_encap->GetVal(BifEnum::LINK_ETHERNET));
+		l2_hdr->Assign(0, zeek::BifType::Enum::link_encap->GetVal(BifEnum::LINK_ETHERNET));
 		l2_hdr->Assign(3, FmtEUI48(data + 6));	// src
 		l2_hdr->Assign(4, FmtEUI48(data));  	// dst
 
@@ -640,37 +644,42 @@ RecordVal* Packet::BuildPktHdrVal() const
 			l3 = BifEnum::L3_ARP;
 		}
 	else
-		l2_hdr->Assign(0, BifType::Enum::link_encap->GetVal(BifEnum::LINK_UNKNOWN));
+		l2_hdr->Assign(0, zeek::BifType::Enum::link_encap->GetVal(BifEnum::LINK_UNKNOWN));
 
 	l2_hdr->Assign(1, val_mgr->Count(len));
 	l2_hdr->Assign(2, val_mgr->Count(cap_len));
 
-	l2_hdr->Assign(8, BifType::Enum::layer3_proto->GetVal(l3));
+	l2_hdr->Assign(8, zeek::BifType::Enum::layer3_proto->GetVal(l3));
 
-	pkt_hdr->Assign(0, l2_hdr);
+	pkt_hdr->Assign(0, std::move(l2_hdr));
 
 	if ( l3_proto == L3_IPV4 )
 		{
 		IP_Hdr ip_hdr((const struct ip*)(data + hdr_size), false);
-		return ip_hdr.BuildPktHdrVal(pkt_hdr, 1);
+		return ip_hdr.ToPktHdrVal(std::move(pkt_hdr), 1);
 		}
 
 	else if ( l3_proto == L3_IPV6 )
 		{
 		IP_Hdr ip6_hdr((const struct ip6_hdr*)(data + hdr_size), false, cap_len);
-		return ip6_hdr.BuildPktHdrVal(pkt_hdr, 1);
+		return ip6_hdr.ToPktHdrVal(std::move(pkt_hdr), 1);
 		}
 
 	else
 		return pkt_hdr;
 	}
 
-Val *Packet::FmtEUI48(const u_char *mac) const
+RecordVal* Packet::BuildPktHdrVal() const
+	{
+	return ToRawPktHdrVal().release();
+	}
+
+IntrusivePtr<Val> Packet::FmtEUI48(const u_char* mac) const
 	{
 	char buf[20];
 	snprintf(buf, sizeof buf, "%02x:%02x:%02x:%02x:%02x:%02x",
 		 mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-	return new StringVal(buf);
+	return make_intrusive<StringVal>(buf);
 	}
 
 void Packet::Describe(ODesc* d) const

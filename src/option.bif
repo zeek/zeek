@@ -7,7 +7,7 @@ module Option;
 #include "NetVar.h"
 #include "broker/Data.h"
 
-static bool call_option_handlers_and_set_value(StringVal* name, ID* i,
+static bool call_option_handlers_and_set_value(StringVal* name, const IntrusivePtr<ID>& i,
                                                IntrusivePtr<Val> val,
                                                StringVal* location)
 	{
@@ -15,7 +15,7 @@ static bool call_option_handlers_and_set_value(StringVal* name, ID* i,
 		{
 		for ( auto handler_function : i->GetOptionHandlers() )
 			{
-			bool add_loc = handler_function->FType()->AsFuncType()->ArgTypes()->Types()->length() == 3;
+			bool add_loc = handler_function->GetType()->ParamList()->Types().size() == 3;
 			zeek::Args vl;
 			vl.reserve(2 + add_loc);
 			vl.emplace_back(NewRef{}, name);
@@ -24,7 +24,7 @@ static bool call_option_handlers_and_set_value(StringVal* name, ID* i,
 			if ( add_loc )
 				vl.emplace_back(NewRef{}, location);
 
-			val = handler_function->Call(vl); // consumed by next call.
+			val = handler_function->Invoke(&vl); // consumed by next call.
 
 			if ( ! val )
 				{
@@ -59,7 +59,7 @@ static bool call_option_handlers_and_set_value(StringVal* name, ID* i,
 ##           lower-level function.
 function Option::set%(ID: string, val: any, location: string &default=""%): bool
 	%{
-	auto i = global_scope()->Lookup(ID->CheckString());
+	const auto& i = global_scope()->Find(ID->CheckString());
 	if ( ! i )
 		{
 		builtin_error(fmt("Could not find ID named '%s'", ID->CheckString()));
@@ -79,15 +79,15 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 		return val_mgr->False();
 		}
 
-	if ( same_type(val->Type(), bro_broker::DataVal::ScriptDataType()) )
+	if ( same_type(val->GetType(), bro_broker::DataVal::ScriptDataType()) )
 		{
-		auto dv = static_cast<bro_broker::DataVal*>(val->AsRecordVal()->Lookup(0));
-		auto val_from_data = dv->castTo(i->Type());
+		auto dv = static_cast<bro_broker::DataVal*>(val->AsRecordVal()->GetField(0).get());
+		auto val_from_data = dv->castTo(i->GetType().get());
 
 		if ( ! val_from_data )
 			{
 			builtin_error(fmt("Incompatible type for set of ID '%s': got broker data '%s', need '%s'",
-				ID->CheckString(), dv->data.get_type_name(), type_name(i->Type()->Tag())));
+				ID->CheckString(), dv->data.get_type_name(), type_name(i->GetType()->Tag())));
 			return val_mgr->False();
 			}
 
@@ -95,22 +95,22 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 		return val_mgr->Bool(rval);
 		}
 
-	if ( ! same_type(i->Type(), val->Type()) )
+	if ( ! same_type(i->GetType(), val->GetType()) )
 		{
-		if ( i->Type()->Tag() == TYPE_TABLE &&
-		     val->Type()->Tag() == TYPE_TABLE &&
-		     val->Type()->AsTableType()->IsUnspecifiedTable() )
+		if ( i->GetType()->Tag() == TYPE_TABLE &&
+		     val->GetType()->Tag() == TYPE_TABLE &&
+		     val->GetType()->AsTableType()->IsUnspecifiedTable() )
 			{
 			// Just coerce an empty/unspecified table to the right type.
 			auto tv = make_intrusive<TableVal>(
-			        IntrusivePtr{NewRef{}, i->Type()->AsTableType()},
-			        IntrusivePtr{NewRef{}, i->ID_Val()->AsTableVal()->Attrs()});
+			        cast_intrusive<TableType>(i->GetType()),
+			        i->GetVal()->AsTableVal()->GetAttrs());
 			auto rval = call_option_handlers_and_set_value(ID, i, std::move(tv), location);
 			return val_mgr->Bool(rval);
 			}
 
 		builtin_error(fmt("Incompatible type for set of ID '%s': got '%s', need '%s'",
-			ID->CheckString(), type_name(val->Type()->Tag()), type_name(i->Type()->Tag())));
+			ID->CheckString(), type_name(val->GetType()->Tag()), type_name(i->GetType()->Tag())));
 		return val_mgr->False();
 		}
 
@@ -144,7 +144,7 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 ## .. zeek:see:: Option::set
 function Option::set_change_handler%(ID: string, on_change: any, priority: int &default=0%): bool
 	%{
-	auto i = global_scope()->Lookup(ID->CheckString());
+	const auto& i = global_scope()->Find(ID->CheckString());
 	if ( ! i )
 		{
 		builtin_error(fmt("Could not find ID named '%s'", ID->CheckString()));
@@ -157,56 +157,55 @@ function Option::set_change_handler%(ID: string, on_change: any, priority: int &
 		return val_mgr->False();
 		}
 
-	if ( on_change->Type()->Tag() != TYPE_FUNC )
+	if ( on_change->GetType()->Tag() != TYPE_FUNC )
 		{
 		builtin_error(fmt("Option::on_change needs function argument; got '%s' for ID '%s'",
-			type_name(on_change->Type()->Tag()), ID->CheckString()));
+			type_name(on_change->GetType()->Tag()), ID->CheckString()));
 		return val_mgr->False();
 		}
 
-	if ( on_change->Type()->AsFuncType()->Flavor() != FUNC_FLAVOR_FUNCTION )
+	if ( on_change->GetType()->AsFuncType()->Flavor() != FUNC_FLAVOR_FUNCTION )
 		{
 		builtin_error("Option::on_change needs function argument; not hook or event");
 		return val_mgr->False();
 		}
 
-	const type_list* args = on_change->Type()->AsFuncType()->ArgTypes()->Types();
-	if ( args->length() < 2 || args->length() > 3 )
+	const auto& args = on_change->GetType()->AsFuncType()->ParamList()->Types();
+	if ( args.size() < 2 || args.size() > 3 )
 		{
-		builtin_error(fmt("Wrong number of arguments for passed function in Option::on_change for ID '%s'; expected 2 or 3, got %d",
-			ID->CheckString(), args->length()));
+		builtin_error(fmt("Wrong number of arguments for passed function in Option::on_change for ID '%s'; expected 2 or 3, got %zu",
+		                  ID->CheckString(), args.size()));
 		return val_mgr->False();
 		}
 
-	if ( (*args)[0]->Tag() != TYPE_STRING )
+	if ( args[0]->Tag() != TYPE_STRING )
 		{
 		builtin_error(fmt("First argument of passed function has to be string in Option::on_change for ID '%s'; got '%s'",
-			ID->CheckString(), type_name((*args)[0]->Tag())));
+			ID->CheckString(), type_name(args[0]->Tag())));
 		return val_mgr->False();
 		}
 
-	if ( ! same_type((*args)[1], i->Type()) )
+	if ( ! same_type(args[1], i->GetType()) )
 		{
 		builtin_error(fmt("Second argument of passed function has to be %s in Option::on_change for ID '%s'; got '%s'",
-			type_name(i->Type()->Tag()), ID->CheckString(), type_name((*args)[1]->Tag())));
+			type_name(i->GetType()->Tag()), ID->CheckString(), type_name(args[1]->Tag())));
 		return val_mgr->False();
 		}
 
-	if ( args->length() == 3 && (*args)[2]->Tag() != TYPE_STRING )
+	if ( args.size() == 3 && args[2]->Tag() != TYPE_STRING )
 		{
 		builtin_error(fmt("Third argument of passed function has to be string in Option::on_change for ID '%s'; got '%s'",
-			ID->CheckString(), type_name((*args)[2]->Tag())));
+			ID->CheckString(), type_name(args[2]->Tag())));
 		return val_mgr->False();
 		}
 
-	if ( ! same_type(on_change->Type()->AsFuncType()->YieldType(), i->Type()) )
+	if ( ! same_type(on_change->GetType()->AsFuncType()->Yield(), i->GetType()) )
 		{
 		builtin_error(fmt("Passed function needs to return type '%s' for ID '%s'; got '%s'",
-			type_name(i->Type()->Tag()), ID->CheckString(), type_name(on_change->Type()->AsFuncType()->YieldType()->Tag())));
+			type_name(i->GetType()->Tag()), ID->CheckString(), type_name(on_change->GetType()->AsFuncType()->Yield()->Tag())));
 		return val_mgr->False();
 		}
 
-	auto* func = on_change->AsFunc();
-	i->AddOptionHandler({NewRef{}, func}, -priority);
+	i->AddOptionHandler(on_change->AsFuncPtr(), -priority);
 	return val_mgr->True();
 	%}

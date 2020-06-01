@@ -12,7 +12,7 @@ using namespace writer;
 bool None::DoInit(const WriterInfo& info, int num_fields,
 	    const threading::Field* const * fields)
 	{
-	if ( BifConst::LogNone::debug )
+	if ( zeek::BifConst::LogNone::debug )
 		{
 		std::cout << "[logging::writer::None]" << std::endl;
 		std::cout << "  path=" << info.path << std::endl;

@@ -107,6 +107,7 @@ static RecordVal* build_syn_packet_val(bool is_orig, const IP_Hdr* ip,
 		options += opt_len;
 		}
 
+	static auto SYN_packet = zeek::id::find_type<RecordType>("SYN_packet");
 	RecordVal* v = new RecordVal(SYN_packet);
 
 	v->Assign(0, val_mgr->Bool(is_orig));
@@ -1097,7 +1098,7 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 		{
 		syn_weirds(flags, endpoint, len);
 		RecordVal* SYN_vals = build_syn_packet_val(is_orig, ip, tp);
-		init_window(endpoint, peer, flags, SYN_vals->Lookup(5)->CoerceToInt(),
+		init_window(endpoint, peer, flags, SYN_vals->GetField(5)->CoerceToInt(),
 		            base_seq, ack_seq);
 
 		if ( connection_SYN_packet )
@@ -1286,8 +1287,8 @@ void TCP_Analyzer::FlipRoles()
 
 void TCP_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	{
-	RecordVal *orig_endp_val = conn_val->Lookup("orig")->AsRecordVal();
-	RecordVal *resp_endp_val = conn_val->Lookup("resp")->AsRecordVal();
+	RecordVal* orig_endp_val = conn_val->GetField("orig")->AsRecordVal();
+	RecordVal* resp_endp_val = conn_val->GetField("resp")->AsRecordVal();
 
 	orig_endp_val->Assign(0, val_mgr->Count(orig->Size()));
 	orig_endp_val->Assign(1, val_mgr->Count(int(orig->state)));
@@ -1355,9 +1356,9 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 
 	if ( tcp_options )
 		{
-		auto option_list = make_intrusive<VectorVal>(BifType::Vector::TCP::OptionList);
+		auto option_list = make_intrusive<VectorVal>(zeek::BifType::Vector::TCP::OptionList);
 
-		auto add_option_data = [](RecordVal* rv, const u_char* odata, int olen)
+		auto add_option_data = [](const IntrusivePtr<RecordVal>& rv, const u_char* odata, int olen)
 			{
 			if ( olen <= 2 )
 				return;
@@ -1371,7 +1372,7 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 			{
 			auto kind = o[0];
 			auto length = kind < 2 ? 1 : o[1];
-			auto option_record = new RecordVal(BifType::Record::TCP::Option);
+			auto option_record = make_intrusive<RecordVal>(zeek::BifType::Record::TCP::Option);
 			option_list->Assign(option_list->Size(), option_record);
 			option_record->Assign(0, val_mgr->Count(kind));
 			option_record->Assign(1, val_mgr->Count(length));
@@ -1421,8 +1422,8 @@ int TCP_Analyzer::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 					{
 					auto p = reinterpret_cast<const uint32_t*>(o + 2);
 					auto num_pointers = (length - 2) / 4;
-					auto vt = internal_type("index_vec")->AsVectorType();
-					auto sack = new VectorVal(vt);
+					auto vt = zeek::id::index_vec;
+					auto sack = make_intrusive<VectorVal>(std::move(vt));
 
 					for ( auto i = 0; i < num_pointers; ++i )
 						sack->Assign(sack->Size(), val_mgr->Count(ntohl(p[i])));
@@ -1583,7 +1584,7 @@ void TCP_Analyzer::ConnDeleteTimer(double t)
 	Conn()->DeleteTimer(t);
 	}
 
-void TCP_Analyzer::SetContentsFile(unsigned int direction, BroFile* f)
+void TCP_Analyzer::SetContentsFile(unsigned int direction, IntrusivePtr<BroFile> f)
 	{
 	if ( direction == CONTENTS_NONE )
 		{
@@ -1600,7 +1601,7 @@ void TCP_Analyzer::SetContentsFile(unsigned int direction, BroFile* f)
 		}
 	}
 
-BroFile* TCP_Analyzer::GetContentsFile(unsigned int direction) const
+IntrusivePtr<BroFile> TCP_Analyzer::GetContentsFile(unsigned int direction) const
 	{
 	switch ( direction ) {
 	case CONTENTS_NONE:
@@ -2050,7 +2051,7 @@ bool TCPStats_Endpoint::DataSent(double /* t */, uint64_t seq, int len, int capl
 	int64_t sequence_delta = top_seq - max_top_seq;
 	if ( sequence_delta <= 0 )
 		{
-		if ( ! BifConst::ignore_keep_alive_rexmit || len > 1 || data_in_flight > 0 )
+		if ( ! zeek::BifConst::ignore_keep_alive_rexmit || len > 1 || data_in_flight > 0 )
 			{
 			++num_rxmit;
 			num_rxmit_bytes += len;
@@ -2077,6 +2078,7 @@ bool TCPStats_Endpoint::DataSent(double /* t */, uint64_t seq, int len, int capl
 
 RecordVal* TCPStats_Endpoint::BuildStats()
 	{
+	static auto endpoint_stats = zeek::id::find_type<RecordType>("endpoint_stats");
 	RecordVal* stats = new RecordVal(endpoint_stats);
 
 	stats->Assign(0, val_mgr->Count(num_pkts));

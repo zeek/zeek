@@ -34,10 +34,10 @@ Raw::Raw(ReaderFrontend *frontend) : ReaderBackend(frontend), file(nullptr, fclo
 	ino = 0;
 	forcekill = false;
 	offset = 0;
-	separator.assign( (const char*) BifConst::InputRaw::record_separator->Bytes(),
-			  BifConst::InputRaw::record_separator->Len());
+	separator.assign( (const char*) zeek::BifConst::InputRaw::record_separator->Bytes(),
+			  zeek::BifConst::InputRaw::record_separator->Len());
 
-	sep_length = BifConst::InputRaw::record_separator->Len();
+	sep_length = zeek::BifConst::InputRaw::record_separator->Len();
 
 	bufpos = 0;
 

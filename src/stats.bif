@@ -4,19 +4,19 @@
 #include "threading/Manager.h"
 #include "broker/Manager.h"
 
-RecordType* ProcStats;
-RecordType* NetStats;
-RecordType* MatcherStats;
-RecordType* ReassemblerStats;
-RecordType* DNSStats;
-RecordType* ConnStats;
-RecordType* GapStats;
-RecordType* EventStats;
-RecordType* ThreadStats;
-RecordType* TimerStats;
-RecordType* FileAnalysisStats;
-RecordType* BrokerStats;
-RecordType* ReporterStats;
+IntrusivePtr<RecordType> ProcStats;
+IntrusivePtr<RecordType> NetStats;
+IntrusivePtr<RecordType> MatcherStats;
+IntrusivePtr<RecordType> ReassemblerStats;
+IntrusivePtr<RecordType> DNSStats;
+IntrusivePtr<RecordType> ConnStats;
+IntrusivePtr<RecordType> GapStats;
+IntrusivePtr<RecordType> EventStats;
+IntrusivePtr<RecordType> ThreadStats;
+IntrusivePtr<RecordType> TimerStats;
+IntrusivePtr<RecordType> FileAnalysisStats;
+IntrusivePtr<RecordType> BrokerStats;
+IntrusivePtr<RecordType> ReporterStats;
 %%}
 
 ## Returns packet capture statistics. Statistics include the number of
@@ -470,16 +470,16 @@ function get_reporter_stats%(%): ReporterStats
 	auto r = make_intrusive<RecordVal>(ReporterStats);
 	int n = 0;
 
-	TableVal* weirds_by_type = new TableVal({NewRef{}, internal_type("table_string_of_count")->AsTableType()});
+	auto weirds_by_type = make_intrusive<TableVal>(zeek::id::find_type<TableType>("table_string_of_count"));
 
 	for ( auto& kv : reporter->GetWeirdsByType() )
 		{
 		auto weird = make_intrusive<StringVal>(kv.first);
-		weirds_by_type->Assign(weird.get(), val_mgr->Count(kv.second));
+		weirds_by_type->Assign(std::move(weird), val_mgr->Count(kv.second));
 		}
 
 	r->Assign(n++, val_mgr->Count(reporter->GetWeirdCount()));
-	r->Assign(n++, weirds_by_type);
+	r->Assign(n++, std::move(weirds_by_type));
 
 	return r;
 	%}

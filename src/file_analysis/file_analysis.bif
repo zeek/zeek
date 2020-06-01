@@ -41,20 +41,22 @@ function Files::__set_reassembly_buffer%(file_id: string, max: count%): bool
 ## :zeek:see:`Files::add_analyzer`.
 function Files::__add_analyzer%(file_id: string, tag: Files::Tag, args: any%): bool
 	%{
-	using BifType::Record::Files::AnalyzerArgs;
+	using zeek::BifType::Record::Files::AnalyzerArgs;
 	auto rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
 	bool result = file_mgr->AddAnalyzer(file_id->CheckString(),
-	                                    file_mgr->GetComponentTag(tag), rv.get());
+	                                    file_mgr->GetComponentTag(tag),
+	                                    std::move(rv));
 	return val_mgr->Bool(result);
 	%}
 
 ## :zeek:see:`Files::remove_analyzer`.
 function Files::__remove_analyzer%(file_id: string, tag: Files::Tag, args: any%): bool
 	%{
-	using BifType::Record::Files::AnalyzerArgs;
+	using zeek::BifType::Record::Files::AnalyzerArgs;
 	auto rv = args->AsRecordVal()->CoerceTo(AnalyzerArgs);
 	bool result = file_mgr->RemoveAnalyzer(file_id->CheckString(),
-	                                       file_mgr->GetComponentTag(tag) , rv.get());
+	                                       file_mgr->GetComponentTag(tag),
+	                                       std::move(rv));
 	return val_mgr->Bool(result);
 	%}
 
@@ -68,7 +70,8 @@ function Files::__stop%(file_id: string%): bool
 ## :zeek:see:`Files::analyzer_name`.
 function Files::__analyzer_name%(tag: Files::Tag%) : string
 	%{
-	return make_intrusive<StringVal>(file_mgr->GetComponentName(tag));
+	const auto& n = file_mgr->GetComponentName(IntrusivePtr{NewRef{}, tag->AsEnumVal()});
+	return make_intrusive<StringVal>(n);
 	%}
 
 ## :zeek:see:`Files::file_exists`.
@@ -85,10 +88,8 @@ function Files::__lookup_file%(fuid: string%): fa_file
 	%{
 	auto f = file_mgr->LookupFile(fuid->CheckString());
 	if ( f != nullptr )
-		{
-		return IntrusivePtr{NewRef{}, f->GetVal()};
-		}
-	
+		return f->ToVal();
+
 	reporter->Error("file ID %s not a known file", fuid->CheckString());
 	return nullptr;
 	%}

@@ -52,9 +52,9 @@ public:
 		     double last_time, int rpc_len);
 	~RPC_CallInfo();
 
-	void AddVal(Val* arg_v)		{ Unref(v); v = arg_v; }
-	Val* RequestVal() const		{ return v; }
-	Val* TakeRequestVal()		{ Val* rv = v; v = nullptr; return rv; }
+	void AddVal(IntrusivePtr<Val> arg_v)		{ v = std::move(arg_v); }
+	const IntrusivePtr<Val>& RequestVal() const		{ return v; }
+	IntrusivePtr<Val> TakeRequestVal()		{ auto rv = std::move(v); return rv; }
 
 	bool CompareRexmit(const u_char* buf, int n) const;
 
@@ -95,7 +95,7 @@ protected:
 	int header_len;		// size of data before the arguments
 	bool valid_call;	// whether call was well-formed
 
-	Val* v;		// single (perhaps compound) value corresponding to call
+	IntrusivePtr<Val> v;		// single (perhaps compound) value corresponding to call
 };
 
 class RPC_Interpreter {

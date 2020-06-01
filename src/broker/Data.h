@@ -12,11 +12,11 @@ class ODesc;
 
 namespace bro_broker {
 
-extern OpaqueType* opaque_of_data_type;
-extern OpaqueType* opaque_of_set_iterator;
-extern OpaqueType* opaque_of_table_iterator;
-extern OpaqueType* opaque_of_vector_iterator;
-extern OpaqueType* opaque_of_record_iterator;
+extern IntrusivePtr<OpaqueType> opaque_of_data_type;
+extern IntrusivePtr<OpaqueType> opaque_of_set_iterator;
+extern IntrusivePtr<OpaqueType> opaque_of_table_iterator;
+extern IntrusivePtr<OpaqueType> opaque_of_vector_iterator;
+extern IntrusivePtr<OpaqueType> opaque_of_record_iterator;
 
 /**
  * Convert a broker port protocol to a bro port protocol.
@@ -110,7 +110,7 @@ public:
 	// Returns the Bro type that scripts use to represent a Broker data
 	// instance. This may be wrapping the opaque value inside another
 	// type.
-	static BroType* ScriptDataType();
+	static const IntrusivePtr<BroType>& ScriptDataType();
 
 	broker::data data;
 
@@ -120,8 +120,6 @@ protected:
 		{}
 
 	DECLARE_OPAQUE_VALUE(bro_broker::DataVal)
-
-	static BroType* script_data_type;
 };
 
 /**

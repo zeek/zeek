@@ -126,7 +126,7 @@ void Manager::SendHeartbeats()
 void Manager::StartHeartbeatTimer()
 	{
 	heartbeat_timer_running = true;
-	timer_mgr->Add(new HeartbeatTimer(network_time + BifConst::Threading::heartbeat_interval));
+	timer_mgr->Add(new HeartbeatTimer(network_time + zeek::BifConst::Threading::heartbeat_interval));
 	}
 
 // Raise everything in here as warnings so it is passed to scriptland without
@@ -147,7 +147,7 @@ bool Manager::SendEvent(MsgThread* thread, const std::string& name, const int nu
 	        thread->Name(), name.c_str(), num_vals);
 #endif
 
-	RecordType *type = handler->FType()->Args();
+	const auto& type = handler->GetType()->Params();
 	int num_event_vals = type->NumFields();
 	if ( num_vals != num_event_vals )
 		{
@@ -166,10 +166,10 @@ bool Manager::SendEvent(MsgThread* thread, const std::string& name, const int nu
 		Val* v = Value::ValueToVal(std::string("thread ") + thread->Name(), vals[j], convert_error);
 		vl.emplace_back(AdoptRef{}, v);
 
-		if ( v && ! convert_error && ! same_type(type->FieldType(j), v->Type()) )
+		if ( v && ! convert_error && ! same_type(type->GetFieldType(j), v->GetType()) )
 			{
 			convert_error = true;
-			type->FieldType(j)->Error("SendEvent types do not match", v->Type());
+			type->GetFieldType(j)->Error("SendEvent types do not match", v->GetType().get());
 			}
 		}
 
@@ -190,7 +190,7 @@ void Manager::Flush()
 	if ( network_time && (network_time > next_beat || ! next_beat) )
 		{
 		do_beat = true;
-		next_beat = ::network_time + BifConst::Threading::heartbeat_interval;
+		next_beat = ::network_time + zeek::BifConst::Threading::heartbeat_interval;
 		}
 
 	did_process = false;

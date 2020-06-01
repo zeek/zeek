@@ -116,7 +116,7 @@ WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, EnumVa
 	num_fields = 0;
 	fields = nullptr;
 
-	const char* w = arg_writer->Type()->AsEnumType()->Lookup(arg_writer->InternalInt());
+	const char* w = arg_writer->GetType()->AsEnumType()->Lookup(arg_writer->InternalInt());
 	name = copy_string(fmt("%s/%s", arg_info.path, w));
 
 	if ( local )

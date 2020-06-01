@@ -97,8 +97,12 @@ public:
 
 	MIME_Entity* Parent() const { return parent; }
 	int MIMEContentType() const { return content_type; }
-	StringVal* ContentType() const { return content_type_str; }
-	StringVal* ContentSubType() const { return content_subtype_str; }
+	[[deprecated("Remove in v4.1.  Use GetContentType().")]]
+	StringVal* ContentType() const { return content_type_str.get(); }
+	[[deprecated("Remove in v4.1.  Use GetContentSubType().")]]
+	StringVal* ContentSubType() const { return content_subtype_str.get(); }
+	const IntrusivePtr<StringVal>& GetContentType() const { return content_type_str; }
+	const IntrusivePtr<StringVal>& GetContentSubType() const { return content_subtype_str; }
 	int ContentTransferEncoding() const { return content_encoding; }
 
 protected:
@@ -154,8 +158,8 @@ protected:
 	int current_field_type;
 	int need_to_parse_parameters;
 
-	StringVal* content_type_str;
-	StringVal* content_subtype_str;
+	IntrusivePtr<StringVal> content_type_str;
+	IntrusivePtr<StringVal> content_subtype_str;
 	BroString* content_encoding_str;
 	BroString* multipart_boundary;
 
@@ -225,8 +229,13 @@ protected:
 	MIME_Entity* top_level;
 	bool finished;
 
+	[[deprecated("Remove in v4.1.  Use ToHeaderVal().")]]
 	RecordVal* BuildHeaderVal(MIME_Header* h);
+	[[deprecated("Remove in v4.1.  Use ToHeaderTable().")]]
 	TableVal* BuildHeaderTable(MIME_HeaderList& hlist);
+
+	IntrusivePtr<RecordVal> ToHeaderVal(MIME_Header* h);
+	IntrusivePtr<TableVal> ToHeaderTable(MIME_HeaderList& hlist);
 };
 
 class MIME_Mail final : public MIME_Message {
@@ -265,9 +274,15 @@ protected:
 
 
 extern bool is_null_data_chunk(data_chunk_t b);
+[[deprecated("Remove in v4.1.  Use analyzer::mime::to_string_val().")]]
 extern StringVal* new_string_val(int length, const char* data);
+[[deprecated("Remove in v4.1.  Use analyzer::mime::to_string_val().")]]
 extern StringVal* new_string_val(const char* data, const char* end_of_data);
+[[deprecated("Remove in v4.1.  Use analyzer::mime::to_string_val().")]]
 extern StringVal* new_string_val(const data_chunk_t buf);
+extern IntrusivePtr<StringVal> to_string_val(int length, const char* data);
+extern IntrusivePtr<StringVal> to_string_val(const char* data, const char* end_of_data);
+extern IntrusivePtr<StringVal> to_string_val(const data_chunk_t buf);
 extern int fputs(data_chunk_t b, FILE* fp);
 extern bool istrequal(data_chunk_t s, const char* t);
 extern bool is_lws(char ch);

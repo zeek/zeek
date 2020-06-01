@@ -30,7 +30,6 @@ TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 	type = arg_type;
 	endp = arg_endp;
 	had_gap = false;
-	record_contents_file = nullptr;
 	deliver_tcp_contents = false;
 	skip_deliveries = false;
 	did_EOF = false;
@@ -42,23 +41,20 @@ TCP_Reassembler::TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 
 	if ( ::tcp_contents )
 		{
+		static auto tcp_content_delivery_ports_orig = zeek::id::find_val<TableVal>("tcp_content_delivery_ports_orig");
+		static auto tcp_content_delivery_ports_resp = zeek::id::find_val<TableVal>("tcp_content_delivery_ports_resp");
 		const auto& dst_port_val = val_mgr->Port(ntohs(tcp_analyzer->Conn()->RespPort()),
 		                                         TRANSPORT_TCP);
-		TableVal* ports = IsOrig() ?
+		const auto& ports = IsOrig() ?
 			tcp_content_delivery_ports_orig :
 			tcp_content_delivery_ports_resp;
-		auto result = ports->Lookup(dst_port_val.get());
+		auto result = ports->FindOrDefault(dst_port_val);
 
 		if ( (IsOrig() && tcp_content_deliver_all_orig) ||
 		     (! IsOrig() && tcp_content_deliver_all_resp) ||
 		     (result && result->AsBool()) )
 			deliver_tcp_contents = true;
 		}
-	}
-
-TCP_Reassembler::~TCP_Reassembler()
-	{
-	Unref(record_contents_file);
 	}
 
 void TCP_Reassembler::Done()
@@ -96,7 +92,7 @@ uint64_t TCP_Reassembler::NumUndeliveredBytes() const
 	return last_block.upper - last_reassem_seq;
 	}
 
-void TCP_Reassembler::SetContentsFile(BroFile* f)
+void TCP_Reassembler::SetContentsFile(IntrusivePtr<BroFile> f)
 	{
 	if ( ! f->IsOpen() )
 		{
@@ -105,16 +101,17 @@ void TCP_Reassembler::SetContentsFile(BroFile* f)
 		}
 
 	if ( record_contents_file )
+		{
 		// We were already recording, no need to catch up.
-		Unref(record_contents_file);
+		record_contents_file = nullptr;
+		}
 	else
 		{
 		if ( ! block_list.Empty() )
 			RecordToSeq(block_list.Begin()->second.seq, last_reassem_seq, f);
 		}
 
-	Ref(f);
-	record_contents_file = f;
+	record_contents_file = std::move(f);
 	}
 
 static inline bool is_clean(const TCP_Endpoint* a)
@@ -133,7 +130,7 @@ static inline bool established_or_cleanly_closing(const TCP_Endpoint* a,
 static inline bool report_gap(const TCP_Endpoint* a, const TCP_Endpoint* b)
 	{
 	return content_gap &&
-	       ( BifConst::report_gaps_for_partial ||
+	       ( zeek::BifConst::report_gaps_for_partial ||
 	         established_or_cleanly_closing(a, b) );
 	}
 
@@ -208,7 +205,7 @@ void TCP_Reassembler::Undelivered(uint64_t up_to_seq)
 		// to this method and only if this condition is not true).
 		reporter->InternalError("Calling Undelivered for data that has already been delivered (or has already been marked as undelivered");
 
-	if ( BifConst::detect_filtered_trace && last_reassem_seq == 1 &&
+	if ( zeek::BifConst::detect_filtered_trace && last_reassem_seq == 1 &&
 	     (endpoint->FIN_cnt > 0 || endpoint->RST_cnt > 0 ||
 	      peer->FIN_cnt > 0 || peer->RST_cnt > 0) )
 		{
@@ -320,7 +317,7 @@ void TCP_Reassembler::MatchUndelivered(uint64_t up_to_seq, bool use_last_upper)
 		}
 	}
 
-void TCP_Reassembler::RecordToSeq(uint64_t start_seq, uint64_t stop_seq, BroFile* f)
+void TCP_Reassembler::RecordToSeq(uint64_t start_seq, uint64_t stop_seq, const IntrusivePtr<BroFile>& f)
 	{
 	auto it = block_list.Begin();
 
@@ -351,7 +348,7 @@ void TCP_Reassembler::RecordToSeq(uint64_t start_seq, uint64_t stop_seq, BroFile
 			RecordGap(last_seq, stop_seq, f);
 	}
 
-void TCP_Reassembler::RecordBlock(const DataBlock& b, BroFile* f)
+void TCP_Reassembler::RecordBlock(const DataBlock& b, const IntrusivePtr<BroFile>& f)
 	{
 	if ( f->Write((const char*) b.block, b.Size()) )
 		return;
@@ -366,7 +363,7 @@ void TCP_Reassembler::RecordBlock(const DataBlock& b, BroFile* f)
 		);
 	}
 
-void TCP_Reassembler::RecordGap(uint64_t start_seq, uint64_t upper_seq, BroFile* f)
+void TCP_Reassembler::RecordGap(uint64_t start_seq, uint64_t upper_seq, const IntrusivePtr<BroFile>& f)
 	{
 	if ( f->Write(fmt("\n<<gap %" PRIu64">>\n", upper_seq - start_seq)) )
 		return;
@@ -537,7 +534,7 @@ void TCP_Reassembler::AckReceived(uint64_t seq)
 		return;
 
 	bool test_active = ! skip_deliveries && ! tcp_analyzer->Skipping() &&
-		( BifConst::report_gaps_for_partial ||
+		( zeek::BifConst::report_gaps_for_partial ||
 			(endp->state == TCP_ENDPOINT_ESTABLISHED &&
 				endp->peer->state == TCP_ENDPOINT_ESTABLISHED ) );
 

@@ -16,8 +16,9 @@
 
 using namespace file_analysis;
 
-X509Common::X509Common(const file_analysis::Tag& arg_tag, RecordVal* arg_args, File* arg_file)
-	: file_analysis::Analyzer(arg_tag, arg_args, arg_file)
+X509Common::X509Common(const file_analysis::Tag& arg_tag,
+                       IntrusivePtr<RecordVal> arg_args, File* arg_file)
+	: file_analysis::Analyzer(arg_tag, std::move(arg_args), arg_file)
 	{
 	}
 
@@ -269,7 +270,7 @@ void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, const EventHa
 	if ( ! ext_val )
 		ext_val = make_intrusive<StringVal>(0, "");
 
-	auto pX509Ext = make_intrusive<RecordVal>(BifType::Record::X509::Extension);
+	auto pX509Ext = make_intrusive<RecordVal>(zeek::BifType::Record::X509::Extension);
 	pX509Ext->Assign(0, make_intrusive<StringVal>(name));
 
 	if ( short_name and strlen(short_name) > 0 )
@@ -287,12 +288,11 @@ void file_analysis::X509Common::ParseExtension(X509_EXTENSION* ex, const EventHa
 	// but I am not sure if there is a better way to do it...
 
 	if ( h == ocsp_extension )
-		mgr.Enqueue(h, IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+		mgr.Enqueue(h, GetFile()->ToVal(),
 					std::move(pX509Ext),
 					val_mgr->Bool(global));
 	else
-		mgr.Enqueue(h, IntrusivePtr{NewRef{}, GetFile()->GetVal()},
-		            std::move(pX509Ext));
+		mgr.Enqueue(h, GetFile()->ToVal(), std::move(pX509Ext));
 
 	// let individual analyzers parse more.
 	ParseExtensionsSpecific(ex, global, ext_asn, oid);

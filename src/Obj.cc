@@ -90,7 +90,7 @@ void BroObj::BadTag(const char* msg, const char* t1, const char* t2) const
 
 	ODesc d;
 	DoMsg(&d, out);
-	reporter->FatalError("%s", d.Description());
+	reporter->FatalErrorWithCore("%s", d.Description());
 	reporter->PopLocation();
 	}
 

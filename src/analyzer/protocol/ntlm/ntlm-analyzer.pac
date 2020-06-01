@@ -1,84 +1,36 @@
+%header{
+	IntrusivePtr<Val> filetime2brotime(uint64_t ts);
+	IntrusivePtr<RecordVal> build_version_record(NTLM_Version* val);
+	IntrusivePtr<RecordVal> build_negotiate_flag_record(NTLM_Negotiate_Flags* val);
+%}
 
-refine connection NTLM_Conn += {
-
-	# This is replicated from the SMB analyzer. :(
-	function filetime2brotime(ts: uint64): Val
-		%{
+%code{
+	// This is replicated from the SMB analyzer. :(
+	IntrusivePtr<Val> filetime2brotime(uint64_t ts)
+		{
 		double secs = (ts / 10000000.0);
 
 		// Bro can't support times back to the 1600's
 		// so we subtract a lot of seconds.
-		Val* bro_ts = new Val(secs - 11644473600.0, TYPE_TIME);
+		auto bro_ts = make_intrusive<Val>(secs - 11644473600.0, TYPE_TIME);
 
 		return bro_ts;
-		%}
+		}
 
-	function build_version_record(val: NTLM_Version): BroVal
-		%{
-		RecordVal* result = new RecordVal(BifType::Record::NTLM::Version);
+	IntrusivePtr<RecordVal> build_version_record(NTLM_Version* val)
+		{
+		auto result = make_intrusive<RecordVal>(zeek::BifType::Record::NTLM::Version);
 		result->Assign(0, val_mgr->Count(${val.major_version}));
 		result->Assign(1, val_mgr->Count(${val.minor_version}));
 		result->Assign(2, val_mgr->Count(${val.build_number}));
 		result->Assign(3, val_mgr->Count(${val.ntlm_revision}));
 
 		return result;
-		%}
+		}
 
-	function build_av_record(val: NTLM_AV_Pair_Sequence, len: uint16): BroVal
-		%{
-		RecordVal* result = new RecordVal(BifType::Record::NTLM::AVs);
-		for ( uint i = 0; ; i++ )
-			{
-			if ( i >= ${val.pairs}->size() )
-				{
-				if ( len != 0 )
-					// According to spec, the TargetInfo MUST be a sequence of
-					// AV_PAIRs and terminated by the null AV_PAIR when the
-					// TargetInfoLen is non-zero, so this is in violation.
-					bro_analyzer()->ProtocolViolation("NTLM AV Pair loop underflow");
-
-				return result;
-				}
-
-			switch ( ${val.pairs[i].id} )
-				{
-				case 0:
-					return result;
-				case 1:
-					result->Assign(0, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].nb_computer_name.data}));
-					break;
-				case 2:
-					result->Assign(1, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].nb_domain_name.data}));
-					break;
-				case 3:
-					result->Assign(2, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].dns_computer_name.data}));
-					break;
-				case 4:
-					result->Assign(3, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].dns_domain_name.data}));
-					break;
-				case 5:
-					result->Assign(4, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].dns_tree_name.data}));
-					break;
-				case 6:
-					result->Assign(5, val_mgr->Bool(${val.pairs[i].constrained_auth}));
-					break;
-				case 7:
-					result->Assign(6, filetime2brotime(${val.pairs[i].timestamp}));
-					break;
-				case 8:
-					result->Assign(7, val_mgr->Count(${val.pairs[i].single_host.machine_id}));
-					break;
-				case 9:
-					result->Assign(8, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].target_name.data}));
-					break;
-				}
-			}
-		return result;
-		%}
-
-	function build_negotiate_flag_record(val: NTLM_Negotiate_Flags): BroVal
-		%{
-		RecordVal* flags = new RecordVal(BifType::Record::NTLM::NegotiateFlags);
+	IntrusivePtr<RecordVal> build_negotiate_flag_record(NTLM_Negotiate_Flags* val)
+		{
+		auto flags = make_intrusive<RecordVal>(zeek::BifType::Record::NTLM::NegotiateFlags);
 		flags->Assign(0, val_mgr->Bool(${val.negotiate_56}));
 		flags->Assign(1, val_mgr->Bool(${val.negotiate_key_exch}));
 		flags->Assign(2, val_mgr->Bool(${val.negotiate_128}));
@@ -103,6 +55,61 @@ refine connection NTLM_Conn += {
 		flags->Assign(21, val_mgr->Bool(${val.negotiate_unicode}));
 
 		return flags;
+		}
+%}
+
+refine connection NTLM_Conn += {
+
+	function build_av_record(val: NTLM_AV_Pair_Sequence, len: uint16): BroVal
+		%{
+		RecordVal* result = new RecordVal(zeek::BifType::Record::NTLM::AVs);
+		for ( uint i = 0; ; i++ )
+			{
+			if ( i >= ${val.pairs}->size() )
+				{
+				if ( len != 0 )
+					// According to spec, the TargetInfo MUST be a sequence of
+					// AV_PAIRs and terminated by the null AV_PAIR when the
+					// TargetInfoLen is non-zero, so this is in violation.
+					bro_analyzer()->ProtocolViolation("NTLM AV Pair loop underflow");
+
+				return result;
+				}
+
+			switch ( ${val.pairs[i].id} )
+				{
+				case 0:
+					return result;
+				case 1:
+					result->Assign(0, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].nb_computer_name.data}));
+					break;
+				case 2:
+					result->Assign(1, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].nb_domain_name.data}));
+					break;
+				case 3:
+					result->Assign(2, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].dns_computer_name.data}));
+					break;
+				case 4:
+					result->Assign(3, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].dns_domain_name.data}));
+					break;
+				case 5:
+					result->Assign(4, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].dns_tree_name.data}));
+					break;
+				case 6:
+					result->Assign(5, val_mgr->Bool(${val.pairs[i].constrained_auth}));
+					break;
+				case 7:
+					result->Assign(6, filetime2brotime(${val.pairs[i].timestamp}));
+					break;
+				case 8:
+					result->Assign(7, val_mgr->Count(${val.pairs[i].single_host.machine_id}));
+					break;
+				case 9:
+					result->Assign(8, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.pairs[i].target_name.data}));
+					break;
+				}
+			}
+		return result;
 		%}
 
 	function proc_ntlm_negotiate(val: NTLM_Negotiate): bool
@@ -110,19 +117,19 @@ refine connection NTLM_Conn += {
 		if ( ! ntlm_negotiate )
 			return true;
 
-		auto result = make_intrusive<RecordVal>(BifType::Record::NTLM::Negotiate);
+		auto result = make_intrusive<RecordVal>(zeek::BifType::Record::NTLM::Negotiate);
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
 		if ( ${val}->has_domain_name() )
-		        result->Assign(1, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.domain_name.string.data}));
+		        result->Assign(1, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.domain_name.string.data}));
 
 		if ( ${val}->has_workstation() )
-		        result->Assign(2, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.workstation.string.data}));
+		        result->Assign(2, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.workstation.string.data}));
 
 		if ( ${val}->has_version() )
 		        result->Assign(3, build_version_record(${val.version}));
 
-		BifEvent::enqueue_ntlm_negotiate(bro_analyzer(),
+		zeek::BifEvent::enqueue_ntlm_negotiate(bro_analyzer(),
 		                                 bro_analyzer()->Conn(),
 		                                 std::move(result));
 
@@ -134,19 +141,19 @@ refine connection NTLM_Conn += {
 		if ( ! ntlm_challenge )
 			return true;
 
-		auto result = make_intrusive<RecordVal>(BifType::Record::NTLM::Challenge);
+		auto result = make_intrusive<RecordVal>(zeek::BifType::Record::NTLM::Challenge);
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
 		if ( ${val}->has_target_name() )
-			result->Assign(1, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.target_name.string.data}));
+			result->Assign(1, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.target_name.string.data}));
 
 		if ( ${val}->has_version() )
 			result->Assign(2, build_version_record(${val.version}));
 
 		if ( ${val}->has_target_info() )
-			result->Assign(3, build_av_record(${val.target_info},  ${val.target_info_fields.length}));
+			result->Assign(3, {AdoptRef{}, build_av_record(${val.target_info},  ${val.target_info_fields.length})});
 
-		BifEvent::enqueue_ntlm_challenge(bro_analyzer(),
+		zeek::BifEvent::enqueue_ntlm_challenge(bro_analyzer(),
 		                                 bro_analyzer()->Conn(),
 		                                 std::move(result));
 
@@ -158,17 +165,17 @@ refine connection NTLM_Conn += {
 		if ( ! ntlm_authenticate )
 			return true;
 
-		auto result = make_intrusive<RecordVal>(BifType::Record::NTLM::Authenticate);
+		auto result = make_intrusive<RecordVal>(zeek::BifType::Record::NTLM::Authenticate);
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
 		if ( ${val}->has_domain_name() > 0 )
-			result->Assign(1, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.domain_name.string.data}));
+			result->Assign(1, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.domain_name.string.data}));
 
 		if ( ${val}->has_user_name() > 0 )
-			result->Assign(2, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.user_name.string.data}));
+			result->Assign(2, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.user_name.string.data}));
 
 		if ( ${val}->has_workstation() > 0 )
-			result->Assign(3, utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), ${val.workstation.string.data}));
+			result->Assign(3, utf16_to_utf8_val(bro_analyzer()->Conn(), ${val.workstation.string.data}));
 
 		if ( ${val}->has_encrypted_session_key() > 0 )
 			result->Assign(4, to_stringval(${val.encrypted_session_key.string.data}));
@@ -176,7 +183,7 @@ refine connection NTLM_Conn += {
 		if ( ${val}->has_version() )
 			result->Assign(5, build_version_record(${val.version}));
 
-		BifEvent::enqueue_ntlm_authenticate(bro_analyzer(),
+		zeek::BifEvent::enqueue_ntlm_authenticate(bro_analyzer(),
 		                                    bro_analyzer()->Conn(),
 		                                    std::move(result));
 		return true;

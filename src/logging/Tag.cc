@@ -6,7 +6,7 @@
 const logging::Tag logging::Tag::Error;
 
 logging::Tag::Tag(type_t type, subtype_t subtype)
-	: ::Tag(log_mgr->GetTagEnumType(), type, subtype)
+	: ::Tag(log_mgr->GetTagType(), type, subtype)
 	{
 	}
 
@@ -22,7 +22,20 @@ logging::Tag& logging::Tag::operator=(const logging::Tag&& other) noexcept
 	return *this;
 	}
 
+const IntrusivePtr<EnumVal>& logging::Tag::AsVal() const
+	{
+	return ::Tag::AsVal(log_mgr->GetTagType());
+	}
+
 EnumVal* logging::Tag::AsEnumVal() const
 	{
-	return ::Tag::AsEnumVal(log_mgr->GetTagEnumType());
+	return AsVal().get();
 	}
+
+logging::Tag::Tag(IntrusivePtr<EnumVal> val)
+	: ::Tag(std::move(val))
+	{ }
+
+logging::Tag::Tag(EnumVal* val)
+	: ::Tag({NewRef{}, val})
+	{ }

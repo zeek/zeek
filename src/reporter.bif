@@ -138,7 +138,7 @@ function Reporter::conn_weird%(name: string, c: connection, addl: string &defaul
 ## Returns: true if the file was still valid, else false.
 function Reporter::file_weird%(name: string, f: fa_file, addl: string &default=""%): bool
 	%{
-	auto fuid = f->AsRecordVal()->Lookup(0)->AsStringVal();
+	auto fuid = f->AsRecordVal()->GetField(0)->AsStringVal();
 	auto file = file_mgr->LookupFile(fuid->CheckString());
 
 	if ( ! file )
@@ -153,11 +153,11 @@ function Reporter::file_weird%(name: string, f: fa_file, addl: string &default="
 ## Returns: Current weird sampling whitelist
 function Reporter::get_weird_sampling_whitelist%(%): string_set
 	%{
-	auto set = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, string_set});
+	auto set = make_intrusive<TableVal>(zeek::id::string_set);
 	for ( auto el : reporter->GetWeirdSamplingWhitelist() )
 		{
 		auto idx = make_intrusive<StringVal>(el);
-		set->Assign(idx.get(), nullptr);
+		set->Assign(std::move(idx), nullptr);
 		}
 	return set;
 	%}
@@ -179,8 +179,8 @@ function Reporter::set_weird_sampling_whitelist%(weird_sampling_whitelist: strin
 
 	while ( (v = wl_table->NextEntry(k, c)) )
 		{
-		auto index = wl_val->RecoverIndex(k);
-		string key = index->Index(0)->AsString()->CheckString();
+		auto index = wl_val->RecreateIndex(*k);
+		string key = index->Idx(0)->AsString()->CheckString();
 		whitelist_set.emplace(move(key));
 		delete k;
 		}

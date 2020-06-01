@@ -109,18 +109,27 @@ bool is_lws(char ch)
 	}
 
 StringVal* new_string_val(int length, const char* data)
-	{
-	return new StringVal(length, data);
-	}
+	{ return to_string_val(length, data).release(); }
 
 StringVal* new_string_val(const char* data, const char* end_of_data)
-	{
-	return new StringVal(end_of_data - data, data);
-	}
+	{ return to_string_val(data, end_of_data).release(); }
 
 StringVal* new_string_val(const data_chunk_t buf)
+	{ return to_string_val(buf).release(); }
+
+IntrusivePtr<StringVal> to_string_val(int length, const char* data)
 	{
-	return new_string_val(buf.length, buf.data);
+	return make_intrusive<StringVal>(length, data);
+	}
+
+IntrusivePtr<StringVal> to_string_val(const char* data, const char* end_of_data)
+	{
+	return make_intrusive<StringVal>(end_of_data - data, data);
+	}
+
+IntrusivePtr<StringVal> to_string_val(const data_chunk_t buf)
+	{
+	return to_string_val(buf.length, buf.data);
 	}
 
 static data_chunk_t get_data_chunk(BroString* s)
@@ -551,8 +560,8 @@ void MIME_Entity::init()
 
 	need_to_parse_parameters = 0;
 
-	content_type_str = new StringVal("TEXT");
-	content_subtype_str = new StringVal("PLAIN");
+	content_type_str = make_intrusive<StringVal>("TEXT");
+	content_subtype_str = make_intrusive<StringVal>("PLAIN");
 
 	content_encoding_str = nullptr;
 	multipart_boundary = nullptr;
@@ -581,8 +590,6 @@ MIME_Entity::~MIME_Entity()
 		            "missing MIME_Entity::EndOfData() before ~MIME_Entity");
 
 	delete current_header_line;
-	Unref(content_type_str);
-	Unref(content_subtype_str);
 	delete content_encoding_str;
 	delete multipart_boundary;
 
@@ -804,10 +811,10 @@ bool MIME_Entity::ParseContentTypeField(MIME_Header* h)
 	data += offset;
 	len -= offset;
 
-	Unref(content_type_str);
-	content_type_str = (new StringVal(ty.length, ty.data))->ToUpper();
-	Unref(content_subtype_str);
-	content_subtype_str = (new StringVal(subty.length, subty.data))->ToUpper();
+	content_type_str = make_intrusive<StringVal>(ty.length, ty.data);
+	content_type_str->ToUpper();
+	content_subtype_str = make_intrusive<StringVal>(subty.length, subty.data);
+	content_subtype_str->ToUpper();
 
 	ParseContentType(ty, subty);
 
@@ -1290,26 +1297,33 @@ void MIME_Entity::DebugPrintHeaders()
 	}
 
 RecordVal* MIME_Message::BuildHeaderVal(MIME_Header* h)
+	{ return ToHeaderVal(h).release(); }
+
+IntrusivePtr<RecordVal> MIME_Message::ToHeaderVal(MIME_Header* h)
 	{
-	RecordVal* header_record = new RecordVal(mime_header_rec);
-	header_record->Assign(0, new_string_val(h->get_name()));
-	header_record->Assign(1, new_string_val(h->get_name())->ToUpper());
-	header_record->Assign(2, new_string_val(h->get_value()));
+	static auto mime_header_rec = zeek::id::find_type<RecordType>("mime_header_rec");
+	auto header_record = make_intrusive<RecordVal>(mime_header_rec);
+	header_record->Assign(0, to_string_val(h->get_name()));
+	auto upper_hn = to_string_val(h->get_name());
+	upper_hn->ToUpper();
+	header_record->Assign(1, std::move(upper_hn));
+	header_record->Assign(2, to_string_val(h->get_value()));
 	return header_record;
 	}
 
 TableVal* MIME_Message::BuildHeaderTable(MIME_HeaderList& hlist)
+	{ return ToHeaderTable(hlist).release(); }
+
+IntrusivePtr<TableVal> MIME_Message::ToHeaderTable(MIME_HeaderList& hlist)
 	{
-	TableVal* t = new TableVal({NewRef{}, mime_header_list});
+	static auto mime_header_list = zeek::id::find_type<TableType>("mime_header_list");
+	auto t = make_intrusive<TableVal>(mime_header_list);
 
 	for ( unsigned int i = 0; i < hlist.size(); ++i )
 		{
 		auto index = val_mgr->Count(i + 1);	// index starting from 1
-
 		MIME_Header* h = hlist[i];
-		RecordVal* header_record = BuildHeaderVal(h);
-
-		t->Assign(index.get(), header_record);
+		t->Assign(std::move(index), ToHeaderVal(h));
 		}
 
 	return t;
@@ -1428,7 +1442,7 @@ void MIME_Mail::SubmitHeader(MIME_Header* h)
 	if ( mime_one_header )
 		analyzer->EnqueueConnEvent(mime_one_header,
 			analyzer->ConnVal(),
-			IntrusivePtr{AdoptRef{}, BuildHeaderVal(h)}
+			ToHeaderVal(h)
 		);
 	}
 
@@ -1437,7 +1451,7 @@ void MIME_Mail::SubmitAllHeaders(MIME_HeaderList& hlist)
 	if ( mime_all_headers )
 		analyzer->EnqueueConnEvent(mime_all_headers,
 			analyzer->ConnVal(),
-			IntrusivePtr{AdoptRef{}, BuildHeaderTable(hlist)}
+			ToHeaderTable(hlist)
 		);
 	}
 

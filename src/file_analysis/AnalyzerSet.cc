@@ -21,8 +21,8 @@ static void analyzer_del_func(void* v)
 AnalyzerSet::AnalyzerSet(File* arg_file) : file(arg_file)
 	{
 	auto t = make_intrusive<TypeList>();
-	t->Append({NewRef{}, file_mgr->GetTagEnumType()});
-	t->Append({NewRef{}, BifType::Record::Files::AnalyzerArgs});
+	t->Append(file_mgr->GetTagType());
+	t->Append(zeek::BifType::Record::Files::AnalyzerArgs);
 	analyzer_hash = new CompositeHash(std::move(t));
 	analyzer_map.SetDeleteFunc(analyzer_del_func);
 	}
@@ -40,60 +40,54 @@ AnalyzerSet::~AnalyzerSet()
 	delete analyzer_hash;
 	}
 
-Analyzer* AnalyzerSet::Find(const file_analysis::Tag& tag, RecordVal* args)
+Analyzer* AnalyzerSet::Find(const file_analysis::Tag& tag,
+                            IntrusivePtr<RecordVal> args)
 	{
-	HashKey* key = GetKey(tag, args);
-	Analyzer* rval = analyzer_map.Lookup(key);
-	delete key;
+	auto key = GetKey(tag, std::move(args));
+	Analyzer* rval = analyzer_map.Lookup(key.get());
 	return rval;
 	}
 
-bool AnalyzerSet::Add(const file_analysis::Tag& tag, RecordVal* args)
+bool AnalyzerSet::Add(const file_analysis::Tag& tag, IntrusivePtr<RecordVal> args)
 	{
-	HashKey* key = GetKey(tag, args);
+	auto key = GetKey(tag, args);
 
-	if ( analyzer_map.Lookup(key) )
+	if ( analyzer_map.Lookup(key.get()) )
 		{
 		DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Instantiate analyzer %s skipped: already exists",
 		        file->GetID().c_str(),
 		        file_mgr->GetComponentName(tag).c_str());
 
-		delete key;
 		return true;
 		}
 
-	file_analysis::Analyzer* a = InstantiateAnalyzer(tag, args);
+	file_analysis::Analyzer* a = InstantiateAnalyzer(tag, std::move(args));
 
 	if ( ! a )
-		{
-		delete key;
 		return false;
-		}
 
-	Insert(a, key);
+	Insert(a, std::move(key));
 
 	return true;
 	}
 
-Analyzer* AnalyzerSet::QueueAdd(const file_analysis::Tag& tag, RecordVal* args)
+Analyzer* AnalyzerSet::QueueAdd(const file_analysis::Tag& tag,
+                                IntrusivePtr<RecordVal> args)
 	{
-	HashKey* key = GetKey(tag, args);
-	file_analysis::Analyzer* a = InstantiateAnalyzer(tag, args);
+	auto key = GetKey(tag, args);
+	file_analysis::Analyzer* a = InstantiateAnalyzer(tag, std::move(args));
 
 	if ( ! a )
-		{
-		delete key;
 		return nullptr;
-		}
 
-	mod_queue.push(new AddMod(a, key));
+	mod_queue.push(new AddMod(a, std::move(key)));
 
 	return a;
 	}
 
 bool AnalyzerSet::AddMod::Perform(AnalyzerSet* set)
 	{
-	if ( set->analyzer_map.Lookup(key) )
+	if ( set->analyzer_map.Lookup(key.get()) )
 		{
 		DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Add analyzer %s skipped: already exists",
 		        a->GetFile()->GetID().c_str(),
@@ -103,7 +97,7 @@ bool AnalyzerSet::AddMod::Perform(AnalyzerSet* set)
 		return true;
 		}
 
-	set->Insert(a, key);
+	set->Insert(a, std::move(key));
 
 	return true;
 	}
@@ -111,20 +105,18 @@ bool AnalyzerSet::AddMod::Perform(AnalyzerSet* set)
 void AnalyzerSet::AddMod::Abort()
 	{
 	delete a;
-	delete key;
 	}
 
-bool AnalyzerSet::Remove(const file_analysis::Tag& tag, RecordVal* args)
+bool AnalyzerSet::Remove(const file_analysis::Tag& tag,
+                         IntrusivePtr<RecordVal> args)
 	{
-	return Remove(tag, GetKey(tag, args));
+	return Remove(tag, GetKey(tag, std::move(args)));
 	}
 
-bool AnalyzerSet::Remove(const file_analysis::Tag& tag, HashKey* key)
+bool AnalyzerSet::Remove(const file_analysis::Tag& tag,
+                         std::unique_ptr<HashKey> key)
 	{
-	file_analysis::Analyzer* a =
-	    (file_analysis::Analyzer*) analyzer_map.Remove(key);
-
-	delete key;
+	auto a = (file_analysis::Analyzer*) analyzer_map.Remove(key.get());
 
 	if ( ! a )
 		{
@@ -147,27 +139,28 @@ bool AnalyzerSet::Remove(const file_analysis::Tag& tag, HashKey* key)
 	return true;
 	}
 
-bool AnalyzerSet::QueueRemove(const file_analysis::Tag& tag, RecordVal* args)
+bool AnalyzerSet::QueueRemove(const file_analysis::Tag& tag,
+                              IntrusivePtr<RecordVal> args)
 	{
-	HashKey* key = GetKey(tag, args);
-
-	mod_queue.push(new RemoveMod(tag, key));
-
-	return analyzer_map.Lookup(key);
+	auto key = GetKey(tag, std::move(args));
+	auto rval = analyzer_map.Lookup(key.get());
+	mod_queue.push(new RemoveMod(tag, std::move(key)));
+	return rval;
 	}
 
 bool AnalyzerSet::RemoveMod::Perform(AnalyzerSet* set)
 	{
-	return set->Remove(tag, key);
+	return set->Remove(tag, std::move(key));
 	}
 
-HashKey* AnalyzerSet::GetKey(const file_analysis::Tag& t, RecordVal* args) const
+std::unique_ptr<HashKey> AnalyzerSet::GetKey(const file_analysis::Tag& t,
+                                             IntrusivePtr<RecordVal> args) const
 	{
-	ListVal* lv = new ListVal(TYPE_ANY);
-	lv->Append(t.AsEnumVal()->Ref());
-	lv->Append(args->Ref());
-	HashKey* key = analyzer_hash->ComputeHash(lv, true);
-	Unref(lv);
+	auto lv = make_intrusive<ListVal>(TYPE_ANY);
+	lv->Append(t.AsVal());
+	lv->Append(std::move(args));
+	auto key = analyzer_hash->MakeHashKey(*lv, true);
+
 	if ( ! key )
 		reporter->InternalError("AnalyzerArgs type mismatch");
 
@@ -175,9 +168,9 @@ HashKey* AnalyzerSet::GetKey(const file_analysis::Tag& t, RecordVal* args) const
 	}
 
 file_analysis::Analyzer* AnalyzerSet::InstantiateAnalyzer(const Tag& tag,
-                                                          RecordVal* args) const
+                                                          IntrusivePtr<RecordVal> args) const
 	{
-	file_analysis::Analyzer* a = file_mgr->InstantiateAnalyzer(tag, args, file);
+	auto  a = file_mgr->InstantiateAnalyzer(tag, std::move(args), file);
 
 	if ( ! a )
 		{
@@ -190,12 +183,12 @@ file_analysis::Analyzer* AnalyzerSet::InstantiateAnalyzer(const Tag& tag,
 	return a;
 	}
 
-void AnalyzerSet::Insert(file_analysis::Analyzer* a, HashKey* key)
+void AnalyzerSet::Insert(file_analysis::Analyzer* a,
+                         std::unique_ptr<HashKey> key)
 	{
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Add analyzer %s",
 	        file->GetID().c_str(), file_mgr->GetComponentName(a->Tag()).c_str());
-	analyzer_map.Insert(key, a);
-	delete key;
+	analyzer_map.Insert(key.get(), a);
 
 	a->Init();
 	}

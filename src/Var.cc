@@ -15,6 +15,7 @@
 #include "EventRegistry.h"
 #include "Traverse.h"
 #include "module_util.h"
+#include "ID.h"
 
 static IntrusivePtr<Val> init_val(Expr* init, const BroType* t,
                                   IntrusivePtr<Val> aggr)
@@ -29,19 +30,20 @@ static IntrusivePtr<Val> init_val(Expr* init, const BroType* t,
 		}
 	}
 
-static bool add_prototype(ID* id, BroType* t, attr_list* attrs,
+static bool add_prototype(const IntrusivePtr<ID>& id, BroType* t,
+                          std::vector<IntrusivePtr<Attr>>* attrs,
                           const IntrusivePtr<Expr>& init)
 	{
-	if ( ! IsFunc(id->Type()->Tag()) )
+	if ( ! IsFunc(id->GetType()->Tag()) )
 		return false;
 
 	if ( ! IsFunc(t->Tag()) )
 		{
-		t->Error("type incompatible with previous definition", id);
+		t->Error("type incompatible with previous definition", id.get());
 		return false;
 		}
 
-	auto canon_ft = id->Type()->AsFuncType();
+	auto canon_ft = id->GetType()->AsFuncType();
 	auto alt_ft = t->AsFuncType();
 
 	if ( canon_ft->Flavor() != alt_ft->Flavor() )
@@ -62,8 +64,8 @@ static bool add_prototype(ID* id, BroType* t, attr_list* attrs,
 		return false;
 		}
 
-	auto canon_args = canon_ft->Args();
-	auto alt_args = alt_ft->Args();
+	const auto& canon_args = canon_ft->Params();
+	const auto& alt_args = alt_ft->Params();
 
 	if ( auto p = canon_ft->FindPrototype(*alt_args); p )
 		{
@@ -101,18 +103,20 @@ static bool add_prototype(ID* id, BroType* t, attr_list* attrs,
 			if ( a->Tag() == ATTR_DEPRECATED )
 				deprecated = true;
 
-	FuncType::Prototype p{deprecated, {NewRef{}, alt_args}, std::move(offsets)};
+	FuncType::Prototype p{deprecated, alt_args, std::move(offsets)};
 	canon_ft->AddPrototype(std::move(p));
 	return true;
 	}
 
-static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
-                     IntrusivePtr<Expr> init, attr_list* attr, decl_type dt,
+static void make_var(const IntrusivePtr<ID>& id, IntrusivePtr<BroType> t, init_class c,
+                     IntrusivePtr<Expr> init,
+                     std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr,
+                     decl_type dt,
                      bool do_init)
 	{
-	if ( id->Type() )
+	if ( id->GetType() )
 		{
-		if ( id->IsRedefinable() || (! init && attr && ! IsFunc(id->Type()->Tag())) )
+		if ( id->IsRedefinable() || (! init && attr && ! IsFunc(id->GetType()->Tag())) )
 			{
 			BroObj* redef_obj = init ? (BroObj*) init.get() : (BroObj*) t.get();
 			if ( dt != VAR_REDEF )
@@ -121,8 +125,8 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 
 		else if ( dt != VAR_REDEF || init || ! attr )
 			{
-			if ( IsFunc(id->Type()->Tag()) )
-				add_prototype(id, t.get(), attr, init);
+			if ( IsFunc(id->GetType()->Tag()) )
+				add_prototype(id, t.get(), attr.get(), init);
 			else
 				id->Error("already defined", init.get());
 
@@ -132,17 +136,17 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 
 	if ( dt == VAR_REDEF )
 		{
-		if ( ! id->Type() )
+		if ( ! id->GetType() )
 			{
 			id->Error("\"redef\" used but not previously defined");
 			return;
 			}
 
 		if ( ! t )
-			t = {NewRef{}, id->Type()};
+			t = id->GetType();
 		}
 
-	if ( id->Type() && id->Type()->Tag() != TYPE_ERROR )
+	if ( id->GetType() && id->GetType()->Tag() != TYPE_ERROR )
 		{
 		if ( dt != VAR_REDEF &&
 		     (! init || ! do_init || (! t && ! (t = init_type(init.get())))) )
@@ -152,7 +156,7 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 			}
 
 		// Allow redeclaration in order to initialize.
-		if ( ! same_type(t.get(), id->Type()) )
+		if ( ! same_type(t, id->GetType()) )
 			{
 			id->Error("redefinition changes type", init.get());
 			return;
@@ -162,7 +166,7 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 	if ( t && t->IsSet() )
 		{ // Check for set with explicit elements.
 		SetType* st = t->AsTableType()->AsSetType();
-		ListExpr* elements = st->SetElements();
+		const auto& elements = st->Elements();
 
 		if ( elements )
 			{
@@ -172,7 +176,7 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 				return;
 				}
 
-			init = {NewRef{}, elements};
+			init = elements;
 			}
 		}
 
@@ -195,7 +199,7 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 	id->SetType(t);
 
 	if ( attr )
-		id->AddAttrs(make_intrusive<Attributes>(attr, t, false, id->IsGlobal()));
+		id->AddAttrs(make_intrusive<Attributes>(std::move(*attr), t, false, id->IsGlobal()));
 
 	if ( init )
 		{
@@ -203,16 +207,16 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 		case EXPR_TABLE_CONSTRUCTOR:
 			{
 			TableConstructorExpr* ctor = (TableConstructorExpr*) init.get();
-			if ( ctor->Attrs() )
-				id->AddAttrs({NewRef{}, ctor->Attrs()});
+			if ( ctor->GetAttrs() )
+				id->AddAttrs(ctor->GetAttrs());
 			}
 			break;
 
 		case EXPR_SET_CONSTRUCTOR:
 			{
 			SetConstructorExpr* ctor = (SetConstructorExpr*) init.get();
-			if ( ctor->Attrs() )
-				id->AddAttrs({NewRef{}, ctor->Attrs()});
+			if ( ctor->GetAttrs() )
+				id->AddAttrs(ctor->GetAttrs());
 			}
 			break;
 
@@ -229,8 +233,8 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 			// intention clearly isn't to overwrite entire existing table val.
 			c = INIT_EXTRA;
 
-		if ( init && ((c == INIT_EXTRA && id->FindAttr(ATTR_ADD_FUNC)) ||
-		              (c == INIT_REMOVE && id->FindAttr(ATTR_DEL_FUNC)) ))
+		if ( init && ((c == INIT_EXTRA && id->GetAttr(ATTR_ADD_FUNC)) ||
+		              (c == INIT_REMOVE && id->GetAttr(ATTR_DEL_FUNC)) ))
 			// Just apply the function.
 			id->SetVal(init, c);
 
@@ -240,7 +244,7 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 
 			if ( t->Tag() == TYPE_RECORD )
 				{
-				aggr = make_intrusive<RecordVal>(t->AsRecordType());
+				aggr = make_intrusive<RecordVal>(cast_intrusive<RecordType>(t));
 
 				if ( init && t )
 					// Have an initialization and type is not deduced.
@@ -249,11 +253,11 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 				}
 
 			else if ( t->Tag() == TYPE_TABLE )
-				aggr = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, t->AsTableType()},
-				                                IntrusivePtr{NewRef{}, id->Attrs()});
+				aggr = make_intrusive<TableVal>(cast_intrusive<TableType>(t),
+				                                id->GetAttrs());
 
 			else if ( t->Tag() == TYPE_VECTOR )
-				aggr = make_intrusive<VectorVal>(t->AsVectorType());
+				aggr = make_intrusive<VectorVal>(cast_intrusive<VectorType>(t));
 
 			IntrusivePtr<Val> v;
 
@@ -297,23 +301,27 @@ static void make_var(ID* id, IntrusivePtr<BroType> t, init_class c,
 		// For events, add a function value (without any body) here so that
 		// we can later access the ID even if no implementations have been
 		// defined.
-		Func* f = new BroFunc(id, nullptr, nullptr, 0, 0);
-		id->SetVal(make_intrusive<Val>(f));
+		std::vector<IntrusivePtr<ID>> inits;
+		auto f = make_intrusive<BroFunc>(id, nullptr, inits, 0, 0);
+		id->SetVal(make_intrusive<Val>(std::move(f)));
 		}
 	}
 
 
-void add_global(ID* id, IntrusivePtr<BroType> t, init_class c,
-                IntrusivePtr<Expr> init, attr_list* attr, decl_type dt)
+void add_global(const IntrusivePtr<ID>& id, IntrusivePtr<BroType> t,
+                init_class c, IntrusivePtr<Expr> init,
+                std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr,
+                decl_type dt)
 	{
-	make_var(id, std::move(t), c, std::move(init), attr, dt, true);
+	make_var(id, std::move(t), c, std::move(init), std::move(attr), dt, true);
 	}
 
 IntrusivePtr<Stmt> add_local(IntrusivePtr<ID> id, IntrusivePtr<BroType> t,
                              init_class c, IntrusivePtr<Expr> init,
-                             attr_list* attr, decl_type dt)
+                             std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr,
+                             decl_type dt)
 	{
-	make_var(id.get(), std::move(t), c, init, attr, dt, false);
+	make_var(id, std::move(t), c, init, std::move(attr), dt, false);
 
 	if ( init )
 		{
@@ -325,10 +333,9 @@ IntrusivePtr<Stmt> add_local(IntrusivePtr<ID> id, IntrusivePtr<BroType> t,
 		        *init->GetLocationInfo() : no_location;
 
 		auto name_expr = make_intrusive<NameExpr>(id, dt == VAR_CONST);
-		auto attrs = id->Attrs() ? id->Attrs()->Attrs() : nullptr;
 		auto assign_expr = make_intrusive<AssignExpr>(std::move(name_expr),
 		                                              std::move(init), 0,
-		                                              nullptr, attrs);
+		                                              nullptr, id->GetAttrs());
 		auto stmt = make_intrusive<ExprStmt>(std::move(assign_expr));
 		stmt->SetLocationInfo(&location);
 		return stmt;
@@ -345,13 +352,14 @@ extern IntrusivePtr<Expr> add_and_assign_local(IntrusivePtr<ID> id,
                                                IntrusivePtr<Expr> init,
                                                IntrusivePtr<Val> val)
 	{
-	make_var(id.get(), nullptr, INIT_FULL, init, nullptr, VAR_REGULAR, false);
+	make_var(id, nullptr, INIT_FULL, init, nullptr, VAR_REGULAR, false);
 	auto name_expr = make_intrusive<NameExpr>(std::move(id));
 	return make_intrusive<AssignExpr>(std::move(name_expr), std::move(init),
 	                                  false, std::move(val));
 	}
 
-void add_type(ID* id, IntrusivePtr<BroType> t, attr_list* attr)
+void add_type(ID* id, IntrusivePtr<BroType> t,
+              std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr)
 	{
 	std::string new_type_name = id->Name();
 	std::string old_type_name = t->GetName();
@@ -363,7 +371,7 @@ void add_type(ID* id, IntrusivePtr<BroType> t, attr_list* attr)
 		tnew = std::move(t);
 	else
 		// Clone the type to preserve type name aliasing.
-		tnew = {AdoptRef{}, t->ShallowClone()};
+		tnew = t->ShallowClone();
 
 	BroType::AddAlias(new_type_name, tnew.get());
 
@@ -376,7 +384,7 @@ void add_type(ID* id, IntrusivePtr<BroType> t, attr_list* attr)
 	id->MakeType();
 
 	if ( attr )
-		id->SetAttrs(make_intrusive<Attributes>(attr, tnew, false, false));
+		id->SetAttrs(make_intrusive<Attributes>(std::move(*attr), tnew, false, false));
 	}
 
 static void transfer_arg_defaults(RecordType* args, RecordType* recv)
@@ -386,37 +394,34 @@ static void transfer_arg_defaults(RecordType* args, RecordType* recv)
 		TypeDecl* args_i = args->FieldDecl(i);
 		TypeDecl* recv_i = recv->FieldDecl(i);
 
-		Attr* def = args_i->attrs ? args_i->attrs->FindAttr(ATTR_DEFAULT) : nullptr;
+		const auto& def = args_i->attrs ? args_i->attrs->Find(ATTR_DEFAULT) : nullptr;
 
 		if ( ! def )
 			continue;
 
 		if ( ! recv_i->attrs )
 			{
-			attr_list* a = new attr_list{def};
-			recv_i->attrs = make_intrusive<Attributes>(a, recv_i->type, true, false);
+			std::vector<IntrusivePtr<Attr>> a{def};
+			recv_i->attrs = make_intrusive<Attributes>(std::move(a),
+			                                           recv_i->type,
+			                                           true, false);
 			}
 
-		else if ( ! recv_i->attrs->FindAttr(ATTR_DEFAULT) )
-			recv_i->attrs->AddAttr({NewRef{}, def});
+		else if ( ! recv_i->attrs->Find(ATTR_DEFAULT) )
+			recv_i->attrs->AddAttr(def);
 		}
 	}
 
-static Attr* find_attr(const attr_list* al, attr_tag tag)
+static Attr* find_attr(const std::vector<IntrusivePtr<Attr>>* al, attr_tag tag)
 	{
 	if ( ! al )
 		return nullptr;
 
-	for ( int i = 0; i < al->length(); ++i )
+	for ( size_t i = 0; i < al->size(); ++i )
 		if ( (*al)[i]->Tag() == tag )
-			return (*al)[i];
+			return (*al)[i].get();
 
 	return nullptr;
-	}
-
-static bool has_attr(const attr_list* al, attr_tag tag)
-	{
-	return find_attr(al, tag) != nullptr;
 	}
 
 static std::optional<FuncType::Prototype> func_type_check(const FuncType* decl, const FuncType* impl)
@@ -436,30 +441,32 @@ static std::optional<FuncType::Prototype> func_type_check(const FuncType* decl, 
 		return {};
 		}
 
-	return decl->FindPrototype(*impl->Args());
+	return decl->FindPrototype(*impl->Params());
 	}
 
 static bool canonical_arg_types_match(const FuncType* decl, const FuncType* impl)
 	{
-	auto canon_args = decl->Args();
-	auto impl_args = impl->Args();
+	const auto& canon_args = decl->Params();
+	const auto& impl_args = impl->Params();
 
 	if ( canon_args->NumFields() != impl_args->NumFields() )
 		return false;
 
 	for ( auto i = 0; i < canon_args->NumFields(); ++i )
-		if ( ! same_type(canon_args->FieldType(i), impl_args->FieldType(i)) )
+		if ( ! same_type(canon_args->GetFieldType(i), impl_args->GetFieldType(i)) )
 			return false;
 
 	return true;
 	}
 
-void begin_func(ID* id, const char* module_name, function_flavor flavor,
-                bool is_redef, IntrusivePtr<FuncType> t, attr_list* attrs)
+void begin_func(IntrusivePtr<ID> id, const char* module_name,
+                function_flavor flavor, bool is_redef,
+                IntrusivePtr<FuncType> t,
+                std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs)
 	{
 	if ( flavor == FUNC_FLAVOR_EVENT )
 		{
-		const BroType* yt = t->YieldType();
+		const auto& yt = t->Yield();
 
 		if ( yt && yt->Tag() != TYPE_VOID )
 			id->Error("event cannot yield a value", t.get());
@@ -469,9 +476,9 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 
 	std::optional<FuncType::Prototype> prototype;
 
-	if ( id->Type() )
+	if ( id->GetType() )
 		{
-		auto decl = id->Type()->AsFuncType();
+		auto decl = id->GetType()->AsFuncType();
 		prototype = func_type_check(decl, t.get());
 
 		if ( prototype )
@@ -482,20 +489,20 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 				// params, automatically transfer any that are missing
 				// (convenience so that implementations don't need to specify
 				// the &default expression again).
-				transfer_arg_defaults(prototype->args.get(), t->Args());
+				transfer_arg_defaults(prototype->args.get(), t->Params().get());
 				}
 			else
 				{
 				// Warn for trying to use &default parameters in hook/event
 				// handler body when it already has a declaration since only
 				// &default in the declaration has any effect.
-				auto args = t->Args();
+				const auto& args = t->Params();
 
 				for ( int i = 0; i < args->NumFields(); ++i )
 					{
 					auto f = args->FieldDecl(i);
 
-					if ( f->attrs && f->attrs->FindAttr(ATTR_DEFAULT) )
+					if ( f->attrs && f->attrs->Find(ATTR_DEFAULT) )
 						{
 						reporter->PushLocation(args->GetLocationInfo());
 						reporter->Warning(
@@ -507,7 +514,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 				}
 
 			if ( prototype->deprecated )
-				t->Warn("use of deprecated prototype", id);
+				t->Warn("use of deprecated prototype", id.get());
 			}
 		else
 			{
@@ -516,7 +523,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 			if ( canonical_arg_types_match(decl, t.get()) )
 				prototype = decl->Prototypes()[0];
 			else
-				t->Error("use of undeclared alternate prototype", id);
+				t->Error("use of undeclared alternate prototype", id.get());
 			}
 		}
 
@@ -525,7 +532,7 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 
 	if ( id->HasVal() )
 		{
-		function_flavor id_flavor = id->ID_Val()->AsFunc()->Flavor();
+		function_flavor id_flavor = id->GetVal()->AsFunc()->Flavor();
 
 		if ( id_flavor != flavor )
 			id->Error("inconsistent function flavor", t.get());
@@ -552,9 +559,9 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 	else
 		id->SetType(t);
 
-	push_scope({NewRef{}, id}, attrs);
+	push_scope(std::move(id), std::move(attrs));
 
-	RecordType* args = t->Args();
+	const auto& args = t->Params();
 	int num_args = args->NumFields();
 
 	for ( int i = 0; i < num_args; ++i )
@@ -572,8 +579,9 @@ void begin_func(ID* id, const char* module_name, function_flavor flavor,
 			arg_id->SetOffset(prototype->offsets[i]);
 		}
 
-	if ( Attr* depr_attr = find_attr(attrs, ATTR_DEPRECATED) )
-		id->MakeDeprecated({NewRef{}, depr_attr->AttrExpr()});
+	if ( Attr* depr_attr = find_attr(current_scope()->Attrs().get(),
+	                                 ATTR_DEPRECATED) )
+		current_scope()->GetID()->MakeDeprecated(depr_attr->GetExpr());
 	}
 
 class OuterIDBindingFinder : public TraversalCallback {
@@ -608,7 +616,7 @@ TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
 		return TC_CONTINUE;
 
 	for ( const auto& scope : scopes )
-		if ( scope->Lookup(e->Id()->Name()) )
+		if ( scope->Find(e->Id()->Name()) )
 			// Shadowing is not allowed, so if it's found at inner scope, it's
 			// not something we have to worry about also being at outer scope.
 			return TC_CONTINUE;
@@ -630,25 +638,25 @@ void end_func(IntrusivePtr<Stmt> body)
 	auto ingredients = std::make_unique<function_ingredients>(pop_scope(), std::move(body));
 
 	if ( ingredients->id->HasVal() )
-		ingredients->id->ID_Val()->AsFunc()->AddBody(
+		ingredients->id->GetVal()->AsFunc()->AddBody(
 			ingredients->body,
 			ingredients->inits,
 			ingredients->frame_size,
 			ingredients->priority);
 	else
 		{
-		Func* f = new BroFunc(
-			ingredients->id.get(),
+		auto f = make_intrusive<BroFunc>(
+			ingredients->id,
 			ingredients->body,
 			ingredients->inits,
 			ingredients->frame_size,
 			ingredients->priority);
 
-		ingredients->id->SetVal(make_intrusive<Val>(f));
+		ingredients->id->SetVal(make_intrusive<Val>(std::move(f)));
 		ingredients->id->SetConst();
 		}
 
-	ingredients->id->ID_Val()->AsFunc()->SetScope(ingredients->scope);
+	ingredients->id->GetVal()->AsFunc()->SetScope(ingredients->scope);
 	// Note: ideally, something would take ownership of this memory until the
 	// end of script execution, but that's essentially the same as the
 	// lifetime of the process at the moment, so ok to "leak" it.
@@ -657,12 +665,7 @@ void end_func(IntrusivePtr<Stmt> body)
 
 Val* internal_val(const char* name)
 	{
-	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
-
-	if ( ! id )
-		reporter->InternalError("internal variable %s missing", name);
-
-	return id->ID_Val();
+	return zeek::id::find_val(name).get();
 	}
 
 id_list gather_outer_ids(Scope* scope, Stmt* body)
@@ -687,70 +690,73 @@ id_list gather_outer_ids(Scope* scope, Stmt* body)
 
 Val* internal_const_val(const char* name)
 	{
-	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
-	if ( ! id )
-		reporter->InternalError("internal variable %s missing", name);
-
-	if ( ! id->IsConst() )
-		reporter->InternalError("internal variable %s is not constant", name);
-
-	return id->ID_Val();
+	return zeek::id::find_const(name).get();
 	}
 
 Val* opt_internal_val(const char* name)
 	{
-	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
-	return id ? id->ID_Val() : nullptr;
+	const auto& id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	return id ? id->GetVal().get() : nullptr;
 	}
 
 double opt_internal_double(const char* name)
 	{
-	Val* v = opt_internal_val(name);
+	const auto& id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	if ( ! id ) return 0.0;
+	const auto& v = id->GetVal();
 	return v ? v->InternalDouble() : 0.0;
 	}
 
 bro_int_t opt_internal_int(const char* name)
 	{
-	Val* v = opt_internal_val(name);
+	const auto& id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	if ( ! id ) return 0;
+	const auto& v = id->GetVal();
 	return v ? v->InternalInt() : 0;
 	}
 
 bro_uint_t opt_internal_unsigned(const char* name)
 	{
-	Val* v = opt_internal_val(name);
+	const auto& id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	if ( ! id ) return 0;
+	const auto& v = id->GetVal();
 	return v ? v->InternalUnsigned() : 0;
 	}
 
 StringVal* opt_internal_string(const char* name)
 	{
-	Val* v = opt_internal_val(name);
+	const auto& id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	if ( ! id ) return nullptr;
+	const auto& v = id->GetVal();
 	return v ? v->AsStringVal() : nullptr;
 	}
 
 TableVal* opt_internal_table(const char* name)
 	{
-	Val* v = opt_internal_val(name);
+	const auto& id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	if ( ! id ) return nullptr;
+	const auto& v = id->GetVal();
 	return v ? v->AsTableVal() : nullptr;
 	}
 
 ListVal* internal_list_val(const char* name)
 	{
-	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
+	const auto& id = lookup_ID(name, GLOBAL_MODULE_NAME);
 	if ( ! id )
 		return nullptr;
 
-	Val* v = id->ID_Val();
+	Val* v = id->GetVal().get();
 
 	if ( v )
 		{
-		if ( v->Type()->Tag() == TYPE_LIST )
+		if ( v->GetType()->Tag() == TYPE_LIST )
 			return (ListVal*) v;
 
-		else if ( v->Type()->IsSet() )
+		else if ( v->GetType()->IsSet() )
 			{
 			TableVal* tv = v->AsTableVal();
-			ListVal* lv = tv->ConvertToPureList();
-			return lv;
+			auto lv = tv->ToPureListVal();
+			return lv.release();
 			}
 
 		else
@@ -762,16 +768,13 @@ ListVal* internal_list_val(const char* name)
 
 BroType* internal_type(const char* name)
 	{
-	auto id = lookup_ID(name, GLOBAL_MODULE_NAME);
-	if ( ! id )
-		reporter->InternalError("internal type %s missing", name);
-
-	return id->Type();
+	return zeek::id::find_type(name).get();
 	}
 
 Func* internal_func(const char* name)
 	{
-	Val* v = internal_val(name);
+	const auto& v = zeek::id::find_val(name);
+
 	if ( v )
 		return v->AsFunc();
 	else
@@ -780,19 +783,5 @@ Func* internal_func(const char* name)
 
 EventHandlerPtr internal_handler(const char* name)
 	{
-	// If there already is an entry in the registry, we have a
-	// local handler on the script layer.
-	EventHandler* h = event_registry->Lookup(name);
-	if ( h )
-		{
-		h->SetUsed();
-		return h;
-		}
-
-	h = new EventHandler(name);
-	event_registry->Register(h);
-
-	h->SetUsed();
-
-	return h;
+	return event_registry->Register(name);
 	}

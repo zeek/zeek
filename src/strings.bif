@@ -102,7 +102,7 @@ function join_string_vec%(vec: string_vec, sep: string%): string
 		if ( i > 0 )
 			d.Add(sep->CheckString(), 0);
 
-		Val* e = v->Lookup(i);
+		const auto& e = v->At(i);
 
 		// If the element is empty, skip it.
 		if ( ! e )
@@ -204,7 +204,7 @@ static IntrusivePtr<VectorVal> do_split_string(StringVal* str_val,
                                                int max_num_sep)
 	{
 	// string_vec is used early in the version script - do not use the NetVar.
-	auto rval = make_intrusive<VectorVal>(internal_type("string_vec")->AsVectorType());
+	auto rval = make_intrusive<VectorVal>(zeek::id::find_type<VectorType>("string_vec"));
 	const u_char* s = str_val->Bytes();
 	int n = str_val->Len();
 	const u_char* end_of_s = s + n;
@@ -259,7 +259,7 @@ static IntrusivePtr<VectorVal> do_split_string(StringVal* str_val,
 
 Val* do_split(StringVal* str_val, RE_Matcher* re, int incl_sep, int max_num_sep)
 	{
-	TableVal* a = new TableVal({NewRef{}, string_array});
+	TableVal* a = new TableVal(zeek::id::string_array);
 	const u_char* s = str_val->Bytes();
 	int n = str_val->Len();
 	const u_char* end_of_s = s + n;
@@ -287,7 +287,7 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, int incl_sep, int max_num_sep)
 			}
 
 		auto ind = val_mgr->Count(++num);
-		a->Assign(ind.get(), make_intrusive<StringVal>(offset, (const char*) s));
+		a->Assign(std::move(ind), make_intrusive<StringVal>(offset, (const char*) s));
 
 		// No more separators will be needed if this is the end of string.
 		if ( n <= 0 )
@@ -296,7 +296,7 @@ Val* do_split(StringVal* str_val, RE_Matcher* re, int incl_sep, int max_num_sep)
 		if ( incl_sep )
 			{ // including the part that matches the pattern
 			ind = val_mgr->Count(++num);
-			a->Assign(ind.get(), make_intrusive<StringVal>(end_of_match, (const char*) s+offset));
+			a->Assign(std::move(ind), make_intrusive<StringVal>(end_of_match, (const char*) s+offset));
 			}
 
 		if ( max_num_sep && num_sep >= max_num_sep )
@@ -412,7 +412,7 @@ function split_string_n%(str: string, re: pattern,
 ## .. zeek:see:: gsub subst_string
 function sub%(str: string, re: pattern, repl: string%): string
 	%{
-	return str->Substitute(re, repl, false);
+	return str->Replace(re, *repl->AsString(), false);
 	%}
 
 ## Substitutes a given replacement string for all occurrences of a pattern
@@ -429,7 +429,7 @@ function sub%(str: string, re: pattern, repl: string%): string
 ## .. zeek:see:: sub subst_string
 function gsub%(str: string, re: pattern, repl: string%): string
 	%{
-	return str->Substitute(re, repl, true);
+	return str->Replace(re, *repl->AsString(), true);
 	%}
 
 
@@ -681,8 +681,8 @@ function string_to_ascii_hex%(s: string%): string
 ## Returns: The result of the Smith-Waterman algorithm calculation.
 function str_smith_waterman%(s1: string, s2: string, params: sw_params%) : sw_substring_vec
 	%{
-	SWParams sw_params(params->AsRecordVal()->Lookup(0)->AsCount(),
-			   SWVariant(params->AsRecordVal()->Lookup(1)->AsCount()));
+	SWParams sw_params(params->AsRecordVal()->GetField(0)->AsCount(),
+			   SWVariant(params->AsRecordVal()->GetField(1)->AsCount()));
 
 	BroSubstring::Vec* subseq =
 		smith_waterman(s1->AsString(), s2->AsString(), sw_params);
@@ -705,7 +705,7 @@ function str_smith_waterman%(s1: string, s2: string, params: sw_params%) : sw_su
 ## .. zeek:see:: split_string split_string1 split_string_all split_string_n
 function str_split%(s: string, idx: index_vec%): string_vec
 	%{
-	vector<Val*>* idx_v = idx->AsVector();
+	auto idx_v = idx->AsVector();
 	BroString::IdxVec indices(idx_v->size());
 	unsigned int i;
 
@@ -713,8 +713,7 @@ function str_split%(s: string, idx: index_vec%): string_vec
 		indices[i] = (*idx_v)[i]->AsCount();
 
 	BroString::Vec* result = s->AsString()->Split(indices);
-	auto result_v = make_intrusive<VectorVal>(
-	    internal_type("string_vec")->AsVectorType());
+	auto result_v = make_intrusive<VectorVal>(zeek::id::string_vec);
 
 	if ( result )
 		{
@@ -909,7 +908,7 @@ function safe_shell_quote%(source: string%): string
 ## .. zeek:see: find_last strstr
 function find_all%(str: string, re: pattern%) : string_set
 	%{
-	auto a = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, string_set});
+	auto a = make_intrusive<TableVal>(zeek::id::string_set);
 
 	const u_char* s = str->Bytes();
 	const u_char* e = s + str->Len();
@@ -920,7 +919,7 @@ function find_all%(str: string, re: pattern%) : string_set
 		if ( n >= 0 )
 			{
 			auto idx = make_intrusive<StringVal>(n, (const char*) t);
-			a->Assign(idx.get(), 0);
+			a->Assign(std::move(idx), 0);
 			t += n - 1;
 			}
 		}

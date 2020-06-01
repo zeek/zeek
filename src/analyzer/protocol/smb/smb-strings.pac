@@ -1,7 +1,61 @@
+%extern{
+#include "binpac_bro.h"
+%}
+
+%code{
+IntrusivePtr<StringVal> binpac::SMB::SMB_Conn::uint8s_to_stringval(std::vector<uint8_t>* data)
+	{
+	int length = data->size();
+	auto buf = std::make_unique<uint8[]>(length);
+
+	for ( int i = 0; i < length; ++i)
+		buf[i] = (*data)[i];
+
+	const bytestring bs = bytestring(buf.get(), length);
+	return utf16_to_utf8_val(bro_analyzer()->Conn(), bs);
+	}
+
+IntrusivePtr<StringVal> binpac::SMB::SMB_Conn::extract_string(SMB_string* s)
+	{
+	if ( s->unicode() == false )
+		{
+		int length = s->a()->size();
+		auto buf = std::make_unique<char[]>(length);
+
+		for ( int i = 0; i < length; i++)
+			{
+			unsigned char t = (*(s->a()))[i];
+			buf[i] = t;
+			}
+
+		if ( length > 0 && buf[length-1] == 0x00 )
+			length--;
+
+		return make_intrusive<StringVal>(length, buf.get());
+		}
+	else
+		return uint8s_to_stringval(s->u()->s());
+	}
+
+IntrusivePtr<StringVal> binpac::SMB::SMB_Conn::smb_string2stringval(SMB_string* s)
+	{
+	return extract_string(s);
+	}
+
+IntrusivePtr<StringVal> binpac::SMB::SMB_Conn::smb2_string2stringval(SMB2_string* s)
+	{
+	return uint8s_to_stringval(s->s());
+	}
+%}
 
 refine connection SMB_Conn += {
 	%member{
-		SMB_unicode_string *me;
+		IntrusivePtr<StringVal> uint8s_to_stringval(std::vector<uint8_t>* data);
+		IntrusivePtr<StringVal> extract_string(SMB_string* s);
+		IntrusivePtr<StringVal> smb_string2stringval(SMB_string* s);
+		IntrusivePtr<StringVal> smb2_string2stringval(SMB2_string* s);
+
+		SMB_unicode_string* me;
 	%}
 
 	%init{
@@ -22,52 +76,6 @@ refine connection SMB_Conn += {
 			}
 		else
 			return 0xFF;
-		%}
-
-	function uint8s_to_stringval(data: uint8[]): StringVal
-		%{
-		int length = data->size();
-		auto buf = std::make_unique<uint8[]>(length);
-
-		for ( int i = 0; i < length; ++i)
-			buf[i] = (*data)[i];
-
-		const bytestring bs = bytestring(buf.get(), length);
-		return utf16_bytestring_to_utf8_val(bro_analyzer()->Conn(), bs);
-		%}
-
-	function extract_string(s: SMB_string) : StringVal
-		%{
-		if ( s->unicode() == false )
-			{
-			int length = s->a()->size();
-			auto buf = std::make_unique<char[]>(length);
-
-			for ( int i = 0; i < length; i++)
-				{
-				unsigned char t = (*(s->a()))[i];
-				buf[i] = t;
-				}
-
-			if ( length > 0 && buf[length-1] == 0x00 )
-				length--;
-
-			return new StringVal(length, buf.get());
-			}
-		else
-			{
-			return uint8s_to_stringval(s->u()->s());
-			}
-		%}
-
-	function smb_string2stringval(s: SMB_string) : StringVal
-		%{
-		return extract_string(s);
-		%}
-
-	function smb2_string2stringval(s: SMB2_string) : StringVal
-		%{
-		return uint8s_to_stringval(s->s());
 		%}
 };
 

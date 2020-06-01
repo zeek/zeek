@@ -3,7 +3,6 @@
 #include "Manager.h"
 #include "File.h"
 #include "Analyzer.h"
-#include "Var.h"
 #include "Event.h"
 #include "UID.h"
 #include "digest.h"
@@ -261,35 +260,47 @@ bool Manager::SetReassemblyBuffer(const string& file_id, uint64_t max)
 
 bool Manager::SetExtractionLimit(const string& file_id, RecordVal* args,
                                  uint64_t n) const
+	{ return SetExtractionLimit(file_id, {NewRef{}, args}, n); }
+
+bool Manager::SetExtractionLimit(const string& file_id,
+                                 IntrusivePtr<RecordVal> args, uint64_t n) const
 	{
 	File* file = LookupFile(file_id);
 
 	if ( ! file )
 		return false;
 
-	return file->SetExtractionLimit(args, n);
+	return file->SetExtractionLimit(std::move(args), n);
 	}
 
 bool Manager::AddAnalyzer(const string& file_id, const file_analysis::Tag& tag,
                           RecordVal* args) const
+	{ return AddAnalyzer(file_id, tag, {NewRef{}, args}); }
+
+bool Manager::AddAnalyzer(const string& file_id, const file_analysis::Tag& tag,
+                          IntrusivePtr<RecordVal> args) const
 	{
 	File* file = LookupFile(file_id);
 
 	if ( ! file )
 		return false;
 
-	return file->AddAnalyzer(tag, args);
+	return file->AddAnalyzer(tag, std::move(args));
 	}
 
 bool Manager::RemoveAnalyzer(const string& file_id, const file_analysis::Tag& tag,
                              RecordVal* args) const
+	{ return RemoveAnalyzer(file_id, tag, {NewRef{}, args}); }
+
+bool Manager::RemoveAnalyzer(const string& file_id, const file_analysis::Tag& tag,
+                             IntrusivePtr<RecordVal> args) const
 	{
 	File* file = LookupFile(file_id);
 
 	if ( ! file )
 		return false;
 
-	return file->RemoveAnalyzer(tag, args);
+	return file->RemoveAnalyzer(tag, std::move(args));
 	}
 
 File* Manager::GetFile(const string& file_id, Connection* conn,
@@ -397,10 +408,10 @@ bool Manager::RemoveFile(const string& file_id)
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Remove file", file_id.c_str());
 
 	f->EndOfFile();
-	delete f;
 
 	id_map.erase(file_id);
 	ignored.erase(file_id);
+	delete f;
 	return true;
 	}
 
@@ -422,13 +433,9 @@ string Manager::GetFileID(const analyzer::Tag& tag, Connection* c, bool is_orig)
 	DBG_LOG(DBG_FILE_ANALYSIS, "Raise get_file_handle() for protocol analyzer %s",
 		analyzer_mgr->GetComponentName(tag).c_str());
 
-	EnumVal* tagval = tag.AsEnumVal();
+	const auto& tagval = tag.AsVal();
 
-	mgr.Enqueue(get_file_handle,
-		IntrusivePtr{NewRef{}, tagval},
-		c->ConnVal(),
-		val_mgr->Bool(is_orig)
-	);
+	mgr.Enqueue(get_file_handle, tagval, c->ConnVal(), val_mgr->Bool(is_orig));
 	mgr.Drain(); // need file handle immediately so we don't have to buffer data
 	return current_file_id;
 	}
@@ -436,10 +443,10 @@ string Manager::GetFileID(const analyzer::Tag& tag, Connection* c, bool is_orig)
 bool Manager::IsDisabled(const analyzer::Tag& tag)
 	{
 	if ( ! disabled )
-		disabled = internal_const_val("Files::disable")->AsTableVal();
+		disabled = zeek::id::find_const("Files::disable")->AsTableVal();
 
 	auto index = val_mgr->Count(bool(tag));
-	auto yield = disabled->Lookup(index.get());
+	auto yield = disabled->FindOrDefault(index);
 
 	if ( ! yield )
 		return false;
@@ -448,6 +455,11 @@ bool Manager::IsDisabled(const analyzer::Tag& tag)
 	}
 
 Analyzer* Manager::InstantiateAnalyzer(const Tag& tag, RecordVal* args, File* f) const
+	{ return InstantiateAnalyzer(tag, {NewRef{}, args}, f); }
+
+Analyzer* Manager::InstantiateAnalyzer(const Tag& tag,
+                                       IntrusivePtr<RecordVal> args,
+                                       File* f) const
 	{
 	Component* c = Lookup(tag);
 
@@ -459,17 +471,21 @@ Analyzer* Manager::InstantiateAnalyzer(const Tag& tag, RecordVal* args, File* f)
 		return nullptr;
 		}
 
-	if ( ! c->Factory() )
+	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Instantiate analyzer %s",
+	        f->id.c_str(), GetComponentName(tag).c_str());
+
+	Analyzer* a;
+
+	if ( c->factory_func )
+		a = c->factory_func(std::move(args), f);
+	else if ( c->factory )
+		a = c->factory(args.get(), f);
+	else
 		{
 		reporter->InternalWarning("file analyzer %s cannot be instantiated "
-					  "dynamically", c->CanonicalName().c_str());
+		                          "dynamically", c->CanonicalName().c_str());
 		return nullptr;
 		}
-
-	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Instantiate analyzer %s",
-		f->id.c_str(), GetComponentName(tag).c_str());
-
-	Analyzer* a = c->Factory()(args, f);
 
 	if ( ! a )
 		reporter->InternalError("file analyzer instantiation failed");
@@ -503,6 +519,8 @@ string Manager::DetectMIME(const u_char* data, uint64_t len) const
 
 IntrusivePtr<VectorVal> file_analysis::GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m)
 	{
+	static auto mime_matches = zeek::id::find_type<VectorType>("mime_matches");
+	static auto mime_match = zeek::id::find_type<RecordType>("mime_match");
 	auto rval = make_intrusive<VectorVal>(mime_matches);
 
 	for ( RuleMatcher::MIME_Matches::const_iterator it = m.begin();

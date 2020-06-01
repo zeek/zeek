@@ -4,12 +4,12 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_session_setup_request )
 			{
-			auto req = make_intrusive<RecordVal>(BifType::Record::SMB2::SessionSetupRequest);
+			auto req = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::SessionSetupRequest);
 			req->Assign(0, val_mgr->Count(${val.security_mode}));
 
-			BifEvent::enqueue_smb2_session_setup_request(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb2_session_setup_request(bro_analyzer(),
 			                                             bro_analyzer()->Conn(),
-			                                             {AdoptRef{}, BuildSMB2HeaderVal(h)},
+			                                             BuildSMB2HeaderVal(h),
 														 std::move(req));
 			}
 
@@ -20,17 +20,17 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_session_setup_response )
 			{
-			auto flags = make_intrusive<RecordVal>(BifType::Record::SMB2::SessionSetupFlags);
+			auto flags = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::SessionSetupFlags);
 			flags->Assign(0, val_mgr->Bool(${val.flag_guest}));
 			flags->Assign(1, val_mgr->Bool(${val.flag_anonymous}));
 			flags->Assign(2, val_mgr->Bool(${val.flag_encrypt}));
 
-			auto resp = make_intrusive<RecordVal>(BifType::Record::SMB2::SessionSetupResponse);
+			auto resp = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::SessionSetupResponse);
 			resp->Assign(0, std::move(flags));
 
-			BifEvent::enqueue_smb2_session_setup_response(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb2_session_setup_response(bro_analyzer(),
 			                                              bro_analyzer()->Conn(),
-			                                              {AdoptRef{}, BuildSMB2HeaderVal(h)},
+			                                              BuildSMB2HeaderVal(h),
 			                                              std::move(resp));
 			}
 

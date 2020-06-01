@@ -154,7 +154,7 @@ bool Value::IsCompatibleType(BroType* t, bool atomic_only)
 		if ( ! t->IsSet() )
 			return false;
 
-		return IsCompatibleType(t->AsSetType()->Indices()->PureType(), true);
+		return IsCompatibleType(t->AsSetType()->GetIndices()->GetPureType().get(), true);
 		}
 
 	case TYPE_VECTOR:
@@ -162,7 +162,7 @@ bool Value::IsCompatibleType(BroType* t, bool atomic_only)
 		if ( atomic_only )
 			return false;
 
-		return IsCompatibleType(t->AsVectorType()->YieldType(), true);
+		return IsCompatibleType(t->AsVectorType()->Yield().get(), true);
 		}
 
 	default:
@@ -537,7 +537,7 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 					// Enums are not a base-type, so need to look it up.
 					const auto& sv = val->val.set_val.vals[0]->val.string_val;
 					std::string enum_name(sv.data, sv.length);
-					auto enum_id = global_scope()->Lookup(enum_name);
+					const auto& enum_id = global_scope()->Find(enum_name);
 
 					if ( ! enum_id )
 						{
@@ -548,7 +548,7 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 						return nullptr;
 						}
 
-					index_type = {NewRef{}, enum_id->Type()->AsEnumType()};
+					index_type = enum_id->GetType();
 					}
 				else
 					index_type = base_type(stag);
@@ -562,9 +562,7 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 			for ( int j = 0; j < val->val.set_val.size; j++ )
 				{
 				Val* assignval = ValueToVal(source, val->val.set_val.vals[j], have_error);
-
-				t->Assign(assignval, nullptr);
-				Unref(assignval); // index is not consumed by assign.
+				t->Assign({AdoptRef{}, assignval}, nullptr);
 				}
 
 			return t;
@@ -587,12 +585,15 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 				}
 
 			auto vt = make_intrusive<VectorType>(std::move(type));
-			VectorVal* v = new VectorVal(vt.get());
+			auto v = make_intrusive<VectorVal>(std::move(vt));
 
 			for ( int j = 0; j < val->val.vector_val.size; j++ )
-				v->Assign(j, ValueToVal(source, val->val.vector_val.vals[j], have_error));
+				{
+				auto el = ValueToVal(source, val->val.vector_val.vals[j], have_error);
+				v->Assign(j, {AdoptRef{}, el});
+				}
 
-			return v;
+			return v.release();
 			}
 
 		case TYPE_ENUM: {
@@ -601,7 +602,8 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 			std::string enum_string(val->val.string_val.data, val->val.string_val.length);
 
 			// let's try looking it up by global ID.
-			auto id = lookup_ID(enum_string.c_str(), GLOBAL_MODULE_NAME);
+			const auto& id = lookup_ID(enum_string.c_str(), GLOBAL_MODULE_NAME);
+
 			if ( ! id || ! id->IsEnumConst() )
 				{
 				reporter->Warning("Value '%s' for source '%s' is not a valid enum.",
@@ -611,7 +613,7 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 				return nullptr;
 				}
 
-			EnumType* t = id->Type()->AsEnumType();
+			EnumType* t = id->GetType()->AsEnumType();
 			int intval = t->Lookup(id->ModuleName(), id->Name());
 			if ( intval < 0 )
 				{
@@ -622,7 +624,8 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 				return nullptr;
 				}
 
-			return t->GetVal(intval).release();
+			auto rval = t->GetVal(intval);
+			return rval.release();
 			}
 
 		default:

@@ -1,0 +1,4 @@
+1590206064.237264   MetaHookPre   CallFunction(foo, <frame>, (1, 2, 3, yo))
+1590206064.237264 | HookFunctionCall foo(1, 2, 3, yo)
+1590206064.237264   MetaHookPost  CallFunction(foo, <frame>, (1, 2, 3, yo)) -> <no result>
+foo, 42, 2, 3, yo

@@ -15,58 +15,60 @@ typedef PList<Scope> scope_list;
 static scope_list scopes;
 static Scope* top_scope;
 
-
-Scope::Scope(IntrusivePtr<ID> id, attr_list* al)
-	: scope_id(std::move(id))
+Scope::Scope(IntrusivePtr<ID> id,
+             std::unique_ptr<std::vector<IntrusivePtr<Attr>>> al)
+	: scope_id(std::move(id)), attrs(std::move(al))
 	{
-	attrs = al;
 	return_type = nullptr;
-
-	inits = new id_list;
 
 	if ( id )
 		{
-		BroType* id_type = scope_id->Type();
+		const auto& id_type = scope_id->GetType();
 
 		if ( id_type->Tag() == TYPE_ERROR )
 			return;
 		else if ( id_type->Tag() != TYPE_FUNC )
 			reporter->InternalError("bad scope id");
 
-		FuncType* ft = id->Type()->AsFuncType();
-		return_type = {NewRef{}, ft->YieldType()};
+		FuncType* ft = id->GetType()->AsFuncType();
+		return_type = ft->Yield();
 		}
 	}
 
-Scope::~Scope()
+const IntrusivePtr<ID>& Scope::Find(std::string_view name) const
 	{
-	if ( attrs )
+	auto entry = local.find(name);
+
+	if ( entry != local.end() )
+		return entry->second;
+
+	return ID::nil;
+	}
+
+IntrusivePtr<ID> Scope::Remove(std::string_view name)
+	{
+	auto entry = local.find(name);
+
+	if ( entry != local.end() )
 		{
-		for ( const auto& attr : *attrs )
-			Unref(attr);
-
-		delete attrs;
+		auto id = std::move(entry->second);
+		local.erase(entry);
+		return id;
 		}
 
-	if ( inits )
-		{
-		for ( const auto& i : *inits )
-			Unref(i);
-
-		delete inits;
-		}
+	return nullptr;
 	}
 
-ID* Scope::GenerateTemporary(const char* name)
+IntrusivePtr<ID> Scope::GenerateTemporary(const char* name)
 	{
-	return new ID(name, SCOPE_FUNCTION, false);
+	return make_intrusive<ID>(name, SCOPE_FUNCTION, false);
 	}
 
-id_list* Scope::GetInits()
+std::vector<IntrusivePtr<ID>> Scope::GetInits()
 	{
-	id_list* ids = inits;
-	inits = nullptr;
-	return ids;
+	auto rval = std::move(inits);
+	inits = {};
+	return rval;
 	}
 
 void Scope::Describe(ODesc* d) const
@@ -117,9 +119,9 @@ TraversalCode Scope::Traverse(TraversalCallback* cb) const
 	}
 
 
-IntrusivePtr<ID> lookup_ID(const char* name, const char* curr_module,
-                           bool no_global, bool same_module_only,
-                           bool check_export)
+const IntrusivePtr<ID>& lookup_ID(const char* name, const char* curr_module,
+                                  bool no_global, bool same_module_only,
+                                  bool check_export)
 	{
 	std::string fullname = make_full_var_name(curr_module, name);
 
@@ -129,27 +131,26 @@ IntrusivePtr<ID> lookup_ID(const char* name, const char* curr_module,
 
 	for ( int i = scopes.length() - 1; i >= 0; --i )
 		{
-		ID* id = scopes[i]->Lookup(fullname);
+		const auto& id = scopes[i]->Find(fullname);
+
 		if ( id )
 			{
 			if ( need_export && ! id->IsExport() && ! in_debug )
 				reporter->Error("identifier is not exported: %s",
 				      fullname.c_str());
 
-			return {NewRef{}, id};
+			return id;
 			}
 		}
 
 	if ( ! no_global && (strcmp(GLOBAL_MODULE_NAME, curr_module) == 0 ||
-			     ! same_module_only) )
+	     ! same_module_only) )
 		{
 		std::string globalname = make_full_var_name(GLOBAL_MODULE_NAME, name);
-		ID* id = global_scope()->Lookup(globalname);
-		if ( id )
-			return {NewRef{}, id};
+		return global_scope()->Find(globalname);
 		}
 
-	return nullptr;
+	return ID::nil;
 	}
 
 IntrusivePtr<ID> install_ID(const char* name, const char* module_name,
@@ -188,9 +189,10 @@ void push_existing_scope(Scope* scope)
 	scopes.push_back(scope);
 	}
 
-void push_scope(IntrusivePtr<ID> id, attr_list* attrs)
+void push_scope(IntrusivePtr<ID> id,
+                std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs)
 	{
-	top_scope = new Scope(std::move(id), attrs);
+	top_scope = new Scope(std::move(id), std::move(attrs));
 	scopes.push_back(top_scope);
 	}
 

@@ -1,24 +1,20 @@
 refine connection SMB_Conn += {
 
-	function BuildSMB2TransformHeaderVal(hdr: SMB2_transform_header): BroVal
-		%{
-		RecordVal* r = new RecordVal(BifType::Record::SMB2::Transform_header);
-
-		r->Assign(0, to_stringval(${hdr.signature}));
-		r->Assign(1, to_stringval(${hdr.nonce}));
-		r->Assign(2, val_mgr->Count(${hdr.orig_msg_size}));
-		r->Assign(3, val_mgr->Count(${hdr.flags}));
-		r->Assign(4, val_mgr->Count(${hdr.session_id}));
-
-		return r;
-		%}
-
 	function proc_smb2_transform_header(hdr: SMB2_transform_header) : bool
 		%{
 		if ( smb2_transform_header )
-			BifEvent::enqueue_smb2_transform_header(bro_analyzer(),
+			{
+			auto r = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::Transform_header);
+			r->Assign(0, to_stringval(${hdr.signature}));
+			r->Assign(1, to_stringval(${hdr.nonce}));
+			r->Assign(2, val_mgr->Count(${hdr.orig_msg_size}));
+			r->Assign(3, val_mgr->Count(${hdr.flags}));
+			r->Assign(4, val_mgr->Count(${hdr.session_id}));
+
+			zeek::BifEvent::enqueue_smb2_transform_header(bro_analyzer(),
 			                                        bro_analyzer()->Conn(),
-			                                        {AdoptRef{}, BuildSMB2TransformHeaderVal(hdr)});
+			                                        std::move(r));
+			}
 
 		return true;
 		%}

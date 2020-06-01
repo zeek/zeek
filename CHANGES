@@ -1,4 +1,443 @@
 
+3.2.0-dev.727 | 2020-06-01 10:57:16 -0700
+
+  * Integrate review feedback
+
+    * Add deprecation for MIME_Entity::ContentType(), use GetContentType()
+
+    * Add deprecation for MIME_Entity::ContentSubType(), use GetContentSubType()
+
+    * Add deprecation for MIME_Message::BuildHeaderVal(), use ToHeaderVal()
+
+    * Add deprecation for MIME_Message::BuildHeaderTable(), use ToHeaderTable()
+
+    * Add deprecation for mime::new_string_val(), use mime::to_stringval()
+
+    * Add deprecation for ARP_Analyzer::ConstructAddrVal(), use ToAddrVal()
+
+    * Add deprecation for ARP_Analyzer::EthAddrToStr(), use ToEthAddrStr()
+
+    * Change the Func::Call() replacement to be named Func::Invoke() (Jon Siwek, Corelight)
+
+  * Switch Broker Val converter visitor to return IntrusivePtr (Jon Siwek, Corelight)
+
+  * Change BroFunc ctor to take const-ref IntrusivePtr<ID> (Jon Siwek, Corelight)
+
+  * Add version of Frame::SetElement() taking IntrusivePtr<ID>
+
+    Expect the version using raw ID* could go away eventually, but this is
+    convenience for the meantime. (Jon Siwek, Corelight)
+
+  * Change Scope/Func inits from id_list* to vector<IntrusivePtr<ID>> (Jon Siwek, Corelight)
+
+  * Change Scope::GenerateTemporary() to return IntrusivePtr (Jon Siwek, Corelight)
+
+  * Deprecate Scope::ReturnType(), replace with GetReturnType() (Jon Siwek, Corelight)
+
+  * Deprecate Scope::ScopeID(), replace with GetID() (Jon Siwek, Corelight)
+
+  * Switch parsing to use vector<IntrusivePtr<Attr>> from attr_list
+
+    This allows improved passing/storing of Attr references to Exprs,
+    TypeDecl, Scope, etc. (Jon Siwek, Corelight)
+
+  * Deprecate TableVal::FindAttr(), replace with GetAttr() (Jon Siwek, Corelight)
+
+  * Deprecate TypeDecl::FindAttr(), replace with GetAttr() (Jon Siwek, Corelight)
+
+  * Deprecate ID::FindAttr(), replace with GetAttr() (Jon Siwek, Corelight)
+
+  * Deprecate Attributes::FindAttr(), replace with Find() (Jon Siwek, Corelight)
+
+  * Deprecate Attributes::AddAttrs(Attributes*)
+
+    Replaced with version taking an IntrusivePtr parameter (Jon Siwek, Corelight)
+
+  * Add Attributes ctor that takes IntrusivePtrs (Jon Siwek, Corelight)
+
+  * Change Attributes to store std:vector<IntrusivePtr<Attr>>
+
+    This also changes the return type of Attributes::Attrs() from attr_list* (Jon Siwek, Corelight)
+
+  * Change Attr::SetAttrExpr() to non-template (Jon Siwek, Corelight)
+
+  * Deprecate Attr::AttrExpr(), replace with GetExpr() (Jon Siwek, Corelight)
+
+  * Deprecate ID::Attrs(), replace with GetAttrs() (Jon Siwek, Corelight)
+
+  * Remove weak_ref param from ID::SetVal()
+
+    It was not used anywhere. (Jon Siwek, Corelight)
+
+  * Store weak ref boolean along with Frame element Vals (Jon Siwek, Corelight)
+
+  * Deprecate Frame::GetElement(ID*), replace with GetElementByID() (Jon Siwek, Corelight)
+
+  * Deprecate Frame::NthElement(), replace with GetElement() (Jon Siwek, Corelight)
+
+  * Switch Frame::SetElement() to use IntrusivePtr (Jon Siwek, Corelight)
+
+  * Store IntrusivePtrs in Frame (Jon Siwek, Corelight)
+
+  * Deprecate Plugin::HookCallFunction(), replace with HookFunctionCall()
+
+    This also changes the argument type of Func::operator() to zeek::Args*
+    to allow plugins to be able to alter function arguments in place as
+    was previously documented. (Jon Siwek, Corelight)
+
+  * Switch plugin::Manager::HookCallFunction() to return IntrusivePtr
+
+    The plugin::Plugin side of things is not (yet) changed. (Jon Siwek, Corelight)
+
+  * Port remaining file analysis API to use IntrusivePtr (Jon Siwek, Corelight)
+
+  * Deprecate file analyzer construction methods taking raw RecordVal*
+
+    Replaced with versions that instead take IntrusivePtr (Jon Siwek, Corelight)
+
+  * Deprecate file_analysis::Analyzer::Args(), replace with GetArgs() (Jon Siwek, Corelight)
+
+  * Deprecate file_analysis::File::GetVal(), replace with ToVal() (Jon Siwek, Corelight)
+
+  * Change file_analysis::File::GetID() to return const-ref (Jon Siwek, Corelight)
+
+  * Fix build: some don't like IntrusivePtr default arg w/ incomplete type (Jon Siwek, Corelight)
+
+  * Change bro_broker::DataVal::ScriptDataType() to IntrusivePtr (Jon Siwek, Corelight)
+
+  * Change find_nested_record_types() to take IntrusivePtr (Jon Siwek, Corelight)
+
+  * Deprecate TypeType::Type(), replace with GetType() (Jon Siwek, Corelight)
+
+  * Add is_assignable() overload taking TypeTag (Jon Siwek, Corelight)
+
+  * Add is_atomic_type() overloads for IntrusivePtr (Jon Siwek, Corelight)
+
+  * Add same_type() overloads for IntrusivePtr args (Jon Siwek, Corelight)
+
+  * Change merge_types() to take IntrusivePtrs (Jon Siwek, Corelight)
+
+  * Deprecate IndexType::Indices(), replace with GetIndices() (Jon Siwek, Corelight)
+
+  * Add is_vector() methods taking const-ref IntrusivePtr (Jon Siwek, Corelight)
+
+  * Factor static-local nil IntrusivePtrs to global locations
+
+    Minor optimization to remove any run-time impact. (Jon Siwek, Corelight)
+
+  * Deprecate VectorVal::Lookup(), replace with At() (Jon Siwek, Corelight)
+
+  * Switch VectorVal BroValUnion to store std::vector<IntrusivePtr<Val>>
+
+    This changes the return type of AsVector() from std::vector<Val*>* (Jon Siwek, Corelight)
+
+  * Deprecate VectorVal::Insert() taking raw Val*, use IntrusivePtr (Jon Siwek, Corelight)
+
+  * Deprecate VectorVal::Assign methods taking raw Val*
+
+    And adapt usages to pass in to alternate method taking IntrusivePtr (Jon Siwek, Corelight)
+
+  * Merge remote-tracking branch 'origin/master' into topic/jsiwek/gh-893-intrusive-ptr-migration (Jon Siwek, Corelight)
+
+  * Change EventHandler to store IntrusivePtr<Func>
+
+    Also deprecates the LocalHandler() and SetLocalHandler() methods,
+    replaced with GetFunc() and SetFunc(). (Jon Siwek, Corelight)
+
+  * Add Val::AsFuncPtr() convenience method
+
+    Since it's not trivial to store IntrusivePtr in BroValUnion and also
+    not satisfying to store IntrusivePtr*. (Jon Siwek, Corelight)
+
+  * Deprecate StringVal::Substitute(), replace with Replace() (Jon Siwek, Corelight)
+
+  * Switch a TableVal::CallChangeFunc param to IntrusivePtr (Jon Siwek, Corelight)
+
+  * Fix ambiguous ODesc::Add() call (Jon Siwek, Corelight)
+
+  * Minor TableVal::Assign() ref-counting optimization (Jon Siwek, Corelight)
+
+  * Improve TableVal HashKey management
+
+    * Deprecated ComputeHash() methods and replaced with MakeHashKey()
+      which returns std::unique_ptr<HashKey>
+
+    * Deprecated RecoverIndex() and replaced with RecreateIndex()
+      which takes HashKey& and returns IntrusivePtr.
+
+    * Updated the new TableVal Assign()/Remove() methods to take either
+      std::unique_ptr<HashKey> or HashKey& as appropriate for clarity of
+      ownership expectations. (Jon Siwek, Corelight)
+
+  * Add back in a deprecated TableVal ctor taking raw pointers (Jon Siwek, Corelight)
+
+  * Deprecate TableVal::Attrs(), replace with GetAttrs() (Jon Siwek, Corelight)
+
+  * Deprecate TableVal::Delete(), replace with Remove() (Jon Siwek, Corelight)
+
+  * Switch Func::Call(val_list*) back to returning Val*
+
+    And renamed the method returning IntrusivePtr to operator().
+    This corrects the deprecation process for Func::Call(val_list*). (Jon Siwek, Corelight)
+
+  * Deprecate TableVal::Lookup(), replace with Find()/FindOrDefault() (Jon Siwek, Corelight)
+
+  * Deprecate TableVal IsSubsetOf and EqualTo taking Val*, use Val& (Jon Siwek, Corelight)
+
+  * Deprecate ComputeHash(Val*) methods, replace with ComputeHash(Val&) (Jon Siwek, Corelight)
+
+  * Deprecate TableVal::Intersect(), replace with Intersection() (Jon Siwek, Corelight)
+
+  * Deprecate TableVal::Assign methods with Val*, add IntrusivePtr overloads (Jon Siwek, Corelight)
+
+  * Deprecate RecordVal::Lookup(const char*, bool)
+
+    Replace with GetField(const char*) and GetFieldOrDefault(const char*). (Jon Siwek, Corelight)
+
+  * Deprecate RecordVal::LookupWithDefault() replace with GetFieldOrDefault()
+
+    (The former was previously changed during this release cycle to return
+    Intrusive pointer, but this just changes it back to return Val* and
+    deprecates it). (Jon Siwek, Corelight)
+
+  * Deprecate RecordVal::Lookup(int), replace with GetField(int) (Jon Siwek, Corelight)
+
+  * Change BroValUnion to use IntrusivePtr for record field storage
+
+    This also changes the AsRecord() and AsNonConstRecord() accessors
+    to return std::vector<IntrusivePtr<Val>>* instead of val_list* (Jon Siwek, Corelight)
+
+  * Switch ASN1 Val conversion functions to return IntrusivePtr (Jon Siwek, Corelight)
+
+  * Deprecate RecordVal::Assign(int, Val*)
+
+    And adapt all usages to the existing overload taking IntrusivePtr. (Jon Siwek, Corelight)
+
+  * Switch RPC analyzers to use IntrusivePtr (Jon Siwek, Corelight)
+
+  * Switch RecordVal::CoerceTo() to use IntrusivePtr (Jon Siwek, Corelight)
+
+  * Deprecate TableEntryVal::Value(), replace with GetVal() (Jon Siwek, Corelight)
+
+  * Switch OpaqueVal::SerializeType() to IntrusivePtr (Jon Siwek, Corelight)
+
+  * Switch BlommFilterVal/CardinalityVal to use IntrusivePtr<BroType> (Jon Siwek, Corelight)
+
+  * Switch some TopkVal methods to use IntrusivePtr (Jon Siwek, Corelight)
+
+  * Switch TopkVal to store IntrusivePtr<BroType> (Jon Siwek, Corelight)
+
+  * Switch OpaqueVal::UnserializeType() to return IntrusivePtr (Jon Siwek, Corelight)
+
+  * Deprecate FuncType::ArgTypes(), replace with ParamList() (Jon Siwek, Corelight)
+
+  * Deprecate FuncType::Args(), replace with Params() (Jon Siwek, Corelight)
+
+  * Deprecate EventHandler::FType(), replace with GetType() (Jon Siwek, Corelight)
+
+  * Deprecate BroFile::FType(), replace with GetType() (Jon Siwek, Corelight)
+
+  * Deprecate Func::FType(), replace with Func::GetType() (Jon Siwek, Corelight)
+
+  * Change {Get,Set}ContentsFile() to use IntrusivePtr (Jon Siwek, Corelight)
+
+  * Deprecate BroFile::GetFile(), replace with BroFile::Get() (Jon Siwek, Corelight)
+
+  * Deprecate Val(BroFile*) ctor, replace with one using IntrusivePtr (Jon Siwek, Corelight)
+
+  * Deprecate Val(Func*) ctor, replace with one using IntrusivePtr (Jon Siwek, Corelight)
+
+  * Deprecate OpaqueVal/HashVal ctors that take OpaqueType*
+
+    Replaced with ones that take IntrusivePtr (Jon Siwek, Corelight)
+
+  * fixup! Deprecate Scope::Lookup(), replace with Scope::Find() (Jon Siwek, Corelight)
+
+  * Switch EnumType::GetVal() to return const-ref (Jon Siwek, Corelight)
+
+  * Change protected EnumVal ctor to use IntrusivePtr (Jon Siwek, Corelight)
+
+  * Deprecate RecordVal(RecordType*) ctor
+
+    Replaced with one that takes IntrusivePtr (Jon Siwek, Corelight)
+
+  * Switch zeek::id::lookup to zeek::id::find
+
+    For parity with Scope since it now uses Find instead of Lookup (Jon Siwek, Corelight)
+
+  * Use zeek::BifEvent:: for enqueue_ functions instead of BifEvent:: (Jon Siwek, Corelight)
+
+  * Replace deprecated usage of BifFunc:: with zeek::BifFunc::
+
+    Names of functions also changed slightly, like bro_fmt -> fmt_bif.
+
+    Should generally be unusual/unexpected to see somone calling these
+    directly from C++ in their plugin, but since technically possible in
+    previous versions, I also removed the "private" restriction on accessing
+    the BifReturnVal member. (Jon Siwek, Corelight)
+
+  * Deprecate names in BifConst, replace with zeek::BifConst
+
+    Some Val* types are also replaced with IntrusivePtr at the new location (Jon Siwek, Corelight)
+
+  * Deprecate all BroType* in BifType:: namespace
+
+    Replaced with equivalently named IntrusivePtr in zeek::BifType:: (Jon Siwek, Corelight)
+
+  * Change EventRegistry/EventHandler methods to use std::string{_view} (Jon Siwek, Corelight)
+
+  * Deprecate internal_handler(), replace with EventRegistry::Register()
+
+    Added a couple explicit event declarations that were missing: "net_done"
+    and "dns_mapping_name_changed". (Jon Siwek, Corelight)
+
+  * Deprecate remaining "opt_internal" functions in Var.h (Jon Siwek, Corelight)
+
+  * Remove signal_val declaration from Var.h (Jon Siwek, Corelight)
+
+  * Change zeek::id::lookup functions to use std::string_view (Jon Siwek, Corelight)
+
+  * Change Scope::Find() and Scope::Remove() to use std::string_view (Jon Siwek, Corelight)
+
+  * Change lookup_ID() to return a const-reference (Jon Siwek, Corelight)
+
+  * Deprecate Scope::Lookup(), replace with Scope::Find() (Jon Siwek, Corelight)
+
+  * Move various elements into ID.h and zeek::id namespace
+
+    * A handful of generic/useful/common global type pointers that used
+      to be in NetVar.h
+
+    * Lookup functions that used to be Var.h (Jon Siwek, Corelight)
+
+  * Trim the list of "global type pointers" from NetVar.h further
+
+    Most of them are deprecated now, with usage sites now doing the lookup
+    themselves. (Jon Siwek, Corelight)
+
+  * Deprecate global Val pointers in NetVar.h
+
+    All of these have fairly niche uses, so better maintained as
+    lookup/static closer to the usage site. (Jon Siwek, Corelight)
+
+  * Deprecate global type pointers in NetVar.h
+
+    There's analogous IntrusivePtrs in zeek::vars (Jon Siwek, Corelight)
+
+  * Add RecordVal ctor that takes IntrusivePtr (Jon Siwek, Corelight)
+
+  * Remove unused FlattenExpr (Jon Siwek, Corelight)
+
+  * Add missing "vector_coerce" to expr_name() (Jon Siwek, Corelight)
+
+  * Deprecate Expr::Type(), replace with GetType() (Jon Siwek, Corelight)
+
+  * Deprecate Val::Type(), replace with GetType() (Jon Siwek, Corelight)
+
+  * Change Val to store IntrusivePtr (Jon Siwek, Corelight)
+
+  * Remove VectorVal::vector_type member (Jon Siwek, Corelight)
+
+  * Deprecate VectorVal(VectorType*) ctora
+
+    Adds a new one taking an IntrusivePtr. (Jon Siwek, Corelight)
+
+  * Deprecate internal_list_val() (Jon Siwek, Corelight)
+
+  * Deprecate opt_internal_val() (Jon Siwek, Corelight)
+
+  * Deprecate internal_func(), replace with zeek::lookup_func() (Jon Siwek, Corelight)
+
+  * Deprecate internal_val() and internal_const_val()
+
+    Replaced with zeek::lookup_val() and zeek::lookup_const() (Jon Siwek, Corelight)
+
+  * Deprecate internal_type(), replace with zeek::lookup_type() (Jon Siwek, Corelight)
+
+  * Deprecate ID::ID_Val(), replace with ID::GetVal() (Jon Siwek, Corelight)
+
+  * Use std::move in some zeekygen::Manager methods (Jon Siwek, Corelight)
+
+  * Add Val TypeType constructor taking an IntrusivePtr (Jon Siwek, Corelight)
+
+  * Deprecate ID::Type(), replace with GetType() (Jon Siwek, Corelight)
+
+  * Deprecate ID::AsType(), add ID::IsType() and ID::GetType() (Jon Siwek, Corelight)
+
+  * Deprecate BroType::YieldType(), replace with Yield() (Jon Siwek, Corelight)
+
+  * Change base_type() to return const-ref, deprecate base_type_no_ref() (Jon Siwek, Corelight)
+
+  * Deprecate BroType::GetField() and BroType::HasField() (Jon Siwek, Corelight)
+
+  * Deprecate RecordType::FieldType(), replace with GetFieldType() (Jon Siwek, Corelight)
+
+  * Migrate TypeList to store IntrusivePtrs
+
+    This changes return types of TypeList::Types() and
+    IndexType::IndexTypes() to return std::vector instead of type_list* (Jon Siwek, Corelight)
+
+  * Deprecate TypeList::PureType(), replace with TypeList::GetPureType() (Jon Siwek, Corelight)
+
+  * Deprecate SetType::SetElements(), replace with SetType::Elements() (Jon Siwek, Corelight)
+
+  * Remove unused TableType::ExpandRecordIndex() (Jon Siwek, Corelight)
+
+  * Add cast_intrusive() and make use of it in two spots (Jon Siwek, Corelight)
+
+  * Give make_intrusive() access to protected EnumVal ctor (Jon Siwek, Corelight)
+
+  * Remove two superfluous IntrusivePtr NewRefs in Type.cc (Jon Siwek, Corelight)
+
+  * Change BroType::ShallowClone() to return IntrusivePtr (Jon Siwek, Corelight)
+
+  * Migrate IP.cc to use IntrusivePtr (Jon Siwek, Corelight)
+
+  * Migrate SMB analyzer to use IntrusivePtr
+
+    Deprecates the utf16_bytestring_to_utf8_val() function with replacement
+    being utf16_to_utf8_val(). (Jon Siwek, Corelight)
+
+  * Migrate ARP analyzer to use IntrusivePtr (Jon Siwek, Corelight)
+
+  * Migrate HTTP/MIME analyzers to use IntrusivePtr (Jon Siwek, Corelight)
+
+  * Migrate ICMP analyzer to use IntrusivePtr (Jon Siwek, Corelight)
+
+  * Migrate DNS analyzer to use IntrusivePtr (Jon Siwek, Corelight)
+
+  * Migrate Tag classes to use IntrusivePtr
+
+    Deprecates various methods that previously took raw pointers (Jon Siwek, Corelight)
+
+  * Deprecate TableVal::ConvertToList() and TableVal::ConvertToPureList()
+
+    Replaced with ToListVal() and ToPureListVal() that return IntrusivePtr (Jon Siwek, Corelight)
+
+  * Switch ListVal to store IntrusivePtrs
+
+    * Deprecates ListVal::Index() methods and replaces with ListVal::Idx()
+
+    * Replaces ListVal::Vals() method with one that returns
+      std::vector<IntrusivePtr<Val>> rather than val_list (Jon Siwek, Corelight)
+
+  * Deprecant ListVal::Append(Val*) and add IntrusivePtr version (Jon Siwek, Corelight)
+
+  * Deprecate ListVal::ConvertToSet(), add ListVal::ToSetVal() (Jon Siwek, Corelight)
+
+  * Deprecate TunnelEncapsulation BuildRecordVal/BuildVectorVal methods
+
+    Replaced with ToVal methods that return IntrusivePtr (Jon Siwek, Corelight)
+
+  * Deprecate various IP/packet header Val-building methods
+
+    And supply new alternatives that use IntrusivePtr (Jon Siwek, Corelight)
+
+  * Update submodule(s)
+
+     [nomail] (Jon Siwek, Corelight)
+
+
 3.2.0-dev.573 | 2020-05-29 17:13:36 -0700
 
   * Add "Known::service_udp_requires_response" option (Jon Siwek, Corelight)

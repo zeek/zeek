@@ -35,19 +35,19 @@ Config::Config(ReaderFrontend *frontend) : ReaderBackend(frontend)
 		if ( ! id->IsOption() )
 			continue;
 
-		if ( id->Type()->Tag() == TYPE_RECORD ||
-			 ! input::Manager::IsCompatibleType(id->Type()) )
+		if ( id->GetType()->Tag() == TYPE_RECORD ||
+			 ! input::Manager::IsCompatibleType(id->GetType().get()) )
 			{
-			option_types[id->Name()] = std::make_tuple(TYPE_ERROR, id->Type()->Tag());
+			option_types[id->Name()] = std::make_tuple(TYPE_ERROR, id->GetType()->Tag());
 			continue;
 			}
 
-		TypeTag primary = id->Type()->Tag();
+		TypeTag primary = id->GetType()->Tag();
 		TypeTag secondary = TYPE_VOID;
 		if ( primary == TYPE_TABLE )
-			secondary = id->Type()->AsSetType()->Indices()->PureType()->Tag();
+			secondary = id->GetType()->AsSetType()->GetIndices()->GetPureType()->Tag();
 		else if ( primary == TYPE_VECTOR )
-			secondary = id->Type()->AsVectorType()->YieldType()->Tag();
+			secondary = id->GetType()->AsVectorType()->Yield()->Tag();
 
 		option_types[id->Name()] = std::make_tuple(primary, secondary);
 		}
@@ -63,13 +63,13 @@ void Config::DoClose()
 
 bool Config::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fields)
 	{
-	fail_on_file_problem = BifConst::InputConfig::fail_on_file_problem;
+	fail_on_file_problem = zeek::BifConst::InputConfig::fail_on_file_problem;
 
-	set_separator.assign( (const char*) BifConst::InputConfig::set_separator->Bytes(),
-	                     BifConst::InputConfig::set_separator->Len());
+	set_separator.assign( (const char*) zeek::BifConst::InputConfig::set_separator->Bytes(),
+	                     zeek::BifConst::InputConfig::set_separator->Len());
 
-	empty_field.assign( (const char*) BifConst::InputConfig::empty_field->Bytes(),
-	                   BifConst::InputConfig::empty_field->Len());
+	empty_field.assign( (const char*) zeek::BifConst::InputConfig::empty_field->Bytes(),
+	                   zeek::BifConst::InputConfig::empty_field->Len());
 
 	formatter::Ascii::SeparatorInfo sep_info("\t", set_separator, "", empty_field);
 	formatter = std::unique_ptr<threading::formatter::Formatter>(new formatter::Ascii(this, sep_info));

@@ -170,12 +170,12 @@ void ConnSize_Analyzer::SetDurationThreshold(double duration)
 void ConnSize_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	{
 	// RecordType *connection_type is decleared in NetVar.h
-	RecordVal *orig_endp = conn_val->Lookup("orig")->AsRecordVal();
-	RecordVal *resp_endp = conn_val->Lookup("resp")->AsRecordVal();
+	RecordVal* orig_endp = conn_val->GetField("orig")->AsRecordVal();
+	RecordVal* resp_endp = conn_val->GetField("resp")->AsRecordVal();
 
 	// endpoint is the RecordType from NetVar.h
-	int pktidx = endpoint->FieldOffset("num_pkts");
-	int bytesidx = endpoint->FieldOffset("num_bytes_ip");
+	int pktidx = zeek::id::endpoint->FieldOffset("num_pkts");
+	int bytesidx = zeek::id::endpoint->FieldOffset("num_bytes_ip");
 
 	if ( pktidx < 0 )
 		reporter->InternalError("'endpoint' record missing 'num_pkts' field");

@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include "Obj.h"
 #include "BroList.h"
 #include "IntrusivePtr.h"
@@ -36,15 +38,21 @@ typedef enum {
 
 class Attr final : public BroObj {
 public:
+	static inline const IntrusivePtr<Attr> nil;
+
 	Attr(attr_tag t, IntrusivePtr<Expr> e);
 	explicit Attr(attr_tag t);
 	~Attr() override;
 
 	attr_tag Tag() const	{ return tag; }
+
+	[[deprecated("Remove in v4.1.  Use GetExpr().")]]
 	Expr* AttrExpr() const	{ return expr.get(); }
 
-	template<typename E>
-	void SetAttrExpr(E&& e) { expr = std::forward<E>(e); }
+	const IntrusivePtr<Expr>& GetExpr() const
+		{ return expr; }
+
+	void SetAttrExpr(IntrusivePtr<Expr> e);
 
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool shorten = false) const;
@@ -73,20 +81,32 @@ protected:
 // Manages a collection of attributes.
 class Attributes final : public BroObj {
 public:
+	[[deprecated("Remove in v4.1.  Construct using IntrusivePtrs instead.")]]
 	Attributes(attr_list* a, IntrusivePtr<BroType> t, bool in_record, bool is_global);
-	~Attributes() override;
+
+	Attributes(std::vector<IntrusivePtr<Attr>> a, IntrusivePtr<BroType> t,
+	           bool in_record, bool is_global);
+	Attributes(IntrusivePtr<BroType> t, bool in_record, bool is_global);
 
 	void AddAttr(IntrusivePtr<Attr> a);
+
+	void AddAttrs(const IntrusivePtr<Attributes>& a);
+
+	[[deprecated("Remove in v4.1. Pass IntrusivePtr instead.")]]
 	void AddAttrs(Attributes* a);	// Unref's 'a' when done
 
+	[[deprecated("Remove in v4.1. Use Find().")]]
 	Attr* FindAttr(attr_tag t) const;
+
+	const IntrusivePtr<Attr>& Find(attr_tag t) const;
 
 	void RemoveAttr(attr_tag t);
 
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool shorten = false) const;
 
-	attr_list* Attrs()	{ return attrs; }
+	const std::vector<IntrusivePtr<Attr>>& Attrs() const
+		{ return attrs; }
 
 	bool operator==(const Attributes& other) const;
 
@@ -94,7 +114,7 @@ protected:
 	void CheckAttr(Attr* attr);
 
 	IntrusivePtr<BroType> type;
-	attr_list* attrs;
+	std::vector<IntrusivePtr<Attr>> attrs;
 	bool in_record;
 	bool global_var;
 };

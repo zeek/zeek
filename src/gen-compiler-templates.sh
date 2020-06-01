@@ -145,18 +145,18 @@ BEGIN	{
 	# For an assign-to-any, then we will need the instruction
 	# type field set to the type of the RHS.  It does no harm
 	# to just always do that.
-	method_extra_suffix["R"] = "z.t = t->FieldType(field);"
+	method_extra_suffix["R"] = "z.t = $2->Type()->AsRecordType()->FieldType(field);"
 	method_extra_suffix["X"] = "z.t = t;"
 
 	# Whether for generated statements to take their type from the
 	# main assignment target (1) or from the first operand (0).
-	use_target_for_type["F"] = 1
-	use_target_for_type["R"] = 0
+	use_target_for_type["F"] = 0
+	use_target_for_type["R"] = 1
 	use_target_for_type["X"] = 0
 
 	# Accessor for the type, if something special required.
 	specific_type["F"] = ".get()"
-	specific_type["R"] = "->AsRecordType()"
+	specific_type["R"] = ".get()"
 	specific_type["X"] = ".get()"
 
 	# Evaluation of @ parameters in assignments has two basic types,
@@ -579,7 +579,8 @@ function build_assignment_dispatch2(op, type, is_var)
 	no_eval = 1
 
 	targ = is_var ? "n1" : "n"
-	type_base = use_target_for_type[type] ? targ : (is_var ? "n2" : "c")
+	rhs_op = is_var ? "n2" : "c"
+	type_base = use_target_for_type[type] ? targ : rhs_op
 
 	atype = type (is_var ? "V" : "C")
 
@@ -605,7 +606,11 @@ function build_assignment_dispatch2(op, type, is_var)
 	custom_method = custom_method "\n" build_assign_case(op, atype, "", "", is_var)
 
 	if ( type in method_extra_suffix )
-		custom_method = custom_method "\n\t" method_extra_suffix[type]
+		{
+		xtra = method_extra_suffix[type]
+		gsub(/\$2/, rhs_op, xtra)
+		custom_method = custom_method "\n\t" xtra
+		}
 
 	custom_method = custom_method "\n" \
 		"\treturn AddInst(z);"

@@ -31,6 +31,7 @@ bool IsManagedType(const BroType* t)
 	switch ( t->Tag() ) {
 	case TYPE_ADDR:
 	case TYPE_SUBNET:
+	case TYPE_RECORD:
 	case TYPE_STRING:
 		return true;
 
@@ -49,6 +50,8 @@ void DeleteManagedType(ZAMValUnion& v, const BroType* t)
 		delete v.addr_val; v.addr_val = nullptr; break;
 	case TYPE_SUBNET:
 		delete v.subnet_val; v.subnet_val = nullptr; break;
+	case TYPE_RECORD:
+		delete v.record_val; v.record_val = nullptr; break;
 	case TYPE_STRING:
 		delete v.string_val; v.string_val = nullptr; break;
 	case TYPE_VECTOR:
@@ -128,13 +131,13 @@ ZAMValUnion::ZAMValUnion(Val* v, BroType* t, ZAMAggrBindings* bindings,
 			vector_val = nullptr;
 			}
 		else
-			vector_val = to_ZAM_vector(v, bindings, true);
+			vector_val = to_ZAM_vector(v, bindings);
 
 		break;
 		}
 
 	case TYPE_RECORD:
-		record_val = to_ZAM_record(v, bindings, true);
+		record_val = to_ZAM_record(v, bindings);
 		break;
 
 	case TYPE_STRING:
@@ -321,9 +324,6 @@ void ZAM_vector::Spill()
 
 void ZAM_vector::Freshen()
 	{
-	ASSERT(! is_dirty);
-	ASSERT(vv);
-
 	if ( vv->AsVector() == this )
 		// Association stands.
 		return;
@@ -402,7 +402,6 @@ void ZAM_record::Spill()
 
 void ZAM_record::Freshen()
 	{
-	ASSERT(! is_loaded && ! is_dirty);
 	ASSERT(rv);
 	// The following is for when we've converted over RecordVal's.
 	//
@@ -503,13 +502,8 @@ ZAMRecord::ZAMRecord(IntrusivePtr<ZAM_record> _zr)
 	}
 
 
-ZAMVector* to_ZAM_vector(Val* vec, ZAMAggrBindings* bindings, bool track_val)
+ZAMVector* to_ZAM_vector(Val* vec, ZAMAggrBindings* bindings)
 	{
-	if ( ! track_val )
-		// Set the bindings to nil so that the ZAM_vector knows
-		// not to bother sync'ing the aggregate.
-		bindings = nullptr;
-
 	auto raw = to_raw_ZAM_vector(vec, bindings);
 	return new ZAMVector(raw);
 	}
@@ -518,33 +512,14 @@ IntrusivePtr<ZAM_vector> to_raw_ZAM_vector(Val* vec, ZAMAggrBindings* bindings)
 	{
 	auto vv = vec->AsVector();
 
+	// ### Here is where we'd track holes in vectors.
 	return {NewRef{}, vv};
-#if 0
-	auto t = vec->Type()->AsVectorType();
-	auto yt = t->YieldType();
-
-	auto myt = IsManagedType(yt) ? yt : nullptr;
-	auto zv = make_intrusive<ZAM_vector>(vec->AsVectorVal(), bindings, myt);
-	auto& raw = zv->ModVecNoDirty();
-
-	bool error;
-
-	for ( auto elem : *vv )
-		if ( ! elem )
-			// Zeek vectors can have holes.
-			raw.push_back(ZAMValUnion());
-		else
-			raw.push_back(ZAMValUnion(elem, yt, bindings,
-							vec, error));
-
-	return zv;
-#endif
 	}
 
 
-ZAMRecord* to_ZAM_record(Val* r, ZAMAggrBindings* bindings, bool track_val)
+ZAMRecord* to_ZAM_record(Val* r, ZAMAggrBindings* bindings)
 	{
-	auto rv = track_val ? r->AsRecordVal() : nullptr;
+	auto rv = r->AsRecordVal();
 	auto zr = make_intrusive<ZAM_record>(rv, r->Type()->AsRecordType(),
 						bindings);
 	return new ZAMRecord(zr);

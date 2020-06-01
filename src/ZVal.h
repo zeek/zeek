@@ -573,12 +573,10 @@ public:
 };
 
 // Converts between VectorVals and ZAM vectors.
-extern ZAMVector* to_ZAM_vector(Val* vec, ZAMAggrBindings* bindings,
-					bool track_val);
+extern ZAMVector* to_ZAM_vector(Val* vec, ZAMAggrBindings* bindings);
 extern IntrusivePtr<ZAM_vector> to_raw_ZAM_vector(Val* vec,
 						ZAMAggrBindings* bindings);
 
 // Likewise for RecordVals, but due to lazy loading, no need for "raw"
 // vectors.
-extern ZAMRecord* to_ZAM_record(Val* rec, ZAMAggrBindings* bindings,
-					bool track_val);
+extern ZAMRecord* to_ZAM_record(Val* rec, ZAMAggrBindings* bindings);

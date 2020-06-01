@@ -1,3 +1,4 @@
+need to check that z.t gets set properly for assignments-to-any
 revise memory management now that ZAMValUnion's can be constructed outside
 	of compiled code
 need to hook into notifier::Modifiable framework for aggregates

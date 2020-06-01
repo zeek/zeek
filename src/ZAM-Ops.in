@@ -4,7 +4,7 @@
 ########## Unary Ops ##########
 
 unary-expr-op Assign
-op-type A N S V *
+op-type A N R S V *
 set-type $2
 #
 eval_A auto av = new IPAddr(*$1)
@@ -14,6 +14,10 @@ eval_A $$.addr_val = av
 eval_N auto nv = new IPPrefix(*$1)
 eval_N delete $$.subnet_val
 eval_N $$.subnet_val = nv
+#
+eval_R auto rv = $1->ShallowCopy()
+eval_R delete $$.record_val
+eval_R $$.record_val = rv
 #
 eval_S auto sv = new BroString(*$1)
 eval_S delete $$.string_val
@@ -112,7 +116,7 @@ eval const char* error;
 eval auto rv = frame[z.v2].record_val;
 eval auto res = flatten_value(rv->ToRecordVal().get(), z.v3, error);
 eval if ( error ) ZAM_run_time_error(error_flag, z.stmt, error);
-eval else frame[z.v1].record_val = to_ZAM_record(res.get(), &ZAM_VM_bindings, false);
+eval else frame[z.v1].record_val = to_ZAM_record(res.get(), &ZAM_VM_bindings);
 
 unary-expr-op Cast
 op-type X
@@ -281,16 +285,13 @@ eval_A ! (*$1 < *$2) && *$1 != *$2
 
 ########## Nonuniform Expressions ##########
 
-expr-op Field
+assign-op Field
 type R
 eval bool error
 eval auto rv = frame[z.v2].record_val
 eval auto v = rv->Lookup(z.v3, error)
-eval if ( ! error ) z.e->RuntimeError("field value missing")
-eval else {
-eval	if ( IsAny(z.t) ) frame[z.v1].any_val = TrackValPtr(v.ToVal(rv->FieldType(z.v3)))
-eval	else frame[z.v1] = v
-eval }
+eval if ( error ) z.e->RuntimeError("field value missing")
+eval else @v
 
 expr-op Has-Field
 type Ri
@@ -437,7 +438,7 @@ eval auto v2 = frame[z.v2].ToVector(vt)
 eval auto v3 = frame[z.v3].ToVector(vt)
 eval auto v = vector_bool_select(vt, v2.get(), v3.get())
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = to_ZAM_vector(v.get(), &ZAM_VM_bindings, false)
+eval frame[z.v1].vector_val = to_ZAM_vector(v.get(), &ZAM_VM_bindings)
 
 op IndexVecIntSelect
 type VVV
@@ -447,7 +448,7 @@ eval auto v2 = frame[z.v2].ToVector(vt)
 eval auto v3 = frame[z.v3].ToVector(vt)
 eval auto v = vector_int_select(vt, v2.get(), v3.get())
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = to_ZAM_vector(v.get(), &ZAM_VM_bindings, false)
+eval frame[z.v1].vector_val = to_ZAM_vector(v.get(), &ZAM_VM_bindings)
 
 op Index
 type VVL
@@ -486,7 +487,7 @@ eval auto lv = frame[z.v3].list_val
 eval auto v = vector_index(vt, vec.get(), lv)
 eval Unref(lv)
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = to_ZAM_vector(v.get(), &ZAM_VM_bindings, false)
+eval frame[z.v1].vector_val = to_ZAM_vector(v.get(), &ZAM_VM_bindings)
 
 internal-op Table-Index
 type VVV
@@ -626,7 +627,7 @@ eval auto v = frame[z.v2].record_val->ToRecordVal()
 eval auto map = z.int_ptr
 eval auto map_size = z.v3
 eval auto to_r = coerce_to_record(rt, v.get(), map, map_size)
-eval frame[z.v1].record_val = to_ZAM_record(to_r.get(), &ZAM_VM_bindings, false)
+eval frame[z.v1].record_val = to_ZAM_record(to_r.get(), &ZAM_VM_bindings)
 
 direct-unary-op Table-Coerce TableCoerce
 
@@ -647,7 +648,7 @@ eval if ( frame[z.v2].vector_val->Size() > 0 ) { ZAM_run_time_error(error_flag, 
 eval auto t = z.t->Ref()->AsVectorType();
 eval auto vv_p = make_intrusive<VectorVal>(t)
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = to_ZAM_vector(vv_p.get(), &ZAM_VM_bindings, false)
+eval frame[z.v1].vector_val = to_ZAM_vector(vv_p.get(), &ZAM_VM_bindings)
 
 ########## Aggregate Assignments ##########
 
@@ -977,7 +978,7 @@ eval frame[z.v1].record_val->DeleteField(z.v2)
 internal-op Init-Record
 type V
 eval auto r = new RecordVal(z.t->AsRecordType())
-eval frame[z.v1].record_val = to_ZAM_record(r, &ZAM_VM_bindings, false)
+eval frame[z.v1].record_val = to_ZAM_record(r, &ZAM_VM_bindings)
 
 # v1 is the frame element being initialized
 # v2 is its slot in the interpreted frame

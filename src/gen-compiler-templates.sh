@@ -97,18 +97,29 @@ BEGIN	{
 	accessors["A"] = ".addr_val"
 	accessors["N"] = ".subnet_val"
 	accessors["P"] = ".re_val"
+	accessors["R"] = ".record_val"
 	accessors["S"] = ".string_val"
 	accessors["T"] = ".table_val"
 	accessors["V"] = ".vector_val"
 	accessors["X"] = "###"
 
-	# While vectors other than vector-of-any are also managed, we
-	# do not need to enter them here because this property is only
-	# relevant for vector elements used in looped vector operations,
-	# and we do not do those for vector-of-vector-of-X.
 	++is_managed["A"]
 	++is_managed["N"]
+	++is_managed["R"]
 	++is_managed["S"]
+	++is_managed["V"]	# other than vector-of-any, sigh
+
+	# Templates for mapping "bare" frame assignments to specific
+	# transformations/memory management, depending on the type
+	# of the assignment.
+	assign_tmpl["A"] = "auto av = new IPAddr(*($1.addr_val));\ndelete $$.addr_val;\n$$.addr_val = av;"
+	assign_tmpl["N"] = "auto nv = new IPPrefix(*($1.subnet_val));\ndelete $$.subnet_val;\n$$.subnet_val = nv;"
+	assign_tmpl["R"] = "auto rv = $1.record_val->ShallowCopy();\ndelete $$.record_val;\n$$.record_val = rv;"
+	assign_tmpl["S"] = "auto sv = new BroString(*($1.string_val));\ndelete $$.string_val;\n$$.string_val = sv;"
+	assign_tmpl["V"] = "auto vv = $1.vector_val->ShallowCopy();\ndelete $$.vector_val;\n$$.vector_val = vv;"
+	assign_tmpl["ANY"] = "$$.any_val = TrackValPtr($1.ToVal(z.t));"
+	assign_tmpl[""] = "$$ = $1;"
+
 
 	# Update eval(...) below
 
@@ -121,11 +132,13 @@ BEGIN	{
 	eval_selector["A"] = "A"
 	eval_selector["N"] = "N"
 	eval_selector["P"] = "P"
+	eval_selector["R"] = "R"
 	eval_selector["S"] = "S"
 	eval_selector["T"] = "T"
 	eval_selector["V"] = "V"
 
 	++no_vec["P"]
+	++no_vec["R"]
 	++no_vec["T"]
 	++no_vec["V"]
 	++no_vec["A", "I"]
@@ -136,6 +149,7 @@ BEGIN	{
 	method_map["A"] = "i_t == TYPE_INTERNAL_ADDR"
 	method_map["N"] = "i_t == TYPE_INTERNAL_SUBNET"
 	method_map["P"] = "tag == TYPE_PATTERN"
+	method_map["R"] = "tag == TYPE_RECORD"
 	method_map["S"] = "i_t == TYPE_INTERNAL_STRING"
 	method_map["T"] = "tag == TYPE_TABLE"
 
@@ -161,6 +175,7 @@ BEGIN	{
 
 $1 == "op"	{ dump_op(); op = $2; next }
 $1 == "expr-op"	{ dump_op(); op = $2; expr_op = 1; next }
+$1 == "assign-op" { dump_op(); op = $2; assign_op = 1; next }
 $1 == "unary-op"	{ dump_op(); op = $2; ary_op = 1; next }
 $1 == "direct-unary-op" {
 	dump_op(); op = $2; direct_method = $3; direct_op = 1; next
@@ -196,7 +211,7 @@ $1 == "opaque"	{ opaque = 1; next }
 $1 == "set-type"	{ set_type = $2; next }
 $1 == "set-expr"	{ set_expr = $2; next }
 
-$1 ~ /^eval((_([iudANPSTV]))?)$/	{
+$1 ~ /^eval((_([iudANPRSTV]))?)$/	{
 		if ( $1 != "eval" )
 			{
 			# Extract subtype specifier.
@@ -324,6 +339,58 @@ function dump_op()
 		return
 		}
 
+	if ( assign_op )
+		{
+		# First, generate the generic version of the assignment,
+		# which provides a custom method for dispatching to the
+		# specific flavors.
+		no_eval = 1
+
+		# Ideally, we would auto-generate this custom method,
+		# but for now we just specify it manually.
+		custom_method = "auto t = n2->Type()->AsRecordType();\n" \
+			"\tauto tag = t->Tag();\n" \
+			"\tauto i_t = t->InternalType();\n" \
+			"\tauto field = f->Field();\n" \
+			"\tZInst z;"
+
+		# Do the "ANY" case first, since it is dispatched on the
+		# type of n1 rather than n2.
+		custom_method = custom_method "\n\t" \
+			build_assign_case(op, "ANY", "n1->Type()->Tag() == TYPE_ANY")
+
+		for ( flavor in is_managed )
+			custom_method = custom_method \
+				build_assign_case(op, flavor,
+							method_map[flavor])
+
+		# Add the default case.
+		custom_method = custom_method "\n" \
+			build_assign_case(op, "", "")
+
+		# If it is assign-to-any, then we will need the instruction
+		# type field set to the type of the RHS.  It does no harm
+		# to just always do that.
+		custom_method = custom_method "\n" \
+			"\tz.t = t->FieldType(field);\n" \
+			"\treturn AddInst(z);"
+
+		build_op(op, type, "", "", "", "", 1)
+
+		# Now generate the specific flavors.
+		no_eval = 0
+		custom_method = ""
+
+		for ( flavor in is_managed )
+			build_assignment(op, flavor, eval[""])
+
+		# Handle assignment-to-any.
+		build_assignment(op, "ANY", eval[""])
+		build_assignment(op, "", eval[""])
+		clear_vars()
+		return
+		}
+
 	if ( ! ary_op )
 		{
 		ex = eval[""]
@@ -376,7 +443,7 @@ function dump_op()
 			}
 
 		# Loop over constant, var for second operand.  We do not
-		# currently worry about "no-const" here.
+		# currently worry about "no_const" here.
 		for ( k = 0; k <= 1; ++k )
 			build_op_combo(op1, j, k)
 		}
@@ -454,6 +521,38 @@ function build_direct_op(method)
 
 	print ("\tcase EXPR_" upper_op \
 		":\treturn c->" method "(lhs, rhs);") >ops_direct_f
+	}
+
+function build_assignment(op, flavor, ev)
+	{
+	if ( index(ev, "@") == 0 )
+		gripe("no @ specifier in assignment op")
+
+	assign_val = ev
+	sub(/.*@/, "", assign_val)
+	sub(/[ \t;].*/, "", assign_val)
+
+	tmpl = "{\n" assign_tmpl[flavor] "\n}"
+	gsub(/\$1/, assign_val, tmpl)
+	gsub(/\$\$/, "frame[z.v1]", tmpl)
+
+	gsub(/@[a-zA-Z]*/, tmpl, ev)
+
+	build_op(op, "VVi", flavor, "", ev, ev, 1)
+	}
+
+function build_assign_case(op, flavor, cond)
+	{
+	full_op = "OP_" toupper(op) "_VVi"
+
+	if ( ! flavor )
+		return "\t\tz = GenInst(this, " full_op ", n1, n2, field);"
+
+	full_op = full_op "_" flavor
+
+	return "if ( " cond " )\n" \
+		"\t\tz = GenInst(this, " full_op ", n1, n2, field);\n" \
+		"\telse "
 	}
 
 function expand_eval(e, pre_eval, is_expr_op, otype1, otype2, is_var1, is_var2)
@@ -1021,7 +1120,7 @@ function clear_vars()
 	opaque = set_expr = set_type = type = type_selector = operand_type = ""
 	custom_method = method_pre = eval_pre = ""
 	no_const = no_eval = mix_eval = multi_eval = eval_blank = ""
-	cond_op = rel_op = ary_op = expr_op = op = ""
+	cond_op = rel_op = ary_op = assign_op = expr_op = op = ""
 	vector = binary_op = internal_op = ""
 	op1_flavor = direct_method = direct_op = ""
 	laccessor = raccessor1 = raccessor2 = ""

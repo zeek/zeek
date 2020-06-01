@@ -843,6 +843,7 @@ bool MIME_Entity::ParseContentEncodingField(MIME_Header* h)
 		return false;
 		}
 
+	delete content_encoding_str;
 	content_encoding_str = new BroString((const u_char*)enc.data, enc.length, true);
 	ParseContentEncoding(enc);
 
@@ -908,6 +909,7 @@ bool MIME_Entity::ParseFieldParameters(int len, const char* data)
 				}
 
 			data_chunk_t vd = get_data_chunk(val);
+			delete multipart_boundary;
 			multipart_boundary = new BroString((const u_char*)vd.data,
 			                                   vd.length, true);
 			}

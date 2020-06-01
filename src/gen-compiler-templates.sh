@@ -26,7 +26,8 @@ BEGIN	{
 
 	args["X"] = "()"
 	args["O"] = "(OpaqueVals* v)"
-	args["R"] = "(const NameExpr* n1, const NameExpr* n2, const FieldExpr* f)"
+	args["RV"] = "(const NameExpr* n1, const NameExpr* n2, const FieldExpr* f)"
+	args["RC"] = "(const NameExpr* n, const ConstExpr* c, const FieldExpr* f)"
 	args["Ri"] = "(const NameExpr* n1, const NameExpr* n2, int field)"
 	args["V"] = "(const NameExpr* n)"
 	args["Vi"] = "(const NameExpr* n, int i)"
@@ -53,7 +54,8 @@ BEGIN	{
 
 	args2["X"] = ""
 	args2["O"] = "reg"
-	args2["R"] = "n1, n2, f->Field()"
+	args2["RV"] = "n1, n2, field"
+	args2["RC"] = "n, c, field"
 	args2["Ri"] = "n1, n2, field"
 	args2["V"] = "n"
 	args2["Vi"] = "n, i"
@@ -341,52 +343,7 @@ function dump_op()
 
 	if ( assign_op )
 		{
-		# First, generate the generic version of the assignment,
-		# which provides a custom method for dispatching to the
-		# specific flavors.
-		no_eval = 1
-
-		# Ideally, we would auto-generate this custom method,
-		# but for now we just specify it manually.
-		custom_method = "auto t = n2->Type()->AsRecordType();\n" \
-			"\tauto tag = t->Tag();\n" \
-			"\tauto i_t = t->InternalType();\n" \
-			"\tauto field = f->Field();\n" \
-			"\tZInst z;"
-
-		# Do the "ANY" case first, since it is dispatched on the
-		# type of n1 rather than n2.
-		custom_method = custom_method "\n\t" \
-			build_assign_case(op, "ANY", "n1->Type()->Tag() == TYPE_ANY")
-
-		for ( flavor in is_managed )
-			custom_method = custom_method \
-				build_assign_case(op, flavor,
-							method_map[flavor])
-
-		# Add the default case.
-		custom_method = custom_method "\n" \
-			build_assign_case(op, "", "")
-
-		# If it is assign-to-any, then we will need the instruction
-		# type field set to the type of the RHS.  It does no harm
-		# to just always do that.
-		custom_method = custom_method "\n" \
-			"\tz.t = t->FieldType(field);\n" \
-			"\treturn AddInst(z);"
-
-		build_op(op, type, "", "", "", "", 1)
-
-		# Now generate the specific flavors.
-		no_eval = 0
-		custom_method = ""
-
-		for ( flavor in is_managed )
-			build_assignment(op, flavor, eval[""])
-
-		# Handle assignment-to-any.
-		build_assignment(op, "ANY", eval[""])
-		build_assignment(op, "", eval[""])
+		build_assignment_op(op, type)
 		clear_vars()
 		return
 		}
@@ -523,7 +480,77 @@ function build_direct_op(method)
 		":\treturn c->" method "(lhs, rhs);") >ops_direct_f
 	}
 
+function build_assignment_op(op, type)
+	{
+	build_assignment_dispatch(op, type)
+
+	# Now generate the specific flavors.
+	for ( flavor in is_managed )
+		build_assignment(op, flavor, eval[""])
+
+	# Handle assignment-to-any.
+	build_assignment(op, "ANY", eval[""])
+
+	# Default assignment where no special work is needed.
+	build_assignment(op, "", eval[""])
+	}
+
+function build_assignment_dispatch(op, type)
+	{
+	build_assignment_dispatch2(op, type, 0)
+	build_assignment_dispatch2(op, type, 1)
+	}
+
+function build_assignment_dispatch2(op, type, is_var)
+	{
+	# Generate generic versions of the assignment, which
+	# provide a custom method for dispatching to the
+	# specific flavors.
+	no_eval = 1
+
+	targ = is_var ? "n1" : "n"
+	operand = is_var ? "n2" : "c"
+
+	atype = type (is_var ? "V" : "C")
+
+	custom_method = "auto t = " operand "->Type()->AsRecordType();\n" \
+		"\tauto tag = t->Tag();\n" \
+		"\tauto i_t = t->InternalType();\n" \
+		"\tauto field = f->Field();\n" \
+		"\tZInst z;"
+
+	# Do the "ANY" case first, since it is dispatched on the
+	# type of n1 rather than n2.
+	custom_method = custom_method "\n\t" \
+		build_assign_case(op, atype, "ANY", targ "->Type()->Tag() == TYPE_ANY")
+
+	for ( flavor in is_managed )
+		custom_method = custom_method \
+			build_assign_case(op, atype, flavor, method_map[flavor], is_var)
+
+	# Add the default case.
+	custom_method = custom_method "\n" build_assign_case(op, atype, "", "", is_var)
+
+	# If it is assign-to-any, then we will need the instruction
+	# type field set to the type of the RHS.  It does no harm
+	# to just always do that.
+	custom_method = custom_method "\n" \
+		"\tz.t = t->FieldType(field);\n" \
+		"\treturn AddInst(z);"
+
+	build_op(op, atype, "", "", "", "", is_var, "")
+
+	no_eval = 0
+	custom_method = ""
+	}
+
 function build_assignment(op, flavor, ev)
+	{
+	build_assignment2(op, flavor, 0, ev)
+	build_assignment2(op, flavor, 1, ev)
+	}
+
+function build_assignment2(op, flavor, is_var, ev)
 	{
 	if ( index(ev, "@") == 0 )
 		gripe("no @ specifier in assignment op")
@@ -537,21 +564,27 @@ function build_assignment(op, flavor, ev)
 	gsub(/\$\$/, "frame[z.v1]", tmpl)
 
 	gsub(/@[a-zA-Z]*/, tmpl, ev)
+	gsub(/\$2/, is_var ? "frame[z.v2]" : "z.c", ev)
 
-	build_op(op, "VVi", flavor, "", ev, ev, 1)
+	build_op(op, "V" (is_var ? "V" : "C") "i", flavor, "", ev, ev, is_var, 0)
 	}
 
-function build_assign_case(op, flavor, cond)
+function build_assign_case(op, atype, flavor, cond, is_var)
 	{
-	full_op = "OP_" toupper(op) "_VVi"
+	targ = is_var ? "n1" : "n"
+	operand = is_var ? "n2" : "c"
+
+	full_op = "OP_" toupper(op) "_V" (is_var ? "V" : "C") "i"
+
+	assign_args = args2[atype]
 
 	if ( ! flavor )
-		return "\t\tz = GenInst(this, " full_op ", n1, n2, field);"
+		return "\t\tz = GenInst(this, " full_op ", " assign_args ");"
 
 	full_op = full_op "_" flavor
 
 	return "if ( " cond " )\n" \
-		"\t\tz = GenInst(this, " full_op ", n1, n2, field);\n" \
+		"\t\tz = GenInst(this, " full_op "," assign_args ");\n" \
 		"\telse "
 	}
 
@@ -811,10 +844,16 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 					0, 1, method_pre)
 		}
 
-	if ( type == "R" )
+	if ( type == "RV" )
 		{
 		print ("\tcase EXPR_" upper_op ":\treturn c->" op_type \
 			"(lhs, r1->AsNameExpr(), rhs->AsFieldExpr());") >exprsV_f
+		}
+
+	else if ( type == "RC" )
+		{
+		print ("\tcase EXPR_" upper_op ":\treturn c->" op_type \
+			"(lhs, r1->AsConstExpr(), rhs->AsFieldExpr());") >exprsC1_f
 		}
 
 	else if ( type == "Ri" )

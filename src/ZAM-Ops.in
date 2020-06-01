@@ -288,7 +288,7 @@ eval_A ! (*$1 < *$2) && *$1 != *$2
 assign-op Field
 type R
 eval bool error
-eval auto rv = frame[z.v2].record_val
+eval auto rv = $2.record_val
 eval auto v = rv->Lookup(z.v3, error)
 eval if ( error ) z.e->RuntimeError("field value missing")
 eval else @v

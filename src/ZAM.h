@@ -332,8 +332,8 @@ protected:
 
 	void SyncGlobals(std::unordered_set<ID*>& g, const BroObj* o);
 
-	void SpillVectors(ZAMAggrBindings* bindings) const;
-	void LoadVectors(ZAMAggrBindings* bindings) const;
+	void SpillAggregates(ZAMAggrBindings* bindings) const;
+	void LoadAggregates(ZAMAggrBindings* bindings) const;
 
 	// The first of these is used as we compile down to ZInst's.
 	// The second is the final code used during execution.  They're

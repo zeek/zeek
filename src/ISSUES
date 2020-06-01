@@ -28,3 +28,5 @@ error messages tied back to non-reduced original
 really don't want to generate "isn't used" if doing reduction since
 	it induces some constant propagation of globals (could turn that
 	off though)
+
+recursion, tail-recursion

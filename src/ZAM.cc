@@ -2700,13 +2700,13 @@ int ZAM::RegisterSlot()
 	return register_slot;
 	}
 
-void ZAM::SpillVectors(ZAMAggrBindings* bindings) const
+void ZAM::SpillAggregates(ZAMAggrBindings* bindings) const
 	{
 	for ( auto aggr : *bindings )
 		aggr->Spill();
 	}
 
-void ZAM::LoadVectors(ZAMAggrBindings* bindings) const
+void ZAM::LoadAggregates(ZAMAggrBindings* bindings) const
 	{
 	// The process of freshening an aggregate can lead to it
 	// needing to be removed, or even deleting itself, so

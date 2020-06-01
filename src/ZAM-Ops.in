@@ -109,9 +109,10 @@ eval vv.push_back(copy)
 unary-expr-op Flatten
 op-type X
 eval const char* error;
-eval auto res = flatten_value(frame[z.v2].record_val, z.v3, error);
+eval auto rv = frame[z.v2].record_val;
+eval auto res = flatten_value(rv->ToRecordVal().get(), z.v3, error);
 eval if ( error ) ZAM_run_time_error(error_flag, z.stmt, error);
-eval else frame[z.v1].record_val = TrackValPtr(res)->AsRecordVal();
+eval else frame[z.v1].record_val = to_ZAM_record(res.get(), &ZAM_VM_bindings, false);
 
 unary-expr-op Cast
 op-type X
@@ -282,16 +283,18 @@ eval_A ! (*$1 < *$2) && *$1 != *$2
 
 expr-op Field
 type R
-eval auto v = frame[z.v2].record_val->LookupWithDefault(z.v3)
-eval if ( ! v ) z.e->RuntimeError("field value missing")
+eval bool error
+eval auto rv = frame[z.v2].record_val
+eval auto v = rv->Lookup(z.v3, error)
+eval if ( ! error ) z.e->RuntimeError("field value missing")
 eval else {
-eval	if ( IsAny(z.t) ) frame[z.v1].any_val = v.release()
-eval	else AssignV1(BuildVal(v, z.t, z.stmt))
+eval	if ( IsAny(z.t) ) frame[z.v1].any_val = TrackValPtr(v.ToVal(rv->FieldType(z.v3)))
+eval	else frame[z.v1] = v
 eval }
 
 expr-op Has-Field
 type Ri
-eval frame[z.v1].int_val = (frame[z.v2].record_val->Lookup(z.v3) != nullptr)
+eval frame[z.v1].int_val = (frame[z.v2].record_val->HasField(z.v3))
 
 expr-op In
 type VVV
@@ -619,11 +622,11 @@ direct-unary-op Record-Coerce RecordCoerce
 internal-op Record-Coerce
 type VVV
 eval auto rt = z.t->AsRecordType()
-eval auto v = frame[z.v2].record_val
+eval auto v = frame[z.v2].record_val->ToRecordVal()
 eval auto map = z.int_ptr
 eval auto map_size = z.v3
-eval auto to_r = coerce_to_record(rt, v, map, map_size)
-eval frame[z.v1].record_val = TrackValPtr(to_r)->AsRecordVal()
+eval auto to_r = coerce_to_record(rt, v.get(), map, map_size)
+eval frame[z.v1].record_val = to_ZAM_record(to_r.get(), &ZAM_VM_bindings, false)
 
 direct-unary-op Table-Coerce TableCoerce
 
@@ -677,15 +680,13 @@ op Field-LHS-Assign
 op1-read
 type VVi
 set-type $2
-eval auto v = frame[z.v2].ToVal(z.t)
-eval frame[z.v1].record_val->Assign(z.v3, v)
+eval frame[z.v1].record_val->Assign(z.v3, frame[z.v2])
 
 op Field-LHS-Assign
 op1-read
 type VCi
 set-type $2
-eval auto v = z.c.ToVal(z.t)
-eval frame[z.v1].record_val->Assign(z.v2, v)
+eval frame[z.v1].record_val->Assign(z.v2, z.c)
 
 ########## General Statements ##########
 
@@ -970,13 +971,13 @@ method-pre int reg = v->n; delete v
 op DelField
 op1-read
 type Vi
-eval frame[z.v1].record_val->Assign(z.v2, nullptr)
+eval frame[z.v1].record_val->DeleteField(z.v2)
 
 
 internal-op Init-Record
 type V
 eval auto r = new RecordVal(z.t->AsRecordType())
-eval frame[z.v1].record_val = TrackVal(r)
+eval frame[z.v1].record_val = to_ZAM_record(r, &ZAM_VM_bindings, false)
 
 # v1 is the frame element being initialized
 # v2 is its slot in the interpreted frame
@@ -1126,16 +1127,16 @@ eval frame[z.v1].list_val = ValVecToListVal(frame[z.v2].vvec, z.v3)
 # Interprets the statement's expression as a stand-alone statement.
 internal-op Interpret-Expr
 type X
-eval SpillVectors(&ZAM_VM_bindings)
+eval SpillAggregates(&ZAM_VM_bindings)
 eval (void) z.e->Eval(f) /* this could invoke us recursively */
-eval LoadVectors(&ZAM_VM_bindings)
+eval LoadAggregates(&ZAM_VM_bindings)
 
 # Interprets the statement's expression and assigns the result to v1.
 internal-op Interpret-Expr
 type V
-eval SpillVectors(&ZAM_VM_bindings)
+eval SpillAggregates(&ZAM_VM_bindings)
 eval auto v = z.e->Eval(f) /* this could invoke us recursively */
-eval LoadVectors(&ZAM_VM_bindings)
+eval LoadAggregates(&ZAM_VM_bindings)
 eval AssignV1(BuildVal(v, z.t, z.e))
 
 
@@ -1220,14 +1221,14 @@ internal-op Log-Write
 type VVV
 eval auto id = frame[z.v2].ToVal(log_ID_enum_type)
 eval auto columns = frame[z.v3].record_val
-eval bool result = log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal())
+eval bool result = log_mgr->Write(id->AsEnumVal(), columns->ToRecordVal().get())
 eval frame[z.v1].int_val = result
 
 internal-op Log-Write
 type VVC
 eval auto id = z.c.ToVal(z.t)
 eval auto columns = frame[z.v2].record_val
-eval bool result = log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal())
+eval bool result = log_mgr->Write(id->AsEnumVal(), columns->ToRecordVal().get())
 eval frame[z.v1].int_val = result
 
 internal-op Get-Port-Transport-Proto

@@ -106,7 +106,6 @@ ZAMValUnion::ZAMValUnion(Val* v, BroType* t, ZAMAggrBindings* bindings,
 	case TYPE_LIST:		list_val = v->AsListVal(); break;
 	case TYPE_OPAQUE:	opaque_val = v->AsOpaqueVal(); break;
 	case TYPE_PATTERN:	re_val = v->AsPatternVal(); break;
-	case TYPE_RECORD:	record_val = v->AsRecordVal(); break;
 	case TYPE_TABLE:	table_val = v->AsTableVal(); break;
 
 	case TYPE_VECTOR:
@@ -133,6 +132,10 @@ ZAMValUnion::ZAMValUnion(Val* v, BroType* t, ZAMAggrBindings* bindings,
 
 		break;
 		}
+
+	case TYPE_RECORD:
+		record_val = to_ZAM_record(v, bindings, true);
+		break;
 
 	case TYPE_STRING:
 		string_val = new BroString(*v->AsString());
@@ -202,6 +205,7 @@ IntrusivePtr<Val> ZAMValUnion::ToVal(BroType* t) const
 	case TYPE_PORT:		v = val_mgr->GetPort(uint_val); break;
 
 	case TYPE_VECTOR:	return ToVector(t);
+	case TYPE_RECORD:	return record_val->ToRecordVal();
 
 	case TYPE_ANY:		return {NewRef{}, any_val};
 
@@ -209,7 +213,6 @@ IntrusivePtr<Val> ZAMValUnion::ToVal(BroType* t) const
 
 	case TYPE_LIST:		v = list_val; v->Ref(); break;
 	case TYPE_OPAQUE:	v = opaque_val; v->Ref(); break;
-	case TYPE_RECORD:	v = record_val; v->Ref(); break;
 	case TYPE_TABLE:	v = table_val; v->Ref(); break;
 	case TYPE_PATTERN:	v = re_val; v->Ref(); break;
 
@@ -331,24 +334,36 @@ void ZAM_vector::Freshen()
 	}
 
 
-ZAM_record::ZAM_record(RecordVal* _v, ZAMAggrBindings* _bindings)
-	: ZAMAggrInstantiation(_v, _bindings, 0)
+ZAM_record::ZAM_record(RecordVal* _v, RecordType* _rt,
+			ZAMAggrBindings* _bindings)
+	: ZAMAggrInstantiation(_v, _bindings, _rt->NumFields())
 	{
-	is_loaded = 0;
+	is_in_record = is_loaded = 0;
 
 	rv = _v;
+	rt = _rt;
 
 	if ( rv )
 		{
 		Ref(rv);
-		rt = rv->Type()->AsRecordType();
 		is_managed = rt->ManagedFields();
 		}
 	else
-		{
-		rt = nullptr;
 		is_managed = 0;
+	}
+
+IntrusivePtr<RecordVal> ZAM_record::ToRecordVal()
+	{
+	if ( ! rv )
+		{
+		aggr_val = rv = new RecordVal(rt);
+		if ( bindings )
+			bindings->insert(this);
 		}
+
+	Spill();
+
+	return {NewRef{}, rv};
 	}
 
 void ZAM_record::Spill()
@@ -363,14 +378,20 @@ void ZAM_record::Spill()
 
 		if ( IsDirty(i) )
 			{
-			rv->Assign(i, zvi.ToVal(rti));
-
-			if ( IsManaged(i) )
-				DeleteManagedType(zvi, rti);
+			if ( IsInRecord(i) )
+				{
+				rv->Assign(i, zvi.ToVal(rti));
+				if ( IsManaged(i) )
+					DeleteManagedType(zvi, rti);
+				}
+			else
+				rv->Assign(i, nullptr);
 			}
 		}
 
-	is_loaded = is_dirty = 0;
+	// Our strategy for spilling is that we start from scratch,
+	// with nothing loaded.
+	is_in_record = is_loaded = is_dirty = 0;
 	}
 
 void ZAM_record::Freshen()
@@ -393,13 +414,21 @@ void ZAM_record::Load(int field)
 	if ( ! rv )
 		reporter->InternalError("field missing in record load");
 
-	auto f = rv->Lookup(field);
-	Ref(f);	// will leak until we clean up ZAMValUnion's constructor
+	auto f = rv->LookupWithDefault(field);
+	auto mask = 1 << field;
 
-	bool error;
-	zvec[field] = ZAMValUnion(f, rt->FieldType(field), bindings, rv, error);
+	if ( f )
+		{
+		bool error;
+		// ### The following will leak until we regularize
+		// memory management in ZAMValUnion's constructor.
+		zvec[field] = ZAMValUnion(f.release(), rt->FieldType(field), bindings, rv, error);
+		is_in_record |= mask;
+		}
 
-	is_loaded |= (1 << field);
+	// Mark it as loaded even if it wasn't in the record, since we
+	// did try to sync it.
+	is_loaded |= mask;
 	}
 
 void ZAM_record::Delete(int field)
@@ -500,10 +529,10 @@ IntrusivePtr<ZAM_vector> to_raw_ZAM_vector(Val* vec, ZAMAggrBindings* bindings)
 	}
 
 
-#if 0
 ZAMRecord* to_ZAM_record(Val* r, ZAMAggrBindings* bindings, bool track_val)
 	{
-	auto v = track_val ? r->AsRecordVal() : nullptr;
-	return new ZAMRecord(v, bindings);
+	auto rv = track_val ? r->AsRecordVal() : nullptr;
+	auto zr = make_intrusive<ZAM_record>(rv, r->Type()->AsRecordType(),
+						bindings);
+	return new ZAMRecord(zr);
 	}
-#endif

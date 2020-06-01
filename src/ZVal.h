@@ -69,8 +69,7 @@ union ZAMValUnion {
 	IPAddr* addr_val;
 	IPPrefix* subnet_val;
 	ZAMVector* vector_val;
-	ZAMRecord* rrecord_val;
-	RecordVal* record_val;
+	ZAMRecord* record_val;
 
 	// The types are all variants of Val (or BroType).  For memory
 	// management, in the AM frame we shadow these with IntrusivePtr's.
@@ -139,11 +138,14 @@ public:
 		{
 		bindings = _bindings;
 		aggr_val = _v;
-		Ref(aggr_val);
 		is_dirty = 0;
 
-		if ( bindings && aggr_val )
-			bindings->insert(this);
+		if ( aggr_val )
+			{
+			Ref(aggr_val);
+			if ( bindings )
+				bindings->insert(this);
+			}
 		}
 
 	// Subclasses should delete any managed elements.
@@ -327,7 +329,7 @@ protected:
 
 class ZAM_record : public ZAMAggrInstantiation {
 public:
-	ZAM_record(RecordVal* _v, ZAMAggrBindings* _bindings);
+	ZAM_record(RecordVal* _v, RecordType* _rt,  ZAMAggrBindings* _bindings);
 
 	~ZAM_record()
 		{
@@ -337,6 +339,8 @@ public:
 
 	// int Size() const		{ return zvec.size(); }
 
+	IntrusivePtr<RecordVal> ToRecordVal();
+
 	void Assign(int field, ZAMValUnion v)
 		{
 		if ( IsManaged(field) )
@@ -344,15 +348,42 @@ public:
 
 		zvec[field] = v;
 
-		is_dirty |= (1 << field);
+		auto mask = 1 << field;
+		is_dirty |= mask;
+		is_loaded |= mask;
+		is_in_record |= mask;
 		}
 
-	ZAMValUnion& Lookup(int field)
+	ZAMValUnion& Lookup(int field, bool& error)
 		{
 		if ( ! IsLoaded(field) )
 			Load(field);
 
+		if ( ! IsInRecord(field) )
+			error = true;
+		else
+			error = false;
+
 		return zvec[field];
+		}
+
+	void DeleteField(int field)
+		{
+		auto mask = 1 << field;
+		is_in_record &= ~mask;
+		is_dirty |= mask;
+
+		// Consider the field loaded, as we just modified it,
+		// similar to when assigning to it.
+		is_loaded |= mask;
+		}
+
+	bool HasField(int field)
+		{
+		if ( ! IsLoaded(field) )
+			Load(field);
+
+		return IsInRecord(field);
 		}
 
 	void SetRecordType(RecordType* _rt)
@@ -361,17 +392,21 @@ public:
 		is_managed = rt->ManagedFields();
 		}
 
-	ZRM_flags OffsetMask(int offset)	{ return 1 << offset; }
+	ZRM_flags OffsetMask(int offset) const	{ return 1 << offset; }
 
-	bool IsLoaded(int offset)
+	bool IsLoaded(int offset) const
 		{ return (is_loaded & OffsetMask(offset)) != 0; }
-	bool IsDirty(int offset)
+	bool IsInRecord(int offset) const
+		{ return (is_in_record & OffsetMask(offset)) != 0; }
+	bool IsDirty(int offset) const
 		{ return (is_dirty & OffsetMask(offset)) != 0; }
-	bool IsManaged(int offset)
+	bool IsManaged(int offset) const
 		{ return (is_managed & OffsetMask(offset)) != 0; }
 
 	void Spill() override;
 	void Freshen() override;
+
+	BroType* FieldType(int field) const	{ return rt->FieldType(field); }
 
 protected:
 	void Load(int field);
@@ -382,13 +417,21 @@ protected:
 	RecordVal* rv;	// our own copy of aggr_val, with the right type
 
 	// And a handy pointer to its type.
-	const RecordType* rt;
+	RecordType* rt;
 
-	// Whether a given field is loaded.
+	// Whether a given field is loaded.  We populate fields lazily.
+	// Note that a field can be loaded even if never populated from
+	// the original record, due to it being created by assignment.
 	ZRM_flags is_loaded;
 
+	// Whether a given field exists (for optional fields).  Only
+	// valid if the field has been loaded.
+	ZRM_flags is_in_record;
+
 	// Whether a given field has been modified since we loaded it.
-	ZRM_flags is_dirty;
+	// Commented out here as we use the is_dirty we inherit from
+	// ZAMAggrInstantiation.
+	// ZRM_flags is_dirty;
 
 	// Whether a given field requires explicit memory management.
 	ZRM_flags is_managed;
@@ -459,6 +502,19 @@ public:
 		{
 		return new ZAMRecord(zr);
 		}
+
+	IntrusivePtr<RecordVal> ToRecordVal()
+		{ return zr->ToRecordVal(); }
+
+	void Assign(int field, ZAMValUnion v)	{ zr->Assign(field, v); }
+
+	// error is true iff the field isn't in the record.
+	ZAMValUnion& Lookup(int field, bool& error)
+		{ return zr->Lookup(field, error); }
+
+	void DeleteField(int field)		{ zr->DeleteField(field); }
+	bool HasField(int field)		{ return zr->HasField(field); }
+	BroType* FieldType(int field)		{ return zr->FieldType(field); }
 
 protected:
 	IntrusivePtr<ZAM_record> zr;

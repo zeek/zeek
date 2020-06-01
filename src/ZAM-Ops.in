@@ -29,6 +29,10 @@ eval_V $$.vector_val = vv
 #
 eval $$ = $1;
 
+# assign-op Test-Assign
+# type R
+# eval @$2
+
 unary-expr-op Clone
 op-type X
 set-type $1

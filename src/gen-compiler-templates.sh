@@ -168,6 +168,10 @@ BEGIN	{
 	mixed_type_supported["P", "S"]
 	mixed_type_supported["A", "I"]
 
+	# Types associated with the dispatch side of assignment operators.
+	++assign_types["RV"]
+	++assign_types["RC"]
+
 	# Suffix used for vector operations.
 	vec = "_vec"
 
@@ -844,16 +848,22 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 					0, 1, method_pre)
 		}
 
-	if ( type == "RV" )
+	if ( assign_op && type in assign_types )
 		{
-		print ("\tcase EXPR_" upper_op ":\treturn c->" op_type \
-			"(lhs, r1->AsNameExpr(), rhs->AsFieldExpr());") >exprsV_f
-		}
+		if ( type == "RV" )
+			{
+			print ("\tcase EXPR_" upper_op ":\treturn c->" op_type \
+				"(lhs, r1->AsNameExpr(), rhs->AsFieldExpr());") >exprsV_f
+			}
 
-	else if ( type == "RC" )
-		{
-		print ("\tcase EXPR_" upper_op ":\treturn c->" op_type \
-			"(lhs, r1->AsConstExpr(), rhs->AsFieldExpr());") >exprsC1_f
+		else if ( type == "RC" )
+			{
+			print ("\tcase EXPR_" upper_op ":\treturn c->" op_type \
+				"(lhs, r1->AsConstExpr(), rhs->AsFieldExpr());") >exprsC1_f
+			}
+
+		else
+			gripe("unsupported assignment type " type)
 		}
 
 	else if ( type == "Ri" )

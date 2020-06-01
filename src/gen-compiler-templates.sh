@@ -29,6 +29,8 @@ BEGIN	{
 	args["RV"] = "(const NameExpr* n1, const NameExpr* n2, const FieldExpr* f)"
 	args["RC"] = "(const NameExpr* n, const ConstExpr* c, const FieldExpr* f)"
 	args["Ri"] = "(const NameExpr* n1, const NameExpr* n2, int field)"
+	args["XV"] = "(const NameExpr* n1, const NameExpr* n2)"
+	args["XC"] = "(const NameExpr* n, const ConstExpr* c)"
 	args["V"] = "(const NameExpr* n)"
 	args["Vi"] = "(const NameExpr* n, int i)"
 	args["CVi"] = "(const ConstExpr* c, const NameExpr* n, int i)"
@@ -57,6 +59,8 @@ BEGIN	{
 	args2["RV"] = "n1, n2, field"
 	args2["RC"] = "n, c, field"
 	args2["Ri"] = "n1, n2, field"
+	args2["XV"] = "n1, n2"
+	args2["XC"] = "n, c"
 	args2["V"] = "n"
 	args2["Vi"] = "n, i"
 	args2["CVi"] = "c, n, i"
@@ -171,6 +175,16 @@ BEGIN	{
 	# Types associated with the dispatch side of assignment operators.
 	++assign_types["RV"]
 	++assign_types["RC"]
+	++assign_types["XV"]
+	++assign_types["XC"]
+
+	method_extra_prefix["R"] = "auto field = f->Field();"
+
+	# For an assign-to-any, then we will need the instruction
+	# type field set to the type of the RHS.  It does no harm
+	# to just always do that.
+	method_extra_suffix["R"] = "z.t = t->FieldType(field);"
+	method_extra_suffix["X"] = "z.t = t;"
 
 	# Suffix used for vector operations.
 	vec = "_vec"
@@ -520,8 +534,10 @@ function build_assignment_dispatch2(op, type, is_var)
 	custom_method = "auto t = " operand "->Type()->AsRecordType();\n" \
 		"\tauto tag = t->Tag();\n" \
 		"\tauto i_t = t->InternalType();\n" \
-		"\tauto field = f->Field();\n" \
 		"\tZInst z;"
+
+	if ( type in method_extra_prefix )
+		custom_method = custom_method "\n\t" method_extra_prefix[type]
 
 	# Do the "ANY" case first, since it is dispatched on the
 	# type of n1 rather than n2.
@@ -535,11 +551,10 @@ function build_assignment_dispatch2(op, type, is_var)
 	# Add the default case.
 	custom_method = custom_method "\n" build_assign_case(op, atype, "", "", is_var)
 
-	# If it is assign-to-any, then we will need the instruction
-	# type field set to the type of the RHS.  It does no harm
-	# to just always do that.
+	if ( type in method_extra_suffix )
+		custom_method = custom_method "\n\t" method_extra_suffix[type]
+
 	custom_method = custom_method "\n" \
-		"\tz.t = t->FieldType(field);\n" \
 		"\treturn AddInst(z);"
 
 	build_op(op, atype, "", "", "", "", is_var, "")
@@ -579,6 +594,7 @@ function build_assign_case(op, atype, flavor, cond, is_var)
 	operand = is_var ? "n2" : "c"
 
 	full_op = "OP_" toupper(op) "_V" (is_var ? "V" : "C") "i"
+	gsub(/-/, "_", full_op)
 
 	assign_args = args2[atype]
 
@@ -588,7 +604,7 @@ function build_assign_case(op, atype, flavor, cond, is_var)
 	full_op = full_op "_" flavor
 
 	return "if ( " cond " )\n" \
-		"\t\tz = GenInst(this, " full_op "," assign_args ");\n" \
+		"\t\tz = GenInst(this, " full_op ", " assign_args ");\n" \
 		"\telse "
 	}
 
@@ -860,6 +876,18 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 			{
 			print ("\tcase EXPR_" upper_op ":\treturn c->" op_type \
 				"(lhs, r1->AsConstExpr(), rhs->AsFieldExpr());") >exprsC1_f
+			}
+
+		else if ( type == "XV" )
+			{
+			print ("\tcase EXPR_" upper_op ":\treturn c->" op_type \
+				"(lhs, r1->AsNameExpr());") >exprsV_f
+			}
+
+		else if ( type == "XC" )
+			{
+			print ("\tcase EXPR_" upper_op ":\treturn c->" op_type \
+				"(lhs, r1->AsConstExpr());") >exprsC1_f
 			}
 
 		else
@@ -1167,7 +1195,7 @@ function build_method_conditional(o, n)
 function clear_vars()
 	{
 	opaque = set_expr = set_type = type = type_selector = operand_type = ""
-	custom_method = method_pre = eval_pre = ""
+	op_type_rep = custom_method = method_pre = eval_pre = ""
 	no_const = no_eval = mix_eval = multi_eval = eval_blank = ""
 	cond_op = rel_op = ary_op = assign_op = expr_op = op = ""
 	vector = binary_op = internal_op = ""

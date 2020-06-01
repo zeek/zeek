@@ -1775,7 +1775,11 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 		// Turn into a VVC assignment by assigning the index to
 		// a temporary.
 		auto tmp = RegisterSlot();
-		AddInst(ZInst(OP_ASSIGN_VC, tmp, op2->AsConstExpr()));
+		auto c = op2->AsConstExpr();
+		auto z = ZInst(OP_ASSIGN_CONST_VC, tmp, c);
+		z.CheckIfManaged(c);
+
+		AddInst(z);
 
 		auto zop = OP_VECTOR_ELEM_ASSIGN_VVC;
 
@@ -1977,9 +1981,9 @@ const CompiledStmt ZAM::Return(const ReturnStmt* r)
 	if ( e )
 		{
 		if ( e->Tag() == EXPR_NAME )
-			(void) AssignVV(rv, e->AsNameExpr());
+			(void) AssignXV(rv, e->AsNameExpr());
 		else
-			(void) AssignVC(rv, e->AsConstExpr());
+			(void) AssignXC(rv, e->AsConstExpr());
 		}
 
 	return CatchReturn();

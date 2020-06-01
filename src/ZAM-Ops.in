@@ -3,35 +3,9 @@
 
 ########## Unary Ops ##########
 
-unary-expr-op Assign
-op-type A N R S V *
-set-type $2
-#
-eval_A auto av = new IPAddr(*$1)
-eval_A delete $$.addr_val
-eval_A $$.addr_val = av
-#
-eval_N auto nv = new IPPrefix(*$1)
-eval_N delete $$.subnet_val
-eval_N $$.subnet_val = nv
-#
-eval_R auto rv = $1->ShallowCopy()
-eval_R delete $$.record_val
-eval_R $$.record_val = rv
-#
-eval_S auto sv = new BroString(*$1)
-eval_S delete $$.string_val
-eval_S $$.string_val = sv
-#
-eval_V auto vv = $1->ShallowCopy()
-eval_V delete $$.vector_val
-eval_V $$.vector_val = vv
-#
-eval $$ = $1;
-
-# assign-op Test-Assign
-# type R
-# eval @$2
+assign-op Assign
+type X
+eval @$2
 
 unary-expr-op Clone
 op-type X

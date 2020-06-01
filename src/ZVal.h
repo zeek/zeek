@@ -409,6 +409,10 @@ public:
 	BroType* FieldType(int field) const	{ return rt->FieldType(field); }
 
 protected:
+	// Loads everything.
+	void Load();
+
+	// Loads or removes the given field.
 	void Load(int field);
 	void Delete(int field);
 

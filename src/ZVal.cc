@@ -345,7 +345,13 @@ ZAM_record::ZAM_record(RecordVal* _v, RecordType* _rt,
 
 	if ( rv )
 		{
-		Ref(rv);
+		// If we're the only keeper-of-rv, then load it.  But if
+		// not, then opportunistically load it as needed.
+		if ( rv->RefCnt() == 1 )
+			Load();
+		else
+			Ref(rv);
+
 		is_managed = rt->ManagedFields();
 		}
 	else
@@ -407,6 +413,13 @@ void ZAM_record::Freshen()
 	// rv = nullptr;
 	//
 	// EndAssociation();
+	}
+
+void ZAM_record::Load()
+	{
+	if ( rv )
+		for ( auto i = 0; i < rt->NumFields(); ++i )
+			Load(i);
 	}
 
 void ZAM_record::Load(int field)

@@ -1,5 +1,5 @@
-cpus: &CPUS 8
-btest_jobs: &BTEST_JOBS 8
+cpus: &CPUS 4
+btest_jobs: &BTEST_JOBS 4
 btest_retries: &BTEST_RETRIES 2
 memory: &MEMORY 6GB
 
@@ -13,6 +13,7 @@ resources_template: &RESOURCES_TEMPLATE
 ci_template: &CI_TEMPLATE
   only_if: >
     $CIRRUS_PR != '' ||
+    $CIRRUS_BRANCH == 'topic/jsiwek/cirrus-cpu-limits' ||
     $CIRRUS_BRANCH == 'master' ||
     $CIRRUS_BRANCH =~ 'release/.*'
 
@@ -129,7 +130,7 @@ memcheck_task:
   container:
     # Just uses a recent/common distro to run memory error/leak checks.
     dockerfile: ci/ubuntu-18.04/Dockerfile
-    cpu: 8
+    cpu: 4
     # AddressSanitizer uses a lot more memory than a typical config.
     memory: 16GB
   << : *CI_TEMPLATE

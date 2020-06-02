@@ -1,7 +1,7 @@
-cpus: &CPUS 8
-btest_jobs: &BTEST_JOBS 8
+cpus: &CPUS 4
+btest_jobs: &BTEST_JOBS 4
 btest_retries: &BTEST_RETRIES 2
-memory: &MEMORY 6GB
+memory: &MEMORY 4GB
 
 config: &CONFIG --build-type=release
 memcheck_config: &MEMCHECK_CONFIG --build-type=debug --enable-perftools-debug
@@ -122,8 +122,9 @@ memcheck_task:
   container:
     # Just uses a recent/common distro to run memory error/leak checks.
     dockerfile: ci/ubuntu-18.04/Dockerfile
-    cpu: 8
-    memory: 16GB
+    cpu: 4
+    # AddressSanitizer uses a lot more memory than a typical config.
+    memory: 12GB
   << : *CI_TEMPLATE
   env:
     ZEEK_CI_LEAK_CHECK: true

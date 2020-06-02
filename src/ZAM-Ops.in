@@ -1193,15 +1193,15 @@ eval frame[z.v1].string_val = sv
 internal-op Log-Write
 type VVV
 eval auto id = frame[z.v2].ToVal(log_ID_enum_type)
-eval auto columns = frame[z.v3].record_val
-eval bool result = log_mgr->Write(id->AsEnumVal(), columns->ToRecordVal().get())
+eval auto columns = frame[z.v3].ToVal(z.t)
+eval bool result = log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal())
 eval frame[z.v1].int_val = result
 
 internal-op Log-Write
 type VVC
 eval auto id = z.c.ToVal(z.t)
-eval auto columns = frame[z.v2].record_val
-eval bool result = log_mgr->Write(id->AsEnumVal(), columns->ToRecordVal().get())
+eval auto columns = frame[z.v2].ToVal(z.t)
+eval bool result = log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal())
 eval frame[z.v1].int_val = result
 
 internal-op Get-Port-Transport-Proto

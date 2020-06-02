@@ -978,12 +978,20 @@ bool ZAM::BuiltIn_Log__write(const NameExpr* n, const expr_list& args)
 	int nslot = n ? Frame1Slot(n, OP1_WRITE) : RegisterSlot();
 	auto columns_n = columns->AsNameExpr();
 
+	ZInst z;
+
 	if ( id->Tag() == EXPR_CONST )
-		AddInst(ZInst(OP_LOG_WRITE_VVC, nslot, FrameSlot(columns_n),
-				id->AsConstExpr()));
+		z = ZInst(OP_LOG_WRITE_VVC, nslot, FrameSlot(columns_n),
+				id->AsConstExpr());
 	else
-		AddInst(ZInst(OP_LOG_WRITE_VVV, nslot,
-			FrameSlot(id->AsNameExpr()), FrameSlot(columns_n)));
+		z = ZInst(OP_LOG_WRITE_VVV, nslot,
+			FrameSlot(id->AsNameExpr()), FrameSlot(columns_n));
+
+	// Need to be able to convert the second function argument to
+	// "any" type.
+	z.t = args[1]->Type().get();
+
+	AddInst(z);
 
 	return true;
 	}

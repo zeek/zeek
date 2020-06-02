@@ -6791,13 +6791,6 @@ Expr* InlineExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 
 	auto args_list = args->Exprs();
 
-	// Ugly: if any of the parameters was vector-of-any bound to some
-	// other type of vector, then it's really call by copy-in-out,
-	// and we need to restore it upon exit.  We remember those using
-	// the following pair of vectors.
-	std::vector<IntrusivePtr<Expr>> non_any_args;
-	std::vector<IntrusivePtr<Expr>> any_params;
-
 	loop_over_list(args_list, i)
 		{
 		IntrusivePtr<Stmt> arg_red_stmt;
@@ -6810,12 +6803,6 @@ Expr* InlineExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		auto assign_stmt = make_intrusive<ExprStmt>(assign);
 
 		red_stmt = MergeStmts(red_stmt, arg_red_stmt, assign_stmt);
-
-		if ( IsAnyVec(param_i->Type()) && ! IsAnyVec(red_i->Type()) )
-		     {
-		     non_any_args.push_back(red_i_p);
-		     any_params.push_back(param_i);
-		     }
 		}
 
 	auto ret_val = c->PushInlineBlock(type);
@@ -6825,17 +6812,6 @@ Expr* InlineExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	auto catch_ret = make_intrusive<CatchReturnStmt>(body, ret_val);
 
 	red_stmt = MergeStmts(red_stmt, catch_ret);
-
-	for ( auto i = 0; i < non_any_args.size(); ++i )
-		{
-		auto assign_back =
-			make_intrusive<AssignExpr>(non_any_args[i],
-						any_params[i], false,
-						nullptr, nullptr, false);
-		auto assign_stmt = make_intrusive<ExprStmt>(assign_back);
-
-		red_stmt = MergeStmts(red_stmt, assign_stmt);
-		}
 
 	return ret_val ? ret_val.release() : nullptr;
 	}

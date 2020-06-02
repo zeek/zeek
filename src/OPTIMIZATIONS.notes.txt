@@ -1,8 +1,6 @@
 for records, can reserve-but-not-resize to initial size
-remove any-vector checking in InlineExpr::Reduce
 perhaps can remove Store-Any-Val and Load-Any-Val
 can remove CheckIfManaged?
-need to check that z.t gets set properly for assignments-to-any
 revise memory management now that ZAMValUnion's can be constructed outside
 	of compiled code
 need to hook into notifier::Modifiable framework for aggregates

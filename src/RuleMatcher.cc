@@ -21,6 +21,7 @@
 #include "Reporter.h"
 #include "module_util.h"
 #include "Var.h"
+#include "IPAddr.h"
 
 using namespace std;
 

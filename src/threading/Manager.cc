@@ -6,6 +6,7 @@
 #include "NetVar.h"
 #include "iosource/Manager.h"
 #include "Event.h"
+#include "IPAddr.h"
 
 using namespace threading;
 

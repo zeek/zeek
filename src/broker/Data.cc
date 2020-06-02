@@ -1,3 +1,7 @@
+#include <broker/error.hh>
+#include "broker/data.bif.h"
+#include "3rdparty/doctest.h"
+
 #include "Data.h"
 #include "File.h"
 #include "Desc.h"
@@ -5,15 +9,8 @@
 #include "RE.h"
 #include "ID.h"
 #include "Scope.h"
+#include "Func.h"
 #include "module_util.h"
-#include "3rdparty/doctest.h"
-#include "broker/data.bif.h"
-
-#include <broker/error.hh>
-
-#include <caf/stream_serializer.hpp>
-#include <caf/stream_deserializer.hpp>
-#include <caf/streambuf.hpp>
 
 using namespace std;
 

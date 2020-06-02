@@ -12,6 +12,7 @@
 #include "File.h"
 #include "input.h"
 #include "IntrusivePtr.h"
+#include "Func.h"
 
 #include "broker/Manager.h"
 #include "threading/Manager.h"

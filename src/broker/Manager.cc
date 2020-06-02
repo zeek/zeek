@@ -6,6 +6,7 @@
 #include <cstring>
 #include <unistd.h>
 
+#include "Func.h"
 #include "Data.h"
 #include "Store.h"
 #include "util.h"

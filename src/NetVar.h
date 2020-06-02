@@ -3,7 +3,6 @@
 #pragma once
 
 #include "Val.h"
-#include "Func.h"
 #include "EventRegistry.h"
 #include "Stats.h"
 

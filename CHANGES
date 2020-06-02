@@ -1,4 +1,12 @@
 
+3.2.0-dev.733 | 2020-06-01 19:25:37 -0700
+
+  * Remove Analyzer.h from bro-bif.h (Tim Wojtulewicz, Corelight)
+
+  * Remove IPAddr.h from Reporter.h (Tim Wojtulewicz, Corelight)
+
+  * Remove the inclusion of Func.h from NetVar.h (Tim Wojtulewicz, Corelight)
+
 3.2.0-dev.727 | 2020-06-01 10:57:16 -0700
 
   * Integrate review feedback

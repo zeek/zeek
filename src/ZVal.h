@@ -341,7 +341,7 @@ public:
 
 	IntrusivePtr<RecordVal> ToRecordVal();
 
-	void Assign(int field, ZAMValUnion v)
+	void Assign(unsigned int field, ZAMValUnion v)
 		{
 		if ( IsManaged(field) )
 			Delete(field);
@@ -354,7 +354,7 @@ public:
 		is_in_record |= mask;
 		}
 
-	ZAMValUnion& Lookup(int field, bool& error)
+	ZAMValUnion& Lookup(unsigned int field, bool& error)
 		{
 		if ( ! IsLoaded(field) )
 			Load(field);
@@ -367,7 +367,7 @@ public:
 		return zvec[field];
 		}
 
-	void DeleteField(int field)
+	void DeleteField(unsigned int field)
 		{
 		auto mask = 1 << field;
 		is_in_record &= ~mask;
@@ -378,7 +378,7 @@ public:
 		is_loaded |= mask;
 		}
 
-	bool HasField(int field)
+	bool HasField(unsigned int field)
 		{
 		if ( ! IsLoaded(field) )
 			Load(field);
@@ -392,15 +392,16 @@ public:
 		is_managed = rt->ManagedFields();
 		}
 
-	ZRM_flags OffsetMask(int offset) const	{ return 1 << offset; }
+	ZRM_flags OffsetMask(unsigned int offset) const
+		{ return 1UL << offset; }
 
-	bool IsLoaded(int offset) const
+	bool IsLoaded(unsigned int offset) const
 		{ return (is_loaded & OffsetMask(offset)) != 0; }
-	bool IsInRecord(int offset) const
+	bool IsInRecord(unsigned int offset) const
 		{ return (is_in_record & OffsetMask(offset)) != 0; }
-	bool IsDirty(int offset) const
+	bool IsDirty(unsigned int offset) const
 		{ return (is_dirty & OffsetMask(offset)) != 0; }
-	bool IsManaged(int offset) const
+	bool IsManaged(unsigned int offset) const
 		{ return (is_managed & OffsetMask(offset)) != 0; }
 
 	void Spill() override;

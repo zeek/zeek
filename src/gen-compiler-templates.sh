@@ -608,6 +608,7 @@ function build_assignment_dispatch2(op, type, is_var)
 		}
 
 	custom_method = custom_method "\n" \
+		"\tz.e = " rhs_op ";\n" \
 		"\treturn AddInst(z);"
 
 	build_op(op, atype, "", "", "", "", is_var, "")

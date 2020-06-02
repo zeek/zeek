@@ -20,6 +20,11 @@ extern struct AnalyOpt {
 	// for generate code.
 	bool report_profile = false;
 
+	// If true, reports on uses of uninitialized record fields and
+	// analyzes nested records in depth.  Warning: with the current
+	// data structures this greatly increases analysis time.
+	bool find_deep_uninits = false;
+
 	// If true, activates tracing for the generation of reaching-defs.
 	bool rd_trace = false;
 

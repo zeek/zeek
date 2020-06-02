@@ -1106,17 +1106,17 @@ TraversalCode RD_Decorate::PreExpr(const Expr* e)
 				return TC_ABORTSTMT;
 			}
 
-		auto r_def = mgr.GetExprDI(r);
-
-		if ( r_def )
+		if ( analysis_options.find_deep_uninits )
 			{
-			auto fn = f->FieldName();
-			auto field_rd = mgr.GetConstID_DI(r_def, fn);
+			auto r_def = mgr.GetExprDI(r);
 
-			auto e_pre = mgr.GetPreMinRDs(e);
-			if ( ! field_rd || ! e_pre->HasDI(field_rd) )
+			if ( r_def )
 				{
-				if ( ! analysis_options.inliner )
+				auto fn = f->FieldName();
+				auto field_rd = mgr.GetConstID_DI(r_def, fn);
+
+				auto e_pre = mgr.GetPreMinRDs(e);
+				if ( ! field_rd || ! e_pre->HasDI(field_rd) )
 					printf("no reaching def for %s\n", obj_desc(e));
 				}
 			}
@@ -1384,8 +1384,10 @@ void RD_Decorate::CreateRecordRDs(DefinitionItem* di, DefinitionPoint dp,
 		else
 			mgr.CreatePostDef(di_i, dp, true);
 
-		if ( t_i->Tag() == TYPE_RECORD )
-			CreateRecordRDs(di_i, dp, is_pre, assume_full, rhs_di_i);
+		if ( analysis_options.find_deep_uninits )
+			if ( t_i->Tag() == TYPE_RECORD )
+				CreateRecordRDs(di_i, dp, is_pre,
+						assume_full, rhs_di_i);
 		}
 	}
 
@@ -1404,7 +1406,9 @@ void RD_Decorate::CheckRecordRDs(DefinitionItem* di, DefinitionPoint dp,
 		auto n_i = rt->FieldName(i);
 		auto field_di = di->FindField(n_i);
 
-#if 0
+		if ( ! analysis_options.find_deep_uninits )
+			continue;
+
 		// The following works correctly, but finds a number
 		// of places in the base scripts where indeed non-optional
 		// record elements are not initialized.
@@ -1415,8 +1419,13 @@ void RD_Decorate::CheckRecordRDs(DefinitionItem* di, DefinitionPoint dp,
 			}
 
 		else
-#endif
 			{
+			// The following allows us to comprehensively track
+			// nested records to see if any uninitialized elements
+			// might be used.  However, it is also computationally
+			// very heavy if run on the full code base because
+			// there are some massive records (in some places
+			// nested 5 deep).
 			auto t_i = rt->FieldType(i);
 			if ( t_i->Tag() == TYPE_RECORD )
 				CheckRecordRDs(field_di, dp, pre_rds, o);
@@ -1444,7 +1453,7 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 		printf("Original: %s\n", obj_desc(body));
 
 	ProfileFunc pf_orig;
-	f->Traverse(&pf_orig);
+	body->Traverse(&pf_orig);
 
 	if ( pf_orig.num_when_stmts > 0 || pf_orig.num_lambdas > 0 )
 		{
@@ -1489,12 +1498,12 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 	if ( analysis_options.optimize )
 		{
 		ProfileFunc pf_red;
-		f->Traverse(&pf_red);
+		body->Traverse(&pf_red);
 
-		auto cb = RD_Decorate(&pf_red);
-		cb.TraverseFunction(f, scope, new_body_ptr);
+		auto cb = new RD_Decorate(&pf_red);
+		cb->TraverseFunction(f, scope, new_body_ptr);
 
-		rc->SetDefSetsMgr(cb.GetDefSetsMgr());
+		rc->SetDefSetsMgr(cb->GetDefSetsMgr());
 
 		new_body = new_body->Reduce(rc);
 		new_body_ptr = {AdoptRef{}, new_body};
@@ -1504,10 +1513,13 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 
 		f->ReplaceBody(body, new_body_ptr);
 		body = new_body_ptr;
+
+		// See comment below about leaking cb.
+		// delete cb;
 		}
 
 	ProfileFunc* pf_red = new ProfileFunc;
-	f->Traverse(pf_red);
+	body->Traverse(pf_red);
 
 	auto cb = new RD_Decorate(pf_red);
 	cb->TraverseFunction(f, scope, new_body_ptr);
@@ -1533,17 +1545,16 @@ void optimize_func(BroFunc* f, IntrusivePtr<Scope> scope_ptr,
 		new_body_ptr = {AdoptRef{}, new_body};
 		f->ReplaceBody(body, new_body_ptr);
 		body = new_body_ptr;
-
-		// ### For now, we leak cb.
 		}
 
-	else
-		{
-		delete cb;
-		delete ud;
-		delete rc;
-		delete pf_red;
-		}
+	delete ud;
+	delete rc;
+	delete pf_red;
+
+	// We can actually speed up our analysis by 10+% by skipping this.
+	// Clearly we need to revisit the data structures, but for now we
+	// opt for expediency.
+	// delete cb;
 
 	pop_scope();
 	}
@@ -1639,6 +1650,7 @@ void analyze_scripts()
 
 		analysis_options.only_func = getenv("ZEEK_ONLY");
 		analysis_options.report_profile = getenv("ZEEK_ZAM_PROFILE");
+		analysis_options.find_deep_uninits = getenv("ZEEK_FIND_DEEP_UNINITS");
 		analysis_options.rd_trace = getenv("ZEEK_OPT_TRACE");
 		analysis_options.ud_dump = getenv("ZEEK_UD_DUMP");
 		analysis_options.inliner = getenv("ZEEK_INLINE");
@@ -1671,7 +1683,13 @@ void analyze_scripts()
 			; // printf("skipping optimizing %s\n", f->func->Name());
 		else
 			{
-			// printf("optimizing %s\n", f->func->Name());
+#if 0
+			auto loc = f->body->GetLocationInfo();
+			printf("optimizing %s (%s line %d)\n", f->func->Name(),
+				loc->filename ? loc->filename : "<none>",
+				loc->first_line);
+			// printf("body: %s\n", obj_desc(f->body));
+#endif
 			optimize_func(f->func, f->scope, f->body);
 			}
 		}

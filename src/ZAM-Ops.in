@@ -640,6 +640,17 @@ eval auto vv = frame[z.v1].vector_val
 eval vv->SetYieldType(z.t)
 eval vv->SetElement(ind, frame[z.v3])
 
+op Vector-Elem-Assign-Any
+op1-read
+type VVV
+eval auto ind = frame[z.v2].uint_val
+eval auto vv = frame[z.v1].vector_val
+eval vv->SetYieldType(z.t)
+eval auto any_v = frame[z.v3].any_val
+eval bool error
+eval auto any_z = ZAMValUnion(any_v, any_v->Type(), &ZAM_VM_bindings, nullptr, error)
+eval vv->SetElement(ind, any_z)
+
 op Vector-Elem-Assign
 op1-read
 type VVC
@@ -655,6 +666,16 @@ type VVi
 eval auto vv = frame[z.v1].vector_val
 eval vv->SetYieldType(z.t)
 eval vv->SetElement(z.v3, frame[z.v2])
+
+op Vector-Elem-Assign-Any
+op1-read
+type VVi
+eval auto vv = frame[z.v1].vector_val
+eval vv->SetYieldType(z.t)
+eval auto any_v = frame[z.v2].any_val
+eval bool error
+eval auto any_z = ZAMValUnion(any_v, any_v->Type(), &ZAM_VM_bindings, nullptr, error)
+eval vv->SetElement(z.v3, any_z)
 
 
 assign-op Field-LHS-Assign
@@ -1130,9 +1151,9 @@ internal-op Check-Any-Vec
 op1-read
 type V
 eval auto any_vec = frame[z.v1].vector_val->ConstVecPtr()
-eval if ( any_vec->ConstVec().size() == 0 ) break
 eval auto at = any_vec->GeneralYieldType()
-eval if ( at && at->Tag() == TYPE_ANY ) reporter->InternalError("non-concrete vector-of-any")
+eval if ( ! at ) break
+eval if ( at->Tag() == TYPE_ANY && any_vec->ConstVec().size() > 0 ) reporter->InternalError("non-concrete vector-of-any")
 eval if ( ! CheckAnyType(at, z.t, z.stmt) ) error_flag = true
 
 # Transform the given vector-of-any to a concrete internal type.
@@ -1140,9 +1161,24 @@ internal-op Transform-Any-Vec
 op1-read-write
 type V
 eval auto any_vec = frame[z.v1].vector_val->ModVecPtr()
-eval if ( any_vec->ConstVec().size() > 0 ) reporter->InternalError("concretizing non-empty vector-of-any")
 eval auto at = any_vec->GeneralYieldType()
-eval if ( ! at || at->Tag() == TYPE_ANY ) any_vec->SetGeneralYieldType(z.t)
+eval if ( ! at || at->Tag() == TYPE_ANY ) {
+eval	if ( at && any_vec->ConstVec().size() > 0 ) reporter->InternalError("concretizing non-empty vector-of-any")
+eval	any_vec->SetGeneralYieldType(z.t)
+eval }
+
+# Transform the given vector-of-any (v1) to be compatible with having one of
+# its elements assigned to the dynamic type of the "any" value (v2).
+internal-op Transform-Any-Vec2
+op1-read-write
+type VV
+eval auto vt = frame[z.v2].any_val->Type()
+eval auto any_vec = frame[z.v1].vector_val->ModVecPtr()
+eval auto at = any_vec->GeneralYieldType()
+eval if ( ! at || at->Tag() == TYPE_ANY ) {
+eval	if ( at && any_vec->ConstVec().size() > 0 ) reporter->InternalError("concretizing non-empty vector-of-any")
+eval	any_vec->SetGeneralYieldType(vt)
+eval }
 
 
 ########################################

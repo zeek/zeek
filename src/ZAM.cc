@@ -1766,14 +1766,26 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 
 	auto op1 = index_assign->GetOp1();
 	auto op3 = index_assign->GetOp3();
+	auto any_val = IsAny(op3->Type());
 
 	auto lhs = op1->AsNameExpr();
 	auto lt = lhs->Type();
 
-	if ( IsAnyVec(lt) && ! IsAny(op3->Type()) )
+	if ( IsAnyVec(lt) )
 		{
-		auto z = ZInst(OP_TRANSFORM_ANY_VEC_V, lhs);
-		z.t = op3->Type().get();
+		ZInst z;
+
+		if ( any_val )
+			// No need to set the type, as it's retrieved
+			// dynamically.
+			z = GenInst(this, OP_TRANSFORM_ANY_VEC2_VV, lhs,
+					op3->AsNameExpr());
+		else
+			{
+			z = GenInst(this, OP_TRANSFORM_ANY_VEC_V, lhs);
+			z.t = op3->Type().get();
+			}
+
 		AddInst(z);
 		}
 
@@ -1809,7 +1821,11 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 		CompiledStmt inst(0);
 
 		if ( op3->Tag() == EXPR_NAME )
-			inst = Vector_Elem_AssignVVV(lhs, op2->AsNameExpr(),
+			inst = any_val ? Vector_Elem_Assign_AnyVVV(lhs,
+							op2->AsNameExpr(),
+							op3->AsNameExpr()) :
+					Vector_Elem_AssignVVV(lhs,
+							op2->AsNameExpr(),
 							op3->AsNameExpr());
 		else
 			inst = Vector_Elem_AssignVVC(lhs, op2->AsNameExpr(),
@@ -1824,7 +1840,10 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 		auto c = op2->AsConstExpr();
 		auto index = c->Value()->AsCount();
 
-		auto inst = Vector_Elem_AssignVVi(lhs, op3->AsNameExpr(), index);
+		auto inst = any_val ? Vector_Elem_Assign_AnyVVi(lhs,
+						op3->AsNameExpr(), index) :
+					Vector_Elem_AssignVVi(lhs,
+						op3->AsNameExpr(), index);
 
 		TopMainInst()->t = op3->Type().get();
 		return inst;
@@ -2023,7 +2042,7 @@ const CompiledStmt ZAM::CatchReturn(const CatchReturnStmt* cr)
 const CompiledStmt ZAM::CheckAnyType(const NameExpr* any_n,
 					BroType* expected_type)
 	{
-	auto z = ZInst(OP_CHECK_ANY_TYPE_V, any_n);
+	auto z = GenInst(this, OP_CHECK_ANY_TYPE_V, any_n);
 	z.t = expected_type;
 	return AddInst(z);
 	}
@@ -2031,7 +2050,7 @@ const CompiledStmt ZAM::CheckAnyType(const NameExpr* any_n,
 const CompiledStmt ZAM::CheckAnyVec(const NameExpr* any_n,
 					BroType* expected_type)
 	{
-	auto z = ZInst(OP_CHECK_ANY_VEC_V, any_n);
+	auto z = GenInst(this, OP_CHECK_ANY_VEC_V, any_n);
 	z.t = expected_type;
 	return AddInst(z);
 	}

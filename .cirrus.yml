@@ -16,6 +16,9 @@ ci_template: &CI_TEMPLATE
     $CIRRUS_BRANCH == 'master' ||
     $CIRRUS_BRANCH =~ 'release/.*'
 
+  use_compute_credits: >
+    $CIRRUS_PR != '' && $CIRRUS_REPO_FULL_NAME == 'zeek/zeek-security'
+
   # Default timeout is 60 minutes, Cirrus hard limit is 120 minutes for free
   # tasks, so may as well ask for full time.
   timeout_in: 120m

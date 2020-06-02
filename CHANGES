@@ -1,4 +1,8 @@
 
+3.1.4-dev.2 | 2020-06-02 12:46:52 -0700
+
+  * Decrease number of CPUs/memory for Cirrus CI tasks (Jon Siwek, Corelight)
+
 3.1.4-dev.1 | 2020-06-02 10:59:59 -0700
 
   * Change CI script to compile from build/Makefile (Jon Siwek, Corelight)

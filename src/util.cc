@@ -43,6 +43,7 @@
 #include <array>
 #include <vector>
 #include <algorithm>
+#include <iostream>
 
 #include "Desc.h"
 #include "Dict.h"

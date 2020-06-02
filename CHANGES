@@ -1,4 +1,8 @@
 
+3.2.0-dev.734 | 2020-06-01 20:44:29 -0700
+
+  * Add missing include in util.cc (Jon Siwek, Corelight)
+
 3.2.0-dev.733 | 2020-06-01 19:25:37 -0700
 
   * Remove Analyzer.h from bro-bif.h (Tim Wojtulewicz, Corelight)

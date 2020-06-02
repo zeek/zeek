@@ -659,7 +659,7 @@ assign-op Field-LHS-Assign
 op1-read
 type F
 eval @$2
-eval frame[z.v1].record_val->Assign(z.v3, v)
+eval frame[z.v1].record_val->Assign($3, v)
 
 ########## General Statements ##########
 

@@ -154,11 +154,6 @@ BEGIN	{
 	use_target_for_type["R"] = 1
 	use_target_for_type["X"] = 0
 
-	# Accessor for the type, if something special required.
-	specific_type["F"] = ".get()"
-	specific_type["R"] = ".get()"
-	specific_type["X"] = ".get()"
-
 	# Evaluation of @ parameters in assignments has two basic types,
 	# "short" (0) and "long" (1).  Short means to construct a new local
 	# "v" with the @ target.  Long means that an existing value is
@@ -585,7 +580,7 @@ function build_assignment_dispatch2(op, type, is_var)
 	atype = type (is_var ? "V" : "C")
 
 	custom_method = \
-		"auto t = " type_base "->Type()" specific_type[type] ";\n" \
+		"auto t = " type_base "->Type().get();\n" \
 		"\tauto tag = t->Tag();\n" \
 		"\tauto i_t = t->InternalType();\n" \
 		"\tZInst z;"
@@ -652,6 +647,7 @@ function build_assignment2(op, type, flavor, is_var, ev)
 
 	gsub(/@[a-zA-Z$0-9]*/, tmpl, ev)
 	gsub(/\$2/, is_var ? "frame[z.v2]" : "z.c", ev)
+	gsub(/\$3/, is_var ? "z.v3" : "z.v2", ev)
 
 	build_op(op, "V" (is_var ? "V" : "C") "i", flavor, "", ev, ev, is_var, 0)
 	}

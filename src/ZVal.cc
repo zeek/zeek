@@ -278,23 +278,31 @@ void ZAM_vector::SetManagedElement(int n, ZAMValUnion& v)
 	{
 	auto& zn = zvec[n];
 
-	DeleteManagedType(zn, managed_yt);
-
 	switch ( managed_yt->Tag() ) {
 	case TYPE_STRING:
+		delete zn.string_val;
 		zn.string_val = new BroString(*v.string_val);
 		break;
 
 	case TYPE_ADDR:
+		delete zn.addr_val;
 		zn.addr_val = new IPAddr(*v.addr_val);
 		break;
 
 	case TYPE_SUBNET:
+		delete zn.subnet_val;
 		zn.subnet_val = new IPPrefix(*v.subnet_val);
 		break;
 
+	case TYPE_RECORD:
+		delete zn.record_val;
+		zn.record_val = v.record_val->ShallowCopy();
+		break;
+
 	case TYPE_VECTOR:
+		delete zn.vector_val;
 		zn.vector_val = v.vector_val->ShallowCopy();
+		break;
 
 	default:
 		reporter->InternalError("bad type tag in ZAM_vector::SetManagedElement");

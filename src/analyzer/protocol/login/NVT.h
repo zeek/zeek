@@ -147,8 +147,9 @@ public:
 
 protected:
 	void DoDeliver(int len, const u_char* data) override;
+	void DeliverChunk(int& len, const u_char*& data);
 
-	void ScanOption(int seq, int len, const u_char* data);
+	void ScanOption(int& len, const u_char*& data);
 	virtual void SawOption(unsigned int code);
 	virtual void SawOption(unsigned int code, unsigned int subcode);
 	virtual void SawSubOption(const char* opt, int len);

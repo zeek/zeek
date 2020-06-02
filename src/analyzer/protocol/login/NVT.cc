@@ -480,14 +480,20 @@ void NVT_Analyzer::SetEncrypting(int mode)
 
 void NVT_Analyzer::DoDeliver(int len, const u_char* data)
 	{
+	while ( len > 0 )
+		{
+		if ( pending_IAC )
+			ScanOption(len, data);
+		else
+			DeliverChunk(len, data);
+		}
+	}
+
+void NVT_Analyzer::DeliverChunk(int& len, const u_char*& data)
+	{
 	// This code is very similar to that for TCP_ContentLine.  We
 	// don't virtualize out the differences because some of them
 	// would require per-character function calls, too expensive.
-	if ( pending_IAC )
-		{
-		ScanOption(seq, len, data);
-		return;
-		}
 
 	// Add data up to IAC or end.
 	for ( ; len > 0; --len, ++data )
@@ -558,7 +564,9 @@ void NVT_Analyzer::DoDeliver(int len, const u_char* data)
 			IAC_pos = offset;
 			is_suboption = 0;
 			buf[offset++] = c;
-			ScanOption(seq, len - 1, data + 1);
+			--len;
+			++data;
+			ScanOption(len, data);
 			return;
 
 		default:
@@ -577,7 +585,7 @@ void NVT_Analyzer::DoDeliver(int len, const u_char* data)
 		}
 	}
 
-void NVT_Analyzer::ScanOption(int seq, int len, const u_char* data)
+void NVT_Analyzer::ScanOption(int& len, const u_char*& data)
 	{
 	if ( len <= 0 )
 		return;
@@ -617,8 +625,8 @@ void NVT_Analyzer::ScanOption(int seq, int len, const u_char* data)
 			pending_IAC = 0;
 			}
 
-		// Recurse to munch on the remainder.
-		DeliverStream(len - 1, data + 1, IsOrig());
+		--len;
+		++data;
 		return;
 		}
 
@@ -631,7 +639,8 @@ void NVT_Analyzer::ScanOption(int seq, int len, const u_char* data)
 		offset -= 2;	// code + IAC
 		pending_IAC = 0;
 
-		DeliverStream(len - 1, data + 1, IsOrig());
+		--len;
+		++data;
 		return;
 		}
 
@@ -668,14 +677,16 @@ void NVT_Analyzer::ScanOption(int seq, int len, const u_char* data)
 			pending_IAC = is_suboption = 0;
 
 			if ( code == TELNET_OPT_SE )
-				DeliverStream(len - 1, data + 1, IsOrig());
+				{
+				--len;
+				++data;
+				}
 			else
 				{
 				// Munch on the new (broken) option.
 				pending_IAC = 1;
 				IAC_pos = offset;
 				buf[offset++] = TELNET_IAC;
-				DeliverStream(len, data, IsOrig());
 				}
 			return;
 			}

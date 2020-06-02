@@ -1,4 +1,8 @@
 
+3.2.0-dev.735 | 2020-06-02 10:55:43 -0700
+
+  * Change CI script to compile from build/Makefile (Jon Siwek, Corelight)
+
 3.2.0-dev.734 | 2020-06-01 20:44:29 -0700
 
   * Add missing include in util.cc (Jon Siwek, Corelight)

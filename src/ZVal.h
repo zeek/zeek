@@ -348,7 +348,7 @@ public:
 
 		zvec[field] = v;
 
-		auto mask = 1 << field;
+		auto mask = 1UL << field;
 		is_dirty |= mask;
 		is_loaded |= mask;
 		is_in_record |= mask;
@@ -369,7 +369,7 @@ public:
 
 	void DeleteField(unsigned int field)
 		{
-		auto mask = 1 << field;
+		auto mask = 1UL << field;
 		is_in_record &= ~mask;
 		is_dirty |= mask;
 

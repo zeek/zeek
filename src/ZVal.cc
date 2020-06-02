@@ -383,7 +383,12 @@ IntrusivePtr<RecordVal> ZAM_record::ToRecordVal()
 void ZAM_record::Spill()
 	{
 	if ( ! rv || ! is_dirty )
+		{
+		// Mark the record as unloaded so we'll reload it
+		// as needed.
+		is_in_record = is_loaded = 0;
 		return;
+		}
 
 	for ( auto i = 0; i < zvec.size(); ++i )
 		{
@@ -434,8 +439,11 @@ void ZAM_record::Load(int field)
 	if ( ! rv )
 		reporter->InternalError("field missing in record load");
 
+	ASSERT(! IsDirty(field));
+	ASSERT(! IsInRecord(field));
+
 	auto f = rv->LookupWithDefault(field);
-	auto mask = 1 << field;
+	auto mask = 1UL << field;
 
 	if ( f )
 		{

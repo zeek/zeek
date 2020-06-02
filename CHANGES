@@ -1,4 +1,14 @@
 
+3.0.7-dev.9 | 2020-06-05 12:25:24 -0700
+
+  * GH-985: Fix descriptions of double_to_interval() return values (Jon Siwek, Corelight)
+
+    The BIF was not returning an IntervalVal which has an overriden
+    ValDescribe() method that allows for prettier printing like "6.0 secs"
+    instead of just "6.0".
+
+  * GH-983: Fix opaque Broker types lacking a Type after (de)serialization (Jon Siwek, Corelight)
+
 3.0.7-dev.7 | 2020-06-04 18:34:34 -0700
 
   * GH-973: Fix the return type of topk_get_top() (Jon Siwek, Corelight)

@@ -2411,7 +2411,7 @@ function double_to_time%(d: double%): time
 ## .. zeek:see:: interval_to_double
 function double_to_interval%(d: double%): interval
 	%{
-	return new Val(d, TYPE_INTERVAL);
+	return new IntervalVal(d, 1.0);
 	%}
 
 ## Converts a :zeek:type:`port` to a :zeek:type:`count`.

@@ -4,8 +4,10 @@
 
 event zeek_init()
 	{
-	local a = 1234563.14;
-	print double_to_interval(a);
-	local b = -1234563.14;
-	print double_to_interval(b);
+	local a = double_to_interval(1234563.140);
+	print type_name(a), a;
+	local b = double_to_interval(-1234563.14);
+	print type_name(b), b;
+	local c = double_to_interval(6.0);
+	print type_name(c), c;
 	}

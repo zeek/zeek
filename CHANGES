@@ -1,4 +1,8 @@
 
+3.0.7-dev.1 | 2020-06-02 10:58:28 -0700
+
+  * Change CI script to compile from build/Makefile (Jon Siwek, Corelight)
+
 3.0.6 | 2020-05-06 11:52:51 -0700
 
   * Release 3.0.6.

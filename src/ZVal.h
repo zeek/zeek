@@ -217,15 +217,19 @@ protected:
 
 class ZAM_vector : public ZAMAggrInstantiation {
 public:
-	// The yield type is non-nil only if it represents a managed type.
-	// We have this passed in rather than computing it ourselves from
-	// the associated VectorVal because (1) there might not be a
-	// VectorVal at all, and (2) it is static information that can
-	// be computed at compile time rather than run-time.
 	ZAM_vector(VectorVal* _v, ZAMAggrBindings* _bindings,
-			BroType* _myt, int n = 0)
+			BroType* yt, int n = 0)
 		: ZAMAggrInstantiation(_v, _bindings, n)
-		{ vv = _v; managed_yt = _myt; }
+		{
+		vv = _v;
+		if ( yt )
+			{
+			general_yt = yt;
+			managed_yt = IsManagedType(yt) ? yt : nullptr;
+			}
+		else
+			general_yt = managed_yt = nullptr;
+		}
 
 	~ZAM_vector()
 		{
@@ -235,7 +239,17 @@ public:
 		}
 
 	BroType* ManagedYieldType() const	{ return managed_yt; }
-	void SetManagedYieldType(BroType* _myt)	{ managed_yt = _myt; }
+	BroType* GeneralYieldType() const	{ return general_yt; }
+
+	void SetGeneralYieldType(BroType* yt)
+		{
+		if ( ! general_yt )
+			{
+			general_yt = yt;
+			if ( IsManagedType(yt) )
+				managed_yt = yt;
+			}
+		}
 
 	int Size() const		{ return zvec.size(); }
 
@@ -321,6 +335,11 @@ protected:
 	// The yield type of the vector elements.  Only non-nil if they
 	// are managed types.
 	BroType* managed_yt;
+
+	// The yield type of the vector elements, whether or not it's
+	// managed.  We use a lengthier name to make sure we never
+	// confuse this with managed_yt.
+	BroType* general_yt;
 
 	// Whether the base type of the vector is one for which we need
 	// to do explicit memory management.
@@ -476,8 +495,7 @@ public:
 		if ( ! yield_type )
 			{
 			yield_type = yt;
-			if ( IsManagedType(yt) )
-				vec->SetManagedYieldType(yt);
+			vec->SetGeneralYieldType(yt);
 			}
 		}
 

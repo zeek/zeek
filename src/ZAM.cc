@@ -601,7 +601,7 @@ static void vec_exec(ZOp op, BroType* t, ZAMVector*& v1, const ZAMVector* v2,
 		{ \
 		auto& v = vec->ConstVec(); \
 		auto yt = vec->YieldType(); \
-		auto res_zv = make_intrusive<ZAM_vector>(nullptr, bindings, vec->ManagedYieldType()); \
+		auto res_zv = make_intrusive<ZAM_vector>(nullptr, bindings, vec->YieldType()); \
 		auto& res = res_zv->ModVecNoDirty(); \
 		for ( unsigned int i = 0; i < v.size(); ++i ) \
 			res[i].lhs_accessor = cast(v[i].rhs_accessor); \
@@ -1765,6 +1765,18 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 	auto index_assign = e->AsIndexAssignExpr();
 
 	auto op1 = index_assign->GetOp1();
+	auto op3 = index_assign->GetOp3();
+
+	auto lhs = op1->AsNameExpr();
+	auto lt = lhs->Type();
+
+	if ( IsAnyVec(lt) && ! IsAny(op3->Type()) )
+		{
+		auto z = ZInst(OP_TRANSFORM_ANY_VEC_V, lhs);
+		z.t = op3->Type().get();
+		AddInst(z);
+		}
+
 	auto indexes = index_assign->GetOp2()->AsListExpr()->Exprs();
 
 	if ( indexes.length() > 1 )
@@ -1774,9 +1786,6 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 		}
 
 	auto op2 = indexes[0];
-	auto op3 = index_assign->GetOp3();
-
-	auto lhs = op1->AsNameExpr();
 
 	if ( op2->Tag() == EXPR_CONST && op3->Tag() == EXPR_CONST )
 		{
@@ -2009,6 +2018,22 @@ const CompiledStmt ZAM::CatchReturn(const CatchReturnStmt* cr)
 	ResolveCatchReturns(GoToTargetBeyond(block_end));
 
 	return block_end;
+	}
+
+const CompiledStmt ZAM::CheckAnyType(const NameExpr* any_n,
+					BroType* expected_type)
+	{
+	auto z = ZInst(OP_CHECK_ANY_TYPE_V, any_n);
+	z.t = expected_type;
+	return AddInst(z);
+	}
+
+const CompiledStmt ZAM::CheckAnyVec(const NameExpr* any_n,
+					BroType* expected_type)
+	{
+	auto z = ZInst(OP_CHECK_ANY_VEC_V, any_n);
+	z.t = expected_type;
+	return AddInst(z);
 	}
 
 const CompiledStmt ZAM::StartingBlock()
@@ -2731,6 +2756,37 @@ void ZAM::LoadAggregates(ZAMAggrBindings* bindings) const
 
 	for ( auto aggr : aggrs )
 		aggr->Freshen();
+	}
+
+bool ZAM::CheckAnyType(const BroType* any_type, const BroType* expected_type,
+			const Stmt* associated_stmt) const
+	{
+	if ( IsAny(expected_type) )
+		return true;
+
+	if ( ! same_type(any_type, expected_type, false, false) )
+		{
+		auto at = any_type->Tag();
+		auto et = expected_type->Tag();
+
+		if ( at == TYPE_RECORD && et == TYPE_RECORD )
+			{
+			auto at_r = any_type->AsRecordType();
+			auto et_r = expected_type->AsRecordType();
+
+			if ( record_promotion_compatible(et_r, at_r) )
+				return true;
+			}
+
+		char buf[8192];
+		snprintf(buf, sizeof buf, "run-time type clash (%s/%s)",
+			type_name(at), type_name(et));
+
+		reporter->Error(buf, associated_stmt);
+		return false;
+		}
+
+	return true;
 	}
 
 IntrusivePtr<Val> ResumptionAM::Exec(Frame* f, stmt_flow_type& flow) const

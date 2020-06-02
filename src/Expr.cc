@@ -4037,10 +4037,17 @@ const CompiledStmt AssignExpr::Compile(Compiler* c) const
 
 const CompiledStmt AssignExpr::DoCompile(Compiler* c, const NameExpr* lhs) const
 	{
+	auto lt = lhs->Type().get();
 	auto rhs = op2.get();
+	auto r1 = rhs->GetOp1();
 
-	if ( rhs->Tag() == EXPR_INDEX )
+	if ( rhs->Tag() == EXPR_INDEX && r1->Tag() == EXPR_NAME )
+		{
+		if ( IsAnyVec(rhs->Type()) && ! IsAny(lt) && ! IsAnyVec(lt) )
+			(void) c->CheckAnyVec(r1->AsNameExpr(), lt);
+
 		return CompileAssignToIndex(c, lhs, rhs->AsIndexExpr());
+		}
 
 	switch ( rhs->Tag() ) {
 #include "CompilerOpsDirectDefs.h"
@@ -4048,7 +4055,6 @@ const CompiledStmt AssignExpr::DoCompile(Compiler* c, const NameExpr* lhs) const
 
 	auto rt = rhs->Type();
 
-	auto r1 = rhs->GetOp1();
 	auto r2 = rhs->GetOp2();
 	auto r3 = rhs->GetOp3();
 
@@ -4061,10 +4067,15 @@ const CompiledStmt AssignExpr::DoCompile(Compiler* c, const NameExpr* lhs) const
 
 	if ( rhs->Tag() == EXPR_NAME )
 		{
+		auto rhs_n = rhs->AsNameExpr();
+
 		if ( lhs->Type()->Tag() == TYPE_ANY )
-			return c->Assign_AnyVV(lhs, rhs->AsNameExpr());
-		else
-			return c->AssignXV(lhs, rhs->AsNameExpr());
+			return c->Assign_AnyVV(lhs, rhs_n);
+
+		if ( IsAny(rhs) )
+			(void) c->CheckAnyType(rhs_n, lt);
+
+		return c->AssignXV(lhs, rhs_n);
 		}
 
 	if ( rhs->Tag() == EXPR_CONST )

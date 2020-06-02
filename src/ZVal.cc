@@ -33,10 +33,8 @@ bool IsManagedType(const BroType* t)
 	case TYPE_SUBNET:
 	case TYPE_RECORD:
 	case TYPE_STRING:
-		return true;
-
 	case TYPE_VECTOR:
-		return ! IsAny(t);
+		return true;
 
 	default:
 		return false;
@@ -505,8 +503,8 @@ ZAMVector::ZAMVector(IntrusivePtr<ZAM_vector> _vec)
 			yt = nullptr;
 		}
 
-	if ( yt && IsManagedType(yt) )
-		vec->SetManagedYieldType(yt);
+	if ( yt )
+		vec->SetGeneralYieldType(yt);
 
 	yield_type = yt;
 	}

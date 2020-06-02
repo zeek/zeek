@@ -512,7 +512,9 @@ set-type $1
 eval auto lv = frame[z.v2].any_val->val.val_list_val
 eval auto elem = (*lv)[z.v3]
 eval IntrusivePtr elem_p = {NewRef{}, elem}
-eval AssignV1(BuildVal(elem_p, z.t, z.stmt))
+eval if ( CheckAnyType(elem->Type(), z.t, z.stmt) ) {
+eval	AssignV1(BuildVal(elem_p, z.t, z.stmt))
+eval } else error_flag = true
 
 
 ########## Constructors ##########
@@ -961,8 +963,7 @@ eval auto yt = vt->YieldType()
 eval auto vec = new VectorVal(vt)
 eval f->SetElement(z.v2, vec)
 eval delete frame[z.v1].vector_val
-eval auto myt = IsManagedType(yt) ? yt : nullptr
-eval auto zv = make_intrusive<ZAM_vector>(vec, &ZAM_VM_bindings, myt)
+eval auto zv = make_intrusive<ZAM_vector>(vec, &ZAM_VM_bindings, yt)
 eval frame[z.v1].vector_val = new ZAMVector(zv)
 
 internal-op Init-Table
@@ -983,13 +984,7 @@ eval for ( auto i = 1; i <= num_globals; ++i ) {
 eval	if ( global_state[i] == GS_DIRTY ) {
 eval		auto id = frame_denizens[i]
 eval		auto t = id->Type()
-eval		IntrusivePtr<Val> v
-eval		if ( t->Tag() == TYPE_ANY ) v = {NewRef{}, frame[i].any_val}
-eval		else {
-eval			auto is_vec = t->Tag() == TYPE_VECTOR
-eval			auto vv = is_vec ? frame[i].vector_val->VecVal() : nullptr
-eval			v = vv ? vv : frame[i].ToVal(t)
-eval		}
+eval		auto v = frame[i].ToVal(t)
 eval		id->SetVal(v)
 eval	}
 eval	global_state[i] = GS_UNLOADED
@@ -1051,11 +1046,10 @@ eval }
 internal-op Store-Val
 op1-read
 type VV
-eval auto is_vec = z.t->Tag() == TYPE_VECTOR
-eval auto vv = is_vec ? frame[z.v1].vector_val->VecVal() : nullptr
-eval auto val = vv ? vv : frame[z.v1].ToVal(z.t)
+eval auto val = frame[z.v1].ToVal(z.t)
 eval f->SetElement(z.v2, val.release())
 
+### This now should work as just an ordinary Store-Val.
 internal-op Store-Any-Val
 op1-read
 type VV
@@ -1121,6 +1115,34 @@ internal-op Hook-Break
 type X
 eval flow = FLOW_BREAK
 eval pc = end_pc
+
+
+# Dynamic type-checking for using an any_val.
+internal-op Check-Any-Type
+op1-read
+type V
+eval auto any_v = frame[z.v1].any_val
+eval if ( ! CheckAnyType(any_v->Type(), z.t, z.stmt) ) error_flag = true
+
+# Make sure that the given vector-of-any is either empty or in fact
+# has the expected concrete internal type.
+internal-op Check-Any-Vec
+op1-read
+type V
+eval auto any_vec = frame[z.v1].vector_val->ConstVecPtr()
+eval if ( any_vec->ConstVec().size() == 0 ) break
+eval auto at = any_vec->GeneralYieldType()
+eval if ( at && at->Tag() == TYPE_ANY ) reporter->InternalError("non-concrete vector-of-any")
+eval if ( ! CheckAnyType(at, z.t, z.stmt) ) error_flag = true
+
+# Transform the given vector-of-any to a concrete internal type.
+internal-op Transform-Any-Vec
+op1-read-write
+type V
+eval auto any_vec = frame[z.v1].vector_val->ModVecPtr()
+eval if ( any_vec->ConstVec().size() > 0 ) reporter->InternalError("concretizing non-empty vector-of-any")
+eval auto at = any_vec->GeneralYieldType()
+eval if ( ! at || at->Tag() == TYPE_ANY ) any_vec->SetGeneralYieldType(z.t)
 
 
 ########################################

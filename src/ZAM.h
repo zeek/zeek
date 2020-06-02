@@ -91,6 +91,11 @@ public:
 	const CompiledStmt CatchReturn()
 		{ return GenGoTo(catches.back()); }
 
+	const CompiledStmt CheckAnyType(const NameExpr* any_n,
+					BroType* expected_type) override;
+	const CompiledStmt CheckAnyVec(const NameExpr* any_n,
+					BroType* expected_type) override;
+
 	const CompiledStmt StartingBlock() override;
 	const CompiledStmt FinishBlock(const CompiledStmt start) override;
 
@@ -334,6 +339,11 @@ protected:
 
 	void SpillAggregates(ZAMAggrBindings* bindings) const;
 	void LoadAggregates(ZAMAggrBindings* bindings) const;
+
+	// Run-time checking for "any" type being consistent with
+	// expected typed.  Returns true if the type match is okay.
+	bool CheckAnyType(const BroType* any_type, const BroType* expected_type,
+				const Stmt* associated_stmt) const;
 
 	// The first of these is used as we compile down to ZInst's.
 	// The second is the final code used during execution.  They're

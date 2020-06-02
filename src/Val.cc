@@ -2976,16 +2976,14 @@ VectorVal::VectorVal(VectorType* t) : Val(t)
 	{
 	vector_type = t->Ref()->AsVectorType();
 	auto yt = vector_type->YieldType();
-	auto myt = IsManagedType(yt) ? yt : nullptr;
-	val.vector_val = new ZAM_vector(this, nullptr, myt);
+	val.vector_val = new ZAM_vector(this, nullptr, yt);
 	}
 
 VectorVal::VectorVal(VectorType* t, unsigned int n) : Val(t)
 	{
 	vector_type = t->Ref()->AsVectorType();
 	auto yt = vector_type->YieldType();
-	auto myt = IsManagedType(yt) ? yt : nullptr;
-	val.vector_val = new ZAM_vector(this, nullptr, myt, n);
+	val.vector_val = new ZAM_vector(this, nullptr, yt, n);
 	}
 
 VectorVal::~VectorVal()

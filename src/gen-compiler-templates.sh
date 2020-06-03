@@ -105,7 +105,7 @@ BEGIN	{
 	++is_managed["N"]
 	++is_managed["R"]
 	++is_managed["S"]
-	++is_managed["V"]	# other than vector-of-any, sigh
+	++is_managed["V"]
 
 	# We break these out because here the type structure does not match
 	# the argument structure.  Instead, these are special types known
@@ -591,7 +591,7 @@ function build_assignment_dispatch2(op, type, is_var)
 	# Do the "ANY" case first, since it is dispatched on the
 	# type of n1 rather than n2.
 	custom_method = custom_method "\n\t" \
-		build_assign_case(op, atype, "ANY", targ "->Type()->Tag() == TYPE_ANY")
+		build_assign_case(op, atype, "ANY", targ "->Type()->Tag() == TYPE_ANY", is_var)
 
 	for ( flavor in is_managed )
 		custom_method = custom_method \

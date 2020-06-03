@@ -191,9 +191,7 @@ IntrusivePtr<VectorVal> TopkVal::GetTopK(int k) const // returns vector
 		return nullptr;
 		}
 
-	auto vector_index = make_intrusive<TypeList>(type);
-	vector_index->Append(type);
-	auto v = make_intrusive<VectorType>(std::move(vector_index));
+	auto v = make_intrusive<VectorType>(type);
 	auto t = make_intrusive<VectorVal>(std::move(v));
 
 	// this does no estimation if the results is correct!

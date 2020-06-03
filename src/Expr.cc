@@ -3847,7 +3847,8 @@ bool AssignExpr::IsReduced(Reducer* c) const
 	if ( t1 == EXPR_REF )
 		{
 		auto lhs = op1->GetOp1();
-		if ( lhs->Type()->Tag() == TYPE_ANY )
+		if ( lhs->Type()->Tag() == TYPE_ANY &&
+		     op2->Type()->Tag() != TYPE_ANY )
 			return op1->IsReduced(c) && op2->IsSingleton(c);
 
 		if ( op2->HasConstantOps() )
@@ -3898,7 +3899,7 @@ Expr* AssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 	bool is_any_assign =
 		lhs_expr->Tag() == EXPR_NAME &&
 		lhs_expr->Type()->Tag() == TYPE_ANY &&
-		! op2->IsSingleton(c);
+		op2->Type()->Tag() != TYPE_ANY && ! op2->IsSingleton(c);
 
 	if ( is_any_assign )
 		{ // RHS must be a singleton.

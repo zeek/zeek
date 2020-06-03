@@ -4054,12 +4054,7 @@ const CompiledStmt AssignExpr::DoCompile(Compiler* c, const NameExpr* lhs) const
 	auto r1 = rhs->GetOp1();
 
 	if ( rhs->Tag() == EXPR_INDEX && r1->Tag() == EXPR_NAME )
-		{
-		if ( IsAnyVec(rhs->Type()) && ! IsAny(lt) && ! IsAnyVec(lt) )
-			(void) c->CheckAnyVec(r1->AsNameExpr(), lt);
-
 		return CompileAssignToIndex(c, lhs, rhs->AsIndexExpr());
-		}
 
 	switch ( rhs->Tag() ) {
 #include "CompilerOpsDirectDefs.h"
@@ -4077,27 +4072,11 @@ const CompiledStmt AssignExpr::DoCompile(Compiler* c, const NameExpr* lhs) const
 		return c->ErrorStmt();
 		}
 
-// ### this is going to instead be in the cast compilation
 	if ( rhs->Tag() == EXPR_NAME )
-		{
-		auto rhs_n = rhs->AsNameExpr();
-
-		if ( lhs->Type()->Tag() == TYPE_ANY )
-			return c->Assign_AnyVV(lhs, rhs_n);
-
-		if ( IsAny(rhs) )
-			(void) c->CheckAnyType(rhs_n, lt);
-
-		return c->AssignXV(lhs, rhs_n);
-		}
+		return c->AssignXV(lhs, rhs->AsNameExpr());
 
 	if ( rhs->Tag() == EXPR_CONST )
-		{
-		if ( lhs->Type()->Tag() == TYPE_ANY )
-			return c->Assign_AnyVC(lhs, rhs->AsConstExpr());
-		else
-			return c->AssignXC(lhs, rhs->AsConstExpr());
-		}
+		return c->AssignXC(lhs, rhs->AsConstExpr());
 
 	if ( rhs->Tag() == EXPR_IN && r1->Tag() == EXPR_LIST )
 		{

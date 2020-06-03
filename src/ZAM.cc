@@ -2040,22 +2040,6 @@ const CompiledStmt ZAM::CatchReturn(const CatchReturnStmt* cr)
 	return block_end;
 	}
 
-const CompiledStmt ZAM::CheckAnyType(const NameExpr* any_n,
-					BroType* expected_type)
-	{
-	auto z = GenInst(this, OP_CHECK_ANY_TYPE_V, any_n);
-	z.t = expected_type;
-	return AddInst(z);
-	}
-
-const CompiledStmt ZAM::CheckAnyVec(const NameExpr* any_n,
-					BroType* expected_type)
-	{
-	auto z = GenInst(this, OP_CHECK_ANY_VEC_V, any_n);
-	z.t = expected_type;
-	return AddInst(z);
-	}
-
 const CompiledStmt ZAM::StartingBlock()
 	{
 	return CompiledStmt(insts1.size());

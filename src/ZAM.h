@@ -91,11 +91,6 @@ public:
 	const CompiledStmt CatchReturn()
 		{ return GenGoTo(catches.back()); }
 
-	const CompiledStmt CheckAnyType(const NameExpr* any_n,
-					BroType* expected_type) override;
-	const CompiledStmt CheckAnyVec(const NameExpr* any_n,
-					BroType* expected_type) override;
-
 	const CompiledStmt StartingBlock() override;
 	const CompiledStmt FinishBlock(const CompiledStmt start) override;
 

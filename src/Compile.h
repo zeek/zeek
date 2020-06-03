@@ -92,11 +92,6 @@ public:
 	virtual const CompiledStmt Break() = 0;
 	virtual const CompiledStmt FallThrough() = 0;
 
-	virtual const CompiledStmt CheckAnyType(const NameExpr* any_n,
-						BroType* expected_type) = 0;
-	virtual const CompiledStmt CheckAnyVec(const NameExpr* any_n,
-						BroType* expected_type) = 0;
-
 	virtual const CompiledStmt StartingBlock() = 0;
 	virtual const CompiledStmt FinishBlock(const CompiledStmt start) = 0;
 

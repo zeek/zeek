@@ -106,7 +106,8 @@ eval auto res = cast_value(rhs, z.t, error);
 eval if ( error ) ZAM_run_time_error(error_flag, z.stmt, error);
 eval else AssignV1(BuildVal(res, z.t, z.stmt));
 
-# Cast an "any" type to the given type.
+# Cast an "any" type to the given type.  Only needed for type-based swith
+# statements.
 internal-op Cast-Any
 type VV
 eval const char* error
@@ -1022,6 +1023,8 @@ op1-internal
 type V
 eval global_state[z.v1] = GS_DIRTY
 
+# These two are only needed for type-based switch statements.  Could think
+# about replacing them using CoerceFromAnyExpr.
 op Assign-Any
 type VV
 set-type $2
@@ -1151,13 +1154,6 @@ type X
 eval flow = FLOW_BREAK
 eval pc = end_pc
 
-
-# Dynamic type-checking for using an any_val.
-internal-op Check-Any-Type
-op1-read
-type V
-eval auto any_v = frame[z.v1].any_val
-eval if ( ! CheckAnyType(any_v->Type(), z.t, z.stmt) ) error_flag = true
 
 # Make sure that the given vector-of-any is either empty or in fact
 # has the expected concrete internal type.

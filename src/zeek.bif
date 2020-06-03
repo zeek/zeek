@@ -1460,7 +1460,7 @@ function sort%(v: any, ...%) : any
 	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
 		builtin_error("comparison function required for sort() with non-integral types");
 
-	auto& vv = v->AsVector()->ModVec();
+	auto& vv = v->AsNonConstVector()->ModVec();
 
 	zsort_type = elt_type;
 
@@ -1532,7 +1532,7 @@ function order%(v: any, ...%) : index_vec
 	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
 		builtin_error("comparison function required for order() with non-integral types");
 
-	auto vv = v->AsVector();
+	auto vv = v->AsNonConstVector();
 	auto n = vv->Size();
 
 	// Set up initial mapping of indices directly to corresponding
@@ -3374,13 +3374,14 @@ function lookup_connection%(cid: conn_id%): connection
 %%{
 const char* conn_id_string(Val* c)
 	{
-	Val* id = (*(c->AsRecord()))[0];
-	const val_list* vl = id->AsRecord();
+	auto crec = c->AsNonConstRecord();
+	bool error;
+	auto id = crec->Lookup(0, error).record_val;
 
-	const IPAddr& orig_h = (*vl)[0]->AsAddr();
-	uint32_t orig_p = (*vl)[1]->AsPortVal()->Port();
-	const IPAddr& resp_h = (*vl)[2]->AsAddr();
-	uint32_t resp_p = (*vl)[3]->AsPortVal()->Port();
+	auto& orig_h = *id->Lookup(0, error).addr_val;
+	uint32_t orig_p = id->Lookup(1, error).uint_val;
+	auto& resp_h = *id->Lookup(2, error).addr_val;
+	uint32_t resp_p = id->Lookup(3, error).uint_val;
 
 	return fmt("%s/%u -> %s/%u\n", orig_h.AsString().c_str(), orig_p,
 	                               resp_h.AsString().c_str(), resp_p);
@@ -3498,14 +3499,15 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 		uint32_t caplen, len, link_type;
 		u_char *data;
 
-		const val_list* pkt_vl = pkt->AsRecord();
+		auto pkt_vl = pkt->AsNonConstRecord();
+		bool error;
 
-		ts.tv_sec = (*pkt_vl)[0]->AsCount();
-		ts.tv_usec = (*pkt_vl)[1]->AsCount();
-		caplen = (*pkt_vl)[2]->AsCount();
-		len = (*pkt_vl)[3]->AsCount();
-		data = (*pkt_vl)[4]->AsString()->Bytes();
-		link_type = (*pkt_vl)[5]->AsEnum();
+		ts.tv_sec = pkt_vl->Lookup(0, error).uint_val;
+		ts.tv_usec = pkt_vl->Lookup(1, error).uint_val;
+		caplen = pkt_vl->Lookup(2, error).uint_val;
+		len = pkt_vl->Lookup(3, error).uint_val;
+		data = pkt_vl->Lookup(4, error).string_val->Bytes();
+		link_type = pkt_vl->Lookup(5, error).int_val;
 		Packet p(link_type, &ts, caplen, len, data, true);
 
 		addl_pkt_dumper->Dump(&p);

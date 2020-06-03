@@ -62,7 +62,7 @@ class TableEntryVal;
 
 class RE_Matcher;
 
-class ZAM;
+class ZAM_record;
 class ZAM_vector;
 union ZAMValUnion;
 
@@ -87,8 +87,8 @@ union BroValUnion {
 	BroFile* file_val;
 	RE_Matcher* re_val;
 	PDict<TableEntryVal>* table_val;
-	val_list* val_list_val;
 
+	ZAM_record* record_val;
 	ZAM_vector* vector_val;
 
 	BroValUnion() = default;
@@ -123,8 +123,8 @@ union BroValUnion {
 	constexpr BroValUnion(PDict<TableEntryVal>* value) noexcept
 		: table_val(value) {}
 
-	constexpr BroValUnion(val_list* value) noexcept
-		: val_list_val(value) {}
+	constexpr BroValUnion(ZAM_record* value) noexcept
+		: record_val(value) {}
 
 	constexpr BroValUnion(ZAM_vector* value) noexcept
 		: vector_val(value) {}
@@ -223,7 +223,7 @@ public:
 	CONST_ACCESSOR(TYPE_STRING, BroString*, string_val, AsString)
 	CONST_ACCESSOR(TYPE_FUNC, Func*, func_val, AsFunc)
 	CONST_ACCESSOR(TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsTable)
-	CONST_ACCESSOR(TYPE_RECORD, val_list*, val_list_val, AsRecord)
+	CONST_ACCESSOR(TYPE_RECORD, ZAM_record*, record_val, AsRecord)
 	CONST_ACCESSOR(TYPE_FILE, BroFile*, file_val, AsFile)
 	CONST_ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
 	CONST_ACCESSOR(TYPE_VECTOR, ZAM_vector*, vector_val, AsVector)
@@ -260,7 +260,12 @@ public:
 	ACCESSOR(TYPE_FUNC, Func*, func_val, AsFunc)
 	ACCESSOR(TYPE_FILE, BroFile*, file_val, AsFile)
 	ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
-	ACCESSOR(TYPE_VECTOR, ZAM_vector*, vector_val, AsVector)
+
+	// These two are non-protected since enough disparate remote places
+	// wind up calling them that we'd require a tangle of "friend"
+	// declarations if they were with AsNonConstTable.
+	ACCESSOR(TYPE_RECORD, ZAM_record*, record_val, AsNonConstRecord)
+	ACCESSOR(TYPE_VECTOR, ZAM_vector*, vector_val, AsNonConstVector)
 
 	const IPPrefix& AsSubNet()
 		{
@@ -338,8 +343,10 @@ protected:
 	friend class ListVal;
 	friend class RecordVal;
 	friend class VectorVal;
+
 	friend class ValManager;
 	friend class TableEntryVal;
+
 	friend class ZAM;
 	friend class ZAM_vector;
 	friend union ZAMValUnion;
@@ -390,7 +397,6 @@ protected:
 		}
 
 	ACCESSOR(TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsNonConstTable)
-	ACCESSOR(TYPE_RECORD, val_list*, val_list_val, AsNonConstRecord)
 
 	// For internal use by the Val::Clone() methods.
 	struct CloneState {

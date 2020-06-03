@@ -2652,7 +2652,8 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(t)
 	{
 	origin = nullptr;
 	int n = t->NumFields();
-	val_list* vl = val.val_list_val = new val_list(n);
+
+	val.record_val = new ZAM_record(this, t, nullptr);
 
 	if ( is_parsing )
 		parse_time_records[t].emplace_back(NewRef{}, this);
@@ -2694,13 +2695,16 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(t)
 				def = make_intrusive<VectorVal>(type->AsVectorType());
 			}
 
-		vl->push_back(def.release());
+		bool error;
+		auto zvu = ZAMValUnion(def.release(), type, nullptr,
+					this, error);
+		val.record_val->Assign(i, zvu);
 		}
 	}
 
 RecordVal::~RecordVal()
 	{
-	delete_vals(AsNonConstRecord());
+	Unref(AsNonConstRecord());
 	}
 
 IntrusivePtr<Val> RecordVal::SizeVal() const
@@ -2710,8 +2714,13 @@ IntrusivePtr<Val> RecordVal::SizeVal() const
 
 void RecordVal::Assign(int field, IntrusivePtr<Val> new_val)
 	{
-	Val* old_val = AsNonConstRecord()->replace(field, new_val.release());
-	Unref(old_val);
+	bool error;
+	auto zvu = ZAMValUnion(new_val.get(), new_val->Type(), nullptr,
+				this, error);
+
+	auto zr = AsNonConstRecord();
+	zr->Assign(field, zvu);
+
 	Modified();
 	}
 
@@ -2722,12 +2731,15 @@ void RecordVal::Assign(int field, Val* new_val)
 
 Val* RecordVal::Lookup(int field) const
 	{
-	return (*AsRecord())[field];
+	// The following ugliness can go away once we migrate
+	// ZAM_record::Lookup to be const.
+	auto& zr = *((RecordVal*) this)->AsNonConstRecord();
+	return zr.NthField(field).release();
 	}
 
 IntrusivePtr<Val> RecordVal::LookupWithDefault(int field) const
 	{
-	Val* val = (*AsRecord())[field];
+	Val* val = Lookup(field);
 
 	if ( val )
 		return {NewRef{}, val};
@@ -2746,16 +2758,22 @@ void RecordVal::ResizeParseTimeRecords(RecordType* rt)
 
 	for ( auto& rv : rvs )
 		{
-		auto vs = rv->val.val_list_val;
-		auto current_length = vs->length();
+		auto vs = rv->AsNonConstRecord();
+		auto current_length = vs->Size();
 		auto required_length = rt->NumFields();
 
 		if ( required_length > current_length )
 			{
-			vs->resize(required_length);
+			vs->Grow(required_length);
 
 			for ( auto i = current_length; i < required_length; ++i )
-				vs->replace(i, rt->FieldDefault(i).release());
+				{
+				auto v = rt->FieldDefault(i).release();
+				bool error;
+				auto zvu = ZAMValUnion(v, v->Type(), nullptr,
+							nullptr, error);
+				vs->Assign(i, zvu);
+				}
 			}
 		}
 	}
@@ -2853,8 +2871,8 @@ IntrusivePtr<TableVal> RecordVal::GetRecordFieldsVal() const
 
 void RecordVal::Describe(ODesc* d) const
 	{
-	const val_list* vl = AsRecord();
-	int n = vl->length();
+	auto vl = ((RecordVal*) this)->AsNonConstRecord();
+	int n = vl->Size();
 	auto record_type = Type()->AsRecordType();
 
 	if ( d->IsBinary() || d->IsPortable() )
@@ -2867,7 +2885,7 @@ void RecordVal::Describe(ODesc* d) const
 	else
 		d->Add("[");
 
-	loop_over_list(*vl, i)
+	for ( int i = 0; i < n; ++i )
 		{
 		if ( ! d->IsBinary() && i > 0 )
 			d->Add(", ");
@@ -2877,7 +2895,7 @@ void RecordVal::Describe(ODesc* d) const
 		if ( ! d->IsBinary() )
 			d->Add("=");
 
-		Val* v = (*vl)[i];
+		auto v = vl->NthField(i);
 		if ( v )
 			v->Describe(d);
 		else
@@ -2890,14 +2908,14 @@ void RecordVal::Describe(ODesc* d) const
 
 void RecordVal::DescribeReST(ODesc* d) const
 	{
-	const val_list* vl = AsRecord();
-	int n = vl->length();
+	auto vl = ((RecordVal*) this)->AsNonConstRecord();
+	int n = vl->Size();
 	auto record_type = Type()->AsRecordType();
 
 	d->Add("{");
 	d->PushIndent();
 
-	loop_over_list(*vl, i)
+	for ( int i = 0; i < n; ++i )
 		{
 		if ( i > 0 )
 			d->NL();
@@ -2905,7 +2923,7 @@ void RecordVal::DescribeReST(ODesc* d) const
 		d->Add(record_type->FieldName(i));
 		d->Add("=");
 
-		Val* v = (*vl)[i];
+		auto v = vl->NthField(i);
 
 		if ( v )
 			v->Describe(d);
@@ -2928,27 +2946,32 @@ IntrusivePtr<Val> RecordVal::DoClone(CloneState* state)
 	rv->origin = nullptr;
 	state->NewClone(this, rv);
 
-	for ( const auto& vlv : *val.val_list_val )
-		{
-		auto v = vlv ? vlv->Clone(state) : nullptr;
-  		rv->val.val_list_val->push_back(v.release());
-		}
+	auto r = AsNonConstRecord();
+	int n = r->Size();
+
+	for ( int i = 0; i < n; ++i )
+		rv->Assign(i, r->NthField(i));
 
 	return rv;
 	}
 
 unsigned int RecordVal::MemoryAllocation() const
 	{
-	unsigned int size = 0;
-	const val_list* vl = AsRecord();
+	// ### The following isn't all that correct, since it instantiates
+	// ZAM vals and computes off of those.  Need to decide if we care.
 
-	for ( const auto& v : *vl )
+	auto vl = ((RecordVal*) this)->AsNonConstRecord();
+	int n = vl->Size();
+
+	unsigned int size = 0;
+
+	for ( int i = 0; i < n; ++i )
 		{
-		if ( v )
-		    size += v->MemoryAllocation();
+		if ( vl->HasField(i) )
+			size += vl->NthField(i)->MemoryAllocation();
 		}
 
-	return size + padded_sizeof(*this) + val.val_list_val->MemoryAllocation();
+	return size + padded_sizeof(*this) + padded_sizeof(*vl);
 	}
 
 IntrusivePtr<Val> EnumVal::SizeVal() const

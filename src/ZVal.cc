@@ -518,13 +518,13 @@ ZAMRecord::ZAMRecord(IntrusivePtr<ZAM_record> _zr)
 
 ZAMVector* to_ZAM_vector(Val* vec, ZAMAggrBindings* bindings)
 	{
-	auto raw = to_raw_ZAM_vector(vec, bindings);
+	auto raw = to_raw_ZAM_vector(vec);
 	return new ZAMVector(raw);
 	}
 
-IntrusivePtr<ZAM_vector> to_raw_ZAM_vector(Val* vec, ZAMAggrBindings* bindings)
+IntrusivePtr<ZAM_vector> to_raw_ZAM_vector(Val* vec)
 	{
-	auto vv = vec->AsVector();
+	auto vv = vec->AsNonConstVector();
 
 	// ### Here is where we'd track holes in vectors.
 	return {NewRef{}, vv};

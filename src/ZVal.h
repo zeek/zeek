@@ -356,7 +356,7 @@ public:
 		DeleteManagedMembers();
 		}
 
-	// int Size() const		{ return zvec.size(); }
+	int Size() const		{ return zvec.size(); }
 
 	IntrusivePtr<RecordVal> ToRecordVal();
 
@@ -386,6 +386,17 @@ public:
 		return zvec[field];
 		}
 
+	IntrusivePtr<Val> NthField(unsigned int field)
+		{
+		bool error;
+		auto f = Lookup(field, error);
+
+		if ( error )
+			return nullptr;
+
+		return f.ToVal(FieldType(field));
+		}
+
 	void DeleteField(unsigned int field)
 		{
 		auto mask = 1UL << field;
@@ -409,6 +420,11 @@ public:
 		{
 		rt = _rt;
 		is_managed = rt->ManagedFields();
+		}
+
+	void Grow(unsigned int new_size)
+		{
+		zvec.resize(new_size);
 		}
 
 	ZRM_flags OffsetMask(unsigned int offset) const
@@ -593,8 +609,7 @@ public:
 
 // Converts between VectorVals and ZAM vectors.
 extern ZAMVector* to_ZAM_vector(Val* vec, ZAMAggrBindings* bindings);
-extern IntrusivePtr<ZAM_vector> to_raw_ZAM_vector(Val* vec,
-						ZAMAggrBindings* bindings);
+extern IntrusivePtr<ZAM_vector> to_raw_ZAM_vector(Val* vec);
 
 // Likewise for RecordVals, but due to lazy loading, no need for "raw"
 // vectors.

@@ -9,6 +9,8 @@ two different vector representations lead to (1) the need to synchronize
 
 missing vector elements due to assign-past-end
 
+do we still care about MemoryAllocation()?
+
 vectors don't support ++/--, nor mixed operations w/ scalars
 
 vector of mixed-any

@@ -15,6 +15,7 @@
 #include "Event.h"
 #include "Timer.h"
 #include "NetVar.h"
+#include "ZVal.h"
 #include "Reporter.h"
 
 #include "analyzer/protocol/icmp/ICMP.h"
@@ -909,7 +910,14 @@ Connection* NetSessions::FindConnection(Val* v)
 		return 0;
 
 	RecordType* vr = vt->AsRecordType();
-	const val_list* vl = v->AsRecord();
+
+	// The following is non-const because the Lookup method can
+	// modify internal state if it has to load from the associated
+	// RecordVal.  That's circular (and won't happen now that we've
+	// migrated the internals of RecordVal), but we leave it for now
+	// so we can first complete the migration before removing the
+	// association.
+	ZAM_record& vl = *v->AsNonConstRecord();
 
 	int orig_h, orig_p;	// indices into record's value list
 	int resp_h, resp_p;
@@ -937,11 +945,19 @@ Connection* NetSessions::FindConnection(Val* v)
 		// types, too.
 		}
 
-	const IPAddr& orig_addr = (*vl)[orig_h]->AsAddr();
-	const IPAddr& resp_addr = (*vl)[resp_h]->AsAddr();
+	bool error;
+	const IPAddr& orig_addr = *(vl.Lookup(orig_h, error).addr_val);
+	const IPAddr& resp_addr = *(vl.Lookup(resp_h, error).addr_val);
 
-	PortVal* orig_portv = (*vl)[orig_p]->AsPortVal();
-	PortVal* resp_portv = (*vl)[resp_p]->AsPortVal();
+	auto raw_orig_port_v = vl.Lookup(orig_p, error);
+	auto raw_resp_port_v = vl.Lookup(resp_p, error);
+
+	static BroType* port_type = nullptr;
+	if ( ! port_type )
+		port_type = base_type(TYPE_PORT).release();
+
+	PortVal* orig_portv = raw_orig_port_v.ToVal(port_type)->AsPortVal();
+	PortVal* resp_portv = raw_resp_port_v.ToVal(port_type)->AsPortVal();
 
 	ConnID id;
 

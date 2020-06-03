@@ -509,11 +509,11 @@ eval frame[z.v1].string_val = slice
 op AnyIndex
 type VVi
 set-type $1
-eval auto lv = frame[z.v2].any_val->val.val_list_val
-eval auto elem = (*lv)[z.v3]
-eval IntrusivePtr elem_p = {NewRef{}, elem}
+eval auto lv = frame[z.v2].any_val->AsRecordVal()->AsNonConstRecord()
+eval auto elem = lv->NthField(z.v3)
+eval if ( ! elem ) reporter->InternalError("failure to load \"any\" element");
 eval if ( CheckAnyType(elem->Type(), z.t, z.stmt) ) {
-eval	AssignV1(BuildVal(elem_p, z.t, z.stmt))
+eval	AssignV1(BuildVal(elem, z.t, z.stmt))
 eval } else error_flag = true
 
 

@@ -1,3 +1,10 @@
+3.2.0-dev.742 | 2020-06-03 13:29:12 -0700
+
+  * GH-973: Fix the return type of topk_get_top()
+
+    e.g. when using `string` elements it should return `vector of string`,
+    not `vector of list of string` like it did before. (Jon Siwek, Corelight)
+
 3.2.0-dev.740 | 2020-06-03 13:17:26 -0700
 
   * Deprecate Val(double, TypeTag) ctor, add TimeVal/DoubleVal subclasses

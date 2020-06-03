@@ -64,11 +64,11 @@ void Entropy::Finalize()
 
 	static auto entropy_test_result = zeek::id::find_type<RecordType>("entropy_test_result");
 	auto ent_result = make_intrusive<RecordVal>(entropy_test_result);
-	ent_result->Assign(0, make_intrusive<Val>(ent,     TYPE_DOUBLE));
-	ent_result->Assign(1, make_intrusive<Val>(chisq,   TYPE_DOUBLE));
-	ent_result->Assign(2, make_intrusive<Val>(mean,    TYPE_DOUBLE));
-	ent_result->Assign(3, make_intrusive<Val>(montepi, TYPE_DOUBLE));
-	ent_result->Assign(4, make_intrusive<Val>(scc,     TYPE_DOUBLE));
+	ent_result->Assign<DoubleVal>(0, ent);
+	ent_result->Assign<DoubleVal>(1, chisq);
+	ent_result->Assign<DoubleVal>(2, mean);
+	ent_result->Assign<DoubleVal>(3, montepi);
+	ent_result->Assign<DoubleVal>(4, scc);
 
 	mgr.Enqueue(file_entropy,
 		GetFile()->ToVal(),

@@ -319,7 +319,7 @@ static int next_fmt(const char*& fmt, const zeek::Args* args, ODesc* d, int& n)
 ## .. zeek:see:: network_time
 function current_time%(%): time
 	%{
-	return make_intrusive<Val>(current_time(), TYPE_TIME);
+	return make_intrusive<TimeVal>(current_time());
 	%}
 
 ## Returns the timestamp of the last packet processed. This function returns
@@ -331,7 +331,7 @@ function current_time%(%): time
 ## .. zeek:see:: current_time
 function network_time%(%): time
 	%{
-	return make_intrusive<Val>(network_time, TYPE_TIME);
+	return make_intrusive<TimeVal>(network_time);
 	%}
 
 ## Returns a system environment variable.
@@ -1053,11 +1053,11 @@ function find_entropy%(data: string%): entropy_test_result
 
 	static auto entropy_test_result = zeek::id::find_type<RecordType>("entropy_test_result");
 	auto ent_result = make_intrusive<RecordVal>(entropy_test_result);
-	ent_result->Assign(0, make_intrusive<Val>(ent,     TYPE_DOUBLE));
-	ent_result->Assign(1, make_intrusive<Val>(chisq,   TYPE_DOUBLE));
-	ent_result->Assign(2, make_intrusive<Val>(mean,    TYPE_DOUBLE));
-	ent_result->Assign(3, make_intrusive<Val>(montepi, TYPE_DOUBLE));
-	ent_result->Assign(4, make_intrusive<Val>(scc,     TYPE_DOUBLE));
+	ent_result->Assign(0, make_intrusive<DoubleVal>(ent));
+	ent_result->Assign(1, make_intrusive<DoubleVal>(chisq));
+	ent_result->Assign(2, make_intrusive<DoubleVal>(mean));
+	ent_result->Assign(3, make_intrusive<DoubleVal>(montepi));
+	ent_result->Assign(4, make_intrusive<DoubleVal>(scc));
 	return ent_result;
 	%}
 
@@ -1105,11 +1105,11 @@ function entropy_test_finish%(handle: opaque of entropy%): entropy_test_result
 
 	static auto entropy_test_result = zeek::id::find_type<RecordType>("entropy_test_result");
 	auto ent_result = make_intrusive<RecordVal>(entropy_test_result);
-	ent_result->Assign(0, make_intrusive<Val>(ent,     TYPE_DOUBLE));
-	ent_result->Assign(1, make_intrusive<Val>(chisq,   TYPE_DOUBLE));
-	ent_result->Assign(2, make_intrusive<Val>(mean,    TYPE_DOUBLE));
-	ent_result->Assign(3, make_intrusive<Val>(montepi, TYPE_DOUBLE));
-	ent_result->Assign(4, make_intrusive<Val>(scc,     TYPE_DOUBLE));
+	ent_result->Assign(0, make_intrusive<DoubleVal>(ent));
+	ent_result->Assign(1, make_intrusive<DoubleVal>(chisq));
+	ent_result->Assign(2, make_intrusive<DoubleVal>(mean));
+	ent_result->Assign(3, make_intrusive<DoubleVal>(montepi));
+	ent_result->Assign(4, make_intrusive<DoubleVal>(scc));
 	return ent_result;
 	%}
 
@@ -1723,7 +1723,7 @@ function print_raw%(...%): bool
 ## .. zeek:see:: sqrt exp ln log10
 function floor%(d: double%): double
 	%{
-	return make_intrusive<Val>(floor(d), TYPE_DOUBLE);
+	return make_intrusive<DoubleVal>(floor(d));
 	%}
 
 ## Computes the square root of a :zeek:type:`double`.
@@ -1738,10 +1738,10 @@ function sqrt%(x: double%): double
 	if ( x < 0 )
 		{
 		reporter->Error("negative sqrt argument");
-		return make_intrusive<Val>(-1.0, TYPE_DOUBLE);
+		return make_intrusive<DoubleVal>(-1.0);
 		}
 
-	return make_intrusive<Val>(sqrt(x), TYPE_DOUBLE);
+	return make_intrusive<DoubleVal>(sqrt(x));
 	%}
 
 ## Computes the exponential function.
@@ -1753,7 +1753,7 @@ function sqrt%(x: double%): double
 ## .. zeek:see:: floor sqrt ln log10
 function exp%(d: double%): double
 	%{
-	return make_intrusive<Val>(exp(d), TYPE_DOUBLE);
+	return make_intrusive<DoubleVal>(exp(d));
 	%}
 
 ## Computes the natural logarithm of a number.
@@ -1765,7 +1765,7 @@ function exp%(d: double%): double
 ## .. zeek:see:: exp floor sqrt log10
 function ln%(d: double%): double
 	%{
-	return make_intrusive<Val>(log(d), TYPE_DOUBLE);
+	return make_intrusive<DoubleVal>(log(d));
 	%}
 
 ## Computes the common logarithm of a number.
@@ -1777,7 +1777,7 @@ function ln%(d: double%): double
 ## .. zeek:see:: exp floor sqrt ln
 function log10%(d: double%): double
 	%{
-	return make_intrusive<Val>(log10(d), TYPE_DOUBLE);
+	return make_intrusive<DoubleVal>(log10(d));
 	%}
 
 # ===========================================================================
@@ -2363,7 +2363,7 @@ function to_count%(str: string%): count
 ## .. zeek:see:: double_to_interval
 function interval_to_double%(i: interval%): double
 	%{
-	return make_intrusive<Val>(i, TYPE_DOUBLE);
+	return make_intrusive<DoubleVal>(i);
 	%}
 
 ## Converts a :zeek:type:`time` value to a :zeek:type:`double`.
@@ -2375,7 +2375,7 @@ function interval_to_double%(i: interval%): double
 ## .. zeek:see:: double_to_time
 function time_to_double%(t: time%): double
 	%{
-	return make_intrusive<Val>(t, TYPE_DOUBLE);
+	return make_intrusive<DoubleVal>(t);
 	%}
 
 ## Converts a :zeek:type:`double` value to a :zeek:type:`time`.
@@ -2387,7 +2387,7 @@ function time_to_double%(t: time%): double
 ## .. zeek:see:: time_to_double double_to_count
 function double_to_time%(d: double%): time
 	%{
-	return make_intrusive<Val>(d, TYPE_TIME);
+	return make_intrusive<TimeVal>(d);
 	%}
 
 ## Converts a :zeek:type:`double` to an :zeek:type:`interval`.
@@ -2399,7 +2399,7 @@ function double_to_time%(d: double%): time
 ## .. zeek:see:: interval_to_double
 function double_to_interval%(d: double%): interval
 	%{
-	return make_intrusive<IntervalVal>(d, Seconds);
+	return make_intrusive<IntervalVal>(d);
 	%}
 
 ## Converts a :zeek:type:`port` to a :zeek:type:`count`.
@@ -2548,7 +2548,7 @@ function to_double%(str: string%): double
 		d = 0;
 		}
 
-	return make_intrusive<Val>(d, TYPE_DOUBLE);
+	return make_intrusive<DoubleVal>(d);
 	%}
 
 ## Converts a :zeek:type:`count` to an :zeek:type:`addr`.
@@ -2637,13 +2637,13 @@ function bytestring_to_double%(s: string%): double
 	if ( s->Len() != sizeof(double) )
 		{
 		builtin_error("bad conversion to double");
-		return make_intrusive<Val>(0.0, TYPE_DOUBLE);
+		return make_intrusive<DoubleVal>(0.0);
 		}
 
 	// See #908 for a discussion of portability.
 	double d;
 	memcpy(&d, s->Bytes(), sizeof(double));
-	return make_intrusive<Val>(ntohd(d), TYPE_DOUBLE);
+	return make_intrusive<DoubleVal>(ntohd(d));
 	%}
 
 ## Converts a string of bytes to a :zeek:type:`count`.
@@ -3116,11 +3116,11 @@ function strptime%(fmt: string, d: string%) : time
 	     ! strptime(d->CheckString(), fmt->CheckString(), &t) )
 		{
 		reporter->Warning("strptime conversion failed: fmt:%s d:%s", fmt->CheckString(), d->CheckString());
-		return make_intrusive<Val>(0.0, TYPE_TIME);
+		return make_intrusive<TimeVal>(0.0);
 		}
 
 	double ret = mktime(&t);
-	return make_intrusive<Val>(ret, TYPE_TIME);
+	return make_intrusive<TimeVal>(ret);
 	%}
 
 
@@ -3320,8 +3320,8 @@ function lookup_connection%(cid: conn_id%): connection
 	c->Assign(1, std::move(orig_endp));
 	c->Assign(2, std::move(resp_endp));
 
-	c->Assign(3, make_intrusive<Val>(network_time, TYPE_TIME));
-	c->Assign(4, make_intrusive<Val>(0.0, TYPE_INTERVAL));
+	c->Assign(3, make_intrusive<TimeVal>(network_time));
+	c->Assign(4, make_intrusive<IntervalVal>(0.0));
 	c->Assign(5, make_intrusive<TableVal>(zeek::id::string_set));	// service
 	c->Assign(6, val_mgr->EmptyString());	// history
 
@@ -3878,7 +3878,7 @@ static IntrusivePtr<Val> mmdb_getvalue(MMDB_entry_data_s* entry_data, int status
 						break;
 
 					case MMDB_DATA_TYPE_DOUBLE:
-						return make_intrusive<Val>(entry_data->double_value, TYPE_DOUBLE);
+						return make_intrusive<DoubleVal>(entry_data->double_value);
 						break;
 
 					case MMDB_DATA_TYPE_UINT32:
@@ -4155,7 +4155,7 @@ function haversine_distance%(lat1: double, long1: double, lat2: double, long2: d
 	double a = s1 * s1 + cos(lat1 * PI/180) * cos(lat2 * PI/180) * s2 * s2;
 	double distance = 2 * RADIUS * asin(sqrt(a));
 
-	return make_intrusive<Val>(distance, TYPE_DOUBLE);
+	return make_intrusive<DoubleVal>(distance);
 	%}
 
 ## Converts UNIX file permissions given by a mode to an ASCII string.
@@ -4368,12 +4368,12 @@ function set_inactivity_timeout%(cid: conn_id, t: interval%): interval
 	%{
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
-		return make_intrusive<Val>(0.0, TYPE_INTERVAL);
+		return make_intrusive<IntervalVal>(0.0);
 
 	double old_timeout = c->InactivityTimeout();
 	c->SetInactivityTimeout(t);
 
-	return make_intrusive<Val>(old_timeout, TYPE_INTERVAL);
+	return make_intrusive<IntervalVal>(old_timeout);
 	%}
 
 # ===========================================================================
@@ -4633,8 +4633,8 @@ function rotate_file%(f: file%): rotate_info
 	info = make_intrusive<RecordVal>(rotate_info);
 	info->Assign(0, val_mgr->EmptyString());
 	info->Assign(1, val_mgr->EmptyString());
-	info->Assign(2, make_intrusive<Val>(0.0, TYPE_TIME));
-	info->Assign(3, make_intrusive<Val>(0.0, TYPE_TIME));
+	info->Assign(2, make_intrusive<TimeVal>(0.0));
+	info->Assign(3, make_intrusive<TimeVal>(0.0));
 
 	return info;
 	%}
@@ -4675,8 +4675,8 @@ function rotate_file_by_name%(f: string%): rotate_info
 		// Record indicating error.
 		info->Assign(0, val_mgr->EmptyString());
 		info->Assign(1, val_mgr->EmptyString());
-		info->Assign(2, make_intrusive<Val>(0.0, TYPE_TIME));
-		info->Assign(3, make_intrusive<Val>(0.0, TYPE_TIME));
+		info->Assign(2, make_intrusive<TimeVal>(0.0));
+		info->Assign(3, make_intrusive<TimeVal>(0.0));
 		return info;
 		}
 
@@ -4684,12 +4684,12 @@ function rotate_file_by_name%(f: string%): rotate_info
 
 	if ( is_pkt_dumper )
 		{
-		info->Assign(2, make_intrusive<Val>(pkt_dumper->OpenTime(), TYPE_TIME));
+		info->Assign(2, make_intrusive<TimeVal>(pkt_dumper->OpenTime()));
 		pkt_dumper->Open();
 		}
 
 	if ( is_addl_pkt_dumper )
-		info->Assign(2, make_intrusive<Val>(addl_pkt_dumper->OpenTime(), TYPE_TIME));
+		info->Assign(2, make_intrusive<TimeVal>(addl_pkt_dumper->OpenTime()));
 
 	return info;
 	%}
@@ -4708,7 +4708,7 @@ function calc_next_rotate%(i: interval%) : interval
 	static auto base_time = log_rotate_base_time->AsString()->CheckString();
 
 	double base = parse_rotate_base_time(base_time);
-	return make_intrusive<Val>(calc_next_rotate(network_time, i, base), TYPE_INTERVAL);
+	return make_intrusive<IntervalVal>(calc_next_rotate(network_time, i, base));
 	%}
 
 ## Returns the size of a given file.
@@ -4721,9 +4721,9 @@ function file_size%(f: string%) : double
 	struct stat s;
 
 	if ( stat(f->CheckString(), &s) < 0 )
-		return make_intrusive<Val>(-1.0, TYPE_DOUBLE);
+		return make_intrusive<DoubleVal>(-1.0);
 
-	return make_intrusive<Val>(double(s.st_size), TYPE_DOUBLE);
+	return make_intrusive<DoubleVal>(double(s.st_size));
 	%}
 
 ## Prevents escaping of non-ASCII characters when writing to a file.

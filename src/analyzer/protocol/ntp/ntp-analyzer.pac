@@ -20,15 +20,15 @@
 	IntrusivePtr<Val> proc_ntp_short(const NTP_Short_Time* t)
 		{
 		if ( t->seconds() == 0 && t->fractions() == 0 )
-			return make_intrusive<Val>(0.0, TYPE_INTERVAL);
-		return make_intrusive<Val>(t->seconds() + t->fractions()*FRAC_16, TYPE_INTERVAL);
+			return make_intrusive<IntervalVal>(0.0);
+		return make_intrusive<IntervalVal>(t->seconds() + t->fractions()*FRAC_16);
 		}
 
 	IntrusivePtr<Val> proc_ntp_timestamp(const NTP_Time* t)
 		{
 		if ( t->seconds() == 0 && t->fractions() == 0)
-			return make_intrusive<Val>(0.0, TYPE_TIME);
-		return make_intrusive<Val>(EPOCH_OFFSET + t->seconds() + t->fractions()*FRAC_32, TYPE_TIME);
+			return make_intrusive<TimeVal>(0.0);
+		return make_intrusive<TimeVal>(EPOCH_OFFSET + t->seconds() + t->fractions()*FRAC_32);
 		}
 
 	// This builds the standard msg record
@@ -37,8 +37,8 @@
 		auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::NTP::StandardMessage);
 
 		rv->Assign(0, val_mgr->Count(${nsm.stratum}));
-		rv->Assign(1, make_intrusive<Val>(pow(2, ${nsm.poll}), TYPE_INTERVAL));
-		rv->Assign(2, make_intrusive<Val>(pow(2, ${nsm.precision}), TYPE_INTERVAL));
+		rv->Assign(1, make_intrusive<IntervalVal>(pow(2, ${nsm.poll})));
+		rv->Assign(2, make_intrusive<IntervalVal>(pow(2, ${nsm.precision})));
 		rv->Assign(3, proc_ntp_short(${nsm.root_delay}));
 		rv->Assign(4, proc_ntp_short(${nsm.root_dispersion}));
 

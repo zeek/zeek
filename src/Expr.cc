@@ -675,9 +675,11 @@ IntrusivePtr<Val> BinaryExpr::Fold(Val* v1, Val* v2) const
 	const auto& ret_type = IsVector(GetType()->Tag()) ? GetType()->Yield() : GetType();
 
 	if ( ret_type->Tag() == TYPE_INTERVAL )
-		return make_intrusive<IntervalVal>(d3, 1.0);
-	else if ( ret_type->InternalType() == TYPE_INTERNAL_DOUBLE )
-		return make_intrusive<Val>(d3, ret_type->Tag());
+		return make_intrusive<IntervalVal>(d3);
+	else if ( ret_type->Tag() == TYPE_TIME )
+		return make_intrusive<TimeVal>(d3);
+	else if ( ret_type->Tag() == TYPE_DOUBLE )
+		return make_intrusive<DoubleVal>(d3);
 	else if ( ret_type->InternalType() == TYPE_INTERNAL_UNSIGNED )
 		return val_mgr->Count(u3);
 	else if ( ret_type->Tag() == TYPE_BOOL )
@@ -1097,9 +1099,9 @@ NegExpr::NegExpr(IntrusivePtr<Expr> arg_op)
 IntrusivePtr<Val> NegExpr::Fold(Val* v) const
 	{
 	if ( v->GetType()->Tag() == TYPE_DOUBLE )
-		return make_intrusive<Val>(- v->InternalDouble(), v->GetType()->Tag());
+		return make_intrusive<DoubleVal>(- v->InternalDouble());
 	else if ( v->GetType()->Tag() == TYPE_INTERVAL )
-		return make_intrusive<IntervalVal>(- v->InternalDouble(), 1.0);
+		return make_intrusive<IntervalVal>(- v->InternalDouble());
 	else
 		return val_mgr->Int(- v->CoerceToInt());
 	}
@@ -3461,7 +3463,7 @@ IntrusivePtr<Val> ArithCoerceExpr::FoldSingleVal(Val* v, InternalTypeTag t) cons
 	{
 	switch ( t ) {
 	case TYPE_INTERNAL_DOUBLE:
-		return make_intrusive<Val>(v->CoerceToDouble(), TYPE_DOUBLE);
+		return make_intrusive<DoubleVal>(v->CoerceToDouble());
 
 	case TYPE_INTERNAL_INT:
 		return val_mgr->Int(v->CoerceToInt());

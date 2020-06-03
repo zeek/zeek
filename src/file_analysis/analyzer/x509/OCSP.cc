@@ -518,7 +518,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 	produced_at = OCSP_resp_get0_produced_at(basic_resp);
 #endif
 
-	vl.emplace_back(make_intrusive<Val>(GetTimeFromAsn1(produced_at, GetFile(), reporter), TYPE_TIME));
+	vl.emplace_back(make_intrusive<TimeVal>(GetTimeFromAsn1(produced_at, GetFile(), reporter)));
 
 	// responses
 
@@ -566,7 +566,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 		// revocation time and reason if revoked
 		if ( status == V_OCSP_CERTSTATUS_REVOKED )
 			{
-			rvl.emplace_back(make_intrusive<Val>(GetTimeFromAsn1(revoke_time, GetFile(), reporter), TYPE_TIME));
+			rvl.emplace_back(make_intrusive<TimeVal>(GetTimeFromAsn1(revoke_time, GetFile(), reporter)));
 
 			if ( reason != OCSP_REVOKED_STATUS_NOSTATUS )
 				{
@@ -578,19 +578,19 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 			}
 		else
 			{
-			rvl.emplace_back(make_intrusive<Val>(0.0, TYPE_TIME));
+			rvl.emplace_back(make_intrusive<TimeVal>(0.0));
 			rvl.emplace_back(make_intrusive<StringVal>(0, ""));
 			}
 
 		if ( this_update )
-			rvl.emplace_back(make_intrusive<Val>(GetTimeFromAsn1(this_update, GetFile(), reporter), TYPE_TIME));
+			rvl.emplace_back(make_intrusive<TimeVal>(GetTimeFromAsn1(this_update, GetFile(), reporter)));
 		else
-			rvl.emplace_back(make_intrusive<Val>(0.0, TYPE_TIME));
+			rvl.emplace_back(make_intrusive<TimeVal>(0.0));
 
 		if ( next_update )
-			rvl.emplace_back(make_intrusive<Val>(GetTimeFromAsn1(next_update, GetFile(), reporter), TYPE_TIME));
+			rvl.emplace_back(make_intrusive<TimeVal>(GetTimeFromAsn1(next_update, GetFile(), reporter)));
 		else
-			rvl.emplace_back(make_intrusive<Val>(0.0, TYPE_TIME));
+			rvl.emplace_back(make_intrusive<TimeVal>(0.0));
 
 		if ( ocsp_response_certificate )
 			mgr.Enqueue(ocsp_response_certificate, std::move(rvl));

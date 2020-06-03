@@ -478,7 +478,7 @@ F	RET_CONST(val_mgr->False()->Ref())
 {D}		{
 		RET_CONST(val_mgr->Count(static_cast<bro_uint_t>(strtoull(yytext, (char**) NULL, 10))).release())
 		}
-{FLOAT}		RET_CONST(new Val(atof(yytext), TYPE_DOUBLE))
+{FLOAT}		RET_CONST(new DoubleVal(atof(yytext)))
 
 {D}"/tcp"	{
 		uint32_t p = atoi(yytext);

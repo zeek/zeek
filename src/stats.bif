@@ -152,7 +152,7 @@ function get_proc_stats%(%): ProcStats
 	r->Assign(n++, val_mgr->Count(0));
 #endif
 
-	r->Assign(n++, make_intrusive<Val>(bro_start_time, TYPE_TIME));
+	r->Assign(n++, make_intrusive<TimeVal>(bro_start_time));
 
 	r->Assign(n++, make_intrusive<IntervalVal>(elapsed_time, Seconds));
 	r->Assign(n++, make_intrusive<IntervalVal>(user_time, Seconds));

@@ -108,7 +108,7 @@ struct val_converter {
 	result_type operator()(double a)
 		{
 		if ( type->Tag() == TYPE_DOUBLE )
-			return make_intrusive<Val>(a, TYPE_DOUBLE);
+			return make_intrusive<DoubleVal>(a);
 		return nullptr;
 		}
 
@@ -168,7 +168,7 @@ struct val_converter {
 
 		using namespace std::chrono;
 		auto s = duration_cast<broker::fractional_seconds>(a.time_since_epoch());
-		return make_intrusive<Val>(s.count(), TYPE_TIME);
+		return make_intrusive<TimeVal>(s.count());
 		}
 
 	result_type operator()(broker::timespan& a)
@@ -178,7 +178,7 @@ struct val_converter {
 
 		using namespace std::chrono;
 		auto s = duration_cast<broker::fractional_seconds>(a);
-		return make_intrusive<Val>(s.count(), TYPE_INTERVAL);
+		return make_intrusive<IntervalVal>(s.count());
 		}
 
 	result_type operator()(broker::enum_value& a)

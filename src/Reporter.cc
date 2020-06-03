@@ -493,7 +493,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		vl.reserve(vl_size);
 
 		if ( time )
-			vl.emplace_back(make_intrusive<Val>(network_time ? network_time : current_time(), TYPE_TIME));
+			vl.emplace_back(make_intrusive<TimeVal>(network_time ? network_time : current_time()));
 
 		vl.emplace_back(make_intrusive<StringVal>(buffer));
 

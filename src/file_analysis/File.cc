@@ -115,7 +115,7 @@ File::~File()
 
 void File::UpdateLastActivityTime()
 	{
-	val->Assign(last_active_idx, make_intrusive<Val>(network_time, TYPE_TIME));
+	val->Assign(last_active_idx, make_intrusive<TimeVal>(network_time));
 	}
 
 double File::GetLastActivityTime() const
@@ -200,7 +200,7 @@ double File::GetTimeoutInterval() const
 
 void File::SetTimeoutInterval(double interval)
 	{
-	val->Assign(timeout_interval_idx, make_intrusive<Val>(interval, TYPE_INTERVAL));
+	val->Assign(timeout_interval_idx, make_intrusive<IntervalVal>(interval));
 	}
 
 bool File::SetExtractionLimit(RecordVal* args, uint64_t bytes)

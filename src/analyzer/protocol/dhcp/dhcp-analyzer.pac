@@ -57,7 +57,7 @@ refine flow DHCP_Flow += {
 			dhcp_msg_val->Assign(0, val_mgr->Count(${msg.op}));
 			dhcp_msg_val->Assign(1, val_mgr->Count(${msg.type}));
 			dhcp_msg_val->Assign(2, val_mgr->Count(${msg.xid}));
-			dhcp_msg_val->Assign(3, make_intrusive<Val>(secs, TYPE_INTERVAL));
+			dhcp_msg_val->Assign(3, make_intrusive<IntervalVal>(secs));
 			dhcp_msg_val->Assign(4, val_mgr->Count(${msg.flags}));
 			dhcp_msg_val->Assign(5, make_intrusive<AddrVal>(htonl(${msg.ciaddr})));
 			dhcp_msg_val->Assign(6, make_intrusive<AddrVal>(htonl(${msg.yiaddr})));

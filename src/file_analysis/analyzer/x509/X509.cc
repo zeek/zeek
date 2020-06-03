@@ -158,8 +158,8 @@ IntrusivePtr<RecordVal> file_analysis::X509::ParseCertificate(X509Val* cert_val,
 	pX509Cert->Assign(3, make_intrusive<StringVal>(len, buf));
 	BIO_free(bio);
 
-	pX509Cert->Assign(5, make_intrusive<Val>(GetTimeFromAsn1(X509_get_notBefore(ssl_cert), f, reporter), TYPE_TIME));
-	pX509Cert->Assign(6, make_intrusive<Val>(GetTimeFromAsn1(X509_get_notAfter(ssl_cert), f, reporter), TYPE_TIME));
+	pX509Cert->Assign(5, make_intrusive<TimeVal>(GetTimeFromAsn1(X509_get_notBefore(ssl_cert), f, reporter)));
+	pX509Cert->Assign(6, make_intrusive<TimeVal>(GetTimeFromAsn1(X509_get_notAfter(ssl_cert), f, reporter)));
 
 	// we only read 255 bytes because byte 256 is always 0.
 	// if the string is longer than 255, that will be our null-termination,

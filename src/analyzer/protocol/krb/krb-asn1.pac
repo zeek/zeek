@@ -51,7 +51,7 @@ IntrusivePtr<Val> GetTimeFromAsn1(StringVal* atime, int64 usecs)
 	if ( !lResult )
 		lResult = 0;
 
-	return make_intrusive<Val>(double(lResult + double(usecs/100000.0)), TYPE_TIME);
+	return make_intrusive<TimeVal>(double(lResult + double(usecs/100000.0)));
 	}
 
 %}

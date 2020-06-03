@@ -2185,9 +2185,13 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 		return val_mgr->Count(val->val.int_val).release();
 
 	case TYPE_DOUBLE:
+		return new DoubleVal(val->val.double_val);
+
 	case TYPE_TIME:
+		return new TimeVal(val->val.double_val);
+
 	case TYPE_INTERVAL:
-		return new Val(val->val.double_val, val->type);
+		return new IntervalVal(val->val.double_val);
 
 	case TYPE_STRING:
 		{

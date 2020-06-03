@@ -14,6 +14,6 @@
 1518042012.989543	testcount	0	2	../configfile1
 1518042012.989543	testenum	SSH::LOG	Conn::LOG	../configfile1
 1518042012.989543	testint	0	-1	../configfile1
-1518042012.989543	testinterval	1.0 sec	60.0	../configfile2
+1518042012.989543	testinterval	1.0 sec	1.0 min	../configfile2
 1518042012.989543	testport	42/tcp	45/unknown	../configfile2
 1518042012.989543	testtime	0.0	1507321987.0	../configfile2

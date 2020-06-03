@@ -414,7 +414,7 @@ refine flow DHCP_Flow += {
 	function process_lease_option(v: OptionValue): bool
 		%{
 		double lease = static_cast<double>(${v.lease});
-		${context.flow}->options->Assign(11, make_intrusive<Val>(lease, TYPE_INTERVAL));
+		${context.flow}->options->Assign(11, make_intrusive<IntervalVal>(lease));
 
 		return true;
 		%}
@@ -546,7 +546,7 @@ refine flow DHCP_Flow += {
 	function process_renewal_time_option(v: OptionValue): bool
 		%{
 		double renewal_time = static_cast<double>(${v.renewal_time});
-		${context.flow}->options->Assign(16, make_intrusive<Val>(renewal_time, TYPE_INTERVAL));
+		${context.flow}->options->Assign(16, make_intrusive<IntervalVal>(renewal_time));
 
 		return true;
 		%}
@@ -571,7 +571,7 @@ refine flow DHCP_Flow += {
 	function process_rebinding_time_option(v: OptionValue): bool
 		%{
 		double rebinding_time = static_cast<double>(${v.rebinding_time});
-		${context.flow}->options->Assign(17, make_intrusive<Val>(rebinding_time, TYPE_INTERVAL));
+		${context.flow}->options->Assign(17, make_intrusive<IntervalVal>(rebinding_time));
 
 		return true;
 		%}

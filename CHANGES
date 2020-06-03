@@ -1,3 +1,13 @@
+3.2.0-dev.740 | 2020-06-03 13:17:26 -0700
+
+  * Deprecate Val(double, TypeTag) ctor, add TimeVal/DoubleVal subclasses
+
+    This also updates all usages of the deprecated Val ctor to use
+    either IntervalVal, TimeVal, or DoubleVal ctors.  The reason for
+    doing away with the old constructor is that using it with TYPE_INTERVAL
+    isn't strictly correct since there exists a more specific subclass,
+    IntervalVal, with overriden ValDescribe() method that ought to be used
+    to print such values in a more descriptive way. (Jon Siwek, Corelight)
 
 3.2.0-dev.738 | 2020-06-02 18:13:50 -0700
 

@@ -271,14 +271,14 @@ IntrusivePtr<Val> Val::SizeVal() const
 		return val_mgr->Count(val.uint_val);
 
 	case TYPE_INTERNAL_DOUBLE:
-		return make_intrusive<Val>(fabs(val.double_val), TYPE_DOUBLE);
+		return make_intrusive<DoubleVal>(fabs(val.double_val));
 
 	case TYPE_INTERNAL_OTHER:
 		if ( type->Tag() == TYPE_FUNC )
 			return val_mgr->Count(val.func_val->GetType()->ParamList()->Types().size());
 
 		if ( type->Tag() == TYPE_FILE )
-			return make_intrusive<Val>(val.file_val->Size(), TYPE_DOUBLE);
+			return make_intrusive<DoubleVal>(val.file_val->Size());
 		break;
 
 	default:
@@ -666,11 +666,6 @@ IntrusivePtr<StringVal> Val::ToJSON(bool only_loggable, RE_Matcher* re)
 	return make_intrusive<StringVal>(buffer.GetString());
 	}
 
-IntervalVal::IntervalVal(double quantity, double units) :
-	Val(quantity * units, TYPE_INTERVAL)
-	{
-	}
-
 void IntervalVal::ValDescribe(ODesc* d) const
 	{
 	using unit_word = std::pair<double, const char*>;
@@ -925,7 +920,7 @@ unsigned int SubNetVal::MemoryAllocation() const
 IntrusivePtr<Val> SubNetVal::SizeVal() const
 	{
 	int retained = 128 - val.subnet_val->LengthIPv6();
-	return make_intrusive<Val>(pow(2.0, double(retained)), TYPE_DOUBLE);
+	return make_intrusive<DoubleVal>(pow(2.0, double(retained)));
 	}
 
 void SubNetVal::ValDescribe(ODesc* d) const
@@ -3287,7 +3282,20 @@ IntrusivePtr<Val> check_and_promote(IntrusivePtr<Val> v, const BroType* t,
 		break;
 
 	case TYPE_INTERNAL_DOUBLE:
-		promoted_v = make_intrusive<Val>(v->CoerceToDouble(), t_tag);
+		switch ( t_tag ) {
+		case TYPE_DOUBLE:
+			promoted_v = make_intrusive<DoubleVal>(v->CoerceToDouble());
+			break;
+		case TYPE_INTERVAL:
+			promoted_v = make_intrusive<IntervalVal>(v->CoerceToDouble());
+			break;
+		case TYPE_TIME:
+			promoted_v = make_intrusive<TimeVal>(v->CoerceToDouble());
+			break;
+		default:
+			reporter->InternalError("bad internal type in check_and_promote()");
+			return nullptr;
+		}
 		break;
 
 	default:

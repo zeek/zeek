@@ -74,7 +74,7 @@ refine flow Flow += {
 			auto ids_event = make_intrusive<RecordVal>(zeek::BifType::Record::Unified2::IDSEvent);
 			ids_event->Assign(0, val_mgr->Count(${ev.sensor_id}));
 			ids_event->Assign(1, val_mgr->Count(${ev.event_id}));
-			ids_event->Assign(2, make_intrusive<Val>(ts_to_double(${ev.ts}), TYPE_TIME));
+			ids_event->Assign(2, make_intrusive<TimeVal>(ts_to_double(${ev.ts})));
 			ids_event->Assign(3, val_mgr->Count(${ev.signature_id}));
 			ids_event->Assign(4, val_mgr->Count(${ev.generator_id}));
 			ids_event->Assign(5, val_mgr->Count(${ev.signature_revision}));
@@ -100,7 +100,7 @@ refine flow Flow += {
 			auto ids_event = make_intrusive<RecordVal>(zeek::BifType::Record::Unified2::IDSEvent);
 			ids_event->Assign(0, val_mgr->Count(${ev.sensor_id}));
 			ids_event->Assign(1, val_mgr->Count(${ev.event_id}));
-			ids_event->Assign(2, make_intrusive<Val>(ts_to_double(${ev.ts}), TYPE_TIME));
+			ids_event->Assign(2, make_intrusive<TimeVal>(ts_to_double(${ev.ts})));
 			ids_event->Assign(3, val_mgr->Count(${ev.signature_id}));
 			ids_event->Assign(4, val_mgr->Count(${ev.generator_id}));
 			ids_event->Assign(5, val_mgr->Count(${ev.signature_revision}));
@@ -132,7 +132,7 @@ refine flow Flow += {
 			packet->Assign(0, val_mgr->Count(${pkt.sensor_id}));
 			packet->Assign(1, val_mgr->Count(${pkt.event_id}));
 			packet->Assign(2, val_mgr->Count(${pkt.event_second}));
-			packet->Assign(3, make_intrusive<Val>(ts_to_double(${pkt.packet_ts}), TYPE_TIME));
+			packet->Assign(3, make_intrusive<TimeVal>(ts_to_double(${pkt.packet_ts})));
 			packet->Assign(4, val_mgr->Count(${pkt.link_type}));
 			packet->Assign(5, to_stringval(${pkt.packet_data}));
 

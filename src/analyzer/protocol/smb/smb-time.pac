@@ -12,7 +12,7 @@ IntrusivePtr<Val> filetime2brotime(uint64_t ts)
 	// Bro can't support times back to the 1600's
 	// so we subtract a lot of seconds.
 	double secs = (ts / 10000000.0L) - 11644473600.0L;
-	return make_intrusive<Val>(secs, TYPE_TIME);
+	return make_intrusive<TimeVal>(secs);
 	}
 
 IntrusivePtr<Val> time_from_lanman(SMB_time* t, SMB_date* d, uint16_t tz)
@@ -26,7 +26,7 @@ IntrusivePtr<Val> time_from_lanman(SMB_time* t, SMB_date* d, uint16_t tz)
 	lTime.tm_year = 1980 + ${d.year};
 	lTime.tm_isdst = -1;
 	double lResult = mktime(&lTime);
-	return make_intrusive<Val>(lResult + tz, TYPE_TIME);
+	return make_intrusive<TimeVal>(lResult + tz);
 	}
 
 IntrusivePtr<RecordVal> SMB_BuildMACTimes(uint64_t modify, uint64_t access,

@@ -1861,8 +1861,8 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 		{
 		rotate_info->Assign<StringVal>(0, name);
 		rotate_info->Assign<StringVal>(1, newname);
-		rotate_info->Assign<Val>(2, network_time, TYPE_TIME);
-		rotate_info->Assign<Val>(3, network_time, TYPE_TIME);
+		rotate_info->Assign<TimeVal>(2, network_time);
+		rotate_info->Assign<TimeVal>(3, network_time);
 		}
 
 	return newf;

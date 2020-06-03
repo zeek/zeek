@@ -803,8 +803,10 @@ const char* CompositeHash::RecoverOneVal(const HashKey& k, const char* kp0,
 
 		if ( tag == TYPE_INTERVAL )
 			*pval = make_intrusive<IntervalVal>(*kp, 1.0);
+		else if ( tag == TYPE_TIME )
+			*pval = make_intrusive<TimeVal>(*kp);
 		else
-			*pval = make_intrusive<Val>(*kp, tag);
+			*pval = make_intrusive<DoubleVal>(*kp);
 		}
 		break;
 

@@ -618,7 +618,7 @@ IntrusivePtr<RecordVal> HTTP_Message::BuildMessageStat(bool interrupted, const c
 	static auto http_message_stat = zeek::id::find_type<RecordType>("http_message_stat");
 	auto stat = make_intrusive<RecordVal>(http_message_stat);
 	int field = 0;
-	stat->Assign(field++, make_intrusive<Val>(start_time, TYPE_TIME));
+	stat->Assign(field++, make_intrusive<TimeVal>(start_time));
 	stat->Assign(field++, val_mgr->Bool(interrupted));
 	stat->Assign(field++, make_intrusive<StringVal>(msg));
 	stat->Assign(field++, val_mgr->Count(body_length));
@@ -1156,8 +1156,8 @@ void HTTP_Analyzer::GenStats()
 		auto r = make_intrusive<RecordVal>(http_stats_rec);
 		r->Assign(0, val_mgr->Count(num_requests));
 		r->Assign(1, val_mgr->Count(num_replies));
-		r->Assign(2, make_intrusive<Val>(request_version.ToDouble(), TYPE_DOUBLE));
-		r->Assign(3, make_intrusive<Val>(reply_version.ToDouble(), TYPE_DOUBLE));
+		r->Assign(2, make_intrusive<DoubleVal>(request_version.ToDouble()));
+		r->Assign(3, make_intrusive<DoubleVal>(reply_version.ToDouble()));
 
 		// DEBUG_MSG("%.6f http_stats\n", network_time);
 		EnqueueConnEvent(http_stats, ConnVal(), std::move(r));

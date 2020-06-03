@@ -320,11 +320,11 @@ zeek::Args NFS_Interp::event_common_vl(RPC_CallInfo *c, BifEnum::rpc_status rpc_
 	auto info = make_intrusive<RecordVal>(zeek::BifType::Record::NFS3::info_t);
 	info->Assign(0, zeek::BifType::Enum::rpc_status->GetVal(rpc_status));
 	info->Assign(1, zeek::BifType::Enum::NFS3::status_t->GetVal(nfs_status));
-	info->Assign(2, make_intrusive<Val>(c->StartTime(), TYPE_TIME));
-	info->Assign(3, make_intrusive<Val>(c->LastTime()-c->StartTime(), TYPE_INTERVAL));
+	info->Assign(2, make_intrusive<TimeVal>(c->StartTime()));
+	info->Assign(3, make_intrusive<IntervalVal>(c->LastTime()-c->StartTime()));
 	info->Assign(4, val_mgr->Count(c->RPCLen()));
-	info->Assign(5, make_intrusive<Val>(rep_start_time, TYPE_TIME));
-	info->Assign(6, make_intrusive<Val>(rep_last_time-rep_start_time, TYPE_INTERVAL));
+	info->Assign(5, make_intrusive<TimeVal>(rep_start_time));
+	info->Assign(6, make_intrusive<IntervalVal>(rep_last_time-rep_start_time));
 	info->Assign(7, val_mgr->Count(reply_len));
 	info->Assign(8, val_mgr->Count(c->Uid()));
 	info->Assign(9, val_mgr->Count(c->Gid()));
@@ -803,7 +803,7 @@ IntrusivePtr<Val> NFS_Interp::ExtractUint64(const u_char*& buf, int& n)
 
 IntrusivePtr<Val> NFS_Interp::ExtractTime(const u_char*& buf, int& n)
 	{
-	return make_intrusive<Val>(extract_XDR_time(buf, n), TYPE_TIME);
+	return make_intrusive<TimeVal>(extract_XDR_time(buf, n));
 	}
 
 IntrusivePtr<Val> NFS_Interp::ExtractInterval(const u_char*& buf, int& n)

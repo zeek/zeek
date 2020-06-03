@@ -16,7 +16,7 @@
 1533925012.140634	testportudp	40/tcp	42/udp	../configfile
 1533925012.140634	testaddr	127.0.0.1	127.0.0.1	../configfile
 1533925012.140634	testaddr	127.0.0.1	2607:f8b0:4005:801::200e	../configfile
-1533925012.140634	testinterval	1.0 sec	60.0	../configfile
+1533925012.140634	testinterval	1.0 sec	1.0 min	../configfile
 1533925012.140634	testtime	0.0	1507321987.0	../configfile
 1533925012.140634	test_set	(empty)	b,c,a,d,erdbeerschnitzel	../configfile
 1533925012.140634	test_vector	(empty)	1,2,3,4,5,6	../configfile

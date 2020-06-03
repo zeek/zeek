@@ -967,7 +967,7 @@ void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
 		auto data = insert.value();
 
 		DBG_LOG(DBG_BROKER, "Insert Data: %s:%s (%s:%s)", to_string(insert.key()).c_str(), to_string(insert.value()).c_str(), insert.key().get_type_name(), insert.value().get_type_name());
-		if ( table->Type()->IsSet() && data.get_type() != broker::data::type::none )
+		if ( table->GetType()->IsSet() && data.get_type() != broker::data::type::none )
 			{
 			reporter->Error("ProcessStoreEvent Insert got %s when expecting set", data.get_type_name());
 			return;
@@ -978,28 +978,29 @@ void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
 			return;
 
 		// FIXME: expiry!
-		assert( table->Type()->AsTableType()->IndexTypes()->length() == 1 );
-		auto zeek_key = data_to_val(std::move(key), (*(table->Type()->AsTableType()->IndexTypes()))[0]);
+		const auto& its = table->GetType()->AsTableType()->IndexTypes();
+		assert( its.size() == 1 );
+		auto zeek_key = data_to_val(std::move(key), its[0].get());
 		if ( ! zeek_key )
 			{
 			reporter->Error("ProcessStoreEvent: failed to convert key");
 			return;
 			}
 
-		if ( table->Type()->IsSet() )
+		if ( table->GetType()->IsSet() )
 			{
-			table->Assign(zeek_key.get(), nullptr);
+			table->Assign(zeek_key, nullptr);
 			return;
 			}
 
 		// it is a table
-		auto zeek_value = data_to_val(std::move(data), table->Type()->YieldType());
+		auto zeek_value = data_to_val(std::move(data), table->GetType()->Yield().get());
 		if ( ! zeek_value )
 			{
 			reporter->Error("ProcessStoreEvent: failed to convert value");
 			return;
 			}
-			table->Assign(zeek_key.get(), zeek_value);
+			table->Assign(zeek_key, zeek_value);
 		}
 	else if ( auto update = broker::store_event::update::make(msg) )
 		{
@@ -1007,7 +1008,7 @@ void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
 		auto data = update.new_value();
 
 		DBG_LOG(DBG_BROKER, "Update Data: %s->%s (%s)", to_string(update.old_value()).c_str(), to_string(update.new_value()).c_str(), update.new_value().get_type_name());
-		if ( table->Type()->IsSet() && data.get_type() != broker::data::type::none )
+		if ( table->GetType()->IsSet() && data.get_type() != broker::data::type::none )
 			{
 			reporter->Error("ProcessStoreEvent Update got %s when expecting set", data.get_type_name());
 			return;
@@ -1017,28 +1018,29 @@ void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
 		if ( update.publisher() == storehandle->store_pid )
 			return;
 
-		assert( table->Type()->AsTableType()->IndexTypes()->length() == 1 );
-		auto zeek_key = data_to_val(std::move(key), (*(table->Type()->AsTableType()->IndexTypes()))[0]);
+		const auto& its = table->GetType()->AsTableType()->IndexTypes();
+		assert( its.size() == 1 );
+		auto zeek_key = data_to_val(std::move(key), its[0].get());
 		if ( ! zeek_key )
 			{
 			reporter->Error("ProcessStoreEvent: failed to convert key");
 			return;
 			}
 
-		if ( table->Type()->IsSet() )
+		if ( table->GetType()->IsSet() )
 			{
-			table->Assign(zeek_key.get(), nullptr);
+			table->Assign(zeek_key, nullptr);
 			return;
 			}
 
 		// it is a table
-		auto zeek_value = data_to_val(std::move(data), table->Type()->YieldType());
+		auto zeek_value = data_to_val(std::move(data), table->GetType()->Yield().get());
 		if ( ! zeek_value )
 			{
 			reporter->Error("ProcessStoreEvent: failed to convert value");
 			return;
 			}
-			table->Assign(zeek_key.get(), zeek_value);
+			table->Assign(zeek_key, zeek_value);
 		}
 	else if ( auto erase = broker::store_event::erase::make(msg) )
 		{
@@ -1049,14 +1051,15 @@ void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
 			return;
 
 		auto key = erase.key();
-		assert( table->Type()->AsTableType()->IndexTypes()->length() == 1 );
-		auto zeek_key = data_to_val(std::move(key), (*(table->Type()->AsTableType()->IndexTypes()))[0]);
+		const auto& its = table->GetType()->AsTableType()->IndexTypes();
+		assert( its.size() == 1 );
+		auto zeek_key = data_to_val(std::move(key), its[0].get());
 		if ( ! zeek_key )
 			{
 			reporter->Error("ProcessStoreEvent: failed to convert key");
 			return;
 			}
-		table->Delete(zeek_key.get());
+		table->Remove(*zeek_key);
 		}
 	else
 		{

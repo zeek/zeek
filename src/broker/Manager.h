@@ -25,6 +25,7 @@
 class Frame;
 class Func;
 class VectorType;
+class TableVal;
 
 namespace bro_broker {
 

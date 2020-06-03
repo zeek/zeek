@@ -1488,12 +1488,12 @@ void TableVal::SetAttrs(IntrusivePtr<Attributes> a)
 	if ( cf )
 		change_func = cf->GetExpr();
 
-	auto bs = attrs->FindAttr(ATTR_BROKER_STORE);
+	auto bs = attrs->Find(ATTR_BROKER_STORE);
 	if ( bs && broker_store.empty() ) // this does not mesh well with being updated several times
 		{
-		IntrusivePtr<Val> c = bs->AttrExpr()->Eval(nullptr);
+		IntrusivePtr<Val> c = bs->GetExpr()->Eval(nullptr);
 		assert(c);
-		assert(c->Type()->Tag() == TYPE_STRING);
+		assert(c->GetType()->Tag() == TYPE_STRING);
 		broker_store = c->AsStringVal()->AsString()->CheckString();
 		broker_mgr->AddForwardedStore(broker_store, {NewRef{}, this});
 		}
@@ -2113,7 +2113,6 @@ void TableVal::CallChangeFunc(const Val* index,
 	in_change_func = false;
 	}
 
-<<<<<<< HEAD
 void TableVal::SendToStore(const Val* index, const Val* new_value, OnChangeType tpe)
 	{
 	if ( broker_store.empty() || ! index )
@@ -2129,7 +2128,7 @@ void TableVal::SendToStore(const Val* index, const Val* new_value, OnChangeType 
 		// we wither get passed the raw index_val - or a ListVal with exactly one element.
 		// Since broker does not support ListVals, we have to unoll this in the second case.
 		const Val* index_val;
-		if ( index->Type()->Tag() == TYPE_LIST )
+		if ( index->GetType()->Tag() == TYPE_LIST )
 			{
 			if ( index->AsListVal()->Length() != 1 )
 				{
@@ -2137,7 +2136,7 @@ void TableVal::SendToStore(const Val* index, const Val* new_value, OnChangeType 
 				return;
 				}
 
-			index_val = index->AsListVal()->Index(0);
+			index_val = index->AsListVal()->Idx(0).get();
 			}
 		else
 			{
@@ -2187,10 +2186,7 @@ void TableVal::SendToStore(const Val* index, const Val* new_value, OnChangeType 
 		}
 	}
 
-IntrusivePtr<Val> TableVal::Delete(const Val* index)
-=======
 IntrusivePtr<Val> TableVal::Remove(const Val& index)
->>>>>>> origin/master
 	{
 	auto k = MakeHashKey(index);
 	TableEntryVal* v = k ? AsNonConstTable()->RemoveEntry(k.get()) : nullptr;
@@ -2207,7 +2203,7 @@ IntrusivePtr<Val> TableVal::Remove(const Val& index)
 	Modified();
 
 	if ( ! broker_store.empty() )
-		SendToStore(index, nullptr, ELEMENT_REMOVED);
+		SendToStore(&index, nullptr, ELEMENT_REMOVED);
 	if ( change_func )
 		CallChangeFunc(&index, va, ELEMENT_REMOVED);
 
@@ -2237,14 +2233,10 @@ IntrusivePtr<Val> TableVal::Remove(const HashKey& k)
 	if ( ( change_func && va ) || ( ! broker_store.empty() ) )
 		{
 		auto index = table_hash->RecoverVals(k);
-<<<<<<< HEAD
 		if ( ! broker_store.empty() )
 			SendToStore(index.get(), nullptr, ELEMENT_REMOVED);
 		if ( change_func && va )
-			CallChangeFunc(index.get(), va.get(), ELEMENT_REMOVED);
-=======
-		CallChangeFunc(index.get(), va, ELEMENT_REMOVED);
->>>>>>> origin/master
+			CallChangeFunc(index.get(), va, ELEMENT_REMOVED);
 		}
 
 	return va;

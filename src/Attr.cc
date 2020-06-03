@@ -586,14 +586,14 @@ void Attributes::CheckAttr(Attr* a)
 			break;
 			}
 
-		if ( a->AttrExpr()->Type()->Tag() != TYPE_STRING )
+		if ( a->GetExpr()->GetType()->Tag() != TYPE_STRING )
 			{
 			Error("&broker_store must take a string argument");
 			break;
 			}
 
 		// Temporary since Broker does not support ListVals - and we cannot easily convert to set/vector
-		if ( type->AsTableType()->IndexTypes()->length() != 1 )
+		if ( type->AsTableType()->IndexTypes().size() != 1 )
 			{
 			Error("&broker_store only supports one-element set/table indexes");
 			}

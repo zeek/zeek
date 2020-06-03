@@ -32,16 +32,6 @@ using namespace file_analysis;
 
 #define OCSP_STRING_BUF_SIZE 2048
 
-static IntrusivePtr<Val> get_ocsp_type(RecordVal* args, const char* name)
-	{
-	auto rval = args->Lookup(name);
-
-	if ( ! rval )
-		reporter->Error("File extraction analyzer missing arg field: %s", name);
-
-	return rval;
-	}
-
 static bool OCSP_RESPID_bio(OCSP_BASICRESP* basic_resp, BIO* bio)
 	{
 #if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
@@ -122,18 +112,23 @@ static bool ocsp_add_cert_id(const OCSP_CERTID* cert_id, zeek::Args* vl, BIO* bi
 	return true;
 	}
 
-file_analysis::Analyzer* OCSP::InstantiateRequest(RecordVal* args, File* file)
+file_analysis::Analyzer* OCSP::InstantiateRequest(IntrusivePtr<RecordVal> args,
+                                                  File* file)
 	{
-	return new OCSP(args, file, true);
+	return new OCSP(std::move(args), file, true);
 	}
 
-file_analysis::Analyzer* OCSP::InstantiateReply(RecordVal* args, File* file)
+file_analysis::Analyzer* OCSP::InstantiateReply(IntrusivePtr<RecordVal> args,
+                                                File* file)
 	{
-	return new OCSP(args, file, false);
+	return new OCSP(std::move(args), file, false);
 	}
 
-file_analysis::OCSP::OCSP(RecordVal* args, file_analysis::File* file, bool arg_request)
-	: file_analysis::X509Common::X509Common(file_mgr->GetComponentTag("OCSP"), args, file), request(arg_request)
+file_analysis::OCSP::OCSP(IntrusivePtr<RecordVal> args, file_analysis::File* file,
+                          bool arg_request)
+	: file_analysis::X509Common::X509Common(file_mgr->GetComponentTag("OCSP"),
+	                                        std::move(args), file),
+	  request(arg_request)
 	{
 	}
 
@@ -422,7 +417,7 @@ void file_analysis::OCSP::ParseRequest(OCSP_REQUEST* req)
 
 	if ( ocsp_request )
 		mgr.Enqueue(ocsp_request,
-			IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+			GetFile()->ToVal(),
 			val_mgr->Count(version)
 		);
 
@@ -433,7 +428,7 @@ void file_analysis::OCSP::ParseRequest(OCSP_REQUEST* req)
 		{
 		zeek::Args rvl;
 		rvl.reserve(5);
-		rvl.emplace_back(NewRef{}, GetFile()->GetVal());
+		rvl.emplace_back(GetFile()->ToVal());
 
 		OCSP_ONEREQ *one_req = OCSP_request_onereq_get0(req, i);
 		OCSP_CERTID *cert_id = OCSP_onereq_get0_id(one_req);
@@ -464,13 +459,10 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 	memset(buf, 0, sizeof(buf));
 
 	const char *status_str = OCSP_response_status_str(OCSP_response_status(resp));
-	StringVal* status_val = new StringVal(strlen(status_str), status_str);
+	auto status_val = make_intrusive<StringVal>(strlen(status_str), status_str);
 
 	if ( ocsp_response_status )
-		mgr.Enqueue(ocsp_response_status,
-			IntrusivePtr{NewRef{}, GetFile()->GetVal()},
-			IntrusivePtr{NewRef{}, status_val}
-		);
+		mgr.Enqueue(ocsp_response_status, GetFile()->ToVal(), status_val);
 
 	//if (!resp_bytes)
 	//	{
@@ -489,22 +481,16 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 	// get the basic response
 	basic_resp = OCSP_response_get1_basic(resp);
 	if ( !basic_resp )
-		{
-		Unref(status_val);
 		goto clean_up;
-		}
 
 #if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 	resp_data = basic_resp->tbsResponseData;
 	if ( !resp_data )
-		{
-		Unref(status_val);
 		goto clean_up;
-		}
 #endif
 
-	vl.emplace_back(NewRef{}, GetFile()->GetVal());
-	vl.emplace_back(AdoptRef{}, status_val);
+	vl.emplace_back(GetFile()->ToVal());
+	vl.emplace_back(std::move(status_val));
 
 #if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
 	vl.emplace_back(val_mgr->Count((uint64_t)ASN1_INTEGER_get(resp_data->version)));
@@ -547,7 +533,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 
 		zeek::Args rvl;
 		rvl.reserve(10);
-		rvl.emplace_back(NewRef{}, GetFile()->GetVal());
+		rvl.emplace_back(GetFile()->ToVal());
 
 		// cert id
 		const OCSP_CERTID* cert_id = nullptr;
@@ -634,7 +620,7 @@ void file_analysis::OCSP::ParseResponse(OCSP_RESPONSE *resp)
 	//ocsp_resp_record->Assign(7, make_intrusive<StringVal>(len, buf));
 	//BIO_reset(bio);
 
-	certs_vector = new VectorVal(internal_type("x509_opaque_vector")->AsVectorType());
+	certs_vector = new VectorVal(zeek::id::find_type<VectorType>("x509_opaque_vector"));
 	vl.emplace_back(AdoptRef{}, certs_vector);
 
 #if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)

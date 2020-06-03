@@ -40,7 +40,7 @@ void KeyedHash::InitializeSeeds(const std::array<uint32_t, SEED_INIT_SIZE>& seed
 
 void KeyedHash::InitOptions()
 	{
-	calculate_digest(Hash_SHA256, BifConst::digest_salt->Bytes(), BifConst::digest_salt->Len(), reinterpret_cast<unsigned char*>(cluster_highwayhash_key));
+	calculate_digest(Hash_SHA256, zeek::BifConst::digest_salt->Bytes(), zeek::BifConst::digest_salt->Len(), reinterpret_cast<unsigned char*>(cluster_highwayhash_key));
 	}
 
 hash64_t KeyedHash::Hash64(const void* bytes, uint64_t size)

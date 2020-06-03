@@ -37,7 +37,7 @@ public:
 
 	/**
 	 * Returns a descriptive name for the thread. If not set via
-	 * SetName(). If not set, a default name is choosen automatically.
+	 * SetName(), a default name is chosen automatically.
 	 *
 	 * This method is safe to call from any thread.
 	 */

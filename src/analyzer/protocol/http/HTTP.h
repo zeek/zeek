@@ -145,19 +145,18 @@ protected:
 
 	HTTP_Entity* current_entity;
 
-	Val* BuildMessageStat(bool interrupted, const char* msg);
+	IntrusivePtr<RecordVal> BuildMessageStat(bool interrupted, const char* msg);
 };
 
 class HTTP_Analyzer final : public tcp::TCP_ApplicationAnalyzer {
 public:
 	HTTP_Analyzer(Connection* conn);
-	~HTTP_Analyzer() override;
 
 	void HTTP_Header(bool is_orig, mime::MIME_Header* h);
 	void HTTP_EntityData(bool is_orig, BroString* entity_data);
 	void HTTP_MessageDone(bool is_orig, HTTP_Message* message);
 	void HTTP_Event(const char* category, const char* detail);
-	void HTTP_Event(const char* category, StringVal *detail);
+	void HTTP_Event(const char* category, IntrusivePtr<StringVal> detail);
 
 	void SkipEntityData(bool is_orig);
 
@@ -238,7 +237,7 @@ protected:
 	int HTTP_ReplyCode(const char* code_str);
 	int ExpectReplyMessageBody();
 
-	StringVal* TruncateURI(StringVal* uri);
+	IntrusivePtr<StringVal> TruncateURI(const IntrusivePtr<StringVal>& uri);
 
 	int request_state, reply_state;
 	int num_requests, num_replies;
@@ -258,19 +257,19 @@ protected:
 	// in a reply.
 	std::string upgrade_protocol;
 
-	Val* request_method;
+	IntrusivePtr<StringVal> request_method;
 
 	// request_URI is in the original form (may contain '%<hex><hex>'
 	// sequences).
-	Val* request_URI;
+	IntrusivePtr<StringVal> request_URI;
 
 	// unescaped_URI does not contain escaped sequences.
-	Val* unescaped_URI;
+	IntrusivePtr<StringVal> unescaped_URI;
 
-	std::queue<Val*> unanswered_requests;
+	std::queue<IntrusivePtr<StringVal>> unanswered_requests;
 
 	int reply_code;
-	Val* reply_reason_phrase;
+	IntrusivePtr<StringVal> reply_reason_phrase;
 
 	tcp::ContentLine_Analyzer* content_line_orig;
 	tcp::ContentLine_Analyzer* content_line_resp;

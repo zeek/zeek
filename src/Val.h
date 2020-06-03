@@ -80,9 +80,8 @@ union BroValUnion {
 	BroFile* file_val;
 	RE_Matcher* re_val;
 	PDict<TableEntryVal>* table_val;
-	val_list* val_list_val;
-
-	std::vector<Val*>* vector_val;
+	std::vector<IntrusivePtr<Val>>* record_val;
+	std::vector<IntrusivePtr<Val>>* vector_val;
 
 	BroValUnion() = default;
 
@@ -115,37 +114,38 @@ union BroValUnion {
 
 	constexpr BroValUnion(PDict<TableEntryVal>* value) noexcept
 		: table_val(value) {}
-
-	constexpr BroValUnion(val_list* value) noexcept
-		: val_list_val(value) {}
-
-	constexpr BroValUnion(std::vector<Val*> *value) noexcept
-		: vector_val(value) {}
 };
 
 class Val : public BroObj {
 public:
+	static inline const IntrusivePtr<Val> nil;
+
 	Val(double d, TypeTag t)
-		: val(d), type(base_type(t).release())
-		{
-		}
+		: val(d), type(base_type(t))
+		{}
 
+	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
 	explicit Val(Func* f);
+	explicit Val(IntrusivePtr<Func> f);
 
-	// Note, will unref 'f' when it's done, closing it unless
-	// class has ref'd it.
+	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
 	explicit Val(BroFile* f);
+	// Note, the file will be closed after this Val is destructed if there's
+	// no other remaining references.
+	explicit Val(IntrusivePtr<BroFile> f);
 
 	// Extra arg to differentiate from protected version.
-	Val(BroType* t, bool type_type)
-		: type(new TypeType({NewRef{}, t}))
-		{
-		}
+	Val(IntrusivePtr<BroType> t, bool type_type)
+		: type(make_intrusive<TypeType>(std::move(t)))
+		{}
+
+	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
+	Val(BroType* t, bool type_type) : Val({NewRef{}, t}, type_type)
+		{}
 
 	Val()
-		: val(bro_int_t(0)), type(base_type(TYPE_ERROR).release())
-		{
-		}
+		: val(bro_int_t(0)), type(base_type(TYPE_ERROR))
+		{}
 
 	~Val() override;
 
@@ -179,8 +179,17 @@ public:
 	// Remove this value from the given value (if appropriate).
 	virtual bool RemoveFrom(Val* v) const;
 
-	BroType* Type()			{ return type; }
-	const BroType* Type() const	{ return type; }
+	[[deprecated("Remove in v4.1.  Use GetType().")]]
+	BroType* Type()			{ return type.get(); }
+	[[deprecated("Remove in v4.1.  Use GetType().")]]
+	const BroType* Type() const	{ return type.get(); }
+
+	const IntrusivePtr<BroType>& GetType() const
+		{ return type; }
+
+	template <class T>
+	IntrusivePtr<T> GetType() const
+		{ return cast_intrusive<T>(type); }
 
 #define CONST_ACCESSOR(tag, ctype, accessor, name) \
 	const ctype name() const \
@@ -208,10 +217,10 @@ public:
 	CONST_ACCESSOR(TYPE_STRING, BroString*, string_val, AsString)
 	CONST_ACCESSOR(TYPE_FUNC, Func*, func_val, AsFunc)
 	CONST_ACCESSOR(TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsTable)
-	CONST_ACCESSOR(TYPE_RECORD, val_list*, val_list_val, AsRecord)
+	CONST_ACCESSOR(TYPE_RECORD, std::vector<IntrusivePtr<Val>>*, record_val, AsRecord)
 	CONST_ACCESSOR(TYPE_FILE, BroFile*, file_val, AsFile)
 	CONST_ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
-	CONST_ACCESSOR(TYPE_VECTOR, std::vector<Val*>*, vector_val, AsVector)
+	CONST_ACCESSOR(TYPE_VECTOR, std::vector<IntrusivePtr<Val>>*, vector_val, AsVector)
 
 	const IPPrefix& AsSubNet() const
 		{
@@ -222,7 +231,7 @@ public:
 	BroType* AsType() const
 		{
 		CHECK_TAG(type->Tag(), TYPE_TYPE, "Val::Type", type_name)
-		return type;
+		return type.get();
 		}
 
 	const IPAddr& AsAddr() const
@@ -245,7 +254,9 @@ public:
 	ACCESSOR(TYPE_FUNC, Func*, func_val, AsFunc)
 	ACCESSOR(TYPE_FILE, BroFile*, file_val, AsFile)
 	ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
-	ACCESSOR(TYPE_VECTOR, std::vector<Val*>*, vector_val, AsVector)
+	ACCESSOR(TYPE_VECTOR, std::vector<IntrusivePtr<Val>>*, vector_val, AsVector)
+
+	IntrusivePtr<Func> AsFuncPtr() const;
 
 	const IPPrefix& AsSubNet()
 		{
@@ -340,24 +351,21 @@ protected:
 	static IntrusivePtr<Val> MakeCount(bro_uint_t u);
 
 	template<typename V>
-	Val(V &&v, TypeTag t) noexcept
-		: val(std::forward<V>(v)), type(base_type(t).release())
-		{
-		}
+	Val(V&& v, TypeTag t) noexcept
+		: val(std::forward<V>(v)), type(base_type(t))
+		{}
 
 	template<typename V>
-	Val(V &&v, BroType* t) noexcept
-		: val(std::forward<V>(v)), type(t->Ref())
-		{
-		}
+	Val(V&& v, IntrusivePtr<BroType> t) noexcept
+		: val(std::forward<V>(v)), type(std::move(t))
+		{}
 
-	explicit Val(BroType* t)
-		: type(t->Ref())
-		{
-		}
+	explicit Val(IntrusivePtr<BroType> t) noexcept
+		: type(std::move(t))
+		{}
 
 	ACCESSOR(TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsNonConstTable)
-	ACCESSOR(TYPE_RECORD, val_list*, val_list_val, AsNonConstRecord)
+	ACCESSOR(TYPE_RECORD, std::vector<IntrusivePtr<Val>>*, record_val, AsNonConstRecord)
 
 	// For internal use by the Val::Clone() methods.
 	struct CloneState {
@@ -373,7 +381,7 @@ protected:
 	virtual IntrusivePtr<Val> DoClone(CloneState* state);
 
 	BroValUnion val;
-	BroType* type;
+	IntrusivePtr<BroType> type;
 
 #ifdef DEBUG
 	// For debugging, we keep the name of the ID to which a Val is bound.
@@ -593,7 +601,12 @@ public:
 
 	unsigned int MemoryAllocation() const override;
 
-	IntrusivePtr<StringVal> Substitute(RE_Matcher* re, StringVal* repl, bool do_all);
+	IntrusivePtr<StringVal> Replace(RE_Matcher* re, const BroString& repl,
+	                                bool do_all);
+
+	[[deprecated("Remove in v4.1.  Use Replace().")]]
+	Val* Substitute(RE_Matcher* re, StringVal* repl, bool do_all)
+		{ return Replace(re, *repl->AsString(), do_all).release(); }
 
 protected:
 	void ValDescribe(ODesc* d) const override;
@@ -627,9 +640,14 @@ public:
 
 	IntrusivePtr<Val> SizeVal() const override;
 
-	int Length() const		{ return vals.length(); }
-	Val* Index(const int n)		{ return vals[n]; }
-	const Val* Index(const int n) const	{ return vals[n]; }
+	int Length() const		{ return vals.size(); }
+
+	const IntrusivePtr<Val>& Idx(size_t i) const	{ return vals[i]; }
+
+	[[deprecated("Remove in v4.1.  Use Idx() instead")]]
+	Val* Index(const int n)		{ return vals[n].get(); }
+	[[deprecated("Remove in v4.1.  Use Idx() instead")]]
+	const Val* Index(const int n) const	{ return vals[n].get(); }
 
 	// Returns an RE_Matcher() that will match any string that
 	// includes embedded within it one of the patterns listed
@@ -641,13 +659,22 @@ public:
 	// The return RE_Matcher has not yet been compiled.
 	RE_Matcher* BuildRE() const;
 
+	/**
+	 * Appends a value to the list.
+	 * @param v  the value to append.
+	 */
+	void Append(IntrusivePtr<Val> v);
+
+	[[deprecated("Remove in v4.1.  Use Append(IntrusivePtr) instead.")]]
 	void Append(Val* v);
 
 	// Returns a Set representation of the list (which must be homogeneous).
+	IntrusivePtr<TableVal> ToSetVal() const;
+
+	[[deprecated("Remove in v4.1.  Use ToSetVal() instead.")]]
 	TableVal* ConvertToSet() const;
 
-	const val_list* Vals() const	{ return &vals; }
-	val_list* Vals()		{ return &vals; }
+	const std::vector<IntrusivePtr<Val>>& Vals() const	{ return vals; }
 
 	void Describe(ODesc* d) const override;
 
@@ -656,7 +683,7 @@ public:
 protected:
 	IntrusivePtr<Val> DoClone(CloneState* state) override;
 
-	val_list vals;
+	std::vector<IntrusivePtr<Val>> vals;
 	TypeTag tag;
 };
 
@@ -664,9 +691,8 @@ extern double bro_start_network_time;
 
 class TableEntryVal {
 public:
-	template<typename V>
-	explicit TableEntryVal(V&& v)
-		: val(std::forward<V>(v))
+	explicit TableEntryVal(IntrusivePtr<Val> v)
+		: val(std::move(v))
 		{
 		last_access_time = network_time;
 		expire_access_time =
@@ -675,7 +701,11 @@ public:
 
 	TableEntryVal* Clone(Val::CloneState* state);
 
+	[[deprecated("Remove in v4.1.  Use GetVal().")]]
 	Val* Value()	{ return val.get(); }
+
+	const IntrusivePtr<Val>& GetVal() const
+		{ return val; }
 
 	// Returns/sets time of last expiration relevant access to this value.
 	double ExpireAccessTime() const
@@ -715,16 +745,45 @@ class Frame;
 class TableVal final : public Val, public notifier::Modifiable {
 public:
 	explicit TableVal(IntrusivePtr<TableType> t, IntrusivePtr<Attributes> attrs = nullptr);
+	[[deprecated("Remove in v4.1.  Construct from IntrusivePtrs instead.")]]
+	explicit TableVal(TableType* t, Attributes* attrs = nullptr)
+		: TableVal({NewRef{}, t}, {NewRef{}, attrs})
+		{}
+
 	~TableVal() override;
 
+	/**
+	 * Assigns a value at an associated index in the table (or in the
+	 * case of a set, just adds the index).
+	 * @param index  The key to assign.
+	 * @param new_val  The value to assign at the index.  For a set, this
+	 * must be nullptr.
+	 * @return  True if the assignment type-checked.
+	 */
+	bool Assign(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val);
+
+	/**
+	 * Assigns a value at an associated index in the table (or in the
+	 * case of a set, just adds the index).
+	 * @param index  The key to assign.  For tables, this is allowed to be null
+	 * (if needed, the index val can be recovered from the hash key).
+	 * @param k  A precomputed hash key to use.
+	 * @param new_val  The value to assign at the index.  For a set, this
+	 * must be nullptr.
+	 * @return  True if the assignment type-checked.
+	 */
+	bool Assign(IntrusivePtr<Val> index, std::unique_ptr<HashKey> k,
+	            IntrusivePtr<Val> new_val);
+
 	// Returns true if the assignment typechecked, false if not. The
-	// methods take ownership of new_val, but not of the index. Second
-	// version takes a HashKey and Unref()'s it when done. If we're a
-	// set, new_val has to be nil. If we aren't a set, index may be nil
-	// in the second version.
-	bool Assign(Val* index, IntrusivePtr<Val> new_val);
+	// methods take ownership of new_val, but not of the index.  If we're
+	// a set, new_val has to be nil.
+	[[deprecated("Remove in v4.1.  Use IntrusivePtr overload instead.")]]
 	bool Assign(Val* index, Val* new_val);
-	bool Assign(Val* index, HashKey* k, IntrusivePtr<Val> new_val);
+
+	// Same as other Assign() method, but takes a precomuted HashKey and
+	// deletes it when done.
+	[[deprecated("Remove in v4.1.  Use IntrusivePtr overload instead.")]]
 	bool Assign(Val* index, HashKey* k, Val* new_val);
 
 	IntrusivePtr<Val> SizeVal() const override;
@@ -747,30 +806,68 @@ public:
 	// Returns true if the addition typechecked, false if not.
 	bool RemoveFrom(Val* v) const override;
 
-	// Returns a new table that is the intersection of this
-	// table and the given table.  Intersection is just done
-	// on index, not on yield value, so this really only makes
-	// sense for sets.
-	TableVal* Intersect(const TableVal* v) const;
+	/**
+	 * Returns a new table that is the intersection of this table
+	 * and the given table.  Intersection is done only on index, not on
+	 * yield value, so this generally makes most sense to use for sets,
+	 * not tables.
+	 * @param v  The intersecting table.
+	 * @return  The intersection of this table and the given one.
+	 */
+	IntrusivePtr<TableVal> Intersection(const TableVal& v) const;
+
+	[[deprecated("Remove in v4.1.  Use Intersection() instead.")]]
+	TableVal* Intersect(const TableVal* v) const
+		{ return Intersection(*v).release(); }
 
 	// Returns true if this set contains the same members as the
 	// given set.  Note that comparisons are done using hash keys,
 	// so errors can arise for compound sets such as sets-of-sets.
 	// See https://bro-tracker.atlassian.net/browse/BIT-1949.
-	bool EqualTo(const TableVal* v) const;
+	bool EqualTo(const TableVal& v) const;
+
+	[[deprecated("Remove in v4.1.  Pass TableVal& instead.")]]
+	bool EqualTo(const TableVal* v) const
+		{ return EqualTo(*v); }
 
 	// Returns true if this set is a subset (not necessarily proper)
 	// of the given set.
-	bool IsSubsetOf(const TableVal* v) const;
+	bool IsSubsetOf(const TableVal& v) const;
+
+	[[deprecated("Remove in v4.1.  Pass TableVal& instead.")]]
+	bool IsSubsetOf(const TableVal* v) const
+		{ return IsSubsetOf(*v); }
 
 	// Expands any lists in the index into multiple initializations.
 	// Returns true if the initializations typecheck, false if not.
 	bool ExpandAndInit(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val);
 
+	/**
+	 * Finds an index in the table and returns its associated value.
+	 * @param index  The index to lookup in the table.
+	 * @return  The value associated with the index.  If the index doesn't
+	 * exist, this is a nullptr.  For sets that don't really contain associated
+	 * values, a placeholder value is returned to differentiate it from
+	 * non-existent index (nullptr), but otherwise has no meaning in relation
+	 * to the set's contents.
+	 */
+	const IntrusivePtr<Val>& Find(const IntrusivePtr<Val>& index);
+
+	/**
+	 * Finds an index in the table and returns its associated value or else
+	 * the &default value.
+	 * @param index  The index to lookup in the table.
+	 * @return  The value associated with the index.  If the index doesn't
+	 * exist, instead returns the &default value.  If there's no &default
+	 * attribute, then nullptr is still returned for non-existent index.
+	 */
+	IntrusivePtr<Val> FindOrDefault(const IntrusivePtr<Val>& index);
+
 	// Returns the element's value if it exists in the table,
 	// nil otherwise.  Note, "index" is not const because we
 	// need to Ref/Unref it when calling the default function.
-	IntrusivePtr<Val> Lookup(Val* index, bool use_default_val = true);
+	[[deprecated("Remove in v4.1.  Use Find() or FindOrDefault().")]]
+	Val* Lookup(Val* index, bool use_default_val = true);
 
 	// For a table[subnet]/set[subnet], return all subnets that cover
 	// the given subnet.
@@ -786,20 +883,65 @@ public:
 	// Returns false if index does not exist.
 	bool UpdateTimestamp(Val* index);
 
-	// Returns the index corresponding to the given HashKey.
-	IntrusivePtr<ListVal> RecoverIndex(const HashKey* k) const;
+	/**
+	 * @return  The index corresponding to the given HashKey.
+	 */
+	IntrusivePtr<ListVal> RecreateIndex(const HashKey& k) const;
 
-	// Returns the element if it was in the table, false otherwise.
-	IntrusivePtr<Val> Delete(const Val* index);
-	IntrusivePtr<Val> Delete(const HashKey* k);
+	[[deprecated("Remove in v4.1.  Use RecreateIndex().")]]
+	ListVal* RecoverIndex(const HashKey* k) const
+		{ return RecreateIndex(*k).release(); }
+
+	/**
+	 * Remove an element from the table and return it.
+	 * @param index  The index to remove.
+	 * @return  The value associated with the index if it exists, else nullptr.
+	 * For a sets that don't really contain associated values, a placeholder
+	 * value is returned to differentiate it from non-existent index (nullptr),
+	 * but otherwise has no meaning in relation to the set's contents.
+	 */
+	IntrusivePtr<Val> Remove(const Val& index);
+
+	/**
+	 * Same as Remove(const Val&), but uses a precomputed hash key.
+	 * @param k  The hash key to lookup.
+	 * @return  Same as Remove(const Val&).
+	 */
+	IntrusivePtr<Val> Remove(const HashKey& k);
+
+	[[deprecated("Remove in v4.1.  Use Remove().")]]
+	Val* Delete(const Val* index)
+		{ return Remove(*index).release(); }
+
+	[[deprecated("Remove in v4.1.  Use Remove().")]]
+	Val* Delete(const HashKey* k)
+		{ return Remove(*k).release(); }
 
 	// Returns a ListVal representation of the table (which must be a set).
+	IntrusivePtr<ListVal> ToListVal(TypeTag t = TYPE_ANY) const;
+
+	// Returns a ListVal representation of the table (which must be a set
+	// with non-composite index type).
+	IntrusivePtr<ListVal> ToPureListVal() const;
+
+	[[deprecated("Remove in v4.1.  Use ToListVal() instead.")]]
 	ListVal* ConvertToList(TypeTag t=TYPE_ANY) const;
+	[[deprecated("Remove in v4.1.  Use ToPureListVal() instead.")]]
 	ListVal* ConvertToPureList() const;	// must be single index type
 
 	void SetAttrs(IntrusivePtr<Attributes> attrs);
-	Attr* FindAttr(attr_tag t) const;
+
+	[[deprecated("Remove in v4.1.  Use GetAttr().")]]
+	Attr* FindAttr(attr_tag t) const
+		{ return GetAttr(t).get(); }
+
+	const IntrusivePtr<Attr>& GetAttr(attr_tag t) const;
+
+	[[deprecated("Remove in v4.1.  Use GetAttrs().")]]
 	Attributes* Attrs()	{ return attrs.get(); }
+
+	const IntrusivePtr<Attributes>& GetAttrs() const
+		{ return attrs; }
 
 	// Returns the size of the table.
 	int Size() const;
@@ -828,6 +970,14 @@ public:
 			timer = nullptr;
 		}
 
+	/**
+	 * @param  The index value to hash.
+	 * @return  The hash of the index value or nullptr if
+	 * type-checking failed.
+	 */
+	std::unique_ptr<HashKey> MakeHashKey(const Val& index) const;
+
+	[[deprecated("Remove in v4.1.  Use MakeHashKey().")]]
 	HashKey* ComputeHash(const Val* index) const;
 
 	notifier::Modifiable* Modifiable() override	{ return this; }
@@ -857,11 +1007,11 @@ protected:
 	void RebuildTable(ParseTimeTableState ptts);
 
 	void CheckExpireAttr(attr_tag at);
-	bool ExpandCompoundAndInit(val_list* vl, int k, IntrusivePtr<Val> new_val);
-	bool CheckAndAssign(Val* index, IntrusivePtr<Val> new_val);
+	bool ExpandCompoundAndInit(ListVal* lv, int k, IntrusivePtr<Val> new_val);
+	bool CheckAndAssign(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val);
 
-	// Calculates default value for index.  Returns 0 if none.
-	IntrusivePtr<Val> Default(Val* index);
+	// Calculates default value for index.  Returns nullptr if none.
+	IntrusivePtr<Val> Default(const IntrusivePtr<Val>& index);
 
 	// Returns true if item expiration is enabled.
 	bool ExpirationEnabled()	{ return expire_time != nullptr; }
@@ -878,7 +1028,8 @@ protected:
 	enum OnChangeType { ELEMENT_NEW, ELEMENT_CHANGED, ELEMENT_REMOVED, ELEMENT_EXPIRED };
 
 	// Calls &change_func. Does not take ownership of values. (Refs if needed).
-	void CallChangeFunc(const Val* index, Val* old_value, OnChangeType tpe);
+	void CallChangeFunc(const Val* index, const IntrusivePtr<Val>& old_value,
+	                    OnChangeType tpe);
 
 	// Sends data on to backing Broker Store
 	void SendToStore(const Val* index, const Val* new_value, OnChangeType tpe);
@@ -905,15 +1056,112 @@ protected:
 
 class RecordVal final : public Val, public notifier::Modifiable {
 public:
+	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
 	explicit RecordVal(RecordType* t, bool init_fields = true);
+	explicit RecordVal(IntrusivePtr<RecordType> t, bool init_fields = true);
+
 	~RecordVal() override;
 
 	IntrusivePtr<Val> SizeVal() const override;
 
+	/**
+	 * Assign a value to a record field.
+	 * @param field  The field index to assign.
+	 * @param new_val  The value to assign.
+	 */
 	void Assign(int field, IntrusivePtr<Val> new_val);
+
+	/**
+	 * Assign a value of type @c T to a record field, as constructed from
+	 * the provided arguments.
+	 * @param field  The field index to assign.
+	 * @param args  A variable number of arguments to pass to constructor of
+	 * type @c T.
+	 */
+	template <class T, class... Ts>
+	void Assign(int field, Ts&&... args)
+		{ Assign(field, make_intrusive<T>(std::forward<Ts>(args)...)); }
+
+	[[deprecated("Remove in v4.1.  Assign an IntrusivePtr instead.")]]
 	void Assign(int field, Val* new_val);
-	Val* Lookup(int field) const;	// Does not Ref() value.
-	IntrusivePtr<Val> LookupWithDefault(int field) const;
+	// Note: the following nullptr method can also go upon removing the above.
+	void Assign(int field, std::nullptr_t)
+		{ Assign(field, IntrusivePtr<Val>{}); }
+
+	[[deprecated("Remove in v4.1.  Use GetField().")]]
+	Val* Lookup(int field) const	// Does not Ref() value.
+		{ return (*AsRecord())[field].get(); }
+
+	/**
+	 * Returns the value of a given field index.
+	 * @param field  The field index to retrieve.
+	 * @return  The value at the given field index.
+	 */
+	const IntrusivePtr<Val>& GetField(int field) const
+		{ return (*AsRecord())[field]; }
+
+	/**
+	 * Returns the value of a given field index as cast to type @c T.
+	 * @param field  The field index to retrieve.
+	 * @return  The value at the given field index cast to type @c T.
+	 */
+	template <class T>
+	IntrusivePtr<T> GetField(int field) const
+		{ return cast_intrusive<T>(GetField(field)); }
+
+	/**
+	 * Returns the value of a given field index if it's previously been
+	 * assigned, * or else returns the value created from evaluating the
+	 * record field's &default expression.
+	 * @param field  The field index to retrieve.
+	 * @return  The value at the given field index or the default value if
+	 * the field hasn't been assigned yet.
+	 */
+	IntrusivePtr<Val> GetFieldOrDefault(int field) const;
+
+	[[deprecated("Remove in v4.1.  Use GetFieldOrDefault().")]]
+	Val* LookupWithDefault(int field) const
+		{ return GetFieldOrDefault(field).release(); }
+
+	/**
+	 * Returns the value of a given field name.
+	 * @param field  The name of a field to retrieve.
+	 * @return  The value of the given field.  If no such field name exists,
+	 * a fatal error occurs.
+	 */
+	const IntrusivePtr<Val>& GetField(const char* field) const;
+
+	/**
+	 * Returns the value of a given field name as cast to type @c T.
+	 * @param field  The name of a field to retrieve.
+	 * @return  The value of the given field cast to type @c T.  If no such
+	 * field name exists, a fatal error occurs.
+	 */
+	template <class T>
+	IntrusivePtr<T> GetField(const char* field) const
+		{ return cast_intrusive<T>(GetField(field)); }
+
+	/**
+	 * Returns the value of a given field name if it's previously been
+	 * assigned, or else returns the value created from evaluating the record
+	 * fields' &default expression.
+	 * @param field  The name of a field to retrieve.
+	 * @return  The value of the given field.  or the default value
+	 * if the field hasn't been assigned yet.  If no such field name exists,
+	 * a fatal error occurs.
+	 */
+	IntrusivePtr<Val> GetFieldOrDefault(const char* field) const;
+
+	/**
+	 * Returns the value of a given field name or its default value
+	 * as cast to type @c T.
+	 * @param field  The name of a field to retrieve.
+	 * @return  The value of the given field or its default value cast to
+	 * type @c T.  If no such field name exists, a fatal error occurs.
+	 */
+	template <class T>
+	IntrusivePtr<T> GetFieldOrDefault(const char* field) const
+		{ return cast_intrusive<T>(GetField(field)); }
 
 	/**
 	 * Looks up the value of a field by field name.  If the field doesn't
@@ -923,7 +1171,9 @@ public:
 	 * the field has yet to be initialized.
 	 * @return the value in field \a field.
 	 */
-	IntrusivePtr<Val> Lookup(const char* field, bool with_default = false) const;
+	[[deprecated("Remove in v4.1.  Use GetField() or GetFieldOrDefault().")]]
+	Val* Lookup(const char* field, bool with_default = false) const
+		{ return with_default ? GetFieldOrDefault(field).release() : GetField(field).get(); }
 
 	void Describe(ODesc* d) const override;
 
@@ -948,8 +1198,11 @@ public:
 	//
 	// The *allow_orphaning* parameter allows for a record to be demoted
 	// down to a record type that contains less fields.
-	IntrusivePtr<RecordVal> CoerceTo(const RecordType* other, Val* aggr, bool allow_orphaning = false) const;
-	IntrusivePtr<RecordVal> CoerceTo(RecordType* other, bool allow_orphaning = false);
+	IntrusivePtr<RecordVal> CoerceTo(IntrusivePtr<RecordType> other,
+	                                 IntrusivePtr<RecordVal> aggr,
+	                                 bool allow_orphaning = false) const;
+	IntrusivePtr<RecordVal> CoerceTo(IntrusivePtr<RecordType> other,
+	                                 bool allow_orphaning = false);
 
 	unsigned int MemoryAllocation() const override;
 	void DescribeReST(ODesc* d) const override;
@@ -980,9 +1233,11 @@ protected:
 	friend class Val;
 	friend class EnumType;
 
-	EnumVal(EnumType* t, int i) : Val(bro_int_t(i), t)
-		{
-		}
+	template<class T, class... Ts>
+	friend IntrusivePtr<T> make_intrusive(Ts&&... args);
+
+	EnumVal(IntrusivePtr<EnumType> t, int i) : Val(bro_int_t(i), std::move(t))
+		{}
 
 	void ValDescribe(ODesc* d) const override;
 	IntrusivePtr<Val> DoClone(CloneState* state) override;
@@ -991,43 +1246,73 @@ protected:
 
 class VectorVal final : public Val, public notifier::Modifiable {
 public:
+	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
 	explicit VectorVal(VectorType* t);
+	explicit VectorVal(IntrusivePtr<VectorType> t);
 	~VectorVal() override;
 
 	IntrusivePtr<Val> SizeVal() const override;
 
-	// Returns false if the type of the argument was wrong.
-	// The vector will automatically grow to accomodate the index.
-	//
+	/**
+	 * Assigns an element to a given vector index.
+	 * @param index  The index to assign.
+	 * @param element  The element value to assign.
+	 * @return  True if the element was successfully assigned, or false if
+	 * the element was the wrong type.
+	 */
+	bool Assign(unsigned int index, IntrusivePtr<Val> element);
+
 	// Note: does NOT Ref() the element! Remember to do so unless
 	//       the element was just created and thus has refcount 1.
-	//
-	bool Assign(unsigned int index, IntrusivePtr<Val> element);
-	bool Assign(unsigned int index, Val* element);
+	[[deprecated("Remove in v4.1.  Assign an IntrusivePtr instead.")]]
+	bool Assign(unsigned int index, Val* element)
+		{ return Assign(index, {AdoptRef{}, element}); }
+	// Note: the following nullptr method can also go upon removing the above.
+	void Assign(unsigned int index, std::nullptr_t)
+		{ Assign(index, IntrusivePtr<Val>{}); }
 
-	template<typename E>
-	bool Assign(Val* index, E&& element)
+	[[deprecated("Remove in v4.1.  Assign using integer index and IntrusivePtr element.")]]
+	bool Assign(Val* index, Val* element)
 		{
-		return Assign(index->AsListVal()->Index(0)->CoerceToUnsigned(),
-		              std::forward<E>(element));
+		return Assign(index->AsListVal()->Idx(0)->CoerceToUnsigned(),
+		              {AdoptRef{}, element});
 		}
 
-	// Assigns the value to how_many locations starting at index.
+	/**
+	 * Assigns a given value to multiple indices in the vector.
+	 * @param index  The starting index to assign to.
+	 * @param how_many  The number of indices to assign, counting from *index*.
+	 * @return  True if the elements were successfully assigned, or false if
+	 * the element was the wrong type.
+	 */
 	bool AssignRepeat(unsigned int index, unsigned int how_many,
-			  Val* element);
+	                  IntrusivePtr<Val> element);
+
+	[[deprecated("Remove in v4.1.  Assign an IntrusivePtr instead.")]]
+	bool AssignRepeat(unsigned int index, unsigned int how_many, Val* element)
+		{ return AssignRepeat(index, how_many, {NewRef{}, element}); }
 
 	// Add this value to the given value (if appropriate).
 	// Returns true if succcessful.
 	bool AddTo(Val* v, bool is_first_init) const override;
 
-	// Returns nil if no element was at that value.
-	// Lookup does NOT grow the vector to this size.
-	// The Val* variant assumes that the index Val* has been type-checked.
-	Val* Lookup(unsigned int index) const;
+	/**
+	 * Returns the element at a given index or nullptr if it does not exist.
+	 * @param index  The position in the vector of the element to return.
+	 * @return  The element at the given index or nullptr if the index
+	 * does not exist (it's greater than or equal to vector's current size).
+	 */
+	const IntrusivePtr<Val>& At(unsigned int index) const;
+
+	[[deprecated("Remove in v4.1.  Use At().")]]
+	Val* Lookup(unsigned int index) const
+		{ return At(index).get(); }
+
+	[[deprecated("Remove in v4.1.  Use At().")]]
 	Val* Lookup(Val* index)
 		{
-		bro_uint_t i = index->AsListVal()->Index(0)->CoerceToUnsigned();
-		return Lookup(static_cast<unsigned int>(i));
+		bro_uint_t i = index->AsListVal()->Idx(0)->CoerceToUnsigned();
+		return At(static_cast<unsigned int>(i)).get();
 		}
 
 	unsigned int Size() const { return val.vector_val->size(); }
@@ -1041,8 +1326,19 @@ public:
 
 	notifier::Modifiable* Modifiable() override	{ return this; }
 
-	// Insert an element at a specific position into the underlying vector.
-	bool Insert(unsigned int index, Val* element);
+	/**
+	 * Inserts an element at the given position in the vector.  All elements
+	 * at that original position and higher are shifted up by one.
+	 * @param index  The index to insert the element at.
+	 * @param element  The value to insert into the vector.
+	 * @return  True if the element was inserted or false if the element was
+	 * the wrong type.
+	 */
+	bool Insert(unsigned int index, IntrusivePtr<Val> element);
+
+	[[deprecated("Remove in v4.1.  Insert an IntrusivePtr instead.")]]
+	bool Insert(unsigned int index, Val* element)
+		{ return Insert(index, {AdoptRef{}, element}); }
 
 	// Removes an element at a specific position.
 	bool Remove(unsigned int index);
@@ -1050,15 +1346,12 @@ public:
 protected:
 	void ValDescribe(ODesc* d) const override;
 	IntrusivePtr<Val> DoClone(CloneState* state) override;
-
-	VectorType* vector_type;
 };
 
 // Checks the given value for consistency with the given type.  If an
-// exact match, returns it.  If promotable, returns the promoted version,
-// Unref()'ing the original.  If not a match, generates an error message
-// and returns nil, also Unref()'ing v.  If is_init is true, then
-// the checking is done in the context of an initialization.
+// exact match, returns it.  If promotable, returns the promoted version.
+// If not a match, generates an error message and return nil.  If is_init is
+// true, then the checking is done in the context of an initialization.
 extern IntrusivePtr<Val> check_and_promote(IntrusivePtr<Val> v,
                                            const BroType* t, bool is_init,
                                            const Location* expr_location = nullptr);
@@ -1072,7 +1365,8 @@ extern void describe_vals(const std::vector<IntrusivePtr<Val>>& vals,
 extern void delete_vals(val_list* vals);
 
 // True if the given Val* has a vector type.
-inline bool is_vector(Val* v)	{ return  v->Type()->Tag() == TYPE_VECTOR; }
+inline bool is_vector(Val* v)	{ return  v->GetType()->Tag() == TYPE_VECTOR; }
+inline bool is_vector(const IntrusivePtr<Val>& v)	{ return is_vector(v.get()); }
 
 // Returns v casted to type T if the type supports that. Returns null if not.
 //

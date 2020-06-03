@@ -146,7 +146,7 @@ void Connection::CheckEncapsulation(const EncapsulationStack* arg_encap)
 			{
 			if ( tunnel_changed )
 				EnqueueEvent(tunnel_changed, nullptr, ConnVal(),
-				             IntrusivePtr{AdoptRef{}, arg_encap->GetVectorVal()});
+				             arg_encap->ToVal());
 
 			delete encapsulation;
 			encapsulation = new EncapsulationStack(*arg_encap);
@@ -158,8 +158,7 @@ void Connection::CheckEncapsulation(const EncapsulationStack* arg_encap)
 		if ( tunnel_changed )
 			{
 			EncapsulationStack empty;
-			EnqueueEvent(tunnel_changed, nullptr, ConnVal(),
-			             IntrusivePtr{AdoptRef{}, empty.GetVectorVal()});
+			EnqueueEvent(tunnel_changed, nullptr, ConnVal(), empty.ToVal());
 			}
 
 		delete encapsulation;
@@ -169,8 +168,7 @@ void Connection::CheckEncapsulation(const EncapsulationStack* arg_encap)
 	else if ( arg_encap )
 		{
 		if ( tunnel_changed )
-			EnqueueEvent(tunnel_changed, nullptr, ConnVal(),
-			             IntrusivePtr{AdoptRef{}, arg_encap->GetVectorVal()});
+			EnqueueEvent(tunnel_changed, nullptr, ConnVal(), arg_encap->ToVal());
 
 		encapsulation = new EncapsulationStack(*arg_encap);
 		}
@@ -348,17 +346,17 @@ const IntrusivePtr<RecordVal>& Connection::ConnVal()
 	{
 	if ( ! conn_val )
 		{
-		conn_val = make_intrusive<RecordVal>(connection_type);
+		conn_val = make_intrusive<RecordVal>(zeek::id::connection);
 
 		TransportProto prot_type = ConnTransport();
 
-		auto id_val = make_intrusive<RecordVal>(conn_id);
+		auto id_val = make_intrusive<RecordVal>(zeek::id::conn_id);
 		id_val->Assign(0, make_intrusive<AddrVal>(orig_addr));
 		id_val->Assign(1, val_mgr->Port(ntohs(orig_port), prot_type));
 		id_val->Assign(2, make_intrusive<AddrVal>(resp_addr));
 		id_val->Assign(3, val_mgr->Port(ntohs(resp_port), prot_type));
 
-		auto orig_endp = make_intrusive<RecordVal>(endpoint);
+		auto orig_endp = make_intrusive<RecordVal>(zeek::id::endpoint);
 		orig_endp->Assign(0, val_mgr->Count(0));
 		orig_endp->Assign(1, val_mgr->Count(0));
 		orig_endp->Assign(4, val_mgr->Count(orig_flow_label));
@@ -369,7 +367,7 @@ const IntrusivePtr<RecordVal>& Connection::ConnVal()
 		if ( memcmp(&orig_l2_addr, &null, l2_len) != 0 )
 			orig_endp->Assign(5, make_intrusive<StringVal>(fmt_mac(orig_l2_addr, l2_len)));
 
-		auto resp_endp = make_intrusive<RecordVal>(endpoint);
+		auto resp_endp = make_intrusive<RecordVal>(zeek::id::endpoint);
 		resp_endp->Assign(0, val_mgr->Count(0));
 		resp_endp->Assign(1, val_mgr->Count(0));
 		resp_endp->Assign(4, val_mgr->Count(resp_flow_label));
@@ -381,7 +379,7 @@ const IntrusivePtr<RecordVal>& Connection::ConnVal()
 		conn_val->Assign(1, std::move(orig_endp));
 		conn_val->Assign(2, std::move(resp_endp));
 		// 3 and 4 are set below.
-		conn_val->Assign(5, make_intrusive<TableVal>(IntrusivePtr{NewRef{}, string_set}));	// service
+		conn_val->Assign(5, make_intrusive<TableVal>(zeek::id::string_set));	// service
 		conn_val->Assign(6, val_mgr->EmptyString());	// history
 
 		if ( ! uid )
@@ -390,7 +388,7 @@ const IntrusivePtr<RecordVal>& Connection::ConnVal()
 		conn_val->Assign(7, make_intrusive<StringVal>(uid.Base62("C").c_str()));
 
 		if ( encapsulation && encapsulation->Depth() > 0 )
-			conn_val->Assign(8, encapsulation->GetVectorVal());
+			conn_val->Assign(8, encapsulation->ToVal());
 
 		if ( vlan != 0 )
 			conn_val->Assign(9, val_mgr->Int(vlan));
@@ -432,7 +430,7 @@ void Connection::AppendAddl(const char* str)
 	{
 	const auto& cv = ConnVal();
 
-	const char* old = cv->Lookup(6)->AsString()->CheckString();
+	const char* old = cv->GetField(6)->AsString()->CheckString();
 	const char* format = *old ? "%s %s" : "%s%s";
 
 	cv->Assign(6, make_intrusive<StringVal>(fmt(format, old, str)));
@@ -701,7 +699,7 @@ void Connection::CheckFlowLabel(bool is_orig, uint32_t flow_label)
 		{
 		if ( conn_val )
 			{
-			RecordVal *endp = conn_val->Lookup(is_orig ? 1 : 2)->AsRecordVal();
+			RecordVal* endp = conn_val->GetField(is_orig ? 1 : 2)->AsRecordVal();
 			endp->Assign(4, val_mgr->Count(flow_label));
 			}
 

@@ -22,18 +22,18 @@ SQLite::SQLite(WriterFrontend* frontend)
 	  fields(), num_fields(), db(), st()
 	{
 	set_separator.assign(
-			(const char*) BifConst::LogSQLite::set_separator->Bytes(),
-			BifConst::LogSQLite::set_separator->Len()
+			(const char*) zeek::BifConst::LogSQLite::set_separator->Bytes(),
+			zeek::BifConst::LogSQLite::set_separator->Len()
 			);
 
 	unset_field.assign(
-			(const char*) BifConst::LogSQLite::unset_field->Bytes(),
-			BifConst::LogSQLite::unset_field->Len()
+			(const char*) zeek::BifConst::LogSQLite::unset_field->Bytes(),
+			zeek::BifConst::LogSQLite::unset_field->Len()
 			);
 
 	empty_field.assign(
-			(const char*) BifConst::LogSQLite::empty_field->Bytes(),
-			BifConst::LogSQLite::empty_field->Len()
+			(const char*) zeek::BifConst::LogSQLite::empty_field->Bytes(),
+			zeek::BifConst::LogSQLite::empty_field->Len()
 			);
 
 	threading::formatter::Ascii::SeparatorInfo sep_info(string(), set_separator, unset_field, empty_field);

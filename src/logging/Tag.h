@@ -88,6 +88,9 @@ public:
 	 *
 	 * @param etype the script-layer enum type associated with the tag.
 	 */
+	const IntrusivePtr<EnumVal>& AsVal() const;
+
+	[[deprecated("Remove in v4.1.  Use AsVal() instead.")]]
 	EnumVal* AsEnumVal() const;
 
 	static const Tag Error;
@@ -113,7 +116,10 @@ protected:
 	 *
 	 * @param val An enum value of script type \c Log::Writer.
 	 */
-	explicit Tag(EnumVal* val) : ::Tag(val) {}
+	explicit Tag(IntrusivePtr<EnumVal> val);
+
+	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
+	explicit Tag(EnumVal* val);
 };
 
 }

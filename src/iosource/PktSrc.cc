@@ -271,7 +271,7 @@ bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
 	// Compile filter.
 	BPF_Program* code = new BPF_Program();
 
-	if ( ! code->Compile(BifConst::Pcap::snaplen, LinkType(), filter.c_str(), Netmask(), errbuf, sizeof(errbuf)) )
+	if ( ! code->Compile(zeek::BifConst::Pcap::snaplen, LinkType(), filter.c_str(), Netmask(), errbuf, sizeof(errbuf)) )
 		{
 		std::string msg = fmt("cannot compile BPF filter \"%s\"", filter.c_str());
 

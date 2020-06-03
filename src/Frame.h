@@ -11,6 +11,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <memory>
 
 #include <broker/data.hh>
 #include <broker/expected.hh>
@@ -41,19 +42,21 @@ public:
 	 * @param n the index to get.
 	 * @return the value at index *n* of the underlying array.
 	 */
-	Val* NthElement(int n) const	{ return frame[n]; }
+	const IntrusivePtr<Val>& GetElement(int n) const
+		{ return frame[n].val; }
+
+	[[deprecated("Remove in v4.1.  Use GetElement(int).")]]
+	Val* NthElement(int n) const	{ return frame[n].val.get(); }
 
 	/**
-	 * Sets the element at index *n* of the underlying array
-	 * to *v*.
-	 *
+	 * Sets the element at index *n* of the underlying array to *v*.
 	 * @param n the index to set
 	 * @param v the value to set it to
-	 * @param weak_ref whether the frame owns the value and should unref
-	 * it upon destruction.  Used to break circular references between
-	 * lambda functions and closure frames.
 	 */
-	void SetElement(int n, Val* v, bool weak_ref = false);
+	void SetElement(int n, IntrusivePtr<Val> v);
+
+	[[deprecated("Remove in v4.1.  Pass IntrusivePtr instead.")]]
+	void SetElement(int n, Val* v);
 
 	/**
 	 * Associates *id* and *v* in the frame. Future lookups of
@@ -62,7 +65,9 @@ public:
 	 * @param id the ID to associate
 	 * @param v the value to associate it with
 	 */
-	void SetElement(const ID* id, Val* v);
+	void SetElement(const ID* id, IntrusivePtr<Val> v);
+	void SetElement(const IntrusivePtr<ID>& id, IntrusivePtr<Val> v)
+		{ SetElement(id.get(), std::move(v)); }
 
 	/**
 	 * Gets the value associated with *id* and returns it. Returns
@@ -71,21 +76,19 @@ public:
 	 * @param id the id who's value to retreive
 	 * @return the value associated with *id*
 	 */
-	Val* GetElement(const ID* id) const;
+	const IntrusivePtr<Val>& GetElementByID(const IntrusivePtr<ID>& id) const
+		{ return GetElementByID(id.get()); }
+
+	[[deprecated("Remove in v4.1.  Use GetElementByID().")]]
+	Val* GetElement(const ID* id) const
+		{ return GetElementByID(id).get(); }
 
 	/**
 	 * Resets all of the indexes from [*startIdx, frame_size) in
-	 * the Frame. Unrefs all of the values in reset indexes.
-	 *
+	 * the Frame.
 	 * @param the first index to unref.
 	 */
 	void Reset(int startIdx);
-
-	/**
-	 * Resets all of the values in the frame and clears out the
-	 * underlying array.
-	 */
-	void Release();
 
 	/**
 	 * Describes the frame and all of its values.
@@ -236,10 +239,37 @@ private:
 
 	using OffsetMap = std::unordered_map<std::string, int>;
 
+	struct Element {
+		IntrusivePtr<Val> val;
+		// Weak reference is used to prevent circular reference memory leaks
+		// in lambdas/closures.
+		bool weak_ref;
+	};
+
+	const IntrusivePtr<Val>& GetElementByID(const ID* id) const;
+
 	/**
-	 * Unrefs the value at offset 'n' frame unless it's a weak reference.
+	 * Sets the element at index *n* of the underlying array to *v*, but does
+	 * not take ownership of a reference count to it.  This method is used to
+	 * break circular references between lambda functions and closure frames.
+	 * @param n the index to set
+	 * @param v the value to set it to (caller has not Ref'd and Frame will
+	 * not Unref it)
 	 */
-	void UnrefElement(int n);
+	void SetElementWeak(int n, Val* v);
+
+	/**
+	 * Clone an element at an offset into other frame if not equal to a given
+	 * function (in that case just assigna weak reference).  Used to break
+	 * circular references between lambda functions and closure frames.
+	 */
+	void CloneNonFuncElement(int offset, BroFunc* func, Frame* other) const;
+
+	/**
+	 * Resets the value at offset 'n' frame (by decrementing reference
+	 * count if not a weak reference).
+	 */
+	void ClearElement(int n);
 
 	/** Have we captured this id? */
 	bool IsOuterID(const ID* in) const;
@@ -269,11 +299,7 @@ private:
 	bool delayed;
 
 	/** Associates ID's offsets with values. */
-	Val** frame;
-
-	/** Values that are weakly referenced by the frame.  Used to
-	 * prevent circular reference memory leaks in lambda/closures */
-	bool* weak_refs = nullptr;
+	std::unique_ptr<Element[]> frame;
 
 	/** The enclosing frame of this frame. */
 	Frame* closure;

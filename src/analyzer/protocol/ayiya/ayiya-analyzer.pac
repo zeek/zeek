@@ -18,7 +18,7 @@ flow AYIYA_Flow
 		Connection *c = connection()->bro_analyzer()->Conn();
 		const EncapsulationStack* e = c->GetEncapsulation();
 
-		if ( e && e->Depth() >= BifConst::Tunnel::max_depth )
+		if ( e && e->Depth() >= zeek::BifConst::Tunnel::max_depth )
 			{
 			reporter->Weird(c, "tunnel_depth");
 			return false;

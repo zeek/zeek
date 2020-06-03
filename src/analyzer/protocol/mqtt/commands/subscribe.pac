@@ -19,19 +19,19 @@ refine flow MQTT_Flow += {
 		%{
 		if ( mqtt_subscribe )
 			{
-			auto topics = make_intrusive<VectorVal>(string_vec);
-			auto qos_levels = make_intrusive<VectorVal>(index_vec);
+			auto topics = make_intrusive<VectorVal>(zeek::id::string_vec);
+			auto qos_levels = make_intrusive<VectorVal>(zeek::id::index_vec);
 
 			for ( auto topic: *${msg.topics} )
 				{
-				auto subscribe_topic = new StringVal(${topic.name.str}.length(),
+				auto subscribe_topic = make_intrusive<StringVal>(${topic.name.str}.length(),
 				                                     reinterpret_cast<const char*>(${topic.name.str}.begin()));
 				auto qos = val_mgr->Count(${topic.requested_QoS});
-				topics->Assign(topics->Size(), subscribe_topic);
-				qos_levels->Assign(qos_levels->Size(), qos);
+				topics->Assign(topics->Size(), std::move(subscribe_topic));
+				qos_levels->Assign(qos_levels->Size(), std::move(qos));
 				}
 
-			BifEvent::enqueue_mqtt_subscribe(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_mqtt_subscribe(connection()->bro_analyzer(),
 			                                 connection()->bro_analyzer()->Conn(),
 			                                 ${msg.msg_id},
 			                                 std::move(topics),

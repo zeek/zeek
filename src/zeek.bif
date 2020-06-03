@@ -68,8 +68,8 @@ static int check_fmt_type(TypeTag t, TypeTag ok[])
 
 static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 	{
-	TypeTag t = v->Type()->Tag();
-	InternalTypeTag it = v->Type()->InternalType();
+	TypeTag t = v->GetType()->Tag();
+	InternalTypeTag it = v->GetType()->InternalType();
 
 	bool zero_pad = false;
 	bool left_just = false;
@@ -198,9 +198,9 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 			{
 			bro_uint_t u = v->CoerceToUnsigned();
 
-			if ( v->Type()->IsNetworkOrder() )
+			if ( v->GetType()->IsNetworkOrder() )
 				{
-				if ( v->Type()->Tag() == TYPE_PORT )
+				if ( v->GetType()->Tag() == TYPE_PORT )
 					u = v->AsPortVal()->Port();
 				else
 					u = ntohl(uint32_t(u));
@@ -401,15 +401,15 @@ function terminate%(%): bool
 // is false).
 static bool prepare_environment(TableVal* tbl, bool set)
 	{
-	IntrusivePtr<ListVal> idxs{AdoptRef{}, tbl->ConvertToPureList()};
+	auto idxs = tbl->ToPureListVal();
 
 	for ( int i = 0; i < idxs->Length(); ++i )
 		{
-		Val* key = idxs->Index(i);
-		auto val = tbl->Lookup(key, false);
+		const auto& key = idxs->Idx(i);
+		const auto& val = tbl->Find(key);
 
-		if ( key->Type()->Tag() != TYPE_STRING ||
-		     val->Type()->Tag() != TYPE_STRING )
+		if ( key->GetType()->Tag() != TYPE_STRING ||
+		     val->GetType()->Tag() != TYPE_STRING )
 			{
 			builtin_error("system_env() needs a table[string] of string");
 			return false;
@@ -487,7 +487,7 @@ function system%(str: string%): int
 ## .. zeek:see:: system safe_shell_quote piped_exec
 function system_env%(str: string, env: table_string_of_string%): int
 	%{
-	if ( env->Type()->Tag() != TYPE_TABLE )
+	if ( env->GetType()->Tag() != TYPE_TABLE )
 		{
 		builtin_error("system_env() requires a table argument");
 		return val_mgr->Int(-1);
@@ -803,8 +803,8 @@ function sha256_hash_finish%(handle: opaque of sha256%): string
 ## .. zeek:see::paraglob_match paraglob_equals paraglob_add
 function paraglob_init%(v: any%) : opaque of paraglob
 	%{
-	if ( v->Type()->Tag() != TYPE_VECTOR ||
-	     v->Type()->YieldType()->Tag() != TYPE_STRING )
+	if ( v->GetType()->Tag() != TYPE_VECTOR ||
+	     v->GetType()->Yield()->Tag() != TYPE_STRING )
 		{
 		// reporter->Error will throw an exception.
 		reporter->Error("paraglob requires a vector of strings for initialization.");
@@ -815,7 +815,7 @@ function paraglob_init%(v: any%) : opaque of paraglob
 	VectorVal* vv = v->AsVectorVal();
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		{
-		const BroString* s = vv->Lookup(i)->AsString();
+		const BroString* s = vv->At(i)->AsString();
 		patterns.push_back(std::string(reinterpret_cast<const char*>(s->Bytes()), s->Len()));
 		}
 
@@ -1051,6 +1051,7 @@ function find_entropy%(data: string%): entropy_test_result
 	e.Feed(data->Bytes(), data->Len());
 	e.Get(&ent, &chisq, &mean, &montepi, &scc);
 
+	static auto entropy_test_result = zeek::id::find_type<RecordType>("entropy_test_result");
 	auto ent_result = make_intrusive<RecordVal>(entropy_test_result);
 	ent_result->Assign(0, make_intrusive<Val>(ent,     TYPE_DOUBLE));
 	ent_result->Assign(1, make_intrusive<Val>(chisq,   TYPE_DOUBLE));
@@ -1102,6 +1103,7 @@ function entropy_test_finish%(handle: opaque of entropy%): entropy_test_result
 	montepi = scc = ent = mean = chisq = 0.0;
 	static_cast<EntropyVal*>(handle)->Get(&ent, &chisq, &mean, &montepi, &scc);
 
+	static auto entropy_test_result = zeek::id::find_type<RecordType>("entropy_test_result");
 	auto ent_result = make_intrusive<RecordVal>(entropy_test_result);
 	ent_result->Assign(0, make_intrusive<Val>(ent,     TYPE_DOUBLE));
 	ent_result->Assign(1, make_intrusive<Val>(chisq,   TYPE_DOUBLE));
@@ -1154,7 +1156,7 @@ function unique_id_from%(pool: int, prefix: string%) : string
 ## v: The set or table
 function clear_table%(v: any%): any
 	%{
-	if ( v->Type()->Tag() == TYPE_TABLE )
+	if ( v->GetType()->Tag() == TYPE_TABLE )
 		v->AsTableVal()->RemoveAll();
 	else
 		builtin_error("clear_table() requires a table/set argument");
@@ -1171,7 +1173,7 @@ function clear_table%(v: any%): any
 ## Returns: All the keys of the set or table that cover the subnet searched for.
 function matching_subnets%(search: subnet, t: any%): subnet_vec
 	%{
-	if ( t->Type()->Tag() != TYPE_TABLE || ! t->Type()->AsTableType()->IsSubNetIndex() )
+	if ( t->GetType()->Tag() != TYPE_TABLE || ! t->GetType()->AsTableType()->IsSubNetIndex() )
 		{
 		reporter->Error("matching_subnets needs to be called on a set[subnet]/table[subnet].");
 		return nullptr;
@@ -1190,7 +1192,7 @@ function matching_subnets%(search: subnet, t: any%): subnet_vec
 ## Returns: A new table that contains all the entries that cover the subnet searched for.
 function filter_subnet_table%(search: subnet, t: any%): any
 	%{
-	if ( t->Type()->Tag() != TYPE_TABLE || ! t->Type()->AsTableType()->IsSubNetIndex() )
+	if ( t->GetType()->Tag() != TYPE_TABLE || ! t->GetType()->AsTableType()->IsSubNetIndex() )
 		{
 		reporter->Error("filter_subnet_table needs to be called on a set[subnet]/table[subnet].");
 		return nullptr;
@@ -1210,7 +1212,7 @@ function filter_subnet_table%(search: subnet, t: any%): any
 ## Returns: True if the exact subnet is a member, false otherwise.
 function check_subnet%(search: subnet, t: any%): bool
 	%{
-	if ( t->Type()->Tag() != TYPE_TABLE || ! t->Type()->AsTableType()->IsSubNetIndex() )
+	if ( t->GetType()->Tag() != TYPE_TABLE || ! t->GetType()->AsTableType()->IsSubNetIndex() )
 		{
 		reporter->Error("check_subnet needs to be called on a set[subnet]/table[subnet].");
 		return nullptr;
@@ -1261,7 +1263,7 @@ function val_size%(v: any%): count
 ## Returns: The old size of *aggr*, or 0 if *aggr* is not a :zeek:type:`vector`.
 function resize%(aggr: any, newsize: count%) : count
 	%{
-	if ( aggr->Type()->Tag() != TYPE_VECTOR )
+	if ( aggr->GetType()->Tag() != TYPE_VECTOR )
 		{
 		builtin_error("resize() operates on vectors");
 		return nullptr;
@@ -1280,8 +1282,8 @@ function resize%(aggr: any, newsize: count%) : count
 ## .. zeek:see:: all_set
 function any_set%(v: any%) : bool
 	%{
-	if ( v->Type()->Tag() != TYPE_VECTOR ||
-	     v->Type()->YieldType()->Tag() != TYPE_BOOL )
+	if ( v->GetType()->Tag() != TYPE_VECTOR ||
+	     v->GetType()->Yield()->Tag() != TYPE_BOOL )
 		{
 		builtin_error("any_set() requires vector of bool");
 		return val_mgr->False();
@@ -1289,7 +1291,7 @@ function any_set%(v: any%) : bool
 
 	VectorVal* vv = v->AsVectorVal();
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
-		if ( vv->Lookup(i) && vv->Lookup(i)->AsBool() )
+		if ( vv->At(i) && vv->At(i)->AsBool() )
 			return val_mgr->True();
 
 	return val_mgr->False();
@@ -1309,8 +1311,8 @@ function any_set%(v: any%) : bool
 ##      Missing elements count as false.
 function all_set%(v: any%) : bool
 	%{
-	if ( v->Type()->Tag() != TYPE_VECTOR ||
-	     v->Type()->YieldType()->Tag() != TYPE_BOOL )
+	if ( v->GetType()->Tag() != TYPE_VECTOR ||
+	     v->GetType()->Yield()->Tag() != TYPE_BOOL )
 		{
 		builtin_error("all_set() requires vector of bool");
 		return val_mgr->False();
@@ -1318,17 +1320,17 @@ function all_set%(v: any%) : bool
 
 	VectorVal* vv = v->AsVectorVal();
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
-		if ( ! vv->Lookup(i) || ! vv->Lookup(i)->AsBool() )
+		if ( ! vv->At(i) || ! vv->At(i)->AsBool() )
 			return val_mgr->False();
 
 	return val_mgr->True();
 	%}
 
 %%{
-static Func* sort_function_comp = 0;
-static Val** index_map = 0;	// used for indirect sorting to support order()
+static Func* sort_function_comp = nullptr;
+static std::vector<const IntrusivePtr<Val>*> index_map;	// used for indirect sorting to support order()
 
-bool sort_function(Val* a, Val* b)
+bool sort_function(const IntrusivePtr<Val>& a, const IntrusivePtr<Val>& b)
 	{
 	// Sort missing values as "high".
 	if ( ! a )
@@ -1336,8 +1338,7 @@ bool sort_function(Val* a, Val* b)
 	if ( ! b )
 		return 1;
 
-	auto result = sort_function_comp->Call(IntrusivePtr{NewRef{}, a},
-	                                       IntrusivePtr{NewRef{}, b});
+	auto result = sort_function_comp->Invoke(a, b);
 	int int_result = result->CoerceToInt();
 
 	return int_result < 0;
@@ -1345,10 +1346,10 @@ bool sort_function(Val* a, Val* b)
 
 bool indirect_sort_function(size_t a, size_t b)
 	{
-	return sort_function(index_map[a], index_map[b]);
+	return sort_function(*index_map[a], *index_map[b]);
 	}
 
-bool signed_sort_function (Val* a, Val* b)
+bool signed_sort_function (const IntrusivePtr<Val>& a, const IntrusivePtr<Val>& b)
 	{
 	if ( ! a )
 		return 0;
@@ -1361,7 +1362,7 @@ bool signed_sort_function (Val* a, Val* b)
 	return ia < ib;
 	}
 
-bool unsigned_sort_function (Val* a, Val* b)
+bool unsigned_sort_function (const IntrusivePtr<Val>& a, const IntrusivePtr<Val>& b)
 	{
 	if ( ! a )
 		return 0;
@@ -1376,12 +1377,12 @@ bool unsigned_sort_function (Val* a, Val* b)
 
 bool indirect_signed_sort_function(size_t a, size_t b)
 	{
-	return signed_sort_function(index_map[a], index_map[b]);
+	return signed_sort_function(*index_map[a], *index_map[b]);
 	}
 
 bool indirect_unsigned_sort_function(size_t a, size_t b)
 	{
-	return unsigned_sort_function(index_map[a], index_map[b]);
+	return unsigned_sort_function(*index_map[a], *index_map[b]);
 	}
 %%}
 
@@ -1402,13 +1403,13 @@ function sort%(v: any, ...%) : any
 	%{
 	IntrusivePtr<Val> rval{NewRef{}, v};
 
-	if ( v->Type()->Tag() != TYPE_VECTOR )
+	if ( v->GetType()->Tag() != TYPE_VECTOR )
 		{
 		builtin_error("sort() requires vector");
 		return rval;
 		}
 
-	BroType* elt_type = v->Type()->YieldType();
+	const auto& elt_type = v->GetType()->Yield();
 	Func* comp = 0;
 
 	if ( @ARG@.size() > 2 )
@@ -1417,7 +1418,7 @@ function sort%(v: any, ...%) : any
 	if ( @ARG@.size() == 2 )
 		{
 		Val* comp_val = @ARG@[1].get();
-		if ( ! IsFunc(comp_val->Type()->Tag()) )
+		if ( ! IsFunc(comp_val->GetType()->Tag()) )
 			{
 			builtin_error("second argument to sort() needs to be comparison function");
 			return rval;
@@ -1429,13 +1430,14 @@ function sort%(v: any, ...%) : any
 	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
 		builtin_error("comparison function required for sort() with non-integral types");
 
-	vector<Val*>& vv = *v->AsVector();
+	auto& vv = *v->AsVector();
 
 	if ( comp )
 		{
-		FuncType* comp_type = comp->FType()->AsFuncType();
-		if ( comp_type->YieldType()->Tag() != TYPE_INT ||
-		     ! comp_type->ArgTypes()->AllMatch(elt_type, 0) )
+		const auto& comp_type = comp->GetType();
+
+		if ( comp_type->Yield()->Tag() != TYPE_INT ||
+		     ! comp_type->ParamList()->AllMatch(elt_type, 0) )
 			{
 			builtin_error("invalid comparison function in call to sort()");
 			return rval;
@@ -1469,16 +1471,15 @@ function sort%(v: any, ...%) : any
 ## .. zeek:see:: sort
 function order%(v: any, ...%) : index_vec
 	%{
-	auto result_v = make_intrusive<VectorVal>(
-	    internal_type("index_vec")->AsVectorType());
+	auto result_v = make_intrusive<VectorVal>(zeek::id::index_vec);
 
-	if ( v->Type()->Tag() != TYPE_VECTOR )
+	if ( v->GetType()->Tag() != TYPE_VECTOR )
 		{
 		builtin_error("order() requires vector");
 		return result_v;
 		}
 
-	BroType* elt_type = v->Type()->YieldType();
+	const auto& elt_type = v->GetType()->Yield();
 	Func* comp = 0;
 
 	if ( @ARG@.size() > 2 )
@@ -1487,7 +1488,7 @@ function order%(v: any, ...%) : index_vec
 	if ( @ARG@.size() == 2 )
 		{
 		Val* comp_val = @ARG@[1].get();
-		if ( ! IsFunc(comp_val->Type()->Tag()) )
+		if ( ! IsFunc(comp_val->GetType()->Tag()) )
 			{
 			builtin_error("second argument to order() needs to be comparison function");
 			return IntrusivePtr<Val>{NewRef{}, v};
@@ -1499,25 +1500,25 @@ function order%(v: any, ...%) : index_vec
 	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
 		builtin_error("comparison function required for order() with non-integral types");
 
-	vector<Val*>& vv = *v->AsVector();
+	auto& vv = *v->AsVector();
 	auto n = vv.size();
 
 	// Set up initial mapping of indices directly to corresponding
 	// elements.
 	vector<size_t> ind_vv(n);
-	index_map = new Val*[n];
+	index_map.reserve(n);
 	size_t i;
 	for ( i = 0; i < n; ++i )
 		{
 		ind_vv[i] = i;
-		index_map[i] = vv[i];
+		index_map.emplace_back(&vv[i]);
 		}
 
 	if ( comp )
 		{
-		FuncType* comp_type = comp->FType()->AsFuncType();
-		if ( comp_type->YieldType()->Tag() != TYPE_INT ||
-		     ! comp_type->ArgTypes()->AllMatch(elt_type, 0) )
+		const auto& comp_type = comp->GetType();
+		if ( comp_type->Yield()->Tag() != TYPE_INT ||
+		     ! comp_type->ParamList()->AllMatch(elt_type, 0) )
 			{
 			builtin_error("invalid comparison function in call to order()");
 			return IntrusivePtr<Val>{NewRef{}, v};
@@ -1535,8 +1536,7 @@ function order%(v: any, ...%) : index_vec
 			sort(ind_vv.begin(), ind_vv.end(), indirect_signed_sort_function);
 		}
 
-	delete [] index_map;
-	index_map = 0;
+	index_map = {};
 
 	// Now spin through ind_vv to read out the rearrangement.
 	for ( i = 0; i < n; ++i )
@@ -1603,7 +1603,7 @@ function cat_sep%(sep: string, def: string, ...%): string
 			d.Add(sep->CheckString(), 0);
 
 		Val* v = @ARG@[i].get();
-		if ( v->Type()->Tag() == TYPE_STRING && ! v->AsString()->Len() )
+		if ( v->GetType()->Tag() == TYPE_STRING && ! v->AsString()->Len() )
 			v = def;
 
 		v->Describe(&d);
@@ -1823,16 +1823,12 @@ function zeek_version%(%): string
 ## Returns: A string vector with the field names of *rt*.
 function record_type_to_vector%(rt: string%): string_vec
 	%{
-	auto result =
-		make_intrusive<VectorVal>(internal_type("string_vec")->AsVectorType());
+	auto result = make_intrusive<VectorVal>(zeek::id::string_vec);
 
-	RecordType *type = internal_type(rt->CheckString())->AsRecordType();
+	RecordType* type = zeek::id::find_type(rt->CheckString())->AsRecordType();
 
-	if ( type )
-		{
-		for ( int i = 0; i < type->NumFields(); ++i )
-			result->Assign(i+1, make_intrusive<StringVal>(type->FieldName(i)));
-		}
+	for ( int i = 0; i < type->NumFields(); ++i )
+		result->Assign(i+1, make_intrusive<StringVal>(type->FieldName(i)));
 
 	return result;
 	%}
@@ -1845,7 +1841,7 @@ function record_type_to_vector%(rt: string%): string_vec
 function type_name%(t: any%): string
 	%{
 	ODesc d;
-	t->Type()->Describe(&d);
+	t->GetType()->Describe(&d);
 
 	BroString* s = new BroString(1, d.TakeBytes(), d.Len());
 	s->SetUseFreeToDelete(true);
@@ -1856,8 +1852,8 @@ function type_name%(t: any%): string
 ## Returns: list of command-line arguments (``argv``) used to run Zeek.
 function zeek_args%(%): string_vec
 	%{
-	auto sv = internal_type("string_vec")->AsVectorType();
-	auto rval = make_intrusive<VectorVal>(sv);
+	auto sv = zeek::id::string_vec;
+	auto rval = make_intrusive<VectorVal>(std::move(sv));
 
 	for ( auto i = 0; i < bro_argc; ++i )
 		rval->Assign(rval->Size(), make_intrusive<StringVal>(bro_argv[i]));
@@ -1894,7 +1890,7 @@ function reading_traces%(%): bool
 ## .. zeek:see:: reading_live_traffic reading_traces
 function packet_source%(%): PacketSource
 	%{
-	auto ps_type = internal_type("PacketSource")->AsRecordType();
+	static auto ps_type = zeek::id::find_type<RecordType>("PacketSource");
 	auto ps = iosource_mgr->GetPktSrc();
 	auto r = make_intrusive<RecordVal>(ps_type);
 
@@ -1926,8 +1922,8 @@ function global_sizes%(%): var_sizes
 		if ( id->HasVal() )
 			{
 			auto id_name = make_intrusive<StringVal>(id->Name());
-			auto id_size = val_mgr->Count(id->ID_Val()->MemoryAllocation());
-			sizes->Assign(id_name.get(), std::move(id_size));
+			auto id_size = val_mgr->Count(id->GetVal()->MemoryAllocation());
+			sizes->Assign(std::move(id_name), std::move(id_size));
 			}
 		}
 
@@ -1944,14 +1940,16 @@ function global_sizes%(%): var_sizes
 ## .. zeek:see:: global_sizes
 function global_ids%(%): id_table
 	%{
-	auto ids = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, id_table});
+	static auto id_table = zeek::id::find_type<TableType>("id_table");
+	auto ids = make_intrusive<TableVal>(id_table);
 	const auto& globals = global_scope()->Vars();
 
 	for ( const auto& global : globals )
 		{
 		ID* id = global.second.get();
+		static auto script_id = zeek::id::find_type<RecordType>("script_id");
 		auto rec = make_intrusive<RecordVal>(script_id);
-		rec->Assign(0, make_intrusive<StringVal>(type_name(id->Type()->Tag())));
+		rec->Assign(0, make_intrusive<StringVal>(type_name(id->GetType()->Tag())));
 		rec->Assign(1, val_mgr->Bool(id->IsExport()));
 		rec->Assign(2, val_mgr->Bool(id->IsConst()));
 		rec->Assign(3, val_mgr->Bool(id->IsEnumConst()));
@@ -1959,14 +1957,10 @@ function global_ids%(%): id_table
 		rec->Assign(5, val_mgr->Bool(id->IsRedefinable()));
 
 		if ( id->HasVal() )
-			{
-			Val* val = id->ID_Val();
-			Ref(val);
-			rec->Assign(6, val);
-			}
+			rec->Assign(6, id->GetVal());
 
 		auto id_name = make_intrusive<StringVal>(id->Name());
-		ids->Assign(id_name.get(), std::move(rec));
+		ids->Assign(std::move(id_name), std::move(rec));
 		}
 
 	return ids;
@@ -1980,14 +1974,14 @@ function global_ids%(%): id_table
 ##          the string ``"<unknown id>"`` or ``"<no ID value>"`` is returned.
 function lookup_ID%(id: string%) : any
 	%{
-	ID* i = global_scope()->Lookup(id->CheckString());
+	const auto& i = global_scope()->Find(id->CheckString());
 	if ( ! i )
 		return make_intrusive<StringVal>("<unknown id>");
 
-	if ( ! i->ID_Val() )
+	if ( ! i->GetVal() )
 		return make_intrusive<StringVal>("<no ID value>");
 
-	return IntrusivePtr{NewRef{}, i->ID_Val()};
+	return i->GetVal();
 	%}
 
 ## Generates metadata about a record's fields. The returned information
@@ -1999,18 +1993,19 @@ function lookup_ID%(id: string%) : any
 ## Returns: A table that describes the fields of a record.
 function record_fields%(rec: any%): record_field_table
 	%{
-	if ( rec->Type()->Tag() == TYPE_STRING )
-		{
-		auto id = global_scope()->Lookup(rec->AsStringVal()->ToStdString());
+	static auto record_field_table = zeek::id::find_type<TableType>("record_field_table");
 
-		if ( ! id || ! id->AsType() || id->AsType()->Tag() != TYPE_RECORD )
+	if ( rec->GetType()->Tag() == TYPE_STRING )
+		{
+		const auto& id = global_scope()->Find(rec->AsStringVal()->ToStdString());
+
+		if ( ! id || ! id->IsType() || id->GetType()->Tag() != TYPE_RECORD )
 			{
 			reporter->Error("record_fields string argument does not name a record type");
-			IntrusivePtr<TableType> tt{NewRef{}, internal_type("record_field_table")->AsTableType()};
-			return make_intrusive<TableVal>(std::move(tt));
+			return make_intrusive<TableVal>(record_field_table);
 			}
 
-		return id->AsType()->AsRecordType()->GetRecordFieldsVal();
+		return id->GetType()->AsRecordType()->GetRecordFieldsVal();
 		}
 
 	return rec->GetRecordFields();
@@ -2193,7 +2188,7 @@ function is_v6_subnet%(s: subnet%): bool
 ## Returns: The vector of addresses contained in the routing header data.
 function routing0_data_to_addrs%(s: string%): addr_vec
 	%{
-	auto rval = make_intrusive<VectorVal>(internal_type("addr_vec")->AsVectorType());
+	auto rval = make_intrusive<VectorVal>(zeek::id::find_type<VectorType>("addr_vec"));
 
 	int len = s->Len();
 	const u_char* bytes = s->Bytes();
@@ -2224,7 +2219,7 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 ## .. zeek:see:: counts_to_addr
 function addr_to_counts%(a: addr%): index_vec
 	%{
-	auto rval = make_intrusive<VectorVal>(internal_type("index_vec")->AsVectorType());
+	auto rval = make_intrusive<VectorVal>(zeek::id::index_vec);
 	const uint32_t* bytes;
 	int len = a->AsAddr().GetBytes(&bytes);
 
@@ -2271,7 +2266,7 @@ function counts_to_addr%(v: index_vec%): addr
 ## Returns: The :zeek:type:`int` value that corresponds to the :zeek:type:`enum`.
 function enum_to_int%(e: any%): int
 	%{
-	if ( e->Type()->Tag() != TYPE_ENUM )
+	if ( e->GetType()->Tag() != TYPE_ENUM )
 		{
 		builtin_error("enum_to_int() requires enum value");
 		return val_mgr->Int(-1);
@@ -2404,7 +2399,7 @@ function double_to_time%(d: double%): time
 ## .. zeek:see:: interval_to_double
 function double_to_interval%(d: double%): interval
 	%{
-	return make_intrusive<Val>(d, TYPE_INTERVAL);
+	return make_intrusive<IntervalVal>(d, Seconds);
 	%}
 
 ## Converts a :zeek:type:`port` to a :zeek:type:`count`.
@@ -3218,16 +3213,16 @@ static IntrusivePtr<EnumVal> map_conn_type(TransportProto tp)
 	{
 	switch ( tp ) {
 	case TRANSPORT_UNKNOWN:
-		return transport_proto->GetVal(0);
+		return zeek::id::transport_proto->GetVal(0);
 
 	case TRANSPORT_TCP:
-		return transport_proto->GetVal(1);
+		return zeek::id::transport_proto->GetVal(1);
 
 	case TRANSPORT_UDP:
-		return transport_proto->GetVal(2);
+		return zeek::id::transport_proto->GetVal(2);
 
 	case TRANSPORT_ICMP:
-		return transport_proto->GetVal(3);
+		return zeek::id::transport_proto->GetVal(3);
 
 	default:
 		reporter->InternalError("bad connection type in map_conn_type()");
@@ -3253,7 +3248,7 @@ function get_conn_transport_proto%(cid: conn_id%): transport_proto
 	if ( ! c )
 		{
 		builtin_error("unknown connection id in get_conn_transport_proto()", cid);
-		return transport_proto->GetVal(0);
+		return zeek::id::transport_proto->GetVal(0);
 		}
 
 	return map_conn_type(c->ConnTransport());
@@ -3305,20 +3300,20 @@ function lookup_connection%(cid: conn_id%): connection
 	builtin_error("connection ID not a known connection", cid);
 
 	// Return a dummy connection record.
-	auto c = make_intrusive<RecordVal>(connection_type);
+	auto c = make_intrusive<RecordVal>(zeek::id::connection);
 
-	auto id_val = make_intrusive<RecordVal>(conn_id);
+	auto id_val = make_intrusive<RecordVal>(zeek::id::conn_id);
 	id_val->Assign(0, make_intrusive<AddrVal>((unsigned int) 0));
 	id_val->Assign(1, val_mgr->Port(ntohs(0), TRANSPORT_UDP));
 	id_val->Assign(2, make_intrusive<AddrVal>((unsigned int) 0));
 	id_val->Assign(3, val_mgr->Port(ntohs(0), TRANSPORT_UDP));
 	c->Assign(0, std::move(id_val));
 
-	auto orig_endp = make_intrusive<RecordVal>(endpoint);
+	auto orig_endp = make_intrusive<RecordVal>(zeek::id::endpoint);
 	orig_endp->Assign(0, val_mgr->Count(0));
 	orig_endp->Assign(1, val_mgr->Count(int(0)));
 
-	auto resp_endp = make_intrusive<RecordVal>(endpoint);
+	auto resp_endp = make_intrusive<RecordVal>(zeek::id::endpoint);
 	resp_endp->Assign(0, val_mgr->Count(0));
 	resp_endp->Assign(1, val_mgr->Count(int(0)));
 
@@ -3327,7 +3322,7 @@ function lookup_connection%(cid: conn_id%): connection
 
 	c->Assign(3, make_intrusive<Val>(network_time, TYPE_TIME));
 	c->Assign(4, make_intrusive<Val>(0.0, TYPE_INTERVAL));
-	c->Assign(5, make_intrusive<TableVal>(IntrusivePtr{NewRef{}, string_set}));	// service
+	c->Assign(5, make_intrusive<TableVal>(zeek::id::string_set));	// service
 	c->Assign(6, val_mgr->EmptyString());	// history
 
 	return c;
@@ -3336,8 +3331,8 @@ function lookup_connection%(cid: conn_id%): connection
 %%{
 const char* conn_id_string(Val* c)
 	{
-	Val* id = (*(c->AsRecord()))[0];
-	const val_list* vl = id->AsRecord();
+	const auto& id = (*(c->AsRecord()))[0];
+	auto vl = id->AsRecord();
 
 	const IPAddr& orig_h = (*vl)[0]->AsAddr();
 	uint32_t orig_p = (*vl)[1]->AsPortVal()->Port();
@@ -3389,6 +3384,7 @@ function dump_current_packet%(file_name: string%) : bool
 ## .. zeek:see:: dump_current_packet dump_packet
 function get_current_packet%(%) : pcap_packet
 	%{
+	static auto pcap_packet = zeek::id::find_type<RecordType>("pcap_packet");
 	const Packet* p;
 	auto pkt = make_intrusive<RecordVal>(pcap_packet);
 
@@ -3400,7 +3396,7 @@ function get_current_packet%(%) : pcap_packet
 		pkt->Assign(2, val_mgr->Count(0));
 		pkt->Assign(3, val_mgr->Count(0));
 		pkt->Assign(4, val_mgr->EmptyString());
-		pkt->Assign(5, BifType::Enum::link_encap->GetVal(BifEnum::LINK_UNKNOWN));
+		pkt->Assign(5, zeek::BifType::Enum::link_encap->GetVal(BifEnum::LINK_UNKNOWN));
 		return pkt;
 		}
 
@@ -3409,7 +3405,7 @@ function get_current_packet%(%) : pcap_packet
 	pkt->Assign(2, val_mgr->Count(p->cap_len));
 	pkt->Assign(3, val_mgr->Count(p->len));
 	pkt->Assign(4, make_intrusive<StringVal>(p->cap_len, (const char*)p->data));
-	pkt->Assign(5, BifType::Enum::link_encap->GetVal(p->link_type));
+	pkt->Assign(5, zeek::BifType::Enum::link_encap->GetVal(p->link_type));
 
 	return pkt;
 	%}
@@ -3427,9 +3423,10 @@ function get_current_packet_header%(%) : raw_pkt_hdr
 	if ( current_pktsrc &&
 	     current_pktsrc->GetCurrentPacket(&p) )
 		{
-		return IntrusivePtr{AdoptRef{}, p->BuildPktHdrVal()};
+		return p->ToRawPktHdrVal();
 		}
 
+	static auto raw_pkt_hdr_type = zeek::id::find_type<RecordType>("raw_pkt_hdr");
 	auto hdr = make_intrusive<RecordVal>(raw_pkt_hdr_type);
 	return hdr;
 	%}
@@ -3460,7 +3457,7 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 		uint32_t caplen, len, link_type;
 		u_char *data;
 
-		const val_list* pkt_vl = pkt->AsRecord();
+		auto pkt_vl = pkt->AsRecord();
 
 		ts.tv_sec = (*pkt_vl)[0]->AsCount();
 		ts.tv_usec = (*pkt_vl)[1]->AsCount();
@@ -3524,10 +3521,9 @@ public:
 		else
 			{
 			ListVal* lv = new ListVal(TYPE_ADDR);
-			lv->Append(new AddrVal("0.0.0.0"));
-			Val* result = lv->ConvertToSet();
-			trigger->Cache(call, result);
-			Unref(result);
+			lv->Append(make_intrusive<AddrVal>("0.0.0.0"));
+			auto result = lv->ToSetVal();
+			trigger->Cache(call, result.get());
 			Unref(lv);
 			}
 
@@ -3866,7 +3862,7 @@ static bool mmdb_lookup_asn(const IPAddr& addr, MMDB_lookup_result_s& result)
 	return mmdb_lookup(addr, result, true);
 	}
 
-static Val* mmdb_getvalue(MMDB_entry_data_s* entry_data, int status,
+static IntrusivePtr<Val> mmdb_getvalue(MMDB_entry_data_s* entry_data, int status,
                           int data_type )
 	{
 	switch (status)
@@ -3877,16 +3873,16 @@ static Val* mmdb_getvalue(MMDB_entry_data_s* entry_data, int status,
 				switch (data_type)
 					{
 					case MMDB_DATA_TYPE_UTF8_STRING:
-						return new StringVal(entry_data->data_size,
-						                     entry_data->utf8_string);
+						return make_intrusive<StringVal>(entry_data->data_size,
+						                                 entry_data->utf8_string);
 						break;
 
 					case MMDB_DATA_TYPE_DOUBLE:
-						return new Val(entry_data->double_value, TYPE_DOUBLE);
+						return make_intrusive<Val>(entry_data->double_value, TYPE_DOUBLE);
 						break;
 
 					case MMDB_DATA_TYPE_UINT32:
-						return val_mgr->Count(entry_data->uint32).release();
+						return val_mgr->Count(entry_data->uint32);
 
 					default:
 						break;
@@ -3909,7 +3905,7 @@ static Val* mmdb_getvalue(MMDB_entry_data_s* entry_data, int status,
 static bool mmdb_try_open_loc ()
 	{
 	// City database is always preferred over Country database.
-	auto mmdb_dir_val = global_scope()->Lookup("mmdb_dir")->ID_Val();
+	const auto& mmdb_dir_val = global_scope()->Find("mmdb_dir")->GetVal();
 	std::string mmdb_dir = mmdb_dir_val->AsString()->CheckString();
 
 	if ( ! mmdb_dir.empty() )
@@ -3937,7 +3933,7 @@ static bool mmdb_try_open_loc ()
 
 static bool mmdb_try_open_asn ()
 	{
-	auto mmdb_dir_val = global_scope()->Lookup("mmdb_dir")->ID_Val();
+	const auto& mmdb_dir_val = global_scope()->Find("mmdb_dir")->GetVal();
 	std::string mmdb_dir = mmdb_dir_val->AsString()->CheckString();
 
 	if ( ! mmdb_dir.empty() )
@@ -4001,6 +3997,7 @@ function mmdb_open_asn_db%(f: string%) : bool
 ## .. zeek:see:: lookup_asn
 function lookup_location%(a: addr%) : geo_location
 	%{
+	static auto geo_location = zeek::id::find_type<RecordType>("geo_location");
 	auto location = make_intrusive<RecordVal>(geo_location);
 
 #ifdef USE_GEOIP
@@ -4112,8 +4109,8 @@ function lookup_asn%(a: addr%) : count
 		// Get Autonomous System Number
 		status = MMDB_get_value(&result.entry, &entry_data,
 		                        "autonomous_system_number", nullptr);
-		Val* asn = mmdb_getvalue(&entry_data, status, MMDB_DATA_TYPE_UINT32);
-		return asn == nullptr ? val_mgr->Count(0) : IntrusivePtr<Val>{AdoptRef{}, asn};
+		auto asn = mmdb_getvalue(&entry_data, status, MMDB_DATA_TYPE_UINT32);
+		return asn == nullptr ? val_mgr->Count(0) : asn;
 		}
 
 #else // not USE_GEOIP
@@ -4400,9 +4397,9 @@ function open%(f: string%): file
 	const char* file = f->CheckString();
 
 	if ( streq(file, "-") )
-		return make_intrusive<Val>(new BroFile(stdout, "-", "w"));
+		return make_intrusive<Val>(make_intrusive<BroFile>(stdout, "-", "w"));
 	else
-		return make_intrusive<Val>(new BroFile(file, "w"));
+		return make_intrusive<Val>(make_intrusive<BroFile>(file, "w"));
 	%}
 
 ## Opens a file for writing or appending. If a file with the same name already
@@ -4417,7 +4414,7 @@ function open%(f: string%): file
 ##              rmdir unlink rename
 function open_for_append%(f: string%): file
 	%{
-	return make_intrusive<Val>(new BroFile(f->CheckString(), "a"));
+	return make_intrusive<Val>(make_intrusive<BroFile>(f->CheckString(), "a"));
 	%}
 
 ## Closes an open file and flushes any buffered content.
@@ -4632,6 +4629,7 @@ function rotate_file%(f: file%): rotate_info
 		return info;
 
 	// Record indicating error.
+	static auto rotate_info = zeek::id::find_type<RecordType>("rotate_info");
 	info = make_intrusive<RecordVal>(rotate_info);
 	info->Assign(0, val_mgr->EmptyString());
 	info->Assign(1, val_mgr->EmptyString());
@@ -4651,6 +4649,7 @@ function rotate_file%(f: file%): rotate_info
 ## .. zeek:see:: rotate_file calc_next_rotate
 function rotate_file_by_name%(f: string%): rotate_info
 	%{
+	static auto rotate_info = zeek::id::find_type<RecordType>("rotate_info");
 	auto info = make_intrusive<RecordVal>(rotate_info);
 
 	bool is_pkt_dumper = false;
@@ -4705,8 +4704,8 @@ function rotate_file_by_name%(f: string%): rotate_info
 ## .. zeek:see:: rotate_file rotate_file_by_name
 function calc_next_rotate%(i: interval%) : interval
 	%{
-	const char* base_time = log_rotate_base_time ?
-		log_rotate_base_time->AsString()->CheckString() : 0;
+	static auto log_rotate_base_time = zeek::id::find_val<StringVal>("log_rotate_base_time");
+	static auto base_time = log_rotate_base_time->AsString()->CheckString();
 
 	double base = parse_rotate_base_time(base_time);
 	return make_intrusive<Val>(calc_next_rotate(network_time, i, base), TYPE_INTERVAL);

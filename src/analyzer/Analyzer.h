@@ -911,7 +911,7 @@ public:
 	 * @param f The file to record to.
 	 *
 	 */
-	virtual void SetContentsFile(unsigned int direction, BroFile* f);
+	virtual void SetContentsFile(unsigned int direction, IntrusivePtr<BroFile> f);
 
 	/**
 	 * Returns an associated contents file, if any.  This must only be
@@ -921,7 +921,7 @@ public:
 	 * @param direction One of the CONTENTS_* constants indicating which
 	 * direction the query is for.
 	 */
-	virtual BroFile* GetContentsFile(unsigned int direction) const;
+	virtual IntrusivePtr<BroFile> GetContentsFile(unsigned int direction) const;
 
 	/**
 	 * Associates a PIA with this analyzer. A PIA takes the

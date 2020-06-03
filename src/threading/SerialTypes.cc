@@ -4,6 +4,15 @@
 #include "SerialTypes.h"
 #include "SerializationFormat.h"
 #include "Reporter.h"
+// The following are required for ValueToVal.
+#include "Val.h"
+#include "BroString.h"
+#include "RE.h"
+#include "module_util.h"
+#include "ID.h"
+#include "Expr.h"
+#include "Scope.h"
+#include "IPAddr.h"
 
 using namespace threading;
 
@@ -146,7 +155,7 @@ bool Value::IsCompatibleType(BroType* t, bool atomic_only)
 		if ( ! t->IsSet() )
 			return false;
 
-		return IsCompatibleType(t->AsSetType()->Indices()->PureType(), true);
+		return IsCompatibleType(t->AsSetType()->GetIndices()->GetPureType().get(), true);
 		}
 
 	case TYPE_VECTOR:
@@ -154,7 +163,7 @@ bool Value::IsCompatibleType(BroType* t, bool atomic_only)
 		if ( atomic_only )
 			return false;
 
-		return IsCompatibleType(t->AsVectorType()->YieldType(), true);
+		return IsCompatibleType(t->AsVectorType()->Yield().get(), true);
 		}
 
 	default:
@@ -346,7 +355,6 @@ bool Value::Write(SerializationFormat* fmt) const
 		case IPv6:
 			return fmt->Write((char)6, "addr-family")
 				&& fmt->Write(val.addr_val.in.in6, "addr-in6");
-			break;
 		}
 
 		// Can't be reached.
@@ -366,7 +374,6 @@ bool Value::Write(SerializationFormat* fmt) const
 		case IPv6:
 			return fmt->Write((char)6, "subnet-family")
 				&& fmt->Write(val.subnet_val.prefix.in.in6, "subnet-in6");
-			break;
 		}
 
 		// Can't be reached.
@@ -417,5 +424,215 @@ bool Value::Write(SerializationFormat* fmt) const
 		                        type_name(type));
 	}
 
+	// unreachable
 	return false;
+	}
+
+void Value::delete_value_ptr_array(Value** vals, int num_fields)
+	{
+	for ( int i = 0; i < num_fields; ++i )
+		delete vals[i];
+
+	delete [] vals;
+	}
+
+Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_error)
+	{
+	if ( have_error )
+		return nullptr;
+
+	if ( ! val->present )
+		return nullptr; // unset field
+
+	switch ( val->type ) {
+		case TYPE_BOOL:
+			return val_mgr->Bool(val->val.int_val)->Ref();
+
+		case TYPE_INT:
+			return val_mgr->Int(val->val.int_val).release();
+
+		case TYPE_COUNT:
+		case TYPE_COUNTER:
+			return val_mgr->Count(val->val.int_val).release();
+
+		case TYPE_DOUBLE:
+		case TYPE_TIME:
+		case TYPE_INTERVAL:
+			return new Val(val->val.double_val, val->type);
+
+		case TYPE_STRING:
+			{
+			BroString *s = new BroString((const u_char*)val->val.string_val.data, val->val.string_val.length, true);
+			return new StringVal(s);
+			}
+
+		case TYPE_PORT:
+			return val_mgr->Port(val->val.port_val.port, val->val.port_val.proto)->Ref();
+
+		case TYPE_ADDR:
+			{
+			IPAddr* addr = nullptr;
+			switch ( val->val.addr_val.family ) {
+				case IPv4:
+					addr = new IPAddr(val->val.addr_val.in.in4);
+					break;
+
+				case IPv6:
+					addr = new IPAddr(val->val.addr_val.in.in6);
+					break;
+
+				default:
+					assert(false);
+				}
+
+			AddrVal* addrval = new AddrVal(*addr);
+			delete addr;
+			return addrval;
+			}
+
+		case TYPE_SUBNET:
+			{
+			IPAddr* addr = nullptr;
+			switch ( val->val.subnet_val.prefix.family ) {
+				case IPv4:
+					addr = new IPAddr(val->val.subnet_val.prefix.in.in4);
+					break;
+
+				case IPv6:
+					addr = new IPAddr(val->val.subnet_val.prefix.in.in6);
+					break;
+
+				default:
+					assert(false);
+				}
+
+			SubNetVal* subnetval = new SubNetVal(*addr, val->val.subnet_val.length);
+			delete addr;
+			return subnetval;
+			}
+
+		case TYPE_PATTERN:
+			{
+			RE_Matcher* re = new RE_Matcher(val->val.pattern_text_val);
+			re->Compile();
+			return new PatternVal(re);
+			}
+
+		case TYPE_TABLE:
+			{
+			IntrusivePtr<TypeList> set_index;
+			if ( val->val.set_val.size == 0 && val->subtype == TYPE_VOID )
+				// don't know type - unspecified table.
+				set_index = make_intrusive<TypeList>();
+			else
+				{
+				// all entries have to have the same type...
+				TypeTag stag = val->subtype;
+				if ( stag == TYPE_VOID )
+					TypeTag stag = val->val.set_val.vals[0]->type;
+
+				IntrusivePtr<BroType> index_type;
+
+				if ( stag == TYPE_ENUM )
+					{
+					// Enums are not a base-type, so need to look it up.
+					const auto& sv = val->val.set_val.vals[0]->val.string_val;
+					std::string enum_name(sv.data, sv.length);
+					const auto& enum_id = global_scope()->Find(enum_name);
+
+					if ( ! enum_id )
+						{
+						reporter->Warning("Value '%s' of source '%s' is not a valid enum.",
+						        enum_name.data(), source.c_str());
+
+						have_error = true;
+						return nullptr;
+						}
+
+					index_type = enum_id->GetType();
+					}
+				else
+					index_type = base_type(stag);
+
+				set_index = make_intrusive<TypeList>(index_type);
+				set_index->Append(std::move(index_type));
+				}
+
+			auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
+			TableVal* t = new TableVal(std::move(s));
+			for ( int j = 0; j < val->val.set_val.size; j++ )
+				{
+				Val* assignval = ValueToVal(source, val->val.set_val.vals[j], have_error);
+				t->Assign({AdoptRef{}, assignval}, nullptr);
+				}
+
+			return t;
+			}
+
+		case TYPE_VECTOR:
+			{
+			IntrusivePtr<BroType> type;
+
+			if ( val->val.vector_val.size == 0  && val->subtype == TYPE_VOID )
+				// don't know type - unspecified table.
+				type = base_type(TYPE_ANY);
+			else
+				{
+				// all entries have to have the same type...
+				if ( val->subtype == TYPE_VOID )
+					type = base_type(val->val.vector_val.vals[0]->type);
+				else
+					type = base_type(val->subtype);
+				}
+
+			auto vt = make_intrusive<VectorType>(std::move(type));
+			auto v = make_intrusive<VectorVal>(std::move(vt));
+
+			for ( int j = 0; j < val->val.vector_val.size; j++ )
+				{
+				auto el = ValueToVal(source, val->val.vector_val.vals[j], have_error);
+				v->Assign(j, {AdoptRef{}, el});
+				}
+
+			return v.release();
+			}
+
+		case TYPE_ENUM: {
+			// Convert to string first to not have to deal with missing
+			// \0's...
+			std::string enum_string(val->val.string_val.data, val->val.string_val.length);
+
+			// let's try looking it up by global ID.
+			const auto& id = lookup_ID(enum_string.c_str(), GLOBAL_MODULE_NAME);
+
+			if ( ! id || ! id->IsEnumConst() )
+				{
+				reporter->Warning("Value '%s' for source '%s' is not a valid enum.",
+				        enum_string.c_str(), source.c_str());
+
+				have_error = true;
+				return nullptr;
+				}
+
+			EnumType* t = id->GetType()->AsEnumType();
+			int intval = t->Lookup(id->ModuleName(), id->Name());
+			if ( intval < 0 )
+				{
+				reporter->Warning("Enum value '%s' for source '%s' not found.",
+				        enum_string.c_str(), source.c_str());
+
+				have_error = true;
+				return nullptr;
+				}
+
+			auto rval = t->GetVal(intval);
+			return rval.release();
+			}
+
+		default:
+			reporter->InternalError("Unsupported type in SerialTypes::ValueToVal from source %s", source.c_str());
+		}
+
+	assert(false);
+	return nullptr;
 	}

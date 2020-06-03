@@ -218,4 +218,6 @@ public:
 		{ return (T*) Dictionary::NextEntry(h, cookie, 1); }
 	T* RemoveEntry(const HashKey* key)
 		{ return (T*) Remove(key->Key(), key->Size(), key->Hash()); }
+	T* RemoveEntry(const HashKey& key)
+		{ return (T*) Remove(key.Key(), key.Size(), key.Hash()); }
 };

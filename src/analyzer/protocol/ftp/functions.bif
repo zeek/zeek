@@ -6,7 +6,7 @@ type ftp_port: record;
 
 static IntrusivePtr<Val> parse_port(const char* line)
 	{
-	auto r = make_intrusive<RecordVal>(BifType::Record::ftp_port);
+	auto r = make_intrusive<RecordVal>(zeek::BifType::Record::ftp_port);
 
 	int bytes[6];
 	if ( line && sscanf(line, "%d,%d,%d,%d,%d,%d",
@@ -49,7 +49,7 @@ static IntrusivePtr<Val> parse_port(const char* line)
 
 static IntrusivePtr<Val> parse_eftp(const char* line)
 	{
-	auto r = make_intrusive<RecordVal>(BifType::Record::ftp_port);
+	auto r = make_intrusive<RecordVal>(zeek::BifType::Record::ftp_port);
 
 	int net_proto = 0;	// currently not used
 	IPAddr addr;	// unspecified IPv6 address (all 128 bits zero)

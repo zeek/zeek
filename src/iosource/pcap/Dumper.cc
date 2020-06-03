@@ -27,7 +27,7 @@ void PcapDumper::Open()
 	{
 	int linktype = -1;
 
-	pd = pcap_open_dead(DLT_EN10MB, BifConst::Pcap::snaplen);
+	pd = pcap_open_dead(DLT_EN10MB, zeek::BifConst::Pcap::snaplen);
 
 	if ( ! pd )
 		{

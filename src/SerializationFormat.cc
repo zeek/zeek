@@ -5,6 +5,7 @@
 #include "DebugLogger.h"
 #include "Reporter.h"
 #include "net_util.h"
+#include "IPAddr.h"
 
 const float SerializationFormat::GROWTH_FACTOR = 2.5;
 
@@ -435,4 +436,3 @@ bool BinarySerializationFormat::Write(const char* buf, int len, const char* tag)
 	uint32_t l = htonl(len);
 	return WriteData(&l, sizeof(l)) && WriteData(buf, len);
 	}
-

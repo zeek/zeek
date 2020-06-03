@@ -4,6 +4,7 @@
 
 #include <utility>
 #include <string>
+#include <string_view>
 #include <map>
 
 #include "Obj.h"
@@ -18,53 +19,48 @@ class ListVal;
 
 class Scope : public BroObj {
 public:
-	explicit Scope(IntrusivePtr<ID> id, attr_list* al);
-	~Scope() override;
+	explicit Scope(IntrusivePtr<ID> id,
+	               std::unique_ptr<std::vector<IntrusivePtr<Attr>>> al);
+
+	const IntrusivePtr<ID>& Find(std::string_view name) const;
 
 	template<typename N>
+	[[deprecated("Remove in v4.1.  Use Find().")]]
 	ID* Lookup(N&& name) const
-		{
-		const auto& entry = local.find(std::forward<N>(name));
-
-		if ( entry != local.end() )
-			return entry->second.get();
-
-		return nullptr;
-		}
+		{ return Find(name).get(); }
 
 	template<typename N, typename I>
 	void Insert(N&& name, I&& id) { local[std::forward<N>(name)] = std::forward<I>(id); }
 
-	template<typename N>
-	IntrusivePtr<ID> Remove(N&& name)
-		{
-		const auto& entry = local.find(std::forward<N>(name));
+	IntrusivePtr<ID> Remove(std::string_view name);
 
-		if ( entry != local.end() )
-			{
-			auto id = std::move(entry->second);
-			local.erase(entry);
-			return id;
-			}
-
-		return nullptr;
-		}
-
+	[[deprecated("Remove in v4.1.  Use GetID().")]]
 	ID* ScopeID() const		{ return scope_id.get(); }
-	attr_list* Attrs() const	{ return attrs; }
+
+	const IntrusivePtr<ID>& GetID() const
+		{ return scope_id; }
+
+	const std::unique_ptr<std::vector<IntrusivePtr<Attr>>>& Attrs() const
+		{ return attrs; }
+
+	[[deprecated("Remove in v4.1.  Use GetReturnTrype().")]]
 	BroType* ReturnType() const	{ return return_type.get(); }
+
+	const IntrusivePtr<BroType>& GetReturnType() const
+		{ return return_type; }
 
 	size_t Length() const		{ return local.size(); }
 	const auto& Vars()	{ return local; }
 
-	ID* GenerateTemporary(const char* name);
+	IntrusivePtr<ID> GenerateTemporary(const char* name);
 
 	// Returns the list of variables needing initialization, and
 	// removes it from this Scope.
-	id_list* GetInits();
+	std::vector<IntrusivePtr<ID>> GetInits();
 
 	// Adds a variable to the list.
-	void AddInit(IntrusivePtr<ID> id)		{ inits->push_back(id.release()); }
+	void AddInit(IntrusivePtr<ID> id)
+		{ inits.emplace_back(std::move(id)); }
 
 	void Describe(ODesc* d) const override;
 
@@ -72,25 +68,26 @@ public:
 
 protected:
 	IntrusivePtr<ID> scope_id;
-	attr_list* attrs;
+	std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs;
 	IntrusivePtr<BroType> return_type;
-	std::map<std::string, IntrusivePtr<ID>> local;
-	id_list* inits;
+	std::map<std::string, IntrusivePtr<ID>, std::less<>> local;
+	std::vector<IntrusivePtr<ID>> inits;
 };
 
 
 extern bool in_debug;
 
 // If no_global is true, don't search in the default "global" namespace.
-extern IntrusivePtr<ID> lookup_ID(const char* name, const char* module,
-                                  bool no_global = false,
-                                  bool same_module_only = false,
-                                  bool check_export = true);
+extern const IntrusivePtr<ID>& lookup_ID(const char* name, const char* module,
+                                         bool no_global = false,
+                                         bool same_module_only = false,
+                                         bool check_export = true);
 
 extern IntrusivePtr<ID> install_ID(const char* name, const char* module_name,
                                    bool is_global, bool is_export);
 
-extern void push_scope(IntrusivePtr<ID> id, attr_list* attrs);
+extern void push_scope(IntrusivePtr<ID> id,
+                       std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs);
 extern void push_existing_scope(Scope* scope);
 
 // Returns the one popped off.

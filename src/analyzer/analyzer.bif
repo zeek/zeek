@@ -41,11 +41,12 @@ function Analyzer::__schedule_analyzer%(orig: addr, resp: addr, resp_p: port,
 
 function __name%(atype: Analyzer::Tag%) : string
 	%{
-	return make_intrusive<StringVal>(analyzer_mgr->GetComponentName(atype));
+	const auto& n = analyzer_mgr->GetComponentName(IntrusivePtr{NewRef{}, atype->AsEnumVal()});
+	return make_intrusive<StringVal>(n);
 	%}
 
 function __tag%(name: string%) : Analyzer::Tag
 	%{
 	analyzer::Tag t = analyzer_mgr->GetComponentTag(name->CheckString());
-	return IntrusivePtr{NewRef{}, t.AsEnumVal()};
+	return t.AsVal();
 	%}

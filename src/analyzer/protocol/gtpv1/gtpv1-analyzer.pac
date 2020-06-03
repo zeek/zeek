@@ -6,7 +6,7 @@
 %code{
 IntrusivePtr<RecordVal> BuildGTPv1Hdr(const GTPv1_Header* pdu)
 	{
-	auto rv = make_intrusive<RecordVal>(BifType::Record::gtpv1_hdr);
+	auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::gtpv1_hdr);
 
 	rv->Assign(0, val_mgr->Count(pdu->version()));
 	rv->Assign(1, val_mgr->Bool(pdu->pt_flag()));
@@ -35,7 +35,7 @@ static IntrusivePtr<Val> BuildIMSI(const InformationElement* ie)
 
 static IntrusivePtr<Val> BuildRAI(const InformationElement* ie)
 	{
-	auto ev = make_intrusive<RecordVal>(BifType::Record::gtp_rai);
+	auto ev = make_intrusive<RecordVal>(zeek::BifType::Record::gtp_rai);
 	ev->Assign(0, val_mgr->Count(ie->rai()->mcc()));
 	ev->Assign(1, val_mgr->Count(ie->rai()->mnc()));
 	ev->Assign(2, val_mgr->Count(ie->rai()->lac()));
@@ -83,9 +83,9 @@ static IntrusivePtr<Val> BuildTraceType(const InformationElement* ie)
 	return val_mgr->Count(ie->trace_type()->value());
 	}
 
-Val* BuildEndUserAddr(const InformationElement* ie)
+IntrusivePtr<Val> BuildEndUserAddr(const InformationElement* ie)
 	{
-	RecordVal* ev = new RecordVal(BifType::Record::gtp_end_user_addr);
+	auto ev = make_intrusive<RecordVal>(zeek::BifType::Record::gtp_end_user_addr);
 	ev->Assign(0, val_mgr->Count(ie->end_user_addr()->pdp_type_org()));
 	ev->Assign(1, val_mgr->Count(ie->end_user_addr()->pdp_type_num()));
 
@@ -114,23 +114,23 @@ Val* BuildEndUserAddr(const InformationElement* ie)
 	return ev;
 	}
 
-Val* BuildAccessPointName(const InformationElement* ie)
+IntrusivePtr<Val> BuildAccessPointName(const InformationElement* ie)
 	{
 	BroString* bs = new BroString((const u_char*) ie->ap_name()->value().data(),
 	                              ie->ap_name()->value().length(), false);
-	return new StringVal(bs);
+	return make_intrusive<StringVal>(bs);
 	}
 
-Val* BuildProtoConfigOptions(const InformationElement* ie)
+IntrusivePtr<Val> BuildProtoConfigOptions(const InformationElement* ie)
 	{
 	const u_char* d = (const u_char*) ie->proto_config_opts()->value().data();
 	int len = ie->proto_config_opts()->value().length();
-	return new StringVal(new BroString(d, len, false));
+	return make_intrusive<StringVal>(new BroString(d, len, false));
 	}
 
-Val* BuildGSN_Addr(const InformationElement* ie)
+IntrusivePtr<Val> BuildGSN_Addr(const InformationElement* ie)
 	{
-	RecordVal* ev = new RecordVal(BifType::Record::gtp_gsn_addr);
+	auto ev = make_intrusive<RecordVal>(zeek::BifType::Record::gtp_gsn_addr);
 
 	int len = ie->gsn_addr()->value().length();
 	const uint8* d = ie->gsn_addr()->value().data();
@@ -147,16 +147,16 @@ Val* BuildGSN_Addr(const InformationElement* ie)
 	return ev;
 	}
 
-Val* BuildMSISDN(const InformationElement* ie)
+IntrusivePtr<Val> BuildMSISDN(const InformationElement* ie)
 	{
 	const u_char* d = (const u_char*) ie->msisdn()->value().data();
 	int len = ie->msisdn()->value().length();
-	return new StringVal(new BroString(d, len, false));
+	return make_intrusive<StringVal>(new BroString(d, len, false));
 	}
 
-Val* BuildQoS_Profile(const InformationElement* ie)
+IntrusivePtr<Val> BuildQoS_Profile(const InformationElement* ie)
 	{
-	RecordVal* ev = new RecordVal(BifType::Record::gtp_qos_profile);
+	auto ev = make_intrusive<RecordVal>(zeek::BifType::Record::gtp_qos_profile);
 
 	const u_char* d = (const u_char*) ie->qos_profile()->data().data();
 	int len = ie->qos_profile()->data().length();
@@ -167,30 +167,30 @@ Val* BuildQoS_Profile(const InformationElement* ie)
 	return ev;
 	}
 
-Val* BuildTrafficFlowTemplate(const InformationElement* ie)
+IntrusivePtr<Val> BuildTrafficFlowTemplate(const InformationElement* ie)
 	{
 	const uint8* d = ie->traffic_flow_template()->value().data();
 	int len = ie->traffic_flow_template()->value().length();
-	return new StringVal(new BroString((const u_char*) d, len, false));
+	return make_intrusive<StringVal>(new BroString((const u_char*) d, len, false));
 	}
 
-Val* BuildTriggerID(const InformationElement* ie)
+IntrusivePtr<Val> BuildTriggerID(const InformationElement* ie)
 	{
 	const uint8* d = ie->trigger_id()->value().data();
 	int len = ie->trigger_id()->value().length();
-	return new StringVal(new BroString((const u_char*) d, len, false));
+	return make_intrusive<StringVal>(new BroString((const u_char*) d, len, false));
 	}
 
-Val* BuildOMC_ID(const InformationElement* ie)
+IntrusivePtr<Val> BuildOMC_ID(const InformationElement* ie)
 	{
 	const uint8* d = ie->omc_id()->value().data();
 	int len = ie->omc_id()->value().length();
-	return new StringVal(new BroString((const u_char*) d, len, false));
+	return make_intrusive<StringVal>(new BroString((const u_char*) d, len, false));
 	}
 
-Val* BuildPrivateExt(const InformationElement* ie)
+IntrusivePtr<Val> BuildPrivateExt(const InformationElement* ie)
 	{
-	RecordVal* ev = new RecordVal(BifType::Record::gtp_private_extension);
+	auto ev = make_intrusive<RecordVal>(zeek::BifType::Record::gtp_private_extension);
 
 	const uint8* d = ie->private_ext()->value().data();
 	int len = ie->private_ext()->value().length();
@@ -216,16 +216,16 @@ static IntrusivePtr<Val> BuildChargingID(const InformationElement* ie)
 	return val_mgr->Count(ie->charging_id()->value());;
 	}
 
-Val* BuildChargingGatewayAddr(const InformationElement* ie)
+IntrusivePtr<Val> BuildChargingGatewayAddr(const InformationElement* ie)
 	{
 	const uint8* d = ie->charging_gateway_addr()->value().data();
 	int len = ie->charging_gateway_addr()->value().length();
 	if ( len == 4 )
-		return new AddrVal(IPAddr(IPv4, (const uint32*) d, IPAddr::Network));
+		return make_intrusive<AddrVal>(IPAddr(IPv4, (const uint32*) d, IPAddr::Network));
 	else if ( len == 16 )
-		return new AddrVal(IPAddr(IPv6, (const uint32*) d, IPAddr::Network));
+		return make_intrusive<AddrVal>(IPAddr(IPv6, (const uint32*) d, IPAddr::Network));
 	else
-		return 0;
+		return nullptr;
 	}
 
 static IntrusivePtr<Val> BuildTeardownInd(const InformationElement* ie)
@@ -238,7 +238,7 @@ void CreatePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
 	if ( ! ::gtpv1_create_pdp_ctx_request ) return;
 
 	auto rv = make_intrusive<RecordVal>(
-	  BifType::Record::gtp_create_pdp_ctx_request_elements);
+	  zeek::BifType::Record::gtp_create_pdp_ctx_request_elements);
 
 	const vector<InformationElement *> * v = pdu->create_pdp_ctx_request();
 
@@ -328,7 +328,7 @@ void CreatePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
 		}
 		}
 
-	BifEvent::enqueue_gtpv1_create_pdp_ctx_request(a, a->Conn(),
+	zeek::BifEvent::enqueue_gtpv1_create_pdp_ctx_request(a, a->Conn(),
 	                                               BuildGTPv1Hdr(pdu), std::move(rv));
 	}
 
@@ -338,7 +338,7 @@ void CreatePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
 	    return;
 
 	auto rv = make_intrusive<RecordVal>(
-	  BifType::Record::gtp_create_pdp_ctx_response_elements);
+	  zeek::BifType::Record::gtp_create_pdp_ctx_response_elements);
 
 	const vector<InformationElement *> * v = pdu->create_pdp_ctx_response();
 
@@ -397,7 +397,7 @@ void CreatePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
 		}
 		}
 
-	BifEvent::enqueue_gtpv1_create_pdp_ctx_response(a, a->Conn(),
+	zeek::BifEvent::enqueue_gtpv1_create_pdp_ctx_response(a, a->Conn(),
 	                                                BuildGTPv1Hdr(pdu), std::move(rv));
 	}
 
@@ -407,7 +407,7 @@ void UpdatePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
 	    return;
 
 	auto rv = make_intrusive<RecordVal>(
-	  BifType::Record::gtp_update_pdp_ctx_request_elements);
+	  zeek::BifType::Record::gtp_update_pdp_ctx_request_elements);
 
 	const vector<InformationElement *> * v = pdu->update_pdp_ctx_request();
 
@@ -475,7 +475,7 @@ void UpdatePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
 		}
 		}
 
-	BifEvent::enqueue_gtpv1_update_pdp_ctx_request(a, a->Conn(),
+	zeek::BifEvent::enqueue_gtpv1_update_pdp_ctx_request(a, a->Conn(),
 	                                               BuildGTPv1Hdr(pdu), std::move(rv));
 	}
 
@@ -485,7 +485,7 @@ void UpdatePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
 	    return;
 
 	auto rv = make_intrusive<RecordVal>(
-	  BifType::Record::gtp_update_pdp_ctx_response_elements);
+	  zeek::BifType::Record::gtp_update_pdp_ctx_response_elements);
 
 	const vector<InformationElement *> * v = pdu->update_pdp_ctx_response();
 
@@ -535,7 +535,7 @@ void UpdatePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
 		}
 		}
 
-	BifEvent::enqueue_gtpv1_update_pdp_ctx_response(a, a->Conn(),
+	zeek::BifEvent::enqueue_gtpv1_update_pdp_ctx_response(a, a->Conn(),
 	                                                BuildGTPv1Hdr(pdu), std::move(rv));
 	}
 
@@ -545,7 +545,7 @@ void DeletePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
 	    return;
 
 	auto rv = make_intrusive<RecordVal>(
-	  BifType::Record::gtp_delete_pdp_ctx_request_elements);
+	  zeek::BifType::Record::gtp_delete_pdp_ctx_request_elements);
 
 	const vector<InformationElement *> * v = pdu->delete_pdp_ctx_request();
 
@@ -569,7 +569,7 @@ void DeletePDP_Request(const BroAnalyzer& a, const GTPv1_Header* pdu)
 		}
 		}
 
-	BifEvent::enqueue_gtpv1_delete_pdp_ctx_request(a, a->Conn(),
+	zeek::BifEvent::enqueue_gtpv1_delete_pdp_ctx_request(a, a->Conn(),
 	                                               BuildGTPv1Hdr(pdu), std::move(rv));
 	}
 
@@ -579,7 +579,7 @@ void DeletePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
 	    return;
 
 	auto rv = make_intrusive<RecordVal>(
-	  BifType::Record::gtp_delete_pdp_ctx_response_elements);
+	  zeek::BifType::Record::gtp_delete_pdp_ctx_response_elements);
 
 	const vector<InformationElement *> * v = pdu->delete_pdp_ctx_response();
 
@@ -600,7 +600,7 @@ void DeletePDP_Response(const BroAnalyzer& a, const GTPv1_Header* pdu)
 		}
 		}
 
-	BifEvent::enqueue_gtpv1_delete_pdp_ctx_response(a, a->Conn(),
+	zeek::BifEvent::enqueue_gtpv1_delete_pdp_ctx_response(a, a->Conn(),
 	                                                BuildGTPv1Hdr(pdu), std::move(rv));
 	}
 %}
@@ -652,7 +652,7 @@ flow GTPv1_Flow(is_orig: bool)
 
 		connection()->set_valid(is_orig(), false);
 
-		if ( e && e->Depth() >= BifConst::Tunnel::max_depth )
+		if ( e && e->Depth() >= zeek::BifConst::Tunnel::max_depth )
 			{
 			reporter->Weird(c, "tunnel_depth");
 			return false;
@@ -679,7 +679,7 @@ flow GTPv1_Flow(is_orig: bool)
 			}
 
 		if ( ::gtpv1_message )
-			BifEvent::enqueue_gtpv1_message(a, c, BuildGTPv1Hdr(pdu));
+			zeek::BifEvent::enqueue_gtpv1_message(a, c, BuildGTPv1Hdr(pdu));
 
 		switch ( ${pdu.msg_type} ) {
 		case 16:
@@ -738,7 +738,7 @@ flow GTPv1_Flow(is_orig: bool)
 			{
 			connection()->set_valid(is_orig(), true);
 
-			if ( (! BifConst::Tunnel::delay_gtp_confirmation) ||
+			if ( (! zeek::BifConst::Tunnel::delay_gtp_confirmation) ||
 			     (connection()->valid(true) && connection()->valid(false)) )
 				a->ProtocolConfirmation();
 			}
@@ -759,8 +759,8 @@ flow GTPv1_Flow(is_orig: bool)
 			}
 
 		if ( ::gtpv1_g_pdu_packet )
-			BifEvent::enqueue_gtpv1_g_pdu_packet(a, c, BuildGTPv1Hdr(pdu),
-			                                     {AdoptRef{}, inner->BuildPktHdrVal()});
+			zeek::BifEvent::enqueue_gtpv1_g_pdu_packet(a, c, BuildGTPv1Hdr(pdu),
+			                                     inner->ToPktHdrVal());
 
 		EncapsulatingConn ec(c, BifEnum::Tunnel::GTPv1);
 

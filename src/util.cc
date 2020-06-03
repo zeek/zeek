@@ -20,10 +20,6 @@
 #include <mach/mach_init.h>
 #endif
 
-#include <string>
-#include <array>
-#include <vector>
-#include <algorithm>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -42,6 +38,12 @@
 #ifdef HAVE_MALLINFO
 # include <malloc.h>
 #endif
+
+#include <string>
+#include <array>
+#include <vector>
+#include <algorithm>
+#include <iostream>
 
 #include "Desc.h"
 #include "Dict.h"
@@ -1857,10 +1859,10 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info)
 	// Init rotate_info.
 	if ( rotate_info )
 		{
-		rotate_info->Assign(0, new StringVal(name));
-		rotate_info->Assign(1, new StringVal(newname));
-		rotate_info->Assign(2, new Val(network_time, TYPE_TIME));
-		rotate_info->Assign(3, new Val(network_time, TYPE_TIME));
+		rotate_info->Assign<StringVal>(0, name);
+		rotate_info->Assign<StringVal>(1, newname);
+		rotate_info->Assign<Val>(2, network_time, TYPE_TIME);
+		rotate_info->Assign<Val>(3, network_time, TYPE_TIME);
 		}
 
 	return newf;
@@ -2365,7 +2367,12 @@ char* zeekenv(const char* name)
 	auto val = getenv(it->second);
 
 	if ( val && starts_with(it->second, "BRO_") )
-		reporter->Warning("Using legacy environment variable %s, support will be removed in Zeek v4.1; use %s instead", it->second, name);
+		{
+		if ( reporter )
+			reporter->Warning("Using legacy environment variable %s, support will be removed in Zeek v4.1; use %s instead", it->second, name);
+		else
+			fprintf(stderr, "Using legacy environment variable %s, support will be removed in Zeek v4.1; use %s instead\n", it->second, name);
+		}
 
 	return val;
 	}

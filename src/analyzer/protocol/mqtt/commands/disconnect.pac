@@ -11,7 +11,7 @@ refine flow MQTT_Flow += {
 		%{
 		if ( mqtt_disconnect )
 			{
-			BifEvent::enqueue_mqtt_disconnect(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_mqtt_disconnect(connection()->bro_analyzer(),
 			                                  connection()->bro_analyzer()->Conn());
 			}
 

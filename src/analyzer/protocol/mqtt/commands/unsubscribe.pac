@@ -14,16 +14,16 @@ refine flow MQTT_Flow += {
 		%{
 		if ( mqtt_unsubscribe )
 			{
-			auto topics = make_intrusive<VectorVal>(string_vec);
+			auto topics = make_intrusive<VectorVal>(zeek::id::string_vec);
 
 			for ( auto topic: *${msg.topics} )
 				{
-				auto unsubscribe_topic = new StringVal(${topic.str}.length(),
+				auto unsubscribe_topic = make_intrusive<StringVal>(${topic.str}.length(),
 				                                  reinterpret_cast<const char*>(${topic.str}.begin()));
-				topics->Assign(topics->Size(), unsubscribe_topic);
+				topics->Assign(topics->Size(), std::move(unsubscribe_topic));
 				}
 
-			BifEvent::enqueue_mqtt_unsubscribe(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_mqtt_unsubscribe(connection()->bro_analyzer(),
 			                                   connection()->bro_analyzer()->Conn(),
 			                                   ${msg.msg_id},
 			                                   std::move(topics));

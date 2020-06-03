@@ -29,6 +29,7 @@
 #include "Event.h"
 #include "Reporter.h"
 #include "Desc.h"
+#include "Var.h"
 
 std::list<std::pair<std::string, BroFile*>> BroFile::open_files;
 
@@ -264,7 +265,7 @@ void BroFile::SetAttrs(Attributes* arg_attrs)
 	attrs = arg_attrs;
 	Ref(attrs);
 
-	if ( attrs->FindAttr(ATTR_RAW_OUTPUT) )
+	if ( attrs->Find(ATTR_RAW_OUTPUT) )
 		EnableRawOutput();
 	}
 
@@ -277,6 +278,7 @@ RecordVal* BroFile::Rotate()
 	if ( f == stdin || f == stdout || f == stderr )
 		return nullptr;
 
+	static auto rotate_info = zeek::id::find_type<RecordType>("rotate_info");
 	RecordVal* info = new RecordVal(rotate_info);
 	FILE* newf = rotate_file(name, info);
 
@@ -326,8 +328,8 @@ void BroFile::RaiseOpenEvent()
 	if ( ! ::file_opened )
 		return;
 
-	Ref(this);
-	Event* event = new ::Event(::file_opened, {make_intrusive<Val>(this)});
+	IntrusivePtr<BroFile> bf{NewRef{}, this};
+	Event* event = new ::Event(::file_opened, {make_intrusive<Val>(std::move(bf))});
 	mgr.Dispatch(event, true);
 	}
 
@@ -344,16 +346,11 @@ double BroFile::Size()
 	return s.st_size;
 	}
 
-BroFile* BroFile::GetFile(const char* name)
+IntrusivePtr<BroFile> BroFile::Get(const char* name)
 	{
 	for ( const auto &el : open_files )
-		{
 		if ( el.first == name )
-			{
-			Ref(el.second);
-			return el.second;
-			}
-		}
+			return {NewRef{}, el.second};
 
-	return new BroFile(name, "w");
+	return make_intrusive<BroFile>(name, "w");
 	}

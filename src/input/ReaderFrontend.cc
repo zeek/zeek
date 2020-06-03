@@ -39,7 +39,7 @@ ReaderFrontend::ReaderFrontend(const ReaderBackend::ReaderInfo& arg_info, EnumVa
 	disabled = initialized = false;
 	info = new ReaderBackend::ReaderInfo(arg_info);
 
-	const char* t = type->Type()->AsEnumType()->Lookup(type->InternalInt());
+	const char* t = type->GetType()->AsEnumType()->Lookup(type->InternalInt());
 	name = copy_string(fmt("%s/%s", arg_info.source, t));
 
 	backend = input_mgr->CreateBackend(this, type);

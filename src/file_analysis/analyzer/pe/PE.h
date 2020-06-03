@@ -15,15 +15,16 @@ class PE : public file_analysis::Analyzer {
 public:
 	~PE();
 
-	static file_analysis::Analyzer* Instantiate(RecordVal* args, File* file)
-		{ return new PE(args, file); }
+	static file_analysis::Analyzer* Instantiate(IntrusivePtr<RecordVal> args,
+	                                            File* file)
+		{ return new PE(std::move(args), file); }
 
 	virtual bool DeliverStream(const u_char* data, uint64_t len);
 
 	virtual bool EndOfFile();
 
 protected:
-	PE(RecordVal* args, File* file);
+	PE(IntrusivePtr<RecordVal> args, File* file);
 	binpac::PE::File* interp;
 	binpac::PE::MockConnection* conn;
 	bool done;

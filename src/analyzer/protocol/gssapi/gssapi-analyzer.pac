@@ -61,7 +61,7 @@ refine connection GSSAPI_Conn += {
 		%{
 		if ( gssapi_neg_result )
 			{
-			BifEvent::enqueue_gssapi_neg_result(bro_analyzer(),
+			zeek::BifEvent::enqueue_gssapi_neg_result(bro_analyzer(),
 			                                    bro_analyzer()->Conn(),
 			                                    binary_to_int64(${val.neg_state.encoding.content}));
 			}

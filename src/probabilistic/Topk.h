@@ -27,10 +27,8 @@ struct Bucket {
 
 struct Element {
 	uint64_t epsilon;
-	Val* value;
+	IntrusivePtr<Val> value;
 	Bucket* parent;
-
-	~Element();
 };
 
 class TopkVal : public OpaqueVal {
@@ -57,7 +55,7 @@ public:
 	 *
 	 * @param value The encountered element
 	 */
-	void Encountered(Val* value);
+	void Encountered(IntrusivePtr<Val> value);
 
 	/**
 	 * Get the first *k* elements of the result vector. At the moment,
@@ -68,7 +66,7 @@ public:
 	 *
 	 * @returns The top-k encountered elements
 	 */
-	VectorVal* GetTopK(int k) const;
+	IntrusivePtr<VectorVal> GetTopK(int k) const;
 
 	/**
 	 * Get the current count tracked in the top-k data structure for a
@@ -155,15 +153,17 @@ private:
 	 * @returns HashKey for value
 	 */
 	HashKey* GetHash(Val* v) const; // this probably should go somewhere else.
+	HashKey* GetHash(const IntrusivePtr<Val>& v) const
+		{ return GetHash(v.get()); }
 
 	/**
 	 * Set the type that this TopK instance tracks
 	 *
 	 * @param t type that is tracked
 	 */
-	void Typify(BroType* t);
+	void Typify(IntrusivePtr<BroType> t);
 
-	BroType* type;
+	IntrusivePtr<BroType> type;
 	CompositeHash* hash;
 	std::list<Bucket*> buckets;
 	PDict<Element>* elementDict;

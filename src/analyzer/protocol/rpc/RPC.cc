@@ -28,7 +28,6 @@ namespace { // local namespace
 
 RPC_CallInfo::RPC_CallInfo(uint32_t arg_xid, const u_char*& buf, int& n, double arg_start_time, double arg_last_time, int arg_rpc_len)
 	{
-	v = nullptr;
 	xid = arg_xid;
 	stamp = 0;
 	uid = 0;
@@ -98,7 +97,6 @@ RPC_CallInfo::RPC_CallInfo(uint32_t arg_xid, const u_char*& buf, int& n, double 
 RPC_CallInfo::~RPC_CallInfo()
 	{
 	delete [] call_buf;
-	Unref(v);
 	}
 
 bool RPC_CallInfo::CompareRexmit(const u_char* buf, int n) const
@@ -343,7 +341,7 @@ void RPC_Interpreter::Event_RPC_Dialogue(RPC_CallInfo* c, BifEnum::rpc_status st
 			val_mgr->Count(c->Program()),
 			val_mgr->Count(c->Version()),
 			val_mgr->Count(c->Proc()),
-			BifType::Enum::rpc_status->GetVal(status),
+			zeek::BifType::Enum::rpc_status->GetVal(status),
 			make_intrusive<Val>(c->StartTime(), TYPE_TIME),
 			val_mgr->Count(c->CallLen()),
 			val_mgr->Count(reply_len)
@@ -369,7 +367,7 @@ void RPC_Interpreter::Event_RPC_Reply(uint32_t xid, BifEnum::rpc_status status, 
 		analyzer->EnqueueConnEvent(rpc_reply,
 			analyzer->ConnVal(),
 			val_mgr->Count(xid),
-			BifType::Enum::rpc_status->GetVal(status),
+			zeek::BifType::Enum::rpc_status->GetVal(status),
 			val_mgr->Count(reply_len)
 		);
 	}

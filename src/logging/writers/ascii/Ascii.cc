@@ -35,47 +35,47 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 
 void Ascii::InitConfigOptions()
 	{
-	output_to_stdout = BifConst::LogAscii::output_to_stdout;
-	include_meta = BifConst::LogAscii::include_meta;
-	use_json = BifConst::LogAscii::use_json;
-	enable_utf_8 = BifConst::LogAscii::enable_utf_8;
-	gzip_level = BifConst::LogAscii::gzip_level;
+	output_to_stdout = zeek::BifConst::LogAscii::output_to_stdout;
+	include_meta = zeek::BifConst::LogAscii::include_meta;
+	use_json = zeek::BifConst::LogAscii::use_json;
+	enable_utf_8 = zeek::BifConst::LogAscii::enable_utf_8;
+	gzip_level = zeek::BifConst::LogAscii::gzip_level;
 
 	separator.assign(
-			(const char*) BifConst::LogAscii::separator->Bytes(),
-			BifConst::LogAscii::separator->Len()
+			(const char*) zeek::BifConst::LogAscii::separator->Bytes(),
+			zeek::BifConst::LogAscii::separator->Len()
 			);
 
 	set_separator.assign(
-			(const char*) BifConst::LogAscii::set_separator->Bytes(),
-			BifConst::LogAscii::set_separator->Len()
+			(const char*) zeek::BifConst::LogAscii::set_separator->Bytes(),
+			zeek::BifConst::LogAscii::set_separator->Len()
 			);
 
 	empty_field.assign(
-			(const char*) BifConst::LogAscii::empty_field->Bytes(),
-			BifConst::LogAscii::empty_field->Len()
+			(const char*) zeek::BifConst::LogAscii::empty_field->Bytes(),
+			zeek::BifConst::LogAscii::empty_field->Len()
 			);
 
 	unset_field.assign(
-			(const char*) BifConst::LogAscii::unset_field->Bytes(),
-			BifConst::LogAscii::unset_field->Len()
+			(const char*) zeek::BifConst::LogAscii::unset_field->Bytes(),
+			zeek::BifConst::LogAscii::unset_field->Len()
 			);
 
 	meta_prefix.assign(
-			(const char*) BifConst::LogAscii::meta_prefix->Bytes(),
-			BifConst::LogAscii::meta_prefix->Len()
+			(const char*) zeek::BifConst::LogAscii::meta_prefix->Bytes(),
+			zeek::BifConst::LogAscii::meta_prefix->Len()
 			);
 
 	ODesc tsfmt;
-	BifConst::LogAscii::json_timestamps->Describe(&tsfmt);
+	zeek::BifConst::LogAscii::json_timestamps->Describe(&tsfmt);
 	json_timestamps.assign(
 			(const char*) tsfmt.Bytes(),
 			tsfmt.Len()
 			);
 
 	gzip_file_extension.assign(
-		(const char*) BifConst::LogAscii::gzip_file_extension->Bytes(),
-		BifConst::LogAscii::gzip_file_extension->Len()
+		(const char*) zeek::BifConst::LogAscii::gzip_file_extension->Bytes(),
+		zeek::BifConst::LogAscii::gzip_file_extension->Len()
 		);
 	}
 

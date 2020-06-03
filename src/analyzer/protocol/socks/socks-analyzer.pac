@@ -24,13 +24,14 @@ refine connection SOCKS_Conn += {
 		%{
 		if ( socks_request )
 			{
+			static auto socks_address = zeek::id::find_type<RecordType>("SOCKS::Address");
 			auto sa = make_intrusive<RecordVal>(socks_address);
 			sa->Assign(0, make_intrusive<AddrVal>(htonl(${request.addr})));
 
 			if ( ${request.v4a} )
 				sa->Assign(1, array_to_string(${request.name}));
 
-			BifEvent::enqueue_socks_request(bro_analyzer(),
+			zeek::BifEvent::enqueue_socks_request(bro_analyzer(),
 			                                bro_analyzer()->Conn(),
 			                                4,
 			                                ${request.command},
@@ -48,10 +49,11 @@ refine connection SOCKS_Conn += {
 		%{
 		if ( socks_reply )
 			{
+			static auto socks_address = zeek::id::find_type<RecordType>("SOCKS::Address");
 			auto sa = make_intrusive<RecordVal>(socks_address);
 			sa->Assign(0, make_intrusive<AddrVal>(htonl(${reply.addr})));
 
-			BifEvent::enqueue_socks_reply(bro_analyzer(),
+			zeek::BifEvent::enqueue_socks_reply(bro_analyzer(),
 			                              bro_analyzer()->Conn(),
 			                              4,
 			                              ${reply.status},
@@ -80,6 +82,7 @@ refine connection SOCKS_Conn += {
 			return false;
 			}
 
+		static auto socks_address = zeek::id::find_type<RecordType>("SOCKS::Address");
 		auto sa = make_intrusive<RecordVal>(socks_address);
 
 		// This is dumb and there must be a better way (checking for presence of a field)...
@@ -104,7 +107,7 @@ refine connection SOCKS_Conn += {
 			}
 
 		if ( socks_request )
-			BifEvent::enqueue_socks_request(bro_analyzer(),
+			zeek::BifEvent::enqueue_socks_request(bro_analyzer(),
 			                                bro_analyzer()->Conn(),
 			                                5,
 			                                ${request.command},
@@ -119,6 +122,7 @@ refine connection SOCKS_Conn += {
 
 	function socks5_reply(reply: SOCKS5_Reply): bool
 		%{
+		static auto socks_address = zeek::id::find_type<RecordType>("SOCKS::Address");
 		auto sa = make_intrusive<RecordVal>(socks_address);
 
 		// This is dumb and there must be a better way (checking for presence of a field)...
@@ -143,7 +147,7 @@ refine connection SOCKS_Conn += {
 			}
 
 		if ( socks_reply )
-			BifEvent::enqueue_socks_reply(bro_analyzer(),
+			zeek::BifEvent::enqueue_socks_reply(bro_analyzer(),
 			                              bro_analyzer()->Conn(),
 			                              5,
 			                              ${reply.reply},
@@ -163,7 +167,7 @@ refine connection SOCKS_Conn += {
 		auto user = make_intrusive<StringVal>(${request.username}.length(), (const char*) ${request.username}.begin());
 		auto pass = make_intrusive<StringVal>(${request.password}.length(), (const char*) ${request.password}.begin());
 
-		BifEvent::enqueue_socks_login_userpass_request(bro_analyzer(),
+		zeek::BifEvent::enqueue_socks_login_userpass_request(bro_analyzer(),
 		                                               bro_analyzer()->Conn(),
 		                                               std::move(user), std::move(pass));
 		return true;
@@ -184,7 +188,7 @@ refine connection SOCKS_Conn += {
 	function socks5_auth_reply_userpass(reply: SOCKS5_Auth_Reply_UserPass_v1): bool
 		%{
 		if ( socks_login_userpass_reply )
-			BifEvent::enqueue_socks_login_userpass_reply(bro_analyzer(),
+			zeek::BifEvent::enqueue_socks_login_userpass_reply(bro_analyzer(),
 			                                             bro_analyzer()->Conn(),
 			                                             ${reply.code});
 		return true;

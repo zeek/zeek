@@ -90,18 +90,16 @@ void Manager::InitPreScript()
 
 void Manager::InitPostScript()
 	{
-	auto id = global_scope()->Lookup("Tunnel::vxlan_ports");
+	const auto& id = global_scope()->Find("Tunnel::vxlan_ports");
 
-	if ( ! (id && id->ID_Val()) )
+	if ( ! (id && id->GetVal()) )
 		reporter->FatalError("Tunnel::vxlan_ports not defined");
 
-	auto table_val = id->ID_Val()->AsTableVal();
-	auto port_list = table_val->ConvertToPureList();
+	auto table_val = id->GetVal()->AsTableVal();
+	auto port_list = table_val->ToPureListVal();
 
 	for ( auto i = 0; i < port_list->Length(); ++i )
-		vxlan_ports.emplace_back(port_list->Index(i)->AsPortVal()->Port());
-
-	Unref(port_list);
+		vxlan_ports.emplace_back(port_list->Idx(i)->AsPortVal()->Port());
 	}
 
 void Manager::DumpDebug()
@@ -440,13 +438,15 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 
 		if ( tcp_contents && ! reass )
 			{
+			static auto tcp_content_delivery_ports_orig = zeek::id::find_val<TableVal>("tcp_content_delivery_ports_orig");
+			static auto tcp_content_delivery_ports_resp = zeek::id::find_val<TableVal>("tcp_content_delivery_ports_resp");
 			const auto& dport = val_mgr->Port(ntohs(conn->RespPort()), TRANSPORT_TCP);
 
 			if ( ! reass )
-				reass = (bool)tcp_content_delivery_ports_orig->Lookup(dport.get());
+				reass = (bool)tcp_content_delivery_ports_orig->FindOrDefault(dport);
 
 			if ( ! reass )
-				reass = (bool)tcp_content_delivery_ports_resp->Lookup(dport.get());
+				reass = (bool)tcp_content_delivery_ports_resp->FindOrDefault(dport);
 			}
 
 		if ( reass )
@@ -462,8 +462,10 @@ bool Manager::BuildInitialAnalyzerTree(Connection* conn)
 			uint16_t resp_port = ntohs(conn->RespPort());
 			if ( resp_port == 22 || resp_port == 23 || resp_port == 513 )
 				{
-				AddrVal src(conn->OrigAddr());
-				if ( ! stp_skip_src->Lookup(&src) )
+				static auto stp_skip_src = zeek::id::find_val<TableVal>("stp_skip_src");
+				auto src = make_intrusive<AddrVal>(conn->OrigAddr());
+
+				if ( ! stp_skip_src->FindOrDefault(src) )
 					tcp->AddChildAnalyzer(new stepping_stone::SteppingStone_Analyzer(conn), false);
 				}
 			}
@@ -574,8 +576,9 @@ void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp,
 void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, PortVal* resp_p,
 			       Val* analyzer, double timeout)
 	{
-	EnumVal* ev = analyzer->AsEnumVal();
-	return ScheduleAnalyzer(orig, resp, resp_p->Port(), resp_p->PortType(), Tag(ev), timeout);
+	IntrusivePtr<EnumVal> ev{NewRef{}, analyzer->AsEnumVal()};
+	return ScheduleAnalyzer(orig, resp, resp_p->Port(), resp_p->PortType(),
+	                        Tag(std::move(ev)), timeout);
 	}
 
 Manager::tag_set Manager::GetScheduled(const Connection* conn)
@@ -626,8 +629,7 @@ bool Manager::ApplyScheduledAnalyzers(Connection* conn, bool init, TransportLaye
 
 		if ( scheduled_analyzer_applied )
 			conn->EnqueueEvent(scheduled_analyzer_applied, nullptr,
-			                   conn->ConnVal(),
-			                   IntrusivePtr{NewRef{}, it->AsEnumVal()});
+			                   conn->ConnVal(), it->AsVal());
 
 		DBG_ANALYZER_ARGS(conn, "activated %s analyzer as scheduled",
 		                  analyzer_mgr->GetComponentName(*it).c_str());

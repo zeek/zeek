@@ -57,7 +57,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_router_option(v: OptionValue): bool
 		%{
-		VectorVal* router_list = new VectorVal(BifType::Vector::DHCP::Addrs);
+		auto router_list = make_intrusive<VectorVal>(zeek::BifType::Vector::DHCP::Addrs);
 		int num_routers = ${v.router_list}->size();
 		vector<uint32>* rlist = ${v.router_list};
 
@@ -67,7 +67,7 @@ refine flow DHCP_Flow += {
 			router_list->Assign(i, make_intrusive<AddrVal>(htonl(raddr)));
 			}
 
-		${context.flow}->options->Assign(2, router_list);
+		${context.flow}->options->Assign(2, std::move(router_list));
 
 		return true;
 		%}
@@ -91,7 +91,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_timeserver_option(v: OptionValue): bool
 		%{
-		VectorVal* timeserver_list = new VectorVal(BifType::Vector::DHCP::Addrs);
+		auto timeserver_list = make_intrusive<VectorVal>(zeek::BifType::Vector::DHCP::Addrs);
 		int num_servers = ${v.timeserver_list}->size();
 		vector<uint32>* rlist = ${v.timeserver_list};
 
@@ -101,7 +101,7 @@ refine flow DHCP_Flow += {
 			timeserver_list->Assign(i, make_intrusive<AddrVal>(htonl(raddr)));
 			}
 
-		${context.flow}->options->Assign(26, timeserver_list);
+		${context.flow}->options->Assign(26, std::move(timeserver_list));
 
 		return true;
 		%}
@@ -125,7 +125,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_nameserver_option(v: OptionValue): bool
 		%{
-		VectorVal* nameserver_list = new VectorVal(BifType::Vector::DHCP::Addrs);
+		auto nameserver_list = make_intrusive<VectorVal>(zeek::BifType::Vector::DHCP::Addrs);
 		int num_servers = ${v.nameserver_list}->size();
 		vector<uint32>* rlist = ${v.nameserver_list};
 
@@ -135,7 +135,7 @@ refine flow DHCP_Flow += {
 			nameserver_list->Assign(i, make_intrusive<AddrVal>(htonl(raddr)));
 			}
 
-		${context.flow}->options->Assign(27, nameserver_list);
+		${context.flow}->options->Assign(27, std::move(nameserver_list));
 
 		return true;
 		%}
@@ -159,7 +159,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_dns_server_option(v: OptionValue): bool
 		%{
-		VectorVal* server_list = new VectorVal(BifType::Vector::DHCP::Addrs);
+		auto server_list = make_intrusive<VectorVal>(zeek::BifType::Vector::DHCP::Addrs);
 		int num_servers = ${v.dns_server_list}->size();
 		vector<uint32>* rlist = ${v.dns_server_list};
 
@@ -169,7 +169,7 @@ refine flow DHCP_Flow += {
 			server_list->Assign(i, make_intrusive<AddrVal>(htonl(raddr)));
 			}
 
-		${context.flow}->options->Assign(3, server_list);
+		${context.flow}->options->Assign(3, std::move(server_list));
 		return true;
 		%}
 };
@@ -298,7 +298,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_ntpserver_option(v: OptionValue): bool
 		%{
-		VectorVal* ntpserver_list = new VectorVal(BifType::Vector::DHCP::Addrs);
+		auto ntpserver_list = make_intrusive<VectorVal>(zeek::BifType::Vector::DHCP::Addrs);
 		int num_servers = ${v.ntpserver_list}->size();
 		vector<uint32>* rlist = ${v.ntpserver_list};
 
@@ -308,7 +308,7 @@ refine flow DHCP_Flow += {
 			ntpserver_list->Assign(i, make_intrusive<AddrVal>(htonl(raddr)));
 			}
 
-		${context.flow}->options->Assign(28, ntpserver_list);
+		${context.flow}->options->Assign(28, std::move(ntpserver_list));
 
 		return true;
 		%}
@@ -356,7 +356,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_nbns_option(v: OptionValue): bool
 		%{
-		VectorVal* server_list = new VectorVal(BifType::Vector::DHCP::Addrs);
+		auto server_list = make_intrusive<VectorVal>(zeek::BifType::Vector::DHCP::Addrs);
 		int num_servers = ${v.nbns}->size();
 		vector<uint32>* rlist = ${v.nbns};
 
@@ -366,7 +366,7 @@ refine flow DHCP_Flow += {
 			server_list->Assign(i, make_intrusive<AddrVal>(htonl(raddr)));
 			}
 
-		${context.flow}->options->Assign(9, server_list);
+		${context.flow}->options->Assign(9, std::move(server_list));
 		return true;
 		%}
 };
@@ -462,7 +462,7 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_par_req_list_option(v: OptionValue): bool
 		%{
-		VectorVal* params = new VectorVal(index_vec);
+		auto params = make_intrusive<VectorVal>(zeek::id::index_vec);
 		int num_parms = ${v.par_req_list}->size();
 		vector<uint8>* plist = ${v.par_req_list};
 
@@ -472,7 +472,7 @@ refine flow DHCP_Flow += {
 			params->Assign(i, val_mgr->Count(param));
 			}
 
-		${context.flow}->options->Assign(13, params);
+		${context.flow}->options->Assign(13, std::move(params));
 
 		return true;
 		%}
@@ -625,11 +625,11 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_client_id_option(v: OptionValue): bool
 		%{
-		RecordVal* client_id = new RecordVal(BifType::Record::DHCP::ClientID);
+		auto client_id = make_intrusive<RecordVal>(zeek::BifType::Record::DHCP::ClientID);
 		client_id->Assign(0, val_mgr->Count(${v.client_id.hwtype}));
 		client_id->Assign(1, make_intrusive<StringVal>(fmt_mac(${v.client_id.hwaddr}.begin(), ${v.client_id.hwaddr}.length())));
 
-		${context.flow}->options->Assign(19, client_id);
+		${context.flow}->options->Assign(19, std::move(client_id));
 
 		return true;
 		%}
@@ -685,14 +685,14 @@ refine casetype OptionValue += {
 refine flow DHCP_Flow += {
 	function process_client_fqdn_option(v: OptionValue): bool
 		%{
-		RecordVal* client_fqdn = new RecordVal(BifType::Record::DHCP::ClientFQDN);
+		auto client_fqdn = make_intrusive<RecordVal>(zeek::BifType::Record::DHCP::ClientFQDN);
 		client_fqdn->Assign(0, val_mgr->Count(${v.client_fqdn.flags}));
 		client_fqdn->Assign(1, val_mgr->Count(${v.client_fqdn.rcode1}));
 		client_fqdn->Assign(2, val_mgr->Count(${v.client_fqdn.rcode2}));
 		const char* domain_name = reinterpret_cast<const char*>(${v.client_fqdn.domain_name}.begin());
 		client_fqdn->Assign(3, make_intrusive<StringVal>(${v.client_fqdn.domain_name}.length(), domain_name));
 
-		${context.flow}->options->Assign(21, client_fqdn);
+		${context.flow}->options->Assign(21, std::move(client_fqdn));
 
 		return true;
 		%}
@@ -743,22 +743,22 @@ refine flow DHCP_Flow += {
 
 	function process_relay_agent_inf_option(v: OptionValue): bool
 		%{
-		VectorVal* relay_agent_sub_opt = new VectorVal(BifType::Vector::DHCP::SubOpts);
+		auto relay_agent_sub_opt = make_intrusive<VectorVal>(zeek::BifType::Vector::DHCP::SubOpts);
 
 		uint16 i = 0;
 
 		for ( auto ptrsubopt = ${v.relay_agent_inf}->begin();
 		      ptrsubopt != ${v.relay_agent_inf}->end(); ++ptrsubopt )
 			{
-			auto r = new RecordVal(BifType::Record::DHCP::SubOpt);
+			auto r = make_intrusive<RecordVal>(zeek::BifType::Record::DHCP::SubOpt);
 			r->Assign(0, val_mgr->Count((*ptrsubopt)->code()));
 			r->Assign(1, to_stringval((*ptrsubopt)->value()));
 
-			relay_agent_sub_opt->Assign(i, r);
+			relay_agent_sub_opt->Assign(i, std::move(r));
 			++i;
 			}
 
-		${context.flow}->options->Assign(22, relay_agent_sub_opt);
+		${context.flow}->options->Assign(22, std::move(relay_agent_sub_opt));
 		return true;
 		%}
 };

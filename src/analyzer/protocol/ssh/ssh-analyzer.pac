@@ -5,14 +5,14 @@
 %}
 
 %header{
-VectorVal* name_list_to_vector(const bytestring& nl);
+IntrusivePtr<VectorVal> name_list_to_vector(const bytestring& nl);
 %}
 
 %code{
 // Copied from IRC_Analyzer::SplitWords
-VectorVal* name_list_to_vector(const bytestring& nl)
+IntrusivePtr<VectorVal> name_list_to_vector(const bytestring& nl)
 	{
-	VectorVal* vv = new VectorVal(internal_type("string_vec")->AsVectorType());
+	auto vv = make_intrusive<VectorVal>(zeek::id::string_vec);
 
 	string name_list = std_str(nl);
 	if ( name_list.size() < 1 )
@@ -52,13 +52,13 @@ refine flow SSH_Flow += {
 		%{
 		if ( ssh_client_version && ${msg.is_orig } )
 			{
-			BifEvent::enqueue_ssh_client_version(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_ssh_client_version(connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				to_stringval(${msg.version}));
 			}
 		else if ( ssh_server_version )
 			{
-			BifEvent::enqueue_ssh_server_version(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_ssh_server_version(connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				to_stringval(${msg.version}));
 			}
@@ -70,40 +70,40 @@ refine flow SSH_Flow += {
 		if ( ! ssh_capabilities )
 			return false;
 
-		auto result = make_intrusive<RecordVal>(BifType::Record::SSH::Capabilities);
+		auto result = make_intrusive<RecordVal>(zeek::BifType::Record::SSH::Capabilities);
 		result->Assign(0, name_list_to_vector(${msg.kex_algorithms.val}));
 		result->Assign(1, name_list_to_vector(${msg.server_host_key_algorithms.val}));
 
-		RecordVal* encryption_algs = new RecordVal(BifType::Record::SSH::Algorithm_Prefs);
+		auto encryption_algs = make_intrusive<RecordVal>(zeek::BifType::Record::SSH::Algorithm_Prefs);
 		encryption_algs->Assign(0, name_list_to_vector(${msg.encryption_algorithms_client_to_server.val}));
 		encryption_algs->Assign(1, name_list_to_vector(${msg.encryption_algorithms_server_to_client.val}));
-		result->Assign(2, encryption_algs);
+		result->Assign(2, std::move(encryption_algs));
 
-		RecordVal* mac_algs = new RecordVal(BifType::Record::SSH::Algorithm_Prefs);
+		auto mac_algs = make_intrusive<RecordVal>(zeek::BifType::Record::SSH::Algorithm_Prefs);
 		mac_algs->Assign(0, name_list_to_vector(${msg.mac_algorithms_client_to_server.val}));
 		mac_algs->Assign(1, name_list_to_vector(${msg.mac_algorithms_server_to_client.val}));
-		result->Assign(3, mac_algs);
+		result->Assign(3, std::move(mac_algs));
 
-		RecordVal* compression_algs = new RecordVal(BifType::Record::SSH::Algorithm_Prefs);
+		auto compression_algs = make_intrusive<RecordVal>(zeek::BifType::Record::SSH::Algorithm_Prefs);
 		compression_algs->Assign(0, name_list_to_vector(${msg.compression_algorithms_client_to_server.val}));
 		compression_algs->Assign(1, name_list_to_vector(${msg.compression_algorithms_server_to_client.val}));
-		result->Assign(4, compression_algs);
+		result->Assign(4, std::move(compression_algs));
 
 		if ( ${msg.languages_client_to_server.len} || ${msg.languages_server_to_client.len} )
 			{
-			RecordVal* languages = new RecordVal(BifType::Record::SSH::Algorithm_Prefs);
+			auto languages = make_intrusive<RecordVal>(zeek::BifType::Record::SSH::Algorithm_Prefs);
 			if ( ${msg.languages_client_to_server.len} )
 				languages->Assign(0, name_list_to_vector(${msg.languages_client_to_server.val}));
 			if ( ${msg.languages_server_to_client.len} )
 				languages->Assign(1, name_list_to_vector(${msg.languages_server_to_client.val}));
 
-			result->Assign(5, languages);
+			result->Assign(5, std::move(languages));
 			}
 
 
 		result->Assign(6, val_mgr->Bool(!${msg.is_orig}));
 
-		BifEvent::enqueue_ssh_capabilities(connection()->bro_analyzer(),
+		zeek::BifEvent::enqueue_ssh_capabilities(connection()->bro_analyzer(),
 			connection()->bro_analyzer()->Conn(), to_stringval(${msg.cookie}),
 			result);
 
@@ -115,7 +115,7 @@ refine flow SSH_Flow += {
 		%{
 		if ( ssh2_dh_server_params )
 			{
-			BifEvent::enqueue_ssh2_dh_server_params(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_ssh2_dh_server_params(connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				to_stringval(${msg.p.val}), to_stringval(${msg.g.val}));
 			}
@@ -126,7 +126,7 @@ refine flow SSH_Flow += {
 		%{
 		if ( ssh2_ecc_key )
 			{
-			BifEvent::enqueue_ssh2_ecc_key(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_ssh2_ecc_key(connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				is_orig, to_stringval(q));
 			}
@@ -137,7 +137,7 @@ refine flow SSH_Flow += {
 		%{
 		if ( ssh2_gss_error )
 			{
-			BifEvent::enqueue_ssh2_gss_error(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_ssh2_gss_error(connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				${msg.major_status}, ${msg.minor_status},
 				to_stringval(${msg.message.val}));
@@ -149,7 +149,7 @@ refine flow SSH_Flow += {
 		%{
 		if ( ssh2_server_host_key )
 			{
-			BifEvent::enqueue_ssh2_server_host_key(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_ssh2_server_host_key(connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				to_stringval(${key}));
 			}
@@ -160,7 +160,7 @@ refine flow SSH_Flow += {
 		%{
 		if ( ssh1_server_host_key )
 			{
-			BifEvent::enqueue_ssh1_server_host_key(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_ssh1_server_host_key(connection()->bro_analyzer(),
 				connection()->bro_analyzer()->Conn(),
 				to_stringval(${p}),
 				to_stringval(${e}));

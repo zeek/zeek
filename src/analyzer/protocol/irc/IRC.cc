@@ -44,6 +44,8 @@ inline void IRC_Analyzer::SkipLeadingWhitespace(string& str)
 
 void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	{
+	static auto irc_join_list = zeek::id::find_type<TableType>("irc_join_list");
+	static auto irc_join_info = zeek::id::find_type<RecordType>("irc_join_info");
 	tcp::TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
 
 	if ( starttls )
@@ -271,14 +273,14 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			if ( parts.size() > 0 && parts[0][0] == ':' )
 				parts[0] = parts[0].substr(1);
 
-			auto set = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, string_set});
+			auto set = make_intrusive<TableVal>(zeek::id::string_set);
 
 			for ( unsigned int i = 0; i < parts.size(); ++i )
 				{
 				if ( parts[i][0] == '@' )
 					parts[i] = parts[i].substr(1);
 				auto idx = make_intrusive<StringVal>(parts[i].c_str());
-				set->Assign(idx.get(), nullptr);
+				set->Assign(std::move(idx), nullptr);
 				}
 
 			EnqueueConnEvent(irc_names_info,
@@ -464,12 +466,12 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			if ( parts.size() > 0 && parts[0][0] == ':' )
 				parts[0] = parts[0].substr(1);
 
-			auto set = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, string_set});
+			auto set = make_intrusive<TableVal>(zeek::id::string_set);
 
 			for ( unsigned int i = 0; i < parts.size(); ++i )
 				{
 				auto idx = make_intrusive<StringVal>(parts[i].c_str());
-				set->Assign(idx.get(), nullptr);
+				set->Assign(std::move(idx), nullptr);
 				}
 
 			EnqueueConnEvent(irc_whois_channel_line,
@@ -836,7 +838,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				nickname = prefix.substr(0, pos);
 			}
 
-		auto list = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, irc_join_list});
+		auto list = make_intrusive<TableVal>(irc_join_list);
 
 		vector<string> channels = SplitWords(parts[0], ',');
 		vector<string> passwords;
@@ -847,7 +849,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		string empty_string = "";
 		for ( unsigned int i = 0; i < channels.size(); ++i )
 			{
-			RecordVal* info = new RecordVal(irc_join_info);
+			auto info = make_intrusive<RecordVal>(irc_join_info);
 			info->Assign(0, make_intrusive<StringVal>(nickname.c_str()));
 			info->Assign(1, make_intrusive<StringVal>(channels[i].c_str()));
 			if ( i < passwords.size() )
@@ -856,8 +858,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				info->Assign(2, make_intrusive<StringVal>(empty_string.c_str()));
 			// User mode.
 			info->Assign(3, make_intrusive<StringVal>(empty_string.c_str()));
-			list->Assign(info, nullptr);
-			Unref(info);
+			list->Assign(std::move(info), nullptr);
 			}
 
 		EnqueueConnEvent(irc_join_message,
@@ -881,7 +882,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			parts[1] = parts[1].substr(1);
 
 		vector<string> users = SplitWords(parts[1], ',');
-		auto list = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, irc_join_list});
+		auto list = make_intrusive<TableVal>(irc_join_list);
 
 		string empty_string = "";
 
@@ -917,7 +918,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			info->Assign(2, make_intrusive<StringVal>(empty_string.c_str()));
 			// User mode:
 			info->Assign(3, make_intrusive<StringVal>(mode.c_str()));
-			list->Assign(info.get(), nullptr);
+			list->Assign(std::move(info), nullptr);
 			}
 
 		EnqueueConnEvent(irc_join_message,
@@ -951,12 +952,12 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			nick = nick.substr(0, pos);
 
 		vector<string> channelList = SplitWords(channels, ',');
-		auto set = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, string_set});
+		auto set = make_intrusive<TableVal>(zeek::id::string_set);
 
 		for ( unsigned int i = 0; i < channelList.size(); ++i )
 			{
 			auto idx = make_intrusive<StringVal>(channelList[i].c_str());
-			set->Assign(idx.get(), nullptr);
+			set->Assign(std::move(idx), nullptr);
 			}
 
 		EnqueueConnEvent(irc_part_message,

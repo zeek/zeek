@@ -6,6 +6,7 @@
 #include <cstring>
 #include <unistd.h>
 
+#include "Func.h"
 #include "Data.h"
 #include "Store.h"
 #include "util.h"
@@ -29,12 +30,12 @@ namespace bro_broker {
 
 static inline Val* get_option(const char* option)
 	{
-	auto id = global_scope()->Lookup(option);
+	const auto& id = global_scope()->Find(option);
 
-	if ( ! (id && id->ID_Val()) )
+	if ( ! (id && id->GetVal()) )
 		reporter->FatalError("Unknown Broker option %s", option);
 
-	return id->ID_Val();
+	return id->GetVal().get();
 	}
 
 class BrokerConfig : public broker::configuration {
@@ -132,7 +133,6 @@ Manager::Manager(bool arg_use_real_time)
 	peer_count = 0;
 	log_batch_size = 0;
 	log_topic_func = nullptr;
-	vector_of_data_type = nullptr;
 	log_id_type = nullptr;
 	writer_id_type = nullptr;
 	}
@@ -149,16 +149,16 @@ void Manager::InitPostScript()
 	default_log_topic_prefix =
 	    get_option("Broker::default_log_topic_prefix")->AsString()->CheckString();
 	log_topic_func = get_option("Broker::log_topic")->AsFunc();
-	log_id_type = internal_type("Log::ID")->AsEnumType();
-	writer_id_type = internal_type("Log::Writer")->AsEnumType();
+	log_id_type = zeek::id::find_type("Log::ID")->AsEnumType();
+	writer_id_type = zeek::id::find_type("Log::Writer")->AsEnumType();
 
-	opaque_of_data_type = new OpaqueType("Broker::Data");
-	opaque_of_set_iterator = new OpaqueType("Broker::SetIterator");
-	opaque_of_table_iterator = new OpaqueType("Broker::TableIterator");
-	opaque_of_vector_iterator = new OpaqueType("Broker::VectorIterator");
-	opaque_of_record_iterator = new OpaqueType("Broker::RecordIterator");
-	opaque_of_store_handle = new OpaqueType("Broker::Store");
-	vector_of_data_type = new VectorType({NewRef{}, internal_type("Broker::Data")});
+	opaque_of_data_type = make_intrusive<OpaqueType>("Broker::Data");
+	opaque_of_set_iterator = make_intrusive<OpaqueType>("Broker::SetIterator");
+	opaque_of_table_iterator = make_intrusive<OpaqueType>("Broker::TableIterator");
+	opaque_of_vector_iterator = make_intrusive<OpaqueType>("Broker::VectorIterator");
+	opaque_of_record_iterator = make_intrusive<OpaqueType>("Broker::RecordIterator");
+	opaque_of_store_handle = make_intrusive<OpaqueType>("Broker::Store");
+	vector_of_data_type = make_intrusive<VectorType>(zeek::id::find_type("Broker::Data"));
 
 	// Register as a "dont-count" source first, we may change that later.
 	iosource_mgr->Register(this, true);
@@ -389,18 +389,18 @@ bool Manager::PublishEvent(string topic, RecordVal* args)
 	if ( peer_count == 0 )
 		return true;
 
-	if ( ! args->Lookup(0) )
+	if ( ! args->GetField(0) )
 		return false;
 
-	auto event_name = args->Lookup(0)->AsString()->CheckString();
-	auto vv = args->Lookup(1)->AsVectorVal();
+	auto event_name = args->GetField(0)->AsString()->CheckString();
+	auto vv = args->GetField(1)->AsVectorVal();
 	broker::vector xs;
 	xs.reserve(vv->Size());
 
 	for ( auto i = 0u; i < vv->Size(); ++i )
 		{
-		auto val = vv->Lookup(i)->AsRecordVal()->Lookup(0);
-		auto data_val = static_cast<DataVal*>(val);
+		const auto& val = vv->At(i)->AsRecordVal()->GetField(0);
+		auto data_val = static_cast<DataVal*>(val.get());
 		xs.emplace_back(data_val->data);
 		}
 
@@ -415,24 +415,24 @@ bool Manager::PublishIdentifier(std::string topic, std::string id)
 	if ( peer_count == 0 )
 		return true;
 
-	ID* i = global_scope()->Lookup(id);
+	const auto& i = global_scope()->Find(id);
 
 	if ( ! i )
 		return false;
 
-	auto val = i->ID_Val();
+	const auto& val = i->GetVal();
 
 	if ( ! val )
 		// Probably could have a special case to also unset the value on the
 		// receiving side, but not sure what use that would be.
 		return false;
 
-	auto data = val_to_data(val);
+	auto data = val_to_data(val.get());
 
 	if ( ! data )
 		{
 		Error("Failed to publish ID with unsupported type: %s (%s)",
-		      id.c_str(), type_name(val->Type()->Tag()));
+		      id.c_str(), type_name(val->GetType()->Tag()));
 		return false;
 		}
 
@@ -455,7 +455,7 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 	if ( peer_count == 0 )
 		return true;
 
-	auto stream_id = stream->Type()->AsEnumType()->Lookup(stream->AsEnum());
+	auto stream_id = stream->GetType()->AsEnumType()->Lookup(stream->AsEnum());
 
 	if ( ! stream_id )
 		{
@@ -464,7 +464,7 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 		return false;
 		}
 
-	auto writer_id = writer->Type()->AsEnumType()->Lookup(writer->AsEnum());
+	auto writer_id = writer->GetType()->AsEnumType()->Lookup(writer->AsEnum());
 
 	if ( ! writer_id )
 		{
@@ -510,7 +510,7 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 		return true;
 
 	auto stream_id_num = stream->AsEnum();
-	auto stream_id = stream->Type()->AsEnumType()->Lookup(stream_id_num);
+	auto stream_id = stream->GetType()->AsEnumType()->Lookup(stream_id_num);
 
 	if ( ! stream_id )
 		{
@@ -519,7 +519,7 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 		return false;
 		}
 
-	auto writer_id = writer->Type()->AsEnumType()->Lookup(writer->AsEnum());
+	auto writer_id = writer->GetType()->AsEnumType()->Lookup(writer->AsEnum());
 
 	if ( ! writer_id )
 		{
@@ -555,8 +555,8 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 	std::string serial_data(data, len);
 	free(data);
 
-	auto v = log_topic_func->Call(IntrusivePtr{NewRef{}, stream},
-	                              make_intrusive<StringVal>(path));
+	auto v = log_topic_func->Invoke(IntrusivePtr{NewRef{}, stream},
+	                                make_intrusive<StringVal>(path));
 
 	if ( ! v )
 		{
@@ -641,7 +641,7 @@ void Manager::Error(const char* format, ...)
 
 bool Manager::AutoPublishEvent(string topic, Val* event)
 	{
-	if ( event->Type()->Tag() != TYPE_FUNC )
+	if ( event->GetType()->Tag() != TYPE_FUNC )
 		{
 		Error("Broker::auto_publish must operate on an event");
 		return false;
@@ -670,7 +670,7 @@ bool Manager::AutoPublishEvent(string topic, Val* event)
 
 bool Manager::AutoUnpublishEvent(const string& topic, Val* event)
 	{
-	if ( event->Type()->Tag() != TYPE_FUNC )
+	if ( event->GetType()->Tag() != TYPE_FUNC )
 		{
 		Error("Broker::auto_event_stop must operate on an event");
 		return false;
@@ -702,8 +702,8 @@ bool Manager::AutoUnpublishEvent(const string& topic, Val* event)
 
 RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 	{
-	auto rval = new RecordVal(BifType::Record::Broker::Event);
-	auto arg_vec = new VectorVal(vector_of_data_type);
+	auto rval = new RecordVal(zeek::BifType::Record::Broker::Event);
+	auto arg_vec = make_intrusive<VectorVal>(vector_of_data_type);
 	rval->Assign(1, arg_vec);
 	Func* func = nullptr;
 	scoped_reporter_location srl{frame};
@@ -716,7 +716,7 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 			{
 			// Event val must come first.
 
-			if ( arg_val->Type()->Tag() != TYPE_FUNC )
+			if ( arg_val->GetType()->Tag() != TYPE_FUNC )
 				{
 				Error("attempt to convert non-event into an event type");
 				return rval;
@@ -730,7 +730,7 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 				return rval;
 				}
 
-			auto num_args = func->FType()->Args()->NumFields();
+			auto num_args = func->GetType()->Params()->NumFields();
 
 			if ( num_args != args->length() - 1 )
 				{
@@ -743,8 +743,8 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 			continue;
 			}
 
-		auto got_type = (*args)[i]->Type();
-		auto expected_type = (*func->FType()->ArgTypes()->Types())[i - 1];
+		const auto& got_type = (*args)[i]->GetType();
+		const auto& expected_type = func->GetType()->ParamList()->Types()[i - 1];
 
 		if ( ! same_type(got_type, expected_type) )
 			{
@@ -762,7 +762,7 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 		else
 			data_val = make_data_val((*args)[i]);
 
-		if ( ! data_val->Lookup(0) )
+		if ( ! data_val->GetField(0) )
 			{
 			rval->Assign(0, nullptr);
 			Error("failed to convert param #%d of type %s to broker data",
@@ -1101,13 +1101,13 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 		return;
 		}
 
-	auto arg_types = handler->FType(false)->ArgTypes()->Types();
+	const auto& arg_types = handler->GetType(false)->ParamList()->Types();
 
-	if ( static_cast<size_t>(arg_types->length()) != args.size() )
+	if ( arg_types.size() != args.size() )
 		{
 		reporter->Warning("got event message '%s' with invalid # of args,"
-				  " got %zd, expected %d", name.data(), args.size(),
-				  arg_types->length());
+		                  " got %zd, expected %zu", name.data(), args.size(),
+		                  arg_types.size());
 		return;
 		}
 
@@ -1117,8 +1117,8 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 	for ( auto i = 0u; i < args.size(); ++i )
 		{
 		auto got_type = args[i].get_type_name();
-		auto expected_type = (*arg_types)[i];
-		auto val = data_to_val(std::move(args[i]), expected_type);
+		const auto& expected_type = arg_types[i];
+		auto val = data_to_val(std::move(args[i]), expected_type.get());
 
 		if ( val )
 			vl.emplace_back(std::move(val));
@@ -1310,7 +1310,7 @@ bool Manager::ProcessIdentifierUpdate(broker::zeek::IdentifierUpdate iu)
 	++statistics.num_ids_incoming;
 	auto id_name = std::move(iu.id_name());
 	auto id_value = std::move(iu.id_value());
-	auto id = global_scope()->Lookup(id_name);
+	const auto& id = global_scope()->Find(id_name);
 
 	if ( ! id )
 		{
@@ -1319,12 +1319,12 @@ bool Manager::ProcessIdentifierUpdate(broker::zeek::IdentifierUpdate iu)
 		return false;
 		}
 
-	auto val = data_to_val(std::move(id_value), id->Type());
+	auto val = data_to_val(std::move(id_value), id->GetType().get());
 
 	if ( ! val )
 		{
 		reporter->Error("Failed to receive ID with unsupported type: %s (%s)",
-		                id_name.c_str(), type_name(id->Type()->Tag()));
+		                id_name.c_str(), type_name(id->GetType()->Tag()));
 		return false;
 		}
 
@@ -1369,13 +1369,13 @@ void Manager::ProcessStatus(broker::status stat)
 	if ( ! event )
 		return;
 
-	auto ei = internal_type("Broker::EndpointInfo")->AsRecordType();
+	static auto ei = zeek::id::find_type<RecordType>("Broker::EndpointInfo");
 	auto endpoint_info = make_intrusive<RecordVal>(ei);
 
 	if ( ctx )
 		{
 		endpoint_info->Assign(0, make_intrusive<StringVal>(to_string(ctx->node)));
-		auto ni = internal_type("Broker::NetworkInfo")->AsRecordType();
+		static auto ni = zeek::id::find_type<RecordType>("Broker::NetworkInfo");
 		auto network_info = make_intrusive<RecordVal>(ni);
 
 		if ( ctx->network )
@@ -1475,7 +1475,7 @@ void Manager::ProcessError(broker::error err)
 		}
 
 	mgr.Enqueue(Broker::error,
-		BifType::Enum::Broker::ErrorCode->GetVal(ec),
+		zeek::BifType::Enum::Broker::ErrorCode->GetVal(ec),
 		make_intrusive<StringVal>(msg)
 	);
 	}

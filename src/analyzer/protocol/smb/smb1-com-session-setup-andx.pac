@@ -12,8 +12,7 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb1_session_setup_andx_request )
 			{
-			auto request = make_intrusive<RecordVal>(BifType::Record::SMB1::SessionSetupAndXRequest);
-			RecordVal* capabilities;
+			auto request = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::SessionSetupAndXRequest);
 
 			request->Assign(0, val_mgr->Count(${val.word_count}));
 			switch ( ${val.word_count} ) {
@@ -31,7 +30,8 @@ refine connection SMB_Conn += {
 
 					break;
 				case 12:	// NT LM 0.12 with extended security
-					capabilities = new RecordVal(BifType::Record::SMB1::SessionSetupAndXCapabilities);
+					{
+					auto capabilities = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::SessionSetupAndXCapabilities);
 				 	capabilities->Assign(0, val_mgr->Bool(${val.ntlm_extended_security.capabilities.unicode}));
 				 	capabilities->Assign(1, val_mgr->Bool(${val.ntlm_extended_security.capabilities.large_files}));
 				 	capabilities->Assign(2, val_mgr->Bool(${val.ntlm_extended_security.capabilities.nt_smbs}));
@@ -47,11 +47,13 @@ refine connection SMB_Conn += {
 					request->Assign(5, smb_string2stringval(${val.ntlm_extended_security.native_os}));
 					request->Assign(6, smb_string2stringval(${val.ntlm_extended_security.native_lanman}));
 
-					request->Assign(13, capabilities);
+					request->Assign(13, std::move(capabilities));
+					}
 					break;
 
 				case 13: // NT LM 0.12 without extended security
-					capabilities = new RecordVal(BifType::Record::SMB1::SessionSetupAndXCapabilities);
+					{
+					auto capabilities = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::SessionSetupAndXCapabilities);
 				 	capabilities->Assign(0, val_mgr->Bool(${val.ntlm_nonextended_security.capabilities.unicode}));
 				 	capabilities->Assign(1, val_mgr->Bool(${val.ntlm_nonextended_security.capabilities.large_files}));
 				 	capabilities->Assign(2, val_mgr->Bool(${val.ntlm_nonextended_security.capabilities.nt_smbs}));
@@ -71,11 +73,12 @@ refine connection SMB_Conn += {
 
 					request->Assign(10, to_stringval(${val.ntlm_nonextended_security.case_insensitive_password}));
 					request->Assign(11, to_stringval(${val.ntlm_nonextended_security.case_sensitive_password}));
-					request->Assign(13, capabilities);
+					request->Assign(13, std::move(capabilities));
+					}
 					break;
 				}
 
-			BifEvent::enqueue_smb1_session_setup_andx_request(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb1_session_setup_andx_request(bro_analyzer(),
 			                                                  bro_analyzer()->Conn(),
 			                                                  SMBHeaderVal(header),
 			                                                  std::move(request));
@@ -87,16 +90,16 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb1_session_setup_andx_response )
 			{
-			auto response = make_intrusive<RecordVal>(BifType::Record::SMB1::SessionSetupAndXResponse);
+			auto response = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::SessionSetupAndXResponse);
 			response->Assign(0, val_mgr->Count(${val.word_count}));
 
 			switch ( ${val.word_count} )
 				{
 				case 3: // pre NT LM 0.12
 					response->Assign(1, val_mgr->Bool(${val.lanman.is_guest}));
-					response->Assign(2, ${val.lanman.byte_count} == 0 ? val_mgr->EmptyString()->Ref()->AsStringVal() : smb_string2stringval(${val.lanman.native_os[0]}));
-					response->Assign(3, ${val.lanman.byte_count} == 0 ? val_mgr->EmptyString()->Ref()->AsStringVal() : smb_string2stringval(${val.lanman.native_lanman[0]}));
-					response->Assign(4, ${val.lanman.byte_count} == 0 ? val_mgr->EmptyString()->Ref()->AsStringVal() : smb_string2stringval(${val.lanman.primary_domain[0]}));
+					response->Assign(2, ${val.lanman.byte_count} == 0 ? val_mgr->EmptyString() : smb_string2stringval(${val.lanman.native_os[0]}));
+					response->Assign(3, ${val.lanman.byte_count} == 0 ? val_mgr->EmptyString() : smb_string2stringval(${val.lanman.native_lanman[0]}));
+					response->Assign(4, ${val.lanman.byte_count} == 0 ? val_mgr->EmptyString() : smb_string2stringval(${val.lanman.primary_domain[0]}));
 					break;
 				case 4: // NT LM 0.12
 					response->Assign(1, val_mgr->Bool(${val.ntlm.is_guest}));
@@ -109,7 +112,7 @@ refine connection SMB_Conn += {
 					break;
 				}
 
-			BifEvent::enqueue_smb1_session_setup_andx_response(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb1_session_setup_andx_response(bro_analyzer(),
 			                                                   bro_analyzer()->Conn(),
 			                                                   SMBHeaderVal(header),
 			                                                   std::move(response));

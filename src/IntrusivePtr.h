@@ -184,6 +184,18 @@ IntrusivePtr<T> make_intrusive(Ts&&... args)
 	return {AdoptRef{}, new T(std::forward<Ts>(args)...)};
 	}
 
+/**
+ * Casts an @c IntrusivePtr object to another by way of static_cast on
+ * the underlying pointer.
+ * @param p  The pointer of type @c U to cast to another type, @c T.
+ * @return  The pointer, as cast to type @c T.
+ */
+template <class T, class U>
+IntrusivePtr<T> cast_intrusive(IntrusivePtr<U> p) noexcept
+	{
+	return {AdoptRef{}, static_cast<T*>(p.release())};
+	}
+
 // -- comparison to nullptr ----------------------------------------------------
 
 /**

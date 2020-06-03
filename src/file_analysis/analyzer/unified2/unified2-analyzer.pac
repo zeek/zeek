@@ -7,9 +7,43 @@
 #include "IPAddr.h"
 %}
 
+%code{
+IntrusivePtr<AddrVal> binpac::Unified2::Flow::unified2_addr_to_bro_addr(std::vector<uint32_t>* a)
+	{
+	if ( a->size() == 1 )
+		{
+		return make_intrusive<AddrVal>(IPAddr(IPv4, &(a->at(0)), IPAddr::Host));
+		}
+	else if ( a->size() == 4 )
+		{
+		uint32 tmp[4] = { a->at(0), a->at(1), a->at(2), a->at(3) };
+		return make_intrusive<AddrVal>(IPAddr(IPv6, tmp, IPAddr::Host));
+		}
+	else
+		{
+		// Should never reach here.
+		return make_intrusive<AddrVal>(1);
+		}
+	}
+
+IntrusivePtr<Val> binpac::Unified2::Flow::to_port(uint16_t n, uint8_t p)
+	{
+	TransportProto proto = TRANSPORT_UNKNOWN;
+	switch ( p ) {
+	case 1: proto = TRANSPORT_ICMP; break;
+	case 6: proto = TRANSPORT_TCP; break;
+	case 17: proto = TRANSPORT_UDP; break;
+	}
+
+	return val_mgr->Port(n, proto);
+	}
+%}
+
 refine flow Flow += {
 
 	%member{
+		IntrusivePtr<AddrVal> unified2_addr_to_bro_addr(std::vector<uint32_t>* a);
+		IntrusivePtr<Val> to_port(uint16_t n, uint8_t p);
 	%}
 
 	%init{
@@ -27,35 +61,6 @@ refine flow Flow += {
 		return t;
 		%}
 
-	function unified2_addr_to_bro_addr(a: uint32[]): AddrVal
-		%{
-		if ( a->size() == 1 )
-			{
-			return new AddrVal(IPAddr(IPv4, &(a->at(0)), IPAddr::Host));
-			}
-		else if ( a->size() == 4 )
-			{
-			uint32 tmp[4] = { a->at(0), a->at(1), a->at(2), a->at(3) };
-			return new AddrVal(IPAddr(IPv6, tmp, IPAddr::Host));
-			}
-		else
-			{
-			// Should never reach here.
-			return new AddrVal(1);
-			}
-		%}
-
-	function to_port(n: uint16, p: uint8): Val
-		%{
-		TransportProto proto = TRANSPORT_UNKNOWN;
-		switch ( p ) {
-		case 1: proto = TRANSPORT_ICMP; break;
-		case 6: proto = TRANSPORT_TCP; break;
-		case 17: proto = TRANSPORT_UDP; break;
-		}
-
-		return val_mgr->Port(n, proto)->Ref();
-		%}
 
 	#function proc_record(rec: Record) : bool
 	#	%{
@@ -66,7 +71,7 @@ refine flow Flow += {
 		%{
 		if ( ::unified2_event )
 			{
-			auto ids_event = make_intrusive<RecordVal>(BifType::Record::Unified2::IDSEvent);
+			auto ids_event = make_intrusive<RecordVal>(zeek::BifType::Record::Unified2::IDSEvent);
 			ids_event->Assign(0, val_mgr->Count(${ev.sensor_id}));
 			ids_event->Assign(1, val_mgr->Count(${ev.event_id}));
 			ids_event->Assign(2, make_intrusive<Val>(ts_to_double(${ev.ts}), TYPE_TIME));
@@ -82,7 +87,7 @@ refine flow Flow += {
 			ids_event->Assign(17, val_mgr->Count(${ev.packet_action}));
 
 			mgr.Enqueue(::unified2_event,
-					IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+					connection()->bro_analyzer()->GetFile()->ToVal(),
 					std::move(ids_event));
 			}
 		return true;
@@ -92,7 +97,7 @@ refine flow Flow += {
 		%{
 		if ( ::unified2_event )
 			{
-			auto ids_event = make_intrusive<RecordVal>(BifType::Record::Unified2::IDSEvent);
+			auto ids_event = make_intrusive<RecordVal>(zeek::BifType::Record::Unified2::IDSEvent);
 			ids_event->Assign(0, val_mgr->Count(${ev.sensor_id}));
 			ids_event->Assign(1, val_mgr->Count(${ev.event_id}));
 			ids_event->Assign(2, make_intrusive<Val>(ts_to_double(${ev.ts}), TYPE_TIME));
@@ -112,7 +117,7 @@ refine flow Flow += {
 			ids_event->Assign(16, val_mgr->Count(${ev.vlan_id}));
 
 			mgr.Enqueue(::unified2_event,
-					IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+					connection()->bro_analyzer()->GetFile()->ToVal(),
 					std::move(ids_event));
 			}
 
@@ -123,7 +128,7 @@ refine flow Flow += {
 		%{
 		if ( ::unified2_packet )
 			{
-			auto packet = make_intrusive<RecordVal>(BifType::Record::Unified2::Packet);
+			auto packet = make_intrusive<RecordVal>(zeek::BifType::Record::Unified2::Packet);
 			packet->Assign(0, val_mgr->Count(${pkt.sensor_id}));
 			packet->Assign(1, val_mgr->Count(${pkt.event_id}));
 			packet->Assign(2, val_mgr->Count(${pkt.event_second}));
@@ -132,7 +137,7 @@ refine flow Flow += {
 			packet->Assign(5, to_stringval(${pkt.packet_data}));
 
 			mgr.Enqueue(::unified2_packet,
-					IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+					connection()->bro_analyzer()->GetFile()->ToVal(),
 					std::move(packet));
 			}
 

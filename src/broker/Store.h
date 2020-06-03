@@ -12,14 +12,14 @@
 
 namespace bro_broker {
 
-extern OpaqueType* opaque_of_store_handle;
+extern IntrusivePtr<OpaqueType> opaque_of_store_handle;
 
 /**
  * Create a Broker::QueryStatus value.
  * @param success whether the query status should be set to success or failure.
  * @return a Broker::QueryStatus value.
  */
-EnumVal* query_status(bool success);
+IntrusivePtr<EnumVal> query_status(bool success);
 
 /**
  * @return a Broker::QueryResult value that has a Broker::QueryStatus indicating
@@ -27,9 +27,9 @@ EnumVal* query_status(bool success);
  */
 inline IntrusivePtr<RecordVal> query_result()
 	{
-	auto rval = make_intrusive<RecordVal>(BifType::Record::Broker::QueryResult);
+	auto rval = make_intrusive<RecordVal>(zeek::BifType::Record::Broker::QueryResult);
 	rval->Assign(0, query_status(false));
-	rval->Assign(1, make_intrusive<RecordVal>(BifType::Record::Broker::Data));
+	rval->Assign(1, make_intrusive<RecordVal>(zeek::BifType::Record::Broker::Data));
 	return rval;
 	}
 
@@ -40,7 +40,7 @@ inline IntrusivePtr<RecordVal> query_result()
  */
 inline IntrusivePtr<RecordVal> query_result(IntrusivePtr<RecordVal> data)
 	{
-	auto rval = make_intrusive<RecordVal>(BifType::Record::Broker::QueryResult);
+	auto rval = make_intrusive<RecordVal>(zeek::BifType::Record::Broker::QueryResult);
 	rval->Assign(0, query_status(true));
 	rval->Assign(1, std::move(data));
 	return rval;
@@ -107,7 +107,9 @@ public:
 	IntrusivePtr<TableVal> forward_to;
 
 protected:
-	StoreHandleVal() = default;
+	StoreHandleVal()
+		: OpaqueVal(bro_broker::opaque_of_store_handle)
+		{}
 
 	DECLARE_OPAQUE_VALUE(StoreHandleVal)
 };

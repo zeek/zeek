@@ -15,7 +15,7 @@
 #include "Net.h"
 #include "Conn.h"
 #include "Timer.h"
-#include "Var.h" // for internal_val()
+#include "ID.h"
 #include "EventHandler.h"
 #include "plugin/Plugin.h"
 #include "plugin/Manager.h"
@@ -63,13 +63,13 @@ Reporter::~Reporter()
 
 void Reporter::InitOptions()
 	{
-	info_to_stderr = internal_val("Reporter::info_to_stderr")->AsBool();
-	warnings_to_stderr = internal_val("Reporter::warnings_to_stderr")->AsBool();
-	errors_to_stderr = internal_val("Reporter::errors_to_stderr")->AsBool();
-	weird_sampling_rate = internal_val("Weird::sampling_rate")->AsCount();
-	weird_sampling_threshold = internal_val("Weird::sampling_threshold")->AsCount();
-	weird_sampling_duration = internal_val("Weird::sampling_duration")->AsInterval();
-	auto wl_val = internal_val("Weird::sampling_whitelist")->AsTableVal();
+	info_to_stderr = zeek::id::find_val("Reporter::info_to_stderr")->AsBool();
+	warnings_to_stderr = zeek::id::find_val("Reporter::warnings_to_stderr")->AsBool();
+	errors_to_stderr = zeek::id::find_val("Reporter::errors_to_stderr")->AsBool();
+	weird_sampling_rate = zeek::id::find_val("Weird::sampling_rate")->AsCount();
+	weird_sampling_threshold = zeek::id::find_val("Weird::sampling_threshold")->AsCount();
+	weird_sampling_duration = zeek::id::find_val("Weird::sampling_duration")->AsInterval();
+	auto wl_val = zeek::id::find_val("Weird::sampling_whitelist")->AsTableVal();
 	auto wl_table = wl_val->AsTable();
 
 	HashKey* k;
@@ -78,8 +78,8 @@ void Reporter::InitOptions()
 
 	while ( (v = wl_table->NextEntry(k, c)) )
 		{
-		auto index = wl_val->RecoverIndex(k);
-		std::string key = index->Index(0)->AsString()->CheckString();
+		auto index = wl_val->RecreateIndex(*k);
+		std::string key = index->Idx(0)->AsString()->CheckString();
 		weird_sampling_whitelist.emplace(move(key));
 		delete k;
 		}
@@ -349,7 +349,7 @@ void Reporter::Weird(file_analysis::File* f, const char* name, const char* addl)
 			return;
 		}
 
-	WeirdHelper(file_weird, {f->GetVal()->Ref(), new StringVal(addl)},
+	WeirdHelper(file_weird, {f->ToVal()->Ref(), new StringVal(addl)},
 	            "%s", name);
 	}
 

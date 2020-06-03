@@ -126,6 +126,31 @@ private:
 
 }
 
+// An event that the child wants to pass into the main event queue
+class SendEventMessage final : public OutputMessage<MsgThread> {
+public:
+	SendEventMessage(MsgThread* thread, const char* name, const int num_vals, Value* *val)
+		: OutputMessage<MsgThread>("SendEvent", thread),
+	  name(copy_string(name)), num_vals(num_vals), val(val) {}
+
+	~SendEventMessage() override	{ delete [] name; }
+
+	bool Process() override
+		{
+		bool success = thread_mgr->SendEvent(Object(), name, num_vals, val);
+
+		if ( ! success )
+			reporter->Error("SendEvent for event %s failed", name);
+
+		return true; // We do not want to die if sendEvent fails because the event did not return.
+		}
+
+private:
+	const char* name;
+	const int num_vals;
+	Value* *val;
+};
+
 ////// Methods.
 
 Message::~Message()
@@ -361,6 +386,11 @@ void MsgThread::SendOut(BasicOutputMessage* msg, bool force)
 	++cnt_sent_out;
 
 	flare.Fire();
+	}
+
+void MsgThread::SendEvent(const char* name, const int num_vals, Value* *vals)
+	{
+	SendOut(new SendEventMessage(this, name, num_vals, vals));
 	}
 
 BasicOutputMessage* MsgThread::RetrieveOut()

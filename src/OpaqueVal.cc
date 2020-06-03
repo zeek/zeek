@@ -37,9 +37,11 @@ OpaqueMgr* OpaqueMgr::mgr()
 	return &mgr;
 	}
 
-OpaqueVal::OpaqueVal(OpaqueType* t) : Val(t)
-	{
-	}
+OpaqueVal::OpaqueVal(OpaqueType* t) : OpaqueVal({NewRef{}, t})
+	{}
+
+OpaqueVal::OpaqueVal(IntrusivePtr<OpaqueType> t) : Val(std::move(t))
+	{}
 
 OpaqueVal::~OpaqueVal()
 	{
@@ -94,7 +96,7 @@ IntrusivePtr<OpaqueVal> OpaqueVal::Unserialize(const broker::data& data)
 	return val;
 	}
 
-broker::expected<broker::data> OpaqueVal::SerializeType(BroType* t)
+broker::expected<broker::data> OpaqueVal::SerializeType(const IntrusivePtr<BroType>& t)
 	{
 	if ( t->InternalType() == TYPE_INTERNAL_ERROR )
 		return broker::ec::invalid_data;
@@ -110,7 +112,7 @@ broker::expected<broker::data> OpaqueVal::SerializeType(BroType* t)
 	return {broker::vector{false, static_cast<uint64_t>(t->Tag())}};
 	}
 
-BroType* OpaqueVal::UnserializeType(const broker::data& data)
+IntrusivePtr<BroType> OpaqueVal::UnserializeType(const broker::data& data)
 	{
 	auto v = caf::get_if<broker::vector>(&data);
 	if ( ! (v && v->size() == 2) )
@@ -126,22 +128,21 @@ BroType* OpaqueVal::UnserializeType(const broker::data& data)
 		if ( ! name )
 			return nullptr;
 
-		ID* id = global_scope()->Lookup(*name);
+		const auto& id = global_scope()->Find(*name);
 		if ( ! id )
 			return nullptr;
 
-		BroType* t = id->AsType();
-		if ( ! t )
+		if ( ! id->IsType() )
 			return nullptr;
 
-		return t->Ref();
+		return id->GetType();
 		}
 
 	auto tag = caf::get_if<uint64_t>(&(*v)[1]);
 	if ( ! tag )
 		return nullptr;
 
-	return base_type(static_cast<TypeTag>(*tag)).release();
+	return base_type(static_cast<TypeTag>(*tag));
 	}
 
 IntrusivePtr<Val> OpaqueVal::DoClone(CloneState* state)
@@ -205,10 +206,13 @@ IntrusivePtr<StringVal> HashVal::DoGet()
 	return val_mgr->EmptyString();
 	}
 
-HashVal::HashVal(OpaqueType* t) : OpaqueVal(t)
+HashVal::HashVal(IntrusivePtr<OpaqueType> t) : OpaqueVal(std::move(t))
 	{
 	valid = false;
 	}
+
+HashVal::HashVal(OpaqueType* t) : HashVal({NewRef{}, t})
+	{}
 
 MD5Val::MD5Val() : HashVal(md5_type)
 	{
@@ -222,7 +226,7 @@ MD5Val::~MD5Val()
 
 void HashVal::digest_one(EVP_MD_CTX* h, const Val* v)
 	{
-	if ( v->Type()->Tag() == TYPE_STRING )
+	if ( v->GetType()->Tag() == TYPE_STRING )
 		{
 		const BroString* str = v->AsString();
 		hash_update(h, str->Bytes(), str->Len());
@@ -696,15 +700,6 @@ bool EntropyVal::DoUnserialize(const broker::data& data)
 BloomFilterVal::BloomFilterVal()
 	: OpaqueVal(bloomfilter_type)
 	{
-	type = nullptr;
-	hash = nullptr;
-	bloom_filter = nullptr;
-	}
-
-BloomFilterVal::BloomFilterVal(OpaqueType* t)
-	: OpaqueVal(t)
-	{
-	type = nullptr;
 	hash = nullptr;
 	bloom_filter = nullptr;
 	}
@@ -712,7 +707,6 @@ BloomFilterVal::BloomFilterVal(OpaqueType* t)
 BloomFilterVal::BloomFilterVal(probabilistic::BloomFilter* bf)
 	: OpaqueVal(bloomfilter_type)
 	{
-	type = nullptr;
 	hash = nullptr;
 	bloom_filter = bf;
 	}
@@ -729,38 +723,30 @@ IntrusivePtr<Val> BloomFilterVal::DoClone(CloneState* state)
 	return state->NewClone(this, make_intrusive<BloomFilterVal>());
 	}
 
-bool BloomFilterVal::Typify(BroType* arg_type)
+bool BloomFilterVal::Typify(IntrusivePtr<BroType> arg_type)
 	{
 	if ( type )
 		return false;
 
-	type = arg_type;
-	type->Ref();
+	type = std::move(arg_type);
 
-	auto tl = make_intrusive<TypeList>(IntrusivePtr{NewRef{}, type});
-	tl->Append({NewRef{}, type});
+	auto tl = make_intrusive<TypeList>(type);
+	tl->Append(type);
 	hash = new CompositeHash(std::move(tl));
 
 	return true;
 	}
 
-BroType* BloomFilterVal::Type() const
-	{
-	return type;
-	}
-
 void BloomFilterVal::Add(const Val* val)
 	{
-	HashKey* key = hash->ComputeHash(val, true);
-	bloom_filter->Add(key);
-	delete key;
+	auto key = hash->MakeHashKey(*val, true);
+	bloom_filter->Add(key.get());
 	}
 
 size_t BloomFilterVal::Count(const Val* val) const
 	{
-	HashKey* key = hash->ComputeHash(val, true);
-	size_t cnt = bloom_filter->Count(key);
-	delete key;
+	auto key = hash->MakeHashKey(*val, true);
+	size_t cnt = bloom_filter->Count(key.get());
 	return cnt;
 	}
 
@@ -818,7 +804,6 @@ IntrusivePtr<BloomFilterVal> BloomFilterVal::Merge(const BloomFilterVal* x,
 
 BloomFilterVal::~BloomFilterVal()
 	{
-	Unref(type);
 	delete hash;
 	delete bloom_filter;
 	}
@@ -858,8 +843,9 @@ bool BloomFilterVal::DoUnserialize(const broker::data& data)
 	auto no_type = caf::get_if<broker::none>(&(*v)[0]);
 	if ( ! no_type )
 		{
-		BroType* t = UnserializeType((*v)[0]);
-		if ( ! (t && Typify(t)) )
+		auto t = UnserializeType((*v)[0]);
+
+		if ( ! (t && Typify(std::move(t))) )
 			return false;
 		}
 
@@ -874,7 +860,6 @@ bool BloomFilterVal::DoUnserialize(const broker::data& data)
 CardinalityVal::CardinalityVal() : OpaqueVal(cardinality_type)
 	{
 	c = nullptr;
-	type = nullptr;
 	hash = nullptr;
 	}
 
@@ -882,13 +867,11 @@ CardinalityVal::CardinalityVal(probabilistic::CardinalityCounter* arg_c)
 	: OpaqueVal(cardinality_type)
 	{
 	c = arg_c;
-	type = nullptr;
 	hash = nullptr;
 	}
 
 CardinalityVal::~CardinalityVal()
 	{
-	Unref(type);
 	delete c;
 	delete hash;
 	}
@@ -899,31 +882,24 @@ IntrusivePtr<Val> CardinalityVal::DoClone(CloneState* state)
 			       make_intrusive<CardinalityVal>(new probabilistic::CardinalityCounter(*c)));
 	}
 
-bool CardinalityVal::Typify(BroType* arg_type)
+bool CardinalityVal::Typify(IntrusivePtr<BroType> arg_type)
 	{
 	if ( type )
 		return false;
 
-	type = arg_type;
-	type->Ref();
+	type = std::move(arg_type);
 
-	auto tl = make_intrusive<TypeList>(IntrusivePtr{NewRef{}, type});
-	tl->Append({NewRef{}, type});
+	auto tl = make_intrusive<TypeList>(type);
+	tl->Append(type);
 	hash = new CompositeHash(std::move(tl));
 
 	return true;
 	}
 
-BroType* CardinalityVal::Type() const
-	{
-	return type;
-	}
-
 void CardinalityVal::Add(const Val* val)
 	{
-	HashKey* key = hash->ComputeHash(val, true);
+	auto key = hash->MakeHashKey(*val, true);
 	c->AddElement(key->Hash());
-	delete key;
 	}
 
 IMPLEMENT_OPAQUE_VALUE(CardinalityVal)
@@ -961,8 +937,9 @@ bool CardinalityVal::DoUnserialize(const broker::data& data)
 	auto no_type = caf::get_if<broker::none>(&(*v)[0]);
 	if ( ! no_type )
 		{
-		BroType* t = UnserializeType((*v)[0]);
-                if ( ! (t && Typify(t)) )
+		auto t = UnserializeType((*v)[0]);
+
+		if ( ! (t && Typify(std::move(t))) )
 			return false;
 		}
 
@@ -982,7 +959,7 @@ ParaglobVal::ParaglobVal(std::unique_ptr<paraglob::Paraglob> p)
 
 IntrusivePtr<VectorVal> ParaglobVal::Get(StringVal* &pattern)
 	{
-	auto rval = make_intrusive<VectorVal>(internal_type("string_vec")->AsVectorType());
+	auto rval = make_intrusive<VectorVal>(zeek::id::string_vec);
 	std::string string_pattern (reinterpret_cast<const char*>(pattern->Bytes()), pattern->Len());
 
 	std::vector<std::string> matches = this->internal_paraglob->get(string_pattern);

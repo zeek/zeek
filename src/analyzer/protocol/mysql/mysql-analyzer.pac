@@ -6,11 +6,11 @@ refine flow MySQL_Flow += {
 		if ( mysql_server_version )
 			{
 			if ( ${msg.version} == 10 )
-				BifEvent::enqueue_mysql_server_version(connection()->bro_analyzer(),
+				zeek::BifEvent::enqueue_mysql_server_version(connection()->bro_analyzer(),
 				                                       connection()->bro_analyzer()->Conn(),
 				                                       make_intrusive<StringVal>(c_str(${msg.handshake10.server_version})));
 			if ( ${msg.version} == 9 )
-				BifEvent::enqueue_mysql_server_version(connection()->bro_analyzer(),
+				zeek::BifEvent::enqueue_mysql_server_version(connection()->bro_analyzer(),
 				                                       connection()->bro_analyzer()->Conn(),
 				                                       make_intrusive<StringVal>(c_str(${msg.handshake9.server_version})));
 			}
@@ -25,11 +25,11 @@ refine flow MySQL_Flow += {
 		if ( mysql_handshake )
 			{
 			if ( ${msg.version} == 10 )
-				BifEvent::enqueue_mysql_handshake(connection()->bro_analyzer(),
+				zeek::BifEvent::enqueue_mysql_handshake(connection()->bro_analyzer(),
 				                                  connection()->bro_analyzer()->Conn(),
 				                                  make_intrusive<StringVal>(c_str(${msg.v10_response.username})));
 			if ( ${msg.version} == 9 )
-				BifEvent::enqueue_mysql_handshake(connection()->bro_analyzer(),
+				zeek::BifEvent::enqueue_mysql_handshake(connection()->bro_analyzer(),
 				                                  connection()->bro_analyzer()->Conn(),
 				                                  make_intrusive<StringVal>(c_str(${msg.v9_response.username})));
 			}
@@ -39,7 +39,7 @@ refine flow MySQL_Flow += {
 	function proc_mysql_command_request_packet(msg: Command_Request_Packet): bool
 		%{
 		if ( mysql_command_request )
-			BifEvent::enqueue_mysql_command_request(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_mysql_command_request(connection()->bro_analyzer(),
 			                                        connection()->bro_analyzer()->Conn(),
 			                                        ${msg.command},
 			                                        to_stringval(${msg.arg}));
@@ -49,7 +49,7 @@ refine flow MySQL_Flow += {
 	function proc_err_packet(msg: ERR_Packet): bool
 		%{
 		if ( mysql_error )
-			BifEvent::enqueue_mysql_error(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_mysql_error(connection()->bro_analyzer(),
 			                              connection()->bro_analyzer()->Conn(),
 			                              ${msg.code},
 			                              to_stringval(${msg.msg}));
@@ -59,7 +59,7 @@ refine flow MySQL_Flow += {
 	function proc_ok_packet(msg: OK_Packet): bool
 		%{
 		if ( mysql_ok )
-			BifEvent::enqueue_mysql_ok(connection()->bro_analyzer(),
+			zeek::BifEvent::enqueue_mysql_ok(connection()->bro_analyzer(),
 			                           connection()->bro_analyzer()->Conn(),
 			                           ${msg.rows});
 		return true;
@@ -71,7 +71,7 @@ refine flow MySQL_Flow += {
 			{
 			// This is a bit fake...
 			if ( mysql_ok )
-				BifEvent::enqueue_mysql_ok(connection()->bro_analyzer(),
+				zeek::BifEvent::enqueue_mysql_ok(connection()->bro_analyzer(),
 				                           connection()->bro_analyzer()->Conn(),
 				                           0);
 			}
@@ -82,8 +82,8 @@ refine flow MySQL_Flow += {
 		if ( ! mysql_result_row )
 			return true;
 
-		auto vt = internal_type("string_vec")->AsVectorType();
-		auto vv = make_intrusive<VectorVal>(vt);
+		auto vt = zeek::id::string_vec;
+		auto vv = make_intrusive<VectorVal>(std::move(vt));
 
 		auto& bstring = ${msg.row.first_field.val};
 		auto ptr = reinterpret_cast<const char*>(bstring.data());
@@ -98,7 +98,7 @@ refine flow MySQL_Flow += {
 			vv->Assign(vv->Size(), make_intrusive<StringVal>(bstring.length(), ptr));
 			}
 
-		BifEvent::enqueue_mysql_result_row(connection()->bro_analyzer(),
+		zeek::BifEvent::enqueue_mysql_result_row(connection()->bro_analyzer(),
 		                                   connection()->bro_analyzer()->Conn(),
 		                                   std::move(vv));
 

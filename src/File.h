@@ -37,7 +37,11 @@ public:
 
 	void SetBuf(bool buffered);	// false=line buffered, true=fully buffered
 
+	[[deprecated("Remove in v4.1.  Use GetType().")]]
 	BroType* FType() const	{ return t.get(); }
+
+	const IntrusivePtr<BroType>& GetType() const
+		{ return t; }
 
 	// Whether the file is open in a general sense; it might
 	// not be open as a Unix file due to our management of
@@ -63,7 +67,10 @@ public:
 	static void CloseOpenFiles();
 
 	// Get the file with the given name, opening it if it doesn't yet exist.
-	static BroFile* GetFile(const char* name);
+	static IntrusivePtr<BroFile> Get(const char* name);
+	[[deprecated("Remove in v4.1.  Use BroFile::Get().")]]
+	static BroFile* GetFile(const char* name)
+		{ return Get(name).release(); }
 
 	void EnableRawOutput()		{ raw_output = true; }
 	bool IsRawOutput() const	{ return raw_output; }

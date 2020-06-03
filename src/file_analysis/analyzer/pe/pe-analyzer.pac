@@ -5,43 +5,48 @@
 %}
 
 %header{
-VectorVal* process_rvas(const RVAS* rvas);
+IntrusivePtr<VectorVal> process_rvas(const RVAS* rvas);
+IntrusivePtr<TableVal> characteristics_to_bro(uint32_t c, uint8_t len);
 %}
 
 %code{
-VectorVal* process_rvas(const RVAS* rva_table)
+IntrusivePtr<VectorVal> process_rvas(const RVAS* rva_table)
 	{
-	VectorVal* rvas = new VectorVal(internal_type("index_vec")->AsVectorType());
+	auto rvas = make_intrusive<VectorVal>(zeek::id::index_vec);
+
 	for ( uint16 i=0; i < rva_table->rvas()->size(); ++i )
 		rvas->Assign(i, val_mgr->Count((*rva_table->rvas())[i]->size()));
 
 	return rvas;
+	}
+
+IntrusivePtr<TableVal> characteristics_to_bro(uint32_t c, uint8_t len)
+	{
+	uint64 mask = (len==16) ? 0xFFFF : 0xFFFFFFFF;
+	auto char_set = make_intrusive<TableVal>(zeek::id::count_set);
+
+	for ( uint16 i=0; i < len; ++i )
+		{
+		if ( ((c >> i) & 0x1) == 1 )
+			{
+			auto ch = val_mgr->Count((1<<i)&mask);
+			char_set->Assign(std::move(ch), 0);
+			}
+		}
+
+	return char_set;
 	}
 %}
 
 
 refine flow File += {
 
-	function characteristics_to_bro(c: uint32, len: uint8): TableVal
-		%{
-		uint64 mask = (len==16) ? 0xFFFF : 0xFFFFFFFF;
-		TableVal* char_set = new TableVal({NewRef{}, internal_type("count_set")->AsTableType()});
-		for ( uint16 i=0; i < len; ++i )
-			{
-			if ( ((c >> i) & 0x1) == 1 )
-				{
-				auto ch = val_mgr->Count((1<<i)&mask);
-				char_set->Assign(ch.get(), 0);
-				}
-			}
-		return char_set;
-		%}
 
 	function proc_dos_header(h: DOS_Header): bool
 		%{
 		if ( pe_dos_header )
 			{
-			auto dh = make_intrusive<RecordVal>(BifType::Record::PE::DOSHeader);
+			auto dh = make_intrusive<RecordVal>(zeek::BifType::Record::PE::DOSHeader);
 			dh->Assign(0, make_intrusive<StringVal>(${h.signature}.length(), (const char*) ${h.signature}.data()));
 			dh->Assign(1, val_mgr->Count(${h.UsedBytesInTheLastPage}));
 			dh->Assign(2, val_mgr->Count(${h.FileSizeInPages}));
@@ -61,7 +66,7 @@ refine flow File += {
 			dh->Assign(16, val_mgr->Count(${h.AddressOfNewExeHeader}));
 
 			mgr.Enqueue(pe_dos_header,
-			    IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+			    connection()->bro_analyzer()->GetFile()->ToVal(),
 			    std::move(dh));
 			}
 		return true;
@@ -71,7 +76,7 @@ refine flow File += {
 		%{
 		if ( pe_dos_code )
 			mgr.Enqueue(pe_dos_code,
-			    IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+			    connection()->bro_analyzer()->GetFile()->ToVal(),
 			    make_intrusive<StringVal>(code.length(), (const char*) code.data())
 			    );
 		return true;
@@ -91,7 +96,7 @@ refine flow File += {
 		%{
 		if ( pe_file_header )
 			{
-			auto fh = make_intrusive<RecordVal>(BifType::Record::PE::FileHeader);
+			auto fh = make_intrusive<RecordVal>(zeek::BifType::Record::PE::FileHeader);
 			fh->Assign(0, val_mgr->Count(${h.Machine}));
 			fh->Assign(1, make_intrusive<Val>(static_cast<double>(${h.TimeDateStamp}), TYPE_TIME));
 			fh->Assign(2, val_mgr->Count(${h.PointerToSymbolTable}));
@@ -100,7 +105,7 @@ refine flow File += {
 			fh->Assign(5, characteristics_to_bro(${h.Characteristics}, 16));
 
 			mgr.Enqueue(pe_file_header,
-			    IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+			    connection()->bro_analyzer()->GetFile()->ToVal(),
 			    std::move(fh));
 			}
 
@@ -119,7 +124,7 @@ refine flow File += {
 
 		if ( pe_optional_header )
 			{
-			auto oh = make_intrusive<RecordVal>(BifType::Record::PE::OptionalHeader);
+			auto oh = make_intrusive<RecordVal>(zeek::BifType::Record::PE::OptionalHeader);
 
 			oh->Assign(0, val_mgr->Count(${h.magic}));
 			oh->Assign(1, val_mgr->Count(${h.major_linker_version}));
@@ -151,7 +156,7 @@ refine flow File += {
 			oh->Assign(23, process_rvas(${h.rvas}));
 
 			mgr.Enqueue(pe_optional_header,
-			    IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+			    connection()->bro_analyzer()->GetFile()->ToVal(),
 			    std::move(oh));
 			}
 		return true;
@@ -161,7 +166,7 @@ refine flow File += {
 		%{
 		if ( pe_section_header )
 			{
-			auto section_header = make_intrusive<RecordVal>(BifType::Record::PE::SectionHeader);
+			auto section_header = make_intrusive<RecordVal>(zeek::BifType::Record::PE::SectionHeader);
 
 			// Strip null characters from the end of the section name.
 			u_char* first_null = (u_char*) memchr(${h.name}.data(), 0, ${h.name}.length());
@@ -183,7 +188,7 @@ refine flow File += {
 			section_header->Assign(9, characteristics_to_bro(${h.characteristics}, 32));
 
 			mgr.Enqueue(pe_section_header,
-			    IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+			    connection()->bro_analyzer()->GetFile()->ToVal(),
 			    std::move(section_header)
 			    );
 			}

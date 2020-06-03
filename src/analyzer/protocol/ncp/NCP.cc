@@ -129,7 +129,7 @@ int FrameBuffer::Deliver(int &len, const u_char* &data)
 
 		if ( msg_len > buf_len )
 			{
-			if ( msg_len > BifConst::NCP::max_frame_size )
+			if ( msg_len > zeek::BifConst::NCP::max_frame_size )
 				return 1;
 
 			buf_len = msg_len;

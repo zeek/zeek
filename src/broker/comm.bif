@@ -94,17 +94,17 @@ function Broker::__unpeer%(a: string, p: port%): bool
 function Broker::__peers%(%): PeerInfos
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
-	auto rval = make_intrusive<VectorVal>(internal_type("Broker::PeerInfos")->AsVectorType());
+	auto rval = make_intrusive<VectorVal>(zeek::id::find_type<VectorType>("Broker::PeerInfos"));
 	auto i = 0;
 
 	for ( auto& p : broker_mgr->Peers() )
 		{
-		auto pi = internal_type("Broker::PeerInfo")->AsRecordType();
-		auto ei = internal_type("Broker::EndpointInfo")->AsRecordType();
-		auto ni = internal_type("Broker::NetworkInfo")->AsRecordType();
-		auto peer_info = new RecordVal(pi);
-		auto endpoint_info = new RecordVal(ei);
-		auto network_info = new RecordVal(ni);
+		const auto& pi = zeek::id::find_type<RecordType>("Broker::PeerInfo");
+		const auto& ei = zeek::id::find_type<RecordType>("Broker::EndpointInfo");
+		const auto& ni = zeek::id::find_type<RecordType>("Broker::NetworkInfo");
+		auto peer_info = make_intrusive<RecordVal>(pi);
+		auto endpoint_info = make_intrusive<RecordVal>(ei);
+		auto network_info = make_intrusive<RecordVal>(ni);
 		auto n = p.peer.network;
 
 		if ( n )
@@ -119,13 +119,13 @@ function Broker::__peers%(%): PeerInfos
 			}
 
 		endpoint_info->Assign(0, make_intrusive<StringVal>(to_string(p.peer.node)));
-		endpoint_info->Assign(1, network_info);
+		endpoint_info->Assign(1, std::move(network_info));
 
 		auto ps = (BifEnum::Broker::PeerStatus)p.status;
-		peer_info->Assign(0, endpoint_info);
-		peer_info->Assign(1, BifType::Enum::Broker::PeerStatus->GetVal(ps));
+		peer_info->Assign(0, std::move(endpoint_info));
+		peer_info->Assign(1, zeek::BifType::Enum::Broker::PeerStatus->GetVal(ps));
 
-		rval->Assign(i, peer_info);
+		rval->Assign(i, std::move(peer_info));
 		++i;
 		}
 

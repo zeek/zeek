@@ -25,7 +25,7 @@
 			if ( v2 == 0 && server_random.length() >= 4 )
 				ts = ntohl(*((uint32*)server_random.data()));
 
-			BifEvent::enqueue_ssl_server_hello(bro_analyzer(),
+			zeek::BifEvent::enqueue_ssl_server_hello(bro_analyzer(),
 							bro_analyzer()->Conn(),
 							version, record_version(), ts,
 							make_intrusive<StringVal>(server_random.length(),

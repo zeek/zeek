@@ -197,7 +197,7 @@ void get_first_statement(Stmt* list, Stmt*& first, Location& loc)
 static void parse_function_name(vector<ParseLocationRec>& result,
 				ParseLocationRec& plr, const string& s)
 	{ // function name
-	auto id = lookup_ID(s.c_str(), current_module.c_str());
+	const auto& id = lookup_ID(s.c_str(), current_module.c_str());
 
 	if ( ! id )
 		{
@@ -207,7 +207,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 		return;
 		}
 
-	if ( ! id->Type()->AsFuncType() )
+	if ( ! id->GetType()->AsFuncType() )
 		{
 		debug_msg("Function %s not declared.\n", id->Name());
 		plr.type = plrUnknown;
@@ -221,7 +221,7 @@ static void parse_function_name(vector<ParseLocationRec>& result,
 		return;
 		}
 
-	const Func* func = id->ID_Val()->AsFunc();
+	const Func* func = id->GetVal()->AsFunc();
 	const vector<Func::Body>& bodies = func->GetBodies();
 
 	if ( bodies.size() == 0 )

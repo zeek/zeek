@@ -32,7 +32,7 @@ refine connection SSL_Conn += {
 	function proc_alert(rec: SSLRecord, level : int, desc : int) : bool
 		%{
 		if ( ssl_alert )
-			BifEvent::enqueue_ssl_alert(bro_analyzer(), bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_ssl_alert(bro_analyzer(), bro_analyzer()->Conn(),
 							${rec.is_orig}, level, desc);
 		return true;
 		%}
@@ -52,11 +52,11 @@ refine connection SSL_Conn += {
 			{
 			established_ = true;
 			if ( ssl_established )
-				BifEvent::enqueue_ssl_established(bro_analyzer(), bro_analyzer()->Conn());
+				zeek::BifEvent::enqueue_ssl_established(bro_analyzer(), bro_analyzer()->Conn());
 			}
 
 		if ( ssl_encrypted_data )
-			BifEvent::enqueue_ssl_encrypted_data(bro_analyzer(),
+			zeek::BifEvent::enqueue_ssl_encrypted_data(bro_analyzer(),
 				bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.raw_tls_version}, ${rec.content_type}, ${rec.length});
 
 		return true;
@@ -65,7 +65,7 @@ refine connection SSL_Conn += {
 	function proc_plaintext_record(rec : SSLRecord) : bool
 		%{
 		if ( ssl_plaintext_data )
-			BifEvent::enqueue_ssl_plaintext_data(bro_analyzer(),
+			zeek::BifEvent::enqueue_ssl_plaintext_data(bro_analyzer(),
 				bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.raw_tls_version}, ${rec.content_type}, ${rec.length});
 
 		return true;
@@ -74,7 +74,7 @@ refine connection SSL_Conn += {
 	function proc_heartbeat(rec : SSLRecord, type: uint8, payload_length: uint16, data: bytestring) : bool
 		%{
 		if ( ssl_heartbeat )
-			BifEvent::enqueue_ssl_heartbeat(bro_analyzer(),
+			zeek::BifEvent::enqueue_ssl_heartbeat(bro_analyzer(),
 				bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.length}, type, payload_length,
 				make_intrusive<StringVal>(data.length(), (const char*) data.data()));
 		return true;
@@ -96,7 +96,7 @@ refine connection SSL_Conn += {
 	function proc_ccs(rec: SSLRecord) : bool
 		%{
 		if ( ssl_change_cipher_spec )
-			BifEvent::enqueue_ssl_change_cipher_spec(bro_analyzer(),
+			zeek::BifEvent::enqueue_ssl_change_cipher_spec(bro_analyzer(),
 				bro_analyzer()->Conn(), ${rec.is_orig});
 
 		return true;

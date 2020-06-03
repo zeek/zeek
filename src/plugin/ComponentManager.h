@@ -52,6 +52,9 @@ public:
 	/**
 	 * @return The enum type associated with the script-layer "Tag".
 	 */
+	const IntrusivePtr<EnumType>& GetTagType() const;
+
+	[[deprecated("Remove in v4.1.  Use GetTagType() instead.")]]
 	EnumType* GetTagEnumType() const;
 
 	/**
@@ -68,6 +71,9 @@ public:
 	 * @param val A component's enum value.
 	 * @return The canonical component name.
 	 */
+	const std::string& GetComponentName(IntrusivePtr<EnumVal> val) const;
+
+	[[deprecated("Remove in v4.1.  Use IntrusivePtr argument instead.")]]
 	const std::string& GetComponentName(Val* val) const;
 
 	/**
@@ -157,6 +163,12 @@ std::list<C*> ComponentManager<T, C>::GetComponents() const
 	}
 
 template <class T, class C>
+const IntrusivePtr<EnumType>& ComponentManager<T, C>::GetTagType() const
+	{
+	return tag_enum_type;
+	}
+
+template <class T, class C>
 EnumType* ComponentManager<T, C>::GetTagEnumType() const
 	{
 	return tag_enum_type.get();
@@ -181,9 +193,15 @@ const std::string& ComponentManager<T, C>::GetComponentName(T tag) const
 	}
 
 template <class T, class C>
+const std::string& ComponentManager<T, C>::GetComponentName(IntrusivePtr<EnumVal> val) const
+	{
+	return GetComponentName(T(std::move(val)));
+	}
+
+template <class T, class C>
 const std::string& ComponentManager<T, C>::GetComponentName(Val* val) const
 	{
-	return GetComponentName(T(val->AsEnumVal()));
+	return GetComponentName(T({NewRef{}, val->AsEnumVal()}));
 	}
 
 template <class T, class C>
@@ -239,12 +257,12 @@ void ComponentManager<T, C>::RegisterComponent(C* component,
 	components_by_name.insert(std::make_pair(cname, component));
 	components_by_tag.insert(std::make_pair(component->Tag(), component));
 	components_by_val.insert(std::make_pair(
-	        component->Tag().AsEnumVal()->InternalInt(), component));
+	        component->Tag().AsVal()->InternalInt(), component));
 
 	// Install an identfier for enum value
 	std::string id = fmt("%s%s", prefix.c_str(), cname.c_str());
 	tag_enum_type->AddName(module, id.c_str(),
-	                       component->Tag().AsEnumVal()->InternalInt(), true,
+	                       component->Tag().AsVal()->InternalInt(), true,
 	                       nullptr);
 	}
 

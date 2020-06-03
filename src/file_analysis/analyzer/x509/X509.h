@@ -88,8 +88,9 @@ public:
 	 */
 	static IntrusivePtr<RecordVal> ParseCertificate(X509Val* cert_val, File* file = nullptr);
 
-	static file_analysis::Analyzer* Instantiate(RecordVal* args, File* file)
-		{ return new X509(args, file); }
+	static file_analysis::Analyzer* Instantiate(IntrusivePtr<RecordVal> args,
+	                                            File* file)
+		{ return new X509(std::move(args), file); }
 
 	/**
 	 * Retrieves OpenSSL's representation of an X509 certificate store
@@ -126,7 +127,7 @@ public:
 		{ cache_hit_callback = std::move(func); }
 
 protected:
-	X509(RecordVal* args, File* file);
+	X509(IntrusivePtr<RecordVal> args, File* file);
 
 private:
 	void ParseBasicConstraints(X509_EXTENSION* ex);
@@ -136,7 +137,7 @@ private:
 	std::string cert_data;
 
 	// Helpers for ParseCertificate.
-	static StringVal* KeyCurve(EVP_PKEY *key);
+	static IntrusivePtr<StringVal> KeyCurve(EVP_PKEY* key);
 	static unsigned int KeyLength(EVP_PKEY *key);
 	/** X509 stores associated with global script-layer values */
 	inline static std::map<Val*, X509_STORE*> x509_stores = std::map<Val*, X509_STORE*>();

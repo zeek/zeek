@@ -5,7 +5,7 @@ refine connection SMB_Conn += {
 	if ( ! smb1_transaction_secondary_request )
 		return false;
 
-	auto args = make_intrusive<RecordVal>(BifType::Record::SMB1::Trans_Sec_Args);
+	auto args = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::Trans_Sec_Args);
 	args->Assign(0, val_mgr->Count(${val.total_param_count}));
 	args->Assign(1, val_mgr->Count(${val.total_data_count}));
 	args->Assign(2, val_mgr->Count(${val.param_count}));
@@ -45,7 +45,7 @@ refine connection SMB_Conn += {
 		payload_str = val_mgr->EmptyString();
 		}
 
-	BifEvent::enqueue_smb1_transaction_secondary_request(bro_analyzer(),
+	zeek::BifEvent::enqueue_smb1_transaction_secondary_request(bro_analyzer(),
 	                                                     bro_analyzer()->Conn(),
 	                                                     SMBHeaderVal(header),
 	                                                     std::move(args),

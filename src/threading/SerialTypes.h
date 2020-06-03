@@ -187,6 +187,26 @@ struct Value {
 	 * method is thread-safe. */
 	static bool IsCompatibleType(BroType* t, bool atomic_only=false);
 
+	/**
+	 * Convenience function to delete an array of value pointers.
+	 * @param vals Array of values
+	 * @param num_fields Number of members
+	 */
+	static void delete_value_ptr_array(Value** vals, int num_fields);
+
+	/**
+	 * Convert threading::Value to an internal Zeek type, just using the information given in the threading::Value.
+	 *
+	 * @param source Name of the source of this threading value. This is used for warnings that are raised
+	 *               in case an error occurs.
+	 * @param val Threading Value to convert to a Zeek Val.
+	 * @param have_error Reference to a boolean. This should be set to false when passed in and is set to true
+	 *                   in case an error occurs. If this is set to false when the function is called, the function
+	 *                   immediately aborts.
+	 * @return Val representation of the threading::Value. nullptr on error.
+	 */
+	static Val* ValueToVal(const std::string& source, const threading::Value* val, bool& have_error);
+
 private:
 	friend class ::IPAddr;
 	Value(const Value& other)	{ } // Disabled.

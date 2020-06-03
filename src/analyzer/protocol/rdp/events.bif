@@ -40,6 +40,9 @@ event rdp_native_encrypted_data%(c: connection, orig: bool, len: count%);
 ## c: The connection record for the underlying transport-layer session/flow.
 ##
 ## cookie: The cookie included in the request.
+##
+## flags: The flags set by the client.
+event rdp_connect_request%(c: connection, cookie: string, flags: count%);
 event rdp_connect_request%(c: connection, cookie: string%);
 
 ## Generated for RDP Negotiation Response messages.
@@ -47,6 +50,9 @@ event rdp_connect_request%(c: connection, cookie: string%);
 ## c: The connection record for the underlying transport-layer session/flow.
 ##
 ## security_protocol: The security protocol selected by the server.
+##
+## flags: The flags set by the server.
+event rdp_negotiation_response%(c: connection, security_protocol: count, flags: count%);
 event rdp_negotiation_response%(c: connection, security_protocol: count%);
 
 ## Generated for RDP Negotiation Failure messages.
@@ -54,6 +60,9 @@ event rdp_negotiation_response%(c: connection, security_protocol: count%);
 ## c: The connection record for the underlying transport-layer session/flow.
 ##
 ## failure_code: The failure code sent by the server.
+##
+## flags: The flags set by the server.
+event rdp_negotiation_failure%(c: connection, failure_code: count, flags: count%);
 event rdp_negotiation_failure%(c: connection, failure_code: count%);
 
 ## Generated for MCS client requests.

@@ -15,15 +15,15 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb1_negotiate_request )
 			{
-			auto dialects = make_intrusive<VectorVal>(string_vec);
+			auto dialects = make_intrusive<VectorVal>(zeek::id::string_vec);
 
 			for ( unsigned int i = 0; i < ${val.dialects}->size(); ++i )
 				{
-				StringVal* dia = smb_string2stringval((*${val.dialects})[i]->name());
-				dialects->Assign(i, dia);
+				auto dia = smb_string2stringval((*${val.dialects})[i]->name());
+				dialects->Assign(i, std::move(dia));
 				}
 
-			BifEvent::enqueue_smb1_negotiate_request(bro_analyzer(), bro_analyzer()->Conn(),
+			zeek::BifEvent::enqueue_smb1_negotiate_request(bro_analyzer(), bro_analyzer()->Conn(),
 			                                         SMBHeaderVal(header),
 			                                         std::move(dialects));
 			}
@@ -35,59 +35,57 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb1_negotiate_response )
 			{
-			auto response = make_intrusive<RecordVal>(BifType::Record::SMB1::NegotiateResponse);
+			auto response = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::NegotiateResponse);
 
-			RecordVal* core;
-			RecordVal* lanman;
-			RecordVal* ntlm;
-
-			RecordVal* security;
-			RecordVal* raw;
-			RecordVal* capabilities;
 			switch ( ${val.word_count} )
 				{
 				case 0x01:
-					core = new RecordVal(BifType::Record::SMB1::NegotiateResponseCore);
+					{
+					auto core = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::NegotiateResponseCore);
 					core->Assign(0, val_mgr->Count(${val.dialect_index}));
 
-					response->Assign(0, core);
+					response->Assign(0, std::move(core));
+					}
 					break;
 
 				case 0x0d:
-					security = new RecordVal(BifType::Record::SMB1::NegotiateResponseSecurity);
+					{
+					auto security = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::NegotiateResponseSecurity);
 					security->Assign(0, val_mgr->Bool(${val.lanman.security_user_level}));
 					security->Assign(1, val_mgr->Bool(${val.lanman.security_challenge_response}));
 
-					raw = new RecordVal(BifType::Record::SMB1::NegotiateRawMode);
+					auto raw = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::NegotiateRawMode);
 					raw->Assign(0, val_mgr->Bool(${val.lanman.raw_read_supported}));
 					raw->Assign(1, val_mgr->Bool(${val.lanman.raw_write_supported}));
 
-					lanman = new RecordVal(BifType::Record::SMB1::NegotiateResponseLANMAN);
+					auto lanman = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::NegotiateResponseLANMAN);
 					lanman->Assign(0, val_mgr->Count(${val.word_count}));
 					lanman->Assign(1, val_mgr->Count(${val.dialect_index}));
-					lanman->Assign(2, security);
+					lanman->Assign(2, std::move(security));
 					lanman->Assign(3, val_mgr->Count(${val.lanman.max_buffer_size}));
 					lanman->Assign(4, val_mgr->Count(${val.lanman.max_mpx_count}));
 
 					lanman->Assign(5, val_mgr->Count(${val.lanman.max_number_vcs}));
-					lanman->Assign(6, raw);
+					lanman->Assign(6, std::move(raw));
 					lanman->Assign(7, val_mgr->Count(${val.lanman.session_key}));
 					lanman->Assign(8, time_from_lanman(${val.lanman.server_time}, ${val.lanman.server_date}, ${val.lanman.server_tz}));
 					lanman->Assign(9, to_stringval(${val.lanman.encryption_key}));
 
 					lanman->Assign(10, smb_string2stringval(${val.lanman.primary_domain}));
 
-					response->Assign(1, lanman);
+					response->Assign(1, std::move(lanman));
+					}
 					break;
 
 				case 0x11:
-					security = new RecordVal(BifType::Record::SMB1::NegotiateResponseSecurity);
+					{
+					auto security = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::NegotiateResponseSecurity);
 					security->Assign(0, val_mgr->Bool(${val.ntlm.security_user_level}));
 					security->Assign(1, val_mgr->Bool(${val.ntlm.security_challenge_response}));
 					security->Assign(2, val_mgr->Bool(${val.ntlm.security_signatures_enabled}));
 					security->Assign(3, val_mgr->Bool(${val.ntlm.security_signatures_required}));
 
-					capabilities = new RecordVal(BifType::Record::SMB1::NegotiateCapabilities);
+					auto capabilities = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::NegotiateCapabilities);
 					capabilities->Assign(0, val_mgr->Bool(${val.ntlm.capabilities_raw_mode}));
 					capabilities->Assign(1, val_mgr->Bool(${val.ntlm.capabilities_mpx_mode}));
 					capabilities->Assign(2, val_mgr->Bool(${val.ntlm.capabilities_unicode}));
@@ -110,17 +108,17 @@ refine connection SMB_Conn += {
 					capabilities->Assign(16, val_mgr->Bool(${val.ntlm.capabilities_compressed_data}));
 					capabilities->Assign(17, val_mgr->Bool(${val.ntlm.capabilities_extended_security}));
 
-					ntlm = new RecordVal(BifType::Record::SMB1::NegotiateResponseNTLM);
+					auto ntlm = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::NegotiateResponseNTLM);
 					ntlm->Assign(0, val_mgr->Count(${val.word_count}));
 					ntlm->Assign(1, val_mgr->Count(${val.dialect_index}));
-					ntlm->Assign(2, security);
+					ntlm->Assign(2, std::move(security));
 					ntlm->Assign(3, val_mgr->Count(${val.ntlm.max_buffer_size}));
 					ntlm->Assign(4, val_mgr->Count(${val.ntlm.max_mpx_count}));
 
 					ntlm->Assign(5, val_mgr->Count(${val.ntlm.max_number_vcs}));
 					ntlm->Assign(6, val_mgr->Count(${val.ntlm.max_raw_size}));
 					ntlm->Assign(7, val_mgr->Count(${val.ntlm.session_key}));
-					ntlm->Assign(8, capabilities);
+					ntlm->Assign(8, std::move(capabilities));
 					ntlm->Assign(9, filetime2brotime(${val.ntlm.server_time}));
 
 					if ( ${val.ntlm.capabilities_extended_security} == false )
@@ -133,10 +131,11 @@ refine connection SMB_Conn += {
 						ntlm->Assign(12, to_stringval(${val.ntlm.server_guid}));
 						}
 
-					response->Assign(2, ntlm);
+					response->Assign(2, std::move(ntlm));
+					}
 					break;
 				}
-			BifEvent::enqueue_smb1_negotiate_response(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb1_negotiate_response(bro_analyzer(),
 			                                          bro_analyzer()->Conn(),
 			                                          SMBHeaderVal(header),
 			                                          std::move(response));

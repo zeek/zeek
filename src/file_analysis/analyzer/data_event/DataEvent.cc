@@ -11,18 +11,19 @@
 
 using namespace file_analysis;
 
-DataEvent::DataEvent(RecordVal* args, File* file,
+DataEvent::DataEvent(IntrusivePtr<RecordVal> args, File* file,
                      EventHandlerPtr ce, EventHandlerPtr se)
     : file_analysis::Analyzer(file_mgr->GetComponentTag("DATA_EVENT"),
-	                          args, file),
+	                          std::move(args), file),
 	chunk_event(ce), stream_event(se)
 	{
 	}
 
-file_analysis::Analyzer* DataEvent::Instantiate(RecordVal* args, File* file)
+file_analysis::Analyzer* DataEvent::Instantiate(IntrusivePtr<RecordVal> args,
+                                                File* file)
 	{
-	auto chunk_val = args->Lookup("chunk_event");
-	auto stream_val = args->Lookup("stream_event");
+	const auto& chunk_val = args->GetField("chunk_event");
+	const auto& stream_val = args->GetField("stream_event");
 
 	if ( ! chunk_val && ! stream_val ) return nullptr;
 
@@ -35,7 +36,7 @@ file_analysis::Analyzer* DataEvent::Instantiate(RecordVal* args, File* file)
 	if ( stream_val )
 		stream = event_registry->Lookup(stream_val->AsFunc()->Name());
 
-	return new DataEvent(args, file, chunk, stream);
+	return new DataEvent(std::move(args), file, chunk, stream);
 	}
 
 bool DataEvent::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
@@ -43,7 +44,7 @@ bool DataEvent::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 	if ( ! chunk_event ) return true;
 
 	mgr.Enqueue(chunk_event,
-		IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+		GetFile()->ToVal(),
 		make_intrusive<StringVal>(new BroString(data, len, false)),
 		val_mgr->Count(offset)
 	);
@@ -56,7 +57,7 @@ bool DataEvent::DeliverStream(const u_char* data, uint64_t len)
 	if ( ! stream_event ) return true;
 
 	mgr.Enqueue(stream_event,
-		IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+		GetFile()->ToVal(),
 		make_intrusive<StringVal>(new BroString(data, len, false))
 	);
 

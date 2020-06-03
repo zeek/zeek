@@ -1,4 +1,8 @@
 
+3.0.7-dev.3 | 2020-06-02 19:19:12 -0700
+
+  * Increase CI timeout of an external leak test (Jon Siwek, Corelight)
+
 3.0.7-dev.2 | 2020-06-02 12:45:09 -0700
 
   * Decrease number of CPUs/memory for Cirrus CI tasks (Jon Siwek, Corelight)

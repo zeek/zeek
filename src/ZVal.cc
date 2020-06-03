@@ -374,35 +374,6 @@ IntrusivePtr<RecordVal> ZAM_record::ToRecordVal()
 
 void ZAM_record::Spill()
 	{
-	if ( ! rv || ! is_dirty )
-		{
-		// Mark the record as unloaded so we'll reload it
-		// as needed.
-		is_in_record = 0;
-		return;
-		}
-
-	for ( auto i = 0; i < zvec.size(); ++i )
-		{
-		auto rti = rt->FieldType(i);
-		auto& zvi = zvec[i];
-
-		if ( IsDirty(i) )
-			{
-			if ( IsInRecord(i) )
-				{
-				rv->Assign(i, zvi.ToVal(rti));
-				if ( IsManaged(i) )
-					DeleteManagedType(zvi, rti);
-				}
-			else
-				rv->Assign(i, nullptr);
-			}
-		}
-
-	// Our strategy for spilling is that we start from scratch,
-	// with nothing loaded.
-	is_in_record = is_dirty = 0;
 	}
 
 void ZAM_record::Freshen()

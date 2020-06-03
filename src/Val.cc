@@ -3143,7 +3143,7 @@ IntrusivePtr<Val> VectorVal::DoClone(CloneState* state)
 	state->NewClone(this, vv);
 
 	auto& zvu1 = val.vector_val->ConstVec();
-	auto& zvu2 = vv->val.vector_val->ModVecNoDirty();
+	auto& zvu2 = vv->val.vector_val->InitVec();
 	auto yt = vector_type->YieldType();
 
 	bool error;

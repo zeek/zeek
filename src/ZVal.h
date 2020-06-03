@@ -138,7 +138,6 @@ public:
 		{
 		bindings = _bindings;
 		aggr_val = _v;
-		is_dirty = 0;
 
 		if ( aggr_val )
 			{
@@ -207,12 +206,6 @@ protected:
 
 	// The underlying set of ZAM values.
 	ZVU_vec zvec;
-
-	// Whether the internal aggregate is out of sync with the
-	// associated Val.  Subclasses might use this as a simple
-	// boolean flag (such as for vectors), or element-wise
-	// (such as for records).
-	ZRM_flags is_dirty;
 };
 
 class ZAM_vector : public ZAMAggrInstantiation {
@@ -254,10 +247,10 @@ public:
 	int Size() const		{ return zvec.size(); }
 
 	const ZVU_vec& ConstVec() const	{ return zvec; }
-	ZVU_vec& ModVec()		{ is_dirty = 1; return zvec; }
+	ZVU_vec& ModVec()		{ return zvec; }
 
 	// Used when access to the underlying vector is for initialization.
-	ZVU_vec& ModVecNoDirty()	{ return zvec; }
+	ZVU_vec& InitVec()		{ return zvec; }
 
 	IntrusivePtr<VectorVal> VecVal()	{ return {NewRef{}, vv}; }
 	void SetVecVal(VectorVal* _vv)		{ vv = _vv; vv->Ref(); }
@@ -278,8 +271,6 @@ public:
 			SetManagedElement(n, v);
 		else
 			zvec[n] = v;
-
-		is_dirty = 1;
 		}
 
 	void Insert(unsigned int index, ZAMValUnion& element)
@@ -295,8 +286,6 @@ public:
 			it = zvec.end();
 
 		zvec.insert(it, element);
-
-		is_dirty = 1;
 		}
 
 	void Remove(unsigned int index)
@@ -304,8 +293,6 @@ public:
 		DeleteIfManaged(index);
 		auto it = std::next(zvec.begin(), index);
 		zvec.erase(it);
-
-		is_dirty = 1;
 		}
 
 	void Resize(unsigned int new_num_elements)
@@ -368,7 +355,6 @@ public:
 		zvec[field] = v;
 
 		auto mask = 1UL << field;
-		is_dirty |= mask;
 		is_in_record |= mask;
 		}
 
@@ -397,7 +383,6 @@ public:
 		{
 		auto mask = 1UL << field;
 		is_in_record &= ~mask;
-		is_dirty |= mask;
 		}
 
 	bool HasField(unsigned int field)
@@ -421,8 +406,6 @@ public:
 
 	bool IsInRecord(unsigned int offset) const
 		{ return (is_in_record & OffsetMask(offset)) != 0; }
-	bool IsDirty(unsigned int offset) const
-		{ return (is_dirty & OffsetMask(offset)) != 0; }
 	bool IsManaged(unsigned int offset) const
 		{ return (is_managed & OffsetMask(offset)) != 0; }
 
@@ -444,11 +427,6 @@ protected:
 
 	// Whether a given field exists (for optional fields).
 	ZRM_flags is_in_record;
-
-	// Whether a given field has been modified since we loaded it.
-	// Commented out here as we use the is_dirty we inherit from
-	// ZAMAggrInstantiation.
-	// ZRM_flags is_dirty;
 
 	// Whether a given field requires explicit memory management.
 	ZRM_flags is_managed;

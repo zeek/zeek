@@ -602,7 +602,7 @@ static void vec_exec(ZOp op, BroType* t, ZAMVector*& v1, const ZAMVector* v2,
 		auto& v = vec->ConstVec(); \
 		auto yt = vec->YieldType(); \
 		auto res_zv = make_intrusive<ZAM_vector>(nullptr, bindings, vec->YieldType()); \
-		auto& res = res_zv->ModVecNoDirty(); \
+		auto& res = res_zv->InitVec(); \
 		for ( unsigned int i = 0; i < v.size(); ++i ) \
 			res[i].lhs_accessor = cast(v[i].rhs_accessor); \
 		auto zvm = new ZAMVector(res_zv); \

@@ -344,20 +344,14 @@ ZAM_record::ZAM_record(RecordVal* _v, RecordType* _rt,
 			ZAMAggrBindings* _bindings)
 	: ZAMAggrInstantiation(_v, _bindings, _rt->NumFields())
 	{
-	is_in_record = is_loaded = 0;
+	is_in_record = 0;
 
 	rv = _v;
 	rt = _rt;
 
 	if ( rv )
 		{
-		// If we're the only keeper-of-rv, then load it.  But if
-		// not, then opportunistically load it as needed.
-		if ( rv->RefCnt() == 1 )
-			Load();
-		else
-			Ref(rv);
-
+		Ref(rv);
 		is_managed = rt->ManagedFields();
 		}
 	else
@@ -384,7 +378,7 @@ void ZAM_record::Spill()
 		{
 		// Mark the record as unloaded so we'll reload it
 		// as needed.
-		is_in_record = is_loaded = 0;
+		is_in_record = 0;
 		return;
 		}
 
@@ -408,7 +402,7 @@ void ZAM_record::Spill()
 
 	// Our strategy for spilling is that we start from scratch,
 	// with nothing loaded.
-	is_in_record = is_loaded = is_dirty = 0;
+	is_in_record = is_dirty = 0;
 	}
 
 void ZAM_record::Freshen()
@@ -425,38 +419,6 @@ void ZAM_record::Freshen()
 	// EndAssociation();
 	}
 
-void ZAM_record::Load()
-	{
-	if ( rv )
-		for ( auto i = 0; i < rt->NumFields(); ++i )
-			Load(i);
-	}
-
-void ZAM_record::Load(int field)
-	{
-	if ( ! rv )
-		reporter->InternalError("field missing in record load");
-
-	ASSERT(! IsDirty(field));
-	ASSERT(! IsInRecord(field));
-
-	auto f = rv->LookupWithDefault(field);
-	auto mask = 1UL << field;
-
-	if ( f )
-		{
-		bool error;
-		// ### The following will leak until we regularize
-		// memory management in ZAMValUnion's constructor.
-		zvec[field] = ZAMValUnion(f.release(), rt->FieldType(field), bindings, rv, error);
-		is_in_record |= mask;
-		}
-
-	// Mark it as loaded even if it wasn't in the record, since we
-	// did try to sync it.
-	is_loaded |= mask;
-	}
-
 void ZAM_record::Delete(int field)
 	{
 	}
@@ -466,7 +428,7 @@ void ZAM_record::DeleteManagedMembers()
 	for ( auto i = 0; i < zvec.size(); ++i )
 		{
 		auto& zvi = zvec[i];
-		if ( IsLoaded(i) && IsManaged(i) )
+		if ( IsManaged(i) )
 			{
 			auto rti = rt->FieldType(i);
 			DeleteManagedType(zvi, rti);

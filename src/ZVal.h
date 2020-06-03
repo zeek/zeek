@@ -369,15 +369,11 @@ public:
 
 		auto mask = 1UL << field;
 		is_dirty |= mask;
-		is_loaded |= mask;
 		is_in_record |= mask;
 		}
 
 	ZAMValUnion& Lookup(unsigned int field, bool& error)
 		{
-		if ( ! IsLoaded(field) )
-			Load(field);
-
 		if ( ! IsInRecord(field) )
 			error = true;
 		else
@@ -402,17 +398,10 @@ public:
 		auto mask = 1UL << field;
 		is_in_record &= ~mask;
 		is_dirty |= mask;
-
-		// Consider the field loaded, as we just modified it,
-		// similar to when assigning to it.
-		is_loaded |= mask;
 		}
 
 	bool HasField(unsigned int field)
 		{
-		if ( ! IsLoaded(field) )
-			Load(field);
-
 		return IsInRecord(field);
 		}
 
@@ -430,8 +419,6 @@ public:
 	ZRM_flags OffsetMask(unsigned int offset) const
 		{ return 1UL << offset; }
 
-	bool IsLoaded(unsigned int offset) const
-		{ return (is_loaded & OffsetMask(offset)) != 0; }
 	bool IsInRecord(unsigned int offset) const
 		{ return (is_in_record & OffsetMask(offset)) != 0; }
 	bool IsDirty(unsigned int offset) const
@@ -445,11 +432,7 @@ public:
 	BroType* FieldType(int field) const	{ return rt->FieldType(field); }
 
 protected:
-	// Loads everything.
-	void Load();
-
-	// Loads or removes the given field.
-	void Load(int field);
+	// Removes the given field.
 	void Delete(int field);
 
 	void DeleteManagedMembers();
@@ -459,13 +442,7 @@ protected:
 	// And a handy pointer to its type.
 	RecordType* rt;
 
-	// Whether a given field is loaded.  We populate fields lazily.
-	// Note that a field can be loaded even if never populated from
-	// the original record, due to it being created by assignment.
-	ZRM_flags is_loaded;
-
-	// Whether a given field exists (for optional fields).  Only
-	// valid if the field has been loaded.
+	// Whether a given field exists (for optional fields).
 	ZRM_flags is_in_record;
 
 	// Whether a given field has been modified since we loaded it.

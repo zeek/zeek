@@ -13,7 +13,7 @@ event zeek_init()
 	topk_add(k1, "c");
 
 	local s = topk_get_top(k1, 5);
-	print s;
+	print s, type_name(s);
 	print topk_sum(k1);
 	print topk_count(k1, "a");
 	print topk_epsilon(k1, "a");
@@ -24,7 +24,7 @@ event zeek_init()
  
 	topk_add(k1, "d");
 	s = topk_get_top(k1, 5);
-	print s;
+	print s, type_name(s);
 	print topk_sum(k1);
 	print topk_count(k1, "b");
 	print topk_epsilon(k1, "b");
@@ -35,7 +35,7 @@ event zeek_init()
 	
 	topk_add(k1, "e");
 	s = topk_get_top(k1, 5);
-	print s;
+	print s, type_name(s);
 	print topk_sum(k1);
 	print topk_count(k1, "d");
 	print topk_epsilon(k1, "d");
@@ -44,7 +44,7 @@ event zeek_init()
 	
 	topk_add(k1, "f");
 	s = topk_get_top(k1, 5);
-	print s;
+	print s, type_name(s);
 	print topk_sum(k1);
 	print topk_count(k1, "f");
 	print topk_epsilon(k1, "f");
@@ -53,7 +53,7 @@ event zeek_init()
 	
 	topk_add(k1, "e");
 	s = topk_get_top(k1, 5);
-	print s;
+	print s, type_name(s);
 	print topk_sum(k1);
 	print topk_count(k1, "f");
 	print topk_epsilon(k1, "f");
@@ -62,7 +62,7 @@ event zeek_init()
 
 	topk_add(k1, "g");
 	s = topk_get_top(k1, 5);
-	print s;
+	print s, type_name(s);
 	print topk_sum(k1);
 	print topk_count(k1, "f");
 	print topk_epsilon(k1, "f");
@@ -92,7 +92,7 @@ event zeek_init()
 	topk_add(k1, "e");
 	topk_add(k1, "f");
 	s = topk_get_top(k1, 3);
-	print s;
+	print s, type_name(s);
 	print topk_sum(k1);
 	print topk_count(k1, "c");
 	print topk_epsilon(k1, "c");
@@ -105,7 +105,7 @@ event zeek_init()
 	topk_merge_prune(k3, k1);
 
 	s = topk_get_top(k3, 3);
-	print s;
+	print s, type_name(s);
 	print topk_count(k3, "c");
 	print topk_epsilon(k3, "c");
 	print topk_count(k3, "e");
@@ -116,7 +116,7 @@ event zeek_init()
 	topk_merge_prune(k3, k1);
 
 	s = topk_get_top(k3, 3);
-	print s;
+	print s, type_name(s);
 	print topk_sum(k3); # this gives a warning and a wrong result.
 	print topk_count(k3, "c");
 	print topk_epsilon(k3, "c");
@@ -127,7 +127,7 @@ event zeek_init()
 
 	k3 = topk_init(2);
 	topk_merge(k3, k1);
-	print s;
+	print s, type_name(s);
 	print topk_sum(k3);
 	print topk_count(k3, "c");
 	print topk_epsilon(k3, "c");
@@ -139,7 +139,7 @@ event zeek_init()
 	topk_merge(k3, k1);
 
 	s = topk_get_top(k3, 3);
-	print s;
+	print s, type_name(s);
 	print topk_sum(k3);
 	print topk_count(k3, "c");
 	print topk_epsilon(k3, "c");

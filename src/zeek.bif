@@ -2399,7 +2399,7 @@ function double_to_time%(d: double%): time
 ## .. zeek:see:: interval_to_double
 function double_to_interval%(d: double%): interval
 	%{
-	return make_intrusive<Val>(d, TYPE_INTERVAL);
+	return make_intrusive<IntervalVal>(d, Seconds);
 	%}
 
 ## Converts a :zeek:type:`port` to a :zeek:type:`count`.

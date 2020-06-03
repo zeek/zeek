@@ -1,4 +1,12 @@
 
+3.2.0-dev.738 | 2020-06-02 18:13:50 -0700
+
+  * GH-985: Fix descriptions of double_to_interval() return values (Jon Siwek, Corelight)
+
+    The BIF was not returning an IntervalVal which has an overriden
+    ValDescribe() method that allows for prettier printing like "6.0 secs"
+    instead of just "6.0".
+
 3.2.0-dev.736 | 2020-06-02 12:37:56 -0700
 
   * Decrease number of CPUs/memory for Cirrus CI tasks (Jon Siwek, Corelight)

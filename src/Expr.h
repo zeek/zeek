@@ -54,6 +54,7 @@ enum BroExprTag : int {
 	EXPR_RECORD_COERCE,
 	EXPR_TABLE_COERCE,
 	EXPR_VECTOR_COERCE,
+	EXPR_TO_ANY_COERCE, EXPR_FROM_ANY_COERCE,
 	EXPR_SIZE,
 	EXPR_FLATTEN,
 	EXPR_CAST,
@@ -1058,7 +1059,6 @@ protected:
 class RecordConstructorExpr : public UnaryExpr {
 public:
 	explicit RecordConstructorExpr(IntrusivePtr<ListExpr> constructor_list);
-	~RecordConstructorExpr() override;
 
 protected:
 	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
@@ -1199,7 +1199,6 @@ extern IntrusivePtr<Val> coerce_to_record(RecordType* rt, Val* v,
 class TableCoerceExpr : public UnaryExpr {
 public:
 	TableCoerceExpr(IntrusivePtr<Expr> op, IntrusivePtr<TableType> r);
-	~TableCoerceExpr() override;
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
@@ -1210,7 +1209,26 @@ protected:
 class VectorCoerceExpr : public UnaryExpr {
 public:
 	VectorCoerceExpr(IntrusivePtr<Expr> op, IntrusivePtr<VectorType> v);
-	~VectorCoerceExpr() override;
+
+protected:
+	IntrusivePtr<Val> Fold(Val* v) const override;
+
+	IntrusivePtr<Expr> Duplicate() override;
+};
+
+class CoerceToAnyExpr : public UnaryExpr {
+public:
+	CoerceToAnyExpr(IntrusivePtr<Expr> op);
+
+protected:
+	IntrusivePtr<Val> Fold(Val* v) const override;
+
+	IntrusivePtr<Expr> Duplicate() override;
+};
+
+class CoerceFromAnyExpr : public UnaryExpr {
+public:
+	CoerceFromAnyExpr(IntrusivePtr<Expr> op, IntrusivePtr<BroType> to_type);
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;

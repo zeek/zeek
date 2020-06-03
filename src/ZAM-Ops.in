@@ -265,10 +265,9 @@ eval_A ! (*$1 < *$2) && *$1 != *$2
 
 assign-op Field
 type R
-eval bool error
 eval auto rv = $2.record_val
-eval auto v = rv->Lookup(z.v3, error)
-eval if ( error ) z.e->RuntimeError("field value missing")
+eval auto v = rv->Lookup(z.v3, error_flag)
+eval if ( error_flag ) z.e->RuntimeError("field value missing")
 eval else @v
 
 expr-op Has-Field
@@ -630,6 +629,15 @@ eval auto vv_p = make_intrusive<VectorVal>(t)
 eval delete frame[z.v1].vector_val
 eval frame[z.v1].vector_val = to_ZAM_vector(vv_p.get(), &ZAM_VM_bindings)
 
+unary-expr-op To-Any-Coerce
+set-type $2
+eval ZAMValUnion(TrackVal($1.ToVal(z.t).release()), base_type_no_ref(TYPE_ANY), &ZAM_VM_bindings, nullptr, error_flag)
+
+unary-expr-op From-Any-Coerce
+set-type $1
+eval ZAMValUnion(TrackVal($1.any_val->Ref()), z.t, &ZAM_VM_bindings, nullptr, error_flag)
+
+
 ########## Aggregate Assignments ##########
 
 op Vector-Elem-Assign
@@ -647,8 +655,7 @@ eval auto ind = frame[z.v2].uint_val
 eval auto vv = frame[z.v1].vector_val
 eval vv->SetYieldType(z.t)
 eval auto any_v = frame[z.v3].any_val
-eval bool error
-eval auto any_z = ZAMValUnion(any_v, any_v->Type(), &ZAM_VM_bindings, nullptr, error)
+eval auto any_z = ZAMValUnion(any_v, any_v->Type(), &ZAM_VM_bindings, nullptr, error_flag)
 eval vv->SetElement(ind, any_z)
 
 op Vector-Elem-Assign
@@ -673,8 +680,7 @@ type VVi
 eval auto vv = frame[z.v1].vector_val
 eval vv->SetYieldType(z.t)
 eval auto any_v = frame[z.v2].any_val
-eval bool error
-eval auto any_z = ZAMValUnion(any_v, any_v->Type(), &ZAM_VM_bindings, nullptr, error)
+eval auto any_z = ZAMValUnion(any_v, any_v->Type(), &ZAM_VM_bindings, nullptr, error_flag)
 eval vv->SetElement(z.v3, any_z)
 
 

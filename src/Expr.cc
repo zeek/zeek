@@ -50,6 +50,7 @@ const char* expr_name(BroExprTag t)
 		"$=", "in", "<<>>",
 		"()", "inline()", "function()", "event", "schedule",
 		"coerce", "record_coerce", "table_coerce", "vector_coerce",
+		"to_any_coerce", "from_any_coerce",
 		"sizeof", "flatten", "cast", "is", "[:]=",
 		"nop",
 	};
@@ -3842,20 +3843,18 @@ bool AssignExpr::IsReduced(Reducer* c) const
 		// Cascaded assignments are never reduced.
 		return false;
 
+	auto lhs_is_any = op1->Type()->Tag() == TYPE_ANY;
+	auto rhs_is_any = op2->Type()->Tag() == TYPE_ANY;
+
+	if ( lhs_is_any != rhs_is_any )
+		return NonReduced(this);
+
 	auto t1 = op1->Tag();
 
-	if ( t1 == EXPR_REF )
-		{
-		auto lhs = op1->GetOp1();
-		if ( lhs->Type()->Tag() == TYPE_ANY &&
-		     op2->Type()->Tag() != TYPE_ANY )
-			return op1->IsReduced(c) && op2->IsSingleton(c);
-
-		if ( op2->HasConstantOps() )
-			// We are not reduced because we should instead
-			// be folded.
-			return NonReduced(this);
-		}
+	if ( t1 == EXPR_REF && op2->HasConstantOps() )
+		// We are not reduced because we should instead
+		// be folded.
+		return NonReduced(this);
 
 	if ( IsTemp() )
 		return true;
@@ -3893,22 +3892,25 @@ Expr* AssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		// These are generated for reduced expressions.
 		return this->Ref();
 
+	auto lhs_is_any = op1->Type()->Tag() == TYPE_ANY;
+	auto rhs_is_any = op2->Type()->Tag() == TYPE_ANY;
+
+	IntrusivePtr<Stmt> rhs_reduce;
+
+	if ( lhs_is_any != rhs_is_any )
+		{
+		IntrusivePtr<Expr> red_rhs =
+			{AdoptRef{}, op2->ReduceToSingleton(c, rhs_reduce)};
+
+		if ( lhs_is_any )
+			op2 = make_intrusive<CoerceToAnyExpr>(red_rhs);
+		else
+			op2 = make_intrusive<CoerceFromAnyExpr>(red_rhs,
+								op1->Type());
+		}
+
 	auto lhs_ref = op1->AsRefExpr();
 	auto lhs_expr = lhs_ref->Op();
-
-	bool is_any_assign =
-		lhs_expr->Tag() == EXPR_NAME &&
-		lhs_expr->Type()->Tag() == TYPE_ANY &&
-		op2->Type()->Tag() != TYPE_ANY && ! op2->IsSingleton(c);
-
-	if ( is_any_assign )
-		{ // RHS must be a singleton.
-		IntrusivePtr<Stmt> cascade_stmt;
-		op2 = {AdoptRef{}, op2->ReduceToSingleton(c, cascade_stmt)};
-		auto new_me = Reduce(c, red_stmt);
-		red_stmt = MergeStmts(cascade_stmt, red_stmt);
-		return new_me;
-		}
 
 	if ( lhs_expr->Tag() == EXPR_INDEX )
 		{
@@ -3925,7 +3927,8 @@ Expr* AssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		IntrusivePtr<Expr> rhs_e 
 			{AdoptRef{}, op2->Reduce(c, rhs_stmt)};
 
-		red_stmt = MergeStmts(ind1_stmt, ind2_stmt, rhs_stmt);
+		red_stmt = MergeStmts(MergeStmts(rhs_reduce, ind1_stmt),
+					ind2_stmt, rhs_stmt);
 
 		auto index_assign = new IndexAssignExpr(ind1_e, ind2_e, rhs_e);
 		return TransformMe(index_assign, c, red_stmt);
@@ -3943,7 +3946,7 @@ Expr* AssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		IntrusivePtr<Expr> rhs_e =
 			{AdoptRef{}, op2->ReduceToSingleton(c, rhs_stmt)};
 
-		red_stmt = MergeStmts(lhs_stmt, rhs_stmt);
+		red_stmt = MergeStmts(rhs_reduce, lhs_stmt, rhs_stmt);
 
 		auto field_name = field_e->FieldName();
 		auto field = field_e->Field();
@@ -3964,7 +3967,7 @@ Expr* AssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		auto len = lhs_list.length();
 		auto check_stmt = make_intrusive<CheckAnyLenStmt>(rhs_e, len);
 
-		red_stmt = MergeStmts(rhs_stmt, check_stmt);
+		red_stmt = MergeStmts(rhs_reduce, rhs_stmt, check_stmt);
 
 		loop_over_list(lhs_list, i)
 			{
@@ -3984,7 +3987,7 @@ Expr* AssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		{
 		IntrusivePtr<Stmt> xform_stmt;
 		op2 = {AdoptRef{}, op2->ReduceToSingleton(c, xform_stmt)};
-		red_stmt = MergeStmts(red_stmt, xform_stmt);
+		red_stmt = MergeStmts(rhs_reduce, xform_stmt);
 		return this->Ref();
 		}
 
@@ -4002,14 +4005,15 @@ Expr* AssignExpr::Reduce(Reducer* c, IntrusivePtr<Stmt>& red_stmt)
 		{
 		IntrusivePtr<Stmt> xform_stmt;
 		op2 = {AdoptRef{}, op2->ReduceToSingleton(c, xform_stmt)};
-		red_stmt = MergeStmts(red_stmt, xform_stmt);
+		red_stmt = MergeStmts(rhs_reduce, red_stmt, xform_stmt);
 		return this->Ref();
 		}
 
 	IntrusivePtr<Stmt> lhs_stmt = lhs_ref->ReduceToLHS(c);
 	IntrusivePtr<Stmt> rhs_stmt = op2->ReduceToSingletons(c);
 
-	red_stmt = MergeStmts(red_stmt, lhs_stmt, rhs_stmt);
+	red_stmt = MergeStmts(MergeStmts(rhs_reduce, red_stmt),
+				lhs_stmt, rhs_stmt);
 
 	return this->Ref();
 	}
@@ -4073,6 +4077,7 @@ const CompiledStmt AssignExpr::DoCompile(Compiler* c, const NameExpr* lhs) const
 		return c->ErrorStmt();
 		}
 
+// ### this is going to instead be in the cast compilation
 	if ( rhs->Tag() == EXPR_NAME )
 		{
 		auto rhs_n = rhs->AsNameExpr();
@@ -4705,6 +4710,7 @@ AnyIndexExpr::AnyIndexExpr(IntrusivePtr<Expr> arg_op, int _index)
 	: UnaryExpr(EXPR_ANY_INDEX, std::move(arg_op))
 	{
 	index = _index;
+	type = op->Type();
 	}
 
 IntrusivePtr<Val> AnyIndexExpr::Fold(Val* v) const
@@ -5036,10 +5042,6 @@ RecordConstructorExpr::RecordConstructorExpr(IntrusivePtr<ListExpr> constructor_
 		}
 
 	SetType(make_intrusive<RecordType>(record_types));
-	}
-
-RecordConstructorExpr::~RecordConstructorExpr()
-	{
 	}
 
 IntrusivePtr<Val> RecordConstructorExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) const
@@ -6058,10 +6060,6 @@ TableCoerceExpr::TableCoerceExpr(IntrusivePtr<Expr> arg_op,
 	}
 
 
-TableCoerceExpr::~TableCoerceExpr()
-	{
-	}
-
 IntrusivePtr<Val> TableCoerceExpr::Fold(Val* v) const
 	{
 	TableVal* tv = v->AsTableVal();
@@ -6097,11 +6095,6 @@ VectorCoerceExpr::VectorCoerceExpr(IntrusivePtr<Expr> arg_op,
 		ExprError("coercion of non-vector to vector");
 	}
 
-
-VectorCoerceExpr::~VectorCoerceExpr()
-	{
-	}
-
 IntrusivePtr<Val> VectorCoerceExpr::Fold(Val* v) const
 	{
 	VectorVal* vv = v->AsVectorVal();
@@ -6119,6 +6112,45 @@ IntrusivePtr<Expr> VectorCoerceExpr::Duplicate()
 	IntrusivePtr<VectorType> vt_p = {NewRef{}, vt};
 	return make_intrusive<VectorCoerceExpr>(op_dup, vt_p);
 	}
+
+
+CoerceToAnyExpr::CoerceToAnyExpr(IntrusivePtr<Expr> arg_op)
+	: UnaryExpr(EXPR_TO_ANY_COERCE, std::move(arg_op))
+	{
+	type = base_type(TYPE_ANY);
+	}
+
+IntrusivePtr<Val> CoerceToAnyExpr::Fold(Val* v) const
+	{
+	return {NewRef{}, v};
+	}
+
+IntrusivePtr<Expr> CoerceToAnyExpr::Duplicate()
+	{
+	return make_intrusive<CoerceToAnyExpr>(op->Duplicate());
+	}
+
+
+CoerceFromAnyExpr::CoerceFromAnyExpr(IntrusivePtr<Expr> arg_op,
+					IntrusivePtr<BroType> to_type)
+	: UnaryExpr(EXPR_FROM_ANY_COERCE, std::move(arg_op))
+	{
+	type = to_type;
+	}
+
+IntrusivePtr<Val> CoerceFromAnyExpr::Fold(Val* v) const
+	{
+	if ( v->Type()->Tag() != Type()->Tag() )
+		RuntimeError("incompatible \"any\" type");
+
+	return {NewRef{}, v};
+	}
+
+IntrusivePtr<Expr> CoerceFromAnyExpr::Duplicate()
+	{
+	return make_intrusive<CoerceFromAnyExpr>(op->Duplicate(), type);
+	}
+
 
 FlattenExpr::FlattenExpr(IntrusivePtr<Expr> arg_op)
 	: UnaryExpr(EXPR_FLATTEN, std::move(arg_op))
@@ -7815,8 +7847,22 @@ IntrusivePtr<Expr> check_and_promote_expr(Expr* const e, BroType* t)
 	TypeTag e_tag = et->Tag();
 	TypeTag t_tag = t->Tag();
 
-	if ( t->Tag() == TYPE_ANY )
-		return {NewRef{}, e};
+	if ( t_tag == TYPE_ANY )
+		{
+		IntrusivePtr<Expr> e_ptr = {NewRef{}, e};
+
+		if ( e_tag == TYPE_ANY )
+			return e_ptr;
+		else
+			return make_intrusive<CoerceToAnyExpr>(e_ptr);
+		}
+
+	if ( e_tag == TYPE_ANY )
+		{
+		IntrusivePtr<Expr> e_ptr = {NewRef{}, e};
+		IntrusivePtr<BroType> t_ptr = {NewRef{}, t};
+		return make_intrusive<CoerceFromAnyExpr>(e_ptr, t_ptr);
+		}
 
 	if ( EitherArithmetic(t_tag, e_tag) )
 		{
@@ -7892,6 +7938,9 @@ bool check_and_promote_exprs(ListExpr* const elements, TypeList* types)
 	const type_list* tl = types->Types();
 
 	if ( tl->length() == 1 && (*tl)[0]->Tag() == TYPE_ANY )
+		// VP: what is this special case for?  It doesn't
+		// appear to be accessed during parsing of the default
+		// script base.
 		return true;
 
 	if ( el.length() != tl->length() )

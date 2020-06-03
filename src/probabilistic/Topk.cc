@@ -200,9 +200,7 @@ VectorVal* TopkVal::GetTopK(int k) const // returns vector
 		return 0;
 		}
 
-	TypeList* vector_index = new TypeList(type);
-	vector_index->Append(type->Ref());
-	VectorType* v = new VectorType(vector_index);
+	VectorType* v = new VectorType(type->Ref());
 	VectorVal* t = new VectorVal(v);
 
 	// this does no estimation if the results is correct!

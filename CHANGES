@@ -1,4 +1,11 @@
 
+3.1.4-dev.7 | 2020-06-04 18:34:28 -0700
+
+  * GH-973: Fix the return type of topk_get_top() (Jon Siwek, Corelight)
+
+    e.g. when using `string` elements it should return `vector of string`,
+    not `vector of list of string` like it did before.
+
 3.1.4-dev.6 | 2020-06-04 17:50:07 -0700
 
   * Extend CI config to cover building with libmaxminddb support (Jon Siwek, Corelight)

@@ -94,7 +94,7 @@ eval const char* error;
 eval auto rv = frame[z.v2].record_val;
 eval auto res = flatten_value(rv->ToRecordVal().get(), z.v3, error);
 eval if ( error ) ZAM_run_time_error(error_flag, z.stmt, error);
-eval else frame[z.v1].record_val = to_ZAM_record(res.get(), &ZAM_VM_bindings);
+eval else frame[z.v1].record_val = to_ZAM_record(res.get());
 
 unary-expr-op Cast
 op-type X
@@ -416,7 +416,7 @@ eval auto v2 = frame[z.v2].ToVector(vt)
 eval auto v3 = frame[z.v3].ToVector(vt)
 eval auto v = vector_bool_select(vt, v2.get(), v3.get())
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = to_ZAM_vector(v.get(), &ZAM_VM_bindings)
+eval frame[z.v1].vector_val = to_ZAM_vector(v.get())
 
 op IndexVecIntSelect
 type VVV
@@ -426,7 +426,7 @@ eval auto v2 = frame[z.v2].ToVector(vt)
 eval auto v3 = frame[z.v3].ToVector(vt)
 eval auto v = vector_int_select(vt, v2.get(), v3.get())
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = to_ZAM_vector(v.get(), &ZAM_VM_bindings)
+eval frame[z.v1].vector_val = to_ZAM_vector(v.get())
 
 op Index
 type VVL
@@ -465,7 +465,7 @@ eval auto lv = frame[z.v3].list_val
 eval auto v = vector_index(vt, vec.get(), lv)
 eval Unref(lv)
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = to_ZAM_vector(v.get(), &ZAM_VM_bindings)
+eval frame[z.v1].vector_val = to_ZAM_vector(v.get())
 
 internal-op Table-Index
 type VVV
@@ -543,7 +543,7 @@ eval frame[z.v1].uint_val = bro_uint_t(v)
 internal-op Coerce-UI-Vec
 type VV
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = vec_coerce_UI(frame[z.v2].vector_val, &ZAM_VM_bindings)
+eval frame[z.v1].vector_val = vec_coerce_UI(frame[z.v2].vector_val)
 
 internal-op Coerce-UD
 type VV
@@ -555,7 +555,7 @@ eval frame[z.v1].uint_val = bro_uint_t(v)
 internal-op Coerce-UD-Vec
 type VV
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = vec_coerce_UD(frame[z.v2].vector_val, &ZAM_VM_bindings)
+eval frame[z.v1].vector_val = vec_coerce_UD(frame[z.v2].vector_val)
 
 internal-op Coerce-IU
 type VV
@@ -566,7 +566,7 @@ eval frame[z.v1].int_val = bro_int_t(v)
 internal-op Coerce-IU-Vec
 type VV
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = vec_coerce_IU(frame[z.v2].vector_val, &ZAM_VM_bindings)
+eval frame[z.v1].vector_val = vec_coerce_IU(frame[z.v2].vector_val)
 
 internal-op Coerce-ID
 type VV
@@ -578,7 +578,7 @@ eval frame[z.v1].int_val = bro_int_t(v)
 internal-op Coerce-ID-Vec
 type VV
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = vec_coerce_ID(frame[z.v2].vector_val, &ZAM_VM_bindings)
+eval frame[z.v1].vector_val = vec_coerce_ID(frame[z.v2].vector_val)
 
 internal-op Coerce-DI
 type VV
@@ -587,7 +587,7 @@ eval frame[z.v1].double_val = double(frame[z.v2].int_val)
 internal-op Coerce-DI-Vec
 type VV
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = vec_coerce_DI(frame[z.v2].vector_val, &ZAM_VM_bindings)
+eval frame[z.v1].vector_val = vec_coerce_DI(frame[z.v2].vector_val)
 
 internal-op Coerce-DU
 type VV
@@ -596,7 +596,7 @@ eval frame[z.v1].double_val = double(frame[z.v2].uint_val)
 internal-op Coerce-DU-Vec
 type VV
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = vec_coerce_DU(frame[z.v2].vector_val, &ZAM_VM_bindings)
+eval frame[z.v1].vector_val = vec_coerce_DU(frame[z.v2].vector_val)
 
 direct-unary-op Record-Coerce RecordCoerce
 
@@ -607,7 +607,7 @@ eval auto v = frame[z.v2].record_val->ToRecordVal()
 eval auto map = z.int_ptr
 eval auto map_size = z.v3
 eval auto to_r = coerce_to_record(rt, v.get(), map, map_size)
-eval frame[z.v1].record_val = to_ZAM_record(to_r.get(), &ZAM_VM_bindings)
+eval frame[z.v1].record_val = to_ZAM_record(to_r.get())
 
 direct-unary-op Table-Coerce TableCoerce
 
@@ -628,15 +628,15 @@ eval if ( frame[z.v2].vector_val->Size() > 0 ) { ZAM_run_time_error(error_flag, 
 eval auto t = z.t->Ref()->AsVectorType();
 eval auto vv_p = make_intrusive<VectorVal>(t)
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = to_ZAM_vector(vv_p.get(), &ZAM_VM_bindings)
+eval frame[z.v1].vector_val = to_ZAM_vector(vv_p.get())
 
 unary-expr-op To-Any-Coerce
 set-type $2
-eval ZAMValUnion(TrackVal($1.ToVal(z.t).release()), base_type_no_ref(TYPE_ANY), &ZAM_VM_bindings, nullptr, error_flag)
+eval ZAMValUnion(TrackVal($1.ToVal(z.t).release()), base_type_no_ref(TYPE_ANY), nullptr, error_flag)
 
 unary-expr-op From-Any-Coerce
 set-type $1
-eval ZAMValUnion(TrackVal($1.any_val->Ref()), z.t, &ZAM_VM_bindings, nullptr, error_flag)
+eval ZAMValUnion(TrackVal($1.any_val->Ref()), z.t, nullptr, error_flag)
 
 
 ########## Aggregate Assignments ##########
@@ -656,7 +656,7 @@ eval auto ind = frame[z.v2].uint_val
 eval auto vv = frame[z.v1].vector_val
 eval vv->SetYieldType(z.t)
 eval auto any_v = frame[z.v3].any_val
-eval auto any_z = ZAMValUnion(any_v, any_v->Type(), &ZAM_VM_bindings, nullptr, error_flag)
+eval auto any_z = ZAMValUnion(any_v, any_v->Type(), nullptr, error_flag)
 eval vv->SetElement(ind, any_z)
 
 op Vector-Elem-Assign
@@ -681,7 +681,7 @@ type VVi
 eval auto vv = frame[z.v1].vector_val
 eval vv->SetYieldType(z.t)
 eval auto any_v = frame[z.v2].any_val
-eval auto any_z = ZAMValUnion(any_v, any_v->Type(), &ZAM_VM_bindings, nullptr, error_flag)
+eval auto any_z = ZAMValUnion(any_v, any_v->Type(), nullptr, error_flag)
 eval vv->SetElement(z.v3, any_z)
 
 
@@ -980,7 +980,7 @@ eval frame[z.v1].record_val->DeleteField(z.v2)
 internal-op Init-Record
 type V
 eval auto r = new RecordVal(z.t->AsRecordType())
-eval frame[z.v1].record_val = to_ZAM_record(r, &ZAM_VM_bindings)
+eval frame[z.v1].record_val = to_ZAM_record(r)
 
 # v1 is the frame element being initialized
 # v2 is its slot in the interpreted frame
@@ -991,7 +991,7 @@ eval auto yt = vt->YieldType()
 eval auto vec = new VectorVal(vt)
 eval f->SetElement(z.v2, vec)
 eval delete frame[z.v1].vector_val
-eval auto zv = make_intrusive<ZAM_vector>(vec, &ZAM_VM_bindings, yt)
+eval auto zv = make_intrusive<ZAM_vector>(vec, yt)
 eval frame[z.v1].vector_val = new ZAMVector(zv)
 
 internal-op Init-Table
@@ -1124,25 +1124,19 @@ eval frame[z.v1].list_val = ValVecToListVal(frame[z.v2].vvec, z.v3)
 # Interprets the statement's expression as a stand-alone statement.
 internal-op Interpret-Expr
 type X
-eval SpillAggregates(&ZAM_VM_bindings)
 eval (void) z.e->Eval(f) /* this could invoke us recursively */
-eval LoadAggregates(&ZAM_VM_bindings)
 
 # Interprets the statement's expression and assigns the result to v1.
 internal-op Interpret-Expr
 type V
-eval SpillAggregates(&ZAM_VM_bindings)
 eval auto v = z.e->Eval(f) /* this could invoke us recursively */
-eval LoadAggregates(&ZAM_VM_bindings)
 eval AssignV1(BuildVal(v, z.t, z.e))
 
 # Interprets the statement's expression and assigns the result to v1,
 # where v1 is an "any" type.
 internal-op Interpret-Expr-Any
 type V
-eval SpillAggregates(&ZAM_VM_bindings)
 eval frame[z.v1].any_val = TrackVal(z.e->Eval(f).release())
-eval LoadAggregates(&ZAM_VM_bindings)
 
 
 internal-op GoTo

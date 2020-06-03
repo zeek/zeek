@@ -586,22 +586,21 @@ void ZAM::StmtDescribe(ODesc* d) const
 
 // Unary vector operations never work on managed types, so no need
 // to pass in the type ...
-static void vec_exec(ZOp op, ZAMVector*& v1, const ZAMVector* v2,
-			ZAMAggrBindings* bindings);
+static void vec_exec(ZOp op, ZAMVector*& v1, const ZAMVector* v2);
 
 // ... but binary ones can.
 static void vec_exec(ZOp op, BroType* t, ZAMVector*& v1, const ZAMVector* v2,
-			const ZAMVector* v3, ZAMAggrBindings* bindings);
+			const ZAMVector* v3);
 
 // Vector coercion.
 //
 // ### Should check for underflow/overflow.
 #define VEC_COERCE(tag, lhs_accessor, cast, rhs_accessor) \
-	static ZAMVector* vec_coerce_##tag(ZAMVector* vec, ZAMAggrBindings* bindings) \
+	static ZAMVector* vec_coerce_##tag(ZAMVector* vec) \
 		{ \
 		auto& v = vec->ConstVec(); \
 		auto yt = vec->YieldType(); \
-		auto res_zv = make_intrusive<ZAM_vector>(nullptr, bindings, vec->YieldType()); \
+		auto res_zv = make_intrusive<ZAM_vector>(nullptr, vec->YieldType()); \
 		auto& res = res_zv->InitVec(); \
 		for ( unsigned int i = 0; i < v.size(); ++i ) \
 			res[i].lhs_accessor = cast(v[i].rhs_accessor); \
@@ -697,14 +696,12 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 
 #define TrackVal(v) (vals.push_back({AdoptRef{}, v}), v)
 #define TrackValPtr(v) (vals.push_back(v), v.get())
-#define BuildVal(v, t, s) (vals.push_back(v), ZAMValUnion(v.get(), t, &ZAM_VM_bindings, s, error_flag))
+#define BuildVal(v, t, s) (vals.push_back(v), ZAMValUnion(v.get(), t, s, error_flag))
 #define CopyVal(v) (IsManagedType(z.t) ? BuildVal(v.ToVal(z.t), z.t, z.stmt) : v)
 
 // Managed assignments to frame[s.v1].
 #define AssignV1(v) AssignV1T(v, z.t)
 #define AssignV1T(v, t) { if ( z.is_managed ) DeleteManagedType(frame[z.v1], t); frame[z.v1] = v; }
-
-	ZAMAggrBindings ZAM_VM_bindings;
 
 	// Return value, or nil if none.
 	const ZAMValUnion* ret_u;
@@ -2741,27 +2738,6 @@ int ZAM::RegisterSlot()
 	return register_slot;
 	}
 
-void ZAM::SpillAggregates(ZAMAggrBindings* bindings) const
-	{
-	for ( auto aggr : *bindings )
-		aggr->Spill();
-	}
-
-void ZAM::LoadAggregates(ZAMAggrBindings* bindings) const
-	{
-	// The process of freshening an aggregate can lead to it
-	// needing to be removed, or even deleting itself, so
-	// first generate the iteration list and then proceed
-	// through it separately.
-
-	std::vector<ZAMAggrInstantiation*> aggrs;
-	for ( auto aggr : *bindings )
-		aggrs.push_back(aggr);
-
-	for ( auto aggr : aggrs )
-		aggr->Freshen();
-	}
-
 bool ZAM::CheckAnyType(const BroType* any_type, const BroType* expected_type,
 			const Stmt* associated_stmt) const
 	{
@@ -2813,8 +2789,7 @@ TraversalCode ResumptionAM::Traverse(TraversalCallback* cb) const
 	}
 
 // Unary vector operation of v1 <vec-op> v2.
-static void vec_exec(ZOp op, ZAMVector*& v1, const ZAMVector* v2,
-			ZAMAggrBindings* bindings)
+static void vec_exec(ZOp op, ZAMVector*& v1, const ZAMVector* v2)
 	{
 	// We could speed this up further still by gen'ing up an
 	// instance of the loop inside each switch case (in which
@@ -2829,7 +2804,7 @@ static void vec_exec(ZOp op, ZAMVector*& v1, const ZAMVector* v2,
 		v1->Resize(vec2.size());
 	else
 		{
-		auto zv = make_intrusive<ZAM_vector>(nullptr, bindings, nullptr,
+		auto zv = make_intrusive<ZAM_vector>(nullptr, nullptr,
 							vec2.size());
 		v1 = new ZAMVector(zv);
 		}
@@ -2850,8 +2825,7 @@ static void vec_exec(ZOp op, ZAMVector*& v1, const ZAMVector* v2,
 
 // Binary vector operation of v1 = v2 <vec-op> v3.
 static void vec_exec(ZOp op, BroType* yt, ZAMVector*& v1,
-			const ZAMVector* v2, const ZAMVector* v3,
-			ZAMAggrBindings* bindings)
+			const ZAMVector* v2, const ZAMVector* v3)
 	{
 	// See comment above re further speed-up.
 
@@ -2868,8 +2842,7 @@ static void vec_exec(ZOp op, BroType* yt, ZAMVector*& v1,
 		}
 	else
 		{
-		auto zv = make_intrusive<ZAM_vector>(nullptr, bindings, yt,
-							vec2.size());
+		auto zv = make_intrusive<ZAM_vector>(nullptr, yt, vec2.size());
 		v1 = new ZAMVector(zv);
 		}
 

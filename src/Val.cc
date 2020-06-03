@@ -2653,7 +2653,7 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(t)
 	origin = nullptr;
 	int n = t->NumFields();
 
-	val.record_val = new ZAM_record(this, t, nullptr);
+	val.record_val = new ZAM_record(this, t);
 
 	if ( is_parsing )
 		parse_time_records[t].emplace_back(NewRef{}, this);
@@ -2696,8 +2696,7 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(t)
 			}
 
 		bool error;
-		auto zvu = ZAMValUnion(def.release(), type, nullptr,
-					this, error);
+		auto zvu = ZAMValUnion(def.release(), type, this, error);
 		val.record_val->Assign(i, zvu);
 		}
 	}
@@ -2715,8 +2714,7 @@ IntrusivePtr<Val> RecordVal::SizeVal() const
 void RecordVal::Assign(int field, IntrusivePtr<Val> new_val)
 	{
 	bool error;
-	auto zvu = ZAMValUnion(new_val.get(), new_val->Type(), nullptr,
-				this, error);
+	auto zvu = ZAMValUnion(new_val.get(), new_val->Type(), this, error);
 
 	auto zr = AsNonConstRecord();
 	zr->Assign(field, zvu);
@@ -2770,7 +2768,7 @@ void RecordVal::ResizeParseTimeRecords(RecordType* rt)
 				{
 				auto v = rt->FieldDefault(i).release();
 				bool error;
-				auto zvu = ZAMValUnion(v, v->Type(), nullptr,
+				auto zvu = ZAMValUnion(v, v->Type(),
 							nullptr, error);
 				vs->Assign(i, zvu);
 				}
@@ -2999,14 +2997,14 @@ VectorVal::VectorVal(VectorType* t) : Val(t)
 	{
 	vector_type = t->Ref()->AsVectorType();
 	auto yt = vector_type->YieldType();
-	val.vector_val = new ZAM_vector(this, nullptr, yt);
+	val.vector_val = new ZAM_vector(this, yt);
 	}
 
 VectorVal::VectorVal(VectorType* t, unsigned int n) : Val(t)
 	{
 	vector_type = t->Ref()->AsVectorType();
 	auto yt = vector_type->YieldType();
-	val.vector_val = new ZAM_vector(this, nullptr, yt, n);
+	val.vector_val = new ZAM_vector(this, yt, n);
 	}
 
 VectorVal::~VectorVal()
@@ -3028,7 +3026,7 @@ bool VectorVal::Assign(unsigned int index, IntrusivePtr<Val> element)
 
 	auto yt = vector_type->YieldType();
 	bool error;
-        ZAMValUnion elem(element.release(), yt, nullptr, this, error);
+        ZAMValUnion elem(element.release(), yt, this, error);
 
 	val.vector_val->SetElement(index, elem);
 
@@ -3063,7 +3061,7 @@ bool VectorVal::Insert(unsigned int index, Val* element)
 		}
 
 	bool error;
-        ZAMValUnion elem(element, vector_type, nullptr, this, error);
+        ZAMValUnion elem(element, vector_type, this, error);
 
 	val.vector_val->Insert(index, elem);
 
@@ -3151,7 +3149,7 @@ IntrusivePtr<Val> VectorVal::DoClone(CloneState* state)
 	for ( unsigned int i = 0; i < zvu1.size(); ++i )
 		{
 		auto v = zvu1[i].ToVal(yt)->Clone(state);
-		zvu2[i] = ZAMValUnion(v.release(), yt, nullptr, this, error);
+		zvu2[i] = ZAMValUnion(v.release(), yt, this, error);
 		}
 
 	return vv;

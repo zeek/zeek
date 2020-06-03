@@ -9,14 +9,6 @@
 #include <unordered_set>
 
 
-// An instantiation of a ZAM aggregate.  May have a binding with a
-// script-level Val*.
-class ZAMAggrInstantiation;
-
-// Data structure to track such instantiations *if* they have a
-// Val* binding.
-typedef std::unordered_set<ZAMAggrInstantiation*> ZAMAggrBindings;
-
 // A single instance of a ZAM aggregate.  Note that multiple instances
 // may share the same underlying ZAMAggrInstantiation.
 class ZAMVector;
@@ -40,8 +32,7 @@ union ZAMValUnion {
 
 	// Construct from a given Bro value with a given type.  TODO: Takes
 	// ownership of the given Val or Unref()'s it if not further needed.
-	ZAMValUnion(Val* v, BroType* t, ZAMAggrBindings* bindings,
-			const BroObj* o, bool& error_flag);
+	ZAMValUnion(Val* v, BroType* t, const BroObj* o, bool& error_flag);
 
 	// True if when interpreting the value as having the given type,
 	// it's a nil pointer.
@@ -133,34 +124,20 @@ typedef vector<ZAMValUnion> ZVU_vec;
 
 class ZAMAggrInstantiation : public BroObj {
 public:
-	ZAMAggrInstantiation(Val* _v, ZAMAggrBindings* _bindings, int n)
+	ZAMAggrInstantiation(Val* _v, int n)
 	: zvec(n)
 		{
-		bindings = _bindings;
 		aggr_val = _v;
 
 		if ( aggr_val )
-			{
 			Ref(aggr_val);
-			if ( bindings )
-				bindings->insert(this);
-			}
 		}
 
-	// Subclasses should delete any managed elements.
 	virtual ~ZAMAggrInstantiation()
 		{
-		if ( bindings )
-			bindings->erase(this);
+		if ( aggr_val )
+			Unref(aggr_val);
 		}
-
-	// Copy the internal aggregate to the associated Val.
-	virtual void Spill() = 0;
-
-	// Reload the internal aggregate from the associated Val.  If
-	// the association has ended, will result in removing this object
-	// from the bindings, and possibly deleting it entirely.
-	virtual void Freshen() = 0;
 
 protected:
 	// This would be in the destructor but it needs to call virtual
@@ -169,30 +146,7 @@ protected:
 	void Finish()
 		{
 		if ( aggr_val )
-			{
-			if ( aggr_val->RefCnt() > 1 )
-				// Don't bother spilling for a value we're
-				// about to delete.
-				Spill();
-
 			Unref(aggr_val);
-			}
-		}
-
-	// Ends the binding association.  This can potentially wind up
-	// deleting the value, so make sure all of its affairs are in order
-	// before calling.
-	void EndAssociation()
-		{
-		bindings->erase(this);
-		bindings = nullptr;
-
-		// The upcoming Unref can cause us to be deleted, in which case
-		// aggr_val will be checked, so set it to nil before doing so.
-		auto old_aggr_val = aggr_val;
-		aggr_val = nullptr;
-
-		Unref(old_aggr_val);
 		}
 
 	// The associated Zeek interpreter value.  If nil, then this
@@ -200,19 +154,14 @@ protected:
 	// does not require sync'ing.
 	Val* aggr_val;
 
-	// Bindings manager we need to register with if we're a
-	// pairing with a Val*.
-	ZAMAggrBindings* bindings;
-
 	// The underlying set of ZAM values.
 	ZVU_vec zvec;
 };
 
 class ZAM_vector : public ZAMAggrInstantiation {
 public:
-	ZAM_vector(VectorVal* _v, ZAMAggrBindings* _bindings,
-			BroType* yt, int n = 0)
-		: ZAMAggrInstantiation(_v, _bindings, n)
+	ZAM_vector(VectorVal* _v, BroType* yt, int n = 0)
+		: ZAMAggrInstantiation(_v, n)
 		{
 		vv = _v;
 		if ( yt )
@@ -226,7 +175,6 @@ public:
 
 	~ZAM_vector()
 		{
-		Finish();
 		if ( managed_yt )
 			DeleteMembers();
 		}
@@ -301,9 +249,6 @@ public:
 		zvec.resize(new_num_elements);
 		}
 
-	void Spill() override;
-	void Freshen() override;
-
 protected:
 	void SetManagedElement(int n, ZAMValUnion& v);
 	void GrowVector(int size);
@@ -335,11 +280,10 @@ protected:
 
 class ZAM_record : public ZAMAggrInstantiation {
 public:
-	ZAM_record(RecordVal* _v, RecordType* _rt,  ZAMAggrBindings* _bindings);
+	ZAM_record(RecordVal* _v, RecordType* _rt);
 
 	~ZAM_record()
 		{
-		Finish();
 		DeleteManagedMembers();
 		}
 
@@ -409,9 +353,6 @@ public:
 	bool IsManaged(unsigned int offset) const
 		{ return (is_managed & OffsetMask(offset)) != 0; }
 
-	void Spill() override;
-	void Freshen() override;
-
 	BroType* FieldType(int field) const	{ return rt->FieldType(field); }
 
 protected:
@@ -472,8 +413,6 @@ public:
 
 	IntrusivePtr<VectorVal> VecVal()	{ return vec->VecVal(); }
 	void SetVecVal(VectorVal* vv)		{ vec->SetVecVal(vv); }
-
-	void Spill()	{ vec->Spill(); }
 
 protected:
 	IntrusivePtr<ZAM_vector> vec;
@@ -563,9 +502,9 @@ public:
 };
 
 // Converts between VectorVals and ZAM vectors.
-extern ZAMVector* to_ZAM_vector(Val* vec, ZAMAggrBindings* bindings);
+extern ZAMVector* to_ZAM_vector(Val* vec);
 extern IntrusivePtr<ZAM_vector> to_raw_ZAM_vector(Val* vec);
 
 // Likewise for RecordVals, but due to lazy loading, no need for "raw"
 // vectors.
-extern ZAMRecord* to_ZAM_record(Val* rec, ZAMAggrBindings* bindings);
+extern ZAMRecord* to_ZAM_record(Val* rec);

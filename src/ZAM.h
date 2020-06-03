@@ -332,9 +332,6 @@ protected:
 
 	void SyncGlobals(std::unordered_set<ID*>& g, const BroObj* o);
 
-	void SpillAggregates(ZAMAggrBindings* bindings) const;
-	void LoadAggregates(ZAMAggrBindings* bindings) const;
-
 	// Run-time checking for "any" type being consistent with
 	// expected typed.  Returns true if the type match is okay.
 	bool CheckAnyType(const BroType* any_type, const BroType* expected_type,

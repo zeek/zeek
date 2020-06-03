@@ -61,8 +61,7 @@ void DeleteManagedType(ZAMValUnion& v, const BroType* t)
 	}
 
 
-ZAMValUnion::ZAMValUnion(Val* v, BroType* t, ZAMAggrBindings* bindings,
-				const BroObj* o, bool& error)
+ZAMValUnion::ZAMValUnion(Val* v, BroType* t, const BroObj* o, bool& error)
 	{
 	if ( ! v )
 		{
@@ -129,13 +128,13 @@ ZAMValUnion::ZAMValUnion(Val* v, BroType* t, ZAMAggrBindings* bindings,
 			vector_val = nullptr;
 			}
 		else
-			vector_val = to_ZAM_vector(v, bindings);
+			vector_val = to_ZAM_vector(v);
 
 		break;
 		}
 
 	case TYPE_RECORD:
-		record_val = to_ZAM_record(v, bindings);
+		record_val = to_ZAM_record(v);
 		break;
 
 	case TYPE_STRING:
@@ -229,8 +228,6 @@ IntrusivePtr<Val> ZAMValUnion::ToVal(BroType* t) const
 
 IntrusivePtr<VectorVal> ZAMValUnion::ToVector(BroType* t) const
 	{
-	vector_val->Spill();
-
 	auto v = vector_val->VecVal();
 
 	if ( v )
@@ -324,25 +321,9 @@ void ZAM_vector::DeleteMembers()
 		DeleteManagedType(z, managed_yt);
 	}
 
-void ZAM_vector::Spill()
-	{
-	}
 
-void ZAM_vector::Freshen()
-	{
-	if ( vv->AsVector() == this )
-		// Association stands.
-		return;
-
-	vv = nullptr;
-
-	EndAssociation();
-	}
-
-
-ZAM_record::ZAM_record(RecordVal* _v, RecordType* _rt,
-			ZAMAggrBindings* _bindings)
-	: ZAMAggrInstantiation(_v, _bindings, _rt->NumFields())
+ZAM_record::ZAM_record(RecordVal* _v, RecordType* _rt)
+	: ZAMAggrInstantiation(_v, _rt->NumFields())
 	{
 	is_in_record = 0;
 
@@ -361,33 +342,9 @@ ZAM_record::ZAM_record(RecordVal* _v, RecordType* _rt,
 IntrusivePtr<RecordVal> ZAM_record::ToRecordVal()
 	{
 	if ( ! rv )
-		{
 		aggr_val = rv = new RecordVal(rt);
-		if ( bindings )
-			bindings->insert(this);
-		}
-
-	Spill();
 
 	return {NewRef{}, rv};
-	}
-
-void ZAM_record::Spill()
-	{
-	}
-
-void ZAM_record::Freshen()
-	{
-	ASSERT(rv);
-	// The following is for when we've converted over RecordVal's.
-	//
-	// if ( rv->val.record_val == this )
-	// 	// Association stands.
-	// 	return;
-	//
-	// rv = nullptr;
-	//
-	// EndAssociation();
 	}
 
 void ZAM_record::Delete(int field)
@@ -449,7 +406,7 @@ ZAMRecord::ZAMRecord(IntrusivePtr<ZAM_record> _zr)
 	}
 
 
-ZAMVector* to_ZAM_vector(Val* vec, ZAMAggrBindings* bindings)
+ZAMVector* to_ZAM_vector(Val* vec)
 	{
 	auto raw = to_raw_ZAM_vector(vec);
 	return new ZAMVector(raw);
@@ -464,10 +421,9 @@ IntrusivePtr<ZAM_vector> to_raw_ZAM_vector(Val* vec)
 	}
 
 
-ZAMRecord* to_ZAM_record(Val* r, ZAMAggrBindings* bindings)
+ZAMRecord* to_ZAM_record(Val* r)
 	{
 	auto rv = r->AsRecordVal();
-	auto zr = make_intrusive<ZAM_record>(rv, r->Type()->AsRecordType(),
-						bindings);
+	auto zr = make_intrusive<ZAM_record>(rv, r->Type()->AsRecordType());
 	return new ZAMRecord(zr);
 	}

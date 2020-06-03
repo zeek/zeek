@@ -800,7 +800,9 @@ const CompiledStmt ZAM::InterpretExpr(const Expr* e)
 const CompiledStmt ZAM::InterpretExpr(const NameExpr* n, const Expr* e)
 	{
 	FlushVars(e);
-	return AddInst(GenInst(this, OP_INTERPRET_EXPR_V, n, e));
+	bool is_any = IsAny(n->Type());
+	return AddInst(GenInst(this, is_any ? OP_INTERPRET_EXPR_ANY_V :
+						OP_INTERPRET_EXPR_V, n, e));
 	}
 
 bool ZAM::IsZAM_BuiltIn(const Expr* e)
@@ -977,25 +979,18 @@ bool ZAM::BuiltIn_Log__write(const NameExpr* n, const expr_list& args)
 
 	int nslot = n ? Frame1Slot(n, OP1_WRITE) : RegisterSlot();
 	auto columns_n = columns->AsNameExpr();
+	auto col_slot = FrameSlot(columns_n);
 
 	ZInst z;
 
 	if ( id->Tag() == EXPR_CONST )
 		{
-		z = ZInst(OP_LOG_WRITE_VVC, nslot, FrameSlot(columns_n),
-				id->AsConstExpr());
-
-		// This is a hack, but we need another type field for
-		// constructing the damn "id" enum.  For now, we repurpose z.e.
-		z.e = id;
+		z = ZInst(OP_LOG_WRITE_VVC, nslot, col_slot, id->AsConstExpr());
+		z.t = columns_n->Type().get();
 		}
 	else
-		z = ZInst(OP_LOG_WRITE_VVV, nslot,
-			FrameSlot(id->AsNameExpr()), FrameSlot(columns_n));
-
-	// Need to be able to convert the second function argument to
-	// "any" type.
-	z.t = args[1]->Type().get();
+		z = ZInst(OP_LOG_WRITE_VVV, nslot, FrameSlot(id->AsNameExpr()),
+				col_slot);
 
 	AddInst(z);
 

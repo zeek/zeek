@@ -671,6 +671,11 @@ Stmt* Reducer::MergeStmts(const NameExpr* lhs, IntrusivePtr<Expr> rhs,
 		// 2nd statement is var=something else.
 		return nullptr;
 
+	if ( a_lhs_var->Type()->Tag() != a_rhs_var->Type()->Tag() )
+		// This can happen when we generate an assignment
+		// specifically to convert to/from an "any" type.
+		return nullptr;
+
 	if ( FindTemporary(a_lhs_var) )
 		{
 		// "var" is itself a temporary.  Don't complain, as

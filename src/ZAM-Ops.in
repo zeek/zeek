@@ -109,8 +109,8 @@ eval else AssignV1(BuildVal(res, z.t, z.stmt));
 # Cast an "any" type to the given type.
 internal-op Cast-Any
 type VV
-eval const char* error;
-eval auto res = cast_value(frame[z.v2].any_val, z.t, error);
+eval const char* error
+eval auto res = cast_value(frame[z.v2].any_val, z.t, error)
 eval if ( error ) ZAM_run_time_error(error_flag, z.stmt, error)
 eval else AssignV1(BuildVal(res, z.t, z.stmt));
 
@@ -118,8 +118,8 @@ direct-unary-op Is Is
 
 internal-op Is
 type VV
-eval auto rhs = frame[z.v2].ToVal(z.e->Type().get()).get();
-eval frame[z.v1].int_val = can_cast_value_to_type(rhs, z.t);
+eval auto rhs = frame[z.v2].ToVal(z.e->Type().get()).get()
+eval frame[z.v1].int_val = can_cast_value_to_type(rhs, z.t)
 
 ########## Binary Ops ##########
 
@@ -1127,6 +1127,14 @@ eval auto v = z.e->Eval(f) /* this could invoke us recursively */
 eval LoadAggregates(&ZAM_VM_bindings)
 eval AssignV1(BuildVal(v, z.t, z.e))
 
+# Interprets the statement's expression and assigns the result to v1,
+# where v1 is an "any" type.
+internal-op Interpret-Expr-Any
+type V
+eval SpillAggregates(&ZAM_VM_bindings)
+eval frame[z.v1].any_val = TrackVal(z.e->Eval(f).release())
+eval LoadAggregates(&ZAM_VM_bindings)
+
 
 internal-op GoTo
 type V
@@ -1257,7 +1265,7 @@ eval frame[z.v1].int_val = result
 
 internal-op Log-Write
 type VVC
-eval auto id = z.c.ToVal(z.e->Type().get())
+eval auto id = z.c.ToVal(log_ID_enum_type)
 eval auto columns = frame[z.v2].ToVal(z.t)
 eval bool result = log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal())
 eval frame[z.v1].int_val = result

@@ -3842,15 +3842,22 @@ bool AssignExpr::IsReduced(Reducer* c) const
 		// Cascaded assignments are never reduced.
 		return false;
 
-	if ( op1->Tag() == EXPR_NAME && op1->Type()->Tag() == TYPE_ANY )
-		return op1->IsReduced(c) && op2->IsSingleton(c);
+	auto t1 = op1->Tag();
+
+	if ( t1 == EXPR_REF )
+		{
+		auto lhs = op1->GetOp1();
+		if ( lhs->Type()->Tag() == TYPE_ANY )
+			return op1->IsReduced(c) && op2->IsSingleton(c);
+
+		if ( op2->HasConstantOps() )
+			// We are not reduced because we should instead
+			// be folded.
+			return NonReduced(this);
+		}
 
 	if ( IsTemp() )
 		return true;
-
-	if ( op1->Tag() == EXPR_REF && op2->HasConstantOps() )
-		// We are not reduced because we should instead be folded.
-		return false;
 
 	if ( ! op2->HasReducedOps(c) )
 		return false;

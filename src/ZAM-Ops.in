@@ -1257,7 +1257,7 @@ eval frame[z.v1].int_val = result
 
 internal-op Log-Write
 type VVC
-eval auto id = z.c.ToVal(z.t)
+eval auto id = z.c.ToVal(z.e->Type().get())
 eval auto columns = frame[z.v2].ToVal(z.t)
 eval bool result = log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal())
 eval frame[z.v1].int_val = result

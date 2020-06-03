@@ -981,8 +981,14 @@ bool ZAM::BuiltIn_Log__write(const NameExpr* n, const expr_list& args)
 	ZInst z;
 
 	if ( id->Tag() == EXPR_CONST )
+		{
 		z = ZInst(OP_LOG_WRITE_VVC, nslot, FrameSlot(columns_n),
 				id->AsConstExpr());
+
+		// This is a hack, but we need another type field for
+		// constructing the damn "id" enum.  For now, we repurpose z.e.
+		z.e = id;
+		}
 	else
 		z = ZInst(OP_LOG_WRITE_VVV, nslot,
 			FrameSlot(id->AsNameExpr()), FrameSlot(columns_n));

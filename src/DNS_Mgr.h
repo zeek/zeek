@@ -11,6 +11,7 @@
 #include "EventHandler.h"
 #include "iosource/IOSource.h"
 #include "IPAddr.h"
+#include "util.h"
 
 template <class T> class IntrusivePtr;
 class Val;
@@ -18,8 +19,9 @@ class ListVal;
 class TableVal;
 class Func;
 class EventHandler;
-class RecordType;
 class DNS_Mgr_Request;
+
+FORWARD_DECLARE_NAMESPACED(RecordType, zeek);
 
 typedef PList<DNS_Mgr_Request> DNS_mgr_request_list;
 
@@ -149,7 +151,7 @@ protected:
 
 	bool did_init;
 
-	IntrusivePtr<RecordType> dm_rec;
+	IntrusivePtr<zeek::RecordType> dm_rec;
 
 	typedef std::list<LookupCallback*> CallbackList;
 

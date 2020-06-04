@@ -906,10 +906,10 @@ FragReassembler* NetSessions::NextFragment(double t, const IP_Hdr* ip,
 Connection* NetSessions::FindConnection(Val* v)
 	{
 	const auto& vt = v->GetType();
-	if ( ! IsRecord(vt->Tag()) )
+	if ( ! zeek::IsRecord(vt->Tag()) )
 		return nullptr;
 
-	RecordType* vr = vt->AsRecordType();
+	zeek::RecordType* vr = vt->AsRecordType();
 	auto vl = v->AsRecord();
 
 	int orig_h, orig_p;	// indices into record's value list

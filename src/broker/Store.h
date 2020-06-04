@@ -11,7 +11,7 @@
 
 namespace bro_broker {
 
-extern IntrusivePtr<OpaqueType> opaque_of_store_handle;
+extern IntrusivePtr<zeek::OpaqueType> opaque_of_store_handle;
 
 /**
  * Create a Broker::QueryStatus value.

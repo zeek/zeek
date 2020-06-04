@@ -52,10 +52,10 @@ public:
 	/**
 	 * @return The enum type associated with the script-layer "Tag".
 	 */
-	const IntrusivePtr<EnumType>& GetTagType() const;
+	const IntrusivePtr<zeek::EnumType>& GetTagType() const;
 
 	[[deprecated("Remove in v4.1.  Use GetTagType() instead.")]]
-	EnumType* GetTagEnumType() const;
+	zeek::EnumType* GetTagEnumType() const;
 
 	/**
 	 * Get a component name from its tag.
@@ -128,7 +128,7 @@ public:
 
 private:
 	std::string module; /**< Script layer module in which component tags live. */
-	IntrusivePtr<EnumType> tag_enum_type; /**< Enum type of component tags. */
+	IntrusivePtr<zeek::EnumType> tag_enum_type; /**< Enum type of component tags. */
 	std::map<std::string, C*> components_by_name;
 	std::map<T, C*> components_by_tag;
 	std::map<int, C*> components_by_val;
@@ -137,7 +137,7 @@ private:
 template <class T, class C>
 ComponentManager<T, C>::ComponentManager(const std::string& arg_module, const std::string& local_id)
 	: module(arg_module),
-	  tag_enum_type(make_intrusive<EnumType>(module + "::" + local_id))
+	  tag_enum_type(make_intrusive<zeek::EnumType>(module + "::" + local_id))
 	{
 	auto id = install_ID(local_id.c_str(), module.c_str(), true, true);
 	add_type(id.get(), tag_enum_type, nullptr);
@@ -163,13 +163,13 @@ std::list<C*> ComponentManager<T, C>::GetComponents() const
 	}
 
 template <class T, class C>
-const IntrusivePtr<EnumType>& ComponentManager<T, C>::GetTagType() const
+const IntrusivePtr<zeek::EnumType>& ComponentManager<T, C>::GetTagType() const
 	{
 	return tag_enum_type;
 	}
 
 template <class T, class C>
-EnumType* ComponentManager<T, C>::GetTagEnumType() const
+zeek::EnumType* ComponentManager<T, C>::GetTagEnumType() const
 	{
 	return tag_enum_type.get();
 	}

@@ -135,16 +135,16 @@ bool defining_global_ID = false;
 std::vector<int> saved_in_init;
 
 static Location func_hdr_location;
-EnumType *cur_enum_type = 0;
-static zeek::detail::ID* cur_decl_type_id = 0;
+zeek::EnumType* cur_enum_type = nullptr;
+static zeek::detail::ID* cur_decl_type_id = nullptr;
 
 static void parser_new_enum (void)
 	{
 	/* Starting a new enum definition. */
-	assert(cur_enum_type == NULL);
+	assert(cur_enum_type == nullptr);
 
 	if ( cur_decl_type_id )
-		cur_enum_type = new EnumType(cur_decl_type_id->Name());
+		cur_enum_type = new zeek::EnumType(cur_decl_type_id->Name());
 	else
 		reporter->FatalError("incorrect syntax for enum type declaration");
 	}
@@ -153,23 +153,23 @@ static void parser_redef_enum (zeek::detail::ID *id)
 	{
 	/* Redef an enum. id points to the enum to be redefined.
 	   Let cur_enum_type point to it. */
-	assert(cur_enum_type == NULL);
+	assert(cur_enum_type == nullptr);
 
 	// abort on errors; enums need to be accessible to continue parsing
 	if ( ! id->GetType() )
 		reporter->FatalError("unknown enum identifier \"%s\"", id->Name());
 	else
 		{
-		if ( ! id->GetType() || id->GetType()->Tag() != TYPE_ENUM )
+		if ( ! id->GetType() || id->GetType()->Tag() != zeek::TYPE_ENUM )
 			reporter->FatalError("identifier \"%s\" is not an enum", id->Name());
 		cur_enum_type = id->GetType()->AsEnumType();
 		}
 	}
 
-static void extend_record(zeek::detail::ID* id, std::unique_ptr<type_decl_list> fields,
+static void extend_record(zeek::detail::ID* id, std::unique_ptr<zeek::type_decl_list> fields,
                           std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attrs)
 	{
-	std::set<BroType*> types = BroType::GetAliases(id->Name());
+	std::set<zeek::BroType*> types = zeek::BroType::GetAliases(id->Name());
 
 	if ( types.empty() )
 		{
@@ -201,7 +201,7 @@ static void extend_record(zeek::detail::ID* id, std::unique_ptr<type_decl_list> 
 
 static IntrusivePtr<zeek::detail::Attributes>
 make_attributes(std::vector<IntrusivePtr<zeek::detail::Attr>>* attrs,
-                IntrusivePtr<BroType> t, bool in_record, bool is_global)
+                IntrusivePtr<zeek::BroType> t, bool in_record, bool is_global)
 	{
 	if ( ! attrs )
 		return nullptr;
@@ -222,7 +222,7 @@ static bool expr_is_table_type_name(const zeek::detail::Expr* expr)
 	if ( type->IsTable() )
 		return true;
 
-	if ( type->Tag() == TYPE_TYPE )
+	if ( type->Tag() == zeek::TYPE_TYPE )
 		return type->AsTypeType()->GetType()->IsTable();
 
 	return false;
@@ -241,12 +241,12 @@ static bool expr_is_table_type_name(const zeek::detail::Expr* expr)
 	zeek::detail::EventExpr* event_expr;
 	zeek::detail::Stmt* stmt;
 	zeek::detail::ListExpr* list;
-	BroType* type;
-	RecordType* record;
-	FuncType* func_type;
-	TypeList* type_l;
-	TypeDecl* type_decl;
-	type_decl_list* type_decl_l;
+	zeek::BroType* type;
+	zeek::RecordType* record;
+	zeek::FuncType* func_type;
+	zeek::TypeList* type_l;
+	zeek::TypeDecl* type_decl;
+	zeek::type_decl_list* type_decl_l;
 	zeek::detail::Case* c_case;
 	zeek::detail::case_list* case_l;
 	zeek::detail::Attr* attr;
@@ -498,7 +498,7 @@ expr:
 			auto func_id = current_scope()->GenerateTemporary("anonymous-function");
 			func_id->SetInferReturnType(true);
 			begin_func(std::move(func_id), current_module.c_str(),
-			           FUNC_FLAVOR_FUNCTION, false,
+		   	           zeek::FUNC_FLAVOR_FUNCTION, false,
 			           {AdoptRef{}, $3});
 			}
 		 lambda_body
@@ -600,16 +600,16 @@ expr:
 				const auto& ctor_type = $1->AsNameExpr()->Id()->GetType();
 
 				switch ( ctor_type->Tag() ) {
-				case TYPE_RECORD:
+				case zeek::TYPE_RECORD:
 					{
 					auto rce = make_intrusive<zeek::detail::RecordConstructorExpr>(
 						IntrusivePtr<zeek::detail::ListExpr>{AdoptRef{}, $4});
-					auto rt = cast_intrusive<RecordType>(ctor_type);
+					auto rt = cast_intrusive<zeek::RecordType>(ctor_type);
 					$$ = new zeek::detail::RecordCoerceExpr(std::move(rce), std::move(rt));
 					}
 					break;
 
-				case TYPE_TABLE:
+				case zeek::TYPE_TABLE:
 					if ( ctor_type->IsTable() )
 						$$ = new zeek::detail::TableConstructorExpr({AdoptRef{}, $4}, 0, ctor_type);
 					else
@@ -617,7 +617,7 @@ expr:
 
 					break;
 
-				case TYPE_VECTOR:
+				case zeek::TYPE_VECTOR:
 					$$ = new zeek::detail::VectorConstructorExpr({AdoptRef{}, $4}, ctor_type);
 					break;
 
@@ -686,13 +686,13 @@ expr:
 				if ( ! id->GetType() )
 					{
 					id->Error("undeclared variable");
-					id->SetType(error_type());
+					id->SetType(zeek::error_type());
 					$$ = new zeek::detail::NameExpr(std::move(id));
 					}
 
 				else if ( id->IsEnumConst() )
 					{
-					EnumType* t = id->GetType()->AsEnumType();
+					zeek::EnumType* t = id->GetType()->AsEnumType();
 					int intval = t->Lookup(id->ModuleName(),
 							       id->Name());
 					if ( intval < 0 )
@@ -731,8 +731,8 @@ expr:
 			set_location(@1, @3);
 			IntrusivePtr<zeek::detail::Expr> e{AdoptRef{}, $2};
 
-			if ( IsIntegral(e->GetType()->Tag()) )
-				e = make_intrusive<zeek::detail::ArithCoerceExpr>(std::move(e), TYPE_INT);
+			if ( zeek::IsIntegral(e->GetType()->Tag()) )
+				e = make_intrusive<zeek::detail::ArithCoerceExpr>(std::move(e), zeek::TYPE_INT);
 
 			$$ = new zeek::detail::SizeExpr(std::move(e));
 			}
@@ -774,13 +774,13 @@ enum_body:
 		enum_body_list
 			{
 			$$ = cur_enum_type;
-			cur_enum_type = NULL;
+			cur_enum_type = nullptr;
 			}
 
 	|	enum_body_list ','
 			{
 			$$ = cur_enum_type;
-			cur_enum_type = NULL;
+			cur_enum_type = nullptr;
 			}
 	;
 
@@ -801,7 +801,7 @@ enum_body_elem:
 			set_location(@1, @3);
 			assert(cur_enum_type);
 
-			if ( $3->GetType()->Tag() != TYPE_COUNT )
+			if ( $3->GetType()->Tag() != zeek::TYPE_COUNT )
 				reporter->Error("enumerator is not a count constant");
 			else
 				cur_enum_type->AddName(current_module, $1,
@@ -828,84 +828,84 @@ enum_body_elem:
 type:
 		TOK_BOOL	{
 				set_location(@1);
-				$$ = base_type(TYPE_BOOL)->Ref();
+				$$ = zeek::base_type(zeek::TYPE_BOOL)->Ref();
 				}
 
 	|	TOK_INT		{
 				set_location(@1);
-				$$ = base_type(TYPE_INT)->Ref();
+				$$ = zeek::base_type(zeek::TYPE_INT)->Ref();
 				}
 
 	|	TOK_COUNT	{
 				set_location(@1);
-				$$ = base_type(TYPE_COUNT)->Ref();
+				$$ = zeek::base_type(zeek::TYPE_COUNT)->Ref();
 				}
 
 	|	TOK_COUNTER	{
 				set_location(@1);
-				$$ = base_type(TYPE_COUNTER)->Ref();
+				$$ = zeek::base_type(zeek::TYPE_COUNTER)->Ref();
 				}
 
 	|	TOK_DOUBLE	{
 				set_location(@1);
-				$$ = base_type(TYPE_DOUBLE)->Ref();
+				$$ = zeek::base_type(zeek::TYPE_DOUBLE)->Ref();
 				}
 
 	|	TOK_TIME	{
 				set_location(@1);
-				$$ = base_type(TYPE_TIME)->Ref();
+				$$ = zeek::base_type(zeek::TYPE_TIME)->Ref();
 				}
 
 	|	TOK_INTERVAL	{
 				set_location(@1);
-				$$ = base_type(TYPE_INTERVAL)->Ref();
+				$$ = zeek::base_type(zeek::TYPE_INTERVAL)->Ref();
 				}
 
 	|	TOK_STRING	{
 				set_location(@1);
-				$$ = base_type(TYPE_STRING)->Ref();
+				$$ = zeek::base_type(zeek::TYPE_STRING)->Ref();
 				}
 
 	|	TOK_PATTERN	{
 				set_location(@1);
-				$$ = base_type(TYPE_PATTERN)->Ref();
+				$$ = zeek::base_type(zeek::TYPE_PATTERN)->Ref();
 				}
 
 	|	TOK_TIMER	{
 				set_location(@1);
-				$$ = base_type(TYPE_TIMER)->Ref();
+				$$ = zeek::base_type(zeek::TYPE_TIMER)->Ref();
 				}
 
 	|	TOK_PORT	{
 				set_location(@1);
-				$$ = base_type(TYPE_PORT)->Ref();
+				$$ = zeek::base_type(zeek::TYPE_PORT)->Ref();
 				}
 
 	|	TOK_ADDR	{
 				set_location(@1);
-				$$ = base_type(TYPE_ADDR)->Ref();
+				$$ = zeek::base_type(zeek::TYPE_ADDR)->Ref();
 				}
 
 	|	TOK_SUBNET	{
 				set_location(@1);
-				$$ = base_type(TYPE_SUBNET)->Ref();
+				$$ = zeek::base_type(zeek::TYPE_SUBNET)->Ref();
 				}
 
 	|	TOK_ANY		{
 				set_location(@1);
-				$$ = base_type(TYPE_ANY)->Ref();
+				$$ = zeek::base_type(zeek::TYPE_ANY)->Ref();
 				}
 
 	|	TOK_TABLE '[' type_list ']' TOK_OF type
 				{
 				set_location(@1, @6);
-				$$ = new TableType({AdoptRef{}, $3}, {AdoptRef{}, $6});
+				$$ = new zeek::TableType({AdoptRef{}, $3}, {AdoptRef{}, $6});
 				}
 
 	|	TOK_SET '[' type_list ']'
 				{
 				set_location(@1, @4);
-				$$ = new SetType({AdoptRef{}, $3}, nullptr);
+				$$ = new zeek::SetType({AdoptRef{}, $3}, nullptr);
 				}
 
 	|	TOK_RECORD '{'
@@ -915,7 +915,7 @@ type:
 		'}'
 				{
 				set_location(@1, @5);
-				$$ = new RecordType($4);
+				$$ = new zeek::RecordType($4);
 				}
 
 	|	TOK_UNION '{' type_list '}'
@@ -951,7 +951,7 @@ type:
 	|	TOK_VECTOR TOK_OF type
 				{
 				set_location(@1, @3);
-				$$ = new VectorType({AdoptRef{}, $3});
+				$$ = new zeek::VectorType({AdoptRef{}, $3});
 				}
 
 	|	TOK_FUNCTION func_params
@@ -963,31 +963,31 @@ type:
 	|	TOK_EVENT '(' formal_args ')'
 				{
 				set_location(@1, @3);
-				$$ = new FuncType({AdoptRef{}, $3}, nullptr, FUNC_FLAVOR_EVENT);
+				$$ = new zeek::FuncType({AdoptRef{}, $3}, nullptr, zeek::FUNC_FLAVOR_EVENT);
 				}
 
 	|	TOK_HOOK '(' formal_args ')'
 				{
 				set_location(@1, @3);
-				$$ = new FuncType({AdoptRef{}, $3}, base_type(TYPE_BOOL), FUNC_FLAVOR_HOOK);
+				$$ = new zeek::FuncType({AdoptRef{}, $3}, zeek::base_type(zeek::TYPE_BOOL), zeek::FUNC_FLAVOR_HOOK);
 				}
 
 	|	TOK_FILE TOK_OF type
 				{
 				set_location(@1, @3);
-				$$ = new FileType({AdoptRef{}, $3});
+				$$ = new zeek::FileType({AdoptRef{}, $3});
 				}
 
 	|	TOK_FILE
 				{
 				set_location(@1);
-				$$ = new FileType(base_type(TYPE_STRING));
+				$$ = new zeek::FileType(zeek::base_type(zeek::TYPE_STRING));
 				}
 
 	|	TOK_OPAQUE TOK_OF TOK_ID
 				{
 				set_location(@1, @3);
-				$$ = new OpaqueType($3);
+				$$ = new zeek::OpaqueType($3);
 				}
 
 	|	resolve_id
@@ -997,7 +997,7 @@ type:
 				zeek::detail::NullStmt here;
 				if ( $1 )
 					$1->Error("not a Zeek type", &here);
-				$$ = error_type()->Ref();
+				$$ = zeek::error_type()->Ref();
 				}
 			else
 				{
@@ -1014,7 +1014,7 @@ type_list:
 			{ $1->AppendEvenIfNotPure({AdoptRef{}, $3}); }
 	|	type
 			{
-			$$ = new TypeList({NewRef{}, $1});
+			$$ = new zeek::TypeList({NewRef{}, $1});
 			$$->Append({AdoptRef{}, $1});
 			}
 	;
@@ -1026,7 +1026,7 @@ type_decl_list:
 			}
 	|
 			{
-			$$ = new type_decl_list();
+			$$ = new zeek::type_decl_list();
 			}
 	;
 
@@ -1035,7 +1035,7 @@ type_decl:
 			{
 			set_location(@1, @4);
 			auto attrs = make_attributes($4, {NewRef{}, $3}, in_record > 0, false);
-			$$ = new TypeDecl($1, {AdoptRef{}, $3}, std::move(attrs));
+			$$ = new zeek::TypeDecl($1, {AdoptRef{}, $3}, std::move(attrs));
 
 			if ( in_record > 0 && cur_decl_type_id )
 				zeekygen_mgr->RecordField(cur_decl_type_id, $$, ::filename);
@@ -1044,11 +1044,11 @@ type_decl:
 
 formal_args:
 		formal_args_decl_list
-			{ $$ = new RecordType($1); }
+			{ $$ = new zeek::RecordType($1); }
 	|	formal_args_decl_list ';'
-			{ $$ = new RecordType($1); }
+			{ $$ = new zeek::RecordType($1); }
 	|
-			{ $$ = new RecordType(new type_decl_list()); }
+			{ $$ = new zeek::RecordType(new zeek::type_decl_list()); }
 	;
 
 formal_args_decl_list:
@@ -1057,7 +1057,7 @@ formal_args_decl_list:
 	|	formal_args_decl_list ',' formal_args_decl
 			{ $1->push_back($3); }
 	|	formal_args_decl
-			{ $$ = new type_decl_list(); $$->push_back($1); }
+			{ $$ = new zeek::type_decl_list(); $$->push_back($1); }
 	;
 
 formal_args_decl:
@@ -1065,7 +1065,7 @@ formal_args_decl:
 			{
 			set_location(@1, @4);
 			auto attrs = make_attributes($4, {NewRef{}, $3}, true, false);
-			$$ = new TypeDecl($1, {AdoptRef{}, $3}, std::move(attrs));
+			$$ = new zeek::TypeDecl($1, {AdoptRef{}, $3}, std::move(attrs));
 			}
 	;
 
@@ -1136,7 +1136,7 @@ decl:
 			if ( ! $3->GetType() )
 				$3->Error("unknown identifier");
 			else
-				extend_record($3, std::unique_ptr<type_decl_list>($8),
+				extend_record($3, std::unique_ptr<zeek::type_decl_list>($8),
 				              std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>>($11));
 			}
 
@@ -1180,7 +1180,7 @@ func_hdr:
 			{
 			IntrusivePtr id{AdoptRef{}, $2};
 			begin_func(id, current_module.c_str(),
-				FUNC_FLAVOR_FUNCTION, 0, {NewRef{}, $3},
+				zeek::FUNC_FLAVOR_FUNCTION, 0, {NewRef{}, $3},
 				std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>>{$4});
 			$$ = $3;
 			zeekygen_mgr->Identifier(std::move(id));
@@ -1195,23 +1195,23 @@ func_hdr:
 				}
 
 			begin_func({NewRef{}, $2}, current_module.c_str(),
-				   FUNC_FLAVOR_EVENT, 0, {NewRef{}, $3},
+				   zeek::FUNC_FLAVOR_EVENT, 0, {NewRef{}, $3},
 				   std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>>{$4});
 			$$ = $3;
 			}
 	|	TOK_HOOK def_global_id func_params opt_attr
 			{
-			$3->ClearYieldType(FUNC_FLAVOR_HOOK);
-			$3->SetYieldType(base_type(TYPE_BOOL));
+			$3->ClearYieldType(zeek::FUNC_FLAVOR_HOOK);
+			$3->SetYieldType(zeek::base_type(zeek::TYPE_BOOL));
 			begin_func({NewRef{}, $2}, current_module.c_str(),
-				   FUNC_FLAVOR_HOOK, 0, {NewRef{}, $3},
+				   zeek::FUNC_FLAVOR_HOOK, 0, {NewRef{}, $3},
 				   std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>>{$4});
 			$$ = $3;
 			}
 	|	TOK_REDEF TOK_EVENT event_id func_params opt_attr
 			{
 			begin_func({NewRef{}, $3}, current_module.c_str(),
-				   FUNC_FLAVOR_EVENT, 1, {NewRef{}, $4},
+				   zeek::FUNC_FLAVOR_EVENT, 1, {NewRef{}, $4},
 				   std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>>{$5});
 			$$ = $4;
 			}
@@ -1275,16 +1275,16 @@ begin_func:
 		func_params
 			{
 			auto id = current_scope()->GenerateTemporary("anonymous-function");
-			begin_func(id, current_module.c_str(), FUNC_FLAVOR_FUNCTION, 0, {AdoptRef{}, $1});
+			begin_func(id, current_module.c_str(), zeek::FUNC_FLAVOR_FUNCTION, 0, {AdoptRef{}, $1});
 			$$ = id.release();
 			}
 	;
 
 func_params:
 		'(' formal_args ')' ':' type
-			{ $$ = new FuncType({AdoptRef{}, $2}, {AdoptRef{}, $5}, FUNC_FLAVOR_FUNCTION); }
+			{ $$ = new zeek::FuncType({AdoptRef{}, $2}, {AdoptRef{}, $5}, zeek::FUNC_FLAVOR_FUNCTION); }
 	|	'(' formal_args ')'
-			{ $$ = new FuncType({AdoptRef{}, $2}, base_type(TYPE_VOID), FUNC_FLAVOR_FUNCTION); }
+			{ $$ = new zeek::FuncType({AdoptRef{}, $2}, zeek::base_type(zeek::TYPE_VOID), zeek::FUNC_FLAVOR_FUNCTION); }
 	;
 
 opt_type:
@@ -1328,7 +1328,7 @@ index_slice:
 			                 make_intrusive<zeek::detail::SizeExpr>(
 			                     IntrusivePtr<zeek::detail::Expr>{NewRef{}, $1});
 
-			if ( ! IsIntegral(low->GetType()->Tag()) || ! IsIntegral(high->GetType()->Tag()) )
+			if ( ! zeek::IsIntegral(low->GetType()->Tag()) || ! zeek::IsIntegral(high->GetType()->Tag()) )
 				reporter->Error("slice notation must have integral values as indexes");
 
 			auto le = make_intrusive<zeek::detail::ListExpr>(std::move(low));
@@ -1387,7 +1387,7 @@ attr:
 			{ $$ = new zeek::detail::Attr(zeek::detail::ATTR_DEPRECATED); }
 	|	TOK_ATTR_DEPRECATED '=' TOK_CONSTANT
 			{
-			if ( IsString($3->GetType()->Tag()) )
+			if ( zeek::IsString($3->GetType()->Tag()) )
 				$$ = new zeek::detail::Attr(
 					zeek::detail::ATTR_DEPRECATED,
 					make_intrusive<zeek::detail::ConstExpr>(IntrusivePtr{AdoptRef{}, $3}));
@@ -1667,7 +1667,7 @@ case_type:
 	|	TOK_TYPE type TOK_AS TOK_ID
 			{
 			const char* name = $4;
-			IntrusivePtr<BroType> type{AdoptRef{}, $2};
+			IntrusivePtr<zeek::BroType> type{AdoptRef{}, $2};
 			auto case_var = lookup_ID(name, current_module.c_str());
 
 			if ( case_var && case_var->IsGlobal() )
@@ -1831,8 +1831,8 @@ global_or_event_id:
 					{
 					const auto& t = $$->GetType();
 
-					if ( t->Tag() != TYPE_FUNC ||
-					     t->AsFuncType()->Flavor() != FUNC_FLAVOR_FUNCTION )
+					if ( t->Tag() != zeek::TYPE_FUNC ||
+					     t->AsFuncType()->Flavor() != zeek::FUNC_FLAVOR_FUNCTION )
 						reporter->Warning("%s", $$->GetDeprecationWarning().c_str());
 					}
 
@@ -1884,7 +1884,7 @@ opt_deprecated:
 	|
 		TOK_ATTR_DEPRECATED '=' TOK_CONSTANT
 			{
-			if ( IsString($3->GetType()->Tag()) )
+			if ( zeek::IsString($3->GetType()->Tag()) )
 				$$ = new zeek::detail::ConstExpr({AdoptRef{}, $3});
 			else
 				{

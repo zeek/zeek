@@ -270,7 +270,7 @@ void ProfileLogger::Log()
 				if ( size > 100 * 1024 )
 					print = true;
 
-				if ( v->GetType()->Tag() == TYPE_TABLE )
+				if ( v->GetType()->Tag() == zeek::TYPE_TABLE )
 					{
 					entries = v->AsTable()->Length();
 					total_table_entries += entries;
@@ -339,7 +339,7 @@ void ProfileLogger::SegmentProfile(const char* name, const Location* loc,
 
 SampleLogger::SampleLogger()
 	{
-	static TableType* load_sample_info = nullptr;
+	static zeek::TableType* load_sample_info = nullptr;
 
 	if ( ! load_sample_info )
 		load_sample_info = zeek::id::find_type("load_sample_info")->AsTableType();

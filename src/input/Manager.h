@@ -111,7 +111,7 @@ public:
 	 *
 	 * @return True if the type is compatible with the input framework.
 	 */
-	static bool IsCompatibleType(BroType* t, bool atomic_only=false);
+	static bool IsCompatibleType(zeek::BroType* t, bool atomic_only=false);
 
 protected:
 	friend class ReaderFrontend;
@@ -199,7 +199,7 @@ private:
 	// Check if a record is made up of compatible types and return a list
 	// of all fields that are in the record in order. Recursively unrolls
 	// records
-	bool UnrollRecordType(std::vector<threading::Field*> *fields, const RecordType *rec, const std::string& nameprepend, bool allow_file_func) const;
+	bool UnrollRecordType(std::vector<threading::Field*> *fields, const zeek::RecordType *rec, const std::string& nameprepend, bool allow_file_func) const;
 
 	// Send events
 	void SendEvent(EventHandlerPtr ev, const int numvals, ...) const;
@@ -222,19 +222,19 @@ private:
 	int CopyValue(char *data, const int startpos, const threading::Value* val) const;
 
 	// Convert Threading::Value to an internal Bro Type (works with Records).
-	Val* ValueToVal(const Stream* i, const threading::Value* val, BroType* request_type, bool& have_error) const;
+	Val* ValueToVal(const Stream* i, const threading::Value* val, zeek::BroType* request_type, bool& have_error) const;
 
 	// Convert Threading::Value to an internal Bro list type.
-	Val* ValueToIndexVal(const Stream* i, int num_fields, const RecordType* type, const threading::Value* const *vals, bool& have_error) const;
+	Val* ValueToIndexVal(const Stream* i, int num_fields, const zeek::RecordType* type, const threading::Value* const *vals, bool& have_error) const;
 
 	// Converts a threading::value to a record type. Mostly used by
 	// ValueToVal.
-	RecordVal* ValueToRecordVal(const Stream* i, const threading::Value* const *vals, RecordType *request_type, int* position, bool& have_error) const;
+	RecordVal* ValueToRecordVal(const Stream* i, const threading::Value* const *vals, zeek::RecordType *request_type, int* position, bool& have_error) const;
 
 	Val* RecordValToIndexVal(RecordVal *r) const;
 
 	// Converts a Bro ListVal to a RecordVal given the record type.
-	RecordVal* ListValToRecordVal(ListVal* list, RecordType *request_type, int* position) const;
+	RecordVal* ListValToRecordVal(ListVal* list, zeek::RecordType *request_type, int* position) const;
 
 	// Internally signal errors, warnings, etc.
 	// These are sent on to input scriptland and reporter.log

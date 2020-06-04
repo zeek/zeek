@@ -28,7 +28,7 @@ public:
 	bool Describe(ODesc* desc, threading::Value* val, const std::string& name = "") const override;
 	bool Describe(ODesc* desc, int num_fields, const threading::Field* const * fields,
 	                      threading::Value** vals) const override;
-	threading::Value* ParseValue(const std::string& s, const std::string& name, TypeTag type, TypeTag subtype = TYPE_ERROR) const override;
+	threading::Value* ParseValue(const std::string& s, const std::string& name, zeek::TypeTag type, zeek::TypeTag subtype = zeek::TYPE_ERROR) const override;
 
 	class NullDoubleWriter : public rapidjson::Writer<rapidjson::StringBuffer> {
 	public:

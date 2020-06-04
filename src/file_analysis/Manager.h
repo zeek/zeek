@@ -428,7 +428,7 @@ private:
 	MIMEMap mime_types;/**< Mapping of MIME types to analyzers. */
 
 	inline static TableVal* disabled = nullptr;	/**< Table of disabled analyzers. */
-	inline static TableType* tag_set_type = nullptr;	/**< Type for set[tag]. */
+	inline static zeek::TableType* tag_set_type = nullptr;	/**< Type for set[tag]. */
 
 	size_t cumulative_files;
 	size_t max_files;

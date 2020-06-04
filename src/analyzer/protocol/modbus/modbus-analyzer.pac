@@ -39,7 +39,7 @@
 
 	IntrusivePtr<VectorVal> create_vector_of_count()
 		{
-		auto vt = make_intrusive<VectorType>(base_type(TYPE_COUNT));
+		auto vt = make_intrusive<zeek::VectorType>(zeek::base_type(zeek::TYPE_COUNT));
 		auto vv = make_intrusive<VectorVal>(std::move(vt));
 		return vv;
 		}

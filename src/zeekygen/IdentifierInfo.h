@@ -2,18 +2,18 @@
 
 #pragma once
 
-#include "Info.h"
-#include "IntrusivePtr.h"
-#include "ID.h"
-
+#include <time.h> // for time_t
 #include <string>
 #include <vector>
 #include <list>
 #include <map>
 
-#include <time.h> // for time_t
+#include "Info.h"
+#include "IntrusivePtr.h"
+#include "ID.h"
+#include "util.h"
 
-class TypeDecl;
+FORWARD_DECLARE_NAMESPACED(TypeDecl, zeek);
 
 namespace zeekygen {
 
@@ -82,7 +82,7 @@ public:
 	 * differ from the script in which a record type is declared due to redefs.
 	 * @param comments Comments associated with the record field.
 	 */
-	void AddRecordField(const TypeDecl* field, const std::string& script,
+	void AddRecordField(const zeek::TypeDecl* field, const std::string& script,
 	                    std::vector<std::string>& comments);
 
 	/**
@@ -165,7 +165,7 @@ private:
 	struct RecordField {
 		~RecordField();
 
-		TypeDecl* field;
+		zeek::TypeDecl* field;
 		std::string from_script;
 		std::vector<std::string> comments;
 	};

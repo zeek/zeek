@@ -25,12 +25,12 @@ Scope::Scope(IntrusivePtr<zeek::detail::ID> id,
 		{
 		const auto& id_type = scope_id->GetType();
 
-		if ( id_type->Tag() == TYPE_ERROR )
+		if ( id_type->Tag() == zeek::TYPE_ERROR )
 			return;
-		else if ( id_type->Tag() != TYPE_FUNC )
+		else if ( id_type->Tag() != zeek::TYPE_FUNC )
 			reporter->InternalError("bad scope id");
 
-		FuncType* ft = id->GetType()->AsFuncType();
+		zeek::FuncType* ft = id->GetType()->AsFuncType();
 		return_type = ft->Yield();
 		}
 	}

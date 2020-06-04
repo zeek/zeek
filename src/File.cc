@@ -58,7 +58,7 @@ BroFile::BroFile(FILE* arg_f)
 	Init();
 	f = arg_f;
 	name = access = nullptr;
-	t = base_type(TYPE_STRING);
+	t = zeek::base_type(zeek::TYPE_STRING);
 	is_open = (f != nullptr);
 	}
 
@@ -68,7 +68,7 @@ BroFile::BroFile(FILE* arg_f, const char* arg_name, const char* arg_access)
 	f = arg_f;
 	name = copy_string(arg_name);
 	access = copy_string(arg_access);
-	t = base_type(TYPE_STRING);
+	t = zeek::base_type(zeek::TYPE_STRING);
 	is_open = (f != nullptr);
 	}
 
@@ -78,7 +78,7 @@ BroFile::BroFile(const char* arg_name, const char* arg_access)
 	f = nullptr;
 	name = copy_string(arg_name);
 	access = copy_string(arg_access);
-	t = base_type(TYPE_STRING);
+	t = zeek::base_type(zeek::TYPE_STRING);
 
 	if ( streq(name, "/dev/stdin") )
 		f = stdin;
@@ -278,7 +278,7 @@ RecordVal* BroFile::Rotate()
 	if ( f == stdin || f == stdout || f == stderr )
 		return nullptr;
 
-	static auto rotate_info = zeek::id::find_type<RecordType>("rotate_info");
+	static auto rotate_info = zeek::id::find_type<zeek::RecordType>("rotate_info");
 	RecordVal* info = new RecordVal(rotate_info);
 	FILE* newf = rotate_file(name, info);
 

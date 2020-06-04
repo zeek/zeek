@@ -216,7 +216,7 @@ void Func::CopyStateInto(Func* other) const
 	}
 
 void Func::CheckPluginResult(bool handled, const IntrusivePtr<Val>& hook_result,
-                             function_flavor flavor) const
+                             zeek::FunctionFlavor flavor) const
 	{
 	// Helper function factoring out this code from BroFunc:Call() for
 	// better readability.
@@ -232,32 +232,32 @@ void Func::CheckPluginResult(bool handled, const IntrusivePtr<Val>& hook_result,
 		}
 
 	switch ( flavor ) {
-	case FUNC_FLAVOR_EVENT:
+	case zeek::FUNC_FLAVOR_EVENT:
 		if ( hook_result )
 			reporter->InternalError("plugin returned non-void result for event %s",
 			                        this->Name());
 
 		break;
 
-	case FUNC_FLAVOR_HOOK:
-		if ( hook_result->GetType()->Tag() != TYPE_BOOL )
+	case zeek::FUNC_FLAVOR_HOOK:
+		if ( hook_result->GetType()->Tag() != zeek::TYPE_BOOL )
 			reporter->InternalError("plugin returned non-bool for hook %s",
 			                        this->Name());
 
 		break;
 
-	case FUNC_FLAVOR_FUNCTION:
+	case zeek::FUNC_FLAVOR_FUNCTION:
 		{
 		const auto& yt = GetType()->Yield();
 
-		if ( (! yt) || yt->Tag() == TYPE_VOID )
+		if ( (! yt) || yt->Tag() == zeek::TYPE_VOID )
 			{
 			if ( hook_result )
 				reporter->InternalError("plugin returned non-void result for void method %s",
 				                        this->Name());
 			}
 
-		else if ( hook_result && hook_result->GetType()->Tag() != yt->Tag() && yt->Tag() != TYPE_ANY )
+		else if ( hook_result && hook_result->GetType()->Tag() != yt->Tag() && yt->Tag() != zeek::TYPE_ANY )
 			{
 			reporter->InternalError("plugin returned wrong type (got %d, expecting %d) for %s",
 			                        hook_result->GetType()->Tag(), yt->Tag(), this->Name());
@@ -274,7 +274,7 @@ BroFunc::BroFunc(const IntrusivePtr<zeek::detail::ID>& arg_id, IntrusivePtr<zeek
 	: Func(BRO_FUNC)
 	{
 	name = arg_id->Name();
-	type = arg_id->GetType<FuncType>();
+	type = arg_id->GetType<zeek::FuncType>();
 	frame_size = arg_frame_size;
 
 	if ( arg_body )
@@ -326,8 +326,8 @@ IntrusivePtr<Val> BroFunc::Invoke(zeek::Args* args, Frame* parent) const
 	if ( bodies.empty() )
 		{
 		// Can only happen for events and hooks.
-		assert(Flavor() == FUNC_FLAVOR_EVENT || Flavor() == FUNC_FLAVOR_HOOK);
-		return Flavor() == FUNC_FLAVOR_HOOK ? val_mgr->True() : nullptr;
+		assert(Flavor() == zeek::FUNC_FLAVOR_EVENT || Flavor() == zeek::FUNC_FLAVOR_HOOK);
+		return Flavor() == zeek::FUNC_FLAVOR_HOOK ? val_mgr->True() : nullptr;
 		}
 
 	auto f = make_intrusive<Frame>(frame_size, this, args);
@@ -384,7 +384,7 @@ IntrusivePtr<Val> BroFunc::Invoke(zeek::Args* args, Frame* parent) const
 		catch ( InterpreterException& e )
 			{
 			// Already reported, but now determine whether to unwind further.
-			if ( Flavor() == FUNC_FLAVOR_FUNCTION )
+			if ( Flavor() == zeek::FUNC_FLAVOR_FUNCTION )
 				{
 				g_frame_stack.pop_back();
 				call_stack.pop_back();
@@ -404,7 +404,7 @@ IntrusivePtr<Val> BroFunc::Invoke(zeek::Args* args, Frame* parent) const
 			break;
 			}
 
-		if ( Flavor() == FUNC_FLAVOR_HOOK )
+		if ( Flavor() == zeek::FUNC_FLAVOR_HOOK )
 			{
 			// Ignore any return values of hook bodies, final return value
 			// depends on whether a body returns as a result of break statement.
@@ -421,7 +421,7 @@ IntrusivePtr<Val> BroFunc::Invoke(zeek::Args* args, Frame* parent) const
 
 	call_stack.pop_back();
 
-	if ( Flavor() == FUNC_FLAVOR_HOOK )
+	if ( Flavor() == zeek::FUNC_FLAVOR_HOOK )
 		{
 		if ( ! result )
 			result = val_mgr->True();
@@ -429,7 +429,7 @@ IntrusivePtr<Val> BroFunc::Invoke(zeek::Args* args, Frame* parent) const
 
 	// Warn if the function returns something, but we returned from
 	// the function without an explicit return, or without a value.
-	else if ( GetType()->Yield() && GetType()->Yield()->Tag() != TYPE_VOID &&
+	else if ( GetType()->Yield() && GetType()->Yield()->Tag() != zeek::TYPE_VOID &&
 		 (flow != FLOW_RETURN /* we fell off the end */ ||
 		  ! result /* explicit return with no result */) &&
 		 ! f->HasDelayed() )
@@ -463,7 +463,7 @@ void BroFunc::AddBody(IntrusivePtr<zeek::detail::Stmt> new_body,
 
 	new_body = AddInits(std::move(new_body), new_inits);
 
-	if ( Flavor() == FUNC_FLAVOR_FUNCTION )
+	if ( Flavor() == zeek::FUNC_FLAVOR_FUNCTION )
 		{
 		// For functions, we replace the old body with the new one.
 		assert(bodies.size() <= 1);
@@ -601,7 +601,7 @@ BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
 	if ( id->HasVal() )
 		reporter->InternalError("built-in function %s multiply defined", Name());
 
-	type = id->GetType<FuncType>();
+	type = id->GetType<zeek::FuncType>();
 	id->SetVal(make_intrusive<Val>(IntrusivePtr{NewRef{}, this}));
 	}
 
@@ -628,7 +628,7 @@ IntrusivePtr<Val> BuiltinFunc::Invoke(zeek::Args* args, Frame* parent) const
 	                                                      HookCallFunction(this, parent, args),
 	                                                      empty_hook_result);
 
-	CheckPluginResult(handled, hook_result, FUNC_FLAVOR_FUNCTION);
+	CheckPluginResult(handled, hook_result, zeek::FUNC_FLAVOR_FUNCTION);
 
 	if ( handled )
 		return hook_result;
@@ -758,19 +758,19 @@ void builtin_error(const char* msg, BroObj* arg)
 
 void init_builtin_funcs()
 	{
-	ProcStats = zeek::id::find_type<RecordType>("ProcStats");
-	NetStats = zeek::id::find_type<RecordType>("NetStats");
-	MatcherStats = zeek::id::find_type<RecordType>("MatcherStats");
-	ConnStats = zeek::id::find_type<RecordType>("ConnStats");
-	ReassemblerStats = zeek::id::find_type<RecordType>("ReassemblerStats");
-	DNSStats = zeek::id::find_type<RecordType>("DNSStats");
-	GapStats = zeek::id::find_type<RecordType>("GapStats");
-	EventStats = zeek::id::find_type<RecordType>("EventStats");
-	TimerStats = zeek::id::find_type<RecordType>("TimerStats");
-	FileAnalysisStats = zeek::id::find_type<RecordType>("FileAnalysisStats");
-	ThreadStats = zeek::id::find_type<RecordType>("ThreadStats");
-	BrokerStats = zeek::id::find_type<RecordType>("BrokerStats");
-	ReporterStats = zeek::id::find_type<RecordType>("ReporterStats");
+	ProcStats = zeek::id::find_type<zeek::RecordType>("ProcStats");
+	NetStats = zeek::id::find_type<zeek::RecordType>("NetStats");
+	MatcherStats = zeek::id::find_type<zeek::RecordType>("MatcherStats");
+	ConnStats = zeek::id::find_type<zeek::RecordType>("ConnStats");
+	ReassemblerStats = zeek::id::find_type<zeek::RecordType>("ReassemblerStats");
+	DNSStats = zeek::id::find_type<zeek::RecordType>("DNSStats");
+	GapStats = zeek::id::find_type<zeek::RecordType>("GapStats");
+	EventStats = zeek::id::find_type<zeek::RecordType>("EventStats");
+	TimerStats = zeek::id::find_type<zeek::RecordType>("TimerStats");
+	FileAnalysisStats = zeek::id::find_type<zeek::RecordType>("FileAnalysisStats");
+	ThreadStats = zeek::id::find_type<zeek::RecordType>("ThreadStats");
+	BrokerStats = zeek::id::find_type<zeek::RecordType>("BrokerStats");
+	ReporterStats = zeek::id::find_type<zeek::RecordType>("ReporterStats");
 
 	var_sizes = zeek::id::find_type("var_sizes")->AsTableType();
 
@@ -803,7 +803,7 @@ bool check_built_in_call(BuiltinFunc* f, zeek::detail::CallExpr* call)
 		}
 
 	const zeek::detail::Expr* fmt_str_arg = args[0];
-	if ( fmt_str_arg->GetType()->Tag() != TYPE_STRING )
+	if ( fmt_str_arg->GetType()->Tag() != zeek::TYPE_STRING )
 		{
 		call->Error("first argument to fmt() needs to be a format string");
 		return false;
@@ -867,7 +867,7 @@ static int get_func_priority(const std::vector<IntrusivePtr<zeek::detail::Attr>>
 			continue;
 			}
 
-		if ( ! IsIntegral(v->GetType()->Tag()) )
+		if ( ! zeek::IsIntegral(v->GetType()->Tag()) )
 			{
 			a->Error("expression is not of integral type");
 			continue;

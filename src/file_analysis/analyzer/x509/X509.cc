@@ -393,7 +393,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 		else if ( gen->type == GEN_IPADD )
 			{
 				if ( ips == nullptr )
-					ips = make_intrusive<VectorVal>(zeek::id::find_type<VectorType>("addr_vec"));
+					ips = make_intrusive<VectorVal>(zeek::id::find_type<zeek::VectorType>("addr_vec"));
 
 				uint32_t* addr = (uint32_t*) gen->d.ip->data;
 

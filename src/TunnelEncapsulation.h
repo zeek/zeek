@@ -3,13 +3,14 @@
 #pragma once
 
 #include "zeek-config.h"
+
+#include <vector>
+
 #include "IntrusivePtr.h"
 #include "NetVar.h"
 #include "IPAddr.h"
 #include "ID.h"
 #include "UID.h"
-
-#include <vector>
 
 class Connection;
 
@@ -198,7 +199,7 @@ public:
 	IntrusivePtr<VectorVal> ToVal() const
 		{
 		auto vv = make_intrusive<VectorVal>(
-		    zeek::id::find_type<VectorType>("EncapsulatingConnVector"));
+		    zeek::id::find_type<zeek::VectorType>("EncapsulatingConnVector"));
 
 		if ( conns )
 			{

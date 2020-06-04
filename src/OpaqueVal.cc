@@ -37,10 +37,10 @@ OpaqueMgr* OpaqueMgr::mgr()
 	return &mgr;
 	}
 
-OpaqueVal::OpaqueVal(OpaqueType* t) : OpaqueVal({NewRef{}, t})
+OpaqueVal::OpaqueVal(zeek::OpaqueType* t) : OpaqueVal({NewRef{}, t})
 	{}
 
-OpaqueVal::OpaqueVal(IntrusivePtr<OpaqueType> t) : Val(std::move(t))
+OpaqueVal::OpaqueVal(IntrusivePtr<zeek::OpaqueType> t) : Val(std::move(t))
 	{}
 
 OpaqueVal::~OpaqueVal()
@@ -96,12 +96,12 @@ IntrusivePtr<OpaqueVal> OpaqueVal::Unserialize(const broker::data& data)
 	return val;
 	}
 
-broker::expected<broker::data> OpaqueVal::SerializeType(const IntrusivePtr<BroType>& t)
+broker::expected<broker::data> OpaqueVal::SerializeType(const IntrusivePtr<zeek::BroType>& t)
 	{
-	if ( t->InternalType() == TYPE_INTERNAL_ERROR )
+	if ( t->InternalType() == zeek::TYPE_INTERNAL_ERROR )
 		return broker::ec::invalid_data;
 
-	if ( t->InternalType() == TYPE_INTERNAL_OTHER )
+	if ( t->InternalType() == zeek::TYPE_INTERNAL_OTHER )
 		{
 		// Serialize by name.
 		assert(t->GetName().size());
@@ -112,7 +112,7 @@ broker::expected<broker::data> OpaqueVal::SerializeType(const IntrusivePtr<BroTy
 	return {broker::vector{false, static_cast<uint64_t>(t->Tag())}};
 	}
 
-IntrusivePtr<BroType> OpaqueVal::UnserializeType(const broker::data& data)
+IntrusivePtr<zeek::BroType> OpaqueVal::UnserializeType(const broker::data& data)
 	{
 	auto v = caf::get_if<broker::vector>(&data);
 	if ( ! (v && v->size() == 2) )
@@ -142,7 +142,7 @@ IntrusivePtr<BroType> OpaqueVal::UnserializeType(const broker::data& data)
 	if ( ! tag )
 		return nullptr;
 
-	return base_type(static_cast<TypeTag>(*tag));
+	return zeek::base_type(static_cast<zeek::TypeTag>(*tag));
 	}
 
 IntrusivePtr<Val> OpaqueVal::DoClone(CloneState* state)
@@ -206,12 +206,12 @@ IntrusivePtr<StringVal> HashVal::DoGet()
 	return val_mgr->EmptyString();
 	}
 
-HashVal::HashVal(IntrusivePtr<OpaqueType> t) : OpaqueVal(std::move(t))
+HashVal::HashVal(IntrusivePtr<zeek::OpaqueType> t) : OpaqueVal(std::move(t))
 	{
 	valid = false;
 	}
 
-HashVal::HashVal(OpaqueType* t) : HashVal({NewRef{}, t})
+HashVal::HashVal(zeek::OpaqueType* t) : HashVal({NewRef{}, t})
 	{}
 
 MD5Val::MD5Val() : HashVal(md5_type)
@@ -226,7 +226,7 @@ MD5Val::~MD5Val()
 
 void HashVal::digest_one(EVP_MD_CTX* h, const Val* v)
 	{
-	if ( v->GetType()->Tag() == TYPE_STRING )
+	if ( v->GetType()->Tag() == zeek::TYPE_STRING )
 		{
 		const BroString* str = v->AsString();
 		hash_update(h, str->Bytes(), str->Len());
@@ -723,14 +723,14 @@ IntrusivePtr<Val> BloomFilterVal::DoClone(CloneState* state)
 	return state->NewClone(this, make_intrusive<BloomFilterVal>());
 	}
 
-bool BloomFilterVal::Typify(IntrusivePtr<BroType> arg_type)
+bool BloomFilterVal::Typify(IntrusivePtr<zeek::BroType> arg_type)
 	{
 	if ( type )
 		return false;
 
 	type = std::move(arg_type);
 
-	auto tl = make_intrusive<TypeList>(type);
+	auto tl = make_intrusive<zeek::TypeList>(type);
 	tl->Append(type);
 	hash = new CompositeHash(std::move(tl));
 
@@ -882,14 +882,14 @@ IntrusivePtr<Val> CardinalityVal::DoClone(CloneState* state)
 			       make_intrusive<CardinalityVal>(new probabilistic::CardinalityCounter(*c)));
 	}
 
-bool CardinalityVal::Typify(IntrusivePtr<BroType> arg_type)
+bool CardinalityVal::Typify(IntrusivePtr<zeek::BroType> arg_type)
 	{
 	if ( type )
 		return false;
 
 	type = std::move(arg_type);
 
-	auto tl = make_intrusive<TypeList>(type);
+	auto tl = make_intrusive<zeek::TypeList>(type);
 	tl->Append(type);
 	hash = new CompositeHash(std::move(tl));
 

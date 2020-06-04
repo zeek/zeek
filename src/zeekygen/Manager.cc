@@ -275,7 +275,7 @@ void Manager::StartType(IntrusivePtr<zeek::detail::ID> id)
 
 static bool IsEnumType(zeek::detail::ID* id)
 	{
-	return id->IsType() ? id->GetType()->Tag() == TYPE_ENUM : false;
+	return id->IsType() ? id->GetType()->Tag() == zeek::TYPE_ENUM : false;
 	}
 
 void Manager::Identifier(IntrusivePtr<zeek::detail::ID> id)
@@ -301,7 +301,7 @@ void Manager::Identifier(IntrusivePtr<zeek::detail::ID> id)
 
 	if ( id_info )
 		{
-		if ( IsFunc(id_info->GetID()->GetType()->Tag()) )
+		if ( zeek::IsFunc(id_info->GetID()->GetType()->Tag()) )
 			{
 			// Function may already been seen (declaration versus body).
 			id_info->AddComments(comment_buffer);
@@ -337,7 +337,7 @@ void Manager::Identifier(IntrusivePtr<zeek::detail::ID> id)
 	CreateIdentifierInfo(std::move(id), script_info);
 	}
 
-void Manager::RecordField(const zeek::detail::ID* id, const TypeDecl* field,
+void Manager::RecordField(const zeek::detail::ID* id, const zeek::TypeDecl* field,
 			  const string& path)
 	{
 	if ( disabled )

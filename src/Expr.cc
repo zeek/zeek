@@ -132,7 +132,7 @@ IntrusivePtr<Val> Expr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) const
 
 bool Expr::IsError() const
 	{
-	return type && type->Tag() == TYPE_ERROR;
+	return type && type->Tag() == zeek::TYPE_ERROR;
 	}
 
 void Expr::SetError()
@@ -184,7 +184,7 @@ void Expr::Canonicize()
 
 void Expr::SetType(IntrusivePtr<BroType> t)
 	{
-	if ( ! type || type->Tag() != TYPE_ERROR )
+	if ( ! type || type->Tag() != zeek::TYPE_ERROR )
 		type = std::move(t);
 	}
 
@@ -312,7 +312,7 @@ void NameExpr::ExprDescribe(ODesc* d) const
 ConstExpr::ConstExpr(IntrusivePtr<Val> arg_val)
 	: Expr(EXPR_CONST), val(std::move(arg_val))
 	{
-	if ( val->GetType()->Tag() == TYPE_LIST && val->AsListVal()->Length() == 1 )
+	if ( val->GetType()->Tag() == zeek::TYPE_LIST && val->AsListVal()->Length() == 1 )
 		val = val->AsListVal()->Idx(0);
 
 	SetType(val->GetType());
@@ -357,12 +357,12 @@ IntrusivePtr<Val> UnaryExpr::Eval(Frame* f) const
 	if ( is_vector(v) && Tag() != EXPR_IS && Tag() != EXPR_CAST )
 		{
 		VectorVal* v_op = v->AsVectorVal();
-		IntrusivePtr<VectorType> out_t;
+		IntrusivePtr<zeek::VectorType> out_t;
 
-		if ( GetType()->Tag() == TYPE_ANY )
-			out_t = v->GetType<VectorType>();
+		if ( GetType()->Tag() == zeek::TYPE_ANY )
+			out_t = v->GetType<zeek::VectorType>();
 		else
-			out_t = GetType<VectorType>();
+			out_t = GetType<zeek::VectorType>();
 
 		auto result = make_intrusive<VectorVal>(std::move(out_t));
 
@@ -455,7 +455,7 @@ IntrusivePtr<Val> BinaryExpr::Eval(Frame* f) const
 			return nullptr;
 			}
 
-		auto v_result = make_intrusive<VectorVal>(GetType<VectorType>());
+		auto v_result = make_intrusive<VectorVal>(GetType<zeek::VectorType>());
 
 		for ( unsigned int i = 0; i < v_op1->Size(); ++i )
 			{
@@ -472,7 +472,7 @@ IntrusivePtr<Val> BinaryExpr::Eval(Frame* f) const
 	if ( IsVector(GetType()->Tag()) && (is_vec1 || is_vec2) )
 		{ // fold vector against scalar
 		VectorVal* vv = (is_vec1 ? v1 : v2)->AsVectorVal();
-		auto v_result = make_intrusive<VectorVal>(GetType<VectorType>());
+		auto v_result = make_intrusive<VectorVal>(GetType<zeek::VectorType>());
 
 		for ( unsigned int i = 0; i < vv->Size(); ++i )
 			{
@@ -527,19 +527,19 @@ IntrusivePtr<Val> BinaryExpr::Fold(Val* v1, Val* v2) const
 	{
 	InternalTypeTag it = v1->GetType()->InternalType();
 
-	if ( it == TYPE_INTERNAL_STRING )
+	if ( it == zeek::TYPE_INTERNAL_STRING )
 		return StringFold(v1, v2);
 
-	if ( v1->GetType()->Tag() == TYPE_PATTERN )
+	if ( v1->GetType()->Tag() == zeek::TYPE_PATTERN )
 		return PatternFold(v1, v2);
 
 	if ( v1->GetType()->IsSet() )
 		return SetFold(v1, v2);
 
-	if ( it == TYPE_INTERNAL_ADDR )
+	if ( it == zeek::TYPE_INTERNAL_ADDR )
 		return AddrFold(v1, v2);
 
-	if ( it == TYPE_INTERNAL_SUBNET )
+	if ( it == zeek::TYPE_INTERNAL_SUBNET )
 		return SubNetFold(v1, v2);
 
 	bro_int_t i1 = 0, i2 = 0, i3 = 0;
@@ -548,19 +548,19 @@ IntrusivePtr<Val> BinaryExpr::Fold(Val* v1, Val* v2) const
 	bool is_integral = false;
 	bool is_unsigned = false;
 
-	if ( it == TYPE_INTERNAL_INT )
+	if ( it == zeek::TYPE_INTERNAL_INT )
 		{
 		i1 = v1->InternalInt();
 		i2 = v2->InternalInt();
 		is_integral = true;
 		}
-	else if ( it == TYPE_INTERNAL_UNSIGNED )
+	else if ( it == zeek::TYPE_INTERNAL_UNSIGNED )
 		{
 		u1 = v1->InternalUnsigned();
 		u2 = v2->InternalUnsigned();
 		is_unsigned = true;
 		}
-	else if ( it == TYPE_INTERNAL_DOUBLE )
+	else if ( it == zeek::TYPE_INTERNAL_DOUBLE )
 		{
 		d1 = v1->InternalDouble();
 		d2 = v2->InternalDouble();
@@ -676,15 +676,15 @@ IntrusivePtr<Val> BinaryExpr::Fold(Val* v1, Val* v2) const
 
 	const auto& ret_type = IsVector(GetType()->Tag()) ? GetType()->Yield() : GetType();
 
-	if ( ret_type->Tag() == TYPE_INTERVAL )
+	if ( ret_type->Tag() == zeek::TYPE_INTERVAL )
 		return make_intrusive<IntervalVal>(d3);
-	else if ( ret_type->Tag() == TYPE_TIME )
+	else if ( ret_type->Tag() == zeek::TYPE_TIME )
 		return make_intrusive<TimeVal>(d3);
-	else if ( ret_type->Tag() == TYPE_DOUBLE )
+	else if ( ret_type->Tag() == zeek::TYPE_DOUBLE )
 		return make_intrusive<DoubleVal>(d3);
-	else if ( ret_type->InternalType() == TYPE_INTERNAL_UNSIGNED )
+	else if ( ret_type->InternalType() == zeek::TYPE_INTERNAL_UNSIGNED )
 		return val_mgr->Count(u3);
-	else if ( ret_type->Tag() == TYPE_BOOL )
+	else if ( ret_type->Tag() == zeek::TYPE_BOOL )
 		return val_mgr->Bool(i3);
 	else
 		return val_mgr->Int(i3);
@@ -881,7 +881,7 @@ void BinaryExpr::PromoteType(TypeTag t, bool is_vector)
 	PromoteOps(t);
 
 	if ( is_vector)
-		SetType(make_intrusive<VectorType>(base_type(t)));
+		SetType(make_intrusive<zeek::VectorType>(base_type(t)));
 	else
 		SetType(base_type(t));
 	}
@@ -949,13 +949,13 @@ IntrusivePtr<Val> IncrExpr::DoSingleEval(Frame* f, Val* v) const
 		--k;
 
 		if ( k < 0 &&
-		     v->GetType()->InternalType() == TYPE_INTERNAL_UNSIGNED )
+		     v->GetType()->InternalType() == zeek::TYPE_INTERNAL_UNSIGNED )
 			RuntimeError("count underflow");
 		}
 
 	const auto& ret_type = IsVector(GetType()->Tag()) ? GetType()->Yield() : GetType();
 
-	if ( ret_type->Tag() == TYPE_INT )
+	if ( ret_type->Tag() == zeek::TYPE_INT )
 		return val_mgr->Int(k);
 	else
 		return val_mgr->Count(k);
@@ -1008,10 +1008,10 @@ ComplementExpr::ComplementExpr(IntrusivePtr<Expr> arg_op)
 	const auto& t = op->GetType();
 	TypeTag bt = t->Tag();
 
-	if ( bt != TYPE_COUNT )
+	if ( bt != zeek::TYPE_COUNT )
 		ExprError("requires \"count\" operand");
 	else
-		SetType(base_type(TYPE_COUNT));
+		SetType(base_type(zeek::TYPE_COUNT));
 	}
 
 IntrusivePtr<Val> ComplementExpr::Fold(Val* v) const
@@ -1027,10 +1027,10 @@ NotExpr::NotExpr(IntrusivePtr<Expr> arg_op)
 
 	TypeTag bt = op->GetType()->Tag();
 
-	if ( ! IsIntegral(bt) && bt != TYPE_BOOL )
+	if ( ! IsIntegral(bt) && bt != zeek::TYPE_BOOL )
 		ExprError("requires an integral or boolean operand");
 	else
-		SetType(base_type(TYPE_BOOL));
+		SetType(base_type(zeek::TYPE_BOOL));
 	}
 
 IntrusivePtr<Val> NotExpr::Fold(Val* v) const
@@ -1051,14 +1051,14 @@ PosExpr::PosExpr(IntrusivePtr<Expr> arg_op)
 
 	if ( IsIntegral(bt) )
 		// Promote count and counter to int.
-		base_result_type = base_type(TYPE_INT);
-	else if ( bt == TYPE_INTERVAL || bt == TYPE_DOUBLE )
+		base_result_type = base_type(zeek::TYPE_INT);
+	else if ( bt == zeek::TYPE_INTERVAL || bt == zeek::TYPE_DOUBLE )
 		base_result_type = t;
 	else
 		ExprError("requires an integral or double operand");
 
 	if ( is_vector(op) )
-		SetType(make_intrusive<VectorType>(std::move(base_result_type)));
+		SetType(make_intrusive<zeek::VectorType>(std::move(base_result_type)));
 	else
 		SetType(std::move(base_result_type));
 	}
@@ -1067,7 +1067,7 @@ IntrusivePtr<Val> PosExpr::Fold(Val* v) const
 	{
 	TypeTag t = v->GetType()->Tag();
 
-	if ( t == TYPE_DOUBLE || t == TYPE_INTERVAL || t == TYPE_INT )
+	if ( t == zeek::TYPE_DOUBLE || t == zeek::TYPE_INTERVAL || t == zeek::TYPE_INT )
 		return {NewRef{}, v};
 	else
 		return val_mgr->Int(v->CoerceToInt());
@@ -1086,23 +1086,23 @@ NegExpr::NegExpr(IntrusivePtr<Expr> arg_op)
 
 	if ( IsIntegral(bt) )
 		// Promote count and counter to int.
-		base_result_type = base_type(TYPE_INT);
-	else if ( bt == TYPE_INTERVAL || bt == TYPE_DOUBLE )
+		base_result_type = base_type(zeek::TYPE_INT);
+	else if ( bt == zeek::TYPE_INTERVAL || bt == zeek::TYPE_DOUBLE )
 		base_result_type = t;
 	else
 		ExprError("requires an integral or double operand");
 
 	if ( is_vector(op) )
-		SetType(make_intrusive<VectorType>(std::move(base_result_type)));
+		SetType(make_intrusive<zeek::VectorType>(std::move(base_result_type)));
 	else
 		SetType(std::move(base_result_type));
 	}
 
 IntrusivePtr<Val> NegExpr::Fold(Val* v) const
 	{
-	if ( v->GetType()->Tag() == TYPE_DOUBLE )
+	if ( v->GetType()->Tag() == zeek::TYPE_DOUBLE )
 		return make_intrusive<DoubleVal>(- v->InternalDouble());
-	else if ( v->GetType()->Tag() == TYPE_INTERVAL )
+	else if ( v->GetType()->Tag() == zeek::TYPE_INTERVAL )
 		return make_intrusive<IntervalVal>(- v->InternalDouble());
 	else
 		return val_mgr->Int(- v->CoerceToInt());
@@ -1114,10 +1114,10 @@ SizeExpr::SizeExpr(IntrusivePtr<Expr> arg_op)
 	if ( IsError() )
 		return;
 
-	if ( op->GetType()->InternalType() == TYPE_INTERNAL_DOUBLE )
-		SetType(base_type(TYPE_DOUBLE));
+	if ( op->GetType()->InternalType() == zeek::TYPE_INTERNAL_DOUBLE )
+		SetType(base_type(zeek::TYPE_DOUBLE));
 	else
-		SetType(base_type(TYPE_COUNT));
+		SetType(base_type(zeek::TYPE_COUNT));
 	}
 
 IntrusivePtr<Val> SizeExpr::Eval(Frame* f) const
@@ -1153,9 +1153,9 @@ AddExpr::AddExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 
 	IntrusivePtr<BroType> base_result_type;
 
-	if ( bt2 == TYPE_INTERVAL && ( bt1 == TYPE_TIME || bt1 == TYPE_INTERVAL ) )
+	if ( bt2 == zeek::TYPE_INTERVAL && ( bt1 == zeek::TYPE_TIME || bt1 == zeek::TYPE_INTERVAL ) )
 		base_result_type = base_type(bt1);
-	else if ( bt2 == TYPE_TIME && bt1 == TYPE_INTERVAL )
+	else if ( bt2 == zeek::TYPE_TIME && bt1 == zeek::TYPE_INTERVAL )
 		base_result_type = base_type(bt2);
 	else if ( BothArithmetic(bt1, bt2) )
 		PromoteType(max_type(bt1, bt2), is_vector(op1) || is_vector(op2));
@@ -1167,7 +1167,7 @@ AddExpr::AddExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 	if ( base_result_type )
 		{
 		if ( is_vector(op1) || is_vector(op2) )
-			SetType(make_intrusive<VectorType>(std::move(base_result_type)));
+			SetType(make_intrusive<zeek::VectorType>(std::move(base_result_type)));
 		else
 			SetType(std::move(base_result_type));
 		}
@@ -1176,8 +1176,8 @@ AddExpr::AddExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 void AddExpr::Canonicize()
 	{
 	if ( expr_greater(op2.get(), op1.get()) ||
-	     (op1->GetType()->Tag() == TYPE_INTERVAL &&
-	      op2->GetType()->Tag() == TYPE_TIME) ||
+	     (op1->GetType()->Tag() == zeek::TYPE_INTERVAL &&
+	      op2->GetType()->Tag() == zeek::TYPE_TIME) ||
 	     (op2->IsConst() && ! is_vector(op2->ExprVal()) && ! op1->IsConst()))
 		SwapOps();
 	}
@@ -1216,7 +1216,7 @@ AddToExpr::AddToExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 				ExprError("appending non-arithmetic to arithmetic vector");
 			}
 
-		else if ( bt1 != bt2 && bt1 != TYPE_ANY )
+		else if ( bt1 != bt2 && bt1 != zeek::TYPE_ANY )
 			ExprError(fmt("incompatible vector append: %s and %s",
 					  type_name(bt1), type_name(bt2)));
 
@@ -1278,11 +1278,11 @@ SubExpr::SubExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 
 	IntrusivePtr<BroType> base_result_type;
 
-	if ( bt2 == TYPE_INTERVAL && ( bt1 == TYPE_TIME || bt1 == TYPE_INTERVAL ) )
+	if ( bt2 == zeek::TYPE_INTERVAL && ( bt1 == zeek::TYPE_TIME || bt1 == zeek::TYPE_INTERVAL ) )
 		base_result_type = base_type(bt1);
 
-	else if ( bt1 == TYPE_TIME && bt2 == TYPE_TIME )
-		SetType(base_type(TYPE_INTERVAL));
+	else if ( bt1 == zeek::TYPE_TIME && bt2 == zeek::TYPE_TIME )
+		SetType(base_type(zeek::TYPE_INTERVAL));
 
 	else if ( t1->IsSet() && t2->IsSet() )
 		{
@@ -1301,7 +1301,7 @@ SubExpr::SubExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 	if ( base_result_type )
 		{
 		if ( is_vector(op1) || is_vector(op2) )
-			SetType(make_intrusive<VectorType>(std::move(base_result_type)));
+			SetType(make_intrusive<zeek::VectorType>(std::move(base_result_type)));
 		else
 			SetType(std::move(base_result_type));
 		}
@@ -1364,10 +1364,10 @@ TimesExpr::TimesExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 	if ( IsVector(bt2) )
 		bt2 = op2->GetType()->AsVectorType()->Yield()->Tag();
 
-	if ( bt1 == TYPE_INTERVAL || bt2 == TYPE_INTERVAL )
+	if ( bt1 == zeek::TYPE_INTERVAL || bt2 == zeek::TYPE_INTERVAL )
 		{
 		if ( IsArithmetic(bt1) || IsArithmetic(bt2) )
-			PromoteType(TYPE_INTERVAL, is_vector(op1) || is_vector(op2) );
+			PromoteType(zeek::TYPE_INTERVAL, is_vector(op1) || is_vector(op2) );
 		else
 			ExprError("multiplication with interval requires arithmetic operand");
 		}
@@ -1379,7 +1379,7 @@ TimesExpr::TimesExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 
 void TimesExpr::Canonicize()
 	{
-	if ( expr_greater(op2.get(), op1.get()) || op2->GetType()->Tag() == TYPE_INTERVAL ||
+	if ( expr_greater(op2.get(), op1.get()) || op2->GetType()->Tag() == zeek::TYPE_INTERVAL ||
 	     (op2->IsConst() && ! is_vector(op2->ExprVal()) && ! op1->IsConst()) )
 		SwapOps();
 	}
@@ -1401,16 +1401,16 @@ DivideExpr::DivideExpr(IntrusivePtr<Expr> arg_op1,
 	if ( IsVector(bt2) )
 		bt2 = op2->GetType()->AsVectorType()->Yield()->Tag();
 
-	if ( bt1 == TYPE_INTERVAL || bt2 == TYPE_INTERVAL )
+	if ( bt1 == zeek::TYPE_INTERVAL || bt2 == zeek::TYPE_INTERVAL )
 		{
 		if ( IsArithmetic(bt1) || IsArithmetic(bt2) )
-			PromoteType(TYPE_INTERVAL, is_vector(op1) || is_vector(op2));
-		else if ( bt1 == TYPE_INTERVAL && bt2 == TYPE_INTERVAL )
+			PromoteType(zeek::TYPE_INTERVAL, is_vector(op1) || is_vector(op2));
+		else if ( bt1 == zeek::TYPE_INTERVAL && bt2 == zeek::TYPE_INTERVAL )
 			{
 			if ( is_vector(op1) || is_vector(op2) )
-				SetType(make_intrusive<VectorType>(base_type(TYPE_DOUBLE)));
+				SetType(make_intrusive<zeek::VectorType>(base_type(zeek::TYPE_DOUBLE)));
 			else
-				SetType(base_type(TYPE_DOUBLE));
+				SetType(base_type(zeek::TYPE_DOUBLE));
 			}
 		else
 			ExprError("division of interval requires arithmetic operand");
@@ -1419,9 +1419,9 @@ DivideExpr::DivideExpr(IntrusivePtr<Expr> arg_op1,
 	else if ( BothArithmetic(bt1, bt2) )
 		PromoteType(max_type(bt1, bt2), is_vector(op1) || is_vector(op2));
 
-	else if ( bt1 == TYPE_ADDR && ! is_vector(op2) &&
-		  (bt2 == TYPE_COUNT || bt2 == TYPE_INT) )
-		SetType(base_type(TYPE_SUBNET));
+	else if ( bt1 == zeek::TYPE_ADDR && ! is_vector(op2) &&
+		  (bt2 == zeek::TYPE_COUNT || bt2 == zeek::TYPE_INT) )
+		SetType(base_type(zeek::TYPE_SUBNET));
 
 	else
 		ExprError("requires arithmetic operands");
@@ -1431,7 +1431,7 @@ IntrusivePtr<Val> DivideExpr::AddrFold(Val* v1, Val* v2) const
 	{
 	uint32_t mask;
 
-	if ( v2->GetType()->Tag() == TYPE_COUNT )
+	if ( v2->GetType()->Tag() == zeek::TYPE_COUNT )
 		mask = static_cast<uint32_t>(v2->InternalUnsigned());
 	else
 		mask = static_cast<uint32_t>(v2->InternalInt());
@@ -1497,10 +1497,10 @@ BoolExpr::BoolExpr(BroExprTag arg_tag,
 			{
 			if ( ! (is_vector(op1) && is_vector(op2)) )
 				reporter->Warning("mixing vector and scalar operands is deprecated");
-			SetType(make_intrusive<VectorType>(base_type(TYPE_BOOL)));
+			SetType(make_intrusive<zeek::VectorType>(base_type(zeek::TYPE_BOOL)));
 			}
 		else
-			SetType(base_type(TYPE_BOOL));
+			SetType(base_type(zeek::TYPE_BOOL));
 		}
 	else
 		ExprError("requires boolean operands");
@@ -1574,7 +1574,7 @@ IntrusivePtr<Val> BoolExpr::Eval(Frame* f) const
 
 		if ( scalar_v->IsZero() == is_and )
 			{
-			result = make_intrusive<VectorVal>(GetType<VectorType>());
+			result = make_intrusive<VectorVal>(GetType<zeek::VectorType>());
 			result->Resize(vector_v->Size());
 			result->AssignRepeat(0, result->Size(), std::move(scalar_v));
 			}
@@ -1599,7 +1599,7 @@ IntrusivePtr<Val> BoolExpr::Eval(Frame* f) const
 		return nullptr;
 		}
 
-	auto result = make_intrusive<VectorVal>(GetType<VectorType>());
+	auto result = make_intrusive<VectorVal>(GetType<zeek::VectorType>());
 	result->Resize(vec_v1->Size());
 
 	for ( unsigned int i = 0; i < vec_v1->Size(); ++i )
@@ -1641,25 +1641,25 @@ BitExpr::BitExpr(BroExprTag arg_tag,
 	if ( IsVector(bt2) )
 		bt2 = t2->AsVectorType()->Yield()->Tag();
 
-	if ( (bt1 == TYPE_COUNT || bt1 == TYPE_COUNTER) &&
-	     (bt2 == TYPE_COUNT || bt2 == TYPE_COUNTER) )
+	if ( (bt1 == zeek::TYPE_COUNT || bt1 == zeek::TYPE_COUNTER) &&
+	     (bt2 == zeek::TYPE_COUNT || bt2 == zeek::TYPE_COUNTER) )
 		{
-		if ( bt1 == TYPE_COUNTER && bt2 == TYPE_COUNTER )
+		if ( bt1 == zeek::TYPE_COUNTER && bt2 == zeek::TYPE_COUNTER )
 			ExprError("cannot apply a bitwise operator to two \"counter\" operands");
 		else if ( is_vector(op1) || is_vector(op2) )
-			SetType(make_intrusive<VectorType>(base_type(TYPE_COUNT)));
+			SetType(make_intrusive<zeek::VectorType>(base_type(zeek::TYPE_COUNT)));
 		else
-			SetType(base_type(TYPE_COUNT));
+			SetType(base_type(zeek::TYPE_COUNT));
 		}
 
-	else if ( bt1 == TYPE_PATTERN )
+	else if ( bt1 == zeek::TYPE_PATTERN )
 		{
-		if ( bt2 != TYPE_PATTERN )
+		if ( bt2 != zeek::TYPE_PATTERN )
 			ExprError("cannot mix pattern and non-pattern operands");
 		else if ( tag == EXPR_XOR )
 			ExprError("'^' operator does not apply to patterns");
 		else
-			SetType(base_type(TYPE_PATTERN));
+			SetType(base_type(zeek::TYPE_PATTERN));
 		}
 
 	else if ( t1->IsSet() && t2->IsSet() )
@@ -1695,38 +1695,38 @@ EqExpr::EqExpr(BroExprTag arg_tag,
 		bt2 = t2->AsVectorType()->Yield()->Tag();
 
 	if ( is_vector(op1) || is_vector(op2) )
-		SetType(make_intrusive<VectorType>(base_type(TYPE_BOOL)));
+		SetType(make_intrusive<zeek::VectorType>(base_type(zeek::TYPE_BOOL)));
 	else
-		SetType(base_type(TYPE_BOOL));
+		SetType(base_type(zeek::TYPE_BOOL));
 
 	if ( BothArithmetic(bt1, bt2) )
 		PromoteOps(max_type(bt1, bt2));
 
 	else if ( EitherArithmetic(bt1, bt2) &&
 		// Allow comparisons with zero.
-		  ((bt1 == TYPE_TIME && op2->IsZero()) ||
-		   (bt2 == TYPE_TIME && op1->IsZero())) )
-		PromoteOps(TYPE_TIME);
+		  ((bt1 == zeek::TYPE_TIME && op2->IsZero()) ||
+		   (bt2 == zeek::TYPE_TIME && op1->IsZero())) )
+		PromoteOps(zeek::TYPE_TIME);
 
 	else if ( bt1 == bt2 )
 		{
 		switch ( bt1 ) {
-		case TYPE_BOOL:
-		case TYPE_TIME:
-		case TYPE_INTERVAL:
-		case TYPE_STRING:
-		case TYPE_PORT:
-		case TYPE_ADDR:
-		case TYPE_SUBNET:
-		case TYPE_ERROR:
+		case zeek::TYPE_BOOL:
+		case zeek::TYPE_TIME:
+		case zeek::TYPE_INTERVAL:
+		case zeek::TYPE_STRING:
+		case zeek::TYPE_PORT:
+		case zeek::TYPE_ADDR:
+		case zeek::TYPE_SUBNET:
+		case zeek::TYPE_ERROR:
 			break;
 
-		case TYPE_ENUM:
+		case zeek::TYPE_ENUM:
 			if ( ! same_type(t1, t2) )
 				ExprError("illegal enum comparison");
 			break;
 
-		case TYPE_TABLE:
+		case zeek::TYPE_TABLE:
 			if ( t1->IsSet() && t2->IsSet() )
 				{
 				if ( ! same_type(t1, t2) )
@@ -1741,7 +1741,7 @@ EqExpr::EqExpr(BroExprTag arg_tag,
 		}
 		}
 
-	else if ( bt1 == TYPE_PATTERN && bt2 == TYPE_STRING )
+	else if ( bt1 == zeek::TYPE_PATTERN && bt2 == zeek::TYPE_STRING )
 		;
 
 	else
@@ -1750,10 +1750,10 @@ EqExpr::EqExpr(BroExprTag arg_tag,
 
 void EqExpr::Canonicize()
 	{
-	if ( op2->GetType()->Tag() == TYPE_PATTERN )
+	if ( op2->GetType()->Tag() == zeek::TYPE_PATTERN )
 		SwapOps();
 
-	else if ( op1->GetType()->Tag() == TYPE_PATTERN )
+	else if ( op1->GetType()->Tag() == zeek::TYPE_PATTERN )
 		;
 
 	else if ( expr_greater(op2.get(), op1.get()) )
@@ -1762,7 +1762,7 @@ void EqExpr::Canonicize()
 
 IntrusivePtr<Val> EqExpr::Fold(Val* v1, Val* v2) const
 	{
-	if ( op1->GetType()->Tag() == TYPE_PATTERN )
+	if ( op1->GetType()->Tag() == zeek::TYPE_PATTERN )
 		{
 		RE_Matcher* re = v1->AsPattern();
 		const BroString* s = v2->AsString();
@@ -1797,9 +1797,9 @@ RelExpr::RelExpr(BroExprTag arg_tag,
 		bt2 = t2->AsVectorType()->Yield()->Tag();
 
 	if ( is_vector(op1) || is_vector(op2) )
-		SetType(make_intrusive<VectorType>(base_type(TYPE_BOOL)));
+		SetType(make_intrusive<zeek::VectorType>(base_type(zeek::TYPE_BOOL)));
 	else
-		SetType(base_type(TYPE_BOOL));
+		SetType(base_type(zeek::TYPE_BOOL));
 
 	if ( BothArithmetic(bt1, bt2) )
 		PromoteOps(max_type(bt1, bt2));
@@ -1813,9 +1813,9 @@ RelExpr::RelExpr(BroExprTag arg_tag,
 	else if ( bt1 != bt2 )
 		ExprError("operands must be of the same type");
 
-	else if ( bt1 != TYPE_TIME && bt1 != TYPE_INTERVAL &&
-		  bt1 != TYPE_PORT && bt1 != TYPE_ADDR &&
-		  bt1 != TYPE_STRING )
+	else if ( bt1 != zeek::TYPE_TIME && bt1 != zeek::TYPE_INTERVAL &&
+		  bt1 != zeek::TYPE_PORT && bt1 != zeek::TYPE_ADDR &&
+		  bt1 != zeek::TYPE_STRING )
 		ExprError("illegal comparison");
 	}
 
@@ -1847,7 +1847,7 @@ CondExpr::CondExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2,
 	if ( op1->IsError() || op2->IsError() || op3->IsError() )
 		SetError();
 
-	else if ( bt1 != TYPE_BOOL )
+	else if ( bt1 != zeek::TYPE_BOOL )
 		ExprError("requires boolean conditional");
 
 	else
@@ -1877,7 +1877,7 @@ CondExpr::CondExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2,
 				op3 = make_intrusive<ArithCoerceExpr>(std::move(op3), t);
 
 			if ( is_vector(op2) )
-				SetType(make_intrusive<VectorType>(base_type(t)));
+				SetType(make_intrusive<zeek::VectorType>(base_type(t)));
 			else
 				SetType(base_type(t));
 			}
@@ -1931,7 +1931,7 @@ IntrusivePtr<Val> CondExpr::Eval(Frame* f) const
 		return nullptr;
 		}
 
-	auto result = make_intrusive<VectorVal>(GetType<VectorType>());
+	auto result = make_intrusive<VectorVal>(GetType<zeek::VectorType>());
 	result->Resize(cond->Size());
 
 	for ( unsigned int i = 0; i < cond->Size(); ++i )
@@ -1988,7 +1988,7 @@ RefExpr::RefExpr(IntrusivePtr<Expr> arg_op)
 	if ( IsError() )
 		return;
 
-	if ( ! ::is_assignable(op->GetType()->Tag()) )
+	if ( ! zeek::is_assignable(op->GetType()->Tag()) )
 		ExprError("illegal assignment target");
 	else
 		SetType(op->GetType());
@@ -2043,13 +2043,13 @@ bool AssignExpr::TypeCheck(const IntrusivePtr<Attributes>& attrs)
 	TypeTag bt1 = op1->GetType()->Tag();
 	TypeTag bt2 = op2->GetType()->Tag();
 
-	if ( bt1 == TYPE_LIST && bt2 == TYPE_ANY )
+	if ( bt1 == zeek::TYPE_LIST && bt2 == zeek::TYPE_ANY )
 		// This is ok because we cannot explicitly declare lists on
 		// the script level.
 		return true;
 
 	// This should be one of them, but not both (i.e. XOR)
-	if ( ((bt1 == TYPE_ENUM) ^ (bt2 == TYPE_ENUM)) )
+	if ( ((bt1 == zeek::TYPE_ENUM) ^ (bt2 == zeek::TYPE_ENUM)) )
 		{
 		ExprError("can't convert to/from enumerated type");
 		return false;
@@ -2058,20 +2058,20 @@ bool AssignExpr::TypeCheck(const IntrusivePtr<Attributes>& attrs)
 	if ( IsArithmetic(bt1) )
 		return TypeCheckArithmetics(bt1, bt2);
 
-	if ( bt1 == TYPE_TIME && IsArithmetic(bt2) && op2->IsZero() )
+	if ( bt1 == zeek::TYPE_TIME && IsArithmetic(bt2) && op2->IsZero() )
 		{ // Allow assignments to zero as a special case.
 		op2 = make_intrusive<ArithCoerceExpr>(std::move(op2), bt1);
 		return true;
 		}
 
-	if ( bt1 == TYPE_TABLE && bt2 == bt1 &&
+	if ( bt1 == zeek::TYPE_TABLE && bt2 == bt1 &&
 	     op2->GetType()->AsTableType()->IsUnspecifiedTable() )
 		{
 		op2 = make_intrusive<TableCoerceExpr>(std::move(op2), op1->GetType<TableType>());
 		return true;
 		}
 
-	if ( bt1 == TYPE_TABLE && op2->Tag() == EXPR_LIST )
+	if ( bt1 == zeek::TYPE_TABLE && op2->Tag() == EXPR_LIST )
 		{
 		std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attr_copy;
 
@@ -2100,11 +2100,11 @@ bool AssignExpr::TypeCheck(const IntrusivePtr<Attributes>& attrs)
 		return true;
 		}
 
-	if ( bt1 == TYPE_VECTOR )
+	if ( bt1 == zeek::TYPE_VECTOR )
 		{
 		if ( bt2 == bt1 && op2->GetType()->AsVectorType()->IsUnspecifiedVector() )
 			{
-			op2 = make_intrusive<VectorCoerceExpr>(std::move(op2), op1->GetType<VectorType>());
+			op2 = make_intrusive<VectorCoerceExpr>(std::move(op2), op1->GetType<zeek::VectorType>());
 			return true;
 			}
 
@@ -2117,8 +2117,8 @@ bool AssignExpr::TypeCheck(const IntrusivePtr<Attributes>& attrs)
 			}
 		}
 
-	if ( op1->GetType()->Tag() == TYPE_RECORD &&
-	     op2->GetType()->Tag() == TYPE_RECORD )
+	if ( op1->GetType()->Tag() == zeek::TYPE_RECORD &&
+	     op2->GetType()->Tag() == zeek::TYPE_RECORD )
 		{
 		if ( same_type(op1->GetType(), op2->GetType()) )
 			{
@@ -2144,7 +2144,7 @@ bool AssignExpr::TypeCheck(const IntrusivePtr<Attributes>& attrs)
 
 	if ( ! same_type(op1->GetType(), op2->GetType()) )
 		{
-		if ( bt1 == TYPE_TABLE && bt2 == TYPE_TABLE )
+		if ( bt1 == zeek::TYPE_TABLE && bt2 == zeek::TYPE_TABLE )
 			{
 			if ( op2->Tag() == EXPR_SET_CONSTRUCTOR )
 				{
@@ -2209,24 +2209,24 @@ bool AssignExpr::TypeCheckArithmetics(TypeTag bt1, TypeTag bt2)
 		return false;
 		}
 
-	if ( bt1 == TYPE_DOUBLE )
+	if ( bt1 == zeek::TYPE_DOUBLE )
 		{
-		PromoteOps(TYPE_DOUBLE);
+		PromoteOps(zeek::TYPE_DOUBLE);
 		return true;
 		}
 
-	if ( bt2 == TYPE_DOUBLE )
+	if ( bt2 == zeek::TYPE_DOUBLE )
 		{
 		Warn("dangerous assignment of double to integral");
 		op2 = make_intrusive<ArithCoerceExpr>(std::move(op2), bt1);
 		bt2 = op2->GetType()->Tag();
 		}
 
-	if ( bt1 == TYPE_INT )
-		PromoteOps(TYPE_INT);
+	if ( bt1 == zeek::TYPE_INT )
+		PromoteOps(zeek::TYPE_INT);
 	else
 		{
-		if ( bt2 == TYPE_INT )
+		if ( bt2 == zeek::TYPE_INT )
 			{
 			Warn("dangerous assignment of integer to count");
 			op2 = make_intrusive<ArithCoerceExpr>(std::move(op2), bt1);
@@ -2271,7 +2271,7 @@ IntrusivePtr<BroType> AssignExpr::InitType() const
 		}
 
 	const auto& tl = op1->GetType();
-	if ( tl->Tag() != TYPE_LIST )
+	if ( tl->Tag() != zeek::TYPE_LIST )
 		Internal("inconsistent list expr in AssignExpr::InitType");
 
 	return make_intrusive<TableType>(IntrusivePtr{NewRef{}, tl->AsTypeList()},
@@ -2287,7 +2287,7 @@ void AssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const
 
 	if ( IsRecordElement(&td) )
 		{
-		if ( t->Tag() != TYPE_RECORD )
+		if ( t->Tag() != zeek::TYPE_RECORD )
 			{
 			RuntimeError("not a record initializer");
 			return;
@@ -2342,7 +2342,7 @@ IntrusivePtr<Val> AssignExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) 
 
 	if ( IsRecordElement(&td) )
 		{
-		if ( t->Tag() != TYPE_RECORD )
+		if ( t->Tag() != zeek::TYPE_RECORD )
 			{
 			Error("not a record initializer", t);
 			return nullptr;
@@ -2357,7 +2357,7 @@ IntrusivePtr<Val> AssignExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) 
 			return nullptr;
 			}
 
-		if ( aggr->GetType()->Tag() != TYPE_RECORD )
+		if ( aggr->GetType()->Tag() != zeek::TYPE_RECORD )
 			Internal("bad aggregate in AssignExpr::InitVal");
 
 		RecordVal* aggr_r = aggr->AsRecordVal();
@@ -2373,13 +2373,13 @@ IntrusivePtr<Val> AssignExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) 
 
 	else if ( op1->Tag() == EXPR_LIST )
 		{
-		if ( t->Tag() != TYPE_TABLE )
+		if ( t->Tag() != zeek::TYPE_TABLE )
 			{
 			Error("not a table initialization", t);
 			return nullptr;
 			}
 
-		if ( aggr->GetType()->Tag() != TYPE_TABLE )
+		if ( aggr->GetType()->Tag() != zeek::TYPE_TABLE )
 			Internal("bad aggregate in AssignExpr::InitVal");
 
 		auto tv = cast_intrusive<TableVal>(std::move(aggr));
@@ -2483,20 +2483,20 @@ IndexExpr::IndexExpr(IntrusivePtr<Expr> arg_op1,
 	else if ( ! op1->GetType()->Yield() )
 		{
 		if ( IsString(op1->GetType()->Tag()) && match_type == MATCHES_INDEX_SCALAR )
-			SetType(base_type(TYPE_STRING));
+			SetType(base_type(zeek::TYPE_STRING));
 		else
 			// It's a set - so indexing it yields void.  We don't
 			// directly generate an error message, though, since this
 			// expression might be part of an add/delete statement,
 			// rather than yielding a value.
-			SetType(base_type(TYPE_VOID));
+			SetType(base_type(zeek::TYPE_VOID));
 		}
 
 	else if ( match_type == MATCHES_INDEX_SCALAR )
 		SetType(op1->GetType()->Yield());
 
 	else if ( match_type == MATCHES_INDEX_VECTOR )
-		SetType(make_intrusive<VectorType>(op1->GetType()->Yield()));
+		SetType(make_intrusive<zeek::VectorType>(op1->GetType()->Yield()));
 
 	else
 		ExprError("Unknown MatchesIndex() return value");
@@ -2516,7 +2516,7 @@ bool IndexExpr::CanDel() const
 	if ( IsError() )
 		return true;	// avoid cascading the error report
 
-	return op1->GetType()->Tag() == TYPE_TABLE;
+	return op1->GetType()->Tag() == zeek::TYPE_TABLE;
 	}
 
 void IndexExpr::Add(Frame* f)
@@ -2581,7 +2581,7 @@ IntrusivePtr<Val> IndexExpr::Eval(Frame* f) const
 		{
 		VectorVal* v_v1 = v1->AsVectorVal();
 		VectorVal* v_v2 = indv->AsVectorVal();
-		auto v_result = make_intrusive<VectorVal>(GetType<VectorType>());
+		auto v_result = make_intrusive<VectorVal>(GetType<zeek::VectorType>());
 
 		// Booleans select each element (or not).
 		if ( IsBool(v_v2->GetType()->Yield()->Tag()) )
@@ -2632,7 +2632,7 @@ IntrusivePtr<Val> IndexExpr::Fold(Val* v1, Val* v2) const
 	IntrusivePtr<Val> v;
 
 	switch ( v1->GetType()->Tag() ) {
-	case TYPE_VECTOR:
+	case zeek::TYPE_VECTOR:
 		{
 		VectorVal* vect = v1->AsVectorVal();
 		const ListVal* lv = v2->AsListVal();
@@ -2642,7 +2642,7 @@ IntrusivePtr<Val> IndexExpr::Fold(Val* v1, Val* v2) const
 		else
 			{
 			size_t len = vect->Size();
-			auto result = make_intrusive<VectorVal>(vect->GetType<VectorType>());
+			auto result = make_intrusive<VectorVal>(vect->GetType<zeek::VectorType>());
 
 			bro_int_t first = get_slice_index(lv->Idx(0)->CoerceToInt(), len);
 			bro_int_t last = get_slice_index(lv->Idx(1)->CoerceToInt(), len);
@@ -2661,11 +2661,11 @@ IntrusivePtr<Val> IndexExpr::Fold(Val* v1, Val* v2) const
 		}
 		break;
 
-	case TYPE_TABLE:
+	case zeek::TYPE_TABLE:
 		v = v1->AsTableVal()->FindOrDefault({NewRef{}, v2}); // Then, we jump into the TableVal here.
 		break;
 
-	case TYPE_STRING:
+	case zeek::TYPE_STRING:
 		{
 		const ListVal* lv = v2->AsListVal();
 		const BroString* s = v1->AsString();
@@ -2730,7 +2730,7 @@ void IndexExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 	auto v_extra = v;
 
 	switch ( v1->GetType()->Tag() ) {
-	case TYPE_VECTOR:
+	case zeek::TYPE_VECTOR:
 		{
 		const ListVal* lv = v2->AsListVal();
 		VectorVal* v1_vect = v1->AsVectorVal();
@@ -2761,7 +2761,7 @@ void IndexExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 				v->Describe(&d);
 				const auto& vt = v->GetType();
 				auto vtt = vt->Tag();
-				std::string tn = vtt == TYPE_RECORD ? vt->GetName() : type_name(vtt);
+				std::string tn = vtt == zeek::TYPE_RECORD ? vt->GetName() : type_name(vtt);
 				RuntimeErrorWithCallStack(fmt(
 				  "vector index assignment failed for invalid type '%s', value: %s",
 				  tn.data(), d.Description()));
@@ -2772,7 +2772,7 @@ void IndexExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 		break;
 		}
 
-	case TYPE_TABLE:
+	case zeek::TYPE_TABLE:
 		if ( ! v1->AsTableVal()->Assign(std::move(v2), std::move(v)) )
 			{
 			v = std::move(v_extra);
@@ -2783,7 +2783,7 @@ void IndexExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 				v->Describe(&d);
 				const auto& vt = v->GetType();
 				auto vtt = vt->Tag();
-				std::string tn = vtt == TYPE_RECORD ? vt->GetName() : type_name(vtt);
+				std::string tn = vtt == zeek::TYPE_RECORD ? vt->GetName() : type_name(vtt);
 				RuntimeErrorWithCallStack(fmt(
 				  "table index assignment failed for invalid type '%s', value: %s",
 				  tn.data(), d.Description()));
@@ -2793,7 +2793,7 @@ void IndexExpr::Assign(Frame* f, IntrusivePtr<Val> v)
 			}
 		break;
 
-	case TYPE_STRING:
+	case zeek::TYPE_STRING:
 		RuntimeErrorWithCallStack("assignment via string index accessor not allowed");
 		break;
 
@@ -2940,7 +2940,7 @@ HasFieldExpr::HasFieldExpr(IntrusivePtr<Expr> arg_op,
 		else if ( rt->IsFieldDeprecated(field) )
 			reporter->Warning("%s", rt->GetFieldDeprecationWarning(field, true).c_str());
 
-		SetType(base_type(TYPE_BOOL));
+		SetType(base_type(zeek::TYPE_BOOL));
 		}
 	}
 
@@ -3069,7 +3069,7 @@ TableConstructorExpr::TableConstructorExpr(IntrusivePtr<ListExpr> constructor_li
 	else
 		{
 		if ( op->AsListExpr()->Exprs().empty() )
-			SetType(make_intrusive<TableType>(make_intrusive<TypeList>(base_type(TYPE_ANY)), nullptr));
+			SetType(make_intrusive<TableType>(make_intrusive<TypeList>(base_type(zeek::TYPE_ANY)), nullptr));
 		else
 			{
 			SetType(init_type(op.get()));
@@ -3077,7 +3077,7 @@ TableConstructorExpr::TableConstructorExpr(IntrusivePtr<ListExpr> constructor_li
 			if ( ! type )
 				SetError();
 
-			else if ( type->Tag() != TYPE_TABLE ||
+			else if ( type->Tag() != zeek::TYPE_TABLE ||
 				  type->AsTableType()->IsSet() )
 				SetError("values in table(...) constructor do not specify a table");
 			}
@@ -3190,7 +3190,7 @@ SetConstructorExpr::SetConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
 	else
 		{
 		if ( op->AsListExpr()->Exprs().empty() )
-			SetType(make_intrusive<::SetType>(make_intrusive<TypeList>(base_type(TYPE_ANY)), nullptr));
+			SetType(make_intrusive<zeek::SetType>(make_intrusive<zeek::TypeList>(zeek::base_type(zeek::TYPE_ANY)), nullptr));
 		else
 			SetType(init_type(op.get()));
 		}
@@ -3198,7 +3198,7 @@ SetConstructorExpr::SetConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
 	if ( ! type )
 		SetError();
 
-	else if ( type->Tag() != TYPE_TABLE || ! type->AsTableType()->IsSet() )
+	else if ( type->Tag() != zeek::TYPE_TABLE || ! type->AsTableType()->IsSet() )
 		SetError("values in set(...) constructor do not specify a set");
 
 	if ( arg_attrs )
@@ -3296,7 +3296,7 @@ VectorConstructorExpr::VectorConstructorExpr(IntrusivePtr<ListExpr> constructor_
 
 	if ( arg_type )
 		{
-		if ( arg_type->Tag() != TYPE_VECTOR )
+		if ( arg_type->Tag() != zeek::TYPE_VECTOR )
 			{
 			Error("bad vector constructor type", arg_type.get());
 			SetError();
@@ -3312,12 +3312,12 @@ VectorConstructorExpr::VectorConstructorExpr(IntrusivePtr<ListExpr> constructor_
 			// vector().
 			// By default, assign VOID type here. A vector with
 			// void type set is seen as an unspecified vector.
-			SetType(make_intrusive<::VectorType>(base_type(TYPE_VOID)));
+			SetType(make_intrusive<zeek::VectorType>(zeek::base_type(zeek::TYPE_VOID)));
 			return;
 			}
 
 		if ( auto t = merge_type_list(op->AsListExpr()) )
-			SetType(make_intrusive<VectorType>(std::move(t)));
+			SetType(make_intrusive<zeek::VectorType>(std::move(t)));
 		else
 			{
 			SetError();
@@ -3335,7 +3335,7 @@ IntrusivePtr<Val> VectorConstructorExpr::Eval(Frame* f) const
 	if ( IsError() )
 		return nullptr;
 
-	auto vec = make_intrusive<VectorVal>(GetType<VectorType>());
+	auto vec = make_intrusive<VectorVal>(GetType<zeek::VectorType>());
 	const expr_list& exprs = op->AsListExpr()->Exprs();
 
 	loop_over_list(exprs, i)
@@ -3357,7 +3357,7 @@ IntrusivePtr<Val> VectorConstructorExpr::InitVal(const BroType* t, IntrusivePtr<
 	if ( IsError() )
 		return nullptr;
 
-	auto vt = GetType<VectorType>();
+	auto vt = GetType<zeek::VectorType>();
 	auto vec = aggr ?
 	        IntrusivePtr<VectorVal>{AdoptRef{}, aggr.release()->AsVectorVal()} :
 	        make_intrusive<VectorVal>(std::move(vt));
@@ -3443,17 +3443,17 @@ ArithCoerceExpr::ArithCoerceExpr(IntrusivePtr<Expr> arg_op, TypeTag t)
 
 	if ( IsVector(bt) )
 		{
-		SetType(make_intrusive<VectorType>(base_type(t)));
+		SetType(make_intrusive<zeek::VectorType>(zeek::base_type(t)));
 		vbt = op->GetType()->AsVectorType()->Yield()->Tag();
 		}
 	else
-		SetType(base_type(t));
+		SetType(zeek::base_type(t));
 
-	if ( (bt == TYPE_ENUM) != (t == TYPE_ENUM) )
+	if ( (bt == zeek::TYPE_ENUM) != (t == zeek::TYPE_ENUM) )
 		ExprError("can't convert to/from enumerated type");
 
 	else if ( ! IsArithmetic(t) && ! IsBool(t) &&
-		  t != TYPE_TIME && t != TYPE_INTERVAL )
+		  t != zeek::TYPE_TIME && t != zeek::TYPE_INTERVAL )
 		ExprError("bad coercion");
 
 	else if ( ! IsArithmetic(bt) && ! IsBool(bt) &&
@@ -3464,13 +3464,13 @@ ArithCoerceExpr::ArithCoerceExpr(IntrusivePtr<Expr> arg_op, TypeTag t)
 IntrusivePtr<Val> ArithCoerceExpr::FoldSingleVal(Val* v, InternalTypeTag t) const
 	{
 	switch ( t ) {
-	case TYPE_INTERNAL_DOUBLE:
+	case zeek::TYPE_INTERNAL_DOUBLE:
 		return make_intrusive<DoubleVal>(v->CoerceToDouble());
 
-	case TYPE_INTERNAL_INT:
+	case zeek::TYPE_INTERNAL_INT:
 		return val_mgr->Int(v->CoerceToInt());
 
-	case TYPE_INTERNAL_UNSIGNED:
+	case zeek::TYPE_INTERNAL_UNSIGNED:
 		return val_mgr->Count(v->CoerceToUnsigned());
 
 	default:
@@ -3488,7 +3488,7 @@ IntrusivePtr<Val> ArithCoerceExpr::Fold(Val* v) const
 		// Our result type might be vector, in which case this
 		// invocation is being done per-element rather than on
 		// the whole vector.  Correct the type tag if necessary.
-		if ( type->Tag() == TYPE_VECTOR )
+		if ( type->Tag() == zeek::TYPE_VECTOR )
 			t = GetType()->AsVectorType()->Yield()->InternalType();
 
 		return FoldSingleVal(v, t);
@@ -3497,7 +3497,7 @@ IntrusivePtr<Val> ArithCoerceExpr::Fold(Val* v) const
 	t = GetType()->AsVectorType()->Yield()->InternalType();
 
 	VectorVal* vv = v->AsVectorVal();
-	auto result = make_intrusive<VectorVal>(GetType<VectorType>());
+	auto result = make_intrusive<VectorVal>(GetType<zeek::VectorType>());
 
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		{
@@ -3520,10 +3520,10 @@ RecordCoerceExpr::RecordCoerceExpr(IntrusivePtr<Expr> arg_op,
 
 	SetType(std::move(r));
 
-	if ( GetType()->Tag() != TYPE_RECORD )
+	if ( GetType()->Tag() != zeek::TYPE_RECORD )
 		ExprError("coercion to non-record");
 
-	else if ( op->GetType()->Tag() != TYPE_RECORD )
+	else if ( op->GetType()->Tag() != zeek::TYPE_RECORD )
 		ExprError("coercion of non-record to record");
 
 	else
@@ -3561,10 +3561,10 @@ RecordCoerceExpr::RecordCoerceExpr(IntrusivePtr<Expr> arg_op,
 					if ( ! BothArithmetic(sup_tag, sub_tag) )
 						return false;
 
-					if ( sub_tag == TYPE_DOUBLE && IsIntegral(sup_tag) )
+					if ( sub_tag == zeek::TYPE_DOUBLE && IsIntegral(sup_tag) )
 						return false;
 
-					if ( sub_tag == TYPE_INT && sup_tag == TYPE_COUNT )
+					if ( sub_tag == zeek::TYPE_INT && sup_tag == zeek::TYPE_COUNT )
 						return false;
 
 					return true;
@@ -3572,10 +3572,10 @@ RecordCoerceExpr::RecordCoerceExpr(IntrusivePtr<Expr> arg_op,
 
 				auto is_record_promotable = [](BroType* sup, BroType* sub) -> bool
 					{
-					if ( sup->Tag() != TYPE_RECORD )
+					if ( sup->Tag() != zeek::TYPE_RECORD )
 						return false;
 
-					if ( sub->Tag() != TYPE_RECORD )
+					if ( sub->Tag() != zeek::TYPE_RECORD )
 						return false;
 
 					return record_promotion_compatible(sup->AsRecordType(),
@@ -3674,8 +3674,8 @@ IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 			const auto& rhs_type = rhs->GetType();
 			const auto& field_type = val_type->GetFieldType(i);
 
-			if ( rhs_type->Tag() == TYPE_RECORD &&
-			     field_type->Tag() == TYPE_RECORD &&
+			if ( rhs_type->Tag() == zeek::TYPE_RECORD &&
+			     field_type->Tag() == zeek::TYPE_RECORD &&
 			     ! same_type(rhs_type, field_type) )
 				{
 				if ( auto new_val = rhs->AsRecordVal()->CoerceTo(cast_intrusive<RecordType>(field_type)) )
@@ -3700,8 +3700,8 @@ IntrusivePtr<Val> RecordCoerceExpr::Fold(Val* v) const
 				const auto& def_type = def_val->GetType();
 				const auto& field_type = GetType()->AsRecordType()->GetFieldType(i);
 
-				if ( def_type->Tag() == TYPE_RECORD &&
-				     field_type->Tag() == TYPE_RECORD &&
+				if ( def_type->Tag() == zeek::TYPE_RECORD &&
+				     field_type->Tag() == zeek::TYPE_RECORD &&
 				     ! same_type(def_type, field_type) )
 					{
 					auto tmp = def_val->AsRecordVal()->CoerceTo(
@@ -3730,10 +3730,10 @@ TableCoerceExpr::TableCoerceExpr(IntrusivePtr<Expr> arg_op,
 
 	SetType(std::move(r));
 
-	if ( GetType()->Tag() != TYPE_TABLE )
+	if ( GetType()->Tag() != zeek::TYPE_TABLE )
 		ExprError("coercion to non-table");
 
-	else if ( op->GetType()->Tag() != TYPE_TABLE )
+	else if ( op->GetType()->Tag() != zeek::TYPE_TABLE )
 		ExprError("coercion of non-table/set to table/set");
 	}
 
@@ -3753,7 +3753,7 @@ IntrusivePtr<Val> TableCoerceExpr::Fold(Val* v) const
 	}
 
 VectorCoerceExpr::VectorCoerceExpr(IntrusivePtr<Expr> arg_op,
-                                   IntrusivePtr<VectorType> v)
+                                   IntrusivePtr<zeek::VectorType> v)
 	: UnaryExpr(EXPR_VECTOR_COERCE, std::move(arg_op))
 	{
 	if ( IsError() )
@@ -3761,10 +3761,10 @@ VectorCoerceExpr::VectorCoerceExpr(IntrusivePtr<Expr> arg_op,
 
 	SetType(std::move(v));
 
-	if ( GetType()->Tag() != TYPE_VECTOR )
+	if ( GetType()->Tag() != zeek::TYPE_VECTOR )
 		ExprError("coercion to non-vector");
 
-	else if ( op->GetType()->Tag() != TYPE_VECTOR )
+	else if ( op->GetType()->Tag() != zeek::TYPE_VECTOR )
 		ExprError("coercion of non-vector to vector");
 	}
 
@@ -3780,7 +3780,7 @@ IntrusivePtr<Val> VectorCoerceExpr::Fold(Val* v) const
 	if ( vv->Size() > 0 )
 		RuntimeErrorWithCallStack("coercion of non-empty vector");
 
-	return make_intrusive<VectorVal>(GetType<VectorType>());
+	return make_intrusive<VectorVal>(GetType<zeek::VectorType>());
 	}
 
 ScheduleTimer::ScheduleTimer(const EventHandlerPtr& arg_event, zeek::Args arg_args,
@@ -3810,10 +3810,10 @@ ScheduleExpr::ScheduleExpr(IntrusivePtr<Expr> arg_when,
 
 	TypeTag bt = when->GetType()->Tag();
 
-	if ( bt != TYPE_TIME && bt != TYPE_INTERVAL )
+	if ( bt != zeek::TYPE_TIME && bt != zeek::TYPE_INTERVAL )
 		ExprError("schedule expression requires a time or time interval");
 	else
-		SetType(base_type(TYPE_TIMER));
+		SetType(zeek::base_type(zeek::TYPE_TIMER));
 	}
 
 bool ScheduleExpr::IsPure() const
@@ -3833,7 +3833,7 @@ IntrusivePtr<Val> ScheduleExpr::Eval(Frame* f) const
 
 	double dt = when_val->InternalDouble();
 
-	if ( when->GetType()->Tag() == TYPE_INTERVAL )
+	if ( when->GetType()->Tag() == zeek::TYPE_INTERVAL )
 		dt += network_time;
 
 	auto args = eval_list(f, event->Args());
@@ -3885,20 +3885,20 @@ InExpr::InExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 	if ( IsError() )
 		return;
 
-	if ( op1->GetType()->Tag() == TYPE_PATTERN )
+	if ( op1->GetType()->Tag() == zeek::TYPE_PATTERN )
 		{
-		if ( op2->GetType()->Tag() != TYPE_STRING )
+		if ( op2->GetType()->Tag() != zeek::TYPE_STRING )
 			{
 			op2->GetType()->Error("pattern requires string index", op1.get());
 			SetError();
 			}
 		else
-			SetType(base_type(TYPE_BOOL));
+			SetType(zeek::base_type(zeek::TYPE_BOOL));
 		}
 
-	else if ( op1->GetType()->Tag() == TYPE_RECORD )
+	else if ( op1->GetType()->Tag() == zeek::TYPE_RECORD )
 		{
-		if ( op2->GetType()->Tag() != TYPE_TABLE )
+		if ( op2->GetType()->Tag() != zeek::TYPE_TABLE )
 			{
 			op2->GetType()->Error("table/set required");
 			SetError();
@@ -3915,31 +3915,31 @@ InExpr::InExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 				SetError();
 				}
 			else
-				SetType(base_type(TYPE_BOOL));
+				SetType(zeek::base_type(zeek::TYPE_BOOL));
 			}
 		}
 
-	else if ( op1->GetType()->Tag() == TYPE_STRING &&
-		  op2->GetType()->Tag() == TYPE_STRING )
-		SetType(base_type(TYPE_BOOL));
+	else if ( op1->GetType()->Tag() == zeek::TYPE_STRING &&
+		  op2->GetType()->Tag() == zeek::TYPE_STRING )
+		SetType(zeek::base_type(zeek::TYPE_BOOL));
 
 	else
 		{
 		// Check for:	<addr> in <subnet>
 		//		<addr> in set[subnet]
 		//		<addr> in table[subnet] of ...
-		if ( op1->GetType()->Tag() == TYPE_ADDR )
+		if ( op1->GetType()->Tag() == zeek::TYPE_ADDR )
 			{
-			if ( op2->GetType()->Tag() == TYPE_SUBNET )
+			if ( op2->GetType()->Tag() == zeek::TYPE_SUBNET )
 				{
-				SetType(base_type(TYPE_BOOL));
+				SetType(zeek::base_type(zeek::TYPE_BOOL));
 				return;
 				}
 
-			if ( op2->GetType()->Tag() == TYPE_TABLE &&
+			if ( op2->GetType()->Tag() == zeek::TYPE_TABLE &&
 			     op2->GetType()->AsTableType()->IsSubNetIndex() )
 				{
-				SetType(base_type(TYPE_BOOL));
+				SetType(zeek::base_type(zeek::TYPE_BOOL));
 				return;
 				}
 			}
@@ -3952,20 +3952,20 @@ InExpr::InExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 		if ( ! op2->GetType()->MatchesIndex(lop1) )
 			SetError("not an index type");
 		else
-			SetType(base_type(TYPE_BOOL));
+			SetType(zeek::base_type(zeek::TYPE_BOOL));
 		}
 	}
 
 IntrusivePtr<Val> InExpr::Fold(Val* v1, Val* v2) const
 	{
-	if ( v1->GetType()->Tag() == TYPE_PATTERN )
+	if ( v1->GetType()->Tag() == zeek::TYPE_PATTERN )
 		{
 		RE_Matcher* re = v1->AsPattern();
 		const BroString* s = v2->AsString();
 		return val_mgr->Bool(re->MatchAnywhere(s) != 0);
 		}
 
-	if ( v2->GetType()->Tag() == TYPE_STRING )
+	if ( v2->GetType()->Tag() == zeek::TYPE_STRING )
 		{
 		const BroString* s1 = v1->AsString();
 		const BroString* s2 = v2->AsString();
@@ -3976,8 +3976,8 @@ IntrusivePtr<Val> InExpr::Fold(Val* v1, Val* v2) const
 		return val_mgr->Bool(res);
 		}
 
-	if ( v1->GetType()->Tag() == TYPE_ADDR &&
-	     v2->GetType()->Tag() == TYPE_SUBNET )
+	if ( v1->GetType()->Tag() == zeek::TYPE_ADDR &&
+	     v2->GetType()->Tag() == zeek::TYPE_SUBNET )
 		return val_mgr->Bool(v2->AsSubNetVal()->Contains(v1->AsAddr()));
 
 	bool res;
@@ -4381,7 +4381,7 @@ bool ListExpr::IsPure() const
 
 IntrusivePtr<Val> ListExpr::Eval(Frame* f) const
 	{
-	auto v = make_intrusive<ListVal>(TYPE_ANY);
+	auto v = make_intrusive<ListVal>(zeek::TYPE_ANY);
 
 	for ( const auto& expr : exprs )
 		{
@@ -4437,7 +4437,7 @@ IntrusivePtr<BroType> ListExpr::InitType() const
 			const auto& ti = e->GetType();
 
 			// Collapse any embedded sets or lists.
-			if ( ti->IsSet() || ti->Tag() == TYPE_LIST )
+			if ( ti->IsSet() || ti->Tag() == zeek::TYPE_LIST )
 				{
 				TypeList* til = ti->IsSet() ?
 					ti->AsSetType()->GetIndices().get() :
@@ -4470,7 +4470,7 @@ IntrusivePtr<Val> ListExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) co
 	// in which case we should expand as a ListVal.
 	if ( ! aggr && type->AsTypeList()->AllMatch(t, true) )
 		{
-		auto v = make_intrusive<ListVal>(TYPE_ANY);
+		auto v = make_intrusive<ListVal>(zeek::TYPE_ANY);
 		const auto& tl = type->AsTypeList()->Types();
 
 		if ( exprs.length() != static_cast<int>(tl.size()) )
@@ -4491,7 +4491,7 @@ IntrusivePtr<Val> ListExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) co
 		return v;
 		}
 
-	if ( t->Tag() == TYPE_LIST )
+	if ( t->Tag() == zeek::TYPE_LIST )
 		{
 		if ( aggr )
 			{
@@ -4507,7 +4507,7 @@ IntrusivePtr<Val> ListExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) co
 			return nullptr;
 			}
 
-		auto v = make_intrusive<ListVal>(TYPE_ANY);
+		auto v = make_intrusive<ListVal>(zeek::TYPE_ANY);
 
 		loop_over_list(exprs, i)
 			{
@@ -4522,8 +4522,8 @@ IntrusivePtr<Val> ListExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) co
 		return v;
 		}
 
-	if ( t->Tag() != TYPE_RECORD && t->Tag() != TYPE_TABLE &&
-	     t->Tag() != TYPE_VECTOR )
+	if ( t->Tag() != zeek::TYPE_RECORD && t->Tag() != zeek::TYPE_TABLE &&
+	     t->Tag() != zeek::TYPE_VECTOR )
 		{
 		if ( exprs.length() == 1 )
 			// Allow "global x:int = { 5 }"
@@ -4541,7 +4541,7 @@ IntrusivePtr<Val> ListExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) co
 	if ( t->IsSet() )
 		return AddSetInit(t, std::move(aggr));
 
-	if ( t->Tag() == TYPE_VECTOR )
+	if ( t->Tag() == zeek::TYPE_VECTOR )
 		{
 		// v: vector = [10, 20, 30];
 		VectorVal* vec = aggr->AsVectorVal();
@@ -4579,7 +4579,7 @@ IntrusivePtr<Val> ListExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) co
 			}
 		else
 			{
-			if ( t->Tag() == TYPE_RECORD )
+			if ( t->Tag() == zeek::TYPE_RECORD )
 				{
 				e->Error("bad record initializer", t);
 				return nullptr;
@@ -4603,7 +4603,7 @@ IntrusivePtr<Val> ListExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) co
 
 IntrusivePtr<Val> ListExpr::AddSetInit(const BroType* t, IntrusivePtr<Val> aggr) const
 	{
-	if ( aggr->GetType()->Tag() != TYPE_TABLE )
+	if ( aggr->GetType()->Tag() != zeek::TYPE_TABLE )
 		Internal("bad aggregate in ListExpr::InitVal");
 
 	TableVal* tv = aggr->AsTableVal();
@@ -4617,7 +4617,7 @@ IntrusivePtr<Val> ListExpr::AddSetInit(const BroType* t, IntrusivePtr<Val> aggr)
 		if ( expr->GetType()->IsSet() )
 			// A set to flatten.
 			element = expr->Eval(nullptr);
-		else if ( expr->GetType()->Tag() == TYPE_LIST )
+		else if ( expr->GetType()->Tag() == zeek::TYPE_LIST )
 			element = expr->InitVal(it, nullptr);
 		else
 			element = expr->InitVal(it->Types()[0].get(), nullptr);
@@ -4639,7 +4639,7 @@ IntrusivePtr<Val> ListExpr::AddSetInit(const BroType* t, IntrusivePtr<Val> aggr)
 			continue;
 			}
 
-		if ( expr->GetType()->Tag() == TYPE_LIST )
+		if ( expr->GetType()->Tag() == zeek::TYPE_LIST )
 			element = check_and_promote(std::move(element), it, true);
 		else
 			element = check_and_promote(std::move(element), it->Types()[0].get(), true);
@@ -4716,7 +4716,7 @@ RecordAssignExpr::RecordAssignExpr(const IntrusivePtr<Expr>& record,
 
 	for ( const auto& init : inits )
 		{
-		if ( init->GetType()->Tag() == TYPE_RECORD )
+		if ( init->GetType()->Tag() == zeek::TYPE_RECORD )
 			{
 			RecordType* t = init->GetType()->AsRecordType();
 
@@ -4815,7 +4815,7 @@ void CastExpr::ExprDescribe(ODesc* d) const
 IsExpr::IsExpr(IntrusivePtr<Expr> arg_op, IntrusivePtr<BroType> arg_t)
 	: UnaryExpr(EXPR_IS, std::move(arg_op)), t(std::move(arg_t))
 	{
-	SetType(base_type(TYPE_BOOL));
+	SetType(zeek::base_type(zeek::TYPE_BOOL));
 	}
 
 IntrusivePtr<Val> IsExpr::Fold(Val* v) const
@@ -4836,8 +4836,8 @@ void IsExpr::ExprDescribe(ODesc* d) const
 IntrusivePtr<Expr> get_assign_expr(IntrusivePtr<Expr> op1,
                                    IntrusivePtr<Expr> op2, bool is_init)
 	{
-	if ( op1->GetType()->Tag() == TYPE_RECORD &&
-	     op2->GetType()->Tag() == TYPE_LIST )
+	if ( op1->GetType()->Tag() == zeek::TYPE_RECORD &&
+	     op2->GetType()->Tag() == zeek::TYPE_LIST )
 		return make_intrusive<RecordAssignExpr>(std::move(op1), std::move(op2),
 		                                        is_init);
 
@@ -4856,7 +4856,7 @@ IntrusivePtr<Expr> check_and_promote_expr(Expr* const e, BroType* t)
 	TypeTag e_tag = et->Tag();
 	TypeTag t_tag = t->Tag();
 
-	if ( t->Tag() == TYPE_ANY )
+	if ( t->Tag() == zeek::TYPE_ANY )
 		return {NewRef{}, e};
 
 	if ( EitherArithmetic(t_tag, e_tag) )
@@ -4880,7 +4880,7 @@ IntrusivePtr<Expr> check_and_promote_expr(Expr* const e, BroType* t)
 		return make_intrusive<ArithCoerceExpr>(IntrusivePtr{NewRef{}, e}, t_tag);
 		}
 
-	if ( t->Tag() == TYPE_RECORD && et->Tag() == TYPE_RECORD )
+	if ( t->Tag() == zeek::TYPE_RECORD && et->Tag() == zeek::TYPE_RECORD )
 		{
 		RecordType* t_r = t->AsRecordType();
 		RecordType* et_r = et->AsRecordType();
@@ -4910,12 +4910,12 @@ IntrusivePtr<Expr> check_and_promote_expr(Expr* const e, BroType* t)
 
 	if ( ! same_type(t, et) )
 		{
-		if ( t->Tag() == TYPE_TABLE && et->Tag() == TYPE_TABLE &&
+		if ( t->Tag() == zeek::TYPE_TABLE && et->Tag() == zeek::TYPE_TABLE &&
 			  et->AsTableType()->IsUnspecifiedTable() )
 			return make_intrusive<TableCoerceExpr>(IntrusivePtr{NewRef{}, e},
 			                                       IntrusivePtr{NewRef{}, t->AsTableType()});
 
-		if ( t->Tag() == TYPE_VECTOR && et->Tag() == TYPE_VECTOR &&
+		if ( t->Tag() == zeek::TYPE_VECTOR && et->Tag() == zeek::TYPE_VECTOR &&
 		     et->AsVectorType()->IsUnspecifiedVector() )
 			return make_intrusive<VectorCoerceExpr>(IntrusivePtr{NewRef{}, e},
 			                                        IntrusivePtr{NewRef{}, t->AsVectorType()});
@@ -4932,7 +4932,7 @@ bool check_and_promote_exprs(ListExpr* const elements, TypeList* types)
 	expr_list& el = elements->Exprs();
 	const auto& tl = types->Types();
 
-	if ( tl.size() == 1 && tl[0]->Tag() == TYPE_ANY )
+	if ( tl.size() == 1 && tl[0]->Tag() == zeek::TYPE_ANY )
 		return true;
 
 	if ( el.length() != static_cast<int>(tl.size()) )
@@ -4968,7 +4968,7 @@ bool check_and_promote_args(ListExpr* const args, RecordType* types)
 	int ntypes = types->NumFields();
 
 	// give variadic BIFs automatic pass
-	if ( ntypes == 1 && types->FieldDecl(0)->type->Tag() == TYPE_ANY )
+	if ( ntypes == 1 && types->FieldDecl(0)->type->Tag() == zeek::TYPE_ANY )
 		return true;
 
 	if ( el.length() < ntypes )
@@ -5010,7 +5010,7 @@ bool check_and_promote_exprs_to_type(ListExpr* const elements, BroType* type)
 	{
 	expr_list& el = elements->Exprs();
 
-	if ( type->Tag() == TYPE_ANY )
+	if ( type->Tag() == zeek::TYPE_ANY )
 		return true;
 
 	loop_over_list(el, i)

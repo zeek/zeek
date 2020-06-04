@@ -121,8 +121,12 @@ public:
 	static inline const IntrusivePtr<Val> nil;
 
 	[[deprecated("Remove in v4.1.  Use IntervalVal(), TimeVal(), or DoubleVal() constructors.")]]
-	Val(double d, TypeTag t)
-		: val(d), type(base_type(t))
+	Val(double d, zeek::TypeTag t)
+		: val(d), type(zeek::base_type(t))
+		{}
+
+	[[deprecated("Remove in v4.1. Use version that takes zeek::TypeTag instead.")]]
+	Val(double d, ::TypeTag t) : Val(d, static_cast<zeek::TypeTag>(t))
 		{}
 
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
@@ -136,16 +140,16 @@ public:
 	explicit Val(IntrusivePtr<BroFile> f);
 
 	// Extra arg to differentiate from protected version.
-	Val(IntrusivePtr<BroType> t, bool type_type)
-		: type(make_intrusive<TypeType>(std::move(t)))
+	Val(IntrusivePtr<zeek::BroType> t, bool type_type)
+		: type(make_intrusive<zeek::TypeType>(std::move(t)))
 		{}
 
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
-	Val(BroType* t, bool type_type) : Val({NewRef{}, t}, type_type)
+	Val(zeek::BroType* t, bool type_type) : Val({NewRef{}, t}, type_type)
 		{}
 
 	Val()
-		: val(bro_int_t(0)), type(base_type(TYPE_ERROR))
+		: val(bro_int_t(0)), type(zeek::base_type(zeek::TYPE_ERROR))
 		{}
 
 	~Val() override;
@@ -181,11 +185,11 @@ public:
 	virtual bool RemoveFrom(Val* v) const;
 
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
-	BroType* Type()			{ return type.get(); }
+	zeek::BroType* Type()			{ return type.get(); }
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
-	const BroType* Type() const	{ return type.get(); }
+	const zeek::BroType* Type() const	{ return type.get(); }
 
-	const IntrusivePtr<BroType>& GetType() const
+	const IntrusivePtr<zeek::BroType>& GetType() const
 		{ return type; }
 
 	template <class T>
@@ -195,7 +199,7 @@ public:
 #define CONST_ACCESSOR(tag, ctype, accessor, name) \
 	const ctype name() const \
 		{ \
-		CHECK_TAG(type->Tag(), tag, "Val::CONST_ACCESSOR", type_name) \
+		CHECK_TAG(type->Tag(), tag, "Val::CONST_ACCESSOR", zeek::type_name) \
 		return val.accessor; \
 		}
 
@@ -203,72 +207,72 @@ public:
 #define CONST_ACCESSOR2(tag, ctype, accessor, name) \
 	ctype name() const \
 		{ \
-		CHECK_TAG(type->Tag(), tag, "Val::CONST_ACCESSOR", type_name) \
+		CHECK_TAG(type->Tag(), tag, "Val::CONST_ACCESSOR", zeek::type_name) \
 		return val.accessor; \
 		}
 
-	CONST_ACCESSOR2(TYPE_BOOL, bool, int_val, AsBool)
-	CONST_ACCESSOR2(TYPE_INT, bro_int_t, int_val, AsInt)
-	CONST_ACCESSOR2(TYPE_COUNT, bro_uint_t, uint_val, AsCount)
-	CONST_ACCESSOR2(TYPE_COUNTER, bro_uint_t, uint_val, AsCounter)
-	CONST_ACCESSOR2(TYPE_DOUBLE, double, double_val, AsDouble)
-	CONST_ACCESSOR2(TYPE_TIME, double, double_val, AsTime)
-	CONST_ACCESSOR2(TYPE_INTERVAL, double, double_val, AsInterval)
-	CONST_ACCESSOR2(TYPE_ENUM, int, int_val, AsEnum)
-	CONST_ACCESSOR(TYPE_STRING, BroString*, string_val, AsString)
-	CONST_ACCESSOR(TYPE_FUNC, Func*, func_val, AsFunc)
-	CONST_ACCESSOR(TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsTable)
-	CONST_ACCESSOR(TYPE_RECORD, std::vector<IntrusivePtr<Val>>*, record_val, AsRecord)
-	CONST_ACCESSOR(TYPE_FILE, BroFile*, file_val, AsFile)
-	CONST_ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
-	CONST_ACCESSOR(TYPE_VECTOR, std::vector<IntrusivePtr<Val>>*, vector_val, AsVector)
+	CONST_ACCESSOR2(zeek::TYPE_BOOL, bool, int_val, AsBool)
+	CONST_ACCESSOR2(zeek::TYPE_INT, bro_int_t, int_val, AsInt)
+	CONST_ACCESSOR2(zeek::TYPE_COUNT, bro_uint_t, uint_val, AsCount)
+	CONST_ACCESSOR2(zeek::TYPE_COUNTER, bro_uint_t, uint_val, AsCounter)
+	CONST_ACCESSOR2(zeek::TYPE_DOUBLE, double, double_val, AsDouble)
+	CONST_ACCESSOR2(zeek::TYPE_TIME, double, double_val, AsTime)
+	CONST_ACCESSOR2(zeek::TYPE_INTERVAL, double, double_val, AsInterval)
+	CONST_ACCESSOR2(zeek::TYPE_ENUM, int, int_val, AsEnum)
+	CONST_ACCESSOR(zeek::TYPE_STRING, BroString*, string_val, AsString)
+	CONST_ACCESSOR(zeek::TYPE_FUNC, Func*, func_val, AsFunc)
+	CONST_ACCESSOR(zeek::TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsTable)
+	CONST_ACCESSOR(zeek::TYPE_RECORD, std::vector<IntrusivePtr<Val>>*, record_val, AsRecord)
+	CONST_ACCESSOR(zeek::TYPE_FILE, BroFile*, file_val, AsFile)
+	CONST_ACCESSOR(zeek::TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
+	CONST_ACCESSOR(zeek::TYPE_VECTOR, std::vector<IntrusivePtr<Val>>*, vector_val, AsVector)
 
 	const IPPrefix& AsSubNet() const
 		{
-		CHECK_TAG(type->Tag(), TYPE_SUBNET, "Val::SubNet", type_name)
+		CHECK_TAG(type->Tag(), zeek::TYPE_SUBNET, "Val::SubNet", zeek::type_name)
 		return *val.subnet_val;
 		}
 
-	BroType* AsType() const
+	zeek::BroType* AsType() const
 		{
-		CHECK_TAG(type->Tag(), TYPE_TYPE, "Val::Type", type_name)
+		CHECK_TAG(type->Tag(), zeek::TYPE_TYPE, "Val::Type", zeek::type_name)
 		return type.get();
 		}
 
 	const IPAddr& AsAddr() const
 		{
-		if ( type->Tag() != TYPE_ADDR )
-			BadTag("Val::AsAddr", type_name(type->Tag()));
+		if ( type->Tag() != zeek::TYPE_ADDR )
+			BadTag("Val::AsAddr", zeek::type_name(type->Tag()));
 		return *val.addr_val;
 		}
 
 #define ACCESSOR(tag, ctype, accessor, name) \
 	ctype name() \
 		{ \
-		CHECK_TAG(type->Tag(), tag, "Val::ACCESSOR", type_name) \
+		CHECK_TAG(type->Tag(), tag, "Val::ACCESSOR", zeek::type_name) \
 		return val.accessor; \
 		}
 
 	// Accessors for mutable values are called AsNonConst* and
 	// are protected to avoid external state changes.
-	// ACCESSOR(TYPE_STRING, BroString*, string_val, AsString)
-	ACCESSOR(TYPE_FUNC, Func*, func_val, AsFunc)
-	ACCESSOR(TYPE_FILE, BroFile*, file_val, AsFile)
-	ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
-	ACCESSOR(TYPE_VECTOR, std::vector<IntrusivePtr<Val>>*, vector_val, AsVector)
+	// ACCESSOR(zeek::TYPE_STRING, BroString*, string_val, AsString)
+	ACCESSOR(zeek::TYPE_FUNC, Func*, func_val, AsFunc)
+	ACCESSOR(zeek::TYPE_FILE, BroFile*, file_val, AsFile)
+	ACCESSOR(zeek::TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
+	ACCESSOR(zeek::TYPE_VECTOR, std::vector<IntrusivePtr<Val>>*, vector_val, AsVector)
 
 	IntrusivePtr<Func> AsFuncPtr() const;
 
 	const IPPrefix& AsSubNet()
 		{
-		CHECK_TAG(type->Tag(), TYPE_SUBNET, "Val::SubNet", type_name)
+		CHECK_TAG(type->Tag(), zeek::TYPE_SUBNET, "Val::SubNet", zeek::type_name)
 		return *val.subnet_val;
 		}
 
 	const IPAddr& AsAddr()
 		{
-		if ( type->Tag() != TYPE_ADDR )
-			BadTag("Val::AsAddr", type_name(type->Tag()));
+		if ( type->Tag() != zeek::TYPE_ADDR )
+			BadTag("Val::AsAddr", zeek::type_name(type->Tag()));
 		return *val.addr_val;
 		}
 
@@ -280,39 +284,39 @@ public:
 #define CONVERTER(tag, ctype, name) \
 	ctype name() \
 		{ \
-		CHECK_TAG(type->Tag(), tag, "Val::CONVERTER", type_name) \
+		CHECK_TAG(type->Tag(), tag, "Val::CONVERTER", zeek::type_name) \
 		return (ctype)(this); \
 		}
 
-	CONVERTER(TYPE_PATTERN, PatternVal*, AsPatternVal)
-	CONVERTER(TYPE_PORT, PortVal*, AsPortVal)
-	CONVERTER(TYPE_SUBNET, SubNetVal*, AsSubNetVal)
-	CONVERTER(TYPE_ADDR, AddrVal*, AsAddrVal)
-	CONVERTER(TYPE_TABLE, TableVal*, AsTableVal)
-	CONVERTER(TYPE_RECORD, RecordVal*, AsRecordVal)
-	CONVERTER(TYPE_LIST, ListVal*, AsListVal)
-	CONVERTER(TYPE_STRING, StringVal*, AsStringVal)
-	CONVERTER(TYPE_VECTOR, VectorVal*, AsVectorVal)
-	CONVERTER(TYPE_ENUM, EnumVal*, AsEnumVal)
-	CONVERTER(TYPE_OPAQUE, OpaqueVal*, AsOpaqueVal)
+	CONVERTER(zeek::TYPE_PATTERN, PatternVal*, AsPatternVal)
+	CONVERTER(zeek::TYPE_PORT, PortVal*, AsPortVal)
+	CONVERTER(zeek::TYPE_SUBNET, SubNetVal*, AsSubNetVal)
+	CONVERTER(zeek::TYPE_ADDR, AddrVal*, AsAddrVal)
+	CONVERTER(zeek::TYPE_TABLE, TableVal*, AsTableVal)
+	CONVERTER(zeek::TYPE_RECORD, RecordVal*, AsRecordVal)
+	CONVERTER(zeek::TYPE_LIST, ListVal*, AsListVal)
+	CONVERTER(zeek::TYPE_STRING, StringVal*, AsStringVal)
+	CONVERTER(zeek::TYPE_VECTOR, VectorVal*, AsVectorVal)
+	CONVERTER(zeek::TYPE_ENUM, EnumVal*, AsEnumVal)
+	CONVERTER(zeek::TYPE_OPAQUE, OpaqueVal*, AsOpaqueVal)
 
 #define CONST_CONVERTER(tag, ctype, name) \
 	const ctype name() const \
 		{ \
-		CHECK_TAG(type->Tag(), tag, "Val::CONVERTER", type_name) \
+		CHECK_TAG(type->Tag(), tag, "Val::CONVERTER", zeek::type_name) \
 		return (const ctype)(this); \
 		}
 
-	CONST_CONVERTER(TYPE_PATTERN, PatternVal*, AsPatternVal)
-	CONST_CONVERTER(TYPE_PORT, PortVal*, AsPortVal)
-	CONST_CONVERTER(TYPE_SUBNET, SubNetVal*, AsSubNetVal)
-	CONST_CONVERTER(TYPE_ADDR, AddrVal*, AsAddrVal)
-	CONST_CONVERTER(TYPE_TABLE, TableVal*, AsTableVal)
-	CONST_CONVERTER(TYPE_RECORD, RecordVal*, AsRecordVal)
-	CONST_CONVERTER(TYPE_LIST, ListVal*, AsListVal)
-	CONST_CONVERTER(TYPE_STRING, StringVal*, AsStringVal)
-	CONST_CONVERTER(TYPE_VECTOR, VectorVal*, AsVectorVal)
-	CONST_CONVERTER(TYPE_OPAQUE, OpaqueVal*, AsOpaqueVal)
+	CONST_CONVERTER(zeek::TYPE_PATTERN, PatternVal*, AsPatternVal)
+	CONST_CONVERTER(zeek::TYPE_PORT, PortVal*, AsPortVal)
+	CONST_CONVERTER(zeek::TYPE_SUBNET, SubNetVal*, AsSubNetVal)
+	CONST_CONVERTER(zeek::TYPE_ADDR, AddrVal*, AsAddrVal)
+	CONST_CONVERTER(zeek::TYPE_TABLE, TableVal*, AsTableVal)
+	CONST_CONVERTER(zeek::TYPE_RECORD, RecordVal*, AsRecordVal)
+	CONST_CONVERTER(zeek::TYPE_LIST, ListVal*, AsListVal)
+	CONST_CONVERTER(zeek::TYPE_STRING, StringVal*, AsStringVal)
+	CONST_CONVERTER(zeek::TYPE_VECTOR, VectorVal*, AsVectorVal)
+	CONST_CONVERTER(zeek::TYPE_OPAQUE, OpaqueVal*, AsOpaqueVal)
 
 	void Describe(ODesc* d) const override;
 	virtual void DescribeReST(ODesc* d) const;
@@ -329,7 +333,7 @@ public:
 	void SetID(zeek::detail::ID* id);
 #endif
 
-	static bool WouldOverflow(const BroType* from_type, const BroType* to_type, const Val* val);
+	static bool WouldOverflow(const zeek::BroType* from_type, const zeek::BroType* to_type, const Val* val);
 
 	IntrusivePtr<TableVal> GetRecordFields();
 
@@ -337,7 +341,7 @@ public:
 
 protected:
 
-	friend class EnumType;
+	friend class zeek::EnumType;
 	friend class ListVal;
 	friend class RecordVal;
 	friend class VectorVal;
@@ -352,21 +356,21 @@ protected:
 	static IntrusivePtr<Val> MakeCount(bro_uint_t u);
 
 	template<typename V>
-	Val(V&& v, TypeTag t) noexcept
-		: val(std::forward<V>(v)), type(base_type(t))
+	Val(V&& v, zeek::TypeTag t) noexcept
+		: val(std::forward<V>(v)), type(zeek::base_type(t))
 		{}
 
 	template<typename V>
-	Val(V&& v, IntrusivePtr<BroType> t) noexcept
+	Val(V&& v, IntrusivePtr<zeek::BroType> t) noexcept
 		: val(std::forward<V>(v)), type(std::move(t))
 		{}
 
-	explicit Val(IntrusivePtr<BroType> t) noexcept
+	explicit Val(IntrusivePtr<zeek::BroType> t) noexcept
 		: type(std::move(t))
 		{}
 
-	ACCESSOR(TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsNonConstTable)
-	ACCESSOR(TYPE_RECORD, std::vector<IntrusivePtr<Val>>*, record_val, AsNonConstRecord)
+	ACCESSOR(zeek::TYPE_TABLE, PDict<TableEntryVal>*, table_val, AsNonConstTable)
+	ACCESSOR(zeek::TYPE_RECORD, std::vector<IntrusivePtr<Val>>*, record_val, AsNonConstRecord)
 
 	// For internal use by the Val::Clone() methods.
 	struct CloneState {
@@ -382,7 +386,7 @@ protected:
 	virtual IntrusivePtr<Val> DoClone(CloneState* state);
 
 	BroValUnion val;
-	IntrusivePtr<BroType> type;
+	IntrusivePtr<zeek::BroType> type;
 
 #ifdef DEBUG
 	// For debugging, we keep the name of the ID to which a Val is bound.
@@ -491,7 +495,7 @@ extern ValManager* val_mgr;
 class IntervalVal final : public Val {
 public:
 	IntervalVal(double quantity, double units = Seconds)
-		: Val(quantity * units, base_type(TYPE_INTERVAL))
+		: Val(quantity * units, zeek::base_type(zeek::TYPE_INTERVAL))
 		{}
 
 protected:
@@ -501,14 +505,14 @@ protected:
 class TimeVal final : public Val {
 public:
 	TimeVal(double t)
-		: Val(t, base_type(TYPE_TIME))
+		: Val(t, zeek::base_type(zeek::TYPE_TIME))
 		{}
 };
 
 class DoubleVal final : public Val {
 public:
 	DoubleVal(double v)
-		: Val(v, base_type(TYPE_DOUBLE))
+		: Val(v, zeek::base_type(zeek::TYPE_DOUBLE))
 		{}
 };
 
@@ -647,10 +651,12 @@ protected:
 // element in their index.
 class ListVal final : public Val {
 public:
-	explicit ListVal(TypeTag t);
+	explicit ListVal(zeek::TypeTag t);
+	[[deprecated("Remove in v4.1. Use the version that takes zeek::TypeTag")]]
+	explicit ListVal(::TypeTag t) : ListVal(static_cast<zeek::TypeTag>(t)) {}
 	~ListVal() override;
 
-	TypeTag BaseTag() const		{ return tag; }
+	zeek::TypeTag BaseTag() const		{ return tag; }
 
 	IntrusivePtr<Val> SizeVal() const override;
 
@@ -698,7 +704,7 @@ protected:
 	IntrusivePtr<Val> DoClone(CloneState* state) override;
 
 	std::vector<IntrusivePtr<Val>> vals;
-	TypeTag tag;
+	zeek::TypeTag tag;
 };
 
 extern double bro_start_network_time;
@@ -758,10 +764,10 @@ class Frame;
 
 class TableVal final : public Val, public notifier::Modifiable {
 public:
-	explicit TableVal(IntrusivePtr<TableType> t, IntrusivePtr<zeek::detail::Attributes> attrs = nullptr);
+	explicit TableVal(IntrusivePtr<zeek::TableType> t, IntrusivePtr<zeek::detail::Attributes> attrs = nullptr);
 
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtrs instead.")]]
-	explicit TableVal(TableType* t, Attributes* attrs = nullptr)
+	explicit TableVal(zeek::TableType* t, Attributes* attrs = nullptr)
 		: TableVal({NewRef{}, t}, {NewRef{}, attrs})
 		{}
 
@@ -933,14 +939,14 @@ public:
 		{ return Remove(*k).release(); }
 
 	// Returns a ListVal representation of the table (which must be a set).
-	IntrusivePtr<ListVal> ToListVal(TypeTag t = TYPE_ANY) const;
+	IntrusivePtr<ListVal> ToListVal(zeek::TypeTag t = zeek::TYPE_ANY) const;
 
 	// Returns a ListVal representation of the table (which must be a set
 	// with non-composite index type).
 	IntrusivePtr<ListVal> ToPureListVal() const;
 
 	[[deprecated("Remove in v4.1.  Use ToListVal() instead.")]]
-	ListVal* ConvertToList(TypeTag t=TYPE_ANY) const;
+	ListVal* ConvertToList(zeek::TypeTag t=zeek::TYPE_ANY) const;
 	[[deprecated("Remove in v4.1.  Use ToPureListVal() instead.")]]
 	ListVal* ConvertToPureList() const;	// must be single index type
 
@@ -998,8 +1004,8 @@ public:
 	notifier::Modifiable* Modifiable() override	{ return this; }
 
 	// Retrieves and saves all table state (key-value pairs) for
-	// tables whose index type depends on the given RecordType.
-	static void SaveParseTimeTableState(RecordType* rt);
+	// tables whose index type depends on the given zeek::detail::RecordType.
+	static void SaveParseTimeTableState(zeek::RecordType* rt);
 
 	// Rebuilds all TableVals whose state was previously saved by
 	// SaveParseTimeTableState().  This is used to re-recreate the tables
@@ -1007,13 +1013,13 @@ public:
 	static void RebuildParseTimeTables();
 
 	// Clears all state that was used to track TableVals that depending
-	// on RecordTypes.
+	// on zeek::detail::RecordTypes.
 	static void DoneParsing();
 
 protected:
-	void Init(IntrusivePtr<TableType> t);
+	void Init(IntrusivePtr<zeek::TableType> t);
 
-	using TableRecordDependencies = std::unordered_map<RecordType*, std::vector<IntrusivePtr<TableVal>>>;
+	using TableRecordDependencies = std::unordered_map<zeek::RecordType*, std::vector<IntrusivePtr<TableVal>>>;
 
 	using ParseTimeTableState = std::vector<std::pair<IntrusivePtr<Val>, IntrusivePtr<Val>>>;
 	using ParseTimeTableStates = std::unordered_map<TableVal*, ParseTimeTableState>;
@@ -1050,7 +1056,7 @@ protected:
 
 	IntrusivePtr<Val> DoClone(CloneState* state) override;
 
-	IntrusivePtr<TableType> table_type;
+	IntrusivePtr<zeek::TableType> table_type;
 	CompositeHash* table_hash;
 	IntrusivePtr<zeek::detail::Attributes> attrs;
 	IntrusivePtr<zeek::detail::Expr> expire_time;
@@ -1070,8 +1076,8 @@ protected:
 class RecordVal final : public Val, public notifier::Modifiable {
 public:
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
-	explicit RecordVal(RecordType* t, bool init_fields = true);
-	explicit RecordVal(IntrusivePtr<RecordType> t, bool init_fields = true);
+	explicit RecordVal(zeek::RecordType* t, bool init_fields = true);
+	explicit RecordVal(IntrusivePtr<zeek::RecordType> t, bool init_fields = true);
 
 	~RecordVal() override;
 
@@ -1211,10 +1217,10 @@ public:
 	//
 	// The *allow_orphaning* parameter allows for a record to be demoted
 	// down to a record type that contains less fields.
-	IntrusivePtr<RecordVal> CoerceTo(IntrusivePtr<RecordType> other,
+	IntrusivePtr<RecordVal> CoerceTo(IntrusivePtr<zeek::RecordType> other,
 	                                 IntrusivePtr<RecordVal> aggr,
 	                                 bool allow_orphaning = false) const;
-	IntrusivePtr<RecordVal> CoerceTo(IntrusivePtr<RecordType> other,
+	IntrusivePtr<RecordVal> CoerceTo(IntrusivePtr<zeek::RecordType> other,
 	                                 bool allow_orphaning = false);
 
 	unsigned int MemoryAllocation() const override;
@@ -1225,7 +1231,7 @@ public:
 	// Extend the underlying arrays of record instances created during
 	// parsing to match the number of fields in the record type (they may
 	// mismatch as a result of parse-time record type redefinitions.
-	static void ResizeParseTimeRecords(RecordType* rt);
+	static void ResizeParseTimeRecords(zeek::RecordType* rt);
 
 	static void DoneParsing();
 
@@ -1234,7 +1240,7 @@ protected:
 
 	BroObj* origin;
 
-	using RecordTypeValMap = std::unordered_map<RecordType*, std::vector<IntrusivePtr<RecordVal>>>;
+	using RecordTypeValMap = std::unordered_map<zeek::RecordType*, std::vector<IntrusivePtr<RecordVal>>>;
 	static RecordTypeValMap parse_time_records;
 };
 
@@ -1244,12 +1250,12 @@ public:
 
 protected:
 	friend class Val;
-	friend class EnumType;
+	friend class zeek::EnumType;
 
 	template<class T, class... Ts>
 	friend IntrusivePtr<T> make_intrusive(Ts&&... args);
 
-	EnumVal(IntrusivePtr<EnumType> t, int i) : Val(bro_int_t(i), std::move(t))
+	EnumVal(IntrusivePtr<zeek::EnumType> t, int i) : Val(bro_int_t(i), std::move(t))
 		{}
 
 	void ValDescribe(ODesc* d) const override;
@@ -1260,8 +1266,8 @@ protected:
 class VectorVal final : public Val, public notifier::Modifiable {
 public:
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
-	explicit VectorVal(VectorType* t);
-	explicit VectorVal(IntrusivePtr<VectorType> t);
+	explicit VectorVal(zeek::VectorType* t);
+	explicit VectorVal(IntrusivePtr<zeek::VectorType> t);
 	~VectorVal() override;
 
 	IntrusivePtr<Val> SizeVal() const override;
@@ -1366,7 +1372,7 @@ protected:
 // If not a match, generates an error message and return nil.  If is_init is
 // true, then the checking is done in the context of an initialization.
 extern IntrusivePtr<Val> check_and_promote(IntrusivePtr<Val> v,
-                                           const BroType* t, bool is_init,
+                                           const zeek::BroType* t, bool is_init,
                                            const Location* expr_location = nullptr);
 
 extern bool same_val(const Val* v1, const Val* v2);
@@ -1378,22 +1384,22 @@ extern void describe_vals(const std::vector<IntrusivePtr<Val>>& vals,
 extern void delete_vals(val_list* vals);
 
 // True if the given Val* has a vector type.
-inline bool is_vector(Val* v)	{ return  v->GetType()->Tag() == TYPE_VECTOR; }
+inline bool is_vector(Val* v)	{ return  v->GetType()->Tag() == zeek::TYPE_VECTOR; }
 inline bool is_vector(const IntrusivePtr<Val>& v)	{ return is_vector(v.get()); }
 
 // Returns v casted to type T if the type supports that. Returns null if not.
 //
 // Note: This implements the script-level cast operator.
-extern IntrusivePtr<Val> cast_value_to_type(Val* v, BroType* t);
+extern IntrusivePtr<Val> cast_value_to_type(Val* v, zeek::BroType* t);
 
 // Returns true if v can be casted to type T. If so, check_and_cast() will
 // succeed as well.
 //
 // Note: This implements the script-level type comparision operator.
-extern bool can_cast_value_to_type(const Val* v, BroType* t);
+extern bool can_cast_value_to_type(const Val* v, zeek::BroType* t);
 
 // Returns true if values of type s may support casting to type t. This is
 // purely static check to weed out cases early on that will never succeed.
 // However, even this function returns true, casting may still fail for a
 // specific instance later.
-extern bool can_cast_value_to_type(const BroType* s, BroType* t);
+extern bool can_cast_value_to_type(const zeek::BroType* s, zeek::BroType* t);

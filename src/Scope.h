@@ -13,9 +13,9 @@
 #include "TraverseTypes.h"
 
 template <class T> class IntrusivePtr;
-class BroType;
 class ListVal;
 
+FORWARD_DECLARE_NAMESPACED(BroType, zeek);
 FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
 
 class Scope : public BroObj {
@@ -45,9 +45,9 @@ public:
 		{ return attrs; }
 
 	[[deprecated("Remove in v4.1.  Use GetReturnTrype().")]]
-	BroType* ReturnType() const	{ return return_type.get(); }
+	zeek::BroType* ReturnType() const	{ return return_type.get(); }
 
-	const IntrusivePtr<BroType>& GetReturnType() const
+	const IntrusivePtr<zeek::BroType>& GetReturnType() const
 		{ return return_type; }
 
 	size_t Length() const		{ return local.size(); }
@@ -70,7 +70,7 @@ public:
 protected:
 	IntrusivePtr<zeek::detail::ID> scope_id;
 	std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attrs;
-	IntrusivePtr<BroType> return_type;
+	IntrusivePtr<zeek::BroType> return_type;
 	std::map<std::string, IntrusivePtr<zeek::detail::ID>, std::less<>> local;
 	std::vector<IntrusivePtr<zeek::detail::ID>> inits;
 };

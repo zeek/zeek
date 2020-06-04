@@ -16,8 +16,8 @@ using id_list = PList<zeek::detail::ID>;
 FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
 using stmt_list = PList<zeek::detail::Stmt>;
 
-class BroType;
-using type_list = PList<BroType>;
+FORWARD_DECLARE_NAMESPACED(BroType, zeek);
+using type_list = PList<zeek::BroType>;
 
 FORWARD_DECLARE_NAMESPACED(Attr, zeek::detail);
 using attr_list = PList<zeek::detail::Attr>;

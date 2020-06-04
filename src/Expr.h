@@ -704,7 +704,7 @@ protected:
 
 class ArithCoerceExpr final : public UnaryExpr {
 public:
-	ArithCoerceExpr(IntrusivePtr<Expr> op, TypeTag t);
+	ArithCoerceExpr(IntrusivePtr<Expr> op, zeek::TypeTag t);
 
 protected:
 	IntrusivePtr<Val> FoldSingleVal(Val* v, InternalTypeTag t) const;

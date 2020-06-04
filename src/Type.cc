@@ -22,10 +22,12 @@
 
 using namespace std;
 
+namespace zeek {
+
 BroType::TypeAliasMap BroType::type_aliases;
 
 // Note: This function must be thread-safe.
-const char* type_name(TypeTag t)
+const char* type_name(zeek::TypeTag t)
 	{
 	static constexpr const char* type_names[int(NUM_TYPES)] = {
 		"void",      // 0
@@ -62,9 +64,9 @@ const char* type_name(TypeTag t)
 	return type_names[int(t)];
 	}
 
-BroType::BroType(TypeTag t, bool arg_base_type)
+BroType::BroType(zeek::TypeTag t, bool arg_base_type)
 	: tag(t), internal_tag(to_internal_type_tag(tag)),
-	  is_network_order(::is_network_order(t)),
+	  is_network_order(zeek::is_network_order(t)),
 	  base_type(arg_base_type)
 	{
 	}
@@ -102,7 +104,7 @@ int BroType::MatchesIndex(zeek::detail::ListExpr* const index) const
 		if ( index->Exprs().length() != 1 && index->Exprs().length() != 2 )
 			return DOES_NOT_MATCH_INDEX;
 
-		if ( check_and_promote_exprs_to_type(index, ::base_type(TYPE_INT).get()) )
+		if ( check_and_promote_exprs_to_type(index, zeek::base_type(zeek::TYPE_INT).get()) )
 			return MATCHES_INDEX_SCALAR;
 		}
 
@@ -409,7 +411,7 @@ IntrusivePtr<BroType> SetType::ShallowClone()
 SetType::~SetType() = default;
 
 FuncType::FuncType(IntrusivePtr<RecordType> arg_args,
-                   IntrusivePtr<BroType> arg_yield, function_flavor arg_flavor)
+                   IntrusivePtr<BroType> arg_yield, FunctionFlavor arg_flavor)
 	: BroType(TYPE_FUNC), args(std::move(arg_args)),
 	  arg_types(make_intrusive<TypeList>()), yield(std::move(arg_yield))
 	{
@@ -1320,7 +1322,7 @@ const IntrusivePtr<BroType>& VectorType::Yield() const
 	// return any as that's what other code historically expects for type
 	// comparisions.
 	if ( IsUnspecifiedVector() )
-		return ::base_type(TYPE_ANY);
+		return zeek::base_type(zeek::TYPE_ANY);
 
 	return yield_type;
 	}
@@ -1367,22 +1369,6 @@ void VectorType::DescribeReST(ODesc* d, bool roles_only) const
 		yield_type->DescribeReST(d, roles_only);
 	else
 		d->Add(fmt(":zeek:type:`%s`", yield_type->GetName().c_str()));
-	}
-
-const IntrusivePtr<BroType>& base_type(TypeTag tag)
-	{
-	static IntrusivePtr<BroType> base_types[NUM_TYPES];
-
-	// We could check here that "tag" actually corresponds to a basic type.
-	if ( ! base_types[tag] )
-		{
-		base_types[tag] = make_intrusive<BroType>(tag, true);
-		// Give the base types a pseudo-location for easier identification.
-		Location l(type_name(tag), 0, 0, 0, 0);
-		base_types[tag]->SetLocationInfo(&l);
-		}
-
-	return base_types[tag];
 	}
 
 // Returns true if t1 is initialization-compatible with t2 (i.e., if an
@@ -2081,3 +2067,22 @@ bool is_atomic_type(const BroType& t)
 		return false;
 	}
 	}
+
+const IntrusivePtr<BroType>& base_type(zeek::TypeTag tag)
+	{
+	static IntrusivePtr<BroType> base_types[NUM_TYPES];
+
+	// We could check here that "tag" actually corresponds to a basic type.
+	if ( ! base_types[tag] )
+		{
+		base_types[tag] = make_intrusive<BroType>(tag, true);
+		// Give the base types a pseudo-location for easier identification.
+		Location l(type_name(tag), 0, 0, 0, 0);
+		base_types[tag]->SetLocationInfo(&l);
+		}
+
+	return base_types[tag];
+	}
+
+
+} // namespace zeek

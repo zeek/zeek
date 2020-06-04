@@ -20,7 +20,7 @@ static void analyzer_del_func(void* v)
 
 AnalyzerSet::AnalyzerSet(File* arg_file) : file(arg_file)
 	{
-	auto t = make_intrusive<TypeList>();
+	auto t = make_intrusive<zeek::TypeList>();
 	t->Append(file_mgr->GetTagType());
 	t->Append(zeek::BifType::Record::Files::AnalyzerArgs);
 	analyzer_hash = new CompositeHash(std::move(t));
@@ -156,7 +156,7 @@ bool AnalyzerSet::RemoveMod::Perform(AnalyzerSet* set)
 std::unique_ptr<HashKey> AnalyzerSet::GetKey(const file_analysis::Tag& t,
                                              IntrusivePtr<RecordVal> args) const
 	{
-	auto lv = make_intrusive<ListVal>(TYPE_ANY);
+	auto lv = make_intrusive<ListVal>(zeek::TYPE_ANY);
 	lv->Append(t.AsVal());
 	lv->Append(std::move(args));
 	auto key = analyzer_hash->MakeHashKey(*lv, true);

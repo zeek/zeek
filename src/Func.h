@@ -20,13 +20,13 @@
 #include "ZeekArgs.h"
 
 class Val;
-class FuncType;
 class Frame;
 class Scope;
 
 FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
 FORWARD_DECLARE_NAMESPACED(CallExpr, zeek::detail);
 FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
+FORWARD_DECLARE_NAMESPACED(FuncType, zeek);
 
 class Func : public BroObj {
 public:
@@ -39,7 +39,7 @@ public:
 	~Func() override;
 
 	virtual bool IsPure() const = 0;
-	function_flavor Flavor() const	{ return GetType()->Flavor(); }
+	zeek::FunctionFlavor Flavor() const	{ return GetType()->Flavor(); }
 
 	struct Body {
 		IntrusivePtr<zeek::detail::Stmt> stmts;
@@ -86,9 +86,9 @@ public:
 	virtual Scope* GetScope() const		{ return scope.get(); }
 
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
-	virtual FuncType* FType() const { return type.get(); }
+	virtual zeek::FuncType* FType() const { return type.get(); }
 
-	const IntrusivePtr<FuncType>& GetType() const
+	const IntrusivePtr<zeek::FuncType>& GetType() const
 		{ return type; }
 
 	Kind GetKind() const	{ return kind; }
@@ -115,13 +115,13 @@ protected:
 
 	// Helper function for checking result of plugin hook.
 	void CheckPluginResult(bool handled, const IntrusivePtr<Val>& hook_result,
-	                       function_flavor flavor) const;
+	                       zeek::FunctionFlavor flavor) const;
 
 	std::vector<Body> bodies;
 	IntrusivePtr<Scope> scope;
 	Kind kind;
 	uint32_t unique_id;
-	IntrusivePtr<FuncType> type;
+	IntrusivePtr<zeek::FuncType> type;
 	std::string name;
 	static inline std::vector<IntrusivePtr<Func>> unique_ids;
 };

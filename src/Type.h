@@ -14,8 +14,60 @@
 #include <list>
 #include <optional>
 
-// BRO types.
+class EnumVal;
+class TableVal;
 
+FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
+FORWARD_DECLARE_NAMESPACED(ListExpr, zeek::detail);
+FORWARD_DECLARE_NAMESPACED(Attributes, zeek::detail);
+
+// BRO types.
+enum [[deprecated("Remove in v4.1. Use zeek::TypeTag instead.")]] TypeTag {
+	TYPE_VOID,      // 0
+	TYPE_BOOL,      // 1
+	TYPE_INT,       // 2
+	TYPE_COUNT,     // 3
+	TYPE_COUNTER,   // 4
+	TYPE_DOUBLE,    // 5
+	TYPE_TIME,      // 6
+	TYPE_INTERVAL,  // 7
+	TYPE_STRING,    // 8
+	TYPE_PATTERN,   // 9
+	TYPE_ENUM,      // 10
+	TYPE_TIMER,     // 11
+	TYPE_PORT,      // 12
+	TYPE_ADDR,      // 13
+	TYPE_SUBNET,    // 14
+	TYPE_ANY,       // 15
+	TYPE_TABLE,     // 16
+	TYPE_UNION,     // 17
+	TYPE_RECORD,    // 18
+	TYPE_LIST,      // 19
+	TYPE_FUNC,      // 20
+	TYPE_FILE,      // 21
+	TYPE_VECTOR,    // 22
+	TYPE_OPAQUE,    // 23
+	TYPE_TYPE,      // 24
+	TYPE_ERROR      // 25
+#define NUM_TYPES (int(TYPE_ERROR) + 1)
+};
+
+enum [[deprecated("Remove in v4.1. Use zeek::FunctionFlavor instead.")]] function_flavor {
+	FUNC_FLAVOR_FUNCTION,
+	FUNC_FLAVOR_EVENT,
+	FUNC_FLAVOR_HOOK
+};
+
+enum [[deprecated("Remove in v4.1. Use zeek::InternalTypeTag instead.")]] InternalTypeTag : uint16_t {
+	TYPE_INTERNAL_VOID,
+	TYPE_INTERNAL_INT, TYPE_INTERNAL_UNSIGNED, TYPE_INTERNAL_DOUBLE,
+	TYPE_INTERNAL_STRING, TYPE_INTERNAL_ADDR, TYPE_INTERNAL_SUBNET,
+	TYPE_INTERNAL_OTHER, TYPE_INTERNAL_ERROR
+};
+
+namespace zeek {
+
+// BRO types.
 enum TypeTag {
 	TYPE_VOID,      // 0
 	TYPE_BOOL,      // 1
@@ -46,12 +98,15 @@ enum TypeTag {
 #define NUM_TYPES (int(TYPE_ERROR) + 1)
 };
 
+// Returns the name of the type.
+extern const char* type_name(TypeTag t);
+
 constexpr bool is_network_order(TypeTag tag) noexcept
 	{
 	return tag == TYPE_PORT;
 	}
 
-enum function_flavor {
+enum FunctionFlavor {
 	FUNC_FLAVOR_FUNCTION,
 	FUNC_FLAVOR_EVENT,
 	FUNC_FLAVOR_HOOK
@@ -116,9 +171,6 @@ constexpr InternalTypeTag to_internal_type_tag(TypeTag tag) noexcept
 	return TYPE_INTERNAL_VOID;
 	}
 
-// Returns the name of the type.
-extern const char* type_name(TypeTag t);
-
 class TypeList;
 class TableType;
 class SetType;
@@ -129,22 +181,20 @@ class EnumType;
 class VectorType;
 class TypeType;
 class OpaqueType;
-class EnumVal;
-class TableVal;
 
-FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
-FORWARD_DECLARE_NAMESPACED(ListExpr, zeek::detail);
-FORWARD_DECLARE_NAMESPACED(Attributes, zeek::detail);
-
-const int DOES_NOT_MATCH_INDEX = 0;
-const int MATCHES_INDEX_SCALAR = 1;
-const int MATCHES_INDEX_VECTOR = 2;
+constexpr int DOES_NOT_MATCH_INDEX = 0;
+constexpr int MATCHES_INDEX_SCALAR = 1;
+constexpr int MATCHES_INDEX_VECTOR = 2;
 
 class BroType : public BroObj {
 public:
 	static inline const IntrusivePtr<BroType> nil;
 
-	explicit BroType(TypeTag tag, bool base_type = false);
+	explicit BroType(zeek::TypeTag tag, bool base_type = false);
+	[[deprecated("Remove in v4.1. Use the version that takes zeek::TypeTag instead.")]]
+	explicit BroType(::TypeTag tag, bool base_type = false)
+		: BroType(static_cast<zeek::TypeTag>(tag), base_type)
+		{}
 
 	// Performs a shallow clone operation of the Bro type.
 	// This especially means that especially for tables the types
@@ -477,7 +527,13 @@ public:
 	};
 
 	FuncType(IntrusivePtr<RecordType> args, IntrusivePtr<BroType> yield,
-	         function_flavor f);
+	         FunctionFlavor f);
+
+	[[deprecated("Remove in v4.1. Use the version that takes zeek::FunctionFlavor instead.")]]
+	FuncType(IntrusivePtr<RecordType> args, IntrusivePtr<BroType> yield, ::function_flavor f)
+		: FuncType(args, yield, static_cast<FunctionFlavor>(f))
+		{}
+
 	IntrusivePtr<BroType> ShallowClone() override;
 
 	~FuncType() override;
@@ -492,12 +548,16 @@ public:
 		{ return yield; }
 
 	void SetYieldType(IntrusivePtr<BroType> arg_yield)	{ yield = std::move(arg_yield); }
-	function_flavor Flavor() const { return flavor; }
+	FunctionFlavor Flavor() const { return flavor; }
 	std::string FlavorString() const;
 
 	// Used to convert a function type to an event or hook type.
-	void ClearYieldType(function_flavor arg_flav)
+	void ClearYieldType(FunctionFlavor arg_flav)
 		{ yield = nullptr; flavor = arg_flav; }
+
+	[[deprecated("Remove in v4.1. Use the version that takes zeek::FunctionFlavor instead.")]]
+	void ClearYieldType(::function_flavor arg_flav)
+		{ yield = nullptr; flavor = static_cast<FunctionFlavor>(arg_flav); }
 
 	int MatchesIndex(zeek::detail::ListExpr* index) const override;
 	bool CheckArgs(const type_list* args, bool is_init = false) const;
@@ -536,7 +596,7 @@ protected:
 	IntrusivePtr<RecordType> args;
 	IntrusivePtr<TypeList> arg_types;
 	IntrusivePtr<BroType> yield;
-	function_flavor flavor;
+	FunctionFlavor flavor;
 	std::vector<Prototype> prototypes;
 };
 
@@ -583,7 +643,7 @@ public:
 	const char* id = nullptr;
 };
 
-typedef PList<TypeDecl> type_decl_list;
+using type_decl_list = PList<TypeDecl>;
 
 class RecordType final : public BroType {
 public:
@@ -806,29 +866,6 @@ protected:
 	IntrusivePtr<BroType> yield_type;
 };
 
-extern IntrusivePtr<OpaqueType> md5_type;
-extern IntrusivePtr<OpaqueType> sha1_type;
-extern IntrusivePtr<OpaqueType> sha256_type;
-extern IntrusivePtr<OpaqueType> entropy_type;
-extern IntrusivePtr<OpaqueType> cardinality_type;
-extern IntrusivePtr<OpaqueType> topk_type;
-extern IntrusivePtr<OpaqueType> bloomfilter_type;
-extern IntrusivePtr<OpaqueType> x509_opaque_type;
-extern IntrusivePtr<OpaqueType> ocsp_resp_opaque_type;
-extern IntrusivePtr<OpaqueType> paraglob_type;
-
-// Returns the basic (non-parameterized) type with the given type.
-const IntrusivePtr<BroType>& base_type(TypeTag tag);
-
-// Returns the basic (non-parameterized) type with the given type.
-// The reference count of the type is not increased.
-[[deprecated("Remove in v4.1.  Use ::base_type() instead")]]
-inline BroType* base_type_no_ref(TypeTag tag)
-	{ return base_type(tag).get(); }
-
-// Returns the basic error type.
-inline const IntrusivePtr<BroType>& error_type()	{ return base_type(TYPE_ERROR); }
-
 // True if the two types are equivalent.  If is_init is true then the test is
 // done in the context of an initialization. If match_record_field_names is
 // true then for record types the field names have to match, too.
@@ -887,7 +924,7 @@ inline bool is_atomic_type(const IntrusivePtr<BroType>& t)
 // True if the given type tag corresponds to type that can be assigned to.
 extern bool is_assignable(TypeTag t);
 inline bool is_assignable(BroType* t)
-	{ return ::is_assignable(t->Tag()); }
+	{ return zeek::is_assignable(t->Tag()); }
 
 // True if the given type tag corresponds to an integral type.
 inline bool IsIntegral(TypeTag t) { return (t == TYPE_INT || t == TYPE_COUNT || t == TYPE_COUNTER); }
@@ -936,3 +973,65 @@ inline bool BothString(TypeTag t1, TypeTag t2) { return (IsString(t1) && IsStrin
 
 // True if either tag is the error type.
 inline bool EitherError(TypeTag t1, TypeTag t2) { return (IsErrorType(t1) || IsErrorType(t2)); }
+
+// Returns the basic (non-parameterized) type with the given type.
+const IntrusivePtr<zeek::BroType>& base_type(zeek::TypeTag tag);
+
+// Returns the basic (non-parameterized) type with the given type.
+// The reference count of the type is not increased.
+[[deprecated("Remove in v4.1.  Use ::base_type() instead")]]
+inline zeek::BroType* base_type_no_ref(TypeTag tag)
+       { return base_type(tag).get(); }
+
+// Returns the basic error type.
+inline const IntrusivePtr<zeek::BroType>& error_type()       { return base_type(TYPE_ERROR); }
+
+} // namespace zeek
+
+extern IntrusivePtr<zeek::OpaqueType> md5_type;
+extern IntrusivePtr<zeek::OpaqueType> sha1_type;
+extern IntrusivePtr<zeek::OpaqueType> sha256_type;
+extern IntrusivePtr<zeek::OpaqueType> entropy_type;
+extern IntrusivePtr<zeek::OpaqueType> cardinality_type;
+extern IntrusivePtr<zeek::OpaqueType> topk_type;
+extern IntrusivePtr<zeek::OpaqueType> bloomfilter_type;
+extern IntrusivePtr<zeek::OpaqueType> x509_opaque_type;
+extern IntrusivePtr<zeek::OpaqueType> ocsp_resp_opaque_type;
+extern IntrusivePtr<zeek::OpaqueType> paraglob_type;
+
+using BroType [[deprecated("Remove in v4.1. Use zeek::BroType instead.")]] = zeek::BroType;
+using TypeList [[deprecated("Remove in v4.1. Use zeek::TypeList instead.")]] = zeek::TypeList;
+using IndexType [[deprecated("Remove in v4.1. Use zeek::IndexType instead.")]] = zeek::IndexType;
+using TableType [[deprecated("Remove in v4.1. Use zeek::TableType instead.")]] = zeek::TableType;
+using SetType [[deprecated("Remove in v4.1. Use zeek::SetType instead.")]] = zeek::SetType;
+using FuncType [[deprecated("Remove in v4.1. Use zeek::FuncType instead.")]] = zeek::FuncType;
+using TypeType [[deprecated("Remove in v4.1. Use zeek::TypeType instead.")]] = zeek::TypeType;
+using TypeDecl [[deprecated("Remove in v4.1. Use zeek::TypeDecl instead.")]] = zeek::TypeDecl;
+using RecordType [[deprecated("Remove in v4.1. Use zeek::RecordType instead.")]] = zeek::RecordType;
+using SubNetType [[deprecated("Remove in v4.1. Use zeek::SubNetType instead.")]] = zeek::SubNetType;
+using FileType [[deprecated("Remove in v4.1. Use zeek::FileType instead.")]] = zeek::FileType;
+using OpaqueType [[deprecated("Remove in v4.1. Use zeek::OpaqueType instead.")]] = zeek::OpaqueType;
+using EnumType [[deprecated("Remove in v4.1. Use zeek::EnumType instead.")]] = zeek::EnumType;
+using VectorType [[deprecated("Remove in v4.1. Use zeek::VectorType instead.")]] = zeek::VectorType;
+using type_decl_list [[deprecated("Remove in v4.1. Use zeek::type_decl_list instead.")]] = zeek::type_decl_list;
+
+constexpr auto IsIntegral [[deprecated("Remove in v4.1. Use zeek::IsIntegral instead.")]] = zeek::IsIntegral;
+constexpr auto IsArithmetic [[deprecated("Remove in v4.1. Use zeek::IsArithmetic instead.")]] = zeek::IsArithmetic;
+constexpr auto IsBool [[deprecated("Remove in v4.1. Use zeek::IsBool instead.")]] = zeek::IsBool;
+constexpr auto IsInterval [[deprecated("Remove in v4.1. Use zeek::IsInterval instead.")]] = zeek::IsInterval;
+constexpr auto IsRecord [[deprecated("Remove in v4.1. Use zeek::IsRecord instead.")]] = zeek::IsRecord;
+constexpr auto IsFunc [[deprecated("Remove in v4.1. Use zeek::IsFunc instead.")]] = zeek::IsFunc;
+constexpr auto IsVector [[deprecated("Remove in v4.1. Use zeek::IsVector instead.")]] = zeek::IsVector;
+constexpr auto IsString [[deprecated("Remove in v4.1. Use zeek::IsString instead.")]] = zeek::IsString;
+constexpr auto IsErrorType [[deprecated("Remove in v4.1. Use zeek::IsErrorType instead.")]] = zeek::IsErrorType;
+constexpr auto BothIntegral [[deprecated("Remove in v4.1. Use zeek::BothIntegral instead.")]] = zeek::BothIntegral;
+constexpr auto BothArithmetic [[deprecated("Remove in v4.1. Use zeek::BothArithmetic instead.")]] = zeek::BothArithmetic;
+constexpr auto EitherArithmetic [[deprecated("Remove in v4.1. Use zeek::EitherArithmetic instead.")]] = zeek::EitherArithmetic;
+constexpr auto BothBool [[deprecated("Remove in v4.1. Use zeek::BothBool instead.")]] = zeek::BothBool;
+constexpr auto BothInterval [[deprecated("Remove in v4.1. Use zeek::BothInterval instead.")]] = zeek::BothInterval;
+constexpr auto BothString [[deprecated("Remove in v4.1. Use zeek::BothString instead.")]] = zeek::BothString;
+constexpr auto EitherError [[deprecated("Remove in v4.1. Use zeek::EitherError instead.")]] = zeek::EitherError;
+constexpr auto base_type [[deprecated("Remove in v4.1. Use zeek::base_type instead.")]] = zeek::base_type;
+constexpr auto error_type [[deprecated("Remove in v4.1. Use zeek::error_type instead.")]] = zeek::error_type;
+constexpr auto type_name [[deprecated("Remove in v4.1. Use zeek::type_name instead.")]] = zeek::type_name;
+constexpr auto is_network_order [[deprecated("Remove in v4.1. Use zeek::is_network_order instead.")]] = zeek::is_network_order;

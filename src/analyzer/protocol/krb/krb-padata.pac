@@ -13,7 +13,7 @@ IntrusivePtr<VectorVal> proc_padata(const KRB_PA_Data_Sequence* data, const BroA
 %code{
 IntrusivePtr<VectorVal> proc_padata(const KRB_PA_Data_Sequence* data, const BroAnalyzer bro_analyzer, bool is_error)
 {
-	auto vv = make_intrusive<VectorVal>(zeek::id::find_type<VectorType>("KRB::Type_Value_Vector"));
+	auto vv = make_intrusive<VectorVal>(zeek::id::find_type<zeek::VectorType>("KRB::Type_Value_Vector"));
 
 	if ( ! data->data()->has_padata() )
 		return vv;
@@ -192,7 +192,7 @@ type KRB_PA_Data_Element(is_orig: bool, type: int64, length: uint64) = case type
 };
 
 type KRB_PA_AP_REQ_wrapper(is_orig: bool) = record {
-	# Not sure what these two field are, but they need to be 
+	# Not sure what these two field are, but they need to be
 	# here for pre-auth ap-req messages.
 	some_meta1 : ASN1EncodingMeta;
 	some_meta2 : ASN1EncodingMeta;

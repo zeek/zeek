@@ -3,14 +3,15 @@
 #pragma once
 
 #include "zeek-config.h"
-#include "IntrusivePtr.h"
-
-#include <string>
 
 #include <stdint.h>
+#include <string>
+
+#include "IntrusivePtr.h"
+#include "util.h"
 
 class EnumVal;
-class EnumType;
+FORWARD_DECLARE_NAMESPACED(EnumType, zeek);
 
 /**
  * Class to identify an analyzer type.
@@ -115,10 +116,10 @@ protected:
 	 *
 	 * @param etype the script-layer enum type associated with the tag.
 	 */
-	const IntrusivePtr<EnumVal>& AsVal(const IntrusivePtr<EnumType>& etype) const;
+	const IntrusivePtr<EnumVal>& AsVal(const IntrusivePtr<zeek::EnumType>& etype) const;
 
 	[[deprecated("Remove in v4.1.  Use AsVal() instead.")]]
-	EnumVal* AsEnumVal(EnumType* etype) const;
+	EnumVal* AsEnumVal(zeek::EnumType* etype) const;
 
 	/**
 	 * Constructor.
@@ -131,10 +132,10 @@ protected:
 	 * @param subtype The sub type, which is left to an analyzer for
 	 * interpretation. By default it's set to zero.
 	 */
-	Tag(const IntrusivePtr<EnumType>& etype, type_t type, subtype_t subtype = 0);
+	Tag(const IntrusivePtr<zeek::EnumType>& etype, type_t type, subtype_t subtype = 0);
 
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr& instead.")]]
-	Tag(EnumType* etype, type_t type, subtype_t subtype = 0);
+	Tag(zeek::EnumType* etype, type_t type, subtype_t subtype = 0);
 
 	/**
 	 * Constructor.

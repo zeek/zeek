@@ -161,9 +161,9 @@ private:
 	 *
 	 * @param t type that is tracked
 	 */
-	void Typify(IntrusivePtr<BroType> t);
+	void Typify(IntrusivePtr<zeek::BroType> t);
 
-	IntrusivePtr<BroType> type;
+	IntrusivePtr<zeek::BroType> type;
 	CompositeHash* hash;
 	std::list<Bucket*> buckets;
 	PDict<Element>* elementDict;

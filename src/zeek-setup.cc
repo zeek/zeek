@@ -114,16 +114,16 @@ vector<string> params;
 set<string> requested_plugins;
 const char* proc_status_file = nullptr;
 
-IntrusivePtr<OpaqueType> md5_type;
-IntrusivePtr<OpaqueType> sha1_type;
-IntrusivePtr<OpaqueType> sha256_type;
-IntrusivePtr<OpaqueType> entropy_type;
-IntrusivePtr<OpaqueType> cardinality_type;
-IntrusivePtr<OpaqueType> topk_type;
-IntrusivePtr<OpaqueType> bloomfilter_type;
-IntrusivePtr<OpaqueType> x509_opaque_type;
-IntrusivePtr<OpaqueType> ocsp_resp_opaque_type;
-IntrusivePtr<OpaqueType> paraglob_type;
+IntrusivePtr<zeek::OpaqueType> md5_type;
+IntrusivePtr<zeek::OpaqueType> sha1_type;
+IntrusivePtr<zeek::OpaqueType> sha256_type;
+IntrusivePtr<zeek::OpaqueType> entropy_type;
+IntrusivePtr<zeek::OpaqueType> cardinality_type;
+IntrusivePtr<zeek::OpaqueType> topk_type;
+IntrusivePtr<zeek::OpaqueType> bloomfilter_type;
+IntrusivePtr<zeek::OpaqueType> x509_opaque_type;
+IntrusivePtr<zeek::OpaqueType> ocsp_resp_opaque_type;
+IntrusivePtr<zeek::OpaqueType> paraglob_type;
 
 // Keep copy of command line
 int bro_argc;
@@ -593,16 +593,16 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 
 	init_event_handlers();
 
-	md5_type = make_intrusive<OpaqueType>("md5");
-	sha1_type = make_intrusive<OpaqueType>("sha1");
-	sha256_type = make_intrusive<OpaqueType>("sha256");
-	entropy_type = make_intrusive<OpaqueType>("entropy");
-	cardinality_type = make_intrusive<OpaqueType>("cardinality");
-	topk_type = make_intrusive<OpaqueType>("topk");
-	bloomfilter_type = make_intrusive<OpaqueType>("bloomfilter");
-	x509_opaque_type = make_intrusive<OpaqueType>("x509");
-	ocsp_resp_opaque_type = make_intrusive<OpaqueType>("ocsp_resp");
-	paraglob_type = make_intrusive<OpaqueType>("paraglob");
+	md5_type = make_intrusive<zeek::OpaqueType>("md5");
+	sha1_type = make_intrusive<zeek::OpaqueType>("sha1");
+	sha256_type = make_intrusive<zeek::OpaqueType>("sha256");
+	entropy_type = make_intrusive<zeek::OpaqueType>("entropy");
+	cardinality_type = make_intrusive<zeek::OpaqueType>("cardinality");
+	topk_type = make_intrusive<zeek::OpaqueType>("topk");
+	bloomfilter_type = make_intrusive<zeek::OpaqueType>("bloomfilter");
+	x509_opaque_type = make_intrusive<zeek::OpaqueType>("x509");
+	ocsp_resp_opaque_type = make_intrusive<zeek::OpaqueType>("ocsp_resp");
+	paraglob_type = make_intrusive<zeek::OpaqueType>("paraglob");
 
 	// The leak-checker tends to produce some false
 	// positives (memory which had already been

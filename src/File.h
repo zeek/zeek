@@ -16,9 +16,9 @@
 #include "IntrusivePtr.h"
 #include "util.h"
 
-class BroType;
 class RecordVal;
 
+FORWARD_DECLARE_NAMESPACED(BroType, zeek);
 FORWARD_DECLARE_NAMESPACED(PrintStmt, zeek::detail);
 FORWARD_DECLARE_NAMESPACED(Attributes, zeek::detail);
 
@@ -41,9 +41,9 @@ public:
 	void SetBuf(bool buffered);	// false=line buffered, true=fully buffered
 
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
-	BroType* FType() const	{ return t.get(); }
+	zeek::BroType* FType() const	{ return t.get(); }
 
-	const IntrusivePtr<BroType>& GetType() const
+	const IntrusivePtr<zeek::BroType>& GetType() const
 		{ return t; }
 
 	// Whether the file is open in a general sense; it might
@@ -104,7 +104,7 @@ protected:
 	void RaiseOpenEvent();
 
 	FILE* f;
-	IntrusivePtr<BroType> t;
+	IntrusivePtr<zeek::BroType> t;
 	char* name;
 	char* access;
 	zeek::detail::Attributes* attrs;

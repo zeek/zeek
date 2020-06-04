@@ -78,7 +78,7 @@ bool JSON::Describe(ODesc* desc, Value* val, const std::string& name) const
 	return true;
 	}
 
-threading::Value* JSON::ParseValue(const std::string& s, const std::string& name, TypeTag type, TypeTag subtype) const
+threading::Value* JSON::ParseValue(const std::string& s, const std::string& name, zeek::TypeTag type, zeek::TypeTag subtype) const
 	{
 	GetThread()->Error("JSON formatter does not support parsing yet.");
 	return nullptr;
@@ -97,37 +97,37 @@ void JSON::BuildJSON(NullDoubleWriter& writer, Value* val, const std::string& na
 
 	switch ( val->type )
 		{
-		case TYPE_BOOL:
+		case zeek::TYPE_BOOL:
 			writer.Bool(val->val.int_val != 0);
 			break;
 
-		case TYPE_INT:
+		case zeek::TYPE_INT:
 			writer.Int64(val->val.int_val);
 			break;
 
-		case TYPE_COUNT:
-		case TYPE_COUNTER:
+		case zeek::TYPE_COUNT:
+		case zeek::TYPE_COUNTER:
 			writer.Uint64(val->val.uint_val);
 			break;
 
-		case TYPE_PORT:
+		case zeek::TYPE_PORT:
 			writer.Uint64(val->val.port_val.port);
 			break;
 
-		case TYPE_SUBNET:
+		case zeek::TYPE_SUBNET:
 			writer.String(Formatter::Render(val->val.subnet_val));
 			break;
 
-		case TYPE_ADDR:
+		case zeek::TYPE_ADDR:
 			writer.String(Formatter::Render(val->val.addr_val));
 			break;
 
-		case TYPE_DOUBLE:
-		case TYPE_INTERVAL:
+		case zeek::TYPE_DOUBLE:
+		case zeek::TYPE_INTERVAL:
 			writer.Double(val->val.double_val);
 			break;
 
-		case TYPE_TIME:
+		case zeek::TYPE_TIME:
 			{
 			if ( timestamps == TS_ISO8601 )
 				{
@@ -169,16 +169,16 @@ void JSON::BuildJSON(NullDoubleWriter& writer, Value* val, const std::string& na
 			break;
 			}
 
-		case TYPE_ENUM:
-		case TYPE_STRING:
-		case TYPE_FILE:
-		case TYPE_FUNC:
+		case zeek::TYPE_ENUM:
+		case zeek::TYPE_STRING:
+		case zeek::TYPE_FILE:
+		case zeek::TYPE_FUNC:
 			{
 			writer.String(json_escape_utf8(std::string(val->val.string_val.data, val->val.string_val.length)));
 			break;
 			}
 
-		case TYPE_TABLE:
+		case zeek::TYPE_TABLE:
 			{
 			writer.StartArray();
 
@@ -189,7 +189,7 @@ void JSON::BuildJSON(NullDoubleWriter& writer, Value* val, const std::string& na
 			break;
 			}
 
-		case TYPE_VECTOR:
+		case zeek::TYPE_VECTOR:
 			{
 			writer.StartArray();
 

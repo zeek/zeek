@@ -396,12 +396,12 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 		return false;
 		}
 
-	if ( fields[0]->type != TYPE_STRING )
+	if ( fields[0]->type != zeek::TYPE_STRING )
 		{
 		Error("First field for raw reader always has to be of type string.");
 		return false;
 		}
-	if ( use_stderr && fields[1]->type != TYPE_BOOL )
+	if ( use_stderr && fields[1]->type != zeek::TYPE_BOOL )
 		{
 		Error("Second field for raw reader always has to be of type bool.");
 		return false;
@@ -605,14 +605,14 @@ bool Raw::DoUpdate()
 		Value** fields = new Value*[2]; // just always reserve 2. This means that our [] is too long by a count of 1 if not using stderr. But who cares...
 
 		// filter has exactly one text field. convert to it.
-		Value* val = new Value(TYPE_STRING, true);
+		Value* val = new Value(zeek::TYPE_STRING, true);
 		val->val.string_val.data = outbuf.release();
 		val->val.string_val.length = length;
 		fields[0] = val;
 
 		if ( use_stderr )
 			{
-			Value* bval = new Value(TYPE_BOOL, true);
+			Value* bval = new Value(zeek::TYPE_BOOL, true);
 			bval->val.int_val = 0;
 			fields[1] = bval;
 			}
@@ -633,11 +633,11 @@ bool Raw::DoUpdate()
 				break;
 
 			Value** fields = new Value*[2];
-			Value* val = new Value(TYPE_STRING, true);
+			Value* val = new Value(zeek::TYPE_STRING, true);
 			val->val.string_val.data = outbuf.release();
 			val->val.string_val.length = length;
 			fields[0] = val;
-			Value* bval = new Value(TYPE_BOOL, true);
+			Value* bval = new Value(zeek::TYPE_BOOL, true);
 			bval->val.int_val = 1; // yes, we are stderr
 			fields[1] = bval;
 
@@ -675,15 +675,15 @@ bool Raw::DoUpdate()
 			assert(false);
 
 		Value** vals = new Value*[4];
-		vals[0] = new Value(TYPE_STRING, true);
+		vals[0] = new Value(zeek::TYPE_STRING, true);
 		vals[0]->val.string_val.data = copy_string(Info().name);
 		vals[0]->val.string_val.length = strlen(Info().name);
-		vals[1] = new Value(TYPE_STRING, true);
+		vals[1] = new Value(zeek::TYPE_STRING, true);
 		vals[1]->val.string_val.data = copy_string(Info().source);
 		vals[1]->val.string_val.length = strlen(Info().source);
-		vals[2] = new Value(TYPE_COUNT, true);
+		vals[2] = new Value(zeek::TYPE_COUNT, true);
 		vals[2]->val.int_val = code;
-		vals[3] = new Value(TYPE_BOOL, true);
+		vals[3] = new Value(zeek::TYPE_BOOL, true);
 		vals[3]->val.int_val = signal;
 
 		// and in this case we can signal end_of_data even for the streaming reader

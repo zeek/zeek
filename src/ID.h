@@ -15,11 +15,12 @@
 
 class Val;
 class Func;
-class BroType;
-class RecordType;
-class TableType;
-class VectorType;
-class EnumType;
+
+FORWARD_DECLARE_NAMESPACED(BroType, zeek);
+FORWARD_DECLARE_NAMESPACED(RecordType, zeek);
+FORWARD_DECLARE_NAMESPACED(TableType, zeek);
+FORWARD_DECLARE_NAMESPACED(VectorType, zeek);
+FORWARD_DECLARE_NAMESPACED(EnumType, zeek);
 
 enum [[deprecated("Remove in v4.1. Use zeek::detail::init_class instead.")]] init_class { INIT_NONE, INIT_FULL, INIT_EXTRA, INIT_REMOVE, };
 enum [[deprecated("Remove in v4.1. Use zeek::detail::IDScope instead.")]] IDScope { SCOPE_FUNCTION, SCOPE_MODULE, SCOPE_GLOBAL };
@@ -201,7 +202,7 @@ const IntrusivePtr<zeek::detail::ID>& find(std::string_view name);
  * @param name  The identifier name to lookup
  * @return  The type of the identifier.
  */
-const IntrusivePtr<BroType>& find_type(std::string_view name);
+const IntrusivePtr<zeek::BroType>& find_type(std::string_view name);
 
 /**
  * Lookup an ID by its name and return its type (as cast to @c T).
@@ -257,17 +258,17 @@ IntrusivePtr<T> find_const(std::string_view name)
  */
 IntrusivePtr<Func> find_func(std::string_view name);
 
-extern IntrusivePtr<RecordType> conn_id;
-extern IntrusivePtr<RecordType> endpoint;
-extern IntrusivePtr<RecordType> connection;
-extern IntrusivePtr<RecordType> fa_file;
-extern IntrusivePtr<RecordType> fa_metadata;
-extern IntrusivePtr<EnumType> transport_proto;
-extern IntrusivePtr<TableType> string_set;
-extern IntrusivePtr<TableType> string_array;
-extern IntrusivePtr<TableType> count_set;
-extern IntrusivePtr<VectorType> string_vec;
-extern IntrusivePtr<VectorType> index_vec;
+extern IntrusivePtr<zeek::RecordType> conn_id;
+extern IntrusivePtr<zeek::RecordType> endpoint;
+extern IntrusivePtr<zeek::RecordType> connection;
+extern IntrusivePtr<zeek::RecordType> fa_file;
+extern IntrusivePtr<zeek::RecordType> fa_metadata;
+extern IntrusivePtr<zeek::EnumType> transport_proto;
+extern IntrusivePtr<zeek::TableType> string_set;
+extern IntrusivePtr<zeek::TableType> string_array;
+extern IntrusivePtr<zeek::TableType> count_set;
+extern IntrusivePtr<zeek::VectorType> string_vec;
+extern IntrusivePtr<zeek::VectorType> index_vec;
 
 namespace detail {
 

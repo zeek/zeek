@@ -14,9 +14,10 @@
 #include "WeirdState.h"
 
 class Connection;
-class RecordType;
 class RecordVal;
 class EventHandlerPtr;
+
+FORWARD_DECLARE_NAMESPACED(RecordType, zeek);
 
 namespace file_analysis {
 
@@ -336,8 +337,8 @@ protected:
 	 * @param type the record type for which the field will be looked up.
 	 * @return the field offset in #val record corresponding to \a field_name.
 	 */
-	static int Idx(const std::string& field_name, const RecordType* type);
-	static int Idx(const std::string& field_name, const IntrusivePtr<RecordType>& type)
+	static int Idx(const std::string& field_name, const zeek::RecordType* type);
+	static int Idx(const std::string& field_name, const IntrusivePtr<zeek::RecordType>& type)
 		{ return Idx(field_name, type.get()); }
 
 	/**

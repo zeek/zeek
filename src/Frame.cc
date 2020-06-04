@@ -175,7 +175,7 @@ Frame* Frame::Clone() const
 
 static bool val_is_func(const IntrusivePtr<Val>& v, BroFunc* func)
 	{
-	if ( v->GetType()->Tag() != TYPE_FUNC )
+	if ( v->GetType()->Tag() != zeek::TYPE_FUNC )
 		return false;
 
 	return v->AsFunc() == func;
@@ -333,7 +333,7 @@ broker::expected<broker::data> Frame::Serialize(const Frame* target, const id_li
 
 		const auto& val = target->frame[location].val;
 
-		TypeTag tag = val->GetType()->Tag();
+		zeek::TypeTag tag = val->GetType()->Tag();
 
 		auto expected = bro_broker::val_to_data(val.get());
 		if ( ! expected )
@@ -460,7 +460,7 @@ std::pair<bool, IntrusivePtr<Frame>> Frame::Unserialize(const broker::vector& da
 			return std::make_pair(false, nullptr);
 
 		broker::integer g = *has_type;
-		BroType t( static_cast<TypeTag>(g) );
+		zeek::BroType t( static_cast<zeek::TypeTag>(g) );
 
 		auto val = bro_broker::data_to_val(std::move(val_tuple[0]), &t);
 		if ( ! val )

@@ -4,19 +4,19 @@
 #include "threading/Manager.h"
 #include "broker/Manager.h"
 
-IntrusivePtr<RecordType> ProcStats;
-IntrusivePtr<RecordType> NetStats;
-IntrusivePtr<RecordType> MatcherStats;
-IntrusivePtr<RecordType> ReassemblerStats;
-IntrusivePtr<RecordType> DNSStats;
-IntrusivePtr<RecordType> ConnStats;
-IntrusivePtr<RecordType> GapStats;
-IntrusivePtr<RecordType> EventStats;
-IntrusivePtr<RecordType> ThreadStats;
-IntrusivePtr<RecordType> TimerStats;
-IntrusivePtr<RecordType> FileAnalysisStats;
-IntrusivePtr<RecordType> BrokerStats;
-IntrusivePtr<RecordType> ReporterStats;
+IntrusivePtr<zeek::RecordType> ProcStats;
+IntrusivePtr<zeek::RecordType> NetStats;
+IntrusivePtr<zeek::RecordType> MatcherStats;
+IntrusivePtr<zeek::RecordType> ReassemblerStats;
+IntrusivePtr<zeek::RecordType> DNSStats;
+IntrusivePtr<zeek::RecordType> ConnStats;
+IntrusivePtr<zeek::RecordType> GapStats;
+IntrusivePtr<zeek::RecordType> EventStats;
+IntrusivePtr<zeek::RecordType> ThreadStats;
+IntrusivePtr<zeek::RecordType> TimerStats;
+IntrusivePtr<zeek::RecordType> FileAnalysisStats;
+IntrusivePtr<zeek::RecordType> BrokerStats;
+IntrusivePtr<zeek::RecordType> ReporterStats;
 %%}
 
 ## Returns packet capture statistics. Statistics include the number of

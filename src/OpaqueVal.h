@@ -88,8 +88,8 @@ private:
 class OpaqueVal : public Val {
 public:
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
-	explicit OpaqueVal(OpaqueType* t);
-	explicit OpaqueVal(IntrusivePtr<OpaqueType> t);
+	explicit OpaqueVal(zeek::OpaqueType* t);
+	explicit OpaqueVal(IntrusivePtr<zeek::OpaqueType> t);
 	~OpaqueVal() override;
 
 	/**
@@ -148,13 +148,13 @@ protected:
 	 * Helper function for derived class that need to record a type
 	 * during serialization.
 	 */
-	static broker::expected<broker::data> SerializeType(const IntrusivePtr<BroType>& t);
+	static broker::expected<broker::data> SerializeType(const IntrusivePtr<zeek::BroType>& t);
 
 	/**
 	 * Helper function for derived class that need to restore a type
 	 * during unserialization. Returns the type at reference count +1.
 	 */
-	static IntrusivePtr<BroType> UnserializeType(const broker::data& data);
+	static IntrusivePtr<zeek::BroType> UnserializeType(const broker::data& data);
 };
 
 namespace probabilistic {
@@ -187,8 +187,8 @@ protected:
 	HashVal()	{ valid = false; }
 
 	[[deprecated("Remove in v4.1. Construct from IntrusivePtr instead.")]]
-	explicit HashVal(OpaqueType* t);
-	explicit HashVal(IntrusivePtr<OpaqueType> t);
+	explicit HashVal(zeek::OpaqueType* t);
+	explicit HashVal(IntrusivePtr<zeek::OpaqueType> t);
 
 	virtual bool DoInit();
 	virtual bool DoFeed(const void* data, size_t size);
@@ -304,10 +304,10 @@ public:
 
 	IntrusivePtr<Val> DoClone(CloneState* state) override;
 
-	const IntrusivePtr<BroType>& Type() const
+	const IntrusivePtr<zeek::BroType>& Type() const
 		{ return type; }
 
-	bool Typify(IntrusivePtr<BroType> type);
+	bool Typify(IntrusivePtr<zeek::BroType> type);
 
 	void Add(const Val* val);
 	size_t Count(const Val* val) const;
@@ -328,7 +328,7 @@ private:
 	BloomFilterVal(const BloomFilterVal&);
 	BloomFilterVal& operator=(const BloomFilterVal&);
 
-	IntrusivePtr<BroType> type;
+	IntrusivePtr<zeek::BroType> type;
 	CompositeHash* hash;
 	probabilistic::BloomFilter* bloom_filter;
 };
@@ -343,10 +343,10 @@ public:
 
 	void Add(const Val* val);
 
-	const IntrusivePtr<BroType>& Type() const
+	const IntrusivePtr<zeek::BroType>& Type() const
 		{ return type; }
 
-	bool Typify(IntrusivePtr<BroType> type);
+	bool Typify(IntrusivePtr<zeek::BroType> type);
 
 	probabilistic::CardinalityCounter* Get()	{ return c; };
 
@@ -355,7 +355,7 @@ protected:
 
 	DECLARE_OPAQUE_VALUE(CardinalityVal)
 private:
-	IntrusivePtr<BroType> type;
+	IntrusivePtr<zeek::BroType> type;
 	CompositeHash* hash;
 	probabilistic::CardinalityCounter* c;
 };

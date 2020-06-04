@@ -403,19 +403,19 @@ void ODesc::Clear()
 		}
 	}
 
-bool ODesc::PushType(const BroType* type)
+bool ODesc::PushType(const zeek::BroType* type)
 	{
 	auto res = encountered_types.insert(type);
 	return std::get<1>(res);
 	}
 
-bool ODesc::PopType(const BroType* type)
+bool ODesc::PopType(const zeek::BroType* type)
 	{
 	size_t res = encountered_types.erase(type);
 	return (res == 1);
 	}
 
-bool ODesc::FindType(const BroType* type)
+bool ODesc::FindType(const zeek::BroType* type)
 	{
 	auto res = encountered_types.find(type);
 

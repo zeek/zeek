@@ -19,7 +19,7 @@
 
 using namespace zeek::detail;
 
-static IntrusivePtr<Val> init_val(zeek::detail::Expr* init, const BroType* t,
+static IntrusivePtr<Val> init_val(zeek::detail::Expr* init, const zeek::BroType* t,
                                   IntrusivePtr<Val> aggr)
 	{
 	try
@@ -32,14 +32,14 @@ static IntrusivePtr<Val> init_val(zeek::detail::Expr* init, const BroType* t,
 		}
 	}
 
-static bool add_prototype(const IntrusivePtr<zeek::detail::ID>& id, BroType* t,
+static bool add_prototype(const IntrusivePtr<zeek::detail::ID>& id, zeek::BroType* t,
                           std::vector<IntrusivePtr<zeek::detail::Attr>>* attrs,
                           const IntrusivePtr<zeek::detail::Expr>& init)
 	{
-	if ( ! IsFunc(id->GetType()->Tag()) )
+	if ( ! zeek::IsFunc(id->GetType()->Tag()) )
 		return false;
 
-	if ( ! IsFunc(t->Tag()) )
+	if ( ! zeek::IsFunc(t->Tag()) )
 		{
 		t->Error("type incompatible with previous definition", id.get());
 		return false;
@@ -54,7 +54,7 @@ static bool add_prototype(const IntrusivePtr<zeek::detail::ID>& id, BroType* t,
 		return false;
 		}
 
-	if ( canon_ft->Flavor() == FUNC_FLAVOR_FUNCTION )
+	if ( canon_ft->Flavor() == zeek::FUNC_FLAVOR_FUNCTION )
 		{
 		alt_ft->Error("redeclaration of function", canon_ft);
 		return false;
@@ -105,12 +105,12 @@ static bool add_prototype(const IntrusivePtr<zeek::detail::ID>& id, BroType* t,
 			if ( a->Tag() == zeek::detail::ATTR_DEPRECATED )
 				deprecated = true;
 
-	FuncType::Prototype p{deprecated, alt_args, std::move(offsets)};
+	zeek::FuncType::Prototype p{deprecated, alt_args, std::move(offsets)};
 	canon_ft->AddPrototype(std::move(p));
 	return true;
 	}
 
-static void make_var(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<BroType> t,
+static void make_var(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<zeek::BroType> t,
                      zeek::detail::init_class c,
                      IntrusivePtr<zeek::detail::Expr> init,
                      std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attr,
@@ -119,7 +119,7 @@ static void make_var(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<BroT
 	{
 	if ( id->GetType() )
 		{
-		if ( id->IsRedefinable() || (! init && attr && ! IsFunc(id->GetType()->Tag())) )
+		if ( id->IsRedefinable() || (! init && attr && ! zeek::IsFunc(id->GetType()->Tag())) )
 			{
 			BroObj* redef_obj = init ? (BroObj*) init.get() : (BroObj*) t.get();
 			if ( dt != VAR_REDEF )
@@ -128,7 +128,7 @@ static void make_var(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<BroT
 
 		else if ( dt != VAR_REDEF || init || ! attr )
 			{
-			if ( IsFunc(id->GetType()->Tag()) )
+			if ( zeek::IsFunc(id->GetType()->Tag()) )
 				add_prototype(id, t.get(), attr.get(), init);
 			else
 				id->Error("already defined", init.get());
@@ -149,10 +149,10 @@ static void make_var(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<BroT
 			t = id->GetType();
 		}
 
-	if ( id->GetType() && id->GetType()->Tag() != TYPE_ERROR )
+	if ( id->GetType() && id->GetType()->Tag() != zeek::TYPE_ERROR )
 		{
 		if ( dt != VAR_REDEF &&
-		     (! init || ! do_init || (! t && ! (t = init_type(init.get())))) )
+ 		     (! init || ! do_init || (! t && ! (t = zeek::init_type(init.get())))) )
 			{
 			id->Error("already defined", init.get());
 			return;
@@ -168,7 +168,7 @@ static void make_var(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<BroT
 
 	if ( t && t->IsSet() )
 		{ // Check for set with explicit elements.
-		SetType* st = t->AsTableType()->AsSetType();
+		zeek::SetType* st = t->AsTableType()->AsSetType();
 		const auto& elements = st->Elements();
 
 		if ( elements )
@@ -191,10 +191,10 @@ static void make_var(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<BroT
 			return;
 			}
 
-		t = init_type(init.get());
+		t = zeek::init_type(init.get());
 		if ( ! t )
 			{
-			id->SetType(error_type());
+			id->SetType(zeek::error_type());
 			return;
 			}
 		}
@@ -245,9 +245,9 @@ static void make_var(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<BroT
 			{
 			IntrusivePtr<Val> aggr;
 
-			if ( t->Tag() == TYPE_RECORD )
+			if ( t->Tag() == zeek::TYPE_RECORD )
 				{
-				aggr = make_intrusive<RecordVal>(cast_intrusive<RecordType>(t));
+				aggr = make_intrusive<RecordVal>(cast_intrusive<zeek::RecordType>(t));
 
 				if ( init && t )
 					// Have an initialization and type is not deduced.
@@ -255,12 +255,12 @@ static void make_var(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<BroT
 					        IntrusivePtr{NewRef{}, t->AsRecordType()});
 				}
 
-			else if ( t->Tag() == TYPE_TABLE )
-				aggr = make_intrusive<TableVal>(cast_intrusive<TableType>(t),
+			else if ( t->Tag() == zeek::TYPE_TABLE )
+				aggr = make_intrusive<TableVal>(cast_intrusive<zeek::TableType>(t),
 				                                id->GetAttrs());
 
-			else if ( t->Tag() == TYPE_VECTOR )
-				aggr = make_intrusive<VectorVal>(cast_intrusive<VectorType>(t));
+			else if ( t->Tag() == zeek::TYPE_VECTOR )
+				aggr = make_intrusive<VectorVal>(cast_intrusive<zeek::VectorType>(t));
 
 			IntrusivePtr<Val> v;
 
@@ -297,9 +297,9 @@ static void make_var(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<BroT
 
 	id->UpdateValAttrs();
 
-	if ( t && t->Tag() == TYPE_FUNC &&
-	     (t->AsFuncType()->Flavor() == FUNC_FLAVOR_EVENT ||
-	      t->AsFuncType()->Flavor() == FUNC_FLAVOR_HOOK) )
+	if ( t && t->Tag() == zeek::TYPE_FUNC &&
+	     (t->AsFuncType()->Flavor() == zeek::FUNC_FLAVOR_EVENT ||
+	      t->AsFuncType()->Flavor() == zeek::FUNC_FLAVOR_HOOK) )
 		{
 		// For events, add a function value (without any body) here so that
 		// we can later access the ID even if no implementations have been
@@ -310,7 +310,7 @@ static void make_var(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<BroT
 		}
 	}
 
-void add_global(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<BroType> t,
+void add_global(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<zeek::BroType> t,
                 zeek::detail::init_class c, IntrusivePtr<zeek::detail::Expr> init,
                 std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attr,
                 decl_type dt)
@@ -318,7 +318,7 @@ void add_global(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<BroType> 
 	make_var(id, std::move(t), c, std::move(init), std::move(attr), dt, true);
 	}
 
-IntrusivePtr<zeek::detail::Stmt> add_local(IntrusivePtr<zeek::detail::ID> id, IntrusivePtr<BroType> t,
+IntrusivePtr<zeek::detail::Stmt> add_local(IntrusivePtr<zeek::detail::ID> id, IntrusivePtr<zeek::BroType> t,
                              zeek::detail::init_class c, IntrusivePtr<zeek::detail::Expr> init,
                              std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attr,
                              decl_type dt)
@@ -360,14 +360,14 @@ extern IntrusivePtr<zeek::detail::Expr> add_and_assign_local(IntrusivePtr<zeek::
 	                                                false, std::move(val));
 	}
 
-void add_type(zeek::detail::ID* id, IntrusivePtr<BroType> t,
+void add_type(zeek::detail::ID* id, IntrusivePtr<zeek::BroType> t,
               std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attr)
 	{
 	std::string new_type_name = id->Name();
 	std::string old_type_name = t->GetName();
-	IntrusivePtr<BroType> tnew;
+	IntrusivePtr<zeek::BroType> tnew;
 
-	if ( (t->Tag() == TYPE_RECORD || t->Tag() == TYPE_ENUM) &&
+	if ( (t->Tag() == zeek::TYPE_RECORD || t->Tag() == zeek::TYPE_ENUM) &&
 	     old_type_name.empty() )
 		// An extensible type (record/enum) being declared for first time.
 		tnew = std::move(t);
@@ -375,10 +375,10 @@ void add_type(zeek::detail::ID* id, IntrusivePtr<BroType> t,
 		// Clone the type to preserve type name aliasing.
 		tnew = t->ShallowClone();
 
-	BroType::AddAlias(new_type_name, tnew.get());
+	zeek::BroType::AddAlias(new_type_name, tnew.get());
 
 	if ( new_type_name != old_type_name && ! old_type_name.empty() )
-		BroType::AddAlias(old_type_name, tnew.get());
+		zeek::BroType::AddAlias(old_type_name, tnew.get());
 
 	tnew->SetName(id->Name());
 
@@ -389,12 +389,12 @@ void add_type(zeek::detail::ID* id, IntrusivePtr<BroType> t,
 		id->SetAttrs(make_intrusive<zeek::detail::Attributes>(std::move(*attr), tnew, false, false));
 	}
 
-static void transfer_arg_defaults(RecordType* args, RecordType* recv)
+static void transfer_arg_defaults(zeek::RecordType* args, zeek::RecordType* recv)
 	{
 	for ( int i = 0; i < args->NumFields(); ++i )
 		{
-		TypeDecl* args_i = args->FieldDecl(i);
-		TypeDecl* recv_i = recv->FieldDecl(i);
+		zeek::TypeDecl* args_i = args->FieldDecl(i);
+		zeek::TypeDecl* recv_i = recv->FieldDecl(i);
 
 		const auto& def = args_i->attrs ? args_i->attrs->Find(zeek::detail::ATTR_DEFAULT) : nullptr;
 
@@ -427,7 +427,7 @@ static zeek::detail::Attr* find_attr(const std::vector<IntrusivePtr<zeek::detail
 	return nullptr;
 	}
 
-static std::optional<FuncType::Prototype> func_type_check(const FuncType* decl, const FuncType* impl)
+static std::optional<zeek::FuncType::Prototype> func_type_check(const zeek::FuncType* decl, const zeek::FuncType* impl)
 	{
 	if ( decl->Flavor() != impl->Flavor() )
 		{
@@ -435,7 +435,7 @@ static std::optional<FuncType::Prototype> func_type_check(const FuncType* decl, 
 		return {};
 		}
 
-	if ( impl->Flavor() == FUNC_FLAVOR_FUNCTION )
+	if ( impl->Flavor() == zeek::FUNC_FLAVOR_FUNCTION )
 		{
 		if ( same_type(decl, impl) )
 			return decl->Prototypes()[0];
@@ -447,7 +447,7 @@ static std::optional<FuncType::Prototype> func_type_check(const FuncType* decl, 
 	return decl->FindPrototype(*impl->Params());
 	}
 
-static bool canonical_arg_types_match(const FuncType* decl, const FuncType* impl)
+static bool canonical_arg_types_match(const zeek::FuncType* decl, const zeek::FuncType* impl)
 	{
 	const auto& canon_args = decl->Params();
 	const auto& impl_args = impl->Params();
@@ -463,21 +463,21 @@ static bool canonical_arg_types_match(const FuncType* decl, const FuncType* impl
 	}
 
 void begin_func(IntrusivePtr<zeek::detail::ID> id, const char* module_name,
-                function_flavor flavor, bool is_redef,
-                IntrusivePtr<FuncType> t,
+                zeek::FunctionFlavor flavor, bool is_redef,
+                IntrusivePtr<zeek::FuncType> t,
                 std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attrs)
 	{
-	if ( flavor == FUNC_FLAVOR_EVENT )
+	if ( flavor == zeek::FUNC_FLAVOR_EVENT )
 		{
 		const auto& yt = t->Yield();
 
-		if ( yt && yt->Tag() != TYPE_VOID )
+		if ( yt && yt->Tag() != zeek::TYPE_VOID )
 			id->Error("event cannot yield a value", t.get());
 
 		t->ClearYieldType(flavor);
 		}
 
-	std::optional<FuncType::Prototype> prototype;
+	std::optional<zeek::FuncType::Prototype> prototype;
 
 	if ( id->GetType() )
 		{
@@ -486,7 +486,7 @@ void begin_func(IntrusivePtr<zeek::detail::ID> id, const char* module_name,
 
 		if ( prototype )
 			{
-			if ( decl->Flavor() == FUNC_FLAVOR_FUNCTION )
+			if ( decl->Flavor() == zeek::FUNC_FLAVOR_FUNCTION )
 				{
 				// If a previous declaration of the function had &default
 				// params, automatically transfer any that are missing
@@ -535,21 +535,21 @@ void begin_func(IntrusivePtr<zeek::detail::ID> id, const char* module_name,
 
 	if ( id->HasVal() )
 		{
-		function_flavor id_flavor = id->GetVal()->AsFunc()->Flavor();
+		zeek::FunctionFlavor id_flavor = id->GetVal()->AsFunc()->Flavor();
 
 		if ( id_flavor != flavor )
 			id->Error("inconsistent function flavor", t.get());
 
 		switch ( id_flavor ) {
 
-		case FUNC_FLAVOR_EVENT:
-		case FUNC_FLAVOR_HOOK:
+		case zeek::FUNC_FLAVOR_EVENT:
+		case zeek::FUNC_FLAVOR_HOOK:
 			if ( is_redef )
 				// Clear out value so it will be replaced.
 				id->SetVal(nullptr);
 			break;
 
-		case FUNC_FLAVOR_FUNCTION:
+		case zeek::FUNC_FLAVOR_FUNCTION:
 			if ( ! id->IsRedefinable() )
 				id->Error("already defined");
 			break;
@@ -569,7 +569,7 @@ void begin_func(IntrusivePtr<zeek::detail::ID> id, const char* module_name,
 
 	for ( int i = 0; i < num_args; ++i )
 		{
-		TypeDecl* arg_i = args->FieldDecl(i);
+		zeek::TypeDecl* arg_i = args->FieldDecl(i);
 		auto arg_id = lookup_ID(arg_i->id, module_name);
 
 		if ( arg_id && ! arg_id->IsGlobal() )
@@ -752,7 +752,7 @@ ListVal* internal_list_val(const char* name)
 
 	if ( v )
 		{
-		if ( v->GetType()->Tag() == TYPE_LIST )
+		if ( v->GetType()->Tag() == zeek::TYPE_LIST )
 			return (ListVal*) v;
 
 		else if ( v->GetType()->IsSet() )
@@ -769,7 +769,7 @@ ListVal* internal_list_val(const char* name)
 	return nullptr;
 	}
 
-BroType* internal_type(const char* name)
+zeek::BroType* internal_type(const char* name)
 	{
 	return zeek::id::find_type(name).get();
 	}

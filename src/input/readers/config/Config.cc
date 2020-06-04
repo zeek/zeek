@@ -35,18 +35,18 @@ Config::Config(ReaderFrontend *frontend) : ReaderBackend(frontend)
 		if ( ! id->IsOption() )
 			continue;
 
-		if ( id->GetType()->Tag() == TYPE_RECORD ||
+		if ( id->GetType()->Tag() == zeek::TYPE_RECORD ||
 			 ! input::Manager::IsCompatibleType(id->GetType().get()) )
 			{
-			option_types[id->Name()] = std::make_tuple(TYPE_ERROR, id->GetType()->Tag());
+			option_types[id->Name()] = std::make_tuple(zeek::TYPE_ERROR, id->GetType()->Tag());
 			continue;
 			}
 
-		TypeTag primary = id->GetType()->Tag();
-		TypeTag secondary = TYPE_VOID;
-		if ( primary == TYPE_TABLE )
+		zeek::TypeTag primary = id->GetType()->Tag();
+		zeek::TypeTag secondary = zeek::TYPE_VOID;
+		if ( primary == zeek::TYPE_TABLE )
 			secondary = id->GetType()->AsSetType()->GetIndices()->GetPureType()->Tag();
-		else if ( primary == TYPE_VECTOR )
+		else if ( primary == zeek::TYPE_VECTOR )
 			secondary = id->GetType()->AsVectorType()->Yield()->Tag();
 
 		option_types[id->Name()] = std::make_tuple(primary, secondary);
@@ -209,9 +209,10 @@ bool Config::DoUpdate()
 			continue;
 			}
 
-		if ( std::get<0>((*typeit).second) == TYPE_ERROR )
+		if ( std::get<0>((*typeit).second) == zeek::TYPE_ERROR )
 			{
-			Warning(Fmt("Option '%s' has type '%s', which is not supported for file input. Ignoring line.", key.c_str(), type_name(std::get<1>((*typeit).second))));
+			Warning(Fmt("Option '%s' has type '%s', which is not supported for file input. Ignoring line.",
+			            key.c_str(), zeek::type_name(std::get<1>((*typeit).second))));
 			continue;
 			}
 
@@ -244,11 +245,11 @@ bool Config::DoUpdate()
 
 			{
 			Value** fields = new Value*[2];
-			Value* keyval = new threading::Value(TYPE_STRING, true);
+			Value* keyval = new threading::Value(zeek::TYPE_STRING, true);
 			keyval->val.string_val.length = key.size();
 			keyval->val.string_val.data = copy_string(key.c_str());
 			fields[0] = keyval;
-			Value* val = new threading::Value(TYPE_STRING, true);
+			Value* val = new threading::Value(zeek::TYPE_STRING, true);
 			val->val.string_val.length = value.size();
 			val->val.string_val.data = copy_string(value.c_str());
 			fields[1] = val;
@@ -261,13 +262,13 @@ bool Config::DoUpdate()
 
 			{
 			Value** vals = new Value*[4];
-			vals[0] = new Value(TYPE_STRING, true);
+			vals[0] = new Value(zeek::TYPE_STRING, true);
 			vals[0]->val.string_val.data = copy_string(Info().name);
 			vals[0]->val.string_val.length = strlen(Info().name);
-			vals[1] = new Value(TYPE_STRING, true);
+			vals[1] = new Value(zeek::TYPE_STRING, true);
 			vals[1]->val.string_val.data = copy_string(Info().source);
 			vals[1]->val.string_val.length = strlen(Info().source);
-			vals[2] = new Value(TYPE_STRING, true);
+			vals[2] = new Value(zeek::TYPE_STRING, true);
 			vals[2]->val.string_val.data = copy_string(key.c_str());
 			vals[2]->val.string_val.length = key.size();
 			vals[3] = eventval;

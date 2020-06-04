@@ -58,37 +58,37 @@ string SQLite::GetTableType(int arg_type, int arg_subtype) {
 	string type;
 
 	switch ( arg_type ) {
-	case TYPE_BOOL:
+	case zeek::TYPE_BOOL:
 		type = "boolean";
 		break;
 
-	case TYPE_INT:
-	case TYPE_COUNT:
-	case TYPE_COUNTER:
-	case TYPE_PORT: // note that we do not save the protocol at the moment. Just like in the case of the ascii-writer
+	case zeek::TYPE_INT:
+	case zeek::TYPE_COUNT:
+	case zeek::TYPE_COUNTER:
+	case zeek::TYPE_PORT: // note that we do not save the protocol at the moment. Just like in the case of the ascii-writer
 		type = "integer";
 		break;
 
-	case TYPE_SUBNET:
-	case TYPE_ADDR:
+	case zeek::TYPE_SUBNET:
+	case zeek::TYPE_ADDR:
 		type = "text"; // sqlite3 does not have a type for internet addresses
 		break;
 
-	case TYPE_TIME:
-	case TYPE_INTERVAL:
-	case TYPE_DOUBLE:
+	case zeek::TYPE_TIME:
+	case zeek::TYPE_INTERVAL:
+	case zeek::TYPE_DOUBLE:
 		type = "double precision";
 		break;
 
-	case TYPE_ENUM:
-	case TYPE_STRING:
-	case TYPE_FILE:
-	case TYPE_FUNC:
+	case zeek::TYPE_ENUM:
+	case zeek::TYPE_STRING:
+	case zeek::TYPE_FILE:
+	case zeek::TYPE_FUNC:
 		type = "text";
 		break;
 
-	case TYPE_TABLE:
-	case TYPE_VECTOR:
+	case zeek::TYPE_TABLE:
+	case zeek::TYPE_VECTOR:
 		type = "text"; // dirty - but sqlite does not directly support arrays. so - we just roll it into a ","-separated string.
 		break;
 
@@ -243,40 +243,40 @@ int SQLite::AddParams(Value* val, int pos)
 		return sqlite3_bind_null(st, pos);
 
 	switch ( val->type ) {
-	case TYPE_BOOL:
+	case zeek::TYPE_BOOL:
 		return sqlite3_bind_int(st, pos, val->val.int_val != 0 ? 1 : 0 );
 
-	case TYPE_INT:
+	case zeek::TYPE_INT:
 		return sqlite3_bind_int(st, pos, val->val.int_val);
 
-	case TYPE_COUNT:
-	case TYPE_COUNTER:
+	case zeek::TYPE_COUNT:
+	case zeek::TYPE_COUNTER:
 		return sqlite3_bind_int(st, pos, val->val.uint_val);
 
-	case TYPE_PORT:
+	case zeek::TYPE_PORT:
 		return sqlite3_bind_int(st, pos, val->val.port_val.port);
 
-	case TYPE_SUBNET:
+	case zeek::TYPE_SUBNET:
 		{
 		string out = io->Render(val->val.subnet_val);
 		return sqlite3_bind_text(st, pos, out.data(), out.size(), SQLITE_TRANSIENT);
 		}
 
-	case TYPE_ADDR:
+	case zeek::TYPE_ADDR:
 		{
 		string out = io->Render(val->val.addr_val);
 		return sqlite3_bind_text(st, pos, out.data(), out.size(), SQLITE_TRANSIENT);
 		}
 
-	case TYPE_TIME:
-	case TYPE_INTERVAL:
-	case TYPE_DOUBLE:
+	case zeek::TYPE_TIME:
+	case zeek::TYPE_INTERVAL:
+	case zeek::TYPE_DOUBLE:
 		return sqlite3_bind_double(st, pos, val->val.double_val);
 
-	case TYPE_ENUM:
-	case TYPE_STRING:
-	case TYPE_FILE:
-	case TYPE_FUNC:
+	case zeek::TYPE_ENUM:
+	case zeek::TYPE_STRING:
+	case zeek::TYPE_FILE:
+	case zeek::TYPE_FUNC:
 		{
 		if ( ! val->val.string_val.length || val->val.string_val.length == 0 )
 			return sqlite3_bind_null(st, pos);
@@ -284,7 +284,7 @@ int SQLite::AddParams(Value* val, int pos)
 		return sqlite3_bind_text(st, pos, val->val.string_val.data, val->val.string_val.length, SQLITE_TRANSIENT);
 		}
 
-	case TYPE_TABLE:
+	case zeek::TYPE_TABLE:
 		{
 		ODesc desc;
 		desc.Clear();
@@ -306,7 +306,7 @@ int SQLite::AddParams(Value* val, int pos)
 		return sqlite3_bind_text(st, pos, (const char*) desc.Bytes(), desc.Len(), SQLITE_TRANSIENT);
 		}
 
-	case TYPE_VECTOR:
+	case zeek::TYPE_VECTOR:
 		{
 		ODesc desc;
 		desc.Clear();
@@ -367,4 +367,3 @@ bool SQLite::DoRotate(const char* rotated_path, double open, double close, bool 
 
 	return true;
         }
-

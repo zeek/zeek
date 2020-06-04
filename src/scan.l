@@ -47,7 +47,7 @@ struct ZeekINode {
 }
 
 extern YYLTYPE yylloc;	// holds start line and column of token
-extern EnumType* cur_enum_type;
+extern zeek::EnumType* cur_enum_type;
 
 // Track the @if... depth.
 ptr_compat_int current_depth = 0;
@@ -1005,7 +1005,7 @@ int yywrap()
 			const auto& param_id = lookup_ID(param, GLOBAL_MODULE_NAME);
 			Val* v = param_id ? param_id->GetVal().get() : nullptr;
 
-			if ( v && v->GetType() && v->GetType()->Tag() == TYPE_STRING )
+			if ( v && v->GetType() && v->GetType()->Tag() == zeek::TYPE_STRING )
 				opt_quote = "\"";	// use quotes
 
 			policy += std::string("redef ") + param + "="

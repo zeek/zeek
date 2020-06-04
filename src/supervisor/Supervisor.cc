@@ -1172,7 +1172,7 @@ IntrusivePtr<RecordVal> Supervisor::Node::ToRecord() const
 
 static IntrusivePtr<Val> supervisor_role_to_cluster_node_type(BifEnum::Supervisor::ClusterRole role)
 	{
-	static auto node_type = zeek::id::find_type<EnumType>("Cluster::NodeType");
+	static auto node_type = zeek::id::find_type<zeek::EnumType>("Cluster::NodeType");
 
 	switch ( role ) {
 	case BifEnum::Supervisor::LOGGER:
@@ -1193,7 +1193,7 @@ bool Supervisor::SupervisedNode::InitCluster() const
 	if ( config.cluster.empty() )
 		return false;
 
-	const auto& cluster_node_type = zeek::id::find_type<RecordType>("Cluster::Node");
+	const auto& cluster_node_type = zeek::id::find_type<zeek::RecordType>("Cluster::Node");
 	const auto& cluster_nodes_id = zeek::id::find("Cluster::nodes");
 	const auto& cluster_manager_is_logger_id = zeek::id::find("Cluster::manager_is_logger");
 	auto cluster_nodes = cluster_nodes_id->GetVal()->AsTableVal();

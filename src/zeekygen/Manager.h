@@ -2,20 +2,21 @@
 
 #pragma once
 
-#include "Configuration.h"
-
-#include "Reporter.h"
-#include "ID.h"
-
+#include <sys/stat.h>
+#include <errno.h>
 #include <string>
 #include <vector>
 #include <map>
 #include <ctime>
-#include <sys/stat.h>
-#include <errno.h>
+
+#include "Configuration.h"
+
+#include "Reporter.h"
+#include "ID.h"
+#include "util.h"
 
 template <class T> class IntrusivePtr;
-class TypeDecl;
+FORWARD_DECLARE_NAMESPACED(TypeDecl, zeek);
 
 namespace zeekygen {
 
@@ -128,7 +129,7 @@ public:
 	 * declared.  This can be different from the place where the record type
 	 * is declared due to redefs.
 	 */
-	void RecordField(const zeek::detail::ID* id, const TypeDecl* field,
+	void RecordField(const zeek::detail::ID* id, const zeek::TypeDecl* field,
 	                 const std::string& path);
 
 	/**

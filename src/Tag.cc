@@ -4,7 +4,7 @@
 #include "Val.h"
 #include "IntrusivePtr.h"
 
-Tag::Tag(const IntrusivePtr<EnumType>& etype, type_t arg_type, subtype_t arg_subtype)
+Tag::Tag(const IntrusivePtr<zeek::EnumType>& etype, type_t arg_type, subtype_t arg_subtype)
 	{
 	assert(arg_type > 0);
 
@@ -14,7 +14,7 @@ Tag::Tag(const IntrusivePtr<EnumType>& etype, type_t arg_type, subtype_t arg_sub
 	val = etype->GetVal(i);
 	}
 
-Tag::Tag(EnumType* etype, type_t arg_type, subtype_t arg_subtype)
+Tag::Tag(zeek::EnumType* etype, type_t arg_type, subtype_t arg_subtype)
 	: Tag({NewRef{}, etype}, arg_type, arg_subtype)
 	{ }
 
@@ -73,7 +73,7 @@ Tag& Tag::operator=(const Tag&& other) noexcept
 	return *this;
 	}
 
-const IntrusivePtr<EnumVal>& Tag::AsVal(const IntrusivePtr<EnumType>& etype) const
+const IntrusivePtr<EnumVal>& Tag::AsVal(const IntrusivePtr<zeek::EnumType>& etype) const
 	{
 	if ( ! val )
 		{
@@ -84,7 +84,7 @@ const IntrusivePtr<EnumVal>& Tag::AsVal(const IntrusivePtr<EnumType>& etype) con
 	return val;
 	}
 
-EnumVal* Tag::AsEnumVal(EnumType* etype) const
+EnumVal* Tag::AsEnumVal(zeek::EnumType* etype) const
 	{
 	return AsVal({NewRef{}, etype}).get();
 	}

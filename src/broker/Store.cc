@@ -5,11 +5,11 @@
 
 namespace bro_broker {
 
-IntrusivePtr<OpaqueType> opaque_of_store_handle;
+IntrusivePtr<zeek::OpaqueType> opaque_of_store_handle;
 
 IntrusivePtr<EnumVal> query_status(bool success)
 	{
-	static EnumType* store_query_status = nullptr;
+	static zeek::EnumType* store_query_status = nullptr;
 	static int success_val;
 	static int failure_val;
 

@@ -119,4 +119,3 @@ refine typeattr DHCP_Message += &let {
 refine typeattr Option += &let {
 	proc_create_options = $context.flow.create_options(code);
 };
-

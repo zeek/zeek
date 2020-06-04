@@ -30,9 +30,8 @@ union ZAMValUnion {
 	// Constructor for hand-populating the values.
 	ZAMValUnion() { void_val = nullptr; }
 
-	// Construct from a given Bro value with a given type.  TODO: Takes
-	// ownership of the given Val or Unref()'s it if not further needed.
-	ZAMValUnion(Val* v, BroType* t, const BroObj* o, bool& error_flag);
+	// Construct from a given Bro value with a given type.
+	ZAMValUnion(IntrusivePtr<Val> v, BroType* t);
 
 	// True if when interpreting the value as having the given type,
 	// it's a nil pointer.
@@ -497,9 +496,9 @@ public:
 };
 
 // Converts between VectorVals and ZAM vectors.
-extern ZAMVector* to_ZAM_vector(Val* vec);
-extern IntrusivePtr<ZAM_vector> to_raw_ZAM_vector(Val* vec);
+extern ZAMVector* to_ZAM_vector(const IntrusivePtr<Val>& vec);
+extern IntrusivePtr<ZAM_vector> to_raw_ZAM_vector(const IntrusivePtr<Val>& vec);
 
 // Likewise for RecordVals, but due to lazy loading, no need for "raw"
 // vectors.
-extern ZAMRecord* to_ZAM_record(Val* rec);
+extern ZAMRecord* to_ZAM_record(const IntrusivePtr<Val>& rec);

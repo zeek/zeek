@@ -12,7 +12,7 @@ op-type X
 set-type $1
 set-expr $2
 eval auto v = frame[z.v2].ToVal(z.e->Type().get())->Clone();
-eval AssignV1(BuildVal(v, z.t, z.stmt));
+eval AssignV1(BuildVal(v, z.t));
 
 unary-expr-op Size
 no-const
@@ -37,7 +37,7 @@ eval_T $$.uint_val = $1->Size()
 #
 eval_V $$.uint_val = $1->Size()
 #
-eval auto v = frame[z.v2].ToVal(z.e->Type().get())->SizeVal(); frame[z.v1] = BuildVal(v, z.t, z.stmt);
+eval auto v = frame[z.v2].ToVal(z.e->Type().get())->SizeVal(); frame[z.v1] = BuildVal(v, z.t);
 
 unary-expr-op Not
 op-type I
@@ -93,8 +93,8 @@ op-type X
 eval const char* error;
 eval auto rv = frame[z.v2].record_val;
 eval auto res = flatten_value(rv->ToRecordVal().get(), z.v3, error);
-eval if ( error ) ZAM_run_time_error(error_flag, z.stmt, error);
-eval else frame[z.v1].record_val = to_ZAM_record(res.get());
+eval if ( error ) ZAM_run_time_error(z.stmt, error);
+eval else frame[z.v1].record_val = to_ZAM_record(res);
 
 unary-expr-op Cast
 op-type X
@@ -103,8 +103,8 @@ set-expr $2
 eval const char* error;
 eval auto rhs = frame[z.v2].ToVal(z.e->Type().get()).get();
 eval auto res = cast_value(rhs, z.t, error);
-eval if ( error ) ZAM_run_time_error(error_flag, z.stmt, error);
-eval else AssignV1(BuildVal(res, z.t, z.stmt));
+eval if ( error ) ZAM_run_time_error(z.stmt, error);
+eval else AssignV1(BuildVal(res, z.t));
 
 # Cast an "any" type to the given type.  Only needed for type-based swith
 # statements.
@@ -112,8 +112,8 @@ internal-op Cast-Any
 type VV
 eval const char* error
 eval auto res = cast_value(frame[z.v2].any_val, z.t, error)
-eval if ( error ) ZAM_run_time_error(error_flag, z.stmt, error)
-eval else AssignV1(BuildVal(res, z.t, z.stmt));
+eval if ( error ) ZAM_run_time_error(z.stmt, error)
+eval else AssignV1(BuildVal(res, z.t));
 
 direct-unary-op Is Is
 
@@ -140,7 +140,8 @@ vector
 eval $1 - $2
 #
 eval_T auto v = $1->Clone()
-eval_T $$ = TrackValPtr(v)->AsTableVal()
+eval_T Unref($$)
+eval_T $$ = v->AsTableVal()
 eval_T $2->RemoveFrom($$)
 
 binary-expr-op Times
@@ -153,7 +154,7 @@ op-type I U D
 set-expr $1
 vector
 #
-eval-pre if ( $2 == 0 ) { ZAM_run_time_error(error_flag, z.stmt, "division by zero"); break; }
+eval-pre if ( $2 == 0 ) { ZAM_run_time_error(z.stmt, "division by zero"); break; }
 eval $1 / $2
 #
 eval-mixed A I auto mask = static_cast<uint32_t>($2)
@@ -168,7 +169,7 @@ eval-mixed A I /* Note, $$ is ignored but mentioned here so templator backs off 
 binary-expr-op Mod
 op-type I U
 vector
-eval-pre if ( $2 == 0 ) { ZAM_run_time_error(error_flag, z.stmt, "modulo by zero"); break; }
+eval-pre if ( $2 == 0 ) { ZAM_run_time_error(z.stmt, "modulo by zero"); break; }
 eval $1 % $2
 
 binary-expr-op And-And
@@ -186,8 +187,9 @@ op-type U P T
 vector
 eval $1 & $2
 #
-eval_P auto p = make_intrusive<PatternVal>(RE_Matcher_conjunction($1->AsPattern(), $2->AsPattern()))
-eval_P $$ = TrackValPtr(p)
+eval_P auto p = new PatternVal(RE_Matcher_conjunction($1->AsPattern(), $2->AsPattern()))
+eval_P delete $$
+eval_P $$ = p
 #
 eval_T $$ = $1->Intersect($2)
 
@@ -196,11 +198,13 @@ op-type U P T
 vector
 eval $1 | $2
 #
-eval_P auto p = make_intrusive<PatternVal>(RE_Matcher_disjunction($1->AsPattern(), $2->AsPattern()))
-eval_P $$ = TrackValPtr(p)
+eval_P auto p = new PatternVal(RE_Matcher_disjunction($1->AsPattern(), $2->AsPattern()))
+eval_P delete $$
+eval_P $$ = p
 #
 eval_T auto v = $1->Clone()
-eval_T $$ = TrackValPtr(v)->AsTableVal()
+eval_T delete $$
+eval_T $$ = v->AsTableVal()
 eval_T (void) $2->AddTo($$, false, false)
 
 binary-expr-op Xor
@@ -267,8 +271,8 @@ eval_A ! (*$1 < *$2) && *$1 != *$2
 assign-op Field
 type R
 eval auto rv = $2.record_val
-eval auto v = rv->Lookup(z.v3, error_flag)
-eval if ( error_flag ) z.e->RuntimeError("field value missing")
+eval auto v = rv->Lookup(z.v3, ZAM_error)
+eval if ( ZAM_error ) z.e->RuntimeError("field value missing")
 eval else @v
 
 expr-op Has-Field
@@ -409,14 +413,14 @@ op IndexVecBoolSelect
 type VVV
 set-type $1
 eval if ( frame[z.v2].vector_val->Size() != frame[z.v3].vector_val->Size() ) {
-eval	ZAM_run_time_error(error_flag, z.stmt, "size mismatch, boolean index and vector")
+eval	ZAM_run_time_error(z.stmt, "size mismatch, boolean index and vector")
 eval	break; }
 eval auto vt = z.t->AsVectorType()
 eval auto v2 = frame[z.v2].ToVector(vt)
 eval auto v3 = frame[z.v3].ToVector(vt)
 eval auto v = vector_bool_select(vt, v2.get(), v3.get())
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = to_ZAM_vector(v.get())
+eval frame[z.v1].vector_val = to_ZAM_vector(v)
 
 op IndexVecIntSelect
 type VVV
@@ -426,7 +430,7 @@ eval auto v2 = frame[z.v2].ToVector(vt)
 eval auto v3 = frame[z.v3].ToVector(vt)
 eval auto v = vector_int_select(vt, v2.get(), v3.get())
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = to_ZAM_vector(v.get())
+eval frame[z.v1].vector_val = to_ZAM_vector(v)
 
 op Index
 type VVL
@@ -437,7 +441,7 @@ type VVV
 eval auto vv = frame[z.v2].vector_val
 eval auto& vec = vv->ConstVec()
 eval auto ind = frame[z.v3].uint_val
-eval if ( ind >= vv->Size() ) ZAM_run_time_error(error_flag, z.stmt, "no such index")
+eval if ( ind >= vv->Size() ) ZAM_run_time_error(z.stmt, "no such index")
 eval AssignV1(CopyVal(vec[ind]))
 
 internal-op Index-VecC
@@ -445,7 +449,7 @@ type VVV
 eval auto vv = frame[z.v2].vector_val
 eval auto& vec = vv->ConstVec()
 eval auto ind = z.v3
-eval if ( ind >= vv->Size() ) ZAM_run_time_error(error_flag, z.stmt, "no such index")
+eval if ( ind >= vv->Size() ) ZAM_run_time_error(z.stmt, "no such index")
 eval AssignV1(CopyVal(vec[ind]))
 
 internal-op Index-Vec
@@ -455,7 +459,7 @@ eval auto vec = frame[z.v2].ToVector(z.t)
 eval auto lv = frame[z.v3].list_val
 eval auto v = vec->Lookup(lv)
 eval Unref(lv)
-eval AssignV1T(BuildVal(v, yt, z.stmt), yt)
+eval AssignV1T(BuildVal(v, yt), yt)
 
 internal-op Index-Vec-Slice
 type VVL
@@ -465,15 +469,15 @@ eval auto lv = frame[z.v3].list_val
 eval auto v = vector_index(vt, vec.get(), lv)
 eval Unref(lv)
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = to_ZAM_vector(v.get())
+eval frame[z.v1].vector_val = to_ZAM_vector(v)
 
 internal-op Table-Index
 type VVV
 eval auto v2 = frame[z.v3].list_val
 eval auto v = frame[z.v2].table_val->Lookup(v2)
 eval Unref(v2)
-eval if ( ! v ) ZAM_run_time_error(error_flag, z.stmt, "no such index")
-eval AssignV1(BuildVal(v, z.t, z.stmt))
+eval if ( ! v ) ZAM_run_time_error(z.stmt, "no such index")
+eval AssignV1(BuildVal(v, z.t))
 
 # This version is for a variable v3.
 internal-op Index-String
@@ -513,8 +517,8 @@ eval auto lv = frame[z.v2].any_val->AsRecordVal()->AsNonConstRecord()
 eval auto elem = lv->NthField(z.v3)
 eval if ( ! elem ) reporter->InternalError("failure to load \"any\" element");
 eval if ( CheckAnyType(elem->Type(), z.t, z.stmt) ) {
-eval	AssignV1(BuildVal(elem, z.t, z.stmt))
-eval } else error_flag = true
+eval	AssignV1(BuildVal(elem, z.t))
+eval } else ZAM_error = true
 
 
 ########## Constructors ##########
@@ -537,7 +541,7 @@ direct-unary-op Arith-Coerce ArithCoerce
 internal-op Coerce-UI
 type VV
 eval auto v = frame[z.v2].int_val
-eval if ( v < 0 ) { ZAM_run_time_error(error_flag, z.stmt, "underflow converting int to count"); break; }
+eval if ( v < 0 ) { ZAM_run_time_error(z.stmt, "underflow converting int to count"); break; }
 eval frame[z.v1].uint_val = bro_uint_t(v)
 
 internal-op Coerce-UI-Vec
@@ -548,8 +552,8 @@ eval frame[z.v1].vector_val = vec_coerce_UI(frame[z.v2].vector_val)
 internal-op Coerce-UD
 type VV
 eval auto v = frame[z.v2].double_val
-eval if ( v < 0.0 ) { ZAM_run_time_error(error_flag, z.stmt, "underflow converting double to count"); break; }
-eval if ( v > UINT64_MAX ) { ZAM_run_time_error(error_flag, z.stmt, "overflow converting double to count"); break; }
+eval if ( v < 0.0 ) { ZAM_run_time_error(z.stmt, "underflow converting double to count"); break; }
+eval if ( v > UINT64_MAX ) { ZAM_run_time_error(z.stmt, "overflow converting double to count"); break; }
 eval frame[z.v1].uint_val = bro_uint_t(v)
 
 internal-op Coerce-UD-Vec
@@ -560,7 +564,7 @@ eval frame[z.v1].vector_val = vec_coerce_UD(frame[z.v2].vector_val)
 internal-op Coerce-IU
 type VV
 eval auto v = frame[z.v2].uint_val
-eval if ( v > INT64_MAX ) { ZAM_run_time_error(error_flag, z.stmt, "overflow converting count to int"); break; }
+eval if ( v > INT64_MAX ) { ZAM_run_time_error(z.stmt, "overflow converting count to int"); break; }
 eval frame[z.v1].int_val = bro_int_t(v)
 
 internal-op Coerce-IU-Vec
@@ -571,8 +575,8 @@ eval frame[z.v1].vector_val = vec_coerce_IU(frame[z.v2].vector_val)
 internal-op Coerce-ID
 type VV
 eval auto v = frame[z.v2].double_val
-eval if ( v < static_cast<double>(INT64_MIN) ) { ZAM_run_time_error(error_flag, z.stmt, "underflow converting double to int"); break; }
-eval if ( v > static_cast<double>(INT64_MAX) ) { ZAM_run_time_error(error_flag, z.stmt, "overflow converting double to int"); break; }
+eval if ( v < static_cast<double>(INT64_MIN) ) { ZAM_run_time_error(z.stmt, "underflow converting double to int"); break; }
+eval if ( v > static_cast<double>(INT64_MAX) ) { ZAM_run_time_error(z.stmt, "overflow converting double to int"); break; }
 eval frame[z.v1].int_val = bro_int_t(v)
 
 internal-op Coerce-ID-Vec
@@ -607,14 +611,14 @@ eval auto v = frame[z.v2].record_val->ToRecordVal()
 eval auto map = z.int_ptr
 eval auto map_size = z.v3
 eval auto to_r = coerce_to_record(rt, v.get(), map, map_size)
-eval frame[z.v1].record_val = to_ZAM_record(to_r.get())
+eval frame[z.v1].record_val = to_ZAM_record(to_r)
 
 direct-unary-op Table-Coerce TableCoerce
 
 internal-op Table-Coerce
 type VV
 eval auto tv = frame[z.v2].table_val
-eval if ( tv->Size() > 0 ) { ZAM_run_time_error(error_flag, z.stmt, "coercion of non-empty table/set"); break; }
+eval if ( tv->Size() > 0 ) { ZAM_run_time_error(z.stmt, "coercion of non-empty table/set"); break; }
 eval IntrusivePtr<TableType> tt = {NewRef{}, z.t->AsTableType()}
 eval IntrusivePtr<Attributes> attrs = {NewRef{}, tv->Attrs()}
 eval auto t = make_intrusive<TableVal>(tt, attrs)
@@ -624,19 +628,19 @@ direct-unary-op Vector-Coerce VectorCoerce
 
 internal-op Vector-Coerce
 type VV
-eval if ( frame[z.v2].vector_val->Size() > 0 ) { ZAM_run_time_error(error_flag, z.stmt, "coercion of non-empty vector"); break; }
+eval if ( frame[z.v2].vector_val->Size() > 0 ) { ZAM_run_time_error(z.stmt, "coercion of non-empty vector"); break; }
 eval auto t = z.t->Ref()->AsVectorType();
 eval auto vv_p = make_intrusive<VectorVal>(t)
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = to_ZAM_vector(vv_p.get())
+eval frame[z.v1].vector_val = to_ZAM_vector(vv_p)
 
 unary-expr-op To-Any-Coerce
 set-type $2
-eval ZAMValUnion(TrackVal($1.ToVal(z.t).release()), base_type_no_ref(TYPE_ANY), nullptr, error_flag)
+eval ZAMValUnion($1.ToVal(z.t), base_type_no_ref(TYPE_ANY))
 
 unary-expr-op From-Any-Coerce
 set-type $1
-eval ZAMValUnion(TrackVal($1.any_val->Ref()), z.t, nullptr, error_flag)
+eval ZAMValUnion({NewRef{}, $1.any_val}, z.t)
 
 
 ########## Aggregate Assignments ##########
@@ -656,7 +660,7 @@ eval auto ind = frame[z.v2].uint_val
 eval auto vv = frame[z.v1].vector_val
 eval vv->SetYieldType(z.t)
 eval auto any_v = frame[z.v3].any_val
-eval auto any_z = ZAMValUnion(any_v, any_v->Type(), nullptr, error_flag)
+eval auto any_z = ZAMValUnion({NewRef{}, any_v}, any_v->Type())
 eval vv->SetElement(ind, any_z)
 
 op Vector-Elem-Assign
@@ -681,7 +685,7 @@ type VVi
 eval auto vv = frame[z.v1].vector_val
 eval vv->SetYieldType(z.t)
 eval auto any_v = frame[z.v2].any_val
-eval auto any_z = ZAMValUnion(any_v, any_v->Type(), nullptr, error_flag)
+eval auto any_z = ZAMValUnion({NewRef{}, any_v}, any_v->Type())
 eval vv->SetElement(z.v3, any_z)
 
 
@@ -827,7 +831,7 @@ eval	IntrusivePtr<Val> ind_lv_p = {NewRef{}, ind_lv->Index(i)}
 eval	auto t = ii->loop_var_types[i]
 eval	auto& var = frame[ii->loop_vars[i]]
 eval	if ( IsManagedType(t) ) DeleteManagedType(var, t)
-eval	var = BuildVal(ind_lv_p, ii->loop_var_types[i], z.stmt)
+eval	var = BuildVal(ind_lv_p, ii->loop_var_types[i])
 eval }
 
 internal-op Next-Table-Iter-Val-Var
@@ -844,13 +848,13 @@ eval delete k
 eval IntrusivePtr<Val> tev_p = {NewRef{}, current_tev->Value()}
 eval auto val_var_t = ii->value_var_type
 eval if ( IsManagedType(val_var_t) ) DeleteManagedType(frame[z.v1], val_var_t)
-eval frame[z.v1] = BuildVal(tev_p, val_var_t, z.stmt)
+eval frame[z.v1] = BuildVal(tev_p, val_var_t)
 eval for ( int i = 0; i < ind_lv->Length(); i++ ) {
 eval	IntrusivePtr<Val> ind_lv_p = {NewRef{}, ind_lv->Index(i)}
 eval	auto ind = ii->loop_vars[i]
 eval	auto loop_var_t = ii->loop_var_types[i]
 eval	if ( IsManagedType(loop_var_t) ) DeleteManagedType(frame[ind], loop_var_t)
-eval	frame[ind] = BuildVal(ind_lv_p, loop_var_t, z.stmt)
+eval	frame[ind] = BuildVal(ind_lv_p, loop_var_t)
 eval }
 
 internal-op Init-Vector-Loop
@@ -924,7 +928,7 @@ op CheckAnyLen
 op1-read
 type Vi
 eval auto v = frame[z.v1].list_val
-eval if ( v->Vals()->length() != z.v2 ) ZAM_run_time_error(error_flag, z.stmt, "mismatch in list lengths")
+eval if ( v->Vals()->length() != z.v2 ) ZAM_run_time_error(z.stmt, "mismatch in list lengths")
 eval Unref(v)
 
 op Print
@@ -979,7 +983,7 @@ eval frame[z.v1].record_val->DeleteField(z.v2)
 
 internal-op Init-Record
 type V
-eval auto r = new RecordVal(z.t->AsRecordType(), false)
+eval auto r = make_intrusive<RecordVal>(z.t->AsRecordType(), false)
 eval frame[z.v1].record_val = to_ZAM_record(r)
 
 # v1 is the frame element being initialized
@@ -1029,38 +1033,38 @@ op Assign-Any
 type VV
 set-type $2
 eval auto v = frame[z.v2].ToVal(z.t)
-eval frame[z.v1].any_val = TrackValPtr(v)
+eval frame[z.v1].any_val = v.release()
 
 op Assign-Any
 type VC
 set-type $2
 eval auto v = z.c.ToVal(z.t)
-eval frame[z.v1].any_val = TrackValPtr(v)
+eval frame[z.v1].any_val = v.release()
 
 # Lazy way to assign without having to track the specific type of
 # a constant.
 internal-op Assign-Const
 type VC
-eval AssignV1(BuildVal(z.c.ToVal(z.t), z.t, nullptr))
+eval AssignV1(BuildVal(z.c.ToVal(z.t), z.t))
 
 internal-op Load-Val
 type VV
 eval auto v = f->NthElement(z.v2)
 eval if ( ! v ) reporter->InternalError("failure to load frame element");
 eval IntrusivePtr<Val> v_p = {NewRef{}, v}
-eval AssignV1(BuildVal(v_p, z.t, v))
+eval AssignV1(BuildVal(v_p, z.t))
 
 internal-op Load-Any-Val
 type VV
 eval IntrusivePtr<Val> v = {NewRef{}, f->NthElement(z.v2)}
-eval frame[z.v1].any_val = TrackValPtr(v)
+eval frame[z.v1].any_val = v.release()
 
 internal-op Load-Global
 op1-internal
 type VC
 eval if ( global_state[z.v1] == GS_UNLOADED ) {
 eval	IntrusivePtr<Val> v = {NewRef{}, z.c.id_val->ID_Val()}
-eval	AssignV1(BuildVal(v, z.t, z.stmt))
+eval	AssignV1(BuildVal(v, z.t))
 eval	global_state[z.v1] = GS_CLEAN
 eval }
 
@@ -1069,7 +1073,7 @@ op1-internal
 type VC
 eval if ( global_state[z.v1] == GS_UNLOADED ) {
 eval	IntrusivePtr<Val> v = {NewRef{}, z.c.id_val->ID_Val()}
-eval	frame[z.v1].any_val = TrackValPtr(v)
+eval	frame[z.v1].any_val = v.release()
 eval	global_state[z.v1] = GS_CLEAN
 eval }
 
@@ -1130,13 +1134,13 @@ eval (void) z.e->Eval(f) /* this could invoke us recursively */
 internal-op Interpret-Expr
 type V
 eval auto v = z.e->Eval(f) /* this could invoke us recursively */
-eval AssignV1(BuildVal(v, z.t, z.e))
+eval AssignV1(BuildVal(v, z.t))
 
 # Interprets the statement's expression and assigns the result to v1,
 # where v1 is an "any" type.
 internal-op Interpret-Expr-Any
 type V
-eval frame[z.v1].any_val = TrackVal(z.e->Eval(f).release())
+eval frame[z.v1].any_val = z.e->Eval(f).release()
 
 
 internal-op GoTo
@@ -1158,7 +1162,7 @@ eval auto any_vec = frame[z.v1].vector_val->ConstVecPtr()
 eval auto at = any_vec->GeneralYieldType()
 eval if ( ! at ) break
 eval if ( at->Tag() == TYPE_ANY && any_vec->ConstVec().size() > 0 ) reporter->InternalError("non-concrete vector-of-any")
-eval if ( ! CheckAnyType(at, z.t, z.stmt) ) error_flag = true
+eval if ( ! CheckAnyType(at, z.t, z.stmt) ) ZAM_error = true
 
 # Transform the given vector-of-any to a concrete internal type.
 internal-op Transform-Any-Vec

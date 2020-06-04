@@ -245,3 +245,5 @@ protected:
 };
 
 extern const char* ZOP_name(ZOp op);
+
+extern bool ZAM_error;

@@ -42,7 +42,7 @@ void report_ZOP_profile()
 	}
 
 
-void ZAM_run_time_error(bool& error_flag, const Stmt* stmt, const char* msg)
+void ZAM_run_time_error(const Stmt* stmt, const char* msg)
 	{
 	if ( stmt->Tag() == STMT_EXPR )
 		{
@@ -52,14 +52,13 @@ void ZAM_run_time_error(bool& error_flag, const Stmt* stmt, const char* msg)
 	else
 		fprintf(stderr, "%s: %s\n", msg, obj_desc(stmt));
 
-	error_flag = true;
+	ZAM_error = true;
 	}
 
-void ZAM_run_time_error(const char* msg, const BroObj* o,
-				bool& error_flag)
+void ZAM_run_time_error(const char* msg, const BroObj* o)
 	{
 	fprintf(stderr, "%s: %s\n", msg, obj_desc(o));
-	error_flag = true;
+	ZAM_error = true;
 	}
 
 
@@ -688,7 +687,6 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 					new GlobalState[num_globals + 1] :
 					nullptr;
 	int pc = start_pc;
-	bool error_flag = false;
 	int end_pc = insts2.size();
 
 	// Memory management: all of the BroObj's that we have used
@@ -698,10 +696,8 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 	std::vector<IntrusivePtr<BroObj>> vals;
 	vals.reserve(100);
 
-#define TrackVal(v) (vals.push_back({AdoptRef{}, v}), v)
-#define TrackValPtr(v) (vals.push_back(v), v.get())
-#define BuildVal(v, t, s) (vals.push_back(v), ZAMValUnion(v.get(), t, s, error_flag))
-#define CopyVal(v) (IsManagedType(z.t) ? BuildVal(v.ToVal(z.t), z.t, z.stmt) : v)
+#define BuildVal(v, t) ZAMValUnion(v, t)
+#define CopyVal(v) (IsManagedType(z.t) ? BuildVal(v.ToVal(z.t), z.t) : v)
 
 // Managed assignments to frame[s.v1].
 #define AssignV1(v) AssignV1T(v, z.t)
@@ -725,7 +721,7 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 
 	flow = FLOW_RETURN;	// can be over-written by a Hook-Break
 
-	while ( pc < end_pc && ! error_flag ) {
+	while ( pc < end_pc && ! ZAM_error ) {
 		auto& z = *insts2[pc];
 		int profile_pc;
 		double profile_CPU;
@@ -789,6 +785,9 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 
 	delete [] frame;
 	delete [] global_state;
+
+	// Clear any error state.
+	ZAM_error = false;
 
 	return result;
 	}

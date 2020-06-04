@@ -61,15 +61,9 @@ void DeleteManagedType(ZAMValUnion& v, const BroType* t)
 	}
 
 
-ZAMValUnion::ZAMValUnion(Val* v, BroType* t, const BroObj* o, bool& error)
+ZAMValUnion::ZAMValUnion(IntrusivePtr<Val> v, BroType* t)
 	{
-	if ( ! v )
-		{
-		ZAM_run_time_error("uninitialized value in compiled code",
-					o, error);
-		int_val = 0;
-		return;
-		}
+	ASSERT(v);
 
 	auto vu = v->val;
 	auto vt = v->Type();
@@ -125,7 +119,7 @@ ZAMValUnion::ZAMValUnion(Val* v, BroType* t, const BroObj* o, bool& error)
 			char msg[8192];
 			snprintf(msg, sizeof msg, "vector type clash: %s vs. %s",
 					type_name(my_ytag), type_name(v_ytag));
-			ZAM_run_time_error(msg, o, error);
+			ZAM_run_time_error(msg, v.get());
 			vector_val = nullptr;
 			}
 		else
@@ -373,7 +367,7 @@ bool ZAM_record::SetToDefault(unsigned int field)
 		}
 
 	bool error_flag;
-	ZAMValUnion zvu(v.release(), t.get(), nullptr, error_flag);
+	ZAMValUnion zvu(v, t.get());
 	Assign(field, zvu);
 	return true;
 	}
@@ -433,13 +427,13 @@ ZAMRecord::ZAMRecord(IntrusivePtr<ZAM_record> _zr)
 	}
 
 
-ZAMVector* to_ZAM_vector(Val* vec)
+ZAMVector* to_ZAM_vector(const IntrusivePtr<Val>& vec)
 	{
 	auto raw = to_raw_ZAM_vector(vec);
 	return new ZAMVector(raw);
 	}
 
-IntrusivePtr<ZAM_vector> to_raw_ZAM_vector(Val* vec)
+IntrusivePtr<ZAM_vector> to_raw_ZAM_vector(const IntrusivePtr<Val>& vec)
 	{
 	auto vv = vec->AsNonConstVector();
 
@@ -448,7 +442,7 @@ IntrusivePtr<ZAM_vector> to_raw_ZAM_vector(Val* vec)
 	}
 
 
-ZAMRecord* to_ZAM_record(Val* r)
+ZAMRecord* to_ZAM_record(const IntrusivePtr<Val>& r)
 	{
 	auto rv = r->AsRecordVal()->AsNonConstRecord();
 	IntrusivePtr<ZAM_record> rv_ptr = {NewRef{}, rv};

@@ -185,7 +185,7 @@ BEGIN	{
 	assign_tmpl["R", LONG] = "auto rv = $1.record_val->ShallowCopy();\ndelete $$.record_val;\n$$.record_val = rv;"
 	assign_tmpl["S", LONG] = "auto sv = new BroString(*($1.string_val));\ndelete $$.string_val;\n$$.string_val = sv;"
 	assign_tmpl["V", LONG] = "auto vv = $1.vector_val->ShallowCopy();\ndelete $$.vector_val;\n$$.vector_val = vv;"
-	assign_tmpl["ANY", LONG] = "$$.any_val = TrackValPtr($1.ToVal(z.t));"
+	assign_tmpl["ANY", LONG] = "$$.any_val = $1.ToVal(z.t).release();"
 	assign_tmpl["", LONG] = "$$ = $1;"
 
 

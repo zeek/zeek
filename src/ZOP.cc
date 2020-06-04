@@ -5,6 +5,9 @@
 #include "Reporter.h"
 
 
+bool ZAM_error = false;
+
+
 const char* ZOP_name(ZOp op)
 	{
 	switch ( op ) {
@@ -269,13 +272,11 @@ const char* ZInst::ConstDump() const
 
 void ZInst::InitConst(const ConstExpr* ce)
 	{
-	auto v = ce->Value();
+	auto v = ce->ValuePtr();
 	auto ct = ce->Type().get();
 	t = ct;
+	c = ZAMValUnion(v, t);
 
-	bool error = false;
-	c = ZAMValUnion(v, t, ce, error);
-
-	if ( error )
+	if ( ZAM_error )
 		reporter->InternalError("bad value compiling code");
 	}

@@ -1,4 +1,12 @@
 
+3.1.5-dev.2 | 2020-07-23 16:02:48 -0700
+
+  * GH-999: Stop formatting DHCP Client ID Hardware Type 0 as MAC (Jon Siwek, Corelight)
+
+    For `DHCP::ClientID$hwtype` fields equal to 0, the `hwaddr` field is
+    no longer misformatted as a MAC and instead just contains the raw bytes
+    seen in the DHCP Client ID Option.
+
 3.1.5-dev.1 | 2020-07-08 12:30:52 -0700
 
   * Fix FreeBSD CI script to install right SWIG package (Jon Siwek, Corelight)

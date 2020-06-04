@@ -1,4 +1,8 @@
 
+3.1.4-dev.3 | 2020-06-04 10:55:29 -0700
+
+  * Change Cirrus CI config to use org-level secured variable (Jon Siwek, Corelight)
+
 3.1.4-dev.2 | 2020-06-02 12:46:52 -0700
 
   * Decrease number of CPUs/memory for Cirrus CI tasks (Jon Siwek, Corelight)

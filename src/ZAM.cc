@@ -981,13 +981,12 @@ bool ZAM::BuiltIn_Log__write(const NameExpr* n, const expr_list& args)
 	ZInst z;
 
 	if ( id->Tag() == EXPR_CONST )
-		{
 		z = ZInst(OP_LOG_WRITE_VVC, nslot, col_slot, id->AsConstExpr());
-		z.t = columns_n->Type().get();
-		}
 	else
 		z = ZInst(OP_LOG_WRITE_VVV, nslot, FrameSlot(id->AsNameExpr()),
 				col_slot);
+
+	z.t = columns_n->Type().get();
 
 	AddInst(z);
 

@@ -13,9 +13,10 @@
 #include "Reporter.h"
 #include "Traverse.h"
 
-// Just needed for the Log-Write BiF.
+// Just needed for BiFs.
 #include "Net.h"
 #include "logging/Manager.h"
+#include "broker/Manager.h"
 
 static BroType* log_ID_enum_type;
 
@@ -31,7 +32,7 @@ std::unordered_map<const Expr*, double> expr_CPU;
 
 void report_ZOP_profile()
 	{
-	for ( int i = 1; i <= OP_HOOK_BREAK_X; ++i )
+	for ( int i = 1; i <= OP_NOP; ++i )
 		if ( ZOP_count[i] > 0 )
 			printf("%s\t%d\t%.06f\n", ZOP_name(ZOp(i)),
 				ZOP_count[i], ZOP_CPU[i]);
@@ -847,6 +848,9 @@ bool ZAM::IsZAM_BuiltIn(const Expr* e)
 	else if ( streq(func->Name(), "Log::__write") )
 		return BuiltIn_Log__write(n, args);
 
+	else if ( streq(func->Name(), "Broker::__flush_logs") )
+		return BuiltIn_Broker__flush_logs(n, args);
+
 	else if ( streq(func->Name(), "get_port_transport_proto") )
 		return BuiltIn_get_port_etc(n, args);
 
@@ -994,6 +998,13 @@ bool ZAM::BuiltIn_Log__write(const NameExpr* n, const expr_list& args)
 
 	AddInst(z);
 
+	return true;
+	}
+
+bool ZAM::BuiltIn_Broker__flush_logs(const NameExpr* n, const expr_list& args)
+	{
+	int nslot = n ? Frame1Slot(n, OP1_WRITE) : RegisterSlot();
+	AddInst(ZInst(OP_BROKER_FLUSH_LOGS_V, nslot));
 	return true;
 	}
 

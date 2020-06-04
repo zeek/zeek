@@ -1266,6 +1266,10 @@ eval auto columns = frame[z.v2].ToVal(z.t)
 eval bool result = log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal())
 eval frame[z.v1].int_val = result
 
+internal-op Broker-Flush-Logs
+type V
+eval frame[z.v1].uint_val = broker_mgr->FlushLogBuffers()
+
 internal-op Get-Port-Transport-Proto
 type VV
 eval auto mask = frame[z.v2].uint_val & PORT_SPACE_MASK

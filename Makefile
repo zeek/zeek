@@ -42,7 +42,7 @@ dist:
 	@tar -czf $(VERSION_FULL).tar.gz $(VERSION_FULL)
 	@echo Package: $(VERSION_FULL).tar.gz
 	@mv $(VERSION_FULL) $(VERSION_MIN)
-	@(cd $(VERSION_MIN) && for i in aux/*; do rm -rf $$i/*; done)
+	@(cd $(VERSION_MIN) && for i in auxil/*; do rm -rf $$i/*; done)
 	@tar -czf $(VERSION_MIN).tar.gz $(VERSION_MIN)
 	@echo Package: $(VERSION_MIN).tar.gz
 	@rm -rf $(VERSION_MIN)
@@ -55,10 +55,10 @@ test:
 	-@( cd testing && make )
 
 test-aux:
-	-test -d aux/zeekctl && ( cd aux/zeekctl && make test-all )
-	-test -d aux/btest  && ( cd aux/btest && make test )
-	-test -d aux/zeek-aux && ( cd aux/zeek-aux && make test )
-	-test -d aux/plugins && ( cd aux/plugins && make test-all )
+	-test -d auxil/zeekctl && ( cd auxil/zeekctl && make test-all )
+	-test -d auxil/btest  && ( cd auxil/btest && make test )
+	-test -d auxil/zeek-aux && ( cd auxil/zeek-aux && make test )
+	-test -d auxil/plugins && ( cd auxil/plugins && make test-all )
 
 test-all: test test-aux
 

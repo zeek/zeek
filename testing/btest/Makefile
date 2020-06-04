@@ -1,6 +1,6 @@
 
 DIAG=diag.log
-BTEST=../../aux/btest/btest
+BTEST=../../auxil/btest/btest
 SCRIPT_COV=.tmp/script-coverage
 
 all: cleanup btest-verbose coverage

@@ -29,7 +29,7 @@
 # This causes out-of-bounds exceptions to be thrown for inputs that should
 # actually be possible to incrementally parse via flowbuffer.
 
-# @TEST-EXEC: ${DIST}/aux/zeek-aux/plugin-support/init-plugin -u . Foo FOO
+# @TEST-EXEC: ${DIST}/auxil/zeek-aux/plugin-support/init-plugin -u . Foo FOO
 # @TEST-EXEC: cp -r %DIR/binpac-flowbuffer-frame-length-plugin/* .
 # @TEST-EXEC: ./configure --zeek-dist=${DIST} && make
 # @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd` zeek -r $TRACES/mmsX.pcap %INPUT >output

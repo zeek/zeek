@@ -295,10 +295,10 @@ public:
 
 	ZAMValUnion& Lookup(unsigned int field, bool& error)
 		{
-		if ( ! IsInRecord(field) )
+		error = false;
+
+		if ( ! IsInRecord(field) && ! SetToDefault(field) )
 			error = true;
-		else
-			error = false;
 
 		return zvec[field];
 		}
@@ -348,8 +348,11 @@ public:
 	BroType* FieldType(int field) const	{ return rt->FieldType(field); }
 
 protected:
+	bool SetToDefault(unsigned int field);
+
 	// Removes the given field.
-	void Delete(int field);
+	void Delete(unsigned int field)
+		{ DeleteManagedType(zvec[field], FieldType(field)); }
 
 	void DeleteManagedMembers();
 

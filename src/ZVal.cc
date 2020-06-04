@@ -348,9 +348,34 @@ IntrusivePtr<RecordVal> ZAM_record::ToRecordVal()
 	return {NewRef{}, rv};
 	}
 
-void ZAM_record::Delete(int field)
+bool ZAM_record::SetToDefault(unsigned int field)
 	{
-	DeleteManagedType(zvec[field], FieldType(field));
+	auto v = rt->FieldDefault(field);
+	auto td = rt->FieldDecl(field);
+	auto t = td->type;
+
+	if ( ! v )
+		{
+		// If it's an aggregate, initialize it to an empty value.
+		if ( t->Tag() == TYPE_TABLE )
+			{
+			IntrusivePtr<TableType> tt =
+				{NewRef{}, t->AsTableType()};
+			v = make_intrusive<TableVal>(tt, td->attrs);
+			}
+		else if ( t->Tag() == TYPE_VECTOR )
+			v = make_intrusive<VectorVal>(t->AsVectorType());
+		else if ( t->Tag() == TYPE_RECORD )
+			v = make_intrusive<RecordVal>(t->AsRecordType(),
+							false);
+		else
+			return false;
+		}
+
+	bool error_flag;
+	ZAMValUnion zvu(v.release(), t.get(), nullptr, error_flag);
+	Assign(field, zvu);
+	return true;
 	}
 
 void ZAM_record::DeleteManagedMembers()

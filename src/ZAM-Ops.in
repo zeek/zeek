@@ -979,7 +979,7 @@ eval frame[z.v1].record_val->DeleteField(z.v2)
 
 internal-op Init-Record
 type V
-eval auto r = new RecordVal(z.t->AsRecordType())
+eval auto r = new RecordVal(z.t->AsRecordType(), false)
 eval frame[z.v1].record_val = to_ZAM_record(r)
 
 # v1 is the frame element being initialized

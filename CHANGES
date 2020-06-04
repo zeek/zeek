@@ -1,4 +1,8 @@
 
+3.0.7-dev.4 | 2020-06-04 10:55:24 -0700
+
+  * Change Cirrus CI config to use org-level secured variable (Jon Siwek, Corelight)
+
 3.0.7-dev.3 | 2020-06-02 19:19:12 -0700
 
   * Increase CI timeout of an external leak test (Jon Siwek, Corelight)

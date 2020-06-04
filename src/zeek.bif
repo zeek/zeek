@@ -4741,6 +4741,108 @@ function file_size%(f: string%) : double
 	return new Val(double(s.st_size), TYPE_DOUBLE);
 	%}
 
+## Compresses a given path by removing '..'s and the parent directory it
+## references and also removing dual '/'s and extraneous '/./'s.  This
+## used to be done at the scripting layer but it turns out to be a hot-spot
+## for some forms of analysis so might as well do it directly.  This
+## version is ~15x faster in testing.
+##
+## dir: a path string, either relative or absolute.
+##
+## Returns: a compressed version of the input path.
+function compress_path%(dir: string%): string
+	%{
+	auto d = (const char*) (dir->Bytes());
+	auto dn = dir->Len();
+	int di = 0;	// pointer into original; never goes backwards
+
+	auto r = new char[dn];	// size is guaranteed <= original
+	int ri = 0;	// pointer into copy; can go backwards to elide
+
+	// Our strategy is to copy d to r as we go, and then back up
+	// and remove elements as needed.
+
+	while ( di < dn )
+		{
+		// Copy till the next '/'.
+		while ( di < dn && d[di] != '/' )
+			r[ri++] = d[di++];
+
+		if ( di == dn )
+			break;	// No more work to do.
+
+		// We're looking at a slash.  Copy it over.
+		r[ri++] = d[di++];
+
+		// Skip over any extra /'s, not copying them.
+		while ( di < dn && d[di] == '/' )
+			++di;
+
+		if ( di == dn )
+			break;	// No more work to do.
+
+		if ( d[di] != '.' )
+			// Not an interesting slash.  Iterate.
+			continue;
+
+		if ( di == dn - 1 )
+			{
+			// A dot at the very end.  Treat as an extraneous
+			// "/.", remove it, and we're done.
+			--ri;	// back up to '/' so we terminate there.
+			break;
+			}
+
+		// It's now safe to look two ahead.
+		if ( d[di+1] == '/' )
+			{ // This a /./ sequence.  Advance past it and iterate.
+			di += 2;
+			continue;
+			}
+
+		if ( d[di+1] != '.' )
+			// Not a /.. sequence.
+			continue;
+
+		if ( di < dn - 2 && d[di+2] != '/' )
+			// Not a /.. at the end and not a /../.
+			continue;
+
+		// This is a /.. at the very end, or as part of
+		// a /../ construct.  Elide the element we copied.
+
+		if ( ri > 1 )
+			{
+			// The /.. does not come at the very
+			// beginning.  Back up one non-slash token
+			// in what we've copied.
+			ri -= 2;	// back up before the '/'
+			while ( ri >= 0 && r[ri] != '/' )
+				--ri;
+
+			// Advance so that we're pointing just beyond
+			// what we want to keep.
+			++ri;
+
+			// Skip past the /.. in the input.
+			di += 3;
+			}
+		else
+			{
+			// The /.. comes at the very beginning.  We've
+			// already copied the '/'.  Leave ri pointing
+			// just beyond that copy, and di pointing at the
+			// '.', so the regular copy-until-a-slash will
+			// pick up where it needs to.
+			}
+		}
+
+	bool final_NUL = ri > 0 && r[ri-1] == '\0';
+
+	auto res_string = new BroString(final_NUL, byte_vec(r), ri);
+        return new StringVal(res_string);
+	%}
+
 ## Prevents escaping of non-ASCII characters when writing to a file.
 ## This function is equivalent to :zeek:attr:`&raw_output`.
 ##

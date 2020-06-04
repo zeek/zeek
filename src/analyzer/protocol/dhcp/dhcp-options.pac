@@ -627,7 +627,16 @@ refine flow DHCP_Flow += {
 		%{
 		RecordVal* client_id = new RecordVal(BifType::Record::DHCP::ClientID);
 		client_id->Assign(0, val_mgr->GetCount(${v.client_id.hwtype}));
-		client_id->Assign(1, new StringVal(fmt_mac(${v.client_id.hwaddr}.begin(), ${v.client_id.hwaddr}.length())));
+		StringVal* sv;
+
+		if ( ${v.client_id.hwtype} == 0 )
+			sv = new StringVal(${v.client_id.hwaddr}.length(),
+			                   (const char*)${v.client_id.hwaddr}.begin());
+		else
+			sv = new StringVal(fmt_mac(${v.client_id.hwaddr}.begin(),
+			                   ${v.client_id.hwaddr}.length()));
+
+		client_id->Assign(1, sv);
 
 		${context.flow}->options->Assign(19, client_id);
 

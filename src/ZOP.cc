@@ -180,7 +180,12 @@ void ZInst::Dump(const frame_map& frame_ids) const
 		break;
 
 	case OP_VVC:
-		printf("%s, %s, %s", id1, id2, ConstDump());
+		// Special-case OP_LOG_WRITE_VVC, which uses a different
+		// type for its constant.
+		if ( op == OP_LOG_WRITE_VVC )
+			printf("%s, %s, %llu", id1, id2, c.uint_val);
+		else
+			printf("%s, %s, %s", id1, id2, ConstDump());
 		break;
 
 	case OP_E:

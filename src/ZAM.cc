@@ -20,8 +20,10 @@
 static BroType* log_ID_enum_type;
 
 
-// Count of how often each top of ZOP executed.
+// Count of how often each top of ZOP executed, and how much CPU it
+// cumulatively took.
 int ZOP_count[OP_NOP+1];
+double ZOP_CPU[OP_NOP+1];
 
 // Per-interpreted-expression.
 std::unordered_map<const Expr*, double> expr_CPU;
@@ -31,7 +33,8 @@ void report_ZOP_profile()
 	{
 	for ( int i = 1; i <= OP_HOOK_BREAK_X; ++i )
 		if ( ZOP_count[i] > 0 )
-			printf("%s\t%d\n", ZOP_name(ZOp(i)), ZOP_count[i]);
+			printf("%s\t%d\t%.06f\n", ZOP_name(ZOp(i)),
+				ZOP_count[i], ZOP_CPU[i]);
 
 	for ( auto& e : expr_CPU )
 		printf("expr CPU %.06f %s\n", e.second, obj_desc(e.first));
@@ -757,6 +760,7 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 			{
 			double dt = curr_CPU_time() - profile_CPU;
 			(*inst_CPU)[profile_pc] += dt;
+			ZOP_CPU[z.op] += dt;
 
 			if ( profile_expr )
 				{
@@ -2220,7 +2224,19 @@ void ZAM::ProfileExecution() const
 		return;
 		}
 
-	printf("%s CPU time: %.06f\n", func->Name(), *CPU_time);
+	// Determine the portion of CPU time spent interpreting expressions.
+	double interp_CPU = 0.0;
+	for ( int i = 0; i < inst_count->size(); ++i )
+		{
+		auto op = insts2[i]->op;
+		if ( op == OP_INTERPRET_EXPR_X || op == OP_INTERPRET_EXPR_V ||
+		     op == OP_INTERPRET_EXPR_ANY_V )
+			interp_CPU += (*inst_CPU)[i];
+		}
+
+	printf("%s CPU time: %.06f %.06f\n", func->Name(), *CPU_time,
+		*CPU_time - interp_CPU);
+
 	for ( int i = 0; i < inst_count->size(); ++i )
 		{
 		printf("%s %d %d %.06f ", func->Name(), i,

@@ -618,7 +618,7 @@ eval if ( tv->Size() > 0 ) { ZAM_run_time_error(error_flag, z.stmt, "coercion of
 eval IntrusivePtr<TableType> tt = {NewRef{}, z.t->AsTableType()}
 eval IntrusivePtr<Attributes> attrs = {NewRef{}, tv->Attrs()}
 eval auto t = make_intrusive<TableVal>(tt, attrs)
-eval frame[z.v1].table_val = TrackValPtr(t)
+eval frame[z.v1].table_val = t.release()
 
 direct-unary-op Vector-Coerce VectorCoerce
 
@@ -999,7 +999,7 @@ type V
 eval IntrusivePtr<TableType> tt = {NewRef{}, z.t->AsTableType()}
 eval IntrusivePtr<Attributes> attrs = {NewRef{}, z.attrs}
 eval auto t = new TableVal(tt, attrs)
-eval frame[z.v1].table_val = TrackVal(t)
+eval frame[z.v1].table_val = t
 
 
 ########################################

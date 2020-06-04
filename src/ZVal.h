@@ -140,18 +140,9 @@ public:
 		}
 
 protected:
-	// This would be in the destructor but it needs to call virtual
-	// functions, so instead derived classes need to call it from
-	// their own destructors.
-	void Finish()
-		{
-		if ( aggr_val )
-			Unref(aggr_val);
-		}
-
-	// The associated Zeek interpreter value.  If nil, then this
-	// aggregate might still be shared by multiple ZAM values, but
-	// does not require sync'ing.
+	// The associated Zeek interpreter value.  We track this just
+	// for convenience, so we don't have to build a new Val* when
+	// converting to a Val.
 	Val* aggr_val;
 
 	// The underlying set of ZAM values.
@@ -325,6 +316,7 @@ public:
 
 	void DeleteField(unsigned int field)
 		{
+		// ### memory management
 		auto mask = 1UL << field;
 		is_in_record &= ~mask;
 		}

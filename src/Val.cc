@@ -2695,9 +2695,12 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(t)
 				def = make_intrusive<VectorVal>(type->AsVectorType());
 			}
 
-		bool error;
-		auto zvu = ZAMValUnion(def.release(), type, this, error);
-		val.record_val->Assign(i, zvu);
+		if ( def )
+			{
+			bool error;
+			auto zvu = ZAMValUnion(def.release(), type, this, error);
+			val.record_val->Assign(i, zvu);
+			}
 		}
 	}
 
@@ -2713,10 +2716,18 @@ IntrusivePtr<Val> RecordVal::SizeVal() const
 
 void RecordVal::Assign(int field, IntrusivePtr<Val> new_val)
 	{
-	bool error;
-	auto zvu = ZAMValUnion(new_val.get(), new_val->Type(), this, error);
-
 	auto zr = AsNonConstRecord();
+
+	if ( ! new_val )
+		{
+		zr->DeleteField(field);
+		return;
+		}
+
+	bool error;
+	auto rt = Type()->AsRecordType();
+	auto zvu = ZAMValUnion(new_val.get(), rt->FieldType(field), this, error);
+
 	zr->Assign(field, zvu);
 
 	Modified();
@@ -2732,6 +2743,10 @@ Val* RecordVal::Lookup(int field) const
 	// The following ugliness can go away once we migrate
 	// ZAM_record::Lookup to be const.
 	auto& zr = *((RecordVal*) this)->AsNonConstRecord();
+
+	if ( ! zr.HasField(field) )
+		return nullptr;
+
 	return zr.NthField(field).release();
 	}
 

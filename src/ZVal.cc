@@ -100,13 +100,14 @@ ZAMValUnion::ZAMValUnion(Val* v, BroType* t, const BroObj* o, bool& error)
 		double_val = vu.double_val;
 		break;
 
-	case TYPE_FUNC:		func_val = vu.func_val; break;
-	case TYPE_FILE:		file_val = vu.file_val; break;
+	case TYPE_FUNC:	func_val = vu.func_val; Ref(func_val); break;
+	case TYPE_FILE:	file_val = vu.file_val; Ref(file_val);  break;
 
-	case TYPE_LIST:		list_val = v->AsListVal(); break;
-	case TYPE_OPAQUE:	opaque_val = v->AsOpaqueVal(); break;
-	case TYPE_PATTERN:	re_val = v->AsPatternVal(); break;
-	case TYPE_TABLE:	table_val = v->AsTableVal(); break;
+	case TYPE_LIST:	list_val = v->Ref()->AsListVal(); break;
+	case TYPE_OPAQUE:	opaque_val = v->Ref()->AsOpaqueVal(); break;
+
+	case TYPE_PATTERN:	re_val = v->Ref()->AsPatternVal(); break;
+	case TYPE_TABLE:	table_val = v->Ref()->AsTableVal(); break;
 
 	case TYPE_VECTOR:
 		{
@@ -149,8 +150,8 @@ ZAMValUnion::ZAMValUnion(Val* v, BroType* t, const BroObj* o, bool& error)
 		subnet_val = new IPPrefix(*vu.subnet_val);
 		break;
 
-	case TYPE_ANY:		any_val = v; break;
-	case TYPE_TYPE:		type_val = t; break;
+	case TYPE_ANY:		any_val = v->Ref(); break;
+	case TYPE_TYPE:		type_val = t->Ref(); break;
 
 	case TYPE_ERROR:
 	case TYPE_TIMER:
@@ -209,7 +210,7 @@ IntrusivePtr<Val> ZAMValUnion::ToVal(BroType* t) const
 
 	case TYPE_ANY:		return {NewRef{}, any_val};
 
-	case TYPE_TYPE:		v = new Val(type_val, true); break;
+	case TYPE_TYPE:		v = new Val(type_val); break;
 
 	case TYPE_LIST:		v = list_val; v->Ref(); break;
 	case TYPE_OPAQUE:	v = opaque_val; v->Ref(); break;
@@ -349,6 +350,7 @@ IntrusivePtr<RecordVal> ZAM_record::ToRecordVal()
 
 void ZAM_record::Delete(int field)
 	{
+	DeleteManagedType(zvec[field], FieldType(field));
 	}
 
 void ZAM_record::DeleteManagedMembers()
@@ -358,7 +360,7 @@ void ZAM_record::DeleteManagedMembers()
 		auto& zvi = zvec[i];
 		if ( IsManaged(i) )
 			{
-			auto rti = rt->FieldType(i);
+			auto rti = FieldType(i);
 			DeleteManagedType(zvi, rti);
 			}
 		}

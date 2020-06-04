@@ -2726,7 +2726,7 @@ void RecordVal::Assign(int field, IntrusivePtr<Val> new_val)
 
 	bool error;
 	auto rt = Type()->AsRecordType();
-	auto zvu = ZAMValUnion(new_val.get(), rt->FieldType(field), this, error);
+	auto zvu = ZAMValUnion(new_val.release(), rt->FieldType(field), this, error);
 
 	zr->Assign(field, zvu);
 

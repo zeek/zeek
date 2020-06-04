@@ -425,7 +425,7 @@ IntrusivePtr<ZAM_vector> to_raw_ZAM_vector(Val* vec)
 
 ZAMRecord* to_ZAM_record(Val* r)
 	{
-	auto rv = r->AsRecordVal();
-	auto zr = make_intrusive<ZAM_record>(rv, r->Type()->AsRecordType());
-	return new ZAMRecord(zr);
+	auto rv = r->AsRecordVal()->AsNonConstRecord();
+	IntrusivePtr<ZAM_record> rv_ptr = {NewRef{}, rv};
+	return new ZAMRecord(rv_ptr);
 	}

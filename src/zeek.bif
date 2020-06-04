@@ -4762,6 +4762,9 @@ function compress_path%(dir: string%): string
 	// Our strategy is to copy d to r as we go, and then back up
 	// and remove elements as needed.
 
+	// See where this is set below for an explanation of why we need it.
+	bool skip_next_slash = false;
+
 	while ( di < dn )
 		{
 		// Copy till the next '/'.
@@ -4772,7 +4775,10 @@ function compress_path%(dir: string%): string
 			break;	// No more work to do.
 
 		// We're looking at a slash.  Copy it over.
-		r[ri++] = d[di++];
+		if ( skip_next_slash )
+			skip_next_slash = false;
+		else
+			r[ri++] = d[di++];
 
 		// Skip over any extra /'s, not copying them.
 		while ( di < dn && d[di] == '/' )
@@ -4825,7 +4831,15 @@ function compress_path%(dir: string%): string
 			++ri;
 
 			// Skip past the /.. in the input.
-			di += 3;
+			di += 2;
+
+			// r is now slightly out of sync with d: di points
+			// to whatever followed the /.. and ri points to
+			// just beyond a slash.  If di happens to be pointing
+			// at a slash, then we *don't* want to copy it
+			// in the future because we want to compress slashes.
+			if ( di < dn && d[di] == '/' )
+				skip_next_slash = true;
 			}
 		else
 			{

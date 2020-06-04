@@ -139,7 +139,7 @@ public:
 	void SetTerminal(const u_char* terminal, int len);
 	void SetBinaryMode(int mode)	{ binary_mode = mode; }
 	void SetEncrypting(int mode);
-	void SetAuthName(char* arg_auth_name)	{ auth_name = arg_auth_name; }
+	void SetAuthName(char* arg_auth_name)	{ delete [] auth_name; auth_name = arg_auth_name; }
 
 	const char* AuthName() const	{ return auth_name; }
 	int AuthenticationHasBeenAccepted() const

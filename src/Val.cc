@@ -2782,6 +2782,10 @@ void RecordVal::ResizeParseTimeRecords(RecordType* rt)
 			for ( auto i = current_length; i < required_length; ++i )
 				{
 				auto v = rt->FieldDefault(i).release();
+
+				if ( ! v )
+					continue;
+
 				bool error;
 				auto zvu = ZAMValUnion(v, v->Type(),
 							nullptr, error);

@@ -713,6 +713,8 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 	// Type of the return value.  If nil, then we don't have a value.
 	BroType* ret_type = nullptr;
 
+	bool do_profile = analysis_options.report_profile;
+
 	// All globals start out unloaded.
 	for ( auto i = 1; i <= num_globals; ++i )
 		global_state[i] = GS_UNLOADED;
@@ -735,7 +737,7 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 			z.Dump(frame_denizens);
 			}
 
-		if ( analysis_options.report_profile )
+		if ( do_profile )
 			{
 			++ZOP_count[z.op];
 			++(*inst_count)[pc];
@@ -757,7 +759,7 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 #include "ZAM-OpsEvalDefs.h"
 		}
 
-		if ( analysis_options.report_profile )
+		if ( do_profile )
 			{
 			double dt = curr_CPU_time() - profile_CPU;
 			(*inst_CPU)[profile_pc] += dt;

@@ -239,7 +239,8 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 	if ( cont_resp ) return;
 
 	# TODO: do some sort of generic clear text login processing here.
-	local response_xyz = parse_ftp_reply_code(code);
+	parse_ftp_reply_code(code);
+	#local response_xyz = parse_ftp_reply_code(code);
 	#if ( response_xyz$x == 2 &&  # successful
 	#     session$cmdarg$cmd == "PASS" )
 	#	do_ftp_login(c, session);

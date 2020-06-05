@@ -997,6 +997,7 @@ type VV
 eval auto vt = z.t->AsVectorType()
 eval auto yt = vt->YieldType()
 eval auto vec = new VectorVal(vt)
+eval auto Ref(vec)
 eval f->SetElement(z.v2, vec)
 eval auto zv = make_intrusive<ZAM_vector>(vec, yt)
 eval delete frame[z.v1].vector_val

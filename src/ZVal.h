@@ -114,8 +114,8 @@ extern void DeleteManagedType(ZAMValUnion& v, const BroType* t);
 
 typedef vector<ZAMValUnion> ZVU_vec;
 
-// Class used to manage aggregates.  Supports sync'ing them with associated
-// Val*'s (if any), and enables sharing of them between multiple ZAM values.
+// Class used to manage aggregates.  Assumes ownership of the associated Val*
+// (if any).  Enables sharing of aggregates between multiple ZAM values.
 //
 // The base class manages a ZVU_vec.  Its values might be homogeneous if
 // it reflects a Zeek vector, or heterogeneous if it reflects a Zeek record.
@@ -125,10 +125,10 @@ public:
 	ZAMAggrInstantiation(Val* _v, int n)
 	: zvec(n)
 		{
+		// Note, we do not Ref() here, since we take ownership.
+		// However, this requires that the Val's destructor
+		// disassociate with us prior to deleting us.
 		aggr_val = _v;
-
-		if ( aggr_val )
-			Ref(aggr_val);
 		}
 
 	virtual ~ZAMAggrInstantiation()
@@ -136,6 +136,8 @@ public:
 		if ( aggr_val )
 			Unref(aggr_val);
 		}
+
+	void Disassociate()	{ aggr_val = nullptr; }
 
 protected:
 	// The associated Zeek interpreter value.  We track this just
@@ -152,7 +154,6 @@ public:
 	ZAM_vector(VectorVal* _v, BroType* yt, int n = 0)
 		: ZAMAggrInstantiation(_v, n)
 		{
-		vv = _v;
 		if ( yt )
 			{
 			general_yt = yt;
@@ -189,8 +190,14 @@ public:
 	// Used when access to the underlying vector is for initialization.
 	ZVU_vec& InitVec()		{ return zvec; }
 
-	IntrusivePtr<VectorVal> VecVal()	{ return {NewRef{}, vv}; }
-	void SetVecVal(VectorVal* _vv)		{ vv = _vv; vv->Ref(); }
+	IntrusivePtr<VectorVal> VecVal()
+		{
+		if ( aggr_val )
+			return {NewRef{}, aggr_val->AsVectorVal()};
+		else
+			return nullptr;
+		}
+	void SetVecVal(VectorVal* vv)	{ aggr_val = vv; }
 
 	ZAMValUnion& Lookup(int n)
 		{
@@ -250,8 +257,6 @@ protected:
 		if ( managed_yt )
 			DeleteManagedType(zvec[n], managed_yt);
 		}
-
-	VectorVal* vv;	// our own copy of aggr_val, with the right type
 
 	// The yield type of the vector elements.  Only non-nil if they
 	// are managed types.
@@ -355,8 +360,6 @@ protected:
 		{ DeleteManagedType(zvec[field], FieldType(field)); }
 
 	void DeleteManagedMembers();
-
-	RecordVal* rv;	// our own copy of aggr_val, with the right type
 
 	// And a handy pointer to its type.
 	RecordType* rt;
@@ -495,10 +498,5 @@ public:
 	bro_uint_t n;	// we loop from 0 ... n-1
 };
 
-// Converts between VectorVals and ZAM vectors.
 extern ZAMVector* to_ZAM_vector(const IntrusivePtr<Val>& vec);
-extern IntrusivePtr<ZAM_vector> to_raw_ZAM_vector(const IntrusivePtr<Val>& vec);
-
-// Likewise for RecordVals, but due to lazy loading, no need for "raw"
-// vectors.
 extern ZAMRecord* to_ZAM_record(const IntrusivePtr<Val>& rec);

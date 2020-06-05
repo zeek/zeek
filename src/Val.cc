@@ -2705,7 +2705,8 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(t)
 
 RecordVal::~RecordVal()
 	{
-	Unref(AsNonConstRecord());
+	val.record_val->Disassociate();
+	Unref(val.record_val);
 	}
 
 IntrusivePtr<Val> RecordVal::SizeVal() const
@@ -3025,6 +3026,7 @@ VectorVal::VectorVal(VectorType* t, unsigned int n) : Val(t)
 
 VectorVal::~VectorVal()
 	{
+	val.vector_val->Disassociate();
 	Unref(val.vector_val);
 	Unref(vector_type);
 	}

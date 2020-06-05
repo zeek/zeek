@@ -296,7 +296,7 @@ IntrusivePtr<VectorVal> ZAMValUnion::ToVector(BroType* t) const
 		v->Assign(i, v_i);
 		}
 
-	vector_val->SetVecVal(v.get());
+	vector_val->SetVecVal(v.release());
 
 	return v;
 	}
@@ -355,15 +355,14 @@ void ZAM_vector::DeleteMembers()
 	}
 
 
-ZAM_record::ZAM_record(RecordVal* _v, RecordType* _rt)
-	: ZAMAggrInstantiation(_v, _rt->NumFields())
+ZAM_record::ZAM_record(RecordVal* rv, RecordType* _rt)
+	: ZAMAggrInstantiation(rv, _rt->NumFields())
 	{
 	is_in_record = 0;
 
-	rv = _v;
 	rt = _rt;
 
-	if ( rv )
+	if ( aggr_val )
 		is_managed = rt->ManagedFields();
 	else
 		is_managed = 0;
@@ -371,10 +370,10 @@ ZAM_record::ZAM_record(RecordVal* _v, RecordType* _rt)
 
 IntrusivePtr<RecordVal> ZAM_record::ToRecordVal()
 	{
-	if ( ! rv )
-		aggr_val = rv = new RecordVal(rt);
+	if ( ! aggr_val )
+		aggr_val = new RecordVal(rt);
 
-	return {NewRef{}, rv};
+	return {NewRef{}, aggr_val->AsRecordVal()};
 	}
 
 bool ZAM_record::SetToDefault(unsigned int field)
@@ -464,18 +463,9 @@ ZAMRecord::ZAMRecord(IntrusivePtr<ZAM_record> _zr)
 
 ZAMVector* to_ZAM_vector(const IntrusivePtr<Val>& vec)
 	{
-	auto raw = to_raw_ZAM_vector(vec);
-	return new ZAMVector(raw);
+	IntrusivePtr<ZAM_vector> vv = {NewRef{}, vec->AsNonConstVector()};
+	return new ZAMVector(vv);
 	}
-
-IntrusivePtr<ZAM_vector> to_raw_ZAM_vector(const IntrusivePtr<Val>& vec)
-	{
-	auto vv = vec->AsNonConstVector();
-
-	// ### Here is where we'd track holes in vectors.
-	return {NewRef{}, vv};
-	}
-
 
 ZAMRecord* to_ZAM_record(const IntrusivePtr<Val>& r)
 	{

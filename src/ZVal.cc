@@ -364,10 +364,7 @@ ZAM_record::ZAM_record(RecordVal* _v, RecordType* _rt)
 	rt = _rt;
 
 	if ( rv )
-		{
-		Ref(rv);
 		is_managed = rt->ManagedFields();
-		}
 	else
 		is_managed = 0;
 	}
@@ -414,9 +411,9 @@ void ZAM_record::DeleteManagedMembers()
 	{
 	for ( auto i = 0; i < zvec.size(); ++i )
 		{
-		auto& zvi = zvec[i];
-		if ( IsManaged(i) )
+		if ( IsInRecord(i) && IsManaged(i) )
 			{
+			auto& zvi = zvec[i];
 			auto rti = FieldType(i);
 			DeleteManagedType(zvi, rti);
 			}

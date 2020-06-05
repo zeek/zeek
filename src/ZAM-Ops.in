@@ -93,6 +93,7 @@ op-type X
 eval const char* error;
 eval auto rv = frame[z.v2].record_val;
 eval auto res = flatten_value(rv->ToRecordVal().get(), z.v3, error);
+eval delete frame[z.v1].record_val;
 eval if ( error ) ZAM_run_time_error(z.stmt, error);
 eval else frame[z.v1].record_val = to_ZAM_record(res);
 
@@ -611,6 +612,7 @@ eval auto v = frame[z.v2].record_val->ToRecordVal()
 eval auto map = z.int_ptr
 eval auto map_size = z.v3
 eval auto to_r = coerce_to_record(rt, v.get(), map, map_size)
+eval delete frame[z.v1].record_val
 eval frame[z.v1].record_val = to_ZAM_record(to_r)
 
 direct-unary-op Table-Coerce TableCoerce
@@ -622,6 +624,7 @@ eval if ( tv->Size() > 0 ) { ZAM_run_time_error(z.stmt, "coercion of non-empty t
 eval IntrusivePtr<TableType> tt = {NewRef{}, z.t->AsTableType()}
 eval IntrusivePtr<Attributes> attrs = {NewRef{}, tv->Attrs()}
 eval auto t = make_intrusive<TableVal>(tt, attrs)
+eval Unref(frame[z.v1].table_val)
 eval frame[z.v1].table_val = t.release()
 
 direct-unary-op Vector-Coerce VectorCoerce
@@ -984,6 +987,7 @@ eval frame[z.v1].record_val->DeleteField(z.v2)
 internal-op Init-Record
 type V
 eval auto r = make_intrusive<RecordVal>(z.t->AsRecordType(), false)
+eval delete frame[z.v1].record_val
 eval frame[z.v1].record_val = to_ZAM_record(r)
 
 # v1 is the frame element being initialized
@@ -994,8 +998,8 @@ eval auto vt = z.t->AsVectorType()
 eval auto yt = vt->YieldType()
 eval auto vec = new VectorVal(vt)
 eval f->SetElement(z.v2, vec)
-eval delete frame[z.v1].vector_val
 eval auto zv = make_intrusive<ZAM_vector>(vec, yt)
+eval delete frame[z.v1].vector_val
 eval frame[z.v1].vector_val = new ZAMVector(zv)
 
 internal-op Init-Table
@@ -1003,6 +1007,7 @@ type V
 eval IntrusivePtr<TableType> tt = {NewRef{}, z.t->AsTableType()}
 eval IntrusivePtr<Attributes> attrs = {NewRef{}, z.attrs}
 eval auto t = new TableVal(tt, attrs)
+eval Unref(frame[z.v1].table_val)
 eval frame[z.v1].table_val = t
 
 

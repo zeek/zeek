@@ -694,13 +694,6 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 	int pc = start_pc;
 	int end_pc = insts2.size();
 
-	// Memory management: all of the BroObj's that we have used
-	// in interior values.  By managing them here rather than
-	// per-frame-slot, we don't need to add frame state about
-	// whether an object should be delete'd or not on reassignment.
-	std::vector<IntrusivePtr<BroObj>> vals;
-	vals.reserve(100);
-
 #define BuildVal(v, t) ZAMValUnion(v, t)
 #define CopyVal(v) (IsManagedType(z.t) ? BuildVal(v.ToVal(z.t), z.t) : v)
 

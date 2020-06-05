@@ -1,4 +1,8 @@
 
+3.1.4-dev.9 | 2020-06-04 18:54:26 -0700
+
+  * Update libkqueue for CentOS (Linux kernel < 3.8) fix (Jon Siwek, Corelight)
+
 3.1.4-dev.8 | 2020-06-04 18:39:44 -0700
 
   * GH-989: Fix crash on using some deprecated environment variables (Jon Siwek, Corelight)

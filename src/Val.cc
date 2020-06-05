@@ -2736,7 +2736,7 @@ void RecordVal::Assign(int field, Val* new_val)
 	Assign(field, {NewRef{}, new_val});
 	}
 
-Val* RecordVal::Lookup(int field) const
+IntrusivePtr<Val> RecordVal::Lookup(int field) const
 	{
 	// The following ugliness is because ZAM_record's various
 	// lookup methods are non-const because they load fields
@@ -2746,15 +2746,15 @@ Val* RecordVal::Lookup(int field) const
 	if ( ! zr.HasField(field) )
 		return nullptr;
 
-	return zr.NthField(field).release();
+	return zr.NthField(field);
 	}
 
 IntrusivePtr<Val> RecordVal::LookupWithDefault(int field) const
 	{
-	Val* val = Lookup(field);
+	auto val = Lookup(field);
 
 	if ( val )
-		return {NewRef{}, val};
+		return val;
 
 	return Type()->AsRecordType()->FieldDefault(field);
 	}
@@ -2804,7 +2804,7 @@ IntrusivePtr<Val> RecordVal::Lookup(const char* field, bool with_default) const
 	if ( idx < 0 )
 		reporter->InternalError("missing record field: %s", field);
 
-	return with_default ? LookupWithDefault(idx) : IntrusivePtr{NewRef{}, Lookup(idx)};
+	return with_default ? LookupWithDefault(idx) : Lookup(idx);
 	}
 
 IntrusivePtr<RecordVal> RecordVal::CoerceTo(const RecordType* t, Val* aggr, bool allow_orphaning) const
@@ -2838,7 +2838,7 @@ IntrusivePtr<RecordVal> RecordVal::CoerceTo(const RecordType* t, Val* aggr, bool
 			break;
 			}
 
-		Val* v = Lookup(i);
+		auto v = Lookup(i);
 
 		if ( ! v )
 			// Check for allowable optional fields is outside the loop, below.
@@ -2847,14 +2847,14 @@ IntrusivePtr<RecordVal> RecordVal::CoerceTo(const RecordType* t, Val* aggr, bool
 		if ( ar_t->FieldType(t_i)->Tag() == TYPE_RECORD &&
 		     ! same_type(ar_t->FieldType(t_i), v->Type()) )
 			{
-			auto rhs = make_intrusive<ConstExpr>(IntrusivePtr{NewRef{}, v});
+			auto rhs = make_intrusive<ConstExpr>(v);
 			auto e = make_intrusive<RecordCoerceExpr>(std::move(rhs),
 			        IntrusivePtr{NewRef{}, ar_t->FieldType(t_i)->AsRecordType()});
 			ar->Assign(t_i, e->Eval(nullptr));
 			continue;
 			}
 
-		ar->Assign(t_i, {NewRef{}, v});
+		ar->Assign(t_i, v);
 		}
 
 	for ( i = 0; i < ar_t->NumFields(); ++i )
@@ -3397,7 +3397,7 @@ IntrusivePtr<Val> cast_value_to_type(Val* v, BroType* t)
 
 	if ( same_type(v->Type(), bro_broker::DataVal::ScriptDataType()) )
 		{
-		auto dv = v->AsRecordVal()->Lookup(0);
+		auto dv = v->AsRecordVal()->Lookup(0).release();
 
 		if ( ! dv )
 			return nullptr;
@@ -3423,7 +3423,7 @@ bool can_cast_value_to_type(const Val* v, BroType* t)
 
 	if ( same_type(v->Type(), bro_broker::DataVal::ScriptDataType()) )
 		{
-		auto dv = v->AsRecordVal()->Lookup(0);
+		auto dv = v->AsRecordVal()->Lookup(0).release();
 
 		if ( ! dv )
 			return false;

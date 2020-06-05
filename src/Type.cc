@@ -791,7 +791,7 @@ IntrusivePtr<TableVal> RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 		Val* fv = nullptr;
 
 		if ( rv )
-			fv = rv->Lookup(i);
+			fv = rv->Lookup(i).release();
 
 		if ( fv )
 			::Ref(fv);

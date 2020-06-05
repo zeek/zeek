@@ -390,7 +390,7 @@ bool Manager::PublishEvent(string topic, RecordVal* args)
 	for ( auto i = 0u; i < vv->Size(); ++i )
 		{
 		auto val = vv->Lookup(i)->AsRecordVal()->Lookup(0);
-		auto data_val = static_cast<DataVal*>(val);
+		auto data_val = static_cast<DataVal*>(val.get());
 		xs.emplace_back(data_val->data);
 		}
 

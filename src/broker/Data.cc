@@ -1127,7 +1127,7 @@ EnumVal* bro_broker::get_data_type(RecordVal* v, Frame* frame)
 
 broker::data& bro_broker::opaque_field_to_data(RecordVal* v, Frame* f)
 	{
-	Val* d = v->Lookup(0);
+	Val* d = v->Lookup(0).release();
 
 	if ( ! d )
 		reporter->RuntimeError(f->GetCall()->GetLocationInfo(),

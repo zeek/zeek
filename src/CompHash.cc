@@ -180,7 +180,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 
 			for ( int i = 0; i < num_fields; ++i )
 				{
-				auto rv_i = rv->Lookup(i);
+				auto rv_i = rv->Lookup(i).release();
 
 				Attributes* a = rt->FieldDecl(i)->attrs.get();
 				bool optional = (a && a->FindAttr(ATTR_OPTIONAL));
@@ -517,7 +517,7 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 				bool optional = (a && a->FindAttr(ATTR_OPTIONAL));
 
 				sz = SingleTypeKeySize(rt->FieldType(i),
-						       rv ? rv->Lookup(i) : 0,
+					       rv ? rv->Lookup(i).release() : 0,
 						       type_check, sz, optional,
 						       calc_static_size);
 				if ( ! sz )

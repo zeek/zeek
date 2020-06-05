@@ -129,7 +129,7 @@ bool File::UpdateConnectionFields(Connection* conn, bool is_orig)
 	if ( ! conn )
 		return false;
 
-	Val* conns = val->Lookup(conns_idx);
+	Val* conns = val->Lookup(conns_idx).release();
 
 	if ( ! conns )
 		{
@@ -187,7 +187,7 @@ int File::Idx(const string& field, const RecordType* type)
 
 string File::GetSource() const
 	{
-	Val* v = val->Lookup(source_idx);
+	Val* v = val->Lookup(source_idx).release();
 
 	return v ? v->AsString()->CheckString() : string();
 	}
@@ -237,7 +237,7 @@ void File::SetTotalBytes(uint64_t size)
 
 bool File::IsComplete() const
 	{
-	Val* total = val->Lookup(total_bytes_idx);
+	Val* total = val->Lookup(total_bytes_idx).release();
 	if ( ! total )
 		return false;
 
@@ -311,7 +311,7 @@ void File::InferMetadata()
 	{
 	did_metadata_inference = true;
 
-	Val* bof_buffer_val = val->Lookup(bof_buffer_idx);
+	Val* bof_buffer_val = val->Lookup(bof_buffer_idx).release();
 
 	if ( ! bof_buffer_val )
 		{

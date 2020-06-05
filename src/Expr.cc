@@ -4900,10 +4900,10 @@ void FieldExpr::Delete(Frame* f)
 
 IntrusivePtr<Val> FieldExpr::Fold(Val* v) const
 	{
-	if ( Val* result = v->AsRecordVal()->Lookup(field) )
+	if ( auto result = v->AsRecordVal()->Lookup(field) )
 		{
 		SeatBelts(result->Type(), Type());
-		return {NewRef{}, result};
+		return result;
 		}
 
 	// Check for &default.
@@ -4970,7 +4970,7 @@ HasFieldExpr::~HasFieldExpr()
 IntrusivePtr<Val> HasFieldExpr::Fold(Val* v) const
 	{
 	auto rv = v->AsRecordVal();
-	return {AdoptRef{}, val_mgr->GetBool(rv->Lookup(field))};
+	return {AdoptRef{}, val_mgr->GetBool(rv->Lookup(field).release())};
 	}
 
 IntrusivePtr<Expr> HasFieldExpr::Duplicate()
@@ -5953,7 +5953,7 @@ extern IntrusivePtr<Val> coerce_to_record(RecordType* rt, Val* v,
 		{
 		if ( map[i] >= 0 )
 			{
-			IntrusivePtr<Val> rhs{NewRef{}, rv->Lookup(map[i])};
+			IntrusivePtr<Val> rhs = rv->Lookup(map[i]);
 
 			if ( ! rhs )
 				{
@@ -6179,7 +6179,7 @@ IntrusivePtr<Val> flatten_value(Val* v, int num_fields, const char*& error)
 
 	for ( int i = 0; i < num_fields; ++i )
 		{
-		if ( Val* fv = rv->Lookup(i) )
+		if ( Val* fv = rv->Lookup(i).release() )
 			{
 			l->Append(fv->Ref());
 			continue;

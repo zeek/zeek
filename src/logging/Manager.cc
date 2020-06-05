@@ -1089,7 +1089,7 @@ threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
 
 		for ( list<int>::iterator j = indices.begin(); j != indices.end(); ++j )
 			{
-			val = val->AsRecordVal()->Lookup(*j);
+			val = val->AsRecordVal()->Lookup(*j).release();
 
 			if ( ! val )
 				{

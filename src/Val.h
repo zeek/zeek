@@ -913,7 +913,7 @@ public:
 
 	void Assign(int field, IntrusivePtr<Val> new_val);
 	void Assign(int field, Val* new_val);
-	Val* Lookup(int field) const;	// Does not Ref() value.
+	IntrusivePtr<Val> Lookup(int field) const;
 	IntrusivePtr<Val> LookupWithDefault(int field) const;
 
 	/**

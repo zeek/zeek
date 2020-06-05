@@ -1520,7 +1520,7 @@ void TableVal::CheckExpireAttr(attr_tag at)
 		}
 	}
 
-bool TableVal::Assign(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val)
+bool TableVal::Assign(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val, bool broker_forward)
 	{
 	auto k = MakeHashKey(*index);
 
@@ -1530,7 +1530,7 @@ bool TableVal::Assign(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val)
 		return false;
 		}
 
-	return Assign(std::move(index), std::move(k), std::move(new_val));
+	return Assign(std::move(index), std::move(k), std::move(new_val), broker_forward);
 	}
 
 bool TableVal::Assign(Val* index, Val* new_val)
@@ -1539,7 +1539,7 @@ bool TableVal::Assign(Val* index, Val* new_val)
 	}
 
 bool TableVal::Assign(IntrusivePtr<Val> index, std::unique_ptr<HashKey> k,
-                      IntrusivePtr<Val> new_val)
+                      IntrusivePtr<Val> new_val, bool broker_forward)
 	{
 	bool is_set = table_type->IsSet();
 
@@ -1572,16 +1572,18 @@ bool TableVal::Assign(IntrusivePtr<Val> index, std::unique_ptr<HashKey> k,
 
 	Modified();
 
-	if ( change_func || ( ! broker_store.empty() ) )
+	if ( change_func || ( broker_forward && ! broker_store.empty() ) )
 		{
 		auto change_index = index ? std::move(index)
 		                          : RecreateIndex(k_copy);
-		const auto& v = old_entry_val ? old_entry_val->GetVal() : new_entry_val->GetVal();
 
 		if ( ! broker_store.empty() )
-			SendToStore(change_index.get(), v.get(), old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
+			SendToStore(change_index.get(), new_entry_val->GetVal().get(), old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
 		if ( change_func )
+			{
+			const auto& v = old_entry_val ? old_entry_val->GetVal() : new_entry_val->GetVal();
 			CallChangeFunc(change_index.get(), v, old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
+			}
 		}
 
 	delete old_entry_val;
@@ -2180,7 +2182,7 @@ void TableVal::SendToStore(const Val* index, const Val* new_value, OnChangeType 
 		}
 	}
 
-IntrusivePtr<Val> TableVal::Remove(const Val& index)
+IntrusivePtr<Val> TableVal::Remove(const Val& index, bool broker_forward)
 	{
 	auto k = MakeHashKey(index);
 	TableEntryVal* v = k ? AsNonConstTable()->RemoveEntry(k.get()) : nullptr;
@@ -2196,7 +2198,7 @@ IntrusivePtr<Val> TableVal::Remove(const Val& index)
 
 	Modified();
 
-	if ( ! broker_store.empty() )
+	if ( broker_forward && ! broker_store.empty() )
 		SendToStore(&index, nullptr, ELEMENT_REMOVED);
 	if ( change_func )
 		CallChangeFunc(&index, va, ELEMENT_REMOVED);

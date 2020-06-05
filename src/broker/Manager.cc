@@ -963,16 +963,18 @@ void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
 		auto key = insert.key();
 		auto data = insert.value();
 
-		DBG_LOG(DBG_BROKER, "Insert Data: %s:%s (%s:%s)", to_string(insert.key()).c_str(), to_string(insert.value()).c_str(), insert.key().get_type_name(), insert.value().get_type_name());
+		// We sent this message. Ignore it.
+		if ( insert.publisher() == storehandle->store_pid )
+			return;
+
+		DBG_LOG(DBG_BROKER, "Store %s: Insert: %s:%s (%s:%s)", insert.store_id().c_str(), to_string(insert.key()).c_str(), to_string(insert.value()).c_str(), insert.key().get_type_name(), insert.value().get_type_name());
+
+
 		if ( table->GetType()->IsSet() && data.get_type() != broker::data::type::none )
 			{
 			reporter->Error("ProcessStoreEvent Insert got %s when expecting set", data.get_type_name());
 			return;
 			}
-
-		// We sent this message. Ignore it.
-		if ( insert.publisher() == storehandle->store_pid )
-			return;
 
 		// FIXME: expiry!
 		const auto& its = table->GetType()->AsTableType()->IndexTypes();
@@ -986,7 +988,7 @@ void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
 
 		if ( table->GetType()->IsSet() )
 			{
-			table->Assign(zeek_key, nullptr);
+			table->Assign(zeek_key, nullptr, false);
 			return;
 			}
 
@@ -997,7 +999,7 @@ void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
 			reporter->Error("ProcessStoreEvent: failed to convert value");
 			return;
 			}
-			table->Assign(zeek_key, zeek_value);
+			table->Assign(zeek_key, zeek_value, false);
 		}
 	else if ( auto update = broker::store_event::update::make(msg) )
 		{
@@ -1012,16 +1014,17 @@ void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
 		auto key = update.key();
 		auto data = update.new_value();
 
-		DBG_LOG(DBG_BROKER, "Update Data: %s->%s (%s)", to_string(update.old_value()).c_str(), to_string(update.new_value()).c_str(), update.new_value().get_type_name());
+		// We sent this message. Ignore it.
+		if ( update.publisher() == storehandle->store_pid )
+			return;
+
+		DBG_LOG(DBG_BROKER, "Store %s: Update: %s->%s (%s)", update.store_id().c_str(), to_string(update.old_value()).c_str(), to_string(update.new_value()).c_str(), update.new_value().get_type_name());
+
 		if ( table->GetType()->IsSet() && data.get_type() != broker::data::type::none )
 			{
 			reporter->Error("ProcessStoreEvent Update got %s when expecting set", data.get_type_name());
 			return;
 			}
-
-		// We sent this message. Ignore it.
-		if ( update.publisher() == storehandle->store_pid )
-			return;
 
 		const auto& its = table->GetType()->AsTableType()->IndexTypes();
 		assert( its.size() == 1 );
@@ -1034,7 +1037,7 @@ void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
 
 		if ( table->GetType()->IsSet() )
 			{
-			table->Assign(zeek_key, nullptr);
+			table->Assign(zeek_key, nullptr, false);
 			return;
 			}
 
@@ -1045,7 +1048,7 @@ void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
 			reporter->Error("ProcessStoreEvent: failed to convert value");
 			return;
 			}
-			table->Assign(zeek_key, zeek_value);
+			table->Assign(zeek_key, zeek_value, false);
 		}
 	else if ( auto erase = broker::store_event::erase::make(msg) )
 		{
@@ -1057,13 +1060,12 @@ void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
 		if ( ! table )
 			return;
 
-		DBG_LOG(DBG_BROKER, "Erase for key %s", erase.store_id().c_str());
-
 		// We sent this message. Ignore it.
 		if ( erase.publisher() == storehandle->store_pid )
 			return;
 
 		auto key = erase.key();
+		DBG_LOG(DBG_BROKER, "Store %s: Erase key %s", erase.store_id().c_str(), to_string(key).c_str());
 		const auto& its = table->GetType()->AsTableType()->IndexTypes();
 		assert( its.size() == 1 );
 		auto zeek_key = data_to_val(std::move(key), its[0].get());
@@ -1072,7 +1074,7 @@ void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
 			reporter->Error("ProcessStoreEvent: failed to convert key");
 			return;
 			}
-		table->Remove(*zeek_key);
+		table->Remove(*zeek_key, false);
 		}
 	else
 		{

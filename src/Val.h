@@ -772,9 +772,11 @@ public:
 	 * @param index  The key to assign.
 	 * @param new_val  The value to assign at the index.  For a set, this
 	 * must be nullptr.
+	 * @param broker_forward Controls if the value will be forwarded to attached
+	 *                       broker stores.
 	 * @return  True if the assignment type-checked.
 	 */
-	bool Assign(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val);
+	bool Assign(IntrusivePtr<Val> index, IntrusivePtr<Val> new_val, bool broker_forward = true);
 
 	/**
 	 * Assigns a value at an associated index in the table (or in the
@@ -784,10 +786,12 @@ public:
 	 * @param k  A precomputed hash key to use.
 	 * @param new_val  The value to assign at the index.  For a set, this
 	 * must be nullptr.
+	 * @param broker_forward Controls if the value will be forwarded to attached
+	 *                       broker stores.
 	 * @return  True if the assignment type-checked.
 	 */
 	bool Assign(IntrusivePtr<Val> index, std::unique_ptr<HashKey> k,
-	            IntrusivePtr<Val> new_val);
+	            IntrusivePtr<Val> new_val, bool broker_forward = true);
 
 	// Returns true if the assignment typechecked, false if not. The
 	// methods take ownership of new_val, but not of the index.  If we're
@@ -909,12 +913,14 @@ public:
 	/**
 	 * Remove an element from the table and return it.
 	 * @param index  The index to remove.
+	 * @param broker_forward Controls if the remove operation will be forwarded to attached
+	 *                       broker stores.
 	 * @return  The value associated with the index if it exists, else nullptr.
 	 * For a sets that don't really contain associated values, a placeholder
 	 * value is returned to differentiate it from non-existent index (nullptr),
 	 * but otherwise has no meaning in relation to the set's contents.
 	 */
-	IntrusivePtr<Val> Remove(const Val& index);
+	IntrusivePtr<Val> Remove(const Val& index, bool broker_forward = true);
 
 	/**
 	 * Same as Remove(const Val&), but uses a precomputed hash key.

@@ -232,7 +232,7 @@ function Reporter::set_weird_sampling_rate%(weird_sampling_rate: count%) : bool
 ## Returns: weird sampling duration.
 function Reporter::get_weird_sampling_duration%(%) : interval
 	%{
-	return make_intrusive<Val>(reporter->GetWeirdSamplingDuration(), TYPE_INTERVAL);
+	return make_intrusive<IntervalVal>(reporter->GetWeirdSamplingDuration());
 	%}
 
 ## Sets the current weird sampling duration. Please note that

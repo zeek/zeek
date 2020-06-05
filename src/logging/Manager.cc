@@ -1511,8 +1511,8 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
 	info->Assign(0, {NewRef{}, winfo->type});
 	info->Assign(1, make_intrusive<StringVal>(new_name));
 	info->Assign(2, make_intrusive<StringVal>(winfo->writer->Info().path));
-	info->Assign(3, make_intrusive<Val>(open, TYPE_TIME));
-	info->Assign(4, make_intrusive<Val>(close, TYPE_TIME));
+	info->Assign(3, make_intrusive<TimeVal>(open));
+	info->Assign(4, make_intrusive<TimeVal>(close));
 	info->Assign(5, val_mgr->Bool(terminating));
 
 	Func* func = winfo->postprocessor;

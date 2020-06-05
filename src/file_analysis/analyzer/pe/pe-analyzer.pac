@@ -98,7 +98,7 @@ refine flow File += {
 			{
 			auto fh = make_intrusive<RecordVal>(zeek::BifType::Record::PE::FileHeader);
 			fh->Assign(0, val_mgr->Count(${h.Machine}));
-			fh->Assign(1, make_intrusive<Val>(static_cast<double>(${h.TimeDateStamp}), TYPE_TIME));
+			fh->Assign(1, make_intrusive<TimeVal>(static_cast<double>(${h.TimeDateStamp})));
 			fh->Assign(2, val_mgr->Count(${h.PointerToSymbolTable}));
 			fh->Assign(3, val_mgr->Count(${h.NumberOfSymbols}));
 			fh->Assign(4, val_mgr->Count(${h.SizeOfOptionalHeader}));

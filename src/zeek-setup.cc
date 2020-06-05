@@ -220,7 +220,7 @@ void done_with_network()
 		mgr.Drain();
 		// Don't propagate this event to remote clients.
 		mgr.Dispatch(new Event(net_done,
-		                       {make_intrusive<Val>(timer_mgr->Time(), TYPE_TIME)}),
+		                       {make_intrusive<TimeVal>(timer_mgr->Time())}),
 		             true);
 		}
 
@@ -457,7 +457,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		}
 
 	if ( options.process_status_file )
-		proc_status_file = options.process_status_file->data();
+		proc_status_file = copy_string(options.process_status_file->data());
 
 	atexit(atexit_handler);
 	set_processing_status("INITIALIZING", "main");

@@ -401,8 +401,8 @@ const IntrusivePtr<RecordVal>& Connection::ConnVal()
 	if ( root_analyzer )
 		root_analyzer->UpdateConnVal(conn_val.get());
 
-	conn_val->Assign(3, make_intrusive<Val>(start_time, TYPE_TIME));	// ###
-	conn_val->Assign(4, make_intrusive<Val>(last_time - start_time, TYPE_INTERVAL));
+	conn_val->Assign(3, make_intrusive<TimeVal>(start_time));	// ###
+	conn_val->Assign(4, make_intrusive<IntervalVal>(last_time - start_time));
 	conn_val->Assign(6, make_intrusive<StringVal>(history.c_str()));
 	conn_val->Assign(11, val_mgr->Bool(is_successful));
 

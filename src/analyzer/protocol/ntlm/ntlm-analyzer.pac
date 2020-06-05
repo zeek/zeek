@@ -12,7 +12,7 @@
 
 		// Bro can't support times back to the 1600's
 		// so we subtract a lot of seconds.
-		auto bro_ts = make_intrusive<Val>(secs - 11644473600.0, TYPE_TIME);
+		auto bro_ts = make_intrusive<TimeVal>(secs - 11644473600.0);
 
 		return bro_ts;
 		}

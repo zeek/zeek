@@ -718,7 +718,7 @@ IntrusivePtr<Val> DNS_Mgr::BuildMappingVal(DNS_Mapping* dm)
 	{
 	auto r = make_intrusive<RecordVal>(dm_rec);
 
-	r->Assign(0, make_intrusive<Val>(dm->CreationTime(), TYPE_TIME));
+	r->Assign(0, make_intrusive<TimeVal>(dm->CreationTime()));
 	r->Assign(1, make_intrusive<StringVal>(dm->ReqHost() ? dm->ReqHost() : ""));
 	r->Assign(2, make_intrusive<AddrVal>(dm->ReqAddr()));
 	r->Assign(3, val_mgr->Bool(dm->Valid()));

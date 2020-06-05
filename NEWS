@@ -240,6 +240,9 @@ Deprecated Functionality
   ``RecordVal*`` for analyzer arguments and replaced those with methods
   taking ``IntrusivePtr``.
 
+- The ``Val(double, TypeTag)`` constructor is deprecated, use either
+  ``IntervalVal()``, ``TimeVal()`` or ``DoubleVal()`` constructors.
+
 Zeek 3.1.0
 ==========
 

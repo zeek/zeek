@@ -1,4 +1,28 @@
 
+3.2.0-dev.744 | 2020-06-04 15:11:56 -0700
+
+  * Fix use-after-move of proc_status_file breaking -U flag (Jon Siwek, Corelight)
+
+  * Change Cirrus CI config to use org-level secured variable (Jon Siwek, Corelight)
+
+3.2.0-dev.742 | 2020-06-03 13:29:12 -0700
+
+  * GH-973: Fix the return type of topk_get_top()
+
+    e.g. when using `string` elements it should return `vector of string`,
+    not `vector of list of string` like it did before. (Jon Siwek, Corelight)
+
+3.2.0-dev.740 | 2020-06-03 13:17:26 -0700
+
+  * Deprecate Val(double, TypeTag) ctor, add TimeVal/DoubleVal subclasses
+
+    This also updates all usages of the deprecated Val ctor to use
+    either IntervalVal, TimeVal, or DoubleVal ctors.  The reason for
+    doing away with the old constructor is that using it with TYPE_INTERVAL
+    isn't strictly correct since there exists a more specific subclass,
+    IntervalVal, with overriden ValDescribe() method that ought to be used
+    to print such values in a more descriptive way. (Jon Siwek, Corelight)
+
 3.2.0-dev.738 | 2020-06-02 18:13:50 -0700
 
   * GH-985: Fix descriptions of double_to_interval() return values (Jon Siwek, Corelight)

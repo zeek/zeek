@@ -120,6 +120,7 @@ class Val : public BroObj {
 public:
 	static inline const IntrusivePtr<Val> nil;
 
+	[[deprecated("Remove in v4.1.  Use IntervalVal(), TimeVal(), or DoubleVal() constructors.")]]
 	Val(double d, TypeTag t)
 		: val(d), type(base_type(t))
 		{}
@@ -489,14 +490,27 @@ extern ValManager* val_mgr;
 
 class IntervalVal final : public Val {
 public:
-	IntervalVal(double quantity, double units);
+	IntervalVal(double quantity, double units = Seconds)
+		: Val(quantity * units, base_type(TYPE_INTERVAL))
+		{}
 
 protected:
-	IntervalVal()	{}
-
 	void ValDescribe(ODesc* d) const override;
 };
 
+class TimeVal final : public Val {
+public:
+	TimeVal(double t)
+		: Val(t, base_type(TYPE_TIME))
+		{}
+};
+
+class DoubleVal final : public Val {
+public:
+	DoubleVal(double v)
+		: Val(v, base_type(TYPE_DOUBLE))
+		{}
+};
 
 class PortVal final : public Val {
 public:

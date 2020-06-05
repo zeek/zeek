@@ -1519,8 +1519,8 @@ IntrusivePtr<RecordVal> DNS_MsgInfo::BuildTSIG_Val(struct TSIG_DATA* tsig)
 	r->Assign(1, val_mgr->Count(int(answer_type)));
 	r->Assign(2, make_intrusive<StringVal>(tsig->alg_name));
 	r->Assign(3, make_intrusive<StringVal>(tsig->sig));
-	r->Assign(4, make_intrusive<Val>(rtime, TYPE_TIME));
-	r->Assign(5, make_intrusive<Val>(double(tsig->fudge), TYPE_TIME));
+	r->Assign(4, make_intrusive<TimeVal>(rtime));
+	r->Assign(5, make_intrusive<TimeVal>(double(tsig->fudge)));
 	r->Assign(6, val_mgr->Count(tsig->orig_id));
 	r->Assign(7, val_mgr->Count(tsig->rr_error));
 	r->Assign(8, val_mgr->Count(is_query));
@@ -1539,8 +1539,8 @@ IntrusivePtr<RecordVal> DNS_MsgInfo::BuildRRSIG_Val(RRSIG_DATA* rrsig)
 	r->Assign(3, val_mgr->Count(rrsig->algorithm));
 	r->Assign(4, val_mgr->Count(rrsig->labels));
 	r->Assign(5, make_intrusive<IntervalVal>(double(rrsig->orig_ttl), Seconds));
-	r->Assign(6, make_intrusive<Val>(double(rrsig->sig_exp), TYPE_TIME));
-	r->Assign(7, make_intrusive<Val>(double(rrsig->sig_incep), TYPE_TIME));
+	r->Assign(6, make_intrusive<TimeVal>(double(rrsig->sig_exp)));
+	r->Assign(7, make_intrusive<TimeVal>(double(rrsig->sig_incep)));
 	r->Assign(8, val_mgr->Count(rrsig->key_tag));
 	r->Assign(9, make_intrusive<StringVal>(rrsig->signer_name));
 	r->Assign(10, make_intrusive<StringVal>(rrsig->signature));

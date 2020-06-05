@@ -2738,8 +2738,9 @@ void RecordVal::Assign(int field, Val* new_val)
 
 Val* RecordVal::Lookup(int field) const
 	{
-	// The following ugliness can go away once we migrate
-	// ZAM_record::Lookup to be const.
+	// The following ugliness is because ZAM_record's various
+	// lookup methods are non-const because they load fields
+	// on access, rather than preloading them.
 	auto& zr = *((RecordVal*) this)->AsNonConstRecord();
 
 	if ( ! zr.HasField(field) )

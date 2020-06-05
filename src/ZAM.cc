@@ -1000,7 +1000,7 @@ bool ZAM::BuiltIn_Log__write(const NameExpr* n, const expr_list& args)
 		z = ZInst(OP_LOG_WRITE_VVV, nslot, FrameSlot(id->AsNameExpr()),
 				col_slot);
 
-	z.t = columns_n->Type().get();
+	z.SetType(columns_n->Type());
 
 	AddInst(z);
 
@@ -1095,7 +1095,7 @@ const CompiledStmt ZAM::DoCall(const CallExpr* c, const NameExpr* n, UDs uds)
 
 	if ( n )
 		{
-		a_s.t = n->Type().get();
+		a_s.SetType(n->Type());
 
 		if ( n->Id()->IsGlobal() )
 			{
@@ -1193,7 +1193,7 @@ const CompiledStmt ZAM::RecordCoerce(const NameExpr* n, const Expr* e)
 	auto zop = OP_RECORD_COERCE_VVV;
 	ZInst z(zop, Frame1Slot(n, zop), op_slot, map_size);
 
-	z.t = e->Type().get();
+	z.SetType(e->Type());
 	z.op_type = OP_VVV_I3;
 	z.int_ptr = map;
 
@@ -1207,7 +1207,7 @@ const CompiledStmt ZAM::TableCoerce(const NameExpr* n, const Expr* e)
 	int op_slot = FrameSlot(op);
 	auto zop = OP_TABLE_COERCE_VV;
 	ZInst z(zop, Frame1Slot(n, zop), op_slot);
-	z.t = e->Type().get();
+	z.SetType(e->Type());
 
 	return AddInst(z);
 	}
@@ -1219,7 +1219,7 @@ const CompiledStmt ZAM::VectorCoerce(const NameExpr* n, const Expr* e)
 
 	auto zop = OP_VECTOR_COERCE_VV;
 	ZInst z(zop, Frame1Slot(n, zop), op_slot);
-	z.t = e->Type().get();
+	z.SetType(e->Type());
 
 	return AddInst(z);
 	}
@@ -1232,7 +1232,7 @@ const CompiledStmt ZAM::Is(const NameExpr* n, const Expr* e)
 
 	ZInst z(OP_IS_VV, Frame1Slot(n, OP_IS_VV), op_slot);
 	z.e = op;
-	z.t = is->TestType().get();
+	z.SetType(is->TestType());
 
 	return AddInst(z);
 	}
@@ -1675,7 +1675,7 @@ const CompiledStmt ZAM::TypeSwitch(const SwitchStmt* sw, const NameExpr* v,
 		ZInst z;
 
 		z = ZInst(OP_BRANCH_IF_NOT_TYPE_VV, slot, 0);
-		z.t = type;
+		z.SetType(type);
 		auto case_test = AddInst(z);
 
 		// Type cases that don't use "as" create a placeholder
@@ -1684,7 +1684,7 @@ const CompiledStmt ZAM::TypeSwitch(const SwitchStmt* sw, const NameExpr* v,
 			{
 			int id_slot = Frame1Slot(id, OP_CAST_ANY_VV);
 			z = ZInst(OP_CAST_ANY_VV, id_slot, slot);
-			z.t = type;
+			z.SetType(type);
 			body_end = AddInst(z);
 			}
 		else
@@ -1801,7 +1801,7 @@ const CompiledStmt ZAM::AssignVecElems(const Expr* e)
 		else
 			{
 			z = GenInst(this, OP_TRANSFORM_ANY_VEC_V, lhs);
-			z.t = op3->Type().get();
+			z.SetType(op3->Type());
 			}
 
 		AddInst(z);
@@ -1889,7 +1889,7 @@ const CompiledStmt ZAM::LoopOverTable(const ForStmt* f, const NameExpr* val)
 	auto z = ZInst(OP_INIT_TABLE_LOOP_VVC, info, FrameSlot(val));
 	z.c = ii_val;
 	z.op_type = OP_VVc;
-	z.t = value_var ? value_var->Type() : nullptr;
+	z.SetType(value_var ? value_var->Type() : nullptr);
 	auto init_end = AddInst(z);
 
 	auto iter_head = StartingBlock();
@@ -1986,14 +1986,14 @@ const CompiledStmt ZAM::FinishLoop(const CompiledStmt iter_head,
 const CompiledStmt ZAM::InitRecord(ID* id, RecordType* rt)
 	{
 	auto z = ZInst(OP_INIT_RECORD_V, FrameSlot(id));
-	z.t = rt;
+	z.SetType(rt);
 	return AddInst(z);
 	}
 
 const CompiledStmt ZAM::InitVector(ID* id, VectorType* vt)
 	{
 	auto z = ZInst(OP_INIT_VECTOR_VV, FrameSlot(id), id->Offset());
-	z.t = vt;
+	z.SetType(vt);
 	z.op_type = OP_VV_FRAME;
 	return AddInst(z);
 	}
@@ -2001,7 +2001,7 @@ const CompiledStmt ZAM::InitVector(ID* id, VectorType* vt)
 const CompiledStmt ZAM::InitTable(ID* id, TableType* tt, Attributes* attrs)
 	{
 	auto z = ZInst(OP_INIT_TABLE_V, FrameSlot(id));
-	z.t = tt;
+	z.SetType(tt);
 	z.attrs = attrs;
 	return AddInst(z);
 	}
@@ -2129,7 +2129,7 @@ int ZAM::InternalBuildVals(const ListExpr* l)
 			as = ZInst(OP_SET_VAL_VEC_VC, tmp, c);
 			}
 
-		as.t = e->Type().get();
+		as.SetType(e->Type());
 		(void) AddInst(as);
 		}
 
@@ -2192,7 +2192,7 @@ const CompiledStmt ZAM::LoadOrStoreLocal(ID* id, bool is_load, bool add)
 	int slot = (is_load && add) ? AddToFrame(id) : FrameSlot(id);
 
 	ZInst z(op, slot, id->Offset());
-	z.t = id->Type();
+	z.SetType(id->Type());
 	z.op_type = OP_VV_FRAME;
 
 	return AddInst(z);
@@ -2214,7 +2214,7 @@ const CompiledStmt ZAM::LoadGlobal(ID* id)
 
 	ZInst z(op, slot);
 	z.c.id_val = id;
-	z.t = id->Type();
+	z.SetType(id->Type());
 	z.op_type = OP_VC_ID;
 
 	return AddInst(z);
@@ -2373,12 +2373,16 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1,
 	BroType* stmt_type =
 		c2 ? c2->Type().get() : (c3 ? c3->Type().get() : nullptr);
 
+	BroType* zt;
+
 	if ( c2 )
-		z.t = c2->Type().get();
+		zt = c2->Type().get();
 	else if ( c3 )
-		z.t = c3->Type().get();
+		zt = c3->Type().get();
 	else
-		z.t = n2->Type().get();
+		zt = n2->Type().get();
+
+	z.SetType(zt);
 
 	return AddInst(z);
 	}
@@ -2407,7 +2411,7 @@ const CompiledStmt ZAM::CompileInExpr(const NameExpr* n1, const ListExpr* l,
 		{
 		int n2_slot = FrameSlot(n2);
 		z = ZInst(op, Frame1Slot(n1, op), n2_slot, build_indices);
-		z.t = n2->Type().get();
+		z.SetType(n2->Type());
 		}
 	else
 		z = ZInst(op, Frame1Slot(n1, op), build_indices, c);
@@ -2478,7 +2482,7 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
 				z.op_type = OP_VVV_I3;
 				}
 
-			z.t = n1->Type().get();
+			z.SetType(n1->Type());
 			z.e = n2;
 			return AddInst(z);
 			}
@@ -2499,19 +2503,19 @@ const CompiledStmt ZAM::CompileIndex(const NameExpr* n1, const NameExpr* n2,
 	case TYPE_VECTOR:
 		op = n == 1 ? OP_INDEX_VEC_VVL : OP_INDEX_VEC_SLICE_VVL;
 		z = ZInst(op, Frame1Slot(n1, op), n2_slot, build_indices);
-		z.t = n2->Type().get();
+		z.SetType(n2->Type());
 		break;
 
 	case TYPE_TABLE:
 		op = OP_TABLE_INDEX_VVV;
 		z = ZInst(op, Frame1Slot(n1, op), n2_slot, build_indices);
-		z.t = n1->Type().get();
+		z.SetType(n1->Type());
 		break;
 
 	case TYPE_STRING:
 		op = OP_INDEX_STRING_SLICE_VVL;
 		z = ZInst(op, Frame1Slot(n1, op), n2_slot, build_indices);
-		z.t = n1->Type().get();
+		z.SetType(n1->Type());
 		break;
 
 	default:

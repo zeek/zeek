@@ -172,8 +172,8 @@ BEGIN	{
 	# For an assign-to-any, then we will need the instruction
 	# type field set to the type of the RHS.  It does no harm
 	# to just always do that.
-	method_extra_suffix["R"] = "z.t = $2->Type()->AsRecordType()->FieldType(field);"
-	method_extra_suffix["X"] = "z.t = t;"
+	method_extra_suffix["R"] = "z.SetType($2->Type()->AsRecordType()->FieldType(field));"
+	method_extra_suffix["X"] = "z.SetType(t);"
 
 	# Whether for generated statements to take their type from the
 	# main assignment target (1) or from the first operand (0).
@@ -1115,8 +1115,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, is_cond, me
 		print ("\tauto z = GenInst(this, " full_op ", " \
 			args2[mt] ");") >methods_f
 		print ("\tz.e = n1;") >methods_f
-		print ("\tz.t = n1->Type().get();") >methods_f
-		print ("\tz.CheckIfManaged(z.t);") >methods_f
+		print ("\tz.SetType(n1->Type());") >methods_f
 		print ("\treturn AddInst(z);") >methods_f
 		}
 
@@ -1134,7 +1133,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, is_cond, me
 		part2c = indent "return AddInst(z);"
 
 		if ( is_vec && ary_op == 2 )
-			part2c = indent "z.t = myt;\n" part2c
+			part2c = indent "z.SetType(myt);\n" part2c
 
 		# Provide access to the individual variables.
 		split(args2[mt], vars, /, /)
@@ -1144,7 +1143,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, is_cond, me
 			# Remove extraneous $, if present.
 			sub(/\$/, "", set_type)
 
-			part2b = indent "z.t = " vars[set_type] "->Type().get();\n"
+			part2b = indent "z.SetType(" vars[set_type] "->Type());\n"
 			}
 		else
 			part2b = ""

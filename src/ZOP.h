@@ -220,6 +220,15 @@ public:
 	void CheckIfManaged(const BroType* t)
 		{ if ( IsManagedType(t) ) is_managed = true; }
 
+	void SetType(BroType* _t)
+		{
+		t = _t;
+		if ( t )
+			CheckIfManaged(t);
+		}
+
+	void SetType(const IntrusivePtr<BroType>& _t)
+		{ SetType(_t.get()); }
 
 	// The following are only needed during compilation.
 

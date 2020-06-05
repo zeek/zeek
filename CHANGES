@@ -1,4 +1,19 @@
 
+3.0.7-dev.10 | 2020-06-05 13:21:55 -0700
+
+  * Improve known-services detections (Jon Siwek, Corelight)
+
+    * Add "Known::service_udp_requires_response" option (default: true)
+
+      Determines whether to require UDP server response before considering
+      an active service to log in known_services.log.
+
+    * Update logic for "active" TCP services
+
+      To better check for only endpoints that either have observed a TCP handshake
+      or else assumed to have done one in the past (partial connections, missed
+      the handshake, but now see data/acks from server)
+
 3.0.7-dev.9 | 2020-06-05 12:25:24 -0700
 
   * GH-985: Fix descriptions of double_to_interval() return values (Jon Siwek, Corelight)

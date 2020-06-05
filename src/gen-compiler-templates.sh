@@ -92,20 +92,47 @@ BEGIN	{
 	accessors["u"] = accessors["U"] = ".uint_val"
 	accessors["d"] = accessors["D"] = ".double_val"
 
+	accessors["?"] = ".any_val"
 	accessors["A"] = ".addr_val"
+	accessors["F"] = ".func_val"
+	accessors["f"] = ".file_val"
+	accessors["L"] = ".list_val"
 	accessors["N"] = ".subnet_val"
+	accessors["O"] = ".opaque_val"
 	accessors["P"] = ".re_val"
 	accessors["R"] = ".record_val"
 	accessors["S"] = ".string_val"
 	accessors["T"] = ".table_val"
+	accessors["t"] = ".type_val"
 	accessors["V"] = ".vector_val"
 	accessors["X"] = "###"
 
-	++is_managed["A"]
-	++is_managed["N"]
-	++is_managed["R"]
-	++is_managed["S"]
-	++is_managed["V"]
+	# 1 = managed via new/delete, 2 = managed via Ref/Unref.
+	is_managed["A"] = 1	# addr
+	is_managed["N"] = 1	# subnet
+	is_managed["R"] = 1	# record
+	is_managed["S"] = 1	# string
+	is_managed["V"] = 1	# vector
+
+	is_managed["f"] = 2	# file
+	is_managed["F"] = 2	# function
+	is_managed["L"] = 2	# list
+	is_managed["O"] = 2	# opaque
+	is_managed["P"] = 2	# pattern
+	is_managed["T"] = 2	# table
+	is_managed["t"] = 2	# type
+
+	# Type 2 need to have Val-level accessors.
+	val_accessors["F"] = "AsFunc"
+	val_accessors["f"] = "AsFile"
+	val_accessors["L"] = "AsListVal"
+	val_accessors["O"] = "AsOpaqueVal"
+	val_accessors["P"] = "AsPatternVal"
+	val_accessors["T"] = "AsTableVal"
+	val_accessors["t"] = "AsType"
+
+	# We leave out "any" because we special-case it.
+	# is_managed["?"] = 2	# any
 
 	# We break these out because here the type structure does not match
 	# the argument structure.  Instead, these are special types known
@@ -167,10 +194,9 @@ BEGIN	{
 	assignment_type["R"] = LONG
 	assignment_type["X"] = LONG
 
-	# Templates for mapping "bare" frame assignments to specific
-	# transformations/memory management, depending on the type
-	# of the assignment.  Indexed by both the type and 0/1 for
-	# short/long.
+	# Templates for mapping "bare" frame assignments (type 1 management)
+	# to specific transformations/memory management, depending on the type
+	# of the assignment.  Indexed by both the type and 0/1 for short/long.
 
 	assign_tmpl["A", SHORT] = "auto av = new IPAddr(*($1.addr_val));\nZAMValUnion $$;\n$$.addr_val = av;"
 	assign_tmpl["N", SHORT] = "auto nv = new IPPrefix(*($1.subnet_val));\nZAMValUnion $$;\n$$.subnet_val = nv;"
@@ -214,12 +240,19 @@ BEGIN	{
 	method_map["i"] = method_map["I"] = "i_t == TYPE_INTERNAL_INT"
 	method_map["u"] = method_map["U"] = "i_t == TYPE_INTERNAL_UNSIGNED"
 	method_map["d"] = method_map["D"] = "i_t == TYPE_INTERNAL_DOUBLE"
+
 	method_map["A"] = "i_t == TYPE_INTERNAL_ADDR"
 	method_map["N"] = "i_t == TYPE_INTERNAL_SUBNET"
+	method_map["S"] = "i_t == TYPE_INTERNAL_STRING"
+
+	method_map["F"] = "tag == TYPE_FUNC"
+	method_map["L"] = "tag == TYPE_LIST"
+	method_map["O"] = "tag == TYPE_OPAQUE"
 	method_map["P"] = "tag == TYPE_PATTERN"
 	method_map["R"] = "tag == TYPE_RECORD"
-	method_map["S"] = "i_t == TYPE_INTERNAL_STRING"
 	method_map["T"] = "tag == TYPE_TABLE"
+	method_map["f"] = "tag == TYPE_FILE"
+	method_map["t"] = "tag == TYPE_TYPE"
 
 	# We need to explicitly check for any/not-any because we go through
 	# the op-types via dictionary traversal (i.e., unpredcitable order).
@@ -634,7 +667,23 @@ function build_assignment2(op, type, flavor, is_var, ev)
 
 	a_t = assignment_type[type]
 
-	tmpl = assign_tmpl[flavor, a_t]
+	if ( ! (flavor in is_managed) || is_managed[flavor] == 1 )
+		tmpl = assign_tmpl[flavor, a_t]
+	else if ( is_managed[flavor] == 2 )
+		{
+		if ( a_t == SHORT )
+			tmpl = "::Ref($1" accessors[flavor] ");\n" \
+				"ZAMValUnion $$ = $1;"
+		else
+			{
+			acc = "$$" accessors[flavor]
+			tmpl = "::Unref(" acc ");\n" \
+				acc " = $1.ToVal(z.t).release()->" \
+					val_accessors[flavor] "();"
+			}
+		}
+	else
+		gripe("missing is_managed " flavor " " flavor in is_managed " " is_managed[flavor])
 
 	if ( a_t == LONG )
 		# Allow for long form to be for example in an if-else

@@ -13,6 +13,11 @@
 #include "Reporter.h"
 #include "Traverse.h"
 
+// Needed for managing the corresponding values.
+#include "File.h"
+#include "Func.h"
+#include "OpaqueVal.h"
+
 // Just needed for BiFs.
 #include "Net.h"
 #include "logging/Manager.h"

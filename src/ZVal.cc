@@ -30,30 +30,46 @@ bool IsManagedType(const BroType* t)
 	{
 	switch ( t->Tag() ) {
 	case TYPE_ADDR:
-	case TYPE_SUBNET:
+	case TYPE_ANY:
+	case TYPE_FILE:
+	case TYPE_FUNC:
+	case TYPE_LIST:
+	case TYPE_OPAQUE:
+	case TYPE_PATTERN:
 	case TYPE_RECORD:
 	case TYPE_STRING:
+	case TYPE_SUBNET:
+	case TYPE_TABLE:
+	case TYPE_TYPE:
 	case TYPE_VECTOR:
 		return true;
 
 	default:
 		return false;
+
 	}
 	}
 
 void DeleteManagedType(ZAMValUnion& v, const BroType* t)
 	{
 	switch ( t->Tag() ) {
-	case TYPE_ADDR:	
-		delete v.addr_val; v.addr_val = nullptr; break;
-	case TYPE_SUBNET:
-		delete v.subnet_val; v.subnet_val = nullptr; break;
-	case TYPE_RECORD:
-		delete v.record_val; v.record_val = nullptr; break;
-	case TYPE_STRING:
-		delete v.string_val; v.string_val = nullptr; break;
-	case TYPE_VECTOR:
-		delete v.vector_val; v.vector_val = nullptr; break;
+	case TYPE_ADDR:	delete v.addr_val; v.addr_val = nullptr; break;
+	case TYPE_RECORD: delete v.record_val; v.record_val = nullptr; break;
+	case TYPE_STRING: delete v.string_val; v.string_val = nullptr; break;
+	case TYPE_SUBNET: delete v.subnet_val; v.subnet_val = nullptr; break;
+	case TYPE_VECTOR: delete v.vector_val; v.vector_val = nullptr; break;
+
+	case TYPE_ANY:	Unref(v.any_val); v.any_val = nullptr; break;
+	case TYPE_FILE:	Unref(v.file_val); v.file_val = nullptr; break;
+	case TYPE_FUNC:	Unref(v.func_val); v.func_val = nullptr; break;
+	case TYPE_LIST:	Unref(v.list_val); v.list_val = nullptr; break;
+	case TYPE_OPAQUE:
+			Unref(v.opaque_val); v.opaque_val = nullptr; break;
+	case TYPE_PATTERN:
+			Unref(v.re_val); v.re_val = nullptr; break;
+	case TYPE_TABLE:
+			Unref(v.table_val); v.table_val = nullptr; break;
+	case TYPE_TYPE:	Unref(v.type_val); v.type_val = nullptr; break;
 
 	default:
 		reporter->InternalError("type inconsistency in DeleteManagedType");
@@ -94,14 +110,31 @@ ZAMValUnion::ZAMValUnion(IntrusivePtr<Val> v, BroType* t)
 		double_val = vu.double_val;
 		break;
 
-	case TYPE_FUNC:	func_val = vu.func_val; Ref(func_val); break;
-	case TYPE_FILE:	file_val = vu.file_val; Ref(file_val);  break;
+	case TYPE_FUNC:
+		func_val = vu.func_val;
+		Ref(func_val);
+		break;
 
-	case TYPE_LIST:	list_val = v->Ref()->AsListVal(); break;
-	case TYPE_OPAQUE:	opaque_val = v->Ref()->AsOpaqueVal(); break;
+	case TYPE_FILE:
+		file_val = vu.file_val;
+		Ref(file_val);
+		break;
 
-	case TYPE_PATTERN:	re_val = v->Ref()->AsPatternVal(); break;
-	case TYPE_TABLE:	table_val = v->Ref()->AsTableVal(); break;
+	case TYPE_LIST:
+		list_val = v.release()->AsListVal();
+		break;
+
+	case TYPE_OPAQUE:
+		opaque_val = v.release()->AsOpaqueVal();
+		break;
+
+	case TYPE_PATTERN:
+		re_val = v.release()->AsPatternVal();
+		break;
+
+	case TYPE_TABLE:
+		table_val = v.release()->AsTableVal();
+		break;
 
 	case TYPE_VECTOR:
 		{
@@ -144,8 +177,13 @@ ZAMValUnion::ZAMValUnion(IntrusivePtr<Val> v, BroType* t)
 		subnet_val = new IPPrefix(*vu.subnet_val);
 		break;
 
-	case TYPE_ANY:		any_val = v->Ref(); break;
-	case TYPE_TYPE:		type_val = t->Ref(); break;
+	case TYPE_ANY:
+		any_val = v.release();
+		break;
+
+	case TYPE_TYPE:
+		type_val = t->Ref();
+		break;
 
 	case TYPE_ERROR:
 	case TYPE_TIMER:

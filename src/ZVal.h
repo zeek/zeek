@@ -62,8 +62,7 @@ union ZAMValUnion {
 	ZAMRecord* record_val;
 
 	// The types are all variants of Val (or BroType).  For memory
-	// management, in the AM frame we shadow these with IntrusivePtr's.
-	// Thus we do not unref these on reassignment.
+	// management, we use Ref/Unref.
 	BroFile* file_val;
 	Func* func_val;
 	ListVal* list_val;
@@ -72,7 +71,7 @@ union ZAMValUnion {
 	TableVal* table_val;
 	BroType* type_val;
 
-	// Used both for direct "any" values and for "vector of any".
+	// Used for direct "any" values.
 	Val* any_val;
 
 	// Used for the compiler to hold opaque items.  Memory management
@@ -315,7 +314,9 @@ public:
 
 	void DeleteField(unsigned int field)
 		{
-		// ### memory management
+		if ( IsInRecord(field) && IsManaged(field) )
+			DeleteManagedType(zvec[field], FieldType(field));
+
 		auto mask = 1UL << field;
 		is_in_record &= ~mask;
 		}
@@ -448,15 +449,14 @@ protected:
 };
 
 // Information used to iterate over aggregates.  It's a hodge-podge since
-// it's meant to support every type of aggregate & loop.  Only a BroObj
-// so we can make intrusive pointers for memory management.
-class IterInfo : public BroObj {
+// it's meant to support every type of aggregate & loop.
+class IterInfo {
 public:
 	IterInfo()	{ c = nullptr; }
 	~IterInfo()	{ if ( c ) loop_vals->StopIteration(c); }
 
 	// If we're looping over a table:
-	TableVal* tv = nullptr;
+	const TableVal* tv = nullptr;
 
 	// The raw values being looped over
 	const PDict<TableEntryVal>* loop_vals = nullptr;

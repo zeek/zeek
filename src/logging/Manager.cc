@@ -1036,9 +1036,9 @@ threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
 
 		for ( int i = 0; i < lval->val.vector_val.size; i++ )
 			{
+			auto vi = vec->Lookup(i);
 			lval->val.vector_val.vals[i] =
-				ValToLogVal(vec->Lookup(i).get(),
-					    vec->Type()->YieldType());
+				ValToLogVal(vi.get(), vec->Type()->YieldType());
 			}
 
 		break;
@@ -1087,9 +1087,12 @@ threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter,
 		// potentially be nested inside other records.
 		list<int>& indices = filter->indices[i];
 
+		IntrusivePtr<Val> val_ptr;
+
 		for ( list<int>::iterator j = indices.begin(); j != indices.end(); ++j )
 			{
-			val = val->AsRecordVal()->Lookup(*j).release();
+			val_ptr = val->AsRecordVal()->Lookup(*j);
+			val = val_ptr.get();
 
 			if ( ! val )
 				{

@@ -881,7 +881,11 @@ IntrusivePtr<Val> BinaryExpr::Eval(Frame* f) const
 		for ( unsigned int i = 0; i < v_op1->Size(); ++i )
 			{
 			if ( v_op1->Lookup(i) && v_op2->Lookup(i) )
-				v_result->Assign(i, Fold(v_op1->Lookup(i).get(), v_op2->Lookup(i).get()));
+				{
+				auto v1 = v_op1->Lookup(i);
+				auto v2 = v_op2->Lookup(i);
+				v_result->Assign(i, Fold(v1.get(), v2.get()));
+				}
 			else
 				v_result->Assign(i, nullptr);
 			// SetError("undefined element in vector operation");
@@ -4970,7 +4974,7 @@ HasFieldExpr::~HasFieldExpr()
 IntrusivePtr<Val> HasFieldExpr::Fold(Val* v) const
 	{
 	auto rv = v->AsRecordVal();
-	return {AdoptRef{}, val_mgr->GetBool(rv->Lookup(field).release())};
+	return {AdoptRef{}, val_mgr->GetBool(rv->Lookup(field) != nullptr)};
 	}
 
 IntrusivePtr<Expr> HasFieldExpr::Duplicate()
@@ -6179,7 +6183,7 @@ IntrusivePtr<Val> flatten_value(Val* v, int num_fields, const char*& error)
 
 	for ( int i = 0; i < num_fields; ++i )
 		{
-		if ( Val* fv = rv->Lookup(i).release() )
+		if ( Val* fv = rv->Lookup(i).get() )
 			{
 			l->Append(fv->Ref());
 			continue;

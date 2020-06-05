@@ -1127,7 +1127,7 @@ EnumVal* bro_broker::get_data_type(RecordVal* v, Frame* frame)
 
 broker::data& bro_broker::opaque_field_to_data(RecordVal* v, Frame* f)
 	{
-	Val* d = v->Lookup(0).release();
+	auto d = v->Lookup(0);
 
 	if ( ! d )
 		reporter->RuntimeError(f->GetCall()->GetLocationInfo(),
@@ -1135,7 +1135,7 @@ broker::data& bro_broker::opaque_field_to_data(RecordVal* v, Frame* f)
 
 	// RuntimeError throws an exception which causes this line to never exceute.
 	// NOLINTNEXTLINE(clang-analyzer-core.uninitialized.UndefReturn)
-	return static_cast<DataVal*>(d)->data;
+	return static_cast<DataVal*>(d.get())->data;
 	}
 
 void bro_broker::DataVal::ValDescribe(ODesc* d) const

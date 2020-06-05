@@ -282,7 +282,7 @@ public:
 
 	void Assign(unsigned int field, ZAMValUnion v)
 		{
-		if ( IsManaged(field) )
+		if ( IsInRecord(field) && IsManaged(field) )
 			Delete(field);
 
 		zvec[field] = v;

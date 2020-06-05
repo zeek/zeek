@@ -3397,12 +3397,12 @@ IntrusivePtr<Val> cast_value_to_type(Val* v, BroType* t)
 
 	if ( same_type(v->Type(), bro_broker::DataVal::ScriptDataType()) )
 		{
-		auto dv = v->AsRecordVal()->Lookup(0).release();
+		auto dv = v->AsRecordVal()->Lookup(0);
 
 		if ( ! dv )
 			return nullptr;
 
-		return static_cast<bro_broker::DataVal*>(dv)->castTo(t);
+		return static_cast<bro_broker::DataVal*>(dv.get())->castTo(t);
 		}
 
 	return nullptr;
@@ -3423,12 +3423,12 @@ bool can_cast_value_to_type(const Val* v, BroType* t)
 
 	if ( same_type(v->Type(), bro_broker::DataVal::ScriptDataType()) )
 		{
-		auto dv = v->AsRecordVal()->Lookup(0).release();
+		auto dv = v->AsRecordVal()->Lookup(0);
 
 		if ( ! dv )
 			return false;
 
-		return static_cast<const bro_broker::DataVal *>(dv)->canCastTo(t);
+		return static_cast<const bro_broker::DataVal *>(dv.get())->canCastTo(t);
 		}
 
 	return false;

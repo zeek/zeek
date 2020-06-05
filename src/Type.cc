@@ -628,7 +628,7 @@ RecordType::RecordType(type_decl_list* arg_types) : BroType(TYPE_RECORD)
 		{
 		loop_over_list(*types, i)
 			if ( IsManagedType((*types)[i]->type) )
-				managed_fields |= (1 << i);
+				managed_fields |= (1UL << i);
 		}
 	}
 
@@ -788,13 +788,10 @@ IntrusivePtr<TableVal> RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 		{
 		const BroType* ft = FieldType(i);
 		const TypeDecl* fd = FieldDecl(i);
-		Val* fv = nullptr;
+		IntrusivePtr<Val> fv;
 
 		if ( rv )
-			fv = rv->Lookup(i).release();
-
-		if ( fv )
-			::Ref(fv);
+			fv = rv->Lookup(i);
 
 		bool logged = (fd->attrs && fd->FindAttr(ATTR_LOG) != 0);
 
@@ -803,7 +800,7 @@ IntrusivePtr<TableVal> RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 		string s = container_type_name(ft);
 		nr->Assign(0, make_intrusive<StringVal>(s));
 		nr->Assign(1, val_mgr->GetBool(logged));
-		nr->Assign(2, fv);
+		nr->Assign(2, fv.release());
 		nr->Assign(3, FieldDefault(i));
 		Val* field_name = new StringVal(FieldName(i));
 		rval->Assign(field_name, std::move(nr));
@@ -849,6 +846,9 @@ const char* RecordType::AddFields(type_decl_list* others, attr_list* attr)
 
 			td->attrs->AddAttr(make_intrusive<Attr>(ATTR_LOG));
 			}
+
+		if ( IsManagedType(td->type) )
+			managed_fields |= (1UL << types->size());
 
 		types->push_back(td);
 		}

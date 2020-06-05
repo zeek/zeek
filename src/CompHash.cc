@@ -180,7 +180,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 
 			for ( int i = 0; i < num_fields; ++i )
 				{
-				auto rv_i = rv->Lookup(i).release();
+				auto rv_i = rv->Lookup(i);
 
 				Attributes* a = rt->FieldDecl(i)->attrs.get();
 				bool optional = (a && a->FindAttr(ATTR_OPTIONAL));
@@ -190,7 +190,7 @@ char* CompositeHash::SingleValHash(bool type_check, char* kp0,
 
 				if ( ! (kp = SingleValHash(type_check, kp,
 							   rt->FieldType(i),
-							   rv_i, optional)) )
+							   rv_i.get(), optional)) )
 					return 0;
 				}
 
@@ -516,10 +516,12 @@ int CompositeHash::SingleTypeKeySize(BroType* bt, const Val* v,
 				Attributes* a = rt->FieldDecl(i)->attrs.get();
 				bool optional = (a && a->FindAttr(ATTR_OPTIONAL));
 
+				auto v = rv ? rv->Lookup(i) : nullptr;
 				sz = SingleTypeKeySize(rt->FieldType(i),
-					       rv ? rv->Lookup(i).release() : 0,
-						       type_check, sz, optional,
+						       v.get(), type_check,
+						       sz, optional,
 						       calc_static_size);
+
 				if ( ! sz )
 					return 0;
 				}

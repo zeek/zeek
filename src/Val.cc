@@ -1576,13 +1576,12 @@ bool TableVal::Assign(IntrusivePtr<Val> index, std::unique_ptr<HashKey> k,
 		{
 		auto change_index = index ? std::move(index)
 		                          : RecreateIndex(k_copy);
+		const auto& v = old_entry_val ? old_entry_val->GetVal() : new_entry_val->GetVal();
+
 		if ( ! broker_store.empty() )
-			SendToStore(change_index.get(), new_val.get(), old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
+			SendToStore(change_index.get(), v.get(), old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
 		if ( change_func )
-			{
-			const auto& v = old_entry_val ? old_entry_val->GetVal() : new_entry_val->GetVal();
 			CallChangeFunc(change_index.get(), v, old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
-			}
 		}
 
 	delete old_entry_val;
@@ -2138,7 +2137,7 @@ void TableVal::SendToStore(const Val* index, const Val* new_value, OnChangeType 
 			index_val = index;
 			}
 
-		// FIXME: switch back to just storing tables directly in the broker store? 
+		// FIXME: switch back to just storing tables directly in the broker store?
 		// me which store a change came from - and this still seems to be missing from the store_events. (Or I am blind).
 		auto broker_index = bro_broker::val_to_data(index_val);
 

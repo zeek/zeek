@@ -950,19 +950,16 @@ void Manager::Process()
 
 void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
 	{
-	auto topic_parts = broker::topic::split(topic);
-	const auto& store_name = topic_parts.back();
-
-	auto storehandle = broker_mgr->LookupStore(store_name);
-	if ( ! storehandle )
-		return;
-
-	auto table = storehandle->forward_to;
-	if ( ! table )
-		return;
-
 	if ( auto insert = broker::store_event::insert::make(msg) )
 		{
+		auto storehandle = broker_mgr->LookupStore(insert.store_id());
+		if ( ! storehandle )
+			return;
+
+		auto table = storehandle->forward_to;
+		if ( ! table )
+			return;
+
 		auto key = insert.key();
 		auto data = insert.value();
 
@@ -1004,6 +1001,14 @@ void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
 		}
 	else if ( auto update = broker::store_event::update::make(msg) )
 		{
+		auto storehandle = broker_mgr->LookupStore(update.store_id());
+		if ( ! storehandle )
+			return;
+
+		auto table = storehandle->forward_to;
+		if ( ! table )
+			return;
+
 		auto key = update.key();
 		auto data = update.new_value();
 
@@ -1044,7 +1049,15 @@ void Manager::ProcessStoreEvent(const broker::topic& topic, broker::data msg)
 		}
 	else if ( auto erase = broker::store_event::erase::make(msg) )
 		{
-		DBG_LOG(DBG_BROKER, "Erase for key %s", store_name.c_str());
+		auto storehandle = broker_mgr->LookupStore(erase.store_id());
+		if ( ! storehandle )
+			return;
+
+		auto table = storehandle->forward_to;
+		if ( ! table )
+			return;
+
+		DBG_LOG(DBG_BROKER, "Erase for key %s", erase.store_id().c_str());
 
 		// We sent this message. Ignore it.
 		if ( erase.publisher() == storehandle->store_pid )

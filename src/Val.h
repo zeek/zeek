@@ -965,6 +965,10 @@ public:
 	static void DoneParsing();
 
 protected:
+	friend ZAM_record;
+	RecordVal(ZAM_record* zr, RecordType* t);
+	void Disassociate()	{ val.record_val = nullptr; }
+
 	IntrusivePtr<Val> DoClone(CloneState* state) override;
 
 	BroObj* origin;
@@ -1053,6 +1057,10 @@ public:
 	bool Remove(unsigned int index);
 
 protected:
+	friend class ZAM_vector;
+	VectorVal(ZAM_vector* zv, VectorType* t);
+	void Disassociate()	{ val.vector_val = nullptr; }
+
 	void ValDescribe(ODesc* d) const override;
 	IntrusivePtr<Val> DoClone(CloneState* state) override;
 

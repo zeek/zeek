@@ -2703,10 +2703,20 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(t)
 		}
 	}
 
+RecordVal::RecordVal(ZAM_record* zr, RecordType* t) : Val(t)
+	{
+	origin = nullptr;
+	val.record_val = zr;
+	::Ref(zr);
+	}
+
 RecordVal::~RecordVal()
 	{
-	val.record_val->Disassociate();
-	Unref(val.record_val);
+	if ( val.record_val )
+		{
+		val.record_val->Disassociate();
+		Unref(val.record_val);
+		}
 	}
 
 IntrusivePtr<Val> RecordVal::SizeVal() const
@@ -3024,10 +3034,21 @@ VectorVal::VectorVal(VectorType* t, unsigned int n) : Val(t)
 	val.vector_val = new ZAM_vector(this, yt, n);
 	}
 
+VectorVal::VectorVal(ZAM_vector* zv, VectorType* t) : Val(t)
+	{
+	vector_type = t->Ref()->AsVectorType();
+	val.vector_val = zv;
+	::Ref(zv);
+	}
+
 VectorVal::~VectorVal()
 	{
-	val.vector_val->Disassociate();
-	Unref(val.vector_val);
+	if ( val.vector_val )
+		{
+		val.vector_val->Disassociate();
+		Unref(val.vector_val);
+		}
+
 	Unref(vector_type);
 	}
 

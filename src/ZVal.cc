@@ -237,7 +237,7 @@ IntrusivePtr<Val> ZAMValUnion::ToVal(BroType* t) const
 
 	case TYPE_PORT:		v = val_mgr->GetPort(uint_val); break;
 
-	case TYPE_VECTOR:	return ToVector(t);
+	case TYPE_VECTOR:	return vector_val->ToVectorVal(t);
 	case TYPE_RECORD:	return record_val->ToRecordVal();
 
 	case TYPE_ANY:		return {NewRef{}, any_val};
@@ -259,48 +259,44 @@ IntrusivePtr<Val> ZAMValUnion::ToVal(BroType* t) const
 	return {AdoptRef{}, v};
 	}
 
-IntrusivePtr<VectorVal> ZAMValUnion::ToVector(BroType* t) const
+
+IntrusivePtr<VectorVal> ZAM_vector::ToVectorVal(BroType* t)
 	{
-	auto v = vector_val->VecVal();
-
-	if ( v )
-		return v;
-
-	// Need to create the vector.
-	auto vt = t->AsVectorType();
-	auto yt = vt->YieldType();
-
-	auto& vec = vector_val->ConstVec();
-	int n = vec.size();
-
-	auto actual_yt = vector_val->YieldType();
-	if ( ! actual_yt )
-		actual_yt = yt;
-
-	auto is_any = actual_yt->Tag() == TYPE_ANY;
-
-	v = make_intrusive<VectorVal>(vt);
-	for ( int i = 0; i < n; ++i )
+	if ( ! aggr_val )
 		{
-		auto& vr = vec[i];
+		// Need to create the vector.
+		auto vt = t->AsVectorType();
+		auto yt = vt->YieldType();
+		int n = zvec.size();
 
-		if ( vr.IsNil(actual_yt) )
-			continue;
+		if ( ! general_yt )
+			SetGeneralYieldType(yt);
 
-		IntrusivePtr<Val> v_i;
-		if ( is_any )
-			v_i = {NewRef{}, vr.any_val};
-		else
-			v_i = vr.ToVal(actual_yt);
+		auto is_any = IsAny(general_yt);
 
-		v->Assign(i, v_i);
+		auto vv = new VectorVal(this, vt);
+
+		for ( int i = 0; i < n; ++i )
+			{
+			auto& vr = zvec[i];
+
+			if ( vr.IsNil(general_yt) )
+				continue;
+
+			IntrusivePtr<Val> v_i;
+			if ( is_any )
+				v_i = {NewRef{}, vr.any_val};
+			else
+				v_i = vr.ToVal(general_yt);
+
+			vv->Assign(i, v_i);
+			}
+
+		aggr_val = vv;
 		}
 
-	vector_val->SetVecVal(v.release());
-
-	return v;
+	return {NewRef{}, aggr_val->AsVectorVal()};
 	}
-
 
 void ZAM_vector::SetManagedElement(int n, ZAMValUnion& v)
 	{
@@ -371,7 +367,7 @@ ZAM_record::ZAM_record(RecordVal* rv, RecordType* _rt)
 IntrusivePtr<RecordVal> ZAM_record::ToRecordVal()
 	{
 	if ( ! aggr_val )
-		aggr_val = new RecordVal(rt);
+		aggr_val = new RecordVal(this, rt);
 
 	return {NewRef{}, aggr_val->AsRecordVal()};
 	}
@@ -458,6 +454,7 @@ ZAMVector::ZAMVector(IntrusivePtr<ZAM_vector> _vec)
 ZAMRecord::ZAMRecord(IntrusivePtr<ZAM_record> _zr)
 	{
 	zr = _zr;
+	ASSERT(zr.get());
 	}
 
 

@@ -369,14 +369,14 @@ eval Unref(op1)
 internal-op Index-Is-In-Vector
 type VVV
 eval auto op1 = frame[z.v3].list_val
-eval auto op2 = frame[z.v2].ToVector(z.t)
+eval auto op2 = frame[z.v2].vector_val->ToVectorVal(z.t)
 eval frame[z.v1].int_val = op2->Lookup(op1) != nullptr
 eval Unref(op1)
 
 internal-op Index-Is-In-Vector
 type VVC
 eval auto op1 = frame[z.v2].list_val
-eval auto op2 = z.c.ToVector(z.t)
+eval auto op2 = z.c.vector_val->ToVectorVal(z.t)
 eval frame[z.v1].int_val = op2->Lookup(op1) != nullptr
 eval Unref(op1)
 
@@ -417,8 +417,8 @@ eval if ( frame[z.v2].vector_val->Size() != frame[z.v3].vector_val->Size() ) {
 eval	ZAM_run_time_error(z.stmt, "size mismatch, boolean index and vector")
 eval	break; }
 eval auto vt = z.t->AsVectorType()
-eval auto v2 = frame[z.v2].ToVector(vt)
-eval auto v3 = frame[z.v3].ToVector(vt)
+eval auto v2 = frame[z.v2].vector_val->ToVectorVal(vt)
+eval auto v3 = frame[z.v3].vector_val->ToVectorVal(vt)
 eval auto v = vector_bool_select(vt, v2.get(), v3.get())
 eval delete frame[z.v1].vector_val
 eval frame[z.v1].vector_val = to_ZAM_vector(v)
@@ -427,8 +427,8 @@ op IndexVecIntSelect
 type VVV
 set-type $1
 eval auto vt = z.t->AsVectorType()
-eval auto v2 = frame[z.v2].ToVector(vt)
-eval auto v3 = frame[z.v3].ToVector(vt)
+eval auto v2 = frame[z.v2].vector_val->ToVectorVal(vt)
+eval auto v3 = frame[z.v3].vector_val->ToVectorVal(vt)
 eval auto v = vector_int_select(vt, v2.get(), v3.get())
 eval delete frame[z.v1].vector_val
 eval frame[z.v1].vector_val = to_ZAM_vector(v)
@@ -456,7 +456,7 @@ eval AssignV1(CopyVal(vec[ind]))
 internal-op Index-Vec
 type VVL
 eval auto yt = z.t->AsVectorType()->YieldType()
-eval auto vec = frame[z.v2].ToVector(z.t)
+eval auto vec = frame[z.v2].vector_val->ToVectorVal(z.t)
 eval auto lv = frame[z.v3].list_val
 eval auto v = vec->Lookup(lv)
 eval Unref(lv)
@@ -465,7 +465,7 @@ eval AssignV1T(BuildVal(v, yt), yt)
 internal-op Index-Vec-Slice
 type VVL
 eval auto vt = z.t->AsVectorType()
-eval auto vec = frame[z.v2].ToVector(z.t)
+eval auto vec = frame[z.v2].vector_val->ToVectorVal(z.t)
 eval auto lv = frame[z.v3].list_val
 eval auto v = vector_index(vt, vec.get(), lv)
 eval Unref(lv)
@@ -996,12 +996,9 @@ internal-op Init-Vector
 type VV
 eval auto vt = z.t->AsVectorType()
 eval auto yt = vt->YieldType()
-eval auto vec = new VectorVal(vt)
-eval auto Ref(vec)
-eval f->SetElement(z.v2, vec)
-eval auto zv = make_intrusive<ZAM_vector>(vec, yt)
+eval auto vec = make_intrusive<VectorVal>(vt)
 eval delete frame[z.v1].vector_val
-eval frame[z.v1].vector_val = new ZAMVector(zv)
+eval frame[z.v1].vector_val = to_ZAM_vector(vec)
 
 internal-op Init-Table
 type V

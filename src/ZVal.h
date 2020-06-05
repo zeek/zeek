@@ -40,9 +40,6 @@ union ZAMValUnion {
 	// Convert to a Bro value.
 	IntrusivePtr<Val> ToVal(BroType* t) const;
 
-	// Conversion between ZAM and interpreted forms of vectors.
-	IntrusivePtr<VectorVal> ToVector(BroType* t) const;
-
 	// Used for bool, int.
 	bro_int_t int_val;
 
@@ -165,9 +162,14 @@ public:
 
 	~ZAM_vector()
 		{
+		if ( aggr_val )
+			aggr_val->AsVectorVal()->Disassociate();
+
 		if ( managed_yt )
 			DeleteMembers();
 		}
+
+	IntrusivePtr<VectorVal> ToVectorVal(BroType* t);
 
 	BroType* ManagedYieldType() const	{ return managed_yt; }
 	BroType* GeneralYieldType() const	{ return general_yt; }
@@ -278,6 +280,9 @@ public:
 
 	~ZAM_record()
 		{
+		if ( aggr_val )
+			aggr_val->AsRecordVal()->Disassociate();
+
 		DeleteManagedMembers();
 		}
 
@@ -384,6 +389,9 @@ public:
 		return new ZAMVector(vec);
 		}
 
+	IntrusivePtr<VectorVal> ToVectorVal(BroType* t)
+		{ return vec->ToVectorVal(t); }
+
 	int Size() const		{ return vec->Size(); }
 	void Resize(int n) const	{ vec->ModVec().resize(n); }
 
@@ -441,7 +449,10 @@ public:
 
 	// error is true iff the field isn't in the record.
 	ZAMValUnion& Lookup(int field, bool& error)
-		{ return zr->Lookup(field, error); }
+		{
+		ASSERT(zr.get());
+		return zr->Lookup(field, error);
+		}
 
 	void DeleteField(int field)		{ zr->DeleteField(field); }
 	bool HasField(int field)		{ return zr->HasField(field); }

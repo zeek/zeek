@@ -136,6 +136,9 @@ public:
 
 	void Disassociate()	{ aggr_val = nullptr; }
 
+	// For high-speed access - use with care!
+	ZVU_vec& RawVec()	{ return zvec; }
+
 protected:
 	// The associated Zeek interpreter value.  We track this just
 	// for convenience, so we don't have to build a new Val* when
@@ -300,6 +303,15 @@ public:
 		auto mask = 1UL << field;
 		is_in_record |= mask;
 		}
+
+	// Direct access to fields for assignment or clearing.
+	ZAMValUnion& SetField(unsigned int field)
+		{
+		is_in_record |= (1UL << field);
+		return zvec[field];
+		}
+	void ClearField(unsigned int field)
+		{ is_in_record &= ~(1UL << field); }
 
 	ZAMValUnion& Lookup(unsigned int field, bool& error)
 		{

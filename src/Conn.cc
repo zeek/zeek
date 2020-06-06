@@ -13,6 +13,7 @@
 #include "Sessions.h"
 #include "Reporter.h"
 #include "Timer.h"
+#include "ZVal.h"
 #include "iosource/IOSource.h"
 #include "analyzer/protocol/pia/PIA.h"
 #include "binpac.h"
@@ -331,67 +332,89 @@ void Connection::StatusUpdateTimer(double t)
 
 RecordVal* Connection::BuildConnVal()
 	{
-	if ( ! conn_val )
+	ZAM_record* cdr;
+
+	if ( conn_val )
+		cdr = conn_val->AsNonConstRecord();
+
+	else
 		{
 		conn_val = new RecordVal(connection_type);
+		cdr = conn_val->AsNonConstRecord();
 
 		TransportProto prot_type = ConnTransport();
 
 		auto id_val = make_intrusive<RecordVal>(conn_id);
-		id_val->Assign(0, make_intrusive<AddrVal>(orig_addr));
-		id_val->Assign(1, val_mgr->GetPort(ntohs(orig_port), prot_type));
-		id_val->Assign(2, make_intrusive<AddrVal>(resp_addr));
-		id_val->Assign(3, val_mgr->GetPort(ntohs(resp_port), prot_type));
+		auto idr = id_val->AsNonConstRecord();
+
+		idr->SetField(0).addr_val = new AddrVal(orig_addr);
+		idr->SetField(1).uint_val =
+				PortVal::Mask(ntohs(orig_port), prot_type);
+		idr->SetField(2).addr_val = new AddrVal(resp_addr);
+		idr->SetField(3).uint_val =	
+				PortVal::Mask(ntohs(resp_port), prot_type);
 
 		auto orig_endp = make_intrusive<RecordVal>(endpoint);
-		orig_endp->Assign(0, val_mgr->GetCount(0));
-		orig_endp->Assign(1, val_mgr->GetCount(0));
-		orig_endp->Assign(4, val_mgr->GetCount(orig_flow_label));
+		auto oer = orig_endp->AsNonConstRecord();
+
+		oer->SetField(0).uint_val = 0;
+		oer->SetField(1).uint_val = 0;
+		oer->SetField(4).uint_val = orig_flow_label;
 
 		const int l2_len = sizeof(orig_l2_addr);
 		char null[l2_len]{};
 
 		if ( memcmp(&orig_l2_addr, &null, l2_len) != 0 )
-			orig_endp->Assign(5, make_intrusive<StringVal>(fmt_mac(orig_l2_addr, l2_len)));
+			oer->SetField(5).string_val =
+				new StringVal(fmt_mac(orig_l2_addr, l2_len));
 
 		auto resp_endp = make_intrusive<RecordVal>(endpoint);
-		resp_endp->Assign(0, val_mgr->GetCount(0));
-		resp_endp->Assign(1, val_mgr->GetCount(0));
-		resp_endp->Assign(4, val_mgr->GetCount(resp_flow_label));
+		auto rer = resp_endp->AsNonConstRecord();
+
+		rer->SetField(0).uint_val = 0;
+		rer->SetField(1).uint_val = 0;
+		rer->SetField(4).uint_val = resp_flow_label;
 
 		if ( memcmp(&resp_l2_addr, &null, l2_len) != 0 )
-			resp_endp->Assign(5, make_intrusive<StringVal>(fmt_mac(resp_l2_addr, l2_len)));
+			rer->SetField(5).string_val =
+				new StringVal(fmt_mac(resp_l2_addr, l2_len));
 
-		conn_val->Assign(0, std::move(id_val));
-		conn_val->Assign(1, std::move(orig_endp));
-		conn_val->Assign(2, std::move(resp_endp));
+		cdr->SetField(0).record_val = new ZAMRecord({NewRef{}, idr});
+		cdr->SetField(1).record_val = new ZAMRecord({NewRef{}, oer});
+		cdr->SetField(2).record_val = new ZAMRecord({NewRef{}, rer});
+
 		// 3 and 4 are set below.
-		conn_val->Assign(5, make_intrusive<TableVal>(IntrusivePtr{NewRef{}, string_set}));	// service
-		conn_val->Assign(6, val_mgr->GetEmptyString());	// history
+		cdr->SetField(5).table_val = new TableVal(IntrusivePtr{NewRef{}, string_set});	// service
+
+		// The code used to do the equivalent of this, but it
+		// gets immediately reassigned below.
+		// cdr->SetField(6).string_val = val_mgr->GetEmptyString();	// history
 
 		if ( ! uid )
 			uid.Set(bits_per_uid);
 
-		conn_val->Assign(7, make_intrusive<StringVal>(uid.Base62("C").c_str()));
+		cdr->SetField(7).string_val = new StringVal(uid.Base62("C").c_str());
 
 		if ( encapsulation && encapsulation->Depth() > 0 )
-			conn_val->Assign(8, encapsulation->GetVectorVal());
+			{
+			auto vv = encapsulation->GetVectorVal()->AsNonConstVector();
+			cdr->SetField(8).vector_val = new ZAMVector({NewRef{}, vv});
+			}
 
 		if ( vlan != 0 )
-			conn_val->Assign(9, val_mgr->GetInt(vlan));
+			cdr->SetField(9).int_val = vlan;
 
 		if ( inner_vlan != 0 )
-			conn_val->Assign(10, val_mgr->GetInt(inner_vlan));
-
+			cdr->SetField(10).int_val = inner_vlan;
 		}
 
 	if ( root_analyzer )
 		root_analyzer->UpdateConnVal(conn_val);
 
-	conn_val->Assign(3, make_intrusive<Val>(start_time, TYPE_TIME));	// ###
-	conn_val->Assign(4, make_intrusive<Val>(last_time - start_time, TYPE_INTERVAL));
-	conn_val->Assign(6, make_intrusive<StringVal>(history.c_str()));
-	conn_val->Assign(11, val_mgr->GetBool(is_successful));
+	cdr->SetField(3).double_val = start_time;
+	cdr->SetField(4).double_val = last_time - start_time;
+	cdr->SetField(6).string_val = new StringVal(history.c_str());
+	cdr->SetField(11).uint_val = is_successful;
 
 	conn_val->SetOrigin(this);
 

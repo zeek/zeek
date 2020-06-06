@@ -27,9 +27,9 @@ eval_u $$.uint_val = $1
 #
 eval_d $$.double_val = $1 < 0 ? -$1 : $1
 #
-eval_A $$.uint_val = $1->GetFamily() == IPv4 ? 32 : 128
+eval_A $$.uint_val = $1->AsAddr().GetFamily() == IPv4 ? 32 : 128
 #
-eval_N $$.double_val = pow(2.0, double(128 - $1->LengthIPv6()))
+eval_N $$.double_val = pow(2.0, double(128 - $1->AsSubNet().LengthIPv6()))
 #
 eval_S $$.uint_val = $1->Len()
 #
@@ -130,10 +130,11 @@ op-type I U D S
 vector
 eval $1 + $2
 eval_S vector<const BroString*> strings
-eval_S strings.push_back($1)
-eval_S strings.push_back($2)
-eval_S delete $$
-eval_S $$ = concatenate(strings)
+eval_S strings.push_back($1->AsString())
+eval_S strings.push_back($2->AsString())
+eval_S auto res = new StringVal(concatenate(strings))
+eval_S Unref($$)
+eval_S $$ = res
 
 binary-expr-op Sub
 op-type I U D T
@@ -159,12 +160,12 @@ eval-pre if ( $2 == 0 ) { ZAM_run_time_error(z.stmt, "division by zero"); break;
 eval $1 / $2
 #
 eval-mixed A I auto mask = static_cast<uint32_t>($2)
-eval-mixed A I auto a = $1
-eval-mixed A I if ( a->GetFamily() == IPv4 && mask > 32 ) z.e->RuntimeError(fmt("bad IPv4 subnet prefix length: %" PRIu32, mask))
-eval-mixed A I if ( a->GetFamily() == IPv6 && mask > 128 ) z.e->RuntimeError(fmt("bad IPv6 subnet prefix length: %" PRIu32, mask))
-eval-mixed A I auto v = make_intrusive<SubNetVal>(*a, mask)
-eval-mixed A I delete frame[z.v1].subnet_val
-eval-mixed A I frame[z.v1].subnet_val = new IPPrefix(*v->val.subnet_val)
+eval-mixed A I auto a = $1->AsAddr()
+eval-mixed A I if ( a.GetFamily() == IPv4 && mask > 32 ) z.e->RuntimeError(fmt("bad IPv4 subnet prefix length: %" PRIu32, mask))
+eval-mixed A I if ( a.GetFamily() == IPv6 && mask > 128 ) z.e->RuntimeError(fmt("bad IPv6 subnet prefix length: %" PRIu32, mask))
+eval-mixed A I auto v = make_intrusive<SubNetVal>(a, mask)
+eval-mixed A I Unref(frame[z.v1].subnet_val)
+eval-mixed A I frame[z.v1].subnet_val = v.release()
 eval-mixed A I /* Note, $$ is ignored but mentioned here so templator backs off */
 
 binary-expr-op Mod
@@ -189,7 +190,7 @@ vector
 eval $1 & $2
 #
 eval_P auto p = new PatternVal(RE_Matcher_conjunction($1->AsPattern(), $2->AsPattern()))
-eval_P delete $$
+eval_P Unref($$)
 eval_P $$ = p
 #
 eval_T $$ = $1->Intersect($2)
@@ -200,11 +201,11 @@ vector
 eval $1 | $2
 #
 eval_P auto p = new PatternVal(RE_Matcher_disjunction($1->AsPattern(), $2->AsPattern()))
-eval_P delete $$
+eval_P Unref($$)
 eval_P $$ = p
 #
 eval_T auto v = $1->Clone()
-eval_T delete $$
+eval_T Unref($$)
 eval_T $$ = v->AsTableVal()
 eval_T (void) $2->AddTo($$, false, false)
 
@@ -219,37 +220,37 @@ rel-expr-op LT
 op-type I U D S T A
 vector
 eval $1 < $2
-eval_S Bstr_cmp($1, $2) < 0
+eval_S Bstr_cmp($1->AsString(), $2->AsString()) < 0
 eval_T $1->IsSubsetOf($2) && $1->Size() < $2->Size()
-eval_A *$1 < *$2
+eval_A $1->AsAddr() < $2->AsAddr()
 
 rel-expr-op LE
 op-type I U D S T A
 vector
 eval $1 <= $2
-eval_S Bstr_cmp($1, $2) <= 0
+eval_S Bstr_cmp($1->AsString(), $2->AsString()) <= 0
 eval_T $1->IsSubsetOf($2)
-eval_A *$1 < *$2 || *$1 == *$2
+eval_A $1->AsAddr() < $2->AsAddr() || $1->AsAddr() == $2->AsAddr()
 
 rel-expr-op EQ
 op-type I U D S T A N
 vector
 eval $1 == $2
-eval_S Bstr_cmp($1, $2) == 0
+eval_S Bstr_cmp($1->AsString(), $2->AsString()) == 0
 eval_T $1->EqualTo($2)
-eval_A *$1 == *$2
-eval_N *$1 == *$2
-eval-mixed P S $1->AsPattern()->MatchExactly($2)
+eval_A $1->AsAddr() == $2->AsAddr()
+eval_N $1->AsSubNet() == $2->AsSubNet()
+eval-mixed P S $1->AsPattern()->MatchExactly($2->AsString())
 
 rel-expr-op NE
 op-type I U D S T A N
 vector
 eval $1 != $2
-eval_S Bstr_cmp($1, $2) != 0
+eval_S Bstr_cmp($1->AsString(), $2->AsString()) != 0
 eval_T ! $1->EqualTo($2)
-eval_A *$1 != *$2
-eval_N *$1 != *$2
-eval-mixed P S ! $1->AsPattern()->MatchExactly($2)
+eval_A $1->AsAddr() != $2->AsAddr()
+eval_N $1->AsSubNet() != $2->AsSubNet()
+eval-mixed P S ! $1->AsPattern()->MatchExactly($2->AsString())
 
 # Note, canonicalization means that GE and GT shouldn't occur
 # for Sets (type T).
@@ -257,15 +258,15 @@ rel-expr-op GE
 op-type I U D S A
 vector
 eval $1 >= $2
-eval_S Bstr_cmp($1, $2) >= 0
-eval_A ! (*$1 < *$2)
+eval_S Bstr_cmp($1->AsString(), $2->AsString()) >= 0
+eval_A ! ($1->AsAddr() < $2->AsAddr())
 
 rel-expr-op GT
 op-type I U D S A
 vector
 eval $1 > $2
-eval_S Bstr_cmp($1, $2) > 0
-eval_A ! (*$1 < *$2) && *$1 != *$2
+eval_S Bstr_cmp($1->AsString(), $2->AsString()) > 0
+eval_A ! ($1->AsAddr() < $2->AsAddr()) && $1->AsAddr() != $2->AsAddr()
 
 ########## Nonuniform Expressions ##########
 
@@ -297,15 +298,15 @@ no-eval
 
 internal-op P-In-S
 type VVV
-eval frame[z.v1].int_val = frame[z.v2].re_val->AsPattern()->MatchAnywhere(frame[z.v3].string_val) != 0
+eval frame[z.v1].int_val = frame[z.v2].re_val->AsPattern()->MatchAnywhere(frame[z.v3].string_val->AsString()) != 0
 
 internal-op P-In-S
 type VCV
-eval frame[z.v1].int_val = z.c.re_val->AsPattern()->MatchAnywhere(frame[z.v2].string_val) != 0
+eval frame[z.v1].int_val = z.c.re_val->AsPattern()->MatchAnywhere(frame[z.v2].string_val->AsString()) != 0
 
 internal-op P-In-S
 type VVC
-eval frame[z.v1].int_val = frame[z.v2].re_val->AsPattern()->MatchAnywhere(z.c.string_val) != 0
+eval frame[z.v1].int_val = frame[z.v2].re_val->AsPattern()->MatchAnywhere(z.c.string_val->AsString()) != 0
 
 internal-binary-op S-In-S
 op-accessor string_val
@@ -318,7 +319,7 @@ internal-binary-op A-In-S
 op1-accessor addr_val
 op2-accessor subnet_val
 op-type I
-eval $$ = op2->Contains(*op1)
+eval $$ = op2->Contains(op1->AsAddr())
 
 
 # Handled differently because of the unusual middle argument.
@@ -483,33 +484,33 @@ eval AssignV1(BuildVal(v, z.t))
 # This version is for a variable v3.
 internal-op Index-String
 type VVV
-eval auto str = frame[z.v2].string_val
+eval auto str = frame[z.v2].string_val->AsString()
 eval auto len = str->Len()
 eval auto idx = frame[z.v3].int_val
 eval if ( idx < 0 ) idx += len
 eval auto v = str->GetSubstring(idx, 1)
-eval delete frame[z.v1].string_val
-eval frame[z.v1].string_val = v ? v : new BroString("")
+eval Unref(frame[z.v1].string_val)
+eval frame[z.v1].string_val = new StringVal(v ? v : new BroString(""))
 
 # This version is for a constant v3.
 internal-op Index-StringC
 type VVV
-eval auto str = frame[z.v2].string_val
+eval auto str = frame[z.v2].string_val->AsString()
 eval auto len = str->Len()
 eval auto idx = z.v3
 eval if ( idx < 0 ) idx += len
 eval auto v = str->GetSubstring(idx, 1)
-eval delete frame[z.v1].string_val
-eval frame[z.v1].string_val = v ? v : new BroString("")
+eval Unref(frame[z.v1].string_val)
+eval frame[z.v1].string_val = new StringVal(v ? v : new BroString(""))
 
 internal-op Index-String-Slice
 type VVL
-eval auto str = frame[z.v2].string_val
+eval auto str = frame[z.v2].string_val->AsString()
 eval auto lv = frame[z.v3].list_val
 eval auto slice = index_string_slice(str, lv)
 eval Unref(lv)
-eval delete frame[z.v1].string_val
-eval frame[z.v1].string_val = slice
+eval Unref(frame[z.v1].string_val)
+eval frame[z.v1].string_val = new StringVal(slice)
 
 op AnyIndex
 type VVi
@@ -779,7 +780,7 @@ eval else pc = t[v]->inst_num
 internal-op SwitchS
 op1-read
 type VVV
-eval auto vs = frame[z.v1].string_val->Render()
+eval auto vs = frame[z.v1].string_val->AsString()->Render()
 eval std::string v(vs)
 eval auto t = str_cases[z.v2]
 eval if ( t.find(v) == t.end() ) pc = z.v3
@@ -789,7 +790,7 @@ eval delete[] vs
 internal-op SwitchA
 op1-read
 type VVV
-eval auto v = frame[z.v1].addr_val->AsString()
+eval auto v = frame[z.v1].addr_val->AsAddr().AsString()
 eval auto t = str_cases[z.v2]
 eval if ( t.find(v) == t.end() ) pc = z.v3
 eval else pc = t[v]->inst_num
@@ -797,7 +798,7 @@ eval else pc = t[v]->inst_num
 internal-op SwitchN
 op1-read
 type VVV
-eval auto v = frame[z.v1].subnet_val->AsString()
+eval auto v = frame[z.v1].subnet_val->AsSubNet().AsString()
 eval auto t = str_cases[z.v2]
 eval if ( t.find(v) == t.end() ) pc = z.v3
 eval else pc = t[v]->inst_num
@@ -882,7 +883,7 @@ eval ++ii->iter
 internal-op Init-String-Loop
 type VV
 eval auto ii = z.c.iter_info
-eval ii->s = frame[z.v2].string_val
+eval ii->s = frame[z.v2].string_val->AsString()
 eval ii->iter = 0
 eval ii->n = ii->s->Len()
 eval frame[z.v1].iter_info = ii
@@ -896,9 +897,8 @@ eval auto sval = ii->s
 eval if ( ii->iter >= ii->n ) { pc = z.v3; break; }
 eval auto bytes = (const char*) sval->Bytes() + ii->iter
 eval auto sv = new StringVal(1, bytes)
-eval delete frame[z.v1].string_val
-eval frame[z.v1].string_val = new BroString(*sv->AsString())
-eval delete sv
+eval Unref(frame[z.v1].string_val)
+eval frame[z.v1].string_val = sv
 eval ++ii->iter
 
 internal-op End-Loop
@@ -1199,55 +1199,55 @@ eval }
 internal-op Sub-Bytes
 type VVVV
 eval auto sv = ZAM_sub_bytes(frame[z.v2].string_val, frame[z.v3].uint_val, frame[z.v4].int_val)
-eval delete frame[z.v1].string_val
+eval Unref(frame[z.v1].string_val)
 eval frame[z.v1].string_val = sv
 
 internal-op Sub-Bytes
 type VVVi
 eval auto sv = ZAM_sub_bytes(frame[z.v2].string_val, frame[z.v3].uint_val, z.v4)
-eval delete frame[z.v1].string_val
+eval Unref(frame[z.v1].string_val)
 eval frame[z.v1].string_val = sv
 
 internal-op Sub-Bytes
 type VViV
 eval auto sv = ZAM_sub_bytes(frame[z.v2].string_val, bro_uint_t(z.v4), frame[z.v3].int_val)
-eval delete frame[z.v1].string_val
+eval Unref(frame[z.v1].string_val)
 eval frame[z.v1].string_val = sv
 
 internal-op Sub-Bytes
 type VVii
 eval auto sv = ZAM_sub_bytes(frame[z.v2].string_val, bro_uint_t(z.v3), z.v4)
-eval delete frame[z.v1].string_val
+eval Unref(frame[z.v1].string_val)
 eval frame[z.v1].string_val = sv
 
 internal-op Sub-Bytes
 type VVVC
 eval auto sv = ZAM_sub_bytes(z.c.string_val, frame[z.v2].uint_val, frame[z.v3].int_val)
-eval delete frame[z.v1].string_val
+eval Unref(frame[z.v1].string_val)
 eval frame[z.v1].string_val = sv
 
 internal-op Sub-Bytes
 type VViC
 eval auto sv = ZAM_sub_bytes(z.c.string_val, frame[z.v2].uint_val, z.v3)
-eval delete frame[z.v1].string_val
+eval Unref(frame[z.v1].string_val)
 eval frame[z.v1].string_val = sv
 
 internal-op Sub-Bytes
 type ViVC
 eval auto sv = ZAM_sub_bytes(z.c.string_val, bro_uint_t(z.v3), frame[z.v2].int_val)
-eval delete frame[z.v1].string_val
+eval Unref(frame[z.v1].string_val)
 eval frame[z.v1].string_val = sv
 
 internal-op Sub-Bytes
 type ViiC
 eval auto sv = ZAM_sub_bytes(z.c.string_val, bro_uint_t(z.v2), z.v3)
-eval delete frame[z.v1].string_val
+eval Unref(frame[z.v1].string_val)
 eval frame[z.v1].string_val = sv
 
 internal-op To-Lower
 type VV
 eval auto sv = ZAM_to_lower(frame[z.v2].string_val)
-eval delete frame[z.v1].string_val
+eval Unref(frame[z.v1].string_val)
 eval frame[z.v1].string_val = sv
 
 # A ZAM version of Log::__write.  In calls to it, the first argument

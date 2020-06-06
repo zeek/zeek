@@ -815,7 +815,7 @@ function paraglob_init%(v: any%) : opaque of paraglob
 	auto vv = v->AsVectorVal()->AsVector()->ConstVec();
 	for ( unsigned int i = 0; i < vv.size(); ++i )
 		{
-		const BroString* s = vv[i].string_val;
+		const BroString* s = vv[i].string_val->AsString();
 		patterns.push_back(std::string(reinterpret_cast<const char*>(s->Bytes()), s->Len()));
 		}
 
@@ -3383,8 +3383,9 @@ const char* conn_id_string(Val* c)
 	auto& resp_h = *id->Lookup(2, error).addr_val;
 	uint32_t resp_p = id->Lookup(3, error).uint_val;
 
-	return fmt("%s/%u -> %s/%u\n", orig_h.AsString().c_str(), orig_p,
-	                               resp_h.AsString().c_str(), resp_p);
+	return fmt("%s/%u -> %s/%u\n",
+			orig_h.AsAddr().AsString().c_str(), orig_p,
+		       resp_h.AsAddr().AsString().c_str(), resp_p);
 	}
 %%}
 
@@ -3506,7 +3507,7 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 		ts.tv_usec = pkt_vl->Lookup(1, error).uint_val;
 		caplen = pkt_vl->Lookup(2, error).uint_val;
 		len = pkt_vl->Lookup(3, error).uint_val;
-		data = pkt_vl->Lookup(4, error).string_val->Bytes();
+		data = pkt_vl->Lookup(4, error).string_val->AsString()->Bytes();
 		link_type = pkt_vl->Lookup(5, error).int_val;
 		Packet p(link_type, &ts, caplen, len, data, true);
 

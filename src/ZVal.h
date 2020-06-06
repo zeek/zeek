@@ -52,14 +52,14 @@ union ZAMValUnion {
 
 	// For these types, we assume we have ownership of the value, so
 	// they need to be explicitly deleted prior to reassignment.
-	BroString* string_val;
-	IPAddr* addr_val;
-	IPPrefix* subnet_val;
 	ZAMVector* vector_val;
 	ZAMRecord* record_val;
 
 	// The types are all variants of Val (or BroType).  For memory
 	// management, we use Ref/Unref.
+	StringVal* string_val;
+	AddrVal* addr_val;
+	SubNetVal* subnet_val;
 	BroFile* file_val;
 	Func* func_val;
 	ListVal* list_val;
@@ -502,7 +502,7 @@ public:
 	BroType* yield_type = nullptr;
 
 	// String we're iterating over.
-	BroString* s = nullptr;
+	const BroString* s = nullptr;
 
 	// Counter of where we are in the iteration.
 	bro_uint_t iter;

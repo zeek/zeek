@@ -946,8 +946,8 @@ Connection* NetSessions::FindConnection(Val* v)
 		}
 
 	bool error;
-	const IPAddr& orig_addr = *(vl.Lookup(orig_h, error).addr_val);
-	const IPAddr& resp_addr = *(vl.Lookup(resp_h, error).addr_val);
+	const IPAddr& orig_addr = vl.Lookup(orig_h, error).addr_val->AsAddr();
+	const IPAddr& resp_addr = vl.Lookup(resp_h, error).addr_val->AsAddr();
 
 	auto raw_orig_port_v = vl.Lookup(orig_p, error);
 	auto raw_resp_port_v = vl.Lookup(resp_p, error);

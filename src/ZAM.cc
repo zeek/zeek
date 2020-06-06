@@ -624,8 +624,9 @@ VEC_COERCE(UD, uint_val, bro_uint_t, double_val)
 VEC_COERCE(DI, double_val, double, int_val)
 VEC_COERCE(DU, double_val, double, uint_val)
 
-BroString* ZAM_to_lower(const BroString* bs)
+StringVal* ZAM_to_lower(const StringVal* sv)
 	{
+	auto bs = sv->AsString();
 	const u_char* s = bs->Bytes();
 	int n = bs->Len();
 	u_char* lower_s = new u_char[n + 1];
@@ -641,17 +642,17 @@ BroString* ZAM_to_lower(const BroString* bs)
 
 	*ls++ = '\0';
 		
-	return new BroString(1, lower_s, n);
+	return new StringVal(new BroString(1, lower_s, n));
 	}
 
-BroString* ZAM_sub_bytes(const BroString* s, bro_uint_t start, bro_int_t n)
+StringVal* ZAM_sub_bytes(const StringVal* s, bro_uint_t start, bro_int_t n)
 	{
         if ( start > 0 )
                 --start;        // make it 0-based
 
-        BroString* ss = s->GetSubstring(start, n);
+        BroString* ss = s->AsString()->GetSubstring(start, n);
 
-	return ss ? ss : new BroString("");
+	return new StringVal(ss ? ss : new BroString(""));
 	}
 
 double curr_CPU_time()

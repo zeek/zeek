@@ -108,26 +108,29 @@ BEGIN	{
 	accessors["X"] = "###"
 
 	# 1 = managed via new/delete, 2 = managed via Ref/Unref.
-	is_managed["A"] = 1	# addr
-	is_managed["N"] = 1	# subnet
 	is_managed["R"] = 1	# record
-	is_managed["S"] = 1	# string
 	is_managed["V"] = 1	# vector
 
+	is_managed["A"] = 2	# addr
 	is_managed["f"] = 2	# file
 	is_managed["F"] = 2	# function
 	is_managed["L"] = 2	# list
+	is_managed["N"] = 2	# subnet
 	is_managed["O"] = 2	# opaque
 	is_managed["P"] = 2	# pattern
+	is_managed["S"] = 2	# string
 	is_managed["T"] = 2	# table
 	is_managed["t"] = 2	# type
 
 	# Type 2 need to have Val-level accessors.
+	val_accessors["A"] = "AsAddrVal"
 	val_accessors["F"] = "AsFunc"
 	val_accessors["f"] = "AsFile"
 	val_accessors["L"] = "AsListVal"
+	val_accessors["N"] = "AsSubNetVal"
 	val_accessors["O"] = "AsOpaqueVal"
 	val_accessors["P"] = "AsPatternVal"
+	val_accessors["S"] = "AsStringVal"
 	val_accessors["T"] = "AsTableVal"
 	val_accessors["t"] = "AsType"
 
@@ -198,24 +201,15 @@ BEGIN	{
 	# to specific transformations/memory management, depending on the type
 	# of the assignment.  Indexed by both the type and 0/1 for short/long.
 
-	assign_tmpl["A", SHORT] = "auto av = new IPAddr(*($1.addr_val));\nZAMValUnion $$;\n$$.addr_val = av;"
-	assign_tmpl["N", SHORT] = "auto nv = new IPPrefix(*($1.subnet_val));\nZAMValUnion $$;\n$$.subnet_val = nv;"
 	assign_tmpl["R", SHORT] = "auto rv = $1.record_val->ShallowCopy();\nZAMValUnion $$;\n$$.record_val = rv;"
-	assign_tmpl["S", SHORT] = "auto sv = new BroString(*($1.string_val));\nZAMValUnion $$;\n$$.string_val = sv;"
 	assign_tmpl["V", SHORT] = "auto vv = $1.vector_val->ShallowCopy();\nZAMValUnion $$;\n$$.vector_val = vv;"
 	assign_tmpl["ANY", SHORT] = "ZAMValUnion $$ = $1;"
 	assign_tmpl["", SHORT] = "ZAMValUnion $$ = $1;"
 
-	assign_tmpl["A", LONG] = "auto av = new IPAddr(*($1.addr_val));\ndelete $$.addr_val;\n$$.addr_val = av;"
-	assign_tmpl["N", LONG] = "auto nv = new IPPrefix(*($1.subnet_val));\ndelete $$.subnet_val;\n$$.subnet_val = nv;"
 	assign_tmpl["R", LONG] = "auto rv = $1.record_val->ShallowCopy();\ndelete $$.record_val;\n$$.record_val = rv;"
-	assign_tmpl["S", LONG] = "auto sv = new BroString(*($1.string_val));\ndelete $$.string_val;\n$$.string_val = sv;"
 	assign_tmpl["V", LONG] = "auto vv = $1.vector_val->ShallowCopy();\ndelete $$.vector_val;\n$$.vector_val = vv;"
 	assign_tmpl["ANY", LONG] = "$$.any_val = $1.ToVal(z.t).release();"
 	assign_tmpl["", LONG] = "$$ = $1;"
-
-
-	# Update eval(...) below
 
 	eval_selector["I"] = ""
 	eval_selector["i"] = "i"
@@ -952,7 +946,7 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 				gsub(/\$\$/, "vec1[i]" laccessor, oe_copy)
 				print ("\tcase " full_op vec ":\n\t\t{\n") >vec2_eval_f
 				if ( sub_type1 in is_managed )
-					print ("\t\tif ( needs_management ) delete vec1[i]" laccessor ";\n\t\t") >vec2_eval_f
+					print ("\t\tif ( needs_management ) Unref( vec1[i]" laccessor ");\n\t\t") >vec2_eval_f
 				print (oe_copy "\n\t\tbreak;\n\t\t}") >vec2_eval_f
 				}
 

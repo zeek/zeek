@@ -53,12 +53,10 @@ bool IsManagedType(const BroType* t)
 void DeleteManagedType(ZAMValUnion& v, const BroType* t)
 	{
 	switch ( t->Tag() ) {
-	case TYPE_ADDR:	delete v.addr_val; v.addr_val = nullptr; break;
 	case TYPE_RECORD: delete v.record_val; v.record_val = nullptr; break;
-	case TYPE_STRING: delete v.string_val; v.string_val = nullptr; break;
-	case TYPE_SUBNET: delete v.subnet_val; v.subnet_val = nullptr; break;
 	case TYPE_VECTOR: delete v.vector_val; v.vector_val = nullptr; break;
 
+	case TYPE_ADDR:	Unref(v.addr_val); v.addr_val = nullptr; break;
 	case TYPE_ANY:	Unref(v.any_val); v.any_val = nullptr; break;
 	case TYPE_FILE:	Unref(v.file_val); v.file_val = nullptr; break;
 	case TYPE_FUNC:	Unref(v.func_val); v.func_val = nullptr; break;
@@ -67,6 +65,10 @@ void DeleteManagedType(ZAMValUnion& v, const BroType* t)
 			Unref(v.opaque_val); v.opaque_val = nullptr; break;
 	case TYPE_PATTERN:
 			Unref(v.re_val); v.re_val = nullptr; break;
+	case TYPE_STRING:
+			Unref(v.string_val); v.string_val = nullptr; break;
+	case TYPE_SUBNET:
+			Unref(v.subnet_val); v.subnet_val = nullptr; break;
 	case TYPE_TABLE:
 			Unref(v.table_val); v.table_val = nullptr; break;
 	case TYPE_TYPE:	Unref(v.type_val); v.type_val = nullptr; break;
@@ -166,15 +168,15 @@ ZAMValUnion::ZAMValUnion(IntrusivePtr<Val> v, BroType* t)
 		break;
 
 	case TYPE_STRING:
-		string_val = new BroString(*v->AsString());
+		string_val = v.release()->AsStringVal();
 		break;
 
 	case TYPE_ADDR:
-		addr_val = new IPAddr(*vu.addr_val);
+		addr_val = v.release()->AsAddrVal();
 		break;
 
 	case TYPE_SUBNET:
-		subnet_val = new IPPrefix(*vu.subnet_val);
+		subnet_val = v.release()->AsSubNetVal();
 		break;
 
 	case TYPE_ANY:
@@ -227,11 +229,6 @@ IntrusivePtr<Val> ZAMValUnion::ToVal(BroType* t) const
 	case TYPE_TIME:		v = new Val(double_val, TYPE_TIME); break;
 	case TYPE_FUNC:		Ref(func_val); v = new Val(func_val); break;
 	case TYPE_FILE:		Ref(file_val); v = new Val(file_val); break;
-	case TYPE_ADDR:		v = new AddrVal(*addr_val); break;
-	case TYPE_SUBNET:	v = new SubNetVal(*subnet_val); break;
-	case TYPE_STRING:
-		v = new StringVal(new BroString(*string_val));
-		break;
 
 	case TYPE_ENUM:		return t->AsEnumType()->GetVal(int_val);
 
@@ -244,6 +241,11 @@ IntrusivePtr<Val> ZAMValUnion::ToVal(BroType* t) const
 
 	case TYPE_TYPE:		v = new Val(type_val); break;
 
+	case TYPE_ADDR:		v = addr_val; v->Ref(); break;
+	// Damned if I know why Clang won't allow this one particular
+	// v->Ref():
+	case TYPE_SUBNET:	v = subnet_val; ::Ref(v); break;
+	case TYPE_STRING:	v = string_val; v->Ref(); break;
 	case TYPE_LIST:		v = list_val; v->Ref(); break;
 	case TYPE_OPAQUE:	v = opaque_val; v->Ref(); break;
 	case TYPE_TABLE:	v = table_val; v->Ref(); break;
@@ -303,20 +305,21 @@ void ZAM_vector::SetManagedElement(int n, ZAMValUnion& v)
 	auto& zn = zvec[n];
 
 	switch ( managed_yt->Tag() ) {
-	case TYPE_STRING:
-		delete zn.string_val;
-		zn.string_val = new BroString(*v.string_val);
-		break;
 
-	case TYPE_ADDR:
-		delete zn.addr_val;
-		zn.addr_val = new IPAddr(*v.addr_val);
-		break;
+#define MANAGE_VIA_REF(accessor) \
+	Unref(zn.accessor); zn = v; Ref(zn.accessor);
 
-	case TYPE_SUBNET:
-		delete zn.subnet_val;
-		zn.subnet_val = new IPPrefix(*v.subnet_val);
-		break;
+	case TYPE_ADDR: 	MANAGE_VIA_REF(addr_val); break;
+	case TYPE_ANY:		MANAGE_VIA_REF(any_val); break;
+	case TYPE_FILE:		MANAGE_VIA_REF(file_val); break;
+	case TYPE_FUNC:		MANAGE_VIA_REF(func_val); break;
+	case TYPE_LIST:		MANAGE_VIA_REF(list_val); break;
+	case TYPE_OPAQUE:	MANAGE_VIA_REF(opaque_val); break;
+	case TYPE_PATTERN:	MANAGE_VIA_REF(re_val); break;
+	case TYPE_STRING:	MANAGE_VIA_REF(string_val); break;
+	case TYPE_SUBNET: 	MANAGE_VIA_REF(subnet_val); break;
+	case TYPE_TABLE: 	MANAGE_VIA_REF(table_val); break;
+	case TYPE_TYPE:		MANAGE_VIA_REF(type_val); break;
 
 	case TYPE_RECORD:
 		delete zn.record_val;

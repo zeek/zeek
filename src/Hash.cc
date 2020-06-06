@@ -13,6 +13,10 @@
 #include "highwayhash/highwayhash_target.h"
 #include "highwayhash/instruction_sets.h"
 
+alignas(32) uint64_t KeyedHash::shared_highwayhash_key[4];
+alignas(32) uint64_t KeyedHash::cluster_highwayhash_key[4];
+alignas(16) unsigned long long KeyedHash::shared_siphash_key[2];
+
 // we use the following lines to not pull in the highwayhash headers in Hash.h - but to check the types did not change underneath us.
 static_assert(std::is_same<hash64_t, highwayhash::HHResult64>::value, "Highwayhash return values must match hash_x_t");
 static_assert(std::is_same<hash128_t, highwayhash::HHResult128>::value, "Highwayhash return values must match hash_x_t");

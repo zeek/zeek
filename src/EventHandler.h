@@ -5,10 +5,11 @@
 #include "BroList.h"
 #include "ZeekArgs.h"
 #include "Type.h"
-#include "Func.h"
 
 #include <unordered_set>
 #include <string>
+
+class Func;
 
 class EventHandler {
 public:
@@ -28,12 +29,10 @@ public:
 	FuncType* FType(bool check_export = true)
 		{ return GetType().get(); }
 
-	void SetFunc(IntrusivePtr<Func> f)
-		{ local = std::move(f); }
+	void SetFunc(IntrusivePtr<Func> f);
 
 	[[deprecated("Remove in v4.1.  Use SetFunc().")]]
-	void SetLocalHandler(Func* f)
-		{ SetFunc({NewRef{}, f}); }
+	void SetLocalHandler(Func* f);
 
 	void AutoPublish(std::string topic)
 		{

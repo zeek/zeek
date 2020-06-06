@@ -12,6 +12,8 @@
 #include "file_analysis/Manager.h"
 
 #include <broker/error.hh>
+#include <broker/expected.hh>
+#include <broker/data.hh>
 
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>

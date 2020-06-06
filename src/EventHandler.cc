@@ -44,6 +44,12 @@ const IntrusivePtr<FuncType>& EventHandler::GetType(bool check_export)
 	return type;
 	}
 
+void EventHandler::SetFunc(IntrusivePtr<Func> f)
+	{ local = std::move(f); }
+
+void EventHandler::SetLocalHandler(Func* f)
+	{ SetFunc({NewRef{}, f}); }
+
 void EventHandler::Call(zeek::Args* vl, bool no_remote)
 	{
 #ifdef PROFILE_BRO_FUNCTIONS

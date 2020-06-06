@@ -892,10 +892,3 @@ function_ingredients::function_ingredients(IntrusivePtr<Scope> scope, IntrusiveP
 	priority = (attrs ? get_func_priority(*attrs) : 0);
 	this->body = std::move(body);
 	}
-
-BifReturnVal::BifReturnVal(std::nullptr_t) noexcept
-	{ }
-
-BifReturnVal::BifReturnVal(Val* v) noexcept
-	: rval(AdoptRef{}, v)
-	{ }

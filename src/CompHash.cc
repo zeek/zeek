@@ -2,6 +2,7 @@
 
 #include "zeek-config.h"
 
+#include <cstring>
 #include <vector>
 #include <map>
 

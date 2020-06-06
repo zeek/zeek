@@ -11,7 +11,7 @@
 
 // ZAM aggregates.
 class ZAM_vector;
-class ZAMRecord;
+class ZAM_record;
 
 class IterInfo;
 
@@ -49,10 +49,9 @@ union ZAMValUnion {
 	// distinct, we can readily recover them given type information.
 	double double_val;
 
-	// For these types, we assume we have ownership of the value, so
-	// they need to be explicitly deleted prior to reassignment.
+	// Internal values managed via Ref/Unref.
 	ZAM_vector* vector_val;
-	ZAMRecord* record_val;
+	ZAM_record* record_val;
 
 	// The types are all variants of Val (or BroType).  For memory
 	// management, we use Ref/Unref.
@@ -134,9 +133,6 @@ public:
 		}
 
 	void Disassociate()	{ aggr_val = nullptr; }
-
-	// For high-speed access - use with care!
-	ZVU_vec& RawVec()	{ return zvec; }
 
 protected:
 	// The associated Zeek interpreter value.  We track this just
@@ -303,6 +299,12 @@ public:
 		DeleteManagedMembers();
 		}
 
+	ZAM_record* ShallowCopy()
+		{
+		Ref(this);
+		return this;
+		}
+
 	int Size() const		{ return zvec.size(); }
 
 	IntrusivePtr<RecordVal> ToRecordVal();
@@ -455,7 +457,6 @@ protected:
 	// we need to be able to ref it.
 	BroType* yield_type;
 };
-#endif
 
 
 // An individual instance of a ZAM record aggregate, which potentially
@@ -489,6 +490,7 @@ public:
 protected:
 	IntrusivePtr<ZAM_record> zr;
 };
+#endif
 
 // Information used to iterate over aggregates.  It's a hodge-podge since
 // it's meant to support every type of aggregate & loop.
@@ -535,4 +537,4 @@ public:
 };
 
 extern ZAM_vector* to_ZAM_vector(const IntrusivePtr<Val>& vec);
-extern ZAMRecord* to_ZAM_record(const IntrusivePtr<Val>& rec);
+extern ZAM_record* to_ZAM_record(const IntrusivePtr<Val>& rec);

@@ -108,8 +108,8 @@ BEGIN	{
 	accessors["X"] = "###"
 
 	# 1 = managed via new/delete, 2 = managed via Ref/Unref.
-	is_managed["R"] = 1	# record
-
+	# Currently we only use type 2, but keep support for type 1
+	# just in case we want to make further changes.
 	is_managed["V"] = 2	# vector
 	is_managed["A"] = 2	# addr
 	is_managed["f"] = 2	# file
@@ -118,6 +118,7 @@ BEGIN	{
 	is_managed["N"] = 2	# subnet
 	is_managed["O"] = 2	# opaque
 	is_managed["P"] = 2	# pattern
+	is_managed["R"] = 2	# record
 	is_managed["S"] = 2	# string
 	is_managed["T"] = 2	# table
 	is_managed["t"] = 2	# type
@@ -189,11 +190,9 @@ BEGIN	{
 	# to specific transformations/memory management, depending on the type
 	# of the assignment.  Indexed by both the type and 0/1 for short/long.
 
-	assign_tmpl["R", SHORT] = "auto rv = $1.record_val->ShallowCopy();\nZAMValUnion $$;\n$$.record_val = rv;"
 	assign_tmpl["ANY", SHORT] = "ZAMValUnion $$ = $1;"
 	assign_tmpl["", SHORT] = "ZAMValUnion $$ = $1;"
 
-	assign_tmpl["R", LONG] = "auto rv = $1.record_val->ShallowCopy();\ndelete $$.record_val;\n$$.record_val = rv;"
 	assign_tmpl["ANY", LONG] = "$$.any_val = $1.ToVal(z.t).release();"
 	assign_tmpl["", LONG] = "$$ = $1;"
 

@@ -53,8 +53,6 @@ bool IsManagedType(const BroType* t)
 void DeleteManagedType(ZAMValUnion& v, const BroType* t)
 	{
 	switch ( t->Tag() ) {
-	case TYPE_RECORD: delete v.record_val; v.record_val = nullptr; break;
-
 	case TYPE_ADDR:	Unref(v.addr_val); v.addr_val = nullptr; break;
 	case TYPE_ANY:	Unref(v.any_val); v.any_val = nullptr; break;
 	case TYPE_FILE:	Unref(v.file_val); v.file_val = nullptr; break;
@@ -64,6 +62,8 @@ void DeleteManagedType(ZAMValUnion& v, const BroType* t)
 			Unref(v.opaque_val); v.opaque_val = nullptr; break;
 	case TYPE_PATTERN:
 			Unref(v.re_val); v.re_val = nullptr; break;
+	case TYPE_RECORD:
+			Unref(v.record_val); v.record_val = nullptr; break;
 	case TYPE_STRING:
 			Unref(v.string_val); v.string_val = nullptr; break;
 	case TYPE_SUBNET:
@@ -316,16 +316,12 @@ void ZAM_vector::SetManagedElement(int n, ZAMValUnion& v)
 	case TYPE_LIST:		MANAGE_VIA_REF(list_val); break;
 	case TYPE_OPAQUE:	MANAGE_VIA_REF(opaque_val); break;
 	case TYPE_PATTERN:	MANAGE_VIA_REF(re_val); break;
+	case TYPE_RECORD:	MANAGE_VIA_REF(record_val); break;
 	case TYPE_STRING:	MANAGE_VIA_REF(string_val); break;
 	case TYPE_SUBNET: 	MANAGE_VIA_REF(subnet_val); break;
 	case TYPE_TABLE: 	MANAGE_VIA_REF(table_val); break;
 	case TYPE_TYPE:		MANAGE_VIA_REF(type_val); break;
 	case TYPE_VECTOR:	MANAGE_VIA_REF(vector_val); break;
-
-	case TYPE_RECORD:
-		delete zn.record_val;
-		zn.record_val = v.record_val->ShallowCopy();
-		break;
 
 	default:
 		reporter->InternalError("bad type tag in ZAM_vector::SetManagedElement");
@@ -449,7 +445,6 @@ ZAMVector::ZAMVector(IntrusivePtr<ZAM_vector> _vec)
 
 	yield_type = yt;
 	}
-#endif
 
 
 ZAMRecord::ZAMRecord(IntrusivePtr<ZAM_record> _zr)
@@ -457,6 +452,7 @@ ZAMRecord::ZAMRecord(IntrusivePtr<ZAM_record> _zr)
 	zr = _zr;
 	ASSERT(zr.get());
 	}
+#endif
 
 
 ZAM_vector* to_ZAM_vector(const IntrusivePtr<Val>& vec)
@@ -466,9 +462,9 @@ ZAM_vector* to_ZAM_vector(const IntrusivePtr<Val>& vec)
 	return zv;
 	}
 
-ZAMRecord* to_ZAM_record(const IntrusivePtr<Val>& r)
+ZAM_record* to_ZAM_record(const IntrusivePtr<Val>& r)
 	{
-	auto rv = r->AsRecordVal()->AsNonConstRecord();
-	IntrusivePtr<ZAM_record> rv_ptr = {NewRef{}, rv};
-	return new ZAMRecord(rv_ptr);
+	auto zr = r->AsNonConstRecord();
+	Ref(zr);
+	return zr;
 	}

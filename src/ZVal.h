@@ -9,9 +9,8 @@
 #include <unordered_set>
 
 
-// A single instance of a ZAM aggregate.  Note that multiple instances
-// may share the same underlying ZAMAggrInstantiation.
-class ZAMVector;
+// ZAM aggregates.
+class ZAM_vector;
 class ZAMRecord;
 
 class IterInfo;
@@ -52,7 +51,7 @@ union ZAMValUnion {
 
 	// For these types, we assume we have ownership of the value, so
 	// they need to be explicitly deleted prior to reassignment.
-	ZAMVector* vector_val;
+	ZAM_vector* vector_val;
 	ZAMRecord* record_val;
 
 	// The types are all variants of Val (or BroType).  For memory
@@ -174,6 +173,12 @@ public:
 
 	IntrusivePtr<VectorVal> ToVectorVal(BroType* t);
 
+	ZAM_vector* ShallowCopy()
+		{
+		Ref(this);
+		return this;
+		}
+
 	BroType* ManagedYieldType() const	{ return managed_yt; }
 	BroType* GeneralYieldType() const	{ return general_yt; }
 
@@ -193,7 +198,16 @@ public:
 	ZVU_vec& ModVec()		{ return zvec; }
 
 	// Used when access to the underlying vector is for initialization.
-	ZVU_vec& InitVec()		{ return zvec; }
+	ZVU_vec& InitVec(unsigned int size)
+		{
+		// Note, could use reserve() here to avoid pre-initializing
+		// the elements.  It's not clear to me whether that suffices
+		// for being able to safely assign to elements beyond the
+		// nominal end of the vector rather than having to use
+		// push_back.  Seems it ought to ...
+		zvec.resize(size);
+		return zvec;
+		}
 
 	IntrusivePtr<VectorVal> VecVal()
 		{
@@ -389,6 +403,7 @@ protected:
 };
 
 
+#if 0
 // An individual instance of a ZAM vector aggregate, which potentially
 // shares the underlying instantiation of that value with other instances.
 
@@ -440,6 +455,7 @@ protected:
 	// we need to be able to ref it.
 	BroType* yield_type;
 };
+#endif
 
 
 // An individual instance of a ZAM record aggregate, which potentially
@@ -506,9 +522,6 @@ public:
 	// If we're iterating over vectors, points to the raw vector ...
 	IntrusivePtr<ZAM_vector> vv = nullptr;
 
-	// ... unless it's a vector of any (sigh):
-	vector<Val*>* any_vv = nullptr;
-
 	// The vector's type & yield.
 	VectorType* vec_type = nullptr;
 	BroType* yield_type = nullptr;
@@ -521,5 +534,5 @@ public:
 	bro_uint_t n;	// we loop from 0 ... n-1
 };
 
-extern ZAMVector* to_ZAM_vector(const IntrusivePtr<Val>& vec);
+extern ZAM_vector* to_ZAM_vector(const IntrusivePtr<Val>& vec);
 extern ZAMRecord* to_ZAM_record(const IntrusivePtr<Val>& rec);

@@ -54,7 +54,6 @@ void DeleteManagedType(ZAMValUnion& v, const BroType* t)
 	{
 	switch ( t->Tag() ) {
 	case TYPE_RECORD: delete v.record_val; v.record_val = nullptr; break;
-	case TYPE_VECTOR: delete v.vector_val; v.vector_val = nullptr; break;
 
 	case TYPE_ADDR:	Unref(v.addr_val); v.addr_val = nullptr; break;
 	case TYPE_ANY:	Unref(v.any_val); v.any_val = nullptr; break;
@@ -72,6 +71,7 @@ void DeleteManagedType(ZAMValUnion& v, const BroType* t)
 	case TYPE_TABLE:
 			Unref(v.table_val); v.table_val = nullptr; break;
 	case TYPE_TYPE:	Unref(v.type_val); v.type_val = nullptr; break;
+	case TYPE_VECTOR: Unref(v.vector_val); v.vector_val = nullptr; break;
 
 	default:
 		reporter->InternalError("type inconsistency in DeleteManagedType");
@@ -320,15 +320,11 @@ void ZAM_vector::SetManagedElement(int n, ZAMValUnion& v)
 	case TYPE_SUBNET: 	MANAGE_VIA_REF(subnet_val); break;
 	case TYPE_TABLE: 	MANAGE_VIA_REF(table_val); break;
 	case TYPE_TYPE:		MANAGE_VIA_REF(type_val); break;
+	case TYPE_VECTOR:	MANAGE_VIA_REF(vector_val); break;
 
 	case TYPE_RECORD:
 		delete zn.record_val;
 		zn.record_val = v.record_val->ShallowCopy();
-		break;
-
-	case TYPE_VECTOR:
-		delete zn.vector_val;
-		zn.vector_val = v.vector_val->ShallowCopy();
 		break;
 
 	default:
@@ -419,6 +415,7 @@ void ZAM_record::DeleteManagedMembers()
 	}
 
 
+#if 0
 ZAMVector::ZAMVector(IntrusivePtr<ZAM_vector> _vec)
 	: vec(std::move(_vec))
 	{
@@ -452,6 +449,7 @@ ZAMVector::ZAMVector(IntrusivePtr<ZAM_vector> _vec)
 
 	yield_type = yt;
 	}
+#endif
 
 
 ZAMRecord::ZAMRecord(IntrusivePtr<ZAM_record> _zr)
@@ -461,10 +459,11 @@ ZAMRecord::ZAMRecord(IntrusivePtr<ZAM_record> _zr)
 	}
 
 
-ZAMVector* to_ZAM_vector(const IntrusivePtr<Val>& vec)
+ZAM_vector* to_ZAM_vector(const IntrusivePtr<Val>& vec)
 	{
-	IntrusivePtr<ZAM_vector> vv = {NewRef{}, vec->AsNonConstVector()};
-	return new ZAMVector(vv);
+	auto zv = vec->AsNonConstVector();
+	Ref(zv);
+	return zv;
 	}
 
 ZAMRecord* to_ZAM_record(const IntrusivePtr<Val>& r)

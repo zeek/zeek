@@ -594,27 +594,26 @@ void ZAM::StmtDescribe(ODesc* d) const
 
 // Unary vector operations never work on managed types, so no need
 // to pass in the type ...
-static void vec_exec(ZOp op, ZAMVector*& v1, const ZAMVector* v2);
+static void vec_exec(ZOp op, ZAM_vector*& v1, const ZAM_vector* v2);
 
 // ... but binary ones can.
-static void vec_exec(ZOp op, BroType* t, ZAMVector*& v1, const ZAMVector* v2,
-			const ZAMVector* v3);
+static void vec_exec(ZOp op, BroType* t, ZAM_vector*& v1, const ZAM_vector* v2,
+			const ZAM_vector* v3);
 
 // Vector coercion.
 //
 // ### Should check for underflow/overflow.
 #define VEC_COERCE(tag, lhs_accessor, cast, rhs_accessor) \
-	static ZAMVector* vec_coerce_##tag(ZAMVector* vec) \
+	static ZAM_vector* vec_coerce_##tag(ZAM_vector* vec) \
 		{ \
 		auto& v = vec->ConstVec(); \
-		auto yt = vec->YieldType(); \
-		auto res_zv = make_intrusive<ZAM_vector>(nullptr, vec->YieldType()); \
-		auto& res = res_zv->InitVec(); \
-		for ( unsigned int i = 0; i < v.size(); ++i ) \
+		auto yt = vec->GeneralYieldType(); \
+		auto res_zv = new ZAM_vector(nullptr, yt); \
+		auto n = v.size(); \
+		auto& res = res_zv->InitVec(n); \
+		for ( unsigned int i = 0; i < n; ++i ) \
 			res[i].lhs_accessor = cast(v[i].rhs_accessor); \
-		auto zvm = new ZAMVector(res_zv); \
-		zvm->SetYieldType(yt); \
-		return zvm; \
+		return res_zv; \
 		}
 
 VEC_COERCE(IU, int_val, bro_int_t, uint_val)
@@ -2819,7 +2818,7 @@ TraversalCode ResumptionAM::Traverse(TraversalCallback* cb) const
 	}
 
 // Unary vector operation of v1 <vec-op> v2.
-static void vec_exec(ZOp op, ZAMVector*& v1, const ZAMVector* v2)
+static void vec_exec(ZOp op, ZAM_vector*& v1, const ZAM_vector* v2)
 	{
 	// We could speed this up further still by gen'ing up an
 	// instance of the loop inside each switch case (in which
@@ -2833,13 +2832,9 @@ static void vec_exec(ZOp op, ZAMVector*& v1, const ZAMVector* v2)
 	if ( v1 )
 		v1->Resize(vec2.size());
 	else
-		{
-		auto zv = make_intrusive<ZAM_vector>(nullptr, nullptr,
-							vec2.size());
-		v1 = new ZAMVector(zv);
-		}
+		v1  = new ZAM_vector(nullptr, nullptr, vec2.size());
 
-	v1->SetYieldType(v2->YieldType());
+	v1->SetGeneralYieldType(v2->GeneralYieldType());
 
 	auto& vec1 = v1->ModVec();
 
@@ -2854,8 +2849,8 @@ static void vec_exec(ZOp op, ZAMVector*& v1, const ZAMVector* v2)
 	}
 
 // Binary vector operation of v1 = v2 <vec-op> v3.
-static void vec_exec(ZOp op, BroType* yt, ZAMVector*& v1,
-			const ZAMVector* v2, const ZAMVector* v3)
+static void vec_exec(ZOp op, BroType* yt, ZAM_vector*& v1,
+			const ZAM_vector* v2, const ZAM_vector* v3)
 	{
 	// See comment above re further speed-up.
 
@@ -2871,12 +2866,9 @@ static void vec_exec(ZOp op, BroType* yt, ZAMVector*& v1,
 		needs_management = yt;
 		}
 	else
-		{
-		auto zv = make_intrusive<ZAM_vector>(nullptr, yt, vec2.size());
-		v1 = new ZAMVector(zv);
-		}
+		v1 = new ZAM_vector(nullptr, yt, vec2.size());
 
-	v1->SetYieldType(yt);
+	v1->SetGeneralYieldType(yt);
 
 	auto& vec1 = v1->ModVec();
 

@@ -3178,10 +3178,11 @@ IntrusivePtr<Val> VectorVal::DoClone(CloneState* state)
 	state->NewClone(this, vv);
 
 	auto& zvu1 = val.vector_val->ConstVec();
-	auto& zvu2 = vv->val.vector_val->InitVec();
+	int n = zvu1.size();
+	auto& zvu2 = vv->val.vector_val->InitVec(n);
 	auto yt = vector_type->YieldType();
 
-	for ( unsigned int i = 0; i < zvu1.size(); ++i )
+	for ( unsigned int i = 0; i < n; ++i )
 		{
 		auto v = zvu1[i].ToVal(yt)->Clone(state);
 		zvu2[i] = ZAMValUnion(v, yt);

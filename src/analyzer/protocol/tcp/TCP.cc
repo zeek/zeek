@@ -12,6 +12,7 @@
 #include "NetVar.h"
 #include "File.h"
 #include "Event.h"
+#include "ZVal.h"
 #include "Reporter.h"
 #include "Sessions.h"
 #include "DebugLogger.h"
@@ -42,12 +43,12 @@ namespace { // local namespace
 static const int ORIG = 1;
 static const int RESP = 2;
 
-static RecordVal* build_syn_packet_val(bool is_orig, const IP_Hdr* ip,
-                                       const struct tcphdr* tcp)
+static void get_SYN_option_vals(const struct tcphdr* tcp, bro_int_t& winscale,
+				bro_int_t& MSS, bro_int_t& SACK)
 	{
-	int winscale = -1;
-	int MSS = 0;
-	int SACK = 0;
+	winscale = -1;
+	MSS = 0;
+	SACK = 0;
 
 	// Parse TCP options.
 	u_char* options = (u_char*) tcp + sizeof(struct tcphdr);
@@ -106,6 +107,16 @@ static RecordVal* build_syn_packet_val(bool is_orig, const IP_Hdr* ip,
 
 		options += opt_len;
 		}
+	}
+
+static RecordVal* build_syn_packet_val(bool is_orig, const IP_Hdr* ip,
+                                       const struct tcphdr* tcp)
+	{
+	bro_int_t winscale;
+	bro_int_t MSS;
+	bro_int_t SACK;
+
+	get_SYN_option_vals(tcp, winscale, MSS, SACK);
 
 	RecordVal* v = new RecordVal(SYN_packet);
 
@@ -1096,17 +1107,30 @@ void TCP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 	if ( flags.SYN() )
 		{
 		syn_weirds(flags, endpoint, len);
-		RecordVal* SYN_vals = build_syn_packet_val(is_orig, ip, tp);
-		init_window(endpoint, peer, flags, SYN_vals->Lookup(5)->CoerceToInt(),
-		            base_seq, ack_seq);
 
 		if ( connection_SYN_packet )
+			{
+			RecordVal* SYN_vals = build_syn_packet_val(is_orig, ip, tp);
+			init_window(endpoint, peer, flags, SYN_vals->Lookup(5)->CoerceToInt(),
+				    base_seq, ack_seq);
+
 			EnqueueConnEvent(connection_SYN_packet,
 				IntrusivePtr{AdoptRef{}, BuildConnVal()},
 				IntrusivePtr{NewRef{}, SYN_vals}
 			);
 
-		Unref(SYN_vals);
+			Unref(SYN_vals);
+			}
+		else
+			{
+			bro_int_t winscale;
+			bro_int_t MSS;
+			bro_int_t SACK;
+			get_SYN_option_vals(tp, winscale, MSS, SACK);
+
+			init_window(endpoint, peer, flags, winscale,
+				    base_seq, ack_seq);
+			}
 		}
 
 	if ( flags.FIN() )
@@ -1284,15 +1308,21 @@ void TCP_Analyzer::FlipRoles()
 	resp->is_orig = !resp->is_orig;
 	}
 
-void TCP_Analyzer::UpdateConnVal(RecordVal *conn_val)
+void TCP_Analyzer::UpdateConnVal(RecordVal* conn_val)
 	{
-	RecordVal *orig_endp_val = conn_val->Lookup("orig")->AsRecordVal();
-	RecordVal *resp_endp_val = conn_val->Lookup("resp")->AsRecordVal();
+	// This code used to do lookups of "orig" and "resp".  However,
+	// Connection::BuildConnVal hardwires them to slots 1 and 2 in
+	// the record, so for speed we rely on that.
+	auto cv = conn_val->AsNonConstRecord();
 
-	orig_endp_val->Assign(0, val_mgr->GetCount(orig->Size()));
-	orig_endp_val->Assign(1, val_mgr->GetCount(int(orig->state)));
-	resp_endp_val->Assign(0, val_mgr->GetCount(resp->Size()));
-	resp_endp_val->Assign(1, val_mgr->GetCount(int(resp->state)));
+	bool error;
+	auto orig_endp = cv->Lookup(1, error).record_val;
+	auto resp_endp = cv->Lookup(2, error).record_val;
+
+	orig_endp->SetField(0).uint_val = orig->Size();
+	orig_endp->SetField(1).int_val = int(orig->state);
+	resp_endp->SetField(0).uint_val = resp->Size();
+	resp_endp->SetField(1).int_val = int(resp->state);
 
 	// Call children's UpdateConnVal
 	Analyzer::UpdateConnVal(conn_val);

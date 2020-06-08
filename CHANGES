@@ -1,4 +1,12 @@
 
+3.2.0-dev.751 | 2020-06-08 22:30:18 +0000
+
+  * GH-999: Stop formatting DHCP Client ID Hardware Type 0 as MAC
+
+    For `DHCP::ClientID$hwtype` fields equal to 0, the `hwaddr` field is
+    no longer misformatted as a MAC and instead just contains the raw bytes
+    seen in the DHCP Client ID Option. (Jon Siwek, Corelight)
+
 3.2.0-dev.749 | 2020-06-08 11:22:45 -0700
 
   * Remove inline from some static KeyedHash members (Jon Siwek, Corelight)

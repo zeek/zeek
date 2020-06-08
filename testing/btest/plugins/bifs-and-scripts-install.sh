@@ -1,4 +1,4 @@
-# @TEST-EXEC: ${DIST}/aux/zeek-aux/plugin-support/init-plugin -u . Demo Foo
+# @TEST-EXEC: ${DIST}/auxil/zeek-aux/plugin-support/init-plugin -u . Demo Foo
 # @TEST-EXEC: bash %INPUT
 # @TEST-EXEC: ./configure --zeek-dist=${DIST} --install-root=`pwd`/test-install
 # @TEST-EXEC: make

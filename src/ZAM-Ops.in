@@ -37,7 +37,7 @@ eval_T $$.uint_val = $1->Size()
 #
 eval_V $$.uint_val = $1->Size()
 #
-eval auto v = frame[z.v2].ToVal(z.e->Type().get())->SizeVal(); frame[z.v1] = BuildVal(v, z.t);
+eval auto v = frame[z.v2].ToVal(z.e->Type().get())->SizeVal(); $$ = BuildVal(v, z.t);
 
 unary-expr-op Not
 op-type I
@@ -272,6 +272,7 @@ eval_A ! ($1->AsAddr() < $2->AsAddr()) && $1->AsAddr() != $2->AsAddr()
 
 assign-op Field
 type R
+field-op
 eval auto rv = $2.record_val
 eval auto v = rv->Lookup(z.v3, ZAM_error)
 eval if ( ZAM_error ) z.e->RuntimeError("field value missing")

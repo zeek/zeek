@@ -188,6 +188,47 @@ ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const NameExpr* v2, int i)
 	z.op_type = OP_VVV_I3;
 	return z;
 	}
+ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const NameExpr* v2,
+		int i1, int i2)
+	{
+	int nv2 = m->FrameSlot(v2);
+	auto z = ZInst(op, m->Frame1Slot(v1, op), nv2, i1, i2);
+	z.op_type = OP_VVVV_I3_I4;
+	return z;
+	}
+ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v, const ConstExpr* c,
+		int i1, int i2)
+	{
+	auto z = ZInst(op, m->Frame1Slot(v, op), i1, i2, c);
+	z.op_type = OP_VVVC_I2_I3;
+	return z;
+	}
+
+ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const NameExpr* v2,
+		const NameExpr* v3, int i)
+	{
+	int nv2 = m->FrameSlot(v2);
+	int nv3 = m->FrameSlot(v3);
+	auto z = ZInst(op, m->Frame1Slot(v1, op), nv2, nv3, i);
+	z.op_type = OP_VVVV_I4;
+	return z;
+	}
+ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const NameExpr* v2,
+		const ConstExpr* c, int i)
+	{
+	int nv2 = m->FrameSlot(v2);
+	auto z = ZInst(op, m->Frame1Slot(v1, op), nv2, i, c);
+	z.op_type = OP_VVVC_I3;
+	return z;
+	}
+ZInst GenInst(ZAM* m, ZOp op, const NameExpr* v1, const ConstExpr* c,
+		const NameExpr* v2, int i)
+	{
+	int nv2 = m->FrameSlot(v2);
+	auto z = ZInst(op, m->Frame1Slot(v1, op), nv2, i, c);
+	z.op_type = OP_VVVC_I3;
+	return z;
+	}
 
 
 ZAM::ZAM(const BroFunc* f, Scope* _scope, Stmt* _body,

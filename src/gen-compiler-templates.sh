@@ -1,35 +1,42 @@
 #! /bin/sh
 
-awk '
+gawk '
 BEGIN	{
-	base_class_f = "CompilerBaseDefs.h"
-	exprsC1_f = "CompilerOpsExprsDefsC1.h"
-	exprsC2_f = "CompilerOpsExprsDefsC2.h"
-	exprsC3_f = "CompilerOpsExprsDefsC3.h"
-	exprsV_f = "CompilerOpsExprsDefsV.h"
+	base_class_f = add_file("CompilerBaseDefs.h")
+	exprsC1_f = add_file("CompilerOpsExprsDefsC1.h")
+	exprsC2_f = add_file("CompilerOpsExprsDefsC2.h")
+	exprsC3_f = add_file("CompilerOpsExprsDefsC3.h")
+	exprsV_f = add_file("CompilerOpsExprsDefsV.h")
 
-	conds_f = "ZAM-Conds.h"
-	sub_class_f = "ZAM-SubDefs.h"
-	ops_f = "ZAM-OpsDefs.h"
-	ops_names_f = "ZAM-OpsNamesDefs.h"
-	op1_flavors_f = "ZAM-Op1FlavorsDefs.h"
-	ops_direct_f = "CompilerOpsDirectDefs.h"
-	ops_eval_f = "ZAM-OpsEvalDefs.h"
-	vec1_eval_f = "ZAM-Vec1EvalDefs.h"
-	vec2_eval_f = "ZAM-Vec2EvalDefs.h"
-	methods_f = "ZAM-OpsMethodsDefs.h"
+	fieldsC1_f = add_file("CompilerOpsFieldsDefsC1.h")
+	fieldsC2_f = add_file("CompilerOpsFieldsDefsC2.h")
+	fieldsV_f = add_file("CompilerOpsFieldsDefsV.h")
+
+	conds_f = add_file("ZAM-Conds.h")
+	sub_class_f = add_file("ZAM-SubDefs.h")
+	ops_f = add_file("ZAM-OpsDefs.h")
+	ops_names_f = add_file("ZAM-OpsNamesDefs.h")
+	op1_flavors_f = add_file("ZAM-Op1FlavorsDefs.h")
+	ops_direct_f = add_file("CompilerOpsDirectDefs.h")
+	ops_eval_f = add_file("ZAM-OpsEvalDefs.h")
+	vec1_eval_f = add_file("ZAM-Vec1EvalDefs.h")
+	vec2_eval_f = add_file("ZAM-Vec2EvalDefs.h")
+	methods_f = add_file("ZAM-OpsMethodsDefs.h")
 
 	prep(exprsC1_f)
 	prep(exprsC2_f)
 	prep(exprsC3_f)
 	prep(exprsV_f)
 
+	prep(fieldsC1_f)
+	prep(fieldsC2_f)
+	prep(fieldsV_f)
+
 	args["X"] = "()"
 	args["O"] = "(OpaqueVals* v)"
 	args["Ri"] = "(const NameExpr* n1, const NameExpr* n2, int field)"
+	args["Rii"] = "(const NameExpr* n1, const NameExpr* n2, int field1, int field2)"
 	args["V"] = "(const NameExpr* n)"
-	args["Vi"] = "(const NameExpr* n, int i)"
-	args["CVi"] = "(const ConstExpr* c, const NameExpr* n, int i)"
 	args["VV"] = "(const NameExpr* n1, const NameExpr* n2)"
 	args["VO"] = "(const NameExpr* n, OpaqueVals* v)"
 	args["HL"] = "(EventHandler* h, const ListExpr* l)"
@@ -40,9 +47,17 @@ BEGIN	{
 	args["VVC"] = "(const NameExpr* n1, const NameExpr* n2, const ConstExpr* c)"
 	args["VVVC"] = "(const NameExpr* n1, const NameExpr* n2, const NameExpr* n3, const ConstExpr* c)"
 	args["VVCV"] = "(const NameExpr* n1, const NameExpr* n2, const ConstExpr*c, const NameExpr* n3)"
+
+	args["Vi"] = "(const NameExpr* n, int i)"
+	args["CVi"] = "(const ConstExpr* c, const NameExpr* n, int i)"
 	args["VVi"] = "(const NameExpr* n1, const NameExpr* n2, int i)"
 	args["VCi"] = "(const NameExpr* n, const ConstExpr* c, int i)"
+	args["VVii"] = "(const NameExpr* n1, const NameExpr* n2, int i1, int i2)"
+	args["VCii"] = "(const NameExpr* n, const ConstExpr* c, int i1, int i2)"
 	args["VCV"] = "(const NameExpr* n1, const ConstExpr* c, const NameExpr* n2)"
+	args["VVVi"] = "(const NameExpr* n1, const NameExpr* n2, const NameExpr* n3, int i)"
+	args["VCVi"] = "(const NameExpr* n1, const ConstExpr* c, const NameExpr* n2, int i)"
+	args["VVCi"] = "(const NameExpr* n1, const NameExpr* n2, const ConstExpr* c, int i)"
 
 	args["VLV"] = "(const NameExpr* n1, const ListExpr* l, const NameExpr* n2)"
 	args["VLC"] = "(const NameExpr* n, const ListExpr* l, const ConstExpr* c)"
@@ -53,6 +68,7 @@ BEGIN	{
 	args2["X"] = ""
 	args2["O"] = "reg"
 	args2["Ri"] = "n1, n2, field"
+	args2["Rii"] = "n1, n2, field1, field2"
 	args2["V"] = "n"
 	args2["Vi"] = "n, i"
 	args2["CVi"] = "c, n, i"
@@ -70,6 +86,9 @@ BEGIN	{
 	args2["VVi"] = "n1, n2, i"
 	args2["VCi"] = "n, c, i"
 	args2["VCV"] = "n1, c, n2"
+	args2["VVVi"] = "n1, n2, n3, i"
+	args2["VCVi"] = "n1, c, n2, i"
+	args2["VVCi"] = "n1, n2, c, i"
 
 	exprC1["VC"] = "lhs, r1->AsConstExpr()";
 	exprC1["VCV"] = "lhs, r1->AsConstExpr(), r2->AsNameExpr()"
@@ -87,6 +106,12 @@ BEGIN	{
 	exprV["VLV"] = "lhs, r1->AsListExpr(), r2->AsNameExpr()"
 	exprV["VLC"] = "lhs, r1->AsListExpr(), r2->AsConstExpr()"
 	exprV["VVVV"] = "lhs, r1->AsNameExpr(), r2->AsNameExpr(), r3->AsNameExpr()"
+
+	field_exprC1["VC"] = "lhs, r1->AsConstExpr(), i";
+	field_exprC1["VCV"] = "lhs, r1->AsConstExpr(), r2->AsNameExpr(), i"
+	field_exprC2["VVC"] = "lhs, r1->AsConstExpr(), r2->AsNameExpr(), i"
+	field_exprV["VV"] = "lhs, r1->AsNameExpr(), i"
+	field_exprV["VVV"] = "lhs, r1->AsNameExpr(), r2->AsNameExpr(), i"
 
 	accessors["i"] = accessors["I"] = ".int_val"
 	accessors["u"] = accessors["U"] = ".uint_val"
@@ -148,6 +173,10 @@ BEGIN	{
 	args["FV"] = "(const NameExpr* n1, int field, const NameExpr* n2)"
 	args["FC"] = "(const NameExpr* n, int field, const ConstExpr* c)"
 
+	# Same for "x$f = y$g".
+	args["FFV"] = "(const NameExpr* n1, int f1, const NameExpr* n2, int f2)"
+	args["FFC"] = "(const NameExpr* n, int f1, const ConstExpr* c, int f2)"
+
 	# Vanilla assignments "x=y".
 	args["XV"] = "(const NameExpr* n1, const NameExpr* n2)"
 	args["XC"] = "(const NameExpr* n, const ConstExpr* c)"
@@ -155,10 +184,13 @@ BEGIN	{
 	args2["RV"] = "n1, n2, field"
 	args2["RC"] = "n, c, field"
 	args2["FV"] = "n1, n2, field"
+	args2["FFV"] = "n1, n2, f1, f2"
 	args2["FC"] = "n, c, field"
+	args2["FFC"] = "n, c, f1, f2"
 	args2["XV"] = "n1, n2"
 	args2["XC"] = "n, c"
 
+	# Indexed by assignment type
 	method_extra_prefix["R"] = "auto field = f->Field();"
 
 	# For an assign-to-any, then we will need the instruction
@@ -237,6 +269,24 @@ BEGIN	{
 	# the op-types via dictionary traversal (i.e., unpredcitable order).
 	method_map["V"] = "tag == TYPE_VECTOR"
 
+	# Maps original op-types (for example, for unary or binary
+	# expressions) to the equivalent when using them in a field assignment.
+	field_type["Ri"] = "Rii"
+	field_type["VC"] = "VCi"
+	field_type["VV"] = "VVi"
+	field_type["VVV"] = "VVVi"
+	field_type["VCV"] = "VCVi"
+	field_type["VVC"] = "VVCi"
+
+	# Where in an instruction the constant associated with the field
+	# offset resides.  This is always the last 'v' slot.
+	field_offset["Rii"] = 3
+	field_offset["VCi"] = 2
+	field_offset["VVi"] = 3
+	field_offset["VVVi"] = 4
+	field_offset["VCVi"] = 3
+	field_offset["VVCi"] = 3
+
 	# Maps original op-types (for example, for relationals) to the
 	# equivalent when using them in a conditional.
 	cond_type["VVV"] = "VVi"
@@ -246,22 +296,25 @@ BEGIN	{
 	mixed_type_supported["P", "S"]
 	mixed_type_supported["A", "I"]
 
-	# Suffix used for vector operations.
+	# Suffices used for field/vector/conditional operations.
+	field = "_field"
 	vec = "_vec"
-
-	# Suffix used for conditionals.
 	cond = "_cond"
 	}
 
 $1 == "op"	{ dump_op(); op = $2; next }
-$1 == "expr-op"	{ dump_op(); op = $2; expr_op = 1; next }
+$1 == "expr-op"	{ dump_op(); op = $2; expr_op = 1; field_op = 1; next }
 $1 == "assign-op" { dump_op(); op = $2; assign_op = 1; next }
 $1 == "unary-op"	{ dump_op(); op = $2; ary_op = 1; next }
 $1 == "direct-unary-op" {
 	dump_op(); op = $2; direct_method = $3; direct_op = 1; next
 	}
-$1 == "unary-expr-op"	{ dump_op(); op = $2; expr_op = 1; ary_op = 1; next }
-$1 == "binary-expr-op"	{ dump_op(); op = $2; expr_op = 1; ary_op = 2; next }
+$1 == "unary-expr-op"	{
+	dump_op(); op = $2; expr_op = 1; field_op = 1; ary_op = 1; next
+	}
+$1 == "binary-expr-op"	{
+	dump_op(); op = $2; expr_op = 1; field_op = 1; ary_op = 2; next
+	}
 $1 == "rel-expr-op"	{
 	dump_op();
 	op = $2; expr_op = 1; ary_op = 2; rel_op = 1; cond_op = 1;
@@ -281,6 +334,7 @@ $1 == "op-accessor"	{ op1_accessor = op2_accessor = $2; next }
 $1 == "op1-accessor"	{ op1_accessor = $2; next }
 $1 == "op2-accessor"	{ op2_accessor = $2; next }
 
+$1 == "field-op"	{ field_op = 1; next }
 $1 == "no-const"	{ no_const = 1; next }
 $1 == "type"	{ type = $2; next }
 $1 == "type-selector"	{ type_selector = $2; next }
@@ -356,10 +410,14 @@ $1 == "eval-pre"	{ eval_pre = all_but_first() ";"; next }
 END	{
 	dump_op()
 
-	finish(exprsC1_f, "C1")
-	finish(exprsC2_f, "C2")
-	finish(exprsC3_f, "C3")
-	finish(exprsV_f, "V")
+	finish(exprsC1_f, "C1", 0)
+	finish(exprsC2_f, "C2", 0)
+	finish(exprsC3_f, "C3", 0)
+	finish(exprsV_f, "V", 0)
+
+	finish(fieldsC1_f, "C1", 1)
+	finish(fieldsC2_f, "C2", 1)
+	finish(fieldsV_f, "V", 1)
 
 	finish_default_ok(ops_direct_f)
 	}
@@ -456,6 +514,8 @@ function dump_op()
 			# Loop over operand types for unary operator.
 			for ( i in op_types )
 				{
+				this_type = "V" op1
+
 				if ( i == "X" )
 					{
 					# Just use the raw eval.
@@ -466,12 +526,12 @@ function dump_op()
 					{
 					sel = eval_selector[i]
 					esel = eval[sel]
-					ex = expand_eval(esel,
-							eval_pre, expr_op,
+					ex = expand_eval(esel, eval_pre,
+							this_type, expr_op,
 							i, i, j, 0)
 					}
 
-				build_op(op, "V" op1, i, i, esel, ex, j, 0)
+				build_op(op, this_type, i, i, esel, ex, j, 0)
 				}
 
 			continue;
@@ -494,17 +554,19 @@ function build_op_combo(op1, j, k)
 
 	op2 = k ? "V" : "C"
 
+	this_type = "V" op1 op2
+
 	for ( i in op_types )
 		{
 		sel = eval_selector[i]
-		ex = expand_eval(eval[sel], eval_pre, expr_op, i, i, j, k)
-		build_op(op, "V" op1 op2, i, i, eval[sel], ex, j, k)
+		ex = expand_eval(eval[sel], eval_pre, this_type, expr_op, i, i, j, k)
+		build_op(op, this_type, i, i, eval[sel], ex, j, k)
 		}
 
 	if ( mix_eval )
 		{
-		ex = expand_eval(mix_eval, eval_pre, expr_op, ev_mix1, ev_mix2, j, k)
-		build_op(op, "V" op1 op2, ev_mix1, ev_mix2, mix_eval, ex, j, k)
+		ex = expand_eval(mix_eval, eval_pre, this_type, expr_op, ev_mix1, ev_mix2, j, k)
+		build_op(op, this_type, ev_mix1, ev_mix2, mix_eval, ex, j, k)
 		}
 	}
 
@@ -581,6 +643,13 @@ function build_assignment_dispatch(op, type)
 
 function build_assignment_dispatch2(op, type, is_var)
 	{
+	build_assignment_dispatch3(op, type, is_var, 0)
+	if ( type == "F" )
+		build_assignment_dispatch3(op, type, is_var, 1)
+	}
+
+function build_assignment_dispatch3(op, type, is_var, is_field)
+	{
 	# Generate generic versions of the assignment, which provide custom
 	# methods for dispatching to the specific flavors.
 	no_eval = 1
@@ -589,7 +658,7 @@ function build_assignment_dispatch2(op, type, is_var)
 	rhs_op = is_var ? "n2" : "c"
 	type_base = use_target_for_type[type] ? targ : rhs_op
 
-	atype = type (is_var ? "V" : "C")
+	atype = type (is_field ? "F" : "") (is_var ? "V" : "C")
 
 	custom_method = \
 		"auto t = " type_base "->Type().get();\n" \
@@ -603,14 +672,14 @@ function build_assignment_dispatch2(op, type, is_var)
 	# Do the "ANY" case first, since it is dispatched on the
 	# type of n1 rather than n2.
 	custom_method = custom_method "\n\t" \
-		build_assign_case(op, atype, "ANY", targ "->Type()->Tag() == TYPE_ANY", is_var)
+		build_assign_case(op, atype, "ANY", targ "->Type()->Tag() == TYPE_ANY", is_var, is_field)
 
 	for ( flavor in is_managed )
 		custom_method = custom_method \
-			build_assign_case(op, atype, flavor, method_map[flavor], is_var)
+			build_assign_case(op, atype, flavor, method_map[flavor], is_var, is_field)
 
 	# Add the default case.
-	custom_method = custom_method "\n" build_assign_case(op, atype, "", "", is_var)
+	custom_method = custom_method "\n" build_assign_case(op, atype, "", "", is_var, is_field)
 
 	if ( type in method_extra_suffix )
 		{
@@ -637,6 +706,13 @@ function build_assignment(op, type, flavor, ev)
 
 function build_assignment2(op, type, flavor, is_var, ev)
 	{
+	build_assignment3(op, type, flavor, is_var, 0, ev)
+	if ( type == "F" )
+		build_assignment3(op, type, flavor, is_var, 1, ev)
+	}
+
+function build_assignment3(op, type, flavor, is_var, is_field, ev)
+	{
 	if ( index(ev, "@") == 0 )
 		gripe("no @ specifier in assignment op")
 
@@ -646,8 +722,22 @@ function build_assignment2(op, type, flavor, is_var, ev)
 
 	a_t = assignment_type[type]
 
-	if ( ! (flavor in is_managed) || is_managed[flavor] == 1 )
+	if ( is_field )
+		{
+		tmpl = "bool error;\n\t\t" \
+			"auto $$ = $2;\n\t\t"
+
+		if ( flavor in is_managed && is_managed[flavor] == 2 )
+			tmpl = tmpl "::Ref(v" accessors[flavor] ");\n\t\t"
+
+		tmpl = tmpl \
+			"if ( error ) z.e->RuntimeError(\"field value missing\");\n\t\t" \
+			"else // kill auto-semicolon"
+		}
+
+	else if ( ! (flavor in is_managed) || is_managed[flavor] == 1 )
 		tmpl = assign_tmpl[flavor, a_t]
+
 	else if ( is_managed[flavor] == 2 )
 		{
 		if ( a_t == SHORT )
@@ -663,7 +753,7 @@ function build_assignment2(op, type, flavor, is_var, ev)
 			}
 		}
 	else
-		gripe("missing is_managed " flavor " " flavor in is_managed " " is_managed[flavor])
+		gripe("missing is_managed " flavor " " (flavor in is_managed) " " is_managed[flavor])
 
 	if ( a_t == LONG )
 		# Allow for long form to be for example in an if-else
@@ -676,18 +766,36 @@ function build_assignment2(op, type, flavor, is_var, ev)
 	gsub(/\$\$/, a_t ? "frame[z.v1]" : "v", tmpl)
 
 	gsub(/@[a-zA-Z$0-9]*/, tmpl, ev)
-	gsub(/\$2/, is_var ? "frame[z.v2]" : "z.c", ev)
-	gsub(/\$3/, is_var ? "z.v3" : "z.v2", ev)
 
-	build_op(op, "V" (is_var ? "V" : "C") "i", flavor, "", ev, ev, is_var, 0)
+	rhs = is_var ? "frame[z.v2]" : "z.c"
+	lhs_field = is_var ? "z.v3" : "z.v2"
+
+	if ( a_t == SHORT && is_field )
+		{
+		rhs_field = is_var ? "z.v4" : "z.v3"
+		rhs = rhs ".record_val->Lookup(" rhs_field ", error)"
+		}
+
+	gsub(/\$2/, rhs, ev)
+	gsub(/\$3/, lhs_field, ev)
+
+	op_tag = "V" (is_var ? "V" : "C")
+	if ( is_field )
+		# Add on room for the second field.
+		op_tag = op_tag "i"
+
+	build_op(op, op_tag "i", flavor, "", ev, ev, is_var, 0)
 	}
 
-function build_assign_case(op, atype, flavor, cond, is_var)
+function build_assign_case(op, atype, flavor, cond, is_var, is_field)
 	{
 	targ = is_var ? "n1" : "n"
 	operand = is_var ? "n2" : "c"
 
 	full_op = "OP_" toupper(op) "_V" (is_var ? "V" : "C") "i"
+	if ( is_field )
+		full_op = full_op "i"
+
 	gsub(/-/, "_", full_op)
 
 	assign_args = args2[atype]
@@ -702,7 +810,7 @@ function build_assign_case(op, atype, flavor, cond, is_var)
 		"\telse "
 	}
 
-function expand_eval(e, pre_eval, is_expr_op, otype1, otype2, is_var1, is_var2)
+function expand_eval(e, pre_eval, this_type, is_expr_op, otype1, otype2, is_var1, is_var2)
 	{
 	laccessor = raccessor1 = raccessor2 = ""
 	expr_app = ""
@@ -763,22 +871,48 @@ function expand_eval(e, pre_eval, is_expr_op, otype1, otype2, is_var1, is_var2)
 
 	if ( is_expr_op )
 		{
+		if ( field_op && this_type in field_type )
+			{
+			ft = field_type[this_type]
+			fo = field_offset[ft]
+			field_accessor = "frame[z.v1].record_val->SetField(z.v" fo ")"
+
+			# Note, in the following we do work even if field_op
+			# is not set, because it is simpler than having a
+			# bunch of conditionals.
+			}
+
 		if ( "*" in op_types )
 			{
+			e_copy = pre_copy e_copy expr_app
+			field_eval = e_copy
+
 			gsub(/\$\$/, "frame[z.v1]", e_copy)
+			gsub(/\$\$/, field_accessor, field_eval)
+
 			return pre_copy e_copy expr_app
 			}
 
 		else if ( index(e_copy, "$$") > 0 )
 			{
+			e_copy = pre_copy e_copy expr_app
+			field_eval = e_copy
+
 			gsub(/\$\$/, "frame[z.v1]" laccessor, e_copy)
-			return pre_copy e_copy expr_app
+			gsub(/\$\$/, field_accessor laccessor, field_eval)
+
+			return e_copy
 			}
 
 		else
 			{
-			return pre_copy \
-				"frame[z.v1]" laccessor " = " e_copy expr_app
+			field_eval = pe_copy field_accessor laccessor \
+				" = " e_copy expr_app
+
+			e_copy = pre_copy "frame[z.v1]" laccessor \
+				" = " e_copy expr_app
+
+			return e_copy
 			}
 		}
 	else
@@ -813,6 +947,12 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 	# avoid redundant declarations.
 	is_rep = ! sub_type1 || sub_type1 == op_type_rep
 
+	if ( is_rep && field_op )
+		{
+		if ( ! (type in field_type) || no_eval )
+			field_op = ""
+		}
+
 	do_vec = vector && ! no_vec[sub_type1] && ! no_vec[sub_type1, sub_type2]
 
 	if ( ary_op == 2 && (! is_var1 || ! is_var2) )
@@ -832,6 +972,15 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 			op_type args[type] " = 0;") >base_class_f
 		print ("\tconst CompiledStmt " op_type args[type] \
 			" override;") >sub_class_f
+
+		if ( field_op )
+			{
+			ft = field_type[type]
+			print ("\tvirtual const CompiledStmt " \
+				op_type field args[ft] " = 0;") >base_class_f
+			print ("\tconst CompiledStmt " op_type field \
+				args[ft] " override;") >sub_class_f
+			}
 
 		if ( do_vec )
 			{
@@ -853,6 +1002,8 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 		}
 
 	print ("\t" full_op ",") >ops_f
+	if ( field_op )
+		print ("\t" full_op field ",") >ops_f
 	if ( do_vec )
 		print ("\t" full_op vec ",") >ops_f
 	if ( cond_op )
@@ -860,6 +1011,9 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 
 	print ("\tcase " full_op ":\treturn \"" tolower(orig_op) \
 		"-" type orig_suffix "\";") >ops_names_f
+	if ( field_op )
+		print ("\tcase " full_op field ":\treturn \"" tolower(orig_op) \
+			"-" type orig_suffix "-field" "\";") >ops_names_f
 	if ( do_vec )
 		print ("\tcase " full_op vec ":\treturn \"" tolower(orig_op) \
 			"-" type orig_suffix "-vec" "\";") >ops_names_f
@@ -869,6 +1023,8 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 
 	flavor1 = op1_flavor ? op1_flavor : "OP1_WRITE";
 	print ("\t", flavor1 ",\t// " full_op) >op1_flavors_f
+	if ( field_op )
+		print ("\t", flavor1 ",\t// " full_op field) >op1_flavors_f
 	if ( do_vec )
 		print ("\t", flavor1 ",\t// " full_op vec) >op1_flavors_f
 	if ( cond_op )
@@ -877,9 +1033,16 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 	if ( no_eval )
 		print ("\tcase " full_op ":\tbreak;") >ops_eval_f
 	else
+		{
 		print ("\tcase " full_op ":\n\t\t{ " \
 			multi_eval eval multi_eval eval_blank \
 			"}" multi_eval eval_blank "break;\n") >ops_eval_f
+
+		if ( field_op )
+			print ("\tcase " full_op field ":\n\t\t{ " \
+				multi_eval field_eval multi_eval eval_blank \
+				"}" multi_eval eval_blank "break;\n") >ops_eval_f
+		}
 
 	if ( cond_op )
 		{
@@ -946,15 +1109,19 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 	if ( ! internal_op && is_rep )
 		{
 		gen_method(full_op_no_sub, full_op, type, sub_type1,
-				0, 0, method_pre)
+				0, 0, 0, method_pre)
+
+		if ( field_op )
+			gen_method(full_op_no_sub, full_op, type, sub_type1,
+					1, 0, 0, method_pre)
 
 		if ( do_vec )
 			gen_method(full_op_no_sub, full_op, type, sub_type1,
-					1, 0, method_pre)
+					0, 1, 0, method_pre)
 
 		if ( cond_op )
 			gen_method(full_op_no_sub, full_op, type, sub_type1,
-					0, 1, method_pre)
+					0, 0, 1, method_pre)
 		}
 
 	if ( assign_op && type in assign_types )
@@ -990,10 +1157,15 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 			}
 		}
 
-	else if ( type == "Ri" )
+	else if ( type == "Ri" || type == "Rii" )
 		{
 		print ("\tcase EXPR_" upper_op ":\treturn c->" op_type \
 			"(lhs, r1->AsNameExpr(), rhs->AsHasFieldExpr()->Field());") >exprsV_f
+
+		if ( field_op )
+			print ("\tcase EXPR_" upper_op ":\treturn c->" op_type \
+				field \
+				"(lhs, r1->AsNameExpr(), rhs->AsHasFieldExpr()->Field(), i);") >fieldsV_f
 		}
 
 	else if ( expr_op && is_rep )
@@ -1025,23 +1197,50 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 			{
 			eargs = exprV[type]
 			f = exprsV_f
+			ff = fieldsV_f
 			}
 
 		else
 			gripe("bad type " type " for expr " op)
 
-		if ( do_vec )
+
+		if ( field_op )
 			{
+			if ( type in field_exprC1 )
+				{
+				feargs = field_exprC1[type]
+				ff = fieldsC1_f
+				}
+
+			else if ( type in field_exprC2 )
+				{
+				feargs = field_exprC2[type]
+				ff = fieldsC2_f
+				}
+
+			else if ( type in field_exprV )
+				{
+				feargs = field_exprV[type]
+				ff = fieldsV_f
+				}
+
+			else
+				gripe("bad field type " type " " type " for expr " op)
+			}
+
+		if ( do_vec )
 			print ("\tcase " expr_case ":\n\t\t" \
 				"if ( rt->Tag() == TYPE_VECTOR )\n\t\t\t" \
 				"return c->" op_type vec "(" eargs ");\n" \
 				"\t\telse\n\t\t\t" \
 				"return c->" op_type "(" eargs ");") >f
-			}
-
 		else
 			print ("\tcase " expr_case ":\treturn c->" \
 				op_type "(" eargs ");") >f
+
+		if ( field_op )
+			print ("\tcase " expr_case ":\treturn c->" \
+				op_type field "(" feargs ");") >ff
 
 		# The test on "type" in the following is to ensure we
 		# generate the case only once per operator, rather than
@@ -1059,10 +1258,22 @@ function build_op(op, type, sub_type1, sub_type2, orig_eval, eval,
 		}
 	}
 
-function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, is_cond, method_pre)
+function gen_method(full_op_no_sub, full_op, type, sub_type, is_field, is_vec, is_cond, method_pre)
 	{
-	mt = is_cond ? cond_type[type] : type
-	suffix = is_vec ? vec : (is_cond ? cond : "")
+	mt = type
+
+	if ( is_field )
+		mt = field_type[mt]
+	else if ( is_cond )
+		mt = cond_type[mt]
+
+	suffix = ""
+	if ( is_field )
+		suffix = field
+	else if ( is_vec )
+		suffix = vec
+	else if ( is_cond )
+		suffix = cond
 
 	print ("const CompiledStmt ZAM::" \
 		(op_type suffix) args[mt]) >methods_f
@@ -1191,23 +1402,28 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_vec, is_cond, me
 			default_seen = 0
 			for ( o in op_types )
 				{
-				if ( is_vec && no_vec[o] )
-					continue
-
+				# First do types other than default.
 				if ( o == "*" )
 					{
-					++default_seen
-
-					build_method_conditional(o, ++n)
-					print (part1 full_op_no_sub part2) >methods_f
+					default_seen
 					continue
 					}
+
+				if ( is_vec && no_vec[o] )
+					continue
 
 				invoke1 = (part1 full_op_no_sub "_")
 				invoke2 = ((is_vec ? vec : (is_cond ? cond : "")) part2)
 
 				build_method_conditional(o, ++n)
 				print (invoke1 o invoke2) >methods_f
+				}
+
+			# Now do the default.
+			if ( default_seen )
+				{
+				build_method_conditional("*", ++n)
+				print (part1 full_op_no_sub part2) >methods_f
 				}
 
 			if ( mix_eval )
@@ -1290,9 +1506,9 @@ function build_method_conditional(o, n)
 function clear_vars()
 	{
 	opaque = set_expr = set_type = type = type_selector = operand_type = ""
-	op_type_rep = custom_method = method_pre = eval_pre = ""
-	no_const = no_eval = mix_eval = multi_eval = eval_blank = ""
-	cond_op = rel_op = ary_op = assign_op = expr_op = op = ""
+	no_const = op_type_rep = custom_method = method_pre = eval_pre = ""
+	field_eval = no_eval = mix_eval = multi_eval = eval_blank = ""
+	field_op = cond_op = rel_op = ary_op = assign_op = expr_op = op = ""
 	vector = binary_op = internal_op = ""
 	op1_flavor = direct_method = direct_op = ""
 	laccessor = raccessor1 = raccessor2 = ""
@@ -1303,16 +1519,24 @@ function clear_vars()
 	delete op_types
 	}
 
+function add_file(fn)
+	{
+	files[++nfiles] = fn
+	return fn
+	}
+
 function prep(f)
 	{
 	print ("\t{") >f
 	print ("\tswitch ( rhs->Tag() ) {") >f
 	}
 
-function finish(f, which)
+function finish(f, which, is_field)
 	{
 	print ("\tdefault:") >f
-	print ("\t\treporter->InternalError(\"inconsistency in " which " AssignExpr::Compile: %s\", obj_desc(rhs));") >f
+	print ("\t\treporter->InternalError(\"inconsistency in " which \
+		(is_field ? " field" : "") " assignment: %s\", \
+		obj_desc(rhs));") >f
 	print ("\t}\t}") >f
 	}
 

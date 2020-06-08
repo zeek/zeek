@@ -218,6 +218,7 @@ set(MAIN_SRCS
     Anon.cc
     Attr.cc
     Base64.cc
+    BifReturnVal.cc
     Brofiler.cc
     BroString.cc
     CCL.cc

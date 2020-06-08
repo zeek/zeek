@@ -7,3 +7,4 @@
 #include "Reporter.h"
 #include "ID.h"
 #include "EventRegistry.h"
+#include "BifReturnVal.h"

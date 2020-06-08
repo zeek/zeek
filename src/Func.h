@@ -9,15 +9,13 @@
 #include <tuple>
 #include <type_traits>
 
-#include <broker/data.hh>
-#include <broker/expected.hh>
-
 #include "BroList.h"
 #include "Obj.h"
 #include "IntrusivePtr.h"
 #include "Type.h" /* for function_flavor */
 #include "TraverseTypes.h"
 #include "ZeekArgs.h"
+#include "BifReturnVal.h"
 
 class Val;
 class ListExpr;
@@ -27,6 +25,16 @@ class Frame;
 class ID;
 class CallExpr;
 class Scope;
+
+namespace caf {
+template <class> class expected;
+}
+
+namespace broker {
+class data;
+using vector = std::vector<data>;
+using caf::expected;
+}
 
 class Func : public BroObj {
 public:
@@ -203,27 +211,6 @@ private:
 	// The frame the BroFunc was initialized in.
 	Frame* closure = nullptr;
 	bool weak_closure_ref = false;
-};
-
-/**
- * A simple wrapper class to use for the return value of BIFs so that
- * they may return either a Val* or IntrusivePtr<Val> (the former could
- * potentially be deprecated).
- */
-class BifReturnVal {
-public:
-
-	template <typename T>
-	BifReturnVal(IntrusivePtr<T> v) noexcept
-		: rval(AdoptRef{}, v.release())
-		{ }
-
-	BifReturnVal(std::nullptr_t) noexcept;
-
-	[[deprecated("Remove in v4.1.  Return an IntrusivePtr instead.")]]
-	BifReturnVal(Val* v) noexcept;
-
-	IntrusivePtr<Val> rval;
 };
 
 using built_in_func = BifReturnVal (*)(Frame* frame, const zeek::Args* args);

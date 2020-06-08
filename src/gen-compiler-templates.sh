@@ -727,14 +727,13 @@ function build_assignment3(op, type, flavor, is_var, is_field, ev)
 
 	if ( is_field )
 		{
-		tmpl = "bool error;\n\t\t" \
-			"auto $$ = $2;\n\t\t"
+		tmpl = "auto $$ = $2;\n\t\t"
 
 		if ( flavor in is_managed && is_managed[flavor] == 2 )
 			tmpl = tmpl "::Ref(v" accessors[flavor] ");\n\t\t"
 
 		tmpl = tmpl \
-			"if ( error ) z.e->RuntimeError(\"field value missing\");\n\t\t" \
+			"if ( ZAM_error ) z.e->RuntimeError(\"field value missing\");\n\t\t" \
 			"else // kill auto-semicolon"
 		}
 
@@ -776,7 +775,7 @@ function build_assignment3(op, type, flavor, is_var, is_field, ev)
 	if ( a_t == SHORT && is_field )
 		{
 		rhs_field = is_var ? "z.v4" : "z.v3"
-		rhs = rhs ".record_val->Lookup(" rhs_field ", error)"
+		rhs = rhs ".record_val->Lookup(" rhs_field ", ZAM_error)"
 		}
 
 	gsub(/\$2/, rhs, ev)

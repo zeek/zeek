@@ -44,6 +44,9 @@ extern struct AnalyOpt {
 	// If true, compile interpreted scripts to ZAM.
 	bool compile = false;
 
+	// If true, suppress low-level optimization on ZAM instructions.
+	bool no_ZAM_opt = false;
+
 	// If true, dump out the ZAM code.  This is always done if
 	// only_func is set (and compile is set).
 	bool dump_code = false;

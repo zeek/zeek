@@ -1656,6 +1656,7 @@ void analyze_scripts()
 		analysis_options.inliner = getenv("ZEEK_INLINE");
 		analysis_options.optimize = getenv("ZEEK_OPTIMIZE");
 		analysis_options.compile = getenv("ZEEK_COMPILE");
+		analysis_options.no_ZAM_opt = getenv("ZEEK_NO_ZAM_OPT");
 		analysis_options.dump_code = getenv("ZEEK_DUMP_CODE");
 		analysis_options.dump_xform = getenv("ZEEK_DUMP_XFORM");
 

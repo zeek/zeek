@@ -297,7 +297,8 @@ Stmt* ZAM::CompileBody()
 	if ( catches.size() > 0 )
 		reporter->InternalError("untargeted inline return");
 
-	OptimizeInsts();
+	if ( ! analysis_options.no_ZAM_opt )
+		OptimizeInsts();
 
 	// Make sure we have a (pseudo-)instruction at the end so we
 	// can use it as a branch label.
@@ -479,6 +480,7 @@ void ZAM::OptimizeInsts()
 
 		while ( RemoveDeadCode() )
 			something_changed = true;
+
 		while ( CollapseGoTos() )
 			something_changed = true;
 

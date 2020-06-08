@@ -293,8 +293,8 @@ BEGIN	{
 	cond_type["VVC"] = "VCi"
 	cond_type["VCV"] = "CVi"
 
-	mixed_type_supported["P", "S"]
-	mixed_type_supported["A", "I"]
+	++mixed_type_supported["P", "S"]
+	++mixed_type_supported["A", "I"]
 
 	# Suffices used for field/vector/conditional operations.
 	field = "_field"
@@ -420,6 +420,9 @@ END	{
 	finish(fieldsV_f, "V", 1)
 
 	finish_default_ok(ops_direct_f)
+
+	for ( i = 1; i <= nfiles; ++i )
+		close(files[i])
 	}
 
 function build_op_types()
@@ -906,7 +909,7 @@ function expand_eval(e, pre_eval, this_type, is_expr_op, otype1, otype2, is_var1
 
 		else
 			{
-			field_eval = pe_copy field_accessor laccessor \
+			field_eval = pre_copy field_accessor laccessor \
 				" = " e_copy expr_app
 
 			e_copy = pre_copy "frame[z.v1]" laccessor \
@@ -1405,7 +1408,7 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_field, is_vec, i
 				# First do types other than default.
 				if ( o == "*" )
 					{
-					default_seen
+					default_seen = 1
 					continue
 					}
 
@@ -1485,8 +1488,8 @@ function gen_method(full_op_no_sub, full_op, type, sub_type, is_field, is_vec, i
 			print (part1 full_op part2) >methods_f
 		}
 	else
-		print ("\treturn AddInst(GenInst(this, \
-			" full_op "));") >methods_f
+		print ("\treturn AddInst(GenInst(this, " \
+			full_op "));") >methods_f
 
 	print ("\t}\n") >methods_f
 	}
@@ -1535,8 +1538,7 @@ function finish(f, which, is_field)
 	{
 	print ("\tdefault:") >f
 	print ("\t\treporter->InternalError(\"inconsistency in " which \
-		(is_field ? " field" : "") " assignment: %s\", \
-		obj_desc(rhs));") >f
+		(is_field ? " field" : "") " assignment: %s\", obj_desc(rhs));") >f
 	print ("\t}\t}") >f
 	}
 

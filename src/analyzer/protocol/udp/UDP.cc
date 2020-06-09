@@ -204,8 +204,14 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 void UDP_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	{
-	RecordVal *orig_endp = conn_val->Lookup("orig")->AsRecordVal();
-	RecordVal *resp_endp = conn_val->Lookup("resp")->AsRecordVal();
+	// This code used to do lookups of "orig" and "resp".  However,
+	// Connection::BuildConnVal hardwires them to slots 1 and 2 in
+	// the record, so for speed we rely on that.
+	auto cv = conn_val->AsNonConstRecord();
+
+	bool error;
+	auto orig_endp = cv->Lookup(1, error).record_val;
+	auto resp_endp = cv->Lookup(2, error).record_val;
 
 	UpdateEndpointVal(orig_endp, true);
 	UpdateEndpointVal(resp_endp, false);
@@ -214,19 +220,19 @@ void UDP_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	Analyzer::UpdateConnVal(conn_val);
 	}
 
-void UDP_Analyzer::UpdateEndpointVal(RecordVal* endp, bool is_orig)
+void UDP_Analyzer::UpdateEndpointVal(ZAM_record* endp, bool is_orig)
 	{
 	bro_int_t size = is_orig ? request_len : reply_len;
 	if ( size < 0 )
 		{
-		endp->Assign(0, val_mgr->GetCount(0));
-		endp->Assign(1, val_mgr->GetCount(int(UDP_INACTIVE)));
+		endp->SetField(0).uint_val = 0;
+		endp->SetField(1).uint_val = int(UDP_INACTIVE);
 		}
 
 	else
 		{
-		endp->Assign(0, val_mgr->GetCount(size));
-		endp->Assign(1, val_mgr->GetCount(int(UDP_ACTIVE)));
+		endp->SetField(0).uint_val = size;
+		endp->SetField(1).uint_val = int(UDP_ACTIVE);
 		}
 	}
 

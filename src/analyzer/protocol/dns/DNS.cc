@@ -11,6 +11,7 @@
 
 #include "BroString.h"
 #include "NetVar.h"
+#include "ZVal.h"
 #include "Sessions.h"
 #include "Event.h"
 #include "Net.h"
@@ -1444,37 +1445,39 @@ DNS_MsgInfo::~DNS_MsgInfo()
 
 Val* DNS_MsgInfo::BuildHdrVal()
 	{
-	RecordVal* r = new RecordVal(dns_msg);
+	RecordVal* rv = new RecordVal(dns_msg);
+	auto r = rv->AsNonConstRecord();
 
-	r->Assign(0, val_mgr->GetCount(id));
-	r->Assign(1, val_mgr->GetCount(opcode));
-	r->Assign(2, val_mgr->GetCount(rcode));
-	r->Assign(3, val_mgr->GetBool(QR));
-	r->Assign(4, val_mgr->GetBool(AA));
-	r->Assign(5, val_mgr->GetBool(TC));
-	r->Assign(6, val_mgr->GetBool(RD));
-	r->Assign(7, val_mgr->GetBool(RA));
-	r->Assign(8, val_mgr->GetCount(Z));
-	r->Assign(9, val_mgr->GetCount(qdcount));
-	r->Assign(10, val_mgr->GetCount(ancount));
-	r->Assign(11, val_mgr->GetCount(nscount));
-	r->Assign(12, val_mgr->GetCount(arcount));
+	r->SetField(0).uint_val = id;
+	r->SetField(1).uint_val = opcode;
+	r->SetField(2).uint_val = rcode;
+	r->SetField(3).int_val = QR;
+	r->SetField(4).int_val = AA;
+	r->SetField(5).int_val = TC;
+	r->SetField(6).int_val = RD;
+	r->SetField(7).int_val = RA;
+	r->SetField(8).int_val = Z;
+	r->SetField(9).uint_val = qdcount;
+	r->SetField(10).uint_val = ancount;
+	r->SetField(11).uint_val = nscount;
+	r->SetField(12).uint_val = arcount;
 
-	return r;
+	return rv;
 	}
 
 Val* DNS_MsgInfo::BuildAnswerVal()
 	{
-	RecordVal* r = new RecordVal(dns_answer);
+	RecordVal* rv = new RecordVal(dns_answer);
+	auto r = rv->AsNonConstRecord();
 
 	Ref(query_name);
-	r->Assign(0, val_mgr->GetCount(int(answer_type)));
-	r->Assign(1, query_name);
-	r->Assign(2, val_mgr->GetCount(atype));
-	r->Assign(3, val_mgr->GetCount(aclass));
-	r->Assign(4, make_intrusive<IntervalVal>(double(ttl), Seconds));
+	r->SetField(0).uint_val = int(answer_type);
+	r->SetField(1).string_val = query_name;
+	r->SetField(2).uint_val = atype;
+	r->SetField(3).uint_val = aclass;
+	r->SetField(4).double_val = double(ttl);
 
-	return r;
+	return rv;
 	}
 
 Val* DNS_MsgInfo::BuildEDNS_Val()

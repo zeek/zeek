@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "ZVal.h"
 #include "analyzer/Analyzer.h"
 #include <netinet/udp.h>
 
@@ -39,7 +40,7 @@ protected:
 	bro_int_t request_len, reply_len;
 
 private:
-	void UpdateEndpointVal(RecordVal* endp, bool is_orig);
+	void UpdateEndpointVal(ZAM_record* endp, bool is_orig);
 
 #define HIST_ORIG_DATA_PKT 0x1
 #define HIST_RESP_DATA_PKT 0x2

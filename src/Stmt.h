@@ -68,7 +68,8 @@ public:
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
-	const Expr* StmtExpr() const	{ return e.get(); }
+	const Expr* StmtExpr() const			{ return e.get(); }
+	const IntrusivePtr<Expr>& StmtExprPtr() const	{ return e; }
 
 	void StmtDescribe(ODesc* d) const override;
 
@@ -427,6 +428,10 @@ public:
 	// because we don't want to have to include Expr.h in this header.
 	const NameExpr* RetVar() const		{ return ret_var.get(); }
 
+	// The assignment statement this statement transformed into,
+	// or nil if it hasn't (the common case).
+	const IntrusivePtr<Stmt>& AssignStmt() const	{ return assign_stmt; }
+
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
 	bool IsPure() const override;
@@ -446,6 +451,10 @@ protected:
 	// Expression that holds the return value.  Only used for
 	// compiling.
 	IntrusivePtr<NameExpr> ret_var;
+
+	// If this statement transformed into an assignment, that
+	// corresponding statement.
+	IntrusivePtr<Stmt> assign_stmt;
 };
 
 class StmtList : public Stmt {

@@ -413,6 +413,15 @@ Stmt* PrintStmt::DoSubclassReduce(IntrusivePtr<ListExpr> singletons,
 const CompiledStmt PrintStmt::Compile(Compiler* c) const
 	{
 	c->SetCurrStmt(this);
+	if ( l->Exprs().length() == 1 )
+		{
+		auto e0 = l->Exprs()[0];
+		if ( e0->Tag() == EXPR_NAME )
+			return c->Print1V(e0->AsNameExpr());
+		else
+			return c->Print1C(e0->AsConstExpr());
+		}
+
 	auto exprs = c->BuildVals(l);
 	return c->PrintO(exprs);
 	}
@@ -2266,6 +2275,27 @@ bool CatchReturnStmt::IsPure() const
 Stmt* CatchReturnStmt::DoReduce(Reducer* c)
 	{
 	block = {AdoptRef{}, block->Reduce(c)};
+
+	if ( block->Tag() == STMT_RETURN )
+		{
+		// The whole thing reduced to a bare return.  This can
+		// happen due to constant propagation.
+		auto ret = block->AsReturnStmt();
+		auto ret_e = ret->StmtExprPtr();
+
+		if ( ! ret_e )
+			{
+			if ( ret_var )
+				reporter->InternalError("inlining inconsistency: no return value");
+
+			return new NullStmt;
+			}
+
+		auto assign = make_intrusive<AssignExpr>(ret_var, ret_e, false);
+		assign_stmt = make_intrusive<ExprStmt>(assign);
+		return assign_stmt.get();
+		}
+
 	return this->Ref();
 	}
 

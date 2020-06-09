@@ -943,6 +943,22 @@ eval do_print(*vvec)
 eval delete vvec
 method-pre int reg = v->n; delete v
 
+op Print1
+op1-read
+type V
+set-type $1
+eval std::vector<IntrusivePtr<Val>> vals
+eval vals.push_back(frame[z.v1].ToVal(z.t))
+eval do_print(vals)
+
+op Print1
+op1-read
+type C
+set-type $1
+eval std::vector<IntrusivePtr<Val>> vals
+eval vals.push_back(z.c.ToVal(z.t))
+eval do_print(vals)
+
 
 internal-op If-Else
 op1-read

@@ -473,9 +473,22 @@ const ConstExpr* Reducer::CheckForConst(const IntrusivePtr<ID>& id,
 	if ( dp.Tag() == STMT_DEF )
 		{
 		auto s = dp.StmtVal();
+
+		if ( s->Tag() == STMT_CATCH_RETURN )
+			{
+			// Check to see if this got optimized to an assignment.
+			auto cr = s->AsCatchReturnStmt();
+			s = cr->AssignStmt().get();
+
+			if ( ! s )
+				return nullptr;
+			}
+
 		if ( s->Tag() != STMT_EXPR )
+			{
 			// Defined in a statement other than an assignment.
 			return nullptr;
+			}
 
 		auto s_e = s->AsExprStmt();
 		e = s_e->StmtExpr();

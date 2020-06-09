@@ -13,8 +13,12 @@ resources_template: &RESOURCES_TEMPLATE
 ci_template: &CI_TEMPLATE
   only_if: >
     $CIRRUS_PR != '' ||
-    $CIRRUS_BRANCH == 'master' ||
-    $CIRRUS_BRANCH =~ 'release/.*'
+    ( $CIRRUS_REPO_NAME == 'zeek' &&
+      (
+      $CIRRUS_BRANCH == 'master' ||
+      $CIRRUS_BRANCH =~ 'release/.*'
+      )
+    )
 
   # Default timeout is 60 minutes, Cirrus hard limit is 120 minutes for free
   # tasks, so may as well ask for full time.

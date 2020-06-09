@@ -16,14 +16,12 @@ BUILD_URL="https://api.cirrus-ci.com/v1/artifact/build/${CIRRUS_BUILD_ID}/${CIRR
 
 # Generate an md5 hash of the build file. We can do this here because the path to the
 # file still exists from the prior scripts.
-BUILD_HASH=$(md5sum build.tgz | awk '{print $1}')
+BUILD_HASH=$(sha256sum build.tgz | awk '{print $1}')
 
 # Generate an HMAC digest for the path plus a timestamp to send as an authentication
 # header. Openssl outputs a hex string here so there's no need to base64 encode it.
-# TODO: would it make sense to add the build hash as part of the hmac key here just
-# for more uniqueness?
-TIMESTAMP=$(date +'%s')
-HMAC_DIGEST=$(echo "${ZEEK_BENCHMARK_ENDPOINT}-${TIMESTAMP}" | openssl dgst -sha256 -hmac ${ZEEK_BENCHMARK_HMAC_KEY} | awk '{print $2}')
+TIMESTAMP=$(date -u +'%s')
+HMAC_DIGEST=$(echo "${ZEEK_BENCHMARK_ENDPOINT}-${TIMESTAMP}-${BUILD_HASH}" | openssl dgst -sha256 -hmac ${ZEEK_BENCHMARK_HMAC_KEY} | awk '{print $2}')
 
 TARGET="https://${ZEEK_BENCHMARK_HOST}:${ZEEK_BENCHMARK_PORT}${ZEEK_BENCHMARK_ENDPOINT}"
 

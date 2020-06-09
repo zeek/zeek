@@ -33,9 +33,3 @@ RUN ln -sf /usr/bin/python3 /usr/local/bin/python
 RUN ln -sf /usr/bin/pip3 /usr/local/bin/pip
 
 RUN pip install junit2html
-
-RUN echo 'unset BASH_ENV PROMPT_COMMAND ENV' > /usr/bin/zeek-ci-env
-
-ENV BASH_ENV="/usr/bin/zeek-ci-env" \
-    ENV="/usr/bin/zeek-ci-env" \
-    PROMPT_COMMAND=". /usr/bin/zeek-ci-env"

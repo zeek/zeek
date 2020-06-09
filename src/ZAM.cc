@@ -532,8 +532,10 @@ bool ZAM::CollapseGoTos()
 			continue;
 
 		auto t = i0->target;
+		if ( ! t )
+			continue;
 
-		if ( t && t->IsUnconditionalBranch() )
+		if ( t->IsUnconditionalBranch() )
 			{ // Collapse branch-to-branch.
 			did_collapse = true;
 			do
@@ -561,7 +563,7 @@ bool ZAM::CollapseGoTos()
 
 		// j now points to the first live instruction after i.
 		if ( branches_into_dead ||
-		     (j < insts1.size() && t == insts1[i+1]) )
+		     (j < insts1.size() && t == insts1[j]) )
 			{ // i0 is branch-to-next-statement
 			i0->live = false;
 			--t->num_labels;

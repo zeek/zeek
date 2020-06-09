@@ -1,2 +1,0 @@
-need another layer of vector management: one that knows the vector's
-	type, and uses it to delete members that we manage directly

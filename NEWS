@@ -6,7 +6,79 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 3.1.4
 ==========
 
-TODO: no changes yet
+This release fixes the following security issues:
+
+* Fix potential stack overflow in NVT analyzer
+  https://github.com/zeek/zeek/commit/3b51d72aa165fd7e4baac260b7cb8103a0a02822
+
+  The NVT_Analyzer (e.g. as instantiated to support the FTP analyzer)
+  uses a recursive parsing function that may only advance one byte at a
+  time and can easily cause a stack overflow as a result.
+
+  Credit to OSS-Fuzz for discovery
+  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=22898
+
+* Fix NVT analyzer memory leak from multiple telnet authn name options
+  https://github.com/zeek/zeek/commit/e532335f9718bd902e2c600827c975824c0fd0a6
+
+  Credit to OSS-Fuzz for discovery
+  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=23069
+
+* Fix multiple content-transfer-encoding headers causing a memory leak
+  https://github.com/zeek/zeek/commit/0195880c4842cb2dbb8ea551078fb49f4f1e896f
+
+  The MIME analyzer leaks memory if it sees many content-transfer-encoding
+  headers or also if it see many multipart boundary parameters.
+
+  Credit to OSS-Fuzz for discovery
+  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=22871
+
+* Fix potential leak of Analyzers added to tree during Analyzer::Done
+  https://github.com/zeek/zeek/commit/d2eb701b7e8a2444abcc5d8a229fce3710c1ae2b
+
+  It may be possible for remote sources of analyzed packets to specifically
+  craft traffic to trigger this behavior.
+
+  Credit to OSS-Fuzz for discovery
+  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=22630
+
+* Prevent IP fragment reassembly on packets without minimal IP header
+  https://github.com/zeek/zeek/commit/a2f2f7a0dd8a2536a1688c63bc34431f17baae54
+
+  The IP fragment reassembly process assumes a packet contains at least
+  the minimum IP header, but such a check did not previously occur,
+  resulting in a heap buffer over-read.  For example, a self-reported
+  IPv4 IHL field with a value less than minimum IPv4 header length of
+  20 bytes.  Such packets likely aren't routable on their own, but one
+  can create an artifical pcap like that or possibly encapsulate it
+  within another protocol to trigger this bug.
+
+Also fixed are the following bugs:
+
+* Fix compilation on Fedora 32 (GCC 10.0.1)
+  https://github.com/zeek/zeek/commit/695457fe44c4adfbf2edab955fee0074ef365980
+
+* Fix crash when using some deprecated environment variables
+  https://github.com/zeek/zeek/commit/1c08be1c0f89e9a8437ee230fbdbcd306485847b
+
+* Fix use on CentOS 6 (Linux kernel < 3.8)
+  https://github.com/mheily/libkqueue/commit/8707307ec5e09792782916205fb8de4f52ed24bb
+
+* Limit rate of logging MaxMind DB diagnostic messages
+  https://github.com/zeek/zeek/pull/963
+
+* Fix wrong return value type for `topk_get_top()` BIF
+  https://github.com/zeek/zeek/pull/996
+
+* Fix opaque Broker types lacking a Type after (de)serialization
+  https://github.com/zeek/zeek/pull/984
+
+* Fix lack of descriptive printing for intervals converted from `double_to_interval()`
+  https://github.com/zeek/zeek/pull/994/commits/e17487e79910fee1bb7ced30446dda0fdf4bcae4
+
+* Fix some cases of known-services not being logged
+  https://github.com/zeek/zeek/pull/965
+  https://github.com/zeek/zeek/commit/2f918ed9b24ae3aca2a7c36bf5b539e0a49b2f96
 
 Zeek 3.1.3
 ==========

@@ -1,4 +1,8 @@
 
+3.2.0-dev.762 | 2020-06-09 15:19:15 -0700
+
+  * Restrict Cirrus CI to only zeek repo's branches (Jon Siwek, Corelight)
+
 3.2.0-dev.761 | 2020-06-09 09:39:31 -0700
 
   * Prevent IP fragment reassembly on packets without minimal IP header (Jon Siwek, Corelight)

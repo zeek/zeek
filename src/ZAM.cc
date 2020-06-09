@@ -337,26 +337,9 @@ Stmt* ZAM::CompileBody()
 	if ( pending_inst )
 		pending_inst->live = false;
 
-	// Maps original statement labels to final ones.
-	std::unordered_map<InstLabel, InstLabel> orig_to_final;
-
 	for ( auto i = 0; i < insts1.size(); ++i )
 		if ( insts1[i]->live )
-			{
 			insts2.push_back(insts1[i]);
-			orig_to_final[insts1[i]] = insts2.back();
-			}
-
-	// Rewrite switch tables to use final instructions.
-#define REWRITE_SWITCH_TARGETS(switches) \
-	for ( auto& targs : switches ) \
-		for ( auto& targ : targs ) \
-			targ.second = orig_to_final[targ.second];
-
-	REWRITE_SWITCH_TARGETS(int_cases);
-	REWRITE_SWITCH_TARGETS(uint_cases);
-	REWRITE_SWITCH_TARGETS(double_cases);
-	REWRITE_SWITCH_TARGETS(str_cases);
 
 	// Re-concretize instruction numbers, and concretize GoTo's.
 	for ( auto i = 0; i < insts2.size(); ++i )
@@ -564,8 +547,22 @@ bool ZAM::CollapseGoTos()
 			while ( t->IsUnconditionalBranch() );
 			}
 
-		if ( i < insts1.size() - 1 && t == insts1[i+1] )
-			{ // Collapse branch-to-next-statement.
+		// Collapse branch-to-next-statement, taking into
+		// account dead code.
+		int j = i + 1;
+
+		bool branches_into_dead = false;
+		while ( j < insts1.size() && ! insts1[j]->live )
+			{
+			++j;
+			if ( t == insts1[j] )
+				branches_into_dead = true;
+			}
+
+		// j now points to the first live instruction after i.
+		if ( branches_into_dead ||
+		     (j < insts1.size() && t == insts1[i+1]) )
+			{ // i0 is branch-to-next-statement
 			i0->live = false;
 			--t->num_labels;
 			}

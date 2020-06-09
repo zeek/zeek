@@ -1,4 +1,45 @@
 
+3.2.0-dev.761 | 2020-06-09 09:39:31 -0700
+
+  * Prevent IP fragment reassembly on packets without minimal IP header (Jon Siwek, Corelight)
+
+    The IP fragment reassembly process assumes a packet contains at least
+    the minimum IP header, but such a check did not previously occur,
+    resulting in a heap buffer over-read.  For example, a self-reported
+    IPv4 IHL field with a value less than minimum IPv4 header length of
+    20 bytes.  Such packets likely aren't routable on their own, but one
+    can create an artifical pcap like that or possibly encapsulate it
+    within another protocol to trigger this bug.
+
+  * Fix potential leak of Analyzers added to tree during Analyzer::Done (Jon Siwek, Corelight)
+
+    Credit to OSS-Fuzz for discovery
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=22630
+
+  * Fix multiple content-transfer-encoding headers causing a memory leak (Jon Siwek, Corelight)
+
+    The MIME analyzer may also leak if it sees many multipart boundary
+    parameters.
+
+    Credit to OSS-Fuzz for discovery
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=22871
+
+  * Fix potential stack overflow in NVT analyzer (Jon Siwek, Corelight)
+
+    The NVT_Analyzer (e.g. as instantiated to support the FTP analyzer)
+    uses a recursive parsing function that may only advance one byte at a
+    time and can easily cause a stack overflow as a result.  This change
+    replaces the recursive calls with equivalent iterative logic.
+
+    Credit to OSS-Fuzz for discovery
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=22898
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=22972
+
+  * Fix NVT analyzer memory leak from multiple telnet authn name options (Jon Siwek, Corelight)
+
+    Credit to OSS-Fuzz for discovery
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=23069
+
 3.2.0-dev.751 | 2020-06-08 22:30:18 +0000
 
   * GH-999: Stop formatting DHCP Client ID Hardware Type 0 as MAC

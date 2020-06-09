@@ -760,7 +760,7 @@ op1-read
 eval auto v = frame[z.v1].int_val
 eval auto t = int_cases[z.v2]
 eval if ( t.find(v) == t.end() ) pc = z.v3
-eval else pc = t[v]->inst_num
+eval else { pc = t[v]->inst_num; continue; }
 
 internal-op SwitchU
 op1-read
@@ -768,7 +768,7 @@ type VVV
 eval auto v = frame[z.v1].uint_val
 eval auto t = uint_cases[z.v2]
 eval if ( t.find(v) == t.end() ) pc = z.v3
-eval else pc = t[v]->inst_num
+eval else { pc = t[v]->inst_num; continue; }
 
 internal-op SwitchD
 op1-read
@@ -776,7 +776,7 @@ type VVV
 eval auto v = frame[z.v1].double_val
 eval auto t = double_cases[z.v2]
 eval if ( t.find(v) == t.end() ) pc = z.v3
-eval else pc = t[v]->inst_num
+eval else { pc = t[v]->inst_num; continue; }
 
 internal-op SwitchS
 op1-read
@@ -785,7 +785,7 @@ eval auto vs = frame[z.v1].string_val->AsString()->Render()
 eval std::string v(vs)
 eval auto t = str_cases[z.v2]
 eval if ( t.find(v) == t.end() ) pc = z.v3
-eval else pc = t[v]->inst_num
+eval else { pc = t[v]->inst_num; continue; }
 eval delete[] vs
 
 internal-op SwitchA
@@ -794,7 +794,7 @@ type VVV
 eval auto v = frame[z.v1].addr_val->AsAddr().AsString()
 eval auto t = str_cases[z.v2]
 eval if ( t.find(v) == t.end() ) pc = z.v3
-eval else pc = t[v]->inst_num
+eval else { pc = t[v]->inst_num; continue; }
 
 internal-op SwitchN
 op1-read
@@ -802,7 +802,7 @@ type VVV
 eval auto v = frame[z.v1].subnet_val->AsSubNet().AsString()
 eval auto t = str_cases[z.v2]
 eval if ( t.find(v) == t.end() ) pc = z.v3
-eval else pc = t[v]->inst_num
+eval else { pc = t[v]->inst_num; continue; }
 
 
 internal-op Branch-If-Not-Type

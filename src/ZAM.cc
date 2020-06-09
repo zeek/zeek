@@ -337,9 +337,26 @@ Stmt* ZAM::CompileBody()
 	if ( pending_inst )
 		pending_inst->live = false;
 
+	// Maps original statement labels to final ones.
+	std::unordered_map<InstLabel, InstLabel> orig_to_final;
+
 	for ( auto i = 0; i < insts1.size(); ++i )
 		if ( insts1[i]->live )
+			{
 			insts2.push_back(insts1[i]);
+			orig_to_final[insts1[i]] = insts2.back();
+			}
+
+	// Rewrite switch tables to use final instructions.
+#define REWRITE_SWITCH_TARGETS(switches) \
+	for ( auto& targs : switches ) \
+		for ( auto& targ : targs ) \
+			targ.second = orig_to_final[targ.second];
+
+	REWRITE_SWITCH_TARGETS(int_cases);
+	REWRITE_SWITCH_TARGETS(uint_cases);
+	REWRITE_SWITCH_TARGETS(double_cases);
+	REWRITE_SWITCH_TARGETS(str_cases);
 
 	// Re-concretize instruction numbers, and concretize GoTo's.
 	for ( auto i = 0; i < insts2.size(); ++i )
@@ -471,6 +488,16 @@ void ZAM::OptimizeInsts()
 	for ( auto& i : insts1 )
 		if ( i->target && i->target->live )
 			++(i->target->num_labels);
+
+#define TALLY_SWITCH_TARGETS(switches) \
+	for ( auto& targs : switches ) \
+		for ( auto& targ : targs ) \
+			++(targ.second->num_labels);
+
+	TALLY_SWITCH_TARGETS(int_cases);
+	TALLY_SWITCH_TARGETS(uint_cases);
+	TALLY_SWITCH_TARGETS(double_cases);
+	TALLY_SWITCH_TARGETS(str_cases);
 
 	bool something_changed;
 
@@ -2303,15 +2330,6 @@ void ZAM::Dump()
 	for ( auto frame_elem : frame_layout )
 		printf("frame[%d] = %s\n", frame_elem.second, frame_elem.first->Name());
 
-	for ( int i = 0; i < int_cases.size(); ++i )
-		DumpIntCases(i);
-	for ( int i = 0; i < uint_cases.size(); ++i )
-		DumpUIntCases(i);
-	for ( int i = 0; i < double_cases.size(); ++i )
-		DumpDoubleCases(i);
-	for ( int i = 0; i < str_cases.size(); ++i )
-		DumpStrCases(i);
-
 	if ( insts2.size() > 0 )
 		printf("Pre-removal of dead code:\n");
 
@@ -2331,6 +2349,15 @@ void ZAM::Dump()
 		printf("%d%s: ", i, inst->live ? "" : " (dead)");
 		inst->Dump(frame_denizens);
 		}
+
+	for ( int i = 0; i < int_cases.size(); ++i )
+		DumpIntCases(i);
+	for ( int i = 0; i < uint_cases.size(); ++i )
+		DumpUIntCases(i);
+	for ( int i = 0; i < double_cases.size(); ++i )
+		DumpDoubleCases(i);
+	for ( int i = 0; i < str_cases.size(); ++i )
+		DumpStrCases(i);
 	}
 
 void ZAM::DumpIntCases(int i) const

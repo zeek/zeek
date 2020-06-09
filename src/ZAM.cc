@@ -2040,7 +2040,7 @@ const CompiledStmt ZAM::FinishLoop(const CompiledStmt iter_head,
 	ResolveNexts(GoToTarget(iter_head));
 	ResolveBreaks(GoToTarget(final_stmt));
 
-	return loop_end;
+	return final_stmt;
 	}
 
 const CompiledStmt ZAM::InitRecord(ID* id, RecordType* rt)

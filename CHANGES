@@ -1,4 +1,8 @@
 
+3.0.7 | 2020-06-09 09:43:32 -0700
+
+  * Release 3.0.7
+
 3.0.7-dev.15 | 2020-06-05 15:29:26 -0700
 
   * Fix NVT analyzer memory leak from multiple telnet authn name options (Jon Siwek, Corelight)

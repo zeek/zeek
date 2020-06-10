@@ -165,11 +165,11 @@ void net_init(const std::optional<std::string>& interface,
 		}
 	else if ( interface )
 		{
-		reading_live = true;
-		reading_traces = false;
-
 		iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(*interface, true);
 		assert(ps);
+
+		reading_live   =  ps->IsLive();
+		reading_traces = !ps->IsLive();
 
 		if ( ! ps->IsOpen() )
 			reporter->FatalError("problem with interface %s (%s)",

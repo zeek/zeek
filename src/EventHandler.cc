@@ -5,25 +5,18 @@
 #include "Scope.h"
 #include "NetVar.h"
 #include "ID.h"
+#include "Var.h"
 
 #include "broker/Manager.h"
 #include "broker/Data.h"
 
-EventHandler::EventHandler(const char* arg_name)
+EventHandler::EventHandler(std::string arg_name)
 	{
-	name = copy_string(arg_name);
+	name = std::move(arg_name);
 	used = false;
-	local = nullptr;
-	type = nullptr;
 	error_handler = false;
 	enabled = true;
 	generate_always = false;
-	}
-
-EventHandler::~EventHandler()
-	{
-	Unref(local);
-	delete [] name;
 	}
 
 EventHandler::operator bool() const
@@ -33,34 +26,31 @@ EventHandler::operator bool() const
 			   || ! auto_publish.empty());
 	}
 
-FuncType* EventHandler::FType(bool check_export)
+const IntrusivePtr<FuncType>& EventHandler::GetType(bool check_export)
 	{
 	if ( type )
 		return type;
 
-	auto id = lookup_ID(name, current_module.c_str(), false, false,
-	                    check_export);
+	const auto& id = lookup_ID(name.data(), current_module.c_str(), false, false,
+	                           check_export);
 
 	if ( ! id )
-		return nullptr;
+		return FuncType::nil;
 
-	if ( id->Type()->Tag() != TYPE_FUNC )
-		return nullptr;
+	if ( id->GetType()->Tag() != TYPE_FUNC )
+		return FuncType::nil;
 
-	type = id->Type()->AsFuncType();
+	type = id->GetType<FuncType>();
 	return type;
 	}
 
+void EventHandler::SetFunc(IntrusivePtr<Func> f)
+	{ local = std::move(f); }
+
 void EventHandler::SetLocalHandler(Func* f)
-	{
-	if ( local )
-		Unref(local);
+	{ SetFunc({NewRef{}, f}); }
 
-	Ref(f);
-	local = f;
-	}
-
-void EventHandler::Call(const zeek::Args& vl, bool no_remote)
+void EventHandler::Call(zeek::Args* vl, bool no_remote)
 	{
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Event: %s\n", Name());
@@ -75,12 +65,12 @@ void EventHandler::Call(const zeek::Args& vl, bool no_remote)
 			{
 			// Send event in form [name, xs...] where xs represent the arguments.
 			broker::vector xs;
-			xs.reserve(vl.size());
+			xs.reserve(vl->size());
 			bool valid_args = true;
 
-			for ( auto i = 0u; i < vl.size(); ++i )
+			for ( auto i = 0u; i < vl->size(); ++i )
 				{
-				auto opt_data = bro_broker::val_to_data(vl[i].get());
+				auto opt_data = bro_broker::val_to_data((*vl)[i].get());
 
 				if ( opt_data )
 					xs.emplace_back(std::move(*opt_data));
@@ -114,10 +104,10 @@ void EventHandler::Call(const zeek::Args& vl, bool no_remote)
 
 	if ( local )
 		// No try/catch here; we pass exceptions upstream.
-		local->Call(vl);
+		local->Invoke(vl);
 	}
 
-void EventHandler::NewEvent(const zeek::Args& vl)
+void EventHandler::NewEvent(zeek::Args* vl)
 	{
 	if ( ! new_event )
 		return;
@@ -126,15 +116,17 @@ void EventHandler::NewEvent(const zeek::Args& vl)
 		// new_event() is the one event we don't want to report.
 		return;
 
-	RecordType* args = FType()->Args();
+	const auto& args = GetType()->Params();
+	static auto call_argument_vector = zeek::id::find_type<VectorType>("call_argument_vector");
 	auto vargs = make_intrusive<VectorVal>(call_argument_vector);
 
 	for ( int i = 0; i < args->NumFields(); i++ )
 		{
 		const char* fname = args->FieldName(i);
-		BroType* ftype = args->FieldType(i);
+		const auto& ftype = args->GetFieldType(i);
 		auto fdefault = args->FieldDefault(i);
 
+		static auto call_argument = zeek::id::find_type<RecordType>("call_argument");
 		auto rec = make_intrusive<RecordVal>(call_argument);
 		rec->Assign(0, make_intrusive<StringVal>(fname));
 
@@ -146,8 +138,8 @@ void EventHandler::NewEvent(const zeek::Args& vl)
 		if ( fdefault )
 			rec->Assign(2, std::move(fdefault));
 
-		if ( i < static_cast<int>(vl.size()) && vl[i] )
-			rec->Assign(3, vl[i]);
+		if ( i < static_cast<int>(vl->size()) && (*vl)[i] )
+			rec->Assign(3, (*vl)[i]);
 
 		vargs->Assign(i, std::move(rec));
 		}

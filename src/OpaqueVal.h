@@ -87,7 +87,9 @@ private:
  */
 class OpaqueVal : public Val {
 public:
+	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
 	explicit OpaqueVal(OpaqueType* t);
+	explicit OpaqueVal(IntrusivePtr<OpaqueType> t);
 	~OpaqueVal() override;
 
 	/**
@@ -146,13 +148,13 @@ protected:
 	 * Helper function for derived class that need to record a type
 	 * during serialization.
 	 */
-	static broker::expected<broker::data> SerializeType(BroType* t);
+	static broker::expected<broker::data> SerializeType(const IntrusivePtr<BroType>& t);
 
 	/**
 	 * Helper function for derived class that need to restore a type
 	 * during unserialization. Returns the type at reference count +1.
 	 */
-	static BroType* UnserializeType(const broker::data& data);
+	static IntrusivePtr<BroType> UnserializeType(const broker::data& data);
 };
 
 namespace probabilistic {
@@ -183,7 +185,10 @@ protected:
 	static void digest_one(EVP_MD_CTX* h, const IntrusivePtr<Val>& v);
 
 	HashVal()	{ valid = false; }
+
+	[[deprecated("Remove in v4.1. Construct from IntrusivePtr instead.")]]
 	explicit HashVal(OpaqueType* t);
+	explicit HashVal(IntrusivePtr<OpaqueType> t);
 
 	virtual bool DoInit();
 	virtual bool DoFeed(const void* data, size_t size);
@@ -299,8 +304,10 @@ public:
 
 	IntrusivePtr<Val> DoClone(CloneState* state) override;
 
-	BroType* Type() const;
-	bool Typify(BroType* type);
+	const IntrusivePtr<BroType>& Type() const
+		{ return type; }
+
+	bool Typify(IntrusivePtr<BroType> type);
 
 	void Add(const Val* val);
 	size_t Count(const Val* val) const;
@@ -314,7 +321,6 @@ public:
 protected:
 	friend class Val;
 	BloomFilterVal();
-	explicit BloomFilterVal(OpaqueType* t);
 
 	DECLARE_OPAQUE_VALUE(BloomFilterVal)
 private:
@@ -322,7 +328,7 @@ private:
 	BloomFilterVal(const BloomFilterVal&);
 	BloomFilterVal& operator=(const BloomFilterVal&);
 
-	BroType* type;
+	IntrusivePtr<BroType> type;
 	CompositeHash* hash;
 	probabilistic::BloomFilter* bloom_filter;
 };
@@ -337,8 +343,10 @@ public:
 
 	void Add(const Val* val);
 
-	BroType* Type() const;
-	bool Typify(BroType* type);
+	const IntrusivePtr<BroType>& Type() const
+		{ return type; }
+
+	bool Typify(IntrusivePtr<BroType> type);
 
 	probabilistic::CardinalityCounter* Get()	{ return c; };
 
@@ -347,7 +355,7 @@ protected:
 
 	DECLARE_OPAQUE_VALUE(CardinalityVal)
 private:
-	BroType* type;
+	IntrusivePtr<BroType> type;
 	CompositeHash* hash;
 	probabilistic::CardinalityCounter* c;
 };

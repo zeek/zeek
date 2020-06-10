@@ -2,31 +2,28 @@ refine connection SMB_Conn += {
 
 	function proc_smb2_create_request(h: SMB2_Header, val: SMB2_create_request): bool
 		%{
-		StringVal *filename = smb2_string2stringval(${val.filename});
+		auto filename = smb2_string2stringval(${val.filename});
+
 		if ( ! ${h.is_pipe} &&
-		     BifConst::SMB::pipe_filenames->AsTable()->Lookup(filename->CheckString()) )
+		     zeek::BifConst::SMB::pipe_filenames->AsTable()->Lookup(filename->CheckString()) )
 			{
 			set_tree_is_pipe(${h.tree_id});
 
 			if ( smb_pipe_connect_heuristic )
-				BifEvent::generate_smb_pipe_connect_heuristic(bro_analyzer(),
-				                                              bro_analyzer()->Conn());
+				zeek::BifEvent::enqueue_smb_pipe_connect_heuristic(bro_analyzer(),
+				                                             bro_analyzer()->Conn());
 			}
 
 		if ( smb2_create_request )
 			{
-			RecordVal* requestinfo = new RecordVal(BifType::Record::SMB2::CreateRequest);
-			requestinfo->Assign(0, filename);
-			requestinfo->Assign(1, val_mgr->GetCount(${val.disposition}));
-			requestinfo->Assign(2, val_mgr->GetCount(${val.create_options}));
-			BifEvent::generate_smb2_create_request(bro_analyzer(),
-			                                       bro_analyzer()->Conn(),
-			                                       BuildSMB2HeaderVal(h),
-			                                       requestinfo);
-			}
-		else
-			{
-			delete filename;
+			auto requestinfo = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::CreateRequest);
+			requestinfo->Assign(0, std::move(filename));
+			requestinfo->Assign(1, val_mgr->Count(${val.disposition}));
+			requestinfo->Assign(2, val_mgr->Count(${val.create_options}));
+			zeek::BifEvent::enqueue_smb2_create_request(bro_analyzer(),
+			                                      bro_analyzer()->Conn(),
+			                                      BuildSMB2HeaderVal(h),
+			                                      std::move(requestinfo));
 			}
 
 		return true;
@@ -36,19 +33,19 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_create_response )
 			{
-			RecordVal* responseinfo = new RecordVal(BifType::Record::SMB2::CreateResponse);
+			auto responseinfo = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::CreateResponse);
 			responseinfo->Assign(0, BuildSMB2GUID(${val.file_id}));
-			responseinfo->Assign(1, val_mgr->GetCount(${val.eof}));
+			responseinfo->Assign(1, val_mgr->Count(${val.eof}));
 			responseinfo->Assign(2, SMB_BuildMACTimes(${val.last_write_time},
 			                                          ${val.last_access_time},
 			                                          ${val.creation_time},
 			                                          ${val.change_time}));
 			responseinfo->Assign(3, smb2_file_attrs_to_bro(${val.file_attrs}));
-			responseinfo->Assign(4, val_mgr->GetCount(${val.create_action}));
-			BifEvent::generate_smb2_create_response(bro_analyzer(),
-			                                        bro_analyzer()->Conn(),
-			                                        BuildSMB2HeaderVal(h),
-			                                        responseinfo);
+			responseinfo->Assign(4, val_mgr->Count(${val.create_action}));
+			zeek::BifEvent::enqueue_smb2_create_response(bro_analyzer(),
+			                                       bro_analyzer()->Conn(),
+			                                       BuildSMB2HeaderVal(h),
+												   std::move(responseinfo));
 			}
 
 		return true;

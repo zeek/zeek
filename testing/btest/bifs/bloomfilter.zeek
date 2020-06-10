@@ -55,6 +55,7 @@ function test_basic_bloom_filter()
 
   #empty filter tests
   local bf_empty = bloomfilter_basic_init(0.1, 1000);
+  print bloomfilter_lookup(bf_empty, 42);
   local bf_empty_merged = bloomfilter_merge(bf_merged, bf_empty);
   print bloomfilter_lookup(bf_empty_merged, 42);
   }

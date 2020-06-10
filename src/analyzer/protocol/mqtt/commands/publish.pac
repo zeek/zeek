@@ -23,29 +23,30 @@ refine flow MQTT_Flow += {
 		%{
 		if ( mqtt_publish )
 			{
-			auto m = new RecordVal(BifType::Record::MQTT::PublishMsg);
-			m->Assign(0, val_mgr->GetBool(${msg.dup}));
-			m->Assign(1, val_mgr->GetCount(${msg.qos}));
-			m->Assign(2, val_mgr->GetBool(${msg.retain}));
-			m->Assign(3, new StringVal(${msg.topic.str}.length(),
-			                           reinterpret_cast<const char*>(${msg.topic.str}.begin())));
+			auto m = make_intrusive<RecordVal>(zeek::BifType::Record::MQTT::PublishMsg);
+			m->Assign(0, val_mgr->Bool(${msg.dup}));
+			m->Assign(1, val_mgr->Count(${msg.qos}));
+			m->Assign(2, val_mgr->Bool(${msg.retain}));
+			m->Assign<StringVal>(3, ${msg.topic.str}.length(),
+			                     reinterpret_cast<const char*>(${msg.topic.str}.begin()));
 
 			auto len = ${msg.payload}.length();
-			auto max = analyzer::MQTT::MQTT_Analyzer::max_payload_size->ID_Val()->AsCount();
+			static auto max_payload_size = zeek::id::find("MQTT::max_payload_size");
+			auto max = max_payload_size->GetVal()->AsCount();
 
 			if ( len > static_cast<int>(max) )
 				len = max;
 
-			m->Assign(4, new StringVal(len,
-			                           reinterpret_cast<const char*>(${msg.payload}.begin())));
+			m->Assign<StringVal>(4, len,
+			                     reinterpret_cast<const char*>(${msg.payload}.begin()));
 
-			m->Assign(5, val_mgr->GetCount(${msg.payload}.length()));
+			m->Assign(5, val_mgr->Count(${msg.payload}.length()));
 
-			BifEvent::generate_mqtt_publish(connection()->bro_analyzer(),
-			                                connection()->bro_analyzer()->Conn(),
-			                                ${pdu.is_orig},
-			                                ${msg.qos} == 0 ? 0 : ${msg.msg_id},
-			                                m);
+			zeek::BifEvent::enqueue_mqtt_publish(connection()->bro_analyzer(),
+			                               connection()->bro_analyzer()->Conn(),
+			                               ${pdu.is_orig},
+			                               ${msg.qos} == 0 ? 0 : ${msg.msg_id},
+			                               std::move(m));
 			}
 
 		// If a publish message was seen, let's say that confirms it.

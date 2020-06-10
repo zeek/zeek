@@ -2,10 +2,14 @@
 #include "file_analysis/Manager.h"
 %}
 
-refine connection SMB_Conn += {
-	function BuildHeaderVal(hdr: SMB_Header): BroVal
-		%{
-		RecordVal* r = new RecordVal(BifType::Record::SMB1::Header);
+%header{
+	IntrusivePtr<RecordVal> SMBHeaderVal(SMB_Header* hdr);
+%}
+
+%code{
+	IntrusivePtr<RecordVal> SMBHeaderVal(SMB_Header* hdr)
+		{
+		auto r = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::Header);
 
 		//unsigned int status = 0;
 		//
@@ -21,24 +25,26 @@ refine connection SMB_Conn += {
 		//	{ // do nothing
 		//	}
 
-		r->Assign(0, val_mgr->GetCount(${hdr.command}));
-		r->Assign(1, val_mgr->GetCount(${hdr.status}));
-		r->Assign(2, val_mgr->GetCount(${hdr.flags}));
-		r->Assign(3, val_mgr->GetCount(${hdr.flags2}));
-		r->Assign(4, val_mgr->GetCount(${hdr.tid}));
-		r->Assign(5, val_mgr->GetCount(${hdr.pid}));
-		r->Assign(6, val_mgr->GetCount(${hdr.uid}));
-		r->Assign(7, val_mgr->GetCount(${hdr.mid}));
+		r->Assign(0, val_mgr->Count(${hdr.command}));
+		r->Assign(1, val_mgr->Count(${hdr.status}));
+		r->Assign(2, val_mgr->Count(${hdr.flags}));
+		r->Assign(3, val_mgr->Count(${hdr.flags2}));
+		r->Assign(4, val_mgr->Count(${hdr.tid}));
+		r->Assign(5, val_mgr->Count(${hdr.pid}));
+		r->Assign(6, val_mgr->Count(${hdr.uid}));
+		r->Assign(7, val_mgr->Count(${hdr.mid}));
 
 		return r;
-		%}
+		}
+%}
 
+refine connection SMB_Conn += {
 	function proc_smb_message(h: SMB_Header, is_orig: bool): bool
 		%{
 		if ( smb1_message )
 			{
-			BifEvent::generate_smb1_message(bro_analyzer(), bro_analyzer()->Conn(),
-			                                BuildHeaderVal(h),
+			zeek::BifEvent::enqueue_smb1_message(bro_analyzer(), bro_analyzer()->Conn(),
+			                                SMBHeaderVal(h),
 			                                is_orig);
 			}
 		return true;
@@ -48,9 +54,9 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb1_empty_response )
 			{
-			BifEvent::generate_smb1_empty_response(bro_analyzer(),
-			                                       bro_analyzer()->Conn(),
-			                                       BuildHeaderVal(header));
+			zeek::BifEvent::enqueue_smb1_empty_response(bro_analyzer(),
+			                                      bro_analyzer()->Conn(),
+			                                      SMBHeaderVal(header));
 			}
 		return true;
 		%}
@@ -61,15 +67,17 @@ refine connection SMB_Conn += {
 			{
 			if ( smb1_empty_response )
 				{
-				BifEvent::generate_smb1_empty_response(bro_analyzer(), bro_analyzer()->Conn(), BuildHeaderVal(h));
+				zeek::BifEvent::enqueue_smb1_empty_response(bro_analyzer(),
+				                                      bro_analyzer()->Conn(),
+				                                      SMBHeaderVal(h));
 				}
 			}
 		else
 			{
 			if ( smb1_error )
-				BifEvent::generate_smb1_error(bro_analyzer(),
-				                              bro_analyzer()->Conn(),
-				                              BuildHeaderVal(h), is_orig);
+				zeek::BifEvent::enqueue_smb1_error(bro_analyzer(),
+				                             bro_analyzer()->Conn(),
+				                             SMBHeaderVal(h), is_orig);
 			}
 		return true;
 		%}

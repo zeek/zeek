@@ -6,22 +6,18 @@
 #include "ConvertUTF.h"
 %}
 
-function network_time(): double
-	%{
-	return ::network_time;
-	%}
-
-function utf16_bytestring_to_utf8_val(conn: Connection, utf16: bytestring): StringVal
-	%{
+%code{
+IntrusivePtr<StringVal> utf16_to_utf8_val(Connection* conn, const bytestring& utf16)
+	{
 	std::string resultstring;
 
 	size_t utf8size = (3 * utf16.length() + 1);
 
 	if ( utf8size > resultstring.max_size() )
 		{
-		reporter->Info("utf16 too long in utf16_bytestring_to_utf8_val");
+		reporter->Weird(conn, "utf16_conversion_failed", "utf16 too long in utf16_to_utf8_val");
 		// If the conversion didn't go well, return the original data.
-		return bytestring_to_val(utf16);
+		return to_stringval(utf16);
 		}
 
 	resultstring.resize(utf8size, '\0');
@@ -47,14 +43,25 @@ function utf16_bytestring_to_utf8_val(conn: Connection, utf16: bytestring): Stri
 	                                          lenientConversion);
 	if ( res != conversionOK )
 		{
-		reporter->Weird(conn, "utf16_conversion_failed", "utf16 conversion failed in utf16_bytestring_to_utf8_val");
+		reporter->Weird(conn, "utf16_conversion_failed", "utf16 conversion failed in utf16_to_utf8_val");
 		// If the conversion didn't go well, return the original data.
-		return bytestring_to_val(utf16);
+		return to_stringval(utf16);
 		}
 
 	*targetstart = 0;
 
 	// We're relying on no nulls being in the string.
 	//return new StringVal(resultstring.length(), (const char *) resultstring.data());
-	return new StringVal(resultstring.c_str());
+	return make_intrusive<StringVal>(resultstring.c_str());
+	}
+
+StringVal* utf16_bytestring_to_utf8_val(Connection* conn, const bytestring& utf16)
+	{
+	return utf16_to_utf8_val(conn, utf16).release();
+	}
+%}
+
+function network_time(): double
+	%{
+	return ::network_time;
 	%}

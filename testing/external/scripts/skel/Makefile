@@ -1,6 +1,6 @@
 
 DIAG=diag.log
-BTEST=../../../aux/btest/btest
+BTEST=../../../auxil/btest/btest
 
 all: update-traces
 	@rm -f $(DIAG)

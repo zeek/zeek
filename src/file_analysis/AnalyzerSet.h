@@ -3,6 +3,7 @@
 #pragma once
 
 #include <queue>
+#include <memory>
 
 #include "Dict.h"
 #include "Tag.h"
@@ -42,7 +43,7 @@ public:
 	 * @param args an \c AnalyzerArgs record.
 	 * @return pointer to an analyzer instance, or a null pointer if not found.
 	 */
-	Analyzer* Find(const file_analysis::Tag& tag, RecordVal* args);
+	Analyzer* Find(const file_analysis::Tag& tag, IntrusivePtr<RecordVal> args);
 
 	/**
 	 * Attach an analyzer to #file immediately.
@@ -50,7 +51,7 @@ public:
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
 	 * @return true if analyzer was instantiated/attached, else false.
 	 */
-	bool Add(const file_analysis::Tag& tag, RecordVal* args);
+	bool Add(const file_analysis::Tag& tag, IntrusivePtr<RecordVal> args);
 
 	/**
 	 * Queue the attachment of an analyzer to #file.
@@ -59,7 +60,8 @@ public:
 	 * @return if successful, a pointer to a newly instantiated analyzer else
 	 * a null pointer.  The caller does *not* take ownership of the memory.
 	 */
-	file_analysis::Analyzer* QueueAdd(const file_analysis::Tag& tag, RecordVal* args);
+	file_analysis::Analyzer* QueueAdd(const file_analysis::Tag& tag,
+	                                  IntrusivePtr<RecordVal> args);
 
 	/**
 	 * Remove an analyzer from #file immediately.
@@ -67,7 +69,7 @@ public:
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
 	 * @return false if analyzer didn't exist and so wasn't removed, else true.
 	 */
-	bool Remove(const file_analysis::Tag& tag, RecordVal* args);
+	bool Remove(const file_analysis::Tag& tag, IntrusivePtr<RecordVal> args);
 
 	/**
 	 * Queue the removal of an analyzer from #file.
@@ -75,7 +77,7 @@ public:
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
 	 * @return true if analyzer exists at time of call, else false;
 	 */
-	bool QueueRemove(const file_analysis::Tag& tag, RecordVal* args);
+	bool QueueRemove(const file_analysis::Tag& tag, IntrusivePtr<RecordVal> args);
 
 	/**
 	 * Perform all queued modifications to the current analyzer set.
@@ -108,7 +110,8 @@ protected:
 	 * @param args an \c AnalyzerArgs value which specifies an analyzer.
 	 * @return the hash key calculated from \a args
 	 */
-	HashKey* GetKey(const file_analysis::Tag& tag, RecordVal* args) const;
+	std::unique_ptr<HashKey> GetKey(const file_analysis::Tag& tag,
+	                                IntrusivePtr<RecordVal> args) const;
 
 	/**
 	 * Create an instance of a file analyzer.
@@ -117,14 +120,14 @@ protected:
 	 * @return a new file analyzer instance.
 	 */
 	file_analysis::Analyzer* InstantiateAnalyzer(const file_analysis::Tag& tag,
-	                                             RecordVal* args) const;
+	                                             IntrusivePtr<RecordVal> args) const;
 
 	/**
 	 * Insert an analyzer instance in to the set.
 	 * @param a an analyzer instance.
 	 * @param key the hash key which represents the analyzer's \c AnalyzerArgs.
 	 */
-	void Insert(file_analysis::Analyzer* a, HashKey* key);
+	void Insert(file_analysis::Analyzer* a, std::unique_ptr<HashKey> key);
 
 	/**
 	 * Remove an analyzer instance from the set.
@@ -132,7 +135,7 @@ protected:
 	 *        just used for debugging messages.
 	 * @param key the hash key which represents the analyzer's \c AnalyzerArgs.
 	 */
-	bool Remove(const file_analysis::Tag& tag, HashKey* key);
+	bool Remove(const file_analysis::Tag& tag, std::unique_ptr<HashKey> key);
 
 private:
 
@@ -170,15 +173,15 @@ private:
 		 * @param arg_a an analyzer instance to add to an analyzer set.
 		 * @param arg_key hash key representing the analyzer's \c AnalyzerArgs.
 		 */
-		AddMod(file_analysis::Analyzer* arg_a, HashKey* arg_key)
-			: Modification(), a(arg_a), key(arg_key) {}
+		AddMod(file_analysis::Analyzer* arg_a, std::unique_ptr<HashKey> arg_key)
+			: Modification(), a(arg_a), key(std::move(arg_key)) {}
 		~AddMod() override {}
 		bool Perform(AnalyzerSet* set) override;
 		void Abort() override;
 
 	protected:
 		file_analysis::Analyzer* a;
-		HashKey* key;
+		std::unique_ptr<HashKey> key;
 	};
 
 	/**
@@ -191,15 +194,15 @@ private:
 		 * @param arg_a an analyzer instance to add to an analyzer set.
 		 * @param arg_key hash key representing the analyzer's \c AnalyzerArgs.
 		 */
-		RemoveMod(const file_analysis::Tag& arg_tag, HashKey* arg_key)
-			: Modification(), tag(arg_tag), key(arg_key) {}
+		RemoveMod(const file_analysis::Tag& arg_tag, std::unique_ptr<HashKey> arg_key)
+			: Modification(), tag(arg_tag), key(std::move(arg_key)) {}
 		~RemoveMod() override {}
 		bool Perform(AnalyzerSet* set) override;
-		void Abort() override { delete key; }
+		void Abort() override {}
 
 	protected:
 		file_analysis::Tag tag;
-		HashKey* key;
+		std::unique_ptr<HashKey> key;
 	};
 
 	using ModQueue = std::queue<Modification*>;

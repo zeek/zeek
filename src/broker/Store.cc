@@ -1,13 +1,13 @@
 #include "Store.h"
 #include "Desc.h"
-#include "Var.h" // for internal_type()
+#include "ID.h"
 #include "broker/Manager.h"
 
 namespace bro_broker {
 
-OpaqueType* opaque_of_store_handle;
+IntrusivePtr<OpaqueType> opaque_of_store_handle;
 
-EnumVal* query_status(bool success)
+IntrusivePtr<EnumVal> query_status(bool success)
 	{
 	static EnumType* store_query_status = nullptr;
 	static int success_val;
@@ -15,12 +15,13 @@ EnumVal* query_status(bool success)
 
 	if ( ! store_query_status )
 		{
-		store_query_status = internal_type("Broker::QueryStatus")->AsEnumType();
+		store_query_status = zeek::id::find_type("Broker::QueryStatus")->AsEnumType();
 		success_val = store_query_status->Lookup("Broker", "SUCCESS");
 		failure_val = store_query_status->Lookup("Broker", "FAILURE");
 		}
 
-	return store_query_status->GetVal(success ? success_val : failure_val).release();
+	auto rval = store_query_status->GetVal(success ? success_val : failure_val);
+	return rval;
 	}
 
 void StoreHandleVal::ValDescribe(ODesc* d) const
@@ -85,13 +86,13 @@ broker::backend to_backend_type(BifEnum::Broker::BackendType type)
 	{
 	switch ( type ) {
 	case BifEnum::Broker::MEMORY:
-		return broker::memory;
+		return broker::backend::memory;
 
 	case BifEnum::Broker::SQLITE:
-		return broker::sqlite;
+		return broker::backend::sqlite;
 
 	case BifEnum::Broker::ROCKSDB:
-		return broker::rocksdb;
+		return broker::backend::rocksdb;
 	}
 
 	throw std::runtime_error("unknown broker backend");
@@ -101,17 +102,17 @@ broker::backend_options to_backend_options(broker::backend backend,
                                            RecordVal* options)
 	{
 	switch ( backend ) {
-	case broker::sqlite:
+	case broker::backend::sqlite:
 		{
-		auto path = options->Lookup(0)->AsRecordVal()
-			->Lookup(0)->AsStringVal()->CheckString();
+		auto path = options->GetField(0)->AsRecordVal()
+			->GetField(0)->AsStringVal()->CheckString();
 		return {{"path", path}};
 		}
 
-	case broker::rocksdb:
+	case broker::backend::rocksdb:
 		{
-		auto path = options->Lookup(1)->AsRecordVal()
-			->Lookup(0)->AsStringVal()->CheckString();
+		auto path = options->GetField(1)->AsRecordVal()
+			->GetField(0)->AsStringVal()->CheckString();
 		return {{"path", path}};
 		}
 

@@ -15,7 +15,7 @@
 #include "Net.h"
 #include "Conn.h"
 #include "Timer.h"
-#include "Var.h" // for internal_val()
+#include "ID.h"
 #include "EventHandler.h"
 #include "plugin/Plugin.h"
 #include "plugin/Manager.h"
@@ -32,8 +32,9 @@ int closelog();
 
 Reporter* reporter = nullptr;
 
-Reporter::Reporter()
+Reporter::Reporter(bool arg_abort_on_scripting_errors)
 	{
+	abort_on_scripting_errors = arg_abort_on_scripting_errors;
 	errors = 0;
 	via_events = false;
 	in_error_handler = 0;
@@ -62,13 +63,13 @@ Reporter::~Reporter()
 
 void Reporter::InitOptions()
 	{
-	info_to_stderr = internal_val("Reporter::info_to_stderr")->AsBool();
-	warnings_to_stderr = internal_val("Reporter::warnings_to_stderr")->AsBool();
-	errors_to_stderr = internal_val("Reporter::errors_to_stderr")->AsBool();
-	weird_sampling_rate = internal_val("Weird::sampling_rate")->AsCount();
-	weird_sampling_threshold = internal_val("Weird::sampling_threshold")->AsCount();
-	weird_sampling_duration = internal_val("Weird::sampling_duration")->AsInterval();
-	auto wl_val = internal_val("Weird::sampling_whitelist")->AsTableVal();
+	info_to_stderr = zeek::id::find_val("Reporter::info_to_stderr")->AsBool();
+	warnings_to_stderr = zeek::id::find_val("Reporter::warnings_to_stderr")->AsBool();
+	errors_to_stderr = zeek::id::find_val("Reporter::errors_to_stderr")->AsBool();
+	weird_sampling_rate = zeek::id::find_val("Weird::sampling_rate")->AsCount();
+	weird_sampling_threshold = zeek::id::find_val("Weird::sampling_threshold")->AsCount();
+	weird_sampling_duration = zeek::id::find_val("Weird::sampling_duration")->AsInterval();
+	auto wl_val = zeek::id::find_val("Weird::sampling_whitelist")->AsTableVal();
 	auto wl_table = wl_val->AsTable();
 
 	HashKey* k;
@@ -77,8 +78,8 @@ void Reporter::InitOptions()
 
 	while ( (v = wl_table->NextEntry(k, c)) )
 		{
-		auto index = wl_val->RecoverIndex(k);
-		std::string key = index->Index(0)->AsString()->CheckString();
+		auto index = wl_val->RecreateIndex(*k);
+		std::string key = index->Idx(0)->AsString()->CheckString();
 		weird_sampling_whitelist.emplace(move(key));
 		delete k;
 		}
@@ -157,6 +158,10 @@ void Reporter::ExprRuntimeError(const Expr* expr, const char* fmt, ...)
 	      d.Description(), fmt, ap);
 	va_end(ap);
 	PopLocation();
+
+	if ( abort_on_scripting_errors )
+		abort();
+
 	throw InterpreterException();
 	}
 
@@ -170,6 +175,10 @@ void Reporter::RuntimeError(const Location* location, const char* fmt, ...)
 	DoLog("runtime error", reporter_error, out, nullptr, nullptr, true, true, "", fmt, ap);
 	va_end(ap);
 	PopLocation();
+
+	if ( abort_on_scripting_errors )
+		abort();
+
 	throw InterpreterException();
 	}
 
@@ -340,7 +349,7 @@ void Reporter::Weird(file_analysis::File* f, const char* name, const char* addl)
 			return;
 		}
 
-	WeirdHelper(file_weird, {f->GetVal()->Ref(), new StringVal(addl)},
+	WeirdHelper(file_weird, {f->ToVal()->Ref(), new StringVal(addl)},
 	            "%s", name);
 	}
 
@@ -355,7 +364,7 @@ void Reporter::Weird(Connection* conn, const char* name, const char* addl)
 			return;
 		}
 
-	WeirdHelper(conn_weird, {conn->BuildConnVal(), new StringVal(addl)},
+	WeirdHelper(conn_weird, {conn->ConnVal()->Ref(), new StringVal(addl)},
 	            "%s", name);
 	}
 
@@ -484,7 +493,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 		vl.reserve(vl_size);
 
 		if ( time )
-			vl.emplace_back(make_intrusive<Val>(network_time ? network_time : current_time(), TYPE_TIME));
+			vl.emplace_back(make_intrusive<TimeVal>(network_time ? network_time : current_time()));
 
 		vl.emplace_back(make_intrusive<StringVal>(buffer));
 
@@ -492,7 +501,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 			vl.emplace_back(make_intrusive<StringVal>(loc_str.c_str()));
 
 		if ( conn )
-			vl.emplace_back(AdoptRef{}, conn->BuildConnVal());
+			vl.emplace_back(conn->ConnVal());
 
 		if ( addl )
 			for ( auto v : *addl )

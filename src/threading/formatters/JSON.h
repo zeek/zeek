@@ -14,7 +14,7 @@ namespace threading { namespace formatter {
   * A thread-safe class for converting values into a JSON representation
   * and vice versa.
   */
-class JSON final : public Formatter {
+class JSON : public Formatter {
 public:
 	enum TimeFormat {
 		TS_EPOCH,	// Doubles that represents seconds from the UNIX epoch.

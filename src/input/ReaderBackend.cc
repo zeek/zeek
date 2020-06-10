@@ -54,30 +54,6 @@ public:
 private:
 };
 
-class SendEventMessage final : public threading::OutputMessage<ReaderFrontend> {
-public:
-	SendEventMessage(ReaderFrontend* reader, const char* name, const int num_vals, Value* *val)
-		: threading::OutputMessage<ReaderFrontend>("SendEvent", reader),
-		name(copy_string(name)), num_vals(num_vals), val(val) {}
-
-	~SendEventMessage() override	{ delete [] name; }
-
-	bool Process() override
-		{
-		bool success = input_mgr->SendEvent(Object(), name, num_vals, val);
-
-		if ( ! success )
-			reporter->Error("SendEvent for event %s failed", name);
-
-		return true; // We do not want to die if sendEvent fails because the event did not return.
-		}
-
-private:
-	const char* name;
-	const int num_vals;
-	Value* *val;
-};
-
 class ReaderErrorMessage final : public threading::OutputMessage<ReaderFrontend>
 {
 public:
@@ -227,11 +203,6 @@ void ReaderBackend::Delete(Value* *val)
 void ReaderBackend::Clear()
 	{
 	SendOut(new ClearMessage(frontend));
-	}
-
-void ReaderBackend::SendEvent(const char* name, const int num_vals, Value* *vals)
-	{
-	SendOut(new SendEventMessage(frontend, name, num_vals, vals));
 	}
 
 void ReaderBackend::EndCurrentSend()

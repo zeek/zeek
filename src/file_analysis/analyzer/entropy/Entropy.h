@@ -31,7 +31,8 @@ public:
 	 * @return the new Entropy analyzer instance or a null pointer if the
 	 *         the "extraction_file" field of \a args wasn't set.
 	 */
-	static file_analysis::Analyzer* Instantiate(RecordVal* args, File* file);
+	static file_analysis::Analyzer* Instantiate(IntrusivePtr<RecordVal> args,
+	                                            File* file);
 
 	/**
 	 * Calculate entropy of next chunk of file contents.
@@ -65,7 +66,7 @@ protected:
 	 * @param hv specific hash calculator object.
 	 * @param kind human readable name of the hash algorithm to use.
 	 */
-	Entropy(RecordVal* args, File* file);
+	Entropy(IntrusivePtr<RecordVal> args, File* file);
 
 	/**
 	 * If some file contents have been seen, finalizes the entropy of them and

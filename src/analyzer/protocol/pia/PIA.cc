@@ -156,12 +156,11 @@ void PIA_UDP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 		if ( protocol_late_match )
 			{
 			// Queue late match event
-			EnumVal *tval = tag ? tag.AsEnumVal() : GetAnalyzerTag().AsEnumVal();
+			if ( ! tag )
+				tag = GetAnalyzerTag();
 
-			mgr.Enqueue(protocol_late_match,
-			    IntrusivePtr{AdoptRef{}, BuildConnVal()},
-			    IntrusivePtr{NewRef{}, tval}
-			);
+			const auto& tval = tag.AsVal();
+			mgr.Enqueue(protocol_late_match, ConnVal(), tval);
 			}
 
 		pkt_buffer.state = dpd_late_match_stop ? SKIPPING : MATCHING_ONLY;
@@ -304,12 +303,11 @@ void PIA_TCP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 		if ( protocol_late_match )
 			{
 			// Queue late match event
-			EnumVal *tval = tag ? tag.AsEnumVal() : GetAnalyzerTag().AsEnumVal();
+			if ( ! tag )
+				tag = GetAnalyzerTag();
 
-			mgr.Enqueue(protocol_late_match,
-			    IntrusivePtr{AdoptRef{}, BuildConnVal()},
-			    IntrusivePtr{NewRef{}, tval}
-			);
+			const auto& tval = tag.AsVal();
+			mgr.Enqueue(protocol_late_match, ConnVal(), tval);
 			}
 
 		stream_buffer.state = dpd_late_match_stop ? SKIPPING : MATCHING_ONLY;

@@ -29,7 +29,7 @@ hello
 192.168.0.0/16
 22/tcp
 42.0
-180.0
+3.0 mins
 Broker::BOOL
 {
 two,

@@ -47,6 +47,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
   Optional Features:
     --enable-debug         compile in debugging mode (like --build-type=Debug)
     --enable-coverage      compile with code coverage support (implies debugging mode)
+    --enable-fuzzers       build fuzzer targets
     --enable-mobile-ipv6   analyze mobile IPv6 features defined by RFC 6275
     --enable-perftools     enable use of Google perftools (use tcmalloc)
     --enable-perftools-debug use Google's perftools for debugging
@@ -229,6 +230,9 @@ while [ $# -ne 0 ]; do
             append_cache_entry ENABLE_COVERAGE         BOOL   true
             append_cache_entry ENABLE_DEBUG         BOOL   true
             ;;
+        --enable-fuzzers)
+            append_cache_entry ZEEK_ENABLE_FUZZERS BOOL true
+            ;;
         --enable-debug)
             append_cache_entry ENABLE_DEBUG         BOOL   true
             ;;
@@ -267,7 +271,8 @@ while [ $# -ne 0 ]; do
             append_cache_entry DISABLE_PYTHON_BINDINGS     BOOL   true
             ;;
         --disable-broker-tests)
-            append_cache_entry BROKER_DISABLE_TESTS     BOOL   true
+            append_cache_entry BROKER_DISABLE_TESTS        BOOL true
+            append_cache_entry BROKER_DISABLE_DOC_EXAMPLES BOOL true
             ;;
         --with-openssl=*)
             append_cache_entry OPENSSL_ROOT_DIR PATH $optarg

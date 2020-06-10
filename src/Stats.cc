@@ -5,7 +5,7 @@
 #include "Event.h"
 #include "Net.h"
 #include "NetVar.h"
-#include "Var.h" // for internal_type()
+#include "ID.h"
 #include "Sessions.h"
 #include "Scope.h"
 #include "DNS_Mgr.h"
@@ -13,6 +13,7 @@
 #include "threading/Manager.h"
 #include "broker/Manager.h"
 #include "input.h"
+#include "Func.h"
 
 uint64_t killed_by_inactivity = 0;
 
@@ -257,9 +258,9 @@ void ProfileLogger::Log()
 			// contained in some other global user-visible container.
 			if ( id->HasVal() )
 				{
-				Val* v = id->ID_Val();
+				const auto& v = id->GetVal();
 
-				size = id->ID_Val()->MemoryAllocation();
+				size = v->MemoryAllocation();
 				mem += size;
 
 				bool print = false;
@@ -269,7 +270,7 @@ void ProfileLogger::Log()
 				if ( size > 100 * 1024 )
 					print = true;
 
-				if ( v->Type()->Tag() == TYPE_TABLE )
+				if ( v->GetType()->Tag() == TYPE_TABLE )
 					{
 					entries = v->AsTable()->Length();
 					total_table_entries += entries;
@@ -311,10 +312,9 @@ void ProfileLogger::Log()
 	// (and for consistency we dispatch it *now*)
 	if ( profiling_update )
 		{
-		Ref(file);
 		mgr.Dispatch(new Event(profiling_update, {
-			make_intrusive<Val>(file),
-			{AdoptRef{}, val_mgr->GetBool(expensive)},
+			make_intrusive<Val>(IntrusivePtr{NewRef{}, file}),
+			val_mgr->Bool(expensive),
 		}));
 		}
 	}
@@ -342,7 +342,7 @@ SampleLogger::SampleLogger()
 	static TableType* load_sample_info = nullptr;
 
 	if ( ! load_sample_info )
-		load_sample_info = internal_type("load_sample_info")->AsTableType();
+		load_sample_info = zeek::id::find_type("load_sample_info")->AsTableType();
 
 	load_samples = new TableVal({NewRef{}, load_sample_info});
 	}
@@ -354,16 +354,14 @@ SampleLogger::~SampleLogger()
 
 void SampleLogger::FunctionSeen(const Func* func)
 	{
-	Val* idx = new StringVal(func->Name());
-	load_samples->Assign(idx, nullptr);
-	Unref(idx);
+	auto idx = make_intrusive<StringVal>(func->Name());
+	load_samples->Assign(std::move(idx), nullptr);
 	}
 
 void SampleLogger::LocationSeen(const Location* loc)
 	{
-	Val* idx = new StringVal(loc->filename);
-	load_samples->Assign(idx, nullptr);
-	Unref(idx);
+	auto idx = make_intrusive<StringVal>(loc->filename);
+	load_samples->Assign(std::move(idx), nullptr);
 	}
 
 void SampleLogger::SegmentProfile(const char* /* name */,
@@ -374,7 +372,7 @@ void SampleLogger::SegmentProfile(const char* /* name */,
 		mgr.Enqueue(load_sample,
 			IntrusivePtr{NewRef{}, load_samples},
 			make_intrusive<IntervalVal>(dtime, Seconds),
-			IntrusivePtr{AdoptRef{}, val_mgr->GetInt(dmem)}
+			val_mgr->Int(dmem)
 		);
 	}
 

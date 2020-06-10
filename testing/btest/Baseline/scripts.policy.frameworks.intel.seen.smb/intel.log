@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	intel
-#open	2019-06-07-02-20-06
+#open	2020-04-30-00-48-06
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	seen.indicator	seen.indicator_type	seen.where	seen.node	matched	sources	fuid	file_mime_type	file_desc
 #types	time	string	addr	port	addr	port	string	enum	enum	string	set[enum]	set[string]	string	string	string
-1549644186.691869	CHhAvVGS1DHFjwGM9	169.254.128.18	49155	169.254.128.15	445	pythonfile	Intel::FILE_NAME	SMB::IN_FILE_NAME	zeek	Intel::FILE_NAME	source1	FG403EpKSkh5CwCre	-	pythonfile
-#close	2019-06-07-02-20-06
+1549644186.691869	CHhAvVGS1DHFjwGM9	169.254.128.18	49155	169.254.128.15	445	pythonfile	Intel::FILE_NAME	SMB::IN_FILE_NAME	zeek	Intel::FILE_NAME	source1	FvOchP1DvxPt75ql7b	-	pythonfile
+#close	2020-04-30-00-48-06

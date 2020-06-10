@@ -25,7 +25,7 @@ function Reporter::info%(msg: string%): bool
 	reporter->PushLocation(frame->GetCall()->GetLocationInfo());
 	reporter->Info("%s", msg->CheckString());
 	reporter->PopLocation();
-	return val_mgr->GetTrue();
+	return val_mgr->True();
 	%}
 
 ## Generates a message that warns of a potential problem.
@@ -40,7 +40,7 @@ function Reporter::warning%(msg: string%): bool
 	reporter->PushLocation(frame->GetCall()->GetLocationInfo());
 	reporter->Warning("%s", msg->CheckString());
 	reporter->PopLocation();
-	return val_mgr->GetTrue();
+	return val_mgr->True();
 	%}
 
 ## Generates a non-fatal error indicative of a definite problem that should
@@ -56,7 +56,7 @@ function Reporter::error%(msg: string%): bool
 	reporter->PushLocation(frame->GetCall()->GetLocationInfo());
 	reporter->Error("%s", msg->CheckString());
 	reporter->PopLocation();
-	return val_mgr->GetTrue();
+	return val_mgr->True();
 	%}
 
 ## Generates a fatal error on stderr and terminates program execution.
@@ -69,7 +69,7 @@ function Reporter::fatal%(msg: string%): bool
 	reporter->PushLocation(frame->GetCall()->GetLocationInfo());
 	reporter->FatalError("%s", msg->CheckString());
 	reporter->PopLocation();
-	return val_mgr->GetTrue();
+	return val_mgr->True();
 	%}
 
 ## Generates a fatal error on stderr and terminates program execution
@@ -83,7 +83,7 @@ function Reporter::fatal_error_with_core%(msg: string%): bool
 	reporter->PushLocation(frame->GetCall()->GetLocationInfo());
 	reporter->FatalErrorWithCore("%s", msg->CheckString());
 	reporter->PopLocation();
-	return val_mgr->GetTrue();
+	return val_mgr->True();
 	%}
 
 ## Generates a "net" weird.
@@ -94,7 +94,7 @@ function Reporter::fatal_error_with_core%(msg: string%): bool
 function Reporter::net_weird%(name: string%): bool
 	%{
 	reporter->Weird(name->CheckString());
-	return val_mgr->GetTrue();
+	return val_mgr->True();
 	%}
 
 ## Generates a "flow" weird.
@@ -109,7 +109,7 @@ function Reporter::net_weird%(name: string%): bool
 function Reporter::flow_weird%(name: string, orig: addr, resp: addr%): bool
 	%{
 	reporter->Weird(orig->AsAddr(), resp->AsAddr(), name->CheckString());
-	return val_mgr->GetTrue();
+	return val_mgr->True();
 	%}
 
 ## Generates a "conn" weird.
@@ -124,7 +124,7 @@ function Reporter::flow_weird%(name: string, orig: addr, resp: addr%): bool
 function Reporter::conn_weird%(name: string, c: connection, addl: string &default=""%): bool
 	%{
 	reporter->Weird(c, name->CheckString(), addl->CheckString());
-	return val_mgr->GetTrue();
+	return val_mgr->True();
 	%}
 
 ## Generates a "file" weird.
@@ -138,14 +138,14 @@ function Reporter::conn_weird%(name: string, c: connection, addl: string &defaul
 ## Returns: true if the file was still valid, else false.
 function Reporter::file_weird%(name: string, f: fa_file, addl: string &default=""%): bool
 	%{
-	auto fuid = f->AsRecordVal()->Lookup(0)->AsStringVal();
+	auto fuid = f->AsRecordVal()->GetField(0)->AsStringVal();
 	auto file = file_mgr->LookupFile(fuid->CheckString());
 
 	if ( ! file )
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 
 	reporter->Weird(file, name->CheckString(), addl->CheckString());
-	return val_mgr->GetTrue();
+	return val_mgr->True();
 	%}
 
 ## Gets the weird sampling whitelist
@@ -153,11 +153,11 @@ function Reporter::file_weird%(name: string, f: fa_file, addl: string &default="
 ## Returns: Current weird sampling whitelist
 function Reporter::get_weird_sampling_whitelist%(%): string_set
 	%{
-	TableVal* set = new TableVal({NewRef{}, string_set});
+	auto set = make_intrusive<TableVal>(zeek::id::string_set);
 	for ( auto el : reporter->GetWeirdSamplingWhitelist() )
 		{
 		auto idx = make_intrusive<StringVal>(el);
-		set->Assign(idx.get(), nullptr);
+		set->Assign(std::move(idx), nullptr);
 		}
 	return set;
 	%}
@@ -179,13 +179,13 @@ function Reporter::set_weird_sampling_whitelist%(weird_sampling_whitelist: strin
 
 	while ( (v = wl_table->NextEntry(k, c)) )
 		{
-		auto index = wl_val->RecoverIndex(k);
-		string key = index->Index(0)->AsString()->CheckString();
+		auto index = wl_val->RecreateIndex(*k);
+		string key = index->Idx(0)->AsString()->CheckString();
 		whitelist_set.emplace(move(key));
 		delete k;
 		}
 	reporter->SetWeirdSamplingWhitelist(whitelist_set);
-	return val_mgr->GetTrue();
+	return val_mgr->True();
 %}
 
 ## Gets the current weird sampling threshold
@@ -193,7 +193,7 @@ function Reporter::set_weird_sampling_whitelist%(weird_sampling_whitelist: strin
 ## Returns: current weird sampling threshold.
 function Reporter::get_weird_sampling_threshold%(%) : count
 	%{
-	return val_mgr->GetCount(reporter->GetWeirdSamplingThreshold());
+	return val_mgr->Count(reporter->GetWeirdSamplingThreshold());
 	%}
 
 ## Sets the current weird sampling threshold
@@ -204,7 +204,7 @@ function Reporter::get_weird_sampling_threshold%(%) : count
 function Reporter::set_weird_sampling_threshold%(weird_sampling_threshold: count%) : bool
 	%{
 	reporter->SetWeirdSamplingThreshold(weird_sampling_threshold);
-	return val_mgr->GetTrue();
+	return val_mgr->True();
 	%}
 
 
@@ -213,7 +213,7 @@ function Reporter::set_weird_sampling_threshold%(weird_sampling_threshold: count
 ## Returns: weird sampling rate.
 function Reporter::get_weird_sampling_rate%(%) : count
 	%{
-	return val_mgr->GetCount(reporter->GetWeirdSamplingRate());
+	return val_mgr->Count(reporter->GetWeirdSamplingRate());
 	%}
 
 ## Sets the weird sampling rate.
@@ -224,7 +224,7 @@ function Reporter::get_weird_sampling_rate%(%) : count
 function Reporter::set_weird_sampling_rate%(weird_sampling_rate: count%) : bool
 	%{
 	reporter->SetWeirdSamplingRate(weird_sampling_rate);
-	return val_mgr->GetTrue();
+	return val_mgr->True();
 	%}
 
 ## Gets the current weird sampling duration.
@@ -232,7 +232,7 @@ function Reporter::set_weird_sampling_rate%(weird_sampling_rate: count%) : bool
 ## Returns: weird sampling duration.
 function Reporter::get_weird_sampling_duration%(%) : interval
 	%{
-	return new Val(reporter->GetWeirdSamplingDuration(), TYPE_INTERVAL);
+	return make_intrusive<IntervalVal>(reporter->GetWeirdSamplingDuration());
 	%}
 
 ## Sets the current weird sampling duration. Please note that
@@ -244,5 +244,5 @@ function Reporter::get_weird_sampling_duration%(%) : interval
 function Reporter::set_weird_sampling_duration%(weird_sampling_duration: interval%) : bool
 	%{
 	reporter->SetWeirdSamplingDuration(weird_sampling_duration);
-	return val_mgr->GetTrue();
+	return val_mgr->True();
 	%}

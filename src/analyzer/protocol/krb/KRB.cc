@@ -35,10 +35,10 @@ static void warn_krb(const char* msg, krb5_context ctx, krb5_error_code code)
 
 void KRB_Analyzer::Initialize_Krb()
 	{
-	if ( BifConst::KRB::keytab->Len() == 0 )
+	if ( zeek::BifConst::KRB::keytab->Len() == 0 )
 		return; // no keytab set
 
-	const char* keytab_filename = BifConst::KRB::keytab->CheckString();
+	const char* keytab_filename = zeek::BifConst::KRB::keytab->CheckString();
 	if ( access(keytab_filename, R_OK) != 0 )
 		{
 		reporter->Warning("KRB: Can't access keytab (%s)", keytab_filename);
@@ -87,7 +87,9 @@ void KRB_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		}
 	}
 
-StringVal* KRB_Analyzer::GetAuthenticationInfo(const BroString* principal, const BroString* ciphertext, const bro_uint_t enctype)
+IntrusivePtr<StringVal> KRB_Analyzer::GetAuthenticationInfo(const BroString* principal,
+                                                            const BroString* ciphertext,
+                                                            const bro_uint_t enctype)
 	{
 #ifdef USE_KRB5
 	if ( !krb_available )
@@ -145,7 +147,7 @@ StringVal* KRB_Analyzer::GetAuthenticationInfo(const BroString* principal, const
 		return nullptr;
 		}
 
-	StringVal* ret = new StringVal(cp);
+	auto ret = make_intrusive<StringVal>(cp);
 
 	krb5_free_unparsed_name(krb_context, cp);
 	krb5_free_ticket(krb_context, tkt);

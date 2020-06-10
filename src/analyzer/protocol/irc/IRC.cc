@@ -44,6 +44,8 @@ inline void IRC_Analyzer::SkipLeadingWhitespace(string& str)
 
 void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	{
+	static auto irc_join_list = zeek::id::find_type<TableType>("irc_join_list");
+	static auto irc_join_info = zeek::id::find_type<RecordType>("irc_join_info");
 	tcp::TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
 
 	if ( starttls )
@@ -235,11 +237,11 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				}
 
 			EnqueueConnEvent(irc_network_info,
-				IntrusivePtr{AdoptRef{}, BuildConnVal()},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetInt(users)},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetInt(services)},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetInt(servers)}
+				ConnVal(),
+				val_mgr->Bool(orig),
+				val_mgr->Int(users),
+				val_mgr->Int(services),
+				val_mgr->Int(servers)
 			);
 			}
 			break;
@@ -271,19 +273,19 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			if ( parts.size() > 0 && parts[0][0] == ':' )
 				parts[0] = parts[0].substr(1);
 
-			auto set = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, string_set});
+			auto set = make_intrusive<TableVal>(zeek::id::string_set);
 
 			for ( unsigned int i = 0; i < parts.size(); ++i )
 				{
 				if ( parts[i][0] == '@' )
 					parts[i] = parts[i].substr(1);
 				auto idx = make_intrusive<StringVal>(parts[i].c_str());
-				set->Assign(idx.get(), nullptr);
+				set->Assign(std::move(idx), nullptr);
 				}
 
 			EnqueueConnEvent(irc_names_info,
-				IntrusivePtr{AdoptRef{}, BuildConnVal()},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+				ConnVal(),
+				val_mgr->Bool(orig),
 				make_intrusive<StringVal>(type.c_str()),
 				make_intrusive<StringVal>(channel.c_str()),
 				std::move(set)
@@ -316,11 +318,11 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				}
 
 			EnqueueConnEvent(irc_server_info,
-				IntrusivePtr{AdoptRef{}, BuildConnVal()},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetInt(users)},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetInt(services)},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetInt(servers)}
+				ConnVal(),
+				val_mgr->Bool(orig),
+				val_mgr->Int(users),
+				val_mgr->Int(services),
+				val_mgr->Int(servers)
 			);
 			}
 			break;
@@ -338,9 +340,9 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 					channels = atoi(parts[i - 1].c_str());
 
 			EnqueueConnEvent(irc_channel_info,
-				IntrusivePtr{AdoptRef{}, BuildConnVal()},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetInt(channels)}
+				ConnVal(),
+				val_mgr->Bool(orig),
+				val_mgr->Int(channels)
 			);
 			}
 			break;
@@ -370,8 +372,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				}
 
 			EnqueueConnEvent(irc_global_users,
-				IntrusivePtr{AdoptRef{}, BuildConnVal()},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+				ConnVal(),
+				val_mgr->Bool(orig),
 				make_intrusive<StringVal>(eop - prefix, prefix),
 				make_intrusive<StringVal>(++msg)
 			);
@@ -396,8 +398,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 			zeek::Args vl;
 			vl.reserve(6);
-			vl.emplace_back(AdoptRef{}, BuildConnVal());
-			vl.emplace_back(AdoptRef{}, val_mgr->GetBool(orig));
+			vl.emplace_back(ConnVal());
+			vl.emplace_back(val_mgr->Bool(orig));
 			vl.emplace_back(make_intrusive<StringVal>(parts[0].c_str()));
 			vl.emplace_back(make_intrusive<StringVal>(parts[1].c_str()));
 			vl.emplace_back(make_intrusive<StringVal>(parts[2].c_str()));
@@ -435,8 +437,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				}
 
 			EnqueueConnEvent(irc_whois_operator_line,
-				IntrusivePtr{AdoptRef{}, BuildConnVal()},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+				ConnVal(),
+				val_mgr->Bool(orig),
 				make_intrusive<StringVal>(parts[0].c_str())
 			);
 			}
@@ -464,17 +466,17 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			if ( parts.size() > 0 && parts[0][0] == ':' )
 				parts[0] = parts[0].substr(1);
 
-			auto set = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, string_set});
+			auto set = make_intrusive<TableVal>(zeek::id::string_set);
 
 			for ( unsigned int i = 0; i < parts.size(); ++i )
 				{
 				auto idx = make_intrusive<StringVal>(parts[i].c_str());
-				set->Assign(idx.get(), nullptr);
+				set->Assign(std::move(idx), nullptr);
 				}
 
 			EnqueueConnEvent(irc_whois_channel_line,
-				IntrusivePtr{AdoptRef{}, BuildConnVal()},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+				ConnVal(),
+				val_mgr->Bool(orig),
 				make_intrusive<StringVal>(nick.c_str()),
 				std::move(set)
 			);
@@ -504,8 +506,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 					++t;
 
 				EnqueueConnEvent(irc_channel_topic,
-					IntrusivePtr{AdoptRef{}, BuildConnVal()},
-					IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+					ConnVal(),
+					val_mgr->Bool(orig),
 					make_intrusive<StringVal>(parts[1].c_str()),
 					make_intrusive<StringVal>(t)
 				);
@@ -538,8 +540,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				parts[7] = parts[7].substr(1);
 
 			EnqueueConnEvent(irc_who_line,
-				IntrusivePtr{AdoptRef{}, BuildConnVal()},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+				ConnVal(),
+				val_mgr->Bool(orig),
 				make_intrusive<StringVal>(parts[0].c_str()),
 				make_intrusive<StringVal>(parts[1].c_str()),
 				make_intrusive<StringVal>(parts[2].c_str()),
@@ -547,7 +549,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				make_intrusive<StringVal>(parts[4].c_str()),
 				make_intrusive<StringVal>(parts[5].c_str()),
 				make_intrusive<StringVal>(parts[6].c_str()),
-				IntrusivePtr{AdoptRef{}, val_mgr->GetInt(atoi(parts[7].c_str()))},
+				val_mgr->Int(atoi(parts[7].c_str())),
 				make_intrusive<StringVal>(parts[8].c_str())
 			);
 			}
@@ -560,8 +562,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		case 436:
 			if ( irc_invalid_nick )
 				EnqueueConnEvent(irc_invalid_nick,
-					IntrusivePtr{AdoptRef{}, BuildConnVal()},
-					IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)}
+					ConnVal(),
+					val_mgr->Bool(orig)
 				);
 			break;
 
@@ -570,9 +572,9 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		case 491:  // user is not operator
 			if ( irc_oper_response )
 				EnqueueConnEvent(irc_oper_response,
-					IntrusivePtr{AdoptRef{}, BuildConnVal()},
-					IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
-					IntrusivePtr{AdoptRef{}, val_mgr->GetBool(code == 381)}
+					ConnVal(),
+					val_mgr->Bool(orig),
+					val_mgr->Bool(code == 381)
 				);
 			break;
 
@@ -585,10 +587,10 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		default:
 			if ( irc_reply )
 				EnqueueConnEvent(irc_reply,
-					IntrusivePtr{AdoptRef{}, BuildConnVal()},
-					IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+					ConnVal(),
+					val_mgr->Bool(orig),
 					make_intrusive<StringVal>(prefix.c_str()),
-					IntrusivePtr{AdoptRef{}, val_mgr->GetCount(code)},
+					val_mgr->Count(code),
 					make_intrusive<StringVal>(params.c_str())
 				);
 			break;
@@ -656,17 +658,15 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 			if ( irc_dcc_message )
 				EnqueueConnEvent(irc_dcc_message,
-					IntrusivePtr{AdoptRef{}, BuildConnVal()},
-					IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+					ConnVal(),
+					val_mgr->Bool(orig),
 					make_intrusive<StringVal>(prefix.c_str()),
 					make_intrusive<StringVal>(target.c_str()),
 					make_intrusive<StringVal>(parts[1].c_str()),
 					make_intrusive<StringVal>(parts[2].c_str()),
 					make_intrusive<AddrVal>(htonl(raw_ip)),
-					IntrusivePtr{AdoptRef{}, val_mgr->GetCount(atoi(parts[4].c_str()))},
-					IntrusivePtr{AdoptRef{}, parts.size() >= 6 ?
-						val_mgr->GetCount(atoi(parts[5].c_str())) :
-						val_mgr->GetCount(0)}
+					val_mgr->Count(atoi(parts[4].c_str())),
+					parts.size() >= 6 ? val_mgr->Count(atoi(parts[5].c_str())) : val_mgr->Count(0)
 				);
 			}
 
@@ -674,8 +674,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			{
 			if ( irc_privmsg_message )
 				EnqueueConnEvent(irc_privmsg_message,
-					IntrusivePtr{AdoptRef{}, BuildConnVal()},
-					IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+					ConnVal(),
+					val_mgr->Bool(orig),
 					make_intrusive<StringVal>(prefix.c_str()),
 					make_intrusive<StringVal>(target.c_str()),
 					make_intrusive<StringVal>(message.c_str())
@@ -699,8 +699,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			message = message.substr(1);
 
 		EnqueueConnEvent(irc_notice_message,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+			ConnVal(),
+			val_mgr->Bool(orig),
 			make_intrusive<StringVal>(prefix.c_str()),
 			make_intrusive<StringVal>(target.c_str()),
 			make_intrusive<StringVal>(message.c_str())
@@ -723,8 +723,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			message = message.substr(1);
 
 		EnqueueConnEvent(irc_squery_message,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+			ConnVal(),
+			val_mgr->Bool(orig),
 			make_intrusive<StringVal>(prefix.c_str()),
 			make_intrusive<StringVal>(target.c_str()),
 			make_intrusive<StringVal>(message.c_str())
@@ -737,20 +737,20 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		vector<string> parts = SplitWords(params, ' ');
 		zeek::Args vl;
 		vl.reserve(6);
-		vl.emplace_back(AdoptRef{}, BuildConnVal());
-		vl.emplace_back(AdoptRef{}, val_mgr->GetBool(orig));
+		vl.emplace_back(ConnVal());
+		vl.emplace_back(val_mgr->Bool(orig));
 
 		if ( parts.size() > 0 )
 			vl.emplace_back(make_intrusive<StringVal>(parts[0].c_str()));
-		else vl.emplace_back(AdoptRef{}, val_mgr->GetEmptyString());
+		else vl.emplace_back(val_mgr->EmptyString());
 
 		if ( parts.size() > 1 )
 			vl.emplace_back(make_intrusive<StringVal>(parts[1].c_str()));
-		else vl.emplace_back(AdoptRef{}, val_mgr->GetEmptyString());
+		else vl.emplace_back(val_mgr->EmptyString());
 
 		if ( parts.size() > 2 )
 			vl.emplace_back(make_intrusive<StringVal>(parts[2].c_str()));
-		else vl.emplace_back(AdoptRef{}, val_mgr->GetEmptyString());
+		else vl.emplace_back(val_mgr->EmptyString());
 
 		string realname;
 		for ( unsigned int i = 3; i < parts.size(); i++ )
@@ -772,8 +772,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		vector<string> parts = SplitWords(params, ' ');
 		if ( parts.size() == 2 )
 			EnqueueConnEvent(irc_oper_message,
-				IntrusivePtr{AdoptRef{}, BuildConnVal()},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+				ConnVal(),
+				val_mgr->Bool(orig),
 				make_intrusive<StringVal>(parts[0].c_str()),
 				make_intrusive<StringVal>(parts[1].c_str())
 			);
@@ -794,8 +794,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 		zeek::Args vl;
 		vl.reserve(6);
-		vl.emplace_back(AdoptRef{}, BuildConnVal());
-		vl.emplace_back(AdoptRef{}, val_mgr->GetBool(orig));
+		vl.emplace_back(ConnVal());
+		vl.emplace_back(val_mgr->Bool(orig));
 		vl.emplace_back(make_intrusive<StringVal>(prefix.c_str()));
 		vl.emplace_back(make_intrusive<StringVal>(parts[0].c_str()));
 		vl.emplace_back(make_intrusive<StringVal>(parts[1].c_str()));
@@ -812,7 +812,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			vl.emplace_back(make_intrusive<StringVal>(comment.c_str()));
 			}
 		else
-			vl.emplace_back(AdoptRef{}, val_mgr->GetEmptyString());
+			vl.emplace_back(val_mgr->EmptyString());
 
 		EnqueueConnEvent(irc_kick_message, std::move(vl));
 		}
@@ -838,7 +838,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				nickname = prefix.substr(0, pos);
 			}
 
-		auto list = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, irc_join_list});
+		auto list = make_intrusive<TableVal>(irc_join_list);
 
 		vector<string> channels = SplitWords(parts[0], ',');
 		vector<string> passwords;
@@ -849,7 +849,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		string empty_string = "";
 		for ( unsigned int i = 0; i < channels.size(); ++i )
 			{
-			RecordVal* info = new RecordVal(irc_join_info);
+			auto info = make_intrusive<RecordVal>(irc_join_info);
 			info->Assign(0, make_intrusive<StringVal>(nickname.c_str()));
 			info->Assign(1, make_intrusive<StringVal>(channels[i].c_str()));
 			if ( i < passwords.size() )
@@ -858,13 +858,12 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				info->Assign(2, make_intrusive<StringVal>(empty_string.c_str()));
 			// User mode.
 			info->Assign(3, make_intrusive<StringVal>(empty_string.c_str()));
-			list->Assign(info, nullptr);
-			Unref(info);
+			list->Assign(std::move(info), nullptr);
 			}
 
 		EnqueueConnEvent(irc_join_message,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+			ConnVal(),
+			val_mgr->Bool(orig),
 			std::move(list)
 		);
 		}
@@ -883,7 +882,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			parts[1] = parts[1].substr(1);
 
 		vector<string> users = SplitWords(parts[1], ',');
-		auto list = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, irc_join_list});
+		auto list = make_intrusive<TableVal>(irc_join_list);
 
 		string empty_string = "";
 
@@ -919,12 +918,12 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			info->Assign(2, make_intrusive<StringVal>(empty_string.c_str()));
 			// User mode:
 			info->Assign(3, make_intrusive<StringVal>(mode.c_str()));
-			list->Assign(info.get(), nullptr);
+			list->Assign(std::move(info), nullptr);
 			}
 
 		EnqueueConnEvent(irc_join_message,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+			ConnVal(),
+			val_mgr->Bool(orig),
 			std::move(list)
 		);
 		}
@@ -953,17 +952,17 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			nick = nick.substr(0, pos);
 
 		vector<string> channelList = SplitWords(channels, ',');
-		auto set = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, string_set});
+		auto set = make_intrusive<TableVal>(zeek::id::string_set);
 
 		for ( unsigned int i = 0; i < channelList.size(); ++i )
 			{
 			auto idx = make_intrusive<StringVal>(channelList[i].c_str());
-			set->Assign(idx.get(), nullptr);
+			set->Assign(std::move(idx), nullptr);
 			}
 
 		EnqueueConnEvent(irc_part_message,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+			ConnVal(),
+			val_mgr->Bool(orig),
 			make_intrusive<StringVal>(nick.c_str()),
 			std::move(set),
 			make_intrusive<StringVal>(message.c_str())
@@ -985,8 +984,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			}
 
 		EnqueueConnEvent(irc_quit_message,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+			ConnVal(),
+			val_mgr->Bool(orig),
 			make_intrusive<StringVal>(nickname.c_str()),
 			make_intrusive<StringVal>(message.c_str())
 		);
@@ -999,8 +998,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			nick = nick.substr(1);
 
 		EnqueueConnEvent(irc_nick_message,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+			ConnVal(),
+			val_mgr->Bool(orig),
 			make_intrusive<StringVal>(prefix.c_str()),
 			make_intrusive<StringVal>(nick.c_str())
 		);
@@ -1024,12 +1023,12 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			parts[0] = parts[0].substr(1);
 
 		EnqueueConnEvent(irc_who_message,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+			ConnVal(),
+			val_mgr->Bool(orig),
 			parts.size() > 0 ?
 				make_intrusive<StringVal>(parts[0].c_str()) :
-				IntrusivePtr{AdoptRef{}, val_mgr->GetEmptyString()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(oper)}
+				val_mgr->EmptyString(),
+			val_mgr->Bool(oper)
 		);
 		}
 
@@ -1054,8 +1053,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			users = parts[0];
 
 		EnqueueConnEvent(irc_whois_message,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+			ConnVal(),
+			val_mgr->Bool(orig),
 			make_intrusive<StringVal>(server.c_str()),
 			make_intrusive<StringVal>(users.c_str())
 		);
@@ -1067,8 +1066,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			params = params.substr(1);
 
 		EnqueueConnEvent(irc_error_message,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+			ConnVal(),
+			val_mgr->Bool(orig),
 			make_intrusive<StringVal>(prefix.c_str()),
 			make_intrusive<StringVal>(params.c_str())
 		);
@@ -1083,8 +1082,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				parts[1] = parts[1].substr(1);
 
 			EnqueueConnEvent(irc_invite_message,
-				IntrusivePtr{AdoptRef{}, BuildConnVal()},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+				ConnVal(),
+				val_mgr->Bool(orig),
 				make_intrusive<StringVal>(prefix.c_str()),
 				make_intrusive<StringVal>(parts[0].c_str()),
 				make_intrusive<StringVal>(parts[1].c_str())
@@ -1098,8 +1097,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		{
 		if ( params.size() > 0 )
 			EnqueueConnEvent(irc_mode_message,
-				IntrusivePtr{AdoptRef{}, BuildConnVal()},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+				ConnVal(),
+				val_mgr->Bool(orig),
 				make_intrusive<StringVal>(prefix.c_str()),
 				make_intrusive<StringVal>(params.c_str())
 			);
@@ -1111,8 +1110,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	else if ( irc_password_message && command == "PASS" )
 		{
 		EnqueueConnEvent(irc_password_message,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+			ConnVal(),
+			val_mgr->Bool(orig),
 			make_intrusive<StringVal>(params.c_str())
 		);
 		}
@@ -1133,8 +1132,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 			}
 
 		EnqueueConnEvent(irc_squit_message,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+			ConnVal(),
+			val_mgr->Bool(orig),
 			make_intrusive<StringVal>(prefix.c_str()),
 			make_intrusive<StringVal>(server.c_str()),
 			make_intrusive<StringVal>(message.c_str())
@@ -1147,8 +1146,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		if ( irc_request )
 			{
 			EnqueueConnEvent(irc_request,
-				IntrusivePtr{AdoptRef{}, BuildConnVal()},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+				ConnVal(),
+				val_mgr->Bool(orig),
 				make_intrusive<StringVal>(prefix.c_str()),
 				make_intrusive<StringVal>(command.c_str()),
 				make_intrusive<StringVal>(params.c_str())
@@ -1161,8 +1160,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		if ( irc_message )
 			{
 			EnqueueConnEvent(irc_message,
-				IntrusivePtr{AdoptRef{}, BuildConnVal()},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetBool(orig)},
+				ConnVal(),
+				val_mgr->Bool(orig),
 				make_intrusive<StringVal>(prefix.c_str()),
 				make_intrusive<StringVal>(command.c_str()),
 				make_intrusive<StringVal>(params.c_str())
@@ -1196,7 +1195,7 @@ void IRC_Analyzer::StartTLS()
 		AddChildAnalyzer(ssl);
 
 	if ( irc_starttls )
-		EnqueueConnEvent(irc_starttls, IntrusivePtr{AdoptRef{}, BuildConnVal()});
+		EnqueueConnEvent(irc_starttls, ConnVal());
 	}
 
 vector<string> IRC_Analyzer::SplitWords(const string& input, char split)

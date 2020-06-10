@@ -42,7 +42,7 @@ public:
 	 */
 	void Confirm()
 		{
-		if ( ! BifConst::Tunnel::delay_teredo_confirmation ||
+		if ( ! zeek::BifConst::Tunnel::delay_teredo_confirmation ||
 		     ( valid_orig && valid_resp ) )
 			ProtocolConfirmation();
 		}
@@ -74,7 +74,7 @@ public:
 	const u_char* Authentication() const
 		{ return auth; }
 
-	RecordVal* BuildVal(const IP_Hdr* inner) const;
+	IntrusivePtr<RecordVal> BuildVal(const IP_Hdr* inner) const;
 
 protected:
 	bool DoParse(const u_char* data, int& len, bool found_orig, bool found_au);

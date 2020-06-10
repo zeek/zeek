@@ -49,9 +49,15 @@ signature file-xar {
 }
 
 # RPM
-signature file-magic-auto352 {
+signature file-rpm {
 	file-mime "application/x-rpm", 70
 	file-magic /^(drpm|\xed\xab\xee\xdb)/
+}
+
+# Debian Binary Package
+signature file-deb {
+	file-mime "application/x-debian-package", 171
+	file-magic /\x21\x3carch\x3e\x0adebian/
 }
 
 # StuffIt
@@ -178,4 +184,10 @@ signature file-lzma {
 signature file-ace-archive {
     file-mime "application/x-ace", 100
     file-magic /^.{7}\*\*ACE\*\*/
+}
+
+# Bzip2 archive file.
+signature file-bzip2 {
+	file-mime "application/x-bzip2", 60
+	file-magic /^BZh/
 }

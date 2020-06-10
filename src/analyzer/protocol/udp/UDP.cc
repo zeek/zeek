@@ -81,7 +81,7 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 			if ( chksum == 0 )
 				validate_checksum = false;
 			else
-				validate_checksum = BifConst::Tunnel::validate_vxlan_checksums;
+				validate_checksum = zeek::BifConst::Tunnel::validate_vxlan_checksums;
 			}
 		}
 
@@ -134,29 +134,32 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 	if ( udp_contents )
 		{
+		static auto udp_content_ports = zeek::id::find_val<TableVal>("udp_content_ports");
+		static auto udp_content_delivery_ports_orig = zeek::id::find_val<TableVal>("udp_content_delivery_ports_orig");
+		static auto udp_content_delivery_ports_resp = zeek::id::find_val<TableVal>("udp_content_delivery_ports_resp");
 		bool do_udp_contents = false;
-		auto sport_val = IntrusivePtr{AdoptRef{}, val_mgr->GetPort(ntohs(up->uh_sport), TRANSPORT_UDP)};
-		auto dport_val = IntrusivePtr{AdoptRef{}, val_mgr->GetPort(ntohs(up->uh_dport), TRANSPORT_UDP)};
+		const auto& sport_val = val_mgr->Port(ntohs(up->uh_sport), TRANSPORT_UDP);
+		const auto& dport_val = val_mgr->Port(ntohs(up->uh_dport), TRANSPORT_UDP);
 
-		if ( udp_content_ports->Lookup(dport_val.get()) ||
-		     udp_content_ports->Lookup(sport_val.get()) )
+		if ( udp_content_ports->FindOrDefault(dport_val) ||
+		     udp_content_ports->FindOrDefault(sport_val) )
 			do_udp_contents = true;
 		else
 			{
 			uint16_t p = udp_content_delivery_ports_use_resp ? Conn()->RespPort()
 			                                                 : up->uh_dport;
-			auto port_val = IntrusivePtr{AdoptRef{}, val_mgr->GetPort(ntohs(p), TRANSPORT_UDP)};
+			const auto& port_val = val_mgr->Port(ntohs(p), TRANSPORT_UDP);
 
 			if ( is_orig )
 				{
-				auto result = udp_content_delivery_ports_orig->Lookup(port_val.get());
+				auto result = udp_content_delivery_ports_orig->FindOrDefault(port_val);
 
 				if ( udp_content_deliver_all_orig || (result && result->AsBool()) )
 					do_udp_contents = true;
 				}
 			else
 				{
-				auto result = udp_content_delivery_ports_resp->Lookup(port_val.get());
+				auto result = udp_content_delivery_ports_resp->FindOrDefault(port_val);
 
 				if ( udp_content_deliver_all_resp || (result && result->AsBool()) )
 					do_udp_contents = true;
@@ -165,8 +168,8 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 		if ( do_udp_contents )
 			EnqueueConnEvent(udp_contents,
-				IntrusivePtr{AdoptRef{}, BuildConnVal()},
-				IntrusivePtr{AdoptRef{}, val_mgr->GetBool(is_orig)},
+				ConnVal(),
+				val_mgr->Bool(is_orig),
 				make_intrusive<StringVal>(len, (const char*) data)
 			);
 		}
@@ -213,8 +216,8 @@ void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
 
 void UDP_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	{
-	RecordVal *orig_endp = conn_val->Lookup("orig")->AsRecordVal();
-	RecordVal *resp_endp = conn_val->Lookup("resp")->AsRecordVal();
+	RecordVal* orig_endp = conn_val->GetField("orig")->AsRecordVal();
+	RecordVal* resp_endp = conn_val->GetField("resp")->AsRecordVal();
 
 	UpdateEndpointVal(orig_endp, true);
 	UpdateEndpointVal(resp_endp, false);
@@ -228,14 +231,14 @@ void UDP_Analyzer::UpdateEndpointVal(RecordVal* endp, bool is_orig)
 	bro_int_t size = is_orig ? request_len : reply_len;
 	if ( size < 0 )
 		{
-		endp->Assign(0, val_mgr->GetCount(0));
-		endp->Assign(1, val_mgr->GetCount(int(UDP_INACTIVE)));
+		endp->Assign(0, val_mgr->Count(0));
+		endp->Assign(1, val_mgr->Count(int(UDP_INACTIVE)));
 		}
 
 	else
 		{
-		endp->Assign(0, val_mgr->GetCount(size));
-		endp->Assign(1, val_mgr->GetCount(int(UDP_ACTIVE)));
+		endp->Assign(0, val_mgr->Count(size));
+		endp->Assign(1, val_mgr->Count(int(UDP_ACTIVE)));
 		}
 	}
 

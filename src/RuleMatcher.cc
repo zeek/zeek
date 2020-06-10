@@ -20,6 +20,8 @@
 #include "File.h"
 #include "Reporter.h"
 #include "module_util.h"
+#include "Var.h"
+#include "IPAddr.h"
 
 using namespace std;
 
@@ -79,11 +81,12 @@ RuleHdrTest::RuleHdrTest(Prot arg_prot, Comp arg_comp, vector<IPPrefix> arg_v)
 Val* RuleMatcher::BuildRuleStateValue(const Rule* rule,
 					const RuleEndpointState* state) const
 	{
+	static auto signature_state = zeek::id::find_type<RecordType>("signature_state");
 	RecordVal* val = new RecordVal(signature_state);
 	val->Assign(0, make_intrusive<StringVal>(rule->ID()));
-	val->Assign(1, state->GetAnalyzer()->BuildConnVal());
-	val->Assign(2, val_mgr->GetBool(state->is_orig));
-	val->Assign(3, val_mgr->GetCount(state->payload_size));
+	val->Assign(1, state->GetAnalyzer()->ConnVal());
+	val->Assign(2, val_mgr->Bool(state->is_orig));
+	val->Assign(3, val_mgr->Count(state->payload_size));
 	return val;
 	}
 
@@ -1278,7 +1281,7 @@ static Val* get_bro_val(const char* label)
 		return nullptr;
 		}
 
-	return id->ID_Val();
+	return id->GetVal().get();
 	}
 
 
@@ -1290,7 +1293,7 @@ static bool val_to_maskedval(Val* v, maskedvalue_list* append_to,
 	{
 	MaskedValue* mval = new MaskedValue;
 
-	switch ( v->Type()->Tag() ) {
+	switch ( v->GetType()->Tag() ) {
 		case TYPE_PORT:
 			mval->val = v->AsPortVal()->Port();
 			mval->mask = 0xffffffff;
@@ -1359,18 +1362,13 @@ void id_to_maskedvallist(const char* id, maskedvalue_list* append_to,
 	if ( ! v )
 		return;
 
-	if ( v->Type()->Tag() == TYPE_TABLE )
+	if ( v->GetType()->Tag() == TYPE_TABLE )
 		{
-		ListVal* lv = v->AsTableVal()->ConvertToPureList();
-		val_list* vals = lv->Vals();
-		for ( const auto& val : *vals )
-			if ( ! val_to_maskedval(val, append_to, prefix_vector) )
-				{
-				Unref(lv);
-				return;
-				}
+		auto lv = v->AsTableVal()->ToPureListVal();
 
-		Unref(lv);
+		for ( const auto& val : lv->Vals() )
+			if ( ! val_to_maskedval(val.get(), append_to, prefix_vector) )
+				return;
 		}
 
 	else
@@ -1386,7 +1384,7 @@ char* id_to_str(const char* id)
 	if ( ! v )
 		goto error;
 
-	if ( v->Type()->Tag() != TYPE_STRING )
+	if ( v->GetType()->Tag() != TYPE_STRING )
 		{
 		rules_error("Identifier must refer to string");
 		goto error;
@@ -1409,7 +1407,7 @@ uint32_t id_to_uint(const char* id)
 	if ( ! v )
 		return 0;
 
-	TypeTag t = v->Type()->Tag();
+	TypeTag t = v->GetType()->Tag();
 
 	if ( t == TYPE_BOOL || t == TYPE_COUNT || t == TYPE_ENUM ||
 	     t == TYPE_INT || t == TYPE_PORT )

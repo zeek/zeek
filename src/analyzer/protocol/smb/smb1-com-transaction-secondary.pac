@@ -5,19 +5,19 @@ refine connection SMB_Conn += {
 	if ( ! smb1_transaction_secondary_request )
 		return false;
 
-	RecordVal* args = new RecordVal(BifType::Record::SMB1::Trans_Sec_Args);
-	args->Assign(0, val_mgr->GetCount(${val.total_param_count}));
-	args->Assign(1, val_mgr->GetCount(${val.total_data_count}));
-	args->Assign(2, val_mgr->GetCount(${val.param_count}));
-	args->Assign(3, val_mgr->GetCount(${val.param_offset}));
-	args->Assign(4, val_mgr->GetCount(${val.param_displacement}));
-	args->Assign(5, val_mgr->GetCount(${val.data_count}));
-	args->Assign(6, val_mgr->GetCount(${val.data_offset}));
-	args->Assign(7, val_mgr->GetCount(${val.data_displacement}));
+	auto args = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::Trans_Sec_Args);
+	args->Assign(0, val_mgr->Count(${val.total_param_count}));
+	args->Assign(1, val_mgr->Count(${val.total_data_count}));
+	args->Assign(2, val_mgr->Count(${val.param_count}));
+	args->Assign(3, val_mgr->Count(${val.param_offset}));
+	args->Assign(4, val_mgr->Count(${val.param_displacement}));
+	args->Assign(5, val_mgr->Count(${val.data_count}));
+	args->Assign(6, val_mgr->Count(${val.data_offset}));
+	args->Assign(7, val_mgr->Count(${val.data_displacement}));
 
-	StringVal* parameters = new StringVal(${val.parameters}.length(),
-	                                      (const char*)${val.parameters}.data());
-	StringVal* payload_str = nullptr;
+	auto parameters = make_intrusive<StringVal>(${val.parameters}.length(),
+	                                            (const char*)${val.parameters}.data());
+	IntrusivePtr<StringVal> payload_str;
 	SMB1_transaction_data* payload = nullptr;
 
 	if ( ${val.data_count} > 0 )
@@ -29,28 +29,28 @@ refine connection SMB_Conn += {
 		{
 		switch ( payload->trans_type() ) {
 		case SMB_PIPE:
-			payload_str = new StringVal(${val.data_count}, (const char*)${val.data.pipe_data}.data());
+			payload_str = make_intrusive<StringVal>(${val.data_count}, (const char*)${val.data.pipe_data}.data());
 			break;
 		case SMB_UNKNOWN:
-			payload_str = new StringVal(${val.data_count}, (const char*)${val.data.unknown}.data());
+			payload_str = make_intrusive<StringVal>(${val.data_count}, (const char*)${val.data.unknown}.data());
 			break;
 		default:
-			payload_str = new StringVal(${val.data_count}, (const char*)${val.data.data}.data());
+			payload_str = make_intrusive<StringVal>(${val.data_count}, (const char*)${val.data.data}.data());
 			break;
 		}
 		}
 
 	if ( ! payload_str )
 		{
-		payload_str = val_mgr->GetEmptyString();
+		payload_str = val_mgr->EmptyString();
 		}
 
-	BifEvent::generate_smb1_transaction_secondary_request(bro_analyzer(),
-	                                                      bro_analyzer()->Conn(),
-	                                                      BuildHeaderVal(header),
-	                                                      args,
-	                                                      parameters,
-	                                                      payload_str);
+	zeek::BifEvent::enqueue_smb1_transaction_secondary_request(bro_analyzer(),
+	                                                     bro_analyzer()->Conn(),
+	                                                     SMBHeaderVal(header),
+	                                                     std::move(args),
+	                                                     std::move(parameters),
+	                                                     std::move(payload_str));
 
 	return true;
 	%}

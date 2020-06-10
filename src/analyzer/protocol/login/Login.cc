@@ -11,6 +11,7 @@
 #include "RE.h"
 #include "Reporter.h"
 #include "Event.h"
+#include "Var.h"
 
 #include "events.bif.h"
 
@@ -44,16 +45,24 @@ Login_Analyzer::Login_Analyzer(const char* name, Connection* conn)
 
 	if ( ! re_skip_authentication )
 		{
+		IntrusivePtr<ListVal> skip_authentication = zeek::id::find_val("skip_authentication")->AsTableVal()->ToPureListVal();
+		IntrusivePtr<ListVal> direct_login_prompts = zeek::id::find_val("direct_login_prompts")->AsTableVal()->ToPureListVal();
+		IntrusivePtr<ListVal> login_prompts = zeek::id::find_val("login_prompts")->AsTableVal()->ToPureListVal();
+		IntrusivePtr<ListVal> login_non_failure_msgs = zeek::id::find_val("login_non_failure_msgs")->AsTableVal()->ToPureListVal();
+		IntrusivePtr<ListVal> login_failure_msgs = zeek::id::find_val("login_failure_msgs")->AsTableVal()->ToPureListVal();
+		IntrusivePtr<ListVal> login_success_msgs = zeek::id::find_val("login_success_msgs")->AsTableVal()->ToPureListVal();
+		IntrusivePtr<ListVal> login_timeouts = zeek::id::find_val("login_timeouts")->AsTableVal()->ToPureListVal();
+
 #ifdef USE_PERFTOOLS_DEBUG
 		HeapLeakChecker::Disabler disabler;
 #endif
-		re_skip_authentication = init_RE(skip_authentication);
-		re_direct_login_prompts = init_RE(direct_login_prompts);
-		re_login_prompts = init_RE(login_prompts);
-		re_login_non_failure_msgs = init_RE(login_non_failure_msgs);
-		re_login_failure_msgs = init_RE(login_failure_msgs);
-		re_login_success_msgs = init_RE(login_success_msgs);
-		re_login_timeouts = init_RE(login_timeouts);
+		re_skip_authentication = init_RE(skip_authentication.get());
+		re_direct_login_prompts = init_RE(direct_login_prompts.get());
+		re_login_prompts = init_RE(login_prompts.get());
+		re_login_non_failure_msgs = init_RE(login_non_failure_msgs.get());
+		re_login_failure_msgs = init_RE(login_failure_msgs.get());
+		re_login_success_msgs = init_RE(login_success_msgs.get());
+		re_login_timeouts = init_RE(login_timeouts.get());
 		}
 	}
 
@@ -290,7 +299,7 @@ void Login_Analyzer::AuthenticationDialog(bool orig, char* line)
 	else if ( IsSkipAuthentication(line) )
 		{
 		if ( authentication_skipped )
-			EnqueueConnEvent(authentication_skipped, IntrusivePtr{AdoptRef{}, BuildConnVal()});
+			EnqueueConnEvent(authentication_skipped, ConnVal());
 
 		state = LOGIN_STATE_SKIP;
 		SetSkip(true);
@@ -332,19 +341,19 @@ void Login_Analyzer::SetEnv(bool orig, char* name, char* val)
 
 		else if ( login_terminal && streq(name, "TERM") )
 			EnqueueConnEvent(login_terminal,
-				IntrusivePtr{AdoptRef{}, BuildConnVal()},
+				ConnVal(),
 				make_intrusive<StringVal>(val)
 			);
 
 		else if ( login_display && streq(name, "DISPLAY") )
 			EnqueueConnEvent(login_display,
-				IntrusivePtr{AdoptRef{}, BuildConnVal()},
+				ConnVal(),
 				make_intrusive<StringVal>(val)
 			);
 
 		else if ( login_prompt && streq(name, "TTYPROMPT") )
 			EnqueueConnEvent(login_prompt,
-				IntrusivePtr{AdoptRef{}, BuildConnVal()},
+				ConnVal(),
 				make_intrusive<StringVal>(val)
 			);
 		}
@@ -420,10 +429,10 @@ void Login_Analyzer::LoginEvent(EventHandlerPtr f, const char* line,
 				PopUserTextVal() : new StringVal("<none>");
 
 	EnqueueConnEvent(f,
-		IntrusivePtr{AdoptRef{}, BuildConnVal()},
+		ConnVal(),
 		IntrusivePtr{NewRef{}, username},
 		client_name ? IntrusivePtr{NewRef{}, client_name}
-		            : IntrusivePtr{AdoptRef{}, val_mgr->GetEmptyString()},
+		            : val_mgr->EmptyString(),
 		IntrusivePtr{AdoptRef{}, password},
 		make_intrusive<StringVal>(line)
 	);
@@ -443,7 +452,7 @@ void Login_Analyzer::LineEvent(EventHandlerPtr f, const char* line)
 		return;
 
 	EnqueueConnEvent(f,
-		IntrusivePtr{AdoptRef{}, BuildConnVal()},
+		ConnVal(),
 		make_intrusive<StringVal>(line)
 	);
 	}
@@ -455,7 +464,7 @@ void Login_Analyzer::Confused(const char* msg, const char* line)
 
 	if ( login_confused )
 		EnqueueConnEvent(login_confused,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			ConnVal(),
 			make_intrusive<StringVal>(msg),
 			make_intrusive<StringVal>(line)
 		);
@@ -479,7 +488,7 @@ void Login_Analyzer::ConfusionText(const char* line)
 	{
 	if ( login_confused_text )
 		EnqueueConnEvent(login_confused_text,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			ConnVal(),
 			make_intrusive<StringVal>(line)
 		);
 	}
@@ -593,7 +602,7 @@ Val* Login_Analyzer::PopUserTextVal()
 	if ( s )
 		return new StringVal(new BroString(true, byte_vec(s), strlen(s)));
 	else
-		return val_mgr->GetEmptyString();
+		return val_mgr->EmptyString()->Ref();
 	}
 
 bool Login_Analyzer::MatchesTypeahead(const char* line) const

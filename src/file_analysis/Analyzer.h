@@ -95,7 +95,12 @@ public:
 	/**
 	 * @return the AnalyzerArgs associated with the analyzer.
 	 */
-	RecordVal* Args() const { return args; }
+	const IntrusivePtr<RecordVal>& GetArgs() const
+		{ return args; }
+
+	[[deprecated("Remove in v4.1.  Use GetArgs().")]]
+	RecordVal* Args() const
+		{ return args.get(); }
 
 	/**
 	 * @return the file_analysis::File object to which the analyzer is attached.
@@ -146,6 +151,10 @@ protected:
 	 *        tunable options, if any, related to a particular analyzer type.
 	 * @param arg_file the file to which the the analyzer is being attached.
 	 */
+	Analyzer(file_analysis::Tag arg_tag, IntrusivePtr<RecordVal> arg_args,
+	         File* arg_file);
+
+	[[deprecated("Remove in v4.1..  Construct using IntrusivePtr instead.")]]
 	Analyzer(file_analysis::Tag arg_tag, RecordVal* arg_args, File* arg_file);
 
 	/**
@@ -157,16 +166,16 @@ protected:
 	 *        tunable options, if any, related to a particular analyzer type.
 	 * @param arg_file the file to which the the analyzer is being attached.
 	 */
-	Analyzer(RecordVal* arg_args, File* arg_file)
-	    : Analyzer({}, arg_args, arg_file)
-		{
-		}
+	Analyzer(IntrusivePtr<RecordVal> arg_args, File* arg_file);
+
+	[[deprecated("Remove in v4.1..  Construct using IntrusivePtr instead.")]]
+	Analyzer(RecordVal* arg_args, File* arg_file);
 
 private:
 
 	ID id;	/**< Unique instance ID. */
 	file_analysis::Tag tag;	/**< The particular type of the analyzer instance. */
-	RecordVal* args;	/**< \c AnalyzerArgs val gives tunable analyzer params. */
+	IntrusivePtr<RecordVal> args;	/**< \c AnalyzerArgs val gives tunable analyzer params. */
 	File* file;	/**< The file to which the analyzer is attached. */
 	bool got_stream_delivery;
 	bool skip;

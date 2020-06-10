@@ -67,6 +67,7 @@ jobs:
         run: |
           export PATH=`pwd`/coverity-tools/bin:$PATH
           ( cd build && cov-build --dir cov-int make -j 3 )
+          cat build/cov-int/build-log.txt
 
       - name: Submit
         env:

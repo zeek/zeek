@@ -1,5 +1,5 @@
 is_remote should be F, and is, F
-sender added peer: endpoint=127.0.0.1 msg=received handshake from remote core
+sender added peer: endpoint=127.0.0.1 msg=handshake successful
 is_remote should be T, and is, T
 sender got pong: my-message, 1
 is_remote should be T, and is, T
@@ -8,4 +8,4 @@ is_remote should be T, and is, T
 sender got pong: my-message, 3
 is_remote should be T, and is, T
 sender got pong: my-message, 4
-sender lost peer: endpoint=127.0.0.1 msg=lost remote peer
+sender lost peer: endpoint=127.0.0.1 msg=lost connection to remote peer

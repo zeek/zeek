@@ -1,8 +1,8 @@
 
 refine flow DHCP_Flow += {
 	%member{
-		RecordVal* options;
-		VectorVal* all_options;
+		IntrusivePtr<RecordVal> options;
+		IntrusivePtr<VectorVal> all_options;
 	%}
 
 	%init{
@@ -11,10 +11,7 @@ refine flow DHCP_Flow += {
 	%}
 
 	%cleanup{
-		Unref(options);
 		options = nullptr;
-
-		Unref(all_options);
 		all_options = nullptr;
 	%}
 
@@ -22,9 +19,9 @@ refine flow DHCP_Flow += {
 		%{
 		if ( ! options )
 			{
-			options = new RecordVal(BifType::Record::DHCP::Options);
-			all_options = new VectorVal(index_vec);
-			options->Assign(0, all_options->Ref());
+			options = make_intrusive<RecordVal>(zeek::BifType::Record::DHCP::Options);
+			all_options = make_intrusive<VectorVal>(zeek::id::index_vec);
+			options->Assign(0, all_options);
 			}
 
 		return true;
@@ -35,8 +32,7 @@ refine flow DHCP_Flow += {
 		init_options();
 
 		if ( code != 255 )
-			all_options->Assign(all_options->Size(),
-			                    val_mgr->GetCount(code));
+			all_options->Assign(all_options->Size(), val_mgr->Count(code));
 
 		return true;
 		%}
@@ -57,12 +53,12 @@ refine flow DHCP_Flow += {
 			std::string mac_str = fmt_mac(${msg.chaddr}.data(), ${msg.chaddr}.length());
 			double secs = static_cast<double>(${msg.secs});
 
-			auto dhcp_msg_val = new RecordVal(BifType::Record::DHCP::Msg);
-			dhcp_msg_val->Assign(0, val_mgr->GetCount(${msg.op}));
-			dhcp_msg_val->Assign(1, val_mgr->GetCount(${msg.type}));
-			dhcp_msg_val->Assign(2, val_mgr->GetCount(${msg.xid}));
-			dhcp_msg_val->Assign(3, make_intrusive<Val>(secs, TYPE_INTERVAL));
-			dhcp_msg_val->Assign(4, val_mgr->GetCount(${msg.flags}));
+			auto dhcp_msg_val = make_intrusive<RecordVal>(zeek::BifType::Record::DHCP::Msg);
+			dhcp_msg_val->Assign(0, val_mgr->Count(${msg.op}));
+			dhcp_msg_val->Assign(1, val_mgr->Count(${msg.type}));
+			dhcp_msg_val->Assign(2, val_mgr->Count(${msg.xid}));
+			dhcp_msg_val->Assign(3, make_intrusive<IntervalVal>(secs));
+			dhcp_msg_val->Assign(4, val_mgr->Count(${msg.flags}));
 			dhcp_msg_val->Assign(5, make_intrusive<AddrVal>(htonl(${msg.ciaddr})));
 			dhcp_msg_val->Assign(6, make_intrusive<AddrVal>(htonl(${msg.yiaddr})));
 			dhcp_msg_val->Assign(7, make_intrusive<AddrVal>(htonl(${msg.siaddr})));
@@ -95,14 +91,13 @@ refine flow DHCP_Flow += {
 
 			init_options();
 
-			BifEvent::generate_dhcp_message(connection()->bro_analyzer(),
-			                                connection()->bro_analyzer()->Conn(),
-			                                ${msg.is_orig},
-			                                dhcp_msg_val,
-			                                options);
+			zeek::BifEvent::enqueue_dhcp_message(connection()->bro_analyzer(),
+			                               connection()->bro_analyzer()->Conn(),
+			                               ${msg.is_orig},
+			                               std::move(dhcp_msg_val),
+			                               std::move(options));
 
 			options = nullptr;
-			Unref(all_options);
 			all_options = nullptr;
 			}
 

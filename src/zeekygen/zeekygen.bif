@@ -9,9 +9,9 @@
 #include "zeekygen/ScriptInfo.h"
 #include "util.h"
 
-static StringVal* comments_to_val(const vector<string>& comments)
+static IntrusivePtr<StringVal> comments_to_val(const vector<string>& comments)
 	{
-	return new StringVal(implode_string_vector(comments));
+	return make_intrusive<StringVal>(implode_string_vector(comments));
 	}
 %%}
 
@@ -28,7 +28,7 @@ function get_identifier_comments%(name: string%): string
 	IdentifierInfo* d = zeekygen_mgr->GetIdentifierInfo(name->CheckString());
 
 	if ( ! d )
-		return val_mgr->GetEmptyString();
+		return val_mgr->EmptyString();
 
 	return comments_to_val(d->GetComments());
 	%}
@@ -48,7 +48,7 @@ function get_script_comments%(name: string%): string
 	ScriptInfo* d = zeekygen_mgr->GetScriptInfo(name->CheckString());
 
 	if ( ! d )
-		return val_mgr->GetEmptyString();
+		return val_mgr->EmptyString();
 
 	return comments_to_val(d->GetComments());
 	%}
@@ -66,7 +66,7 @@ function get_package_readme%(name: string%): string
 	PackageInfo* d = zeekygen_mgr->GetPackageInfo(name->CheckString());
 
 	if ( ! d )
-		return val_mgr->GetEmptyString();
+		return val_mgr->EmptyString();
 
 	return comments_to_val(d->GetReadme());
 	%}
@@ -86,14 +86,14 @@ function get_record_field_comments%(name: string%): string
 	size_t i = accessor.find('$');
 
 	if ( i > accessor.size() - 2 )
-		return val_mgr->GetEmptyString();
+		return val_mgr->EmptyString();
 
 	string id = accessor.substr(0, i);
 
 	IdentifierInfo* d = zeekygen_mgr->GetIdentifierInfo(id);
 
 	if ( ! d )
-		return val_mgr->GetEmptyString();
+		return val_mgr->EmptyString();
 
 	string field = accessor.substr(i + 1);
 	return comments_to_val(d->GetFieldComments(field));

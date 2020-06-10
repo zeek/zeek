@@ -10,13 +10,18 @@ class IntrusivePtr;
 
 class ODesc;
 
+namespace threading {
+struct Value;
+struct Field;
+}
+
 namespace bro_broker {
 
-extern OpaqueType* opaque_of_data_type;
-extern OpaqueType* opaque_of_set_iterator;
-extern OpaqueType* opaque_of_table_iterator;
-extern OpaqueType* opaque_of_vector_iterator;
-extern OpaqueType* opaque_of_record_iterator;
+extern IntrusivePtr<OpaqueType> opaque_of_data_type;
+extern IntrusivePtr<OpaqueType> opaque_of_set_iterator;
+extern IntrusivePtr<OpaqueType> opaque_of_table_iterator;
+extern IntrusivePtr<OpaqueType> opaque_of_vector_iterator;
+extern IntrusivePtr<OpaqueType> opaque_of_record_iterator;
 
 /**
  * Convert a broker port protocol to a bro port protocol.
@@ -29,14 +34,14 @@ TransportProto to_bro_port_proto(broker::port::protocol tp);
  * @return a Broker::Data value, where the optional field is set if the conversion
  * was possible, else it is unset.
  */
-RecordVal* make_data_val(Val* v);
+IntrusivePtr<RecordVal> make_data_val(Val* v);
 
 /**
  * Create a Broker::Data value from a Broker data value.
  * @param d the Broker value to wrap in an opaque type.
  * @return a Broker::Data value that wraps the Broker value.
  */
-RecordVal* make_data_val(broker::data d);
+IntrusivePtr<RecordVal> make_data_val(broker::data d);
 
 /**
  * Get the type of Broker data that Broker::Data wraps.
@@ -44,7 +49,7 @@ RecordVal* make_data_val(broker::data d);
  * @param frame used to get location info upon error.
  * @return a Broker::DataType value.
  */
-EnumVal* get_data_type(RecordVal* v, Frame* frame);
+IntrusivePtr<EnumVal> get_data_type(RecordVal* v, Frame* frame);
 
 /**
  * Convert a Bro value to a Broker data value.
@@ -110,17 +115,16 @@ public:
 	// Returns the Bro type that scripts use to represent a Broker data
 	// instance. This may be wrapping the opaque value inside another
 	// type.
-	static BroType* ScriptDataType();
+	static const IntrusivePtr<BroType>& ScriptDataType();
 
 	broker::data data;
 
 protected:
 	DataVal()
+		: OpaqueVal(bro_broker::opaque_of_data_type)
 		{}
 
 	DECLARE_OPAQUE_VALUE(bro_broker::DataVal)
-
-	static BroType* script_data_type;
 };
 
 /**
@@ -236,7 +240,10 @@ public:
 	broker::set::iterator it;
 
 protected:
-	SetIterator()	{}
+	SetIterator()
+		: OpaqueVal(bro_broker::opaque_of_set_iterator)
+		{}
+
 	DECLARE_OPAQUE_VALUE(bro_broker::SetIterator)
 };
 
@@ -253,7 +260,10 @@ public:
 	broker::table::iterator it;
 
 protected:
-	TableIterator()	{}
+	TableIterator()
+		: OpaqueVal(bro_broker::opaque_of_table_iterator)
+		{}
+
 	DECLARE_OPAQUE_VALUE(bro_broker::TableIterator)
 };
 
@@ -270,7 +280,10 @@ public:
 	broker::vector::iterator it;
 
 protected:
-	VectorIterator()	{}
+	VectorIterator()
+		: OpaqueVal(bro_broker::opaque_of_vector_iterator)
+		{}
+
 	DECLARE_OPAQUE_VALUE(bro_broker::VectorIterator)
 };
 
@@ -287,7 +300,10 @@ public:
 	broker::vector::iterator it;
 
 protected:
-	RecordIterator()	{}
+	RecordIterator()
+		: OpaqueVal(bro_broker::opaque_of_record_iterator)
+		{}
+
 	DECLARE_OPAQUE_VALUE(bro_broker::RecordIterator)
 };
 

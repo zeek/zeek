@@ -20,18 +20,18 @@ function get_orig_seq%(cid: conn_id%): count
 	%{
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
-		return val_mgr->GetCount(0);
+		return val_mgr->Count(0);
 
 	if ( c->ConnTransport() != TRANSPORT_TCP )
-		return val_mgr->GetCount(0);
+		return val_mgr->Count(0);
 
 	analyzer::Analyzer* tc = c->FindAnalyzer("TCP");
 	if ( tc )
-		return val_mgr->GetCount(static_cast<analyzer::tcp::TCP_Analyzer*>(tc)->OrigSeq());
+		return val_mgr->Count(static_cast<analyzer::tcp::TCP_Analyzer*>(tc)->OrigSeq());
 	else
 		{
 		reporter->Error("connection does not have TCP analyzer");
-		return val_mgr->GetCount(0);
+		return val_mgr->Count(0);
 		}
 	%}
 
@@ -49,18 +49,18 @@ function get_resp_seq%(cid: conn_id%): count
 	%{
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
-		return val_mgr->GetCount(0);
+		return val_mgr->Count(0);
 
 	if ( c->ConnTransport() != TRANSPORT_TCP )
-		return val_mgr->GetCount(0);
+		return val_mgr->Count(0);
 
 	analyzer::Analyzer* tc = c->FindAnalyzer("TCP");
 	if ( tc )
-		return val_mgr->GetCount(static_cast<analyzer::tcp::TCP_Analyzer*>(tc)->RespSeq());
+		return val_mgr->Count(static_cast<analyzer::tcp::TCP_Analyzer*>(tc)->RespSeq());
 	else
 		{
 		reporter->Error("connection does not have TCP analyzer");
-		return val_mgr->GetCount(0);
+		return val_mgr->Count(0);
 		}
 	%}
 
@@ -99,10 +99,10 @@ function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
 	%{
 	Connection* c = sessions->FindConnection(cid);
 	if ( ! c )
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 
-	c->GetRootAnalyzer()->SetContentsFile(direction, f);
-	return val_mgr->GetTrue();
+	c->GetRootAnalyzer()->SetContentsFile(direction, {NewRef{}, f});
+	return val_mgr->True();
 	%}
 
 ## Returns the file handle of the contents file of a connection.
@@ -121,12 +121,13 @@ function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
 function get_contents_file%(cid: conn_id, direction: count%): file
 	%{
 	Connection* c = sessions->FindConnection(cid);
-	BroFile* f = c ? c->GetRootAnalyzer()->GetContentsFile(direction) : nullptr;
 
-	if ( f )
+	if ( c )
 		{
-		Ref(f);
-		return new Val(f);
+		auto cf = c->GetRootAnalyzer()->GetContentsFile(direction);
+
+		if ( cf )
+			return make_intrusive<Val>(std::move(cf));
 		}
 
 	// Return some sort of error value.
@@ -135,5 +136,5 @@ function get_contents_file%(cid: conn_id, direction: count%): file
 	else
 		builtin_error("no contents file for given direction");
 
-	return new Val(new BroFile(stderr, "-", "w"));
+	return make_intrusive<Val>(make_intrusive<BroFile>(stderr, "-", "w"));
 	%}

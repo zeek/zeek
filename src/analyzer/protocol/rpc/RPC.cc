@@ -28,7 +28,6 @@ namespace { // local namespace
 
 RPC_CallInfo::RPC_CallInfo(uint32_t arg_xid, const u_char*& buf, int& n, double arg_start_time, double arg_last_time, int arg_rpc_len)
 	{
-	v = nullptr;
 	xid = arg_xid;
 	stamp = 0;
 	uid = 0;
@@ -98,7 +97,6 @@ RPC_CallInfo::RPC_CallInfo(uint32_t arg_xid, const u_char*& buf, int& n, double 
 RPC_CallInfo::~RPC_CallInfo()
 	{
 	delete [] call_buf;
-	Unref(v);
 	}
 
 bool RPC_CallInfo::CompareRexmit(const u_char* buf, int n) const
@@ -339,14 +337,14 @@ void RPC_Interpreter::Event_RPC_Dialogue(RPC_CallInfo* c, BifEnum::rpc_status st
 	{
 	if ( rpc_dialogue )
 		analyzer->EnqueueConnEvent(rpc_dialogue,
-			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(c->Program())},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(c->Version())},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(c->Proc())},
-			BifType::Enum::rpc_status->GetVal(status),
-			make_intrusive<Val>(c->StartTime(), TYPE_TIME),
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(c->CallLen())},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(reply_len)}
+			analyzer->ConnVal(),
+			val_mgr->Count(c->Program()),
+			val_mgr->Count(c->Version()),
+			val_mgr->Count(c->Proc()),
+			zeek::BifType::Enum::rpc_status->GetVal(status),
+			make_intrusive<TimeVal>(c->StartTime()),
+			val_mgr->Count(c->CallLen()),
+			val_mgr->Count(reply_len)
 		);
 	}
 
@@ -354,12 +352,12 @@ void RPC_Interpreter::Event_RPC_Call(RPC_CallInfo* c)
 	{
 	if ( rpc_call )
 		analyzer->EnqueueConnEvent(rpc_call,
-			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(c->XID())},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(c->Program())},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(c->Version())},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(c->Proc())},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(c->CallLen())}
+			analyzer->ConnVal(),
+			val_mgr->Count(c->XID()),
+			val_mgr->Count(c->Program()),
+			val_mgr->Count(c->Version()),
+			val_mgr->Count(c->Proc()),
+			val_mgr->Count(c->CallLen())
 		);
 	}
 
@@ -367,10 +365,10 @@ void RPC_Interpreter::Event_RPC_Reply(uint32_t xid, BifEnum::rpc_status status, 
 	{
 	if ( rpc_reply )
 		analyzer->EnqueueConnEvent(rpc_reply,
-			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(xid)},
-			BifType::Enum::rpc_status->GetVal(status),
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(reply_len)}
+			analyzer->ConnVal(),
+			val_mgr->Count(xid),
+			zeek::BifType::Enum::rpc_status->GetVal(status),
+			val_mgr->Count(reply_len)
 		);
 	}
 

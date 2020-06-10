@@ -22,7 +22,7 @@ bool MOUNT_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 
 	uint32_t proc = c->Proc();
 	// The call arguments, depends on the call type obviously ...
-	Val *callarg = nullptr;
+	IntrusivePtr<RecordVal> callarg;
 
 	switch ( proc ) {
 		case BifEnum::MOUNT3::PROC_NULL:
@@ -41,7 +41,6 @@ bool MOUNT_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 		break;
 
 	default:
-		callarg = nullptr;
 		if ( proc < BifEnum::MOUNT3::PROC_END_OF_PROCS )
 			{
 			// We know the procedure but haven't implemented it.
@@ -58,19 +57,10 @@ bool MOUNT_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n)
 	}
 
 	if ( ! buf )
-		{
-		// There was a parse error while trying to extract the call
-		// arguments. However, we don't know where exactly it
-		// happened and whether Vals where already allocated (e.g., a
-		// RecordVal was allocated but we failed to fill it). So we
-		// Unref() the call arguments, and we are fine.
-		Unref(callarg);
-		callarg = nullptr;
+		// There was a parse error while trying to extract the call arguments.
 		return false;
-		}
 
-	c->AddVal(callarg); // It's save to AddVal(0).
-
+	c->AddVal(callarg);
 	return true;
 	}
 
@@ -79,7 +69,7 @@ bool MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_statu
 			       double last_time, int reply_len)
 	{
 	EventHandlerPtr event = nullptr;
-	Val* reply = nullptr;
+	IntrusivePtr<Val> reply;
 	BifEnum::MOUNT3::status_t mount_status = BifEnum::MOUNT3::MNT3_OK;
 	bool rpc_success = ( rpc_status == BifEnum::RPC_SUCCESS );
 
@@ -119,14 +109,12 @@ bool MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_statu
 		break;
 
 	case BifEnum::MOUNT3::PROC_UMNT:
-		reply = nullptr;
 		n = 0;
 		mount_status = BifEnum::MOUNT3::MNT3_OK;
 		event = mount_proc_umnt;
 		break;
 
 	case BifEnum::MOUNT3::PROC_UMNT_ALL:
-		reply = nullptr;
 		n = 0;
 		mount_status = BifEnum::MOUNT3::MNT3_OK;
 		event = mount_proc_umnt;
@@ -139,7 +127,7 @@ bool MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_statu
 			// Otherwise DeliverRPC would complain about
 			// excess_RPC.
 			n = 0;
-			reply = BifType::Enum::MOUNT3::proc_t->GetVal(c->Proc()).release();
+			reply = zeek::BifType::Enum::MOUNT3::proc_t->GetVal(c->Proc());
 			event = mount_proc_not_implemented;
 			}
 		else
@@ -148,9 +136,7 @@ bool MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_statu
 
 	if ( rpc_success && ! buf )
 		{
-		// There was a parse error. We have to unref the reply. (see
-		// also comments in RPC_BuildCall.
-		Unref(reply);
+		// There was a parse error.
 		reply = nullptr;
 		return false;
 		}
@@ -163,21 +149,20 @@ bool MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_statu
 	// optional and all are set to 0 ...
 	if ( event )
 		{
-		Val *request = c->TakeRequestVal();
+		auto request = c->TakeRequestVal();
 
 		auto vl = event_common_vl(c, rpc_status, mount_status,
 					start_time, last_time, reply_len, (bool)request + (bool)reply);
 
 		if ( request )
-			vl.emplace_back(AdoptRef{}, request);
+			vl.emplace_back(std::move(request));
 
 		if ( reply )
-			vl.emplace_back(AdoptRef{}, reply);
+			vl.emplace_back(reply);
 
 		analyzer->EnqueueConnEvent(event, std::move(vl));
 		}
-	else
-		Unref(reply);
+
 	return true;
 	}
 
@@ -191,26 +176,26 @@ zeek::Args MOUNT_Interp::event_common_vl(RPC_CallInfo *c,
 	// These are the first parameters for each mount_* event ...
 	zeek::Args vl;
 	vl.reserve(2 + extra_elements);
-	vl.emplace_back(AdoptRef{}, analyzer->BuildConnVal());
-	auto auxgids = make_intrusive<VectorVal>(internal_type("index_vec")->AsVectorType());
+	vl.emplace_back(analyzer->ConnVal());
+	auto auxgids = make_intrusive<VectorVal>(zeek::id::index_vec);
 
 	for (size_t i = 0; i < c->AuxGIDs().size(); ++i)
 		{
-		auxgids->Assign(i, val_mgr->GetCount(c->AuxGIDs()[i]));
+		auxgids->Assign(i, val_mgr->Count(c->AuxGIDs()[i]));
 		}
 
-	auto info = make_intrusive<RecordVal>(BifType::Record::MOUNT3::info_t);
-	info->Assign(0, BifType::Enum::rpc_status->GetVal(rpc_status));
-	info->Assign(1, BifType::Enum::MOUNT3::status_t->GetVal(mount_status));
-	info->Assign(2, make_intrusive<Val>(c->StartTime(), TYPE_TIME));
-	info->Assign(3, make_intrusive<Val>(c->LastTime() - c->StartTime(), TYPE_INTERVAL));
-	info->Assign(4, val_mgr->GetCount(c->RPCLen()));
-	info->Assign(5, make_intrusive<Val>(rep_start_time, TYPE_TIME));
-	info->Assign(6, make_intrusive<Val>(rep_last_time - rep_start_time, TYPE_INTERVAL));
-	info->Assign(7, val_mgr->GetCount(reply_len));
-	info->Assign(8, val_mgr->GetCount(c->Uid()));
-	info->Assign(9, val_mgr->GetCount(c->Gid()));
-	info->Assign(10, val_mgr->GetCount(c->Stamp()));
+	auto info = make_intrusive<RecordVal>(zeek::BifType::Record::MOUNT3::info_t);
+	info->Assign(0, zeek::BifType::Enum::rpc_status->GetVal(rpc_status));
+	info->Assign(1, zeek::BifType::Enum::MOUNT3::status_t->GetVal(mount_status));
+	info->Assign(2, make_intrusive<TimeVal>(c->StartTime()));
+	info->Assign(3, make_intrusive<IntervalVal>(c->LastTime() - c->StartTime()));
+	info->Assign(4, val_mgr->Count(c->RPCLen()));
+	info->Assign(5, make_intrusive<TimeVal>(rep_start_time));
+	info->Assign(6, make_intrusive<IntervalVal>(rep_last_time - rep_start_time));
+	info->Assign(7, val_mgr->Count(reply_len));
+	info->Assign(8, val_mgr->Count(c->Uid()));
+	info->Assign(9, val_mgr->Count(c->Gid()));
+	info->Assign(10, val_mgr->Count(c->Stamp()));
 	info->Assign(11, make_intrusive<StringVal>(c->MachineName()));
 	info->Assign(12, std::move(auxgids));
 
@@ -218,13 +203,14 @@ zeek::Args MOUNT_Interp::event_common_vl(RPC_CallInfo *c,
 	return vl;
 	}
 
-EnumVal* MOUNT_Interp::mount3_auth_flavor(const u_char*& buf, int& n)
+IntrusivePtr<EnumVal> MOUNT_Interp::mount3_auth_flavor(const u_char*& buf, int& n)
     {
 	BifEnum::MOUNT3::auth_flavor_t t = (BifEnum::MOUNT3::auth_flavor_t)extract_XDR_uint32(buf, n);
-	return BifType::Enum::MOUNT3::auth_flavor_t->GetVal(t).release();
+	auto rval = zeek::BifType::Enum::MOUNT3::auth_flavor_t->GetVal(t);
+	return rval;
     }
 
-StringVal* MOUNT_Interp::mount3_fh(const u_char*& buf, int& n)
+IntrusivePtr<StringVal> MOUNT_Interp::mount3_fh(const u_char*& buf, int& n)
 	{
 	int fh_n;
 	const u_char* fh = extract_XDR_opaque(buf, n, fh_n, 64);
@@ -232,10 +218,10 @@ StringVal* MOUNT_Interp::mount3_fh(const u_char*& buf, int& n)
 	if ( ! fh )
 		return nullptr;
 
-	return new StringVal(new BroString(fh, fh_n, false));
+	return make_intrusive<StringVal>(new BroString(fh, fh_n, false));
 	}
 
-StringVal* MOUNT_Interp::mount3_filename(const u_char*& buf, int& n)
+IntrusivePtr<StringVal> MOUNT_Interp::mount3_filename(const u_char*& buf, int& n)
 	{
 	int name_len;
 	const u_char* name = extract_XDR_opaque(buf, n, name_len);
@@ -243,20 +229,20 @@ StringVal* MOUNT_Interp::mount3_filename(const u_char*& buf, int& n)
 	if ( ! name )
 		return nullptr;
 
-	return new StringVal(new BroString(name, name_len, false));
+	return make_intrusive<StringVal>(new BroString(name, name_len, false));
 	}
 
-RecordVal* MOUNT_Interp::mount3_dirmntargs(const u_char*& buf, int& n)
+IntrusivePtr<RecordVal> MOUNT_Interp::mount3_dirmntargs(const u_char*& buf, int& n)
 	{
-	RecordVal* dirmntargs = new RecordVal(BifType::Record::MOUNT3::dirmntargs_t);
+	auto dirmntargs = make_intrusive<RecordVal>(zeek::BifType::Record::MOUNT3::dirmntargs_t);
 	dirmntargs->Assign(0, mount3_filename(buf, n));
 	return dirmntargs;
 	}
 
-RecordVal* MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& n,
+IntrusivePtr<RecordVal> MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& n,
 		     BifEnum::MOUNT3::status_t status)
 	{
-	RecordVal* rep = new RecordVal(BifType::Record::MOUNT3::mnt_reply_t);
+	auto rep = make_intrusive<RecordVal>(zeek::BifType::Record::MOUNT3::mnt_reply_t);
 
 	if ( status == BifEnum::MOUNT3::MNT3_OK )
 		{
@@ -272,9 +258,8 @@ RecordVal* MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& n,
 			auth_flavors_count = max_auth_flavors;
 			}
 
-		VectorType* enum_vector = new VectorType(base_type(TYPE_ENUM));
-		VectorVal* auth_flavors = new VectorVal(enum_vector);
-		Unref(enum_vector);
+		auto enum_vector = make_intrusive<VectorType>(base_type(TYPE_ENUM));
+		auto auth_flavors = make_intrusive<VectorVal>(std::move(enum_vector));
 
 		for ( auto i = 0u; i < auth_flavors_count; ++i )
 			auth_flavors->Assign(auth_flavors->Size(),
@@ -284,7 +269,7 @@ RecordVal* MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& n,
 			// Prevent further "excess RPC" weirds
 			n = 0;
 
-		rep->Assign(1, auth_flavors);
+		rep->Assign(1, std::move(auth_flavors));
 		}
 	else
 		{

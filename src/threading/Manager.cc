@@ -5,6 +5,8 @@
 
 #include "NetVar.h"
 #include "iosource/Manager.h"
+#include "Event.h"
+#include "IPAddr.h"
 
 using namespace threading;
 
@@ -125,7 +127,61 @@ void Manager::SendHeartbeats()
 void Manager::StartHeartbeatTimer()
 	{
 	heartbeat_timer_running = true;
-	timer_mgr->Add(new HeartbeatTimer(network_time + BifConst::Threading::heartbeat_interval));
+	timer_mgr->Add(new HeartbeatTimer(network_time + zeek::BifConst::Threading::heartbeat_interval));
+	}
+
+// Raise everything in here as warnings so it is passed to scriptland without
+// looking "fatal". In addition to these warnings, ReaderBackend will queue
+// one reporter message.
+bool Manager::SendEvent(MsgThread* thread, const std::string& name, const int num_vals, Value* *vals) const
+	{
+	EventHandler* handler = event_registry->Lookup(name);
+	if ( handler == nullptr )
+		{
+		reporter->Warning("Thread %s: Event %s not found", thread->Name(), name.c_str());
+		Value::delete_value_ptr_array(vals, num_vals);
+		return false;
+		}
+
+#ifdef DEBUG
+	DBG_LOG(DBG_INPUT, "Thread %s: SendEvent for event %s with %d vals",
+	        thread->Name(), name.c_str(), num_vals);
+#endif
+
+	const auto& type = handler->GetType()->Params();
+	int num_event_vals = type->NumFields();
+	if ( num_vals != num_event_vals )
+		{
+		reporter->Warning("Thread %s: Wrong number of values for event %s", thread->Name(), name.c_str());
+		Value::delete_value_ptr_array(vals, num_vals);
+		return false;
+		}
+
+	bool convert_error = false;
+
+	zeek::Args vl;
+	vl.reserve(num_vals);
+
+	for ( int j = 0; j < num_vals; j++)
+		{
+		Val* v = Value::ValueToVal(std::string("thread ") + thread->Name(), vals[j], convert_error);
+		vl.emplace_back(AdoptRef{}, v);
+
+		if ( v && ! convert_error && ! same_type(type->GetFieldType(j), v->GetType()) )
+			{
+			convert_error = true;
+			type->GetFieldType(j)->Error("SendEvent types do not match", v->GetType().get());
+			}
+		}
+
+	Value::delete_value_ptr_array(vals, num_vals);
+
+	if ( convert_error )
+		return false;
+	else if ( handler )
+		mgr.Enqueue(handler, std::move(vl), SOURCE_LOCAL);
+
+	return true;
 	}
 
 void Manager::Flush()
@@ -135,7 +191,7 @@ void Manager::Flush()
 	if ( network_time && (network_time > next_beat || ! next_beat) )
 		{
 		do_beat = true;
-		next_beat = ::network_time + BifConst::Threading::heartbeat_interval;
+		next_beat = ::network_time + zeek::BifConst::Threading::heartbeat_interval;
 		}
 
 	did_process = false;

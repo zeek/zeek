@@ -1,10 +1,10 @@
-cpus: &CPUS 8
-btest_jobs: &BTEST_JOBS 8
+cpus: &CPUS 4
+btest_jobs: &BTEST_JOBS 4
 btest_retries: &BTEST_RETRIES 2
-memory: &MEMORY 6GB
+memory: &MEMORY 4GB
 
-config: &CONFIG --build-type=release --enable-cpp-tests
-memcheck_config: &MEMCHECK_CONFIG --build-type=debug --enable-cpp-tests --sanitizers=address
+config: &CONFIG --build-type=release --enable-cpp-tests  --disable-broker-tests
+memcheck_config: &MEMCHECK_CONFIG --build-type=debug --enable-cpp-tests --disable-broker-tests --sanitizers=address --enable-fuzzers
 
 resources_template: &RESOURCES_TEMPLATE
   cpu: *CPUS
@@ -13,8 +13,12 @@ resources_template: &RESOURCES_TEMPLATE
 ci_template: &CI_TEMPLATE
   only_if: >
     $CIRRUS_PR != '' ||
-    $CIRRUS_BRANCH == 'master' ||
-    $CIRRUS_BRANCH =~ 'release/.*'
+    ( $CIRRUS_REPO_NAME == 'zeek' &&
+      (
+      $CIRRUS_BRANCH == 'master' ||
+      $CIRRUS_BRANCH =~ 'release/.*'
+      )
+    )
 
   # Default timeout is 60 minutes, Cirrus hard limit is 120 minutes for free
   # tasks, so may as well ask for full time.
@@ -51,7 +55,7 @@ env:
   ZEEK_CI_CONFIGURE_FLAGS: *CONFIG
   # This is a single-purpose, read-only GitHub deploy key (SSH private key) for
   # the zeek-testing-private repository.
-  ZEEK_TESTING_PRIVATE_SSH_KEY: ENCRYPTED[6631d7bf11e6553c531222953fb6de4d4a48a86a5dbc21a97604d5ca1791845718c985d9086f125cead6908e1b5f2b23]
+  ZEEK_TESTING_PRIVATE_SSH_KEY: ENCRYPTED[!dbdba93df9c166f926480cebff52dab303589257b3b3ee53aa392021aff2881ed9aafefef26aa9a1b71a49d663d1361c!]
 
 # Linux EOL timelines: https://linuxlifecycle.com/
 # Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
@@ -129,9 +133,10 @@ memcheck_task:
   container:
     # Just uses a recent/common distro to run memory error/leak checks.
     dockerfile: ci/ubuntu-18.04/Dockerfile
-    cpu: 8
+    cpu: 4
     # AddressSanitizer uses a lot more memory than a typical config.
-    memory: 16GB
+    memory: 12GB
   << : *CI_TEMPLATE
+  test_fuzzers_script: ./ci/test-fuzzers.sh
   env:
     ZEEK_CI_CONFIGURE_FLAGS: *MEMCHECK_CONFIG

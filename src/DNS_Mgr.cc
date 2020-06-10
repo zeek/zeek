@@ -36,11 +36,12 @@
 #include "Event.h"
 #include "Net.h"
 #include "Val.h"
-#include "Var.h"
+#include "NetVar.h"
+#include "ID.h"
 #include "Reporter.h"
 #include "IntrusivePtr.h"
 #include "iosource/Manager.h"
-#include "digest.h"
+#include "Hash.h"
 
 extern "C" {
 extern int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);
@@ -285,7 +286,7 @@ IntrusivePtr<ListVal> DNS_Mapping::Addrs()
 		auto addrs_val = make_intrusive<ListVal>(TYPE_ADDR);
 
 		for ( int i = 0; i < num_addrs; ++i )
-			addrs_val->Append(new AddrVal(addrs[i]));
+			addrs_val->Append(make_intrusive<AddrVal>(addrs[i]));
 		}
 
 	return addrs_val;
@@ -297,7 +298,7 @@ IntrusivePtr<TableVal> DNS_Mapping::AddrsSet() {
 	if ( ! l )
 		return empty_addr_set();
 
-	return {AdoptRef{}, l->ConvertToSet()};
+	return l->ToSetVal();
 	}
 
 IntrusivePtr<StringVal> DNS_Mapping::Host()
@@ -380,12 +381,6 @@ DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode)
 
 	mode = arg_mode;
 
-	dns_mapping_valid = dns_mapping_unverified = dns_mapping_new_name =
-		dns_mapping_lost_name = dns_mapping_name_changed =
-			dns_mapping_altered =  nullptr;
-
-	dm_rec = nullptr;
-
 	cache_name = dir = nullptr;
 
 	asyncs_pending = 0;
@@ -455,14 +450,7 @@ void DNS_Mgr::InitSource()
 
 void DNS_Mgr::InitPostScript()
 	{
-	dns_mapping_valid = internal_handler("dns_mapping_valid");
-	dns_mapping_unverified = internal_handler("dns_mapping_unverified");
-	dns_mapping_new_name = internal_handler("dns_mapping_new_name");
-	dns_mapping_lost_name = internal_handler("dns_mapping_lost_name");
-	dns_mapping_name_changed = internal_handler("dns_mapping_name_changed");
-	dns_mapping_altered = internal_handler("dns_mapping_altered");
-
-	dm_rec = internal_type("dns_mapping")->AsRecordType();
+	dm_rec = zeek::id::find_type<RecordType>("dns_mapping");
 
 	// Registering will call Init()
 	iosource_mgr->Register(this, true);
@@ -475,12 +463,11 @@ void DNS_Mgr::InitPostScript()
 
 static IntrusivePtr<TableVal> fake_name_lookup_result(const char* name)
 	{
-	uint32_t hash[4];
-	internal_md5(reinterpret_cast<const u_char*>(name), strlen(name),
-	    reinterpret_cast<u_char*>(hash));
+	hash128_t hash;
+	KeyedHash::StaticHash128(name, strlen(name), &hash);
 	auto hv = make_intrusive<ListVal>(TYPE_ADDR);
-	hv->Append(new AddrVal(hash));
-	return {AdoptRef{}, hv->ConvertToSet()};
+	hv->Append(make_intrusive<AddrVal>(reinterpret_cast<const uint32_t*>(&hash)));
+	return hv->ToSetVal();
 	}
 
 static const char* fake_text_lookup_result(const char* name)
@@ -716,11 +703,7 @@ void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* dm,
 	if ( ! e )
 		return;
 
-	mgr.Enqueue(e,
-		BuildMappingVal(dm),
-		IntrusivePtr{AdoptRef{}, l1->ConvertToSet()},
-		IntrusivePtr{AdoptRef{}, l2->ConvertToSet()}
-	);
+	mgr.Enqueue(e, BuildMappingVal(dm), l1->ToSetVal(), l2->ToSetVal());
 	}
 
 void DNS_Mgr::Event(EventHandlerPtr e, DNS_Mapping* old_dm, DNS_Mapping* new_dm)
@@ -735,13 +718,13 @@ IntrusivePtr<Val> DNS_Mgr::BuildMappingVal(DNS_Mapping* dm)
 	{
 	auto r = make_intrusive<RecordVal>(dm_rec);
 
-	r->Assign(0, make_intrusive<Val>(dm->CreationTime(), TYPE_TIME));
+	r->Assign(0, make_intrusive<TimeVal>(dm->CreationTime()));
 	r->Assign(1, make_intrusive<StringVal>(dm->ReqHost() ? dm->ReqHost() : ""));
 	r->Assign(2, make_intrusive<AddrVal>(dm->ReqAddr()));
-	r->Assign(3, val_mgr->GetBool(dm->Valid()));
+	r->Assign(3, val_mgr->Bool(dm->Valid()));
 
 	auto h = dm->Host();
-	r->Assign(4, h ? h.release() : new StringVal("<none>"));
+	r->Assign(4, h ? std::move(h) : make_intrusive<StringVal>("<none>"));
 	r->Assign(5, dm->AddrsSet());
 
 	return r;
@@ -893,19 +876,19 @@ IntrusivePtr<ListVal> DNS_Mgr::AddrListDelta(ListVal* al1, ListVal* al2)
 
 	for ( int i = 0; i < al1->Length(); ++i )
 		{
-		const IPAddr& al1_i = al1->Index(i)->AsAddr();
+		const IPAddr& al1_i = al1->Idx(i)->AsAddr();
 
 		int j;
 		for ( j = 0; j < al2->Length(); ++j )
 			{
-			const IPAddr& al2_j = al2->Index(j)->AsAddr();
+			const IPAddr& al2_j = al2->Idx(j)->AsAddr();
 			if ( al1_i == al2_j )
 				break;
 			}
 
 		if ( j >= al2->Length() )
 			// Didn't find it.
-			delta->Append(al1->Index(i)->Ref());
+			delta->Append(al1->Idx(i));
 		}
 
 	return delta;
@@ -915,7 +898,7 @@ void DNS_Mgr::DumpAddrList(FILE* f, ListVal* al)
 	{
 	for ( int i = 0; i < al->Length(); ++i )
 		{
-		const IPAddr& al_i = al->Index(i)->AsAddr();
+		const IPAddr& al_i = al->Idx(i)->AsAddr();
 		fprintf(f, "%s%s", i > 0 ? "," : "", al_i.AsString().c_str());
 		}
 	}

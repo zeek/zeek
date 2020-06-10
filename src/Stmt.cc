@@ -136,7 +136,7 @@ ExprListStmt::ExprListStmt(BroStmtTag t, IntrusivePtr<ListExpr> arg_l)
 	const expr_list& e = l->Exprs();
 	for ( const auto& expr : e )
 		{
-		const BroType* t = expr->Type();
+		const auto& t = expr->GetType();
 		if ( ! t || t->Tag() == TYPE_VOID )
 			Error("value of type void illegal");
 		}
@@ -186,11 +186,11 @@ static BroFile* print_stdout = nullptr;
 
 static IntrusivePtr<EnumVal> lookup_enum_val(const char* module_name, const char* name)
 	{
-	auto id = lookup_ID(name, module_name);
+	const auto& id = lookup_ID(name, module_name);
 	assert(id);
 	assert(id->IsEnumConst());
 
-	EnumType* et = id->Type()->AsEnumType();
+	EnumType* et = id->GetType()->AsEnumType();
 
 	int index = et->Lookup(module_name, name);
 	assert(index >= 0);
@@ -200,9 +200,10 @@ static IntrusivePtr<EnumVal> lookup_enum_val(const char* module_name, const char
 
 static void print_log(const std::vector<IntrusivePtr<Val>>& vals)
 	{
-	auto plval = lookup_enum_val("Log", "PRINTLOG");
-	auto record = make_intrusive<RecordVal>(internal_type("Log::PrintLogInfo")->AsRecordType());
-	auto vec = make_intrusive<VectorVal>(internal_type("string_vec")->AsVectorType());
+	static auto plval = lookup_enum_val("Log", "PRINTLOG");
+	static auto lpli = zeek::id::find_type<RecordType>("Log::PrintLogInfo");
+	auto record = make_intrusive<RecordVal>(lpli);
+	auto vec = make_intrusive<VectorVal>(zeek::id::string_vec);
 
 	for ( const auto& val : vals )
 		{
@@ -211,7 +212,7 @@ static void print_log(const std::vector<IntrusivePtr<Val>>& vals)
 		vec->Assign(vec->Size(), make_intrusive<StringVal>(d.Description()));
 		}
 
-	record->Assign(0, make_intrusive<Val>(current_time(), TYPE_TIME));
+	record->Assign(0, make_intrusive<TimeVal>(current_time()));
 	record->Assign(1, std::move(vec));
 	log_mgr->Write(plval.get(), record.get());
 	}
@@ -227,7 +228,7 @@ IntrusivePtr<Val> PrintStmt::DoExec(std::vector<IntrusivePtr<Val>> vals,
 	BroFile* f = print_stdout;
 	int offset = 0;
 
-	if ( vals.size() > 0 && (vals)[0]->Type()->Tag() == TYPE_FILE )
+	if ( vals.size() > 0 && (vals)[0]->GetType()->Tag() == TYPE_FILE )
 		{
 		f = (vals)[0]->AsFile();
 		if ( ! f->IsOpen() )
@@ -237,7 +238,7 @@ IntrusivePtr<Val> PrintStmt::DoExec(std::vector<IntrusivePtr<Val>> vals,
 		}
 
 	static auto print_log_type = static_cast<BifEnum::Log::PrintLogType>(
-	        internal_val("Log::print_to_log")->AsEnum());
+	        zeek::id::find_val("Log::print_to_log")->AsEnum());
 
 	switch ( print_log_type ) {
 	case BifEnum::Log::REDIRECT_NONE:
@@ -366,7 +367,7 @@ IfStmt::IfStmt(IntrusivePtr<Expr> test,
 	: ExprStmt(STMT_IF, std::move(test)),
 	  s1(std::move(arg_s1)), s2(std::move(arg_s2))
 	{
-	if ( ! e->IsError() && ! IsBool(e->Type()->Tag()) )
+	if ( ! e->IsError() && ! IsBool(e->GetType()->Tag()) )
 		e->Error("conditional in test must be boolean");
 
 	const Location* loc1 = s1->GetLocationInfo();
@@ -530,7 +531,7 @@ void Case::Describe(ODesc* d) const
 			d->SP();
 			d->Add("type");
 			d->SP();
-			t[i]->Type()->Describe(d);
+			t[i]->GetType()->Describe(d);
 
 			if ( t[i]->Name() )
 				{
@@ -580,7 +581,7 @@ static void int_del_func(void* v)
 void SwitchStmt::Init()
 	{
 	auto t = make_intrusive<TypeList>();
-	t->Append({NewRef{}, e->Type()});
+	t->Append(e->GetType());
 	comp_hash = new CompositeHash(std::move(t));
 
 	case_label_value_map.SetDeleteFunc(int_del_func);
@@ -605,10 +606,10 @@ SwitchStmt::SwitchStmt(IntrusivePtr<Expr> index, case_list* arg_cases)
 			{
 			have_exprs = true;
 
-			if ( ! is_atomic_type(e->Type()) )
+			if ( ! is_atomic_type(e->GetType()) )
 				e->Error("switch expression must be of an atomic type when cases are expressions");
 
-			if ( ! le->Type()->AsTypeList()->AllMatch(e->Type(), false) )
+			if ( ! le->GetType()->AsTypeList()->AllMatch(e->GetType(), false) )
 				{
 				le->Error("case expression type differs from switch type", e.get());
 				continue;
@@ -677,9 +678,9 @@ SwitchStmt::SwitchStmt(IntrusivePtr<Expr> index, case_list* arg_cases)
 
 			for ( const auto& t : *tl )
 				{
-				BroType* ct = t->Type();
+				const auto& ct = t->GetType();
 
-	   			if ( ! can_cast_value_to_type(e->Type(), ct) )
+	   			if ( ! can_cast_value_to_type(e->GetType().get(), ct.get()) )
 					{
 					c->Error("cannot cast switch expression to case type");
 					continue;
@@ -718,25 +719,21 @@ SwitchStmt::~SwitchStmt()
 
 bool SwitchStmt::AddCaseLabelValueMapping(const Val* v, int idx)
 	{
-	HashKey* hk = comp_hash->ComputeHash(v, true);
+	auto hk = comp_hash->MakeHashKey(*v, true);
 
 	if ( ! hk )
 		{
 		reporter->PushLocation(e->GetLocationInfo());
 		reporter->InternalError("switch expression type mismatch (%s/%s)",
-		    type_name(v->Type()->Tag()), type_name(e->Type()->Tag()));
+		    type_name(v->GetType()->Tag()), type_name(e->GetType()->Tag()));
 		}
 
-	int* label_idx = case_label_value_map.Lookup(hk);
+	int* label_idx = case_label_value_map.Lookup(hk.get());
 
 	if ( label_idx )
-		{
-		delete hk;
 		return false;
-		}
 
-	case_label_value_map.Insert(hk, new int(idx));
-	delete hk;
+	case_label_value_map.Insert(hk.get(), new int(idx));
 	return true;
 	}
 
@@ -744,7 +741,7 @@ bool SwitchStmt::AddCaseLabelTypeMapping(ID* t, int idx)
 	{
 	for ( auto i : case_label_type_list )
 		{
-		if ( same_type(i.first->Type(), t->Type()) )
+		if ( same_type(i.first->GetType(), t->GetType()) )
 			return false;
 		}
 
@@ -762,29 +759,27 @@ std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const
 	// Find matching expression cases.
 	if ( case_label_value_map.Length() )
 		{
-		HashKey* hk = comp_hash->ComputeHash(v, true);
+		auto hk = comp_hash->MakeHashKey(*v, true);
 
 		if ( ! hk )
 			{
 			reporter->PushLocation(e->GetLocationInfo());
 			reporter->Error("switch expression type mismatch (%s/%s)",
-					type_name(v->Type()->Tag()), type_name(e->Type()->Tag()));
+					type_name(v->GetType()->Tag()), type_name(e->GetType()->Tag()));
 			return std::make_pair(-1, nullptr);
 			}
 
-		if ( auto i = case_label_value_map.Lookup(hk) )
+		if ( auto i = case_label_value_map.Lookup(hk.get()) )
 			label_idx = *i;
-
-		delete hk;
 		}
 
 	// Find matching type cases.
 	for ( auto i : case_label_type_list )
 		{
 		auto id = i.first;
-		auto type = id->Type();
+		const auto& type = id->GetType();
 
-		if ( can_cast_value_to_type(v, type) )
+		if ( can_cast_value_to_type(v, type.get()) )
 			{
 			label_idx = i.second;
 			label_id = id;
@@ -815,8 +810,8 @@ IntrusivePtr<Val> SwitchStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) con
 
 		if ( matching_id )
 			{
-			auto cv = cast_value_to_type(v, matching_id->Type());
-			f->SetElement(matching_id, cv.release());
+			auto cv = cast_value_to_type(v, matching_id->GetType().get());
+			f->SetElement(matching_id, std::move(cv));
 			}
 
 		flow = FLOW_NEXT;
@@ -987,7 +982,7 @@ WhileStmt::WhileStmt(IntrusivePtr<Expr> arg_loop_condition,
 	: loop_condition(std::move(arg_loop_condition)), body(std::move(arg_body))
 	{
 	if ( ! loop_condition->IsError() &&
-	     ! IsBool(loop_condition->Type()->Tag()) )
+	     ! IsBool(loop_condition->GetType()->Tag()) )
 		loop_condition->Error("while conditional must be boolean");
 	}
 
@@ -1067,35 +1062,37 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 	loop_vars = arg_loop_vars;
 	body = nullptr;
 
-	if ( e->Type()->Tag() == TYPE_TABLE )
+	if ( e->GetType()->Tag() == TYPE_TABLE )
 		{
-		const type_list* indices = e->Type()->AsTableType()->IndexTypes();
-		if ( indices->length() != loop_vars->length() )
+		const auto& indices = e->GetType()->AsTableType()->IndexTypes();
+
+		if ( static_cast<int>(indices.size()) != loop_vars->length() )
 			{
 			e->Error("wrong index size");
 			return;
 			}
 
-		for ( int i = 0; i < indices->length(); i++ )
+		for ( auto i = 0u; i < indices.size(); i++ )
 			{
-			BroType* ind_type = (*indices)[i]->Ref();
+			const auto& ind_type = indices[i];
+			const auto& lv = (*loop_vars)[i];
+			const auto& lvt = lv->GetType();
 
-			if ( (*loop_vars)[i]->Type() )
+			if ( lvt )
 				{
-				if ( ! same_type((*loop_vars)[i]->Type(), ind_type) )
-					(*loop_vars)[i]->Type()->Error("type clash in iteration", ind_type);
+				if ( ! same_type(lvt, ind_type) )
+					lvt->Error("type clash in iteration", ind_type.get());
 				}
 
 			else
 				{
-				add_local({NewRef{}, (*loop_vars)[i]},
-						{NewRef{}, ind_type}, INIT_NONE,
-						nullptr, nullptr, VAR_REGULAR);
+				add_local({NewRef{}, lv}, ind_type, INIT_NONE,
+				          nullptr, nullptr, VAR_REGULAR);
 				}
 			}
 		}
 
-	else if ( e->Type()->Tag() == TYPE_VECTOR )
+	else if ( e->GetType()->Tag() == TYPE_VECTOR )
 		{
 		if ( loop_vars->length() != 1 )
 			{
@@ -1103,7 +1100,8 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 			return;
 			}
 
-		BroType* t = (*loop_vars)[0]->Type();
+		const auto& t = (*loop_vars)[0]->GetType();
+
 		if ( ! t )
 			add_local({NewRef{}, (*loop_vars)[0]}, base_type(TYPE_COUNT),
 						INIT_NONE, nullptr, nullptr, VAR_REGULAR);
@@ -1115,7 +1113,7 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 			}
 		}
 
-	else if ( e->Type()->Tag() == TYPE_STRING )
+	else if ( e->GetType()->Tag() == TYPE_STRING )
 		{
 		if ( loop_vars->length() != 1 )
 			{
@@ -1123,7 +1121,8 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 			return;
 			}
 
-		BroType* t = (*loop_vars)[0]->Type();
+		const auto& t = (*loop_vars)[0]->GetType();
+
 		if ( ! t )
 			add_local({NewRef{}, (*loop_vars)[0]},
 					base_type(TYPE_STRING),
@@ -1145,20 +1144,19 @@ ForStmt::ForStmt(id_list* arg_loop_vars,
 	{
 	value_var = std::move(val_var);
 
-	if ( e->Type()->IsTable() )
+	if ( e->GetType()->IsTable() )
 		{
-		BroType* yield_type = e->Type()->AsTableType()->YieldType();
+		const auto& yield_type = e->GetType()->AsTableType()->Yield();
 
 		// Verify value_vars type if its already been defined
-		if ( value_var->Type() )
+		if ( value_var->GetType() )
 			{
-			if ( ! same_type(value_var->Type(), yield_type) )
-				value_var->Type()->Error("type clash in iteration", yield_type);
+			if ( ! same_type(value_var->GetType(), yield_type) )
+				value_var->GetType()->Error("type clash in iteration", yield_type.get());
 			}
 		else
 			{
-			add_local(value_var, {NewRef{}, yield_type}, INIT_NONE,
-			                 nullptr, nullptr, VAR_REGULAR);
+			add_local(value_var, yield_type, INIT_NONE, nullptr, nullptr, VAR_REGULAR);
 			}
 		}
 	else
@@ -1176,7 +1174,7 @@ IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 	{
 	IntrusivePtr<Val> ret;
 
-	if ( v->Type()->Tag() == TYPE_TABLE )
+	if ( v->GetType()->Tag() == TYPE_TABLE )
 		{
 		TableVal* tv = v->AsTableVal();
 		const PDict<TableEntryVal>* loop_vals = tv->AsTable();
@@ -1189,14 +1187,14 @@ IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 		IterCookie* c = loop_vals->InitForIteration();
 		while ( (current_tev = loop_vals->NextEntry(k, c)) )
 			{
-			auto ind_lv = tv->RecoverIndex(k);
+			auto ind_lv = tv->RecreateIndex(*k);
 			delete k;
 
 			if ( value_var )
-				f->SetElement(value_var.get(), current_tev->Value()->Ref());
+				f->SetElement(value_var, current_tev->GetVal());
 
 			for ( int i = 0; i < ind_lv->Length(); i++ )
-				f->SetElement((*loop_vars)[i], ind_lv->Index(i)->Ref());
+				f->SetElement((*loop_vars)[i], ind_lv->Idx(i));
 
 			flow = FLOW_NEXT;
 
@@ -1220,20 +1218,19 @@ IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 			}
 		}
 
-	else if ( v->Type()->Tag() == TYPE_VECTOR )
+	else if ( v->GetType()->Tag() == TYPE_VECTOR )
 		{
 		VectorVal* vv = v->AsVectorVal();
 
 		for ( auto i = 0u; i <= vv->Size(); ++i )
 			{
 			// Skip unassigned vector indices.
-			if ( ! vv->Lookup(i) )
+			if ( ! vv->At(i) )
 				continue;
 
 			// Set the loop variable to the current index, and make
 			// another pass over the loop body.
-			f->SetElement((*loop_vars)[0],
-					val_mgr->GetCount(i));
+			f->SetElement((*loop_vars)[0], val_mgr->Count(i));
 			flow = FLOW_NEXT;
 			ret = body->Exec(f, flow);
 
@@ -1241,14 +1238,14 @@ IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 				break;
 			}
 		}
-	else if ( v->Type()->Tag() == TYPE_STRING )
+	else if ( v->GetType()->Tag() == TYPE_STRING )
 		{
 		StringVal* sval = v->AsStringVal();
 
 		for ( int i = 0; i < sval->Len(); ++i )
 			{
-			f->SetElement((*loop_vars)[0],
-					new StringVal(1, (const char*) sval->Bytes() + i));
+			auto sv = make_intrusive<StringVal>(1, (const char*) sval->Bytes() + i);
+			f->SetElement((*loop_vars)[0], std::move(sv));
 			flow = FLOW_NEXT;
 			ret = body->Exec(f, flow);
 
@@ -1417,21 +1414,21 @@ ReturnStmt::ReturnStmt(IntrusivePtr<Expr> arg_e)
 	{
 	Scope* s = current_scope();
 
-	if ( ! s || ! s->ScopeID() )
+	if ( ! s || ! s->GetID() )
 		{
 		Error("return statement outside of function/event");
 		return;
 		}
 
-	FuncType* ft = s->ScopeID()->Type()->AsFuncType();
-	BroType* yt = ft->YieldType();
+	FuncType* ft = s->GetID()->GetType()->AsFuncType();
+	const auto& yt = ft->Yield();
 
-	if ( s->ScopeID()->DoInferReturnType() )
+	if ( s->GetID()->DoInferReturnType() )
 		{
 		if ( e )
 			{
-			ft->SetYieldType({NewRef{}, e->Type()});
-			s->ScopeID()->SetInferReturnType(false);
+			ft->SetYieldType(e->GetType());
+			s->GetID()->SetInferReturnType(false);
 			}
 		}
 
@@ -1449,7 +1446,7 @@ ReturnStmt::ReturnStmt(IntrusivePtr<Expr> arg_e)
 
 	else
 		{
-		auto promoted_e = check_and_promote_expr(e.get(), yt);
+		auto promoted_e = check_and_promote_expr(e.get(), yt.get());
 
 		if ( promoted_e )
 			e = std::move(promoted_e);
@@ -1632,19 +1629,12 @@ void EventBodyList::Describe(ODesc* d) const
 		StmtList::Describe(d);
 	}
 
-InitStmt::InitStmt(id_list* arg_inits) : Stmt(STMT_INIT)
+InitStmt::InitStmt(std::vector<IntrusivePtr<ID>> arg_inits) : Stmt(STMT_INIT)
 	{
-	inits = arg_inits;
-	if ( arg_inits && arg_inits->length() )
-		SetLocationInfo((*arg_inits)[0]->GetLocationInfo());
-	}
+	inits = std::move(arg_inits);
 
-InitStmt::~InitStmt()
-	{
-	for ( const auto& init : *inits )
-		Unref(init);
-
-	delete inits;
+	if ( ! inits.empty() )
+		SetLocationInfo(inits[0]->GetLocationInfo());
 	}
 
 IntrusivePtr<Val> InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
@@ -1652,27 +1642,28 @@ IntrusivePtr<Val> InitStmt::Exec(Frame* f, stmt_flow_type& flow) const
 	RegisterAccess();
 	flow = FLOW_NEXT;
 
-	for ( const auto& aggr : *inits )
+	for ( const auto& aggr : inits )
 		{
-		BroType* t = aggr->Type();
+		const auto& t = aggr->GetType();
 
-		Val* v = nullptr;
+		IntrusivePtr<Val> v;
 
 		switch ( t->Tag() ) {
 		case TYPE_RECORD:
-			v = new RecordVal(t->AsRecordType());
+			v = make_intrusive<RecordVal>(cast_intrusive<RecordType>(t));
 			break;
 		case TYPE_VECTOR:
-			v = new VectorVal(t->AsVectorType());
+			v = make_intrusive<VectorVal>(cast_intrusive<VectorType>(t));
 			break;
 		case TYPE_TABLE:
-			v = new TableVal({NewRef{}, t->AsTableType()}, {NewRef{}, aggr->Attrs()});
+			v = make_intrusive<TableVal>(cast_intrusive<TableType>(t),
+			                             aggr->GetAttrs());
 			break;
 		default:
 			break;
 		}
 
-		f->SetElement(aggr, v);
+		f->SetElement(aggr, std::move(v));
 		}
 
 	return nullptr;
@@ -1683,14 +1674,14 @@ void InitStmt::Describe(ODesc* d) const
 	AddTag(d);
 
 	if ( ! d->IsReadable() )
-		d->AddCount(inits->length());
+		d->AddCount(inits.size());
 
-	loop_over_list(*inits, i)
+	for ( size_t i = 0; i < inits.size(); ++i )
 		{
 		if ( ! d->IsBinary() && i > 0 )
 			d->AddSP(",");
 
-		(*inits)[i]->Describe(d);
+		inits[i]->Describe(d);
 		}
 
 	DescribeDone(d);
@@ -1701,7 +1692,7 @@ TraversalCode InitStmt::Traverse(TraversalCallback* cb) const
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
 
-	for ( const auto& init : *inits )
+	for ( const auto& init : inits )
 		{
 		tc = init->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
@@ -1750,7 +1741,7 @@ WhenStmt::WhenStmt(IntrusivePtr<Expr> arg_cond,
 	assert(cond);
 	assert(s1);
 
-	if ( ! cond->IsError() && ! IsBool(cond->Type()->Tag()) )
+	if ( ! cond->IsError() && ! IsBool(cond->GetType()->Tag()) )
 		cond->Error("conditional in test must be boolean");
 
 	if ( timeout )
@@ -1758,7 +1749,7 @@ WhenStmt::WhenStmt(IntrusivePtr<Expr> arg_cond,
 		if ( timeout->IsError() )
 			return;
 
-		TypeTag bt = timeout->Type()->Tag();
+		TypeTag bt = timeout->GetType()->Tag();
 		if ( bt != TYPE_TIME && bt != TYPE_INTERVAL )
 			cond->Error("when timeout requires a time or time interval");
 		}

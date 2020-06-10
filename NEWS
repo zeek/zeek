@@ -37,6 +37,20 @@ New Functionality
   and ``udp_content_delivery_ports_orig`` options is determined. The current value
   keeps behavior as it was in previous versions of Zeek.
 
+- Add a file signature to identify ISO9660 disk images (application/x-iso9660-image)
+
+- Add file signature to identify Python bytecode (application/x-python-bytecode)
+
+- Events and hooks are now allowed to have multiple, alternate prototype
+  declarations.  This allows for extending event/hook parameters in a way that
+  won't break an existing user's handlers and also allows users to define their
+  own custom event/hook prototypes that consume a subset of the parameters
+  (convenience of typing/memory/etc).  This feature is documented in detail
+  here: https://docs.zeek.org/en/current/script-reference/types.html#type-event
+
+- Add ``flags`` parameters to ``rdp_connect_request``,
+  ``rdp_negotiation_response``, and ``rdp_negotiation_failure`` events.
+
 Changed Functionality
 ---------------------
 
@@ -76,6 +90,23 @@ Changed Functionality
   raise this event (injecting connections via broccoli) was removed a while ago;
   the event handler served no purpose anymore.
 
+- Reorganize the file signatures to break them out into more groups.  This may
+  break scripts that had been explicitly loading any signature files that moved.
+
+- The DCE/RPC operation string of "NetrLogonSamLogonWithFlags" has been
+  corrected from "NetrLogonSameLogonWithFlags".
+
+- ``TypeList::Types()`` and ``IndexType::IndexTypes()`` now return an
+  ``std::vector`` instead of ``type_list*``
+
+- ``AsRecord()`` and ``AsNonConstRecord()`` have changed to return
+  ``std::vector<IntrusivePtr<Val>>*``.
+
+- ``AsVector()`` has changed to return ``std::vector<IntrusivePtr<Val>>*``.
+
+- ``Attributes::Attrs()`` now returns ``const std::vector<IntrusivePtr<Attr>>&``
+  instead of ``attr_list*``
+
 Removed Functionality
 ---------------------
 
@@ -88,15 +119,20 @@ Removed Functionality
 Deprecated Functionality
 ------------------------
 
-- The ``Func::Call(val_list*, ...)`` method is now deprecated.  The alternate
-  overload taking a ``zeek::Args`` (``std::vector<IntrusivePtr<Val>>``) should
-  be used instead.  There's also now a variadic template that forwards all
-  arguments.
+- The ``plugin::Plugin::HookCallFunction()`` method is deprecated.  Note
+  that compilers will not emit a deprecation warning, but the replacement
+  method to now use is called ``HookFunctionCall`` and uses ``IntrusivePtr``
+  arguments and return value.
+
+- The ``Func::Call(val_list*, ...)`` method is now deprecated.  Use ``Invoke()``
+  instead which takes a ``zeek::Args`` (``std::vector<IntrusivePtr<Val>>``).
+  There's also a variadic template for ``Invoke()`` that forwards all arguments
+  into a ``zeek::Args`` for you.
 
 - The ``EventMgr::QueueEvent()`` and EventMgr::QueueEventFast()`` methods
   are now deprecated, use ``EventMgr::Enqueue()`` instead.
 
-- The ``Connection::ConnectionEvent()`` and
+- The ``Connection::ConnectionEvent()``, ``Connection::Event()``, and
   ``Connection::ConnectionEventFast()`` methods are now deprecated, use
   ``Connection::EnqueueEvent()`` instead.
 
@@ -104,9 +140,108 @@ Deprecated Functionality
   arguments are now deprecated, use the overload that takes a ``zeek::Args``
   instead.
 
-- The ``analyzer::Analyzer::ConnectionEvent()`` and
-  ``analyzer::Analyzer::ConectionEventFast()`` methods are deprecated, use
+- The ``analyzer::Analyzer::ConnectionEvent()``, ``analyzer::Analyzer::Event``,
+  and ``analyzer::Analyzer::ConectionEventFast()`` methods are deprecated, use
   ``analyzer::Analyzer::EnqueueConnEvent()`` instead.
+
+- All ``val_mgr`` methods starting with "Get" are deprecated, use the new
+  ``val_mgr`` methods that return ``IntrusivePtr``.
+
+- ``Connection::BuildConnVal()`` is deprecated, use ``Connection::ConnVal()``.
+
+- ``Analyzer::BuildConnVal()`` is deprecated, use ``Analyzer::ConnVal()``.
+
+- ``BifEvent::generate_`` functions are deprecated, use ``zeek::BifEvent::enqueue_``.
+
+- ``binpac::bytestring_to_val()`` is deprecated, use ``binpac::to_stringval()``.
+
+- ``binpac::string_to_val()`` is deprecated, use ``StringVal`` constructor.
+
+- Returning ``Val*`` from BIFs is deprecated, return ``IntrusivePtr`` instead.
+
+- Various methods of converting protocol structures, like IP or packet headers,
+  to associated ``Val`` type are now deprecated, the deprecation warning
+  message will advise what new method to use instead.
+
+- Various methods of ``Tag`` classes are deprecated with the warning
+  message advising what new method to use instead.
+
+- The ``utf16_bytestring_to_utf8_val()`` function is deprecated, use
+  ``utf16_to_utf8_val()`` instead.
+
+- ``RecordType::FieldType()`` is deprecated, use ``RecordType::GetFieldType()``
+
+- ``BroType::HasField()`` and ``BroType::FieldType()`` are deprecated, use
+  the methods of ``RecordType`` directly.
+
+- ``BroType::YieldType()`` is deprecated, use ``BroType::Yield()``.
+
+- ``ID::AsType()`` is deprecated, use ``ID::IsType()`` and ``ID::GetType()``.
+
+- ``ID::Type()`` is deprecated, use ``ID::GetType()``.
+
+- ``ID::ID_Val()`` is deprecated, use ``ID::GetVal()``.
+
+- ``internal_type()`` is deprecated, use ``zeek::id::find_type()``.
+
+- ``internal_val()`` and ``internal_const_val()`` are deprecated, use
+  ``zeek::id::find_val()`` or ``zeek::id::find_const()``.
+
+- ``internal_func()`` is deprecated, use ``zeek::id::find_func()``.
+
+- ``opt_internal_val()`` is deprecated, use ``lookup_ID()`` or
+  ``zeek::id::find_val()``.
+
+- ``Val::Type()`` is deprecated, use ``Val::GetType``.
+
+- Most global type/value pointers in NetVar.h are deprecated, but one can
+  still always perform the lookup themselves.
+
+- ``Scope::Lookup()`` is deprecated, use ``Scope::Find()``.
+
+- All generated ``BroType*`` names in the ``BifType::`` namespaces are
+  deprecated, but there's an equivalent name in ``zeek::BifType::`` of
+  ``IntrusivePtr`` type to use instead.
+
+- All generated ``BifConst::`` names are deprecated, but there's an
+  equivalent name now in ``zeek::BifCont::``, and changed to ``IntrusivePtr``
+  if the old name was some ``Val*`` type.
+
+- Constructors for ``Val`` types that take a ``BroType*`` are all generally
+  deprecated, with alternatives that instead take an ``IntrusivePtr`` argument.
+
+- ``FuncType::Args()`` is deprecated, use ``FuncType::Params()``.
+
+- ``FuncType::ArgTypes()`` is deprecated, use ``FuncType::ParamList()``.
+
+- ``RecordVal::Assign(int, Val*)`` is deprecated, use the overload taking
+  ``IntrusivePtr``.
+
+- ``RecordVal::Lookup(int)`` is deprecated, use ``RecordVal::GetField(int)``.
+
+- ``RecordVal::LookupWithDefault(int)`` is deprecated, use
+  ``RecordVal::GetFieldOrDefault(int)``.
+
+- ``RecordVal::Lookup(const char*, bool)`` is deprecated, use either
+  ``RecordVal::GetField()`` or ``RecordVal::GetFieldOrDefault()``.
+
+- ``TableVal::Assign`` methods taking raw ``Val*`` are deprecated, use the
+  overloads taking ``IntrusivePtr``.
+
+- ``TableVal::Lookup()`` is deprecated, use ``TableVal::Find()`` or
+  ``TableVal::FindOrDefault()``.
+
+- ``VectorVal::Assign`` and ``Insert`` methods taking raw ``Val*`` are
+  deprecated, use the methods that take ``IntrusivePtr``.
+
+- ``VectorVal::Lookup()`` is deprecated, use ``VectorVal::At()``.
+
+- The file analysis/analyzer API has deprecated methods taking raw
+  ``RecordVal*`` for analyzer arguments and replaced those with methods
+  taking ``IntrusivePtr``.
+
+- The ``Val(double, TypeTag)`` constructor is deprecated, use either
+  ``IntervalVal()``, ``TimeVal()`` or ``DoubleVal()`` constructors.
 
 Zeek 3.1.0
 ==========

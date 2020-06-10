@@ -1,4 +1,1054 @@
 
+3.2.0-dev.762 | 2020-06-09 15:19:15 -0700
+
+  * Restrict Cirrus CI to only zeek repo's branches (Jon Siwek, Corelight)
+
+3.2.0-dev.761 | 2020-06-09 09:39:31 -0700
+
+  * Prevent IP fragment reassembly on packets without minimal IP header (Jon Siwek, Corelight)
+
+    The IP fragment reassembly process assumes a packet contains at least
+    the minimum IP header, but such a check did not previously occur,
+    resulting in a heap buffer over-read.  For example, a self-reported
+    IPv4 IHL field with a value less than minimum IPv4 header length of
+    20 bytes.  Such packets likely aren't routable on their own, but one
+    can create an artifical pcap like that or possibly encapsulate it
+    within another protocol to trigger this bug.
+
+  * Fix potential leak of Analyzers added to tree during Analyzer::Done (Jon Siwek, Corelight)
+
+    Credit to OSS-Fuzz for discovery
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=22630
+
+  * Fix multiple content-transfer-encoding headers causing a memory leak (Jon Siwek, Corelight)
+
+    The MIME analyzer may also leak if it sees many multipart boundary
+    parameters.
+
+    Credit to OSS-Fuzz for discovery
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=22871
+
+  * Fix potential stack overflow in NVT analyzer (Jon Siwek, Corelight)
+
+    The NVT_Analyzer (e.g. as instantiated to support the FTP analyzer)
+    uses a recursive parsing function that may only advance one byte at a
+    time and can easily cause a stack overflow as a result.  This change
+    replaces the recursive calls with equivalent iterative logic.
+
+    Credit to OSS-Fuzz for discovery
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=22898
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=22972
+
+  * Fix NVT analyzer memory leak from multiple telnet authn name options (Jon Siwek, Corelight)
+
+    Credit to OSS-Fuzz for discovery
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=23069
+
+3.2.0-dev.751 | 2020-06-08 22:30:18 +0000
+
+  * GH-999: Stop formatting DHCP Client ID Hardware Type 0 as MAC
+
+    For `DHCP::ClientID$hwtype` fields equal to 0, the `hwaddr` field is
+    no longer misformatted as a MAC and instead just contains the raw bytes
+    seen in the DHCP Client ID Option. (Jon Siwek, Corelight)
+
+3.2.0-dev.749 | 2020-06-08 11:22:45 -0700
+
+  * Remove inline from some static KeyedHash members (Jon Siwek, Corelight)
+
+    Coverity Scan builds currently encounter catastrophic error, claiming
+    alignas requires use on both declaration and definition, so appears to
+    actually not understand "static inline" in combo with alignas.
+
+  * Improve Func.h inclusion (Jon Siwek, Corelight)
+
+    Now forward declares some Broker types since Broker/CAF headers
+    generally slow things down and also Coverity Scan currently has a
+    catastrophic error on some CAF headers.
+
+    Also a few other changes to EventHandler/BifReturnVal to reduce number
+    of places that depend on Func.h.
+
+  * Rename aux/ to auxil/ (Jon Siwek, Corelight)
+
+    Since "aux" is not an allowed file/dir name on Windows.
+
+3.2.0-dev.744 | 2020-06-04 15:11:56 -0700
+
+  * Fix use-after-move of proc_status_file breaking -U flag (Jon Siwek, Corelight)
+
+  * Change Cirrus CI config to use org-level secured variable (Jon Siwek, Corelight)
+
+3.2.0-dev.742 | 2020-06-03 13:29:12 -0700
+
+  * GH-973: Fix the return type of topk_get_top()
+
+    e.g. when using `string` elements it should return `vector of string`,
+    not `vector of list of string` like it did before. (Jon Siwek, Corelight)
+
+3.2.0-dev.740 | 2020-06-03 13:17:26 -0700
+
+  * Deprecate Val(double, TypeTag) ctor, add TimeVal/DoubleVal subclasses
+
+    This also updates all usages of the deprecated Val ctor to use
+    either IntervalVal, TimeVal, or DoubleVal ctors.  The reason for
+    doing away with the old constructor is that using it with TYPE_INTERVAL
+    isn't strictly correct since there exists a more specific subclass,
+    IntervalVal, with overriden ValDescribe() method that ought to be used
+    to print such values in a more descriptive way. (Jon Siwek, Corelight)
+
+3.2.0-dev.738 | 2020-06-02 18:13:50 -0700
+
+  * GH-985: Fix descriptions of double_to_interval() return values (Jon Siwek, Corelight)
+
+    The BIF was not returning an IntervalVal which has an overriden
+    ValDescribe() method that allows for prettier printing like "6.0 secs"
+    instead of just "6.0".
+
+3.2.0-dev.736 | 2020-06-02 12:37:56 -0700
+
+  * Decrease number of CPUs/memory for Cirrus CI tasks (Jon Siwek, Corelight)
+
+3.2.0-dev.735 | 2020-06-02 10:55:43 -0700
+
+  * Change CI script to compile from build/Makefile (Jon Siwek, Corelight)
+
+3.2.0-dev.734 | 2020-06-01 20:44:29 -0700
+
+  * Add missing include in util.cc (Jon Siwek, Corelight)
+
+3.2.0-dev.733 | 2020-06-01 19:25:37 -0700
+
+  * Remove Analyzer.h from bro-bif.h (Tim Wojtulewicz, Corelight)
+
+  * Remove IPAddr.h from Reporter.h (Tim Wojtulewicz, Corelight)
+
+  * Remove the inclusion of Func.h from NetVar.h (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.727 | 2020-06-01 10:57:16 -0700
+
+  * Integrate review feedback
+
+    * Add deprecation for MIME_Entity::ContentType(), use GetContentType()
+
+    * Add deprecation for MIME_Entity::ContentSubType(), use GetContentSubType()
+
+    * Add deprecation for MIME_Message::BuildHeaderVal(), use ToHeaderVal()
+
+    * Add deprecation for MIME_Message::BuildHeaderTable(), use ToHeaderTable()
+
+    * Add deprecation for mime::new_string_val(), use mime::to_stringval()
+
+    * Add deprecation for ARP_Analyzer::ConstructAddrVal(), use ToAddrVal()
+
+    * Add deprecation for ARP_Analyzer::EthAddrToStr(), use ToEthAddrStr()
+
+    * Change the Func::Call() replacement to be named Func::Invoke() (Jon Siwek, Corelight)
+
+  * Switch Broker Val converter visitor to return IntrusivePtr (Jon Siwek, Corelight)
+
+  * Change BroFunc ctor to take const-ref IntrusivePtr<ID> (Jon Siwek, Corelight)
+
+  * Add version of Frame::SetElement() taking IntrusivePtr<ID>
+
+    Expect the version using raw ID* could go away eventually, but this is
+    convenience for the meantime. (Jon Siwek, Corelight)
+
+  * Change Scope/Func inits from id_list* to vector<IntrusivePtr<ID>> (Jon Siwek, Corelight)
+
+  * Change Scope::GenerateTemporary() to return IntrusivePtr (Jon Siwek, Corelight)
+
+  * Deprecate Scope::ReturnType(), replace with GetReturnType() (Jon Siwek, Corelight)
+
+  * Deprecate Scope::ScopeID(), replace with GetID() (Jon Siwek, Corelight)
+
+  * Switch parsing to use vector<IntrusivePtr<Attr>> from attr_list
+
+    This allows improved passing/storing of Attr references to Exprs,
+    TypeDecl, Scope, etc. (Jon Siwek, Corelight)
+
+  * Deprecate TableVal::FindAttr(), replace with GetAttr() (Jon Siwek, Corelight)
+
+  * Deprecate TypeDecl::FindAttr(), replace with GetAttr() (Jon Siwek, Corelight)
+
+  * Deprecate ID::FindAttr(), replace with GetAttr() (Jon Siwek, Corelight)
+
+  * Deprecate Attributes::FindAttr(), replace with Find() (Jon Siwek, Corelight)
+
+  * Deprecate Attributes::AddAttrs(Attributes*)
+
+    Replaced with version taking an IntrusivePtr parameter (Jon Siwek, Corelight)
+
+  * Add Attributes ctor that takes IntrusivePtrs (Jon Siwek, Corelight)
+
+  * Change Attributes to store std:vector<IntrusivePtr<Attr>>
+
+    This also changes the return type of Attributes::Attrs() from attr_list* (Jon Siwek, Corelight)
+
+  * Change Attr::SetAttrExpr() to non-template (Jon Siwek, Corelight)
+
+  * Deprecate Attr::AttrExpr(), replace with GetExpr() (Jon Siwek, Corelight)
+
+  * Deprecate ID::Attrs(), replace with GetAttrs() (Jon Siwek, Corelight)
+
+  * Remove weak_ref param from ID::SetVal()
+
+    It was not used anywhere. (Jon Siwek, Corelight)
+
+  * Store weak ref boolean along with Frame element Vals (Jon Siwek, Corelight)
+
+  * Deprecate Frame::GetElement(ID*), replace with GetElementByID() (Jon Siwek, Corelight)
+
+  * Deprecate Frame::NthElement(), replace with GetElement() (Jon Siwek, Corelight)
+
+  * Switch Frame::SetElement() to use IntrusivePtr (Jon Siwek, Corelight)
+
+  * Store IntrusivePtrs in Frame (Jon Siwek, Corelight)
+
+  * Deprecate Plugin::HookCallFunction(), replace with HookFunctionCall()
+
+    This also changes the argument type of Func::operator() to zeek::Args*
+    to allow plugins to be able to alter function arguments in place as
+    was previously documented. (Jon Siwek, Corelight)
+
+  * Switch plugin::Manager::HookCallFunction() to return IntrusivePtr
+
+    The plugin::Plugin side of things is not (yet) changed. (Jon Siwek, Corelight)
+
+  * Port remaining file analysis API to use IntrusivePtr (Jon Siwek, Corelight)
+
+  * Deprecate file analyzer construction methods taking raw RecordVal*
+
+    Replaced with versions that instead take IntrusivePtr (Jon Siwek, Corelight)
+
+  * Deprecate file_analysis::Analyzer::Args(), replace with GetArgs() (Jon Siwek, Corelight)
+
+  * Deprecate file_analysis::File::GetVal(), replace with ToVal() (Jon Siwek, Corelight)
+
+  * Change file_analysis::File::GetID() to return const-ref (Jon Siwek, Corelight)
+
+  * Fix build: some don't like IntrusivePtr default arg w/ incomplete type (Jon Siwek, Corelight)
+
+  * Change bro_broker::DataVal::ScriptDataType() to IntrusivePtr (Jon Siwek, Corelight)
+
+  * Change find_nested_record_types() to take IntrusivePtr (Jon Siwek, Corelight)
+
+  * Deprecate TypeType::Type(), replace with GetType() (Jon Siwek, Corelight)
+
+  * Add is_assignable() overload taking TypeTag (Jon Siwek, Corelight)
+
+  * Add is_atomic_type() overloads for IntrusivePtr (Jon Siwek, Corelight)
+
+  * Add same_type() overloads for IntrusivePtr args (Jon Siwek, Corelight)
+
+  * Change merge_types() to take IntrusivePtrs (Jon Siwek, Corelight)
+
+  * Deprecate IndexType::Indices(), replace with GetIndices() (Jon Siwek, Corelight)
+
+  * Add is_vector() methods taking const-ref IntrusivePtr (Jon Siwek, Corelight)
+
+  * Factor static-local nil IntrusivePtrs to global locations
+
+    Minor optimization to remove any run-time impact. (Jon Siwek, Corelight)
+
+  * Deprecate VectorVal::Lookup(), replace with At() (Jon Siwek, Corelight)
+
+  * Switch VectorVal BroValUnion to store std::vector<IntrusivePtr<Val>>
+
+    This changes the return type of AsVector() from std::vector<Val*>* (Jon Siwek, Corelight)
+
+  * Deprecate VectorVal::Insert() taking raw Val*, use IntrusivePtr (Jon Siwek, Corelight)
+
+  * Deprecate VectorVal::Assign methods taking raw Val*
+
+    And adapt usages to pass in to alternate method taking IntrusivePtr (Jon Siwek, Corelight)
+
+  * Merge remote-tracking branch 'origin/master' into topic/jsiwek/gh-893-intrusive-ptr-migration (Jon Siwek, Corelight)
+
+  * Change EventHandler to store IntrusivePtr<Func>
+
+    Also deprecates the LocalHandler() and SetLocalHandler() methods,
+    replaced with GetFunc() and SetFunc(). (Jon Siwek, Corelight)
+
+  * Add Val::AsFuncPtr() convenience method
+
+    Since it's not trivial to store IntrusivePtr in BroValUnion and also
+    not satisfying to store IntrusivePtr*. (Jon Siwek, Corelight)
+
+  * Deprecate StringVal::Substitute(), replace with Replace() (Jon Siwek, Corelight)
+
+  * Switch a TableVal::CallChangeFunc param to IntrusivePtr (Jon Siwek, Corelight)
+
+  * Fix ambiguous ODesc::Add() call (Jon Siwek, Corelight)
+
+  * Minor TableVal::Assign() ref-counting optimization (Jon Siwek, Corelight)
+
+  * Improve TableVal HashKey management
+
+    * Deprecated ComputeHash() methods and replaced with MakeHashKey()
+      which returns std::unique_ptr<HashKey>
+
+    * Deprecated RecoverIndex() and replaced with RecreateIndex()
+      which takes HashKey& and returns IntrusivePtr.
+
+    * Updated the new TableVal Assign()/Remove() methods to take either
+      std::unique_ptr<HashKey> or HashKey& as appropriate for clarity of
+      ownership expectations. (Jon Siwek, Corelight)
+
+  * Add back in a deprecated TableVal ctor taking raw pointers (Jon Siwek, Corelight)
+
+  * Deprecate TableVal::Attrs(), replace with GetAttrs() (Jon Siwek, Corelight)
+
+  * Deprecate TableVal::Delete(), replace with Remove() (Jon Siwek, Corelight)
+
+  * Switch Func::Call(val_list*) back to returning Val*
+
+    And renamed the method returning IntrusivePtr to operator().
+    This corrects the deprecation process for Func::Call(val_list*). (Jon Siwek, Corelight)
+
+  * Deprecate TableVal::Lookup(), replace with Find()/FindOrDefault() (Jon Siwek, Corelight)
+
+  * Deprecate TableVal IsSubsetOf and EqualTo taking Val*, use Val& (Jon Siwek, Corelight)
+
+  * Deprecate ComputeHash(Val*) methods, replace with ComputeHash(Val&) (Jon Siwek, Corelight)
+
+  * Deprecate TableVal::Intersect(), replace with Intersection() (Jon Siwek, Corelight)
+
+  * Deprecate TableVal::Assign methods with Val*, add IntrusivePtr overloads (Jon Siwek, Corelight)
+
+  * Deprecate RecordVal::Lookup(const char*, bool)
+
+    Replace with GetField(const char*) and GetFieldOrDefault(const char*). (Jon Siwek, Corelight)
+
+  * Deprecate RecordVal::LookupWithDefault() replace with GetFieldOrDefault()
+
+    (The former was previously changed during this release cycle to return
+    Intrusive pointer, but this just changes it back to return Val* and
+    deprecates it). (Jon Siwek, Corelight)
+
+  * Deprecate RecordVal::Lookup(int), replace with GetField(int) (Jon Siwek, Corelight)
+
+  * Change BroValUnion to use IntrusivePtr for record field storage
+
+    This also changes the AsRecord() and AsNonConstRecord() accessors
+    to return std::vector<IntrusivePtr<Val>>* instead of val_list* (Jon Siwek, Corelight)
+
+  * Switch ASN1 Val conversion functions to return IntrusivePtr (Jon Siwek, Corelight)
+
+  * Deprecate RecordVal::Assign(int, Val*)
+
+    And adapt all usages to the existing overload taking IntrusivePtr. (Jon Siwek, Corelight)
+
+  * Switch RPC analyzers to use IntrusivePtr (Jon Siwek, Corelight)
+
+  * Switch RecordVal::CoerceTo() to use IntrusivePtr (Jon Siwek, Corelight)
+
+  * Deprecate TableEntryVal::Value(), replace with GetVal() (Jon Siwek, Corelight)
+
+  * Switch OpaqueVal::SerializeType() to IntrusivePtr (Jon Siwek, Corelight)
+
+  * Switch BlommFilterVal/CardinalityVal to use IntrusivePtr<BroType> (Jon Siwek, Corelight)
+
+  * Switch some TopkVal methods to use IntrusivePtr (Jon Siwek, Corelight)
+
+  * Switch TopkVal to store IntrusivePtr<BroType> (Jon Siwek, Corelight)
+
+  * Switch OpaqueVal::UnserializeType() to return IntrusivePtr (Jon Siwek, Corelight)
+
+  * Deprecate FuncType::ArgTypes(), replace with ParamList() (Jon Siwek, Corelight)
+
+  * Deprecate FuncType::Args(), replace with Params() (Jon Siwek, Corelight)
+
+  * Deprecate EventHandler::FType(), replace with GetType() (Jon Siwek, Corelight)
+
+  * Deprecate BroFile::FType(), replace with GetType() (Jon Siwek, Corelight)
+
+  * Deprecate Func::FType(), replace with Func::GetType() (Jon Siwek, Corelight)
+
+  * Change {Get,Set}ContentsFile() to use IntrusivePtr (Jon Siwek, Corelight)
+
+  * Deprecate BroFile::GetFile(), replace with BroFile::Get() (Jon Siwek, Corelight)
+
+  * Deprecate Val(BroFile*) ctor, replace with one using IntrusivePtr (Jon Siwek, Corelight)
+
+  * Deprecate Val(Func*) ctor, replace with one using IntrusivePtr (Jon Siwek, Corelight)
+
+  * Deprecate OpaqueVal/HashVal ctors that take OpaqueType*
+
+    Replaced with ones that take IntrusivePtr (Jon Siwek, Corelight)
+
+  * fixup! Deprecate Scope::Lookup(), replace with Scope::Find() (Jon Siwek, Corelight)
+
+  * Switch EnumType::GetVal() to return const-ref (Jon Siwek, Corelight)
+
+  * Change protected EnumVal ctor to use IntrusivePtr (Jon Siwek, Corelight)
+
+  * Deprecate RecordVal(RecordType*) ctor
+
+    Replaced with one that takes IntrusivePtr (Jon Siwek, Corelight)
+
+  * Switch zeek::id::lookup to zeek::id::find
+
+    For parity with Scope since it now uses Find instead of Lookup (Jon Siwek, Corelight)
+
+  * Use zeek::BifEvent:: for enqueue_ functions instead of BifEvent:: (Jon Siwek, Corelight)
+
+  * Replace deprecated usage of BifFunc:: with zeek::BifFunc::
+
+    Names of functions also changed slightly, like bro_fmt -> fmt_bif.
+
+    Should generally be unusual/unexpected to see somone calling these
+    directly from C++ in their plugin, but since technically possible in
+    previous versions, I also removed the "private" restriction on accessing
+    the BifReturnVal member. (Jon Siwek, Corelight)
+
+  * Deprecate names in BifConst, replace with zeek::BifConst
+
+    Some Val* types are also replaced with IntrusivePtr at the new location (Jon Siwek, Corelight)
+
+  * Deprecate all BroType* in BifType:: namespace
+
+    Replaced with equivalently named IntrusivePtr in zeek::BifType:: (Jon Siwek, Corelight)
+
+  * Change EventRegistry/EventHandler methods to use std::string{_view} (Jon Siwek, Corelight)
+
+  * Deprecate internal_handler(), replace with EventRegistry::Register()
+
+    Added a couple explicit event declarations that were missing: "net_done"
+    and "dns_mapping_name_changed". (Jon Siwek, Corelight)
+
+  * Deprecate remaining "opt_internal" functions in Var.h (Jon Siwek, Corelight)
+
+  * Remove signal_val declaration from Var.h (Jon Siwek, Corelight)
+
+  * Change zeek::id::lookup functions to use std::string_view (Jon Siwek, Corelight)
+
+  * Change Scope::Find() and Scope::Remove() to use std::string_view (Jon Siwek, Corelight)
+
+  * Change lookup_ID() to return a const-reference (Jon Siwek, Corelight)
+
+  * Deprecate Scope::Lookup(), replace with Scope::Find() (Jon Siwek, Corelight)
+
+  * Move various elements into ID.h and zeek::id namespace
+
+    * A handful of generic/useful/common global type pointers that used
+      to be in NetVar.h
+
+    * Lookup functions that used to be Var.h (Jon Siwek, Corelight)
+
+  * Trim the list of "global type pointers" from NetVar.h further
+
+    Most of them are deprecated now, with usage sites now doing the lookup
+    themselves. (Jon Siwek, Corelight)
+
+  * Deprecate global Val pointers in NetVar.h
+
+    All of these have fairly niche uses, so better maintained as
+    lookup/static closer to the usage site. (Jon Siwek, Corelight)
+
+  * Deprecate global type pointers in NetVar.h
+
+    There's analogous IntrusivePtrs in zeek::vars (Jon Siwek, Corelight)
+
+  * Add RecordVal ctor that takes IntrusivePtr (Jon Siwek, Corelight)
+
+  * Remove unused FlattenExpr (Jon Siwek, Corelight)
+
+  * Add missing "vector_coerce" to expr_name() (Jon Siwek, Corelight)
+
+  * Deprecate Expr::Type(), replace with GetType() (Jon Siwek, Corelight)
+
+  * Deprecate Val::Type(), replace with GetType() (Jon Siwek, Corelight)
+
+  * Change Val to store IntrusivePtr (Jon Siwek, Corelight)
+
+  * Remove VectorVal::vector_type member (Jon Siwek, Corelight)
+
+  * Deprecate VectorVal(VectorType*) ctora
+
+    Adds a new one taking an IntrusivePtr. (Jon Siwek, Corelight)
+
+  * Deprecate internal_list_val() (Jon Siwek, Corelight)
+
+  * Deprecate opt_internal_val() (Jon Siwek, Corelight)
+
+  * Deprecate internal_func(), replace with zeek::lookup_func() (Jon Siwek, Corelight)
+
+  * Deprecate internal_val() and internal_const_val()
+
+    Replaced with zeek::lookup_val() and zeek::lookup_const() (Jon Siwek, Corelight)
+
+  * Deprecate internal_type(), replace with zeek::lookup_type() (Jon Siwek, Corelight)
+
+  * Deprecate ID::ID_Val(), replace with ID::GetVal() (Jon Siwek, Corelight)
+
+  * Use std::move in some zeekygen::Manager methods (Jon Siwek, Corelight)
+
+  * Add Val TypeType constructor taking an IntrusivePtr (Jon Siwek, Corelight)
+
+  * Deprecate ID::Type(), replace with GetType() (Jon Siwek, Corelight)
+
+  * Deprecate ID::AsType(), add ID::IsType() and ID::GetType() (Jon Siwek, Corelight)
+
+  * Deprecate BroType::YieldType(), replace with Yield() (Jon Siwek, Corelight)
+
+  * Change base_type() to return const-ref, deprecate base_type_no_ref() (Jon Siwek, Corelight)
+
+  * Deprecate BroType::GetField() and BroType::HasField() (Jon Siwek, Corelight)
+
+  * Deprecate RecordType::FieldType(), replace with GetFieldType() (Jon Siwek, Corelight)
+
+  * Migrate TypeList to store IntrusivePtrs
+
+    This changes return types of TypeList::Types() and
+    IndexType::IndexTypes() to return std::vector instead of type_list* (Jon Siwek, Corelight)
+
+  * Deprecate TypeList::PureType(), replace with TypeList::GetPureType() (Jon Siwek, Corelight)
+
+  * Deprecate SetType::SetElements(), replace with SetType::Elements() (Jon Siwek, Corelight)
+
+  * Remove unused TableType::ExpandRecordIndex() (Jon Siwek, Corelight)
+
+  * Add cast_intrusive() and make use of it in two spots (Jon Siwek, Corelight)
+
+  * Give make_intrusive() access to protected EnumVal ctor (Jon Siwek, Corelight)
+
+  * Remove two superfluous IntrusivePtr NewRefs in Type.cc (Jon Siwek, Corelight)
+
+  * Change BroType::ShallowClone() to return IntrusivePtr (Jon Siwek, Corelight)
+
+  * Migrate IP.cc to use IntrusivePtr (Jon Siwek, Corelight)
+
+  * Migrate SMB analyzer to use IntrusivePtr
+
+    Deprecates the utf16_bytestring_to_utf8_val() function with replacement
+    being utf16_to_utf8_val(). (Jon Siwek, Corelight)
+
+  * Migrate ARP analyzer to use IntrusivePtr (Jon Siwek, Corelight)
+
+  * Migrate HTTP/MIME analyzers to use IntrusivePtr (Jon Siwek, Corelight)
+
+  * Migrate ICMP analyzer to use IntrusivePtr (Jon Siwek, Corelight)
+
+  * Migrate DNS analyzer to use IntrusivePtr (Jon Siwek, Corelight)
+
+  * Migrate Tag classes to use IntrusivePtr
+
+    Deprecates various methods that previously took raw pointers (Jon Siwek, Corelight)
+
+  * Deprecate TableVal::ConvertToList() and TableVal::ConvertToPureList()
+
+    Replaced with ToListVal() and ToPureListVal() that return IntrusivePtr (Jon Siwek, Corelight)
+
+  * Switch ListVal to store IntrusivePtrs
+
+    * Deprecates ListVal::Index() methods and replaces with ListVal::Idx()
+
+    * Replaces ListVal::Vals() method with one that returns
+      std::vector<IntrusivePtr<Val>> rather than val_list (Jon Siwek, Corelight)
+
+  * Deprecant ListVal::Append(Val*) and add IntrusivePtr version (Jon Siwek, Corelight)
+
+  * Deprecate ListVal::ConvertToSet(), add ListVal::ToSetVal() (Jon Siwek, Corelight)
+
+  * Deprecate TunnelEncapsulation BuildRecordVal/BuildVectorVal methods
+
+    Replaced with ToVal methods that return IntrusivePtr (Jon Siwek, Corelight)
+
+  * Deprecate various IP/packet header Val-building methods
+
+    And supply new alternatives that use IntrusivePtr (Jon Siwek, Corelight)
+
+  * Update submodule(s)
+
+     [nomail] (Jon Siwek, Corelight)
+
+
+3.2.0-dev.573 | 2020-05-29 17:13:36 -0700
+
+  * Add "Known::service_udp_requires_response" option (Jon Siwek, Corelight)
+
+    Determines whether to require UDP server response before considering
+    an active service to log in known_services.log.
+
+  * Update known-services.zeek logic for "active" TCP services (Jon Siwek, Corelight)
+
+    To better check for only endpoints that either have observed a TCP handshake
+    or else assumed to have done one in the past (partial connections, missed
+    the handshake, but now see data/acks from server)
+
+  * Log services with unknown protocol names (Michael Dopheide)
+
+  * GH-989: Fix crash on using some deprecated environment variables (Jon Siwek, Corelight)
+
+3.2.0-dev.570 | 2020-05-28 14:49:10 -0700
+
+  * Add negotiation flags parameter to some RDP events (Anthony Kasza, Corelight)
+
+    Namely rdp_connect_request, rdp_negotiation_response, and rdp_negotiation_failure
+
+  * Update test baselines for new Broker connection status/error strings (Jon Siwek, Corelight)
+
+3.2.0-dev.565 | 2020-05-26 21:55:54 +0000
+
+  * Add DCE-RPC constants from BZAR project (V)
+
+3.2.0-dev.562 | 2020-05-26 11:06:34 -0700
+
+  * GH-979: Update libkqueue to fix use on CentOS 6 (Jon Siwek, Corelight)
+
+3.2.0-dev.561 | 2020-05-21 13:05:39 -0700
+
+  * GH-983: Fix opaque Broker types lacking a Type after (de)serialization (Jon Siwek, Corelight)
+
+3.2.0-dev.559 | 2020-05-21 13:04:19 -0700
+
+  * Make SendEvent callable from all threads
+
+    This commit refactors the SendEvent call and moves it from the Input
+    ReaderBackend to to MsgThread. This allows all other types of threads
+    to access this functionality.
+
+    This necessitated a few more changes. Most importantly, one of the
+    ValueToVal methods was moved over to SerialTypes. Whereit arguably
+    belongs - there was nothing that was input-framework specific in
+    that method - and the functionality could come in useful in a number
+    of cases. (Johanna Amann, Corelight)
+
+3.2.0-dev.557 | 2020-05-21 11:41:12 -0700
+
+  * Speed up FuzzBuffer ChunkCount validity check (Justin Azoff, Corelight)
+
+3.2.0-dev.555 | 2020-05-20 11:19:08 -0700
+
+  * Disable output of Reporter messages to stderr in fuzz targets (Jon Siwek, Corelight)
+
+3.2.0-dev.554 | 2020-05-20 10:56:46 -0700
+
+  * Improve standalone fuzz driver timing output (Jon Siwek, Corelight)
+
+  * Skip fuzz inputs that have more than 64 chunks (Justin Azoff, Corelight)
+
+3.2.0-dev.550 | 2020-05-19 10:50:42 -0700
+
+  * Upgrade to latest Broker changes for CAF 0.18 (Dominik Charousset, Corelight)
+
+  * Include pcap.h instead of pcap/dlt.h in packet-fuzzer (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.547 | 2020-05-18 10:47:54 -0700
+
+  * add packet fuzzer (Justin Azoff)
+
+  * Fix building fuzz targets on macOS (Jon Siwek, Corelight)
+
+  * Highwayhash: small build fix (Johanna Amann, Corelight)
+
+    Turns out that hh_neon should not be compiled on generic arm CPUs.
+    That one is only for aarch64.
+
+3.2.0-dev.539 | 2020-05-15 19:47:55 +0000
+
+  * Replace bzero() with memset() (Noah Treuhaft)
+
+  * Change Coverity action to output build log (Jon Siwek, Corelight)
+
+3.2.0-dev.530 | 2020-05-13 15:05:31 -0700
+
+  * GH-906: Fix the regex in url.zeek to better match for find_all_urls (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.526 | 2020-05-13 13:49:29 -0700
+
+  * Hash unification: address PR feedback (Johanna Amann, Corelight)
+
+  * Update architecture checks for highwayhash
+
+    Now we use cmake to determine which compiler flags are set to
+    determine which implementation of highwayhash to compile. This should
+    be much more robust.
+
+    Also - fix missing include on old ubuntus. (Johanna Amann, Corelight)
+
+  * Highwayhas: unbreak 32 bit compiles (Johanna Amann, Corelight)
+
+  * Update external test suites for hash changes. (Johanna Amann, Corelight)
+
+  * Hashing: Remove unnecessary include (Johanna Amann, Corelight)
+
+  * Merge remote-tracking branch 'origin/master' into topic/johanna/hash-unification (Johanna Amann, Corelight)
+
+  * Add highwayhash in a more cmake-y way (Johanna Amann, Corelight)
+
+  * Remove highwayhash submodule.
+
+    It is moving to 3rdparty... (Johanna Amann, Corelight)
+
+  * Merge remote-tracking branch 'origin/master' into topic/johanna/hash-unification (Johanna Amann, Corelight)
+
+  * Switch file UID hashing from md5 to highwayhash.
+
+    This commit switches UID hashing from md5 to a highway hash. It also
+    moves the salt value out of the file plugin - and makes it
+    installation-specific instead - it is moved to the global namespace.
+
+    There now are digest hash functions to make "static"
+    installation-specific hashes that are stable over workers available to
+    everyone; hashes can be 64, 128 or 256 bits in size.
+
+    Due to the fact that we switch the file hashing algorithm, all file
+    hashes change.
+
+    The underlyigng algorithm that is used for hashing is highwayhash-128,
+    which is significantly faster than md5. (Johanna Amann, Corelight)
+
+  * Switch most internal md5 calls to digest calls.
+
+    The places that used md5 basically already used it as a digest
+    algorithm. Switching to a digest just means that the internal values
+    used to not change between runs - which is actually wanted in these
+    cases.
+
+    This commit also removes our special cmake subdirectory. We don't expose
+    highwayhash in headers anymore - so we can just treat it as an internal
+    implementation choice that is not directly exposed to plugins. (Johanna Amann, Corelight)
+
+  * Start refactoring hashing.
+
+    This commit moves some of the hash datastructures and code from
+    util.cc into Hash.cc - where it seems more appropriate.
+
+    It also starts to make more Keyed hash functions available - still
+    using siphash as the default 64 bit keyed hash, but also making
+    128 and 256 bit highway hashes available.
+
+    There already are a few other functions that are defined but not
+    yet implemented - these will be "static" keyed hashes - which use
+    an installation specific key. These will be used to, e.g., get
+    rid of md5 hashing for the generation of file UIDs. (Johanna Amann, Corelight)
+
+  * Introduce calculate_digest convenience function
+
+    This function just calculates the chosen digest and returns the result
+    in either the passed buffer, or in a static buffer. Basically a superset
+    to the surprisingly popular internal_md5. (Johanna Amann, Corelight)
+
+  * Remove the siphash->hmac-md5 switch after 36 bytes.
+
+    Currently, siphash is used for strings up to 36 bytes. hmac-md5 is used
+    for longer strings.
+
+    This switch-over is a remnant of the previous hash-function that was
+    used, which apparently was slower with longer input strings.
+
+    This change serves no purpose anymore. I performed a few performance tests
+    on strings of varying sizes:
+
+    For a 40 byte string with 10 million iterations:
+
+    siphash: 0.31 seconds
+    hmac-md5: 3.8 seconds
+
+    For a 1080 byte string with 10 million iterations:
+
+    siphash: 4.2 seconds
+    hmac-md5: 17 seconds
+
+    For a 18360 byte string with 10 million iterations:
+
+    siphash: 69 seconds
+    hmac-md5: 240 seconds
+
+    Hence, this commit removes the use of hmac-md5.
+
+    This change causes reordering of lines in a few logs.
+
+    This commit also changes the datastructure for the seed in probabilistic/Hasher
+    to get rid of a type-punning warning. (Johanna Amann, Corelight)
+
+  * Fix plugin compile problems with highwayhash
+
+    The way this is included is still hacky as hell - but now all tests pass. (Johanna Amann, Corelight)
+
+  * Replace siphash with Google implementation
+
+    This adds the entirety of the highwayhash implementation of Google.
+    This includes siphash as well as severl highwayhash variants - which
+    are faster.
+
+    This first commit only switches out the siphash implementation. All
+    hashes that are generated are exactly the same as before. However, this
+    does make all other hashes available to be used by us.
+
+    I did some performance tests vs the previous siphash implementation by
+    running the 2009-M57-day11-18 trace 100x through both cases. The average
+    runtime was virtually the same (within 0.014 seconds of each other).
+
+    Note that the way that I included the highwayhash implementation in our
+    cmake setup is... well, let's say hacky. This definitely needs to be
+    changed a bit before including this in a real build. (Johanna Amann, Corelight)
+
+
+3.2.0-dev.508 | 2020-05-13 11:16:05 -0700
+
+  * Disable broker tests from building on the CI (Tim Wojtulewicz, Corelight)
+
+    This results in a ~10% reduction in build time.
+
+  * Disable broker documentation examples if disabling broker tests (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.505 | 2020-05-12 18:52:19 -0700
+
+  * Use zeek::detail namespace for fuzzer utils (Jon Siwek, Corelight)
+
+  * Set terminating flag during fuzzer cleanup (Jon Siwek, Corelight)
+
+  * Add missing include to standalone fuzzer driver (Jon Siwek, Corelight)
+
+  * Improve standalone fuzzer driver error messages (Jon Siwek, Corelight)
+
+  * Merge branch 'master' into topic/jsiwek/fuzzing (Jon Siwek, Corelight)
+
+  * Test fuzzers against seed corpus under CI ASan build (Jon Siwek, Corelight)
+
+  * Update fuzzing README with OSS-Fuzz integration notes (Jon Siwek, Corelight)
+
+  * Link fuzzers against shared library to reduce executable sizes (Jon Siwek, Corelight)
+
+  * Improve FuzzBuffer chunking
+
+    Now allocates a new buffer for each chunk to better detect over-reads (Jon Siwek, Corelight)
+
+  * Fix compiler warning in standalone fuzzer driver (Jon Siwek, Corelight)
+
+  * Adjust minor fuzzing documentation (Jon Siwek, Corelight)
+
+  * Exit immediately after running unit tests (Jon Siwek, Corelight)
+
+  * Add OSS-Fuzz Zeek script search path to fuzzers (Jon Siwek, Corelight)
+
+  * Assume libFuzzer when LIB_FUZZING_ENGINE file doesn't exist
+
+    i.e. environment variable may be set, but not point to existing file (Jon Siwek, Corelight)
+
+  * Change handling of LIB_FUZZING_ENGINE
+
+    Should better support OSS-Fuzz, which may set it to either
+    be path to library to link against or linker flag like
+    "-fsanitize=fuzzer" (Jon Siwek, Corelight)
+
+  * Change --enable-fuzzing to --enable-fuzzers
+
+    Since it controls whether to build the fuzzer targets, not whether those
+    fuzzer targets actually use a fuzzing engine. (Jon Siwek, Corelight)
+
+  * Add standalone driver for fuzz targets
+
+    Useful for cases that don't need to use a fuzzing engine, but just run
+    the fuzz targets over some set of inputs, like for regression/CI tests.
+
+    Also added a POP3 fuzzer dictionary, seed corpus, and README with
+    examples. (Jon Siwek, Corelight)
+
+  * Add basic structure for fuzzing targets
+
+    General changes:
+
+    * Add -D/--deterministic command line option as
+      convenience/alternative to -G/--load-seeds (i.e. no file needed, it just
+      uses zero-initialized random seeds).  It also changes Broker data
+      stores over to using deterministic timing rather than real time.
+
+    * Add option to make Reporter abort on runtime scripting errors (Jon Siwek, Corelight)
+
+
+3.2.0-dev.486 | 2020-05-11 11:11:51 -0700
+
+  * Limit rate at which MMDB error/status messages are emitted
+
+    If there's some bad state we can be in where MMDB lookup/open operations
+    consistently fail, then the volume of associated reporter messages can
+    get overwhelmingly large especially if a lookup operation is being done
+    for each network connection.
+
+    This adds a limit of an arbitrary 20 messages every 5 minutes, which
+    should be enough information to understand the overall
+    open/close/lookup-failure pattern. (Jon Siwek, Corelight)
+
+3.2.0-dev.484 | 2020-05-08 11:50:54 -0700
+
+  * Change timer_list in BroList to be an unordered list. (Tim Wojtulewicz, Corelight)
+
+    This type is used by Conn and Analyzer to hold onto timers being added and
+    removed. We don't expect the elements in those lists to maintain an order
+    as the list is being modified.
+
+  * Add ability for List to be ordered/unordered (Tim Wojtulewicz, Corelight)
+
+    This fixes a "bug" with List where remove_nth() can be an O(n) operation
+    when it doesn't need to be. remove_nth for lists that don't necessarily
+    need to keep an order can be an O(1) operation instead.
+
+  * Add unit testing for List (Tim Wojtulewicz, Corelight)
+
+  * Fix bug with List where replace() doesn't work with non-pointer types (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.478 | 2020-05-08 11:47:38 -0700
+
+  * Added examples to set_to_regex comments (James Lagermann, Corelight)
+
+  * Unbreak build on Fedora 32 (gcc 10.0.1) (Johanna Amann, Corelight)
+
+    It requires cstdint in a few more headers.
+
+3.2.0-dev.475 | 2020-05-07 17:15:23 -0700
+
+  * GH-958: Fix crash when trying to redef non-existing enum (Johanna Amann, Corelight)
+
+3.2.0-dev.473 | 2020-05-06 10:40:09 -0700
+
+  * Revert addition of final modifier to JSON formatter (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.471 | 2020-05-06 10:00:58 -0700
+
+  * Fix global buffer over-read in POP3 analyzer (Justin Azoff, Corelight)
+
+  * Fix SSL scripting error leading to access of unitialized field (Jon Siwek, Corelight)
+
+    Reported by Justin Azoff
+
+  * Remove outdated comment on set_to_regex. (Johanna Amann, Corelight)
+
+    We can add patterns at runtime since 2.6.
+
+3.2.0-dev.467 | 2020-05-04 18:00:35 -0700
+
+  * GH-952: Correct spelling of DCE/RPC operation string NetrLogonSameLogonWithFlags
+    (Jon Siwek, Corelight)
+
+3.2.0-dev.466 | 2020-05-04 17:50:14 -0700
+
+  * Add network_time_init() event. (Jan Grashoefer)
+
+    This event is generated upon first initialization of network_time.
+
+3.2.0-dev.461 | 2020-05-04 17:08:46 -0700
+
+  * Avoid scheduling multiple inactivity timers (Justin Azoff and Jon Siwek, Corelight)
+
+    Also updated language.expire_subnet btest which is unduly sensitive to
+    timer-related changes
+
+3.2.0-dev.459 | 2020-05-01 17:46:20 -0700
+
+  * Extend CI config to cover building with libmaxminddb support (Jon Siwek, Corelight)
+
+  * Ensure time continues moving forward if a pcap source is suspended (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.455 | 2020-05-01 09:44:30 -0700
+
+  * GH-938: fix IO loop iterations sometimes skipping offline pcap sources (Jon Siwek, Corelight)
+
+3.2.0-dev.451 | 2020-04-29 16:28:34 -0700
+
+  * Organized and added to the shipped file identification signatures. (Seth Hall, Corelight)
+
+     - Added ISO 9660 disk image
+
+     - Created new files for categorizing signatures better.
+       - executable.sig - Executable (and bytecode) files.
+       - java.sig - Java related files (class/jar, etc).
+       - programming.sig - Mostly scripting language identification
+
+3.2.0-dev.447 | 2020-04-29 15:55:03 -0700
+
+  * GH-713: Fixed misc/stats.zeek skipping a log entry on termination (Brittany Donowho)
+
+3.2.0-dev.445 | 2020-04-29 15:25:03 -0700
+
+  * Add warning message for unknown Broker statuses (Jon Siwek, Corelight)
+
+    There's now a couple placeholder/unimplemented status values in Broker
+    related to upcoming routing features that we don't want to handle
+    explicitly for compatibility reasons, but also don't want the compiler
+    warning about unhandled values in the switch.
+
+3.2.0-dev.443 | 2020-04-28 17:10:38 -0700
+
+  * GH-941: Fix build when configured to use libmaxminddb (Jon Siwek, Corelight)
+
+3.2.0-dev.441 | 2020-04-27 13:34:22 -0700
+
+  * Fix a few more IntrusivePtr deprecation warnings (Tim Wojtulewicz, Corelight)
+
+  * Fix cloning of TypeType values (Vern Paxson, Corelight)
+
+3.2.0-dev.437 | 2020-04-27 19:30:24 +0000
+
+  * GH-854: provide access to original HTTP/MIME header names
+
+    The "http_header" event now has an "original_name" parameter that allows
+    access to the original header name (the "name" parameter reamins the
+    same as before: it's the uppercased header name).
+
+    The "mime_header_rec" record type now also includes an "original_name"
+    field to similarly provide access to original header name in the
+    following events: "http_all_headers", "mime_one_header", and
+    "mime_all_headers". (Jon Siwek, Corelight)
+
+  * Remove error message from empty bloomfilter lookups
+
+    If a bloomfilter doesn't have a type, that just means no
+    bloomfilter_add() has been called yet, so seems undesirable to emit an
+    error for a lookup against something that's known to be empty. (Jon Siwek, Corelight)
+
+  * unused variables found via use-def analysis (plus an indentation micro-nit) (Vern Paxson, Corelight)
+
+3.2.0-dev.431 | 2020-04-27 12:09:30 -0700
+
+  * Update various BIFs to return IntrusivePtr (Jon Siwek, Corelight)
+
+3.2.0-dev.428 | 2020-04-24 16:19:45 -0700
+
+  * Deprecate returning Val* from BIFs (Jon Siwek, Corelight)
+
+  * Deprecate binpac::string_to_val (Jon Siwek, Corelight)
+
+  * Deprecate binpac::bytestring_to_val, replace with binpac::to_stringval (Jon Siwek, Corelight)
+
+  * Update deprecated BifEvent::generate_* usages (Jon Siwek, Corelight)
+
+  * Deprecate Connection::Event and Analyzer::Event methods
+
+    And update usages to the "EnqueueEvent" methods. (Jon Siwek, Corelight)
+
+  * Deprecate BuildConnVal() methods and update usages to ConnVal()
+
+    The later being a new method that returns IntrusivePtr (Jon Siwek, Corelight)
+
+  * Update all BIFs to return IntrusivePtr instead of Val* (Jon Siwek, Corelight)
+
+  * Update deprecated ValManager::GetPort usages (Jon Siwek, Corelight)
+
+  * Update deprecated ValManager::GetEmptyString usages (Jon Siwek, Corelight)
+
+  * Update deprecated ValManager::GetCount usages (Jon Siwek, Corelight)
+
+  * Update deprecated ValManager::GetInt usages (Jon Siwek, Corelight)
+
+  * Update deprecated ValManager::GetBool usages (Jon Siwek, Corelight)
+
+  * Update deprecated ValManager GetTrue/GetFalse usages (Jon Siwek, Corelight)
+
+  * Deprecate all ValManager "Get" methods
+
+    Alternate methods that return IntrusivePtr are available in similarly
+    named methods that omit the "Get" prefix. (Jon Siwek, Corelight)
+
+  * Change BIFs to return a wrapper object
+
+    That allows returning either Val* or IntrusivePtr<T>.  The former could
+    eventually be deprecated, but it's used extensively at the moment. (Jon Siwek, Corelight)
+
+
 3.2.0-dev.412 | 2020-04-22 10:43:39 -0700
 
   * Fix buffer over-read in Ident analyzer (Max Kellermann)

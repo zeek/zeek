@@ -17,11 +17,11 @@ protected:
 			   double last_time, int reply_len) override;
 	uint32_t CheckPort(uint32_t port);
 
-	void Event(EventHandlerPtr f, Val* request, BifEnum::rpc_status status, Val* reply);
+	void Event(EventHandlerPtr f, IntrusivePtr<Val> request, BifEnum::rpc_status status, IntrusivePtr<Val> reply);
 
-	Val* ExtractMapping(const u_char*& buf, int& len);
-	Val* ExtractPortRequest(const u_char*& buf, int& len);
-	Val* ExtractCallItRequest(const u_char*& buf, int& len);
+	IntrusivePtr<Val> ExtractMapping(const u_char*& buf, int& len);
+	IntrusivePtr<Val> ExtractPortRequest(const u_char*& buf, int& len);
+	IntrusivePtr<Val> ExtractCallItRequest(const u_char*& buf, int& len);
 };
 
 class Portmapper_Analyzer : public RPC_Analyzer {

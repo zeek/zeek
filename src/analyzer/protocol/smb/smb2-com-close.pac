@@ -4,10 +4,10 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_close_request )
 			{
-			BifEvent::generate_smb2_close_request(bro_analyzer(),
-			                                      bro_analyzer()->Conn(),
-			                                      BuildSMB2HeaderVal(h),
-			                                      BuildSMB2GUID(${val.file_id}));
+			zeek::BifEvent::enqueue_smb2_close_request(bro_analyzer(),
+			                                     bro_analyzer()->Conn(),
+			                                     BuildSMB2HeaderVal(h),
+			                                     BuildSMB2GUID(${val.file_id}));
 			}
 
 		file_mgr->EndOfFile(bro_analyzer()->GetAnalyzerTag(),
@@ -20,20 +20,20 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb2_close_response )
 			{
-			RecordVal* resp = new RecordVal(BifType::Record::SMB2::CloseResponse);
+			auto resp = make_intrusive<RecordVal>(zeek::BifType::Record::SMB2::CloseResponse);
 
-			resp->Assign(0, val_mgr->GetCount(${val.alloc_size}));
-			resp->Assign(1, val_mgr->GetCount(${val.eof}));
+			resp->Assign(0, val_mgr->Count(${val.alloc_size}));
+			resp->Assign(1, val_mgr->Count(${val.eof}));
 			resp->Assign(2, SMB_BuildMACTimes(${val.last_write_time},
 			                                  ${val.last_access_time},
 			                                  ${val.creation_time},
 			                                  ${val.change_time}));
 			resp->Assign(3, smb2_file_attrs_to_bro(${val.file_attrs}));
 
-			BifEvent::generate_smb2_close_response(bro_analyzer(),
-			                                       bro_analyzer()->Conn(),
-			                                       BuildSMB2HeaderVal(h),
-			                                       resp);
+			zeek::BifEvent::enqueue_smb2_close_response(bro_analyzer(),
+			                                      bro_analyzer()->Conn(),
+			                                      BuildSMB2HeaderVal(h),
+			                                      std::move(resp));
 			}
 
 		return true;

@@ -315,12 +315,12 @@ event ssl_alert(c: connection, is_orig: bool, level: count, desc: count) &priori
 
 event ssl_established(c: connection) &priority=7
 	{
-	set_session(c);
 	c$ssl$established = T;
 	}
 
 event ssl_established(c: connection) &priority=20
 	{
+	set_session(c);
 	hook ssl_finishing(c);
 	}
 

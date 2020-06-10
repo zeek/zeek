@@ -153,6 +153,8 @@ add_subdirectory(iosource)
 add_subdirectory(logging)
 add_subdirectory(probabilistic)
 
+add_subdirectory(fuzzers)
+
 ########################################################################
 ## bro target
 
@@ -203,16 +205,20 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
 set_source_files_properties(nb_dns.c PROPERTIES COMPILE_FLAGS
                             -fno-strict-aliasing)
 
+set_source_files_properties(legacy-netvar-init.cc PROPERTIES COMPILE_FLAGS
+                            -Wno-deprecated-declarations)
+
 set(MAIN_SRCS
-    main.cc
     digest.cc
     net_util.cc
     util.cc
     module_util.cc
     zeek-affinity.cc
+    zeek-setup.cc
     Anon.cc
     Attr.cc
     Base64.cc
+    BifReturnVal.cc
     Brofiler.cc
     BroString.cc
     CCL.cc
@@ -246,6 +252,7 @@ set(MAIN_SRCS
     IntSet.cc
     IP.cc
     IPAddr.cc
+    List.cc
     Reporter.cc
     NFA.cc
     Net.cc
@@ -283,6 +290,7 @@ set(MAIN_SRCS
     Var.cc
     WeirdState.cc
     ZeekArgs.cc
+    legacy-netvar-init.cc
     bsd-getopt-long.c
     bro_inet_ntop.c
     patricia.c
@@ -290,7 +298,6 @@ set(MAIN_SRCS
     PacketDumper.cc
     strsep.c
     modp_numtoa.c
-    siphash24.c
 
     supervisor/Supervisor.cc
 
@@ -316,7 +323,45 @@ set(THIRD_PARTY_SRCS
     3rdparty/sqlite3.c
 )
 
-set(bro_SRCS
+# Highwayhash. Highwayhash is a bit special since it has architecture dependent code...
+
+set(HH_SRCS
+    ../auxil/highwayhash/highwayhash/sip_hash.cc
+    ../auxil/highwayhash/highwayhash/sip_tree_hash.cc
+    ../auxil/highwayhash/highwayhash/scalar_sip_tree_hash.cc
+    ../auxil/highwayhash/highwayhash/arch_specific.cc
+    ../auxil/highwayhash/highwayhash/instruction_sets.cc
+    ../auxil/highwayhash/highwayhash/nanobenchmark.cc
+    ../auxil/highwayhash/highwayhash/os_specific.cc
+    ../auxil/highwayhash/highwayhash/hh_portable.cc
+)
+
+if (${COMPILER_ARCHITECTURE} STREQUAL "arm")
+  set_source_files_properties(${HH_SRCS} PROPERTIES COMPILE_FLAGS
+                              -mfloat-abi=hard -march=armv7-a -mfpu=neon)
+elseif (${COMPILER_ARCHITECTURE} STREQUAL "aarch64")
+  list(APPEND HH_SRCS
+       ../auxil/highwayhash/highwayhash/hh_neon.cc
+  )
+elseif (${COMPILER_ARCHITECTURE} STREQUAL "power")
+  set_source_files_properties(../auxil/highwayhash/highwayhash/hh_avx2.cc PROPERTIES COMPILE_FLAGS
+                              -mvsx)
+  list(APPEND HH_SRCS
+       ../auxil/highwayhash/highwayhash/hh_vsc.cc
+  )
+elseif(${COMPILER_ARCHITECTURE} STREQUAL "x86_64")
+  set_source_files_properties(../auxil/highwayhash/highwayhash/hh_avx2.cc PROPERTIES COMPILE_FLAGS
+                              -mavx2)
+  set_source_files_properties(../auxil/highwayhash/highwayhash/hh_sse41.cc PROPERTIES COMPILE_FLAGS
+                              -msse4.1)
+
+  list(APPEND HH_SRCS
+      ../auxil/highwayhash/highwayhash/hh_avx2.cc
+      ../auxil/highwayhash/highwayhash/hh_sse41.cc
+  )
+endif ()
+
+set(zeek_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/version.c
     ${BIF_SRCS}
     ${BINPAC_AUXSRC}
@@ -333,12 +378,20 @@ set(bro_SRCS
     ${BISON_Parser_INPUT}
     ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
     ${THIRD_PARTY_SRCS}
+    ${HH_SRCS}
     ${MAIN_SRCS}
 )
 
-collect_headers(bro_HEADERS ${bro_SRCS})
+collect_headers(zeek_HEADERS ${zeek_SRCS})
 
-add_executable(zeek ${bro_SRCS} ${bro_HEADERS} ${bro_SUBDIR_LIBS} ${bro_PLUGIN_LIBS})
+add_library(zeek_objs OBJECT ${zeek_SRCS})
+
+add_executable(zeek main.cc
+               $<TARGET_OBJECTS:zeek_objs>
+               ${zeek_HEADERS}
+               ${bro_SUBDIR_LIBS}
+               ${bro_PLUGIN_LIBS}
+)
 target_link_libraries(zeek ${zeekdeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 
 if ( NOT "${bro_LINKER_FLAGS}" STREQUAL "" )
@@ -381,12 +434,12 @@ add_dependencies(generate_outputs generate_outputs_stage2a generate_outputs_stag
 # Build __load__.zeek files for standard *.bif.zeek.
 bro_bif_create_loader(bif_loader "${bro_BASE_BIF_SCRIPTS}")
 add_dependencies(bif_loader ${bro_PLUGIN_DEPS} ${bro_SUBDIR_DEPS})
-add_dependencies(zeek bif_loader)
+add_dependencies(zeek_objs bif_loader)
 
 # Build __load__.zeek files for plugins/*.bif.zeek.
 bro_bif_create_loader(bif_loader_plugins "${bro_PLUGIN_BIF_SCRIPTS}")
 add_dependencies(bif_loader_plugins ${bro_PLUGIN_DEPS} ${bro_SUBDIR_DEPS})
-add_dependencies(zeek bif_loader_plugins)
+add_dependencies(zeek_objs bif_loader_plugins)
 
 # Install *.bif.zeek.
 install(DIRECTORY ${CMAKE_BINARY_DIR}/scripts/base/bif DESTINATION ${ZEEK_SCRIPT_INSTALL_PATH}/base)

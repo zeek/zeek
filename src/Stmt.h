@@ -393,20 +393,19 @@ protected:
 
 class InitStmt final : public Stmt {
 public:
-	explicit InitStmt(id_list* arg_inits);
-
-	~InitStmt() override;
+	explicit InitStmt(std::vector<IntrusivePtr<ID>> arg_inits);
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
 
-	const id_list* Inits() const	{ return inits; }
+	const std::vector<IntrusivePtr<ID>>& Inits() const
+		{ return inits; }
 
 	void Describe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	id_list* inits;
+	std::vector<IntrusivePtr<ID>> inits;
 };
 
 class NullStmt final : public Stmt {

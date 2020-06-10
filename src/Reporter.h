@@ -11,7 +11,7 @@
 #include <unordered_set>
 #include <unordered_map>
 
-#include "IPAddr.h"
+#include "BroList.h"
 
 namespace analyzer { class Analyzer; }
 namespace file_analysis { class File; }
@@ -35,6 +35,9 @@ protected:
 	InterpreterException()	{}
 };
 
+class IPAddr;
+class Expr;
+
 #define FMT_ATTR __attribute__((format(printf, 2, 3))) // sic! 1st is "this" I guess.
 
 class Reporter {
@@ -44,7 +47,7 @@ public:
 	using WeirdFlowMap = std::map<IPPair, WeirdCountMap>;
 	using WeirdSet = std::unordered_set<std::string>;
 
-	Reporter();
+	Reporter(bool abort_on_scripting_errors);
 	~Reporter();
 
 	// Initialize reporter-sepcific options	that are defined in script-layer.
@@ -262,6 +265,7 @@ private:
 	bool warnings_to_stderr;
 	bool errors_to_stderr;
 	bool after_zeek_init;
+	bool abort_on_scripting_errors = false;
 
 	std::list<std::pair<const Location*, const Location*> > locations;
 

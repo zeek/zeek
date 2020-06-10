@@ -10,6 +10,7 @@
 
 #include "Reporter.h"
 #include "Desc.h"
+#include "Type.h"
 
 using namespace std;
 using namespace zeekygen;
@@ -183,7 +184,7 @@ void ScriptInfo::DoInitPostScript()
 		if ( ! zeekygen::is_public_api(id) )
 			continue;
 
-		if ( id->AsType() )
+		if ( id->IsType() )
 			{
 			types.push_back(info);
 			DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a type",
@@ -191,9 +192,9 @@ void ScriptInfo::DoInitPostScript()
 			continue;
 			}
 
-		if ( IsFunc(id->Type()->Tag()) )
+		if ( IsFunc(id->GetType()->Tag()) )
 			{
-			switch ( id->Type()->AsFuncType()->Flavor() ) {
+			switch ( id->GetType()->AsFuncType()->Flavor() ) {
 			case FUNC_FLAVOR_HOOK:
 				DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a hook",
 				        id->Name(), name.c_str());
@@ -219,7 +220,7 @@ void ScriptInfo::DoInitPostScript()
 
 		if ( id->IsConst() )
 			{
-			if ( id->FindAttr(ATTR_REDEF) )
+			if ( id->GetAttr(ATTR_REDEF) )
 				{
 				DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a redef_option",
 				        id->Name(), name.c_str());
@@ -243,7 +244,7 @@ void ScriptInfo::DoInitPostScript()
 			continue;
 			}
 
-		if ( id->Type()->Tag() == TYPE_ENUM )
+		if ( id->GetType()->Tag() == TYPE_ENUM )
 			// Enums are always referenced/documented from the type's
 			// documentation.
 			continue;
@@ -257,13 +258,13 @@ void ScriptInfo::DoInitPostScript()
 	// so just manually associating them with scripts for now.
 	if ( name == "base/frameworks/input/main.zeek" )
 		{
-		auto id = global_scope()->Lookup("Input::Reader");
-		types.push_back(new IdentifierInfo({NewRef{}, id}, this));
+		const auto& id = global_scope()->Find("Input::Reader");
+		types.push_back(new IdentifierInfo(id, this));
 		}
 	else if ( name == "base/frameworks/logging/main.zeek" )
 		{
-		auto id = global_scope()->Lookup("Log::Writer");
-		types.push_back(new IdentifierInfo({NewRef{}, id}, this));
+		const auto& id = global_scope()->Find("Log::Writer");
+		types.push_back(new IdentifierInfo(id, this));
 		}
 	}
 

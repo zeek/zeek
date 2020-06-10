@@ -33,7 +33,7 @@ refine connection XMPP_Conn += {
 			{
 			bro_analyzer()->StartTLS();
 			if ( xmpp_starttls )
-				BifEvent::generate_xmpp_starttls(bro_analyzer(), bro_analyzer()->Conn());
+				zeek::BifEvent::enqueue_xmpp_starttls(bro_analyzer(), bro_analyzer()->Conn());
 			}
 		else if ( !is_orig && token == "proceed" )
 			reporter->Weird(bro_analyzer()->Conn(), "XMPP: proceed without starttls");

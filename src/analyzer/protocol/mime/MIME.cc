@@ -109,18 +109,27 @@ bool is_lws(char ch)
 	}
 
 StringVal* new_string_val(int length, const char* data)
-	{
-	return new StringVal(length, data);
-	}
+	{ return to_string_val(length, data).release(); }
 
 StringVal* new_string_val(const char* data, const char* end_of_data)
-	{
-	return new StringVal(end_of_data - data, data);
-	}
+	{ return to_string_val(data, end_of_data).release(); }
 
 StringVal* new_string_val(const data_chunk_t buf)
+	{ return to_string_val(buf).release(); }
+
+IntrusivePtr<StringVal> to_string_val(int length, const char* data)
 	{
-	return new_string_val(buf.length, buf.data);
+	return make_intrusive<StringVal>(length, data);
+	}
+
+IntrusivePtr<StringVal> to_string_val(const char* data, const char* end_of_data)
+	{
+	return make_intrusive<StringVal>(end_of_data - data, data);
+	}
+
+IntrusivePtr<StringVal> to_string_val(const data_chunk_t buf)
+	{
+	return to_string_val(buf.length, buf.data);
 	}
 
 static data_chunk_t get_data_chunk(BroString* s)
@@ -551,8 +560,8 @@ void MIME_Entity::init()
 
 	need_to_parse_parameters = 0;
 
-	content_type_str = new StringVal("TEXT");
-	content_subtype_str = new StringVal("PLAIN");
+	content_type_str = make_intrusive<StringVal>("TEXT");
+	content_subtype_str = make_intrusive<StringVal>("PLAIN");
 
 	content_encoding_str = nullptr;
 	multipart_boundary = nullptr;
@@ -581,8 +590,6 @@ MIME_Entity::~MIME_Entity()
 		            "missing MIME_Entity::EndOfData() before ~MIME_Entity");
 
 	delete current_header_line;
-	Unref(content_type_str);
-	Unref(content_subtype_str);
 	delete content_encoding_str;
 	delete multipart_boundary;
 
@@ -804,10 +811,10 @@ bool MIME_Entity::ParseContentTypeField(MIME_Header* h)
 	data += offset;
 	len -= offset;
 
-	Unref(content_type_str);
-	content_type_str = (new StringVal(ty.length, ty.data))->ToUpper();
-	Unref(content_subtype_str);
-	content_subtype_str = (new StringVal(subty.length, subty.data))->ToUpper();
+	content_type_str = make_intrusive<StringVal>(ty.length, ty.data);
+	content_type_str->ToUpper();
+	content_subtype_str = make_intrusive<StringVal>(subty.length, subty.data);
+	content_subtype_str->ToUpper();
 
 	ParseContentType(ty, subty);
 
@@ -836,6 +843,7 @@ bool MIME_Entity::ParseContentEncodingField(MIME_Header* h)
 		return false;
 		}
 
+	delete content_encoding_str;
 	content_encoding_str = new BroString((const u_char*)enc.data, enc.length, true);
 	ParseContentEncoding(enc);
 
@@ -901,6 +909,7 @@ bool MIME_Entity::ParseFieldParameters(int len, const char* data)
 				}
 
 			data_chunk_t vd = get_data_chunk(val);
+			delete multipart_boundary;
 			multipart_boundary = new BroString((const u_char*)vd.data,
 			                                   vd.length, true);
 			}
@@ -1290,27 +1299,33 @@ void MIME_Entity::DebugPrintHeaders()
 	}
 
 RecordVal* MIME_Message::BuildHeaderVal(MIME_Header* h)
+	{ return ToHeaderVal(h).release(); }
+
+IntrusivePtr<RecordVal> MIME_Message::ToHeaderVal(MIME_Header* h)
 	{
-	RecordVal* header_record = new RecordVal(mime_header_rec);
-	header_record->Assign(0, new_string_val(h->get_name())->ToUpper());
-	header_record->Assign(1, new_string_val(h->get_value()));
+	static auto mime_header_rec = zeek::id::find_type<RecordType>("mime_header_rec");
+	auto header_record = make_intrusive<RecordVal>(mime_header_rec);
+	header_record->Assign(0, to_string_val(h->get_name()));
+	auto upper_hn = to_string_val(h->get_name());
+	upper_hn->ToUpper();
+	header_record->Assign(1, std::move(upper_hn));
+	header_record->Assign(2, to_string_val(h->get_value()));
 	return header_record;
 	}
 
 TableVal* MIME_Message::BuildHeaderTable(MIME_HeaderList& hlist)
+	{ return ToHeaderTable(hlist).release(); }
+
+IntrusivePtr<TableVal> MIME_Message::ToHeaderTable(MIME_HeaderList& hlist)
 	{
-	TableVal* t = new TableVal({NewRef{}, mime_header_list});
+	static auto mime_header_list = zeek::id::find_type<TableType>("mime_header_list");
+	auto t = make_intrusive<TableVal>(mime_header_list);
 
 	for ( unsigned int i = 0; i < hlist.size(); ++i )
 		{
-		Val* index = val_mgr->GetCount(i+1);	// index starting from 1
-
+		auto index = val_mgr->Count(i + 1);	// index starting from 1
 		MIME_Header* h = hlist[i];
-		RecordVal* header_record = BuildHeaderVal(h);
-
-		t->Assign(index, header_record);
-
-		Unref(index);
+		t->Assign(std::move(index), ToHeaderVal(h));
 		}
 
 	return t;
@@ -1366,8 +1381,8 @@ void MIME_Mail::Done()
 		md5_hash = nullptr;
 
 		analyzer->EnqueueConnEvent(mime_content_hash,
-			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(content_hash_length)},
+			analyzer->ConnVal(),
+			val_mgr->Count(content_hash_length),
 			make_intrusive<StringVal>(new BroString(true, digest, 16))
 		);
 		}
@@ -1393,7 +1408,7 @@ void MIME_Mail::BeginEntity(MIME_Entity* /* entity */)
 	cur_entity_id.clear();
 
 	if ( mime_begin_entity )
-		analyzer->EnqueueConnEvent(mime_begin_entity, IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()});
+		analyzer->EnqueueConnEvent(mime_begin_entity, analyzer->ConnVal());
 
 	buffer_start = data_start = 0;
 	ASSERT(entity_content.size() == 0);
@@ -1406,8 +1421,8 @@ void MIME_Mail::EndEntity(MIME_Entity* /* entity */)
 		BroString* s = concatenate(entity_content);
 
 		analyzer->EnqueueConnEvent(mime_entity_data,
-			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(s->Len())},
+			analyzer->ConnVal(),
+			val_mgr->Count(s->Len()),
 			make_intrusive<StringVal>(s)
 		);
 
@@ -1418,7 +1433,7 @@ void MIME_Mail::EndEntity(MIME_Entity* /* entity */)
 		}
 
 	if ( mime_end_entity )
-		analyzer->EnqueueConnEvent(mime_end_entity, IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()});
+		analyzer->EnqueueConnEvent(mime_end_entity, analyzer->ConnVal());
 
 	file_mgr->EndOfFile(analyzer->GetAnalyzerTag(), analyzer->Conn());
 	cur_entity_id.clear();
@@ -1428,8 +1443,8 @@ void MIME_Mail::SubmitHeader(MIME_Header* h)
 	{
 	if ( mime_one_header )
 		analyzer->EnqueueConnEvent(mime_one_header,
-			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, BuildHeaderVal(h)}
+			analyzer->ConnVal(),
+			ToHeaderVal(h)
 		);
 	}
 
@@ -1437,8 +1452,8 @@ void MIME_Mail::SubmitAllHeaders(MIME_HeaderList& hlist)
 	{
 	if ( mime_all_headers )
 		analyzer->EnqueueConnEvent(mime_all_headers,
-			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, BuildHeaderTable(hlist)}
+			analyzer->ConnVal(),
+			ToHeaderTable(hlist)
 		);
 	}
 
@@ -1473,8 +1488,8 @@ void MIME_Mail::SubmitData(int len, const char* buf)
 		int data_len = (buf + len) - data;
 
 		analyzer->EnqueueConnEvent(mime_segment_data,
-			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(data_len)},
+			analyzer->ConnVal(),
+			val_mgr->Count(data_len),
 			make_intrusive<StringVal>(data_len, data)
 		);
 		}
@@ -1520,8 +1535,8 @@ void MIME_Mail::SubmitAllData()
 		delete_strings(all_content);
 
 		analyzer->EnqueueConnEvent(mime_all_data,
-			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(s->Len())},
+			analyzer->ConnVal(),
+			val_mgr->Count(s->Len()),
 			make_intrusive<StringVal>(s)
 		);
 		}
@@ -1548,7 +1563,7 @@ void MIME_Mail::SubmitEvent(int event_type, const char* detail)
 
 	if ( mime_event )
 		analyzer->EnqueueConnEvent(mime_event,
-			IntrusivePtr{AdoptRef{}, analyzer->BuildConnVal()},
+			analyzer->ConnVal(),
 			make_intrusive<StringVal>(category),
 			make_intrusive<StringVal>(detail)
 		);

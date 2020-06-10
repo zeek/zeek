@@ -12,70 +12,76 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb1_session_setup_andx_request )
 			{
-			RecordVal* request = new RecordVal(BifType::Record::SMB1::SessionSetupAndXRequest);
-			RecordVal* capabilities;
+			auto request = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::SessionSetupAndXRequest);
 
-			request->Assign(0, val_mgr->GetCount(${val.word_count}));
+			request->Assign(0, val_mgr->Count(${val.word_count}));
 			switch ( ${val.word_count} ) {
 				case 10:	// pre NT LM 0.12
-					request->Assign(1, val_mgr->GetCount(${val.lanman.max_buffer_size}));
-					request->Assign(2, val_mgr->GetCount(${val.lanman.max_mpx_count}));
-					request->Assign(3, val_mgr->GetCount(${val.lanman.vc_number}));
-					request->Assign(4, val_mgr->GetCount(${val.lanman.session_key}));
+					request->Assign(1, val_mgr->Count(${val.lanman.max_buffer_size}));
+					request->Assign(2, val_mgr->Count(${val.lanman.max_mpx_count}));
+					request->Assign(3, val_mgr->Count(${val.lanman.vc_number}));
+					request->Assign(4, val_mgr->Count(${val.lanman.session_key}));
 
 					request->Assign(5, smb_string2stringval(${val.lanman.native_os}));
 					request->Assign(6, smb_string2stringval(${val.lanman.native_lanman}));
 					request->Assign(7, smb_string2stringval(${val.lanman.account_name}));
-					request->Assign(8, bytestring_to_val(${val.lanman.account_password}));
+					request->Assign(8, to_stringval(${val.lanman.account_password}));
 					request->Assign(9, smb_string2stringval(${val.lanman.primary_domain}));
 
 					break;
 				case 12:	// NT LM 0.12 with extended security
-					capabilities = new RecordVal(BifType::Record::SMB1::SessionSetupAndXCapabilities);
-				 	capabilities->Assign(0, val_mgr->GetBool(${val.ntlm_extended_security.capabilities.unicode}));
-				 	capabilities->Assign(1, val_mgr->GetBool(${val.ntlm_extended_security.capabilities.large_files}));
-				 	capabilities->Assign(2, val_mgr->GetBool(${val.ntlm_extended_security.capabilities.nt_smbs}));
-				 	capabilities->Assign(3, val_mgr->GetBool(${val.ntlm_extended_security.capabilities.status32}));
-				 	capabilities->Assign(4, val_mgr->GetBool(${val.ntlm_extended_security.capabilities.level_2_oplocks}));
-				 	capabilities->Assign(5, val_mgr->GetBool(${val.ntlm_extended_security.capabilities.nt_find}));
+					{
+					auto capabilities = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::SessionSetupAndXCapabilities);
+				 	capabilities->Assign(0, val_mgr->Bool(${val.ntlm_extended_security.capabilities.unicode}));
+				 	capabilities->Assign(1, val_mgr->Bool(${val.ntlm_extended_security.capabilities.large_files}));
+				 	capabilities->Assign(2, val_mgr->Bool(${val.ntlm_extended_security.capabilities.nt_smbs}));
+				 	capabilities->Assign(3, val_mgr->Bool(${val.ntlm_extended_security.capabilities.status32}));
+				 	capabilities->Assign(4, val_mgr->Bool(${val.ntlm_extended_security.capabilities.level_2_oplocks}));
+				 	capabilities->Assign(5, val_mgr->Bool(${val.ntlm_extended_security.capabilities.nt_find}));
 
-					request->Assign(1, val_mgr->GetCount(${val.ntlm_extended_security.max_buffer_size}));
-					request->Assign(2, val_mgr->GetCount(${val.ntlm_extended_security.max_mpx_count}));
-					request->Assign(3, val_mgr->GetCount(${val.ntlm_extended_security.vc_number}));
-					request->Assign(4, val_mgr->GetCount(${val.ntlm_extended_security.session_key}));
+					request->Assign(1, val_mgr->Count(${val.ntlm_extended_security.max_buffer_size}));
+					request->Assign(2, val_mgr->Count(${val.ntlm_extended_security.max_mpx_count}));
+					request->Assign(3, val_mgr->Count(${val.ntlm_extended_security.vc_number}));
+					request->Assign(4, val_mgr->Count(${val.ntlm_extended_security.session_key}));
 
 					request->Assign(5, smb_string2stringval(${val.ntlm_extended_security.native_os}));
 					request->Assign(6, smb_string2stringval(${val.ntlm_extended_security.native_lanman}));
 
-					request->Assign(13, capabilities);
+					request->Assign(13, std::move(capabilities));
+					}
 					break;
 
 				case 13: // NT LM 0.12 without extended security
-					capabilities = new RecordVal(BifType::Record::SMB1::SessionSetupAndXCapabilities);
-				 	capabilities->Assign(0, val_mgr->GetBool(${val.ntlm_nonextended_security.capabilities.unicode}));
-				 	capabilities->Assign(1, val_mgr->GetBool(${val.ntlm_nonextended_security.capabilities.large_files}));
-				 	capabilities->Assign(2, val_mgr->GetBool(${val.ntlm_nonextended_security.capabilities.nt_smbs}));
-				 	capabilities->Assign(3, val_mgr->GetBool(${val.ntlm_nonextended_security.capabilities.status32}));
-				 	capabilities->Assign(4, val_mgr->GetBool(${val.ntlm_nonextended_security.capabilities.level_2_oplocks}));
-				 	capabilities->Assign(5, val_mgr->GetBool(${val.ntlm_nonextended_security.capabilities.nt_find}));
+					{
+					auto capabilities = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::SessionSetupAndXCapabilities);
+				 	capabilities->Assign(0, val_mgr->Bool(${val.ntlm_nonextended_security.capabilities.unicode}));
+				 	capabilities->Assign(1, val_mgr->Bool(${val.ntlm_nonextended_security.capabilities.large_files}));
+				 	capabilities->Assign(2, val_mgr->Bool(${val.ntlm_nonextended_security.capabilities.nt_smbs}));
+				 	capabilities->Assign(3, val_mgr->Bool(${val.ntlm_nonextended_security.capabilities.status32}));
+				 	capabilities->Assign(4, val_mgr->Bool(${val.ntlm_nonextended_security.capabilities.level_2_oplocks}));
+				 	capabilities->Assign(5, val_mgr->Bool(${val.ntlm_nonextended_security.capabilities.nt_find}));
 
-					request->Assign(1, val_mgr->GetCount(${val.ntlm_nonextended_security.max_buffer_size}));
-					request->Assign(2, val_mgr->GetCount(${val.ntlm_nonextended_security.max_mpx_count}));
-					request->Assign(3, val_mgr->GetCount(${val.ntlm_nonextended_security.vc_number}));
-					request->Assign(4, val_mgr->GetCount(${val.ntlm_nonextended_security.session_key}));
+					request->Assign(1, val_mgr->Count(${val.ntlm_nonextended_security.max_buffer_size}));
+					request->Assign(2, val_mgr->Count(${val.ntlm_nonextended_security.max_mpx_count}));
+					request->Assign(3, val_mgr->Count(${val.ntlm_nonextended_security.vc_number}));
+					request->Assign(4, val_mgr->Count(${val.ntlm_nonextended_security.session_key}));
 
 					request->Assign(5, smb_string2stringval(${val.ntlm_nonextended_security.native_os}));
 					request->Assign(6, smb_string2stringval(${val.ntlm_nonextended_security.native_lanman}));
 					request->Assign(7, smb_string2stringval(${val.ntlm_nonextended_security.account_name}));
 					request->Assign(9, smb_string2stringval(${val.ntlm_nonextended_security.primary_domain}));
 
-					request->Assign(10, bytestring_to_val(${val.ntlm_nonextended_security.case_insensitive_password}));
-					request->Assign(11, bytestring_to_val(${val.ntlm_nonextended_security.case_sensitive_password}));
-					request->Assign(13, capabilities);
+					request->Assign(10, to_stringval(${val.ntlm_nonextended_security.case_insensitive_password}));
+					request->Assign(11, to_stringval(${val.ntlm_nonextended_security.case_sensitive_password}));
+					request->Assign(13, std::move(capabilities));
+					}
 					break;
 				}
 
-			BifEvent::generate_smb1_session_setup_andx_request(bro_analyzer(), bro_analyzer()->Conn(), BuildHeaderVal(header), request);
+			zeek::BifEvent::enqueue_smb1_session_setup_andx_request(bro_analyzer(),
+			                                                  bro_analyzer()->Conn(),
+			                                                  SMBHeaderVal(header),
+			                                                  std::move(request));
 			}
 		return true;
 		%}
@@ -84,32 +90,32 @@ refine connection SMB_Conn += {
 		%{
 		if ( smb1_session_setup_andx_response )
 			{
-			RecordVal* response = new RecordVal(BifType::Record::SMB1::SessionSetupAndXResponse);
+			auto response = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::SessionSetupAndXResponse);
+			response->Assign(0, val_mgr->Count(${val.word_count}));
 
-			response->Assign(0, val_mgr->GetCount(${val.word_count}));
 			switch ( ${val.word_count} )
 				{
 				case 3: // pre NT LM 0.12
-					response->Assign(1, val_mgr->GetBool(${val.lanman.is_guest}));
-					response->Assign(2, ${val.lanman.byte_count} == 0 ? val_mgr->GetEmptyString() : smb_string2stringval(${val.lanman.native_os[0]}));
-					response->Assign(3, ${val.lanman.byte_count} == 0 ? val_mgr->GetEmptyString() : smb_string2stringval(${val.lanman.native_lanman[0]}));
-					response->Assign(4, ${val.lanman.byte_count} == 0 ? val_mgr->GetEmptyString() : smb_string2stringval(${val.lanman.primary_domain[0]}));
+					response->Assign(1, val_mgr->Bool(${val.lanman.is_guest}));
+					response->Assign(2, ${val.lanman.byte_count} == 0 ? val_mgr->EmptyString() : smb_string2stringval(${val.lanman.native_os[0]}));
+					response->Assign(3, ${val.lanman.byte_count} == 0 ? val_mgr->EmptyString() : smb_string2stringval(${val.lanman.native_lanman[0]}));
+					response->Assign(4, ${val.lanman.byte_count} == 0 ? val_mgr->EmptyString() : smb_string2stringval(${val.lanman.primary_domain[0]}));
 					break;
 				case 4: // NT LM 0.12
-					response->Assign(1, val_mgr->GetBool(${val.ntlm.is_guest}));
+					response->Assign(1, val_mgr->Bool(${val.ntlm.is_guest}));
 					response->Assign(2, smb_string2stringval(${val.ntlm.native_os}));
 					response->Assign(3, smb_string2stringval(${val.ntlm.native_lanman}));
 					//response->Assign(4, smb_string2stringval(${val.ntlm.primary_domain}));
-					//response->Assign(5, bytestring_to_val(${val.ntlm.security_blob}));
+					//response->Assign(5, to_stringval(${val.ntlm.security_blob}));
 					break;
 				default: // Error!
 					break;
 				}
 
-			BifEvent::generate_smb1_session_setup_andx_response(bro_analyzer(),
-			                                                    bro_analyzer()->Conn(),
-			                                                    BuildHeaderVal(header),
-			                                                    response);
+			zeek::BifEvent::enqueue_smb1_session_setup_andx_response(bro_analyzer(),
+			                                                   bro_analyzer()->Conn(),
+			                                                   SMBHeaderVal(header),
+			                                                   std::move(response));
 			}
 
 		return true;

@@ -12,6 +12,8 @@
 #include "file_analysis/Manager.h"
 
 #include <broker/error.hh>
+#include <broker/expected.hh>
+#include <broker/data.hh>
 
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
@@ -21,8 +23,9 @@
 
 using namespace file_analysis;
 
-file_analysis::X509::X509(RecordVal* args, file_analysis::File* file)
-	: file_analysis::X509Common::X509Common(file_mgr->GetComponentTag("X509"), args, file)
+file_analysis::X509::X509(IntrusivePtr<RecordVal> args, file_analysis::File* file)
+	: file_analysis::X509Common::X509Common(file_mgr->GetComponentTag("X509"),
+	                                        std::move(args), file)
 	{
 	cert_data.clear();
 	}
@@ -51,7 +54,8 @@ bool file_analysis::X509::EndOfFile()
 		hash_final(ctx, buf);
 		std::string cert_sha256 = sha256_digest_print(buf);
 		auto index = make_intrusive<StringVal>(cert_sha256);
-		auto entry = certificate_cache->Lookup(index.get(), false);
+		const auto& entry = certificate_cache->Find(index);
+
 		if ( entry )
 			// in this case, the certificate is in the cache and we do not
 			// do any further processing here. However, if there is a callback, we execute it.
@@ -60,9 +64,8 @@ bool file_analysis::X509::EndOfFile()
 				return false;
 			// yup, let's call the callback.
 
-			cache_hit_callback->Call(IntrusivePtr{NewRef{}, GetFile()->GetVal()},
-			                         std::move(entry),
-			                         make_intrusive<StringVal>(cert_sha256));
+			cache_hit_callback->Invoke(GetFile()->ToVal(), entry,
+			                           make_intrusive<StringVal>(cert_sha256));
 			return false;
 			}
 		}
@@ -79,14 +82,14 @@ bool file_analysis::X509::EndOfFile()
 	X509Val* cert_val = new X509Val(ssl_cert); // cert_val takes ownership of ssl_cert
 
 	// parse basic information into record.
-	RecordVal* cert_record = ParseCertificate(cert_val, GetFile());
+	auto cert_record = ParseCertificate(cert_val, GetFile());
 
 	// and send the record on to scriptland
 	if ( x509_certificate )
 		mgr.Enqueue(x509_certificate,
-		            IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+		            GetFile()->ToVal(),
 		            IntrusivePtr{NewRef{}, cert_val},
-		            IntrusivePtr{NewRef{}, cert_record});
+		            cert_record);
 
 	// after parsing the certificate - parse the extensions...
 
@@ -105,23 +108,22 @@ bool file_analysis::X509::EndOfFile()
 	//
 	// The certificate will be freed when the last X509Val is Unref'd.
 
-	Unref(cert_record); // Unref the RecordVal that we kept around from ParseCertificate
 	Unref(cert_val); // Same for cert_val
 
 	return false;
 	}
 
-RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val, File* f)
+IntrusivePtr<RecordVal> file_analysis::X509::ParseCertificate(X509Val* cert_val, File* f)
 	{
 	::X509* ssl_cert = cert_val->GetCertificate();
 
 	char buf[2048]; // we need a buffer for some of the openssl functions
 	memset(buf, 0, sizeof(buf));
 
-	RecordVal* pX509Cert = new RecordVal(BifType::Record::X509::Certificate);
+	auto pX509Cert = make_intrusive<RecordVal>(zeek::BifType::Record::X509::Certificate);
 	BIO *bio = BIO_new(BIO_s_mem());
 
-	pX509Cert->Assign(0, val_mgr->GetCount((uint64_t) X509_get_version(ssl_cert) + 1));
+	pX509Cert->Assign(0, val_mgr->Count((uint64_t) X509_get_version(ssl_cert) + 1));
 	i2a_ASN1_INTEGER(bio, X509_get_serialNumber(ssl_cert));
 	int len = BIO_read(bio, buf, sizeof(buf));
 	pX509Cert->Assign(1, make_intrusive<StringVal>(len, buf));
@@ -158,8 +160,8 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val, File* f)
 	pX509Cert->Assign(3, make_intrusive<StringVal>(len, buf));
 	BIO_free(bio);
 
-	pX509Cert->Assign(5, make_intrusive<Val>(GetTimeFromAsn1(X509_get_notBefore(ssl_cert), f, reporter), TYPE_TIME));
-	pX509Cert->Assign(6, make_intrusive<Val>(GetTimeFromAsn1(X509_get_notAfter(ssl_cert), f, reporter), TYPE_TIME));
+	pX509Cert->Assign(5, make_intrusive<TimeVal>(GetTimeFromAsn1(X509_get_notBefore(ssl_cert), f, reporter)));
+	pX509Cert->Assign(6, make_intrusive<TimeVal>(GetTimeFromAsn1(X509_get_notAfter(ssl_cert), f, reporter)));
 
 	// we only read 255 bytes because byte 256 is always 0.
 	// if the string is longer than 255, that will be our null-termination,
@@ -229,7 +231,7 @@ RecordVal* file_analysis::X509::ParseCertificate(X509Val* cert_val, File* f)
 
 		unsigned int length = KeyLength(pkey);
 		if ( length > 0 )
-			pX509Cert->Assign(10, val_mgr->GetCount(length));
+			pX509Cert->Assign(10, val_mgr->Count(length));
 
 		EVP_PKEY_free(pkey);
 		}
@@ -245,13 +247,14 @@ X509_STORE* file_analysis::X509::GetRootStore(TableVal* root_certs)
 		return x509_stores[root_certs];
 
 	X509_STORE* ctx = X509_STORE_new();
-	ListVal* idxs = root_certs->ConvertToPureList();
+	auto idxs = root_certs->ToPureListVal();
 
 	// Build the validation store
 	for ( int i = 0; i < idxs->Length(); ++i )
 		{
-		Val* key = idxs->Index(i);
-		StringVal *sv = root_certs->Lookup(key)->AsStringVal();
+		const auto& key = idxs->Idx(i);
+		auto val = root_certs->FindOrDefault(key);
+		StringVal* sv = val->AsStringVal();
 		assert(sv);
 		const uint8_t* data = sv->Bytes();
 		::X509* x = d2i_X509(NULL, &data, sv->Len());
@@ -264,8 +267,6 @@ X509_STORE* file_analysis::X509::GetRootStore(TableVal* root_certs)
 		X509_STORE_add_cert(ctx, x);
 		X509_free(x);
 		}
-
-	delete idxs;
 
 	// Save the newly constructed certificate store into the cacheing map.
 	x509_stores[root_certs] = ctx;
@@ -289,14 +290,14 @@ void file_analysis::X509::ParseBasicConstraints(X509_EXTENSION* ex)
 		{
 		if ( x509_ext_basic_constraints )
 			{
-			auto pBasicConstraint = make_intrusive<RecordVal>(BifType::Record::X509::BasicConstraints);
-			pBasicConstraint->Assign(0, val_mgr->GetBool(constr->ca));
+			auto pBasicConstraint = make_intrusive<RecordVal>(zeek::BifType::Record::X509::BasicConstraints);
+			pBasicConstraint->Assign(0, val_mgr->Bool(constr->ca));
 
 			if ( constr->pathlen )
-				pBasicConstraint->Assign(1, val_mgr->GetCount((int32_t) ASN1_INTEGER_get(constr->pathlen)));
+				pBasicConstraint->Assign(1, val_mgr->Count((int32_t) ASN1_INTEGER_get(constr->pathlen)));
 
 			mgr.Enqueue(x509_ext_basic_constraints,
-				IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+				GetFile()->ToVal(),
 				std::move(pBasicConstraint)
 			);
 			}
@@ -339,10 +340,10 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 		return;
 		}
 
-	VectorVal* names = nullptr;
-	VectorVal* emails = nullptr;
-	VectorVal* uris = nullptr;
-	VectorVal* ips = nullptr;
+	IntrusivePtr<VectorVal> names;
+	IntrusivePtr<VectorVal> emails;
+	IntrusivePtr<VectorVal> uris;
+	IntrusivePtr<VectorVal> ips;
 
 	bool otherfields = false;
 
@@ -364,29 +365,29 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 #else
 			const char* name = (const char*) ASN1_STRING_get0_data(gen->d.ia5);
 #endif
-			StringVal* bs = new StringVal(name);
+			auto bs = make_intrusive<StringVal>(name);
 
 			switch ( gen->type )
 				{
 				case GEN_DNS:
 					if ( names == nullptr )
-						names = new VectorVal(internal_type("string_vec")->AsVectorType());
+						names = make_intrusive<VectorVal>(zeek::id::string_vec);
 
-					names->Assign(names->Size(), bs);
+					names->Assign(names->Size(), std::move(bs));
 					break;
 
 				case GEN_URI:
 					if ( uris == nullptr )
-						uris = new VectorVal(internal_type("string_vec")->AsVectorType());
+						uris = make_intrusive<VectorVal>(zeek::id::string_vec);
 
-					uris->Assign(uris->Size(), bs);
+					uris->Assign(uris->Size(), std::move(bs));
 					break;
 
 				case GEN_EMAIL:
 					if ( emails == nullptr )
-						emails = new VectorVal(internal_type("string_vec")->AsVectorType());
+						emails = make_intrusive<VectorVal>(zeek::id::string_vec);
 
-					emails->Assign(emails->Size(), bs);
+					emails->Assign(emails->Size(), std::move(bs));
 					break;
 				}
 			}
@@ -394,7 +395,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 		else if ( gen->type == GEN_IPADD )
 			{
 				if ( ips == nullptr )
-					ips = new VectorVal(internal_type("addr_vec")->AsVectorType());
+					ips = make_intrusive<VectorVal>(zeek::id::find_type<VectorType>("addr_vec"));
 
 				uint32_t* addr = (uint32_t*) gen->d.ip->data;
 
@@ -420,7 +421,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 			}
 		}
 
-		auto sanExt = make_intrusive<RecordVal>(BifType::Record::X509::SubjectAlternativeName);
+		auto sanExt = make_intrusive<RecordVal>(zeek::BifType::Record::X509::SubjectAlternativeName);
 
 		if ( names != nullptr )
 			sanExt->Assign(0, names);
@@ -434,21 +435,21 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 		if ( ips != nullptr )
 			sanExt->Assign(3, ips);
 
-		sanExt->Assign(4, val_mgr->GetBool(otherfields));
+		sanExt->Assign(4, val_mgr->Bool(otherfields));
 
 		mgr.Enqueue(x509_ext_subject_alternative_name,
-		            IntrusivePtr{NewRef{}, GetFile()->GetVal()},
+		            GetFile()->ToVal(),
 		            std::move(sanExt));
 	GENERAL_NAMES_free(altname);
 	}
 
-StringVal* file_analysis::X509::KeyCurve(EVP_PKEY *key)
+IntrusivePtr<StringVal> file_analysis::X509::KeyCurve(EVP_PKEY* key)
 	{
-	assert(key != NULL);
+	assert(key != nullptr);
 
 #ifdef OPENSSL_NO_EC
 	// well, we do not have EC-Support...
-	return NULL;
+	return nullptr;
 #else
 	if ( EVP_PKEY_base_id(key) != EVP_PKEY_EC )
 		{
@@ -471,7 +472,7 @@ StringVal* file_analysis::X509::KeyCurve(EVP_PKEY *key)
 	if ( curve_name == nullptr )
 		return nullptr;
 
-	return new StringVal(curve_name);
+	return make_intrusive<StringVal>(curve_name);
 #endif
 	}
 

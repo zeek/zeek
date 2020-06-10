@@ -3,7 +3,7 @@ refine flow SIP_Flow += {
 	%member{
 		int content_length;
 		bool build_headers;
-		vector<BroVal> headers;
+		std::vector<IntrusivePtr<Val>> headers;
 	%}
 
 	%init{
@@ -20,9 +20,9 @@ refine flow SIP_Flow += {
 		%{
 		if ( sip_request )
 			{
-			BifEvent::generate_sip_request(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
-						       bytestring_to_val(method), bytestring_to_val(uri),
-						       bytestring_to_val(${vers.vers_str}));
+			zeek::BifEvent::enqueue_sip_request(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
+						       to_stringval(method), to_stringval(uri),
+						       to_stringval(${vers.vers_str}));
 			}
 
 		proc_sip_message_begin();
@@ -35,8 +35,8 @@ refine flow SIP_Flow += {
 		connection()->bro_analyzer()->ProtocolConfirmation();
 		if ( sip_reply )
 			{
-			BifEvent::generate_sip_reply(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
-						     bytestring_to_val(${vers.vers_str}), code, bytestring_to_val(reason));
+			zeek::BifEvent::enqueue_sip_reply(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
+						     to_stringval(${vers.vers_str}), code, to_stringval(reason));
 			}
 
 		proc_sip_message_begin();
@@ -51,13 +51,15 @@ refine flow SIP_Flow += {
 
 		if ( sip_header )
 			{
-			BifEvent::generate_sip_header(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
-						      is_orig(), bytestring_to_val(name)->ToUpper(), bytestring_to_val(value));
+			auto nameval = to_stringval(name);
+			nameval->ToUpper();
+			zeek::BifEvent::enqueue_sip_header(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
+						      is_orig(), std::move(nameval), to_stringval(value));
 			}
 
 		if ( build_headers )
 			{
-			headers.push_back(build_sip_header_val(name, value));
+			headers.push_back({AdoptRef{}, build_sip_header_val(name, value)});
 			}
 
 		return true;
@@ -65,13 +67,13 @@ refine flow SIP_Flow += {
 
 	function build_sip_headers_val(): BroVal
 		%{
-		TableVal* t = new TableVal({NewRef{}, mime_header_list});
+		static auto mime_header_list = zeek::id::find_type<TableType>("mime_header_list");
+		TableVal* t = new TableVal(mime_header_list);
 
 		for ( unsigned int i = 0; i < headers.size(); ++i )
 			{ // index starting from 1
-			Val* index = val_mgr->GetCount(i + 1);
-			t->Assign(index, headers[i]);
-			Unref(index);
+			auto index = val_mgr->Count(i + 1);
+			t->Assign(std::move(index), std::move(headers[i]));
 			}
 
 		return t;
@@ -81,8 +83,8 @@ refine flow SIP_Flow += {
 		%{
 		if ( sip_all_headers )
 			{
-			BifEvent::generate_sip_all_headers(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
-							   is_orig(), build_sip_headers_val());
+			zeek::BifEvent::enqueue_sip_all_headers(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
+							   is_orig(), {AdoptRef{}, build_sip_headers_val()});
 			}
 
 		headers.clear();
@@ -100,22 +102,23 @@ refine flow SIP_Flow += {
 
 	function build_sip_header_val(name: const_bytestring, value: const_bytestring): BroVal
 		%{
+		static auto mime_header_rec = zeek::id::find_type<RecordType>("mime_header_rec");
 		RecordVal* header_record = new RecordVal(mime_header_rec);
+		IntrusivePtr<StringVal> name_val;
 
-		StringVal* name_val = 0;
 		if ( name.length() > 0 )
 			{
 			// Make it all uppercase.
-			name_val = new StringVal(name.length(), (const char*) name.begin());
+			name_val = make_intrusive<StringVal>(name.length(), (const char*) name.begin());
 			name_val->ToUpper();
 			}
 		else
 			{
-			name_val = val_mgr->GetEmptyString();
+			name_val = val_mgr->EmptyString();
 			}
 
 		header_record->Assign(0, name_val);
-		header_record->Assign(1, bytestring_to_val(value));
+		header_record->Assign(1, to_stringval(value));
 
 		return header_record;
 		%}
@@ -124,7 +127,7 @@ refine flow SIP_Flow += {
 		%{
 		if ( sip_begin_entity )
 			{
-			BifEvent::generate_sip_begin_entity(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), is_orig());
+			zeek::BifEvent::enqueue_sip_begin_entity(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), is_orig());
 			}
 		%}
 
@@ -132,7 +135,7 @@ refine flow SIP_Flow += {
 		%{
 		if ( sip_end_entity )
 			{
-			BifEvent::generate_sip_end_entity(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), is_orig());
+			zeek::BifEvent::enqueue_sip_end_entity(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), is_orig());
 			}
 
 		return true;

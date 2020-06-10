@@ -466,8 +466,8 @@ when	return TOK_WHEN;
 <IGNORE>[^@\n]+	/* eat */
 <IGNORE>.	/* eat */
 
-T	RET_CONST(val_mgr->GetTrue())
-F	RET_CONST(val_mgr->GetFalse())
+T	RET_CONST(val_mgr->True()->Ref())
+F	RET_CONST(val_mgr->False()->Ref())
 
 {ID}	{
 	yylval.str = copy_string(yytext);
@@ -476,9 +476,9 @@ F	RET_CONST(val_mgr->GetFalse())
 	}
 
 {D}		{
-		RET_CONST(val_mgr->GetCount(static_cast<bro_uint_t>(strtoull(yytext, (char**) NULL, 10))))
+		RET_CONST(val_mgr->Count(static_cast<bro_uint_t>(strtoull(yytext, (char**) NULL, 10))).release())
 		}
-{FLOAT}		RET_CONST(new Val(atof(yytext), TYPE_DOUBLE))
+{FLOAT}		RET_CONST(new DoubleVal(atof(yytext)))
 
 {D}"/tcp"	{
 		uint32_t p = atoi(yytext);
@@ -487,7 +487,7 @@ F	RET_CONST(val_mgr->GetFalse())
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(val_mgr->GetPort(p, TRANSPORT_TCP))
+		RET_CONST(val_mgr->Port(p, TRANSPORT_TCP)->Ref())
 		}
 {D}"/udp"	{
 		uint32_t p = atoi(yytext);
@@ -496,7 +496,7 @@ F	RET_CONST(val_mgr->GetFalse())
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(val_mgr->GetPort(p, TRANSPORT_UDP))
+		RET_CONST(val_mgr->Port(p, TRANSPORT_UDP)->Ref())
 		}
 {D}"/icmp"	{
 		uint32_t p = atoi(yytext);
@@ -505,7 +505,7 @@ F	RET_CONST(val_mgr->GetFalse())
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(val_mgr->GetPort(p, TRANSPORT_ICMP))
+		RET_CONST(val_mgr->Port(p, TRANSPORT_ICMP)->Ref())
 		}
 {D}"/unknown"	{
 		uint32_t p = atoi(yytext);
@@ -514,7 +514,7 @@ F	RET_CONST(val_mgr->GetFalse())
 			reporter->Error("bad port number - %s", yytext);
 			p = 0;
 			}
-		RET_CONST(val_mgr->GetPort(p, TRANSPORT_UNKNOWN))
+		RET_CONST(val_mgr->Port(p, TRANSPORT_UNKNOWN)->Ref())
 		}
 
 {FLOAT}{OWS}day(s?)	RET_CONST(new IntervalVal(atof(yytext),Days))
@@ -524,7 +524,7 @@ F	RET_CONST(val_mgr->GetFalse())
 {FLOAT}{OWS}msec(s?)	RET_CONST(new IntervalVal(atof(yytext),Milliseconds))
 {FLOAT}{OWS}usec(s?)	RET_CONST(new IntervalVal(atof(yytext),Microseconds))
 
-"0x"{HEX}+	RET_CONST(val_mgr->GetCount(static_cast<bro_uint_t>(strtoull(yytext, 0, 16))))
+"0x"{HEX}+	RET_CONST(val_mgr->Count(static_cast<bro_uint_t>(strtoull(yytext, 0, 16))).release())
 
 {H}("."{H})+		RET_CONST(dns_mgr->LookupHost(yytext).release())
 
@@ -774,7 +774,7 @@ void do_atifdef(const char* id)
 	{
 	++current_depth;
 
-	auto i = lookup_ID(id, current_module.c_str());
+	const auto& i = lookup_ID(id, current_module.c_str());
 
 	if ( ! i )
 		{
@@ -787,7 +787,7 @@ void do_atifndef(const char *id)
 	{
 	++current_depth;
 
-	auto i = lookup_ID(id, current_module.c_str());
+	const auto& i = lookup_ID(id, current_module.c_str());
 
 	if ( i )
 		{
@@ -1000,9 +1000,10 @@ int yywrap()
 			// string type.)  If no type is found, the value
 			// is left unchanged.
 			std::string opt_quote;	// no optional quote by default
-			Val* v = opt_internal_val(param);
+			const auto& param_id = lookup_ID(param, GLOBAL_MODULE_NAME);
+			Val* v = param_id ? param_id->GetVal().get() : nullptr;
 
-			if ( v && v->Type() && v->Type()->Tag() == TYPE_STRING )
+			if ( v && v->GetType() && v->GetType()->Tag() == TYPE_STRING )
 				opt_quote = "\"";	// use quotes
 
 			policy += std::string("redef ") + param + "="

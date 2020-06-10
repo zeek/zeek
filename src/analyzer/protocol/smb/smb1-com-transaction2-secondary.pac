@@ -5,26 +5,26 @@ refine connection SMB_Conn += {
 	if ( ! smb1_transaction2_secondary_request )
 		return false;
 
-	RecordVal* args = new RecordVal(BifType::Record::SMB1::Trans2_Sec_Args);
-	args->Assign(0, val_mgr->GetCount(${val.total_param_count}));
-	args->Assign(1, val_mgr->GetCount(${val.total_data_count}));
-	args->Assign(2, val_mgr->GetCount(${val.param_count}));
-	args->Assign(3, val_mgr->GetCount(${val.param_offset}));
-	args->Assign(4, val_mgr->GetCount(${val.param_displacement}));
-	args->Assign(5, val_mgr->GetCount(${val.data_count}));
-	args->Assign(6, val_mgr->GetCount(${val.data_offset}));
-	args->Assign(7, val_mgr->GetCount(${val.data_displacement}));
-	args->Assign(8, val_mgr->GetCount(${val.FID}));
+	auto args = make_intrusive<RecordVal>(zeek::BifType::Record::SMB1::Trans2_Sec_Args);
+	args->Assign(0, val_mgr->Count(${val.total_param_count}));
+	args->Assign(1, val_mgr->Count(${val.total_data_count}));
+	args->Assign(2, val_mgr->Count(${val.param_count}));
+	args->Assign(3, val_mgr->Count(${val.param_offset}));
+	args->Assign(4, val_mgr->Count(${val.param_displacement}));
+	args->Assign(5, val_mgr->Count(${val.data_count}));
+	args->Assign(6, val_mgr->Count(${val.data_offset}));
+	args->Assign(7, val_mgr->Count(${val.data_displacement}));
+	args->Assign(8, val_mgr->Count(${val.FID}));
 
-	StringVal* parameters = new StringVal(${val.parameters}.length(), (const char*)${val.parameters}.data());
-	StringVal* payload = new StringVal(${val.data}.length(), (const char*)${val.data}.data());
+	auto parameters = make_intrusive<StringVal>(${val.parameters}.length(), (const char*)${val.parameters}.data());
+	auto payload = make_intrusive<StringVal>(${val.data}.length(), (const char*)${val.data}.data());
 
-	BifEvent::generate_smb1_transaction2_secondary_request(bro_analyzer(),
-	                                                       bro_analyzer()->Conn(),
-	                                                       BuildHeaderVal(header),
-	                                                       args,
-	                                                       parameters,
-	                                                       payload);
+	zeek::BifEvent::enqueue_smb1_transaction2_secondary_request(bro_analyzer(),
+	                                                      bro_analyzer()->Conn(),
+	                                                      SMBHeaderVal(header),
+	                                                      std::move(args),
+	                                                      std::move(parameters),
+	                                                      std::move(payload));
 
 	return true;
 	%}

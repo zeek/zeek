@@ -27,14 +27,11 @@ private:
 	unsigned char* set;
 	};
 
-
-#define bzero(p, size) memset(p, 0, size)
-
 inline IntSet::IntSet(unsigned int n)
 	{
 	size = n / 8 + 1;
 	set = new unsigned char[size];
-	bzero(set, size);
+	memset(set, 0, size);
 	}
 
 inline IntSet::~IntSet()
@@ -65,5 +62,5 @@ inline bool IntSet::Contains(unsigned int i) const
 
 inline void IntSet::Clear()
 	{
-	bzero(set, size);
+	memset(set, 0, size);
 	}

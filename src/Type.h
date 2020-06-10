@@ -141,6 +141,8 @@ const int MATCHES_INDEX_VECTOR = 2;
 
 class BroType : public BroObj {
 public:
+	static inline const IntrusivePtr<BroType> nil;
+
 	explicit BroType(TypeTag tag, bool base_type = false);
 
 	// Performs a shallow clone operation of the Bro type.
@@ -151,7 +153,7 @@ public:
 	// Clone operations will mostly be implemented in the derived classes;
 	// in addition cloning will be limited to classes that can be reached by
 	// the script-level.
-	virtual BroType* ShallowClone();
+	virtual IntrusivePtr<BroType> ShallowClone();
 
 	TypeTag Tag() const		{ return tag; }
 	InternalTypeTag InternalType() const	{ return internal_tag; }
@@ -171,15 +173,22 @@ public:
 	// Returns the type yielded by this type.  For example, if
 	// this type is a table[string] of port, then returns the "port"
 	// type.  Returns nil if this is not an index type.
-	virtual BroType* YieldType();
+	virtual const IntrusivePtr<BroType>& Yield() const;
+
+	[[deprecated("Remove in v4.1.  Use Yield() instead.")]]
+	virtual BroType* YieldType()
+		{ return Yield().get(); }
+	[[deprecated("Remove in v4.1.  Use Yield() instead.")]]
 	virtual const BroType* YieldType() const
-		{ return ((BroType*) this)->YieldType(); }
+		{ return Yield().get(); }
 
 	// Returns true if this type is a record and contains the
 	// given field, false otherwise.
+	[[deprecated("Remove in v4.1.  Use RecordType::HasField() directly.")]]
 	virtual bool HasField(const char* field) const;
 
 	// Returns the type of the given field, or nil if no such field.
+	[[deprecated("Remove in v4.1.  Use RecordType::GetFieldType() directly.")]]
 	virtual BroType* FieldType(const char* field) const;
 
 #define CHECK_TYPE_TAG(tag_type, func_name) \
@@ -305,12 +314,12 @@ public:
 
 	bool IsSet() const
 		{
-		return tag == TYPE_TABLE && (YieldType() == nullptr);
+		return tag == TYPE_TABLE && ! Yield();
 		}
 
 	bool IsTable() const
 		{
-		return tag == TYPE_TABLE && (YieldType() != nullptr);
+		return tag == TYPE_TABLE && Yield();
 		}
 
 	BroType* Ref()		{ ::Ref(this); return this; }
@@ -353,22 +362,27 @@ public:
 		{
 		}
 
-	~TypeList() override;
-
-	const type_list* Types() const	{ return &types; }
-	type_list* Types()		{ return &types; }
+	const std::vector<IntrusivePtr<BroType>>& Types() const
+		{ return types; }
 
 	bool IsPure() const		{ return pure_type != nullptr; }
 
 	// Returns the underlying pure type, or nil if the list
 	// is not pure or is empty.
+	const IntrusivePtr<BroType>& GetPureType() const
+		{ return pure_type; }
+
+	[[deprecated("Remove in v4.1.  Use GetPureType() instead.")]]
 	BroType* PureType()		{ return pure_type.get(); }
+	[[deprecated("Remove in v4.1.  Use GetPureType() instead.")]]
 	const BroType* PureType() const	{ return pure_type.get(); }
 
 	// True if all of the types match t, false otherwise.  If
 	// is_init is true, then the matching is done in the context
 	// of an initialization.
 	bool AllMatch(const BroType* t, bool is_init) const;
+	bool AllMatch(const IntrusivePtr<BroType>& t, bool is_init) const
+		{ return AllMatch(t.get(), is_init); }
 
 	void Append(IntrusivePtr<BroType> t);
 	void AppendEvenIfNotPure(IntrusivePtr<BroType> t);
@@ -379,17 +393,24 @@ public:
 
 protected:
 	IntrusivePtr<BroType> pure_type;
-	type_list types;
+	std::vector<IntrusivePtr<BroType>> types;
 };
 
 class IndexType : public BroType {
 public:
 	int MatchesIndex(ListExpr* index) const override;
 
+	const IntrusivePtr<TypeList>& GetIndices() const
+		{ return indices; }
+
+	[[deprecated("Remove in v4.1.  Use GetIndices().")]]
 	TypeList* Indices() const		{ return indices.get(); }
-	const type_list* IndexTypes() const	{ return indices->Types(); }
-	BroType* YieldType() override;
-	const BroType* YieldType() const override;
+
+	const std::vector<IntrusivePtr<BroType>>& IndexTypes() const
+		{ return indices->Types(); }
+
+	const IntrusivePtr<BroType>& Yield() const override
+		{ return yield_type; }
 
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
@@ -415,14 +436,11 @@ class TableType : public IndexType {
 public:
 	TableType(IntrusivePtr<TypeList> ind, IntrusivePtr<BroType> yield);
 
-	TableType* ShallowClone() override;
+	IntrusivePtr<BroType> ShallowClone() override;
 
 	// Returns true if this table type is "unspecified", which is
 	// what one gets using an empty "set()" or "table()" constructor.
 	bool IsUnspecifiedTable() const;
-
-protected:
-	TypeList* ExpandRecordIndex(RecordType* rt) const;
 };
 
 class SetType final : public TableType {
@@ -430,9 +448,13 @@ public:
 	SetType(IntrusivePtr<TypeList> ind, IntrusivePtr<ListExpr> arg_elements);
 	~SetType() override;
 
-	SetType* ShallowClone() override;
+	IntrusivePtr<BroType> ShallowClone() override;
 
+	[[deprecated("Remove in v4.1.  Use Elements() isntead.")]]
 	ListExpr* SetElements() const	{ return elements.get(); }
+
+	const IntrusivePtr<ListExpr>& Elements() const
+		{ return elements; }
 
 protected:
 	IntrusivePtr<ListExpr> elements;
@@ -440,6 +462,8 @@ protected:
 
 class FuncType final : public BroType {
 public:
+	static inline const IntrusivePtr<FuncType> nil;
+
 	/**
 	 * Prototype is only currently used for events and hooks which declare
 	 * multiple signature prototypes that allow users to have handlers
@@ -453,13 +477,19 @@ public:
 
 	FuncType(IntrusivePtr<RecordType> args, IntrusivePtr<BroType> yield,
 	         function_flavor f);
-	FuncType* ShallowClone() override;
+	IntrusivePtr<BroType> ShallowClone() override;
 
 	~FuncType() override;
 
+	[[deprecated("Remove in v4.1.  Use Params().")]]
 	RecordType* Args() const	{ return args.get(); }
-	BroType* YieldType() override;
-	const BroType* YieldType() const override;
+
+	const IntrusivePtr<RecordType>& Params() const
+		{ return args; }
+
+	const IntrusivePtr<BroType>& Yield() const override
+		{ return yield; }
+
 	void SetYieldType(IntrusivePtr<BroType> arg_yield)	{ yield = std::move(arg_yield); }
 	function_flavor Flavor() const { return flavor; }
 	std::string FlavorString() const;
@@ -470,8 +500,14 @@ public:
 
 	int MatchesIndex(ListExpr* index) const override;
 	bool CheckArgs(const type_list* args, bool is_init = false) const;
+	bool CheckArgs(const std::vector<IntrusivePtr<BroType>>& args,
+	               bool is_init = false) const;
 
+	[[deprecated("Remove in v4.1.  Use ParamList().")]]
 	TypeList* ArgTypes() const	{ return arg_types.get(); }
+
+	const IntrusivePtr<TypeList>& ParamList() const
+		{ return arg_types; }
 
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
@@ -493,6 +529,8 @@ public:
 		{ return prototypes; }
 
 protected:
+	friend IntrusivePtr<FuncType> make_intrusive<FuncType>();
+
 	FuncType() : BroType(TYPE_FUNC) { flavor = FUNC_FLAVOR_FUNCTION; }
 	IntrusivePtr<RecordType> args;
 	IntrusivePtr<TypeList> arg_types;
@@ -504,9 +542,19 @@ protected:
 class TypeType final : public BroType {
 public:
 	explicit TypeType(IntrusivePtr<BroType> t) : BroType(TYPE_TYPE), type(std::move(t)) {}
-	TypeType* ShallowClone() override { return new TypeType(type); }
+	IntrusivePtr<BroType> ShallowClone() override { return make_intrusive<TypeType>(type); }
 
-	BroType* Type()	{ return type.get(); }
+	const IntrusivePtr<BroType>& GetType() const
+		{ return type; }
+
+	template <class T>
+	IntrusivePtr<T> GetType() const
+		{ return cast_intrusive<T>(type); }
+
+	[[deprecated("Remove in v4.1.  Use GetType().")]]
+	BroType* Type()			{ return type.get(); }
+	[[deprecated("Remove in v4.1.  Use GetType().")]]
+	const BroType* Type() const	{ return type.get(); }
 
 protected:
 	IntrusivePtr<BroType> type;
@@ -514,18 +562,23 @@ protected:
 
 class TypeDecl final {
 public:
-	TypeDecl(IntrusivePtr<BroType> t, const char* i, attr_list* attrs = nullptr, bool in_record = false);
+	TypeDecl() = default;
+	TypeDecl(const char* i, IntrusivePtr<BroType> t, IntrusivePtr<Attributes> attrs = nullptr);
 	TypeDecl(const TypeDecl& other);
 	~TypeDecl();
 
+	[[deprecated("Remove in v4.1.  Use GetAttr().")]]
 	const Attr* FindAttr(attr_tag a) const
-		{ return attrs ? attrs->FindAttr(a) : nullptr; }
+		{ return attrs ? attrs->Find(a).get() : nullptr; }
+
+	const IntrusivePtr<Attr>& GetAttr(attr_tag a) const
+		{ return attrs ? attrs->Find(a) : Attr::nil; }
 
 	void DescribeReST(ODesc* d, bool roles_only = false) const;
 
 	IntrusivePtr<BroType> type;
 	IntrusivePtr<Attributes> attrs;
-	const char* id;
+	const char* id = nullptr;
 };
 
 typedef PList<TypeDecl> type_decl_list;
@@ -533,13 +586,53 @@ typedef PList<TypeDecl> type_decl_list;
 class RecordType final : public BroType {
 public:
 	explicit RecordType(type_decl_list* types);
-	RecordType* ShallowClone() override;
+	IntrusivePtr<BroType> ShallowClone() override;
 
 	~RecordType() override;
 
 	bool HasField(const char* field) const override;
-	BroType* FieldType(const char* field) const override;
-	BroType* FieldType(int field) const;
+
+	[[deprecated("Remove in v4.1.  Use GetFieldType() instead (note it doesn't check for invalid names).")]]
+	BroType* FieldType(const char* field) const override
+		{
+		auto offset = FieldOffset(field);
+		return offset >= 0 ? GetFieldType(offset).get() : nullptr;
+		}
+
+	[[deprecated("Remove in v4.1.  Use GetFieldType() instead.")]]
+	BroType* FieldType(int field) const
+		{ return GetFieldType(field).get(); }
+
+	/**
+	 * Looks up a field by name and returns its type.  No check for invalid
+	 * field name is performed.
+	 */
+	const IntrusivePtr<BroType>& GetFieldType(const char* field_name) const
+		{ return GetFieldType(FieldOffset(field_name)); }
+
+	/**
+	 * Looks up a field by name and returns its type as cast to @c T.
+	 * No check for invalid field name is performed.
+	 */
+	template <class T>
+	IntrusivePtr<T> GetFieldType(const char* field_name) const
+		{ return cast_intrusive<T>(GetFieldType(field_name)); }
+
+	/**
+	 * Looks up a field by its index and returns its type.  No check for
+	 * invalid field offset is performed.
+	 */
+	const IntrusivePtr<BroType>& GetFieldType(int field_index) const
+		{ return (*types)[field_index]->type; }
+
+	/**
+	 * Looks up a field by its index and returns its type as cast to @c T.
+	 * No check for invalid field offset is performed.
+	 */
+	template <class T>
+	IntrusivePtr<T> GetFieldType(int field_index) const
+		{ return cast_intrusive<T>((*types)[field_index]->type); }
+
 	IntrusivePtr<Val> FieldDefault(int field) const;
 
 	// A field's offset is its position in the type_decl_list,
@@ -564,9 +657,9 @@ public:
 	 */
 	IntrusivePtr<TableVal> GetRecordFieldsVal(const RecordVal* rv = nullptr) const;
 
-	// Returns 0 if all is ok, otherwise a pointer to an error message.
-	// Takes ownership of list.
-	const char* AddFields(type_decl_list* types, attr_list* attr);
+	// Returns null if all is ok, otherwise a pointer to an error message.
+	const char* AddFields(const type_decl_list& types,
+	                      bool add_log_attr = false);
 
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
@@ -576,13 +669,13 @@ public:
 	bool IsFieldDeprecated(int field) const
 		{
 		const TypeDecl* decl = FieldDecl(field);
-		return decl && decl->FindAttr(ATTR_DEPRECATED) != nullptr;
+		return decl && decl->GetAttr(ATTR_DEPRECATED) != nullptr;
 		}
 
 	bool FieldHasAttr(int field, attr_tag at) const
 		{
 		const TypeDecl* decl = FieldDecl(field);
-		return decl && decl->FindAttr(at) != nullptr;
+		return decl && decl->GetAttr(at) != nullptr;
 		}
 
 	std::string GetFieldDeprecationWarning(int field, bool has_check) const;
@@ -603,10 +696,11 @@ public:
 class FileType final : public BroType {
 public:
 	explicit FileType(IntrusivePtr<BroType> yield_type);
-	FileType* ShallowClone() override { return new FileType(yield); }
+	IntrusivePtr<BroType> ShallowClone() override { return make_intrusive<FileType>(yield); }
 	~FileType() override;
 
-	BroType* YieldType() override;
+	const IntrusivePtr<BroType>& Yield() const override
+		{ return yield; }
 
 	void Describe(ODesc* d) const override;
 
@@ -617,7 +711,7 @@ protected:
 class OpaqueType final : public BroType {
 public:
 	explicit OpaqueType(const std::string& name);
-	OpaqueType* ShallowClone() override { return new OpaqueType(name); }
+	IntrusivePtr<BroType> ShallowClone() override { return make_intrusive<OpaqueType>(name); }
 	~OpaqueType() override { };
 
 	const std::string& Name() const { return name; }
@@ -637,7 +731,7 @@ public:
 
 	explicit EnumType(const EnumType* e);
 	explicit EnumType(const std::string& arg_name);
-	EnumType* ShallowClone() override;
+	IntrusivePtr<BroType> ShallowClone() override;
 	~EnumType() override;
 
 	// The value of this name is next internal counter value, starting
@@ -659,7 +753,7 @@ public:
 
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
-	IntrusivePtr<EnumVal> GetVal(bro_int_t i);
+	const IntrusivePtr<EnumVal>& GetVal(bro_int_t i);
 
 protected:
 	void AddNameInternal(const std::string& module_name,
@@ -687,10 +781,10 @@ protected:
 class VectorType final : public BroType {
 public:
 	explicit VectorType(IntrusivePtr<BroType> t);
-	VectorType* ShallowClone() override;
+	IntrusivePtr<BroType> ShallowClone() override;
 	~VectorType() override;
-	BroType* YieldType() override;
-	const BroType* YieldType() const override;
+
+	const IntrusivePtr<BroType>& Yield() const override;
 
 	int MatchesIndex(ListExpr* index) const override;
 
@@ -705,33 +799,46 @@ protected:
 	IntrusivePtr<BroType> yield_type;
 };
 
-extern OpaqueType* md5_type;
-extern OpaqueType* sha1_type;
-extern OpaqueType* sha256_type;
-extern OpaqueType* entropy_type;
-extern OpaqueType* cardinality_type;
-extern OpaqueType* topk_type;
-extern OpaqueType* bloomfilter_type;
-extern OpaqueType* x509_opaque_type;
-extern OpaqueType* ocsp_resp_opaque_type;
-extern OpaqueType* paraglob_type;
+extern IntrusivePtr<OpaqueType> md5_type;
+extern IntrusivePtr<OpaqueType> sha1_type;
+extern IntrusivePtr<OpaqueType> sha256_type;
+extern IntrusivePtr<OpaqueType> entropy_type;
+extern IntrusivePtr<OpaqueType> cardinality_type;
+extern IntrusivePtr<OpaqueType> topk_type;
+extern IntrusivePtr<OpaqueType> bloomfilter_type;
+extern IntrusivePtr<OpaqueType> x509_opaque_type;
+extern IntrusivePtr<OpaqueType> ocsp_resp_opaque_type;
+extern IntrusivePtr<OpaqueType> paraglob_type;
+
+// Returns the basic (non-parameterized) type with the given type.
+const IntrusivePtr<BroType>& base_type(TypeTag tag);
 
 // Returns the basic (non-parameterized) type with the given type.
 // The reference count of the type is not increased.
-BroType* base_type_no_ref(TypeTag tag);
-
-// Returns the basic (non-parameterized) type with the given type.
-// The caller assumes responsibility for a reference to the type.
-inline IntrusivePtr<BroType> base_type(TypeTag tag)
-	{ return {NewRef{}, base_type_no_ref(tag)}; }
+[[deprecated("Remove in v4.1.  Use ::base_type() instead")]]
+inline BroType* base_type_no_ref(TypeTag tag)
+	{ return base_type(tag).get(); }
 
 // Returns the basic error type.
-inline IntrusivePtr<BroType> error_type()	{ return base_type(TYPE_ERROR); }
+inline const IntrusivePtr<BroType>& error_type()	{ return base_type(TYPE_ERROR); }
 
 // True if the two types are equivalent.  If is_init is true then the test is
 // done in the context of an initialization. If match_record_field_names is
 // true then for record types the field names have to match, too.
-extern bool same_type(const BroType* t1, const BroType* t2, bool is_init=false, bool match_record_field_names=true);
+extern bool same_type(const BroType& t1, const BroType& t2,
+                      bool is_init=false, bool match_record_field_names=true);
+inline bool same_type(const IntrusivePtr<BroType>& t1, const IntrusivePtr<BroType>& t2,
+                      bool is_init=false, bool match_record_field_names=true)
+    { return same_type(*t1, *t2, is_init, match_record_field_names); }
+inline bool same_type(const BroType* t1, const BroType* t2,
+                      bool is_init=false, bool match_record_field_names=true)
+    { return same_type(*t1, *t2, is_init, match_record_field_names); }
+inline bool same_type(const IntrusivePtr<BroType>& t1, const BroType* t2,
+                      bool is_init=false, bool match_record_field_names=true)
+    { return same_type(*t1, *t2, is_init, match_record_field_names); }
+inline bool same_type(const BroType* t1, const IntrusivePtr<BroType>& t2,
+                      bool is_init=false, bool match_record_field_names=true)
+    { return same_type(*t1, *t2, is_init, match_record_field_names); }
 
 // True if the two attribute lists are equivalent.
 extern bool same_attrs(const Attributes* a1, const Attributes* a2);
@@ -752,7 +859,8 @@ extern TypeTag max_type(TypeTag t1, TypeTag t2);
 // Given two types, returns the "merge", in which promotable types
 // are promoted to the maximum of the two.  Returns nil (and generates
 // an error message) if the types are incompatible.
-IntrusivePtr<BroType> merge_types(const BroType* t1, const BroType* t2);
+IntrusivePtr<BroType> merge_types(const IntrusivePtr<BroType>& t1,
+                                  const IntrusivePtr<BroType>& t2);
 
 // Given a list of expressions, returns a (ref'd) type reflecting
 // a merged type consistent across all of them, or nil if this
@@ -763,10 +871,16 @@ IntrusivePtr<BroType> merge_type_list(ListExpr* elements);
 IntrusivePtr<BroType> init_type(Expr* init);
 
 // Returns true if argument is an atomic type.
-bool is_atomic_type(const BroType* t);
+bool is_atomic_type(const BroType& t);
+inline bool is_atomic_type(const BroType* t)
+	{ return is_atomic_type(*t); }
+inline bool is_atomic_type(const IntrusivePtr<BroType>& t)
+	{ return is_atomic_type(*t); }
 
 // True if the given type tag corresponds to type that can be assigned to.
-extern bool is_assignable(BroType* t);
+extern bool is_assignable(TypeTag t);
+inline bool is_assignable(BroType* t)
+	{ return ::is_assignable(t->Tag()); }
 
 // True if the given type tag corresponds to an integral type.
 inline bool IsIntegral(TypeTag t) { return (t == TYPE_INT || t == TYPE_COUNT || t == TYPE_COUNTER); }

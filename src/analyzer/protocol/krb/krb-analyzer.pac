@@ -1,35 +1,35 @@
 %header{
-RecordVal* proc_krb_kdc_options(const KRB_KDC_Options* opts);
-RecordVal* proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_analyzer);
+IntrusivePtr<RecordVal> proc_krb_kdc_options(const KRB_KDC_Options* opts);
+IntrusivePtr<RecordVal> proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_analyzer);
 
 bool proc_error_arguments(RecordVal* rv, const std::vector<KRB_ERROR_Arg*>* args, int64 error_code);
 %}
 
 %code{
-RecordVal* proc_krb_kdc_options(const KRB_KDC_Options* opts)
+IntrusivePtr<RecordVal> proc_krb_kdc_options(const KRB_KDC_Options* opts)
 {
-	RecordVal* rv = new RecordVal(BifType::Record::KRB::KDC_Options);
+	auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::KRB::KDC_Options);
 
-	rv->Assign(0, val_mgr->GetBool(opts->forwardable()));
-	rv->Assign(1, val_mgr->GetBool(opts->forwarded()));
-	rv->Assign(2, val_mgr->GetBool(opts->proxiable()));
-	rv->Assign(3, val_mgr->GetBool(opts->proxy()));
-	rv->Assign(4, val_mgr->GetBool(opts->allow_postdate()));
-	rv->Assign(5, val_mgr->GetBool(opts->postdated()));
-	rv->Assign(6, val_mgr->GetBool(opts->renewable()));
-	rv->Assign(7, val_mgr->GetBool(opts->opt_hardware_auth()));
-	rv->Assign(8, val_mgr->GetBool(opts->disable_transited_check()));
-	rv->Assign(9, val_mgr->GetBool(opts->renewable_ok()));
-	rv->Assign(10, val_mgr->GetBool(opts->enc_tkt_in_skey()));
-	rv->Assign(11, val_mgr->GetBool(opts->renew()));
-	rv->Assign(12, val_mgr->GetBool(opts->validate()));
+	rv->Assign(0, val_mgr->Bool(opts->forwardable()));
+	rv->Assign(1, val_mgr->Bool(opts->forwarded()));
+	rv->Assign(2, val_mgr->Bool(opts->proxiable()));
+	rv->Assign(3, val_mgr->Bool(opts->proxy()));
+	rv->Assign(4, val_mgr->Bool(opts->allow_postdate()));
+	rv->Assign(5, val_mgr->Bool(opts->postdated()));
+	rv->Assign(6, val_mgr->Bool(opts->renewable()));
+	rv->Assign(7, val_mgr->Bool(opts->opt_hardware_auth()));
+	rv->Assign(8, val_mgr->Bool(opts->disable_transited_check()));
+	rv->Assign(9, val_mgr->Bool(opts->renewable_ok()));
+	rv->Assign(10, val_mgr->Bool(opts->enc_tkt_in_skey()));
+	rv->Assign(11, val_mgr->Bool(opts->renew()));
+	rv->Assign(12, val_mgr->Bool(opts->validate()));
 
 	return rv;
 }
 
-RecordVal* proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_analyzer)
+IntrusivePtr<RecordVal> proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_analyzer)
 {
-	RecordVal* rv = new RecordVal(BifType::Record::KRB::KDC_Request);
+	auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::KRB::KDC_Request);
 
 	rv->Assign(0, asn1_integer_to_val(msg->pvno()->data(), TYPE_COUNT));
 	rv->Assign(1, asn1_integer_to_val(msg->msg_type()->data(), TYPE_COUNT));
@@ -49,7 +49,7 @@ RecordVal* proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const BroAnalyzer bro_an
 				rv->Assign(4, GetStringFromPrincipalName(element->data()->principal()));
 				break;
 			case 2:
-				rv->Assign(5, bytestring_to_val(element->data()->realm()->encoding()->content()));
+				rv->Assign(5, to_stringval(element->data()->realm()->encoding()->content()));
 				break;
 			case 3:
 				rv->Assign(6, GetStringFromPrincipalName(element->data()->sname()));
@@ -139,19 +139,19 @@ bool proc_error_arguments(RecordVal* rv, const std::vector<KRB_ERROR_Arg*>* args
 				break;
 			// ctime/stime handled above
 			case 7:
-				rv->Assign(5, bytestring_to_val((*args)[i]->args()->crealm()->encoding()->content()));
+				rv->Assign(5, to_stringval((*args)[i]->args()->crealm()->encoding()->content()));
 				break;
 			case 8:
 				rv->Assign(6, GetStringFromPrincipalName((*args)[i]->args()->cname()));
 				break;
 			case 9:
-				rv->Assign(7, bytestring_to_val((*args)[i]->args()->realm()->encoding()->content()));
+				rv->Assign(7, to_stringval((*args)[i]->args()->realm()->encoding()->content()));
 				break;
 			case 10:
 				rv->Assign(8, GetStringFromPrincipalName((*args)[i]->args()->sname()));
 				break;
 			case 11:
-				rv->Assign(9, bytestring_to_val((*args)[i]->args()->e_text()->encoding()->content()));
+				rv->Assign(9, to_stringval((*args)[i]->args()->e_text()->encoding()->content()));
 				break;
 			case 12:
 				if ( error_code == KDC_ERR_PREAUTH_REQUIRED )
@@ -179,8 +179,8 @@ refine connection KRB_Conn += {
 			if ( ! krb_as_request )
 				return false;
 
-			RecordVal* rv = proc_krb_kdc_req_arguments(${msg}, bro_analyzer());
-			BifEvent::generate_krb_as_request(bro_analyzer(), bro_analyzer()->Conn(), rv);
+			auto rv = proc_krb_kdc_req_arguments(${msg}, bro_analyzer());
+			zeek::BifEvent::enqueue_krb_as_request(bro_analyzer(), bro_analyzer()->Conn(), std::move(rv));
 			return true;
 			}
 
@@ -189,8 +189,8 @@ refine connection KRB_Conn += {
 			if ( ! krb_tgs_request )
 				return false;
 
-			RecordVal* rv = proc_krb_kdc_req_arguments(${msg}, bro_analyzer());
-			BifEvent::generate_krb_tgs_request(bro_analyzer(), bro_analyzer()->Conn(), rv);
+			auto rv = proc_krb_kdc_req_arguments(${msg}, bro_analyzer());
+			zeek::BifEvent::enqueue_krb_tgs_request(bro_analyzer(), bro_analyzer()->Conn(), std::move(rv));
 			return true;
 			}
 
@@ -201,9 +201,9 @@ refine connection KRB_Conn += {
 		%{
 		bro_analyzer()->ProtocolConfirmation();
 		auto msg_type = binary_to_int64(${msg.msg_type.data.content});
-		auto make_arg = [this, msg]() -> RecordVal*
+		auto make_arg = [this, msg]() -> IntrusivePtr<RecordVal>
 			{
-			RecordVal* rv = new RecordVal(BifType::Record::KRB::KDC_Response);
+			auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::KRB::KDC_Response);
 
 			rv->Assign(0, asn1_integer_to_val(${msg.pvno.data}, TYPE_COUNT));
 			rv->Assign(1, asn1_integer_to_val(${msg.msg_type.data}, TYPE_COUNT));
@@ -211,7 +211,7 @@ refine connection KRB_Conn += {
 			if ( ${msg.padata.has_padata} )
 				rv->Assign(2, proc_padata(${msg.padata.padata.padata}, bro_analyzer(), false));
 
-			rv->Assign(3, bytestring_to_val(${msg.client_realm.encoding.content}));
+			rv->Assign(3, to_stringval(${msg.client_realm.encoding.content}));
 			rv->Assign(4, GetStringFromPrincipalName(${msg.client_name}));
 
 			rv->Assign(5, proc_ticket(${msg.ticket}));
@@ -223,7 +223,7 @@ refine connection KRB_Conn += {
 			if ( ! krb_as_response )
 				return false;
 
-			BifEvent::generate_krb_as_response(bro_analyzer(), bro_analyzer()->Conn(), make_arg());
+			zeek::BifEvent::enqueue_krb_as_response(bro_analyzer(), bro_analyzer()->Conn(), make_arg());
 			return true;
 			}
 
@@ -232,7 +232,7 @@ refine connection KRB_Conn += {
 			if ( ! krb_tgs_response )
 				return false;
 
-			BifEvent::generate_krb_tgs_response(bro_analyzer(), bro_analyzer()->Conn(), make_arg());
+			zeek::BifEvent::enqueue_krb_tgs_response(bro_analyzer(), bro_analyzer()->Conn(), make_arg());
 			return true;
 			}
 
@@ -244,11 +244,11 @@ refine connection KRB_Conn += {
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_error )
 			{
-			RecordVal* rv = new RecordVal(BifType::Record::KRB::Error_Msg);
-			proc_error_arguments(rv, ${msg.args1}, 0);
+			auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::KRB::Error_Msg);
+			proc_error_arguments(rv.get(), ${msg.args1}, 0);
 			rv->Assign(4, asn1_integer_to_val(${msg.error_code}, TYPE_COUNT));
-			proc_error_arguments(rv, ${msg.args2}, binary_to_int64(${msg.error_code.encoding.content}));
-			BifEvent::generate_krb_error(bro_analyzer(), bro_analyzer()->Conn(), rv);
+			proc_error_arguments(rv.get(), ${msg.args2}, binary_to_int64(${msg.error_code.encoding.content}));
+			zeek::BifEvent::enqueue_krb_error(bro_analyzer(), bro_analyzer()->Conn(), std::move(rv));
 			}
 		return true;
 		%}
@@ -258,16 +258,18 @@ refine connection KRB_Conn += {
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_ap_request )
 			{
-			RecordVal* rv = new RecordVal(BifType::Record::KRB::AP_Options);
-			rv->Assign(0, val_mgr->GetBool(${msg.ap_options.use_session_key}));
-			rv->Assign(1, val_mgr->GetBool(${msg.ap_options.mutual_required}));
+			auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::KRB::AP_Options);
+			rv->Assign(0, val_mgr->Bool(${msg.ap_options.use_session_key}));
+			rv->Assign(1, val_mgr->Bool(${msg.ap_options.mutual_required}));
 
-			RecordVal* rvticket = proc_ticket(${msg.ticket});
-			StringVal* authenticationinfo = bro_analyzer()->GetAuthenticationInfo(rvticket->Lookup(2)->AsString(), rvticket->Lookup(4)->AsString(), rvticket->Lookup(3)->AsCount());
+			auto rvticket = proc_ticket(${msg.ticket});
+			auto authenticationinfo = bro_analyzer()->GetAuthenticationInfo(rvticket->GetField(2)->AsString(), rvticket->GetField(4)->AsString(), rvticket->GetField(3)->AsCount());
+
 			if ( authenticationinfo )
 				rvticket->Assign(5, authenticationinfo);
-			BifEvent::generate_krb_ap_request(bro_analyzer(), bro_analyzer()->Conn(),
-						      rvticket, rv);
+
+			zeek::BifEvent::enqueue_krb_ap_request(bro_analyzer(), bro_analyzer()->Conn(),
+						      std::move(rvticket), std::move(rv));
 			}
 		return true;
 		%}
@@ -277,7 +279,7 @@ refine connection KRB_Conn += {
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_ap_response )
 			{
-			BifEvent::generate_krb_ap_response(bro_analyzer(), bro_analyzer()->Conn());
+			zeek::BifEvent::enqueue_krb_ap_response(bro_analyzer(), bro_analyzer()->Conn());
 			}
 		return true;
 		%}
@@ -287,7 +289,7 @@ refine connection KRB_Conn += {
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_safe )
 			{
-			RecordVal* rv = new RecordVal(BifType::Record::KRB::SAFE_Msg);
+			auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::KRB::SAFE_Msg);
 
 			rv->Assign(0, asn1_integer_to_val(${msg.pvno.data}, TYPE_COUNT));
 			rv->Assign(1, asn1_integer_to_val(${msg.msg_type.data}, TYPE_COUNT));
@@ -320,7 +322,7 @@ refine connection KRB_Conn += {
 				switch ( ${msg.safe_body.args[i].seq_meta.index} )
 					{
 					case 0:
-						rv->Assign(3, bytestring_to_val(${msg.safe_body.args[i].args.user_data.encoding.content}));
+						rv->Assign(3, to_stringval(${msg.safe_body.args[i].args.user_data.encoding.content}));
 						break;
 					case 3:
 						rv->Assign(5, asn1_integer_to_val(${msg.safe_body.args[i].args.seq_number}, TYPE_COUNT));
@@ -335,7 +337,7 @@ refine connection KRB_Conn += {
 						break;
 					}
 				}
-			BifEvent::generate_krb_safe(bro_analyzer(), bro_analyzer()->Conn(), ${msg.is_orig}, rv);
+			zeek::BifEvent::enqueue_krb_safe(bro_analyzer(), bro_analyzer()->Conn(), ${msg.is_orig}, std::move(rv));
 			}
 		return true;
 		%}
@@ -345,7 +347,7 @@ refine connection KRB_Conn += {
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_priv )
 			{
-			BifEvent::generate_krb_priv(bro_analyzer(), bro_analyzer()->Conn(), ${msg.is_orig});
+			zeek::BifEvent::enqueue_krb_priv(bro_analyzer(), bro_analyzer()->Conn(), ${msg.is_orig});
 			}
 		return true;
 		%}
@@ -355,8 +357,8 @@ refine connection KRB_Conn += {
 		bro_analyzer()->ProtocolConfirmation();
 		if ( krb_cred )
 			{
-			BifEvent::generate_krb_cred(bro_analyzer(), bro_analyzer()->Conn(), ${msg.is_orig},
-						    proc_tickets(${msg.tickets}));
+			zeek::BifEvent::enqueue_krb_cred(bro_analyzer(), bro_analyzer()->Conn(), ${msg.is_orig},
+						    		   proc_tickets(${msg.tickets}));
 			}
 		return true;
 

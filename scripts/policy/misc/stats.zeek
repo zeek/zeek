@@ -99,11 +99,6 @@ event check_stats(then: time, last_ns: NetStats, last_cs: ConnStats, last_ps: Pr
 	local fs = get_file_analysis_stats();
 	local ds = get_dns_stats();
 
-	if ( zeek_is_terminating() )
-		# No more stats will be written or scheduled when Zeek is
-		# shutting down.
-		return;
-
 	local info: Info = [$ts=nettime,
 			    $peer=peer_description,
 			    $mem=ps$mem/1048576,
@@ -146,6 +141,12 @@ event check_stats(then: time, last_ns: NetStats, last_cs: ConnStats, last_ps: Pr
 		}
 
 	Log::write(Stats::LOG, info);
+
+	if ( zeek_is_terminating() )
+		# No more stats will be written or scheduled when Zeek is
+		# shutting down.
+		return;
+
 	schedule report_interval { check_stats(nettime, ns, cs, ps, es, rs, ts, fs, ds) };
 	}
 

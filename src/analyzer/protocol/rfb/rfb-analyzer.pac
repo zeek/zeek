@@ -1,39 +1,46 @@
 refine flow RFB_Flow += {
 	function proc_rfb_version(client: bool, major: bytestring, minor: bytestring) : bool
 		%{
-		if (client)
+		if ( client )
 			{
 			if ( rfb_client_version )
-				BifEvent::generate_rfb_client_version(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), bytestring_to_val(major), bytestring_to_val(minor));
+				zeek::BifEvent::enqueue_rfb_client_version(connection()->bro_analyzer(),
+				                                     connection()->bro_analyzer()->Conn(),
+				                                     to_stringval(major),
+				                                     to_stringval(minor));
 
 			connection()->bro_analyzer()->ProtocolConfirmation();
 			}
-			else
+		else
 			{
 			if ( rfb_server_version )
-				BifEvent::generate_rfb_server_version(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), bytestring_to_val(major), bytestring_to_val(minor));
+				zeek::BifEvent::enqueue_rfb_server_version(connection()->bro_analyzer(),
+				                                     connection()->bro_analyzer()->Conn(),
+				                                     to_stringval(major),
+				                                     to_stringval(minor));
 			}
+
 		return true;
 		%}
 
 	function proc_rfb_share_flag(shared: bool) : bool
 		%{
 		if ( rfb_share_flag )
-			BifEvent::generate_rfb_share_flag(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), shared);
+			zeek::BifEvent::enqueue_rfb_share_flag(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), shared);
 		return true;
 		%}
 
 	function proc_security_types(msg: RFBSecurityType) : bool
 		%{
 		if ( rfb_authentication_type )
-			BifEvent::generate_rfb_authentication_type(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), ${msg.sectype});
+			zeek::BifEvent::enqueue_rfb_authentication_type(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), ${msg.sectype});
 		return true;
 		%}
 
 	function proc_security_types37(msg: RFBAuthTypeSelected) : bool
 		%{
 		if ( rfb_authentication_type )
-			BifEvent::generate_rfb_authentication_type(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), ${msg.type});
+			zeek::BifEvent::enqueue_rfb_authentication_type(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), ${msg.type});
 		return true;
 		%}
 
@@ -43,9 +50,9 @@ refine flow RFB_Flow += {
 			{
 			auto vec_ptr = ${msg.name};
 			auto name_ptr = &((*vec_ptr)[0]);
-			BifEvent::generate_rfb_server_parameters(
+			zeek::BifEvent::enqueue_rfb_server_parameters(
 			    connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(),
-			    new StringVal(${msg.name}->size(), (const char*)name_ptr),
+			    make_intrusive<StringVal>(${msg.name}->size(), (const char*)name_ptr),
 			    ${msg.width},
 			    ${msg.height});
 			}
@@ -55,7 +62,7 @@ refine flow RFB_Flow += {
 	function proc_handle_security_result(result : uint32) : bool
 		%{
 		if ( rfb_auth_result )
-			BifEvent::generate_rfb_auth_result(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), result);
+			zeek::BifEvent::enqueue_rfb_auth_result(connection()->bro_analyzer(), connection()->bro_analyzer()->Conn(), result);
 		return true;
 		%}
 };

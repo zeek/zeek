@@ -80,7 +80,7 @@ void File_Analyzer::Identify()
 
 	if ( file_transferred )
 		EnqueueConnEvent(file_transferred,
-			IntrusivePtr{AdoptRef{}, BuildConnVal()},
+			ConnVal(),
 			make_intrusive<StringVal>(buffer_len, buffer),
 			make_intrusive<StringVal>("<unknown>"),
 			make_intrusive<StringVal>(match)

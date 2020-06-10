@@ -4,9 +4,9 @@ type ftp_port: record;
 %%{
 #include "Reporter.h"
 
-static Val* parse_port(const char* line)
+static IntrusivePtr<Val> parse_port(const char* line)
 	{
-	RecordVal* r = new RecordVal(BifType::Record::ftp_port);
+	auto r = make_intrusive<RecordVal>(zeek::BifType::Record::ftp_port);
 
 	int bytes[6];
 	if ( line && sscanf(line, "%d,%d,%d,%d,%d,%d",
@@ -34,22 +34,22 @@ static Val* parse_port(const char* line)
 			}
 
 		r->Assign(0, make_intrusive<AddrVal>(htonl(addr)));
-		r->Assign(1, val_mgr->GetPort(port, TRANSPORT_TCP));
-		r->Assign(2, val_mgr->GetBool(good));
+		r->Assign(1, val_mgr->Port(port, TRANSPORT_TCP));
+		r->Assign(2, val_mgr->Bool(good));
 		}
 	else
 		{
 		r->Assign(0, make_intrusive<AddrVal>(uint32_t(0)));
-		r->Assign(1, val_mgr->GetPort(0, TRANSPORT_TCP));
-		r->Assign(2, val_mgr->GetFalse());
+		r->Assign(1, val_mgr->Port(0, TRANSPORT_TCP));
+		r->Assign(2, val_mgr->False());
 		}
 
 	return r;
 	}
 
-static Val* parse_eftp(const char* line)
+static IntrusivePtr<Val> parse_eftp(const char* line)
 	{
-	RecordVal* r = new RecordVal(BifType::Record::ftp_port);
+	auto r = make_intrusive<RecordVal>(zeek::BifType::Record::ftp_port);
 
 	int net_proto = 0;	// currently not used
 	IPAddr addr;	// unspecified IPv6 address (all 128 bits zero)
@@ -110,8 +110,8 @@ static Val* parse_eftp(const char* line)
 		}
 
 	r->Assign(0, make_intrusive<AddrVal>(addr));
-	r->Assign(1, val_mgr->GetPort(port, TRANSPORT_TCP));
-	r->Assign(2, val_mgr->GetBool(good));
+	r->Assign(1, val_mgr->Port(port, TRANSPORT_TCP));
+	r->Assign(2, val_mgr->Bool(good));
 
 	return r;
 	}
@@ -206,7 +206,7 @@ function fmt_ftp_port%(a: addr, p: port%): string
 		{
 		uint32_t a = ntohl(addr[0]);
 		uint32_t pn = p->Port();
-		return new StringVal(fmt("%d,%d,%d,%d,%d,%d",
+		return make_intrusive<StringVal>(fmt("%d,%d,%d,%d,%d,%d",
 						a >> 24, (a >> 16) & 0xff,
 						(a >> 8) & 0xff, a & 0xff,
 						pn >> 8, pn & 0xff));
@@ -215,6 +215,6 @@ function fmt_ftp_port%(a: addr, p: port%): string
 		{
 		builtin_error("conversion of non-IPv4 address in fmt_ftp_port",
 		              @ARG@[0]);
-		return val_mgr->GetEmptyString();
+		return val_mgr->EmptyString();
 		}
 	%}

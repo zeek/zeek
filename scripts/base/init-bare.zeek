@@ -1870,9 +1870,6 @@ type gtp_delete_pdp_ctx_response_elements: record {
 @load base/frameworks/supervisor/api
 @load base/bif/supervisor.bif
 
-global done_with_network = F;
-event net_done(t: time) { done_with_network = T; }
-
 ## Internal function.
 function add_interface(iold: string, inew: string): string
 	{
@@ -2076,7 +2073,8 @@ global login_timeouts: set[string] &redef;
 ##
 ## .. zeek:see:: mime_header_list http_all_headers mime_all_headers mime_one_header
 type mime_header_rec: record {
-	name: string;	##< The header name.
+	original_name: string; ##< The header name (unaltered).
+	name: string;	##< The header name (converted to all upper-case).
 	value: string;	##< The header value.
 };
 
@@ -5262,3 +5260,15 @@ const global_hash_seed: string = "" &redef;
 ## files.  The larger the value, the more confidence in UID uniqueness.
 ## The maximum is currently 128 bits.
 const bits_per_uid: count = 96 &redef;
+
+## This salt value is used for several message digests in Zeek. We
+## use a salt to help mitigate the possibility of an attacker
+## manipulating source data to, e.g., mount complexity attacks or
+## cause ID collisions.
+## This salt is, for example, used by :zeek:see:`get_file_handle`
+## to generate installation-unique file IDs (the *id* field of :zeek:see:`fa_file`).
+const digest_salt = "Please change this value." &redef;
+
+global done_with_network = F;
+event net_done(t: time)
+	{ done_with_network = T; }

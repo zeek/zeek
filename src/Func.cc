@@ -59,8 +59,7 @@ extern	RETSIGTYPE sig_handler(int signo);
 std::vector<CallInfo> call_stack;
 bool did_builtin_init = false;
 
-std::vector<Func*> Func::unique_ids;
-static const std::pair<bool, Val*> empty_hook_result(false, NULL);
+static const std::pair<bool, IntrusivePtr<Val>> empty_hook_result(false, nullptr);
 
 std::string render_call_stack()
 	{
@@ -111,19 +110,20 @@ std::string render_call_stack()
 Func::Func()
 	{
 	unique_id = unique_ids.size();
-	unique_ids.push_back(this);
+	unique_ids.push_back({NewRef{}, this});
 	}
 
 Func::Func(Kind arg_kind) : kind(arg_kind)
 	{
 	unique_id = unique_ids.size();
-	unique_ids.push_back(this);
+	unique_ids.push_back({NewRef{}, this});
 	}
 
 Func::~Func() = default;
 
-void Func::AddBody(IntrusivePtr<Stmt> /* new_body */, id_list* /* new_inits */,
-		   size_t /* new_frame_size */, int /* priority */)
+void Func::AddBody(IntrusivePtr<Stmt> /* new_body */,
+                   const std::vector<IntrusivePtr<ID>>& /* new_inits */,
+                   size_t /* new_frame_size */, int /* priority */)
 	{
 	Internal("Func::AddBody called");
 	}
@@ -147,7 +147,7 @@ void Func::DescribeDebug(ODesc* d, const zeek::Args* args) const
 	if ( args )
 		{
 		d->Add("(");
-		RecordType* func_args = FType()->Args();
+		const auto& func_args = GetType()->Params();
 		auto num_fields = static_cast<size_t>(func_args->NumFields());
 
 		for ( auto i = 0u; i < args->size(); ++i )
@@ -215,63 +215,66 @@ void Func::CopyStateInto(Func* other) const
 	other->unique_id = unique_id;
 	}
 
-std::pair<bool, Val*> Func::HandlePluginResult(std::pair<bool, Val*> plugin_result, function_flavor flavor) const
+void Func::CheckPluginResult(bool handled, const IntrusivePtr<Val>& hook_result,
+                             function_flavor flavor) const
 	{
 	// Helper function factoring out this code from BroFunc:Call() for
 	// better readability.
 
-	if( ! plugin_result.first )
+	if ( ! handled )
 		{
-		if( plugin_result.second )
+		if ( hook_result )
 			reporter->InternalError("plugin set processed flag to false but actually returned a value");
 
 		// The plugin result hasn't been processed yet (read: fall
 		// into ::Call method).
-		return plugin_result;
+		return;
 		}
 
 	switch ( flavor ) {
 	case FUNC_FLAVOR_EVENT:
-		if( plugin_result.second )
-			reporter->InternalError("plugin returned non-void result for event %s", this->Name());
+		if ( hook_result )
+			reporter->InternalError("plugin returned non-void result for event %s",
+			                        this->Name());
 
 		break;
 
 	case FUNC_FLAVOR_HOOK:
-		if ( plugin_result.second->Type()->Tag() != TYPE_BOOL )
-			reporter->InternalError("plugin returned non-bool for hook %s", this->Name());
+		if ( hook_result->GetType()->Tag() != TYPE_BOOL )
+			reporter->InternalError("plugin returned non-bool for hook %s",
+			                        this->Name());
 
 		break;
 
 	case FUNC_FLAVOR_FUNCTION:
 		{
-		BroType* yt = FType()->YieldType();
+		const auto& yt = GetType()->Yield();
 
 		if ( (! yt) || yt->Tag() == TYPE_VOID )
 			{
-			if( plugin_result.second )
-				reporter->InternalError("plugin returned non-void result for void method %s", this->Name());
+			if ( hook_result )
+				reporter->InternalError("plugin returned non-void result for void method %s",
+				                        this->Name());
 			}
 
-		else if ( plugin_result.second && plugin_result.second->Type()->Tag() != yt->Tag() && yt->Tag() != TYPE_ANY)
+		else if ( hook_result && hook_result->GetType()->Tag() != yt->Tag() && yt->Tag() != TYPE_ANY )
 			{
 			reporter->InternalError("plugin returned wrong type (got %d, expecting %d) for %s",
-						plugin_result.second->Type()->Tag(), yt->Tag(), this->Name());
+			                        hook_result->GetType()->Tag(), yt->Tag(), this->Name());
 			}
 
 		break;
 		}
 	}
-
-	return plugin_result;
 	}
 
-BroFunc::BroFunc(ID* arg_id, IntrusivePtr<Stmt> arg_body, id_list* aggr_inits,
+BroFunc::BroFunc(const IntrusivePtr<ID>& arg_id, IntrusivePtr<Stmt> arg_body,
+                 const std::vector<IntrusivePtr<ID>>& aggr_inits,
                  size_t arg_frame_size, int priority)
 	: Func(BRO_FUNC)
 	{
 	name = arg_id->Name();
-	type = {NewRef{}, arg_id->Type()};
+	type = arg_id->GetType<FuncType>();
 	frame_size = arg_frame_size;
 
 	if ( arg_body )
@@ -295,12 +298,13 @@ bool BroFunc::IsPure() const
 		[](const Body& b) { return b.stmts->IsPure(); });
 	}
 
-IntrusivePtr<Val> Func::Call(val_list* args, Frame* parent) const
+Val* Func::Call(val_list* args, Frame* parent) const
 	{
-	return Call(zeek::val_list_to_args(*args), parent);
-	}
+	auto zargs = zeek::val_list_to_args(*args);
+	return Invoke(&zargs, parent).release();
+	};
 
-IntrusivePtr<Val> BroFunc::Call(const zeek::Args& args, Frame* parent) const
+IntrusivePtr<Val> BroFunc::Invoke(zeek::Args* args, Frame* parent) const
 	{
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", Name());
@@ -310,21 +314,23 @@ IntrusivePtr<Val> BroFunc::Call(const zeek::Args& args, Frame* parent) const
 	if ( sample_logger )
 		sample_logger->FunctionSeen(this);
 
-	std::pair<bool, Val*> plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), empty_hook_result);
+	auto [handled, hook_result] = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION,
+	                                                      HookCallFunction(this, parent, args),
+	                                                      empty_hook_result);
 
-	plugin_result = HandlePluginResult(plugin_result,  Flavor());
+	CheckPluginResult(handled, hook_result, Flavor());
 
-	if( plugin_result.first )
-		return {AdoptRef{}, plugin_result.second};
+	if ( handled )
+		return hook_result;
 
 	if ( bodies.empty() )
 		{
 		// Can only happen for events and hooks.
 		assert(Flavor() == FUNC_FLAVOR_EVENT || Flavor() == FUNC_FLAVOR_HOOK);
-		return Flavor() == FUNC_FLAVOR_HOOK ? IntrusivePtr{AdoptRef{}, val_mgr->GetTrue()} : nullptr;
+		return Flavor() == FUNC_FLAVOR_HOOK ? val_mgr->True() : nullptr;
 		}
 
-	auto f = make_intrusive<Frame>(frame_size, this, &args);
+	auto f = make_intrusive<Frame>(frame_size, this, args);
 
 	if ( closure )
 		f->CaptureClosure(closure, outer_ids);
@@ -338,15 +344,15 @@ IntrusivePtr<Val> BroFunc::Call(const zeek::Args& args, Frame* parent) const
 
 	g_frame_stack.push_back(f.get());	// used for backtracing
 	const CallExpr* call_expr = parent ? parent->GetCall() : nullptr;
-	call_stack.emplace_back(CallInfo{call_expr, this, args});
+	call_stack.emplace_back(CallInfo{call_expr, this, *args});
 
 	if ( g_trace_state.DoTrace() )
 		{
 		ODesc d;
-		DescribeDebug(&d, &args);
+		DescribeDebug(&d, args);
 
 		g_trace_state.LogTrace("%s called: %s\n",
-			FType()->FlavorString().c_str(), d.Description());
+			GetType()->FlavorString().c_str(), d.Description());
 		}
 
 	stmt_flow_type flow = FLOW_NEXT;
@@ -359,16 +365,16 @@ IntrusivePtr<Val> BroFunc::Call(const zeek::Args& args, Frame* parent) const
 				body.stmts->GetLocationInfo());
 
 		// Fill in the rest of the frame with the function's arguments.
-		for ( auto j = 0u; j < args.size(); ++j )
+		for ( auto j = 0u; j < args->size(); ++j )
 			{
-			Val* arg = args[j].get();
+			const auto& arg = (*args)[j];
 
-			if ( f->NthElement(j) != arg )
+			if ( f->GetElement(j) != arg )
 				// Either not yet set, or somebody reassigned the frame slot.
-				f->SetElement(j, arg->Ref());
+				f->SetElement(j, arg);
 			}
 
-		f->Reset(args.size());
+		f->Reset(args->size());
 
 		try
 			{
@@ -407,7 +413,7 @@ IntrusivePtr<Val> BroFunc::Call(const zeek::Args& args, Frame* parent) const
 			if ( flow == FLOW_BREAK )
 				{
 				// Short-circuit execution of remaining hook handler bodies.
-				result = {AdoptRef{}, val_mgr->GetFalse()};
+				result = val_mgr->False();
 				break;
 				}
 			}
@@ -418,12 +424,12 @@ IntrusivePtr<Val> BroFunc::Call(const zeek::Args& args, Frame* parent) const
 	if ( Flavor() == FUNC_FLAVOR_HOOK )
 		{
 		if ( ! result )
-			result = {AdoptRef{}, val_mgr->GetTrue()};
+			result = val_mgr->True();
 		}
 
 	// Warn if the function returns something, but we returned from
 	// the function without an explicit return, or without a value.
-	else if ( FType()->YieldType() && FType()->YieldType()->Tag() != TYPE_VOID &&
+	else if ( GetType()->Yield() && GetType()->Yield()->Tag() != TYPE_VOID &&
 		 (flow != FLOW_RETURN /* we fell off the end */ ||
 		  ! result /* explicit return with no result */) &&
 		 ! f->HasDelayed() )
@@ -443,13 +449,14 @@ IntrusivePtr<Val> BroFunc::Call(const zeek::Args& args, Frame* parent) const
 	return result;
 	}
 
-void BroFunc::AddBody(IntrusivePtr<Stmt> new_body, id_list* new_inits,
+void BroFunc::AddBody(IntrusivePtr<Stmt> new_body,
+                      const std::vector<IntrusivePtr<ID>>& new_inits,
                       size_t new_frame_size, int priority)
 	{
 	if ( new_frame_size > frame_size )
 		frame_size = new_frame_size;
 
-	auto num_args = FType()->Args()->NumFields();
+	auto num_args = GetType()->Params()->NumFields();
 
 	if ( num_args > static_cast<int>(frame_size) )
 		frame_size = num_args;
@@ -567,9 +574,10 @@ void BroFunc::Describe(ODesc* d) const
 		}
 	}
 
-IntrusivePtr<Stmt> BroFunc::AddInits(IntrusivePtr<Stmt> body, id_list* inits)
+IntrusivePtr<Stmt> BroFunc::AddInits(IntrusivePtr<Stmt> body,
+                                     const std::vector<IntrusivePtr<ID>>& inits)
 	{
-	if ( ! inits || inits->length() == 0 )
+	if ( inits.empty() )
 		return body;
 
 	auto stmt_series = make_intrusive<StmtList>();
@@ -587,14 +595,14 @@ BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name,
 	name = make_full_var_name(GLOBAL_MODULE_NAME, arg_name);
 	is_pure = arg_is_pure;
 
-	auto id = lookup_ID(Name(), GLOBAL_MODULE_NAME, false);
+	const auto& id = lookup_ID(Name(), GLOBAL_MODULE_NAME, false);
 	if ( ! id )
 		reporter->InternalError("built-in function %s missing", Name());
 	if ( id->HasVal() )
 		reporter->InternalError("built-in function %s multiply defined", Name());
 
-	type = {NewRef{}, id->Type()};
-	id->SetVal(make_intrusive<Val>(this));
+	type = id->GetType<FuncType>();
+	id->SetVal(make_intrusive<Val>(IntrusivePtr{NewRef{}, this}));
 	}
 
 BuiltinFunc::~BuiltinFunc()
@@ -606,7 +614,7 @@ bool BuiltinFunc::IsPure() const
 	return is_pure;
 	}
 
-IntrusivePtr<Val> BuiltinFunc::Call(const zeek::Args& args, Frame* parent) const
+IntrusivePtr<Val> BuiltinFunc::Invoke(zeek::Args* args, Frame* parent) const
 	{
 #ifdef PROFILE_BRO_FUNCTIONS
 	DEBUG_MSG("Function: %s\n", Name());
@@ -616,24 +624,26 @@ IntrusivePtr<Val> BuiltinFunc::Call(const zeek::Args& args, Frame* parent) const
 	if ( sample_logger )
 		sample_logger->FunctionSeen(this);
 
-	std::pair<bool, Val*> plugin_result = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), empty_hook_result);
+	auto [handled, hook_result] = PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION,
+	                                                      HookCallFunction(this, parent, args),
+	                                                      empty_hook_result);
 
-	plugin_result = HandlePluginResult(plugin_result, FUNC_FLAVOR_FUNCTION);
+	CheckPluginResult(handled, hook_result, FUNC_FLAVOR_FUNCTION);
 
-	if ( plugin_result.first )
-		return {AdoptRef{}, plugin_result.second};
+	if ( handled )
+		return hook_result;
 
 	if ( g_trace_state.DoTrace() )
 		{
 		ODesc d;
-		DescribeDebug(&d, &args);
+		DescribeDebug(&d, args);
 
 		g_trace_state.LogTrace("\tBuiltin Function called: %s\n", d.Description());
 		}
 
 	const CallExpr* call_expr = parent ? parent->GetCall() : nullptr;
-	call_stack.emplace_back(CallInfo{call_expr, this, args});
-	IntrusivePtr<Val> result{AdoptRef{}, func(parent, &args)};
+	call_stack.emplace_back(CallInfo{call_expr, this, *args});
+	auto result = std::move(func(parent, args).rval);
 	call_stack.pop_back();
 
 	if ( result && g_trace_state.DoTrace() )
@@ -748,21 +758,21 @@ void builtin_error(const char* msg, BroObj* arg)
 
 void init_builtin_funcs()
 	{
-	ProcStats = internal_type("ProcStats")->AsRecordType();
-	NetStats = internal_type("NetStats")->AsRecordType();
-	MatcherStats = internal_type("MatcherStats")->AsRecordType();
-	ConnStats = internal_type("ConnStats")->AsRecordType();
-	ReassemblerStats = internal_type("ReassemblerStats")->AsRecordType();
-	DNSStats = internal_type("DNSStats")->AsRecordType();
-	GapStats = internal_type("GapStats")->AsRecordType();
-	EventStats = internal_type("EventStats")->AsRecordType();
-	TimerStats = internal_type("TimerStats")->AsRecordType();
-	FileAnalysisStats = internal_type("FileAnalysisStats")->AsRecordType();
-	ThreadStats = internal_type("ThreadStats")->AsRecordType();
-	BrokerStats = internal_type("BrokerStats")->AsRecordType();
-	ReporterStats = internal_type("ReporterStats")->AsRecordType();
+	ProcStats = zeek::id::find_type<RecordType>("ProcStats");
+	NetStats = zeek::id::find_type<RecordType>("NetStats");
+	MatcherStats = zeek::id::find_type<RecordType>("MatcherStats");
+	ConnStats = zeek::id::find_type<RecordType>("ConnStats");
+	ReassemblerStats = zeek::id::find_type<RecordType>("ReassemblerStats");
+	DNSStats = zeek::id::find_type<RecordType>("DNSStats");
+	GapStats = zeek::id::find_type<RecordType>("GapStats");
+	EventStats = zeek::id::find_type<RecordType>("EventStats");
+	TimerStats = zeek::id::find_type<RecordType>("TimerStats");
+	FileAnalysisStats = zeek::id::find_type<RecordType>("FileAnalysisStats");
+	ThreadStats = zeek::id::find_type<RecordType>("ThreadStats");
+	BrokerStats = zeek::id::find_type<RecordType>("BrokerStats");
+	ReporterStats = zeek::id::find_type<RecordType>("ReporterStats");
 
-	var_sizes = internal_type("var_sizes")->AsTableType();
+	var_sizes = zeek::id::find_type("var_sizes")->AsTableType();
 
 #include "zeek.bif.func_init"
 #include "stats.bif.func_init"
@@ -781,7 +791,7 @@ void init_builtin_funcs_subdirs()
 
 bool check_built_in_call(BuiltinFunc* f, CallExpr* call)
 	{
-	if ( f->TheFunc() != BifFunc::bro_fmt )
+	if ( f->TheFunc() != zeek::BifFunc::fmt_bif)
 		return true;
 
 	const expr_list& args = call->Args()->Exprs();
@@ -793,7 +803,7 @@ bool check_built_in_call(BuiltinFunc* f, CallExpr* call)
 		}
 
 	const Expr* fmt_str_arg = args[0];
-	if ( fmt_str_arg->Type()->Tag() != TYPE_STRING )
+	if ( fmt_str_arg->GetType()->Tag() != TYPE_STRING )
 		{
 		call->Error("first argument to fmt() needs to be a format string");
 		return false;
@@ -834,7 +844,7 @@ bool check_built_in_call(BuiltinFunc* f, CallExpr* call)
 
 // Gets a function's priority from its Scope's attributes. Errors if it sees any
 // problems.
-static int get_func_priority(const attr_list& attrs)
+static int get_func_priority(const std::vector<IntrusivePtr<Attr>>& attrs)
 	{
 	int priority = 0;
 
@@ -849,7 +859,7 @@ static int get_func_priority(const attr_list& attrs)
 			continue;
 			}
 
-		auto v = a->AttrExpr()->Eval(nullptr);
+		auto v = a->GetExpr()->Eval(nullptr);
 
 		if ( ! v )
 			{
@@ -857,7 +867,7 @@ static int get_func_priority(const attr_list& attrs)
 			continue;
 			}
 
-		if ( ! IsIntegral(v->Type()->Tag()) )
+		if ( ! IsIntegral(v->GetType()->Tag()) )
 			{
 			a->Error("expression is not of integral type");
 			continue;
@@ -875,18 +885,10 @@ function_ingredients::function_ingredients(IntrusivePtr<Scope> scope, IntrusiveP
 	inits = scope->GetInits();
 
 	this->scope = std::move(scope);
-	id = {NewRef{}, this->scope->ScopeID()};
+	id = this->scope->GetID();
 
-	auto attrs = this->scope->Attrs();
+	const auto& attrs = this->scope->Attrs();
 
 	priority = (attrs ? get_func_priority(*attrs) : 0);
 	this->body = std::move(body);
-	}
-
-function_ingredients::~function_ingredients()
-	{
-	for ( const auto& i : *inits )
-		Unref(i);
-
-	delete inits;
 	}

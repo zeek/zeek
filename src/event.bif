@@ -35,7 +35,7 @@
 ## one-time initialization code at startup. At the time a handler runs, Zeek will
 ## have executed any global initializations and statements.
 ##
-## .. zeek:see:: zeek_done
+## .. zeek:see:: zeek_done network_time_init
 ##
 ## .. note::
 ##
@@ -60,6 +60,32 @@ event zeek_init%(%);
 ##    If Zeek terminates due to an invocation of :zeek:id:`exit`, then this event
 ##    is not generated.
 event zeek_done%(%);
+
+## Generated as one of the first steps of Zeek's main-loop termination, just
+## before it starts to flush any remaining events/timers/state. The event
+## engine generates this event when Zeek is about to terminate, either due to
+## having exhausted reading its input trace file(s), receiving a termination
+## signal, or because Zeek was run without a network input source and has
+## finished executing any global statements.  This event comes before
+## :zeek:see:`zeek_init`.
+##
+## t: The time at with the Zeek-termination process started.
+##
+## .. zeek:see:: zeek_init zeek_done
+##
+## .. note::
+##
+##    If Zeek terminates due to an invocation of :zeek:id:`exit`, then this event
+##    is not generated.
+event net_done%(t: time%);
+
+## Generated when network time is initialized. The event engine generates this
+## event after the network time has been determined but before processing of
+## packets is started.
+##
+## .. zeek:see:: zeek_init network_time
+##
+event network_time_init%(%);
 
 ## Generated for every new connection. This event is raised with the first
 ## packet of a previously unknown connection. Zeek uses a flow-based definition
@@ -811,6 +837,20 @@ event dns_mapping_new_name%(dm: dns_mapping%);
 ## .. zeek:see:: dns_mapping_altered dns_mapping_new_name dns_mapping_unverified
 ##    dns_mapping_valid
 event dns_mapping_lost_name%(dm: dns_mapping%);
+
+## Generated when an internal DNS lookup returns a different host name than
+## in the past.  Zeek keeps an internal DNS cache for host names
+## and IP addresses it has already resolved. This event is generated when
+## on a subsequent lookup we receive an answer that has a different host
+## string than we already have in the cache.
+##
+## prev: A record describing the old resolver result.
+#
+## latest: A record describing the new resolver result.
+##
+## .. zeek:see:: dns_mapping_altered dns_mapping_new_name dns_mapping_unverified
+##    dns_mapping_valid
+event dns_mapping_name_changed%(prev: dns_mapping, latest: dns_mapping%);
 
 ## Generated when an internal DNS lookup produced a different result than in
 ## the past.  Zeek keeps an internal DNS cache for host names and IP addresses

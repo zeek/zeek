@@ -12,19 +12,19 @@ static bool is_string_set(const BroType* type)
 	if ( ! type->IsSet() )
 		return false;
 
-	auto index_types = type->AsSetType()->IndexTypes();
+	const auto& index_types = type->AsSetType()->IndexTypes();
 
-	if ( index_types->length() != 1 )
+	if ( index_types.size() != 1 )
 		return false;
 
-	return (*index_types)[0]->Tag() == TYPE_STRING;
+	return index_types[0]->Tag() == TYPE_STRING;
 	}
 
 std::set<std::string> val_to_topic_set(Val* val)
 	{
 	std::set<std::string> rval;
 
-	if ( val->Type()->Tag() == TYPE_STRING )
+	if ( val->GetType()->Tag() == TYPE_STRING )
 		rval.emplace(val->AsString()->CheckString());
 	else
 		{
@@ -38,8 +38,8 @@ std::set<std::string> val_to_topic_set(Val* val)
 
 		while ( tbl->NextEntry(k, c) )
 			{
-			auto index = val->AsTableVal()->RecoverIndex(k);
-			rval.emplace(index->Index(0)->AsString()->CheckString());
+			auto index = val->AsTableVal()->RecreateIndex(*k);
+			rval.emplace(index->Idx(0)->AsString()->CheckString());
 			delete k;
 			}
 		}
@@ -53,7 +53,7 @@ static bool publish_event_args(val_list& args, const BroString* topic,
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = false;
 
-	if ( args[0]->Type()->Tag() == TYPE_RECORD )
+	if ( args[0]->GetType()->Tag() == TYPE_RECORD )
 		rval = broker_mgr->PublishEvent(topic->CheckString(),
 		                                args[0]->AsRecordVal());
 	else
@@ -89,8 +89,7 @@ function Broker::make_event%(...%): Broker::Event
 	for ( auto i = 0u; i < bif_args->size(); ++i )
 		args.push_back((*bif_args)[i].get());
 
-	auto rval = broker_mgr->MakeEvent(&args, frame);
-	return rval;
+	return IntrusivePtr<RecordVal>{AdoptRef{}, broker_mgr->MakeEvent(&args, frame)};
 	%}
 
 ## Publishes an event at a given topic.
@@ -111,13 +110,13 @@ function Broker::publish%(topic: string, ...%): bool
 		args.push_back((*bif_args)[i].get());
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
-	return val_mgr->GetBool(rval);
+	return val_mgr->Bool(rval);
 	%}
 
 function Broker::__flush_logs%(%): count
 	%{
 	auto rval = broker_mgr->FlushLogBuffers();
-	return val_mgr->GetCount(static_cast<uint64_t>(rval));
+	return val_mgr->Count(static_cast<uint64_t>(rval));
 	%}
 
 function Broker::__publish_id%(topic: string, id: string%): bool
@@ -125,42 +124,42 @@ function Broker::__publish_id%(topic: string, id: string%): bool
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->PublishIdentifier(topic->CheckString(),
 	                                          id->CheckString());
-	return val_mgr->GetBool(rval);
+	return val_mgr->Bool(rval);
 	%}
 
 function Broker::__auto_publish%(topic: string, ev: any%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->AutoPublishEvent(topic->CheckString(), ev);
-	return val_mgr->GetBool(rval);
+	return val_mgr->Bool(rval);
 	%}
 
 function Broker::__auto_unpublish%(topic: string, ev: any%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->AutoUnpublishEvent(topic->CheckString(), ev);
-	return val_mgr->GetBool(rval);
+	return val_mgr->Bool(rval);
 	%}
 
 function Broker::__subscribe%(topic_prefix: string%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->Subscribe(topic_prefix->CheckString());
-	return val_mgr->GetBool(rval);
+	return val_mgr->Bool(rval);
 	%}
 
 function Broker::__forward%(topic_prefix: string%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->Forward(topic_prefix->CheckString());
-	return val_mgr->GetBool(rval);
+	return val_mgr->Bool(rval);
 	%}
 
 function Broker::__unsubscribe%(topic_prefix: string%): bool
 	%{
 	bro_broker::Manager::ScriptScopeGuard ssg;
 	auto rval = broker_mgr->Unsubscribe(topic_prefix->CheckString());
-	return val_mgr->GetBool(rval);
+	return val_mgr->Bool(rval);
 	%}
 
 module Cluster;
@@ -186,13 +185,13 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 	static Func* topic_func = 0;
 
 	if ( ! topic_func )
-		topic_func = global_scope()->Lookup("Cluster::rr_topic")->ID_Val()->AsFunc();
+		topic_func = global_scope()->Find("Cluster::rr_topic")->GetVal()->AsFunc();
 
 	zeek::Args vl{{NewRef{}, pool}, {NewRef{}, key}};
-	auto topic = topic_func->Call(vl);
+	auto topic = topic_func->Invoke(&vl);
 
 	if ( ! topic->AsString()->Len() )
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 
 	const auto& bif_args = @ARGS@;
 	val_list args(bif_args->size() - 2);
@@ -201,7 +200,7 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 		args.push_back((*bif_args)[i].get());
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
-	return val_mgr->GetBool(rval);
+	return val_mgr->Bool(rval);
 	%}
 
 
@@ -223,13 +222,13 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 	static Func* topic_func = 0;
 
 	if ( ! topic_func )
-		topic_func = global_scope()->Lookup("Cluster::hrw_topic")->ID_Val()->AsFunc();
+		topic_func = global_scope()->Find("Cluster::hrw_topic")->GetVal()->AsFunc();
 
 	zeek::Args vl{{NewRef{}, pool}, {NewRef{}, key}};
-	auto topic = topic_func->Call(vl);
+	auto topic = topic_func->Invoke(&vl);
 
 	if ( ! topic->AsString()->Len() )
-		return val_mgr->GetFalse();
+		return val_mgr->False();
 
 	const auto& bif_args = @ARGS@;
 	val_list args(bif_args->size() - 2);
@@ -238,5 +237,5 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 		args.push_back((*bif_args)[i].get());
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
-	return val_mgr->GetBool(rval);
+	return val_mgr->Bool(rval);
 	%}

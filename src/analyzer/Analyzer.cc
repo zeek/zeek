@@ -135,6 +135,20 @@ Analyzer::~Analyzer()
 	{
 	assert(finished);
 
+	// Make sure any late entries into the analyzer tree are handled (e.g.
+	// from some Done() implementation).
+	LOOP_OVER_GIVEN_CHILDREN(i, new_children)
+		{
+		if ( ! (*i)->finished )
+			(*i)->Done();
+		}
+
+	// Deletion of new_children done in separate loop in case a Done()
+	// implementation tries to inspect analyzer tree w/ assumption that
+	// all analyzers are still valid.
+	LOOP_OVER_GIVEN_CHILDREN(i, new_children)
+		delete *i;
+
 	LOOP_OVER_CHILDREN(i)
 		delete *i;
 
@@ -687,13 +701,8 @@ void Analyzer::ProtocolConfirmation(Tag arg_tag)
 	if ( ! protocol_confirmation )
 		return;
 
-	EnumVal* tval = arg_tag ? arg_tag.AsEnumVal() : tag.AsEnumVal();
-
-	mgr.Enqueue(protocol_confirmation,
-		IntrusivePtr{AdoptRef{}, BuildConnVal()},
-		IntrusivePtr{NewRef{}, tval},
-		IntrusivePtr{AdoptRef{}, val_mgr->GetCount(id)}
-	);
+	const auto& tval = arg_tag ? arg_tag.AsVal() : tag.AsVal();
+	mgr.Enqueue(protocol_confirmation, ConnVal(), tval, val_mgr->Count(id));
 	}
 
 void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
@@ -701,27 +710,21 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 	if ( ! protocol_violation )
 		return;
 
-	StringVal* r;
+	IntrusivePtr<StringVal> r;
 
 	if ( data && len )
 		{
 		const char *tmp = copy_string(reason);
-		r = new StringVal(fmt("%s [%s%s]", tmp,
+		r = make_intrusive<StringVal>(fmt("%s [%s%s]", tmp,
 					fmt_bytes(data, min(40, len)),
 					len > 40 ? "..." : ""));
 		delete [] tmp;
 		}
 	else
-		r = new StringVal(reason);
+		r = make_intrusive<StringVal>(reason);
 
-	EnumVal* tval = tag.AsEnumVal();
-
-	mgr.Enqueue(protocol_violation,
-		IntrusivePtr{AdoptRef{}, BuildConnVal()},
-		IntrusivePtr{NewRef{}, tval},
-		IntrusivePtr{AdoptRef{}, val_mgr->GetCount(id)},
-		IntrusivePtr{AdoptRef{}, r}
-	);
+	const auto& tval = tag.AsVal();
+	mgr.Enqueue(protocol_violation, ConnVal(), tval, val_mgr->Count(id), std::move(r));
 	}
 
 void Analyzer::AddTimer(analyzer_timer_func timer, double t,
@@ -788,7 +791,12 @@ void Analyzer::UpdateConnVal(RecordVal *conn_val)
 
 RecordVal* Analyzer::BuildConnVal()
 	{
-	return conn->BuildConnVal();
+	return conn->ConnVal()->Ref()->AsRecordVal();
+	}
+
+const IntrusivePtr<RecordVal>& Analyzer::ConnVal()
+	{
+	return conn->ConnVal();
 	}
 
 void Analyzer::Event(EventHandlerPtr f, const char* name)
@@ -798,7 +806,11 @@ void Analyzer::Event(EventHandlerPtr f, const char* name)
 
 void Analyzer::Event(EventHandlerPtr f, Val* v1, Val* v2)
 	{
-	conn->Event(f, this, v1, v2);
+	IntrusivePtr val1{AdoptRef{}, v1};
+	IntrusivePtr val2{AdoptRef{}, v2};
+
+	if ( f )
+		conn->EnqueueEvent(f, this, conn->ConnVal(), std::move(val1), std::move(val2));
 	}
 
 void Analyzer::ConnectionEvent(EventHandlerPtr f, val_list* vl)
@@ -914,12 +926,12 @@ void TransportLayerAnalyzer::Done()
 	}
 
 void TransportLayerAnalyzer::SetContentsFile(unsigned int /* direction */,
-						BroFile* /* f */)
+						IntrusivePtr<BroFile> /* f */)
 	{
 	reporter->Error("analyzer type does not support writing to a contents file");
 	}
 
-BroFile* TransportLayerAnalyzer::GetContentsFile(unsigned int /* direction */) const
+IntrusivePtr<BroFile> TransportLayerAnalyzer::GetContentsFile(unsigned int /* direction */) const
 	{
 	reporter->Error("analyzer type does not support writing to a contents file");
 	return nullptr;
@@ -930,7 +942,7 @@ void TransportLayerAnalyzer::PacketContents(const u_char* data, int len)
 	if ( packet_contents && len > 0 )
 		{
 		BroString* cbs = new BroString(data, len, true);
-		Val* contents = new StringVal(cbs);
-		Event(packet_contents, contents);
+		auto contents = make_intrusive<StringVal>(cbs);
+		EnqueueConnEvent(packet_contents, ConnVal(), std::move(contents));
 		}
 	}

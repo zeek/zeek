@@ -14,10 +14,10 @@ refine flow MQTT_Flow += {
 		%{
 		if ( mqtt_suback )
 			{
-			BifEvent::generate_mqtt_suback(connection()->bro_analyzer(),
-			                               connection()->bro_analyzer()->Conn(),
-			                               ${msg.msg_id},
-			                               ${msg.granted_QoS});
+			zeek::BifEvent::enqueue_mqtt_suback(connection()->bro_analyzer(),
+			                              connection()->bro_analyzer()->Conn(),
+			                              ${msg.msg_id},
+			                              ${msg.granted_QoS});
 			}
 
 		return true;

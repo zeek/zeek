@@ -58,25 +58,12 @@ bool BroSubstring::DoesCover(const BroSubstring* bst) const
 
 VectorVal* BroSubstring::VecToPolicy(Vec* vec)
 	{
-	RecordType* sw_substring_type =
-		internal_type("sw_substring")->AsRecordType();
-	if ( ! sw_substring_type )
-		return nullptr;
+	static auto sw_substring_type = zeek::id::find_type<RecordType>("sw_substring");
+	static auto sw_align_type = zeek::id::find_type<RecordType>("sw_align");
+	static auto sw_align_vec_type = zeek::id::find_type<VectorType>("sw_align_vec");
+	static auto sw_substring_vec_type = zeek::id::find_type<VectorType>("sw_substring_vec");
 
-	RecordType* sw_align_type =
-		internal_type("sw_align")->AsRecordType();
-	if ( ! sw_align_type )
-		return nullptr;
-
-	VectorType* sw_align_vec_type =
-		internal_type("sw_align_vec")->AsVectorType();
-	if ( ! sw_align_vec_type )
-		return nullptr;
-
-	VectorVal* result =
-		new VectorVal(internal_type("sw_substring_vec")->AsVectorType());
-	if ( ! result )
-		return nullptr;
+	auto result = make_intrusive<VectorVal>(sw_substring_vec_type);
 
 	if ( vec )
 		{
@@ -95,18 +82,18 @@ VectorVal* BroSubstring::VecToPolicy(Vec* vec)
 
 				auto align_val = make_intrusive<RecordVal>(sw_align_type);
 				align_val->Assign(0, make_intrusive<StringVal>(new BroString(*align.string)));
-				align_val->Assign(1, val_mgr->GetCount(align.index));
+				align_val->Assign(1, val_mgr->Count(align.index));
 
 				aligns->Assign(j + 1, std::move(align_val));
 				}
 
 			st_val->Assign(1, std::move(aligns));
-			st_val->Assign(2, val_mgr->GetBool(bst->IsNewAlignment()));
+			st_val->Assign(2, val_mgr->Bool(bst->IsNewAlignment()));
 			result->Assign(i + 1, std::move(st_val));
 			}
 		}
 
-	return result;
+	return result.release();
 	}
 
 BroSubstring::Vec* BroSubstring::VecFromPolicy(VectorVal* vec)
@@ -116,23 +103,23 @@ BroSubstring::Vec* BroSubstring::VecFromPolicy(VectorVal* vec)
 	// VectorVals start at index 1!
 	for ( unsigned int i = 1; i <= vec->Size(); ++i )
 		{
-		Val* v = vec->Lookup(i);	// get the RecordVal
+		const auto& v = vec->At(i);	// get the RecordVal
 		if ( ! v )
 			continue;
 
-		const BroString* str = v->AsRecordVal()->Lookup(0)->AsString();
+		const BroString* str = v->AsRecordVal()->GetField(0)->AsString();
 		BroSubstring* substr = new BroSubstring(*str);
 
-		const VectorVal* aligns = v->AsRecordVal()->Lookup(1)->AsVectorVal();
+		const VectorVal* aligns = v->AsRecordVal()->GetField(1)->AsVectorVal();
 		for ( unsigned int j = 1; j <= aligns->Size(); ++j )
 			{
-			const RecordVal* align = aligns->AsVectorVal()->Lookup(j)->AsRecordVal();
-			const BroString* str = align->Lookup(0)->AsString();
-			int index = align->Lookup(1)->AsCount();
+			const RecordVal* align = aligns->AsVectorVal()->At(j)->AsRecordVal();
+			const BroString* str = align->GetField(0)->AsString();
+			int index = align->GetField(1)->AsCount();
 			substr->AddAlignment(str, index);
 			}
 
-		bool new_alignment = v->AsRecordVal()->Lookup(2)->AsBool();
+		bool new_alignment = v->AsRecordVal()->GetField(2)->AsBool();
 		substr->MarkNewAlignment(new_alignment);
 
 		result->push_back(substr);

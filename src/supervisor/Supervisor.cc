@@ -982,41 +982,41 @@ static BifEnum::Supervisor::ClusterRole role_str_to_enum(std::string_view r)
 Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 	{
 	Supervisor::NodeConfig rval;
-	rval.name = node->Lookup("name")->AsString()->CheckString();
-	auto iface_val = node->Lookup("interface");
+	rval.name = node->GetField("name")->AsString()->CheckString();
+	const auto& iface_val = node->GetField("interface");
 
 	if ( iface_val )
 		rval.interface = iface_val->AsString()->CheckString();
 
-	auto directory_val = node->Lookup("directory");
+	const auto& directory_val = node->GetField("directory");
 
 	if ( directory_val )
 		rval.directory = directory_val->AsString()->CheckString();
 
-	auto stdout_val = node->Lookup("stdout_file");
+	const auto& stdout_val = node->GetField("stdout_file");
 
 	if ( stdout_val )
 		rval.stdout_file = stdout_val->AsString()->CheckString();
 
-	auto stderr_val = node->Lookup("stderr_file");
+	const auto& stderr_val = node->GetField("stderr_file");
 
 	if ( stderr_val )
 		rval.stderr_file = stderr_val->AsString()->CheckString();
 
-	auto affinity_val = node->Lookup("cpu_affinity");
+	const auto& affinity_val = node->GetField("cpu_affinity");
 
 	if ( affinity_val )
 		rval.cpu_affinity = affinity_val->AsInt();
 
-	auto scripts_val = node->Lookup("scripts")->AsVectorVal();
+	auto scripts_val = node->GetField("scripts")->AsVectorVal();
 
 	for ( auto i = 0u; i < scripts_val->Size(); ++i )
 		{
-		auto script = scripts_val->Lookup(i)->AsStringVal()->ToStdString();
+		auto script = scripts_val->At(i)->AsStringVal()->ToStdString();
 		rval.scripts.emplace_back(std::move(script));
 		}
 
-	auto cluster_table_val = node->Lookup("cluster")->AsTableVal();
+	auto cluster_table_val = node->GetField("cluster")->AsTableVal();
 	auto cluster_table = cluster_table_val->AsTable();
 	auto c = cluster_table->InitForIteration();
 	HashKey* k;
@@ -1024,17 +1024,17 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 
 	while ( (v = cluster_table->NextEntry(k, c)) )
 		{
-		auto key = cluster_table_val->RecoverIndex(k);
+		auto key = cluster_table_val->RecreateIndex(*k);
 		delete k;
-		auto name = key->Index(0)->AsStringVal()->ToStdString();
-		auto rv = v->Value()->AsRecordVal();
+		auto name = key->Idx(0)->AsStringVal()->ToStdString();
+		auto rv = v->GetVal()->AsRecordVal();
 
 		Supervisor::ClusterEndpoint ep;
-		ep.role = static_cast<BifEnum::Supervisor::ClusterRole>(rv->Lookup("role")->AsEnum());
-		ep.host = rv->Lookup("host")->AsAddr().AsString();
-		ep.port = rv->Lookup("p")->AsPortVal()->Port();
+		ep.role = static_cast<BifEnum::Supervisor::ClusterRole>(rv->GetField("role")->AsEnum());
+		ep.host = rv->GetField("host")->AsAddr().AsString();
+		ep.port = rv->GetField("p")->AsPortVal()->Port();
 
-		auto iface = rv->Lookup("interface");
+		const auto& iface = rv->GetField("interface");
 
 		if ( iface )
 			ep.interface = iface->AsStringVal()->ToStdString();
@@ -1104,7 +1104,7 @@ std::string Supervisor::NodeConfig::ToJSON() const
 
 IntrusivePtr<RecordVal> Supervisor::NodeConfig::ToRecord() const
 	{
-	auto rt = BifType::Record::Supervisor::NodeConfig;
+	const auto& rt = zeek::BifType::Record::Supervisor::NodeConfig;
 	auto rval = make_intrusive<RecordVal>(rt);
 	rval->Assign(rt->FieldOffset("name"), make_intrusive<StringVal>(name));
 
@@ -1121,17 +1121,18 @@ IntrusivePtr<RecordVal> Supervisor::NodeConfig::ToRecord() const
 		rval->Assign(rt->FieldOffset("stderr_file"), make_intrusive<StringVal>(*stderr_file));
 
 	if ( cpu_affinity )
-		rval->Assign(rt->FieldOffset("cpu_affinity"), val_mgr->GetInt(*cpu_affinity));
+		rval->Assign(rt->FieldOffset("cpu_affinity"), val_mgr->Int(*cpu_affinity));
 
-	auto st = BifType::Record::Supervisor::NodeConfig->FieldType("scripts");
-	auto scripts_val = new VectorVal(st->AsVectorType());
-	rval->Assign(rt->FieldOffset("scripts"), scripts_val);
+	auto st = rt->GetFieldType<VectorType>("scripts");
+	auto scripts_val = make_intrusive<VectorVal>(std::move(st));
 
 	for ( const auto& s : scripts )
 		scripts_val->Assign(scripts_val->Size(), make_intrusive<StringVal>(s));
 
-	auto tt = BifType::Record::Supervisor::NodeConfig->FieldType("cluster");
-	auto cluster_val = new TableVal({NewRef{}, tt->AsTableType()});
+	rval->Assign(rt->FieldOffset("scripts"), std::move(scripts_val));
+
+	auto tt = rt->GetFieldType<TableType>("cluster");
+	auto cluster_val = make_intrusive<TableVal>(std::move(tt));
 	rval->Assign(rt->FieldOffset("cluster"), cluster_val);
 
 	for ( const auto& e : cluster )
@@ -1139,17 +1140,17 @@ IntrusivePtr<RecordVal> Supervisor::NodeConfig::ToRecord() const
 		auto& name = e.first;
 		auto& ep = e.second;
 		auto key = make_intrusive<StringVal>(name);
-		auto ept = BifType::Record::Supervisor::ClusterEndpoint;
+		const auto& ept = zeek::BifType::Record::Supervisor::ClusterEndpoint;
 		auto val = make_intrusive<RecordVal>(ept);
 
-		val->Assign(ept->FieldOffset("role"), BifType::Enum::Supervisor::ClusterRole->GetVal(ep.role));
+		val->Assign(ept->FieldOffset("role"), zeek::BifType::Enum::Supervisor::ClusterRole->GetVal(ep.role));
 		val->Assign(ept->FieldOffset("host"), make_intrusive<AddrVal>(ep.host));
-		val->Assign(ept->FieldOffset("p"), val_mgr->GetPort(ep.port, TRANSPORT_TCP));
+		val->Assign(ept->FieldOffset("p"), val_mgr->Port(ep.port, TRANSPORT_TCP));
 
 		if ( ep.interface )
 			val->Assign(ept->FieldOffset("interface"), make_intrusive<StringVal>(*ep.interface));
 
-		cluster_val->Assign(key.get(), std::move(val));
+		cluster_val->Assign(std::move(key), std::move(val));
 		}
 
 	return rval;
@@ -1157,13 +1158,13 @@ IntrusivePtr<RecordVal> Supervisor::NodeConfig::ToRecord() const
 
 IntrusivePtr<RecordVal> Supervisor::Node::ToRecord() const
 	{
-	auto rt = BifType::Record::Supervisor::NodeStatus;
+	const auto& rt = zeek::BifType::Record::Supervisor::NodeStatus;
 	auto rval = make_intrusive<RecordVal>(rt);
 
 	rval->Assign(rt->FieldOffset("node"), config.ToRecord());
 
 	if ( pid )
-		rval->Assign(rt->FieldOffset("pid"), val_mgr->GetInt(pid));
+		rval->Assign(rt->FieldOffset("pid"), val_mgr->Int(pid));
 
 	return rval;
 	}
@@ -1171,7 +1172,7 @@ IntrusivePtr<RecordVal> Supervisor::Node::ToRecord() const
 
 static IntrusivePtr<Val> supervisor_role_to_cluster_node_type(BifEnum::Supervisor::ClusterRole role)
 	{
-	static auto node_type = global_scope()->Lookup("Cluster::NodeType")->AsType()->AsEnumType();
+	static auto node_type = zeek::id::find_type<EnumType>("Cluster::NodeType");
 
 	switch ( role ) {
 	case BifEnum::Supervisor::LOGGER:
@@ -1192,10 +1193,10 @@ bool Supervisor::SupervisedNode::InitCluster() const
 	if ( config.cluster.empty() )
 		return false;
 
-	auto cluster_node_type = global_scope()->Lookup("Cluster::Node")->AsType()->AsRecordType();
-	auto cluster_nodes_id = global_scope()->Lookup("Cluster::nodes");
-	auto cluster_manager_is_logger_id = global_scope()->Lookup("Cluster::manager_is_logger");
-	auto cluster_nodes = cluster_nodes_id->ID_Val()->AsTableVal();
+	const auto& cluster_node_type = zeek::id::find_type<RecordType>("Cluster::Node");
+	const auto& cluster_nodes_id = zeek::id::find("Cluster::nodes");
+	const auto& cluster_manager_is_logger_id = zeek::id::find("Cluster::manager_is_logger");
+	auto cluster_nodes = cluster_nodes_id->GetVal()->AsTableVal();
 	auto has_logger = false;
 	std::optional<std::string> manager_name;
 
@@ -1217,7 +1218,7 @@ bool Supervisor::SupervisedNode::InitCluster() const
 		auto node_type = supervisor_role_to_cluster_node_type(ep.role);
 		val->Assign(cluster_node_type->FieldOffset("node_type"), std::move(node_type));
 		val->Assign(cluster_node_type->FieldOffset("ip"), make_intrusive<AddrVal>(ep.host));
-		val->Assign(cluster_node_type->FieldOffset("p"), val_mgr->GetPort(ep.port, TRANSPORT_TCP));
+		val->Assign(cluster_node_type->FieldOffset("p"), val_mgr->Port(ep.port, TRANSPORT_TCP));
 
 		if ( ep.interface )
 			val->Assign(cluster_node_type->FieldOffset("interface"),
@@ -1227,10 +1228,10 @@ bool Supervisor::SupervisedNode::InitCluster() const
 			val->Assign(cluster_node_type->FieldOffset("manager"),
 			            make_intrusive<StringVal>(*manager_name));
 
-		cluster_nodes->Assign(key.get(), std::move(val));
+		cluster_nodes->Assign(std::move(key), std::move(val));
 		}
 
-	cluster_manager_is_logger_id->SetVal({AdoptRef{}, val_mgr->GetBool(! has_logger)});
+	cluster_manager_is_logger_id->SetVal(val_mgr->Bool(! has_logger));
 	return true;
 	}
 
@@ -1311,11 +1312,11 @@ void Supervisor::SupervisedNode::Init(zeek::Options* options) const
 		options->scripts_to_load.emplace_back(s);
 	}
 
-RecordVal* Supervisor::Status(std::string_view node_name)
+IntrusivePtr<RecordVal> Supervisor::Status(std::string_view node_name)
 	{
-	auto rval = new RecordVal(BifType::Record::Supervisor::Status);
-	auto tt = BifType::Record::Supervisor::Status->FieldType("nodes");
-	auto node_table_val = new TableVal({NewRef{}, tt->AsTableType()});
+	auto rval = make_intrusive<RecordVal>(zeek::BifType::Record::Supervisor::Status);
+	const auto& tt = zeek::BifType::Record::Supervisor::Status->GetFieldType("nodes");
+	auto node_table_val = make_intrusive<TableVal>(cast_intrusive<TableType>(tt));
 	rval->Assign(0, node_table_val);
 
 	if ( node_name.empty() )
@@ -1326,7 +1327,7 @@ RecordVal* Supervisor::Status(std::string_view node_name)
 			const auto& node = n.second;
 			auto key = make_intrusive<StringVal>(name);
 			auto val = node.ToRecord();
-			node_table_val->Assign(key.get(), std::move(val));
+			node_table_val->Assign(std::move(key), std::move(val));
 			}
 		}
 	else
@@ -1340,7 +1341,7 @@ RecordVal* Supervisor::Status(std::string_view node_name)
 		const auto& node = it->second;
 		auto key = make_intrusive<StringVal>(name);
 		auto val = node.ToRecord();
-		node_table_val->Assign(key.get(), std::move(val));
+		node_table_val->Assign(std::move(key), std::move(val));
 		}
 
 	return rval;

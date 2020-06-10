@@ -12,6 +12,7 @@
 
 #include <vector>
 #include <map>
+#include <cstdint>
 
 // TODO: Anon.h may not be the right place to put these functions ...
 

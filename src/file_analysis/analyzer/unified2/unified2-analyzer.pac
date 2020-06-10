@@ -7,9 +7,43 @@
 #include "IPAddr.h"
 %}
 
+%code{
+IntrusivePtr<AddrVal> binpac::Unified2::Flow::unified2_addr_to_bro_addr(std::vector<uint32_t>* a)
+	{
+	if ( a->size() == 1 )
+		{
+		return make_intrusive<AddrVal>(IPAddr(IPv4, &(a->at(0)), IPAddr::Host));
+		}
+	else if ( a->size() == 4 )
+		{
+		uint32 tmp[4] = { a->at(0), a->at(1), a->at(2), a->at(3) };
+		return make_intrusive<AddrVal>(IPAddr(IPv6, tmp, IPAddr::Host));
+		}
+	else
+		{
+		// Should never reach here.
+		return make_intrusive<AddrVal>(1);
+		}
+	}
+
+IntrusivePtr<Val> binpac::Unified2::Flow::to_port(uint16_t n, uint8_t p)
+	{
+	TransportProto proto = TRANSPORT_UNKNOWN;
+	switch ( p ) {
+	case 1: proto = TRANSPORT_ICMP; break;
+	case 6: proto = TRANSPORT_TCP; break;
+	case 17: proto = TRANSPORT_UDP; break;
+	}
+
+	return val_mgr->Port(n, proto);
+	}
+%}
+
 refine flow Flow += {
 
 	%member{
+		IntrusivePtr<AddrVal> unified2_addr_to_bro_addr(std::vector<uint32_t>* a);
+		IntrusivePtr<Val> to_port(uint16_t n, uint8_t p);
 	%}
 
 	%init{
@@ -27,35 +61,6 @@ refine flow Flow += {
 		return t;
 		%}
 
-	function unified2_addr_to_bro_addr(a: uint32[]): AddrVal
-		%{
-		if ( a->size() == 1 )
-			{
-			return new AddrVal(IPAddr(IPv4, &(a->at(0)), IPAddr::Host));
-			}
-		else if ( a->size() == 4 )
-			{
-			uint32 tmp[4] = { a->at(0), a->at(1), a->at(2), a->at(3) };
-			return new AddrVal(IPAddr(IPv6, tmp, IPAddr::Host));
-			}
-		else
-			{
-			// Should never reach here.
-			return new AddrVal(1);
-			}
-		%}
-
-	function to_port(n: uint16, p: uint8): PortVal
-		%{
-		TransportProto proto = TRANSPORT_UNKNOWN;
-		switch ( p ) {
-		case 1: proto = TRANSPORT_ICMP; break;
-		case 6: proto = TRANSPORT_TCP; break;
-		case 17: proto = TRANSPORT_UDP; break;
-		}
-
-		return val_mgr->GetPort(n, proto);
-		%}
 
 	#function proc_record(rec: Record) : bool
 	#	%{
@@ -66,23 +71,23 @@ refine flow Flow += {
 		%{
 		if ( ::unified2_event )
 			{
-			auto ids_event = make_intrusive<RecordVal>(BifType::Record::Unified2::IDSEvent);
-			ids_event->Assign(0, val_mgr->GetCount(${ev.sensor_id}));
-			ids_event->Assign(1, val_mgr->GetCount(${ev.event_id}));
-			ids_event->Assign(2, make_intrusive<Val>(ts_to_double(${ev.ts}), TYPE_TIME));
-			ids_event->Assign(3, val_mgr->GetCount(${ev.signature_id}));
-			ids_event->Assign(4, val_mgr->GetCount(${ev.generator_id}));
-			ids_event->Assign(5, val_mgr->GetCount(${ev.signature_revision}));
-			ids_event->Assign(6, val_mgr->GetCount(${ev.classification_id}));
-			ids_event->Assign(7, val_mgr->GetCount(${ev.priority_id}));
+			auto ids_event = make_intrusive<RecordVal>(zeek::BifType::Record::Unified2::IDSEvent);
+			ids_event->Assign(0, val_mgr->Count(${ev.sensor_id}));
+			ids_event->Assign(1, val_mgr->Count(${ev.event_id}));
+			ids_event->Assign(2, make_intrusive<TimeVal>(ts_to_double(${ev.ts})));
+			ids_event->Assign(3, val_mgr->Count(${ev.signature_id}));
+			ids_event->Assign(4, val_mgr->Count(${ev.generator_id}));
+			ids_event->Assign(5, val_mgr->Count(${ev.signature_revision}));
+			ids_event->Assign(6, val_mgr->Count(${ev.classification_id}));
+			ids_event->Assign(7, val_mgr->Count(${ev.priority_id}));
 			ids_event->Assign(8, unified2_addr_to_bro_addr(${ev.src_ip}));
 			ids_event->Assign(9, unified2_addr_to_bro_addr(${ev.dst_ip}));
 			ids_event->Assign(10, to_port(${ev.src_p}, ${ev.protocol}));
 			ids_event->Assign(11, to_port(${ev.dst_p}, ${ev.protocol}));
-			ids_event->Assign(17, val_mgr->GetCount(${ev.packet_action}));
+			ids_event->Assign(17, val_mgr->Count(${ev.packet_action}));
 
 			mgr.Enqueue(::unified2_event,
-					IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+					connection()->bro_analyzer()->GetFile()->ToVal(),
 					std::move(ids_event));
 			}
 		return true;
@@ -92,27 +97,27 @@ refine flow Flow += {
 		%{
 		if ( ::unified2_event )
 			{
-			auto ids_event = make_intrusive<RecordVal>(BifType::Record::Unified2::IDSEvent);
-			ids_event->Assign(0, val_mgr->GetCount(${ev.sensor_id}));
-			ids_event->Assign(1, val_mgr->GetCount(${ev.event_id}));
-			ids_event->Assign(2, make_intrusive<Val>(ts_to_double(${ev.ts}), TYPE_TIME));
-			ids_event->Assign(3, val_mgr->GetCount(${ev.signature_id}));
-			ids_event->Assign(4, val_mgr->GetCount(${ev.generator_id}));
-			ids_event->Assign(5, val_mgr->GetCount(${ev.signature_revision}));
-			ids_event->Assign(6, val_mgr->GetCount(${ev.classification_id}));
-			ids_event->Assign(7, val_mgr->GetCount(${ev.priority_id}));
+			auto ids_event = make_intrusive<RecordVal>(zeek::BifType::Record::Unified2::IDSEvent);
+			ids_event->Assign(0, val_mgr->Count(${ev.sensor_id}));
+			ids_event->Assign(1, val_mgr->Count(${ev.event_id}));
+			ids_event->Assign(2, make_intrusive<TimeVal>(ts_to_double(${ev.ts})));
+			ids_event->Assign(3, val_mgr->Count(${ev.signature_id}));
+			ids_event->Assign(4, val_mgr->Count(${ev.generator_id}));
+			ids_event->Assign(5, val_mgr->Count(${ev.signature_revision}));
+			ids_event->Assign(6, val_mgr->Count(${ev.classification_id}));
+			ids_event->Assign(7, val_mgr->Count(${ev.priority_id}));
 			ids_event->Assign(8, unified2_addr_to_bro_addr(${ev.src_ip}));
 			ids_event->Assign(9, unified2_addr_to_bro_addr(${ev.dst_ip}));
 			ids_event->Assign(10, to_port(${ev.src_p}, ${ev.protocol}));
 			ids_event->Assign(11, to_port(${ev.dst_p}, ${ev.protocol}));
-			ids_event->Assign(12, val_mgr->GetCount(${ev.impact_flag}));
-			ids_event->Assign(13, val_mgr->GetCount(${ev.impact}));
-			ids_event->Assign(14, val_mgr->GetCount(${ev.blocked}));
-			ids_event->Assign(15, val_mgr->GetCount(${ev.mpls_label}));
-			ids_event->Assign(16, val_mgr->GetCount(${ev.vlan_id}));
+			ids_event->Assign(12, val_mgr->Count(${ev.impact_flag}));
+			ids_event->Assign(13, val_mgr->Count(${ev.impact}));
+			ids_event->Assign(14, val_mgr->Count(${ev.blocked}));
+			ids_event->Assign(15, val_mgr->Count(${ev.mpls_label}));
+			ids_event->Assign(16, val_mgr->Count(${ev.vlan_id}));
 
 			mgr.Enqueue(::unified2_event,
-					IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+					connection()->bro_analyzer()->GetFile()->ToVal(),
 					std::move(ids_event));
 			}
 
@@ -123,16 +128,16 @@ refine flow Flow += {
 		%{
 		if ( ::unified2_packet )
 			{
-			auto packet = make_intrusive<RecordVal>(BifType::Record::Unified2::Packet);
-			packet->Assign(0, val_mgr->GetCount(${pkt.sensor_id}));
-			packet->Assign(1, val_mgr->GetCount(${pkt.event_id}));
-			packet->Assign(2, val_mgr->GetCount(${pkt.event_second}));
-			packet->Assign(3, make_intrusive<Val>(ts_to_double(${pkt.packet_ts}), TYPE_TIME));
-			packet->Assign(4, val_mgr->GetCount(${pkt.link_type}));
-			packet->Assign(5, bytestring_to_val(${pkt.packet_data}));
+			auto packet = make_intrusive<RecordVal>(zeek::BifType::Record::Unified2::Packet);
+			packet->Assign(0, val_mgr->Count(${pkt.sensor_id}));
+			packet->Assign(1, val_mgr->Count(${pkt.event_id}));
+			packet->Assign(2, val_mgr->Count(${pkt.event_second}));
+			packet->Assign(3, make_intrusive<TimeVal>(ts_to_double(${pkt.packet_ts})));
+			packet->Assign(4, val_mgr->Count(${pkt.link_type}));
+			packet->Assign(5, to_stringval(${pkt.packet_data}));
 
 			mgr.Enqueue(::unified2_packet,
-					IntrusivePtr{NewRef{}, connection()->bro_analyzer()->GetFile()->GetVal()},
+					connection()->bro_analyzer()->GetFile()->ToVal(),
 					std::move(packet));
 			}
 

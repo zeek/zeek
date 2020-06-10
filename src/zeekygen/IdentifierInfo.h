@@ -42,8 +42,8 @@ public:
 	/**
 	 * Returns the initial value of the identifier.
 	 */
-	Val* InitialVal() const
-		{ return initial_val.get(); }
+	const IntrusivePtr<Val>& InitialVal() const
+		{ return initial_val; }
 
 	/**
 	 * Add a comment associated with the identifier.  If the identifier is a

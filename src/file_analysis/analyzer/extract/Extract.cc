@@ -10,9 +10,10 @@
 
 using namespace file_analysis;
 
-Extract::Extract(RecordVal* args, File* file, const std::string& arg_filename,
-                 uint64_t arg_limit)
-    : file_analysis::Analyzer(file_mgr->GetComponentTag("EXTRACT"), args, file),
+Extract::Extract(IntrusivePtr<RecordVal> args, File* file,
+                 const std::string& arg_filename, uint64_t arg_limit)
+    : file_analysis::Analyzer(file_mgr->GetComponentTag("EXTRACT"),
+                              std::move(args), file),
       filename(arg_filename), limit(arg_limit), depth(0)
 	{
 	fd = open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_APPEND, 0666);
@@ -32,9 +33,10 @@ Extract::~Extract()
 		safe_close(fd);
 	}
 
-static IntrusivePtr<Val> get_extract_field_val(RecordVal* args, const char* name)
+static const IntrusivePtr<Val>& get_extract_field_val(const IntrusivePtr<RecordVal>& args,
+                                                      const char* name)
 	{
-	auto rval = args->Lookup(name);
+	const auto& rval = args->GetField(name);
 
 	if ( ! rval )
 		reporter->Error("File extraction analyzer missing arg field: %s", name);
@@ -42,15 +44,15 @@ static IntrusivePtr<Val> get_extract_field_val(RecordVal* args, const char* name
 	return rval;
 	}
 
-file_analysis::Analyzer* Extract::Instantiate(RecordVal* args, File* file)
+file_analysis::Analyzer* Extract::Instantiate(IntrusivePtr<RecordVal> args, File* file)
 	{
-	auto fname = get_extract_field_val(args, "extract_filename");
-	auto limit = get_extract_field_val(args, "extract_limit");
+	const auto& fname = get_extract_field_val(args, "extract_filename");
+	const auto& limit = get_extract_field_val(args, "extract_limit");
 
 	if ( ! fname || ! limit )
 		return nullptr;
 
-	return new Extract(args, file, fname->AsString()->CheckString(),
+	return new Extract(std::move(args), file, fname->AsString()->CheckString(),
 	                   limit->AsCount());
 	}
 
@@ -92,10 +94,10 @@ bool Extract::DeliverStream(const u_char* data, uint64_t len)
 		{
 		File* f = GetFile();
 		f->FileEvent(file_extraction_limit, {
-			IntrusivePtr{NewRef{}, f->GetVal()},
-			IntrusivePtr{NewRef{}, Args()},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(limit)},
-			IntrusivePtr{AdoptRef{}, val_mgr->GetCount(len)}
+			f->ToVal(),
+			GetArgs(),
+			val_mgr->Count(limit),
+			val_mgr->Count(len)
 		});
 
 		// Limit may have been modified by a BIF, re-check it.

@@ -3,9 +3,9 @@ refine connection SMB_Conn += {
 	function proc_smb1_close_request(h: SMB_Header, val: SMB1_close_request): bool
 		%{
 		if ( smb1_close_request )
-			BifEvent::generate_smb1_close_request(bro_analyzer(),
+			zeek::BifEvent::enqueue_smb1_close_request(bro_analyzer(),
 			                                     bro_analyzer()->Conn(),
-			                                     BuildHeaderVal(h),
+			                                     SMBHeaderVal(h),
 			                                     ${val.file_id});
 
 		file_mgr->EndOfFile(bro_analyzer()->GetAnalyzerTag(),

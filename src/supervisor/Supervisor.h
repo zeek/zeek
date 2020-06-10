@@ -311,7 +311,7 @@ public:
 	 * @return  script-layer Supervisor::Status record value describing the
 	 * status of a node or set of nodes.
 	 */
-	RecordVal* Status(std::string_view node_name);
+	IntrusivePtr<RecordVal> Status(std::string_view node_name);
 
 	/**
 	 * Create a new supervised node.

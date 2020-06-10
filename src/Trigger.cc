@@ -50,7 +50,8 @@ TraversalCode TriggerTraversalCallback::PreExpr(const Expr* expr)
 		if ( e->Id()->IsGlobal() )
 			trigger->Register(e->Id());
 
-		Val* v = e->Id()->ID_Val();
+		Val* v = e->Id()->GetVal().get();
+
 		if ( v && v->Modifiable() )
 			trigger->Register(v);
 		break;

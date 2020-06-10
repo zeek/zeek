@@ -195,7 +195,7 @@ function entity_to_match(p: PluginState, e: Entity): vector of OpenFlow::ofp_mat
 		return openflow_match_pred(p, e, v);
 		}
 
-	local proto = OpenFlow::IP_TCP;
+	# local proto = OpenFlow::IP_TCP;
 
 	if ( e$ty == FLOW )
 		{

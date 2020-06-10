@@ -53,8 +53,11 @@ IPAddr::IPAddr(const BroString& s)
 	}
 
 HashKey* IPAddr::GetHashKey() const
+	{ return MakeHashKey().release(); }
+
+std::unique_ptr<HashKey> IPAddr::MakeHashKey() const
 	{
-	return new HashKey((void*)in6.s6_addr, sizeof(in6.s6_addr));
+	return std::make_unique<HashKey>((void*)in6.s6_addr, sizeof(in6.s6_addr));
 	}
 
 static inline uint32_t bit_mask32(int bottom_bits)
@@ -303,6 +306,9 @@ std::string IPPrefix::AsString() const
 	}
 
 HashKey* IPPrefix::GetHashKey() const
+	{ return MakeHashKey().release(); }
+
+std::unique_ptr<HashKey> IPPrefix::MakeHashKey() const
 	{
 	struct {
 		in6_addr ip;
@@ -312,7 +318,7 @@ HashKey* IPPrefix::GetHashKey() const
 	key.ip = prefix.in6;
 	key.len = Length();
 
-	return new HashKey(&key, sizeof(key));
+	return std::make_unique<HashKey>(&key, sizeof(key));
 	}
 
 bool IPPrefix::ConvertString(const char* text, IPPrefix* result)

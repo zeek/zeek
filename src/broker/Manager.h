@@ -17,11 +17,13 @@
 #include <string>
 #include <unordered_map>
 
+#include "IntrusivePtr.h"
 #include "iosource/IOSource.h"
 #include "logging/WriterBackend.h"
 
 class Frame;
 class Func;
+class VectorType;
 
 namespace bro_broker {
 
@@ -64,7 +66,7 @@ public:
 	/**
 	 * Constructor.
 	 */
-	Manager(bool reading_pcaps);
+	Manager(bool use_real_time);
 
 	/**
 	 * Destructor.
@@ -317,6 +319,11 @@ public:
 	size_t FlushLogBuffers();
 
 	/**
+	 * Flushes all pending data store queries and also clears all contents.
+	 */
+	void ClearStores();
+
+	/**
 	 * @return communication statistics.
 	 */
 	const Stats& GetStatistics();
@@ -383,13 +390,13 @@ private:
 	Stats statistics;
 
 	uint16_t bound_port;
-	bool reading_pcaps;
+	bool use_real_time;
 	bool after_zeek_init;
 	int peer_count;
 
 	size_t log_batch_size;
 	Func* log_topic_func;
-	VectorType* vector_of_data_type;
+	IntrusivePtr<VectorType> vector_of_data_type;
 	EnumType* log_id_type;
 	EnumType* writer_id_type;
 

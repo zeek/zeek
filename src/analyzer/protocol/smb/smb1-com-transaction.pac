@@ -5,19 +5,19 @@ enum Trans_subcommands {
 };
 
 %code{
-	StringVal* SMB_Conn::transaction_data_to_val(SMB1_transaction_data* payload)
+	IntrusivePtr<StringVal> SMB_Conn::transaction_data_to_val(SMB1_transaction_data* payload)
 		{
 		switch ( payload->trans_type() ) {
 		case SMB_PIPE:
-			return bytestring_to_val(payload->pipe_data());
+			return to_stringval(payload->pipe_data());
 		case SMB_UNKNOWN:
-			return bytestring_to_val(payload->unknown());
+			return to_stringval(payload->unknown());
 		default:
-			return bytestring_to_val(payload->data());
+			return to_stringval(payload->data());
 		}
 
 		assert(false);
-		return val_mgr->GetEmptyString();
+		return val_mgr->EmptyString();
 		}
 %}
 
@@ -26,7 +26,7 @@ refine connection SMB_Conn += {
 	%member{
 		map<uint16, bool> is_file_a_pipe;
 
-		static StringVal* transaction_data_to_val(SMB1_transaction_data* payload);
+		static IntrusivePtr<StringVal> transaction_data_to_val(SMB1_transaction_data* payload);
 	%}
 
 	function get_is_file_a_pipe(id: uint16): bool
@@ -53,22 +53,22 @@ refine connection SMB_Conn += {
 		if ( ! smb1_transaction_request )
 			return false;
 
-		StringVal* parameters = new StringVal(${val.parameters}.length(),
-		                                      (const char*)${val.parameters}.data());
-		StringVal* payload_str = nullptr;
+		auto parameters = make_intrusive<StringVal>(${val.parameters}.length(),
+		                                            (const char*)${val.parameters}.data());
+		IntrusivePtr<StringVal> payload_str;
 
 		if ( ${val.data_count} > 0 )
 			payload_str = transaction_data_to_val(${val.data});
 		else
-			payload_str = val_mgr->GetEmptyString();
+			payload_str = val_mgr->EmptyString();
 
-		BifEvent::generate_smb1_transaction_request(bro_analyzer(),
-		                                            bro_analyzer()->Conn(),
-		                                            BuildHeaderVal(header),
-		                                            smb_string2stringval(${val.name}),
-		                                            ${val.sub_cmd},
-		                                            parameters,
-		                                            payload_str);
+		zeek::BifEvent::enqueue_smb1_transaction_request(bro_analyzer(),
+		                                           bro_analyzer()->Conn(),
+		                                           SMBHeaderVal(header),
+		                                           smb_string2stringval(${val.name}),
+		                                           ${val.sub_cmd},
+		                                           std::move(parameters),
+		                                           std::move(payload_str));
 
 		return true;
 		%}
@@ -78,20 +78,20 @@ refine connection SMB_Conn += {
 		if ( ! smb1_transaction_response )
 			return false;
 
-		StringVal* parameters = new StringVal(${val.parameters}.length(),
-		                                      (const char*)${val.parameters}.data());
-		StringVal* payload_str = nullptr;
+		auto parameters = make_intrusive<StringVal>(${val.parameters}.length(),
+		                                            (const char*)${val.parameters}.data());
+		IntrusivePtr<StringVal> payload_str;
 
 		if ( ${val.data_count} > 0 )
 			payload_str = transaction_data_to_val(${val.data[0]});
 		else
-			payload_str = val_mgr->GetEmptyString();
+			payload_str = val_mgr->EmptyString();
 
-		BifEvent::generate_smb1_transaction_response(bro_analyzer(),
-		                                             bro_analyzer()->Conn(),
-		                                             BuildHeaderVal(header),
-		                                             parameters,
-		                                             payload_str);
+		zeek::BifEvent::enqueue_smb1_transaction_response(bro_analyzer(),
+		                                            bro_analyzer()->Conn(),
+		                                            SMBHeaderVal(header),
+		                                            std::move(parameters),
+		                                            std::move(payload_str));
 		return true;
 		%}
 };

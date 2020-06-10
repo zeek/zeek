@@ -8,7 +8,7 @@
 #include <ctype.h>
 
 #include "Val.h"
-#include "Var.h"
+#include "ID.h"
 #include "Reporter.h"
 #include "util.h"
 
@@ -340,20 +340,17 @@ BroString::Vec* BroString::Split(const BroString::IdxVec& indices) const
 
 VectorVal* BroString:: VecToPolicy(Vec* vec)
 	{
-	VectorVal* result =
-		new VectorVal(internal_type("string_vec")->AsVectorType());
-	if ( ! result )
-		return nullptr;
+	auto result = make_intrusive<VectorVal>(zeek::id::string_vec);
 
 	for ( unsigned int i = 0; i < vec->size(); ++i )
 		{
 		BroString* string = (*vec)[i];
-		StringVal* val = new StringVal(string->Len(),
-						(const char*) string->Bytes());
-		result->Assign(i+1, val);
+		auto val = make_intrusive<StringVal>(string->Len(),
+		                                     (const char*) string->Bytes());
+		result->Assign(i+1, std::move(val));
 		}
 
-	return result;
+	return result.release();
 	}
 
 BroString::Vec* BroString::VecFromPolicy(VectorVal* vec)
@@ -363,7 +360,7 @@ BroString::Vec* BroString::VecFromPolicy(VectorVal* vec)
 	// VectorVals start at index 1!
 	for ( unsigned int i = 1; i <= vec->Size(); ++i )
 		{
-		Val* v = vec->Lookup(i);	// get the RecordVal
+		const auto& v = vec->At(i);	// get the RecordVal
 		if ( ! v )
 			continue;
 

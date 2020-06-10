@@ -258,8 +258,8 @@ BreakCode DbgBreakpoint::HasHit()
 			return bcHit;
 			}
 
-		if ( ! IsIntegral(yes->Type()->Tag()) &&
-		     ! IsBool(yes->Type()->Tag()) )
+		if ( ! IsIntegral(yes->GetType()->Tag()) &&
+		     ! IsBool(yes->GetType()->Tag()) )
 			{
 			PrintHitMsg();
 			debug_msg("Breakpoint condition should return an integral type");

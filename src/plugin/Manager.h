@@ -245,15 +245,18 @@ public:
 	 *
 	 * @param func The function to be called.
 	 *
+	 * @param parent The frame in which the function is being called.
+	 *
 	 * @param args The function call's arguments; they may be modified by the
 	 * method.
 	 *
-	 * @return If a plugin handled the call, a Val with a +1 reference count
-	 * containing the result value to pass back to the interpreter (for void
-	 * functions and events, it may be any Val and must be ignored). If no
-	 * plugin handled the call, the method returns null.
+	 * @return If a plugin handled the call, a Val representing the result
+	 * to pass back to the interpreter (for void functions and events,
+	 * it may be any Val and must be ignored). If no plugin handled the call,
+	 * the method returns null.
 	 */
-	std::pair<bool, Val*> HookCallFunction(const Func* func, Frame* parent, const zeek::Args& args) const;
+	std::pair<bool, IntrusivePtr<Val>>
+	HookCallFunction(const Func* func, Frame* parent, zeek::Args* args) const;
 
 	/**
 	 * Hook that filters the queuing of an event.

@@ -56,7 +56,7 @@ void Event::Dispatch(bool no_remote)
 
 	try
 		{
-		handler->Call(args, no_remote);
+		handler->Call(&args, no_remote);
 		}
 
 	catch ( InterpreterException& e )

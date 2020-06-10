@@ -47,7 +47,8 @@ public:
 	 * @return the new Extract analyzer instance or a null pointer if the
 	 *         the "extraction_file" field of \a args wasn't set.
 	 */
-	static file_analysis::Analyzer* Instantiate(RecordVal* args, File* file);
+	static file_analysis::Analyzer* Instantiate(IntrusivePtr<RecordVal> args,
+	                                            File* file);
 
 	/**
 	 * Sets the maximum allowed extracted file size.  A value of zero means
@@ -66,8 +67,8 @@ protected:
 	 *        to which the contents of the file will be extracted/written.
 	 * @param arg_limit the maximum allowed file size.
 	 */
-	Extract(RecordVal* args, File* file, const std::string& arg_filename,
-	        uint64_t arg_limit);
+	Extract(IntrusivePtr<RecordVal> args, File* file,
+	        const std::string& arg_filename, uint64_t arg_limit);
 
 private:
 	std::string filename;

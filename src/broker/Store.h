@@ -11,24 +11,24 @@
 
 namespace bro_broker {
 
-extern OpaqueType* opaque_of_store_handle;
+extern IntrusivePtr<OpaqueType> opaque_of_store_handle;
 
 /**
  * Create a Broker::QueryStatus value.
  * @param success whether the query status should be set to success or failure.
  * @return a Broker::QueryStatus value.
  */
-EnumVal* query_status(bool success);
+IntrusivePtr<EnumVal> query_status(bool success);
 
 /**
  * @return a Broker::QueryResult value that has a Broker::QueryStatus indicating
  * a failure.
  */
-inline RecordVal* query_result()
+inline IntrusivePtr<RecordVal> query_result()
 	{
-	auto rval = new RecordVal(BifType::Record::Broker::QueryResult);
+	auto rval = make_intrusive<RecordVal>(zeek::BifType::Record::Broker::QueryResult);
 	rval->Assign(0, query_status(false));
-	rval->Assign(1, make_intrusive<RecordVal>(BifType::Record::Broker::Data));
+	rval->Assign(1, make_intrusive<RecordVal>(zeek::BifType::Record::Broker::Data));
 	return rval;
 	}
 
@@ -37,11 +37,11 @@ inline RecordVal* query_result()
  * @return a Broker::QueryResult value that has a Broker::QueryStatus indicating
  * a success.
  */
-inline RecordVal* query_result(RecordVal* data)
+inline IntrusivePtr<RecordVal> query_result(IntrusivePtr<RecordVal> data)
 	{
-	auto rval = new RecordVal(BifType::Record::Broker::QueryResult);
+	auto rval = make_intrusive<RecordVal>(zeek::BifType::Record::Broker::QueryResult);
 	rval->Assign(0, query_status(true));
-	rval->Assign(1, data);
+	rval->Assign(1, std::move(data));
 	return rval;
 	}
 
@@ -62,19 +62,17 @@ public:
 		Unref(trigger);
 		}
 
-	void Result(RecordVal* result)
+	void Result(const IntrusivePtr<RecordVal>& result)
 		{
-		trigger->Cache(call, result);
+		trigger->Cache(call, result.get());
 		trigger->Release();
-		Unref(result);
 		}
 
 	void Abort()
 		{
 		auto result = query_result();
-		trigger->Cache(call, result);
+		trigger->Cache(call, result.get());
 		trigger->Release();
-		Unref(result);
 		}
 
 	bool Disabled() const
@@ -105,7 +103,9 @@ public:
 	broker::store::proxy proxy;
 
 protected:
-	StoreHandleVal() = default;
+	StoreHandleVal()
+		: OpaqueVal(bro_broker::opaque_of_store_handle)
+		{}
 
 	DECLARE_OPAQUE_VALUE(StoreHandleVal)
 };

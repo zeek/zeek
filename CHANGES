@@ -1,4 +1,13 @@
 
+3.2.0-dev.763 | 2020-06-10 16:34:31 -0700
+
+  * Optimize Connection::RemovalEvent() for bare-mode usage (Jon Siwek, Corelight)
+
+    It was creating RecordVals even if they wouldn't be used by any event
+    handler and that situation is common/expected for `zeek -b` mode.
+    Normally, there's at least the tunnel scripts with a `new_connection`
+    handler causing the connection RecordVals to be built.
+
 3.2.0-dev.762 | 2020-06-09 15:19:15 -0700
 
   * Restrict Cirrus CI to only zeek repo's branches (Jon Siwek, Corelight)

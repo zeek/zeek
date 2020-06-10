@@ -457,13 +457,11 @@ void Connection::Match(Rule::PatternType type, const u_char* data, int len, bool
 
 void Connection::RemovalEvent()
 	{
-	auto cv = ConnVal();
-
 	if ( connection_state_remove )
-		EnqueueEvent(connection_state_remove, nullptr, cv);
+		EnqueueEvent(connection_state_remove, nullptr, ConnVal());
 
 	if ( is_successful && successful_connection_remove )
-		EnqueueEvent(successful_connection_remove, nullptr, cv);
+		EnqueueEvent(successful_connection_remove, nullptr, ConnVal());
 	}
 
 void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const char* name)

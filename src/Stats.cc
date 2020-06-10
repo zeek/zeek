@@ -252,7 +252,7 @@ void ProfileLogger::Log()
 
 		for ( const auto& global : globals )
 			{
-			auto id = global.second;
+			auto& id = global.second;
 
 			// We don't show/count internal globals as they are always
 			// contained in some other global user-visible container.

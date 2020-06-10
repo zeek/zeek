@@ -471,10 +471,18 @@ void Plugin::MetaHookPost(::plugin::HookType hook, const HookArgumentList& args,
 
 void Plugin::MetaHookPre(::zeek::plugin::HookType hook, const HookArgumentList& args)
 	{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	MetaHookPre(static_cast<::plugin::HookType>(hook), args);
+#pragma GCC diagnostic pop
 	}
 
 void Plugin::MetaHookPost(::zeek::plugin::HookType hook, const HookArgumentList& args, HookArgument result)
 	{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	MetaHookPost(static_cast<::plugin::HookType>(hook), args, result);
+#pragma GCC diagnostic pop
 	}
 
 void Plugin::InitializeComponents()

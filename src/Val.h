@@ -125,7 +125,7 @@ public:
 		: val(d), type(zeek::base_type(t))
 		{}
 
-	[[deprecated("Remove in v4.1. Use version that takes zeek::TypeTag instead.")]]
+	[[deprecated("Remove in v4.1.  Use IntervalVal(), TimeVal(), or DoubleVal() constructors.")]]
 	Val(double d, ::TypeTag t) : Val(d, static_cast<zeek::TypeTag>(t))
 		{}
 
@@ -1004,7 +1004,7 @@ public:
 	notifier::Modifiable* Modifiable() override	{ return this; }
 
 	// Retrieves and saves all table state (key-value pairs) for
-	// tables whose index type depends on the given zeek::detail::RecordType.
+	// tables whose index type depends on the given zeek::RecordType.
 	static void SaveParseTimeTableState(zeek::RecordType* rt);
 
 	// Rebuilds all TableVals whose state was previously saved by
@@ -1013,7 +1013,7 @@ public:
 	static void RebuildParseTimeTables();
 
 	// Clears all state that was used to track TableVals that depending
-	// on zeek::detail::RecordTypes.
+	// on zeek::RecordTypes.
 	static void DoneParsing();
 
 protected:

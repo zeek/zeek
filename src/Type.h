@@ -21,7 +21,6 @@ FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 FORWARD_DECLARE_NAMESPACED(ListExpr, zeek::detail);
 FORWARD_DECLARE_NAMESPACED(Attributes, zeek::detail);
 
-// BRO types.
 enum [[deprecated("Remove in v4.1. Use zeek::TypeTag instead.")]] TypeTag {
 	TYPE_VOID,      // 0
 	TYPE_BOOL,      // 1
@@ -977,16 +976,16 @@ inline bool EitherError(TypeTag t1, TypeTag t2) { return (IsErrorType(t1) || IsE
 // Returns the basic (non-parameterized) type with the given type.
 const IntrusivePtr<zeek::BroType>& base_type(zeek::TypeTag tag);
 
-// Returns the basic (non-parameterized) type with the given type.
-// The reference count of the type is not increased.
-[[deprecated("Remove in v4.1.  Use ::base_type() instead")]]
-inline zeek::BroType* base_type_no_ref(TypeTag tag)
-       { return base_type(tag).get(); }
-
 // Returns the basic error type.
 inline const IntrusivePtr<zeek::BroType>& error_type()       { return base_type(TYPE_ERROR); }
 
 } // namespace zeek
+
+// Returns the basic (non-parameterized) type with the given type.
+// The reference count of the type is not increased.
+[[deprecated("Remove in v4.1.  Use zeek::base_type() instead")]]
+inline zeek::BroType* base_type_no_ref(TypeTag tag)
+	{ return zeek::base_type(static_cast<zeek::TypeTag>(tag)).get(); }
 
 extern IntrusivePtr<zeek::OpaqueType> md5_type;
 extern IntrusivePtr<zeek::OpaqueType> sha1_type;

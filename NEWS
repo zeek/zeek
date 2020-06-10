@@ -83,7 +83,7 @@ Changed Functionality
 
 - "using namespace std" was removed from the Zeek header files; Zeek now always
   explicitly specifies std when using STL functionality in headers. This may
-  necessitate small changes in external plugins, if they relied on the using 
+  necessitate small changes in external plugins, if they relied on the using
   statement in Zeek headers.
 
 - The ``connection_external`` event was removed. This functionality that could
@@ -106,6 +106,12 @@ Changed Functionality
 
 - ``Attributes::Attrs()`` now returns ``const std::vector<IntrusivePtr<Attr>>&``
   instead of ``attr_list*``
+
+- Moved a large number of classes from the global namespace into either the
+  ``zeek`` or ``zeek::detail`` namespace. Seehttps://github.com/zeek/zeek/issues/266
+  for the rationale behind these changes. Types that were moved and functions
+  that used them have been marked as deprecated and will generate compiler
+  warnings if used.
 
 Removed Functionality
 ---------------------

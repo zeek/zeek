@@ -18,7 +18,9 @@
 
 class RecordVal;
 
-FORWARD_DECLARE_NAMESPACED(BroType, zeek);
+namespace zeek { class Type; }
+using BroType [[deprecated("Remove in v4.1. Use zeek::Type instead.")]] = zeek::Type;
+
 FORWARD_DECLARE_NAMESPACED(PrintStmt, zeek::detail);
 FORWARD_DECLARE_NAMESPACED(Attributes, zeek::detail);
 
@@ -41,9 +43,9 @@ public:
 	void SetBuf(bool buffered);	// false=line buffered, true=fully buffered
 
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
-	zeek::BroType* FType() const	{ return t.get(); }
+	zeek::Type* FType() const	{ return t.get(); }
 
-	const IntrusivePtr<zeek::BroType>& GetType() const
+	const IntrusivePtr<zeek::Type>& GetType() const
 		{ return t; }
 
 	// Whether the file is open in a general sense; it might
@@ -104,7 +106,7 @@ protected:
 	void RaiseOpenEvent();
 
 	FILE* f;
-	IntrusivePtr<zeek::BroType> t;
+	IntrusivePtr<zeek::Type> t;
 	char* name;
 	char* access;
 	zeek::detail::Attributes* attrs;

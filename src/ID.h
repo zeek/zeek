@@ -16,7 +16,9 @@
 class Val;
 class Func;
 
-FORWARD_DECLARE_NAMESPACED(BroType, zeek);
+namespace zeek { class Type; }
+using BroType [[deprecated("Remove in v4.1. Use zeek::Type instead.")]] = zeek::Type;
+
 FORWARD_DECLARE_NAMESPACED(RecordType, zeek);
 FORWARD_DECLARE_NAMESPACED(TableType, zeek);
 FORWARD_DECLARE_NAMESPACED(VectorType, zeek);
@@ -54,14 +56,14 @@ public:
 
 	std::string ModuleName() const;
 
-	void SetType(IntrusivePtr<BroType> t);
+	void SetType(IntrusivePtr<Type> t);
 
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
-	BroType* Type()			{ return type.get(); }
+	zeek::Type* Type()			{ return type.get(); }
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
-	const BroType* Type() const	{ return type.get(); }
+	const zeek::Type* Type() const	{ return type.get(); }
 
-	const IntrusivePtr<BroType>& GetType() const
+	const IntrusivePtr<zeek::Type>& GetType() const
 		{ return type; }
 
 	template <class T>
@@ -69,9 +71,9 @@ public:
 		{ return cast_intrusive<T>(type); }
 
 	[[deprecated("Remove in v4.1.  Use IsType() and GetType().")]]
-	BroType* AsType()		{ return is_type ? GetType().get() : nullptr; }
+	zeek::Type* AsType()		{ return is_type ? GetType().get() : nullptr; }
 	[[deprecated("Remove in v4.1.  Use IsType() and GetType().")]]
-	const BroType* AsType() const	{ return is_type ? GetType().get() : nullptr; }
+	const zeek::Type* AsType() const	{ return is_type ? GetType().get() : nullptr; }
 
 	bool IsType() const
 		{ return is_type; }
@@ -172,7 +174,7 @@ protected:
 	IDScope scope;
 	bool is_export;
 	bool infer_return_type;
-	IntrusivePtr<BroType> type;
+	IntrusivePtr<zeek::Type> type;
 	bool is_const, is_enum_const, is_type, is_option;
 	int offset;
 	IntrusivePtr<Val> val;
@@ -202,7 +204,7 @@ const IntrusivePtr<zeek::detail::ID>& find(std::string_view name);
  * @param name  The identifier name to lookup
  * @return  The type of the identifier.
  */
-const IntrusivePtr<zeek::BroType>& find_type(std::string_view name);
+const IntrusivePtr<zeek::Type>& find_type(std::string_view name);
 
 /**
  * Lookup an ID by its name and return its type (as cast to @c T).

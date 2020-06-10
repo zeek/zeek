@@ -111,7 +111,7 @@ public:
 	 *
 	 * @return True if the type is compatible with the input framework.
 	 */
-	static bool IsCompatibleType(zeek::BroType* t, bool atomic_only=false);
+	static bool IsCompatibleType(zeek::Type* t, bool atomic_only=false);
 
 protected:
 	friend class ReaderFrontend;
@@ -222,7 +222,7 @@ private:
 	int CopyValue(char *data, const int startpos, const threading::Value* val) const;
 
 	// Convert Threading::Value to an internal Bro Type (works with Records).
-	Val* ValueToVal(const Stream* i, const threading::Value* val, zeek::BroType* request_type, bool& have_error) const;
+	Val* ValueToVal(const Stream* i, const threading::Value* val, zeek::Type* request_type, bool& have_error) const;
 
 	// Convert Threading::Value to an internal Bro list type.
 	Val* ValueToIndexVal(const Stream* i, int num_fields, const zeek::RecordType* type, const threading::Value* const *vals, bool& have_error) const;

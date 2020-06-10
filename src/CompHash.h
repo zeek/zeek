@@ -37,7 +37,7 @@ protected:
 
 	// Computes the piece of the hash for Val*, returning the new kp.
 	// Used as a helper for ComputeHash in the non-singleton case.
-	char* SingleValHash(bool type_check, char* kp, zeek::BroType* bt, Val* v,
+	char* SingleValHash(bool type_check, char* kp, zeek::Type* bt, Val* v,
 			    bool optional) const;
 
 	// Recovers just one Val of possibly many; called from RecoverVals.
@@ -46,7 +46,7 @@ protected:
 	// upon errors, so there is no return value for invalid input.
 	const char* RecoverOneVal(const HashKey& k,
 				  const char* kp, const char* const k_end,
-				  zeek::BroType* t, IntrusivePtr<Val>* pval, bool optional) const;
+				  zeek::Type* t, IntrusivePtr<Val>* pval, bool optional) const;
 
 	// Rounds the given pointer up to the nearest multiple of the
 	// given size, if not already a multiple.
@@ -85,7 +85,7 @@ protected:
 	int ComputeKeySize(const Val* v, bool type_check,
 			   bool calc_static_size) const;
 
-	int SingleTypeKeySize(zeek::BroType*, const Val*,
+	int SingleTypeKeySize(zeek::Type*, const Val*,
 			      bool type_check, int sz, bool optional,
 			      bool calc_static_size) const;
 

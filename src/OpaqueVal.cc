@@ -96,7 +96,7 @@ IntrusivePtr<OpaqueVal> OpaqueVal::Unserialize(const broker::data& data)
 	return val;
 	}
 
-broker::expected<broker::data> OpaqueVal::SerializeType(const IntrusivePtr<zeek::BroType>& t)
+broker::expected<broker::data> OpaqueVal::SerializeType(const IntrusivePtr<zeek::Type>& t)
 	{
 	if ( t->InternalType() == zeek::TYPE_INTERNAL_ERROR )
 		return broker::ec::invalid_data;
@@ -112,7 +112,7 @@ broker::expected<broker::data> OpaqueVal::SerializeType(const IntrusivePtr<zeek:
 	return {broker::vector{false, static_cast<uint64_t>(t->Tag())}};
 	}
 
-IntrusivePtr<zeek::BroType> OpaqueVal::UnserializeType(const broker::data& data)
+IntrusivePtr<zeek::Type> OpaqueVal::UnserializeType(const broker::data& data)
 	{
 	auto v = caf::get_if<broker::vector>(&data);
 	if ( ! (v && v->size() == 2) )
@@ -723,7 +723,7 @@ IntrusivePtr<Val> BloomFilterVal::DoClone(CloneState* state)
 	return state->NewClone(this, make_intrusive<BloomFilterVal>());
 	}
 
-bool BloomFilterVal::Typify(IntrusivePtr<zeek::BroType> arg_type)
+bool BloomFilterVal::Typify(IntrusivePtr<zeek::Type> arg_type)
 	{
 	if ( type )
 		return false;
@@ -882,7 +882,7 @@ IntrusivePtr<Val> CardinalityVal::DoClone(CloneState* state)
 			       make_intrusive<CardinalityVal>(new probabilistic::CardinalityCounter(*c)));
 	}
 
-bool CardinalityVal::Typify(IntrusivePtr<zeek::BroType> arg_type)
+bool CardinalityVal::Typify(IntrusivePtr<zeek::Type> arg_type)
 	{
 	if ( type )
 		return false;

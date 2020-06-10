@@ -19,7 +19,7 @@
 
 using namespace zeek::detail;
 
-static IntrusivePtr<Val> init_val(zeek::detail::Expr* init, const zeek::BroType* t,
+static IntrusivePtr<Val> init_val(zeek::detail::Expr* init, const zeek::Type* t,
                                   IntrusivePtr<Val> aggr)
 	{
 	try
@@ -32,7 +32,7 @@ static IntrusivePtr<Val> init_val(zeek::detail::Expr* init, const zeek::BroType*
 		}
 	}
 
-static bool add_prototype(const IntrusivePtr<zeek::detail::ID>& id, zeek::BroType* t,
+static bool add_prototype(const IntrusivePtr<zeek::detail::ID>& id, zeek::Type* t,
                           std::vector<IntrusivePtr<zeek::detail::Attr>>* attrs,
                           const IntrusivePtr<zeek::detail::Expr>& init)
 	{
@@ -110,7 +110,7 @@ static bool add_prototype(const IntrusivePtr<zeek::detail::ID>& id, zeek::BroTyp
 	return true;
 	}
 
-static void make_var(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<zeek::BroType> t,
+static void make_var(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<zeek::Type> t,
                      zeek::detail::init_class c,
                      IntrusivePtr<zeek::detail::Expr> init,
                      std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attr,
@@ -310,7 +310,7 @@ static void make_var(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<zeek
 		}
 	}
 
-void add_global(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<zeek::BroType> t,
+void add_global(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<zeek::Type> t,
                 zeek::detail::init_class c, IntrusivePtr<zeek::detail::Expr> init,
                 std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attr,
                 decl_type dt)
@@ -318,7 +318,7 @@ void add_global(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<zeek::Bro
 	make_var(id, std::move(t), c, std::move(init), std::move(attr), dt, true);
 	}
 
-IntrusivePtr<zeek::detail::Stmt> add_local(IntrusivePtr<zeek::detail::ID> id, IntrusivePtr<zeek::BroType> t,
+IntrusivePtr<zeek::detail::Stmt> add_local(IntrusivePtr<zeek::detail::ID> id, IntrusivePtr<zeek::Type> t,
                              zeek::detail::init_class c, IntrusivePtr<zeek::detail::Expr> init,
                              std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attr,
                              decl_type dt)
@@ -360,12 +360,12 @@ extern IntrusivePtr<zeek::detail::Expr> add_and_assign_local(IntrusivePtr<zeek::
 	                                                false, std::move(val));
 	}
 
-void add_type(zeek::detail::ID* id, IntrusivePtr<zeek::BroType> t,
+void add_type(zeek::detail::ID* id, IntrusivePtr<zeek::Type> t,
               std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attr)
 	{
 	std::string new_type_name = id->Name();
 	std::string old_type_name = t->GetName();
-	IntrusivePtr<zeek::BroType> tnew;
+	IntrusivePtr<zeek::Type> tnew;
 
 	if ( (t->Tag() == zeek::TYPE_RECORD || t->Tag() == zeek::TYPE_ENUM) &&
 	     old_type_name.empty() )
@@ -375,10 +375,10 @@ void add_type(zeek::detail::ID* id, IntrusivePtr<zeek::BroType> t,
 		// Clone the type to preserve type name aliasing.
 		tnew = t->ShallowClone();
 
-	zeek::BroType::AddAlias(new_type_name, tnew.get());
+	zeek::Type::AddAlias(new_type_name, tnew.get());
 
 	if ( new_type_name != old_type_name && ! old_type_name.empty() )
-		zeek::BroType::AddAlias(old_type_name, tnew.get());
+		zeek::Type::AddAlias(old_type_name, tnew.get());
 
 	tnew->SetName(id->Name());
 
@@ -769,7 +769,7 @@ ListVal* internal_list_val(const char* name)
 	return nullptr;
 	}
 
-zeek::BroType* internal_type(const char* name)
+zeek::Type* internal_type(const char* name)
 	{
 	return zeek::id::find_type(name).get();
 	}

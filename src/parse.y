@@ -169,7 +169,7 @@ static void parser_redef_enum (zeek::detail::ID *id)
 static void extend_record(zeek::detail::ID* id, std::unique_ptr<zeek::type_decl_list> fields,
                           std::unique_ptr<std::vector<IntrusivePtr<zeek::detail::Attr>>> attrs)
 	{
-	std::set<zeek::BroType*> types = zeek::BroType::GetAliases(id->Name());
+	std::set<zeek::Type*> types = zeek::Type::GetAliases(id->Name());
 
 	if ( types.empty() )
 		{
@@ -201,7 +201,7 @@ static void extend_record(zeek::detail::ID* id, std::unique_ptr<zeek::type_decl_
 
 static IntrusivePtr<zeek::detail::Attributes>
 make_attributes(std::vector<IntrusivePtr<zeek::detail::Attr>>* attrs,
-                IntrusivePtr<zeek::BroType> t, bool in_record, bool is_global)
+                IntrusivePtr<zeek::Type> t, bool in_record, bool is_global)
 	{
 	if ( ! attrs )
 		return nullptr;
@@ -241,7 +241,7 @@ static bool expr_is_table_type_name(const zeek::detail::Expr* expr)
 	zeek::detail::EventExpr* event_expr;
 	zeek::detail::Stmt* stmt;
 	zeek::detail::ListExpr* list;
-	zeek::BroType* type;
+	zeek::Type* type;
 	zeek::RecordType* record;
 	zeek::FuncType* func_type;
 	zeek::TypeList* type_l;
@@ -1667,7 +1667,7 @@ case_type:
 	|	TOK_TYPE type TOK_AS TOK_ID
 			{
 			const char* name = $4;
-			IntrusivePtr<zeek::BroType> type{AdoptRef{}, $2};
+			IntrusivePtr<zeek::Type> type{AdoptRef{}, $2};
 			auto case_var = lookup_ID(name, current_module.c_str());
 
 			if ( case_var && case_var->IsGlobal() )

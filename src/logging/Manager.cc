@@ -913,7 +913,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 	return true;
 	}
 
-threading::Value* Manager::ValToLogVal(Val* val, zeek::BroType* ty)
+threading::Value* Manager::ValToLogVal(Val* val, zeek::Type* ty)
 	{
 	if ( ! ty )
 		ty = val->GetType().get();

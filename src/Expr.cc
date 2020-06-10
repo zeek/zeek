@@ -90,7 +90,7 @@ IntrusivePtr<Expr> Expr::MakeLvalue()
 	return {NewRef{}, this};
 	}
 
-void Expr::EvalIntoAggregate(const BroType* /* t */, Val* /* aggr */,
+void Expr::EvalIntoAggregate(const zeek::Type* /* t */, Val* /* aggr */,
 				Frame* /* f */) const
 	{
 	Internal("Expr::EvalIntoAggregate called");
@@ -101,7 +101,7 @@ void Expr::Assign(Frame* /* f */, IntrusivePtr<Val> /* v */)
 	Internal("Expr::Assign called");
 	}
 
-IntrusivePtr<BroType> Expr::InitType() const
+IntrusivePtr<zeek::Type> Expr::InitType() const
 	{
 	return type;
 	}
@@ -116,7 +116,7 @@ bool Expr::IsPure() const
 	return true;
 	}
 
-IntrusivePtr<Val> Expr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) const
+IntrusivePtr<Val> Expr::InitVal(const zeek::Type* t, IntrusivePtr<Val> aggr) const
 	{
 	if ( aggr )
 		{
@@ -182,7 +182,7 @@ void Expr::Canonicize()
 	{
 	}
 
-void Expr::SetType(IntrusivePtr<BroType> t)
+void Expr::SetType(IntrusivePtr<zeek::Type> t)
 	{
 	if ( ! type || type->Tag() != zeek::TYPE_ERROR )
 		type = std::move(t);
@@ -1047,7 +1047,7 @@ PosExpr::PosExpr(IntrusivePtr<Expr> arg_op)
 	const auto& t = IsVector(op->GetType()->Tag()) ? op->GetType()->Yield() : op->GetType();
 
 	TypeTag bt = t->Tag();
-	IntrusivePtr<BroType> base_result_type;
+	IntrusivePtr<zeek::Type> base_result_type;
 
 	if ( IsIntegral(bt) )
 		// Promote count and counter to int.
@@ -1082,7 +1082,7 @@ NegExpr::NegExpr(IntrusivePtr<Expr> arg_op)
 	const auto& t = IsVector(op->GetType()->Tag()) ? op->GetType()->Yield() : op->GetType();
 
 	TypeTag bt = t->Tag();
-	IntrusivePtr<BroType> base_result_type;
+	IntrusivePtr<zeek::Type> base_result_type;
 
 	if ( IsIntegral(bt) )
 		// Promote count and counter to int.
@@ -1151,7 +1151,7 @@ AddExpr::AddExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 	if ( IsVector(bt2) )
 		bt2 = op2->GetType()->AsVectorType()->Yield()->Tag();
 
-	IntrusivePtr<BroType> base_result_type;
+	IntrusivePtr<zeek::Type> base_result_type;
 
 	if ( bt2 == zeek::TYPE_INTERVAL && ( bt1 == zeek::TYPE_TIME || bt1 == zeek::TYPE_INTERVAL ) )
 		base_result_type = base_type(bt1);
@@ -1276,7 +1276,7 @@ SubExpr::SubExpr(IntrusivePtr<Expr> arg_op1, IntrusivePtr<Expr> arg_op2)
 	if ( IsVector(bt2) )
 		bt2 = t2->AsVectorType()->Yield()->Tag();
 
-	IntrusivePtr<BroType> base_result_type;
+	IntrusivePtr<zeek::Type> base_result_type;
 
 	if ( bt2 == zeek::TYPE_INTERVAL && ( bt1 == zeek::TYPE_TIME || bt1 == zeek::TYPE_INTERVAL ) )
 		base_result_type = base_type(bt1);
@@ -2262,7 +2262,7 @@ IntrusivePtr<Val> AssignExpr::Eval(Frame* f) const
 		return nullptr;
 	}
 
-IntrusivePtr<BroType> AssignExpr::InitType() const
+IntrusivePtr<zeek::Type> AssignExpr::InitType() const
 	{
 	if ( op1->Tag() != EXPR_LIST )
 		{
@@ -2278,7 +2278,7 @@ IntrusivePtr<BroType> AssignExpr::InitType() const
 	                                 op2->GetType());
 	}
 
-void AssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const
+void AssignExpr::EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f) const
 	{
 	if ( IsError() )
 		return;
@@ -2327,7 +2327,7 @@ void AssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const
 		RuntimeError("type clash in table assignment");
 	}
 
-IntrusivePtr<Val> AssignExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) const
+IntrusivePtr<Val> AssignExpr::InitVal(const zeek::Type* t, IntrusivePtr<Val> aggr) const
 	{
 	if ( ! aggr )
 		{
@@ -3004,14 +3004,14 @@ RecordConstructorExpr::~RecordConstructorExpr()
 	{
 	}
 
-IntrusivePtr<Val> RecordConstructorExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) const
+IntrusivePtr<Val> RecordConstructorExpr::InitVal(const zeek::Type* t, IntrusivePtr<Val> aggr) const
 	{
 	auto v = Eval(nullptr);
 
 	if ( v )
 		{
 		RecordVal* rv = v->AsRecordVal();
-		auto bt = const_cast<BroType*>(t);
+		auto bt = const_cast<zeek::Type*>(t);
 		IntrusivePtr<RecordType> rt{NewRef{}, bt->AsRecordType()};
 		auto aggr_rec = cast_intrusive<RecordVal>(std::move(aggr));
 		auto ar = rv->CoerceTo(std::move(rt), std::move(aggr_rec));
@@ -3049,7 +3049,7 @@ void RecordConstructorExpr::ExprDescribe(ODesc* d) const
 
 TableConstructorExpr::TableConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
                                            std::unique_ptr<std::vector<IntrusivePtr<Attr>>> arg_attrs,
-                                           IntrusivePtr<BroType> arg_type)
+                                           IntrusivePtr<zeek::Type> arg_type)
 	: UnaryExpr(EXPR_TABLE_CONSTRUCTOR, std::move(constructor_list))
 	{
 	if ( IsError() )
@@ -3143,7 +3143,7 @@ IntrusivePtr<Val> TableConstructorExpr::Eval(Frame* f) const
 	return aggr;
 	}
 
-IntrusivePtr<Val> TableConstructorExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) const
+IntrusivePtr<Val> TableConstructorExpr::InitVal(const zeek::Type* t, IntrusivePtr<Val> aggr) const
 	{
 	if ( IsError() )
 		return nullptr;
@@ -3170,7 +3170,7 @@ void TableConstructorExpr::ExprDescribe(ODesc* d) const
 
 SetConstructorExpr::SetConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
                                        std::unique_ptr<std::vector<IntrusivePtr<Attr>>> arg_attrs,
-                                       IntrusivePtr<BroType> arg_type)
+                                       IntrusivePtr<zeek::Type> arg_type)
 	: UnaryExpr(EXPR_SET_CONSTRUCTOR, std::move(constructor_list))
 	{
 	if ( IsError() )
@@ -3254,7 +3254,7 @@ IntrusivePtr<Val> SetConstructorExpr::Eval(Frame* f) const
 	return aggr;
 	}
 
-IntrusivePtr<Val> SetConstructorExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) const
+IntrusivePtr<Val> SetConstructorExpr::InitVal(const zeek::Type* t, IntrusivePtr<Val> aggr) const
 	{
 	if ( IsError() )
 		return nullptr;
@@ -3288,7 +3288,7 @@ void SetConstructorExpr::ExprDescribe(ODesc* d) const
 	}
 
 VectorConstructorExpr::VectorConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
-                                             IntrusivePtr<BroType> arg_type)
+                                             IntrusivePtr<zeek::Type> arg_type)
 	: UnaryExpr(EXPR_VECTOR_CONSTRUCTOR, std::move(constructor_list))
 	{
 	if ( IsError() )
@@ -3352,7 +3352,7 @@ IntrusivePtr<Val> VectorConstructorExpr::Eval(Frame* f) const
 	return vec;
 	}
 
-IntrusivePtr<Val> VectorConstructorExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) const
+IntrusivePtr<Val> VectorConstructorExpr::InitVal(const zeek::Type* t, IntrusivePtr<Val> aggr) const
 	{
 	if ( IsError() )
 		return nullptr;
@@ -3392,7 +3392,7 @@ FieldAssignExpr::FieldAssignExpr(const char* arg_field_name,
 	SetType(op->GetType());
 	}
 
-void FieldAssignExpr::EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f)
+void FieldAssignExpr::EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f)
 	const
 	{
 	if ( IsError() )
@@ -3553,7 +3553,7 @@ RecordCoerceExpr::RecordCoerceExpr(IntrusivePtr<Expr> arg_op,
 
 			if ( ! same_type(sup_t_i, sub_t_i) )
 				{
-				auto is_arithmetic_promotable = [](BroType* sup, BroType* sub) -> bool
+				auto is_arithmetic_promotable = [](zeek::Type* sup, zeek::Type* sub) -> bool
 					{
 					auto sup_tag = sup->Tag();
 					auto sub_tag = sub->Tag();
@@ -3570,7 +3570,7 @@ RecordCoerceExpr::RecordCoerceExpr(IntrusivePtr<Expr> arg_op,
 					return true;
 					};
 
-				auto is_record_promotable = [](BroType* sup, BroType* sub) -> bool
+				auto is_record_promotable = [](zeek::Type* sup, zeek::Type* sub) -> bool
 					{
 					if ( sup->Tag() != zeek::TYPE_RECORD )
 						return false;
@@ -3623,12 +3623,12 @@ RecordCoerceExpr::~RecordCoerceExpr()
 	delete [] map;
 	}
 
-IntrusivePtr<Val> RecordCoerceExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) const
+IntrusivePtr<Val> RecordCoerceExpr::InitVal(const zeek::Type* t, IntrusivePtr<Val> aggr) const
 	{
 	if ( auto v = Eval(nullptr) )
 		{
 		RecordVal* rv = v->AsRecordVal();
-		auto bt = const_cast<BroType*>(t);
+		auto bt = const_cast<zeek::Type*>(t);
 		IntrusivePtr<RecordType> rt{NewRef{}, bt->AsRecordType()};
 		auto aggr_rec = cast_intrusive<RecordVal>(std::move(aggr));
 
@@ -4399,7 +4399,7 @@ IntrusivePtr<Val> ListExpr::Eval(Frame* f) const
 	return v;
 	}
 
-IntrusivePtr<BroType> ListExpr::InitType() const
+IntrusivePtr<zeek::Type> ListExpr::InitType() const
 	{
 	if ( exprs.empty() )
 		{
@@ -4457,7 +4457,7 @@ IntrusivePtr<BroType> ListExpr::InitType() const
 		}
 	}
 
-IntrusivePtr<Val> ListExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) const
+IntrusivePtr<Val> ListExpr::InitVal(const zeek::Type* t, IntrusivePtr<Val> aggr) const
 	{
 	// While fairly similar to the EvalIntoAggregate() code,
 	// we keep this separate since it also deals with initialization
@@ -4601,7 +4601,7 @@ IntrusivePtr<Val> ListExpr::InitVal(const BroType* t, IntrusivePtr<Val> aggr) co
 	return aggr;
 	}
 
-IntrusivePtr<Val> ListExpr::AddSetInit(const BroType* t, IntrusivePtr<Val> aggr) const
+IntrusivePtr<Val> ListExpr::AddSetInit(const zeek::Type* t, IntrusivePtr<Val> aggr) const
 	{
 	if ( aggr->GetType()->Tag() != zeek::TYPE_TABLE )
 		Internal("bad aggregate in ListExpr::InitVal");
@@ -4764,7 +4764,7 @@ RecordAssignExpr::RecordAssignExpr(const IntrusivePtr<Expr>& record,
 		}
 	}
 
-CastExpr::CastExpr(IntrusivePtr<Expr> arg_op, IntrusivePtr<BroType> t)
+CastExpr::CastExpr(IntrusivePtr<Expr> arg_op, IntrusivePtr<zeek::Type> t)
 	: UnaryExpr(EXPR_CAST, std::move(arg_op))
 	{
 	auto stype = Op()->GetType();
@@ -4812,7 +4812,7 @@ void CastExpr::ExprDescribe(ODesc* d) const
 	GetType()->Describe(d);
 	}
 
-IsExpr::IsExpr(IntrusivePtr<Expr> arg_op, IntrusivePtr<BroType> arg_t)
+IsExpr::IsExpr(IntrusivePtr<Expr> arg_op, IntrusivePtr<zeek::Type> arg_t)
 	: UnaryExpr(EXPR_IS, std::move(arg_op)), t(std::move(arg_t))
 	{
 	SetType(zeek::base_type(zeek::TYPE_BOOL));
@@ -4850,7 +4850,7 @@ IntrusivePtr<Expr> get_assign_expr(IntrusivePtr<Expr> op1,
 		                                  is_init);
 	}
 
-IntrusivePtr<Expr> check_and_promote_expr(Expr* const e, BroType* t)
+IntrusivePtr<Expr> check_and_promote_expr(Expr* const e, zeek::Type* t)
 	{
 	const auto& et = e->GetType();
 	TypeTag e_tag = et->Tag();
@@ -5006,7 +5006,7 @@ bool check_and_promote_args(ListExpr* const args, RecordType* types)
 	return rval;
 	}
 
-bool check_and_promote_exprs_to_type(ListExpr* const elements, BroType* type)
+bool check_and_promote_exprs_to_type(ListExpr* const elements, zeek::Type* type)
 	{
 	expr_list& el = elements->Exprs();
 

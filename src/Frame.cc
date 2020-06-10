@@ -460,7 +460,7 @@ std::pair<bool, IntrusivePtr<Frame>> Frame::Unserialize(const broker::vector& da
 			return std::make_pair(false, nullptr);
 
 		broker::integer g = *has_type;
-		zeek::BroType t( static_cast<zeek::TypeTag>(g) );
+		zeek::Type t( static_cast<zeek::TypeTag>(g) );
 
 		auto val = bro_broker::data_to_val(std::move(val_tuple[0]), &t);
 		if ( ! val )

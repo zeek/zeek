@@ -24,7 +24,7 @@ using namespace std;
 
 namespace zeek {
 
-BroType::TypeAliasMap BroType::type_aliases;
+Type::TypeAliasMap Type::type_aliases;
 
 // Note: This function must be thread-safe.
 const char* type_name(zeek::TypeTag t)
@@ -64,14 +64,14 @@ const char* type_name(zeek::TypeTag t)
 	return type_names[int(t)];
 	}
 
-BroType::BroType(zeek::TypeTag t, bool arg_base_type)
+Type::Type(zeek::TypeTag t, bool arg_base_type)
 	: tag(t), internal_tag(to_internal_type_tag(tag)),
 	  is_network_order(zeek::is_network_order(t)),
 	  base_type(arg_base_type)
 	{
 	}
 
-IntrusivePtr<BroType> BroType::ShallowClone()
+IntrusivePtr<Type> Type::ShallowClone()
 	{
 	switch ( tag ) {
 		case TYPE_VOID:
@@ -89,15 +89,15 @@ IntrusivePtr<BroType> BroType::ShallowClone()
 		case TYPE_ADDR:
 		case TYPE_SUBNET:
 		case TYPE_ANY:
-			return make_intrusive<BroType>(tag, base_type);
+			return make_intrusive<Type>(tag, base_type);
 
 		default:
-			reporter->InternalError("cloning illegal base BroType");
+			reporter->InternalError("cloning illegal base Type");
 	}
 	return nullptr;
 	}
 
-int BroType::MatchesIndex(zeek::detail::ListExpr* const index) const
+int Type::MatchesIndex(zeek::detail::ListExpr* const index) const
 	{
 	if ( Tag() == TYPE_STRING )
 		{
@@ -111,22 +111,22 @@ int BroType::MatchesIndex(zeek::detail::ListExpr* const index) const
 	return DOES_NOT_MATCH_INDEX;
 	}
 
-const IntrusivePtr<BroType>& BroType::Yield() const
+const IntrusivePtr<Type>& Type::Yield() const
 	{
-	return BroType::nil;
+	return Type::nil;
 	}
 
-bool BroType::HasField(const char* /* field */) const
+bool Type::HasField(const char* /* field */) const
 	{
 	return false;
 	}
 
-BroType* BroType::FieldType(const char* /* field */) const
+Type* Type::FieldType(const char* /* field */) const
 	{
 	return nullptr;
 	}
 
-void BroType::Describe(ODesc* d) const
+void Type::Describe(ODesc* d) const
 	{
 	if ( d->IsBinary() )
 		d->Add(int(Tag()));
@@ -140,22 +140,22 @@ void BroType::Describe(ODesc* d) const
 		}
 	}
 
-void BroType::DescribeReST(ODesc* d, bool roles_only) const
+void Type::DescribeReST(ODesc* d, bool roles_only) const
 	{
 	d->Add(fmt(":zeek:type:`%s`", type_name(Tag())));
 	}
 
-void BroType::SetError()
+void Type::SetError()
 	{
 	tag = TYPE_ERROR;
 	}
 
-unsigned int BroType::MemoryAllocation() const
+unsigned int Type::MemoryAllocation() const
 	{
 	return padded_sizeof(*this);
 	}
 
-bool TypeList::AllMatch(const BroType* t, bool is_init) const
+bool TypeList::AllMatch(const Type* t, bool is_init) const
 	{
 	for ( const auto& type : types )
 		if ( ! same_type(type, t, is_init) )
@@ -163,7 +163,7 @@ bool TypeList::AllMatch(const BroType* t, bool is_init) const
 	return true;
 	}
 
-void TypeList::Append(IntrusivePtr<BroType> t)
+void TypeList::Append(IntrusivePtr<Type> t)
 	{
 	if ( pure_type && ! same_type(t, pure_type) )
 		reporter->InternalError("pure type-list violation");
@@ -171,7 +171,7 @@ void TypeList::Append(IntrusivePtr<BroType> t)
 	types.emplace_back(std::move(t));
 	}
 
-void TypeList::AppendEvenIfNotPure(IntrusivePtr<BroType> t)
+void TypeList::AppendEvenIfNotPure(IntrusivePtr<Type> t)
 	{
 	if ( pure_type && ! same_type(t, pure_type) )
 		pure_type = nullptr;
@@ -215,8 +215,8 @@ unsigned int TypeList::MemoryAllocation() const
 
 	size += pad_size(types.capacity() * sizeof(decltype(types)::value_type));
 
-	return BroType::MemoryAllocation()
-		+ padded_sizeof(*this) - padded_sizeof(BroType)
+	return Type::MemoryAllocation()
+		+ padded_sizeof(*this) - padded_sizeof(Type)
 		+ size;
 	}
 
@@ -238,7 +238,7 @@ int IndexType::MatchesIndex(zeek::detail::ListExpr* const index) const
 
 void IndexType::Describe(ODesc* d) const
 	{
-	BroType::Describe(d);
+	Type::Describe(d);
 	if ( ! d->IsBinary() )
 		d->Add("[");
 
@@ -317,7 +317,7 @@ bool IndexType::IsSubNetIndex() const
 	return false;
 	}
 
-TableType::TableType(IntrusivePtr<TypeList> ind, IntrusivePtr<BroType> yield)
+TableType::TableType(IntrusivePtr<TypeList> ind, IntrusivePtr<Type> yield)
 	: IndexType(TYPE_TABLE, std::move(ind), std::move(yield))
 	{
 	if ( ! indices )
@@ -344,7 +344,7 @@ TableType::TableType(IntrusivePtr<TypeList> ind, IntrusivePtr<BroType> yield)
 		}
 	}
 
-IntrusivePtr<BroType> TableType::ShallowClone()
+IntrusivePtr<Type> TableType::ShallowClone()
 	{
 	return make_intrusive<TableType>(indices, yield_type);
 	}
@@ -378,7 +378,7 @@ SetType::SetType(IntrusivePtr<TypeList> ind, IntrusivePtr<zeek::detail::ListExpr
 
 			else if ( tl.size() == 1 )
 				{
-				IntrusivePtr<BroType> ft{NewRef{}, flatten_type(tl[0].get())};
+				IntrusivePtr<Type> ft{NewRef{}, flatten_type(tl[0].get())};
 				indices = make_intrusive<TypeList>(ft);
 				indices->Append(std::move(ft));
 				}
@@ -403,7 +403,7 @@ SetType::SetType(IntrusivePtr<TypeList> ind, IntrusivePtr<zeek::detail::ListExpr
 		}
 	}
 
-IntrusivePtr<BroType> SetType::ShallowClone()
+IntrusivePtr<Type> SetType::ShallowClone()
 	{
 	return make_intrusive<SetType>(indices, elements);
 	}
@@ -411,8 +411,8 @@ IntrusivePtr<BroType> SetType::ShallowClone()
 SetType::~SetType() = default;
 
 FuncType::FuncType(IntrusivePtr<RecordType> arg_args,
-                   IntrusivePtr<BroType> arg_yield, FunctionFlavor arg_flavor)
-	: BroType(TYPE_FUNC), args(std::move(arg_args)),
+                   IntrusivePtr<Type> arg_yield, FunctionFlavor arg_flavor)
+	: Type(TYPE_FUNC), args(std::move(arg_args)),
 	  arg_types(make_intrusive<TypeList>()), yield(std::move(arg_yield))
 	{
 	flavor = arg_flavor;
@@ -441,7 +441,7 @@ FuncType::FuncType(IntrusivePtr<RecordType> arg_args,
 	prototypes.emplace_back(Prototype{false, args, std::move(offsets)});
 	}
 
-IntrusivePtr<BroType> FuncType::ShallowClone()
+IntrusivePtr<Type> FuncType::ShallowClone()
 	{
 	auto f = make_intrusive<FuncType>();
 	f->args = args;
@@ -481,7 +481,7 @@ int FuncType::MatchesIndex(zeek::detail::ListExpr* const index) const
 
 bool FuncType::CheckArgs(const type_list* args, bool is_init) const
 	{
-	std::vector<IntrusivePtr<BroType>> as;
+	std::vector<IntrusivePtr<Type>> as;
 	as.reserve(args->length());
 
 	for ( auto a : *args )
@@ -490,7 +490,7 @@ bool FuncType::CheckArgs(const type_list* args, bool is_init) const
 	return CheckArgs(as, is_init);
 	}
 
-bool FuncType::CheckArgs(const std::vector<IntrusivePtr<BroType>>& args,
+bool FuncType::CheckArgs(const std::vector<IntrusivePtr<Type>>& args,
                          bool is_init) const
 	{
 	const auto& my_args = arg_types->Types();
@@ -609,7 +609,7 @@ std::optional<FuncType::Prototype> FuncType::FindPrototype(const RecordType& arg
 	return {};
 	}
 
-TypeDecl::TypeDecl(const char* i, IntrusivePtr<BroType> t,
+TypeDecl::TypeDecl(const char* i, IntrusivePtr<Type> t,
                    IntrusivePtr<zeek::detail::Attributes> arg_attrs)
 	: type(std::move(t)),
 	  attrs(std::move(arg_attrs)),
@@ -650,7 +650,7 @@ void TypeDecl::DescribeReST(ODesc* d, bool roles_only) const
 		}
 	}
 
-RecordType::RecordType(type_decl_list* arg_types) : BroType(TYPE_RECORD)
+RecordType::RecordType(type_decl_list* arg_types) : Type(TYPE_RECORD)
 	{
 	types = arg_types;
 	num_fields = types ? types->length() : 0;
@@ -658,7 +658,7 @@ RecordType::RecordType(type_decl_list* arg_types) : BroType(TYPE_RECORD)
 
 // in this case the clone is actually not so shallow, since
 // it gets modified by everyone.
-IntrusivePtr<BroType> RecordType::ShallowClone()
+IntrusivePtr<Type> RecordType::ShallowClone()
 	{
 	auto pass = new type_decl_list();
 	for ( const auto& type : *types )
@@ -760,7 +760,7 @@ void RecordType::DescribeReST(ODesc* d, bool roles_only) const
 	d->PopType(this);
 	}
 
-static string container_type_name(const BroType* ft)
+static string container_type_name(const Type* ft)
 	{
 	string s;
 	if ( ft->Tag() == TYPE_RECORD )
@@ -1016,7 +1016,7 @@ string RecordType::GetFieldDeprecationWarning(int field, bool has_check) const
 	return "";
 	}
 
-SubNetType::SubNetType() : BroType(TYPE_SUBNET)
+SubNetType::SubNetType() : Type(TYPE_SUBNET)
 	{
 	}
 
@@ -1028,8 +1028,8 @@ void SubNetType::Describe(ODesc* d) const
 		d->Add(int(Tag()));
 	}
 
-FileType::FileType(IntrusivePtr<BroType> yield_type)
-	: BroType(TYPE_FILE), yield(std::move(yield_type))
+FileType::FileType(IntrusivePtr<Type> yield_type)
+	: Type(TYPE_FILE), yield(std::move(yield_type))
 	{
 	}
 
@@ -1049,7 +1049,7 @@ void FileType::Describe(ODesc* d) const
 		}
 	}
 
-OpaqueType::OpaqueType(const string& arg_name) : BroType(TYPE_OPAQUE)
+OpaqueType::OpaqueType(const string& arg_name) : Type(TYPE_OPAQUE)
 	{
 	name = arg_name;
 	}
@@ -1070,20 +1070,20 @@ void OpaqueType::DescribeReST(ODesc* d, bool roles_only) const
 	}
 
 EnumType::EnumType(const string& name)
-	: BroType(TYPE_ENUM)
+	: Type(TYPE_ENUM)
 	{
 	counter = 0;
 	SetName(name);
 	}
 
 EnumType::EnumType(const EnumType* e)
-	: BroType(TYPE_ENUM), names(e->names), vals(e->vals)
+	: Type(TYPE_ENUM), names(e->names), vals(e->vals)
 	{
 	counter = e->counter;
 	SetName(e->GetName());
 	}
 
-IntrusivePtr<BroType> EnumType::ShallowClone()
+IntrusivePtr<Type> EnumType::ShallowClone()
 	{
 	if ( counter == 0 )
 		return make_intrusive<EnumType>(GetName());
@@ -1166,8 +1166,8 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name,
 	if ( vals.find(val) == vals.end() )
 		vals[val] = make_intrusive<EnumVal>(IntrusivePtr{NewRef{}, this}, val);
 
-	set<BroType*> types = BroType::GetAliases(GetName());
-	set<BroType*>::const_iterator it;
+	set<Type*> types = Type::GetAliases(GetName());
+	set<Type*>::const_iterator it;
 
 	for ( it = types.begin(); it != types.end(); ++it )
 		if ( *it != this )
@@ -1303,19 +1303,19 @@ void EnumType::DescribeReST(ODesc* d, bool roles_only) const
 		}
 	}
 
-VectorType::VectorType(IntrusivePtr<BroType> element_type)
-	: BroType(TYPE_VECTOR), yield_type(std::move(element_type))
+VectorType::VectorType(IntrusivePtr<Type> element_type)
+	: Type(TYPE_VECTOR), yield_type(std::move(element_type))
 	{
 	}
 
-IntrusivePtr<BroType> VectorType::ShallowClone()
+IntrusivePtr<Type> VectorType::ShallowClone()
 	{
 	return make_intrusive<VectorType>(yield_type);
 	}
 
 VectorType::~VectorType() = default;
 
-const IntrusivePtr<BroType>& VectorType::Yield() const
+const IntrusivePtr<Type>& VectorType::Yield() const
 	{
 	// Work around the fact that we use void internally to mark a vector
 	// as being unspecified. When looking at its yield type, we need to
@@ -1376,7 +1376,7 @@ void VectorType::DescribeReST(ODesc* d, bool roles_only) const
 // false otherwise.  Assumes that t1's tag is different from t2's.  Note
 // that the test is in only one direction - we don't check whether t2 is
 // initialization-compatible with t1.
-static bool is_init_compat(const BroType& t1, const BroType& t2)
+static bool is_init_compat(const Type& t1, const Type& t2)
 	{
 	if ( t1.Tag() == TYPE_LIST )
 		{
@@ -1392,7 +1392,7 @@ static bool is_init_compat(const BroType& t1, const BroType& t2)
 	return false;
 	}
 
-bool same_type(const BroType& arg_t1, const BroType& arg_t2,
+bool same_type(const Type& arg_t1, const Type& arg_t2,
                bool is_init, bool match_record_field_names)
 	{
 	if ( &arg_t1 == &arg_t2 ||
@@ -1587,7 +1587,7 @@ bool record_promotion_compatible(const RecordType* super_rec,
 	return true;
 	}
 
-const BroType* flatten_type(const BroType* t)
+const Type* flatten_type(const Type* t)
 	{
 	if ( t->Tag() != TYPE_LIST )
 		return t;
@@ -1610,9 +1610,9 @@ const BroType* flatten_type(const BroType* t)
 	return t;
 	}
 
-BroType* flatten_type(BroType* t)
+Type* flatten_type(Type* t)
 	{
-	return (BroType*) flatten_type((const BroType*) t);
+	return (Type*) flatten_type((const Type*) t);
 	}
 
 bool is_assignable(TypeTag t)
@@ -1684,8 +1684,8 @@ TypeTag max_type(TypeTag t1, TypeTag t2)
 		}
 	}
 
-IntrusivePtr<BroType> merge_types(const IntrusivePtr<BroType>& arg_t1,
-                                  const IntrusivePtr<BroType>& arg_t2)
+IntrusivePtr<Type> merge_types(const IntrusivePtr<Type>& arg_t1,
+                                  const IntrusivePtr<Type>& arg_t2)
 	{
 	auto t1 = arg_t1.get();
 	auto t2 = arg_t2.get();
@@ -1779,7 +1779,7 @@ IntrusivePtr<BroType> merge_types(const IntrusivePtr<BroType>& arg_t1,
 
 		const auto& y1 = t1->Yield();
 		const auto& y2 = t2->Yield();
-		IntrusivePtr<BroType> y3;
+		IntrusivePtr<Type> y3;
 
 		if ( y1 || y2 )
 			{
@@ -1924,7 +1924,7 @@ IntrusivePtr<BroType> merge_types(const IntrusivePtr<BroType>& arg_t1,
 	}
 	}
 
-IntrusivePtr<BroType> merge_type_list(zeek::detail::ListExpr* elements)
+IntrusivePtr<Type> merge_type_list(zeek::detail::ListExpr* elements)
 	{
 	TypeList* tl_type = elements->GetType()->AsTypeList();
 	const auto& tl = tl_type->Types();
@@ -1950,7 +1950,7 @@ IntrusivePtr<BroType> merge_type_list(zeek::detail::ListExpr* elements)
 	}
 
 // Reduces an aggregate type.
-static BroType* reduce_type(BroType* t)
+static Type* reduce_type(Type* t)
 	{
 	if ( t->Tag() == TYPE_LIST )
 		return flatten_type(t);
@@ -1969,7 +1969,7 @@ static BroType* reduce_type(BroType* t)
 		return t;
 	}
 
-IntrusivePtr<BroType> init_type(zeek::detail::Expr* init)
+IntrusivePtr<Type> init_type(zeek::detail::Expr* init)
 	{
 	if ( init->Tag() != zeek::detail::EXPR_LIST )
 		{
@@ -2016,7 +2016,7 @@ IntrusivePtr<BroType> init_type(zeek::detail::Expr* init)
 	for ( int i = 1; t && i < el.length(); ++i )
 		{
 		auto el_t = el[i]->InitType();
-		IntrusivePtr<BroType> ti;
+		IntrusivePtr<Type> ti;
 
 		if ( el_t )
 			ti = {NewRef{}, reduce_type(el_t.get())};
@@ -2053,7 +2053,7 @@ IntrusivePtr<BroType> init_type(zeek::detail::Expr* init)
 	                               nullptr);
 	}
 
-bool is_atomic_type(const BroType& t)
+bool is_atomic_type(const Type& t)
 	{
 	switch ( t.InternalType() ) {
 	case TYPE_INTERNAL_INT:
@@ -2068,14 +2068,14 @@ bool is_atomic_type(const BroType& t)
 	}
 	}
 
-const IntrusivePtr<BroType>& base_type(zeek::TypeTag tag)
+const IntrusivePtr<Type>& base_type(zeek::TypeTag tag)
 	{
-	static IntrusivePtr<BroType> base_types[NUM_TYPES];
+	static IntrusivePtr<Type> base_types[NUM_TYPES];
 
 	// We could check here that "tag" actually corresponds to a basic type.
 	if ( ! base_types[tag] )
 		{
-		base_types[tag] = make_intrusive<BroType>(tag, true);
+		base_types[tag] = make_intrusive<Type>(tag, true);
 		// Give the base types a pseudo-location for easier identification.
 		Location l(type_name(tag), 0, 0, 0, 0);
 		base_types[tag]->SetLocationInfo(&l);

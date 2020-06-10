@@ -112,11 +112,11 @@ protected:
 class Attributes final : public BroObj {
 public:
 	[[deprecated("Remove in v4.1.  Construct using IntrusivePtrs instead.")]]
-	Attributes(attr_list* a, IntrusivePtr<BroType> t, bool in_record, bool is_global);
+	Attributes(attr_list* a, IntrusivePtr<Type> t, bool in_record, bool is_global);
 
-	Attributes(std::vector<IntrusivePtr<Attr>> a, IntrusivePtr<BroType> t,
+	Attributes(std::vector<IntrusivePtr<Attr>> a, IntrusivePtr<Type> t,
 	           bool in_record, bool is_global);
-	Attributes(IntrusivePtr<BroType> t, bool in_record, bool is_global);
+	Attributes(IntrusivePtr<Type> t, bool in_record, bool is_global);
 
 	void AddAttr(IntrusivePtr<Attr> a);
 
@@ -147,7 +147,7 @@ public:
 protected:
 	void CheckAttr(Attr* attr);
 
-	IntrusivePtr<BroType> type;
+	IntrusivePtr<Type> type;
 	std::vector<IntrusivePtr<Attr>> attrs;
 	bool in_record;
 	bool global_var;

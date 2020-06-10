@@ -7,7 +7,7 @@
 #include <set>
 #include <string>
 
-static bool is_string_set(const zeek::BroType* type)
+static bool is_string_set(const zeek::Type* type)
 	{
 	if ( ! type->IsSet() )
 		return false;

@@ -71,7 +71,7 @@ CompositeHash::~CompositeHash()
 
 // Computes the piece of the hash for Val*, returning the new kp.
 char* CompositeHash::SingleValHash(bool type_check, char* kp0,
-				   zeek::BroType* bt, Val* v, bool optional) const
+				   zeek::Type* bt, Val* v, bool optional) const
 	{
 	char* kp1 = nullptr;
 	zeek::InternalTypeTag t = bt->InternalType();
@@ -449,7 +449,7 @@ std::unique_ptr<HashKey> CompositeHash::ComputeSingletonHash(const Val* v, bool 
 	}
 	}
 
-int CompositeHash::SingleTypeKeySize(zeek::BroType* bt, const Val* v,
+int CompositeHash::SingleTypeKeySize(zeek::Type* bt, const Val* v,
 				     bool type_check, int sz, bool optional,
 				     bool calc_static_size) const
 	{
@@ -730,7 +730,7 @@ IntrusivePtr<ListVal> CompositeHash::RecoverVals(const HashKey& k) const
 	}
 
 const char* CompositeHash::RecoverOneVal(const HashKey& k, const char* kp0,
-					 const char* const k_end, zeek::BroType* t,
+					 const char* const k_end, zeek::Type* t,
 					 IntrusivePtr<Val>* pval, bool optional) const
 	{
 	// k->Size() == 0 for a single empty string.
@@ -1010,7 +1010,7 @@ const char* CompositeHash::RecoverOneVal(const HashKey& k, const char* kp0,
 			for ( int i = 0; i < n; ++i )
 				{
 				IntrusivePtr<Val> v;
-				zeek::BroType* it = tl->Types()[i].get();
+				zeek::Type* it = tl->Types()[i].get();
 				kp1 = RecoverOneVal(k, kp1, k_end, it, &v, false);
 				lv->Append(std::move(v));
 				}

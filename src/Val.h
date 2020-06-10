@@ -140,12 +140,12 @@ public:
 	explicit Val(IntrusivePtr<BroFile> f);
 
 	// Extra arg to differentiate from protected version.
-	Val(IntrusivePtr<zeek::BroType> t, bool type_type)
+	Val(IntrusivePtr<zeek::Type> t, bool type_type)
 		: type(make_intrusive<zeek::TypeType>(std::move(t)))
 		{}
 
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
-	Val(zeek::BroType* t, bool type_type) : Val({NewRef{}, t}, type_type)
+	Val(zeek::Type* t, bool type_type) : Val({NewRef{}, t}, type_type)
 		{}
 
 	Val()
@@ -185,11 +185,11 @@ public:
 	virtual bool RemoveFrom(Val* v) const;
 
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
-	zeek::BroType* Type()			{ return type.get(); }
+	zeek::Type* Type()			{ return type.get(); }
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
-	const zeek::BroType* Type() const	{ return type.get(); }
+	const zeek::Type* Type() const	{ return type.get(); }
 
-	const IntrusivePtr<zeek::BroType>& GetType() const
+	const IntrusivePtr<zeek::Type>& GetType() const
 		{ return type; }
 
 	template <class T>
@@ -233,7 +233,7 @@ public:
 		return *val.subnet_val;
 		}
 
-	zeek::BroType* AsType() const
+	zeek::Type* AsType() const
 		{
 		CHECK_TAG(type->Tag(), zeek::TYPE_TYPE, "Val::Type", zeek::type_name)
 		return type.get();
@@ -333,7 +333,7 @@ public:
 	void SetID(zeek::detail::ID* id);
 #endif
 
-	static bool WouldOverflow(const zeek::BroType* from_type, const zeek::BroType* to_type, const Val* val);
+	static bool WouldOverflow(const zeek::Type* from_type, const zeek::Type* to_type, const Val* val);
 
 	IntrusivePtr<TableVal> GetRecordFields();
 
@@ -361,11 +361,11 @@ protected:
 		{}
 
 	template<typename V>
-	Val(V&& v, IntrusivePtr<zeek::BroType> t) noexcept
+	Val(V&& v, IntrusivePtr<zeek::Type> t) noexcept
 		: val(std::forward<V>(v)), type(std::move(t))
 		{}
 
-	explicit Val(IntrusivePtr<zeek::BroType> t) noexcept
+	explicit Val(IntrusivePtr<zeek::Type> t) noexcept
 		: type(std::move(t))
 		{}
 
@@ -386,7 +386,7 @@ protected:
 	virtual IntrusivePtr<Val> DoClone(CloneState* state);
 
 	BroValUnion val;
-	IntrusivePtr<zeek::BroType> type;
+	IntrusivePtr<zeek::Type> type;
 
 #ifdef DEBUG
 	// For debugging, we keep the name of the ID to which a Val is bound.
@@ -1372,7 +1372,7 @@ protected:
 // If not a match, generates an error message and return nil.  If is_init is
 // true, then the checking is done in the context of an initialization.
 extern IntrusivePtr<Val> check_and_promote(IntrusivePtr<Val> v,
-                                           const zeek::BroType* t, bool is_init,
+                                           const zeek::Type* t, bool is_init,
                                            const Location* expr_location = nullptr);
 
 extern bool same_val(const Val* v1, const Val* v2);
@@ -1390,16 +1390,16 @@ inline bool is_vector(const IntrusivePtr<Val>& v)	{ return is_vector(v.get()); }
 // Returns v casted to type T if the type supports that. Returns null if not.
 //
 // Note: This implements the script-level cast operator.
-extern IntrusivePtr<Val> cast_value_to_type(Val* v, zeek::BroType* t);
+extern IntrusivePtr<Val> cast_value_to_type(Val* v, zeek::Type* t);
 
 // Returns true if v can be casted to type T. If so, check_and_cast() will
 // succeed as well.
 //
 // Note: This implements the script-level type comparision operator.
-extern bool can_cast_value_to_type(const Val* v, zeek::BroType* t);
+extern bool can_cast_value_to_type(const Val* v, zeek::Type* t);
 
 // Returns true if values of type s may support casting to type t. This is
 // purely static check to weed out cases early on that will never succeed.
 // However, even this function returns true, casting may still fail for a
 // specific instance later.
-extern bool can_cast_value_to_type(const zeek::BroType* s, zeek::BroType* t);
+extern bool can_cast_value_to_type(const zeek::Type* s, zeek::Type* t);

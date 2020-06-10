@@ -261,7 +261,7 @@ private:
 	threading::Value** RecordToFilterVals(Stream* stream, Filter* filter,
 				    RecordVal* columns);
 
-	threading::Value* ValToLogVal(Val* val, zeek::BroType* ty = nullptr);
+	threading::Value* ValToLogVal(Val* val, zeek::Type* ty = nullptr);
 	Stream* FindStream(EnumVal* id);
 	void RemoveDisabledWriters(Stream* stream);
 	void InstallRotationTimer(WriterInfo* winfo);

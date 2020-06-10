@@ -20,7 +20,7 @@ IntrusivePtr<zeek::OpaqueType> bro_broker::opaque_of_table_iterator;
 IntrusivePtr<zeek::OpaqueType> bro_broker::opaque_of_vector_iterator;
 IntrusivePtr<zeek::OpaqueType> bro_broker::opaque_of_record_iterator;
 
-static bool data_type_check(const broker::data& d, zeek::BroType* t);
+static bool data_type_check(const broker::data& d, zeek::Type* t);
 
 static broker::port::protocol to_broker_port_proto(TransportProto tp)
 	{
@@ -75,7 +75,7 @@ TEST_CASE("converting Broker to Zeek protocol constants")
 struct val_converter {
 	using result_type = IntrusivePtr<Val>;
 
-	zeek::BroType* type;
+	zeek::Type* type;
 
 	result_type operator()(broker::none)
 		{
@@ -445,7 +445,7 @@ struct val_converter {
 struct type_checker {
 	using result_type = bool;
 
-	zeek::BroType* type;
+	zeek::Type* type;
 
 	result_type operator()(broker::none)
 		{
@@ -771,7 +771,7 @@ struct type_checker {
 		}
 };
 
-static bool data_type_check(const broker::data& d, zeek::BroType* t)
+static bool data_type_check(const broker::data& d, zeek::Type* t)
 	{
 	if ( t->Tag() == zeek::TYPE_ANY )
 		return true;
@@ -779,7 +779,7 @@ static bool data_type_check(const broker::data& d, zeek::BroType* t)
 	return caf::visit(type_checker{t}, d);
 	}
 
-IntrusivePtr<Val> bro_broker::data_to_val(broker::data d, zeek::BroType* type)
+IntrusivePtr<Val> bro_broker::data_to_val(broker::data d, zeek::Type* type)
 	{
 	if ( type->Tag() == zeek::TYPE_ANY )
 		return bro_broker::make_data_val(move(d));
@@ -1137,17 +1137,17 @@ void bro_broker::DataVal::ValDescribe(ODesc* d) const
 	d->Add("}");
 	}
 
-bool bro_broker::DataVal::canCastTo(zeek::BroType* t) const
+bool bro_broker::DataVal::canCastTo(zeek::Type* t) const
 	{
 	return data_type_check(data, t);
 	}
 
-IntrusivePtr<Val> bro_broker::DataVal::castTo(zeek::BroType* t)
+IntrusivePtr<Val> bro_broker::DataVal::castTo(zeek::Type* t)
 	{
 	return data_to_val(data, t);
 	}
 
-const IntrusivePtr<zeek::BroType>& bro_broker::DataVal::ScriptDataType()
+const IntrusivePtr<zeek::Type>& bro_broker::DataVal::ScriptDataType()
 	{
 	static auto script_data_type = zeek::id::find_type("Broker::Data");
 	return script_data_type;

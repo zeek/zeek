@@ -146,7 +146,7 @@ void Attr::AddTag(ODesc* d) const
 		d->Add(attr_name(Tag()));
 	}
 
-Attributes::Attributes(attr_list* a, IntrusivePtr<BroType> t, bool arg_in_record, bool is_global)
+Attributes::Attributes(attr_list* a, IntrusivePtr<Type> t, bool arg_in_record, bool is_global)
 	{
 	attrs.reserve(a->length());
 	in_record = arg_in_record;
@@ -164,14 +164,14 @@ Attributes::Attributes(attr_list* a, IntrusivePtr<BroType> t, bool arg_in_record
 	delete a;
 	}
 
-Attributes::Attributes(IntrusivePtr<BroType> t,
+Attributes::Attributes(IntrusivePtr<Type> t,
                        bool arg_in_record, bool is_global)
     : Attributes(std::vector<IntrusivePtr<Attr>>{}, std::move(t),
                  arg_in_record, is_global)
     {}
 
 Attributes::Attributes(std::vector<IntrusivePtr<Attr>> a,
-                       IntrusivePtr<BroType> t,
+                       IntrusivePtr<Type> t,
                        bool arg_in_record, bool is_global)
 	: type(std::move(t))
 	{

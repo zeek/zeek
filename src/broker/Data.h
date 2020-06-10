@@ -65,7 +65,7 @@ broker::expected<broker::data> val_to_data(const Val* v);
  * @return a pointer to a new Bro value or a nullptr if the conversion was not
  * possible.
  */
-IntrusivePtr<Val> data_to_val(broker::data d, zeek::BroType* type);
+IntrusivePtr<Val> data_to_val(broker::data d, zeek::Type* type);
 
 /**
  * Convert a Bro threading::Value to a Broker data value.
@@ -109,13 +109,13 @@ public:
 
 	void ValDescribe(ODesc* d) const override;
 
-	IntrusivePtr<Val> castTo(zeek::BroType* t);
-	bool canCastTo(zeek::BroType* t) const;
+	IntrusivePtr<Val> castTo(zeek::Type* t);
+	bool canCastTo(zeek::Type* t) const;
 
 	// Returns the Bro type that scripts use to represent a Broker data
 	// instance. This may be wrapping the opaque value inside another
 	// type.
-	static const IntrusivePtr<zeek::BroType>& ScriptDataType();
+	static const IntrusivePtr<zeek::Type>& ScriptDataType();
 
 	broker::data data;
 

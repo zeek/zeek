@@ -36,7 +36,7 @@ const IntrusivePtr<zeek::detail::ID>& zeek::id::find(std::string_view name)
 	return global_scope()->Find(name);
 	}
 
-const IntrusivePtr<zeek::BroType>& zeek::id::find_type(std::string_view name)
+const IntrusivePtr<zeek::Type>& zeek::id::find_type(std::string_view name)
 	{
 	auto id = global_scope()->Find(name);
 
@@ -133,7 +133,7 @@ std::string ID::ModuleName() const
 	return extract_module_name(name);
 	}
 
-void ID::SetType(IntrusivePtr<zeek::BroType> t)
+void ID::SetType(IntrusivePtr<zeek::Type> t)
 	{
 	type = std::move(t);
 	}

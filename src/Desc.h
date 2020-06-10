@@ -25,7 +25,9 @@ typedef enum {
 class BroFile;
 class IPAddr;
 class IPPrefix;
-FORWARD_DECLARE_NAMESPACED(BroType, zeek);
+
+namespace zeek { class Type; }
+using BroType [[deprecated("Remove in v4.1. Use zeek::Type instead.")]] = zeek::Type;
 
 class ODesc {
 public:
@@ -146,9 +148,9 @@ public:
 
 	// Used to determine recursive types. Records push their types on here;
 	// if the same type (by address) is re-encountered, processing aborts.
-	bool PushType(const zeek::BroType* type);
-	bool PopType(const zeek::BroType* type);
-	bool FindType(const zeek::BroType* type);
+	bool PushType(const zeek::Type* type);
+	bool PopType(const zeek::Type* type);
+	bool FindType(const zeek::Type* type);
 
 protected:
 	void Indent();
@@ -204,5 +206,5 @@ protected:
 	bool do_flush;
 	bool include_stats;
 
-	std::set<const zeek::BroType*> encountered_types;
+	std::set<const zeek::Type*> encountered_types;
 };

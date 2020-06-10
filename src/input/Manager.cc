@@ -774,7 +774,7 @@ bool Manager::CreateAnalysisStream(RecordVal* fval)
 	return true;
 	}
 
-bool Manager::IsCompatibleType(zeek::BroType* t, bool atomic_only)
+bool Manager::IsCompatibleType(zeek::Type* t, bool atomic_only)
 	{
 	if ( ! t )
 		return false;
@@ -2159,7 +2159,7 @@ HashKey* Manager::HashValues(const int num_elements, const Value* const *vals) c
 // have_error is a reference to a boolean which is set to true as soon as an error occurs.
 // When have_error is set to true at the beginning of the function, it is assumed that
 // an error already occurred in the past and processing is aborted.
-Val* Manager::ValueToVal(const Stream* i, const Value* val, zeek::BroType* request_type, bool& have_error) const
+Val* Manager::ValueToVal(const Stream* i, const Value* val, zeek::Type* request_type, bool& have_error) const
 	{
 	if ( have_error )
 		return nullptr;

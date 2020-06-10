@@ -391,7 +391,7 @@ void Val::SetID(zeek::detail::ID* id)
 	}
 #endif
 
-bool Val::WouldOverflow(const zeek::BroType* from_type, const zeek::BroType* to_type, const Val* val)
+bool Val::WouldOverflow(const zeek::Type* from_type, const zeek::Type* to_type, const Val* val)
 	{
 	if ( !to_type || !from_type )
 		return true;
@@ -1337,7 +1337,7 @@ static void table_entry_val_delete_func(void* val)
 	delete tv;
 	}
 
-static void find_nested_record_types(const IntrusivePtr<zeek::BroType>& t, std::set<zeek::RecordType*>* found)
+static void find_nested_record_types(const IntrusivePtr<zeek::Type>& t, std::set<zeek::RecordType*>* found)
 	{
 	if ( ! t )
 		return;
@@ -3188,14 +3188,14 @@ void VectorVal::ValDescribe(ODesc* d) const
 	d->Add("]");
 	}
 
-IntrusivePtr<Val> check_and_promote(IntrusivePtr<Val> v, const zeek::BroType* t,
+IntrusivePtr<Val> check_and_promote(IntrusivePtr<Val> v, const zeek::Type* t,
                                     bool is_init,
                                     const Location* expr_location)
 	{
 	if ( ! v )
 		return nullptr;
 
-	zeek::BroType* vt = flatten_type(v->GetType().get());
+	zeek::Type* vt = flatten_type(v->GetType().get());
 	t = flatten_type(t);
 
 	zeek::TypeTag t_tag = t->Tag();
@@ -3392,7 +3392,7 @@ void delete_vals(val_list* vals)
 		}
 	}
 
-IntrusivePtr<Val> cast_value_to_type(Val* v, zeek::BroType* t)
+IntrusivePtr<Val> cast_value_to_type(Val* v, zeek::Type* t)
 	{
 	// Note: when changing this function, adapt all three of
 	// cast_value_to_type()/can_cast_value_to_type()/can_cast_value_to_type().
@@ -3418,7 +3418,7 @@ IntrusivePtr<Val> cast_value_to_type(Val* v, zeek::BroType* t)
 	return nullptr;
 	}
 
-bool can_cast_value_to_type(const Val* v, zeek::BroType* t)
+bool can_cast_value_to_type(const Val* v, zeek::Type* t)
 	{
 	// Note: when changing this function, adapt all three of
 	// cast_value_to_type()/can_cast_value_to_type()/can_cast_value_to_type().
@@ -3444,7 +3444,7 @@ bool can_cast_value_to_type(const Val* v, zeek::BroType* t)
 	return false;
 	}
 
-bool can_cast_value_to_type(const zeek::BroType* s, zeek::BroType* t)
+bool can_cast_value_to_type(const zeek::Type* s, zeek::Type* t)
 	{
 	// Note: when changing this function, adapt all three of
 	// cast_value_to_type()/can_cast_value_to_type()/can_cast_value_to_type().

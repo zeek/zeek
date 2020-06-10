@@ -122,7 +122,7 @@ Value::~Value()
 		}
 	}
 
-bool Value::IsCompatibleType(zeek::BroType* t, bool atomic_only)
+bool Value::IsCompatibleType(zeek::Type* t, bool atomic_only)
 	{
 	if ( ! t )
 		return false;
@@ -535,7 +535,7 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 				if ( stag == zeek::TYPE_VOID )
 					stag = val->val.set_val.vals[0]->type;
 
-				IntrusivePtr<zeek::BroType> index_type;
+				IntrusivePtr<zeek::Type> index_type;
 
 				if ( stag == zeek::TYPE_ENUM )
 					{
@@ -575,7 +575,7 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 
 		case zeek::TYPE_VECTOR:
 			{
-			IntrusivePtr<zeek::BroType> type;
+			IntrusivePtr<zeek::Type> type;
 
 			if ( val->val.vector_val.size == 0  && val->subtype == zeek::TYPE_VOID )
 				// don't know type - unspecified table.

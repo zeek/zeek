@@ -148,13 +148,13 @@ protected:
 	 * Helper function for derived class that need to record a type
 	 * during serialization.
 	 */
-	static broker::expected<broker::data> SerializeType(const IntrusivePtr<zeek::BroType>& t);
+	static broker::expected<broker::data> SerializeType(const IntrusivePtr<zeek::Type>& t);
 
 	/**
 	 * Helper function for derived class that need to restore a type
 	 * during unserialization. Returns the type at reference count +1.
 	 */
-	static IntrusivePtr<zeek::BroType> UnserializeType(const broker::data& data);
+	static IntrusivePtr<zeek::Type> UnserializeType(const broker::data& data);
 };
 
 namespace probabilistic {
@@ -304,10 +304,10 @@ public:
 
 	IntrusivePtr<Val> DoClone(CloneState* state) override;
 
-	const IntrusivePtr<zeek::BroType>& Type() const
+	const IntrusivePtr<zeek::Type>& Type() const
 		{ return type; }
 
-	bool Typify(IntrusivePtr<zeek::BroType> type);
+	bool Typify(IntrusivePtr<zeek::Type> type);
 
 	void Add(const Val* val);
 	size_t Count(const Val* val) const;
@@ -328,7 +328,7 @@ private:
 	BloomFilterVal(const BloomFilterVal&);
 	BloomFilterVal& operator=(const BloomFilterVal&);
 
-	IntrusivePtr<zeek::BroType> type;
+	IntrusivePtr<zeek::Type> type;
 	CompositeHash* hash;
 	probabilistic::BloomFilter* bloom_filter;
 };
@@ -343,10 +343,10 @@ public:
 
 	void Add(const Val* val);
 
-	const IntrusivePtr<zeek::BroType>& Type() const
+	const IntrusivePtr<zeek::Type>& Type() const
 		{ return type; }
 
-	bool Typify(IntrusivePtr<zeek::BroType> type);
+	bool Typify(IntrusivePtr<zeek::Type> type);
 
 	probabilistic::CardinalityCounter* Get()	{ return c; };
 
@@ -355,7 +355,7 @@ protected:
 
 	DECLARE_OPAQUE_VALUE(CardinalityVal)
 private:
-	IntrusivePtr<zeek::BroType> type;
+	IntrusivePtr<zeek::Type> type;
 	CompositeHash* hash;
 	probabilistic::CardinalityCounter* c;
 };

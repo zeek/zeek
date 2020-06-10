@@ -18,7 +18,7 @@ static void topk_element_hash_delete_func(void* val)
 	delete e;
 	}
 
-void TopkVal::Typify(IntrusivePtr<zeek::BroType> t)
+void TopkVal::Typify(IntrusivePtr<zeek::Type> t)
 	{
 	assert(!hash && !type);
 	type = std::move(t);

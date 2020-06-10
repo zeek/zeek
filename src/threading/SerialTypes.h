@@ -202,7 +202,7 @@ struct Value {
 	 * Returns true if the type can be represented by a Value. If
 	 * `atomic_only` is true, will not permit composite types. This
 	 * method is thread-safe. */
-	static bool IsCompatibleType(zeek::BroType* t, bool atomic_only=false);
+	static bool IsCompatibleType(zeek::Type* t, bool atomic_only=false);
 
 	/**
 	 * Convenience function to delete an array of value pointers.

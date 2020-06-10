@@ -76,9 +76,9 @@ class Stmt;
 class Expr : public BroObj {
 public:
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
-	BroType* Type() const		{ return type.get(); }
+	zeek::Type* Type() const		{ return type.get(); }
 
-	const IntrusivePtr<BroType>& GetType() const
+	const IntrusivePtr<zeek::Type>& GetType() const
 		{ return type; }
 
 	template <class T>
@@ -97,7 +97,7 @@ public:
 	// into the given aggregate of the given type.  Note that
 	// return type is void since it's updating an existing
 	// value, rather than creating a new one.
-	virtual void EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f)
+	virtual void EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f)
 			const;
 
 	// Assign to the given value, if appropriate.
@@ -105,7 +105,7 @@ public:
 
 	// Returns the type corresponding to this expression interpreted
 	// as an initialization.  Returns nil if the initialization is illegal.
-	virtual IntrusivePtr<BroType> InitType() const;
+	virtual IntrusivePtr<zeek::Type> InitType() const;
 
 	// Returns true if this expression, interpreted as an initialization,
 	// constitutes a record element, false otherwise.  If the TypeDecl*
@@ -118,7 +118,7 @@ public:
 	// with the given type.  If "aggr" is non-nil, then this expression
 	// is an element of the given aggregate, and it is added to it
 	// accordingly.
-	virtual IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const;
+	virtual IntrusivePtr<Val> InitVal(const zeek::Type* t, IntrusivePtr<Val> aggr) const;
 
 	// True if the expression has no side effects, false otherwise.
 	virtual bool IsPure() const;
@@ -223,7 +223,7 @@ protected:
 	// Puts the expression in canonical form.
 	virtual void Canonicize();
 
-	void SetType(IntrusivePtr<BroType> t);
+	void SetType(IntrusivePtr<zeek::Type> t);
 
 	// Reports the given error and sets the expression's type to
 	// TYPE_ERROR.
@@ -235,7 +235,7 @@ protected:
 	[[noreturn]] void RuntimeErrorWithCallStack(const std::string& msg) const;
 
 	BroExprTag tag;
-	IntrusivePtr<BroType> type;
+	IntrusivePtr<zeek::Type> type;
 	bool paren;
 };
 
@@ -524,10 +524,10 @@ public:
 	           const IntrusivePtr<Attributes>& attrs = nullptr);
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
-	void EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const override;
-	IntrusivePtr<BroType> InitType() const override;
+	void EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f) const override;
+	IntrusivePtr<zeek::Type> InitType() const override;
 	bool IsRecordElement(TypeDecl* td) const override;
-	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
+	IntrusivePtr<Val> InitVal(const zeek::Type* t, IntrusivePtr<Val> aggr) const override;
 	bool IsPure() const override;
 
 protected:
@@ -624,7 +624,7 @@ public:
 	~RecordConstructorExpr() override;
 
 protected:
-	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
+	IntrusivePtr<Val> InitVal(const zeek::Type* t, IntrusivePtr<Val> aggr) const override;
 	IntrusivePtr<Val> Fold(Val* v) const override;
 
 	void ExprDescribe(ODesc* d) const override;
@@ -634,7 +634,7 @@ class TableConstructorExpr final : public UnaryExpr {
 public:
 	TableConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
 	                     std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs,
-	                     IntrusivePtr<BroType> arg_type = nullptr);
+	                     IntrusivePtr<zeek::Type> arg_type = nullptr);
 
 	[[deprecated("Remove in v4.1.  Use GetAttrs().")]]
 	Attributes* Attrs() { return attrs.get(); }
@@ -645,7 +645,7 @@ public:
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 protected:
-	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
+	IntrusivePtr<Val> InitVal(const zeek::Type* t, IntrusivePtr<Val> aggr) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -656,7 +656,7 @@ class SetConstructorExpr final : public UnaryExpr {
 public:
 	SetConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
 	                   std::unique_ptr<std::vector<IntrusivePtr<Attr>>> attrs,
-	                   IntrusivePtr<BroType> arg_type = nullptr);
+	                   IntrusivePtr<zeek::Type> arg_type = nullptr);
 
 	[[deprecated("Remove in v4.1.  Use GetAttrs().")]]
 	Attributes* Attrs() { return attrs.get(); }
@@ -667,7 +667,7 @@ public:
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 protected:
-	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
+	IntrusivePtr<Val> InitVal(const zeek::Type* t, IntrusivePtr<Val> aggr) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -677,12 +677,12 @@ protected:
 class VectorConstructorExpr final : public UnaryExpr {
 public:
 	explicit VectorConstructorExpr(IntrusivePtr<ListExpr> constructor_list,
-	                               IntrusivePtr<BroType> arg_type = nullptr);
+	                               IntrusivePtr<zeek::Type> arg_type = nullptr);
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
 protected:
-	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
+	IntrusivePtr<Val> InitVal(const zeek::Type* t, IntrusivePtr<Val> aggr) const override;
 
 	void ExprDescribe(ODesc* d) const override;
 };
@@ -693,7 +693,7 @@ public:
 
 	const char* FieldName() const	{ return field_name.c_str(); }
 
-	void EvalIntoAggregate(const BroType* t, Val* aggr, Frame* f) const override;
+	void EvalIntoAggregate(const zeek::Type* t, Val* aggr, Frame* f) const override;
 	bool IsRecordElement(TypeDecl* td) const override;
 
 protected:
@@ -717,7 +717,7 @@ public:
 	~RecordCoerceExpr() override;
 
 protected:
-	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
+	IntrusivePtr<Val> InitVal(const zeek::Type* t, IntrusivePtr<Val> aggr) const override;
 	IntrusivePtr<Val> Fold(Val* v) const override;
 
 	// For each super-record slot, gives subrecord slot with which to
@@ -868,15 +868,15 @@ public:
 
 	IntrusivePtr<Val> Eval(Frame* f) const override;
 
-	IntrusivePtr<BroType> InitType() const override;
-	IntrusivePtr<Val> InitVal(const BroType* t, IntrusivePtr<Val> aggr) const override;
+	IntrusivePtr<zeek::Type> InitType() const override;
+	IntrusivePtr<Val> InitVal(const zeek::Type* t, IntrusivePtr<Val> aggr) const override;
 	IntrusivePtr<Expr> MakeLvalue() override;
 	void Assign(Frame* f, IntrusivePtr<Val> v) override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	IntrusivePtr<Val> AddSetInit(const BroType* t, IntrusivePtr<Val> aggr) const;
+	IntrusivePtr<Val> AddSetInit(const zeek::Type* t, IntrusivePtr<Val> aggr) const;
 
 	void ExprDescribe(ODesc* d) const override;
 
@@ -891,7 +891,7 @@ public:
 
 class CastExpr final : public UnaryExpr {
 public:
-	CastExpr(IntrusivePtr<Expr> op, IntrusivePtr<BroType> t);
+	CastExpr(IntrusivePtr<Expr> op, IntrusivePtr<zeek::Type> t);
 
 protected:
 	IntrusivePtr<Val> Eval(Frame* f) const override;
@@ -900,14 +900,14 @@ protected:
 
 class IsExpr final : public UnaryExpr {
 public:
-	IsExpr(IntrusivePtr<Expr> op, IntrusivePtr<BroType> t);
+	IsExpr(IntrusivePtr<Expr> op, IntrusivePtr<zeek::Type> t);
 
 protected:
 	IntrusivePtr<Val> Fold(Val* v) const override;
 	void ExprDescribe(ODesc* d) const override;
 
 private:
-	IntrusivePtr<BroType> t;
+	IntrusivePtr<zeek::Type> t;
 };
 
 inline Val* Expr::ExprVal() const
@@ -936,11 +936,11 @@ IntrusivePtr<Expr> get_assign_expr(IntrusivePtr<Expr> op1,
  * Returns nullptr if the expression cannot match or a promoted
  * expression.
  */
-extern IntrusivePtr<Expr> check_and_promote_expr(Expr* e, BroType* t);
+extern IntrusivePtr<Expr> check_and_promote_expr(Expr* e, Type* t);
 
 extern bool check_and_promote_exprs(ListExpr* elements, TypeList* types);
 extern bool check_and_promote_args(ListExpr* args, RecordType* types);
-extern bool check_and_promote_exprs_to_type(ListExpr* elements, BroType* type);
+extern bool check_and_promote_exprs_to_type(ListExpr* elements, Type* type);
 
 // Returns a ListExpr simplified down to a list a values, or nil
 // if they couldn't all be reduced.

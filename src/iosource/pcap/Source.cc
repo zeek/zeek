@@ -202,12 +202,12 @@ bool PcapSource::ExtractNextPacket(Packet* pkt)
 	int res = pcap_next_ex(pd, &header, &data);
 
 	switch ( res ) {
-	case -2:
+	case PCAP_ERROR_BREAK: // -2
 		// Exhausted pcap file, no more packets to read.
 		assert(! props.is_live);
 		Close();
 		return false;
-	case -1:
+	case PCAP_ERROR: // -1
 		// Error occurred while reading the packet.
 		if ( props.is_live )
 			reporter->Error("failed to read a packet from %s: %s",

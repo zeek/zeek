@@ -190,10 +190,14 @@ public:
 	static inline const IntrusivePtr<Type> nil;
 
 	explicit Type(zeek::TypeTag tag, bool base_type = false);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	[[deprecated("Remove in v4.1. Use the version that takes zeek::TypeTag instead.")]]
 	explicit Type(::TypeTag tag, bool base_type = false)
 		: Type(static_cast<zeek::TypeTag>(tag), base_type)
 		{}
+#pragma GCC diagnostic pop
 
 	// Performs a shallow clone operation of the Bro type.
 	// This especially means that especially for tables the types
@@ -528,10 +532,13 @@ public:
 	FuncType(IntrusivePtr<RecordType> args, IntrusivePtr<Type> yield,
 	         FunctionFlavor f);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	[[deprecated("Remove in v4.1. Use the version that takes zeek::FunctionFlavor instead.")]]
 	FuncType(IntrusivePtr<RecordType> args, IntrusivePtr<Type> yield, ::function_flavor f)
 		: FuncType(args, yield, static_cast<FunctionFlavor>(f))
 		{}
+#pragma GCC diagnostic pop
 
 	IntrusivePtr<Type> ShallowClone() override;
 
@@ -554,9 +561,12 @@ public:
 	void ClearYieldType(FunctionFlavor arg_flav)
 		{ yield = nullptr; flavor = arg_flav; }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	[[deprecated("Remove in v4.1. Use the version that takes zeek::FunctionFlavor instead.")]]
 	void ClearYieldType(::function_flavor arg_flav)
 		{ yield = nullptr; flavor = static_cast<FunctionFlavor>(arg_flav); }
+#pragma GCC diagnostic pop
 
 	int MatchesIndex(zeek::detail::ListExpr* index) const override;
 	bool CheckArgs(const type_list* args, bool is_init = false) const;
@@ -628,9 +638,12 @@ public:
 	TypeDecl(const TypeDecl& other);
 	~TypeDecl();
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	[[deprecated("Remove in v4.1.  Use GetAttr().")]]
 	const zeek::detail::Attr* FindAttr(::attr_tag a) const
 		{ return attrs ? attrs->Find(static_cast<zeek::detail::attr_tag>(a)).get() : nullptr; }
+#pragma GCC diagnostic pop
 
 	const IntrusivePtr<zeek::detail::Attr>& GetAttr(zeek::detail::attr_tag a) const
 		{ return attrs ? attrs->Find(a) : zeek::detail::Attr::nil; }
@@ -738,11 +751,15 @@ public:
 		const TypeDecl* decl = FieldDecl(field);
 		return decl && decl->GetAttr(at) != nullptr;
 		}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	[[deprecated("Remove in v4.1. Use version that takes zeek::detail::attr_tag.")]]
 	bool FieldHasAttr(int field, ::attr_tag at) const
 		{
 		return FieldHasAttr(field, static_cast<zeek::detail::attr_tag>(at));
 		}
+#pragma GCC diagnostic pop
 
 	std::string GetFieldDeprecationWarning(int field, bool has_check) const;
 
@@ -984,7 +1001,7 @@ inline const IntrusivePtr<zeek::Type>& error_type()       { return base_type(TYP
 // Returns the basic (non-parameterized) type with the given type.
 // The reference count of the type is not increased.
 [[deprecated("Remove in v4.1.  Use zeek::base_type() instead")]]
-inline zeek::Type* base_type_no_ref(TypeTag tag)
+inline zeek::Type* base_type_no_ref(zeek::TypeTag tag)
 	{ return zeek::base_type(static_cast<zeek::TypeTag>(tag)).get(); }
 
 extern IntrusivePtr<zeek::OpaqueType> md5_type;

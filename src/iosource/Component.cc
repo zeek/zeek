@@ -17,10 +17,13 @@ Component::Component(zeek::plugin::component::Type type, const std::string& name
 	{
 	}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 Component::Component(plugin::component::Type type, const std::string& name)
 	: plugin::Component(static_cast<zeek::plugin::component::Type>(type), name)
 	{
 	}
+#pragma GCC diagnostic pop
 
 Component::~Component()
 	{

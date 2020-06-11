@@ -530,11 +530,6 @@ std::list<std::pair<::zeek::plugin::HookType, int> > Manager::HooksEnabledForPlu
 	return enabled;
 	}
 
-void Manager::EnableHook(::plugin::HookType hook, Plugin* plugin, int prio)
-	{
-	EnableHook(static_cast<zeek::plugin::HookType>(hook), plugin, prio);
-	}
-
 void Manager::EnableHook(zeek::plugin::HookType hook, Plugin* plugin, int prio)
 	{
 	if ( ! hooks[hook] )
@@ -551,11 +546,6 @@ void Manager::EnableHook(zeek::plugin::HookType hook, Plugin* plugin, int prio)
 
 	l->push_back(std::make_pair(prio, plugin));
 	l->sort(hook_cmp);
-	}
-
-void Manager::DisableHook(::plugin::HookType hook, Plugin* plugin)
-	{
-	DisableHook(static_cast<zeek::plugin::HookType>(hook), plugin);
 	}
 
 void Manager::DisableHook(zeek::plugin::HookType hook, Plugin* plugin)
@@ -580,6 +570,19 @@ void Manager::DisableHook(zeek::plugin::HookType hook, Plugin* plugin)
 		hooks[hook] = nullptr;
 		}
 	}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+void Manager::EnableHook(::plugin::HookType hook, Plugin* plugin, int prio)
+	{
+	EnableHook(static_cast<zeek::plugin::HookType>(hook), plugin, prio);
+	}
+
+void Manager::DisableHook(::plugin::HookType hook, Plugin* plugin)
+	{
+	DisableHook(static_cast<zeek::plugin::HookType>(hook), plugin);
+	}
+#pragma GCC diagnostic pop
 
 void Manager::RequestEvent(EventHandlerPtr handler, Plugin* plugin)
 	{

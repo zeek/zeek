@@ -32,18 +32,21 @@ Attr::Attr(attr_tag t, IntrusivePtr<Expr> e)
 	SetLocationInfo(&start_location, &end_location);
 	}
 
-Attr::Attr(::attr_tag t, IntrusivePtr<Expr> e) : Attr(static_cast<attr_tag>(t), e)
+Attr::Attr(attr_tag t)
+	: Attr(t, nullptr)
 	{
 	}
 
-Attr::Attr(attr_tag t)
-	: Attr(t, nullptr)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+Attr::Attr(::attr_tag t, IntrusivePtr<Expr> e) : Attr(static_cast<attr_tag>(t), e)
 	{
 	}
 
 Attr::Attr(::attr_tag t) : Attr(static_cast<attr_tag>(t))
 	{
 	}
+#pragma GCC diagnostic pop
 
 Attr::~Attr() = default;
 
@@ -243,11 +246,6 @@ const IntrusivePtr<Attr>& Attributes::Find(attr_tag t) const
 	return Attr::nil;
 	}
 
-Attr* Attributes::FindAttr(::attr_tag t) const
-	{
-	return FindAttr(static_cast<attr_tag>(t));
-	}
-
 void Attributes::RemoveAttr(attr_tag t)
 	{
 	for ( auto it = attrs.begin(); it != attrs.end(); )
@@ -259,10 +257,18 @@ void Attributes::RemoveAttr(attr_tag t)
 		}
 	}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+Attr* Attributes::FindAttr(::attr_tag t) const
+	{
+	return FindAttr(static_cast<attr_tag>(t));
+	}
+
 void Attributes::RemoveAttr(::attr_tag t)
 	{
 	RemoveAttr(static_cast<attr_tag>(t));
 	}
+#pragma GCC diagnostic pop
 
 void Attributes::Describe(ODesc* d) const
 	{

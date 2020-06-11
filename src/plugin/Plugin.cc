@@ -42,10 +42,13 @@ static constexpr const char* hook_names[int(::zeek::plugin::NUM_HOOKS) + 1] = {
 	return hook_names[int(h)];
 	}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 const char* plugin::hook_name(::plugin::HookType h)
 	{
 	return hook_name(static_cast<::zeek::plugin::HookType>(h));
 	}
+#pragma GCC diagnostic pop
 
 BifItem::BifItem(const std::string& arg_id, Type arg_type)
 	{
@@ -355,19 +358,22 @@ Plugin::hook_list Plugin::EnabledHooks() const
 	return plugin_mgr->HooksEnabledForPlugin(this);
 	}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 void Plugin::EnableHook(::plugin::HookType hook, int priority)
 	{
 	plugin_mgr->EnableHook(static_cast<zeek::plugin::HookType>(hook), this, priority);
 	}
 
-void Plugin::EnableHook(::zeek::plugin::HookType hook, int priority)
-	{
-	plugin_mgr->EnableHook(hook, this, priority);
-	}
-
 void Plugin::DisableHook(::plugin::HookType hook)
 	{
 	plugin_mgr->DisableHook(static_cast<zeek::plugin::HookType>(hook), this);
+	}
+#pragma GCC diagnostic pop
+
+void Plugin::EnableHook(::zeek::plugin::HookType hook, int priority)
+	{
+	plugin_mgr->EnableHook(hook, this, priority);
 	}
 
 void Plugin::DisableHook(::zeek::plugin::HookType hook)
@@ -461,6 +467,8 @@ bool Plugin::HookReporter(const std::string& prefix, const EventHandlerPtr event
 	return true;
 	}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 void Plugin::MetaHookPre(::plugin::HookType hook, const HookArgumentList& args)
 	{
 	}
@@ -468,6 +476,7 @@ void Plugin::MetaHookPre(::plugin::HookType hook, const HookArgumentList& args)
 void Plugin::MetaHookPost(::plugin::HookType hook, const HookArgumentList& args, HookArgument result)
 	{
 	}
+#pragma GCC diagnostic pop
 
 void Plugin::MetaHookPre(::zeek::plugin::HookType hook, const HookArgumentList& args)
 	{

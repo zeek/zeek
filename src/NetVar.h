@@ -7,47 +7,47 @@
 #include "Stats.h"
 
 [[deprecated("Remove in v4.1.  Use zeek::id::conn_id.")]]
-extern RecordType* conn_id;
+extern zeek::RecordType* conn_id;
 [[deprecated("Remove in v4.1.  Use zeek::id::endpoint.")]]
-extern RecordType* endpoint;
+extern zeek::RecordType* endpoint;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* endpoint_stats;
+extern zeek::RecordType* endpoint_stats;
 [[deprecated("Remove in v4.1.  Use zeek::id::connection.")]]
-extern RecordType* connection_type;
+extern zeek::RecordType* connection_type;
 [[deprecated("Remove in v4.1.  Use zeek::id::fa_file.")]]
-extern RecordType* fa_file_type;
+extern zeek::RecordType* fa_file_type;
 [[deprecated("Remove in v4.1.  Use zeek::id::fa_metadata.")]]
-extern RecordType* fa_metadata_type;
+extern zeek::RecordType* fa_metadata_type;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* icmp_conn;
+extern zeek::RecordType* icmp_conn;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* icmp_context;
+extern zeek::RecordType* icmp_context;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* signature_state;
+extern zeek::RecordType* signature_state;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* SYN_packet;
+extern zeek::RecordType* SYN_packet;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* pcap_packet;
+extern zeek::RecordType* pcap_packet;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* raw_pkt_hdr_type;
+extern zeek::RecordType* raw_pkt_hdr_type;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* l2_hdr_type;
+extern zeek::RecordType* l2_hdr_type;
 [[deprecated("Remove in v4.1.  Use zeek::id::transport_proto.")]]
-extern EnumType* transport_proto;
+extern zeek::EnumType* transport_proto;
 [[deprecated("Remove in v4.1.  Use zeek::id::string_set.")]]
-extern TableType* string_set;
+extern zeek::TableType* string_set;
 [[deprecated("Remove in v4.1.  Use zeek::id::string_array.")]]
-extern TableType* string_array;
+extern zeek::TableType* string_array;
 [[deprecated("Remove in v4.1.  Use zeek::id::count_set.")]]
-extern TableType* count_set;
+extern zeek::TableType* count_set;
 [[deprecated("Remove in v4.1.  Use zeek::id::string_vec.")]]
-extern VectorType* string_vec;
+extern zeek::VectorType* string_vec;
 [[deprecated("Remove in v4.1.  Use zeek::id::index_vec.")]]
-extern VectorType* index_vec;
+extern zeek::VectorType* index_vec;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern VectorType* mime_matches;
+extern zeek::VectorType* mime_matches;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* mime_match;
+extern zeek::RecordType* mime_match;
 
 extern int watchdog_interval;
 
@@ -76,7 +76,7 @@ extern int tcp_excessive_data_without_further_acks;
 extern int tcp_max_old_segments;
 
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* socks_address;
+extern zeek::RecordType* socks_address;
 
 extern double non_analyzed_lifetime;
 extern double tcp_inactivity_timeout;
@@ -114,50 +114,50 @@ extern double rpc_timeout;
 extern int mime_segment_length;
 extern int mime_segment_overlap_length;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* mime_header_rec;
+extern zeek::RecordType* mime_header_rec;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern TableType* mime_header_list;
+extern zeek::TableType* mime_header_list;
 
 extern int http_entity_data_delivery_size;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* http_stats_rec;
+extern zeek::RecordType* http_stats_rec;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* http_message_stat;
+extern zeek::RecordType* http_message_stat;
 extern int truncate_http_URI;
 
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* pm_mapping;
+extern zeek::RecordType* pm_mapping;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern TableType* pm_mappings;
+extern zeek::TableType* pm_mappings;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* pm_port_request;
+extern zeek::RecordType* pm_port_request;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* pm_callit_request;
+extern zeek::RecordType* pm_callit_request;
 
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* geo_location;
+extern zeek::RecordType* geo_location;
 
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* entropy_test_result;
+extern zeek::RecordType* entropy_test_result;
 
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* dns_msg;
+extern zeek::RecordType* dns_msg;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* dns_answer;
+extern zeek::RecordType* dns_answer;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* dns_soa;
+extern zeek::RecordType* dns_soa;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* dns_edns_additional;
+extern zeek::RecordType* dns_edns_additional;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* dns_tsig_additional;
+extern zeek::RecordType* dns_tsig_additional;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* dns_rrsig_rr;
+extern zeek::RecordType* dns_rrsig_rr;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* dns_dnskey_rr;
+extern zeek::RecordType* dns_dnskey_rr;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* dns_nsec3_rr;
+extern zeek::RecordType* dns_nsec3_rr;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* dns_ds_rr;
+extern zeek::RecordType* dns_ds_rr;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
 extern TableVal* dns_skip_auth;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
@@ -187,7 +187,7 @@ extern TableVal* preserve_other_addr;
 extern double connection_status_update_interval;
 
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* rotate_info;
+extern zeek::RecordType* rotate_info;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
 extern StringVal* log_rotate_base_time;
 
@@ -212,9 +212,9 @@ extern int packet_filter_default;
 extern int sig_max_group_size;
 
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern TableType* irc_join_list;
+extern zeek::TableType* irc_join_list;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* irc_join_info;
+extern zeek::RecordType* irc_join_info;
 
 extern int dpd_reassemble_first_packets;
 extern int dpd_buffer_size;
@@ -235,17 +235,17 @@ extern StringVal* trace_output_file;
 extern int record_all_packets;
 
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* script_id;
+extern zeek::RecordType* script_id;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern TableType* id_table;
+extern zeek::TableType* id_table;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* record_field;
+extern zeek::RecordType* record_field;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern TableType* record_field_table;
+extern zeek::TableType* record_field_table;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern RecordType* call_argument;
+extern zeek::RecordType* call_argument;
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
-extern VectorType* call_argument_vector;
+extern zeek::VectorType* call_argument_vector;
 
 [[deprecated("Remove in v4.1.  Perform your own lookup.")]]
 extern StringVal* cmd_line_bpf_filter;

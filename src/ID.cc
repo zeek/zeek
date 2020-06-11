@@ -120,8 +120,11 @@ ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 	SetLocationInfo(&start_location, &end_location);
 	}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 ID::ID(const char* arg_name, ::IDScope arg_scope, bool arg_is_export) :
 	ID(arg_name, static_cast<IDScope>(arg_scope), arg_is_export) {}
+#pragma GCC diagnostic pop
 
 ID::~ID()
 	{
@@ -220,6 +223,8 @@ void ID::SetVal(IntrusivePtr<Expr> ev, init_class c)
 	EvalFunc(a->GetExpr(), std::move(ev));
 	}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 void ID::SetVal(IntrusivePtr<Val> v, ::init_class c)
 	{
 	SetVal(v, static_cast<init_class>(c));
@@ -229,6 +234,7 @@ void ID::SetVal(IntrusivePtr<Expr> ev, ::init_class c)
 	{
 	SetVal(ev, static_cast<init_class>(c));
 	}
+#pragma GCC diagnostic pop
 
 bool ID::IsRedefinable() const
 	{
@@ -337,10 +343,13 @@ void ID::RemoveAttr(attr_tag a)
 		attrs->RemoveAttr(a);
 	}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 void ID::RemoveAttr(::attr_tag a)
 	{
 	RemoveAttr(static_cast<attr_tag>(a));
 	}
+#pragma GCC diagnostic pop
 
 void ID::SetOption()
 	{

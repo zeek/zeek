@@ -41,8 +41,11 @@ public:
 
 	ID(const char* name, IDScope arg_scope, bool arg_is_export);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	[[deprecated("Remove in v4.1. Use version that takes zeek::detail::IDScope")]]
 	ID(const char* name, ::IDScope arg_scope, bool arg_is_export);
+#pragma GCC diagnostic pop
 
 	~ID() override;
 
@@ -85,10 +88,13 @@ public:
 	void SetVal(IntrusivePtr<Val> v, init_class c);
 	void SetVal(IntrusivePtr<Expr> ev, init_class c);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	[[deprecated("Remove in v4.1. Use version that takes zeek::detail::init_class")]]
 	void SetVal(IntrusivePtr<Val> v, ::init_class c);
 	[[deprecated("Remove in v4.1. Use version that takes zeek::detail::init_class")]]
 	void SetVal(IntrusivePtr<Expr> ev, ::init_class c);
+#pragma GCC diagnostic pop
 
 	bool HasVal() const		{ return val != nullptr; }
 
@@ -119,8 +125,11 @@ public:
 	void SetAttrs(IntrusivePtr<Attributes> attr);
 	void AddAttrs(IntrusivePtr<Attributes> attr);
 	void RemoveAttr(attr_tag a);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	[[deprecated("Remove in v4.1. Use version that takes zeek::detail::attr_tag")]]
 	void RemoveAttr(::attr_tag a);
+#pragma GCC diagnostic pop
 	void UpdateValAttrs();
 
 	const IntrusivePtr<Attributes>& GetAttrs() const
@@ -129,9 +138,12 @@ public:
 	[[deprecated("Remove in 4.1.  Use GetAttrs().")]]
 	Attributes* Attrs() const	{ return attrs.get(); }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	[[deprecated("Remove in 4.1.  Use GetAttr().")]]
 	Attr* FindAttr(::attr_tag t) const
 		{ return GetAttr(static_cast<zeek::detail::attr_tag>(t)).get(); }
+#pragma GCC diagnostic pop
 
 	const IntrusivePtr<zeek::detail::Attr>& GetAttr(zeek::detail::attr_tag t) const;
 

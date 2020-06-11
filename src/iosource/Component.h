@@ -53,8 +53,11 @@ protected:
 	 * @param name A descriptive name for the component.  This name must
 	 * be unique across all components of this type.
 	 */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	[[deprecated("Remove in v4.1. Use the version that takes zeek::plugin::component::Type instead")]]
 	Component(plugin::component::Type type, const std::string& name);
+#pragma GCC diagnostic pop
 };
 
 /**

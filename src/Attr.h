@@ -65,12 +65,16 @@ public:
 	static inline const IntrusivePtr<zeek::detail::Attr> nil;
 
 	Attr(attr_tag t, IntrusivePtr<zeek::detail::Expr> e);
+	explicit Attr(attr_tag t);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	[[deprecated("Remove in v4.1. Use version that takes zeek::detail::attr_tag.")]]
 	Attr(::attr_tag t, IntrusivePtr<zeek::detail::Expr> e);
 
-	explicit Attr(attr_tag t);
 	[[deprecated("Remove in v4.1. Use version that takes zeek::detail::attr_tag.")]]
 	explicit Attr(::attr_tag t);
+#pragma GCC diagnostic pop
 
 	~Attr() override;
 
@@ -127,14 +131,18 @@ public:
 
 	[[deprecated("Remove in v4.1. Use Find().")]]
 	Attr* FindAttr(attr_tag t) const;
-	[[deprecated("Remove in v4.1. Use version that takes zeek::detail::attr_tag.")]]
-	Attr* FindAttr(::attr_tag t) const;
 
 	const IntrusivePtr<Attr>& Find(attr_tag t) const;
 
 	void RemoveAttr(attr_tag t);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	[[deprecated("Remove in v4.1. Use version that takes zeek::detail::attr_tag.")]]
+	Attr* FindAttr(::attr_tag t) const;
 	[[deprecated("Remove in v4.1. Use version that takes zeek::detail::attr_tag.")]]
 	void RemoveAttr(::attr_tag t);
+#pragma GCC diagnostic pop
 
 	void Describe(ODesc* d) const override;
 	void DescribeReST(ODesc* d, bool shorten = false) const;

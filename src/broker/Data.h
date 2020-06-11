@@ -236,10 +236,13 @@ public:
 	      it(dat.begin())
 		{}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	[[deprecated("Remove in v4.1. Use the version that takes zeek::TypeTag instead.")]]
 	SetIterator(RecordVal* v, ::TypeTag tag, Frame* f)
 		: SetIterator(v, static_cast<zeek::TypeTag>(tag), f)
 		{}
+#pragma GCC diagnostic pop
 
 	broker::set dat;
 	broker::set::iterator it;
@@ -261,10 +264,13 @@ public:
 	      it(dat.begin())
 		{}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	[[deprecated("Remove in v4.1. Use the version that takes zeek::TypeTag instead.")]]
 	TableIterator(RecordVal* v, ::TypeTag tag, Frame* f)
 		: TableIterator(v, static_cast<zeek::TypeTag>(tag), f)
 		{}
+#pragma GCC diagnostic pop
 
 	broker::table dat;
 	broker::table::iterator it;
@@ -286,10 +292,13 @@ public:
 	      it(dat.begin())
 		{}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	[[deprecated("Remove in v4.1. Use the version that takes zeek::TypeTag instead.")]]
 	VectorIterator(RecordVal* v, ::TypeTag tag, Frame* f)
 		: VectorIterator(v, static_cast<zeek::TypeTag>(tag), f)
 		{}
+#pragma GCC diagnostic pop
 
 	broker::vector dat;
 	broker::vector::iterator it;
@@ -311,10 +320,13 @@ public:
 	      it(dat.begin())
 		{}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	[[deprecated("Remove in v4.1. Use the version that takes zeek::TypeTag instead.")]]
 	RecordIterator(RecordVal* v, ::TypeTag tag, Frame* f)
 		: RecordIterator(v, static_cast<zeek::TypeTag>(tag), f)
 		{}
+#pragma GCC diagnostic pop
 
 	broker::vector dat;
 	broker::vector::iterator it;

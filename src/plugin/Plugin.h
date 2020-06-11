@@ -56,8 +56,11 @@ enum [[deprecated("Remove in v4.1. Use the zeek::plugin::HookType instead.")]] H
 /**
  * Converts a hook type into a readable hook name.
  */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 [[deprecated("Remove in v4.1. Use the version that takes zeek::plugin:HookType instead.")]]
 extern const char* hook_name(::plugin::HookType h);
+#pragma GCC diagnostic pop
 
 }
 
@@ -615,8 +618,6 @@ protected:
 	 * highest to lowest. If two plugins specify the same priority, order
 	 * is undefined.
 	 */
-	[[deprecated("Remove in v4.1. Use the version that takes zeek::plugin:HookType instead.")]]
-	void EnableHook(::plugin::HookType hook, int priority = 0);
 	void EnableHook(zeek::plugin::HookType hook, int priority = 0);
 
 	/**
@@ -625,9 +626,16 @@ protected:
 	 *
 	 * @param hook The hook to disable.
 	 */
+	void DisableHook(zeek::plugin::HookType hook);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	[[deprecated("Remove in v4.1. Use the version that takes zeek::plugin:HookType instead.")]]
+	void EnableHook(::plugin::HookType hook, int priority = 0);
+
 	[[deprecated("Remove in v4.1. Use the version that takes zeek::plugin:HookType instead.")]]
 	void DisableHook(::plugin::HookType hook);
-	void DisableHook(zeek::plugin::HookType hook);
+#pragma GCC diagnostic pop
 
 	/**
 	 * Returns a list of hooks that are currently enabled for the plugin,
@@ -880,9 +888,12 @@ protected:
 	 *
 	 * args: A list of the hooks arguments.
 	 */
-	// TODO: unfortunately deprecated virtual methods don't flag when you override them
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	[[deprecated("Remove in v4.1. Use the version that takes zeek::plugin:HookType instead.")]]
 	virtual void MetaHookPre(::plugin::HookType hook, const HookArgumentList& args);
+#pragma GCC diagnostic pop
+
 	virtual void MetaHookPre(::zeek::plugin::HookType hook, const HookArgumentList& args);
 
 	/**
@@ -898,8 +909,12 @@ protected:
 	 * implementation for the hook, this will be the default result. If
 	 * the hook doesn't yield a result, this will be of type VOID.
 	 */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	[[deprecated("Remove in v4.1. Use the version that takes zeek::plugin:HookType instead.")]]
 	virtual void MetaHookPost(::plugin::HookType hook, const HookArgumentList& args, HookArgument result);
+#pragma GCC diagnostic pop
+
 	virtual void MetaHookPost(::zeek::plugin::HookType hook, const HookArgumentList& args, HookArgument result);
 
 private:

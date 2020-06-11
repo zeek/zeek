@@ -3295,7 +3295,7 @@ function lookup_connection%(cid: conn_id%): connection
 	%{
 	Connection* conn = sessions->FindConnection(cid);
 	if ( conn )
-		return conn->ConnVal();
+		return conn->UpdatedConnVal();
 
 	builtin_error("connection ID not a known connection", cid);
 

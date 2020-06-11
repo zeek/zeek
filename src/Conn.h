@@ -58,6 +58,12 @@ static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1,
 
 namespace analyzer { class Analyzer; }
 
+/**
+ * While a Connection object derives from RecordVal so that it's closely
+ * associated with the script-layer "connection" record type, note that
+ * the fields are not automatically populated/up-to-date unless one calls
+ * UpdatedConnVal().
+ */
 class Connection final : public RecordVal {
 public:
 	Connection(NetSessions* s, const ConnIDKey& k, double t, const ConnID* id,
@@ -162,14 +168,13 @@ public:
 	// Activate connection_status_update timer.
 	void EnableStatusUpdateTimer();
 
-	[[deprecated("Remove in v4.1.  Use ConnVal() instead.")]]
+	[[deprecated("Remove in v4.1.  Use UpdatedConnVal() instead.")]]
 	RecordVal* BuildConnVal();
 
 	/**
-	 * Returns the associated "connection" record with all fields
-	 * populated and up-to-date.
+	 * Returns this "connection" record with all fields populated/up-to-date.
 	 */
-	IntrusivePtr<RecordVal> ConnVal();
+	IntrusivePtr<RecordVal> UpdatedConnVal();
 
 	void AppendAddl(const char* str);
 

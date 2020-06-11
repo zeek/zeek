@@ -176,7 +176,7 @@ zeek::Args MOUNT_Interp::event_common_vl(RPC_CallInfo *c,
 	// These are the first parameters for each mount_* event ...
 	zeek::Args vl;
 	vl.reserve(2 + extra_elements);
-	vl.emplace_back(analyzer->ConnVal());
+	vl.emplace_back(analyzer->UpdatedConnVal());
 	auto auxgids = make_intrusive<VectorVal>(zeek::id::index_vec);
 
 	for (size_t i = 0; i < c->AuxGIDs().size(); ++i)

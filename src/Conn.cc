@@ -143,7 +143,7 @@ void Connection::CheckEncapsulation(const EncapsulationStack* arg_encap)
 		if ( *encapsulation != *arg_encap )
 			{
 			if ( tunnel_changed )
-				EnqueueEvent(tunnel_changed, nullptr, ConnVal(),
+				EnqueueEvent(tunnel_changed, nullptr, UpdatedConnVal(),
 				             arg_encap->ToVal());
 
 			delete encapsulation;
@@ -156,7 +156,7 @@ void Connection::CheckEncapsulation(const EncapsulationStack* arg_encap)
 		if ( tunnel_changed )
 			{
 			EncapsulationStack empty;
-			EnqueueEvent(tunnel_changed, nullptr, ConnVal(), empty.ToVal());
+			EnqueueEvent(tunnel_changed, nullptr, UpdatedConnVal(), empty.ToVal());
 			}
 
 		delete encapsulation;
@@ -166,7 +166,7 @@ void Connection::CheckEncapsulation(const EncapsulationStack* arg_encap)
 	else if ( arg_encap )
 		{
 		if ( tunnel_changed )
-			EnqueueEvent(tunnel_changed, nullptr, ConnVal(), arg_encap->ToVal());
+			EnqueueEvent(tunnel_changed, nullptr, UpdatedConnVal(), arg_encap->ToVal());
 
 		encapsulation = new EncapsulationStack(*arg_encap);
 		}
@@ -206,7 +206,7 @@ void Connection::NextPacket(double t, bool is_orig,
 			is_successful = true;
 
 		if ( ! was_successful && is_successful && connection_successful )
-			EnqueueEvent(connection_successful, nullptr, ConnVal());
+			EnqueueEvent(connection_successful, nullptr, UpdatedConnVal());
 		}
 	else
 		last_time = t;
@@ -263,7 +263,7 @@ void Connection::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig,
 		return;
 
 	EnqueueEvent(e, nullptr,
-		ConnVal(),
+		UpdatedConnVal(),
 		val_mgr->Bool(is_orig),
 		val_mgr->Count(threshold)
 	);
@@ -329,7 +329,7 @@ void Connection::EnableStatusUpdateTimer()
 
 void Connection::StatusUpdateTimer(double t)
 	{
-	EnqueueEvent(connection_status_update, nullptr, ConnVal());
+	EnqueueEvent(connection_status_update, nullptr, UpdatedConnVal());
 	ADD_TIMER(&Connection::StatusUpdateTimer,
 			network_time + connection_status_update_interval, 0,
 			TIMER_CONN_STATUS_UPDATE);
@@ -337,10 +337,10 @@ void Connection::StatusUpdateTimer(double t)
 
 RecordVal* Connection::BuildConnVal()
 	{
-	return ConnVal().release();
+	return UpdatedConnVal().release();
 	}
 
-IntrusivePtr<RecordVal> Connection::ConnVal()
+IntrusivePtr<RecordVal> Connection::UpdatedConnVal()
 	{
 	if ( ! populated )
 		{
@@ -423,7 +423,7 @@ analyzer::Analyzer* Connection::FindAnalyzer(const char* name)
 
 void Connection::AppendAddl(const char* str)
 	{
-	const auto& cv = ConnVal();
+	auto cv = UpdatedConnVal();
 
 	const char* old = cv->GetField(6)->AsString()->CheckString();
 	const char* format = *old ? "%s %s" : "%s%s";
@@ -453,10 +453,10 @@ void Connection::Match(Rule::PatternType type, const u_char* data, int len, bool
 void Connection::RemovalEvent()
 	{
 	if ( connection_state_remove )
-		EnqueueEvent(connection_state_remove, nullptr, ConnVal());
+		EnqueueEvent(connection_state_remove, nullptr, UpdatedConnVal());
 
 	if ( is_successful && successful_connection_remove )
-		EnqueueEvent(successful_connection_remove, nullptr, ConnVal());
+		EnqueueEvent(successful_connection_remove, nullptr, UpdatedConnVal());
 	}
 
 void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const char* name)
@@ -465,9 +465,9 @@ void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const ch
 		return;
 
 	if ( name )
-		EnqueueEvent(f, analyzer, make_intrusive<StringVal>(name), ConnVal());
+		EnqueueEvent(f, analyzer, make_intrusive<StringVal>(name), UpdatedConnVal());
 	else
-		EnqueueEvent(f, analyzer, ConnVal());
+		EnqueueEvent(f, analyzer, UpdatedConnVal());
 	}
 
 void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1, Val* v2)
@@ -481,12 +481,12 @@ void Connection::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, Val* v1,
 
 	if ( v2 )
 		EnqueueEvent(f, analyzer,
-		             ConnVal(),
+		             UpdatedConnVal(),
 		             IntrusivePtr{AdoptRef{}, v1},
 		             IntrusivePtr{AdoptRef{}, v2});
 	else
 		EnqueueEvent(f, analyzer,
-		             ConnVal(),
+		             UpdatedConnVal(),
 		             IntrusivePtr{AdoptRef{}, v1});
 	}
 
@@ -706,7 +706,7 @@ void Connection::CheckFlowLabel(bool is_orig, uint32_t flow_label)
 		     (is_orig ? saw_first_orig_packet : saw_first_resp_packet) )
 			{
 			EnqueueEvent(connection_flow_label_changed, nullptr,
-				ConnVal(),
+				UpdatedConnVal(),
 				val_mgr->Bool(is_orig),
 				val_mgr->Count(my_flow_label),
 				val_mgr->Count(flow_label)

@@ -147,7 +147,7 @@ void TCP_Reassembler::Gap(uint64_t seq, uint64_t len)
 
 	if ( report_gap(endp, endp->peer) )
 		dst_analyzer->EnqueueConnEvent(content_gap,
-			dst_analyzer->ConnVal(),
+			dst_analyzer->UpdatedConnVal(),
 			val_mgr->Bool(IsOrig()),
 			val_mgr->Count(seq),
 			val_mgr->Count(len)
@@ -357,7 +357,7 @@ void TCP_Reassembler::RecordBlock(const DataBlock& b, const IntrusivePtr<BroFile
 
 	if ( contents_file_write_failure )
 		tcp_analyzer->EnqueueConnEvent(contents_file_write_failure,
-			Endpoint()->Conn()->ConnVal(),
+			Endpoint()->Conn()->UpdatedConnVal(),
 			val_mgr->Bool(IsOrig()),
 			make_intrusive<StringVal>("TCP reassembler content write failure")
 		);
@@ -372,7 +372,7 @@ void TCP_Reassembler::RecordGap(uint64_t start_seq, uint64_t upper_seq, const In
 
 	if ( contents_file_write_failure )
 		tcp_analyzer->EnqueueConnEvent(contents_file_write_failure,
-			Endpoint()->Conn()->ConnVal(),
+			Endpoint()->Conn()->UpdatedConnVal(),
 			val_mgr->Bool(IsOrig()),
 			make_intrusive<StringVal>("TCP reassembler gap write failure")
 		);
@@ -452,7 +452,7 @@ void TCP_Reassembler::Overlap(const u_char* b1, const u_char* b2, uint64_t n)
 		BroString* b2_s = new BroString((const u_char*) b2, n, false);
 
 		tcp_analyzer->EnqueueConnEvent(rexmit_inconsistency,
-			tcp_analyzer->ConnVal(),
+			tcp_analyzer->UpdatedConnVal(),
 			make_intrusive<StringVal>(b1_s),
 			make_intrusive<StringVal>(b2_s),
 			make_intrusive<StringVal>(flags.AsString())
@@ -608,7 +608,7 @@ void TCP_Reassembler::DeliverBlock(uint64_t seq, int len, const u_char* data)
 
 	if ( deliver_tcp_contents )
 		tcp_analyzer->EnqueueConnEvent(tcp_contents,
-			tcp_analyzer->ConnVal(),
+			tcp_analyzer->UpdatedConnVal(),
 			val_mgr->Bool(IsOrig()),
 			val_mgr->Count(seq),
 			make_intrusive<StringVal>(len, (const char*) data)

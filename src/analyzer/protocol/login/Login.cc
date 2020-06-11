@@ -299,7 +299,7 @@ void Login_Analyzer::AuthenticationDialog(bool orig, char* line)
 	else if ( IsSkipAuthentication(line) )
 		{
 		if ( authentication_skipped )
-			EnqueueConnEvent(authentication_skipped, ConnVal());
+			EnqueueConnEvent(authentication_skipped, UpdatedConnVal());
 
 		state = LOGIN_STATE_SKIP;
 		SetSkip(true);
@@ -341,19 +341,19 @@ void Login_Analyzer::SetEnv(bool orig, char* name, char* val)
 
 		else if ( login_terminal && streq(name, "TERM") )
 			EnqueueConnEvent(login_terminal,
-				ConnVal(),
+				UpdatedConnVal(),
 				make_intrusive<StringVal>(val)
 			);
 
 		else if ( login_display && streq(name, "DISPLAY") )
 			EnqueueConnEvent(login_display,
-				ConnVal(),
+				UpdatedConnVal(),
 				make_intrusive<StringVal>(val)
 			);
 
 		else if ( login_prompt && streq(name, "TTYPROMPT") )
 			EnqueueConnEvent(login_prompt,
-				ConnVal(),
+				UpdatedConnVal(),
 				make_intrusive<StringVal>(val)
 			);
 		}
@@ -429,7 +429,7 @@ void Login_Analyzer::LoginEvent(EventHandlerPtr f, const char* line,
 				PopUserTextVal() : new StringVal("<none>");
 
 	EnqueueConnEvent(f,
-		ConnVal(),
+		UpdatedConnVal(),
 		IntrusivePtr{NewRef{}, username},
 		client_name ? IntrusivePtr{NewRef{}, client_name}
 		            : val_mgr->EmptyString(),
@@ -452,7 +452,7 @@ void Login_Analyzer::LineEvent(EventHandlerPtr f, const char* line)
 		return;
 
 	EnqueueConnEvent(f,
-		ConnVal(),
+		UpdatedConnVal(),
 		make_intrusive<StringVal>(line)
 	);
 	}
@@ -464,7 +464,7 @@ void Login_Analyzer::Confused(const char* msg, const char* line)
 
 	if ( login_confused )
 		EnqueueConnEvent(login_confused,
-			ConnVal(),
+			UpdatedConnVal(),
 			make_intrusive<StringVal>(msg),
 			make_intrusive<StringVal>(line)
 		);
@@ -488,7 +488,7 @@ void Login_Analyzer::ConfusionText(const char* line)
 	{
 	if ( login_confused_text )
 		EnqueueConnEvent(login_confused_text,
-			ConnVal(),
+			UpdatedConnVal(),
 			make_intrusive<StringVal>(line)
 		);
 	}

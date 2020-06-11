@@ -460,7 +460,7 @@ void NVT_Analyzer::SetTerminal(const u_char* terminal, int len)
 	{
 	if ( login_terminal )
 		EnqueueConnEvent(login_terminal,
-			ConnVal(),
+			UpdatedConnVal(),
 			make_intrusive<StringVal>(new BroString(terminal, len, false))
 		);
 	}

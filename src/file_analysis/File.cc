@@ -142,7 +142,7 @@ bool File::UpdateConnectionFields(Connection* conn, bool is_orig)
 	if ( conns->AsTableVal()->FindOrDefault(idx) )
 		return false;
 
-	conns->AsTableVal()->Assign(std::move(idx), conn->ConnVal());
+	conns->AsTableVal()->Assign(std::move(idx), conn->UpdatedConnVal());
 	return true;
 	}
 
@@ -152,7 +152,7 @@ void File::RaiseFileOverNewConnection(Connection* conn, bool is_orig)
 		{
 		FileEvent(file_over_new_connection, {
 			val,
-			conn->ConnVal(),
+			conn->UpdatedConnVal(),
 			val_mgr->Bool(is_orig),
 		});
 		}

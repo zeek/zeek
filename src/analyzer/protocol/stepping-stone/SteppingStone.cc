@@ -146,7 +146,7 @@ void SteppingStoneEndpoint::CreateEndpEvent(bool is_orig)
 		return;
 
 	endp->TCP()->EnqueueConnEvent(stp_create_endp,
-		endp->TCP()->ConnVal(),
+		endp->TCP()->UpdatedConnVal(),
 		val_mgr->Int(stp_id),
 		val_mgr->Bool(is_orig)
 	);

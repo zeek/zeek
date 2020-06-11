@@ -63,14 +63,14 @@ void NCP_Session::DeliverFrame(const binpac::NCP::ncp_frame* frame)
 		{
 		if ( frame->is_orig() )
 			analyzer->EnqueueConnEvent(f,
-				analyzer->ConnVal(),
+				analyzer->UpdatedConnVal(),
 				val_mgr->Count(frame->frame_type()),
 				val_mgr->Count(frame->body_length()),
 				val_mgr->Count(req_func)
 			);
 		else
 			analyzer->EnqueueConnEvent(f,
-				analyzer->ConnVal(),
+				analyzer->UpdatedConnVal(),
 				val_mgr->Count(frame->frame_type()),
 				val_mgr->Count(frame->body_length()),
 				val_mgr->Count(req_frame_type),

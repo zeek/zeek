@@ -364,7 +364,7 @@ void Reporter::Weird(Connection* conn, const char* name, const char* addl)
 			return;
 		}
 
-	WeirdHelper(conn_weird, {conn->ConnVal()->Ref(), new StringVal(addl)},
+	WeirdHelper(conn_weird, {conn->UpdatedConnVal().release(), new StringVal(addl)},
 	            "%s", name);
 	}
 
@@ -501,7 +501,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out,
 			vl.emplace_back(make_intrusive<StringVal>(loc_str.c_str()));
 
 		if ( conn )
-			vl.emplace_back(conn->ConnVal());
+			vl.emplace_back(conn->UpdatedConnVal());
 
 		if ( addl )
 			for ( auto v : *addl )

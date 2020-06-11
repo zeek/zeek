@@ -172,7 +172,7 @@ void Rsh_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	vl.reserve(4 + orig);
 	const char* line = (const char*) data;
 	line = skip_whitespace(line);
-	vl.emplace_back(ConnVal());
+	vl.emplace_back(UpdatedConnVal());
 
 	if ( client_name )
 		vl.emplace_back(NewRef{}, client_name);

@@ -708,12 +708,12 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 	if ( ipv6_ext_headers && ip_hdr->NumHeaders() > 1 )
 		{
 		pkt_hdr_val = ip_hdr->ToPktHdrVal();
-		conn->EnqueueEvent(ipv6_ext_headers, nullptr, conn->ConnVal(),
+		conn->EnqueueEvent(ipv6_ext_headers, nullptr, conn->UpdatedConnVal(),
 		                   pkt_hdr_val);
 		}
 
 	if ( new_packet )
-		conn->EnqueueEvent(new_packet, nullptr, conn->ConnVal(), pkt_hdr_val ?
+		conn->EnqueueEvent(new_packet, nullptr, conn->UpdatedConnVal(), pkt_hdr_val ?
 		                   std::move(pkt_hdr_val) : ip_hdr->ToPktHdrVal());
 
 	conn->NextPacket(t, is_orig, ip_hdr, len, caplen, data,

@@ -199,7 +199,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 	if ( teredo_packet )
 		{
 		teredo_hdr = te.BuildVal(inner);
-		Conn()->EnqueueEvent(teredo_packet, nullptr, ConnVal(), teredo_hdr);
+		Conn()->EnqueueEvent(teredo_packet, nullptr, UpdatedConnVal(), teredo_hdr);
 		}
 
 	if ( te.Authentication() && teredo_authentication )
@@ -207,7 +207,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		if ( ! teredo_hdr )
 			teredo_hdr = te.BuildVal(inner);
 
-		Conn()->EnqueueEvent(teredo_authentication, nullptr, ConnVal(), teredo_hdr);
+		Conn()->EnqueueEvent(teredo_authentication, nullptr, UpdatedConnVal(), teredo_hdr);
 		}
 
 	if ( te.OriginIndication() && teredo_origin_indication )
@@ -215,7 +215,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		if ( ! teredo_hdr )
 			teredo_hdr = te.BuildVal(inner);
 
-		Conn()->EnqueueEvent(teredo_origin_indication, nullptr, ConnVal(), teredo_hdr);
+		Conn()->EnqueueEvent(teredo_origin_indication, nullptr, UpdatedConnVal(), teredo_hdr);
 		}
 
 	if ( inner->NextProto() == IPPROTO_NONE && teredo_bubble )
@@ -223,7 +223,7 @@ void Teredo_Analyzer::DeliverPacket(int len, const u_char* data, bool orig,
 		if ( ! teredo_hdr )
 			teredo_hdr = te.BuildVal(inner);
 
-		Conn()->EnqueueEvent(teredo_bubble, nullptr, ConnVal(), teredo_hdr);
+		Conn()->EnqueueEvent(teredo_bubble, nullptr, UpdatedConnVal(), teredo_hdr);
 		}
 
 	EncapsulatingConn ec(Conn(), BifEnum::Tunnel::TEREDO);

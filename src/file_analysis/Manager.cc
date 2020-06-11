@@ -435,7 +435,7 @@ string Manager::GetFileID(const analyzer::Tag& tag, Connection* c, bool is_orig)
 
 	const auto& tagval = tag.AsVal();
 
-	mgr.Enqueue(get_file_handle, tagval, c->ConnVal(), val_mgr->Bool(is_orig));
+	mgr.Enqueue(get_file_handle, tagval, c->UpdatedConnVal(), val_mgr->Bool(is_orig));
 	mgr.Drain(); // need file handle immediately so we don't have to buffer data
 	return current_file_id;
 	}

@@ -160,7 +160,7 @@ void PIA_UDP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 				tag = GetAnalyzerTag();
 
 			const auto& tval = tag.AsVal();
-			mgr.Enqueue(protocol_late_match, ConnVal(), tval);
+			mgr.Enqueue(protocol_late_match, UpdatedConnVal(), tval);
 			}
 
 		pkt_buffer.state = dpd_late_match_stop ? SKIPPING : MATCHING_ONLY;
@@ -307,7 +307,7 @@ void PIA_TCP::ActivateAnalyzer(analyzer::Tag tag, const Rule* rule)
 				tag = GetAnalyzerTag();
 
 			const auto& tval = tag.AsVal();
-			mgr.Enqueue(protocol_late_match, ConnVal(), tval);
+			mgr.Enqueue(protocol_late_match, UpdatedConnVal(), tval);
 			}
 
 		stream_buffer.state = dpd_late_match_stop ? SKIPPING : MATCHING_ONLY;

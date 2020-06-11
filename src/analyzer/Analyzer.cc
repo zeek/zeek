@@ -702,7 +702,7 @@ void Analyzer::ProtocolConfirmation(Tag arg_tag)
 		return;
 
 	const auto& tval = arg_tag ? arg_tag.AsVal() : tag.AsVal();
-	mgr.Enqueue(protocol_confirmation, ConnVal(), tval, val_mgr->Count(id));
+	mgr.Enqueue(protocol_confirmation, UpdatedConnVal(), tval, val_mgr->Count(id));
 	}
 
 void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
@@ -724,7 +724,7 @@ void Analyzer::ProtocolViolation(const char* reason, const char* data, int len)
 		r = make_intrusive<StringVal>(reason);
 
 	const auto& tval = tag.AsVal();
-	mgr.Enqueue(protocol_violation, ConnVal(), tval, val_mgr->Count(id), std::move(r));
+	mgr.Enqueue(protocol_violation, UpdatedConnVal(), tval, val_mgr->Count(id), std::move(r));
 	}
 
 void Analyzer::AddTimer(analyzer_timer_func timer, double t,
@@ -791,12 +791,12 @@ void Analyzer::UpdateConnVal(RecordVal *conn_val)
 
 RecordVal* Analyzer::BuildConnVal()
 	{
-	return conn->ConnVal().release();
+	return conn->UpdatedConnVal().release();
 	}
 
-IntrusivePtr<RecordVal> Analyzer::ConnVal()
+IntrusivePtr<RecordVal> Analyzer::UpdatedConnVal()
 	{
-	return conn->ConnVal();
+	return conn->UpdatedConnVal();
 	}
 
 void Analyzer::Event(EventHandlerPtr f, const char* name)
@@ -810,7 +810,7 @@ void Analyzer::Event(EventHandlerPtr f, Val* v1, Val* v2)
 	IntrusivePtr val2{AdoptRef{}, v2};
 
 	if ( f )
-		conn->EnqueueEvent(f, this, conn->ConnVal(), std::move(val1), std::move(val2));
+		conn->EnqueueEvent(f, this, conn->UpdatedConnVal(), std::move(val1), std::move(val2));
 	}
 
 void Analyzer::ConnectionEvent(EventHandlerPtr f, val_list* vl)
@@ -943,6 +943,6 @@ void TransportLayerAnalyzer::PacketContents(const u_char* data, int len)
 		{
 		BroString* cbs = new BroString(data, len, true);
 		auto contents = make_intrusive<StringVal>(cbs);
-		EnqueueConnEvent(packet_contents, ConnVal(), std::move(contents));
+		EnqueueConnEvent(packet_contents, UpdatedConnVal(), std::move(contents));
 		}
 	}

@@ -251,7 +251,7 @@ uint32_t PortmapperInterp::CheckPort(uint32_t port)
 		if ( pm_bad_port )
 			{
 			analyzer->EnqueueConnEvent(pm_bad_port,
-				analyzer->ConnVal(),
+				analyzer->UpdatedConnVal(),
 				val_mgr->Count(port)
 			);
 			}
@@ -269,7 +269,7 @@ void PortmapperInterp::Event(EventHandlerPtr f, IntrusivePtr<Val> request, BifEn
 
 	zeek::Args vl;
 
-	vl.emplace_back(analyzer->ConnVal());
+	vl.emplace_back(analyzer->UpdatedConnVal());
 
 	if ( status == BifEnum::RPC_SUCCESS )
 		{

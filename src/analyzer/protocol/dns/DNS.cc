@@ -49,7 +49,7 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query)
 
 	if ( dns_message )
 		analyzer->EnqueueConnEvent(dns_message,
-			analyzer->ConnVal(),
+			analyzer->UpdatedConnVal(),
 			val_mgr->Bool(is_query),
 			msg.BuildHdrVal(),
 			val_mgr->Count(len)
@@ -136,7 +136,7 @@ void DNS_Interpreter::EndMessage(DNS_MsgInfo* msg)
 	{
 	if ( dns_end )
 		analyzer->EnqueueConnEvent(dns_end,
-			analyzer->ConnVal(),
+			analyzer->UpdatedConnVal(),
 			msg->BuildHdrVal()
 		);
 	}
@@ -338,7 +338,7 @@ bool DNS_Interpreter::ParseAnswer(DNS_MsgInfo* msg,
 
 			if ( dns_unknown_reply && ! msg->skip_event )
 				analyzer->EnqueueConnEvent(dns_unknown_reply,
-					analyzer->ConnVal(),
+					analyzer->UpdatedConnVal(),
 					msg->BuildHdrVal(),
 					msg->BuildAnswerVal()
 				);
@@ -551,7 +551,7 @@ bool DNS_Interpreter::ParseRR_Name(DNS_MsgInfo* msg,
 
 	if ( reply_event && ! msg->skip_event )
 		analyzer->EnqueueConnEvent(reply_event,
-			analyzer->ConnVal(),
+			analyzer->UpdatedConnVal(),
 			msg->BuildHdrVal(),
 			msg->BuildAnswerVal(),
 			make_intrusive<StringVal>(new BroString(name, name_end - name, true))
@@ -605,7 +605,7 @@ bool DNS_Interpreter::ParseRR_SOA(DNS_MsgInfo* msg,
 		r->Assign(6, make_intrusive<IntervalVal>(double(minimum), Seconds));
 
 		analyzer->EnqueueConnEvent(dns_SOA_reply,
-			analyzer->ConnVal(),
+			analyzer->UpdatedConnVal(),
 			msg->BuildHdrVal(),
 			msg->BuildAnswerVal(),
 			std::move(r)
@@ -635,7 +635,7 @@ bool DNS_Interpreter::ParseRR_MX(DNS_MsgInfo* msg,
 
 	if ( dns_MX_reply && ! msg->skip_event )
 		analyzer->EnqueueConnEvent(dns_MX_reply,
-			analyzer->ConnVal(),
+			analyzer->UpdatedConnVal(),
 			msg->BuildHdrVal(),
 			msg->BuildAnswerVal(),
 			make_intrusive<StringVal>(new BroString(name, name_end - name, true)),
@@ -676,7 +676,7 @@ bool DNS_Interpreter::ParseRR_SRV(DNS_MsgInfo* msg,
 
 	if ( dns_SRV_reply && ! msg->skip_event )
 		analyzer->EnqueueConnEvent(dns_SRV_reply,
-			analyzer->ConnVal(),
+			analyzer->UpdatedConnVal(),
 			msg->BuildHdrVal(),
 			msg->BuildAnswerVal(),
 			make_intrusive<StringVal>(new BroString(name, name_end - name, true)),
@@ -697,7 +697,7 @@ bool DNS_Interpreter::ParseRR_EDNS(DNS_MsgInfo* msg,
 
 	if ( dns_EDNS_addl && ! msg->skip_event )
 		analyzer->EnqueueConnEvent(dns_EDNS_addl,
-			analyzer->ConnVal(),
+			analyzer->UpdatedConnVal(),
 			msg->BuildHdrVal(),
 			msg->BuildEDNS_Val()
 		);
@@ -774,7 +774,7 @@ bool DNS_Interpreter::ParseRR_TSIG(DNS_MsgInfo* msg,
 		tsig.rr_error = rr_error;
 
 		analyzer->EnqueueConnEvent(dns_TSIG_addl,
-			analyzer->ConnVal(),
+			analyzer->UpdatedConnVal(),
 			msg->BuildHdrVal(),
 			msg->BuildTSIG_Val(&tsig)
 		);
@@ -875,7 +875,7 @@ bool DNS_Interpreter::ParseRR_RRSIG(DNS_MsgInfo* msg,
 		rrsig.signature = sign;
 
 		analyzer->EnqueueConnEvent(dns_RRSIG,
-			analyzer->ConnVal(),
+			analyzer->UpdatedConnVal(),
 			msg->BuildHdrVal(),
 			msg->BuildAnswerVal(),
 			msg->BuildRRSIG_Val(&rrsig)
@@ -970,7 +970,7 @@ bool DNS_Interpreter::ParseRR_DNSKEY(DNS_MsgInfo* msg,
 		dnskey.public_key = key;
 
 		analyzer->EnqueueConnEvent(dns_DNSKEY,
-			analyzer->ConnVal(),
+			analyzer->UpdatedConnVal(),
 			msg->BuildHdrVal(),
 			msg->BuildAnswerVal(),
 			msg->BuildDNSKEY_Val(&dnskey)
@@ -1022,7 +1022,7 @@ bool DNS_Interpreter::ParseRR_NSEC(DNS_MsgInfo* msg,
 
 	if ( dns_NSEC )
 		analyzer->EnqueueConnEvent(dns_NSEC,
-			analyzer->ConnVal(),
+			analyzer->UpdatedConnVal(),
 			msg->BuildHdrVal(),
 			msg->BuildAnswerVal(),
 			make_intrusive<StringVal>(new BroString(name, name_end - name, true)),
@@ -1108,7 +1108,7 @@ bool DNS_Interpreter::ParseRR_NSEC3(DNS_MsgInfo* msg,
 		nsec3.bitmaps = std::move(char_strings);
 
 		analyzer->EnqueueConnEvent(dns_NSEC3,
-			analyzer->ConnVal(),
+			analyzer->UpdatedConnVal(),
 			msg->BuildHdrVal(),
 			msg->BuildAnswerVal(),
 			msg->BuildNSEC3_Val(&nsec3)
@@ -1166,7 +1166,7 @@ bool DNS_Interpreter::ParseRR_DS(DNS_MsgInfo* msg,
 		ds.digest_val = ds_digest;
 
 		analyzer->EnqueueConnEvent(dns_DS,
-			analyzer->ConnVal(),
+			analyzer->UpdatedConnVal(),
 			msg->BuildHdrVal(),
 			msg->BuildAnswerVal(),
 			msg->BuildDS_Val(&ds)
@@ -1189,7 +1189,7 @@ bool DNS_Interpreter::ParseRR_A(DNS_MsgInfo* msg,
 
 	if ( dns_A_reply && ! msg->skip_event )
 		analyzer->EnqueueConnEvent(dns_A_reply,
-			analyzer->ConnVal(),
+			analyzer->UpdatedConnVal(),
 			msg->BuildHdrVal(),
 			msg->BuildAnswerVal(),
 			make_intrusive<AddrVal>(htonl(addr))
@@ -1225,7 +1225,7 @@ bool DNS_Interpreter::ParseRR_AAAA(DNS_MsgInfo* msg,
 
 	if ( event && ! msg->skip_event )
 		analyzer->EnqueueConnEvent(event,
-			analyzer->ConnVal(),
+			analyzer->UpdatedConnVal(),
 			msg->BuildHdrVal(),
 			msg->BuildAnswerVal(),
 			make_intrusive<AddrVal>(addr)
@@ -1299,7 +1299,7 @@ bool DNS_Interpreter::ParseRR_TXT(DNS_MsgInfo* msg,
 
 	if ( dns_TXT_reply )
 		analyzer->EnqueueConnEvent(dns_TXT_reply,
-			analyzer->ConnVal(),
+			analyzer->UpdatedConnVal(),
 			msg->BuildHdrVal(),
 			msg->BuildAnswerVal(),
 			std::move(char_strings)
@@ -1327,7 +1327,7 @@ bool DNS_Interpreter::ParseRR_SPF(DNS_MsgInfo* msg,
 
 	if ( dns_SPF_reply )
 		analyzer->EnqueueConnEvent(dns_SPF_reply,
-			analyzer->ConnVal(),
+			analyzer->UpdatedConnVal(),
 			msg->BuildHdrVal(),
 			msg->BuildAnswerVal(),
 			std::move(char_strings)
@@ -1368,7 +1368,7 @@ bool DNS_Interpreter::ParseRR_CAA(DNS_MsgInfo* msg,
 
 	if ( dns_CAA_reply )
 		analyzer->EnqueueConnEvent(dns_CAA_reply,
-			analyzer->ConnVal(),
+			analyzer->UpdatedConnVal(),
 			msg->BuildHdrVal(),
 			msg->BuildAnswerVal(),
 			val_mgr->Count(flags),
@@ -1396,7 +1396,7 @@ void DNS_Interpreter::SendReplyOrRejectEvent(DNS_MsgInfo* msg,
 	assert(event);
 
 	analyzer->EnqueueConnEvent(event,
-		analyzer->ConnVal(),
+		analyzer->UpdatedConnVal(),
 		msg->BuildHdrVal(),
 		make_intrusive<StringVal>(question_name),
 		val_mgr->Count(qtype),

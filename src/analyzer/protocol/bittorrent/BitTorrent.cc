@@ -120,7 +120,7 @@ void BitTorrent_Analyzer::DeliverWeird(const char* msg, bool orig)
 	{
 	if ( bittorrent_peer_weird )
 		EnqueueConnEvent(bittorrent_peer_weird,
-			ConnVal(),
+			UpdatedConnVal(),
 			val_mgr->Bool(orig),
 			make_intrusive<StringVal>(msg)
 		);

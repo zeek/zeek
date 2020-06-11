@@ -150,9 +150,9 @@ Deprecated Functionality
 - All ``val_mgr`` methods starting with "Get" are deprecated, use the new
   ``val_mgr`` methods that return ``IntrusivePtr``.
 
-- ``Connection::BuildConnVal()`` is deprecated, use ``Connection::ConnVal()``.
+- ``Connection::BuildConnVal()`` is deprecated, use ``Connection::UpdatedConnVal()``.
 
-- ``Analyzer::BuildConnVal()`` is deprecated, use ``Analyzer::ConnVal()``.
+- ``Analyzer::BuildConnVal()`` is deprecated, use ``Analyzer::UpdatedConnVal()``.
 
 - ``BifEvent::generate_`` functions are deprecated, use ``zeek::BifEvent::enqueue_``.
 

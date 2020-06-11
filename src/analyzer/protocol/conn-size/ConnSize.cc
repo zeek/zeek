@@ -51,7 +51,7 @@ void ConnSize_Analyzer::ThresholdEvent(EventHandlerPtr f, uint64_t threshold, bo
 		return;
 
 	EnqueueConnEvent(f,
-		ConnVal(),
+		UpdatedConnVal(),
 		val_mgr->Count(threshold),
 		val_mgr->Bool(is_orig)
 	);
@@ -93,7 +93,7 @@ void ConnSize_Analyzer::CheckThresholds(bool is_orig)
 		if ( ( network_time - start_time ) > duration_thresh && conn_duration_threshold_crossed )
 			{
 			EnqueueConnEvent(conn_duration_threshold_crossed,
-					ConnVal(),
+					UpdatedConnVal(),
 					make_intrusive<IntervalVal>(duration_thresh),
 					val_mgr->Bool(is_orig)
 			);

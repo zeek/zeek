@@ -538,7 +538,7 @@ public:
 	 * Called whenever the connection value is updated. Per default, this
 	 * method will be called for each analyzer in the tree. Analyzers can
 	 * use this method to attach additional data to the connections. A
-	 * call to BuildConnVal() will in turn trigger a call to
+	 * call to UpdatedConnVal() will in turn trigger a call to
 	 * UpdateConnVal().
 	 *
 	 * @param conn_val The connenction value being updated.
@@ -547,16 +547,16 @@ public:
 
 	/**
 	 * Convenience function that forwards directly to
-	 * Connection::BuildConnVal().
+	 * Connection::UpdatedConnVal().
 	 */
-	[[deprecated("Remove in v4.1.  Use ConnVal() instead.")]]
+	[[deprecated("Remove in v4.1.  Use UpdatedConnVal() instead.")]]
 	RecordVal* BuildConnVal();
 
 	/**
 	 * Convenience function that forwards directly to
-	 * Connection::ConnVal().
+	 * Connection::UpdatedConnVal().
 	 */
-	IntrusivePtr<RecordVal> ConnVal();
+	IntrusivePtr<RecordVal> UpdatedConnVal();
 
 	/**
 	 * Convenience function that forwards directly to the corresponding

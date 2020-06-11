@@ -791,10 +791,10 @@ void Analyzer::UpdateConnVal(RecordVal *conn_val)
 
 RecordVal* Analyzer::BuildConnVal()
 	{
-	return conn->ConnVal()->Ref()->AsRecordVal();
+	return conn->ConnVal().release();
 	}
 
-const IntrusivePtr<RecordVal>& Analyzer::ConnVal()
+IntrusivePtr<RecordVal> Analyzer::ConnVal()
 	{
 	return conn->ConnVal();
 	}

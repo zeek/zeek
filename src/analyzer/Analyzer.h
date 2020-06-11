@@ -556,7 +556,7 @@ public:
 	 * Convenience function that forwards directly to
 	 * Connection::ConnVal().
 	 */
-	const IntrusivePtr<RecordVal>& ConnVal();
+	IntrusivePtr<RecordVal> ConnVal();
 
 	/**
 	 * Convenience function that forwards directly to the corresponding

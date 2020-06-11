@@ -107,6 +107,9 @@ Changed Functionality
 - ``Attributes::Attrs()`` now returns ``const std::vector<IntrusivePtr<Attr>>&``
   instead of ``attr_list*``
 
+- ``RecordVal::GetOrigin()`` and ``RecordVal::SetOrigin()`` were removed and
+  instead ``Connection`` is now a subclass of ``RecordVal``.
+
 Removed Functionality
 ---------------------
 

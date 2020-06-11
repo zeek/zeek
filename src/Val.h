@@ -1064,7 +1064,7 @@ protected:
 	static ParseTimeTableStates parse_time_table_states;
 };
 
-class RecordVal final : public Val, public notifier::Modifiable {
+class RecordVal : public Val, public notifier::Modifiable {
 public:
 	[[deprecated("Remove in v4.1.  Construct from IntrusivePtr instead.")]]
 	explicit RecordVal(RecordType* t, bool init_fields = true);
@@ -1192,11 +1192,6 @@ public:
 	 */
 	IntrusivePtr<TableVal> GetRecordFieldsVal() const;
 
-	// This is an experiment to associate a BroObj within the
-	// event engine to a record value in bro script.
-	void SetOrigin(BroObj* o)	{ origin = o; }
-	BroObj* GetOrigin() const	{ return origin; }
-
 	// Returns a new value representing the value coerced to the given
 	// type. If coercion is not possible, returns 0. The non-const
 	// version may return the current value ref'ed if its type matches
@@ -1228,8 +1223,6 @@ public:
 
 protected:
 	IntrusivePtr<Val> DoClone(CloneState* state) override;
-
-	BroObj* origin;
 
 	using RecordTypeValMap = std::unordered_map<RecordType*, std::vector<IntrusivePtr<RecordVal>>>;
 	static RecordTypeValMap parse_time_records;

@@ -2693,7 +2693,6 @@ RecordVal::RecordVal(RecordType* t, bool init_fields)
 
 RecordVal::RecordVal(IntrusivePtr<RecordType> t, bool init_fields) : Val(std::move(t))
 	{
-	origin = nullptr;
 	auto rt = GetType()->AsRecordType();
 	int n = rt->NumFields();
 	auto vl = val.record_val = new std::vector<IntrusivePtr<Val>>;
@@ -2971,13 +2970,7 @@ void RecordVal::DescribeReST(ODesc* d) const
 
 IntrusivePtr<Val> RecordVal::DoClone(CloneState* state)
 	{
-	// We set origin to 0 here.  Origin only seems to be used for exactly one
-	// purpose - to find the connection record that is associated with a
-	// record. As we cannot guarantee that it will ber zeroed out at the
-	// approproate time (as it seems to be guaranteed for the original record)
-	// we don't touch it.
 	auto rv = make_intrusive<RecordVal>(GetType<RecordType>(), false);
-	rv->origin = nullptr;
 	state->NewClone(this, rv);
 
 	for ( const auto& vlv : *val.record_val)

@@ -60,6 +60,7 @@ uint64_t Connection::current_connections = 0;
 Connection::Connection(NetSessions* s, const ConnIDKey& k, double t, const ConnID* id,
                        uint32_t flow, const Packet* pkt,
                        const EncapsulationStack* arg_encap)
+    : RecordVal(zeek::id::connection)
 	{
 	sessions = s;
 	key = k;
@@ -128,9 +129,6 @@ Connection::~Connection()
 		reporter->InternalError("Done() not called before destruction of Connection");
 
 	CancelTimers();
-
-	if ( conn_val )
-		conn_val->SetOrigin(nullptr);
 
 	delete root_analyzer;
 	delete encapsulation;
@@ -339,14 +337,14 @@ void Connection::StatusUpdateTimer(double t)
 
 RecordVal* Connection::BuildConnVal()
 	{
-	return ConnVal()->Ref()->AsRecordVal();
+	return ConnVal().release();
 	}
 
-const IntrusivePtr<RecordVal>& Connection::ConnVal()
+IntrusivePtr<RecordVal> Connection::ConnVal()
 	{
-	if ( ! conn_val )
+	if ( ! populated )
 		{
-		conn_val = make_intrusive<RecordVal>(zeek::id::connection);
+		populated = true;
 
 		TransportProto prot_type = ConnTransport();
 
@@ -375,40 +373,37 @@ const IntrusivePtr<RecordVal>& Connection::ConnVal()
 		if ( memcmp(&resp_l2_addr, &null, l2_len) != 0 )
 			resp_endp->Assign(5, make_intrusive<StringVal>(fmt_mac(resp_l2_addr, l2_len)));
 
-		conn_val->Assign(0, std::move(id_val));
-		conn_val->Assign(1, std::move(orig_endp));
-		conn_val->Assign(2, std::move(resp_endp));
+		Assign(0, std::move(id_val));
+		Assign(1, std::move(orig_endp));
+		Assign(2, std::move(resp_endp));
 		// 3 and 4 are set below.
-		conn_val->Assign(5, make_intrusive<TableVal>(zeek::id::string_set));	// service
-		conn_val->Assign(6, val_mgr->EmptyString());	// history
+		Assign(5, make_intrusive<TableVal>(zeek::id::string_set));	// service
+		Assign(6, val_mgr->EmptyString());	// history
 
 		if ( ! uid )
 			uid.Set(bits_per_uid);
 
-		conn_val->Assign(7, make_intrusive<StringVal>(uid.Base62("C").c_str()));
+		Assign(7, make_intrusive<StringVal>(uid.Base62("C").c_str()));
 
 		if ( encapsulation && encapsulation->Depth() > 0 )
-			conn_val->Assign(8, encapsulation->ToVal());
+			Assign(8, encapsulation->ToVal());
 
 		if ( vlan != 0 )
-			conn_val->Assign(9, val_mgr->Int(vlan));
+			Assign(9, val_mgr->Int(vlan));
 
 		if ( inner_vlan != 0 )
-			conn_val->Assign(10, val_mgr->Int(inner_vlan));
-
+			Assign(10, val_mgr->Int(inner_vlan));
 		}
 
 	if ( root_analyzer )
-		root_analyzer->UpdateConnVal(conn_val.get());
+		root_analyzer->UpdateConnVal(this);
 
-	conn_val->Assign(3, make_intrusive<TimeVal>(start_time));	// ###
-	conn_val->Assign(4, make_intrusive<IntervalVal>(last_time - start_time));
-	conn_val->Assign(6, make_intrusive<StringVal>(history.c_str()));
-	conn_val->Assign(11, val_mgr->Bool(is_successful));
+	Assign(3, make_intrusive<TimeVal>(start_time));	// ###
+	Assign(4, make_intrusive<IntervalVal>(last_time - start_time));
+	Assign(6, make_intrusive<StringVal>(history.c_str()));
+	Assign(11, val_mgr->Bool(is_successful));
 
-	conn_val->SetOrigin(this);
-
-	return conn_val;
+	return {NewRef{}, this};
 	}
 
 analyzer::Analyzer* Connection::FindAnalyzer(analyzer::ID id)
@@ -599,7 +594,7 @@ void Connection::FlipRoles()
 	resp_flow_label = orig_flow_label;
 	orig_flow_label = tmp_flow;
 
-	conn_val = nullptr;
+	populated = false;
 
 	if ( root_analyzer )
 		root_analyzer->FlipRoles();
@@ -613,7 +608,7 @@ unsigned int Connection::MemoryAllocation() const
 	{
 	return padded_sizeof(*this)
 		+ (timers.MemoryAllocation() - padded_sizeof(timers))
-		+ (conn_val ? conn_val->MemoryAllocation() : 0)
+		+ RecordVal::MemoryAllocation()
 		+ (root_analyzer ? root_analyzer->MemoryAllocation(): 0)
 		// login_conn is just a casted 'this'.
 		// primary_PIA is already contained in the analyzer tree.
@@ -622,11 +617,17 @@ unsigned int Connection::MemoryAllocation() const
 
 unsigned int Connection::MemoryAllocationConnVal() const
 	{
-	return conn_val ? conn_val->MemoryAllocation() : 0;
+	return RecordVal::MemoryAllocation();
 	}
 
 void Connection::Describe(ODesc* d) const
 	{
+	if ( populated )
+		{
+		RecordVal::Describe(d);
+		return;
+		}
+
 	d->Add(start_time);
 	d->Add("(");
 	d->Add(last_time);
@@ -695,9 +696,9 @@ void Connection::CheckFlowLabel(bool is_orig, uint32_t flow_label)
 
 	if ( my_flow_label != flow_label )
 		{
-		if ( conn_val )
+		if ( populated )
 			{
-			RecordVal* endp = conn_val->GetField(is_orig ? 1 : 2)->AsRecordVal();
+			RecordVal* endp = GetField(is_orig ? 1 : 2)->AsRecordVal();
 			endp->Assign(4, val_mgr->Count(flow_label));
 			}
 

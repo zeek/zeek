@@ -3,10 +3,6 @@ Test suite should split into error tests vs. functionality tests
 the original problem is actually problematic in practice to solve
 	due to occurring in benign locations
 
-two different vector representations lead to (1) the need to synchronize
-	vectors, and (2) possible syncing inconsistencies due to
-	quasi-deep-copy semantics
-
 missing vector elements due to assign-past-end
 
 do we still care about MemoryAllocation()?

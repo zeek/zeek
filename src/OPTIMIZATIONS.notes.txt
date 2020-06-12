@@ -56,6 +56,5 @@ could save grief/complexity by splitting out early (in the parser)
 	address masking, or InExpr supporting patterns/strings.
 	This would allow simplifications for gen-compiler-templates.sh.
 
-could consider introducing unordered_map's for high numbers of "switch" cases
 speed up vector operations that currently punt to converting to VectorVal's
 

@@ -1070,7 +1070,7 @@ eval AssignV1(BuildVal(z.c.ToVal(z.t), z.t))
 internal-op Load-Val
 type VV
 eval auto v = f->NthElement(z.v2)
-eval if ( ! v ) reporter->InternalError("failure to load frame element");
+eval if ( ! v ) reporter->InternalError("failure to load frame element")
 eval IntrusivePtr<Val> v_p = {NewRef{}, v}
 eval AssignV1(BuildVal(v_p, z.t))
 

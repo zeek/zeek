@@ -1556,11 +1556,10 @@ Stmt* WhileStmt::DoReduce(Reducer* c)
 
 	body = {AdoptRef{}, body->Reduce(c)};
 
+	stmt_loop_condition = make_intrusive<ExprStmt>(loop_condition);
+
 	if ( loop_cond_stmt )
-		{
 		loop_cond_stmt = {AdoptRef{}, loop_cond_stmt.get()->Reduce(c)};
-		stmt_loop_condition = make_intrusive<ExprStmt>(loop_condition);
-		}
 
 	return this->Ref();
 	}
@@ -1569,8 +1568,6 @@ void WhileStmt::Inline(Inliner* inl)
 	{
 	loop_condition = {AdoptRef{}, loop_condition->Inline(inl)};
 
-	if ( stmt_loop_condition )
-		stmt_loop_condition->Inline(inl);
 	if ( loop_cond_stmt )
 		loop_cond_stmt->Inline(inl);
 	if ( body )

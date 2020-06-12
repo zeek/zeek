@@ -326,8 +326,13 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		{
 		auto w = s->AsWhileStmt();
 
-		auto cond_stmt = w->CondStmt();
 		auto cond = w->Condition();
+
+		// This is the *predecessor* statement.
+		auto cond_stmt = w->CondStmt();
+
+		// This is the *conditional itself*, but as a statement.
+		auto cond_s = w->ConditionAsStmt();
 
 		if ( cond_stmt )
 			{
@@ -339,6 +344,8 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 			mgr.SetPreFromPre(cond, w);
 
 		cond->Traverse(this);
+		mgr.SetPreFromPre(cond_s, cond);
+		mgr.SetPostFromPost(cond_s, cond);
 
 		auto body = w->Body();
 		mgr.SetPreFromPre(body, cond);
@@ -346,14 +353,15 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		block_defs.push_back(new BlockDefs(false));
 
 		body->Traverse(this);
-		DoLoopConfluence(s, cond_stmt ? cond_stmt : body, body);
+		auto loop_top = cond_stmt ? cond_stmt : cond_s;
+		DoLoopConfluence(s, loop_top, body);
 
 		// Make sure the conditional gets its RDs updated.
 
 		if ( cond_stmt )
 			mgr.SetPreFromPost(cond, cond_stmt);
 		else
-			mgr.SetPreFromPost(cond, body);
+			mgr.SetPreFromPost(cond, cond_s);
 
 		return TC_ABORTSTMT;
 		}
@@ -539,13 +547,10 @@ void RD_Decorate::DoLoopConfluence(const Stmt* s, const Stmt* top,
 		// around the loop.
 		mgr.MergeIntoPre(top, loop_post);
 
-		if ( top != body )
-			{
-			// Don't have to worry about block-defs as it's
-			// simply an expression evaluation, no next/break's.
-			top->Traverse(this);
-			mgr.MergeIntoPre(body, mgr.GetPostMaxRDs(top));
-			}
+		// We don't have to worry about block-defs as it's
+		// simply an expression evaluation, no next/break's.
+		top->Traverse(this);
+		mgr.MergeIntoPre(body, mgr.GetPostMaxRDs(top));
 
 		auto bd2 = new BlockDefs(false);
 		block_defs.push_back(bd2);

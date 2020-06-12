@@ -278,10 +278,9 @@ public:
 
 	const Expr* Condition() const	{ return loop_condition.get(); }
 
-	// If we construct a loop_cond_stmt, then for optimization
-	// it turns out to be helpful if we have a *statement* associated
-	// with evaluating the conditional as well as an expression,
-	// so we construct one in that case.
+	// When reducing, we create a *statement* associated with
+	// evaluating the conditional as well as the expression.  This
+	// turns out to be useful in propagating RDs/UDs.
 	const Stmt* ConditionAsStmt() const
 		{ return stmt_loop_condition.get(); }
 

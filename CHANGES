@@ -1,4 +1,16 @@
 
+3.2.0-dev.783 | 2020-06-11 23:21:41 -0700
+
+  * Compare pcap_next_ex() result to PCAP_ERROR/PCAP_ERROR_BREAK (Jon Siwek, Corelight)
+
+  * GH-977: Improve pcap error handling (Jon Siwek, Corelight)
+
+    Switches from pcap_next() to pcap_next_ex() to better handle all error
+    conditions.  This allows, for example, to have a non-zero exit code for
+    a Zeek process that fails to fully process all packets in a pcap file.
+
+  * Remove not-useful code in iosource::Manager::OpenPktSrc (Jon Siwek, Corelight)
+
 3.2.0-dev.779 | 2020-06-11 23:17:46 -0700
 
   * Rename BroType to zeek::Type (Tim Wojtulewicz, Corelight)

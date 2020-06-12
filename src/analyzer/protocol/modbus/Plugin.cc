@@ -7,13 +7,13 @@
 namespace plugin {
 namespace Zeek_Modbus {
 
-class Plugin : public plugin::Plugin {
+class Plugin : public zeek::plugin::Plugin {
 public:
-	plugin::Configuration Configure() override
+	zeek::plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("MODBUS", ::analyzer::modbus::ModbusTCP_Analyzer::Instantiate));
 
-		plugin::Configuration config;
+		zeek::plugin::Configuration config;
 		config.name = "Zeek::Modbus";
 		config.description = "Modbus analyzer";
 		return config;

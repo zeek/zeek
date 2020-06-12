@@ -7,11 +7,17 @@
 
 class EnumVal;
 
+namespace zeek::plugin {
+	template <class T> class TaggedComponent;
+	template <class T, class C> class ComponentManager;
+}
 namespace plugin {
-template <class T>
-class TaggedComponent;
-template <class T, class C>
-class ComponentManager;
+	template <class T>
+	using TaggedComponent [[deprecated("Remove in v4.1. Use zeek::plugin::TaggedComponent instead.")]] =
+		zeek::plugin::TaggedComponent<T>;
+	template <class T, class C>
+	using ComponentManager [[deprecated("Remove in v4.1. Use zeek::plugin::ComponentManager instead.")]] =
+		zeek::plugin::ComponentManager<T, C>;
 }
 
 namespace input {
@@ -91,8 +97,8 @@ public:
 	static const Tag Error;
 
 protected:
-	friend class plugin::ComponentManager<Tag, Component>;
-	friend class plugin::TaggedComponent<Tag>;
+	friend class zeek::plugin::ComponentManager<Tag, Component>;
+	friend class zeek::plugin::TaggedComponent<Tag>;
 
 	/**
 	 * Constructor.

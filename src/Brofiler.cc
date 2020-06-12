@@ -26,7 +26,7 @@ Brofiler::~Brofiler()
 		Unref(s);
 	}
 
-void Brofiler::AddStmt(Stmt* s)
+void Brofiler::AddStmt(zeek::detail::Stmt* s)
 	{
 	if ( ignoring != 0 )
 		return;
@@ -127,7 +127,7 @@ bool Brofiler::WriteStats()
 		return false;
 		}
 
-	for ( list<Stmt*>::const_iterator it = stmts.begin();
+	for ( list<zeek::detail::Stmt*>::const_iterator it = stmts.begin();
 	      it != stmts.end(); ++it )
 		{
 		ODesc location_info;
@@ -154,4 +154,3 @@ bool Brofiler::WriteStats()
 	fclose(f);
 	return true;
 	}
-

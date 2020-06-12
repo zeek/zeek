@@ -26,7 +26,7 @@ protected:
 private:
 	double CurrTime();
 	std::string RandomString(const int len);
-	threading::Value* EntryToVal(TypeTag Type, TypeTag subtype);
+	threading::Value* EntryToVal(zeek::TypeTag Type, zeek::TypeTag subtype);
 
 	int num_lines;
 	double multiplication_factor;

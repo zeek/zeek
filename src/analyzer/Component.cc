@@ -9,7 +9,7 @@
 using namespace analyzer;
 
 Component::Component(const std::string& name, factory_callback arg_factory, Tag::subtype_t arg_subtype, bool arg_enabled, bool arg_partial)
-	: plugin::Component(plugin::component::ANALYZER, name),
+	: zeek::plugin::Component(zeek::plugin::component::ANALYZER, name),
 	  plugin::TaggedComponent<analyzer::Tag>(arg_subtype)
 	{
 	factory = arg_factory;

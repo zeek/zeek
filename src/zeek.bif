@@ -31,7 +31,7 @@
 
 using namespace std;
 
-TableType* var_sizes;
+zeek::TableType* var_sizes;
 
 static iosource::PktDumper* addl_pkt_dumper = 0;
 
@@ -47,19 +47,19 @@ bro_int_t parse_int(const char*& fmt)
 	return k;
 	}
 
-static TypeTag ok_d_fmt[] = {
-	TYPE_BOOL, TYPE_ENUM, TYPE_INT, TYPE_COUNT, TYPE_COUNTER, TYPE_PORT,
-	TYPE_SUBNET,
-	TYPE_ERROR
+static zeek::TypeTag ok_d_fmt[] = {
+	zeek::TYPE_BOOL, zeek::TYPE_ENUM, zeek::TYPE_INT, zeek::TYPE_COUNT, zeek::TYPE_COUNTER, zeek::TYPE_PORT,
+	zeek::TYPE_SUBNET,
+	zeek::TYPE_ERROR
 };
-static TypeTag ok_f_fmt[] = {
-	TYPE_DOUBLE, TYPE_TIME, TYPE_INTERVAL,
-	TYPE_ERROR
+static zeek::TypeTag ok_f_fmt[] = {
+	zeek::TYPE_DOUBLE, zeek::TYPE_TIME, zeek::TYPE_INTERVAL,
+	zeek::TYPE_ERROR
 };
 
-static int check_fmt_type(TypeTag t, TypeTag ok[])
+static int check_fmt_type(zeek::TypeTag t, zeek::TypeTag ok[])
 	{
-	for ( int i = 0; ok[i] != TYPE_ERROR; ++i )
+	for ( int i = 0; ok[i] != zeek::TYPE_ERROR; ++i )
 		if ( ok[i] == t )
 			return 1;
 
@@ -68,8 +68,8 @@ static int check_fmt_type(TypeTag t, TypeTag ok[])
 
 static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 	{
-	TypeTag t = v->GetType()->Tag();
-	InternalTypeTag it = v->GetType()->InternalType();
+	zeek::TypeTag t = v->GetType()->Tag();
+	zeek::InternalTypeTag it = v->GetType()->InternalType();
 
 	bool zero_pad = false;
 	bool left_just = false;
@@ -136,7 +136,7 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 	case 'D':
 	case 'T':	// ISO Timestamp with microsecond precision.
 		{
-		if ( t != TYPE_TIME )
+		if ( t != zeek::TYPE_TIME )
 			{
 			builtin_error("bad type for Date/Time format", v);
 			break;
@@ -178,7 +178,7 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 	case 'd':
 	case 'x':
 		{
-		if ( *fmt == 'x' && it == TYPE_INTERNAL_ADDR )
+		if ( *fmt == 'x' && it == zeek::TYPE_INTERNAL_ADDR )
 			{
 			// Deficiency: we don't support num_fmt in this case.
 			// This makes only a very slight difference, so not
@@ -194,13 +194,13 @@ static void do_fmt(const char*& fmt, Val* v, ODesc* d)
 			break;
 			}
 
-		else if ( it == TYPE_INTERNAL_UNSIGNED )
+		else if ( it == zeek::TYPE_INTERNAL_UNSIGNED )
 			{
 			bro_uint_t u = v->CoerceToUnsigned();
 
 			if ( v->GetType()->IsNetworkOrder() )
 				{
-				if ( v->GetType()->Tag() == TYPE_PORT )
+				if ( v->GetType()->Tag() == zeek::TYPE_PORT )
 					u = v->AsPortVal()->Port();
 				else
 					u = ntohl(uint32_t(u));
@@ -408,8 +408,8 @@ static bool prepare_environment(TableVal* tbl, bool set)
 		const auto& key = idxs->Idx(i);
 		const auto& val = tbl->Find(key);
 
-		if ( key->GetType()->Tag() != TYPE_STRING ||
-		     val->GetType()->Tag() != TYPE_STRING )
+		if ( key->GetType()->Tag() != zeek::TYPE_STRING ||
+		     val->GetType()->Tag() != zeek::TYPE_STRING )
 			{
 			builtin_error("system_env() needs a table[string] of string");
 			return false;
@@ -487,7 +487,7 @@ function system%(str: string%): int
 ## .. zeek:see:: system safe_shell_quote piped_exec
 function system_env%(str: string, env: table_string_of_string%): int
 	%{
-	if ( env->GetType()->Tag() != TYPE_TABLE )
+	if ( env->GetType()->Tag() != zeek::TYPE_TABLE )
 		{
 		builtin_error("system_env() requires a table argument");
 		return val_mgr->Int(-1);
@@ -803,8 +803,8 @@ function sha256_hash_finish%(handle: opaque of sha256%): string
 ## .. zeek:see::paraglob_match paraglob_equals paraglob_add
 function paraglob_init%(v: any%) : opaque of paraglob
 	%{
-	if ( v->GetType()->Tag() != TYPE_VECTOR ||
-	     v->GetType()->Yield()->Tag() != TYPE_STRING )
+	if ( v->GetType()->Tag() != zeek::TYPE_VECTOR ||
+	     v->GetType()->Yield()->Tag() != zeek::TYPE_STRING )
 		{
 		// reporter->Error will throw an exception.
 		reporter->Error("paraglob requires a vector of strings for initialization.");
@@ -1051,7 +1051,7 @@ function find_entropy%(data: string%): entropy_test_result
 	e.Feed(data->Bytes(), data->Len());
 	e.Get(&ent, &chisq, &mean, &montepi, &scc);
 
-	static auto entropy_test_result = zeek::id::find_type<RecordType>("entropy_test_result");
+	static auto entropy_test_result = zeek::id::find_type<zeek::RecordType>("entropy_test_result");
 	auto ent_result = make_intrusive<RecordVal>(entropy_test_result);
 	ent_result->Assign(0, make_intrusive<DoubleVal>(ent));
 	ent_result->Assign(1, make_intrusive<DoubleVal>(chisq));
@@ -1103,7 +1103,7 @@ function entropy_test_finish%(handle: opaque of entropy%): entropy_test_result
 	montepi = scc = ent = mean = chisq = 0.0;
 	static_cast<EntropyVal*>(handle)->Get(&ent, &chisq, &mean, &montepi, &scc);
 
-	static auto entropy_test_result = zeek::id::find_type<RecordType>("entropy_test_result");
+	static auto entropy_test_result = zeek::id::find_type<zeek::RecordType>("entropy_test_result");
 	auto ent_result = make_intrusive<RecordVal>(entropy_test_result);
 	ent_result->Assign(0, make_intrusive<DoubleVal>(ent));
 	ent_result->Assign(1, make_intrusive<DoubleVal>(chisq));
@@ -1156,7 +1156,7 @@ function unique_id_from%(pool: int, prefix: string%) : string
 ## v: The set or table
 function clear_table%(v: any%): any
 	%{
-	if ( v->GetType()->Tag() == TYPE_TABLE )
+	if ( v->GetType()->Tag() == zeek::TYPE_TABLE )
 		v->AsTableVal()->RemoveAll();
 	else
 		builtin_error("clear_table() requires a table/set argument");
@@ -1173,7 +1173,7 @@ function clear_table%(v: any%): any
 ## Returns: All the keys of the set or table that cover the subnet searched for.
 function matching_subnets%(search: subnet, t: any%): subnet_vec
 	%{
-	if ( t->GetType()->Tag() != TYPE_TABLE || ! t->GetType()->AsTableType()->IsSubNetIndex() )
+	if ( t->GetType()->Tag() != zeek::TYPE_TABLE || ! t->GetType()->AsTableType()->IsSubNetIndex() )
 		{
 		reporter->Error("matching_subnets needs to be called on a set[subnet]/table[subnet].");
 		return nullptr;
@@ -1192,7 +1192,7 @@ function matching_subnets%(search: subnet, t: any%): subnet_vec
 ## Returns: A new table that contains all the entries that cover the subnet searched for.
 function filter_subnet_table%(search: subnet, t: any%): any
 	%{
-	if ( t->GetType()->Tag() != TYPE_TABLE || ! t->GetType()->AsTableType()->IsSubNetIndex() )
+	if ( t->GetType()->Tag() != zeek::TYPE_TABLE || ! t->GetType()->AsTableType()->IsSubNetIndex() )
 		{
 		reporter->Error("filter_subnet_table needs to be called on a set[subnet]/table[subnet].");
 		return nullptr;
@@ -1212,7 +1212,7 @@ function filter_subnet_table%(search: subnet, t: any%): any
 ## Returns: True if the exact subnet is a member, false otherwise.
 function check_subnet%(search: subnet, t: any%): bool
 	%{
-	if ( t->GetType()->Tag() != TYPE_TABLE || ! t->GetType()->AsTableType()->IsSubNetIndex() )
+	if ( t->GetType()->Tag() != zeek::TYPE_TABLE || ! t->GetType()->AsTableType()->IsSubNetIndex() )
 		{
 		reporter->Error("check_subnet needs to be called on a set[subnet]/table[subnet].");
 		return nullptr;
@@ -1263,7 +1263,7 @@ function val_size%(v: any%): count
 ## Returns: The old size of *aggr*, or 0 if *aggr* is not a :zeek:type:`vector`.
 function resize%(aggr: any, newsize: count%) : count
 	%{
-	if ( aggr->GetType()->Tag() != TYPE_VECTOR )
+	if ( aggr->GetType()->Tag() != zeek::TYPE_VECTOR )
 		{
 		builtin_error("resize() operates on vectors");
 		return nullptr;
@@ -1282,8 +1282,8 @@ function resize%(aggr: any, newsize: count%) : count
 ## .. zeek:see:: all_set
 function any_set%(v: any%) : bool
 	%{
-	if ( v->GetType()->Tag() != TYPE_VECTOR ||
-	     v->GetType()->Yield()->Tag() != TYPE_BOOL )
+	if ( v->GetType()->Tag() != zeek::TYPE_VECTOR ||
+	     v->GetType()->Yield()->Tag() != zeek::TYPE_BOOL )
 		{
 		builtin_error("any_set() requires vector of bool");
 		return val_mgr->False();
@@ -1311,8 +1311,8 @@ function any_set%(v: any%) : bool
 ##      Missing elements count as false.
 function all_set%(v: any%) : bool
 	%{
-	if ( v->GetType()->Tag() != TYPE_VECTOR ||
-	     v->GetType()->Yield()->Tag() != TYPE_BOOL )
+	if ( v->GetType()->Tag() != zeek::TYPE_VECTOR ||
+	     v->GetType()->Yield()->Tag() != zeek::TYPE_BOOL )
 		{
 		builtin_error("all_set() requires vector of bool");
 		return val_mgr->False();
@@ -1403,7 +1403,7 @@ function sort%(v: any, ...%) : any
 	%{
 	IntrusivePtr<Val> rval{NewRef{}, v};
 
-	if ( v->GetType()->Tag() != TYPE_VECTOR )
+	if ( v->GetType()->Tag() != zeek::TYPE_VECTOR )
 		{
 		builtin_error("sort() requires vector");
 		return rval;
@@ -1436,7 +1436,7 @@ function sort%(v: any, ...%) : any
 		{
 		const auto& comp_type = comp->GetType();
 
-		if ( comp_type->Yield()->Tag() != TYPE_INT ||
+		if ( comp_type->Yield()->Tag() != zeek::TYPE_INT ||
 		     ! comp_type->ParamList()->AllMatch(elt_type, 0) )
 			{
 			builtin_error("invalid comparison function in call to sort()");
@@ -1449,7 +1449,7 @@ function sort%(v: any, ...%) : any
 		}
 	else
 		{
-		if ( elt_type->InternalType() == TYPE_INTERNAL_UNSIGNED )
+		if ( elt_type->InternalType() == zeek::TYPE_INTERNAL_UNSIGNED )
 			sort(vv.begin(), vv.end(), unsigned_sort_function);
 		else
 			sort(vv.begin(), vv.end(), signed_sort_function);
@@ -1473,7 +1473,7 @@ function order%(v: any, ...%) : index_vec
 	%{
 	auto result_v = make_intrusive<VectorVal>(zeek::id::index_vec);
 
-	if ( v->GetType()->Tag() != TYPE_VECTOR )
+	if ( v->GetType()->Tag() != zeek::TYPE_VECTOR )
 		{
 		builtin_error("order() requires vector");
 		return result_v;
@@ -1517,7 +1517,7 @@ function order%(v: any, ...%) : index_vec
 	if ( comp )
 		{
 		const auto& comp_type = comp->GetType();
-		if ( comp_type->Yield()->Tag() != TYPE_INT ||
+		if ( comp_type->Yield()->Tag() != zeek::TYPE_INT ||
 		     ! comp_type->ParamList()->AllMatch(elt_type, 0) )
 			{
 			builtin_error("invalid comparison function in call to order()");
@@ -1530,7 +1530,7 @@ function order%(v: any, ...%) : index_vec
 		}
 	else
 		{
-		if ( elt_type->InternalType() == TYPE_INTERNAL_UNSIGNED )
+		if ( elt_type->InternalType() == zeek::TYPE_INTERNAL_UNSIGNED )
 			sort(ind_vv.begin(), ind_vv.end(), indirect_unsigned_sort_function);
 		else
 			sort(ind_vv.begin(), ind_vv.end(), indirect_signed_sort_function);
@@ -1603,7 +1603,7 @@ function cat_sep%(sep: string, def: string, ...%): string
 			d.Add(sep->CheckString(), 0);
 
 		Val* v = @ARG@[i].get();
-		if ( v->GetType()->Tag() == TYPE_STRING && ! v->AsString()->Len() )
+		if ( v->GetType()->Tag() == zeek::TYPE_STRING && ! v->AsString()->Len() )
 			v = def;
 
 		v->Describe(&d);
@@ -1825,7 +1825,7 @@ function record_type_to_vector%(rt: string%): string_vec
 	%{
 	auto result = make_intrusive<VectorVal>(zeek::id::string_vec);
 
-	RecordType* type = zeek::id::find_type(rt->CheckString())->AsRecordType();
+	zeek::RecordType* type = zeek::id::find_type(rt->CheckString())->AsRecordType();
 
 	for ( int i = 0; i < type->NumFields(); ++i )
 		result->Assign(i+1, make_intrusive<StringVal>(type->FieldName(i)));
@@ -1890,7 +1890,7 @@ function reading_traces%(%): bool
 ## .. zeek:see:: reading_live_traffic reading_traces
 function packet_source%(%): PacketSource
 	%{
-	static auto ps_type = zeek::id::find_type<RecordType>("PacketSource");
+	static auto ps_type = zeek::id::find_type<zeek::RecordType>("PacketSource");
 	auto ps = iosource_mgr->GetPktSrc();
 	auto r = make_intrusive<RecordVal>(ps_type);
 
@@ -1918,7 +1918,7 @@ function global_sizes%(%): var_sizes
 
 	for ( const auto& global : globals )
 		{
-		ID* id = global.second.get();
+		auto& id = global.second;
 		if ( id->HasVal() )
 			{
 			auto id_name = make_intrusive<StringVal>(id->Name());
@@ -1940,14 +1940,14 @@ function global_sizes%(%): var_sizes
 ## .. zeek:see:: global_sizes
 function global_ids%(%): id_table
 	%{
-	static auto id_table = zeek::id::find_type<TableType>("id_table");
+	static auto id_table = zeek::id::find_type<zeek::TableType>("id_table");
 	auto ids = make_intrusive<TableVal>(id_table);
 	const auto& globals = global_scope()->Vars();
 
 	for ( const auto& global : globals )
 		{
-		ID* id = global.second.get();
-		static auto script_id = zeek::id::find_type<RecordType>("script_id");
+		const auto& id = global.second;
+		static auto script_id = zeek::id::find_type<zeek::RecordType>("script_id");
 		auto rec = make_intrusive<RecordVal>(script_id);
 		rec->Assign(0, make_intrusive<StringVal>(type_name(id->GetType()->Tag())));
 		rec->Assign(1, val_mgr->Bool(id->IsExport()));
@@ -1993,13 +1993,13 @@ function lookup_ID%(id: string%) : any
 ## Returns: A table that describes the fields of a record.
 function record_fields%(rec: any%): record_field_table
 	%{
-	static auto record_field_table = zeek::id::find_type<TableType>("record_field_table");
+	static auto record_field_table = zeek::id::find_type<zeek::TableType>("record_field_table");
 
-	if ( rec->GetType()->Tag() == TYPE_STRING )
+	if ( rec->GetType()->Tag() == zeek::TYPE_STRING )
 		{
 		const auto& id = global_scope()->Find(rec->AsStringVal()->ToStdString());
 
-		if ( ! id || ! id->IsType() || id->GetType()->Tag() != TYPE_RECORD )
+		if ( ! id || ! id->IsType() || id->GetType()->Tag() != zeek::TYPE_RECORD )
 			{
 			reporter->Error("record_fields string argument does not name a record type");
 			return make_intrusive<TableVal>(record_field_table);
@@ -2188,7 +2188,7 @@ function is_v6_subnet%(s: subnet%): bool
 ## Returns: The vector of addresses contained in the routing header data.
 function routing0_data_to_addrs%(s: string%): addr_vec
 	%{
-	auto rval = make_intrusive<VectorVal>(zeek::id::find_type<VectorType>("addr_vec"));
+	auto rval = make_intrusive<VectorVal>(zeek::id::find_type<zeek::VectorType>("addr_vec"));
 
 	int len = s->Len();
 	const u_char* bytes = s->Bytes();
@@ -2266,7 +2266,7 @@ function counts_to_addr%(v: index_vec%): addr
 ## Returns: The :zeek:type:`int` value that corresponds to the :zeek:type:`enum`.
 function enum_to_int%(e: any%): int
 	%{
-	if ( e->GetType()->Tag() != TYPE_ENUM )
+	if ( e->GetType()->Tag() != zeek::TYPE_ENUM )
 		{
 		builtin_error("enum_to_int() requires enum value");
 		return val_mgr->Int(-1);
@@ -3384,7 +3384,7 @@ function dump_current_packet%(file_name: string%) : bool
 ## .. zeek:see:: dump_current_packet dump_packet
 function get_current_packet%(%) : pcap_packet
 	%{
-	static auto pcap_packet = zeek::id::find_type<RecordType>("pcap_packet");
+	static auto pcap_packet = zeek::id::find_type<zeek::RecordType>("pcap_packet");
 	const Packet* p;
 	auto pkt = make_intrusive<RecordVal>(pcap_packet);
 
@@ -3426,7 +3426,7 @@ function get_current_packet_header%(%) : raw_pkt_hdr
 		return p->ToRawPktHdrVal();
 		}
 
-	static auto raw_pkt_hdr_type = zeek::id::find_type<RecordType>("raw_pkt_hdr");
+	static auto raw_pkt_hdr_type = zeek::id::find_type<zeek::RecordType>("raw_pkt_hdr");
 	auto hdr = make_intrusive<RecordVal>(raw_pkt_hdr_type);
 	return hdr;
 	%}
@@ -3479,7 +3479,7 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 
 class LookupHostCallback : public DNS_Mgr::LookupCallback {
 public:
-	LookupHostCallback(trigger::Trigger* arg_trigger, const CallExpr* arg_call,
+	LookupHostCallback(zeek::detail::trigger::Trigger* arg_trigger, const zeek::detail::CallExpr* arg_call,
 				bool arg_lookup_name)
 		{
 		Ref(arg_trigger);
@@ -3520,7 +3520,7 @@ public:
 
 		else
 			{
-			ListVal* lv = new ListVal(TYPE_ADDR);
+			ListVal* lv = new ListVal(zeek::TYPE_ADDR);
 			lv->Append(make_intrusive<AddrVal>("0.0.0.0"));
 			auto result = lv->ToSetVal();
 			trigger->Cache(call, result.get());
@@ -3531,8 +3531,8 @@ public:
 		}
 
 private:
-	trigger::Trigger* trigger;
-	const CallExpr* call;
+	zeek::detail::trigger::Trigger* trigger;
+	const zeek::detail::CallExpr* call;
 	bool lookup_name;
 };
 %%}
@@ -3550,7 +3550,7 @@ function lookup_addr%(host: addr%) : string
 	%{
 	// FIXME: It should be easy to adapt the function to synchronous
 	// lookups if we're reading a trace.
-	trigger::Trigger* trigger = frame->GetTrigger();
+	zeek::detail::trigger::Trigger* trigger = frame->GetTrigger();
 
 	if ( ! trigger)
 		{
@@ -3579,7 +3579,7 @@ function lookup_hostname_txt%(host: string%) : string
 	%{
 	// FIXME: Is should be easy to adapt the function to synchronous
 	// lookups if we're reading a trace.
-	trigger::Trigger* trigger = frame->GetTrigger();
+	zeek::detail::trigger::Trigger* trigger = frame->GetTrigger();
 
 	if ( ! trigger)
 		{
@@ -3608,7 +3608,7 @@ function lookup_hostname%(host: string%) : addr_set
 	%{
 	// FIXME: Is should be easy to adapt the function to synchronous
 	// lookups if we're reading a trace.
-	trigger::Trigger* trigger = frame->GetTrigger();
+	zeek::detail::trigger::Trigger* trigger = frame->GetTrigger();
 
 	if ( ! trigger)
 		{
@@ -3997,7 +3997,7 @@ function mmdb_open_asn_db%(f: string%) : bool
 ## .. zeek:see:: lookup_asn
 function lookup_location%(a: addr%) : geo_location
 	%{
-	static auto geo_location = zeek::id::find_type<RecordType>("geo_location");
+	static auto geo_location = zeek::id::find_type<zeek::RecordType>("geo_location");
 	auto location = make_intrusive<RecordVal>(geo_location);
 
 #ifdef USE_GEOIP
@@ -4629,7 +4629,7 @@ function rotate_file%(f: file%): rotate_info
 		return info;
 
 	// Record indicating error.
-	static auto rotate_info = zeek::id::find_type<RecordType>("rotate_info");
+	static auto rotate_info = zeek::id::find_type<zeek::RecordType>("rotate_info");
 	info = make_intrusive<RecordVal>(rotate_info);
 	info->Assign(0, val_mgr->EmptyString());
 	info->Assign(1, val_mgr->EmptyString());
@@ -4649,7 +4649,7 @@ function rotate_file%(f: file%): rotate_info
 ## .. zeek:see:: rotate_file calc_next_rotate
 function rotate_file_by_name%(f: string%): rotate_info
 	%{
-	static auto rotate_info = zeek::id::find_type<RecordType>("rotate_info");
+	static auto rotate_info = zeek::id::find_type<zeek::RecordType>("rotate_info");
 	auto info = make_intrusive<RecordVal>(rotate_info);
 
 	bool is_pkt_dumper = false;
@@ -5024,7 +5024,7 @@ function match_signatures%(c: connection, pattern_type: int, s: string,
 ## .. todo:: Currently dysfunctional.
 function preserve_prefix%(a: addr, width: count%): any
 	%{
-	AnonymizeIPAddr* ip_anon = ip_anonymizer[PREFIX_PRESERVING_A50];
+	zeek::detail::AnonymizeIPAddr* ip_anon = zeek::detail::ip_anonymizer[zeek::detail::PREFIX_PRESERVING_A50];
 	if ( ip_anon )
 		{
 		if ( a->AsAddr().GetFamily() == IPv6 )
@@ -5036,7 +5036,6 @@ function preserve_prefix%(a: addr, width: count%): any
 			ip_anon->PreservePrefix(*bytes, width);
 			}
 		}
-
 
 	return nullptr;
 	%}
@@ -5051,7 +5050,7 @@ function preserve_prefix%(a: addr, width: count%): any
 function preserve_subnet%(a: subnet%): any
 	%{
 	DEBUG_MSG("%s/%d\n", a->Prefix().AsString().c_str(), a->Width());
-	AnonymizeIPAddr* ip_anon = ip_anonymizer[PREFIX_PRESERVING_A50];
+	zeek::detail::AnonymizeIPAddr* ip_anon = zeek::detail::ip_anonymizer[zeek::detail::PREFIX_PRESERVING_A50];
 	if ( ip_anon )
 		{
 		if ( a->AsSubNet().Prefix().GetFamily() == IPv6 )
@@ -5087,7 +5086,7 @@ function preserve_subnet%(a: subnet%): any
 function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 	%{
 	int anon_class = cl->InternalInt();
-	if ( anon_class < 0 || anon_class >= NUM_ADDR_ANONYMIZATION_CLASSES )
+	if ( anon_class < 0 || anon_class >= zeek::detail::NUM_ADDR_ANONYMIZATION_CLASSES )
 		builtin_error("anonymize_addr(): invalid ip addr anonymization class");
 
 	if ( a->AsAddr().GetFamily() == IPv6 )
@@ -5099,8 +5098,8 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 		{
 		const uint32_t* bytes;
 		a->AsAddr().GetBytes(&bytes);
-		return make_intrusive<AddrVal>(anonymize_ip(*bytes,
-			(enum ip_addr_anonymization_class_t) anon_class));
+		return make_intrusive<AddrVal>(zeek::detail::anonymize_ip(*bytes,
+		        static_cast<zeek::detail::ip_addr_anonymization_class_t>(anon_class)));
 		}
 	%}
 

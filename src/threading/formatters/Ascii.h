@@ -51,7 +51,7 @@ public:
 	virtual bool Describe(ODesc* desc, int num_fields, const threading::Field* const * fields,
 	                      threading::Value** vals) const;
 	virtual threading::Value* ParseValue(const std::string& s, const std::string& name,
-	                                     TypeTag type, TypeTag subtype = TYPE_ERROR) const;
+		                                 zeek::TypeTag type, zeek::TypeTag subtype = zeek::TYPE_ERROR) const;
 
 private:
 	bool CheckNumberError(const char* start, const char* end) const;

@@ -4,23 +4,24 @@
 
 #include "List.h"
 
-class Expr;
-typedef PList<Expr> expr_list;
-
-class ID;
-typedef PList<ID> id_list;
-
 class Val;
-typedef PList<Val> val_list;
+using val_list = PList<Val>;
 
-class Stmt;
-typedef PList<Stmt> stmt_list;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
+using expr_list = PList<zeek::detail::Expr>;
 
-class BroType;
-typedef PList<BroType> type_list;
+ZEEK_FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
+using id_list = PList<zeek::detail::ID>;
 
-class Attr;
-typedef PList<Attr> attr_list;
+ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
+using stmt_list = PList<zeek::detail::Stmt>;
+
+namespace zeek { class Type; }
+using BroType [[deprecated("Remove in v4.1. Use zeek::Type instead.")]] = zeek::Type;
+using type_list = PList<zeek::Type>;
+
+ZEEK_FORWARD_DECLARE_NAMESPACED(Attr, zeek::detail);
+using attr_list = PList<zeek::detail::Attr>;
 
 class Timer;
-typedef PList<Timer, ListOrder::UNORDERED> timer_list;
+using timer_list = PList<Timer, ListOrder::UNORDERED>;

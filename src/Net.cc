@@ -199,7 +199,7 @@ void net_init(const std::optional<std::string>& interface,
 			reporter->Error("trace_output_file not defined in bro.init");
 		}
 
-	init_ip_addr_anonymizers();
+	zeek::detail::init_ip_addr_anonymizers();
 
 	sessions = new NetSessions();
 
@@ -409,8 +409,8 @@ void net_delete()
 
 	delete sessions;
 
-	for ( int i = 0; i < NUM_ADDR_ANONYMIZATION_METHODS; ++i )
-		delete ip_anonymizer[i];
+	for ( int i = 0; i < zeek::detail::NUM_ADDR_ANONYMIZATION_METHODS; ++i )
+		delete zeek::detail::ip_anonymizer[i];
 	}
 
 int _processing_suspended = 0;

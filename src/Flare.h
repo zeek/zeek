@@ -4,7 +4,7 @@
 
 #include "Pipe.h"
 
-namespace bro {
+namespace zeek::detail {
 
 class Flare {
 public:
@@ -21,8 +21,7 @@ public:
 	 * @return a file descriptor that will become ready if the flare has been
 	 *         Fire()'d and not yet Extinguished()'d.
 	 */
-	int FD() const
-		{ return pipe.ReadFD(); }
+	int FD() const	{ return pipe.ReadFD(); }
 
 	/**
 	 * Put the object in the "ready" state.
@@ -44,4 +43,4 @@ private:
 	Pipe pipe;
 };
 
-} // namespace bro
+} // namespace zeek::detail

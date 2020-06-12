@@ -7,14 +7,14 @@
 namespace plugin {
 namespace Zeek_MQTT {
 
-class Plugin : public plugin::Plugin {
+class Plugin : public zeek::plugin::Plugin {
 public:
-	plugin::Configuration Configure() override
+	zeek::plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("MQTT",
 		             ::analyzer::MQTT::MQTT_Analyzer::InstantiateAnalyzer));
 
-		plugin::Configuration config;
+		zeek::plugin::Configuration config;
 		config.name = "Zeek::MQTT";
 		config.description = "Message Queuing Telemetry Transport v3.1.1 Protocol analyzer";
 		return config;

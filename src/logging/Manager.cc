@@ -78,7 +78,7 @@ struct Manager::Stream {
  	EnumVal* id;
 	bool enabled;
 	string name;
-	RecordType* columns;
+	zeek::RecordType* columns;
 	EventHandlerPtr event;
 	list<Filter*> filters;
 
@@ -236,14 +236,14 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 		return false;
 		}
 
-	RecordType* columns = sval->GetField("columns")
+	zeek::RecordType* columns = sval->GetField("columns")
 		->AsType()->AsTypeType()->GetType()->AsRecordType();
 
 	bool log_attr_present = false;
 
 	for ( int i = 0; i < columns->NumFields(); i++ )
 		{
-		if ( ! (columns->FieldDecl(i)->GetAttr(ATTR_LOG)) )
+		if ( ! (columns->FieldDecl(i)->GetAttr(zeek::detail::ATTR_LOG)) )
 		    continue;
 
 		if ( ! threading::Value::IsCompatibleType(columns->GetFieldType(i).get()) )
@@ -271,7 +271,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval)
 		// Make sure the event is prototyped as expected.
 		const auto& etype = event->GetType();
 
-		if ( etype->Flavor() != FUNC_FLAVOR_EVENT )
+		if ( etype->Flavor() != zeek::FUNC_FLAVOR_EVENT )
 			{
 			reporter->Error("stream event is a function, not an event");
 			return false;
@@ -386,7 +386,7 @@ bool Manager::DisableStream(EnumVal* id)
 	}
 
 // Helper for recursive record field unrolling.
-bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
+bool Manager::TraverseRecord(Stream* stream, Filter* filter, zeek::RecordType* rt,
 			    TableVal* include, TableVal* exclude, const string& path, const list<int>& indices)
 	{
 	// Only include extensions for the outer record.
@@ -395,7 +395,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 	int i = 0;
 	for ( int j = 0; j < num_ext_fields + rt->NumFields(); ++j )
 		{
-		RecordType* rtype;
+		zeek::RecordType* rtype;
 		// If this is an ext field, set the rtype appropriately
 		if ( j < num_ext_fields )
 			{
@@ -411,7 +411,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 		const auto& t = rtype->GetFieldType(i);
 
 		// Ignore if &log not specified.
-		if ( ! rtype->FieldDecl(i)->GetAttr(ATTR_LOG) )
+		if ( ! rtype->FieldDecl(i)->GetAttr(zeek::detail::ATTR_LOG) )
 			continue;
 
 		list<int> new_indices = indices;
@@ -429,9 +429,9 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 		if ( j < num_ext_fields )
 			new_path = filter->ext_prefix + new_path;
 
-		if ( t->InternalType() == TYPE_INTERNAL_OTHER )
+		if ( t->InternalType() == zeek::TYPE_INTERNAL_OTHER )
 			{
-			if ( t->Tag() == TYPE_RECORD )
+			if ( t->Tag() == zeek::TYPE_RECORD )
 				{
 				// Recurse.
 				if ( ! TraverseRecord(stream, filter,
@@ -445,23 +445,23 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 				continue;
 				}
 
-			else if ( t->Tag() == TYPE_TABLE &&
+			else if ( t->Tag() == zeek::TYPE_TABLE &&
 				  t->AsTableType()->IsSet() )
 				{
 				// That's ok, we handle it below.
 				}
 
-			else if ( t->Tag() == TYPE_VECTOR )
+			else if ( t->Tag() == zeek::TYPE_VECTOR )
 				{
 				// That's ok, we handle it below.
 				}
 
-			else if ( t->Tag() == TYPE_FILE )
+			else if ( t->Tag() == zeek::TYPE_FILE )
 				{
 				// That's ok, we handle it below.
 				}
 
-			else if ( t->Tag() == TYPE_FUNC )
+			else if ( t->Tag() == zeek::TYPE_FUNC )
 				{
 				// That's ok, we handle it below.
 				}
@@ -509,15 +509,15 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
 		++filter->num_fields;
 		filter->fields = (threading::Field**) tmp;
 
-		TypeTag st = TYPE_VOID;
+		zeek::TypeTag st = zeek::TYPE_VOID;
 
-		if ( t->Tag() == TYPE_TABLE )
+		if ( t->Tag() == zeek::TYPE_TABLE )
 			st = t->AsSetType()->GetIndices()->GetPureType()->Tag();
 
-		else if ( t->Tag() == TYPE_VECTOR )
+		else if ( t->Tag() == zeek::TYPE_VECTOR )
 			st = t->AsVectorType()->Yield()->Tag();
 
-		bool optional = (bool)rtype->FieldDecl(i)->GetAttr(ATTR_OPTIONAL);
+		bool optional = (bool)rtype->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL);
 
 		filter->fields[filter->num_fields - 1] = new threading::Field(new_path.c_str(), nullptr, t->Tag(), st, optional);
 		}
@@ -580,18 +580,19 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 	filter->num_ext_fields = 0;
 	if ( filter->ext_func )
 		{
-		if ( filter->ext_func->GetType()->Yield()->Tag() == TYPE_RECORD )
+		if ( filter->ext_func->GetType()->Yield()->Tag() == zeek::TYPE_RECORD )
 			{
 			filter->num_ext_fields = filter->ext_func->GetType()->Yield()->AsRecordType()->NumFields();
 			}
-		else if ( filter->ext_func->GetType()->Yield()->Tag() == TYPE_VOID )
+		else if ( filter->ext_func->GetType()->Yield()->Tag() == zeek::TYPE_VOID )
 			{
 			// This is a special marker for the default no-implementation
 			// of the ext_func and we'll allow it to slide.
 			}
 		else
 			{
-			reporter->Error("Return value of log_ext is not a record (got %s)", type_name(filter->ext_func->GetType()->Yield()->Tag()));
+			reporter->Error("Return value of log_ext is not a record (got %s)",
+			                zeek::type_name(filter->ext_func->GetType()->Yield()->Tag()));
 			delete filter;
 			return false;
 			}
@@ -646,7 +647,7 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval)
 		{
 		threading::Field* field = filter->fields[i];
 		DBG_LOG(DBG_LOGGING, "   field %10s: %s",
-			field->name, type_name(field->type));
+			field->name, zeek::type_name(field->type));
 		}
 #endif
 
@@ -739,8 +740,8 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 			IntrusivePtr<Val> rec_arg;
 			const auto& rt = filter->path_func->GetType()->Params()->GetFieldType("rec");
 
-			if ( rt->Tag() == TYPE_RECORD )
-				rec_arg = columns->CoerceTo(cast_intrusive<RecordType>(rt), true);
+			if ( rt->Tag() == zeek::TYPE_RECORD )
+				rec_arg = columns->CoerceTo(cast_intrusive<zeek::RecordType>(rt), true);
 			else
 				// Can be TYPE_ANY here.
 				rec_arg = columns;
@@ -752,7 +753,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 			if ( ! v )
 				return false;
 
-			if ( v->GetType()->Tag() != TYPE_STRING )
+			if ( v->GetType()->Tag() != zeek::TYPE_STRING )
 				{
 				reporter->Error("path_func did not return string");
 				return false;
@@ -912,7 +913,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 	return true;
 	}
 
-threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
+threading::Value* Manager::ValToLogVal(Val* val, zeek::Type* ty)
 	{
 	if ( ! ty )
 		ty = val->GetType().get();
@@ -923,12 +924,12 @@ threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
 	threading::Value* lval = new threading::Value(ty->Tag());
 
 	switch ( lval->type ) {
-	case TYPE_BOOL:
-	case TYPE_INT:
+	case zeek::TYPE_BOOL:
+	case zeek::TYPE_INT:
 		lval->val.int_val = val->InternalInt();
 		break;
 
-	case TYPE_ENUM:
+	case zeek::TYPE_ENUM:
 		{
 		const char* s =
 			val->GetType()->AsEnumType()->Lookup(val->InternalInt());
@@ -948,31 +949,31 @@ threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
 		break;
 		}
 
-	case TYPE_COUNT:
-	case TYPE_COUNTER:
+	case zeek::TYPE_COUNT:
+	case zeek::TYPE_COUNTER:
 		lval->val.uint_val = val->InternalUnsigned();
 		break;
 
-	case TYPE_PORT:
+	case zeek::TYPE_PORT:
 		lval->val.port_val.port = val->AsPortVal()->Port();
 		lval->val.port_val.proto = val->AsPortVal()->PortType();
 		break;
 
-	case TYPE_SUBNET:
+	case zeek::TYPE_SUBNET:
 		val->AsSubNet().ConvertToThreadingValue(&lval->val.subnet_val);
 		break;
 
-	case TYPE_ADDR:
+	case zeek::TYPE_ADDR:
 		val->AsAddr().ConvertToThreadingValue(&lval->val.addr_val);
 		break;
 
-	case TYPE_DOUBLE:
-	case TYPE_TIME:
-	case TYPE_INTERVAL:
+	case zeek::TYPE_DOUBLE:
+	case zeek::TYPE_TIME:
+	case zeek::TYPE_INTERVAL:
 		lval->val.double_val = val->InternalDouble();
 		break;
 
-	case TYPE_STRING:
+	case zeek::TYPE_STRING:
 		{
 		const BroString* s = val->AsString();
 		char* buf = new char[s->Len()];
@@ -983,7 +984,7 @@ threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
 		break;
 		}
 
-	case TYPE_FILE:
+	case zeek::TYPE_FILE:
 		{
 		const BroFile* f = val->AsFile();
 		string s = f->Name();
@@ -992,7 +993,7 @@ threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
 		break;
 		}
 
-	case TYPE_FUNC:
+	case zeek::TYPE_FUNC:
 		{
 		ODesc d;
 		const Func* f = val->AsFunc();
@@ -1003,13 +1004,13 @@ threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
 		break;
 		}
 
-	case TYPE_TABLE:
+	case zeek::TYPE_TABLE:
 		{
 		auto set = val->AsTableVal()->ToPureListVal();
 		if ( ! set )
 			// ToPureListVal has reported an internal warning
 			// already. Just keep going by making something up.
-			set = make_intrusive<ListVal>(TYPE_INT);
+			set = make_intrusive<ListVal>(zeek::TYPE_INT);
 
 		lval->val.set_val.size = set->Length();
 		lval->val.set_val.vals = new threading::Value* [lval->val.set_val.size];
@@ -1020,7 +1021,7 @@ threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
 		break;
 		}
 
-	case TYPE_VECTOR:
+	case zeek::TYPE_VECTOR:
 		{
 		VectorVal* vec = val->AsVectorVal();
 		lval->val.vector_val.size = vec->Size();
@@ -1038,7 +1039,7 @@ threading::Value* Manager::ValToLogVal(Val* val, BroType* ty)
 		}
 
 	default:
-		reporter->InternalError("unsupported type %s for log_write", type_name(lval->type));
+		reporter->InternalError("unsupported type %s for log_write", zeek::type_name(lval->type));
 	}
 
 	return lval;
@@ -1372,7 +1373,7 @@ bool Manager::RemoteLogsAreEnabled(EnumVal* stream_id)
 	return stream->enable_remote;
 	}
 
-RecordType* Manager::StreamColumns(EnumVal* stream_id)
+zeek::RecordType* Manager::StreamColumns(EnumVal* stream_id)
 	{
 	auto stream = FindStream(stream_id);
 

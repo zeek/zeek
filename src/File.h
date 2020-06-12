@@ -2,22 +2,27 @@
 
 #pragma once
 
-#include "Obj.h"
-#include "IntrusivePtr.h"
-
 #include <list>
 #include <string>
 #include <utility>
 
 #include <fcntl.h>
 
-# ifdef NEED_KRB5_H
-#  include <krb5.h>
-# endif // NEED_KRB5_H
+#ifdef NEED_KRB5_H
+#include <krb5.h>
+#endif // NEED_KRB5_H
 
-class Attributes;
-class BroType;
+#include "Obj.h"
+#include "IntrusivePtr.h"
+#include "util.h"
+
 class RecordVal;
+
+namespace zeek { class Type; }
+using BroType [[deprecated("Remove in v4.1. Use zeek::Type instead.")]] = zeek::Type;
+
+ZEEK_FORWARD_DECLARE_NAMESPACED(PrintStmt, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Attributes, zeek::detail);
 
 class BroFile final : public BroObj {
 public:
@@ -38,9 +43,9 @@ public:
 	void SetBuf(bool buffered);	// false=line buffered, true=fully buffered
 
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
-	BroType* FType() const	{ return t.get(); }
+	zeek::Type* FType() const	{ return t.get(); }
 
-	const IntrusivePtr<BroType>& GetType() const
+	const IntrusivePtr<zeek::Type>& GetType() const
 		{ return t; }
 
 	// Whether the file is open in a general sense; it might
@@ -58,7 +63,7 @@ public:
 	RecordVal* Rotate();
 
 	// Set &raw_output attribute.
-	void SetAttrs(Attributes* attrs);
+	void SetAttrs(zeek::detail::Attributes* attrs);
 
 	// Returns the current size of the file, after fresh stat'ing.
 	double Size();
@@ -77,7 +82,7 @@ public:
 
 protected:
 
-	friend class PrintStmt;
+	friend class zeek::detail::PrintStmt;
 
 	BroFile()	{ Init(); }
 	void Init();
@@ -101,10 +106,10 @@ protected:
 	void RaiseOpenEvent();
 
 	FILE* f;
-	IntrusivePtr<BroType> t;
+	IntrusivePtr<zeek::Type> t;
 	char* name;
 	char* access;
-	Attributes* attrs;
+	zeek::detail::Attributes* attrs;
 	double open_time;
 	bool is_open;	// whether the file is open in a general sense
 	bool buffered;

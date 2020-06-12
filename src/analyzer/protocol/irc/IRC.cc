@@ -44,8 +44,8 @@ inline void IRC_Analyzer::SkipLeadingWhitespace(string& str)
 
 void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 	{
-	static auto irc_join_list = zeek::id::find_type<TableType>("irc_join_list");
-	static auto irc_join_info = zeek::id::find_type<RecordType>("irc_join_info");
+	static auto irc_join_list = zeek::id::find_type<zeek::TableType>("irc_join_list");
+	static auto irc_join_info = zeek::id::find_type<zeek::RecordType>("irc_join_info");
 	tcp::TCP_ApplicationAnalyzer::DeliverStream(length, line, orig);
 
 	if ( starttls )

@@ -24,7 +24,7 @@ protected:
 
 private:
 	std::string RandomString(const int len);
-	threading::Value* EntryToVal(TypeTag Type, TypeTag subtype);
+	threading::Value* EntryToVal(zeek::TypeTag Type, zeek::TypeTag subtype);
 	threading::formatter::Ascii* ascii;
 };
 

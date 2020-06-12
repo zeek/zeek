@@ -14,7 +14,7 @@ class ReaderBackend;
 /**
  * Component description for plugins providing log readers.
  */
-class Component : public plugin::Component,
+class Component : public zeek::plugin::Component,
 		  public plugin::TaggedComponent<input::Tag> {
 public:
 	typedef ReaderBackend* (*factory_callback)(ReaderFrontend* frontend);

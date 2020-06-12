@@ -9,13 +9,13 @@
 namespace plugin {
 namespace Zeek_Unified2 {
 
-class Plugin : public plugin::Plugin {
+class Plugin : public zeek::plugin::Plugin {
 public:
-	plugin::Configuration Configure() override
+	zeek::plugin::Configuration Configure() override
 		{
 		AddComponent(new ::file_analysis::Component("UNIFIED2", ::file_analysis::Unified2::Instantiate));
 
-		plugin::Configuration config;
+		zeek::plugin::Configuration config;
 		config.name = "Zeek::Unified2";
 		config.description = "Analyze Unified2 alert files.";
 		return config;

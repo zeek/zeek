@@ -224,7 +224,7 @@ public:
 	 * @return the type which corresponds to the columns in a log entry for
 	 * a given log stream.
 	 */
-	RecordType* StreamColumns(EnumVal* stream_id);
+	zeek::RecordType* StreamColumns(EnumVal* stream_id);
 
 protected:
 	friend class WriterFrontend;
@@ -255,13 +255,13 @@ private:
 	struct Stream;
 	struct WriterInfo;
 
-	bool TraverseRecord(Stream* stream, Filter* filter, RecordType* rt,
+	bool TraverseRecord(Stream* stream, Filter* filter, zeek::RecordType* rt,
 			    TableVal* include, TableVal* exclude, const std::string& path, const std::list<int>& indices);
 
 	threading::Value** RecordToFilterVals(Stream* stream, Filter* filter,
 				    RecordVal* columns);
 
-	threading::Value* ValToLogVal(Val* val, BroType* ty = nullptr);
+	threading::Value* ValToLogVal(Val* val, zeek::Type* ty = nullptr);
 	Stream* FindStream(EnumVal* id);
 	void RemoveDisabledWriters(Stream* stream);
 	void InstallRotationTimer(WriterInfo* winfo);

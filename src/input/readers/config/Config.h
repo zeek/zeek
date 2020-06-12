@@ -50,7 +50,7 @@ private:
 	std::string empty_field;
 
 	std::unique_ptr<threading::formatter::Formatter> formatter;
-	std::unordered_map<std::string, std::tuple<TypeTag, TypeTag>> option_types;
+	std::unordered_map<std::string, std::tuple<zeek::TypeTag, zeek::TypeTag>> option_types;
 	std::unordered_map<std::string, std::string> option_values;
 };
 

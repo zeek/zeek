@@ -91,17 +91,17 @@ ValManager* val_mgr = nullptr;
 logging::Manager* log_mgr = nullptr;
 threading::Manager* thread_mgr = nullptr;
 input::Manager* input_mgr = nullptr;
-plugin::Manager* plugin_mgr = nullptr;
+zeek::plugin::Manager* plugin_mgr = nullptr;
 analyzer::Manager* analyzer_mgr = nullptr;
 file_analysis::Manager* file_mgr = nullptr;
 zeekygen::Manager* zeekygen_mgr = nullptr;
 iosource::Manager* iosource_mgr = nullptr;
 bro_broker::Manager* broker_mgr = nullptr;
 zeek::Supervisor* zeek::supervisor_mgr = nullptr;
-trigger::Manager* trigger_mgr = nullptr;
+zeek::detail::trigger::Manager* trigger_mgr = nullptr;
 
 std::vector<std::string> zeek_script_prefixes;
-Stmt* stmts;
+zeek::detail::Stmt* stmts;
 RuleMatcher* rule_matcher = nullptr;
 EventRegistry* event_registry = nullptr;
 ProfileLogger* profiling_logger = nullptr;
@@ -114,16 +114,16 @@ vector<string> params;
 set<string> requested_plugins;
 const char* proc_status_file = nullptr;
 
-IntrusivePtr<OpaqueType> md5_type;
-IntrusivePtr<OpaqueType> sha1_type;
-IntrusivePtr<OpaqueType> sha256_type;
-IntrusivePtr<OpaqueType> entropy_type;
-IntrusivePtr<OpaqueType> cardinality_type;
-IntrusivePtr<OpaqueType> topk_type;
-IntrusivePtr<OpaqueType> bloomfilter_type;
-IntrusivePtr<OpaqueType> x509_opaque_type;
-IntrusivePtr<OpaqueType> ocsp_resp_opaque_type;
-IntrusivePtr<OpaqueType> paraglob_type;
+IntrusivePtr<zeek::OpaqueType> md5_type;
+IntrusivePtr<zeek::OpaqueType> sha1_type;
+IntrusivePtr<zeek::OpaqueType> sha256_type;
+IntrusivePtr<zeek::OpaqueType> entropy_type;
+IntrusivePtr<zeek::OpaqueType> cardinality_type;
+IntrusivePtr<zeek::OpaqueType> topk_type;
+IntrusivePtr<zeek::OpaqueType> bloomfilter_type;
+IntrusivePtr<zeek::OpaqueType> x509_opaque_type;
+IntrusivePtr<zeek::OpaqueType> ocsp_resp_opaque_type;
+IntrusivePtr<zeek::OpaqueType> paraglob_type;
 
 // Keep copy of command line
 int bro_argc;
@@ -160,7 +160,7 @@ static std::vector<const char*> to_cargs(const std::vector<std::string>& args)
 
 bool show_plugins(int level)
 	{
-	plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
+	zeek::plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
 
 	if ( ! plugins.size() )
 		{
@@ -175,7 +175,7 @@ bool show_plugins(int level)
 
 	int count = 0;
 
-	for ( plugin::Manager::plugin_list::const_iterator i = plugins.begin(); i != plugins.end(); i++ )
+	for ( zeek::plugin::Manager::plugin_list::const_iterator i = plugins.begin(); i != plugins.end(); i++ )
 		{
 		if ( requested_plugins.size()
 		     && requested_plugins.find((*i)->Name()) == requested_plugins.end() )
@@ -191,13 +191,13 @@ bool show_plugins(int level)
 
 	printf("%s", d.Description());
 
-	plugin::Manager::inactive_plugin_list inactives = plugin_mgr->InactivePlugins();
+	zeek::plugin::Manager::inactive_plugin_list inactives = plugin_mgr->InactivePlugins();
 
 	if ( inactives.size() && ! requested_plugins.size() )
 		{
 		printf("\nInactive dynamic plugins:\n");
 
-		for ( plugin::Manager::inactive_plugin_list::const_iterator i = inactives.begin(); i != inactives.end(); i++ )
+		for ( zeek::plugin::Manager::inactive_plugin_list::const_iterator i = inactives.begin(); i != inactives.end(); i++ )
 			{
 			string name = (*i).first;
 			string path = (*i).second;
@@ -467,7 +467,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	val_mgr = new ValManager();
 	reporter = new Reporter(options.abort_on_scripting_errors);
 	thread_mgr = new threading::Manager();
-	plugin_mgr = new plugin::Manager();
+	plugin_mgr = new zeek::plugin::Manager();
 
 #ifdef DEBUG
 	if ( options.debug_log_streams )
@@ -570,7 +570,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 	file_mgr = new file_analysis::Manager();
 	auto broker_real_time = ! options.pcap_file && ! options.deterministic_mode;
 	broker_mgr = new bro_broker::Manager(broker_real_time);
-	trigger_mgr = new trigger::Manager();
+	trigger_mgr = new zeek::detail::trigger::Manager();
 
 	plugin_mgr->InitPreScript();
 	analyzer_mgr->InitPreScript();
@@ -593,16 +593,16 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 
 	init_event_handlers();
 
-	md5_type = make_intrusive<OpaqueType>("md5");
-	sha1_type = make_intrusive<OpaqueType>("sha1");
-	sha256_type = make_intrusive<OpaqueType>("sha256");
-	entropy_type = make_intrusive<OpaqueType>("entropy");
-	cardinality_type = make_intrusive<OpaqueType>("cardinality");
-	topk_type = make_intrusive<OpaqueType>("topk");
-	bloomfilter_type = make_intrusive<OpaqueType>("bloomfilter");
-	x509_opaque_type = make_intrusive<OpaqueType>("x509");
-	ocsp_resp_opaque_type = make_intrusive<OpaqueType>("ocsp_resp");
-	paraglob_type = make_intrusive<OpaqueType>("paraglob");
+	md5_type = make_intrusive<zeek::OpaqueType>("md5");
+	sha1_type = make_intrusive<zeek::OpaqueType>("sha1");
+	sha256_type = make_intrusive<zeek::OpaqueType>("sha256");
+	entropy_type = make_intrusive<zeek::OpaqueType>("entropy");
+	cardinality_type = make_intrusive<zeek::OpaqueType>("cardinality");
+	topk_type = make_intrusive<zeek::OpaqueType>("topk");
+	bloomfilter_type = make_intrusive<zeek::OpaqueType>("bloomfilter");
+	x509_opaque_type = make_intrusive<zeek::OpaqueType>("x509");
+	ocsp_resp_opaque_type = make_intrusive<zeek::OpaqueType>("ocsp_resp");
+	paraglob_type = make_intrusive<zeek::OpaqueType>("paraglob");
 
 	// The leak-checker tends to produce some false
 	// positives (memory which had already been

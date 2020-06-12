@@ -6,18 +6,18 @@
 namespace plugin {
 namespace Zeek_RDP {
 
-class Plugin : public plugin::Plugin {
+class Plugin : public zeek::plugin::Plugin {
 public:
-        plugin::Configuration Configure() override
-                {
-                AddComponent(new ::analyzer::Component("RDP", ::analyzer::rdp::RDP_Analyzer::InstantiateAnalyzer));
-                AddComponent(new ::analyzer::Component("RDPEUDP", ::analyzer::rdpeudp::RDP_Analyzer::InstantiateAnalyzer));
+	zeek::plugin::Configuration Configure() override
+		{
+		AddComponent(new ::analyzer::Component("RDP", ::analyzer::rdp::RDP_Analyzer::InstantiateAnalyzer));
+		AddComponent(new ::analyzer::Component("RDPEUDP", ::analyzer::rdpeudp::RDP_Analyzer::InstantiateAnalyzer));
 
-                plugin::Configuration config;
-                config.name = "Zeek::RDP";
-                config.description = "RDP analyzer";
-                return config;
-                }
+		zeek::plugin::Configuration config;
+		config.name = "Zeek::RDP";
+		config.description = "RDP analyzer";
+		return config;
+		}
 } plugin;
 
 }

@@ -204,7 +204,7 @@ static IntrusivePtr<VectorVal> do_split_string(StringVal* str_val,
                                                int max_num_sep)
 	{
 	// string_vec is used early in the version script - do not use the NetVar.
-	auto rval = make_intrusive<VectorVal>(zeek::id::find_type<VectorType>("string_vec"));
+	auto rval = make_intrusive<VectorVal>(zeek::id::find_type<zeek::VectorType>("string_vec"));
 	const u_char* s = str_val->Bytes();
 	int n = str_val->Len();
 	const u_char* end_of_s = s + n;

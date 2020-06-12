@@ -14,7 +14,7 @@ class WriterBackend;
 /**
  * Component description for plugins providing log writers.
  */
-class Component : public plugin::Component,
+class Component : public zeek::plugin::Component,
 		  public plugin::TaggedComponent<logging::Tag> {
 public:
 	typedef WriterBackend* (*factory_callback)(WriterFrontend* frontend);

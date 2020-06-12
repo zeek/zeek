@@ -14,6 +14,8 @@
 #include <map>
 #include <cstdint>
 
+namespace zeek::detail {
+
 // TODO: Anon.h may not be the right place to put these functions ...
 
 enum ip_addr_anonymization_class_t {
@@ -126,3 +128,5 @@ ipaddr32_t anonymize_ip(ipaddr32_t ip, enum ip_addr_anonymization_class_t cl);
 
 #define LOG_ANONYMIZATION_MAPPING
 void log_anonymization_mapping(ipaddr32_t input, ipaddr32_t output);
+
+}

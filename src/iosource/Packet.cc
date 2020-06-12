@@ -594,8 +594,8 @@ void Packet::ProcessLayer2()
 
 IntrusivePtr<RecordVal> Packet::ToRawPktHdrVal() const
 	{
-	static auto raw_pkt_hdr_type = zeek::id::find_type<RecordType>("raw_pkt_hdr");
-	static auto l2_hdr_type = zeek::id::find_type<RecordType>("l2_hdr");
+	static auto raw_pkt_hdr_type = zeek::id::find_type<zeek::RecordType>("raw_pkt_hdr");
+	static auto l2_hdr_type = zeek::id::find_type<zeek::RecordType>("l2_hdr");
 	auto pkt_hdr = make_intrusive<RecordVal>(raw_pkt_hdr_type);
 	auto l2_hdr = make_intrusive<RecordVal>(l2_hdr_type);
 

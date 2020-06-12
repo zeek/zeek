@@ -7,14 +7,14 @@
 namespace plugin {
 namespace Zeek_DNS {
 
-class Plugin : public plugin::Plugin {
+class Plugin : public zeek::plugin::Plugin {
 public:
-	plugin::Configuration Configure() override
+	zeek::plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("DNS", ::analyzer::dns::DNS_Analyzer::Instantiate));
 		AddComponent(new ::analyzer::Component("Contents_DNS", nullptr));
 
-		plugin::Configuration config;
+		zeek::plugin::Configuration config;
 		config.name = "Zeek::DNS";
 		config.description = "DNS analyzer";
 		return config;

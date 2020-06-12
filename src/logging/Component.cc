@@ -8,7 +8,7 @@
 using namespace logging;
 
 Component::Component(const std::string& name, factory_callback arg_factory)
-	: plugin::Component(plugin::component::WRITER, name)
+	: zeek::plugin::Component(zeek::plugin::component::WRITER, name)
 	{
 	factory = arg_factory;
 	}

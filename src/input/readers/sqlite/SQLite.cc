@@ -136,8 +136,8 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 	Value* val = new Value(field->type, true);
 
 	switch ( field->type ) {
-	case TYPE_ENUM:
-	case TYPE_STRING:
+	case zeek::TYPE_ENUM:
+	case zeek::TYPE_STRING:
 		{
 		const char *text = (const char*) sqlite3_column_text(st, pos);
 		int length = sqlite3_column_bytes(st, pos);
@@ -150,7 +150,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		break;
 		}
 
-	case TYPE_BOOL:
+	case zeek::TYPE_BOOL:
 		{
 		if ( sqlite3_column_type(st, pos) != SQLITE_INTEGER )
 			{
@@ -172,22 +172,22 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		break;
 		}
 
-	case TYPE_INT:
+	case zeek::TYPE_INT:
 		val->val.int_val = sqlite3_column_int64(st, pos);
 		break;
 
-	case TYPE_DOUBLE:
-	case TYPE_TIME:
-	case TYPE_INTERVAL:
+	case zeek::TYPE_DOUBLE:
+	case zeek::TYPE_TIME:
+	case zeek::TYPE_INTERVAL:
 		val->val.double_val = sqlite3_column_double(st, pos);
 		break;
 
-	case TYPE_COUNT:
-	case TYPE_COUNTER:
+	case zeek::TYPE_COUNT:
+	case zeek::TYPE_COUNTER:
 		val->val.uint_val = sqlite3_column_int64(st, pos);
 		break;
 
-	case TYPE_PORT:
+	case zeek::TYPE_PORT:
 		{
 		val->val.port_val.port = sqlite3_column_int(st, pos);
 		val->val.port_val.proto = TRANSPORT_UNKNOWN;
@@ -206,7 +206,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		break;
 		}
 
-	case TYPE_SUBNET:
+	case zeek::TYPE_SUBNET:
 		{
 		const char *text = (const char*) sqlite3_column_text(st, pos);
 		std::string s(text, sqlite3_column_bytes(st, pos));
@@ -219,7 +219,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		break;
 		}
 
-	case TYPE_ADDR:
+	case zeek::TYPE_ADDR:
 		{
 		const char *text = (const char*) sqlite3_column_text(st, pos);
 		std::string s(text, sqlite3_column_bytes(st, pos));
@@ -227,8 +227,8 @@ Value* SQLite::EntryToVal(sqlite3_stmt *st, const threading::Field *field, int p
 		break;
 		}
 
-	case TYPE_TABLE:
-	case TYPE_VECTOR:
+	case zeek::TYPE_TABLE:
+	case zeek::TYPE_VECTOR:
 		{
 		const char *text = (const char*) sqlite3_column_text(st, pos);
 		std::string s(text, sqlite3_column_bytes(st, pos));
@@ -281,7 +281,7 @@ bool SQLite::DoUpdate()
 
 			if ( fields[j]->secondary_name != nullptr && strcmp(fields[j]->secondary_name, name) == 0 )
 				{
-				assert(fields[j]->type == TYPE_PORT);
+				assert(fields[j]->type == zeek::TYPE_PORT);
 				if ( submapping[j] != -1 )
 					{
 					Error(Fmt("SQLite statement returns several columns with name %s! Cannot decide which to choose, aborting", name));

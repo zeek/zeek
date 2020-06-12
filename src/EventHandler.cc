@@ -26,7 +26,7 @@ EventHandler::operator bool() const
 			   || ! auto_publish.empty());
 	}
 
-const IntrusivePtr<FuncType>& EventHandler::GetType(bool check_export)
+const IntrusivePtr<zeek::FuncType>& EventHandler::GetType(bool check_export)
 	{
 	if ( type )
 		return type;
@@ -35,12 +35,12 @@ const IntrusivePtr<FuncType>& EventHandler::GetType(bool check_export)
 	                           check_export);
 
 	if ( ! id )
-		return FuncType::nil;
+		return zeek::FuncType::nil;
 
-	if ( id->GetType()->Tag() != TYPE_FUNC )
-		return FuncType::nil;
+	if ( id->GetType()->Tag() != zeek::TYPE_FUNC )
+		return zeek::FuncType::nil;
 
-	type = id->GetType<FuncType>();
+	type = id->GetType<zeek::FuncType>();
 	return type;
 	}
 
@@ -117,7 +117,7 @@ void EventHandler::NewEvent(zeek::Args* vl)
 		return;
 
 	const auto& args = GetType()->Params();
-	static auto call_argument_vector = zeek::id::find_type<VectorType>("call_argument_vector");
+	static auto call_argument_vector = zeek::id::find_type<zeek::VectorType>("call_argument_vector");
 	auto vargs = make_intrusive<VectorVal>(call_argument_vector);
 
 	for ( int i = 0; i < args->NumFields(); i++ )
@@ -126,7 +126,7 @@ void EventHandler::NewEvent(zeek::Args* vl)
 		const auto& ftype = args->GetFieldType(i);
 		auto fdefault = args->FieldDefault(i);
 
-		static auto call_argument = zeek::id::find_type<RecordType>("call_argument");
+		static auto call_argument = zeek::id::find_type<zeek::RecordType>("call_argument");
 		auto rec = make_intrusive<RecordVal>(call_argument);
 		rec->Assign(0, make_intrusive<StringVal>(fname));
 
@@ -150,4 +150,3 @@ void EventHandler::NewEvent(zeek::Args* vl)
 	});
 	mgr.Dispatch(ev);
 	}
-

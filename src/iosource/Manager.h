@@ -178,7 +178,7 @@ private:
 		double GetNextTimeout() override	{ return -1; }
 
 	private:
-		bro::Flare flare;
+		zeek::detail::Flare flare;
 		};
 
 	struct Source {

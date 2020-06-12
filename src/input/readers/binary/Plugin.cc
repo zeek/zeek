@@ -7,13 +7,13 @@
 namespace plugin {
 namespace Zeek_BinaryReader {
 
-class Plugin : public plugin::Plugin {
+class Plugin : public zeek::plugin::Plugin {
 public:
-	plugin::Configuration Configure() override
+	zeek::plugin::Configuration Configure() override
 		{
 		AddComponent(new ::input::Component("Binary", ::input::reader::Binary::Instantiate));
 
-		plugin::Configuration config;
+		zeek::plugin::Configuration config;
 		config.name = "Zeek::BinaryReader";
 		config.description = "Binary input reader";
 		return config;

@@ -6,7 +6,7 @@
 namespace plugin {
 namespace Demo_Hooks {
 
-class Plugin : public ::plugin::Plugin
+class Plugin : public zeek::plugin::Plugin
 {
 protected:
 	std::pair<bool, Val*> HookCallFunction(const Func* func, Frame* frame, val_list* args) override;
@@ -15,8 +15,11 @@ protected:
 	/*                                                     Frame* frame, */
 	/*                                                     zeek::Args* args) override; */
 
-	void MetaHookPre(HookType hook, const HookArgumentList& args) override;
-	void MetaHookPost(HookType hook, const HookArgumentList& args, HookArgument result) override;
+	void MetaHookPre(zeek::plugin::HookType hook,
+	                 const zeek::plugin::HookArgumentList& args) override;
+	void MetaHookPost(zeek::plugin::HookType hook,
+	                  const zeek::plugin::HookArgumentList& args,
+	                  zeek::plugin::HookArgument result) override;
 
 	// Overridden from plugin::Plugin.
 	plugin::Configuration Configure() override;

@@ -7,13 +7,13 @@
 namespace plugin {
 namespace Zeek_IMAP {
 
-class Plugin : public plugin::Plugin {
+class Plugin : public zeek::plugin::Plugin {
 public:
-	plugin::Configuration Configure() override
+	zeek::plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("IMAP", ::analyzer::imap::IMAP_Analyzer::Instantiate));
 
-		plugin::Configuration config;
+		zeek::plugin::Configuration config;
 		config.name = "Zeek::IMAP";
 		config.description = "IMAP analyzer (StartTLS only)";
 		return config;

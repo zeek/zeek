@@ -6,7 +6,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
-using namespace bro;
+using namespace zeek::detail;
 
 Flare::Flare()
 	: pipe(FD_CLOEXEC, FD_CLOEXEC, O_NONBLOCK, O_NONBLOCK)

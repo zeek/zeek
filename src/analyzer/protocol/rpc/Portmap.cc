@@ -138,7 +138,7 @@ bool PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status statu
 		event = success ? pm_request_dump : pm_attempt_dump;
 		if ( success )
 			{
-			static auto pm_mappings = zeek::id::find_type<TableType>("pm_mappings");
+			static auto pm_mappings = zeek::id::find_type<zeek::TableType>("pm_mappings");
 			auto mappings = make_intrusive<TableVal>(pm_mappings);
 			uint32_t nmap = 0;
 
@@ -191,7 +191,7 @@ bool PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status statu
 
 IntrusivePtr<Val> PortmapperInterp::ExtractMapping(const u_char*& buf, int& len)
 	{
-	static auto pm_mapping = zeek::id::find_type<RecordType>("pm_mapping");
+	static auto pm_mapping = zeek::id::find_type<zeek::RecordType>("pm_mapping");
 	auto mapping = make_intrusive<RecordVal>(pm_mapping);
 
 	mapping->Assign(0, val_mgr->Count(extract_XDR_uint32(buf, len)));
@@ -209,7 +209,7 @@ IntrusivePtr<Val> PortmapperInterp::ExtractMapping(const u_char*& buf, int& len)
 
 IntrusivePtr<Val> PortmapperInterp::ExtractPortRequest(const u_char*& buf, int& len)
 	{
-	static auto pm_port_request = zeek::id::find_type<RecordType>("pm_port_request");
+	static auto pm_port_request = zeek::id::find_type<zeek::RecordType>("pm_port_request");
 	auto pr = make_intrusive<RecordVal>(pm_port_request);
 
 	pr->Assign(0, val_mgr->Count(extract_XDR_uint32(buf, len)));
@@ -227,7 +227,7 @@ IntrusivePtr<Val> PortmapperInterp::ExtractPortRequest(const u_char*& buf, int& 
 
 IntrusivePtr<Val> PortmapperInterp::ExtractCallItRequest(const u_char*& buf, int& len)
 	{
-	static auto pm_callit_request = zeek::id::find_type<RecordType>("pm_callit_request");
+	static auto pm_callit_request = zeek::id::find_type<zeek::RecordType>("pm_callit_request");
 	auto c = make_intrusive<RecordVal>(pm_callit_request);
 
 	c->Assign(0, val_mgr->Count(extract_XDR_uint32(buf, len)));

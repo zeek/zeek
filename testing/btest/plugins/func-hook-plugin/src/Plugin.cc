@@ -61,7 +61,7 @@ std::pair<bool, IntrusivePtr<Val>> Plugin::HookFunctionCall(const Func* func,
 	return {};
 	}
 
-void Plugin::MetaHookPre(HookType hook, const HookArgumentList& args)
+void Plugin::MetaHookPre(zeek::plugin::HookType hook, const zeek::plugin::HookArgumentList& args)
 	{
 	ODesc d;
 	d.SetShort();
@@ -70,7 +70,9 @@ void Plugin::MetaHookPre(HookType hook, const HookArgumentList& args)
 		hook_name(hook), d.Description());
 	}
 
-void Plugin::MetaHookPost(HookType hook, const HookArgumentList& args, HookArgument result)
+void Plugin::MetaHookPost(zeek::plugin::HookType hook,
+	                      const zeek::plugin::HookArgumentList& args,
+                          zeek::plugin::HookArgument result)
 	{
 	ODesc d1;
 	d1.SetShort();

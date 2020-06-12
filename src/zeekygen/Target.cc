@@ -21,7 +21,7 @@
 using namespace std;
 using namespace zeekygen;
 
-static void write_plugin_section_heading(FILE* f, const plugin::Plugin* p)
+static void write_plugin_section_heading(FILE* f, const zeek::plugin::Plugin* p)
 	{
 	const string& name = p->Name();
 
@@ -55,21 +55,20 @@ static void write_analyzer_component(FILE* f, const file_analysis::Component* c)
 	fprintf(f, ":zeek:enum:`Files::%s`\n\n", tag.c_str());
 	}
 
-static void write_plugin_components(FILE* f, const plugin::Plugin* p)
+static void write_plugin_components(FILE* f, const zeek::plugin::Plugin* p)
 	{
-	plugin::Plugin::component_list components = p->Components();
-	plugin::Plugin::component_list::const_iterator it;
+	zeek::plugin::Plugin::component_list components = p->Components();
 
 	fprintf(f, "Components\n");
 	fprintf(f, "++++++++++\n\n");
 
-	for ( it = components.begin(); it != components.end(); ++it )
+	for ( const auto& component : components )
 		{
-		switch ( (*it)->Type() ) {
-		case plugin::component::ANALYZER:
+		switch ( component->Type() ) {
+		case zeek::plugin::component::ANALYZER:
 			{
 			const analyzer::Component* c =
-			        dynamic_cast<const analyzer::Component*>(*it);
+			        dynamic_cast<const analyzer::Component*>(component);
 
 			if ( c )
 				write_analyzer_component(f, c);
@@ -78,10 +77,10 @@ static void write_plugin_components(FILE* f, const plugin::Plugin* p)
 			}
 			break;
 
-		case plugin::component::FILE_ANALYZER:
+		case zeek::plugin::component::FILE_ANALYZER:
 			{
 			const file_analysis::Component* c =
-			        dynamic_cast<const file_analysis::Component*>(*it);
+			        dynamic_cast<const file_analysis::Component*>(component);
 
 			if ( c )
 				write_analyzer_component(f, c);
@@ -90,10 +89,10 @@ static void write_plugin_components(FILE* f, const plugin::Plugin* p)
 			}
 			break;
 
-		case plugin::component::READER:
+ 		case zeek::plugin::component::READER:
 			reporter->InternalError("docs for READER component unimplemented");
 
-		case plugin::component::WRITER:
+		case zeek::plugin::component::WRITER:
 			reporter->InternalError("docs for WRITER component unimplemented");
 
 		default:
@@ -102,11 +101,11 @@ static void write_plugin_components(FILE* f, const plugin::Plugin* p)
 		}
 	}
 
-static void write_plugin_bif_items(FILE* f, const plugin::Plugin* p,
-                                plugin::BifItem::Type t, const string& heading)
+static void write_plugin_bif_items(FILE* f, const zeek::plugin::Plugin* p,
+                                zeek::plugin::BifItem::Type t, const string& heading)
 	{
-	plugin::Plugin::bif_item_list bifitems = p->BifItems();
-	plugin::Plugin::bif_item_list::iterator it = bifitems.begin();
+	zeek::plugin::Plugin::bif_item_list bifitems = p->BifItems();
+	zeek::plugin::Plugin::bif_item_list::iterator it = bifitems.begin();
 
 	while ( it != bifitems.end() )
 		{
@@ -150,11 +149,11 @@ static void WriteAnalyzerTagDefn(FILE* f, const string& module)
 	fprintf(f, "%s\n", doc->ReStructuredText().c_str());
 	}
 
-static bool ComponentsMatch(const plugin::Plugin* p, plugin::component::Type t,
+static bool ComponentsMatch(const zeek::plugin::Plugin* p, zeek::plugin::component::Type t,
                             bool match_empty = false)
 	{
-	plugin::Plugin::component_list components = p->Components();
-	plugin::Plugin::component_list::const_iterator it;
+	zeek::plugin::Plugin::component_list components = p->Components();
+	zeek::plugin::Plugin::component_list::const_iterator it;
 
 	if ( components.empty() )
 		return match_empty;
@@ -266,22 +265,22 @@ void ProtoAnalyzerTarget::DoCreateAnalyzerDoc(FILE* f) const
 
 	WriteAnalyzerTagDefn(f, "Analyzer");
 
-	plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
-	plugin::Manager::plugin_list::const_iterator it;
+	zeek::plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
+	zeek::plugin::Manager::plugin_list::const_iterator it;
 
 	for ( it = plugins.begin(); it != plugins.end(); ++it )
 		{
-		if ( ! ComponentsMatch(*it, plugin::component::ANALYZER, true) )
+		if ( ! ComponentsMatch(*it, zeek::plugin::component::ANALYZER, true) )
 			continue;
 
 		write_plugin_section_heading(f, *it);
 		write_plugin_components(f, *it);
-		write_plugin_bif_items(f, *it, plugin::BifItem::CONSTANT,
+		write_plugin_bif_items(f, *it, zeek::plugin::BifItem::CONSTANT,
 		                       "Options/Constants");
-		write_plugin_bif_items(f, *it, plugin::BifItem::GLOBAL, "Globals");
-		write_plugin_bif_items(f, *it, plugin::BifItem::TYPE, "Types");
-		write_plugin_bif_items(f, *it, plugin::BifItem::EVENT, "Events");
-		write_plugin_bif_items(f, *it, plugin::BifItem::FUNCTION, "Functions");
+		write_plugin_bif_items(f, *it, zeek::plugin::BifItem::GLOBAL, "Globals");
+		write_plugin_bif_items(f, *it, zeek::plugin::BifItem::TYPE, "Types");
+		write_plugin_bif_items(f, *it, zeek::plugin::BifItem::EVENT, "Events");
+		write_plugin_bif_items(f, *it, zeek::plugin::BifItem::FUNCTION, "Functions");
 		}
 	}
 
@@ -292,22 +291,22 @@ void FileAnalyzerTarget::DoCreateAnalyzerDoc(FILE* f) const
 
 	WriteAnalyzerTagDefn(f, "Files");
 
-	plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
-	plugin::Manager::plugin_list::const_iterator it;
+	zeek::plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
+	zeek::plugin::Manager::plugin_list::const_iterator it;
 
 	for ( it = plugins.begin(); it != plugins.end(); ++it )
 		{
-		if ( ! ComponentsMatch(*it, plugin::component::FILE_ANALYZER) )
+		if ( ! ComponentsMatch(*it, zeek::plugin::component::FILE_ANALYZER) )
 			continue;
 
 		write_plugin_section_heading(f, *it);
 		write_plugin_components(f, *it);
-		write_plugin_bif_items(f, *it, plugin::BifItem::CONSTANT,
+		write_plugin_bif_items(f, *it, zeek::plugin::BifItem::CONSTANT,
 		                       "Options/Constants");
-		write_plugin_bif_items(f, *it, plugin::BifItem::GLOBAL, "Globals");
-		write_plugin_bif_items(f, *it, plugin::BifItem::TYPE, "Types");
-		write_plugin_bif_items(f, *it, plugin::BifItem::EVENT, "Events");
-		write_plugin_bif_items(f, *it, plugin::BifItem::FUNCTION, "Functions");
+		write_plugin_bif_items(f, *it, zeek::plugin::BifItem::GLOBAL, "Globals");
+		write_plugin_bif_items(f, *it, zeek::plugin::BifItem::TYPE, "Types");
+		write_plugin_bif_items(f, *it, zeek::plugin::BifItem::EVENT, "Events");
+		write_plugin_bif_items(f, *it, zeek::plugin::BifItem::FUNCTION, "Functions");
 		}
 	}
 

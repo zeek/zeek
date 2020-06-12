@@ -5,14 +5,14 @@
 namespace plugin {
 namespace Zeek_RFB {
 
-class Plugin : public plugin::Plugin {
+class Plugin : public zeek::plugin::Plugin {
 public:
-	plugin::Configuration Configure() override
+	zeek::plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("RFB",
 		             ::analyzer::rfb::RFB_Analyzer::InstantiateAnalyzer));
 
-		plugin::Configuration config;
+		zeek::plugin::Configuration config;
 		config.name = "Zeek::RFB";
 		config.description = "Parser for rfb (VNC) analyzer";
 		return config;

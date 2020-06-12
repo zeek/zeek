@@ -160,4 +160,3 @@ refine flow NTP_Flow += {
 refine typeattr NTP_PDU += &let {
 	proc: bool = $context.flow.proc_ntp_message(this);
 };
-

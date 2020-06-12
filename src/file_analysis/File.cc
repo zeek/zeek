@@ -23,10 +23,10 @@ using namespace file_analysis;
 
 static IntrusivePtr<TableVal> empty_connection_table()
 	{
-	auto tbl_index = make_intrusive<TypeList>(zeek::id::conn_id);
+	auto tbl_index = make_intrusive<zeek::TypeList>(zeek::id::conn_id);
 	tbl_index->Append(zeek::id::conn_id);
-	auto tbl_type = make_intrusive<TableType>(std::move(tbl_index),
-	                                          zeek::id::connection);
+	auto tbl_type = make_intrusive<zeek::TableType>(std::move(tbl_index),
+	                                                        zeek::id::connection);
 	return make_intrusive<TableVal>(std::move(tbl_type));
 	}
 
@@ -170,7 +170,7 @@ double File::LookupFieldDefaultInterval(int idx) const
 	return v->AsInterval();
 	}
 
-int File::Idx(const std::string& field, const RecordType* type)
+int File::Idx(const std::string& field, const zeek::RecordType* type)
 	{
 	int rval = type->FieldOffset(field.c_str());
 

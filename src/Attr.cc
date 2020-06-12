@@ -9,6 +9,8 @@
 #include "IntrusivePtr.h"
 #include "threading/SerialTypes.h"
 
+namespace zeek::detail {
+
 const char* attr_name(attr_tag t)
 	{
 	static const char* attr_names[int(NUM_ATTRS)] = {
@@ -35,9 +37,20 @@ Attr::Attr(attr_tag t)
 	{
 	}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+Attr::Attr(::attr_tag t, IntrusivePtr<Expr> e) : Attr(static_cast<attr_tag>(t), e)
+	{
+	}
+
+Attr::Attr(::attr_tag t) : Attr(static_cast<attr_tag>(t))
+	{
+	}
+#pragma GCC diagnostic pop
+
 Attr::~Attr() = default;
 
-void Attr::SetAttrExpr(IntrusivePtr<Expr> e)
+void Attr::SetAttrExpr(IntrusivePtr<zeek::detail::Expr> e)
 	{ expr = std::move(e); }
 
 void Attr::Describe(ODesc* d) const
@@ -136,7 +149,7 @@ void Attr::AddTag(ODesc* d) const
 		d->Add(attr_name(Tag()));
 	}
 
-Attributes::Attributes(attr_list* a, IntrusivePtr<BroType> t, bool arg_in_record, bool is_global)
+Attributes::Attributes(attr_list* a, IntrusivePtr<Type> t, bool arg_in_record, bool is_global)
 	{
 	attrs.reserve(a->length());
 	in_record = arg_in_record;
@@ -154,14 +167,14 @@ Attributes::Attributes(attr_list* a, IntrusivePtr<BroType> t, bool arg_in_record
 	delete a;
 	}
 
-Attributes::Attributes(IntrusivePtr<BroType> t,
+Attributes::Attributes(IntrusivePtr<Type> t,
                        bool arg_in_record, bool is_global)
     : Attributes(std::vector<IntrusivePtr<Attr>>{}, std::move(t),
                  arg_in_record, is_global)
     {}
 
 Attributes::Attributes(std::vector<IntrusivePtr<Attr>> a,
-                       IntrusivePtr<BroType> t,
+                       IntrusivePtr<Type> t,
                        bool arg_in_record, bool is_global)
 	: type(std::move(t))
 	{
@@ -243,6 +256,19 @@ void Attributes::RemoveAttr(attr_tag t)
 			++it;
 		}
 	}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+Attr* Attributes::FindAttr(::attr_tag t) const
+	{
+	return FindAttr(static_cast<attr_tag>(t));
+	}
+
+void Attributes::RemoveAttr(::attr_tag t)
+	{
+	RemoveAttr(static_cast<attr_tag>(t));
+	}
+#pragma GCC diagnostic pop
 
 void Attributes::Describe(ODesc* d) const
 	{
@@ -663,3 +689,5 @@ bool Attributes::operator==(const Attributes& other) const
 
 	return true;
 	}
+
+}

@@ -23,7 +23,8 @@
 
 class Frame;
 class Func;
-class VectorType;
+
+ZEEK_FORWARD_DECLARE_NAMESPACED(VectorType, zeek);
 
 namespace bro_broker {
 
@@ -396,9 +397,9 @@ private:
 
 	size_t log_batch_size;
 	Func* log_topic_func;
-	IntrusivePtr<VectorType> vector_of_data_type;
-	EnumType* log_id_type;
-	EnumType* writer_id_type;
+	IntrusivePtr<zeek::VectorType> vector_of_data_type;
+	zeek::EnumType* log_id_type;
+	zeek::EnumType* writer_id_type;
 
 	static int script_scope;
 };

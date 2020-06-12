@@ -7,13 +7,13 @@
 namespace plugin {
 namespace Zeek_PE {
 
-class Plugin : public plugin::Plugin {
+class Plugin : public zeek::plugin::Plugin {
 public:
-	plugin::Configuration Configure() override
+	zeek::plugin::Configuration Configure() override
 		{
 		AddComponent(new ::file_analysis::Component("PE", ::file_analysis::PE::Instantiate));
 
-		plugin::Configuration config;
+		zeek::plugin::Configuration config;
 		config.name = "Zeek::PE";
 		config.description = "Portable Executable analyzer";
 		return config;

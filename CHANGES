@@ -1,4 +1,32 @@
 
+3.2.0-dev.779 | 2020-06-11 23:17:46 -0700
+
+  * Rename BroType to zeek::Type (Tim Wojtulewicz, Corelight)
+
+  * Move Type types to zeek namespace (Tim Wojtulewicz, Corelight)
+
+  * Move Flare/Pipe from the bro namespace to zeek::detail (Tim Wojtulewicz, Corelight)
+
+  * Move Attr to the zeek::detail namespace (Tim Wojtulewicz, Corelight)
+
+  * Move Trigger into the zeek::detail namespace (Tim Wojtulewicz, Corelight)
+
+  * Move ID to the zeek::detail namespace (Tim Wojtulewicz, Corelight)
+
+  * Move Anon.h into zeek::detail namespace (Tim Wojtulewicz, Corelight)
+
+  * Mark all of the aliased classes in plugin/Plugin.h deprecated (Tim Wojtulewicz, Corelight)
+
+    And fix all of the plugins that were using them
+
+  * Move all of the base plugin classes into the zeek::plugin namespace (Tim Wojtulewicz, Corelight)
+
+  * Expr: move all classes into zeek::detail (Tim Wojtulewicz, Corelight)
+
+  * Stmt: move Stmt classes into zeek::detail namespace (Tim Wojtulewicz, Corelight)
+
+  * Add utility macro for creating namespaced aliases for classes (Tim Wojtulewicz, Corelight)
+
 3.2.0-dev.763 | 2020-06-10 16:34:31 -0700
 
   * Optimize Connection::RemovalEvent() for bare-mode usage (Jon Siwek, Corelight)

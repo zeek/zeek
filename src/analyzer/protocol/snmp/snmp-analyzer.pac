@@ -61,14 +61,14 @@ IntrusivePtr<Val> asn1_obj_to_val(const ASN1Encoding* obj)
 		break;
 
 	case ASN1_INTEGER_TAG:
-		rval->Assign(2, asn1_integer_to_val(obj, TYPE_INT));
+		rval->Assign(2, asn1_integer_to_val(obj, zeek::TYPE_INT));
 		break;
 
 	case APP_COUNTER32_TAG:
 	case APP_UNSIGNED32_TAG:
 	case APP_TIMETICKS_TAG:
 	case APP_COUNTER64_TAG:
-		rval->Assign(3, asn1_integer_to_val(obj, TYPE_COUNT));
+		rval->Assign(3, asn1_integer_to_val(obj, zeek::TYPE_COUNT));
 		break;
 
 	case APP_IPADDRESS_TAG:
@@ -87,7 +87,7 @@ IntrusivePtr<Val> asn1_obj_to_val(const ASN1Encoding* obj)
 
 IntrusivePtr<Val> time_ticks_to_val(const TimeTicks* tt)
 	{
-	return asn1_integer_to_val(tt->asn1_integer(), TYPE_COUNT);
+	return asn1_integer_to_val(tt->asn1_integer(), zeek::TYPE_COUNT);
 	}
 
 IntrusivePtr<RecordVal> build_hdr(const Header* header)
@@ -130,13 +130,13 @@ IntrusivePtr<RecordVal> build_hdrV3(const Header* header)
 	bytestring const& flags = global_data->flags()->encoding()->content();
 	uint8 flags_byte = flags.length() > 0 ? flags[0] : 0;
 
-	v3->Assign(0, asn1_integer_to_val(global_data->id(), TYPE_COUNT));
-	v3->Assign(1, asn1_integer_to_val(global_data->max_size(), TYPE_COUNT));
+	v3->Assign(0, asn1_integer_to_val(global_data->id(), zeek::TYPE_COUNT));
+	v3->Assign(1, asn1_integer_to_val(global_data->max_size(), zeek::TYPE_COUNT));
 	v3->Assign(2, val_mgr->Count(flags_byte));
 	v3->Assign(3, val_mgr->Bool(flags_byte & 0x01));
 	v3->Assign(4, val_mgr->Bool(flags_byte & 0x02));
 	v3->Assign(5, val_mgr->Bool(flags_byte & 0x04));
-	v3->Assign(6, asn1_integer_to_val(global_data->security_model(), TYPE_COUNT));
+	v3->Assign(6, asn1_integer_to_val(global_data->security_model(), zeek::TYPE_COUNT));
 	v3->Assign(7, asn1_octet_string_to_val(v3hdr->security_parameters()));
 
 	if ( v3hdr->next()->tag() == ASN1_SEQUENCE_TAG )
@@ -170,9 +170,9 @@ IntrusivePtr<VectorVal> build_bindings(const VarBindList* vbl)
 IntrusivePtr<RecordVal> build_pdu(const CommonPDU* pdu)
 	{
 	auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::SNMP::PDU);
-	rv->Assign(0, asn1_integer_to_val(pdu->request_id(), TYPE_INT));
-	rv->Assign(1, asn1_integer_to_val(pdu->error_status(), TYPE_INT));
-	rv->Assign(2, asn1_integer_to_val(pdu->error_index(), TYPE_INT));
+	rv->Assign(0, asn1_integer_to_val(pdu->request_id(), zeek::TYPE_INT));
+	rv->Assign(1, asn1_integer_to_val(pdu->error_status(), zeek::TYPE_INT));
+	rv->Assign(2, asn1_integer_to_val(pdu->error_index(), zeek::TYPE_INT));
 	rv->Assign(3, build_bindings(pdu->var_bindings()));
 	return rv;
 	}
@@ -182,8 +182,8 @@ IntrusivePtr<RecordVal> build_trap_pdu(const TrapPDU* pdu)
 	auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::SNMP::TrapPDU);
 	rv->Assign(0, asn1_oid_to_val(pdu->enterprise()));
 	rv->Assign(1, network_address_to_val(pdu->agent_addr()));
-	rv->Assign(2, asn1_integer_to_val(pdu->generic_trap(), TYPE_INT));
-	rv->Assign(3, asn1_integer_to_val(pdu->specific_trap(), TYPE_INT));
+	rv->Assign(2, asn1_integer_to_val(pdu->generic_trap(), zeek::TYPE_INT));
+	rv->Assign(3, asn1_integer_to_val(pdu->specific_trap(), zeek::TYPE_INT));
 	rv->Assign(4, time_ticks_to_val(pdu->time_stamp()));
 	rv->Assign(5, build_bindings(pdu->var_bindings()));
 	return rv;
@@ -192,9 +192,9 @@ IntrusivePtr<RecordVal> build_trap_pdu(const TrapPDU* pdu)
 IntrusivePtr<RecordVal> build_bulk_pdu(const GetBulkRequestPDU* pdu)
 	{
 	auto rv = make_intrusive<RecordVal>(zeek::BifType::Record::SNMP::BulkPDU);
-	rv->Assign(0, asn1_integer_to_val(pdu->request_id(), TYPE_INT));
-	rv->Assign(1, asn1_integer_to_val(pdu->non_repeaters(), TYPE_COUNT));
-	rv->Assign(2, asn1_integer_to_val(pdu->max_repititions(), TYPE_COUNT));
+	rv->Assign(0, asn1_integer_to_val(pdu->request_id(), zeek::TYPE_INT));
+	rv->Assign(1, asn1_integer_to_val(pdu->non_repeaters(), zeek::TYPE_COUNT));
+	rv->Assign(2, asn1_integer_to_val(pdu->max_repititions(), zeek::TYPE_COUNT));
 	rv->Assign(3, build_bindings(pdu->var_bindings()));
 	return rv;
 	}
@@ -373,7 +373,7 @@ refine connection SNMP_Conn += {
 		%{
 		if ( ! ${rec.is_orig} )
 			bro_analyzer()->ProtocolConfirmation();
- 
+
 		if ( rec->unknown() )
 			return false;
 

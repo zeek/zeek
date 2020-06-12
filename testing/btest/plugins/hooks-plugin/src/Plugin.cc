@@ -11,21 +11,21 @@ namespace plugin { namespace Demo_Hooks { Plugin plugin; } }
 
 using namespace plugin::Demo_Hooks;
 
-plugin::Configuration Plugin::Configure()
+zeek::plugin::Configuration Plugin::Configure()
 	{
-	EnableHook(HOOK_LOAD_FILE);
-	EnableHook(HOOK_CALL_FUNCTION);
-	EnableHook(HOOK_QUEUE_EVENT);
-	EnableHook(HOOK_DRAIN_EVENTS);
-	EnableHook(HOOK_UPDATE_NETWORK_TIME);
-	EnableHook(META_HOOK_PRE);
-	EnableHook(META_HOOK_POST);
-	EnableHook(HOOK_BRO_OBJ_DTOR);
-	EnableHook(HOOK_SETUP_ANALYZER_TREE);
-	EnableHook(HOOK_LOG_INIT);
-	EnableHook(HOOK_LOG_WRITE);
+	EnableHook(zeek::plugin::HOOK_LOAD_FILE);
+	EnableHook(zeek::plugin::HOOK_CALL_FUNCTION);
+	EnableHook(zeek::plugin::HOOK_QUEUE_EVENT);
+	EnableHook(zeek::plugin::HOOK_DRAIN_EVENTS);
+	EnableHook(zeek::plugin::HOOK_UPDATE_NETWORK_TIME);
+	EnableHook(zeek::plugin::META_HOOK_PRE);
+	EnableHook(zeek::plugin::META_HOOK_POST);
+	EnableHook(zeek::plugin::HOOK_BRO_OBJ_DTOR);
+	EnableHook(zeek::plugin::HOOK_SETUP_ANALYZER_TREE);
+	EnableHook(zeek::plugin::HOOK_LOG_INIT);
+	EnableHook(zeek::plugin::HOOK_LOG_WRITE);
 
-	plugin::Configuration config;
+	zeek::plugin::Configuration config;
 	config.name = "Demo::Hooks";
 	config.description = "Exercises all plugin hooks";
 	config.version.major = 1;
@@ -34,11 +34,11 @@ plugin::Configuration Plugin::Configure()
 	return config;
 	}
 
-static void describe_hook_args(const plugin::HookArgumentList& args, ODesc* d)
+static void describe_hook_args(const zeek::plugin::HookArgumentList& args, ODesc* d)
 	{
 	bool first = true;
 
-	for ( plugin::HookArgumentList::const_iterator i = args.begin(); i != args.end(); i++ )
+	for ( zeek::plugin::HookArgumentList::const_iterator i = args.begin(); i != args.end(); i++ )
 		{
 		if ( ! first )
 			d->Add(", ");
@@ -59,8 +59,8 @@ std::pair<bool, Val*> Plugin::HookCallFunction(const Func* func, Frame* frame, v
 	{
 	ODesc d;
 	d.SetShort();
-	HookArgument(func).Describe(&d);
-	HookArgument(args).Describe(&d);
+	zeek::plugin::HookArgument(func).Describe(&d);
+	zeek::plugin::HookArgument(args).Describe(&d);
 	fprintf(stderr, "%.6f %-15s %s\n", network_time, "| HookCallFunction",
 		d.Description());
 
@@ -71,7 +71,7 @@ bool Plugin::HookQueueEvent(Event* event)
 	{
 	ODesc d;
 	d.SetShort();
-	HookArgument(event).Describe(&d);
+	zeek::plugin::HookArgument(event).Describe(&d);
 	fprintf(stderr, "%.6f %-15s %s\n", network_time, "| HookQueueEvent",
 		d.Description());
 
@@ -105,7 +105,7 @@ void Plugin::HookBroObjDtor(void* obj)
 	fprintf(stderr, "%.6f  %-15s\n", ::network_time, "| HookBroObjDtor");
 	}
 
-void Plugin::MetaHookPre(HookType hook, const HookArgumentList& args)
+void Plugin::MetaHookPre(zeek::plugin::HookType hook, const zeek::plugin::HookArgumentList& args)
 	{
 	ODesc d;
 	d.SetShort();
@@ -114,7 +114,7 @@ void Plugin::MetaHookPre(HookType hook, const HookArgumentList& args)
 		hook_name(hook), d.Description());
 	}
 
-void Plugin::MetaHookPost(HookType hook, const HookArgumentList& args, HookArgument result)
+void Plugin::MetaHookPost(zeek::plugin::HookType hook, const zeek::plugin::HookArgumentList& args, zeek::plugin::HookArgument result)
 	{
 	ODesc d1;
 	d1.SetShort();

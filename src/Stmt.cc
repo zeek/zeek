@@ -2256,7 +2256,7 @@ IntrusivePtr<Val> CatchReturnStmt::Exec(Frame* f, stmt_flow_type& flow) const
 		flow = FLOW_NEXT;
 
 	if ( ret_var )
-		f->SetElement(ret_var->Id()->Offset(), val.get());
+		f->SetElement(ret_var->Id()->Offset(), val.release());
 
 	// Note, do *not* return the value!  That's taken as a signal
 	// that a full return executed.

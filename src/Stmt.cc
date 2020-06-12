@@ -7,6 +7,7 @@
 #include "CompHash.h"
 #include "Expr.h"
 #include "Event.h"
+#include "Func.h"
 #include "Frame.h"
 #include "File.h"
 #include "Reporter.h"
@@ -1137,8 +1138,27 @@ ForStmt::ForStmt(id_list* arg_loop_vars, IntrusivePtr<Expr> loop_expr)
 			return;
 			}
 		}
+	else if ( e->GetType()->Tag() == TYPE_SUBNET )
+		{
+		if ( loop_vars->length() != 1 )
+			{
+			e->Error("iterating over a subnet requires only a single index type");
+			return;
+			}
+
+		const auto& t = (*loop_vars)[0]->GetType();
+
+		if ( ! t )
+			add_local({NewRef{}, (*loop_vars)[0]}, base_type(TYPE_ADDR),
+			          INIT_NONE, nullptr, nullptr, VAR_REGULAR);
+		else if ( t->Tag() != TYPE_ADDR )
+			{
+			e->Error("subnet iterator variable in \"for\" loop must be an \"addr\"");
+			return;
+			}
+		}
 	else
-		e->Error("target to iterate over must be a table, set, vector, or string");
+		e->Error("target to iterate over must be a table, set, vector, subnet, or string");
 	}
 
 ForStmt::ForStmt(id_list* arg_loop_vars,
@@ -1257,6 +1277,38 @@ IntrusivePtr<Val> ForStmt::DoExec(Frame* f, Val* v, stmt_flow_type& flow) const
 			}
 		}
 
+	else if ( v->GetType()->Tag() == TYPE_SUBNET )
+		{
+		auto snval = v->AsSubNetVal();
+		auto width = snval->Width();
+		const auto& prefix = snval->Prefix();
+		auto total_bits = prefix.GetFamily() == IPv4 ? 32 : 128;
+		auto bits = total_bits - width;
+
+		if ( bits > 32 )
+			reporter->RuntimeError(GetLocationInfo(),
+			                       "iteration over subnet with more than 2^32 "
+			                       "addrs not supported, call stack: %s",
+			                       render_call_stack().data());
+
+		size_t addr_count = 1 << bits;
+		in6_addr bytes_storage;
+		auto bytes_ptr = reinterpret_cast<uint32_t*>(&bytes_storage);
+		prefix.CopyIPv6(bytes_ptr, IPAddr::Host);
+		auto low_bytes_ptr = bytes_ptr + 3;
+
+		for ( size_t i = 0; i < addr_count; ++i )
+			{
+			auto av = make_intrusive<AddrVal>(IPAddr(IPv6, bytes_ptr, IPAddr::Host));
+			(*low_bytes_ptr)++;
+			f->SetElement((*loop_vars)[0], std::move(av));
+			flow = FLOW_NEXT;
+			ret = body->Exec(f, flow);
+
+			if ( flow == FLOW_BREAK || flow == FLOW_RETURN )
+				break;
+			}
+		}
 	else
 		e->Error("Invalid type in for-loop execution");
 

@@ -134,8 +134,9 @@ void RD_Decorate::TraverseFunction(const Func* f, Scope* scope,
 
 	if ( analysis_options.rd_trace )
 		{
-		printf("traversing function %s, post RDs:\n", f->Name());
-		mgr.GetPostMaxRDs(f)->Dump();
+		printf("traversing function %s, post min RDs:\n", f->Name());
+		mgr.GetPostMinRDs(f)->Dump();
+		// mgr.GetPostMaxRDs(f)->Dump();
 		}
 
 	mgr.SetPreFromPost(body.get(), f);
@@ -225,9 +226,9 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 
 			if ( analysis_options.rd_trace )
 				{
-				printf("post RDs for stmt %s:\n", obj_desc(stmt));
-				// mgr.GetPostMinRDs(stmt)->Dump();
-				mgr.GetPostMaxRDs(stmt)->Dump();
+				printf("post min RDs for stmt %s:\n", obj_desc(stmt));
+				mgr.GetPostMinRDs(stmt)->Dump();
+				// mgr.GetPostMaxRDs(stmt)->Dump();
 				printf("\n");
 				}
 
@@ -679,6 +680,14 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		mgr.CreatePostRDsFromPre(s);
 		break;
 	}
+
+	if ( analysis_options.rd_trace )
+		{
+		printf("post min RDs for stmt %s:\n", obj_desc(s));
+		mgr.GetPostMinRDs(s)->Dump();
+		// mgr.GetPostMaxRDs(s)->Dump();
+		printf("\n");
+		}
 
 	return TC_CONTINUE;
 	}

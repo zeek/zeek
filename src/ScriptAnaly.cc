@@ -551,10 +551,13 @@ void RD_Decorate::DoLoopConfluence(const Stmt* s, const Stmt* top,
 		// around the loop.
 		mgr.MergeIntoPre(top, loop_post);
 
-		// We don't have to worry about block-defs as it's
-		// simply an expression evaluation, no next/break's.
-		top->Traverse(this);
-		mgr.MergeIntoPre(body, mgr.GetPostMaxRDs(top));
+		if ( top != body )
+			{
+			// Don't have to worry about block-defs as it's
+			// simply an expression evaluation, no next/break's.
+			top->Traverse(this);
+			mgr.MergeIntoPre(body, mgr.GetPostMaxRDs(top));
+			}
 
 		auto bd2 = new BlockDefs(false);
 		block_defs.push_back(bd2);
@@ -693,7 +696,7 @@ void RD_Decorate::AddBlockDefs(const Stmt* s,
 
 	// Walk backward through the block defs finding the appropriate
 	// match to this one.
-	for ( auto i = block_defs.size() - 1; i >= 0; --i )
+	for ( int i = block_defs.size() - 1; i >= 0; --i )
 		{
 		auto bd = block_defs[i];
 

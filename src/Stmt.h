@@ -64,6 +64,12 @@ extern void do_print(const std::vector<IntrusivePtr<Val>>& vals);
 class ExprStmt : public Stmt {
 public:
 	explicit ExprStmt(IntrusivePtr<Expr> e);
+
+	// This constructor is only meant for internal use, but it's
+	// not protected since IntrusivePtr<ExprStmt>'s mask the actual
+	// caller, not allowing us to use "friend" for protected access.
+	ExprStmt(BroStmtTag t, IntrusivePtr<Expr> e);
+
 	~ExprStmt() override;
 
 	IntrusivePtr<Val> Exec(Frame* f, stmt_flow_type& flow) const override;
@@ -76,8 +82,6 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
-	ExprStmt(BroStmtTag t, IntrusivePtr<Expr> e);
-
 	virtual IntrusivePtr<Val> DoExec(Frame* f, Val* v, stmt_flow_type& flow) const;
 
 	bool IsPure() const override;

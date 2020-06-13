@@ -1556,7 +1556,11 @@ Stmt* WhileStmt::DoReduce(Reducer* c)
 
 	body = {AdoptRef{}, body->Reduce(c)};
 
-	stmt_loop_condition = make_intrusive<ExprStmt>(loop_condition);
+	// We use the more involved ExprStmt constructor here to bypass
+	// its check for whether the expression is being ignored, since
+	// we're not actually creating an ExprStmt for execution.
+	stmt_loop_condition =
+		make_intrusive<ExprStmt>(STMT_EXPR, loop_condition);
 
 	if ( loop_cond_stmt )
 		loop_cond_stmt = {AdoptRef{}, loop_cond_stmt.get()->Reduce(c)};

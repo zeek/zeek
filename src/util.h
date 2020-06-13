@@ -61,11 +61,6 @@ extern HeapLeakChecker* heap_checker;
 #include <pthread_np.h>
 #endif
 
-// Note: macro for internal use only during deprecation/namespacing process.
-#define ZEEK_FORWARD_DECLARE_NAMESPACED(cls, ns) \
-	namespace ns { class cls; } \
-	using cls [[deprecated("Remove in v4.1. Use " #ns "::" #cls " instead.")]] = ns::cls;
-
 [[deprecated("Remove in v4.1. Use uint64_t instead.")]]
 typedef uint64_t uint64;
 [[deprecated("Remove in v4.1. Use uint32_t instead.")]]

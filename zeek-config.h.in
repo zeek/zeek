@@ -274,3 +274,8 @@ extern const char* BRO_VERSION_FUNCTION();
 	#define ZEEK_LSAN_DISABLE(x)
 	#define ZEEK_LSAN_DISABLE_SCOPE(x)
 #endif
+
+// Note: macro for internal use only during deprecation/namespacing process.
+#define ZEEK_FORWARD_DECLARE_NAMESPACED(cls, ns) \
+	namespace ns { class cls; } \
+	using cls [[deprecated("Remove in v4.1. Use " #ns "::" #cls " instead.")]] = ns::cls;

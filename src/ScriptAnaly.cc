@@ -95,11 +95,6 @@ protected:
 	const ProfileFunc* pf;
 	DefSetsMgr mgr;
 	vector<BlockDefs*> block_defs;
-
-	// How far we are into catch-return's.  All that really matters
-	// is whether this is > 0, in which case "returns" propagate
-	// their pre-RDs to their post-RDs.
-	int inline_level = 0;
 };
 
 
@@ -185,12 +180,15 @@ TraversalCode RD_Decorate::PreStmt(const Stmt* s)
 		auto ret_var = cr->RetVar();
 
 		mgr.SetPreFromPre(block, s);
-
-		++inline_level;
 		block->Traverse(this);
-		--inline_level;
 
-		mgr.SetPostFromPost(s, block);
+		// Treat the block as a no-op for analyzing RDs,
+		// since it shouldn't affect the definition status of
+		// any of the RDs outside of it.  (The one exception is
+		// for globals, which we address by doing a SyncGlobals()
+		// for inlined returns.)  The only question is how to
+		// propagate RDs relating to the return value.
+		mgr.SetPostFromPre(s);
 
 		if ( ret_var )
 			{
@@ -632,18 +630,15 @@ TraversalCode RD_Decorate::PostStmt(const Stmt* s)
 		}
 
 	case STMT_RETURN:
-		if ( inline_level > 0 )
-			// Propagate our pre-RDs to our post-RDs, so that
-			// RDs from the beginning of the inlined function
-			// can make it to the end.  Note that all we really
-			// need here is to apply this to *globals*, since
-			// all other RDs we can affect are local to the
-			// inlined function and so irrelevant outside it.
-			// However, it's easiest to just propagate them all.
-			mgr.SetPostFromPre(s);
-		else
-			// No RDs make it past an "uncaught" return.
-			CreateEmptyPostRDs(s);
+		// No RDs make it past a return.  It's tempting to alter
+		// this for inlined "caught" returns, since changes to
+		// globals *do* make it past them.  However, doing so
+		// is inconsistent with ControlCouldReachEnd() treating
+		// such returns as not having control flow go beyond them;
+		// and changing ControlCouldReachEnd() would be incorrect
+		// since it's about *immediate* control flow, not broader
+		// control flow.
+		CreateEmptyPostRDs(s);
 		break;
 
 	case STMT_NEXT:

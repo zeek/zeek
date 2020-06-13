@@ -2071,10 +2071,18 @@ const CompiledStmt ZAM::Return(const ReturnStmt* r)
 	{
 	auto e = r->StmtExpr();
 
+	// We could consider only doing this sync for "true" returns
+	// and not for catch-return's.  To make that work, however,
+	// would require propagating the "dirty" status of globals
+	// modified inside an inlined function.  These changes aren't
+	// visible because RDs don't propagate across return's, even
+	// inlined ones.  See the coment in for STMT_RETURN's in
+	// RD_Decorate::PostStmt for why we can't simply propagate
+	// RDs in this case.
+	SyncGlobals(r);
+
 	if ( retvars.size() == 0 )
 		{ // a "true" return
-		SyncGlobals(r);
-
 		if ( e )
 			{
 			if ( e->Tag() == EXPR_NAME )

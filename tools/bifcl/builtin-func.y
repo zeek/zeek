@@ -379,7 +379,7 @@ type_def:	TOK_TYPE opt_ws TOK_ID opt_ws ':' opt_ws type_def_types opt_ws ';'
 			{
 			set_decl_name($3);
 
-			fprintf(fp_netvar_h, "namespace zeek { %s extern IntrusivePtr<zeek::%sType> %s; %s}\n",
+			fprintf(fp_netvar_h, "namespace zeek { %s extern zeek::IntrusivePtr<zeek::%sType> %s; %s}\n",
 				decl.c_namespace_start.c_str(), type_name.c_str(),
 				decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 			fprintf(fp_netvar_h, "%s [[deprecated(\"Remove in v4.1.  Use zeek::%s.\")]] extern zeek::%sType * %s; %s\n",
@@ -387,7 +387,7 @@ type_def:	TOK_TYPE opt_ws TOK_ID opt_ws ':' opt_ws type_def_types opt_ws ';'
 				decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 
 
-			fprintf(fp_netvar_def, "namespace zeek { %s IntrusivePtr<zeek::%sType> %s; %s}\n",
+			fprintf(fp_netvar_def, "namespace zeek { %s zeek::IntrusivePtr<zeek::%sType> %s; %s}\n",
 				decl.c_namespace_start.c_str(), type_name.c_str(),
 				decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 			fprintf(fp_netvar_def, "%s zeek::%sType * %s; %s\n",
@@ -453,13 +453,13 @@ enum_def:	enum_def_1 enum_list TOK_RPB opt_attr_list
 				fprintf(fp_netvar_h, "}; }\n");
 
 			// Now generate the netvar's.
-			fprintf(fp_netvar_h, "namespace zeek { %s extern IntrusivePtr<zeek::EnumType> %s; %s}\n",
+			fprintf(fp_netvar_h, "namespace zeek { %s extern zeek::IntrusivePtr<zeek::EnumType> %s; %s}\n",
 				decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 			fprintf(fp_netvar_h, "%s [[deprecated(\"Remove in v4.1.  Use zeek::%s.\")]] extern zeek::EnumType * %s; %s\n",
 				decl.c_namespace_start.c_str(), decl.c_fullname.c_str(),
 				decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 
-			fprintf(fp_netvar_def, "namespace zeek { %s IntrusivePtr<zeek::EnumType> %s; %s}\n",
+			fprintf(fp_netvar_def, "namespace zeek { %s zeek::IntrusivePtr<zeek::EnumType> %s; %s}\n",
 				decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 			fprintf(fp_netvar_def, "%s zeek::EnumType * %s; %s\n",
 				decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());

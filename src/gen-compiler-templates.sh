@@ -866,7 +866,7 @@ function expand_eval(e, pre_eval, this_type, is_expr_op, otype1, otype2, is_var1
 		else if ( is_var1 || is_var2 )
 			branch_target = "v2"
 
-		cond_eval = "if ( ! (" cond_eval ") ) pc = z." branch_target ";"
+		cond_eval = "if ( ! (" cond_eval ") ) { pc = z." branch_target "; continue; }"
 		}
 	else
 		cond_eval = ""

@@ -320,7 +320,8 @@ public:
 		is_in_record |= mask;
 		}
 
-	// Direct access to fields for assignment or clearing.
+	// Direct access to fields for assignment or clearing.  *The caller
+	// is expected to deal with memory management.*
 	ZAMValUnion& SetField(unsigned int field)
 		{
 		is_in_record |= (1UL << field);

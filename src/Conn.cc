@@ -412,7 +412,9 @@ RecordVal* Connection::BuildConnVal()
 
 	cdr->SetField(3).double_val = start_time;
 	cdr->SetField(4).double_val = last_time - start_time;
-	cdr->SetField(6).string_val = new StringVal(history.c_str());
+	auto& hist = cdr->SetField(6);
+	Unref(hist.string_val);
+	hist.string_val = new StringVal(history.c_str());
 	cdr->SetField(11).uint_val = is_successful;
 
 	conn_val->SetOrigin(this);

@@ -736,7 +736,7 @@ eval delete frame[z.v1].vvec
 op Return
 type X
 eval ret_u = nullptr
-eval pc = end_pc
+eval pc = end_pc; continue
 
 op Return
 op1-read
@@ -744,13 +744,13 @@ type V
 set-type $1
 eval ret_u = &frame[z.v1]
 eval ret_type = z.t
-eval pc = end_pc
+eval pc = end_pc; continue
 
 op Return
 type C
 eval ret_u = &z.c
 eval ret_type = z.t
-eval pc = end_pc
+eval pc = end_pc; continue
 
 
 # Branch on the value of v1 using switch table v2, with default branch to v3
@@ -760,7 +760,8 @@ op1-read
 eval auto v = frame[z.v1].int_val
 eval auto t = int_cases[z.v2]
 eval if ( t.find(v) == t.end() ) pc = z.v3
-eval else { pc = t[v]->inst_num; continue; }
+eval else pc = t[v]->inst_num
+eval continue
 
 internal-op SwitchU
 op1-read
@@ -768,7 +769,8 @@ type VVV
 eval auto v = frame[z.v1].uint_val
 eval auto t = uint_cases[z.v2]
 eval if ( t.find(v) == t.end() ) pc = z.v3
-eval else { pc = t[v]->inst_num; continue; }
+eval else pc = t[v]->inst_num
+eval continue
 
 internal-op SwitchD
 op1-read
@@ -776,7 +778,8 @@ type VVV
 eval auto v = frame[z.v1].double_val
 eval auto t = double_cases[z.v2]
 eval if ( t.find(v) == t.end() ) pc = z.v3
-eval else { pc = t[v]->inst_num; continue; }
+eval else pc = t[v]->inst_num
+eval continue
 
 internal-op SwitchS
 op1-read
@@ -785,8 +788,9 @@ eval auto vs = frame[z.v1].string_val->AsString()->Render()
 eval std::string v(vs)
 eval auto t = str_cases[z.v2]
 eval if ( t.find(v) == t.end() ) pc = z.v3
-eval else { pc = t[v]->inst_num; continue; }
+eval else pc = t[v]->inst_num
 eval delete[] vs
+eval continue
 
 internal-op SwitchA
 op1-read
@@ -794,7 +798,8 @@ type VVV
 eval auto v = frame[z.v1].addr_val->AsAddr().AsString()
 eval auto t = str_cases[z.v2]
 eval if ( t.find(v) == t.end() ) pc = z.v3
-eval else { pc = t[v]->inst_num; continue; }
+eval else pc = t[v]->inst_num
+eval continue
 
 internal-op SwitchN
 op1-read
@@ -802,14 +807,15 @@ type VVV
 eval auto v = frame[z.v1].subnet_val->AsSubNet().AsString()
 eval auto t = str_cases[z.v2]
 eval if ( t.find(v) == t.end() ) pc = z.v3
-eval else { pc = t[v]->inst_num; continue; }
+eval else pc = t[v]->inst_num
+eval continue
 
 
 internal-op Branch-If-Not-Type
 op1-read
 type VV
 eval auto v = frame[z.v1].any_val
-eval if ( ! can_cast_value_to_type(v, z.t) ) pc = z.v2;
+eval if ( ! can_cast_value_to_type(v, z.t) ) { pc = z.v2; continue; }
 
 
 internal-op Init-Table-Loop
@@ -828,7 +834,7 @@ type VV
 eval HashKey* k
 eval auto ii = frame[z.v1].iter_info
 eval TableEntryVal* current_tev = ii->loop_vals->NextEntry(k, ii->c)
-eval if ( ! current_tev ) { pc = z.v2; break; }
+eval if ( ! current_tev ) { pc = z.v2; continue; }
 eval auto ind_lv = ii->tv->RecoverIndex(k);
 eval delete k
 eval for ( int i = 0; i < ind_lv->Length(); i++ ) {
@@ -847,7 +853,7 @@ type VVV
 eval HashKey* k
 eval auto ii = frame[z.v2].iter_info
 eval TableEntryVal* current_tev = ii->loop_vals->NextEntry(k, ii->c)
-eval if ( ! current_tev ) { pc = z.v3; break; }
+eval if ( ! current_tev ) { pc = z.v3; continue; }
 eval auto ind_lv = ii->tv->RecoverIndex(k);
 eval delete k
 eval IntrusivePtr<Val> tev_p = {NewRef{}, current_tev->Value()}
@@ -875,7 +881,7 @@ eval frame[z.v1].iter_info = ii
 internal-op Next-Vector-Iter
 type VVV
 eval auto ii = frame[z.v2].iter_info
-eval if ( ii->iter >= ii->n ) { pc = z.v3; break; }
+eval if ( ii->iter >= ii->n ) { pc = z.v3; continue; }
 eval auto& vv = ii->vv->ConstVec()
 eval if ( vv[ii->iter].IsNil(ii->yield_type) ) { ++ii->iter; --pc; break; }
 eval frame[z.v1].uint_val = ii->iter
@@ -895,7 +901,7 @@ internal-op Next-String-Iter
 type VVV
 eval auto ii = frame[z.v2].iter_info
 eval auto sval = ii->s
-eval if ( ii->iter >= ii->n ) { pc = z.v3; break; }
+eval if ( ii->iter >= ii->n ) { pc = z.v3; continue; }
 eval auto bytes = (const char*) sval->Bytes() + ii->iter
 eval auto sv = new StringVal(1, bytes)
 eval Unref(frame[z.v1].string_val)
@@ -963,17 +969,17 @@ eval do_print(vals)
 internal-op If-Else
 op1-read
 type VV
-eval if ( ! frame[z.v1].int_val ) pc = z.v2
+eval if ( ! frame[z.v1].int_val ) { pc = z.v2; continue; }
 
 internal-op If
 op1-read
 type VV
-eval if ( ! frame[z.v1].int_val ) pc = z.v2
+eval if ( ! frame[z.v1].int_val ) { pc = z.v2; continue; }
 
 internal-op If-Not
 op1-read
 type VV
-eval if ( frame[z.v1].int_val ) pc = z.v2
+eval if ( frame[z.v1].int_val ) { pc = z.v2; continue; }
 
 
 op AddStmt
@@ -1166,11 +1172,13 @@ eval frame[z.v1].any_val = z.e->Eval(f).release()
 internal-op GoTo
 type V
 eval pc = z.v1
+eval continue
 
 internal-op Hook-Break
 type X
 eval flow = FLOW_BREAK
 eval pc = end_pc
+eval continue
 
 
 # Make sure that the given vector-of-any is either empty or in fact

@@ -358,10 +358,6 @@ Stmt* ZAM::CompileBody()
 			else
 				t = inst->target->inst_num;
 
-			// Decrement because our model is the PC will be
-			// incremented after executing the statement.
-			--t;
-
 			switch ( inst->target_slot ) {
 			case 1:	inst->v1 = t; break;
 			case 2:	inst->v2 = t; break;
@@ -445,12 +441,15 @@ void ZAM::Init()
 			(void) AddToFrame(l);
 		}
 
-	// Complain about unused aggregates.
-	for ( auto a : pf->inits )
-		{
-		if ( pf->locals.find(a) == pf->locals.end() )
-			reporter->Warning("%s unused", a->Name());
-		}
+	// Complain about unused aggregates ... but not if we're inlining,
+	// as that can lead to optimizations where they wind up being unused
+	// but the original logic for using them was sound.
+	if ( ! analysis_options.inliner )
+		for ( auto a : pf->inits )
+			{
+			if ( pf->locals.find(a) == pf->locals.end() )
+				reporter->Warning("%s unused", a->Name());
+			}
 
 	for ( auto& slot : frame_layout )
 		{

@@ -1,4 +1,8 @@
 
+3.2.0-dev.787 | 2020-06-15 10:27:48 -0700
+
+  * Add new CI task for running benchmarks on a remote host (Tim Wojtulewicz, Corelight)
+
 3.2.0-dev.783 | 2020-06-11 23:21:41 -0700
 
   * Compare pcap_next_ex() result to PCAP_ERROR/PCAP_ERROR_BREAK (Jon Siwek, Corelight)

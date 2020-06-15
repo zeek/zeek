@@ -140,12 +140,13 @@ static std::string make_create_message(const Supervisor::NodeConfig& node)
 	return fmt("create %s %s", node.name.data(), json_str.data());
 	}
 
-ParentProcessCheckTimer::ParentProcessCheckTimer(double t, double arg_interval)
+zeek::detail::ParentProcessCheckTimer::ParentProcessCheckTimer(double t,
+                                                               double arg_interval)
 	: Timer(t, TIMER_PPID_CHECK), interval(arg_interval)
 	{
 	}
 
-void ParentProcessCheckTimer::Dispatch(double t, bool is_expire)
+void zeek::detail::ParentProcessCheckTimer::Dispatch(double t, bool is_expire)
 	{
 	// Note: only simple + portable way of detecting loss of parent
 	// process seems to be polling for change in PPID.  There's platform

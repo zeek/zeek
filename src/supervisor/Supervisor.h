@@ -389,6 +389,7 @@ private:
 	std::string msg_buffer;
 };
 
+namespace detail {
 /**
  * A timer used by supervised processes to periodically check whether their
  * parent (supervisor) process has died.  If it has died, the supervised
@@ -410,6 +411,7 @@ protected:
 
 	double interval;
 };
+}
 
 extern Supervisor* supervisor_mgr;
 

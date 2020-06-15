@@ -273,6 +273,21 @@ public:
 	IPPair endpoints;
 };
 
+class ConnTupleWeirdTimer final : public Timer {
+public:
+	using ConnTuple = Reporter::ConnTuple;
+
+	ConnTupleWeirdTimer(double t, ConnTuple id, double timeout)
+		: Timer(t + timeout, TIMER_CONN_TUPLE_WEIRD_EXPIRE),
+		  conn_id(std::move(id))
+		{}
+
+	void Dispatch(double t, bool is_expire) override
+		{ reporter->ResetExpiredConnWeird(conn_id); }
+
+	ConnTuple conn_id;
+};
+
 void Reporter::ResetNetWeird(const std::string& name)
 	{
 	net_weird_state.erase(name);
@@ -281,6 +296,11 @@ void Reporter::ResetNetWeird(const std::string& name)
 void Reporter::ResetFlowWeird(const IPAddr& orig, const IPAddr& resp)
 	{
 	flow_weird_state.erase(std::make_pair(orig, resp));
+	}
+
+void Reporter::ResetExpiredConnWeird(const ConnTuple& id)
+	{
+	expired_conn_weird_state.erase(id);
 	}
 
 bool Reporter::PermitNetWeird(const char* name)
@@ -319,6 +339,35 @@ bool Reporter::PermitFlowWeird(const char* name,
 		return true;
 
 	auto num_above_threshold = count - weird_sampling_threshold;
+	if ( weird_sampling_rate )
+		return num_above_threshold % weird_sampling_rate == 0;
+	else
+		return false;
+	}
+
+bool Reporter::PermitExpiredConnWeird(const char* name, const RecordVal& conn_id)
+	{
+	auto conn_tuple = std::make_tuple(conn_id.GetField("orig_h")->AsAddr(),
+	                                  conn_id.GetField("resp_h")->AsAddr(),
+	                                  conn_id.GetField("orig_p")->AsPortVal()->Port(),
+	                                  conn_id.GetField("resp_p")->AsPortVal()->Port(),
+	                                  conn_id.GetField("resp_p")->AsPortVal()->PortType());
+
+	auto& map = expired_conn_weird_state[conn_tuple];
+
+	if ( map.empty() )
+		timer_mgr->Add(new ConnTupleWeirdTimer(network_time,
+		                                       std::move(conn_tuple),
+		                                       weird_sampling_duration));
+
+	auto& count = map[name];
+	++count;
+
+	if ( count <= weird_sampling_threshold )
+		return true;
+
+	auto num_above_threshold = count - weird_sampling_threshold;
+
 	if ( weird_sampling_rate )
 		return num_above_threshold % weird_sampling_rate == 0;
 	else
@@ -365,6 +414,22 @@ void Reporter::Weird(Connection* conn, const char* name, const char* addl)
 		}
 
 	WeirdHelper(conn_weird, {conn->ConnVal()->Ref(), new StringVal(addl)},
+	            "%s", name);
+	}
+
+void Reporter::Weird(IntrusivePtr<RecordVal> conn_id, IntrusivePtr<StringVal> uid,
+                     const char* name, const char* addl)
+	{
+	UpdateWeirdStats(name);
+
+	if ( ! WeirdOnSamplingWhiteList(name) )
+		{
+		if ( ! PermitExpiredConnWeird(name, *conn_id) )
+			return;
+		}
+
+	WeirdHelper(expired_conn_weird,
+	            {conn_id.release(), uid.release(), new StringVal(addl)},
 	            "%s", name);
 	}
 

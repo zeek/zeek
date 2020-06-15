@@ -7,11 +7,13 @@
 #include <list>
 #include <utility>
 #include <string>
+#include <tuple>
 #include <map>
 #include <unordered_set>
 #include <unordered_map>
 
 #include "BroList.h"
+#include "net_util.h"
 
 namespace analyzer { class Analyzer; }
 namespace file_analysis { class File; }
@@ -19,6 +21,10 @@ class Connection;
 class Location;
 class Reporter;
 class EventHandlerPtr;
+class RecordVal;
+class StringVal;
+
+template <class T> class IntrusivePtr;
 
 // One cannot raise this exception directly, go through the
 // Reporter's methods instead.
@@ -44,8 +50,10 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 class Reporter {
 public:
 	using IPPair = std::pair<IPAddr, IPAddr>;
+	using ConnTuple = std::tuple<IPAddr, IPAddr, uint32_t, uint32_t, TransportProto>;
 	using WeirdCountMap = std::unordered_map<std::string, uint64_t>;
 	using WeirdFlowMap = std::map<IPPair, WeirdCountMap>;
+	using WeirdConnTupleMap = std::map<ConnTuple, WeirdCountMap>;
 	using WeirdSet = std::unordered_set<std::string>;
 
 	Reporter(bool abort_on_scripting_errors);
@@ -89,6 +97,8 @@ public:
 	void Weird(const char* name, const char* addl = "");	// Raises net_weird().
 	void Weird(file_analysis::File* f, const char* name, const char* addl = "");	// Raises file_weird().
 	void Weird(Connection* conn, const char* name, const char* addl = "");	// Raises conn_weird().
+	void Weird(IntrusivePtr<RecordVal> conn_id, IntrusivePtr<StringVal> uid,
+	           const char* name, const char* addl = "");	// Raises expired_conn_weird().
 	void Weird(const IPAddr& orig, const IPAddr& resp, const char* name, const char* addl = "");	// Raises flow_weird().
 
 	// Syslog a message. This methods does nothing if we're running
@@ -141,6 +151,11 @@ public:
 	 * Reset/cleanup state tracking for a "flow" weird.
 	 */
 	void ResetFlowWeird(const IPAddr& orig, const IPAddr& resp);
+
+	/**
+	 * Reset/cleanup state tracking for a "expired conn" weird.
+	 */
+	void ResetExpiredConnWeird(const ConnTuple& id);
 
 	/**
 	 * Return the total number of weirds generated (counts weirds before
@@ -255,6 +270,7 @@ private:
 		{ return weird_sampling_whitelist.find(name) != weird_sampling_whitelist.end(); }
 	bool PermitNetWeird(const char* name);
 	bool PermitFlowWeird(const char* name, const IPAddr& o, const IPAddr& r);
+	bool PermitExpiredConnWeird(const char* name, const RecordVal& conn_id);
 
 	bool EmitToStderr(bool flag)
 		{ return flag || ! after_zeek_init; }
@@ -274,6 +290,7 @@ private:
 	WeirdCountMap weird_count_by_type;
 	WeirdCountMap net_weird_state;
 	WeirdFlowMap flow_weird_state;
+	WeirdConnTupleMap expired_conn_weird_state;
 
 	WeirdSet weird_sampling_whitelist;
 	uint64_t weird_sampling_threshold;

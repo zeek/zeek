@@ -164,7 +164,7 @@ ZAMValUnion::ZAMValUnion(IntrusivePtr<Val> v, BroType* t)
 		}
 
 	case TYPE_RECORD:
-		record_val = to_ZAM_record(v);
+		record_val = v.release()->AsRecordVal();
 		break;
 
 	case TYPE_STRING:
@@ -235,7 +235,6 @@ IntrusivePtr<Val> ZAMValUnion::ToVal(BroType* t) const
 	case TYPE_PORT:		v = val_mgr->GetPort(uint_val); break;
 
 	case TYPE_VECTOR:	return vector_val->ToVectorVal(t);
-	case TYPE_RECORD:	return record_val->ToRecordVal();
 
 	case TYPE_ANY:		return {NewRef{}, any_val};
 
@@ -249,6 +248,7 @@ IntrusivePtr<Val> ZAMValUnion::ToVal(BroType* t) const
 	case TYPE_LIST:		v = list_val; v->Ref(); break;
 	case TYPE_OPAQUE:	v = opaque_val; v->Ref(); break;
 	case TYPE_TABLE:	v = table_val; v->Ref(); break;
+	case TYPE_RECORD:	v = record_val; v->Ref(); break;
 	case TYPE_PATTERN:	v = re_val; v->Ref(); break;
 
 	case TYPE_ERROR:
@@ -346,25 +346,14 @@ void ZAM_vector::DeleteMembers()
 	}
 
 
-ZAM_record::ZAM_record(RecordVal* rv, RecordType* _rt)
-	: ZAMAggrInstantiation(rv, _rt->NumFields())
+ZAM_record::ZAM_record(RecordVal* _rv, RecordType* _rt)
+	: zvec(_rt->NumFields())
 	{
-	is_in_record = 0;
-
+	rv = _rv;
 	rt = _rt;
 
-	if ( aggr_val )
-		is_managed = rt->ManagedFields();
-	else
-		is_managed = 0;
-	}
-
-IntrusivePtr<RecordVal> ZAM_record::ToRecordVal()
-	{
-	if ( ! aggr_val )
-		aggr_val = new RecordVal(this, rt);
-
-	return {NewRef{}, aggr_val->AsRecordVal()};
+	is_in_record = 0;
+	is_managed = rt->ManagedFields();
 	}
 
 bool ZAM_record::SetToDefault(unsigned int field)
@@ -391,9 +380,9 @@ bool ZAM_record::SetToDefault(unsigned int field)
 			return false;
 		}
 
-	bool error_flag;
 	ZAMValUnion zvu(v, t.get());
 	Assign(field, zvu);
+
 	return true;
 	}
 
@@ -411,60 +400,9 @@ void ZAM_record::DeleteManagedMembers()
 	}
 
 
-#if 0
-ZAMVector::ZAMVector(IntrusivePtr<ZAM_vector> _vec)
-	: vec(std::move(_vec))
-	{
-	auto vv = vec->VecVal();
-
-	if ( ! vv )
-		{
-		yield_type = nullptr;
-		return;
-		}
-
-	auto vt = vv->Type()->AsVectorType();
-	auto yt = vt->YieldType();
-
-	if ( yt->Tag() == TYPE_ANY )
-		{
-		if ( vec->Size() > 0 )
-			{
-			// If we use a bare 0 in the call to Lookup, effin'
-			// C++ selects the Val* version of Lookup.  Geez.
-			unsigned int zee_row = 0;
-			auto elem0 = vv->Lookup(zee_row);
-			yt = elem0->Type();
-			}
-		else
-			yt = nullptr;
-		}
-
-	if ( yt )
-		vec->SetGeneralYieldType(yt);
-
-	yield_type = yt;
-	}
-
-
-ZAMRecord::ZAMRecord(IntrusivePtr<ZAM_record> _zr)
-	{
-	zr = _zr;
-	ASSERT(zr.get());
-	}
-#endif
-
-
 ZAM_vector* to_ZAM_vector(const IntrusivePtr<Val>& vec)
 	{
 	auto zv = vec->AsNonConstVector();
 	Ref(zv);
 	return zv;
-	}
-
-ZAM_record* to_ZAM_record(const IntrusivePtr<Val>& r)
-	{
-	auto zr = r->AsNonConstRecord();
-	Ref(zr);
-	return zr;
 	}

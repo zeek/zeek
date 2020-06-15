@@ -5945,7 +5945,7 @@ IntrusivePtr<Expr> RecordCoerceExpr::Duplicate()
 	return make_intrusive<RecordCoerceExpr>(op_dup, rt_p);
 	}
 
-extern IntrusivePtr<Val> coerce_to_record(RecordType* rt, Val* v,
+extern IntrusivePtr<RecordVal> coerce_to_record(RecordType* rt, Val* v,
 						int* map, int map_size)
 	{
 	auto val = make_intrusive<RecordVal>(rt);

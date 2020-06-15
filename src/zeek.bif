@@ -3374,9 +3374,9 @@ function lookup_connection%(cid: conn_id%): connection
 %%{
 const char* conn_id_string(Val* c)
 	{
-	auto crec = c->AsNonConstRecord();
+	auto crec = c->AsRecordVal()->RawFields();
 	bool error;
-	auto id = crec->Lookup(0, error).record_val;
+	auto id = crec->Lookup(0, error).record_val->RawFields();
 
 	auto& orig_h = *id->Lookup(0, error).addr_val;
 	uint32_t orig_p = id->Lookup(1, error).uint_val;
@@ -3500,7 +3500,7 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 		uint32_t caplen, len, link_type;
 		u_char *data;
 
-		auto pkt_vl = pkt->AsNonConstRecord();
+		auto pkt_vl = pkt->AsRecordVal()->RawFields();
 		bool error;
 
 		ts.tv_sec = pkt_vl->Lookup(0, error).uint_val;

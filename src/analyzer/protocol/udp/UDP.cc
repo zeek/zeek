@@ -207,14 +207,14 @@ void UDP_Analyzer::UpdateConnVal(RecordVal *conn_val)
 	// This code used to do lookups of "orig" and "resp".  However,
 	// Connection::BuildConnVal hardwires them to slots 1 and 2 in
 	// the record, so for speed we rely on that.
-	auto cv = conn_val->AsNonConstRecord();
+	auto cv = conn_val->RawFields();
 
 	bool error;
 	auto orig_endp = cv->Lookup(1, error).record_val;
 	auto resp_endp = cv->Lookup(2, error).record_val;
 
-	UpdateEndpointVal(orig_endp, true);
-	UpdateEndpointVal(resp_endp, false);
+	UpdateEndpointVal(orig_endp->RawFields(), true);
+	UpdateEndpointVal(resp_endp->RawFields(), false);
 
 	// Call children's UpdateConnVal
 	Analyzer::UpdateConnVal(conn_val);

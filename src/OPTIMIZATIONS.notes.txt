@@ -8,10 +8,6 @@ prune "a = a" assignments
 
 &&/|| conditionals to cascades
 
-if ZAM_record::Lookup didn't use SetToDefault but instead just
-	directly returned the default value, then could get rid
-	of AsNonConstRecord ugliness
-
 initialization of records with field values pre-computed
 	- however, not via Clone(), which turns out to be more
 	  expensive than just constructing afresh

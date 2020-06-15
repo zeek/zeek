@@ -88,15 +88,6 @@ eval auto copy = CopyVal($1)
 eval auto& vv = frame[z.v1].vector_val->ModVec()
 eval vv.push_back(copy)
 
-unary-expr-op Flatten
-op-type X
-eval const char* error;
-eval auto rv = frame[z.v2].record_val;
-eval auto res = flatten_value(rv->ToRecordVal().get(), z.v3, error);
-eval Unref(frame[z.v1].record_val);
-eval if ( error ) ZAM_run_time_error(z.stmt, error);
-eval else frame[z.v1].record_val = to_ZAM_record(res);
-
 unary-expr-op Cast
 op-type X
 set-type $1
@@ -273,14 +264,14 @@ eval_A ! ($1->AsAddr() < $2->AsAddr()) && $1->AsAddr() != $2->AsAddr()
 assign-op Field
 type R
 field-op
-eval auto rv = $2.record_val
+eval auto rv = $2.record_val->RawFields()
 eval auto v = rv->Lookup(z.v3, ZAM_error)
 eval if ( ZAM_error ) z.e->RuntimeError("field value missing")
 eval else @v
 
 expr-op Has-Field
 type Ri
-eval frame[z.v1].int_val = (frame[z.v2].record_val->HasField(z.v3))
+eval frame[z.v1].int_val = (frame[z.v2].record_val->RawFields()->HasField(z.v3))
 
 expr-op In
 type VVV
@@ -516,7 +507,7 @@ eval frame[z.v1].string_val = new StringVal(slice)
 op AnyIndex
 type VVi
 set-type $1
-eval auto lv = frame[z.v2].any_val->AsRecordVal()->AsNonConstRecord()
+eval auto lv = frame[z.v2].any_val->AsRecordVal()->RawFields()
 eval auto elem = lv->NthField(z.v3)
 eval if ( ! elem ) reporter->InternalError("failure to load \"any\" element");
 eval if ( CheckAnyType(elem->Type(), z.t, z.stmt) ) {
@@ -610,12 +601,12 @@ direct-unary-op Record-Coerce RecordCoerce
 internal-op Record-Coerce
 type VVV
 eval auto rt = z.t->AsRecordType()
-eval auto v = frame[z.v2].record_val->ToRecordVal()
+eval auto v = frame[z.v2].record_val
 eval auto map = z.int_ptr
 eval auto map_size = z.v3
-eval auto to_r = coerce_to_record(rt, v.get(), map, map_size)
+eval auto to_r = coerce_to_record(rt, v, map, map_size)
 eval Unref(frame[z.v1].record_val)
-eval frame[z.v1].record_val = to_ZAM_record(to_r)
+eval frame[z.v1].record_val = to_r.release()
 
 direct-unary-op Table-Coerce TableCoerce
 
@@ -698,7 +689,7 @@ assign-op Field-LHS-Assign
 op1-read
 type F
 eval @$2
-eval frame[z.v1].record_val->Assign($3, v)
+eval frame[z.v1].record_val->RawFields()->Assign($3, v)
 
 ########## General Statements ##########
 
@@ -1004,14 +995,14 @@ method-pre int reg = v->n; delete v
 op DelField
 op1-read
 type Vi
-eval frame[z.v1].record_val->DeleteField(z.v2)
+eval frame[z.v1].record_val->RawFields()->DeleteField(z.v2)
 
 
 internal-op Init-Record
 type V
-eval auto r = make_intrusive<RecordVal>(z.t->AsRecordType(), false)
+eval auto r = new RecordVal(z.t->AsRecordType())
 eval Unref(frame[z.v1].record_val)
-eval frame[z.v1].record_val = to_ZAM_record(r)
+eval frame[z.v1].record_val = r
 
 # v1 is the frame element being initialized
 # v2 is its slot in the interpreted frame

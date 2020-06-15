@@ -1446,7 +1446,7 @@ DNS_MsgInfo::~DNS_MsgInfo()
 Val* DNS_MsgInfo::BuildHdrVal()
 	{
 	RecordVal* rv = new RecordVal(dns_msg);
-	auto r = rv->AsNonConstRecord();
+	auto r = rv->RawFields();
 
 	r->SetField(0).uint_val = id;
 	r->SetField(1).uint_val = opcode;
@@ -1468,7 +1468,7 @@ Val* DNS_MsgInfo::BuildHdrVal()
 Val* DNS_MsgInfo::BuildAnswerVal()
 	{
 	RecordVal* rv = new RecordVal(dns_answer);
-	auto r = rv->AsNonConstRecord();
+	auto r = rv->RawFields();
 
 	Ref(query_name);
 	r->SetField(0).uint_val = int(answer_type);

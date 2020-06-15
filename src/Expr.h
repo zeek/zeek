@@ -1193,7 +1193,7 @@ protected:
 	int map_size;	// equivalent to Type()->AsRecordType()->NumFields()
 };
 
-extern IntrusivePtr<Val> coerce_to_record(RecordType* rt, Val* v,
+extern IntrusivePtr<RecordVal> coerce_to_record(RecordType* rt, Val* v,
 						int* map, int map_size);
 
 class TableCoerceExpr : public UnaryExpr {

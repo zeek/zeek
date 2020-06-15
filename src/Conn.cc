@@ -335,16 +335,17 @@ RecordVal* Connection::BuildConnVal()
 	ZAM_record* cdr;
 
 	if ( conn_val )
-		cdr = conn_val->AsNonConstRecord();
+		cdr = conn_val->RawFields();
 
 	else
 		{
 		conn_val = new RecordVal(connection_type);
-		cdr = conn_val->AsNonConstRecord();
+		cdr = conn_val->RawFields();
 
 		TransportProto prot_type = ConnTransport();
 
-		auto id_val = new ZAM_record(nullptr, conn_id);
+		bool error;
+		auto id_val = cdr->Lookup(0, error).record_val->RawFields();
 
 		id_val->SetField(0).addr_val = new AddrVal(orig_addr);
 		id_val->SetField(1).uint_val =
@@ -353,7 +354,7 @@ RecordVal* Connection::BuildConnVal()
 		id_val->SetField(3).uint_val =	
 				PortVal::Mask(ntohs(resp_port), prot_type);
 
-		auto orig_endp = new ZAM_record(nullptr, endpoint);
+		auto orig_endp = cdr->Lookup(1, error).record_val->RawFields();
 
 		orig_endp->SetField(0).uint_val = 0;
 		orig_endp->SetField(1).uint_val = 0;
@@ -366,7 +367,7 @@ RecordVal* Connection::BuildConnVal()
 			orig_endp->SetField(5).string_val =
 				new StringVal(fmt_mac(orig_l2_addr, l2_len));
 
-		auto resp_endp = new ZAM_record(nullptr, endpoint);
+		auto resp_endp = cdr->Lookup(2, error).record_val->RawFields();
 
 		resp_endp->SetField(0).uint_val = 0;
 		resp_endp->SetField(1).uint_val = 0;
@@ -375,10 +376,6 @@ RecordVal* Connection::BuildConnVal()
 		if ( memcmp(&resp_l2_addr, &null, l2_len) != 0 )
 			resp_endp->SetField(5).string_val =
 				new StringVal(fmt_mac(resp_l2_addr, l2_len));
-
-		cdr->SetField(0).record_val = id_val;
-		cdr->SetField(1).record_val = orig_endp;
-		cdr->SetField(2).record_val = resp_endp;
 
 		// 3 and 4 are set below.
 		cdr->SetField(5).table_val = new TableVal(IntrusivePtr{NewRef{}, string_set});	// service

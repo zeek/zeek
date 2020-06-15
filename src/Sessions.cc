@@ -917,7 +917,7 @@ Connection* NetSessions::FindConnection(Val* v)
 	// migrated the internals of RecordVal), but we leave it for now
 	// so we can first complete the migration before removing the
 	// association.
-	ZAM_record& vl = *v->AsNonConstRecord();
+	ZAM_record& vl = *v->AsRecordVal()->RawFields();
 
 	int orig_h, orig_p;	// indices into record's value list
 	int resp_h, resp_p;

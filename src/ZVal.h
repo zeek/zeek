@@ -11,7 +11,6 @@
 
 // ZAM aggregates.
 class ZAM_vector;
-class ZAM_record;
 
 class IterInfo;
 
@@ -51,7 +50,6 @@ union ZAMValUnion {
 
 	// Internal values managed via Ref/Unref.
 	ZAM_vector* vector_val;
-	ZAM_record* record_val;
 
 	// The types are all variants of Val (or BroType).  For memory
 	// management, we use Ref/Unref.
@@ -64,6 +62,7 @@ union ZAMValUnion {
 	OpaqueVal* opaque_val;
 	PatternVal* re_val;
 	TableVal* table_val;
+	RecordVal* record_val;
 	BroType* type_val;
 
 	// Used for direct "any" values.
@@ -168,12 +167,6 @@ public:
 		}
 
 	IntrusivePtr<VectorVal> ToVectorVal(BroType* t);
-
-	ZAM_vector* ShallowCopy()
-		{
-		Ref(this);
-		return this;
-		}
 
 	BroType* ManagedYieldType() const	{ return managed_yt; }
 	BroType* GeneralYieldType() const	{ return general_yt; }
@@ -287,27 +280,16 @@ protected:
 	bool is_managed;
 };
 
-class ZAM_record : public ZAMAggrInstantiation {
+class ZAM_record {
 public:
 	ZAM_record(RecordVal* _v, RecordType* _rt);
 
 	~ZAM_record()
 		{
-		if ( aggr_val )
-			aggr_val->AsRecordVal()->Disassociate();
-
 		DeleteManagedMembers();
 		}
 
-	ZAM_record* ShallowCopy()
-		{
-		Ref(this);
-		return this;
-		}
-
 	int Size() const		{ return zvec.size(); }
-
-	IntrusivePtr<RecordVal> ToRecordVal();
 
 	void Assign(unsigned int field, ZAMValUnion v)
 		{
@@ -365,17 +347,6 @@ public:
 		return IsInRecord(field);
 		}
 
-	void SetRecordType(RecordType* _rt)
-		{
-		rt = _rt;
-		is_managed = rt->ManagedFields();
-		}
-
-	void Grow(unsigned int new_size)
-		{
-		zvec.resize(new_size);
-		}
-
 	ZRM_flags OffsetMask(unsigned int offset) const
 		{ return 1UL << offset; }
 
@@ -384,16 +355,29 @@ public:
 	bool IsManaged(unsigned int offset) const
 		{ return (is_managed & OffsetMask(offset)) != 0; }
 
+protected:
+	friend class RecordVal;
+
 	BroType* FieldType(int field) const	{ return rt->FieldType(field); }
 
-protected:
 	bool SetToDefault(unsigned int field);
+
+	void Grow(unsigned int new_size)
+		{
+		zvec.resize(new_size);
+		}
 
 	// Removes the given field.
 	void Delete(unsigned int field)
 		{ DeleteManagedType(zvec[field], FieldType(field)); }
 
 	void DeleteManagedMembers();
+
+	// The underlying set of ZAM values.
+	ZVU_vec zvec;
+
+	// The associated main value.
+	RecordVal* rv;
 
 	// And a handy pointer to its type.
 	RecordType* rt;
@@ -405,93 +389,6 @@ protected:
 	ZRM_flags is_managed;
 };
 
-
-#if 0
-// An individual instance of a ZAM vector aggregate, which potentially
-// shares the underlying instantiation of that value with other instances.
-
-class ZAMVector {
-public:
-	ZAMVector(IntrusivePtr<ZAM_vector> _vec);
-
-	ZAMVector* ShallowCopy()
-		{
-		return new ZAMVector(vec);
-		}
-
-	IntrusivePtr<VectorVal> ToVectorVal(BroType* t)
-		{ return vec->ToVectorVal(t); }
-
-	int Size() const		{ return vec->Size(); }
-	void Resize(int n) const	{ vec->ModVec().resize(n); }
-
-	const ZVU_vec& ConstVec() const	{ return vec->ConstVec(); }
-	const IntrusivePtr<ZAM_vector>& ConstVecPtr() const	{ return vec; }
-
-	ZVU_vec& ModVec()			{ return vec->ModVec(); }
-	IntrusivePtr<ZAM_vector>& ModVecPtr()	{ return vec; }
-
-	void SetElement(int n, ZAMValUnion& v)
-		{ ModVecPtr()->SetElement(n, v); }
-
-	BroType* YieldType() const	{ return yield_type; }
-	BroType* ManagedYieldType() const
-		{ return vec->ManagedYieldType(); }
-
-	void SetYieldType(BroType* yt)
-		{
-		if ( ! yield_type )
-			{
-			yield_type = yt;
-			vec->SetGeneralYieldType(yt);
-			}
-		}
-
-	IntrusivePtr<VectorVal> VecVal()	{ return vec->VecVal(); }
-	void SetVecVal(VectorVal* vv)		{ vec->SetVecVal(vv); }
-
-protected:
-	IntrusivePtr<ZAM_vector> vec;
-
-	// The actual yield type of the vector, if we've had a chance to
-	// observe it.  Necessary for "vector of any".  Non-const because
-	// we need to be able to ref it.
-	BroType* yield_type;
-};
-
-
-// An individual instance of a ZAM record aggregate, which potentially
-// shares the underlying instantiation of that value with other instances.
-
-class ZAMRecord {
-public:
-	ZAMRecord(IntrusivePtr<ZAM_record> _zr);
-
-	ZAMRecord* ShallowCopy()
-		{
-		return new ZAMRecord(zr);
-		}
-
-	IntrusivePtr<RecordVal> ToRecordVal()
-		{ return zr->ToRecordVal(); }
-
-	void Assign(int field, ZAMValUnion v)	{ zr->Assign(field, v); }
-
-	// error is true iff the field isn't in the record.
-	ZAMValUnion& Lookup(int field, bool& error)
-		{
-		ASSERT(zr.get());
-		return zr->Lookup(field, error);
-		}
-
-	void DeleteField(int field)		{ zr->DeleteField(field); }
-	bool HasField(int field)		{ return zr->HasField(field); }
-	BroType* FieldType(int field)		{ return zr->FieldType(field); }
-
-protected:
-	IntrusivePtr<ZAM_record> zr;
-};
-#endif
 
 // Information used to iterate over aggregates.  It's a hodge-podge since
 // it's meant to support every type of aggregate & loop.
@@ -538,4 +435,3 @@ public:
 };
 
 extern ZAM_vector* to_ZAM_vector(const IntrusivePtr<Val>& vec);
-extern ZAM_record* to_ZAM_record(const IntrusivePtr<Val>& rec);

@@ -2703,20 +2703,9 @@ RecordVal::RecordVal(RecordType* t, bool init_fields) : Val(t)
 		}
 	}
 
-RecordVal::RecordVal(ZAM_record* zr, RecordType* t) : Val(t)
-	{
-	origin = nullptr;
-	val.record_val = zr;
-	::Ref(zr);
-	}
-
 RecordVal::~RecordVal()
 	{
-	if ( val.record_val )
-		{
-		val.record_val->Disassociate();
-		Unref(val.record_val);
-		}
+	delete val.record_val;
 	}
 
 IntrusivePtr<Val> RecordVal::SizeVal() const
@@ -2726,7 +2715,7 @@ IntrusivePtr<Val> RecordVal::SizeVal() const
 
 void RecordVal::Assign(int field, IntrusivePtr<Val> new_val)
 	{
-	auto zr = AsNonConstRecord();
+	auto zr = RawFields();
 
 	if ( ! new_val )
 		{
@@ -2749,15 +2738,12 @@ void RecordVal::Assign(int field, Val* new_val)
 
 IntrusivePtr<Val> RecordVal::Lookup(int field) const
 	{
-	// The following ugliness is because ZAM_record's various
-	// lookup methods are non-const because they load fields
-	// on access, rather than preloading them.
-	auto& zr = *((RecordVal*) this)->AsNonConstRecord();
+	auto zr = RawFields();
 
-	if ( ! zr.HasField(field) )
+	if ( ! zr->HasField(field) )
 		return nullptr;
 
-	return zr.NthField(field);
+	return zr->NthField(field);
 	}
 
 IntrusivePtr<Val> RecordVal::LookupWithDefault(int field) const
@@ -2781,7 +2767,7 @@ void RecordVal::ResizeParseTimeRecords(RecordType* rt)
 
 	for ( auto& rv : rvs )
 		{
-		auto vs = rv->AsNonConstRecord();
+		auto vs = rv->RawFields();
 		auto current_length = vs->Size();
 		auto required_length = rt->NumFields();
 
@@ -2896,7 +2882,7 @@ IntrusivePtr<TableVal> RecordVal::GetRecordFieldsVal() const
 
 void RecordVal::Describe(ODesc* d) const
 	{
-	auto vl = ((RecordVal*) this)->AsNonConstRecord();
+	auto vl = RawFields();
 	int n = vl->Size();
 	auto record_type = Type()->AsRecordType();
 
@@ -2933,7 +2919,7 @@ void RecordVal::Describe(ODesc* d) const
 
 void RecordVal::DescribeReST(ODesc* d) const
 	{
-	auto vl = ((RecordVal*) this)->AsNonConstRecord();
+	auto vl = RawFields();
 	int n = vl->Size();
 	auto record_type = Type()->AsRecordType();
 
@@ -2971,7 +2957,7 @@ IntrusivePtr<Val> RecordVal::DoClone(CloneState* state)
 	rv->origin = nullptr;
 	state->NewClone(this, rv);
 
-	auto r = AsNonConstRecord();
+	auto r = RawFields();
 	int n = r->Size();
 
 	for ( int i = 0; i < n; ++i )
@@ -2985,7 +2971,7 @@ unsigned int RecordVal::MemoryAllocation() const
 	// ### The following isn't all that correct, since it instantiates
 	// ZAM vals and computes off of those.  Need to decide if we care.
 
-	auto vl = ((RecordVal*) this)->AsNonConstRecord();
+	auto vl = RawFields();
 	int n = vl->Size();
 
 	unsigned int size = 0;

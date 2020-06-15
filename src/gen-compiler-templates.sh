@@ -775,7 +775,7 @@ function build_assignment3(op, type, flavor, is_var, is_field, ev)
 	if ( a_t == SHORT && is_field )
 		{
 		rhs_field = is_var ? "z.v4" : "z.v3"
-		rhs = rhs ".record_val->Lookup(" rhs_field ", ZAM_error)"
+		rhs = rhs ".record_val->RawFields()->Lookup(" rhs_field ", ZAM_error)"
 		}
 
 	gsub(/\$2/, rhs, ev)
@@ -877,7 +877,7 @@ function expand_eval(e, pre_eval, this_type, is_expr_op, otype1, otype2, is_var1
 			{
 			ft = field_type[this_type]
 			fo = field_offset[ft]
-			field_accessor = "frame[z.v1].record_val->SetField(z.v" fo ")"
+			field_accessor = "frame[z.v1].record_val->RawFields()->SetField(z.v" fo ")"
 
 			# Note, in the following we do work even if field_op
 			# is not set, because it is simpler than having a

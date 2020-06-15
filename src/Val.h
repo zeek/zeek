@@ -261,10 +261,9 @@ public:
 	ACCESSOR(TYPE_FILE, BroFile*, file_val, AsFile)
 	ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
 
-	// These two are non-protected since enough disparate remote places
-	// wind up calling them that we'd require a tangle of "friend"
-	// declarations if they were with AsNonConstTable.
-	ACCESSOR(TYPE_RECORD, ZAM_record*, record_val, AsNonConstRecord)
+	// This is non-protected since enough disparate remote places
+	// wind up calling it that we'd require a tangle of "friend"
+	// declarations if it was with AsNonConstTable.
 	ACCESSOR(TYPE_VECTOR, ZAM_vector*, vector_val, AsNonConstVector)
 
 	const IPPrefix& AsSubNet()
@@ -925,6 +924,12 @@ public:
 	 * @return the value in field \a field.
 	 */
 	IntrusivePtr<Val> Lookup(const char* field, bool with_default = false) const;
+
+	/**
+	 * Returns the underlying ZAM_record for fast raw access to
+	 * the records fields.
+	 */
+	ZAM_record* RawFields() const	{ return val.record_val; }
 
 	void Describe(ODesc* d) const override;
 

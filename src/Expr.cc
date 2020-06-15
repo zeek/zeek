@@ -51,7 +51,7 @@ const char* expr_name(BroExprTag t)
 		"()", "inline()", "function()", "event", "schedule",
 		"coerce", "record_coerce", "table_coerce", "vector_coerce",
 		"to_any_coerce", "from_any_coerce",
-		"sizeof", "flatten", "cast", "is", "[:]=",
+		"sizeof", "cast", "is", "[:]=",
 		"nop",
 	};
 
@@ -813,8 +813,6 @@ void UnaryExpr::ExprDescribe(ODesc* d) const
 		{
 		if ( is_coerce )
 			d->Add("(coerce ");
-		else if ( Tag() == EXPR_FLATTEN )
-			d->Add("flatten ");
 		else
 			{
 			if ( Tag() == EXPR_REF )
@@ -6134,71 +6132,6 @@ IntrusivePtr<Expr> CoerceFromAnyExpr::Duplicate()
 	return make_intrusive<CoerceFromAnyExpr>(op->Duplicate(), type);
 	}
 
-
-FlattenExpr::FlattenExpr(IntrusivePtr<Expr> arg_op)
-	: UnaryExpr(EXPR_FLATTEN, std::move(arg_op))
-	{
-	if ( IsError() )
-		return;
-
-	auto t = op->Type();
-
-	if ( t->Tag() != TYPE_RECORD )
-		Internal("bad type in FlattenExpr::FlattenExpr");
-
-	RecordType* rt = t->AsRecordType();
-	num_fields = rt->NumFields();
-
-	auto tl = make_intrusive<TypeList>();
-
-	for ( int i = 0; i < num_fields; ++i )
-		tl->Append({NewRef{}, rt->FieldType(i)});
-
-	Unref(rt);
-	SetType(std::move(tl));
-	}
-
-IntrusivePtr<Val> FlattenExpr::Fold(Val* v) const
-	{
-	const char* error;
-	auto res = flatten_value(v, num_fields, error);
-
-	if ( error )
-		RuntimeError(error);
-
-	return res;
-	}
-
-IntrusivePtr<Expr> FlattenExpr::Duplicate()
-	{
-	return make_intrusive<FlattenExpr>(op->Duplicate());
-	}
-
-IntrusivePtr<Val> flatten_value(Val* v, int num_fields, const char*& error)
-	{
-	error = nullptr;
-
-	RecordVal* rv = v->AsRecordVal();
-	auto l = make_intrusive<ListVal>(TYPE_ANY);
-
-	for ( int i = 0; i < num_fields; ++i )
-		{
-		if ( Val* fv = rv->Lookup(i).get() )
-			{
-			l->Append(fv->Ref());
-			continue;
-			}
-
-		const RecordType* rv_t = rv->Type()->AsRecordType();
-		if ( const Attr* fa = rv_t->FieldDecl(i)->FindAttr(ATTR_DEFAULT) )
-			l->Append(fa->AttrExpr()->Eval(nullptr).release());
-
-		else
-			error = "missing field value";
-		}
-
-	return l;
-	}
 
 ScheduleTimer::ScheduleTimer(const EventHandlerPtr& arg_event, zeek::Args arg_args,
                              double t)

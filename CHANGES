@@ -1,4 +1,8 @@
 
+3.2.0-dev.788 | 2020-06-15 11:04:20 -0700
+
+  * Fix location where CI places build.tgz (Jon Siwek, Corelight)
+
 3.2.0-dev.787 | 2020-06-15 10:27:48 -0700
 
   * Add new CI task for running benchmarks on a remote host (Tim Wojtulewicz, Corelight)

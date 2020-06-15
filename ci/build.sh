@@ -11,5 +11,6 @@ else
     ./configure ${ZEEK_CI_CONFIGURE_FLAGS} --prefix=${CIRRUS_WORKING_DIR}/install
     cd build
     make -j ${ZEEK_CI_CPUS} install
+    cd ..
     tar -czf build.tgz ${CIRRUS_WORKING_DIR}/install
 fi

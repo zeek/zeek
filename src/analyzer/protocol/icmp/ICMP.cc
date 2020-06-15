@@ -225,7 +225,7 @@ ICMP_Analyzer::BuildICMPVal(const struct icmp* icmpp, int len,
 	{
 	if ( ! icmp_conn_val )
 		{
-		static auto icmp_conn = zeek::id::find_type<RecordType>("icmp_conn");
+		static auto icmp_conn = zeek::id::find_type<zeek::RecordType>("icmp_conn");
 		icmp_conn_val = make_intrusive<RecordVal>(icmp_conn);
 
 		icmp_conn_val->Assign(0, make_intrusive<AddrVal>(Conn()->OrigAddr()));
@@ -351,7 +351,7 @@ IntrusivePtr<RecordVal> ICMP_Analyzer::ExtractICMP4Context(int len, const u_char
 			}
 		}
 
-	static auto icmp_context = zeek::id::find_type<RecordType>("icmp_context");
+	static auto icmp_context = zeek::id::find_type<zeek::RecordType>("icmp_context");
 	auto iprec = make_intrusive<RecordVal>(icmp_context);
 	auto id_val = make_intrusive<RecordVal>(zeek::id::conn_id);
 
@@ -411,7 +411,7 @@ IntrusivePtr<RecordVal> ICMP_Analyzer::ExtractICMP6Context(int len, const u_char
 			}
 		}
 
-	static auto icmp_context = zeek::id::find_type<RecordType>("icmp_context");
+	static auto icmp_context = zeek::id::find_type<zeek::RecordType>("icmp_context");
 	auto iprec = make_intrusive<RecordVal>(icmp_context);
 	auto id_val = make_intrusive<RecordVal>(zeek::id::conn_id);
 
@@ -724,11 +724,11 @@ void ICMP_Analyzer::Context6(double t, const struct icmp* icmpp,
 
 IntrusivePtr<VectorVal> ICMP_Analyzer::BuildNDOptionsVal(int caplen, const u_char* data)
 	{
-	static auto icmp6_nd_option_type = zeek::id::find_type<RecordType>("icmp6_nd_option");
-	static auto icmp6_nd_prefix_info_type = zeek::id::find_type<RecordType>("icmp6_nd_prefix_info");
+	static auto icmp6_nd_option_type = zeek::id::find_type<zeek::RecordType>("icmp6_nd_option");
+	static auto icmp6_nd_prefix_info_type = zeek::id::find_type<zeek::RecordType>("icmp6_nd_prefix_info");
 
 	auto vv = make_intrusive<VectorVal>(
-	        zeek::id::find_type<VectorType>("icmp6_nd_options"));
+		zeek::id::find_type<zeek::VectorType>("icmp6_nd_options"));
 
 	while ( caplen > 0 )
 		{

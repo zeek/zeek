@@ -30,13 +30,13 @@ using namespace std;
 //
 // Helper routines
 //
-bool string_is_regex(const string& s)
+static bool string_is_regex(const string& s)
 	{
 	return strpbrk(s.data(), "?*\\+");
 	}
 
-void lookup_global_symbols_regex(const string& orig_regex, vector<ID*>& matches,
-					bool func_only = false)
+static void lookup_global_symbols_regex(const string& orig_regex, vector<zeek::detail::ID*>& matches,
+                                        bool func_only = false)
 	{
 	if ( streq(orig_regex.c_str(), "") )
 		return;
@@ -61,18 +61,18 @@ void lookup_global_symbols_regex(const string& orig_regex, vector<ID*>& matches,
 	Scope* global = global_scope();
 	const auto& syms = global->Vars();
 
-	ID* nextid;
+	zeek::detail::ID* nextid;
 	for ( const auto& sym : syms )
 		{
-		ID* nextid = sym.second.get();
-		if ( ! func_only || nextid->GetType()->Tag() == TYPE_FUNC )
+		zeek::detail::ID* nextid = sym.second.get();
+		if ( ! func_only || nextid->GetType()->Tag() == zeek::TYPE_FUNC )
 			if ( ! regexec (&re, nextid->Name(), 0, 0, 0) )
 				matches.push_back(nextid);
 		}
 	}
 
-void choose_global_symbols_regex(const string& regex, vector<ID*>& choices,
-					bool func_only = false)
+static void choose_global_symbols_regex(const string& regex, vector<zeek::detail::ID*>& choices,
+                                        bool func_only = false)
 	{
 	lookup_global_symbols_regex(regex, choices, func_only);
 
@@ -111,7 +111,7 @@ void choose_global_symbols_regex(const string& regex, vector<ID*>& choices,
 		int option = atoi(input.c_str());
 		if ( option > 0 && option <= (int) choices.size() )
 			{
-			ID* choice = choices[option - 1];
+			zeek::detail::ID* choice = choices[option - 1];
 			choices.clear();
 			choices.push_back(choice);
 			return;
@@ -216,7 +216,7 @@ static int dbg_backtrace_internal(int start, int end)
 	for ( int i = start; i >= end; --i )
 		{
 		const Frame* f = g_frame_stack[i];
-		const Stmt* stmt = f ? f->GetNextStmt() : nullptr;
+		const zeek::detail::Stmt* stmt = f ? f->GetNextStmt() : nullptr;
 
 		string context = get_context_description(stmt, f);
 		debug_msg("#%d  %s\n",
@@ -333,7 +333,7 @@ int dbg_cmd_frame(DebugCmd cmd, const vector<string>& args)
 
 	// Set the current location to the new frame being looked at
 	// for 'list', 'break', etc.
-	const Stmt* stmt = g_frame_stack[user_frame_number]->GetNextStmt();
+	const zeek::detail::Stmt* stmt = g_frame_stack[user_frame_number]->GetNextStmt();
 	if ( ! stmt )
 		reporter->InternalError("Assertion failed: %s", "stmt != 0");
 
@@ -373,7 +373,7 @@ int dbg_cmd_break(DebugCmd cmd, const vector<string>& args)
 			g_frame_stack.size() - 1 -
 				g_debugger_state.curr_frame_idx;
 
-		Stmt* stmt = g_frame_stack[user_frame_number]->GetNextStmt();
+		zeek::detail::Stmt* stmt = g_frame_stack[user_frame_number]->GetNextStmt();
 		if ( ! stmt )
 			reporter->InternalError("Assertion failed: %s", "stmt != 0");
 
@@ -398,7 +398,7 @@ int dbg_cmd_break(DebugCmd cmd, const vector<string>& args)
 		vector<string> locstrings;
 		if ( string_is_regex(args[0]) )
 			{
-			vector<ID*> choices;
+			vector<zeek::detail::ID*> choices;
 			choose_global_symbols_regex(args[0], choices, true);
 			for ( unsigned int i = 0; i < choices.size(); ++i )
 				locstrings.push_back(choices[i]->Name());

@@ -5,7 +5,7 @@
 # the value of `nproc` if available, otherwise just a single core.
 
 result=0
-BTEST=$(pwd)/aux/btest/btest
+BTEST=$(pwd)/auxil/btest/btest
 
 if [[ -z "${CIRRUS_CI}" ]]; then
     # Set default values to use in place of env. variables set by Cirrus CI.

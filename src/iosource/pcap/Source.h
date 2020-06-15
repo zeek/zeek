@@ -39,8 +39,6 @@ private:
 	Stats stats;
 
 	pcap_t *pd;
-
-	struct pcap_pkthdr current_hdr;
 };
 
 }

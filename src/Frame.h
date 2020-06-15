@@ -16,9 +16,10 @@
 #include <broker/data.hh>
 #include <broker/expected.hh>
 
-namespace trigger { class Trigger; }
-class CallExpr;
 class BroFunc;
+
+ZEEK_FORWARD_DECLARE_NAMESPACED(CallExpr, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(Trigger, zeek::detail::trigger);
 
 class Frame :  public BroObj {
 public:
@@ -65,8 +66,8 @@ public:
 	 * @param id the ID to associate
 	 * @param v the value to associate it with
 	 */
-	void SetElement(const ID* id, IntrusivePtr<Val> v);
-	void SetElement(const IntrusivePtr<ID>& id, IntrusivePtr<Val> v)
+	void SetElement(const zeek::detail::ID* id, IntrusivePtr<Val> v);
+	void SetElement(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<Val> v)
 		{ SetElement(id.get(), std::move(v)); }
 
 	/**
@@ -76,11 +77,11 @@ public:
 	 * @param id the id who's value to retreive
 	 * @return the value associated with *id*
 	 */
-	const IntrusivePtr<Val>& GetElementByID(const IntrusivePtr<ID>& id) const
+	const IntrusivePtr<Val>& GetElementByID(const IntrusivePtr<zeek::detail::ID>& id) const
 		{ return GetElementByID(id.get()); }
 
 	[[deprecated("Remove in v4.1.  Use GetElementByID().")]]
-	Val* GetElement(const ID* id) const
+	Val* GetElement(const zeek::detail::ID* id) const
 		{ return GetElementByID(id).get(); }
 
 	/**
@@ -118,12 +119,12 @@ public:
 	 *
 	 * @param stmt the statement to set it to.
 	 */
-	void SetNextStmt(Stmt* stmt)	{ next_stmt = stmt; }
+	void SetNextStmt(zeek::detail::Stmt* stmt)	{ next_stmt = stmt; }
 
 	/**
 	 * @return the next statement to be executed in the context of the frame.
 	 */
-	Stmt* GetNextStmt() const	{ return next_stmt; }
+	zeek::detail::Stmt* GetNextStmt() const	{ return next_stmt; }
 
 	/** Used to implement "next" command in debugger. */
 	void BreakBeforeNextStmt(bool should_break)
@@ -215,13 +216,13 @@ public:
 
 	// If the frame is run in the context of a trigger condition evaluation,
 	// the trigger needs to be registered.
-	void SetTrigger(IntrusivePtr<trigger::Trigger> arg_trigger);
+	void SetTrigger(IntrusivePtr<zeek::detail::trigger::Trigger> arg_trigger);
 	void ClearTrigger();
-	trigger::Trigger* GetTrigger() const		{ return trigger.get(); }
+	zeek::detail::trigger::Trigger* GetTrigger() const		{ return trigger.get(); }
 
-	void SetCall(const CallExpr* arg_call)	{ call = arg_call; }
+	void SetCall(const zeek::detail::CallExpr* arg_call)	{ call = arg_call; }
 	void ClearCall()			{ call = nullptr; }
-	const CallExpr* GetCall() const		{ return call; }
+	const zeek::detail::CallExpr* GetCall() const		{ return call; }
 
 	void SetDelayed()	{ delayed = true; }
 	bool HasDelayed() const	{ return delayed; }
@@ -246,7 +247,7 @@ private:
 		bool weak_ref;
 	};
 
-	const IntrusivePtr<Val>& GetElementByID(const ID* id) const;
+	const IntrusivePtr<Val>& GetElementByID(const zeek::detail::ID* id) const;
 
 	/**
 	 * Sets the element at index *n* of the underlying array to *v*, but does
@@ -272,7 +273,7 @@ private:
 	void ClearElement(int n);
 
 	/** Have we captured this id? */
-	bool IsOuterID(const ID* in) const;
+	bool IsOuterID(const zeek::detail::ID* in) const;
 
 	/** Serializes an offset_map */
 	static broker::expected<broker::data>
@@ -319,10 +320,10 @@ private:
 	const zeek::Args* func_args;
 
 	/** The next statement to be evaluted in the context of this frame. */
-	Stmt* next_stmt;
+	zeek::detail::Stmt* next_stmt;
 
-	IntrusivePtr<trigger::Trigger> trigger;
-	const CallExpr* call;
+	IntrusivePtr<zeek::detail::trigger::Trigger> trigger;
+	const zeek::detail::CallExpr* call;
 
 	std::unique_ptr<std::vector<BroFunc*>> functions_with_closure_frame_reference;
 };

@@ -14,13 +14,13 @@
 
 using namespace std;
 
-IntrusivePtr<OpaqueType> bro_broker::opaque_of_data_type;
-IntrusivePtr<OpaqueType> bro_broker::opaque_of_set_iterator;
-IntrusivePtr<OpaqueType> bro_broker::opaque_of_table_iterator;
-IntrusivePtr<OpaqueType> bro_broker::opaque_of_vector_iterator;
-IntrusivePtr<OpaqueType> bro_broker::opaque_of_record_iterator;
+IntrusivePtr<zeek::OpaqueType> bro_broker::opaque_of_data_type;
+IntrusivePtr<zeek::OpaqueType> bro_broker::opaque_of_set_iterator;
+IntrusivePtr<zeek::OpaqueType> bro_broker::opaque_of_table_iterator;
+IntrusivePtr<zeek::OpaqueType> bro_broker::opaque_of_vector_iterator;
+IntrusivePtr<zeek::OpaqueType> bro_broker::opaque_of_record_iterator;
 
-static bool data_type_check(const broker::data& d, BroType* t);
+static bool data_type_check(const broker::data& d, zeek::Type* t);
 
 static broker::port::protocol to_broker_port_proto(TransportProto tp)
 	{
@@ -75,7 +75,7 @@ TEST_CASE("converting Broker to Zeek protocol constants")
 struct val_converter {
 	using result_type = IntrusivePtr<Val>;
 
-	BroType* type;
+	zeek::Type* type;
 
 	result_type operator()(broker::none)
 		{
@@ -84,30 +84,30 @@ struct val_converter {
 
 	result_type operator()(bool a)
 		{
-		if ( type->Tag() == TYPE_BOOL )
+		if ( type->Tag() == zeek::TYPE_BOOL )
 			return val_mgr->Bool(a);
 		return nullptr;
 		}
 
 	result_type operator()(uint64_t a)
 		{
-		if ( type->Tag() == TYPE_COUNT )
+		if ( type->Tag() == zeek::TYPE_COUNT )
 			return val_mgr->Count(a);
-		if ( type->Tag() == TYPE_COUNTER )
+		if ( type->Tag() == zeek::TYPE_COUNTER )
 			return val_mgr->Count(a);
 		return nullptr;
 		}
 
 	result_type operator()(int64_t a)
 		{
-		if ( type->Tag() == TYPE_INT )
+		if ( type->Tag() == zeek::TYPE_INT )
 			return val_mgr->Int(a);
 		return nullptr;
 		}
 
 	result_type operator()(double a)
 		{
-		if ( type->Tag() == TYPE_DOUBLE )
+		if ( type->Tag() == zeek::TYPE_DOUBLE )
 			return make_intrusive<DoubleVal>(a);
 		return nullptr;
 		}
@@ -115,9 +115,9 @@ struct val_converter {
 	result_type operator()(std::string& a)
 		{
 		switch ( type->Tag() ) {
-		case TYPE_STRING:
+		case zeek::TYPE_STRING:
 			return make_intrusive<StringVal>(a.size(), a.data());
-		case TYPE_FILE:
+		case zeek::TYPE_FILE:
 			{
 			auto file = BroFile::Get(a.data());
 
@@ -133,7 +133,7 @@ struct val_converter {
 
 	result_type operator()(broker::address& a)
 		{
-		if ( type->Tag() == TYPE_ADDR )
+		if ( type->Tag() == zeek::TYPE_ADDR )
 			{
 			auto bits = reinterpret_cast<const in6_addr*>(&a.bytes());
 			return make_intrusive<AddrVal>(IPAddr(*bits));
@@ -144,7 +144,7 @@ struct val_converter {
 
 	result_type operator()(broker::subnet& a)
 		{
-		if ( type->Tag() == TYPE_SUBNET )
+		if ( type->Tag() == zeek::TYPE_SUBNET )
 			{
 			auto bits = reinterpret_cast<const in6_addr*>(&a.network().bytes());
 			return make_intrusive<SubNetVal>(IPPrefix(IPAddr(*bits), a.length()));
@@ -155,7 +155,7 @@ struct val_converter {
 
 	result_type operator()(broker::port& a)
 		{
-		if ( type->Tag() == TYPE_PORT )
+		if ( type->Tag() == zeek::TYPE_PORT )
 			return val_mgr->Port(a.number(), bro_broker::to_bro_port_proto(a.type()));
 
 		return nullptr;
@@ -163,7 +163,7 @@ struct val_converter {
 
 	result_type operator()(broker::timestamp& a)
 		{
-		if ( type->Tag() != TYPE_TIME )
+		if ( type->Tag() != zeek::TYPE_TIME )
 			return nullptr;
 
 		using namespace std::chrono;
@@ -173,7 +173,7 @@ struct val_converter {
 
 	result_type operator()(broker::timespan& a)
 		{
-		if ( type->Tag() != TYPE_INTERVAL )
+		if ( type->Tag() != zeek::TYPE_INTERVAL )
 			return nullptr;
 
 		using namespace std::chrono;
@@ -183,7 +183,7 @@ struct val_converter {
 
 	result_type operator()(broker::enum_value& a)
 		{
-		if ( type->Tag() == TYPE_ENUM )
+		if ( type->Tag() == zeek::TYPE_ENUM )
 			{
 			auto etype = type->AsEnumType();
 			auto i = etype->Lookup(GLOBAL_MODULE_NAME, a.name.data());
@@ -217,8 +217,8 @@ struct val_converter {
 				if ( expected_index_types.size() == 1 )
 					{
 					auto index_is_vector_or_record =
-					     expected_index_types[0]->Tag() == TYPE_RECORD ||
-					     expected_index_types[0]->Tag() == TYPE_VECTOR;
+					     expected_index_types[0]->Tag() == zeek::TYPE_RECORD ||
+					     expected_index_types[0]->Tag() == zeek::TYPE_VECTOR;
 
 					if ( index_is_vector_or_record )
 						{
@@ -237,7 +237,7 @@ struct val_converter {
 			if ( expected_index_types.size() != indices->size() )
 				return nullptr;
 
-			auto list_val = make_intrusive<ListVal>(TYPE_ANY);
+			auto list_val = make_intrusive<ListVal>(zeek::TYPE_ANY);
 
 			for ( auto i = 0u; i < indices->size(); ++i )
 				{
@@ -276,8 +276,8 @@ struct val_converter {
 				if ( expected_index_types.size() == 1 )
 					{
 					auto index_is_vector_or_record =
-					     expected_index_types[0]->Tag() == TYPE_RECORD ||
-					     expected_index_types[0]->Tag() == TYPE_VECTOR;
+					     expected_index_types[0]->Tag() == zeek::TYPE_RECORD ||
+					     expected_index_types[0]->Tag() == zeek::TYPE_VECTOR;
 
 					if ( index_is_vector_or_record )
 						{
@@ -296,7 +296,7 @@ struct val_converter {
 			if ( expected_index_types.size() != indices->size() )
 				return nullptr;
 
-			auto list_val = make_intrusive<ListVal>(TYPE_ANY);
+			auto list_val = make_intrusive<ListVal>(zeek::TYPE_ANY);
 
 			for ( auto i = 0u; i < indices->size(); ++i )
 				{
@@ -323,7 +323,7 @@ struct val_converter {
 
 	result_type operator()(broker::vector& a)
 		{
-		if ( type->Tag() == TYPE_VECTOR )
+		if ( type->Tag() == zeek::TYPE_VECTOR )
 			{
 			auto vt = type->AsVectorType();
 			auto rval = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, vt});
@@ -340,7 +340,7 @@ struct val_converter {
 
 			return rval;
 			}
-		else if ( type->Tag() == TYPE_FUNC )
+		else if ( type->Tag() == zeek::TYPE_FUNC )
 			{
 			if ( a.size() < 1 || a.size() > 2 )
 				return nullptr;
@@ -361,7 +361,7 @@ struct val_converter {
 			if ( ! t )
 				return nullptr;
 
-			if ( t->Tag() != TYPE_FUNC )
+			if ( t->Tag() != zeek::TYPE_FUNC )
 				return nullptr;
 
 			if ( a.size() == 2 ) // We have a closure.
@@ -380,7 +380,7 @@ struct val_converter {
 
 			return rval;
 			}
-		else if ( type->Tag() == TYPE_RECORD )
+		else if ( type->Tag() == zeek::TYPE_RECORD )
 			{
 			auto rt = type->AsRecordType();
 			auto rval = make_intrusive<RecordVal>(IntrusivePtr{NewRef{}, rt});
@@ -410,7 +410,7 @@ struct val_converter {
 
 			return rval;
 			}
-		else if ( type->Tag() == TYPE_PATTERN )
+		else if ( type->Tag() == zeek::TYPE_PATTERN )
 			{
 			if ( a.size() != 2 )
 				return nullptr;
@@ -435,7 +435,7 @@ struct val_converter {
 			auto rval = make_intrusive<PatternVal>(re);
 			return rval;
 			}
-		else if ( type->Tag() == TYPE_OPAQUE )
+		else if ( type->Tag() == zeek::TYPE_OPAQUE )
 			return OpaqueVal::Unserialize(a);
 
 		return nullptr;
@@ -445,7 +445,7 @@ struct val_converter {
 struct type_checker {
 	using result_type = bool;
 
-	BroType* type;
+	zeek::Type* type;
 
 	result_type operator()(broker::none)
 		{
@@ -454,30 +454,30 @@ struct type_checker {
 
 	result_type operator()(bool a)
 		{
-		if ( type->Tag() == TYPE_BOOL )
+		if ( type->Tag() == zeek::TYPE_BOOL )
 			return true;
 		return false;
 		}
 
 	result_type operator()(uint64_t a)
 		{
-		if ( type->Tag() == TYPE_COUNT )
+		if ( type->Tag() == zeek::TYPE_COUNT )
 			return true;
-		if ( type->Tag() == TYPE_COUNTER )
+		if ( type->Tag() == zeek::TYPE_COUNTER )
 			return true;
 		return false;
 		}
 
 	result_type operator()(int64_t a)
 		{
-		if ( type->Tag() == TYPE_INT )
+		if ( type->Tag() == zeek::TYPE_INT )
 			return true;
 		return false;
 		}
 
 	result_type operator()(double a)
 		{
-		if ( type->Tag() == TYPE_DOUBLE )
+		if ( type->Tag() == zeek::TYPE_DOUBLE )
 			return true;
 		return false;
 		}
@@ -485,9 +485,9 @@ struct type_checker {
 	result_type operator()(const std::string& a)
 		{
 		switch ( type->Tag() ) {
-		case TYPE_STRING:
+		case zeek::TYPE_STRING:
 			return true;
-		case TYPE_FILE:
+		case zeek::TYPE_FILE:
 			return true;
 		default:
 			return false;
@@ -496,7 +496,7 @@ struct type_checker {
 
 	result_type operator()(const broker::address& a)
 		{
-		if ( type->Tag() == TYPE_ADDR )
+		if ( type->Tag() == zeek::TYPE_ADDR )
 			return true;
 
 		return false;
@@ -504,7 +504,7 @@ struct type_checker {
 
 	result_type operator()(const broker::subnet& a)
 		{
-		if ( type->Tag() == TYPE_SUBNET )
+		if ( type->Tag() == zeek::TYPE_SUBNET )
 			return true;
 
 		return false;
@@ -512,7 +512,7 @@ struct type_checker {
 
 	result_type operator()(const broker::port& a)
 		{
-		if ( type->Tag() == TYPE_PORT )
+		if ( type->Tag() == zeek::TYPE_PORT )
 			return true;
 
 		return false;
@@ -520,7 +520,7 @@ struct type_checker {
 
 	result_type operator()(const broker::timestamp& a)
 		{
-		if ( type->Tag() == TYPE_TIME )
+		if ( type->Tag() == zeek::TYPE_TIME )
 			return true;
 
 		return false;
@@ -528,7 +528,7 @@ struct type_checker {
 
 	result_type operator()(const broker::timespan& a)
 		{
-		if ( type->Tag() == TYPE_INTERVAL )
+		if ( type->Tag() == zeek::TYPE_INTERVAL )
 			return true;
 
 		return false;
@@ -536,7 +536,7 @@ struct type_checker {
 
 	result_type operator()(const broker::enum_value& a)
 		{
-		if ( type->Tag() == TYPE_ENUM )
+		if ( type->Tag() == zeek::TYPE_ENUM )
 			{
 			auto etype = type->AsEnumType();
 			auto i = etype->Lookup(GLOBAL_MODULE_NAME, a.name.data());
@@ -564,8 +564,8 @@ struct type_checker {
 				if ( expected_index_types.size() == 1 )
 					{
 					auto index_is_vector_or_record =
-					     expected_index_types[0]->Tag() == TYPE_RECORD ||
-					     expected_index_types[0]->Tag() == TYPE_VECTOR;
+					     expected_index_types[0]->Tag() == zeek::TYPE_RECORD ||
+					     expected_index_types[0]->Tag() == zeek::TYPE_VECTOR;
 
 					if ( index_is_vector_or_record )
 						// Disambiguate from composite key w/ multiple vals.
@@ -623,8 +623,8 @@ struct type_checker {
 				if ( expected_index_types.size() == 1 )
 					{
 					auto index_is_vector_or_record =
-					     expected_index_types[0]->Tag() == TYPE_RECORD ||
-					     expected_index_types[0]->Tag() == TYPE_VECTOR;
+					     expected_index_types[0]->Tag() == zeek::TYPE_RECORD ||
+					     expected_index_types[0]->Tag() == zeek::TYPE_VECTOR;
 
 					if ( index_is_vector_or_record )
 						// Disambiguate from composite key w/ multiple vals.
@@ -672,7 +672,7 @@ struct type_checker {
 
 	result_type operator()(const broker::vector& a)
 		{
-		if ( type->Tag() == TYPE_VECTOR )
+		if ( type->Tag() == zeek::TYPE_VECTOR )
 			{
 			auto vt = type->AsVectorType();
 
@@ -684,7 +684,7 @@ struct type_checker {
 
 			return true;
 			}
-		else if ( type->Tag() == TYPE_FUNC )
+		else if ( type->Tag() == zeek::TYPE_FUNC )
 			{
 			if ( a.size() < 1 || a.size() > 2 )
 				return false;
@@ -705,12 +705,12 @@ struct type_checker {
 			if ( ! t )
 				return false;
 
-			if ( t->Tag() != TYPE_FUNC )
+			if ( t->Tag() != zeek::TYPE_FUNC )
 				return false;
 
 			return true;
 			}
-		else if ( type->Tag() == TYPE_RECORD )
+		else if ( type->Tag() == zeek::TYPE_RECORD )
 			{
 			auto rt = type->AsRecordType();
 			auto idx = 0u;
@@ -734,7 +734,7 @@ struct type_checker {
 
 			return true;
 			}
-		else if ( type->Tag() == TYPE_PATTERN )
+		else if ( type->Tag() == zeek::TYPE_PATTERN )
 			{
 			if ( a.size() != 2 )
 				return false;
@@ -759,7 +759,7 @@ struct type_checker {
 
 			return true;
 			}
-		else if ( type->Tag() == TYPE_OPAQUE )
+		else if ( type->Tag() == zeek::TYPE_OPAQUE )
 			{
 			// TODO: Could avoid doing the full unserialization here
 			// and just check if the type is a correct match.
@@ -771,17 +771,17 @@ struct type_checker {
 		}
 };
 
-static bool data_type_check(const broker::data& d, BroType* t)
+static bool data_type_check(const broker::data& d, zeek::Type* t)
 	{
-	if ( t->Tag() == TYPE_ANY )
+	if ( t->Tag() == zeek::TYPE_ANY )
 		return true;
 
 	return caf::visit(type_checker{t}, d);
 	}
 
-IntrusivePtr<Val> bro_broker::data_to_val(broker::data d, BroType* type)
+IntrusivePtr<Val> bro_broker::data_to_val(broker::data d, zeek::Type* type)
 	{
-	if ( type->Tag() == TYPE_ANY )
+	if ( type->Tag() == zeek::TYPE_ANY )
 		return bro_broker::make_data_val(move(d));
 
 	return caf::visit(val_converter{type}, std::move(d));
@@ -790,20 +790,20 @@ IntrusivePtr<Val> bro_broker::data_to_val(broker::data d, BroType* type)
 broker::expected<broker::data> bro_broker::val_to_data(const Val* v)
 	{
 	switch ( v->GetType()->Tag() ) {
-	case TYPE_BOOL:
+	case zeek::TYPE_BOOL:
 		return {v->AsBool()};
-	case TYPE_INT:
+	case zeek::TYPE_INT:
 		return {v->AsInt()};
-	case TYPE_COUNT:
+	case zeek::TYPE_COUNT:
 		return {v->AsCount()};
-	case TYPE_COUNTER:
+	case zeek::TYPE_COUNTER:
 		return {v->AsCounter()};
-	case TYPE_PORT:
+	case zeek::TYPE_PORT:
 		{
 		auto p = v->AsPortVal();
 		return {broker::port(p->Port(), to_broker_port_proto(p->PortType()))};
 		}
-	case TYPE_ADDR:
+	case zeek::TYPE_ADDR:
 		{
 		auto a = v->AsAddr();
 		in6_addr tmp;
@@ -813,7 +813,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const Val* v)
 			                    broker::address::byte_order::network)};
 		}
 		break;
-	case TYPE_SUBNET:
+	case zeek::TYPE_SUBNET:
 		{
 		auto s = v->AsSubNet();
 		in6_addr tmp;
@@ -824,33 +824,33 @@ broker::expected<broker::data> bro_broker::val_to_data(const Val* v)
 		return {broker::subnet(std::move(a), s.Length())};
 		}
 		break;
-	case TYPE_DOUBLE:
+	case zeek::TYPE_DOUBLE:
 		return {v->AsDouble()};
-	case TYPE_TIME:
+	case zeek::TYPE_TIME:
 		{
 		auto secs = broker::fractional_seconds{v->AsTime()};
 		auto since_epoch = std::chrono::duration_cast<broker::timespan>(secs);
 		return {broker::timestamp{since_epoch}};
 		}
-	case TYPE_INTERVAL:
+	case zeek::TYPE_INTERVAL:
 		{
 		auto secs = broker::fractional_seconds{v->AsInterval()};
 		return {std::chrono::duration_cast<broker::timespan>(secs)};
 		}
-	case TYPE_ENUM:
+	case zeek::TYPE_ENUM:
 		{
 		auto enum_type = v->GetType()->AsEnumType();
 		auto enum_name = enum_type->Lookup(v->AsEnum());
 		return {broker::enum_value(enum_name ? enum_name : "<unknown enum>")};
 		}
-	case TYPE_STRING:
+	case zeek::TYPE_STRING:
 		{
 		auto s = v->AsString();
 		return {string(reinterpret_cast<const char*>(s->Bytes()), s->Len())};
 		}
-	case TYPE_FILE:
+	case zeek::TYPE_FILE:
 		return {string(v->AsFile()->Name())};
-	case TYPE_FUNC:
+	case zeek::TYPE_FUNC:
 		{
 		const Func* f = v->AsFunc();
 		std::string name(f->Name());
@@ -878,7 +878,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const Val* v)
 
 		return {std::move(rval)};
 		}
-	case TYPE_TABLE:
+	case zeek::TYPE_TABLE:
 		{
 		auto is_set = v->GetType()->IsSet();
 		auto table = v->AsTable();
@@ -934,7 +934,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const Val* v)
 
 		return {std::move(rval)};
 		}
-	case TYPE_VECTOR:
+	case zeek::TYPE_VECTOR:
 		{
 		auto vec = v->AsVectorVal();
 		broker::vector rval;
@@ -957,7 +957,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const Val* v)
 
 		return {std::move(rval)};
 		}
-	case TYPE_RECORD:
+	case zeek::TYPE_RECORD:
 		{
 		auto rec = v->AsRecordVal();
 		broker::vector rval;
@@ -984,13 +984,13 @@ broker::expected<broker::data> bro_broker::val_to_data(const Val* v)
 
 		return {std::move(rval)};
 		}
-	case TYPE_PATTERN:
+	case zeek::TYPE_PATTERN:
 		{
 		const RE_Matcher* p = v->AsPattern();
 		broker::vector rval = {p->PatternText(), p->AnywherePatternText()};
 		return {std::move(rval)};
 		}
-	case TYPE_OPAQUE:
+	case zeek::TYPE_OPAQUE:
 		{
 		auto c = v->AsOpaqueVal()->Serialize();
 		if ( ! c )
@@ -1003,7 +1003,7 @@ broker::expected<broker::data> bro_broker::val_to_data(const Val* v)
 		}
 	default:
 		reporter->Error("unsupported Broker::Data type: %s",
-		                type_name(v->GetType()->Tag()));
+		                zeek::type_name(v->GetType()->Tag()));
 		break;
 	}
 
@@ -1137,17 +1137,17 @@ void bro_broker::DataVal::ValDescribe(ODesc* d) const
 	d->Add("}");
 	}
 
-bool bro_broker::DataVal::canCastTo(BroType* t) const
+bool bro_broker::DataVal::canCastTo(zeek::Type* t) const
 	{
 	return data_type_check(data, t);
 	}
 
-IntrusivePtr<Val> bro_broker::DataVal::castTo(BroType* t)
+IntrusivePtr<Val> bro_broker::DataVal::castTo(zeek::Type* t)
 	{
 	return data_to_val(data, t);
 	}
 
-const IntrusivePtr<BroType>& bro_broker::DataVal::ScriptDataType()
+const IntrusivePtr<zeek::Type>& bro_broker::DataVal::ScriptDataType()
 	{
 	static auto script_data_type = zeek::id::find_type("Broker::Data");
 	return script_data_type;
@@ -1305,7 +1305,7 @@ threading::Field* bro_broker::data_to_threading_field(broker::data d)
 
 	return new threading::Field(name->c_str(),
 				    secondary != broker::nil ? caf::get<std::string>(secondary).c_str() : nullptr,
-				    static_cast<TypeTag>(*type),
-				    static_cast<TypeTag>(*subtype),
+				    static_cast<zeek::TypeTag>(*type),
+				    static_cast<zeek::TypeTag>(*subtype),
 				    *optional);
 	}

@@ -15,12 +15,13 @@
 #include "DebugLogger.h"
 #include "iosource/Manager.h"
 
-using namespace trigger;
+using namespace zeek::detail;
+using namespace zeek::detail::trigger;
 
 // Callback class to traverse an expression, registering all relevant IDs and
 // Vals for change notifications.
 
-namespace trigger {
+namespace zeek::detail::trigger {
 
 class TriggerTraversalCallback : public TraversalCallback {
 public:
@@ -30,15 +31,13 @@ public:
 	~TriggerTraversalCallback()
 		{ Unref(trigger); }
 
-	virtual TraversalCode PreExpr(const Expr*);
+	virtual TraversalCode PreExpr(const zeek::detail::Expr*) override;
 
 private:
 	Trigger* trigger;
 };
 
-}
-
-TraversalCode TriggerTraversalCallback::PreExpr(const Expr* expr)
+TraversalCode zeek::detail::trigger::TriggerTraversalCallback::PreExpr(const zeek::detail::Expr* expr)
 	{
 	// We catch all expressions here which in some way reference global
 	// state.
@@ -46,7 +45,7 @@ TraversalCode TriggerTraversalCallback::PreExpr(const Expr* expr)
 	switch ( expr->Tag() ) {
 	case EXPR_NAME:
 		{
-		const NameExpr* e = static_cast<const NameExpr*>(expr);
+		const auto* e = static_cast<const zeek::detail::NameExpr*>(expr);
 		if ( e->Id()->IsGlobal() )
 			trigger->Register(e->Id());
 
@@ -59,7 +58,7 @@ TraversalCode TriggerTraversalCallback::PreExpr(const Expr* expr)
 
 	case EXPR_INDEX:
 		{
-		const IndexExpr* e = static_cast<const IndexExpr*>(expr);
+		const auto* e = static_cast<const zeek::detail::IndexExpr*>(expr);
 		BroObj::SuppressErrors no_errors;
 
 		try
@@ -82,8 +81,6 @@ TraversalCode TriggerTraversalCallback::PreExpr(const Expr* expr)
 
 	return TC_CONTINUE;
 	}
-
-namespace trigger {
 
 class TriggerTimer final : public Timer {
 public:
@@ -120,10 +117,9 @@ protected:
 	double time;
 };
 
-}
-
-Trigger::Trigger(Expr* arg_cond, Stmt* arg_body, Stmt* arg_timeout_stmts,
-			Expr* arg_timeout, Frame* arg_frame,
+Trigger::Trigger(zeek::detail::Expr* arg_cond, zeek::detail::Stmt* arg_body,
+			zeek::detail::Stmt* arg_timeout_stmts,
+			zeek::detail::Expr* arg_timeout, Frame* arg_frame,
 			bool arg_is_return, const Location* arg_location)
 	{
 	cond = arg_cond;
@@ -389,7 +385,7 @@ void Trigger::Timeout()
 	Unref(this);
 	}
 
-void Trigger::Register(ID* id)
+void Trigger::Register(zeek::detail::ID* id)
 	{
 	assert(! disabled);
 	notifier::registry.Register(id, this);
@@ -440,7 +436,7 @@ void Trigger::Attach(Trigger *trigger)
 	Hold();
 	}
 
-bool Trigger::Cache(const CallExpr* expr, Val* v)
+bool Trigger::Cache(const zeek::detail::CallExpr* expr, Val* v)
 	{
 	if ( disabled || ! v )
 		return false;
@@ -463,7 +459,7 @@ bool Trigger::Cache(const CallExpr* expr, Val* v)
 	}
 
 
-Val* Trigger::Lookup(const CallExpr* expr)
+Val* Trigger::Lookup(const zeek::detail::CallExpr* expr)
 	{
 	assert(! disabled);
 
@@ -553,3 +549,5 @@ void Manager::GetStats(Stats* stats)
 	stats->total = total_triggers;
 	stats->pending = pending->size();
 	}
+
+}

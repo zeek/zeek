@@ -12,6 +12,8 @@
 #include "file_analysis/Manager.h"
 
 #include <broker/error.hh>
+#include <broker/expected.hh>
+#include <broker/data.hh>
 
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
@@ -393,7 +395,7 @@ void file_analysis::X509::ParseSAN(X509_EXTENSION* ext)
 		else if ( gen->type == GEN_IPADD )
 			{
 				if ( ips == nullptr )
-					ips = make_intrusive<VectorVal>(zeek::id::find_type<VectorType>("addr_vec"));
+					ips = make_intrusive<VectorVal>(zeek::id::find_type<zeek::VectorType>("addr_vec"));
 
 				uint32_t* addr = (uint32_t*) gen->d.ip->data;
 

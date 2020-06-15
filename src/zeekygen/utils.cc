@@ -78,10 +78,10 @@ bool zeekygen::prettify_params(string& s)
 	return false;
 	}
 
-bool zeekygen::is_public_api(const ID* id)
+bool zeekygen::is_public_api(const zeek::detail::ID* id)
 	{
-	return (id->Scope() == SCOPE_GLOBAL) ||
-	       (id->Scope() == SCOPE_MODULE && id->IsExport());
+	return (id->Scope() == zeek::detail::SCOPE_GLOBAL) ||
+	       (id->Scope() == zeek::detail::SCOPE_MODULE && id->IsExport());
 	}
 
 time_t zeekygen::get_mtime(const string& filename)

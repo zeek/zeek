@@ -18,11 +18,11 @@ static void topk_element_hash_delete_func(void* val)
 	delete e;
 	}
 
-void TopkVal::Typify(IntrusivePtr<BroType> t)
+void TopkVal::Typify(IntrusivePtr<zeek::Type> t)
 	{
 	assert(!hash && !type);
 	type = std::move(t);
-	auto tl = make_intrusive<TypeList>(type);
+	auto tl = make_intrusive<zeek::TypeList>(type);
 	tl->Append(type);
 	hash = new CompositeHash(std::move(tl));
 	}
@@ -191,7 +191,7 @@ IntrusivePtr<VectorVal> TopkVal::GetTopK(int k) const // returns vector
 		return nullptr;
 		}
 
-	auto v = make_intrusive<VectorType>(type);
+	auto v = make_intrusive<zeek::VectorType>(type);
 	auto t = make_intrusive<VectorVal>(std::move(v));
 
 	// this does no estimation if the results is correct!

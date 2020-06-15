@@ -1,4 +1,4 @@
-# @TEST-EXEC: ${DIST}/aux/zeek-aux/plugin-support/init-plugin -u . Reporter Hook
+# @TEST-EXEC: ${DIST}/auxil/zeek-aux/plugin-support/init-plugin -u . Reporter Hook
 # @TEST-EXEC: cp -r %DIR/reporter-hook-plugin/* .
 # @TEST-EXEC: ./configure --zeek-dist=${DIST} && make
 # @TEST-EXEC: ZEEK_PLUGIN_ACTIVATE="Reporter::Hook" ZEEK_PLUGIN_PATH=`pwd` zeek -b %INPUT 2>&1 | $SCRIPTS/diff-remove-abspath | sort | uniq  >output

@@ -26,7 +26,6 @@ PcapSource::PcapSource(const std::string& path, bool is_live)
 	props.path = path;
 	props.is_live = is_live;
 	pd = nullptr;
-	memset(&current_hdr, 0, sizeof(current_hdr));
 	}
 
 void PcapSource::Open()
@@ -197,29 +196,47 @@ bool PcapSource::ExtractNextPacket(Packet* pkt)
 	if ( ! pd )
 		return false;
 
-	const u_char* data = pcap_next(pd, &current_hdr);
+	const u_char* data;
+	pcap_pkthdr* header;
 
-	if ( ! data )
-		{
-		// Source has gone dry.  If it's a network interface, this just means
-		// it's timed out. If it's a file, though, then the file has been
-		// exhausted.
-		if ( ! props.is_live )
-			Close();
+	int res = pcap_next_ex(pd, &header, &data);
 
+	switch ( res ) {
+	case PCAP_ERROR_BREAK: // -2
+		// Exhausted pcap file, no more packets to read.
+		assert(! props.is_live);
+		Close();
 		return false;
-		}
+	case PCAP_ERROR: // -1
+		// Error occurred while reading the packet.
+		if ( props.is_live )
+			reporter->Error("failed to read a packet from %s: %s",
+			                props.path.data(), pcap_geterr(pd));
+		else
+			reporter->FatalError("failed to read a packet from %s: %s",
+			                     props.path.data(), pcap_geterr(pd));
+		return false;
+	case 0:
+		// Read from live interface timed out (ok).
+		return false;
+	case 1:
+		// Read a packet without problem.
+		break;
+	default:
+		reporter->InternalError("unhandled pcap_next_ex return value: %d", res);
+		return false;
+	}
 
-	pkt->Init(props.link_type, &current_hdr.ts, current_hdr.caplen, current_hdr.len, data);
+	pkt->Init(props.link_type, &header->ts, header->caplen, header->len, data);
 
-	if ( current_hdr.len == 0 || current_hdr.caplen == 0 )
+	if ( header->len == 0 || header->caplen == 0 )
 		{
 		Weird("empty_pcap_header", pkt);
 		return false;
 		}
 
 	++stats.received;
-	stats.bytes_received += current_hdr.len;
+	stats.bytes_received += header->len;
 
 	return true;
 	}

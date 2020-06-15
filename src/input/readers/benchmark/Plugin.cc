@@ -7,13 +7,13 @@
 namespace plugin {
 namespace Zeek_BenchmarkReader {
 
-class Plugin : public plugin::Plugin {
+class Plugin : public zeek::plugin::Plugin {
 public:
-	plugin::Configuration Configure() override
+	zeek::plugin::Configuration Configure() override
 		{
 		AddComponent(new ::input::Component("Benchmark", ::input::reader::Benchmark::Instantiate));
 
-		plugin::Configuration config;
+		zeek::plugin::Configuration config;
 		config.name = "Zeek::BenchmarkReader";
 		config.description = "Benchmark input reader";
 		return config;

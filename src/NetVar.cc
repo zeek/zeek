@@ -8,27 +8,27 @@
 #include "Val.h"
 #include "ID.h"
 
-RecordType* conn_id;
-RecordType* endpoint;
-RecordType* endpoint_stats;
-RecordType* connection_type;
-RecordType* fa_file_type;
-RecordType* fa_metadata_type;
-RecordType* icmp_conn;
-RecordType* icmp_context;
-RecordType* SYN_packet;
-RecordType* pcap_packet;
-RecordType* raw_pkt_hdr_type;
-RecordType* l2_hdr_type;
-RecordType* signature_state;
-EnumType* transport_proto;
-TableType* string_set;
-TableType* string_array;
-TableType* count_set;
-VectorType* string_vec;
-VectorType* index_vec;
-VectorType* mime_matches;
-RecordType* mime_match;
+zeek::RecordType* conn_id;
+zeek::RecordType* endpoint;
+zeek::RecordType* endpoint_stats;
+zeek::RecordType* connection_type;
+zeek::RecordType* fa_file_type;
+zeek::RecordType* fa_metadata_type;
+zeek::RecordType* icmp_conn;
+zeek::RecordType* icmp_context;
+zeek::RecordType* SYN_packet;
+zeek::RecordType* pcap_packet;
+zeek::RecordType* raw_pkt_hdr_type;
+zeek::RecordType* l2_hdr_type;
+zeek::RecordType* signature_state;
+zeek::EnumType* transport_proto;
+zeek::TableType* string_set;
+zeek::TableType* string_array;
+zeek::TableType* count_set;
+zeek::VectorType* string_vec;
+zeek::VectorType* index_vec;
+zeek::VectorType* mime_matches;
+zeek::RecordType* mime_match;
 
 int watchdog_interval;
 
@@ -56,7 +56,7 @@ int tcp_max_above_hole_without_any_acks;
 int tcp_excessive_data_without_further_acks;
 int tcp_max_old_segments;
 
-RecordType* socks_address;
+zeek::RecordType* socks_address;
 
 double non_analyzed_lifetime;
 double tcp_inactivity_timeout;
@@ -86,32 +86,32 @@ double rpc_timeout;
 
 int mime_segment_length;
 int mime_segment_overlap_length;
-RecordType* mime_header_rec;
-TableType* mime_header_list;
+zeek::RecordType* mime_header_rec;
+zeek::TableType* mime_header_list;
 
 int http_entity_data_delivery_size;
-RecordType* http_stats_rec;
-RecordType* http_message_stat;
+zeek::RecordType* http_stats_rec;
+zeek::RecordType* http_message_stat;
 int truncate_http_URI;
 
-RecordType* pm_mapping;
-TableType* pm_mappings;
-RecordType* pm_port_request;
-RecordType* pm_callit_request;
+zeek::RecordType* pm_mapping;
+zeek::TableType* pm_mappings;
+zeek::RecordType* pm_port_request;
+zeek::RecordType* pm_callit_request;
 
-RecordType* geo_location;
+zeek::RecordType* geo_location;
 
-RecordType* entropy_test_result;
+zeek::RecordType* entropy_test_result;
 
-RecordType* dns_msg;
-RecordType* dns_answer;
-RecordType* dns_soa;
-RecordType* dns_edns_additional;
-RecordType* dns_tsig_additional;
-RecordType* dns_rrsig_rr;
-RecordType* dns_dnskey_rr;
-RecordType* dns_nsec3_rr;
-RecordType* dns_ds_rr;
+zeek::RecordType* dns_msg;
+zeek::RecordType* dns_answer;
+zeek::RecordType* dns_soa;
+zeek::RecordType* dns_edns_additional;
+zeek::RecordType* dns_tsig_additional;
+zeek::RecordType* dns_rrsig_rr;
+zeek::RecordType* dns_dnskey_rr;
+zeek::RecordType* dns_nsec3_rr;
+zeek::RecordType* dns_ds_rr;
 TableVal* dns_skip_auth;
 TableVal* dns_skip_addl;
 int dns_skip_all_auth;
@@ -134,7 +134,7 @@ TableVal* preserve_orig_addr;
 TableVal* preserve_resp_addr;
 TableVal* preserve_other_addr;
 
-RecordType* rotate_info;
+zeek::RecordType* rotate_info;
 StringVal* log_rotate_base_time;
 
 StringVal* peer_description;
@@ -153,8 +153,8 @@ int packet_filter_default;
 
 int sig_max_group_size;
 
-TableType* irc_join_list;
-RecordType* irc_join_info;
+zeek::TableType* irc_join_list;
+zeek::RecordType* irc_join_info;
 
 int dpd_reassemble_first_packets;
 int dpd_buffer_size;
@@ -172,12 +172,12 @@ StringVal* trace_output_file;
 
 int record_all_packets;
 
-RecordType* script_id;
-TableType* id_table;
-RecordType* record_field;
-TableType* record_field_table;
-RecordType* call_argument;
-VectorType* call_argument_vector;
+zeek::RecordType* script_id;
+zeek::TableType* id_table;
+zeek::RecordType* record_field;
+zeek::TableType* record_field_table;
+zeek::RecordType* call_argument;
+zeek::VectorType* call_argument_vector;
 
 StringVal* cmd_line_bpf_filter;
 

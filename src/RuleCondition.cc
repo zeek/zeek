@@ -136,18 +136,18 @@ RuleConditionEval::RuleConditionEval(const char* func)
 		return;
 		}
 
-	if ( id->GetType()->Tag() == TYPE_FUNC )
+	if ( id->GetType()->Tag() == zeek::TYPE_FUNC )
 		{
 		// Validate argument quantity and type.
-		FuncType* f = id->GetType()->AsFuncType();
+		zeek::FuncType* f = id->GetType()->AsFuncType();
 
-		if ( f->Yield()->Tag() != TYPE_BOOL )
+		if ( f->Yield()->Tag() != zeek::TYPE_BOOL )
 			rules_error("eval function type must yield a 'bool'", func);
 
-		static auto signature_state = zeek::id::find_type<RecordType>("signature_state");
-		TypeList tl;
+		static auto signature_state = zeek::id::find_type<zeek::RecordType>("signature_state");
+		zeek::TypeList tl;
 		tl.Append(signature_state);
-		tl.Append(base_type(TYPE_STRING));
+		tl.Append(zeek::base_type(zeek::TYPE_STRING));
 
 		if ( ! f->CheckArgs(tl.Types()) )
 			rules_error("eval function parameters must be a 'signature_state' "
@@ -164,7 +164,7 @@ bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state,
 		return false;
 		}
 
-	if ( id->GetType()->Tag() != TYPE_FUNC )
+	if ( id->GetType()->Tag() != zeek::TYPE_FUNC )
 		return id->GetVal()->AsBool();
 
 	// Call function with a signature_state value as argument.

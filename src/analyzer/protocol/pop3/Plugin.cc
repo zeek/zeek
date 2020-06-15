@@ -7,13 +7,13 @@
 namespace plugin {
 namespace Zeek_POP3 {
 
-class Plugin : public plugin::Plugin {
+class Plugin : public zeek::plugin::Plugin {
 public:
-	plugin::Configuration Configure() override
+	zeek::plugin::Configuration Configure() override
 		{
 		AddComponent(new ::analyzer::Component("POP3", ::analyzer::pop3::POP3_Analyzer::Instantiate));
 
-		plugin::Configuration config;
+		zeek::plugin::Configuration config;
 		config.name = "Zeek::POP3";
 		config.description = "POP3 analyzer";
 		return config;

@@ -19,24 +19,24 @@
 #include "zeekygen/ScriptInfo.h"
 #include "module_util.h"
 
-IntrusivePtr<RecordType> zeek::id::conn_id;
-IntrusivePtr<RecordType> zeek::id::endpoint;
-IntrusivePtr<RecordType> zeek::id::connection;
-IntrusivePtr<RecordType> zeek::id::fa_file;
-IntrusivePtr<RecordType> zeek::id::fa_metadata;
-IntrusivePtr<EnumType> zeek::id::transport_proto;
-IntrusivePtr<TableType> zeek::id::string_set;
-IntrusivePtr<TableType> zeek::id::string_array;
-IntrusivePtr<TableType> zeek::id::count_set;
-IntrusivePtr<VectorType> zeek::id::string_vec;
-IntrusivePtr<VectorType> zeek::id::index_vec;
+IntrusivePtr<zeek::RecordType> zeek::id::conn_id;
+IntrusivePtr<zeek::RecordType> zeek::id::endpoint;
+IntrusivePtr<zeek::RecordType> zeek::id::connection;
+IntrusivePtr<zeek::RecordType> zeek::id::fa_file;
+IntrusivePtr<zeek::RecordType> zeek::id::fa_metadata;
+IntrusivePtr<zeek::EnumType> zeek::id::transport_proto;
+IntrusivePtr<zeek::TableType> zeek::id::string_set;
+IntrusivePtr<zeek::TableType> zeek::id::string_array;
+IntrusivePtr<zeek::TableType> zeek::id::count_set;
+IntrusivePtr<zeek::VectorType> zeek::id::string_vec;
+IntrusivePtr<zeek::VectorType> zeek::id::index_vec;
 
-const IntrusivePtr<ID>& zeek::id::find(std::string_view name)
+const IntrusivePtr<zeek::detail::ID>& zeek::id::find(std::string_view name)
 	{
 	return global_scope()->Find(name);
 	}
 
-const IntrusivePtr<BroType>& zeek::id::find_type(std::string_view name)
+const IntrusivePtr<zeek::Type>& zeek::id::find_type(std::string_view name)
 	{
 	auto id = global_scope()->Find(name);
 
@@ -89,18 +89,20 @@ IntrusivePtr<Func> zeek::id::find_func(std::string_view name)
 
 void zeek::id::detail::init()
 	{
-	conn_id = zeek::id::find_type<RecordType>("conn_id");
-	endpoint = zeek::id::find_type<RecordType>("endpoint");
-	connection = zeek::id::find_type<RecordType>("connection");
-	fa_file = zeek::id::find_type<RecordType>("fa_file");
-	fa_metadata = zeek::id::find_type<RecordType>("fa_metadata");
-	transport_proto = zeek::id::find_type<EnumType>("transport_proto");
-	string_set = zeek::id::find_type<TableType>("string_set");
-	string_array = zeek::id::find_type<TableType>("string_array");
-	count_set = zeek::id::find_type<TableType>("count_set");
-	string_vec = zeek::id::find_type<VectorType>("string_vec");
-	index_vec = zeek::id::find_type<VectorType>("index_vec");
+	conn_id = zeek::id::find_type<zeek::RecordType>("conn_id");
+	endpoint = zeek::id::find_type<zeek::RecordType>("endpoint");
+	connection = zeek::id::find_type<zeek::RecordType>("connection");
+	fa_file = zeek::id::find_type<zeek::RecordType>("fa_file");
+	fa_metadata = zeek::id::find_type<zeek::RecordType>("fa_metadata");
+	transport_proto = zeek::id::find_type<zeek::EnumType>("transport_proto");
+	string_set = zeek::id::find_type<zeek::TableType>("string_set");
+	string_array = zeek::id::find_type<zeek::TableType>("string_array");
+	count_set = zeek::id::find_type<zeek::TableType>("count_set");
+	string_vec = zeek::id::find_type<zeek::VectorType>("string_vec");
+	index_vec = zeek::id::find_type<zeek::VectorType>("index_vec");
 	}
+
+namespace zeek::detail {
 
 ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 	{
@@ -118,6 +120,12 @@ ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 	SetLocationInfo(&start_location, &end_location);
 	}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+ID::ID(const char* arg_name, ::IDScope arg_scope, bool arg_is_export) :
+	ID(arg_name, static_cast<IDScope>(arg_scope), arg_is_export) {}
+#pragma GCC diagnostic pop
+
 ID::~ID()
 	{
 	delete [] name;
@@ -128,7 +136,7 @@ std::string ID::ModuleName() const
 	return extract_module_name(name);
 	}
 
-void ID::SetType(IntrusivePtr<BroType> t)
+void ID::SetType(IntrusivePtr<zeek::Type> t)
 	{
 	type = std::move(t);
 	}
@@ -215,6 +223,19 @@ void ID::SetVal(IntrusivePtr<Expr> ev, init_class c)
 	EvalFunc(a->GetExpr(), std::move(ev));
 	}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+void ID::SetVal(IntrusivePtr<Val> v, ::init_class c)
+	{
+	SetVal(v, static_cast<init_class>(c));
+	}
+
+void ID::SetVal(IntrusivePtr<Expr> ev, ::init_class c)
+	{
+	SetVal(ev, static_cast<init_class>(c));
+	}
+#pragma GCC diagnostic pop
+
 bool ID::IsRedefinable() const
 	{
 	return GetAttr(ATTR_REDEF) != nullptr;
@@ -252,7 +273,7 @@ void ID::UpdateValAttrs()
 		if ( attr )
 			{
 			// Apply &log to all record fields.
-			RecordType* rt = GetType()->AsRecordType();
+			zeek::RecordType* rt = GetType()->AsRecordType();
 			for ( int i = 0; i < rt->NumFields(); ++i )
 				{
 				TypeDecl* fd = rt->FieldDecl(i);
@@ -292,7 +313,7 @@ std::string ID::GetDeprecationWarning() const
 
 	if ( depr_attr )
 		{
-		auto expr = static_cast<ConstExpr*>(depr_attr->GetExpr().get());
+		auto expr = static_cast<zeek::detail::ConstExpr*>(depr_attr->GetExpr().get());
 		if ( expr )
 			{
 			StringVal* text = expr->Value()->AsStringVal();
@@ -322,6 +343,14 @@ void ID::RemoveAttr(attr_tag a)
 		attrs->RemoveAttr(a);
 	}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+void ID::RemoveAttr(::attr_tag a)
+	{
+	RemoveAttr(static_cast<attr_tag>(a));
+	}
+#pragma GCC diagnostic pop
+
 void ID::SetOption()
 	{
 	if ( is_option )
@@ -339,8 +368,8 @@ void ID::SetOption()
 
 void ID::EvalFunc(IntrusivePtr<Expr> ef, IntrusivePtr<Expr> ev)
 	{
-	auto arg1 = make_intrusive<ConstExpr>(val);
-	auto args = make_intrusive<ListExpr>();
+	auto arg1 = make_intrusive<zeek::detail::ConstExpr>(val);
+	auto args = make_intrusive<zeek::detail::ListExpr>();
 	args->Append(std::move(arg1));
 	args->Append(std::move(ev));
 	auto ce = make_intrusive<CallExpr>(std::move(ef), std::move(args));
@@ -655,3 +684,5 @@ std::vector<Func*> ID::GetOptionHandlers() const
 		v.push_back(element.second.get());
 	return v;
 	}
+
+}

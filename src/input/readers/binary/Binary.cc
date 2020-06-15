@@ -99,7 +99,7 @@ bool Binary::DoInit(const ReaderInfo& info, int num_fields,
 		return false;
 		}
 
-	if ( fields[0]->type != TYPE_STRING )
+	if ( fields[0]->type != zeek::TYPE_STRING )
 		{
 		Error("Filter for binary reader contains a non-string field.");
 		return false;
@@ -241,7 +241,7 @@ bool Binary::DoUpdate()
 		Value** fields = new Value*[1];
 
 		// filter has exactly one text field. convert to it.
-		Value* val = new Value(TYPE_STRING, true);
+		Value* val = new Value(zeek::TYPE_STRING, true);
 		val->val.string_val.data = chunk;
 		val->val.string_val.length = size;
 		fields[0] = val;

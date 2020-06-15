@@ -8,14 +8,14 @@
 namespace plugin {
 namespace Zeek_Pcap {
 
-class Plugin : public plugin::Plugin {
+class Plugin : public zeek::plugin::Plugin {
 public:
-	plugin::Configuration Configure() override
+	zeek::plugin::Configuration Configure() override
 		{
 		AddComponent(new ::iosource::PktSrcComponent("PcapReader", "pcap", ::iosource::PktSrcComponent::BOTH, ::iosource::pcap::PcapSource::Instantiate));
 		AddComponent(new ::iosource::PktDumperComponent("PcapWriter", "pcap", ::iosource::pcap::PcapDumper::Instantiate));
 
-		plugin::Configuration config;
+		zeek::plugin::Configuration config;
 		config.name = "Zeek::Pcap";
 		config.description = "Packet acquisition via libpcap";
 		return config;

@@ -1,4 +1,135 @@
 
+3.2.0-dev.788 | 2020-06-15 11:04:20 -0700
+
+  * Fix location where CI places build.tgz (Jon Siwek, Corelight)
+
+3.2.0-dev.787 | 2020-06-15 10:27:48 -0700
+
+  * Add new CI task for running benchmarks on a remote host (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.783 | 2020-06-11 23:21:41 -0700
+
+  * Compare pcap_next_ex() result to PCAP_ERROR/PCAP_ERROR_BREAK (Jon Siwek, Corelight)
+
+  * GH-977: Improve pcap error handling (Jon Siwek, Corelight)
+
+    Switches from pcap_next() to pcap_next_ex() to better handle all error
+    conditions.  This allows, for example, to have a non-zero exit code for
+    a Zeek process that fails to fully process all packets in a pcap file.
+
+  * Remove not-useful code in iosource::Manager::OpenPktSrc (Jon Siwek, Corelight)
+
+3.2.0-dev.779 | 2020-06-11 23:17:46 -0700
+
+  * Rename BroType to zeek::Type (Tim Wojtulewicz, Corelight)
+
+  * Move Type types to zeek namespace (Tim Wojtulewicz, Corelight)
+
+  * Move Flare/Pipe from the bro namespace to zeek::detail (Tim Wojtulewicz, Corelight)
+
+  * Move Attr to the zeek::detail namespace (Tim Wojtulewicz, Corelight)
+
+  * Move Trigger into the zeek::detail namespace (Tim Wojtulewicz, Corelight)
+
+  * Move ID to the zeek::detail namespace (Tim Wojtulewicz, Corelight)
+
+  * Move Anon.h into zeek::detail namespace (Tim Wojtulewicz, Corelight)
+
+  * Mark all of the aliased classes in plugin/Plugin.h deprecated (Tim Wojtulewicz, Corelight)
+
+    And fix all of the plugins that were using them
+
+  * Move all of the base plugin classes into the zeek::plugin namespace (Tim Wojtulewicz, Corelight)
+
+  * Expr: move all classes into zeek::detail (Tim Wojtulewicz, Corelight)
+
+  * Stmt: move Stmt classes into zeek::detail namespace (Tim Wojtulewicz, Corelight)
+
+  * Add utility macro for creating namespaced aliases for classes (Tim Wojtulewicz, Corelight)
+
+3.2.0-dev.763 | 2020-06-10 16:34:31 -0700
+
+  * Optimize Connection::RemovalEvent() for bare-mode usage (Jon Siwek, Corelight)
+
+    It was creating RecordVals even if they wouldn't be used by any event
+    handler and that situation is common/expected for `zeek -b` mode.
+    Normally, there's at least the tunnel scripts with a `new_connection`
+    handler causing the connection RecordVals to be built.
+
+3.2.0-dev.762 | 2020-06-09 15:19:15 -0700
+
+  * Restrict Cirrus CI to only zeek repo's branches (Jon Siwek, Corelight)
+
+3.2.0-dev.761 | 2020-06-09 09:39:31 -0700
+
+  * Prevent IP fragment reassembly on packets without minimal IP header (Jon Siwek, Corelight)
+
+    The IP fragment reassembly process assumes a packet contains at least
+    the minimum IP header, but such a check did not previously occur,
+    resulting in a heap buffer over-read.  For example, a self-reported
+    IPv4 IHL field with a value less than minimum IPv4 header length of
+    20 bytes.  Such packets likely aren't routable on their own, but one
+    can create an artifical pcap like that or possibly encapsulate it
+    within another protocol to trigger this bug.
+
+  * Fix potential leak of Analyzers added to tree during Analyzer::Done (Jon Siwek, Corelight)
+
+    Credit to OSS-Fuzz for discovery
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=22630
+
+  * Fix multiple content-transfer-encoding headers causing a memory leak (Jon Siwek, Corelight)
+
+    The MIME analyzer may also leak if it sees many multipart boundary
+    parameters.
+
+    Credit to OSS-Fuzz for discovery
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=22871
+
+  * Fix potential stack overflow in NVT analyzer (Jon Siwek, Corelight)
+
+    The NVT_Analyzer (e.g. as instantiated to support the FTP analyzer)
+    uses a recursive parsing function that may only advance one byte at a
+    time and can easily cause a stack overflow as a result.  This change
+    replaces the recursive calls with equivalent iterative logic.
+
+    Credit to OSS-Fuzz for discovery
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=22898
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=22972
+
+  * Fix NVT analyzer memory leak from multiple telnet authn name options (Jon Siwek, Corelight)
+
+    Credit to OSS-Fuzz for discovery
+    https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=23069
+
+3.2.0-dev.751 | 2020-06-08 22:30:18 +0000
+
+  * GH-999: Stop formatting DHCP Client ID Hardware Type 0 as MAC
+
+    For `DHCP::ClientID$hwtype` fields equal to 0, the `hwaddr` field is
+    no longer misformatted as a MAC and instead just contains the raw bytes
+    seen in the DHCP Client ID Option. (Jon Siwek, Corelight)
+
+3.2.0-dev.749 | 2020-06-08 11:22:45 -0700
+
+  * Remove inline from some static KeyedHash members (Jon Siwek, Corelight)
+
+    Coverity Scan builds currently encounter catastrophic error, claiming
+    alignas requires use on both declaration and definition, so appears to
+    actually not understand "static inline" in combo with alignas.
+
+  * Improve Func.h inclusion (Jon Siwek, Corelight)
+
+    Now forward declares some Broker types since Broker/CAF headers
+    generally slow things down and also Coverity Scan currently has a
+    catastrophic error on some CAF headers.
+
+    Also a few other changes to EventHandler/BifReturnVal to reduce number
+    of places that depend on Func.h.
+
+  * Rename aux/ to auxil/ (Jon Siwek, Corelight)
+
+    Since "aux" is not an allowed file/dir name on Windows.
+
 3.2.0-dev.744 | 2020-06-04 15:11:56 -0700
 
   * Fix use-after-move of proc_status_file breaking -U flag (Jon Siwek, Corelight)

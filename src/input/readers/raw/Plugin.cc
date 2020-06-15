@@ -10,11 +10,11 @@ Plugin::Plugin()
 	{
 	}
 
-plugin::Configuration Plugin::Configure()
+zeek::plugin::Configuration Plugin::Configure()
 	{
 	AddComponent(new ::input::Component("Raw", ::input::reader::Raw::Instantiate));
 
-	plugin::Configuration config;
+	zeek::plugin::Configuration config;
 	config.name = "Zeek::RawReader";
 	config.description = "Raw input reader";
 	return config;

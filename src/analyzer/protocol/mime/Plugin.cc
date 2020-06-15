@@ -6,11 +6,11 @@
 namespace plugin {
 namespace Zeek_MIME {
 
-class Plugin : public plugin::Plugin {
+class Plugin : public zeek::plugin::Plugin {
 public:
-	plugin::Configuration Configure() override
+	zeek::plugin::Configuration Configure() override
 		{
-		plugin::Configuration config;
+		zeek::plugin::Configuration config;
 		config.name = "Zeek::MIME";
 		config.description = "MIME parsing";
 		return config;

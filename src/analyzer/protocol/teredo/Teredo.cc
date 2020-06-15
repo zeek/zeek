@@ -98,9 +98,9 @@ bool TeredoEncapsulation::DoParse(const u_char* data, int& len,
 
 IntrusivePtr<RecordVal> TeredoEncapsulation::BuildVal(const IP_Hdr* inner) const
 	{
-	static auto teredo_hdr_type = zeek::id::find_type<RecordType>("teredo_hdr");
-	static auto teredo_auth_type = zeek::id::find_type<RecordType>("teredo_auth");
-	static auto teredo_origin_type = zeek::id::find_type<RecordType>("teredo_origin");
+	static auto teredo_hdr_type = zeek::id::find_type<zeek::RecordType>("teredo_hdr");
+	static auto teredo_auth_type = zeek::id::find_type<zeek::RecordType>("teredo_auth");
+	static auto teredo_origin_type = zeek::id::find_type<zeek::RecordType>("teredo_origin");
 
 	auto teredo_hdr = make_intrusive<RecordVal>(teredo_hdr_type);
 

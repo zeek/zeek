@@ -81,50 +81,50 @@ bool Ascii::Describe(ODesc* desc, threading::Value* val, const string& name) con
 
 	switch ( val->type ) {
 
-	case TYPE_BOOL:
+	case zeek::TYPE_BOOL:
 		desc->Add(val->val.int_val ? "T" : "F");
 		break;
 
-	case TYPE_INT:
+	case zeek::TYPE_INT:
 		desc->Add(val->val.int_val);
 		break;
 
-	case TYPE_COUNT:
-	case TYPE_COUNTER:
+	case zeek::TYPE_COUNT:
+	case zeek::TYPE_COUNTER:
 		desc->Add(val->val.uint_val);
 		break;
 
-	case TYPE_PORT:
+	case zeek::TYPE_PORT:
 		desc->Add(val->val.port_val.port);
 		break;
 
-	case TYPE_SUBNET:
+	case zeek::TYPE_SUBNET:
 		desc->Add(Render(val->val.subnet_val));
 		break;
 
-	case TYPE_ADDR:
+	case zeek::TYPE_ADDR:
 		desc->Add(Render(val->val.addr_val));
 		break;
 
-	case TYPE_DOUBLE:
+	case zeek::TYPE_DOUBLE:
 		// Rendering via Add() truncates trailing 0s after the
 		// decimal point. The difference with TIME/INTERVAL is mainly
 		// to keep the log format consistent.
 		desc->Add(val->val.double_val, true);
 		break;
 
-	case TYPE_INTERVAL:
-	case TYPE_TIME:
+	case zeek::TYPE_INTERVAL:
+	case zeek::TYPE_TIME:
 		// Rendering via Render() keeps trailing 0s after the decimal
 		// point. The difference with DOUBLE is mainly to keep the
 		// log format consistent.
 		desc->Add(Render(val->val.double_val));
 		break;
 
-	case TYPE_ENUM:
-	case TYPE_STRING:
-	case TYPE_FILE:
-	case TYPE_FUNC:
+	case zeek::TYPE_ENUM:
+	case zeek::TYPE_STRING:
+	case zeek::TYPE_FILE:
+	case zeek::TYPE_FUNC:
 		{
 		int size = val->val.string_val.length;
 		const char* data = val->val.string_val.data;
@@ -145,7 +145,7 @@ bool Ascii::Describe(ODesc* desc, threading::Value* val, const string& name) con
 		break;
 		}
 
-	case TYPE_TABLE:
+	case zeek::TYPE_TABLE:
 		{
 		if ( ! val->val.set_val.size )
 			{
@@ -172,7 +172,7 @@ bool Ascii::Describe(ODesc* desc, threading::Value* val, const string& name) con
 		break;
 		}
 
-	case TYPE_VECTOR:
+	case zeek::TYPE_VECTOR:
 		{
 		if ( ! val->val.vector_val.size )
 			{
@@ -208,7 +208,7 @@ bool Ascii::Describe(ODesc* desc, threading::Value* val, const string& name) con
 	}
 
 
-threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag type, TypeTag subtype) const
+threading::Value* Ascii::ParseValue(const string& s, const string& name, zeek::TypeTag type, zeek::TypeTag subtype) const
 	{
 	if ( ! separators.unset_field.empty() && s.compare(separators.unset_field) == 0 )  // field is not set...
 		return new threading::Value(type, false);
@@ -220,8 +220,8 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 	size_t pos;
 
 	switch ( type ) {
-	case TYPE_ENUM:
-	case TYPE_STRING:
+	case zeek::TYPE_ENUM:
+	case zeek::TYPE_STRING:
 		{
 		string unescaped = get_unescaped_string(s);
 		val->val.string_val.length = unescaped.size();
@@ -229,7 +229,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 		break;
 		}
 
-	case TYPE_BOOL:
+	case zeek::TYPE_BOOL:
 		{
 		auto stripped = strstrip(s);
 		if ( stripped == "T" || stripped == "1" )
@@ -245,28 +245,28 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 		break;
 		}
 
-	case TYPE_INT:
+	case zeek::TYPE_INT:
 		val->val.int_val = strtoll(start, &end, 10);
 		if ( CheckNumberError(start, end) )
 			goto parse_error;
 		break;
 
-	case TYPE_DOUBLE:
-	case TYPE_TIME:
-	case TYPE_INTERVAL:
+	case zeek::TYPE_DOUBLE:
+	case zeek::TYPE_TIME:
+	case zeek::TYPE_INTERVAL:
 		val->val.double_val = strtod(start, &end);
 		if ( CheckNumberError(start, end) )
 			goto parse_error;
 		break;
 
-	case TYPE_COUNT:
-	case TYPE_COUNTER:
+	case zeek::TYPE_COUNT:
+	case zeek::TYPE_COUNTER:
 		val->val.uint_val = strtoull(start, &end, 10);
 		if ( CheckNumberError(start, end) )
 			goto parse_error;
 		break;
 
-	case TYPE_PORT:
+	case zeek::TYPE_PORT:
 		{
 		auto stripped = strstrip(s);
 		val->val.port_val.proto = TRANSPORT_UNKNOWN;
@@ -298,7 +298,7 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 		}
 		break;
 
-	case TYPE_SUBNET:
+	case zeek::TYPE_SUBNET:
 		{
 		string unescaped = strstrip(get_unescaped_string(s));
 		size_t pos = unescaped.find('/');
@@ -321,14 +321,14 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 		break;
 		}
 
-	case TYPE_ADDR:
+	case zeek::TYPE_ADDR:
 		{
 		string unescaped = strstrip(get_unescaped_string(s));
 		val->val.addr_val = ParseAddr(unescaped);
 		break;
 		}
 
-	case TYPE_PATTERN:
+	case zeek::TYPE_PATTERN:
 		{
 		string candidate = get_unescaped_string(s);
 		// A string is a candidate pattern iff it begins and ends with
@@ -351,8 +351,8 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 		goto parse_error;
 		}
 
-	case TYPE_TABLE:
-	case TYPE_VECTOR:
+	case zeek::TYPE_TABLE:
+	case zeek::TYPE_VECTOR:
 		// First - common initialization
 		// Then - initialization for table.
 		// Then - initialization for vector.
@@ -377,13 +377,13 @@ threading::Value* Ascii::ParseValue(const string& s, const string& name, TypeTag
 
 		threading::Value** lvals = new threading::Value* [length];
 
-		if ( type == TYPE_TABLE )
+		if ( type == zeek::TYPE_TABLE )
 			{
 			val->val.set_val.vals = lvals;
 			val->val.set_val.size = length;
 			}
 
-		else if ( type == TYPE_VECTOR )
+		else if ( type == zeek::TYPE_VECTOR )
 			{
 			val->val.vector_val.vals = lvals;
 			val->val.vector_val.size = length;

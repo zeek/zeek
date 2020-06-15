@@ -9,7 +9,7 @@
 using namespace input;
 
 Component::Component(const std::string& name, factory_callback arg_factory)
-	: plugin::Component(plugin::component::READER, name)
+	: zeek::plugin::Component(zeek::plugin::component::READER, name)
 	{
 	factory = arg_factory;
 	}
@@ -29,4 +29,3 @@ void Component::DoDescribe(ODesc* d) const
 	d->Add("Input::READER_");
 	d->Add(CanonicalName());
 	}
-

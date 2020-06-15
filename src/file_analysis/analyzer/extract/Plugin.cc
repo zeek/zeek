@@ -7,13 +7,13 @@
 namespace plugin {
 namespace Zeek_FileExtract {
 
-class Plugin : public plugin::Plugin {
+class Plugin : public zeek::plugin::Plugin {
 public:
-	plugin::Configuration Configure() override
+	zeek::plugin::Configuration Configure() override
 		{
 		AddComponent(new ::file_analysis::Component("EXTRACT", ::file_analysis::Extract::Instantiate));
 
-		plugin::Configuration config;
+		zeek::plugin::Configuration config;
 		config.name = "Zeek::FileExtract";
 		config.description = "Extract file content";
 		return config;

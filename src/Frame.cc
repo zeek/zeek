@@ -77,7 +77,7 @@ void Frame::SetElementWeak(int n, Val* v)
 	frame[n] = {{AdoptRef{}, v}, true};
 	}
 
-void Frame::SetElement(const ID* id, IntrusivePtr<Val> v)
+void Frame::SetElement(const zeek::detail::ID* id, IntrusivePtr<Val> v)
 	{
 	if ( closure )
 		{
@@ -106,7 +106,7 @@ void Frame::SetElement(const ID* id, IntrusivePtr<Val> v)
 	SetElement(id->Offset(), std::move(v));
 	}
 
-const IntrusivePtr<Val>& Frame::GetElementByID(const ID* id) const
+const IntrusivePtr<Val>& Frame::GetElementByID(const zeek::detail::ID* id) const
 	{
 	if ( closure )
 		{
@@ -175,7 +175,7 @@ Frame* Frame::Clone() const
 
 static bool val_is_func(const IntrusivePtr<Val>& v, BroFunc* func)
 	{
-	if ( v->GetType()->Tag() != TYPE_FUNC )
+	if ( v->GetType()->Tag() != zeek::TYPE_FUNC )
 		return false;
 
 	return v->AsFunc() == func;
@@ -333,7 +333,7 @@ broker::expected<broker::data> Frame::Serialize(const Frame* target, const id_li
 
 		const auto& val = target->frame[location].val;
 
-		TypeTag tag = val->GetType()->Tag();
+		zeek::TypeTag tag = val->GetType()->Tag();
 
 		auto expected = bro_broker::val_to_data(val.get());
 		if ( ! expected )
@@ -460,7 +460,7 @@ std::pair<bool, IntrusivePtr<Frame>> Frame::Unserialize(const broker::vector& da
 			return std::make_pair(false, nullptr);
 
 		broker::integer g = *has_type;
-		BroType t( static_cast<TypeTag>(g) );
+		zeek::Type t( static_cast<zeek::TypeTag>(g) );
 
 		auto val = bro_broker::data_to_val(std::move(val_tuple[0]), &t);
 		if ( ! val )
@@ -478,7 +478,7 @@ void Frame::AddKnownOffsets(const id_list& ids)
 		offset_map = std::make_unique<OffsetMap>();
 
 	std::transform(ids.begin(), ids.end(), std::inserter(*offset_map, offset_map->end()),
-		       [] (const ID* id) -> std::pair<std::string, int>
+		       [] (const zeek::detail::ID* id) -> std::pair<std::string, int>
 		       {
 		       return std::make_pair(std::string(id->Name()), id->Offset());
 		       });
@@ -505,7 +505,7 @@ void Frame::CaptureClosure(Frame* c, id_list arg_outer_ids)
 	// if (c) closure = c->SelectiveClone(outer_ids);
 	}
 
-void Frame::SetTrigger(IntrusivePtr<trigger::Trigger> arg_trigger)
+void Frame::SetTrigger(IntrusivePtr<zeek::detail::trigger::Trigger> arg_trigger)
 	{
 	trigger = std::move(arg_trigger);
 	}
@@ -523,10 +523,10 @@ void Frame::ClearElement(int n)
 		frame[n] = {nullptr, false};
 	}
 
-bool Frame::IsOuterID(const ID* in) const
+bool Frame::IsOuterID(const zeek::detail::ID* in) const
 	{
 	return std::any_of(outer_ids.begin(), outer_ids.end(),
-		[&in](ID* id)-> bool { return strcmp(id->Name(), in->Name()) == 0; });
+		[&in](zeek::detail::ID* id)-> bool { return strcmp(id->Name(), in->Name()) == 0; });
 	}
 
 broker::expected<broker::data> Frame::SerializeIDList(const id_list& in)
@@ -588,7 +588,7 @@ Frame::UnserializeIDList(const broker::vector& data)
 			return std::make_pair(false, std::move(rval));
 			}
 
-		ID* id = new ID(has_name->c_str(), SCOPE_FUNCTION, false);
+		auto* id = new zeek::detail::ID(has_name->c_str(), zeek::detail::SCOPE_FUNCTION, false);
 		id->SetOffset(*has_offset);
 		rval.push_back(id);
 		std::advance(where, 1);

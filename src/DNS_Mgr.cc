@@ -175,10 +175,10 @@ void DNS_Mgr_mapping_delete_func(void* v)
 
 static IntrusivePtr<TableVal> empty_addr_set()
 	{
-	auto addr_t = base_type(TYPE_ADDR);
-	auto set_index = make_intrusive<TypeList>(addr_t);
+	auto addr_t = zeek::base_type(zeek::TYPE_ADDR);
+	auto set_index = make_intrusive<zeek::TypeList>(addr_t);
 	set_index->Append(std::move(addr_t));
-	auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
+	auto s = make_intrusive<zeek::SetType>(std::move(set_index), nullptr);
 	return make_intrusive<TableVal>(std::move(s));
 	}
 
@@ -283,7 +283,7 @@ IntrusivePtr<ListVal> DNS_Mapping::Addrs()
 
 	if ( ! addrs_val )
 		{
-		auto addrs_val = make_intrusive<ListVal>(TYPE_ADDR);
+		auto addrs_val = make_intrusive<ListVal>(zeek::TYPE_ADDR);
 
 		for ( int i = 0; i < num_addrs; ++i )
 			addrs_val->Append(make_intrusive<AddrVal>(addrs[i]));
@@ -450,7 +450,7 @@ void DNS_Mgr::InitSource()
 
 void DNS_Mgr::InitPostScript()
 	{
-	dm_rec = zeek::id::find_type<RecordType>("dns_mapping");
+	dm_rec = zeek::id::find_type<zeek::RecordType>("dns_mapping");
 
 	// Registering will call Init()
 	iosource_mgr->Register(this, true);
@@ -465,7 +465,7 @@ static IntrusivePtr<TableVal> fake_name_lookup_result(const char* name)
 	{
 	hash128_t hash;
 	KeyedHash::StaticHash128(name, strlen(name), &hash);
-	auto hv = make_intrusive<ListVal>(TYPE_ADDR);
+	auto hv = make_intrusive<ListVal>(zeek::TYPE_ADDR);
 	hv->Append(make_intrusive<AddrVal>(reinterpret_cast<const uint32_t*>(&hash)));
 	return hv->ToSetVal();
 	}
@@ -872,7 +872,7 @@ void DNS_Mgr::CompareMappings(DNS_Mapping* prev_dm, DNS_Mapping* new_dm)
 
 IntrusivePtr<ListVal> DNS_Mgr::AddrListDelta(ListVal* al1, ListVal* al2)
 	{
-	auto delta = make_intrusive<ListVal>(TYPE_ADDR);
+	auto delta = make_intrusive<ListVal>(zeek::TYPE_ADDR);
 
 	for ( int i = 0; i < al1->Length(); ++i )
 		{

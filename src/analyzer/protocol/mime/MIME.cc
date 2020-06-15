@@ -843,6 +843,7 @@ bool MIME_Entity::ParseContentEncodingField(MIME_Header* h)
 		return false;
 		}
 
+	delete content_encoding_str;
 	content_encoding_str = new BroString((const u_char*)enc.data, enc.length, true);
 	ParseContentEncoding(enc);
 
@@ -908,6 +909,7 @@ bool MIME_Entity::ParseFieldParameters(int len, const char* data)
 				}
 
 			data_chunk_t vd = get_data_chunk(val);
+			delete multipart_boundary;
 			multipart_boundary = new BroString((const u_char*)vd.data,
 			                                   vd.length, true);
 			}
@@ -1301,7 +1303,7 @@ RecordVal* MIME_Message::BuildHeaderVal(MIME_Header* h)
 
 IntrusivePtr<RecordVal> MIME_Message::ToHeaderVal(MIME_Header* h)
 	{
-	static auto mime_header_rec = zeek::id::find_type<RecordType>("mime_header_rec");
+	static auto mime_header_rec = zeek::id::find_type<zeek::RecordType>("mime_header_rec");
 	auto header_record = make_intrusive<RecordVal>(mime_header_rec);
 	header_record->Assign(0, to_string_val(h->get_name()));
 	auto upper_hn = to_string_val(h->get_name());
@@ -1316,7 +1318,7 @@ TableVal* MIME_Message::BuildHeaderTable(MIME_HeaderList& hlist)
 
 IntrusivePtr<TableVal> MIME_Message::ToHeaderTable(MIME_HeaderList& hlist)
 	{
-	static auto mime_header_list = zeek::id::find_type<TableType>("mime_header_list");
+	static auto mime_header_list = zeek::id::find_type<zeek::TableType>("mime_header_list");
 	auto t = make_intrusive<TableVal>(mime_header_list);
 
 	for ( unsigned int i = 0; i < hlist.size(); ++i )

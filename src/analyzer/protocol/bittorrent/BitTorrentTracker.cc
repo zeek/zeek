@@ -15,11 +15,11 @@
 
 using namespace analyzer::bittorrent;
 
-static IntrusivePtr<TableType> bt_tracker_headers;
-static IntrusivePtr<RecordType> bittorrent_peer;
-static IntrusivePtr<TableType> bittorrent_peer_set;
-static IntrusivePtr<RecordType> bittorrent_benc_value;
-static IntrusivePtr<TableType> bittorrent_benc_dir;
+static IntrusivePtr<zeek::TableType> bt_tracker_headers;
+static IntrusivePtr<zeek::RecordType> bittorrent_peer;
+static IntrusivePtr<zeek::TableType> bittorrent_peer_set;
+static IntrusivePtr<zeek::RecordType> bittorrent_benc_value;
+static IntrusivePtr<zeek::TableType> bittorrent_benc_dir;
 
 BitTorrentTracker_Analyzer::BitTorrentTracker_Analyzer(Connection* c)
 : tcp::TCP_ApplicationAnalyzer("BITTORRENTTRACKER", c)
@@ -27,15 +27,15 @@ BitTorrentTracker_Analyzer::BitTorrentTracker_Analyzer(Connection* c)
 	if ( ! bt_tracker_headers )
 		{
 		bt_tracker_headers =
-			zeek::id::find_type<TableType>("bt_tracker_headers");
+			zeek::id::find_type<zeek::TableType>("bt_tracker_headers");
 		bittorrent_peer =
-			zeek::id::find_type<RecordType>("bittorrent_peer");
+			zeek::id::find_type<zeek::RecordType>("bittorrent_peer");
 		bittorrent_peer_set =
-			zeek::id::find_type<TableType>("bittorrent_peer_set");
+			zeek::id::find_type<zeek::TableType>("bittorrent_peer_set");
 		bittorrent_benc_value =
-			zeek::id::find_type<RecordType>("bittorrent_benc_value");
+			zeek::id::find_type<zeek::RecordType>("bittorrent_benc_value");
 		bittorrent_benc_dir =
-			zeek::id::find_type<TableType>("bittorrent_benc_dir");
+			zeek::id::find_type<zeek::TableType>("bittorrent_benc_dir");
 		}
 
 	keep_alive = false;

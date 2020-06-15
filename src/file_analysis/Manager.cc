@@ -519,8 +519,8 @@ string Manager::DetectMIME(const u_char* data, uint64_t len) const
 
 IntrusivePtr<VectorVal> file_analysis::GenMIMEMatchesVal(const RuleMatcher::MIME_Matches& m)
 	{
-	static auto mime_matches = zeek::id::find_type<VectorType>("mime_matches");
-	static auto mime_match = zeek::id::find_type<RecordType>("mime_match");
+	static auto mime_matches = zeek::id::find_type<zeek::VectorType>("mime_matches");
+	static auto mime_match = zeek::id::find_type<zeek::RecordType>("mime_match");
 	auto rval = make_intrusive<VectorVal>(mime_matches);
 
 	for ( RuleMatcher::MIME_Matches::const_iterator it = m.begin();

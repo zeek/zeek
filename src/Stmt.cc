@@ -2,6 +2,8 @@
 
 #include "zeek-config.h"
 
+#include "Stmt.h"
+
 #include "CompHash.h"
 #include "Expr.h"
 #include "Event.h"
@@ -9,7 +11,6 @@
 #include "File.h"
 #include "Reporter.h"
 #include "NetVar.h"
-#include "Stmt.h"
 #include "Scope.h"
 #include "Var.h"
 #include "Desc.h"
@@ -33,6 +34,8 @@ const char* stmt_name(BroStmtTag t)
 
 	return stmt_names[int(t)];
 	}
+
+namespace zeek::detail {
 
 Stmt::Stmt(BroStmtTag arg_tag)
 	{
@@ -1833,3 +1836,5 @@ TraversalCode WhenStmt::Traverse(TraversalCallback* cb) const
 	tc = cb->PostStmt(this);
 	HANDLE_TC_STMT_POST(tc);
 	}
+
+}

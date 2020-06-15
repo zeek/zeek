@@ -17,11 +17,11 @@ struct Field;
 
 namespace bro_broker {
 
-extern IntrusivePtr<OpaqueType> opaque_of_data_type;
-extern IntrusivePtr<OpaqueType> opaque_of_set_iterator;
-extern IntrusivePtr<OpaqueType> opaque_of_table_iterator;
-extern IntrusivePtr<OpaqueType> opaque_of_vector_iterator;
-extern IntrusivePtr<OpaqueType> opaque_of_record_iterator;
+extern IntrusivePtr<zeek::OpaqueType> opaque_of_data_type;
+extern IntrusivePtr<zeek::OpaqueType> opaque_of_set_iterator;
+extern IntrusivePtr<zeek::OpaqueType> opaque_of_table_iterator;
+extern IntrusivePtr<zeek::OpaqueType> opaque_of_vector_iterator;
+extern IntrusivePtr<zeek::OpaqueType> opaque_of_record_iterator;
 
 /**
  * Convert a broker port protocol to a bro port protocol.
@@ -65,7 +65,7 @@ broker::expected<broker::data> val_to_data(const Val* v);
  * @return a pointer to a new Bro value or a nullptr if the conversion was not
  * possible.
  */
-IntrusivePtr<Val> data_to_val(broker::data d, BroType* type);
+IntrusivePtr<Val> data_to_val(broker::data d, zeek::Type* type);
 
 /**
  * Convert a Bro threading::Value to a Broker data value.
@@ -109,13 +109,13 @@ public:
 
 	void ValDescribe(ODesc* d) const override;
 
-	IntrusivePtr<Val> castTo(BroType* t);
-	bool canCastTo(BroType* t) const;
+	IntrusivePtr<Val> castTo(zeek::Type* t);
+	bool canCastTo(zeek::Type* t) const;
 
 	// Returns the Bro type that scripts use to represent a Broker data
 	// instance. This may be wrapping the opaque value inside another
 	// type.
-	static const IntrusivePtr<BroType>& ScriptDataType();
+	static const IntrusivePtr<zeek::Type>& ScriptDataType();
 
 	broker::data data;
 
@@ -177,11 +177,11 @@ struct type_name_getter {
 
 	result_type operator()(const broker::vector&)
 		{
-		assert(tag == TYPE_VECTOR || tag == TYPE_RECORD);
-		return tag == TYPE_VECTOR ? "vector" : "record";
+		assert(tag == zeek::TYPE_VECTOR || tag == zeek::TYPE_RECORD);
+		return tag == zeek::TYPE_VECTOR ? "vector" : "record";
 		}
 
-	TypeTag tag;
+	zeek::TypeTag tag;
 };
 
 /**
@@ -204,14 +204,14 @@ broker::data& opaque_field_to_data(RecordVal* v, Frame* f);
  * is not currently stored in the Broker data.
  */
 template <typename T>
-T& require_data_type(broker::data& d, TypeTag tag, Frame* f)
+T& require_data_type(broker::data& d, zeek::TypeTag tag, Frame* f)
 	{
 	auto ptr = caf::get_if<T>(&d);
 	if ( ! ptr )
 		reporter->RuntimeError(f->GetCall()->GetLocationInfo(),
 		                       "data is of type '%s' not of type '%s'",
 		                       caf::visit(type_name_getter{tag}, d),
-		                       type_name(tag));
+		                       zeek::type_name(tag));
 
 	return *ptr;
 	}
@@ -220,7 +220,7 @@ T& require_data_type(broker::data& d, TypeTag tag, Frame* f)
  * @see require_data_type() and opaque_field_to_data().
  */
 template <typename T>
-inline T& require_data_type(RecordVal* v, TypeTag tag, Frame* f)
+inline T& require_data_type(RecordVal* v, zeek::TypeTag tag, Frame* f)
 	{
 	return require_data_type<T>(opaque_field_to_data(v, f), tag, f);
 	}
@@ -230,11 +230,19 @@ inline T& require_data_type(RecordVal* v, TypeTag tag, Frame* f)
 class SetIterator : public OpaqueVal {
 public:
 
-	SetIterator(RecordVal* v, TypeTag tag, Frame* f)
+	SetIterator(RecordVal* v, zeek::TypeTag tag, Frame* f)
 	    : OpaqueVal(bro_broker::opaque_of_set_iterator),
-	      dat(require_data_type<broker::set>(v, TYPE_TABLE, f)),
+	      dat(require_data_type<broker::set>(v, zeek::TYPE_TABLE, f)),
 	      it(dat.begin())
 		{}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	[[deprecated("Remove in v4.1. Use the version that takes zeek::TypeTag instead.")]]
+	SetIterator(RecordVal* v, ::TypeTag tag, Frame* f)
+		: SetIterator(v, static_cast<zeek::TypeTag>(tag), f)
+		{}
+#pragma GCC diagnostic pop
 
 	broker::set dat;
 	broker::set::iterator it;
@@ -250,11 +258,19 @@ protected:
 class TableIterator : public OpaqueVal {
 public:
 
-	TableIterator(RecordVal* v, TypeTag tag, Frame* f)
+	TableIterator(RecordVal* v, zeek::TypeTag tag, Frame* f)
 	    : OpaqueVal(bro_broker::opaque_of_table_iterator),
-	      dat(require_data_type<broker::table>(v, TYPE_TABLE, f)),
+	      dat(require_data_type<broker::table>(v, zeek::TYPE_TABLE, f)),
 	      it(dat.begin())
 		{}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	[[deprecated("Remove in v4.1. Use the version that takes zeek::TypeTag instead.")]]
+	TableIterator(RecordVal* v, ::TypeTag tag, Frame* f)
+		: TableIterator(v, static_cast<zeek::TypeTag>(tag), f)
+		{}
+#pragma GCC diagnostic pop
 
 	broker::table dat;
 	broker::table::iterator it;
@@ -270,11 +286,19 @@ protected:
 class VectorIterator : public OpaqueVal {
 public:
 
-	VectorIterator(RecordVal* v, TypeTag tag, Frame* f)
+	VectorIterator(RecordVal* v, zeek::TypeTag tag, Frame* f)
 	    : OpaqueVal(bro_broker::opaque_of_vector_iterator),
-	      dat(require_data_type<broker::vector>(v, TYPE_VECTOR, f)),
+	      dat(require_data_type<broker::vector>(v, zeek::TYPE_VECTOR, f)),
 	      it(dat.begin())
 		{}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	[[deprecated("Remove in v4.1. Use the version that takes zeek::TypeTag instead.")]]
+	VectorIterator(RecordVal* v, ::TypeTag tag, Frame* f)
+		: VectorIterator(v, static_cast<zeek::TypeTag>(tag), f)
+		{}
+#pragma GCC diagnostic pop
 
 	broker::vector dat;
 	broker::vector::iterator it;
@@ -290,11 +314,19 @@ protected:
 class RecordIterator : public OpaqueVal {
 public:
 
-	RecordIterator(RecordVal* v, TypeTag tag, Frame* f)
+	RecordIterator(RecordVal* v, zeek::TypeTag tag, Frame* f)
 	    : OpaqueVal(bro_broker::opaque_of_record_iterator),
-	      dat(require_data_type<broker::vector>(v, TYPE_RECORD, f)),
+	      dat(require_data_type<broker::vector>(v, zeek::TYPE_RECORD, f)),
 	      it(dat.begin())
 		{}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	[[deprecated("Remove in v4.1. Use the version that takes zeek::TypeTag instead.")]]
+	RecordIterator(RecordVal* v, ::TypeTag tag, Frame* f)
+		: RecordIterator(v, static_cast<zeek::TypeTag>(tag), f)
+		{}
+#pragma GCC diagnostic pop
 
 	broker::vector dat;
 	broker::vector::iterator it;

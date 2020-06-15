@@ -82,7 +82,7 @@ static string make_summary(const string& heading, char underline, char border,
 	for ( id_info_list::const_iterator it = id_list.begin();
 	      it != id_list.end(); ++it )
 		{
-		ID* id = (*it)->GetID();
+		auto* id = (*it)->GetID();
 		ODesc d;
 		d.SetQuotes(true);
 		id->DescribeReSTShort(&d);
@@ -105,7 +105,7 @@ static string make_redef_summary(const string& heading, char underline,
 	for ( id_info_set::const_iterator it = id_set.begin(); it != id_set.end();
 	      ++it )
 		{
-		ID* id = (*it)->GetID();
+		auto* id = (*it)->GetID();
 		ODesc d;
 		d.SetQuotes(true);
 		id->DescribeReSTShort(&d);
@@ -179,7 +179,7 @@ void ScriptInfo::DoInitPostScript()
 	      it != id_info.end(); ++it )
 		{
 		IdentifierInfo* info = it->second;
-		ID* id = info->GetID();
+		auto* id = info->GetID();
 
 		if ( ! zeekygen::is_public_api(id) )
 			continue;
@@ -192,20 +192,20 @@ void ScriptInfo::DoInitPostScript()
 			continue;
 			}
 
-		if ( IsFunc(id->GetType()->Tag()) )
+		if ( zeek::IsFunc(id->GetType()->Tag()) )
 			{
 			switch ( id->GetType()->AsFuncType()->Flavor() ) {
-			case FUNC_FLAVOR_HOOK:
+			case zeek::FUNC_FLAVOR_HOOK:
 				DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a hook",
 				        id->Name(), name.c_str());
 				hooks.push_back(info);
 				break;
-			case FUNC_FLAVOR_EVENT:
+			case zeek::FUNC_FLAVOR_EVENT:
 				DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a event",
 				        id->Name(), name.c_str());
 				events.push_back(info);
 				break;
-			case FUNC_FLAVOR_FUNCTION:
+			case zeek::FUNC_FLAVOR_FUNCTION:
 				DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a function",
 				        id->Name(), name.c_str());
 				functions.push_back(info);
@@ -220,7 +220,7 @@ void ScriptInfo::DoInitPostScript()
 
 		if ( id->IsConst() )
 			{
-			if ( id->GetAttr(ATTR_REDEF) )
+			if ( id->GetAttr(zeek::detail::ATTR_REDEF) )
 				{
 				DBG_LOG(DBG_ZEEKYGEN, "Filter id '%s' in '%s' as a redef_option",
 				        id->Name(), name.c_str());
@@ -244,7 +244,7 @@ void ScriptInfo::DoInitPostScript()
 			continue;
 			}
 
-		if ( id->GetType()->Tag() == TYPE_ENUM )
+		if ( id->GetType()->Tag() == zeek::TYPE_ENUM )
 			// Enums are always referenced/documented from the type's
 			// documentation.
 			continue;

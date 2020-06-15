@@ -37,6 +37,8 @@
 
 #include "plugin/Manager.h"
 
+using namespace zeek::detail;
+
 namespace {
 struct ZeekINode {
 	dev_t dev;
@@ -45,7 +47,7 @@ struct ZeekINode {
 }
 
 extern YYLTYPE yylloc;	// holds start line and column of token
-extern EnumType* cur_enum_type;
+extern zeek::EnumType* cur_enum_type;
 
 // Track the @if... depth.
 ptr_compat_int current_depth = 0;
@@ -363,7 +365,7 @@ when	return TOK_WHEN;
 @load-sigs{WS}{FILE} {
 	const char* file = skip_whitespace(yytext + 10);
 	std::string path = find_relative_file(file, ".sig");
-	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(plugin::Plugin::SIGNATURES, file, path), -1);
+	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(zeek::plugin::Plugin::SIGNATURES, file, path), -1);
 
 	switch ( rc ) {
 	case -1:
@@ -394,7 +396,7 @@ when	return TOK_WHEN;
 
 @load-plugin{WS}{ID} {
 	const char* plugin = skip_whitespace(yytext + 12);
-	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(plugin::Plugin::PLUGIN, plugin, ""), -1);
+	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(zeek::plugin::Plugin::PLUGIN, plugin, ""), -1);
 
 	switch ( rc ) {
 	case -1:
@@ -614,7 +616,7 @@ static bool already_scanned(const std::string& path)
 static int load_files(const char* orig_file)
 	{
 	std::string file_path = find_relative_script_file(orig_file);
-	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(plugin::Plugin::SCRIPT, orig_file, file_path), -1);
+	int rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(zeek::plugin::Plugin::SCRIPT, orig_file, file_path), -1);
 
 	if ( rc == 1 )
 		return 0; // A plugin took care of it, just skip.
@@ -725,12 +727,12 @@ public:
 	LocalNameFinder()
 		{}
 
-	virtual TraversalCode PreExpr(const Expr* expr)
+	virtual TraversalCode PreExpr(const zeek::detail::Expr* expr)
 		{
 		if ( expr->Tag() != EXPR_NAME )
 			return TC_CONTINUE;
 
-		const NameExpr* name_expr = static_cast<const NameExpr*>(expr);
+		const zeek::detail::NameExpr* name_expr = static_cast<const zeek::detail::NameExpr*>(expr);
 
 		if ( name_expr->Id()->IsGlobal() )
 			return TC_CONTINUE;
@@ -739,10 +741,10 @@ public:
 		return TC_CONTINUE;
 		}
 
-	std::vector<const NameExpr*> local_names;
+	std::vector<const zeek::detail::NameExpr*> local_names;
 };
 
-void do_atif(Expr* expr)
+void do_atif(zeek::detail::Expr* expr)
 	{
 	++current_depth;
 
@@ -1004,7 +1006,7 @@ int yywrap()
 			const auto& param_id = lookup_ID(param, GLOBAL_MODULE_NAME);
 			Val* v = param_id ? param_id->GetVal().get() : nullptr;
 
-			if ( v && v->GetType() && v->GetType()->Tag() == TYPE_STRING )
+			if ( v && v->GetType() && v->GetType()->Tag() == zeek::TYPE_STRING )
 				opt_quote = "\"";	// use quotes
 
 			policy += std::string("redef ") + param + "="

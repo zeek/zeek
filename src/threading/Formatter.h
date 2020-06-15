@@ -81,7 +81,7 @@ public:
 	 * @return The new value, or null on error. Errors must also be
 	 * flagged via the thread.
 	 */
-	virtual threading::Value* ParseValue(const std::string& s, const std::string& name, TypeTag type, TypeTag subtype = TYPE_ERROR) const = 0;
+	virtual threading::Value* ParseValue(const std::string& s, const std::string& name, zeek::TypeTag type, zeek::TypeTag subtype = zeek::TYPE_ERROR) const = 0;
 
 	/**
 	 * Convert an IP address into a string.

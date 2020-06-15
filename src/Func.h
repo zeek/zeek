@@ -9,24 +9,32 @@
 #include <tuple>
 #include <type_traits>
 
-#include <broker/data.hh>
-#include <broker/expected.hh>
-
 #include "BroList.h"
 #include "Obj.h"
 #include "IntrusivePtr.h"
 #include "Type.h" /* for function_flavor */
 #include "TraverseTypes.h"
 #include "ZeekArgs.h"
+#include "BifReturnVal.h"
 
 class Val;
-class ListExpr;
-class FuncType;
-class Stmt;
 class Frame;
-class ID;
-class CallExpr;
 class Scope;
+
+ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(CallExpr, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(FuncType, zeek);
+
+namespace caf {
+template <class> class expected;
+}
+
+namespace broker {
+class data;
+using vector = std::vector<data>;
+using caf::expected;
+}
 
 class Func : public BroObj {
 public:
@@ -39,10 +47,10 @@ public:
 	~Func() override;
 
 	virtual bool IsPure() const = 0;
-	function_flavor Flavor() const	{ return GetType()->Flavor(); }
+	zeek::FunctionFlavor Flavor() const	{ return GetType()->Flavor(); }
 
 	struct Body {
-		IntrusivePtr<Stmt> stmts;
+		IntrusivePtr<zeek::detail::Stmt> stmts;
 		int priority;
 		bool operator<(const Body& other) const
 			{ return priority > other.priority; } // reverse sort
@@ -78,17 +86,17 @@ public:
 		}
 
 	// Add a new event handler to an existing function (event).
-	virtual void AddBody(IntrusivePtr<Stmt> new_body,
-	                     const std::vector<IntrusivePtr<ID>>& new_inits,
+	virtual void AddBody(IntrusivePtr<zeek::detail::Stmt> new_body,
+	                     const std::vector<IntrusivePtr<zeek::detail::ID>>& new_inits,
 	                     size_t new_frame_size, int priority = 0);
 
 	virtual void SetScope(IntrusivePtr<Scope> newscope);
 	virtual Scope* GetScope() const		{ return scope.get(); }
 
 	[[deprecated("Remove in v4.1.  Use GetType().")]]
-	virtual FuncType* FType() const { return type.get(); }
+	virtual zeek::FuncType* FType() const { return type.get(); }
 
-	const IntrusivePtr<FuncType>& GetType() const
+	const IntrusivePtr<zeek::FuncType>& GetType() const
 		{ return type; }
 
 	Kind GetKind() const	{ return kind; }
@@ -115,13 +123,13 @@ protected:
 
 	// Helper function for checking result of plugin hook.
 	void CheckPluginResult(bool handled, const IntrusivePtr<Val>& hook_result,
-	                       function_flavor flavor) const;
+	                       zeek::FunctionFlavor flavor) const;
 
 	std::vector<Body> bodies;
 	IntrusivePtr<Scope> scope;
 	Kind kind;
 	uint32_t unique_id;
-	IntrusivePtr<FuncType> type;
+	IntrusivePtr<zeek::FuncType> type;
 	std::string name;
 	static inline std::vector<IntrusivePtr<Func>> unique_ids;
 };
@@ -129,8 +137,8 @@ protected:
 
 class BroFunc final : public Func {
 public:
-	BroFunc(const IntrusivePtr<ID>& id, IntrusivePtr<Stmt> body,
-	        const std::vector<IntrusivePtr<ID>>& inits,
+	BroFunc(const IntrusivePtr<zeek::detail::ID>& id, IntrusivePtr<zeek::detail::Stmt> body,
+	        const std::vector<IntrusivePtr<zeek::detail::ID>>& inits,
 	        size_t frame_size, int priority);
 
 	~BroFunc() override;
@@ -167,8 +175,8 @@ public:
 	 */
 	broker::expected<broker::data> SerializeClosure() const;
 
-	void AddBody(IntrusivePtr<Stmt> new_body,
-	             const std::vector<IntrusivePtr<ID>>& new_inits,
+	void AddBody(IntrusivePtr<zeek::detail::Stmt> new_body,
+	             const std::vector<IntrusivePtr<zeek::detail::ID>>& new_inits,
 	             size_t new_frame_size, int priority) override;
 
 	/** Sets this function's outer_id list. */
@@ -179,8 +187,9 @@ public:
 
 protected:
 	BroFunc() : Func(BRO_FUNC)	{}
-	IntrusivePtr<Stmt> AddInits(IntrusivePtr<Stmt> body,
-	                            const std::vector<IntrusivePtr<ID>>& inits);
+	IntrusivePtr<zeek::detail::Stmt> AddInits(
+		IntrusivePtr<zeek::detail::Stmt> body,
+		const std::vector<IntrusivePtr<zeek::detail::ID>>& inits);
 
 	/**
 	 * Clones this function along with its closures.
@@ -203,27 +212,6 @@ private:
 	// The frame the BroFunc was initialized in.
 	Frame* closure = nullptr;
 	bool weak_closure_ref = false;
-};
-
-/**
- * A simple wrapper class to use for the return value of BIFs so that
- * they may return either a Val* or IntrusivePtr<Val> (the former could
- * potentially be deprecated).
- */
-class BifReturnVal {
-public:
-
-	template <typename T>
-	BifReturnVal(IntrusivePtr<T> v) noexcept
-		: rval(AdoptRef{}, v.release())
-		{ }
-
-	BifReturnVal(std::nullptr_t) noexcept;
-
-	[[deprecated("Remove in v4.1.  Return an IntrusivePtr instead.")]]
-	BifReturnVal(Val* v) noexcept;
-
-	IntrusivePtr<Val> rval;
 };
 
 using built_in_func = BifReturnVal (*)(Frame* frame, const zeek::Args* args);
@@ -253,10 +241,10 @@ extern void builtin_error(const char* msg, BroObj* arg);
 extern void init_builtin_funcs();
 extern void init_builtin_funcs_subdirs();
 
-extern bool check_built_in_call(BuiltinFunc* f, CallExpr* call);
+extern bool check_built_in_call(BuiltinFunc* f, zeek::detail::CallExpr* call);
 
 struct CallInfo {
-	const CallExpr* call;
+	const zeek::detail::CallExpr* call;
 	const Func* func;
 	const zeek::Args& args;
 };
@@ -267,11 +255,11 @@ struct function_ingredients {
 
 	// Gathers all of the information from a scope and a function body needed
 	// to build a function.
-	function_ingredients(IntrusivePtr<Scope> scope, IntrusivePtr<Stmt> body);
+	function_ingredients(IntrusivePtr<Scope> scope, IntrusivePtr<zeek::detail::Stmt> body);
 
-	IntrusivePtr<ID> id;
-	IntrusivePtr<Stmt> body;
-	std::vector<IntrusivePtr<ID>> inits;
+	IntrusivePtr<zeek::detail::ID> id;
+	IntrusivePtr<zeek::detail::Stmt> body;
+	std::vector<IntrusivePtr<zeek::detail::ID>> inits;
 	int frame_size;
 	int priority;
 	IntrusivePtr<Scope> scope;

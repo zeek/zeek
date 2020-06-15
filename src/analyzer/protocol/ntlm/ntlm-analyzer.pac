@@ -201,4 +201,3 @@ refine typeattr NTLM_Challenge += &let {
 refine typeattr NTLM_Authenticate += &let {
 	proc : bool = $context.connection.proc_ntlm_authenticate(this);
 };
-

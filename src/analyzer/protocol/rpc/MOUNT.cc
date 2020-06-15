@@ -258,7 +258,7 @@ IntrusivePtr<RecordVal> MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& 
 			auth_flavors_count = max_auth_flavors;
 			}
 
-		auto enum_vector = make_intrusive<VectorType>(base_type(TYPE_ENUM));
+		auto enum_vector = make_intrusive<zeek::VectorType>(zeek::base_type(zeek::TYPE_ENUM));
 		auto auth_flavors = make_intrusive<VectorVal>(std::move(enum_vector));
 
 		for ( auto i = 0u; i < auth_flavors_count; ++i )

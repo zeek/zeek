@@ -627,7 +627,16 @@ refine flow DHCP_Flow += {
 		%{
 		auto client_id = make_intrusive<RecordVal>(zeek::BifType::Record::DHCP::ClientID);
 		client_id->Assign(0, val_mgr->Count(${v.client_id.hwtype}));
-		client_id->Assign(1, make_intrusive<StringVal>(fmt_mac(${v.client_id.hwaddr}.begin(), ${v.client_id.hwaddr}.length())));
+		IntrusivePtr<StringVal> sv;
+
+		if ( ${v.client_id.hwtype} == 0 )
+			sv = make_intrusive<StringVal>(${v.client_id.hwaddr}.length(),
+			                               (const char*)${v.client_id.hwaddr}.begin());
+		else
+			sv = make_intrusive<StringVal>(fmt_mac(${v.client_id.hwaddr}.begin(),
+			                               ${v.client_id.hwaddr}.length()));
+
+		client_id->Assign(1, std::move(sv));
 
 		${context.flow}->options->Assign(19, std::move(client_id));
 

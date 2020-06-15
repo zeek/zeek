@@ -71,17 +71,17 @@ bool Foo::DoUpdate()
 	return true;
 }
 
-threading::Value* Foo::EntryToVal(TypeTag type, TypeTag subtype)
+threading::Value* Foo::EntryToVal(zeek::TypeTag type, zeek::TypeTag subtype)
 	{
 	Value* val = new Value(type, true);
 
 	// basically construct something random from the fields that we want.
 
 	switch ( type ) {
-	case TYPE_ENUM:
+	case zeek::TYPE_ENUM:
 		assert(false); // no enums, please.
 
-	case TYPE_STRING:
+	case zeek::TYPE_STRING:
 		{
 		std::string rnd = RandomString(10);
 		val->val.string_val.data = copy_string(rnd.c_str());
@@ -89,46 +89,46 @@ threading::Value* Foo::EntryToVal(TypeTag type, TypeTag subtype)
 		break;
 		}
 
-	case TYPE_BOOL:
+	case zeek::TYPE_BOOL:
 		val->val.int_val = 1; // we never lie.
 		break;
 
-	case TYPE_INT:
+	case zeek::TYPE_INT:
 		val->val.int_val = random();
 		break;
 
-	case TYPE_TIME:
+	case zeek::TYPE_TIME:
 		val->val.double_val = 0;
 		break;
 
-	case TYPE_DOUBLE:
-	case TYPE_INTERVAL:
+	case zeek::TYPE_DOUBLE:
+	case zeek::TYPE_INTERVAL:
 		val->val.double_val = random();
 		break;
 
-	case TYPE_COUNT:
-	case TYPE_COUNTER:
+	case zeek::TYPE_COUNT:
+	case zeek::TYPE_COUNTER:
 		val->val.uint_val = random();
 		break;
 
-	case TYPE_PORT:
+	case zeek::TYPE_PORT:
 		val->val.port_val.port = random() / (RAND_MAX / 60000);
 		val->val.port_val.proto = TRANSPORT_UNKNOWN;
 		break;
 
-	case TYPE_SUBNET:
+	case zeek::TYPE_SUBNET:
 		{
 		val->val.subnet_val.prefix = ascii->ParseAddr("192.168.17.1");
 		val->val.subnet_val.length = 16;
 		}
 		break;
 
-	case TYPE_ADDR:
+	case zeek::TYPE_ADDR:
 		val->val.addr_val = ascii->ParseAddr("192.168.17.1");
 		break;
 
-	case TYPE_TABLE:
-	case TYPE_VECTOR:
+	case zeek::TYPE_TABLE:
+	case zeek::TYPE_VECTOR:
 		// First - common initialization
 		// Then - initialization for table.
 		// Then - initialization for vector.
@@ -139,12 +139,12 @@ threading::Value* Foo::EntryToVal(TypeTag type, TypeTag subtype)
 
 		Value** lvals = new Value* [length];
 
-		if ( type == TYPE_TABLE )
+		if ( type == zeek::TYPE_TABLE )
 			{
 			val->val.set_val.vals = lvals;
 			val->val.set_val.size = length;
 			}
-		else if ( type == TYPE_VECTOR )
+		else if ( type == zeek::TYPE_VECTOR )
 			{
 			val->val.vector_val.vals = lvals;
 			val->val.vector_val.size = length;
@@ -157,7 +157,7 @@ threading::Value* Foo::EntryToVal(TypeTag type, TypeTag subtype)
 
 		for ( unsigned int pos = 0; pos < length; pos++ )
 			{
-			Value* newval = EntryToVal(subtype, TYPE_ENUM);
+			Value* newval = EntryToVal(subtype, zeek::TYPE_ENUM);
 			if ( newval == 0 )
 				{
 				Error("Error while reading set");

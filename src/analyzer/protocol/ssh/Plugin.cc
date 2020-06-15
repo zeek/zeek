@@ -5,20 +5,20 @@
 #include "analyzer/Component.h"
 
 namespace plugin {
-	namespace Zeek_SSH {
+namespace Zeek_SSH {
 
-		class Plugin : public plugin::Plugin {
-		public:
-			plugin::Configuration Configure() override
-				{
-				AddComponent(new ::analyzer::Component("SSH", ::analyzer::SSH::SSH_Analyzer::Instantiate));
+class Plugin : public zeek::plugin::Plugin {
+public:
+	zeek::plugin::Configuration Configure() override
+		{
+		AddComponent(new ::analyzer::Component("SSH", ::analyzer::SSH::SSH_Analyzer::Instantiate));
 
-				plugin::Configuration config;
-				config.name = "Zeek::SSH";
-				config.description = "Secure Shell analyzer";
-				return config;
-				}
-			} plugin;
-
+		zeek::plugin::Configuration config;
+		config.name = "Zeek::SSH";
+		config.description = "Secure Shell analyzer";
+		return config;
 		}
-	}
+	} plugin;
+
+}
+}

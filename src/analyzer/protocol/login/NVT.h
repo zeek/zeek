@@ -138,7 +138,7 @@ public:
 	void SetTerminal(const u_char* terminal, int len);
 	void SetBinaryMode(int mode)	{ binary_mode = mode; }
 	void SetEncrypting(int mode);
-	void SetAuthName(char* arg_auth_name)	{ auth_name = arg_auth_name; }
+	void SetAuthName(char* arg_auth_name)	{ delete [] auth_name; auth_name = arg_auth_name; }
 
 	const char* AuthName() const	{ return auth_name; }
 	int AuthenticationHasBeenAccepted() const
@@ -146,8 +146,9 @@ public:
 
 protected:
 	void DoDeliver(int len, const u_char* data) override;
+	void DeliverChunk(int& len, const u_char*& data);
 
-	void ScanOption(int seq, int len, const u_char* data);
+	void ScanOption(int& len, const u_char*& data);
 	virtual void SawOption(unsigned int code);
 	virtual void SawOption(unsigned int code, unsigned int subcode);
 	virtual void SawSubOption(const char* opt, int len);

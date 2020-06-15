@@ -12,7 +12,7 @@
 
 namespace bro_broker {
 
-extern IntrusivePtr<OpaqueType> opaque_of_store_handle;
+extern IntrusivePtr<zeek::OpaqueType> opaque_of_store_handle;
 
 /**
  * Create a Broker::QueryStatus value.
@@ -51,7 +51,7 @@ inline IntrusivePtr<RecordVal> query_result(IntrusivePtr<RecordVal> data)
  */
 class StoreQueryCallback {
 public:
-	StoreQueryCallback(trigger::Trigger* arg_trigger, const CallExpr* arg_call,
+	StoreQueryCallback(zeek::detail::trigger::Trigger* arg_trigger, const zeek::detail::CallExpr* arg_call,
 			   broker::store store)
 		: trigger(arg_trigger), call(arg_call), store(std::move(store))
 		{
@@ -84,8 +84,8 @@ public:
 
 private:
 
-	trigger::Trigger* trigger;
-	const CallExpr* call;
+	zeek::detail::trigger::Trigger* trigger;
+	const zeek::detail::CallExpr* call;
 	broker::store store;
 };
 

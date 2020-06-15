@@ -248,6 +248,23 @@ void NetSessions::DoNextPacket(double t, const Packet* pkt, const IP_Hdr* ip_hdr
 		return;
 		}
 
+	if ( ip_hdr->IP4_Hdr() )
+		{
+		if ( ip_hdr_len < sizeof(struct ip) )
+			{
+			Weird("IPv4_min_header_size", pkt);
+			return;
+			}
+		}
+	else
+		{
+		if ( ip_hdr_len < sizeof(struct ip6_hdr) )
+			{
+			Weird("IPv6_min_header_size", pkt);
+			return;
+			}
+		}
+
 	// Ignore if packet matches packet filter.
 	if ( packet_filter && packet_filter->Match(ip_hdr, len, caplen) )
 		 return;
@@ -906,10 +923,10 @@ FragReassembler* NetSessions::NextFragment(double t, const IP_Hdr* ip,
 Connection* NetSessions::FindConnection(Val* v)
 	{
 	const auto& vt = v->GetType();
-	if ( ! IsRecord(vt->Tag()) )
+	if ( ! zeek::IsRecord(vt->Tag()) )
 		return nullptr;
 
-	RecordType* vr = vt->AsRecordType();
+	zeek::RecordType* vr = vt->AsRecordType();
 	auto vl = v->AsRecord();
 
 	int orig_h, orig_p;	// indices into record's value list

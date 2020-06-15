@@ -83,8 +83,8 @@ struct Stem {
 
 	pid_t parent_pid;
 	int last_signal = -1;
-	std::unique_ptr<bro::Flare> signal_flare;
-	std::unique_ptr<bro::PipePair> pipe;
+	std::unique_ptr<zeek::detail::Flare> signal_flare;
+	std::unique_ptr<zeek::detail::PipePair> pipe;
 	std::map<std::string, Supervisor::Node> nodes;
 	std::string msg_buffer;
 	bool shutting_down = false;
@@ -426,7 +426,7 @@ size_t Supervisor::ProcessMessages()
 	}
 
 Stem::Stem(Supervisor::StemState ss)
-	: parent_pid(ss.parent_pid), signal_flare(new bro::Flare()), pipe(std::move(ss.pipe))
+	: parent_pid(ss.parent_pid), signal_flare(new zeek::detail::Flare()), pipe(std::move(ss.pipe))
 	{
 	zeek::set_thread_name("zeek.stem");
 	pipe->Swap();
@@ -928,7 +928,7 @@ std::optional<Supervisor::StemState> Supervisor::CreateStem(bool supervisor_mode
 			fds[i] = std::stoi(zeek_stem_nums[i + 1]);
 
 		StemState ss;
-		ss.pipe = std::make_unique<bro::PipePair>(FD_CLOEXEC, O_NONBLOCK, fds);
+		ss.pipe = std::make_unique<zeek::detail::PipePair>(FD_CLOEXEC, O_NONBLOCK, fds);
 		ss.parent_pid = stem_ppid;
 		zeek::Supervisor::RunStem(std::move(ss));
 		return {};
@@ -938,7 +938,7 @@ std::optional<Supervisor::StemState> Supervisor::CreateStem(bool supervisor_mode
 		return {};
 
 	StemState ss;
-	ss.pipe = std::make_unique<bro::PipePair>(FD_CLOEXEC, O_NONBLOCK);
+	ss.pipe = std::make_unique<zeek::detail::PipePair>(FD_CLOEXEC, O_NONBLOCK);
 	ss.parent_pid = getpid();
 	ss.pid = fork();
 
@@ -1172,7 +1172,7 @@ IntrusivePtr<RecordVal> Supervisor::Node::ToRecord() const
 
 static IntrusivePtr<Val> supervisor_role_to_cluster_node_type(BifEnum::Supervisor::ClusterRole role)
 	{
-	static auto node_type = zeek::id::find_type<EnumType>("Cluster::NodeType");
+	static auto node_type = zeek::id::find_type<zeek::EnumType>("Cluster::NodeType");
 
 	switch ( role ) {
 	case BifEnum::Supervisor::LOGGER:
@@ -1193,7 +1193,7 @@ bool Supervisor::SupervisedNode::InitCluster() const
 	if ( config.cluster.empty() )
 		return false;
 
-	const auto& cluster_node_type = zeek::id::find_type<RecordType>("Cluster::Node");
+	const auto& cluster_node_type = zeek::id::find_type<zeek::RecordType>("Cluster::Node");
 	const auto& cluster_nodes_id = zeek::id::find("Cluster::nodes");
 	const auto& cluster_manager_is_logger_id = zeek::id::find("Cluster::manager_is_logger");
 	auto cluster_nodes = cluster_nodes_id->GetVal()->AsTableVal();

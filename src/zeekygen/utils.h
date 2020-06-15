@@ -6,7 +6,8 @@
 
 #include <time.h> // for time_t
 
-class ID;
+namespace zeek::detail { class ID; }
+using ID [[deprecated("Remove in v4.1. Use zeek::detail::ID instead")]] = zeek::detail::ID;
 
 namespace zeekygen {
 
@@ -25,7 +26,7 @@ bool prettify_params(std::string& s);
  * @return true if the ID is in the global scope or if it's exported in to
  * any modules namespace.
  */
-bool is_public_api(const ID* id);
+bool is_public_api(const zeek::detail::ID* id);
 
 /**
  * Get the modification time of a file or abort if there's an error.

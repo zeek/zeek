@@ -371,10 +371,6 @@ PktSrc* Manager::OpenPktSrc(const std::string& path, bool is_live)
 	PktSrc* ps = (*component->Factory())(npath, is_live);
 	assert(ps);
 
-	if ( ! ps->IsOpen() && ps->IsError() )
-		// Set an error message if it didn't open successfully.
-		ps->Error("could not open");
-
 	DBG_LOG(DBG_PKTIO, "Created packet source of type %s for %s", component->Name().c_str(), npath.c_str());
 
 	Register(ps);

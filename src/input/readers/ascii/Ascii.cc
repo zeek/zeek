@@ -18,16 +18,16 @@ using namespace std;
 using threading::Value;
 using threading::Field;
 
-FieldMapping::FieldMapping(const string& arg_name, const TypeTag& arg_type, int arg_position)
-	: name(arg_name), type(arg_type), subtype(TYPE_ERROR)
+FieldMapping::FieldMapping(const string& arg_name, const zeek::TypeTag& arg_type, int arg_position)
+	: name(arg_name), type(arg_type), subtype(zeek::TYPE_ERROR)
 	{
 	position = arg_position;
 	secondary_position = -1;
 	present = true;
 	}
 
-FieldMapping::FieldMapping(const string& arg_name, const TypeTag& arg_type,
-		const TypeTag& arg_subtype, int arg_position)
+FieldMapping::FieldMapping(const string& arg_name, const zeek::TypeTag& arg_type,
+		const zeek::TypeTag& arg_subtype, int arg_position)
 	: name(arg_name), type(arg_type), subtype(arg_subtype)
 	{
 	position = arg_position;
@@ -407,7 +407,7 @@ bool Ascii::DoUpdate()
 			if ( (*fit).secondary_position != -1 )
 				{
 				// we have a port definition :)
-				assert(val->type == TYPE_PORT );
+				assert(val->type == zeek::TYPE_PORT );
 				//	Error(Fmt("Got type %d != PORT with secondary position!", val->type));
 
 				val->val.port_val.proto = formatter->ParseProto(stringfields[(*fit).secondary_position]);
@@ -434,7 +434,7 @@ bool Ascii::DoUpdate()
 		//printf("fpos: %d, second.num_fields: %d\n", fpos, (*it).second.num_fields);
 		assert ( fpos == NumFields() );
 
-		if ( Info().mode  == MODE_STREAM )
+		if ( Info().mode == MODE_STREAM )
 			Put(fields);
 		else
 			SendEntry(fields);

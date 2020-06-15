@@ -96,8 +96,8 @@ public:
 	bool want_record;
 
 	TableVal* tab;
-	RecordType* rtype;
-	RecordType* itype;
+	zeek::RecordType* rtype;
+	zeek::RecordType* itype;
 
 	PDict<InputHash>* currDict;
 	PDict<InputHash>* lastDict;
@@ -114,7 +114,7 @@ class Manager::EventStream final : public Manager::Stream {
 public:
 	EventHandlerPtr event;
 
-	RecordType* fields;
+	zeek::RecordType* fields;
 	unsigned int num_fields;
 
 	bool want_record;
@@ -217,7 +217,7 @@ ReaderBackend* Manager::CreateBackend(ReaderFrontend* frontend, EnumVal* tag)
 // Create a new input reader object to be used at whomevers leisure later on.
 bool Manager::CreateStream(Stream* info, RecordVal* description)
 	{
-	RecordType* rtype = description->GetType()->AsRecordType();
+	zeek::RecordType* rtype = description->GetType()->AsRecordType();
 	if ( ! ( same_type(rtype, zeek::BifType::Record::Input::TableDescription, false)
 		|| same_type(rtype, zeek::BifType::Record::Input::EventDescription, false)
 		|| same_type(rtype, zeek::BifType::Record::Input::AnalysisDescription, false) ) )
@@ -305,7 +305,7 @@ bool Manager::CreateStream(Stream* info, RecordVal* description)
 
 bool Manager::CreateEventStream(RecordVal* fval)
 	{
-	RecordType* rtype = fval->GetType()->AsRecordType();
+	zeek::RecordType* rtype = fval->GetType()->AsRecordType();
 	if ( ! same_type(rtype, zeek::BifType::Record::Input::EventDescription, false) )
 		{
 		reporter->Error("EventDescription argument not of right type");
@@ -315,7 +315,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 	string stream_name = fval->GetFieldOrDefault("name")->AsString()->CheckString();
 
 	auto fields_val = fval->GetFieldOrDefault("fields");
-	RecordType* fields = fields_val->AsType()->AsTypeType()->GetType()->AsRecordType();
+	zeek::RecordType* fields = fields_val->AsType()->AsTypeType()->GetType()->AsRecordType();
 
 	auto want_record = fval->GetFieldOrDefault("want_record");
 
@@ -326,7 +326,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 
 	bool allow_file_func = false;
 
-	if ( etype->Flavor() != FUNC_FLAVOR_EVENT )
+	if ( etype->Flavor() != zeek::FUNC_FLAVOR_EVENT )
 		{
 		reporter->Error("Input stream %s: Stream event is a function, not an event", stream_name.c_str());
 		return false;
@@ -371,8 +371,8 @@ bool Manager::CreateEventStream(RecordVal* fval)
 
 				reporter->Error("Input stream %s: Incompatible type for event in field %d. Need type '%s':%s, got '%s':%s",
 						stream_name.c_str(), i + 3,
-						type_name(fields->GetFieldType(i)->Tag()), desc2.Description(),
-						type_name(args[i + 2]->Tag()), desc1.Description());
+						zeek::type_name(fields->GetFieldType(i)->Tag()), desc2.Description(),
+						zeek::type_name(args[i + 2]->Tag()), desc1.Description());
 
 				return false;
 				}
@@ -396,8 +396,8 @@ bool Manager::CreateEventStream(RecordVal* fval)
 			fields->Describe(&desc2);
 			reporter->Error("Input stream %s: Incompatible type '%s':%s for event, which needs type '%s':%s\n",
 					stream_name.c_str(),
-					type_name(args[2]->Tag()), desc1.Description(),
-					type_name(fields->Tag()), desc2.Description());
+					zeek::type_name(args[2]->Tag()), desc1.Description(),
+					zeek::type_name(fields->Tag()), desc2.Description());
 			return false;
 			}
 
@@ -459,7 +459,7 @@ bool Manager::CreateEventStream(RecordVal* fval)
 
 bool Manager::CreateTableStream(RecordVal* fval)
 	{
-	RecordType* rtype = fval->GetType()->AsRecordType();
+	zeek::RecordType* rtype = fval->GetType()->AsRecordType();
 	if ( ! same_type(rtype, zeek::BifType::Record::Input::TableDescription, false) )
 		{
 		reporter->Error("TableDescription argument not of right type");
@@ -470,13 +470,13 @@ bool Manager::CreateTableStream(RecordVal* fval)
 
 	auto pred = fval->GetFieldOrDefault("pred");
 	auto idx_val = fval->GetFieldOrDefault("idx");
-	RecordType* idx = idx_val->AsType()->AsTypeType()->GetType()->AsRecordType();
+	zeek::RecordType* idx = idx_val->AsType()->AsTypeType()->GetType()->AsRecordType();
 
-	IntrusivePtr<RecordType> val;
+	IntrusivePtr<zeek::RecordType> val;
 	auto val_val = fval->GetFieldOrDefault("val");
 
 	if ( val_val )
-		val = val_val->AsType()->AsTypeType()->GetType<RecordType>();
+		val = val_val->AsType()->AsTypeType()->GetType<zeek::RecordType>();
 
 	auto dst = fval->GetFieldOrDefault("destination");
 
@@ -501,8 +501,8 @@ bool Manager::CreateTableStream(RecordVal* fval)
 			tl[j]->Describe(&desc2);
 
 			reporter->Error("Input stream %s: Table type does not match index type. Need type '%s':%s, got '%s':%s", stream_name.c_str(),
-					type_name(idx->GetFieldType(j)->Tag()), desc1.Description(),
-					type_name(tl[j]->Tag()), desc2.Description());
+					zeek::type_name(idx->GetFieldType(j)->Tag()), desc1.Description(),
+					zeek::type_name(tl[j]->Tag()), desc2.Description());
 
 			return false;
 			}
@@ -551,7 +551,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 		{
 		const auto& etype = event->GetType();
 
-		if ( etype->Flavor() != FUNC_FLAVOR_EVENT )
+		if ( etype->Flavor() != zeek::FUNC_FLAVOR_EVENT )
 			{
 			reporter->Error("Input stream %s: Stream event is a function, not an event", stream_name.c_str());
 			return false;
@@ -698,7 +698,7 @@ bool Manager::CheckErrorEventTypes(const std::string& stream_name, const Func* e
 
 	const auto& etype = ev->GetType();
 
-	if ( etype->Flavor() != FUNC_FLAVOR_EVENT )
+	if ( etype->Flavor() != zeek::FUNC_FLAVOR_EVENT )
 		{
 		reporter->Error("Input stream %s: Error event is a function, not an event", stream_name.c_str());
 		return false;
@@ -724,7 +724,7 @@ bool Manager::CheckErrorEventTypes(const std::string& stream_name, const Func* e
 		return false;
 		}
 
-	if ( args[1]->Tag() != TYPE_STRING )
+	if ( args[1]->Tag() != zeek::TYPE_STRING )
 		{
 		reporter->Error("Input stream %s: Error event's second attribute must be of type string", stream_name.c_str());
 		return false;
@@ -741,7 +741,7 @@ bool Manager::CheckErrorEventTypes(const std::string& stream_name, const Func* e
 
 bool Manager::CreateAnalysisStream(RecordVal* fval)
 	{
-	RecordType* rtype = fval->GetType()->AsRecordType();
+	zeek::RecordType* rtype = fval->GetType()->AsRecordType();
 
 	if ( ! same_type(rtype, zeek::BifType::Record::Input::AnalysisDescription, false) )
 		{
@@ -763,7 +763,7 @@ bool Manager::CreateAnalysisStream(RecordVal* fval)
 
 	// reader takes in a byte stream as the only field
 	Field** fields = new Field*[1];
-	fields[0] = new Field("bytestream", nullptr, TYPE_STRING, TYPE_VOID, false);
+	fields[0] = new Field("bytestream", nullptr, zeek::TYPE_STRING, zeek::TYPE_VOID, false);
 	stream->reader->Init(1, fields);
 
 	readers[stream->reader] = stream;
@@ -774,31 +774,31 @@ bool Manager::CreateAnalysisStream(RecordVal* fval)
 	return true;
 	}
 
-bool Manager::IsCompatibleType(BroType* t, bool atomic_only)
+bool Manager::IsCompatibleType(zeek::Type* t, bool atomic_only)
 	{
 	if ( ! t )
 		return false;
 
 	switch ( t->Tag() ) {
-	case TYPE_BOOL:
-	case TYPE_INT:
-	case TYPE_COUNT:
-	case TYPE_COUNTER:
-	case TYPE_PORT:
-	case TYPE_SUBNET:
-	case TYPE_ADDR:
-	case TYPE_DOUBLE:
-	case TYPE_TIME:
-	case TYPE_INTERVAL:
-	case TYPE_ENUM:
-	case TYPE_STRING:
-	case TYPE_PATTERN:
+	case zeek::TYPE_BOOL:
+	case zeek::TYPE_INT:
+	case zeek::TYPE_COUNT:
+	case zeek::TYPE_COUNTER:
+	case zeek::TYPE_PORT:
+	case zeek::TYPE_SUBNET:
+	case zeek::TYPE_ADDR:
+	case zeek::TYPE_DOUBLE:
+	case zeek::TYPE_TIME:
+	case zeek::TYPE_INTERVAL:
+	case zeek::TYPE_ENUM:
+	case zeek::TYPE_STRING:
+	case zeek::TYPE_PATTERN:
 		return true;
 
-	case TYPE_RECORD:
+	case zeek::TYPE_RECORD:
 		return ! atomic_only;
 
-	case TYPE_TABLE:
+	case zeek::TYPE_TABLE:
 		{
 		if ( atomic_only )
 			return false;
@@ -809,7 +809,7 @@ bool Manager::IsCompatibleType(BroType* t, bool atomic_only)
 		return IsCompatibleType(t->AsSetType()->GetIndices()->GetPureType().get(), true);
 		}
 
-	case TYPE_VECTOR:
+	case zeek::TYPE_VECTOR:
 		{
 		if ( atomic_only )
 			return false;
@@ -879,12 +879,11 @@ bool Manager::RemoveStreamContinuation(ReaderFrontend* reader)
 	return true;
 	}
 
-bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
+bool Manager::UnrollRecordType(vector<Field*> *fields, const zeek::RecordType *rec,
 			       const string& nameprepend, bool allow_file_func) const
 	{
 	for ( int i = 0; i < rec->NumFields(); i++ )
 		{
-
 		if ( ! IsCompatibleType(rec->GetFieldType(i).get()) )
 			{
 			string name = nameprepend + rec->FieldName(i);
@@ -894,25 +893,26 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
 			// stuff that we actually cannot read :)
 			if ( allow_file_func )
 				{
-				if ( ( rec->GetFieldType(i)->Tag() == TYPE_FILE ||
-				       rec->GetFieldType(i)->Tag() == TYPE_FUNC ||
-				       rec->GetFieldType(i)->Tag() == TYPE_OPAQUE ) &&
-				       rec->FieldDecl(i)->GetAttr(ATTR_OPTIONAL) )
+				if ( ( rec->GetFieldType(i)->Tag() == zeek::TYPE_FILE ||
+				       rec->GetFieldType(i)->Tag() == zeek::TYPE_FUNC ||
+				       rec->GetFieldType(i)->Tag() == zeek::TYPE_OPAQUE ) &&
+				       rec->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL) )
 					{
-					reporter->Info("Encountered incompatible type \"%s\" in type definition for field \"%s\" in ReaderFrontend. Ignoring optional field.", type_name(rec->GetFieldType(i)->Tag()), name.c_str());
+					reporter->Info("Encountered incompatible type \"%s\" in type definition for field \"%s\" in ReaderFrontend. Ignoring optional field.", zeek::type_name(rec->GetFieldType(i)->Tag()), name.c_str());
 					continue;
 					}
 				}
 
-			reporter->Error("Incompatible type \"%s\" in type definition for for field \"%s\" in ReaderFrontend", type_name(rec->GetFieldType(i)->Tag()), name.c_str());
+			reporter->Error("Incompatible type \"%s\" in type definition for for field \"%s\" in ReaderFrontend",
+				            zeek::type_name(rec->GetFieldType(i)->Tag()), name.c_str());
 			return false;
 			}
 
-		if ( rec->GetFieldType(i)->Tag() == TYPE_RECORD )
+		if ( rec->GetFieldType(i)->Tag() == zeek::TYPE_RECORD )
 			{
 			string prep = nameprepend + rec->FieldName(i) + ".";
 
-			if ( rec->FieldDecl(i)->GetAttr(ATTR_OPTIONAL) )
+			if ( rec->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL) )
 				{
 				reporter->Info("The input framework does not support optional record fields: \"%s\"", rec->FieldName(i));
 				return false;
@@ -930,30 +930,30 @@ bool Manager::UnrollRecordType(vector<Field*> *fields, const RecordType *rec,
 			string name = nameprepend + rec->FieldName(i);
 			const char* secondary = nullptr;
 			IntrusivePtr<Val> c;
-			TypeTag ty = rec->GetFieldType(i)->Tag();
-			TypeTag st = TYPE_VOID;
+			zeek::TypeTag ty = rec->GetFieldType(i)->Tag();
+			zeek::TypeTag st = zeek::TYPE_VOID;
 			bool optional = false;
 
-			if ( ty == TYPE_TABLE )
+			if ( ty == zeek::TYPE_TABLE )
 				st = rec->GetFieldType(i)->AsSetType()->GetIndices()->GetPureType()->Tag();
 
-			else if ( ty == TYPE_VECTOR )
+			else if ( ty == zeek::TYPE_VECTOR )
 				st = rec->GetFieldType(i)->AsVectorType()->Yield()->Tag();
 
-			else if ( ty == TYPE_PORT &&
-				  rec->FieldDecl(i)->GetAttr(ATTR_TYPE_COLUMN) )
+			else if ( ty == zeek::TYPE_PORT &&
+				  rec->FieldDecl(i)->GetAttr(zeek::detail::ATTR_TYPE_COLUMN) )
 				{
 				// we have an annotation for the second column
 
-				c = rec->FieldDecl(i)->GetAttr(ATTR_TYPE_COLUMN)->GetExpr()->Eval(nullptr);
+				c = rec->FieldDecl(i)->GetAttr(zeek::detail::ATTR_TYPE_COLUMN)->GetExpr()->Eval(nullptr);
 
 				assert(c);
-				assert(c->GetType()->Tag() == TYPE_STRING);
+				assert(c->GetType()->Tag() == zeek::TYPE_STRING);
 
 				secondary = c->AsStringVal()->AsString()->CheckString();
 				}
 
-			if ( rec->FieldDecl(i)->GetAttr(ATTR_OPTIONAL ) )
+			if ( rec->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL ) )
 				optional = true;
 
 			Field* field = new Field(name.c_str(), secondary, ty, st, optional);
@@ -993,16 +993,16 @@ Val* Manager::RecordValToIndexVal(RecordVal *r) const
 	{
 	IntrusivePtr<Val> idxval;
 
-	RecordType *type = r->GetType()->AsRecordType();
+	zeek::RecordType *type = r->GetType()->AsRecordType();
 
 	int num_fields = type->NumFields();
 
-	if ( num_fields == 1 && type->FieldDecl(0)->type->Tag() != TYPE_RECORD  )
+	if ( num_fields == 1 && type->FieldDecl(0)->type->Tag() != zeek::TYPE_RECORD  )
 		idxval = r->GetFieldOrDefault(0);
 
 	else
 		{
-		auto l = make_intrusive<ListVal>(TYPE_ANY);
+		auto l = make_intrusive<ListVal>(zeek::TYPE_ANY);
 		for ( int j = 0 ; j < num_fields; j++ )
 			l->Append(r->GetFieldOrDefault(j));
 
@@ -1014,23 +1014,23 @@ Val* Manager::RecordValToIndexVal(RecordVal *r) const
 	}
 
 
-Val* Manager::ValueToIndexVal(const Stream* i, int num_fields, const RecordType *type, const Value* const *vals, bool& have_error) const
+Val* Manager::ValueToIndexVal(const Stream* i, int num_fields, const zeek::RecordType *type, const Value* const *vals, bool& have_error) const
 	{
 	Val* idxval;
 	int position = 0;
 
 
-	if ( num_fields == 1 && type->GetFieldType(0)->Tag() != TYPE_RECORD  )
+	if ( num_fields == 1 && type->GetFieldType(0)->Tag() != zeek::TYPE_RECORD  )
 		{
 		idxval = ValueToVal(i, vals[0], type->GetFieldType(0).get(), have_error);
 		position = 1;
 		}
 	else
 		{
-		ListVal *l = new ListVal(TYPE_ANY);
+		ListVal *l = new ListVal(zeek::TYPE_ANY);
 		for ( int j = 0 ; j < type->NumFields(); j++ )
 			{
-			if ( type->GetFieldType(j)->Tag() == TYPE_RECORD )
+			if ( type->GetFieldType(j)->Tag() == zeek::TYPE_RECORD )
 				l->Append({AdoptRef{}, ValueToRecordVal(i, vals,
 				          type->GetFieldType(j)->AsRecordType(), &position, have_error)});
 			else
@@ -1072,7 +1072,7 @@ void Manager::SendEntry(ReaderFrontend* reader, Value* *vals)
 	else if ( i->stream_type == ANALYSIS_STREAM )
 		{
 		readFields = 1;
-		assert(vals[0]->type == TYPE_STRING);
+		assert(vals[0]->type == zeek::TYPE_STRING);
 		file_mgr->DataIn(reinterpret_cast<u_char*>(vals[0]->val.string_val.data),
 		                 vals[0]->val.string_val.length,
 		                 static_cast<AnalysisStream*>(i)->file_id, i->name);
@@ -1439,7 +1439,7 @@ void Manager::Put(ReaderFrontend* reader, Value* *vals)
 	else if ( i->stream_type == ANALYSIS_STREAM )
 		{
 		readFields = 1;
-		assert(vals[0]->type == TYPE_STRING);
+		assert(vals[0]->type == zeek::TYPE_STRING);
 		file_mgr->DataIn(reinterpret_cast<u_char*>(vals[0]->val.string_val.data),
 		                 vals[0]->val.string_val.length,
 		                 static_cast<AnalysisStream*>(i)->file_id, i->name);
@@ -1480,7 +1480,7 @@ int Manager::SendEventStreamEvent(Stream* i, EnumVal* type, const Value* const *
 			{
 			Val* val = nullptr;
 
-			if ( stream->fields->GetFieldType(j)->Tag() == TYPE_RECORD )
+			if ( stream->fields->GetFieldType(j)->Tag() == zeek::TYPE_RECORD )
 				val = ValueToRecordVal(i, vals,
 						stream->fields->GetFieldType(j)->AsRecordType(),
 						&position, convert_error);
@@ -1817,7 +1817,7 @@ void Manager::SendEvent(EventHandlerPtr ev, list<Val*> events) const
 
 // Convert a bro list value to a bro record value.
 // I / we could think about moving this functionality to val.cc
-RecordVal* Manager::ListValToRecordVal(ListVal* list, RecordType *request_type, int* position) const
+RecordVal* Manager::ListValToRecordVal(ListVal* list, zeek::RecordType *request_type, int* position) const
 	{
 	assert(position != nullptr); // we need the pointer to point to data;
 
@@ -1831,7 +1831,7 @@ RecordVal* Manager::ListValToRecordVal(ListVal* list, RecordType *request_type, 
 		assert ( (*position) <= maxpos );
 
 		Val* fieldVal = nullptr;
-		if ( request_type->GetFieldType(i)->Tag() == TYPE_RECORD )
+		if ( request_type->GetFieldType(i)->Tag() == zeek::TYPE_RECORD )
 			fieldVal = ListValToRecordVal(list, request_type->GetFieldType(i)->AsRecordType(), position);
 		else
 			{
@@ -1847,7 +1847,7 @@ RecordVal* Manager::ListValToRecordVal(ListVal* list, RecordType *request_type, 
 
 // Convert a threading value to a record value
 RecordVal* Manager::ValueToRecordVal(const Stream* stream, const Value* const *vals,
-	                             RecordType *request_type, int* position, bool& have_error) const
+	                             zeek::RecordType *request_type, int* position, bool& have_error) const
 	{
 	assert(position != nullptr); // we need the pointer to point to data.
 
@@ -1855,10 +1855,10 @@ RecordVal* Manager::ValueToRecordVal(const Stream* stream, const Value* const *v
 	for ( int i = 0; i < request_type->NumFields(); i++ )
 		{
 		Val* fieldVal = nullptr;
-		if ( request_type->GetFieldType(i)->Tag() == TYPE_RECORD )
+		if ( request_type->GetFieldType(i)->Tag() == zeek::TYPE_RECORD )
 			fieldVal = ValueToRecordVal(stream, vals, request_type->GetFieldType(i)->AsRecordType(), position, have_error);
-		else if ( request_type->GetFieldType(i)->Tag() == TYPE_FILE ||
-			  request_type->GetFieldType(i)->Tag() == TYPE_FUNC )
+		else if ( request_type->GetFieldType(i)->Tag() == zeek::TYPE_FILE ||
+			  request_type->GetFieldType(i)->Tag() == zeek::TYPE_FUNC )
 			{
 			// If those two unsupported types are encountered here, they have
 			// been let through by the type checking.
@@ -1867,7 +1867,7 @@ RecordVal* Manager::ValueToRecordVal(const Stream* stream, const Value* const *v
 			// Hence -> assign null to the field, done.
 
 			// Better check that it really is optional. Uou never know.
-			assert(request_type->FieldDecl(i)->GetAttr(ATTR_OPTIONAL));
+			assert(request_type->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL));
 			}
 		else
 			{
@@ -1890,35 +1890,35 @@ int Manager::GetValueLength(const Value* val) const
 	int length = 0;
 
 	switch (val->type) {
-	case TYPE_BOOL:
-	case TYPE_INT:
+	case zeek::TYPE_BOOL:
+	case zeek::TYPE_INT:
 		length += sizeof(val->val.int_val);
 		break;
 
-	case TYPE_COUNT:
-	case TYPE_COUNTER:
+	case zeek::TYPE_COUNT:
+	case zeek::TYPE_COUNTER:
 		length += sizeof(val->val.uint_val);
 		break;
 
-	case TYPE_PORT:
+	case zeek::TYPE_PORT:
 		length += sizeof(val->val.port_val.port);
 		length += sizeof(val->val.port_val.proto);
 		break;
 
-	case TYPE_DOUBLE:
-	case TYPE_TIME:
-	case TYPE_INTERVAL:
+	case zeek::TYPE_DOUBLE:
+	case zeek::TYPE_TIME:
+	case zeek::TYPE_INTERVAL:
 		length += sizeof(val->val.double_val);
 		break;
 
-	case TYPE_STRING:
-	case TYPE_ENUM:
+	case zeek::TYPE_STRING:
+	case zeek::TYPE_ENUM:
 		{
 		length += val->val.string_val.length + 1;
 		break;
 		}
 
-	case TYPE_ADDR:
+	case zeek::TYPE_ADDR:
 		{
 		switch ( val->val.addr_val.family ) {
 		case IPv4:
@@ -1933,7 +1933,7 @@ int Manager::GetValueLength(const Value* val) const
 		}
 		break;
 
-	case TYPE_SUBNET:
+	case zeek::TYPE_SUBNET:
 		{
 		switch ( val->val.subnet_val.prefix.family ) {
 		case IPv4:
@@ -1950,20 +1950,20 @@ int Manager::GetValueLength(const Value* val) const
 		}
 		break;
 
-	case TYPE_PATTERN:
+	case zeek::TYPE_PATTERN:
 		{
 		length += strlen(val->val.pattern_text_val) + 1;
 		break;
 		}
 
-	case TYPE_TABLE:
+	case zeek::TYPE_TABLE:
 		{
 		for ( int i = 0; i < val->val.set_val.size; i++ )
 			length += GetValueLength(val->val.set_val.vals[i]);
 		break;
 		}
 
-	case TYPE_VECTOR:
+	case zeek::TYPE_VECTOR:
 		{
 		int j = val->val.vector_val.size;
 		for ( int i = 0; i < j; i++ )
@@ -1986,17 +1986,17 @@ int Manager::CopyValue(char *data, const int startpos, const Value* val) const
 	assert( val->present ); // presence has to be checked elsewhere
 
 	switch ( val->type ) {
-	case TYPE_BOOL:
-	case TYPE_INT:
+	case zeek::TYPE_BOOL:
+	case zeek::TYPE_INT:
 		memcpy(data+startpos, (const void*) &(val->val.int_val), sizeof(val->val.int_val));
 		return sizeof(val->val.int_val);
 
-	case TYPE_COUNT:
-	case TYPE_COUNTER:
+	case zeek::TYPE_COUNT:
+	case zeek::TYPE_COUNTER:
 		memcpy(data+startpos, (const void*) &(val->val.uint_val), sizeof(val->val.uint_val));
 		return sizeof(val->val.uint_val);
 
-	case TYPE_PORT:
+	case zeek::TYPE_PORT:
 		{
 		int length = 0;
 		memcpy(data+startpos, (const void*) &(val->val.port_val.port),
@@ -2009,15 +2009,15 @@ int Manager::CopyValue(char *data, const int startpos, const Value* val) const
 		}
 
 
-	case TYPE_DOUBLE:
-	case TYPE_TIME:
-	case TYPE_INTERVAL:
+	case zeek::TYPE_DOUBLE:
+	case zeek::TYPE_TIME:
+	case zeek::TYPE_INTERVAL:
 		memcpy(data+startpos, (const void*) &(val->val.double_val),
 		       sizeof(val->val.double_val));
 		return sizeof(val->val.double_val);
 
-	case TYPE_STRING:
-	case TYPE_ENUM:
+	case zeek::TYPE_STRING:
+	case zeek::TYPE_ENUM:
 		{
 		memcpy(data+startpos, val->val.string_val.data, val->val.string_val.length);
 		// Add a \0 to the end. To be able to hash zero-length
@@ -2026,7 +2026,7 @@ int Manager::CopyValue(char *data, const int startpos, const Value* val) const
 		return val->val.string_val.length + 1;
 		}
 
-	case TYPE_ADDR:
+	case zeek::TYPE_ADDR:
 		{
 		int length = 0;
 		switch ( val->val.addr_val.family ) {
@@ -2047,7 +2047,7 @@ int Manager::CopyValue(char *data, const int startpos, const Value* val) const
 		return length;
 		}
 
-	case TYPE_SUBNET:
+	case zeek::TYPE_SUBNET:
 		{
 		int length = 0;
 		switch ( val->val.subnet_val.prefix.family ) {
@@ -2075,7 +2075,7 @@ int Manager::CopyValue(char *data, const int startpos, const Value* val) const
 		return length;
 		}
 
-	case TYPE_PATTERN:
+	case zeek::TYPE_PATTERN:
 		{
 		// include null-terminator
 		int length = strlen(val->val.pattern_text_val) + 1;
@@ -2083,7 +2083,7 @@ int Manager::CopyValue(char *data, const int startpos, const Value* val) const
 		return length;
 		}
 
-	case TYPE_TABLE:
+	case zeek::TYPE_TABLE:
 		{
 		int length = 0;
 		int j = val->val.set_val.size;
@@ -2093,7 +2093,7 @@ int Manager::CopyValue(char *data, const int startpos, const Value* val) const
 		return length;
 		}
 
-	case TYPE_VECTOR:
+	case zeek::TYPE_VECTOR:
 		{
 		int length = 0;
 		int j = val->val.vector_val.size;
@@ -2159,12 +2159,12 @@ HashKey* Manager::HashValues(const int num_elements, const Value* const *vals) c
 // have_error is a reference to a boolean which is set to true as soon as an error occurs.
 // When have_error is set to true at the beginning of the function, it is assumed that
 // an error already occurred in the past and processing is aborted.
-Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_type, bool& have_error) const
+Val* Manager::ValueToVal(const Stream* i, const Value* val, zeek::Type* request_type, bool& have_error) const
 	{
 	if ( have_error )
 		return nullptr;
 
-	if ( request_type->Tag() != TYPE_ANY && request_type->Tag() != val->type )
+	if ( request_type->Tag() != zeek::TYPE_ANY && request_type->Tag() != val->type )
 		{
 		reporter->InternalError("Typetags don't match: %d vs %d in stream %s", request_type->Tag(), val->type, i->name.c_str());
 		return nullptr;
@@ -2174,35 +2174,35 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 		return nullptr; // unset field
 
 	switch ( val->type ) {
-	case TYPE_BOOL:
+	case zeek::TYPE_BOOL:
 		return val_mgr->Bool(val->val.int_val)->Ref();
 
-	case TYPE_INT:
+	case zeek::TYPE_INT:
 		return val_mgr->Int(val->val.int_val).release();
 
-	case TYPE_COUNT:
-	case TYPE_COUNTER:
+	case zeek::TYPE_COUNT:
+	case zeek::TYPE_COUNTER:
 		return val_mgr->Count(val->val.int_val).release();
 
-	case TYPE_DOUBLE:
+	case zeek::TYPE_DOUBLE:
 		return new DoubleVal(val->val.double_val);
 
-	case TYPE_TIME:
+	case zeek::TYPE_TIME:
 		return new TimeVal(val->val.double_val);
 
-	case TYPE_INTERVAL:
+	case zeek::TYPE_INTERVAL:
 		return new IntervalVal(val->val.double_val);
 
-	case TYPE_STRING:
+	case zeek::TYPE_STRING:
 		{
 		BroString *s = new BroString((const u_char*)val->val.string_val.data, val->val.string_val.length, true);
 		return new StringVal(s);
 		}
 
-	case TYPE_PORT:
+	case zeek::TYPE_PORT:
 		return val_mgr->Port(val->val.port_val.port, val->val.port_val.proto)->Ref();
 
-	case TYPE_ADDR:
+	case zeek::TYPE_ADDR:
 		{
 		IPAddr* addr = nullptr;
 		switch ( val->val.addr_val.family ) {
@@ -2223,7 +2223,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 		return addrval;
 		}
 
-	case TYPE_SUBNET:
+	case zeek::TYPE_SUBNET:
 		{
 		IPAddr* addr = nullptr;
 		switch ( val->val.subnet_val.prefix.family ) {
@@ -2244,20 +2244,20 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 		return subnetval;
 		}
 
-	case TYPE_PATTERN:
+	case zeek::TYPE_PATTERN:
 		{
 		RE_Matcher* re = new RE_Matcher(val->val.pattern_text_val);
 		re->Compile();
 		return new PatternVal(re);
 		}
 
-	case TYPE_TABLE:
+	case zeek::TYPE_TABLE:
 		{
 		// all entries have to have the same type...
 		const auto& type = request_type->AsTableType()->GetIndices()->GetPureType();
-		auto set_index = make_intrusive<TypeList>(type);
+		auto set_index = make_intrusive<zeek::TypeList>(type);
 		set_index->Append(type);
-		auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
+		auto s = make_intrusive<zeek::SetType>(std::move(set_index), nullptr);
 		TableVal* t = new TableVal(std::move(s));
 		for ( int j = 0; j < val->val.set_val.size; j++ )
 			{
@@ -2269,11 +2269,11 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 		return t;
 		}
 
-	case TYPE_VECTOR:
+	case zeek::TYPE_VECTOR:
 		{
 		// all entries have to have the same type...
 		const auto& type = request_type->AsVectorType()->Yield();
-		auto vt = make_intrusive<VectorType>(type);
+		auto vt = make_intrusive<zeek::VectorType>(type);
 		auto v = make_intrusive<VectorVal>(std::move(vt));
 
 		for ( int j = 0; j < val->val.vector_val.size; j++ )
@@ -2285,7 +2285,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, BroType* request_typ
 		return v.release();
 		}
 
-	case TYPE_ENUM: {
+	case zeek::TYPE_ENUM: {
 		// Convert to string first to not have to deal with missing
 		// \0's...
 		string enum_string(val->val.string_val.data, val->val.string_val.length);

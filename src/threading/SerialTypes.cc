@@ -47,8 +47,8 @@ bool Field::Read(SerializationFormat* fmt)
 
 	name = copy_string(tmp_name.c_str());
 
-	type = (TypeTag) t;
-	subtype = (TypeTag) st;
+	type = static_cast<zeek::TypeTag>(t);
+	subtype = static_cast<zeek::TypeTag>(st);
 
 	return true;
 	}
@@ -79,15 +79,15 @@ std::string Field::TypeName() const
 
 	// We do not support tables, if the internal Bro type is table it
 	// always is a set.
-	if ( type == TYPE_TABLE )
+	if ( type == zeek::TYPE_TABLE )
 		n = "set";
 	else
-		n = type_name(type);
+		n = zeek::type_name(type);
 
-	if ( (type == TYPE_TABLE) || (type == TYPE_VECTOR) )
+	if ( (type == zeek::TYPE_TABLE) || (type == zeek::TYPE_VECTOR) )
 		{
 		n += "[";
-		n += type_name(subtype);
+		n += zeek::type_name(subtype);
 		n += "]";
 		}
 
@@ -99,13 +99,13 @@ Value::~Value()
 	if ( ! present )
 		return;
 
-	if ( type == TYPE_ENUM || type == TYPE_STRING || type == TYPE_FILE || type == TYPE_FUNC )
+	if ( type == zeek::TYPE_ENUM || type == zeek::TYPE_STRING || type == zeek::TYPE_FILE || type == zeek::TYPE_FUNC )
 		delete [] val.string_val.data;
 
-	else if ( type == TYPE_PATTERN )
+	else if ( type == zeek::TYPE_PATTERN )
 		delete [] val.pattern_text_val;
 
-	else if ( type == TYPE_TABLE )
+	else if ( type == zeek::TYPE_TABLE )
 		{
 		for ( int i = 0; i < val.set_val.size; i++ )
 			delete val.set_val.vals[i];
@@ -113,7 +113,7 @@ Value::~Value()
 		delete [] val.set_val.vals;
 		}
 
-	else if ( type == TYPE_VECTOR )
+	else if ( type == zeek::TYPE_VECTOR )
 		{
 		for ( int i = 0; i < val.vector_val.size; i++ )
 			delete val.vector_val.vals[i];
@@ -122,32 +122,32 @@ Value::~Value()
 		}
 	}
 
-bool Value::IsCompatibleType(BroType* t, bool atomic_only)
+bool Value::IsCompatibleType(zeek::Type* t, bool atomic_only)
 	{
 	if ( ! t )
 		return false;
 
 	switch ( t->Tag() )	{
-	case TYPE_BOOL:
-	case TYPE_INT:
-	case TYPE_COUNT:
-	case TYPE_COUNTER:
-	case TYPE_PORT:
-	case TYPE_SUBNET:
-	case TYPE_ADDR:
-	case TYPE_DOUBLE:
-	case TYPE_TIME:
-	case TYPE_INTERVAL:
-	case TYPE_ENUM:
-	case TYPE_STRING:
-	case TYPE_FILE:
-	case TYPE_FUNC:
+	case zeek::TYPE_BOOL:
+	case zeek::TYPE_INT:
+	case zeek::TYPE_COUNT:
+	case zeek::TYPE_COUNTER:
+	case zeek::TYPE_PORT:
+	case zeek::TYPE_SUBNET:
+	case zeek::TYPE_ADDR:
+	case zeek::TYPE_DOUBLE:
+	case zeek::TYPE_TIME:
+	case zeek::TYPE_INTERVAL:
+	case zeek::TYPE_ENUM:
+	case zeek::TYPE_STRING:
+	case zeek::TYPE_FILE:
+	case zeek::TYPE_FUNC:
 		return true;
 
-	case TYPE_RECORD:
+	case zeek::TYPE_RECORD:
 		return ! atomic_only;
 
-	case TYPE_TABLE:
+	case zeek::TYPE_TABLE:
 		{
 		if ( atomic_only )
 			return false;
@@ -158,7 +158,7 @@ bool Value::IsCompatibleType(BroType* t, bool atomic_only)
 		return IsCompatibleType(t->AsSetType()->GetIndices()->GetPureType().get(), true);
 		}
 
-	case TYPE_VECTOR:
+	case zeek::TYPE_VECTOR:
 		{
 		if ( atomic_only )
 			return false;
@@ -180,22 +180,22 @@ bool Value::Read(SerializationFormat* fmt)
 	if ( ! (fmt->Read(&ty, "type") && fmt->Read(&sty, "subtype") && fmt->Read(&present, "present")) )
 		return false;
 
-	type = (TypeTag)(ty);
-	subtype = (TypeTag)(sty);
+	type = static_cast<zeek::TypeTag>(ty);
+	subtype = static_cast<zeek::TypeTag>(sty);
 
 	if ( ! present )
 		return true;
 
 	switch ( type ) {
-	case TYPE_BOOL:
-	case TYPE_INT:
+	case zeek::TYPE_BOOL:
+	case zeek::TYPE_INT:
 		return fmt->Read(&val.int_val, "int");
 
-	case TYPE_COUNT:
-	case TYPE_COUNTER:
+	case zeek::TYPE_COUNT:
+	case zeek::TYPE_COUNTER:
 		return fmt->Read(&val.uint_val, "uint");
 
-	case TYPE_PORT: {
+	case zeek::TYPE_PORT: {
 		int proto;
 		if ( ! (fmt->Read(&val.port_val.port, "port") && fmt->Read(&proto, "proto") ) ) {
 			return false;
@@ -221,7 +221,7 @@ bool Value::Read(SerializationFormat* fmt)
 		return true;
 		}
 
-	case TYPE_ADDR:
+	case zeek::TYPE_ADDR:
 		{
 		char family;
 
@@ -243,7 +243,7 @@ bool Value::Read(SerializationFormat* fmt)
 		abort();
 		}
 
-	case TYPE_SUBNET:
+	case zeek::TYPE_SUBNET:
 		{
 		char length;
 		char family;
@@ -268,18 +268,18 @@ bool Value::Read(SerializationFormat* fmt)
 		abort();
 		}
 
-	case TYPE_DOUBLE:
-	case TYPE_TIME:
-	case TYPE_INTERVAL:
+	case zeek::TYPE_DOUBLE:
+	case zeek::TYPE_TIME:
+	case zeek::TYPE_INTERVAL:
 		return fmt->Read(&val.double_val, "double");
 
-	case TYPE_ENUM:
-	case TYPE_STRING:
-	case TYPE_FILE:
-	case TYPE_FUNC:
+	case zeek::TYPE_ENUM:
+	case zeek::TYPE_STRING:
+	case zeek::TYPE_FILE:
+	case zeek::TYPE_FUNC:
 		return fmt->Read(&val.string_val.data, &val.string_val.length, "string");
 
-	case TYPE_TABLE:
+	case zeek::TYPE_TABLE:
 		{
 		if ( ! fmt->Read(&val.set_val.size, "set_size") )
 			return false;
@@ -297,7 +297,7 @@ bool Value::Read(SerializationFormat* fmt)
 		return true;
 		}
 
-	case TYPE_VECTOR:
+	case zeek::TYPE_VECTOR:
 		{
 		if ( ! fmt->Read(&val.vector_val.size, "vector_size") )
 			return false;
@@ -317,7 +317,7 @@ bool Value::Read(SerializationFormat* fmt)
 
 	default:
 		reporter->InternalError("unsupported type %s in Value::Read",
-		                        type_name(type));
+		                        zeek::type_name(type));
 	}
 
 	return false;
@@ -334,18 +334,18 @@ bool Value::Write(SerializationFormat* fmt) const
 		return true;
 
 	switch ( type ) {
-	case TYPE_BOOL:
-	case TYPE_INT:
+	case zeek::TYPE_BOOL:
+	case zeek::TYPE_INT:
 		return fmt->Write(val.int_val, "int");
 
-	case TYPE_COUNT:
-	case TYPE_COUNTER:
+	case zeek::TYPE_COUNT:
+	case zeek::TYPE_COUNTER:
 		return fmt->Write(val.uint_val, "uint");
 
-	case TYPE_PORT:
+	case zeek::TYPE_PORT:
 		return fmt->Write(val.port_val.port, "port") && fmt->Write(val.port_val.proto, "proto");
 
-	case TYPE_ADDR:
+	case zeek::TYPE_ADDR:
 		{
 		switch ( val.addr_val.family ) {
 		case IPv4:
@@ -361,7 +361,7 @@ bool Value::Write(SerializationFormat* fmt) const
 		abort();
 		}
 
-	case TYPE_SUBNET:
+	case zeek::TYPE_SUBNET:
 		{
 		if ( ! fmt->Write((char)val.subnet_val.length, "subnet-length") )
 			return false;
@@ -380,18 +380,18 @@ bool Value::Write(SerializationFormat* fmt) const
 		abort();
 		}
 
-	case TYPE_DOUBLE:
-	case TYPE_TIME:
-	case TYPE_INTERVAL:
+	case zeek::TYPE_DOUBLE:
+	case zeek::TYPE_TIME:
+	case zeek::TYPE_INTERVAL:
 		return fmt->Write(val.double_val, "double");
 
-	case TYPE_ENUM:
-	case TYPE_STRING:
-	case TYPE_FILE:
-	case TYPE_FUNC:
+	case zeek::TYPE_ENUM:
+	case zeek::TYPE_STRING:
+	case zeek::TYPE_FILE:
+	case zeek::TYPE_FUNC:
 		return fmt->Write(val.string_val.data, val.string_val.length, "string");
 
-	case TYPE_TABLE:
+	case zeek::TYPE_TABLE:
 		{
 		if ( ! fmt->Write(val.set_val.size, "set_size") )
 			return false;
@@ -405,7 +405,7 @@ bool Value::Write(SerializationFormat* fmt) const
 		return true;
 		}
 
-	case TYPE_VECTOR:
+	case zeek::TYPE_VECTOR:
 		{
 		if ( ! fmt->Write(val.vector_val.size, "vector_size") )
 			return false;
@@ -421,7 +421,7 @@ bool Value::Write(SerializationFormat* fmt) const
 
 	default:
 		reporter->InternalError("unsupported type %s in Value::Write",
-		                        type_name(type));
+		                        zeek::type_name(type));
 	}
 
 	// unreachable
@@ -445,35 +445,35 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 		return nullptr; // unset field
 
 	switch ( val->type ) {
-		case TYPE_BOOL:
+		case zeek::TYPE_BOOL:
 			return val_mgr->Bool(val->val.int_val)->Ref();
 
-		case TYPE_INT:
+		case zeek::TYPE_INT:
 			return val_mgr->Int(val->val.int_val).release();
 
-		case TYPE_COUNT:
-		case TYPE_COUNTER:
+		case zeek::TYPE_COUNT:
+		case zeek::TYPE_COUNTER:
 			return val_mgr->Count(val->val.int_val).release();
 
-		case TYPE_DOUBLE:
+		case zeek::TYPE_DOUBLE:
 			return new DoubleVal(val->val.double_val);
 
-		case TYPE_TIME:
+		case zeek::TYPE_TIME:
 			return new TimeVal(val->val.double_val);
 
-		case TYPE_INTERVAL:
+		case zeek::TYPE_INTERVAL:
 			return new IntervalVal(val->val.double_val);
 
-		case TYPE_STRING:
+		case zeek::TYPE_STRING:
 			{
 			BroString *s = new BroString((const u_char*)val->val.string_val.data, val->val.string_val.length, true);
 			return new StringVal(s);
 			}
 
-		case TYPE_PORT:
+		case zeek::TYPE_PORT:
 			return val_mgr->Port(val->val.port_val.port, val->val.port_val.proto)->Ref();
 
-		case TYPE_ADDR:
+		case zeek::TYPE_ADDR:
 			{
 			IPAddr* addr = nullptr;
 			switch ( val->val.addr_val.family ) {
@@ -494,7 +494,7 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 			return addrval;
 			}
 
-		case TYPE_SUBNET:
+		case zeek::TYPE_SUBNET:
 			{
 			IPAddr* addr = nullptr;
 			switch ( val->val.subnet_val.prefix.family ) {
@@ -515,29 +515,29 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 			return subnetval;
 			}
 
-		case TYPE_PATTERN:
+		case zeek::TYPE_PATTERN:
 			{
 			RE_Matcher* re = new RE_Matcher(val->val.pattern_text_val);
 			re->Compile();
 			return new PatternVal(re);
 			}
 
-		case TYPE_TABLE:
+		case zeek::TYPE_TABLE:
 			{
-			IntrusivePtr<TypeList> set_index;
-			if ( val->val.set_val.size == 0 && val->subtype == TYPE_VOID )
+			IntrusivePtr<zeek::TypeList> set_index;
+			if ( val->val.set_val.size == 0 && val->subtype == zeek::TYPE_VOID )
 				// don't know type - unspecified table.
-				set_index = make_intrusive<TypeList>();
+				set_index = make_intrusive<zeek::TypeList>();
 			else
 				{
 				// all entries have to have the same type...
-				TypeTag stag = val->subtype;
-				if ( stag == TYPE_VOID )
-					TypeTag stag = val->val.set_val.vals[0]->type;
+				zeek::TypeTag stag = val->subtype;
+				if ( stag == zeek::TYPE_VOID )
+					stag = val->val.set_val.vals[0]->type;
 
-				IntrusivePtr<BroType> index_type;
+				IntrusivePtr<zeek::Type> index_type;
 
-				if ( stag == TYPE_ENUM )
+				if ( stag == zeek::TYPE_ENUM )
 					{
 					// Enums are not a base-type, so need to look it up.
 					const auto& sv = val->val.set_val.vals[0]->val.string_val;
@@ -556,13 +556,13 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 					index_type = enum_id->GetType();
 					}
 				else
-					index_type = base_type(stag);
+					index_type = zeek::base_type(stag);
 
-				set_index = make_intrusive<TypeList>(index_type);
+				set_index = make_intrusive<zeek::TypeList>(index_type);
 				set_index->Append(std::move(index_type));
 				}
 
-			auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
+			auto s = make_intrusive<zeek::SetType>(std::move(set_index), nullptr);
 			TableVal* t = new TableVal(std::move(s));
 			for ( int j = 0; j < val->val.set_val.size; j++ )
 				{
@@ -573,23 +573,23 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 			return t;
 			}
 
-		case TYPE_VECTOR:
+		case zeek::TYPE_VECTOR:
 			{
-			IntrusivePtr<BroType> type;
+			IntrusivePtr<zeek::Type> type;
 
-			if ( val->val.vector_val.size == 0  && val->subtype == TYPE_VOID )
+			if ( val->val.vector_val.size == 0  && val->subtype == zeek::TYPE_VOID )
 				// don't know type - unspecified table.
-				type = base_type(TYPE_ANY);
+				type = zeek::base_type(zeek::TYPE_ANY);
 			else
 				{
 				// all entries have to have the same type...
-				if ( val->subtype == TYPE_VOID )
-					type = base_type(val->val.vector_val.vals[0]->type);
+				if ( val->subtype == zeek::TYPE_VOID )
+					type = zeek::base_type(val->val.vector_val.vals[0]->type);
 				else
-					type = base_type(val->subtype);
+					type = zeek::base_type(val->subtype);
 				}
 
-			auto vt = make_intrusive<VectorType>(std::move(type));
+			auto vt = make_intrusive<zeek::VectorType>(std::move(type));
 			auto v = make_intrusive<VectorVal>(std::move(vt));
 
 			for ( int j = 0; j < val->val.vector_val.size; j++ )
@@ -601,7 +601,7 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 			return v.release();
 			}
 
-		case TYPE_ENUM: {
+		case zeek::TYPE_ENUM: {
 			// Convert to string first to not have to deal with missing
 			// \0's...
 			std::string enum_string(val->val.string_val.data, val->val.string_val.length);
@@ -618,7 +618,7 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
 				return nullptr;
 				}
 
-			EnumType* t = id->GetType()->AsEnumType();
+			zeek::EnumType* t = id->GetType()->AsEnumType();
 			int intval = t->Lookup(id->ModuleName(), id->Name());
 			if ( intval < 0 )
 				{

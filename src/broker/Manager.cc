@@ -152,13 +152,13 @@ void Manager::InitPostScript()
 	log_id_type = zeek::id::find_type("Log::ID")->AsEnumType();
 	writer_id_type = zeek::id::find_type("Log::Writer")->AsEnumType();
 
-	opaque_of_data_type = make_intrusive<OpaqueType>("Broker::Data");
-	opaque_of_set_iterator = make_intrusive<OpaqueType>("Broker::SetIterator");
-	opaque_of_table_iterator = make_intrusive<OpaqueType>("Broker::TableIterator");
-	opaque_of_vector_iterator = make_intrusive<OpaqueType>("Broker::VectorIterator");
-	opaque_of_record_iterator = make_intrusive<OpaqueType>("Broker::RecordIterator");
-	opaque_of_store_handle = make_intrusive<OpaqueType>("Broker::Store");
-	vector_of_data_type = make_intrusive<VectorType>(zeek::id::find_type("Broker::Data"));
+	opaque_of_data_type = make_intrusive<zeek::OpaqueType>("Broker::Data");
+	opaque_of_set_iterator = make_intrusive<zeek::OpaqueType>("Broker::SetIterator");
+	opaque_of_table_iterator = make_intrusive<zeek::OpaqueType>("Broker::TableIterator");
+	opaque_of_vector_iterator = make_intrusive<zeek::OpaqueType>("Broker::VectorIterator");
+	opaque_of_record_iterator = make_intrusive<zeek::OpaqueType>("Broker::RecordIterator");
+	opaque_of_store_handle = make_intrusive<zeek::OpaqueType>("Broker::Store");
+	vector_of_data_type = make_intrusive<zeek::VectorType>(zeek::id::find_type("Broker::Data"));
 
 	// Register as a "dont-count" source first, we may change that later.
 	iosource_mgr->Register(this, true);
@@ -432,7 +432,7 @@ bool Manager::PublishIdentifier(std::string topic, std::string id)
 	if ( ! data )
 		{
 		Error("Failed to publish ID with unsupported type: %s (%s)",
-		      id.c_str(), type_name(val->GetType()->Tag()));
+		      id.c_str(), zeek::type_name(val->GetType()->Tag()));
 		return false;
 		}
 
@@ -641,14 +641,14 @@ void Manager::Error(const char* format, ...)
 
 bool Manager::AutoPublishEvent(string topic, Val* event)
 	{
-	if ( event->GetType()->Tag() != TYPE_FUNC )
+	if ( event->GetType()->Tag() != zeek::TYPE_FUNC )
 		{
 		Error("Broker::auto_publish must operate on an event");
 		return false;
 		}
 
 	auto event_val = event->AsFunc();
-	if ( event_val->Flavor() != FUNC_FLAVOR_EVENT )
+	if ( event_val->Flavor() != zeek::FUNC_FLAVOR_EVENT )
 		{
 		Error("Broker::auto_publish must operate on an event");
 		return false;
@@ -670,7 +670,7 @@ bool Manager::AutoPublishEvent(string topic, Val* event)
 
 bool Manager::AutoUnpublishEvent(const string& topic, Val* event)
 	{
-	if ( event->GetType()->Tag() != TYPE_FUNC )
+	if ( event->GetType()->Tag() != zeek::TYPE_FUNC )
 		{
 		Error("Broker::auto_event_stop must operate on an event");
 		return false;
@@ -678,7 +678,7 @@ bool Manager::AutoUnpublishEvent(const string& topic, Val* event)
 
 	auto event_val = event->AsFunc();
 
-	if ( event_val->Flavor() != FUNC_FLAVOR_EVENT )
+	if ( event_val->Flavor() != zeek::FUNC_FLAVOR_EVENT )
 		{
 		Error("Broker::auto_event_stop must operate on an event");
 		return false;
@@ -716,7 +716,7 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 			{
 			// Event val must come first.
 
-			if ( arg_val->GetType()->Tag() != TYPE_FUNC )
+			if ( arg_val->GetType()->Tag() != zeek::TYPE_FUNC )
 				{
 				Error("attempt to convert non-event into an event type");
 				return rval;
@@ -724,7 +724,7 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 
 			func = arg_val->AsFunc();
 
-			if ( func->Flavor() != FUNC_FLAVOR_EVENT )
+			if ( func->Flavor() != zeek::FUNC_FLAVOR_EVENT )
 				{
 				Error("attempt to convert non-event into an event type");
 				return rval;
@@ -750,8 +750,8 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 			{
 			rval->Assign(0, nullptr);
 			Error("event parameter #%d type mismatch, got %s, expect %s", i,
-			      type_name(got_type->Tag()),
-			      type_name(expected_type->Tag()));
+			      zeek::type_name(got_type->Tag()),
+			      zeek::type_name(expected_type->Tag()));
 			return rval;
 			}
 
@@ -766,7 +766,7 @@ RecordVal* Manager::MakeEvent(val_list* args, Frame* frame)
 			{
 			rval->Assign(0, nullptr);
 			Error("failed to convert param #%d of type %s to broker data",
-				  i, type_name(got_type->Tag()));
+				  i, zeek::type_name(got_type->Tag()));
 			return rval;
 			}
 
@@ -1142,7 +1142,7 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 			vl.emplace_back(std::move(val));
 		else
 			{
-			auto expected_name = type_name(expected_type->Tag());
+			auto expected_name = zeek::type_name(expected_type->Tag());
 
 			reporter->Warning("failed to convert remote event '%s' arg #%d,"
 					  " got %s, expected %s",
@@ -1342,7 +1342,7 @@ bool Manager::ProcessIdentifierUpdate(broker::zeek::IdentifierUpdate iu)
 	if ( ! val )
 		{
 		reporter->Error("Failed to receive ID with unsupported type: %s (%s)",
-		                id_name.c_str(), type_name(id->GetType()->Tag()));
+		                id_name.c_str(), zeek::type_name(id->GetType()->Tag()));
 		return false;
 		}
 
@@ -1387,13 +1387,13 @@ void Manager::ProcessStatus(broker::status stat)
 	if ( ! event )
 		return;
 
-	static auto ei = zeek::id::find_type<RecordType>("Broker::EndpointInfo");
+	static auto ei = zeek::id::find_type<zeek::RecordType>("Broker::EndpointInfo");
 	auto endpoint_info = make_intrusive<RecordVal>(ei);
 
 	if ( ctx )
 		{
 		endpoint_info->Assign(0, make_intrusive<StringVal>(to_string(ctx->node)));
-		static auto ni = zeek::id::find_type<RecordType>("Broker::NetworkInfo");
+		static auto ni = zeek::id::find_type<zeek::RecordType>("Broker::NetworkInfo");
 		auto network_info = make_intrusive<RecordVal>(ni);
 
 		if ( ctx->network )

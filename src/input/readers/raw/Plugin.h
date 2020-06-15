@@ -11,11 +11,11 @@
 namespace plugin {
 namespace Zeek_RawReader {
 
-class Plugin : public plugin::Plugin {
+class Plugin : public zeek::plugin::Plugin {
 public:
 	Plugin();
 
-	plugin::Configuration Configure() override;
+	zeek::plugin::Configuration Configure() override;
 
 	void InitPreScript() override;
 	void Done() override;

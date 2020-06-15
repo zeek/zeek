@@ -3,8 +3,8 @@
 %}
 
 %header{
-	IntrusivePtr<Val> asn1_integer_to_val(const ASN1Encoding* i, TypeTag t);
-	IntrusivePtr<Val> asn1_integer_to_val(const ASN1Integer* i, TypeTag t);
+	IntrusivePtr<Val> asn1_integer_to_val(const ASN1Encoding* i, zeek::TypeTag t);
+	IntrusivePtr<Val> asn1_integer_to_val(const ASN1Integer* i, zeek::TypeTag t);
 	IntrusivePtr<StringVal> asn1_oid_to_val(const ASN1Encoding* oid);
 	IntrusivePtr<StringVal> asn1_oid_to_val(const ASN1ObjectIdentifier* oid);
 	IntrusivePtr<StringVal> asn1_octet_string_to_val(const ASN1Encoding* s);
@@ -102,25 +102,25 @@ function binary_to_int64(bs: bytestring): int64
 
 %code{
 
-IntrusivePtr<Val> asn1_integer_to_val(const ASN1Integer* i, TypeTag t)
+IntrusivePtr<Val> asn1_integer_to_val(const ASN1Integer* i, zeek::TypeTag t)
 	{
 	return asn1_integer_to_val(i->encoding(), t);
 	}
 
-IntrusivePtr<Val> asn1_integer_to_val(const ASN1Encoding* i, TypeTag t)
+IntrusivePtr<Val> asn1_integer_to_val(const ASN1Encoding* i, zeek::TypeTag t)
 	{
 	auto v = binary_to_int64(i->content());
 
 	switch ( t ) {
-	case TYPE_BOOL:
+	case zeek::TYPE_BOOL:
 		return val_mgr->Bool(v);
-	case TYPE_INT:
+	case zeek::TYPE_INT:
 		return val_mgr->Int(v);
-	case TYPE_COUNT:
-	case TYPE_COUNTER:
+	case zeek::TYPE_COUNT:
+	case zeek::TYPE_COUNTER:
 		return val_mgr->Count(v);
 	default:
-		reporter->Error("bad asn1_integer_to_val tag: %s", type_name(t));
+		reporter->Error("bad asn1_integer_to_val tag: %s", zeek::type_name(t));
 		return val_mgr->Count(v);
 	}
 	}

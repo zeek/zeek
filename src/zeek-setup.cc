@@ -415,7 +415,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		exit(context.run());
 		}
 
-	auto stem_state = zeek::Supervisor::CreateStem(options.supervisor_mode);
+	auto stem = zeek::Supervisor::CreateStem(options.supervisor_mode);
 
 	if ( zeek::Supervisor::ThisNode() )
 		zeek::Supervisor::ThisNode()->Init(&options);
@@ -487,8 +487,7 @@ zeek::detail::SetupResult zeek::detail::setup(int argc, char** argv,
 		zeek::Supervisor::Config cfg = {};
 		cfg.zeek_exe_path = zeek_exe_path;
 		options.filter_supervisor_options();
-		zeek::supervisor_mgr = new zeek::Supervisor(std::move(cfg),
-		                                            std::move(*stem_state));
+		zeek::supervisor_mgr = new zeek::Supervisor(std::move(cfg), std::move(*stem));
 		}
 
 	const char* seed_load_file = zeekenv("ZEEK_SEED_FILE");

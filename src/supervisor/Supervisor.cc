@@ -46,8 +46,23 @@ using namespace zeek;
 std::optional<Supervisor::SupervisedNode> Supervisor::supervised_node;
 
 namespace {
+
 struct Stem {
-	Stem(Supervisor::StemState stem_state);
+	/**
+	* State used to initalialize the Stem process.
+	*/
+	struct State {
+		/**
+		* Bidirectional pipes that allow the Supervisor and Stem to talk.
+		*/
+		std::unique_ptr<zeek::detail::PipePair> pipe;
+		/**
+		* The Stem's parent process ID (i.e. PID of the Supervisor).
+		*/
+		pid_t parent_pid = 0;
+	};
+
+	Stem(State stem_state);
 
 	~Stem();
 
@@ -164,8 +179,8 @@ void zeek::detail::ParentProcessCheckTimer::Dispatch(double t, bool is_expire)
 		                                           interval));
 	}
 
-Supervisor::Supervisor(Supervisor::Config cfg, StemState ss)
-	: config(std::move(cfg)), stem_pid(ss.pid), stem_pipe(std::move(ss.pipe))
+Supervisor::Supervisor(Supervisor::Config cfg, StemHandle sh)
+	: config(std::move(cfg)), stem_pid(sh.pid), stem_pipe(std::move(sh.pipe))
 	{
 	DBG_LOG(DBG_SUPERVISOR, "forked stem process %d", stem_pid);
 	setsignal(SIGCHLD, supervisor_signal_handler);
@@ -426,7 +441,7 @@ size_t Supervisor::ProcessMessages()
 	return msgs.size();
 	}
 
-Stem::Stem(Supervisor::StemState ss)
+Stem::Stem(State ss)
 	: parent_pid(ss.parent_pid), signal_flare(new zeek::detail::Flare()), pipe(std::move(ss.pipe))
 	{
 	zeek::set_thread_name("zeek.stem");
@@ -904,7 +919,7 @@ std::optional<Supervisor::SupervisedNode> Stem::Poll()
 	return {};
 	}
 
-std::optional<Supervisor::StemState> Supervisor::CreateStem(bool supervisor_mode)
+std::optional<Supervisor::StemHandle> Supervisor::CreateStem(bool supervisor_mode)
 	{
 	// If the Stem needs to be re-created via fork()/exec(), then the necessary
 	// state information is communicated via ZEEK_STEM env. var.
@@ -928,42 +943,41 @@ std::optional<Supervisor::StemState> Supervisor::CreateStem(bool supervisor_mode
 		for ( auto i = 0; i < 4; ++i )
 			fds[i] = std::stoi(zeek_stem_nums[i + 1]);
 
-		StemState ss;
+		Stem::State ss;
 		ss.pipe = std::make_unique<zeek::detail::PipePair>(FD_CLOEXEC, O_NONBLOCK, fds);
 		ss.parent_pid = stem_ppid;
-		zeek::Supervisor::RunStem(std::move(ss));
+
+		Stem stem{std::move(ss)};
+		supervised_node = stem.Run();
 		return {};
 		}
 
 	if ( ! supervisor_mode )
 		return {};
 
-	StemState ss;
+	Stem::State ss;
 	ss.pipe = std::make_unique<zeek::detail::PipePair>(FD_CLOEXEC, O_NONBLOCK);
 	ss.parent_pid = getpid();
-	ss.pid = fork();
+	auto pid = fork();
 
-	if ( ss.pid == -1 )
+	if ( pid == -1 )
 		{
 		fprintf(stderr, "failed to fork Zeek supervisor stem process: %s\n",
 			    strerror(errno));
 		exit(1);
 		}
 
-	if ( ss.pid == 0 )
+	if ( pid == 0 )
 		{
-		zeek::Supervisor::RunStem(std::move(ss));
+		Stem stem{std::move(ss)};
+		supervised_node = stem.Run();
 		return {};
 		}
 
-	return std::optional<Supervisor::StemState>(std::move(ss));
-	}
-
-Supervisor::SupervisedNode Supervisor::RunStem(StemState stem_state)
-	{
-	Stem s(std::move(stem_state));
-	supervised_node = s.Run();
-	return *supervised_node;
+	StemHandle sh;
+	sh.pipe = std::move(ss.pipe);
+	sh.pid = pid;
+	return std::optional<Supervisor::StemHandle>(std::move(sh));
 	}
 
 static BifEnum::Supervisor::ClusterRole role_str_to_enum(std::string_view r)

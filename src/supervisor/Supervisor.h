@@ -235,17 +235,13 @@ public:
 	};
 
 	/**
-	 * State used to initalialize the Stem process.
+	 * State used to initalialize and communicate with the Stem process.
 	 */
-	struct StemState {
+	struct StemHandle {
 		/**
 		 * Bidirectional pipes that allow the Supervisor and Stem to talk.
 		 */
 		std::unique_ptr<zeek::detail::PipePair> pipe;
-		/**
-		 * The Stem's parent process ID (i.e. PID of the Supervisor).
-		 */
-		pid_t parent_pid = 0;
 		/**
 		 * The Stem's process ID.
 		 */
@@ -261,7 +257,7 @@ public:
 	 * function but a node it spawns via fork() will return from it and
 	 * information about it is available in ThisNode().
 	 */
-	static std::optional<StemState> CreateStem(bool supervisor_mode);
+	static std::optional<StemHandle> CreateStem(bool supervisor_mode);
 
 	/**
 	 * @return  the state which describes what a supervised node should know
@@ -275,10 +271,10 @@ public:
 
 	/**
 	 * Create a new Supervisor object.
-	 * @param stem_state  information about the Stem process that was already
+	 * @param stem_handle information about the Stem process that was already
 	 * created via CreateStem()
 	 */
-	Supervisor(Config cfg, StemState stem_state);
+	Supervisor(Config cfg, StemHandle stem_handle);
 
 	/**
 	 * Destruction also cleanly shuts down the entire supervised process tree.
@@ -364,19 +360,6 @@ private:
 
 	const char* Tag() override
 		{ return "zeek::Supervisor"; }
-
-	/**
-	 * Run the Stem process.  The Stem process will receive instructions from
-	 * the Supervisor to manipulate the process hierarchy and it's in charge
-	 * of directly monitoring for whether any nodes die premature and need
-	 * to be revived.
-	 * @param pipe  bidirectional pipes that allow the Supervisor and Stem
-	 * process to communicate.
-	 * @param pid  the Stem's parent process ID (i.e. the PID of the Supervisor)
-	 * @return  state which describes what a supervised node should know about
-	 * itself.  I.e. this function only returns from a fork()'d child process.
-	 */
-	static SupervisedNode RunStem(StemState stem_state);
 
 	static std::optional<SupervisedNode> supervised_node;
 

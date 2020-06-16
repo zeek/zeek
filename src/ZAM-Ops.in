@@ -85,7 +85,7 @@ unary-op AppendTo
 op1-read
 set-type $2
 eval auto copy = CopyVal($1)
-eval auto& vv = frame[z.v1].vector_val->ModVec()
+eval auto& vv = frame[z.v1].vector_val->RawVector()->ModVec()
 eval vv.push_back(copy)
 
 unary-expr-op Cast
@@ -362,14 +362,14 @@ eval Unref(op1)
 internal-op Index-Is-In-Vector
 type VVV
 eval auto op1 = frame[z.v3].list_val
-eval auto op2 = frame[z.v2].vector_val->ToVectorVal(z.t)
+eval auto op2 = frame[z.v2].vector_val
 eval frame[z.v1].int_val = op2->Lookup(op1) != nullptr
 eval Unref(op1)
 
 internal-op Index-Is-In-Vector
 type VVC
 eval auto op1 = frame[z.v2].list_val
-eval auto op2 = z.c.vector_val->ToVectorVal(z.t)
+eval auto op2 = z.c.vector_val
 eval frame[z.v1].int_val = op2->Lookup(op1) != nullptr
 eval Unref(op1)
 
@@ -410,21 +410,21 @@ eval if ( frame[z.v2].vector_val->Size() != frame[z.v3].vector_val->Size() ) {
 eval	ZAM_run_time_error(z.stmt, "size mismatch, boolean index and vector")
 eval	break; }
 eval auto vt = z.t->AsVectorType()
-eval auto v2 = frame[z.v2].vector_val->ToVectorVal(vt)
-eval auto v3 = frame[z.v3].vector_val->ToVectorVal(vt)
-eval auto v = vector_bool_select(vt, v2.get(), v3.get())
+eval auto v2 = frame[z.v2].vector_val
+eval auto v3 = frame[z.v3].vector_val
+eval auto v = vector_bool_select(vt, v2, v3)
 eval Unref(frame[z.v1].vector_val)
-eval frame[z.v1].vector_val = to_ZAM_vector(v)
+eval frame[z.v1].vector_val = v.release()
 
 op IndexVecIntSelect
 type VVV
 set-type $1
 eval auto vt = z.t->AsVectorType()
-eval auto v2 = frame[z.v2].vector_val->ToVectorVal(vt)
-eval auto v3 = frame[z.v3].vector_val->ToVectorVal(vt)
-eval auto v = vector_int_select(vt, v2.get(), v3.get())
+eval auto v2 = frame[z.v2].vector_val
+eval auto v3 = frame[z.v3].vector_val
+eval auto v = vector_int_select(vt, v2, v3)
 eval Unref(frame[z.v1].vector_val)
-eval frame[z.v1].vector_val = to_ZAM_vector(v)
+eval frame[z.v1].vector_val = v.release()
 
 op Index
 type VVL
@@ -432,7 +432,7 @@ custom-method return CompileIndex(n1, n2, l);
 
 internal-op Index-Vec
 type VVV
-eval auto vv = frame[z.v2].vector_val
+eval auto vv = frame[z.v2].vector_val->RawVector()
 eval auto& vec = vv->ConstVec()
 eval auto ind = frame[z.v3].uint_val
 eval if ( ind >= vv->Size() ) ZAM_run_time_error(z.stmt, "no such index")
@@ -440,7 +440,7 @@ eval AssignV1(CopyVal(vec[ind]))
 
 internal-op Index-VecC
 type VVV
-eval auto vv = frame[z.v2].vector_val
+eval auto vv = frame[z.v2].vector_val->RawVector()
 eval auto& vec = vv->ConstVec()
 eval auto ind = z.v3
 eval if ( ind >= vv->Size() ) ZAM_run_time_error(z.stmt, "no such index")
@@ -449,7 +449,7 @@ eval AssignV1(CopyVal(vec[ind]))
 internal-op Index-Vec
 type VVL
 eval auto yt = z.t->AsVectorType()->YieldType()
-eval auto vec = frame[z.v2].vector_val->ToVectorVal(z.t)
+eval auto vec = frame[z.v2].vector_val
 eval auto lv = frame[z.v3].list_val
 eval auto v = vec->Lookup(lv)
 eval Unref(lv)
@@ -458,12 +458,12 @@ eval AssignV1T(BuildVal(v, yt), yt)
 internal-op Index-Vec-Slice
 type VVL
 eval auto vt = z.t->AsVectorType()
-eval auto vec = frame[z.v2].vector_val->ToVectorVal(z.t)
+eval auto vec = frame[z.v2].vector_val
 eval auto lv = frame[z.v3].list_val
-eval auto v = vector_index(vt, vec.get(), lv)
+eval auto v = vector_index(vt, vec, lv)
 eval Unref(lv)
 eval Unref(frame[z.v1].vector_val)
-eval frame[z.v1].vector_val = to_ZAM_vector(v)
+eval frame[z.v1].vector_val = v.release()
 
 internal-op Table-Index
 type VVV
@@ -626,9 +626,9 @@ internal-op Vector-Coerce
 type VV
 eval if ( frame[z.v2].vector_val->Size() > 0 ) { ZAM_run_time_error(z.stmt, "coercion of non-empty vector"); break; }
 eval auto t = z.t->Ref()->AsVectorType();
-eval auto vv_p = make_intrusive<VectorVal>(t)
+eval auto vv = new VectorVal(t)
 eval Unref(frame[z.v1].vector_val)
-eval frame[z.v1].vector_val = to_ZAM_vector(vv_p)
+eval frame[z.v1].vector_val = vv
 
 unary-expr-op To-Any-Coerce
 set-type $2
@@ -645,16 +645,16 @@ op Vector-Elem-Assign
 op1-read
 type VVV
 eval auto ind = frame[z.v2].uint_val
-eval auto vv = frame[z.v1].vector_val
-eval vv->SetGeneralYieldType(z.t)
+eval auto vv = frame[z.v1].vector_val->RawVector()
+eval vv->SetYieldType(z.t)
 eval vv->SetElement(ind, frame[z.v3])
 
 op Vector-Elem-Assign-Any
 op1-read
 type VVV
 eval auto ind = frame[z.v2].uint_val
-eval auto vv = frame[z.v1].vector_val
-eval vv->SetGeneralYieldType(z.t)
+eval auto vv = frame[z.v1].vector_val->RawVector()
+eval vv->SetYieldType(z.t)
 eval auto any_v = frame[z.v3].any_val
 eval auto any_z = ZAMValUnion({NewRef{}, any_v}, any_v->Type())
 eval vv->SetElement(ind, any_z)
@@ -663,23 +663,23 @@ op Vector-Elem-Assign
 op1-read
 type VVC
 eval auto ind = frame[z.v2].uint_val
-eval auto vv = frame[z.v1].vector_val
-eval vv->SetGeneralYieldType(z.t)
+eval auto vv = frame[z.v1].vector_val->RawVector()
+eval vv->SetYieldType(z.t)
 eval vv->SetElement(ind, z.c)
 
 # These versions are used when the constant is the index, not the new value.
 op Vector-Elem-Assign
 op1-read
 type VVi
-eval auto vv = frame[z.v1].vector_val
-eval vv->SetGeneralYieldType(z.t)
+eval auto vv = frame[z.v1].vector_val->RawVector()
+eval vv->SetYieldType(z.t)
 eval vv->SetElement(z.v3, frame[z.v2])
 
 op Vector-Elem-Assign-Any
 op1-read
 type VVi
-eval auto vv = frame[z.v1].vector_val
-eval vv->SetGeneralYieldType(z.t)
+eval auto vv = frame[z.v1].vector_val->RawVector()
+eval vv->SetYieldType(z.t)
 eval auto any_v = frame[z.v2].any_val
 eval auto any_z = ZAMValUnion({NewRef{}, any_v}, any_v->Type())
 eval vv->SetElement(z.v3, any_z)
@@ -691,7 +691,7 @@ type F
 eval @$2
 eval frame[z.v1].record_val->RawFields()->Assign($3, v)
 
-########## General Statements ##########
+##########  Statements ##########
 
 op Schedule
 type ViHL
@@ -862,7 +862,7 @@ eval }
 internal-op Init-Vector-Loop
 type VV
 eval auto ii = z.c.iter_info
-eval ii->vv = {NewRef{}, frame[z.v2].vector_val}
+eval ii->vv = frame[z.v2].vector_val->RawVector()
 eval ii->n = ii->vv->Size()
 eval ii->iter = 0
 eval frame[z.v1].iter_info = ii
@@ -1010,9 +1010,9 @@ internal-op Init-Vector
 type VV
 eval auto vt = z.t->AsVectorType()
 eval auto yt = vt->YieldType()
-eval auto vec = make_intrusive<VectorVal>(vt)
+eval auto vec = new VectorVal(vt)
 eval Unref(frame[z.v1].vector_val)
-eval frame[z.v1].vector_val = to_ZAM_vector(vec)
+eval frame[z.v1].vector_val = vec
 
 internal-op Init-Table
 type V
@@ -1177,8 +1177,8 @@ eval continue
 internal-op Check-Any-Vec
 op1-read
 type V
-eval auto any_vec = frame[z.v1].vector_val
-eval auto at = any_vec->GeneralYieldType()
+eval auto any_vec = frame[z.v1].vector_val->RawVector()
+eval auto at = any_vec->YieldType()
 eval if ( ! at ) break
 eval if ( at->Tag() == TYPE_ANY && any_vec->ConstVec().size() > 0 ) reporter->InternalError("non-concrete vector-of-any")
 eval if ( ! CheckAnyType(at, z.t, z.stmt) ) ZAM_error = true
@@ -1187,11 +1187,11 @@ eval if ( ! CheckAnyType(at, z.t, z.stmt) ) ZAM_error = true
 internal-op Transform-Any-Vec
 op1-read-write
 type V
-eval auto any_vec = frame[z.v1].vector_val
-eval auto at = any_vec->GeneralYieldType()
+eval auto any_vec = frame[z.v1].vector_val->RawVector()
+eval auto at = any_vec->YieldType()
 eval if ( ! at || at->Tag() == TYPE_ANY ) {
 eval	if ( at && any_vec->ConstVec().size() > 0 ) reporter->InternalError("concretizing non-empty vector-of-any")
-eval	any_vec->SetGeneralYieldType(z.t)
+eval	any_vec->SetYieldType(z.t)
 eval }
 
 # Transform the given vector-of-any (v1) to be compatible with having one of
@@ -1200,11 +1200,11 @@ internal-op Transform-Any-Vec2
 op1-read-write
 type VV
 eval auto vt = frame[z.v2].any_val->Type()
-eval auto any_vec = frame[z.v1].vector_val
-eval auto at = any_vec->GeneralYieldType()
+eval auto any_vec = frame[z.v1].vector_val->RawVector()
+eval auto at = any_vec->YieldType()
 eval if ( ! at || at->Tag() == TYPE_ANY ) {
 eval	if ( at && any_vec->ConstVec().size() > 0 ) reporter->InternalError("concretizing non-empty vector-of-any")
-eval	any_vec->SetGeneralYieldType(vt)
+eval	any_vec->SetYieldType(vt)
 eval }
 
 

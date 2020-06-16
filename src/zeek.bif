@@ -1460,7 +1460,7 @@ function sort%(v: any, ...%) : any
 	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
 		builtin_error("comparison function required for sort() with non-integral types");
 
-	auto& vv = v->AsNonConstVector()->ModVec();
+	auto& vv = v->AsVectorVal()->RawVector()->ModVec();
 
 	zsort_type = elt_type;
 
@@ -1532,7 +1532,7 @@ function order%(v: any, ...%) : index_vec
 	if ( ! comp && ! IsIntegral(elt_type->Tag()) )
 		builtin_error("comparison function required for order() with non-integral types");
 
-	auto vv = v->AsNonConstVector();
+	auto vv = v->AsVectorVal()->RawVector();
 	auto n = vv->Size();
 
 	// Set up initial mapping of indices directly to corresponding

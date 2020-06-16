@@ -261,11 +261,6 @@ public:
 	ACCESSOR(TYPE_FILE, BroFile*, file_val, AsFile)
 	ACCESSOR(TYPE_PATTERN, RE_Matcher*, re_val, AsPattern)
 
-	// This is non-protected since enough disparate remote places
-	// wind up calling it that we'd require a tangle of "friend"
-	// declarations if it was with AsNonConstTable.
-	ACCESSOR(TYPE_VECTOR, ZAM_vector*, vector_val, AsNonConstVector)
-
 	const IPPrefix& AsSubNet()
 		{
 		CHECK_TAG(type->Tag(), TYPE_SUBNET, "Val::SubNet", type_name)
@@ -347,7 +342,6 @@ protected:
 	friend class TableEntryVal;
 
 	friend class ZAM;
-	friend class ZAM_vector;
 	friend union ZAMValUnion;
 
 	virtual void ValDescribe(ODesc* d) const;
@@ -970,10 +964,6 @@ public:
 	static void DoneParsing();
 
 protected:
-	friend ZAM_record;
-	RecordVal(ZAM_record* zr, RecordType* t);
-	void Disassociate()	{ val.record_val = nullptr; }
-
 	IntrusivePtr<Val> DoClone(CloneState* state) override;
 
 	BroObj* origin;
@@ -1044,6 +1034,8 @@ public:
 		return Lookup(static_cast<unsigned int>(i));
 		}
 
+	ZAM_vector* RawVector() const	{ return val.vector_val; }
+
 	unsigned int Size() const;
 
 	// Is there any way to reclaim previously-allocated memory when you
@@ -1062,10 +1054,6 @@ public:
 	bool Remove(unsigned int index);
 
 protected:
-	friend class ZAM_vector;
-	VectorVal(ZAM_vector* zv, VectorType* t);
-	void Disassociate()	{ val.vector_val = nullptr; }
-
 	void ValDescribe(ODesc* d) const override;
 	IntrusivePtr<Val> DoClone(CloneState* state) override;
 

@@ -953,11 +953,14 @@ protected:
 // that compiled statements can call them too.
 
 // This first one assumes that a length check has already been made.
-extern IntrusivePtr<Val> vector_bool_select(VectorType* t, const VectorVal* v1,
+extern IntrusivePtr<VectorVal> vector_bool_select(VectorType* t,
+						const VectorVal* v1,
 						const VectorVal* v2);
-extern IntrusivePtr<Val> vector_int_select(VectorType* t, const VectorVal* v1,
+extern IntrusivePtr<VectorVal> vector_int_select(VectorType* t,
+						const VectorVal* v1,
 						const VectorVal* v2);
-extern IntrusivePtr<Val> vector_index(VectorType* vt, const VectorVal* vect,
+extern IntrusivePtr<VectorVal> vector_index(VectorType* vt,
+						const VectorVal* vect,
 						const ListVal* lv);
 
 extern BroString* index_string_slice(const BroString* s, const ListVal* lv);

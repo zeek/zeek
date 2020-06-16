@@ -661,35 +661,37 @@ void ZAM::StmtDescribe(ODesc* d) const
 	}
 
 // Unary vector operations never work on managed types, so no need
-// to pass in the type ...
-static void vec_exec(ZOp op, ZAM_vector*& v1, const ZAM_vector* v2);
+// to pass in the type ...  However, the RHS, which normally would
+// be const, needs to be non-const so we can use its Type() method
+// to get at a shareable VectorType.
+static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2);
 
-// ... but binary ones can.
-static void vec_exec(ZOp op, BroType* t, ZAM_vector*& v1, const ZAM_vector* v2,
-			const ZAM_vector* v3);
+// Binary ones *can* have managed types (strings).
+static void vec_exec(ZOp op, BroType* t, VectorVal*& v1, VectorVal* v2,
+			const VectorVal* v3);
 
 // Vector coercion.
 //
 // ### Should check for underflow/overflow.
-#define VEC_COERCE(tag, lhs_accessor, cast, rhs_accessor) \
-	static ZAM_vector* vec_coerce_##tag(ZAM_vector* vec) \
+#define VEC_COERCE(tag, lhs_type, lhs_accessor, cast, rhs_accessor) \
+	static VectorVal* vec_coerce_##tag(VectorVal* vec) \
 		{ \
-		auto& v = vec->ConstVec(); \
-		auto yt = vec->GeneralYieldType(); \
-		auto res_zv = new ZAM_vector(nullptr, yt); \
+		auto& v = vec->RawVector()->ConstVec(); \
+		auto yt = new VectorType(base_type(lhs_type)); \
+		auto res_zv = new VectorVal(yt); \
 		auto n = v.size(); \
-		auto& res = res_zv->InitVec(n); \
+		auto& res = res_zv->RawVector()->InitVec(n); \
 		for ( unsigned int i = 0; i < n; ++i ) \
 			res[i].lhs_accessor = cast(v[i].rhs_accessor); \
 		return res_zv; \
 		}
 
-VEC_COERCE(IU, int_val, bro_int_t, uint_val)
-VEC_COERCE(ID, int_val, bro_int_t, double_val)
-VEC_COERCE(UI, uint_val, bro_int_t, int_val)
-VEC_COERCE(UD, uint_val, bro_uint_t, double_val)
-VEC_COERCE(DI, double_val, double, int_val)
-VEC_COERCE(DU, double_val, double, uint_val)
+VEC_COERCE(IU, TYPE_INT, int_val, bro_int_t, uint_val)
+VEC_COERCE(ID, TYPE_INT, int_val, bro_int_t, double_val)
+VEC_COERCE(UI, TYPE_COUNT, uint_val, bro_int_t, int_val)
+VEC_COERCE(UD, TYPE_COUNT, uint_val, bro_uint_t, double_val)
+VEC_COERCE(DI, TYPE_DOUBLE, double_val, double, int_val)
+VEC_COERCE(DU, TYPE_DOUBLE, double_val, double, uint_val)
 
 StringVal* ZAM_to_lower(const StringVal* sv)
 	{
@@ -2894,7 +2896,7 @@ TraversalCode ResumptionAM::Traverse(TraversalCallback* cb) const
 	}
 
 // Unary vector operation of v1 <vec-op> v2.
-static void vec_exec(ZOp op, ZAM_vector*& v1, const ZAM_vector* v2)
+static void vec_exec(ZOp op, VectorVal*& v1, VectorVal* v2)
 	{
 	// We could speed this up further still by gen'ing up an
 	// instance of the loop inside each switch case (in which
@@ -2902,17 +2904,19 @@ static void vec_exec(ZOp op, ZAM_vector*& v1, const ZAM_vector* v2)
 	// into the Exec method).  But that seems like a lot of
 	// code bloat for only a very modest gain.
 
-	auto& vec2 = v2->ConstVec();
+	auto& vec2 = v2->RawVector()->ConstVec();
 	bool needs_management;
 
-	if ( v1 )
-		v1->Resize(vec2.size());
-	else
-		v1  = new ZAM_vector(nullptr, nullptr, vec2.size());
+	if ( ! v1 )
+		{
+		auto vt = v2->Type()->AsVectorType();
+		::Ref(vt);
+		v1 = new VectorVal(vt);
+		}
 
-	v1->SetGeneralYieldType(v2->GeneralYieldType());
+	v1->RawVector()->Resize(vec2.size());
 
-	auto& vec1 = v1->ModVec();
+	auto& vec1 = v1->RawVector()->ModVec();
 
 	for ( unsigned int i = 0; i < vec2.size(); ++i )
 		switch ( op ) {
@@ -2925,28 +2929,27 @@ static void vec_exec(ZOp op, ZAM_vector*& v1, const ZAM_vector* v2)
 	}
 
 // Binary vector operation of v1 = v2 <vec-op> v3.
-static void vec_exec(ZOp op, BroType* yt, ZAM_vector*& v1,
-			const ZAM_vector* v2, const ZAM_vector* v3)
+static void vec_exec(ZOp op, BroType* yt, VectorVal*& v1,
+			VectorVal* v2, const VectorVal* v3)
 	{
 	// See comment above re further speed-up.
 
-	auto& vec2 = v2->ConstVec();
-	auto& vec3 = v3->ConstVec();
+	auto& vec2 = v2->RawVector()->ConstVec();
+	auto& vec3 = v3->RawVector()->ConstVec();
 
-	BroType* needs_management = nullptr;
+	BroType* needs_management = v1 ? yt : nullptr;
 
-	if ( v1 )
+	if ( ! v1 )
 		{
-		// ### This leaks if it's a vector-of-string becoming smaller.
-		v1->Resize(vec2.size());
-		needs_management = yt;
+		auto vt = v2->Type()->AsVectorType();
+		::Ref(vt);
+		v1 = new VectorVal(vt);
 		}
-	else
-		v1 = new ZAM_vector(nullptr, yt, vec2.size());
 
-	v1->SetGeneralYieldType(yt);
+	// ### This leaks if it's a vector-of-string becoming smaller.
+	v1->RawVector()->Resize(vec2.size());
 
-	auto& vec1 = v1->ModVec();
+	auto& vec1 = v1->RawVector()->ModVec();
 
 	for ( unsigned int i = 0; i < vec2.size(); ++i )
 		switch ( op ) {

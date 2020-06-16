@@ -4573,7 +4573,7 @@ IntrusivePtr<Expr> IndexExpr::Duplicate()
 	return make_intrusive<IndexExpr>(op1_d, op2_l, is_slice);
 	}
 
-IntrusivePtr<Val> vector_bool_select(VectorType* vt, const VectorVal* v1,
+IntrusivePtr<VectorVal> vector_bool_select(VectorType* vt, const VectorVal* v1,
 					const VectorVal* v2)
 	{
 	auto v_result = make_intrusive<VectorVal>(vt);
@@ -4591,7 +4591,7 @@ IntrusivePtr<Val> vector_bool_select(VectorType* vt, const VectorVal* v1,
 	return v_result;
 	}
 
-IntrusivePtr<Val> vector_int_select(VectorType* vt, const VectorVal* v1,
+IntrusivePtr<VectorVal> vector_int_select(VectorType* vt, const VectorVal* v1,
 					const VectorVal* v2)
 	{
 	auto v_result = make_intrusive<VectorVal>(vt);
@@ -4611,7 +4611,7 @@ IntrusivePtr<Val> vector_int_select(VectorType* vt, const VectorVal* v1,
 	return v_result;
 	}
 
-IntrusivePtr<Val> vector_index(VectorType* vt, const VectorVal* vect,
+IntrusivePtr<VectorVal> vector_index(VectorType* vt, const VectorVal* vect,
 				const ListVal* lv)
 	{
 	size_t len = vect->Size();

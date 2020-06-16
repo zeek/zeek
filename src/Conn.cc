@@ -391,10 +391,8 @@ RecordVal* Connection::BuildConnVal()
 
 		if ( encapsulation && encapsulation->Depth() > 0 )
 			{
-			IntrusivePtr<Val> e_vv =
-				{AdoptRef{}, encapsulation->GetVectorVal()};
-			auto vv = to_ZAM_vector(e_vv);
-			cdr->SetField(8).vector_val = vv;
+			auto e_vv = encapsulation->GetVectorVal();
+			cdr->SetField(8).vector_val = e_vv;
 			}
 
 		if ( vlan != 0 )

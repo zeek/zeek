@@ -3020,21 +3020,9 @@ VectorVal::VectorVal(VectorType* t, unsigned int n) : Val(t)
 	val.vector_val = new ZAM_vector(this, yt, n);
 	}
 
-VectorVal::VectorVal(ZAM_vector* zv, VectorType* t) : Val(t)
-	{
-	vector_type = t->Ref()->AsVectorType();
-	val.vector_val = zv;
-	::Ref(zv);
-	}
-
 VectorVal::~VectorVal()
 	{
-	if ( val.vector_val )
-		{
-		val.vector_val->Disassociate();
-		Unref(val.vector_val);
-		}
-
+	delete val.vector_val;
 	Unref(vector_type);
 	}
 

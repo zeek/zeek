@@ -9,9 +9,6 @@
 #include <unordered_set>
 
 
-// ZAM aggregates.
-class ZAM_vector;
-
 class IterInfo;
 
 typedef std::vector<IntrusivePtr<Val>> val_vec;
@@ -48,9 +45,6 @@ union ZAMValUnion {
 	// distinct, we can readily recover them given type information.
 	double double_val;
 
-	// Internal values managed via Ref/Unref.
-	ZAM_vector* vector_val;
-
 	// The types are all variants of Val (or BroType).  For memory
 	// management, we use Ref/Unref.
 	StringVal* string_val;
@@ -63,6 +57,7 @@ union ZAMValUnion {
 	PatternVal* re_val;
 	TableVal* table_val;
 	RecordVal* record_val;
+	VectorVal* vector_val;
 	BroType* type_val;
 
 	// Used for direct "any" values.
@@ -108,46 +103,13 @@ extern void DeleteManagedType(ZAMValUnion& v, const BroType* t);
 
 typedef vector<ZAMValUnion> ZVU_vec;
 
-// Class used to manage aggregates.  Assumes ownership of the associated Val*
-// (if any).  Enables sharing of aggregates between multiple ZAM values.
-//
-// The base class manages a ZVU_vec.  Its values might be homogeneous if
-// it reflects a Zeek vector, or heterogeneous if it reflects a Zeek record.
-
-class ZAMAggrInstantiation : public BroObj {
+class ZAM_vector {
 public:
-	ZAMAggrInstantiation(Val* _v, int n)
+	ZAM_vector(VectorVal* _vv, BroType* yt, int n = 0)
 	: zvec(n)
 		{
-		// Note, we do not Ref() here, since we take ownership.
-		// However, this requires that the Val's destructor
-		// disassociate with us prior to deleting us.
-		aggr_val = _v;
-		}
+		vv = _vv;
 
-	virtual ~ZAMAggrInstantiation()
-		{
-		if ( aggr_val )
-			Unref(aggr_val);
-		}
-
-	void Disassociate()	{ aggr_val = nullptr; }
-
-protected:
-	// The associated Zeek interpreter value.  We track this just
-	// for convenience, so we don't have to build a new Val* when
-	// converting to a Val.
-	Val* aggr_val;
-
-	// The underlying set of ZAM values.
-	ZVU_vec zvec;
-};
-
-class ZAM_vector : public ZAMAggrInstantiation {
-public:
-	ZAM_vector(VectorVal* _v, BroType* yt, int n = 0)
-		: ZAMAggrInstantiation(_v, n)
-		{
 		if ( yt )
 			{
 			general_yt = yt;
@@ -159,19 +121,13 @@ public:
 
 	~ZAM_vector()
 		{
-		if ( aggr_val )
-			aggr_val->AsVectorVal()->Disassociate();
-
 		if ( managed_yt )
 			DeleteMembers();
 		}
 
-	IntrusivePtr<VectorVal> ToVectorVal(BroType* t);
+	BroType* YieldType() const	{ return general_yt; }
 
-	BroType* ManagedYieldType() const	{ return managed_yt; }
-	BroType* GeneralYieldType() const	{ return general_yt; }
-
-	void SetGeneralYieldType(BroType* yt)
+	void SetYieldType(BroType* yt)
 		{
 		if ( ! general_yt )
 			{
@@ -198,22 +154,12 @@ public:
 		return zvec;
 		}
 
-	IntrusivePtr<VectorVal> VecVal()
-		{
-		if ( aggr_val )
-			return {NewRef{}, aggr_val->AsVectorVal()};
-		else
-			return nullptr;
-		}
-	void SetVecVal(VectorVal* vv)	{ aggr_val = vv; }
-
 	ZAMValUnion& Lookup(int n)
 		{
 		return zvec[n];
 		}
 
-	// Sets the given element, doing deletions and deep-copies
-	// for managed types.
+	// Sets the given element, with accompanying memory management.
 	void SetElement(int n, ZAMValUnion& v)
 		{
 		if ( zvec.size() <= n )
@@ -249,7 +195,6 @@ public:
 
 	void Resize(unsigned int new_num_elements)
 		{
-		zvec.reserve(new_num_elements);
 		zvec.resize(new_num_elements);
 		}
 
@@ -266,6 +211,12 @@ protected:
 			DeleteManagedType(zvec[n], managed_yt);
 		}
 
+	// The underlying set of ZAM values.
+	ZVU_vec zvec;
+
+	// The associated main value.
+	VectorVal* vv;
+
 	// The yield type of the vector elements.  Only non-nil if they
 	// are managed types.
 	BroType* managed_yt;
@@ -274,10 +225,6 @@ protected:
 	// managed.  We use a lengthier name to make sure we never
 	// confuse this with managed_yt.
 	BroType* general_yt;
-
-	// Whether the base type of the vector is one for which we need
-	// to do explicit memory management.
-	bool is_managed;
 };
 
 class ZAM_record {
@@ -420,7 +367,7 @@ public:
 	BroType* value_var_type = nullptr;
 
 	// If we're iterating over vectors, points to the raw vector ...
-	IntrusivePtr<ZAM_vector> vv = nullptr;
+	ZAM_vector* vv = nullptr;
 
 	// The vector's type & yield.
 	VectorType* vec_type = nullptr;
@@ -433,5 +380,3 @@ public:
 	bro_uint_t iter;
 	bro_uint_t n;	// we loop from 0 ... n-1
 };
-
-extern ZAM_vector* to_ZAM_vector(const IntrusivePtr<Val>& vec);

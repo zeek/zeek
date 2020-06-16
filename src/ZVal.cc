@@ -140,6 +140,9 @@ ZAMValUnion::ZAMValUnion(IntrusivePtr<Val> v, BroType* t)
 
 	case TYPE_VECTOR:
 		{
+		vector_val = v.release()->AsVectorVal();
+
+		// Some run-time type-checking, sigh.
 		auto my_ytag = t->AsVectorType()->YieldType()->Tag();
 		auto v_ytag = vt->AsVectorType()->YieldType()->Tag();
 
@@ -155,10 +158,7 @@ ZAMValUnion::ZAMValUnion(IntrusivePtr<Val> v, BroType* t)
 			snprintf(msg, sizeof msg, "vector type clash: %s vs. %s",
 					type_name(my_ytag), type_name(v_ytag));
 			ZAM_run_time_error(msg, v.get());
-			vector_val = nullptr;
 			}
-		else
-			vector_val = to_ZAM_vector(v);
 
 		break;
 		}
@@ -234,8 +234,6 @@ IntrusivePtr<Val> ZAMValUnion::ToVal(BroType* t) const
 
 	case TYPE_PORT:		v = val_mgr->GetPort(uint_val); break;
 
-	case TYPE_VECTOR:	return vector_val->ToVectorVal(t);
-
 	case TYPE_ANY:		return {NewRef{}, any_val};
 
 	case TYPE_TYPE:		v = new Val(type_val); break;
@@ -249,6 +247,7 @@ IntrusivePtr<Val> ZAMValUnion::ToVal(BroType* t) const
 	case TYPE_OPAQUE:	v = opaque_val; v->Ref(); break;
 	case TYPE_TABLE:	v = table_val; v->Ref(); break;
 	case TYPE_RECORD:	v = record_val; v->Ref(); break;
+	case TYPE_VECTOR:	v = vector_val; v->Ref(); break;
 	case TYPE_PATTERN:	v = re_val; v->Ref(); break;
 
 	case TYPE_ERROR:
@@ -261,44 +260,6 @@ IntrusivePtr<Val> ZAMValUnion::ToVal(BroType* t) const
 	return {AdoptRef{}, v};
 	}
 
-
-IntrusivePtr<VectorVal> ZAM_vector::ToVectorVal(BroType* t)
-	{
-	if ( ! aggr_val )
-		{
-		// Need to create the vector.
-		auto vt = t->AsVectorType();
-		auto yt = vt->YieldType();
-		int n = zvec.size();
-
-		if ( ! general_yt )
-			SetGeneralYieldType(yt);
-
-		auto is_any = IsAny(general_yt);
-
-		auto vv = new VectorVal(this, vt);
-
-		for ( int i = 0; i < n; ++i )
-			{
-			auto& vr = zvec[i];
-
-			if ( vr.IsNil(general_yt) )
-				continue;
-
-			IntrusivePtr<Val> v_i;
-			if ( is_any )
-				v_i = {NewRef{}, vr.any_val};
-			else
-				v_i = vr.ToVal(general_yt);
-
-			vv->Assign(i, v_i);
-			}
-
-		aggr_val = vv;
-		}
-
-	return {NewRef{}, aggr_val->AsVectorVal()};
-	}
 
 void ZAM_vector::SetManagedElement(int n, ZAMValUnion& v)
 	{
@@ -397,12 +358,4 @@ void ZAM_record::DeleteManagedMembers()
 			DeleteManagedType(zvi, rti);
 			}
 		}
-	}
-
-
-ZAM_vector* to_ZAM_vector(const IntrusivePtr<Val>& vec)
-	{
-	auto zv = vec->AsNonConstVector();
-	Ref(zv);
-	return zv;
 	}

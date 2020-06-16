@@ -23,7 +23,7 @@ typedef std::vector<IntrusivePtr<Val>> val_vec;
 // the ZAM frame.
 union ZAMValUnion {
 	// Constructor for hand-populating the values.
-	ZAMValUnion() { void_val = nullptr; }
+	ZAMValUnion() { managed_val = nullptr; }
 
 	// Construct from a given Bro value with a given type.
 	ZAMValUnion(IntrusivePtr<Val> v, BroType* t);
@@ -73,9 +73,8 @@ union ZAMValUnion {
 	// Used for loading/spilling globals; also, local vectors.
 	ID* id_val;
 
-	// Only used when we clear pointers on entry, and that's just
-	// to lazily avoid doing a switch like IsNil() does.
-	void* void_val;
+	// Used for generic access to managed objects.
+	BroObj* managed_val;
 };
 
 // True if a given type is one that we treat internally as an "any" type.

@@ -785,7 +785,7 @@ IntrusivePtr<Val> ZAM::DoExec(Frame* f, int start_pc,
 
 	// Clear slots for which we do explicit memory management.
 	for ( auto s : managed_slots )
-		frame[s].void_val = nullptr;
+		frame[s].managed_val = nullptr;
 
 	flow = FLOW_RETURN;	// can be over-written by a Hook-Break
 

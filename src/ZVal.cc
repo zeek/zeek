@@ -297,7 +297,7 @@ void ZAM_vector::GrowVector(int new_size)
 	for ( int i = old_size; i < new_size; ++i )
 		// Strictly speaking, we should know the particular type of
 		// vector and zero it accordingly.
-		zvec[i].void_val = nullptr;
+		zvec[i].managed_val = nullptr;
 	}
 
 void ZAM_vector::DeleteMembers()
